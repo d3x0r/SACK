@@ -46,6 +46,7 @@ ExternalProject_Add( scan_portable
 		-DPLATFORM_CMAKE_DEFINES=${PLATFORM_CMAKE_DEFINES_ARG}
 		-DSHA1_SOURCES=${SHA1_SOURCES}
 		-DSHA2_SOURCES=${SHA2_SOURCES}
+		-DSHA3_SOURCES=${SHA3_SOURCES}
 )
 
 #add_subdirectory( portable )

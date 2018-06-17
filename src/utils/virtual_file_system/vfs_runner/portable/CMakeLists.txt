@@ -94,6 +94,7 @@ set(BASE_SOURCES
     ${SOURCES_ROOT}/src/filesyslib/winfiles.c
     ${SHA1_SOURCES}
     ${SHA2_SOURCES}
+    ${SHA3_SOURCES}
     #${RANDOM_SOURCES}
 	${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c
     ${SNPRINTF_SOURCES}

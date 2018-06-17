@@ -54,6 +54,7 @@ sack_types.h
 http.h
 sha1.h
 sha2.h
+../src/contrib/sha3lib/sha3.h
 md5.h
 sharemem.h
 skelhdr.h

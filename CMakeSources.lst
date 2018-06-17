@@ -16,6 +16,9 @@ set( SHA1_SOURCES
 set( SHA2_SOURCES
   ${SOURCES_ROOT}src/contrib/sha2lib/sha2.c
   )
+set( SHA3_SOURCES
+  ${SOURCES_ROOT}src/contrib/sha3lib/sha3.c
+  )
 
 set( RANDOM_SOURCES
   ${SOURCES_ROOT}src/salty_random_generator/salty_generator.c
@@ -32,6 +35,7 @@ set(UNSORTED_SOURCES
   ${RANDOM_SOURCES}
   ${SHA1_SOURCES}
   ${SHA2_SOURCES}
+  ${SHA3_SOURCES}
   ${SOURCES_ROOT}src/sysloglib/syslog.c
   ${SOURCES_ROOT}src/memlib/sharemem.c
   ${SOURCES_ROOT}src/memlib/memory_operations.c
@@ -570,6 +574,7 @@ set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS} ${NETWORK_HEADERS} ${MSGSVR_
         ${SOURCES_ROOT}src/contrib/genx/genx.h
         ${SOURCES_ROOT}src/imglib/local.h
         ${SOURCES_ROOT}src/contrib/uuid-1.6.2/uuid.h
+	${SOURCES_ROOT}src/contrib/sha3lib/sha3.h
 )
 
 set(BASE_SOURCES  ${BASE_SOURCES}
@@ -582,6 +587,7 @@ set(BASE_SOURCES  ${BASE_SOURCES}
   ${FILESYSTEM_SOURCES}
   ${SHA1_SOURCES}
   ${SHA2_SOURCES}
+  ${SHA3_SOURCES}
   ${MD5_SOURCES}
   ${MORE_SYSTEM_SOURCES}
   ${SERVICE_STUB_SOURCES}
