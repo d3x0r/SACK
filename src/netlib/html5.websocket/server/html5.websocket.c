@@ -253,7 +253,6 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		if( !socket->flags.initial_handshake_done || socket->flags.http_request_only )
 		{
 			//lprintf( WIDE("Initial handshake is not done...") );
-			((char*)buffer)[length] = 0; // make sure nul terminated.
 			AddHttpData( socket->http_state, tmp, length );
 			while( ( result = ProcessHttp( pc, socket->http_state ) ) )
 			{
