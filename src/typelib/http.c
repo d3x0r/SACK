@@ -54,7 +54,7 @@ struct HttpState {
 		BIT_FIELD ssl : 1; // prevent issuing network reads... ssl pushes data from internal buffers
 		BIT_FIELD success : 1;
 	}flags;
-   uint32_t lock;
+	uint32_t lock;
 };
 
 struct HttpServer {
@@ -87,11 +87,11 @@ PRELOAD( loadOption ) {
 }
 
 static void lockHttp( struct HttpState *state ) {
-   while( LockedExchange( &state->lock, 1 ) );
+	while( LockedExchange( &state->lock, 1 ) );
 }
 
 static void unlockHttp( struct HttpState *state ) {
-   state->lock = 0;
+	state->lock = 0;
 }
 
 void GatherHttpData( struct HttpState *pHttpState )
@@ -156,7 +156,7 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 //int ProcessHttp( struct HttpState *pHttpState )
 int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 {
-   lockHttp( pHttpState );
+	lockHttp( pHttpState );
 	if( pHttpState->final )
 	{
 		GatherHttpData( pHttpState );
@@ -342,7 +342,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											}
 											else if( GetText(tmp)[0] == '#' )
 											{
-												lprintf( WIDE("Page anchor is lost... %s"), GetText( next ) );
+												lprintf( WIDE("Page anchor of URL is lost(not saved)... %s"), GetText( next ) );
 												next = NEXTLINE( next );
 											}
 											else
@@ -464,7 +464,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			GatherHttpData( pHttpState );
 		}
 	}
-   unlockHttp( pHttpState );
+	unlockHttp( pHttpState );
 
 	if( pHttpState->final &&
 		( ( pHttpState->content_length
@@ -495,7 +495,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 	pHttpState->last_read_tick = GetTickCount();
 	if( pHttpState->read_chunks )
 	{
-		uint8_t* buf = (uint8_t*)buffer;
+		const uint8_t* buf = (const uint8_t*)buffer;
 		size_t ofs = 0;
 		while( ofs < size )
 		{
@@ -515,9 +515,11 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				else if( buf[0] == '\r' )
 				{
 					pHttpState->read_chunk_total_length += pHttpState->read_chunk_length;
+#ifdef _DEBUG
 					if( l.flags.bLogReceived ) {
 						lprintf( "Chunck will be %zd", pHttpState->read_chunk_length );
 					}
+#endif
 					pHttpState->read_chunk_state = READ_VALUE_LF;
 				}
 				else
@@ -528,8 +530,8 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				}
 				break;
 			case READ_VALUE_CR:
-            // didn't actually implement to get into this state... just looks for newlines really.
-            break;
+				// didn't actually implement to get into this state... just looks for newlines really.
+				break;
 			case READ_VALUE_LF:
 				if( buf[0] == '\n' )
 				{
@@ -617,7 +619,7 @@ struct HttpState *CreateHttpState( void )
 
 void EndHttp( struct HttpState *pHttpState )
 {
-   lockHttp( pHttpState );
+	lockHttp( pHttpState );
 	pHttpState->final = 0;
 
 	pHttpState->content_length = 0;
@@ -654,7 +656,7 @@ void EndHttp( struct HttpState *pHttpState )
 		}
 		EmptyList( &pHttpState->fields );
 	}
-   unlockHttp( pHttpState );
+	unlockHttp( pHttpState );
 }
 
 PTEXT GetHttpContent( struct HttpState *pHttpState )
@@ -727,7 +729,7 @@ PTEXT GetHttpMethod( struct HttpState *pHttpState )
 
 void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 {
-   //_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too?" );
+	//_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too?" );
 	EndHttp( pHttpState ); // empties variables
 	DeleteList( &pHttpState->fields );
 	VarTextDestroy( &pHttpState->pvtOut );
@@ -738,7 +740,7 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 }
 
 void DestroyHttpState( struct HttpState *pHttpState ) {
-   DestroyHttpStateEx( pHttpState DBG_SRC );
+	DestroyHttpStateEx( pHttpState DBG_SRC );
 }
 
 #define DestroyHttpState(state) DestroyHttpStateEx(state DBG_SRC )
@@ -1157,12 +1159,13 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 	{
 		int result;
 		struct HttpState *pHttpState = (struct HttpState *)GetNetworkLong( pc, 1 );
+#ifdef _DEBUG
 		if( l.flags.bLogReceived )
 		{
 			lprintf( WIDE("Received web request...") );
 			LogBinary( (uint8_t*)buffer, length );
 		}
-
+#endif
 		AddHttpData( pHttpState, buffer, length );
 		while( ( result = ProcessHttp( pc, pHttpState ) ) )
 		{
