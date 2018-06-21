@@ -156,8 +156,9 @@ PSI_PROC( void, SetTextControlColors )( PSI_CONTROL pc, CDATA fore, CDATA back )
 	ValidatedControlData( PTEXTCONTROL, STATIC_TEXT, ptc, pc );
 	if( (!ptc) )
 		return;	
+	
 	if( fore )
-		ptc->foreground = fore;
+		SetControlColor( pc, TEXTCOLOR, fore );
 	else
 		ptc->foreground = basecolor(pc)[TEXTCOLOR];
 

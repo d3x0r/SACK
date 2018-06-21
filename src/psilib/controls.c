@@ -912,7 +912,7 @@ PSI_PROC( void, SetControlColor )( PSI_CONTROL pc, INDEX idx, CDATA c )
 {
 	if( pc )
 	{
-		if( basecolor( pc ) == DefaultColors ) {
+		if( !pc->basecolors || basecolor( pc ) == DefaultColors ) {
 			if( !pc->border ) {
 				pc->basecolors = NewArray( CDATA, sizeof( DefaultColors ) / sizeof( CDATA ) );
 				MemCpy( pc->basecolors, DefaultColors, sizeof( DefaultColors ) );
