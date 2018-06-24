@@ -349,7 +349,7 @@ TEXTSTR EscapeSQLBinaryExx( PODBC odbc, CTEXTSTR blob, uintptr_t bloblen, uintpt
 		if( bQuote )
 			( *tmpnamebuf++ ) = '\'';
 		while( n < bloblen ) {
-			if( bQuote && (*pBlob) == 0 ) {
+			if( (*pBlob) == 0 ) {
 				( *tmpnamebuf++ ) = '\'';
 				( *tmpnamebuf++ ) = '|';
 				( *tmpnamebuf++ ) = '|';
