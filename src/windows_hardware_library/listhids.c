@@ -1,6 +1,10 @@
+
+#ifdef _WIN32
+
 #define SACKHIDLIST_SOURCE
 #include "listhids.h"
 #include <sharemem.h>
+#include <deadstart.h>
 
 //static LOGICAL Win9xListPorts( ListHidsCallback lpCallback, uintptr_t psv );
 //static LOGICAL WinNT40ListPorts( ListHidsCallback lpCallback, uintptr_t psv );
@@ -10,6 +14,21 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 static uint32_t OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName ); 
 static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue );
 
+#if 0
+LOGICAL  CPROC cb( uintptr_t psv, LISTHIDS_HIDINFO* lpHidInfo ) {
+	lprintf( "%s %s %s %s", lpHidInfo->lpTechnology,
+		lpHidInfo->lpHid,
+		lpHidInfo->lpClass,
+		lpHidInfo->lpClassGuid );
+	return TRUE;
+}
+void dump( ) {
+	ListHids( cb, 0 );
+}
+PRELOAD( testhids ) {
+	dump();
+}
+#endif
 LOGICAL ListHids( ListHidsCallback lpCallback, uintptr_t psv )
 {
 
@@ -347,7 +366,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 					hkLevel3 = NULL;
 				}
 				
-				if( dwError = OpenSubKeyByIndex( hkLevel2, dwIndex3, KEY_READ, &hkLevel3, NULL ) )
+				if( dwError = OpenSubKeyByIndex( hkLevel2, dwIndex3, KEY_READ, &hkLevel3, &lpClass ) )
 				{
 					if( dwError == ERROR_NO_MORE_ITEMS )
 					{
@@ -373,6 +392,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 						goto end;
 				}
 				
+				/*
 				dwError = QueryStringValue( hkLevel3, WIDE( "Class" ), &lpClass );
 				if( dwError )
 				{
@@ -384,7 +404,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 					else
 						goto end;
 				}
-
+				*/
 				dwError = QueryStringValue( hkLevel3, WIDE( "ClassGUID" ), &lpClassGuid );
 				if( dwError )
 				{
@@ -511,3 +531,5 @@ static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppS
 			return dwError;
 	}
 }
+
+#endif
