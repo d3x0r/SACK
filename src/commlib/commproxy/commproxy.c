@@ -295,7 +295,7 @@ int MakeProxyWindow( void )
 	if( !g.hWnd )
 	{
       Log( WIDE("Failed to create window!?!?!?!") );
-		MessageBox( NULL, WIDE("Failed to create window to handle SQL Proxy Messages"), WIDE("INIT FAILURE"), MB_OK );
+		MessageBox( NULL, WIDE("Failed to create window to handle COM Proxy Messages"), WIDE("INIT FAILURE"), MB_OK );
       return FALSE;
 	}
    return TRUE;
