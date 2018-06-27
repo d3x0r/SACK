@@ -269,7 +269,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 					value = GetHTTPField( socket->http_state, WIDE( "Connection" ) );
 					value2 = GetHTTPField( socket->http_state, WIDE( "Upgrade" ) );
 					if( !value || !value2
-						|| !TextLike( value, "upgrade" )
+						|| !StrCaseStr( GetText(value), "upgrade" )
 						|| !TextLike( value2, "websocket" ) ) {
 						//lprintf( "request is not an upgrade for websocket." );
 						socket->flags.initial_handshake_done = 1;

@@ -434,7 +434,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 				}
 				else if( TextLike( field->name, WIDE( "connection" ) ) )
 				{
-					if( TextLike( field->value, "upgrade" ) ) {
+					if( StrCaseStr( GetText( field->value ), "upgrade" ) ) {
 						pHttpState->flags.upgrade = 1;
 					}
 				}
