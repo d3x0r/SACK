@@ -1790,6 +1790,7 @@ int  sack_fflush ( FILE *file_file )
 int  sack_fclose ( FILE *file_file )
 {
 	struct file *file;
+	if( !file_file ) return -1;
 	EnterCriticalSec( &(*winfile_local).cs_files );
 	file = FindFileByFILE( file_file );
 	if( file )
