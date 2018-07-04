@@ -204,6 +204,12 @@ void ResetWebsocketRequestHandler( PCLIENT pc ) {
    EndHttp( socket->http_state );
 }
 
+uintptr_t WebSocketGetServerData( PCLIENT pc ) {
+	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+	if( !socket ) return 0; // closing/closed....
+	return socket->input_state.psv_on;
+}
+
 static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	//HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
 	if( socket->flags.in_open_event ) {
