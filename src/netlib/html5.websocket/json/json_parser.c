@@ -957,10 +957,8 @@ void _json_dispose_message( PDATALIST *msg_data )
 			_json_dispose_message( val->_contains );
 	}
 	// quick method
+	DeleteDataList( msg_data );
 	DeleteFromSet( PDATALIST, jpsd.dataLists, msg_data );
-	( *msg_data ) = NULL;
-	//DeleteDataList( msg_data );
-
 }
 
 static uintptr_t FindDataList( void*p, uintptr_t psv ) {
