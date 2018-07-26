@@ -1466,6 +1466,9 @@ LOGICAL CPROC sack_vfs_is_directory( uintptr_t psvInstance, const char *path ) {
 
 static LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, const char *newname ) {
 	struct volume *vol = (struct volume *)psvInstance;
+	// fail if the names are the same.
+	if( strcmp( original, newname ) == 0 )
+		return FALSE;
 	if( vol ) {
 		struct directory_entry entkey;
 		struct directory_entry *entry;
@@ -1473,7 +1476,9 @@ static LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *origina
 		if( ( entry  = ScanDirectory( vol, original, &entkey, 0 ) ) ) {
 			struct directory_entry new_entkey;
 			struct directory_entry *new_entry;
-			if( ( new_entry = ScanDirectory( vol, newname, &new_entkey, 0 ) ) ) return FALSE;
+			if( (new_entry = ScanDirectory( vol, newname, &new_entkey, 0 )) ) {
+				sack_vfs_unlink_file( vol, newname );
+			}
 			entry->name_offset = SaveFileName( vol, newname ) ^ entkey.name_offset;
 			vol->lock = 0;
 			return TRUE;
