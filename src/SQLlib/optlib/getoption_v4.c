@@ -53,6 +53,12 @@ extern OPTION_GLOBAL *sack_global_option_data;
 
 //------------------------------------------------------------------------
 
+void FixCorruption( PODBC odbc ) {
+
+}
+
+//------------------------------------------------------------------------
+
 CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR table, CTEXTSTR col, CTEXTSTR namecol, int bCreate DBG_PASS )
 {
 			TEXTCHAR query[256];

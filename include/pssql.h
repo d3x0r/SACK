@@ -1659,6 +1659,14 @@ PSSQL_PROC( LOGICAL, BackupDatabase )( PODBC source, PODBC dest );
 // deprecated during dev, instead added function hook exports
 //PSSQL_PROC( POINTER, GetODBCHandle )( PODBC odbc );
 
+/* set a handler to be triggered when SQLite Database finds corruption type error...
+ */
+void SetSQLCorruptionHandler( PODBC odbc, void (CPROC*f)(uintptr_t psv, PODBC odbc), uintptr_t psv );
+
+/* Utility function to parse DSN according to sack sqlite vfs rules... */
+void ParseDSN( CTEXTSTR dsn, char **vfs, char **vfsInfo, char **dbFile );
+
+
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 
 #ifdef __cplusplus

@@ -1281,6 +1281,203 @@ ATEXIT( CommitOptions )
 	}
 }
 
+static void CloseAllODBC( CTEXTSTR dsn ) {
+	INDEX idx;
+	LOGICAL new_tracker = FALSE;
+	struct option_odbc_tracker *tracker;
+	if( !dsn )
+		dsn = GetDefaultOptionDatabaseDSN();
+
+	LIST_FORALL( og.odbc_list, idx, struct option_odbc_tracker *, tracker )
+	{
+		//lprintf( "Check %s(%d) vs %s(%d)", dsn, version, tracker->name, tracker->version );
+		if( StrCaseCmp( dsn, tracker->name ) == 0 ) {
+			//lprintf( "yes, it matched." );
+			break;
+		}
+	}
+
+	if( tracker ) {
+		PODBC odbc;
+		PLIST list = NULL;
+		LIST_FORALL( tracker->outstanding, idx, PODBC, odbc ) {
+			CloseDatabaseEx( odbc, FALSE );
+		}
+		while( odbc = (PODBC)DequeLink( &tracker->available ) ) {
+			CloseDatabaseEx( odbc, FALSE );
+			AddLink( &list, odbc );
+		}
+		LIST_FORALL( list, idx, PODBC, odbc ) {
+			EnqueLink( &tracker->available, odbc );
+		}
+	}
+}
+
+
+static void repairOptionDb( uintptr_t psv, PODBC odbc ) {
+	static int fixing = 0;
+	CTEXTSTR *results;
+	size_t *lengths;
+	int cols;
+	int n;
+	if( fixing ) {
+		lprintf( "Already fixing, must have been selecting something?" );
+		return;
+	}
+	fixing = 1;
+	//lprintf( "Check:" );
+	for( SQLRecordQueryf_v2( odbc, &cols, &results, &lengths, NULL, "pragma integrity_check" );
+		results;
+		FetchSQLRecord( odbc, &results ) ) {
+		for( n = 0; n < cols; n++ ) {
+			lprintf( "Rsult:%s", results[n] );
+		}
+	}
+
+	{
+		char newDb[256];
+		char newDbFile[256];
+		PODBC newOdbc;
+		CTEXTSTR *fields;
+		int row = 0;
+		struct file_system_mounted_interface *mount = NULL;
+		PVARTEXT pvtCmd = VarTextCreate();
+		char *pDbOrigFile;
+		{
+			char * pVfs, *pVfsInfo, *pDbFile;
+			//size_t nVfs, nVfsInfo, nDbFile;
+			//ParseDSN( odbc->info.pDSN, &pVfs, &nVfs, &pVfsInfo, &nVfsInfo, &pDbFile, &nDbFile );
+			ParseDSN( odbc->info.pDSN, &pVfs, &pVfsInfo, &pDbFile );
+			pDbOrigFile = StrDup( pDbFile );
+			snprintf( newDbFile, 256, "%s-r2", pDbFile );
+			if( pVfsInfo )
+				mount = sack_get_mounted_filesystem( pVfsInfo );
+			else
+				mount = sack_get_default_mount();
+			sack_unlinkEx( 0, newDbFile, mount );
+			snprintf( newDb, 256, "%s-r2", odbc->info.pDSN );
+
+		}
+		//snprintf( newDb, 256, "%s-r2", odbc->info.pDSN );
+		newOdbc = GetOptionODBC( newDb );
+		SetOptionDatabaseOption( newOdbc );
+		SQLCommand( odbc, "delete from option4_map" );
+		SQLCommand( odbc, "delete from option4_name" );
+		for( row=0, SQLRecordQueryf_v2( odbc, &cols, &results, &lengths, &fields, "select * from option4_map" );
+			results;
+			row++, FetchSQLRecord( odbc, &results ) ) {
+			if( !row ) {
+				vtprintf( pvtCmd, "insert into option4_map(" );
+				for( n = 0; n < cols; n++ ) {
+					vtprintf( pvtCmd, "%s'%s'", n ? "," : "", fields[n] );
+				}
+				vtprintf( pvtCmd, ")VALUES" );
+			}
+			vtprintf( pvtCmd, "%s(", row?",":"" );
+			for( n = 0; n < cols; n++ ) {
+				if( results[n] )
+					vtprintf( pvtCmd, "%s'%s'", n ? "," : "", EscapeSQLBinary( newOdbc, results[n], lengths[n] ) );
+				else
+					vtprintf( pvtCmd, "%sNULL", n ? "," : "" );
+			}
+			vtprintf( pvtCmd, ")" );
+			
+		}
+		{
+			PTEXT cmd = VarTextPeek( pvtCmd );
+			if( cmd )
+				SQLCommand( newOdbc, GetText( cmd ) );
+		}
+		VarTextEmpty( pvtCmd );
+
+
+		for( row = 0, SQLRecordQueryf_v2( odbc, &cols, &results, &lengths, &fields, "select * from option4_name" );
+			results;
+			row++, FetchSQLRecord( odbc, &results ) ) {
+			if( !row ) {
+				vtprintf( pvtCmd, "insert into option4_name(" );
+				for( n = 0; n < cols; n++ ) {
+					vtprintf( pvtCmd, "%s'%s'", n ? "," : "", fields[n] );
+				}
+				vtprintf( pvtCmd, ")VALUES" );
+			}
+			vtprintf( pvtCmd, "%s(", row ? "," : "" );
+			for( n = 0; n < cols; n++ ) {
+				if( results[n] )
+					vtprintf( pvtCmd, "%s'%s'", n ? "," : "", EscapeSQLBinary( newOdbc, results[n], lengths[n] ) );
+				else
+					vtprintf( pvtCmd, "%sNULL", n ? "," : "" );
+			}
+			vtprintf( pvtCmd, ")" );
+
+		}
+		{
+			PTEXT cmd = VarTextPeek( pvtCmd );
+			if( cmd )
+				SQLCommand( newOdbc, GetText( cmd ) );
+		}
+		VarTextEmpty( pvtCmd );
+
+
+		for( row = 0, SQLRecordQueryf_v2( odbc, &cols, &results, &lengths, &fields, "select * from option4_values" );
+			results;
+			row++, FetchSQLRecord( odbc, &results ) ) {
+			if( !row ) {
+				vtprintf( pvtCmd, "insert into option4_values(" );
+				for( n = 0; n < cols; n++ ) {
+					vtprintf( pvtCmd, "%s'%s'", n ? "," : "", fields[n] );
+				}
+				vtprintf( pvtCmd, ")VALUES" );
+			}
+			vtprintf( pvtCmd, "%s(", row ? "," : "" );
+			for( n = 0; n < cols; n++ ) {
+				if( results[n] )
+					vtprintf( pvtCmd, "%s'%s'", n ? "," : "", EscapeSQLBinary( newOdbc, results[n], lengths[n] ) );
+				else
+					vtprintf( pvtCmd, "%sNULL", n ? "," : "" );
+			}
+			vtprintf( pvtCmd, ")" );
+		}
+		{
+			PTEXT cmd = VarTextPeek( pvtCmd );
+			if( cmd )
+				SQLCommand( newOdbc, GetText( cmd ) );
+		}
+		VarTextEmpty( pvtCmd );
+
+		for( row=0, SQLRecordQueryf_v2( odbc, &cols, &results, &lengths, &fields, "select * from option4_blobs" );
+			results;
+			row++, FetchSQLRecord( odbc, &results ) ) {
+			if( !row ) {
+				vtprintf( pvtCmd, "insert into option4_blobs(" );
+				for( n = 0; n < cols; n++ ) {
+					vtprintf( pvtCmd, "%s'%s'", n ? "," : "", fields[n] );
+				}
+				vtprintf( pvtCmd, ")VALUES" );
+			}
+			vtprintf( pvtCmd, "%s(", row ? "," : "" );
+			for( n = 0; n < cols; n++ ) {
+				if( results[n] )
+					vtprintf( pvtCmd, "%s'%s'", n ? "," : "", EscapeSQLBinary( newOdbc, results[n], lengths[n] ) );
+				else
+					vtprintf( pvtCmd, "%sNULL", n ? "," : "" );
+			}
+			vtprintf( pvtCmd, ")" );
+		}
+		{
+			PTEXT cmd = VarTextPeek( pvtCmd );
+			if( cmd )
+				SQLCommand( newOdbc, GetText( cmd ) );
+		}
+		VarTextDestroy( &pvtCmd );
+		CloseDatabaseEx( newOdbc, FALSE );
+		CloseAllODBC( odbc->info.pDSN );
+		sack_unlinkEx( 0, pDbOrigFile, mount );
+		sack_renameEx( pDbOrigFile, newDbFile, mount );
+	}
+	fixing = 0;
+}
+
 SQLGETOPTION_PROC( CTEXTSTR, GetDefaultOptionDatabaseDSN )( void )
 {
 	return global_sqlstub_data->OptionDb.info.pDSN;
@@ -1322,7 +1519,7 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 			lprintf( "none available, create new connection." );
 #endif
 			odbc = ConnectToDatabaseExx( tracker->name, TRUE DBG_RELAY );
-
+			SetSQLCorruptionHandler( odbc, repairOptionDb, (uintptr_t)odbc );
 			{
 				INDEX idx;
 				CTEXTSTR cmd;
