@@ -1209,9 +1209,9 @@ void ParseDSN( CTEXTSTR dsn, char **vfs, char **vfsInfo, char **dbFile ) {
 	static TEXTCHAR *tmpvfsvfs;
 	static TEXTCHAR *tmp_name;
 	static char *tmp;
-	if( tmpvfsvfs ) Release( tmpvfsvfs );
-	if( tmp_name ) Release( tmp_name );
-	if( tmp ) Release( tmp );
+	if( tmpvfsvfs ) { Release( tmpvfsvfs ); tmpvfsvfs = NULL; }
+	if( tmp_name ) { Release( tmp_name ); tmp_name = NULL; }
+	if( tmp ) { Release( tmp ); tmp = NULL; }
 
 	if( dsn[0] == '$' ) {
 		char *vfs_name;
@@ -1249,6 +1249,7 @@ void ParseDSN( CTEXTSTR dsn, char **vfs, char **vfsInfo, char **dbFile ) {
 		(*dbFile) = tmp;
 
 		Deallocate( TEXTCHAR *, tmp_name );
+		tmp_name = NULL;
 	}
 	else {
 		if( StrCaseCmpEx( dsn, "file:", 5 ) == 0
@@ -1265,6 +1266,7 @@ void ParseDSN( CTEXTSTR dsn, char **vfs, char **vfsInfo, char **dbFile ) {
 			(*vfsInfo) = NULL;
 			(*dbFile) = tmp;
 			Deallocate( TEXTCHAR *, tmp_name );
+			tmp_name = NULL;
 		}
 	}
 
@@ -1525,7 +1527,6 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 			// and - we REQUIRE connection...
 			if( !( odbc->flags.bForceConnection && !odbc->flags.bSkipODBC ) )
 			{
-				TEXTCHAR *tmp_name;
 				char *tmp;
 				char *vfs_name;
 				TEXTCHAR *tmpvfsvfs;
@@ -3258,7 +3259,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				if( odbc->pCorruptionHandler ) {
 					odbc->pCorruptionHandler( odbc->psvCorruptionHandler, odbc );
 				}
-				lprintf( WIDE("Database is corrupt (should retry): %s"), sqlite3_errmsg(odbc->db ) );
+				vtprintf( collection->pvt_errorinfo, WIDE("Database is corrupt (should retry): %s\n"), sqlite3_errmsg(odbc->db ) );
 				result_cmd = WM_SQL_RESULT_ERROR;
 				break;
 			default:

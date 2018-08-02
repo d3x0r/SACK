@@ -48,16 +48,17 @@ int ValidateCreateTable( PTEXT *word )
 int GrabName( PTEXT *word, TEXTSTR *result, int *bQuoted DBG_PASS )
 {
 	TEXTSTR name = NULL;
+	CTEXTSTR open;
 	//PTEXT start = (*word);
 	//printf( WIDE( "word is %s" ), GetText( *word ) );
-	if( TextLike( (*word), WIDE( "`" ) ) )
+	if( TextLike( (*word), open = WIDE( "`" ) ) || TextLike( (*word), open = "\'" ) )
 	{
 		PTEXT phrase = NULL;
 		PTEXT line;
 		if( bQuoted )
 			(*bQuoted) = 1;
 		(*word) = NEXTLINE( *word );
-		while( (*word) && ( GetText( *word )[0] != '`' ) )
+		while( (*word) && ( GetText( *word )[0] != open[0] ) )
 		{
 			phrase = SegAppend( phrase, SegDuplicateEx(*word DBG_RELAY ) );
 			(*word) = NEXTLINE( *word );
@@ -69,10 +70,10 @@ int GrabName( PTEXT *word, TEXTSTR *result, int *bQuoted DBG_PASS )
 			(*word) = NEXTLINE( *word );
 			LineRelease( phrase );
 			phrase = NULL;
-			if( TextLike( (*word), WIDE( "`" ) ) )
+			if( TextLike( (*word), open = WIDE( "`" ) ) || TextLike( (*word), open = "\'" ) )
 			{
 				(*word) = NEXTLINE( *word );
-				while( (*word) && ( GetText( *word )[0] != '`' ) )
+				while( (*word) && ( GetText( *word )[0] != open[0]) )
 				{
 					phrase = SegAppend( phrase, SegDuplicateEx(*word DBG_RELAY ) );
 					(*word) = NEXTLINE( *word );

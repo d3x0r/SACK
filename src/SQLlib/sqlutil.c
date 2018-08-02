@@ -1734,6 +1734,38 @@ retry:
 				else
 					if( !SQLCommand( odbc, GetText( txt_cmd ) ) )
 						status = 0;
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+				if( odbc->flags.bSQLite_native ) {
+					VarTextEmpty( pvtCreate );
+					for( n = 0; n < table->keys.count; n++ ) {
+						int col;
+						int colfirst;
+						colfirst = 1;
+						if( !table->keys.key[n].flags.bPrimary) {
+							vtprintf( pvtCreate, WIDE( "CREATE %sINDEX '%s' ON '%s'(" )
+								, table->keys.key[n].flags.bUnique ? WIDE( "UNIQUE " ) : WIDE( "" )
+								, table->keys.key[n].name
+								, table->name );
+							for( col = 0; table->keys.key[n].colnames[col]; col++ ) {
+								if( !table->keys.key[n].colnames[col] )
+									break;
+								vtprintf( pvtCreate, WIDE( "%s'%s'" )
+									, colfirst ? WIDE( "" ) : WIDE( "," )
+									, table->keys.key[n].colnames[col]
+								);
+								colfirst = 0;
+							}
+							vtprintf( pvtCreate, WIDE( ")" ) );
+							first = 0;
+
+							if( !SQLCommand( odbc, GetText( VarTextPeek( pvtCreate ) ) ) )
+								status = 0;
+							VarTextEmpty( pvtCreate );
+						}
+					}
+				}
+#endif
+
 			}
 			else
 			{

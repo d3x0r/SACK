@@ -255,10 +255,8 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 					else
 					{
 						CTEXTSTR error;
-						FetchSQLError( tree->odbc, &error );
-#ifdef DETAILED_LOGGING
+						FetchSQLError( tree->odbc_writer, &error );
 						lprintf( WIDE("Error inserting option: %s"), error );
-#endif
 						ID = NULL;
 					}
 #ifdef DETAILED_LOGGING

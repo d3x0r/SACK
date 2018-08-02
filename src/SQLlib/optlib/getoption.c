@@ -262,6 +262,8 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 		_lprintf(DBG_RELAY)( WIDE( "Connect to writer database for tree %p odbc %p" ), option, option->odbc );
 #endif
 		option->odbc_writer = ConnectToDatabaseExx( option->odbc?option->odbc->info.pDSN:global_sqlstub_data->Primary.info.pDSN, FALSE DBG_RELAY );
+		SQLCommand( option->odbc_writer, "pragma foreign_keys=on" );
+
 		//option->odbc_writer = SQLGetODBC( option->odbc?option->odbc->info.pDSN:global_sqlstub_data->Primary.info.pDSN );
 		if( option->odbc_writer )
 		{
@@ -1474,6 +1476,7 @@ static void repairOptionDb( uintptr_t psv, PODBC odbc ) {
 		CloseAllODBC( odbc->info.pDSN );
 		sack_unlinkEx( 0, pDbOrigFile, mount );
 		sack_renameEx( pDbOrigFile, newDbFile, mount );
+		Release( pDbOrigFile );
 	}
 	fixing = 0;
 }
@@ -1520,6 +1523,8 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 #endif
 			odbc = ConnectToDatabaseExx( tracker->name, TRUE DBG_RELAY );
 			SetSQLCorruptionHandler( odbc, repairOptionDb, (uintptr_t)odbc );
+			SQLCommand( odbc, "pragma foreign_keys=on" );
+
 			{
 				INDEX idx;
 				CTEXTSTR cmd;
