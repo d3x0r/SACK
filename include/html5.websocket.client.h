@@ -32,6 +32,7 @@ length, and what is received will be exactly like the block that was sent.
 // become the new value used for future uintptr_t parameters to other events.
 typedef uintptr_t (*web_socket_opened)( PCLIENT pc, uintptr_t psv );
 typedef void (*web_socket_closed)( PCLIENT pc, uintptr_t psv, int code, const char *reason );
+typedef void( *web_socket_http_close )(PCLIENT pc, uintptr_t psv);
 typedef void (*web_socket_error)( PCLIENT pc, uintptr_t psv, int error );
 typedef void (*web_socket_event)( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, size_t msglen );
 // protocolsAccepted value set can be released in opened callback, or it may be simply assigned as protocols passed...
@@ -96,6 +97,7 @@ WEBSOCKET_EXPORT void SetWebSocketReadCallback( PCLIENT pc, web_socket_event cal
 WEBSOCKET_EXPORT void SetWebSocketCloseCallback( PCLIENT pc, web_socket_closed callback );
 WEBSOCKET_EXPORT void SetWebSocketErrorCallback( PCLIENT pc, web_socket_error callback );
 WEBSOCKET_EXPORT void SetWebSocketHttpCallback( PCLIENT pc, web_socket_http_request callback );
+WEBSOCKET_EXPORT void SetWebSocketHttpCloseCallback( PCLIENT pc, web_socket_http_close callback );
 
 // if set in server accept callback, this will return without extension set
 // on client socket (default), does not request permessage-deflate
