@@ -51,7 +51,7 @@ int GrabName( PTEXT *word, TEXTSTR *result, int *bQuoted DBG_PASS )
 	CTEXTSTR open;
 	//PTEXT start = (*word);
 	//printf( WIDE( "word is %s" ), GetText( *word ) );
-	if( TextLike( (*word), open = WIDE( "`" ) ) || TextLike( (*word), open = "\'" ) )
+	if( TextLike( (*word), open = WIDE( "`" ) ) || TextLike( (*word), open = "\'" ) || TextLike( (*word),open="\"") )
 	{
 		PTEXT phrase = NULL;
 		PTEXT line;
@@ -70,7 +70,7 @@ int GrabName( PTEXT *word, TEXTSTR *result, int *bQuoted DBG_PASS )
 			(*word) = NEXTLINE( *word );
 			LineRelease( phrase );
 			phrase = NULL;
-			if( TextLike( (*word), open = WIDE( "`" ) ) || TextLike( (*word), open = "\'" ) )
+			if( TextLike( (*word), open = WIDE( "`" ) ) || TextLike( (*word), open = "\'" ) || TextLike( (*word), open = "\"" ) )
 			{
 				(*word) = NEXTLINE( *word );
 				while( (*word) && ( GetText( *word )[0] != open[0]) )
