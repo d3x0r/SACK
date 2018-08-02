@@ -5920,33 +5920,36 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	l.RegisterTouchWindow = (BOOL (WINAPI *)( HWND, ULONG  ))LoadFunction( WIDE( "user32.dll" ), WIDE( "RegisterTouchWindow" ) );
 #endif
 #endif
-	RegisterInterface( 
+	{
+		CTEXTSTR name =
 #ifdef SACK_BAG_EXPORTS  // symbol defined by visual studio sack_bag.vcproj
 #  ifdef __cplusplus
 #	 ifdef __cplusplus_cli
-		WIDE("sack.render")
+			WIDE( "sack.render" )
 #	 else
-		WIDE("sack.render++")
+			WIDE( "sack.render++" )
 #	 endif
 #  else
-		WIDE("sack.render")
+			WIDE( "sack.render" )
 #  endif
 #else
 #  ifdef UNDER_CE
-		WIDE("render")
+			WIDE( "render" )
 #  else
 #	 ifdef __cplusplus
 #		ifdef __cplusplus_cli
-		  WIDE("sack.render")
+			WIDE( "sack.render" )
 #		else
-		  WIDE("sack.render++")
+			WIDE( "sack.render++" )
 #		endif
 #	 else
-		WIDE("sack.render")
+			WIDE( "sack.render" )
 #	 endif
 #  endif
 #endif
-		, GetDisplayInterface, DropDisplayInterface );
+			;
+		RegisterInterface( name, GetDisplayInterface, DropDisplayInterface );
+	}
 	if( SACK_GetProfileInt( WIDE("SACK/Video Render"), WIDE("enable alt-f4 exit"), 1 ) )
 		BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
 	//EnableLoggingOutput( TRUE );
