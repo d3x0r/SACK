@@ -1746,7 +1746,7 @@ typedef void	 (CPROC *UNLOADPROC)( POINTER );
 
 //-----------------------------------------------------------------------
 
-LOGICAL RegisterInterface( CTEXTSTR servicename, POINTER(CPROC*load)(void), void(CPROC*unload)(POINTER))
+LOGICAL RegisterInterfaceEx( CTEXTSTR servicename, POINTER(CPROC*load)(void), void(CPROC*unload)(POINTER) DBG_PASS )
 {
 	//PARAM( args, TEXTCHAR*, servicename );
 	//PARAM( args, TEXTCHAR*, library );
@@ -1755,7 +1755,7 @@ LOGICAL RegisterInterface( CTEXTSTR servicename, POINTER(CPROC*load)(void), void
 	PCLASSROOT pcr = GetClassRoot( WIDE("system/interfaces") );
 	if( GetRegisteredProcedureExx( pcr, (PCLASSROOT)servicename, WIDE("POINTER"), WIDE("load"), WIDE("void") ) )
 	{
-		lprintf( WIDE("Service: %s has multiple definitions, will use last first.")
+		lprintf( WIDE("Service: %s has multiple definitions, using first registered.")
 				 , servicename );
 		return FALSE;
 	}
@@ -1766,13 +1766,13 @@ LOGICAL RegisterInterface( CTEXTSTR servicename, POINTER(CPROC*load)(void), void
 								  , WIDE("load")
 								  , WIDE("POINTER")
 								  , (PROCEDURE)load
-								  , WIDE("(void)"), NULL, NULL DBG_SRC );
+								  , WIDE("(void)"), NULL, NULL DBG_RELAY );
 		RegisterFunctionExx( pcr
 								  , (PCLASSROOT)servicename
 								  , WIDE("unload")
 								  , WIDE("void")
 								  , (PROCEDURE)unload
-								  , WIDE("(POINTER)"), NULL, NULL DBG_SRC );
+								  , WIDE("(POINTER)"), NULL, NULL DBG_RELAY );
 	}
 	return TRUE;
 }
