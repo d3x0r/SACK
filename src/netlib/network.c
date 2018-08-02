@@ -3350,7 +3350,8 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 #endif
 			//lprintf( "Idle... socket lock failed, had global though..." );
 			Relinquish();
-			goto start_lock;
+			return NULL;
+			//goto start_lock;
 		}
 		//EnterCriticalSec( readWrite ? &lpClient->csLockRead : &lpClient->csLockWrite );
 #ifdef USE_NATIVE_CRITICAL_SECTION

@@ -220,6 +220,9 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	if( pc_client && socket->input_state.on_close ) {
 		socket->input_state.on_close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
 	}
+	if( pc_client && socket->input_state.on_http_close ) {
+		socket->input_state.on_http_close( pc_client, socket->input_state.psv_on );
+	}
 	if( socket->input_state.close_reason )
 		Deallocate( char*, socket->input_state.close_reason );
 #ifndef __NO_WEBSOCK_COMPRESSION__

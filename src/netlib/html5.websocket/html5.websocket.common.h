@@ -60,6 +60,7 @@ struct web_socket_input_state
 
 	web_socket_event on_event;
 	web_socket_closed on_close;
+	web_socket_http_close on_http_close;
 	web_socket_opened on_open;
 	web_socket_error on_error;
 	web_socket_accept on_accept;  // server socket event
