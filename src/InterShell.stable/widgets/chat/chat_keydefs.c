@@ -296,7 +296,7 @@ int Widget_DoStroke( PCHAT_LIST list, PTEXT stroke )
 			seg = NEXTLINE( seg );
 		}
 		GatherUserInput( list->input.CommandInfo
-						, (PTEXT)stroke, TRUE );
+						, (PTEXT)stroke );
 	}
 	return TRUE;
 }
