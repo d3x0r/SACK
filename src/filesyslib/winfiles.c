@@ -566,6 +566,12 @@ static TEXTSTR PrependBasePathEx( INDEX groupid, struct Group *group, CTEXTSTR f
 			lprintf(WIDE("prepend %s[%s] with %s"), group->base_path, tmp_path, filename );
 #endif
 		tnprintf( fullname, len, WIDE("%s/%s"), tmp_path, real_filename );
+		{
+			// resolve recusive % paths...
+			TEXTSTR tmp2 = ExpandPath( fullname );
+			Release( fullname );
+			fullname = tmp2;
+		}
 #if __ANDROID__
 		{
 			int len_base;
