@@ -1433,7 +1433,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 
 	while( !NetworkLockEx( lpClient, 0 DBG_SRC ) )
 	{
-		if( !(lpClient->dwFlags & CF_ACTIVE ) || (lpClient->dwFlags & CF_TOCLOSE) )
+		if( (!(lpClient->dwFlags & CF_ACTIVE )) || (lpClient->dwFlags & CF_TOCLOSE) )
 		{
 			_lprintf(DBG_RELAY)( "Failing send... inactive or closing" );
 			LogBinary( (uint8_t*)pInBuffer, nInLen );
