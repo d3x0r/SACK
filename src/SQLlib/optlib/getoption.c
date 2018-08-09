@@ -263,7 +263,39 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 #endif
 		option->odbc_writer = ConnectToDatabaseExx( option->odbc?option->odbc->info.pDSN:global_sqlstub_data->Primary.info.pDSN, FALSE DBG_RELAY );
 		SQLCommand( option->odbc_writer, "pragma foreign_keys=on" );
-
+      /*
+		SQLCommand( option->odbc_writer, "pragma integrity_check" );
+		{
+			CTEXTSTR res = NULL;
+			for( SQLQuery( option->odbc_writer, "select * from option4_name where name = 'system Settings'", &res );
+				res;
+				FetchSQLResult( option->odbc_writer, &res ) );
+			for( SQLQuery( option->odbc_writer, "PRAGMA foreign_key_check", &res );
+				res;
+				FetchSQLResult( option->odbc_writer, &res ) )
+				;// lprintf( "result:%s", res );;
+			for( SQLQuery( option->odbc_writer, "PRAGMA foreign_key_check(option4_map)", &res );
+				res;
+				FetchSQLResult( option->odbc_writer, &res ) )
+				;//lprintf( "result:%s", res );;
+			for( SQLQuery( option->odbc_writer, "PRAGMA foreign_key_list(option4_map)", &res );
+				res;
+				FetchSQLResult( option->odbc_writer, &res ) )
+				;//lprintf( "result:%s", res );;
+			for( SQLQuery( option->odbc_writer, "PRAGMA foreign_key_list(option4_name)", &res );
+				res;
+				FetchSQLResult( option->odbc_writer, &res ) )
+				;//lprintf( "result:%s", res );;
+			for( SQLQuery( option->odbc_writer, "PRAGMA foreign_key_list(option4_value)", &res );
+				res;
+				FetchSQLResult( option->odbc_writer, &res ) )
+				;//lprintf( "result:%s", res );;
+			for( SQLQuery( option->odbc_writer, "select * from sqlite_master", &res );
+				res;
+				FetchSQLResult( option->odbc_writer, &res ) )
+				;//lprintf( "result:%s", res );;
+		}
+*/
 		//option->odbc_writer = SQLGetODBC( option->odbc?option->odbc->info.pDSN:global_sqlstub_data->Primary.info.pDSN );
 		if( option->odbc_writer )
 		{
