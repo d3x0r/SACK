@@ -707,22 +707,30 @@ PTEXT GetHttpField( struct HttpState *pHttpState, CTEXTSTR name )
 
 PTEXT GetHttpResponce( struct HttpState *pHttpState )
 {
-	return pHttpState->response_status;
+	if( pHttpState )
+		return pHttpState->response_status;
+	return NULL;
 }
 
 PTEXT GetHttpRequest( struct HttpState *pHttpState )
 {
-	return pHttpState->resource;
+	if( pHttpState )
+		return pHttpState->resource;
+	return NULL;
 }
 
 PTEXT GetHttpResource( struct HttpState *pHttpState )
 {
-	return pHttpState->resource;
+	if( pHttpState )
+		return pHttpState->resource;
+	return NULL;
 }
 
 PTEXT GetHttpMethod( struct HttpState *pHttpState )
 {
-	return pHttpState->method;
+	if( pHttpState )
+		return pHttpState->method;
+	return NULL;
 }
 
 
