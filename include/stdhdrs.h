@@ -259,7 +259,11 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 
 #ifndef MAXPATH
 // windef.h has MAX_PATH
-# define MAXPATH MAX_PATH
+#  define MAXPATH MAX_PATH
+#  if (!MAXPATH) 
+#    undef MAXPATH
+#    define MAXPATH 256
+#  endif
 #endif
 
 #ifndef PATH_MAX
