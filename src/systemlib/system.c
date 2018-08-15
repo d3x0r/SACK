@@ -588,6 +588,15 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 						break;
 					library = library->next;
 				}
+				if( !library ) {
+					lprintf( "FATALITY:Did not manage to find self:%s", TARGETNAME );
+					PLIBRARY library = (*init_l).libraries;
+					while( library )
+					{
+						lprintf( "library->name:%s", library->name );
+						library = library->next;
+					}
+				}
 				//if( library )
 				{
 					char *dupname;
@@ -783,11 +792,12 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 	else
 		return TRUE;
 #else
-   lprintf( "need to send kill() to signal process to top" );
+	//lprintf( "need to send kill() to signal process to stop" );
+	kill( task->pid, SIGINT );
 #endif
 
 
-	 return FALSE;
+	return FALSE;
 }
 
 
@@ -1401,10 +1411,11 @@ static void LoadExistingLibraries( void )
 					continue;
 				buf[offset-1] = 0;
 				scanned = sscanf( buf, "%zx-%zx %s %zx", &start, &end, perms, &offset );
+				//lprintf( "so sscanf said: %d %d", scanned, offset );
 				if( scanned == 4 && offset == 0 )
 				{
-					if( ( perms[2] == 'x' )
-						&& ( ( end - start ) > 4 ) )
+					//lprintf( "Perms:%s", perms );
+					if( ( end - start ) > 4 )
 						if( ( ((unsigned char*)start)[0] == ELFMAG0 )
 						   && ( ((unsigned char*)start)[1] == ELFMAG1 )
 						   && ( ((unsigned char*)start)[2] == ELFMAG2 )
