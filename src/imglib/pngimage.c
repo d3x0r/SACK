@@ -127,8 +127,8 @@ ImageFile *ImagePngFile (uint8_t * buf, size_t size)
 		return NULL;
 
 	png_set_option(png_ptr
-	              . PNG_MAXIMUM_INFLATE_WINDOW
-	              . PNG_OPTION_ON);
+	              , PNG_MAXIMUM_INFLATE_WINDOW
+	              , PNG_OPTION_ON);
 
 	png_set_error_fn( png_ptr, png_get_error_ptr( png_ptr )
 						 , NotSoFatalError, NotSoFatalError );
