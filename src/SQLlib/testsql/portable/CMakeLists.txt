@@ -92,6 +92,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/salty_random_generator/crypt_util.c
     ${SOURCES_ROOT}/src/contrib/sha1lib/sha1.c
     ${SOURCES_ROOT}/src/contrib/sha2lib/sha2.c
+    ${SOURCES_ROOT}/src/contrib/sha3lib/sha3.c
     ${SNPRINTF_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c 
