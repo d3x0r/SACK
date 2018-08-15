@@ -1572,31 +1572,43 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	if( !library )
 	{
 		size_t fullnameLen;
-		size_t maxlen = ( fullnameLen = StrLen( l.load_path ) + 1 + StrLen( libname ) + 1 ) + StrLen( l.library_path ) + 1 + StrLen(libname) + 1;
+		size_t orignameLen;
+		size_t curnameLen;
+		TEXTCHAR curPath[MAXPATH];
+		size_t maxlen;
+		GetCurrentPath( curPath, sizeof( curPath ) );
+		maxlen = (fullnameLen = StrLen( l.load_path ) + 1 + StrLen( libname ) + 1)
+			+ (orignameLen = StrLen( libname ) + 1)
+			+ (curnameLen = StrLen( curPath ) + 1 + StrLen( libname ) + 1)
+			+ StrLen( l.library_path ) + 1 + StrLen( libname ) + 1
+			;
 		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(uint32_t)maxlen:0) );
 		library->alt_full_name = library->full_name + fullnameLen;
 		//lprintf( "New library %s", libname );
 		if( !IsAbsolutePath( libname ) )
 		{
+			library->orig_name = library->full_name + fullnameLen;
+			library->cur_full_name = library->full_name + fullnameLen + orignameLen;
+			library->alt_full_name = library->full_name + fullnameLen + orignameLen + curnameLen;
 			library->name = library->full_name
 				+ tnprintf( library->full_name, maxlen, WIDE("%s/"), l.load_path );
+			tnprintf( library->orig_name, maxlen, WIDE( "%s" ), libname );
+			tnprintf( library->cur_full_name, maxlen, WIDE( "%s/%s" ), curPath, libname );
 			tnprintf( library->alt_full_name, maxlen, WIDE( "%s/%s" ), l.library_path, libname );
 
 			tnprintf( library->name
 				, fullnameLen - (library->name-library->full_name)
 				, WIDE("%s"), libname );
-			library->long_name = library->name;
+			//library->long_name = library->name;
 			library->name = (char*)pathrchr( library->full_name );
-			if( library->name )
-				library->name++;
-			else
-				library->name = library->full_name;
 		}
 		else
 		{
 			StrCpy( library->full_name, libname );
+			library->orig_name = library->full_name;
+			library->cur_full_name = library->full_name;
 			library->alt_full_name = library->full_name;
-			library->long_name = library->full_name;
+			//library->long_name = library->full_name;
 			library->name = (char*)pathrchr( library->full_name );
 			library->loading = 0;
 			if( library->name )
@@ -1650,39 +1662,40 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		}
 		library->loading--;
 	}
-		SuspendDeadstart();
-		if( !library->library )
-		{
+	SuspendDeadstart();
+	if( !library->library ) {
+		library->library = LoadLibrary( library->cur_full_name );
+	}
+	if( !library->library ) {
 #  ifdef DEBUG_LIBRARY_LOADING
-			lprintf( "trying load...%s", library->full_name );
+		lprintf( "trying load...%s", library->full_name );
 #  endif
-			library->library = LoadLibrary( library->full_name );
-			if( !library->library )
-			{
-				library->library = LoadLibrary( library->alt_full_name );
-				if( !library->library )
-				{
+		library->library = LoadLibrary( library->full_name );
+	}
+	if( !library->library ) {
+		library->library = LoadLibrary( library->alt_full_name );
+	}
+	if( !library->library ) {
+		library->library = LoadLibrary( library->orig_name );
+	}
+	if( !library->library ) {
 #  ifdef DEBUG_LIBRARY_LOADING
-					lprintf( "trying load...%s", library->name );
+		lprintf( "trying load...%s", library->name );
 #  endif
-					library->library = LoadLibrary( library->name );
-					if( !library->library )
-					{
-						if( !library->loading )
-						{
-							if( l.flags.bLog )
-								_xlprintf( 2 DBG_RELAY )(WIDE( "Attempt to load %s[%s](%s) failed: %d." ), libname, library->full_name, funcname ? funcname : WIDE( "all" ), GetLastError());
-							UnlinkThing( library );
-							ReleaseEx( library DBG_SRC );
-						}
-						ResumeDeadstart();
-						return NULL;
-					}
-				}
-			}
+		library->library = LoadLibrary( library->name );
+	}
+	if( !library->library ) {
+		if( !library->loading ) {
+			if( l.flags.bLog )
+				_xlprintf( 2 DBG_RELAY )(WIDE( "Attempt to load %s[%s](%s) failed: %d." ), libname, library->full_name, funcname ? funcname : WIDE( "all" ), GetLastError());
+			UnlinkThing( library );
+			ReleaseEx( library DBG_SRC );
 		}
+		ResumeDeadstart();
+		return NULL;
+	}
 #else
-		SuspendDeadstart();
+	SuspendDeadstart();
 #  ifndef __ANDROID__
 		// ANDROID This will always fail from the application manager.
 #    ifdef UNICODE

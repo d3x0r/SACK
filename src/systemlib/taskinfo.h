@@ -70,9 +70,10 @@ typedef struct loaded_library_tag
 	PFUNCTION functions; 
 	DeclareLink( struct loaded_library_tag );
 	TEXTCHAR *name; // points into full_name after last slash - just library name
-	TEXTCHAR *long_name; // points into full_name passed name - may have a local path part
 	int loading;
 	TEXTCHAR *alt_full_name;// this is appended after full_name and is l.library_path
+	TEXTCHAR *cur_full_name;
+	TEXTCHAR *orig_name;
 	TEXTCHAR full_name[1];// this is more than 1; allocation pads extra bytes for the name. prefixed iwth l.load_path
 } LIBRARY, *PLIBRARY;
 
