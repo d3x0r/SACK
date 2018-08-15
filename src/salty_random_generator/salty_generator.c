@@ -4,7 +4,7 @@
 #define SHA2_SOURCE
 #endif
 #include <sha2.h>
-#include "../src//contrib/sha3lib/sha3.h"
+#include "../contrib/sha3lib/sha3.h"
 
 #ifndef SALTY_RANDOM_GENERATOR_SOURCE
 #define SALTY_RANDOM_GENERATOR_SOURCE
