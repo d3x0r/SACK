@@ -1017,9 +1017,9 @@ void PutDirectedText( Image image, int x, int y
 
 //-----------------------------------------------------------------
 
-int CPROC DrawSpace( PCOMMON pc )
+int CPROC DrawSpace( PSI_CONTROL pc )
 {
-	PCOMMON pRegion = pc;
+	PSI_CONTROL pRegion = pc;
 	PSPACE pSpace = (PSPACE)GetCommonUserData( pc );
 	//ValidatedControlData( PSPACE, board_space.TypeID, pSpace, pc );
     TEXTCHAR text[15];
@@ -1308,7 +1308,7 @@ void CPROC FlashSpaces( uintptr_t psv )
 
 //-----------------------------------------------------------------
 
-int CPROC MouseSpace( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
+int CPROC MouseSpace( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
    PSPACE  pSpace = (PSPACE)GetCommonUserData( pc );
     // hmm not sure how these buttons will work

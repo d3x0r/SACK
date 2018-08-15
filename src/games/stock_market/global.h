@@ -31,18 +31,18 @@ typedef struct {
 	int nCurrentRoll;
    PLIST PossibleSpaces;
    PRENDERER renderer;
-	PCOMMON display;
-	PCOMMON board;
-	PCOMMON Player;
-	PCOMMON graph;
-	PCONTROL Panel; // dialog on board to mount panels
+	PSI_CONTROL display;
+	PSI_CONTROL board;
+	PSI_CONTROL Player;
+	PSI_CONTROL graph;
+	PSI_CONTROL Panel; // dialog on board to mount panels
    uint32_t PanelWidth, PanelHeight;
-	PCOMMON Mounted; // current dialog mounted on panel.
-   PCOMMON _Mounted; // prior dialog mounted...
-	PCOMMON BuyStocks; // buy stock mountable dialog
-	PCOMMON SellStocks;
-	PCOMMON RollDice;
-	PCONTROL pStockBar;
+	PSI_CONTROL Mounted; // current dialog mounted on panel.
+   PSI_CONTROL _Mounted; // prior dialog mounted...
+	PSI_CONTROL BuyStocks; // buy stock mountable dialog
+	PSI_CONTROL SellStocks;
+	PSI_CONTROL RollDice;
+	PSI_CONTROL pStockBar;
    PLIST PossiblePlayers;
 	uint32_t scale;
    uint32_t nFlashTimer;

@@ -41,7 +41,7 @@ void UpdatePlayerDialog( void )
 	UpdateCommon( g.Player );
 }
 
-int CPROC DrawPlayerToken( PCOMMON pControl )
+int CPROC DrawPlayerToken( PSI_CONTROL pControl )
 {
 	ValidatedControlData( PPLAYER*, player_token.TypeID, ppPlayer, pControl );
 	PPLAYER pPlayer = (*ppPlayer);
@@ -67,7 +67,7 @@ int CPROC DrawPlayerToken( PCOMMON pControl )
 	return TRUE;
 }
 
-int CPROC PlayerMouse( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
+int CPROC PlayerMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PPLAYER*, player_token.TypeID, ppPlayer, pc );
 	PPLAYER pPlayer = (*ppPlayer);
@@ -93,7 +93,7 @@ int CPROC PlayerMouse( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 	return 1;
 }
 
-int CPROC InitToken( PCOMMON pc, POINTER userdata )
+int CPROC InitToken( PSI_CONTROL pc, POINTER userdata )
 {
 	ValidatedControlData( PPLAYER*, player_token.TypeID, ppPlayer, pc );
 	if( ppPlayer )
@@ -106,7 +106,7 @@ int CPROC InitToken( PCOMMON pc, POINTER userdata )
 CONTROL_REGISTRATION player_token = { WIDE("StockMarket Player Token")
 												, { { 16, 16 }, sizeof( PLAYER ), BORDER_NONE }
 // this is a deliberate abuse.  It is created iwth MakeControlparam which passes a different init routine signature
-												, (int(CPROC*)(PCOMMON))InitToken
+												, (int(CPROC*)(PSI_CONTROL))InitToken
 												, NULL
 												, DrawPlayerToken
 												, PlayerMouse
@@ -417,7 +417,7 @@ void InitPlayer( void )
 	MakeTextControl( g.Player, 185, 22, 100, 15, TXT_VALUE, WIDE("$999999"), 0 );
 	{
       Image Surface = GetFrameSurface( g.Player );
-		PCONTROL pc = MakeControl( g.Player
+		PSI_CONTROL pc = MakeControl( g.Player
 										 , portfolio.TypeID
 										 , 5, 56
 										 , Surface->width - 18, ( g.scale * 3 / 2)

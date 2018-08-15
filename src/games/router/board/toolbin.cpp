@@ -26,7 +26,7 @@ class TOOLBIN
 {
 public:
 	PIBOARD board;
-	PCOMMON display;
+	PSI_CONTROL display;
    PTOOL selected_tool;
    PLIST tools;
 	uint32_t cell_width, cell_height;
@@ -70,7 +70,7 @@ struct toolbin_tool *GetTool( PTOOLBIN toolbin, PIPEICE peice )
 
 
 
-int CPROC MouseToolbin( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
+int CPROC MouseToolbin( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PTOOLBIN, toolbin_control.TypeID, toolbin, pc );
 	if( toolbin )
@@ -99,7 +99,7 @@ int CPROC MouseToolbin( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
    return TRUE;
 }
 
-static int OnDrawCommon( WIDE("Board toolbin") )( PCOMMON pc )
+static int OnDrawCommon( WIDE("Board toolbin") )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PTOOLBIN, toolbin_control.TypeID, toolbin, pc );
 	if( toolbin )
@@ -166,7 +166,7 @@ void TOOLBIN::Init( PIBOARD board )
 }
 
 
-PSI_CONTROL SetBoardControlBoard( PCOMMON pc, PIBOARD board )
+PSI_CONTROL SetBoardControlBoard( PSI_CONTROL pc, PIBOARD board )
 {
 	ValidatedControlData( PTOOLBIN, toolbin_control.TypeID, toolbin, pc );
 	if( toolbin )
@@ -201,7 +201,7 @@ TOOLBIN::TOOLBIN( PIBOARD board, PSI_CONTROL parent, int32_t x, int32_t y, uint3
    l.creating = NULL;
 }
 
-int CPROC InitToolbinControl( PCOMMON pc )
+int CPROC InitToolbinControl( PSI_CONTROL pc )
 {
 	SetControlData( PTOOLBIN, pc, l.creating );
    SetCommonTransparent( pc, TRUE );

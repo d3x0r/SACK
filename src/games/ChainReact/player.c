@@ -43,19 +43,19 @@ extern Image pGrid;
 #define BTN_COLOR8 1017
 #define BTN_COLOR9 1018
 	
-static PCOMMON pPlayerFrame;
+static PSI_CONTROL pPlayerFrame;
 //------------------------------------------------------------------------------
 
 int done = FALSE;
 int nPlayers = 0;
-PCONTROL pcColor;
+PSI_CONTROL pcColor;
 int LastColor;
 extern PLAYER players[];
 
-void CPROC AddPlayerButton( uintptr_t psv, PCONTROL pc )
+void CPROC AddPlayerButton( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR buffer[256];
-	PCOMMON frame = GetFrame( pc );
+	PSI_CONTROL frame = GetFrame( pc );
 	(nPlayers)++;
 
  	GetControlText( GetControl( frame, EDT_NAME )
@@ -110,7 +110,7 @@ void CPROC AddPlayerButton( uintptr_t psv, PCONTROL pc )
 
 }
 
-void CPROC SetPlayerColor( uintptr_t psv, PCONTROL pc )
+void CPROC SetPlayerColor( uintptr_t psv, PSI_CONTROL pc )
 {
 	if( LastColor >= 0 )
 	{
@@ -121,17 +121,17 @@ void CPROC SetPlayerColor( uintptr_t psv, PCONTROL pc )
 	pcColor = pc;
 }
 
-void CPROC PlayGameButton( uintptr_t psv, PCONTROL pc  )
+void CPROC PlayGameButton( uintptr_t psv, PSI_CONTROL pc  )
 {
 	done = TRUE;
 }
 
-void CPROC ShowSomeHelp( uintptr_t psv, PCONTROL pc )
+void CPROC ShowSomeHelp( uintptr_t psv, PSI_CONTROL pc )
 {
 
 }
 
-void CPROC QuitGame( uintptr_t psv, PCONTROL pc )
+void CPROC QuitGame( uintptr_t psv, PSI_CONTROL pc )
 {
    DestroyFrame( &pPlayerFrame );
 	exit(1);
@@ -140,8 +140,8 @@ void CPROC QuitGame( uintptr_t psv, PCONTROL pc )
 // returns the number of valid players
 int ConfigurePlayers( void )
 {
-	PCOMMON pFrame;
-	PCONTROL pc;
+	PSI_CONTROL pFrame;
+	PSI_CONTROL pc;
 	Image pImages[MAX_PLAYERS];
 	int n;
 	for( n = 1; n <= MAX_PLAYERS; n++ )
@@ -160,7 +160,7 @@ int ConfigurePlayers( void )
 //                       , 0, Color( 255,255,255)
 //      						, Colors[n] );
 	}
-	pFrame = CreateFrame( WIDE("Config Player"), 0, 0, 275, 125, BORDER_NORMAL, (PCOMMON)0 );
+	pFrame = CreateFrame( WIDE("Config Player"), 0, 0, 275, 125, BORDER_NORMAL, (PSI_CONTROL)0 );
 	pPlayerFrame = pFrame;
 	MoveFrame( pFrame, 50, 50 );
 	MakeButton( pFrame, 255, 5, 15, 15, BTN_QUIT, WIDE("X"), 0, QuitGame, 0 );
@@ -212,8 +212,8 @@ int ConfigurePlayers( void )
 #define SLD_BOARD_Y 1021
 #define CHK_ANIMATE 1022
 #define CHK_SPHERICAL 1023
-PCONTROL pcBoard;
-static int CPROC DrawMimicBoard( PCOMMON pc )
+PSI_CONTROL pcBoard;
+static int CPROC DrawMimicBoard( PSI_CONTROL pc )
 {
 
 	int x, y, width, height;
@@ -234,14 +234,14 @@ static int CPROC DrawMimicBoard( PCOMMON pc )
    return 1;
 }
 
-void CPROC SliderUpdatedX( uintptr_t psv, PCONTROL pc, int val )
+void CPROC SliderUpdatedX( uintptr_t psv, PSI_CONTROL pc, int val )
 {
 //	printf( WIDE("Value: %d\n"), val );
 	BOARD_X = val;
    SmudgeCommon( pcBoard );
 }
 
-void CPROC SliderUpdatedY( uintptr_t psv, PCONTROL pc, int val )
+void CPROC SliderUpdatedY( uintptr_t psv, PSI_CONTROL pc, int val )
 {
 //	printf( WIDE("Value: %d\n"), val );
 	BOARD_Y = val;
@@ -259,9 +259,9 @@ PRELOAD( RegisterMimicBoard ){ DoRegisterControl( &MimicBoard ); }
 
 void ConfigureBoard( int *animate, int *sphere )
 {
-	PCOMMON pFrame;
-	PCONTROL pc;
-	pFrame = CreateFrame( WIDE("Config Board"), 0, 0, 275, 275, BORDER_NORMAL, (PCOMMON)0 );
+	PSI_CONTROL pFrame;
+	PSI_CONTROL pc;
+	pFrame = CreateFrame( WIDE("Config Board"), 0, 0, 275, 275, BORDER_NORMAL, (PSI_CONTROL)0 );
 	MoveFrame( pFrame, 50, 50 );
 	pcBoard = MakeControl( pFrame, MimicBoard.TypeID, 23, 23, 150, 150, TXT_STATIC );
 	pc = MakeSlider( pFrame, 20, 5, 153, 15, SLD_BOARD_X, SLIDER_HORIZ, SliderUpdatedX, 0 );

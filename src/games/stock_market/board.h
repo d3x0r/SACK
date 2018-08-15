@@ -10,8 +10,8 @@ PSPACE ChooseStartSpace( void );
 
 void ChoosePlayerDestination( void );
 void PayWageSlaves( void );
-void MountPanel( PCOMMON frame );
-void UnmountPanel( PCOMMON frame );
+void MountPanel( PSI_CONTROL frame );
+void UnmountPanel( PSI_CONTROL frame );
 void AddSellToPossible( void );
 void AddRollToPossible( void );
 

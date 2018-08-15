@@ -34,7 +34,7 @@ typedef struct player_tag {
 	PLIST portfolio; // list of PSTOCKACCOUNTS
    PSTOCKACCOUNT pMeeting;  // which stock meeting we're in
 	PSPACE pCurrentSpace;
-	PCONTROL pPlayerToken;
+	PSI_CONTROL pPlayerToken;
    DeclareLink( struct player_tag );
 } PLAYER, *PPLAYER;
 

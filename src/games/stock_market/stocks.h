@@ -6,9 +6,9 @@ void InitStockDialogs( void );
 void BuySomeStock( PSTOCK pStock, uint32_t max_shares );
 void StockBuyEnd( void );
 void StockSellEnd( void );
-int CPROC DrawPortfolio( PCONTROL pc );
+int CPROC DrawPortfolio( PSI_CONTROL pc );
 
-int CPROC DrawStockBar( PCOMMON pc );
+int CPROC DrawStockBar( PSI_CONTROL pc );
 
 PSTOCKACCOUNT GetStockAccount( PORTFOLIO portfolio, PSTOCK stock );
 uint32_t BuyStock( PORTFOLIO portfolio, PSTOCK stock, uint32_t shares );

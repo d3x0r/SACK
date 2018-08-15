@@ -11,7 +11,7 @@
 #include "player.h"
 #include "input.h"
 
-void CPROC ButtonRollDice( uintptr_t psv, PCONTROL pc )
+void CPROC ButtonRollDice( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR number[4];
 	if( psv )

@@ -67,7 +67,7 @@ typedef struct space_tag {
          uint32_t fee;
 		} broker;
 	} attributes;
-	PCONTROL region;
+	PSI_CONTROL region;
    struct player_tag *pPlayers; // players on this space...
 } SPACE, *PSPACE;
 

@@ -818,7 +818,7 @@ void CPROC BoardRefreshExtern( uintptr_t dwUser, PRENDERER renderer )
 }
 
 
-int CPROC DoMouseExtern( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
+uintptr_t CPROC DoMouseExtern( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
 {
    BOARD *pb = (BOARD*)dwUser;
    pb->DoMouse( x, y, b );
@@ -1589,7 +1589,7 @@ public:
 	{
       GenericVoidInvoke( WIDE("/automaton/board"), WIDE("OnDestroy"), (uintptr_t), asdf );
 	}
-	PEICE_PROC( void, Properties )( uintptr_t psv, PCOMMON parent )
+	PEICE_PROC( void, Properties )( uintptr_t psv, PSI_CONTROL parent )
 	{
       GenericVoidInvoke( WIDE("/automaton/board"), WIDE("Properties"), (uintptr_t,PSI_CONTROL), psv, parent );
 

@@ -66,9 +66,9 @@ typedef struct sell_stock_dialog_tag
 } SELL_STOCK_DIALOG;
 SELL_STOCK_DIALOG sell;
 
-void CPROC AddSome( uintptr_t psv, PCONTROL button )
+void CPROC AddSome( uintptr_t psv, PSI_CONTROL button )
 {
-	PCONTROL pc;
+	PSI_CONTROL pc;
 	if( (int)psv < 0 )
 	{
 		buy.gain *= (int)psv;
@@ -94,7 +94,7 @@ void CPROC AddSome( uintptr_t psv, PCONTROL button )
 	}
 }
 
-void CPROC DoSale( uintptr_t psv, PCONTROL button )
+void CPROC DoSale( uintptr_t psv, PSI_CONTROL button )
 {
 	TEXTCHAR strokes[12];
 	if( buy.shares )
@@ -106,7 +106,7 @@ void CPROC DoSale( uintptr_t psv, PCONTROL button )
 		EnqueStrokes( WIDE("0n") );
 }
 
-void CPROC CancelSale( uintptr_t psv, PCONTROL button )
+void CPROC CancelSale( uintptr_t psv, PSI_CONTROL button )
 {
    EnqueStrokes( WIDE("0y") );
 }
@@ -151,26 +151,26 @@ void UpdateTarget( void )
 		INDEX idx;
 		int n = 0;
 		PSTOCK stock;
-		PCONTROL pStocks = GetControl( g.SellStocks, SHT_STOCKS );
+		PSI_CONTROL pStocks = GetControl( g.SellStocks, SHT_STOCKS );
       printf( WIDE("Updating targets\n") );
 		LIST_FORALL( g.Market.stocks, idx, PSTOCK, stock )
 		{
-			PCONTROL pc;
+			PSI_CONTROL pc;
 			TEXTCHAR text[16];
 			snprintf( text, 16, WIDE("(%ld)"), ( ( sell.target - sell.total )
 											  + (sell.value[n]-1) )
 					                  / sell.value[n] );
-			pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL_TARGET );
+			pc = (PSI_CONTROL)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL_TARGET );
 			SetControlText( pc, text );
 			n++;
 		}
 	}
 }
 
-void CPROC AddSomeSell( uintptr_t psv, PCONTROL button )
+void CPROC AddSomeSell( uintptr_t psv, PSI_CONTROL button )
 {
-	PCOMMON sheet = GetCurrentSheet( GetControl( g.SellStocks, SHT_STOCKS ) );
-   uint32_t ID = GetControlID( (PCONTROL)sheet ) - SHT_STOCK;
+	PSI_CONTROL sheet = GetCurrentSheet( GetControl( g.SellStocks, SHT_STOCKS ) );
+   uint32_t ID = GetControlID( (PSI_CONTROL)sheet ) - SHT_STOCK;
 	if( (int)psv < 0 )
 	{
 		sell.gain *= (int)psv;
@@ -188,7 +188,7 @@ void CPROC AddSomeSell( uintptr_t psv, PCONTROL button )
 	UpdateTarget();
 	{
 		TEXTCHAR text[16];
-      PCONTROL pc;
+      PSI_CONTROL pc;
 		snprintf( text, 16, WIDE("$%ld"), sell.total );
 		pc = GetControl( g.SellStocks, TXT_TOTAL );
 		SetControlText( pc, text );
@@ -230,7 +230,7 @@ int GetAccountIndex( PORTFOLIO portfolio, PSTOCK stock )
 
 }
 
-void CPROC DoSell( uintptr_t psv, PCONTROL button )
+void CPROC DoSell( uintptr_t psv, PSI_CONTROL button )
 {
 	int n;
 	TEXTCHAR strokes[16];
@@ -249,7 +249,7 @@ void CPROC DoSell( uintptr_t psv, PCONTROL button )
    EnqueStrokes( WIDE("0") );
 }
 
-void CPROC CancelSell( uintptr_t psv, PCONTROL button )
+void CPROC CancelSell( uintptr_t psv, PSI_CONTROL button )
 {
    EnqueStrokes( WIDE("0") );
 }
@@ -261,33 +261,33 @@ void StockSellStart( PORTFOLIO portfolio, uint32_t target, int bForced )
 	TEXTCHAR text[16];
 	PSTOCKACCOUNT pAccount;
 	PSTOCK stock;
-   PCONTROL pStocks = GetControl( g.SellStocks, SHT_STOCKS );
+   PSI_CONTROL pStocks = GetControl( g.SellStocks, SHT_STOCKS );
 	LIST_FORALL( g.Market.stocks, idx, PSTOCK, stock )
 	{
-		PCONTROL pc;
+		PSI_CONTROL pc;
 		sell.value[n] = GetStockValue( stock, bForced );
 		pAccount = GetStockAccount( portfolio, stock );
 
 		sell.owned[n] = pAccount?pAccount->shares:0;
 
 		snprintf( text, 16, WIDE("%ld"), sell.owned[n] );
-		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SHARES );
+		pc = (PSI_CONTROL)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SHARES );
 		SetControlText( pc, text );
-		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_REMAIN );
+		pc = (PSI_CONTROL)GetSheetControl( pStocks, SHT_STOCK + n, TXT_REMAIN );
 		SetControlText( pc, text );
 
 		snprintf( text, 16, WIDE("$%ld"), sell.owned[n] * sell.value[n] );
-		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SHARES_VALUE );
+		pc = (PSI_CONTROL)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SHARES_VALUE );
 		SetControlText( pc, text );
-		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_REMAIN_VALUE );
+		pc = (PSI_CONTROL)GetSheetControl( pStocks, SHT_STOCK + n, TXT_REMAIN_VALUE );
 		SetControlText( pc, text );
 
 		sell.sell[n] = 0;
-		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL );
+		pc = (PSI_CONTROL)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL );
 		SetControlText( pc, WIDE("0") );
-		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL_TARGET );
+		pc = (PSI_CONTROL)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL_TARGET );
 		SetControlText( pc, NULL );
-		pc = (PCOMMON)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL_VALUE );
+		pc = (PSI_CONTROL)GetSheetControl( pStocks, SHT_STOCK + n, TXT_SELL_VALUE );
 		SetControlText( pc, WIDE("$0") );
       n++;
 	}
@@ -315,7 +315,7 @@ void StockSellEnd( void )
 //---------------------------------------------------------------------------
 
 
-int CPROC DrawStockBar( PCOMMON pc )
+int CPROC DrawStockBar( PSI_CONTROL pc )
 {
 	Image Surface;
 	INDEX idx;
@@ -389,7 +389,7 @@ PSTOCKACCOUNT GetStockAccount( PORTFOLIO portfolio, PSTOCK stock )
 
 //---------------------------------------------------------------------------
 
-int CPROC DrawPortfolio( PCONTROL pc )
+int CPROC DrawPortfolio( PSI_CONTROL pc )
 {
 	PLIST portfolio;
 	Image Surface;
@@ -943,12 +943,12 @@ void InitStockDialogs( void )
 	SetControlID( g.SellStocks, PANEL_SELL );
    DisableSheet( g.Panel, PANEL_SELL, TRUE );
 	{
-		PCONTROL sheet;
+		PSI_CONTROL sheet;
 		INDEX idx;
 		PSTOCK stock;
 		uint32_t width, height;
 		TEXTCHAR name[10];
-		PCONTROL pc = MakeSheetControl( g.SellStocks, 4, 4
+		PSI_CONTROL pc = MakeSheetControl( g.SellStocks, 4, 4
 												, g.scale * 12 - 8 - 8, g.scale * 3 + 4
 												, SHT_STOCKS );
 		GetSheetSize( pc, &width, &height );
