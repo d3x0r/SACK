@@ -637,9 +637,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				}
 				DispelDeadstart();
 
-				//usleep( 100000 );
 				execve( _program, (char *const*)args, environ );
-				lprintf( WIDE( "Direct execute failed... trying along path..." ) );
+				//lprintf( WIDE( "Direct execute failed... trying along path..." ) );
 				{
 					char *tmp = strdup( getenv( "PATH" ) );
 					char *tok;
