@@ -569,7 +569,7 @@ static TEXTSTR PrependBasePathEx( INDEX groupid, struct Group *group, CTEXTSTR f
 		{
 			// resolve recusive % paths...
 			TEXTSTR tmp2 = ExpandPath( fullname );
-			Release( fullname );
+			Deallocate( TEXTSTR, fullname );
 			fullname = tmp2;
 		}
 #if __ANDROID__
