@@ -624,6 +624,21 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			}
 			if( !( newpid = fork() ) )
 			{
+				// after fork; check that args has a space for
+				// the program name to get filled into.
+				// this memory doesn't leak; it's squashed by exec.
+				if( flags & LPP_OPTION_FIRST_ARG_IS_ARG ) {
+					char *const* newArgs;
+					int n;
+					for( n = 0; args[n]; n++ );
+					newArgs = NewArray( char *, n + 1 );
+					for( n = 0; args[n]; n++ ) {
+						newArgs[n + 1] = args[n];
+					}
+					newArgs[n + 1] = args[n];
+					newArgs[0] = program;
+					args = newArgs;
+				}
 				char *_program = CStrDup( program );
 				// in case exec fails, we need to
 				// drop any registered exit procs...
