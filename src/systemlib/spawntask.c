@@ -631,7 +631,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					char ** newArgs;
 					int n;
 					for( n = 0; args[n]; n++ );
-					newArgs = NewArray( char *, n + 1 );
+					newArgs = NewArray( char *, n + 2 );
 					for( n = 0; args[n]; n++ ) {
 						newArgs[n + 1] = (char*)args[n];
 					}
