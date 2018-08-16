@@ -633,10 +633,10 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					for( n = 0; args[n]; n++ );
 					newArgs = NewArray( char *, n + 1 );
 					for( n = 0; args[n]; n++ ) {
-						newArgs[n + 1] = args[n];
+						newArgs[n + 1] = (char*)args[n];
 					}
-					newArgs[n + 1] = args[n];
-					newArgs[0] = program;
+					newArgs[n + 1] = (char*)args[n];
+					newArgs[0] = (char*)program;
 					args = newArgs;
 				}
 				char *_program = CStrDup( program );
