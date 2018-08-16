@@ -628,7 +628,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				// the program name to get filled into.
 				// this memory doesn't leak; it's squashed by exec.
 				if( flags & LPP_OPTION_FIRST_ARG_IS_ARG ) {
-					char *const* newArgs;
+					char ** newArgs;
 					int n;
 					for( n = 0; args[n]; n++ );
 					newArgs = NewArray( char *, n + 1 );
