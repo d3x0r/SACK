@@ -1358,6 +1358,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 				if( (*winfile_local).flags.bLogOpenClose )
 					lprintf( WIDE("full is %s %d"), file->fullname, (int)group );
 #endif
+				Deallocate( TEXTSTR, tmp );
 			}
 			//file->fullname = file->name;
 		}
