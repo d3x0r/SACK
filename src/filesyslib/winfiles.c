@@ -1351,7 +1351,9 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			}
 			else
 			{
-				file->fullname = PrependBasePathEx( group, filegroup, file->name, !mount );
+				TEXTSTR tmp;
+				tmp = PrependBasePathEx( group, filegroup, file->name, !mount );
+				file->fullname = ExpandPath( tmp );
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 				if( (*winfile_local).flags.bLogOpenClose )
 					lprintf( WIDE("full is %s %d"), file->fullname, (int)group );
@@ -1504,15 +1506,15 @@ default_fopen:
 	}
 	if( !handle )
 	{
+#if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
+		if( (*winfile_local).flags.bLogOpenClose )
+			lprintf( WIDE( "Failed to open file [%s]=[%s]" ), file->name, file->fullname );
+#endif
 		DeleteLink( &(*winfile_local).files, file );
 		Deallocate( TEXTCHAR*, file->name );
 		Deallocate( TEXTCHAR*, file->fullname );
 		Deallocate( struct file*, file );
 
-#if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
-		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE( "Failed to open file [%s]=[%s]" ), file->name, file->fullname );
-#endif
 		return NULL;
 	}
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
