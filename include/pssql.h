@@ -1661,10 +1661,10 @@ PSSQL_PROC( LOGICAL, BackupDatabase )( PODBC source, PODBC dest );
 
 /* set a handler to be triggered when SQLite Database finds corruption type error...
  */
-void SetSQLCorruptionHandler( PODBC odbc, void (CPROC*f)(uintptr_t psv, PODBC odbc), uintptr_t psv );
+PSSQL_PROC( void, SetSQLCorruptionHandler )( PODBC odbc, void (CPROC*f)(uintptr_t psv, PODBC odbc), uintptr_t psv );
 
 /* Utility function to parse DSN according to sack sqlite vfs rules... */
-void ParseDSN( CTEXTSTR dsn, char **vfs, char **vfsInfo, char **dbFile );
+PSSQL_PROC( void, ParseDSN )( CTEXTSTR dsn, char **vfs, char **vfsInfo, char **dbFile );
 
 
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
