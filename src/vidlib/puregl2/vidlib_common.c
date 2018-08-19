@@ -207,6 +207,7 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 	// if if above already has things above it, I want to put those above hvideo
 	if( hVideo && hAbove )
 	{
+		EnterCriticalSec( &l.csList );
 		if( hVideo->pBelow = hAbove->pBelow )
 		{
 			hAbove->pBelow->pAbove = hVideo;
