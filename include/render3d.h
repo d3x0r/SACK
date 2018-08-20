@@ -36,6 +36,10 @@ typedef struct render_3d_interface_tag
 
 } RENDER3D_INTERFACE, *PRENDER3D_INTERFACE;
 
+#if defined( _VULKAN_DRIVER )
+#  define EXTRA_INIT_PARAM VkDevice device,
+#endif
+
 
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
 #define g_d3d_device  (USE_RENDER3D_INTERFACE)->current_device
@@ -53,7 +57,7 @@ typedef struct render_3d_interface_tag
 // This may be arbitrarily overridden to be closer than normal in case the physical display dpi is too dense.
 // identity depth should be used for rendering icons on objects.
 #define OnInit3d(name) \
-	__DefineRegistryMethod(WIDE("sack/render/puregl"),Init3d,WIDE("init3d"),name,WIDE("ExtraInit3d"),uintptr_t,(PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect ),__LINE__)
+	__DefineRegistryMethod(WIDE("sack/render/puregl"),Init3d,WIDE("init3d"),name,WIDE("ExtraInit3d"),uintptr_t,( EXTRA_INIT_PARAM PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect ),__LINE__)
 
 // static void OnClose3d( "Virtuality" )(uintptr_t psvInit)
 // handle event when the specified display context is closed.  The value passed is the result from Init3d();

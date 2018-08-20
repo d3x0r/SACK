@@ -15,7 +15,11 @@
 #endif
 
 #ifdef _VULKAN_DRIVER
-#include <vulkan/vulkan.h>
+#  ifdef _WIN32
+#    define VK_USE_PLATFORM_WIN32_KHR
+#  endif
+
+#  include <vulkan/vulkan.h>
 #endif
 
 

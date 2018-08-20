@@ -9,58 +9,14 @@
 #include <vulkan/vulkan.h>
 
 #include "local.h"
+#include "vulkaninfo.h"
 
 // source for vulkan tutorial here...
 // built mostly from https://gist.github.com/graphitemaster/e162a24e57379af840d4
 
 
-struct SwapChainBuffer {
-	VkImage image;
-	VkImageView view;
-};
 
-struct SwapChain {
-	VkInstance instance;
-	VkDevice device;
-	VkPhysicalDevice physicalDevice;
-	VkSurfaceKHR surface;
-	VkFormat colorFormat;
-	VkColorSpaceKHR colorSpace;
-	VkSwapchainKHR swapChain;
-	VkImage *images; // VkImage list
-	int nImages;
-	struct SwapChainBuffer *buffers;//SwapChainBuffer List
-	size_t nodeIndex;
-	PFN_vkGetPhysicalDeviceSurfaceSupportKHR fpGetPhysicalDeviceSurfaceSupportKHR;
-	PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
-	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR fpGetPhysicalDeviceSurfaceFormatsKHR;
-	PFN_vkGetPhysicalDeviceSurfacePresentModesKHR fpGetPhysicalDeviceSurfacePresentModesKHR;
-	PFN_vkCreateSwapchainKHR fpCreateSwapchainKHR;
-	PFN_vkDestroySwapchainKHR fpDestroySwapchainKHR;
-	PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
-	PFN_vkAcquireNextImageKHR fpAcquireNextImageKHR;
-	PFN_vkQueuePresentKHR fpQueuePresentKHR;
-};
-
-static struct vulkan_local {
-	VkApplicationInfo applicationInfo;
-	VkInstanceCreateInfo instanceInfo;
-	VkInstance instance;
-	VkPhysicalDevice *physicalDevices;
-
-#if defined(_WIN32)
-	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo;
-#elif defined(__ANDROID__)
-	VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo;
-#else
-	VkXcbSurfaceCreateInfoKHR surfaceCreateInfo;
-#endif
-
-	VkDevice device;
-
-	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
-
-} vl;
+static struct vulkan_local vl;
 
 /* begin drawing (setup projection); also does SetActiveXXXDIsplay */
 int Init3D( struct display_camera *camera )
@@ -146,12 +102,11 @@ void SetupInstance()
 
 void Shutdown()
 {
-
 	// Never forget to free resources
 	vkDestroyInstance(vl.instance, NULL);
 }
 
-void SetupDevice()
+void SetupDevice( void )
 {
 	// Query how many devices are present in the system
 	uint32_t deviceCount = 0;
@@ -222,7 +177,7 @@ void SetupDevice()
 	}
 }
 
-void CreateDevice( VkPhysicalDevice physicalDevice )
+void CreateDevice(  struct display_camera *camera, VkPhysicalDevice physicalDevice )
 {
 	// query phiscal devices?
 	{
@@ -261,24 +216,19 @@ void CreateDevice( VkPhysicalDevice physicalDevice )
 		deviceInfo.queueCreateInfoCount = 1;
 		deviceInfo.pQueueCreateInfos = &deviceQueueInfo;
 
-		result = vkCreateDevice( physicalDevice, &deviceInfo, NULL, &vl.device );
+		result = vkCreateDevice( physicalDevice, &deviceInfo, NULL, &camera->chain.device );
 		if( result != VK_SUCCESS ) {
 			fprintf( stderr, "Failed creating logical device: %d", result );
 			abort();
 		}
 		}
 	}
-
-
-
 	{
-
 		// somewhere in initialization code
 		vl.vkGetPhysicalDeviceSurfaceFormatsKHR =  (PFN_vkGetPhysicalDeviceSurfaceFormatsKHR)vkGetInstanceProcAddr( vl.instance, "vkGetPhysicalDeviceSurfaceFormatsKHR" );
 		if( !vl.vkGetPhysicalDeviceSurfaceFormatsKHR ) {
 			abort();
 		}
-
 	}
 }
 
@@ -315,8 +265,8 @@ void *swapChainGetDeviceProc( struct SwapChain *swapChain, const char *name ) {
 LOGICAL swapChainConnect( struct SwapChain *swapChain )
 {
 	swapChain->instance = vl.instance;
-	swapChain->physicalDevice = vl.physicalDevices[0];
-	swapChain->device = vl.device;
+	//swapChain->physicalDevice = vl.physicalDevices[0];
+	//swapChain->device = vl.device;
 
 	// Get some instance local procedures
 	GET_IPROC( GetPhysicalDeviceSurfaceSupportKHR );
@@ -822,14 +772,13 @@ void EnableVulkan( xcb_connection_t *connection,
 #endif
 {
 	VkPhysicalDevice useDevice;
-	struct SwapChain chain;
 	SetupDevice();
 	useDevice = vl.physicalDevices[0];
-	CreateDevice( useDevice );
+	CreateDevice( camera, useDevice );
 
-	swapChainConnect( &chain );
+	swapChainConnect( &camera->chain );
 	#if WIN32
-		swapChainPlatformConnect( &chain, hInstance, camera->hWndInstance );
+		swapChainPlatformConnect( &camera->chain, hInstance, camera->hWndInstance );
 	#elif defined( __LINUX__ )
 		swapChainPlatformConnect( &chain, vl.surfaceCreateInfo.connection, vl.surfaceCreateInfo.window );
         #elif defined( __MAC__ )

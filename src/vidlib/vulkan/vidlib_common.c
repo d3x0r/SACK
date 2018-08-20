@@ -1976,7 +1976,7 @@ static LOGICAL OnKey3d( WIDE("Video Render Common") )( uintptr_t psv, uint32_t k
 	return 0;
 }
 
-static uintptr_t OnInit3d( WIDE("Video Render Common") )(PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
+static uintptr_t OnInit3d( WIDE("Video Render Common") )(VkDevice device, PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
 {
 	// provide one of these so key can get called.
 	return 1;

@@ -33,15 +33,16 @@ else(WIN32)
 endif( WIN32 )
 
 
-project( bag.image.vulkan )
+set( project bag.image.vulkan )
 
 ADD_DEFINITIONS( -D__3D__ )
+ADD_DEFINITIONS( -D_VULKAN_DRIVER )
 
 set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole2.c )
 set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )
 set( sprite_sources ../sprite_common.c )
 
-sack_add_library( ${PROJECT_NAME} SHARED
+sack_add_library( ${project} SHARED
   ../alphatab.c 
   ../alphastab.c
   blotscaled.c blotdirect.c image.c ../image_common.c 
@@ -52,13 +53,12 @@ sack_add_library( ${PROJECT_NAME} SHARED
   simple_multi_shaded_texture_shader.c
 )
 
-SET_PROPERTY(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "_VULKAN_DRIVER" )
-
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES 
+SET_TARGET_PROPERTIES(${project} PROPERTIES 
         FOLDER "Image Library" 
 )
 
-my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES} )
+my_target_link_libraries( ${project} ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "IMAGE_LIBRARY_SOURCE;_VULKAN_DRIVER;__3D__;MAKE_RCOORD_SINGLE" )
 
 if( __LINUX__ OR __ANDROID__ )
     set( VULKAN_SHADERC shaderc_combined )
@@ -67,11 +67,11 @@ else()
 endif()
 
 if( WIN32 )
-	my_target_link_libraries( ${PROJECT_NAME} vulkan-1.lib shaderc )
+	my_target_link_libraries( ${project} vulkan-1.lib shaderc )
 else()
-	my_target_link_libraries( ${PROJECT_NAME} vulkan shaderc )
+	my_target_link_libraries( ${project} vulkan shaderc )
 endif()
 
-#my_target_link_libraries( ${PROJECT_NAME} bag.psi )
+#my_target_link_libraries( ${project} bag.psi )
 
-install_mode_dest( ${PROJECT_NAME} )
+install_mode_dest( ${project} )

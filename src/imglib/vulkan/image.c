@@ -11,15 +11,6 @@
 #endif
 
 #include <stdhdrs.h>
-#if defined( _VULKAN_DRIVER )
-#include <vulkan/vulkan.h>
-#elif defined( USE_GLES2 )
-//#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#include <GL/glew.h>
-#include <GL/gl.h>         // Header File For The OpenGL32 Library
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,9 +62,9 @@ static uintptr_t OnInit3d( WIDE( "@00 Vulkan Image Library" ) )( PMatrix project
 	LIST_FORALL( l.vkSurface, idx, struct vkSurfaceData *, vkSurface )
 	{
 		if( (vkSurface->T_Camera == camera )
-         && (vkSurface->identity_depth == pIdentity_depty )
-         && (vkSurface->aspect == aspect )
-			&& ( vkSurface->M_Projection == projection ) )
+		  && (vkSurface->identity_depth == pIdentity_depty )
+		  && (vkSurface->aspect == aspect )
+		  && ( vkSurface->M_Projection == projection ) )
 		{
 			break;
 		}
@@ -90,11 +81,12 @@ static uintptr_t OnInit3d( WIDE( "@00 Vulkan Image Library" ) )( PMatrix project
 		{
 			INDEX idx;
 			struct glSurfaceData *data;
-			LIST_FORALL( l.vkSurface, idx, struct glSurfaceData *, data )
+			LIST_FORALL( l.vkSurface, idx, struct glSurfaceData *, data ) {
 				if( data == vkSurface )
 				{
 					vkSurface->index = idx;
 					break;
+				}
 			}
 		}
 	}
@@ -105,13 +97,13 @@ static uintptr_t OnInit3d( WIDE( "@00 Vulkan Image Library" ) )( PMatrix project
 
 static uintptr_t CPROC ReleaseTexture( POINTER p, uintptr_t psv )
 {
-   Image image = (Image)p;
+	Image image = (Image)p;
 	struct vkSurfaceData *vkSurface = ((struct vkSurfaceData *)psv);
 	// if this image has no gl surfaces don't check it (it might make some)
-   //lprintf( "Release Texture %p", p );
+	//lprintf( "Release Texture %p", p );
 	if( !image->vkSurface )
 	{
-      // didn't download this texture to opengl
+		// didn't download this texture to opengl
 		//lprintf( "ReleaseTextures: no glSurface" );
 		return 0;
 	}

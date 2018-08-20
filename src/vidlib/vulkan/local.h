@@ -16,28 +16,10 @@
 #include <stdhdrs.h>
 #include <vulkan/vulkan.h>
 
-
-
 #if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
 #include <X11/Xutil.h>
 #endif
 
-#if defined( __QNX__ )
-#include <gf/gf.h>
-#endif
-
-#ifdef __LINUX__
-#if defined( __ANDROID__ ) || defined( __QNX__ )
-#include <GLES2/gl2.h>
-#else
-#define ALLOW_SETTING_GL1_MATRIX
-#include <GL/gl.h>
-#include <GL/glext.h>
-#endif
-#else
-#define ALLOW_SETTING_GL1_MATRIX
-//#include "../glext.h"
-#endif
 
 #define NEED_VECTLIB_COMPARE
 #define FORCE_NO_RENDER_INTERFACE
@@ -50,6 +32,8 @@
 #include <image.h>
 #include <image3d.h>
 #include <vectlib.h>
+
+#include "vulkaninfo.h"
 
 #if defined( __64__ ) && defined( _WIN32 )
 #define _SetWindowLong(a,b,c)   SetWindowLongPtr(a,b,(LONG_PTR)(c))
@@ -134,83 +118,17 @@ struct display_camera
 	uint32_t w, h;
 	int display;
 	RCOORD aspect;
-   RCOORD depth; // far field
+	RCOORD depth; // far field
 	RCOORD identity_depth;
 	PTRANSFORM origin_camera;
 	PRENDERER hVidCore; // common, invisible surface behind all windows (application container)
 #if defined( __LINUX__ )
+	// X11 handle?
 #elif defined( _WIN32 )
 	HWND hWndInstance;
 #endif
-#    if defined( __QNX__ )
-	gf_surface_t pSurface;
-	gf_layer_t pLayer;
-	gf_layer_info_t layer_info;
-	gf_3d_target_t pTarget;
+	struct SwapChain chain; // chain owns the device.
 
-#    endif
-#    if defined( USE_EGL )
-	EGLint num_config;
-	EGLConfig config;
-	EGLDisplay egl_display;
-	EGLSurface surface;
-	EGLContext econtext;
-#    endif
-#if defined( USE_EGL )
-   NativeWindowType displayWindow;
-#endif
-#    ifdef _D3D11_DRIVER
-	IDXGIDevice             *pDXGIDevice;
-#if ( NTDDI_VERSION >= 0x06020000 /*NTDDI_WIN8*/ )
-	IDCompositionDevice     *m_pDCompDevice;
-	IDCompositionTarget		*m_pCompTarget;
-#endif
-	ID3D11Device            *device;
-	D3D_FEATURE_LEVEL        result_feature_level;
-	ID3D11DeviceContext     *device_context;
-	IDXGISwapChain          *swap_chain;
-	ID3D11RenderTargetView  *render_target_view;
-
-	ID3D11Texture2D         *depth_stencil_buffer;
-	ID3D11DepthStencilState *depth_stencil_state;
-	ID3D11DepthStencilView  *depth_stencil_view;
-	ID3D11RasterizerState   *raster_state;
-
-#if BUILD_D2D_TARGET_SURFACE
-	ID3D11Texture2D         *texture;
-	IDXGISurface            *surface;
-	ID2D1RenderTarget       *target;
-	IWICBitmap              *bitmap;
-	IWICImagingFactory      *factory;
-#endif
-	XMMATRIX m_projectionMatrix;
-	XMMATRIX m_worldMatrix;
-	XMMATRIX m_orthoMatrix;
-
-	//hr = g_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice);
-      
-#    endif
-#    ifdef _D3D10_DRIVER
-	IDXGIDevice     *pDXGIDevice;
-
-	ID3D10Device1    *device;
-	ID3D10Texture2D *texture;
-	IDXGISurface    *surface;
-	ID2D1RenderTarget  *target;
-	IWICBitmap         *bitmap;
-	IWICImagingFactory *factory;
-
-	//hr = g_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice);
-      
-#    endif
-#ifdef _D3D_DRIVER
-    LPDIRECT3D9 d3d;    // the pointer to our Direct3D interface
-	LPDIRECT3DDEVICE9 d3ddev;    // the pointer to the device class
-// function prototypes
-//void initD3D(HWND hWnd);    // sets up and initializes Direct3D
-//void render_frame(void);    // renders a single frame
-//void cleanD3D(void);    // closes Direct3D and releases memory
-#endif
 	RAY mouse_ray;
 	struct {
 		BIT_FIELD extra_init : 1;
@@ -223,7 +141,7 @@ struct display_camera
 	} flags;
 	PLIST plugins; // each camera has plugins that might attach more render and mouse methods
 	int type;
-   int nCamera;
+   	int nCamera;
 };
 
 #ifndef VIDLIB_MAIN
@@ -272,21 +190,9 @@ extern
 	ATOM aClass;      // keep reference of window class....
 	ATOM aClass2;      // keep reference of window class.... (opengl minimal)
 #endif
-#if defined( _D3D11_DRIVER )
-	IDXGIFactory  *dxgi_factory;
-	ID2D1Factory  *d2d1_factory;
-	PLIST adapters;  // list of struct dxgi_adapter
-#endif
-#if defined( __QNX__ )
-	int nDevices;
-	gf_dev_t qnx_dev[64];
-	gf_dev_info_t qnx_dev_info[64];
-	gf_display_t* qnx_display[64];
-	gf_display_info_t* qnx_display_info[64];
-#endif
-#if defined( USE_EGL )
-	NativeWindowType displayWindow;
-#endif
+
+	
+
 	int bCreatedhWndInstance;
 
 // thread synchronization variables...

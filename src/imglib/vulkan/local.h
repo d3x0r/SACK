@@ -2,6 +2,11 @@
 #include <imglib/imagestruct.h>
 #include <imglib/fontstruct.h>
 
+
+#ifdef _WIN32 
+#  define VK_USE_PLATFORM_WIN32_KHR
+#endif
+
 #include <vulkan/vulkan.h>
 
 IMAGE_NAMESPACE
@@ -9,6 +14,7 @@ struct vkSurfaceData;
 IMAGE_NAMESPACE_END
 
 #include "../image_common.h"
+#include "../../vidlib/vulkan/vulkaninfo.h"
 #include "shaders.h"
 
 IMAGE_NAMESPACE
