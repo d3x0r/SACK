@@ -18,14 +18,14 @@ typedef struct layer_flags_tag
 {
 	// Index into PEICE array is stored...
 	// board contains an array of peices....
-   // as a bitfield these do not expand correctly if signed.
+	// as a bitfield these do not expand correctly if signed.
 	signed int BackDir : 4;
 	signed int ForeDir : 4;
 	// forced set on first node cannot be cleared!
 	// other nodes other than the first may have forced.
 	// which indicates that the foredir MUST be matched.
 	// these nodes do not unlay either.  Need to compute
-   // the NEXT layer with a LeftOrRight correction factor
+	// the NEXT layer with a LeftOrRight correction factor
 	signed int bForced : 1;
 	// if bLeft, and bForced
 	// UnlayerPath sets bRight and results with this layer intact.
@@ -33,7 +33,7 @@ typedef struct layer_flags_tag
 	// UnlayerPath removes this node (if BackDir != NOWHERE)
 	signed int bFlopped : 1; // starts at 0.  Moves ForDir +/- 1
 	int bTry : 1; // set if a hard direction tendancy was set ...
-   // repeat above with right, setting left, moving left...
+	// repeat above with right, setting left, moving left...
 	signed int bRight : 1; // starts at 0.  Moves ForDir +/- 1
 	// foredir, backdir are unused if the peice is a filler
 	// x, y of the data node will be an offset from the current
@@ -57,20 +57,20 @@ class LAYER_DATA
 {
 // common content of a layer....
 	//uint32_t ref; // reference count...
-   //uint32_t _cycle;
-   //CDATA cData[3]; // current colors...
+	//uint32_t _cycle;
+	//CDATA cData[3]; // current colors...
 	struct LAYER_DATAset_tag **pool;
-   // especially for things like via peices...
-   //PDATASTACK pds_path;
-   // keep a copy of this from peice getsize...
+	// especially for things like via peices...
+	//PDATASTACK pds_path;
+	// keep a copy of this from peice getsize...
 public:
 	//uint32_t rows, cols;
-   // master peice archtype
+	// master peice archtype
 	PIPEICE peice;
-   // psv will be PNEURON or PSYNAPSE;
-   // the instance of peice which this relates to
+	// psv will be PNEURON or PSYNAPSE;
+	// the instance of peice which this relates to
 	uintptr_t psvInstance;
-   TEXTSTR atext;
+	TEXTSTR atext;
 public:
 	void Init( void );
 	PEICE_PROC(,LAYER_DATA)();
@@ -106,7 +106,7 @@ class LAYER
 	// where layers moved will move other attached
 	// layers automagically.
 public: // ended up exposing this so that save could work correctly...
-   // maybe save should be a property of layer.. but then calling it ?
+	// maybe save should be a property of layer.. but then calling it ?
 	struct {
 		PLAYER layer;
 		int32_t x, y; // where this is linked to the other layer
@@ -116,7 +116,7 @@ public: // ended up exposing this so that save could work correctly...
 		int32_t x, y; // where this is linked to the other layer
 	}route_end_layer;
 	PLAYER stacked_on; // my relative coordinates are really realtive to what I'm stacked on's hotspot
-   PLIST holding; // peices held should also move... statically relative to this holder
+	PLIST holding; // peices held should also move... statically relative to this holder
 private:
 
 	struct {
@@ -158,7 +158,7 @@ public:
 	// is the whole span.
 	int32_t min_x, min_y;
 	uint32_t w, h;
-   int32_t hotx, hoty;
+	int32_t hotx, hoty;
 
 public:
 	PEICE_PROC(,LAYER)();
@@ -236,11 +236,11 @@ enum {
 DeclareSet( LAYER );
 
 typedef struct layer_module_tag {
-	PLAYERSET        LayerPool;
+	PLAYERSET		  LayerPool;
 	//PSHADOW_LAYERSET ShadowPool;
-	PLAYER_DATASET   DataPool;
+	PLAYER_DATASET	DataPool;
 	// this will be the known point of layers...
-	//PBOARD           board;
+	//PBOARD			  board;
 	//void Draw( PCELL cell );
 } LAYER_MODULE;
 

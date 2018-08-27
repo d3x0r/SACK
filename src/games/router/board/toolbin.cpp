@@ -18,7 +18,7 @@ extern CONTROL_REGISTRATION toolbin_control;
 
 typedef struct local_tag
 {
-   PTOOLBIN creating;
+ 	PTOOLBIN creating;
 } LOCAL;
 static LOCAL l;
 
@@ -27,21 +27,21 @@ class TOOLBIN
 public:
 	PIBOARD board;
 	PSI_CONTROL display;
-   PTOOL selected_tool;
-   PLIST tools;
+ 	PTOOL selected_tool;
+ 	PLIST tools;
 	uint32_t cell_width, cell_height;
-   uint32_t b;
+ 	uint32_t b;
 public:
 	TOOLBIN(PIBOARD boar);
 	TOOLBIN(PIBOARD boar, PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h );
-   void Init( PIBOARD board );
+ 	void Init( PIBOARD board );
 
 };
 
 struct toolbin_tool
 {
 	PIPEICE peice;
-   Image image;
+ 	Image image;
 	int x, y;
 	unsigned w, h;
 	PLIST child_tools;
@@ -51,21 +51,21 @@ struct toolbin_tool
 struct toolbin_tool *GetTool( PTOOLBIN toolbin, PIPEICE peice )
 {
 	struct toolbin_tool* tool;
-   INDEX idx;
+ 	INDEX idx;
 	LIST_FORALL( toolbin->tools, idx, struct toolbin_tool*, tool )
 	{
 		if( tool->peice == peice )
-         return tool;
+ 	 	 	return tool;
 	}
 	if( !tool )
 	{
 		tool = New( struct toolbin_tool );
-      tool->image = NULL;
+ 	 	tool->image = NULL;
 		tool->peice = peice;
 		tool->child_tools = NULL;
-      AddLink( &toolbin->tools, tool );
+ 	 	AddLink( &toolbin->tools, tool );
 	}
-   return tool;
+ 	return tool;
 }
 
 
@@ -85,18 +85,18 @@ int CPROC MouseToolbin( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 					&& ( y >= tool->y && y < (tool->y+tool->h) ) )
 				{
 					toolbin->selected_tool = tool;
-               toolbin->board->SetSelectedTool( tool->peice );
+ 	 	 	 	 	toolbin->board->SetSelectedTool( tool->peice );
 					SmudgeCommon( pc );
 
 				}
 
 			}
 		}
-      toolbin->b = b;
+ 	 	toolbin->b = b;
 	}
-   
+ 	
 
-   return TRUE;
+ 	return TRUE;
 }
 
 static int OnDrawCommon( WIDE("Board toolbin") )( PSI_CONTROL pc )
@@ -146,7 +146,7 @@ static int OnDrawCommon( WIDE("Board toolbin") )( PSI_CONTROL pc )
 			}
 
 			BlotScaledImageSizedTo( image, tool->image, tool->x, tool->y, tool->w, tool->h );
-         PutString( image, tool->x + TILE_SIZE + TILE_PAD, tool->y, BASE_COLOR_WHITE, 0, tool->peice->name() );
+ 	 	 	PutString( image, tool->x + TILE_SIZE + TILE_PAD, tool->y, BASE_COLOR_WHITE, 0, tool->peice->name() );
 			//if( peice->methods )
 			//	peice->methods->Draw( (uintptr_t)NULL, image, peice->getimage(), x, y );
 			//peice->methods->getsize( &h, NULL );
@@ -161,7 +161,7 @@ void TOOLBIN::Init( PIBOARD board )
 {
 	TOOLBIN::board = board;
 	tools = NULL;
-   selected_tool = NULL;
+ 	selected_tool = NULL;
 	board->GetCellSize( &cell_width, &cell_height, 0 );
 }
 
@@ -180,32 +180,32 @@ PSI_CONTROL SetBoardControlBoard( PSI_CONTROL pc, PIBOARD board )
 TOOLBIN::TOOLBIN( PIBOARD board )
 {
 	Init( board );
-   l.creating = this;
+ 	l.creating = this;
 	display = SetBoardControlBoard( MakeControl( NULL, toolbin_control.TypeID
 															 , 0, 0, 0, 0
 															 , 0 )
 											, board );
 	DisplayFrame( display );
-   l.creating = NULL;
+ 	l.creating = NULL;
 
 }
 
 TOOLBIN::TOOLBIN( PIBOARD board, PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
-   Init( board );
-   l.creating = this;
+ 	Init( board );
+ 	l.creating = this;
 	display = SetBoardControlBoard( MakeControl( parent, toolbin_control.TypeID
 															 , x, y, w, h
 															 , 0 )
 											, board );
-   l.creating = NULL;
+ 	l.creating = NULL;
 }
 
 int CPROC InitToolbinControl( PSI_CONTROL pc )
 {
 	SetControlData( PTOOLBIN, pc, l.creating );
-   SetCommonTransparent( pc, TRUE );
-   return TRUE;
+ 	SetCommonTransparent( pc, TRUE );
+ 	return TRUE;
 }
 
 CONTROL_REGISTRATION toolbin_control = { WIDE("Board Toolbin")
@@ -218,25 +218,25 @@ CONTROL_REGISTRATION toolbin_control = { WIDE("Board Toolbin")
 
 PRELOAD( RegisterToolbin )
 {
-   DoRegisterControl( &toolbin_control );
+ 	DoRegisterControl( &toolbin_control );
 }
 
 PTOOLBIN CreateToolbin( PIBOARD board )
 {
 	PTOOLBIN toolbin = new TOOLBIN( board );
-   return toolbin;
+ 	return toolbin;
 }
 
 PSI_CONTROL CreateToolbinControl( PIBOARD board, PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 
 	PTOOLBIN toolbin = new TOOLBIN( board, parent, x, y, w, h );
-   return toolbin->display;
+ 	return toolbin->display;
 }
 
 
 TOOLBIN_PROC( PTOOLBIN, GetToolbinFromControl )( PSI_CONTROL pc )
 {
-   ValidatedControlData( PTOOLBIN, toolbin_control.TypeID, toolbin, pc );
+ 	ValidatedControlData( PTOOLBIN, toolbin_control.TypeID, toolbin, pc );
 	return toolbin;
 }

@@ -1001,7 +1001,7 @@ PRELOAD( RegisterBoardControl )
 BOARD::BOARD(PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	BOARD::Init();
-   creating_board = this;
+	creating_board = this;
 	pControl = MakeControl( parent, board_control.TypeID
 		, x, y, w, h
 		, -1/*ID*/ );
@@ -1011,7 +1011,7 @@ BOARD::BOARD(PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 			(*ppBoard) = this;
 	}
 	iTimer = AddTimer( 250, BoardRefreshTimer, (uintptr_t)this );
-   creating_board = NULL;
+	creating_board = NULL;
 	//DisplayFrame( pControl );
 }
 
@@ -1439,7 +1439,7 @@ uintptr_t CPROC DefinePeiceColors( uintptr_t psv, arg_list args )
 		TEXTCHAR keyname[256];\
 		PCLASSROOT data = NULL;\
 		CTEXTSTR name;\
-		snprintf( keyname, sizeof( keyname ), root WIDE("/%s/") method, method_name );\
+		tnprintf( keyname, sizeof( keyname ), root WIDE("/%s/") method, method_name );\
 		for( name = GetFirstRegisteredName( keyname, &data );\
 			 name;\
 			  name = GetNextRegisteredName( &data ) )\
@@ -1447,7 +1447,7 @@ uintptr_t CPROC DefinePeiceColors( uintptr_t psv, arg_list args )
 			f = GetRegisteredProcedureExx((PCLASSROOT)data,(CTEXTSTR)NULL,ret_type,name,args);\
 			if( f )\
 			{\
-	return f(__VA_ARGS__);\
+				return f(__VA_ARGS__);\
 			}\
 		}\
 		return 0;\
@@ -1460,7 +1460,7 @@ uintptr_t CPROC DefinePeiceColors( uintptr_t psv, arg_list args )
 		TEXTCHAR keyname[256];\
 		PCLASSROOT data = NULL;\
 		CTEXTSTR name;\
-		snprintf( keyname, sizeof( keyname ), root WIDE("/%s/") method, method_name );\
+		tnprintf( keyname, sizeof( keyname ), root WIDE("/%s/") method, method_name );\
 		for( name = GetFirstRegisteredName( keyname, &data );\
 			 name;\
 			  name = GetNextRegisteredName( &data ) )\
@@ -1479,7 +1479,7 @@ uintptr_t CPROC DefinePeiceColors( uintptr_t psv, arg_list args )
 		TEXTCHAR keyname[256];\
 		PCLASSROOT data = NULL;\
 		CTEXTSTR name;\
-		snprintf( keyname, sizeof( keyname ), root WIDE("/%s/") method, method_name );\
+		tnprintf( keyname, sizeof( keyname ), root WIDE("/%s/") method, method_name );\
 		for( name = GetFirstRegisteredName( keyname, &data );\
 			 name;\
 			  name = GetNextRegisteredName( &data ) )\
@@ -1487,8 +1487,8 @@ uintptr_t CPROC DefinePeiceColors( uintptr_t psv, arg_list args )
 			f = GetRegisteredProcedureExx((PCLASSROOT)data,(CTEXTSTR)NULL,void,name,args);\
 			if( f )\
 			{\
-	f(__VA_ARGS__);\
-   result = true; \
+				f(__VA_ARGS__);\
+				result = true; \
 			}\
 		}\
 	}\
@@ -1500,7 +1500,7 @@ class PROCREG_VIA_INVOKE: public VIA_METHODS
 {
 	uintptr_t psv;
 	CTEXTSTR method_name;
-   PIBOARD board;
+	PIBOARD board;
 	//BRAINBOARD * brainboard;
 public:
 	PROCREG_VIA_INVOKE( PIBOARD board, CTEXTSTR type )
@@ -1591,7 +1591,7 @@ public:
 	}
 	PEICE_PROC( void, Properties )( uintptr_t psv, PSI_CONTROL parent )
 	{
-      GenericVoidInvoke( WIDE("/automaton/board"), WIDE("Properties"), (uintptr_t,PSI_CONTROL), psv, parent );
+      	GenericVoidInvoke( WIDE("/automaton/board"), WIDE("Properties"), (uintptr_t,PSI_CONTROL), psv, parent );
 
 	}
 	PEICE_PROC( int, Connect )( uintptr_t psvTo
@@ -1612,7 +1612,7 @@ public:
 	int OnBeginDrag( uintptr_t psv, int32_t x, int32_t y )
 	{
 		GenericInvoke( WIDE("/automaton/board"), WIDE("OnMouseBeginDrag"), int, (uintptr_t,int32_t,int32_t), psv, x, y );
-      return 0;
+      	return 0;
 	}
 
 	int OnClick( uintptr_t psv, int32_t x, int32_t y )
@@ -1634,7 +1634,7 @@ public:
 	}
 	void  Draw( uintptr_t psvInstance, Image surface, Image peice, int32_t x, int32_t y )
 	{
-      bool result = false;
+		bool result = false;
 		GenericVoidInvokeEx( result, WIDE("/automaton/board"), WIDE("OnDraw"), (uintptr_t,Image,Image,int32_t,int32_t), psvInstance, surface, peice, x, y );
 		if( !result )
 		{
@@ -1720,17 +1720,17 @@ void BOARD::SetSelectedTool( PIPEICE peice )
 
 LOGICAL BOARD::LoadPeiceConfiguration( CTEXTSTR file )
 {
-   int result;
+	int result;
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
 	AddConfigurationMethod( pch, WIDE("cell size %i by %i"), ::ConfigSetCellSize );
 	//#AddConfigurationMethod( pch, WIDE("color %w %c"), DefineAColor );
 	AddConfigurationMethod( pch, WIDE("block %w (%i by %i) %p"), ::DefineABlock );
 	AddConfigurationMethod( pch, WIDE("color %w %i %c %c %c"), ::DefinePeiceColors );
 	AddConfigurationMethod( pch, WIDE("pathway %w %p"), ::DefineABlockNoOpt );
-   lprintf( WIDE("Load %s"), file );
+	lprintf( WIDE("Load %s"), file );
 	result = ProcessConfigurationFile( pch, file, (uintptr_t)this );
 	DestroyConfigurationHandler( pch );
-   return result;
+	return result;
 }
 
 

@@ -7,7 +7,7 @@
 
 struct background_peice{
 	PIBOARD board;
-   PLAYER_DATA layer;
+	PLAYER_DATA layer;
 };
 
 
@@ -22,22 +22,22 @@ struct local_tag {
 
 //static LOGICAL OnPeiceBeginDrag( WIDE("background") )( uintptr_t psv, int32_t x, int32_t y )
 //{
-   // if return true, allows dragging the board.
-//   return TRUE;
+	// if return true, allows dragging the board.
+//	return TRUE;
 //}
 static int OnPeiceTap( WIDE("Router background") )( uintptr_t psv, int32_t x, int32_t y )
 {
-   struct background_peice* peice = ( struct background_peice *)psv;
+	struct background_peice* peice = ( struct background_peice *)psv;
 	peice->board->CreateActivePeice( x, y, (uintptr_t)peice->board );
-   return 1;
-   // if return true, allows dragging the board.
-   //return TRUE;
+	return 1;
+	// if return true, allows dragging the board.
+	//return TRUE;
 }
 static uintptr_t OnPeiceCreate( WIDE("Router background") )( uintptr_t psvCreate, PLAYER_DATA layer )
 {
 	struct background_peice* peice = New( struct background_peice );
 	peice->board = (PIBOARD)psvCreate;
-   return (uintptr_t)peice;
+	return (uintptr_t)peice;
 }
 
 //-------------------------------------------------------
@@ -48,17 +48,17 @@ static uintptr_t OnPeiceCreate( WIDE("Router background") )( uintptr_t psvCreate
 // -----------------  a port peice
 struct port_peice{
 	PIBOARD board;
-   PLAYER_DATA layer;
+	PLAYER_DATA layer;
 	uint32_t port_number;
-   CTEXTSTR port_name;
+	CTEXTSTR port_name;
 };
 
 static uintptr_t OnPeiceCreate( WIDE("port") )( uintptr_t psvCreate, PLAYER_DATA layer )
 {
 	struct port_peice* peice = New( struct port_peice );
 	peice->board = (PIBOARD)psvCreate;
-   peice->layer = layer;
-   return (uintptr_t)peice;
+	peice->layer = layer;
+	return (uintptr_t)peice;
 }
 
 static void OnPeiceProperty( WIDE("port") )( uintptr_t psv, PSI_CONTROL parent )
@@ -74,7 +74,7 @@ static int OnPeiceClick( WIDE("port") )( uintptr_t psv, int32_t x, int32_t y )
 			// has been clicked on...
 			// will receive further OnMove events...
 			peice->board->LockPeiceDrag();
-         return TRUE;
+			return TRUE;
 			//return TRUE;
 		}
 		else
@@ -87,23 +87,23 @@ static int OnPeiceClick( WIDE("port") )( uintptr_t psv, int32_t x, int32_t y )
 				//brainboard->board->GrabPath();
 			}
 		}
-      return 1;
+		return 1;
 }
 
 static int OnPeiceEndConnect( WIDE("port") )( uintptr_t psv_to_instance, int32_t x, int32_t y
 												  , PIPEICE peice_from, uintptr_t psv_from_instance )
 {
-   lprintf( WIDE("Connecting to %d,%d"), x, y );
-   // can return FALSE to abort connection
-   return TRUE;
+	lprintf( WIDE("Connecting to %d,%d"), x, y );
+	// can return FALSE to abort connection
+	return TRUE;
 }
 
 
 static int OnPeiceBeginConnect( WIDE("port") )( uintptr_t psv_to_instance, int32_t x, int32_t y
 									  , PIPEICE peice_from, uintptr_t psv_from_instance )
 {
-   // can return false to fault connection...
-   return TRUE;
+	// can return false to fault connection...
+	return TRUE;
 }
 
 
@@ -125,10 +125,10 @@ static void EndConnectTo( WIDE("port") )( uintptr_t psv, uintptr_t psv_connector
 // -----------------  an interface peice
 struct interface_peice{
 	TEXTSTR name;
-   TEXTSTR IP;
+	TEXTSTR IP;
 	PIBOARD board;
 	PLAYER_DATA layer;
-   PLIST ports;
+	PLIST ports;
 };
 
 
@@ -137,9 +137,9 @@ static uintptr_t OnPeiceCreate( WIDE("interface") )( uintptr_t psvCreate, PLAYER
 {
 	struct interface_peice* peice = New( struct interface_peice );
 	peice->board = (PIBOARD)psvCreate;
-   peice->layer = layer;
-   layer->atext = WIDE("Interface");
-   return (uintptr_t)peice;
+	peice->layer = layer;
+	layer->atext = WIDE("Interface");
+	return (uintptr_t)peice;
 }
 
 static int OnPeiceTap( WIDE("interface") )( uintptr_t psv, int32_t x, int32_t y )
@@ -147,7 +147,7 @@ static int OnPeiceTap( WIDE("interface") )( uintptr_t psv, int32_t x, int32_t y 
 	struct interface_peice* peice = ( struct interface_peice *)psv;
 	peice->board->CreatePeice(  WIDE("port"),  x, y, (uintptr_t)peice->board );
 
-   return 1;
+	return 1;
 }
 
 
@@ -161,7 +161,7 @@ static void OnPeiceProperty( WIDE("interface") )( uintptr_t psv, PSI_CONTROL par
 
 
 
-      DestroyFrame( &frame );
+		DestroyFrame( &frame );
 
 	}
 }
@@ -170,7 +170,7 @@ static int OnPeiceBeginDrag( WIDE("interface") )( uintptr_t psv, int32_t x, int3
 {
 	struct interface_peice* peice = ( struct interface_peice *)psv;
 	int32_t size_x, size_y;
-   int32_t hot_x, hot_y;
+	int32_t hot_x, hot_y;
 	peice->board->GetCurrentPeiceSize( &size_x, &size_y );
 	//peice->board->GetCurrentPeiceHotSpot( &hot_x, &hot_y );
 	lprintf( WIDE("Peice is %d,%d? click is %d,%d"), size_x, size_y, x, y );
@@ -187,31 +187,31 @@ static int OnPeiceBeginDrag( WIDE("interface") )( uintptr_t psv, int32_t x, int3
 		if( x == (size_x-2) &&
 			y == (size_y-2) )
 		{
-         peice->board->BeginSize( DOWN_RIGHT );
-         lprintf( WIDE("lower right "));
+			peice->board->BeginSize( DOWN_RIGHT );
+			lprintf( WIDE("lower right "));
 		}
 		else if( x == (size_x-2) &&
 				  y == -1 )
 		{
-         peice->board->BeginSize( UP_RIGHT );
-         lprintf( WIDE("upper right") );
+			peice->board->BeginSize( UP_RIGHT );
+			lprintf( WIDE("upper right") );
 		}
 		else if( x == -1 &&
 				  y == -1 )
 		{
-         peice->board->BeginSize( UP_LEFT );
-         lprintf( WIDE("upper left") );
+			peice->board->BeginSize( UP_LEFT );
+			lprintf( WIDE("upper left") );
 		}
 		else if( x == -1 &&
 				  y == (size_y-2) )
 		{
-         peice->board->BeginSize( DOWN_LEFT );
-         lprintf( WIDE("lower left"));
+			peice->board->BeginSize( DOWN_LEFT );
+			lprintf( WIDE("lower left"));
 		}
 		else
 			peice->board->LockPeiceDrag();
 	}
-   return 1;
+	return 1;
 }
 
 PUBLIC( void, ExportThis )( void )

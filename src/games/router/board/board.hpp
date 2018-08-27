@@ -36,7 +36,7 @@ public:
 	virtual void SetCellSize( uint32_t cx, uint32_t cy ) = 0;
 	virtual void GetCellSize( uint32_t* cx, uint32_t* cy, int scale ) = 0;
 
-   virtual void GetCurrentPeiceSize( int32_t *wX, int32_t *wY ) = 0;
+	virtual void GetCurrentPeiceSize( int32_t *wX, int32_t *wY ) = 0;
 	virtual void GetCurrentPeiceHotSpot( int32_t *wX, int32_t *wY ) = 0;
 
 //   virtual void SetPeiceText( P
@@ -49,8 +49,8 @@ public:
 
 	virtual PLAYER PutPeice( PIPEICE peice, int32_t x, int32_t y, uintptr_t psv ) = 0;
 	virtual void SetSelectedTool( PIPEICE peice ) = 0;
-   virtual PLAYER CreateActivePeice( int32_t x, int32_t y, uintptr_t psvCreate ) = 0;
-   virtual PLAYER CreatePeice( CTEXTSTR name, int32_t x, int32_t y, uintptr_t psvCreate ) = 0;
+	virtual PLAYER CreateActivePeice( int32_t x, int32_t y, uintptr_t psvCreate ) = 0;
+   	virtual PLAYER CreatePeice( CTEXTSTR name, int32_t x, int32_t y, uintptr_t psvCreate ) = 0;
 
 
 	// begin path invokes some things like connect_to_peice...
@@ -73,7 +73,7 @@ public:
 	virtual void LockPeiceDrag( void ) = 0;
 	virtual INDEX Save( PODBC odbc, CTEXTSTR name ) = 0;
 	virtual LOGICAL Load( PODBC odbc, CTEXTSTR name ) = 0;
-   virtual PSI_CONTROL GetControl( void ) = 0;
+   	virtual PSI_CONTROL GetControl( void ) = 0;
 
 
 	virtual LOGICAL LoadPeiceConfiguration( CTEXTSTR file ) = 0;

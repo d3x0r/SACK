@@ -16,6 +16,8 @@
 #define IMPORT
 #endif
 
+#undef Right
+#undef Left
 
 #define Opposite(n)  (((n)+4)&7)
 #define Left(n)    (((n)-1)&7)
@@ -55,7 +57,7 @@ void LAYER_DATA::operator delete( void *ptr )
 #ifdef _MSC_VER
 void LAYER_DATA::operator delete( void *ptr, struct LAYER_DATAset_tag **frompool )
 {
-	DeleteFromSet( LAYER_DATA, frompool, ptr );
+	DeleteFromSet( LAYER_DATA, frompool[0], ptr );
 }
 #endif
 //--------------------------------------------------------------------------
@@ -447,7 +449,7 @@ void LAYER::operator delete( void *ptr, struct LAYERset_tag **frompool, struct L
 	PLAYERSET *ppls = layer->pool;
 	layer->isolate();
 	if( ppls )
-		DeleteFromSet( LAYER, frompool,( layer ) );
+		DeleteFromSet( LAYER, frompool[0],( layer ) );
 }
 #endif
 //--------------------------------------------------------------------------
@@ -594,8 +596,8 @@ LAYER::LAYER( PODBC odbc, PLIST peices, INDEX iLoadLayer )
 			y = atoi( results[1] );
 			min_x = atoi( results[2] );
 			min_y = atoi( results[3] );
-			w = IntCreateFromText( results[4] );
-			h = IntCreateFromText( results[5] );
+			w = (uint32_t)IntCreateFromText( results[4] );
+			h = (uint32_t)IntCreateFromText( results[5] );
 			flags.bRoute = atoi( results[12] );
 
 		    iLayer = iLoadLayer;
@@ -1037,9 +1039,9 @@ void LAYER::move( int32_t del_x, int32_t del_y )
          return;
 		if( ( y + del_y ) < ( stacked_on->y-stacked_on->hoty ) )
          return;
-		if( ( x + del_x ) >= ( stacked_on->x-stacked_on->hotx+stacked_on->w ) )
+		if( ( x + del_x ) >= ( stacked_on->x-stacked_on->hotx+(int32_t)stacked_on->w ) )
          return;
-		if( ( y + del_y ) >= ( stacked_on->y-stacked_on->hoty+stacked_on->h ) )
+		if( ( y + del_y ) >= ( stacked_on->y-stacked_on->hoty+(int32_t)stacked_on->h ) )
          return;
 	}
 	x += del_x;
