@@ -212,7 +212,6 @@ static int CPROC inflateBackOutput( void* state, unsigned char *output, unsigned
 void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length )
 {
 	size_t n;
-	//lprintf( "Process packet: %d", length );
 	for( n = 0; n < length; n++ )
 	{
 		switch( websock->input_msg_state )
@@ -271,7 +270,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 			websock->input_msg_state++;
 			break;
 		case 3: // byte 1, extended payload uint16_t
-			websock->frame_length |= msg[3];
+			websock->frame_length |= msg[n];
 
 			if( websock->mask )
 				websock->input_msg_state = 12;
@@ -461,6 +460,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 					break;
 				default:
 					lprintf( WIDE("Bad WebSocket opcode: %d"), websock->opcode );
+					RemoveClient( pc );
 					return;
 				}
 				// after processing any opcode (this is IN final, and length match) we're done, start next message
