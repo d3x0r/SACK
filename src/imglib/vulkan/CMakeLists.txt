@@ -35,8 +35,6 @@ endif( WIN32 )
 
 set( project bag.image.vulkan )
 
-ADD_DEFINITIONS( -D__3D__ )
-ADD_DEFINITIONS( -D_VULKAN_DRIVER )
 
 set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole2.c )
 set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )

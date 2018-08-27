@@ -3,17 +3,15 @@
 set( project bag.image.puregl )
 
 
-ADD_DEFINITIONS( -D__3D__ )
-
 set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole2.c )
 
 if( WIN32 )
     INCLUDE_DIRECTORIES( ../../vidlib/puregl/glew-1.9.0/include )
 else( WIN32 )
    
-    if( __ANDROID__ OR QNX )
+if( __ANDROID__ OR QNX )
 	ADD_DEFINITIONS( -DUSE_GLES )
-    endif( __ANDROID__ OR QNX )
+endif( __ANDROID__ OR QNX )
 
 endif( WIN32 )
 if( __NO_ODBC__ OR NOT USE_OPTIONS )
@@ -30,7 +28,7 @@ ${LAST_GCC_LIBRARY_SOURCE}
 )
 
 SET_TARGET_PROPERTIES(${project} PROPERTIES 
-        COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};_OPENGL_ENABLED;PURE_OPENGL_ENABLED;_OPENGL_DRIVER;MAKE_RCOORD_SINGLE" 
+        COMPILE_DEFINITIONS "TARGET_LABEL=${TARGET_LABEL};__3D__;_OPENGL_ENABLED;PURE_OPENGL_ENABLED;_OPENGL_DRIVER;MAKE_RCOORD_SINGLE" 
         FOLDER "Image Library" 
 )
 
