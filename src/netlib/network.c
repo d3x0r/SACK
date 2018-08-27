@@ -3592,7 +3592,6 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		// UDP still needs to be done this way...
 		//
 		InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
-#ifndef __LINUX__
 		if( NetworkLock( lpClient, 0 ) && ((n=1),NetworkLock( lpClient, 1 )) ) {
 			TerminateClosedClient( lpClient );
 			NetworkUnlock( lpClient, 0 );
@@ -3601,7 +3600,6 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		else if( n ) {
 			NetworkUnlock( lpClient, 0 );
 		}
-#endif
 	}
 }
 

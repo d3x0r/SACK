@@ -16,6 +16,7 @@
 
 HTML5_WEBSOCKET_NAMESPACE
 
+#define WSS_DEFAULT_BUFFER_SIZE 4096
 
 typedef struct html5_web_socket *HTML5WebSocket;
 
@@ -544,10 +545,10 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 	else
 	{
 		//HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
-		buffer = socket->buffer = Allocate( 4096 );
+		buffer = socket->buffer = Allocate( WSS_DEFAULT_BUFFER_SIZE );
 	}
 	if( !socket->input_state.flags.use_ssl )
-		ReadTCP( pc, buffer, 4096 );
+		ReadTCP( pc, buffer, WSS_DEFAULT_BUFFER_SIZE );
 }
 
 static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
