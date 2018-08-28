@@ -1783,6 +1783,10 @@ endif( WIN32 )
 add_subdirectory( src/utils/seed_random )
 add_subdirectory( src/deadstart )
 
+if( INCLUDE_EXTRAS )
+     add_subdirectory( src/games/router )
+endif( INCLUDE_EXTRAS )
+
  if( NOT __NO_GUI__ AND NOT __ANDROID__ )
   add_subdirectory( src/imglib/dump_font_cache )
  endif( NOT __NO_GUI__ AND NOT __ANDROID__ )

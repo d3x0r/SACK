@@ -1,9 +1,9 @@
 #include "interface.h"
 #include <stdhdrs.h>
 #include <sharemem.h>
-#define USES_INTERSHELL_INTERFACE
-#define DEFINES_INTERSHELL_INTERFACE
-#include "InterShell/intershell_export.h"
+//#define USES_INTERSHELL_INTERFACE
+//#define DEFINES_INTERSHELL_INTERFACE
+//#include "InterShell/intershell_export.h"
 
 #include "board.hpp"
 #include "layer.hpp"
@@ -294,9 +294,9 @@ void LAYER::Draw( PIBOARD board, Image image, int32_t x, int32_t y )
 
 		if( pLayerData->atext )
 		{
-			SFTFont *ppFont = UseACanvasFont( NULL, WIDE("Network Board Font") );
-         if( ppFont )
-			DrawText( image, x /*+ cellx*cols*/
+			SFTFont *ppFont = NULL;// UseACanvasFont( NULL, WIDE( "Network Board Font" ) );
+			if( ppFont )
+				DrawText( image, x /*+ cellx*cols*/
 					  , y + celly*h
 					  , pLayerData->atext
 					  , BASE_COLOR_WHITE

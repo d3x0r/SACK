@@ -39,7 +39,7 @@ typedef struct render_3d_interface_tag
 #if defined( _VULKAN_DRIVER )
 #  define EXTRA_INIT_PARAM VkDevice device,
 #else
-#  define EXTRA_INIT_PARAM 
+#  define EXTRA_INIT_PARAM
 #endif
 
 
