@@ -439,7 +439,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 						websock->on_close = NULL;
 					}
 					websock->fragment_collection_length = 0;
-					RemoveClientEx( pc, 0, 1 );
+					RemoveClientEx( pc, 0, 0 ); // this should not linger; client already sent closed, nothing more to receive.
 					// resetInputstate after this would squash next memory....
 					return;
 

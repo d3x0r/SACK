@@ -202,7 +202,7 @@ void ResetWebsocketRequestHandler( PCLIENT pc ) {
 	if( !socket ) return; // closing/closed....
 	socket->flags.initial_handshake_done = 0;
 	socket->flags.http_request_only = 0;
-   EndHttp( socket->http_state );
+	EndHttp( socket->http_state );
 }
 
 uintptr_t WebSocketGetServerData( PCLIENT pc ) {

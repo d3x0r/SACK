@@ -331,7 +331,7 @@ void WebSocketClose( PCLIENT pc, int code, const char *reason )
 	else {
 		buflen = 0;
 	}
-	if( websock->Magic == 0x20130912 ) {
+	if( websock->Magic == 0x20130912 ) { // struct html5_web_socket
 		struct html5_web_socket *serverSock = (struct html5_web_socket*)websock;
 		if( serverSock->flags.initial_handshake_done ) {
 			//lprintf( "Send server side close with no payload." );
@@ -344,7 +344,7 @@ void WebSocketClose( PCLIENT pc, int code, const char *reason )
 		}
 	}
 	else {
-		if( websock->Magic == 0x20130911 ) {
+		if( websock->Magic == 0x20130911 ) { // struct web_socket_client
 			//lprintf( "send client side close?" );
 			if( websock->flags.connected ) {
 				while( !NetworkLockEx( pc, 1 DBG_SRC ) )
