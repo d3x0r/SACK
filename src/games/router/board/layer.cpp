@@ -1,9 +1,9 @@
 #include "interface.h"
 #include <stdhdrs.h>
 #include <sharemem.h>
-#define USES_INTERSHELL_INTERFACE
-#define DEFINES_INTERSHELL_INTERFACE
-#include "InterShell/intershell_export.h"
+//#define USES_INTERSHELL_INTERFACE
+//#define DEFINES_INTERSHELL_INTERFACE
+//#include "InterShell/intershell_export.h"
 
 #include "board.hpp"
 #include "layer.hpp"
@@ -55,7 +55,7 @@ void LAYER_DATA::operator delete( void *ptr )
 #ifdef _MSC_VER
 void LAYER_DATA::operator delete( void *ptr, struct LAYER_DATAset_tag **frompool )
 {
-	DeleteFromSet( LAYER_DATA, frompool, ptr );
+	DeleteFromSet( LAYER_DATA, frompool[0], ptr );
 }
 #endif
 //--------------------------------------------------------------------------
@@ -292,9 +292,9 @@ void LAYER::Draw( PIBOARD board, Image image, int32_t x, int32_t y )
 
 		if( pLayerData->atext )
 		{
-			SFTFont *ppFont = UseACanvasFont( NULL, WIDE("Network Board Font") );
-         if( ppFont )
-			DrawText( image, x /*+ cellx*cols*/
+			SFTFont *ppFont = NULL;// UseACanvasFont( NULL, WIDE( "Network Board Font" ) );
+			if( ppFont )
+				DrawText( image, x /*+ cellx*cols*/
 					  , y + celly*h
 					  , pLayerData->atext
 					  , BASE_COLOR_WHITE
@@ -447,7 +447,7 @@ void LAYER::operator delete( void *ptr, struct LAYERset_tag **frompool, struct L
 	PLAYERSET *ppls = layer->pool;
 	layer->isolate();
 	if( ppls )
-		DeleteFromSet( LAYER, frompool,( layer ) );
+		DeleteFromSet( LAYER, frompool[0],( layer ) );
 }
 #endif
 //--------------------------------------------------------------------------
