@@ -1634,7 +1634,8 @@ struct render_interface_tag
 #endif
 
 #if !defined(FORCE_NO_RENDER_INTERFACE)
-/* RENDER_PROC( PRENDER_INTERFACE, GetDisplayInterface )( void );
+/* RENDER_PROC( PRENDER_INTERFACE, GetDisplayInterface )( void
+ );
    
    Gets the interface the proper way - by name.
    Returns
