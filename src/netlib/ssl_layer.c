@@ -135,7 +135,8 @@ struct ssl_session {
 	size_t ibuflen;
 	uint8_t *dbuffer;
 	size_t dbuflen;
-	CRITICALSECTION csReadWrite;
+	CRITICALSECTION csRead;
+	CRITICALSECTION csWrite;
 };
 
 static struct ssl_global
@@ -250,7 +251,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 #endif
 	if( pc->ssl_session )
 	{
-		EnterCriticalSec( &pc->ssl_session->csReadWrite );
+		EnterCriticalSec( &pc->ssl_session->csRead );
 		if( buffer )
 		{
 			int len;
@@ -264,7 +265,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 #endif
 			if( len < (int)length ) {
 				lprintf( "Protocol failure?" );
-				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+				LeaveCriticalSec( &pc->ssl_session->csRead );
 				Release( pc->ssl_session );
 				RemoveClient( pc );
 				return;
@@ -276,7 +277,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				// normal condition...
 				lprintf( "Receive handshake not complete iBuffer" );
 #endif
-				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+				LeaveCriticalSec( &pc->ssl_session->csRead );
 				ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
 				return;
 			}
@@ -289,7 +290,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 						int r;
 						if( ( r = SSL_get_verify_result( pc->ssl_session->ssl ) ) != X509_V_OK ) {
 							lprintf( "Certificate verification failed. %d", r );
-							LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+							LeaveCriticalSec( &pc->ssl_session->csRead );
 							RemoveClientEx( pc, 0, 1 );
 							return;
 							//ERR_print_errors_cb( logerr, (void*)__LINE__ );
@@ -336,7 +337,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				}
 			}
 			else if( hs_rc == -1 ) {
-				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+				LeaveCriticalSec( &pc->ssl_session->csRead );
   				RemoveClient( pc );
   				return;
 			}
@@ -431,7 +432,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 		}
 		//lprintf( "Read more data..." );
 		if( pc->ssl_session ) {
-			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+			LeaveCriticalSec( &pc->ssl_session->csRead );
 			ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
 		}
 	}
@@ -456,11 +457,11 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 #ifdef DEBUG_SSL_IO
 		lprintf( "Sending %d of %d at %d", pending_out, length, offset );
 #endif
-      EnterCriticalSec( &pc->ssl_session->csReadWrite );
+      EnterCriticalSec( &pc->ssl_session->csWrite );
 		len = SSL_write( pc->ssl_session->ssl, (((uint8_t*)buffer) + offset), (int)pending_out );
 		if (len < 0) {
 			ERR_print_errors_cb(logerr, (void*)__LINE__);
-			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+			LeaveCriticalSec( &pc->ssl_session->csWrite );
 			return FALSE;
 		}
 		offset += len;
@@ -487,7 +488,7 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 #endif
 		SendTCP( pc, ses->obuffer, len_out );
 		if( pc->ssl_session )
-			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+			LeaveCriticalSec( &pc->ssl_session->csWrite );
 	}
 	return TRUE;
 
@@ -516,7 +517,8 @@ static void ssl_InitSession( struct ssl_session *ses ) {
 	ses->wbio = BIO_new( BIO_s_mem() );
 
 	SSL_set_bio( ses->ssl, ses->rbio, ses->wbio );
-   InitializeCriticalSec( &ses->csReadWrite );
+	InitializeCriticalSec( &ses->csRead );
+	InitializeCriticalSec( &ses->csWrite );
 }
 
 static void ssl_CloseCallback( PCLIENT pc ) {
@@ -532,7 +534,8 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 	else
 		ses->user_close( pc );
 
-   DeleteCriticalSec( &ses->csReadWrite );
+	DeleteCriticalSec( &ses->csRead );
+	DeleteCriticalSec( &ses->csWrite );
 	Release( ses->dbuffer );
 	Release( ses->ibuffer );
 	Release( ses->obuffer );
