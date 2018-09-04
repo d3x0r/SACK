@@ -138,6 +138,7 @@ void Render3D( struct display_camera *camera )
 		//	, q[0], q[1], q[2], q[3]
 		//	, q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3] );
 #endif
+
 		ApplyTranslationT( VectorConst_I, camera->origin_camera, l.origin );
 
 		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
@@ -231,7 +232,6 @@ void Render3D( struct display_camera *camera )
 			// should clear stensil buffer here so we can do remaining drawing only on polygon that's visible.
 			ClearImageTo( hVideo->pImage, 0 );
 			ImageSetShaderDepth( hVideo->pImage, FALSE );
-
 
 			if( hVideo->pRedrawCallback )
 			{

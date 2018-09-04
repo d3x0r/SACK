@@ -21,17 +21,17 @@ RENDER_NAMESPACE
 				BIT_FIELD bDrag : 1;
 			} flags;
 			RCOORD x;
-         RCOORD y;
+			RCOORD y;
 		} one;
 		struct touch_event_two{
 			RCOORD x;
 			RCOORD y;
-         RCOORD begin_length;
+			RCOORD begin_length;
 		} two;
 		struct touch_event_three{
 			RCOORD x;
 			RCOORD y;
-         RCOORD begin_lengths[3]; //3 lengths for segments 1->2, 2->3, 1->3
+			RCOORD begin_lengths[3]; //3 lengths for segments 1->2, 2->3, 1->3
 		} three;
 	} touch_info;
 
@@ -119,9 +119,9 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				// and four if we ever use this
 			}
 		}
-      else 
+		else 
 #endif
-		     if( nTouches == 3 )
+			  if( nTouches == 3 )
 		{
 			if( touches[2].flags.new_event )
 			{
@@ -162,7 +162,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 		}
 		else if( nTouches == 2 )
 		{
-         // begin rotate lock
+			// begin rotate lock
 			if( touches[1].flags.new_event )
 			{
 				VECTOR v1, v2, v3;
@@ -185,23 +185,23 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 			}
 			else if( touches[1].flags.end_event )
 			{
-            // otherwise, next move will cause screen to 'pop'...
-            touch_info.one.x = touches[0].x;
-            touch_info.one.y = touches[0].y;
+				// otherwise, next move will cause screen to 'pop'...
+				touch_info.one.x = touches[0].x;
+				touch_info.one.y = touches[0].y;
 			}
 			else
 			{
 				// drag
-            VECTOR v_n_old, v_n_new;
+				VECTOR v_n_old, v_n_new;
 				VECTOR v_o_old, v_o_new;
 				VECTOR v_mid_old, v_mid_new, v_delta_pos;
-            RCOORD new_length, old_length;
+				RCOORD new_length, old_length;
 
 				RAY rotate_axis;
 
 				//lprintf( WIDE("drag") );
-            v_o_new[vRight] = touches[0].x - camera->w/2;
-            v_o_new[vUp] = camera->h/2 - touches[0].y;
+				v_o_new[vRight] = touches[0].x - camera->w/2;
+				v_o_new[vUp] = camera->h/2 - touches[0].y;
 				v_o_new[vForward] = 0;
 
 				v_n_new[vRight] = touches[1].x - touches[0].x;
@@ -262,13 +262,13 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 							VECTOR v1;
 							addscaled( v1, v_o_old, v_n_old, dt1 );
 							v1[vForward] = camera->identity_depth;
-							// intersect is valid.   Otherwise ... I use the halfway point?
+							// intersect is valid.	Otherwise ... I use the halfway point?
 							PrintVector( v1 );
 							RotateAround( l.origin, v1, angle_one );
 						}
 						//else
 						{
-						//   lprintf( "not enough angle? more like a move action?" );
+						//	lprintf( "not enough angle? more like a move action?" );
 						}
 #endif
 					}
@@ -313,7 +313,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					touch_info.flags.owned_by_surface = 0;
 				}
 				// release
-            //lprintf( WIDE("done") );
+				//lprintf( WIDE("done") );
 			}
 			else
 			{

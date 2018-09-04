@@ -1800,6 +1800,10 @@ static LOGICAL CPROC EnableRotation( uintptr_t psv, uint32_t keycode )
 	return 1;
 }
 
+//-----------------------------------------------------------------------------------
+// Camera/character controller type code.
+//-----------------------------------------------------------------------------------
+
 static LOGICAL CPROC CameraForward( uintptr_t psv, uint32_t keycode )
 {
 	if( l.flags.bRotateLock )
@@ -1917,6 +1921,10 @@ static LOGICAL CPROC CameraDown( uintptr_t psv, uint32_t keycode )
 //	return 0;
 	return 1;
 }
+
+//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
+
 
 int IsTouchDisplay( void )
 {
