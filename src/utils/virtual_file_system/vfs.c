@@ -44,7 +44,7 @@ static struct {
 } l;
 #define EOFBLOCK  (~(BLOCKINDEX)0)
 #define EOBBLOCK  ((BLOCKINDEX)1)
-
+#define EODMARK   (1)
 #define GFB_INIT_NONE   0
 #define GFB_INIT_DIRENT 1
 #define GFB_INIT_NAMES  2
@@ -91,11 +91,11 @@ static int MaskStrCmp( struct volume *vol, const char * filename, FPI name_offse
 			name_offset++;
 			if( path_match && !filename[0] ) {
 				c = ( ((uint8_t*)vol->disk)[name_offset] ^ vol->usekey[BLOCK_CACHE_NAMES][name_offset&BLOCK_MASK] );
-				if( c == '/' || c == '\\' )
-					return 0;
+				if( c == '/' || c == '\\' ) return 0;
 			}
 		}
 		// c will be 0 or filename will be 0...
+		if( path_match ) return 1;
 		return filename[0] - c;
 	} else {
 		//LoG( "doesn't volume always have a key?" );
@@ -392,8 +392,16 @@ static LOGICAL ExpandVolume( struct volume *vol ) {
 #endif
 			vol->disk = new_disk;
 			if( created && vol->disk == vol->diskReal ) {
-				((BLOCKINDEX*)(((uintptr_t)vol->disk) + 0))[0] = EOBBLOCK;
-				((struct directory_entry*)(((uintptr_t)vol->disk) + BLOCK_SIZE))->first_block = 1;
+				enum block_cache_entries cache = BLOCK_CACHE_DIRECTORY;
+				struct directory_entry *next_entries = BTSEEK( struct directory_entry *, vol, 0, cache );
+				struct directory_entry *entkey = (vol->key) ? ((struct directory_entry *)vol->usekey[BLOCK_CACHE_DIRECTORY]) : &l.zero_entkey;
+				// initialize directory list.
+				((struct directory_entry*)(((uintptr_t)vol->disk) + BLOCK_SIZE))->first_block = EODMARK ^ entkey->first_block;
+
+				// initialize first BAT block.
+				cache = BLOCK_CACHE_BAT;
+				TSEEK( BLOCKINDEX*, vol, 0, cache );
+				((BLOCKINDEX*)(((uintptr_t)vol->disk) + 0))[0] = EOBBLOCK ^ ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[0];
 			}
 			return TRUE;
 		}
@@ -536,7 +544,7 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, int init )
 						if( !ExpandVolume( vol ) ) return 0;
 					}
 					if( init == GFB_INIT_DIRENT )
-						((struct directory_entry*)(((uint8_t*)vol->disk) + (vol->segment[cache]-1) * BLOCK_SIZE))[0].first_block = 1^((struct directory_entry*)vol->usekey[cache])->first_block;
+						((struct directory_entry*)(((uint8_t*)vol->disk) + (vol->segment[cache]-1) * BLOCK_SIZE))[0].first_block = EODMARK^((struct directory_entry*)vol->usekey[cache])->first_block;
 					else if( init == GFB_INIT_NAMES )
 						((char*)(((uint8_t*)vol->disk) + (vol->segment[cache]-1) * BLOCK_SIZE))[0] = ((char*)vol->usekey[cache])[0];
 					//else
@@ -961,7 +969,7 @@ struct directory_entry * ScanDirectory( struct volume *vol, const char * filenam
 			// if file is deleted; don't check it's name.
 			if( !bi ) continue;
 			// if file is end of directory, done sanning.
-			if( bi == 1 ) return filename?NULL:((struct directory_entry*)1); // done.
+			if( bi == EODMARK ) return filename?NULL:((struct directory_entry*)1); // done.
 			if( name_ofs > vol->dwSize ) { return NULL; }
 			//testname =
 			if( filename ) {
@@ -1030,6 +1038,7 @@ static struct directory_entry * GetNewDirectory( struct volume *vol, const char 
 	size_t n;
 	BLOCKINDEX this_dir_block = 0;
 	struct directory_entry *next_entries;
+	LOGICAL moveMark = FALSE;
 	do {
 		enum block_cache_entries cache = BLOCK_CACHE_DIRECTORY;
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, cache );
@@ -1040,6 +1049,7 @@ static struct directory_entry * GetNewDirectory( struct volume *vol, const char 
 			BLOCKINDEX first_blk = ent->first_block ^ entkey->first_block;
 			// not name_offset (end of list) or not first_block(free entry) use this entry
 			if( name_ofs && (first_blk > 1) )  continue;
+			if( first_blk == EODMARK ) moveMark = TRUE;
 			name_ofs = SaveFileName( vol, filename ) ^ entkey->name_offset;
 			first_blk = GetFreeBlock( vol, FALSE ) ^ entkey->first_block;
 			// get free block might have expanded and moved the disk; reseek and get ent address
@@ -1049,8 +1059,10 @@ static struct directory_entry * GetNewDirectory( struct volume *vol, const char 
 			ent->name_offset = name_ofs;
 			ent->first_block = first_blk;
 			if( n < (VFS_DIRECTORY_ENTRIES - 1) ) {
-				struct directory_entry *enttmp = next_entries + (n+1);
-				enttmp->first_block = 1 ^ entkey[1].first_block;
+				if( moveMark ) {
+					struct directory_entry *enttmp = next_entries + (n + 1);
+					enttmp->first_block = EODMARK ^ entkey[1].first_block;
+				}
 			} else {
 				// otherwise pre-init the next directory sector
 				this_dir_block = vfs_GetNextBlock( vol, this_dir_block, GFB_INIT_DIRENT, TRUE );
@@ -1403,7 +1415,7 @@ static int iterate_find( struct find_info *info ) {
 			// if file is deleted; don't check it's name.
 			if( !(next_entries[n].first_block ^ entkey->first_block ) )
 				continue;
-			if( (next_entries[n].first_block ^ entkey->first_block ) == 1 )
+			if( (next_entries[n].first_block ^ entkey->first_block ) == EODMARK )
 				return 0; // end of directory.
 			info->filesize = next_entries[n].filesize ^ entkey->filesize;
 			if( (name_ofs) > info->vol->dwSize ) {
