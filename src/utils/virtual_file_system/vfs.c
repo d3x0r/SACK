@@ -1489,7 +1489,9 @@ LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, cons
 			struct directory_entry new_entkey;
 			struct directory_entry *new_entry;
 			if( (new_entry = ScanDirectory( vol, newname, &new_entkey, 0 )) ) {
+				vol->lock = 0;
 				sack_vfs_unlink_file( vol, newname );
+				while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 			}
 			entry->name_offset = SaveFileName( vol, newname ) ^ entkey.name_offset;
 			vol->lock = 0;
