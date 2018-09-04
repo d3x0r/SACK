@@ -328,7 +328,7 @@ PTRANSFORM EXTERNAL_NAME(CreateNamedTransform)( CTEXTSTR name  )
 	else
 	{
 		pt = New( struct transform_tag );
-		pt->motion = NULL;
+		pt->motions = NULL;
 		EXTERNAL_NAME(ClearTransform)(pt);
 	}
    return pt;
@@ -346,13 +346,16 @@ MATHLIB_EXPORT PTRANSFORM EXTERNAL_NAME(CreateTransform)( void )
 
 PTRANSFORM EXTERNAL_NAME(CreateTransformMotionEx)( PTRANSFORM pt, int rocket )
 {
-	if( !pt->motion )
+	if( !pt->motions )
 	{
-		pt->motion = New( struct motion_frame_tag );
-		MemSet( pt->motion, 0, sizeof( struct motion_frame_tag ) );
-		pt->motion->rocket = rocket;
-		pt->motion->speed_time_interval = 1000; // speed_time_interval
-		pt->motion->rotation_time_interval = 1000;
+		pt->motions = NewArray( struct motion_frame_tag, 2 );
+		MemSet( pt->motions, 0, 2*sizeof( struct motion_frame_tag ) );
+		pt->motions->rocket = rocket;
+		pt->motions->speed_time_interval = 1000; // speed_time_interval
+		pt->motions->rotation_time_interval = 1000;
+
+		pt->motions[1].fluff = 1;
+		pt->nMotion = 2;
 	}
 	return pt;
 };
@@ -532,9 +535,9 @@ INLINEFUNC( void, Rotate, ( RCOORD dAngle, P_POINT vaxis1, P_POINT vaxis2 ) )
 
 void EXTERNAL_NAME(RotateRelV)( PTRANSFORM pt, PC_POINT r )
 { // depends on Scale function....
-   if( !pt->motion )
+   if( !pt->motions )
 	   EXTERNAL_NAME(CreateTransformMotion)( pt );
-   switch( pt->motion->nTime++ )
+   switch( pt->motions->nTime++ )
    {
    case 0:
       RotateYaw   ( pt->m, r[vUp] );
@@ -562,7 +565,7 @@ void EXTERNAL_NAME(RotateRelV)( PTRANSFORM pt, PC_POINT r )
       RotateYaw   ( pt->m, r[vUp] );
       break;
    default:
-      pt->motion->nTime = 0;
+      pt->motions->nTime = 0;
       RotateRoll  ( pt->m, r[vForward] );
       RotateYaw   ( pt->m, r[vUp] );
       RotatePitch ( pt->m, r[vRight] );
@@ -893,36 +896,36 @@ void EXTERNAL_NAME(MoveUp)( PTRANSFORM pt, RCOORD distance )
 
  void EXTERNAL_NAME(Forward)( PTRANSFORM pt, RCOORD distance )
 {
-	if( pt && pt->motion )
-		pt->motion->speed[vForward] = distance;
+	if( pt && pt->motions )
+		pt->motions->speed[vForward] = distance;
 }
 
 //----------------------------------------------------------------
 
  void EXTERNAL_NAME(Up)( PTRANSFORM pt, RCOORD distance )
 {
-	if( pt && pt->motion )
-		pt->motion->speed[vUp] = distance;
+	if( pt && pt->motions )
+		pt->motions->speed[vUp] = distance;
 }
 
 //----------------------------------------------------------------
 
  void EXTERNAL_NAME(Right)( PTRANSFORM pt, RCOORD distance )
 {
-	if( pt && pt->motion )
-		pt->motion->speed[vRight] = distance;
+	if( pt && pt->motions )
+		pt->motions->speed[vRight] = distance;
 }
 
 //----------------------------------------------------------------
 
 void EXTERNAL_NAME(AddTransformCallback)( PTRANSFORM pt, MotionCallback callback, uintptr_t psv )
 {
-	if( pt && pt->motion )
+	if( pt && pt->motions )
 	{
 		INDEX idx;
-		AddLink( &pt->motion->callbacks, callback );
-		idx = FindLink( &pt->motion->callbacks, (POINTER)callback );
-		SetLink( &pt->motion->userdata, idx, psv );
+		AddLink( &pt->motions->callbacks, callback );
+		idx = FindLink( &pt->motions->callbacks, (POINTER)callback );
+		SetLink( &pt->motions->userdata, idx, psv );
 	}
 }
 
@@ -932,11 +935,11 @@ static void InvokeCallbacks( PTRANSFORM pt )
 {
 	INDEX idx;
 	MotionCallback callback;
-	if( pt && pt->motion )
+	if( pt && pt->motions )
 	{
-		LIST_FORALL( pt->motion->callbacks, idx, MotionCallback, callback )
+		LIST_FORALL( pt->motions->callbacks, idx, MotionCallback, callback )
 		{
-			callback( (uintptr_t)GetLink( &pt->motion->userdata, idx ), pt );
+			callback( (uintptr_t)GetLink( &pt->motions->userdata, idx ), pt );
 #ifdef _MSC_VER
 			if( _isnan( pt->m[0][0] ) )
 				lprintf( WIDE( "blah" ) );
@@ -947,7 +950,7 @@ static void InvokeCallbacks( PTRANSFORM pt )
 
 //----------------------------------------------------------------
 
-LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
+LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 {
 	LOGICAL moved = FALSE;
 	// this matrix of course....
@@ -958,7 +961,7 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 	// matrix...  this is later referenced
 	// to trasform the remaining points
 	// (application of this matrix)
-	if( pt && pt->motion )
+	if( pt && motion )
 	{
 		//VECTOR v;
 		RCOORD speed_step;
@@ -977,12 +980,12 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 			static uint64_t tick_freq_cpu;
 			static uint64_t last_tick_cpu;
 			static uint32_t tick_cpu;
-			if( pt->motion->last_tick )
+			if( motion->last_tick )
 			{
 				// how much time passed between then and no
 				// and what's our target resolution?
 				static uint32_t now;
-				uint32_t delta = ( now = timeGetTime() ) - pt->motion->last_tick;
+				uint32_t delta = ( now = timeGetTime() ) - motion->last_tick;
 				if( !delta )
 				{
 					return FALSE;  // on 0 time elapse, don't try this... cpu scaling will mess this up.
@@ -1005,20 +1008,20 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 				}
 				else
 				{
-					speed_step = delta / pt->motion->speed_time_interval; // times 1000 so we get extra precision.
-					rotation_step = delta / pt->motion->rotation_time_interval; // times 1000 so we get extra precision.
+					speed_step = delta / motion->speed_time_interval; // times 1000 so we get extra precision.
+					rotation_step = delta / motion->rotation_time_interval; // times 1000 so we get extra precision.
 				}
-				pt->motion->last_tick = now;
+				motion->last_tick = now;
 			}
 			else
 			{
 				// don't move on the first tick.
 #if CONSTANT_CPU_TICK
-				tick_cpu = pt->motion->last_tick = timeGetTime();
+				tick_cpu = motion->last_tick = timeGetTime();
 				last_tick_cpu = GetCPUTick();
-				pt->motion->time_scale = ONE;
+				motion->time_scale = ONE;
 #endif
-				pt->motion->last_tick = timeGetTime();
+				motion->last_tick = timeGetTime();
 				return FALSE;
 			}
 		}			
@@ -1029,30 +1032,56 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 #endif
 	{
 		VECTOR v;
-		if( pt->motion->rocket )
+		VECTOR v2;
+		if( motion->rocket )
 		{
 			moved = TRUE;
-			DOFUNC(scale)( v, pt->motion->accel, speed_step );
+			//DOFUNC(scale )(v, motion->accel, speed_step);
+			DOFUNC(add)( v, motion->prior_accel, motion->accel );
+			DOFUNC(scale)( v, v, 0.5 * speed_step );
+			SetPoint( motion->prior_accel, motion->accel );
 			// add the scaled acceleration in the current direction of this
-			pt->motion->speed[0] += v[0] * pt->m[0][0]
+			motion->speed[0] += v[0] * pt->m[0][0]
 				+ v[1] * pt->m[1][0]
 				+ v[2] * pt->m[2][0];
-			pt->motion->speed[1] += v[0] * pt->m[0][1]
+			motion->speed[1] += v[0] * pt->m[0][1]
 				+ v[1] * pt->m[1][1]
 				+ v[2] * pt->m[2][1];
-			pt->motion->speed[2] += v[0] * pt->m[0][2]
+			motion->speed[2] += v[0] * pt->m[0][2]
 				+ v[1] * pt->m[1][2]
 				+ v[2] * pt->m[2][2];
-			DOFUNC(addscaled)( pt->m[3], pt->m[3], pt->motion->speed, speed_step );
+			DOFUNC(addscaled)( pt->m[3], pt->m[3], motion->speed, speed_step );
+		}
+		else if( motion->fluff )
+		{
+			if( motion->speed[0] || motion->speed[1] || motion->speed[2]
+				|| motion->accel[0] || motion->accel[1] || motion->accel[2] )
+			{
+				moved = TRUE;
+
+				DOFUNC( add )(v, motion->prior_accel, motion->accel);
+				DOFUNC( addscaled )(motion->speed, motion->speed, v, 0.5*speed_step);
+				SetPoint( motion->prior_accel, motion->accel );
+				//DOFUNC(addscaled)( motion->speed, motion->speed, motion->accel, speed_step );
+
+				DOFUNC( add )(v, motion->prior_speed, motion->speed);
+				DOFUNC( addscaled ) (pt->m[3], pt->m[3], v, 0.5 * speed_step);
+				SetPoint( motion->prior_speed, motion->speed );
+			}
 		}
 		else
 		{
-			if( pt->motion->speed[0] || pt->motion->speed[1] || pt->motion->speed[2]
-				|| pt->motion->accel[0] || pt->motion->accel[1] || pt->motion->accel[2] )
+			if( motion->speed[0] || motion->speed[1] || motion->speed[2]
+				|| motion->accel[0] || motion->accel[1] || motion->accel[2] )
 			{
 				moved = TRUE;
-				DOFUNC(addscaled)( pt->motion->speed, pt->motion->speed, pt->motion->accel, speed_step );
-				DOFUNC(scale)( v, pt->motion->speed, speed_step );
+
+				DOFUNC( add )(v, motion->prior_accel, motion->accel);
+				DOFUNC( addscaled )(motion->speed, motion->speed, v, 0.5*speed_step);
+				SetPoint( motion->prior_accel, motion->accel );
+				//DOFUNC(addscaled)( motion->speed, motion->speed, motion->accel, speed_step );
+
+				DOFUNC(scale)( v, motion->speed, speed_step );
 				//scale( v, v, pt->time_scale ); // velocity applied across this time
 				pt->m[3][0] += v[0] * pt->m[0][0]
 					+ v[1] * pt->m[1][0]
@@ -1070,15 +1099,15 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 			lprintf( WIDE( "blah" ) );
 #endif
 		// include time scale for rotation also...
-		if( pt->motion->rotation[0] || pt->motion->rotation[1] || pt->motion->rotation[2]
-			|| pt->motion->rot_accel[0] || pt->motion->rot_accel[1] || pt->motion->rot_accel[2]
+		if( motion->rotation[0] || motion->rotation[1] || motion->rotation[2]
+			|| motion->rot_accel[0] || motion->rot_accel[1] || motion->rot_accel[2]
 			)
 		{
 			VECTOR  r;
 			//lprintf( WIDE(WIDE( "Time scale is not applied" )) );
 			moved = TRUE;
-			DOFUNC(addscaled)( pt->motion->rotation, pt->motion->rotation, pt->motion->rot_accel, rotation_step );
-			DOFUNC(scale)( r, pt->motion->rotation, rotation_step );
+			DOFUNC(addscaled)( motion->rotation, motion->rotation, motion->rot_accel, rotation_step );
+			DOFUNC(scale)( r, motion->rotation, rotation_step );
 
 			EXTERNAL_NAME(RotateRelV)( pt, r );
 #ifdef _MSC_VER
@@ -1100,6 +1129,14 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 	return moved;
 }
 
+LOGICAL EXTERNAL_NAME( Move )(PTRANSFORM pt)
+{
+	int n;
+	LOGICAL moved = FALSE;
+	for( n = 0; n < pt->nMotion; n++ )
+		moved |= EXTERNAL_NAME( MoveEx )(pt, pt->motions + n);
+	return moved;
+}
 //----------------------------------------------------------------
 #if 0
  void Unmove( PTRANSFORM pt )
@@ -1227,7 +1264,7 @@ LOGICAL EXTERNAL_NAME(Move)( PTRANSFORM pt )
 
 P_POINT EXTERNAL_NAME(GetSpeed)( PTRANSFORM pt, P_POINT s )
 {
-   SetPoint( s, pt->motion->speed );
+   SetPoint( s, pt->motions->speed );
    return s;
 }
 
@@ -1235,7 +1272,7 @@ P_POINT EXTERNAL_NAME(GetSpeed)( PTRANSFORM pt, P_POINT s )
 
 PC_POINT  EXTERNAL_NAME(SetSpeed)( PTRANSFORM pt, PC_POINT s )
 {
-	SetPoint( pt->motion->speed, s );
+	SetPoint( pt->motions->speed, s );
    return s;
 }
 
@@ -1243,14 +1280,14 @@ PC_POINT  EXTERNAL_NAME(SetSpeed)( PTRANSFORM pt, PC_POINT s )
 
 void EXTERNAL_NAME(SetTimeInterval)( PTRANSFORM pt, RCOORD speed_interval, RCOORD rotation_interval )
 {
-   pt->motion->rotation_time_interval = rotation_interval; // application of motion uses this factor
-   pt->motion->speed_time_interval = speed_interval; // application of motion uses this factor
+   pt->motions->rotation_time_interval = rotation_interval; // application of motions uses this factor
+   pt->motions->speed_time_interval = speed_interval; // application of motions uses this factor
 }
 
 //----------------------------------------------------------------
 P_POINT  EXTERNAL_NAME(GetAccel)( PTRANSFORM pt, P_POINT s )
 {
-   SetPoint( s, pt->motion->accel );
+   SetPoint( s, pt->motions->accel );
    return s;
 }
 
@@ -1258,7 +1295,7 @@ P_POINT  EXTERNAL_NAME(GetAccel)( PTRANSFORM pt, P_POINT s )
 
  PC_POINT  EXTERNAL_NAME(SetAccel)( PTRANSFORM pt, PC_POINT s )
 {
-	SetPoint( pt->motion->accel, s );
+	SetPoint( pt->motions->accel, s );
 	return s;
 }
 
@@ -1266,7 +1303,7 @@ P_POINT  EXTERNAL_NAME(GetAccel)( PTRANSFORM pt, P_POINT s )
 
  PC_POINT EXTERNAL_NAME(SetRotation)( PTRANSFORM pt, PC_POINT r )
 {
-	SetPoint( pt->motion->rotation, r );
+	SetPoint( pt->motions->rotation, r );
 	return r;
 }
 
@@ -1274,7 +1311,7 @@ P_POINT  EXTERNAL_NAME(GetAccel)( PTRANSFORM pt, P_POINT s )
 
 P_POINT EXTERNAL_NAME(GetRotation)( PTRANSFORM pt, P_POINT r )
 {
-	SetPoint( r, pt->motion->rotation );
+	SetPoint( r, pt->motions->rotation );
 	return r;
 }
 
@@ -1282,7 +1319,7 @@ P_POINT EXTERNAL_NAME(GetRotation)( PTRANSFORM pt, P_POINT r )
 
  PC_POINT EXTERNAL_NAME(SetRotationAccel)( PTRANSFORM pt, PC_POINT r )
 {
-	SetPoint( pt->motion->rot_accel, r );
+	SetPoint( pt->motions->rot_accel, r );
 	return r;
 }
 
@@ -1713,10 +1750,10 @@ void EXTERNAL_NAME(ShowTransformEx)( PTRANSFORM pt, char *header DBG_PASS )
 	_xlprintf( 1 DBG_RELAY )( WIDE("     -----------------"));
 #define F4(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], pt->name[3], EXTERNAL_NAME(Length)( pt->name ) )
 #define F(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], EXTERNAL_NAME(Length)( pt->name ) )
-	if( pt->motion )
+	if( pt->motions )
 	{
-		F(motion->speed);
-		F(motion->rotation);
+		F(motions->speed);
+		F(motions->rotation);
 	}
    F4(m[0]);
    F4(m[1]);
@@ -1740,9 +1777,9 @@ void EXTERNAL_NAME(showstd)( PTRANSFORM pt, char *header )
 #define F(name) SPRINTF( byMsg, _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(">"), pt->name[0], pt->name[1], pt->name[2] )
    PRINTF( WIDE("%s"), header );
    PRINTF( WIDE("%s"), WIDE("     -----------------\n"));
-   F(motion->speed);
+   F(motions->speed);
    PRINTF( WIDE("%s"), byMsg );
-   F(motion->rotation);
+   F(motions->rotation);
    PRINTF( WIDE("%s"), byMsg );
    F(m[0]);
    PRINTF( WIDE("%s"), byMsg );
@@ -1776,7 +1813,8 @@ void EXTERNAL_NAME(LoadTransform)( PTRANSFORM pt, CTEXTSTR filename )
 	if( file )
 	{
 		sack_fread( pt, 1, sizeof( *pt ), file );
-      pt->motion = NULL;
+		pt->motions = NULL;
+		pt->nMotion = 0;
 		sack_fclose( file );
 	}
 
