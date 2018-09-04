@@ -1476,7 +1476,7 @@ LOGICAL CPROC sack_vfs_is_directory( uintptr_t psvInstance, const char *path ) {
 	return FALSE;
 }
 
-static LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, const char *newname ) {
+LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, const char *newname ) {
 	struct volume *vol = (struct volume *)psvInstance;
 	// fail if the names are the same.
 	if( strcmp( original, newname ) == 0 )
