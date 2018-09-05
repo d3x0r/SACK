@@ -1330,7 +1330,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 				// if this happened - don't return TRUE result which would
 				// result in queuing a pending buffer...
 				return FALSE;  // no sence processing the rest of this.
-			} else if( nSent < (int)pc->lpFirstPending->dwAvail ) {
+			} else if( pc->lpFirstPending && ( nSent < (int)pc->lpFirstPending->dwAvail ) ) {
 				//pc->lpFirstPending->dwUsed += nSent;
 				//pc->lpFirstPending->dwAvail -= nSent;
 				pc->dwFlags |= CF_WRITEPENDING;
