@@ -457,7 +457,7 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 #ifdef DEBUG_SSL_IO
 		lprintf( "Sending %d of %d at %d", pending_out, length, offset );
 #endif
-      EnterCriticalSec( &pc->ssl_session->csWrite );
+		EnterCriticalSec( &pc->ssl_session->csWrite );
 		len = SSL_write( pc->ssl_session->ssl, (((uint8_t*)buffer) + offset), (int)pending_out );
 		if (len < 0) {
 			ERR_print_errors_cb(logerr, (void*)__LINE__);
