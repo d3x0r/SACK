@@ -139,6 +139,7 @@ JSON_EMITTER_PROC( LOGICAL, json_parse_message )(const char * msg
 
 // allocates a parsing context and begins parsing data.
 JSON_EMITTER_PROC( struct json_parse_state *, json_begin_parse )( void );
+
 // return TRUE when a completed value/object is available.
 // after returning TRUE, call json_parse_get_data.  It is possible that there is
 // still unconsumed data that can begin a new object.  Call this with NULL, 0 for data
@@ -178,6 +179,22 @@ JSON_EMITTER_PROC( LOGICAL, _json6_parse_message )( char * msg
                                                   , PDATALIST *msg_data_out
                                                   );
 
+// allocates a JSOX parsing context and is prepared to begin parsing data.
+JSON_EMITTER_PROC( struct jsox_parse_state *, jsox_begin_parse )( void );
+
+JSON_EMITTER_PROC( int, jsox_parse_add_data )( struct jsox_parse_state *context
+                                             , const char * msg
+                                             , size_t msglen
+                                             );
+
+JSON_EMITTER_PROC( PDATALIST, jsox_parse_get_data )( struct jsox_parse_state *context );
+
+// single all-in-one parsing of an input buffer.
+JSON_EMITTER_PROC( LOGICAL, jsox_parse_message )( const char * msg
+                                                 , size_t msglen
+                                                 , PDATALIST *msg_data_out
+                                                 );
+
 // Add some data to parse for json stream (which may consist of multiple values)
 // return 1 when a completed value/object is available.
 // after returning 1, call json_parse_get_data.  It is possible that there is
@@ -213,8 +230,10 @@ enum json_value_types {
 	, VALUE_NAN //= 9 no data
 	, VALUE_NEG_INFINITY //= 10 no data
 	, VALUE_INFINITY //= 11 no data
-	, VALUE_DATE  // = 12 UNIMPLEMENTED
+	, VALUE_DATE  // = 12 comes in as a number, string is data.
 	, VALUE_EMPTY // = 13 no data; used in [,,,] as place holder of empty
+	, VALUE_TYPED_ARRAY  // = 14 string is base64 encoding of bytes.
+	, VALUE_TYPED_ARRAY_MAX = 14+12  // = 14 string is base64 encoding of bytes.
 };
 
 struct json_value_container {
@@ -239,6 +258,8 @@ struct json_value_container {
 JSON_EMITTER_PROC( void, json_dispose_message )( PDATALIST *msg_data );
 // any allocate mesage parts are released.
 JSON_EMITTER_PROC( void, json6_dispose_message )( PDATALIST *msg_data );
+JSON_EMITTER_PROC( void, jsox_dispose_message )( PDATALIST *msg_data );
+
 JSON_EMITTER_PROC( void, json_dispose_decoded_message )(struct json_context_object *format
 	, POINTER msg_data);
 

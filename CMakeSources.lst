@@ -371,6 +371,7 @@ if( NOT __NO_NETWORK__ )
 set( SACK_PLUSPLUS_HEADERS ${SACK_PLUSPLUS_HEADERS}
      ${SOURCES_ROOT}src/netlib/html5.websocket/client/local.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/json/json.h
+     ${SOURCES_ROOT}src/netlib/html5.websocket/json/jsox.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/json/vesl.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/html5.websocket.common.h
      ${SOURCES_ROOT}src/netlib/html5.websocket/json/unicode_non_identifiers.h
@@ -384,6 +385,7 @@ SET( JSON_SOURCES
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_emitter.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json_parser.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/json6_parser.c
+		${SOURCES_ROOT}src/netlib/html5.websocket/json/jsox_parser.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/vesl_parser.c
 		${SOURCES_ROOT}src/netlib/html5.websocket/json/vesl_code_parser.c
 	)
@@ -660,7 +662,6 @@ endif()
 
 include( ${SOURCES_ROOT}src/streamlib/ffmpeg/CMakeLists.txt )
 set( BASE_SOURCES ${BASE_SOURCES} ${FFMPEG_SOURCES} )
-
 
 if( FORCE_CXX )
 set_source_files_properties(${BAG_SQLITE_INTERFACE} PROPERTIES LANGUAGE CXX )
