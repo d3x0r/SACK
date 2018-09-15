@@ -194,15 +194,15 @@ ATEXIT_PRIORITY( CloseConnections, ATEXIT_PRIORITY_SYSLOG - 3 )
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 
 static void GetColumnSize(sqlite3_context*onwhat,int n,sqlite3_value**something) {
-	switch( sqlite3_value_type( something ) ) {
+	switch( sqlite3_value_type( something[0] ) ) {
 	case SQLITE_TEXT :
 	case SQLITE_BLOB :
-		sqlite3_result_int( onwhat, sqlite3_value_bytes(something) );
+		sqlite3_result_int( onwhat, sqlite3_value_bytes(something[0] ) );
 		break;
 	default :
 		// do a text conversion on it.
-		sqlite3_result_text( something );
-		sqlite3_result_int( onwhat, sqlite3_value_bytes(something) );
+		sqlite3_value_text( something[0] );
+		sqlite3_result_int( onwhat, sqlite3_value_bytes(something[0] ) );
 		break;
 	}
 }
@@ -488,7 +488,7 @@ void ExtendConnection( PODBC odbc )
 												odbc->db //sqlite3 *,
 											  , "bytes"  //const char *zFunctionName,
 											  , 0 //int nArg,
-											  , SQLITE_INT //int eTextRep,
+											  , SQLITE_INTEGER //int eTextRep,
 											  , (void*)odbc //void*,
 											  , GetColumnSize //void (*xFunc)(sqlite3_context*,int,sqlite3_value**),
 											  , NULL //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
