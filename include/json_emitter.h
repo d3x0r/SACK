@@ -179,22 +179,6 @@ JSON_EMITTER_PROC( LOGICAL, _json6_parse_message )( char * msg
                                                   , PDATALIST *msg_data_out
                                                   );
 
-// allocates a JSOX parsing context and is prepared to begin parsing data.
-JSON_EMITTER_PROC( struct jsox_parse_state *, jsox_begin_parse )( void );
-
-JSON_EMITTER_PROC( int, jsox_parse_add_data )( struct jsox_parse_state *context
-                                             , const char * msg
-                                             , size_t msglen
-                                             );
-
-JSON_EMITTER_PROC( PDATALIST, jsox_parse_get_data )( struct jsox_parse_state *context );
-
-// single all-in-one parsing of an input buffer.
-JSON_EMITTER_PROC( LOGICAL, jsox_parse_message )( const char * msg
-                                                 , size_t msglen
-                                                 , PDATALIST *msg_data_out
-                                                 );
-
 // Add some data to parse for json stream (which may consist of multiple values)
 // return 1 when a completed value/object is available.
 // after returning 1, call json_parse_get_data.  It is possible that there is
@@ -258,7 +242,6 @@ struct json_value_container {
 JSON_EMITTER_PROC( void, json_dispose_message )( PDATALIST *msg_data );
 // any allocate mesage parts are released.
 JSON_EMITTER_PROC( void, json6_dispose_message )( PDATALIST *msg_data );
-JSON_EMITTER_PROC( void, jsox_dispose_message )( PDATALIST *msg_data );
 
 JSON_EMITTER_PROC( void, json_dispose_decoded_message )(struct json_context_object *format
 	, POINTER msg_data);
@@ -277,8 +260,6 @@ JSON_EMITTER_PROC( char*, json6_escape_string )( const char * string );
 // require Release the result.  pass by length so \0 characters can be kept and don't early terminate.  Result with new length also.
 // this does not translate control chararacters like \n, \t, since strings are allowed to be muliline.
 JSON_EMITTER_PROC( char*, json6_escape_string_length )( const char *string, size_t len, size_t *outlen );
-
-
 
 #ifdef __cplusplus
 } } SACK_NAMESPACE_END
