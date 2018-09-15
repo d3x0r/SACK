@@ -16,12 +16,11 @@
 namespace sack {
    namespace logging {
 #endif
-      INDEX real_lprintf( char const* f,... ) { va_list va; va_start(va,f); return vprintf(f,va); } 
-      INDEX null_lprintf( char const* f,... ) { return 0; } 
+      INDEX real_lprintf( char const* f,... ) { va_list va; int n; va_start(va,f); n = vprintf(f ,va); puts(""); return n; }
+      INDEX null_lprintf( char const* f,... ) { return 0; }
       RealLogFunction _xlprintf(uint32_t level DBG_PASS) { return real_lprintf; };
-      void SystemLog( char const* f ) { puts( f ); puts( "\n" ); }
+      void SystemLog( char const* f ) { puts( f ); puts( "ZZZZ\n" ); }
 #ifdef __cplusplus
    }
 }
 #endif
-
