@@ -1061,6 +1061,7 @@ PROCREG_PROC( int, RegisterProcedureEx )( CTEXTSTR name_class
    return RegisterProcedureExx( NULL, name_class, public_name, returntype, library, name, args DBG_RELAY );
 }
 
+#ifndef __NO_INTERFACE_SUPPORT__
 // used in dekware.
 PROCREG_PROC( PROCEDURE, ReadRegisteredProcedureEx )( PCLASSROOT root
                                                     , CTEXTSTR returntype
@@ -1088,7 +1089,7 @@ PROCREG_PROC( PROCEDURE, ReadRegisteredProcedureEx )( PCLASSROOT root
 	}
 	return NULL;
 }
-
+#endif
 //---------------------------------------------------------------------------
 // can use the return type and args to validate the correct
 // type of routine is called...
