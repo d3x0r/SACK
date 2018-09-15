@@ -1,11 +1,11 @@
 
-#include <json_emitter.h>
+#include <jsox_parser.h>
 
 #ifdef __cplusplus
 SACK_NAMESPACE namespace network { namespace json {
 #endif
 
-
+#if JSOX_EMITTER_WORKS
 struct json_context_object_element
 {
 	enum JSON_ObjectElementTypes type;     // type of the element at this offset
@@ -31,7 +31,6 @@ struct json_context_object
 		BIT_FIELD keep_phrase : 1;  // this is not a root object
 		BIT_FIELD dynamic_size : 1;
 	} flags;
-	int 
 	struct json_context_object *parent; 
 };
 
@@ -42,7 +41,7 @@ struct json_context
 	PLIST object_types;
 	int human_readable;
 };
-
+#endif
 
 enum word_char_states {
 	WORD_POS_RESET = 0, // not in a keyword
@@ -116,10 +115,6 @@ enum parse_context_modes {
 	state->val.string = NULL;                \
 	state->negative = FALSE; }
 
-typedef struct json_parse_context PARSE_CONTEXT, *PPARSE_CONTEXT;
-#define MAXPARSE_CONTEXTSPERSET 128
-DeclareSet( PARSE_CONTEXT );
-
 struct json_input_buffer {
 	char const * buf;      // prior input buffer
 	size_t       size; // size of prior input buffer
@@ -149,9 +144,9 @@ DeclareSet( CLASS_FIELD );
 struct jsox_class_type {
 	char *name;
 	size_t nameLen;
-	PLIST items;
+	PLIST fields;
 };
-typedef struct jsox_class_field CLASS, *PCLASS;
+typedef struct jsox_class_type CLASS, *PCLASS;
 #define MAXCLASSSPERSET 128
 DeclareSet( CLASS );
 
@@ -160,11 +155,16 @@ struct json_parse_context {
 	PDATALIST *elements;
 	char *name;	
 	size_t nameLen;	
-	struct json_value_container valState;
-	struct json_context_object *object;
+	struct jsox_value_container valState;
+	//struct jsox_context_object *object;
 	PCLASS current_class;
-	int   current_class_item;
+	int current_class_item;
+	int arrayType;
 };
+typedef struct json_parse_context PARSE_CONTEXT, *PPARSE_CONTEXT;
+#define MAXPARSE_CONTEXTSPERSET 128
+DeclareSet( PARSE_CONTEXT );
+
 
 // this is the stack state that can be saved between parsing for streaming.
 struct jsox_parse_state {
@@ -188,12 +188,13 @@ struct jsox_parse_state {
 
 	PLIST classes;
 	PCLASS current_class;
-	int   current_class_item;
+	int current_class_item;
+	int arrayType;
 
 	LOGICAL first_token;
 	PPARSE_CONTEXT context;
 	enum parse_context_modes parse_context;
-	struct json_value_container val;
+	struct jsox_value_container val;
 	int comment;
 	TEXTRUNE operatorAccum;
 
@@ -211,6 +212,7 @@ struct jsox_parse_state {
 	LOGICAL numberExponent;
 	LOGICAL numberFromHex;
 	LOGICAL numberFromDate;
+	LOGICAL numberFromBigInt;
 
 	PVARTEXT pvtError;
 	LOGICAL fromHex;
@@ -232,7 +234,7 @@ struct jsox_parse_state {
 	PDATALIST root;
 	//char *token_begin;
 };
-typedef struct json_parse_state PARSE_STATE, *PPARSE_STATE;
+typedef struct jsox_parse_state PARSE_STATE, *PPARSE_STATE;
 #define MAXPARSE_STATESPERSET 32
 DeclareSet( PARSE_STATE );
 
@@ -255,14 +257,14 @@ DeclareSet( PDATALIST );
 struct json_parser_shared_data {
 	PPARSE_CONTEXTSET parseContexts;
 	PPARSE_BUFFERSET parseBuffers;
-	struct json_parse_state *last_parse_state;
+	struct jsox_parse_state *last_parse_state;
 	PPARSE_STATESET parseStates;
 	PPLISTSET listSet;
 	PPLINKSTACKSET linkStacks;
 	PPLINKQUEUESET linkQueues;
 	PPDATALISTSET dataLists;
 
-	PCLASSESSET  classes;
+	PCLASSSET  classes;
 	PCLASS_FIELDSET  class_fields;
 };
 #ifndef JSON_PARSER_MAIN_SOURCE
