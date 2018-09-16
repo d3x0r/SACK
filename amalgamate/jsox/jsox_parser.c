@@ -16,8 +16,14 @@ void DumpMessage( PDATALIST pdl ) {
 		}
 
 		if( val->name ) printf( "%s:", val->name );
-		switch( val->value_type ) {
+		if( val->value_type >= VALUE_TYPED_ARRAY && val->value_type <= VALUE_TYPED_ARRAY_MAX ) {
+			printf( "%s(%d)[%s]\n", val->className, val->value_type, val->string );
+			
+		}
+
+		else switch( val->value_type ) {
 		case VALUE_OBJECT:
+			if( val->className ) printf( "%s", val->className );
 			printf( "{ \n" );
 			DumpMessage( val->contains );
 			printf( " }" );
