@@ -130,6 +130,12 @@ struct jsox_value_container {
 // allocates a JSOX parsing context and is prepared to begin parsing data.
 JSOX_PARSER_PROC( struct jsox_parse_state *, jsox_begin_parse )(void);
 
+// clear state; after an error state, this can allow reusing a state.
+JSOX_PARSER_PROC( void, jsox_parse_clear_state )( struct jsox_parse_state *state );
+
+// destroy current parse state.
+JSOX_PARSER_PROC( void, jsox_parse_dispose_state )(struct jsox_parse_state **ppState);
+
 // return >0 when a completed value/object is available.
 // after returning >0, call json_parse_get_data.  It is possible that there is
 // still unconsumed data that can begin a new object.  Call this with NULL, 0 for data
@@ -153,6 +159,9 @@ JSOX_PARSER_PROC( LOGICAL, jsox_parse_message )(const char * msg
 
 // release all resources of a message from jsox_parse_message or jsox_parse_get_data
 JSOX_PARSER_PROC( void, jsox_dispose_message )(PDATALIST *msg_data);
+
+JSOX_PARSER_PROC( char *, jsox_escape_string_length )(const char *string, size_t len, size_t *outlen);
+JSOX_PARSER_PROC( char *, jsox_escape_string )(const char *string);
 
 #ifdef __cplusplus
 } } SACK_NAMESPACE_END
