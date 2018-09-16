@@ -88,6 +88,11 @@ static void jsox_state_init( struct jsox_parse_state *state )
 	state->status = TRUE;
 	state->negative = FALSE;
 
+	state->current_class = NULL;
+	state->current_class_item = 0;
+	state->arrayType = -1;
+
+
 	state->context_stack = GetFromSet( PLINKSTACK, &jpsd.linkStacks );// NULL;
 	if( state->context_stack[0] ) state->context_stack[0]->Top = 0;
 	//state->first_token = TRUE;
@@ -393,11 +398,11 @@ static int openObject( struct jsox_parse_state *state, struct json_output_buffer
 		recoverIdent( state, output, -1 );
 
 	if( state->parse_context == CONTEXT_UNKNOWN ) {
-		if( state->word == WORD_POS_FIELD ) {
+		if( state->word == WORD_POS_FIELD || state->word == WORD_POS_AFTER_FIELD ) {
 			INDEX idx;
 			(*output->pos++) = 0;
 #ifdef DEBUG_PARSING
-			lprintf( "define class: %s", state->val.string );
+			lprintf( "define class: %*.*s", output->pos - state->val.string, output->pos - state->val.string, state->val.string );
 #endif
 			LIST_FORALL( state->classes, idx, PCLASS, cls ) 
 				if( strcmp( cls->name, state->val.string ) == 0 )
@@ -416,22 +421,27 @@ static int openObject( struct jsox_parse_state *state, struct json_output_buffer
 				nextMode = CONTEXT_CLASS_VALUE;
 			}
 			state->word = WORD_POS_RESET;
-		} else
+		}
+		else {
 			nextMode = CONTEXT_OBJECT_FIELD;
-
-	} else if( state->parse_context == CONTEXT_IN_ARRAY || state->parse_context == CONTEXT_OBJECT_FIELD_VALUE ) {
+			state->word = WORD_POS_FIELD;
+		}
+	} else if( state->word == WORD_POS_FIELD || state->word == WORD_POS_AFTER_FIELD || state->parse_context == CONTEXT_IN_ARRAY || state->parse_context == CONTEXT_OBJECT_FIELD_VALUE ) {
 		if( state->word != WORD_POS_RESET ) {
 			INDEX idx;
-			LIST_FORALL( state->classes, idx, PCLASS, cls ) 
+			(*output->pos++) = 0;
+			LIST_FORALL( state->classes, idx, PCLASS, cls )
 				if( strcmp( cls->name, state->val.string ) == 0 )
 					break;
 			if( !cls ) lprintf( "Referenced class %s has not been defined", state->val.string );
 			nextMode = CONTEXT_CLASS_VALUE;
 			state->word = WORD_POS_RESET;
 		}
-		else
+		else {
 			nextMode = CONTEXT_OBJECT_FIELD;
-	} else if( state->word == WORD_POS_FIELD || state->word == WORD_POS_AFTER_FIELD || (state->parse_context == CONTEXT_OBJECT_FIELD && state->word == WORD_POS_RESET) ) {
+			state->word = WORD_POS_RESET;
+		}
+	} else if( (state->parse_context == CONTEXT_OBJECT_FIELD && state->word == WORD_POS_RESET) ) {
 		if( !state->pvtError ) state->pvtError = VarTextCreate();
 		vtprintf( state->pvtError, "Fault while parsing; getting field name unexpected '%c' at %" _size_f " %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 		state->status = FALSE;
@@ -477,14 +487,15 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct json_output_buf
 #endif
 		if( !knownArrayTypeNames ) registerKnownArrayTypeNames();
 		LIST_FORALL( knownArrayTypeNames, typeIndex, char *, name ) {
-			lprintf( "test %s", name );
 			if( strcmp( state->val.string, name ) == 0 )
 				break;
 		}
 		if( typeIndex < 12 ) {
 			state->word = WORD_POS_FIELD;
 			state->arrayType = typeIndex;
-			lprintf( "setup array type... " );
+#ifdef DEBUG_PARSING
+			lprintf( "setup array type... %d", typeIndex );
+#endif
 			state->val.string = output->pos;
 		}
 		else {
@@ -744,6 +755,9 @@ int recoverIdent( struct jsox_parse_state *state, struct json_output_buffer* out
 		(*output->pos++) = 't';
 		break;
 	}
+#ifdef DEBUG_PARSING
+	lprintf( "RECOVER IDENT: TURN INTO FIELD NAME" );
+#endif
 	state->word = WORD_POS_FIELD;
 
 	if( cInt == 123/*'{'*/ )
@@ -760,7 +774,7 @@ int recoverIdent( struct jsox_parse_state *state, struct json_output_buffer* out
 		else {
 			(*output->pos++) = cInt;
 #ifdef DEBUG_PARSING
-			lprintf( "Collected .. %d %c  %s", cInt, cInt, state->val.string );
+			lprintf( "Collected .. %d %c  %*.*s", cInt, cInt, output->pos - state->val.string, output->pos - state->val.string, state->val.string );
 #endif
 		}
 	}
@@ -768,9 +782,15 @@ int recoverIdent( struct jsox_parse_state *state, struct json_output_buffer* out
 	return 0;
 }
 
-static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct jsox_value_container *val ) {
-	lprintf( "PUSH:%d", val->value_type );
+static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct jsox_value_container *val, int line ) {
+#define pushValue(a,b,c) pushValue(a,b,c,__LINE__)
+#ifdef DEBUG_PARSING
+	lprintf( "pushValue:%d %d", val->value_type, state->arrayType );
+	if( val->name )
+		lprintf( "push named:%s %d", val->name, line );
+#endif
 	if( val->value_type == VALUE_ARRAY ) {
+
 		if( state->arrayType >= 0 ) {
 			val->value_type = VALUE_TYPED_ARRAY + state->arrayType;
 			lprintf( "Resolve base64 string:%s", val->string );
@@ -973,19 +993,22 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->word = WORD_POS_RESET;
 				}
 
-				if( state->parse_context == CONTEXT_CLASS_FIELD ) {					
+				if( state->parse_context == CONTEXT_CLASS_FIELD ) {	
 					if( state->current_class ) {
 						// allow blank comma at end to not be a field
 						struct json_parse_context *old_context = (struct json_parse_context *)PopLink( state->context_stack );
-
-						if(state->val.string) { AddLink( &state->current_class->fields, state->val.string ); }
+						
+						if(state->val.string) { 
+							(*output->pos++) = 0;
+							AddLink( &state->current_class->fields, state->val.string ); 
+						}
 
 						RESET_STATE_VAL();
+						state->word = WORD_POS_RESET;
 #ifdef DEBUG_PARSING_STCK
 						lprintf( "object pop stack (close obj) %d %p", context_stack.length, old_context );
 #endif
-						state->parse_context = CONTEXT_UNKNOWN; // this will restore as IN_ARRAY or OBJECT_FIELD
-						state->word = WORD_POS_RESET;
+						state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
 						state->elements = old_context->elements;
 						state->current_class = old_context->current_class;
 						state->current_class_item = old_context->current_class_item;
@@ -996,38 +1019,42 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						vtprintf( state->pvtError, WIDE( "State error; gathering class fields, and lost the class; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
 							, c, state->n, state->line, state->col );
 					}
-				}
-				
-				if( state->parse_context == CONTEXT_CLASS_VALUE ) {
-
-					// setup field name on last value of object...
+				} else if( ( state->parse_context == CONTEXT_OBJECT_FIELD ) || state->parse_context == CONTEXT_CLASS_VALUE ) {
 					if( state->val.value_type != VALUE_UNSET ) {
-						struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
+#ifdef DEBUG_PARSING
+						lprintf( "Push value closing class value %d %p", state->current_class_item, state->current_class );
+#endif
+						state->val.name = GetLink( &state->current_class->fields, state->current_class_item++ );
 						pushValue( state, state->elements, &state->val );
-						state->val.name = field->name;
-						state->val.nameLen = field->nameLen;
+						RESET_STATE_VAL();
 					}
-					
-					state->parse_context = CONTEXT_OBJECT_FIELD;
-				}
-
-
-
-				// coming back after pushing an array or sub-object will reset the contxt to FIELD, so an end with a field should still push value.
-				if( (state->parse_context == CONTEXT_OBJECT_FIELD) || (state->parse_context == CONTEXT_OBJECT_FIELD_VALUE)
-				   || ( state->parse_context == CONTEXT_CLASS_VALUE )
-				  ) {
+					//if( _DEBUG_PARSING ) lprintf( "close object; empty object", val, elements );
+					state->val.value_type = VALUE_OBJECT;
+					state->val.contains = state->elements[0];
+					state->val._contains = state->elements;
+					state->val.string = NULL;
+					{
+						struct json_parse_context *old_context = (struct json_parse_context *)PopLink( state->context_stack );
+						//if( _DEBUG_PARSING_STACK ) console.log( "object pop stack (close obj)", context_stack.length, old_context );
+						state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
+						state->elements = old_context->elements;
+						state->current_class = old_context->current_class;
+						state->current_class_item = old_context->current_class_item;
+						state->arrayType = old_context->arrayType;
+						DeleteFromSet( PARSE_CONTEXT, jpsd.parseContexts, old_context );
+					}
+					if( state->parse_context == CONTEXT_UNKNOWN ) {
+						state->completed = TRUE;
+					}
+				} else if( state->parse_context == CONTEXT_OBJECT_FIELD_VALUE ) {
 					//enum json_value_types 
-					if( state->parse_context == CONTEXT_CLASS_FIELD ) {
-						
-					} else if( state->parse_context == CONTEXT_CLASS_FIELD ) {
-					}
 #ifdef DEBUG_PARSING
 					lprintf( "close object; empty object %d", state->val.value_type );
 #endif
 					//if( (state->parse_context == CONTEXT_OBJECT_FIELD_VALUE) )
 					if( state->val.value_type != VALUE_UNSET ) {
 						pushValue( state, state->elements, &state->val );
+						RESET_STATE_VAL();
 					}
 					//RESET_STATE_VAL();
 					state->val.value_type = VALUE_OBJECT;
@@ -1103,27 +1130,40 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				}
 				break;
 			case ',':
-				if( state->parse_context == CONTEXT_CLASS_FIELD ) {
-					
-					struct jsox_class_field *field = GetFromSet( CLASS_FIELD, &jpsd.class_fields );
-					field->name = state->val.string;
-					field->nameLen = state->val.stringLen;
-					AddLink( &state->classes, field );
-				}
-				if( state->parse_context == CONTEXT_CLASS_VALUE ) {
-					if( state->val.value_type != VALUE_UNSET ) {
-						struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
-						pushValue( state, state->elements, &state->val );
-						state->val.name = field->name;
-						state->val.nameLen = field->nameLen;
-					}
-				}
-
-				if( state->word == WORD_POS_END ) {
+				if( state->word == WORD_POS_END || state->word == WORD_POS_FIELD ) {
 					// allow starting a new word
 					state->word = WORD_POS_RESET;
 				}
-				if( state->parse_context == CONTEXT_IN_ARRAY )
+
+				if( state->parse_context == CONTEXT_CLASS_FIELD ) {
+					if( state->current_class ) {
+						struct jsox_class_field *field = GetFromSet( CLASS_FIELD, &jpsd.class_fields );
+						(*output->pos++) = 0;
+						field->name = state->val.string;
+						field->nameLen = output->pos - state->val.string;
+						state->val.string = NULL;
+						AddLink( &state->current_class->fields, field );
+						state->word = WORD_POS_FIELD;
+					}
+					else {
+						if( !state->pvtError ) state->pvtError = VarTextCreate();
+						vtprintf( state->pvtError, WIDE( "lost class definition; fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->parse_context, c, state->n, state->line, state->col );// fault
+						state->status = FALSE;
+					}
+				}
+
+				else if( state->parse_context == CONTEXT_CLASS_VALUE ) {
+					if( state->val.value_type != VALUE_UNSET ) {
+						struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
+						state->val.name = field->name;
+						state->val.nameLen = field->nameLen;
+						pushValue( state, state->elements, &state->val );
+
+						RESET_STATE_VAL();
+						state->word = WORD_POS_RESET;
+					}
+				}
+				else if( state->parse_context == CONTEXT_IN_ARRAY )
 				{
 					if( state->val.value_type == VALUE_UNSET )
 						state->val.value_type = VALUE_EMPTY; // in an array, elements after a comma should init as undefined...
@@ -1147,28 +1187,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						pushValue( state, state->elements, &state->val );
 					RESET_STATE_VAL();
 				}
-				else if( state->parse_context == CONTEXT_CLASS_FIELD )
-				{
-					// after an array value, it will have returned to OBJECT_FIELD anyway	
-#ifdef DEBUG_PARSING
-					lprintf( "comma after class field, push field to object: %s", state->val.name );
-#endif
-					state->parse_context = CONTEXT_CLASS_FIELD;
-					if( state->val.value_type != VALUE_UNSET )
-						pushValue( state, state->elements, &state->val );
-					RESET_STATE_VAL();
-				}
-				else if( state->parse_context == CONTEXT_CLASS_VALUE )
-				{
-					// after an array value, it will have returned to OBJECT_FIELD anyway	
-#ifdef DEBUG_PARSING
-					lprintf( "comma after class value, push field to object: %s", state->val.name );
-#endif
-					state->parse_context = CONTEXT_CLASS_FIELD;
-					if( state->val.value_type != VALUE_UNSET )
-						pushValue( state, state->elements, &state->val );
-					RESET_STATE_VAL();
-				}
 				else
 				{
 					state->status = FALSE;
@@ -1178,8 +1196,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				break;
 
 			default:
-				if( state->parse_context == CONTEXT_OBJECT_FIELD || state->parse_context == CONTEXT_UNKNOWN 
-				   || state->parse_context == CONTEXT_CLASS_VALUE
+				if( state->parse_context == CONTEXT_OBJECT_FIELD 
+				   || state->parse_context == CONTEXT_UNKNOWN 
+				   || (state->parse_context == CONTEXT_OBJECT_FIELD_VALUE && state->word == WORD_POS_FIELD )
 				   || state->parse_context == CONTEXT_CLASS_FIELD
 				) {
 					//lprintf( "gathering object field:%c  %*.*s", c, output->pos-output->buf, output->pos - output->buf, output->buf );
@@ -1249,10 +1268,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( (state->word == WORD_POS_RESET) || ( state->word == WORD_POS_AFTER_FIELD ) )
 							break;
 						else if( state->word == WORD_POS_FIELD ) {
-							state->word = WORD_POS_AFTER_FIELD;
-							//state->val.stringLen = output->pos - state->val.string;
-							//lprintf( "Set string length:%d", state->val.stringLen );
-							break;
+							if( state->val.string )
+								state->word = WORD_POS_AFTER_FIELD;
 						}
 						else {
 							state->status = FALSE;
@@ -1270,14 +1287,10 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							vtprintf( state->pvtError, WIDE( "fault while parsing; unquoted space in field name at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->n, state->line, state->col );	// fault
 							break;
 						} else if( state->word == WORD_POS_RESET ) {
-							if( state->parse_context == CONTEXT_OBJECT_FIELD ) {
-								state->word = WORD_POS_FIELD;
-								state->val.string = output->pos;
-							} else {
-								state->word = WORD_POS_CLASS_NAME;
-								state->val.string = output->pos;
-							}
+							state->word = WORD_POS_FIELD;
+							state->val.string = output->pos;
 						}
+						if( !state->val.string ) state->val.string = output->pos;
 						if( c < 128 ) (*output->pos++) = c;
 						else output->pos += ConvertToUTF8( output->pos, c );
 						break; // default
@@ -1337,7 +1350,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						break;
 					}
 					else if( state->word == WORD_POS_FIELD ) {
-						state->word = WORD_POS_AFTER_FIELD;
+						if( state->val.string )
+							state->word = WORD_POS_AFTER_FIELD;
 					}
 					else {
 						state->status = FALSE;
@@ -1615,8 +1629,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					}
 					else
 					{
-					//	if( state->parse_context == CONTEXT_OBJECT_FIELD_VALUE || state->parse_context == CONTEXT_UNKNOWN )
-							recoverIdent( state, output, c );
+						recoverIdent( state, output, c );
 					}
 					break; // default
 				}
@@ -1840,13 +1853,6 @@ LOGICAL jsox_parse_message( const char * msg
 	jpsd.last_parse_state = state;
 	_state = state;
 	return FALSE;
-}
-
-void jsox_dispose_decoded_message( struct jsox_context_object *format
-                                 , POINTER msg_data )
-{
-	// a complex format might have sub-parts .... but for now we'll assume simple flat structures
-	//Release( msg_data );
 }
 
 

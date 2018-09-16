@@ -49,14 +49,14 @@ enum word_char_states {
 	WORD_POS_TRUE_1,
 	WORD_POS_TRUE_2,
 	WORD_POS_TRUE_3,
-	WORD_POS_TRUE_4,
+	//WORD_POS_TRUE_4,
 	WORD_POS_FALSE_1, // 11
 	WORD_POS_FALSE_2,
 	WORD_POS_FALSE_3,
 	WORD_POS_FALSE_4,
 	WORD_POS_NULL_1, // 21  get u
 	WORD_POS_NULL_2, //  get l
-	WORD_POS_NULL_3, //  get l
+	WORD_POS_NULL_3, // 10 get l
 	WORD_POS_UNDEFINED_1,  // 31 
 	WORD_POS_UNDEFINED_2,
 	WORD_POS_UNDEFINED_3,
@@ -67,7 +67,7 @@ enum word_char_states {
 	WORD_POS_UNDEFINED_8,
 	//WORD_POS_UNDEFINED_9, // instead of stepping to this value here, go to RESET
 	WORD_POS_NAN_1,
-	WORD_POS_NAN_2,
+	WORD_POS_NAN_2,  // 20 
 	//WORD_POS_NAN_3,// instead of stepping to this value here, go to RESET
 	WORD_POS_INFINITY_1,
 	WORD_POS_INFINITY_2,
@@ -79,14 +79,14 @@ enum word_char_states {
 	//WORD_POS_INFINITY_8,// instead of stepping to this value here, go to RESET
 	WORD_POS_FIELD, 
 	WORD_POS_AFTER_FIELD, 
-	WORD_POS_DOT_OPERATOR,
+	WORD_POS_DOT_OPERATOR, // 30
 	WORD_POS_PROPER_NAME, 
 	WORD_POS_AFTER_PROPER_NAME, 
 	WORD_POS_AFTER_GET,
 	WORD_POS_AFTER_SET,
 	
-	WORD_POS_CLASS_NAME,
-	WORD_POS_CLASS_VALUES,
+	WORD_POS_CLASS_NAME,  //36
+	WORD_POS_CLASS_VALUES, // 37
 };
 
 enum parse_context_modes {
