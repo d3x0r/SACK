@@ -16,61 +16,61 @@ void DumpMessage( PDATALIST pdl ) {
 		}
 
 		if( val->name ) printf( "%s:", val->name );
-		if( val->value_type >= VALUE_TYPED_ARRAY && val->value_type <= VALUE_TYPED_ARRAY_MAX ) {
+		if( val->value_type >= JSOX_VALUE_TYPED_ARRAY && val->value_type <= JSOX_VALUE_TYPED_ARRAY_MAX ) {
 			printf( "%s(%d)[%s]\n", val->className, val->value_type, val->string );
 			
 		}
 
 		else switch( val->value_type ) {
-		case VALUE_OBJECT:
+		case JSOX_VALUE_OBJECT:
 			if( val->className ) printf( "%s", val->className );
 			printf( "{ \n" );
 			DumpMessage( val->contains );
 			printf( " }" );
 			break;
-		case VALUE_ARRAY:
+		case JSOX_VALUE_ARRAY:
 			printf( "[ " );
 			DumpMessage( val->contains );
 			printf( " ]" );
 			break;
-		case VALUE_STRING:
+		case JSOX_VALUE_STRING:
 			printf( "\"%s\"", val->string );
 			break;
-		case VALUE_DATE:
+		case JSOX_VALUE_DATE:
 			printf( "%s", val->string );
 			break;				
-		case VALUE_NUMBER:
+		case JSOX_VALUE_NUMBER:
 			if( val->float_result )
 				printf( "%g", val->result_d );
 			else
 				printf( "%d", val->result_n );
 			break;
-		case VALUE_BIGINT:
+		case JSOX_VALUE_BIGINT:
 			printf( "%sn", val->string );
 			break;
-		case VALUE_NAN:
+		case JSOX_VALUE_NAN:
 			printf( "NaN" );
 			break;
-		case VALUE_INFINITY:
+		case JSOX_VALUE_INFINITY:
 			printf( "Infinity" );
 			break;
-		case VALUE_NEG_INFINITY:
+		case JSOX_VALUE_NEG_INFINITY:
 			printf( "-Infinity" );
 			break;
-		case VALUE_TRUE:
+		case JSOX_VALUE_TRUE:
 			printf( "true" );
 			break;
-		case VALUE_FALSE:
+		case JSOX_VALUE_FALSE:
 			printf( "false" );
 			break;
-		case VALUE_NULL:
+		case JSOX_VALUE_NULL:
 			printf( "null" );
 			break;
-		case VALUE_EMPTY:
+		case JSOX_VALUE_EMPTY:
 			// array element that is ',,' 
 			printf( "<EMPTY>" );
 			break;
-		case VALUE_UNDEFINED:
+		case JSOX_VALUE_UNDEFINED:
 			printf( "undefined" );
 			break;
 		default :
@@ -90,7 +90,7 @@ void parse( char *fileName ) {
 	fseek( file, 0, SEEK_END );
 	size = ftell( file );
 	fseek( file, 0, SEEK_SET );
-	data = malloc( size );
+	data = (char*)malloc( size );
 	fread( data, 1, size, file );
 	fclose( file );
 	r = jsox_parse_message( data, size, &pdl );
