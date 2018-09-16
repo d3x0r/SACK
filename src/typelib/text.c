@@ -3687,7 +3687,9 @@ static void decodeblock( char in[4], uint8_t out[3], size_t len, const char *bas
 
 TEXTCHAR *EncodeBase64Ex( uint8_t* buf, size_t length, size_t *outsize, const char *base64 )
 {
+	size_t fake_outsize;
 	TEXTCHAR * real_output;
+	if( !outsize ) outsize = &fake_outsize;
 	if( !base64 )
 		base64 = _base64;
 	else if( ((uintptr_t)base64) == 1 )
@@ -3720,7 +3722,9 @@ static void setupDecodeBytes( const char *code ) {
 
 uint8_t *DecodeBase64Ex( char* buf, size_t length, size_t *outsize, const char *base64 )
 {
+	size_t fake_outsize;
 	uint8_t * real_output;
+	if( !outsize ) outsize = &fake_outsize;
 	if( !base64 )
 		base64 = _base64;
 	else if( ((uintptr_t)base64) == 1 )
