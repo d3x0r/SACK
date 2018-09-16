@@ -1,13 +1,20 @@
 
 #include "jsox.h"
 
+int level = 0;
+
 void DumpMessage( PDATALIST pdl ) {
 	struct jsox_value_container *val;
-	printf( "..." );
 	INDEX idx;
+	int leader;
+	level++;
 	DATA_FORALL( pdl, idx, struct jsox_value_container *, val ) {
 		if( idx ) 
 			printf( ",\n" );
+		for( leader = 3; leader < level*3; leader++ ) {
+			putc( ' ', stdout );
+		}
+
 		if( val->name ) printf( "%s:", val->name );
 		switch( val->value_type ) {
 		case VALUE_OBJECT:
@@ -53,6 +60,10 @@ void DumpMessage( PDATALIST pdl ) {
 		case VALUE_NULL:
 			printf( "null" );
 			break;
+		case VALUE_EMPTY:
+			// array element that is ',,' 
+			printf( "<EMPTY>" );
+			break;
 		case VALUE_UNDEFINED:
 			printf( "undefined" );
 			break;
@@ -60,6 +71,7 @@ void DumpMessage( PDATALIST pdl ) {
 			printf( "\nunhandled value type: %d [%s]\n", val->value_type, val->string );
 		}
 	}
+	level--;
 }
 
 void parse( char *fileName ) {
@@ -80,7 +92,7 @@ void parse( char *fileName ) {
 		DumpMessage( pdl );
 	else if( r <= 0 )
 		printf( "Error:%s", GetText( jsox_parse_get_error( NULL ) ) );
-	
+	printf( "\n" );
 	free( data );
 }
 
