@@ -1,0 +1,22 @@
+{
+  "name": "jsox-native",
+  "version": "1.0.0",
+  "description": "Node.js JSOX Parser Addon",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/d3x0r/jsox++"
+  },
+  "main": "jsox_loader.js",
+  "private": false,
+  "preferGlobal": false,
+  "license": "LGPL",
+  "keywords": [
+    "JSOX"
+  ],
+  "_dependencies": ["cmake-js"],
+  "scripts": {
+    "test": "node tests/quickTest.js",
+    "install": "node-gyp configure build",
+    "build": "node-gyp configure build"
+  }
+}

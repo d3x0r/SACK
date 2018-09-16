@@ -1,0 +1,16 @@
+.gitignore
+.npmignore
+*~
+build
+tests
+xx
+zz
+mk.bat
+jsox.c
+jsox_parser.c
+a.exe
+c
+h
+config.ppc
+*.tgz
+*.jsox
