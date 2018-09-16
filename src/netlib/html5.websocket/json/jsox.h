@@ -90,14 +90,14 @@ enum word_char_states {
 };
 
 enum parse_context_modes {
- CONTEXT_UNKNOWN = 0,
- CONTEXT_IN_ARRAY = 1,
- CONTEXT_IN_OBJECT = 2,
- CONTEXT_OBJECT_FIELD = 3,
- CONTEXT_OBJECT_FIELD_VALUE = 4,
- CONTEXT_CLASS_FIELD = 5,
- CONTEXT_CLASS_VALUE = 6,
- };
+	CONTEXT_UNKNOWN = 0,
+	CONTEXT_IN_ARRAY = 1,
+	CONTEXT_IN_OBJECT = 2,
+	CONTEXT_OBJECT_FIELD = 3,
+	CONTEXT_OBJECT_FIELD_VALUE = 4,
+	CONTEXT_CLASS_FIELD = 5,
+	CONTEXT_CLASS_VALUE = 6,
+};
 
 
 #define RESET_VAL()  {  \
@@ -106,6 +106,7 @@ enum parse_context_modes {
 	val._contains = NULL;             \
 	val.name = NULL;                  \
 	val.string = NULL;                \
+	val.className = NULL;             \
 	negative = FALSE; }
 #define RESET_STATE_VAL()  {  \
 	state->val.value_type = VALUE_UNSET; \
@@ -113,6 +114,7 @@ enum parse_context_modes {
 	state->val._contains = NULL;             \
 	state->val.name = NULL;                  \
 	state->val.string = NULL;                \
+	state->val.className = NULL;             \
 	state->negative = FALSE; }
 
 struct json_input_buffer {

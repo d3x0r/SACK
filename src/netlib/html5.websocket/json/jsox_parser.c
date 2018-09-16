@@ -792,8 +792,13 @@ static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct js
 	if( val->value_type == VALUE_ARRAY ) {
 
 		if( state->arrayType >= 0 ) {
+			size_t size;
+			val->className = (char*)GetLink( &knownArrayTypeNames, state->arrayType );
 			val->value_type = VALUE_TYPED_ARRAY + state->arrayType;
-			lprintf( "Resolve base64 string:%s", val->string );
+			//lprintf( "INPUT:%d %s", val->stringLen, val->string );
+			val->string = DecodeBase64Ex( val->string, val->stringLen, &val->stringLen, NULL );
+			//lprintf( "base:%s", EncodeBase64Ex( "HELLO, World!", 13, NULL, NULL ) );
+			//lprintf( "Resolve base64 string:%s", val->string );
 		}
 	}
 	AddDataItem( pdl, val );
@@ -1032,6 +1037,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->val.value_type = VALUE_OBJECT;
 					state->val.contains = state->elements[0];
 					state->val._contains = state->elements;
+					state->val.className = state->current_class->name;
 					state->val.string = NULL;
 					{
 						struct json_parse_context *old_context = (struct json_parse_context *)PopLink( state->context_stack );
@@ -1053,6 +1059,10 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 #endif
 					//if( (state->parse_context == CONTEXT_OBJECT_FIELD_VALUE) )
 					if( state->val.value_type != VALUE_UNSET ) {
+						if( state->val.string ) {
+							state->val.stringLen = output->pos - state->val.string;
+							(*output->pos++) = 0;
+						}
 						pushValue( state, state->elements, &state->val );
 						RESET_STATE_VAL();
 					}
@@ -1096,10 +1106,14 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					lprintf( "close array, push last element: %d", state->val.value_type );
 #endif
 					if( state->val.value_type != VALUE_UNSET ) {
+						if( state->val.string ) {
+							state->val.stringLen = output->pos - state->val.string;
+							(*output->pos++) = 0;
+						}
 						pushValue( state, state->elements, &state->val );
 					}
 					state->val.value_type = VALUE_ARRAY;
-					(*output->pos++) = 0;
+
 					//state->val.string = NULL;
 					state->val.contains = state->elements[0];
 					state->val._contains = state->elements;
@@ -1151,7 +1165,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->status = FALSE;
 					}
 				}
-
 				else if( state->parse_context == CONTEXT_CLASS_VALUE ) {
 					if( state->val.value_type != VALUE_UNSET ) {
 						struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
