@@ -86,26 +86,26 @@ SACK_NAMESPACE namespace network {
 
 
 enum jsox_value_types {
-	VALUE_UNDEFINED = -1
-	, VALUE_UNSET = 0
-	, VALUE_NULL //= 1 no data
-	, VALUE_TRUE //= 2 no data
-	, VALUE_FALSE //= 3 no data
-	, VALUE_STRING //= 4 string
-	, VALUE_NUMBER //= 5 string + result_d | result_n
-	, VALUE_OBJECT //= 6 contains
-	, VALUE_ARRAY //= 7 contains
+	JSOX_VALUE_UNDEFINED = -1
+	, JSOX_VALUE_UNSET = 0
+	, JSOX_VALUE_NULL //= 1 no data
+	, JSOX_VALUE_TRUE //= 2 no data
+	, JSOX_VALUE_FALSE //= 3 no data
+	, JSOX_VALUE_STRING //= 4 string
+	, JSOX_VALUE_NUMBER //= 5 string + result_d | result_n
+	, JSOX_VALUE_OBJECT //= 6 contains
+	, JSOX_VALUE_ARRAY //= 7 contains
 
 	// up to here is supported in JSON
-	, VALUE_NEG_NAN //= 8 no data
-	, VALUE_NAN //= 9 no data
-	, VALUE_NEG_INFINITY //= 10 no data
-	, VALUE_INFINITY //= 11 no data
-	, VALUE_DATE  // = 12 comes in as a number, string is data.
-	, VALUE_BIGINT // = 13 string data, needs bigint library to process...
-	, VALUE_EMPTY // = 14 no data; used in [,,,] as place holder of empty
-	, VALUE_TYPED_ARRAY  // = 15 string is base64 encoding of bytes.
-	, VALUE_TYPED_ARRAY_MAX = 15+12  // = 14 string is base64 encoding of bytes.
+	, JSOX_VALUE_NEG_NAN //= 8 no data
+	, JSOX_VALUE_NAN //= 9 no data
+	, JSOX_VALUE_NEG_INFINITY //= 10 no data
+	, JSOX_VALUE_INFINITY //= 11 no data
+	, JSOX_VALUE_DATE  // = 12 comes in as a number, string is data.
+	, JSOX_VALUE_BIGINT // = 13 string data, needs bigint library to process...
+	, JSOX_VALUE_EMPTY // = 14 no data; used in [,,,] as place holder of empty
+	, JSOX_VALUE_TYPED_ARRAY  // = 15 string is base64 encoding of bytes.
+	, JSOX_VALUE_TYPED_ARRAY_MAX = 15+12  // = 14 string is base64 encoding of bytes.
 };
 
 struct jsox_value_container {
