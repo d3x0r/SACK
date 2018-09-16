@@ -1,6 +1,22 @@
+:::
+:   
+:   ../../include/jsox_parser.h 
+:   ../../src/netlib/html5.websocket/json/jsox_parser.c 
+:   ../../src/netlib/html5.websocket/json/jsox.h 
+:   ../../src/deadstart/deadstart_core.c 
+:   ../../src/memlib/sharemem.c 
+:   ../../src/memlib/memory_operations.c 
+:   ../../src/procreglib/names.c 
+:   ../../src/typelib/typecode.c 
+:   ../../src/typelib/text.c 
+:   ../../src/typelib/sets.c
+:   ../../src/typelib/binarylist.c 
+:   
+:   
+
 mkdir c
 del jsox.h
-c:\tools\ppc.exe -c -K -once -ssio -sd -I../../include -p -oc/jsox.cc -DINCLUDE_LOGGING ../../include/jsox_parser.h ../../src/netlib/html5.websocket/json/jsox_parser.c ../../src/netlib/html5.websocket/json/jsox.h ../../src/deadstart/deadstart_core.c ../../src/procreglib/names.c ../../src/memlib/sharemem.c ../../src/memlib/memory_operations.c ../../src/memlib/sharestruc.h ../../src/typelib/typecode.c ../../src/typelib/text.c ../../src/typelib/binarylist.c ../../src/typelib/familytree.c ../../src/typelib/sets.c
+c:\tools\ppc.exe -c -K -once -ssio -sd -I../../include -p -oc/jsox.cc -DINCLUDE_LOGGING ../../include/jsox_parser.h ../../src/netlib/html5.websocket/json/jsox_parser.c ../../src/netlib/html5.websocket/json/jsox.h ../../src/deadstart/deadstart_core.c ../../src/procreglib/names.c ../../src/memlib/sharemem.c ../../src/memlib/memory_operations.c ../../src/typelib/typecode.c ../../src/typelib/text.c ../../src/typelib/sets.c ../../src/typelib/binarylist.c 
 copy c\jsox.cc c\jsox.c
 mkdir h
 cd h
