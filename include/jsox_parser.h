@@ -105,7 +105,7 @@ enum jsox_value_types {
 	, JSOX_VALUE_BIGINT // = 13 string data, needs bigint library to process...
 	, JSOX_VALUE_EMPTY // = 14 no data; used in [,,,] as place holder of empty
 	, JSOX_VALUE_TYPED_ARRAY  // = 15 string is base64 encoding of bytes.
-	, JSOX_VALUE_TYPED_ARRAY_MAX = 15+12  // = 14 string is base64 encoding of bytes.
+	, JSOX_VALUE_TYPED_ARRAY_MAX = JSOX_VALUE_TYPED_ARRAY +12  // = 14 string is base64 encoding of bytes.
 };
 
 struct jsox_value_container {
