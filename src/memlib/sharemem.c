@@ -2831,6 +2831,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	FILE *file;
 	if( !USE_CUSTOM_ALLOCER )
 		return;
+#if USE_CUSTOM_ALLOCER
 
 	Fopen( file, pFilename, WIDE("wt") );
 	if( file )
@@ -2937,6 +2938,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
  		fclose( file );
 	}
+#endif
 }
 
 //------------------------------------------------------------------------------------------------------
