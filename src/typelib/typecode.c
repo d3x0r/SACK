@@ -50,8 +50,11 @@ static struct list_local_data
 	volatile uint32_t lock;
 } s_list_local, *_list_local;
 
-#define list_local  ((_list_local)?(*_list_local):(s_list_local))
-#define list_local_lock ((_list_local)?(&_list_local->lock):(&s_list_local.lock))
+#ifdef __STATIC_GLOBALS__
+#else
+#  define list_local  ((_list_local)?(*_list_local):(s_list_local))
+#  define list_local_lock ((_list_local)?(&_list_local->lock):(&s_list_local.lock))
+#endif
 
 #ifdef UNDER_CE
 #define LockedExchange InterlockedExchange
@@ -313,7 +316,7 @@ static uintptr_t CPROC KillLink( uintptr_t value, INDEX i, POINTER *link )
 	return 0;
 }
 
- LOGICAL  DeleteLink ( PLIST *pList, CPOINTER value )
+LOGICAL  DeleteLink( PLIST *pList, CPOINTER value )
 {
 	if( ForAllLinks( pList, KillLink, (uintptr_t)value ) )
 		return TRUE;
@@ -328,7 +331,7 @@ static uintptr_t CPROC RemoveItem( uintptr_t value, INDEX i, POINTER *link )
 	return 0;
 }
 
- void			EmptyList		( PLIST *pList )
+void EmptyList( PLIST *pList )
 {
 	ForAllLinks( pList, RemoveItem, 0 );
 }
@@ -341,8 +344,13 @@ static struct data_list_local_data
 {
 	uint32_t lock;
 } s_data_list_local, *_data_list_local;
-#define data_list_local  ((_data_list_local)?(*_data_list_local):(s_data_list_local))
-#define data_list_local_lock  ((_data_list_local)?(&_data_list_local->lock):(&s_data_list_local.lock))
+#ifdef __STATIC_GLOBALS__
+#  define data_list_local  ((s_data_list_local))
+#  define data_list_local_lock  ((&s_data_list_local.lock))
+#else
+#  define data_list_local  ((_data_list_local)?(*_data_list_local):(s_data_list_local))
+#  define data_list_local_lock  ((_data_list_local)?(&_data_list_local->lock):(&s_data_list_local.lock))
+#endif
 
 //--------------------------------------------------------------------------
 
@@ -706,9 +714,15 @@ static struct link_queue_local_data
 //#endif
 } s_link_queue_local, *_link_queue_local;
 
-#define link_queue_local  ((_link_queue_local)?(*_link_queue_local):(s_link_queue_local))
-#define link_queue_local_thread  ((_link_queue_local)?(*_link_queue_local).thread:(s_link_queue_local.thread))
-#define link_queue_local_lock  ((_link_queue_local)?(&_link_queue_local->lock):(&s_link_queue_local.lock))
+#ifdef __STATIC_GLOBALS__
+#  define link_queue_local  ((s_link_queue_local))
+#  define link_queue_local_thread  ((s_link_queue_local.thread))
+#  define link_queue_local_lock  ((&s_link_queue_local.lock))
+#else
+#  define link_queue_local  ((_link_queue_local)?(*_link_queue_local):(s_link_queue_local))
+#  define link_queue_local_thread  ((_link_queue_local)?(*_link_queue_local).thread:(s_link_queue_local.thread))
+#  define link_queue_local_lock  ((_link_queue_local)?(&_link_queue_local->lock):(&s_link_queue_local.lock))
+#endif
 
 
 PLINKQUEUE CreateLinkQueueEx( DBG_VOIDPASS )
@@ -1168,8 +1182,13 @@ static struct data_queue_local_data
 	volatile uint32_t lock;
 } s_data_queue_local, *_data_queue_local;
 
-#define data_queue_local  ((_data_queue_local)?(*_data_queue_local):(s_data_queue_local))
-#define data_queue_local_lock ((_data_queue_local)?(&_data_queue_local->lock):(&s_data_queue_local.lock))
+#ifdef __STATIC_GLOBALS__
+#  define data_queue_local  ((s_data_queue_local))
+#  define data_queue_local_lock ((&s_data_queue_local.lock))
+#else
+#  define data_queue_local  ((_data_queue_local)?(*_data_queue_local):(s_data_queue_local))
+#  define data_queue_local_lock ((_data_queue_local)?(&_data_queue_local->lock):(&s_data_queue_local.lock))
+#enmdif
 
 PDATAQUEUE CreateDataQueueEx( INDEX size DBG_PASS )
 {
@@ -1442,6 +1461,7 @@ void  EmptyDataQueue ( PDATAQUEUE *ppdq )
 };//		namespace data_queue {
 #endif
 
+#ifdef __STATIC_GLOBALS__
 PRIORITY_PRELOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
 #ifdef __cplusplus
@@ -1457,6 +1477,7 @@ PRIORITY_PRELOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
 	SimpleRegisterAndCreateGlobal( _data_queue_local );
 #endif
 }
+#endif
 
 #ifdef __cplusplus
 }; //namespace sack {
