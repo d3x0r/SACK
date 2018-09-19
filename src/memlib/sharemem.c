@@ -324,7 +324,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #  ifndef __GNUC_VERSION
 #    define __GNUC_VERSION ( __GNUC__ * 10000 ) + ( __GNUC_MINOR__ * 100 )
 #  endif
-#  if  ( __GNUC_VERSION >= 40800 ) || defined(__MAC__)
+#  if  ( __GNUC_VERSION >= 40800 ) || defined(__MAC__) || defined( __EMSCRIPTEN__ )
 #    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 ///  for some reason __GNUC_VERSION doesn't exist from android ?
 #  elif defined __ARM__ || defined __ANDROID__
