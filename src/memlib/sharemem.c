@@ -2828,7 +2828,9 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
  void  DebugDumpHeapMemFile ( PMEM pHeap, CTEXTSTR pFilename )
 {
+#if USE_CUSTOM_ALLOCER
 	FILE *file;
+#endif
 	if( !USE_CUSTOM_ALLOCER )
 		return;
 #if USE_CUSTOM_ALLOCER
