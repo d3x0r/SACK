@@ -528,7 +528,7 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 		return;
 	}
 	pc->ssl_session = NULL;
-   //lprintf( "Socket got close event... notify application..." );
+	//lprintf( "Socket got close event... notify application..." );
 	if( ses->dwOriginalFlags & CF_CPPCLOSE )
 		ses->cpp_user_close( pc->psvClose );
 	else
@@ -1066,8 +1066,8 @@ void loadSystemCerts( X509_STORE *store )
 		}
 	}
 
-	 CertFreeCertificateContext(pContext);
-	 CertCloseStore(hStore, 0);
+	CertFreeCertificateContext(pContext);
+	CertCloseStore(hStore, 0);
 }
 
 #endif
