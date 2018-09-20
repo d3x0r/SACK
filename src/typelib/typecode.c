@@ -51,6 +51,8 @@ static struct list_local_data
 } s_list_local, *_list_local;
 
 #ifdef __STATIC_GLOBALS__
+#  define list_local  (s_list_local)
+#  define list_local_lock (&s_list_local.lock)
 #else
 #  define list_local  ((_list_local)?(*_list_local):(s_list_local))
 #  define list_local_lock ((_list_local)?(&_list_local->lock):(&s_list_local.lock))
@@ -1188,7 +1190,7 @@ static struct data_queue_local_data
 #else
 #  define data_queue_local  ((_data_queue_local)?(*_data_queue_local):(s_data_queue_local))
 #  define data_queue_local_lock ((_data_queue_local)?(&_data_queue_local->lock):(&s_data_queue_local.lock))
-#enmdif
+#endif
 
 PDATAQUEUE CreateDataQueueEx( INDEX size DBG_PASS )
 {
@@ -1461,21 +1463,21 @@ void  EmptyDataQueue ( PDATAQUEUE *ppdq )
 };//		namespace data_queue {
 #endif
 
-#ifdef __STATIC_GLOBALS__
+#ifndef __STATIC_GLOBALS__
 PRIORITY_PRELOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
-#ifdef __cplusplus
+#  ifdef __cplusplus
 	RegisterAndCreateGlobal((POINTER*)&list::_list_local, sizeof( *list::_list_local ), WIDE("_list_local") );
 	RegisterAndCreateGlobal((POINTER*)&data_list::_data_list_local, sizeof( *data_list::_data_list_local ), WIDE("_data_list_local") );
 	RegisterAndCreateGlobal((POINTER*)&queue::_link_queue_local, sizeof( *queue::_link_queue_local ), WIDE("_link_queue_local") );
 	RegisterAndCreateGlobal((POINTER*)&data_queue::_data_queue_local, sizeof( *data_queue::_data_queue_local ), WIDE("_data_queue_local") );
 
-#else
+#  else
 	SimpleRegisterAndCreateGlobal( _list_local );
 	SimpleRegisterAndCreateGlobal( _data_list_local );
 	SimpleRegisterAndCreateGlobal( _link_queue_local );
 	SimpleRegisterAndCreateGlobal( _data_queue_local );
-#endif
+#  endif
 }
 #endif
 
