@@ -503,10 +503,13 @@ static int gatherIdentifier( struct vesl_parse_state *state, CTEXTSTR msg
 			}
 		} else {
 			int n;
-			for( n = 0; n < (sizeof( nonIdentifiers ) / sizeof( nonIdentifiers[0] )); n++ ) {
-				if( c == nonIdentifiers[n] ) break;
+			for( n = 0; n < (sizeof( nonIdentifierBits ) / sizeof( nonIdentifierBits[0] )); n++ ) {
+				if( c >= (TEXTRUNE)nonIdentifierBits[n].firstChar && c < (TEXTRUNE)nonIdentifierBits[n].lastChar &&
+					(nonIdentifierBits[n].bits[(c - nonIdentifierBits[n].firstChar) / 24]
+						& (1 << ((c - nonIdentifierBits[n].firstChar) % 24))) )
+					break;
 			}
-			if( c < (sizeof( nonIdentifiers ) / sizeof( nonIdentifiers[0] )) ) {
+			if( c < (sizeof( nonIdentifierBits ) / sizeof( nonIdentifierBits[0] )) ) {
 				status = 1;
 				(*unused) = c;
 				break;

@@ -1254,15 +1254,17 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					}
 					else {
 						int n;
-						for( n = 0; n < (sizeof( nonIdentifiers ) / sizeof( nonIdentifiers[0] )); n++ ) {
-							if( c == nonIdentifiers[n] ) {
+						for( n = 0; n < (sizeof( nonIdentifierBits ) / sizeof( nonIdentifierBits[0] )); n++ ) {
+							if( c >= (TEXTRUNE)nonIdentifierBits[n].firstChar && c < (TEXTRUNE)nonIdentifierBits[n].lastChar &&
+								( nonIdentifierBits[n].bits[(c- nonIdentifierBits[n].firstChar)/24] 
+									& ( 1 << ((c-nonIdentifierBits[n].firstChar)%24) ) ) ) {
 								state->status = FALSE;
 								if( !state->pvtError ) state->pvtError = VarTextCreate();
 								vtprintf( state->pvtError, WIDE( "fault while parsing object field name; \\u00%02X unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );	// fault
 								break;
 							}
 						}
-						if( c < (sizeof( nonIdentifiers ) / sizeof( nonIdentifiers[0] )) )
+						if( c < (sizeof( nonIdentifierBits ) / sizeof( nonIdentifierBits[0] )) )
 							break;
 					}
 					switch( c )
