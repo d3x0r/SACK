@@ -177,7 +177,11 @@ __declspec(dllimport) DWORD WINAPI timeGetTime(void);
 #    ifdef __ANDROID__
 #      define DebugBreak()
 #    else
-#      define DebugBreak()  asm("int $3\n" )
+#      ifdef __EMSCRIPTEN__
+#        define DebugBreak()
+#      else
+#        define DebugBreak()  asm("int $3\n" )
+#      endif
 #    endif
 #  endif
 
