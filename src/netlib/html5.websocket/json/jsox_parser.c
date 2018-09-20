@@ -780,7 +780,9 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 		if( cInt == 44/*','*/ || cInt == 125/*'}'*/ || cInt == 93/*']'*/ || cInt == 58/*':'*/ )
 			vtprintf( state->pvtError, WIDE( "invalid character; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, cInt, state->n, state->line, state->col );
 		else {
-			(*output->pos++) = cInt;
+			if( !state->val.string )  state->val.string = output->pos;
+			if( cInt < 128 ) (*output->pos++) = cInt;
+			else output->pos += ConvertToUTF8( output->pos, cInt );
 #ifdef DEBUG_PARSING
 			lprintf( "Collected .. %d %c  %*.*s", cInt, cInt, output->pos - state->val.string, output->pos - state->val.string, state->val.string );
 #endif
@@ -795,7 +797,7 @@ static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct js
 #ifdef DEBUG_PARSING
 	lprintf( "pushValue:%d %d", val->value_type, state->arrayType );
 	if( val->name )
-		lprintf( "push named:%s %d", val->name, line );
+		lprintf( "push named:%*.*s %d", val->nameLen, val->nameLen, val->name, line );
 #endif
 	if( val->value_type == JSOX_VALUE_ARRAY ) {
 
@@ -810,6 +812,24 @@ static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct js
 		}
 	}
 	AddDataItem( pdl, val );
+}
+
+static LOGICAL isNonIdentifier( TEXTRUNE c ) {
+	if( c < 0xFF ) {
+		if( nonIdentifiers8[c] ) {
+			return TRUE;
+		}
+	}
+	else {
+		int n;
+		for( n = 0; n < (sizeof( nonIdentifierBits ) / sizeof( nonIdentifierBits[0] )); n++ ) {
+			if( c >= (TEXTRUNE)nonIdentifierBits[n].firstChar && c < (TEXTRUNE)nonIdentifierBits[n].lastChar &&
+				(nonIdentifierBits[n].bits[(c - nonIdentifierBits[n].firstChar) / 24]
+					& (1 << ((c - nonIdentifierBits[n].firstChar) % 24))) )
+				return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 int jsox_parse_add_data( struct jsox_parse_state *state
@@ -979,7 +999,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						//state->val.stringLen = output->pos - state->val.string;
 						//lprintf( "Set string length:%d", state->val.stringLen );
 					}
-					if( !( state->val.value_type == JSOX_VALUE_STRING ) )
+					if( !(state->val.value_type == JSOX_VALUE_STRING) || state->word == JSOX_WORD_POS_FIELD )
 						(*output->pos++) = 0;
 					state->word = JSOX_WORD_POS_RESET;
 					if( state->val.name ) {
@@ -1242,31 +1262,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				   || (state->parse_context == JSOX_CONTEXT_OBJECT_FIELD_VALUE && state->word == JSOX_WORD_POS_FIELD )
 				   || state->parse_context == JSOX_CONTEXT_CLASS_FIELD
 				) {
-					//lprintf( "gathering object field:%c  %*.*s", c, output->pos-output->buf, output->pos - output->buf, output->buf );
-					if( c < 0xFF ) {
-						if( nonIdentifiers8[c] ) {
-							// invalid start/continue
-							state->status = FALSE;
-							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, WIDE( "fault while parsing object field name; \\u00%02X unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );	// fault
-							break;
-						}
-					}
-					else {
-						int n;
-						for( n = 0; n < (sizeof( nonIdentifierBits ) / sizeof( nonIdentifierBits[0] )); n++ ) {
-							if( c >= (TEXTRUNE)nonIdentifierBits[n].firstChar && c < (TEXTRUNE)nonIdentifierBits[n].lastChar &&
-								( nonIdentifierBits[n].bits[(c- nonIdentifierBits[n].firstChar)/24] 
-									& ( 1 << ((c-nonIdentifierBits[n].firstChar)%24) ) ) ) {
-								state->status = FALSE;
-								if( !state->pvtError ) state->pvtError = VarTextCreate();
-								vtprintf( state->pvtError, WIDE( "fault while parsing object field name; \\u00%02X unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );	// fault
-								break;
-							}
-						}
-						if( c < (sizeof( nonIdentifierBits ) / sizeof( nonIdentifierBits[0] )) )
-							break;
-					}
+					//lprintf( "gathering object field:%c  %*.*s", c, output->pos- state->val.string, output->pos - state->val.string, state->val.string );
 					switch( c )
 					{
 					case '`':
@@ -1336,12 +1332,18 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, WIDE( "fault while parsing; unquoted space in field name at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->n, state->line, state->col );	// fault
+							vtprintf( state->pvtError, WIDE( "fault while parsing; second string in field name at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->n, state->line, state->col );	// fault
 							break;
 						} else if( state->word == JSOX_WORD_POS_RESET ) {
 							state->word = JSOX_WORD_POS_FIELD;
 							state->val.string = output->pos;
 							state->val.value_type = JSOX_VALUE_STRING;
+						}
+						if( isNonIdentifier( c ) ) {
+							state->status = FALSE;
+							if( !state->pvtError ) state->pvtError = VarTextCreate();
+							vtprintf( state->pvtError, WIDE( "fault while parsing object field name; \\u00%02X unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );	// fault
+							break;
 						}
 						if( !state->val.string ) state->val.string = output->pos;
 						if( c < 128 ) (*output->pos++) = c;
