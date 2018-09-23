@@ -844,8 +844,12 @@ static uint32_t dwFree;
 #endif
 
 //------------------------------------------------------------------------------------------------------
+#ifndef __NO_MMAP__
 static void DoCloseSpace( PSPACE ps, int bFinal );
+#endif
 //------------------------------------------------------------------------------------------------------
+
+#ifndef __NO_MMAP__
 
 LOGICAL OpenRootMemory()
 {
@@ -912,12 +916,12 @@ LOGICAL OpenRootMemory()
 	return created;
 }
 
-
+#endif
 
 // hmm this runs
 PRIORITY_ATEXIT(ReleaseAllMemory,ATEXIT_PRIORITY_SHAREMEM)
 {
-#ifdef __SKIP_RELEASE_OPEN_SPACES__
+#if defined( __SKIP_RELEASE_OPEN_SPACES__ ) || defined( __NO_MMAP__ )
 	// actually, under linux, it releases /tmp/.shared files.
 	//ll_lprintf( WIDE( "No super significant reason to release all memory blocks?" ) );
 	//ll_lprintf( WIDE( "Short circuit on memory shutdown." ) );
@@ -978,6 +982,7 @@ PRIORITY_ATEXIT(ReleaseAllMemory,ATEXIT_PRIORITY_SHAREMEM)
 
 void InitSharedMemory( void )
 {
+#ifndef __NO_MMAP__
 	if( !g.bInit )
 	{
 	// this would be really slick to do
@@ -1016,10 +1021,12 @@ void InitSharedMemory( void )
 			ODS( WIDE("already initialized?") );
 #endif
 	}
+#endif
 }
 
 //------------------------------------------------------------------------------------------------------
 // private
+#ifndef __NO_MMAP__
 static PSPACE AddSpace( PSPACE pAddAfter
 #if defined( WIN32 ) || defined( __CYGWIN__ )
 							, HANDLE hFile
@@ -1167,7 +1174,6 @@ static void DoCloseSpace( PSPACE ps, int bFinal )
 {
 	DoCloseSpace( FindSpace( pMem ), TRUE );
 }
-
 //------------------------------------------------------------------------------------------------------
 
  uintptr_t  GetSpaceSize ( POINTER pMem )
@@ -1178,6 +1184,7 @@ static void DoCloseSpace( PSPACE ps, int bFinal )
 		return ps->dwSmallSize;
 	return 0;
 }
+#endif
 
 #if defined( __LINUX__ ) && !defined( __CYGWIN__ )
 uintptr_t GetFileSize( int fd )
@@ -1190,7 +1197,7 @@ uintptr_t GetFileSize( int fd )
 #endif
 //------------------------------------------------------------------------------------------------------
 
-
+#ifndef __NO_MMAP__
  POINTER  OpenSpaceExx ( CTEXTSTR pWhat, CTEXTSTR pWhere, uintptr_t address, uintptr_t *dwSize, uint32_t* bCreated )
 {
 	POINTER pMem = NULL;
@@ -1762,6 +1769,7 @@ uintptr_t GetFileSize( int fd )
 {
 	return OpenSpaceEx( pWhat, pWhere, 0, dwSize );
 }
+#endif
 //------------------------------------------------------------------------------------------------------
 
  int  InitHeap( PMEM pMem, uintptr_t dwSize )
@@ -1780,6 +1788,7 @@ uintptr_t GetFileSize( int fd )
 		ll_lprintf( WIDE("Memory was already initialized as a heap?") );
 		return FALSE;
 	}
+#ifndef __NO_MMAP__
 	if( !FindSpace( pMem ) )
 	{
 		//ll_lprintf( WIDE("space for heap has not been tracked yet....") );
@@ -1788,6 +1797,7 @@ uintptr_t GetFileSize( int fd )
 		// a file or memory handle.
 		AddSpace( NULL, 0, 0, pMem, dwSize, TRUE );
 	}
+#endif
 	// the size passed is the full size of the memory, so we need to remove sizeof(MEM)
 	// so there is room to track heap info at the start of the heap.
 	dwSize -= sizeof( MEM );
@@ -1823,6 +1833,7 @@ uintptr_t GetFileSize( int fd )
 }
 
 //------------------------------------------------------------------------------------------------------
+#ifndef __NO_MMAP__
 
 PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, uintptr_t *dwSize )
 {
@@ -1871,12 +1882,13 @@ int ExpandSpace( PMEM pHeap, uintptr_t dwAmount )
 	return TRUE;
 }
 
-
+#endif
 //------------------------------------------------------------------------------------------------------
 
 static PMEM InitMemory( void ) {
 	uintptr_t MinSize = SYSTEM_CAPACITY;
 	// generic internal memory, unnamed, unshared, unsaved
+#ifndef __NO_MMAP__
 	g.pMemInstance = DigSpace( NULL, NULL, &MinSize );
 	if( !g.pMemInstance )
 	{
@@ -1884,6 +1896,7 @@ static PMEM InitMemory( void ) {
 		ODS( WIDE( "Failed to allocate memory - assuming fatailty at Allocation service level." ) );
 		return NULL;
 	}
+#endif
 	return g.pMemInstance;
 }
 
@@ -1995,6 +2008,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment 
 			return pc->byData;
 		}
 	}
+#if USE_CUSTOM_ALLOCER
 	else
 	{
 		PHEAP_CHUNK pc;
@@ -2185,6 +2199,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment 
 			return pc->byData;
 		}
 	}
+#endif
 
 	return NULL;
 }
@@ -2374,6 +2389,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 {
 	if( pData )
 	{
+#ifndef __NO_MMAP__
 		// how to figure if it's a CHUNK or a HEAP_CHUNK?
 		if( !( ((uintptr_t)pData) & 0x3FF ) )
 		{
@@ -2386,7 +2402,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				return NULL;
 			}
 		}
-
+#endif
 		if( !USE_CUSTOM_ALLOCER )
 		{
 			//PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
@@ -2426,6 +2442,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			}
 			return pData;
 		}
+#if USE_CUSTOM_ALLOCER
 		else
 		{
 			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - ( ( (uint16_t*)pData)[-1] +
@@ -2673,6 +2690,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				GetHeapMemStatsEx(pMem, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
 #endif
 		}
+#endif
 	}
 	return NULL;
 }
@@ -2733,6 +2751,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 
 void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 {
+#if USE_CUSTOM_ALLOCER
 	if( USE_CUSTOM_ALLOCER )
 	{
 		PCHUNK pc, _pc;
@@ -2814,6 +2833,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		DropMem( pMem );
 	}
 	else
+#endif
 		xlprintf(LOG_ALWAYS)( WIDE( "Cannot log chunks allocated that are not using custom allocer." ) );
 }
 
@@ -3047,7 +3067,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	PSPACE pMemSpace;
 	if( !USE_CUSTOM_ALLOCER )
       return;
-
+#if USE_CUSTOM_ALLOCER
 	if( !pHeap )
 		pHeap = g.pMemInstance;
 	pMem = GrabMem( pHeap );
@@ -3156,6 +3176,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		*pChunks = nChunks;
 	if( pFreeChunks )
 		*pFreeChunks = nFreeChunks;
+#endif
 }
 
 //------------------------------------------------------------------------------------------------------
