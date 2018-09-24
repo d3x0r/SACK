@@ -225,8 +225,6 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 			BLOCKINDEX *blockKey; 
 			BAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * BLOCK_SIZE);
 			blockKey = ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT]);
-			//vol->segment[BLOCK_CACHE_BAT] = n + 1;
-			//while( LockedExchange( &vol->key_lock[BLOCK_CACHE_BAT], 1 ) ) Relinquish();
 			UpdateSegmentKey( vol, BLOCK_CACHE_BAT, n + 1 );
 
 			for( m = 0; m < BLOCKS_PER_BAT; m++ )
@@ -238,7 +236,6 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 				if( block >= last_block ) return FALSE;
 			}
 			if( m < BLOCKS_PER_BAT ) break;
-			//vol->key_lock[BLOCK_CACHE_BAT] = 0;
 		}
 	} else {
 		for( n = first_slab; n < slab; n += BLOCKS_PER_SECTOR  ) {
@@ -509,6 +506,11 @@ uintptr_t vfs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entr
 		BLOCKINDEX seg = ( b / BLOCK_SIZE ) + 1;
 		if( seg != vol->segment[cache_index[0]] ) {
 			//vol->segment[cache_index] = seg;
+			if( (cache_index[0] == BLOCK_CACHE_FILE)
+				&& (seg < 3) ) {
+				lprintf( "CRITICAL FAILURE, SEEK OUT OF DISK %d", seg );
+				(*(int*)0) = 0;
+			}
 			cache_index[0] = UpdateSegmentKey( vol, cache_index[0], seg );
 		}
 	}
@@ -1293,7 +1295,6 @@ static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_ent
 			BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), cache );
 			BLOCKINDEX _thiskey = ( vol->key )?((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT])[_block & (BLOCKS_PER_BAT-1)]:0;
 			BLOCKINDEX b = BLOCK_SIZE + (block >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + (block & (BLOCKS_PER_BAT - 1)) * BLOCK_SIZE;
-			//uint8_t* blockData = (uint8_t*)vfs_BSEEK( vol, block, BLOCK_CACHE_DATAKEY );
 			uint8_t* blockData = (uint8_t*)(((uintptr_t)vol->disk) + b);
 			//LoG( "Clearing file datablock...%p", (uintptr_t)blockData - (uintptr_t)vol->disk );
 			memset( blockData, 0, BLOCK_SIZE );
