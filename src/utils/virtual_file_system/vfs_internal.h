@@ -63,6 +63,45 @@ PREFIX_PACKED struct volume {
 	uintptr_t clusterKeyVersion;
 } PACKED;
 
+PREFIX_PACKED struct fs_volume {
+	const char * volname;
+	FILE *file;
+//	struct disk *disk;
+//	struct disk *diskReal; // disk might be offset from diskReal because it's a .exe attached.
+	//uint32_t dirents;  // constant 0
+	//uint32_t nameents; // constant 1
+	uintptr_t dwSize;
+	const char * datakey;  // used for directory signatures
+	const char * userkey;
+	const char * devkey;
+	enum block_cache_entries curseg;
+	BLOCKINDEX _segment[BLOCK_CACHE_COUNT];// cached segment with usekey[n]
+	BLOCKINDEX segment[BLOCK_CACHE_COUNT];// associated with usekey[n]
+	uint8_t fileCacheAge[BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE];
+	uint8_t fileNextAge;
+	struct random_context *entropy;
+	uint8_t* key;  // allow byte encrypting...
+	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index
+	uint8_t* sigkey;  // signature of executable attached as header
+	uint8_t* usekey[BLOCK_CACHE_COUNT]; // composite key
+
+	uint8_t* key_buffer;  // allow byte encrypting...
+	uint8_t* segkey_buffer;  // allow byte encrypting... key based on sector volume file index
+	uint8_t* sigkey_buffer;  // signature of executable attached as header
+	uint8_t* usekey_buffer[BLOCK_CACHE_COUNT]; // composite key
+
+	uint8_t* sigsalt;  // (unused) adds salt for the signature?
+	size_t sigkeyLength;
+
+	PLIST files; // when reopened file structures need to be updated also...
+	LOGICAL read_only;
+	LOGICAL external_memory;
+	LOGICAL closed;
+	uint32_t lock;
+	uint8_t tmpSalt[16];
+	uintptr_t clusterKeyVersion;
+} PACKED;
+
 PREFIX_PACKED struct directory_entry
 {
 	FPI name_offset;  // name offset from beginning of disk
@@ -97,8 +136,24 @@ struct sack_vfs_file
 	LOGICAL delete_on_close;  // someone already deleted this...
 };
 
+struct sack_vfs_fs_file
+{
+	struct directory_entry *entry;  // has file size within
+	struct directory_entry dirent_key;
+	struct fs_volume *vol; // which volume this is in
+	FPI fpi;
+	BLOCKINDEX first_block;
+	BLOCKINDEX block; // this should be in-sync with current FPI always; plz
+	LOGICAL delete_on_close;  // someone already deleted this...
+};
+
+#ifdef SACK_VFS_FS_SOURCE
+#define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
+#define BTSEEK(type,v,o,c) ((type)vfs_fs_BSEEK(v,o,&c))
+#else
 #define TSEEK(type,v,o,c) ((type)vfs_SEEK(v,o,&c))
 #define BTSEEK(type,v,o,c) ((type)vfs_BSEEK(v,o,&c))
+#endif
 
 #ifdef __GNUC__
 #define HIDDEN __attribute__ ((visibility ("hidden")))
@@ -109,3 +164,5 @@ uintptr_t vfs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries *ca
 uintptr_t vfs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
 //BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int init, LOGICAL expand );
 
+uintptr_t vfs_fs_SEEK( struct fs_volume *vol, FPI offset, enum block_cache_entries *cache_index ) HIDDEN;
+uintptr_t vfs_fs_BSEEK( struct fs_volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
