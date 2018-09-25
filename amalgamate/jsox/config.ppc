@@ -1,10 +1,12 @@
 #define JSON_PARSER_MAIN_SOURCE
 #define NO_OPEN_MACRO
+#define __NO_MMAP__
 #define __STATIC__
 #define __NO_OPTIONS__
 #define __NO_ODBC__
 #define NO_FILEOP_ALIAS
 #define SACK_BAG_EXPORTS
+#define __STATIC_GLOBALS__
 //#define TYPELIB_SOURCE
 #define __NO_INTERFACE_SUPPORT__
 
