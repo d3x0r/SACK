@@ -72,7 +72,6 @@ endif( WATCOM )
 
 
 
-set( project sack_vfs_command.portable )
 
 set( SOURCES_ROOT ${SACK_BASE} )
 
@@ -80,8 +79,15 @@ if( WIN32 )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
 endif( WIN32 )
 
-set(BASE_SOURCES
+set(PROG_SOURCES
     ../vfs_command.c ../../vfs.c
+)
+
+set(PROG2_SOURCES
+    ../vfs_command.c ../../vfs_fs.c
+)
+
+set(BASE_SOURCES
     ${SOURCES_ROOT}/src/memlib/sharemem.c
     ${SOURCES_ROOT}/src/memlib/memory_operations.c
     ${SOURCES_ROOT}/src/timerlib/timers.c
@@ -109,7 +115,8 @@ set(BASE_SOURCES
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c
 )
 
-sack_add_executable(${project} ${BASE_SOURCES} )
+set( project sack_vfs_command.portable )
+sack_add_executable(${project} ${PROG_SOURCES} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "VFS_DISK_DATATYPE=uint32_t" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
@@ -117,3 +124,36 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
+
+set( project sack_vfs_command.64.portable )
+sack_add_executable(${project} ${PROG_SOURCES} ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "VFS_DISK_DATATYPE=uint64_t" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+      FOLDER utils/vfs
+)
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
+
+set( project sack_vfs_fs_command.portable )
+sack_add_executable(${project} ${PROG2_SOURCES} ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_FS_INTERFACE;VFS_DISK_DATATYPE=uint32_t" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+      FOLDER utils/vfs
+)
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
+
+
+
+set( project sack_vfs_fs_command.64.portable )
+sack_add_executable(${project} ${PROG2_SOURCES} ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_FS_INTERFACE;VFS_DISK_DATATYPE=uint64_t" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+      FOLDER utils/vfs
+)
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
+

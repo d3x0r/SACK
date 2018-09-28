@@ -1,6 +1,7 @@
 #ifndef NO_FILEOP_ALIAS
 #  define NO_FILEOP_ALIAS
 #endif
+
 #include <stdhdrs.h>
 #include <filesys.h>
 #include <sack_vfs.h>
@@ -11,11 +12,19 @@
 static struct vfs_command_local
 {
 	struct file_system_interface *fsi;
+#ifdef USE_VFS_FS_INTERFACE
+	struct fs_volume *current_vol;
+#else
 	struct volume *current_vol;
+#endif
 	struct file_system_mounted_interface *current_mount;
 	LOGICAL verbose;
 
+#ifdef USE_VFS_FS_INTERFACE
+	struct fs_volume *current_vol_source;
+#else
 	struct volume *current_vol_source;
+#endif
 	struct file_system_mounted_interface *current_mount_source;
 } l;
 
@@ -439,8 +448,11 @@ SaneWinMain( argc, argv )
 	l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
 	if( !l.fsi )
 	{
-		printf( "Failed to load file system interface.\n" );
-		return 0;
+		l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME "-fs" );
+		if( !l.fsi ) {
+			printf( "Failed to load file system interface.\n" );
+			return 0;
+		}
 	}
 	for( arg = 1; arg < argc; arg++ )
 	{
