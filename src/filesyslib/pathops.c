@@ -12,7 +12,9 @@
 
 FILESYS_NAMESPACE
 
+#ifndef __NO_SACK_FILESYS__
 extern TEXTSTR ExpandPath( CTEXTSTR path );
+#endif
 
  CTEXTSTR  pathrchr ( CTEXTSTR path )
 {
@@ -114,7 +116,11 @@ uint64_t GetTimeAsFileTime ( void )
 
  uint64_t  GetFileWriteTime( CTEXTSTR name ) // last modification time.
 {
+#ifndef __NO_SACK_FILESYS__
 	TEXTSTR tmppath = ExpandPath( name );
+#else
+#  define tmppath name
+#endif
 #ifdef _WIN32
 	HANDLE hFile = CreateFile( tmppath
 								  , 0 // device access?
@@ -123,6 +129,9 @@ uint64_t GetTimeAsFileTime ( void )
 								  , OPEN_EXISTING
 								  , 0
 								  , NULL );
+#ifndef __NO_SACK_FILESYS__
+	Deallocate( TEXTSTR, tmppath );
+#endif
 	if( hFile != INVALID_HANDLE_VALUE )
 	{
 		FILETIME filetime;
@@ -392,7 +401,11 @@ int  SetCurrentPath ( CTEXTSTR path )
 	TEXTSTR tmp_path;
 	if( !path )
 		return 0;
+#ifndef __NO_SACK_FILESYS__
 	tmp_path = ExpandPath( path );
+#else
+#  define tmp_path path
+#endif
 #ifndef UNDER_CE
 #  ifdef _WIN32
 	status = SetCurrentDirectory( tmp_path );
@@ -407,12 +420,16 @@ int  SetCurrentPath ( CTEXTSTR path )
 	 status = !chdir( tmp_path );
 #	endif
 #  endif
+#ifndef __NO_SACK_FILESYS__
 	Release( tmp_path );
+#endif
 	if( status )
 	{
+#ifndef __NO_SACK_FILESYS__
 		TEXTCHAR tmp[256];
 		path = GetCurrentPath( tmp, sizeof( tmp ) );
 		SetDefaultFilePath( path );
+#endif
 	}
 	else
 	{
@@ -445,24 +462,6 @@ LOGICAL IsAbsolutePath( CTEXTSTR path )
 #endif
 	}
 	return FALSE;
-}
-
-LOGICAL SetFileLength( CTEXTSTR path, size_t length )
-{
-#ifdef __LINUX__
-	// files are by default binary in linux
-#  ifndef O_BINARY
-#	define O_BINARY 0
-#  endif
-#endif
-	INDEX file;
-	file = sack_iopen( 0, path, O_RDWR|O_BINARY );
-	if( file == INVALID_INDEX )
-		return FALSE;
-	sack_ilseek( file, length, SEEK_SET );
-	sack_iset_eof( file );
-	sack_iclose( file );
-	return TRUE;
 }
 
 

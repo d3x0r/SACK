@@ -2518,6 +2518,25 @@ int sack_fputs( const char *format,FILE *file )
 	return 0;
 }
 
+LOGICAL SetFileLength( CTEXTSTR path, size_t length )
+{
+#ifdef __LINUX__
+	// files are by default binary in linux
+#  ifndef O_BINARY
+#	define O_BINARY 0
+#  endif
+#endif
+	INDEX file;
+	file = sack_iopen( 0, path, O_RDWR | O_BINARY );
+	if( file == INVALID_INDEX )
+		return FALSE;
+	sack_ilseek( file, length, SEEK_SET );
+	sack_iset_eof( file );
+	sack_iclose( file );
+	return TRUE;
+}
+
+
 
 
 FILESYS_NAMESPACE_END
