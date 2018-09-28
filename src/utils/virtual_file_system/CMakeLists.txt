@@ -6,6 +6,7 @@ set( PROJECT sack_vfs.module )
 
 set(BASE_SOURCES
     vfs.c
+	vfs_fs.c
 )
 
 sack_add_library( ${PROJECT} SHARED ${BASE_SOURCES} )
@@ -28,12 +29,18 @@ install_mode_dest( ${PROJECT} )
 
 set( PROJECT sack_vfs.pp.module )
 set( VFSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs.cc )
+set( VFSFSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_fs.cc )
 set( VFSPPH ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_internal.h )
 
        add_custom_command( OUTPUT ${VFSPP}
                            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vfs.c
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/vfs.c ${VFSPP}
                            COMMAND ${CMAKE_COMMAND} -E touch ${VFSPP}
+                           )
+       add_custom_command( OUTPUT ${VFSFSPP}
+                           DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vfs_fs.c
+                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/vfs_fs.c ${VFSFSPP}
+                           COMMAND ${CMAKE_COMMAND} -E touch ${VFSFSPP}
                            )
        add_custom_command( OUTPUT ${VFSPPH}
                            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vfs_internal.h
@@ -42,7 +49,7 @@ set( VFSPPH ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_internal.h )
                            )
 
 
-sack_add_library( ${PROJECT} SHARED ${VFSPP} ${VFSPPH} )
+sack_add_library( ${PROJECT} SHARED ${VFSPP} ${VFSFSPP} ${VFSPPH} )
 
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils
