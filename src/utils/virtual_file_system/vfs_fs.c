@@ -8,10 +8,13 @@
  */
 #define SACK_VFS_SOURCE
 #define SACK_VFS_FS_SOURCE
+#define USE_STDIO
 #if 1
 #  include <stdhdrs.h>
 #  include <ctype.h> // tolower on linux
+#ifndef USE_STDIO
 #  include <filesys.h>
+#endif
 #  include <procreg.h>
 #  include <salty_generator.h>
 #  include <sack_vfs.h>
@@ -26,6 +29,32 @@
 //#include <sqlgetoption.h>
 #endif
 
+#ifdef USE_STDIO
+#define sack_fopen(a,b,c)     fopen(b,c)
+#define sack_fseek(a,b,c)     fseek(a,b,c)
+#define sack_fclose(a)        fclose(a)
+#define sack_fread(a,b,c,d)   fread(a,b,c,d)
+#define sack_fwrite(a,b,c,d)  fwrite(a,b,c,d)
+#define sack_ftell(a)         ftell(a)
+
+#ifdef __cplusplus
+namespace sack {
+	namespace filesys {
+#endif
+		// pathops.c
+		extern LOGICAL  CPROC  IsPath( CTEXTSTR path );
+		extern  int CPROC  MakePath( CTEXTSTR path );
+		extern CTEXTSTR CPROC pathrchr( CTEXTSTR path );
+		extern CTEXTSTR CPROC pathchr( CTEXTSTR path );
+#ifdef __cplusplus
+	}
+}
+using namespace sack::filesys;
+#endif
+
+#endif
+
+
 SACK_VFS_NAMESPACE
 //#define PARANOID_INIT
 
@@ -38,6 +67,7 @@ SACK_VFS_NAMESPACE
 #endif
 
 #include "vfs_internal.h"
+
 
 static struct {
 	struct directory_entry zero_entkey;
@@ -635,7 +665,7 @@ struct fs_volume *sack_vfs_fs_load_volume( const char * filepath )
 {
 	struct fs_volume *vol = New( struct fs_volume );
 	memset( vol, 0, sizeof( struct fs_volume ) );
-	vol->volname = SaveText( filepath );
+	vol->volname = strdup( filepath );
 	_fs_AssignKey( vol, NULL, NULL );
 	if( !_fs_ExpandVolume( vol ) || !_fs_ValidateBAT( vol ) ) { Deallocate( struct fs_volume*, vol ); return NULL; }
 	return vol;
@@ -646,7 +676,7 @@ struct fs_volume *sack_vfs_fs_load_crypt_volume( const char * filepath, uintptr_
 	MemSet( vol, 0, sizeof( struct fs_volume ) );
 	if( !version ) version = 2;
 	vol->clusterKeyVersion = version - 1;
-	vol->volname = SaveText( filepath );
+	vol->volname = strdup( filepath );
 	vol->userkey = userkey;
 	vol->devkey = devkey;
 	_fs_AssignKey( vol, userkey, devkey );
@@ -707,6 +737,7 @@ void sack_vfs_fs_unload_volume( struct fs_volume * vol ) {
 		vol->closed = TRUE;
 		return;
 	}
+	free( (char*)vol->volname );
 	DeleteListEx( &vol->files DBG_SRC );
 	sack_fclose( vol->file );
 	//if( !vol->external_memory )	CloseSpace( vol->diskReal );
@@ -747,8 +778,10 @@ void sack_vfs_fs_shrink_volume( struct fs_volume * vol ) {
 	}while( 1 );
 	sack_fclose( vol->file );
 	vol->file = NULL;
+	/*
 	SetFileLength( vol->volname,
 			last_bat * BLOCKS_PER_SECTOR * BLOCK_SIZE + ( last_block + 1 + 1 )* BLOCK_SIZE );
+	*/
 	// setting 0 size will cause expand to do an initial open instead of expanding
 	vol->dwSize = 0;
 }
@@ -1496,6 +1529,7 @@ LOGICAL CPROC sack_vfs_fs_rename( uintptr_t psvInstance, const char *original, c
 	return FALSE;
 }
 
+#ifndef USE_STDIO
 static struct file_system_interface sack_vfs_fs_fsi = {
                                                      (void*(CPROC*)(uintptr_t,const char *, const char*))sack_vfs_fs_open
                                                    , (int(CPROC*)(void*))sack_vfs_fs_close
@@ -1543,5 +1577,7 @@ PRIORITY_PRELOAD( Sack_VFS_FS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 
 		                     , 900, (uintptr_t)vol, TRUE );
 	}
 }
+
+#endif
 
 SACK_VFS_NAMESPACE_END
