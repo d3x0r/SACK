@@ -255,9 +255,6 @@ static LOGICAL _fs_ValidateBAT( struct fs_volume *vol ) {
 			BLOCKINDEX *BAT; 
 			BLOCKINDEX *blockKey;
 			BAT = TSEEK( BLOCKINDEX*, vol, n * BLOCK_SIZE, cache );
-			//sack_fseek( vol->file, (size_t)n * BLOCK_SIZE, SEEK_SET );
-			//if( !sack_fread( vol->usekey_buffer[BLOCK_CACHE_BAT], 1, BLOCK_SIZE, vol->file ) ) return FALSE;
-			//BAT = (BLOCKINDEX*)vol->usekey_buffer[BLOCK_CACHE_BAT];
 			blockKey = ((BLOCKINDEX*)vol->usekey[BLOCK_CACHE_BAT]);
 			_fs_UpdateSegmentKey( vol, BLOCK_CACHE_BAT, n + 1 );
 
@@ -275,7 +272,6 @@ static LOGICAL _fs_ValidateBAT( struct fs_volume *vol ) {
 		for( n = first_slab; n < slab; n += BLOCKS_PER_SECTOR  ) {
 			size_t m;
 			BLOCKINDEX *BAT = TSEEK( BLOCKINDEX*, vol, n * BLOCK_SIZE, cache );
-			BAT = (BLOCKINDEX*)vol->usekey_buffer[BLOCK_CACHE_BAT];
 			for( m = 0; m < BLOCKS_PER_BAT; m++ ) {
 				BLOCKINDEX block = BAT[m];
 				if( block == EOFBLOCK ) continue;
