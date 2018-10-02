@@ -28,6 +28,10 @@ typedef VFS_DISK_DATATYPE FPI; // file position type
 enum block_cache_entries
 {
 	BLOCK_CACHE_DIRECTORY
+#ifdef VIRTUAL_OBJECT_STORE
+	, BLOCK_CACHE_HASH_DIRECTORY
+	, BLOCK_CACHE_HASH_DIRECTORY_LAST = BLOCK_CACHE_HASH_DIRECTORY + 16
+#endif
 	, BLOCK_CACHE_NAMES
 	, BLOCK_CACHE_BAT
 	, BLOCK_CACHE_DATAKEY
@@ -84,11 +88,6 @@ PREFIX_PACKED struct fs_volume {
 	uint8_t* sigkey;  // signature of executable attached as header
 	uint8_t* usekey[BLOCK_CACHE_COUNT]; // composite key
 
-	uint8_t* key_buffer;  // allow byte encrypting...
-	uint8_t* segkey_buffer;  // allow byte encrypting... key based on sector volume file index
-	uint8_t* sigkey_buffer;  // signature of executable attached as header
-	uint8_t* usekey_buffer[BLOCK_CACHE_COUNT]; // composite key
-	FPI bufferFPI[BLOCK_CACHE_COUNT];
 
 	uint8_t* sigsalt;  // (unused) adds salt for the signature?
 	size_t sigkeyLength;
@@ -124,8 +123,12 @@ struct sack_vfs_fs_file
 
 PREFIX_PACKED struct volume {
 	const char * volname;
+#ifdef FILE_BASED_VFS
+	FILE *file;
+#else
 	struct disk *disk;
 	struct disk *diskReal; // disk might be offset from diskReal because it's a .exe attached.
+#endif
 	//uint32_t dirents;  // constant 0
 	//uint32_t nameents; // constant 1
 	uintptr_t dwSize;
@@ -138,12 +141,18 @@ PREFIX_PACKED struct volume {
 	uint8_t fileCacheAge[BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE];
 	uint8_t fileNextAge;
 	struct random_context *entropy;
-	uint8_t* key;  // allow byte encrypting...
+	uint8_t* key;  // root of all cached key buffers
 	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index
 	uint8_t* sigkey;  // signature of executable attached as header
 	uint8_t* sigsalt;  // signature of executable attached as header
 	size_t sigkeyLength;
 	uint8_t* usekey[BLOCK_CACHE_COUNT]; // composite key
+
+	uint8_t* key_buffer;  // root buffer space of all cache blocks
+	uint8_t* usekey_buffer[BLOCK_CACHE_COUNT]; // data cache blocks
+#ifdef FILE_BASED_VFS
+	FPI bufferFPI[BLOCK_CACHE_COUNT];
+#endif
 	PLIST files; // when reopened file structures need to be updated also...
 	LOGICAL read_only;
 	LOGICAL external_memory;
@@ -156,7 +165,13 @@ PREFIX_PACKED struct volume {
 
 struct sack_vfs_file
 {
+#ifdef FILE_BASED_VFS
+	FPI entry_fpi;  // where to write the directory entry update to
+	struct directory_entry _entry;  // has file size within
 	struct directory_entry *entry;  // has file size within
+#else
+	struct directory_entry *entry;  // has file size within
+#endif
 	struct directory_entry dirent_key;
 	struct volume *vol; // which volume this is in
 	FPI fpi;
