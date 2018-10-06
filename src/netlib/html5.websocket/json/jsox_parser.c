@@ -922,7 +922,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				if( state->n > input->size ) DebugBreak();
 				state->val.stringLen = (output->pos - state->val.string)-1;
 #ifdef DEBUG_PARSING
-				lprintf( "STRING: %s %d", state->val.string, state->val.stringLen );
+				lprintf( "STRING1: %s %d", state->val.string, state->val.stringLen );
 #endif
 				if( state->status ) state->val.value_type = JSOX_VALUE_STRING;
 			}
@@ -1101,7 +1101,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							if( state->val.value_type != JSOX_VALUE_STRING ) {
 								state->val.stringLen = output->pos - state->val.string;
 #ifdef DEBUG_PARSING
-								lprintf( "STRING: %s %d", state->val.string, state->val.stringLen );
+								lprintf( "STRING2: %s %d", state->val.string, state->val.stringLen );
 #endif
 								(*output->pos++) = 0;
 							}
@@ -1153,7 +1153,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							if( state->val.value_type != JSOX_VALUE_STRING ) {
 								state->val.stringLen = output->pos - state->val.string;
 #ifdef DEBUG_PARSING
-								lprintf( "STRING: %s %d", state->val.string, state->val.stringLen );
+								lprintf( "STRING3: %s %d", state->val.string, state->val.stringLen );
 #endif
 								(*output->pos++) = 0;
 							}
@@ -1280,8 +1280,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						else if( string_status > 0 ) {
 							state->gatheringString = FALSE;
 							state->val.stringLen = (output->pos - state->val.string) - 1;
+							if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) state->completed = TRUE;
 #ifdef DEBUG_PARSING
-							lprintf( "STRING: %s %d", state->val.string, state->val.stringLen );
+							lprintf( "STRING4: %s %d", state->val.string, state->val.stringLen );
 #endif
 						}
 						state->n = input->pos - input->buf;
@@ -1372,7 +1373,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->gatheringString = FALSE;
 						state->val.stringLen = (output->pos - state->val.string) - 1;
 #ifdef DEBUG_PARSING
-						lprintf( "STRING: %s %d", state->val.string, state->val.stringLen );
+						lprintf( "STRING5: %s %d", state->val.string, state->val.stringLen );
 #endif
 					} else if( state->complete_at_end ) {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
@@ -1668,7 +1669,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							(*output->pos++) = 0;
 							state->val.stringLen = (output->pos - state->val.string) - 1;
 #ifdef DEBUG_PARSING
-							lprintf( "STRING: %s %d", state->val.string, state->val.stringLen );
+							lprintf( "STRING6: %s %d", state->val.string, state->val.stringLen );
 #endif
 							state->gatheringNumber = FALSE;
 							//lprintf( "result with number:%s", state->val.string );
