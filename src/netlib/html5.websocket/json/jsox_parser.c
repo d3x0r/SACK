@@ -940,7 +940,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		while( state->status && (state->n < input->size) && (c = GetUtfChar( &input->pos )) )
 		{
 #ifdef DEBUG_PARSING
-			lprintf( "parse character %c %d %d", c, state->word, state->parse_context );
+			lprintf( "parse character %c %d %d %d %d", c<32?".":c, state->word, state->parse_context, state->parse_context, state->word );
 #endif
 			state->col++;
 			state->n = input->pos - input->buf;
@@ -1329,6 +1329,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						//lprintf( "whitespace skip..." );
 						break;
 					default:
+						if( state->word == JSOX_WORD_POS_RESET && ( (c >= '0' && c <= '9') || (c == '+') || (c == '.') ) ) {
+							goto beginNumber;
+						}
 						if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
@@ -1524,6 +1527,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						const char *_msg_input; // to unwind last character past number.
 						// always reset this here....
 						// keep it set to determine what sort of value is ready.
+					beginNumber:
 						if( !state->gatheringNumber ) {
 							state->numberFromBigInt = FALSE;
 							state->numberFromDate = FALSE;
