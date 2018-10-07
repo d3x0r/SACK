@@ -189,8 +189,8 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 		/*PTEXT ampersand = */( next = NEXTLINE( next ) );
 
 		struct HttpField *field = New( struct HttpField );
-		field->name = resolvePercents( name );
-		field->value = resolvePercents( value );
+		field->name = name?resolvePercents( name ):NULL;
+		field->value = value?resolvePercents( value ):NULL;
 		//lprintf( "Added %s=%s", GetText( field->name ), GetText( field->value ) );
 		AddLink( &pHttpState->cgi_fields, field );
 		next = NEXTLINE( next );
