@@ -78,6 +78,7 @@ void DumpMessage( PDATALIST pdl ) {
 		}
 	}
 	level--;
+	if( !level ) printf( "\n" );
 }
 
 void parse( char *fileName ) {
@@ -86,6 +87,7 @@ void parse( char *fileName ) {
 	size_t size;
 	char *data;
 	int r;
+	struct jsox_parse_state *parser;
 	file = fopen( fileName, "rb" );
 	fseek( file, 0, SEEK_END );
 	size = ftell( file );
@@ -93,13 +95,29 @@ void parse( char *fileName ) {
 	data = (char*)malloc( size );
 	fread( data, 1, size, file );
 	fclose( file );
-	r = jsox_parse_message( data, size, &pdl );
-	if( r > 0 )
-		DumpMessage( pdl );
-	else if( r <= 0 )
-		printf( "Error:%s", GetText( jsox_parse_get_error( NULL ) ) );
-	printf( "\n" );
-	free( data );
+	parser = jsox_begin_parse();
+	do {
+		//r = jsox_parse_message( data, size, &pdl );
+		//if( r > 0 ) {
+		//	DumpMessage( pdl );
+		//	jsox_dispose_message( &pdl );
+		//} 
+		//else if( r <= 0 )
+		//	printf( "Error:%s", GetText( jsox_parse_get_error( NULL ) ) );
+
+		r = jsox_parse_add_data( parser, data, size );
+		free( data );
+		data = NULL;
+		size = 0;
+
+		if( r >= 0 ) {
+			pdl = jsox_parse_get_data( parser );
+			DumpMessage( pdl );
+			jsox_dispose_message( &pdl );
+		}
+		else if( r < 0 )
+			printf( "Error:%s", GetText( jsox_parse_get_error( NULL ) ) );
+	} while( r > 0 );
 }
 
 int main( int argc, char **argv) {

@@ -27,6 +27,7 @@ copy c\*
 copy h\jsox.h
 
 gcc -g -o a jsox_parser.c jsox.c
+gcc -O3 -o a-opt jsox_parser.c jsox.c
 copy jsox_parser.c jsox_parser.cc
 gcc -g -o c jsox_parser.cc jsox.cc
 
