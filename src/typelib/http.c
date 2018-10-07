@@ -130,6 +130,51 @@ void GatherHttpData( struct HttpState *pHttpState )
 }
 
 
+static PTEXT  resolvePercents( PTEXT urlword ) {
+	PTEXT  url = SegDuplicate( urlword );
+
+	{
+		char *_url = GetText(url);
+		TEXTRUNE ch;
+		int outchar = 0;
+		char *newUrl = _url;
+		int decode = 0;
+		while( _url[0] ) {
+			if( decode ) {
+				ch *= 16;
+				if( _url[0] >= '0' && _url[0] <= '9' )
+					ch += _url[0] - '0';
+				else if( _url[0] >= 'A' && _url[0] <= 'F' )
+					ch += (_url[0] - 'A') + 10;
+				else if( _url[0] >= 'a' && _url[0] <= 'f' )
+					ch += (_url[0] - 'a') + 10;
+				else {
+					lprintf( "BAD DECODE CHARACTER: %c %d", _url[0], _url[0] );
+					//LineRelease( url );
+					return url;
+				}
+				decode--;
+				if( !decode ) {
+					newUrl[0] = (char)ch;
+					newUrl++;
+				}
+			}
+			else if( _url[0] == '%' ) {
+				ch = 0;
+				decode = 2;
+			}
+			else {
+				newUrl[0] = _url[0];
+				newUrl++;
+			}
+			_url++;
+		}
+		newUrl[0] = _url[0];
+		SetTextSize( url, _url - GetText( url ) );
+		return url;
+	}
+}
+
 void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 {
 	PTEXT start = TextParse( params, WIDE( "&=" ), NULL, 1, 1 DBG_SRC );
@@ -144,8 +189,8 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 		/*PTEXT ampersand = */( next = NEXTLINE( next ) );
 
 		struct HttpField *field = New( struct HttpField );
-		field->name = SegDuplicate( name );
-		field->value = SegDuplicate( value );
+		field->name = resolvePercents( name );
+		field->value = resolvePercents( value );
 		//lprintf( "Added %s=%s", GetText( field->name ), GetText( field->value ) );
 		AddLink( &pHttpState->cgi_fields, field );
 		next = NEXTLINE( next );
@@ -654,6 +699,13 @@ void EndHttp( struct HttpState *pHttpState )
 			Release( field );
 		}
 		EmptyList( &pHttpState->fields );
+		LIST_FORALL( pHttpState->cgi_fields, idx, struct HttpField *, field )
+		{
+			LineRelease( field->name );
+			LineRelease( field->value );
+			Release( field );
+		}
+		EmptyList( &pHttpState->cgi_fields );
 	}
 	unlockHttp( pHttpState );
 }
@@ -739,6 +791,7 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 	//_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too?" );
 	EndHttp( pHttpState ); // empties variables
 	DeleteList( &pHttpState->fields );
+	DeleteList( &pHttpState->cgi_fields );
 	VarTextDestroy( &pHttpState->pvtOut );
 	VarTextDestroy( &pHttpState->pvt_collector );
 	if( pHttpState->buffer )
