@@ -69,50 +69,6 @@ struct disk
 
 #ifdef SACK_VFS_FS_SOURCE
 
-PREFIX_PACKED struct fs_volume {
-	const char * volname;
-	FILE *file;
-	uintptr_t dwSize;
-	const char * datakey;  // used for directory signatures
-	const char * userkey;
-	const char * devkey;
-	enum block_cache_entries curseg;
-	BLOCKINDEX _segment[BLOCK_CACHE_COUNT];// cached segment with usekey[n]
-	BLOCKINDEX segment[BLOCK_CACHE_COUNT];// associated with usekey[n]
-	FLAGSET( dirty, BLOCK_CACHE_COUNT );
-	uint8_t fileCacheAge[BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE];
-	uint8_t fileNextAge;
-	struct random_context *entropy;
-	uint8_t* key;  // allow byte encrypting...
-	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index
-	uint8_t* sigkey;  // signature of executable attached as header
-	uint8_t* usekey[BLOCK_CACHE_COUNT]; // composite key
-
-
-	uint8_t* sigsalt;  // (unused) adds salt for the signature?
-	size_t sigkeyLength;
-
-	PLIST files; // when reopened file structures need to be updated also...
-	LOGICAL read_only;
-	LOGICAL external_memory;
-	LOGICAL closed;
-	uint32_t lock;
-	uint8_t tmpSalt[16];
-	uintptr_t clusterKeyVersion;
-} PACKED;
-
-struct sack_vfs_fs_file
-{
-	FPI entry_fpi;  // where to write the directory entry update to
-	struct directory_entry entry;  // has file size within
-	struct directory_entry dirent_key;
-	struct fs_volume *vol; // which volume this is in
-	FPI fpi;
-	BLOCKINDEX first_block;
-	BLOCKINDEX block; // this should be in-sync with current FPI always; plz
-	LOGICAL delete_on_close;  // someone already deleted this...
-};
-
 
 #define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
 #define BTSEEK(type,v,o,c) ((type)vfs_fs_BSEEK(v,o,&c))
@@ -148,11 +104,13 @@ PREFIX_PACKED struct volume {
 	size_t sigkeyLength;
 	uint8_t* usekey[BLOCK_CACHE_COUNT]; // composite key
 
+#ifdef FILE_BASED_VFS
 	uint8_t* key_buffer;  // root buffer space of all cache blocks
 	uint8_t* usekey_buffer[BLOCK_CACHE_COUNT]; // data cache blocks
-#ifdef FILE_BASED_VFS
+	FLAGSET( dirty, BLOCK_CACHE_COUNT );
 	FPI bufferFPI[BLOCK_CACHE_COUNT];
 #endif
+
 	PLIST files; // when reopened file structures need to be updated also...
 	LOGICAL read_only;
 	LOGICAL external_memory;
