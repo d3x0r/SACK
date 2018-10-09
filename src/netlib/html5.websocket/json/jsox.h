@@ -207,6 +207,7 @@ struct jsox_parse_state {
 	LOGICAL completed;
 	LOGICAL complete_at_end;
 	LOGICAL gatheringString;
+	LOGICAL completedString;
 	TEXTRUNE gatheringStringFirstChar;
 	TEXTRUNE gatheringCodeLastChar; 
 	int codeDepth; /* string overload with code */

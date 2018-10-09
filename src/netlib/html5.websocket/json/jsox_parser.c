@@ -383,8 +383,10 @@ static int gatherString6(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 			mOut += ConvertToUTF8( mOut, c );
 		}
 	}
-	if( status )
+	if( status ) {
+		state->completedString = TRUE;
 		(*mOut++) = 0;  // terminate the string.
+	}
 	(*pmOut) = mOut;
 	return status;
 }
@@ -767,6 +769,8 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 	state->word = JSOX_WORD_POS_FIELD;
 	state->negative = FALSE;
 	state->val.value_type = JSOX_VALUE_STRING;
+	state->completedString = FALSE;
+
 
 	if( cInt == 123/*'{'*/ )
 		openObject( state, output, cInt );
@@ -924,7 +928,10 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 #ifdef DEBUG_PARSING
 				lprintf( "STRING1: %s %d", state->val.string, state->val.stringLen );
 #endif
-				if( state->status ) state->val.value_type = JSOX_VALUE_STRING;
+				if( state->status ) {
+					state->val.value_type = JSOX_VALUE_STRING;
+					state->completedString = TRUE;
+				}
 			}
 			else {
 				state->n = input->pos - input->buf;
@@ -940,7 +947,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		while( state->status && (state->n < input->size) && (c = GetUtfChar( &input->pos )) )
 		{
 #ifdef DEBUG_PARSING
-			lprintf( "parse character %c %d %d %d %d", c<32?".":c, state->word, state->parse_context, state->parse_context, state->word );
+			lprintf( "parse character %c %d %d %d %d", c<32?'.':c, state->word, state->parse_context, state->parse_context, state->word );
 #endif
 			state->col++;
 			state->n = input->pos - input->buf;
@@ -999,15 +1006,17 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						//state->val.stringLen = output->pos - state->val.string;
 						//lprintf( "Set string length:%d", state->val.stringLen );
 					}
-					if( !(state->val.value_type == JSOX_VALUE_STRING) || state->word == JSOX_WORD_POS_FIELD )
+					if( (state->val.value_type == JSOX_VALUE_STRING) && !state->completedString ) {
+						state->val.stringLen = ( output->pos - state->val.string );
 						(*output->pos++) = 0;
+					}
 					state->word = JSOX_WORD_POS_RESET;
 					if( state->val.name ) {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
 						vtprintf( state->pvtError, "two names single value?" );
 					}
 					state->val.name = state->val.string;
-					state->val.nameLen = ( output->pos - state->val.string ) - 1;
+					state->val.nameLen = state->val.stringLen;
 					state->val.string = NULL;
 					state->val.stringLen = 0;
 					state->parse_context = JSOX_CONTEXT_OBJECT_FIELD_VALUE;
@@ -1270,6 +1279,19 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						// but gatherString now just gathers all strings
 					case '"':
 					case '\'':
+						if( state->val.value_type == JSOX_VALUE_STRING
+							&& state->val.className ) {
+							state->status = FALSE;
+							if( !state->pvtError ) state->pvtError = VarTextCreate();
+							vtprintf( state->pvtError, WIDE( "too many strings in a row; fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );// fault
+							break;
+						}
+						if( state->word == JSOX_WORD_POS_FIELD
+							|| ( state->val.value_type == JSOX_VALUE_STRING 
+								&& !state->val.className ) ) {
+							(*output->pos++) = 0;
+							state->val.className = state->val.string;
+						}
 						state->val.string = output->pos;
 						state->gatheringString = TRUE;
 						state->gatheringStringFirstChar = c;
@@ -1289,6 +1311,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->n > input->size ) DebugBreak();
 						if( state->status ) {
 							state->val.value_type = JSOX_VALUE_STRING;
+							state->completedString = TRUE;
 							//state->val.stringLen = (output->pos - state->val.string - 1);
 							//lprintf( "Set string length:%d", state->val.stringLen );
 						}
@@ -1342,6 +1365,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							state->word = JSOX_WORD_POS_FIELD;
 							state->val.string = output->pos;
 							state->val.value_type = JSOX_VALUE_STRING;
+							state->completedString = FALSE;
 						}
 						if( isNonIdentifier( c ) ) {
 							state->status = FALSE;
@@ -1385,6 +1409,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 
 					if( state->status ) {
 						state->val.value_type = JSOX_VALUE_STRING;
+						state->completedString = TRUE;
 						state->word = JSOX_WORD_POS_END;
 						if( state->complete_at_end ) {
 							if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
