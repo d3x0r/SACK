@@ -174,5 +174,7 @@ uintptr_t vfs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries *ca
 uintptr_t vfs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
 //BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int init, LOGICAL expand );
 
-uintptr_t vfs_fs_SEEK( struct fs_volume *vol, FPI offset, enum block_cache_entries *cache_index ) HIDDEN;
-uintptr_t vfs_fs_BSEEK( struct fs_volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
+uintptr_t vfs_fs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries *cache_index ) HIDDEN;
+uintptr_t vfs_fs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
+uintptr_t vfs_os_SEEK( struct volume *vol, FPI offset, enum block_cache_entries *cache_index ) HIDDEN;
+uintptr_t vfs_os_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
