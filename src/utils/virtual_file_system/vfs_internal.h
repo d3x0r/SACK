@@ -30,9 +30,10 @@ enum block_cache_entries
 	BLOCK_CACHE_DIRECTORY
 #ifdef VIRTUAL_OBJECT_STORE
 	, BLOCK_CACHE_HASH_DIRECTORY
-	, BLOCK_CACHE_HASH_DIRECTORY_LAST = BLOCK_CACHE_HASH_DIRECTORY + 16
+	, BLOCK_CACHE_HASH_DIRECTORY_LAST = BLOCK_CACHE_HASH_DIRECTORY + 64
 #endif
 	, BLOCK_CACHE_NAMES
+	, BLOCK_CACHE_NAMES_LAST = BLOCK_CACHE_NAMES + 16
 	, BLOCK_CACHE_BAT
 	, BLOCK_CACHE_DATAKEY
 	, BLOCK_CACHE_FILE
@@ -49,7 +50,23 @@ PREFIX_PACKED struct directory_entry
 	VFS_DISK_DATATYPE filesize;  // how big the file is
 	//uint32_t filler;  // extra data(unused)
 } PACKED;
-#define VFS_DIRECTORY_ENTRIES ( BLOCK_SIZE/sizeof( struct directory_entry) )
+#ifdef VIRTUAL_OBJECT_STORE
+// subtract name has index
+// subtrace name index 
+#define VFS_DIRECTORY_ENTRIES ( ( BLOCK_SIZE - ( sizeof(BLOCKINDEX) + 256*sizeof(BLOCKINDEX)) ) /sizeof( struct directory_entry) )
+#else
+#define VFS_DIRECTORY_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
+#endif
+
+
+PREFIX_PACKED struct directory_hash_lookup_block
+{
+	BLOCKINDEX next_block[256];
+	struct directory_entry entries[VFS_DIRECTORY_ENTRIES];
+	BLOCKINDEX names_first_block;
+} PACKED;
+
+
 
 struct disk
 {
@@ -95,7 +112,13 @@ PREFIX_PACKED struct volume {
 	BLOCKINDEX _segment[BLOCK_CACHE_COUNT];// cached segment with usekey[n]
 	BLOCKINDEX segment[BLOCK_CACHE_COUNT];// associated with usekey[n]
 	uint8_t fileCacheAge[BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE];
-	uint8_t fileNextAge;
+	//uint8_t fileNextAge;
+#ifdef VIRTUAL_OBJECT_STORE
+	uint8_t dirHashCacheAge[BLOCK_CACHE_HASH_DIRECTORY_LAST - BLOCK_CACHE_HASH_DIRECTORY];
+	//uint8_t dirHashNextAge;
+#endif
+	uint8_t nameCacheAge[BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE];
+	//uint8_t nameNextAge;
 	struct random_context *entropy;
 	uint8_t* key;  // root of all cached key buffers
 	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index

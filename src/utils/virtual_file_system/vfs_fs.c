@@ -171,6 +171,42 @@ static void MaskStrCpy( char *output, size_t outlen, struct volume *vol, FPI nam
 }
 #endif
 
+static int _fs_updateCacheAge( struct volume *vol, enum block_cache_entries *cache_idx, BLOCKINDEX segment, uint8_t *age, int ageLength ) {
+	int n, m;
+	int nLeast;
+	for( n = 0; n < (ageLength); n++ ) {
+		if( vol->segment[cache_idx[0] + n] == segment ) {
+			cache_idx[0] = (enum block_cache_entries)((cache_idx[0])+n);
+			for( m = 0; m < (ageLength); m++ ) {
+				if( !age[m] ) break;
+				if( age[m] > age[n] )
+					age[m]--;
+			}
+			age[n] = m;
+			break;
+		}
+		if( !age[n] ) {
+			cache_idx[0] = (enum block_cache_entries)((cache_idx[0])+n);
+			for( m = 0; m < (ageLength); m++ ) {
+				if( !age[m] ) break;
+				if( age[m] > ( n + 1 ) )
+					age[m]--;
+			}
+			age[n] = n + 1;
+			break;
+		}
+		if( age[n] == 1 ) nLeast = n;
+	}
+	if( n == (ageLength) ) {
+
+		for( n = 0; n < (ageLength); n++ ) {
+			age[n]--;
+		}
+		age[nLeast] = (ageLength);
+		return (enum block_cache_entries)(nLeast);
+	}
+}
+
 static enum block_cache_entries _fs_UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache_idx, BLOCKINDEX segment )
 {
 	if( !vol->key ) {
@@ -178,41 +214,17 @@ static enum block_cache_entries _fs_UpdateSegmentKey( struct volume *vol, enum b
 		return cache_idx;
 	}
 	if( cache_idx == BLOCK_CACHE_FILE ) {
-		int n, m;
-		int nLeast;
-		uint8_t next = 0;
-		for( n = 0; n < (BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE); n++ ) {
-			if( vol->segment[cache_idx + n] == segment ) {
-				cache_idx = (enum block_cache_entries)((cache_idx)+n);
-				for( m = 0; m < (BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE); m++ ) {
-					if( !vol->fileCacheAge[m] ) break;
-					if( vol->fileCacheAge[m] > vol->fileCacheAge[n] )
-						vol->fileCacheAge[m]--;
-				}
-				vol->fileCacheAge[n] = m;
-				break;
-			}
-			if( !vol->fileCacheAge[n] ) {
-				cache_idx = (enum block_cache_entries)((cache_idx)+n);
-				for( m = 0; m < (BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE); m++ ) {
-					if( !vol->fileCacheAge[m] ) break;
-					if( vol->fileCacheAge[m] >( n + 1 ) )
-						vol->fileCacheAge[m]--;
-				}
-				vol->fileCacheAge[n] = n + 1;
-				break;
-			}
-			if( vol->fileCacheAge[n] == 1 ) nLeast = n;
-		}
-		if( n == (BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE) ) {
-
-			for( n = 0; n < (BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE); n++ ) {
-				vol->fileCacheAge[n]--;
-			}
-			vol->fileCacheAge[nLeast] = (BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE);
-			cache_idx = (enum block_cache_entries)(BLOCK_CACHE_FILE + nLeast);
-		}
+		_fs_updateCacheAge( vol, &cache_idx, segment, vol->fileCacheAge, (BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE) );
 	}
+	else if( cache_idx == BLOCK_CACHE_NAMES ) {
+		_fs_updateCacheAge( vol, &cache_idx, segment, vol->nameCacheAge, (BLOCK_CACHE_NAMES_LAST - BLOCK_CACHE_NAMES) );
+	}
+#ifdef VIRTUAL_OBJECT_STORE
+	else if( cache_idx == BLOCK_CACHE_HASH_DIRECTORY ) {
+		_fs_updateCacheAge( vol, &cache_idx, segment, vol->nameCacheAge, (BLOCK_CACHE_HASH_DIRECTORY_LAST - BLOCK_CACHE_HASH_DIRECTORY) );
+	}
+#endif
+
 	vol->segment[cache_idx] = segment;
 	if( vol->segment[cache_idx] == vol->_segment[cache_idx] )
 		return cache_idx;
