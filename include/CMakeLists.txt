@@ -82,7 +82,7 @@ html5.canvas.h
 html5.websocket.h
 html5.websocket.client.h
 json_emitter.h
-jsox_emitter.h
+jsox_parser.h
 printer.h
 vesl_emitter.h
 )
