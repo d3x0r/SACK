@@ -511,8 +511,8 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 static void win32_locking_callback(int mode, int type, char *file, int line)
 {
 	if (mode & CRYPTO_LOCK) {
-		while( LockedExchange( ssl_global.lock_cs+type, 1 ) ) 
-			Reinquish();
+		while( LockedExchange( ssl_global.lock_cs+type, 1 ) )
+			Relinquish();
 	} else {
 		ssl_global.lock_cs[type] = 0;
 	}
@@ -520,7 +520,7 @@ static void win32_locking_callback(int mode, int type, char *file, int line)
 
 unsigned long pthreads_thread_id(void)
 {
-	return (unsigned long)GetThreadID();
+	return (unsigned long)GetMyThreadID();
 }
 
 static LOGICAL ssl_InitLibrary( void ){
