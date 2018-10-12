@@ -97,7 +97,11 @@ namespace sack {
 #else
 #  define makeULong(n) (~(n##UL))
 #endif
-static uintptr_t masks[33] = { makeULong(0), makeULong(0), makeULong(1), 0, makeULong(3), 0, 0, 0, makeULong(7), 0, 0, 0, 0, 0, 0, 0, makeULong(15), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, makeULong(31) };
+static uintptr_t masks[33] = { makeULong(0), makeULong(0), makeULong(1), 0
+                  , makeULong(3), 0, 0, 0  // 4
+	              , makeULong(7), 0, 0, 0, 0, 0, 0, 0   // 8
+	              , makeULong(15), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 // 16
+	              , makeULong(31) };  // 32
 
 
 #define BASE_MEMORY (POINTER)0x80000000
@@ -1974,6 +1978,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment 
 	if( !pHeap && !USE_CUSTOM_ALLOCER )
 	{
 		PMALLOC_CHUNK pc;
+		uintptr_t mask;
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
 		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) - 1 + alignment + dwSize + sizeof( pc->LeadProtect ) );
 		if( !pc )
@@ -1994,8 +1999,12 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment 
 		}
 #  endif
 #endif
-		if( alignment && ( (uintptr_t)pc->byData & ~masks[alignment] ) ) {
-			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
+		if( alignment > (sizeof( masks ) / sizeof( masks[0] )) )
+			mask = (~((uintptr_t)(alignment-1)));
+		else
+			mask = masks[alignment];
+		if( alignment && ( (uintptr_t)pc->byData & ~mask) ) {
+			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & mask);
 			//pc->dwPad = (uint16_t)( dwAlignPad - sizeof(uintptr_t) );
 			// to_chunk_start is the last thing in chunk, so it's pre-allocated space
 			((uint16_t*)(retval - sizeof(uint32_t)))[0] = /*pc->alignemnt = */alignment;
