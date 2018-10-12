@@ -1,3 +1,4 @@
+#pragma multiinclude
 
 /**************
   VFS_VERSION
@@ -25,21 +26,30 @@
 typedef VFS_DISK_DATATYPE BLOCKINDEX; // BLOCK_SIZE blocks...
 typedef VFS_DISK_DATATYPE FPI; // file position type
 
+#undef BC
+#ifdef VIRTUAL_OBJECT_STORE
+#define BC(n) BLOCK_CACHE_VOS_##n
+#elif defined FILE_BASED_VFS
+#define BC(n) BLOCK_CACHE_FS_##n
+#else
+#define BC(n) BLOCK_CACHE_##n
+#endif
+
+
 enum block_cache_entries
 {
-	BLOCK_CACHE_DIRECTORY
+	BC(DIRECTORY)
 #ifdef VIRTUAL_OBJECT_STORE
-	, BLOCK_CACHE_DIRECTORY_LAST = BLOCK_CACHE_DIRECTORY + 64
+	, BC(DIRECTORY_LAST) = BC(DIRECTORY) + 64
 #endif
-	, BLOCK_CACHE_NAMES
-	, BLOCK_CACHE_NAMES_LAST = BLOCK_CACHE_NAMES + 16
-	, BLOCK_CACHE_BAT
-	, BLOCK_CACHE_DATAKEY
-	, BLOCK_CACHE_FILE
-	, BLOCK_CACHE_FILE_LAST = BLOCK_CACHE_FILE + 10
-	, BLOCK_CACHE_COUNT
+	, BC(NAMES)
+	, BC(NAMES_LAST) = BC(NAMES) + 16
+	, BC(BAT)
+	, BC(DATAKEY)
+	, BC(FILE)
+	, BC(FILE_LAST) = BC(FILE) + 10
+	, BC(COUNT)
 };
-
 
 
 PREFIX_PACKED struct directory_entry
@@ -49,6 +59,8 @@ PREFIX_PACKED struct directory_entry
 	VFS_DISK_DATATYPE filesize;  // how big the file is
 	//uint32_t filler;  // extra data(unused)
 } PACKED;
+
+#undef VFS_DIRECTORY_ENTRIES
 #ifdef VIRTUAL_OBJECT_STORE
 // subtract name has index
 // subtrace name index 
@@ -109,26 +121,26 @@ PREFIX_PACKED struct volume {
 	const char * userkey;
 	const char * devkey;
 	enum block_cache_entries curseg;
-	BLOCKINDEX _segment[BLOCK_CACHE_COUNT];// cached segment with usekey[n]
-	BLOCKINDEX segment[BLOCK_CACHE_COUNT];// associated with usekey[n]
-	uint8_t fileCacheAge[BLOCK_CACHE_FILE_LAST - BLOCK_CACHE_FILE];
+	BLOCKINDEX _segment[BC(COUNT)];// cached segment with usekey[n]
+	BLOCKINDEX segment[BC(COUNT)];// associated with usekey[n]
+	uint8_t fileCacheAge[BC(FILE_LAST) - BC(FILE)];
 #ifdef VIRTUAL_OBJECT_STORE
-	uint8_t dirHashCacheAge[BLOCK_CACHE_DIRECTORY_LAST - BLOCK_CACHE_DIRECTORY];
+	uint8_t dirHashCacheAge[BC(DIRECTORY_LAST) - BC(DIRECTORY)];
 #endif
-	uint8_t nameCacheAge[BLOCK_CACHE_NAMES_LAST - BLOCK_CACHE_NAMES];
+	uint8_t nameCacheAge[BC(NAMES_LAST) - BC(NAMES)];
 	struct random_context *entropy;
 	uint8_t* key;  // root of all cached key buffers
 	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index
 	uint8_t* sigkey;  // signature of executable attached as header
 	uint8_t* sigsalt;  // signature of executable attached as header
 	size_t sigkeyLength;
-	uint8_t* usekey[BLOCK_CACHE_COUNT]; // composite key
+	uint8_t* usekey[BC(COUNT)]; // composite key
 
 #ifdef FILE_BASED_VFS
 	uint8_t* key_buffer;  // root buffer space of all cache blocks
-	uint8_t* usekey_buffer[BLOCK_CACHE_COUNT]; // data cache blocks
-	FLAGSET( dirty, BLOCK_CACHE_COUNT );
-	FPI bufferFPI[BLOCK_CACHE_COUNT];
+	uint8_t* usekey_buffer[BC(COUNT)]; // data cache blocks
+	FLAGSET( dirty, BC(COUNT) );
+	FPI bufferFPI[BC(COUNT)];
 #endif
 
 	PLIST files; // when reopened file structures need to be updated also...
@@ -158,8 +170,19 @@ struct sack_vfs_file
 	LOGICAL delete_on_close;  // someone already deleted this...
 };
 
+#undef TSEEK
+#undef BTSEEK
+#ifdef VIRTUAL_OBJECT_STORE
+#define TSEEK(type,v,o,c) ((type)vfs_os_SEEK(v,o,&c))
+#define BTSEEK(type,v,o,c) ((type)vfs_os_BSEEK(v,o,&c))
+#elif defined FILE_BASED_VFS
+#define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
+#define BTSEEK(type,v,o,c) ((type)vfs_fs_BSEEK(v,o,&c))
+#else
 #define TSEEK(type,v,o,c) ((type)vfs_SEEK(v,o,&c))
 #define BTSEEK(type,v,o,c) ((type)vfs_BSEEK(v,o,&c))
+#endif
+
 #endif
 
 #ifdef __GNUC__
