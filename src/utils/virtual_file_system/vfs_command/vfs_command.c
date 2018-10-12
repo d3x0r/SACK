@@ -446,12 +446,14 @@ SaneWinMain( argc, argv )
 	if( argc < 2 ) { usage(); return 0; }
 
 	l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
-	if( !l.fsi )
-	{
+	if( !l.fsi ) {
 		l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME "-fs" );
 		if( !l.fsi ) {
-			printf( "Failed to load file system interface.\n" );
-			return 0;
+			l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME "-os" );
+			if( !l.fsi ) {
+				printf( "Failed to load file system interface.\n" );
+				return 0;
+			}
 		}
 	}
 	for( arg = 1; arg < argc; arg++ )

@@ -1098,9 +1098,9 @@ struct sack_vfs_file * CPROC sack_vfs_fs_openfile( struct volume *vol, const cha
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( filename[0] == '.' && filename[1] == '/' ) filename += 2;
 	LoG( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
-	if( !_fs_ScanDirectory( vol, filename, &file->entry_fpi, &file->entry, &file->dirent_key, 0 ) ) {
+	if( !_fs_ScanDirectory( vol, filename, &file->entry_fpi, &file->_entry, &file->dirent_key, 0 ) ) {
 		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Deallocate( struct sack_vfs_file *, file ); return NULL; }
-		else _fs_GetNewDirectory( vol, filename, &file->entry_fpi, &file->entry, &file->dirent_key );
+		else _fs_GetNewDirectory( vol, filename, &file->entry_fpi, file->entry, &file->dirent_key );
 	}
 	file->vol = vol;
 	file->fpi = 0;
@@ -1385,7 +1385,7 @@ int CPROC sack_vfs_fs_close( struct sack_vfs_file *file ) {
 	}
 #endif
 	DeleteLink( &file->vol->files, file );
-	if( file->delete_on_close ) sack_vfs_fs_unlink_file_entry( file->vol, file->entry_fpi, &file->entry, &file->dirent_key, file->_first_block, TRUE );
+	if( file->delete_on_close ) sack_vfs_fs_unlink_file_entry( file->vol, file->entry_fpi, file->entry, &file->dirent_key, file->_first_block, TRUE );
 	file->vol->lock = 0;
 	if( file->vol->closed ) sack_vfs_fs_unload_volume( file->vol );
 	Deallocate( struct sack_vfs_file *, file );
