@@ -508,7 +508,7 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 }
 
 
-static void win32_locking_callback(int mode, int type, char *file, int line)
+static void win32_locking_callback(int mode, int type, const char *file, int line)
 {
 	if (mode & CRYPTO_LOCK) {
 		while( LockedExchange( ssl_global.lock_cs+type, 1 ) )
@@ -529,7 +529,7 @@ static LOGICAL ssl_InitLibrary( void ){
 		SSL_library_init();
 		
 		ssl_global.lock_cs = NewArray( uint32_t, CRYPTO_num_locks() );
-		CRYPTO_set_locking_callback((void (*)(int, int, char *, int)) win32_locking_callback);
+		CRYPTO_set_locking_callback(win32_locking_callback);
 		CRYPTO_set_id_callback((unsigned long (*)())pthreads_thread_id);
 		//tls_init();
 		//ssl_global.tls_config = tls_config_new();
