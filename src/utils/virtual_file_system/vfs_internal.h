@@ -123,11 +123,16 @@ PREFIX_PACKED struct volume {
 	enum block_cache_entries curseg;
 	BLOCKINDEX _segment[BC(COUNT)];// cached segment with usekey[n]
 	BLOCKINDEX segment[BC(COUNT)];// associated with usekey[n]
+#ifdef VIRTUAL_OBJECT_STORE
+	FLAGSET( seglock, BC( COUNT ) );  // segment is locked into cache.
+#endif
+
 	uint8_t fileCacheAge[BC(FILE_LAST) - BC(FILE)];
 #ifdef VIRTUAL_OBJECT_STORE
 	uint8_t dirHashCacheAge[BC(DIRECTORY_LAST) - BC(DIRECTORY)];
 #endif
 	uint8_t nameCacheAge[BC(NAMES_LAST) - BC(NAMES)];
+
 	struct random_context *entropy;
 	uint8_t* key;  // root of all cached key buffers
 	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index
@@ -140,6 +145,7 @@ PREFIX_PACKED struct volume {
 	uint8_t* key_buffer;  // root buffer space of all cache blocks
 	uint8_t* usekey_buffer[BC(COUNT)]; // data cache blocks
 	FLAGSET( dirty, BC(COUNT) );
+	FLAGSET( _dirty, BC( COUNT ) );
 	FPI bufferFPI[BC(COUNT)];
 #endif
 
@@ -157,6 +163,9 @@ struct sack_vfs_file
 {
 #ifdef FILE_BASED_VFS
 	FPI entry_fpi;  // where to write the directory entry update to
+#ifdef VIRTUAL_OBJECT_STORE
+	enum block_cache_entries cache;
+#endif
 	struct directory_entry _entry;  // has file size within
 	struct directory_entry *entry;  // has file size within
 #else
