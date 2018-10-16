@@ -496,7 +496,7 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		}
 		if( typeIndex < 13 ) {
 			state->word = JSOX_WORD_POS_FIELD;
-			state->arrayType = typeIndex;
+			state->arrayType = (int)typeIndex;
 #ifdef DEBUG_PARSING
 			lprintf( "setup array type... %d", typeIndex );
 #endif
