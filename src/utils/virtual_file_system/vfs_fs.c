@@ -209,6 +209,7 @@ static int _fs_updateCacheAge( struct volume *vol, enum block_cache_entries *cac
 		age[nLeast] = (ageLength);
 		return (enum block_cache_entries)(nLeast);
 	}
+	return (enum block_cache_entries)(n);
 }
 
 static enum block_cache_entries _fs_UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache_idx, BLOCKINDEX segment )
