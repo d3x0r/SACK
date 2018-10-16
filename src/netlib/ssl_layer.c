@@ -395,8 +395,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 					pc->ssl_session->cpp_user_read( pc->psvRead, pc->ssl_session->dbuffer, len );
 				else
 					pc->ssl_session->user_read( pc, pc->ssl_session->dbuffer, len );
-				if( pc->ssl_session ) // might have closed during read.
+				if( pc->ssl_session ) { // might have closed during read.
+					EnterCriticalSec( &pc->ssl_session->csReadWrite );
 					goto read_more;
+				}
 			}
 			else if( len == 0 ) {
 #ifdef DEBUG_SSL_IO
@@ -529,6 +531,7 @@ static LOGICAL ssl_InitLibrary( void ){
 		SSL_library_init();
 		
 		ssl_global.lock_cs = NewArray( uint32_t, CRYPTO_num_locks() );
+		memset( ssl_global.lock_cs, 0, sizeof( uint32_t ) * CRYPTO_num_locks() );
 		CRYPTO_set_locking_callback(win32_locking_callback);
 		CRYPTO_set_id_callback((unsigned long (*)())pthreads_thread_id);
 		//tls_init();
