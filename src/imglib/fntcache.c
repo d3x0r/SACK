@@ -1497,296 +1497,297 @@ void LoadAllFonts( void )
 			Deallocate( POINTER, fg.pFontCache );
 			fg.pFontCache = NULL;
 		}
-
-		while( sack_fgets( fgets_buf, sizeof( fgets_buf ), in ) )
 		{
 			TEXTCHAR *style, *flags, *next, *count;
 			PFONT_ENTRY pfe; // kept for contined things;
 			PFONT_STYLE pfs;
 			PSIZE_FILE  psfCurrent;
-			buf = fgets_buf;
-			len = StrLen( buf );
-			buf[len-1] = 0; // kill \n on line.
-			//lprintf( WIDE("Process: (%d)%s"), ++line, buf );
-			switch( buf[0] )
+			while( sack_fgets( fgets_buf, sizeof( fgets_buf ), in ) )
 			{
-            size_t len;
-			case '%':
-				switch( buf[1] )
+				buf = fgets_buf;
+				len = StrLen( buf );
+				buf[len-1] = 0; // kill \n on line.
+				//lprintf( WIDE("Process: (%d)%s"), ++line, buf );
+				switch( buf[0] )
 				{
-				case '@':
-					fg.build.nPaths = (uint32_t)IntCreateFromText( buf + 2 );
-					fg.build.pPathNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
-					fg.build.pPathList = NewArray( TEXTCHAR*, fg.build.nPaths );
-					break;
-				case '$':
-					fg.build.nStyle = 0;
-					fg.build.nFamilies = (uint32_t)IntCreateFromText( buf + 2 );
-					fg.build.pFamilyNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
-					fg.build.pFamilyList = NewArray( TEXTCHAR*, fg.build.nFamilies );
+					size_t len;
+				case '%':
+					switch( buf[1] )
+					{
+					case '@':
+						fg.build.nPaths = (uint32_t)IntCreateFromText( buf + 2 );
+						fg.build.pPathNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+						fg.build.pPathList = NewArray( TEXTCHAR*, fg.build.nPaths );
+						break;
+					case '$':
+						fg.build.nStyle = 0;
+						fg.build.nFamilies = (uint32_t)IntCreateFromText( buf + 2 );
+						fg.build.pFamilyNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+						fg.build.pFamilyList = NewArray( TEXTCHAR*, fg.build.nFamilies );
 
-					fg.nFonts     = fg.build.nFamilies;
-					fg.pFontCache = NewArray( FONT_ENTRY, fg.build.nFamilies );
-					{
-						uint32_t n;
-						for( n = 0; n < fg.build.nFamilies; n++ ) {
-							fg.pFontCache[n].styles = NULL;
-							fg.pFontCache[n].nStyles = 0;
-							fg.pFontCache[n].flags.unusable = 1;
+						fg.nFonts     = fg.build.nFamilies;
+						fg.pFontCache = NewArray( FONT_ENTRY, fg.build.nFamilies );
+						{
+							uint32_t n;
+							for( n = 0; n < fg.build.nFamilies; n++ ) {
+								fg.pFontCache[n].styles = NULL;
+								fg.pFontCache[n].nStyles = 0;
+								fg.pFontCache[n].flags.unusable = 1;
+							}
 						}
-					}
-					break;
-				case '*':
-					fg.build.nStyles = (uint32_t)IntCreateFromText( buf + 2 );
-					fg.build.pStyleNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
-					fg.build.pStyleList = NewArray( TEXTCHAR*, fg.build.nStyles );
-					break;
-				case '&':
-					fg.build.nFiles = (int)IntCreateFromText( buf + 2 );
-					fg.build.pFileNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
-					fg.build.pFileList = NewArray( TEXTCHAR*, fg.build.nFiles );
-					break;
-				case '#':
-					{
-						uint32_t nStyles;
-						uint32_t nSizeFiles;
-						uint32_t nAltFiles;
-						uint32_t nSizes;
+						break;
+					case '*':
+						fg.build.nStyles = (uint32_t)IntCreateFromText( buf + 2 );
+						fg.build.pStyleNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+						fg.build.pStyleList = NewArray( TEXTCHAR*, fg.build.nStyles );
+						break;
+					case '&':
+						fg.build.nFiles = (int)IntCreateFromText( buf + 2 );
+						fg.build.pFileNames = NewArray( TEXTCHAR, (size_t)IntCreateFromText( strchr( buf, ',' ) + 1 ) );
+						fg.build.pFileList = NewArray( TEXTCHAR*, fg.build.nFiles );
+						break;
+					case '#':
+						{
+							uint32_t nStyles;
+							uint32_t nSizeFiles;
+							uint32_t nAltFiles;
+							uint32_t nSizes;
 #ifdef __cplusplus_cli
 #define SCANBUF mybuf
-						char *mybuf = CStrDup( buf + 2 );
+							char *mybuf = CStrDup( buf + 2 );
 #else
 #define SCANBUF buf+2
 #endif
-						if( tscanf( buf + 2, WIDE("%d,%d,%d,%d"), &nStyles, &nSizeFiles, &nSizes, &nAltFiles ) == 4 )
-						{
-							fg.build.nStyle = 0;
-							fg.build.pStyleSlab = NewArray( FONT_STYLE, nStyles );
-							MemSet( fg.build.pStyleSlab, 0, sizeof( FONT_STYLE ) * nStyles );
-							fg.build.nSizeFile = 0;
-							fg.build.pSizeFileSlab = NewArray( SIZE_FILE, nSizeFiles );
-							MemSet( fg.build.pSizeFileSlab, 0, sizeof( SIZE_FILE ) * nSizeFiles );
-							fg.build.nSize = 0;
-							fg.build.pSizeSlab = NewArray( SIZES, nSizes );
-							MemSet( fg.build.pSizeSlab, 0, sizeof( SIZES ) * nSizes );
-							fg.build.nAlt = 0;
-							fg.build.pAltSlab = NewArray( ALT_SIZE_FILE, nAltFiles );
-							MemSet( fg.build.pAltSlab, 0, sizeof( ALT_SIZE_FILE ) * nAltFiles );
-						}
-						else
-						{
-							Log( WIDE("Error loading slab sizes!") );
-						}
+							if( tscanf( buf + 2, WIDE("%d,%d,%d,%d"), &nStyles, &nSizeFiles, &nSizes, &nAltFiles ) == 4 )
+							{
+								fg.build.nStyle = 0;
+								fg.build.pStyleSlab = NewArray( FONT_STYLE, nStyles );
+								MemSet( fg.build.pStyleSlab, 0, sizeof( FONT_STYLE ) * nStyles );
+								fg.build.nSizeFile = 0;
+								fg.build.pSizeFileSlab = NewArray( SIZE_FILE, nSizeFiles );
+								MemSet( fg.build.pSizeFileSlab, 0, sizeof( SIZE_FILE ) * nSizeFiles );
+								fg.build.nSize = 0;
+								fg.build.pSizeSlab = NewArray( SIZES, nSizes );
+								MemSet( fg.build.pSizeSlab, 0, sizeof( SIZES ) * nSizes );
+								fg.build.nAlt = 0;
+								fg.build.pAltSlab = NewArray( ALT_SIZE_FILE, nAltFiles );
+								MemSet( fg.build.pAltSlab, 0, sizeof( ALT_SIZE_FILE ) * nAltFiles );
+							}
+							else
+							{
+								Log( WIDE("Error loading slab sizes!") );
+							}
 #ifdef __cplusplus_cli
-						Deallocate( POINTER, mybuf );
+							Deallocate( POINTER, mybuf );
 #endif
+						}
+						break;
 					}
 					break;
-				}
-				break;
-			case '@':
-				{
-					fg.build.pPathList[PathID] = fg.build.pPathNames + PathOfs;
-					PathOfs += (len=StrLen( buf + 1 ) + 1);
-					StrCpyEx( fg.build.pPathList[PathID++], buf + 1, len );
-				}
-				break;
-			case '$':
-				{
-					fg.build.pFamilyList[FamilyID] = fg.build.pFamilyNames + FamilyOfs;
-					FamilyOfs += (len=StrLen( buf + 1 ) + 1);
-					StrCpyEx( fg.build.pFamilyList[FamilyID++], buf + 1, len );
-				}
-				break;
-			case '*':
-				{
-					fg.build.pStyleList[StyleID] = fg.build.pStyleNames + StyleOfs;
-					StyleOfs += (len=StrLen( buf + 1 ) + 1);
-					StrCpyEx( fg.build.pStyleList[StyleID++], buf + 1, len );
-				}
-				break;
-			case '&':
-				{
-					fg.build.pFileList[FileID] = fg.build.pFileNames + FileOfs;
-					FileOfs += (len=StrLen( buf + 1 ) + 1);
-					StrCpyEx( fg.build.pFileList[FileID++], buf + 1, len );
-				}
-				break;
-			default:
-				{
-					TEXTCHAR *family = buf;
-					// there WILL be at least one of these....
-					count = (TEXTCHAR*)StrChr( buf, ',' );
-					next = (TEXTCHAR*)StrChr( buf, '!' );
-					if( next )
-						*(next++) = 0;
-					if( count )
-						*(count++) = 0;
-					pfe = fg.pFontCache + nFont++;
+				case '@':
 					{
-						uint32_t nStyles = (uint32_t)IntCreateFromText( count );
-						pfe->flags.unusable = 0;
-						pfe->styles = (PFONT_STYLE)(fg.build.pStyleSlab + fg.build.nStyle);
-						fg.build.nStyle+=nStyles;
-						//MemSet( pfe->styles, 0, nStyles * sizeof( FONT_STYLE ) );
+						fg.build.pPathList[PathID] = fg.build.pPathNames + PathOfs;
+						PathOfs += (len=StrLen( buf + 1 ) + 1);
+						StrCpyEx( fg.build.pPathList[PathID++], buf + 1, len );
 					}
-					pfe->name = fg.build.pFamilyList[IntCreateFromText( family )];
-					// add all the files/sizes associated on this line...
-				}
-				if( 0 )
-				{
-			case '!':
-					next = buf + 1;
-				}
-				while( ( style = next ) && next[0] )
-				{
-					// new font style here...
-					flags = strchr( style, '*' );
-					count = strchr( flags, ',' );
-					next = strchr( flags, '@' );
-					if( next )
-						*(next++) = 0;
-					*(count++) = 0;
-					*(flags++) = 0;
-					pfs = pfe->styles + pfe->nStyles++;
-					while( flags[0] )
+					break;
+				case '$':
 					{
-						switch( flags[0] )
+						fg.build.pFamilyList[FamilyID] = fg.build.pFamilyNames + FamilyOfs;
+						FamilyOfs += (len=StrLen( buf + 1 ) + 1);
+						StrCpyEx( fg.build.pFamilyList[FamilyID++], buf + 1, len );
+					}
+					break;
+				case '*':
+					{
+						fg.build.pStyleList[StyleID] = fg.build.pStyleNames + StyleOfs;
+						StyleOfs += (len=StrLen( buf + 1 ) + 1);
+						StrCpyEx( fg.build.pStyleList[StyleID++], buf + 1, len );
+					}
+					break;
+				case '&':
+					{
+						fg.build.pFileList[FileID] = fg.build.pFileNames + FileOfs;
+						FileOfs += (len=StrLen( buf + 1 ) + 1);
+						StrCpyEx( fg.build.pFileList[FileID++], buf + 1, len );
+					}
+					break;
+				default:
+					{
+						TEXTCHAR *family = buf;
+						// there WILL be at least one of these....
+						count = (TEXTCHAR*)StrChr( buf, ',' );
+						next = (TEXTCHAR*)StrChr( buf, '!' );
+						if( next )
+							*(next++) = 0;
+						if( count )
+							*(count++) = 0;
+						pfe = fg.pFontCache + nFont++;
 						{
-						case 'm':
-							pfs->flags.mono = 1;
-							break;
-						case 'i':
-							pfs->flags.italic = 1;
-							break;
-						case 'b':
-							pfs->flags.bold = 1;
-							break;
+							uint32_t nStyles = (uint32_t)IntCreateFromText( count );
+							pfe->flags.unusable = 0;
+							pfe->styles = (PFONT_STYLE)(fg.build.pStyleSlab + fg.build.nStyle);
+							fg.build.nStyle+=nStyles;
+							//MemSet( pfe->styles, 0, nStyles * sizeof( FONT_STYLE ) );
 						}
-						flags++;
+						pfe->name = fg.build.pFamilyList[IntCreateFromText( family )];
+						// add all the files/sizes associated on this line...
 					}
-					pfs->name = fg.build.pStyleList[IntCreateFromText( style )];
-
-					pfs->nFiles = 0;
-					pfs->files = (PSIZE_FILE)(fg.build.pSizeFileSlab + fg.build.nSizeFile);
-					// demote from int64_t to uint32_t
-					fg.build.nSizeFile += (uint32_t)IntCreateFromText( count );
-					if(0)
+					if( 0 )
 					{
-			case '\\':
-				      next = buf + 2;
+				case '!':
+						next = buf + 1;
 					}
+					while( ( style = next ) && next[0] )
 					{
-						// continue size-fonts... (on style)
-						TEXTCHAR *width, *height;
-						int16_t nWidth, nHeight;
-						TEXTCHAR *PathID;
-						TEXTCHAR *file;
-						while( ( count = next ) && next[0] )
+						// new font style here...
+						flags = strchr( style, '*' );
+						count = strchr( flags, ',' );
+						next = strchr( flags, '@' );
+						if( next )
+							*(next++) = 0;
+						*(count++) = 0;
+						*(flags++) = 0;
+						pfs = pfe->styles + pfe->nStyles++;
+						while( flags[0] )
 						{
-							if( count[0] )
+							switch( flags[0] )
 							{
-								TEXTCHAR *count2 = strchr( count, ',' );
-								if( count2 )
-								{
-									*(count2++) = 0;
-									PathID = strchr( count2, ',' );
-								}
-								else
-								{
-									PathID = NULL;
-								}
-								file = strchr( PathID, ':' );
-								next = strchr( file, '^' );
-								*(file++) = 0;
-								*(PathID++) = 0;
-								// terminates next file (even if empty thing)
-								// so now between 'file' and \0 are file sizes.
-								if( next )
-									*(next++) = 0;
-
-								psfCurrent = pfs->files + pfs->nFiles++;
-	
-								psfCurrent->path =fg.build.pPathList[IntCreateFromText( PathID )];
-								psfCurrent->file =fg.build.pFileList[IntCreateFromText(file)];
-								psfCurrent->nSizes = 0;
-								psfCurrent->sizes = fg.build.pSizeSlab + fg.build.nSize;
-								fg.build.nSize += (uint32_t)IntCreateFromText( count2 );
-									//Allocate( sizeof( SIZES ) * IntCreateFromText( count2 ) );
-								psfCurrent->nAlternate = 0;
-								psfCurrent->pAlternate = fg.build.pAltSlab + fg.build.nAlt;
-								fg.build.nAlt += (uint32_t)IntCreateFromText( count );
+							case 'm':
+								pfs->flags.mono = 1;
+								break;
+							case 'i':
+								pfs->flags.italic = 1;
+								break;
+							case 'b':
+								pfs->flags.bold = 1;
+								break;
 							}
-							//Allocate( sizeof( ALT_SIZE_FILE ) * IntCreateFromText(count) );
+							flags++;
+						}
+						pfs->name = fg.build.pStyleList[IntCreateFromText( style )];
 
-							height = file;
-							if(0)
+						pfs->nFiles = 0;
+						pfs->files = (PSIZE_FILE)(fg.build.pSizeFileSlab + fg.build.nSizeFile);
+						// demote from int64_t to uint32_t
+						fg.build.nSizeFile += (uint32_t)IntCreateFromText( count );
+						if(0)
+						{
+				case '\\':
+							next = buf + 2;
+						}
+						{
+							// continue size-fonts... (on style)
+							TEXTCHAR *width, *height;
+							int16_t nWidth, nHeight;
+							TEXTCHAR *PathID;
+							TEXTCHAR *file;
+							while( ( count = next ) && next[0] )
 							{
-			case '#':
-								height = buf;
-								// on a new line - set next correctly.
-								next = strchr( height, '^' );
-								if( next )
-									*(next++) = 0; // setup next...
-							}
-							while( ( width = strchr( height, '#' ) ) )
-							{
-								PSIZES newsize = ((PSIZES)psfCurrent->sizes) + psfCurrent->nSizes++;
-								width++;
-								// safe to play with these as numbers
-								// even without proper null terimination...
-								nWidth = (int16_t)IntCreateFromText( width );
-								if( nWidth >= 0 )
+								if( count[0] )
 								{
-									height = strchr( width, ',' );
-									if( !height )
+									TEXTCHAR *count2 = strchr( count, ',' );
+									if( count2 )
 									{
-										Log( WIDE("Fatality - Cache loses!") );
+										*(count2++) = 0;
+										PathID = strchr( count2, ',' );
 									}
-									height++;
-									nHeight = (int16_t)IntCreateFromText( height );
+									else
+									{
+										PathID = NULL;
+									}
+									file = strchr( PathID, ':' );
+									next = strchr( file, '^' );
+									*(file++) = 0;
+									*(PathID++) = 0;
+									// terminates next file (even if empty thing)
+									// so now between 'file' and \0 are file sizes.
+									if( next )
+										*(next++) = 0;
+
+									psfCurrent = pfs->files + pfs->nFiles++;
+
+									psfCurrent->path =fg.build.pPathList[IntCreateFromText( PathID )];
+									psfCurrent->file =fg.build.pFileList[IntCreateFromText(file)];
+									psfCurrent->nSizes = 0;
+									psfCurrent->sizes = fg.build.pSizeSlab + fg.build.nSize;
+									fg.build.nSize += (uint32_t)IntCreateFromText( count2 );
+									//Allocate( sizeof( SIZES ) * IntCreateFromText( count2 ) );
+									psfCurrent->nAlternate = 0;
+									psfCurrent->pAlternate = fg.build.pAltSlab + fg.build.nAlt;
+									fg.build.nAlt += (uint32_t)IntCreateFromText( count );
 								}
-								else
+								//Allocate( sizeof( ALT_SIZE_FILE ) * IntCreateFromText(count) );
+
+								height = file;
+								if(0)
 								{
-									nHeight = -1;
-									height = width + 1;
+								case '#':
+									height = buf;
+									// on a new line - set next correctly.
+									next = strchr( height, '^' );
+									if( next )
+										*(next++) = 0; // setup next...
 								}
-								//Log2( WIDE("Add size to file: %d,%d"), nWidth, nHeight );
-								newsize->width = nWidth;
-								newsize->height = nHeight;
-							}
-							if(0)
-							{
-			case '|':
-								next = buf + 2; // |^: worst case...
-							}
-							while( ( PathID = next ) && PathID[0] != ':' )
-							{
-								PCACHE_ALT_SIZE_FILE pasf = (PCACHE_ALT_SIZE_FILE)psfCurrent->pAlternate
-									+ psfCurrent->nAlternate++;
-								file = strchr( PathID, ':' );
-								next = strchr( file, '^' );
-								//*(PathID++) = 0;
-								*(file++) = 0;
-								if( next )
-									*(next++) = 0;
-								pasf->path =(PCACHE_DICT_ENTRY)fg.build.pPathList[IntCreateFromText(PathID)];
-								pasf->file =(PCACHE_DICT_ENTRY)fg.build.pFileList[IntCreateFromText(file)];
-							}
-							if( PathID )
-							{
-								// +1 == ':' +2 == ... char type...
-								// could be a ! (new style)
-								// could be a @ (new file/sizes)
-								if( PathID[1] )
+								while( ( width = strchr( height, '#' ) ) )
 								{
-									next = PathID + 2;
-									if( PathID[1] == '!' )
-										break; // otherwise will be a @ which
-									// the current loop is another file...
+									PSIZES newsize = ((PSIZES)psfCurrent->sizes) + psfCurrent->nSizes++;
+									width++;
+									// safe to play with these as numbers
+									// even without proper null terimination...
+									nWidth = (int16_t)IntCreateFromText( width );
+									if( nWidth >= 0 )
+									{
+										height = strchr( width, ',' );
+										if( !height )
+										{
+											Log( WIDE("Fatality - Cache loses!") );
+										}
+										height++;
+										nHeight = (int16_t)IntCreateFromText( height );
+									}
+									else
+									{
+										nHeight = -1;
+										height = width + 1;
+									}
+									//Log2( WIDE("Add size to file: %d,%d"), nWidth, nHeight );
+									newsize->width = nWidth;
+									newsize->height = nHeight;
 								}
-								else
-									next = NULL;
+								if(0)
+								{
+				case '|':
+ 									next = buf + 2; // |^: worst case...
+								}
+								while( ( PathID = next ) && PathID[0] != ':' )
+								{
+									PCACHE_ALT_SIZE_FILE pasf = (PCACHE_ALT_SIZE_FILE)psfCurrent->pAlternate
+										+ psfCurrent->nAlternate++;
+									file = strchr( PathID, ':' );
+									next = strchr( file, '^' );
+									//*(PathID++) = 0;
+									*(file++) = 0;
+									if( next )
+										*(next++) = 0;
+									pasf->path =(PCACHE_DICT_ENTRY)fg.build.pPathList[IntCreateFromText(PathID)];
+									pasf->file =(PCACHE_DICT_ENTRY)fg.build.pFileList[IntCreateFromText(file)];
+								}
+								if( PathID )
+								{
+									// +1 == ':' +2 == ... char type...
+									// could be a ! (new style)
+									// could be a @ (new file/sizes)
+									if( PathID[1] )
+									{
+										next = PathID + 2;
+										if( PathID[1] == '!' )
+											break; // otherwise will be a @ which
+										// the current loop is another file...
+									}
+									else
+										next = NULL;
+								}
 							}
 						}
 					}
