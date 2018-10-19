@@ -28,7 +28,7 @@
 
 #ifdef __cplusplus
 #define LOGGING_NAMESPACE namespace sack { namespace logging {
-#define LOGGING_NAMESPACE_END }; };
+#define LOGGING_NAMESPACE_END } }
 #else
 #define LOGGING_NAMESPACE 
 #define LOGGING_NAMESPACE_END

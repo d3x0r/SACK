@@ -1536,6 +1536,9 @@ static void FillDataToElement6( struct json_context_object_element *element
 		{
 			switch( val->value_type )
 			{
+			default:
+				lprintf( "FAULT: UNEXPECTED VALUE TYPE RECOVERINT IDENT:%d", val->value_type );
+				break;
 			case VALUE_NUMBER:
 				if( val->float_result )
 				{

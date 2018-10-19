@@ -6,7 +6,7 @@
 
 #ifdef __cplusplus
 #define _OPTION_NAMESPACE namespace options {
-#define _OPTION_NAMESPACE_END };
+#define _OPTION_NAMESPACE_END }
 #define USE_OPTION_NAMESPACE 	using namespace sack::sql::options;
 
 #else

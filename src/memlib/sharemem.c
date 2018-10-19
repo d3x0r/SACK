@@ -453,7 +453,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 #endif
 
 #ifdef __cplusplus
-}; // namespace memory {
+} // namespace memory {
 	namespace timers { // begin timer namespace
 
 #endif
@@ -835,7 +835,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 #endif
 
 #ifdef __cplusplus
-	}; // namespace timers {
+	} // namespace timers {
 	namespace memory { // resume memory namespace
 #endif
 //-------------------------------------------------------------------------
@@ -1243,6 +1243,9 @@ uintptr_t GetFileSize( int fd )
 		int exists = FALSE;
 		if( !pWhat && !pWhere)
 		{
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS 0x20
+#endif
 			pMem = mmap( 0, *dwSize
 						 , PROT_READ|PROT_WRITE
 						 , MAP_SHARED|MAP_ANONYMOUS
@@ -3332,7 +3335,7 @@ PRELOAD( ShareMemToVSAllocHook )
 
 #ifdef __cplusplus
 
-};//namespace sack {
-};//	namespace memory {
+}//namespace sack {
+}//	namespace memory {
 
 #endif

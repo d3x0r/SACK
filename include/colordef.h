@@ -187,7 +187,7 @@ SACK_NAMESPACE
 #define BASE_COLOR_PURPLE        Color( 0x7A, 0x11, 0x7C )
 #ifdef __cplusplus
 
-}; // 	namespace image {
+} // 	namespace image {
 SACK_NAMESPACE_END
 using namespace sack::image;
 #endif

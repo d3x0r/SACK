@@ -1059,18 +1059,18 @@ typedef class network
    static void CPROC SetClose( PCLIENT pc, cppCloseCallback, uintptr_t psv );
 public:
 	network() { NetworkStart(); pc = NULL; TCP = TRUE; };
-	network( PCLIENT pc ) { NetworkStart(); this->pc = pc; TCP = TRUE; };
+	network( PCLIENT _pc ) { NetworkStart(); this->pc = _pc; TCP = TRUE; };
 	network( network &cp ) { cp.pc = pc; cp.TCP = TCP; };
 	~network() { if( pc ) RemoveClientEx( pc, TRUE, FALSE ); pc = NULL; };
 	inline void MakeUDP( void ) { TCP = FALSE; }
 
-	virtual void ReadComplete( POINTER buffer, size_t nSize ) {}
-	virtual void ReadComplete( POINTER buffer, size_t nSize, SOCKADDR *sa ) {}
-	virtual void WriteComplete( void ) {}
-	virtual void ConnectComplete( int nError ) {}
+	virtual void ReadComplete( POINTER buffer, size_t nSize ) = 0;
+	virtual void ReadComplete( POINTER buffer, size_t nSize, SOCKADDR *sa ) = 0;
+	virtual void WriteComplete( void ) = 0;
+	virtual void ConnectComplete( int nError ) =0;
 	// received on the server listen object...
-	virtual void ConnectComplete( class network &pNewClient ) {}
-	virtual void CloseCallback( void ) {}
+	virtual void ConnectComplete( class network &pNewClient ) =0;
+	virtual void CloseCallback( void ) =0;
 
 	inline int Connect( SOCKADDR *sa )
 	{

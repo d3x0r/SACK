@@ -159,6 +159,8 @@ struct config_element_tag
 				// be auto expanded....
 };
 
+#define CONFIG_EMPTY_EXTRA ,NULL,NULL,NULL,{0,0,0,0},0,{}
+
 typedef struct config_test_tag
 {
 	// this constant list could be a more optimized structure like
@@ -621,8 +623,9 @@ static PTEXT CPROC FilterTerminators( POINTER *scratch, PTEXT buffer )
 /* does not need scratch buffer... */
 static PTEXT CPROC FilterEscapesAndComments( POINTER *scratch, PTEXT pText )
 {
-	CTEXTSTR text = GetText( pText );
+	TEXTSTR text = GetText( pText );
 	PTEXT pNewText;
+   (void)scratch;
 	if( text /*&& strchr( text, '\\' )*/ )
 	{
 		PTEXT tmp;
@@ -630,7 +633,7 @@ static PTEXT CPROC FilterEscapesAndComments( POINTER *scratch, PTEXT pText )
 		while( tmp )
 		{
 			int dest = 0, src = 0;
-			TEXTSTR text = GetText( tmp );
+			text = GetText( tmp );
 			while( text && text[src] )
 			{
 				if( text[src] == '\\' )
@@ -1183,7 +1186,7 @@ int IsBooleanVar( PCONFIG_ELEMENT pce, PTEXT *start )
 
 int GetBooleanVar( PTEXT *start, LOGICAL *data )
 {
-	CONFIG_ELEMENT element = { CONFIG_BOOLEAN };
+	CONFIG_ELEMENT element = { CONFIG_BOOLEAN CONFIG_EMPTY_EXTRA };
 	if( IsBooleanVar( &element, start ) )
 	{
 		if( data )
@@ -1409,7 +1412,7 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 
 int GetColorVar( PTEXT *start, CDATA *data )
 {
-	CONFIG_ELEMENT element = { CONFIG_COLOR };
+	CONFIG_ELEMENT element = { CONFIG_COLOR CONFIG_EMPTY_EXTRA};
 	if( IsColorVar( &element, start ) )
 	{
 		if( data )
@@ -1423,7 +1426,7 @@ int GetColorVar( PTEXT *start, CDATA *data )
 
 int IsFloatVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
-	//char *text;
+   (void)start;
 	if( pce->type != CONFIG_FLOAT )
 		return FALSE;
 
@@ -1599,7 +1602,7 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 
 			LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ){
 				PTEXT _start = *start;
-				if( matched = IsAnyVar( pEnd, start ) )
+				if( ( matched = IsAnyVar( pEnd, start ) ) != 0 )
 				{
 					pce->data[0].singleword.pWhichEnd = pEnd;
 					pce->next = pEnd->next;
@@ -1675,7 +1678,7 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		INDEX idx;
 		LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
 		{
-			if( matched = IsAnyVar( pEnd, start ) ) {
+			if( ( matched = IsAnyVar( pEnd, start ) ) != 0 ){
 				pce->data[0].multiword.pWhichEnd = pEnd;
 				if( g.flags.bLogTrace )
 					lprintf( "Matched one of several?  set next to %p", pEnd, pEnd->next );

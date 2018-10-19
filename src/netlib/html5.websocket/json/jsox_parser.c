@@ -551,6 +551,9 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 		}
 		if( state->word == JSOX_WORD_POS_END ) {
 			switch( state->val.value_type ) {
+			default:
+				lprintf( "FAULT: UNEXPECTED VALUE TYPE RECOVERINT IDENT:%d", state->val.value_type );
+				break;
 			case JSOX_VALUE_TRUE:
 				(*output->pos++) = 't';
 				(*output->pos++) = 'r';
@@ -603,6 +606,9 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 			}
 		}
 		switch( state->word ) {
+		default:
+			lprintf( "FAULT: UNEXPECTED VALUE WORD POS RECOVERING IDENT:%d", state->word );
+			break;
 		case JSOX_WORD_POS_TRUE_1:
 			(*output->pos++) = 't';
 			break;

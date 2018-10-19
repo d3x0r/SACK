@@ -55,8 +55,8 @@ struct critical_section_tag {
 typedef struct critical_section_tag CRITICALSECTION;
 #endif
 #ifdef __cplusplus
-	};
-};
+	}
+}
 #endif
 
 #ifdef __cplusplus
@@ -136,8 +136,8 @@ struct memory_block_tag
 typedef struct memory_block_tag MEM;
 
 #ifdef __cplusplus
-	};
-};
+	}
+}
 #endif
 
 #endif
