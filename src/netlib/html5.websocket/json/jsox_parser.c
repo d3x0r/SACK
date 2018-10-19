@@ -1003,10 +1003,10 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						break;
 					}
 					else if( state->word == JSOX_WORD_POS_FIELD ) {
-						//state->val.stringLen = output->pos - state->val.string;
-						//lprintf( "Set string length:%d", state->val.stringLen );
+						state->val.stringLen = ( output->pos - state->val.string );
+						(*output->pos++) = 0;
 					}
-					if( (state->val.value_type == JSOX_VALUE_STRING) && !state->completedString ) {
+					else if( (state->val.value_type == JSOX_VALUE_STRING) && !state->completedString ) {
 						state->val.stringLen = ( output->pos - state->val.string );
 						(*output->pos++) = 0;
 					}
@@ -1060,6 +1060,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 #endif
 						state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
 						state->elements = old_context->elements;
+						state->val.name = old_context->name;
+						state->val.nameLen = old_context->nameLen;
 						state->current_class = old_context->current_class;
 						state->current_class_item = old_context->current_class_item;
 						state->arrayType = old_context->arrayType;
@@ -1091,6 +1093,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						//if( _DEBUG_PARSING_STACK ) console.log( "object pop stack (close obj)", context_stack.length, old_context );
 						state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
 						state->elements = old_context->elements;
+						state->val.name = old_context->name;
+						state->val.nameLen = old_context->nameLen;
 						state->current_class = old_context->current_class;
 						state->current_class_item = old_context->current_class_item;
 						state->arrayType = old_context->arrayType;
@@ -1312,6 +1316,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->status ) {
 							state->val.value_type = JSOX_VALUE_STRING;
 							state->completedString = TRUE;
+							state->word = JSOX_WORD_POS_AFTER_FIELD;
 							//state->val.stringLen = (output->pos - state->val.string - 1);
 							//lprintf( "Set string length:%d", state->val.stringLen );
 						}
@@ -1410,7 +1415,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					if( state->status ) {
 						state->val.value_type = JSOX_VALUE_STRING;
 						state->completedString = TRUE;
-						state->word = JSOX_WORD_POS_END;
+						state->word = JSOX_WORD_POS_AFTER_FIELD;
 						if( state->complete_at_end ) {
 							if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
 								state->completed = TRUE;
