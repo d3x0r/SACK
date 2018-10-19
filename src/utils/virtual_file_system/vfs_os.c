@@ -2255,6 +2255,9 @@ PRIORITY_PRELOAD( Sack_VFS_OS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 
 #  undef sack_fread
 #  undef sack_fwrite
 #  undef sack_ftell
+#  undef free
+#  undef StrDup
+#  define StrDup(o) StrDupEx( (o) DBG_SRC )
 #endif
 
 
