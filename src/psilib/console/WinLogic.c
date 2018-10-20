@@ -373,7 +373,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	int nCursorIdx;
 	int lines;
 	int line_offset;
-	INDEX nShown;
+	int nShown;
 	int start, end;
 	int toppad = 0;
 	PTEXT pStart;
@@ -535,13 +535,13 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		}
 		while( pStart && nShown > GetTextSize( pStart ) )
 		{
-			nShown -= GetTextSize( pStart );
+			nShown -= (int)GetTextSize( pStart );
 			pStart = NEXTLINE( pStart );
 		}
 
 		while( pStart && nCurrentCol < nCursorIdx )
 		{
-			nShow = GetTextSize( pStart ) - nShown;
+			nShow = (int)GetTextSize( pStart ) - nShown;
 
 			if( nCurrentCol + nShow > end )
 				nShow = end - nCurrentCol;
@@ -883,16 +883,16 @@ int GetCharFromLine( PCONSOLE_INFO console, uint32_t cols
 	{
 		PTEXT pText = pLine->start;
 		int nOfs = 0, nSegShown = pLine->nFirstSegOfs;
-		uint32_t seg_len;
-		uint32_t nShown = 0; 
-		uint32_t col_offset = 0;
+		int32_t seg_len;
+		int32_t nShown = 0; 
+		int32_t col_offset = 0;
 		nLen = pLine->nToShow ;// ComputeToShow( cols, &col_offset, pText, GetTextSize( pText ), nOfs, nShown, console->pCurrentDisplay );
 		while( pText )
 		{
 			// nOfs is the column position to start at...
 			// nShown is the amount of the first segment shown.
 			//nLen = GetTextSize( pText );
-			seg_len = GetTextSize( pText );
+			seg_len = (int)GetTextSize( pText );
 			if( nShown >= nLen )
 				return FALSE;
 			if( !seg_len && !nChar )
@@ -938,11 +938,11 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 	int line_start = pdp->mark_start.row;
 	int col_start = pdp->mark_start.col;
 	int line_end = pdp->mark_end.row;
-	INDEX col_end = pdp->mark_end.col + 1;
+	int col_end = pdp->mark_end.col + 1;
 	int bBlock = FALSE;
 	// 2 characters to stuff in \r\n on newline.
 	TEXTCHAR *result = NewArray( TEXTCHAR, ( ( line_start - line_end ) + 1 ) * (col_end + 2) );
-	INDEX ofs = 0;
+	int ofs = 0;
 	int line, col;
 	int first_char = TRUE;
 	int first = TRUE;
@@ -1003,6 +1003,8 @@ int PSI_ConvertXYToLineCol( PCONSOLE_INFO pdp
 	// x, y is top, left biased...
 	// line is bottom biased... (also have to account for history)
 	lprintf( "Convert XY to LineCol needs work.... it needs to iterate through the computed dipslayable lines..." );
+	(*line) = 0;
+	(*col) = 0;
 #if 0
 
 	*col = ( ( ( x + ( pdp->nFontWidth / 2 ) ) - pdp->nXPad )
@@ -1132,7 +1134,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nStartLineOffset
 		}
 
 		RenderTextLine( pdp, pCurrentLine, &r
-			, nLine, nFirst, nFirstLine - nStartLineOffset, nMinLine
+			, (int)nLine, nFirst, nFirstLine - nStartLineOffset, nMinLine
 			, ppCurrentLineInfo == &pdp->pCurrentDisplay->DisplayLineInfo 
 			, TRUE ); 
 
@@ -1181,7 +1183,7 @@ void PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 			pdp->pCommandDisplay->pBlock->pLines[0].flags.deleted = 0;
 			pdp->pCommandDisplay->nLine = 1;
 		}
-		pdp->pCommandDisplay->pBlock->pLines[0].flags.nLineLength = LineLengthExEx( pdp->CommandInfo->CollectionBuffer, FALSE, 8, NULL );
+		pdp->pCommandDisplay->pBlock->pLines[0].flags.nLineLength = (int)LineLengthExEx( pdp->CommandInfo->CollectionBuffer, FALSE, 8, NULL );
 		pdp->pCommandDisplay->pBlock->pLines[0].pLine = pdp->CommandInfo->CollectionBuffer;
 		if( !pdp->flags.bDirect && pdp->flags.bWrapCommand )
 			BuildDisplayInfoLines( pdp->pCommandDisplay, NULL, GetCommonFont( pdp->psicon.frame ) );

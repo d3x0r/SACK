@@ -915,7 +915,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 			PCAPTION_BUTTON button = NULL;
 			if( ( y < frame_height )
 				&& ( y > ( frame_height - caption_height ) )
-				&& ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) 
+				&& ( x < (int)( pc->surface_rect.x + pc->surface_rect.width ) ) 
 				)
 			{
 				SetDisplayCursor( IDC_ARROW );
@@ -1109,8 +1109,8 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 			lprintf( WIDE("left is not down...") );
 #endif
 		OwnCommonMouse( pc, 0 );
-		if( ( x > pc->surface_rect.x && x < ( pc->surface_rect.x + pc->surface_rect.width ) )
-			&& ( y > pc->surface_rect.y && y < ( pc->surface_rect.y + pc->surface_rect.height ) ) )
+		if( ( x > pc->surface_rect.x && x < (int)( pc->surface_rect.x + pc->surface_rect.width ) )
+			&& ( y > pc->surface_rect.y && y < (int)( pc->surface_rect.y + pc->surface_rect.height ) ) )
 		{
 			if( pc->hover_caption_button )
 			{
@@ -1128,7 +1128,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 			LOGICAL do_update = FALSE;
 			INDEX idx;
 			PCAPTION_BUTTON button;
-			if( ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) // left side edge
+			if( ( x < (int)( pc->surface_rect.x + pc->surface_rect.width ) ) // left side edge
 				&& ( y < frame_height ) // left side edge
 				&& ( y >= ( frame_height - caption_height ) ) )
 			{
@@ -1475,7 +1475,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 				PCAPTION_BUTTON button = NULL;
 				if( ( y < frame_height )
 					&& ( y >= ( frame_height - caption_height ) )
-					&& ( x < ( pc->surface_rect.x + pc->surface_rect.width ) ) 
+					&& ( x < (int)( pc->surface_rect.x + pc->surface_rect.width ) )
 					)
 				{
 					INDEX idx;

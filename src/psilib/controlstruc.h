@@ -225,7 +225,7 @@ struct physical_device_caption_button
 	void (CPROC*pressed_event)( PSI_CONTROL pc );
 	LOGICAL is_pressed;
 	int extra_pad;
-	uint32_t offset;
+	int32_t offset;
 	struct {
 		BIT_FIELD hidden : 1;
 		BIT_FIELD rollover : 1;

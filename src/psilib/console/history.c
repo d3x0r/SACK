@@ -20,7 +20,7 @@ void SetTopOfForm( PHISTORY_LINE_CURSOR phlc );
 
 PHISTORYBLOCK PSI_DestroyRawHistoryBlock( PHISTORYBLOCK pHistory )
 {
-	uint32_t i;
+	int32_t i;
 	PHISTORYBLOCK next;
 	for( i = 0; i < pHistory->nLinesUsed; i++ )
 	{
@@ -499,7 +499,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 		text = pCurrentLine->pLine;
 		while( pos < (phc->output.nCursorX) && text )
 		{
-			len = GetTextSize( text );
+			len = (int)GetTextSize( text );
 			//Log3( "Skipping over ... pos:%d len:%d curs:%d", pos, len, phc->region->(phc->output.nCursorX) );
 			if( (len + pos) > (phc->output.nCursorX) )
 			{
@@ -512,7 +512,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 				if( split ) // otherwise we miscalculated something.
 				{
 					text = NEXTLINE( split );
-					len = GetTextSize( text );
+					len = (int)GetTextSize( text );
 				}
 			}
 			pos += len;
@@ -677,18 +677,18 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 			pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
 		}
 
-		len = GetTextSize( segment );
+		len = (int)GetTextSize( segment );
 		(phc->output.nCursorX) += len;
 
 		if( !phc->region->flags.bInsert && text )
 		{
 			// len characters from 'text' need to be removed.
 			// okay that should be fun...
-			uint32_t deletelen = len;
+			int32_t deletelen = len;
 			//Log1( "Remove %d characters!", len );
 			while( deletelen && text )
 			{
-				uint32_t thislen = GetTextSize( text );
+				int32_t thislen = (int)GetTextSize( text );
 				PTEXT next = NEXTLINE( text );
 				if( thislen <= deletelen )
 				{
@@ -865,7 +865,7 @@ PSI_Console_Phrase PSI_EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLin
 		}
 		if( pCurrentLine ) // else no change...
 		{
-			pCurrentLine->flags.nLineLength = LineLength( pCurrentLine->pLine );
+			pCurrentLine->flags.nLineLength = (int)LineLength( pCurrentLine->pLine );
 		}
 	}
 	{
@@ -955,7 +955,7 @@ PTEXT EnumHistoryLineEx( PHISTORY_BROWSER phbr
 
 //----------------------------------------------------------------------------
 
-void SetHistoryLength( PHISTORY_REGION phr, INDEX length )
+void SetHistoryLength( PHISTORY_REGION phr, int length )
 {
 	Log1( WIDE("Set Length to %") _size_f WIDE(" blocks"), length/MAX_HISTORY_LINES );
 	phr->nMaxHistoryBlocks = length/MAX_HISTORY_LINES;
@@ -1001,14 +1001,14 @@ void WriteHistoryToFile( FILE *file, PHISTORY_REGION phr )
 			{
 				length = GetTextSize( pText );
 				lprintf( WIDE("%s"), GetText(pText) );
-				sack_fwrite( &length, 1,  sizeof( length ), file );
-				sack_fwrite( &pText->flags, 1,  sizeof( pText->flags ), file );
-				sack_fwrite( &pText->format, 1,  sizeof( pText->format ), file );
-				sack_fwrite( GetText( pText ), 1, length, file );
+				sack_fwrite( &length,  sizeof( length ), 1, file );
+				sack_fwrite( &pText->flags,  sizeof( pText->flags ), 1, file );
+				sack_fwrite( &pText->format,  sizeof( pText->format ), 1, file );
+				sack_fwrite( GetText( pText ), length, 1, file );
 				pText = NEXTLINE( pText );
 			}
 			length = 0;
-			sack_fwrite( &length, 1,  sizeof( length ), file );
+			sack_fwrite( &length,  sizeof( length ), 1, file );
 		}
 		pHistory = pHistory->next;
 	}
@@ -1023,14 +1023,14 @@ void ReadHistoryFromFile( FILE *file, PHISTORY_REGION phr )
 	size_t length;
 	PTEXT readline = NULL;
 	PTEXT rebuild;
-	while( sack_fread( &length, 1,  sizeof( length ), file ) )
+	while( sack_fread( &length,  sizeof( length ), 1, file ) )
 	{
 		if( length )
 		{
 			rebuild = SegCreate( length );
-			sack_fread( &rebuild->flags, 1,  sizeof( rebuild->flags ), file );
-			sack_fread( &rebuild->format, 1,  sizeof( rebuild->format ), file );
-			sack_fread( GetText( rebuild ), 1, length, file );
+			sack_fread( &rebuild->flags, sizeof( rebuild->flags ), 1, file );
+			sack_fread( &rebuild->format, sizeof( rebuild->format ), 1, file );
+			sack_fread( GetText( rebuild ), length, 1, file );
 			readline = SegAppend( readline, rebuild );
 		}
 		else
@@ -1059,20 +1059,20 @@ uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown )
 	 uint32_t offset = 0;
 	 while( segment )
 	 {
-		  uint32_t nLen = GetTextSize( segment );
-		  TEXTCHAR *text = GetText( segment );
-		  while( nShown < nLen 
-				  && text[nShown] == ' ' )
-				nShown++;
-		  if( nShown == nLen )
-		  {
-				offset += nShown;
-				nShown = 0;
-				segment = NEXTLINE( segment );
-				continue;
-		  }
-		  else
-				break;
+		uint32_t nLen = (uint32_t)GetTextSize( segment );
+		TEXTCHAR *text = GetText( segment );
+		while( nShown < nLen 
+			  && text[nShown] == ' ' )
+			nShown++;
+		if( nShown == nLen )
+		{
+			offset += nShown;
+			nShown = 0;
+			segment = NEXTLINE( segment );
+			continue;
+		}
+		else
+			break;
 	 }
 	 return nShown + offset;
 }
@@ -1081,8 +1081,8 @@ uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown )
 
 uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, uint32_t nLen, uint32_t nOfs, uint32_t nShown, PHISTORY_BROWSER phbr, SFTFont font )
 {
-	uint32_t result_bias = 0;
-	uint32_t nShow = nLen - nShown;
+	int32_t result_bias = 0;
+	int32_t nShow = nLen - nShown;
 	uint32_t nLenSize, nLenHeight;
 	// if space left to show here is less than
 	// then length to show, compute wrapping point.
@@ -1090,7 +1090,7 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, u
 	phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
 		, nLen - nShown, &nLenSize, &nLenHeight, font );
 
-	if( ( nLenSize + (*col_offset ) ) > colsize || nLenHeight > phbr->nLineHeight )
+	if( ( nLenSize + (*col_offset ) ) > colsize || nLenHeight > (uint32_t)phbr->nLineHeight )
 	{
 		uint32_t good_space_size;
 		LOGICAL has_good_space = FALSE;
@@ -1210,12 +1210,12 @@ int SkipSomeLines( PHISTORY_BROWSER phbr, SFTFont font, PTEXT countseg, int line
 	int nLines = 1;
 	if( countseg && colsize )
 	{
-		uint32_t nShown = 0;
-		uint32_t nChar = 0;
+		int32_t nShown = 0;
+		int32_t nChar = 0;
 		uint32_t col_offset = 0;
 		while( countseg )
 		{
-			uint32_t nLen = GetTextSize( countseg );
+			int32_t nLen = (int)GetTextSize( countseg );
 			// part of this segment has already been skipped.
 			// ComputeNextOffset can do this.
 			if( nShown > nLen )
@@ -1263,13 +1263,13 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font, LOGI
 	int used_size = 0;
 	if( countseg && colsize )
 	{		
-		uint32_t nChar = 0;
+		int32_t nChar = 0;
 		uint32_t col_offset = 0;  // pixel size of nShown
-		uint32_t nSegShown = 0;   // how many characters of this segment have been put out
-		uint32_t nShown = 0;   // how many characters have been put out
+		int32_t nSegShown = 0;   // how many characters of this segment have been put out
+		int32_t nShown = 0;   // how many characters have been put out
 		while( countseg )
 		{
-			uint32_t nLen = GetTextSize( countseg );
+			int32_t nLen = (int)GetTextSize( countseg );
 			// part of this segment has already been skipped.
 			// ComputeNextOffset can do this.
 			if( !nLen )
@@ -1294,15 +1294,15 @@ int CountLinesSpanned( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font, LOGI
 				uint32_t text_size;
 				uint32_t text_lines;
 				phbr->measureString( phbr->psvMeasure, GetText( countseg ), nLen, &text_size, &text_lines, font );
-				if( ( text_lines > phbr->nLineHeight ) 
+				if( ( text_lines > (uint32_t)phbr->nLineHeight )
 					|| ( ( col_offset + text_size ) > colsize ) )
 				{
-					uint32_t _nShown = nShown;
+					int32_t _nShown = nShown;
 					// this is the wrapping condition...
 					while( nSegShown < nLen )
 					{
 						int skip_char;
-						uint32_t nShow = ComputeToShow( colsize, &col_offset, countseg, nLen, nChar, nSegShown, phbr, font );
+						int32_t nShow = ComputeToShow( colsize, &col_offset, countseg, nLen, nChar, nSegShown, phbr, font );
 						if( nShow + nSegShown > 1 ) {
 							if( GetText( countseg )[nShow + nSegShown - 1] == '\n' )
 								skip_char = 1;
@@ -1483,7 +1483,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset, SFTFont font )
 		phbr->nLine -= phbr->pBlock->nLinesUsed;
 		phbr->pBlock = phbr->pBlock->next;
 	}
-	if( SUS_GT( phbr->nLine, int32_t, phbr->pBlock->nLinesUsed, uint32_t ) )
+	if( phbr->nLine > phbr->pBlock->nLinesUsed )
 	{
 		phbr->nLine = 0;
 		phbr->pBlock = NULL;
@@ -1492,9 +1492,9 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset, SFTFont font )
 }
 //----------------------------------------------------------------------------
 
-uint32_t GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font )
+int32_t GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font )
 {
-	INDEX nLines = 0; // count of lines...
+	int32_t nLines = 0; // count of lines...
 	PHISTORYBLOCK pHistory;
 	INDEX n;
 	for( n = phbr->nLine, pHistory = phbr->pBlock;
@@ -1534,10 +1534,10 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
                     )
 {
 	PTEXT pCmd;
-	uint32_t tmpx = 0, nLead, tmp_end = 0;
-	uint32_t pixelWidth = 0;
+	int32_t tmpx = 0, nLead, tmp_end = 0;
+	int32_t pixelWidth = 0;
 	PDISPLAYED_LINE pdl;
-	uint32_t lines;
+	int32_t lines;
 
 	if( !CommandInfo )
 		return 0;
@@ -1549,7 +1549,7 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 		pdl = (PDISPLAYED_LINE)GetDataItem( &phbr->DisplayLineInfo, 0 );
 		if( pdl )
 		{
-			uint32_t max;
+			int32_t max;
 			tmpx = pdl->nToShow;
 			pixelWidth = pdl->nPixelEnd;
 			if( phbr->nWidth < 150 )
@@ -1597,9 +1597,9 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 	while( pCmd != CommandInfo->CollectionBuffer )
 	{
 		uint32_t width, height;
-		phbr->measureString( phbr->psvMeasure, GetText( pCmd ), GetTextSize( pCmd ), &width, &height, font );
+		phbr->measureString( phbr->psvMeasure, GetText( pCmd ), (int)GetTextSize( pCmd ), &width, &height, font );
 		pixelWidth += width;
-		tmp_end += GetTextSize( pCmd );
+		tmp_end += (int)GetTextSize( pCmd );
 		pCmd = NEXTLINE( pCmd );
 	}
 	//tmp_end = tmpx;
@@ -1609,13 +1609,13 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 		uint32_t width, height;
 		if( tmp_end < CommandInfo->CollectionIndex ) {
 			phbr->measureString( phbr->psvMeasure, GetText( pCmd )
-				, CommandInfo->CollectionIndex - tmp_end /* GetTextSize( pCmd )*/, &width, &height, font );
+				, (int)CommandInfo->CollectionIndex - tmp_end /* GetTextSize( pCmd )*/, &width, &height, font );
 			pixelWidth += width;
 		}
-		tmp_end += GetTextSize( pCmd );
+		tmp_end += (int)GetTextSize( pCmd );
 		pCmd = NEXTLINE( pCmd );
 	}
-	tmpx += CommandInfo->CollectionIndex;
+	tmpx += (int)CommandInfo->CollectionIndex;
 
 	if( command_begin )
 		(*command_begin) = 0;
@@ -1824,7 +1824,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 							}
 						}
 
-						nLen = GetTextSize( pText );
+						nLen = (int)GetTextSize( pText );
 						{
 							int trim_char;
 							// shown - show part of this segment... but not the whole segment...
@@ -1833,7 +1833,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 								trim_char = 0;
 								pText = NEXTLINE( pText );
 								if( !pText ) break;
-								nLen = GetTextSize( pText );
+								nLen = (int)GetTextSize( pText );
 								goto do_end_of_line;
 							}
 							else while( nSegShown < nLen )
@@ -1936,7 +1936,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 	#endif
 						if( !pLastSetLine )
 						{
-							nLen = GetTextSize( pText );
+							nLen = (int)GetTextSize( pText );
 							if( USS_LT( (dl.nFirstSegOfs + nLen), uint32_t, phbr->nOffset, int ) )
 							{
 								lprintf( WIDE("Skipping segement, it's before the offset...") );

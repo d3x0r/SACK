@@ -807,29 +807,29 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 			size_t cursor = (int)pci->CollectionIndex;
 			PTEXT curseg = pci->CollectionBuffer;
 			TEXTRUNE ch;
-			start = cursor;
+			start = (int)cursor;
 			for( tmp = 0; tmp > nPos; tmp-- )
 			{
 				if( cursor == 0 )
 				{
 					curseg = PRIORLINE( curseg );
 					if( curseg )
-						start = cursor = (int)curseg->data.size;
+						start = (int)(cursor = curseg->data.size);
 				}
 				if( !curseg )
 					break;
 				ch = GetPriorUtfCharIndexed( curseg->data.data, &cursor );
 				if( !cursor )
 				{
-					total += cursor - start;
+					total += (int)(cursor - start);
 					curseg = PRIORLINE( curseg );
 					if( curseg )
-						start = cursor = (int)curseg->data.size;
+						start = (int)(cursor = curseg->data.size);
 					else 
 						break;
 				}
 			}
-			nPos = total + ( cursor - start );
+			nPos = (int)(total + ( cursor - start ));
 
 		}
 

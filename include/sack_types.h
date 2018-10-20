@@ -986,6 +986,12 @@ typedef void             *P_0;
  * should be used instead of uint32_t (DWORD)
  */
 typedef unsigned int  BIT_FIELD;
+/*
+ * several compilers are rather picky about the types of data
+ * used for bit field declaration, therefore this type
+ * should be used instead of int32_t (LONG)
+ */
+typedef int  SBIT_FIELD;
 // have to do this on a per structure basis - otherwise
 // any included headers with structures to use will get FUCKED
 #ifndef PACKED

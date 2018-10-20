@@ -7,7 +7,7 @@ PSI_CONSOLE_NAMESPACE
 
 struct history_line_tag {
 	struct history_line_flags_tag {
-		BIT_FIELD nLineLength : 16;
+		SBIT_FIELD nLineLength : 16;
 		BIT_FIELD deleted : 1;
 		//BIT_FIELD updated : 1;
 	} flags;
@@ -39,7 +39,7 @@ struct history_block_tag {
 		};
 	};
 
-	INDEX nLinesUsed;
+	int nLinesUsed;
 	// INDEX nLinesAvail; // = MAX_HISTORY_LINES
 #define MAX_HISTORY_LINES 250
 	struct history_line_tag pLines[MAX_HISTORY_LINES];
@@ -80,15 +80,15 @@ struct history_region_tag {
 
 struct displayed_line_info_tag
 {
-	 INDEX nLine; // history line index...
-	 PTEXT start; // actual segment here
-	 int nFirstSegOfs;	 // offset into start which begins this line.
-	 int nToShow; // length of data we intend to show...
-	 int nPixelEnd; // how long measure resulted this should be at...
-	 int nLineStart; // absolute character that is the start line character index
-	 int nLineEnd; // absolute character that is the last line character index
-	 int nLineHeight;  // how high this line is...
-	 int nLineTop; // top coordiante of this line...
+	int nLine; // history line index...
+	PTEXT start; // actual segment here
+	int nFirstSegOfs;	 // offset into start which begins this line.
+	int nToShow; // length of data we intend to show...
+	int nPixelEnd; // how long measure resulted this should be at...
+	int nLineStart; // absolute character that is the start line character index
+	int nLineEnd; // absolute character that is the last line character index
+	int nLineHeight;  // how high this line is...
+	int nLineTop; // top coordiante of this line...
 };
 
 //----------------------------------------------------------------------------
@@ -110,16 +110,16 @@ struct history_browser_cursor_tag {
 
 	// visible region...
 	//INDEX nLines;
-	INDEX nHeight;
-	INDEX nPageLines; // number of lines to scroll up/down for 1 page.
-	INDEX nFirstLines; // set as page lines... and cleared after first move.
-	INDEX nColumns; // rough character count/ depricated....
+	int nHeight;
+	int nPageLines; // number of lines to scroll up/down for 1 page.
+	int nFirstLines; // set as page lines... and cleared after first move.
+	int nColumns; // rough character count/ depricated....
 
-	INDEX nLineHeight;  // height of lines...
-	INDEX nWidth; // this is pixel size (using measure string)
+	int nLineHeight;  // height of lines...
+	int nWidth; // this is pixel size (using measure string)
 
-	INDEX nLineStart;  // first position of line to start at...
-	uint32_t nFirstLine;
+	int nLineStart;  // first position of line to start at...
+	int nFirstLine;
 
 	PDATALIST DisplayLineInfo;
 	// current line of historyc block;

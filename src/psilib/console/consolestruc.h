@@ -228,10 +228,10 @@ typedef struct myconsolestruc {
 	// display list this is a mark in.
 	PDATALIST *CurrentMarkInfo;
 	struct {
-		INDEX row, col;
+		int row, col;
 	} mark_start;
 	struct {
-		INDEX row, col;
+		int row, col;
 	} mark_end;
 	// something like a specialized footer here... probably a
 	// PSTATBAR MenuBar; might fit in well also...

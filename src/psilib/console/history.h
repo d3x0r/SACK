@@ -121,7 +121,7 @@ CORECON_PROC( PDATALIST *,GetDisplayInfo )( PHISTORY_BROWSER phbr );
 void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t* x, int32_t* y );
 void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t x, int32_t y );
 void PSI_SetHistoryPageLines( PHISTORY_BROWSER phbr, uint32_t nLines );
-uint32_t GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font );
+int32_t GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font );
 void ResetHistoryBrowser( PHISTORY_BROWSER phbr );
 CORECON_PROC( int, CountDisplayedLines) ( PHISTORY_BROWSER phbr );
 
