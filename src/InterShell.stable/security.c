@@ -2,6 +2,7 @@
 #include <sack_types.h>
 #include <deadstart.h>
 #include <pssql.h>
+#include <filesys.h>
 #include "intershell_local.h"
 #include "intershell_registry.h"
 #include "intershell_security.h"

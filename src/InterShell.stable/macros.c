@@ -535,7 +535,7 @@ static uintptr_t CPROC LoadMacroElements( uintptr_t psv, arg_list args )
 	}
 	else
 		lprintf( "Failed to create a %s", name );
-	return NULL;
+	return 0;
 }
 
 static uintptr_t CPROC FinishMacro( uintptr_t psv, arg_list args )

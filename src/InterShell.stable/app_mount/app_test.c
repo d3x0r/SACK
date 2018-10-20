@@ -79,7 +79,7 @@ int main( int argc, char **argv )
 		printf( WIDE("%s {S|H|M} \n" )
 				WIDE( " S - show\n" )
 				WIDE( " H - hide\n" )
-             WIDE(" M - requires 4 additional parameters < x y width height >\n" ) );
+             WIDE(" M - requires 4 additional parameters < x y width height >\n" ), argv[0] );
       return 0;
 	}
 	else if( argv[1][0] == 'S' || argv[1][0] == 's' )

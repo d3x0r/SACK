@@ -7,7 +7,6 @@
 int main( int argc, TEXTCHAR **argv )
 {
 	int saveas = 0;
-   TEXTCHAR outpath[256];
 	TEXTCHAR *app = argc>3?argv[3]:NULL;
 	if( !app || argc < 2 )
 	{
@@ -27,7 +26,7 @@ int main( int argc, TEXTCHAR **argv )
 
 
 		{
-			uint32_t size = 0;
+			size_t size = 0;
 			POINTER mem = OpenSpace( NULL, argv[1], &size );
 			if( mem && size )
 			{

@@ -1060,7 +1060,7 @@ void LoadButtonConfig( PSI_CONTROL pc_canvas, TEXTSTR filename )
 		//lprintf( WIDE("long wait...") );
 		if( g.flags.bSQLConfig )
 		{
-			int namelen;
+			size_t namelen;
 			PODBC odbc;
 			TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
 

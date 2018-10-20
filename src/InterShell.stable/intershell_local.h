@@ -384,6 +384,7 @@ void UpdateFontScaling( PCanvasData canvas );
 void CPROC SetTextLabelOptions( PMENU_BUTTON label, LOGICAL center, LOGICAL right, LOGICAL scroll, LOGICAL shadow );
 
 
+PMENU_BUTTON CreateButton( PSI_CONTROL pc );
 
 
 INTERSHELL_NAMESPACE_END

@@ -1,6 +1,7 @@
 
 //#define PAPER_SUPPORT_LIBRARY
 #include <stdhdrs.h>
+#include <filesys.h>
 #include "intershell_local.h"
 #include "intershell_registry.h"
 #include "resource.h"
@@ -323,7 +324,7 @@ static CTEXTSTR HandleValueProc( CTEXTSTR *pvariable, PVARIABLE var, TEXTCHAR *o
 		}
 		option = var->data.value_proc( var->psvUserData, button );
 		nOutput += snprintf( output + nOutput, output_len - nOutput - 1
-								 , WIDE("%s"), GetLink( &opts, option ) );
+								 , WIDE("%s"), (char*)GetLink( &opts, option ) );
 		//lprintf( WIDE("Before adjustment : [%s]"), variable );
 		variable = variable + ( value - tmp ) + 2;
 		(*pvariable) = variable;
