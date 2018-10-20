@@ -159,7 +159,7 @@ struct config_element_tag
 				// be auto expanded....
 };
 
-#define CONFIG_EMPTY_EXTRA ,NULL,NULL,NULL,{0,0,0,0},0,{}
+#define CONFIG_EMPTY_EXTRA ,NULL,NULL,NULL,{0,0,0,0},0,{0}
 
 typedef struct config_test_tag
 {

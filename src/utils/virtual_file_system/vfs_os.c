@@ -130,7 +130,7 @@ uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, e
 		firstblock = vfs_os_GetNextBlock( vol, firstblock, 0, 0 );
 		offset -= BLOCK_SIZE;
 	}
-	data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, cache_index, NULL, 0 );
+	data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, cache_index DBG_NULL );
 	return (uintptr_t)(data + (offset));
 }
 
