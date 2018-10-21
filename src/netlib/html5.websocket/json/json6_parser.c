@@ -1008,8 +1008,8 @@ int json6_parse_add_data( struct json_parse_state *state
 							}
 #endif
 							else if( ( c == 'x' || c == 'b' || c =='o' || c == 'X' || c == 'B' || c == 'O')
-							       && ( output->pos - output->buf ) == 1
-							       && output->buf[0] == '0' ) {
+							       && ( output->pos - state->val.string ) == 1
+							       && state->val.string[0] == '0' ) {
 								// hex conversion.
 								if( !state->fromHex ) {
 									state->fromHex = TRUE;
@@ -1079,10 +1079,16 @@ int json6_parse_add_data( struct json_parse_state *state
 									break;
 								}
 								else {
-									state->status = FALSE;
-									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
-									break;
+									if( state->parse_context == CONTEXT_UNKNOWN ) {
+										(*output->pos) = 0;
+										break;
+									}
+									else {
+										state->status = FALSE;
+										if( !state->pvtError ) state->pvtError = VarTextCreate();
+										vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+										break;
+									}
 								}
 							}
 						}
@@ -1160,6 +1166,9 @@ int json6_parse_add_data( struct json_parse_state *state
 					if( state->parse_context == CONTEXT_UNKNOWN
 					  && ( state->val.value_type != VALUE_UNSET
 					     || state->elements[0]->Cnt ) ) {
+						if( state->word == WORD_POS_END ) {
+							state->word = WORD_POS_RESET;
+						}
 						state->completed = TRUE;
 						retval = 1;
 					}
