@@ -275,12 +275,16 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 			root = RegisterClassAlias( namebuf2, namebuf );
 			RegisterValueExx( root, NULL, WIDE("Type"), FALSE, pcr->name );
 			RegisterValueExx( root, NULL, WIDE("Type"), TRUE, (CTEXTSTR)(uintptr_t)ControlID );
-			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%") _32f
+
+			/*
+			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f
 					  , ControlID );
 			root = RegisterClassAlias( namebuf2, namebuf );
-			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%s")
+			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%s")
 				, pcr->name );
 			root = RegisterClassAlias( namebuf2, namebuf );
+			*/
+
 			ControlID++; // new control type registered...
 			RegisterIntValueEx( (PCLASSROOT)WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), (uintptr_t)ControlID );
 		}
@@ -746,7 +750,11 @@ void TryLoadingFrameImage( void )
 	}
 }
 
-static void OnDisplayConnect( WIDE( "@00 PSI Core" ) )( struct display_app*app, struct display_app_local ***pppLocal )
+#ifdef __cplusplus
+static void OnDisplayConnect( WIDE( "@00 PSI++ Core" ) )( struct display_app*app, struct display_app_local ***pppLocal )
+#else
+static void OnDisplayConnect( WIDE( "@00 PSI Core" ) )(struct display_app*app, struct display_app_local ***pppLocal)
+#endif
 {
 	PFrameBorder border;
 	INDEX idx;
@@ -4498,7 +4506,7 @@ PSI_PROC( void, SetControlIDName )( PSI_CONTROL pc, TEXTCHAR *IDName )
 //---------------------------------------------------------------------------
 
 
-BUTTON_CLICK( ButtonOkay, ( uintptr_t psv, PSI_CONTROL pc ) )
+static void CPROC ButtonOkay( uintptr_t psv, PSI_CONTROL pc )
 {
 	PCOMMON_BUTTON_DATA pcbd = pc->parent?&pc->parent->pCommonButtonData:NULL;
 	if( pcbd ) {
@@ -4514,6 +4522,7 @@ BUTTON_CLICK( ButtonOkay, ( uintptr_t psv, PSI_CONTROL pc ) )
 			WakeThread( pcbd->thread );
 	}
 }
+
 
 //---------------------------------------------------------------------------
 

@@ -931,7 +931,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 												  , s2 = GetFullName( oldname->data.proc.name )
 												  //,library
 												  , oldname->data.proc.procname );
-
+					DumpRegisteredNames();
 					Release( s1 );
 					Release( s2 );
 					// perhaps it's same in a different library...

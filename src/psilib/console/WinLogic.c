@@ -335,7 +335,7 @@ static void RenderTextLine(
 			lprintf( WIDE("nShown >= nLen...") );
 #endif
 
-			nShown -= nLen;
+			nShown -= (int)nLen;
 			pText = NEXTLINE( pText );
 		}
 		{
