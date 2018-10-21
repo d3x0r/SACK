@@ -437,26 +437,39 @@ void PSSQL_GetSqliteValueInt64( struct sqlite3_value *val, int64_t *result ){
 	(*result) = sqlite3_value_int64( val ); // sqlite function is 'unsigned' result
 }
 const char * PSSQL_GetColumnTableName( PODBC odbc, int col) {
-	PCOLLECT pCollect;
-	pCollect = odbc ? odbc->collection : NULL;
-	if( pCollect ) {
-		const char *tmp;
-		//tmp = sqlite3_column_table_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
-		//tmp = sqlite3_column_origin_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
-		tmp = sqlite3_column_table_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
-		return tmp;
+	if( odbc->flags.bSQLite_native ) {
+		PCOLLECT pCollect;
+		pCollect = odbc ? odbc->collection : NULL;
+		if( pCollect ) {
+			const char *tmp;
+			//tmp = sqlite3_column_table_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+			//tmp = sqlite3_column_origin_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+			tmp = sqlite3_column_table_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+			return tmp;
+		}
 	}
+	else
+		return "?";
 	return NULL;
 }
 const char * PSSQL_GetColumnTableAliasName( PODBC odbc, int col ) {
-	PCOLLECT pCollect;
-	pCollect = odbc ? odbc->collection : NULL;
-	if( pCollect ) {
-		const char *tmp;
-		//tmp = sqlite3_column_table_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
-		//tmp = sqlite3_column_origin_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
-		tmp = sqlite3_column_table_alias( pCollect->stmt, col ); // sqlite function is 'unsigned' result
-		return tmp;
+	if( odbc->flags.bSQLite_native ) {
+		PCOLLECT pCollect;
+		pCollect = odbc ? odbc->collection : NULL;
+		if( pCollect ) {
+			const char *tmp;
+			//tmp = sqlite3_column_table_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+			//tmp = sqlite3_column_origin_name( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+			tmp = sqlite3_column_table_alias( pCollect->stmt, col ); // sqlite function is 'unsigned' result
+			return tmp;
+		}
+	}
+	else {
+		PCOLLECT pCollect;
+		pCollect = odbc ? odbc->collection : NULL;
+		if( pCollect ) {
+		}
+		return "?";
 	}
 	return NULL;
 }
@@ -3508,7 +3521,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 											 , NULL // decimal digits short int
 											 , NULL // nullable ptr ?
 											 );
-					collection->result_len[idx - 1] = colsize;
 					colsize = (colsize * 2) + 1 + 1024 ;
 					if( colsize >= sizeof( byResultStatic ) )
 					{
@@ -3568,6 +3580,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							lprintf( WIDE( "SQL overflow (no room for nul character) %d of %d" ), (int)ResultLen, (int)colsize );
 						}
 					}
+					collection->result_len[idx - 1] = ResultLen;
 					//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, collection->coltypes[idx-1], idx );
 					if( collection->coltypes && coltype != collection->coltypes[idx-1] )
 					{
