@@ -1624,12 +1624,14 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 	{
 		(*command_end) = tmp_end;
 	}
+	/*
 	if( tmpx > phbr->nColumns - 10 )
 	{
 		if( command_begin )
 			(*command_begin) = ( tmpx - ( phbr->nColumns - 10 ) ) - nLead;
 		tmpx = phbr->nColumns - 10;
 	}
+	*/
 	if( command_pixel_end )
 		( *command_pixel_end ) = pixelWidth;
 	return tmpx;

@@ -299,16 +299,24 @@ static void RenderTextLine(
 					if( pdp->FillConsoleRect )
 						pdp->FillConsoleRect(pdp, r, FILL_DISPLAY_BACK );
 				}
-				(*r).right = pdp->nXPad + pCurrentLine->nPixelEnd;
+				//(*r).right = pdp->nXPad + pCurrentLine->nPixelEnd;
+				(*r).right = (*r).left + pCurrentLine->nPixelEnd;
 				if( (*r).bottom > nMinLine )
 				{
+					uint32_t nSegSize, nSegHeight;
 #ifdef DEBUG_HISTORY_RENDER
 					lprintf( WIDE("And finally we can show some text... %s %d"), text, y );
 #endif
 					(*r).left = x;
 					//lprintf( WIDE("putting string %s at %d,%d (left-right) %d,%d"), text, x, y, (*r).left, (*r).right );
+					if( pdp->pHistoryDisplay->measureString )
+						pdp->pHistoryDisplay->measureString( pdp->pHistoryDisplay->psvMeasure, GetText( pText ) + nShown
+							, nShow, &nSegSize, &nSegHeight, GetCommonFont( pdp->psicon.frame ) );
+					(*r).right = (*r).left + nSegSize;
 					if( pdp->DrawString )
-						pdp->DrawString( pdp, x, y, r, text, nShown, nShow );
+						//pdp->DrawString( pdp, x, y, r, text, nShown, nShow );
+						pdp->DrawString( pdp, (*r).left, y, r, text, nShown, nShow );
+					(*r).left = (*r).right;
 					if( nLine == 0 )  // only keep the (last) line's end.
 						pdp->nNextCharacterBegin = (*r).right;
 					//DrawString( text );
