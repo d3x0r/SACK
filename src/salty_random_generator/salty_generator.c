@@ -268,7 +268,7 @@ void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holde
 
 static void salt_generator(uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	static uint32_t tick;
-   (void)psv;
+	(void)psv;
 	tick = GetTickCount();
 	salt[0] = &tick;
 	salt_size[0] = sizeof( tick );
