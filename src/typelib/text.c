@@ -3657,6 +3657,7 @@ char * u8xor( const char *a, size_t alen, const char *b, size_t blen, int *ofs )
 
 static const char * const _base642 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$_=";
 static const char * const _base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+static const char * _last_base64_set;
 static char _base64_r[256];
 
 static void encodeblock( unsigned char in[3], TEXTCHAR out[4], size_t len, const char *base64 )
@@ -3673,7 +3674,7 @@ static void decodeblock( char in[4], uint8_t out[3], size_t len, const char *bas
 	int n;
 	for( n = 0; n < 4; n++ )
 	{
-//   strchr( base64, in[n] );
+		//strchr( base64, in[n] );
 		index[n] = _base64_r[in[n]];
 		//if( ( index[n] - base64 ) == 64 )
 		//	last_byte = 1;
@@ -3712,11 +3713,14 @@ TEXTCHAR *EncodeBase64Ex( uint8_t* buf, size_t length, size_t *outsize, const ch
 }
 
 static void setupDecodeBytes( const char *code ) {
-   int n = 0;
-   memset( _base64_r, 0, 256 );
-	while( *code ) {
-      _base64_r[*code] = n++;
-      code++;
+	int n = 0;
+	if( _last_base64_set != code ) {
+		_last_base64_set = code;
+		memset( _base64_r, 0, 256 );
+		while( *code ) {
+			_base64_r[*code] = n++;
+			code++;
+		}
 	}
 }
 
