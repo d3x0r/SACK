@@ -3,10 +3,10 @@
 int main( void ) {
 	PLIST list = NULL;
 	INDEX idx;
-   char *name;
+	char *name;
 	AddLink( &list, "asdf" );
 	LIST_FORALL( list, idx, char *, name ) {
 		printf( "list has: %d = %s\n", idx, name );
 	}
-   return 0;
+	return 0;
 }
