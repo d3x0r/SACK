@@ -14,7 +14,7 @@ uintptr_t my_web_socket_opened( PCLIENT pc, uintptr_t psv )
 	return psv;
 }
 
-void my_web_socket_closed( PCLIENT pc, uintptr_t psv )
+void my_web_socket_closed( PCLIENT pc, uintptr_t psv, int code, const char *reason )
 {
 	lprintf( "Connection closed... %p %p", pc, psv );
 	done = 1;
@@ -27,14 +27,14 @@ void my_web_socket_error( PCLIENT pc, uintptr_t psv, int error )
 	lprintf( "Connection error... %p %p", pc, psv );
 }
 
-void my_web_socket_event( PCLIENT pc, uintptr_t psv, POINTER buffer, int msglen )
+void my_web_socket_event( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, size_t msglen )
 {
 	lprintf( "Recieved event" );
 	LogBinary( buffer, msglen );
 	//WebSocketSendText( pc, buffer, msglen );
 }
 
-int websocketClient( void )
+int webSocketClient( void )
 {
 	PCLIENT socket;
 	NetworkStart();
@@ -44,6 +44,7 @@ int websocketClient( void )
 								 , my_web_socket_closed
 								 , my_web_socket_error
 								 , 0
+								, "echo"
 								 );
 	if( socket )
 	{
@@ -75,7 +76,7 @@ void my_web_socket_server_error( PCLIENT pc, uintptr_t psv, int error )
 	lprintf( WIDE("Connection error... %p %p"), pc, psv );
 }
 
-void my_web_socket_server_event( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, int msglen )
+void my_web_socket_server_event( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, size_t msglen )
 {
 	lprintf( WIDE("Recieved event") );
 	LogBinary( buffer, msglen );
@@ -89,8 +90,7 @@ int webSocketServer( void )
 											  , my_web_socket_server_event
 											  , my_web_socket_server_closed
 											  , my_web_socket_server_error
-											  , 0
-											  );
+											  , 0 );
 
 
 	return 0;

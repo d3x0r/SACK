@@ -1,0 +1,27 @@
+#define NO_OPEN_MACRO
+//#define __NO_MMAP__
+#define __STATIC__
+#define __NO_OPTIONS__
+#define __NO_ODBC__
+#define NO_FILEOP_ALIAS
+#define SACK_BAG_EXPORTS
+#define __STATIC_GLOBALS__
+//#define TYPELIB_SOURCE
+#define __NO_INTERFACE_SUPPORT__
+
+#include <stdio.h>
+#include <stdarg.h> 
+#include <stdhdrs.h>
+
+#ifdef __cplusplus
+namespace sack {
+   namespace logging {
+#endif
+      INDEX real_lprintf( char const* f,... ) { va_list va; int n; va_start(va,f); n = vprintf(f ,va); puts(""); return n; }
+      INDEX null_lprintf( char const* f,... ) { return 0; }
+      RealLogFunction _xlprintf(uint32_t level DBG_PASS) { return real_lprintf; };
+      void SystemLog( char const* f ) { puts( f ); puts( "ZZZZ\n" ); }
+#ifdef __cplusplus
+   }
+}
+#endif

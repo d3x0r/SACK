@@ -15,6 +15,7 @@
 @set SRCS= %SRCS%   ../../src/typelib/text.c 
 @set SRCS= %SRCS%   ../../src/typelib/sets.c
 @set SRCS= %SRCS%   ../../src/typelib/binarylist.c 
+@set SRCS= %SRCS%   ../../src/fractionlib/fractions.c
 @set SRCS= %SRCS%   ../../src/memlib/sharemem.c 
 @set SRCS= %SRCS%   ../../src/memlib/memory_operations.c 
 @set SRCS= %SRCS%   ../../src/deadstart/deadstart_core.c 
@@ -27,7 +28,7 @@ mkdir h
 copy config.ppc.h h\config.ppc
 cd h
 
-c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_typelib.h ../../../include/stdhdrs.h
+c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_typelib.h ../../../include/stdhdrs.h ../../../include/fractions.h
 cd ..
 
 gcc -c -g -o a.o sack_typelib.c
