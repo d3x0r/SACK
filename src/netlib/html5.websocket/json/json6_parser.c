@@ -1334,13 +1334,6 @@ LOGICAL json6_parse_message( const char * msg
 	return FALSE;
 }
 
-void json6_dispose_decoded_message( struct json6_context_object *format
-                                 , POINTER msg_data )
-{
-	// a complex format might have sub-parts .... but for now we'll assume simple flat structures
-	//Release( msg_data );
-}
-
 void json6_dispose_message( PDATALIST *msg_data )
 {
 	json_dispose_message( msg_data );
