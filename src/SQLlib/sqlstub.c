@@ -3696,8 +3696,10 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			// or connection closes and destroyes the collection.
 			collection->flags.bTemporary = 1;
 			collection->flags.bEndOfFile = 1;
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 			sqlite3_finalize( collection->stmt );
 			collection->stmt = NULL;
+#endif
 
 			//lprintf( WIDE("What about the remainging results?") );
 			//ReleaseCollectionResults( collection );
