@@ -49,7 +49,7 @@
 #include <sqlgetoption.h>
 
 #ifndef UNDER_CE
-//#include <fcntl.h>
+#include <fcntl.h>  // O_BINARY
 //#include <io.h>
 #endif
 
@@ -2523,7 +2523,11 @@ LOGICAL SetFileLength( CTEXTSTR path, size_t length )
 #ifdef __LINUX__
 	// files are by default binary in linux
 #  ifndef O_BINARY
-#	define O_BINARY 0
+#	   define O_BINARY 0
+#  endif
+#else
+#  ifndef O_BINARY
+#	   define O_BINARY 0x8000
 #  endif
 #endif
 	INDEX file;
