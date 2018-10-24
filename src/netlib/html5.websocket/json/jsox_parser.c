@@ -182,7 +182,7 @@ char *jsox_escape_string( const char *string ) {
 
 #define GetUtfChar(x) __GetUtfChar(c,x)
 
-static int gatherString6(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTSTR *pmOut, TEXTRUNE start_c
+static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTSTR *pmOut, TEXTRUNE start_c
 		//, int literalString 
 		) {
 	char *mOut = (*pmOut);
@@ -934,7 +934,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		if( state->n > input->size ) DebugBreak();
 
 		if( state->gatheringString ) {
-			string_status = gatherString6( state, input->buf, &input->pos, input->size, &output->pos, state->gatheringStringFirstChar );
+			string_status = gatherStringX( state, input->buf, &input->pos, input->size, &output->pos, state->gatheringStringFirstChar );
 			if( string_status < 0 )
 				state->status = FALSE;
 			else if( string_status > 0 )
@@ -1316,7 +1316,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->val.string = output->pos;
 						state->gatheringString = TRUE;
 						state->gatheringStringFirstChar = c;
-						string_status = gatherString6( state, input->buf, &input->pos, input->size, &output->pos, c );
+						string_status = gatherStringX( state, input->buf, &input->pos, input->size, &output->pos, c );
 						//lprintf( "string gather status:%d", string_status );
 						if( string_status < 0 )
 							state->status = FALSE;
@@ -1415,7 +1415,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->val.string = output->pos;
 					state->gatheringString = TRUE;
 					state->gatheringStringFirstChar = c;
-					string_status = gatherString6( state, input->buf, &input->pos, input->size, &output->pos, c );
+					string_status = gatherStringX( state, input->buf, &input->pos, input->size, &output->pos, c );
 					//lprintf( "string gather status:%d", string_status );
 					if( string_status < 0 )
 						state->status = FALSE;
@@ -1853,14 +1853,14 @@ void _jsox_dispose_message( PDATALIST *msg_data )
 	DeleteFromSet( PDATALIST, jxpsd.dataLists, msg_data );
 }
 
-static uintptr_t FindDataList( void*p, uintptr_t psv ) {
+static uintptr_t jsox_FindDataList( void*p, uintptr_t psv ) {
 	if( ((PPDATALIST)p)[0] == (PDATALIST)psv )
 		return (uintptr_t)p;
 	return 0;
 }
 
 void jsox_dispose_message( PDATALIST *msg_data ) {
-	uintptr_t actual = ForAllInSet( PDATALIST, jxpsd.dataLists, FindDataList, (uintptr_t)msg_data[0] );
+	uintptr_t actual = ForAllInSet( PDATALIST, jxpsd.dataLists, jsox_FindDataList, (uintptr_t)msg_data[0] );
 	_jsox_dispose_message( (PDATALIST*)actual );
 	msg_data[0] = NULL;
 }
