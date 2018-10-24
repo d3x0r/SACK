@@ -1,15 +1,15 @@
-#include "sack_filelib.h"
+#include "sack_ucb_filelib.h"
 
 //-------------------------------- BEGIN TEST MAIN ----------------
 
 int main( void ) {
-	PLIST list = NULL;
-	INDEX idx;
-	char *name;
-	AddLink( &list, "asdf" );
-	LIST_FORALL( list, idx, char *, name ) {
-		printf( "list has: %d = %s\n", idx, name );
-	}
+	FILE *file;
+	const char *line;
+	char buf[256];
+	file = sack_fopen( 0, "test", "rt" );
+	while( line = sack_fgets( buf, 256, file ) )
+		printf( "%s", line );
+	sack_fclose( file );
 
 
 	return 0;

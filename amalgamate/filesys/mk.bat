@@ -32,16 +32,23 @@
 @set SRCS= %SRCS%   ../../src/filesyslib/winfiles.c
 @set SRCS= %SRCS%   ../../src/filesyslib/filescan.c
 
+: debug logging
 @set SRCS= %SRCS%   ../../src/sysloglib/syslog.c
 
+: plain text configuration reader.
 @set SRCS= %SRCS%   ../../src/configlib/configscript.c
 
-@set SRCS= %SRCS%   ../../src/systemlib/args.c
+: system abstraction (launch process, parse arguments, build arguments)
+: Also includes environment utilities, and system file paths
+:   (paths: CWD, dir of program, dir of this library)@set SRCS= %SRCS%   ../../src/systemlib/args.c
 @set SRCS= %SRCS%   ../../src/systemlib/system.c
 @set SRCS= %SRCS%   ../../src/systemlib/spawntask.c
 @set SRCS= %SRCS%   ../../src/systemlib/args.c
 @set SRCS= %SRCS%   ../../src/systemlib/oswin.c
 
+: Process extension; dynamic procedure registration.
+: Reading the system configuration brings module support
+: which requires this.
 @set SRCS= %SRCS%   ../../src/procreglib/names.c
 
 
@@ -56,10 +63,10 @@
 @set SRCS= %SRCS%   ../../src/deadstart/deadstart_core.c 
  
 
-del sack_filelib.c
-del sack_filelib.h
+del sack_ucb_filelib.c
+del sack_ucb_filelib.h
 
-c:\tools\ppc.exe -c -K -once -ssio -sd -I../../include -p -osack_filelib.c -DINCLUDE_LOGGING %SRCS%
+c:\tools\ppc.exe -c -K -once -ssio -sd -I../../include -p -osack_ucb_filelib.c -DINCLUDE_LOGGING %SRCS%
 
 mkdir h
 copy config.ppc.h h\config.ppc
@@ -82,14 +89,20 @@ cd h
 @set HDRS= %HDRS% ../../../src/contrib/sha3lib/sha.h
 
 
-c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_filelib.h %HDRS%
+c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_ucb_filelib.h %HDRS%
 cd ..
 
-gcc -c -g -o a.o sack_filelib.c
-gcc -c -O3 -o a-opt.o sack_filelib.c
+gcc -c -g -o a.o sack_ucb_filelib.c
+gcc -c -O3 -o a-opt.o sack_ucb_filelib.c
 
-gcc -g -o a.exe sack_filelib.c test.c -lwinmm -lws2_32 -liphlpapi  -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32  -lole32
-gcc -O3 -o a-opt.exe sack_filelib.c test.c -lwinmm -lws2_32 -liphlpapi -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32 -lole32
+: - ws2_32 
+: - iphlpapi 
+: - crypt32
+: - rpcrt4 
+: - odbc32 
+
+gcc -g -o a.exe sack_ucb_filelib.c test.c -lwinmm -lpsapi -lntdll -lole32 -lws2_32
+gcc -O3 -o a-opt.exe sack_ucb_filelib.c test.c -lwinmm -lws2_32 -liphlpapi -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32 -lole32
 
 gcc -g -o a.exe a.o test.c -lwinmm -lws2_32 -liphlpapi  -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32  -lole32
 gcc -O3 -o a-opt.exe a-opt.o test.c -lwinmm -lws2_32 -liphlpapi -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32 -lole32
