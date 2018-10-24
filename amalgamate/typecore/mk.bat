@@ -20,6 +20,9 @@
 @set SRCS= %SRCS%   ../../src/typelib/sets.c
 @set SRCS= %SRCS%   ../../src/typelib/binarylist.c 
 @set SRCS= %SRCS%   ../../src/typelib/url.c
+@set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/json_parser.c
+@set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/json6_parser.c
+@set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/jsox_parser.c
 @set SRCS= %SRCS%   ../../src/fractionlib/fractions.c
 :@set SRCS= %SRCS%   ../../src/vectlib/vectlib.c
 :@set SRCS= %SRCS%   ../../src/filesyslib/winfiles.c
@@ -37,7 +40,14 @@ mkdir h
 copy config.ppc.h h\config.ppc
 cd h
 
-c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_ucb_typelib.h ../../../include/stdhdrs.h ../../../include/fractions.h ../../../include/vectlib.h
+@set HDRS=
+@set HDRS= %HDRS% ../../../include/stdhdrs.h
+@set HDRS= %HDRS% ../../../include/json_emitter.h
+@set HDRS= %HDRS% ../../../include/jsox_parser.h
+@set HDRS= %HDRS% ../../../include/fractions.h
+
+
+c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_ucb_typelib.h %HDRS%
 cd ..
 
 gcc -c -g -o a.o sack_ucb_typelib.c
