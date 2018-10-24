@@ -852,7 +852,7 @@ static void CPROC RenderCursor( PCONSOLE_INFO console, RECT *r, int column )
 
 //----------------------------------------------------------------------------
 
-static void CPROC Update( PCONSOLE_INFO pmdp, RECT *upd )
+static void CPROC ConsoleUpdate( PCONSOLE_INFO pmdp, RECT *upd )
 {
 	// passed region is the region which was updated by drawing
 	// code.
@@ -936,7 +936,7 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 		console->KeystrokePaste = PSI_Console_KeystrokePaste;
 		console->SetCurrentColor = SetCurrentColor;
 		console->RenderCursor = RenderCursor;
-		console->Update = Update;
+		console->Update = ConsoleUpdate;
 
 		return 1;
 	}

@@ -12,6 +12,7 @@
 #include "../imglib/fntglobal.h"
 #include <controls.h>
 #include <psi.h>
+#include <psi/slider.h>
 
 #include "resource.h"
 PSI_FONTS_NAMESPACE

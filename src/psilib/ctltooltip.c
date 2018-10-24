@@ -21,7 +21,7 @@ tool_tip_display_control = { IMAGE_DISPLAY_CONTROL_NAME
 					, { { 256, 32}, sizeof( TOOL_TIP_DISPLAY ), BORDER_THINNER }
 };
 
-PRIORITY_PRELOAD( RegisterImageDisplay, PSI_PRELOAD_PRIORITY )
+PRIORITY_PRELOAD( RegisterToolTipDisplay, PSI_PRELOAD_PRIORITY )
 {
 	DoRegisterControl( &tool_tip_display_control );
 }

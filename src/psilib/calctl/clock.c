@@ -1,6 +1,8 @@
-
+#undef g
 #define g global_calender_structure
-#define USE_IMAGE_INTERFACE (g.MyImageInterface?g.MyImageInterface:(g.MyImageInterface=GetImageInterface() ))
+#ifndef USE_IMAGE_INTERFACE
+#  define USE_IMAGE_INTERFACE (g.MyImageInterface?g.MyImageInterface:(g.MyImageInterface=GetImageInterface() ))
+#endif
 //#define USE_RENDER_INTERFACE g.MyDisplayInterface
 #include <stdhdrs.h>
 #include <deadstart.h>
@@ -188,7 +190,7 @@ static int CPROC DrawClock( PSI_CONTROL pc )
 }
 
 
-static void CPROC Update( uintptr_t psvPC )
+static void CPROC ClockUpdate( uintptr_t psvPC )
 {
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, (PSI_CONTROL)psvPC );
 	if( pClk )
@@ -246,7 +248,7 @@ int CPROC InitClock( PSI_CONTROL pc )
 										  , (GetControlSurface( pc )->width -10) / 6
 										  , (GetControlSurface( pc )->height -10)/ 2
 										  ,3 ) );
-	SetCommonUserData( pc, AddTimer( 50, Update, (uintptr_t)pc ) );
+	SetCommonUserData( pc, AddTimer( 50, ClockUpdate, (uintptr_t)pc ) );
 	SetCommonTransparent( pc, TRUE );
 	pClk->textcolor = GetBaseColor( TEXTCOLOR );
 	pClk->last_time = NULL; // make sure it's NULL
@@ -420,3 +422,4 @@ static void OnDisplayResume( WIDE("PSI_Clock") _WIDE(TARGETNAME))( void )
 //PUBLIC( uint32_t, LinkClockPlease );
 
 PSI_CLOCK_NAMESPACE_END
+#undef g

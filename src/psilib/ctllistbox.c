@@ -1065,7 +1065,7 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int
 						plb->y = y;
 						plb->b = b;
 						{
-							uint32_t result = TrackPopup( pli->pPopup, GetFrame( plb ) );
+							uint32_t result = TrackPopup( pli->pPopup, GetFrame( pc ) );
 							if( result != (uint32_t)-1 )
 								pli->MenuProc( pli->psvContextMenu, pli, result );
 						}
