@@ -147,8 +147,8 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
 	// in the future (after now), expansion can be handled by observing the size
 	// of the registration entry.  at sizeof(registration) - 4 is always the
    // type ID result of this registration...
-	PSI_PROC( int, DoRegisterControl )( PCONTROL_REGISTRATION pcr, int sizeof_registration );
-#define DoRegisterControl(pcr) DoRegisterControl( pcr, sizeof(*pcr) )
+	PSI_PROC( int, DoRegisterControlEx )( PCONTROL_REGISTRATION pcr, int sizeof_registration );
+#define DoRegisterControl(pcr) DoRegisterControlEx( pcr, sizeof(*pcr) )
 //PSI_PROC( int, DoRegisterSubcontrol )( PSUBCONTROL_REGISTRATION pcr );
 
 #define ControlData(type,common) ((common)?(*((type*)(common))):NULL)
