@@ -1794,6 +1794,10 @@ void EXTERNAL_NAME(showstd)( PTRANSFORM pt, char *header )
    PRINTF( WIDE("%s"), byMsg );
 }
 
+#undef F4
+#undef F
+
+
 void EXTERNAL_NAME(SaveTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
@@ -1908,6 +1912,7 @@ RCOORD EXTERNAL_NAME( PointToPlaneT )( PCVECTOR n, PCVECTOR o, PCVECTOR p ) {
 }
 
 
+#undef l
 
 VECTOR_NAMESPACE_END
 
