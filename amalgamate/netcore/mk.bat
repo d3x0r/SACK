@@ -34,6 +34,10 @@
 @set SRCS= %SRCS%   ../../src/netlib/html5.websocket/server/html5.websocket.c 
 @set SRCS= %SRCS%   ../../src/netlib/html5.websocket/client/html5.websocket.client.c
 
+@set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/json_parser.c
+@set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/json6_parser.c
+@set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/jsox_parser.c
+
 
 @set SRCS= %SRCS%   ../../src/filesyslib/pathops.c
 @set SRCS= %SRCS%   ../../src/filesyslib/winfiles.c
@@ -69,7 +73,7 @@
 del sack_typelib.c
 del sack_typelib.h
 
-c:\tools\ppc.exe -c -K -once -ssio -sd -I../../include -p -osack_corelib.c -DINCLUDE_LOGGING %SRCS%
+c:\tools\ppc.exe -c -K -once -ssio -sd -I../../include -p -osack_ucb_networking.c -DINCLUDE_LOGGING %SRCS%
 
 mkdir h
 copy config.ppc.h h\config.ppc
@@ -92,16 +96,27 @@ cd h
 @set HDRS= %HDRS% ../../../src/contrib/sha3lib/sha.h
 
 
-c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_corelib.h %HDRS%
+c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_ucb_networking.h %HDRS%
 cd ..
 
-gcc -c -g -o a.o sack_corelib.c
-gcc -c -O3 -o a-opt.o sack_corelib.c
+gcc -c -g -o a.o sack_ucb_networking.c
+gcc -c -O3 -o a-opt.o sack_ucb_networking.c
 
-gcc -g -o a.exe sack_corelib.c test.c -lwinmm -lws2_32 -liphlpapi  -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32  -lole32
-gcc -O3 -o a-opt.exe sack_corelib.c test.c -lwinmm -lws2_32 -liphlpapi -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32 -lole32
+@set LIBS=
+@set LIBS=%LIBS% -lwinmm 
+@set LIBS=%LIBS% -lws2_32
+@set LIBS=%LIBS% -liphlpapi
+@set LIBS=%LIBS% -lrpcrt4
+:@set LIBS=%LIBS% -lodbc32 
+@set LIBS=%LIBS% -lpsapi
+@set LIBS=%LIBS% -lntdll
+@set LIBS=%LIBS% -lcrypt32
+@set LIBS=%LIBS% -lole32
 
-gcc -g -o a.exe a.o test.c -lwinmm -lws2_32 -liphlpapi  -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32  -lole32
-gcc -O3 -o a-opt.exe a-opt.o test.c -lwinmm -lws2_32 -liphlpapi -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32 -lole32
+gcc -g -o a.exe sack_ucb_networking.c test.c %LIBS%
+gcc -O3 -o a-opt.exe sack_ucb_networking.c test.c %LIBS%
+
+gcc -g -o a.exe a.o test.c %LIBS%
+gcc -O3 -o a-opt.exe a-opt.o test.c %LIBS%
 
 :_CRT_NONSTDC_NO_DEPRECATE;NO_OPEN_MACRO;_DEBUG;NO_OPEN_MACRO;__STATIC__;USE_SQLITE;USE_SQLITE_INTERFACE;FORCE_COLOR_MACROS;NO_OPEN_MACRO;__STATIC__;NO_FILEOP_ALIAS;_CRT_SECURE_NO_WARNINGS;NEED_SHLAPI;NEED_SHLOBJ;JSON_PARSER_MAIN_SOURCE;SQLITE_ENABLE_LOCKING_STYLE=0;MINIMAL_JSON_PARSE_ALLOCATE
