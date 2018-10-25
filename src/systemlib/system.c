@@ -794,7 +794,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 #else
 //lprintf( "need to send kill() to signal process to stop" );
 #ifndef PEDANTIC_TEST
-	kill task->pid, SIGINT );
+	kill( task->pid, SIGINT );
 #endif
 #endif
 
