@@ -8,7 +8,7 @@
  */
 #define SACK_VFS_SOURCE
 //#define SACK_VFS_FS_SOURCE
-#define USE_STDIO
+//#define USE_STDIO
 #if 1
 #  include <stdhdrs.h>
 #  include <ctype.h> // tolower on linux

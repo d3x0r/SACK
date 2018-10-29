@@ -601,6 +601,9 @@ LOGICAL _os_ExpandVolume( struct volume *vol ) {
 	size_t oldsize = vol->dwSize;
 	if( vol->file && vol->read_only ) return TRUE;
 	if( !vol->file ) {
+		char *fname;
+		char *iface;
+		char *tmp;
 		{
 			char *tmp = StrDup( vol->volname );
 			char *dir = (char*)pathrchr( tmp );
@@ -611,14 +614,33 @@ LOGICAL _os_ExpandVolume( struct volume *vol ) {
 			free( tmp );
 			//Deallocate( char*, tmp );
 		}
-
-		vol->file = sack_fopen( 0, vol->volname, "rb+" );
-		if( !vol->file ) {
-			created = TRUE;
-			vol->file = sack_fopen( 0, vol->volname, "wb+" );
+		if( tmp =(char*)StrChr( vol->volname, '@' ) ) {
+			tmp[0] = 0;
+			iface = (char*)vol->volname;
+			fname = tmp + 1;
+			struct file_system_mounted_interface *mount = sack_get_mounted_filesystem( iface );
+			//struct file_system_interface *iface = sack_get_filesystem_interface( iface );
+			if( !sack_exists( fname ) ) {
+				vol->file = sack_fopenEx( 0, fname, "rb+", mount );
+				if( !vol->file )
+					vol->file = sack_fopenEx( 0, fname, "wb+", mount );
+				created = TRUE;
+			}
+			else
+				vol->file = sack_fopenEx( 0, fname, "wb+", mount );
+			tmp[0] = '@';
+		}
+		else {
+			vol->file = sack_fopen( 0, vol->volname, "rb+" );
+			if( !vol->file ) {
+				created = TRUE;
+				vol->file = sack_fopen( 0, vol->volname, "wb+" );
+			}
 		}
 		sack_fseek( vol->file, 0, SEEK_END );
 		vol->dwSize = sack_ftell( vol->file );
+		if( vol->dwSize == 0 )
+			created = TRUE;
 		sack_fseek( vol->file, 0, SEEK_SET );
 	}
 
@@ -1294,6 +1316,7 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 					int d;
 					//LoG( "this name: %s", names );
 					if( ( d = _os_MaskStrCmp( vol, filename+ofs, nameBlock, name_ofs, path_match ) ) == 0 ) {
+                  if( file )
 						{
 							file->dirent_key = (*entkey);
 							file->cache = cache;
@@ -2260,6 +2283,7 @@ PRIORITY_PRELOAD( Sack_VFS_OS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 
 #  define StrDup(o) StrDupEx( (o) DBG_SRC )
 #endif
 
+#undef free
 
 SACK_VFS_NAMESPACE_END
 
