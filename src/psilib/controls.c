@@ -4540,12 +4540,22 @@ void SetCommonButtons( PSI_CONTROL pf
 	if( pf )
 	{
 		PCOMMON_BUTTON_DATA pcbd;
-		SetButtonPushMethod( GetControl( pf, BTN_CANCEL ), ButtonOkay, (uintptr_t)pdone );
-		SetButtonPushMethod( GetControl( pf, BTN_OKAY ), ButtonOkay, (uintptr_t)pokay );
 		SetButtonPushMethod( GetControl( pf, BTN_ABORT ), ButtonOkay, (uintptr_t)NULL );
 		pcbd = &pf->pCommonButtonData;
-		pcbd->okay_value = pokay;
-		pcbd->done_value = pdone;
+		if( !pcbd->okay_value ) {
+			PSI_CONTROL pc = GetControl( pf, BTN_OKAY );
+			if( pc ) {
+				SetButtonPushMethod( pc, ButtonOkay, (uintptr_t)pokay );
+				pcbd->okay_value = pokay;
+			}
+		}
+		if( !pcbd->done_value ) {
+			PSI_CONTROL pc = GetControl( pf, BTN_CANCEL );
+			if( pc ) {
+				SetButtonPushMethod( pc, ButtonOkay, (uintptr_t)pdone );
+				pcbd->done_value = pdone;
+			}
+		}
 	}
 }
 
