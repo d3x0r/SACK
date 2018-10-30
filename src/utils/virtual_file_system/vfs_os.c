@@ -36,6 +36,7 @@
 #define sack_fread(a,b,c,d)   fread(a,b,c,d)
 #define sack_fwrite(a,b,c,d)  fwrite(a,b,c,d)
 #define sack_ftell(a)         ftell(a)
+#undef StrDup
 #define StrDup(a)             strdup(a)
 #define free(a)               Deallocate( POINTER, a )
 
@@ -129,7 +130,7 @@ uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, e
 		firstblock = vfs_os_GetNextBlock( vol, firstblock, 0, 0 );
 		offset -= BLOCK_SIZE;
 	}
-	data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, cache_index, NULL, 0 );
+	data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, cache_index DBG_NULL );
 	return (uintptr_t)(data + (offset));
 }
 
@@ -348,7 +349,7 @@ static void _os_updateCacheAge_( struct volume *vol, enum block_cache_entries *c
 			if( age[n] > least )
 				age[n]--;
 		}
-		cache_idx[0] = useCache;
+		cache_idx[0] = (enum block_cache_entries)useCache;
 		age[nLeast] = (ageLength); // make this one the newest, and return it.
 		vol->segment[useCache] = segment;
 
@@ -600,6 +601,9 @@ LOGICAL _os_ExpandVolume( struct volume *vol ) {
 	size_t oldsize = vol->dwSize;
 	if( vol->file && vol->read_only ) return TRUE;
 	if( !vol->file ) {
+		char *fname;
+		char *iface;
+		char *tmp;
 		{
 			char *tmp = StrDup( vol->volname );
 			char *dir = (char*)pathrchr( tmp );
@@ -610,14 +614,33 @@ LOGICAL _os_ExpandVolume( struct volume *vol ) {
 			free( tmp );
 			//Deallocate( char*, tmp );
 		}
-
-		vol->file = sack_fopen( 0, vol->volname, "rb+" );
-		if( !vol->file ) {
-			created = TRUE;
-			vol->file = sack_fopen( 0, vol->volname, "wb+" );
+		if( tmp =(char*)StrChr( vol->volname, '@' ) ) {
+			tmp[0] = 0;
+			iface = (char*)vol->volname;
+			fname = tmp + 1;
+			struct file_system_mounted_interface *mount = sack_get_mounted_filesystem( iface );
+			//struct file_system_interface *iface = sack_get_filesystem_interface( iface );
+			if( !sack_exists( fname ) ) {
+				vol->file = sack_fopenEx( 0, fname, "rb+", mount );
+				if( !vol->file )
+					vol->file = sack_fopenEx( 0, fname, "wb+", mount );
+				created = TRUE;
+			}
+			else
+				vol->file = sack_fopenEx( 0, fname, "wb+", mount );
+			tmp[0] = '@';
+		}
+		else {
+			vol->file = sack_fopen( 0, vol->volname, "rb+" );
+			if( !vol->file ) {
+				created = TRUE;
+				vol->file = sack_fopen( 0, vol->volname, "wb+" );
+			}
 		}
 		sack_fseek( vol->file, 0, SEEK_END );
 		vol->dwSize = sack_ftell( vol->file );
+		if( vol->dwSize == 0 )
+			created = TRUE;
 		sack_fseek( vol->file, 0, SEEK_SET );
 	}
 
@@ -1251,7 +1274,7 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 				BLOCKINDEX nextblock = dirblock->next_block[n] ^ dirblockkey->next_block[n];
 				if( nextblock ) {
 					LOGICAL r;
-					leadin[(*leadinDepth)++] = n;
+					leadin[(*leadinDepth)++] = (char)n;
 					r = _os_ScanDirectory_( vol, NULL, nextblock, nameBlockStart, file, path_match, leadin, leadinDepth );
 					(*leadinDepth)--;
 					if( r )
@@ -1275,7 +1298,6 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 				FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
 		        
 				//if( filename && !name_ofs )	return FALSE; // done.
-				if(0)
 				LoG( "%d name_ofs = %" _size_f "(%" _size_f ") block = %d  vs %s"
 				   , n, name_ofs
 				   , next_entries[n].name_offset ^ entkey->name_offset
@@ -1294,6 +1316,7 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 					int d;
 					//LoG( "this name: %s", names );
 					if( ( d = _os_MaskStrCmp( vol, filename+ofs, nameBlock, name_ofs, path_match ) ) == 0 ) {
+                  if( file )
 						{
 							file->dirent_key = (*entkey);
 							file->cache = cache;
@@ -1554,7 +1577,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 									// this name is deleted.
 								}
 							}
-							_min_name = (_min_name + 1) + strlen( namebuffer + _min_name + 1 );
+							_min_name = (_min_name + 1) + (int)strlen( (const char *)(namebuffer + _min_name + 1) );
 						}
 					};
 				}
@@ -2067,7 +2090,7 @@ static int _os_iterate_find( struct find_info *_info ) {
 				BLOCKINDEX block = dirBlock->next_block[n] ^ dirBlockKey->next_block[n];
 				if( block ) {
 					memcpy( subnode.leadin, node.leadin, node.leadinDepth );
-					subnode.leadin[node.leadinDepth] = n;
+					subnode.leadin[node.leadinDepth] = (char)n;
 					subnode.leadinDepth = node.leadinDepth + 1;
 					subnode.leadin[subnode.leadinDepth] = 0;
 					subnode.this_dir_block = block;
@@ -2077,7 +2100,7 @@ static int _os_iterate_find( struct find_info *_info ) {
 		}
 		//lprintf( "%p ledin : %*.*s %d", node, node.leadinDepth, node.leadinDepth, node.leadin, node.leadinDepth );
 		next_entries = dirBlock->entries;
-		for( n = node.thisent; n < dirBlock->used_names ^ dirBlockKey->used_names; n++ ) {
+		for( n = (int)node.thisent; n < (dirBlock->used_names ^ dirBlockKey->used_names); n++ ) {
 			struct directory_entry *entkey = ( info->vol->key)?((struct directory_hash_lookup_block *)info->vol->usekey[cache])->entries+n:&l.zero_entkey;
 			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
 			const char *filename;
@@ -2255,8 +2278,12 @@ PRIORITY_PRELOAD( Sack_VFS_OS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 
 #  undef sack_fread
 #  undef sack_fwrite
 #  undef sack_ftell
+#  undef free
+#  undef StrDup
+#  define StrDup(o) StrDupEx( (o) DBG_SRC )
 #endif
 
+#undef free
 
 SACK_VFS_NAMESPACE_END
 

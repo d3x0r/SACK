@@ -792,8 +792,10 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 	else
 		return TRUE;
 #else
-	//lprintf( "need to send kill() to signal process to stop" );
+//lprintf( "need to send kill() to signal process to stop" );
+#ifndef PEDANTIC_TEST
 	kill( task->pid, SIGINT );
+#endif
 #endif
 
 
@@ -866,7 +868,9 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 //			else
 //				lprintf( WIDE( "Would have close handles rudely." ) );
 #else
+#ifndef PEDANTIC_TEST
 			kill( task->pid, SIGTERM );
+#endif
 			// wait a moment for it to die...
 #endif
 		}

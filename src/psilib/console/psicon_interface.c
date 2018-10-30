@@ -1,6 +1,9 @@
-
+#ifndef USE_IMAGE_INTERFACE
 #define USE_IMAGE_INTERFACE ImageInterface
+#endif
+#ifndef USE_RENDER_INTERFACE
 #define USE_RENDER_INTERFACE RenderInterface
+#endif
 
 #include <stdhdrs.h>
 #include <psi.h>

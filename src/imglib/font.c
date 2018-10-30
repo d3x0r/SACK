@@ -231,7 +231,9 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		int32_t xs = 0;
 		int32_t ys = 0;
 		Image pifSrc = pchar->cell;
+#if defined( __3D__ )
 		Image pifSrcReal;
+#endif
 		Image pifDest = pImage;
 		switch( order )
 		{

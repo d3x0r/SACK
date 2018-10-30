@@ -169,7 +169,6 @@ CTEXTSTR FetchLastInsertKeyEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS
 	//lprintf( "getting last insert ID?" );
 #ifdef POSGRES_BACKEND
 	{
-		CTEXTSTR result = NULL;
 		TEXTCHAR query[256];
 		sprintf( query, WIDE("select currval('%s_%s_seq')"), table, col );
 		if( SQLQueryEx( odbc, query, &result ) && result DBG_RELAY )
@@ -192,13 +191,11 @@ CTEXTSTR FetchLastInsertKeyEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS
 	PushSQLQueryEx( odbc );
 	if( odbc->flags.bAccess )
 	{
-		CTEXTSTR result = NULL;
 		if( SQLQueryEx( odbc, WIDE( "select @@IDENTITY" ), &result DBG_RELAY ) && result )
 			RecordID = StrDup( result );
 	}
 	else if( odbc->flags.bODBC )
 	{
-		CTEXTSTR result = NULL;
 		if( SQLQueryEx( odbc, WIDE("select LAST_INSERT_ID()"), &result DBG_RELAY ) && result )
 		{
 			RecordID = StrDup( result );

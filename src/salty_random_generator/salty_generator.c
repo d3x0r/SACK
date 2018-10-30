@@ -140,33 +140,33 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_
 	uint32_t partial_bits = 0;
 	uint32_t get_bits;
 	uint32_t resultBits = 0;
-	do
-	{
+	if( !ctx ) DebugBreak();
+	//if( ctx->bits_used > 512 ) DebugBreak();
+	do {
 		if( bits > sizeof( tmp ) * 8 )
 			get_bits = sizeof( tmp ) * 8;
 		else
 			get_bits = bits;
 
 		// if there were 1-31 bits of data in partial, then can only get 32-partial max.
-		if( ( 32 - partial_bits ) < get_bits )
-			get_bits = 32-partial_bits;
+		if( 32 < (get_bits + partial_bits) )
+			get_bits = 32 - partial_bits;
 		// check1 :
 		//    if get_bits == 32
 		//    but bits_used is 1-7, then it would have to pull 5 bytes to get the 32 required
 		//    so truncate get_bits to 25-31 bits
-		if( ( 32 - ( ctx->bits_used & 0x7 ) ) < get_bits )
-			get_bits = ( 32 - ( ctx->bits_used & 0x7 ) );
+		if( 32 < (get_bits + (ctx->bits_used & 0x7)) )
+			get_bits = (32 - (ctx->bits_used & 0x7));
 		// if resultBits is 1-7 offset, then would have to store up to 5 bytes of value
 		//    so have to truncate to just the up to 4 bytes that will fit.
-		if( get_bits > (32 - resultBits ) )
-			get_bits = 32-resultBits;
+		if( (get_bits+ resultBits) > 32 )
+			get_bits = 32 - resultBits;
 		// only greater... if equal just grab the bits.
-		if( get_bits > ( ctx->bits_avail - ctx->bits_used ) )
-		{
+		if( (get_bits + ctx->bits_used) > ctx->bits_avail ) {
 			// if there are any bits left, grab the partial bits.
-			if( ctx->bits_avail - ctx->bits_used )
-			{
+			if( ctx->bits_avail > ctx->bits_used ) {
 				partial_bits = (uint32_t)(ctx->bits_avail - ctx->bits_used);
+				if( partial_bits > get_bits ) partial_bits = get_bits;
 				// partial can never be greater than 32; input is only max of 32
 				//if( partial_bits > (sizeof( partial_tmp ) * 8) )
 				//	partial_bits = (sizeof( partial_tmp ) * 8);
@@ -182,8 +182,7 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_
 			NeedBits( ctx );
 			bits -= partial_bits;
 		}
-		else
-		{
+		else {
 			if( ctx->use_version3 )
 				tmp = MY_GET_MASK( ctx->entropy3, ctx->bits_used, get_bits );
 			else if( ctx->use_version2_256 )
@@ -193,9 +192,9 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_
 			else
 				tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, get_bits );
 			ctx->bits_used += get_bits;
-			if( partial_bits )
-			{
-				tmp = partial_tmp | ( tmp << partial_bits );
+			//if( ctx->bits_used > 512 ) DebugBreak();
+			if( partial_bits ) {
+				tmp = partial_tmp | (tmp << partial_bits);
 				partial_bits = 0;
 			}
 			(*buffer) = tmp << resultBits;
@@ -208,6 +207,7 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_
 #endif
 				resultBits -= 8;
 			}
+			//if( get_bits > bits ) DebugBreak();
 			bits -= get_bits;
 		}
 	} while( bits );
@@ -268,6 +268,7 @@ void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holde
 
 static void salt_generator(uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	static uint32_t tick;
+	(void)psv;
 	tick = GetTickCount();
 	salt[0] = &tick;
 	salt_size[0] = sizeof( tick );
@@ -283,11 +284,20 @@ char *SRG_ID_Generator( void ) {
 }
 
 char *SRG_ID_Generator_256( void ) {
-	static struct random_context *ctx;
+	static struct random_context *_ctx[32];
+	static uint32_t used[32];
 	uint32_t buf[2 * (16 + 16)];
 	size_t outlen;
-	if( !ctx ) ctx = SRG_CreateEntropy2_256( salt_generator, 0 );
+	int usingCtx;
+	static struct random_context *ctx;
+	usingCtx = 0;
+	do {
+		while( used[++usingCtx] ) { if( ++usingCtx >= 32 ) usingCtx = 0; }
+	} while( LockedExchange( used + usingCtx, 1 ) );
+	ctx = _ctx[usingCtx];
+	if( !ctx ) ctx = _ctx[usingCtx] = SRG_CreateEntropy2_256( salt_generator, 0 );
 	SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	used[usingCtx] = 0;
 	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }
 

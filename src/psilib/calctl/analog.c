@@ -1,7 +1,12 @@
+#undef g
 #define g global_calender_structure
 //#ifndef __cplusplus_cli
-#define USE_IMAGE_INTERFACE (g.MyImageInterface?g.MyImageInterface:(g.MyImageInterface=GetImageInterface() ))
-#define USE_RENDER_INTERFACE (g.MyDisplayInterface?g.MyDisplayInterface:(g.MyDisplayInterface=GetDisplayInterface() ))
+#ifndef USE_RENDER_INTERFACE
+#  define USE_RENDER_INTERFACE (g.MyDisplayInterface?g.MyDisplayInterface:(g.MyDisplayInterface=GetDisplayInterface() ))
+#endif
+#ifndef USE_IMAGE_INTERFACE
+#  define USE_IMAGE_INTERFACE (g.MyImageInterface?g.MyImageInterface:(g.MyImageInterface=GetImageInterface() ))
+#endif
 //#endif
 
 
@@ -339,3 +344,4 @@ PSI_CLOCK_NAMESPACE_END
 
 
 
+#undef g

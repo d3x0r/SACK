@@ -233,8 +233,8 @@ int GetResourceID( PSI_CONTROL parent, CTEXTSTR name, uint32_t nIDDefault )
 // sometimes it works.
 static void CPROC InitPSILibrary( void );
 
-#undef DoRegisterControl
-int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
+//#undef DoRegisterControl
+int DoRegisterControlEx( PCONTROL_REGISTRATION pcr, int nSize )
 {
 	if( pcr )
 	{
@@ -275,12 +275,16 @@ int DoRegisterControl( PCONTROL_REGISTRATION pcr, int nSize )
 			root = RegisterClassAlias( namebuf2, namebuf );
 			RegisterValueExx( root, NULL, WIDE("Type"), FALSE, pcr->name );
 			RegisterValueExx( root, NULL, WIDE("Type"), TRUE, (CTEXTSTR)(uintptr_t)ControlID );
-			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%") _32f
+
+			/*
+			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f
 					  , ControlID );
 			root = RegisterClassAlias( namebuf2, namebuf );
-			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY_OTHER WIDE("/control/%s")
+			tnprintf( namebuf, sizeof( namebuf ), PSI_ROOT_REGISTRY WIDE("/control/%s")
 				, pcr->name );
 			root = RegisterClassAlias( namebuf2, namebuf );
+			*/
+
 			ControlID++; // new control type registered...
 			RegisterIntValueEx( (PCLASSROOT)WIDE("PSI/Controls"), NULL, WIDE("User Type ID"), (uintptr_t)ControlID );
 		}
@@ -746,7 +750,11 @@ void TryLoadingFrameImage( void )
 	}
 }
 
-static void OnDisplayConnect( WIDE( "@00 PSI Core" ) )( struct display_app*app, struct display_app_local ***pppLocal )
+#ifdef __cplusplus
+static void OnDisplayConnect( WIDE( "@00 PSI++ Core" ) )( struct display_app*app, struct display_app_local ***pppLocal )
+#else
+static void OnDisplayConnect( WIDE( "@00 PSI Core" ) )(struct display_app*app, struct display_app_local ***pppLocal)
+#endif
 {
 	PFrameBorder border;
 	INDEX idx;
@@ -1347,7 +1355,7 @@ static void OnDrawCommonDecorations( WIDE("Frame") )( PSI_CONTROL pc )
 
 //--------------------------------------------------------------------------
 // forward declaration cause we're lazy and don't want to re-wind the below routines...
-typedef struct penging_rectangle_tag
+typedef struct psi_penging_rectangle_tag
 {
 	struct {
 		BIT_FIELD bHasContent : 1;
@@ -1358,8 +1366,8 @@ typedef struct penging_rectangle_tag
 	//CRITICALSECTION cs;
 	int32_t x, y;
    uint32_t width, height;
-} PENDING_RECT, *PPENDING_RECT;
-static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int level DBG_PASS );
+} PSI_PENDING_RECT, *PPSI_PENDING_RECT;
+static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, int level DBG_PASS );
 
 static void DoUpdateFrame( PSI_CONTROL pc
 								 , int x, int y
@@ -1518,7 +1526,7 @@ void IntelligentFrameUpdateAllDirtyControls( PSI_CONTROL pc DBG_PASS )
 {
 	{
 		// Draw this now please?!
-		PENDING_RECT upd;
+		PSI_PENDING_RECT upd;
 #ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
 		{
@@ -1559,7 +1567,7 @@ void IntelligentFrameUpdateAllDirtyControls( PSI_CONTROL pc DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-void AddCommonUpdateRegionEx( PPENDING_RECT update_rect, int bSurface, PSI_CONTROL pc DBG_PASS )
+void AddCommonUpdateRegionEx( PPSI_PENDING_RECT update_rect, int bSurface, PSI_CONTROL pc DBG_PASS )
 #define AddCommonUpdateRegion(upd,surface,pc) AddCommonUpdateRegionEx( upd,surface,pc DBG_SRC )
 {
 	PSI_CONTROL parent;
@@ -1824,7 +1832,7 @@ Image CopyOriginalSurfaceEx( PSI_CONTROL pc, Image use_image DBG_PASS )
 
 
 // This routine actually sends the draw events to dirty rectangles.
-static void DoUpdateCommonEx( PPENDING_RECT upd, PSI_CONTROL pc, int bDraw, int level DBG_PASS )
+static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, int level DBG_PASS )
 {
 	int cleaned = 0;
 	if( pc )
@@ -2501,7 +2509,7 @@ void DumpFrameContents( PSI_CONTROL pc )
 
 PSI_PROC( void, UpdateCommonEx )( PSI_CONTROL pc, int bDraw DBG_PASS )
 {
-	PENDING_RECT upd;
+	PSI_PENDING_RECT upd;
 	upd.flags.bTmpRect = 0;
 	upd.flags.bHasContent = 0;
 
@@ -2563,7 +2571,7 @@ CONTROL_REGISTRATION frame_controls = { WIDE("Frame"), { { 320, 240 }, 0, BORDER
 
 PRIORITY_PRELOAD( register_frame_control, PSI_PRELOAD_PRIORITY )
 {
-   DoRegisterControl( &frame_controls, sizeof( frame_controls ) );
+   DoRegisterControlEx( &frame_controls, sizeof( frame_controls ) );
 }
 
 //---------------------------------------------------------------------------
@@ -3166,7 +3174,7 @@ PSI_PROC( void, HideControl )( PSI_CONTROL pc )
 					BlotImage( pc->Window, pc->OriginalSurface, 0, 0 );
 					pc->flags.bParentCleaned = 1;
 					{
-						PENDING_RECT upd;
+						PSI_PENDING_RECT upd;
 #ifdef DEBUG_UPDAATE_DRAW
 						if( g.flags.bLogDebugUpdate )
 							lprintf( WIDE("pc = %p par = %p"), pc, pc->parent );
@@ -4498,7 +4506,7 @@ PSI_PROC( void, SetControlIDName )( PSI_CONTROL pc, TEXTCHAR *IDName )
 //---------------------------------------------------------------------------
 
 
-BUTTON_CLICK( ButtonOkay, ( uintptr_t psv, PSI_CONTROL pc ) )
+static void CPROC ButtonOkay( uintptr_t psv, PSI_CONTROL pc )
 {
 	PCOMMON_BUTTON_DATA pcbd = pc->parent?&pc->parent->pCommonButtonData:NULL;
 	if( pcbd ) {
@@ -4514,6 +4522,7 @@ BUTTON_CLICK( ButtonOkay, ( uintptr_t psv, PSI_CONTROL pc ) )
 			WakeThread( pcbd->thread );
 	}
 }
+
 
 //---------------------------------------------------------------------------
 

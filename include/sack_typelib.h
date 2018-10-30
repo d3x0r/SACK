@@ -129,7 +129,7 @@ public:
 	inline void remove( POINTER p ) { DeleteLink( &list, p ); }
 	inline POINTER first( void ) { POINTER p; for( idx = 0, p = NULL;list && (idx < list->Cnt) && (( p = GetLink( &list, idx ) )==0); )idx++; return p; }
 	inline POINTER next( void ) { POINTER p; for( idx++;list && (( p = GetLink( &list, idx ) )==0) && idx < list->Cnt; )idx++; return p; }
-	inline POINTER get(INDEX idx) { return GetLink( &list, idx ); }
+	inline POINTER get(INDEX index) { return GetLink( &list, index ); }
 } *piList;
 #endif
 
@@ -278,7 +278,7 @@ TYPELIB_PROC  uintptr_t TYPELIB_CALLTYPE     ForAllLinks    ( PLIST *pList, ForP
 #define SetLink(p,i,v)     ( SetLinkEx( (p),(i),((POINTER)(v)) DBG_SRC ) )
 
 #ifdef __cplusplus
-	};//		namespace list;
+	} //		namespace list;
 #endif
 //--------------------------------------------------------
 _DATALIST_NAMESPACE
@@ -503,7 +503,7 @@ TYPELIB_PROC  POINTER TYPELIB_CALLTYPE      PeekLinkEx         ( PLINKSTACK *pls
    Macro to pass default debug file and line information.                    */
 #define PushLink(p, v)     PushLinkEx((p),(v) DBG_SRC)
 #ifdef __cplusplus
-		};//		namespace link_stack {
+		} //		namespace link_stack {
 #endif
 
 //--------------------------------------------------------
@@ -856,7 +856,7 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  EnqueMsgEx ( PMSGHANDLE pmh, POINTER buffer,
 TYPELIB_PROC  int TYPELIB_CALLTYPE  IsMsgQueueEmpty ( PMSGHANDLE pmh );
 
 #ifdef __cplusplus
-}; //namespace message {
+} //namespace message {
 #endif
 
 /* Routines to deal with SLAB allocated blocks of structures.
@@ -1178,11 +1178,8 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  DeleteFromSetExx( GENERICSET *set, POINTER 
 /* <combine sack::containers::sets::DeleteFromSetExx@GENERICSET *@POINTER@int@int max>
    
    \ \                                                                                 */
-#ifdef _DEBUG
-#define DeleteFromSet( name, set, member ) do { P##name##SET testset = set; DeleteFromSetExx( (GENERICSET*)set, member, sizeof( name ), MAX##name##SPERSET DBG_SRC ); } while(0)
-#else
 #define DeleteFromSet( name, set, member ) DeleteFromSetExx( (GENERICSET*)set, member, sizeof( name ), MAX##name##SPERSET DBG_SRC )
-#endif
+
 /* Marks a member in a set as usable.
    Parameters
    set :       pointer to a genericset pointer
@@ -1583,7 +1580,7 @@ enum TextFlags {
    name :  name of the variable to create
    size :  size of the static text element. (0 content)          */
 #define DECLTEXTSZ( name, size ) DECLTEXTSZTYPE( name,(size) ) \
-	= { TF_STATIC, NULL, NULL, {{1,1}} }
+	= { TF_STATIC, NULL, NULL, {{1,1  ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}} }
 
 /* Defines an initializer block which can be used to satisfy a
    TEXT elemnt of a structure
@@ -2874,7 +2871,7 @@ TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE ParseIntVector( CTEXTSTR data, int **pData
 
 
 #ifdef __cplusplus
-}; //namespace text {
+} //namespace text {
 #endif
 
 
@@ -3297,7 +3294,7 @@ TYPELIB_PROC  uint32_t TYPELIB_CALLTYPE  GetNodeCount ( PTREEROOT root );
 TYPELIB_PROC  PTREEROOT TYPELIB_CALLTYPE  ShadowBinaryTree( PTREEROOT root ); // returns a shadow of the original.
 
 #ifdef __cplusplus
-	}; //namespace BinaryTree {
+	} //namespace BinaryTree {
 #endif
 
 //--------------------------------------------------------------------------
@@ -3343,7 +3340,7 @@ TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE FamilyTreeForEach( PFAMILYTREE root, PFAMI
 			, uintptr_t psvUserData );
 
 #ifdef __cplusplus
-}; //namespace family {
+} //namespace family {
 #endif
 
 //--------------------------------------------------------------------------
@@ -3351,8 +3348,8 @@ TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE FamilyTreeForEach( PFAMILYTREE root, PFAMI
 //--------------------------------------------------------------------------
 #ifdef __cplusplus
 //} // extern "c" 
-}; // namespace containers
-}; // namespace sack
+} // namespace containers
+} // namespace sack
 using namespace sack::containers::link_stack;
 using namespace sack::containers::data_stack;
 using namespace sack::containers::data_list;

@@ -938,15 +938,15 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 #endif
 	RotateAbs( transform, (RCOORD)0, (RCOORD)0, (RCOORD)sprite->angle );
    //Scale( transform, 1, 1, 0 );
-	tmp[0] = (0) - sprite->hotx;
-	tmp[1] = (0) - sprite->hoty;
-	tmp[2] = 0;
+	tmp[0] = (RCOORD)((0) - sprite->hotx);
+	tmp[1] = (RCOORD)((0) - sprite->hoty);
+	tmp[2] = (RCOORD)(0);
 	Apply( transform, result, tmp );
 	sprite->minx = sprite->maxx = x1 = (int)result[0]; // + sprite->curx;
 	sprite->miny = sprite->maxy = y1 = (int)result[1]; // + sprite->cury;
-	tmp[0] = (sprite->image->real_width) - sprite->hotx;
-	tmp[1] = (0) - sprite->hoty;
-	tmp[2] = 0;
+	tmp[0] = (RCOORD)((sprite->image->real_width) - sprite->hotx);
+	tmp[1] = (RCOORD)((0) - sprite->hoty);
+	tmp[2] = (RCOORD)(0);
 	Apply( transform, result, tmp );
 	x2 = (int)result[0]; // + sprite->curx;
 	if( x2 > sprite->maxx ) sprite->maxx = x2;
@@ -954,9 +954,9 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 	y2 = (int)result[1]; // + sprite->cury;
 	if( y2 > sprite->maxy ) sprite->maxy = y2;
 	if( y2 < sprite->miny ) sprite->miny = y2;
-	tmp[0] = (sprite->image->real_width) - sprite->hotx;
-	tmp[1] = (sprite->image->real_height) - sprite->hoty;
-	tmp[2] = 0;
+	tmp[0] = (RCOORD)((sprite->image->real_width) - sprite->hotx);
+	tmp[1] = (RCOORD)((sprite->image->real_height) - sprite->hoty);
+	tmp[2] = (RCOORD)(0);
 	Apply( transform, result, tmp );
 	x3 = (int)result[0]; // + sprite->curx;
 	if( x3 > sprite->maxx ) sprite->maxx = x3;
@@ -964,9 +964,9 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 	y3 = (int)result[1]; // + sprite->cury;
 	if( y3 > sprite->maxy ) sprite->maxy = y3;
 	if( y3 < sprite->miny ) sprite->miny = y3;
-	tmp[0] = (0) - sprite->hotx;
-	tmp[1] = (sprite->image->real_height) - sprite->hoty;
-	tmp[2] = 0;
+	tmp[0] = (RCOORD)((0) - sprite->hotx);
+	tmp[1] = (RCOORD)((sprite->image->real_height) - sprite->hoty);
+	tmp[2] = (RCOORD)(0);
 	Apply( transform, result, tmp );
 	x4 = (int)result[0]; // + sprite->curx;
 	if( x4 > sprite->maxx ) sprite->maxx = x4;

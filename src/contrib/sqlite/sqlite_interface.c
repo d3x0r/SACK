@@ -344,23 +344,35 @@ int xDeviceCharacteristics(sqlite3_file*file)
 }
 
 
-  int xShmMap(sqlite3_file*file, int iPg, int pgsz, int a, void volatile**b)
-  {
-	  return 0;
-  }
-  int xShmLock(sqlite3_file*file, int offset, int n, int flags)
-  {
-	  return 0;
-  }
+int xShmMap(sqlite3_file*file, int iPg, int pgsz, int a, void volatile**b)
+{
+	(void)file;
+	(void)iPg;
+	(void)pgsz;
+	(void)a;
+	(void)b;
+	return 0;
+}
+int xShmLock(sqlite3_file*file, int offset, int n, int flags)
+{
+	(void)file;
+	(void)offset;
+	(void)n;
+	(void)flags;
+	return 0;
+}
 
-  void xShmBarrier(sqlite3_file*file)
-  {
-  }
+void xShmBarrier(sqlite3_file*file)
+{
+	(void)file;
+}
 
-  int xShmUnmap(sqlite3_file*file, int deleteFlag)
-  {
-	  return 0;
-  }
+int xShmUnmap(sqlite3_file*file, int deleteFlag)
+{
+	(void)file;
+	(void)deleteFlag;
+	return 0;
+}
 
 
 /* Methods above are valid for version 1 */

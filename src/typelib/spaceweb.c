@@ -171,7 +171,7 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 }
 
 
-RCOORD PointToPlaneT( PCVECTOR n, PCVECTOR o, PCVECTOR p ) {
+RCOORD _PointToPlaneT( PCVECTOR n, PCVECTOR o, PCVECTOR p ) {
 	VECTOR i;
 	RCOORD t;
 	SetPoint( i, n );
@@ -1750,7 +1750,7 @@ static uintptr_t CPROC something3d( void* thisnode, uintptr_t psv )
 		int len;
 		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, zz ) c++;
 
-		len = snprintf( tmp, sizeof( tmp ), WIDE("%d[%d]"), node->paint, NodeIndex( node ) );
+		len = snprintf( tmp, sizeof( tmp ), WIDE("%d[%zd]"), node->paint, NodeIndex( node ) );
 		Render3dText( tmp, len, 0xFFFFFFFF, NULL, node->point, TRUE );
 	}
 
@@ -1916,7 +1916,7 @@ static uintptr_t CPROC something( void* thisnode, uintptr_t psv )
 		int c = 0;
 		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, zz ) c++;
 
-		snprintf( tmp, sizeof( tmp ), WIDE("%d[%d]"), node->paint, NodeIndex( node ) );
+		snprintf( tmp, sizeof( tmp ), WIDE("%d[%zd]"), node->paint, NodeIndex( node ) );
 		PutString( data->surface, node->point[vRight], node->point[vForward], BASE_COLOR_WHITE, 0, tmp );
 	}
 	plot( data->surface, node->point[vRight], node->point[vForward], BASE_COLOR_GREEN );

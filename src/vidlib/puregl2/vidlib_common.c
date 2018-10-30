@@ -1121,7 +1121,7 @@ void  MoveDisplayRel (PVIDEO hVideo, int32_t x, int32_t y)
 	{
 		hVideo->pWindowPos.x += x;
 		hVideo->pWindowPos.y += y;
-		Translate( hVideo->transform, hVideo->pWindowPos.x, hVideo->pWindowPos.y, 0 );
+		Translate( hVideo->transform, (RCOORD)hVideo->pWindowPos.x, (RCOORD)hVideo->pWindowPos.y, 0 );
 	}
 }
 
@@ -1215,7 +1215,7 @@ void  SetMousePosition (PVIDEO hVid, int32_t x, int32_t y)
 			int newx, newy;
 			//lprintf( "TAGHERE" );
 			lprintf( WIDE("Moving Mouse Not Implemented") );
-			InverseOpenGLMouse( hVid->camera, hVid, x+ hVid->cursor_bias.x, y, &newx, &newy );
+			InverseOpenGLMouse( hVid->camera, hVid, (RCOORD)x+ hVid->cursor_bias.x, (RCOORD)y, &newx, &newy );
 			//lprintf( "%d,%d became %d,%d", x, y, newx, newy );
 			//SetCursorPos (newx,newy);
 		}
@@ -1226,7 +1226,7 @@ void  SetMousePosition (PVIDEO hVid, int32_t x, int32_t y)
 				int newx, newy;
 				//lprintf( "TAGHERE" );
 				lprintf( WIDE("Moving Mouse Not Implemented") );
-				InverseOpenGLMouse( l.current_mouse_event_camera, hVid, x, y, &newx, &newy );
+				InverseOpenGLMouse( l.current_mouse_event_camera, hVid, (RCOORD)x, (RCOORD)y, &newx, &newy );
 				//lprintf( "%d,%d became %d,%d", x, y, newx, newy );
 				//SetCursorPos (newx + l.WindowBorder_X + hVid->cursor_bias.x + l.current_mouse_event_camera->x ,
 				//				  newy + l.WindowBorder_Y + hVid->cursor_bias.y + l.current_mouse_event_camera->y );

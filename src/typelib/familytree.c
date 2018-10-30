@@ -211,15 +211,20 @@ PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, PFAMILYNODE parent, POINTER
 		node->parent = parent;//(*root)->prior;
 		if( !node->parent )
 		{
-			if( ( node->elder = (*root)->family ) )
-				(*root)->family->younger = node;
+			if( (*root)->prior ) {
+				if( ( node->elder = (*root)->prior->child ) )
+					(*root)->family->younger = node;
+			} else
+				node->elder = NULL;
 			(*root)->family = node;
 		}
 		else
 		{
-			if( ( node->elder = (*root)->prior->child ) )
-				node->elder->younger = node;
-			(*root)->prior->child = node;
+			if( (*root)->prior ) {
+				if( ( node->elder = (*root)->prior->child ) )
+					node->elder->younger = node;
+				(*root)->prior->child = node;
+			}
 		}
 		(*root)->prior = node;
 		(*root)->lastfound = node;

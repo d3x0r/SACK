@@ -95,10 +95,10 @@ void CPROC DrawProc( uintptr_t psv, PRENDERER renderer )
 }
 */
 
-int CPROC MouseProc( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
+uintptr_t CPROC MouseProc( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	int n;
-   static int _b;
+	static int _b;
 	// generate sprites at mouse click...
 	if( b & MK_LBUTTON && !( _b & MK_LBUTTON ) )
 	{
@@ -112,7 +112,7 @@ int CPROC MouseProc( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 		}
 	}
 	_b = b;
-   return 1;
+	return 1;
 }
 
 

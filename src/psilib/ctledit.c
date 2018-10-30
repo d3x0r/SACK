@@ -1029,6 +1029,11 @@ PSI_CONTROL CPROC MakeEditControl( PSI_CONTROL pFrame, int attr
 										 , nID, caption );
 }
 
+#define MakeEditControl(f,x,y,w,h,id,t,a) SetEditControlPassword( SetEditControlReadOnly( MakeCaptionedControl( f,EDIT_FIELD,x,y,w,h,id,t ) \
+	, ( a & EDIT_READONLY)?TRUE:FALSE )   \
+	, ( a & EDIT_PASSWORD)?TRUE:FALSE )
+
+
 LOGICAL CPROC GrabFilename( PSI_CONTROL pc, CTEXTSTR name, int32_t x, int32_t y )
 {
 	SetControlText( pc, name );

@@ -59,9 +59,9 @@ int ImagePngRead (png_structp png, png_bytep data, png_size_t size)
 	{
 		char msg[128];
 #ifdef _MSC_VER
-		_snprintf( msg, 128, "Space Read Error wanted %d only had %d", size, self->r_size );
+		_snprintf( msg, 128, "Space Read Error wanted %zd only had %zd", size, self->r_size );
 #else
-		snprintf( msg, 128, "Space Read Error wanted %d only had %d", size, self->r_size );
+		snprintf( msg, 128, "Space Read Error wanted %zd only had %zd", size, self->r_size );
 #endif
 		png_warning(png, msg );
 		return 0;

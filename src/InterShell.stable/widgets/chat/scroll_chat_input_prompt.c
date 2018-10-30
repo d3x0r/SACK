@@ -172,7 +172,7 @@ void RenderTextLine(
 			}
 		}
 
-		nShown = pCurrentLine->nFirstSegOfs;
+		nShown = (int)pCurrentLine->nFirstSegOfs;
 #ifdef DEBUG_HISTORY_RENDER
 		if( !pText )
 			lprintf( WIDE("Okay no text to show... end up filling line blank.") );
@@ -200,13 +200,13 @@ void RenderTextLine(
 				lprintf( WIDE("nShown < nLen... char %d len %d toshow %d"), nChar, nLen, pCurrentLine->nToShow );
 #endif
 				if( ( nChar + ( nLen - nShown ) ) > pCurrentLine->nToShow )
-					nShow = pCurrentLine->nToShow - nChar;
+					nShow = (int)pCurrentLine->nToShow - nChar;
 				else
 				{
 #ifdef DEBUG_HISTORY_RENDER
 					lprintf( WIDE("nShow is what's left of now to nLen from nShown... %d,%d"), nLen, nShown );
 #endif
-					nShow = nLen - nShown;
+					nShow = (int)nLen - nShown;
 				}
 				if( !nShow )
 				{

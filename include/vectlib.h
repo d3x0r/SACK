@@ -102,10 +102,10 @@
 #endif
 
 #ifdef MAKE_RCOORD_SINGLE
-#  define VECTOR_METHOD(r,n,args) MATHLIB_EXPORT r n##f args; 
+#  define VECTOR_METHOD(r,n,args) MATHLIB_EXPORT r n##f args
 #  define EXTERNAL_NAME(n)  n##f
 #else
-#  define VECTOR_METHOD(r,n,args) MATHLIB_EXPORT r n##d args; 
+#  define VECTOR_METHOD(r,n,args) MATHLIB_EXPORT r n##d args
 #  define EXTERNAL_NAME(n)  n##d
 #endif
 

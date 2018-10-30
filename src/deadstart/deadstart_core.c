@@ -686,4 +686,7 @@ void RootDestructor( void )
 #endif
 #endif
 #endif
+
+#undef l
+
 SACK_DEADSTART_NAMESPACE_END

@@ -237,7 +237,7 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 	PLISTITEM pliNextUpLevel;
 	int x, y, ymin, ymax;
 	pliNextUpLevel = pli->next;
-	x = pli->nLevel * (1.75*pli->height) + (pli->height*1.75)/2;
+	x = (int)(pli->nLevel * (1.75*pli->height) + (pli->height*1.75)/2);
 	x -= plb->nXOffset;
 	y = pli->top + ( pli->height / 2 );
 	ymin = pli->top;
@@ -263,18 +263,18 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 			pliNextUpLevel = pliNextUpLevel->prior;
 		if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
 		{
-			do_hline( surface, y, x, x + ((pli->height*1.75)/2)-1, basecolor(pc)[SHADE] );
+			do_hline( surface, y, x, (int)(x + ((pli->height*1.75)/2)-1), basecolor(pc)[SHADE] );
 			do_vline( surface, x, ymin, ymax, basecolor(pc)[SHADE] );
 		}
 		else
 		{
-			do_hline( surface, y, x, x + ((pli->height*1.75)/2)-1, basecolor(pc)[SHADE] );
+			do_hline( surface, y, x, (int)(x + ((pli->height*1.75)/2)-1), basecolor(pc)[SHADE] );
 			do_vline( surface, x, ymin, y, basecolor(pc)[SHADE] );
 		}	
 	}
 	pliNextUpLevel = pli;
 
-	x =  x + ((pli->height)*1.75*2)/3;
+	x = (int)(x + ((pli->height)*1.75*2)/3);
 	x -= plb->nXOffset;
 
 	while( pliNextUpLevel )
@@ -284,7 +284,7 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 		if( pliNextUpLevel )
 		{
 			do_vline( surface
-			        , (pliNextUpLevel->nLevel) * (pli->height*1.75) + ((pli->height*1.75)/2)
+			        , (int)((pliNextUpLevel->nLevel) * (pli->height*1.75) + ((pli->height*1.75)/2))
 			        , ymin, ymax
 			        , basecolor(pc)[SHADE] );
 		}
@@ -316,7 +316,7 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	pliNextUpLevel = pli->next;
 	while( pliNextUpLevel && ( pliNextUpLevel->nLevel > pli->nLevel ) )
 		pliNextUpLevel = pliNextUpLevel->prior;
-	x = pli->nLevel * (pli->height*1.75) + ((pli->height*1.75)/2);
+	x = (int)(pli->nLevel * (pli->height*1.75) + ((pli->height*1.75)/2));
 	x -= plb->nXOffset;
 	y = pli->top + ( pli->height / 2 );
 
@@ -339,7 +339,7 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 
 	// draw line leading in (top) and out (right)
 	do_vlineAlpha( surface, x, y - line_length, pli->top, basecolor(pc)[SHADE] );
-	do_hlineAlpha( surface, y, x + line_length, x + ((pli->height*1.75)/2)-1, basecolor(pc)[SHADE] );
+	do_hlineAlpha( surface, y, x + line_length, (int)(x + ((pli->height*1.75)/2)-1), basecolor(pc)[SHADE] );
 
 	// optionally draw line leading down (bottom)
 	if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
@@ -347,7 +347,7 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 		// next item is on this level, extend branch line down.
 		do_vlineAlpha( surface, (pli->nLevel-1) * (pli->height*1.75) + (pli->height*1.75)/2, y - (pli->height+1)/2, pli->top + pli->height, basecolor(pc)[SHADE] );
 	}
-	return x + (pli->height*1.75*2)/3;
+	return (int)(x + (pli->height*1.75*2)/3);
 }
 
 //---------------------------------------------------------------------------
@@ -1065,7 +1065,7 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int
 						plb->y = y;
 						plb->b = b;
 						{
-							uint32_t result = TrackPopup( pli->pPopup, GetFrame( plb ) );
+							uint32_t result = TrackPopup( pli->pPopup, GetFrame( pc ) );
 							if( result != (uint32_t)-1 )
 								pli->MenuProc( pli->psvContextMenu, pli, result );
 						}

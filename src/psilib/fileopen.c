@@ -92,7 +92,7 @@ void CPROC FileDouble( uintptr_t psv, PSI_CONTROL pc, PLISTITEM hli )
    TEXTCHAR name[256];
    if( hli )
    {
-      flags = GetItemData( hli );
+      flags = (uint32_t)GetItemData( hli );
       if( flags & SFF_DRIVE )
       {
          FILEOPENDATA *pfod = (FILEOPENDATA *)psv;
@@ -187,7 +187,7 @@ ReLoop:
 	{
 		// well suppose we should pull out our values before closing this frame...
 		PLISTITEM hli = GetSelectedItem( pcList );
-		uint32_t flags = GetItemData( hli );
+		uint32_t flags = (uint32_t)GetItemData( hli );
 		if( !(flags & (SFF_DRIVE|SFF_DIRECTORY) ) )
 		{
 			GetControlText( GetControl( frame, TXT_PATHNAME ), fod.currentname, 280 );

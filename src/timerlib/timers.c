@@ -2329,7 +2329,9 @@ void  RescheduleTimer( uint32_t ID )
 }
 
 //--------------------------------------------------------------------------
-
+#ifndef TARGETNAME
+#  define TARGETNAME ""
+#endif
 static void OnDisplayPause( WIDE("@Internal Timers") _WIDE(TARGETNAME) )( void )
 {
 	globalTimerData.flags.bHaltTimers = 1;

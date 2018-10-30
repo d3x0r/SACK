@@ -639,7 +639,7 @@ static int CPROC ButtonKeyProc( PSI_CONTROL pc, uint32_t key )
 
 //---------------------------------------------------------------------------
 
-#define LISTBOX 1000
+#define BTN_PROPERTY_LISTBOX 1000
 
 static PSI_CONTROL CONTROL_PROPERTIES( Button )( PSI_CONTROL pc )
 {
@@ -656,7 +656,7 @@ static PSI_CONTROL CONTROL_PROPERTIES( Button )( PSI_CONTROL pc )
 		//PCLASSROOT pcr = GetClassRoot( PSI_ROOT_REGISTRY WIDE("/control/Button/Click") );
 		MakeTextControl( page, PROP_PAD, PROP_PAD, 116, 12, TXT_STATIC, WIDE("Click Method"), 0 );
 		//MakeTextControl( page, 0, PROP_PAD, PROP_PAD, 116, 12, TXT_STATIC, WIDE("Click Method") );
-		pList = MakeListBox( page, PROP_PAD, PROP_PAD + 16, PROP_WIDTH - 2*PROP_PAD, 120, LISTBOX, 0 );
+		pList = MakeListBox( page, PROP_PAD, PROP_PAD + 16, PROP_WIDTH - 2*PROP_PAD, 120, BTN_PROPERTY_LISTBOX, 0 );
 		//pList = MakeListBox( page, 0, PROP_PAD, PROP_PAD + 16, PROP_WIDTH - 2*PROP_PAD, 120, LISTBOX );
 
 		for( name = GetFirstRegisteredName( PSI_ROOT_REGISTRY WIDE("/control/Button/Click"), &data ); name; name = GetNextRegisteredName( &data ) )
@@ -677,7 +677,7 @@ static void OnPropertyEditOkay( WIDE( "Button" ) )( PSI_CONTROL pControl, PSI_CO
 	// read the dialog...
 	// destruction will happen shortly after this
 	// but this should not care fore that...
-	PLISTITEM pli = GetSelectedItem( GetControl( page, LISTBOX ) );
+	PLISTITEM pli = GetSelectedItem( GetControl( page, BTN_PROPERTY_LISTBOX ) );
 	((PBUTTON)pControl)->ClickMethod = (void (CPROC*)(uintptr_t,PSI_CONTROL))GetItemData( pli );
 
 }

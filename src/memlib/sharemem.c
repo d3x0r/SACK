@@ -453,7 +453,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 #endif
 
 #ifdef __cplusplus
-}; // namespace memory {
+} // namespace memory {
 	namespace timers { // begin timer namespace
 
 #endif
@@ -835,7 +835,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 #endif
 
 #ifdef __cplusplus
-	}; // namespace timers {
+	} // namespace timers {
 	namespace memory { // resume memory namespace
 #endif
 //-------------------------------------------------------------------------
@@ -1243,6 +1243,9 @@ uintptr_t GetFileSize( int fd )
 		int exists = FALSE;
 		if( !pWhat && !pWhere)
 		{
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS 0x20
+#endif
 			pMem = mmap( 0, *dwSize
 						 , PROT_READ|PROT_WRITE
 						 , MAP_SHARED|MAP_ANONYMOUS
@@ -2040,9 +2043,11 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment 
 			pHeap = g.pMemInstance;
 		pMem = GrabMem( pHeap );
 #ifdef __64__
+		dwPad = (((dwSize + 7) & 0xFFFFFFFFFFFFFFF8) - dwSize);
 		dwSize += 7; // fix size to allocate at least _32s which
 		dwSize &= 0xFFFFFFFFFFFFFFF8;
 #else
+		dwPad = (((dwSize + 3) & 0xFFFFFFFC) -dwSize);
 		dwSize += 3; // fix size to allocate at least _32s which
 		dwSize &= 0xFFFFFFFC;
 #endif
@@ -3332,7 +3337,7 @@ PRELOAD( ShareMemToVSAllocHook )
 
 #ifdef __cplusplus
 
-};//namespace sack {
-};//	namespace memory {
+}//namespace sack {
+}//	namespace memory {
 
 #endif

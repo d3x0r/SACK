@@ -1283,7 +1283,7 @@ PSSQL_PROC( int, GetSQLTypes )( void );
    </code>                                                      */
 PSSQL_PROC( int, FetchSQLTypes )( PODBC );
 
-#define PSSQL_VARARG_PROC(a,b,c)  PSSQL_PROC(a,b)c; typedef a(CPROC * __f_##b)c; PSSQL_PROC( __f_##b, __##b )(DBG_VOIDPASS);
+#define PSSQL_VARARG_PROC(a,b,c)  PSSQL_PROC(a,b)c; typedef a(CPROC * __f_##b)c; PSSQL_PROC( __f_##b, __##b )(DBG_VOIDPASS)
 
 /* Do a SQL query on the default odbc connection. The first
    record results immediately if there are any records. Returns

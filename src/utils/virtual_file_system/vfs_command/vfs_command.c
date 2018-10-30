@@ -123,7 +123,7 @@ static void StoreFile( CTEXTSTR filemask )
 {
 	void *info = NULL;
 	char * tmppath = strdup( filemask );
-	char *end = pathrchr( tmppath );
+	char *end = (char*)pathrchr( tmppath );
 	if( end ) {
 		end[0] = 0; end++;
 	} else {

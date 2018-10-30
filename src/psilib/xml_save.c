@@ -246,7 +246,7 @@ int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 			if( out )
 			{
 				PTEXT text = VarTextGet( l.current_vt );
-				sack_fwrite( GetText( text ), sizeof( TEXTCHAR ), GetTextSize( text ), out );
+				sack_fwrite( GetText( text ), GetTextSize( text ), sizeof( TEXTCHAR ), out );
 				LineRelease( text );
 				// this is just a shot hand copy
 				//VarTextDestroy( &l.current_vt );

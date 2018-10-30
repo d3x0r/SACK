@@ -619,7 +619,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 
 PTEXT get_line(FILE *source, int *line)
 {
-	#define WORKSPACE 128  // characters for workspace
+	#define WORKSPACE 512  // characters for workspace
 	PTEXT workline=(PTEXT)NULL,pNew;
 	uintptr_t length = 0;
 	if( !source )

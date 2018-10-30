@@ -1032,13 +1032,12 @@ LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 #endif
 	{
 		VECTOR v;
-		VECTOR v2;
 		if( motion->rocket )
 		{
 			moved = TRUE;
 			//DOFUNC(scale )(v, motion->accel, speed_step);
 			DOFUNC(add)( v, motion->prior_accel, motion->accel );
-			DOFUNC(scale)( v, v, 0.5 * speed_step );
+			DOFUNC(scale)( v, v, (RCOORD)0.5 * speed_step );
 			SetPoint( motion->prior_accel, motion->accel );
 			// add the scaled acceleration in the current direction of this
 			motion->speed[0] += v[0] * pt->m[0][0]
@@ -1060,12 +1059,12 @@ LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 				moved = TRUE;
 
 				DOFUNC( add )(v, motion->prior_accel, motion->accel);
-				DOFUNC( addscaled )(motion->speed, motion->speed, v, 0.5*speed_step);
+				DOFUNC( addscaled )(motion->speed, motion->speed, v, (RCOORD)0.5*speed_step);
 				SetPoint( motion->prior_accel, motion->accel );
 				//DOFUNC(addscaled)( motion->speed, motion->speed, motion->accel, speed_step );
 
 				DOFUNC( add )(v, motion->prior_speed, motion->speed);
-				DOFUNC( addscaled ) (pt->m[3], pt->m[3], v, 0.5 * speed_step);
+				DOFUNC( addscaled ) (pt->m[3], pt->m[3], v, (RCOORD)0.5 * speed_step);
 				SetPoint( motion->prior_speed, motion->speed );
 			}
 		}
@@ -1077,7 +1076,7 @@ LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 				moved = TRUE;
 
 				DOFUNC( add )(v, motion->prior_accel, motion->accel);
-				DOFUNC( addscaled )(motion->speed, motion->speed, v, 0.5*speed_step);
+				DOFUNC( addscaled )(motion->speed, motion->speed, v, (RCOORD)0.5*speed_step);
 				SetPoint( motion->prior_accel, motion->accel );
 				//DOFUNC(addscaled)( motion->speed, motion->speed, motion->accel, speed_step );
 
@@ -1795,6 +1794,10 @@ void EXTERNAL_NAME(showstd)( PTRANSFORM pt, char *header )
    PRINTF( WIDE("%s"), byMsg );
 }
 
+#undef F4
+#undef F
+
+
 void EXTERNAL_NAME(SaveTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
@@ -1909,6 +1912,7 @@ RCOORD EXTERNAL_NAME( PointToPlaneT )( PCVECTOR n, PCVECTOR o, PCVECTOR p ) {
 }
 
 
+#undef l
 
 VECTOR_NAMESPACE_END
 

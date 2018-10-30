@@ -23,8 +23,8 @@ IDLE_PROC( int, RemoveIdleProc )( IdleProc Proc );
 IDLE_PROC( int, Idle )( void );
 IDLE_PROC( int, IdleFor )( uint32_t dwMilliseconds );
 #ifdef __cplusplus
-	};//	namespace timers {
-};//namespace sack {
+	}//	namespace timers {
+}//namespace sack {
 using namespace sack::timers;
 #endif
 

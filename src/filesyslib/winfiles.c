@@ -49,7 +49,7 @@
 #include <sqlgetoption.h>
 
 #ifndef UNDER_CE
-//#include <fcntl.h>
+#include <fcntl.h>  // O_BINARY
 //#include <io.h>
 #endif
 
@@ -1854,7 +1854,7 @@ size_t  sack_fread ( POINTER buffer, size_t size, int count,FILE *file_file )
 {
 	struct file *file;
 	file = FindFileByFILE( file_file );
-	if( file->mount && file->mount->fsi )
+	if( file && file->mount && file->mount->fsi )
 		return file->mount->fsi->_read( file_file, (char*)buffer, size * count );
 	return fread( buffer, size, count, file_file );
 }
@@ -2523,7 +2523,11 @@ LOGICAL SetFileLength( CTEXTSTR path, size_t length )
 #ifdef __LINUX__
 	// files are by default binary in linux
 #  ifndef O_BINARY
-#	define O_BINARY 0
+#	   define O_BINARY 0
+#  endif
+#else
+#  ifndef O_BINARY
+#	   define O_BINARY 0x8000
 #  endif
 #endif
 	INDEX file;

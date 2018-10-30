@@ -475,7 +475,15 @@ struct rt_init // structure placed in XI/YI segment
 
 } __attribute__((packed));
 
-#define JUNKINIT(name) ,&pastejunk(name,_ctor_label)
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
+#  if defined( __GNUC__ ) && defined( __64__)
+#    define JUNKINIT(name) ,&pastejunk(name,_ctor_label), {0,0}
+#  else
+#    define JUNKINIT(name) ,&pastejunk(name,_ctor_label)
+#  endif
+#else
+#  define JUNKINIT(name) ,&pastejunk(name,_ctor_label)
+#endif
 
 #define RTINIT_STATIC static
 

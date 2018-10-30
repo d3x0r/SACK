@@ -312,7 +312,8 @@ uint64_t GetCPUTick(void )
 			uint64_t tick;
 			PREFIX_PACKED struct { uint32_t low, high; } PACKED parts;
 		}tick;
-		asm( "rdtsc\n" : "=a"(tick.parts.low), "=d"(tick.parts.high) );
+
+		//asm( "rdtsc\n" : "=a"(tick.parts.low), "=d"(tick.parts.high) );
 		if( !(*syslog_local).lasttick )
 			(*syslog_local).lasttick = tick.tick;
 		else if( tick.tick < (*syslog_local).lasttick )
@@ -1028,6 +1029,7 @@ static void SyslogdSystemLog( const TEXTCHAR *message )
 
 LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
 {
+   (void)len; // reference unused.
 	static FILE *maps;
 	//return FALSE;
 	//DebugBreak();
@@ -1417,7 +1419,7 @@ void  SetSystemLog ( enum syslog_types type, const void *data )
 	}
 	else if( type == SYSLOG_CALLBACK )
 	{
-		(*syslog_local).UserCallback = (UserLoggingCallback)data;
+		(*syslog_local).UserCallback = (UserLoggingCallback)(uintptr_t)data;
 	}
 	else
 	{
@@ -1482,6 +1484,8 @@ static struct next_lprint_info *GetNextInfo( void )
 
 static INDEX CPROC _null_vlprintf ( CTEXTSTR format, va_list args )
 {
+   (void)format; // fix unused
+   (void)args; // fix unused
 	return 0;
 }
 
@@ -1617,6 +1621,7 @@ static INDEX CPROC _real_lprintf( CTEXTSTR f, ... )
 
 static INDEX CPROC _null_lprintf( CTEXTSTR f, ... )
 {
+   (void)f; // fix unused
 	return 0;
 }
 

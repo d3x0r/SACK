@@ -163,8 +163,8 @@ MEM_PROC  void MEM_API  InitializeCriticalSec ( PCRITICALSECTION pcs );
 /* Namespace of all memory related functions for allocating and
    releasing memory.                                            */
 #ifdef __cplusplus
-}; // namespace timers
-}; // namespace sack
+} // namespace timers
+} // namespace sack
 using namespace sack::timers;
 #endif
 
@@ -769,9 +769,6 @@ MEM_PROC  int MEM_API  MemCmp ( CPOINTER pOne, CPOINTER pTwo, size_t sz );
    does nothing, returns nothing. */
 //#define memnop(mem,sz,comment)
 
-#ifdef __cplusplus
-//};
-#endif
 
 /* Compares two strings. Must match exactly.
    Parameters
@@ -1104,8 +1101,8 @@ MEM_PROC  int MEM_API  PequeMessage ( struct transport_queue_tag *queue, POINTER
 
 #ifdef __cplusplus
 
-}; // namespace memory
-}; // namespace sack
+} // namespace memory
+} // namespace sack
 using namespace sack::memory;
 
 #include <stddef.h>
