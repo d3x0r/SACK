@@ -862,17 +862,17 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 
 	AddCommonButtons( fdData.pFrame, &fdData.done, &fdData.okay );
 	{
-		FRACTION sx, sy;
+		PFRACTION sx, sy;
 		PSI_CONTROL pc = GetControl( fdData.pFrame, BTN_OKAY );
 		GetCommonScale( pc, &sx, &sy );
 #define COMMON_BUTTON_HEIGHT 19
 		MoveSizeCommon( pc
-						  , ScaleValue( &sx, DIALOG_WIDTH - 60 ), ScaleValue( &sy, 240 - ( ( COMMON_BUTTON_HEIGHT + 5 ) * 2 ) )
-						  , ScaleValue( &sx, 55 ), ScaleValue( &sy, COMMON_BUTTON_HEIGHT ) );
+						  , ScaleValue( sx, DIALOG_WIDTH - 60 ), ScaleValue( sy, 240 - ( ( COMMON_BUTTON_HEIGHT + 5 ) * 2 ) )
+						  , ScaleValue( sx, 55 ), ScaleValue( sy, COMMON_BUTTON_HEIGHT ) );
 		pc = GetControl( fdData.pFrame, BTN_CANCEL );
 		MoveSizeCommon( pc
-						  , ScaleValue( &sx, DIALOG_WIDTH - 60 ), ScaleValue( &sy, 240 - ( COMMON_BUTTON_HEIGHT + 5 ) )
-						  , ScaleValue( &sx, 55 ), ScaleValue( &sy, COMMON_BUTTON_HEIGHT ) );
+						  , ScaleValue( sx, DIALOG_WIDTH - 60 ), ScaleValue( sy, 240 - ( COMMON_BUTTON_HEIGHT + 5 ) )
+						  , ScaleValue( sx, 55 ), ScaleValue( sy, COMMON_BUTTON_HEIGHT ) );
 		fdData.Update = UpdateFont;
 		fdData.psvUpdate = psvUpdate;
 		if( fdData.Update )
