@@ -13,7 +13,7 @@ Monotone would have been best; but; well... maybe they were too closed.
 
 #System Abstraction Component Kit
 
-Souces are generally separate, requiring fewest dependancies of others.
+Sources are generally separate, requiring fewest dependancies of others.
 Someday this should be combed into actual dependancy tree that can be leveraged at a higher level.
 
 1) deadstart support.  
