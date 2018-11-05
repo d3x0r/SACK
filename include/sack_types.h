@@ -1618,28 +1618,7 @@ node->me = &thing->next;     \
 /* This type stores data, it has a self-contained length in
    bytes of the data stored.  Length is in characters       */
 _CONTAINER_NAMESPACE
-#define DECLDATA(name,length) struct {size_t size; TEXTCHAR data[length];} name
 
-// Hmm - this can be done with MemLib alone...
-// although this library is not nessecarily part of that?
-// and it's not nessecarily allocated.
-typedef struct SimpleDataBlock {
-   size_t size;/* unsigned size; size is sometimes a pointer value... this
-                    means bad thing when we change platforms... Defined as
-                    uintptr_t now, so it's relative to the size of the platform
-                    anyhow.                                                    */
-#ifdef _MSC_VER
-#pragma warning (disable:4200)
-#endif
-   uint8_t  data[
-#ifndef __cplusplus
-   1
-#endif
-   ]; // beginning of var data - this is created size+sizeof(uint8_t)
-#ifdef _MSC_VER
-#pragma warning (default:4200)
-#endif
-} DATA, *PDATA;
 
 /* This is a slab array of pointers, each pointer may be
    assigned to point to any user data.
