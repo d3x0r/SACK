@@ -15,14 +15,13 @@
 #define FIX_RELEASE_COM_COLLISION
 
 #include <stdhdrs.h>
+#include <ctype.h> // isdigit ... hasn't been a problem elsewhere so just add this yere.
+
 #include <timers.h>
 #include <sqlgetoption.h>
 #include <sharemem.h>
+
 #include <ft2build.h>
-#ifdef __cplusplus
-// isdigit ... hasn't been a problem elsewhere so just add this yere.
-#include <ctype.h>
-#endif
 #ifdef FT_FREETYPE_H
 #include FT_FREETYPE_H
 

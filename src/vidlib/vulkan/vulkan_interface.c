@@ -780,7 +780,7 @@ void EnableVulkan( xcb_connection_t *connection,
 	#if WIN32
 		swapChainPlatformConnect( &camera->chain, hInstance, camera->hWndInstance );
 	#elif defined( __LINUX__ )
-		swapChainPlatformConnect( &chain, vl.surfaceCreateInfo.connection, vl.surfaceCreateInfo.window );
+		swapChainPlatformConnect( &camera->chain, vl.surfaceCreateInfo.connection, vl.surfaceCreateInfo.window );
         #elif defined( __MAC__ )
 		#error unfinished code for mac.
 		//swapChainPlatformConnect( &chain, vl.surfaceCreateInfo.connection, vl.surfaceCreateInfo.window );                 

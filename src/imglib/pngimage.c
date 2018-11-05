@@ -11,6 +11,7 @@
  */
 
 //#define USE_IMAGE_INTERFACE (&RealImageInterface)
+#define PNG_GRACEFUL_ERRORS
 #define FIX_RELEASE_COM_COLLISION
 #ifdef _MSC_VER 
 #define PNG_INTERNAL

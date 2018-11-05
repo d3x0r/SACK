@@ -55,7 +55,7 @@ static void OnFirstDraw3d( WIDE( "@00 Vulkan Image Library" ) )( uintptr_t psv )
 	}
 }
 
-static uintptr_t OnInit3d( WIDE( "@00 Vulkan Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
+static uintptr_t OnInit3d( WIDE( "@00 Vulkan Image Library" ) )( VkDevice device,PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
 	INDEX idx;
 	struct vkSurfaceData *vkSurface;
