@@ -744,8 +744,9 @@ POPNODE BuildExpression( void ) // expression is queued
 				break;
 			}
 		}
-		else if( pExp[0] == '_' || ( pExp[0] >= 'A' && pExp[0] <= 'Z' )
-										|| ( pExp[0] >= 'a' && pExp[0] <= 'z' )  )
+		else if( pExp[0] == '_' 
+		       || ( pExp[0] >= 'A' && pExp[0] <= 'Z' )
+		       || ( pExp[0] >= 'a' && pExp[0] <= 'z' )  )
 		{
 			// this is unsubstituted, is not a predefined thing, etc,
 			// therefore this is a 0.
