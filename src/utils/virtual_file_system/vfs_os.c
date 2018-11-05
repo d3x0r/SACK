@@ -2243,6 +2243,7 @@ static struct file_system_interface sack_vfs_os_fsi = {
 
 PRIORITY_PRELOAD( Sack_VFS_OS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )
 {
+#undef DEFAULT_VFS_NAME
 #ifdef ALT_VFS_NAME
 #   define DEFAULT_VFS_NAME SACK_VFS_FILESYSTEM_NAME "-os.runner"
 #else

@@ -1182,7 +1182,7 @@ size_t CPROC sack_vfs_fs_write( struct sack_vfs_file *file, const char * data, s
 		uint8_t* block = (uint8_t*)vfs_fs_BSEEK( file->vol, file->block, &cache );
 		if( length >= ( BLOCK_SIZE - ( ofs ) ) ) {
 			_fs_MaskBlock( file->vol, file->vol->usekey[cache], block, ofs, ofs, data, BLOCK_SIZE - ofs );
-			sack_fwrite( block + ofs, 1, BLOCK_SIZE - ofs, file->vol->file );
+			sack_fwrite( block + ofs, BLOCK_SIZE - ofs, 1, file->vol->file );
 			data += BLOCK_SIZE - ofs;
 			written += BLOCK_SIZE - ofs;
 			file->fpi += BLOCK_SIZE - ofs;
@@ -1195,7 +1195,7 @@ size_t CPROC sack_vfs_fs_write( struct sack_vfs_file *file, const char * data, s
 			length -= BLOCK_SIZE - ofs;
 		} else {
 			_fs_MaskBlock( file->vol, file->vol->usekey[cache], block, ofs, ofs, data, length );
-			sack_fwrite( file->vol->usekey_buffer[cache] + ofs, 1, BLOCK_SIZE - ofs, file->vol->file );
+			sack_fwrite( file->vol->usekey_buffer[cache] + ofs, BLOCK_SIZE - ofs, 1, file->vol->file );
 			data += length;
 			written += length;
 			file->fpi += length;
@@ -1568,6 +1568,7 @@ static struct file_system_interface sack_vfs_fs_fsi = {
 
 PRIORITY_PRELOAD( Sack_VFS_FS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )
 {
+#undef DEFAULT_VFS_NAME
 #ifdef ALT_VFS_NAME
 #   define DEFAULT_VFS_NAME SACK_VFS_FILESYSTEM_NAME ".runner"
 #else
