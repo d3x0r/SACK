@@ -833,8 +833,9 @@ PSI_PROC( PMENUITEM, DeletePopupItem )( PMENU pm, uintptr_t dwID, uint32_t state
 #if !defined( DISABLE_NATIVE_POPUPS )
 	else
 		return (PMENUITEM)(uintptr_t)DeleteMenu( (HMENU)pm, dwID, state );
-#endif
+#else
    return 0;
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -870,8 +871,9 @@ PSI_PROC( void, DestroyPopup )( PMENU pm )
 #if !defined( DISABLE_NATIVE_POPUPS )
 	else
 		DestroyMenu( (HMENU)pm );
-#endif
+#else
 	return;
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -895,6 +897,8 @@ PSI_PROC( void *, GetPopupData )( PMENU pm, int item )
 	{
 		return GetSubMenu( (HMENU)pm, item );
 	}
+#else
+   return NULL;
 #endif
 }
 
@@ -1037,10 +1041,11 @@ PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, uintptr_t dwID, uint32_t state 
 	return pmi;
 	}
 #if !defined( DISABLE_NATIVE_POPUPS )
-else
-	return (PMENUITEM)(uintptr_t)CheckMenuItem( (HMENU)pm, dwID, state );
-#endif
+	else
+		return (PMENUITEM)(uintptr_t)CheckMenuItem( (HMENU)pm, dwID, state );
+#else
    return 0;
+#endif
 }
 
 //----------------------------------------------------------------------
