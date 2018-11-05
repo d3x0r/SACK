@@ -69,29 +69,19 @@ replaced without regard.
 ??- ~
 */
 
-char *test = "??= #"
-"??( ["
-"??/\a \\"
-"??) ]"
-"??' ^"
-"??< {"
-"??! |"
-"??> }"
-"??- ~";
-
 //void junk(void ) <% char test <:5:>; %>
 
 static union {
-		struct {
-			uint32_t bLesser  : 1;
-			uint32_t bGreater : 1;
-			uint32_t bColon   : 1;
-			uint32_t bPercent : 1;
-			uint32_t bQuestion1 : 1;
-			uint32_t bQuestion2 : 1;
-		};
-		uint32_t dw;
-	} flags;
+	struct {
+		uint32_t bLesser  : 1;
+		uint32_t bGreater : 1;
+		uint32_t bColon   : 1;
+		uint32_t bPercent : 1;
+		uint32_t bQuestion1 : 1;
+		uint32_t bQuestion2 : 1;
+	};
+	uint32_t dw;
+} flags;
 
 #define DBG_OVERRIDE DBG_RELAY
 
