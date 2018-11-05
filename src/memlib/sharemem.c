@@ -284,7 +284,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #else
 #define BLOCK_TAG(pc)  (*(uint32_t*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
 // so when we look at memory this stamp is 12345678
-#define TAG_FORMAT_MODIFIER ""
+#define TAG_FORMAT_MODIFIER "l"
 #define BLOCK_TAG_ID 0x78563412L
 #endif
 // file/line info are at the very end of the physical block...
@@ -366,8 +366,8 @@ uint32_t  LockedExchange( volatile uint32_t* p, uint32_t val )
 #  else /* some other system, not windows, not linux... */
 	{
 		#warning compiling C fallback locked exchange.This is NOT atomic, and needs to be
-			// swp is the instruction....
-			uint32_t prior = *p;
+		// swp is the instruction....
+		uint32_t prior = *p;
 		*p = val;
 		return prior;
 	}
@@ -3117,10 +3117,10 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 						int minPad = MAGIC_SIZE;
 						if( pMem && !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
 							minPad += MAGIC_SIZE * 2;
-						if( pc->dwPad >= minPad && BLOCK_TAG(pc) != BLOCK_TAG_ID )
+						if( ( pc->dwPad >= minPad ) && ( BLOCK_TAG(pc) != BLOCK_TAG_ID ) )
 						{
 #ifndef NO_LOGGING
-							ll_lprintf( WIDE("memory block: %p %08") TAG_FORMAT_MODIFIER WIDE("x insted of %08")TAG_FORMAT_MODIFIER WIDE("x"), pc->byData, BLOCK_TAG(pc), BLOCK_TAG_ID );
+							ll_lprintf( WIDE("memory block: %p(%p) %08") TAG_FORMAT_MODIFIER WIDE("x instead of %08")TAG_FORMAT_MODIFIER WIDE("x"), pc, pc->byData, BLOCK_TAG(pc), BLOCK_TAG_ID );
 							if( !(pMemCheck->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 							{
 								CTEXTSTR file = BLOCK_FILE(pc);
