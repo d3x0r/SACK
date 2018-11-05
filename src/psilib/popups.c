@@ -96,6 +96,7 @@ PSI_PROC( PMENU, CreatePopup )( void )
 		return (PMENU)CreatePopupMenu();
 	}
 #endif
+   return 0;
 }
 
 #ifdef CUSTOM_MENUS
@@ -833,6 +834,7 @@ PSI_PROC( PMENUITEM, DeletePopupItem )( PMENU pm, uintptr_t dwID, uint32_t state
 	else
 		return (PMENUITEM)(uintptr_t)DeleteMenu( (HMENU)pm, dwID, state );
 #endif
+   return 0;
 }
 
 //----------------------------------------------------------------------
@@ -971,6 +973,7 @@ PSI_PROC( PMENUITEM, AppendPopupItem )( PMENU pm, int type, uintptr_t dwID, CPOI
 										  pData );
 	}
 #endif
+   return 0;
 }
 
 //----------------------------------------------------------------------
@@ -1037,6 +1040,7 @@ PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, uintptr_t dwID, uint32_t state 
 else
 	return (PMENUITEM)(uintptr_t)CheckMenuItem( (HMENU)pm, dwID, state );
 #endif
+   return 0;
 }
 
 //----------------------------------------------------------------------
