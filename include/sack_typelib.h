@@ -1566,6 +1566,10 @@ enum TextFlags {
 #define IS_DATA_FLAGS (TF_QUOTE|TF_SQUOTE|TF_BRACKET|TF_BRACE|\
                               TF_PAREN|TF_TAG|TF_FORMATEX|TF_FORMATABS|TF_FORMATREL)
 
+// this THis defines/initializes the data part of a PTEXT/TEXT structure.
+// used with DECLTEXTSZTYPE
+#define DECLDATA(name,length) struct {size_t size; TEXTCHAR data[length];} name
+
 #define DECLTEXTSZTYPE( name, size ) struct { \
    uint32_t flags; \
    struct text_segment_tag *Next, *Prior; \
