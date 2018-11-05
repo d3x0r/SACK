@@ -637,7 +637,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					}
 					newArgs[n + 1] = (char*)args[n];
 					newArgs[0] = (char*)program;
-					args = newArgs;
+					args = (PCTEXTSTR)newArgs;
 				}
 				char *_program = CStrDup( program );
 				// in case exec fails, we need to
