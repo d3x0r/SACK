@@ -673,7 +673,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 			if( state->n > input->size ) DebugBreak();
 
 			lprintf( "  --- Character %c(%d) val:%d(%s) context:%d word:%d(%s)  isOp:%d"
-				, c<32?'.':c, c, state->val.value_type, (state->val.value_type >= 0 && state->val.value_type < NUM_VALUE_NAMES)?value_type_names[state->val.value_type]:"???"
+				, c<32?'.':c, c, state->val.value_type, (state->val.value_type >= 0 && state->val.value_type < NUM_VALUE_NAMES)?value_type_names[state->val.value_type]:"?""?""?"
 				, state->parse_context, state->word, word_pos_names[state->word]
 				, (c<127)?TESTFLAG(isOp,c):0);
 			vesl_dump_parse( state->root );

@@ -218,7 +218,7 @@ void AcceptClient(PCLIENT pListen)
 					pNewClient->write.WriteComplete( pNewClient );
 				pNewClient->bWriteComplete = FALSE;
 			}
-			//lprintf( "Is it already closed HERE???");
+			//lprintf( "Is it already closed HERE?""?""?");
 			if( pNewClient->Socket ) {
 #ifdef USE_WSA_EVENTS
 				if( globalNetworkData.flags.bLogNotices )
