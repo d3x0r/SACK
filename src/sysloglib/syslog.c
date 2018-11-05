@@ -312,8 +312,9 @@ uint64_t GetCPUTick(void )
 			uint64_t tick;
 			PREFIX_PACKED struct { uint32_t low, high; } PACKED parts;
 		}tick;
-
-		//asm( "rdtsc\n" : "=a"(tick.parts.low), "=d"(tick.parts.high) );
+#ifndef PEDANTIC_TEST
+		asm( "rdtsc\n" : "=a"(tick.parts.low), "=d"(tick.parts.high) );
+#endif
 		if( !(*syslog_local).lasttick )
 			(*syslog_local).lasttick = tick.tick;
 		else if( tick.tick < (*syslog_local).lasttick )
