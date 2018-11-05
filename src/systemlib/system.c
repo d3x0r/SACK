@@ -357,7 +357,7 @@ void loadMacLibraries(struct local_systemlib_data *init_l) {
     if((path_size = proc_pidpath(pid, path, sizeof(path))))
         path[path_size] = 0;
     else
-        strcpy(path, "???");
+        strcpy(path, "~/");
     //printf("%d: %s\n", pid, path);
     {
 				TEXTCHAR *ext, *ext1;
