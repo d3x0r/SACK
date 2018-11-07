@@ -263,7 +263,7 @@ static enum block_cache_entries _fs_UpdateSegmentKey( struct volume *vol, enum b
 
 static LOGICAL _fs_ValidateBAT( struct volume *vol ) {
 	BLOCKINDEX first_slab = 0;
-	BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
+	BLOCKINDEX slab = (BLOCKINDEX)(vol->dwSize / ( BLOCK_SIZE ));
 	BLOCKINDEX last_block = ( slab * BLOCKS_PER_BAT ) / BLOCKS_PER_SECTOR;
 	BLOCKINDEX n;
 	enum block_cache_entries cache = BC(BAT);
