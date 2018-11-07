@@ -14,8 +14,10 @@
 //
 //  DEBUG FLAGS IN netstruc.h
 //
+#ifndef _DEFAULT_SOURCE
 //#define __USE_MISC
 #define _DEFAULT_SOURCE  // for features.h
+#endif
 
 #define FIX_RELEASE_COM_COLLISION
 #define NO_UNICODE_C
