@@ -3599,11 +3599,11 @@ PRELOAD( initTables ) {
 	int n, m;
 	for( n = 0; n < (sizeof( encodings )-1); n++ )
 		for( m = 0; m < (sizeof( encodings )-1); m++ ) {
-			b64xor_table[encodings[n]][encodings[m]] = encodings[n^m];
-			u8xor_table[n][encodings[m]] = n^m;
+			b64xor_table[(uint8_t)encings[n]][(uint8_t)encings[m]] = encodings[n^m];
+			u8xor_table[n][(uint8_t)encings[m]] = n^m;
 
-			b64xor_table2[encodings2[n]][encodings2[m]] = encodings2[n^m];
-			u8xor_table2[n][encodings2[m]] = n^m;
+			b64xor_table2[(uint8_t)encings2[n]][(uint8_t)encings2[m]] = encodings2[n^m];
+			u8xor_table2[n][(uint8_t)encings2[m]] = n^m;
 	}
 	//LogBinary( (uint8_t*)u8xor_table[0], sizeof( u8xor_table ) );
 	b64xor_table['=']['='] = '=';
@@ -3613,7 +3613,7 @@ char * b64xor( const char *a, const char *b ) {
 	int n;
 	char *out = NewArray( char, strlen(a) + 1);
 	for( n = 0; a[n]; n++ ) {
-		out[n] = b64xor_table[a[n]][b[n]];
+		out[n] = b64xor_table[(uint8_t)a[n]][(uint8_t)b[n]];
 	}
 	out[n] = 0;
 	return out;
@@ -3761,7 +3761,7 @@ uint8_t *DecodeBase64Ex( char* buf, size_t length, size_t *outsize, const char *
 
 
 #ifdef __cplusplus
-}; //namespace text {
-}; //namespace containers {
-}; // namespace sack {
+} //namespace text {
+} //namespace containers {
+} // namespace sack {
 #endif

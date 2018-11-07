@@ -615,7 +615,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 	}
 }
 #ifdef __cplusplus
-}; //namespace sack::image {
-}; //namespace sack::image {
+} //namespace sack::image {
+} //namespace sack::image {
 #endif
 

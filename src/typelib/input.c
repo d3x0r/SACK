@@ -895,9 +895,9 @@ void  SetUserInputSaveCR( PUSER_INPUT_BUFFER pci, int bSave ) {
 	pci->CollectionBufferLock = 0;
 */
 #ifdef __cplusplus
-	}; // namespace text {
-}; //namespace containers {
-}; // namespace sack {
+	} // namespace text {
+} //namespace containers {
+} // namespace sack {
 #endif
 
 //--------------------------------------------------------------------

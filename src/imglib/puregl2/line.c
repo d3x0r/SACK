@@ -481,8 +481,8 @@ void CPROC do_vlineAlpha( ImageFile *pImage, int32_t x, int32_t yfrom, int32_t y
 }
 
 #ifdef __cplusplus
-		}; //extern "C" {
-	}; //	namespace image {
-}; //namespace sack {
+		} //extern "C" {
+	} //	namespace image {
+} //namespace sack {
 #endif
 

@@ -567,9 +567,9 @@ uintptr_t ForEachSetMember( GENERICSET *pSet, int unitsize, int max, FESMCallbac
 }
 
 #ifdef __cplusplus 
-	};//	namespace sets {
-	}; //	namespace containers {
-}; //namespace sack {
+	}//	namespace sets {
+	} //	namespace containers {
+} //namespace sack {
 #endif
 
 // $Log: sets.c,v $

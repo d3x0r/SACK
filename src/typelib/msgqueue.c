@@ -1038,8 +1038,8 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 }
 
 #ifdef __cplusplus
-}; //	namespace message {
-}; // namespace containers {
-}; //namespace sack {
+} //	namespace message {
+} // namespace containers {
+} //namespace sack {
 #endif
 

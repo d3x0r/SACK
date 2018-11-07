@@ -235,7 +235,7 @@ PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, PFAMILYNODE parent, POINTER
 }
 
 #ifdef __cplusplus
-}; //namespace family {
-}; //namespace containers {
-}; //namespace sack {
+} //namespace family {
+} //namespace containers {
+} //namespace sack {
 #endif

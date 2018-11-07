@@ -210,7 +210,7 @@ IDLE_PROC( int, IdleFor )( uint32_t dwMilliseconds )
 #undef procs
 
 #ifdef __cplusplus
-}; //namespace sack {
-}; //	namespace idle {
+} //namespace sack {
+} //	namespace idle {
 #endif
 

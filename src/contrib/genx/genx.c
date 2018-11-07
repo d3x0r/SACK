@@ -1955,9 +1955,9 @@ const char * genxGetVersion()
   return GENX_VERSION;
 }
 #ifdef __cplusplus
-		}; //namespace sack {
-	}; //namespace xml {
-}; //namespace gen {
+		} //namespace sack {
+	} //namespace xml {
+} //namespace gen {
 //using namespace sack::xml::gen;
 #endif
  

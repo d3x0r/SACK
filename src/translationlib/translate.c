@@ -127,7 +127,6 @@ void SaveTranslationDataToFile( FILE *output )
 	sack_fprintf( output, "{\n" );
 	{
 		INDEX idx;
-		LOGICAL firstTranslation = TRUE;
 		LOGICAL first = TRUE;
 		//TEXTCHAR *string;
 		struct translation *translation;

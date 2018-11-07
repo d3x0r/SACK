@@ -755,8 +755,8 @@ void  BlotImageEx ( ImageFile *pifDest, ImageFile *pifSrc, int32_t xd, int32_t y
                                     );
 }
 #ifdef __cplusplus
-}; //namespace sack::image {
-}; //namespace sack::image {
+} //namespace sack::image {
+} //namespace sack::image {
 #endif
 
 

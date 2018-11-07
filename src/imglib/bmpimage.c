@@ -433,7 +433,7 @@ Image ImageRawBMPFile (uint8_t* ptr, uint32_t filesize)
 }
 
 #ifdef __cplusplus
-		}; //namespace loader {
+		} //namespace loader {
 IMAGE_NAMESPACE_END
 #endif
 

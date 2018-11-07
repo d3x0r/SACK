@@ -1002,9 +1002,9 @@ PTREEROOT ShadowBinaryTree( PTREEROOT Original )
 }
 
 #ifdef __cplusplus
-}; // namespace BinaryTree {
-}; //namespace containers {
-}; //namespace sack {
+} // namespace BinaryTree {
+} //namespace containers {
+} //namespace sack {
 #endif
 
 //---------------------------------------------------------------------------

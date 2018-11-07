@@ -2829,9 +2829,15 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 						lprintf( WIDE( "Strange, gethostbyname failed, but AF_INET worked..." ) );
 						SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 						lpsaAddr->sin_family = AF_INET;
+#ifndef PEDANTIC_TEST
+#define h_addr h_addr_list[0]
+#endif
 						memcpy( &lpsaAddr->sin_addr.S_un.S_addr,           // save IP address from host entry.
-							 phe->h_addr,
-							 phe->h_length);
+							    phe->h_addr,
+						       phe->h_length);
+#ifndef PEDANTIC_TEST
+#undef h_addr
+#endif
 					}
 				}
 				else

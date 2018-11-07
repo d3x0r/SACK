@@ -1482,8 +1482,8 @@ PRIORITY_PRELOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
 #endif
 
 #ifdef __cplusplus
-}; //namespace sack {
-}; //	namespace containers {
+} //namespace sack {
+} //	namespace containers {
 #endif
 
 

@@ -412,9 +412,9 @@ void CPROC do_vlineAlpha( Image pImage, int32_t x, int32_t yfrom, int32_t yto, C
 }
 
 #ifdef __cplusplus
-		}; //extern "C" {
-	}; //	namespace image {
-}; //namespace sack {
+		} //extern "C" {
+	} //	namespace image {
+} //namespace sack {
 #endif
 
 // $Log: line.c,v $
