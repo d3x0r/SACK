@@ -1,7 +1,5 @@
-/* please Include sthdrs.h */
-#ifndef STANDARD_HEADERS_INCLUDED
-#  error "Please include stdhdrs.h instead of sack_types.h"
-#endif
+#ifndef SACK_PRIMITIVE_TYPES_INCLUDED
+#define SACK_PRIMITIVE_TYPES_INCLUDED
 
 /* Define most of the sack core types on which everything else is
    based. Also defines some of the primitive container
@@ -1862,5 +1860,7 @@ using namespace sack;
 using namespace sack::containers;
 #endif
 
+
+#endif
 
 #endif
