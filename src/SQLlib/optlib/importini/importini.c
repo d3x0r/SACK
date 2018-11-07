@@ -121,7 +121,7 @@ void CPROC ReadINIFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 		if( nsize )
 		{
 			char *filedata = NewArray( char, nsize + 1);
-			TEXTSTR unicode_data;
+			//TEXTSTR unicode_data;
 			filedata[nsize] = 0; // make sure it's null terminated :)
 			/*allocate memory*/
 			fread( filedata, 1, nsize, handle );

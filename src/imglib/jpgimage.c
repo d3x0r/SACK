@@ -16,8 +16,9 @@
 
 #include <setjmp.h>
 #include <string.h>
-
-#define IMAGE_LIBRARY_SOURCE
+#ifndef IMAGE_LIBRARY_SOURCE
+#  define IMAGE_LIBRARY_SOURCE
+#endif IMAGE_LIBRARY_SOURCE
 
 #include <imglib/imagestruct.h>
 #include "jpgimage.h"
@@ -180,7 +181,7 @@ static void jpeg_memory_src (j_decompress_ptr cinfo, char *inbfr, int len)
 
 /* ==== Constructor ==== */
 
-Image ImageJpgFile (uint8_t * buf, uint32_t size)
+Image ImageJpgFile (uint8_t * buf, size_t size)
 {
    ImageFile *Image;
   struct jpeg_decompress_struct cinfo;
@@ -207,7 +208,7 @@ Image ImageJpgFile (uint8_t * buf, uint32_t size)
   jpeg_create_decompress (&cinfo);
 
   /* ==== Step 2: specify data source (memory buffer, in this case) */
-  jpeg_memory_src (&cinfo, (char *)buf, size);
+  jpeg_memory_src (&cinfo, (char *)buf, (int)size);
 
   /* ==== Step 3: read file parameters with jpeg_read_header() */
   (void) jpeg_read_header(&cinfo, TRUE);

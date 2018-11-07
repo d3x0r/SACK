@@ -64,7 +64,6 @@ void CPROC do_line( ImageFile *pImage, int32_t x1, int32_t y1
 		VECTOR slope;
 		float _color[4];
 		RCOORD tmp;
-		VECTOR normal;
 		int vi = 0;
 
 		TranslateCoord( pImage, (int32_t*)&x1, (int32_t*)&y1 );
@@ -226,7 +225,6 @@ void CPROC do_lineAlpha( ImageFile *pImage, int32_t x1, int32_t y1
 		VECTOR slope;
 		RCOORD tmp;
 		float _color[4];
-		VECTOR normal;
 		int vi = 0;
 
 		TranslateCoord( pImage, (int32_t*)&x1, (int32_t*)&y1 );

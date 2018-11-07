@@ -36,7 +36,9 @@
 #include <time.h>
 
 #include <sharemem.h>
-#define IMAGE_LIBRARY_SOURCE
+#ifndef IMAGE_LIBRARY_SOURCE
+#  define IMAGE_LIBRARY_SOURCE
+#endif IMAGE_LIBRARY_SOURCE
 
 #include <imglib/imagestruct.h>
 #include "image.h"   // interface to internal IMAGE.C functions...
@@ -112,7 +114,7 @@ int   ReadCode (void);
 void  AddToPixel (uint8_t);
 short transparency = -1;
 
-ImageFile *ImageGifFile (uint8_t* ptr, long filesize)
+ImageFile *ImageGifFile (uint8_t* ptr, size_t filesize)
 {
   ImageFile *file = NULL;
   uint8_t     *sptr = ptr;  //save pointer
@@ -292,7 +294,7 @@ ImageFile *ImageGifFile (uint8_t* ptr, long filesize)
     {
       ch = ch1 = NEXTBYTE;
       while (ch--) *ptr1++ = NEXTBYTE;
-      if ((ptr1 - Raster) > filesize)
+      if ((ptr1 - Raster) > (int)filesize)
       {
         goto cleanup;
       }
@@ -391,7 +393,7 @@ ImageFile *ImageGifFile (uint8_t* ptr, long filesize)
       }
       Code = ReadCode ();
     }
-    if( ptr - sptr < filesize )
+    if( ptr - sptr < (int)filesize )
     {
     // trying to figure out multi-frame images...
     //   char byOutput[64];

@@ -81,7 +81,7 @@ void SetupInstance()
 #else
 			AddLink( &enabledExtensions, VK_KHR_XCB_SURFACE_EXTENSION_NAME );
 #endif
-			vl.instanceInfo.enabledExtensionCount = GetLinkCount( enabledExtensions );
+			vl.instanceInfo.enabledExtensionCount = (uint32_t)GetLinkCount( enabledExtensions );
 			vl.instanceInfo.ppEnabledExtensionNames = (const char*const*)GetLinkAddress( &enabledExtensions, 0 );
 		}
 		{

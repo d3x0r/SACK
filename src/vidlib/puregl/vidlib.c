@@ -1529,7 +1529,7 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 
 static void WantRenderGL( void )
 {
-	struct plugin_reference *reference;
+	//struct plugin_reference *reference;
 	if( l.flags.bLogRenderTiming )
 		lprintf( WIDE("Begin Render") );
 
@@ -2559,7 +2559,7 @@ WM_DROPFILES
 			l.mouse_b != l._mouse_b ||
 		   l.mouse_last_vid != hVideo ) // this hvideo!= last hvideo?
 		{
-			uint32_t msg[4];
+			//uint32_t msg[4];
 			if( (!hVideo->flags.mouse_on || !l.flags.mouse_on ) && !hVideo->flags.bNoMouse)
 			{
 				int x;

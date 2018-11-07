@@ -100,7 +100,8 @@ _FFMPEG_INTERFACE_NAMESPACE
 static struct fmpeg_interface
 {
 #define declare_func(a,b,c) a (CPROC *b) c
-#define setup_func(lib, a,b,c) if( ffmpeg.b=(a(CPROC*)c)LoadFunction( lib, _WIDE(#b) ) )
+#define setup_func_test(lib, a,b,c) if( ffmpeg.b=(a(CPROC*)c)LoadFunction( lib, _WIDE(#b) ) )
+#define setup_func(lib, a,b,c) do{ ffmpeg.b=(a(CPROC*)c)LoadFunction( lib, _WIDE(#b) ); }while(0)
 
 	declare_func( void, av_register_all,(void) );
 	declare_func( int, avformat_open_input, (AVFormatContext **ps, const char *filename, AVInputFormat *fmt, AVDictionary **options) );
@@ -519,7 +520,7 @@ static void InitFFMPEG_video( void )
 	if( !l.pdi || !l.pii )
 		return;
 
-	setup_func( lib_util, AVFrame*, av_frame_alloc, (	void ) )
+	setup_func_test( lib_util, AVFrame*, av_frame_alloc, (	void ) )
 				  ; else return;
 	setup_func( lib_util, void, av_frame_free, (AVFrame **frame) );
 	setup_func( lib_util, void*, av_malloc, (size_t));

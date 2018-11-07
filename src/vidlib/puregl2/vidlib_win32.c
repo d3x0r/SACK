@@ -1166,7 +1166,7 @@ WM_DROPFILES
 		Return TRUE;
 	case WM_USER_MOUSE_CHANGE:
 		{
-			hVideo = (PVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
+			hVideo = (PVIDEO) GetWindowLongPtr (hWnd, WD_HVIDEO);
 			if( hVideo )
 			{
 #ifdef LOG_MOUSE_HIDE_IDLE

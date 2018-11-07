@@ -156,7 +156,7 @@ char **MakeTaskArguments( char * *pArgs, char * progname, char * args )
 				lastchar = p[0];
 				if( lastchar != ' ' && p[0] == ' ' ) // and there's a space
 				{
-					int len;
+					size_t len;
 					pp[count] = (char *)Allocate( len = (strlen( start ) + 1) );
 					MemCpy( (TEXTSTR)pp[count], start, len-1 );
 					pp[count++][len-1] = 0;
@@ -265,7 +265,7 @@ void EditTask( PSI_CONTROL parent_frame, PTASKINFO pTask )
 
 
 
-void CPROC SummonerReadComplete( PCLIENT pc, POINTER buffer, int nLen )
+void CPROC SummonerReadComplete( PCLIENT pc, CPOINTER buffer, size_t nLen )
 {
 	// always get this member...
 	// first read this should also be NULL like buffer

@@ -795,7 +795,7 @@ ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 	size = sack_ftell (fp);
 	sack_fseek (fp, 0, SEEK_SET);
 	buf = (uint8_t*) AllocateEx( size + 1 DBG_RELAY );
-	sack_fread (buf, 1, size + 1, fp);
+	sack_fread (buf, size + 1, 1, fp);
 	sack_fclose (fp);
 
 	//lprintf(WIDE("so far okay -%s %d (%d)"), filename, buf, size );

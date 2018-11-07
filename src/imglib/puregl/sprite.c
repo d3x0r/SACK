@@ -1054,7 +1054,6 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 	else
 	{
 			VECTOR v[2][4];
-			float texture_v[4][2];
 			int vi = 0;
 			//TranslateCoord( dest, &xd, &yd );
 

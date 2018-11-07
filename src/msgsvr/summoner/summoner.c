@@ -1,5 +1,6 @@
 #include <stdhdrs.h>
 #include <deadstart.h> // ATEXIT
+#include <idle.h>
 #include <network.h>
 #include <netservice.h>
 #include <msgclient.h>

@@ -366,7 +366,7 @@ int main( int argc, char **argv )
 
 		{
 			const char *replace_start;
-			const char *replace_end;
+			//const char *replace_end;
 			replace_start = strstr( package, "@@@" );
 			if( replace_start )
 			{

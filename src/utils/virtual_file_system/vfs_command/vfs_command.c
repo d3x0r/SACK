@@ -12,19 +12,11 @@
 static struct vfs_command_local
 {
 	struct file_system_interface *fsi;
-#ifdef USE_VFS_FS_INTERFACE
-	struct fs_volume *current_vol;
-#else
 	struct volume *current_vol;
-#endif
 	struct file_system_mounted_interface *current_mount;
 	LOGICAL verbose;
 
-#ifdef USE_VFS_FS_INTERFACE
-	struct fs_volume *current_vol_source;
-#else
 	struct volume *current_vol_source;
-#endif
 	struct file_system_mounted_interface *current_mount_source;
 } l;
 

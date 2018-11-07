@@ -29,7 +29,7 @@ IMAGE_NAMESPACE
 namespace loader {
 #endif
 
-Image ImageJpgFile (uint8_t* buf, uint32_t size);
+Image ImageJpgFile (uint8_t* buf, size_t size);
 LOGICAL CPROC JpgImageFile( Image image, uint8_t **buf, size_t *size, int Q);
 
 #ifdef __cplusplus 

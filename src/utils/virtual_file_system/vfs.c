@@ -345,7 +345,7 @@ static LOGICAL ExpandVolume( struct volume *vol ) {
 	LOGICAL created;
 	LOGICAL path_checked = FALSE;
 	struct disk* new_disk;
-	size_t oldsize = vol->dwSize;
+	BLOCKINDEX oldsize = (BLOCKINDEX)vol->dwSize;
 	if( vol->read_only ) return TRUE;
 	if( !vol->dwSize ) {
 		{
