@@ -149,14 +149,14 @@ void CPROC OnItemDoubleClickPermission( uintptr_t psv, PSI_CONTROL pc, PLISTITEM
 	int n;
 	int already_picked = 0;
 	PLISTITEM pli_picked;
-	int perm_selected = GetItemData( pli );
+	uintptr_t perm_selected = GetItemData( pli );
 	PSI_CONTROL pc_required = GetNearControl( pc, REQUIRED_PERMISSIONS );
 
    /* check the already required list, see if something is picked...*/
 	for( n = 0; pli_picked = GetNthItem( pc_required, n ); n++ )
 	{
-		int nRequuired = GetItemData( pli_picked );
-		if( nRequuired == perm_selected )
+		uintptr_t nRequired = GetItemData( pli_picked );
+		if( nRequired == perm_selected )
 		{
 			already_picked = TRUE;
 			break;

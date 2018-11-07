@@ -484,13 +484,13 @@ void CPROC OnItemDoubleClickPermission( uintptr_t psv, PSI_CONTROL pc, PLISTITEM
 	int n;
 	int already_picked = 0;
 	PLISTITEM pli_picked;
-	int perm_selected = GetItemData( pli );
+	uintptr_t perm_selected = GetItemData( pli );
 	PSI_CONTROL pc_required = GetNearControl( pc, REQUIRED_PERMISSIONS );
 
    /* check the already required list, see if something is picked...*/
 	for( n = 0; pli_picked = GetNthItem( pc_required, n ); n++ )
 	{
-		int nRequuired = GetItemData( pli_picked );
+		uintptr_t nRequuired = GetItemData( pli_picked );
 		if( nRequuired == perm_selected )
 		{
 			already_picked = TRUE;
@@ -581,7 +581,7 @@ static void OnEditSecurityContext( WIDE("SQL Password") )( uintptr_t button )
 							RESETFLAG( pls->permissions, n );
 						}
 						/* for all items in list, set required flag... */
-						for( n = 0; pli = GetNthItem( list, n ); n++ )
+						for( n = 0; pli = GetNthItem( list, (int)n ); n++ )
 						{
 							SETFLAG( pls->permissions, GetItemData( pli ) );
 						}
@@ -593,7 +593,7 @@ static void OnEditSecurityContext( WIDE("SQL Password") )( uintptr_t button )
 	}
 }
 
-PTOKEN FindToken( INDEX id, CTEXTSTR name )
+PTOKEN FindToken( TEXTSTR id, CTEXTSTR name )
 {
 	INDEX idx;
 	PTOKEN token;
@@ -601,10 +601,6 @@ PTOKEN FindToken( INDEX id, CTEXTSTR name )
 	{
 		if( StrCaseCmp( name, token->name ) == 0 )
 		{
-			if( id != token->id )
-			{
-				lprintf( WIDE("Token ID does not match (multiple definition?!") );
-			}
 			break;
 		}
 	}
@@ -619,7 +615,7 @@ PTOKEN FindToken( INDEX id, CTEXTSTR name )
 	return token;
 }
 
-PGROUP FindGroup( INDEX id, CTEXTSTR name )
+PGROUP FindGroup( TEXTSTR id, CTEXTSTR name )
 {
 	INDEX idx;
 	PGROUP group;
@@ -627,11 +623,7 @@ PGROUP FindGroup( INDEX id, CTEXTSTR name )
 	{
 		if( StrCaseCmp( name, group->name ) == 0 )
 		{
-			if( id != group->id )
-			{
-				lprintf( WIDE("Group ID does not match (multiple definition?!") );
-			}
-         break;
+			 break;
 		}
 	}
 	if( !group )
@@ -645,13 +637,13 @@ PGROUP FindGroup( INDEX id, CTEXTSTR name )
    return group;
 }
 
-PUSER FindUser( INDEX id )
+PUSER FindUser( CTEXTSTR id )
 {
 	INDEX idx;
 	PUSER user;
 	LIST_FORALL( g.users, idx, PUSER, user )
 	{
-		if( id == user->id )
+		if( StrCmp( id, user->id )==0)
 			break;
 	}
 	if( !user )
@@ -707,7 +699,7 @@ void ReloadUserCache( PODBC odbc )
 		; result_group
 		; FetchSQLRecord( odbc, &result_group ) )
 	{
-		INDEX group_id = (INDEX)IntCreateFromText( result_group[0] );
+		CTEXTSTR group_id = result_group[0];
 		PGROUP group = FindGroup( group_id, result_group[1] );
 	}
 
@@ -718,7 +710,7 @@ void ReloadUserCache( PODBC odbc )
 		 ; result_user
 		  ; FetchSQLRecord( odbc, &result_user ) )
 	{
-		INDEX user_id = (INDEX)IntCreateFromText( result_user[0] );
+		CTEXTSTR user_id = result_user[0];
 		PUSER user = FindUser( user_id );
 		PushSQLQueryEx( odbc );
 
@@ -753,7 +745,7 @@ void ReloadUserCache( PODBC odbc )
 				
 		// first, last [1], [2]
 		{
-			int len;
+			size_t len;
 			len = StrLen( user->first_name ) + StrLen( user->last_name ) + StrLen( user->staff ) + 5;
 			user->full_name = NewArray( TEXTCHAR, len );
 			snprintf( user->full_name, len, WIDE("%s\t%s\t(%s)"), user->first_name, user->last_name, user->staff );
@@ -793,7 +785,7 @@ void ReloadUserCache( PODBC odbc )
 			 ; result_group
 			  ; FetchSQLRecord( odbc, &result_group ) )
 		{
-			INDEX group_id = (INDEX)IntCreateFromText( result_group[0] );
+			CTEXTSTR group_id = result_group[0];
 			PGROUP group = FindGroup( group_id, result_group[1] );
 			if( !group->tokens )
 			{
@@ -802,7 +794,7 @@ void ReloadUserCache( PODBC odbc )
 					 ; result_token
 					  ; FetchSQLRecord( odbc, &result_token ) )
 				{
-					INDEX token_id = (INDEX)IntCreateFromText( result_token[0] );
+					CTEXTSTR token_id = result_token[0];
 					PTOKEN token = FindToken( token_id, result_token[1] );
 					//lprintf( WIDE("Adding token %s to group %s"), token->name, group->name );
 					AddLink( &group->tokens, token );
@@ -827,7 +819,7 @@ PRELOAD( InitSQLPassword )
 	{
 		PTOKEN token = New( struct sql_token );
 		token->name = StrDup( result[1] );
-		token->id = atoi( result[0] );
+		token->id = StrDup(result[0]);
 		AddLink( &g.tokens, token );
 		g.permission_count++; // should stay in sync with list...
 	}

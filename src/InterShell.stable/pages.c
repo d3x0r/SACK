@@ -741,12 +741,12 @@ static void CPROC ListBoxThemeSelectionChanged( uintptr_t psv, PSI_CONTROL list,
 		}
 	}
 
-	SetLink( &l.current_page->background_colors, l.current_page_theme, prior_color );
+	SetLink( &l.current_page->background_colors, l.current_page_theme, (POINTER)(uintptr_t)prior_color );
 
 	l.current_page_theme = n;
 
 	SetControlText( GetNearControl( list, TXT_IMAGE_NAME ), (CTEXTSTR)GetLink( &l.current_page->backgrounds, n ) );
-	SetColorWell( GetNearControl( list, CLR_BACKGROUND ), (CDATA)GetLink( &l.current_page->background_colors, n ) );
+	SetColorWell( GetNearControl( list, CLR_BACKGROUND ), (CDATA)(uintptr_t)GetLink( &l.current_page->background_colors, n ) );
 }
 
 //---------------------------------------------------------------------------
@@ -845,11 +845,11 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 		GetControlText( GetControl( frame, TXT_IMAGE_NAME ), buffer, sizeof( buffer ) );
 		// Get info from dialog...
 		canvas->current_page->background_color = GetColorFromWell( GetControl( frame, CLR_BACKGROUND ) );
-		SetLink( &l.current_page->background_colors, l.current_page_theme, canvas->current_page->background_color );
+		SetLink( &l.current_page->background_colors, l.current_page_theme, (POINTER)(uintptr_t)canvas->current_page->background_color );
 		if( buffer[0] )
 		{
 			canvas->current_page->background = StrDup( buffer );
-			SetLink( &canvas->current_page->backgrounds, l.current_page_theme, canvas->current_page->background );
+			SetLink( &canvas->current_page->backgrounds, l.current_page_theme, (POINTER)(uintptr_t)canvas->current_page->background );
 			if( canvas->current_page->background_image )
 			{
 				UnmakeImageFile( canvas->current_page->background_image );
@@ -1224,7 +1224,7 @@ void UpdateTheme( PCanvasData canvas )
 			INDEX idx2;
 			PMENU_BUTTON control;
 			CTEXTSTR name;
-			CDATA color = (CDATA)GetLink( &page->background_colors, g.theme_index );
+			CDATA color = (CDATA)(uintptr_t)GetLink( &page->background_colors, g.theme_index );
 			if( color )
 			{
 				page->background_color = color;
@@ -1270,7 +1270,7 @@ void InterShell_SetPageColor( PPAGE_DATA page, CDATA color )
 	if( page )
 	{
 		page->background_color = color;
-		SetLink( &page->background_colors, l.current_page_theme, color );
+		SetLink( &page->background_colors, l.current_page_theme, (POINTER)(uintptr_t)color );
 		SmudgeCommon( page->frame );
 	}
 }

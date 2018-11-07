@@ -1225,7 +1225,6 @@ int32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT conte
 	int32_t x_offset_left, x_offset_right;	
 	int32_t frame_height;
 	int32_t _x_offset_left, _x_offset_right;	
-restart:
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, !context->sent, TRUE, 0 );
 	_x_offset_left = x_offset_left;
 	_x_offset_right = x_offset_right;
@@ -1766,7 +1765,7 @@ int GetInputCursorIndex( PCHAT_LIST list, int x, int y )
 				for( ; seg; seg = NEXTLINE( seg ) )
 				{
 					size_t len = GetTextSize( seg );
-					size_t seglen = len - first_ofs;
+					int seglen = (int)(len - first_ofs);
 					if( ( summed_len + seglen ) < pCurrentLine->nToShow )
 					{
 						first_ofs = 0;
@@ -1803,7 +1802,7 @@ void GetInputCursorPos( PCHAT_LIST list, int *x, int *y )
 	{
 		if( cursor_segs == list->input.CommandInfo->CollectionBuffer )
 			continue;
-		cursor_pos += GetTextSize( cursor_segs );
+		cursor_pos += (uint32_t)GetTextSize( cursor_segs );
 	}
 
 	for( nLine = 0, counter = 0; ; nLine ++ )

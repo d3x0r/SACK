@@ -62,7 +62,7 @@ static struct local_password_frame {
 	int okay;
 	int stage;
 
-	INDEX logee_id;
+	TEXTSTR logee_id;
 	TEXTSTR logee_name;
 
 	PSI_CONTROL user_list;
@@ -100,11 +100,9 @@ static struct local_password_frame {
 
 	PODBC odbc;	
 	CTEXTSTR sys_name;
-	int	program_id;
-	CTEXTSTR  prog_name;
-	int	hall_id;
-	int	charity_id;
-	int	default_room_id;
+	CTEXTSTR program_id;
+	CTEXTSTR prog_name;
+	CTEXTSTR default_room_id;
 
 	uint8_t  bad_login_limit;			 // Login attempt limit for locking a user account
 	CTEXTSTR bad_login_interval;  // Time interval to keep user locked out ( minutes )	
@@ -292,7 +290,7 @@ void CreateToken( CTEXTSTR token, CTEXTSTR description )
 	}
 	else
 	{
-		snprintf( buf, 256, WIDE(" Token: %s was created by User: %d Name: %s"), token, l.logee_id, l.logee_name );
+		snprintf( buf, 256, WIDE(" Token: %s was created by User: %s Name: %s"), token, l.logee_id, l.logee_name );
 		DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, EscapeString( buf ) );
 		FindToken( token_id, token );
 	}
@@ -370,7 +368,6 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 	uint8_t n = 0;
 	uint8_t user_added = 0;
 	uint8_t user_terminated = 0;
-	CTEXTSTR token;	
 
 	if( l.user_list )
 		ResetList( l.user_list );	
@@ -406,12 +403,12 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 			 results;
 			  GetSQLRecord( &results ) )
 		{
-			int user_id = atoi( results[0] );
+			CTEXTSTR user_id =  results[0];
 			PUSER user;
 			INDEX idx;
 			LIST_FORALL( g.users, idx, PUSER, user )
 			{
-				if( user->id == user_id )
+				if( StrCmp( user->id, user_id ) == 0 )
 				{
 					if( HasPermission( user, tokens, nTokens ) )
 					{
@@ -445,12 +442,12 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 				 results;
 				  GetSQLRecord( &results ) )
 			{
-				int user_id = atoi( results[0] );
+				TEXTSTR user_id =  results[0];
 				PUSER user;
 				INDEX idx;
 				LIST_FORALL( g.users, idx, PUSER, user )
 				{
-					if( user->id == user_id )
+					if( StrCmp( user->id, user_id ) ==0 )
 					{
 						if( HasPermission( user, tokens, nTokens ) )
 						{
@@ -998,7 +995,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 					if( l.selected_user_item->flags.bHasLogin )
 					{
 						password_info->actual_login_id = atoi( l.selected_user_item->required_login_id );
-						DoSQLCommandf( WIDE("insert into login_history (actual_login_id,shift,fiscalday,system_id,program_id,user_id,login_whenstamp) values (%s,%s,%s,%d,%d,%d,now())")
+						DoSQLCommandf( WIDE("insert into login_history (actual_login_id,shift,fiscalday,system_id,program_id,user_id,login_whenstamp) values (%s,%s,%s,%s,%s,%s,now())")
 							, l.selected_user_item->required_login_id
 							, l.selected_user_item->required_login_shift
 							, GetSQLOffsetDate( NULL, WIDE("Fiscal"), 5 )
@@ -1010,7 +1007,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 					else
 					{
 						// override, and normal login, use this, not a chain login
-						DoSQLCommandf( WIDE("insert into login_history (fiscalday,system_id,program_id,user_id,login_whenstamp) values (%s,%d,%d,%d,now())")
+						DoSQLCommandf( WIDE("insert into login_history (fiscalday,system_id,program_id,user_id,login_whenstamp) values (%s,%s,%s,%s,now())")
 										 , GetSQLOffsetDate( NULL, WIDE("Fiscal"), 5 ), g.system_id, program?GetProgramID( program ):l.program_id, l.user->id );
 					}
 					// Get Login ID
@@ -1021,7 +1018,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 					if( result_login_id )
 						(*result_login_id) = password_info->login_id;
 
-					lprintf( WIDE("Doing login... %p %p %s %d"), g.current_user, g.temp_user, l.user->name, password_info->login_id );
+					lprintf( WIDE("Doing login... %p %p %s %s"), g.current_user, g.temp_user, l.user->name, password_info->login_id );
 					// Check if already current user if so
 
 					snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("Success.") );
@@ -1453,8 +1450,8 @@ void expirePromptOkay( void )
 				if( !password_used )
 				{
 					l.flags.matched = 1;				
-					snprintf( buf, 256, WIDE(" User: %d Name: %s had expired"),  l.user->id, l.user->name );
-					DoSQLCommandf( WIDE("insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())"), l.user->id, l.out, buf );
+					snprintf( buf, 256, WIDE(" User: %s Name: %s had expired"),  l.user->id, l.user->name );
+					DoSQLCommandf( WIDE("insert into permission_user_password (user_id,password,description,creation_datestamp) values ('%s','%s','%s',now())"), l.user->id, l.out, buf );
 					DoSQLCommandf( WIDE("update permission_user_info set password='%s',password_creation_datestamp=now() where user_id=%d"), l.out, l.user->id );	
 					snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("The password has been succesfully updated.") );
 					LabelVariableChanged( l.lvPassPop2 );
@@ -1714,7 +1711,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 					//If password hasn't been used update database else pop up banner message
 					if( !password_used )
 					{				
-						snprintf( buf, 256, WIDE(" User: %d Name: %s password was changed by User: %d Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name );
+						snprintf( buf, 256, WIDE(" User: %s Name: %s password was changed by User: %s Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name );
 						DoSQLCommandf( WIDE("insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())"), l.user2->id, l.out, buf );
 						DoSQLCommandf( WIDE("update permission_user_info set password='%s',password_creation_datestamp=now() where user_id=%d"), l.out, l.user2->id );	
 						snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("The password has been succesfully updated.") );
@@ -1804,7 +1801,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Unlock Account") )( uintptr_t psv )
 	if( l.unlock_selected_user )
 	{
 		l.unlock_user = (PUSER)GetItemData( l.unlock_selected_user );		
-		snprintf( buf, 256, WIDE(" User: %d Name: %s was unlocked by User: %d Name: %s"),  l.unlock_user->id, l.unlock_user->name, l.logee_id, l.logee_name ); 		
+		snprintf( buf, 256, WIDE(" User: %s Name: %s was unlocked by User: %s Name: %s"),  l.unlock_user->id, l.unlock_user->name, l.logee_id, l.logee_name ); 		
 		DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,6,%d,%d,%d,'%s',now())"), l.unlock_user->id, g.system_id, l.program_id, buf );	
 		snprintf( l.cUnlockAccount, MESSAGE_SIZE, WIDE("%s's user account is now unlocked."), l.unlock_user->name  );
 		l.sUnlockAccount = l.cUnlockAccount;	
@@ -1864,22 +1861,22 @@ static void OnKeyPressEvent( WIDE("SQL Users/Terminate Account") )( uintptr_t ps
 
 		if( terminate )
 		{
-			snprintf( buf, 256, WIDE(" User: %d Name: %s was unterminated by User: %d Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name ); 			  
+			snprintf( buf, 256, WIDE(" User: %s Name: %s was unterminated by User: %s Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name ); 			  
 			DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,9,%d,%d,%d,'%s',now())"), l.user2->id, g.system_id, l.program_id, buf );
 			DoSQLCommandf( WIDE("update permission_user_info set terminate=0 where user_id=%d"), l.user2->id  );
 
-			snprintf( l.cTermAccount, MESSAGE_SIZE, WIDE("%d's user account is now renewed."), l.user2->name  );
+			snprintf( l.cTermAccount, MESSAGE_SIZE, WIDE("%s's user account is now renewed."), l.user2->name  );
 			l.sTermAccount = l.cTermAccount;	
 			LabelVariableChanged( l.lvTermAccount );
 		}
 
 		else
 		{		
-			snprintf( buf, 256, WIDE(" User: %d Name: %s was terminated by User: %d Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name ); 			  
+			snprintf( buf, 256, WIDE(" User: %s Name: %s was terminated by User: %s Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name ); 			  
 			DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,9,%d,%d,%d,'%s',now())"), l.user2->id, g.system_id, l.program_id, buf );
 			DoSQLCommandf( WIDE("update permission_user_info set terminate=1 where user_id=%d"), l.user2->id  );
 
-			snprintf( l.cTermAccount, MESSAGE_SIZE, WIDE("%d's user account is now terminated."), l.user2->name  );
+			snprintf( l.cTermAccount, MESSAGE_SIZE, WIDE("%s's user account is now terminated."), l.user2->name  );
 			l.sTermAccount = l.cTermAccount;	
 			LabelVariableChanged( l.lvTermAccount );		
 		}		
@@ -1933,11 +1930,11 @@ static void OnKeyPressEvent( WIDE("SQL Users/Expire Password") )( uintptr_t psv 
 	{
 		l.user2 = (PUSER)GetItemData( l.selected_user2 );	
 
-		snprintf( buf, 256, WIDE(" User: %d Name: %s was expired by User: %d Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name );			  
+		snprintf( buf, 256, WIDE(" User: %s Name: %s was expired by User: %s Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name );			  
 		DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,17,%d,%d,%d,'%s',now())"), l.user2->id, g.system_id, l.program_id, buf );
 		DoSQLCommandf( WIDE("update permission_user_info set password_creation_datestamp = now() - interval %d day where user_id=%d"), g.pass_expr_interval, l.user2->id );
 		
-		snprintf( l.cExpPassword, MESSAGE_SIZE, WIDE("%d's password is now expired."), l.user2->name  );
+		snprintf( l.cExpPassword, MESSAGE_SIZE, WIDE("%s's password is now expired."), l.user2->name  );
 		l.sExpPassword = l.cExpPassword;	
 		LabelVariableChanged( l.lvExpPassword );
 	}
@@ -2016,7 +2013,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add User Permission Group") )( uint
 			{
 				DoSQLCommandf( WIDE("insert into permission_user (permission_group_id,user_id) values (%d,%d)"), group_id, l.user2->id );
 				
-				snprintf( buf, 256, WIDE(" User: %d Name: %s was added to Group: %s by User: %d Name: %s"),  l.user2->id, l.user2->name, l.group->name, l.logee_id, l.logee_name ); 		
+				snprintf( buf, 256, WIDE(" User: %s Name: %s was added to Group: %s by User: %s Name: %s"),  l.user2->id, l.user2->name, l.group->name, l.logee_id, l.logee_name ); 		
 				DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.user2->id, g.system_id, l.program_id, buf );
 
 				snprintf( l.cAddPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The user was successfully added to the group.") );
@@ -2141,7 +2138,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( u
 				group_id = atoi( result[0] );
 				DoSQLCommandf( WIDE("delete from permission_user where user_id=%d and permission_group_id=%d"), l.user2->id, group_id );
 
-				snprintf( buf, 256, WIDE(" User: %d Name: %s was removed from Group: %s by User: %d Name: %s"),  l.user2->id, l.user2->name, l.group2->name, l.logee_id, l.logee_name ); 		
+				snprintf( buf, 256, WIDE(" User: %s Name: %s was removed from Group: %s by User: %s Name: %s"),  l.user2->id, l.user2->name, l.group2->name, l.logee_id, l.logee_name ); 		
 				DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.user2->id, g.system_id, l.program_id, buf );
 
 				snprintf( l.cRemPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The user was successfully removed from the group.") );
@@ -2242,7 +2239,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add Group Token") )( uintptr_t psv 
 				{
 					DoSQLCommandf( WIDE("insert into permission_set (permission_group_id,permission_id) values (%d,%d)"), group_id, token_id );
 
-					snprintf( buf, 256, WIDE(" Token: %s was added to Group: %s by User: %d Name: %s"), l.token->name, l.group->name, l.logee_id, l.logee_name ); 		
+					snprintf( buf, 256, WIDE(" Token: %s was added to Group: %s by User: %s Name: %s"), l.token->name, l.group->name, l.logee_id, l.logee_name ); 		
 					DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, buf );
 
 					snprintf( l.cAddToken, MESSAGE_SIZE, WIDE("%s"), WIDE("The token was successfully given to the group.") );
@@ -2381,7 +2378,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( uintptr_t p
 					group_id = atoi( result[0] );
 					DoSQLCommandf( WIDE("delete from permission_set where permission_group_id=%d and permission_id=%d"), group_id, token_id );
 
-					snprintf( buf, 256, WIDE(" Token: %s was removed from Group: %s by User: %d Name: %s"), l.token2->name, l.group->name, l.logee_id, l.logee_name ); 		
+					snprintf( buf, 256, WIDE(" Token: %s was removed from Group: %s by User: %s Name: %s"), l.token2->name, l.group->name, l.logee_id, l.logee_name ); 		
 					DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, buf );
 
 					snprintf( l.cRemToken, MESSAGE_SIZE, WIDE("%s"), WIDE("The token was successfully removed from the group.") );
@@ -2519,11 +2516,10 @@ static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad")
 
 			else
 			{
-				DoSQLCommandf( WIDE("insert into permission_group (name,hall_id,dummy_timestamp,charity_id,description) values ('%s',%d,now(),%d,'%s')")
+				DoSQLCommandf( WIDE("insert into permission_group (name,dummy_timestamp,description) values ('%s',now(),'%s')")
 					, tmp1
-					, l.hall_id, l.charity_id
 					, tmp2 );
-				snprintf( buf, 256, WIDE(" Group: %s was created by User: %d Name: %s"), l.group_name, l.logee_id, l.logee_name ); 		
+				snprintf( buf, 256, WIDE(" Group: %s was created by User: %s Name: %s"), l.group_name, l.logee_id, l.logee_name ); 		
 				DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, EscapeString( buf ) );
 
 				snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The group was successfully created.") );
@@ -2590,7 +2586,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Group") )( uintptr_t psv ){
 			DoSQLCommandf( WIDE("delete from permission_group where permission_group_id=%d"), l.group->id );
 			DoSQLCommandf( WIDE("delete from permission_user where permission_group_id=%d"), l.group->id );
 
-			snprintf( buf, 256, WIDE(" Group: %s was deleted by User: %d Name: %s"), l.group->name, l.logee_id, l.logee_name ); 		
+			snprintf( buf, 256, WIDE(" Group: %s was deleted by User: %s Name: %s"), l.group->name, l.logee_id, l.logee_name ); 		
 			DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, buf );
 
 			snprintf( l.cDeleteGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The selected group was deleted successfully.") );
@@ -2776,7 +2772,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Token") )( uintptr_t psv ){
 			DoSQLCommandf( WIDE("delete from permission_tokens where name='%s'"), l.token->name );
 			DoSQLCommandf( WIDE("delete from permission_set where permission_id=%d"), token_id );
 
-			snprintf( buf, 256, WIDE(" Token: %s was deleted by User: %d Name: %s"), l.token->name, l.logee_id, l.logee_name ); 		
+			snprintf( buf, 256, WIDE(" Token: %s was deleted by User: %s Name: %s"), l.token->name, l.logee_id, l.logee_name ); 		
 			DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, buf );
 
 			snprintf( l.cDeleteToken, MESSAGE_SIZE, WIDE("%s"), WIDE("The selected token was deleted successfully.") );
@@ -3252,8 +3248,8 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 	if( l.stage == 11 )
 	{
 		//Insert collected info into permission_user_info
-		DoSQLCommandf( WIDE("insert into permission_user_info (hall_id,charity_id,default_room_id,first_name,last_name,name,staff_id,password,password_creation_datestamp) values (%d,%d,%d,'%s','%s','%s','%s','%s',now())")
-			, l.hall_id, l.charity_id, l.default_room_id, l.first_name, l.last_name, l.user_name, l.staff_id, l.out );
+		DoSQLCommandf( WIDE("insert into permission_user_info (default_room_id,first_name,last_name,name,staff_id,password,password_creation_datestamp) values (%d,'%s','%s','%s','%s','%s',now())")
+			, l.default_room_id, l.first_name, l.last_name, l.user_name, l.staff_id, l.out );
 
 		//Get user id for insertion into 
 		DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select user_id from permission_user_info where staff_id='%s'"), l.staff_id );
@@ -3264,7 +3260,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 		DoSQLCommandf( WIDE("insert into permission_user (permission_group_id,user_id) values (%d,%d)"), group_id, user_id );
 				
 		//Insert collected info into permission_user_password
-		snprintf( buf, 256, WIDE(" User: %d Name: %s was created by User: %d Name: %s"),  user_id, l.user_name, l.logee_id, l.logee_name ); 
+		snprintf( buf, 256, WIDE(" User: %s Name: %s was created by User: %s Name: %s"),  user_id, l.user_name, l.logee_id, l.logee_name ); 
 		DoSQLCommandf( WIDE("insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())"), user_id, l.out, buf );			
 		DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), user_id, g.system_id, l.program_id, buf );
 
@@ -3643,7 +3639,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 	{
 		//Insert collected info into permission_user_info
 		DoSQLCommandf( WIDE("insert into permission_user_info (hall_id,charity_id,default_room_id,first_name,last_name,name,staff_id,password,password_creation_datestamp) values (%d,%d,%d,'%s','%s','%s','%s','%s',now())")
-			, l.hall_id, l.charity_id, l.default_room_id, l.first_name, l.last_name, l.user_name, l.staff_id, l.out );
+			, l.default_room_id, l.first_name, l.last_name, l.user_name, l.staff_id, l.out );
 
 		//Get user id for insertion into 
 		DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select user_id from permission_user_info where staff_id='%s'"), l.staff_id );
@@ -3656,7 +3652,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 		DoSQLCommandf( WIDE("insert into permission_user (permission_group_id,user_id) values (%d,%d)"), l.group->id, user_id );
 				
 		//Insert collected info into permission_user_password
-		snprintf( buf, 256, WIDE(" User: %d Name: %s was created by User: %d Name: %s"),  user_id, l.user_name, l.logee_id, l.logee_name ); 
+		snprintf( buf, 256, WIDE(" User: %s Name: %s was created by User: %s Name: %s"),  user_id, l.user_name, l.logee_id, l.logee_name ); 
 		DoSQLCommandf( WIDE("insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())"), user_id, l.out, buf );			
 		DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), user_id, g.system_id, l.program_id, buf );
 
@@ -4080,8 +4076,6 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 	TEXTCHAR buf[10];
 	TEXTCHAR buf2[20];	
 	CTEXTSTR result;
-	CTEXTSTR *result2;
-	int len, n, p;
 
 	// Get Interfaces
 	l.pri = GetDisplayInterface();
@@ -4095,8 +4089,6 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 	l.stage = 0;
 
 	// Other needed preset ( Will Set From Database )				
-	l.hall_id = 0;
-	l.charity_id = 0;
 	l.default_room_id = 0;
 
 	// Create & Initialize Label Variables
@@ -4246,7 +4238,7 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 
 	if( DoSQLQueryf( &result, WIDE("select user_id from login_history where system_id=%d and logout_whenstamp='11111111111111' order by login_whenstamp desc limit 1" ), g.system_id ) && result )
 	{
-		l.logee_id = atoi( result );
+		l.logee_id = StrDup( result );
 
 		if( DoSQLQueryf( &result, WIDE("select name from permission_user_info where user_id=%d" ), l.logee_id ) && result )
 			l.logee_name = StrDup( result );

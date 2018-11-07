@@ -1,5 +1,6 @@
 #include <stdhdrs.h>
 #include <logging.h>
+#include <filesys.h>
 #include <sharemem.h>
 #include <deadstart.h>
 #ifdef BUILD_SERVICE

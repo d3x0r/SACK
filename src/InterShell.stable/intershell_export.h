@@ -26,6 +26,7 @@
 /* One-short inclusion protection symbol for this file. */
 #define InterShell_EXPORT
 #include <sack_types.h>
+#include <filesys.h>
 #ifdef SACK_CORE_BUILD
 #ifndef INTERSHELL_CORE_BUILD
 #define INTERSHELL_CORE_BUILD

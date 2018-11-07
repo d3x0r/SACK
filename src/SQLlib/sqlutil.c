@@ -618,6 +618,52 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 	return SQLReadNameTableExEx( NULL, name, table,col,namecol,bCreate DBG_RELAY );
 }
 
+ TEXTSTR  SQLReadNameTableKeyExEx( PODBC odbc, CTEXTSTR name, CTEXTSTR table, CTEXTSTR col, CTEXTSTR namecol, int bCreate DBG_PASS )
+ {
+	 TEXTCHAR query[256];
+	 TEXTCHAR *tmp;
+	 CTEXTSTR result = NULL;
+	 TEXTSTR IDName = NULL;
+	 if( !table || !name )
+		 return INVALID_INDEX;
+
+	 // look in internal cache first...
+	 IDName = GetKeyOfName( odbc, table, name );
+	 if( IDName != NULL )
+		 return IDName;
+
+	 PushSQLQueryEx( odbc );
+	 tmp = EscapeSQLStringEx( odbc, name DBG_RELAY );
+	 tnprintf( query, sizeof( query ), WIDE( "select %s from %s where %s like \'%s\'" ), col ? col : WIDE( "id" ), table, namecol, tmp );
+	 Release( tmp );
+	 if( SQLQueryEx( odbc, query, &result DBG_RELAY ) && result ) {
+		 IDName = StrDup( result );
+	 }
+	 else if( bCreate ) {
+		 TEXTSTR newval = EscapeSQLString( odbc, name );
+		 tnprintf( query, sizeof( query ), WIDE( "insert into %s (%s) values( \'%s\' )" ), table, namecol, newval );
+		 if( !SQLCommandEx( odbc, query DBG_RELAY ) ) {
+			 lprintf( WIDE( "insert failed, how can we define name %s?" ), name );
+			 // inser failed...
+		 }
+		 else {
+			 // all is well.
+			 IDName = FetchLastInsertKeyEx( odbc, table, col ? col : WIDE( "id" ) DBG_RELAY );
+		 }
+		 Release( newval );
+	 }
+
+	 PopODBCEx( odbc );
+
+	 if( IDName ) {
+		 // instead of strdup, consider here using SaveName from procreg?
+		 AddBinaryNode( GetTableCache( odbc, table ), IDName 
+			 , (uintptr_t)StrDup( name ) );
+	 }
+	 return IDName;
+ }
+
+
 //---------------------------------------------------------------------------
 
  INDEX  ReadNameTableEx( CTEXTSTR name, CTEXTSTR table, CTEXTSTR col DBG_PASS )

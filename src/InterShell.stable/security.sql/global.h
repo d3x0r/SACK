@@ -16,21 +16,21 @@ struct sql_password
 	int nTokens;
 	TEXTSTR *pTokens;
 	CTEXTSTR required_token;
-   PTOKEN required_token_token;
-   CTEXTSTR override_required_token;
-   PTOKEN override_required_token_token;
+	PTOKEN required_token_token;
+	CTEXTSTR override_required_token;
+	PTOKEN override_required_token_token;
 };
 
 struct sql_token
 {
-	INDEX id;
+	TEXTSTR id;
 	CTEXTSTR name;
 };
 
 typedef struct sql_group *PGROUP;
 struct sql_group
 {
-	INDEX id;
+	TEXTSTR id;
 	TEXTSTR name;
 	PLIST tokens;
 };
@@ -38,7 +38,7 @@ struct sql_group
 typedef struct sql_user *PUSER;
 struct sql_user
 {
-	INDEX id;
+	TEXTSTR id;
 	TEXTSTR full_name;
 	TEXTSTR name;
 	TEXTSTR first_name;
@@ -57,7 +57,7 @@ struct _global_sql_password {
 	PLIST tokens; // list of struct sql_token *'s
 	PLIST groups; // list of groups
 	struct {
-      // set group when selecting... otherwise just select group.
+		// set group when selecting... otherwise just select group.
 		BIT_FIELD bSetGroup : 1;
 		BIT_FIELD bPrintAccountCreated : 1;
 		BIT_FIELD bSetTokens : 1;
@@ -82,7 +82,7 @@ struct _global_sql_password {
 	PUSER temp_user;
 	INDEX temp_user_login_id;
 
-	INDEX system_id;
+	TEXTSTR system_id;
 
 	int pass_expr_interval;       // Time interval for password expiration ( days )
 
@@ -108,7 +108,7 @@ PTOKEN FindToken( INDEX id, CTEXTSTR name );
 struct password_info
 {
 	INDEX login_id;
-   INDEX actual_login_id;
+	INDEX actual_login_id;
 };
 
 struct password_info * PromptForPassword( PUSER *result_user, INDEX *result_login_id, CTEXTSTR program, CTEXTSTR *tokens, int ntokens, PSQL_PASSWORD pls );

@@ -205,7 +205,7 @@ static void OnKeyPressEvent( WIDE("Windows/Set Permashell") )( uintptr_t psv )
 		//lprintf( WIDE("Write shell to: %s"), my_button->shell );
 		dwStatus = RegSetValueEx(hTemp, WIDE("Shell"), 0
 										  , REG_SZ
-										  , (BYTE*)my_button->shell, strlen( my_button->shell ) * sizeof( TEXTCHAR ) );
+										  , (BYTE*)my_button->shell, (DWORD)(strlen( my_button->shell ) * sizeof( TEXTCHAR )) );
 		RegCloseKey( hTemp );
 		if( dwStatus == ERROR_SUCCESS )
 		{
@@ -363,7 +363,7 @@ static void OnKeyPressEvent( WIDE("Windows/Set Windows Shell") )( uintptr_t psv 
 	{
 		dwStatus = RegSetValueEx(hTemp, WIDE("Shell"), 0
 										  , REG_SZ
-										  , (BYTE*)WIDE("explorer.exe"), strlen( WIDE("explorer.exe") ) * sizeof( WIDE(" ")[0] ) );
+										  , (BYTE*)WIDE("explorer.exe"), (DWORD)(strlen( WIDE("explorer.exe") ) * sizeof( WIDE(" ")[0] )) );
 		RegCloseKey( hTemp );
 		if( dwStatus == ERROR_SUCCESS )
 		{

@@ -1488,11 +1488,11 @@ void SaveAPage( FILE *file, PPAGE_DATA page )
 	sack_fprintf( file, WIDE("page layout %d by %d\n"), page->grid.nPartsX, page->grid.nPartsY );
 	sack_fprintf( file, WIDE("%sbackground color %s\n")
 			 , (CDATA)GetLink( &page->background_colors, 0 )?"":"#"
-			 , FormatColor( (CDATA)GetLink( &page->background_colors, 0 ) )
+			 , FormatColor( (CDATA)(uintptr_t)GetLink( &page->background_colors, 0 ) )
 			 );
 	sack_fprintf( file, WIDE("%sbackground image %s\n")
-			 , (CTEXTSTR)GetLink( &page->backgrounds, 0 )?((CTEXTSTR)GetLink( &page->backgrounds, 0 ))[0]?WIDE(""):WIDE("#"):WIDE("#")
-			 , (CTEXTSTR)GetLink( &page->backgrounds, 0 )?EscapeMenuString( (TEXTSTR)GetLink( &page->backgrounds, 0 ) ):WIDE("") );
+			 , (CTEXTSTR)GetLink( &page->backgrounds, 0 )?((CTEXTSTR)(uintptr_t)GetLink( &page->backgrounds, 0 ))[0]?WIDE(""):WIDE("#"):WIDE("#")
+			 , (CTEXTSTR)GetLink( &page->backgrounds, 0 )?EscapeMenuString( (TEXTSTR)(uintptr_t)GetLink( &page->backgrounds, 0 ) ):WIDE("") );
 	{
 		INDEX idx;
 		CTEXTSTR background;
@@ -1503,7 +1503,7 @@ void SaveAPage( FILE *file, PPAGE_DATA page )
 				continue;
 			sack_fprintf( file, WIDE("background color(%d) %s\n")
 					 , idx
-					 , FormatColor( (CDATA)GetLink( &page->background_colors, idx ) )
+					 , FormatColor( (CDATA)(uintptr_t)GetLink( &page->background_colors, idx ) )
 					 );
 		}
 		LIST_FORALL( page->backgrounds, idx, CTEXTSTR, background )
@@ -1598,8 +1598,8 @@ void RenameConfig( TEXTCHAR *config_filename, TEXTCHAR *source, size_t source_na
 		sack_fclose( file );
 		// move file to backup..
 		snprintf( backup, sizeof( backup ), WIDE( "%*.*s.AutoConfigBackup%d" )
-				  , source_name_len
-				  , source_name_len
+				  , (int)source_name_len
+				  , (int)source_name_len
 				  , config_filename, n );
 		if( n < 10 )
 		{
@@ -1681,8 +1681,8 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 {
 	FILE *file;
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
-	int namelen;
-   TEXTSTR original_filename = filename;
+	size_t namelen;
+	TEXTSTR original_filename = filename;
 	TEXTSTR alt_filename = NewArray( TEXTCHAR, namelen = ( StrLen( filename ) + 6 ) );
 	TEXTSTR name_only = (TEXTSTR)pathrchr( filename );
 

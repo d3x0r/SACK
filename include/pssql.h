@@ -745,6 +745,19 @@ PSSQL_PROC( int, ReadFromNameTableExEx )( INDEX id, CTEXTSTR table, CTEXTSTR id_
    namecol :  name of column containing the name to lookup.
    bCreate :  if TRUE, will insert the name into the table, and
               return the resulting columns.                     */
+PSSQL_PROC( TEXTSTR, SQLReadNameTableKeyExEx)( PODBC odbc, CTEXTSTR name, CTEXTSTR table, CTEXTSTR col, CTEXTSTR namecol, int bCreate DBG_PASS );
+
+/* This is a better name resolution function. It will also
+   create a table that contains the required columns, but the
+   column names may be more intelligent than 'ID' and 'name'.
+   Parameters
+   odbc :     database connection to read from
+   name :     the name to lookup the ID for
+   table :    table the name column is in
+   col :      name of the key column(s) to read.
+   namecol :  name of column containing the name to lookup.
+   bCreate :  if TRUE, will insert the name into the table, and
+              return the resulting columns.                     */
 PSSQL_PROC( INDEX, SQLReadNameTableExEx)( PODBC odbc, CTEXTSTR name, CTEXTSTR table, CTEXTSTR col, CTEXTSTR namecol, int bCreate DBG_PASS );
 /* <combine sack::sql::SQLReadNameTableExEx@PODBC@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@int bCreate>
    
