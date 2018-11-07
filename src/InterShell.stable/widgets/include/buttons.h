@@ -89,7 +89,7 @@ KEYPAD_PROC( void, LoadButtonTheme )( void );
 #define BUTTON_FLAG_TEXT_ON_TOP 1
 
 #define OnKeyPressEvent(name)  \
-	  DefineRegistryMethod(WIDE( "sack/widgets" ),KeyPressHandler,WIDE( "keypad" ),WIDE( "press handler/" )name, WIDE( "on_keypress_event" ),void,(uintptr_t))
+	  DefineRegistryMethod(WIDE( "sack/widgets" ),KeyPressHandler,WIDE( "keypad" ),WIDE( "press handler/" )name, WIDE( "on_keypress_event" ),void,(uintptr_t),__LINE__)
 
 	/*
 	 * {

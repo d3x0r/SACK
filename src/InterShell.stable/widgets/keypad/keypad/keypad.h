@@ -27,15 +27,15 @@ PUBLIC( void, Keypad_AddMagicKeySequence )( PSI_CONTROL keypad, CTEXTSTR sequenc
 
 
 #define OnKeypadEnter(name) \
-	  DefineRegistryMethod(TASK_PREFIX,KeypadEnter,WIDE("common"),WIDE("keypad enter"),name WIDE("_on_keypad_enter"),void,(PSI_CONTROL))
+	  DefineRegistryMethod(TASK_PREFIX,KeypadEnter,WIDE("common"),WIDE("keypad enter"),name WIDE("_on_keypad_enter"),void,(PSI_CONTROL),__LINE__)
 #define OnKeypadCancel(name) \
-	  DefineRegistryMethod(TASK_PREFIX,KeypadCancel,WIDE("common"),WIDE("keypad cancel"),name WIDE("_on_keypad_cancel"),void,(PSI_CONTROL))
+	  DefineRegistryMethod(TASK_PREFIX,KeypadCancel,WIDE("common"),WIDE("keypad cancel"),name WIDE("_on_keypad_cancel"),void,(PSI_CONTROL),__LINE__)
 
 #define OnKeypadEnterType(name, typename) \
-	DefineRegistryMethod(TASK_PREFIX,KeypadTypeEnter,WIDE("common/")typename,WIDE("keypad enter"),name WIDE("_on_keypad_enter"),void,(PSI_CONTROL))
+	DefineRegistryMethod(TASK_PREFIX,KeypadTypeEnter,WIDE("common/")typename,WIDE("keypad enter"),name WIDE("_on_keypad_enter"),void,(PSI_CONTROL),__LINE__)
 
 #define OnKeypadCancelType(name, typename) \
-	  DefineRegistryMethod(TASK_PREFIX,KeypadTypeEnter,WIDE("common/")typename,WIDE("keypad cancel"),name WIDE("_on_keypad_enter"),void,(PSI_CONTROL))
+	  DefineRegistryMethod(TASK_PREFIX,KeypadTypeEnter,WIDE("common/")typename,WIDE("keypad cancel"),name WIDE("_on_keypad_enter"),void,(PSI_CONTROL),__LINE__)
 
 
 #endif
