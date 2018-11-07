@@ -479,7 +479,7 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    
    /psi/control/\<name\>/rtti/begin_frame_edit=(PSI_CONTROL)@void@_@begin_frame_edit */
 #define OnEditFrame(name) \
-	DefineRegistryMethod(PSI_ROOT_REGISTRY,FrameEditControl,WIDE("control"),name WIDE("/rtti"),WIDE("begin_frame_edit"),void,(PSI_CONTROL))
+	DefineRegistryMethod(PSI_ROOT_REGISTRY,FrameEditControl,WIDE("control"),name WIDE("/rtti"),WIDE("begin_frame_edit"),void,(PSI_CONTROL),__LINE__)
 /* When a frame's edit phase ends, controls are notified with
    this event.
    Example
