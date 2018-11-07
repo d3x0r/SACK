@@ -625,10 +625,10 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 	 CTEXTSTR result = NULL;
 	 TEXTSTR IDName = NULL;
 	 if( !table || !name )
-		 return INVALID_INDEX;
+		 return IDName;
 
 	 // look in internal cache first...
-	 IDName = GetKeyOfName( odbc, table, name );
+	 IDName = (TEXTSTR)GetKeyOfName( odbc, table, name );
 	 if( IDName != NULL )
 		 return IDName;
 
@@ -648,7 +648,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 		 }
 		 else {
 			 // all is well.
-			 IDName = FetchLastInsertKeyEx( odbc, table, col ? col : WIDE( "id" ) DBG_RELAY );
+			 IDName = (TEXTSTR)FetchLastInsertKeyEx( odbc, table, col ? col : WIDE( "id" ) DBG_RELAY );
 		 }
 		 Release( newval );
 	 }
