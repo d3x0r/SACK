@@ -78,7 +78,9 @@ struct procreg_local_tag {
 #ifdef l
 #   undef l
 #endif
-
+#ifdef __cplusplus
+#  define procreg_local_data  procreg_local_data_pp
+#endif
 #define l (*procreg_local_data)
 
 static struct procreg_local_tag *procreg_local_data;
@@ -496,7 +498,7 @@ static void Init( void )
 {
 	// don't call this function, preserves the process line cache, just check the flag and simple skip any call.
 	// use SAFE_INIT();
-#define SAFE_INIT() if( !procreg_local_data ) SimpleRegisterAndCreateGlobalWithInit( procreg_local_data, InitGlobalSpace );
+#define SAFE_INIT() if( !procreg_local_data ) RegisterAndCreateGlobalWithInit( (POINTER*)&procreg_local_data, sizeof( *procreg_local_data ), "procreg_local_data", InitGlobalSpace )
 	SAFE_INIT();
 }
 
