@@ -1,3 +1,5 @@
+#ifndef INCLUDED_FFMPEG_INTERFACE
+#define INCLUDED_FFMPEG_INTERFACE
 
 #include <render.h>
 #include <controls.h>
@@ -108,4 +110,6 @@ _FFMPEG_INTERFACE_NAMESPACE_END
 SACK_NAMESPACE_END
 #ifdef __cplusplus
 	using namespace sack::streamlib::ffmpeg;
+#endif
+
 #endif

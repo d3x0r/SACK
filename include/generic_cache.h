@@ -1,5 +1,5 @@
-#ifndef __CACHE_H__
-#define __CACHE_H__
+#ifndef INCLUDED__CACHE_H__
+#define INCLUDED__CACHE_H__
 
 #include <sack_types.h>
 

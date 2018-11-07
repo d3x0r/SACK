@@ -617,7 +617,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 #define EXTRA_PRELOAD_SYMBOL
 #endif
 
-#define ___DefineRegistryMethod2(task,name,classtype,methodname,desc,returntype,argtypes,line)   \
+#define DefineRegistryMethod2_i(task,name,classtype,methodname,desc,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRIORITY_PRELOAD( paste(paste(paste(paste(Register,name),Method),EXTRA_PRELOAD_SYMBOL),line), SQL_PRELOAD_PRIORITY ) {  \
 	SimpleRegisterMethod( task WIDE("/") classtype, paste(name,line)  \
@@ -626,10 +626,14 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 }                                                                          \
 	static returntype CPROC paste(name,line)
 
-#define __DefineRegistryMethod2(task,name,classtype,methodname,desc,returntype,argtypes,line)   \
-	___DefineRegistryMethod2(task,name,classtype,methodname,desc,returntype,argtypes,line)
+#define DefineRegistryMethod2(task,name,classtype,methodname,desc,returntype,argtypes,line)   \
+	DefineRegistryMethod2_i(task,name,classtype,methodname,desc,returntype,argtypes,line)
 
-#define ___DefineRegistryMethod2P(priority,task,name,classtype,methodname,desc,returntype,argtypes,line)   \
+/* Dekware uses this macro.
+     passes preload priority override.
+	 so it can register new internal commands before initial macros are run.
+*/
+#define DefineRegistryMethod2P_i(priority,task,name,classtype,methodname,desc,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRIORITY_PRELOAD( paste(paste(paste(paste(Register,name),Method),EXTRA_PRELOAD_SYMBOL),line), priority ) {  \
 	SimpleRegisterMethod( task WIDE("/") classtype, paste(name,line)  \
@@ -638,10 +642,16 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 }                                                                          \
 	static returntype CPROC paste(name,line)
 
-#define __DefineRegistryMethod2P(priority,task,name,classtype,methodname,desc,returntype,argtypes,line)   \
-	___DefineRegistryMethod2P(priority,task,name,classtype,methodname,desc,returntype,argtypes,line)
+/* This macro indirection is to resolve inner macros like WIDE("") around text.  */
+#define DefineRegistryMethod2P(priority,task,name,classtype,methodname,desc,returntype,argtypes,line)   \
+	DefineRegistryMethod2P_i(priority,task,name,classtype,methodname,desc,returntype,argtypes,line)
 
-#define ___DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
+/* 
+    This method is used by PSI/Intershell.
+
+	no description
+*/
+#define DefineRegistryMethod_i(task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line) ) {  \
 	SimpleRegisterMethod( task WIDE("/") classtype WIDE("/") classbase, paste(name,line)  \
@@ -649,25 +659,28 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 }                                                                          \
 	static returntype CPROC paste(name,line)
 
-#define __DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
-	___DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,line)
+#define DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
+	DefineRegistryMethod_i(task,name,classtype,classbase,methodname,returntype,argtypes,line)
 
-#define _DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
-	static returntype __DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,line)
+/*
+#define _0_DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
+	static returntype _1__DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,line)
 
 #define DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes)  \
-	__DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,__LINE__)
+	_1__DefineRegistryMethod(task,name,classtype,classbase,methodname,returntype,argtypes,__LINE__)
+*/
 
 // this macro is used for ___DefineRegistryMethodP. Because this is used with complex names
 // an extra define wrapper of priority_preload must be used to fully resolve paramters.
-#define PRIOR_PRELOAD(a,p) PRIORITY_PRELOAD(a,p)
-#define ___DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
+/*
+#define DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRIOR_PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line), priority ) {  \
 	SimpleRegisterMethod( task WIDE("/") classtype WIDE("/") classbase, paste(name,line)  \
 	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
+*/
 
 /* <combine sack::app::registry::SimpleRegisterMethod>
    
@@ -708,17 +721,19 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
    
    Example
    See <link sack::app::registry::GetFirstRegisteredNameEx@PCLASSROOT@CTEXTSTR@PCLASSROOT *, GetFirstRegisteredNameEx> */
-#define __DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
-	___DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)
 
+/*
+#define _1__DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
+	_2___DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)
 
-#define _DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
-	__DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)
+#define _0_DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
+	_1__DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)
 
 #define DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes)  \
-	_DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,__LINE__)
+	_0_DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,__LINE__)
+*/
 
-#define _DefineRegistrySubMethod(task,name,classtype,classbase,methodname,subname,returntype,argtypes,line)   \
+#define DefineRegistrySubMethod_i(task,name,classtype,classbase,methodname,subname,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line) ) {  \
 	SimpleRegisterMethod( task WIDE("/") classtype WIDE("/") classbase WIDE("/") methodname, paste(name,line)  \
@@ -727,7 +742,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 	static returntype CPROC paste(name,line)
 
 #define DefineRegistrySubMethod(task,name,classtype,classbase,methodname,subname,returntype,argtypes)  \
-	_DefineRegistrySubMethod(task,name,classtype,classbase,methodname,subname,returntype,argtypes,__LINE__)
+	DefineRegistrySubMethod_i(task,name,classtype,classbase,methodname,subname,returntype,argtypes,__LINE__)
 
 /* attempts to use dynamic linking functions to resolve passed
    global name if that fails, then a type is registered for this

@@ -1,5 +1,5 @@
-#ifndef __IMAGE3D_EXTENSIONS_DEFINED__
-#define __IMAGE3D_EXTENSIONS_DEFINED__
+#ifndef INCLUDED__IMAGE3D_EXTENSIONS_DEFINED__
+#define INCLUDED__IMAGE3D_EXTENSIONS_DEFINED__
 
 // define USE_IMAGE_3D_INTERFACE to be the 3d image interface you want to use
 

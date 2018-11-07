@@ -100,6 +100,9 @@ struct critical_section_tag {
 	THREAD_ID dwThreadID; // windows upper 16 is process ID, lower is thread ID
 	THREAD_ID dwThreadWaiting; // ID of thread waiting for this..
 #ifdef DEBUG_CRITICAL_SECTIONS
+	// these are not included without a special compile flag
+	// only required by low level deveopers who may be against
+   // undefined behavior.
 #define MAX_SECTION_LOG_QUEUE 16
 	uint32_t bCollisions ;
 	CTEXTSTR pFile[16];

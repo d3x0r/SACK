@@ -1,5 +1,5 @@
-#ifndef _SPACETREE_H_
-#define _SPACETREE_H_
+#ifndef INCLUDED_SPACETREE_H_
+#define INCLUDED_SPACETREE_H_
 
 #ifdef __cplusplus
 #define SPACETREE_NAMESPACE namespace sack { namespace containers { namespace spacetree {

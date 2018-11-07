@@ -1,6 +1,7 @@
 /* please Include sthdrs.h */
-
-
+#ifndef STANDARD_HEADERS_INCLUDED
+#  error "Please include stdhdrs.h instead of sack_types.h"
+#endif
 
 /* Define most of the sack core types on which everything else is
    based. Also defines some of the primitive container
