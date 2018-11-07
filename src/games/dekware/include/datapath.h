@@ -21,7 +21,7 @@ typedef struct option_entry
 }option_entry;
 
 #define HandleOption( device, name, desc )   \
-	__DefineRegistryMethod2(WIDE("Dekware"),HandleOption,WIDE("devices/") device WIDE("/options"),name,desc,int,(PDATAPATH,PSENTIENT,PTEXT),__LINE__)
+	DefineRegistryMethod2(WIDE("Dekware"),HandleOption,WIDE("devices/") device WIDE("/options"),name,desc,int,(PDATAPATH,PSENTIENT,PTEXT),__LINE__)
 
 
 BLOBTYPE datapath_flags
