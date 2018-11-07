@@ -3599,11 +3599,11 @@ PRELOAD( initTables ) {
 	int n, m;
 	for( n = 0; n < (sizeof( encodings )-1); n++ )
 		for( m = 0; m < (sizeof( encodings )-1); m++ ) {
-			b64xor_table[(uint8_t)encings[n]][(uint8_t)encings[m]] = encodings[n^m];
-			u8xor_table[n][(uint8_t)encings[m]] = n^m;
+			b64xor_table[(uint8_t)encodings[n]][(uint8_t)encodings[m]] = encodings[n^m];
+			u8xor_table[n][(uint8_t)encodings[m]] = n^m;
 
-			b64xor_table2[(uint8_t)encings2[n]][(uint8_t)encings2[m]] = encodings2[n^m];
-			u8xor_table2[n][(uint8_t)encings2[m]] = n^m;
+			b64xor_table2[(uint8_t)encodings2[n]][(uint8_t)encodings2[m]] = encodings2[n^m];
+			u8xor_table2[n][(uint8_t)encodings2[m]] = n^m;
 	}
 	//LogBinary( (uint8_t*)u8xor_table[0], sizeof( u8xor_table ) );
 	b64xor_table['=']['='] = '=';

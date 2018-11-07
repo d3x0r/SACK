@@ -6,7 +6,9 @@
 #include <logging.h>
 #ifdef __LINUX__
 #include <time.h>
+#include <sys/time.h>
 #include <sys/stat.h>
+//#include <linux/time.h> // struct tz
 #endif
 //-----------------------------------------------------------------------
 
@@ -100,9 +102,9 @@ uint64_t GetTimeAsFileTime ( void )
 {
 #if defined( __LINUX__ )
 	struct timeval tmp;
-	struct timezone tz;
+	//struct timezone tz;
 	FILETIME result;
-	gettimeofday( &tmp, &tz );
+	gettimeofday( &tmp, NULL );//&tz );
 	result = ( tmp.tv_usec * 10LL ) + ( tmp.tv_sec * 1000LL * 1000LL * 10LL );
 	return result;
 #else

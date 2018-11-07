@@ -11,14 +11,14 @@ SACK_NETWORK_NAMESPACE
 // IP Header -- RFC 791
 typedef struct tagIPHDR
 {
-	u_char  VIHL;			// Version and IHL
-	u_char	TOS;			// Type Of Service
+	uint8_t  VIHL;			// Version and IHL
+	uint8_t	TOS;			// Type Of Service
 	short	TotLen;			// Total Length
 	short	ID;				// Identification
 	short	FlagOff;		// Flags and Fragment Offset
-	u_char	TTL;			// Time To Live
-	u_char	Protocol;		// Protocol
-	u_short	Checksum;		// Checksum
+	uint8_t	TTL;			// Time To Live
+	uint8_t	Protocol;		// Protocol
+	uint16_t	Checksum;		// Checksum
 	struct	in_addr iaSrc;	// Internet Address - Source
 	struct	in_addr iaDst;	// Internet Address - Destination
 }IPHDR, *PIPHDR;
@@ -27,11 +27,11 @@ typedef struct tagIPHDR
 // ICMP Header - RFC 792
 typedef struct tagICMPHDR
 {
-	u_char	Type;			// Type
-	u_char	Code;			// Code
-	u_short	Checksum;		// Checksum
-	u_short	ID;				// Identification
-	u_short	Seq;			// Sequence
+	uint8_t	Type;			// Type
+	uint8_t	Code;			// Code
+	uint16_t	Checksum;		// Checksum
+	uint16_t	ID;				// Identification
+	uint16_t	Seq;			// Sequence
 	char	Data;			// Data
 }ICMPHDR, *PICMPHDR;
 

@@ -14,6 +14,9 @@
 //
 //  DEBUG FLAGS IN netstruc.h
 //
+//#define __USE_MISC
+#define _DEFAULT_SOURCE  // for features.h
+
 #define FIX_RELEASE_COM_COLLISION
 #define NO_UNICODE_C
 #include <stdhdrs.h>
@@ -2788,6 +2791,10 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 	{
 		if( lpName )
 		{
+#ifndef h_addr
+#define h_addr h_addr_list[0]
+#define H_ADDR_DEFINED
+#endif
 #ifdef WIN32
 			{
 				struct addrinfo *result;
@@ -2829,15 +2836,9 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 						lprintf( WIDE( "Strange, gethostbyname failed, but AF_INET worked..." ) );
 						SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 						lpsaAddr->sin_family = AF_INET;
-#ifndef PEDANTIC_TEST
-#define h_addr h_addr_list[0]
-#endif
 						memcpy( &lpsaAddr->sin_addr.S_un.S_addr,           // save IP address from host entry.
 							    phe->h_addr,
 						       phe->h_length);
-#ifndef PEDANTIC_TEST
-#undef h_addr
-#endif
 					}
 				}
 				else
@@ -2868,6 +2869,10 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 					 phe->h_addr,
 					 phe->h_length);
 			}
+#endif
+#ifdef H_ADDR_DEFINED
+#  undef H_ADDR_DEFINED
+#  undef h_addr
 #endif
 		}
 		else

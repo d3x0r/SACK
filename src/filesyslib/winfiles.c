@@ -2301,7 +2301,7 @@ static	size_t CPROC sack_filesys_find_get_size( struct find_cursor *_cursor ) {
 			lprintf( "getsize stat error:%d", errno );
 			return -2;
 		}
-		if( s.st_mode & S_IFREG )
+		if( S_ISREG(s.st_mode) )
 			return s.st_size;
 		return -1;
 	}

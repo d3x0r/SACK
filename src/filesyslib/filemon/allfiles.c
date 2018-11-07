@@ -137,7 +137,7 @@ int IsDirectory( CTEXTSTR name )
 	#ifdef __cplusplus
 	
 	#endif
-	stat( (const char*)name, &statbuf ) >= 0 && statbuf.st_mode & S_IFDIR )
+	stat( (const char*)name, &statbuf ) >= 0 && S_ISDIR(statbuf.st_mode) )
 		return 1;
 	return 0;
 #endif

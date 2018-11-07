@@ -31,11 +31,11 @@ SACK_NETWORK_NAMESPACE
 void Ping(TEXTSTR pstrHost, int maxTTL);
 void ReportError(PVARTEXT pInto, CTEXTSTR pstrFrom);
 int  WaitForEchoReply(SOCKET s, uint32_t dwTime);
-u_short in_cksum(u_short *addr, int len);
+uint16_t in_cksum(uint16_t *addr, int len);
 
 // ICMP Echo Request/Reply functions
 int		SendEchoRequest(PVARTEXT, SOCKET, SOCKADDR_IN*);
-int   	RecvEchoReply( PVARTEXT, SOCKET, SOCKADDR_IN*, u_char *);
+int   	RecvEchoReply( PVARTEXT, SOCKET, SOCKADDR_IN*, uint8_t *);
 
 #define MAX_HOPS     128 
 #define MAX_NAME_LEN 255
@@ -95,7 +95,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 	SOCKADDR_IN saDest;
 	SOCKADDR_IN saSrc;
 	uint64_t	     dwTimeSent;
-	u_char     cTTL;
+	uint8_t     cTTL;
 	int        nLoop;
 	int        nRet, nResult = 0;
 	int        i;
@@ -165,8 +165,16 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 		 lpHost = gethostbyname(pstrHost);
 #endif
        if (lpHost)
-       {
-           dwIP = *((u_long *) lpHost->h_addr);
+		 {
+#ifndef h_addr
+#define h_addr h_addr_list[0]
+#define H_ADDR_DEFINED
+#endif
+           dwIP = *((uint32_t *) lpHost->h_addr);
+#ifdef H_ADDR_DEFINED
+#  undef H_ADDR_DEFINED
+#  undef h_addr
+#endif
        }
        else
        {
@@ -514,8 +522,8 @@ int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,SOCKADDR_IN *lpstToAddr)
 	echoReq.icmpHdr.Type		= ICMP_ECHOREQ;
 	echoReq.icmpHdr.Code		= 0;
 	echoReq.icmpHdr.Checksum	= 0;
-	echoReq.icmpHdr.ID			= (u_short)(nId++);
-	echoReq.icmpHdr.Seq			= (u_short)(nSeq++);
+	echoReq.icmpHdr.ID			= (uint16_t)(nId++);
+	echoReq.icmpHdr.Seq			= (uint16_t)(nSeq++);
 
 	// Fill in some data to send
 	for (nRet = 0; nRet < REQ_DATASIZE; nRet++)
@@ -525,7 +533,7 @@ int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,SOCKADDR_IN *lpstToAddr)
 	echoReq.dwTime				= GetCPUTick();
 
 	// Put data in packet and compute checksum
-	echoReq.icmpHdr.Checksum = in_cksum((u_short *)&echoReq, sizeof(ECHOREQUEST));
+	echoReq.icmpHdr.Checksum = in_cksum((uint16_t *)&echoReq, sizeof(ECHOREQUEST));
 
 	// Send the echo request  								  
 	nRet = sendto(s,						/* socket */
@@ -545,7 +553,7 @@ int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,SOCKADDR_IN *lpstToAddr)
 // RecvEchoReply()
 // Receive incoming data
 // and parse out fields
-int RecvEchoReply(PVARTEXT pvtResult, SOCKET s, SOCKADDR_IN *lpsaFrom, u_char *pTTL)
+int RecvEchoReply(PVARTEXT pvtResult, SOCKET s, SOCKADDR_IN *lpsaFrom, uint8_t *pTTL)
 {
 	ECHOREPLY echoReply;
 	int nRet;
@@ -617,11 +625,11 @@ int WaitForEchoReply(SOCKET s, uint32_t dwTime)
  * Checksum routine for Internet Protocol family headers (C Version)
  *
  */
-u_short in_cksum(u_short *addr, int len)
+uint16_t in_cksum(uint16_t *addr, int len)
 {
 	register int nleft = len;
-	register u_short *w = addr;
-	register u_short answer;
+	register uint16_t *w = addr;
+	register uint16_t answer;
 	register int sum = 0;
 
 	/*
@@ -637,9 +645,9 @@ u_short in_cksum(u_short *addr, int len)
 
 	/* mop up an odd byte, if necessary */
 	if( nleft == 1 ) {
-		u_short	u = 0;
+		uint16_t	u = 0;
 
-		*(u_char *)(&u) = *(u_char *)w ;
+		*(uint8_t *)(&u) = *(uint8_t *)w ;
 		sum += u;
 	}
 
@@ -648,7 +656,7 @@ u_short in_cksum(u_short *addr, int len)
 	 */
 	sum = (sum >> 16) + (sum & 0xffff);	/* add hi 16 to low 16 */
 	sum += (sum >> 16);			/* add carry */
-	answer = (u_short)(~sum);				/* truncate to 16 bits */
+	answer = (uint16_t)(~sum);				/* truncate to 16 bits */
 	return (answer);
 }
 SACK_NETWORK_NAMESPACE_END
