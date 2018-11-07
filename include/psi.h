@@ -431,7 +431,7 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    /psi/control/\<name\>/reveal_control/reveal_control=(PSI_CONTROL)@void@_@reveal_control
                                                                                            */
 #define OnPropertyEdit(name) \
-	DefineRegistryMethod(PSI_ROOT_REGISTRY,PropertyEditControl,WIDE("control"),name WIDE("/rtti"),WIDE("get_property_page"),PSI_CONTROL,(PSI_CONTROL))
+	DefineRegistryMethod(PSI_ROOT_REGISTRY,PropertyEditControl,WIDE("control"),name WIDE("/rtti"),WIDE("get_property_page"),PSI_CONTROL,(PSI_CONTROL),__LINE__)
 
 	/* bFocused will be true if control gains focus if !bFocused,
 	   control is losing focus.
