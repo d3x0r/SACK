@@ -4,6 +4,7 @@
 //#define DEBUG_MESSAGES
 
 #include <stdhdrs.h>
+#include <filesys.h>
 #include <psi.h>
 #include <network.h>
 #include <timers.h>
@@ -91,10 +92,10 @@ EasyRegisterControl( WIDE("Video Control"), sizeof( MY_CONTROL) );
 #endif
 
 #define QueryAllowTV(name) \
-	  __DefineRegistryMethod(WIDE("SACK"),AllowTV,WIDE( "Stream Control" ),WIDE( "Allow Turn On" ), name WIDE( "_allow_turn_on" ),LOGICAL,(void),__LINE__)
+	  DefineRegistryMethod(WIDE("SACK"),AllowTV,WIDE( "Stream Control" ),WIDE( "Allow Turn On" ), name WIDE( "_allow_turn_on" ),LOGICAL,(void),__LINE__)
 
 #define EventAllowTV(name) \
-	  __DefineRegistryMethod(WIDE("SACK"),AllowTV,WIDE( "Stream Control" ),WIDE( "Allow Turn On Changed" ), name WIDE( "_allow_turn_on_changed" ),void,(LOGICAL),__LINE__)
+	  DefineRegistryMethod(WIDE("SACK"),AllowTV,WIDE( "Stream Control" ),WIDE( "Allow Turn On Changed" ), name WIDE( "_allow_turn_on_changed" ),void,(LOGICAL),__LINE__)
 
 static void AllowOn( LOGICAL yes_no )
 {
