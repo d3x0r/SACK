@@ -73,7 +73,7 @@ static void CPROC change( uintptr_t psv )
 	}
 }
 
-static void DefineRegistryMethod(TASK_PREFIX,DoPageCycle,WIDE( "page_cycle" ),WIDE("commands"), WIDE( "cycle_now" ),void,(PSI_CONTROL pc_canvas))(PSI_CONTROL pc_canvas)
+static void DefineRegistryMethod(TASK_PREFIX,DoPageCycle,WIDE( "page_cycle" ),WIDE("commands"), WIDE( "cycle_now" ),void,(PSI_CONTROL pc_canvas),__LINE__)(PSI_CONTROL pc_canvas)
 {
 	if( !l.flags.bDisableChange )
 		ShellSetCurrentPage( pc_canvas, WIDE("next") );

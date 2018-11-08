@@ -19,7 +19,7 @@
 
 
 #define OnCreateSlider(name) \
-	DefineRegistryMethod(TASK_PREFIX,CreateSlider,"control",name,"slider_create",uintptr_t,(PSI_CONTROL))
+	DefineRegistryMethod(TASK_PREFIX,CreateSlider,"control",name,"slider_create",uintptr_t,(PSI_CONTROL),__LINE__)
 
 
 
