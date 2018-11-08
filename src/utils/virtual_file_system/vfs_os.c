@@ -17,6 +17,7 @@
 #ifndef USE_STDIO
 #  include <filesys.h>
 #endif
+#  include <sack_vfs.h>
 #  include <procreg.h>
 #  include <salty_generator.h>
 #  include <sqlgetoption.h>
@@ -61,8 +62,8 @@ using namespace sack::filesys;
 
 #endif
 
-
 SACK_VFS_NAMESPACE
+
 #ifdef __cplusplus
 namespace objStore {
 #endif
