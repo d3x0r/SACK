@@ -19,6 +19,10 @@
 #include <sack_types.h>
 #include <sharemem.h>
 
+#ifdef __LINUX__
+#  include <pthread.h>
+#endif
+
 #ifndef _TIMER_NAMESPACE
 #ifdef __cplusplus
 #define _TIMER_NAMESPACE namespace timers {
