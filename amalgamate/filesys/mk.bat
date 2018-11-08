@@ -52,12 +52,15 @@
 @set SRCS= %SRCS%   ../../src/procreglib/names.c
 
 
-:@set SRCS= %SRCS%   ../../src/contrib/md5lib/md5c.c
-:@set SRCS= %SRCS%   ../../src/contrib/sha1lib/sha1.c
-:@set SRCS= %SRCS%   ../../src/contrib/sha2lib/sha2.c
-:@set SRCS= %SRCS%   ../../src/contrib/sha3lib/sha3.c
-:@set SRCS= %SRCS%   ../../src/salty_random_generator/salty_generator.c
-:@set SRCS= %SRCS%   ../../src/salty_random_generator/crypt_util.c
+@set SRCS= %SRCS%   ../../src/utils/virtual_file_system/vfs.c
+@set SRCS= %SRCS%   ../../src/utils/virtual_file_system/vfs_fs.c
+@set SRCS= %SRCS%   ../../src/utils/virtual_file_system/vfs_os.c
+@set SRCS= %SRCS%   ../../src/contrib/md5lib/md5c.c
+@set SRCS= %SRCS%   ../../src/contrib/sha1lib/sha1.c
+@set SRCS= %SRCS%   ../../src/contrib/sha2lib/sha2.c
+@set SRCS= %SRCS%   ../../src/contrib/sha3lib/sha3.c
+@set SRCS= %SRCS%   ../../src/salty_random_generator/salty_generator.c
+@set SRCS= %SRCS%   ../../src/salty_random_generator/crypt_util.c
 
 
 @set SRCS= %SRCS%   ../../src/deadstart/deadstart_core.c 
@@ -83,6 +86,7 @@ cd h
 @set HDRS= %HDRS% ../../../include/filesys.h
 @set HDRS= %HDRS% ../../../include/procreg.h
 @set HDRS= %HDRS% ../../../include/http.h
+@set HDRS= %HDRS% ../../../include/sack_vfs.h
 @set HDRS= %HDRS% ../../../include/md5.h
 @set HDRS= %HDRS% ../../../include/sha1.h
 @set HDRS= %HDRS% ../../../include/sha2.h
