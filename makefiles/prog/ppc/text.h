@@ -74,7 +74,7 @@ char *GetTextEx( PTEXT segment );
 #ifdef _WIN32
 #define strncasecmp strnicmp
 #endif
-#define LikeText( l1, l2 )  ( strncasecmp( GetText(l1), GetText(l2), min( GetTextSize(l1), \
+#define LikeText( l1, l2 )  ( strncasecmp( GetText(l1), GetText(l2), ( (GetTextSize(l1)<GetTextSize(l2)) ?GetTextSize(l1): \
                                                                         GetTextSize(l2) ) ) )
 #define TextIs(text,string) ( !stricmp( GetText(text), string ) )
 #define TextLike(text,string) ( !stricmp( GetText(text), string ) )
