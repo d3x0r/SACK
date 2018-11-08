@@ -1337,6 +1337,18 @@ static int OnDrawCommon( WIDE("Frame") )( PSI_CONTROL pc )
 		else
 			BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor( pc )[NORMAL] );
 	}
+	else {
+		PFrameBorder border = pc->border;
+		if( (border->BorderSegment[SEGMENT_CENTER]->width > border->BorderWidth * 3) && (!pc->flags.bInitial || border->drawFill) ) {
+			BlotScaledImageSizedEx( pc->Window, border->BorderSegment[SEGMENT_CENTER]
+				, pc->surface_rect.x, pc->surface_rect.y
+				, pc->surface_rect.width, pc->surface_rect.height
+				, 0, 0
+				, border->BorderSegment[SEGMENT_CENTER]->width, border->BorderSegment[SEGMENT_CENTER]->height
+				, ALPHA_TRANSPARENT, BLOT_COPY );
+			border->drawFill = 0;
+		}
+	}
 	DrawFrameCaption( pc );
 	return 1;
 }

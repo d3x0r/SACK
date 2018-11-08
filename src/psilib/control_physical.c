@@ -625,8 +625,8 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 					 , pc->rect.height );
 #endif
 			//lprintf( WIDE("Original show - extending frame bounds...") );
-			pc->original_rect.width += FrameBorderX(pc, pc->BorderType);
-			pc->original_rect.height += FrameBorderY(pc, pc->BorderType, GetText( pc->caption.text ) );
+			//pc->original_rect.width += FrameBorderX(pc, pc->BorderType);
+			//pc->original_rect.height += FrameBorderY(pc, pc->BorderType, GetText( pc->caption.text ) );
 			// apply scale to rect from original...
 			//lprintf( "Border X and Y is %d,%d", FrameBorderX(pc, pc->BorderType), FrameBorderY(pc, pc->BorderType, GetText( pc->caption.text ) ) );
 			pc->rect.width += FrameBorderX(pc, pc->BorderType);
