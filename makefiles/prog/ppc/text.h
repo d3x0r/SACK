@@ -71,7 +71,10 @@ char *GetTextEx( PTEXT segment );
 #define SetIndirect(Seg,Where)  ( (Seg)->data.size = (int)(Where) )
 
 #define SameText( l1, l2 )  ( strcmp( GetText(l1), GetText(l2) ) )
-#define LikeText( l1, l2 )  ( strnicmp( GetText(l1), GetText(l2), min( GetTextSize(l1), \
+#ifdef _WIN32
+#define strncasecmp strnicmp
+#endif
+#define LikeText( l1, l2 )  ( strncasecmp( GetText(l1), GetText(l2), min( GetTextSize(l1), \
                                                                         GetTextSize(l2) ) ) )
 #define TextIs(text,string) ( !stricmp( GetText(text), string ) )
 #define TextLike(text,string) ( !stricmp( GetText(text), string ) )

@@ -446,17 +446,9 @@ PLINKQUEUE EnqueLinkEx( PLINKQUEUE *pplq, POINTER link DBG_PASS )
    if( !(*pplq) )
       *pplq = CreateLinkQueue();
 
+   // this is a single threaded task... shouldn't ever end up against a lock...
    while( LockedExchange( &(*pplq)->Lock, 1 ) )
    {
-		char byMsg[256];
-#ifdef _DEBUG
-		sprintf( byMsg, WIDE("The queue may have changed locations...(1)%s(%d)\n"),
-								pFile, nLine );
-#else
-		sprintf( byMsg, WIDE("The queue may have changed locations...(1)\n") );
-#endif
-      //OutputDebugString( byMsg );
-      //Sleep(0);
    }
    plq = *pplq;
 

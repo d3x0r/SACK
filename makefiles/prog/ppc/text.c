@@ -8,7 +8,6 @@
 #include "text.h"
 #include "global.h"
 
-#define min(a,b) (((a)<(b))?(a):(b))
 
 //#define RELEASE_LOG
 static PTEXT last_vartext_result;
@@ -430,7 +429,10 @@ PTEXT SegConcatEx(PTEXT output,PTEXT input,int32_t offset,int32_t length DBG_PAS
 
 	while (input&&idx<length)
 	{
-		len = min( (int32_t)GetTextSize( input ) - offset, length-idx );
+		if( ((int32_t)GetTextSize( input ) - offset ) < (length - idx) )
+			len = ((int32_t)GetTextSize( input ) - offset);
+		else
+			len = length-idx;
 		MemCpy( GetText(output) + idx,
 				  GetText(input) + offset,
 				  len );
@@ -697,7 +699,7 @@ PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS )
 	//DebugBreak();
 
 	{
-		int len;
+		size_t len;
 		len = LineLength( pt, bSingle );
 		if( !len )
 			return NULL;
