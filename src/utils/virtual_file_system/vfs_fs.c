@@ -1,3 +1,4 @@
+#if !defined( SACK_AMALGAMATE ) || defined( __cplusplus )
 /*
  BLOCKINDEX BAT[BLOCKS_PER_BAT] // link of next blocks; 0 if free, FFFFFFFF if end of file block
  uint8_t  block_data[BLOCKS_PER_BAT][BLOCK_SIZE];
@@ -1610,3 +1611,5 @@ PRIORITY_PRELOAD( Sack_VFS_FS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 
 SACK_VFS_NAMESPACE_END
 
 #undef l
+
+#endif
