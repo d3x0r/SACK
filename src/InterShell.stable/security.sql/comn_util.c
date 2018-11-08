@@ -59,6 +59,6 @@ void ConvertToBinary( TEXTSTR out, CTEXTSTR in, int sz )
 TEXTSTR GetProgramID( CTEXTSTR program)
 {	
 	//return SQLReadNameTableExx( NULL, program, "program_identifiers", "program_id", "program_name", TRUE );
-	return SQLReadNameTableKeyExEx( NULL, program, "program_identifiers", "program_id", "program_name", "name", TRUE DBG_SRC );
+	return SQLReadNameTableKeyExEx( NULL, program, "program_identifiers", "program_id", "program_name", TRUE DBG_SRC );
 }
 

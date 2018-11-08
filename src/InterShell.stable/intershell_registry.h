@@ -88,9 +88,9 @@ namespace sack {
 	  DefineRegistryMethod(TASK_PREFIX,EditEnd,WIDE( "common" ),WIDE( "End Edit Mode" ),name WIDE( "_on_menu_edit_end" ),void,(void),__LINE__)
 
 #define OnSelectListboxItem(name,othername) \
-	DefineRegistrySubMethod(TASK_PREFIX,ListSelectionChanged,WIDE( "control" ),name,WIDE( "listbox_selection_changed" ),othername,void,(uintptr_t,PLISTITEM),__LINE__)
+	DefineRegistrySubMethod(TASK_PREFIX,ListSelectionChanged,WIDE( "control" ),name,WIDE( "listbox_selection_changed" ),othername,void,(uintptr_t,PLISTITEM))
 #define OnDoubleSelectListboxItem(name,othername) \
-	DefineRegistrySubMethod(TASK_PREFIX,ListDoubleSelectionChanged,WIDE( "control" ),name,WIDE( "listbox_double_changed" ),othername,void,(uintptr_t,PLISTITEM),__LINE__)
+	DefineRegistrySubMethod(TASK_PREFIX,ListDoubleSelectionChanged,WIDE( "control" ),name,WIDE( "listbox_double_changed" ),othername,void,(uintptr_t,PLISTITEM))
 
 /* 
  * this is depreicated, buttons shouldn't really HAVE to know the button they are... 

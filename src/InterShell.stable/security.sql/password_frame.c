@@ -264,26 +264,26 @@ static uintptr_t OnCreateListbox( WIDE("SQL Users/User Selection Control List") 
 void CreateToken( CTEXTSTR token, CTEXTSTR description )
 {
 	TEXTCHAR buf[256];
-	INDEX token_id;
+	CTEXTSTR token_id;
 
 	if( description == NULL )
 		description = WIDE("<auto token create>");
 	if( DoSQLCommandf( WIDE("insert into permission_tokens (name,log,description) values ('%s',%d,'%s')"), token, 0, description ) )
 	{
-		token_id = GetLastInsertID( WIDE("permission_tokens"), WIDE("permission_id") );
+		token_id = GetLastInsertKey( WIDE("permission_tokens"), WIDE("permission_id") );
 	}
 	else
 	{
 		CTEXTSTR result;
 		if( DoSQLQueryf( &result, WIDE("select permission_id from permission_tokens where name='%s'"), EscapeString( token ) ) && result )
 		{
-			token_id = IntCreateFromText( result );
+			token_id = StrDup( result );
 			FindToken( token_id, token );
 		}
 		else
-			token_id = INVALID_INDEX;
+			token_id = NULL;
 	}
-	if( token_id == INVALID_INDEX )
+	if( token_id == NULL )
 	{
 		lprintf( WIDE("Failed to create token.") );
 		SimpleMessageBox( NULL, WIDE("Create Token Failed"), WIDE("Failed to create token.") );
@@ -4190,7 +4190,7 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 			lprintf( WIDE("Connected to a database, but select user() failed! : %s"), result );
 			return;
 		}	
-		l.sys_name = StrDup( result );				
+		l.sys_name = SaveText( result );				
 	}
 	else
 	{		
@@ -4201,19 +4201,19 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 	
 	if( DoSQLQueryf( &result, WIDE("select system_id from systems where address=user()") ) && result )
 	{
-		g.system_id = IntCreateFromText(result);
+		g.system_id = SaveText(result);
 	}
 	else
 	{
 		if( DoSQLQueryf( &result, WIDE("select system_id from systems where name=\'%s\'"),GetSystemName() ) && result )
 		{
 			DoSQLCommandf( WIDE("update systems set address=\'%s\' where system_id=%s"), l.sys_name, result );
-			g.system_id = IntCreateFromText(result);
+			g.system_id = SaveText(result);
 		}
 		else
 		{
 			DoSQLCommandf( WIDE("insert into systems (name,address) values ('%s','%s')"), GetSystemName(), l.sys_name );
-			g.system_id = GetLastInsertID( WIDE("systems"), WIDE("system_id") );
+			g.system_id = GetLastInsertKey( WIDE("systems"), WIDE("system_id") );
 		}
 		SQLEndQuery( NULL );
 	}

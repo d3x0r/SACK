@@ -102,7 +102,7 @@ PSQL_PASSWORD GetButtonSecurity( uintptr_t button, int bCreate );
 
 void ReloadUserCache( PODBC odbc );
 
-PTOKEN FindToken( INDEX id, CTEXTSTR name );
+PTOKEN FindToken( TEXTSTR id, CTEXTSTR name );
 
 // password_frame.c
 struct password_info

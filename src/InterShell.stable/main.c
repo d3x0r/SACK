@@ -4366,7 +4366,7 @@ static void OnRevealCommon( WIDE( "menu canvas" ) )( PSI_CONTROL pc )
 	}
 }
 
-void CPROC AcceptFiles( PSI_CONTROL pc, CTEXTSTR file, int32_t x, int32_t y )
+static LOGICAL CPROC AcceptFiles( PSI_CONTROL pc, CTEXTSTR file, int32_t x, int32_t y )
 {
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc );
 
@@ -5196,7 +5196,7 @@ PMENU_BUTTON InterShell_GetCurrentlyCreatingButton( void )
 	return g.CurrentlyCreatingButton;
 }
 
-PMENU_BUTTON InterShell_GetCurrentlyCreatingButtonType( void )
+static CTEXTSTR InterShell_GetCurrentlyCreatingButtonType( void )
 {
 	return g.CurrentlyCreatingButtonType;
 }
