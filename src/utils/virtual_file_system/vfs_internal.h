@@ -42,8 +42,8 @@ typedef VFS_DISK_DATATYPE FPI; // file position type
 #    define directory_entry directory_entry_os
 #    define disk disk_os
 #    define directory_hash_lookup_block directory_hash_lookup_block_os
-#    define volume volume_os
-#    define sack_vfs_file sack_vfs_file_os
+//#    define volume volume_os
+//#    define sack_vfs_file sack_vfs_file_os
 #  endif
 #elif defined FILE_BASED_VFS
 #  define BC(n) BLOCK_CACHE_FS_##n
@@ -60,8 +60,8 @@ typedef VFS_DISK_DATATYPE FPI; // file position type
 #    define directory_entry directory_entry_fs
 #    define disk disk_fs
 #    define directory_hash_lookup_block directory_hash_lookup_block_fs
-#    define volume volume_fs
-#    define sack_vfs_file sack_vfs_file_fs
+//#    define volume volume_fs
+//#    define sack_vfs_file sack_vfs_file_fs
 #  endif
 #else
 #  define BC(n) BLOCK_CACHE_##n
