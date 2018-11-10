@@ -41,7 +41,7 @@ PSI_MOUSE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
-void DrawHotSpotsEx( PSI_CONTROL pf, PEDIT_STATE pEditState DBG_PASS )
+void DrawHotSpotsEx( PSI_CONTROL pf, PEDIT_STATE pEditState, PSI_CONTROL pcChild DBG_PASS )
 #define DrawHotSpots(pf,pe) DrawHotSpotsEx(pf,pe DBG_SRC)
 {
 	int n;
@@ -50,16 +50,17 @@ void DrawHotSpotsEx( PSI_CONTROL pf, PEDIT_STATE pEditState DBG_PASS )
 #ifdef HOTSPOT_DEBUG
 	lprintf( WIDE("Drawing hotspots. %d,%d"), pEditState->bias[0], pEditState->bias[1] );
 #endif
-	for( n = 0; n < 9; n++ )
-	{
-		DrawHotSpotEx( pf
-					, pEditState->bias
-					, pEditState->hotspot[n]
-					, ( n+1 == pEditState->flags.fLocked )
-					DBG_RELAY );
+	if( !pcChild || pcChild == pEditState->pCurrent ) {
+		for( n = 0; n < 9; n++ ) {
+			DrawHotSpotEx( pf
+				, pEditState->bias
+				, pEditState->hotspot[n]
+				, (n + 1 == pEditState->flags.fLocked)
+				DBG_RELAY );
+		}
+		/* this function updates the surface of a control.... */
+		UpdateFrame( pf, 0, 0, pf->surface_rect.width, pf->surface_rect.height );
 	}
-	/* this function updates the surface of a control.... */
-	UpdateFrame( pf, 0, 0, pf->surface_rect.width, pf->surface_rect.height );
 	//UpdateFrame( pf
 	//			, 0, 0, pf->pDevice->common->rect.width, pf->common->rect.height );
 				//, pEditState->bound.position[0] + pEditState->bias[0]
@@ -1735,7 +1736,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 				Log( WIDE("Mark changed spots...") );
 #endif
 				pEditState->flags.fLocked = spot;
-				DrawHotSpotsEx( pfc, pEditState DBG_SRC );
+				DrawHotSpotsEx( pfc, pEditState, NULL DBG_SRC );
 			}
 			if( MAKE_FIRSTBUTTON( b, pf->_b ) )
 			{

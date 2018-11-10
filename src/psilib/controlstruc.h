@@ -117,7 +117,7 @@ typedef int (CPROC*__DrawThySelf)       ( struct common_control_frame * );
 /* \Internal event callback definition. This is called when the
 	control needs to draw itself. This happens when SmudgeCommon
 	is called on the control or on a parent of the control.      */
-typedef void (CPROC*__DrawDecorations)       ( struct common_control_frame * );
+typedef void (CPROC*__DrawDecorations)       ( struct common_control_frame *frame, struct common_control_frame *child );
 /* \Internal event callback definition. A mouse event is
 	happening over the control.                           */
 typedef int (CPROC*__MouseMethod)       ( struct common_control_frame *, int32_t x, int32_t y, uint32_t b );
@@ -601,11 +601,11 @@ void SetupHotSpots( PEDIT_STATE pEditState );
 	pf :  frame being edited.
 	pe :  pointer to the current edit state containing information
 		   like the currently active control for editing on a frame.  */
-void DrawHotSpotsEx( PSI_CONTROL pf, PEDIT_STATE pEditState DBG_PASS );
+void DrawHotSpotsEx( PSI_CONTROL pf, PEDIT_STATE pEditState, PSI_CONTROL pcChild DBG_PASS );
 /* <combine sack::psi::_mouse::DrawHotSpotsEx@PSI_CONTROL@PEDIT_STATE pEditState>
 	
 	\ \                                                                        */
-#define DrawHotSpots(pf,pe) DrawHotSpotsEx(pf,pe DBG_SRC)
+#define DrawHotSpots(pf,pe,pChild) DrawHotSpotsEx(pf,pe,pChild DBG_SRC)
 //void DrawHotSpots( PSI_CONTROL pf, PEDIT_STATE pEditState );
 _MOUSE_NAMESPACE_END
 void SmudgeSomeControls( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect );

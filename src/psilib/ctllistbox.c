@@ -432,7 +432,7 @@ static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h 
 		}
 
 		// results as max of either next tabstop or start plus stringlength
-		if( ( nextColumn - column ) > width ) {
+		if( ( nextColumn ) > (width + column) ) {
 			if( nextColumn > right )
 				right = nextColumn;
 			x = ( ( nextColumn - column ) - width ) / 2;

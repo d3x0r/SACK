@@ -1355,14 +1355,14 @@ static int OnDrawCommon( WIDE("Frame") )( PSI_CONTROL pc )
 
 //--------------------------------------------------------------------------
 
-static void OnDrawCommonDecorations( WIDE("Frame") )( PSI_CONTROL pc )
+static void OnDrawCommonDecorations( WIDE("Frame") )( PSI_CONTROL pc, PSI_CONTROL child )
 {
 #ifdef DEBUG_UPDAATE_DRAW
 	if( g.flags.bLogDebugUpdate )
-		lprintf( WIDE( "-=-=-=-=- Output Frame decorations..." ) );
+		lprintf( WIDE( "-=-=-=-=- Output Frame decorations... %p  %p" ), pc, child );
 #endif
 	if( pc->device )
-		DrawHotSpots( pc, &pc->device->EditState );
+		DrawHotSpots( pc, &pc->device->EditState, child );
 }
 
 //--------------------------------------------------------------------------
@@ -2210,7 +2210,7 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 				PSI_CONTROL pcTemp = pc;
 				for( pcTemp = pc; pcTemp; pcTemp = pcTemp->parent )
 					// after all children have updated, draw decorations (edit hotspots, cover animations...)
-					InvokeMethod( pcTemp, _DrawDecorations, (pcTemp) );
+					InvokeMethod( pcTemp, _DrawDecorations, (pcTemp, pc) );
 			}
 
 #if LOCK_TEST
@@ -2362,7 +2362,7 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 				}
 			}
 		}
-		if( !g.flags.allow_threaded_draw )
+		if( !g.flags.allow_threaded_draw && !IsThisThread( g.updateThread ) )
 		{
 			PSI_CONTROL frame = GetFrame( pc );
 			PPHYSICAL_DEVICE device = frame?frame->device:NULL;
@@ -2378,6 +2378,7 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 				{
 					//lprintf( WIDE("Send redraw to self.... draw controls in pending_dirty_controls") );
 					//device->flags.sent_redraw = 1;
+					lprintf( " -----  parent update Redraw ----" );
 					Redraw( device->pActImg );
 				}
 			}
@@ -2731,7 +2732,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/%") _32f WIDE("/rtti"), nType );
 	root = GetClassRoot( mydef );
 	SetCommonDraw( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("draw"),(PSI_CONTROL)));
-	SetCommonDrawDecorations( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("decoration_draw"),(PSI_CONTROL)));
+	SetCommonDrawDecorations( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("decoration_draw"),(PSI_CONTROL,PSI_CONTROL)));
 	SetCommonMouse( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("mouse"),(PSI_CONTROL,int32_t,int32_t,uint32_t)));
 	SetCommonKey( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,WIDE("key"),(PSI_CONTROL,uint32_t)));
 	pc->Destroy        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,WIDE("destroy"),(PSI_CONTROL));

@@ -260,7 +260,7 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
    
    /psi/control/\<name\>/rtti/draw_decorations=(PSI_CONTROL)@void@_@draw                           */
 #define OnDrawCommonDecorations(name)  \
-	DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnDrawCommonDecorations,WIDE("control"),name WIDE("/rtti"),WIDE("decoration_draw"),void,(PSI_CONTROL), __LINE__)
+	DefineRegistryMethod(PSI_ROOT_REGISTRY,_OnDrawCommonDecorations,WIDE("control"),name WIDE("/rtti"),WIDE("decoration_draw"),void,(PSI_CONTROL,PSI_CONTROL), __LINE__)
 /* User event callback called when a mouse event happens over a
    control, unless the control has claimed the mouse, in which
    case the mouse may not be over the control. X and Y are

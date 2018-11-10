@@ -122,6 +122,8 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 	PSI_CONTROL pc;
 	//lprintf( WIDE("frame %p"), pf );
 	pc = pf->common;
+	if( !g.updateThread )
+		g.updateThread = MakeThread();
 	//ResetImageBuffers( pc->Window );
 	if( !pc ) // might (and probalby isn't) attached to anything yet.
 	{

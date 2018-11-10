@@ -91,6 +91,7 @@ typedef struct psi_global_tag
 	int   StopButtonPad;
 	PLIST shown_frames;
 	SFTFont default_font;
+	PTHREAD updateThread;
 }PSI_GLOBAL;
 
 
