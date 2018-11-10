@@ -58,7 +58,13 @@ void CreateAControl( PSI_CONTROL frame, uint32_t type, PEDIT_PROP_DATA pepd )
 	{
 		int32_t x = pepd->x;
 		int32_t y = pepd->y;
-		lprintf( WIDE("new control at %")_32fs WIDE(",%")_32fs WIDE(" %")_32f WIDE(",%")_32f WIDE(""), x, y, frame->rect.x, frame->rect.y );
+		//lprintf( WIDE("new control at %")_32fs WIDE(",%")_32fs WIDE(" %")_32f WIDE(",%")_32f WIDE(""), x, y, frame->rect.x, frame->rect.y );
+
+		PFRACTION ix, iy;
+		GetCommonScale( frame, &ix, &iy );
+		x = InverseScaleValue( ix, x );
+		y = InverseScaleValue( iy, y );
+
 		MakeControl( frame, type, x, y, 0, 0, -1 );
 	}
 }
