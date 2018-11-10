@@ -61,8 +61,8 @@
 
 
 @set SRCS= %SRCS%   ../../src/utils/virtual_file_system/vfs.c
-:@set SRCS= %SRCS%   ../../src/utils/virtual_file_system/vfs_fs.c
-:@set SRCS= %SRCS%   ../../src/utils/virtual_file_system/vfs_os.c
+@set SRCS= %SRCS%   ../../src/utils/virtual_file_system/vfs_fs.c
+@set SRCS= %SRCS%   ../../src/utils/virtual_file_system/vfs_os.c
 @set SRCS= %SRCS%   ../../src/contrib/md5lib/md5c.c
 @set SRCS= %SRCS%   ../../src/contrib/sha1lib/sha1.c
 @set SRCS= %SRCS%   ../../src/contrib/sha2lib/sha2.c
