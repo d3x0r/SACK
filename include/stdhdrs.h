@@ -12,6 +12,8 @@
 #define _WIDE__FILE__(n) WIDE(n)
 #define WIDE__FILE__ _WIDE__FILE__(__FILE__)
 
+#define _XOPEN_SOURCE 500
+
 #ifndef STANDARD_HEADERS_INCLUDED
 /* multiple inclusion protection symbol */
 #define STANDARD_HEADERS_INCLUDED 
@@ -189,7 +191,7 @@ __declspec(dllimport) DWORD WINAPI timeGetTime(void);
 #      ifdef __EMSCRIPTEN__
 #        define DebugBreak()
 #      else
-#        define DebugBreak()  asm("int $3\n" )
+#        define DebugBreak()  __asm__("int $3\n" )
 #      endif
 #    endif
 #  endif

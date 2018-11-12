@@ -211,16 +211,16 @@ HTTP_EXPORT int HTTPAPI GetHttpResponseCode( HTTPState pHttpState );
 // receives events for either GET if aspecific OnHttpRequest has not been defined for the specific resource
 // Return TRUE if processed, otherwise will attempt to match other Get Handlers
 #define OnHttpGet( site, resource ) \
-	__DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpGet,site,resource,WIDE( "Get" ),LOGICAL,(uintptr_t,PCLIENT,struct HttpState *,PTEXT),__LINE__)
+	DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpGet,site,resource,WIDE( "Get" ),LOGICAL,(uintptr_t,PCLIENT,struct HttpState *,PTEXT),__LINE__)
 
 // receives events for either GET if aspecific OnHttpRequest has not been defined for the specific resource
 // Return TRUE if processed, otherwise will attempt to match other Get Handlers
 #define OnHttpPost( site, resource ) \
-	__DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpPost,site,resource,WIDE( "Post" ),LOGICAL,(uintptr_t,PCLIENT,struct HttpState *,PTEXT),__LINE__)
+	DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpPost,site,resource,WIDE( "Post" ),LOGICAL,(uintptr_t,PCLIENT,struct HttpState *,PTEXT),__LINE__)
 
 // define a specific handler for a specific resource name on a host
 #define OnHttpRequest( site, resource ) \
-	__DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpRequest,WIDE( "something" ),site WIDE( "/" ) resource,WIDE( "Get" ),void,(uintptr_t,PCLIENT,struct HttpState *,PTEXT),__LINE__)
+	DefineRegistryMethod(WIDE( "SACK/Http/Methods" ),OnHttpRequest,WIDE( "something" ),site WIDE( "/" ) resource,WIDE( "Get" ),void,(uintptr_t,PCLIENT,struct HttpState *,PTEXT),__LINE__)
 
 
 //--------------------------------------------------------------

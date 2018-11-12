@@ -594,7 +594,7 @@ PROCREG_PROC( POINTER, GetInterfaceDbg )( CTEXTSTR pServiceName DBG_PASS );
 
 #define GetRegisteredInterface(name) GetInterface(name)
 PROCREG_PROC( LOGICAL, RegisterInterfaceEx )( CTEXTSTR name, POINTER(CPROC*load)(void), void(CPROC*unload)(POINTER) DBG_PASS );
-PROCREG_PROC( LOGICAL, RegisterInterface )(CTEXTSTR name, POINTER( CPROC*load )(void), void(CPROC*unload)(POINTER));
+//PROCREG_PROC( LOGICAL, RegisterInterface )(CTEXTSTR name, POINTER( CPROC*load )(void), void(CPROC*unload)(POINTER));
 #define RegisterInterface(n,l,u) RegisterInterfaceEx( n,l,u DBG_SRC )
 
 // unregister a function, should be smart and do full return type
