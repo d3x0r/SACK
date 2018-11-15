@@ -15,7 +15,7 @@ Amalgamation Product repositories and individual documentations
  - [Full Core](https://github.com/d3x0r/micro-C-Boost-Core)
 
 
-[JSOX](JSOX) Amalgametion is an attempt to get jsut the C JSOX parser to compile to web assembly.
+[JSOX](jsox) Amalgametion is an attempt to get jsut the C JSOX parser to compile to web assembly.
 I have another repository that has the basic work of this;  It needs work interfaceing on the 
 revivial of JS Objects through wasm.
 
