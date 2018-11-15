@@ -83,4 +83,47 @@ void RemoveFooSame( struct fooSame * foo ) {
 }
 ```
 
+---
 
+### Declare Link Other Nots
+
+In the above example...
+``` C
+struct foo {
+	struct foo **me, *next;
+};
+```
+
+This is the reverse of what Declarelink actually declares.  The order can be
+(ab)used to use *me also as a prior pointer.  Except that fails at the root
+of the list, and requires that the root also be declared as a pointer pair 
+so the `me` of root can be NULL.  (nothing points at this, it just IS)
+
+``` C
+struct foo {
+	struct foo *next;
+        struct foo **me;
+};
+
+static struct localFooModule {
+	struct foo *fooList;
+	struct foo *fooListMe; // must be NULL
+} localFoo;
+
+
+```
+
+
+Then in the above case, since `node->me == &otherNode->next`, and `&otherNode->next == &otherNode`,
+then `node->me` could just be recast as `((struct foo*)node->me)` and it would be the same as `prior`
+in a doubly linked list with `next` and `prior`.
+
+## vectlib.h
+
+Vector/Matrix floatoint point library.  Workes on a type 'RCOORD' which should be 
+configured as either `float` or `double`.  The librar attempts to compile dual-moded
+with suffixes on the routines; so the user can choose one or the other...
+
+
+
+ 
