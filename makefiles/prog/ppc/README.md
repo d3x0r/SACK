@@ -113,7 +113,7 @@ ppc -sd -ssio -K -c -once -Iinclude -o file_all.c file1.c file2.c file3.c
 ppc -sdssioKconce -Iinclude -o file_all.c file1.c file2.c file3.c
 ```
 
-[Other examples](amalgamate)
+[Other examples](/amalgamate)
 
 ## Internals
 
