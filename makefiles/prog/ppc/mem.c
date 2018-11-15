@@ -76,7 +76,13 @@ void *AllocateEx( size_t size DBG_PASS ) {
 #endif
 	g.nAllocates++;
 	g.nAllocSize += size;
-	mem = malloc(sizeof(MEMBLOCK)+4+size);
+#ifdef VALIDATE
+//                         long is the type used later
+#  define EXTRA_SPACE sizeof( long )
+#else
+#  define EXTRA_SPACE 0
+#endif
+	mem = malloc(sizeof(MEMBLOCK) + EXTRA_SPACE + size);
 	if( !mem )
 	{
 #ifdef _DEBUG
