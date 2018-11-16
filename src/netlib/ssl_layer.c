@@ -693,11 +693,8 @@ LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER key
 		BIO_free( keybuf );
 	}
 
-#ifdef HACK_NODE_TLS
-	ses->ctx = SSL_CTX_new( TLS_server_method()/*TLSv1_2_server_method()*/ );
-#else
-	ses->ctx = SSL_CTX_new( TLSv1_2_server_method() );
-#endif
+	ses->ctx = SSL_CTX_new( TLS_server_method() );
+   SSL_CTX_set_min_proto_version( ses->ctx, TLS1_2_VERSION );
 	{
 		int r;
 		SSL_CTX_set_cipher_list( ses->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
@@ -779,15 +776,8 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	ses = New( struct ssl_session );
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
 	{
-#ifdef NODE_MAJOR_VERSION
-#  if NODE_MAJOR_VERSION >= 10
-		ses->ctx = SSL_CTX_new( TLS_client_method() /*TLSv1_2_client_method()*/ );
-#  else
-		ses->ctx = SSL_CTX_new( TLSv1_2_client_method() );
-#  endif
-#else
-		ses->ctx = SSL_CTX_new( TLSv1_2_client_method() );
-#endif
+		ses->ctx = SSL_CTX_new( TLS_client_method() );
+		SSL_CTX_set_min_proto_version( ses->ctx, TLS1_2_VERSION );
 		SSL_CTX_set_cipher_list( ses->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
 		ses->cert = New( struct internalCert );
 		if( !client_keypair )
