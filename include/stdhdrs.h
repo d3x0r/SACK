@@ -12,7 +12,10 @@
 #define _WIDE__FILE__(n) WIDE(n)
 #define WIDE__FILE__ _WIDE__FILE__(__FILE__)
 
-#define _XOPEN_SOURCE 500
+#if _XOPEN_SOURCE < 500
+#  undef _XOPEN_SOURCE
+#  define _XOPEN_SOURCE 500
+#endif
 
 #ifndef STANDARD_HEADERS_INCLUDED
 /* multiple inclusion protection symbol */
