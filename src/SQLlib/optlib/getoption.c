@@ -73,7 +73,7 @@ SQL table create is in 'mkopttabs.sql'
 ;
 
 
-SQLGETOPTION_PROC( void,SetOptionStringValueEx )( PODBC odbc, POPTION_TREE_NODE node, CTEXTSTR pValue ) 
+SQLGETOPTION_PROC( void, SetOptionStringValueEx )( PODBC odbc, POPTION_TREE_NODE node, CTEXTSTR pValue )
 {
 	int drop_odbc = FALSE;
 	if( !odbc )
@@ -88,6 +88,18 @@ SQLGETOPTION_PROC( void,SetOptionStringValueEx )( PODBC odbc, POPTION_TREE_NODE 
 		DropOptionODBC( odbc );
 	
 }
+
+LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXTSTR pValue )
+{
+	LOGICAL retval = TRUE;
+	EnterCriticalSec( &og.cs_option );
+	OpenWriter( tree );
+	retval = New4CreateValue( tree, optval, pValue );
+	LeaveCriticalSec( &og.cs_option );
+	return retval;
+
+}
+
 
 SQLGETOPTION_PROC( POPTION_TREE_NODE, GetOptionIndexEx )( POPTION_TREE_NODE parent, const TEXTCHAR *file, const TEXTCHAR *pBranch, const TEXTCHAR *pValue, int bCreate, int bBypassParsing DBG_PASS );
 #define GetOptionIndex(p,f,b,v) GetOptionIndexEx( p,f,b,v,FALSE,FALSE DBG_SRC )
@@ -220,9 +232,13 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 									);
 				}
 				SQLEndQuery( tree->odbc );
+				//for( SQLQueryf( tree->odbc, &result, "select * from option4_map" ); result; FetchSQLResult( tree->odbc, &result ));
+				//SQLEndQuery( tree->odbc );
+				//for( SQLQueryf( tree->odbc, &result, "select * from option4_name" ); result; FetchSQLResult( tree->odbc, &result ));
+				//SQLEndQuery( tree->odbc );
+				//for( SQLQueryf( tree->odbc, &result, "select * from option4_values" ); result; FetchSQLResult( tree->odbc, &result ));
+				//SQLEndQuery( tree->odbc );
 			}
-			//SQLCommit( odbc );
-			//SQLCommand( odbc, WIDE( "COMMIT" ) );
 			tree->flags.bCreated = 1;
 		}
 	}
@@ -609,16 +625,6 @@ static LOGICAL CreateValue( POPTION_TREE tree, POPTION_TREE_NODE iOption, CTEXTS
 
 //------------------------------------------------------------------------
 // result with option value ID
-LOGICAL SetOptionStringValue( POPTION_TREE tree, POPTION_TREE_NODE optval, CTEXTSTR pValue )
-{
-	LOGICAL retval = TRUE;
-	EnterCriticalSec( &og.cs_option );
-	OpenWriter( tree );
-	retval = New4CreateValue( tree, optval, pValue );
-	LeaveCriticalSec( &og.cs_option );
-	return retval;
-
-}
 
 //------------------------------------------------------------------------
 // result with option value ID
