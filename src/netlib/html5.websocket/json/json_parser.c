@@ -60,7 +60,14 @@ char *json_escape_string( const char *string ) {
 						| ( ( result & 0x3f0000 ) >> 10 )    \
 						| ( ( result & 0x3f000000 ) >> 24 ) ) )
 
-#define __GetUtfChar( result, from )           ((result = ((TEXTRUNE*)*from)[0]),     \
+#define get4Chars(p) ((((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[0]  \
+				>> (CHAR_BIT*((uintptr_t)(p) & 0x3)))             \
+			| (( ((uintptr_t)(p)) & 0x3 )                          \
+				? (((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[1]      \
+					<< (CHAR_BIT*(4-((uintptr_t)(p) & 0x3))))     \
+				:(TEXTRUNE)0 ))
+
+#define __GetUtfChar( result, from )           ((result = get4Chars(*from)),     \
 		( ( !(result & 0xFF) )    \
           ?_zero(result,from)   \
                                                \
