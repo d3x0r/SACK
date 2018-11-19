@@ -1,4 +1,5 @@
-
+#ifndef PPC_MEMORY_INTERFACE_DEFINED
+#define PPC_MEMORY_INTERFACE_DEFINED
 #if defined __WATCOMC__
 //# include "sharemem.h"
 #else
@@ -25,12 +26,14 @@ void DumpMemory( void );
 uint32_t CPROC LockedExchange( uint32_t *p, uint32_t val );
 
 void CPROC MemSet( POINTER p, uint32_t v, size_t n);
-void CPROC MemCpy( POINTER p, POINTER p2, size_t n);
+void CPROC MemCpy( POINTER p, const void *p2, size_t n);
 
 
 void DisableMemoryValidate( int bDisable );
 
 char CPROC *StrDupEx( const char *original DBG_PASS );
 #define StrDup(o) StrDupEx(o DBG_SRC )
+
+#endif
 
 #endif

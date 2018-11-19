@@ -6,8 +6,8 @@
 #endif
 #if defined( _WIN32 )
 #include <windows.h> // getmodulefilename
+#include <direct.h>
 #endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "fileio.h"
@@ -1789,7 +1789,7 @@ int main( int argc, char **argv, char **env )
 	 if( laststroke )
 		 laststroke[0] = 0;
 	//printf( WIDE("path: %s\n"), g.pExecPath );
-	getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
+	_getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
 #else
 	printf( WIDE("Path is not defined - probably will not work.") );
 #endif

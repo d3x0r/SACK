@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stddef.h>
 #include "./types.h"
-
+#include "./mem.h"
 #include "global.h"
 
 #define MEMLOG
@@ -218,8 +218,8 @@ void DumpMemory( void )
 	}
 }
 
-void MemSet( void *p, int v, size_t n) {memset(p,v,n);}
-void MemCpy( void *p, const void *p2, size_t n) {memcpy(p,p2,n);}
+void CPROC MemSet( void *p, uint32_t v, size_t n) {memset(p,v,n);}
+void CPROC MemCpy( void *p, const void *p2, size_t n) {memcpy(p,p2,n);}
 
 uint32_t LockedExchange( uint32_t *p, uint32_t val )
 {
