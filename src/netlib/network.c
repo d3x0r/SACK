@@ -670,10 +670,10 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 	{
 		PendingBuffer * lpNext;
 		EnterCriticalSec( &globalNetworkData.csNetwork );
+		RemoveThreadEvent( pc );
 #ifdef VERBOSE_DEBUG
 		lprintf( "REMOVED EVENT...." );
 #endif
-		RemoveThreadEvent( pc );
 
 		//lprintf( WIDE( "Terminating closed client..." ) );
 		if( IsValid( pc->Socket ) )
@@ -1043,8 +1043,8 @@ static void HandleEvent( PCLIENT pClient )
 								TerminateClosedClient( pClient );
 							}
 						}
+						NetworkUnlock( pClient, 0 );
 					}
-					NetworkUnlock( pClient, 0 );
 				}
 
 				if( networkEvents.lNetworkEvents & FD_CLOSE )
@@ -1204,10 +1204,13 @@ void RemoveThreadEvent( PCLIENT pc ) {
 			{
 				// have to make sure threads reset to the new list.
 				//lprintf( "have to wait for thread to be in wait state..." );
-				WSASetEvent( thread->hThread );
 				LeaveCriticalSec( &globalNetworkData.csNetwork );
-				while( (thread->nWaitEvents > 1) || thread->flags.bProcessing )
+				LeaveCriticalSec( &globalNetworkData.csNetwork );
+				while( (thread->nWaitEvents > 1) || thread->flags.bProcessing ) {
+					WSASetEvent( thread->hThread );
 					Relinquish();
+				}
+				EnterCriticalSec( &globalNetworkData.csNetwork );
 				EnterCriticalSec( &globalNetworkData.csNetwork );
 			}
 			else
@@ -1363,8 +1366,9 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 				next = pc->next;
 				if( +GetTickCount() > (pc->LastEvent + 1000) )
 				{
-					lprintf( "Remove thread event on closed thread (should be terminate here..)" );
-					TerminateClosedClient( pc );  // also does the remove.
+					//lprintf( "Remove thread event on closed thread (should be terminate here..)" );
+					// also does the remove.
+					TerminateClosedClient( pc );
 					//RemoveThreadEvent( pc ); // also does the close.
 				}
 			}
@@ -2508,7 +2512,7 @@ get_client:
 				goto get_client;
 			}
 		} while( d < 1 );
-		if( pClient->dwFlags & CF_STATEFLAGS )
+		if( pClient->dwFlags & ( CF_STATEFLAGS ^ (~CF_AVAILABLE)) )
 			DebugBreak();
 		ClearClient( pClient DBG_SRC ); // clear client is redundant here... but saves the critical section now
 		//Log1( WIDE("New network client %p"), client );
@@ -3506,7 +3510,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 		{
 			int notLocked = TRUE;
 			do {
-				while( !NetworkLockEx( lpClient, 0 DBG_SRC ) )
+				if( !NetworkLockEx( lpClient, 0 DBG_SRC ) )
 				{
 					if( !(lpClient->dwFlags & CF_ACTIVE ) ) // if it's already been closed
 					{
@@ -3515,7 +3519,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 					Relinquish();
 					continue;
 				}
-				while( !NetworkLockEx( lpClient, 1 DBG_SRC ) )
+				if( !NetworkLockEx( lpClient, 1 DBG_SRC ) )
 				{
 					NetworkUnlock( lpClient, 0 );
 					if( !(lpClient->dwFlags & CF_ACTIVE) )  // if it's already been closed
