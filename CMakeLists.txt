@@ -346,12 +346,13 @@ endif( __NO_MSGSVR__ )
 
 
 #set( ExtraFlags "${ExtraFlags} -std=c99 -Wall -Wextra -Wpedantic -Wshadow -DPEDANTIC_TEST" )
-set( ExtraFlags "${ExtraFlags} -std=gnu11 -Wall -Wextra -Wpedantic" )
-set( ExtraFlags "${ExtraFlags} -DPEDANTIC_TEST" )
-set( ExtraFlags "${ExtraFlags} -Wno-unused-parameter -Wno-missing-field-initializers " )
-set( ExtraFlags "${ExtraFlags} -Wno-shadow" )
-set( ExtraFlags "${ExtraFlags} -Wno-parentheses" )
-set( ExtraFlags "${ExtraFlags} -Wno-format" )
+#set( ExtraFlags "${ExtraFlags} -std=gnu11 -Wall -Wextra -Wpedantic" )
+#set( ExtraFlags "${ExtraFlags} -DPEDANTIC_TEST" )
+#set( ExtraFlags "${ExtraFlags} -Wno-unused-parameter")
+#set( ExtraFlags "${ExtraFlags} -Wno-missing-field-initializers" )
+#set( ExtraFlags "${ExtraFlags} -Wno-shadow" )
+#set( ExtraFlags "${ExtraFlags} -Wno-parentheses" )
+#set( ExtraFlags "${ExtraFlags} -Wno-format" )
 
 
 
