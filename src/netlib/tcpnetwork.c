@@ -364,7 +364,9 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 #ifdef __LINUX__
+	EnterCriticalSec( &globalNetworkData.csNetwork );
 	AddThreadEvent( pListen, 0 );
+	LeaveCriticalSec( &globalNetworkData.csNetwork );
 #endif
 	return pListen;
 }
