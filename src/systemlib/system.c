@@ -6,6 +6,8 @@
 #ifndef NO_FILEOP_ALIAS
 #  define NO_FILEOP_ALIAS
 #endif
+// setenv()
+#define _POSIX_C_SOURCE 2
 #include <stdhdrs.h>
 #include <string.h>
 #ifdef WIN32

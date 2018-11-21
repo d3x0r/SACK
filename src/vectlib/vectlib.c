@@ -234,10 +234,10 @@ REALVOIDFUNCT( void, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ), (
 RCOORD EXTERNAL_NAME(SinAngle)( PC_POINT pv1, PC_POINT pv2 )
 {
 	_POINT r;
-	RCOORD l;
+	RCOORD len;
 	DOFUNC(crossproduct)( r, pv1, pv2 );
-	l = DOFUNC(Length)( r ) / ( DOFUNC(Length)(pv1) * DOFUNC(Length)(pv2) );
-	return l;
+	len = DOFUNC(Length)( r ) / ( DOFUNC(Length)(pv1) * DOFUNC(Length)(pv2) );
+	return len;
 }
 
 //----------------------------------------------------------------
@@ -255,9 +255,9 @@ REALFUNCT( RCOORD, dotproduct, ( PC_POINT pv1, PC_POINT pv2 ), (pv1, pv2) )
 // returns directed distance of OF in the direction of ON
 RCOORD EXTERNAL_NAME(DirectedDistance)( PC_POINT pvOn, PC_POINT pvOf )
 {
-	RCOORD l = DOFUNC(Length)(pvOn);
-	if( l  )
-		return DOFUNC(dotproduct)(  pvOn, pvOf ) / l; 	
+	RCOORD len = DOFUNC(Length)(pvOn);
+	if( len )
+		return DOFUNC(dotproduct)(  pvOn, pvOf ) / len;
 	return 0;
 }
 
@@ -271,9 +271,9 @@ RCOORD EXTERNAL_NAME(DirectedDistance)( PC_POINT pvOn, PC_POINT pvOf )
 
 RCOORD EXTERNAL_NAME(CosAngle)( PC_POINT pv1, PC_POINT pv2 )
 {
-	RCOORD l = DOFUNC(Length)( pv1 ) * DOFUNC(Length)( pv2 );
-	if( l )
-		return DOFUNC(dotproduct)( pv1, pv2 ) / l;
+	RCOORD len = DOFUNC(Length)( pv1 ) * DOFUNC(Length)( pv2 );
+	if( len )
+		return DOFUNC(dotproduct)( pv1, pv2 ) / len;
 	return 0; // as good an angle as any...
 }
 
@@ -298,7 +298,7 @@ void EXTERNAL_NAME(ClearTransform)( PTRANSFORM pt )
 	pt->s[0] = ONE;
 	pt->s[1] = ONE;
 	pt->s[2] = ONE;
-};
+}
 
 //----------------------------------------------------------------
 
@@ -332,7 +332,7 @@ PTRANSFORM EXTERNAL_NAME(CreateNamedTransform)( CTEXTSTR name  )
 		EXTERNAL_NAME(ClearTransform)(pt);
 	}
    return pt;
-};
+}
 
 #undef CreateTransform
 MATHLIB_EXPORT PTRANSFORM EXTERNAL_NAME(CreateTransform)( void )
@@ -358,7 +358,7 @@ PTRANSFORM EXTERNAL_NAME(CreateTransformMotionEx)( PTRANSFORM pt, int rocket )
 		pt->nMotion = 2;
 	}
 	return pt;
-};
+}
 
 //----------------------------------------------------------------
 

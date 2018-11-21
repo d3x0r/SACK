@@ -345,6 +345,13 @@ if( __NO_MSGSVR__ )
 endif( __NO_MSGSVR__ )
 
 
+#set( ExtraFlags "${ExtraFlags} -std=c99 -Wall -Wextra -Wpedantic -Wshadow -DPEDANTIC_TEST" )
+set( ExtraFlags "${ExtraFlags} -std=gnu11 -Wall -Wextra -Wpedantic" )
+set( ExtraFlags "${ExtraFlags} -DPEDANTIC_TEST" )
+set( ExtraFlags "${ExtraFlags} -Wno-unused-parameter -Wno-missing-field-initializers " )
+set( ExtraFlags "${ExtraFlags} -Wno-shadow" )
+set( ExtraFlags "${ExtraFlags} -Wno-parentheses" )
+set( ExtraFlags "${ExtraFlags} -Wno-format" )
 
 
 
@@ -424,6 +431,8 @@ endif( __64__ )
 if( __64__ )
    add_definitions( -D__64__ )
 endif( __64__ )
+
+
 
 
 # this is where external image libraries are added for windows native builds

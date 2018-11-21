@@ -1855,6 +1855,7 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  TextSimilar  ( PTEXT pText, CTEXTSTR text );
 //#define SameText( l1, l2 )  ( strcmp( GetText(l1), GetText(l2) ) )
 #define textmin(a,b) ( (((a)>0)&&((b)>0))?(((a)<(b))?(a):(b)):(((a)>0)?(a):((b)>0)?(b):0) )
 #ifdef __LINUX__
+#  include <strings.h>
 /* windows went with stricmp() and strnicmp(), whereas linux
  went with strcasecmp() and strncasecmp()                  */
 #  ifdef UNICODE

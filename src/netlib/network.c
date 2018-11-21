@@ -192,9 +192,9 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
 	MemCpy( &arpr.arp_pa, pc->saClient, sizeof( SOCKADDR ) );
 	arpr.arp_ha.sa_family = AF_INET;
 	{
-		char buf[256];
-		ifc.ifc_len = sizeof( buf );
-		ifc.ifc_buf = buf;
+		char ifbuf[256];
+		ifc.ifc_len = sizeof( ifbuf );
+		ifc.ifc_buf = ifbuf;
 		ioctl( pc->Socket, SIOCGIFCONF, &ifc );
 		{
 			int i;
@@ -285,9 +285,9 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 	MemCpy( &arpr.arp_pa, pc->saClient, sizeof( SOCKADDR ) );
 	arpr.arp_ha.sa_family = AF_INET;
 	{
-		char buf[256];
-		ifc.ifc_len = sizeof( buf );
-		ifc.ifc_buf = buf;
+		char ifbuf[256];
+		ifc.ifc_len = sizeof( ifbuf );
+		ifc.ifc_buf = ifbuf;
 		ioctl( pc->Socket, SIOCGIFCONF, &ifc );
 		{
 			int i;

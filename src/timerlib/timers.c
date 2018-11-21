@@ -2570,8 +2570,8 @@ HANDLE  GetWakeEvent( void )
 #endif
 
 #ifdef __cplusplus
-};//	namespace timers {
-};//namespace sack {
+}//	namespace timers {
+}//namespace sack {
 #endif
 //--------------------------------------------------------------------------
 
