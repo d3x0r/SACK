@@ -1813,7 +1813,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 					//stat = read( GetThreadSleeper( thread->thread ), &buf, 1 );
 					//call wakeable sleep to just clear the sleep; because this is an event on the sleep pipe.
 					WakeableSleep( 1 );
-               lprintf( "This should sleep forever..." );
+               //lprintf( "This should sleep forever..." );
 					return 1;
 				}
 
