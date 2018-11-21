@@ -1043,8 +1043,8 @@ static void HandleEvent( PCLIENT pClient )
 								TerminateClosedClient( pClient );
 							}
 						}
-						NetworkUnlock( pClient, 0 );
 					}
+					NetworkUnlock( pClient, 0 );
 				}
 
 				if( networkEvents.lNetworkEvents & FD_CLOSE )
@@ -3503,21 +3503,30 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 			//return;
 			// continue on; otherwise the close event gets lost...
 		}
-		while( !NetworkLockEx( lpClient, 0 DBG_SRC ) )
 		{
-			if( !(lpClient->dwFlags & CF_ACTIVE ) )
-			{
-				return;
-			}
-			Relinquish();
-		}
-		while( !NetworkLockEx( lpClient, 1 DBG_SRC ) )
-		{
-			if( !(lpClient->dwFlags & CF_ACTIVE) )
-			{
-				return;
-			}
-			Relinquish();
+			int notLocked = TRUE;
+			do {
+				while( !NetworkLockEx( lpClient, 0 DBG_SRC ) )
+				{
+					if( !(lpClient->dwFlags & CF_ACTIVE ) ) // if it's already been closed
+					{
+						return;
+					}
+					Relinquish();
+					continue;
+				}
+				while( !NetworkLockEx( lpClient, 1 DBG_SRC ) )
+				{
+					NetworkUnlock( lpClient, 0 );
+					if( !(lpClient->dwFlags & CF_ACTIVE) )  // if it's already been closed
+					{
+						return;
+					}
+					Relinquish();
+					continue;
+				}
+				notLocked = FALSE;
+			} while( notLocked );
 		}
 
 		// allow application a chance to clean it's references
