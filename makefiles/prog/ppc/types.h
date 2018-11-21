@@ -1,15 +1,16 @@
 #ifndef MY_TYPES_INCLUDED
 #define MY_TYPES_INCLUDED
 #include <stdlib.h>
+#include <ctype.h>
 
 #ifdef __LINUX__
-#define DebugBreak() asm( WIDE("int $3\n") )
+#  define DebugBreak() asm( WIDE("int $3\n") )
 #else
-#define DebugBreak()
+#  define DebugBreak()
 #endif
 
 #ifdef __WATCOMC__
-#define CPROC _cdecl
+#  define CPROC _cdecl
 #else
 #define CPROC 
 #endif
@@ -24,21 +25,21 @@
 // this is for passing FILE, LINE information to allocate
 // useful during DEBUG phases only...
 #ifdef _DEBUG
-#define DBG_SRC         , __FILE__, __LINE__
-#define DBG_VOIDSRC     __FILE__, __LINE__ 
-#define DBG_VOIDPASS    char *pFile, int nLine
-#define DBG_PASS        , char *pFile, int nLine
-#define DBG_RELAY       , pFile, nLine
-#define DBG_FORWARD     , pFile, nLine
-#define DBG_FILELINEFMT "%s(%d)"
+#  define DBG_SRC         , __FILE__, __LINE__
+#  define DBG_VOIDSRC     __FILE__, __LINE__
+#  define DBG_VOIDPASS    char *pFile, int nLine
+#  define DBG_PASS        , char *pFile, int nLine
+#  define DBG_RELAY       , pFile, nLine
+#  define DBG_FORWARD     , pFile, nLine
+#  define DBG_FILELINEFMT "%s(%d)"
 #else
-#define DBG_SRC 
-#define DBG_VOIDSRC     
-#define DBG_VOIDPASS    void
-#define DBG_PASS
-#define DBG_RELAY 
-#define DBG_FORWARD     , __FILE__, __LINE__
-#define DBG_FILELINEFMT
+#  define DBG_SRC
+#  define DBG_VOIDSRC
+#  define DBG_VOIDPASS    void
+#  define DBG_PASS
+#  define DBG_RELAY
+#  define DBG_FORWARD     , __FILE__, __LINE__
+#  define DBG_FILELINEFMT
 #endif
 
 #ifdef UNICODE
@@ -56,18 +57,7 @@
 //typedef void           _0;
 typedef void *P_0;
 #include <stdint.h>
-/*
- refactors out - no more _xx types.
-typedef unsigned char  uint8_t;
-typedef uint8_t *uint8_t*;
-typedef unsigned short uint16_t;
-typedef uint16_t *uint16_t*;
-typedef unsigned long  uint32_t;
-typedef uint32_t *uint32_t*;
-typedef signed   char  int8_t;
-typedef signed   short int16_t;
-typedef signed   long  int32_t;
-*/
+
 typedef const unsigned char *CTEXTSTR;
 typedef unsigned char TEXTCHAR;
 typedef TEXTCHAR *TEXTSTR;
@@ -153,8 +143,5 @@ typedef struct LinkStackQueue // additional step function...
    size_t     Cnt;
    POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKSTACKQUEUE, *PLINKSTACKQUEUE;
-
-//#undef NULL
-//#define NULL ((BYTE FAR *)0)
 
 #endif
