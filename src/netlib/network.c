@@ -1579,6 +1579,9 @@ void RemoveThreadEvent( PCLIENT pc ) {
 #  endif
 	}
 	LockedDecrement( &thread->nEvents );
+#ifdef LOG_NETWORK_EVENT_THREAD
+	lprintf( "peer %p now has %d events", thread, thread->nEvents );
+#endif
 	// don't bubble sort root thread
 	if( thread->parent_peer )
 		while( (thread->nEvents < thread->parent_peer->nEvents) && thread->parent_peer->parent_peer ) {
@@ -1763,7 +1766,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  else
 		struct epoll_event events[10];
 #    ifdef LOG_NETWORK_EVENT_THREAD
-		lprintf( "Wait on %d", thread->epoll_fd );
+		lprintf( "Wait on %d   %d", thread->epoll_fd, thread->nEvents );
 #    endif
 		cnt = epoll_wait( thread->epoll_fd, events, 10, -1 );
 #  endif
@@ -1798,15 +1801,19 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  else
 				event_data = (struct event_data*)events[n].data.ptr;
 #  ifdef LOG_NOTICES
-				lprintf( "Process %d %x", event_data->broadcast?event_data->pc->SocketBroadcast:event_data->pc->Socket
-				       , events[n].events );
+				if( event_data != (struct event_data*)1 ) {
+					lprintf( "Process %d %x", event_data->broadcast?event_data->pc->SocketBroadcast:event_data->pc->Socket
+							 , events[n].events );
+				}
 #  endif
 #  endif
 				if( event_data == (struct event_data*)1 ) {
 					//char buf;
-					//stat = read( GetThreadSleeper( thread->pThread ), &buf, 1 );
+               //int stat;
+					//stat = read( GetThreadSleeper( thread->thread ), &buf, 1 );
 					//call wakeable sleep to just clear the sleep; because this is an event on the sleep pipe.
-					WakeableSleep( SLEEP_FOREVER );
+					WakeableSleep( 1 );
+               lprintf( "This should sleep forever..." );
 					return 1;
 				}
 
@@ -2512,7 +2519,7 @@ get_client:
 				goto get_client;
 			}
 		} while( d < 1 );
-		if( pClient->dwFlags & ( CF_STATEFLAGS ^ (~CF_AVAILABLE)) )
+		if( pClient->dwFlags & ( CF_STATEFLAGS & (~CF_AVAILABLE)) )
 			DebugBreak();
 		ClearClient( pClient DBG_SRC ); // clear client is redundant here... but saves the critical section now
 		//Log1( WIDE("New network client %p"), client );
