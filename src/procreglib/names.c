@@ -350,7 +350,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 		if( l.flags.bIndexNameTable )
 		{
 			AddBinaryNode( l.NameIndex, p, (uintptr_t)p );
-			BalanceBinaryTree( l.NameIndex );
+			//BalanceBinaryTree( l.NameIndex );
 		}
 	}
 	// otherwise it will be single threaded?
