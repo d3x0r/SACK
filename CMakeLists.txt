@@ -1765,6 +1765,7 @@ endif( NOT __NO_NETWORK__ )
       add_subdirectory( src/utils/multi_touch/plotter )
    endif( NOT WATCOM AND NOT UNIX AND NOT MINGW  )
    add_subdirectory( src/utils/test_filescan )
+   add_subdirectory( src/utils/test_binarytree_avl )
 endif( BUILD_TESTS )
 
 
