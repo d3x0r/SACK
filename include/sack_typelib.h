@@ -3292,9 +3292,9 @@ TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  GetPriorNode( PTREEROOT root );
    
    Example
    <code lang="c++">
-   uint32_t total_nodes = GetNodeCount(tree);
+   int total_nodes = GetNodeCount(tree);
    </code>                                         */
-TYPELIB_PROC  uint32_t TYPELIB_CALLTYPE  GetNodeCount ( PTREEROOT root );
+TYPELIB_PROC  int TYPELIB_CALLTYPE  GetNodeCount ( PTREEROOT root );
 
 TYPELIB_PROC  PTREEROOT TYPELIB_CALLTYPE  ShadowBinaryTree( PTREEROOT root ); // returns a shadow of the original.
 

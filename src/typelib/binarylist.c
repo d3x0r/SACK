@@ -33,7 +33,8 @@ struct treenode_tag {
 		BIT_FIELD bUsed:1;
 		BIT_FIELD bRoot:1;
 	} flags;
-	uint32_t children;
+	int depth;
+	int children;  // required to know how many nodes are in the tree; especially with branch transplants.
 	CPOINTER userdata;
 	uintptr_t key;
 	struct treenode_tag *lesser;
@@ -53,7 +54,8 @@ typedef struct treeroot_tag {
 		BIT_FIELD bShadow:1; // tree points to the real TREEROOT (not a node)
 		BIT_FIELD bNoDuplicate : 1;
 	} flags;
-	uint32_t children;
+	int depth;
+	int children;
 	uint32_t lock;
 
 	GenericDestroy Destroy;
@@ -90,7 +92,7 @@ int CPROC BinaryCompareInt( uintptr_t old, uintptr_t new_key )
 }
 
 //---------------------------------------------------------------------------
-
+#if 0
 PTREENODE RotateToRight( PTREENODE node )
 {
 	PTREENODE greater = node->greater;
@@ -145,7 +147,7 @@ PTREENODE RotateToLeft( PTREENODE node )
 
 //---------------------------------------------------------------------------
 // RotateToLeft - make left node root/current.
-// RotateToRight - make right node root/current
+// RotateToRight - make rightDepth node root/current
 
 static int BalanceBinaryBranch( PTREENODE root )
 {
@@ -159,23 +161,23 @@ static int BalanceBinaryBranch( PTREENODE root )
  	   	if( check->lesser && check->greater)
  		{
 			int left = check->lesser->children
-			 , right = check->greater->children;
-			if( left && right && ( left > ( right * 2 ) ) )
+			 , rightDepth = check->greater->children;
+			if( left && rightDepth && ( left > ( rightDepth * 2 ) ) )
 			{
-				//if( left > 2+((left+right)*55)/100 )
+				//if( left > 2+((left+rightDepth)*55)/100 )
 				{
-		 			//Log2( WIDE("rotateing to left (%d/%d)"), left, right );
+		 			//Log2( WIDE("rotateing to left (%d/%d)"), left, rightDepth );
 					root = RotateToLeft( check );
 					balances++;
 				}
 				//else
 				//	root = NULL;
 			}
-			else if( right > ( left * 2 ) )
+			else if( rightDepth > ( left * 2 ) )
 			{
-				//if( right  > 2+((left+right)*55)/100 )
+				//if( rightDepth  > 2+((left+rightDepth)*55)/100 )
 				{
-		 			//Log2( WIDE("rotateing to right (%d/%d)"), right, left );
+		 			//Log2( WIDE("rotateing to rightDepth (%d/%d)"), rightDepth, left );
 					root = RotateToRight( check );
 					balances++;
 				}
@@ -192,7 +194,7 @@ static int BalanceBinaryBranch( PTREENODE root )
  		}
  		else if( check->greater && ( check->children >= 2 )  )
  		{
- 			//Log1( WIDE("rotateing to right (%d)"), check->children );
+ 			//Log1( WIDE("rotateing to rightDepth (%d)"), check->children );
  			root = RotateToRight( check );
 			balances++;
  		}
@@ -207,27 +209,203 @@ static int BalanceBinaryBranch( PTREENODE root )
  	}
  	return balances;
 }
+#endif
 
 //---------------------------------------------------------------------------
 
 void BalanceBinaryTree( PTREEROOT root )
 {
-	
+#if SACK_BINARYLIST_USE_CHILD_COUNTS
 	while( LockedExchange( &root->lock, 1 ) )
 		Relinquish();
 	while( BalanceBinaryBranch( root->tree ) > 1 && 0);
 	root->lock = 0;
+#endif
 	//Log( WIDE("=========") );;
 }
 
 //---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+
+static PTREENODE AVL_RotateToRight( PTREENODE node )
+{
+	PTREENODE left = node->lesser;
+	PTREENODE T2 = left->greater;
+
+	node->children -= (left->children + 1);
+
+	node->me[0] = left;
+	left->me = node->me;
+
+	// Perform rotation
+	left->greater = node;
+	node->me = &left->greater;
+	node->parent = left;
+
+	node->lesser = T2;
+	if( T2 ) {
+		T2->me = &node->lesser;
+		T2->parent = node;
+		node->children += (left->greater->children + 1);
+		left->children -= (left->greater->children + 1);
+	}
+	left->children += (node->children + 1);
+
+	// Update heights
+	{
+		int leftDepth, rightDepth;
+		leftDepth = node->lesser ? node->lesser->depth : 0;
+		rightDepth = node->greater ? node->greater->depth : 0;
+		if( leftDepth > rightDepth )
+			node->depth = leftDepth + 1;
+		else
+			node->depth = rightDepth + 1;
+
+		leftDepth = left->lesser ? left->lesser->depth : 0;
+		rightDepth = left->greater ? left->greater->depth : 0;
+		if( leftDepth > rightDepth ) {
+			left->depth = leftDepth + 1;
+		}
+		else
+			left->depth = rightDepth + 1;
+	}
+	// Return new root
+	return left;
+}
+
+//---------------------------------------------------------------------------
+
+static PTREENODE AVL_RotateToLeft( PTREENODE node )
+{
+	PTREENODE right = node->greater;
+	PTREENODE T2 = right->lesser;
+
+	node->children -= (right->children + 1);
+
+	node->me[0] = right;
+	right->me = node->me;
+
+	// Perform rotation
+	right->lesser = node;
+	node->me = &right->lesser;
+	node->parent = right;
+	node->greater = T2;
+	if( T2 ) {
+		T2->me = &right->greater;
+		T2->parent = node;
+		node->children += (right->lesser->children + 1);
+		right->children -= (right->lesser->children + 1);
+	}
+	right->children += (node->children + 1);
+	//  Update heights
+	{
+		int left, rightDepth;
+		left = node->lesser ? node->lesser->depth : 0;
+		rightDepth = node->greater ? node->greater->depth : 0;
+		if( left > rightDepth )
+			node->depth = left + 1;
+		else
+			node->depth = rightDepth + 1;
+
+		left = right->lesser ? right->lesser->depth : 0;
+		rightDepth = right->greater ? right->greater->depth : 0;
+		if( left > rightDepth )
+			right->depth = left + 1;
+		else
+			right->depth = rightDepth + 1;
+	}
+
+	// Return new root
+	return right;
+}
+
+//---------------------------------------------------------------------------
+
+static void AVLbalancer( PTREEROOT root, PTREENODE node ) {
+	PTREENODE _x = NULL;
+	PTREENODE _y = NULL;
+	PTREENODE _z = NULL;
+	int leftDepth;
+	int rightDepth;
+	int height = 0;
+	int swaps = 0;
+	_z = node;
+
+	while( _z ) {
+		int doBalance;
+		doBalance = FALSE;
+		if( _z->greater )
+			rightDepth = _z->greater->depth;
+		else
+			rightDepth = 0;
+		if( _z->lesser )
+			leftDepth = _z->lesser->depth;
+		else
+			leftDepth = 0;
+
+		if( leftDepth > rightDepth ) {
+			if( (1 + leftDepth) == _z->depth ) {
+				break;
+			}
+			_z->depth = 1 + leftDepth;
+			if( (leftDepth -rightDepth) > 1 ) {
+				doBalance = TRUE;
+			}
+		} else {
+			if( (1 + rightDepth) == _z->depth ) {
+				break;
+			}
+			_z->depth = 1 + rightDepth;
+			if( (rightDepth- leftDepth) > 1 ) {
+				doBalance = TRUE;
+			}
+		}
+		if( doBalance )
+			if( _x && !_z->flags.bRoot ) {
+				if( _x == _y->lesser ) {
+
+					if( _y == _z->lesser ) {
+						// left/left
+						AVL_RotateToRight( _z );
+					} else {
+						//left/rightDepth
+						AVL_RotateToRight( _y );
+						AVL_RotateToLeft( _z );
+					}
+				} else {
+					if( _y == _z->lesser ) {
+						AVL_RotateToLeft( _y );
+						AVL_RotateToRight( _z );
+						// rightDepth.left
+					} else {
+						//rightDepth/rightDepth
+						AVL_RotateToLeft( _z );
+					}
+				}
+				//DumpTree( root, NULL );
+			} else {
+				//lprintf( "Not deep enough for balancing." );
+			}
+
+		_x = _y;
+		_y = _z;
+		_z = _z->parent;
+	}
+
+}
+
+//---------------------------------------------------------------------------
+
 
 int HangBinaryNode( PTREEROOT root, PTREENODE node )
 {
 	PTREENODE check;
 	if( !node )
 		return 0;
+
 	root->children += ( node->children + 1 );
+
 	if( !(root->tree) )
 	{
 		root->tree = node;
@@ -239,7 +417,7 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
  	while( check )
  	{
  		int dir = root->Compare( node->key, check->key );
- 		check->children += (node->children + 1);
+		check->children += (node->children + 1);
  		if( dir < 0 )
  		{
  			if( check->lesser )
@@ -276,19 +454,27 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 			if( check )
 				check->children -= (node->children + 1);
 			DeleteFromSet( TREENODE, TreeNodeSet, node );
-			//Release( node );
-
-		 
-		 return 0;
+			return 0;
 		}
 		else
 		{
+#if SACK_BINARYLIST_USE_CHILD_COUNTS
 			int leftchildren = 0, rightchildren = 0;
 			if( check->lesser )
 				leftchildren = check->lesser->children;
 			if( check->greater )
 				rightchildren = check->greater->children;
 			if( leftchildren <= rightchildren )
+#else
+			// allow duplicates; but link in as a near node, either left
+			// or right... depending on the depth.
+			int leftdepth = 0, rightdepth = 0;
+			if( check->lesser )
+				leftdepth = check->lesser->depth;
+			if( check->greater )
+				rightdepth = check->greater->depth;
+			if( leftdepth < rightdepth )
+#endif
 			{
 				if( check->lesser )
 					check = check->lesser;
@@ -314,6 +500,7 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 			}
 		}
 	}
+	AVLbalancer( root, node );
 	return 1;
 }
 
@@ -331,6 +518,7 @@ int AddBinaryNodeEx( PTREEROOT root
 	node->greater = NULL;
 	node->me = NULL;
 	node->children = 0;
+	node->depth = 0;
 	node->userdata = userdata;
 	node->key = key;
 	node->flags.bUsed = 1;
@@ -361,6 +549,7 @@ static void RehangBranch( PTREEROOT root, PTREENODE node )
 			RehangBranch( root, node->lesser );
 		}
 		node->children = 0;
+		node->depth = 0;
 		//lprintf( "putting self node back in tree %p", node );
 		HangBinaryNode( root, node );
 	}
@@ -387,7 +576,6 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 		// lprintf( "%p should be removed!", node );
 		(*node->me) = NULL; // pull me out of the tree.
 		DecrementParentCounts( node->parent, node->children+1 );
-
 		// hang my right...
 		RehangBranch( root, node->greater );
 		// hang my left...
@@ -469,7 +657,7 @@ PTREEROOT CreateBinaryTreeExtended( uint32_t flags
 	if( flags & BT_OPT_NODUPLICATES  )
 		root->flags.bNoDuplicate = 1;
 	root->Destroy = Destroy;
-	//root->return  = NULL; // upgoing... (return from right )
+	//root->return  = NULL; // upgoing... (return from rightDepth )
 	if( Compare )
 		root->Compare = Compare;
 	else
@@ -488,6 +676,9 @@ PTREEROOT CreateBinaryTreeEx( GenericCompare Compare
 int maxlevel = 0;
 void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, uintptr_t key ) )
 {
+#ifdef SACK_BINARYLIST_USE_PRIMITIVE_LOGGING
+	static char buf[256];
+#endif
 	int print;
 	if( !node )
 		return;
@@ -499,27 +690,60 @@ void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, uint
 	else
 		print = TRUE;
 	//else
-	if( print )
-		lprintf( WIDE("[%3d] %p Node has %3")_32f WIDE(" children (%p %3")_32f WIDE(",%p %3")_32f WIDE("). %10") _PTRSZVALfs
-				 , level, node, node->children
-				 , node->lesser
-				 , (node->lesser)?(node->lesser->children+1):0
-				 , node->greater
-				 , (node->greater)?(node->greater->children+1):0
-				 , node->key
-				 );
+	if( print ) {
+#ifdef SACK_BINARYLIST_USE_PRIMITIVE_LOGGING
+		snprintf( buf, 256, WIDE( "[%3d] %p Node has %3d depth  %3" )_32f WIDE( " children (%p %3" )_32f WIDE( ",%p %3" )_32f WIDE( "). %10" ) _PTRSZVALfs
+			, level, node, node->depth, node->children
+			, node->lesser
+			, (node->lesser) ? (node->lesser->children + 1) : 0
+			, node->greater
+			, (node->greater) ? (node->greater->children + 1) : 0
+			, node->key
+		);
+		puts( buf );
+#else
+		lprintf( WIDE( "[%3d] %p Node has %3d depth  %3" )_32f WIDE( " children (%p %3" )_32f WIDE( ",%p %3" )_32f WIDE( "). %10" ) _PTRSZVALfs
+			, level, node, node->depth, node->children
+			, node->lesser
+			, (node->lesser) ? (node->lesser->children + 1) : 0
+			, node->greater
+			, (node->greater) ? (node->greater->children + 1) : 0
+			, node->key
+		);
+#endif
+	}
 	DumpNode( node->greater, level+1, DumpMethod );
 }
 
 //---------------------------------------------------------------------------
 
-void DumpTree( PTREEROOT root 
+
+void DumpTree( PTREEROOT root
 				 , int (*Dump)( CPOINTER user, uintptr_t key ) )
 {
+#ifdef SACK_BINARYLIST_USE_PRIMITIVE_LOGGING
+	static char buf[256];
 	maxlevel = 0;
-	if( !Dump ) lprintf( WIDE("Tree %p has %")_32f WIDE(" nodes. %p is root"), root, root->children, root->tree );
+	if( !Dump ) {
+		snprintf( buf, 256, WIDE( "Tree %p has %" )_32f WIDE( " nodes. %p is root" ), root, root->children, root->tree );
+		puts( buf );
+	}
 	DumpNode( root->tree, 1, Dump );
-	if( !Dump ) lprintf( WIDE("Tree had %d levels."), maxlevel );
+	if( !Dump ) {
+		snprintf( buf, 256, WIDE("Tree had %d levels."), maxlevel );
+		puts( buf );
+	}
+	fflush( stdout );
+#else
+	maxlevel = 0;
+	if( !Dump ) {
+		lprintf(  WIDE( "Tree %p has %" )_32f WIDE( " nodes. %p is root" ), root, root->children, root->tree );
+	}
+	DumpNode( root->tree, 1, Dump );
+	if( !Dump ) {
+		lprintf( WIDE("Tree had %d levels."), maxlevel );
+	}
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -943,7 +1167,7 @@ CPOINTER GetChildNodeEx( PTREEROOT root, POINTER *cursor, int direction )
 		{
 			(*(struct treenode_tag **)cursor) = (*(struct treenode_tag **)cursor)->lesser;
 		}
-		else 
+		else
 			(*(struct treenode_tag **)cursor) = (*(struct treenode_tag **)cursor)->greater;
 		if( (*(struct treenode_tag **)cursor) )
 			return (*(struct treenode_tag **)cursor)->userdata;
@@ -977,8 +1201,7 @@ CPOINTER GetPriorNode( PTREEROOT root )
 }
 
 //---------------------------------------------------------------------------
-
-uint32_t GetNodeCount( PTREEROOT root )
+int GetNodeCount( PTREEROOT root )
 {
 	return root->children;
 }
@@ -995,6 +1218,7 @@ PTREEROOT ShadowBinaryTree( PTREEROOT Original )
 	root->flags.bUsed = 1;
 	root->flags.bShadow = 1;
 	root->children = 0;
+	root->depth = 0;
 	root->Compare = Original->Compare;
 	root->Destroy = Original->Destroy;
 	root->tree = Original->tree;
