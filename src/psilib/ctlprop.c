@@ -96,9 +96,9 @@ void CPROC SetControlIDProperty( uintptr_t psv, PSI_CONTROL list, PLISTITEM item
 				tnprintf( buffer, sizeof( buffer ), WIDE("%d"), data->value );
 			SetControlText( edit, buffer );
 			{
-				TEXTCHAR buffer[256];
-				tnprintf( buffer, sizeof( buffer ), WIDE("%s/%s/%s"), data->appname, data->_typename, data->resname );
-				SetControlText( GetNearControl( list, EDT_IDNAME ), buffer );
+				TEXTCHAR buffer2[256];
+				tnprintf( buffer2, sizeof( buffer ), WIDE("%s/%s/%s"), data->appname, data->_typename, data->resname );
+				SetControlText( GetNearControl( list, EDT_IDNAME ), buffer2 );
 			}
 		}
 	}
@@ -284,7 +284,7 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 							 , PROP_HEIGHT + 20 + 25, BORDER_NORMAL, GetFrame( control ) );
 		{
 			static int bAnotherLayer;
-			PSI_CONTROL pc = MakeSheetControl( pf
+			PSI_CONTROL pcSheet = MakeSheetControl( pf
 													, 5, 5
 													, PROP_WIDTH+10, PROP_HEIGHT + 10
 													, -1 );
@@ -343,7 +343,7 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 				DebugBreak(); // there's more to cleanup here.
 				return 0; // failed, no properties avaialable for some reason.
 			}
-			AddSheet( pc,pSheet );
+			AddSheet( pcSheet,pSheet );
 			{
 				TEXTCHAR classname[32];
 				GetControlPropSheet gcps;
@@ -355,7 +355,7 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 					PSI_CONTROL pCustomSheet;
 					pCustomSheet = gcps( (PSI_CONTROL)control );
 					lprintf( WIDE("Got the page...") );
-					AddSheet( pc
+					AddSheet( pcSheet
 							  , (PSI_CONTROL)(pEditProps->pPropertySheet = pCustomSheet) );
 				}
 				else
@@ -369,7 +369,6 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 			if( pEditProps->bOkay )
 			{
 				PSI_CONTROL pc;
-				int32_t x, y;
 				uint32_t w, h, id;
 				static TEXTCHAR buffer[32000];
 				GetControlText( GetControl(pSheet, EDT_CAPTION ), buffer, sizeof( buffer ) );
@@ -525,15 +524,15 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 			CommonWait( pf );
 			if( pEditProps->bOkay )
 			{
-				int32_t x, y;
+				int32_t x2, y2;
 				uint32_t w, h, id;
 				GetControlText( GetControl(pf, EDT_CAPTION ), buffer, sizeof( buffer ) );
 				SetControlText( frame, buffer );
 				GetControlText( GetControl(pf, EDT_X ), buffer, sizeof( buffer ) );
-				x = (int32_t)IntCreateFromText( buffer );
+				x2 = (int32_t)IntCreateFromText( buffer );
 				GetControlText( GetControl(pf, EDT_Y), buffer, sizeof( buffer ) );
-				y = (int32_t)IntCreateFromText( buffer );
-				MoveFrame( frame, x, y );
+				y2 = (int32_t)IntCreateFromText( buffer );
+				MoveFrame( frame, x2, y2 );
 				GetControlText( GetControl(pf, EDT_WIDTH ), buffer, sizeof( buffer ) );
 				w = (uint32_t)IntCreateFromText( buffer );
 				GetControlText( GetControl(pf, EDT_HEIGHT ), buffer, sizeof( buffer ) );
