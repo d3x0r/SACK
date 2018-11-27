@@ -14,6 +14,11 @@
  *
  */
 #include <stdhdrs.h>
+
+//#define DEFINE_BINARYLIST_PERF_COUNTERS
+#ifdef DEFINE_BINARYLIST_PERF_COUNTERS
+#  include <deadstart.h>
+#endif
 //#include <sack_types.h>
 //#include <sharemem.h>
 //#include <logging.h>
@@ -44,7 +49,7 @@ struct treenode_tag {
 };
 typedef struct treenode_tag TREENODE;
 	
-#define MAXTREENODESPERSET 256
+#define MAXTREENODESPERSET 4096
 DeclareSet( TREENODE );
 
 typedef struct treeroot_tag {
@@ -58,6 +63,14 @@ typedef struct treeroot_tag {
 	int children;
 	uint32_t lock;
 
+#ifdef DEFINE_BINARYLIST_PERF_COUNTERS
+	int maxHeights[30];
+	int maxSwaps[10];
+	int maxScans;
+	int balancedFromLeft;
+	int balancedFromRight;
+#endif
+
 	GenericDestroy Destroy;
 	GenericCompare Compare;
 	PTREENODE tree;
@@ -65,6 +78,13 @@ typedef struct treeroot_tag {
 } TREEROOT;
 
 static PTREENODESET TreeNodeSet;
+
+//---------------------------------------------------------------------------
+
+#define MAXTREEROOTSPERSET 128
+DeclareSet( TREEROOT );
+static PTREEROOTSET treepool;
+
 
 CPOINTER GetLesserNodeExx( PTREEROOT root, PTREENODE *from );
 CPOINTER GetGreaterNodeExx( PTREEROOT root, PTREENODE *from );
@@ -228,124 +248,141 @@ void BalanceBinaryTree( PTREEROOT root )
 
 //---------------------------------------------------------------------------
 
-static PTREENODE AVL_RotateToRight( PTREENODE node )
-{
-	PTREENODE left = node->lesser;
-	PTREENODE T2 = left->greater;
-
-	node->children -= (left->children + 1);
-
-	node->me[0] = left;
-	left->me = node->me;
-
-	// Perform rotation
-	left->greater = node;
-	node->me = &left->greater;
-	node->parent = left;
-
-	node->lesser = T2;
-	if( T2 ) {
-		T2->me = &node->lesser;
-		T2->parent = node;
-		node->children += (left->greater->children + 1);
-		left->children -= (left->greater->children + 1);
-	}
-	left->children += (node->children + 1);
-
-	// Update heights
-	{
-		int leftDepth, rightDepth;
-		leftDepth = node->lesser ? node->lesser->depth : 0;
-		rightDepth = node->greater ? node->greater->depth : 0;
-		if( leftDepth > rightDepth )
-			node->depth = leftDepth + 1;
-		else
-			node->depth = rightDepth + 1;
-
-		leftDepth = left->lesser ? left->lesser->depth : 0;
-		rightDepth = left->greater ? left->greater->depth : 0;
-		if( leftDepth > rightDepth ) {
-			left->depth = leftDepth + 1;
-		}
-		else
-			left->depth = rightDepth + 1;
-	}
-	// Return new root
-	return left;
+//static PTREENODE AVL_RotateToRight( PTREENODE node )
+#define AVL_RotateToRight(node)                                         \
+{                                            \
+	PTREENODE left = node->lesser;           \
+	PTREENODE T2 = left->greater;            \
+                                             \
+	node->children -= (left->children + 1);  \
+                                             \
+	node->me[0] = left;\
+	left->me = node->me;\
+	left->parent = node->parent;         \
+                                         \
+	/* Perform rotation*/ \
+	left->greater = node;  \
+	node->me = &left->greater;  \
+	node->parent = left;       \
+              \
+	node->lesser = T2;              \
+	if( T2 ) {              \
+		T2->me = &node->lesser;              \
+		T2->parent = node;              \
+		node->children += (left->greater->children + 1);              \
+		left->children -= (left->greater->children + 1);              \
+	}              \
+	left->children += (node->children + 1);              \
+              \
+	/* Update heights */                 \
+	{              \
+		int leftDepth, rightDepth;              \
+		leftDepth = node->lesser ? node->lesser->depth : 0;              \
+		rightDepth = node->greater ? node->greater->depth : 0;              \
+		if( leftDepth > rightDepth )              \
+			node->depth = leftDepth + 1;              \
+		else              \
+			node->depth = rightDepth + 1;              \
+              \
+		leftDepth = left->lesser ? left->lesser->depth : 0;              \
+		rightDepth = left->greater ? left->greater->depth : 0;              \
+		if( leftDepth > rightDepth ) {              \
+			left->depth = leftDepth + 1;              \
+		}              \
+		else              \
+			left->depth = rightDepth + 1;              \
+	}              \
 }
 
 //---------------------------------------------------------------------------
 
-static PTREENODE AVL_RotateToLeft( PTREENODE node )
-{
-	PTREENODE right = node->greater;
-	PTREENODE T2 = right->lesser;
-
-	node->children -= (right->children + 1);
-
-	node->me[0] = right;
-	right->me = node->me;
-
-	// Perform rotation
-	right->lesser = node;
-	node->me = &right->lesser;
-	node->parent = right;
-	node->greater = T2;
-	if( T2 ) {
-		T2->me = &right->greater;
-		T2->parent = node;
-		node->children += (right->lesser->children + 1);
-		right->children -= (right->lesser->children + 1);
-	}
-	right->children += (node->children + 1);
-	//  Update heights
-	{
-		int left, rightDepth;
-		left = node->lesser ? node->lesser->depth : 0;
-		rightDepth = node->greater ? node->greater->depth : 0;
-		if( left > rightDepth )
-			node->depth = left + 1;
-		else
-			node->depth = rightDepth + 1;
-
-		left = right->lesser ? right->lesser->depth : 0;
-		rightDepth = right->greater ? right->greater->depth : 0;
-		if( left > rightDepth )
-			right->depth = left + 1;
-		else
-			right->depth = rightDepth + 1;
-	}
-
-	// Return new root
-	return right;
-}
+//static PTREENODE AVL_RotateToLeft( PTREENODE node )
+#define AVL_RotateToLeft(node)                                         \
+{                                         \
+	PTREENODE right = node->greater;                                         \
+	PTREENODE T2 = right->lesser;                                         \
+                                         \
+	node->children -= (right->children + 1);                                         \
+                                         \
+	node->me[0] = right;                                         \
+	right->me = node->me;                                         \
+	right->parent = node->parent;         \
+                                         \
+	/* Perform rotation  */                                       \
+	right->lesser = node;                                         \
+	node->me = &right->lesser;                                         \
+	node->parent = right;                                         \
+	node->greater = T2;                                         \
+	if( T2 ) {                                         \
+		T2->me = &node->greater;                                         \
+		T2->parent = node;                                         \
+		node->children += (right->lesser->children + 1);                                         \
+		right->children -= (right->lesser->children + 1);                                         \
+	}                                         \
+	right->children += (node->children + 1);                                         \
+	/*  Update heights */                                         \
+	{                                         \
+		int left, rightDepth;                                         \
+		left = node->lesser ? node->lesser->depth : 0;                                         \
+		rightDepth = node->greater ? node->greater->depth : 0;                                         \
+		if( left > rightDepth )                                         \
+			node->depth = left + 1;                                         \
+		else                                         \
+			node->depth = rightDepth + 1;                                         \
+                                         \
+		left = right->lesser ? right->lesser->depth : 0;                                         \
+		rightDepth = right->greater ? right->greater->depth : 0;                                         \
+		if( left > rightDepth )                                         \
+			right->depth = left + 1;                                               \
+		else                                                                       \
+			right->depth = rightDepth + 1;                                         \
+	}                                                                              \
+}                                                                                  \
 
 //---------------------------------------------------------------------------
+
+#ifdef DEFINE_BINARYLIST_PERF_COUNTERS
+int zz;
+PRIORITY_PRELOAD( InitReadyToLog, 999 ) {
+	zz = 1;
+}
+#endif
 
 static void AVLbalancer( PTREEROOT root, PTREENODE node ) {
 	PTREENODE _x = NULL;
 	PTREENODE _y = NULL;
 	PTREENODE _z = NULL;
+	PTREENODE tmp;
 	int leftDepth;
 	int rightDepth;
+#ifdef DEFINE_BINARYLIST_PERF_COUNTERS
 	int height = 0;
 	int swaps = 0;
+#endif
 	_z = node;
 
-	while( _z ) {
+	while( _z && !_z->flags.bRoot ) {
 		int doBalance;
+#ifdef DEFINE_BINARYLIST_PERF_COUNTERS
+		height++;
+#endif
 		doBalance = FALSE;
-		if( _z->greater )
-			rightDepth = _z->greater->depth;
+		if( tmp = _z->greater )
+			rightDepth = tmp->depth;
 		else
 			rightDepth = 0;
-		if( _z->lesser )
-			leftDepth = _z->lesser->depth;
+		if( tmp = _z->lesser )
+			leftDepth = tmp->depth;
 		else
 			leftDepth = 0;
 
 		if( leftDepth > rightDepth ) {
 			if( (1 + leftDepth) == _z->depth ) {
+				//if( zz )
+				//	lprintf( "Stopped checking: %d %d %d", height, leftDepth, rightDepth );
+#ifdef DEFINE_BINARYLIST_PERF_COUNTERS
+				root->balancedFromLeft++;
+#endif
 				break;
 			}
 			_z->depth = 1 + leftDepth;
@@ -354,6 +391,11 @@ static void AVLbalancer( PTREEROOT root, PTREENODE node ) {
 			}
 		} else {
 			if( (1 + rightDepth) == _z->depth ) {
+				//if(zz)
+				//	lprintf( "Stopped checking: %d %d %d", height, leftDepth, rightDepth );
+#ifdef DEFINE_BINARYLIST_PERF_COUNTERS
+				root->balancedFromRight++;
+#endif
 				break;
 			}
 			_z->depth = 1 + rightDepth;
@@ -361,37 +403,59 @@ static void AVLbalancer( PTREEROOT root, PTREENODE node ) {
 				doBalance = TRUE;
 			}
 		}
-		if( doBalance )
-			if( _x && !_z->flags.bRoot ) {
+		if( doBalance ) {
+#ifdef DEFINE_BINARYLIST_PERF_COUNTERS
+			swaps++;
+#endif
+			if( _x ) {
 				if( _x == _y->lesser ) {
-
 					if( _y == _z->lesser ) {
 						// left/left
 						AVL_RotateToRight( _z );
-					} else {
+					}
+					else {
 						//left/rightDepth
 						AVL_RotateToRight( _y );
 						AVL_RotateToLeft( _z );
 					}
-				} else {
+				}
+				else {
 					if( _y == _z->lesser ) {
 						AVL_RotateToLeft( _y );
 						AVL_RotateToRight( _z );
 						// rightDepth.left
-					} else {
+					}
+					else {
 						//rightDepth/rightDepth
 						AVL_RotateToLeft( _z );
 					}
 				}
-				//DumpTree( root, NULL );
-			} else {
+			}
+			else {
 				//lprintf( "Not deep enough for balancing." );
 			}
-
+		}
 		_x = _y;
 		_y = _z;
 		_z = _z->parent;
 	}
+#ifdef DEFINE_BINARYLIST_PERF_COUNTERS
+	if( !node->parent->flags.bRoot 
+		&& node->parent->lesser != node 
+		&& node->parent->greater != node ) {
+		*(int*)0 = 0;
+	}
+	if( height < 31 )
+		root->maxHeights[height]++;
+	else
+		root->maxHeights[0]++;
+	if( swaps < 10 )
+		root->maxSwaps[swaps]++;
+	else
+		root->maxSwaps[0]++;
+	if( !_z )
+		root->maxScans++;
+#endif
 
 }
 
@@ -500,6 +564,9 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 			}
 		}
 	}
+	if( node->parent->lesser != node && node->parent->greater != node ) {
+		*(int*)0 = 0;
+	}
 	AVLbalancer( root, node );
 	return 1;
 }
@@ -569,8 +636,9 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 	if( root )
 	{
 		// lprintf( "Removing node from tree.. %p under %p", node, node->parent );
-		if( node->parent->lesser != node && node->parent->greater != node )
-		{
+		if( !node->parent->flags.bRoot
+			&& node->parent->lesser != node
+			&& node->parent->greater != node ) {
 			*(int*)0=0;
 		}
 		// lprintf( "%p should be removed!", node );
@@ -624,22 +692,27 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 }
 
 //---------------------------------------------------------------------------
-
-#define MAXTREEROOTSPERSET 128
-DeclareSet( TREEROOT );
-static PTREEROOTSET treepool;
-
-//---------------------------------------------------------------------------
 void ResetBinaryTree( PTREEROOT root )
 {
 	while( root->tree )
 		NativeRemoveBinaryNode( root, root->tree );
 }
 //---------------------------------------------------------------------------
+
+static void DestroyBinaryTreeNode( PTREEROOT root, PTREENODE node )
+{
+	if( node ) {
+		if( node->lesser )
+			DestroyBinaryTreeNode( root, node->lesser );
+		if( node->greater )
+			DestroyBinaryTreeNode( root, node->greater );
+		NativeRemoveBinaryNode( root, node );
+	}
+}
+
 void DestroyBinaryTree( PTREEROOT root )
 {
-	while( root->tree )
-		NativeRemoveBinaryNode( root, root->tree );
+	DestroyBinaryTreeNode( root, root->tree );
 	DeleteFromSet( TREEROOT, treepool, root );
 }
 
@@ -717,6 +790,15 @@ void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, uint
 
 //---------------------------------------------------------------------------
 
+#ifdef DEFINE_BINARYLIST_PERF_COUNTERS
+PUBLIC( void, GetTreePerf )( PTREEROOT root, int **heights, int **swaps, int *maxScans, int*bfl, int *bfr ) {
+	if( heights ) heights[0] = root->maxHeights;
+	if( swaps ) swaps[0] = root->maxSwaps;
+	if( maxScans ) maxScans[0] = root->maxScans;
+	if( bfl ) bfl[0] = root->balancedFromLeft;
+	if( bfr ) bfr[0] = root->balancedFromRight;
+}
+#endif
 
 void DumpTree( PTREEROOT root
 				 , int (*Dump)( CPOINTER user, uintptr_t key ) )
@@ -1231,51 +1313,3 @@ PTREEROOT ShadowBinaryTree( PTREEROOT Original )
 } //namespace sack {
 #endif
 
-//---------------------------------------------------------------------------
-// $Log: binarylist.c,v $
-// Revision 1.19  2005/01/27 07:18:34  panther
-// Linux cleaned.
-//
-// Revision 1.18  2004/05/04 17:23:44  d3x0r
-// Fix getlessernode
-//
-// Revision 1.17  2004/04/26 09:47:26  d3x0r
-// Cleanup some C++ problems, and standard C issues even...
-//
-// Revision 1.16  2004/01/31 01:30:20  d3x0r
-// Mods to extend/test procreglib.
-//
-// Revision 1.15  2004/01/29 10:13:44  d3x0r
-// Remove ifdeffed logging, fix dumpnode to dump to log if no write method
-//
-// Revision 1.14  2003/10/24 14:50:11  panther
-// Fix remove binary node, keep last found for quick delete
-//
-// Revision 1.13  2003/03/06 09:06:07  panther
-// Oops - forgot to decrement the root count itself
-//
-// Revision 1.12  2003/03/06 08:56:06  panther
-// fix code to unwind non-hung nodes
-//
-// Revision 1.11  2003/03/06 08:39:16  panther
-// Stripped \r's.  Added GetNodeCount()
-//
-// Revision 1.10  2003/03/04 16:28:36  panther
-// Cleanup warnings in typecode.  Convert uintptr_t to POINTER literal in binarylist
-//
-// Revision 1.9  2003/03/02 18:50:21  panther
-// Added NO_DUPLICATES opption to  binary trees
-//
-// Revision 1.8  2003/02/20 02:35:17  panther
-// Added debug message option flag
-//
-// Revision 1.7  2003/01/13 00:40:13  panther
-// removed old msvc projects.
-// Added new visual studio projects.
-// Mods to compile cleanly under msvc.
-//
-// Revision 1.6  2002/08/12 22:16:02  panther
-// Fixed buf in GetGreaterNode - last test tested prior->greater vs current
-// which will never be true.
-//
-//
