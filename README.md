@@ -11,12 +11,16 @@ Monotone would have been best; but; well... maybe they were too closed.
 
 ## Single Source+Header Amalagamations
 
+C single source packages.  C/C++ compilable sources, and a single header.  Links to relavent docs in each project...
+
 - [Maximal](https://github.com/d3x0r/micro-C-Boost-Core)
 - [Minimal](https://github.com/d3x0r/micro-C-Boost-Types)
 - [Minimal + File System Asctractions](https://github.com/d3x0r/micro-C-Boost-FileSystem)
 - [Minimal + FS + Networking ](https://github.com/d3x0r/micro-C-Boost-Network)
 
-- [FS,Networking,](https://github.com/d3x0r/sack.vfs) [NPM](npmjs.org/package/sack.vfs).
+Exposed through interop to V8 through Node.js...
+
+- As a Node addon/V8 extension with [FS,Networking,Sqlite,ODBC,more](https://github.com/d3x0r/sack.vfs), or as a [NPM package](npmjs.org/package/sack.vfs).
 
 ---------------
 
