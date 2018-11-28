@@ -9,9 +9,18 @@ Git is often more up to date.  Internal mercurial server is often used.
 
 Monotone would have been best; but; well... maybe they were too closed.
 
+## Single Source+Header Amalagamations
+
+[Maximal](https://github.com/d3x0r/micro-C-Boost-Core)
+[Minimal](https://github.com/d3x0r/micro-C-Boost-Types)
+[Minimal + File System Asctractions](https://github.com/d3x0r/micro-C-Boost-FileSystem)
+[Minimal + FS + Networking ](https://github.com/d3x0r/micro-C-Boost-Network)
+
+[FS,Networking,](https://github.com/d3x0r/sack.vfs) [NPM](npmjs.org/package/sack.vfs).
+
 ---------------
 
-#System Abstraction Component Kit
+# System Abstraction Component Kit
 
 Sources are generally separate, requiring fewest dependancies of others.
 Someday this should be combed into actual dependancy tree that can be leveraged at a higher level.
@@ -56,7 +65,9 @@ All can use the proxy which provides a network interafce that a browser can conn
 
 Started a vulkan layer, which would simplify some things.  The image opengl interface for shaders could really use vulkan as a backend... but they're somewhat flexible now... so maybe implementing deeper layers of API In a Vulkan sort of way will be done.
 
-#Panther's Slick Interface (psi) 
+## Panther's Slick Interface (psi) 
+
+This is better implemented as a [Node GUI](https://github.com/d3x0r/sack.vfs/tree/sack-gui)
 
 This is a control library build on registered callbacks of classes of controls.  The library is built on the image and renderer interfaces... it tracks higher level things like sliders, listboxes, buttons, and provides custom extensions based on each class.
 
