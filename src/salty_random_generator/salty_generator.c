@@ -198,14 +198,14 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_
 				partial_bits = 0;
 			}
 			if( (get_bits+resultBits) > 24 )
-				(*) = tmp << resultBits;
+				(*buffer) |= tmp << resultBits;
 			else if( (get_bits+resultBits) > 16 ) {
-				(*((uint16_t*)buffer)) = tmp << resultBits;
-				(*(((uint8_t*)buffer)+2)) = ((tmp << resultBits) & 0xFF0000)>>16;
+				(*((uint16_t*)buffer)) |= tmp << resultBits;
+				(*(((uint8_t*)buffer)+2)) |= ((tmp << resultBits) & 0xFF0000)>>16;
 			} else if( (get_bits+resultBits) > 8 )
-				(*((uint16_t*)buffer)) = tmp << resultBits;
+				(*((uint16_t*)buffer)) |= tmp << resultBits;
 			else
-				(*((uint8_t*)buffer)) = tmp << resultBits;
+				(*((uint8_t*)buffer)) |= tmp << resultBits;
 			resultBits += get_bits;
 			while( resultBits >= 8 ) {
 #if defined( __cplusplus ) || defined( __GNUC__ )
