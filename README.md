@@ -11,12 +11,12 @@ Monotone would have been best; but; well... maybe they were too closed.
 
 ## Single Source+Header Amalagamations
 
-[Maximal](https://github.com/d3x0r/micro-C-Boost-Core)
-[Minimal](https://github.com/d3x0r/micro-C-Boost-Types)
-[Minimal + File System Asctractions](https://github.com/d3x0r/micro-C-Boost-FileSystem)
-[Minimal + FS + Networking ](https://github.com/d3x0r/micro-C-Boost-Network)
+- [Maximal](https://github.com/d3x0r/micro-C-Boost-Core)
+- [Minimal](https://github.com/d3x0r/micro-C-Boost-Types)
+- [Minimal + File System Asctractions](https://github.com/d3x0r/micro-C-Boost-FileSystem)
+- [Minimal + FS + Networking ](https://github.com/d3x0r/micro-C-Boost-Network)
 
-[FS,Networking,](https://github.com/d3x0r/sack.vfs) [NPM](npmjs.org/package/sack.vfs).
+- [FS,Networking,](https://github.com/d3x0r/sack.vfs) [NPM](npmjs.org/package/sack.vfs).
 
 ---------------
 
