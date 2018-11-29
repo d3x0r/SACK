@@ -16,3 +16,5 @@ c:\tools\ppc.exe -c -K -once -ssio -sd -I../../include -p -opanther_preprocessor
 
 gcc -O3 -o ppc.exe panther_preprocessor.c
 
+echo Please Update https://gist.github.com/d3x0r/8c8ab33cd7130c3c9983e12d354ad067
+
