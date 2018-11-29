@@ -377,7 +377,8 @@ void DeleteDefine( PDEF *ppDef )
 		// this ends up clearing &pDef usually....
 		tmp = pDef;
 		// take me out of the tree...
-		*pDef->me = NULL;
+		if( pDef->me )
+			*pDef->me = NULL;
 
 		if( pDef->pSame )
 		{
