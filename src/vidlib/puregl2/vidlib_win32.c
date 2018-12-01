@@ -1539,7 +1539,7 @@ void HandleMessage (MSG Msg)
 			ShowWindow( hVideo->hWndOutput, SW_SHOW );
 		}
 	}
-	else if (Msg.message == WM_QUIT)
+	else if (Msg.message == WM_QUIT|| Msg.message== WM_USER_SHUTDOWN )
 		l.bExitThread = TRUE;
 	else
 	{
