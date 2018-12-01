@@ -1070,10 +1070,10 @@ static void HandleEvent( PCLIENT pClient )
 					if( pClient->dwFlags & CF_ACTIVE )
 					{
 						// might already be cleared and gone..
-+						EnterCriticalSec( &globalNetworkData.csNetwork );
+						EnterCriticalSec( &globalNetworkData.csNetwork );
 						InternalRemoveClientEx( pClient, FALSE, TRUE );
 						TerminateClosedClient( pClient );
-+						LeaveCriticalSec( &globalNetworkData.csNetwork );
+						LeaveCriticalSec( &globalNetworkData.csNetwork );
 					}
 					// section will be blank after termination...(correction, we keep the section state now)
 					pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
