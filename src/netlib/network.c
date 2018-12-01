@@ -1070,8 +1070,10 @@ static void HandleEvent( PCLIENT pClient )
 					if( pClient->dwFlags & CF_ACTIVE )
 					{
 						// might already be cleared and gone..
++						EnterCriticalSec( &globalNetworkData.csNetwork );
 						InternalRemoveClientEx( pClient, FALSE, TRUE );
 						TerminateClosedClient( pClient );
++						LeaveCriticalSec( &globalNetworkData.csNetwork );
 					}
 					// section will be blank after termination...(correction, we keep the section state now)
 					pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
@@ -3536,7 +3538,9 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 					Relinquish();
 					continue;
 				}
+				LeaveCriticalSec( &globalNetworkData.csNetwork );
 				notLocked = FALSE;
+				EnterCriticalSec( &globalNetworkData.csNetwork );
 			} while( notLocked );
 		}
 
@@ -3624,6 +3628,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		int n = 0;
 		// UDP still needs to be done this way...
 		//
+		EnterCriticalSec( &globalNetworkData.csNetwork );
 		InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
 		if( NetworkLock( lpClient, 0 ) && ((n=1),NetworkLock( lpClient, 1 )) ) {
 			TerminateClosedClient( lpClient );
@@ -3633,6 +3638,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		else if( n ) {
 			NetworkUnlock( lpClient, 0 );
 		}
+		LeaveCriticalSec( &globalNetworkData.csNetwork );
 	}
 }
 
