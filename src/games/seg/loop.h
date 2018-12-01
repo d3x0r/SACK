@@ -334,7 +334,7 @@ public:
 			Loop *loop;
 			LIST_FORALL( loops, idx, Loop*, loop )
 			{
-            loop->Draw();
+				loop->Draw();
 			}
 		}
 		glBegin( GL_TRIANGLE_STRIP );
