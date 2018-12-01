@@ -30,6 +30,7 @@
 #include <filesys.h>
 #include <sqlgetoption.h>
 #include <salty_generator.h>
+#include <json_emitter.h>  // uses generic 'json_value_container'
 #include <sha1.h>
 // please remove this reference ASAP
 //#include <controls.h> // temp graphic interface for debugging....
@@ -3869,7 +3870,111 @@ int GetSQLResult( CTEXTSTR *result )
 
 //-----------------------------------------------------------------------
 
-int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t queryLength DBG_PASS )
+#if defined USE_ODBC && 0
+static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
+	INDEX idx;
+	struct json_value_container *val;
+	DATA_FORALL( pdlItems, idx, struct json_value_container *, val ) {
+		int useIndex = idx + 1;
+		int rc;
+		//if( val->name ) {
+		//	useIndex = sqlite3_bind_parameter_index( db, val->name );
+		//}
+		switch( val->value_type ) {
+		default:
+			lprintf( "Failed to handline binding for type: %d", val->value_type );
+			DebugBreak();
+			break;
+		case VALUE_NUMBER:
+			if( val->float_result ) {
+				rc = SQLBindParamter( hstmt
+										  , useIndex  // parameter number
+										  , SQL_PARAM_INPUT // inputoutputtype
+										  , SQL_C_DOUBLE  // value type
+										  , SQL_DOUBLE    // parameter type
+										  , 100 // precision (colsize)
+										  , 0 // decimal digits
+										  , &val->result_d  // pointer value
+										  , sizeof( val->result_d ) // bufferlength
+										  , SQL_NULL_DATA
+										  );
+			} else {
+				rc = SQLBindParamter( hstmt
+										  , useIndex  // parameter number
+										  , SQL_PARAM_INPUT // inputoutputtype
+										  , SQL_C_UBIGINT  // value type
+										  , SQL_BIGINT    // parameter type
+										  , 100 // precision (colsize)
+										  , 0 // decimal digits
+										  , &val->result_n  // pointer value
+										  , sizeof( val->result_n ) // bufferlength
+										  , SQL_NULL_DATA
+										  );
+			}
+			break;
+		case VALUE_TYPED_ARRAY:
+			rc = sqlite3_bind_blob( db, useIndex, val->string, val->stringLen, NULL );
+			break;
+		case VALUE_STRING:
+			rc = sqlite3_bind_text( db, useIndex, val->string, val->stringLen, NULL );
+				rc = SQLBindParamter( hstmt
+										  , useIndex  // parameter number
+										  , SQL_PARAM_INPUT // inputoutputtype
+										  , SQL_C_CHAR  // value type
+										  , SQL_CHAR    // parameter type
+										  , 100 // precision (colsize)
+										  , 0 // decimal digits
+										  , val->string  // pointer value
+										  , val->stringLen // bufferlength
+										  , SQL_NULL_DATA
+										  );
+			break;
+		}
+		if( rc )
+			lprintf( "Error binding:%d %d", useIndex, rc );
+	}
+
+}
+#endif
+
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
+	INDEX idx;
+	struct json_value_container *val;
+	DATA_FORALL( pdlItems, idx, struct json_value_container *, val ) {
+		int useIndex = idx + 1;
+		int rc;
+		if( val->name ) {
+			useIndex = sqlite3_bind_parameter_index( db, val->name );
+		}
+		switch( val->value_type ) {
+		default:
+			lprintf( "Failed to handline binding for type: %d", val->value_type );
+			DebugBreak();
+			break;
+		case VALUE_NUMBER:
+			if( val->float_result ) {
+				rc = sqlite3_bind_double( db, useIndex, val->result_d );
+			} else {
+				rc = sqlite3_bind_int64( db, useIndex, val->result_n );
+			}
+			break;
+		case VALUE_TYPED_ARRAY:
+			rc = sqlite3_bind_blob( db, useIndex, val->string, val->stringLen, NULL );
+			break;
+		case VALUE_STRING:
+			rc = sqlite3_bind_text( db, useIndex, val->string, val->stringLen, NULL );
+			break;
+		}
+		if( rc )
+			lprintf( "Error binding:%d %d", useIndex, rc );
+	}
+}
+#endif
+
+//-----------------------------------------------------------------------
+
+int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t queryLength, PDATALIST pdlParams DBG_PASS )
 {
 	size_t queryLen;
 	PTEXT tmp = NULL;
@@ -4016,6 +4121,8 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			}
 			in_error = 1;
 		} else {
+         if( pdlParams )
+				__DoSQLiteBinding( collection->stmt, pdlParams );
 			if( odbc->flags.bAutoCheckpoint && !sqlite3_stmt_readonly( collection->stmt ) )				
 				startAutoCheckpoint( odbc );
 		}
@@ -4052,6 +4159,10 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 		}
 		else
 		{
+#if 0
+         if( pdlParams )
+				__DoODBCBinding( collection->hstmt, pdlParams );
+#endif
 			rc = SQLExecDirect( collection->hstmt
 									,
 #ifdef _UNICODE
@@ -4137,7 +4248,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 //------------------------------------------------------------------
 
 int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS ) {
-	return __DoSQLQueryExx( odbc, collection, query, strlen( query ) DBG_RELAY );
+	return __DoSQLQueryExx( odbc, collection, query, strlen( query ), NULL DBG_RELAY );
 }
 
 //------------------------------------------------------------------
@@ -4208,13 +4319,15 @@ void SQLEndQuery( PODBC odbc )
 
 //-----------------------------------------------------------------------
 
-int SQLRecordQueryExx( PODBC odbc
+int SQLRecordQuery_v4( PODBC odbc
                      , CTEXTSTR query
                      , size_t queryLen
                      , int *nResults
                      , CTEXTSTR **result
                      , size_t **resultLengths
-                     , CTEXTSTR **fields DBG_PASS )
+                     , CTEXTSTR **fields 
+                     , PDATALIST pdlParams
+                     DBG_PASS )
 {
 	PODBC use_odbc;
 	int once = 0;
@@ -4264,7 +4377,7 @@ int SQLRecordQueryExx( PODBC odbc
 		// this will do an open, and delay queue processing and all sorts
 		// of good fun stuff...
 	}
-	while( __DoSQLQueryExx( use_odbc, use_odbc->collection, query, queryLen DBG_RELAY) );
+	while( __DoSQLQueryExx( use_odbc, use_odbc->collection, query, queryLen, pdlParams DBG_RELAY) );
 
 	if( use_odbc->collection->responce == WM_SQL_RESULT_DATA )
 	{
@@ -4301,7 +4414,7 @@ int SQLRecordQueryEx( PODBC odbc
 	, int *nResults
 	, CTEXTSTR **result, CTEXTSTR **fields DBG_PASS )
 {
-	return SQLRecordQueryExx( odbc, query, strlen( query ), nResults, result, NULL, fields DBG_RELAY );
+	return SQLRecordQuery_v4( odbc, query, strlen( query ), nResults, result, NULL, fields, NULL DBG_RELAY );
 }
 
 //--------------------------------------------------------------------
