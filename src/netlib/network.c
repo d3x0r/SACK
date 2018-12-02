@@ -1936,10 +1936,12 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						{
 #ifdef LOG_NOTICES
 							//if( globalNetworkData.flags.bLogNotices )
-								lprintf( WIDE( "Pending read failed - reset connection." ) );
+							lprintf( WIDE( "Pending read failed - reset connection." ) );
 #endif
+							EnterCriticalSec( &globalNetworkData.csNetwork );
 							InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
 							TerminateClosedClient( event_data->pc );
+							LeaveCriticalSec( &globalNetworkData.csNetwork );
 							closed = 1;
 						}
 						else if( !event_data->pc->RecvPending.s.bStream )
