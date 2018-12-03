@@ -4,10 +4,10 @@
 
 CRITICALSECTION cs;
 int xx[32];
-
+int done;
 static uintptr_t  ThreadWrapper( PTHREAD pThread ){
 	int n = GetThreadParam( pThread );
-	while( 1 ) {
+	while( !done ) {
 		EnterCriticalSec( &cs );
 		xx[n]++;
 		LeaveCriticalSec( &cs );
@@ -30,4 +30,5 @@ int main( void ) {
               total += xx[n];
         }
 	printf( "Total = %d\n", total );
+	done = 1;
 }
