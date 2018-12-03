@@ -581,7 +581,8 @@ static void DumpSection( PCRITICALSECTION pcs )
 				else {
 					if( prior && *prior ) {
 						// shouldn't happen, if there's no waiter set, then there shouldn't be a prior.
-						DebugBreak();
+						if( *prior != 1 )
+							DebugBreak();
 					}
 #ifdef LOG_DEBUG_CRITICAL_SECTIONS
 					ll_lprintf( WIDE( "Claimed critical section." ) );
