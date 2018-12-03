@@ -27,11 +27,7 @@ typedef struct menu_tag {
 		  uint32_t bSubmenuOpen : 1;
     }flags;
     struct menuitem_tag *items;
-#ifdef __64__ 
-	int64_t selection;
-#else
-    int32_t selection; // -1 while no selection
-#endif
+    intptr_t selection;
     struct menuitem_tag *selected;
     int16_t   height, width;
     struct {

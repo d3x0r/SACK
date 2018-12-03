@@ -54,7 +54,7 @@ namespace sack {
 // static PSI_CONTROL OnGetControl(WIDE(""))(uintptr_t psvInit);
 // { return (PSI_CONTROL)psvInit; }
 #define OnGetControl(name) \
-	DefineRegistryMethod(TASK_PREFIX,GetControl,WIDE( "control" ),name,WIDE( "get_control" ),PSI_CONTROL,(uintptr_t),__LINE__)
+	DefineRegistryMethod(TASK_PREFIX,GetShellControl,WIDE( "control" ),name,WIDE( "get_control" ),PSI_CONTROL,(uintptr_t),__LINE__)
 #define OnFixupControl(name) \
 	  DefineRegistryMethod(TASK_PREFIX,FixupControl,WIDE( "control" ),name,WIDE( "control_fixup" ),void,(uintptr_t),__LINE__)
 #define OnFixupMenuButton OnFixupControl
