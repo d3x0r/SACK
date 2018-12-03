@@ -15,8 +15,10 @@
 //  DEBUG FLAGS IN netstruc.h
 //
 #ifndef _DEFAULT_SOURCE
-//#define __USE_MISC
 #define _DEFAULT_SOURCE  // for features.h
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #endif
 
 #define FIX_RELEASE_COM_COLLISION
@@ -1811,11 +1813,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  endif
 				if( event_data == (struct event_data*)1 ) {
 					//char buf;
-               //int stat;
+					//int stat;
 					//stat = read( GetThreadSleeper( thread->thread ), &buf, 1 );
 					//call wakeable sleep to just clear the sleep; because this is an event on the sleep pipe.
-					WakeableSleep( 1 );
-               //lprintf( "This should sleep forever..." );
+					//WakeableSleep( 1 );
+					//lprintf( "This should sleep forever..." );
 					return 1;
 				}
 
@@ -2170,10 +2172,10 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		kevent( this_thread.kqueue, &ev, 1, 0, 0, 0 );
 #    endif
 #  else
-		struct epoll_event ev;
-		ev.data.ptr = (void*)1;
-		ev.events = EPOLLIN;
-		epoll_ctl( this_thread.epoll_fd, EPOLL_CTL_ADD, GetThreadSleeper( thread ), &ev );
+		//struct epoll_event ev;
+		//ev.data.ptr = (void*)1;
+		//ev.events = EPOLLIN;
+		//epoll_ctl( this_thread.epoll_fd, EPOLL_CTL_ADD, GetThreadSleeper( thread ), &ev );
 #  endif
 	}
 #endif
