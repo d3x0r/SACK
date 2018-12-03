@@ -40,9 +40,9 @@
 // this is a method replacement to use PIPEs instead of SEMAPHORES
 // replacement code only affects linux.
 #if defined( __QNX__ ) || defined( __MAC__) || defined( __LINUX__ ) || defined( __ANDROID__ )
-#  define USE_PIPE_SEMS
+//#  define USE_PIPE_SEMS
 // no semtimedop; no semctl, etc
-//#include <sys/sem.h>
+#include <sys/sem.h>
 #endif
 
 #ifdef USE_PIPE_SEMS
