@@ -4110,7 +4110,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			}
 			//DebugBreak();
 			tmp = sqlite3_errmsg(odbc->db);
-         // this will have to have a Char based version
+			// this will have to have a Char based version
 			if( strnicmp( tmp, "no such table", 13 ) == 0 )
 				vtprintf( collection->pvt_errorinfo, WIDE( "(S0002)" ) );
 			vtprintf( collection->pvt_errorinfo, WIDE( "Result of prepare failed? %s at-or near char %")_size_f WIDE("[%") _cstring_f WIDE("] in [%") _string_f WIDE("]" ), tmp, tail - query, tail, query );
@@ -4121,8 +4121,11 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			}
 			in_error = 1;
 		} else {
-         if( pdlParams )
+			if( pdlParams ) {
 				__DoSQLiteBinding( collection->stmt, pdlParams );
+				//char *realSql = sqlite3_expanded_sql( collection->stmt );
+				//lprintf( "DO:%s", realSql );
+			}
 			if( odbc->flags.bAutoCheckpoint && !sqlite3_stmt_readonly( collection->stmt ) )				
 				startAutoCheckpoint( odbc );
 		}
