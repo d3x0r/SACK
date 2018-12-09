@@ -93,31 +93,35 @@ SACK_NETWORK_NAMESPACE
 
 PRELOAD( InitNetworkGlobalOptions )
 {
+	if( !globalNetworkData.flags.bOptionsRead ) {
 #ifdef __LINUX__
-	signal(SIGPIPE, SIG_IGN);
+		signal(SIGPIPE, SIG_IGN);
 #endif
 #ifndef __NO_OPTIONS__
-	globalNetworkData.flags.bLogProtocols = SACK_GetProfileIntEx( WIDE("SACK"), WIDE( "Network/Log Protocols" ), 0, TRUE );
-	globalNetworkData.flags.bShortLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data(64 byte max)" ), 0, TRUE );
-	globalNetworkData.flags.bLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data" ), 0, TRUE );
-	globalNetworkData.flags.bLogSentData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Sent Data" ), globalNetworkData.flags.bLogReceivedData, TRUE );
+		globalNetworkData.flags.bLogProtocols = SACK_GetProfileIntEx( WIDE("SACK"), WIDE( "Network/Log Protocols" ), 0, TRUE );
+		globalNetworkData.flags.bShortLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data(64 byte max)" ), 0, TRUE );
+		globalNetworkData.flags.bLogReceivedData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Received Data" ), 0, TRUE );
+		globalNetworkData.flags.bLogSentData = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Sent Data" ), globalNetworkData.flags.bLogReceivedData, TRUE );
 #  ifdef LOG_NOTICES
-	globalNetworkData.flags.bLogNotices = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Notifications" ), 0, TRUE );
+		globalNetworkData.flags.bLogNotices = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Log Network Notifications" ), 0, TRUE );
 #  endif
-	globalNetworkData.dwReadTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Read wait timeout" ), 5000, TRUE );
-	globalNetworkData.dwConnectTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Connect timeout" ), 10000, TRUE );
+		globalNetworkData.dwReadTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Read wait timeout" ), 5000, TRUE );
+		globalNetworkData.dwConnectTimeout = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "Network/Connect timeout" ), 10000, TRUE );
 #else
-	globalNetworkData.flags.bLogNotices = 0;
-	globalNetworkData.dwReadTimeout = 5000;
-	globalNetworkData.dwConnectTimeout = 10000;
+		globalNetworkData.flags.bLogNotices = 0;
+		globalNetworkData.dwReadTimeout = 5000;
+		globalNetworkData.dwConnectTimeout = 10000;
 #endif
+		globalNetworkData.flags.bOptionsRead = 1;
+	}
 }
 
 static void LowLevelNetworkInit( void )
 {
 	if( !global_network_data ) {
 		SimpleRegisterAndCreateGlobal( global_network_data );
-		InitializeCriticalSec( &globalNetworkData.csNetwork );
+		if( !globalNetworkData.ClientSlabs )
+			InitializeCriticalSec( &globalNetworkData.csNetwork );
 	}
 }
 
@@ -1814,7 +1818,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
                //int stat;
 					//stat = read( GetThreadSleeper( thread->thread ), &buf, 1 );
 					//call wakeable sleep to just clear the sleep; because this is an event on the sleep pipe.
-					WakeableSleep( 1 );
+					//WakeableSleep( 1 );
                //lprintf( "This should sleep forever..." );
 					return 1;
 				}
@@ -2170,10 +2174,10 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		kevent( this_thread.kqueue, &ev, 1, 0, 0, 0 );
 #    endif
 #  else
-		struct epoll_event ev;
-		ev.data.ptr = (void*)1;
-		ev.events = EPOLLIN;
-		epoll_ctl( this_thread.epoll_fd, EPOLL_CTL_ADD, GetThreadSleeper( thread ), &ev );
+		//struct epoll_event ev;
+		//ev.data.ptr = (void*)1;
+		//ev.events = EPOLLIN;
+		//epoll_ctl( this_thread.epoll_fd, EPOLL_CTL_ADD, GetThreadSleeper( thread ), &ev );
 #  endif
 	}
 #endif

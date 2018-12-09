@@ -173,7 +173,9 @@ void AcceptClient(PCLIENT pListen)
 		                  , FD_READ | FD_WRITE | FD_CLOSE))
 		{ // if there was a select error...
 			lprintf(WIDE( " Accept select Error" ));
+			EnterCriticalSec( &globalNetworkData.csNetwork );
 			InternalRemoveClientEx( pNewClient, TRUE, FALSE );
+			LeaveCriticalSec( &globalNetworkData.csNetwork );
 			NetworkUnlockEx( pNewClient, 0 DBG_SRC );
 			NetworkUnlockEx( pNewClient, 1 DBG_SRC );
 			pNewClient = NULL;
@@ -237,7 +239,9 @@ void AcceptClient(PCLIENT pListen)
 	}
 	else // accept failed...
 	{
+		EnterCriticalSec( &globalNetworkData.csNetwork );
 		InternalRemoveClientEx( pNewClient, TRUE, FALSE );
+		LeaveCriticalSec( &globalNetworkData.csNetwork );
 		NetworkUnlockEx( pNewClient, 0 DBG_SRC );
 		NetworkUnlockEx( pNewClient, 1 DBG_SRC );
 		pNewClient = NULL;
@@ -292,7 +296,9 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	{
 		lprintf( WIDE(" Open Listen Socket Fail... %d"), errno);
 		DumpAddr( "passed address to select:", pAddr );
+		EnterCriticalSec( &globalNetworkData.csNetwork );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
+		LeaveCriticalSec( &globalNetworkData.csNetwork );
 		NetworkUnlockEx( pListen, 0 DBG_SRC );
 		NetworkUnlockEx( pListen, 1 DBG_SRC );
 		pListen = NULL;
@@ -307,7 +313,9 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
                        SOCKMSG_TCP, FD_ACCEPT|FD_CLOSE ) )
 	{
 		lprintf( WIDE("Windows AsynchSelect failed: %d"), WSAGetLastError() );
+		EnterCriticalSec( &globalNetworkData.csNetwork );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
+		LeaveCriticalSec( &globalNetworkData.csNetwork );
 		NetworkUnlockEx( pListen, 0 DBG_SRC );
 		NetworkUnlockEx( pListen, 1 DBG_SRC );
 		return NULL;
@@ -335,7 +343,9 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	{
 		_lprintf(DBG_RELAY)( WIDE("Cannot bind to address..:%d"), WSAGetLastError() );
 		DumpAddr( "Bind address:", pAddr );
+		EnterCriticalSec( &globalNetworkData.csNetwork );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
+		LeaveCriticalSec( &globalNetworkData.csNetwork );
 		NetworkUnlockEx( pListen, 0 DBG_SRC );
 		NetworkUnlockEx( pListen, 1 DBG_SRC );
 		return NULL;
@@ -345,7 +355,9 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	if(listen(pListen->Socket, SOMAXCONN ) == SOCKET_ERROR )
 	{
 		lprintf( WIDE("listen(5) failed: %d"), WSAGetLastError() );
+		EnterCriticalSec( &globalNetworkData.csNetwork );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
+		LeaveCriticalSec( &globalNetworkData.csNetwork );
 		NetworkUnlockEx( pListen, 0 DBG_SRC );
 		NetworkUnlockEx( pListen, 1 DBG_SRC );
 		return NULL;
@@ -443,7 +455,9 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 			)
 		{
 			_lprintf( DBG_RELAY )(WIDE( "Connect FAIL: %d %d %" ) _32f, pc->Socket, err, dwError);
+			EnterCriticalSec( &globalNetworkData.csNetwork );
 			InternalRemoveClientEx( pc, TRUE, FALSE );
+			LeaveCriticalSec( &globalNetworkData.csNetwork );
 			NetworkUnlockEx( pc, 0 DBG_SRC );
 			pc = NULL;
 			return -1;
@@ -509,7 +523,9 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 		if (pResult->Socket==INVALID_SOCKET)
 		{
 			lprintf( WIDE("Create socket failed. %d"), WSAGetLastError() );
+			EnterCriticalSec( &globalNetworkData.csNetwork );
 			InternalRemoveClientEx( pResult, TRUE, FALSE );
+			LeaveCriticalSec( &globalNetworkData.csNetwork );
 			NetworkUnlockEx( pResult, 1 DBG_SRC );
 			NetworkUnlockEx( pResult, 0 DBG_SRC );
 			return NULL;
@@ -536,7 +552,9 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			                  , FD_READ|FD_WRITE|FD_CLOSE|FD_CONNECT) )
 			{
 				lprintf( WIDE(" Select NewClient Fail! %d"), WSAGetLastError() );
+				EnterCriticalSec( &globalNetworkData.csNetwork );
 				InternalRemoveClientEx( pResult, TRUE, FALSE );
+				LeaveCriticalSec( &globalNetworkData.csNetwork );
 				NetworkUnlockEx( pResult, 1 DBG_SRC );
 				NetworkUnlockEx( pResult, 0 DBG_SRC );
 				pResult = NULL;
@@ -670,7 +688,9 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 					}
 					else
 						lprintf( WIDE("Connect FAIL: Timeout") );
+					EnterCriticalSec( &globalNetworkData.csNetwork );
 					InternalRemoveClientEx( pResult, TRUE, FALSE );
+					LeaveCriticalSec( &globalNetworkData.csNetwork );
 					pResult->dwFlags &= ~CF_CONNECT_WAITING;
 					pResult = NULL;
 					goto LeaveNow;
