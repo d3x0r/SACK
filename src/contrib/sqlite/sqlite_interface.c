@@ -630,10 +630,16 @@ void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 
 void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
 	if( iErrCode == SQLITE_NOTICE_RECOVER_WAL ) {
+#ifdef __STATIC_GLOBALS__
+#  define sg (global_sqlstub_data)
+		extern struct pssql_global global_sqlstub_data;
+#else
+#  define sg (*global_sqlstub_data)
 		extern struct pssql_global *global_sqlstub_data;
+#endif
 		lprintf( "Sqlite3 Notice: wal recovered: generating checkpoint:%s", zMsg);
 		// after open returns, generate an automatic wal_checkpoint.
-		global_sqlstub_data->flags.bAutoCheckpointRecover = 1;
+		sg.flags.bAutoCheckpointRecover = 1;
 	}
 	else if( iErrCode == SQLITE_NOTICE_RECOVER_ROLLBACK ) {
 		lprintf( "Sqlite3 Notice: journal rollback:%s", zMsg );
