@@ -3,11 +3,12 @@
 #include <timers.h>
 
 CRITICALSECTION cs;
+int done;
 int xx[32];
 
 static uintptr_t  ThreadWrapper( PTHREAD pThread ){
 	int n = GetThreadParam( pThread );
-	while( 1 ) {
+	while( !done ) {
 		EnterCriticalSec( &cs );
 		xx[n]++;
 		LeaveCriticalSec( &cs );
@@ -30,4 +31,5 @@ int main( void ) {
               total += xx[n];
         }
 	printf( "Total = %d\n", total );
+	done = 1;
 }
