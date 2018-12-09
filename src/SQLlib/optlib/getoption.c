@@ -29,7 +29,15 @@
 //#define DEFAULT_PUBLIC_KEY "system"
 
 SQL_NAMESPACE
-extern struct pssql_global *global_sqlstub_data;
+
+#ifdef __STATIC_GLOBALS__
+#  define sg (global_sqlstub_data)
+	extern struct pssql_global global_sqlstub_data;
+#else
+#  define sg (*global_sqlstub_data)
+	extern struct pssql_global *global_sqlstub_data;
+#endif
+
 SQL_NAMESPACE_END
 /*
  Dump Option table...
@@ -53,8 +61,14 @@ typedef struct sack_option_global_tag OPTION_GLOBAL;
 SQL table create is in 'mkopttabs.sql'
 
 #endif
-#define og (*sack_global_option_data)
+
+#ifdef __STATIC_GLOBALS__
+#  define og (sack_global_option_data)
+	OPTION_GLOBAL sack_global_option_data;
+#else
+#  define og (*sack_global_option_data)
 	OPTION_GLOBAL *sack_global_option_data;
+#endif
 
 
 //------------------------------------------------------------------------
@@ -195,7 +209,7 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 #ifdef DETAILED_LOGGING
 	lprintf( "Create Option Database. %d", tree->flags.bCreated );
 #endif
-	if( !global_sqlstub_data->flags.bLogOptionConnection )
+	if( !sg.flags.bLogOptionConnection )
 		SetSQLLoggingDisable( tree->odbc, TRUE );
 	{
 		PTABLE table;
@@ -249,7 +263,7 @@ void SetOptionDatabaseOption( PODBC odbc )
 	POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
 	if( tree )
 	{
-		if( global_sqlstub_data->flags.bInited )
+		if( sg.flags.bInited )
 			CreateOptionDatabaseEx( odbc, tree );
 	}
 }
@@ -277,7 +291,7 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 #ifdef DETAILED_LOGGING
 		_lprintf(DBG_RELAY)( WIDE( "Connect to writer database for tree %p odbc %p" ), option, option->odbc );
 #endif
-		option->odbc_writer = ConnectToDatabaseExx( option->odbc?option->odbc->info.pDSN:global_sqlstub_data->Primary.info.pDSN, FALSE DBG_RELAY );
+		option->odbc_writer = ConnectToDatabaseExx( option->odbc?option->odbc->info.pDSN:sg.Primary.info.pDSN, FALSE DBG_RELAY );
 		SQLCommand( option->odbc_writer, "pragma foreign_keys=on" );
       /*
 		SQLCommand( option->odbc_writer, "pragma integrity_check" );
@@ -312,10 +326,10 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 				;//lprintf( "result:%s", res );;
 		}
 */
-		//option->odbc_writer = SQLGetODBC( option->odbc?option->odbc->info.pDSN:global_sqlstub_data->Primary.info.pDSN );
+		//option->odbc_writer = SQLGetODBC( option->odbc?option->odbc->info.pDSN:sg.Primary.info.pDSN );
 		if( option->odbc_writer )
 		{
-			if( !global_sqlstub_data->flags.bLogOptionConnection )
+			if( !sg.flags.bLogOptionConnection )
 				SetSQLLoggingDisable( option->odbc_writer, TRUE );
 			SetSQLThreadProtect( option->odbc_writer, TRUE );
 			SetSQLAutoTransactCallback( option->odbc_writer, OptionsCommited, (uintptr_t)option );
@@ -839,7 +853,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		size_t buflen;
 		// maybe do an if( l.flags.bLogOptionsRead )
 #if defined( _DEBUG )
-		if( global_sqlstub_data->flags.bLogOptionConnection )
+		if( sg.flags.bLogOptionConnection )
 			_lprintf(DBG_RELAY)( WIDE( "Getting option {%s}[%s]%s=%s" ), pINIFile, pSection, pOptname, pDefaultbuf );
 #endif
 		opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pINIFile, pSection, pOptname, TRUE, FALSE DBG_RELAY );
@@ -876,7 +890,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 			{
 				SetOptionStringValue( GetOptionTreeExxx( odbc, NULL DBG_SRC ), opt_node, pBuffer );
 #if defined( _DEBUG )
-				if( global_sqlstub_data->flags.bLogOptionConnection )
+				if( sg.flags.bLogOptionConnection )
 					lprintf( WIDE("default Result [%s]"), pBuffer );
 #endif
 				if( drop_odbc )
@@ -892,7 +906,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 			buflen--;
 			pBuffer[buflen] = 0;
 #if defined( _DEBUG )
-			if( global_sqlstub_data->flags.bLogOptionConnection )
+			if( sg.flags.bLogOptionConnection )
 				lprintf( WIDE( "buffer result is [%s]" ), pBuffer );
 #endif
 			if( drop_odbc )
@@ -1047,7 +1061,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
       pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
 	}
 #if defined( _DEBUG )
-	if( global_sqlstub_data->flags.bLogOptionConnection )
+	if( sg.flags.bLogOptionConnection )
 		_lprintf( DBG_SRC )( WIDE( "Setting option {%s}[%s]%s=%s" ), pINIFile, pSection, pName, pValue );
 #endif
 	optval = GetOptionIndexExxx( odbc, NULL, NULL, pINIFile, pSection, pName, TRUE, FALSE, FALSE DBG_SRC );
@@ -1243,11 +1257,14 @@ PRIORITY_UNLOAD( AllocateOptionGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY )
    // other data to destroy?	
 	DeleteCriticalSec( &og.cs_option );
 }
+
+#ifndef __STATIC_GLOBALS__
 PRIORITY_PRELOAD( AllocateOptionGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY )
 {
 	SimpleRegisterAndCreateGlobal( sack_global_option_data );
 	InitializeCriticalSec( &og.cs_option );
 }
+#endif
 
 PRIORITY_PRELOAD(RegisterSQLOptionInterface, SQL_PRELOAD_PRIORITY + 1 )
 {
@@ -1306,7 +1323,9 @@ ATEXIT( CommitOptions )
 #ifdef DETAILED_LOGGING
 	lprintf( WIDE( "Running Option cleanup..." ) );
 #endif
+#ifndef __STATIC_GLOBALS__
 	if( sack_global_option_data )
+#endif
 	{
 		LIST_FORALL( og.trees, idx, POPTION_TREE, tree )
 		{
@@ -1521,7 +1540,7 @@ static void repairOptionDb( uintptr_t psv, PODBC odbc ) {
 
 SQLGETOPTION_PROC( CTEXTSTR, GetDefaultOptionDatabaseDSN )( void )
 {
-	return global_sqlstub_data->OptionDb.info.pDSN;
+	return sg.OptionDb.info.pDSN;
 }
 
 PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
@@ -1567,7 +1586,7 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 				INDEX idx;
 				CTEXTSTR cmd;
 				CTEXTSTR result;
-				LIST_FORALL( global_sqlstub_data->option_database_init, idx, CTEXTSTR, cmd ) {
+				LIST_FORALL( sg.option_database_init, idx, CTEXTSTR, cmd ) {
 					SQLQueryf( odbc, &result, cmd );
 					//if( result )
 					//	lprintf( WIDE( " %s" ), result );
@@ -1674,5 +1693,6 @@ void FindOptions( PODBC odbc, PLIST *result_list, CTEXTSTR name )
 	New4FindOptions( tree, result_list, name );
 }
 
-
+#undef sg
+#undef og
 SACK_OPTION_NAMESPACE_END

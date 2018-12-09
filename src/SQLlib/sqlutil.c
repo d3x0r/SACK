@@ -11,12 +11,18 @@
 
 SQL_NAMESPACE
 
+#ifdef __STATIC_GLOBALS__
+extern struct pssql_global global_sqlstub_data;
+#  define g (global_sqlstub_data)
+
+#else
 extern struct pssql_global *global_sqlstub_data;
-#define g (*global_sqlstub_data)
+#  define g (*global_sqlstub_data)
 PRIORITY_PRELOAD( InitGlobalSqlUtil, GLOBAL_INIT_PRELOAD_PRIORITY )
 {
 	SimpleRegisterAndCreateGlobal( global_sqlstub_data );
 }
+#endif
 
 #ifdef __cplusplus
 using namespace sack::containers::BinaryTree;

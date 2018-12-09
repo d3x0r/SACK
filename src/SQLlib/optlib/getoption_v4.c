@@ -22,7 +22,13 @@
 //#define DETAILED_LOGGING
 
 SQL_NAMESPACE
-extern struct pssql_global *global_sqlstub_data;
+#ifdef __STATIC_GLOBALS__
+#  define sg (global_sqlstub_data)
+	extern struct pssql_global global_sqlstub_data;
+#else
+#  define sg (*global_sqlstub_data)
+	extern struct pssql_global *global_sqlstub_data;
+#endif
 SQL_NAMESPACE_END
 /*
  Dump Option table...
@@ -41,8 +47,14 @@ SACK_OPTION_NAMESPACE
 typedef struct sack_option_global_tag OPTION_GLOBAL;
 
 
-#define og (*sack_global_option_data)
-extern OPTION_GLOBAL *sack_global_option_data;
+#ifdef __STATIC_GLOBALS__
+#  define og (sack_global_option_data)
+	extern OPTION_GLOBAL sack_global_option_data;
+#else
+#  define og (*sack_global_option_data)
+	extern OPTION_GLOBAL *sack_global_option_data;
+#endif
+
 
 //------------------------------------------------------------------------
 
@@ -278,7 +290,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 						PopODBCEx( tree->odbc );
 					continue; // get out of this loop, continue outer.
 				}
-				if( global_sqlstub_data->flags.bLogOptionConnection )
+				if( sg.flags.bLogOptionConnection )
 					_lprintf(DBG_RELAY)( WIDE("Option node missing; and was not created='%s'"), namebuf );
 
 				if( !bIKnowItDoesntExist )

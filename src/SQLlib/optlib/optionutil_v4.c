@@ -14,8 +14,13 @@ SACK_OPTION_NAMESPACE
 
 #include "optlib.h"
 
-#define og (*sack_global_option_data)
-extern struct sack_option_global_tag *sack_global_option_data;
+#ifdef __STATIC_GLOBALS__
+#  define og (sack_global_option_data)
+	extern OPTION_GLOBAL sack_global_option_data;
+#else
+#  define og (*sack_global_option_data)
+	extern OPTION_GLOBAL *sack_global_option_data;
+#endif
 
 #define ENUMOPT_FLAG_HAS_VALUE 1
 #define ENUMOPT_FLAG_HAS_CHILDREN 2

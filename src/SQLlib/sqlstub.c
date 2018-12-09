@@ -155,23 +155,30 @@ struct update_task_def
 	DeclareLink( struct update_task_def );
 };
 
+#ifdef __STATIC_GLOBALS__
+struct pssql_global global_sqlstub_data;
+#  ifdef g
+#    undef g
+#  endif
+#  define g (global_sqlstub_data)
+#else
 struct pssql_global *global_sqlstub_data;
-#ifdef g
-#  undef g
+#  ifdef g
+#    undef g
+#  endif
+#  define g (*global_sqlstub_data)
 #endif
-#define g (*global_sqlstub_data)
-
 //----------------------------------------------------------------------
 
 static void SqlStubInitLibrary( void );
 
 
+#ifndef __STATIC_GLOBALS__
 PRIORITY_PRELOAD( InitGlobalData, SQL_PRELOAD_PRIORITY )
 {
 	// is null initialized.
 	SimpleRegisterAndCreateGlobal( global_sqlstub_data );
 	SqlStubInitLibrary();
-
 }
 
 ATEXIT_PRIORITY( CloseConnections, ATEXIT_PRIORITY_SYSLOG - 3 )
@@ -185,10 +192,28 @@ ATEXIT_PRIORITY( CloseConnections, ATEXIT_PRIORITY_SYSLOG - 3 )
 		}
 }
 
+#else
+
+ATEXIT_PRIORITY( CloseConnections, ATEXIT_PRIORITY_SYSLOG - 3 )
+{
+	PODBC odbc;
+	INDEX idx;
+		LIST_FORALL( global_sqlstub_data.pOpenODBC, idx, PODBC, odbc  )
+		{
+			CloseDatabaseEx( odbc, FALSE );
+		}
+}
+
+#endif
+
+
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 
 static void GetColumnSize(sqlite3_context*onwhat,int n,sqlite3_value**something) {
 	switch( sqlite3_value_type( something[0] ) ) {
+	default:
+
+		break;
 	case SQLITE_TEXT :
 	case SQLITE_BLOB :
 		sqlite3_result_int( onwhat, sqlite3_value_bytes(something[0] ) );
@@ -3951,6 +3976,9 @@ static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
 		default:
 			lprintf( "Failed to handline binding for type: %d", val->value_type );
 			DebugBreak();
+			break;
+		case VALUE_NULL:
+			rc = sqlite3_bind_null( db );
 			break;
 		case VALUE_NUMBER:
 			if( val->float_result ) {
