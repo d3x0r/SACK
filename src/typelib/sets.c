@@ -72,7 +72,8 @@ PGENERICSET GetFromSetPoolEx( GENERICSET **pSetSet, int setsetsizea, int setunit
 	uint32_t maxbias = 0;
 	void *unit = NULL;
 	uintptr_t ofs = ( ( ( maxcnt + 31 ) / 32 ) * 4 );
-
+	//if( pSet && (*pSet) && ( (*pSet)->nBias > 1000 ))
+	//	_lprintf( DBG_RELAY )("GetFromSet: %p", pSet );
 	if( !pSet )
 		return NULL; // can never return something from nothing.
 
@@ -338,7 +339,9 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 	uintptr_t nUnit = (uintptr_t)unit;
 	uintptr_t ofs = ( ( max + 31 ) / 32) * 4;
 	uintptr_t base;
-	//if( bLog ) _lprintf(DBG_RELAY)( WIDE("Deleting from  %p of %p "), pSet, unit );
+	//if( bLog ) 
+	//if( pSet && ((pSet)->nBias > 1000) )
+	//	_lprintf(DBG_RELAY)( WIDE("Deleting from  %p of %p "), pSet, unit );
 	while( pSet )
 	{
 		base = ( (uintptr_t)( pSet->bUsed ) + ofs );

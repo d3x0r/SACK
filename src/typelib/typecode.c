@@ -500,12 +500,8 @@ POINTER  PeekLinkEx ( PLINKSTACK *pls, INDEX n )
 {
 	// should lock - but it's fast enough?
 	POINTER p = NULL;
-	if( pls && (*pls) && n >= (*pls)->Top )
-		return NULL;
-	if( pls && *pls && ((*pls)->Top-n) )
-		p = (*pls)->pNode[(*pls)->Top-(n+1)];
-	else
-		return NULL;
+	if( pls && *pls && ((*pls)->Top > n) )
+		p = (*pls)->pNode[(*pls)->Top - (n + 1)];
 	return p;
 }
 
