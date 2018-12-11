@@ -5,7 +5,7 @@
 CRITICALSECTION cs;
 int done;
 int xx[32];
-
+int done;
 static uintptr_t  ThreadWrapper( PTHREAD pThread ){
 	int n = GetThreadParam( pThread );
 	while( !done ) {

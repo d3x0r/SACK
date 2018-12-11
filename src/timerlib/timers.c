@@ -126,6 +126,7 @@ struct threads_tag
 	int pipe_ends[2]; // file handles that are the pipe's ends. 0=read 1=write
 #endif
 	int semaphore; // use this as a status of pipes if USE_PIPE_SEMS is used...; otherwise it's a ipcsem
+	pthread_mutex_t mutex;
 	pthread_t hThread;
 #endif
 	struct {
@@ -327,11 +328,7 @@ uintptr_t closesem( POINTER p, uintptr_t psv )
 	thread->pipe_ends[1] = -1;
 	thread->semaphore = -1;
 #else
-	if( semctl( thread->semaphore, 0, IPC_RMID ) == -1 )
-	{
-		lprintf( WIDE( "Error: %08x %s" ), thread->semaphore, strerror( errno ) );
-	}
-	thread->semaphore = -1;
+	pthread_mutex_destroy( &thread->mutex );
 #endif
 	return 0;
 }
@@ -465,35 +462,17 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	}
 
 #else
-	thread->semaphore = semget( IPC_PRIVATE
-	                          , 1, IPC_CREAT | 0600 );
+	thread->semaphore = pthread_mutex_init( &thread->mutex, NULL );
+	pthread_mutex_lock( &thread->mutex );
+	//thread->semaphore = semget( IPC_PRIVATE
+	//                          , 1, IPC_CREAT | 0600 );
 	if( thread->semaphore == -1 )
 	{
 		// basically this can't really happen....
-		if( errno ==  EEXIST )
-		{
-			thread->semaphore = semget( IPC_PRIVATE
-			                          , 1, 0 );
-			if( thread->semaphore == -1 )
-				lprintf( WIDE("FAILED TO CREATE SEMAPHORE! : %d"), errno );
-		}
-		if( errno == ENOSPC )
-		{
-			lprintf( WIDE("Hmm Need to cleanup some semaphore objects!!!") );
-		}
-		else
-			lprintf( WIDE("Failed to get semaphore! %d"), errno );
+		lprintf( WIDE("Failed to get semaphore! %d"), errno );
 	}
 	if( thread->semaphore != -1 )
 	{
-		//union semun ctl;
-		//ctl.val = 0;
-		//lprintf( WIDE("Setting thread semaphore to 0 (locked).") );
-		if( semctl( thread->semaphore, 0, SETVAL, 0 ) < 0 )
-		{
-			lprintf( WIDE("Errro setting semaphre value: %d"), errno );
-		}
-		//lprintf( WIDE("after semctl = %d %08lx"), semctl( thread->semaphore, 0, GETVAL ), thread->semaphore );
 	}
 #endif
 #endif
@@ -725,33 +704,18 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 #  ifdef DEBUG_PIPE_USAGE
 		_lprintf(DBG_RELAY)( "(wakethread)wil write pipe... %p", thread );
 #  endif
-		write( thread->pipe_ends[1], "G", 1 );
+		
+		if( write( thread->pipe_ends[1], "G", 1 ) != 1 ) {
+			int e = errno;
+			lprintf( "Pipe Error? %d", e );
+		}
 		//lprintf( "did write pipe..." );
 		Relinquish();
 	}
 #else
 	if( thread->semaphore != -1 )
 	{
-		int stat;
-		int val;
-		struct sembuf semdo;
-		semdo.sem_num = 0;
-		semdo.sem_op = 1;
-		semdo.sem_flg = 0;
-		//_xlprintf( 1 DBG_RELAY )( WIDE("Resetting event on %08x %016"_64fx"x"), thread->semaphore, thread->thread_ident );
-		//lprintf( WIDE("Before semval = %d %08lx"), semctl( thread->semaphore, 0, GETVAL ), thread->semaphore );
-		stat = semop( thread->semaphore, &semdo, 1 );
-		if( stat == -1 )
-		{
-			if( errno != ERANGE )
-				lprintf( WIDE("semop error (wake) : %d"), errno );
-		}
-		//lprintf( WIDE("After semval = %d %08lx"), val = semctl( thread->semaphore, 0, GETVAL ), thread->semaphore );
-		if( !val )
-		{
-			//DebugBreak();
-			//lprintf( WIDE("Did we fail the semop?!") );
-		}
+		pthread_mutex_unlock( &thread->mutex );
 		Relinquish(); // may or may not execute other thread before this...
 	}
 #endif
@@ -938,14 +902,17 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 						lprintf( "end read" );
 #  endif
 #else
-# ifdef _NO_SEMTIMEDOP_
-						stat = semop( pThread->semaphore, semdo, 1 );
-# else
 						struct timespec timeout;
-						timeout.tv_nsec = ( n % 1000 ) * 1000000L;
-						timeout.tv_sec = n / 1000;
-						stat = semtimedop( pThread->semaphore, semdo, 1, &timeout );
-# endif
+						clock_gettime(CLOCK_REALTIME, &timeout);
+						timeout.tv_nsec += ( n % 1000 ) * 1000000L;
+						timeout.tv_sec += n / 1000;
+						timeout.tv_sec += timeout.tv_nsec / 1000000000L;
+						timeout.tv_nsec %= 1000000000L;
+						
+						//lprintf( "Timed wait:%d %d", timeout.tv_nsec, timeout.tv_sec );
+						stat = pthread_mutex_timedlock( &pThread->mutex, &timeout );
+						//lprintf( "Stat for timed lock:%d", stat );
+						//stat = semtimedop( pThread->semaphore, semdo, 1, &timeout );
 #endif
 					}
 					else
@@ -960,7 +927,8 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 						lprintf( "end read" );
 #  endif
 #else
-						stat = semop( pThread->semaphore, semdo, 1 );
+						stat = pthread_mutex_lock( &pThread->mutex );
+						//stat = semop( pThread->semaphore, semdo, 1 );
 #endif
 					}
 					//lprintf( WIDE("After semval = %d %08lx"), semctl( pThread->semaphore, 0, GETVAL ), pThread->semaphore );
@@ -1009,7 +977,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 #ifdef USE_PIPE_SEMS
 						// flush? empty the pipe?
 #else
-						semctl( pThread->semaphore, 0, SETVAL, 0 );
+						//semctl( pThread->semaphore, 0, SETVAL, 0 );
 #endif
 						break;
 					}
@@ -1116,6 +1084,8 @@ static void TimerWakeableSleep( uint32_t n )
 #ifdef USE_PIPE_SEMS
 			InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_SRC );
 #else
+			pthread_mutex_lock( &globalTimerData.pTimerThread->mutex );
+#   if asdfasdfasdfasdf
 			struct sembuf semdo;
 			semdo.sem_num = 0;
 			semdo.sem_op = -1;
@@ -1144,6 +1114,7 @@ static void TimerWakeableSleep( uint32_t n )
 					break;
 				}
 			}
+#   endif
 #endif
 			//lprintf( WIDE("After semval = %d %08lx")
 			//	      , semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL )
@@ -2464,9 +2435,19 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef _DEBUG
 		//GetTickCount() )
 		if( ( curtick + 2000 ) <= timeGetTime() ) {
+#ifdef DEBUG_CRITICAL_SECTIONS
+			lprintf( "FROM: %s(%d)  %s(%d) %s(%d)"
+					  , pcs->pFile[(pcs->nPrior+(MAX_SECTION_LOG_QUEUE-1))%MAX_SECTION_LOG_QUEUE]
+					  , pcs->nLine[(pcs->nPrior+(MAX_SECTION_LOG_QUEUE-1))%MAX_SECTION_LOG_QUEUE]
+					  , pcs->pFile[(pcs->nPrior+(MAX_SECTION_LOG_QUEUE-2))%MAX_SECTION_LOG_QUEUE]
+					  , pcs->nLine[(pcs->nPrior+(MAX_SECTION_LOG_QUEUE-2))%MAX_SECTION_LOG_QUEUE]
+					  , pcs->pFile[(pcs->nPrior+(MAX_SECTION_LOG_QUEUE-3))%MAX_SECTION_LOG_QUEUE]
+					 , pcs->nLine[(pcs->nPrior+(MAX_SECTION_LOG_QUEUE-3))%MAX_SECTION_LOG_QUEUE]
+					 );
+#endif
 			lprintf( WIDE( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle" ) );
-			DebugBreak();
-			continue;
+			//DebugBreak();
+			//continue;
 		}
 #endif
 		break;
@@ -2504,24 +2485,23 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #endif
 		if( !( pcs->dwLocks & ~(SECTION_LOGGED_WAIT) ) )
 		{
+			THREAD_ID dwWaiting = pcs->dwThreadWaiting;
 			pcs->dwLocks = 0;
 			pcs->dwThreadID = 0;
-			// wake the prior (if there is one sleeping)
+			pcs->dwUpdating = pcs->dwLocks;
 
-			if( pcs->dwThreadWaiting )
+			// wake the prior (if there is one sleeping)
+			if( dwWaiting )
 			{
-				pcs->dwUpdating = 0;
 #ifdef ENABLE_CRITICALSEC_LOGGING
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					_lprintf( DBG_RELAY )( WIDE("%8")_64fx WIDE(" Waking a thread which is waiting..."), pcs->dwThreadWaiting );
+					_lprintf( DBG_RELAY )( WIDE("%8")_64fx WIDE(" Waking a thread which is waiting..."), dwWaiting );
 #endif
 				// don't clear waiting... so the proper thread can
 				// allow itself to claim section...
-				WakeNamedThreadSleeperEx( WIDE("sack.critsec"), pcs->dwThreadWaiting DBG_RELAY );
+				WakeNamedThreadSleeperEx( WIDE("sack.critsec"), dwWaiting DBG_RELAY );
 				//WakeThreadIDEx( wake DBG_RELAY);
 			}
-			else
-				pcs->dwUpdating = 0;
 			return TRUE;
 		}
 	}
