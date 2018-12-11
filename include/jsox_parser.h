@@ -133,6 +133,9 @@ JSOX_PARSER_PROC( struct jsox_parse_state *, jsox_begin_parse )(void);
 // clear state; after an error state, this can allow reusing a state.
 JSOX_PARSER_PROC( void, jsox_parse_clear_state )( struct jsox_parse_state *state );
 
+// get actual allocated root for a value... allows holding that.
+JSOX_PARSER_PROC( const char *, jsox_get_parse_buffer )(struct jsox_parse_state *pState, const char *buf);
+
 // destroy current parse state.
 JSOX_PARSER_PROC( void, jsox_parse_dispose_state )(struct jsox_parse_state **ppState);
 
@@ -159,6 +162,7 @@ JSOX_PARSER_PROC( LOGICAL, jsox_parse_message )(const char * msg
 
 // release all resources of a message from jsox_parse_message or jsox_parse_get_data
 JSOX_PARSER_PROC( void, jsox_dispose_message )(PDATALIST *msg_data);
+JSOX_PARSER_PROC( struct jsox_parse_state *, jsox_get_messge_parser )(void);
 
 JSOX_PARSER_PROC( char *, jsox_escape_string_length )(const char *string, size_t len, size_t *outlen);
 JSOX_PARSER_PROC( char *, jsox_escape_string )(const char *string);

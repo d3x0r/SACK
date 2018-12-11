@@ -231,6 +231,8 @@ struct json_parser_shared_data {
 	PPLINKSTACKSET linkStacks;
 	PPLINKQUEUESET linkQueues;
 	PPDATALISTSET dataLists;
+	struct json_parse_state *json_state; // used by simple parse_message interface.
+	struct json_parse_state *json6_state; // used by simple parse_message interface.
 };
 #ifndef JSON_PARSER_MAIN_SOURCE
 extern

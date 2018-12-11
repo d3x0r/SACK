@@ -327,7 +327,9 @@ int json6_parse_add_data( struct json_parse_state *state
 			//lprintf( "output from before is %p", output );
 			offset = (output->pos - output->buf);
 			offset2 = state->val.string ? (state->val.string - output->buf) : 0;
-			AddLink( state->outValBuffers, output->buf );
+			struct json_output_buffer *saveout = (struct json_output_buffer*)GetFromSet( PARSE_BUFFER, &jpsd.parseBuffers );
+			saveout[0] = output[0];
+			AddLink( state->outValBuffers, saveout );
 			output->buf = NewArray( char, output->size + msglen + 1 );
 			if( state->val.string ) {
 				MemCpy( output->buf + offset2, state->val.string, offset - offset2 );
@@ -1276,6 +1278,24 @@ PTEXT json_parse_get_error( struct json_parse_state *state ) {
 	return NULL;
 }
 
+const char *json_get_parse_buffer( struct json_parse_state *pState, const char *buf ) {
+	int idx;
+	PPARSE_BUFFER buffer;
+	//lprintf( "Getting buffer from %p", pState );
+	for( idx = 0; buffer = (PPARSE_BUFFER)PeekLinkEx( pState->outBuffers, idx ); idx++ )
+		if( ((uintptr_t)buf) >= ((uintptr_t)buffer->buf) && ((uintptr_t)buf) < ((uintptr_t)buffer->pos) )
+			return buffer->buf;
+	for( idx = 0; buffer = (PPARSE_BUFFER)PeekQueueEx( *pState->outQueue, idx ); idx++ )
+		if( ((uintptr_t)buf) >= ((uintptr_t)buffer->buf) && ((uintptr_t)buf) < ((uintptr_t)buffer->pos) )
+			return buffer->buf;
+	LIST_FORALL( pState->outValBuffers[0], idx, PPARSE_BUFFER, buffer ) {
+		if( ((uintptr_t)buf) >= ((uintptr_t)buffer->buf) && ((uintptr_t)buf) < ((uintptr_t)buffer->pos) )
+			return buffer->buf;
+	}
+	lprintf( "FAILED TO FIND BUFFER TO RETURN" );
+	return NULL;
+}
+
 void json_parse_dispose_state( struct json_parse_state **ppState ) {
 	struct json_parse_state *state = (*ppState);
 	struct json_parse_context *old_context;
@@ -1287,9 +1307,11 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 		DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 	}
 	{
-		char *buf;
+		PPARSE_BUFFER buf;
 		INDEX idx;
-		LIST_FORALL( state->outValBuffers[0], idx, char*, buf ) {
+		LIST_FORALL( state->outValBuffers[0], idx, PPARSE_BUFFER, buf ) {
+			Deallocate( const char *, buf->buf );
+			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buf );
 			Deallocate( char*, buf );
 		}
 		DeleteFromSet( PLIST, jpsd.listSet, state->outValBuffers );
@@ -1325,20 +1347,25 @@ LOGICAL json6_parse_message( const char * msg
 	, size_t msglen
 	, PDATALIST *_msg_output ) {
 	struct json_parse_state *state = json_begin_parse();
-	static struct json_parse_state *_state;
+	//static struct json_parse_state *_state;
 	state->complete_at_end = TRUE;
 	int result = json6_parse_add_data( state, msg, msglen );
-	if( _state ) json_parse_dispose_state( &_state );
+	if( jpsd.json6_state ) json_parse_dispose_state( &jpsd.json6_state );
 	if( result > 0 ) {
 		(*_msg_output) = json_parse_get_data( state );
-		_state = state;
+		jpsd.json6_state = state;
 		//json6_parse_dispose_state( &state );
 		return TRUE;
 	}
 	(*_msg_output) = NULL;
 	jpsd.last_parse_state = state;
-	_state = state;
+	jpsd.json6_state = state;
 	return FALSE;
+}
+
+struct json_parse_state *json6_get_message_parser( void ) {
+	//lprintf( "Return simple json6 parser:%p", jpsd.json6_state );
+	return jpsd.json6_state;
 }
 
 void json6_dispose_message( PDATALIST *msg_data )

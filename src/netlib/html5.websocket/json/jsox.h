@@ -271,6 +271,9 @@ struct jsox_parser_shared_data {
 
 	PJSOX_CLASSSET  classes;
 	PJSOX_CLASS_FIELDSET  class_fields;
+
+	struct jsox_parse_state *_state; // static parsing state for simple message interface.
+
 };
 #ifndef JSOX_PARSER_MAIN_SOURCE
 extern

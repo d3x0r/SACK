@@ -1849,6 +1849,19 @@ PDATALIST jsox_parse_get_data( struct jsox_parse_state *state ) {
 	return result[0];
 }
 
+const char *jsox_get_parse_buffer( struct jsox_parse_state *pState, const char *buf ) {
+	int idx;
+	PJSOX_PARSE_BUFFER buffer;
+	for( idx = 0; ; idx-- )
+		while( buffer = (PJSOX_PARSE_BUFFER)PeekLinkEx( pState->outBuffers, idx ) ) {
+			if( !buffer ) break;
+			if( ((uintptr_t)buf) >= ((uintptr_t)buffer->buf) && ((uintptr_t)buf) < ((uintptr_t)buffer->pos) )
+				return buffer->buf;
+		}
+	lprintf( "FAILED TO FIND BUFFER TO RETURN" );
+	return NULL;
+}
+
 void _jsox_dispose_message( PDATALIST *msg_data )
 {
 	struct jsox_value_container *val;
@@ -1990,22 +2003,25 @@ LOGICAL jsox_parse_message( const char * msg
 	, size_t msglen
 	, PDATALIST *_msg_output ) {
 	struct jsox_parse_state *state = jsox_begin_parse();
-	static struct jsox_parse_state *_state;
+	//static struct jsox_parse_state *_state;
 	state->complete_at_end = TRUE;
 	int result = jsox_parse_add_data( state, msg, msglen );
-	if( _state ) jsox_parse_dispose_state( &_state );
+	if( jxpsd._state ) jsox_parse_dispose_state( &jxpsd._state );
 	if( result > 0 ) {
 		(*_msg_output) = jsox_parse_get_data( state );
-		_state = state;
+		jxpsd._state = state;
 		//jsox_parse_dispose_state( &state );
 		return TRUE;
 	}
 	(*_msg_output) = NULL;
 	jxpsd.last_parse_state = state;
-	_state = state;
+	jxpsd._state = state;
 	return FALSE;
 }
 
+struct jsox_parse_state *jsox_get_messge_parser( void ) {
+	return jxpsd._state;
+}
 
 #undef GetUtfChar
 
