@@ -16,10 +16,10 @@ SACK_OPTION_NAMESPACE
 
 #ifdef __STATIC_GLOBALS__
 #  define og (sack_global_option_data)
-	extern OPTION_GLOBAL sack_global_option_data;
+	extern struct sack_option_global_tag sack_global_option_data;
 #else
 #  define og (*sack_global_option_data)
-	extern OPTION_GLOBAL *sack_global_option_data;
+	extern struct sack_option_global_tag *sack_global_option_data;
 #endif
 
 #define ENUMOPT_FLAG_HAS_VALUE 1

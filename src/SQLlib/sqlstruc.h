@@ -65,11 +65,12 @@ typedef struct data_collection_tag
 	struct odbc_handle_tag *odbc;
 	uint32_t      responce;
 	uint32_t      lastop;
-   int    *column_types;
+	int    *column_types;
 	size_t *result_len;
 	TEXTSTR *results;
 	//uint32_t nResults; // this is columns
 	TEXTSTR *fields;
+	PDATALIST *ppdlResults;
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	sqlite3_stmt *stmt;
 #endif

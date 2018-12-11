@@ -211,9 +211,7 @@ ATEXIT_PRIORITY( CloseConnections, ATEXIT_PRIORITY_SYSLOG - 3 )
 
 static void GetColumnSize(sqlite3_context*onwhat,int n,sqlite3_value**something) {
 	switch( sqlite3_value_type( something[0] ) ) {
-	default:
 
-		break;
 	case SQLITE_TEXT :
 	case SQLITE_BLOB :
 		sqlite3_result_int( onwhat, sqlite3_value_bytes(something[0] ) );
@@ -2397,6 +2395,10 @@ void DestroyCollectorEx( PCOLLECT pCollect DBG_PASS )
 	{
 		return;
 	}
+	if( pCollect->ppdlResults ) {
+
+		DeleteDataList( pCollect->ppdlResults );
+	}
 	ReleaseCollectionResults( pCollect, TRUE );
 	VarTextDestroy( &pCollect->pvt_out );
 	VarTextDestroy( &pCollect->pvt_result );
@@ -3340,7 +3342,97 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			return 0;
 		}
 		ReleaseCollectionResults( collection, FALSE );
-		if( collection->flags.bBuildResultArray )
+		if( collection->ppdlResults ) {
+			int len;
+			struct json_value_container *val = (struct json_value_container *)GetDataItem( collection->ppdlResults, collection->columns );
+			struct json_value_container valSet;
+			if( !val ) {
+				val = &valSet;
+				memset( &valSet, 0, sizeof( valSet ) );
+				valSet._contains = &valSet.contains;
+				for( len = 0; len < collection->columns; len++ )
+					SetDataItem( collection->ppdlResults, len, &valSet );
+
+				val->value_type = VALUE_UNDEFINED;
+				SetDataItem( collection->ppdlResults, collection->columns, val );
+				// okay and now - pull column info from magic place...
+				{
+#ifdef USE_ODBC
+					TEXTCHAR colname[256];
+					short namelen;
+#endif
+					int idx;
+					for( idx = 1; idx <= collection->columns; idx++ ) {
+						val = (struct json_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+						//const unsigned char *sqlite3_column_text(sqlite3_stmt*, int iCol);
+						if( odbc->flags.bSQLite_native ) {
+							int coltype;
+							val->name = DupCStr( sqlite3_column_name( collection->stmt, idx - 1 ) );
+							val->nameLen = strlen( val->name );
+							switch( coltype = sqlite3_column_type( collection->stmt, idx - 1 ) ) {
+							default:
+								lprintf( "Unhandled SQLITE type: %d", coltype );
+								break;
+							case SQLITE_BLOB:
+								val->value_type = VALUE_TYPED_ARRAY;
+								break;
+							case SQLITE_TEXT:
+								val->value_type = VALUE_STRING;
+								break;
+							case SQLITE_INTEGER:
+								val->value_type = VALUE_NUMBER;
+								val->float_result = 0;
+								break;
+							case SQLITE_FLOAT:
+								val->value_type = VALUE_NUMBER;
+								val->float_result = 1;
+								break;
+							}
+						}
+#endif
+#if ( defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE ) ) && defined( USE_ODBC )
+						else
+#endif
+#ifdef USE_ODBC
+						{
+							SQLSMALLINT coltype;
+							SQLULEN colsize;
+							rc = SQLDescribeCol( collection->hstmt
+								, idx
+								,
+#ifdef _UNICODE
+								( SQLWCHAR* )colname
+								, sizeof( colname )
+#else
+								(SQLCHAR*)colname
+								, sizeof( colname )
+#endif
+								, (SQLSMALLINT*)&namelen
+								, &coltype // data type short int
+								, &colsize // columnsize int
+								, NULL // decimal digits short int
+								, NULL // nullable ptr ?
+							);
+
+							//lprintf( WIDE("column %s is type %d(%d)"), colname, coltypes[idx-1], colsizes[idx-1] );
+							if( rc != SQL_SUCCESS_WITH_INFO &&
+								rc != SQL_SUCCESS ) {
+								retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
+								lprintf( WIDE( "GetData failed..." ) );
+								result_cmd = WM_SQL_RESULT_ERROR;
+								break;
+							}
+							colname[namelen] = 0; // always nul terminate this.
+							val->name = StrDup( colname );
+							val->nameLen = StrLen( colname );
+						}
+#endif
+					} // for
+				}
+			}
+		}
+		else if( collection->flags.bBuildResultArray )
 		{
 			int len;
 
@@ -3490,12 +3582,76 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 				if( odbc->flags.bSQLite_native )
 				{
-					char *text = (char*)sqlite3_column_text( collection->stmt, idx - 1 );
+					char *text;
 					TEXTSTR real_text;
 					int colsize;
-					colsize = sqlite3_column_bytes( collection->stmt, idx - 1 );
-					real_text = DupCStrLen( text, colsize );
-					if( collection->flags.bBuildResultArray )
+					if( collection->ppdlResults ) {
+						struct json_value_container *val = (struct json_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
+						int coltype;
+						switch( coltype = sqlite3_column_type( collection->stmt, idx - 1 ) ) {
+						default:
+							lprintf( "Uhnaldes SQL data type:%d", coltype );
+
+							text = (char*)sqlite3_column_text( collection->stmt, idx - 1 );
+							colsize = sqlite3_column_bytes( collection->stmt, idx - 1 );
+							val->stringLen = colsize;
+							if( val->string )
+								Release( val->string );
+							real_text = DupCStrLen( text, colsize );
+							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), real_text );
+							val->string = real_text;
+							val->value_type = VALUE_STRING;
+
+							break;
+						case SQLITE_NULL:
+							if( val->string )
+								Release( val->string );
+							val->string = NULL;
+							val->value_type = VALUE_NULL;
+							break;
+						case SQLITE_FLOAT:
+							val->float_result = 1;
+							val->result_d = sqlite3_column_double( collection->stmt, idx - 1 );
+							if( pvtData )vtprintf( pvtData, WIDE( "%s%g" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), val->result_d );
+							val->value_type = VALUE_NUMBER;
+							break;
+						case SQLITE_INTEGER:
+							val->float_result = 0;
+							val->result_n = sqlite3_column_int64( collection->stmt, idx - 1 );
+							if( pvtData )vtprintf( pvtData, WIDE( "%s%d" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), (int)val->result_n );
+							val->value_type = VALUE_NUMBER;
+							break;
+						case SQLITE_BLOB:
+							text = (char*)sqlite3_column_blob( collection->stmt, idx - 1 );
+							val->stringLen = sqlite3_column_bytes( collection->stmt, idx - 1 );
+							//lprintf( "Got a blob..." );
+							if( pvtData )vtprintf( pvtData, WIDE( "%s<binary>" ), idx > 1 ? WIDE( "," ) : WIDE( "" ) );
+							if( val->string )
+								Release( val->string );
+							if( text ) {
+								val->string = NewArray( TEXTCHAR, val->stringLen );
+								MemCpy( val->string, text, val->stringLen );
+							}
+							else {
+								val->string = NULL;
+								val->stringLen = 0;
+							}
+							val->value_type = VALUE_TYPED_ARRAY;
+							break;
+						case SQLITE_TEXT:
+							text = (char*)sqlite3_column_text( collection->stmt, idx - 1 );
+							colsize = sqlite3_column_bytes( collection->stmt, idx - 1 );
+							val->stringLen = colsize;
+							if( val->string )
+								Release( val->string );
+							real_text = DupCStrLen( text, colsize );
+							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), real_text );
+							val->string = real_text;
+							val->value_type = VALUE_STRING;
+							break;
+						}
+					}
+					else if( collection->flags.bBuildResultArray )
 					{
 						collection->result_len[idx - 1] = colsize;
 						if( collection->results[idx-1] )
@@ -3509,6 +3665,9 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							MemCpy( collection->results[idx-1], text, collection->result_len[idx - 1] );
 							break;
 						default:
+							if( collection->results[idx - 1] )
+								Release( collection->results[idx - 1] );
+							real_text = DupCStrLen( text, colsize );
 							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), real_text );
 							collection->results[idx-1] = real_text;
 							break;
@@ -3779,6 +3938,36 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 	return 0;
 }
 
+int FetchSQLRecordJS( PODBC odbc, PDATALIST *ppdlRecord ) {
+	if( ppdlRecord ) {
+		if( !odbc )
+			odbc = g.odbc;
+		if( odbc ) {
+			if( odbc->flags.bThreadProtect ) {
+				EnterCriticalSec( &odbc->cs );
+				odbc->nProtect++;
+			}
+			while( odbc->collection && odbc->collection->flags.bTemporary ) {
+				DestroyCollector( odbc->collection );
+			}
+			if( !odbc->collection ) {
+				lprintf( WIDE( "Lost ODBC result collection..." ) );
+				return 0;
+			}
+			odbc->collection->flags.bBuildResultArray = 1;
+			__GetSQLResult( odbc, odbc->collection, FALSE );
+			if( odbc->collection->responce == WM_SQL_RESULT_DATA ) {
+			}
+			if( odbc->flags.bThreadProtect ) {
+				LeaveCriticalSec( &odbc->cs );
+				odbc->nProtect--;
+			}
+			return odbc->collection->responce == WM_SQL_RESULT_DATA ? TRUE : 0;
+		}
+	}
+	return FALSE;
+}
+
 //-----------------------------------------------------------------------
 int FetchSQLRecord( PODBC odbc, CTEXTSTR **result )
 {
@@ -3978,7 +4167,7 @@ static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
 			DebugBreak();
 			break;
 		case VALUE_NULL:
-			rc = sqlite3_bind_null( db );
+			rc = sqlite3_bind_null( db, useIndex );
 			break;
 		case VALUE_NUMBER:
 			if( val->float_result ) {
@@ -4350,23 +4539,20 @@ void SQLEndQuery( PODBC odbc )
 
 //-----------------------------------------------------------------------
 
-int SQLRecordQuery_v4( PODBC odbc
+int SQLRecordQuery_js( PODBC odbc
                      , CTEXTSTR query
                      , size_t queryLen
-                     , int *nResults
-                     , CTEXTSTR **result
-                     , size_t **resultLengths
-                     , CTEXTSTR **fields 
+                     , PDATALIST *pdlResults
                      , PDATALIST pdlParams
                      DBG_PASS )
 {
 	PODBC use_odbc;
 	int once = 0;
+	if( !(*pdlResults) )
+		(*pdlResults) = CreateDataList( sizeof ( struct json_value_container  ) );
+
 	// clean up what we think of as our result set data (reset to nothing)
-	if( result )
-		(*result) = NULL;
-	if( nResults )
-		*nResults = 0;
+
 	do
 	{
 		if( !IsSQLOpenEx( odbc DBG_RELAY ) )
@@ -4405,6 +4591,7 @@ int SQLRecordQuery_v4( PODBC odbc
 		use_odbc->collection->flags.bTemporary = 0;
 		// ask the collector to build the type of result set we want...
 		use_odbc->collection->flags.bBuildResultArray = 1;
+		use_odbc->collection->ppdlResults = pdlResults;
 		// this will do an open, and delay queue processing and all sorts
 		// of good fun stuff...
 	}
@@ -4412,6 +4599,72 @@ int SQLRecordQuery_v4( PODBC odbc
 
 	if( use_odbc->collection->responce == WM_SQL_RESULT_DATA )
 	{
+		return TRUE;
+	}
+	else if( use_odbc->collection->responce == WM_SQL_RESULT_NO_DATA )
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+int SQLRecordQuery_v4( PODBC odbc
+	, CTEXTSTR query
+	, size_t queryLen
+	, int *nResults
+	, CTEXTSTR **result
+	, size_t **resultLengths
+	, CTEXTSTR **fields
+	, PDATALIST pdlParams
+	DBG_PASS )
+{
+	PODBC use_odbc;
+	int once = 0;
+	// clean up what we think of as our result set data (reset to nothing)
+	if( result )
+		(*result) = NULL;
+	if( nResults )
+		*nResults = 0;
+	do {
+		if( !IsSQLOpenEx( odbc DBG_RELAY ) )
+			return FALSE;
+		if( !(use_odbc = odbc) ) {
+			// setup error as invalid databse handle... well.. try the default one also
+			// but mostly fail.
+			use_odbc = g.odbc;
+		}
+		// if not a [sS]elect then begin a transaction.... some code uses query record for everything.
+		if( !once && query[0] != 's' && query[0] != 'S' ) {
+			once = 1;
+			BeginTransactEx( use_odbc, 0 );
+		}
+		// collection is very important to have - even if we will have to be opened,
+		// we ill need one, so make at least one.
+		if( !use_odbc->collection || !use_odbc->collection->flags.bTemporary ) {
+			if( use_odbc->collection && use_odbc->collection->flags.bTemporary ) {
+#ifdef LOG_COLLECTOR_STATES
+				lprintf( WIDE( "using existing collector..." ) );
+#endif
+				use_odbc->collection->flags.bTemporary = 0;
+			}
+			else {
+#ifdef LOG_COLLECTOR_STATES
+				lprintf( WIDE( "creating collector..." ) );
+#endif
+				use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
+			}
+		}
+		// if it was temporary, it shouldn't be anymore
+		use_odbc->collection->flags.bTemporary = 0;
+		// ask the collector to build the type of result set we want...
+		use_odbc->collection->flags.bBuildResultArray = 1;
+		use_odbc->collection->ppdlResults = NULL;
+		// this will do an open, and delay queue processing and all sorts
+		// of good fun stuff...
+	} while( __DoSQLQueryExx( use_odbc, use_odbc->collection, query, queryLen, pdlParams DBG_RELAY ) );
+
+	if( use_odbc->collection->responce == WM_SQL_RESULT_DATA ) {
 		//lprintf( WIDE("Result with data...") );
 		if( nResults )
 			(*nResults) = use_odbc->collection->columns;
@@ -4425,8 +4678,7 @@ int SQLRecordQuery_v4( PODBC odbc
 		//use_odbc->collection->results = NULL;
 		return TRUE;
 	}
-	else if( use_odbc->collection->responce == WM_SQL_RESULT_NO_DATA )
-	{
+	else if( use_odbc->collection->responce == WM_SQL_RESULT_NO_DATA ) {
 		if( nResults )
 			(*nResults) = use_odbc->collection->columns;
 		if( resultLengths )
