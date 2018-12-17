@@ -1312,7 +1312,7 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 		LIST_FORALL( state->outValBuffers[0], idx, PPARSE_BUFFER, buf ) {
 			Deallocate( const char *, buf->buf );
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buf );
-			Deallocate( char*, buf );
+			Deallocate( PPARSE_BUFFER, buf );
 		}
 		DeleteFromSet( PLIST, jpsd.listSet, state->outValBuffers );
 		//DeleteList( &state->outValBuffers );
