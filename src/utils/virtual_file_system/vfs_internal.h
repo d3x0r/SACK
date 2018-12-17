@@ -14,8 +14,8 @@
 #define BLOCK_SHIFT (BLOCK_SIZE_BITS-(sizeof(BLOCKINDEX)==16?4:sizeof(BLOCKINDEX)==8?3:sizeof(BLOCKINDEX)==4?2:sizeof(BLOCKINDEX)==2?1:0) )
 #define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
 #define BLOCK_MASK (BLOCK_SIZE-1) 
-#define BLOCKS_PER_BAT (BLOCK_SIZE/sizeof(BLOCKINDEX))
-#define BLOCKS_PER_SECTOR (1 + (BLOCK_SIZE/sizeof(BLOCKINDEX)))
+#define BLOCKS_PER_BAT (1<<BLOCK_SHIFT)
+#define BLOCKS_PER_SECTOR (1 + BLOCKS_PER_BAT)
 // per-sector perumation; needs to be a power of 2 (in bytes)
 #define SHORTKEY_LENGTH 16
 
@@ -70,13 +70,17 @@ typedef VFS_DISK_DATATYPE FPI; // file position type
 
 enum block_cache_entries
 {
-	BC(DIRECTORY)
+	BC( DIRECTORY )
 #ifdef VIRTUAL_OBJECT_STORE
-	, BC(DIRECTORY_LAST) = BC(DIRECTORY) + 64
+	, BC( DIRECTORY_LAST ) = BC( DIRECTORY ) + 64
 #endif
-	, BC(NAMES)
-	, BC(NAMES_LAST) = BC(NAMES) + 16
-	, BC(BAT)
+	, BC( NAMES )
+	, BC( NAMES_LAST ) = BC( NAMES ) + 16
+	, BC( BAT )
+#ifdef VIRTUAL_OBJECT_STORE
+	// keep a few tables for cache (file system too?)
+	, BC( BAT_LAST ) = BC( BAT ) + 4
+#endif
 	, BC(DATAKEY)
 	, BC(FILE)
 	, BC(FILE_LAST) = BC(FILE) + 10
@@ -142,6 +146,7 @@ PREFIX_PACKED struct volume {
 	const char * volname;
 #ifdef FILE_BASED_VFS
 	FILE *file;
+	struct file_system_mounted_interface *mount;
 #else
 	struct disk *disk;
 	struct disk *diskReal; // disk might be offset from diskReal because it's a .exe attached.
@@ -162,6 +167,7 @@ PREFIX_PACKED struct volume {
 	uint8_t fileCacheAge[BC(FILE_LAST) - BC(FILE)];
 #ifdef VIRTUAL_OBJECT_STORE
 	uint8_t dirHashCacheAge[BC(DIRECTORY_LAST) - BC(DIRECTORY)];
+	uint8_t batHashCacheAge[BC(BAT_LAST) - BC(BAT)];
 #endif
 	uint8_t nameCacheAge[BC(NAMES_LAST) - BC(NAMES)];
 
@@ -180,7 +186,8 @@ PREFIX_PACKED struct volume {
 	FLAGSET( _dirty, BC( COUNT ) );
 	FPI bufferFPI[BC(COUNT)];
 #endif
-
+	BLOCKINDEX lastBatBlock;
+	PDATALIST pdlFreeBlocks;
 	PLIST files; // when reopened file structures need to be updated also...
 	LOGICAL read_only;
 	LOGICAL external_memory;
@@ -209,6 +216,9 @@ struct sack_vfs_file
 	BLOCKINDEX _first_block;
 	BLOCKINDEX block; // this should be in-sync with current FPI always; plz
 	LOGICAL delete_on_close;  // someone already deleted this...
+	BLOCKINDEX *blockChain;
+	int blockChainAvail;
+	int blockChainLength;
 };
 
 #undef TSEEK
