@@ -3660,11 +3660,15 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						{
 						case SQLITE_BLOB:
 							//lprintf( "Got a blob..." );
+							text = (char*)sqlite3_column_blob( collection->stmt, idx - 1 );
+							colsize = sqlite3_column_bytes( collection->stmt, idx - 1 );
 							if( pvtData )vtprintf( pvtData, WIDE( "%s<binary>" ), idx>1?WIDE( "," ):WIDE( "" ) );
 							collection->results[idx-1] = NewArray( TEXTCHAR, collection->result_len[idx - 1] );
 							MemCpy( collection->results[idx-1], text, collection->result_len[idx - 1] );
 							break;
 						default:
+							text = (char*)sqlite3_column_text( collection->stmt, idx - 1 );
+							colsize = sqlite3_column_bytes( collection->stmt, idx - 1 );
 							if( collection->results[idx - 1] )
 								Release( collection->results[idx - 1] );
 							real_text = DupCStrLen( text, colsize );
@@ -3675,11 +3679,12 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 					}
 					else
 					{
-						if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), real_text?real_text:WIDE( "<NULL>" ) );
+						text = (char*)sqlite3_column_text( collection->stmt, idx - 1 );
+						colsize = sqlite3_column_bytes( collection->stmt, idx - 1 );
+						if( pvtData )VarTextAddData( pvtData, text?text:"<NULL>", text?colsize:6 );
 						//lprintf( WIDE( "... %p" ), text );
-						vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), real_text?real_text:WIDE( "" ) );
+						vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), text );
 						first=0;
-						Release( real_text );
 					}
 				}
 #endif
@@ -4748,6 +4753,7 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 		use_odbc->collection->flags.bTemporary = 0;
 
 		// ask the collector GetSQLResult to build our sort of data...
+		use_odbc->collection->ppdlResults = NULL;
 		use_odbc->collection->flags.bBuildResultArray = 0;
 
 		// go ahead, open connection, issue command, get some data
