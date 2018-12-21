@@ -1031,8 +1031,10 @@ static void httpConnected( PCLIENT pc, int error ) {
 
 HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 {
+	int retries = 0;
 	if( !address )
 		return NULL;
+	for( retries = 0; retries < 3; retries++ )
 	{
 		PCLIENT pc;
 		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
@@ -1069,6 +1071,7 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 				}
 			}
 			VarTextDestroy( &pvtOut );
+
 			return state;
 		}
 	}
@@ -1077,8 +1080,10 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 
 HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 {
+	int retries;
 	if( !address )
 		return NULL;
+	for( retries = 0; retries < 3; retries++ )
 	{
 		struct HttpState *state = CreateHttpState();
 		static PCLIENT pc;
