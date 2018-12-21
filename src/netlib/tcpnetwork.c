@@ -121,7 +121,7 @@ void AcceptClient(PCLIENT pListen)
 										, pNewClient->saClient
 										,&nTemp
 										);
-	//lprintf( "Accept new client....%d", pNewClient->Socket );
+	//lprintf( "Accept new client...%p %d", pNewClient, pNewClient->Socket );
 #if WIN32
 	SetHandleInformation( (HANDLE)pNewClient->Socket, HANDLE_FLAG_INHERIT, 0 );
 #endif
@@ -518,7 +518,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			                      , (((*(uint16_t*)lpAddr) == AF_INET)||((*(uint16_t*)lpAddr) == AF_INET6))?IPPROTO_TCP:0 );
 #endif
 #ifdef LOG_SOCKET_CREATION
-		lprintf( WIDE( "Created new socket %d" ), pResult->Socket );
+		lprintf( WIDE( "Created new socket %p %d" ), pResult, pResult->Socket );
 #endif
 		if (pResult->Socket==INVALID_SOCKET)
 		{
@@ -1301,7 +1301,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 (int)pc->lpFirstPending->dwAvail );
 			}
 #ifdef DEBUG_SOCK_IO
-			_lprintf(DBG_RELAY)( "Try to send... %d  %d", pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
+			_lprintf(DBG_RELAY)( "Try to send... %p  %d  %d", pc, pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
 #endif
 			nSent = send(pc->Socket,
 							 (char*)pc->lpFirstPending->buffer.c +
