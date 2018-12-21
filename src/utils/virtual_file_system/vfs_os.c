@@ -727,7 +727,7 @@ uintptr_t vfs_os_BSEEK_( struct volume *vol, BLOCKINDEX block, enum block_cache_
 static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS )
 {
 	size_t n;
-	int b = 0;
+	unsigned int b = 0;
 	enum block_cache_entries cache = BC( BAT );
 	BLOCKINDEX *current_BAT;// = TSEEK( BLOCKINDEX*, vol, 0, cache );
 	BLOCKINDEX *blockKey;
@@ -735,13 +735,13 @@ static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS )
 	if( vol->pdlFreeBlocks->Cnt ) {
 		BLOCKINDEX newblock = ((BLOCKINDEX*)GetDataItem( &vol->pdlFreeBlocks, vol->pdlFreeBlocks->Cnt - 1 ))[0];
 		check_val = 0;
-		b = newblock / BLOCKS_PER_SECTOR;
+		b = (unsigned int)(newblock / BLOCKS_PER_SECTOR);
 		n = newblock % BLOCKS_PER_SECTOR;
 		vol->pdlFreeBlocks->Cnt--;
 	}
 	else {
 		check_val = EOBBLOCK;
-		b = vol->lastBatBlock / BLOCKS_PER_SECTOR;
+		b = (unsigned int)(vol->lastBatBlock / BLOCKS_PER_SECTOR);
 		n = vol->lastBatBlock % BLOCKS_PER_SECTOR;
 	}
 	//lprintf( "check, start, b, n %d %d %d %d", (int)check_val, (int) vol->lastBatBlock, (int)b, (int)n );
@@ -1055,10 +1055,10 @@ void sack_vfs_os_unload_volume( struct volume * vol ) {
 
 void sack_vfs_os_shrink_volume( struct volume * vol ) {
 	size_t n;
-	int b = 0;
+	unsigned int b = 0;
 	//int found_free; // this block has free data; should be last BAT?
 	BLOCKINDEX last_block = 0;
-	int last_bat = 0;
+	unsigned int last_bat = 0;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *current_BAT = TSEEK( BLOCKINDEX*, vol, 0, cache );
 	if( !current_BAT ) return; // expand failed, tseek failed in response, so don't do anything
@@ -1296,7 +1296,7 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 				struct directory_entry *entkey = dirblockkey->entries + (n=curName);
 				struct directory_entry *entry = dirblock->entries + n;
 				//const char * testname;
-				FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
+				FPI name_ofs = ( next_entries[n].name_offset ^ entkey->name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
 		        
 				//if( filename && !name_ofs )	return FALSE; // done.
 				if(0)
@@ -1488,7 +1488,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 					FPI name_ofs;
 					entry = dirblock->entries + (f);
 					entkey = dirblockkey->entries + (f);
-					name = entry->name_offset ^ entkey->name_offset;
+					name = ( entry->name_offset ^ entkey->name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
 					if( namebuffer[name] == imax ) {
 						int namelen;
 						newEntry = newDirblock->entries + (nf);
@@ -1555,7 +1555,6 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 				if( usedNames ) {
 					static uint8_t newnamebuffer[18 * 4096];
 					int newout = 0;
-					int otherf;
 					int min_name = BLOCK_SIZE + 1;
 					int _min_name = -1; // min found has to be after this one.
 					//lprintf( "%d names remained.", usedNames );
@@ -1565,8 +1564,10 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 						FPI name;
 						entry = dirblock->entries + (f);
 						entkey = dirblockkey->entries + (f);
-						name = entry->name_offset ^ entkey->name_offset;
-						entry->name_offset = newout ^ entkey->name_offset;
+						name = ( entry->name_offset ^ entkey->name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
+						entry->name_offset = ( newout ^ entkey->name_offset ) 
+							| ( (entry->name_offset ^ entkey->name_offset) 
+								& ~DIRENT_NAME_OFFSET_OFFSET );
 						while( namebuffer[name] != 0xFE )
 							newnamebuffer[newout++] = namebuffer[name++];
 						newnamebuffer[newout++] = namebuffer[name++];
@@ -1662,7 +1663,7 @@ static struct directory_entry * _os_GetNewDirectory( struct volume *vol, const c
 			for( n = 0; USS_LT( n, size_t, usedNames, int ); n++ ) {
 				ent = dirblock->entries + (n);
 				entkey = dirblockkey->entries + (n);
-				name_ofs = ent->name_offset ^ entkey->name_offset;
+				name_ofs = ( ent->name_offset ^ entkey->name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
 				first_blk = ent->first_block ^ entkey->first_block;
 				// not name_offset (end of list) or not first_block(free entry) use this entry
 				//if( name_ofs && (first_blk > 1) )  continue;
@@ -1715,6 +1716,20 @@ struct sack_vfs_file * CPROC sack_vfs_os_openfile( struct volume *vol, const cha
 	if( !_os_ScanDirectory( vol, filename, 0, NULL, file, 0 ) ) {
 		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Deallocate( struct sack_vfs_file *, file ); return NULL; }
 		else _os_GetNewDirectory( vol, filename, file );
+	}
+	{
+		BLOCKINDEX offset = (file->entry->name_offset ^ file->dirent_key.name_offset);
+		uint32_t sealLen = (offset & DIRENT_NAME_OFFSET_FLAG_SEALANT) >> DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT;
+		if( sealLen ) {
+			file->sealant = NewArray( uint8_t, sealLen );
+			file->sealantLen = sealLen;
+		}
+		else {
+			file->sealant = NULL;
+			file->sealantLen = 0;
+		}
+		file->filename = StrDup( filename );
+		file->sealed = FALSE;
 	}
 	file->vol = vol;
 	file->fpi = 0;
@@ -1855,11 +1870,43 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 			length = 0;
 		}
 	}
+	if( file->sealant && (void*)file->sealant != (void*)data ) {
+		BLOCKINDEX saveSize = file->entry->filesize;
+		BLOCKINDEX saveFpi = file->fpi;
+		sack_vfs_os_write( file, (char*)file->sealant, file->sealantLen );
+		file->entry->filesize = saveSize;
+		file->fpi = saveFpi;
+	}
 	if( updated ) {
 		SETFLAG( file->vol->dirty, file->cache ); // directory cache block (locked)
 	}
 	file->vol->lock = 0;
 	return written;
+}
+
+static LOGICAL ValidateSeal( struct sack_vfs_file *file, char *data, size_t length ) {
+	BLOCKINDEX offset = (file->entry->name_offset ^ file->dirent_key.name_offset);
+	uint32_t sealLen = ( offset & DIRENT_NAME_OFFSET_FLAG_SEALANT ) >> DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT;
+	struct random_context *signEntropy;// = (struct random_context *)DequeLink( &signingEntropies );
+	uint8_t outbuf[32];
+
+	signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
+	SRG_ResetEntropy( signEntropy );
+	SRG_FeedEntropy( signEntropy, (const uint8_t*)data, length );
+	SRG_FeedEntropy( signEntropy, (const uint8_t*)file->sealant, file->sealantLen );
+
+	SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
+
+	SRG_DestroyEntropy( &signEntropy );
+	{
+		LOGICAL success = FALSE;
+		size_t len;
+		char *rid = EncodeBase64Ex( outbuf, 256 / 8, &len, (const char *)1 );
+		if( StrCmp( file->filename, rid ) == 0 )
+			success = TRUE;
+		Deallocate( char *, rid );
+		return success;
+	}
 }
 
 size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t length ) {
@@ -1908,6 +1955,16 @@ size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t l
 			file->fpi += length;
 			length = 0;
 		}
+	}
+	if( file->sealant
+		&& (void*)file->sealant != (void*)data
+		&& length == ( file->entry->filesize ^ file->dirent_key.filesize ) ) {
+		BLOCKINDEX saveSize = file->entry->filesize;
+		BLOCKINDEX saveFpi = file->fpi;
+		sack_vfs_os_read( file, (char*)file->sealant, file->sealantLen );
+		file->entry->filesize = saveSize;
+		file->fpi = saveFpi;
+		file->sealed = ValidateSeal( file, data, length );
 	}
 	file->vol->lock = 0;
 	return written;
@@ -2015,6 +2072,9 @@ int CPROC sack_vfs_os_close( struct sack_vfs_file *file ) {
 		if( !testFile )
 			RESETFLAG( file->vol->seglock, file->cache );
 	}
+	Deallocate( char *, file->filename );
+	if( file->sealant )
+		Deallocate( uint8_t*, file->sealant );
 	file->vol->lock = 0;
 	if( file->vol->closed ) sack_vfs_os_unload_volume( file->vol );
 	Deallocate( struct sack_vfs_file *, file );
@@ -2111,7 +2171,7 @@ static int _os_iterate_find( struct find_info *_info ) {
 		next_entries = dirBlock->entries;
 		for( n = (int)node.thisent; n < (dirBlock->used_names ^ dirBlockKey->used_names); n++ ) {
 			struct directory_entry *entkey = ( info->vol->key)?((struct directory_hash_lookup_block *)info->vol->usekey[cache])->entries+n:&l.zero_entkey;
-			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
+			FPI name_ofs = ( next_entries[n].name_offset ^ entkey->name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
 			const char *filename;
 			int l;
 
@@ -2225,6 +2285,48 @@ LOGICAL CPROC sack_vfs_os_rename( uintptr_t psvInstance, const char *original, c
 	return FALSE;
 }
 
+
+void CPROC sack_vfs_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
+	//va_list args;
+	//va_start( args, opCode );
+	switch( opCode ) {
+	default:
+		// unhandled/ignored opcode
+		break;
+	case SFSIO_TAMPERED:
+		{
+			struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
+			int *result = va_arg( args, int* );
+
+			if( file->sealant )
+				(*result) = file->sealed;
+			(*result) = 1;
+		}
+		break;
+	case SFSIO_PROVIDE_SEALANT:
+		{
+			const char *sealant = va_arg( args, const char * );
+			size_t sealantLen = va_arg( args, size_t );
+			struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
+			{
+				size_t len;
+				uint8_t *bytes;
+				bytes = DecodeBase64Ex( sealant, sealantLen, &len, (const char*)1 );
+				file->sealant = NewArray( uint8_t, len );
+				memcpy( file->sealant, bytes, len );
+				file->sealantLen = (uint8_t)len;
+				//file->sealant = sealant;
+				//file->sealantLen = sealantLen;
+
+				// set the sealant length in the name offset.
+				file->entry->name_offset = ( ( ( file->entry->name_offset ^ file->dirent_key.name_offset )
+					| ( ( len >> 2 ) << 17 ) ) ^ file->dirent_key.name_offset );
+			}
+		}
+		break;
+	}
+}
+
 #ifndef USE_STDIO
 static struct file_system_interface sack_vfs_os_fsi = {
                                                      (void*(CPROC*)(uintptr_t,const char *, const char*))sack_vfs_os_open
@@ -2248,6 +2350,7 @@ static struct file_system_interface sack_vfs_os_fsi = {
                                                    , sack_vfs_os_find_is_directory
                                                    , sack_vfs_os_is_directory
                                                    , sack_vfs_os_rename
+                                                   , sack_vfs_ioctl
                                                    };
 
 PRIORITY_PRELOAD( Sack_VFS_OS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )

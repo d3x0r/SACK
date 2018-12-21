@@ -2520,6 +2520,21 @@ int sack_fputs( const char *format,FILE *file )
 	return 0;
 }
 
+void sack_ioctl( FILE *file_handle, uintptr_t opCode, ... ) {
+	struct file *file;
+	va_list args;
+	va_start( args, opCode );
+	file = FindFileByFILE( file_handle );
+
+	if( file && file->mount && file->mount->fsi && file->mount->fsi->ioctl ) {
+			file->mount->fsi->ioctl( (uintptr_t)file_handle, opCode, args );
+	}
+	else {
+		 // unknown file handle; ignore unknown ioctl.
+	}
+
+}
+
 LOGICAL SetFileLength( CTEXTSTR path, size_t length )
 {
 #ifdef __LINUX__

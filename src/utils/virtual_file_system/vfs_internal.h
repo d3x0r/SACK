@@ -83,10 +83,17 @@ enum block_cache_entries
 #endif
 	, BC(DATAKEY)
 	, BC(FILE)
-	, BC(FILE_LAST) = BC(FILE) + 10
+	, BC(FILE_LAST) = BC(FILE) + 32
 	, BC(COUNT)
 };
 
+// could effecitvely be fewer than this
+// 82 dirents * 512 byte names = 40000
+#define DIRENT_NAME_OFFSET_OFFSET        0x0001FFFF
+// (sealant length / 4)  (mulitply by 4 to get real length)
+#define DIRENT_NAME_OFFSET_FLAG_SEALANT  0x003E0000
+#define DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT 17
+#define DIRENT_NAME_OFFSET_UNUSED        0xFFC00000
 
 PREFIX_PACKED struct directory_entry
 {
@@ -115,7 +122,6 @@ PREFIX_PACKED struct directory_hash_lookup_block
 } PACKED;
 
 
-
 struct disk
 {
 	// BAT is at 0 of every BLOCK_SIZE blocks (4097 total)
@@ -129,7 +135,6 @@ struct disk
 	//char  names[BLOCK_SIZE/sizeof(char)];
 	uint8_t  block_data[BLOCKS_PER_BAT][BLOCK_SIZE];
 };
-
 
 
 #ifdef SACK_VFS_FS_SOURCE
@@ -204,6 +209,10 @@ struct sack_vfs_file
 	FPI entry_fpi;  // where to write the directory entry update to
 #ifdef VIRTUAL_OBJECT_STORE
 	enum block_cache_entries cache;
+	uint8_t *sealant;
+	uint8_t sealantLen;
+	uint8_t sealed; // boolean, on read, validates seal.  Defaults to FALSE.
+	char *filename;
 #endif
 	struct directory_entry _entry;  // has file size within
 	struct directory_entry *entry;  // has file size within
@@ -217,8 +226,8 @@ struct sack_vfs_file
 	BLOCKINDEX block; // this should be in-sync with current FPI always; plz
 	LOGICAL delete_on_close;  // someone already deleted this...
 	BLOCKINDEX *blockChain;
-	int blockChainAvail;
-	int blockChainLength;
+	unsigned int blockChainAvail;
+	unsigned int blockChainLength;
 };
 
 #undef TSEEK

@@ -139,8 +139,10 @@ static void MaskStrCpy( char *output, size_t outlen, struct volume *vol, FPI nam
 static void ExtendBlockChain( struct sack_vfs_file *file ) {
 	int newSize = ( file->blockChainAvail ) * 2 + 1;
 	file->blockChain = (BLOCKINDEX*)Reallocate( file->blockChain, newSize * sizeof( BLOCKINDEX ) );
+#ifdef _DEBUG
 	// debug
 	memset( file->blockChain + file->blockChainAvail, 0, (newSize - file->blockChainAvail ) * sizeof(BLOCKINDEX) );
+#endif
 	file->blockChainAvail = newSize;
 	
 }
@@ -154,15 +156,12 @@ static void SetBlockChain( struct sack_vfs_file *file, FPI fpi, BLOCKINDEX newBl
 		ExtendBlockChain( file );
 	}
 	if( fileBlock >= file->blockChainLength )
-		file->blockChainLength = fileBlock + 1;
+		file->blockChainLength = (unsigned int)(fileBlock + 1);
 	//_lprintf(DBG_RELAY)( "setting %d to %d", (int)fileBlock, (int)newBlock );
 	if( file->blockChain[fileBlock] ) {
 		if( file->blockChain[fileBlock] == newBlock ) {
 			return;
 		}
-#ifdef _DEBUG
-		DebugBreak();
-#endif
 	}
 	file->blockChain[fileBlock] = newBlock;
 }
@@ -567,7 +566,7 @@ uintptr_t vfs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entr
 static BLOCKINDEX GetFreeBlock( struct volume *vol, int init )
 {
 	size_t n;
-	int b = 0;
+	unsigned int b = 0;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *current_BAT = TSEEK( BLOCKINDEX*, vol, 0, cache );
 	BLOCKINDEX *blockKey;
@@ -575,13 +574,13 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, int init )
 	if( vol->pdlFreeBlocks->Cnt ) {
 		BLOCKINDEX newblock = ((BLOCKINDEX*)GetDataItem( &vol->pdlFreeBlocks, vol->pdlFreeBlocks->Cnt - 1 ))[0];
 		check_val = 0;
-		b = newblock / BLOCKS_PER_SECTOR;
+		b = (unsigned int)(newblock / BLOCKS_PER_SECTOR);
 		n = newblock % BLOCKS_PER_SECTOR;
 		vol->pdlFreeBlocks->Cnt--;
 	}
 	else {
 		check_val = EOBBLOCK;
-		b = vol->lastBatBlock / BLOCKS_PER_SECTOR;
+		b = (unsigned int)(vol->lastBatBlock / BLOCKS_PER_SECTOR);
 		n = vol->lastBatBlock % BLOCKS_PER_SECTOR;
 	}
 	//lprintf( "check, start, b, n %d %d %d %d", (int)check_val, (int) vol->lastBatBlock, (int)b, (int)n );
@@ -652,6 +651,7 @@ static BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int in
 			BLOCKINDEX key;
 			check_val = GetFreeBlock( vol, init );
 			// free block might have expanded...
+			cache = BC( BAT );
 			this_BAT = TSEEK( BLOCKINDEX*, vol, sector * ( BLOCKS_PER_SECTOR*BLOCK_SIZE ), cache );
 			key = vol->key ? ((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT - 1)] : 0;
 			if( !this_BAT ) return 0;
@@ -836,10 +836,10 @@ void sack_vfs_unload_volume( struct volume * vol ) {
 
 void sack_vfs_shrink_volume( struct volume * vol ) {
 	size_t n;
-	int b = 0;
+	unsigned int b = 0;
 	//int found_free; // this block has free data; should be last BAT?
 	BLOCKINDEX last_block = 0;
-	int last_bat = 0;
+	unsigned int last_bat = 0;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *current_BAT = TSEEK( BLOCKINDEX*, vol, 0, cache );
 	if( !current_BAT ) return; // expand failed, tseek failed in response, so don't do anything
