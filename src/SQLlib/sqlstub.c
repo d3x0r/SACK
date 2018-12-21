@@ -3374,6 +3374,9 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							default:
 								lprintf( "Unhandled SQLITE type: %d", coltype );
 								break;
+							case SQLITE_NULL:
+								val->value_type = VALUE_NULL;
+								break;
 							case SQLITE_BLOB:
 								val->value_type = VALUE_TYPED_ARRAY;
 								break;
@@ -4161,7 +4164,7 @@ static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
 	INDEX idx;
 	struct json_value_container *val;
 	DATA_FORALL( pdlItems, idx, struct json_value_container *, val ) {
-		int useIndex = idx + 1;
+		int useIndex = (int)(idx + 1);
 		int rc;
 		if( val->name ) {
 			useIndex = sqlite3_bind_parameter_index( db, val->name );
@@ -4182,10 +4185,10 @@ static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
 			}
 			break;
 		case VALUE_TYPED_ARRAY:
-			rc = sqlite3_bind_blob( db, useIndex, val->string, val->stringLen, NULL );
+			rc = sqlite3_bind_blob( db, useIndex, val->string, (int)val->stringLen, NULL );
 			break;
 		case VALUE_STRING:
-			rc = sqlite3_bind_text( db, useIndex, val->string, val->stringLen, NULL );
+			rc = sqlite3_bind_text( db, useIndex, val->string, (int)val->stringLen, NULL );
 			break;
 		}
 		if( rc )
@@ -4595,7 +4598,7 @@ int SQLRecordQuery_js( PODBC odbc
 		// if it was temporary, it shouldn't be anymore
 		use_odbc->collection->flags.bTemporary = 0;
 		// ask the collector to build the type of result set we want...
-		use_odbc->collection->flags.bBuildResultArray = 1;
+		use_odbc->collection->flags.bBuildResultArray = 0;
 		use_odbc->collection->ppdlResults = pdlResults;
 		// this will do an open, and delay queue processing and all sorts
 		// of good fun stuff...
@@ -4608,6 +4611,8 @@ int SQLRecordQuery_js( PODBC odbc
 	}
 	else if( use_odbc->collection->responce == WM_SQL_RESULT_NO_DATA )
 	{
+		use_odbc->collection->ppdlResults = NULL;
+		DeleteDataList( pdlResults );
 		return TRUE;
 	}
 	return FALSE;
