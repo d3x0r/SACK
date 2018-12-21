@@ -3668,7 +3668,7 @@ static void encodeblock( unsigned char in[3], TEXTCHAR out[4], size_t len, const
 	out[3] = (len > 2 ? base64[ in[2] & 0x3f ] : base64[64]);
 }
 
-static void decodeblock( char in[4], uint8_t out[3], size_t len, const char *base64 )
+static void decodeblock( const char in[4], uint8_t out[3], size_t len, const char *base64 )
 {
 	int index[4];
 	int n;
@@ -3686,7 +3686,7 @@ static void decodeblock( char in[4], uint8_t out[3], size_t len, const char *bas
 	//out[] = (len > 2 ? base64[ in[2] & 0x3f ] : 0);
 }
 
-TEXTCHAR *EncodeBase64Ex( uint8_t* buf, size_t length, size_t *outsize, const char *base64 )
+TEXTCHAR *EncodeBase64Ex( const uint8_t* buf, size_t length, size_t *outsize, const char *base64 )
 {
 	size_t fake_outsize;
 	TEXTCHAR * real_output;
@@ -3724,7 +3724,7 @@ static void setupDecodeBytes( const char *code ) {
 	}
 }
 
-uint8_t *DecodeBase64Ex( char* buf, size_t length, size_t *outsize, const char *base64 )
+uint8_t *DecodeBase64Ex( const char* buf, size_t length, size_t *outsize, const char *base64 )
 {
 	size_t fake_outsize;
 	uint8_t * real_output;
