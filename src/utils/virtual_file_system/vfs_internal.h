@@ -108,18 +108,12 @@ PREFIX_PACKED struct directory_entry
 // subtract name has index
 // subtrace name index 
 #define VFS_DIRECTORY_ENTRIES ( ( BLOCK_SIZE - ( 2*sizeof(BLOCKINDEX) + 256*sizeof(BLOCKINDEX)) ) /sizeof( struct directory_entry) )
+#define VFS_PATCH_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
 #else
 #define VFS_DIRECTORY_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
+#define VFS_PATCH_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
 #endif
 
-
-PREFIX_PACKED struct directory_hash_lookup_block
-{
-	BLOCKINDEX next_block[256];
-	struct directory_entry entries[VFS_DIRECTORY_ENTRIES];
-	BLOCKINDEX names_first_block;
-	uint8_t used_names;
-} PACKED;
 
 
 struct disk

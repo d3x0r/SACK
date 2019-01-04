@@ -99,9 +99,70 @@ static struct {
 #define EOFBLOCK  (~(BLOCKINDEX)0)
 #define EOBBLOCK  ((BLOCKINDEX)1)
 #define EODMARK   (1)
-#define GFB_INIT_NONE   0
-#define GFB_INIT_DIRENT 1
-#define GFB_INIT_NAMES  2
+#define GFB_INIT_NONE       0
+#define GFB_INIT_DIRENT     1
+#define GFB_INIT_NAMES      2
+#define GFB_INIT_PATCHBLOCK 3
+// End Of Text Block
+#define UTF8_EOTB 0xFF
+// End Of Text
+#define UTF8_EOT 0xFE
+
+// use this character in hash as parent directory (block & char)
+#define DIRNAME_CHAR_PARENT 0xFF
+
+
+
+PREFIX_PACKED struct directory_hash_lookup_block
+{
+	BLOCKINDEX next_block[256];
+	struct directory_entry entries[VFS_DIRECTORY_ENTRIES];
+	BLOCKINDEX names_first_block;
+	uint8_t used_names;
+} PACKED;
+
+PREFIX_PACKED struct directory_patch_block
+{
+	union direction_patch_block_entry_union {
+		struct direction_patch_block_entry {
+			BIT_FIELD index : 8;
+			BIT_FIELD hash_block : 24;
+		} dirIndex;
+		uint32_t raw;
+	}entries[(BLOCK_SIZE-sizeof(BLOCKINDEX))/sizeof(uint32_t)];
+	uint8_t usedEntries;
+	BLOCKINDEX morePatches;
+} PACKED;
+
+
+PREFIX_PACKED struct directory_patch_ref_block
+{
+	PREFIX_PACKED struct directory_patch_ref_entry {
+		BLOCKINDEX patchBlockStart;
+		BLOCKINDEX dirBlock; // first patch block 
+		uint16_t patchNum;
+		uint8_t dirEntry; // which directory entry this patches
+	} entries[(BLOCK_SIZE)/sizeof( struct directory_patch_ref_entry )] PACKED;
+} PACKED;
+
+
+enum {
+	SACK_VFS_OS_SEAL_NONE = 0,
+	SACK_VFS_OS_SEAL_LOAD,
+	SACK_VFS_OS_SEAL_VALID,
+	SACK_VFS_OS_SEAL_STORE,
+	SACK_VFS_OS_SEAL_INVALID,  // validate failed (read whole file check)
+	SACK_VFS_OS_SEAL_CLEARED,  // stored patch is writeable
+	SACK_VFS_OS_SEAL_STORE_PATCH,  // stored patch new sealant (after read valid, new write)
+};
+
+
+PREFIX_PACKED struct sealant_suffix {
+	BLOCKINDEX firstPatchBlock;
+	BLOCKINDEX patchRefBlock; // first patch block 
+	uint16_t patchRefIndex; // patch entry that this is a patch to.
+}PACKED;
+
 
 static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS );
 #define _os_GetFreeBlock(v,i) _os_GetFreeBlock_(v,i DBG_SRC )
@@ -148,10 +209,10 @@ static int  _os_PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
 			return 1;
 	if( s1 == s2 )
 		return 0; // ==0 is success.
-	for( ;s1[0] && (s2[0] != 0xFE) && (s1[0] == s2[0]) && maxlen;
+	for( ;s1[0] && ((unsigned char)s2[0] != UTF8_EOT) && (s1[0] == s2[0]) && maxlen;
 		  s1++, s2++, maxlen-- );
 	if( maxlen )
-		return tolower_(s1[0]) - ((s2[0] == 0xFE)?0:tolower_(s2[0]));
+		return tolower_(s1[0]) - (((unsigned char)s2[0] == UTF8_EOT)?0:tolower_(s2[0]));
 	return 0;
 }
 
@@ -688,9 +749,6 @@ LOGICAL _os_ExpandVolume( struct volume *vol ) {
 		vol->bufferFPI[BC( BAT )] = 0;
 		{
 			BLOCKINDEX dirblock = _os_GetFreeBlock( vol, GFB_INIT_DIRENT );
-			enum block_cache_entries cache = BC(DIRECTORY);
-			struct directory_hash_lookup_block *dir = BTSEEK( struct directory_hash_lookup_block *, vol, dirblock, cache );
-			SETFLAG( vol->dirty, cache );
 		}
 	}
 
@@ -779,16 +837,14 @@ static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS )
 
 			dir = (struct directory_hash_lookup_block *)vol->usekey_buffer[newcache];
 			dirkey = (struct directory_hash_lookup_block *)vol->usekey[newcache];
-			LoG( "And then create a name block" );
 			dir->names_first_block = _os_GetFreeBlock( vol, GFB_INIT_NAMES ) ^ dirkey->names_first_block;
-			LoG( "dir cache is %d", newcache );
 			dir->used_names = 0 ^ dirkey->used_names;
 			//((struct directory_hash_lookup_block*)(vol->usekey_buffer[newcache]))->entries[0].first_block = EODMARK ^ ((struct directory_hash_lookup_block*)vol->usekey[cache])->entries[0].first_block;
 		}
 		else if( init == GFB_INIT_NAMES ) {
 			newcache = _os_UpdateSegmentKey_( vol, BC( NAMES ), b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
 			memset( vol->usekey_buffer[newcache], 0, BLOCK_SIZE );
-			((char*)(vol->usekey_buffer[newcache]))[0] = (char)0xFF ^ ((char*)vol->usekey[newcache])[0];
+			((char*)(vol->usekey_buffer[newcache]))[0] = (char)UTF8_EOTB ^ ((char*)vol->usekey[newcache])[0];
 			//LoG( "New Name Buffer: %x %p", vol->segment[newcache], vol->usekey_buffer[newcache] );
 		}
 		else {
@@ -1369,7 +1425,7 @@ static FPI _os_SaveFileName( struct volume *vol, BLOCKINDEX firstNameBlock, cons
 		while( name < ( (unsigned char*)names + BLOCK_SIZE ) ) {
 			int c = name[0];
 			if( vol->key ) c = c ^ vol->usekey[cache][(uintptr_t)name-(uintptr_t)names];
-			if( c == 0xFF ) {
+			if( (unsigned char)c == UTF8_EOTB ) {
 				if( namelen < (size_t)( ( (unsigned char*)names + BLOCK_SIZE ) - name ) ) {
 					//LoG( "using unused entry for new file...%" _size_f " %d(%d)  %" _size_f " %s", this_name_block, cache, cache - BC(NAMES), (uintptr_t)name - (uintptr_t)names, filename );
 					if( vol->key ) {						
@@ -1378,8 +1434,8 @@ static FPI _os_SaveFileName( struct volume *vol, BLOCKINDEX firstNameBlock, cons
 					} else
 						memcpy( name, filename, namelen );
 
-					name[namelen+0] = 0xFE ^ vol->usekey[cache][(uintptr_t)name - (uintptr_t)names + namelen+0];
-					name[namelen+1] = 0xFF ^ vol->usekey[cache][(uintptr_t)name - (uintptr_t)names + namelen+1];
+					name[namelen+0] = UTF8_EOT ^ vol->usekey[cache][(uintptr_t)name - (uintptr_t)names + namelen+0];
+					name[namelen+1] = UTF8_EOTB ^ vol->usekey[cache][(uintptr_t)name - (uintptr_t)names + namelen+1];
 					SETFLAG( vol->dirty, cache );
 					//lprintf( "OFFSET:%d %d", ((uintptr_t)name) - ((uintptr_t)names), +blocks * BLOCK_SIZE );
 					return ((uintptr_t)name) - ((uintptr_t)names) + blocks * BLOCK_SIZE;
@@ -1457,6 +1513,8 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 			dirblock->next_block[imax]
 				= ( new_dir_block 
 				  = _os_GetFreeBlock( vol, GFB_INIT_DIRENT ) ) ^ dirblockkey->next_block[imax];
+
+
 			SETFLAG( vol->dirty, cache );
 			{
 				struct directory_hash_lookup_block *newDirblock;
@@ -1476,6 +1534,8 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 				if( !newDirblock->names_first_block )
 					DebugBreak();
 #endif
+				newDirblock->next_block[DIRNAME_CHAR_PARENT] = (this_dir_block << 8) | imax;
+
 				// SETFLAG( vol->dirty, cache ); // this will be dirty because it was init above.
 
 				for( f = 0; f < usedNames; f++ ) {
@@ -1572,12 +1632,12 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 							newnamebuffer[newout++] = namebuffer[name++];
 						newnamebuffer[newout++] = namebuffer[name++];
 					}
-					newnamebuffer[newout++] = 0xFF;
+					newnamebuffer[newout++] = UTF8_EOTB;
 					memcpy( namebuffer, newnamebuffer, newout );
 					memset( newnamebuffer, 0, newout );
 				}
 				else {
-					namebuffer[0] = 0xFF;
+					namebuffer[0] = UTF8_EOTB;
 				}
 				{
 					name_block = dirblock->names_first_block ^ dirblockkey->names_first_block;
@@ -1723,13 +1783,14 @@ struct sack_vfs_file * CPROC sack_vfs_os_openfile( struct volume *vol, const cha
 		if( sealLen ) {
 			file->sealant = NewArray( uint8_t, sealLen );
 			file->sealantLen = sealLen;
+			file->sealed = SACK_VFS_OS_SEAL_LOAD;
 		}
 		else {
 			file->sealant = NULL;
 			file->sealantLen = 0;
+			file->sealed = SACK_VFS_OS_SEAL_NONE;
 		}
 		file->filename = StrDup( filename );
-		file->sealed = FALSE;
 	}
 	file->vol = vol;
 	file->fpi = 0;
@@ -1805,6 +1866,7 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 	size_t ofs = file->fpi & BLOCK_MASK;
 	LOGICAL updated = FALSE;
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
+	if( file->entry->name_offset &  )
 #ifdef DEBUG_FILE_OPS
 	LoG( "Write to file %p %" _size_f "  @%" _size_f, file, length, ofs );
 #endif
@@ -1899,11 +1961,11 @@ static LOGICAL ValidateSeal( struct sack_vfs_file *file, char *data, size_t leng
 
 	SRG_DestroyEntropy( &signEntropy );
 	{
-		LOGICAL success = FALSE;
+		LOGICAL success = SACK_VFS_OS_SEAL_INVALID;
 		size_t len;
 		char *rid = EncodeBase64Ex( outbuf, 256 / 8, &len, (const char *)1 );
 		if( StrCmp( file->filename, rid ) == 0 )
-			success = TRUE;
+			success = SACK_VFS_OS_SEAL_VALID;
 		Deallocate( char *, rid );
 		return success;
 	}
@@ -1961,10 +2023,67 @@ size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t l
 		&& length == ( file->entry->filesize ^ file->dirent_key.filesize ) ) {
 		BLOCKINDEX saveSize = file->entry->filesize;
 		BLOCKINDEX saveFpi = file->fpi;
+		file->entry->filesize = ((file->entry->filesize
+			^ file->dirent_key.filesize) + file->sealantLen + sizeof( BLOCKINDEX ))
+			^ file->dirent_key.filesize;
 		sack_vfs_os_read( file, (char*)file->sealant, file->sealantLen );
 		file->entry->filesize = saveSize;
 		file->fpi = saveFpi;
 		file->sealed = ValidateSeal( file, data, length );
+	}
+	file->vol->lock = 0;
+	return written;
+}
+
+static BLOCKINDEX sack_vfs_os_read_patches( struct sack_vfs_file *file ) {
+	size_t written = 0;
+	BLOCKINDEX saveFpi = file->fpi;
+	size_t length;
+	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
+
+	length = (size_t)(file->entry->filesize  ^ file->dirent_key.filesize);
+
+	if( !length ) { file->vol->lock = 0; return 0; }
+
+	sack_vfs_os_seek( file, length, SEEK_SET );
+
+	if( file->sealant ) {
+		BLOCKINDEX saveSize = file->entry->filesize;
+		BLOCKINDEX patches;
+		file->entry->filesize = ((file->entry->filesize
+			^ file->dirent_key.filesize) + file->sealantLen + sizeof( BLOCKINDEX ))
+			^ file->dirent_key.filesize;
+		sack_vfs_os_read( file, (char*)file->sealant, file->sealantLen );
+		sack_vfs_os_read( file, (char*)&patches, sizeof( BLOCKINDEX ) );
+		file->entry->filesize = saveSize;
+		file->fpi = saveFpi;
+		file->sealed = SACK_VFS_OS_SEAL_LOAD;
+		return patches;
+	}
+	file->vol->lock = 0;
+	return written;
+}
+
+static size_t sack_vfs_os_set_patch_block( struct sack_vfs_file *file, BLOCKINDEX patchBlock ) {
+	size_t written = 0;
+	size_t length;
+	BLOCKINDEX saveFpi = file->fpi;
+	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
+	length = (size_t)(file->entry->filesize  ^ file->dirent_key.filesize);
+
+	if( !length ) { file->vol->lock = 0; return 0; }
+
+	sack_vfs_os_seek( file, length, SEEK_SET );
+
+	if( file->sealant ) {
+		BLOCKINDEX saveSize = file->entry->filesize;
+		file->entry->filesize = ((file->entry->filesize
+			^ file->dirent_key.filesize) + file->sealantLen + sizeof( BLOCKINDEX ))
+			^ file->dirent_key.filesize;
+		sack_vfs_os_seek( file, file->sealantLen, SEEK_CUR );
+		sack_vfs_os_write( file, (char*)&patchBlock, sizeof( BLOCKINDEX ) );
+		file->entry->filesize = saveSize;
+		file->fpi = saveFpi;
 	}
 	file->vol->lock = 0;
 	return written;
@@ -2286,24 +2405,32 @@ LOGICAL CPROC sack_vfs_os_rename( uintptr_t psvInstance, const char *original, c
 }
 
 
-void CPROC sack_vfs_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
+void CPROC sack_vfs_file_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
 	//va_list args;
 	//va_start( args, opCode );
 	switch( opCode ) {
 	default:
 		// unhandled/ignored opcode
 		break;
-	case SFSIO_TAMPERED:
+	case SFSFIO_TAMPERED:
 		{
 			struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
 			int *result = va_arg( args, int* );
 
-			if( file->sealant )
-				(*result) = file->sealed;
-			(*result) = 1;
+			if( file->sealant ) {
+				switch( file->sealed ) {
+				case SACK_VFS_OS_SEAL_STORE:
+				case SACK_VFS_OS_SEAL_VALID:
+					(*result) = 1;
+				default:
+					(*result) = 0;
+				}
+			}
+			else
+				(*result) = 1;
 		}
 		break;
-	case SFSIO_PROVIDE_SEALANT:
+	case SFSFIO_PROVIDE_SEALANT:
 		{
 			const char *sealant = va_arg( args, const char * );
 			size_t sealantLen = va_arg( args, size_t );
@@ -2315,6 +2442,12 @@ void CPROC sack_vfs_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args
 				file->sealant = NewArray( uint8_t, len );
 				memcpy( file->sealant, bytes, len );
 				file->sealantLen = (uint8_t)len;
+				if( file->sealed == SACK_VFS_OS_SEAL_NONE )
+					file->sealed = SACK_VFS_OS_SEAL_STORE;
+				else if( file->sealed == SACK_VFS_OS_SEAL_VALID || file->sealed == SACK_VFS_OS_SEAL_LOAD )
+					file->sealed = SACK_VFS_OS_SEAL_STORE_PATCH;
+				else
+					lprintf( "Unhandled SEAL state." );
 				//file->sealant = sealant;
 				//file->sealantLen = sealantLen;
 
@@ -2322,6 +2455,149 @@ void CPROC sack_vfs_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args
 				file->entry->name_offset = ( ( ( file->entry->name_offset ^ file->dirent_key.name_offset )
 					| ( ( len >> 2 ) << 17 ) ) ^ file->dirent_key.name_offset );
 			}
+		}
+		break;
+	}
+}
+
+
+void CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
+	struct volume *vol = (struct volume *)psvInstance;
+	//va_list args;
+	//va_start( args, opCode );
+	switch( opCode ) {
+	default:
+		// unhandled/ignored opcode
+		break;
+	case SFSSIO_LOAD_OBJECT:
+		break;
+	case SFSSIO_PATCH_OBJECT:
+		{
+			char *objIdBuf = va_arg( args, char * );
+			size_t objIdBufLen = va_arg( args, size_t );
+			char *objBuf = va_arg( args, char * );
+			size_t objBufLen = va_arg( args, size_t );
+			char *sealBuf = va_arg( args, char * );
+			size_t sealBufLen = va_arg( args, size_t );
+			char *idBuf = va_arg( args, char * );
+			size_t idBufLen = va_arg( args, size_t );
+
+			if( sack_vfs_os_exists( psvInstance, objIdBuf ) ) {
+				struct sack_vfs_file* file = sack_vfs_os_open( psvInstance, objIdBuf, "r" );
+				BLOCKINDEX patchBlock = sack_vfs_os_read_patches( file );
+				if( !patchBlock ) {
+					patchBlock = _os_GetFreeBlock( vol, GFB_INIT_PATCHBLOCK );
+				}
+				{
+
+					enum block_cache_entries cache = BC( DIRECTORY );
+					struct directory_patch_block *newPatchblock;
+					struct directory_patch_block *newPatchblockkey;
+					cache = BC( DIRECTORY );
+
+					newPatchblock = BTSEEK( struct directory_patch_block *, vol, patchBlock, cache );
+					newPatchblockkey = (struct directory_patch_block *)vol->usekey[cache];
+
+					while( 1 ) {
+						if( sealBuf ) {
+							struct random_context *signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
+							uint8_t outbuf[32];
+							SRG_ResetEntropy( signEntropy );
+							SRG_FeedEntropy( signEntropy, (const uint8_t*)objBuf, objBufLen );
+							SRG_FeedEntropy( signEntropy, (const uint8_t*)sealBuf, sealBufLen );
+							SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
+							SRG_DestroyEntropy( &signEntropy );
+							{
+								size_t len;
+								char *rid = EncodeBase64Ex( outbuf, 256 / 8, &len, (const char *)1 );
+								rid[43] = '~';
+								StrCpyEx( idBuf, rid, idBufLen );
+								Deallocate( char*, rid );
+							}
+						}
+						else {
+							char *objid = SRG_ID_Generator3();
+							objid[43] = 0;
+							StrCpyEx( idBuf, objid, idBufLen );
+							Deallocate( char*, objid );
+						}
+						if( sack_vfs_os_exists( psvInstance, idBuf ) ) {
+							if( !sealBuf ) { // accidental key collision. 
+								continue; // try again.
+							}
+							else {
+								// deliberate key collision; and record already exists.
+								return TRUE;
+							}
+						}
+						else {
+							struct sack_vfs_file* file = sack_vfs_os_open( psvInstance, idBuf, "w" );
+
+							//  file->entry_fpi
+							newPatchblock->entries[newPatchblock->usedEntries].raw
+								= file->entry_fpi ^ newPatchblockkey->entries[newPatchblock->usedEntries].raw;
+							newPatchblock->usedEntries = (newPatchblock->usedEntries+1) ^ newPatchblockkey->usedEntries;
+							SETFLAG( vol->dirty, cache );
+
+							file->sealant = sealBuf;
+							file->sealantLen = sealBufLen;
+							sack_vfs_write( file, objBuf, objBufLen );
+						}
+						return TRUE;
+					}
+				}
+			}
+		}
+		break;
+	case SFSSIO_STORE_OBJECT:
+		{
+			char *objBuf = va_arg( args, char * );
+			size_t objBufLen = va_arg( args, size_t );
+			char *sealBuf = va_arg( args, char * );
+			size_t sealBufLen = va_arg( args, size_t );
+			char *idBuf = va_arg( args, char * );
+			size_t idBufLen = va_arg( args, size_t );
+			while( 1 ) {
+				if( sealBuf ) {
+					struct random_context *signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
+					uint8_t outbuf[32];
+					SRG_ResetEntropy( signEntropy );
+					SRG_FeedEntropy( signEntropy, (const uint8_t*)objBuf, objBufLen );
+					SRG_FeedEntropy( signEntropy, (const uint8_t*)sealBuf, sealBufLen );
+					SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
+					SRG_DestroyEntropy( &signEntropy );
+					{
+						size_t len;
+						char *rid = EncodeBase64Ex( outbuf, 256 / 8, &len, (const char *)1 );
+						rid[43] = '~';
+						StrCpyEx( idBuf, rid, idBufLen );
+						Deallocate( char*, rid );
+					}
+				}
+				else {
+					char *objid = SRG_ID_Generator3();
+					objid[43] = 0;
+					StrCpyEx( idBuf, objid, idBufLen );
+					Deallocate( char*, objid );
+				}
+				if( sack_vfs_os_exists( psvInstance, idBuf ) ) {
+					if( !sealBuf ) { // accidental key collision. 
+						continue; // try again.
+					}
+					else {
+						// deliberate key collision; and record already exists.
+						return TRUE;
+					}
+				}
+				else {
+					struct sack_vfs_file* file = sack_vfs_os_open( psvInstance, idBuf, "w" );
+					file->sealant = sealBuf;
+					file->sealantLen = sealBufLen;
+					sack_vfs_write( file, objBuf, objBufLen );
+				}
+				return TRUE;
+			}
+
 		}
 		break;
 	}
@@ -2350,8 +2626,9 @@ static struct file_system_interface sack_vfs_os_fsi = {
                                                    , sack_vfs_os_find_is_directory
                                                    , sack_vfs_os_is_directory
                                                    , sack_vfs_os_rename
-                                                   , sack_vfs_ioctl
-                                                   };
+                                                   , sack_vfs_file_ioctl
+												   , sack_vfs_system_ioctl
+};
 
 PRIORITY_PRELOAD( Sack_VFS_OS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )
 {
