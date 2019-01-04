@@ -21,9 +21,9 @@ parse_message
 		  int index;
         struct jsox_value_container *value;
 		  DATALIST_FORALL( pdlMessage, index, struct jsox_value_container *. value ) {
-           /* for each value in the result.... the first layer will
-           always be just one element, either a simple type, or a VALUE_ARRAY or VALUE_OBJECT, which
-           then for each value->contains (as a datalist like above), process each of those values.
+           // for each value in the result.... the first layer will
+           // always be just one element, either a simple type, or a VALUE_ARRAY or VALUE_OBJECT, which
+           // then for each value->contains (as a datalist like above), process each of those values.
 		  }
         jsox_dispose_mesage( &pdlMessage );
     }
@@ -51,9 +51,9 @@ parse_message
         int index;
         struct jsox_value_container *value;
         DATALIST_FORALL( pdlMessage, index, struct jsox_value_container *. value ) {
-           /* for each value in the result.... the first layer will
-           always be just one element, either a simple type, or a VALUE_ARRAY or VALUE_OBJECT, which
-           then for each value->contains (as a datalist like above), process each of those values.
+           // for each value in the result.... the first layer will
+           // always be just one element, either a simple type, or a VALUE_ARRAY or VALUE_OBJECT, which
+           // then for each value->contains (as a datalist like above), process each of those values.
         }
         jsox_dispose_mesage( &pdlMessage );
 		  jsox_parse_add_data( parser, NULL, 0 ); // trigger parsing next message.
