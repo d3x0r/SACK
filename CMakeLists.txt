@@ -155,7 +155,7 @@ else( __ANDROID__ )
                ADD_DEFINITIONS( -m64 )
            endif( __64__ )
        endif( GCC )
-       if( NOT __NO_GUI__ )
+       #if( NOT __NO_GUI__ )
             #########
             if( NOT NEED_ZLIB )
             find_package( ZLIB )
@@ -187,7 +187,7 @@ else( __ANDROID__ )
             if( NOT NEED_FREETYPE )
             find_package( Freetype )
             # Freetype Find if not found is blank; but does not work for if( NOT )
-            message( "fretype is ${FREETYPE_FOUND}" )
+            #message( "freetype is ${FREETYPE_FOUND} ${FREETYPE_INCLUDE_DIRS}" )
             if( NOT ${FREETYPE_FOUND} )
                 DEFINE_DEFAULT( NEED_FREETYPE ON )
             else( NOT ${FREETYPE_FOUND} )
@@ -214,7 +214,7 @@ else( __ANDROID__ )
             #set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${X11_LIBRARIES} )
 
             #message( "Platform_libs:"${PLATFORM_LIBRARIES} )
-        endif( NOT __NO_GUI__ )
+        #endif( NOT __NO_GUI__ )
 #	find_package( uuid )
 	include( makefiles/cmake/FindSqlite.cmake )
 #        find_package( FUSE )
@@ -474,7 +474,7 @@ endif( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
 
 macro( setupDefines PLATFORM_DEFINES PLATFORM_CMAKE_DEFINES PLATFORM_LIBRARIES APPLE __ANDROID__ __LINUX__ WIN32 MSVC __ARM__ __NO_ODBC__ ) 
 
-message( "MACRO ARGUMENTS: ${__ANDROID__} ${__LINUX__} ${__NO_ODBC__}" )
+#message( "MACRO ARGUMENTS: android ${__ANDROID__} linux ${__LINUX__} no odbc ${__NO_ODBC__}" )
 
   if( ${WIN32} )
       if( NOT __CLR__ )
@@ -679,11 +679,11 @@ set( ExtraDefinitions ${ExtraDefinitions};SACK_CORE_BUILD )
 ADD_DEFINITIONS( ${PLATFORM_DEFINES} )
 
 
-message( "defs:" ${PLATFORM_DEFINES} )
-message( "Host defs:" ${HOST_PLATFORM_DEFINES} )
+#message( "defs:" ${PLATFORM_DEFINES} )
+#message( "Host defs:" ${HOST_PLATFORM_DEFINES} )
 
-message( "LIB:" ${PLATFORM_LIBRARIES} )
-message( "Host LIBs:" ${HOST_PLATFORM_LIBRARIES} )
+#message( "LIB:" ${PLATFORM_LIBRARIES} )
+#message( "Host LIBs:" ${HOST_PLATFORM_LIBRARIES} )
 
 
 
@@ -1436,8 +1436,7 @@ else( NOT NO_C )
 endif( NOT NO_C )
 
   if( NOT NEED_FREETYPE )
-  message( "FREETYPE INCLUDE:${Freetype_INCLUDE_DIRS}")
-    include_directories( ${Freetype_INCLUDE_DIRS} )
+    include_directories( ${FREETYPE_INCLUDE_DIRS} )
   endif()
 
 ###########
