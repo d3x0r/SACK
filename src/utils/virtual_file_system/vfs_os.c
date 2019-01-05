@@ -226,7 +226,7 @@ static int _os_MaskStrCmp( struct volume *vol, const char * filename, BLOCKINDEX
 	dirkey = (const char*)(vol->usekey[cache]) + (name_offset & BLOCK_MASK );
 	if( vol->key ) {
 		int c;
-		while( ( c = (dirname[0] ^ dirkey[0] ) != 0xFE )
+		while( (unsigned char)( c = (dirname[0] ^ dirkey[0] ) != 0xFE )
 			  && filename[0] ) {
 			int del = tolower_(filename[0]) - tolower_(c);
 			if( del ) return del;
