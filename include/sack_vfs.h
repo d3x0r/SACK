@@ -201,6 +201,24 @@ namespace fs {
 #ifdef __cplusplus
 namespace objStore {
 #endif
+
+	/* thse should probably be moved to sack_vfs_os.h being file system specific extensions. */
+	enum sack_object_store_file_system_file_ioctl_ops {
+		SOSFSFIO_PROVIDE_SEALANT,  // psvInstance should be a file handle pass (char*, size_t length )
+		SOSFSFIO_TAMPERED, // test if file has been tampered, is is still sealed. pass (address of int)
+		SOSFSFIO_STORE_OBJECT, // get the resulting storage ID.  (Move ID creation into low level driver)
+		//SFSIO_GET_OBJECT_ID, // get the resulting storage ID.  (Move ID creation into low level driver)
+	};
+
+	enum sack_object_store_file_system_system_ioctl_ops {
+		SOSFSSIO_STORE_OBJECT, // get the resulting storage ID.  (Move ID creation into low level driver)
+		SOSFSSIO_PATCH_OBJECT,
+		SOSFSSIO_LOAD_OBJECT,
+		//SFSIO_GET_OBJECT_ID, // get the resulting storage ID.  (Move ID creation into low level driver)
+	};
+
+#define sack_vfs_os_ioctl_store_object( objId,objIdLen, obj,objlen, seal,seallen, result )
+
 	struct volume;
 	struct sack_vfs_file;
 	struct find_info;
