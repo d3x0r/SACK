@@ -203,6 +203,7 @@ struct sack_vfs_file
 	FPI entry_fpi;  // where to write the directory entry update to
 #ifdef VIRTUAL_OBJECT_STORE
 	enum block_cache_entries cache;
+	uint8_t *seal;
 	uint8_t *sealant;
 	uint8_t sealantLen;
 	uint8_t sealed; // boolean, on read, validates seal.  Defaults to FALSE.

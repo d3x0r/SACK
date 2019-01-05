@@ -146,7 +146,7 @@ PREFIX_PACKED struct directory_patch_ref_block
 } PACKED;
 
 
-enum {
+enum sack_vfs_os_seal_states {
 	SACK_VFS_OS_SEAL_NONE = 0,
 	SACK_VFS_OS_SEAL_LOAD,
 	SACK_VFS_OS_SEAL_VALID,
@@ -1805,6 +1805,47 @@ static struct sack_vfs_file * CPROC sack_vfs_os_open( uintptr_t psvInstance, con
 	return sack_vfs_os_openfile( (struct volume*)psvInstance, filename );
 }
 
+static char * getFilename( const char *objBuf, size_t objBufLen, char *sealBuf, size_t sealBufLen, char *idBuf, size_t idBufLen ) {
+
+	if( sealBuf ) {
+		struct random_context *signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
+		char *fileKey;
+		size_t keyLen;
+		uint8_t outbuf[32];
+
+		SRG_ResetEntropy( signEntropy );
+		SRG_FeedEntropy( signEntropy, (const uint8_t*)sealBuf, sealBufLen );
+		SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
+
+		SRG_ResetEntropy( signEntropy );
+		SRG_FeedEntropy( signEntropy, (const uint8_t*)objBuf, objBufLen );
+		SRG_FeedEntropy( signEntropy, (const uint8_t*)outbuf, 32 );
+		fileKey = EncodeBase64Ex( outbuf, 32, &keyLen, (const char*)1 );
+
+		SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
+
+		SRG_DestroyEntropy( &signEntropy );
+		{
+			size_t len;
+			char *rid = EncodeBase64Ex( outbuf, 256 / 8, &len, (const char *)1 );
+			//rid[43] = '=';
+			StrCpyEx( idBuf, rid, idBufLen );
+			Deallocate( char*, rid );
+		}
+		return fileKey;
+	}
+	else {
+		char *objid = SRG_ID_Generator3();
+		objid[43] = 0;
+		StrCpyEx( idBuf, objid, idBufLen );
+		Deallocate( char*, objid );
+		if( idBuf )
+			idBuf[0] = 0;
+		return NULL;
+	}
+}
+
+
 int CPROC sack_vfs_os_exists( struct volume *vol, const char * file ) {
 	LOGICAL result;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
@@ -1866,7 +1907,17 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 	size_t ofs = file->fpi & BLOCK_MASK;
 	LOGICAL updated = FALSE;
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
-	if( file->entry->name_offset &  )
+	if( file->entry->name_offset & DIRENT_NAME_OFFSET_FLAG_SEALANT ) {
+		char filename[64];
+		// read-only data block.
+		lprintf( "INCOMPLETE - TODO WRITE PATCH" );
+		char *sealer = getFilename( data, length, (char*)file->sealant, file->sealantLen, filename, 64 );
+
+		struct sack_vfs_file *pFile = sack_vfs_os_openfile( file->vol, filename );
+		pFile->sealant = (uint8_t*)sealer;
+		pFile->sealantLen = 32;
+		return sack_vfs_os_write( pFile, data, length );
+	}
 #ifdef DEBUG_FILE_OPS
 	LoG( "Write to file %p %" _size_f "  @%" _size_f, file, length, ofs );
 #endif
@@ -1946,22 +1997,31 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 	return written;
 }
 
-static LOGICAL ValidateSeal( struct sack_vfs_file *file, char *data, size_t length ) {
+static enum sack_vfs_os_seal_states ValidateSeal( struct sack_vfs_file *file, char *data, size_t length ) {
 	BLOCKINDEX offset = (file->entry->name_offset ^ file->dirent_key.name_offset);
-	uint32_t sealLen = ( offset & DIRENT_NAME_OFFSET_FLAG_SEALANT ) >> DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT;
+	uint32_t sealLen = (offset & DIRENT_NAME_OFFSET_FLAG_SEALANT) >> DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT;
 	struct random_context *signEntropy;// = (struct random_context *)DequeLink( &signingEntropies );
 	uint8_t outbuf[32];
 
 	signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
+
+	SRG_ResetEntropy( signEntropy );
+	SRG_FeedEntropy( signEntropy, (const uint8_t*)file->sealant, file->sealantLen );
+	SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
+	if( (file->sealantLen != 32) || MemCmp( outbuf, file->sealant, 32 ) )
+		return SACK_VFS_OS_SEAL_INVALID;
+
 	SRG_ResetEntropy( signEntropy );
 	SRG_FeedEntropy( signEntropy, (const uint8_t*)data, length );
+
+	// DO NOT DOUBLE_PROCESS THIS DATA
 	SRG_FeedEntropy( signEntropy, (const uint8_t*)file->sealant, file->sealantLen );
 
 	SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
 
 	SRG_DestroyEntropy( &signEntropy );
 	{
-		LOGICAL success = SACK_VFS_OS_SEAL_INVALID;
+		enum sack_vfs_os_seal_states success = SACK_VFS_OS_SEAL_INVALID;
 		size_t len;
 		char *rid = EncodeBase64Ex( outbuf, 256 / 8, &len, (const char *)1 );
 		if( StrCmp( file->filename, rid ) == 0 )
@@ -2373,233 +2433,172 @@ LOGICAL CPROC sack_vfs_os_rename( uintptr_t psvInstance, const char *original, c
 	struct volume *vol = (struct volume *)psvInstance;
 	lprintf( "RENAME IS NOT SUPPORTED IN OBJECT STORAGE(OR NEEDS TO BE FIXED)" );
 	// fail if the names are the same.
-#if 0
-	if( strcmp( original, newname ) == 0 )
-		return FALSE;
-	if( vol ) {
-		struct directory_entry entkey;
-		struct directory_entry entry;
-		BLOCKINDEX namesBlock;
-		struct sack_vfs_file tmpdirinfo;
-		FPI entFPI;
-		while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
-		if( ( _os_ScanDirectory( vol, original, &namesBlock, &tmpdirinfo, 0 ) ) ) {
-			//struct directory_entry new_entkey;
-			//struct directory_entry new_entry;
-			struct sack_vfs_file newtmpdirinfo;
-			if( (_os_ScanDirectory( vol, newname, &namesBlock, &newtmpdirinfo, 0 )) ) {
-				vol->lock = 0;
-				sack_vfs_os_unlink_file( vol, newname );
-				while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
-			}
-			entry.name_offset = _os_SaveFileName( vol, namesBlock, newname ) ^ tmpdirinfo.dirent_key.name_offset;
-			sack_fseek( vol->file, (size_t)entFPI, SEEK_SET );
-			sack_fwrite( &entry, 1, sizeof( entry ), vol->file );
-			vol->lock = 0;
-			return TRUE;
-		}
-		vol->lock = 0;
-	}
-#endif
-	return FALSE;
+	return TRUE;
 }
 
 
-void CPROC sack_vfs_file_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
+uintptr_t CPROC sack_vfs_file_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
 	//va_list args;
 	//va_start( args, opCode );
 	switch( opCode ) {
 	default:
 		// unhandled/ignored opcode
+		return FALSE;
 		break;
-	case SFSFIO_TAMPERED:
-		{
-			struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
-			int *result = va_arg( args, int* );
+	case SOSFSFIO_TAMPERED:
+	{
+		struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
+		int *result = va_arg( args, int* );
 
-			if( file->sealant ) {
-				switch( file->sealed ) {
-				case SACK_VFS_OS_SEAL_STORE:
-				case SACK_VFS_OS_SEAL_VALID:
-					(*result) = 1;
-				default:
-					(*result) = 0;
-				}
-			}
-			else
+		if( file->sealant ) {
+			switch( file->sealed ) {
+			case SACK_VFS_OS_SEAL_STORE:
+			case SACK_VFS_OS_SEAL_VALID:
 				(*result) = 1;
-		}
-		break;
-	case SFSFIO_PROVIDE_SEALANT:
-		{
-			const char *sealant = va_arg( args, const char * );
-			size_t sealantLen = va_arg( args, size_t );
-			struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
-			{
-				size_t len;
-				uint8_t *bytes;
-				bytes = DecodeBase64Ex( sealant, sealantLen, &len, (const char*)1 );
-				file->sealant = NewArray( uint8_t, len );
-				memcpy( file->sealant, bytes, len );
-				file->sealantLen = (uint8_t)len;
-				if( file->sealed == SACK_VFS_OS_SEAL_NONE )
-					file->sealed = SACK_VFS_OS_SEAL_STORE;
-				else if( file->sealed == SACK_VFS_OS_SEAL_VALID || file->sealed == SACK_VFS_OS_SEAL_LOAD )
-					file->sealed = SACK_VFS_OS_SEAL_STORE_PATCH;
-				else
-					lprintf( "Unhandled SEAL state." );
-				//file->sealant = sealant;
-				//file->sealantLen = sealantLen;
-
-				// set the sealant length in the name offset.
-				file->entry->name_offset = ( ( ( file->entry->name_offset ^ file->dirent_key.name_offset )
-					| ( ( len >> 2 ) << 17 ) ) ^ file->dirent_key.name_offset );
+			default:
+				(*result) = 0;
 			}
 		}
-		break;
+		else
+			(*result) = 1;
 	}
+	break;
+	case SOSFSFIO_PROVIDE_SEALANT:
+	{
+		const char *sealant = va_arg( args, const char * );
+		size_t sealantLen = va_arg( args, size_t );
+		struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
+		{
+			size_t len;
+			if( file->sealant )
+				Release( file->sealant );
+			file->sealant = (uint8_t*)DecodeBase64Ex( sealant, sealantLen, &len, (const char*)1 );
+			file->sealantLen = (uint8_t)len;
+			if( file->sealed == SACK_VFS_OS_SEAL_NONE )
+				file->sealed = SACK_VFS_OS_SEAL_STORE;
+			else if( file->sealed == SACK_VFS_OS_SEAL_VALID || file->sealed == SACK_VFS_OS_SEAL_LOAD )
+				file->sealed = SACK_VFS_OS_SEAL_STORE_PATCH;
+			else
+				lprintf( "Unhandled SEAL state." );
+			//file->sealant = sealant;
+			//file->sealantLen = sealantLen;
+
+			// set the sealant length in the name offset.
+			file->entry->name_offset = (((file->entry->name_offset ^ file->dirent_key.name_offset)
+				| ((len >> 2) << 17)) ^ file->dirent_key.name_offset);
+		}
+	}
+	break;
+	}
+	return TRUE;
 }
 
 
-void CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
+uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
 	struct volume *vol = (struct volume *)psvInstance;
 	//va_list args;
 	//va_start( args, opCode );
 	switch( opCode ) {
 	default:
 		// unhandled/ignored opcode
-		break;
-	case SFSSIO_LOAD_OBJECT:
-		break;
-	case SFSSIO_PATCH_OBJECT:
-		{
-			char *objIdBuf = va_arg( args, char * );
-			size_t objIdBufLen = va_arg( args, size_t );
-			char *objBuf = va_arg( args, char * );
-			size_t objBufLen = va_arg( args, size_t );
-			char *sealBuf = va_arg( args, char * );
-			size_t sealBufLen = va_arg( args, size_t );
-			char *idBuf = va_arg( args, char * );
-			size_t idBufLen = va_arg( args, size_t );
+		return FALSE;
 
-			if( sack_vfs_os_exists( psvInstance, objIdBuf ) ) {
-				struct sack_vfs_file* file = sack_vfs_os_open( psvInstance, objIdBuf, "r" );
-				BLOCKINDEX patchBlock = sack_vfs_os_read_patches( file );
-				if( !patchBlock ) {
-					patchBlock = _os_GetFreeBlock( vol, GFB_INIT_PATCHBLOCK );
-				}
-				{
+	case SOSFSSIO_LOAD_OBJECT:
+		return FALSE;
 
-					enum block_cache_entries cache = BC( DIRECTORY );
-					struct directory_patch_block *newPatchblock;
-					struct directory_patch_block *newPatchblockkey;
-					cache = BC( DIRECTORY );
+	case SOSFSSIO_PATCH_OBJECT:
+	{
+		char *objIdBuf = va_arg( args, char * );
+		size_t objIdBufLen = va_arg( args, size_t );
+		char *objBuf = va_arg( args, char * );
+		size_t objBufLen = va_arg( args, size_t );
+		char *sealBuf = va_arg( args, char * );
+		size_t sealBufLen = va_arg( args, size_t );
+		char *idBuf = va_arg( args, char * );
+		size_t idBufLen = va_arg( args, size_t );
 
-					newPatchblock = BTSEEK( struct directory_patch_block *, vol, patchBlock, cache );
-					newPatchblockkey = (struct directory_patch_block *)vol->usekey[cache];
-
-					while( 1 ) {
-						if( sealBuf ) {
-							struct random_context *signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
-							uint8_t outbuf[32];
-							SRG_ResetEntropy( signEntropy );
-							SRG_FeedEntropy( signEntropy, (const uint8_t*)objBuf, objBufLen );
-							SRG_FeedEntropy( signEntropy, (const uint8_t*)sealBuf, sealBufLen );
-							SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
-							SRG_DestroyEntropy( &signEntropy );
-							{
-								size_t len;
-								char *rid = EncodeBase64Ex( outbuf, 256 / 8, &len, (const char *)1 );
-								rid[43] = '~';
-								StrCpyEx( idBuf, rid, idBufLen );
-								Deallocate( char*, rid );
-							}
-						}
-						else {
-							char *objid = SRG_ID_Generator3();
-							objid[43] = 0;
-							StrCpyEx( idBuf, objid, idBufLen );
-							Deallocate( char*, objid );
-						}
-						if( sack_vfs_os_exists( psvInstance, idBuf ) ) {
-							if( !sealBuf ) { // accidental key collision. 
-								continue; // try again.
-							}
-							else {
-								// deliberate key collision; and record already exists.
-								return TRUE;
-							}
-						}
-						else {
-							struct sack_vfs_file* file = sack_vfs_os_open( psvInstance, idBuf, "w" );
-
-							//  file->entry_fpi
-							newPatchblock->entries[newPatchblock->usedEntries].raw
-								= file->entry_fpi ^ newPatchblockkey->entries[newPatchblock->usedEntries].raw;
-							newPatchblock->usedEntries = (newPatchblock->usedEntries+1) ^ newPatchblockkey->usedEntries;
-							SETFLAG( vol->dirty, cache );
-
-							file->sealant = sealBuf;
-							file->sealantLen = sealBufLen;
-							sack_vfs_write( file, objBuf, objBufLen );
-						}
-						return TRUE;
-					}
-				}
+		if( sack_vfs_os_exists( vol, objIdBuf ) ) {
+			struct sack_vfs_file* file = sack_vfs_os_openfile( vol, objIdBuf );
+			BLOCKINDEX patchBlock = sack_vfs_os_read_patches( file );
+			if( !patchBlock ) {
+				patchBlock = _os_GetFreeBlock( vol, GFB_INIT_PATCHBLOCK );
 			}
-		}
-		break;
-	case SFSSIO_STORE_OBJECT:
-		{
-			char *objBuf = va_arg( args, char * );
-			size_t objBufLen = va_arg( args, size_t );
-			char *sealBuf = va_arg( args, char * );
-			size_t sealBufLen = va_arg( args, size_t );
-			char *idBuf = va_arg( args, char * );
-			size_t idBufLen = va_arg( args, size_t );
-			while( 1 ) {
-				if( sealBuf ) {
-					struct random_context *signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
-					uint8_t outbuf[32];
-					SRG_ResetEntropy( signEntropy );
-					SRG_FeedEntropy( signEntropy, (const uint8_t*)objBuf, objBufLen );
-					SRG_FeedEntropy( signEntropy, (const uint8_t*)sealBuf, sealBufLen );
-					SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
-					SRG_DestroyEntropy( &signEntropy );
-					{
-						size_t len;
-						char *rid = EncodeBase64Ex( outbuf, 256 / 8, &len, (const char *)1 );
-						rid[43] = '~';
-						StrCpyEx( idBuf, rid, idBufLen );
-						Deallocate( char*, rid );
-					}
-				}
-				else {
-					char *objid = SRG_ID_Generator3();
-					objid[43] = 0;
-					StrCpyEx( idBuf, objid, idBufLen );
-					Deallocate( char*, objid );
-				}
-				if( sack_vfs_os_exists( psvInstance, idBuf ) ) {
-					if( !sealBuf ) { // accidental key collision. 
-						continue; // try again.
+			{
+
+				enum block_cache_entries cache;
+				struct directory_patch_block *newPatchblock;
+				struct directory_patch_block *newPatchblockkey;
+
+				cache = BC(FILE);
+				newPatchblock = BTSEEK( struct directory_patch_block *, vol, patchBlock, cache );
+				newPatchblockkey = (struct directory_patch_block *)vol->usekey[cache];
+
+				while( 1 ) {
+					//char objId[45];
+					//size_t objIdLen;
+					char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, idBuf, idBufLen );
+
+					if( sack_vfs_os_exists( vol, idBuf ) ) {
+						if( !sealBuf ) { // accidental key collision. 
+							continue; // try again.
+						}
+						else {
+							// deliberate key collision; and record already exists.
+							return TRUE;
+						}
 					}
 					else {
-						// deliberate key collision; and record already exists.
-						return TRUE;
+						struct sack_vfs_file* file = sack_vfs_os_openfile( vol, idBuf );
+
+						//  file->entry_fpi
+						newPatchblock->entries[newPatchblock->usedEntries].raw
+							= file->entry_fpi ^ newPatchblockkey->entries[newPatchblock->usedEntries].raw;
+						newPatchblock->usedEntries = (newPatchblock->usedEntries + 1) ^ newPatchblockkey->usedEntries;
+						SETFLAG( vol->dirty, cache );
+
+						file->sealant = (uint8_t*)seal;
+						file->sealantLen = (uint8_t)strlen( seal );
+						sack_vfs_os_write( file, objBuf, objBufLen );
+						sack_vfs_os_close( file );
 					}
+					return TRUE;
+				}
+			}
+		}
+		return FALSE; // object to patch was not found.
+	}
+	break;
+	case SOSFSSIO_STORE_OBJECT:
+	{
+		char *objBuf = va_arg( args, char * );
+		size_t objBufLen = va_arg( args, size_t );
+		char *sealBuf = va_arg( args, char * );
+		size_t sealBufLen = va_arg( args, size_t );
+		char *idBuf = va_arg( args, char * );
+		size_t idBufLen = va_arg( args, size_t );
+		while( 1 ) {
+			char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, idBuf, idBufLen );
+			if( sack_vfs_os_exists( vol, idBuf ) ) {
+				if( !sealBuf ) { // accidental key collision. 
+					continue; // try again.
 				}
 				else {
-					struct sack_vfs_file* file = sack_vfs_os_open( psvInstance, idBuf, "w" );
-					file->sealant = sealBuf;
-					file->sealantLen = sealBufLen;
-					sack_vfs_write( file, objBuf, objBufLen );
+					// deliberate key collision; and record already exists.
+					return TRUE;
 				}
-				return TRUE;
 			}
-
+			else {
+				struct sack_vfs_file* file = sack_vfs_os_openfile( vol, idBuf );
+				file->sealant = (uint8_t*)seal;
+				file->sealantLen = (uint8_t)strlen( seal );
+				sack_vfs_os_write( file, objBuf, objBufLen );
+				sack_vfs_os_close( file );
+			}
+			return TRUE;
 		}
-		break;
+
+	}
+	break;
 	}
 }
 

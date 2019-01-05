@@ -126,12 +126,8 @@ struct file_system_interface {
 	LOGICAL (CPROC *find_is_directory)( struct find_cursor *cursor );
 	LOGICAL (CPROC *is_directory)( uintptr_t psvInstance, const char *cursor );
 	LOGICAL (CPROC *rename )( uintptr_t psvInstance, const char *original_name, const char *new_name );
-	void (CPROC *ioctl)( uintptr_t psvInstance, uintptr_t opCode, va_list args );
-};
-
-enum sack_file_ssytem_ioctl_ops {
-	SFSIO_PROVIDE_SEALANT,  // psvInstance should be a file handle pass (char*, size_t length )
-	SFSIO_TAMPERED, // test if file has been tampered, is is still sealed. pass (address of int)
+	uintptr_t (CPROC *ioctl)( uintptr_t psvInstance, uintptr_t opCode, va_list args );
+	uintptr_t (CPROC *fs_ioctl)(uintptr_t psvInstance, uintptr_t opCode, va_list args);
 };
 
 
@@ -419,7 +415,8 @@ FILESYS_PROC  int FILESYS_API  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_
 FILESYS_PROC  void FILESYS_API sack_set_common_data_application( CTEXTSTR name );
 FILESYS_PROC  void FILESYS_API sack_set_common_data_producer( CTEXTSTR name );
 
-FILESYS_PROC  void FILESYS_API  sack_ioctl( FILE *file, uintptr_t opCode, ... );
+FILESYS_PROC  uintptr_t FILESYS_API  sack_ioctl( FILE *file, uintptr_t opCode, ... );
+FILESYS_PROC  uintptr_t FILESYS_API  sack_fs_ioctl( struct file_system_mounted_interface *mount, uintptr_t opCode, ... );
 
 #ifndef NO_FILEOP_ALIAS
 

@@ -2520,19 +2520,33 @@ int sack_fputs( const char *format,FILE *file )
 	return 0;
 }
 
-void sack_ioctl( FILE *file_handle, uintptr_t opCode, ... ) {
+uintptr_t sack_ioctl( FILE *file_handle, uintptr_t opCode, ... ) {
 	struct file *file;
 	va_list args;
 	va_start( args, opCode );
 	file = FindFileByFILE( file_handle );
 
 	if( file && file->mount && file->mount->fsi && file->mount->fsi->ioctl ) {
-			file->mount->fsi->ioctl( (uintptr_t)file_handle, opCode, args );
+			return file->mount->fsi->ioctl( (uintptr_t)file_handle, opCode, args );
 	}
 	else {
 		 // unknown file handle; ignore unknown ioctl.
 	}
+	return 0;
+}
 
+uintptr_t sack_fs_ioctl( struct file_system_mounted_interface *mount, uintptr_t opCode, ... ) {
+	va_list args;
+	va_start( args, opCode );
+	
+	if( mount && mount->fsi && mount->fsi->fs_ioctl ) {
+		return mount->fsi->fs_ioctl( mount->psvInstance, opCode, args );
+	}
+	else {
+		// unknown file handle; ignore unknown ioctl.
+	}
+
+	return 0;
 }
 
 LOGICAL SetFileLength( CTEXTSTR path, size_t length )
