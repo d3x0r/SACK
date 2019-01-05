@@ -238,7 +238,7 @@ void LoadTranslationDataFromMemory( POINTER input, size_t length )
 						struct translation *translation = CreateTranslation( val->name );
 						DATA_FORALL( val->contains, idx2, struct json_value_container *, val2 ) {
 							int64_t index = IntCreateFromText( val2->name );
-							SetTranslatedString( translation, index, val2->string ); 
+							SetTranslatedString( translation, (INDEX)index, val2->string ); 
 						}
 					
 					}
