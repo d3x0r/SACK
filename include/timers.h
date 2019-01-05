@@ -39,10 +39,14 @@
 
 // this is a method replacement to use PIPEs instead of SEMAPHORES
 // replacement code only affects linux.
-#if defined( __QNX__ ) || defined( __MAC__) || defined( __LINUX__ ) || defined( __ANDROID__ )
-//#  define USE_PIPE_SEMS
+#if defined( __QNX__ ) || defined( __MAC__) || defined( __LINUX__ )
+#  if defined( __ANDROID__ )
+// android > 21 can use pthread_mutex_timedop
+#    define USE_PIPE_SEMS
+#  else
 // no semtimedop; no semctl, etc
-#include <sys/sem.h>
+//#    include <sys/sem.h>
+#endif
 #endif
 
 #ifdef USE_PIPE_SEMS
