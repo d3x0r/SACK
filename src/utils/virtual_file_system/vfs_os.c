@@ -226,7 +226,7 @@ static int _os_MaskStrCmp( struct volume *vol, const char * filename, BLOCKINDEX
 	dirkey = (const char*)(vol->usekey[cache]) + (name_offset & BLOCK_MASK );
 	if( vol->key ) {
 		int c;
-		while( (unsigned char)( c = (dirname[0] ^ dirkey[0] ) != 0xFE )
+		while( ((unsigned char)( c = (dirname[0] ^ dirkey[0] )) != UTF8_EOT )
 			  && filename[0] ) {
 			int del = tolower_(filename[0]) - tolower_(c);
 			if( del ) return del;
@@ -263,7 +263,7 @@ static void MaskStrCpy( char *output, size_t outlen, struct volume *vol, FPI nam
 	if( vol->key ) {
 		int c;
 		FPI name_start = name_offset;
-		while( 0xFE != ( c = ( vol->usekey_buffer[BC(NAMES)][name_offset&BLOCK_MASK] ^ vol->usekey[BC(NAMES)][name_offset&BLOCK_MASK] ) ) ) {
+		while( UTF8_EOT != (unsigned char)( c = ( vol->usekey_buffer[BC(NAMES)][name_offset&BLOCK_MASK] ^ vol->usekey[BC(NAMES)][name_offset&BLOCK_MASK] ) ) ) {
 			if( ( name_offset - name_start ) < outlen )
 				output[name_offset-name_start] = c;
 			name_offset++;
@@ -1446,7 +1446,7 @@ static FPI _os_SaveFileName( struct volume *vol, BLOCKINDEX firstNameBlock, cons
 					LoG( "using existing entry for new file...%s", filename );
 					return ((uintptr_t)name) - ((uintptr_t)names) + blocks * BLOCK_SIZE;
 				}
-			while( 0xFE != ( name[0] ^ vol->usekey[cache][name-(unsigned char*)names] ) ) name++;
+			while( UTF8_EOT != ( name[0] ^ vol->usekey[cache][name-(unsigned char*)names] ) ) name++;
 			name++;
 			//LoG( "new position is %" _size_f "  %" _size_f, this_name_block, (uintptr_t)name - (uintptr_t)names );
 		}
@@ -1556,7 +1556,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 						//LoG( "Saving existing name %d %s", name, namebuffer + name );
 						//LogBinary( namebuffer, 32 );
 						namelen = 0;
-						while( namebuffer[name + namelen] != 0xFE )namelen++;
+						while( namebuffer[name + namelen] != UTF8_EOT )namelen++;
 						name_ofs = _os_SaveFileName( vol, newFirstNameBlock, (char*)(namebuffer + name + 1), namelen -1 ) ^ newEntkey->name_offset;
 						{
 							INDEX idx;
@@ -1628,7 +1628,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 						entry->name_offset = ( newout ^ entkey->name_offset ) 
 							| ( (entry->name_offset ^ entkey->name_offset) 
 								& ~DIRENT_NAME_OFFSET_OFFSET );
-						while( namebuffer[name] != 0xFE )
+						while( namebuffer[name] != UTF8_EOT )
 							newnamebuffer[newout++] = namebuffer[name++];
 						newnamebuffer[newout++] = namebuffer[name++];
 					}
