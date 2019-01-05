@@ -3364,40 +3364,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 					int idx;
 					for( idx = 1; idx <= collection->columns; idx++ ) {
 						val = (struct json_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
-#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
-						//const unsigned char *sqlite3_column_text(sqlite3_stmt*, int iCol);
-						if( odbc->flags.bSQLite_native ) {
-							int coltype;
-							val->name = DupCStr( sqlite3_column_name( collection->stmt, idx - 1 ) );
-							val->nameLen = strlen( val->name );
-							switch( coltype = sqlite3_column_type( collection->stmt, idx - 1 ) ) {
-							default:
-								lprintf( "Unhandled SQLITE type: %d", coltype );
-								break;
-							case SQLITE_NULL:
-								val->value_type = VALUE_NULL;
-								break;
-							case SQLITE_BLOB:
-								val->value_type = VALUE_TYPED_ARRAY;
-								break;
-							case SQLITE_TEXT:
-								val->value_type = VALUE_STRING;
-								break;
-							case SQLITE_INTEGER:
-								val->value_type = VALUE_NUMBER;
-								val->float_result = 0;
-								break;
-							case SQLITE_FLOAT:
-								val->value_type = VALUE_NUMBER;
-								val->float_result = 1;
-								break;
-							}
-						}
-#endif
-#if ( defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE ) ) && defined( USE_ODBC )
-						else
-#endif
 #ifdef USE_ODBC
+						if( !odbc->flags.bSQLite_native )
 						{
 							SQLSMALLINT coltype;
 							SQLULEN colsize;
@@ -3426,9 +3394,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								result_cmd = WM_SQL_RESULT_ERROR;
 								break;
 							}
-							colname[namelen] = 0; // always nul terminate this.
-							val->name = StrDup( colname );
-							val->nameLen = StrLen( colname );
+							val->name = DupCStrLen( colname, namelen );
+							val->nameLen = namelen;
 						}
 #endif
 					} // for
@@ -3724,141 +3691,204 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 					{
 						byResult = byResultStatic;
 					}
-					if( collection->coltypes && ( ( collection->coltypes[idx-1] == SQL_VARBINARY ) || ( collection->coltypes[idx-1] == SQL_LONGVARBINARY ) ) )
-					{
-						rc = SQLGetData( collection->hstmt
-											, (short)(idx)
-											, SQL_C_BINARY
-											, byResult
-											, colsize
-											, &ResultLen );
-						if( SUS_GT( ResultLen,SQLINTEGER,collection->colsizes[idx-1],SQLUINTEGER) )
-						{
-							lprintf( WIDE( "SQL Result returned more data than the column described! (returned %d expected %d)" ), (int)ResultLen, (int)(collection->colsizes[idx-1]) );
-						}
-					}
-					else
-					{
-						rc = SQLGetData( collection->hstmt
-											, (short)(idx)
-#ifdef _UNICODE
-											, SQL_C_WCHAR
-#else
-											, SQL_C_CHAR
-#endif
-											, byResult
-											, colsize
-											, &ResultLen );
 
-						// hvaing this cast as a UINTEGER for colsize comparison
-						// breaks -1 being less than colsize... so test negative special and
-						// do the same thing as < colsize
-						if( ( ResultLen & 0x8000000 )
-									|| ( (SQLUINTEGER)ResultLen < colsize ) )
+					if( collection->ppdlResults ) {
+
+						struct json_value_container *val = (struct json_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
+						switch( coltype ) {
+						default:
+							lprintf( "Unhandled coltype:%d", coltype );
+							break;
+						case SQL_CHAR:
+						case SQL_VARCHAR:
+						case SQL_WCHAR:
+							val->value_type = VALUE_STRING;
+							rc = SQLGetData( collection->hstmt
+								, (short)(idx)
+								, SQL_CHAR
+								, byResult
+								, colsize
+								, &ResultLen );
+							if( ResultLen == SQL_NULL_DATA ) {
+								val->value_type = VALUE_NULL;
+								val->string = NULL;
+								val->stringLen = 0;
+							}
+							else {
+								val->string = DupCStrLen( byResult, ResultLen );
+								val->stringLen = ResultLen;
+							}
+							break;
+						case SQL_DECIMAL:
+						case SQL_REAL:
+						case SQL_FLOAT:
+						case SQL_DOUBLE:
+							val->value_type = VALUE_NUMBER;
+							val->float_result = 1;
+							rc = SQLGetData( collection->hstmt
+								, (short)(idx)
+								, SQL_C_DOUBLE
+								, &val->result_d
+								, colsize
+								, &ResultLen );
+							if( ResultLen == SQL_NULL_DATA ) {
+								val->value_type = VALUE_NULL;
+								val->string = NULL;
+								val->stringLen = 0;
+							}
+							break;
+						case SQL_INTEGER:
+						case SQL_SMALLINT:
+							val->value_type = VALUE_NUMBER;
+							val->float_result = 1;
+							val->result_n = 0;
+							rc = SQLGetData( collection->hstmt
+								, (short)(idx)
+								, SQL_C_LONG
+								, &val->result_n
+								, colsize
+								, &ResultLen );
+							if( ResultLen == SQL_NULL_DATA ) {
+								val->value_type = VALUE_NULL;
+								val->string = NULL;
+								val->stringLen = 0;
+							}
+							else {
+							}
+							break;
+						}
+					} else {
+
+						if( collection->coltypes && ( ( collection->coltypes[idx-1] == SQL_VARBINARY ) || ( collection->coltypes[idx-1] == SQL_LONGVARBINARY ) ) )
 						{
-							if( (int)ResultLen < 0 )
-								byResult[0] = 0;
-							else
-								byResult[ResultLen] = 0;
+							rc = SQLGetData( collection->hstmt
+												, (short)(idx)
+												, SQL_C_BINARY
+												, byResult
+												, colsize
+												, &ResultLen );
+							if( SUS_GT( ResultLen,SQLINTEGER,collection->colsizes[idx-1],SQLUINTEGER) )
+							{
+								lprintf( WIDE( "SQL Result returned more data than the column described! (returned %d expected %d)" ), (int)ResultLen, (int)(collection->colsizes[idx-1]) );
+							}
 						}
 						else
 						{
-							lprintf( WIDE( "SQL overflow (no room for nul character) %d of %d" ), (int)ResultLen, (int)colsize );
-						}
-					}
-					collection->result_len[idx - 1] = ResultLen;
-					//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, collection->coltypes[idx-1], idx );
-					if( collection->coltypes && coltype != collection->coltypes[idx-1] )
-					{
-						lprintf( WIDE( "Col type mismatch?" ) );
-						DebugBreak();
-					}
-					if( rc == SQL_SUCCESS ||
-						rc == SQL_SUCCESS_WITH_INFO )
-					{
-						if( ResultLen == SQL_NO_TOTAL ||  // -4
-							ResultLen == SQL_NULL_DATA )  // -1
-						{
-							//lprintf( WIDE("result data failed...") );
-						}
+							rc = SQLGetData( collection->hstmt
+												, (short)(idx)
+	#ifdef _UNICODE
+												, SQL_C_WCHAR
+	#else
+												, SQL_C_CHAR
+	#endif
+												, byResult
+												, colsize
+												, &ResultLen );
 
-						if( ResultLen > 0 )
-						{
-							if( collection->flags.bBuildResultArray )
+							// hvaing this cast as a UINTEGER for colsize comparison
+							// breaks -1 being less than colsize... so test negative special and
+							// do the same thing as < colsize
+							if( ( ResultLen & 0x8000000 )
+										|| ( (SQLUINTEGER)ResultLen < colsize ) )
 							{
-								if( collection->coltypes[idx-1] == SQL_LONGVARBINARY )
-								{
-									// I won't modify this anyhow, and it results
-									// to users as a CTEXSTR, preventing them from changing it also...
-									//lprintf( "Got a blob..." );
-									//lprintf( WIDE( "size is %d" ), collection->colsizes[idx-1] );
-									if( pvtData )
-									{
-										SQLUINTEGER n;
-										vtprintf( pvtData, WIDE( "%s<" ), idx>1?WIDE( "," ):WIDE( "" ) );
-										for( n = 0; n < collection->colsizes[idx-1]; n++ )
-											vtprintf( pvtData, WIDE( "%02x " ), byResult[n] );
-										vtprintf( pvtData, WIDE( ">" ) );
+								if( (int)ResultLen < 0 )
+									byResult[0] = 0;
+								else
+									byResult[ResultLen] = 0;
+							}
+							else
+							{
+								lprintf( WIDE( "SQL overflow (no room for nul character) %d of %d" ), (int)ResultLen, (int)colsize );
+							}
+						}
+						//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, collection->coltypes[idx-1], idx );
+						if( collection->coltypes && coltype != collection->coltypes[idx-1] )
+						{
+							lprintf( WIDE( "Col type mismatch?" ) );
+							DebugBreak();
+						}
+						if( rc == SQL_SUCCESS ||
+							rc == SQL_SUCCESS_WITH_INFO ) {
+							if( ResultLen == SQL_NO_TOTAL ||  // -4
+								ResultLen == SQL_NULL_DATA )  // -1
+							{
+								//lprintf( WIDE("result data failed...") );
+							}
+
+							if( ResultLen > 0 ) {
+								if( collection->ppdlResults ) {
+									lprintf( "Unifnished" );
+
+								}
+								else if( collection->flags.bBuildResultArray ) {
+									collection->result_len[idx - 1] = ResultLen;
+									if( collection->coltypes[idx - 1] == SQL_LONGVARBINARY ) {
+										// I won't modify this anyhow, and it results
+										// to users as a CTEXSTR, preventing them from changing it also...
+										//lprintf( "Got a blob..." );
+										//lprintf( WIDE( "size is %d" ), collection->colsizes[idx-1] );
+										if( pvtData ) {
+											SQLUINTEGER n;
+											vtprintf( pvtData, WIDE( "%s<" ), idx > 1 ? WIDE( "," ) : WIDE( "" ) );
+											for( n = 0; n < collection->colsizes[idx - 1]; n++ )
+												vtprintf( pvtData, WIDE( "%02x " ), byResult[n] );
+											vtprintf( pvtData, WIDE( ">" ) );
+										}
+										collection->results[idx - 1] = NewArray( TEXTCHAR, collection->colsizes[idx - 1] );
+										//lprintf( WIDE( "dest is %p and src is %p" ), collection->results[idx-1], byResult );
+										MemCpy( collection->results[idx - 1], byResult, collection->colsizes[idx - 1] );
+										//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, coltypes[idx-1], idx );
+										//collection->results[idx-1] = (TEXTSTR)Deblobify( byResult, colsizes[idx-1] );
 									}
-									collection->results[idx-1] = NewArray( TEXTCHAR, collection->colsizes[idx-1] );
-									//lprintf( WIDE( "dest is %p and src is %p" ), collection->results[idx-1], byResult );
-									MemCpy( collection->results[idx-1], byResult, collection->colsizes[idx-1] );
-									//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, coltypes[idx-1], idx );
-									//collection->results[idx-1] = (TEXTSTR)Deblobify( byResult, colsizes[idx-1] );
+									else {
+										if( collection->results[idx - 1] )
+											Release( (char*)collection->results[idx - 1] );
+										if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), byResult );
+										collection->results[idx - 1] = StrDup( byResult );
+									}
 								}
-								else
-								{
-									if( collection->results[idx-1] )
-										Release( (char*)collection->results[idx-1] );
-									if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), byResult );
-									collection->results[idx-1] = StrDup( byResult );
+								else {
+									//lprintf( WIDE("Got a result: \'%s\'"), byResult );
+
+									/*
+									* if this is auto processed for the application, there is no
+									* result indicator indicating how long it is, therefore the application
+									* must in turn call Deblobify or some other custom routine to handle
+									* this SQL database's binary format...
+									*/
+									/*
+									if( coltypes[idx-1] == SQL_LONGVARBINARY )
+									{
+									POINTER tmp;
+									vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), tmp = Deblobify( byResult, collection->colsizes[idx-1] ) );
+									Release( tmp );
+									}
+									else
+									*/
+									vtprintf( collection->pvt_result, WIDE( "%s%s" ), first ? WIDE( "" ) : WIDE( "," ), byResult );
+									if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), byResult );
+									first = 0;
 								}
 							}
-							else
-							{
-								//lprintf( WIDE("Got a result: \'%s\'"), byResult );
-
-								/*
-								* if this is auto processed for the application, there is no
-								* result indicator indicating how long it is, therefore the application
-								* must in turn call Deblobify or some other custom routine to handle
-								* this SQL database's binary format...
-								*/
-								/*
-								if( coltypes[idx-1] == SQL_LONGVARBINARY )
-								{
-								POINTER tmp;
-								vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), tmp = Deblobify( byResult, collection->colsizes[idx-1] ) );
-								Release( tmp );
+							else {
+								if( !collection->flags.bBuildResultArray ) {
+									//lprintf( WIDE("Didn't get a result... null field?") );
+									vtprintf( collection->pvt_result, WIDE( "%s" ), first ? WIDE( "" ) : WIDE( "," ) );
+									if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), byResult );
+									first = 0;
 								}
-								else
-								*/
-								vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), byResult );
-								if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), byResult );
-								first = 0;
+								else {
+									if( pvtData )vtprintf( pvtData, WIDE( "%s<NULL>" ), idx > 1 ? WIDE( "," ) : WIDE( "" ) );
+								}
+								// otherwise the entry will be NULL
 							}
 						}
 						else
 						{
-							if( !collection->flags.bBuildResultArray )
-							{
-								//lprintf( WIDE("Didn't get a result... null field?") );
-								vtprintf( collection->pvt_result, WIDE("%s"), first?WIDE( "" ):WIDE( "," ) );
-								if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), byResult );
-								first=0;
-							}
-							else
-							{
-								if( pvtData )vtprintf( pvtData, WIDE( "%s<NULL>" ), idx>1?WIDE( "," ):WIDE( "" ) );
-							}
-							// otherwise the entry will be NULL
+							retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
+							lprintf( WIDE("GetData failed...") );
+							result_cmd = WM_SQL_RESULT_ERROR;
 						}
-					}
-					else
-					{
-						retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
-						lprintf( WIDE("GetData failed...") );
-						result_cmd = WM_SQL_RESULT_ERROR;
 					}
 				}
 #endif
