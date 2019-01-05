@@ -3672,14 +3672,15 @@ static void decodeblock( const char in[4], uint8_t out[3], size_t len, const cha
 {
 	int index[4];
 	int n;
-	for( n = 0; n < 4; n++ )
+	for( n = 0; n < len; n++ )
 	{
-		//strchr( base64, in[n] );
-		index[n] = _base64_r[in[n]];
-		//if( ( index[n] - base64 ) == 64 )
-		//	last_byte = 1;
+		// propagate terminator.
+		if( n && ( index[n - 1] == 64 ) ) index[n] = 0;
+		else index[n] = _base64_r[in[n]];
 	}
-	//if(
+	for( ; n < 4; n++ )
+		index[n] = 0;
+	
 	out[0] = (char)(( index[0] ) << 2 | ( index[1] ) >> 4);
 	out[1] = (char)(( index[1] ) << 4 | ( ( ( index[2] ) >> 2 ) & 0x0f ));
 	out[2] = (char)(( index[2] ) << 6 | ( ( index[3] ) & 0x3F ));
@@ -3714,6 +3715,29 @@ TEXTCHAR *EncodeBase64Ex( const uint8_t* buf, size_t length, size_t *outsize, co
 
 static void setupDecodeBytes( const char *code ) {
 	int n = 0;
+	// default all of these, allow code to override them.
+
+	// allow nul terminators (sortof)
+	_base64_r[0] = 64; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
+	_base64_r['~'] = 64; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
+	_base64_r['='] = 64; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
+
+	// My JS Encoding $_ and = at the end.  allows most to be identifiers too.
+	// 'standard' encoding +/
+	// variants -/
+	//          +,
+	//          ._
+	// variants -_
+
+	_base64_r['$'] = 62; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
+	_base64_r['+'] = 62; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
+	_base64_r['-'] = 62; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
+	_base64_r['.'] = 62; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
+
+	_base64_r['_'] = 63; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
+	_base64_r['/'] = 63; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
+	_base64_r[','] = 63; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
+
 	if( _last_base64_set != code ) {
 		_last_base64_set = code;
 		memset( _base64_r, 0, 256 );
@@ -3726,6 +3750,7 @@ static void setupDecodeBytes( const char *code ) {
 
 uint8_t *DecodeBase64Ex( const char* buf, size_t length, size_t *outsize, const char *base64 )
 {
+	static const char *useBase64;
 	size_t fake_outsize;
 	uint8_t * real_output;
 	if( !outsize ) outsize = &fake_outsize;
@@ -3733,7 +3758,10 @@ uint8_t *DecodeBase64Ex( const char* buf, size_t length, size_t *outsize, const 
 		base64 = _base64;
 	else if( ((uintptr_t)base64) == 1 )
 		base64 = _base642;
-	setupDecodeBytes( base64 );
+	if( useBase64 != base64 ) {
+		base64 = useBase64;
+		setupDecodeBytes( base64 );
+	}
 	real_output = NewArray( uint8_t, ( ( ( length + 1 ) * 3 ) / 4 ) + 1 );
 	{
 		size_t n;
