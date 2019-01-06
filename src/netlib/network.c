@@ -62,6 +62,7 @@
 #include <sys/types.h>
 #include <net/if.h>
 #include <net/if_arp.h>
+#include <sys/un.h>
 #include <arpa/inet.h>
 #ifndef __ANDROID__
 #include <ifaddrs.h>
@@ -2674,16 +2675,16 @@ NETWORK_PROC( SOCKADDR *,CreateAddress_hton)( uint32_t dwIP,uint16_t nHisPort)
 
 //---------------------------------------------------------------------------
 #if defined( __LINUX__ ) && !defined( __CYGWIN__ )
- #define UNIX_PATH_MAX	 108
-
+#  ifndef __LINUX__
+#    define UNIX_PATH_MAX	 108
 struct sockaddr_un {
-#ifdef __MAC__
+#    ifdef __MAC__
 	u_char   sa_len;
-#endif
+#    endif
 	sa_family_t  sun_family;		/* AF_UNIX */
 	char	       sun_path[UNIX_PATH_MAX]; /* pathname */
 };
-
+#  endif
 NETWORK_PROC( SOCKADDR *,CreateUnixAddress)( CTEXTSTR path )
 {
 	struct sockaddr_un *lpsaAddr;
