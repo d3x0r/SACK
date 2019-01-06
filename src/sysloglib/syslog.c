@@ -817,8 +817,7 @@ uint64_t GetTimeOfDay( void )
 	{
 		struct timeval tp;
 		gettimeofday( &tp, NULL );
-		result = (((uint64_t)(tp.tv * 1000L) + (uint64_t)(tp.tv_usec)) << 8) | (tz & 0xFF);
-		return result;
+		return  (((uint64_t)(tp.tv_sec * 1000L) + (uint64_t)(tp.tv_usec)) << 8) | (tz & 0xFF);
 	}
 #endif
 }

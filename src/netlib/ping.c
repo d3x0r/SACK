@@ -34,8 +34,8 @@ int  WaitForEchoReply(SOCKET s, uint32_t dwTime);
 uint16_t in_cksum(uint16_t *addr, int len);
 
 // ICMP Echo Request/Reply functions
-int		SendEchoRequest(PVARTEXT, SOCKET, SOCKADDR_IN*);
-int   	RecvEchoReply( PVARTEXT, SOCKET, SOCKADDR_IN*, uint8_t *);
+int		SendEchoRequest(PVARTEXT, SOCKET, struct sockaddr_in*);
+int   	RecvEchoReply( PVARTEXT, SOCKET, struct sockaddr_in*, uint8_t *);
 
 #define MAX_HOPS     128 
 #define MAX_NAME_LEN 255
@@ -92,8 +92,8 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 {
 	SOCKET	  rawSocket;
 	struct hostent *lpHost;
-	SOCKADDR_IN saDest;
-	SOCKADDR_IN saSrc;
+	struct sockaddr_in saDest;
+	struct sockaddr_in saSrc;
 	uint64_t	     dwTimeSent;
 	uint8_t     cTTL;
 	int        nLoop;
@@ -511,7 +511,7 @@ NETWORK_PROC( LOGICAL, DoPingEx )( CTEXTSTR pstrHost,
 // SendEchoRequest()
 // Fill in echo request header
 // and send to destination
-int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,SOCKADDR_IN *lpstToAddr)
+int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,struct sockaddr_in *lpstToAddr)
 {
 	static ECHOREQUEST echoReq;
 	static int nId = 1;
@@ -553,7 +553,7 @@ int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,SOCKADDR_IN *lpstToAddr)
 // RecvEchoReply()
 // Receive incoming data
 // and parse out fields
-int RecvEchoReply(PVARTEXT pvtResult, SOCKET s, SOCKADDR_IN *lpsaFrom, uint8_t *pTTL)
+int RecvEchoReply(PVARTEXT pvtResult, SOCKET s, struct sockaddr_in *lpsaFrom, uint8_t *pTTL)
 {
 	ECHOREPLY echoReply;
 	int nRet;
