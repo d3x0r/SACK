@@ -3365,20 +3365,23 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 					for( idx = 1; idx <= collection->columns; idx++ ) {
 						val = (struct json_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
 #ifdef USE_ODBC
+
+#  if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 						if( !odbc->flags.bSQLite_native )
+#  endif
 						{
 							SQLSMALLINT coltype;
 							SQLULEN colsize;
 							rc = SQLDescribeCol( collection->hstmt
 								, idx
 								,
-#ifdef _UNICODE
+#  ifdef _UNICODE
 								( SQLWCHAR* )colname
 								, sizeof( colname )
-#else
+#  else
 								(SQLCHAR*)colname
 								, sizeof( colname )
-#endif
+#  endif
 								, (SQLSMALLINT*)&namelen
 								, &coltype // data type short int
 								, &colsize // columnsize int
