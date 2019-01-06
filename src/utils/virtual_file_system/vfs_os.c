@@ -1781,12 +1781,12 @@ struct sack_vfs_file * CPROC sack_vfs_os_openfile( struct volume *vol, const cha
 		BLOCKINDEX offset = (file->entry->name_offset ^ file->dirent_key.name_offset);
 		uint32_t sealLen = (offset & DIRENT_NAME_OFFSET_FLAG_SEALANT) >> DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT;
 		if( sealLen ) {
-			file->sealant = NewArray( uint8_t, sealLen );
+			file->seal = NewArray( uint8_t, sealLen );
 			file->sealantLen = sealLen;
 			file->sealed = SACK_VFS_OS_SEAL_LOAD;
 		}
 		else {
-			file->sealant = NULL;
+			file->seal = NULL;
 			file->sealantLen = 0;
 			file->sealed = SACK_VFS_OS_SEAL_NONE;
 		}
@@ -1805,7 +1805,33 @@ static struct sack_vfs_file * CPROC sack_vfs_os_open( uintptr_t psvInstance, con
 	return sack_vfs_os_openfile( (struct volume*)psvInstance, filename );
 }
 
-static char * getFilename( const char *objBuf, size_t objBufLen, char *sealBuf, size_t sealBufLen, char *idBuf, size_t idBufLen ) {
+static void cryptData( uint8_t *objBuf, size_t objBufLen, size_t offset, char *keyBuf, size_t keyBufLen ) {
+	size_t n;
+	uint8_t p = 0;
+	char *keyBuf_ = keyBuf;
+	objBuf += offset;
+	objBufLen += offset;
+	for( n = offset; n < objBufLen; n++, objBuf++ ) {
+		p = (objBuf[0] = objBuf[0] ^ (p ^ keyBuf[(n + 8 + (keyBuf[n%keyBufLen] & 0x7)) % keyBufLen] ^ keyBuf[n%keyBufLen]));
+	}
+}
+
+static void decryptData( uint8_t *objBuf, size_t objBufLen, size_t offset, char *keyBuf, size_t keyBufLen ) {
+	int n;
+	char *keyBuf_ = keyBuf;
+	if( objBufLen > 0 ) {
+		objBufLen--;
+		objBuf += offset;
+		objBufLen += offset;
+		objBuf += (objBufLen);
+		for( n = objBufLen; SUS_GTE( n, int, offset, size_t ); n--, objBuf-- ) {
+			(objBuf[0] = objBuf[0] ^ (objBuf[-1] ^ keyBuf[(n + 8 + (keyBuf[n%keyBufLen] & 0x7)) % keyBufLen] ^ keyBuf[n%keyBufLen]));
+		}
+		(objBuf[0] = objBuf[0] ^ (0 ^ keyBuf[(8 + (keyBuf[0 % keyBufLen] & 0x3)) % keyBufLen] ^ keyBuf[0]));
+	}
+}
+
+static char * getFilename( const char *objBuf, size_t objBufLen, char *sealBuf, size_t sealBufLen, LOGICAL owner, char *idBuf, size_t idBufLen ) {
 
 	if( sealBuf ) {
 		struct random_context *signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
@@ -1813,9 +1839,19 @@ static char * getFilename( const char *objBuf, size_t objBufLen, char *sealBuf, 
 		size_t keyLen;
 		uint8_t outbuf[32];
 
-		SRG_ResetEntropy( signEntropy );
-		SRG_FeedEntropy( signEntropy, (const uint8_t*)sealBuf, sealBufLen );
-		SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
+		if( owner ) {
+			char *metakey = SRG_ID_Generator3();
+			SRG_ResetEntropy( signEntropy );
+			SRG_FeedEntropy( signEntropy, (const uint8_t*)metakey, 44 );
+			SRG_FeedEntropy( signEntropy, (const uint8_t*)sealBuf, sealBufLen );
+			SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
+
+		}
+		else {
+			SRG_ResetEntropy( signEntropy );
+			SRG_FeedEntropy( signEntropy, (const uint8_t*)sealBuf, sealBufLen );
+			SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
+		}
 
 		SRG_ResetEntropy( signEntropy );
 		SRG_FeedEntropy( signEntropy, (const uint8_t*)objBuf, objBufLen );
@@ -1902,16 +1938,18 @@ static void _os_MaskBlock( struct volume *vol, uint8_t* usekey, uint8_t* block, 
 		memcpy( block, data, length );
 }
 
+#define IS_OWNED(file)  ( (file->entry->name_offset^file->dirent_key.name_offset) & DIRENT_NAME_OFFSET_FLAG_OWNED )
+
 size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, size_t length ) {
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
 	LOGICAL updated = FALSE;
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
-	if( file->entry->name_offset & DIRENT_NAME_OFFSET_FLAG_SEALANT ) {
+	if( (file->entry->name_offset^file->dirent_key.name_offset) & DIRENT_NAME_OFFSET_FLAG_SEALANT ) {
 		char filename[64];
 		// read-only data block.
 		lprintf( "INCOMPLETE - TODO WRITE PATCH" );
-		char *sealer = getFilename( data, length, (char*)file->sealant, file->sealantLen, filename, 64 );
+		char *sealer = getFilename( data, length, (char*)file->sealant, file->sealantLen, IS_OWNED(file), filename, 64 );
 
 		struct sack_vfs_file *pFile = sack_vfs_os_openfile( file->vol, filename );
 		pFile->sealant = (uint8_t*)sealer;
@@ -2507,13 +2545,24 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 		return FALSE;
 
 	case SOSFSSIO_PATCH_OBJECT:
-	{
+		{
+		LOGICAL owner = va_arg( args, LOGICAL );  // seal input is a constant, generate random meta key
+
 		char *objIdBuf = va_arg( args, char * );
 		size_t objIdBufLen = va_arg( args, size_t );
+
+		char *patchAuth = va_arg( args, char * );
+		size_t patchAuthLen = va_arg( args, size_t );
+
 		char *objBuf = va_arg( args, char * );
 		size_t objBufLen = va_arg( args, size_t );
+
 		char *sealBuf = va_arg( args, char * );
 		size_t sealBufLen = va_arg( args, size_t );
+
+		char *keyBuf = va_arg( args, char * );
+		size_t keyBufLen = va_arg( args, size_t );
+
 		char *idBuf = va_arg( args, char * );
 		size_t idBufLen = va_arg( args, size_t );
 
@@ -2536,7 +2585,7 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 				while( 1 ) {
 					//char objId[45];
 					//size_t objIdLen;
-					char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, idBuf, idBufLen );
+					char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, FALSE, idBuf, idBufLen );
 
 					if( sack_vfs_os_exists( vol, idBuf ) ) {
 						if( !sealBuf ) { // accidental key collision. 
@@ -2570,14 +2619,17 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 	break;
 	case SOSFSSIO_STORE_OBJECT:
 	{
+		LOGICAL owner = va_arg( args, LOGICAL );  // seal input is a constant, generate random meta key
 		char *objBuf = va_arg( args, char * );
 		size_t objBufLen = va_arg( args, size_t );
 		char *sealBuf = va_arg( args, char * );
 		size_t sealBufLen = va_arg( args, size_t );
+		char *keyBuf = va_arg( args, char * );
+		size_t keyBufLen = va_arg( args, size_t );
 		char *idBuf = va_arg( args, char * );
 		size_t idBufLen = va_arg( args, size_t );
 		while( 1 ) {
-			char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, idBuf, idBufLen );
+			char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, owner, idBuf, idBufLen );
 			if( sack_vfs_os_exists( vol, idBuf ) ) {
 				if( !sealBuf ) { // accidental key collision. 
 					continue; // try again.

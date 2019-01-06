@@ -93,13 +93,17 @@ enum block_cache_entries
 // (sealant length / 4)  (mulitply by 4 to get real length)
 #define DIRENT_NAME_OFFSET_FLAG_SEALANT  0x003E0000
 #define DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT 17
-#define DIRENT_NAME_OFFSET_UNUSED        0xFFC00000
+#define DIRENT_NAME_OFFSET_FLAG_OWNED    0x00400000
+#define DIRENT_NAME_OFFSET_UNUSED        0xFF800000
 
 PREFIX_PACKED struct directory_entry
 {
 	FPI name_offset;  // name offset from beginning of disk
 	BLOCKINDEX first_block;  // first block of data of the file
 	VFS_DISK_DATATYPE filesize;  // how big the file is
+#ifdef VIRTUAL_OBJECT_STORE
+	uint64_t tick;  // when the file was created/last written
+#endif
 	//uint32_t filler;  // extra data(unused)
 } PACKED;
 
