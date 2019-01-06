@@ -35,6 +35,7 @@
 
 #include <stdhdrs.h>
 #include <loadsock.h>
+#include <time.h>
 #ifdef __ANDROID__
 #include <android/log.h>
 #endif
@@ -673,6 +674,121 @@ CTEXTSTR GetPackedTime( void )
 	        , timething );
 #endif
 	return timebuffer;
+}
+
+int gettimezone( void ){
+    time_t gmt, rawtime = time(NULL);
+    struct tm *ptm;
+
+#if !defined(WIN32)
+    struct tm gbuf;
+    ptm = gmtime_r(&rawtime, &gbuf);
+#else
+    ptm = gmtime(&rawtime);
+#endif
+    // Request that mktime() looksup dst in timezone database
+    ptm->tm_isdst = -1;
+    gmt = mktime(ptm);
+	{
+		int seconds = (int)difftime( rawtime, gmt );
+		int sign = 1;
+		if( seconds < 0 ) {
+			sign = -1;
+			seconds = -seconds;
+		}
+		return sign * (((seconds / 60 / 60) * 100) + ((seconds / 60) % 60));
+	}
+}
+#if 0
+#ifdef _WIN32
+	{
+		static int isSet;
+		static int tz;
+		if( isSet ) return tz;
+		// Get the local system time.
+
+		{
+			DWORD dwType;
+			DWORD dwValue;
+			DWORD dwSize = sizeof( dwValue );
+			HKEY hTemp;
+			DWORD dwStatus;
+
+			dwStatus = RegOpenKeyEx( HKEY_LOCAL_MACHINE
+			                       , "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", 0
+			                       , KEY_READ, &hTemp );
+
+			if( (dwStatus == ERROR_SUCCESS) && hTemp )
+			{
+				dwSize = sizeof( dwValue );
+				dwStatus = RegQueryValueEx(hTemp, "ActiveTimeBias", 0
+				                          , &dwType
+				                          , (PBYTE)&dwValue
+				                          , &dwSize );
+
+				RegCloseKey( hTemp );
+			}
+			else
+				dwValue = 0;
+			//HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation
+			// Get the timezone info.
+			//TIME_ZONE_INFORMATION TimeZoneInfo;
+			//GetTimeZoneInformation( &TimeZoneInfo );
+
+			// Convert local time to UTC.
+			//TzSpecificLocalTimeToSystemTime( &TimeZoneInfo,
+			//								 &LocalTime,
+			//								 &GmtTime );
+			// Local time expressed in terms of GMT bias.
+			{
+				timebuf->zhr = (int8_t)( -( (int)dwValue/60 ) ) ;
+				timebuf->zmn = (dwValue>0)?( dwValue % 60 ):((-dwValue)%60);
+			}
+			tz = (int)dwValue;
+			isSet = TRUE;
+			return tz;
+		}
+	}
+#else
+
+#endif
+}
+#endif
+
+
+uint64_t GetTimeOfDay( void )
+{
+	//struct timezone tzp;
+	int tz = gettimezone();
+	if( tz < 0 )
+		tz = -(((-tz / 100) * 60) + (-tz % 100)) / 15; // -840/15 = -56  
+	else
+		tz = (((tz / 100) * 60) + (tz % 100)) / 15; // -840/15 = -56  720/15 = 48
+#ifdef _WIN32
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970 
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+	uint64_t result;
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime( &system_time );
+	SystemTimeToFileTime( &system_time, &file_time );
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	result = (((uint64_t)((time - EPOCH) / 10000L) + (uint64_t)(system_time.wMilliseconds)) << 8) | (tz & 0xFF);
+	return result;
+#else
+	{
+		struct timeval tp;
+		gettimeofday( &tp, NULL );
+		result = (((uint64_t)(tp.tv * 1000L) + (uint64_t)(tp.tv_usec)) << 8) | (tz & 0xFF);
+		return result;
+	}
+#endif
 }
 
 //----------------------------------------------------------------------------
