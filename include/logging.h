@@ -140,6 +140,29 @@ SYSLOG_PROC  LOGICAL SYSLOG_API  IsBadReadPtr ( CPOINTER pointer, uintptr_t len 
 SYSLOG_PROC  CTEXTSTR SYSLOG_API  GetPackedTime ( void );
 
 
+//  returns the millisecond of the day (since UNIX Epoch) * 256 ( << 8 )
+// the lowest 8 bits are the timezone / 15.  
+// The effect of the low [7/]8 bits being the time zone is that within the same millisecond
+// UTC +0 sorts first, followed by +1, +2, ... etc until -14, -13, -12,... -1
+// the low [7/]8 bits are the signed timezone
+// (timezone could have been either be hr*100 + min (ISO TZ format)
+// or in minutes (hr*60+mn) this would only take 7 bits
+// one would think 8 bit shifts would be slightly more efficient than 7 bits.
+// and sign extension for 8 bits already exists.
+// - REVISION - timezone with hr*100 does not divide by 15 cleanly.
+//     The timezone is ( hour*60 + min ) / 15 which is a range from -56 to 48
+//     minimal representation is 7 bits (0 - 127 or -64 - 63)
+//     still keeping 8 bits for shifting, so the effective range is only -56 to 48 of -128 to 127
+// struct time_of_day {
+//    uint64_t epoch_milliseconds : 56;
+//    int64_t timezone : 8; divided by 15... hours * 100 / 15 
+// }
+SYSLOG_PROC  uint64_t SYSLOG_API GetTimeOfDay( void );
+
+// returns timezone as hours*100 + minutes.
+// result is often negated?
+SYSLOG_PROC  int SYSLOG_API gettimezone(void);
+
 // 
 typedef void (CPROC*UserLoggingCallback)( CTEXTSTR log_string );
 SYSLOG_PROC  void SYSLOG_API  SetSystemLog ( enum syslog_types type, const void *data );

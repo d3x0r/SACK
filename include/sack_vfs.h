@@ -217,7 +217,123 @@ namespace objStore {
 		//SFSIO_GET_OBJECT_ID, // get the resulting storage ID.  (Move ID creation into low level driver)
 	};
 
-#define sack_vfs_os_ioctl_store_object( objId,objIdLen, obj,objlen, seal,seallen, result )
+// returns a pointer to and array of buffers.
+// the last pointer in the list is NULL.
+// each pointer in the list points to a structure containing a pointer to the data and the length of the data
+#define sack_vfs_os_ioctl_load_decrypt_object( vol, objId,objIdLen, seal,seallen )                            ((struct {uint8_t*, size_t}*)sack_fs_ioctl( vol, SOSFSSIO_LOAD_OBJECT, objId, objIdLen, seal, seallen ))
+
+// returns a pointer to and array of buffers.
+// the last pointer in the list is NULL.
+// each pointer in the list points to a structure containing a pointer to the data and the length of the data
+#define sack_vfs_os_ioctl_load_object( vol, objId,objIdLen )                                                  ((struct {uint8_t*, size_t}*)sack_fs_ioctl( vol, SOSFSSIO_LOAD_OBJECT, objId, objIdLen ))
+
+// unsealed store/update(patch)
+// returns TRUE/FALSE. true if the object already exists, or was successfully written.
+// store object data, get a unique ID for the data.
+// {
+//     char data[] = "some data";
+//     char result[44];
+//     sack_vfs_os_ioctl_store_rw_object( vol, data, sizeof( data ), result, 44 );
+// }
+#define sack_vfs_os_ioctl_store_rw_object( vol, obj,objlen, result, resultlen )                                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, FALSE, obj, objlen, NULL, 0, result, resultlen )
+
+// re-write an object with new content using old ID.
+// returns TRUE/FALSE. true if the patch already exists, or was successfully written.
+// {
+//     char data[] = "some data";
+//     char oldResult[] = "AAAAAAAAAAAAAAAAAAAAAAAA"; // ID from previous store result
+//     char result[44];
+//     sack_vfs_os_ioctl_patch_rw_object( vol, oldResult, sizeof( oldReult-1 ), data, sizeof( data ), result, 44 );
+// }
+#define sack_vfs_os_ioctl_patch_rw_object( vol, objId,objIdLen, obj,objlen )                                     sack_fs_ioctl( vol, SOSFSSIO_PATCH_OBJECT, FALSE, FALSE, objId, objIdLen, NULL, 0, obj, objlen, NULL, 0, NULL, 0 )
+
+// sealed store and patch
+// store a unencrypted, sealed object using specified sealant
+
+// store data to a new sealed block.  Also encrypt the data
+// returns TRUE/FALSE. true if the object already exists, or was successfully written.
+// {
+//     char data[] = "some data";
+//     char seal[] = "BBBBBBBBBBBBBBBBBBBBBBBB"; // Some sealant bsea64
+//     char result[44];
+//     sack_vfs_os_ioctl_store_crypt_object( vol, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
+// }
+#define sack_vfs_os_ioctl_store_crypt_owned_object( vol, obj,objlen, seal,seallen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, TRUE,TRUE,  obj, objlen, seal, seallen, result, resultlen )
+
+// store data to a new sealed block.  Also encrypt the data
+// returns TRUE/FALSE. true if the object already exists, or was successfully written.
+// {
+//     char data[] = "some data";
+//     char seal[] = "BBBBBBBBBBBBBBBBBBBBBBBB"; // Some sealant bsea64
+//     char result[44];
+//     sack_vfs_os_ioctl_store_crypt_object( vol, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
+// }
+#define sack_vfs_os_ioctl_store_crypt_sealed_object( vol, obj,objlen, seal,seallen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, TRUE,FALSE,  obj, objlen, seal, seallen, result, resultlen )
+
+// store patch to an existing sealed block.  (Writes never change existing data), also encrypt the data
+// returns TRUE/FALSE. true if the patch already exists, or was successfully written.
+// {
+//     char data[] = "some data";
+//     char seal[] = "BBBBBBBBBBBBBBBBBBBBBBBB"; // Some sealant bsea64
+//     char oldResult[] = "AAAAAAAAAAAAAAAAAAAAAAAA"; // ID from previous store result
+//     char result[44];
+//     sack_vfs_os_ioctl_patch_crypt_object( vol, oldResult, sizeof( oldResult )-1, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
+// }
+#define sack_vfs_os_ioctl_patch_crypt_owned_object( vol, objId,objIdLen, obj,objlen, seal,seallen, result, resultlen ) sack_fs_ioctl( vol, SOSFSSIO_PATCH_OBJECT, TRUE, TRUE, objId, objIdLen, authId, authIdLen, obj, objlen, seal, seallen, result, resultlen )
+
+
+// store patch to an existing sealed block.  (Writes never change existing data), also encrypt the data
+// returns TRUE/FALSE. true if the patch already exists, or was successfully written.
+// {
+//     char data[] = "some data";
+//     char seal[] = "BBBBBBBBBBBBBBBBBBBBBBBB"; // Some sealant bsea64
+//     char oldResult[] = "AAAAAAAAAAAAAAAAAAAAAAAA"; // ID from previous store result
+//     char result[44];
+//     sack_vfs_os_ioctl_patch_crypt_object( vol, oldResult, sizeof( oldResult )-1, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
+// }
+#define sack_vfs_os_ioctl_patch_crypt_sealed_object( vol, objId,objIdLen, obj,objlen, seal,seallen, result, resultlen ) sack_fs_ioctl( vol, SOSFSSIO_PATCH_OBJECT, TRUE, FALSE, objId, objIdLen, authId, authIdLen, obj, objlen, seal, seallen, result, resultlen )
+
+// store data to a new sealed block.  Data is publically readable.
+// returns TRUE/FALSE. true if the object already exists, or was successfully written.
+// {
+//     char data[] = "some data";
+//     char seal[] = "BBBBBBBBBBBBBBBBBBBBBBBB"; // Some sealant bsea64
+//     char result[44];
+//     sack_vfs_os_ioctl_store_owned_object( vol, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
+// }
+#define sack_vfs_os_ioctl_store_owned_object( vol, obj,objlen, seal,seallen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, TRUE, obj, objlen, seal, seallen, result, resultlen )
+
+// store data to a new sealed block.  Data is publically readable.
+// returns TRUE/FALSE. true if the object already exists, or was successfully written.
+// {
+//     char data[] = "some data";
+//     char seal[] = "BBBBBBBBBBBBBBBBBBBBBBBB"; // Some sealant bsea64
+//     char result[44];
+//     sack_vfs_os_ioctl_store_sealed_object( vol, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
+// }
+#define sack_vfs_os_ioctl_store_sealed_object( vol, obj,objlen, seal,seallen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, FALSE, obj, objlen, seal, seallen, result, resultlen )
+
+// store patch to an existing sealed block.  (Writes never change existing data).  Data is publically readable.
+// returns TRUE/FALSE. true if the patch already exists, or was successfully written.
+// {
+//     char data[] = "some data";
+//     char seal[] = "BBBBBBBBBBBBBBBBBBBBBBBB"; // Some sealant bsea64
+//     char oldResult[] = "AAAAAAAAAAAAAAAAAAAAAAAA"; // ID from previous store result
+//     char result[44];
+//     sack_vfs_os_ioctl_patch_object( vol, oldResult, sizeof( oldResult )-1, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
+// }
+#define sack_vfs_os_ioctl_patch_owned_object( vol, objId,objIdLen, obj,objlen, seal,seallen, result, resultlen ) sack_fs_ioctl( vol, SOSFSSIO_PATCH_OBJECT, FALSE, TRUE, objId, objIdLen, authId, authIdLen, obj, objlen, seal, seallen, result, resultlen )
+
+// store patch to an existing sealed block.  (Writes never change existing data).  Data is publically readable.
+// returns TRUE/FALSE. true if the patch already exists, or was successfully written.
+// {
+//     char data[] = "some data";
+//     char seal[] = "BBBBBBBBBBBBBBBBBBBBBBBB"; // Some sealant bsea64
+//     char oldResult[] = "AAAAAAAAAAAAAAAAAAAAAAAA"; // ID from previous store result
+//     char result[44];
+//     sack_vfs_os_ioctl_patch_object( vol, oldResult, sizeof( oldResult )-1, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
+// }
+#define sack_vfs_os_ioctl_patch_sealed_object( vol, objId,objIdLen, obj,objlen, seal,seallen, result, resultlen ) sack_fs_ioctl( vol, SOSFSSIO_PATCH_OBJECT, FALSE, FALSE, objId, objIdLen, authId, authIdLen, obj, objlen, seal, seallen, result, resultlen )
 
 	struct volume;
 	struct sack_vfs_file;
