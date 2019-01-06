@@ -756,7 +756,7 @@ int GetTimeZone( void ){
 }
 #endif
 
-void ConvertTickToTime( uint64_t tick, PSACK_TIME st ) {
+void ConvertTickToTime( int64_t tick, PSACK_TIME st ) {
 #ifdef _WIN32
 	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
 	int8_t tz = (int8_t)tick;
@@ -790,7 +790,7 @@ void ConvertTickToTime( uint64_t tick, PSACK_TIME st ) {
 }
 
 
-uint64_t GetTimeOfDay( void )
+int64_t GetTimeOfDay( void )
 {
 	//struct timezone tzp;
 	int tz = GetTimeZone();
@@ -825,7 +825,7 @@ uint64_t GetTimeOfDay( void )
 
 
 
-uint64_t ConvertTimeToTick( PSACK_TIME st ) {
+int64_t ConvertTimeToTick( PSACK_TIME st ) {
 	int tz;
 	int sign = st->zhr < 0 ? -1 : 1;
 	tz = sign * (((sign*st->zhr * 60) + st->zmn) / 15);
@@ -849,32 +849,19 @@ uint64_t ConvertTimeToTick( PSACK_TIME st ) {
 	return (((uint64_t)((time - EPOCH) / 10000L)) << 8) | (tz & 0xFF);
 
 #else
-#if 0
+
 	struct tm t;
 	time_t t_of_day;
 
-	t.tm_year = 2011 - 1900;
-	t.tm_mon = 7;           // Month, 0 - jan
-	t.tm_mday = 8;          // Day of the month
-	t.tm_hour = 16;
-	t.tm_min = 11;
-	t.tm_sec = 42;
-	t.tm_isdst = -1;        // Is DST on? 1 = yes, 0 = no, -1 = unknown
+	t.tm_year = st->yr - 1900;
+	t.tm_mon = st->mo-1;           // Month, 0 - jan
+	t.tm_mday = st->dy;          // Day of the month
+	t.tm_hour = st->hr;
+	t.tm_min = st->mn;
+	t.tm_sec = st->sc;
+	t.tm_isdst = 0;        // Is DST on? 1 = yes, 0 = no, -1 = unknown
 	t_of_day = mktime( &t );
-
-	uint64_t tick;
-
-	char *ctime( const time_t *timep );
-	char *ctime_r( const time_t *timep, char *buf );
-
-	struct tm *gmtime( const time_t *timep );
-	struct tm *gmtime_r( const time_t *timep, struct tm *result );
-
-	struct tm *localtime( const time_t *timep );
-	struct tm *localtime_r( const time_t *timep, struct tm *result );
-
-	time_t mktime( struct tm *tm );
-#endif
+	return ((((int64_t)t_of_day) * 1000ULL + st->ms) << 8) | tz;
 #endif
 }
 
