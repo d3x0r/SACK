@@ -599,5 +599,9 @@ int SetSocketReusePort( PCLIENT lpClient, int32_t enable )
 }
 
 
+#ifndef __LINUX__
+#  undef ioctl 
+#endif
+
 _UDP_NAMESPACE_END
 SACK_NETWORK_NAMESPACE_END

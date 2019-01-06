@@ -53,23 +53,23 @@ return 0;
 #include <unistd.h>
 #ifdef __LINUX__
 
-#undef s_addr
-#include <netinet/in.h> // IPPROTO_TCP
+#  undef s_addr
+#  include <netinet/in.h> // IPPROTO_TCP
 //#include <linux/in.h>  // IPPROTO_TCP
-#include <netinet/tcp.h> // TCP_NODELAY
+#  include <netinet/tcp.h> // TCP_NODELAY
 //#include <linux/tcp.h> // TCP_NODELAY
-#include <fcntl.h>
+#  include <fcntl.h>
+
+#  else
+#  endif
+
+#  include <sys/ioctl.h>
+#  include <signal.h> // SIGHUP defined
+
+#  define NetWakeSignal SIGHUP
 
 #else
-#endif
-
-#include <sys/ioctl.h>
-#include <signal.h> // SIGHUP defined
-
-#define NetWakeSignal SIGHUP
-
-#else
-#define ioctl ioctlsocket
+#  define ioctl ioctlsocket
 
 #endif
 
@@ -1653,4 +1653,9 @@ void SetClientKeepAlive( PCLIENT pClient, int bEnable )
 		// log some sort of error... and ignore...
 	}
 }
+
+#ifndef __LINUX__
+#  undef ioctl 
+#endif
+
 SACK_NETWORK_TCP_NAMESPACE_END
