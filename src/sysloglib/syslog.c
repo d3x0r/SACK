@@ -757,11 +757,11 @@ int GetTimeZone( void ){
 #endif
 
 void ConvertTickToTime( int64_t tick, PSACK_TIME st ) {
-#ifdef _WIN32
-	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
 	int8_t tz = (int8_t)tick;
 	int sign = (tz < 0) ? -1 : 1;
 	if( tz < 0 ) tz = -tz;
+#ifdef _WIN32
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
 	tick >>= 8;
 	tick *= 10000LL;
 	tick += EPOCH;
@@ -786,6 +786,21 @@ void ConvertTickToTime( int64_t tick, PSACK_TIME st ) {
 	st->zhr = sign* (( tz * 15 ) / 60);
 	st->zmn = (tz*15) % 60;
 #else
+	struct timeval tv;
+	struct tm tm;
+	tv.tv_sec = ( tick >> 8 ) / 1000;
+	tv.tv_usec =  ( ( tick >> 8 ) % 1000 ) * 1000;
+	gmtime_r( &tv.tv_sec, &tm );
+
+	st->yr = tm.tm_year + 1900;
+	st->mo = tm.tm_mon+1;
+	st->dy = tm.tm_mday;
+	st->hr = tm.tm_hour;
+	st->mn = tm.tm_min;
+	st->sc = tm.tm_sec;
+	st->ms = tv.tv_usec / 1000;
+	st->zhr = sign* (( tz * 15 ) / 60);
+	st->zmn = (tz*15) % 60;
 #endif
 }
 
@@ -846,9 +861,7 @@ int64_t ConvertTimeToTick( PSACK_TIME st ) {
 	time += ((uint64_t)file_time.dwHighDateTime) << 32;
 
 	return (((uint64_t)((time - EPOCH) / 10000L)) << 8) | (tz & 0xFF);
-
 #else
-
 	struct tm t;
 	time_t t_of_day;
 
@@ -859,8 +872,9 @@ int64_t ConvertTimeToTick( PSACK_TIME st ) {
 	t.tm_min = st->mn;
 	t.tm_sec = st->sc;
 	t.tm_isdst = 0;        // Is DST on? 1 = yes, 0 = no, -1 = unknown
-	t_of_day = mktime( &t );
-	return ((((int64_t)t_of_day) * 1000ULL + st->ms) << 8) | tz;
+	t_of_day = timegm( &t );
+
+	return ((((int64_t)t_of_day) * 1000ULL + st->ms) << 8) | (tz&0xFF);
 #endif
 }
 
