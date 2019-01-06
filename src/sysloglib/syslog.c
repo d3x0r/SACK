@@ -676,7 +676,7 @@ CTEXTSTR GetPackedTime( void )
 	return timebuffer;
 }
 
-int gettimezone( void ){
+int GetTimeZone( void ){
     time_t gmt, rawtime = time(NULL);
     struct tm *ptm;
 
@@ -699,6 +699,7 @@ int gettimezone( void ){
 		return sign * (((seconds / 60 / 60) * 100) + ((seconds / 60) % 60));
 	}
 }
+
 #if 0
 #ifdef _WIN32
 	{
@@ -755,11 +756,44 @@ int gettimezone( void ){
 }
 #endif
 
+void ConvertTickToTime( uint64_t tick, PSACK_TIME st ) {
+#ifdef _WIN32
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+	int8_t tz = (int8_t)tick;
+	int sign = (tz < 0) ? -1 : 1;
+	if( tz < 0 ) tz = -tz;
+	tick >>= 8;
+	tick *= 10000LL;
+	tick += EPOCH;
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970 
+	uint64_t result;
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+
+	file_time.dwLowDateTime = tick & 0xFFFFFFFF;
+	file_time.dwHighDateTime = ( tick >> 32 ) & 0xFFFFFFFF;
+	FileTimeToSystemTime( &file_time, &system_time );
+
+	st->yr = system_time.wYear;
+	st->mo = system_time.wMonth;
+	st->dy = system_time.wDay;
+	st->hr = system_time.wHour;
+	st->mn = system_time.wMinute;
+	st->sc = system_time.wSecond;
+	st->ms = system_time.wMilliseconds;
+	st->zhr = sign* (( tz * 15 ) / 60);
+	st->zmn = (tz*15) % 60;
+#else
+#endif
+}
+
 
 uint64_t GetTimeOfDay( void )
 {
 	//struct timezone tzp;
-	int tz = gettimezone();
+	int tz = GetTimeZone();
 	if( tz < 0 )
 		tz = -(((-tz / 100) * 60) + (-tz % 100)) / 15; // -840/15 = -56  
 	else
@@ -769,7 +803,6 @@ uint64_t GetTimeOfDay( void )
 	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
 	// until 00:00:00 January 1, 1970 
 	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
-	uint64_t result;
 	SYSTEMTIME  system_time;
 	FILETIME    file_time;
 	uint64_t    time;
@@ -779,8 +812,7 @@ uint64_t GetTimeOfDay( void )
 	time = ((uint64_t)file_time.dwLowDateTime);
 	time += ((uint64_t)file_time.dwHighDateTime) << 32;
 
-	result = (((uint64_t)((time - EPOCH) / 10000L) + (uint64_t)(system_time.wMilliseconds)) << 8) | (tz & 0xFF);
-	return result;
+	return (((uint64_t)((time - EPOCH) / 10000L)) << 8) | (tz & 0xFF);
 #else
 	{
 		struct timeval tp;
@@ -790,6 +822,63 @@ uint64_t GetTimeOfDay( void )
 	}
 #endif
 }
+
+
+
+uint64_t ConvertTimeToTick( PSACK_TIME st ) {
+	int tz;
+	int sign = st->zhr < 0 ? -1 : 1;
+	tz = sign * (((sign*st->zhr * 60) + st->zmn) / 15);
+#ifdef _WIN32
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+	system_time.wYear = st->yr;
+	system_time.wMonth = st->mo;
+	system_time.wDay = st->dy;
+	system_time.wHour = st->hr;
+	system_time.wMinute = st->mn;
+	system_time.wSecond = st->sc;
+	system_time.wMilliseconds = st->ms;
+	SystemTimeToFileTime( &system_time, &file_time );
+
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	return (((uint64_t)((time - EPOCH) / 10000L)) << 8) | (tz & 0xFF);
+
+#else
+#if 0
+	struct tm t;
+	time_t t_of_day;
+
+	t.tm_year = 2011 - 1900;
+	t.tm_mon = 7;           // Month, 0 - jan
+	t.tm_mday = 8;          // Day of the month
+	t.tm_hour = 16;
+	t.tm_min = 11;
+	t.tm_sec = 42;
+	t.tm_isdst = -1;        // Is DST on? 1 = yes, 0 = no, -1 = unknown
+	t_of_day = mktime( &t );
+
+	uint64_t tick;
+
+	char *ctime( const time_t *timep );
+	char *ctime_r( const time_t *timep, char *buf );
+
+	struct tm *gmtime( const time_t *timep );
+	struct tm *gmtime_r( const time_t *timep, struct tm *result );
+
+	struct tm *localtime( const time_t *timep );
+	struct tm *localtime_r( const time_t *timep, struct tm *result );
+
+	time_t mktime( struct tm *tm );
+#endif
+#endif
+}
+
+
 
 //----------------------------------------------------------------------------
 #ifndef BCC16 // no gettime of day - no milliseconds

@@ -159,9 +159,23 @@ SYSLOG_PROC  CTEXTSTR SYSLOG_API  GetPackedTime ( void );
 // }
 SYSLOG_PROC  uint64_t SYSLOG_API GetTimeOfDay( void );
 
+typedef struct sack_expanded_time_tag
+{
+	uint16_t ms;
+	uint8_t sc,mn,hr,dy,mo;
+	uint16_t yr;
+	int8_t zhr, zmn;
+} SACK_TIME;
+typedef struct sack_expanded_time_tag *PSACK_TIME;
+
+// convert a integer time value to an expanded structure.
+SYSLOG_PROC void     SYSLOG_API ConvertTickToTime( uint64_t, PSACK_TIME st );
+// convert a expanded time structure to a integer value.
+SYSLOG_PROC uint64_t SYSLOG_API ConvertTimeToTick( PSACK_TIME st );
+
 // returns timezone as hours*100 + minutes.
 // result is often negated?
-SYSLOG_PROC  int SYSLOG_API gettimezone(void);
+SYSLOG_PROC  int SYSLOG_API GetTimeZone(void);
 
 // 
 typedef void (CPROC*UserLoggingCallback)( CTEXTSTR log_string );
