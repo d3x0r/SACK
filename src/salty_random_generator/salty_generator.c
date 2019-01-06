@@ -265,58 +265,89 @@ void SRG_SaveState( struct random_context *ctx, POINTER *external_buffer_holder 
 {
 	if( !(*external_buffer_holder) )
 		(*external_buffer_holder) = New( struct random_context );
-	MemCpy( (*external_buffer_holder), ctx, sizeof( struct random_context ) );
+	(*(struct random_context*)(*external_buffer_holder)) = (*ctx);
 }
 
 void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holder )
 {
-	MemCpy( ctx, (external_buffer_holder), sizeof( struct random_context ) );
+	(*ctx) = *(struct random_context*)external_buffer_holder;
 }
 
 
 static void salt_generator(uintptr_t psv, POINTER *salt, size_t *salt_size ) {
-	static uint32_t tick;
+	static struct tickBuffer {
+		uint32_t tick;
+		uint64_t cputick;
+	} tick;
 	(void)psv;
-	tick = GetTickCount();
+	tick.cputick = GetCPUTick();
+	tick.tick = GetTickCount();
 	salt[0] = &tick;
 	salt_size[0] = sizeof( tick );
 }
 
+#define SRG_MAX_GENERATOR_THREADS 32
+
 char *SRG_ID_Generator( void ) {
-	static struct random_context *ctx;
-	uint32_t buf[2*(16+16)];
+	struct random_context *ctx;
+	uint32_t buf[2 * (16 + 16)];
 	size_t outlen;
-	if( !ctx ) ctx = SRG_CreateEntropy2( salt_generator, 0 );
-	SRG_GetEntropyBuffer( ctx, buf, 8*(16+16) );
-	return EncodeBase64Ex( (uint8*)buf, (16+16), &outlen, (const char *)1 );
+
+	static struct random_context *_ctx[SRG_MAX_GENERATOR_THREADS];
+	static uint32_t used[SRG_MAX_GENERATOR_THREADS];
+	int usingCtx;
+	usingCtx = 0;
+	do {
+		while( used[++usingCtx] ) { if( ++usingCtx >= SRG_MAX_GENERATOR_THREADS ) usingCtx = 0; }
+	} while( LockedExchange( used + usingCtx, 1 ) );
+	ctx = _ctx[usingCtx];
+	if( !ctx ) ctx = _ctx[usingCtx] = SRG_CreateEntropy2( salt_generator, 0 );
+
+	SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	used[usingCtx] = 0;
+	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }
 
 char *SRG_ID_Generator_256( void ) {
-	static struct random_context *_ctx[32];
-	static uint32_t used[32];
+	struct random_context *ctx;
 	uint32_t buf[2 * (16 + 16)];
 	size_t outlen;
+
+	static struct random_context *_ctx[SRG_MAX_GENERATOR_THREADS];
+	static uint32_t used[SRG_MAX_GENERATOR_THREADS];
 	int usingCtx;
-	static struct random_context *ctx;
 	usingCtx = 0;
 	do {
-		while( used[++usingCtx] ) { if( ++usingCtx >= 32 ) usingCtx = 0; }
+		while( used[++usingCtx] ) { if( ++usingCtx >= SRG_MAX_GENERATOR_THREADS ) usingCtx = 0; }
 	} while( LockedExchange( used + usingCtx, 1 ) );
 	ctx = _ctx[usingCtx];
 	if( !ctx ) ctx = _ctx[usingCtx] = SRG_CreateEntropy2_256( salt_generator, 0 );
+
 	SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
 	used[usingCtx] = 0;
 	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }
 
 char *SRG_ID_Generator3( void ) {
-	static struct random_context *ctx;
+	struct random_context *ctx;
 	uint32_t buf[2 * (16 + 16)];
 	size_t outlen;
-	if( !ctx ) ctx = SRG_CreateEntropy3( salt_generator, 0 );
+
+	static struct random_context *_ctx[SRG_MAX_GENERATOR_THREADS];
+	static uint32_t used[SRG_MAX_GENERATOR_THREADS];
+	int usingCtx;
+	usingCtx = 0;
+	do {
+		while( used[++usingCtx] ) { if( ++usingCtx >= SRG_MAX_GENERATOR_THREADS ) usingCtx = 0; }
+	} while( LockedExchange( used + usingCtx, 1 ) );
+	ctx = _ctx[usingCtx];
+	if( !ctx ) ctx = _ctx[usingCtx] = SRG_CreateEntropy3( salt_generator, 0 );
+
 	SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	used[usingCtx] = 0;
 	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }
+
 
 
 #ifdef WIN32
