@@ -29,7 +29,9 @@ void callNewTimeTest() {
 		tick3 = ConvertTimeToTick( &st2 );
 		ConvertTickToTime( tick3, &st3 );
 		tick4 = ConvertTimeToTick( &st3 );
-		if( tick != tick4 ) printf( "FATALITY\n" );
+		if( tick != tick2 ) printf( "FATALITY  : %" PRId64 "  %"PRIx64"   %"PRId64"  %" PRIx64"\n", tick, tick, tick2, tick2 );
+		if( tick != tick3 ) printf( "FATALITY  : %" PRId64 "  %"PRIx64"   %"PRId64"  %" PRIx64"\n", tick, tick, tick3, tick3 );
+		if( tick != tick4 ) printf( "FATALITY  : %" PRId64 "  %"PRIx64"   %"PRId64"  %" PRIx64"\n", tick, tick, tick4, tick4 );
 
 		printf( "%" PRId64 "\n", tick4 );
 		printf( "%02d/%02d/%4d %02d:%02d:%02d:%03d  %d  %d\n", st.mo, st.dy, st.yr, st.hr, st.mn, st.sc, st.ms, st.zhr, st.zmn );
@@ -44,10 +46,15 @@ void callNewTimeTest() {
 		int64_t outTick;
 		outTick = ConvertTimeToTick( &testTime );
 		ConvertTickToTime( testTick, &outTime );
-		if( testTick != outTick ) 
+		if( testTick != outTick )  {
 			printf( "FAILURE TO CONVERT TO TICK\n" );
-		if( memcmp( &testTime, &outTime, sizeof( SACK_TIME ) ) ) 
+			printf( "TICKS DIFFER: %" PRId64 "  %"PRIx64"   %"PRId64"  %" PRIx64"\n", testTick, testTick, outTick, outTick );
+		}
+		if( memcmp( &testTime, &outTime, sizeof( SACK_TIME ) ) )  {
 			printf( "FAILURE TO CONVERT TO TIME\n" );
+			printf( "%02d/%02d/%4d %02d:%02d:%02d:%03d  %d  %d\n", testTime.mo, testTime.dy, testTime.yr, testTime.hr, testTime.mn, testTime.sc, testTime.ms, testTime.zhr, testTime.zmn );
+			printf( "%02d/%02d/%4d %02d:%02d:%02d:%03d  %d  %d\n", outTime.mo, outTime.dy, outTime.yr, outTime.hr, outTime.mn, outTime.sc, outTime.ms, outTime.zhr, outTime.zmn );
+		}
 	}
 
 }
