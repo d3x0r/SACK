@@ -78,8 +78,8 @@ SRCS="${SRCS}   ../../src/translationlib/translate.c"
 
 SRCS="${SRCS}   ../../src/deadstart/deadstart_core.c "
  
-rm sack_typelib.c
-rm sack_typelib.h
+rm sack_ucb_full.c
+rm sack_ucb_full.h
 
 OPTS=
 OPTS="$OPTS	-I${SACK_BASE}/src/contrib/sqlite/3.23.0-MySqlite"
