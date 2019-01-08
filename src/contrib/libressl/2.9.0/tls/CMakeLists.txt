@@ -30,11 +30,15 @@ else()
 	add_definitions(-D_PATH_SSL_CA_FILE=\"${CMAKE_INSTALL_PREFIX}/etc/ssl/cert.pem\")
 endif()
 
+if( NOT __ANDROID__ )
+  set( more_include_directories ../include/compat )
+endif( NOT __ANDROID__ )
+
 add_library(tls ${TLS_SRC})
 target_include_directories(tls
 	PRIVATE
 		.
-		../include/compat
+		${more_include_directories}
 	PUBLIC
 		../include)
 

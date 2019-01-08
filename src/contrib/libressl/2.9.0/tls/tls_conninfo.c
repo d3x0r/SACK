@@ -17,6 +17,7 @@
  */
 
 #include <stdio.h>
+#include <limits.h>
 
 #include <openssl/x509.h>
 

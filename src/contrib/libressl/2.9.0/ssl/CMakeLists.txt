@@ -41,11 +41,15 @@ set(
 	tls13_key_schedule.c
 )
 
+if( NOT __ANDROID__ )
+  set( more_include_directories ../include/compat )
+endif( NOT __ANDROID__ )
+
 add_library(ssl ${SSL_SRC})
 target_include_directories(ssl
 	PRIVATE
 		.
-		../include/compat
+		${more_include_directories}
 	PUBLIC
 		../include)
 

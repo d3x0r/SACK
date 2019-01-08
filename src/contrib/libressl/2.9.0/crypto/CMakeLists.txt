@@ -826,6 +826,10 @@ if(EXTRA_EXPORT)
 	endforeach()
 endif()
 
+if( NOT __ANDROID__ )
+   SET( more_include_directories ../include/compat )
+endif( NOT __ANDROID__ )
+
 add_library(crypto ${CRYPTO_SRC})
 target_include_directories(crypto
 	PRIVATE
@@ -835,7 +839,7 @@ target_include_directories(crypto
 		dsa
 		evp
 		modes
-		../include/compat
+		${more_include_directories}
 	PUBLIC
 		../include)
 
