@@ -1,3 +1,4 @@
+#define CONSOLE_SHELL
 #include "sack_ucb_filelib.h"
 //#include "salty_generator.h"
 
@@ -94,6 +95,8 @@ SaneWinMain( argc, argv )
 	int start = timeGetTime();
 	int end = 0;
 	seed = GetTickCount();
+	SetSystemLog( SYSLOG_FILE, stderr );
+	SetSystemLoggingLevel( 1000+LOG_NOISE + 1 );
 	SetSyslogOptions( &opts );
 	SystemLogTime( 0 );
 	start = timeGetTime();

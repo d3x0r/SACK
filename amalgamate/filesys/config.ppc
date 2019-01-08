@@ -1,3 +1,9 @@
+
+#ifdef _MSC_VER
+// because snprintf IS secure; and _snprintf doesn't help.
+#  define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #ifndef HAVE_SSL
 #  define NO_SSL 1
 #endif
