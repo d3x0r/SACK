@@ -13,18 +13,50 @@
 set( SHA1_SOURCES
   ${SOURCES_ROOT}src/contrib/sha1lib/sha1.c
   )
+SET_SOURCE_FILES_PROPERTIES( ${SHA1_SOURCES} PROPERTIES
+				FOLDER "Source Files\\hash\\sha1" )
 set( SHA2_SOURCES
   ${SOURCES_ROOT}src/contrib/sha2lib/sha2.c
   )
+SET_SOURCE_FILES_PROPERTIES( ${SHA2_SOURCES} PROPERTIES
+				FOLDER "Source Files\\hash\\sha2" )
 set( SHA3_SOURCES
   ${SOURCES_ROOT}src/contrib/sha3lib/sha3.c
   )
+SET_SOURCE_FILES_PROPERTIES( ${SHA3_SOURCES} PROPERTIES
+				FOLDER "Source Files\\hash\\sha3" )
+
+set( K12_SOURCES
+  ${SOURCES_ROOT}src/contrib/K12/lib/KangarooTwelve.c 
+  ${SOURCES_ROOT}src/contrib/K12/lib/KangarooTwelve.h
+  ${SOURCES_ROOT}src/contrib/K12/lib/brg_endian.h 
+)
+set( K12_INCLUDES "-I${SOURCES_ROOT}/src/contrib/K12/lib" )
+if( 0 )
+if( __64__ ) 
+    set( K12_SOURCES ${K12_SOURCES}
+      ${SOURCES_ROOT}src/contrib/K12/lib/Optimized64/KeccakP-1600-opt64.c
+      )
+    set( K12_INCLUDES "-I${SOURCES_ROOT}/src/contrib/K12/lib -I${SOURCES_ROOT}/src/contrib/K12/lib/Optimized64" )
+else()
+    set( K12_SOURCES ${K12_SOURCES}
+        ${SOURCES_ROOT}src/contrib/K12/lib/Inplace32BI/KeccakP-1600-inplace32BI.c
+    )
+    set( K12_INCLUDES "-I${SOURCES_ROOT}/src/contrib/K12/lib -I${SOURCES_ROOT}/src/contrib/K12/lib/Inplace32BI" )
+endif()
+
+endif(0)
+SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES} PROPERTIES COMPILE_FLAGS ${K12_INCLUDES} )
+SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES} PROPERTIES FOLDER "Source Files\\hash\\K12" )
+
 
 set( RANDOM_SOURCES
   ${SOURCES_ROOT}src/salty_random_generator/salty_generator.c
   ${SOURCES_ROOT}src/salty_random_generator/crypt_util.c
   ${SOURCES_ROOT}src/salty_random_generator/mersenne/mt19937ar.c
   )
+SET_SOURCE_FILES_PROPERTIES( ${RANDOM_SOURCES} PROPERTIES
+		COMPILE_FLAGS ${K12_INCLUDES} )
 SET_SOURCE_FILES_PROPERTIES( ${RANDOM_SOURCES} PROPERTIES
 		FOLDER "Source Files\\RNG Library" )
 set( RANDOM_SOURCES_FLAGS SALTY_RANDOM_GENERATOR_SOURCE )
@@ -33,9 +65,6 @@ set( RANDOM_SOURCES_FLAGS SALTY_RANDOM_GENERATOR_SOURCE )
 
 set(UNSORTED_SOURCES
   ${RANDOM_SOURCES}
-  ${SHA1_SOURCES}
-  ${SHA2_SOURCES}
-  ${SHA3_SOURCES}
   ${SOURCES_ROOT}src/sysloglib/syslog.c
   ${SOURCES_ROOT}src/memlib/sharemem.c
   ${SOURCES_ROOT}src/memlib/memory_operations.c
@@ -519,6 +548,8 @@ SET_PROPERTY(SOURCE src/vectlib/vectlib.c
 set( MD5_SOURCES
   ${SOURCES_ROOT}src/contrib/md5lib/md5c.c
   )
+SET_SOURCE_FILES_PROPERTIES( ${MD5_SOURCES} PROPERTIES
+				FOLDER "Source Files\\hash\\md5" )
 
 if( NOT __NO_NETWORK__ )
 set( NETWORK_HEADERS
@@ -590,6 +621,7 @@ set(BASE_SOURCES  ${BASE_SOURCES}
   ${SHA1_SOURCES}
   ${SHA2_SOURCES}
   ${SHA3_SOURCES}
+  ${K12_SOURCES}
   ${MD5_SOURCES}
   ${MORE_SYSTEM_SOURCES}
   ${SERVICE_STUB_SOURCES}
