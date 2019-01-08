@@ -4,8 +4,8 @@
 #include <string.h>
 #include <filesys.h>
 #include <logging.h>
-#ifdef __LINUX__
 #include <time.h>
+#ifdef __LINUX__
 #include <sys/time.h>
 #include <sys/stat.h>
 //#include <linux/time.h> // struct tz
