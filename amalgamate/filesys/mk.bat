@@ -59,6 +59,7 @@
 @set SRCS= %SRCS%   ../../src/contrib/sha1lib/sha1.c
 @set SRCS= %SRCS%   ../../src/contrib/sha2lib/sha2.c
 @set SRCS= %SRCS%   ../../src/contrib/sha3lib/sha3.c
+@set SRCS= %SRCS%   ../../src/contrib/k12/lib/KangarooTwelve.c
 @set SRCS= %SRCS%   ../../src/salty_random_generator/salty_generator.c
 @set SRCS= %SRCS%   ../../src/salty_random_generator/crypt_util.c
 
@@ -91,6 +92,7 @@ cd h
 @set HDRS= %HDRS% ../../../include/sha1.h
 @set HDRS= %HDRS% ../../../include/sha2.h
 @set HDRS= %HDRS% ../../../src/contrib/sha3lib/sha.h
+@set HDRS= %HDRS% ../../../include/salty_generator.h
 
 
 c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_ucb_filelib.h %HDRS%
@@ -104,6 +106,7 @@ gcc -c -O3 -o a-opt.o sack_ucb_filelib.c
 : - crypt32
 : - rpcrt4 
 : - odbc32 
+: - ole32
 
 gcc -g -o a.exe sack_ucb_filelib.c test.c -lwinmm -lpsapi -lntdll -lole32 -lws2_32
 gcc -O3 -o a-opt.exe sack_ucb_filelib.c test.c -lwinmm -lws2_32 -liphlpapi -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32 -lole32

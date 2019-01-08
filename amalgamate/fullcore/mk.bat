@@ -67,6 +67,7 @@
 @set SRCS= %SRCS%   ../../src/contrib/sha1lib/sha1.c
 @set SRCS= %SRCS%   ../../src/contrib/sha2lib/sha2.c
 @set SRCS= %SRCS%   ../../src/contrib/sha3lib/sha3.c
+@set SRCS= %SRCS%   ../../src/contrib/k12/lib/KangarooTwelve.c
 @set SRCS= %SRCS%   ../../src/salty_random_generator/salty_generator.c
 @set SRCS= %SRCS%   ../../src/salty_random_generator/crypt_util.c
 
