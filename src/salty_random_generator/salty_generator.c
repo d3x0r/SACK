@@ -54,59 +54,56 @@ struct random_context {
 static void NeedBits( struct random_context *ctx )
 {
 	int r;
+	if( ctx->getsalt )
+		ctx->getsalt( ctx->psv_user, &ctx->salt, &ctx->salt_size );
+	else
+		ctx->salt_size = 0;
 	if( ctx->use_versionK12 ) {
+		if( ctx->salt_size )
+			KangarooTwelve_Update( &ctx->f.K12i, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
 		//lprintf( "CALL FINAL!" );
-		if( ctx->f.K12i.phase == ABSORBING ) {
-			if( ctx->getsalt )
-				ctx->getsalt( ctx->psv_user, &ctx->salt, &ctx->salt_size );
-			else
-				ctx->salt_size = 0;
-			if( ctx->salt_size )
-				KangarooTwelve_Update( &ctx->f.K12i, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
-			r = KangarooTwelve_Final( &ctx->f.K12i, ctx->s.entropy4, NULL, 0 ); // customization is a final pad string.
-		}
-		if( ctx->f.K12i.phase == SQUEEZING )
-			r = KangarooTwelve_Squeeze( &ctx->f.K12i, ctx->s.entropy4, K12_DIGEST_SIZE ); // customization is a final pad string.
+		r = KangarooTwelve_Final( &ctx->f.K12i, ctx->s.entropy4, NULL, 0 ); // customization is a final pad string.
+		//lprintf( "GOT ENTROPY: %d", r );
+		//LogBinary( ctx->s.entropy4, K12_DIGEST_SIZE );
+		KangarooTwelve_Initialize( &ctx->f.K12i, K12_DIGEST_SIZE );
+		KangarooTwelve_Update( &ctx->f.K12i, ctx->s.entropy4, K12_DIGEST_SIZE );
 		ctx->bits_avail = sizeof( ctx->s.entropy4 ) * 8;
 		ctx->entropy = ctx->s.entropy4;
-	} else {
-		if( ctx->getsalt )
-			ctx->getsalt( ctx->psv_user, &ctx->salt, &ctx->salt_size );
-		else
-			ctx->salt_size = 0;
-		if( ctx->use_version3 ) {
-			if( ctx->salt_size )
-				sha3_update( &ctx->f.sha3, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
-			sha3_final( &ctx->f.sha3, ctx->s.entropy3 );
-			sha3_init( &ctx->f.sha3, SHA3_DIGEST_SIZE );
-			sha3_update( &ctx->f.sha3, ctx->s.entropy3, SHA3_DIGEST_SIZE );
-			ctx->bits_avail = sizeof( ctx->s.entropy3 ) * 8;
-			ctx->entropy = ctx->s.entropy3;
-		} else if( ctx->use_version2_256 ) {
-			if( ctx->salt_size )
-				sha256_update( &ctx->f.sha256, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
-			sha256_final( &ctx->f.sha256, ctx->s.entropy2_256 );
-			sha256_init( &ctx->f.sha256 );
-			sha256_update( &ctx->f.sha256, ctx->s.entropy2_256, SHA256_DIGEST_SIZE );
-			ctx->bits_avail = sizeof( ctx->s.entropy2_256 ) * 8;
-			ctx->entropy = ctx->s.entropy2_256;
-		} else if( ctx->use_version2 ) {
-			if( ctx->salt_size )
-				sha512_update( &ctx->f.sha512, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
-			sha512_final( &ctx->f.sha512, ctx->s.entropy2 );
-			sha512_init( &ctx->f.sha512 );
-			sha512_update( &ctx->f.sha512, ctx->s.entropy2, SHA512_DIGEST_SIZE );
-			ctx->bits_avail = sizeof( ctx->s.entropy2 ) * 8;
-			ctx->entropy = ctx->s.entropy2;
-		} else {
-			if( ctx->salt_size )
-				SHA1Input( &ctx->f.sha1_ctx, (const uint8_t*)ctx->salt, ctx->salt_size );
-			SHA1Result( &ctx->f.sha1_ctx, ctx->s.entropy0 );
-			SHA1Reset( &ctx->f.sha1_ctx );
-			SHA1Input( &ctx->f.sha1_ctx, ctx->s.entropy0, SHA1HashSize );
-			ctx->bits_avail = sizeof( ctx->s.entropy0 ) * 8;
-			ctx->entropy = ctx->s.entropy0;
-		}
+	} else if( ctx->use_version3 ) {
+		if( ctx->salt_size )
+			sha3_update( &ctx->f.sha3, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
+		sha3_final( &ctx->f.sha3, ctx->s.entropy3 );
+		sha3_init( &ctx->f.sha3, SHA3_DIGEST_SIZE );
+		sha3_update( &ctx->f.sha3, ctx->s.entropy3, SHA3_DIGEST_SIZE );
+		ctx->bits_avail = sizeof( ctx->s.entropy3 ) * 8;
+		ctx->entropy = ctx->s.entropy3;
+	} else if( ctx->use_version2_256 ) {
+		if( ctx->salt_size )
+			sha256_update( &ctx->f.sha256, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
+		sha256_final( &ctx->f.sha256, ctx->s.entropy2_256 );
+		sha256_init( &ctx->f.sha256 );
+		sha256_update( &ctx->f.sha256, ctx->s.entropy2_256, SHA256_DIGEST_SIZE );
+		ctx->bits_avail = sizeof( ctx->s.entropy2_256 ) * 8;
+		ctx->entropy = ctx->s.entropy2_256;
+	} else if( ctx->use_version2 )
+	{
+		if( ctx->salt_size )
+			sha512_update( &ctx->f.sha512, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
+		sha512_final( &ctx->f.sha512, ctx->s.entropy2 );
+		sha512_init( &ctx->f.sha512 );
+		sha512_update( &ctx->f.sha512, ctx->s.entropy2, SHA512_DIGEST_SIZE );
+		ctx->bits_avail = sizeof( ctx->s.entropy2 ) * 8;
+		ctx->entropy = ctx->s.entropy2;
+	}
+	else
+	{
+		if( ctx->salt_size )
+			SHA1Input( &ctx->f.sha1_ctx, (const uint8_t*)ctx->salt, ctx->salt_size );
+		SHA1Result( &ctx->f.sha1_ctx, ctx->s.entropy0 );
+		SHA1Reset( &ctx->f.sha1_ctx );
+		SHA1Input( &ctx->f.sha1_ctx, ctx->s.entropy0, SHA1HashSize );
+		ctx->bits_avail = sizeof( ctx->s.entropy0 ) * 8;
+		ctx->entropy = ctx->s.entropy0;
 	}
 	ctx->bits_used = 0;
 }
@@ -124,7 +121,7 @@ struct random_context *SRG_CreateEntropyInternal( void (*getsalt)( uintptr_t, PO
 	ctx->use_version2_256 = version2_256;
 	ctx->use_version2 = version2;
 	if( ctx->use_versionK12 )
-		KangarooTwelve_Initialize( &ctx->f.K12i, 0 );
+		KangarooTwelve_Initialize( &ctx->f.K12i, K12_DIGEST_SIZE );
 	if( ctx->use_version3 )
 		sha3_init( &ctx->f.sha3, SHA3_DIGEST_SIZE );
 	else if( ctx->use_version2_256 )
@@ -262,7 +259,7 @@ int32_t SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
 void SRG_ResetEntropy( struct random_context *ctx )
 {
 	if( ctx->use_versionK12 )
-		KangarooTwelve_Initialize( &ctx->f.K12i, 0 );
+		KangarooTwelve_Initialize( &ctx->f.K12i, K12_DIGEST_SIZE );
 	else if( ctx->use_version3 )
 		sha3_init( &ctx->f.sha3, SHA3_DIGEST_SIZE );
 	else if( ctx->use_version2_256 )
@@ -277,13 +274,8 @@ void SRG_ResetEntropy( struct random_context *ctx )
 
 void SRG_FeedEntropy( struct random_context *ctx, const uint8_t *salt, size_t salt_size )
 {
-	if( ctx->use_versionK12 ) {
-		if( ctx->f.K12i.phase == SQUEEZING ) {
-			KangarooTwelve_Initialize( &ctx->f.K12i, 0 );
-			KangarooTwelve_Update( &ctx->f.K12i, ctx->s.entropy4, K12_DIGEST_SIZE );
-		}
+	if( ctx->use_versionK12 )
 		KangarooTwelve_Update( &ctx->f.K12i, salt, (unsigned int)salt_size );
-	}
 	else if( ctx->use_version3 )
 		sha3_update( &ctx->f.sha3, salt, (unsigned int)salt_size );
 	else if( ctx->use_version2_256 )
