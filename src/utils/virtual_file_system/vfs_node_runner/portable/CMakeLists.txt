@@ -16,6 +16,7 @@ STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
 endif()
 add_definitions( ${PLATFORM_DEFINES} )
 
+STRING( REPLACE " " ";" K12_SOURCES ${K12_SOURCES} )
 
 
 foreach(flag_var
@@ -68,6 +69,7 @@ set( project sack_vfs_node_runner_sfx )
 
 set( SOURCES_ROOT ../../../../.. )
 
+SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES} ${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c PROPERTIES COMPILE_FLAGS ${K12_INCLUDES} )
 if( WIN32 )
   set( NET_SOURCES     ${SOURCES_ROOT}/src/netlib/net_winsock2.c  )
   set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
@@ -96,6 +98,7 @@ set(BASE_SOURCES
     ${SHA1_SOURCES}
     ${SHA2_SOURCES}
     ${SHA3_SOURCES}
+    ${K12_SOURCES}
     #${RANDOM_SOURCES}
 	${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c
     ${SNPRINTF_SOURCES}

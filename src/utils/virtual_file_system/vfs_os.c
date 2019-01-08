@@ -95,6 +95,7 @@ static struct {
 	uint16_t index[256][256];
 	char leadin[256];
 	int leadinDepth;
+	PLINKQUEUE plqCrypters;
 } l;
 #define EOFBLOCK  (~(BLOCKINDEX)0)
 #define EOBBLOCK  ((BLOCKINDEX)1)
@@ -1570,6 +1571,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 						}
 						dirblock->used_names = ((dirblock->used_names ^ dirblockkey->used_names) - 1) ^ dirblockkey->used_names;
 						newEntry->filesize = (entry->filesize ^ entkey->filesize) ^ newEntkey->filesize;
+						newEntry->tick     = (entry->tick     ^ entkey->tick)     ^ newEntkey->tick;
 						newEntry->name_offset = name_ofs;
 						newEntry->first_block = (entry->first_block ^ entkey->first_block) ^ newEntkey->first_block;
 						SETFLAG( vol->dirty, cache );
@@ -1588,6 +1590,8 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 										^ dirblockkey->entries[m].name_offset;
 									dirblock->entries[m].filesize = (0)
 										^ dirblockkey->entries[m].filesize;
+									dirblock->entries[m].tick = (0)
+										^ dirblockkey->entries[m].tick;
 #ifdef _DEBUG
 									if( !dirblock->names_first_block ) DebugBreak();
 #endif
@@ -1602,6 +1606,9 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 									dirblock->entries[m].filesize = (dirblock->entries[m + 1].filesize
 										^ dirblockkey->entries[m + 1].filesize)
 										^ dirblockkey->entries[m].filesize;
+									dirblock->entries[m].tick = (dirblock->entries[m + 1].tick
+										^ dirblockkey->entries[m + 1].tick)
+										^ dirblockkey->entries[m].tick;
 #ifdef _DEBUG
 									if( !dirblock->names_first_block ) DebugBreak();
 #endif
@@ -1732,9 +1739,10 @@ static struct directory_entry * _os_GetNewDirectory( struct volume *vol, const c
 					int m;
 					LoG( "Insert new directory" );
 					for( m = dirblock->used_names; SUS_GT( m, int, n, size_t ); m-- ) {
-						dirblock->entries[m].filesize = dirblock->entries[m - 1].filesize ^ dirblockkey->entries[m - 1].filesize;
+						dirblock->entries[m].filesize    = dirblock->entries[m - 1].filesize    ^ dirblockkey->entries[m - 1].filesize;
 						dirblock->entries[m].first_block = dirblock->entries[m - 1].first_block ^ dirblockkey->entries[m - 1].first_block;
 						dirblock->entries[m].name_offset = dirblock->entries[m - 1].name_offset ^ dirblockkey->entries[m - 1].name_offset;
+						dirblock->entries[m].tick        = dirblock->entries[m - 1].tick        ^ dirblockkey->entries[m - 1].tick;
 					}
 					dirblock->used_names++;
 					break;
@@ -1752,6 +1760,7 @@ static struct directory_entry * _os_GetNewDirectory( struct volume *vol, const c
 			ent->filesize = entkey->filesize;
 			ent->name_offset = name_ofs;
 			ent->first_block = first_blk;
+			ent->tick = GetTimeOfDay() ^ entkey->tick;
 			if( file ) {
 				SETFLAG( vol->seglock, cache );
 				file->entry_fpi = dirblockFPI + ((uintptr_t)(((struct directory_hash_lookup_block *)0)->entries + n));
@@ -1805,39 +1814,32 @@ static struct sack_vfs_file * CPROC sack_vfs_os_open( uintptr_t psvInstance, con
 	return sack_vfs_os_openfile( (struct volume*)psvInstance, filename );
 }
 
-static void cryptData( uint8_t *objBuf, size_t objBufLen, size_t offset, char *keyBuf, size_t keyBufLen ) {
+static void cryptData( uint8_t *objBuf, size_t objBufLen, uint64_t tick, char *keyBuf, size_t keyBufLen ) {
+	struct random_context *signEntropy = (struct random_context *)DequeLink( &l.plqCrypters );
+	if( !signEntropy )
+		signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
+	SRG_ResetEntropy( signEntropy );
+	SRG_FeedEntropy( signEntropy, (const uint8_t*)&tick, sizeof( tick ) );
+	SRG_FeedEntropy( signEntropy, (const uint8_t*)keyBuf, keyBufLen );
 	size_t n;
 	uint8_t p = 0;
 	char *keyBuf_ = keyBuf;
-	objBuf += offset;
-	objBufLen += offset;
-	for( n = offset; n < objBufLen; n++, objBuf++ ) {
-		p = (objBuf[0] = objBuf[0] ^ (p ^ keyBuf[(n + 8 + (keyBuf[n%keyBufLen] & 0x7)) % keyBufLen] ^ keyBuf[n%keyBufLen]));
+	for( n = 0; n < objBufLen; n++, objBuf++ ) {
+		objBuf[0] = objBuf[0] ^ SRG_GetEntropy( signEntropy, 8, 0 );
 	}
-}
-
-static void decryptData( uint8_t *objBuf, size_t objBufLen, size_t offset, char *keyBuf, size_t keyBufLen ) {
-	int n;
-	char *keyBuf_ = keyBuf;
-	if( objBufLen > 0 ) {
-		objBufLen--;
-		objBuf += offset;
-		objBufLen += offset;
-		objBuf += (objBufLen);
-		for( n = objBufLen; SUS_GTE( n, int, offset, size_t ); n--, objBuf-- ) {
-			(objBuf[0] = objBuf[0] ^ (objBuf[-1] ^ keyBuf[(n + 8 + (keyBuf[n%keyBufLen] & 0x7)) % keyBufLen] ^ keyBuf[n%keyBufLen]));
-		}
-		(objBuf[0] = objBuf[0] ^ (0 ^ keyBuf[(8 + (keyBuf[0 % keyBufLen] & 0x3)) % keyBufLen] ^ keyBuf[0]));
-	}
+	EnqueLink( &l.plqCrypters, signEntropy );
 }
 
 static char * getFilename( const char *objBuf, size_t objBufLen, char *sealBuf, size_t sealBufLen, LOGICAL owner, char *idBuf, size_t idBufLen ) {
 
 	if( sealBuf ) {
-		struct random_context *signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
+		struct random_context *signEntropy = (struct random_context *)DequeLink( &l.plqCrypters );
 		char *fileKey;
 		size_t keyLen;
 		uint8_t outbuf[32];
+
+		if( !signEntropy )
+			signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
 
 		if( owner ) {
 			char *metakey = SRG_ID_Generator3();
@@ -1868,6 +1870,7 @@ static char * getFilename( const char *objBuf, size_t objBufLen, char *sealBuf, 
 			StrCpyEx( idBuf, rid, idBufLen );
 			Deallocate( char*, rid );
 		}
+		EnqueLink( &l.plqCrypters, signEntropy );
 		return fileKey;
 	}
 	else {

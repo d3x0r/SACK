@@ -10,6 +10,10 @@ endif( PLATFORM_CMAKE_DEFINES )
 
 include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include )
+
+STRING( REPLACE " " ";" K12_SOURCES ${K12_SOURCES} )
+
+
 STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
 if( PLATFORM_DEFINES )
    STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
@@ -75,6 +79,8 @@ endif( WATCOM )
 
 set( SOURCES_ROOT ${SACK_BASE} )
 
+SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES} ${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c PROPERTIES COMPILE_FLAGS ${K12_INCLUDES} )
+
 if( WIN32 )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
 endif( WIN32 )
@@ -113,8 +119,9 @@ set(BASE_SOURCES
     ${SHA1_SOURCES}
     ${SHA2_SOURCES}
     ${SHA3_SOURCES}
+    ${K12_SOURCES}
     #${RANDOM_SOURCES}
-	${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c
+    ${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c
     #${SNPRINTF_SOURCES}
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c
 )
