@@ -41,7 +41,7 @@ set( SACK_BASE ${PROJECT_SOURCE_DIR} )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
-set( LIBRESSL_VERSION 2.6.0 )
+set( LIBRESSL_VERSION 2.9.0 )
 
 
 include( DefaultInstall )
@@ -855,12 +855,16 @@ FOREACH(SOURCE ${ARGN} )
 
    if( FILEOK )
        get_source_file_property(SOURCE_FOLDER ${SOURCE} FOLDER)
+       get_source_file_property(FLAGS ${SOURCE} COMPILE_FLAGS)
 
        if( ${SOURCE} MATCHES "^${PROJECT_SOURCE_DIR}.*" )
           if( NOT ${SOURCE_FOLDER} MATCHES "NOTFOUND" )
             #message( "err folder : ${SOURCE_FOLDER} " )
             SOURCE_GROUP( ${SOURCE_FOLDER} FILES ${SOURCE} )
             SOURCE_GROUP( ${SOURCE_FOLDER} FILES ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
+            if( NOT ${FLAGS} MATCHES "NOTFOUND" )
+              SET_SOURCE_FILES_PROPERTIES( ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} PROPERTIES COMPILE_FLAGS ${FLAGS} )
+            endif( NOT ${FLAGS} MATCHES "NOTFOUND" )
           endif()
           add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
                               DEPENDS ${SOURCE}
@@ -874,6 +878,9 @@ FOREACH(SOURCE ${ARGN} )
            #message( "err folder : ${SOURCE_FOLDER} " )
            SOURCE_GROUP( ${SOURCE_FOLDER} FILES ${PROJECT_SOURCE_DIR}/${SOURCE} )
            SOURCE_GROUP( ${SOURCE_FOLDER} FILES ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} )
+           if( NOT ${FLAGS} MATCHES "NOTFOUND" )
+             SET_SOURCE_FILES_PROPERTIES( ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT} PROPERTIES COMPILE_FLAGS ${FLAGS} )
+           endif( NOT ${FLAGS} MATCHES "NOTFOUND" )
          endif()
          add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${BASENAME}${FILEEXT}
                              DEPENDS ${PROJECT_SOURCE_DIR}/${SOURCE}
