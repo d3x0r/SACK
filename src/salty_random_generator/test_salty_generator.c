@@ -1,5 +1,5 @@
 #include <stdhdrs.h>
-#include "salty_generator.h"
+#include <salty_generator.h>
 
 #define MY_MASK_MASK(n,length)   (MASK_TOP_MASK(length) << ((n)&0x7) )
 #define MASK_TOP_MASK_VAL(length,val) ((val)&( (0xFFFFFFFFUL) >> (32-(length)) ))
@@ -10,9 +10,7 @@
  & (~(MY_MASK_MASK(n,_mask_size))) )                                                                           \
 	| MY_MASK_MASK_VAL(n,_mask_size,val) )
 
-	int offset;
-	uint8_t buffer[100];
-	static uint32_t seed = 0;
+static uint32_t seed = 0;
 
 void getsalt( uintptr_t psv, POINTER *salt, size_t *salt_size )
 {
@@ -40,7 +38,7 @@ int CalculateDistribution( struct random_context *ctx, int bits )
 	d->unit_counters = NewArray( int, d->units );
 	d->follow_counters = NewArray( int*, d->units );
 	MemSet( d->unit_counters, 0, sizeof( int ) * d->units );
-	if( bits < 10 )
+	if( bits < 17 )
 		for( n = 0; n < d->units; n++ )
 		{
 			d->follow_counters[n] = NewArray( int, d->units );
@@ -50,11 +48,12 @@ int CalculateDistribution( struct random_context *ctx, int bits )
 	{
 		int prior = 0;
 		int64_t prior_value;
-		for( n = 0; n < 2000000000; n ++ )
+		for( n = 0; n < 200000000; n ++ )
 		{
-			int64_t value = SRG_GetEntropy( ctx, bits, 0 );
+			int32_t value = SRG_GetEntropy( ctx, bits, 0 );
+			//lprintf( "VALUE: %d  %x", value, value );
 			d->unit_counters[value]++;
-			if( bits < 10 )
+			if( bits < 17 )
 				if( prior )
 					d->follow_counters[prior_value][value]++;
 			prior = 1;
@@ -66,7 +65,7 @@ int CalculateDistribution( struct random_context *ctx, int bits )
 	{
 		lprintf( "%d = %d ", n, d->unit_counters[n] );
 	}
-	if( bits < 10 )
+	if( bits < 17 )
 	for( n = 0; n < d->units; n ++ )
 	{
 		int m;
@@ -78,19 +77,52 @@ int CalculateDistribution( struct random_context *ctx, int bits )
 
 SaneWinMain( argc, argv )
 {
-	struct random_context *entropy = SRG_CreateEntropy2( getsalt, 0 );
-	int n;
+	uint8_t buffer[100];
+	int offset;
+	//struct random_context *entropy = SRG_CreateEntropy2( getsalt, 0 );
+	struct random_context *entropy = argc > 1 ? 
+		  argv[1][0] == '1' ? SRG_CreateEntropy( getsalt, 0 )
+		: argv[1][0] == '2' ? SRG_CreateEntropy2( getsalt, 0 )
+		: argv[1][0] == '3' ? SRG_CreateEntropy2_256( getsalt, 0 )
+		: argv[1][0] == '4' ? SRG_CreateEntropy3( getsalt, 0 )
+		: argv[1][0] == '5' ? SRG_CreateEntropy4( getsalt, 0 )
+		: SRG_CreateEntropy4( getsalt, 0 )
+		: SRG_CreateEntropy4( getsalt, 0 )
+		;
+		int n;
 	uint32_t opts = 0;
+	int start = timeGetTime();
+	int end = 0;
 	seed = GetTickCount();
 	SetSyslogOptions( &opts );
 	SystemLogTime( 0 );
-
+	start = timeGetTime();
 	CalculateDistribution( entropy, 2 );
+	end = timeGetTime();
+	lprintf( "2bits 200000000 in %d ", end - start );
+	start = timeGetTime();
 	CalculateDistribution( entropy, 7 );
+	end = timeGetTime();
+	lprintf( "7bits 200000000 in %d ", end - start );
+	start = timeGetTime();
 	//CalculateDistribution( entropy, 6 );
 	//CalculateDistribution( entropy, 8 );
+#ifdef __64__
+	CalculateDistribution( entropy, 16 );
+	end = timeGetTime();
+	lprintf( "16bits 200000000 in %d ", end - start );
+	start = timeGetTime();
 	CalculateDistribution( entropy, 24 );
+	end = timeGetTime();
+	lprintf( "24bits 200000000 in %d ", end - start );
+	start = timeGetTime();
+#else
+	CalculateDistribution( entropy, 10 );
+	end = timeGetTime();
+	lprintf( "10bits 200000000 in %d", end - start );
+	start = timeGetTime();
 
+#endif
 	for( n = 0; n < 1000; n++ )
 	{
 		int d1 = ( SRG_GetEntropy( entropy, 3, 0 ) ) ;
