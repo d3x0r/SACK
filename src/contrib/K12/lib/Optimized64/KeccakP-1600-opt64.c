@@ -28,8 +28,10 @@ typedef unsigned long long int UINT64;
 #define UseBebigokimisa
 #endif
 
-#if defined(_MSC_VER)
-#define ROL64(a, offset) ( ( offset == 1 ) ? ( ( (a) & 0x8000000000000000ULL ) ? ((a) = (((a) << 1)|1)) : ( (a)<<1)  ) : ( _rotl64(a, offset) ) )
+#if defined(_MSC_VER )
+#define ROL64(a, offset) ((((UINT64)a) << offset) | (((UINT64)a) >> (64-offset)))
+//#define ROL64(a, offset) ( ( offset == 1 ) ? ( ( (a) & 0x8000000000000000ULL ) ? ((a) = (((a) << 1)|1)) : ( (a)<<1)  ) : ( _rotl64(a, offset) ) )
+//#define ROL64(a, offset)  _rotl64(a, offset)
 #elif defined(KeccakP1600_useSHLD)
     #define ROL64(x,N) ({ \
     register UINT64 __out; \
@@ -38,7 +40,7 @@ typedef unsigned long long int UINT64;
     __out; \
     })
 #else
-#define ROL64(a, offset) ((((UINT64)a) << offset) ^ (((UINT64)a) >> (64-offset)))
+#define ROL64(a, offset) ((((UINT64)a) << offset) | (((UINT64)a) >> (64-offset)))
 #endif
 
 #ifdef KeccakP1600_fullUnrolling
