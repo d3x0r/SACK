@@ -1912,7 +1912,7 @@ double FloatCreateFromSeg( PTEXT pText )
 // otherwise, only as many segments as are needed for the number are used...
 int IsSegAnyNumberEx( PTEXT *ppText, double *fNumber, int64_t *iNumber, int *bIntNumber, int bUseAll )
 {
-	CTEXTSTR pCurrentCharacter;
+	CTEXTSTR pCurrentCharacter = NULL;
 	PTEXT pBegin;
 	PTEXT pText = *ppText;
 	int decimal_count, s, begin = TRUE, digits;

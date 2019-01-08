@@ -248,7 +248,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 #define DoSaveName(a,b) DoSaveNameEx(a,b DBG_SRC )
 {
 	PNAMESPACE space = l.NameSpace;
-	TEXTCHAR *p;
+	TEXTCHAR *p = NULL;
 	// cannot save 0 length strings.
 	if( !stripped || !stripped[0] || !len )
 	{

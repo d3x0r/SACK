@@ -807,6 +807,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 	switch( opts & 3 )
 	{
 	case 0:
+	default:
 	handle = CreateFile( file->fullname
 							, GENERIC_READ
 							, FILE_SHARE_READ
@@ -2527,7 +2528,7 @@ uintptr_t sack_ioctl( FILE *file_handle, uintptr_t opCode, ... ) {
 	file = FindFileByFILE( file_handle );
 
 	if( file && file->mount && file->mount->fsi && file->mount->fsi->ioctl ) {
-			return file->mount->fsi->ioctl( (uintptr_t)file_handle, opCode, args );
+		return file->mount->fsi->ioctl( (uintptr_t)file_handle, opCode, args );
 	}
 	else {
 		 // unknown file handle; ignore unknown ioctl.

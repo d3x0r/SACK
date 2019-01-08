@@ -73,7 +73,7 @@ struct url_data * SACK_URLParse( const char *url )
 {
 	const char *_url = url;;
 	struct url_data *data = New( struct url_data );
-	struct url_cgi_data *cgi_data;
+	struct url_cgi_data *cgi_data = NULL; // another useless initialization.  This WILL be a value whereever the code needs to use it. NOT AN ERROR!
 	TEXTRUNE ch;
 	int outchar = 0;
 	char * outbuf = NewArray( TEXTCHAR, StrLen( url ) + 1 );

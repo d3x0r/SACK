@@ -434,7 +434,9 @@ void **GetLinearSetArrayEx( GENERICSET *pSet, int *pCount, int unitsize, int max
 	void  **array;
 	int items, cnt, n, ofs;
 	INDEX nMin, nNewMin;
-	GENERICSET *pCur, *pNewMin;
+	GENERICSET *pCur;
+	GENERICSET *pNewMin = NULL; // useless initialization.  nNewMin will be set if this is valid; and there was no error generated for using THAT uninitialized.
+
 	//Log2( WIDE("Building Array unit size: %d(%08x)"), unitsize, unitsize );
 	items = CountUsedInSetEx( pSet, max );
 	if( pCount )
