@@ -8,9 +8,13 @@ This is an encryption algorithm called Xor-Sub-Wipe-Sub (XSWS).
 	 - Sub each byte with some other random byte.
      - xor each byte with the previous byte R->L
  - Sub - substitute each byte with other random byte.
+
  
-It is built on layers of other technologies, but is similarly secure
-changing low level details.  
+It is built on Salty Random Generator(SRG).  SRG uses various hash
+algorithms to generate streams of random bits.  It then consumes bits
+generated from the hashing function.  This specifically uses K12.
+There really isn't any specific function SRG does that can't just
+be done directly against the hash digests.
 
 Byte 0 is least significant byte, and is consumed from hashes first.
 bit 0 is the least value (1) of byte 0 is the very first bit consumed.
@@ -39,6 +43,7 @@ only 8 byte length units).  This allows multiple sections of large data to be pr
 A 1 bit change in the plain text will only affect the 4096 byte block it is in; but will on average
 cause 16384 bits to change in the output.
 
+
 ```
 encrypt( data, datalen ) { 
   int outlen = datalen + 1; // add 1 byte for pad length
@@ -50,7 +55,6 @@ encrypt( data, datalen ) {
   memcpy( output, data, datalen );
   /* ... do real work ... */
 }
-
 ```
  
 ## Algorithm Setup
@@ -61,7 +65,8 @@ support to change the CSPRNG; (SHA[1/2_256/2_512/3]/k12).
 The algorithm performs quite a bit of setup before applying the transform
 to data. There is a mask generated (basically) with 256 bits from K12(key data).
 
-The same K12 hash generator is used from the initial seeding of the specified key information.
+The same K12 hash generator is used from the initial seeding of the specified key information
+is used for the mask and byte subtitution mapping creation.
 
 K12.Init()
 K12.Update( key );
@@ -206,15 +211,19 @@ This uses 256*8 bits of entropy and does a quick in-place swapping algorithm
 to shuffle the bytes.  The first 256 bits of entropy are used for masking the
 blocks initially, followed by these.
 
-This is done with 
+This is done with the same random_context as the source hash; very improbable
+this could be less-than-random.
 
 
 ```
+struct byte_shuffle_key {
+    uint8_t map[256], dmap[256];
+};
+
 struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx ) {
 	struct byte_shuffle_key *key = New( struct byte_shuffle_key );
 	int n;
 	int srcMap;
-	key->ctx = ctx;
 	for( n = 0; n < 256; n++ )
 		key->map[n] = n;
 
@@ -233,8 +242,11 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 }
 ```
 
+---
 
+# Historical and development notes
 
+Disregard from here down.
 
 
 ---
@@ -331,10 +343,6 @@ DID 100000 in 143ms   699300/Sec  43 bytes
 DID 100000 in 129ms   775193/Sec  43 bytes
 
 
-
-
-
-
 TESTDATA
 48 65 6c 6c 6f 2c 20 54 68 69 73 20 69 73 20 61    Hello, This is a
 20 74 65 73 74 2c 20 74 68 69 73 20 69 73 20 4f     test, this is O
@@ -367,9 +375,6 @@ Big DID   200000 in 4033     49590   101,560,320
 Big DID   200000 in 4027     49664   101,711,872
 Mega DID     100 in 4173        23    96,468,992
 Mega DID     100 in 4151        24   100,663,296
-
-
-
 
 
 
@@ -407,170 +412,6 @@ Mega DID    300 in 3228       92 385875968
 Tiny DID 900000 in 2324   387263 17039572
 Big DID 300000 in 2756   108853 222930944
 Mega DID 300 in 3493   85 356515840
-
-Fun:This is a test, This is Only a test.
-20 73 73 73 54 20 4F 73 6E 65 65 6C 61 73 20 54  sssT Osneelas T
-2C 74 00 69 74 2E 20 73 20 69 68 20 61 74 79 74 ,t.it. s ih atyt
-69 20 68 20 69                                  i h i
-
-
-
-
-DID 100000 in 2049   48804
-DID 100000 in 325   307692
-DID 100000 in 138   724637
-Fun:This is a test, This is Only a test.
-23:28:46.470|6BC8000061B0~test_salty_generator.c(192): 20 65 69 20 20 73 00 6E 74 68 61 73 73 68 65 61  ei  s.nthasshea
-23:28:46.509|6BC8000061B0~test_salty_generator.c(192): 69 2C 74 20 4F 74 74 54 6C 79 73 54 20 2E 73 73 i,t OttTlysT .ss
-23:28:46.545|6BC8000061B0~test_salty_generator.c(192): 69 20 20 69 20                                  i  i
-SD Fun: ei  s 2147352584
-Fun:This is a test, This is Only a test.
-
-
-5
-	start = timeGetTime();
-
-	
-2bits 1,000,000 in 19   52631
-Average = total / units. 250000
-Above/below Averge: 2 2   10000
-min/max and this median... Min 249844 Max 250216  Mid 250030 Ofs -30 Span  372
-medians = 250033 250216
-number   2  : 249844    0   -0.419  -186   -156
-number   1  : 249907 0.169    -0.25  -123   -93
-number   0  : 250033 0.508   0.0887  3   33
-number   3  : 250216    1    0.581  186   216
-2bits 200,000,000 in 4195   47675
-
-Average = total / units. 50250000
-Above/below Averge: 3 1   30000
-min/max and this median... Min 50248857 Max 50252155  Mid 50250506 Ofs -506 Span  3298
-medians = 50249897 50252155
-number   2  : 50248857    0   -0.347  -1649   -1143
-number   0  : 50249091 0.071   -0.276  -1415   -909
-number   3  : 50249897 0.315   -0.0312  -609   -103
-number   1  : 50252155    1    0.653  1649   2155
-16bits 100,000,000 in 2546   39277
-Average = total / units. 1525
-Above/below Averge: 32520 33016   9849
-min/max and this median... Min 1367 Max 1684  Mid 1525 Ofs 0 Span  317
-medians = 1526 1526
-
-
-Fun:This is a test, This is Only a test.
-22:43:44.320|4BA40000B260~test_salty_generator.c(192): 20 20 20 79 6E 6C 73 65 20 20 69 73 2C 73 68 73    ynlse  is,shs
-22:43:44.321|4BA40000B260~test_salty_generator.c(192): 2E 20 74 4F 69 00 69 74 74 54 61 61 65 54 20 73 . tOi.ittTaaeT s
-22:43:44.321|4BA40000B260~test_salty_generator.c(192): 69 20 73 74 68                                  i sth
-SD Fun:   ynlse  is,shs. tOi 2147352584
-Fun:This is a test, This is Only a test.
-Average = total / units. 250000
-Above/below Averge: 2 2   10000
-min/max and this median... Min 249061 Max 250636  Mid 249848 Ofs 152 Span  1575
-medians = 250541 250636
-number   0  : 249061    0   -0.596  -787   -939
-number   3  : 249762 0.445   -0.151  -86   -238
-number   1  : 250541 0.94    0.343  693   541
-number   2  : 250636    1    0.404  788   636
-Average = total / units. 50250000
-Above/below Averge: 1 3   3333
-min/max and this median... Min 50233394 Max 50259746  Mid 50246570 Ofs 3430 Span  26352
-medians = 50254578 50259746
-number   1  : 50233394    0    -0.63  -13176   -16606
-number   3  : 50252282 0.717   0.0866  5712   2282
-number   0  : 50254578 0.804    0.174  8008   4578
-number   2  : 50259746    1     0.37  13176   9746
-Average = total / units. 1525
-Above/below Averge: 32625 32911   9913
-min/max and this median... Min 1358 Max 1711  Mid 1534 Ofs -9 Span  353
-medians = 1526 1526
-Average = total / units. 15258
-Above/below Averge: 32614 32922   9906
-min/max and this median... Min 14729 Max 15810  Mid 15269 Ofs -11 Span  1081
-medians = 15259 15259
-
-
-
-
-
-2bits 1,000,000 in 21   47619
-Average = total / units. 250000
-Above/below Averge: 2 2   10000
-min/max and this median... Min 249601 Max 250275  Mid 249938 Ofs 62 Span  674
-medians = 250155 250275
-number   2  : 249601    0   -0.592  -337   -399
-number   1  : 249969 0.546   -0.046  31   -31
-number   3  : 250155 0.822     0.23  217   155
-number   0  : 250275    1    0.408  337   275
-
-2bits 200,000,000 in 4003   49962
-Average = total / units. 50250000
-Above/below Averge: 3 1   30000
-min/max and this median... Min 50245683 Max 50255244  Mid 50250463 Ofs -463 Span  9561
-medians = 50249549 50255244
-number   2  : 50245683    0   -0.452  -4780   -4317
-number   0  : 50249524 0.402   -0.0498  -939   -476
-number   3  : 50249549 0.404   -0.0472  -914   -451
-number   1  : 50255244    1    0.548  4781   5244
-
-16bits 100,000,000 in 2338   42771
-Average = total / units. 1525
-Above/below Averge: 32559 32977   9873
-min/max and this median... Min 1362 Max 1679  Mid 1520 Ofs 5 Span  317
-medians = 1526 1526
-
-16bits 900,000,000 in 20738   43398
-Average = total / units. 15258
-Above/below Averge: 32751 32785   9989
-min/max and this median... Min 14752 Max 15796  Mid 15274 Ofs -16 Span  1044
-medians = 15259 15259
-
-                       ms     per-ms
-1 bits 250,000,000 in 2257   110766
-2 bits 250,000,000 in 2245   111358
-4 bits 250,000,000 in 2428   102965
-16 bits 250,000,000 in 3226   77495
-256 bits 100,000,000 in 11471   8717
-
-
-
-
-2bits 1,000,000 in 21   47619
-Average = total / units. 250000
-Above/below Averge: 2 2   10000
-min/max and this median... Min 249439 Max 250750  Mid 250094 Ofs -94 Span  1311
-medians = 250224 250750
-number   0  : 249439    0   -0.428  -655   -561
-number   1  : 249587 0.113   -0.315  -507   -413
-number   3  : 250224 0.599    0.171  130   224
-number   2  : 250750    1    0.572  656   750
-
-2bits 200,000,000 in 4188   47755
-Average = total / units. 50250000
-Above/below Averge: 1 3   3333
-min/max and this median... Min 50242064 Max 50254427  Mid 50248245 Ofs 1755 Span  12363
-medians = 50252200 50254427
-number   2  : 50242064    0   -0.642  -6181   -7936
-number   1  : 50251309 0.748    0.106  3064   1309
-number   0  : 50252200 0.82    0.178  3955   2200
-number   3  : 50254427    1    0.358  6182   4427
-
-16bits 100,000,000 in 3141   31836
-Average = total / units. 1525
-Above/below Averge: 32652 32884   9929
-min/max and this median... Min 1358 Max 1706  Mid 1532 Ofs -7 Span  348
-medians = 1526 1526
-
-16bits 900,000,000 in 28161   31959
-Average = total / units. 15258
-Above/below Averge: 32571 32965   9880
-min/max and this median... Min 14783 Max 15738  Mid 15260 Ofs -2 Span  955
-medians = 15259 15259
-
-1 bits 250,000,000 in 2323   107619
-2 bits 250,000,000 in 2470   101214
-4 bits 250,000,000 in 2792   89541
-16 bits 250,000,000 in 5068   49329
-256 bits 100,000,000 in 22577   4429
 
 
 
