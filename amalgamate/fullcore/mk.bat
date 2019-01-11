@@ -70,6 +70,7 @@
 @set SRCS= %SRCS%   ../../src/contrib/k12/lib/KangarooTwelve.c
 @set SRCS= %SRCS%   ../../src/salty_random_generator/salty_generator.c
 @set SRCS= %SRCS%   ../../src/salty_random_generator/crypt_util.c
+@set SRCS= %SRCS%   ../../src/salty_random_generator/block_shuffle.c
 
 @set SRCS= %SRCS%   ../../src/contrib/sqlite/sqlite_interface.c
 @set SRCS= %SRCS%   ../../src/SQLlib/sqlstruc.h

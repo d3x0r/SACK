@@ -62,6 +62,7 @@
 @set SRCS= %SRCS%   ../../src/contrib/k12/lib/KangarooTwelve.c
 @set SRCS= %SRCS%   ../../src/salty_random_generator/salty_generator.c
 @set SRCS= %SRCS%   ../../src/salty_random_generator/crypt_util.c
+@set SRCS= %SRCS%   ../../src/salty_random_generator/block_shuffle.c
 
 
 @set SRCS= %SRCS%   ../../src/deadstart/deadstart_core.c 
