@@ -1,59 +1,15 @@
 #include <stdhdrs.h>
-#include <sha1.h>
-#ifdef SACK_BAG_EXPORTS
-#define SHA2_SOURCE
-#endif
-#include <sha2.h>
-#include "../contrib/sha3lib/sha3.h"
-#include <KangarooTwelve.h>
 
 #ifndef SALTY_RANDOM_GENERATOR_SOURCE
 #define SALTY_RANDOM_GENERATOR_SOURCE
 #endif
 #include <salty_generator.h>
+#include "srg_internal.h"
 
 
-#define MY_MASK_MASK(n,length)	(MASK_TOP_MASK(length) << ((n)&0x7) )
-#define MY_GET_MASK(v,n,mask_size)  ( ( ((MASKSET_READTYPE*)((((uintptr_t)v))+(n)/CHAR_BIT))[0]											\
- & MY_MASK_MASK(n,mask_size) )																									\
-	>> (((n))&0x7))
 
-
-struct random_context {
-	LOGICAL use_version2 : 1;
-	LOGICAL use_version2_256 : 1;
-	LOGICAL use_version3 : 1;
-	LOGICAL use_versionK12 : 1;
-
-	union {
-		SHA1Context sha1_ctx;
-		sha512_ctx  sha512;
-		sha256_ctx  sha256;
-		sha3_ctx_t  sha3;
-		KangarooTwelve_Instance K12i;
-	} f;
-
-	POINTER salt;
-	size_t salt_size;
-	void (*getsalt)( uintptr_t, POINTER *salt, size_t *salt_size );
-	uintptr_t psv_user;
-	uint8_t *entropy;
-	union {
-		uint8_t entropy0[SHA1HashSize];
-		uint8_t entropy2[SHA512_DIGEST_SIZE];
-		uint8_t entropy2_256[SHA256_DIGEST_SIZE];
-#define SHA3_DIGEST_SIZE 64 // 512 bits
-		uint8_t entropy3[SHA3_DIGEST_SIZE];
-#define K12_DIGEST_SIZE 64  // 512 bits
-		uint8_t entropy4[K12_DIGEST_SIZE];
-	} s;
-	size_t bits_used;
-	size_t bits_avail;
-};
-
-static void NeedBits( struct random_context *ctx )
+void NeedBits( struct random_context *ctx )
 {
-	int r;
 	if( ctx->getsalt )
 		ctx->getsalt( ctx->psv_user, &ctx->salt, &ctx->salt_size );
 	else
@@ -61,13 +17,10 @@ static void NeedBits( struct random_context *ctx )
 	if( ctx->use_versionK12 ) {
 		if( ctx->salt_size )
 			KangarooTwelve_Update( &ctx->f.K12i, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
-		//lprintf( "CALL FINAL!" );
-		r = KangarooTwelve_Final( &ctx->f.K12i, ctx->s.entropy4, NULL, 0 ); // customization is a final pad string.
-		//lprintf( "GOT ENTROPY: %d", r );
-		//LogBinary( ctx->s.entropy4, K12_DIGEST_SIZE );
+		KangarooTwelve_Final( &ctx->f.K12i, ctx->s.entropy4, NULL, 0 ); // customization is a final pad string.
 		KangarooTwelve_Initialize( &ctx->f.K12i, K12_DIGEST_SIZE );
 		KangarooTwelve_Update( &ctx->f.K12i, ctx->s.entropy4, K12_DIGEST_SIZE );
-		ctx->bits_avail = sizeof( ctx->s.entropy4 ) * 8;
+		ctx->bits_avail = sizeof( ctx->s.entropy4 ) * CHAR_BIT;
 		ctx->entropy = ctx->s.entropy4;
 	} else if( ctx->use_version3 ) {
 		if( ctx->salt_size )
@@ -75,7 +28,7 @@ static void NeedBits( struct random_context *ctx )
 		sha3_final( &ctx->f.sha3, ctx->s.entropy3 );
 		sha3_init( &ctx->f.sha3, SHA3_DIGEST_SIZE );
 		sha3_update( &ctx->f.sha3, ctx->s.entropy3, SHA3_DIGEST_SIZE );
-		ctx->bits_avail = sizeof( ctx->s.entropy3 ) * 8;
+		ctx->bits_avail = sizeof( ctx->s.entropy3 ) * CHAR_BIT;
 		ctx->entropy = ctx->s.entropy3;
 	} else if( ctx->use_version2_256 ) {
 		if( ctx->salt_size )
@@ -83,7 +36,7 @@ static void NeedBits( struct random_context *ctx )
 		sha256_final( &ctx->f.sha256, ctx->s.entropy2_256 );
 		sha256_init( &ctx->f.sha256 );
 		sha256_update( &ctx->f.sha256, ctx->s.entropy2_256, SHA256_DIGEST_SIZE );
-		ctx->bits_avail = sizeof( ctx->s.entropy2_256 ) * 8;
+		ctx->bits_avail = sizeof( ctx->s.entropy2_256 ) * CHAR_BIT;
 		ctx->entropy = ctx->s.entropy2_256;
 	} else if( ctx->use_version2 )
 	{
@@ -92,7 +45,7 @@ static void NeedBits( struct random_context *ctx )
 		sha512_final( &ctx->f.sha512, ctx->s.entropy2 );
 		sha512_init( &ctx->f.sha512 );
 		sha512_update( &ctx->f.sha512, ctx->s.entropy2, SHA512_DIGEST_SIZE );
-		ctx->bits_avail = sizeof( ctx->s.entropy2 ) * 8;
+		ctx->bits_avail = sizeof( ctx->s.entropy2 ) * CHAR_BIT;
 		ctx->entropy = ctx->s.entropy2;
 	}
 	else
@@ -102,7 +55,7 @@ static void NeedBits( struct random_context *ctx )
 		SHA1Result( &ctx->f.sha1_ctx, ctx->s.entropy0 );
 		SHA1Reset( &ctx->f.sha1_ctx );
 		SHA1Input( &ctx->f.sha1_ctx, ctx->s.entropy0, SHA1HashSize );
-		ctx->bits_avail = sizeof( ctx->s.entropy0 ) * 8;
+		ctx->bits_avail = sizeof( ctx->s.entropy0 ) * CHAR_BIT;
 		ctx->entropy = ctx->s.entropy0;
 	}
 	ctx->bits_used = 0;
@@ -168,6 +121,21 @@ void SRG_DestroyEntropy( struct random_context **ppEntropy )
 	(*ppEntropy) = NULL;
 }
 
+uint32_t SRG_GetBit( struct random_context *ctx )
+{
+	uint32_t tmp;
+	if( !ctx ) DebugBreak();
+	ctx->total_bits_used += 1;
+	//if( ctx->bits_used > 512 ) DebugBreak();
+	if( (ctx->bits_used) >= ctx->bits_avail ) {
+		NeedBits( ctx );
+	}
+	tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, 1 );
+	ctx->bits_used += 1;
+	return tmp;
+}
+
+
 void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_t bits )
 {
 	uint32_t tmp;
@@ -176,6 +144,7 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_
 	uint32_t get_bits;
 	uint32_t resultBits = 0;
 	if( !ctx ) DebugBreak();
+	ctx->total_bits_used += bits;
 	//if( ctx->bits_used > 512 ) DebugBreak();
 	do {
 		if( bits > sizeof( tmp ) * 8 )
@@ -258,6 +227,7 @@ int32_t SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed )
 
 void SRG_ResetEntropy( struct random_context *ctx )
 {
+	ctx->total_bits_used = 0;
 	if( ctx->use_versionK12 )
 		KangarooTwelve_Initialize( &ctx->f.K12i, K12_DIGEST_SIZE );
 	else if( ctx->use_version3 )
@@ -270,6 +240,20 @@ void SRG_ResetEntropy( struct random_context *ctx )
 		SHA1Reset( &ctx->f.sha1_ctx );
 	ctx->bits_used = 0;
 	ctx->bits_avail = 0;
+}
+
+void SRG_StreamEntropy( struct random_context *ctx )
+{
+	if( ctx->use_versionK12 )
+		KangarooTwelve_Update( &ctx->f.K12i, ctx->s.entropy4, K12_DIGEST_SIZE );
+	else if( ctx->use_version3 )
+		sha3_update( &ctx->f.sha3, ctx->s.entropy4, SHA3_DIGEST_SIZE );
+	else if( ctx->use_version2_256 )
+		sha256_update( &ctx->f.sha256, ctx->s.entropy2_256, SHA256_DIGEST_SIZE );
+	else if( ctx->use_version2 )
+		sha512_update( &ctx->f.sha512, ctx->s.entropy2, SHA512_DIGEST_SIZE );
+	else
+		SHA1Input( &ctx->f.sha1_ctx, ctx->s.entropy0, SHA1HashSize );
 }
 
 void SRG_FeedEntropy( struct random_context *ctx, const uint8_t *salt, size_t salt_size )
@@ -286,18 +270,19 @@ void SRG_FeedEntropy( struct random_context *ctx, const uint8_t *salt, size_t sa
 		SHA1Input( &ctx->f.sha1_ctx, salt, salt_size );
 }
 
-void SRG_SaveState( struct random_context *ctx, POINTER *external_buffer_holder )
+void SRG_SaveState( struct random_context *ctx, POINTER *external_buffer_holder, size_t *dataSize )
 {
 	if( !(*external_buffer_holder) )
 		(*external_buffer_holder) = New( struct random_context );
 	(*(struct random_context*)(*external_buffer_holder)) = (*ctx);
+	if( dataSize )
+		(*dataSize) = sizeof( struct random_context );
 }
 
 void SRG_RestoreState( struct random_context *ctx, POINTER external_buffer_holder )
 {
 	(*ctx) = *(struct random_context*)external_buffer_holder;
 }
-
 
 static void salt_generator(uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	static struct tickBuffer {
@@ -313,84 +298,90 @@ static void salt_generator(uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 
 #define SRG_MAX_GENERATOR_THREADS 32
 
-char *SRG_ID_Generator( void ) {
+static struct random_context *getGenerator( 
+			struct random_context *pool[SRG_MAX_GENERATOR_THREADS]
+			, uint32_t used[SRG_MAX_GENERATOR_THREADS]
+			, struct random_context * (*generator)(void( *)(uintptr_t , POINTER *, size_t *), uintptr_t)
+			, int *pUsingCtx
+		) 
+{
 	struct random_context *ctx;
-	uint32_t buf[2 * (16 + 16)];
-	size_t outlen;
-
-	static struct random_context *_ctx[SRG_MAX_GENERATOR_THREADS];
-	static uint32_t used[SRG_MAX_GENERATOR_THREADS];
 	int usingCtx;
 	usingCtx = 0;
 	do {
 		while( used[++usingCtx] ) { if( ++usingCtx >= SRG_MAX_GENERATOR_THREADS ) usingCtx = 0; }
 	} while( LockedExchange( used + usingCtx, 1 ) );
-	ctx = _ctx[usingCtx];
-	if( !ctx ) ctx = _ctx[usingCtx] = SRG_CreateEntropy2( salt_generator, 0 );
+	ctx = pool[usingCtx];
+	if( !ctx ) ctx = pool[usingCtx] = generator( salt_generator, 0 );
+	(*pUsingCtx) = usingCtx;
+	return ctx;
+}
 
-	SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+char *SRG_ID_Generator( void ) {
+	struct random_context *ctx;
+	uint32_t buf[(16 + 16) / 4];
+	size_t outlen;
+	static struct random_context *_ctx[SRG_MAX_GENERATOR_THREADS];
+	static uint32_t used[SRG_MAX_GENERATOR_THREADS];
+	int usingCtx;
+
+	ctx = getGenerator( _ctx, used, SRG_CreateEntropy2, &usingCtx );
+	do {
+		SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	} while( ( buf[0] & 0x3f ) < 10 );
 	used[usingCtx] = 0;
 	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }
 
 char *SRG_ID_Generator_256( void ) {
 	struct random_context *ctx;
-	uint32_t buf[2 * (16 + 16)];
+	uint32_t buf[(16 + 16) / 4];
 	size_t outlen;
 
 	static struct random_context *_ctx[SRG_MAX_GENERATOR_THREADS];
 	static uint32_t used[SRG_MAX_GENERATOR_THREADS];
 	int usingCtx;
-	usingCtx = 0;
-	do {
-		while( used[++usingCtx] ) { if( ++usingCtx >= SRG_MAX_GENERATOR_THREADS ) usingCtx = 0; }
-	} while( LockedExchange( used + usingCtx, 1 ) );
-	ctx = _ctx[usingCtx];
-	if( !ctx ) ctx = _ctx[usingCtx] = SRG_CreateEntropy2_256( salt_generator, 0 );
+	ctx = getGenerator( _ctx, used, SRG_CreateEntropy2_256, &usingCtx );
 
-	SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	do {
+		SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	} while( (buf[0] & 0x3f) < 10 );
 	used[usingCtx] = 0;
 	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }
 
 char *SRG_ID_Generator3( void ) {
 	struct random_context *ctx;
-	uint32_t buf[2 * (16 + 16)];
+	uint32_t buf[(16 + 16) / 4];
 	size_t outlen;
 
 	static struct random_context *_ctx[SRG_MAX_GENERATOR_THREADS];
 	static uint32_t used[SRG_MAX_GENERATOR_THREADS];
 	int usingCtx;
 	usingCtx = 0;
-	do {
-		while( used[++usingCtx] ) { if( ++usingCtx >= SRG_MAX_GENERATOR_THREADS ) usingCtx = 0; }
-	} while( LockedExchange( used + usingCtx, 1 ) );
-	ctx = _ctx[usingCtx];
-	if( !ctx ) ctx = _ctx[usingCtx] = SRG_CreateEntropy3( salt_generator, 0 );
+	ctx = getGenerator( _ctx, used, SRG_CreateEntropy3, &usingCtx );
 
-	SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	do {
+		SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	} while( (buf[0] & 0x3f) < 10 );
 	used[usingCtx] = 0;
 	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }
 
+char *SRG_ID_Generator4( void ) {
+	struct random_context *ctx;
+	uint32_t buf[(16 + 16)/4];
+	size_t outlen;
 
+	static struct random_context *_ctx[SRG_MAX_GENERATOR_THREADS];
+	static uint32_t used[SRG_MAX_GENERATOR_THREADS];
+	int usingCtx;
+	usingCtx = 0;
+	ctx = getGenerator( _ctx, used, SRG_CreateEntropy4, &usingCtx );
 
-#ifdef WIN32
-#if 0  
-// if standalone?
-BOOL WINAPI DllMain(
-	HINSTANCE hinstDLL,
-	DWORD fdwReason,
-	LPVOID lpvReserved
-						 )
-{
-	return TRUE;
+	do {
+		SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	} while( (buf[0] & 0x3f) < 10 );
+	used[usingCtx] = 0;
+	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }
-#endif
-// this is the watcom deadstart entry point.
-// by supplying this routine, then the native runtime doesn't get pulled
-// and no external clbr symbols are required.
-//void __DLLstart( void )
-//{
-//}
-#endif
