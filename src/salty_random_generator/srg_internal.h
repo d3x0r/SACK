@@ -46,7 +46,6 @@ struct random_context {
 struct byte_shuffle_key {
 	uint8_t map[256];// shuffle works on ints.
 	uint8_t dmap[256];
-	struct random_context *ctx;
 };
 
 #define MY_MASK_MASK(n,length)	(MASK_TOP_MASK(length) << ((n)&0x7) )

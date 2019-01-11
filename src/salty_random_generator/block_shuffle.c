@@ -72,37 +72,6 @@ static void Shuffle( struct block_shuffle_key *key, int *numbers , int count )
 	Release( holders );
 }
 
-static void FoldTreeBytes( int *nNumber, uint8_t *numbers, PHOLDER holders, int nTree )
-{
-	PHOLDER tree = holders + nTree;
-	if( tree->pLess >= 0 )
-		FoldTreeBytes( nNumber, numbers, holders, tree->pLess );
-	numbers[(*nNumber)++] = (uint8_t)tree->number;
-	if( tree->pMore >= 0 )
-		FoldTreeBytes( nNumber, numbers, holders, tree->pMore );
-}
-
-
-static void ShuffleBytes( struct byte_shuffle_key *key, uint8_t *numbers, int count )
-{
-	int tree;
-	int n;
-	int nHolders = 0;
-	int nNumber = 0;
-	int need_bits;
-	PHOLDER holders = NewArray( HOLDER, count );
-	tree = -1;
-	nNumber = 0;
-	for( n = 31; n > 0; n-- )
-		if( count & (1 << n) )
-			break;
-	need_bits = n + 1;
-	for( n = 0; n < count; n++ )
-		tree = sort( &nHolders, holders, tree, numbers[n], SRG_GetEntropy( key->ctx, need_bits, 0 ) );
-	FoldTreeBytes( &nNumber, numbers, holders, tree );
-	Release( holders );
-}
-
 
 struct block_shuffle_key *BlockShuffle_CreateKey( struct random_context *ctx, size_t width, size_t height )
 {
@@ -205,7 +174,6 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 	struct byte_shuffle_key *key = New( struct byte_shuffle_key );
 	int n;
 	int srcMap;
-	key->ctx = ctx;
 	for( n = 0; n < 256; n++ )
 		key->map[n] = n;
 
@@ -250,7 +218,6 @@ struct byte_shuffle_key *BlockShuffle_ByteShufflerSE( struct random_context *ctx
 	int n;
 
 	int srcMap;
-	key->ctx = ctx;
 	uint8_t *maps[2] = { key->dmap, key->map };
 	for( n = 0; n < 256; n++ )
 		key->map[n] = n;
