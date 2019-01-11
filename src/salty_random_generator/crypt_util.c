@@ -396,40 +396,6 @@ static void encryptData( uint8_t *objBuf, size_t objBufLen
 			encryptBlock( bytKey, outBuf[0] + b, bs, bufKey );
 	}
 
-#if 0
-	curBuf_in = objBuf;
-	curBuf_out = outBuf[0];
-#if __64__
-	workLen = (*outBufLen) - 12;
-	for( n = 0; n < workLen; n+=8, curBuf_in+=8, curBuf_out+=8 ) {
-		((uint64_t*)curBuf_out)[0] = ((uint64_t*)curBuf_in)[0] ^ ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
-	}
-	if( ((*outBufLen) - n  ) == 8 )
-		((uint32_t*)curBuf_out)[0] = ((uint32_t*)curBuf_in)[0] ^ ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];
-#else
-	workLen = (*outBufLen) - 4;
-	for( n = 0; n < workLen; n += 4, curBuf_in+=4, curBuf_out+=4 ) {
-		((uint32_t*)curBuf_out)[0] = ((uint32_t*)curBuf_in)[0] ^ ((uint32_t*)(bufKey +( n % (RNGHASH / 8))))[0];
-	}
-#endif
-	BlockShuffle_SubBytes_( bytKey, outBuf[0], outBuf[0], outBufLen[0]);
-
-	curBuf_out = outBuf[0];
-	p = 0x55;
-	for( n = 0; n < outBufLen[0]; n++, curBuf_out++ ) {
-		p = curBuf_out[0] = curBuf_out[0] ^ p;
-	}
-	//BlockShuffle_SetData( blkKey, objBuf, 0, objBufLen, outBuf[0], 0 );
-	curBuf_out--;
-	p = 0xAA;
-	for( n = 0; n < outBufLen[0]; n++, curBuf_out-- ) {
-		p = curBuf_out[0] = curBuf_out[0] ^ p;
-	}
-	curBuf_out = outBuf[0];
-	BlockShuffle_SubBytes_( bytKey, curBuf_out, curBuf_out, outBufLen[0]);
-
-#endif
-
 	BlockShuffle_DropByteShuffler( bytKey );
 	//Release( tmpBuf );
 	EnqueLink( &crypt_local.plqCrypters, signEntropy );
@@ -506,45 +472,6 @@ static void decryptData( uint8_t *objBuf, size_t objBufLen
 			decryptBlock( bytKey, objBuf + b, bs, outBuf[0] + b, bufKey, 1 );
 	}
 
-#if 0
-
-	int n;
-	curBuf = outBuf[0];
-	BlockShuffle_BusBytes_( bytKey, objBuf, outBuf[0], (*outBufLen) );
-
-	for( n = 0; n < (objBufLen-1); n++, curBuf++ ) {
-		curBuf[0] = curBuf[0] ^ curBuf[1];
-	}
-	curBuf[0] = curBuf[0] ^ 0xAA;
-
-	curBuf = outBuf[0] + objBufLen - 1;
-	for( n = objBufLen - 1; n > 0;  n--, curBuf-- ) {
-		curBuf[0] = curBuf[0] ^ (n?curBuf[-1]:0);
-	}
-	curBuf[0] = curBuf[0] ^ 0x55;
-
-	BlockShuffle_BusBytes_( bytKey, outBuf[0], outBuf[0], (*outBufLen) );
-
-	curBuf_in = outBuf[0];
-	curBuf_out = outBuf[0];
-	keyBuf = bufKey;
-	size_t workLen = (*outBufLen) - 4;
-#if __64__
-	workLen = (*outBufLen) - 12;
-	for( n = 0; n < workLen; n+=8, curBuf_in+=8, curBuf_out+=8 ) {
-		((uint64_t*)curBuf_out)[0] = ((uint64_t*)curBuf_in)[0] ^ ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
-	}
-	if( ( (*outBufLen) - n ) == 8 )
-		((uint32_t*)curBuf_out)[0] = ((uint32_t*)curBuf_in)[0] ^ ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];
-#else
-	workLen = (*outBufLen) - 4;
-	for( n = 0; n < workLen; n += 4, curBuf_in += 4, curBuf_out += 4 ) {
-		((uint32_t*)curBuf_out)[0] = ((uint32_t*)curBuf_in)[0] ^ ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
-	}
-#endif
-#endif
-	(*outBufLen) = ((uint32*)(outBuf[0] + (*outBufLen - 4)))[0];
-
 	BlockShuffle_DropByteShuffler( bytKey );
 
 	//Release( tmpBuf );
@@ -552,7 +479,9 @@ static void decryptData( uint8_t *objBuf, size_t objBufLen
 }
 
 
-#if 1
+#if 0
+// internal test code...
+// some performance benchmarking for instance.
 
 void logBinary( uint8_t *inbuf, int len ) {
 #define BINBUFSIZE 280
