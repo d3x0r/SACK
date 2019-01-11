@@ -582,7 +582,7 @@ PRELOAD( CryptTestBuiltIn ) {
 
 
 #ifdef DO_PERF_TESTS
-	// encrypt and decrypt are symmetric.
+	// SRG_AES_encrypt and SRG_AES_decrypt are symmetric.
 	start = timeGetTime();
 	for( i = 0; i < 300000; i++ ) {
 		SRG_XSWS_decryptData( (uint8_t*)message, sizeof( message ), 1234, key, sizeof( key ), &output, &outlen );
@@ -595,11 +595,11 @@ PRELOAD( CryptTestBuiltIn ) {
 
 	puts( "TESTDATA" );
 	logBinary( (uint8_t*)message, sizeof( message ) );
-	outlen = encrypt( (uint8_t*)message, sizeof( message ), key, &output );
+	outlen = SRG_AES_encrypt( (uint8_t*)message, sizeof( message ), key, &output );
 
 	puts( "BINARY" );
 	logBinary( output, outlen );
-	origlen = decrypt( output, outlen, key, &orig );
+	origlen = SRG_AES_decrypt( output, outlen, key, &orig );
 	puts( "ORIG" );
 	logBinary( orig, origlen );
 	Release( output );
@@ -607,11 +607,11 @@ PRELOAD( CryptTestBuiltIn ) {
 
 	puts( "TESTDATA" );
 	logBinary( (uint8_t*)message2, sizeof( message2 ) );
-	outlen = encrypt( (uint8_t*)message2, sizeof( message2 ), key, &output );
+	outlen = SRG_AES_encrypt( (uint8_t*)message2, sizeof( message2 ), key, &output );
 
 	puts( "BINARY" );
 	logBinary( output, outlen );
-	origlen = decrypt( output, outlen, key, &orig );
+	origlen = SRG_AES_decrypt( output, outlen, key, &orig );
 	puts( "ORIG" );
 	logBinary( orig, origlen );
 	Release( output );
@@ -619,11 +619,11 @@ PRELOAD( CryptTestBuiltIn ) {
 
 	puts( "TESTDATA" );
 	logBinary( (uint8_t*)message3, sizeof( message3 ) );
-	outlen = encrypt( (uint8_t*)message3, sizeof( message3 ), key, &output );
+	outlen = SRG_AES_encrypt( (uint8_t*)message3, sizeof( message3 ), key, &output );
 
 	puts( "BINARY" );
 	logBinary( output, outlen );
-	origlen = decrypt( output, outlen, key, &orig );
+	origlen = SRG_AES_decrypt( output, outlen, key, &orig );
 	puts( "ORIG" );
 	logBinary( orig, origlen );
 	Release( output );
@@ -635,7 +635,7 @@ PRELOAD( CryptTestBuiltIn ) {
 
 	start = timeGetTime();
 	for( i = 0; i < 4000000; i++ ) {
-		outlen = encrypt( (uint8_t*)message, sizeof( message ), key, &output );
+		outlen = SRG_AES_encrypt( (uint8_t*)message, sizeof( message ), key, &output );
 		Release( output );
 	}
 	end = timeGetTime();
@@ -645,7 +645,7 @@ PRELOAD( CryptTestBuiltIn ) {
 
 	start = timeGetTime();
 	for( i = 0; i < 200000; i++ ) {
-		outlen = encrypt( (uint8_t*)messageBig, sizeof( messageBig ), key, &output );
+		outlen = SRG_AES_encrypt( (uint8_t*)messageBig, sizeof( messageBig ), key, &output );
 		Release( output );
 	}
 	end = timeGetTime();
@@ -655,7 +655,7 @@ PRELOAD( CryptTestBuiltIn ) {
 
 	start = timeGetTime();
 	for( i = 0; i < 100; i++ ) {
-		outlen = encrypt( (uint8_t*)messageMega, sizeof( messageMega ), key, &output );
+		outlen = SRG_AES_encrypt( (uint8_t*)messageMega, sizeof( messageMega ), key, &output );
 		Release( output );
 	}
 	end = timeGetTime();
@@ -666,10 +666,10 @@ PRELOAD( CryptTestBuiltIn ) {
 
 #if 0
 
-	outlen = encrypt( (uint8_t*)messageBig, sizeof( messageBig ), key, &output );
+	outlen = SRG_AES_encrypt( (uint8_t*)messageBig, sizeof( messageBig ), key, &output );
 	start = timeGetTime();
 	for( i = 0; i < 100000; i++ ) {
-		origlen = decrypt( output, outlen, key, &orig );
+		origlen = SRG_AES_decrypt( output, outlen, key, &orig );
 		Release( orig );
 	}
 	end = timeGetTime();
@@ -680,16 +680,16 @@ PRELOAD( CryptTestBuiltIn ) {
 
 	start = timeGetTime();
 	for( i = 0; i < 100000; i++ ) {
-		outlen = encrypt( (uint8_t*)message, sizeof( message ), key, &output );
+		outlen = SRG_AES_encrypt( (uint8_t*)message, sizeof( message ), key, &output );
 		Release( output );
 	}
 	end = timeGetTime();
 	printf( "DID %d in %d   %d\n", i, end - start, i * 1000 / (end - start) );
 
-	outlen = encrypt( (uint8_t*)message, sizeof( message ), key, &output );
+	outlen = SRG_AES_encrypt( (uint8_t*)message, sizeof( message ), key, &output );
 	start = timeGetTime();
 	for( i = 0; i < 100000; i++ ) {
-		origlen = decrypt( output, outlen, key, &orig );
+		origlen = SRG_AES_decrypt( output, outlen, key, &orig );
 		Release( orig );
 	}
 	end = timeGetTime();

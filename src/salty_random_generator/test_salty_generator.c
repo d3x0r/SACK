@@ -58,7 +58,7 @@ int AddSomeDistribution( struct distribution *d, struct random_context *ctx )
 	{
 		int prior = 0;
 		int64_t prior_value;
-		for( n = 0; n < 2000000; n++ ) {
+		for( n = 0; n < 1000000; n++ ) {
 			int32_t value = SRG_GetEntropy( ctx, d->bits, 0 );
 			//lprintf( "VALUE: %d  %x", value, value );
 			d->unit_counters[value]++;
@@ -138,7 +138,7 @@ void mapData( struct distribution *d ) {
 	lprintf( "min/max and this median... Min %d Max %d  Mid %d Ofs %d Span  %d", minUnit, maxUnit, midUnit, (int)(avg-midUnit), maxUnit -minUnit );
 	lprintf( "medians = %d %d", orderedCounters[d->units / 2], orderedCounters[d->units / 2 + 1] );
 
-
+	if( d->units < 20 )
 	for( int i = 0; i < d->units; i++ ) {
 		int n;
 		int m;
@@ -201,7 +201,7 @@ void f2(void)
 SaneWinMain( argc, argv )
 {
 	f2();
-	uint8_t buffer[100];
+	uint8_t buffer[512];
 	int offset;
 	//struct random_context *entropy = SRG_CreateEntropy2( getsalt, 0 );
 	struct random_context *entropy = argc > 1 ? 
@@ -227,18 +227,64 @@ SaneWinMain( argc, argv )
 	start = timeGetTime();
 
 
-	struct distribution *d = GetDistribution( 4 );
+	struct distribution *d = GetDistribution( 2 );
 	AddSomeDistribution( d, entropy );
+	end = timeGetTime();
+	lprintf( "2bits 1,000,000 in %d   %d", end - start, (1000000)/(end-start) );
+	mapData( d );
+
+	start = timeGetTime();
+	for( int i = 0; i < 200; i++ )
+		AddSomeDistribution( d, entropy );
+	end = timeGetTime();
+	lprintf( "2bits 200,000,000 in %d   %d", end - start, (200000000) / (end - start) );
 	mapData( d );
 
 	struct distribution *d2 = GetDistribution( 16 );
+	start = timeGetTime();
 	for( int i = 0; i < 100; i++ )
 		AddSomeDistribution( d2, entropy );
+	end = timeGetTime();
+	lprintf( "16bits 100,000,000 in %d   %d", end - start, (100000000) / (end - start) );
 	mapData( d2 );
 
+	start = timeGetTime();
 	for( int i = 0; i < 900; i++ )
 		AddSomeDistribution( d2, entropy );
+	end = timeGetTime();
+	lprintf( "16bits 900,000,000 in %d   %d", end - start, (900000000) / (end - start) );
 	mapData( d2 );
+
+	start = timeGetTime();
+	for( int i = 0; i < 250000000; i++ )
+		SRG_GetEntropyBuffer( entropy, buffer, 1 );
+	end = timeGetTime();
+	lprintf( "1 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
+
+	start = timeGetTime();
+	for( int i = 0; i < 250000000; i++ )
+		SRG_GetEntropyBuffer( entropy, buffer, 2 );
+	end = timeGetTime();
+	lprintf( "2 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
+
+	start = timeGetTime();
+	for( int i = 0; i < 250000000; i++ )
+		SRG_GetEntropyBuffer( entropy, buffer, 4 );
+	end = timeGetTime();
+	lprintf( "4 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
+
+	start = timeGetTime();
+	for( int i = 0; i < 250000000; i++ )
+		SRG_GetEntropyBuffer( entropy, buffer, 16 );
+	end = timeGetTime();
+	lprintf( "16 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
+
+	start = timeGetTime();
+	for( int i = 0; i < 100000000; i++ )
+		SRG_GetEntropyBuffer( entropy, buffer, 256 );
+	end = timeGetTime();
+	lprintf( "256 bits 100,000,000 in %d   %d", end - start, (100000000) / (end - start) );
+
 
 #if 0
 	end = timeGetTime();
