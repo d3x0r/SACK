@@ -44,8 +44,8 @@ struct random_context {
 
 
 struct byte_shuffle_key {
-	uint8_t *map;// shuffle works on ints.
-	uint8_t *dmap;
+	uint8_t map[256];// shuffle works on ints.
+	uint8_t dmap[256];
 	struct random_context *ctx;
 };
 
@@ -64,6 +64,16 @@ struct byte_shuffle_key {
 	( ctx->bits_used += 1 ),  \
 	( tmp ) \
 )
+
+#define SRG_GetByte_(tmp,ctx)    (    \
+	(ctx->total_bits_used += 8),  \
+	(( (ctx->bits_used) >= ctx->bits_avail )?  \
+		NeedBits( ctx ):0),  \
+	( tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, 8 ) ),  \
+	( ctx->bits_used += 8 ),  \
+	( tmp ) \
+)
+
 
 #ifndef SALTY_RANDOM_GENERATOR_SOURCE
 extern 

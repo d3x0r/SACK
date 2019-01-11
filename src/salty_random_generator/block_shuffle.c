@@ -182,7 +182,6 @@ void BlockShuffle_SetData( struct block_shuffle_key *key
 //------------------------------------------------------------------
 
 void BlockShuffle_DropByteShuffler( struct byte_shuffle_key *key ) {
-	Release( key->map );
 	Release( key );
 }
 
@@ -205,6 +204,58 @@ struct halfDeck {
 struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx ) {
 	struct byte_shuffle_key *key = New( struct byte_shuffle_key );
 	int n;
+	int srcMap;
+	key->ctx = ctx;
+	for( n = 0; n < 256; n++ )
+		key->map[n] = n;
+
+	// simple-in-place shuffler.
+#if 1
+	for( n = 0; n < 256; n++ ) {
+		int m;
+		int t;
+		SRG_GetByte_( m, ctx );
+		t = key->map[m];
+		key->map[m] = key->map[n];
+		key->map[n] = t;
+	}
+#endif
+
+#if 0
+		// validate that each number is in the mapping only once.
+		{
+			srcMap = 0;
+			uint8_t *check = maps[1 - srcMap];
+			int n;
+			for( n = 0; n < 256; n++ ) {
+				for( int m = 0; m < 256; m++ ) {
+					if( m == n ) continue;
+					if( check[n] == check[m] ) {
+						lprintf( "Index %d matches %d  %d", n, m, check[n] );
+						DebugBreak();
+					}
+				}
+			}
+		}
+#endif
+
+	for( n = 0; n < 256; n++ )
+		key->dmap[key->map[n]] = n;
+	return key;
+}
+
+// Small Entropy version.  (SE)
+struct byte_shuffle_key *BlockShuffle_ByteShufflerSE( struct random_context *ctx ) {
+	struct byte_shuffle_key *key = New( struct byte_shuffle_key );
+	int n;
+
+	int srcMap;
+	key->ctx = ctx;
+	uint8_t *maps[2] = { key->dmap, key->map };
+	for( n = 0; n < 256; n++ )
+		key->map[n] = n;
+	srcMap = 1;
+
 #define BLOCKSHUF_BYTE_ROUNDS 5
 	uint8_t stacks[86];
 	uint8_t halves[8][2];
@@ -213,12 +264,6 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 	uint8_t *readLMap;
 	uint8_t *readRMap;
 	uint8_t *writeMap;
-	key->map = NewArray( uint8_t, 512 );
-	int srcMap;
-
-	key->dmap = key->map + 256;
-	uint8_t *maps[2] = { key->dmap, key->map };
-	key->ctx = ctx;
 
 	/* 40 bits for 8 shuffles. */
 	for( n = 0; n < BLOCKSHUF_BYTE_ROUNDS; n++ ) {
@@ -229,53 +274,50 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 
 	int t[2] = { 0, 0 };
 	SRG_GetBit_( lrStart, ctx );
-	for( n = 0; (t[0] < 43 || t[1] < 43 ) && n < 86; n++ ) {
+	for( n = 0; (t[0] < 43 || t[1] < 43) && n < 86; n++ ) {
 		int bit;
 		int c;
 		c = 1;
-		while( c < (5- lrStart) && ( SRG_GetBit_( bit, ctx ), !bit ) ) {
+		while( c < (5 - lrStart) && (SRG_GetBit_( bit, ctx ), !bit) ) {
 			c++;
 		}
 		lrStart = !lrStart;
 		stacks[n] = c;
-		t[n&1] += c;
+		t[n & 1] += c;
 	}
-	for( n = 0; n < 256; n++ )
-		key->map[n] = n;
-	srcMap = 1;
 	for( n = 0; n < BLOCKSHUF_BYTE_ROUNDS; n++ ) {
 		struct halfDeck left, right;
 		int s;
 		int useCards;
 
-		left.starts[0] = leftStacks[ leftOrders[ halves[n][0] ] [0] ] [0];
-		left.lens[0]   = leftStacks[ leftOrders[ halves[n][0] ] [0] ] [1];
-		left.starts[1] = leftStacks[ leftOrders[ halves[n][0] ] [1] ] [0];
-		left.lens[1]   = leftStacks[ leftOrders[ halves[n][0] ] [1] ] [1];
-		left.starts[2] = leftStacks[ leftOrders[ halves[n][0] ] [2] ] [0];
-		left.lens[2]   = leftStacks[ leftOrders[ halves[n][0] ] [2] ] [1];
+		left.starts[0] = leftStacks[leftOrders[halves[n][0]][0]][0];
+		left.lens[0] = leftStacks[leftOrders[halves[n][0]][0]][1];
+		left.starts[1] = leftStacks[leftOrders[halves[n][0]][1]][0];
+		left.lens[1] = leftStacks[leftOrders[halves[n][0]][1]][1];
+		left.starts[2] = leftStacks[leftOrders[halves[n][0]][2]][0];
+		left.lens[2] = leftStacks[leftOrders[halves[n][0]][2]][1];
 		left.cut = 0;
 		left.from = left.starts[left.cut];
 		left.until = left.starts[left.cut] + left.lens[left.cut];
 
-		right.starts[0] = rightStacks[ rightOrders[ halves[n][1] ] [0] ] [0];
-		right.lens[0]   = rightStacks[ rightOrders[ halves[n][1] ] [0] ] [1];
-		right.starts[1] = rightStacks[ rightOrders[ halves[n][1] ] [1] ] [0];
-		right.lens[1]   = rightStacks[ rightOrders[ halves[n][1] ] [1] ] [1];
-		right.starts[2] = rightStacks[ rightOrders[ halves[n][1] ] [2] ] [0];
-		right.lens[2]   = rightStacks[ rightOrders[ halves[n][1] ] [2] ] [1];
+		right.starts[0] = rightStacks[rightOrders[halves[n][1]][0]][0];
+		right.lens[0] = rightStacks[rightOrders[halves[n][1]][0]][1];
+		right.starts[1] = rightStacks[rightOrders[halves[n][1]][1]][0];
+		right.lens[1] = rightStacks[rightOrders[halves[n][1]][1]][1];
+		right.starts[2] = rightStacks[rightOrders[halves[n][1]][2]][0];
+		right.lens[2] = rightStacks[rightOrders[halves[n][1]][2]][1];
 		right.cut = 0;
 		right.from = right.starts[right.cut];
 		right.until = right.starts[right.cut] + right.lens[right.cut];
 
 		lrStart = lrStarts[n];
-		useCards = stacks[s=0];
+		useCards = stacks[s = 0];
 
 		readLMap = maps[srcMap] + left.from;
 		readRMap = maps[srcMap] + right.from;
 		writeMap = maps[1 - srcMap];
 		s = 0;
-		for( int outCard = 0; outCard < 256;  ) {
+		for( int outCard = 0; outCard < 256; ) {
 			useCards = stacks[s];
 			for( int c = 0; c < useCards; c++ ) {
 				if( lrStart ) {
@@ -346,43 +388,30 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 			}
 			if( outCard >= 256 )
 				break;
-			lrStart = 1-lrStart;
+			lrStart = 1 - lrStart;
 			s++;
 			if( s >= 86 ) {
-				useCards = stacks[s=0];
+				useCards = stacks[s = 0];
 			}
 		}
+	}
 #if 0
-		// validate that each number is in the mapping only once.
-		{
-			uint8_t *check = maps[1 - srcMap];
-			int n;
-			for( n = 0; n < 256; n++ ) {
-				for( int m = 0; m < 256; m++ ) {
-					if( m == n ) continue;
-					if( check[n] == check[m] ) {
-						lprintf( "Index %d matches %d  %d", n, m, check[n] );
-						DebugBreak();
-					}
+	// validate that each number is in the mapping only once.
+	{
+		uint8_t *check = maps[1 - srcMap];
+		int n;
+		for( n = 0; n < 256; n++ ) {
+			for( int m = 0; m < 256; m++ ) {
+				if( m == n ) continue;
+				if( check[n] == check[m] ) {
+					lprintf( "Index %d matches %d  %d", n, m, check[n] );
+					DebugBreak();
 				}
 			}
 		}
-#endif
-		srcMap = 1 - srcMap;
-	}
-
-#if 0
-	{
-		for( n = 0; n < 256; n++ ) {
-			int m = SRG_GetEntropy( ctx, 8, 0 );
-			int t = key->map[m];
-			key->map[m] = key->map[n];
-			key->map[n] = t;
-		}
-
-		//ShuffleBytes( key, key->map, 256 );
 	}
 #endif
+
 	for( n = 0; n < 256; n++ )
 		key->dmap[key->map[n]] = n;
 	return key;
