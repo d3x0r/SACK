@@ -342,6 +342,7 @@ static void encryptBlock( struct byte_shuffle_key *bytKey
 	for( n = 0; n < outlen; n++, curBuf_out++ ) {
 		p = curBuf_out[0] = curBuf_out[0] ^ p;
 	}
+	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
 	//BlockShuffle_SetData( blkKey, objBuf, 0, objBufLen, outBuf[0], 0 );
 	curBuf_out--;
 	p = 0xAA;
@@ -366,18 +367,17 @@ void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
 	SRG_GetEntropyBuffer( signEntropy, (uint32_t*)bufKey, RNGHASH );
 	struct byte_shuffle_key *bytKey = BlockShuffle_ByteShuffler( signEntropy );
 
-	(*outBufLen) = (sizeof( uint32_t ))
+	(*outBufLen) = (sizeof( uint8_t ))
 		+ objBufLen
-		+ (((objBufLen + sizeof( uint32_t )) & 0x7)
-			? (8 - ((objBufLen + sizeof( uint32_t )) & 0x7))
+		+ (((objBufLen + sizeof( uint8_t )) & 0x7)
+			? (8 - ((objBufLen + sizeof( uint8_t )) & 0x7))
 			: 0);
 
 	//outBuf[0] = (uint8_t*)HeapAllocateAligned( NULL, (*outBufLen), 4096 );
 	outBuf[0] = (uint8_t*)HeapAllocate( NULL, (*outBufLen) );
 	((uint64_t*)(outBuf[0] + (*outBufLen) - 8))[0] = 0; // clear any padding bits.
-	memcpy( outBuf[0], objBuf, objBufLen );
-	((uint32_t*)(outBuf[0] + (*outBufLen) - 4))[0] = (uint32_t)objBufLen;
-
+	memcpy( outBuf[0], objBuf, objBufLen );  // copy contents for in-place encrypt.
+	((uint8_t*)(outBuf[0] + (*outBufLen) - 1))[0] = (uint8_t)(*outBufLen - objBufLen);
 
 	for( size_t b = 0; b < (*outBufLen); b += 4096 ) {
 		size_t bs = (*outBufLen) - b;
@@ -406,25 +406,23 @@ static void decryptBlock( struct byte_shuffle_key *bytKey
 		curBuf[0] = curBuf[0] ^ curBuf[1];
 	}
 	curBuf[0] = curBuf[0] ^ 0xAA;
+	BlockShuffle_BusBytes_( bytKey, output, output, len );
 
 	curBuf = output + len - 1;
 	for( n = (int)(len - 1); n > 0; n--, curBuf-- ) {
-		curBuf[0] = curBuf[0] ^ (n ? curBuf[-1] : 0);
+		curBuf[0] = curBuf[0] ^ curBuf[-1];
 	}
 	curBuf[0] = curBuf[0] ^ 0x55;
 
 	BlockShuffle_BusBytes_( bytKey, output, output, len );
 
-	uint8_t *curBuf_out = output;
-	uint8_t *keyBuf = bufKey;
-	size_t workLen = len;
 #if __64__
-	for( n = 0; n < len; n += 8,curBuf_out += 8 ) {
-		((uint64_t*)curBuf_out)[0] ^= /*((uint64_t*)curBuf_in)[0] ^*/ ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
+	for( n = 0; n < len; n += 8, output += 8 ) {
+		((uint64_t*)output)[0] ^= /*((uint64_t*)curBuf_in)[0] ^*/ ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
 	}
 #else
-	for( n = 0; n < len; n += 4, curBuf_out += 4 ) {
-		((uint32_t*)curBuf_out)[0] ^= /*((uint32_t*)curBuf_in)[0] ^*/ ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
+	for( n = 0; n < len; n += 4, output += 4 ) {
+		((uint32_t*)output)[0] ^= /*((uint32_t*)curBuf_in)[0] ^*/ ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
 	}
 #endif
 
@@ -455,6 +453,7 @@ void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 		else
 			decryptBlock( bytKey, objBuf + b, bs, outBuf[0] + b, bufKey, 1 );
 	}
+	(*outBufLen) -= ((uint8_t*)(outBuf[0] + objBufLen - 1))[0];
 
 	BlockShuffle_DropByteShuffler( bytKey );
 
@@ -516,7 +515,7 @@ PRELOAD( CryptTestBuiltIn ) {
 	size_t origlen;
 
 #define DO_PERF_TESTS 
-
+#define LENGTH_RECOVERY_TESTING
 
 #ifdef LENGTH_RECOVERY_TESTING
 
