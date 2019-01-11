@@ -52,7 +52,9 @@ SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES} PROPERTIES FOLDER "Source Files\\has
 
 set( RANDOM_SOURCES
   ${SOURCES_ROOT}src/salty_random_generator/salty_generator.c
+  ${SOURCES_ROOT}src/salty_random_generator/srg_internal.h
   ${SOURCES_ROOT}src/salty_random_generator/crypt_util.c
+  ${SOURCES_ROOT}src/salty_random_generator/block_shuffle.c
   ${SOURCES_ROOT}src/salty_random_generator/mersenne/mt19937ar.c
   )
 SET_SOURCE_FILES_PROPERTIES( ${RANDOM_SOURCES} PROPERTIES
