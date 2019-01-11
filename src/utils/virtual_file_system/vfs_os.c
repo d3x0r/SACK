@@ -1814,21 +1814,7 @@ static struct sack_vfs_file * CPROC sack_vfs_os_open( uintptr_t psvInstance, con
 	return sack_vfs_os_openfile( (struct volume*)psvInstance, filename );
 }
 
-static void cryptData( uint8_t *objBuf, size_t objBufLen, uint64_t tick, char *keyBuf, size_t keyBufLen ) {
-	struct random_context *signEntropy = (struct random_context *)DequeLink( &l.plqCrypters );
-	if( !signEntropy )
-		signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
-	SRG_ResetEntropy( signEntropy );
-	SRG_FeedEntropy( signEntropy, (const uint8_t*)&tick, sizeof( tick ) );
-	SRG_FeedEntropy( signEntropy, (const uint8_t*)keyBuf, keyBufLen );
-	size_t n;
-	uint8_t p = 0;
-	char *keyBuf_ = keyBuf;
-	for( n = 0; n < objBufLen; n++, objBuf++ ) {
-		objBuf[0] = objBuf[0] ^ SRG_GetEntropy( signEntropy, 8, 0 );
-	}
-	EnqueLink( &l.plqCrypters, signEntropy );
-}
+
 
 static char * getFilename( const char *objBuf, size_t objBufLen, char *sealBuf, size_t sealBufLen, LOGICAL owner, char *idBuf, size_t idBufLen ) {
 
@@ -1840,6 +1826,7 @@ static char * getFilename( const char *objBuf, size_t objBufLen, char *sealBuf, 
 
 		if( !signEntropy )
 			signEntropy = SRG_CreateEntropy3( NULL, (uintptr_t)0 );
+
 
 		if( owner ) {
 			char *metakey = SRG_ID_Generator3();
