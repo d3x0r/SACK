@@ -42,6 +42,9 @@ SRG_EXPORT void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buff
 //  (coded on little endian; tests for if ( result & ( 1 << bits - 1 ) ) then sign extend
 SRG_EXPORT int32_t SRG_GetEntropy( struct random_context *ctx, int bits, int get_signed );
 
+// get a single bit.
+SRG_EXPORT uint32_t SRG_GetBit( struct random_context *ctx );
+
 // opportunity to reset an entropy generator back to initial condition
 // next call to getentropy will be the same as the first call after create.
 SRG_EXPORT void SRG_ResetEntropy( struct random_context *ctx );
