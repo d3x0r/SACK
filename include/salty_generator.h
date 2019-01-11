@@ -27,7 +27,7 @@ SRG_EXPORT struct random_context *SRG_CreateEntropy3( void (*getsalt)( uintptr_t
 
 //
 // struct random_context *entropy = CreateEntropy4( void (*getsalt)( uintptr_t, POINTER *salt, size_t *salt_size ), uintptr_t psv_user );
-//  uses a K12-512
+//  uses a K12-32768
 SRG_EXPORT struct random_context *SRG_CreateEntropy4( void( *getsalt )(uintptr_t, POINTER *salt, size_t *salt_size), uintptr_t psv_user );
 
 // Destroya  context.  Pass the address of your 'struct random_context *entropy;   ... SRG_DestroyEntropy( &entropy );
