@@ -25,10 +25,11 @@
 #include <intrinsics.h>
 #endif
 
+#include <time.h>
+
 #ifdef __LINUX__
 #include <unistd.h>
 #include <sys/time.h>
-#include <time.h>
 #include <stdarg.h>
 #include <sys/un.h> // struct sockaddr_un
 #endif
@@ -777,11 +778,11 @@ void ConvertTickToTime( int64_t tick, PSACK_TIME st ) {
 	FileTimeToSystemTime( &file_time, &system_time );
 
 	st->yr = system_time.wYear;
-	st->mo = system_time.wMonth;
-	st->dy = system_time.wDay;
-	st->hr = system_time.wHour;
-	st->mn = system_time.wMinute;
-	st->sc = system_time.wSecond;
+	st->mo = (uint8_t)system_time.wMonth;
+	st->dy = (uint8_t)system_time.wDay;
+	st->hr = (uint8_t)system_time.wHour;
+	st->mn = (uint8_t)system_time.wMinute;
+	st->sc = (uint8_t)system_time.wSecond;
 	st->ms = system_time.wMilliseconds;
 	st->zhr = sign* (( tz * 15 ) / 60);
 	st->zmn = (tz*15) % 60;
