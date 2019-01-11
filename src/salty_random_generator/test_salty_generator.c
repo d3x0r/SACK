@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+
 #include <salty_generator.h>
 
 #define MY_MASK_MASK(n,length)   (MASK_TOP_MASK(length) << ((n)&0x7) )
@@ -11,11 +12,13 @@
 	| MY_MASK_MASK_VAL(n,_mask_size,val) )
 
 static uint32_t seed = 0;
+static LOGICAL useSeed = 1;
 
 void getsalt( uintptr_t psv, POINTER *salt, size_t *salt_size )
 {
 	(*salt) = &seed;
-	(*salt_size) = sizeof( seed );
+	
+	(*salt_size) = useSeed * sizeof( seed );
 	//printf( "return seed\n" );
 	//offset = 0;
 	//LogBinary( buffer, 20 );
@@ -23,60 +26,181 @@ void getsalt( uintptr_t psv, POINTER *salt, size_t *salt_size )
 
 struct distribution
 {
+	uint64_t total;
 	int bits;
 	int units;// = 1 << bits;
 	int *unit_counters;// = NewArray( int, units );
-	int **follow_counters;// = NewArray( int*, units );
+	int *follow_counters;// = NewArray( int*, units );
 };
 
-int CalculateDistribution( struct random_context *ctx, int bits )
+struct distribution * GetDistribution( int bits )
 {
 	struct distribution *d = New( struct distribution );
 	int n;
 	d->bits = bits;
 	d->units = 1 << bits;
 	d->unit_counters = NewArray( int, d->units );
-	d->follow_counters = NewArray( int*, d->units );
+	if( d->bits < 16 )
+		d->follow_counters = NewArray( int, d->units * d->units );
+	d->total = 0;
 	MemSet( d->unit_counters, 0, sizeof( int ) * d->units );
-	if( bits < 17 )
+	if( bits < 16 )
 		for( n = 0; n < d->units; n++ )
 		{
-			d->follow_counters[n] = NewArray( int, d->units );
-			MemSet( d->follow_counters[n], 0, sizeof( int ) * d->units );
+			MemSet( d->follow_counters + (n * d->units), 0, sizeof( int ) * d->units );
 		}
+	return d;
+}
 
+int AddSomeDistribution( struct distribution *d, struct random_context *ctx )
+{
+	int n;
 	{
 		int prior = 0;
 		int64_t prior_value;
-		for( n = 0; n < 200000000; n ++ )
-		{
-			int32_t value = SRG_GetEntropy( ctx, bits, 0 );
+		for( n = 0; n < 2000000; n++ ) {
+			int32_t value = SRG_GetEntropy( ctx, d->bits, 0 );
 			//lprintf( "VALUE: %d  %x", value, value );
 			d->unit_counters[value]++;
-			if( bits < 17 )
+			if( d->bits < 16 )
 				if( prior )
-					d->follow_counters[prior_value][value]++;
+					d->follow_counters[prior_value * d->units + value]++;
 			prior = 1;
 			prior_value = value;
 		}
 	}
+	d->total += n;
+}
+
+void ShowSome( struct distribution *d ) {
+	int totUnit;
+	int maxUnit;
+	int n;
 
 	for( n = 0; n < d->units; n ++ )
 	{
 		lprintf( "%d = %d ", n, d->unit_counters[n] );
 	}
-	if( bits < 17 )
+	if( d->bits < 17 )
 	for( n = 0; n < d->units; n ++ )
 	{
 		int m;
 		for( m = 0; m < d->units; m++ )
-			lprintf( "%d,%d = %d ", n, m, d->follow_counters[n][m] );
+			lprintf( "%d,%d = %d ", n, m, d->follow_counters[n * d->units + m] );
 	}
-	return 0;
+	return d;
 }
+
+void mapData( struct distribution *d ) {
+
+	int *orderedCounters = NewArray( int, d->units );// = NewArray( int, units );
+	int *orderedDeltas = NewArray( int, d->units );
+	int minMidUnit = d->total;
+	int maxMidUnit = 0;
+	int minUnit = d->total;
+	int maxUnit = 0;
+	int midUnit;
+	int overAvg = 0;
+	int underAvg = 0;
+	int n;
+	uint64_t avg;
+
+	lprintf( "Average = total / units. %"PRId64, avg = d->total / d->units );
+
+	for( n = 0; n < d->units; n++ ) {
+		int m;
+		for( m = n; m > 0; m-- ) {
+			if( d->unit_counters[n] > orderedCounters[m - 1] )
+				break;
+		}
+		for( int i = n; i > m; i-- ) {
+			orderedCounters[i] = orderedCounters[i-1];
+			orderedDeltas[i] = orderedDeltas[i - 1];
+		}
+		orderedCounters[m] = d->unit_counters[n];
+		orderedDeltas[m] = n;
+
+		if( d->unit_counters[n] > avg )
+			overAvg++;
+		else
+			underAvg++;
+
+		if( minUnit > d->unit_counters[n] )
+			minUnit = d->unit_counters[n];
+		if( maxUnit < d->unit_counters[n] )
+			maxUnit = d->unit_counters[n];
+	}
+
+	lprintf( "Above/below Averge: %d %d   %d", underAvg, overAvg, underAvg * 10000ULL / overAvg );
+	midUnit = minUnit + (maxUnit - minUnit) / 2;
+	// 2*minUnit/2 + (maxUnit-minUnit)/2 .... ( 2*minUnit + (maxUnit-minUnit) ) / 2
+	midUnit = (minUnit + maxUnit) / 2;
+	lprintf( "min/max and this median... Min %d Max %d  Mid %d Ofs %d Span  %d", minUnit, maxUnit, midUnit, (int)(avg-midUnit), maxUnit -minUnit );
+	lprintf( "medians = %d %d", orderedCounters[d->units / 2], orderedCounters[d->units / 2 + 1] );
+
+
+	for( int i = 0; i < d->units; i++ ) {
+		int n;
+		int m;
+		n = i;
+		n = orderedDeltas[i];
+		lprintf( "number %3d  : %d %4.3g   %6.3g  %d   %d", n
+			, d->unit_counters[n]
+			, ((double)d->unit_counters[n] - (double)minUnit) / ((double)maxUnit - (double)minUnit)
+			, (d->unit_counters[n] - (double)(avg)) / (maxUnit - minUnit)
+			, (d->unit_counters[n] - (maxUnit + minUnit)/2) 
+			, (d->unit_counters[n] - avg)
+		);
+	}
+
+	Release( orderedCounters );
+	Release( orderedDeltas );
+
+}
+
+
+static void salt_generator( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
+	static struct tickBuffer {
+		uint32_t tick;
+		uint64_t cputick;
+	} tick;
+	(void)psv;
+	tick.cputick = GetCPUTick();
+	tick.tick = GetTickCount();
+	salt[0] = &tick;
+	salt_size[0] = sizeof( tick );
+}
+
+
+void f2(void)
+{
+	char message[] = "This is a test, This is Only a test.";
+	char output[sizeof( message )];
+	char output2[sizeof( message )];
+	{
+		struct byte_shuffle_key *key = BlockShuffle_ByteShuffler( SRG_CreateEntropy4( salt_generator, 0 ) );
+		BlockShuffle_SubBytes( key, message, output, sizeof( message ) );
+		BlockShuffle_BusBytes( key, output, output2, sizeof( message ) );
+
+		printf( "Fun:%s\n", output2 );
+	}
+
+	{
+		struct block_shuffle_key *key = BlockShuffle_CreateKey( SRG_CreateEntropy4( salt_generator, 0 ), sizeof( message ), 1 );
+
+		BlockShuffle_SetData( key, output, 0, sizeof( message ), message, 0 );
+		LogBinary( output, sizeof( output ) );
+		printf( "SD Fun:%s %d\n", output );
+		BlockShuffle_GetData( key, output2, 0, sizeof( message ), output, 0 );
+		printf( "Fun:%s\n", output2 );
+	}
+
+}
+
 
 SaneWinMain( argc, argv )
 {
+	f2();
 	uint8_t buffer[100];
 	int offset;
 	//struct random_context *entropy = SRG_CreateEntropy2( getsalt, 0 );
@@ -89,7 +213,11 @@ SaneWinMain( argc, argv )
 		: SRG_CreateEntropy4( getsalt, 0 )
 		: SRG_CreateEntropy4( getsalt, 0 )
 		;
-		int n;
+	int n;
+	if( argc > 2 ) {
+		lprintf( "Disable external seed." );
+		useSeed = 0;
+	}
 	uint32_t opts = 0;
 	int start = timeGetTime();
 	int end = 0;
@@ -97,7 +225,22 @@ SaneWinMain( argc, argv )
 	SetSyslogOptions( &opts );
 	SystemLogTime( 0 );
 	start = timeGetTime();
-	CalculateDistribution( entropy, 2 );
+
+
+	struct distribution *d = GetDistribution( 4 );
+	AddSomeDistribution( d, entropy );
+	mapData( d );
+
+	struct distribution *d2 = GetDistribution( 16 );
+	for( int i = 0; i < 100; i++ )
+		AddSomeDistribution( d2, entropy );
+	mapData( d2 );
+
+	for( int i = 0; i < 900; i++ )
+		AddSomeDistribution( d2, entropy );
+	mapData( d2 );
+
+#if 0
 	end = timeGetTime();
 	lprintf( "2bits 200000000 in %d ", end - start );
 	start = timeGetTime();
@@ -145,7 +288,7 @@ SaneWinMain( argc, argv )
 		//offset += 1;
 		printf( "Flip a coin: %d %s\n", bit, bit?"heads":"tails" );
 	}
-
+#endif
 
 	return 0;
 }
