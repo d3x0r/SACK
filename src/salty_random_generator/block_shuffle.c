@@ -30,7 +30,7 @@ static int sort( int *nHolders, PHOLDER holders, int nTree, int number, int r )
 		tree->number = number;
 		tree->r = r;
 		tree->pLess = tree->pMore = -1;
-		return tree - holders;
+		return (int)(tree - holders);
 	}
 	else
 	{
@@ -118,9 +118,9 @@ struct block_shuffle_key *BlockShuffle_CreateKey( struct random_context *ctx, si
 		for( n = 0; n < width; n++ )
 			for( m = 0; m < height; m++ )
 			{
-				key->map[m*width+n] = m*width+n;
+				key->map[m*width+n] = (int)(m*width+n);
 			}
-		Shuffle( key, key->map, width * height );
+		Shuffle( key, key->map, (int)(width * height) );
 	}
 	return key;
 }
@@ -134,7 +134,7 @@ void BlockShuffle_GetDataBlock( struct block_shuffle_key *key
 		for( iy = 0; iy < (h); iy++ ) {
 			int km = key->map[ix%key->width + (iy%key->height) * key->width];
 			int kmx = km % key->width;
-			int kmy = km / key->width;
+			int kmy = (int)(km / key->width);
 			((uint8_t*)( ( (uintptr_t)output ) + (ix + ofs_x ) + stride * ( iy + ofs_y ) ))[0] =
 				((uint8_t*)( ( (uintptr_t)encrypted ) + (x+kmx)+(y*kmy)*encrypted_stride ))[0];
 		}
@@ -146,7 +146,7 @@ void BlockShuffle_GetData( struct block_shuffle_key *key
 	, uint8_t* encrypted, size_t x, size_t w
 	, uint8_t* output, size_t ofs_x )
 {
-	BlockShuffle_GetDataBlock( key, encrypted, x, 0, w, 1, 0, output, ofs_x, 0, 0 );
+	BlockShuffle_GetDataBlock( key, encrypted, (int)x, 0, w, 1, 0, output, (int)ofs_x, 0, 0 );
 }
 
 void BlockShuffle_SetDataBlock( struct block_shuffle_key *key
@@ -161,7 +161,7 @@ void BlockShuffle_SetDataBlock( struct block_shuffle_key *key
 		{
 			int km = key->map[ix%key->width + (iy%key->height) * key->width];
 			int kmx = km % key->width;
-			int kmy = km / key->width;
+			int kmy = (int)(km / key->width);
 			((uint8_t*)( ( (uintptr_t)encrypted ) + (x + kmx) + (y+kmy)*output_stride  ))[0]
 				= ((uint8_t*)( ( (uintptr_t)input ) + (ix + ofs_x ) + input_stride * ( iy + ofs_y ) ))[0];
 		}
@@ -400,8 +400,14 @@ void BlockShuffle_SubBytes( struct byte_shuffle_key *key
 	for( n = 0; n < byteCount; n++, bytes_input++, bytes_output++ ) {
 		bytes_output[0] = map[bytes_input[0]];
 	}
-
 }
+
+void BlockShuffle_BusByte( struct byte_shuffle_key *key
+	, uint8_t *bytes_input, uint8_t *bytes_output ) {
+	bytes_output[0] = key->dmap[bytes_input[0]];
+}
+
+
 void BlockShuffle_BusBytes( struct byte_shuffle_key *key
 	, uint8_t *bytes_input, uint8_t *bytes_output
 	, size_t byteCount ) 

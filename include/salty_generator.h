@@ -119,6 +119,37 @@ SRG_EXPORT TEXTCHAR * SRG_EncryptData( CPOINTER buffer, size_t buflen );
 // calls EncrytpData with buffer and string length + 1 to include the null for decryption.
 SRG_EXPORT TEXTCHAR * SRG_EncryptString( CTEXTSTR buffer );
 
+// Simplified encyprtion wrapper around OpenSSL/LibreSSL EVP AES-256-CBC, uses key as IV also.
+// result is length; address of pointer to cyphertext is filled in with an Allocated buffer.
+// Limitation of 4G-byte encryption.
+// automaically adds padding as required.
+SRG_EXPORT int SRG_AES_decrypt( uint8_t *ciphertext, int ciphertext_len, uint8_t *key, uint8_t **plaintext );
+
+// Simplified encyprtion wrapper around OpenSSL/LibreSSL EVP AES-256-CBC, uses key as IV also.
+// result is length; address of pointer to cyphertext is filled in with an Allocated buffer.
+// Limitation of 4G-byte encryption.
+// automaically adds padding as required.
+SRG_EXPORT size_t SRG_AES_encrypt( uint8_t *plaintext, size_t plaintext_len, uint8_t *key, uint8_t **ciphertext );
+
+// xor-sub-wipe-sub encryption.  
+// encrypts objBuf of objBufLen using (keyBuf+tick)
+// pointers refrenced passed to outBuf and outBufLen are filled in with the result
+// Will automatically add 4 bytes and pad up to 8
+SRG_EXPORT void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
+	, uint64_t tick, uint8_t *keyBuf, size_t keyBufLen
+	, uint8_t **outBuf, size_t *outBufLen
+);
+
+// xor-sub-wipe-sub decryption.  
+// decrypts objBuf of objBufLen using (keyBuf+tick)
+// pointers refrenced passed to outBuf and outBufLen are filled in with the result
+// 
+
+SRG_EXPORT void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
+	, uint64_t tick, uint8_t *keyBuf, size_t keyBufLen
+	, uint8_t **outBuf, size_t *outBufLen
+);
+
 
 //--------------------------------------------------------------
 // block_shuffle.c
@@ -161,18 +192,22 @@ SRG_EXPORT TEXTCHAR * SRG_EncryptString( CTEXTSTR buffer );
 // swap width (or height) is 1
 SRG_EXPORT struct block_shuffle_key *BlockShuffle_CreateKey( struct random_context *ctx, size_t width, size_t height );
 
+// do substitution within a range of data
 SRG_EXPORT void BlockShuffle_SetDataBlock( struct block_shuffle_key *key
 	, uint8_t* encrypted, int x, int y, size_t w, size_t h, size_t output_stride
 	, uint8_t* input, int ofs_x, int ofs_y, size_t input_stride );
 
+// do linear substitution over a range
 SRG_EXPORT void BlockShuffle_SetData( struct block_shuffle_key *key
 	, uint8_t* encrypted, int x, size_t w
 	, uint8_t* input, int ofs_x );
 
+// reverse subsittuion within a range of data
 SRG_EXPORT void BlockShuffle_GetDataBlock( struct block_shuffle_key *key
 	, uint8_t* encrypted, int x, int y, size_t w, size_t h, size_t encrypted_stride
 	, uint8_t* output, int ofs_x, int ofs_y, size_t stride );
 
+// reverse linear substituion over a range.
 SRG_EXPORT void BlockShuffle_GetData( struct block_shuffle_key *key
 	, uint8_t* encrypted, size_t x, size_t w
 	, uint8_t* output, size_t ofs_x );
@@ -194,6 +229,7 @@ void BlockShuffle_DropByteShuffler( struct byte_shuffle_key *key );
 // SubBytes swaps A->B
 SRG_EXPORT void BlockShuffle_SubBytes( struct byte_shuffle_key *key
 	, uint8_t *bytes, uint8_t *out_bytes, size_t byteCount );
+// swap a single byte; can be in-place.
 SRG_EXPORT void BlockShuffle_SubByte( struct byte_shuffle_key *key
 	, uint8_t *bytes, uint8_t *out_bytes );
 
@@ -203,3 +239,6 @@ SRG_EXPORT void BlockShuffle_SubByte( struct byte_shuffle_key *key
 // BusBytes swaps B->A
 SRG_EXPORT void BlockShuffle_BusBytes( struct byte_shuffle_key *key, uint8_t *bytes
 	, uint8_t *out_bytes, size_t byteCount );
+// swap a single byte; can be in-place.
+SRG_EXPORT void BlockShuffle_BusByte( struct byte_shuffle_key *key
+	, uint8_t *bytes, uint8_t *out_bytes );

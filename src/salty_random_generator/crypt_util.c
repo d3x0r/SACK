@@ -149,7 +149,7 @@ TEXTSTR SRG_EncryptString( CTEXTSTR buffer )
 	return SRG_EncryptData( (uint8_t*)buffer, StrLen( buffer ) + 1 );
 }
 
-
+#ifndef NO_SSL
 #  include <openssl/evp.h>
 #  include <openssl/err.h>
 
@@ -159,7 +159,7 @@ static void handleErrors( void )
 	abort();
 }
 
-static size_t encrypt( uint8_t *plaintext, size_t plaintext_len, uint8_t *key, uint8_t **ciphertext )
+size_t SRG_AES_encrypt( uint8_t *plaintext, size_t plaintext_len, uint8_t *key, uint8_t **ciphertext )
 {
 	EVP_CIPHER_CTX *ctx;
 
@@ -179,7 +179,7 @@ static size_t encrypt( uint8_t *plaintext, size_t plaintext_len, uint8_t *key, u
 	EVP_CIPHER_CTX_set_padding( ctx, 0 );
 	int blockSize = EVP_CIPHER_CTX_block_size( ctx );
 	if( blockSize < 16 ) DebugBreak();
-	int outSize = (plaintext_len + sizeof( uint32_t ) + (blockSize - 1));
+	int outSize = (int)(plaintext_len + sizeof( uint32_t ) + (blockSize - 1));
 	uint8_t *block = NewArray( uint8_t, blockSize );
 	outSize -= outSize % blockSize;
 	ciphertext[0] = NewArray( uint8_t, outSize );
@@ -188,7 +188,7 @@ static size_t encrypt( uint8_t *plaintext, size_t plaintext_len, uint8_t *key, u
 	int remaining = blockSize - sizeof( uint32_t );
 	if( remaining > plaintext_len ) {
 		memcpy( block + sizeof( uint32_t ), plaintext, plaintext_len );
-		remaining = plaintext_len + sizeof( uint32_t );
+		remaining = (int)(plaintext_len + sizeof( uint32_t ));
 		plaintext_len = 0;
 	}
 	else {
@@ -209,7 +209,7 @@ static size_t encrypt( uint8_t *plaintext, size_t plaintext_len, uint8_t *key, u
 			int tailLen = plaintext_len % blockSize;
 			if( 1 != EVP_EncryptUpdate( ctx, ciphertext[0] + ciphertext_len, &len
 				, plaintext + (blockSize - sizeof( uint32_t ))
-				, plaintext_len - tailLen ) )
+				, (int)(plaintext_len - tailLen) ) )
 				handleErrors();
 			ciphertext_len += len;
 			memcpy( block
@@ -224,7 +224,7 @@ static size_t encrypt( uint8_t *plaintext, size_t plaintext_len, uint8_t *key, u
 		else {
 			if( 1 != EVP_EncryptUpdate( ctx, ciphertext[0] + ciphertext_len, &len
 				, plaintext + (blockSize - sizeof( uint32_t ))
-				, plaintext_len ) )
+				, (int)plaintext_len ) )
 				handleErrors();
 		}
 		ciphertext_len += len;
@@ -243,7 +243,7 @@ static size_t encrypt( uint8_t *plaintext, size_t plaintext_len, uint8_t *key, u
 	return ciphertext_len;
 }
 
-static int decrypt( uint8_t *ciphertext, int ciphertext_len, uint8_t *key, uint8_t **plaintext )
+int SRG_AES_decrypt( uint8_t *ciphertext, int ciphertext_len, uint8_t *key, uint8_t **plaintext )
 {
 	EVP_CIPHER_CTX *ctx;
 
@@ -311,6 +311,7 @@ static int decrypt( uint8_t *ciphertext, int ciphertext_len, uint8_t *key, uint8
 
 	return plaintext_len;
 }
+#endif
 
 
 // bit size of masking hash.
@@ -351,15 +352,10 @@ static void encryptBlock( struct byte_shuffle_key *bytKey
 
 }
 
-static void encryptData( uint8_t *objBuf, size_t objBufLen
+void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
 	, uint64_t tick, uint8_t *keyBuf, size_t keyBufLen
 	, uint8_t **outBuf, size_t *outBufLen
 ) {
-	//uint8_t *tmpBuf;
-	//size_t tmpBufLen = encrypt( objBuf, objBufLen, keyBuf, &tmpBuf );
-	uint8_t *curBuf_out;
-	uint8_t *curBuf_in;
-
 	struct random_context *signEntropy = (struct random_context *)DequeLink( &crypt_local.plqCrypters );
 	if( !signEntropy )
 		signEntropy = SRG_CreateEntropy4( NULL, (uintptr_t)0 );
@@ -369,12 +365,7 @@ static void encryptData( uint8_t *objBuf, size_t objBufLen
 	static uint8_t bufKey[RNGHASH /8];
 	SRG_GetEntropyBuffer( signEntropy, (uint32_t*)bufKey, RNGHASH );
 	struct byte_shuffle_key *bytKey = BlockShuffle_ByteShuffler( signEntropy );
-	//struct block_shuffle_key *blkKey = BlockShuffle_CreateKey( signEntropy, objBufLen, 1 );
 
-	size_t n, workLen;
-	uint8_t p = 0;
-	//outBuf[0] = NewArray( uint8_t, (*outBufLen) = tmpBufLen );
-	//curBuf = tmpBuf;
 	(*outBufLen) = (sizeof( uint32_t ))
 		+ objBufLen
 		+ (((objBufLen + sizeof( uint32_t )) & 0x7)
@@ -385,7 +376,7 @@ static void encryptData( uint8_t *objBuf, size_t objBufLen
 	outBuf[0] = (uint8_t*)HeapAllocate( NULL, (*outBufLen) );
 	((uint64_t*)(outBuf[0] + (*outBufLen) - 8))[0] = 0; // clear any padding bits.
 	memcpy( outBuf[0], objBuf, objBufLen );
-	((uint32_t*)(outBuf[0] + (*outBufLen) - 4))[0] = objBufLen;
+	((uint32_t*)(outBuf[0] + (*outBufLen) - 4))[0] = (uint32_t)objBufLen;
 
 
 	for( size_t b = 0; b < (*outBufLen); b += 4096 ) {
@@ -397,9 +388,7 @@ static void encryptData( uint8_t *objBuf, size_t objBufLen
 	}
 
 	BlockShuffle_DropByteShuffler( bytKey );
-	//Release( tmpBuf );
 	EnqueLink( &crypt_local.plqCrypters, signEntropy );
-	
 }
 
 static void decryptBlock( struct byte_shuffle_key *bytKey
@@ -419,7 +408,7 @@ static void decryptBlock( struct byte_shuffle_key *bytKey
 	curBuf[0] = curBuf[0] ^ 0xAA;
 
 	curBuf = output + len - 1;
-	for( n = len - 1; n > 0; n--, curBuf-- ) {
+	for( n = (int)(len - 1); n > 0; n--, curBuf-- ) {
 		curBuf[0] = curBuf[0] ^ (n ? curBuf[-1] : 0);
 	}
 	curBuf[0] = curBuf[0] ^ 0x55;
@@ -441,15 +430,10 @@ static void decryptBlock( struct byte_shuffle_key *bytKey
 
 }
 
-static void decryptData( uint8_t *objBuf, size_t objBufLen
+void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 	, uint64_t tick, uint8_t *keyBuf, size_t keyBufLen
 	, uint8_t **outBuf, size_t *outBufLen
 ) {
-	//uint8_t *tmpBuf;
-	//size_t tmpBufLen = decrypt( objBuf, objBufLen, keyBuf, &tmpBuf );
-	uint8_t *curBuf;
-	uint8_t* curBuf_in;
-	uint8_t* curBuf_out;
 	
 	struct random_context *signEntropy = (struct random_context *)DequeLink( &crypt_local.plqCrypters );
 	if( !signEntropy )
@@ -474,7 +458,6 @@ static void decryptData( uint8_t *objBuf, size_t objBufLen
 
 	BlockShuffle_DropByteShuffler( bytKey );
 
-	//Release( tmpBuf );
 	EnqueLink( &crypt_local.plqCrypters, signEntropy );
 }
 
@@ -540,11 +523,11 @@ PRELOAD( CryptTestBuiltIn ) {
 	for( int p = 0; p < 10; p++ ) {
 		printf( "TESTDATA  %d\n", p );
 		logBinary( (uint8_t*)message, sizeof( message ) );
-		encryptData( (uint8_t*)message, sizeof( message ) - p, 1234, key, sizeof( key ), &output, &outlen );
+		SRG_XSWS_encryptData( (uint8_t*)message, sizeof( message ) - p, 1234, key, sizeof( key ), &output, &outlen );
 
 		puts( "BINARY" );
 		logBinary( output, outlen );
-		decryptData( (uint8_t*)output, outlen, 1234, key, sizeof( key ), &orig, &origlen );
+		SRG_XSWS_decryptData( (uint8_t*)output, outlen, 1234, key, sizeof( key ), &orig, &origlen );
 
 		puts( "ORIG" );
 		logBinary( orig, origlen );
@@ -552,7 +535,7 @@ PRELOAD( CryptTestBuiltIn ) {
 		Release( orig );
 	}
 
-	encryptData( (uint8_t*)message2, sizeof( message2 ), 1234, key, sizeof( key ), &output, &outlen );
+	SRG_XSWS_encryptData( (uint8_t*)message2, sizeof( message2 ), 1234, key, sizeof( key ), &output, &outlen );
 	puts( "BINARY - 1 bit change input" );
 	logBinary( output, outlen );
 
@@ -565,7 +548,7 @@ PRELOAD( CryptTestBuiltIn ) {
 	int i;
 	start = timeGetTime();
 	for( i = 0; i < 900000; i++ ) {
-		encryptData( (uint8_t*)message, sizeof( message ), 1234, key, sizeof( key ), &output, &outlen );
+		SRG_XSWS_encryptData( (uint8_t*)message, sizeof( message ), 1234, key, sizeof( key ), &output, &outlen );
 		Release( output );
 	}
 	end = timeGetTime();
@@ -576,7 +559,7 @@ PRELOAD( CryptTestBuiltIn ) {
 
 	start = timeGetTime();
 	for( i = 0; i < 300000; i++ ) {
-		encryptData( (uint8_t*)messageBig, sizeof( messageBig ), 1234, key, sizeof( key ), &output, &outlen );
+		SRG_XSWS_encryptData( (uint8_t*)messageBig, sizeof( messageBig ), 1234, key, sizeof( key ), &output, &outlen );
 		Release( output );
 	}
 	end = timeGetTime();
@@ -587,7 +570,7 @@ PRELOAD( CryptTestBuiltIn ) {
 
 	start = timeGetTime();
 	for( i = 0; i < 300; i++ ) {
-		encryptData( (uint8_t*)messageMega, sizeof( messageMega ), 1234, key, sizeof( key ), &output, &outlen );
+		SRG_XSWS_encryptData( (uint8_t*)messageMega, sizeof( messageMega ), 1234, key, sizeof( key ), &output, &outlen );
 		Release( output );
 	}
 	end = timeGetTime();
@@ -602,7 +585,7 @@ PRELOAD( CryptTestBuiltIn ) {
 	// encrypt and decrypt are symmetric.
 	start = timeGetTime();
 	for( i = 0; i < 300000; i++ ) {
-		decryptData( (uint8_t*)message, sizeof( message ), 1234, key, sizeof( key ), &output, &outlen );
+		SRG_XSWS_decryptData( (uint8_t*)message, sizeof( message ), 1234, key, sizeof( key ), &output, &outlen );
 		Release( output );
 	}
 	end = timeGetTime();
