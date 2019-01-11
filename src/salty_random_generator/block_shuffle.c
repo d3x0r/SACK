@@ -228,13 +228,15 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 	}
 
 	int t[2] = { 0, 0 };
+	SRG_GetBit_( lrStart, ctx );
 	for( n = 0; (t[0] < 43 || t[1] < 43 ) && n < 86; n++ ) {
 		int bit;
 		int c;
 		c = 1;
-		while( SRG_GetBit_( bit, ctx ), !bit ) {
+		while( c < (5- lrStart) && ( SRG_GetBit_( bit, ctx ), !bit ) ) {
 			c++;
 		}
+		lrStart = !lrStart;
 		stacks[n] = c;
 		t[n&1] += c;
 	}
