@@ -1098,7 +1098,7 @@ void sack_vfs_os_unload_volume( struct volume * vol ) {
 		return;
 	}
 	sack_vfs_os_flush_volume( vol );
-	free( (char*)vol->volname );
+	strdup_free( (char*)vol->volname );
 	DeleteListEx( &vol->files DBG_SRC );
 	sack_fclose( vol->file );
 	//if( !vol->external_memory )	CloseSpace( vol->diskReal );
@@ -1958,6 +1958,7 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 		struct sack_vfs_file *pFile = sack_vfs_os_openfile( file->vol, filename );
 		pFile->sealant = (uint8_t*)sealer;
 		pFile->sealantLen = 32;
+		if( cdata ) Release( cdata );
 		return sack_vfs_os_write( pFile, data, length );
 	}
 #ifdef DEBUG_FILE_OPS
@@ -2035,6 +2036,7 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 	if( updated ) {
 		SETFLAG( file->vol->dirty, file->cache ); // directory cache block (locked)
 	}
+	if( cdata ) Release( cdata );
 	file->vol->lock = 0;
 	return written;
 }

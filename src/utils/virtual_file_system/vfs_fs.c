@@ -750,7 +750,7 @@ void sack_vfs_fs_unload_volume( struct volume * vol ) {
 		vol->closed = TRUE;
 		return;
 	}
-	free( (char*)vol->volname );
+	strdup_free( (char*)vol->volname );
 	DeleteListEx( &vol->files DBG_SRC );
 	sack_fclose( vol->file );
 	//if( !vol->external_memory )	CloseSpace( vol->diskReal );
