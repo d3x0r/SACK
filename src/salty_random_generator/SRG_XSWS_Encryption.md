@@ -31,9 +31,10 @@ byte; unused padding bytes will be set to 0.
 Summary; again
 
    - Simple xor-chains a 256 bit mask computed from the key using KangarooTwelve(K12) over the data.
-   - swap all bytes for some other byte through a reverseable map shuffled using the input key as the seed.
-   - xor 0x55 into first byte, store that result, use that result to xor on the next byte, repeatedly.
-   - swap all bytes for some other byte
+   - swap all bytes for some other byte through a reversible map shuffled using the input key as the seed.
+   - xor 0x55 into first byte, store that result
+       - swap byte for another byte
+       - use that result to xor on the next byte, repeatedly.
    - xor 0xAA into last byte, store that result, use that result to xor on the previous byte, repeatedly.
    - swap all bytes for some other byte
  
@@ -126,10 +127,11 @@ given     a b c d   e f g h
        ^              5 A B
        ^                5 A
        ^                  5 
+
+ xboxSub     - xbox -           xor'd sum then byte swapped through xbox
          
        =  A'B'C'D'  E'F'G'H'    above columns xor'd together
 
- xboxSub     - xbox -           xor'd text swapped through xbox
 
 	   
        ^  B'C'D'E   F'G'H'0
@@ -163,8 +165,9 @@ given     a b c d   e f g h
 	   
 	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
 
-	for( n = 0, p = 0x55; n < outlen; n++, output++ )  p = output[0] = output[0] ^ p;
-	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
+	for( n = 0, p = 0x55; n < outlen; n++, output++ ) 
+		p = output[0] = BlockShuffle_SubByte_( output[0] ^ p );
+
 	output--; // back up 1 byte.
 	for( n = 0, p = 0xAA; n < outlen; n++, output-- )  p = output[0] = output[0] ^ p;
 	   
@@ -181,11 +184,9 @@ for the swap instead. (xor-wipe is inversed too)
 
 	uint8_t *curBuf = output;
 	for( n = 0; n < (len - 1); n++, curBuf++ ) {
-		curBuf[0] = curBuf[0] ^ curBuf[1];
+		curBuf[0] = BlockShuffle_BusByte_( curBuf[0] ) ^ curBuf[1];
 	}
-	curBuf[0] = curBuf[0] ^ 0xAA;
-	
-	BlockShuffle_BusBytes_( bytKey, output, output, len );
+	curBuf[0] = curBuf[0] ^ 0xAA;	
 
 	curBuf = output + len - 1;
 	for( n = (len - 1); n > 0; n--, curBuf-- ) {
@@ -475,7 +476,7 @@ of 2^112 different outcomes.  Ideal permutations of 256 cards is factorial(256).
 ```
 
 
-### Example COnfigurations
+### Example Configurations
 
 
 ```
@@ -652,6 +653,7 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 	}
 
 #if 0
+    /* original shuffler */
 	{
 		for( n = 0; n < 256; n++ ) {
 			int m = SRG_GetEntropy( ctx, 8, 0 );
