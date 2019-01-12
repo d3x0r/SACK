@@ -171,7 +171,8 @@ struct halfDeck {
 };
 
 struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx ) {
-	struct byte_shuffle_key *key = New( struct byte_shuffle_key );
+	//struct byte_shuffle_key *key = New( struct byte_shuffle_key );
+	struct byte_shuffle_key *key = ( struct byte_shuffle_key *)HeapAllocateAligned( NULL, sizeof( struct byte_shuffle_key ), 256 );
 	int n;
 	int srcMap;
 	for( n = 0; n < 256; n++ )
