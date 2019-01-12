@@ -1801,6 +1801,8 @@ struct sack_vfs_file * CPROC sack_vfs_os_openfile( struct volume *vol, const cha
 		}
 		file->filename = StrDup( filename );
 	}
+	file->readKey = NULL;
+	file->readKeyLen = 0;
 	file->vol = vol;
 	file->fpi = 0;
 	file->delete_on_close = 0;
@@ -1934,6 +1936,18 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
 	LOGICAL updated = FALSE;
+	uint8_t *cdata;
+	size_t cdataLen;
+	if( file->readKey ) {
+		SRG_XSWS_encryptData( (uint8_t*)data, length, file->entry->tick^ file->dirent_key.tick
+			, file->readKey, file->readKeyLen
+			, &cdata, &cdataLen );
+		data = (const char *)cdata;
+		length = cdataLen;
+	}
+	else {
+		cdata = NULL;
+	}
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 	if( (file->entry->name_offset^file->dirent_key.name_offset) & DIRENT_NAME_OFFSET_FLAG_SEALANT ) {
 		char filename[64];
@@ -2062,6 +2076,9 @@ static enum sack_vfs_os_seal_states ValidateSeal( struct sack_vfs_file *file, ch
 size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t length ) {
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
+	if( (file->entry->name_offset ^ file->dirent_key.name_offset) & DIRENT_NAME_OFFSET_FLAG_READ_KEYED ) {
+		if( !file->readKey ) return 0;
+	}
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 	if( ( file->entry->filesize  ^ file->dirent_key.filesize ) < ( file->fpi + length ) ) {
 		if( ( file->entry->filesize  ^ file->dirent_key.filesize ) < file->fpi )
@@ -2106,6 +2123,22 @@ size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t l
 			length = 0;
 		}
 	}
+
+	if( file->readKey
+	   && ( file->fpi == ( file->entry->filesize ^ file->dirent_key.filesize ) )
+	   && ( (file->entry->name_offset ^ file->dirent_key.name_offset) 
+	      & DIRENT_NAME_OFFSET_FLAG_READ_KEYED) )
+	{
+		uint8_t *outbuf;
+		size_t outlen;
+		SRG_XSWS_decryptData( (uint8_t*)data, written, (file->entry->tick ^ file->dirent_key.tick )
+		                    , file->readKey, file->readKeyLen
+		                    , &outbuf, &outlen );
+		memcpy( data, outbuf, outlen );
+		Release( outbuf );
+		written = outlen;
+	}
+
 	if( file->sealant
 		&& (void*)file->sealant != (void*)data
 		&& length == ( file->entry->filesize ^ file->dirent_key.filesize ) ) {
@@ -2514,6 +2547,24 @@ uintptr_t CPROC sack_vfs_file_ioctl( uintptr_t psvInstance, uintptr_t opCode, va
 			// set the sealant length in the name offset.
 			file->entry->name_offset = (((file->entry->name_offset ^ file->dirent_key.name_offset)
 				| ((len >> 2) << 17)) ^ file->dirent_key.name_offset);
+		}
+	}
+	break;
+	case SOSFSFIO_PROVIDE_READKEY:
+	{
+		const char *sealant = va_arg( args, const char * );
+		size_t sealantLen = va_arg( args, size_t );
+		struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
+		{
+			size_t len;
+			if( file->readKey )
+				Release( file->readKey );
+			file->readKey = (uint8_t*)DecodeBase64Ex( sealant, sealantLen, &len, (const char*)1 );
+			file->readKeyLen = (uint16_t)len;
+
+			// set the sealant length in the name offset.
+			file->entry->name_offset = (((file->entry->name_offset ^ file->dirent_key.name_offset)
+				| DIRENT_NAME_OFFSET_FLAG_READ_KEYED) ^ file->dirent_key.name_offset);
 		}
 	}
 	break;

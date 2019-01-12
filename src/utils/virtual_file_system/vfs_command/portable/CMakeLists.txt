@@ -79,8 +79,6 @@ endif( WATCOM )
 
 set( SOURCES_ROOT ${SACK_BASE} )
 
-SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES} ${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c PROPERTIES COMPILE_FLAGS ${K12_INCLUDES} )
-
 if( WIN32 )
 set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
 endif( WIN32 )
@@ -103,7 +101,7 @@ set(BASE_SOURCES
     ${SOURCES_ROOT}/src/timerlib/timers.c
     #${SOURCES_ROOT}/src/idlelib/idle.c
     ${SOURCES_ROOT}/src/procreglib/names.c
-    #${SOURCES_ROOT}/src/configlib/configscript.c
+    ${SOURCES_ROOT}/src/configlib/configscript.c
     ${SOURCES_ROOT}/src/sysloglib/syslog.c
     ${SOURCES_ROOT}/src/systemlib/system.c
     ${SOURCES_ROOT}/src/systemlib/spawntask.c
@@ -121,10 +119,18 @@ set(BASE_SOURCES
     ${SHA3_SOURCES}
     ${K12_SOURCES}
     #${RANDOM_SOURCES}
-    ${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c
+        ${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c
+        ${SOURCES_ROOT}/src/salty_random_generator/crypt_util.c
+        ${SOURCES_ROOT}/src/salty_random_generator/block_shuffle.c
     #${SNPRINTF_SOURCES}
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c
 )
+SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES}
+	${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c 
+	${SOURCES_ROOT}/src/salty_random_generator/crypt_util.c
+	${SOURCES_ROOT}/src/salty_random_generator/block_shuffle.c
+	PROPERTIES COMPILE_FLAGS "${K12_INCLUDES} -DNO_SSL" )
+
 
 ####################################################################
 #####

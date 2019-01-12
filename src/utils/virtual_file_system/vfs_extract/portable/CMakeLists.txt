@@ -69,7 +69,6 @@ IF( NOT SOURCES_ROOT )
 	set( SOURCES_ROOT ../../../../.. )
 ENDIF( NOT SOURCES_ROOT )
 
-SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES} ${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c PROPERTIES COMPILE_FLAGS ${K12_INCLUDES} )
 
 if( WIN32 )
   set( NET_SOURCES     ${SOURCES_ROOT}/src/netlib/net_winsock2.c  )
@@ -108,9 +107,17 @@ set(BASE_SOURCES
     ${K12_SOURCES}
     #${RANDOM_SOURCES}
 	${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c
+        ${SOURCES_ROOT}/src/salty_random_generator/crypt_util.c
+        ${SOURCES_ROOT}/src/salty_random_generator/block_shuffle.c
     ${SNPRINTF_SOURCES}
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c 
 )
+
+SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES}
+	${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c 
+	${SOURCES_ROOT}/src/salty_random_generator/crypt_util.c
+	${SOURCES_ROOT}/src/salty_random_generator/block_shuffle.c
+	PROPERTIES COMPILE_FLAGS "${K12_INCLUDES} -DNO_SSL" )
 
 set( FLAGS "ALT_VFS_NAME;__NO_INTERFACE_SUPPORT__;__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 

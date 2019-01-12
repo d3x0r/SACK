@@ -89,12 +89,13 @@ enum block_cache_entries
 
 // could effecitvely be fewer than this
 // 82 dirents * 512 byte names = 40000
-#define DIRENT_NAME_OFFSET_OFFSET        0x0001FFFF
+#define DIRENT_NAME_OFFSET_OFFSET             0x0001FFFF
 // (sealant length / 4)  (mulitply by 4 to get real length)
-#define DIRENT_NAME_OFFSET_FLAG_SEALANT  0x003E0000
+#define DIRENT_NAME_OFFSET_FLAG_SEALANT       0x003E0000
 #define DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT 17
-#define DIRENT_NAME_OFFSET_FLAG_OWNED    0x00400000
-#define DIRENT_NAME_OFFSET_UNUSED        0xFF800000
+#define DIRENT_NAME_OFFSET_FLAG_OWNED         0x00400000
+#define DIRENT_NAME_OFFSET_FLAG_READ_KEYED    0x00800000
+#define DIRENT_NAME_OFFSET_UNUSED             0xFF000000
 
 PREFIX_PACKED struct directory_entry
 {
@@ -209,6 +210,8 @@ struct sack_vfs_file
 	enum block_cache_entries cache;
 	uint8_t *seal;
 	uint8_t *sealant;
+	uint8_t *readKey;
+	uint16_t readKeyLen;
 	uint8_t sealantLen;
 	uint8_t sealed; // boolean, on read, validates seal.  Defaults to FALSE.
 	char *filename;

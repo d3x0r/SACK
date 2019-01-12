@@ -71,7 +71,6 @@ set( project sack_vfs_runner_sfx )
 
 set( SOURCES_ROOT ../../../../.. )
 
-SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES} ${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c PROPERTIES COMPILE_FLAGS ${K12_INCLUDES} )
 if( WIN32 )
   set( NET_SOURCES     ${SOURCES_ROOT}/src/netlib/net_winsock2.c  )
   set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/src/systemlib/oswin.c )
@@ -84,7 +83,7 @@ set(BASE_SOURCES
     ${SOURCES_ROOT}/src/timerlib/timers.c
     #${SOURCES_ROOT}/src/idlelib/idle.c
     ${SOURCES_ROOT}/src/procreglib/names.c
-    #${SOURCES_ROOT}/src/configlib/configscript.c
+    ${SOURCES_ROOT}/src/configlib/configscript.c
     ${SOURCES_ROOT}/src/sysloglib/syslog.c
     ${SOURCES_ROOT}/src/systemlib/system.c
     ${SOURCES_ROOT}/src/systemlib/spawntask.c
@@ -103,9 +102,17 @@ set(BASE_SOURCES
     ${K12_SOURCES}
     #${RANDOM_SOURCES}
 	${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c
+      ${SOURCES_ROOT}/src/salty_random_generator/crypt_util.c
+      ${SOURCES_ROOT}/src/salty_random_generator/block_shuffle.c
     ${SNPRINTF_SOURCES}
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c 
 )
+
+SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES}
+	${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c 
+	${SOURCES_ROOT}/src/salty_random_generator/crypt_util.c
+	${SOURCES_ROOT}/src/salty_random_generator/block_shuffle.c
+	PROPERTIES COMPILE_FLAGS "${K12_INCLUDES} -DNO_SSL" )
 
 sack_add_executable(${project} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "ALT_VFS_NAME;STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
