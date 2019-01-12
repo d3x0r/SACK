@@ -5,7 +5,7 @@ This is an encryption algorithm called Xor-Sub-Wipe-Sub (XSWS).
  - Sub - substituted masked bytes for some other random byte
  - Wipe - 
      - xor each byte with the previous byte L->R
-	 - Sub each byte with some other random byte.
+     - Sub each byte with some other random byte.
      - xor each byte with the previous byte R->L
  - Sub - substitute each byte with other random byte.
 
@@ -31,12 +31,11 @@ byte; unused padding bytes will be set to 0.
 Summary; again
 
    - Simple xor-chains a 256 bit mask computed from the key using KangarooTwelve(K12) over the data.
-   - swap all bytes for some other byte through a reversible map shuffled using the input key as the seed.
-   - xor 0x55 into first byte, store that result
-       - swap byte for another byte
-       - use that result to xor on the next byte, repeatedly.
+   - swap all bytes for some other byte through a reversible map.
+   - xor 0x55 into first byte, store that result, use that result to xor on the next byte, repeatedly.
+   - swap all bytes for some other byte through a reversible map.
    - xor 0xAA into last byte, store that result, use that result to xor on the previous byte, repeatedly.
-   - swap all bytes for some other byte
+   - swap all bytes for some other byte through a reversible map.
  
  
 Data is processed in blocks of 4096 bytes.  The last block of data is processed only 8-4096 bytes (of
@@ -364,13 +363,21 @@ df 3e d9 18 89 69 b6 53 0e 17 5f ad 33 9c cf bb    .>...i.S.._.3...
 
                              pkt        bytes
          (packets)   MS    per-sec     per-sec     
+(XSWS)
 Tiny DID  300000 in 1257    238663    10,501,172
 Tiny DID  900000 in 3437    261856    11,521,664
 Big DID   300000 in 4171     71925   147,302,400
 Big DID   300000 in 3239     92621   189,687,808
 Mega DID     300 in 4956        60   251,658,240
 Mega DID     300 in 6490        46   192,937,984
+(Current)
+Tiny DID  900000 in 2324    387263    17,039,572
+Big DID   300000 in 2756    108853   222,930,944
+Mega DID     300 in 3493        85   356,515,840
 
+
+
+(AES)
 tiny DID 4000000 in 3918   1020929    44,920,876
 tiny DID 2000000 in 1956   1022494    44,989,736
 Big DID   200000 in 4033     49590   101,560,320
@@ -387,33 +394,7 @@ Big DID 300000 in 4815   62305 127600640
 Mega DID 300 in 6594   45 188743680
 
 
-Tiny DID 900000 in 3778   238221  10481724
-Big DID  300000 in 3493    85886 175894528
-Mega DID    300 in 4481       66 276824064
 
-Tiny DID 900000 in 3502   256996  11307824
-Big DID  300000 in 2545   117878 241414144
-Mega DID    300 in 2585      116 486539264
-
-Tiny DID 900000 in 3510   256410  11,282,040
-Big DID  300000 in 2371   126528 259,129,344
-Mega DID    300 in 2419      124 520,093,696
-
-
-Tiny DID 900000 in 3837   234558  10,320,552
-Big  DID 300000 in 2860   104895 214,824,960
-Mega DID    300 in 3066       97 406,847,488
-DID 300000 in 1151   260642
-
-
-Tiny DID 900000 in 4756   189234   8326296
-Big  DID 300000 in 3249    92336 189104128
-Mega DID    300 in 3228       92 385875968
-
-
-Tiny DID 900000 in 2324   387263 17039572
-Big DID 300000 in 2756   108853 222930944
-Mega DID 300 in 3493   85 356515840
 
 
 

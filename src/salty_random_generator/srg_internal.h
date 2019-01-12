@@ -80,6 +80,7 @@ extern
  void NeedBits( struct random_context *ctx );
 
 #define BlockShuffle_SubByte_(key, bytes_input, bytes_output )  ( (bytes_output)[0] = key->map[(bytes_input)[0]] )
+#define BlockShuffle_Sub1Byte_(key, byte_input )  ( key->map[byte_input] )
 
 #define BlockShuffle_SubBytes_(key, in, out, byteCount ) {  \
 	size_t n;   \
@@ -91,6 +92,7 @@ extern
 }
 
 #define BlockShuffle_BusByte_(key, bytes_input, bytes_output )  ( (bytes_output)[0] = key->dmap[(bytes_input)[0]] )
+#define BlockShuffle_Bus1Byte_(key, byte_input )  ( key->dmap[byte_input] )
 
 #define BlockShuffle_BusBytes_(key, in, out, byteCount )  {  \
 	size_t n;   \

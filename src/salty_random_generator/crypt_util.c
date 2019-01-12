@@ -336,14 +336,13 @@ static void encryptBlock( struct byte_shuffle_key *bytKey
 	}
 #endif
 	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
-
 	curBuf_out = output;
 	uint8_t p = 0x55;
 	for( n = 0; n < outlen; n++, curBuf_out++ ) {
+		//p = curBuf_out[0] = BlockShuffle_Sub1Byte_( bytKey, curBuf_out[0] ^ p );
 		p = curBuf_out[0] = curBuf_out[0] ^ p;
 	}
 	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
-	//BlockShuffle_SetData( blkKey, objBuf, 0, objBufLen, outBuf[0], 0 );
 	curBuf_out--;
 	p = 0xAA;
 	for( n = 0; n < outlen; n++, curBuf_out-- ) {
@@ -398,7 +397,6 @@ static void decryptBlock( struct byte_shuffle_key *bytKey
 	, LOGICAL lastBLock
 ) {
 	int n;
-
 	BlockShuffle_BusBytes_( bytKey, input, output, len );
 
 	uint8_t *curBuf = output;
@@ -406,23 +404,24 @@ static void decryptBlock( struct byte_shuffle_key *bytKey
 		curBuf[0] = curBuf[0] ^ curBuf[1];
 	}
 	curBuf[0] = curBuf[0] ^ 0xAA;
-	BlockShuffle_BusBytes_( bytKey, output, output, len );
 
+	BlockShuffle_BusBytes_( bytKey, output, output, len );
 	curBuf = output + len - 1;
 	for( n = (int)(len - 1); n > 0; n--, curBuf-- ) {
+		//curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ) ^ curBuf[-1];
 		curBuf[0] = curBuf[0] ^ curBuf[-1];
 	}
+	//curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ) ^ 0x55;
 	curBuf[0] = curBuf[0] ^ 0x55;
 
 	BlockShuffle_BusBytes_( bytKey, output, output, len );
-
 #if __64__
 	for( n = 0; n < len; n += 8, output += 8 ) {
-		((uint64_t*)output)[0] ^= /*((uint64_t*)curBuf_in)[0] ^*/ ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
+		((uint64_t*)output)[0] ^= ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];
 	}
 #else
 	for( n = 0; n < len; n += 4, output += 4 ) {
-		((uint32_t*)output)[0] ^= /*((uint32_t*)curBuf_in)[0] ^*/ ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
+		((uint32_t*)output)[0] ^= ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];
 	}
 #endif
 
@@ -579,8 +578,9 @@ PRELOAD( CryptTestBuiltIn ) {
 	Sleep( 1000 );
 #endif
 
+#ifndef NO_SSL
+#  ifdef DO_PERF_TESTS
 
-#ifdef DO_PERF_TESTS
 	// SRG_AES_encrypt and SRG_AES_decrypt are symmetric.
 	start = timeGetTime();
 	for( i = 0; i < 300000; i++ ) {
@@ -590,8 +590,7 @@ PRELOAD( CryptTestBuiltIn ) {
 	end = timeGetTime();
 	printf( "DID %d in %d   %d\n", i, end - start, i * 1000 / (end - start) );
 	Sleep( 1000 );
-#endif
-
+#  endif
 	puts( "TESTDATA" );
 	logBinary( (uint8_t*)message, sizeof( message ) );
 	outlen = SRG_AES_encrypt( (uint8_t*)message, sizeof( message ), key, &output );
@@ -627,6 +626,7 @@ PRELOAD( CryptTestBuiltIn ) {
 	logBinary( orig, origlen );
 	Release( output );
 	Release( orig );
+#endif
 
 #if 0
 	// memory leak tests.... if in 2M tests memory is +0, probably no leaks.
