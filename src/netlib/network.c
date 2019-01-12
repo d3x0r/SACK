@@ -2173,12 +2173,16 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 #    ifdef __64__
 		struct kevent64_s ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
+#      ifdef USE_PIPE_SEMS
 		EV_SET64( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uint64_t)1, NULL, NULL );
+#      endif
 		kevent64( this_thread.kqueue, &ev, 1, 0, 0, 0, 0 );
 #    else
 		struct kevent ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
+#      ifdef USE_PIPE_SEMS
 		EV_SET( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)1 );
+#      endif
 		kevent( this_thread.kqueue, &ev, 1, 0, 0, 0 );
 #    endif
 #  else
@@ -2704,7 +2708,7 @@ NETWORK_PROC( SOCKADDR *,CreateUnixAddress)( CTEXTSTR path )
 #endif
 
 #ifdef __MAC__
-	lpsaAddr->sa_len = 2+strlen( lpsaAddr->sun_path );
+	lpsaAddr->sun_len = 2+strlen( lpsaAddr->sun_path );
 #endif
 	return((SOCKADDR*)lpsaAddr);
 }
