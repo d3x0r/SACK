@@ -58,7 +58,7 @@ struct byte_shuffle_key {
 #define SRG_GetBit_(tmp,ctx)    (    \
 	(ctx->total_bits_used += 1),  \
 	(( (ctx->bits_used) >= ctx->bits_avail )?  \
-		NeedBits( ctx ):0),  \
+		NeedBits( ctx ):(void)0),  \
 	( tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, 1 ) ),  \
 	( ctx->bits_used += 1 ),  \
 	( tmp ) \
@@ -67,7 +67,7 @@ struct byte_shuffle_key {
 #define SRG_GetByte_(tmp,ctx)    (    \
 	(ctx->total_bits_used += 8),  \
 	(( (ctx->bits_used) >= ctx->bits_avail )?  \
-		NeedBits( ctx ):0),  \
+		NeedBits( ctx ):(void)0),  \
 	( tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, 8 ) ),  \
 	( ctx->bits_used += 8 ),  \
 	( tmp ) \
