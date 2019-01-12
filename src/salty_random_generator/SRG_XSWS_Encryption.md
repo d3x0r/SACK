@@ -101,12 +101,15 @@ xboxSub = A->B operation
 xboxBus = B->A operation
 
     a-h   = plain text
-    Ax-Hx = plain text ^ mask(0-n)
-    A-H   = Ax-Hx xboxSub
-    5     = A ^ 0x55    
-    0     = H' ^ 0xAA      //  (10 = 0)
+    Ac-Hc = plain text ^ mask; initical (c)ipher text
+    A-H   = Ac-Hc substituted through xboxSub
+    5     = 0x55    
+    0     = 0xAA      //  (10 = 0)
     A'-H' = each byte xor next byte from first with first = 0x55
+            (*' includes subsitution after running xor
+             this was later added after expanding bare LR->RL XOR )
     A"-H" = each byte xor prev byte from last  with last = 0xAA
+    Af-Hf = (f)inal cipher text output 
 	 	
 		
 given     a b c d   e f g h 
@@ -128,7 +131,7 @@ given     a b c d   e f g h
        ^                5 A
        ^                  5 
 
- xboxSub     - xbox -           xor'd sum then byte swapped through xbox
+ xboxSub     - xbox -           xor'd sum then each byte swapped through xbox
          
        =  A'B'C'D'  E'F'G'H'    above columns xor'd together
 
@@ -166,7 +169,9 @@ given     a b c d   e f g h
 	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
 
 	for( n = 0, p = 0x55; n < outlen; n++, output++ ) 
-		p = output[0] = BlockShuffle_SubByte_( output[0] ^ p );
+		p = output[0] = ( output[0] ^ p );
+
+	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
 
 	output--; // back up 1 byte.
 	for( n = 0, p = 0xAA; n < outlen; n++, output-- )  p = output[0] = output[0] ^ p;
@@ -184,9 +189,11 @@ for the swap instead. (xor-wipe is inversed too)
 
 	uint8_t *curBuf = output;
 	for( n = 0; n < (len - 1); n++, curBuf++ ) {
-		curBuf[0] = BlockShuffle_BusByte_( curBuf[0] ) ^ curBuf[1];
+		curBuf[0] = curBuf[0] ^ curBuf[1];
 	}
-	curBuf[0] = curBuf[0] ^ 0xAA;	
+	curBuf[0] = curBuf[0] ^ 0xAA;
+	
+	BlockShuffle_BusBytes_( bytKey, output, output, len );
 
 	curBuf = output + len - 1;
 	for( n = (len - 1); n > 0; n--, curBuf-- ) {
@@ -232,16 +239,85 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 	for( n = 0; n < 256; n++ ) {
 		int m;
 		int t;
-		SRG_GetByte_( m, ctx );
+		SRG_GetByte_( m, ctx ); // m = random 8 bits
 		t = key->map[m];
 		key->map[m] = key->map[n];
 		key->map[n] = t;
 	}
+        /* generate reverse map */
 	for( n = 0; n < 256; n++ )
 		key->dmap[key->map[n]] = n;
 	return key;
 }
 ```
+
+---
+
+## Simple XOr L->R, R-> Expanded...
+
+
+```
+A' = 0x55 ^ A
+ 
+B' = 0x55 ^ A ^ B                              [A' ^ B]
+ 
+C' = 0x55 ^ A ^ B ^ C                          [B' ^ C]
+ 
+D' = 0x55 ^ A ^ B ^ C ^ D                      [C' ^ D]
+ 
+E' = 0x55 ^ A ^ B ^ C ^ D ^ E
+ 
+F' = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F
+ 
+G' = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G
+ 
+H' = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G ^ H      [G' ^ H]
+ 
+H" = H' ^ 0xAA
+H" = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G ^ H   ^    0xAA
+ 
+G" = G' ^ H"
+G" = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G     ^      0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G ^ H ^ 0xAA
+G" = H ^ 0xAA
+ 
+ 
+F" =  F' ^ G"
+F" =  0x55 ^ A ^ B ^ C ^ D ^ E ^ F    ^  H ^ 0xAA
+ 
+E" = E' ^ F"
+E" = 0x55 ^ A ^ B ^ C ^ D ^ E   ^      0x55 ^ A ^ B ^ C ^ D ^ E ^ F    ^  H ^ 0xAA
+E" =  F ^  H ^ 0xAA
+ 
+D" = D' ^ E"
+D" = 0x55 ^ A ^ B ^ C ^ D  ^  F ^  H ^ 0xAA
+ 
+C" = C' ^ D"
+C" = 0x55 ^ A ^ B ^ C    ^     0x55 ^ A ^ B ^ C ^ D  ^  F ^  H ^ 0xAA
+C" = D  ^  F ^  H ^ 0xAA
+ 
+B" = B' ^ C"
+B" = 0x55 ^ A ^ B       ^      D  ^  F ^  H ^ 0xAA
+ 
+A" = A' ^ B"
+A" = 0x55 ^ A     ^      0x55 ^ A ^ B       ^      D  ^  F ^  H ^ 0xAA
+A" = B  ^   D  ^  F ^  H ^ 0xAA
+``` 
+ 
+ 
+Final summarized output....
+ 
+``` 
+ 
+A" =            B ^     D     ^ F     ^ H ^ 0xAA
+B" = 0x55 ^ A ^ B ^     D     ^ F     ^ H ^ 0xAA
+C" =                    D     ^ F     ^ H ^ 0xAA
+D" = 0x55 ^ A ^ B ^ C ^ D     ^ F     ^ H ^ 0xAA
+E" =                            F     ^ H ^ 0xAA
+F" = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F     ^ H ^ 0xAA
+G" =                                    H ^ 0xAA
+H" = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G ^ H ^ 0xAA
+ 
+``` 
 
 ---
 
