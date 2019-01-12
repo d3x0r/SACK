@@ -94,6 +94,7 @@ mask = 256 bit hash (K12) based on input key of 0-N bits.
 xbox = Short for 'exchange box' to differentiate from s-box.  
        2 maps for byte A->B and B->A.  based on input key of 0-N bits.
 
+```
 ^   = xor with above value
 =   = temporary state observation point 
 
@@ -151,7 +152,7 @@ given     a b c d   e f g h
          
           AfBfCfDf  EfFfGfHf    final result after one final swap matrix.
 	   
-
+```
 	   
 ```	
 	/*
