@@ -207,6 +207,7 @@ namespace objStore {
 		SOSFSFIO_PROVIDE_SEALANT,  // psvInstance should be a file handle pass (char*, size_t length )
 		SOSFSFIO_TAMPERED, // test if file has been tampered, is is still sealed. pass (address of int)
 		SOSFSFIO_STORE_OBJECT, // get the resulting storage ID.  (Move ID creation into low level driver)
+		SOSFSFIO_PROVIDE_READKEY, // set key required to read this record.
 		//SFSIO_GET_OBJECT_ID, // get the resulting storage ID.  (Move ID creation into low level driver)
 	};
 

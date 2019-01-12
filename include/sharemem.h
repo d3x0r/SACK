@@ -17,6 +17,13 @@
 #undef StrStr
 #endif
 
+#if defined( __MAC__ )
+#  define strdup(s) StrDup(s)
+#  define strdup_free(s) Release(s)
+#else
+#  define strdup_free(s) free(s)
+#endif
+
 #ifdef __cplusplus
 #define SACK_MEMORY_NAMESPACE SACK_NAMESPACE namespace memory {
 #define SACK_MEMORY_NAMESPACE_END } SACK_NAMESPACE_END
