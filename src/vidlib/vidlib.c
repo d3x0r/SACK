@@ -3088,9 +3088,8 @@ WM_DROPFILES
 			}
 			else
 				lprintf( WIDE("Failed to find window to show?") );
-			if( l.flags.bPostedInvalidate )
-				if( l.invalidated_window == hVideo )
-				{
+			while( l.flags.bPostedInvalidate ) {
+				if( l.invalidated_window == hVideo ) {
 #if DEBUG_INVALIDATE
 					lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
@@ -3098,25 +3097,26 @@ WM_DROPFILES
 					if( hVideo->portion_update.pending ) {
 						hVideo->portion_update.pending = FALSE;
 						UpdateDisplayPortion( hVideo
-						                     , hVideo->portion_update.x, hVideo->portion_update.y
-						                     , hVideo->portion_update.w, hVideo->portion_update.h );
-					} else
-						UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
-					if( l.flags.bPostedInvalidate )
-						lprintf( WIDE("triggered to draw too soon!") );
+							, hVideo->portion_update.x, hVideo->portion_update.y
+							, hVideo->portion_update.w, hVideo->portion_update.h );
+					}
+					else
+						UpdateDisplayPortion( hVideo, 0, 0, 0, 0 );
+					//if( l.flags.bPostedInvalidate )
+					//	lprintf( WIDE( "triggered to draw too soon!" ) );
 #if DEBUG_INVALIDATE
 					lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-					l.flags.bPostedInvalidate = 0;
 				}
 				else if( l.invalidated_window )
-					lprintf( WIDE( " failed %d %p %p"), l.flags.bPostedInvalidate, l.invalidated_window, hVideo );
+					lprintf( WIDE( " failed %d %p %p" ), l.flags.bPostedInvalidate, l.invalidated_window, hVideo );
+				ValidateRect( hWnd, NULL );
+			}
 			//InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
 		}
 		//lprintf( "redraw... WM_PAINT" );
-		ValidateRect (hWnd, NULL);
-		if( l.flags.bPostedInvalidate )
-			lprintf( WIDE( "triggered to draw too soon!") );
+		//if( l.flags.bPostedInvalidate )
+		//	lprintf( WIDE( "triggered to draw too soon!") );
 		//lprintf( "redraw... WM_PAINT" );
 		/// allow a second invalidate to post.
 #ifdef NOISY_LOGGING
