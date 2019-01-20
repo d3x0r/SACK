@@ -186,7 +186,7 @@ static int OnDrawCommon(WIDE("Shade Well")) ( PSI_CONTROL pcShade )
 
 //----------------------------------------------------------------------------
 
-#define PPCD(pc) (PPICK_COLOR_DATA)GetCommonUserData( GetFrame( pc ) )
+#define PPCD(pc) (PPICK_COLOR_DATA)GetControlUserData( GetFrame( pc ) )
 
 //----------------------------------------------------------------------------
 
