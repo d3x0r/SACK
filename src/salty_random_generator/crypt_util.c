@@ -349,7 +349,6 @@ static void encryptBlock( struct byte_shuffle_key *bytKey
 		p = curBuf_out[0] = curBuf_out[0] ^ p;
 	}
 	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
-
 }
 
 void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
@@ -424,7 +423,6 @@ static void decryptBlock( struct byte_shuffle_key *bytKey
 		((uint32_t*)output)[0] ^= ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];
 	}
 #endif
-
 }
 
 void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen

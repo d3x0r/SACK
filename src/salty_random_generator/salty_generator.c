@@ -1,5 +1,5 @@
 #include <stdhdrs.h>
-
+#include <deadstart.h>
 #ifndef SALTY_RANDOM_GENERATOR_SOURCE
 #define SALTY_RANDOM_GENERATOR_SOURCE
 #endif
@@ -8,6 +8,48 @@
 
 #define USE_K12_LONG_SQUEEZE 1
 #define K12_SQUEEZE_LENGTH   32768
+
+//#define K12_PRE_TEST
+#ifdef K12_PRE_TEST
+
+PRELOAD( zz ) {
+	KangarooTwelve_Instance i;
+	char output[64];
+	KangarooTwelve_Initialize( &i, 0 );
+	KangarooTwelve_Update( &i, (const unsigned char *)"abcd", 0 );
+	KangarooTwelve_Final( &i, NULL, NULL, 0 ); // customization is a final pad string.
+	KangarooTwelve_Squeeze( &i, (unsigned char *)output, 64 ); // customization is a final pad string.
+	lprintf( "---" );
+	LogBinary( output, 64 );
+
+
+	KangarooTwelve_Initialize( &i, 0 );
+	KangarooTwelve_Update( &i, (const unsigned char *)"asdf", 4 );
+	KangarooTwelve_Final( &i, NULL, NULL, 0 ); // customization is a final pad string.
+	KangarooTwelve_Squeeze( &i, (unsigned char *)output, 64 ); // customization is a final pad string.
+	lprintf( "---" );
+	LogBinary( output, 64 );
+
+
+	KangarooTwelve_Initialize( &i, 0 );                
+	KangarooTwelve_Update( &i, (const unsigned char *)"asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf", 64 );
+	KangarooTwelve_Final( &i, NULL, NULL, 0 ); // customization is a final pad string.
+	KangarooTwelve_Squeeze( &i, (unsigned char *)output, 64 ); // customization is a final pad string.
+	lprintf( "---" );
+	LogBinary( output, 64 );
+	{
+		int n;
+		int start, end;
+		start = timeGetTime();
+		for( n = 0; n < 10000000; n++ ) {
+			KangarooTwelve_Squeeze( &i, (unsigned char *)output, 64 ); // customization is a final pad string.
+		}
+		end = timeGetTime();
+		lprintf( "did %d in %d  %d  %d", n, end - start, n / (end - start), (n * 32) / (end - start) );
+	}
+}
+
+#endif
 
 void NeedBits( struct random_context *ctx )
 {
