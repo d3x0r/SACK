@@ -1142,11 +1142,11 @@ PSSQL_PROC( int, SQLRecordQueryEx )( PODBC odbc
 			 for each result in this list until VALUE_UNDEFINED is used.
 		.name is the field name (constant)
 		.string is the text, value_type is the value type (so numbers can stay numbers)
-	pdlParams : parameters to bind to the query.
+	pdlParams : parameters to bind to the query.  (struct json_value_container types)
 
    Example
    See SQLRecordQueryf, but omit the database parameter.         */
-int SQLRecordQuery_js( PODBC odbc
+PSSQL_PROC( int, SQLRecordQuery_js )( PODBC odbc
 	, CTEXTSTR query
 	, size_t queryLen
 	, PDATALIST *pdlResults
