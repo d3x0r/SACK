@@ -122,7 +122,7 @@ int SimpleUserQueryEx( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTRO
 
 	//int Done = FALSE, Okay = FALSE;
 	pf = CreateFrame( NULL, 0, 0, 280, 65, 0, pAbove );
-	SetCommonUserData( pf, (uintptr_t)query_state );
+	SetControlUserData( pf, (uintptr_t)query_state );
 	query_state->pf = pf;
 	query_state->Done = FALSE;
 	query_state->Okay = FALSE;

@@ -107,7 +107,7 @@ void CPROC SliderChanged( uintptr_t psv, PSI_CONTROL pc, int val )
 void CPROC SetNeuronTypeButton( uintptr_t psv, PSI_CONTROL pc )
 {
 	PSI_CONTROL frame = GetFrame( pc );
-	PDIALOG_DATA pndd = (PDIALOG_DATA)GetCommonUserData( frame );
+	PDIALOG_DATA pndd = (PDIALOG_DATA)GetControlUserData( frame );
 	pndd->neuron->type( psv );
 }
 
@@ -144,7 +144,7 @@ static uintptr_t CPROC _ShowPropertyDialog( PTHREAD thread )
 			pndd->synapse = NULL;
 			snprintf( title, sizeof( title ), WIDE("%s Properties"), neuron->name() );
 			pndd->frame = CreateFrame( title, x, y, 256, 128, BORDER_NORMAL, NULL );
-			SetCommonUserData( pndd->frame, (uintptr_t)pndd );
+			SetControlUserData( pndd->frame, (uintptr_t)pndd );
 			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 33, 73, 18, TEXT_VALUE1, WIDE("00") );
 			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 56, 73, 18, TEXT_VALUE2, WIDE("00") );
 			SetSliderValues( MakeSlider( pndd->frame, 5, 5, 246, 24, -1
@@ -196,7 +196,7 @@ static uintptr_t CPROC _ShowPropertyDialog( PTHREAD thread )
 						 , 0, NULL, 0 );
 			MakeButton( pndd->frame, 170, 71, 80, 20, IDOK, WIDE("Done")
 						 ,0 , DonePushed, (uintptr_t)pndd );
-			//SetCommonUserData( pndd->frame, pndd );
+			//SetControlUserData( pndd->frame, pndd );
 
 			DisplayFrame( pndd->frame );
 		}
