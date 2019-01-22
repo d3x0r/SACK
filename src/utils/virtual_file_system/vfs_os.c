@@ -138,7 +138,7 @@ PREFIX_PACKED struct directory_patch_block
 			BIT_FIELD index : 8;
 			BIT_FIELD hash_block : 24;
 		} dirIndex;
-		uint32_t raw;
+		FPI raw; 
 	}entries[(BLOCK_SIZE-sizeof(BLOCKINDEX))/sizeof(uint32_t)];
 	uint8_t usedEntries;
 	BLOCKINDEX morePatches;
@@ -1332,7 +1332,7 @@ void reloadTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol
 	enum block_cache_entries cache = BC( TIMELINE );
 	//uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
 	struct storageTimelineNode *nodeKey;
-	struct storageTimelineNode *node = (struct storageTimelineNode *)vfs_os_DSEEK( vol, timeEntry, &cache, &nodeKey );
+	struct storageTimelineNode *node = (struct storageTimelineNode *)vfs_os_DSEEK( vol, timeEntry, &cache, (POINTER*)&nodeKey );
 	time->next = node->next ^ nodeKey->next;
 	time->dirent_fpi = node->dirent_fpi ^ nodeKey->dirent_fpi;
 	time->ctime = node->ctime ^ nodeKey->ctime;
@@ -1346,7 +1346,7 @@ void updateTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol
 	enum block_cache_entries cache = BC( TIMELINE );
 	//uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
 	struct storageTimelineNode *nodeKey;
-	struct storageTimelineNode *node = vfs_os_DSEEK( vol, time->this_fpi, &cache, &nodeKey );
+	struct storageTimelineNode *node = (struct storageTimelineNode *)vfs_os_DSEEK( vol, time->this_fpi, &cache, (POINTER*)&nodeKey );
 	node->dirent_fpi = time->dirent_fpi ^ nodeKey->dirent_fpi;
 	node->stime = time->stime ^ nodeKey->stime;
 	SETFLAG( vol->dirty, cache );
@@ -1361,7 +1361,7 @@ void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) 
 	enum block_cache_entries cache_new = BC( TIMELINE );
 	BLOCKINDEX curBlock;
 	//uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
-	struct storageTimeline *timeline = vfs_os_BSEEK( vol, curBlock = FIRST_TIMELINE_BLOCK, &cache );
+	struct storageTimeline *timeline = (struct storageTimeline *)vfs_os_BSEEK( vol, curBlock = FIRST_TIMELINE_BLOCK, &cache );
 	struct storageTimeline *timelineKey = (struct storageTimeline *)(vol->usekey[cache]);
 	FPI next = offsetof( struct storageTimeline, entries[ ( timeline->header.timeline_length ^ timelineKey->header.timeline_length) ] );
 
@@ -1378,7 +1378,7 @@ void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) 
 
 	if( timeline->header.lastNode ) {
 		if( timeline->header.first_free_entry ) {
-			timelineNode = vfs_os_DSEEK( vol, timeline->header.first_free_entry, &cache_free, &timelineNodeKey );
+			timelineNode = (struct storageTimelineNode *)vfs_os_DSEEK( vol, timeline->header.first_free_entry, &cache_free, (POINTER*)&timelineNodeKey );
 			timeline->header.first_free_entry = timelineNode->next;
 			// mark that this now has a known entry.
 			time->this_fpi = timeline->header.first_free_entry;
@@ -1391,10 +1391,10 @@ void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) 
 		
 		{
 
-			timelineLastNode = vfs_os_DSEEK( vol, timeline->header.lastNode, &cache_last, &timelineLastNodeKey );
+			timelineLastNode = (struct storageTimelineNode *)vfs_os_DSEEK( vol, timeline->header.lastNode, &cache_last, (POINTER*)&timelineLastNodeKey );
 
 			if( !time->this_fpi ) {
-				int lastEntryIndex = (int)(timelineLastNode - vol->usekey_buffer[cache_last]);
+				int lastEntryIndex = (int)(timelineLastNode - (struct storageTimelineNode*)vol->usekey_buffer[cache_last]);
 				if( vol->segment[cache_last] == FIRST_TIMELINE_BLOCK ) {
 					lastEntryIndex -= sizeof( timeline->header );
 					lastEntryIndex /= sizeof( *timelineLastNode );
@@ -1416,7 +1416,7 @@ void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) 
 						time->this_fpi = curBlock * BLOCK_SIZE + offsetof( struct storageTimelineBlock, entries[lastEntryIndex + 1] );
 					}
 				}
-				timelineNextNode = (struct storageTimelineBlock*) vfs_os_DSEEK( vol, time->this_fpi, &cache_new, &timelineNextNodeKey );
+				timelineNextNode = (struct storageTimelineNode*) vfs_os_DSEEK( vol, time->this_fpi, &cache_new, (POINTER*)&timelineNextNodeKey );
 				timelineNextNode->dirent_fpi = time->dirent_fpi;
 				timelineNextNode->next = (time->next=0) ^ timelineNextNodeKey->ctime;
 				timelineNextNode->ctime = time->ctime ^ timelineNextNodeKey->ctime;
@@ -1797,7 +1797,6 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 							^ dirblockkey->entries[m].timelineEntry;
 						{
 							struct sack_vfs_os_file_timeline time;
-							FPI oldFPI;
 							enum block_cache_entries  timeCache = BC( TIMELINE );
 							reloadTimeEntry( &time, vol, (dirblock->entries[m + offset].timelineEntry ^ dirblockkey->entries[m + offset].timelineEntry) );
 							time.dirent_fpi = vol->bufferFPI[cache] + ((uintptr_t)(((struct directory_hash_lookup_block *)0)->entries + m));

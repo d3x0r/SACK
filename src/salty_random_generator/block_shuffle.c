@@ -174,12 +174,47 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 	//struct byte_shuffle_key *key = New( struct byte_shuffle_key );
 	struct byte_shuffle_key *key = ( struct byte_shuffle_key *)HeapAllocateAligned( NULL, sizeof( struct byte_shuffle_key ), 256 );
 	int n;
-	int srcMap;
 	for( n = 0; n < 256; n++ )
 		key->map[n] = n;
 
+//#define USE_ALT_SHUFFLER
+
+#ifdef USE_ALT_SHUFFLER
+	uint8_t root = 0;
+	uint8_t last = 0;
+	for( n = 0; n < 256; n++ ) {
+		SRG_GetByte_( key->dmap[n], ctx );
+	}
+
+	while( root < 255 ) {
+		if( key->dmap[root] > key->dmap[root + 1] ) {
+			last = root;
+			while( key->dmap[root] > key->dmap[root + 1] ) {
+				uint8_t tmp;
+				tmp = key->map[root];
+				key->map[root] = key->map[root + 1];
+				key->map[root + 1] = tmp;
+				tmp = key->dmap[root];
+				key->dmap[root] = key->dmap[root + 1];
+				key->dmap[root + 1] = tmp;
+				if( root ) root--;
+				else {
+					root = last+1; last = root;
+				}
+			}
+			root = last+1;
+		}
+		else 
+			root++;
+	}
+
+	//lprintf( "Shuffled:%d", root );
+	//LogBinary( key->map, 256 );
+	//lprintf( "sorted------" );
+	//LogBinary( key->dmap, 256 );
+#else
 	// simple-in-place shuffler.
-#if 1
+#  if 1
 	for( n = 0; n < 256; n++ ) {
 		int m;
 		int t;
@@ -188,7 +223,10 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 		key->map[m] = key->map[n];
 		key->map[n] = t;
 	}
+#  endif
+
 #endif
+
 
 #if 0
 		// validate that each number is in the mapping only once.

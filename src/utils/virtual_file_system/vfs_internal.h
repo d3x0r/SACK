@@ -125,12 +125,12 @@ PREFIX_PACKED struct directory_entry
 
 #ifdef VIRTUAL_OBJECT_STORE
 
-typedef uint32_t TIMELINE_BLOCK_TYPE;
+typedef FPI TIMELINE_BLOCK_TYPE;
 typedef uint64_t TIMELINE_TIME_TYPE;
 
 PREFIX_PACKED struct timelineHeader {
 	uint32_t timeline_length;
-	uint32_t first_free_entry;
+	FPI first_free_entry;
 	FPI lastNode;
 } PACKED;
 
@@ -257,9 +257,9 @@ PREFIX_PACKED struct volume {
 
 #  ifdef VIRTUAL_OBJECT_STORE
 struct sack_vfs_os_file_timeline {
-	int32_t next;          // FPI/32
+	FPI next;          // FPI/32
 
-	uint64_t dirent_fpi;    // FPI
+	FPI dirent_fpi;    // FPI
 
 	uint64_t ctime;         // file time tick
 	uint64_t stime;         // file time tick
