@@ -309,7 +309,7 @@ uint64_t GetCPUTick(void )
 		(*syslog_local).lasttick = tick;
 		return tick;
 #endif
-#elif defined( __GNUC__ ) && !defined( __arm__ ) && !defined( __aarch64__ )
+#elif defined( __GNUC__ ) && !defined( __arm__ ) && !defined( __aarch64__ ) && !defined( __asmjs__ )
 		union {
 			uint64_t tick;
 			PREFIX_PACKED struct { uint32_t low, high; } PACKED parts;

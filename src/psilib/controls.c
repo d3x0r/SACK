@@ -2378,7 +2378,7 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 				{
 					//lprintf( WIDE("Send redraw to self.... draw controls in pending_dirty_controls") );
 					//device->flags.sent_redraw = 1;
-					lprintf( " -----  parent update Redraw ----" );
+					//lprintf( " -----  parent update Redraw ----" );
 					Redraw( device->pActImg );
 				}
 			}
@@ -2872,7 +2872,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( uintptr_t, GetCommonUserData )( PSI_CONTROL pf )
+PSI_PROC( uintptr_t, GetControlUserData )( PSI_CONTROL pf )
 {
 	if( pf )
 		return pf->psvUser;
@@ -2881,7 +2881,7 @@ PSI_PROC( uintptr_t, GetCommonUserData )( PSI_CONTROL pf )
 
 //---------------------------------------------------------------------------
 
-PSI_PROC( void, SetCommonUserData )( PSI_CONTROL pf, uintptr_t psv )
+PSI_PROC( void, SetControlUserData )( PSI_CONTROL pf, uintptr_t psv )
 {
 	if( pf )
 		pf->psvUser = psv;
@@ -5148,7 +5148,7 @@ INDEX ControlType( PSI_CONTROL pc )
 }
 //---------------------------------------------------------------------------
 
-void SetCommonTransparent( PSI_CONTROL pc, LOGICAL bTransparent )
+void SetControlTransparent( PSI_CONTROL pc, LOGICAL bTransparent )
 {
 	if( pc )
 	{

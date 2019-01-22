@@ -923,10 +923,12 @@ PSI_PROC( PSI_CONTROL, GetControl )( PSI_CONTROL pContainer, int ID );
 #endif
 PSI_PROC( PSI_CONTROL, GetControlByName )( PSI_CONTROL pContainer, const char *ID );
 	//PSI_PROC( PSI_CONTROL, GetControl)( PSI_CONTROL pf, int ID );
-PSI_PROC( uintptr_t, GetCommonUserData )( PSI_CONTROL pf );
-#define GetFrameUserData(pf) GetCommonUserData( (PSI_CONTROL)pf )
-PSI_PROC( void, SetCommonUserData )( PSI_CONTROL pf, uintptr_t psv );
-#define SetFrameUserData(pf,d) SetCommonUserData( (PSI_CONTROL)pf,d )
+PSI_PROC( uintptr_t, GetControlUserData )( PSI_CONTROL pf );
+#define GetFrameUserData(pf) GetControlUserData( (PSI_CONTROL)pf )
+//#define GetCommonUserData(pf) GetControlUserData( (PSI_CONTROL)pf )
+PSI_PROC( void, SetControlUserData )( PSI_CONTROL pf, uintptr_t psv );
+#define SetFrameUserData(pf,d) SetControlUserData( (PSI_CONTROL)pf,d )
+//#define SetCommonUserData(pf,d) SetControlUserData( (PSI_CONTROL)pf,d )
 
 PSI_PROC( PFrameBorder, PSI_CreateBorder )( Image image, int width, int height, int anchors, LOGICAL defines_colors );
 PSI_PROC( void, PSI_SetFrameBorder )( PSI_CONTROL pc, PFrameBorder border );
@@ -1174,7 +1176,8 @@ PSI_PROC( Image, CopyOriginalSurface )( PSI_CONTROL pc, Image prior_image );
 // before doing the draw.  The application does not need to concern itself
 // with restoring the prior image, but it must also assume that the entire surface
 // has been destroyed, and partial updates are not possible.
-PSI_PROC( void, SetCommonTransparent )( PSI_CONTROL pc, LOGICAL bTransparent );
+PSI_PROC( void, SetControlTransparent )( PSI_CONTROL pc, LOGICAL bTransparent );
+#define SetCommonTransparent SetControlTransparent
 
 PSI_PROC( void, OrphanCommonEx )( PSI_CONTROL pc, LOGICAL bDraw );
 PSI_PROC( void, OrphanCommon )( PSI_CONTROL pc );

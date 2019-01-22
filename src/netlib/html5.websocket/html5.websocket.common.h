@@ -3,7 +3,11 @@
 
 #include <network.h>
 #include <html5.websocket.client.h>
-#include <zlib.h>
+#ifdef HAVE_ZLIB
+#  include <zlib.h>
+#else
+#  define __NO_WEBSOCK_COMPRESSION__
+#endif
 #include <http.h>
 
 #ifndef WEBSOCKET_COMMON_SOURCE
@@ -31,6 +35,7 @@ struct web_socket_input_state
 	} flags;
 	uint32_t last_reception; // (last message tick) for automatic ping/keep alive/idle death
 
+#ifndef __NO_WEBSOCK_COMPRESSION__
 	int client_max_bits;  // max bits used on (deflater if server, inflater if client)
 	int server_max_bits;  // max bits used on (inflater if server, deflater if client)
 	z_stream deflater;
@@ -40,7 +45,7 @@ struct web_socket_input_state
 	POINTER inflateBuf;
 	size_t inflateBufLen;
 	size_t inflateBufUsed;
-
+#endif
 	// expandable buffer for collecting input messages from client.
 	size_t fragment_collection_avail;
 	size_t fragment_collection_length;
