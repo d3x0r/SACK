@@ -23,6 +23,46 @@ namespace sack {
       INDEX null_lprintf( char const* f,... ) { return 0; }
       RealLogFunction _xlprintf(uint32_t level DBG_PASS) { return real_lprintf; };
       void SystemLog( char const* f ) { puts( f ); puts( "ZZZZ\n" ); }
+      uint32_t  getTickCount( void )
+      {
+            struct timeval time;
+            gettimeofday( &time, 0 );
+            return (time.tv_sec * 1000) + (time.tv_usec / 1000);
+      }
+      uint32_t tmGetTime() { return getTickCount(); }
+
+
+#define GetTickCount getTickCount
+#define timeGetTime tmGetTime
+#undef LogBinary
+      void LogBinary( const uint8_t *_inbuf, size_t len ) {
+            const uint8_t *inbuf = (const uint8_t*)_inbuf;
+            #define BINBUFSIZE 280
+            #define LINELEN 64
+            char buf[280];
+            int ofs;
+            for( int i = 0; i < 32; i++ ) {
+                  int j;
+                  ofs = 0;
+                  for( j = 0; j < 64; j++ ) {
+                      if( (i * 64 + j) >= len ) break;
+                      ofs += snprintf( buf + ofs, BINBUFSIZE - ofs, "%02x ", inbuf[i * LINELEN + j] );
+
+                  }
+                  for( ; j < 64; j++ ) {
+                      ofs += snprintf( buf + ofs, BINBUFSIZE - ofs, "   " );
+                  }
+                  ofs += snprintf( buf + ofs, BINBUFSIZE - ofs, "   " );
+                  for( int j = 0; j < LINELEN; j++ ) {
+                      if( (i * 64 + j) >= len ) break;
+                      ofs += snprintf( buf + ofs, BINBUFSIZE - ofs, "%c", (inbuf[i * LINELEN + j] >= 32 && inbuf[i * LINELEN + j] <= 127) ? inbuf[i * LINELEN + j] : '.' );
+                  }
+                  puts( buf );
+                  if( (i * LINELEN + j) >= len ) break;
+            }
+      }
+
+
 #ifdef __cplusplus
    }
 }

@@ -87,6 +87,7 @@ SaneWinMain( argc, argv )
 		: argv[1][0] == '3' ? SRG_CreateEntropy2_256( getsalt, 0 )
 		: argv[1][0] == '4' ? SRG_CreateEntropy3( getsalt, 0 )
 		: argv[1][0] == '5' ? SRG_CreateEntropy4( getsalt, 0 )
+		: argv[1][0] == '6' ? SRG_CreateEntropy4( NULL, 0 )
 		: SRG_CreateEntropy4( getsalt, 0 )
 		: SRG_CreateEntropy4( getsalt, 0 )
 		;
@@ -99,6 +100,12 @@ SaneWinMain( argc, argv )
 	SetSystemLoggingLevel( 1000+LOG_NOISE + 1 );
 	SetSyslogOptions( &opts );
 	SystemLogTime( 0 );
+{
+	SRG_FeedEntropy( entropy, "test", 4 );
+	for( n = 0; n < 8; n ++ ) {
+		lprintf( "Chose: %d  = %02X", n, SRG_GetEntropy( entropy, 8, 0 ) );
+	}
+}
 	start = timeGetTime();
 	CalculateDistribution( entropy, 2 );
 	end = timeGetTime();
