@@ -248,8 +248,8 @@ int CPROC InitClock( PSI_CONTROL pc )
 										  , (GetControlSurface( pc )->width -10) / 6
 										  , (GetControlSurface( pc )->height -10)/ 2
 										  ,3 ) );
-	SetCommonUserData( pc, AddTimer( 50, ClockUpdate, (uintptr_t)pc ) );
-	SetCommonTransparent( pc, TRUE );
+	SetControlUserData( pc, AddTimer( 50, ClockUpdate, (uintptr_t)pc ) );
+	SetControlTransparent( pc, TRUE );
 	pClk->textcolor = GetBaseColor( TEXTCOLOR );
 	pClk->last_time = NULL; // make sure it's NULL
 	AddLink( &g.clocks, pc );
@@ -258,7 +258,7 @@ int CPROC InitClock( PSI_CONTROL pc )
 
 void CPROC DestroyClock( PSI_CONTROL pc )
 {
-	RemoveTimer( (uint32_t)GetCommonUserData( pc ) );
+	RemoveTimer( (uint32_t)GetControlUserData( pc ) );
 	DeleteLink( &g.clocks, pc );
 }
 
