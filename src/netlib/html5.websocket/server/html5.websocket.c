@@ -319,7 +319,6 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 								}
 							}
 							else 
-#endif
 							if( TextLike( opt, "client_max_window_bits" ) ) {
 								opt = NEXTLINE( opt );
 								if( opt ) {
@@ -352,6 +351,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							else if( TextLike( opt, "server_no_context_takeover" ) ) {
 								//socket->flags.max_window_bits = 1;
 							}
+#endif
 							opt = NEXTLINE( opt );
 						}
 						LineRelease( options );
@@ -474,9 +474,11 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 								Deallocate( char *, resultval );
 							}
 						}
+#ifndef __NO_WEBSOCK_COMPRESSION__
 						if( socket->input_state.flags.deflate ) {
 							vtprintf( pvt_output, WIDE( "Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_max_window_bits=%d\r\n" ), socket->input_state.server_max_bits );
 						}
+#endif
 						if( socket->protocols )
 							vtprintf( pvt_output, WIDE( "Sec-WebSocket-Protocol: %s\r\n" ), socket->protocols );
 						vtprintf( pvt_output, WIDE( "WebSocket-Server: sack\r\n" ) );
