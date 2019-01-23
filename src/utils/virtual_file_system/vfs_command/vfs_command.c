@@ -20,6 +20,93 @@ static struct vfs_command_local
 	struct file_system_mounted_interface *current_mount_source;
 } l;
 
+static void testVolume( void ) {
+	struct sack_vfs_file *db;
+	struct sack_vfs_file *dbj;
+	uint16_t buffer[2048];
+	int n;
+	int nj;
+	db = sack_vfs_openfile( l.current_vol, "test.db" );
+	if( !db ) {
+		printf( " Failed to open test db in current vfs.\n" );
+		return;
+	}
+	for( n = 0; n < 100000; n++ ) {
+		int b;
+
+		for( b = 0; b < 2048; b++ ) buffer[b] = (n & 0xFFFF);
+		sack_vfs_write( db, buffer, 4096 );
+
+		dbj = sack_vfs_openfile( l.current_vol, "test.db-journal" );
+		for( nj = 0; nj < 5; nj++ ) {
+			for( b = 0; b < 2048; b++ ) buffer[b] = (nj & 0xFFFF);
+			sack_vfs_write( dbj, buffer, 4096 );
+		}
+
+		sack_vfs_close( dbj );
+		sack_vfs_unlink_file( l.current_vol, "test.db-journal" );
+
+		if( ( n % 1000 ) == 999 )
+		{
+			int check;
+			for( check = 0; check < n; check++ ) {
+				uint16_t val;
+				sack_vfs_seek( db, check * 4096, SEEK_SET );
+				sack_vfs_read( db, &val, 2 );
+				if( val != (check & 0xFFFF) ) {
+					printf( "BREAK" );
+				}
+			}
+			sack_vfs_seek( db, (check + 1) * 4096, SEEK_SET );
+		}
+	}
+
+	l.current_vol;
+}
+
+static void testVolume_slow( void ) {
+	FILE *db;
+	FILE *dbj;
+	uint16_t buffer[2048];
+	int n;
+	int nj;
+	db = sack_fopenEx( 0, "test.db", "wb", l.current_mount );
+	if( !db ) {
+		printf( " Failed to open test db in current vfs.\n" );
+		return;
+	}
+	for( n = 0; n < 100000; n++ ) {
+		int b;
+
+		for( b = 0; b < 2048; b++ ) buffer[b] = (n & 0xFFFF);
+		sack_fwrite( buffer, 2, 2048, db );
+
+		dbj = sack_fopenEx( 0, "test.db-journal", "wb", l.current_mount );
+		for( nj = 0; nj < 5; nj++ ) {
+			for( b = 0; b < 2048; b++ ) buffer[b] = (nj & 0xFFFF);
+			sack_fwrite( buffer, 2, 2048, dbj );
+		}
+
+		sack_fclose( dbj );
+		sack_unlinkEx( 0, "test.db-journal", l.current_mount );
+
+		{
+			int check;
+			for( check = 0; check < n; check++ ) {
+				uint16_t val;
+				sack_fseek( db, check * 4096, SEEK_SET );
+				sack_fread( &val, 1, 2, db );
+				if( val != (check & 0xFFFF) ) {
+					printf( "BREAK" );
+				}
+			}
+			sack_fseek( db, (check+1) * 4096, SEEK_SET );
+		}
+	}
+	
+	l.current_vol;
+}
+
 static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 {
 	FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
@@ -511,6 +598,10 @@ SaneWinMain( argc, argv )
 				if( PatchFile( argv[arg+1], argv[arg+4], version, argv[arg+2], argv[arg+3] ) )
 					return 2;
 			arg+=4;
+		}
+		else if( StrCaseCmp( argv[arg], "test" ) == 0 ) {
+			testVolume();
+			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "extract" ) == 0 )
 		{
