@@ -2708,7 +2708,7 @@ void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 		WakeThread( odbc->auto_checkpoint_thread );
 		Relinquish();
 	}
-	while( odbc->auto_commit_thread )
+	if( odbc->auto_commit_thread )
 	{
 		SQLCommit( odbc );
 		WakeThread( odbc->auto_commit_thread );
@@ -4366,6 +4366,17 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 		if( rc3 )
 		{
 			const char *tmp;
+			if( rc3 == SQLITE_CORRUPT ) {
+				if( odbc->pCorruptionHandler ) {
+					odbc->pCorruptionHandler( odbc->psvCorruptionHandler, odbc );
+				}
+				GenerateResponce( collection, WM_SQL_RESULT_ERROR );
+				if( odbc->flags.bThreadProtect ) {
+					odbc->nProtect--;
+					LeaveCriticalSec( &odbc->cs );
+				}
+				return FALSE;
+			}
 			if( rc3 == SQLITE_BUSY )
 			{
 				lprintf( WIDE("wait for lock...") );
@@ -4378,7 +4389,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			// this will have to have a Char based version
 			if( strnicmp( tmp, "no such table", 13 ) == 0 )
 				vtprintf( collection->pvt_errorinfo, WIDE( "(S0002)" ) );
-			vtprintf( collection->pvt_errorinfo, WIDE( "Result of prepare failed? %s at-or near char %")_size_f WIDE("[%") _cstring_f WIDE("] in [%") _string_f WIDE("]" ), tmp, tail - query, tail, query );
+			vtprintf( collection->pvt_errorinfo, WIDE( "Result of prepare failed? (%d) %s at-or near char %")_size_f WIDE("[%") _cstring_f WIDE("] in [%") _string_f WIDE("]" ), rc3, tmp, tail - query, tail, query );
 			if( EnsureLogOpen(odbc ) )
 			{
 				sack_fprintf( g.pSQLLog, WIDE( "#SQLITE ERROR:%s\n" ), GetText( VarTextPeek( collection->pvt_errorinfo ) ) );
