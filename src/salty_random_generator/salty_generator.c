@@ -1,5 +1,4 @@
 #include <stdhdrs.h>
-#include <deadstart.h>
 #ifndef SALTY_RANDOM_GENERATOR_SOURCE
 #define SALTY_RANDOM_GENERATOR_SOURCE
 #endif
@@ -11,6 +10,7 @@
 
 //#define K12_PRE_TEST
 #ifdef K12_PRE_TEST
+#include <deadstart.h>
 
 PRELOAD( zz ) {
 	KangarooTwelve_Instance i;

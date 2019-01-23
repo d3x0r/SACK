@@ -62,7 +62,6 @@ typedef struct treeroot_tag {
 	int depth;
 	int children;
 	uint32_t lock;
-
 #ifdef DEFINE_BINARYLIST_PERF_COUNTERS
 	int maxHeights[30];
 	int maxSwaps[10];
@@ -70,7 +69,6 @@ typedef struct treeroot_tag {
 	int balancedFromLeft;
 	int balancedFromRight;
 #endif
-
 	GenericDestroy Destroy;
 	GenericCompare Compare;
 	PTREENODE tree;

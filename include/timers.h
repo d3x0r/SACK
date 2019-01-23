@@ -40,7 +40,7 @@
 // this is a method replacement to use PIPEs instead of SEMAPHORES
 // replacement code only affects linux.
 #if defined( __QNX__ ) || defined( __MAC__) || defined( __LINUX__ )
-#  if defined( __ANDROID__ )
+#  if defined( __ANDROID__ ) || defined( EMSCRIPTEN )
 // android > 21 can use pthread_mutex_timedop
 #    define USE_PIPE_SEMS
 #  else

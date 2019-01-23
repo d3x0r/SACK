@@ -84,6 +84,10 @@ enum block_cache_entries
 	, BC(DATAKEY)
 	, BC(FILE)
 	, BC(FILE_LAST) = BC(FILE) + 32
+#ifdef VIRTUAL_OBJECT_STORE
+	, BC( TIMELINE )
+	, BC( TIMELINE_LAST ) = BC( TIMELINE ) + 6
+#endif
 	, BC(COUNT)
 };
 
@@ -103,23 +107,71 @@ PREFIX_PACKED struct directory_entry
 	BLOCKINDEX first_block;  // first block of data of the file
 	VFS_DISK_DATATYPE filesize;  // how big the file is
 #ifdef VIRTUAL_OBJECT_STORE
-	uint64_t tick;  // when the file was created/last written
+	uint64_t timelineEntry;  // when the file was created/last written
 #endif
-	//uint32_t filler;  // extra data(unused)
 } PACKED;
 
 #undef VFS_DIRECTORY_ENTRIES
 #ifdef VIRTUAL_OBJECT_STORE
 // subtract name has index
 // subtrace name index 
-#define VFS_DIRECTORY_ENTRIES ( ( BLOCK_SIZE - ( 2*sizeof(BLOCKINDEX) + 256*sizeof(BLOCKINDEX)) ) /sizeof( struct directory_entry) )
-#define VFS_PATCH_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
+#  define VFS_DIRECTORY_ENTRIES ( ( BLOCK_SIZE - ( 2*sizeof(BLOCKINDEX) + 256*sizeof(BLOCKINDEX)) ) /sizeof( struct directory_entry) )
+#  define VFS_PATCH_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
 #else
-#define VFS_DIRECTORY_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
-#define VFS_PATCH_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
+#  define VFS_DIRECTORY_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
+#  define VFS_PATCH_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
 #endif
 
 
+#ifdef VIRTUAL_OBJECT_STORE
+
+typedef FPI TIMELINE_BLOCK_TYPE;
+typedef uint64_t TIMELINE_TIME_TYPE;
+
+PREFIX_PACKED struct timelineHeader {
+	uint32_t timeline_length;
+	FPI first_free_entry;
+	FPI lastNode;
+} PACKED;
+
+PREFIX_PACKED struct storageTimelineNode {
+	// if next == 0; it's free.
+	TIMELINE_BLOCK_TYPE next;         // FPI/32 within timeline chain
+	TIMELINE_BLOCK_TYPE dirent_fpi;   // FPI on disk
+	TIMELINE_TIME_TYPE ctime;        // file time tick/ created stamp, sealing stamp
+	TIMELINE_TIME_TYPE stime;        // time file was stored
+} PACKED;
+
+#define NUM_ROOT_TIMELINE_NODES (BLOCK_SIZE - sizeof( struct timelineHeader )) / sizeof( struct storageTimelineNode )
+PREFIX_PACKED struct storageTimeline {
+	struct timelineHeader header;
+	struct storageTimelineNode entries[NUM_ROOT_TIMELINE_NODES];
+} PACKED;
+
+#define NUM_TIMELINE_NODES (BLOCK_SIZE) / sizeof( struct storageTimelineNode )
+PREFIX_PACKED struct storageTimelineBlock {
+	struct storageTimelineNode entries[(BLOCK_SIZE) / sizeof( struct storageTimelineNode )];
+} PACKED;
+
+struct dirent_cache {
+	BLOCKINDEX entry_fpi;
+	struct directory_entry entry;  // has file size within
+	struct directory_entry entry_key;  // has file size within
+
+	struct dirent_cache *patches;
+	int usedPatches;
+	int availPatches;
+} dirCache;
+
+
+struct storageTimelineCursor {
+	BLOCKINDEX timelineSector;
+	FPI dirEntry[BLOCK_SIZE / sizeof( FPI )];
+	struct dirent_cache caches[BLOCK_SIZE / sizeof( FPI )];
+	//	struct dirent_cache caches[BLOCK_SIZE / sizeof( FPI )];
+};
+
+#endif
 
 struct disk
 {
@@ -138,9 +190,8 @@ struct disk
 
 #ifdef SACK_VFS_FS_SOURCE
 
-
-#define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
-#define BTSEEK(type,v,o,c) ((type)vfs_fs_BSEEK(v,o,&c))
+#  define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
+#  define BTSEEK(type,v,o,c) ((type)vfs_fs_BSEEK(v,o,&c))
 
 
 #else
@@ -148,13 +199,13 @@ struct disk
 
 PREFIX_PACKED struct volume {
 	const char * volname;
-#ifdef FILE_BASED_VFS
+#  ifdef FILE_BASED_VFS
 	FILE *file;
 	struct file_system_mounted_interface *mount;
-#else
+#  else
 	struct disk *disk;
 	struct disk *diskReal; // disk might be offset from diskReal because it's a .exe attached.
-#endif
+#  endif
 	//uint32_t dirents;  // constant 0
 	//uint32_t nameents; // constant 1
 	uintptr_t dwSize;
@@ -164,15 +215,17 @@ PREFIX_PACKED struct volume {
 	enum block_cache_entries curseg;
 	BLOCKINDEX _segment[BC(COUNT)];// cached segment with usekey[n]
 	BLOCKINDEX segment[BC(COUNT)];// associated with usekey[n]
-#ifdef VIRTUAL_OBJECT_STORE
+#  ifdef VIRTUAL_OBJECT_STORE
+	//BLOCKINDEX timelineStart; // constant 2
+	struct storageTimelineCursor timeline;
 	FLAGSET( seglock, BC( COUNT ) );  // segment is locked into cache.
-#endif
+#  endif
 
 	uint8_t fileCacheAge[BC(FILE_LAST) - BC(FILE)];
-#ifdef VIRTUAL_OBJECT_STORE
+#  ifdef VIRTUAL_OBJECT_STORE
 	uint8_t dirHashCacheAge[BC(DIRECTORY_LAST) - BC(DIRECTORY)];
 	uint8_t batHashCacheAge[BC(BAT_LAST) - BC(BAT)];
-#endif
+#  endif
 	uint8_t nameCacheAge[BC(NAMES_LAST) - BC(NAMES)];
 
 	struct random_context *entropy;
@@ -183,13 +236,13 @@ PREFIX_PACKED struct volume {
 	size_t sigkeyLength;
 	uint8_t* usekey[BC(COUNT)]; // composite key
 
-#ifdef FILE_BASED_VFS
+#  ifdef FILE_BASED_VFS
 	uint8_t* key_buffer;  // root buffer space of all cache blocks
 	uint8_t* usekey_buffer[BC(COUNT)]; // data cache blocks
 	FLAGSET( dirty, BC(COUNT) );
 	FLAGSET( _dirty, BC( COUNT ) );
 	FPI bufferFPI[BC(COUNT)];
-#endif
+#  endif
 	BLOCKINDEX lastBatBlock;
 	PDATALIST pdlFreeBlocks;
 	PLIST files; // when reopened file structures need to be updated also...
@@ -202,12 +255,26 @@ PREFIX_PACKED struct volume {
 } PACKED;
 
 
+#  ifdef VIRTUAL_OBJECT_STORE
+struct sack_vfs_os_file_timeline {
+	FPI next;          // FPI/32
+
+	FPI dirent_fpi;    // FPI
+
+	uint64_t ctime;         // file time tick
+	uint64_t stime;         // file time tick
+
+	FPI this_fpi;
+};
+#  endif
+
 struct sack_vfs_file
 {
-#ifdef FILE_BASED_VFS
+#  ifdef FILE_BASED_VFS
 	FPI entry_fpi;  // where to write the directory entry update to
-#ifdef VIRTUAL_OBJECT_STORE
+#    ifdef VIRTUAL_OBJECT_STORE
 	enum block_cache_entries cache;
+	struct sack_vfs_os_file_timeline timeline;
 	uint8_t *seal;
 	uint8_t *sealant;
 	uint8_t *readKey;
@@ -215,12 +282,12 @@ struct sack_vfs_file
 	uint8_t sealantLen;
 	uint8_t sealed; // boolean, on read, validates seal.  Defaults to FALSE.
 	char *filename;
-#endif
+#    endif
 	struct directory_entry _entry;  // has file size within
 	struct directory_entry *entry;  // has file size within
-#else
+#  else
 	struct directory_entry *entry;  // has file size within
-#endif
+#  endif
 	struct directory_entry dirent_key;
 	struct volume *vol; // which volume this is in
 	FPI fpi;
@@ -232,18 +299,18 @@ struct sack_vfs_file
 	unsigned int blockChainLength;
 };
 
-#undef TSEEK
-#undef BTSEEK
-#ifdef VIRTUAL_OBJECT_STORE
-#define TSEEK(type,v,o,c) ((type)vfs_os_SEEK(v,o,&c))
-#define BTSEEK(type,v,o,c) ((type)vfs_os_BSEEK(v,o,&c))
-#elif defined FILE_BASED_VFS
-#define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
-#define BTSEEK(type,v,o,c) ((type)vfs_fs_BSEEK(v,o,&c))
-#else
-#define TSEEK(type,v,o,c) ((type)vfs_SEEK(v,o,&c))
-#define BTSEEK(type,v,o,c) ((type)vfs_BSEEK(v,o,&c))
-#endif
+#  undef TSEEK
+#  undef BTSEEK
+#  ifdef VIRTUAL_OBJECT_STORE
+#    define TSEEK(type,v,o,c) ((type)vfs_os_SEEK(v,o,&c))
+#    define BTSEEK(type,v,o,c) ((type)vfs_os_BSEEK(v,o,&c))
+#  elif defined FILE_BASED_VFS
+#    define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
+#    define BTSEEK(type,v,o,c) ((type)vfs_fs_BSEEK(v,o,&c))
+#  else
+#    define TSEEK(type,v,o,c) ((type)vfs_SEEK(v,o,&c))
+#    define BTSEEK(type,v,o,c) ((type)vfs_BSEEK(v,o,&c))
+#  endif
 
 #endif
 

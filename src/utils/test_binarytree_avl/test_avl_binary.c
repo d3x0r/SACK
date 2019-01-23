@@ -30,7 +30,8 @@ void DumpPerfStats( char *leader, PTREEROOT tree ) {
 int main( void ) {
 	PTREEROOT tree = CreateBinaryTree();
 	int i;
-	__declspec(dllimport) void c( PTREEROOT root, int **heights, int **swaps, int *maxScans, int*bfl, int *bfr );
+
+//	__declspec(dllimport) void c( PTREEROOT root, int **heights, int **swaps, int *maxScans, int*bfl, int *bfr );
 
 	for(  i = 0; i < 1000000; i++ ) {
 		AddBinaryNode( tree, i, i );

@@ -152,7 +152,11 @@ CTEXTSTR GetGUID( void )
    char str[37];
 	TEXTCHAR *out_guid;
 	CTEXTSTR out_guid2;
+#ifdef EMSCRIPTEN
+	uuid_generate( tmp );
+#else
 	uuid_generate_random ( tmp );
+#endif
    uuid_unparse( tmp, str );
    //uuid_unparse_lower( tmp, str );
    //uuid_unparse_upper( tmp, str );
@@ -167,7 +171,11 @@ CTEXTSTR GetSeqGUID( void )
    char str[37];
 	TEXTCHAR *out_guid;
 	CTEXTSTR out_guid2;
+#ifdef EMSCRIPTEN
+	uuid_generate( tmp );
+#else
 	uuid_generate_time( tmp );
+#endif
    uuid_unparse( tmp, str );
    //uuid_unparse_lower( tmp, str );
    //uuid_unparse_upper( tmp, str );
