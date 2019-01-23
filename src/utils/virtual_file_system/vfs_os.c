@@ -876,11 +876,10 @@ static BLOCKINDEX vfs_os_GetNextBlock( struct volume *vol, BLOCKINDEX block, int
 	}
 #endif
 	if( check_val == EOBBLOCK ) {
+		lprintf( "THIS NEEDS A NEW BAT BLOCK TO MOVE THE MARKER" );// should really never happen; no block-chain should end with EOBBLOCK
 		(this_BAT[block & (BLOCKS_PER_BAT-1)]) = EOFBLOCK^((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT-1)];
 		if( block < (BLOCKS_PER_BAT - 1) )
 			(this_BAT[1 + block & (BLOCKS_PER_BAT - 1)]) = EOBBLOCK ^ ((BLOCKINDEX*)vol->usekey[BC( BAT )])[1 + block & (BLOCKS_PER_BAT - 1)];
-		//else
-		//	lprintf( "THIS NEEDS A NEW BAT BLOCK TO MOVE THE MARKER" );//
 	}
 	if( check_val == EOFBLOCK || check_val == EOBBLOCK ) {
 		if( expand ) {
