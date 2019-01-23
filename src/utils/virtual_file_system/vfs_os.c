@@ -1364,7 +1364,7 @@ void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) 
 	struct storageTimeline *timeline = (struct storageTimeline *)vfs_os_BSEEK( vol, curBlock = FIRST_TIMELINE_BLOCK, &cache );
 	struct storageTimeline *timelineKey = (struct storageTimeline *)(vol->usekey[cache]);
 	FPI next =
-#ifdef GCC
+#ifdef __GNUC__
 		0;
 #else
 		offsetof( struct storageTimeline, entries[ ( timeline->header.timeline_length ^ timelineKey->header.timeline_length) ] );
@@ -1408,7 +1408,7 @@ void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) 
 						time->this_fpi = curBlock * BLOCK_SIZE;
 					}
 					else {
-#ifdef GCC
+#ifdef __GNUC__
 						time->this_fpi = 0;
 #else
 						time->this_fpi = curBlock * BLOCK_SIZE + offsetof( struct storageTimeline, entries[lastEntryIndex + 1] );
@@ -1422,7 +1422,7 @@ void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) 
 						time->this_fpi = curBlock * BLOCK_SIZE;
 					}
 					else {
-#ifdef GCC
+#ifdef __GNUC__
 						time->this_fpi = 0;
 #else
 						time->this_fpi = curBlock * BLOCK_SIZE + offsetof( struct storageTimelineBlock, entries[lastEntryIndex + 1] );
