@@ -908,10 +908,11 @@ static BLOCKINDEX vfs_os_GetNextBlock( struct volume *vol, BLOCKINDEX block, int
 	}
 #endif
 	if( check_val == EOBBLOCK ) {
-		lprintf( "THIS NEEDS A NEW BAT BLOCK TO MOVE THE MARKER" );// should really never happen; no block-chain should end with EOBBLOCK
 		(this_BAT[block & (BLOCKS_PER_BAT-1)]) = EOFBLOCK^((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT-1)];
 		if( block < (BLOCKS_PER_BAT - 1) )
 			(this_BAT[1 + block & (BLOCKS_PER_BAT - 1)]) = EOBBLOCK ^ ((BLOCKINDEX*)vol->usekey[BC( BAT )])[1 + block & (BLOCKS_PER_BAT - 1)];
+		//else
+		//	lprintf( "THIS NEEDS A NEW BAT BLOCK TO MOVE THE MARKER" );//
 	}
 	if( check_val == EOFBLOCK || check_val == EOBBLOCK ) {
 		if( expand ) {
@@ -1362,7 +1363,12 @@ void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) 
 	//uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
 	struct storageTimeline *timeline = (struct storageTimeline *)vfs_os_BSEEK( vol, curBlock = FIRST_TIMELINE_BLOCK, &cache );
 	struct storageTimeline *timelineKey = (struct storageTimeline *)(vol->usekey[cache]);
-	FPI next = offsetof( struct storageTimeline, entries[ ( timeline->header.timeline_length ^ timelineKey->header.timeline_length) ] );
+	FPI next =
+#ifdef GCC
+		0;
+#else
+		offsetof( struct storageTimeline, entries[ ( timeline->header.timeline_length ^ timelineKey->header.timeline_length) ] );
+#endif
 
 	struct storageTimelineNode *timelineNode;
 	struct storageTimelineNode *timelineNodeKey;
@@ -1402,7 +1408,11 @@ void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) 
 						time->this_fpi = curBlock * BLOCK_SIZE;
 					}
 					else {
+#ifdef GCC
+						time->this_fpi = 0;
+#else
 						time->this_fpi = curBlock * BLOCK_SIZE + offsetof( struct storageTimeline, entries[lastEntryIndex + 1] );
+#endif
 					}
 				}
 				else {
@@ -1412,7 +1422,11 @@ void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) 
 						time->this_fpi = curBlock * BLOCK_SIZE;
 					}
 					else {
+#ifdef GCC
+						time->this_fpi = 0;
+#else
 						time->this_fpi = curBlock * BLOCK_SIZE + offsetof( struct storageTimelineBlock, entries[lastEntryIndex + 1] );
+#endif
 					}
 				}
 				timelineNextNode = (struct storageTimelineNode*) vfs_os_DSEEK( vol, time->this_fpi, &cache_new, (POINTER*)&timelineNextNodeKey );
