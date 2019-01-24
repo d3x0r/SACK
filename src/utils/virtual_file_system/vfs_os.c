@@ -823,14 +823,14 @@ static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS )
 	if( vol->pdlFreeBlocks->Cnt ) {
 		BLOCKINDEX newblock = ((BLOCKINDEX*)GetDataItem( &vol->pdlFreeBlocks, vol->pdlFreeBlocks->Cnt - 1 ))[0];
 		check_val = 0;
-		b = (unsigned int)(newblock / BLOCKS_PER_SECTOR);
-		n = newblock % BLOCKS_PER_SECTOR;
+		b = (unsigned int)(newblock / BLOCKS_PER_BAT);
+		n = newblock % BLOCKS_PER_BAT;
 		vol->pdlFreeBlocks->Cnt--;
 	}
 	else {
 		check_val = EOBBLOCK;
-		b = (unsigned int)(vol->lastBatBlock / BLOCKS_PER_SECTOR);
-		n = vol->lastBatBlock % BLOCKS_PER_SECTOR;
+		b = (unsigned int)(vol->lastBatBlock / BLOCKS_PER_BAT);
+		n = vol->lastBatBlock % BLOCKS_PER_BAT;
 	}
 	//lprintf( "check, start, b, n %d %d %d %d", (int)check_val, (int) vol->lastBatBlock, (int)b, (int)n );
 	current_BAT = TSEEK( BLOCKINDEX*, vol, b*BLOCKS_PER_SECTOR*BLOCK_SIZE, cache ) + n;
@@ -850,7 +850,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS )
 			current_BAT = TSEEK( BLOCKINDEX*, vol, (b + 1) * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
 			blockKey = ((BLOCKINDEX*)vol->usekey[cache]);
 			current_BAT[0] = EOBBLOCK ^ blockKey[0];
-			vol->lastBatBlock = (b + 1) * BLOCKS_PER_SECTOR;
+			vol->lastBatBlock = (b + 1) * BLOCKS_PER_BAT;
 			//lprintf( "Set last block....%d", (int)vol->lastBatBlock );
 		}
 		SETFLAG( vol->dirty, cache );
