@@ -56,6 +56,10 @@ set( RANDOM_SOURCES
   ${SOURCES_ROOT}src/salty_random_generator/crypt_util.c
   ${SOURCES_ROOT}src/salty_random_generator/block_shuffle.c
   ${SOURCES_ROOT}src/salty_random_generator/mersenne/mt19937ar.c
+  ${SHA1_SOURCES}
+  ${SHA2_SOURCES}
+  ${SHA3_SOURCES}
+  ${K12_SOURCES}
   )
 SET_SOURCE_FILES_PROPERTIES( ${RANDOM_SOURCES} PROPERTIES
 		COMPILE_FLAGS ${K12_INCLUDES} )
@@ -66,7 +70,6 @@ set( RANDOM_SOURCES_FLAGS SALTY_RANDOM_GENERATOR_SOURCE )
 
 
 set(UNSORTED_SOURCES
-  ${RANDOM_SOURCES}
   ${SOURCES_ROOT}src/sysloglib/syslog.c
   ${SOURCES_ROOT}src/memlib/sharemem.c
   ${SOURCES_ROOT}src/memlib/memory_operations.c
@@ -245,10 +248,11 @@ if( NOT __NO_ODBC__ OR USE_SQLITE )
   SET_SOURCE_FILES_PROPERTIES( ${ODBC_SOURCES} PROPERTIES
 		FOLDER "Source Files\\ODBC" )
 
+  set( ODBC_SOURCES ${ODBC_SOURCES} ${RANDOM_SOURCES} )
+
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
 
 if( NOT __NO_ODBC__ OR USE_SQLITE )
-
 
 if( USE_SQLITE )
   SET( BAG_SQLITE_INTERFACE  ${SOURCES_ROOT}src/contrib/sqlite/sqlite_interface.c )

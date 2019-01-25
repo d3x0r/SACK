@@ -92,8 +92,8 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 {
 	SOCKET	  rawSocket;
 	struct hostent *lpHost;
-	struct sockaddr_in saDest;
-	struct sockaddr_in saSrc;
+	struct win_sockaddr_in saDest;
+	struct win_sockaddr_in saSrc;
 	uint64_t	     dwTimeSent;
 	uint8_t     cTTL;
 	int        nLoop;
@@ -284,7 +284,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
       {
          // Send ICMP echo request
          dwTimeSent = GetCPUTick();
-         if( SendEchoRequest(pvtResult, rawSocket, &saDest) <= 0)
+         if( SendEchoRequest(pvtResult, rawSocket, (struct sockaddr_in*)&saDest) <= 0)
          {
             closesocket( rawSocket );
 				LeaveCriticalSec( &cs );
@@ -315,7 +315,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
             if( dwTimeNow < MinTime )
                MinTime = dwTimeNow;
 
-            if( !RecvEchoReply( pvtResult, rawSocket, &saSrc, &cTTL) )
+            if( !RecvEchoReply( pvtResult, rawSocket, (struct sockaddr_in*)&saSrc, &cTTL) )
             {
                 if( pvtResult )
                     ReportError( pvtResult, WIDE("recv()") );
