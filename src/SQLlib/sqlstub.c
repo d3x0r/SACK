@@ -2843,8 +2843,9 @@ retry:
 #endif
 		if( rc3 )
 		{
+			char *realSql = sqlite3_expanded_sql( collection->stmt );
 			vtprintf( collection->pvt_errorinfo, "Result of prepare failed? %s at char %" _size_f "[%" _string_f "] in [%" _string_f "]"
-			       , sqlite3_errmsg(odbc->db), tail - GetText(cmd), tail, GetText(cmd) );
+			       , sqlite3_errmsg(odbc->db), tail - GetText(cmd), tail, realSql );
 			if( EnsureLogOpen(odbc ) )
 			{
 				sack_fprintf( g.pSQLLog, WIDE("#SQLITE ERROR:%") _string_f WIDE("\n"), GetText( VarTextPeek( collection->pvt_errorinfo ) ) );
@@ -4278,6 +4279,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 	{
 		DebugBreak();
 	}
+	lprintf( "DING %p", pdlParams );
 	if( !IsSQLOpen( odbc ) )
 	{
 		return FALSE;
@@ -4399,8 +4401,6 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 		} else {
 			if( pdlParams ) {
 				__DoSQLiteBinding( collection->stmt, pdlParams );
-				//char *realSql = sqlite3_expanded_sql( collection->stmt );
-				//lprintf( "DO:%s", realSql );
 			}
 			if( odbc->flags.bAutoCheckpoint && !sqlite3_stmt_readonly( collection->stmt ) )				
 				startAutoCheckpoint( odbc );
