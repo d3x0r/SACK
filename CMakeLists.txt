@@ -306,7 +306,9 @@ endif( APPLE )
 
 if( MSVC )
   #add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996 )
-  add_definitions( -wd4996 )
+# 4068 - unknown prgama
+# 4244 - rcoord - int conversion
+  add_definitions( -wd4996  -wd4244 -wd4068 )
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP8")
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP8")
