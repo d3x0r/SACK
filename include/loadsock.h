@@ -92,7 +92,10 @@ struct win_in_addr {
 	} S_un;
 
 #ifndef __ANDROID__
+
+
 #define s_addr  S_un.S_addr
+
 /* can be used for most tcp & ip code */
 #define s_host  S_un.S_un_b.s_b2
 	/* host on imp */
