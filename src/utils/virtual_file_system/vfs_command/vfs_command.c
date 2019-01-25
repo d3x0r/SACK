@@ -64,6 +64,66 @@ static void testVolume( void ) {
 	l.current_vol;
 }
 
+static void testVolume_alt( void ) {
+	struct sack_vfs_file *db;
+	struct sack_vfs_file *dbj;
+	uint16_t buffer[2048];
+	int n;
+	int nj;
+	int _n;
+	db = sack_vfs_openfile( l.current_vol, "test.db" );
+	if( !db ) {
+		printf( " Failed to open test db in current vfs.\n" );
+		return;
+	}
+	for( n = 0; n < 100000; ) {
+		int b;
+		//do {
+		if( !n ) {
+			for( nj = 0; nj < 792; nj++ ) {
+				for( b = 0; b < 2048; b++ ) buffer[b] = (n & 0xFFFF);
+				sack_vfs_write( db, buffer, 4096 );
+				n++;
+			}
+		}
+			//n++;
+		//} while( (n % 2) );
+		dbj = sack_vfs_openfile( l.current_vol, "test.db-journal" );
+		for( nj = 0; nj < 1; nj++ ) {
+			for( b = 0; b < 2048; b++ ) buffer[b] = (nj & 0xFFFF);
+			sack_vfs_write( dbj, buffer, 4096 );
+			//n++;
+			for( b = 0; b < 2048; b++ ) buffer[b] = (n & 0xFFFF);
+			sack_vfs_write( db, buffer, 4096 );
+			n++;
+		}
+
+		sack_vfs_close( dbj );
+		sack_vfs_unlink_file( l.current_vol, "test.db-journal" );
+
+		/*
+		for( b = 0; b < 2048; b++ ) buffer[b] = (n & 0xFFFF);
+		sack_vfs_write( db, buffer, 4096 );
+		n++;
+		*/
+		if( (n - _n ) > 100 ) {
+			int check;
+			_n = n;
+			for( check = 0; check < n; check++ ) {
+				uint16_t val;
+				sack_vfs_seek( db, check * 4096, SEEK_SET );
+				sack_vfs_read( db, &val, 2 );
+				if( val != (check & 0xFFFF) ) {
+					printf( "BREAK" );
+				}
+			}
+			sack_vfs_seek( db, (check) * 4096, SEEK_SET );
+		}
+	}
+
+	l.current_vol;
+}
+
 static void testVolume_slow( void ) {
 	FILE *db;
 	FILE *dbj;
@@ -600,7 +660,21 @@ SaneWinMain( argc, argv )
 			arg+=4;
 		}
 		else if( StrCaseCmp( argv[arg], "test" ) == 0 ) {
-			testVolume();
+			arg++;
+			switch( argv[arg][0] ) {
+			default:
+				arg--; // next argument isn't a test number; go back 1.
+				/*fallthrough*/
+			case '1':
+				testVolume();
+				break;
+			case '2':
+				testVolume_slow();
+				break;
+			case '3':
+				testVolume_alt();
+				break;
+			}
 			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "extract" ) == 0 )

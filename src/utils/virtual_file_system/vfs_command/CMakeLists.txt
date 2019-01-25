@@ -10,9 +10,18 @@ sack_add_executable( ${PROJECT} ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils/vfs
 )
+SET_PROPERTY(TARGET ${PROJECT} APPEND PROPERTY COMPILE_DEFINITIONS "VFS_DISK_DATATYPE=uint32_t" )
 
 target_link_libraries( ${PROJECT} sack_vfs.module ${SACK_CORE_LIBRARY} )
 install_mode_dest( ${PROJECT} )
+
+
+sack_add_executable( ${PROJECT}.64 ${BASE_SOURCES} )
+SET_TARGET_PROPERTIES(${PROJECT}.64 PROPERTIES FOLDER utils/vfs )
+target_link_libraries( ${PROJECT}.64 sack_vfs.module ${SACK_CORE_LIBRARY} )
+install_mode_dest( ${PROJECT}.64 )
+SET_PROPERTY(TARGET ${PROJECT}.64 APPEND PROPERTY COMPILE_DEFINITIONS "VFS_DISK_DATATYPE=uint64_t" )
+
 
 string( REPLACE ";" " " K12_SOURCES_ARG "${K12_SOURCES}" )
 string( REPLACE ";" " " K12_INCLUDE_ARG "${K12_INCLUDES}" )
