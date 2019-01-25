@@ -640,7 +640,7 @@ static BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int in
 	}
 	check_val ^= ((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT-1)];
 	if( check_val == EOBBLOCK ) {
-		lprintf( "the file itself should never get a EOBBLOCK in it." );
+		lprintf( "the file itself should never get a EOBBLOCK in it. %d  %d", (int)block, (int)sector );
 		(*(int*)0) = 0;
 		// the file itself should never get a EOBBLOCK in it.
 		//(this_BAT[block & (BLOCKS_PER_BAT-1)]) = EOFBLOCK^((BLOCKINDEX*)vol->usekey[BC(BAT)])[block & (BLOCKS_PER_BAT-1)];
