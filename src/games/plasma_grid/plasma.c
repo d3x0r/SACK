@@ -338,7 +338,7 @@ void PlasmaRender( struct plasma_patch *plasma, RCOORD *seed )
 	}
 	else
 	{
-		SRG_SaveState( plasma->entropy, &plasma->entopy_state );
+		SRG_SaveState( plasma->entropy, &plasma->entopy_state, NULL );
 		plasma->saved_seed_corner = plasma->seed_corner;
 	}
 	plasma->min_height = 0;
