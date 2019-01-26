@@ -4279,7 +4279,6 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 	{
 		DebugBreak();
 	}
-	lprintf( "DING %p", pdlParams );
 	if( !IsSQLOpen( odbc ) )
 	{
 		return FALSE;
