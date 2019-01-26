@@ -104,7 +104,7 @@ void mapData( struct distribution *d ) {
 	int underAvg = 0;
 	int n;
 	uint64_t avg;
-
+	int i;
 	lprintf( "Average = total / units. %"PRId64, avg = d->total / d->units );
 
 	for( n = 0; n < d->units; n++ ) {
@@ -113,7 +113,7 @@ void mapData( struct distribution *d ) {
 			if( d->unit_counters[n] > orderedCounters[m - 1] )
 				break;
 		}
-		for( int i = n; i > m; i-- ) {
+		for( i = n; i > m; i-- ) {
 			orderedCounters[i] = orderedCounters[i-1];
 			orderedDeltas[i] = orderedDeltas[i - 1];
 		}
@@ -139,7 +139,7 @@ void mapData( struct distribution *d ) {
 	lprintf( "medians = %d %d", orderedCounters[d->units / 2], orderedCounters[d->units / 2 + 1] );
 
 	if( d->units < 20 )
-	for( int i = 0; i < d->units; i++ ) {
+	for( i = 0; i < d->units; i++ ) {
 		int n;
 		int m;
 		n = i;
@@ -219,6 +219,7 @@ SaneWinMain( argc, argv )
 		useSeed = 0;
 	}
 	uint32_t opts = 0;
+	int i;
 	int start = timeGetTime();
 	int end = 0;
 	seed = GetTickCount();
@@ -234,7 +235,7 @@ SaneWinMain( argc, argv )
 	mapData( d );
 
 	start = timeGetTime();
-	for( int i = 0; i < 200; i++ )
+	for( i = 0; i < 200; i++ )
 		AddSomeDistribution( d, entropy );
 	end = timeGetTime();
 	lprintf( "2bits 200,000,000 in %d   %d", end - start, (200000000) / (end - start) );
@@ -242,45 +243,45 @@ SaneWinMain( argc, argv )
 
 	struct distribution *d2 = GetDistribution( 16 );
 	start = timeGetTime();
-	for( int i = 0; i < 100; i++ )
+	for( i = 0; i < 100; i++ )
 		AddSomeDistribution( d2, entropy );
 	end = timeGetTime();
 	lprintf( "16bits 100,000,000 in %d   %d", end - start, (100000000) / (end - start) );
 	mapData( d2 );
 
 	start = timeGetTime();
-	for( int i = 0; i < 900; i++ )
+	for( i = 0; i < 900; i++ )
 		AddSomeDistribution( d2, entropy );
 	end = timeGetTime();
 	lprintf( "16bits 900,000,000 in %d   %d", end - start, (900000000) / (end - start) );
 	mapData( d2 );
 
 	start = timeGetTime();
-	for( int i = 0; i < 250000000; i++ )
+	for( i = 0; i < 250000000; i++ )
 		SRG_GetEntropyBuffer( entropy, buffer, 1 );
 	end = timeGetTime();
 	lprintf( "1 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
 
 	start = timeGetTime();
-	for( int i = 0; i < 250000000; i++ )
+	for( i = 0; i < 250000000; i++ )
 		SRG_GetEntropyBuffer( entropy, buffer, 2 );
 	end = timeGetTime();
 	lprintf( "2 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
 
 	start = timeGetTime();
-	for( int i = 0; i < 250000000; i++ )
+	for( i = 0; i < 250000000; i++ )
 		SRG_GetEntropyBuffer( entropy, buffer, 4 );
 	end = timeGetTime();
 	lprintf( "4 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
 
 	start = timeGetTime();
-	for( int i = 0; i < 250000000; i++ )
+	for( i = 0; i < 250000000; i++ )
 		SRG_GetEntropyBuffer( entropy, buffer, 16 );
 	end = timeGetTime();
 	lprintf( "16 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
 
 	start = timeGetTime();
-	for( int i = 0; i < 100000000; i++ )
+	for( i = 0; i < 100000000; i++ )
 		SRG_GetEntropyBuffer( entropy, buffer, 256 );
 	end = timeGetTime();
 	lprintf( "256 bits 100,000,000 in %d   %d", end - start, (100000000) / (end - start) );
