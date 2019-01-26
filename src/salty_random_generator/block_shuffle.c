@@ -235,7 +235,8 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 			uint8_t *check = maps[1 - srcMap];
 			int n;
 			for( n = 0; n < 256; n++ ) {
-				for( int m = 0; m < 256; m++ ) {
+				int m;
+				for( m = 0; m < 256; m++ ) {
 					if( m == n ) continue;
 					if( check[n] == check[m] ) {
 						lprintf( "Index %d matches %d  %d", n, m, check[n] );
@@ -295,6 +296,7 @@ struct byte_shuffle_key *BlockShuffle_ByteShufflerSE( struct random_context *ctx
 		struct halfDeck left, right;
 		int s;
 		int useCards;
+		int outCard;
 
 		left.starts[0] = leftStacks[leftOrders[halves[n][0]][0]][0];
 		left.lens[0] = leftStacks[leftOrders[halves[n][0]][0]][1];
@@ -323,9 +325,10 @@ struct byte_shuffle_key *BlockShuffle_ByteShufflerSE( struct random_context *ctx
 		readRMap = maps[srcMap] + right.from;
 		writeMap = maps[1 - srcMap];
 		s = 0;
-		for( int outCard = 0; outCard < 256; ) {
+		for( outCard = 0; outCard < 256; ) {
+			int c;
 			useCards = stacks[s];
-			for( int c = 0; c < useCards; c++ ) {
+			for( c = 0; c < useCards; c++ ) {
 				if( lrStart ) {
 					(writeMap++)[0] = (readLMap++)[0];
 					outCard++;
@@ -406,8 +409,9 @@ struct byte_shuffle_key *BlockShuffle_ByteShufflerSE( struct random_context *ctx
 	{
 		uint8_t *check = maps[1 - srcMap];
 		int n;
+		int m;
 		for( n = 0; n < 256; n++ ) {
-			for( int m = 0; m < 256; m++ ) {
+			for( m = 0; m < 256; m++ ) {
 				if( m == n ) continue;
 				if( check[n] == check[m] ) {
 					lprintf( "Index %d matches %d  %d", n, m, check[n] );
