@@ -356,6 +356,7 @@ void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
 	, uint8_t **outBuf, size_t *outBufLen
 ) {
 	struct random_context *signEntropy = (struct random_context *)DequeLink( &crypt_local.plqCrypters );
+	size_t b;
 	if( !signEntropy )
 		signEntropy = SRG_CreateEntropy4( NULL, (uintptr_t)0 );
 	SRG_ResetEntropy( signEntropy );
@@ -377,7 +378,7 @@ void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
 	memcpy( outBuf[0], objBuf, objBufLen );  // copy contents for in-place encrypt.
 	((uint8_t*)(outBuf[0] + (*outBufLen) - 1))[0] = (uint8_t)(*outBufLen - objBufLen);
 
-	for( size_t b = 0; b < (*outBufLen); b += 4096 ) {
+	for( b = 0; b < (*outBufLen); b += 4096 ) {
 		size_t bs = (*outBufLen) - b;
 		if( bs > 4096 )
 			encryptBlock( bytKey, outBuf[0] + b, 4096, bufKey );
@@ -431,6 +432,7 @@ void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 ) {
 	
 	struct random_context *signEntropy = (struct random_context *)DequeLink( &crypt_local.plqCrypters );
+	size_t b;
 	if( !signEntropy )
 		signEntropy = SRG_CreateEntropy4( NULL, (uintptr_t)0 );
 	SRG_ResetEntropy( signEntropy );
@@ -443,7 +445,7 @@ void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 
 	outBuf[0] = NewArray( uint8_t, (*outBufLen) = objBufLen );
 
-	for( size_t b = 0; b < objBufLen; b += 4096 ) {
+	for( b = 0; b < objBufLen; b += 4096 ) {
 		size_t bs = objBufLen - b;
 		if( bs > 4096 )
 			decryptBlock( bytKey, objBuf + b, 4096, outBuf[0] + b, bufKey, 0 );
