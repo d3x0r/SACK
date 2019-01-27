@@ -309,10 +309,10 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 									lprintf( "Empty space should never be in a file chain." );
 									DebugBreak();
 								}
-								nextBlock_ = nextBlock;
 								b = nextBlock / (BLOCKS_PER_BAT);
 								nn = nextBlock & (BLOCKS_PER_BAT - 1);
 								if( !TESTFLAG( usedSectors, (b*BLOCKS_PER_BAT) + nn ) ) {
+									nextBlock_ = nextBlock;
 									SETFLAG( usedSectors, (b*BLOCKS_PER_BAT) + nn );
 									if( b != sector ) {
 										checkBAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + (b)* BLOCKS_PER_SECTOR*BLOCK_SIZE);
@@ -330,6 +330,10 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 									}
 								}
 								else {
+									if( nextBlock < ((sector*BLOCKS_PER_BAT) + m) ) {
+										// this is actually ok... we just iterated over the tail part of the file.
+										break;
+									}
 									lprintf( "THIS IS BAD - circular link; or otherwise %d  %d", (int)nextBlock, (int)nextBlock_ );
 									LogBinary( usedSectors, size * sizeof( FLAGSETTYPE ) );
 									DebugBreak();
