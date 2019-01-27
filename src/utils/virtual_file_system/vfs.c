@@ -29,11 +29,17 @@ SACK_VFS_NAMESPACE
 //#define PARANOID_INIT
 
 //#define DEBUG_TRACE_LOG
-
 #ifdef DEBUG_TRACE_LOG
 #define LoG( a,... ) lprintf( a,##__VA_ARGS__ )
 #else
 #define LoG( a,... )
+#endif
+
+//#define DEBUG_BAT_UPDATES
+#ifdef DEBUG_BAT_UPDATES
+#define LoGB( a,... ) lprintf( a,##__VA_ARGS__ )
+#else
+#define LoGB( a,... )
 #endif
 
 #define MMAP_BASED_VFS
@@ -255,8 +261,9 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 	if( vol->dwSize & 0xfFF ) {
 		lprintf( "Volume is setup to fail with an odd number of bytes total : %d %08x %08x", (int)(vol->dwSize & 0xFFF), vol->dwSize, vol->dwSize );
 	}
-	usedSectors = NewArray( FLAGSETTYPE, (vol->dwSize / 4096)/(CHAR_BIT*sizeof(FLAGSETTYPE) ) );
-	MemSet( usedSectors, 0, (vol->dwSize / 4096) / (CHAR_BIT) );
+	size_t size;
+	usedSectors = NewArray( FLAGSETTYPE, size= (2+(vol->dwSize / 4096)/(CHAR_BIT*sizeof(FLAGSETTYPE) )) );
+	MemSet( usedSectors, 0, size * sizeof( FLAGSETTYPE ) );
 
 	//if( vol->key ) 
 	{
@@ -281,52 +288,62 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 					vol->lastBatBlock = n + m;
 					break;
 				}
-				if( !TESTFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m ) ) {
-					if( block == EOFBLOCK )
-						SETFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m );
-					else {
-						enum block_cache_entries cache = BC( FILE );
-						BLOCKINDEX nextBlock = block;
-						BLOCKINDEX nextBlock_;
-						SETFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m );
-						while( nextBlock != EOFBLOCK ) {
-							int b = nextBlock / (BLOCKS_PER_BAT);
-							int nn = nextBlock & (BLOCKS_PER_BAT-1);
-							if( nextBlock == EOBBLOCK ) {
-								lprintf( "File chains hould not have EOB block in it." );
-								DebugBreak();
-							}
-							nextBlock_ = nextBlock;
-							if( !TESTFLAG( usedSectors, (b*BLOCKS_PER_BAT) + nn ) ) {
-								SETFLAG( usedSectors, (b*BLOCKS_PER_BAT) + nn );
-								if( b != sector ) {
-									checkBAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + (b)* BLOCKS_PER_SECTOR*BLOCK_SIZE);
-									checkBlockKey = ((BLOCKINDEX*)vol->usekey[BC( DATAKEY )]);
-									UpdateSegmentKey( vol, BC( DATAKEY ), ((b)* BLOCKS_PER_SECTOR) + 1 );
-									nextBlock = checkBAT[nn] ^ checkBlockKey[nn];
-								}
-								else {
-									nextBlock = BAT_[nn] ^ blockKey_[nn];
-								}
-								if( !nextBlock ) {
-									lprintf( "FELL OFF OF FILE CHAIN INTO EMPTY SPACE (0)!" );
+				if( block )
+					if( !TESTFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m ) ) {
+						if( block == EOFBLOCK )
+							SETFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m );
+						else {
+							int chainLen = 0;
+							enum block_cache_entries cache = BC( FILE );
+							BLOCKINDEX nextBlock = block;
+							BLOCKINDEX nextBlock_;
+							SETFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m );
+							while( nextBlock != EOFBLOCK ) {
+								int b;
+								int nn;
+								if( nextBlock == EOBBLOCK ) {
+									lprintf( "File chains hould not have EOB block in it." );
 									DebugBreak();
 								}
-							}
-							else {
-								lprintf( "THIS IS BAD - circular link; or otherwise %d", (int)nextBlock );
-								DebugBreak();
+								if( !nextBlock ) {
+									lprintf( "Empty space should never be in a file chain." );
+									DebugBreak();
+								}
+								nextBlock_ = nextBlock;
+								b = nextBlock / (BLOCKS_PER_BAT);
+								nn = nextBlock & (BLOCKS_PER_BAT - 1);
+								if( !TESTFLAG( usedSectors, (b*BLOCKS_PER_BAT) + nn ) ) {
+									SETFLAG( usedSectors, (b*BLOCKS_PER_BAT) + nn );
+									if( b != sector ) {
+										checkBAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + (b)* BLOCKS_PER_SECTOR*BLOCK_SIZE);
+										checkBlockKey = ((BLOCKINDEX*)vol->usekey[BC( DATAKEY )]);
+										UpdateSegmentKey( vol, BC( DATAKEY ), ((b)* BLOCKS_PER_SECTOR) + 1 );
+										nextBlock = checkBAT[nn] ^ checkBlockKey[nn];
+									}
+									else {
+										nextBlock = BAT_[nn] ^ blockKey_[nn];
+									}
+									if( !nextBlock ) {
+										lprintf( "FELL OFF OF FILE CHAIN INTO EMPTY SPACE (0)!" );
+										DebugBreak();
+									}
+								}
+								else {
+									lprintf( "THIS IS BAD - circular link; or otherwise %d", (int)nextBlock );
+									DebugBreak();
+								}
+								chainLen++;
 							}
 						}
 					}
-				}
-				else {
-					// block was already found in a previous file chain.
-				}
+					else {
+						// block was already found in a previous file chain.
+					}
 				if( block == EOFBLOCK ) continue;
 				if( block >= last_block ) return FALSE;
 				if( block == 0 ) {
-					vol->lastBatBlock = n + m; // use as a temp variable....
+					vol->lastBatBlock = (sector*BLOCKS_PER_BAT) + m; // use as a temp variable....
+					LoGB( "SET LAST BLOCK AVAIL: %d", (int)vol->lastBatBlock );
 					AddDataItem( &vol->pdlFreeBlocks, &vol->lastBatBlock );
 				}
 			}
@@ -466,6 +483,20 @@ static LOGICAL ExpandVolume( struct volume *vol ) {
 		}
 		new_disk = (struct disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
 		if( new_disk && vol->dwSize ) {
+			if( vol->dwSize & BLOCK_MASK ) {
+				size_t oldSize = vol->dwSize;
+				lprintf( "DISK IS A BAD SIZE... trying to fix!" );
+				Release( new_disk );
+				vol->dwSize = (vol->dwSize + BLOCK_SIZE) & ~BLOCK_MASK;
+				new_disk = (struct disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
+				if( !(vol->dwSize & BLOCK_MASK) ) {
+					MemSet( ((uint8_t*)new_disk) + oldSize, 0, vol->dwSize - oldSize );
+					lprintf( "DISK SHOULD BE OK now" );
+				}
+				else {
+					DebugBreak();
+				}
+			}
 			CloseSpace( vol->diskReal );
 			vol->diskReal = new_disk;
 #ifdef WIN32
@@ -637,6 +668,7 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, int init )
 	BLOCKINDEX check_val;
 	if( vol->pdlFreeBlocks->Cnt ) {
 		BLOCKINDEX newblock = ((BLOCKINDEX*)GetDataItem( &vol->pdlFreeBlocks, vol->pdlFreeBlocks->Cnt - 1 ))[0];
+		LoGB( "Got free block from existin tracked blocks:%d", newblock );
 		check_val = 0;
 		b = (unsigned int)(newblock / BLOCKS_PER_BAT);
 		n = newblock % BLOCKS_PER_BAT;
@@ -654,9 +686,11 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, int init )
 	if( !current_BAT ) return 0;
 
 	current_BAT[0] = EOFBLOCK ^ blockKey[0];
+	LoGB( "Write to BAT: EOF at %d  %d", (int)n, b * BLOCKS_PER_BAT + n );
 	if( (check_val == EOBBLOCK) ) {
 		if( n < (BLOCKS_PER_BAT - 1) ) {
 			current_BAT[1] = EOBBLOCK ^ blockKey[1];
+			LoGB( "Write to BAT: EOB at %d  %d", (int)n+1, b * BLOCKS_PER_BAT + n + 1 );
 			vol->lastBatBlock++;
 		}
 		else {
@@ -665,6 +699,7 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, int init )
 			current_BAT = TSEEK( BLOCKINDEX*, vol, (b + 1) * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
 			blockKey = ((BLOCKINDEX*)vol->usekey[cache]);
 			current_BAT[0] = EOBBLOCK ^ blockKey[0];
+			LoGB( "Write to BAT: EOF at %d  %d", (int)0, (b+1) * BLOCKS_PER_BAT );
 			vol->lastBatBlock = (b + 1) * BLOCKS_PER_BAT;
 			//lprintf( "Set last block....%d", (int)vol->lastBatBlock );
 		}
@@ -724,6 +759,7 @@ static BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int in
 #endif
 			// segment could already be set from the GetFreeBlock...
 			this_BAT[block & (BLOCKS_PER_BAT-1)] = check_val ^ key;
+			LoGB( "Write to BAT: Chain %d at %d  %d", check_val, (int)(block&(BLOCKS_PER_BAT-1)), block );
 		}
 	}
 	return check_val;
@@ -1008,7 +1044,6 @@ LOGICAL sack_vfs_encrypt_volume( struct volume *vol, uintptr_t version, CTEXTSTR
 			block = TSEEK( BLOCKINDEX*, vol, n * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
 			blockKey = ((BLOCKINDEX*)vol->usekey[cache]);
 
-			//vol->segment[BC(BAT)] = n + 1;
 			for( m = 0; m < BLOCKS_PER_BAT; m++ ) {
 				if( block[0] == EOBBLOCK ) done = TRUE;
 				else if( block[0] ) mask_block( vol, (n*BLOCKS_PER_BAT) + m );
@@ -1337,7 +1372,7 @@ size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const char * data, size
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
-	LoG( "Write to file %p %" _size_f "  @%" _size_f, file, length, ofs );
+	LoG( "Write to file %p %" _size_f "  @%" _size_f, file, length, file->fpi );
 	if( ofs ) {
 		enum block_cache_entries cache = BC(FILE);
 		uint8_t* block = (uint8_t*)vfs_BSEEK( file->vol, file->block, &cache );
@@ -1484,6 +1519,7 @@ static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_ent
 			memset( blockData, 0, BLOCK_SIZE );
 			block = vfs_GetNextBlock( vol, block, FALSE, FALSE );
 			this_BAT[_block & (BLOCKS_PER_BAT-1)] = _thiskey;
+			LoGB( "Write to BAT: 0 at %d  %d  (STORE FREE too)", (int)(_block&(BLOCKS_PER_BAT - 1)), _block );
 			AddDataItem( &vol->pdlFreeBlocks, &_block );
 			_block = block;
 		} while( block != EOFBLOCK );

@@ -31,7 +31,7 @@ static void testVolume( void ) {
 		printf( " Failed to open test db in current vfs.\n" );
 		return;
 	}
-	for( n = 0; n < 100000; n++ ) {
+	for( n = 0; n < 10000; n++ ) {
 		int b;
 
 		for( b = 0; b < 2048; b++ ) buffer[b] = (n & 0xFFFF);
@@ -76,11 +76,11 @@ static void testVolume_alt( void ) {
 		printf( " Failed to open test db in current vfs.\n" );
 		return;
 	}
-	for( n = 0; n < 100000; ) {
+	for( n = 0; n < 500; ) {
 		int b;
 		//do {
 		if( !n ) {
-			for( nj = 0; nj < 792; nj++ ) {
+			for( nj = 0; nj < 512; nj++ ) {
 				for( b = 0; b < 2048; b++ ) buffer[b] = (n & 0xFFFF);
 				sack_vfs_write( db, buffer, 4096 );
 				n++;
