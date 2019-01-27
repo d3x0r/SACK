@@ -250,24 +250,80 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 	BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
 	BLOCKINDEX last_block = ( slab * BLOCKS_PER_BAT ) / BLOCKS_PER_SECTOR;
 	BLOCKINDEX n;
-	if( vol->key ) {
-		for( n = first_slab; n < slab; n += BLOCKS_PER_SECTOR  ) {
+	int sector;
+	FLAGSETTYPE *usedSectors;
+	if( vol->dwSize & 0xfFF ) {
+		lprintf( "Volume is setup to fail with an odd number of bytes total : %d %08x %08x", (int)(vol->dwSize & 0xFFF), vol->dwSize, vol->dwSize );
+	}
+	usedSectors = NewArray( FLAGSETTYPE, (vol->dwSize / 4096)/(CHAR_BIT*sizeof(FLAGSETTYPE) ) );
+	MemSet( usedSectors, 0, (vol->dwSize / 4096) / (CHAR_BIT) );
+
+	//if( vol->key ) 
+	{
+		for( sector = 0, n = first_slab; n < slab; n += BLOCKS_PER_SECTOR, sector++ ) {
 			size_t m;
 			BLOCKINDEX *BAT; 
 			BLOCKINDEX *blockKey; 
-			BAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * BLOCK_SIZE);
-			blockKey = ((BLOCKINDEX*)vol->usekey[BC(BAT)]);
+			BLOCKINDEX *BAT_;
+			BLOCKINDEX *blockKey_;
+			BLOCKINDEX *checkBAT;
+			BLOCKINDEX *checkBlockKey;
+			BAT_      = BAT      = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * BLOCK_SIZE);
 			UpdateSegmentKey( vol, BC(BAT), n + 1 );
+			// have to update the key first... it might not be pointing at the right thing.
+			blockKey_ = blockKey = ((BLOCKINDEX*)vol->usekey[BC( BAT )]);
 
 			for( m = 0; m < BLOCKS_PER_BAT; m++ )
 			{
 				BLOCKINDEX block = BAT[0] ^ blockKey[0];
 				BAT++; blockKey++;
-				if( block == EOFBLOCK ) continue;
 				if( block == EOBBLOCK ) {
-					vol->lastBatBlock = n+m;
+					vol->lastBatBlock = n + m;
 					break;
 				}
+				if( !TESTFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m ) ) {
+					if( block == EOFBLOCK )
+						SETFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m );
+					else {
+						enum block_cache_entries cache = BC( FILE );
+						BLOCKINDEX nextBlock = block;
+						BLOCKINDEX nextBlock_;
+						SETFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m );
+						while( nextBlock != EOFBLOCK ) {
+							int b = nextBlock / (BLOCKS_PER_BAT);
+							int nn = nextBlock & (BLOCKS_PER_BAT-1);
+							if( nextBlock == EOBBLOCK ) {
+								lprintf( "File chains hould not have EOB block in it." );
+								DebugBreak();
+							}
+							nextBlock_ = nextBlock;
+							if( !TESTFLAG( usedSectors, (b*BLOCKS_PER_BAT) + nn ) ) {
+								SETFLAG( usedSectors, (b*BLOCKS_PER_BAT) + nn );
+								if( b != sector ) {
+									checkBAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + (b)* BLOCKS_PER_SECTOR*BLOCK_SIZE);
+									checkBlockKey = ((BLOCKINDEX*)vol->usekey[BC( DATAKEY )]);
+									UpdateSegmentKey( vol, BC( DATAKEY ), ((b)* BLOCKS_PER_SECTOR) + 1 );
+									nextBlock = checkBAT[nn] ^ checkBlockKey[nn];
+								}
+								else {
+									nextBlock = BAT_[nn] ^ blockKey_[nn];
+								}
+								if( !nextBlock ) {
+									lprintf( "FELL OFF OF FILE CHAIN INTO EMPTY SPACE (0)!" );
+									DebugBreak();
+								}
+							}
+							else {
+								lprintf( "THIS IS BAD - circular link; or otherwise %d", (int)nextBlock );
+								DebugBreak();
+							}
+						}
+					}
+				}
+				else {
+					// block was already found in a previous file chain.
+				}
+				if( block == EOFBLOCK ) continue;
 				if( block >= last_block ) return FALSE;
 				if( block == 0 ) {
 					vol->lastBatBlock = n + m; // use as a temp variable....
@@ -276,7 +332,11 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 			}
 			if( m < BLOCKS_PER_BAT ) break;
 		}
-	} else {
+	}
+#if 0
+	// complexity of the above code shouldn't HAVE To be replicated
+	// keyless disk works the same way.
+	else {
 		for( n = first_slab; n < slab; n += BLOCKS_PER_SECTOR  ) {
 			size_t m;
 			BLOCKINDEX *BAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * BLOCK_SIZE);
@@ -296,6 +356,8 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 			if( m < BLOCKS_PER_BAT ) break;
 		}
 	}
+#endif
+	Release( usedSectors );
 	if( !ScanDirectory( vol, NULL, NULL, 0 ) ) return FALSE;
 	return TRUE;
 }
