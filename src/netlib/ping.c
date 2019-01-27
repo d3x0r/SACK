@@ -92,8 +92,13 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 {
 	SOCKET	  rawSocket;
 	struct hostent *lpHost;
+#ifdef __LINUX__
 	struct win_sockaddr_in saDest;
 	struct win_sockaddr_in saSrc;
+#else
+	struct sockaddr_in saDest;
+	struct sockaddr_in saSrc;
+#endif
 	uint64_t	     dwTimeSent;
 	uint8_t     cTTL;
 	int        nLoop;
