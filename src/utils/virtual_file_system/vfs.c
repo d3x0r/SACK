@@ -334,7 +334,10 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 										// this is actually ok... we just iterated over the tail part of the file.
 										break;
 									}
-									lprintf( "THIS IS BAD - circular link; or otherwise %d  %d", (int)nextBlock, (int)nextBlock_ );
+									BAT[-1] = EOFBLOCK ^ blockKey[-1];
+									//return FALSE;
+
+									lprintf( "THIS IS BAD - cross-linked files; or otherwise %d  %d", (int)nextBlock, (int)nextBlock_ );
 									LogBinary( usedSectors, size * sizeof( FLAGSETTYPE ) );
 									DebugBreak();
 								}
