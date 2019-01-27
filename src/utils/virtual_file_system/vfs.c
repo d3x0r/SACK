@@ -325,11 +325,13 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 									}
 									if( !nextBlock ) {
 										lprintf( "FELL OFF OF FILE CHAIN INTO EMPTY SPACE (0)!" );
+										LogBinary( usedSectors, size * sizeof( FLAGSETTYPE ) );
 										DebugBreak();
 									}
 								}
 								else {
-									lprintf( "THIS IS BAD - circular link; or otherwise %d", (int)nextBlock );
+									lprintf( "THIS IS BAD - circular link; or otherwise %d  %d", (int)nextBlock, (int)nextBlock_ );
+									LogBinary( usedSectors, size * sizeof( FLAGSETTYPE ) );
 									DebugBreak();
 								}
 								chainLen++;
