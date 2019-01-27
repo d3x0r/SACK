@@ -86,11 +86,8 @@ SRG_EXPORT void SRG_SaveState( struct random_context *ctx, POINTER *external_buf
 // internally seeded by clocks 
 // Are thread safe; current thread pool is 32 before having to wait
 //
-// return a unique ID using SHA1
-SRG_EXPORT char * SRG_ID_Generator( void );
-
 // return a unique ID using SHA2_512
-SRG_EXPORT char * SRG_ID_Generator2( void );
+SRG_EXPORT char * SRG_ID_Generator( void );
 // return a unique ID using SHA2_256
 SRG_EXPORT char *SRG_ID_Generator_256( void );
 // return a unique ID using SHA3-keccak-512
