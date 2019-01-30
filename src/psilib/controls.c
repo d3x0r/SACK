@@ -2027,6 +2027,7 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 						if( device )
 							UnlockRenderer( device->pActImg );
 #endif
+						pc->flags.bCleaning = 0;
 						return;
 					}
 
