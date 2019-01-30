@@ -1506,7 +1506,7 @@ static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_ent
 	struct sack_vfs_file *file;
 	INDEX idx;
 	LIST_FORALL( vol->files, idx, struct sack_vfs_file *, file ) {
-		if( file->_first_block == entry->first_block ) {
+		if( file->_first_block == ( entry->first_block ^ entkey->first_block ) ) {
 			file_found = file;
 			file->delete_on_close = TRUE;
 		}
