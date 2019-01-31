@@ -236,7 +236,7 @@ namespace objStore {
 //     char result[44];
 //     sack_vfs_os_ioctl_store_rw_object( vol, data, sizeof( data ), result, 44 );
 // }
-#define sack_vfs_os_ioctl_store_rw_object( vol, obj,objlen, result, resultlen )                                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, FALSE, obj, objlen, NULL, 0, result, resultlen )
+#define sack_vfs_os_ioctl_store_rw_object( vol, obj,objlen, result, resultlen )                                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, FALSE, obj, objlen, NULL, 0, NULL, 0, result, resultlen )
 
 // re-write an object with new content using old ID.
 // returns TRUE/FALSE. true if the patch already exists, or was successfully written.
@@ -259,7 +259,7 @@ namespace objStore {
 //     char result[44];
 //     sack_vfs_os_ioctl_store_crypt_object( vol, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
 // }
-#define sack_vfs_os_ioctl_store_crypt_owned_object( vol, obj,objlen, seal,seallen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, TRUE,TRUE,  obj, objlen, seal, seallen, result, resultlen )
+#define sack_vfs_os_ioctl_store_crypt_owned_object( vol, obj,objlen, seal,seallen, readkey,readkeylen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, TRUE,TRUE,  obj, objlen, NULL, 0, seal, seallen, readkey,readkeylen, result, resultlen )
 
 // store data to a new sealed block.  Also encrypt the data
 // returns TRUE/FALSE. true if the object already exists, or was successfully written.
@@ -269,7 +269,7 @@ namespace objStore {
 //     char result[44];
 //     sack_vfs_os_ioctl_store_crypt_object( vol, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
 // }
-#define sack_vfs_os_ioctl_store_crypt_sealed_object( vol, obj,objlen, seal,seallen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, TRUE,FALSE,  obj, objlen, seal, seallen, result, resultlen )
+#define sack_vfs_os_ioctl_store_crypt_sealed_object( vol, obj,objlen, seal,seallen, readkey,readkeylen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, TRUE,FALSE,  obj, objlen, NULL, 0, seal, seallen, readkey,readkeylen, result, resultlen )
 
 // store patch to an existing sealed block.  (Writes never change existing data), also encrypt the data
 // returns TRUE/FALSE. true if the patch already exists, or was successfully written.
@@ -280,7 +280,7 @@ namespace objStore {
 //     char result[44];
 //     sack_vfs_os_ioctl_patch_crypt_object( vol, oldResult, sizeof( oldResult )-1, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
 // }
-#define sack_vfs_os_ioctl_patch_crypt_owned_object( vol, objId,objIdLen, obj,objlen, seal,seallen, result, resultlen ) sack_fs_ioctl( vol, SOSFSSIO_PATCH_OBJECT, TRUE, TRUE, objId, objIdLen, authId, authIdLen, obj, objlen, seal, seallen, result, resultlen )
+#define sack_vfs_os_ioctl_patch_crypt_owned_object( vol, objId,objIdLen, obj,objlen, seal,seallen, readkey,readkeylen, result, resultlen ) sack_fs_ioctl( vol, SOSFSSIO_PATCH_OBJECT, TRUE, TRUE, objId, objIdLen, authId, authIdLen, obj, objlen, seal, seallen, readkey,readkeylen, result, resultlen )
 
 
 // store patch to an existing sealed block.  (Writes never change existing data), also encrypt the data
@@ -302,7 +302,7 @@ namespace objStore {
 //     char result[44];
 //     sack_vfs_os_ioctl_store_owned_object( vol, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
 // }
-#define sack_vfs_os_ioctl_store_owned_object( vol, obj,objlen, seal,seallen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, TRUE, obj, objlen, seal, seallen, result, resultlen )
+#define sack_vfs_os_ioctl_store_owned_object( vol, obj,objlen, seal,seallen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, TRUE, obj, objlen, NULL, 0, seal, seallen, NULL, 0, result, resultlen )
 
 // store data to a new sealed block.  Data is publically readable.
 // returns TRUE/FALSE. true if the object already exists, or was successfully written.
@@ -312,7 +312,7 @@ namespace objStore {
 //     char result[44];
 //     sack_vfs_os_ioctl_store_sealed_object( vol, data, sizeof( data ), seal, sizeof( seal ), result, 44 );
 // }
-#define sack_vfs_os_ioctl_store_sealed_object( vol, obj,objlen, seal,seallen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, FALSE, obj, objlen, seal, seallen, result, resultlen )
+#define sack_vfs_os_ioctl_store_sealed_object( vol, obj,objlen, seal,seallen, result, resultlen )                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, FALSE, obj, objlen, NULL, 0, seal, seallen, NULL, 0, result, resultlen )
 
 // store patch to an existing sealed block.  (Writes never change existing data).  Data is publically readable.
 // returns TRUE/FALSE. true if the patch already exists, or was successfully written.
