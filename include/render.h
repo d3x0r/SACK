@@ -379,6 +379,8 @@ typedef void (CPROC*GeneralCallback)( uintptr_t psvUser
 typedef void (CPROC*RenderReadCallback)(uintptr_t psvUser, PRENDERER pRenderer, TEXTSTR buffer, INDEX len );
 // called before redraw callback to update the background on the scene...
 typedef void (CPROC*_3DUpdateCallback)( uintptr_t psvUser );
+// callback type for clipborad event reception.
+typedef void (CPROC*ClipboardCallback)(uintptr_t psvUser);
 
 //----------------------------------------------------------
 //   Mouse Button definitions
@@ -1619,6 +1621,9 @@ struct render_interface_tag
 	RENDER_PROC_PTR( LOGICAL, IsDisplayRedrawForced )( PRENDERER renderer );
 	RENDER_PROC_PTR( void, ReplyCloseDisplay )( void ); // only valid during a headless display event....
 
+		/* Clipboard Callback */
+	RENDER_PROC_PTR( void, SetClipboardEventCallback )(PRENDERER pRenderer, ClipboardCallback callback, uintptr_t psv);
+
 };
 
 #ifdef DEFINE_DEFAULT_RENDER_INTERFACE
@@ -1753,6 +1758,7 @@ typedef int check_this_variable;
 #define SetDisplayNoMouse      REND_PROC_ALIAS(SetDisplayNoMouse )
 #define SetTouchHandler        REND_PROC_ALIAS(SetTouchHandler)
 #define ReplyCloseDisplay      if(USE_RENDER_INTERFACE) if((USE_RENDER_INTERFACE)->_ReplyCloseDisplay) (USE_RENDER_INTERFACE)->_ReplyCloseDisplay
+#define SetClipboardEventCallback   REND_PROC_ALIAS( SetClipboardEventCallback )
 
 #define SetDisplayFullScreen    REND_PROC_ALIAS_VOID( SetDisplayFullScreen )
 #define SuspendSystemSleep      REND_PROC_ALIAS_VOID( SuspendSystemSleep )

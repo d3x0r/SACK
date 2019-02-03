@@ -23,6 +23,7 @@
 #undef _OPENGL_ENABLED
 #else
 #define USE_KEYHOOK
+#define _INCLUDE_CLIPBOARD
 #endif
 
 #define DEBUG_INVALIDATE 0
@@ -2126,7 +2127,14 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		//Return HTNOWHERE;
 #endif
 #ifndef UNDER_CE
-
+	case WM_DRAWCLIPBOARD:
+		{
+			PVIDEO hVideo = (PVIDEO)GetWindowLongPtr( hWnd, WD_HVIDEO );
+			if( hVideo->pWindowClipboardEvent ) {
+				hVideo->pWindowClipboardEvent( hVideo->dwClipboardEventData );
+			}
+		}
+		break;
 	case WM_DROPFILES:
 		{
 			//hDrop = (HANDLE) wParam
@@ -5744,6 +5752,14 @@ RENDER_PROC( void, SetDisplayFade )( PVIDEO hVideo, int level )
 	}
 }
 
+static void CPROC SetClipboardEventCallback( PRENDERER pRenderer, ClipboardCallback callback, uintptr_t psv )
+{
+	if( pRenderer ) {
+		pRenderer->pWindowClipboardEvent = callback;
+		pRenderer->dwClipboardEventData = psv;
+		SetClipboardViewer( pRenderer->hWndOutput );
+	}
+}
 
 void CPROC Vidlib_SuspendSystemSleep( int suspend )
 {
@@ -5919,35 +5935,30 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	l.CloseTouchInputHandle =(BOOL (WINAPI *)( HTOUCHINPUT ))LoadFunction( WIDE( "user32.dll" ), WIDE( "CloseTouchInputHandle" ) );
 	l.RegisterTouchWindow = (BOOL (WINAPI *)( HWND, ULONG  ))LoadFunction( WIDE( "user32.dll" ), WIDE( "RegisterTouchWindow" ) );
 #endif
+
+
 #endif
 	{
 		CTEXTSTR name =
 #ifdef SACK_BAG_EXPORTS  // symbol defined by visual studio sack_bag.vcproj
 #  ifdef __cplusplus
-#	 ifdef __cplusplus_cli
-			WIDE( "sack.render" )
-#	 else
-			WIDE( "sack.render++" )
-#	 endif
+		WIDE( "sack.render++" )
 #  else
-			WIDE( "sack.render" )
+		WIDE( "sack.render" )
 #  endif
 #else
 #  ifdef UNDER_CE
 			WIDE( "render" )
 #  else
 #	 ifdef __cplusplus
-#		ifdef __cplusplus_cli
-			WIDE( "sack.render" )
-#		else
-			WIDE( "sack.render++" )
-#		endif
+		WIDE( "sack.render++" )
 #	 else
 			WIDE( "sack.render" )
 #	 endif
 #  endif
 #endif
 			;
+		VidInterface._SetClipboardEventCallback = SetClipboardEventCallback;
 		RegisterInterface( name, GetDisplayInterface, DropDisplayInterface );
 	}
 	if( SACK_GetProfileInt( WIDE("SACK/Video Render"), WIDE("enable alt-f4 exit"), 1 ) )

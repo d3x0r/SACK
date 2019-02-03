@@ -269,6 +269,10 @@ typedef struct HVIDEO_tag
 	uintptr_t psvRead;
 	PLINKQUEUE pInput;
 
+	ClipboardCallback pWindowClipboardEvent;
+	uintptr_t dwClipboardEventData;
+
+
 	struct {
 		BIT_FIELD  bExternalImage:1; // locks the frame from being resized...
 		BIT_FIELD  bShown:1; // can keep the window invisible until we draw
