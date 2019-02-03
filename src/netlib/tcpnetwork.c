@@ -329,9 +329,14 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	{
 		int t = TRUE;
 		setsockopt( pListen->Socket, SOL_SOCKET, SO_REUSEADDR, &t, 4 );
-		t = TRUE;
 		fcntl( pListen->Socket, F_SETFL, O_NONBLOCK );
 	}
+#  ifdef SO_REUSEPORT
+	{
+		int t = TRUE;
+		setsockopt( pListen->Socket, SOL_SOCKET, SO_REUSEPORT, &t, 4 );
+	}
+#  endif
 #endif
 #ifndef _WIN32
 	if( pAddr->sa_family==AF_UNIX )
