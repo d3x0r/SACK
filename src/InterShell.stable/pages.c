@@ -596,7 +596,7 @@ void DestroyPage( PCanvasData canvas, PPAGE_DATA page )
 		PSI_CONTROL page_frame;
 		LIST_FORALL( g.frames, idx, PSI_CONTROL, page_frame )
 		{
-			PPAGE_DATA check_page = (PPAGE_DATA)GetCommonUserData( page_frame );
+			PPAGE_DATA check_page = (PPAGE_DATA)GetControlUserData( page_frame );
 			if( page == check_page )
 			{
 				DeleteLink( &g.frames, page_frame );
@@ -784,7 +784,7 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 			button = MakeButton( frame, 89, 143, 36, 18, BTN_PICKANIMFILE, WIDE("..."), 0, ChooseAnimation, (uintptr_t)frame );
 
 			SaveXMLFrame( frame, WIDE( "InterShellPageProperty.isFrame" ) );
-					//SetCommonUserData( button, l.file_text_field );
+					//SetControlUserData( button, l.file_text_field );
 
 			/*
 			AddPropertySheet( button
