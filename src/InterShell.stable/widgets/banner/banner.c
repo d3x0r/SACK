@@ -209,7 +209,7 @@ static void CPROC CancelChoiceClicked( uintptr_t psv, PSI_CONTROL pc )
 #define BANNER_NAME WIDE("Large font simple banner 2")
 static int OnKeyCommon( BANNER_NAME )( PSI_CONTROL pc, uint32_t key )
 {
-	PBANNER *ppBanner = (PBANNER*)GetCommonUserData( pc );
+	PBANNER *ppBanner = (PBANNER*)GetControlUserData( pc );
 	PBANNER banner;
 	// actually let's just pretend we don't handle any key....
    int handled = 0;
@@ -262,7 +262,7 @@ static int OnMouseCommon( BANNER_NAME )
 ( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	//ValidatedControlData();
-	PBANNER *ppBanner = (PBANNER*)GetCommonUserData( pc );
+	PBANNER *ppBanner = (PBANNER*)GetControlUserData( pc );
 	PBANNER banner;
 	if( !ppBanner || !(*ppBanner ) )
 		return 0; // no cllick, already closed.
@@ -432,7 +432,7 @@ static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TE
 static int OnDrawCommon( BANNER_NAME )( PSI_CONTROL pc )
 {
 	static TEXTCHAR caption[4096];
-	PBANNER *ppBanner = (PBANNER*)GetCommonUserData( pc );
+	PBANNER *ppBanner = (PBANNER*)GetControlUserData( pc );
 	if( !ppBanner )
 		return 0;
 	else
@@ -624,7 +624,7 @@ int CreateBanner2Extended( PRENDERER parent, PBANNER *ppBanner, CTEXTSTR text, i
 		//													, banner->renderer
 		//													);
 		AttachFrameToRenderer( banner->frame, banner->renderer );
-		SetCommonUserData( banner->frame, (uintptr_t)ppBanner );
+		SetControlUserData( banner->frame, (uintptr_t)ppBanner );
 		banner->owners = 1;
 	}
 	else
@@ -959,7 +959,7 @@ void SetBanner2OptionsEx( PBANNER *ppBanner, uint32_t flags, uint32_t extra  )
 			SetButtonColor( banner->okay, AColor( 0x18, 0x98, 0x6c, 0xdf ) );
 			SetControlColor( banner->okay, TEXTCOLOR, 0xffFFFFFF );
 			SetControlColor( banner->cancel, TEXTCOLOR, 0xffFFFFFF );
-			//SetCommonMouse( banner->frame, NULL, 0 );
+			//SetControlMouse( banner->frame, NULL, 0 );
 		}
 		else
 		{
