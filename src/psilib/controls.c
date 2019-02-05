@@ -2889,7 +2889,7 @@ PSI_PROC( void, SetControlUserData )( PSI_CONTROL pf, uintptr_t psv )
 }
 
 //---------------------------------------------------------------------------
-PSI_PROC( int, PSI_dddBindingData )(CTEXTSTR name) {
+PSI_PROC( int, PSI_AddBindingData )(CTEXTSTR name) {
 	// add a binding dta; name may be used lter for diagnostics?
 	return 0;
 }
