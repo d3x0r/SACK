@@ -3116,8 +3116,10 @@ WM_DROPFILES
 					lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
 				}
-				else if( l.invalidated_window )
+				else if( l.invalidated_window ) {
 					lprintf( WIDE( " failed %d %p %p" ), l.flags.bPostedInvalidate, l.invalidated_window, hVideo );
+					break;
+				}
 				ValidateRect( hWnd, NULL );
 			}
 			//InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
