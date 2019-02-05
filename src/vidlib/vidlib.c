@@ -786,11 +786,13 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 							hVideo->portion_update.h = h;
 						}
 					}
+					/*
 					if( FindLink( &l.invalidated_windows, hVideo ) != INVALID_INDEX ) {
 						if( l.flags.bLogWrites )
 							lprintf( WIDE( "saving from double posting... still processing prior update." ) );
 						return;
 					}
+					*/
 					r.left = x;
 					r.top = y;
 					r.right = r.left + w;
