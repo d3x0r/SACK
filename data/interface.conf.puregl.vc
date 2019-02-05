@@ -115,6 +115,8 @@ alias service image.3d puregl2.image.3d
 endif
 
 if sack/vidlib/use interface == windows
+module bag.dll
+module bag.externals.dll
 module bag.image.dll
 module bag.video.dll
 
