@@ -925,10 +925,18 @@ PSI_PROC( PSI_CONTROL, GetControlByName )( PSI_CONTROL pContainer, const char *I
 	//PSI_PROC( PSI_CONTROL, GetControl)( PSI_CONTROL pf, int ID );
 PSI_PROC( uintptr_t, GetControlUserData )( PSI_CONTROL pf );
 #define GetFrameUserData(pf) GetControlUserData( (PSI_CONTROL)pf )
-//#define GetCommonUserData(pf) GetControlUserData( (PSI_CONTROL)pf )
+//#define GetCommonUserData(pf) GetControlUserData( (PSI_CONTROL)pf ) // deprecated delete soon
 PSI_PROC( void, SetControlUserData )( PSI_CONTROL pf, uintptr_t psv );
 #define SetFrameUserData(pf,d) SetControlUserData( (PSI_CONTROL)pf,d )
-//#define SetCommonUserData(pf,d) SetControlUserData( (PSI_CONTROL)pf,d )
+//#define SetCommonUserData(pf,d) SetControlUserData( (PSI_CONTROL)pf,d )  // deprecated delete soon
+
+// Added methods for SACK->Other lnguge binding data; things
+// that register 'ExtraInit' would use this... (Dekware may also need another)
+// maybe; should register for a ID of indexed data per control...
+PSI_PROC( int,       PSI_AddBindingData )(CTEXTSTR name);
+PSI_PROC( uintptr_t, PSI_GetBindingData )(PSI_CONTROL pf, int binding );
+PSI_PROC( void,      PSI_SetBindingData )(PSI_CONTROL pf, int binding, uintptr_t psv);
+
 
 PSI_PROC( PFrameBorder, PSI_CreateBorder )( Image image, int width, int height, int anchors, LOGICAL defines_colors );
 PSI_PROC( void, PSI_SetFrameBorder )( PSI_CONTROL pc, PFrameBorder border );

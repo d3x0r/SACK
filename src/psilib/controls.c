@@ -2888,6 +2888,28 @@ PSI_PROC( void, SetControlUserData )( PSI_CONTROL pf, uintptr_t psv )
 		pf->psvUser = psv;
 }
 
+//---------------------------------------------------------------------------
+PSI_PROC( int, PSI_dddBindingData )(CTEXTSTR name) {
+	// add a binding dta; name may be used lter for diagnostics?
+}
+
+PSI_PROC( uintptr_t, PSI_GetBindingData )(PSI_CONTROL pf, int unused)
+{
+	// use indexer to load per-binding-type value
+	if( pf )
+		return pf->psvBinding;
+	return 0;
+}
+
+//---------------------------------------------------------------------------
+
+PSI_PROC( void, PSI_SetBindingData )(PSI_CONTROL pf, int unused, uintptr_t psv)
+{
+	// use indexer to store per-binding-type value
+	if( pf )
+		pf->psvBinding = psv;
+}
+
 
 //---------------------------------------------------------------------------
 

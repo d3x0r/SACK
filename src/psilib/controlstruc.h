@@ -337,6 +337,7 @@ typedef struct common_control_frame
 	POINTER pUser;
 	// the user may also set a DWORD value associated with a control.
 	uintptr_t psvUser;
+	uintptr_t psvBinding; // this is used by languge binding layer; allowing the app to still use userdata
 
 	// this is the numeric type ID of the control.  Although, now
 	// controls are mostly tracked with their name.
