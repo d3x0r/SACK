@@ -23,7 +23,7 @@ extern
 		BIT_FIELD bLogWrites : 1; // log when surfaces are written to real space
 		BIT_FIELD bLogDisplayEnumTest : 1;
 		BIT_FIELD bThreadCreated : 1;
-		BIT_FIELD bPostedInvalidate : 1;
+		//BIT_FIELD bPostedInvalidate : 1;
 		BIT_FIELD bLogKeyEvent : 1;
 		BIT_FIELD bWhatever : 1;
 		BIT_FIELD bLayeredWindowDefault : 1;
@@ -93,7 +93,7 @@ extern
 #endif
 	uint32_t last_mouse_update; // last tick the mouse moved.
 	PRENDERER last_mouse_update_display;
-	PRENDERER invalidated_window;
+	PLIST invalidated_windows;
 } l;
 
 RENDER_NAMESPACE_END
