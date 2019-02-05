@@ -577,7 +577,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 
 				{
 					INDEX idx;
-					if( !l.flags.bPostedInvalidate )
+					if( FindLink( &l.invalidated_windows, hVideo ) == INVALID_INDEX )
 					LIST_FORALL( l.threads, idx, PTHREAD, thread )
 					{
 						// okay if it's layered, just let the draws through always.
@@ -786,8 +786,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 							hVideo->portion_update.h = h;
 						}
 					}
-					if( l.flags.bPostedInvalidate )
-					{
+					if( FindLink( &l.invalidated_windows, hVideo ) != INVALID_INDEX ) {
 						if( l.flags.bLogWrites )
 							lprintf( WIDE( "saving from double posting... still processing prior update." ) );
 						return;
@@ -810,8 +809,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 #if DEBUG_INVALIDATE
 						lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-						l.flags.bPostedInvalidate = 1;
-						l.invalidated_window = hVideo;
+						AddLink( &l.invalidated_windows, hVideo );
 						InvalidateRect( hVideo->hWndOutput, &r, FALSE );
 					}
 				}
@@ -2027,8 +2025,7 @@ void Redraw( PVIDEO hVideo )
 #if DEBUG_INVALIDATE
 			lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-			l.flags.bPostedInvalidate = 1;
-			l.invalidated_window = hVideo;
+			AddLink( &l.invalidated_windows, hVideo );
 			InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
 		}
 	}
@@ -3062,7 +3059,7 @@ WM_DROPFILES
 #if DEBUG_INVALIDATE
 			lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-			l.flags.bPostedInvalidate = 0;
+			DeleteLink( &l.invalidated_windows, hVideo );
 			ValidateRect( hWnd, NULL );
 			Return 0;
 		}
@@ -3073,7 +3070,7 @@ WM_DROPFILES
 #if DEBUG_INVALIDATE
 			lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-			l.flags.bPostedInvalidate = 0;
+			DeleteLink( &l.invalidated_windows, hVideo );
 			ValidateRect( hWnd, NULL );
 //#ifdef NOISY_LOGGING
 			lprintf( WIDE( "Validated rect... will you stop calling paint!?" ) );
@@ -3096,12 +3093,11 @@ WM_DROPFILES
 			}
 			else
 				lprintf( WIDE("Failed to find window to show?") );
-			while( l.flags.bPostedInvalidate ) {
-				if( l.invalidated_window == hVideo ) {
+			while( FindLink( &l.invalidated_windows, hVideo ) != INVALID_INDEX ) {
 #if DEBUG_INVALIDATE
 					lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-					l.flags.bPostedInvalidate = 0;
+					DeleteLink( &l.invalidated_windows, hVideo );
 					if( hVideo->portion_update.pending ) {
 						hVideo->portion_update.pending = FALSE;
 						UpdateDisplayPortion( hVideo
@@ -3115,11 +3111,12 @@ WM_DROPFILES
 #if DEBUG_INVALIDATE
 					lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-				}
-				else if( l.invalidated_window ) {
+#if 0
+			} else if( l.invalidated_window ) {
 					lprintf( WIDE( " failed %d %p %p" ), l.flags.bPostedInvalidate, l.invalidated_window, hVideo );
 					break;
 				}
+#endif
 				ValidateRect( hWnd, NULL );
 			}
 			//InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
@@ -3932,8 +3929,7 @@ static void HandleMessage (MSG Msg)
 #if DEBUG_INVALIDATE
 			lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-			l.flags.bPostedInvalidate = 1;
-			l.invalidated_window =  hVideo;
+			AddLink( &l.invalidated_windows, hVideo );
 			ShowWindow( hVideo->hWndOutput, SW_SHOW );
 			if( hVideo->flags.bTopmost )
 				SetWindowPos (hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0,
@@ -5382,8 +5378,7 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 #if DEBUG_INVALIDATE
 						lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-						l.flags.bPostedInvalidate = 1;
-						l.invalidated_window =  hVideo;
+						AddLink( &l.invalidated_windows, hVideo );
 						ShowWindow( hVideo->hWndOutput, SW_SHOW );
 					}
 					if( hVideo->flags.bTopmost )
