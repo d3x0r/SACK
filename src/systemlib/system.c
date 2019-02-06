@@ -601,7 +601,7 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 						library = library->next;
 					}
 				}
-				//if( library )
+				if( library )
 				{
 					char *dupname;
 					char *path;
@@ -611,6 +611,8 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 						path[0] = 0;
 					(*init_l).library_path = dupname;
 				}
+            else
+					(*init_l).library_path = ".";
 			}
 			setenv( WIDE("MY_LOAD_PATH"), (*init_l).load_path, TRUE );
 			//strcpy( pMyPath, buf );
