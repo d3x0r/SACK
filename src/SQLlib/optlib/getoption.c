@@ -293,8 +293,25 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 #endif
 		option->odbc_writer = ConnectToDatabaseExx( option->odbc?option->odbc->info.pDSN:sg.Primary.info.pDSN, FALSE DBG_RELAY );
 		SQLCommand( option->odbc_writer, "pragma foreign_keys=on" );
-      /*
+		/*
 		SQLCommand( option->odbc_writer, "pragma integrity_check" );
+		{
+			CTEXTSTR *result = NULL;
+			SQLRecordQuery( option->odbc_writer, "select * from sqlite_master", NULL, &result, NULL );
+			while( result ) {
+				FetchSQLRecord( option->odbc_writer, &result );
+			}
+		}
+		{
+			CTEXTSTR *result = NULL;
+			SQLRecordQuery( option->odbc_writer, "select option4_values.option_id as ov,option4_map.option_id as om from option4_values left outer join option4_map USING(option_id) where option4_map.option_id=NULL", NULL, &result, NULL );
+			while( result ) {
+				lprintf( "Got Row: %s %s", result[0], result[1] );
+				FetchSQLRecord( option->odbc_writer, &result );
+			}
+		}
+		*/
+		/*
 		{
 			CTEXTSTR res = NULL;
 			for( SQLQuery( option->odbc_writer, "select * from option4_name where name = 'system Settings'", &res );
