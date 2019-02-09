@@ -253,11 +253,6 @@ uint64_t GetCPUTick(void )
 		return _rdtsc();
 #elif defined( __WATCOMC__ )
 		uint64_t tick = rdtsc();
-#ifndef __WATCOMC__
-		// haha a nasty compiler trick to get the variable used
-		// but it's also a 'meaningless expression' so watcom pukes.
-		(1)?(0):(tick = 0);
-#endif
 		if( !(*syslog_local).lasttick )
 			(*syslog_local).lasttick = tick;
 		else if( tick < (*syslog_local).lasttick )
@@ -270,10 +265,10 @@ uint64_t GetCPUTick(void )
 		(*syslog_local).lasttick = tick;
 		return tick;
 #elif defined( _MSC_VER )
-#ifdef _M_CEE_PURE
+#  ifdef _M_CEE_PURE
 		//return System::DateTime::now;
 		return 0;
-#else
+#  else
 #   if defined( _WIN64 )
 		uint64_t tick = __rdtsc();
 #   else
@@ -297,18 +292,7 @@ uint64_t GetCPUTick(void )
 		}
 		(*syslog_local).lasttick = tick;
 		return tick;
-		if( !(*syslog_local).lasttick )
-			(*syslog_local).lasttick = tick;
-		else if( tick < (*syslog_local).lasttick )
-		{
-			bCPUTickWorks = 0;
-			cpu_tick_freq = 1;
-			(*syslog_local).tick_bias = (*syslog_local).lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
-			tick = (*syslog_local).lasttick + 1; // more than prior, but no longer valid.
-		}
-		(*syslog_local).lasttick = tick;
-		return tick;
-#endif
+#  endif
 #elif defined( __GNUC__ ) && !defined( __arm__ ) && !defined( __aarch64__ ) && !defined( __asmjs__ )
 		union {
 			uint64_t tick;
