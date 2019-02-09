@@ -275,7 +275,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			}
 
 			if( !( hs_rc = handshake( pc ) ) ) {
-				if( !pc->ssl_session ) return;
+				if( !pc->ssl_session ) {
+					LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+					return;
+				}
 #ifdef DEBUG_SSL_IO
 				// normal condition...
 				lprintf( "Receive handshake not complete iBuffer" );
@@ -284,7 +287,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
 				return;
 			}
-			if( !pc->ssl_session ) return;
+			if( !pc->ssl_session ) {
+				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+				return;
+			}
 			// == 1 if is already done, and not newly done
 			if( hs_rc == 2 ) {
 				// newly completed handshake.
@@ -378,7 +384,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 						lprintf( "Send pending control %p %d", pc->ssl_session->obuffer, read );
 #endif
 						SendTCP( pc, pc->ssl_session->obuffer, read );
-						if( !pc->ssl_session ) return;
+						if( !pc->ssl_session ) {
+							LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+							return;
+						}
 					}
 				}
 			}
