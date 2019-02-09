@@ -165,7 +165,7 @@ DEFINE_ENUM_FLAG_OPERATORS( NetworkConnectionFlags )
 struct peer_thread_info
 {
 	struct peer_thread_info *parent_peer;
-	struct peer_thread_info *child_peer;
+	struct peer_thread_info * volatile child_peer;
 	PLIST monitor_list;   // list of PCLIENT which are waiting on
 	PDATALIST event_list; // list of HANDLE which is waited on
 	PTHREAD thread;

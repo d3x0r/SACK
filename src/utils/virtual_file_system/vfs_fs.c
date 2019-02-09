@@ -560,10 +560,10 @@ static BLOCKINDEX vfs_fs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int
 	BLOCKINDEX sector = block >> BLOCK_SHIFT;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX *, vol, sector * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
-	BLOCKINDEX check_val = (this_BAT[block & (BLOCKS_PER_BAT-1)]);
+	BLOCKINDEX check_val;
 	if( !this_BAT ) return 0; // if this passes, later ones will also.
 
-	check_val ^= ((BLOCKINDEX*)vol->usekey[BC(BAT)])[block & (BLOCKS_PER_BAT-1)];
+	check_val = (this_BAT[block & (BLOCKS_PER_BAT - 1)]) ^ ((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT-1)];
 	if( check_val == EOBBLOCK ) {
 		(this_BAT[block & (BLOCKS_PER_BAT-1)]) = EOFBLOCK^((BLOCKINDEX*)vol->usekey[BC(BAT)])[block & (BLOCKS_PER_BAT-1)];
 		(this_BAT[1+block & (BLOCKS_PER_BAT-1)]) = EOBBLOCK^((BLOCKINDEX*)vol->usekey[BC(BAT)])[1+block & (BLOCKS_PER_BAT-1)];
@@ -1240,7 +1240,7 @@ size_t CPROC sack_vfs_fs_write( struct sack_vfs_file *file, const char * data, s
 	}
 	if( updated ) {
 		sack_fseek( file->vol->file, (size_t)file->entry_fpi, SEEK_SET );
-		sack_fwrite( &file->entry, 1, sizeof( file->entry ), file->vol->file );
+		sack_fwrite( file->entry, 1, sizeof( *file->entry ), file->vol->file );
 	}
 	file->vol->lock = 0;
 	return written;

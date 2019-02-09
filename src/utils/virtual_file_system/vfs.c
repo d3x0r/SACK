@@ -738,7 +738,7 @@ static BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int in
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX *, vol, sector * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
 	BLOCKINDEX seg;
-	BLOCKINDEX check_val = (this_BAT[block & (BLOCKS_PER_BAT-1)]);
+	BLOCKINDEX check_val;
 	if( !this_BAT ) return 0; // if this passes, later ones will also.
 
 	seg = ( ((uintptr_t)this_BAT - (uintptr_t)vol->disk) / BLOCK_SIZE ) + 1;
@@ -746,7 +746,7 @@ static BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int in
 		//vol->segment[BC(BAT)] = seg;
 		UpdateSegmentKey( vol, cache, seg );
 	}
-	check_val ^= ((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT-1)];
+	check_val = (this_BAT[block & (BLOCKS_PER_BAT - 1)]) ^ ((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT-1)];
 	if( check_val == EOBBLOCK ) {
 		lprintf( "the file itself should never get a EOBBLOCK in it. %d  %d", (int)block, (int)sector );
 		(*(int*)0) = 0;

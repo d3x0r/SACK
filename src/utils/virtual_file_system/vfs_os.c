@@ -588,7 +588,7 @@ static LOGICAL _os_ValidateBAT( struct volume *vol ) {
 		for( n = first_slab; n < slab; n += BLOCKS_PER_SECTOR  ) {
 			size_t m;
 			BLOCKINDEX *BAT = TSEEK( BLOCKINDEX*, vol, n * BLOCK_SIZE, cache );
-			BAT = (BLOCKINDEX*)vol->usekey_buffer[cache];
+			//BAT = (BLOCKINDEX*)vol->usekey_buffer[cache];
 			for( m = 0; m < BLOCKS_PER_BAT; m++ ) {
 				BLOCKINDEX block = BAT[m];
 				if( block == EOFBLOCK ) continue;
@@ -872,7 +872,8 @@ static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS )
 			//((struct directory_hash_lookup_block*)(vol->usekey_buffer[newcache]))->entries[0].first_block = EODMARK ^ ((struct directory_hash_lookup_block*)vol->usekey[cache])->entries[0].first_block;
 		}
 		else if( init == GFB_INIT_TIMELINE ) {
-
+			newcache = _os_UpdateSegmentKey_( vol, BC( TIMELINE ), b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
+			
 		}
 		else if( init == GFB_INIT_NAMES ) {
 			newcache = _os_UpdateSegmentKey_( vol, BC( NAMES ), b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
@@ -2745,6 +2746,7 @@ uintptr_t CPROC sack_vfs_file_ioctl( uintptr_t psvInstance, uintptr_t opCode, va
 			case SACK_VFS_OS_SEAL_STORE:
 			case SACK_VFS_OS_SEAL_VALID:
 				(*result) = 1;
+            break;
 			default:
 				(*result) = 0;
 			}
@@ -2892,11 +2894,13 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 		LOGICAL owner = va_arg( args, LOGICAL );  // seal input is a constant, generate random meta key
 		char *objBuf = va_arg( args, char * );
 		size_t objBufLen = va_arg( args, size_t );
-		char *sealBuf = va_arg( args, char * );
+		char *objIdBuf = va_arg( args, char * );  // provided for re-write; provided also for private named objects
+		size_t objIdBufLen = va_arg( args, size_t );
+		char *sealBuf = va_arg( args, char * );  // user provided sealant if any
 		size_t sealBufLen = va_arg( args, size_t );
-		char *keyBuf = va_arg( args, char * );
+		char *keyBuf = va_arg( args, char * );  // encryption key
 		size_t keyBufLen = va_arg( args, size_t );
-		char *idBuf = va_arg( args, char * );
+		char *idBuf = va_arg( args, char * );  // output buffer
 		size_t idBufLen = va_arg( args, size_t );
 		while( 1 ) {
 			char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, owner, idBuf, idBufLen );

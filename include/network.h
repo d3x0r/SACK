@@ -1036,6 +1036,7 @@ NETWORK_PROC( LOGICAL, DoWhois )( CTEXTSTR pHost, CTEXTSTR pServer, PVARTEXT pvt
 
 #ifdef __cplusplus
 
+#  if defined( INCLUDE_SAMPLE_CPLUSPLUS_WRAPPERS )
 typedef class network *PNETWORK;
 /* <combine sack::network::network>
 
@@ -1170,7 +1171,7 @@ public:
       	return 0;
 	}
 }NETWORK;
-
+#  endif
 #endif
 SACK_NETWORK_NAMESPACE_END
 #ifdef __cplusplus

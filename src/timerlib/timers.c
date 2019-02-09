@@ -120,7 +120,7 @@ struct threads_tag
 	PTHREAD_EVENT thread_event;
 #ifdef _WIN32
 	//HANDLE hEvent;
-	HANDLE hThread;
+	volatile HANDLE hThread;
 #else
 #ifdef USE_PIPE_SEMS
 	int pipe_ends[2]; // file handles that are the pipe's ends. 0=read 1=write
@@ -1325,10 +1325,9 @@ PTHREAD  MakeThread( void )
 		{
 			uintptr_t oldval;
 			LOGICAL dontUnlock = FALSE;
-			while( ( oldval = LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, (uintptr_t)thread_ident ) ) && oldval != thread_ident )
+			while( ( oldval = LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, (uintptr_t)thread_ident ) ) || ( oldval != thread_ident ) )
 			{
-				if( oldval != thread_ident )
-					globalTimerData.lock_thread_create = oldval;
+				globalTimerData.lock_thread_create = oldval;
 				Relinquish();
 			}
 			if( oldval == thread_ident )

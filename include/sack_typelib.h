@@ -117,6 +117,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE         EmptyList      ( PLIST *pList );
    gave up doing this sort of thing afterwards after realizing
    the methods of a library and these static methods for a class
    aren't much different.                                        */
+#  if defined( INCLUDE_SAMPLE_CPLUSPLUS_WRAPPERS )
 typedef class iList
 {
 public:
@@ -131,6 +132,7 @@ public:
 	inline POINTER next( void ) { POINTER p; for( idx++;list && (( p = GetLink( &list, idx ) )==0) && idx < list->Cnt; )idx++; return p; }
 	inline POINTER get(INDEX index) { return GetLink( &list, index ); }
 } *piList;
+#  endif
 #endif
 
 // address of the thing...

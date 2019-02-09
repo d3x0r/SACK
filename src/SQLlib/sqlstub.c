@@ -1696,8 +1696,7 @@ void SQLCommit( PODBC odbc )
 				WakeThread( odbc->auto_commit_thread );
 				while( odbc->auto_commit_thread && ( ( start + 500 )> timeGetTime() ) )
 					Relinquish();
-				if( odbc->auto_commit_thread )
-					lprintf( WIDE( "Auto commit thread stalled." ) );
+  				lprintf( WIDE( "Auto commit thread stalled." ) );
 			}
 			// need to end the thread here too....
 			odbc->flags.bAutoTransact = 0;
@@ -3634,7 +3633,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 					}
 					else if( collection->flags.bBuildResultArray )
 					{
-						collection->result_len[idx - 1] = colsize;
 						if( collection->results[idx-1] )
 							Release( (char*)collection->results[idx-1] );
 						switch( collection->column_types[idx-1] )
@@ -3827,11 +3825,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							}
 
 							if( ResultLen > 0 ) {
-								if( collection->ppdlResults ) {
-									lprintf( "Unifnished" );
-
-								}
-								else if( collection->flags.bBuildResultArray ) {
+								if( collection->flags.bBuildResultArray ) {
 									collection->result_len[idx - 1] = ResultLen;
 									if( collection->coltypes[idx - 1] == SQL_LONGVARBINARY ) {
 										// I won't modify this anyhow, and it results
@@ -4866,9 +4860,8 @@ int IsSQLOpenEx( PODBC odbc DBG_PASS )
 	else
 		OpenSQLConnectionEx( odbc DBG_RELAY );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
-	if( odbc && odbc->flags.bSQLite_native )
-		if( odbc && odbc->db )
-			return TRUE;
+	if( odbc && odbc->flags.bSQLite_native && odbc->db )
+		return TRUE;
 #endif
 #ifdef USE_ODBC
 	if( odbc && odbc->hdbc && odbc->flags.bConnected )

@@ -649,7 +649,7 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 		if( root->Destroy )
 			root->Destroy( node->userdata, node->key );
 
-		MemSet( node, 0, sizeof( node ) );
+		MemSet( node, 0, sizeof( *node ) );
 		DeleteFromSet( TREENODE, TreeNodeSet, node );
 		//Release( node );
 		return;

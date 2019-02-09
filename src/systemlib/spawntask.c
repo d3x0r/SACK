@@ -197,7 +197,7 @@ static int FixHandles( PTASK_INFO task )
 	if( task->pi.hProcess )
 		CloseHandle( task->pi.hProcess );
 	task->pi.hProcess = 0;
-	if( task->pi.hProcess )
+	if( task->pi.hThread )
 		CloseHandle( task->pi.hThread );
 	task->pi.hThread = 0;
 #endif
