@@ -258,7 +258,7 @@ if( USE_SQLITE )
   SET( BAG_SQLITE_INTERFACE  ${SOURCES_ROOT}src/contrib/sqlite/sqlite_interface.c )
 
 if( NOT SQLITE3_FOUND )
-  SET( SQLITE_VERSION 3.23.0-MySqlite  )
+  SET( SQLITE_VERSION 3.27.1-TableAlias  )
   SET( SQLITE_SOURCES ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
   include_directories( ${SOURCES_ROOT}src/contrib/sqlite/${SQLITE_VERSION} )
   set_source_files_properties( ${SQLITE_SOURCES} PROPERTIES COMPILE_DEFINITIONS "SQLITE_OMIT_UTF16;SQLITE_ENABLE_COLUMN_METADATA" )
