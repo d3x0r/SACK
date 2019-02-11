@@ -1,5 +1,6 @@
 #define BRAINSHELL_SOURCE
 #define BUILD_TEST_SHELL
+#define INCLUDE_SAMPLE_CPLUSPLUS_WRAPPERS
 
 // this is the library for the application brainboard to use....
 // since the board itself knows nothing about neurons and brains we

@@ -1,6 +1,6 @@
 #ifndef BRAIN_DEFINED
 #define BRAIN_DEFINED
-
+#define INCLUDE_SAMPLE_CPLUSPLUS_WRAPPERS
 #include <sack_types.h>
 #include <idle.h>
 #include <configscript.h>

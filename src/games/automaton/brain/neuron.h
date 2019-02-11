@@ -4,6 +4,7 @@
 
 #ifndef _NEURON_DEFINED
 #define _NEURON_DEFINED
+#define INCLUDE_SAMPLE_CPLUSPLUS_WRAPPERS
 
 #include <stdhdrs.h> // handle
 #include <sharemem.h>

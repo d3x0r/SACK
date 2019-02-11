@@ -1,4 +1,7 @@
 #define NO_FILEOP_ALIAS
+
+#define INCLUDE_SAMPLE_CPLUSPLUS_WRAPPERS
+
 #include <stdhdrs.h>
 
 //#include <windows.h>
