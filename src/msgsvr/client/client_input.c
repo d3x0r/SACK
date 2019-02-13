@@ -275,7 +275,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 				  && MsgOut == MSG_ServiceLoad
 				  && ( (*handler->MessageID) & SERVER_SUCCESS ) )
 				{
-					handler->route->dest = handler->MessageIn->hdr.source;
+					handler->route->dest = handler->MessageIn->hdr.source; //-V595
 				}
 			}	
 			//lprintf( WIDE( "Clear received response" ) );

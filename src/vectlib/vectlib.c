@@ -1365,7 +1365,7 @@ P_POINT EXTERNAL_NAME(GetRotation)( PTRANSFORM pt, P_POINT r )
 
  void EXTERNAL_NAME(SetAxis)( PTRANSFORM pt, RCOORD a, RCOORD b, RCOORD c, int n )
 {
-   SetPoint( pt->m[n], &a );
+   SetPoint( pt->m[n], &a ); //-V557
 }
 
 //----------------------------------------------------------------

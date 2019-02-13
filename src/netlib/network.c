@@ -1321,7 +1321,7 @@ void AddThreadEvent( PCLIENT pc, int broadcsat )
 		if( globalNetworkData.flags.bLogNotices )
 			lprintf( "Creating a new thread...." );
 #endif
-		AddLink( &globalNetworkData.pThreads, ThreadTo( NetworkThreadProc, (uintptr_t)peer ) );
+		AddLink( (PLIST*)&globalNetworkData.pThreads, ThreadTo( NetworkThreadProc, (uintptr_t)peer ) );
 		globalNetworkData.nPeers++;
 		while( !peer->child_peer )
 			Relinquish();
@@ -1672,7 +1672,7 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 			if( globalNetworkData.flags.bLogNotices )
 				lprintf( "Creating a new thread...." );
 #endif
-			AddLink( &globalNetworkData.pThreads, ThreadTo( NetworkThreadProc, (uintptr_t)peer ) );
+			AddLink( (PLIST*)&globalNetworkData.pThreads, ThreadTo( NetworkThreadProc, (uintptr_t)peer ) );
 			globalNetworkData.nPeers++;
 			while( !peer->child_peer )
 				Relinquish();
@@ -2235,7 +2235,7 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 			this_thread.child_peer->parent_peer = this_thread.parent_peer;
 	}
 	// this used to be done in the WM_DESTROY
-	DeleteLink( &globalNetworkData.pThreads, thread );
+	DeleteLink( (PLIST*)&globalNetworkData.pThreads, thread );
 
 	globalNetworkData.flags.bThreadExit = TRUE;
 
@@ -2469,7 +2469,7 @@ NETWORK_PROC( LOGICAL, NetworkWait )(HWND hWndNotify,uint32_t wClients,int wUser
 		return TRUE; // network thread active, do not realloc
 	}
 
-	AddLink( &globalNetworkData.pThreads, ThreadTo( NetworkThreadProc, (uintptr_t)/*peer_thread==*/NULL ) );
+	AddLink( (PLIST*)&globalNetworkData.pThreads, ThreadTo( NetworkThreadProc, (uintptr_t)/*peer_thread==*/NULL ) );
 	globalNetworkData.nPeers++;
 	AddIdleProc( IdleProcessNetworkMessages, 1 );
 	//lprintf( WIDE("Network Initialize..."));
@@ -2516,29 +2516,28 @@ get_client:
 		// an opening condition has global lock (above)
 		// and a closing socket will want the global lock before it's done.
 		pClient = GrabClient( pClient );
-		do {
+
 #ifdef USE_NATIVE_CRITICAL_SECTION
-			d = EnterCriticalSecNoWait( &pClient->csLockRead, NULL );
+		d = EnterCriticalSecNoWait( &pClient->csLockRead, NULL );
 #else
-			d = EnterCriticalSecNoWaitEx( &pClient->csLockRead, NULL DBG_RELAY );
+		d = EnterCriticalSecNoWaitEx( &pClient->csLockRead, NULL DBG_RELAY );
 #endif
-			if( d < 1 ) {
-				LeaveCriticalSec( &globalNetworkData.csNetwork );
-				goto get_client;
-			}
-		} while( d < 1 );
-		do {
+		if( d < 1 ) {
+			LeaveCriticalSec( &globalNetworkData.csNetwork );
+			goto get_client;
+		}
+
 #ifdef USE_NATIVE_CRITICAL_SECTION
-			d = EnterCriticalSecNoWait( &pClient->csLockWrite, NULL );
+		d = EnterCriticalSecNoWait( &pClient->csLockWrite, NULL );
 #else
-			d = EnterCriticalSecNoWaitEx( &pClient->csLockWrite, NULL DBG_RELAY );
+		d = EnterCriticalSecNoWaitEx( &pClient->csLockWrite, NULL DBG_RELAY );
 #endif
-			if( d < 1 ) {
-				LeaveCriticalSec( &pClient->csLockRead );
-				LeaveCriticalSec( &globalNetworkData.csNetwork );
-				goto get_client;
-			}
-		} while( d < 1 );
+		if( d < 1 ) {
+			LeaveCriticalSec( &pClient->csLockRead );
+			LeaveCriticalSec( &globalNetworkData.csNetwork );
+			goto get_client;
+		}
+
 		if( pClient->dwFlags & ( CF_STATEFLAGS & (~CF_AVAILABLE)) )
 			DebugBreak();
 		ClearClient( pClient DBG_SRC ); // clear client is redundant here... but saves the critical section now
@@ -2590,7 +2589,7 @@ int GetAddressParts( SOCKADDR *sa, uint32_t *pdwIP, uint16_t *pdwPort )
 		}
 		else if( sa->sa_family == AF_INET6 ) {
 			if( pdwIP )
-				memcpy( pdwIP, &(((SOCKADDR_IN*)sa)->sin_addr.S_un.S_addr), 16 );
+				memcpy( pdwIP, &(((SOCKADDR_IN*)sa)->sin_addr.S_un.S_addr), 16 ); //-V512
 		}
 		else
 			result = FALSE;
@@ -3001,7 +3000,7 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 	char *_name = CStrDup( name );
 #  define name _name
 #endif
-	if( name[0] == '[' ) {
+	if( name[0] == '[' ) { //-V595
 		while( portName[0] && portName[0] != ']' )
 			portName++;
 		if( portName[0] ) portName++;
@@ -3019,7 +3018,7 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 		{
 			if( isdigit( *port ) )
 			{
-				wPort = (short)atoi( port );
+				wPort = (short)atoi( port ); //-V595
 			}
 			else
 			{
@@ -3894,6 +3893,7 @@ void LoadNetworkAddresses( void ) {
 	pAdapterInfo = New(IP_ADAPTER_INFO);
 	if (pAdapterInfo == NULL) {
 		lprintf("Error allocating memory needed to call GetAdaptersinfo\n");
+		free( pInfo );
 		return;
 	}
 	// Make an initial call to GetAdaptersInfo to get
@@ -3903,6 +3903,7 @@ void LoadNetworkAddresses( void ) {
 		pAdapterInfo = (IP_ADAPTER_INFO *) NewArray(uint8_t, ulOutBufLen);
 		if (pAdapterInfo == NULL) {
 			lprintf("Error allocating memory needed to call GetAdaptersinfo\n");
+			free( pInfo );
 			return;
 		}
 	}

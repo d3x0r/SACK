@@ -50,7 +50,7 @@ typedef struct HopEntry_tag{
    int TTL;                    // returned TTL from destination...
 } HOPENT, *PHOPENT;
 
-uint32_t dwThreadsActive;
+volatile uint32_t dwThreadsActive;
 
 uintptr_t CPROC RDNSThread( PTHREAD pThread )
 {
@@ -199,7 +199,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 
 #ifdef WIN32
 	rawSocket = INVALID_SOCKET;//OpenSocket(TRUE,FALSE, TRUE, 0);
-	if( rawSocket == INVALID_SOCKET )
+	if( rawSocket == INVALID_SOCKET ) //-V547
 	{
       //lprintf( "Bad 'smart' open.. fallback..." );
 		rawSocket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);

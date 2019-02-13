@@ -259,7 +259,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 						// otherwise our root node creation failes if said root is gone.
 					//lprintf( WIDE( "New entry... create it..." ) );
 					tnprintf( query, sizeof( query ), WIDE( "Insert into " )OPTION4_MAP WIDE( "(`option_id`,`parent_option_id`,`name_id`) values ('%s','%s','%s')" )
-							  , ID = GetSeqGUID(), parent->guid, IDName );
+							  , ID = GetSeqGUID(), parent->guid, IDName ); //-V595
 					OpenWriter( tree );
 					if( SQLCommand( tree->odbc_writer, query ) )
 					{

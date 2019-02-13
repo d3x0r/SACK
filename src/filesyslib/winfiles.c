@@ -2462,7 +2462,7 @@ struct file_system_mounted_interface *sack_mount_filesystem( const char *name, s
 	{
 		if( root->priority >= priority )
 		{
-			LinkThingBefore( root, mount );
+			LinkThingBefore( root, mount ); //-V595
 			break;
 		}
 		if( !NextThing( root ) )

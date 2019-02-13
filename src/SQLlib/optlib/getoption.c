@@ -25,7 +25,8 @@
 // referencing of option tree...
 //#define DETAILED_LOGGING
 
-#define DEFAULT_PUBLIC_KEY WIDE( "DEFAULT" )
+static const char * const defaultKeyVal = "DEFAULT";
+#define DEFAULT_PUBLIC_KEY defaultKeyVal
 //#define DEFAULT_PUBLIC_KEY "system"
 
 SQL_NAMESPACE

@@ -276,7 +276,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 
 			if( !( hs_rc = handshake( pc ) ) ) {
 				if( !pc->ssl_session ) {
-					LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+					LeaveCriticalSec( &pc->ssl_session->csReadWrite ); //-V522
 					return;
 				}
 #ifdef DEBUG_SSL_IO
@@ -321,7 +321,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			else if( hs_rc == 1 )
 			{
 			read_more:
-				len = SSL_read( pc->ssl_session->ssl, NULL, 0 );
+				len = SSL_read( pc->ssl_session->ssl, NULL, 0 ); //-V575
 				//lprintf( "return of 0 read: %d", len );
 				//if( len < 0 )
 				//	lprintf( "error of 0 read is %d", SSL_get_error( pc->ssl_session->ssl, len ) );
@@ -485,7 +485,8 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 		len = SSL_write( pc->ssl_session->ssl, (((uint8_t*)buffer) + offset), (int)pending_out );
 		if (len < 0) {
 			ERR_print_errors_cb(logerr, (void*)__LINE__);
-			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+			if( pc->ssl_session )
+				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
 			return FALSE;
 		}
 		offset += len;

@@ -70,7 +70,7 @@ static void testVolume_alt( void ) {
 	uint16_t buffer[2048];
 	int n;
 	int nj;
-	int _n;
+	int _n = 0;
 	db = sack_vfs_openfile( l.current_vol, "test.db" );
 	if( !db ) {
 		printf( " Failed to open test db in current vfs.\n" );

@@ -357,7 +357,7 @@ PTEXT SegCreateFromIntEx( int value DBG_PASS )
 #ifdef _UNICODE
 	pResult->data.size = swprintf( pResult->data.data, 12, WIDE("%d"), value );
 #else
-	pResult->data.size = snprintf( pResult->data.data, 12, WIDE("%d"), value );
+	pResult->data.size = snprintf( pResult->data.data, 12, WIDE("%d"), value ); //-V512
 #endif
 	pResult->data.data[11] = 0;
 	return pResult;
@@ -372,7 +372,7 @@ PTEXT SegCreateFrom_64Ex( int64_t value DBG_PASS )
 #ifdef _UNICODE
 	pResult->data.size = swprintf( pResult->data.data, 32, WIDE("%")_64f, value );
 #else
-	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%")_64f, value );
+	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%")_64f, value ); //-V512
 #endif
 pResult->data.data[31] = 0;
 	return pResult;
@@ -387,7 +387,7 @@ PTEXT SegCreateFromFloatEx( float value DBG_PASS )
 #ifdef _UNICODE
 	pResult->data.size = swprintf( pResult->data.data, 32, WIDE("%f"), value );
 #else
-	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%f"), value );
+	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%f"), value ); //-V512
 #endif
 	pResult->data.data[31] = 0;
 	return pResult;
@@ -668,10 +668,10 @@ PTEXT SegSplitEx( PTEXT *pLine, INDEX nPos  DBG_PASS)
 	if( nPos == nLen )
 		return *pLine;
 	here = SegCreateEx( nPos DBG_RELAY );
-	here->flags  = (*pLine)->flags;
+	here->flags  = (*pLine)->flags; //-V595
 	here->format = (*pLine)->format;
 	there = SegCreateEx( (nLen - nPos) DBG_RELAY );
-	there->flags  = (*pLine)->flags;
+	there->flags  = (*pLine)->flags; //-V595
 	there->format = (*pLine)->format;
 	there->format.position.offset.spaces = 0; // was two characters presumably...
 	there->format.position.offset.tabs = 0;
@@ -855,7 +855,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 				spaces++;
 				break;
 			}
-				if(0) {
+				if(0) { //-V517
 		case '\t':
 					if( bTabs )
 					{
@@ -872,7 +872,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 						tabs++;
 						break;
 					}
-				} else if(0) {
+				} else if(0) { //-V517
 		case '\r': // a space space character...
 					if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
 					{
@@ -880,7 +880,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 						outdata = SegAppend( outdata, word );
 					}
 					break;
-				} else if(0) {
+				} else if(0) { //-V517
 		case '.': // handle multiple periods grouped (elipses)
 				//goto NormalPunctuation;
 				{
@@ -3636,15 +3636,15 @@ char * u8xor( const char *a, size_t alen, const char *b, size_t blen, int *ofs )
 		if( (v & 0x80) == 0x00 ) { if( l ) lprintf( "short utf8 sequence found" ); mask = 0x3f; _mask = 0x3f; }
 		else if( (v & 0xC0) == 0x80 ) { if( !l ) lprintf( "invalid utf8 sequence" ); l--; _mask = 0x3f; }
 		else if( (v & 0xE0) == 0xC0 ) { if( l )
-			lprintf( "short utf8 sequence found" ); l = 1; mask = 0x1; _mask = 0x3f; }  // 6 + 1 == 7
+			lprintf( "short utf8 sequence found" ); l = 1; mask = 0x1; _mask = 0x3f; }  // 6 + 1 == 7 //-V640
 		else if( (v & 0xF0) == 0xE0 ) { if( l )
-			lprintf( "short utf8 sequence found" ); l = 2; mask = 0;  _mask = 0x1f; }  // 6 + 5 + 0 == 11
+			lprintf( "short utf8 sequence found" ); l = 2; mask = 0;  _mask = 0x1f; }  // 6 + 5 + 0 == 11 //-V640
 		else if( (v & 0xF8) == 0xF0 ) { if( l )
-			lprintf( "short utf8 sequence found" ); l = 3; mask = 0;  _mask = 0x0f; }  // 6(2) + 4 + 0 == 16
+			lprintf( "short utf8 sequence found" ); l = 3; mask = 0;  _mask = 0x0f; }  // 6(2) + 4 + 0 == 16 //-V640
 		else if( (v & 0xFC) == 0xF8 ) { if( l )
-			lprintf( "short utf8 sequence found" ); l = 4; mask = 0;  _mask = 0x07; }  // 6(3) + 3 + 0 == 21
+			lprintf( "short utf8 sequence found" ); l = 4; mask = 0;  _mask = 0x07; }  // 6(3) + 3 + 0 == 21 //-V640
 		else if( (v & 0xFE) == 0xFC ) { if( l )
-			lprintf( "short utf8 sequence found" ); l = 5; mask = 0;  _mask = 0x03; }  // 6(4) + 2 + 0 == 26
+			lprintf( "short utf8 sequence found" ); l = 5; mask = 0;  _mask = 0x03; }  // 6(4) + 2 + 0 == 26 //-V640
 
 		char bchar = b[(n+o)%(keylen)];
 		(*out) = (v & ~mask ) | ( u8xor_table[v & mask ][bchar] & mask );
@@ -3671,7 +3671,7 @@ static void encodeblock( unsigned char in[3], TEXTCHAR out[4], size_t len, const
 static void decodeblock( const char in[4], uint8_t out[3], size_t len, const char *base64 )
 {
 	int index[4];
-	int n;
+	size_t n;
 	for( n = 0; n < len; n++ )
 	{
 		// propagate terminator.

@@ -1,5 +1,6 @@
+#ifndef _MSC_VER
 #pragma multiinclude
-
+#endif
 /**************
   VFS_VERSION
      used to track migration of keys and keying methods.  

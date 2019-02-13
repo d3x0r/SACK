@@ -374,7 +374,7 @@ uint32_t  LockedExchange( volatile uint32_t* p, uint32_t val )
 #endif
 }
 
-uint32_t LockedIncrement( uint32_t* p ) {
+uint32_t LockedIncrement( volatile uint32_t* p ) {
 #ifdef _WIN32
 	return InterlockedIncrement( (volatile LONG *)p );
 #endif
@@ -382,7 +382,7 @@ uint32_t LockedIncrement( uint32_t* p ) {
 	return __atomic_add_fetch( p, 1, __ATOMIC_RELAXED );
 #endif
 }
-uint32_t LockedDecrement( uint32_t* p ) {
+uint32_t LockedDecrement( volatile uint32_t* p ) {
 #ifdef _WIN32
 	return InterlockedDecrement( (volatile LONG *)p );
 #endif
@@ -1214,6 +1214,7 @@ uintptr_t GetFileSize( int fd )
 	static int first = 1;
 #endif
 	int readonly = FALSE;
+	if( !dwSize ) return NULL;
 	if( !g.bInit )
 	{
 		//ODS( WIDE("Doing Init") );
@@ -2012,7 +2013,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment 
 			// to_chunk_start is the last thing in chunk, so it's pre-allocated space
 			((uint16_t*)(retval - sizeof(uint32_t)))[0] = /*pc->alignemnt = */alignment;
 			((uint16_t*)(retval - sizeof(uint32_t)))[1] = /*pc->to_chunk_start = */(uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & mask) - (uintptr_t)pc->byData);
-			return (POINTER)retval;
+			return (POINTER)retval; //-V773
 		}
 		else {
 			pc->alignment = 0;

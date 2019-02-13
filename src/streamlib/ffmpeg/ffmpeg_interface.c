@@ -340,7 +340,7 @@ struct ffmpeg_file
 	size_t *ffmpeg_buffer_sizes;
 	uint8_t* *ffmpeg_buffers;
 
-	uint8_t* ffmpeg_buffer;
+	uint8_t* volatile ffmpeg_buffer;
 	uint8_t* ffmpeg_buffer_partial;
 	size_t ffmpeg_buffer_used_total;
 	size_t ffmpeg_buffer_size;
@@ -3464,7 +3464,7 @@ static uintptr_t CPROC audio_ReadCaptureDevice( PTHREAD thread )
 					n = 0;
 					if( ad->compress_partial_buffer_idx )
 					{
-						for( n = n; n < val; n++ )
+						for( n = n; n < val; n++ ) //-V570
 						{
 							ad->compress_partial_buffer[ad->compress_partial_buffer_idx++] 
 								= ((gsm_signal*)ad->input_data)[n];
@@ -3535,7 +3535,7 @@ static uintptr_t CPROC audio_ReadCaptureDevice( PTHREAD thread )
 							break;
 						}
 					}
-					for( n = n; n < val; n++ )
+					for( n = n; n < val; n++ ) //-V570
 					{
 						ad->compress_partial_buffer[ad->compress_partial_buffer_idx++] 
 							= ((gsm_signal*)ad->input_data)[n];

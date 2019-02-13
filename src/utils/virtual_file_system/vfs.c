@@ -299,8 +299,8 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 							BLOCKINDEX nextBlock_;
 							SETFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m );
 							while( nextBlock != EOFBLOCK ) {
-								int b;
-								int nn;
+								BLOCKINDEX b;
+								BLOCKINDEX nn;
 								if( nextBlock == EOBBLOCK ) {
 									lprintf( "File chains hould not have EOB block in it." );
 									DebugBreak();

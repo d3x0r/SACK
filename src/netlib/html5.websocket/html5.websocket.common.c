@@ -423,10 +423,10 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 						if( websock->frame_length > 2 ) {
 							StrCpyEx( buf, (char*)(websock->fragment_collection + 2), websock->frame_length - 2 );
 							buf[websock->frame_length - 2] = 0;
-							code = ((int)buf[0] << 8) + buf[1];
+							code = ((int)websock->fragment_collection[0] << 8) + websock->fragment_collection[1];
 						}
 						else if( websock->frame_length ) {
-							code = ((int)buf[0] << 8) + buf[1];
+							code = ((int)websock->fragment_collection[0] << 8) + websock->fragment_collection[1];
 							buf[0] = 0;
 						}
 						else {

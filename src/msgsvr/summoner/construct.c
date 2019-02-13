@@ -115,7 +115,7 @@ PRELOAD( Started )
 		  )
 		{
 			lprintf( "should be wait on true false: %d", result );
-			if( result == ((MSG_IM_READY) | SERVER_SUCCESS) )
+			if( result == ((MSG_IM_READY) | SERVER_SUCCESS) ) //-V547
 			{
 			}
 			else

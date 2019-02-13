@@ -2599,7 +2599,7 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 					{
 						INDEX idx;
 						struct config_element_tag *pEnd;
-						LIST_FORALL( pcePrior->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ){
+						LIST_FORALL( pcePrior->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ){ //-V522
 							if( pceNew->type == pEnd->type ) {
 								break;
 							}
@@ -2718,10 +2718,8 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 						struct config_element_tag *pEnd;
 						LIST_FORALL( pcePrior->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ){
 							if( pceNew->type == pEnd->type ) {
-								if( pceNew->type == CONFIG_TEXT ) {
-									if( SameText( pceNew->data[0].pText, pEnd->data[0].pText ) == 0 )
-										break;
-								}
+								if( SameText( pceNew->data[0].pText, pEnd->data[0].pText ) == 0 )
+									break;
 							}
 						}
 						if( !pEnd ){

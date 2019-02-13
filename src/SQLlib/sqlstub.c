@@ -1589,29 +1589,24 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 				char *tmp;
 				char *vfs_name;
 				TEXTCHAR *tmpvfsvfs;
-
 				ParseDSN( odbc->info.pDSN, &vfs_name, &tmpvfsvfs, &tmp );
 				if( vfs_name )
-				//if( odbc->info.pDSN[0] == '$' )
 				{
-					if( vfs_name )
-					{
 #ifdef USE_SQLITE_INTERFACE
 #  ifdef UNICODE
-						TEXTCHAR *_vfs_name = DupCStr( vfs_name );
-						char *_tmpvfsvfs = CStrDup( tmpvfsvfs );
+					TEXTCHAR *_vfs_name = DupCStr( vfs_name );
+					char *_tmpvfsvfs = CStrDup( tmpvfsvfs );
 #    define vfs_name _vfs_name
 #    define tmpvfsvfs _tmpvfsvfs
 #  endif
-						sqlite_iface->InitVFS( vfs_name, sack_get_mounted_filesystem( tmpvfsvfs ) );
+					sqlite_iface->InitVFS( vfs_name, sack_get_mounted_filesystem( tmpvfsvfs ) );
 #  ifdef UNICODE
-						Deallocate( TEXTCHAR *,_vfs_name );
-						Deallocate( char *, _tmpvfsvfs );
+					Deallocate( TEXTCHAR *,_vfs_name );
+					Deallocate( char *, _tmpvfsvfs );
 #    undef vfs_name
 #    undef tmpvfsvsf
 #  endif
 #endif
-					}
 					rc3 = sqlite3_open_v2( tmp, &odbc->db, SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE|SQLITE_OPEN_URI, vfs_name );
 				}
 				else
@@ -2989,7 +2984,7 @@ retry:
 SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 {
 	PODBC use_odbc;
-	if( odbc->flags.bClosed )
+	if( odbc->flags.bClosed ) //-V522
 		return 0;
 	if( !IsSQLOpenEx( odbc DBG_RELAY ) )
 		return 0;
@@ -4520,7 +4515,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 //------------------------------------------------------------------
 
 int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS ) {
-	return __DoSQLQueryExx( odbc, collection, query, strlen( query ), NULL DBG_RELAY );
+	return __DoSQLQueryExx( odbc, collection, query, strlen( query ), NULL DBG_RELAY ); //-V522
 }
 
 //------------------------------------------------------------------
@@ -4836,7 +4831,7 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 
 int DoSQLQueryEx( CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 {
-	(*result) = NULL;
+	(*result) = NULL; //-V595
 	if( result )
 	{
 		if( !OpenSQL( DBG_VOIDSRC ) )

@@ -973,7 +973,7 @@ void DumpTermios( struct termios *opts )
 {
 	PCOM_TRACK pct;
 	pct = FindComByNumber( iCommId );
-	lprintf( WIDE( "updating read length to %d %p %d" ), iCommId, pct, pct->nReadTotal );
+	lprintf( WIDE( "updating read length to %d %p %d" ), iCommId, pct, pct->nReadTotal ); //-V595
 	if( pct )
 	{
 		if( readlen < DEFAULT_READ_BUFFER )

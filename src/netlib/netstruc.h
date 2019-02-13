@@ -171,7 +171,7 @@ struct peer_thread_info
 	PTHREAD thread;
 #ifdef _WIN32
 	WSAEVENT hThread;
-	int nEvents;
+	volatile int nEvents;
 	LOGICAL counting;
 	int nWaitEvents; // updated with count thread is waiting on
 #endif
@@ -210,7 +210,7 @@ struct NetworkClient
 	SOCKET      Socket;
 	SOCKET      SocketBroadcast; // okay keep both...
 	struct interfaceAddress* interfaceAddress;
-	enum NetworkConnectionFlags  dwFlags; // CF_
+	enum NetworkConnectionFlags dwFlags; // CF_
 	uintptr_t        *lpUserData;
 
 	union {
@@ -261,7 +261,7 @@ struct NetworkClient
 		BIT_FIELD bAllowDowngrade : 1;
 	} flags;
 	// this is set to what the thread that's waiting for this event is.
-	struct peer_thread_info *this_thread;
+	struct peer_thread_info * volatile this_thread;
 	int tcp_delay_count;
 	struct ssl_session *ssl_session;
 };
@@ -291,12 +291,12 @@ LOCATION struct network_global_data{
 	PLIST   ClientSlabs;
 	LOGICAL bLog;
 	LOGICAL bQuit;
-	PLIST   pThreads; // list of all threads - needed because of limit of 64 sockets per multiplewait
+	volatile PLIST   pThreads; // list of all threads - needed because of limit of 64 sockets per multiplewait
 	PCLIENT AvailableClients;
 	PCLIENT ActiveClients;
 	PCLIENT ClosedClients;
 	CRITICALSECTION csNetwork;
-	uint32_t uNetworkPauseTimer;
+	volatile uint32_t uNetworkPauseTimer;
 	uint32_t uPendingTimer;
 #ifndef __LINUX__
 	HWND ghWndNetwork;

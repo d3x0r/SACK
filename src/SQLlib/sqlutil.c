@@ -527,7 +527,7 @@ TEXTSTR RevertEscapeBinary( CTEXTSTR blob, size_t *bloblen )
 	}
 
 	escape = 0;
-	result = tmpnamebuf = NewArray( TEXTCHAR, (*bloblen) );
+	result = tmpnamebuf = NewArray( TEXTCHAR, (*bloblen) ); //-V522
 	for( n = 0; (*pBlob); n++ )
 	{
 		if( !escape && ( (*pBlob) == '\\' ) )

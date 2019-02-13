@@ -21,6 +21,7 @@ struct HttpState {
 	PTEXT resource; // the path of the resource - mostly for when this is used to receive requests.
 	PLIST fields; // list of struct HttpField *, these other the other meta fields in the header.
 	PLIST cgi_fields; // list of HttpField *, taken in from the URL or content (get or post)
+	int bLine;
 
 	size_t content_length;
 	PTEXT content; // content of the message, POST,PUT,PATCH and replies have this.
@@ -201,24 +202,26 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 //int ProcessHttp( struct HttpState *pHttpState )
 int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 {
-	lockHttp( pHttpState );
 	if( pHttpState->final )
 	{
-		GatherHttpData( pHttpState );
-		unlockHttp( pHttpState );
+		//GatherHttpData( pHttpState );
+
+		//unlockHttp( pHttpState );
+		/*
 		if( pHttpState->flags.success && !pHttpState->returned_status ) {
 			pHttpState->returned_status = 1;
 			return pHttpState->numeric_code;
 		}
+		*/
 		return HTTP_STATE_RESULT_NOTHING;
 	}
 	else
 	{
+		lockHttp( pHttpState );
 		PTEXT pCurrent;//, pStart;
 		PTEXT pLine = NULL;
 		TEXTCHAR *c, *line;
 		size_t size, pos, len;
-		size_t bLine;
 		INDEX start = 0;
 		PTEXT pMergedLine;
 		PTEXT pInput = VarTextGet( pHttpState->pvt_collector );
@@ -232,26 +235,25 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 		len = 0;
 
 		// we always start without having a line yet, because all input is already merged
-		bLine = 0;
 		{
 			//lprintf( "%s", GetText( pCurrent ) );
 			size = GetTextSize( pCurrent );
 			c = GetText( pCurrent );
-			if( bLine < 4 )
+			if( pHttpState->bLine < 4 )
 			{
 				//start = 0; // new packet and still collecting header....
 				for( pos = 0; ( pos < size ) && !pHttpState->final; pos++ )
 				{
-					if( ((int)pos - (int)start - (int)bLine) < 0 )
+					if( ((int)pos - (int)start - (int)pHttpState->bLine) < 0 )
 						continue;
 					if( c[pos] == '\r' )
-						bLine++;
+						pHttpState->bLine++;
 					else if( c[pos] == '\n' )
-						bLine++;
+						pHttpState->bLine++;
 					else // non end of line character....
 					{
 	FinalCheck:
-						if( bLine >= 2 ) // had an end of line...
+						if( pHttpState->bLine >= 2 ) // had an end of line...
 						{
 							// response status is the data from the fist bit of the packet (on receiving http 1.1/OK ...)
 							if( pHttpState->response_status )
@@ -262,13 +264,13 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 								CTEXTSTR val_start;
 								PTEXT field_name;
 								PTEXT value;
-								pLine = SegCreate( pos - start - bLine );
-								if( (pos-start) < bLine )
+								pLine = SegCreate( pos - start - pHttpState->bLine );
+								if( (pos-start) < pHttpState->bLine )
 								{
 									lprintf( WIDE("Failure.") );
 								}
-								MemCpy( line = GetText( pLine ), c + start, (pos - start - bLine)*sizeof(TEXTCHAR));
-								line[pos-start-bLine] = 0;
+								MemCpy( line = GetText( pLine ), c + start, (pos - start - pHttpState->bLine)*sizeof(TEXTCHAR));
+								line[pos-start- pHttpState->bLine] = 0;
 								field_start = GetText( pLine );
 
 								// this is a  request field.
@@ -312,9 +314,9 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 							}
 							else
 							{
-								pLine = SegCreate( pos - start - bLine );
-								MemCpy( line = GetText( pLine ), c + start, (pos - start - bLine)*sizeof(TEXTCHAR));
-								line[pos-start-bLine] = 0;
+								pLine = SegCreate( pos - start - pHttpState->bLine );
+								MemCpy( line = GetText( pLine ), c + start, (pos - start - pHttpState->bLine)*sizeof(TEXTCHAR));
+								line[pos-start- pHttpState->bLine] = 0;
 								pHttpState->response_status = pLine;
 								pHttpState->numeric_code = 0; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 								{
@@ -414,11 +416,11 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 							// since the return should be assumed as a continuous
 							// stream of datas....
 							start = pos;
-							if( bLine == 2 )
-								bLine = 0;
+							if( pHttpState->bLine == 2 )
+								pHttpState->bLine = 0;
 						}
 						// may not receive anything other than header information?
-						if( bLine == 4 )
+						if( pHttpState->bLine == 4 )
 						{
 							// end of header
 							// copy the previous line out...
@@ -427,7 +429,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 							break;
 						}
 					}
-					if( bLine == 4 )
+					if( pHttpState->bLine == 4 )
 					{
 						pos++;
 						pHttpState->final = 1;
@@ -435,7 +437,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 					}
 				}
 				if( pos == size &&
-					bLine == 4 &&
+					pHttpState->bLine == 4 &&
 					start != pos )
 				{
 					pHttpState->final = 1;
@@ -645,7 +647,8 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 	}
 	else
 	{
-		VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)buffer, size );
+		if( size )
+			VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)buffer, size );
 		return TRUE;
 	}
 }

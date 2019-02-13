@@ -781,7 +781,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 			if( WriteProcessMemory( task->pi.hProcess, mem,
 				(LPCVOID)SendCtrlCThreadProc, 1024, &written ) ) {
 				DWORD dwThread;
-				HANDLE hThread = CreateRemoteThread( task->pi.hProcess, NULL, 0
+				HANDLE hThread = CreateRemoteThread( task->pi.hProcess, NULL, 0 //-V575
 					, (LPTHREAD_START_ROUTINE)mem, NULL, 0, &dwThread );
 				err = GetLastError();
 				if( hThread )
@@ -1229,7 +1229,7 @@ HANDLE GetImpersonationToken( void )
 
 void EndImpersonation( void )
 {
-	RevertToSelf();
+	RevertToSelf(); //-V530
 }
 #endif
 
@@ -1685,7 +1685,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	}
 	SuspendDeadstart();
 	if( !library->library ) {
-		library->library = LoadLibrary( library->cur_full_name );
+		library->library = LoadLibrary( library->cur_full_name ); //-V595
 	}
 	if( !library->library ) {
 #  ifdef DEBUG_LIBRARY_LOADING
@@ -1708,7 +1708,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	if( !library->library ) {
 		if( !library->loading ) {
 			if( l.flags.bLog )
-				_xlprintf( 2 DBG_RELAY )(WIDE( "Attempt to load %s[%s](%s) failed: %d." ), libname, library->full_name, funcname ? funcname : WIDE( "all" ), GetLastError());
+				_xlprintf( 2 DBG_RELAY )(WIDE( "Attempt to load %s[%s](%s) failed: %d." ), libname, library->full_name, funcname ? funcname : WIDE( "all" ), GetLastError()); //-V595
 			UnlinkThing( library );
 			ReleaseEx( library DBG_SRC );
 		}
@@ -2072,7 +2072,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 			if( !library->functions )
 			{
 #ifdef _WIN32
-				FreeLibrary( library->library );
+				FreeLibrary( library->library ); //-V595
 #else
 				dlclose( library->library );
 #endif

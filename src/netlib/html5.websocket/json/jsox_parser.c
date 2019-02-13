@@ -1374,8 +1374,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							if( state->val.string ) {
 								state->val.value_type = JSOX_VALUE_STRING;
 								state->word = JSOX_WORD_POS_AFTER_FIELD;
-								if( state->parse_context == JSOX_CONTEXT_UNKNOWN )
-									state->completed = TRUE;
+								//if( state->parse_context == JSOX_CONTEXT_UNKNOWN )
+								//	state->completed = TRUE;
 							}
 						}
 						else {

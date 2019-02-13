@@ -26,7 +26,7 @@ static void EndClient( PSERVICE_CLIENT client )
 	{
 		lprintf( WIDE("Service is gone! please tell client...") );
 		if( client->handler->Handler )
-			client->handler->Handler( MSG_MateEnded, NULL, 0 );
+			client->handler->Handler( MSG_MateEnded, NULL, 0 ); //-V595
 		if( client->handler->HandlerEx )
 			client->handler->HandlerEx( &client->handler->RouteID, MSG_MateEnded, NULL, 0 );
 		if( client->handler->HandlerExx )
@@ -616,7 +616,8 @@ void CloseMessageQueues( void )
 				if( attempts < 10 )
 					continue; // skips
 			}
-		} while( 0 );
+			break;
+		} while( 1 );
 	}
 	// re-establish our communication ID if we
 	// end up with more work to do...

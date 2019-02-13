@@ -91,7 +91,7 @@ PLIST  DeleteListEx ( PLIST *pList DBG_PASS )
 
 static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 {
-	PLIST old_list = (*pList);
+	PLIST old_list = (*pList); //-V595
 	PLIST pl;
 	uintptr_t size;
 	uintptr_t old_size;
@@ -358,7 +358,7 @@ static struct data_list_local_data
 
 PDATALIST ExpandDataListEx( PDATALIST *ppdl, INDEX entries DBG_PASS )
 {
-	PDATALIST pdl = (*ppdl);
+	PDATALIST pdl = (*ppdl); //-V595
 	PDATALIST pNewList;
 	if( !ppdl || !*ppdl )
 		return NULL; // can't expand - was not created (no data size)
@@ -528,7 +528,7 @@ static PLINKSTACK ExpandStackEx( PLINKSTACK *stack, INDEX entries DBG_PASS )
 	PLINKSTACK pNewStack;
 	if( *stack )
 		entries += (*stack)->Cnt;
-	pNewStack = (PLINKSTACK)AllocateEx( my_offsetof( stack, pNode[entries] ) DBG_RELAY );
+	pNewStack = (PLINKSTACK)AllocateEx( my_offsetof( stack, pNode[entries] ) DBG_RELAY ); //-V595
 	if( *stack )
 	{
 		PLINKSTACK pls = (*stack);
@@ -726,7 +726,7 @@ static struct link_queue_local_data
 PLINKQUEUE CreateLinkQueueEx( DBG_VOIDPASS )
 {
 	PLINKQUEUE plq = 0;
-	plq = (PLINKQUEUE)AllocateEx( MY_OFFSETOF( &plq, pNode[8] ) DBG_RELAY );
+	plq = (PLINKQUEUE)AllocateEx( MY_OFFSETOF( &plq, pNode[8] ) DBG_RELAY ); //-V557
 #if USE_CUSTOM_ALLOCER
 	plq->Lock     = 0;
 #endif

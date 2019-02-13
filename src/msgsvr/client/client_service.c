@@ -635,7 +635,7 @@ CLIENTMSG_PROC( LOGICAL, RegisterServiceExx )( CTEXTSTR name
 				Relinquish();
 				WakeThread( pService->thread );
 			}
-			Release( pService->name );
+			Release( pService->name ); //-V595
 			Release( pService );
 			return FALSE;
 		}

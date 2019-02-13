@@ -2739,7 +2739,7 @@ TYPELIB_PROC  char * TYPELIB_CALLTYPE  b64xor( const char *a, const char *b );
 
 typedef struct user_input_buffer_tag {
 	// -------------------- custom cmd buffer extension 
-	INDEX nHistory;  // position counter for pulling history
+	int nHistory;  // position counter for pulling history; negative indexes are recalled commands.
 	PLINKQUEUE InputHistory;  // a link queue which contains the prior lines of text entered for commands.
 	int   bRecallBegin; // set to TRUE when nHistory has wrapped...
 

@@ -116,7 +116,7 @@ struct threads_tag
 	uintptr_t (CPROC*proc)( struct threads_tag * );
 	uintptr_t (CPROC*simple_proc)( POINTER );
 	TEXTSTR thread_event_name; // might be not a real thread.
-	THREAD_ID thread_ident;
+	volatile THREAD_ID thread_ident;
 	PTHREAD_EVENT thread_event;
 #ifdef _WIN32
 	//HANDLE hEvent;
@@ -182,7 +182,7 @@ static struct {
 	PTHREAD pTimerThread;
 	PTHREADSET threadset;
 	PTHREAD threads;
-	uint32_t lock_timers;
+	volatile uint32_t lock_timers;
 	CRITICALSECTION cs_timer_change;
 	//uint32_t pending_timer_change;
 	uint32_t remove_timer;
@@ -190,7 +190,7 @@ static struct {
 	int32_t last_sleep;
 
 #define globalTimerData (*global_timer_structure)
-	uintptr_t lock_thread_create;
+	volatile uintptr_t lock_thread_create;
 	// should be a short list... 10 maybe 15...
 	PLIST thread_events;
 
@@ -1167,7 +1167,7 @@ void  UnmakeThread( void )
 {
 	PTHREAD pThread;
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
-	while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, (uintptr_t)_MyThreadInfo->nThread ) )
+	while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, (uintptr_t)_MyThreadInfo->nThread ) ) //-V595
 		Relinquish();
 	pThread
 #ifdef HAS_TLS
@@ -1188,7 +1188,7 @@ void  UnmakeThread( void )
 			{
 				struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 				Deallocate( struct my_thread_info*, _MyThreadInfo );
-				TlsSetValue( global_timer_structure->my_thread_info_tls, NULL );
+				TlsSetValue( global_timer_structure->my_thread_info_tls, NULL ); //-V595
 			}
 #else
 			closesem( (POINTER)pThread, 0 );
@@ -1330,8 +1330,7 @@ PTHREAD  MakeThread( void )
 				globalTimerData.lock_thread_create = oldval;
 				Relinquish();
 			}
-			if( oldval == thread_ident )
-				dontUnlock = TRUE;
+			dontUnlock = TRUE;
 			pThread = GetFromSet( THREAD, &globalTimerData.threadset ); /*Allocate( sizeof( THREAD ) )*/;
 			//lprintf( WIDE("Get Thread %p"), pThread );
 			MemSet( pThread, 0, sizeof( THREAD ) );
@@ -1346,8 +1345,10 @@ PTHREAD  MakeThread( void )
 			//globalTimerData.threads = pThread;
 
 			InitWakeup( pThread, NULL );
-			if( !dontUnlock )
-				globalTimerData.lock_thread_create = 0;
+			// something else is in the process of trying to lock this...
+			while( thread_ident != globalTimerData.lock_thread_create )
+				Relinquish();
+			globalTimerData.lock_thread_create = 0;
 #ifdef LOG_THREAD
 			Log3( WIDE("Created thread address: %p %" PRIxFAST64 " at %p")
 			    , pThread->proc, pThread->thread_ident, pThread );

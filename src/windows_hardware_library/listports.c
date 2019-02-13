@@ -265,7 +265,7 @@ static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 
 		// Now "index" contains serial port number, we put it together with "COM"
 		// to format like "COM<index>"
-		snprintf( portinfo.lpPortName, sizeof( portinfo.lpPortName ), WIDE("COM%u"), index );		
+		snprintf( portinfo.lpPortName, sizeof( portinfo.lpPortName ), WIDE("COM%u"), index );		 //-V579
 
 		// Get friendly name
 		dwError = QueryStringValue( hkLevel1, WIDE( "FRIENDLYNAME" ), &lpFriendlyName );

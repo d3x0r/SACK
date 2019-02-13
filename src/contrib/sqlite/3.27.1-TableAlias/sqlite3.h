@@ -4281,8 +4281,8 @@ SQLITE_API const char *sqlite3_column_table_name(sqlite3_stmt*,int);
 SQLITE_API const void *sqlite3_column_table_name16(sqlite3_stmt*,int);
 SQLITE_API const char *sqlite3_column_origin_name(sqlite3_stmt*,int);
 SQLITE_API const void *sqlite3_column_origin_name16(sqlite3_stmt*,int);
-SQLITE_API const char *sqlite3_column_table_alias_name(sqlite3_stmt*,int);
-SQLITE_API const void *sqlite3_column_table_alias_name16(sqlite3_stmt*,int);
+SQLITE_API const char *sqlite3_column_table_alias(sqlite3_stmt*,int);
+SQLITE_API const void *sqlite3_column_table_alias16(sqlite3_stmt*,int);
 
 /*
 ** CAPI3REF: Declared Datatype Of A Query Result

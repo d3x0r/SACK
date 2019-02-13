@@ -86,9 +86,9 @@ struct url_data * SACK_URLParse( const char *url )
 			ch *= 16;
 			if( _url[0] >= '0' && _url[0] <= '9' )
 				ch += _url[0] - '0';
-			else if( _url[0] >= 'A' && _url[0] <= 'A' )
+			else if( _url[0] >= 'A' && _url[0] <= 'F' )
 				ch += (_url[0] - 'A') + 10;
-			else if( _url[0] >= '0' && _url[0] <= '9' )
+			else if( _url[0] >= 'a' && _url[0] <= 'f' )
 				ch += (_url[0] - 'a' ) + 10;
 			else {
 				Deallocate( char *, outbuf );

@@ -543,7 +543,7 @@ int GetClassPath( TEXTSTR out, size_t len, PCLASSROOT root )
 	PLINKSTACK pls = CreateLinkStack();
 	PTREEDEF current;
 	PNAME name;
-	for( current = (PTREEDEF)root; current->self && current; current = current->self->parent )
+	for( current = (PTREEDEF)root; current && current->self; current = current->self->parent )
 	{
 		PushLink( &pls, current->self );
 	}

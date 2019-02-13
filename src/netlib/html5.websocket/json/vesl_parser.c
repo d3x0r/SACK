@@ -531,7 +531,7 @@ static int gatherIdentifier( struct vesl_parse_state *state, CTEXTSTR msg
 		else
 			mOut += ConvertToUTF8( mOut, c );
 	}
-	while( ((n = (*msg_input) - msg), (n < msglen)) && ((c = GetUtfChar( msg_input )), (status >= 0)) );
+	while( ((n = (*msg_input) - msg), (n < msglen)) && ((c = GetUtfChar( msg_input )), (1)) );
 	if( (*pmOut) != mOut ) {
 		status |= 2;
 		(*pmOut) = mOut;
