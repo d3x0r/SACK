@@ -1325,7 +1325,7 @@ PTHREAD  MakeThread( void )
 		{
 			uintptr_t oldval;
 			LOGICAL dontUnlock = FALSE;
-			while( ( oldval = LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, (uintptr_t)thread_ident ) ) || ( oldval != thread_ident ) )
+			while( ( oldval = LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, (uintptr_t)thread_ident ) ) && ( oldval != thread_ident ) )
 			{
 				globalTimerData.lock_thread_create = oldval;
 				Relinquish();
