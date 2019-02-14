@@ -231,6 +231,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 		pHttpState->partial = pMergedLine;
 		pCurrent = pHttpState->partial;
 		//pStart = pCurrent; // at lest is this block....
+		//lprintf( "ND THIS IS WHAT WE PROCESSL:" );
 		//LogBinary( (const uint8_t*)GetText( pInput ), GetTextSize( pInput ) );
 		len = 0;
 
@@ -667,6 +668,7 @@ struct HttpState *CreateHttpState( void )
 void EndHttp( struct HttpState *pHttpState )
 {
 	lockHttp( pHttpState );
+	pHttpState->bLine = 0;
 	pHttpState->final = 0;
 
 	pHttpState->content_length = 0;
@@ -1234,6 +1236,8 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 			LogBinary( (uint8_t*)buffer, length );
 		}
 #endif
+		//lprintf( "RECEVED HTTP FROM NETWORK." );
+		//LogBinary( buffer, length );
 		AddHttpData( pHttpState, buffer, length );
 		while( ( result = ProcessHttp( pc, pHttpState ) ) )
 		{
