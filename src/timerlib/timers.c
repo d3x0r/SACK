@@ -190,7 +190,7 @@ static struct {
 	int32_t last_sleep;
 
 #define globalTimerData (*global_timer_structure)
-	volatile uintptr_t lock_thread_create;
+	volatile uint64_t lock_thread_create;
 	// should be a short list... 10 maybe 15...
 	PLIST thread_events;
 
@@ -499,7 +499,7 @@ static PTHREAD FindWakeup( CTEXTSTR name )
 	if( global_timer_structure )
 	{
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
-		while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, 1 ) )
+		while( LockedExchange64( &globalTimerData.lock_thread_create, 1 ) )
 			Relinquish();
 	}
 	else
@@ -550,7 +550,7 @@ static PTHREAD FindThreadWakeup( CTEXTSTR name, THREAD_ID thread )
 	if( global_timer_structure )
 	{
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
-		while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, 1 ) )
+		while( LockedExchange64( &globalTimerData.lock_thread_create, 1 ) )
 			Relinquish();
 	}
 	else
@@ -594,7 +594,7 @@ static PTHREAD FindThread( THREAD_ID thread )
 	if( global_timer_structure )
 	{
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
-		while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, 1 ) )
+		while( LockedExchange64( &globalTimerData.lock_thread_create, 1 ) )
 			Relinquish();
 	}
 	else
@@ -1167,7 +1167,7 @@ void  UnmakeThread( void )
 {
 	PTHREAD pThread;
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
-	while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, (uintptr_t)_MyThreadInfo->nThread ) ) //-V595
+	while( LockedExchange64( &globalTimerData.lock_thread_create, _MyThreadInfo->nThread ) ) //-V595
 		Relinquish();
 	pThread
 #ifdef HAS_TLS
@@ -1323,9 +1323,9 @@ PTHREAD  MakeThread( void )
 		if( !(pThread = FindThread( thread_ident ) ) )
 #endif
 		{
-			uintptr_t oldval;
+			THREAD_ID oldval;
 			LOGICAL dontUnlock = FALSE;
-			while( ( oldval = LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, (uintptr_t)thread_ident ) ) && ( oldval != thread_ident ) )
+			while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, thread_ident ) ) && ( oldval != thread_ident ) )
 			{
 				globalTimerData.lock_thread_create = oldval;
 				Relinquish();
@@ -1393,7 +1393,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 {
 	int success;
 	PTHREAD pThread;
-	while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, 1 ) )
+	while( LockedExchange64( &globalTimerData.lock_thread_create, 1 ) )
 		Relinquish();
 	do
 	{
@@ -1463,7 +1463,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 	else
 	{
 		// unlink from globalTimerData.threads list.
-		while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, 1 ) )
+		while( LockedExchange64( &globalTimerData.lock_thread_create, 1 ) )
 			Relinquish();
 		DeleteFromSet( THREAD, globalTimerData.threadset, pThread ) /*Release( pThread )*/;
 		globalTimerData.lock_thread_create = 0;
@@ -1478,7 +1478,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 {
 	int success;
 	PTHREAD pThread;
-	while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, 1 ) )
+	while( LockedExchange64( &globalTimerData.lock_thread_create, 1 ) )
 		Relinquish();
 	pThread = GetFromSet( THREAD, &globalTimerData.threadset );
 	/*AllocateEx( sizeof( THREAD ) DBG_RELAY );*/
@@ -1536,7 +1536,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 	else
 	{
 		// unlink from globalTimerData.threads list.
-		while( LockedExchangePtrSzVal( &globalTimerData.lock_thread_create, 1 ) )
+		while( LockedExchange64( &globalTimerData.lock_thread_create, 1 ) )
 			Relinquish();
 		DeleteFromSet( THREAD, globalTimerData.threadset, pThread ) /*Release( pThread )*/;
 		globalTimerData.lock_thread_create = 0;
