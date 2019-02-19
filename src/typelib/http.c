@@ -539,6 +539,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 
 LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 {
+	lockHttp( pHttpState );
 	pHttpState->last_read_tick = GetTickCount();
 	if( pHttpState->read_chunks )
 	{
@@ -572,6 +573,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				else
 				{
 					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
+					unlockHttp( pHttpState );
 					RemoveClient( pHttpState->request_socket );
 					return FALSE;
 				}
@@ -590,6 +592,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				else
 				{
 					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
+					unlockHttp( pHttpState );
 					RemoveClient( pHttpState->request_socket );
 					return FALSE;
 				}
@@ -602,6 +605,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				else
 				{
 					lprintf( "Chunk Processing Error expected \\r, found %d(%c)", buf[0], buf[0] );
+					unlockHttp( pHttpState );
 					RemoveClient( pHttpState->request_socket );
 					return FALSE;
 				}
@@ -621,12 +625,14 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 							//lprintf( "Waking waiting to return with result." );
 							WakeThread( pHttpState->waiter );
 						}
+						unlockHttp( pHttpState );
 						return TRUE;
 					}
 				}
 				else
 				{
 					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
+					unlockHttp( pHttpState );
 					RemoveClient( pHttpState->request_socket );
 					return FALSE;
 				}
@@ -644,12 +650,14 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 		if( l.flags.bLogReceived ) {
 			lprintf( "chunk read is %zd of %zd", pHttpState->read_chunk_byte, pHttpState->read_chunk_total_length );
 		}
+		unlockHttp( pHttpState );
 		return FALSE;
 	}
 	else
 	{
 		if( size )
 			VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)buffer, size );
+		unlockHttp( pHttpState );
 		return TRUE;
 	}
 }
