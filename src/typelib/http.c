@@ -204,15 +204,15 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 {
 	if( pHttpState->final )
 	{
-		//GatherHttpData( pHttpState );
+		if( pHttpState->response_version ) {
+			GatherHttpData( pHttpState );
 
-		//unlockHttp( pHttpState );
-		/*
-		if( pHttpState->flags.success && !pHttpState->returned_status ) {
-			pHttpState->returned_status = 1;
-			return pHttpState->numeric_code;
+			unlockHttp( pHttpState );
+			if( pHttpState->flags.success && !pHttpState->returned_status ) {
+				pHttpState->returned_status = 1;
+				return pHttpState->numeric_code;
+			}
 		}
-		*/
 		return HTTP_STATE_RESULT_NOTHING;
 	}
 	else
@@ -237,7 +237,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 
 		// we always start without having a line yet, because all input is already merged
 		{
-			//lprintf( "%s", GetText( pCurrent ) );
+			//lprintf( "process HTTP: %s %d", GetText( pCurrent ), pHttpState->bLine );
 			size = GetTextSize( pCurrent );
 			c = GetText( pCurrent );
 			if( pHttpState->bLine < 4 )
@@ -315,6 +315,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 							}
 							else
 							{
+                        //lprintf( "Parsing http state content for something.." );
 								pLine = SegCreate( pos - start - pHttpState->bLine );
 								MemCpy( line = GetText( pLine ), c + start, (pos - start - pHttpState->bLine)*sizeof(TEXTCHAR));
 								line[pos-start- pHttpState->bLine] = 0;
@@ -469,7 +470,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 				{
 					// down convert from int64_t
 					pHttpState->content_length = (int)IntCreateFromSeg( field->value );
-					//lprintf( "content lenght: %d", pHttpState->content_length );
+					//lprintf( "content length: %d", pHttpState->content_length );
 				}
 				else if( TextLike( field->name, WIDE( "upgrade" ) ) )
 				{
@@ -545,6 +546,8 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 	{
 		const uint8_t* buf = (const uint8_t*)buffer;
 		size_t ofs = 0;
+      //lprintf( "Add Chunk HTTP Data:%d", size );
+		
 		while( ofs < size )
 		{
 			switch( pHttpState->read_chunk_state )
@@ -655,6 +658,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 	}
 	else
 	{
+		//lprintf( "Add HTTP Data:%d", size );
 		if( size )
 			VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)buffer, size );
 		unlockHttp( pHttpState );
@@ -675,6 +679,7 @@ struct HttpState *CreateHttpState( void )
 
 void EndHttp( struct HttpState *pHttpState )
 {
+	//lprintf( "Ending HTTP %p", pHttpState );
 	lockHttp( pHttpState );
 	pHttpState->bLine = 0;
 	pHttpState->final = 0;

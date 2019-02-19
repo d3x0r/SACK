@@ -3638,14 +3638,14 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 
 	if( !( lpClient->dwFlags & CF_UDP ) 
 		&& ( lpClient->dwFlags & ( CF_CONNECTED ) ) ) {
-		//lprintf( "TRIGGER SHUTDOWN WRITES" );
 		shutdown( lpClient->Socket, SHUT_WR );
 	} else
 
 	{
 		int n = 0;
 		// UDP still needs to be done this way...
-		//
+				//
+		//lprintf( "This will end up resetting the socket?" );
 		EnterCriticalSec( &globalNetworkData.csNetwork );
 		InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
 		if( NetworkLock( lpClient, 0 ) && ((n=1),NetworkLock( lpClient, 1 )) ) {
