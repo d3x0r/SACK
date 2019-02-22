@@ -202,6 +202,7 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 //int ProcessHttp( struct HttpState *pHttpState )
 int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 {
+	lockHttp( pHttpState );
 	if( pHttpState->final )
 	{
 		if( pHttpState->response_version ) {
@@ -212,12 +213,23 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 				pHttpState->returned_status = 1;
 				return pHttpState->numeric_code;
 			}
+		} else {
+			if( pHttpState->content_length ) {
+				GatherHttpData( pHttpState );
+				unlockHttp( pHttpState );
+				if( ( ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
+					  ||( GetTextSize( pHttpState->content ) >= pHttpState->content_length ) )
+				  ) {
+					// prorbably a POST with a body?
+					// had to gather the body...
+					return HTTP_STATE_RESULT_CONTENT;
+				}
+			}
 		}
 		return HTTP_STATE_RESULT_NOTHING;
 	}
 	else
 	{
-		lockHttp( pHttpState );
 		PTEXT pCurrent;//, pStart;
 		PTEXT pLine = NULL;
 		TEXTCHAR *c, *line;
