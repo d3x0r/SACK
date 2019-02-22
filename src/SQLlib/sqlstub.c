@@ -4165,10 +4165,10 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 			}
 			break;
 		case VALUE_TYPED_ARRAY:
-			rc = sqlite3_bind_blob( db, useIndex, val->string, val->stringLen, NULL );
+			//rc = sqlite3_bind_blob( db, useIndex, val->string, val->stringLen, NULL );
 			break;
 		case VALUE_STRING:
-			rc = sqlite3_bind_text( db, useIndex, val->string, val->stringLen, NULL );
+			//rc = sqlite3_bind_text( db, useIndex, val->string, val->stringLen, NULL );
 				rc = SQLBindParamter( hstmt
 										  , useIndex  // parameter number
 										  , SQL_PARAM_INPUT // inputoutputtype
