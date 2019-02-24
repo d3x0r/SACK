@@ -832,7 +832,8 @@ static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct js
 			val->className = (char*)GetLink( &knownArrayTypeNames, state->arrayType );
 			val->value_type = (enum jsox_value_types)(JSOX_VALUE_TYPED_ARRAY + state->arrayType);
 			//lprintf( "INPUT:%d %s", val->stringLen, val->string );
-			val->string = (char*)DecodeBase64Ex( val->string, val->stringLen, &val->stringLen, NULL );
+			if( state->arrayType < 12 )
+				val->string = (char*)DecodeBase64Ex( val->string, val->stringLen, &val->stringLen, NULL );
 			//lprintf( "base:%s", EncodeBase64Ex( "HELLO, World!", 13, NULL, NULL ) );
 			//lprintf( "Resolve base64 string:%s", val->string );
 		}
@@ -1112,7 +1113,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->val.value_type = JSOX_VALUE_OBJECT;
 					state->val.contains = state->elements[0];
 					state->val._contains = state->elements;
-					state->val.className = state->current_class->name;
+					if( state->current_class )
+						state->val.className = state->current_class->name;
 					state->val.string = NULL;
 					{
 						struct jsox_parse_context *old_context = (struct jsox_parse_context *)PopLink( state->context_stack );
