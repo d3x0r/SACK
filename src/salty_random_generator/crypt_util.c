@@ -470,15 +470,17 @@ void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 		// enforce pad bytes to be 0.
 		(*outBufLen) -= ((uint8_t*)(outBuf[0] + objBufLen - 1))[0];
 	}
-	if( (((uint64_t*)(outBuf[0] + objBufLen - 8))[0]&0xFFFFFFFFFFFFFF ) >> ((8 - ((uint8_t*)(outBuf[0] + objBufLen - 1))[0]) * 8) )
-		((uint32_t*)0)[0] = 0; // segfault.
+	// in-place encrypt does not pad.
+	if( outBuf )
+		if( (((uint64_t*)(outBuf[0] + objBufLen - 8))[0]&0xFFFFFFFFFFFFFF ) >> ((8 - ((uint8_t*)(outBuf[0] + objBufLen - 1))[0]) * 8) )
+			((uint32_t*)0)[0] = 0; // segfault.
 	BlockShuffle_DropByteShuffler( bytKey );
 
 	EnqueLink( &crypt_local.plqCrypters, signEntropy );
 }
 
 
-#if 1
+#if 0
 // internal test code...
 // some performance benchmarking for instance.
 
