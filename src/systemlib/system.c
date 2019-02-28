@@ -1604,6 +1604,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			+ StrLen( l.library_path ) + 1 + StrLen( libname ) + 1
 			;
 		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(uint32_t)maxlen:0) );
+		library->loading = NULL;
 		library->alt_full_name = library->full_name + fullnameLen;
 		//lprintf( "New library %s", libname );
 		if( !IsAbsolutePath( libname ) )
@@ -1698,6 +1699,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	}
 	if( !library->library ) {
 		library->library = LoadLibrary( library->orig_name );
+		//if( !library->library ) lprintf( "Failed load basic:%s %d", library->orig_name, GetLastError() );
 	}
 	if( !library->library ) {
 #  ifdef DEBUG_LIBRARY_LOADING
