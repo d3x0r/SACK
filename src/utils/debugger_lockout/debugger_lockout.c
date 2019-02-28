@@ -39,11 +39,19 @@ static const char sUser32[] =                     { '\x0F','\x36','\x52','\x5F',
 static const char sNtQueryInformationProcess[] =  { '\x1E','\x5B','\x60','\x32','\x5F','\x42','\xBA','\x22','\xF4','\x11','\x53','\x5D','\x01','\xE4','\x5D','\xBF','\x76','\x81','\xC6','\x08','\xB4','\xFF','\xAB','\x98','\xC4','\xD1','\x83','\x1B','\x0B','\x92','\x9B'};
 //static TEXTCHAR sNtSetInformationThread[] =         { '\x1B','\x5F','\x6A','\x5F','\x6F','\x5C','\x65','\xA4','\x1D','\x87','\xC2','\x59','\x58','\xF4','\xE1','\xA5','\x19','\x9F','\x02','\x35','\x9B','\x3E','\x86','\x06','\xF5','\x2C','\x1B','\x00'};
 static const char sNtSetInformationThread[] =     { '\x1B','\x59','\x40','\x35','\x42','\x3D','\x62','\xC9','\xC8','\x6A','\x1E','\x5D','\xA6','\x37','\xE7','\x19','\x23','\xA6','\x77','\x30','\xB5','\x55','\xF2','\x53','\xDA','\x88','\xA5','\x35'};
+static const char sNtQuerySystemInformation[] = { 0 };
 static const char sNTDll[] =                      { '\x0E','\x5E','\x54','\x3C','\x30','\x06','\x9B','\xD2','\xA3','\x38','\x6A','\xED','\x6E','\xF8','\x5E' };
 
 static const char sDebugWndClassLocks[] =         { '\x1B','\x64','\x3B','\x6A','\x54','\x3F','\xFF','\xB2','\x87','\x28','\x7B','\x43','\x0D','\xB0','\x75','\x14','\x24','\x71','\x8D','\x2F','\x1B','\xB3','\xD9','\x7C','\x4E','\x0A','\x5F','\x82' };
 static const char sDebugWndNameLocks[] =          { '\x22','\x38','\x3D','\x43','\x65','\xAA','\x14','\x1F','\xDE','\x4D','\xA2','\xC0','\x3C','\xC1','\xE7','\x0E','\x6F','\xCD','\x72','\xC9','\x40','\x3C','\x8F','\x0B','\x03','\x7E','\x4B','\xC9','\xE4','\xB2','\x32','\xA9','\x16','\x67','\x6C' };
 static const char sAddTimerExx[] =                { '\x10','\x5E','\x50','\x37','\x69','\xEE','\xB1','\x5A','\x42','\xBD','\x8A','\xCF','\x44','\xA2','\xDA','\xB7','\x05' };
+
+static const char sKrnl[] =                       { '\x11','\x08','\x20','\x90','\x5D','\xA3','\x20','\x09','\x4C','\x05','\x99','\x61','\xB7','\xC3','\x54','\x71','\xF5','\xE7' };
+static const char sKdDebuggerEnabled[] =          { '\x16','\x50','\xE7','\xF3','\xDB','\x86','\xDB','\x81','\x18','\x52','\x6D','\xB1','\x94','\x26','\x91','\x9E','\xB8','\x73','\x84','\x63','\x2B','\xF1','\xAB' };
+static const char sKdDebuggerNotPresent[] =       { '\x19','\xE1','\xD0','\xE8','\x2C','\xB2','\xD7','\xFC','\xBB','\x13','\xAD','\x87','\xB7','\x61','\x10','\x3C','\xC5','\x90','\x02','\xF4','\xFD','\xB4','\xE9','\x97','\x16','\x3F' };
+
+static const char dKdDebuggerEnabled[ sizeof( sKdDebuggerEnabled ) ];
+static const char dKdDebuggerNotPresent[ sizeof( sKdDebuggerNotPresent ) ];
 
 //static const TEXTCHAR sACK_GetProfileString[] = { 0 };
 
@@ -55,7 +63,15 @@ static POINTER CPROC GetAntiDebugInterface( void )
 }
 #endif
 
-//#define OBFUSCATE
+
+#ifndef KD_DEBUGGER_ENAABLED 
+static PBOOLEAN KdDebuggerNotPresent_;
+static PBOOLEAN KdDebuggerEnabled_;
+#  define KD_DEBUGGER_ENABLED     *KdDebuggerEnabled_
+#  define KD_DEBUGGER_NOT_PRESENT *KdDebuggerNotPresent_
+#endif
+
+#define OBFUSCATE
 
 #ifdef OBFUSCATE
 
@@ -110,7 +126,16 @@ static PaddTimerExx CheckDebugger( void )
 	static BOOL (__stdcall*closeHandle)( HANDLE hObject );
 	static HANDLE (__stdcall*getCurrentThread)(void);
 	static HWND (__stdcall*findWindow)( CTEXTSTR classname, CTEXTSTR wndname );
-
+#if 0
+	typedef int NTSTATUS;
+	typedef enum { SystemCodeIntegrityInformation = 0x64 } SYSTEM_INFORMATION_CLASS;
+	static __kernel_entry (NTSTATUS *NtQuerySystemInformation_)(
+		IN SYSTEM_INFORMATION_CLASS SystemInformationClass,
+		OUT PVOID                   SystemInformation,
+		IN ULONG                    SystemInformationLength,
+		OUT PULONG                  ReturnLength
+	);
+#endif
 	static void (*_DecryptRawData)( CPOINTER binary, size_t length, uint8_t* *buffer, size_t *chars );
 	static PaddTimerExx addTimer;
 	//TEXTCHAR *tmp;
@@ -122,6 +147,12 @@ static PaddTimerExx CheckDebugger( void )
 	size_t outsize3;
 	uint8_t* output4 = NULL;
 	size_t outsize4;
+	static uint8_t* output5 = NULL;
+	static size_t outsize5;
+	static uint8_t* output6 = NULL;
+	static size_t outsize6;
+	static uint8_t* output7 = NULL;
+	static size_t outsize7;
 	TEXTCHAR stringbuf[256];
 	
 	if( !_DecryptRawData )
@@ -155,11 +186,15 @@ static PaddTimerExx CheckDebugger( void )
 		tmp = CryptString( "USER32.DLL" );
 		tmp = CryptString( "NtQueryInformationProcess" );
 		tmp = CryptString( "NtSetInformationThread" );
+		tmp = CryptString( "NtQuerySystemInformation" );
 		tmp = CryptString( "NTDLL.DLL" );
 		tmp = CryptString( "Debugger/Lockout/class" );
 		tmp = CryptString( "Debugger/Lockout/Window Title" );
 		tmp = CryptString( "AddTimerExx" );
 		tmp = CryptString( "SACK_GetProfileString" );
+		tmp = CryptString( "ntoskrnl.exe" );
+		tmp = CryptString( "KdDebuggerEnabled" );
+		tmp = CryptString( "KdDebuggerNotPresent" );
 	}
 #endif
 
@@ -170,8 +205,27 @@ static PaddTimerExx CheckDebugger( void )
 		_DecryptRawData( sIsDebuggerPresent + 1, sIsDebuggerPresent[0], &output, &outsize );
 		isDebuggerPresent = (BOOL (__stdcall*)(void))LoadFunction( (CTEXTSTR)output2, (CTEXTSTR)output );
 		Release( output );
+#if 0
+	// system debugger attached
+		if( !output5 ) {
+			_DecryptRawData( sKrnl + 1, sKrnl[0], &output5, &outsize5 );
+			_DecryptRawData( sKdDebuggerEnabled + 1, sKdDebuggerEnabled[0], &output6, &outsize6 );
+			_DecryptRawData(  sKdDebuggerNotPresent + 1, sKdDebuggerNotPresent[0], &output7, &outsize7 );
+			KdDebuggerEnabled_ = (PBOOLEAN)LoadFunction( (CTEXTSTR)output5, (CTEXTSTR)output6 );
+			KdDebuggerNotPresent_ = (PBOOLEAN)LoadFunction( (CTEXTSTR)output5, (CTEXTSTR)output7 );
+			Release( output5 );
+			Release( output6 );
+			Release( output7 );
+		}
+#endif
+
+		// Virtual Machine Detect?		
 	}
-	if( isDebuggerPresent() )
+
+	if( isDebuggerPresent() || 
+		((KdDebuggerNotPresent_&&!KdDebuggerNotPresent_[0]) 
+			|| (KdDebuggerEnabled_&&KdDebuggerEnabled_[0]) )
+		)
 	{
 		BAG_Exit( 0xD1E );
 		(*(int*)0x13) = 0;
@@ -332,7 +386,8 @@ static PaddTimerExx CheckDebugger( void )
 		if( _NtSetInformationThread )
 		{
 			_NtSetInformationThread( getCurrentThread(), (enum tic)0x11, 0, 0 ); 
-		}	}
+		}
+	}
 
 #if SELF_ATTACH
 	if( 0 )
