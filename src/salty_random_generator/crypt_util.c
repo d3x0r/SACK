@@ -185,10 +185,10 @@ size_t SRG_AES_encrypt( uint8_t *plaintext, size_t plaintext_len, uint8_t *key, 
 	ciphertext[0] = NewArray( uint8_t, outSize );
 
 	((uint32_t*)block)[0] = (uint32_t)plaintext_len;
-	int remaining = blockSize - sizeof( uint32_t );
+	size_t remaining = blockSize - sizeof( uint32_t );
 	if( remaining > plaintext_len ) {
 		memcpy( block + sizeof( uint32_t ), plaintext, plaintext_len );
-		remaining = (int)(plaintext_len + sizeof( uint32_t ));
+		remaining = plaintext_len + sizeof( uint32_t );
 		plaintext_len = 0;
 	}
 	else {
@@ -357,6 +357,7 @@ void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
 ) {
 	struct random_context *signEntropy = (struct random_context *)DequeLink( &crypt_local.plqCrypters );
 	size_t b;
+	size_t outLen_;
 	if( !signEntropy )
 		signEntropy = SRG_CreateEntropy4( NULL, (uintptr_t)0 );
 	SRG_ResetEntropy( signEntropy );
@@ -365,19 +366,24 @@ void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
 	static uint8_t bufKey[RNGHASH /8];
 	SRG_GetEntropyBuffer( signEntropy, (uint32_t*)bufKey, RNGHASH );
 	struct byte_shuffle_key *bytKey = BlockShuffle_ByteShuffler( signEntropy );
+	if( outBuf ) {
+		(*outBufLen) = (sizeof( uint8_t ))
+			+ objBufLen
+			+ (((objBufLen + sizeof( uint8_t )) & 0x7)
+				? (8 - ((objBufLen + sizeof( uint8_t )) & 0x7))
+				: 0);
 
-	(*outBufLen) = (sizeof( uint8_t ))
-		+ objBufLen
-		+ (((objBufLen + sizeof( uint8_t )) & 0x7)
-			? (8 - ((objBufLen + sizeof( uint8_t )) & 0x7))
-			: 0);
-
-	//outBuf[0] = (uint8_t*)HeapAllocateAligned( NULL, (*outBufLen), 4096 );
-	outBuf[0] = (uint8_t*)HeapAllocate( NULL, (*outBufLen) );
-	((uint64_t*)(outBuf[0] + (*outBufLen) - 8))[0] = 0; // clear any padding bits.
-	memcpy( outBuf[0], objBuf, objBufLen );  // copy contents for in-place encrypt.
-	((uint8_t*)(outBuf[0] + (*outBufLen) - 1))[0] = (uint8_t)(*outBufLen - objBufLen);
-
+		//outBuf[0] = (uint8_t*)HeapAllocateAligned( NULL, (*outBufLen), 4096 );
+		outBuf[0] = (uint8_t*)HeapAllocate( NULL, (*outBufLen) );
+		((uint64_t*)(outBuf[0] + (*outBufLen) - 8))[0] = 0; // clear any padding bits.
+		//SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outBuf[0] + (*outBufLen) - 8, 64 );
+		memcpy( outBuf[0], objBuf, objBufLen );  // copy contents for in-place encrypt.
+		((uint8_t*)(outBuf[0] + (*outBufLen) - 1))[0] = (uint8_t)(*outBufLen - objBufLen);
+	}
+	else {
+		outBufLen = &objBufLen;
+		outBuf = &objBuf;
+	}
 	for( b = 0; b < (*outBufLen); b += 4096 ) {
 		size_t bs = (*outBufLen) - b;
 		if( bs > 4096 )
@@ -394,13 +400,12 @@ static void decryptBlock( struct byte_shuffle_key *bytKey
 	, uint8_t *input, size_t len
 	, uint8_t *output
 	, uint8_t bufKey[RNGHASH / 8]
-	, LOGICAL lastBLock
 ) {
 	int n;
 	BlockShuffle_BusBytes_( bytKey, input, output, len );
 
 	uint8_t *curBuf = output;
-	for( n = 0; n < (len - 1); n++, curBuf++ ) {
+	for( n = 0; n < (int)(len - 1); n++, curBuf++ ) {
 		curBuf[0] = curBuf[0] ^ curBuf[1];
 	}
 	curBuf[0] = curBuf[0] ^ 0xAA;
@@ -420,7 +425,7 @@ static void decryptBlock( struct byte_shuffle_key *bytKey
 		((uint64_t*)output)[0] ^= ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];
 	}
 #else
-	for( n = 0; n < len; n += 4, output += 4 ) {
+	for( n = 0; n < (int)len; n += 4, output += 4 ) {
 		((uint32_t*)output)[0] ^= ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];
 	}
 #endif
@@ -443,24 +448,37 @@ void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 	SRG_GetEntropyBuffer( signEntropy, (uint32_t*)bufKey, RNGHASH );
 	struct byte_shuffle_key *bytKey = BlockShuffle_ByteShuffler( signEntropy );
 
-	outBuf[0] = NewArray( uint8_t, (*outBufLen) = objBufLen );
-
-	for( b = 0; b < objBufLen; b += 4096 ) {
-		size_t bs = objBufLen - b;
-		if( bs > 4096 )
-			decryptBlock( bytKey, objBuf + b, 4096, outBuf[0] + b, bufKey, 0 );
-		else
-			decryptBlock( bytKey, objBuf + b, bs, outBuf[0] + b, bufKey, 1 );
+	if( !outBuf ) {
+		for( b = 0; b < objBufLen; b += 4096 ) {
+			size_t bs = objBufLen - b;
+			if( bs > 4096 )
+				decryptBlock( bytKey, objBuf + b, 4096, objBuf + b, bufKey );
+			else
+				decryptBlock( bytKey, objBuf + b, bs, objBuf + b, bufKey );
+		}
 	}
-	(*outBufLen) -= ((uint8_t*)(outBuf[0] + objBufLen - 1))[0];
+	else {
+		outBuf[0] = NewArray( uint8_t, (*outBufLen) = objBufLen );
 
+		for( b = 0; b < objBufLen; b += 4096 ) {
+			size_t bs = objBufLen - b;
+			if( bs > 4096 )
+				decryptBlock( bytKey, objBuf + b, 4096, outBuf[0] + b, bufKey );
+			else
+				decryptBlock( bytKey, objBuf + b, bs, outBuf[0] + b, bufKey );
+		}
+		// enforce pad bytes to be 0.
+		(*outBufLen) -= ((uint8_t*)(outBuf[0] + objBufLen - 1))[0];
+	}
+	if( (((uint64_t*)(outBuf[0] + objBufLen - 8))[0]&0xFFFFFFFFFFFFFF ) >> ((8 - ((uint8_t*)(outBuf[0] + objBufLen - 1))[0]) * 8) )
+		((uint32_t*)0)[0] = 0; // segfault.
 	BlockShuffle_DropByteShuffler( bytKey );
 
 	EnqueLink( &crypt_local.plqCrypters, signEntropy );
 }
 
 
-#if 0
+#if 1
 // internal test code...
 // some performance benchmarking for instance.
 
@@ -513,7 +531,7 @@ PRELOAD( CryptTestBuiltIn ) {
 	uint8_t *orig;
 	size_t origlen;
 
-#define DO_PERF_TESTS 
+//#define DO_PERF_TESTS 
 #define LENGTH_RECOVERY_TESTING
 
 #ifdef LENGTH_RECOVERY_TESTING
