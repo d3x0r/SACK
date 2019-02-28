@@ -64,15 +64,16 @@ using namespace sack::filesys;
 
 SACK_VFS_NAMESPACE
 
+
 #ifdef __cplusplus
 namespace objStore {
 #endif
-//#define PARANOID_INIT
+	//#define PARANOID_INIT
 
-//#define DEBUG_TRACE_LOG
-//#define DEBUG_FILE_OPS
-//#define DEBUG_DISK_IO
-//#define DEBUG_DIRECTORIES
+	//#define DEBUG_TRACE_LOG
+	//#define DEBUG_FILE_OPS
+	//#define DEBUG_DISK_IO
+	//#define DEBUG_DIRECTORIES
 
 #ifdef DEBUG_TRACE_LOG
 #define LoG( a,... ) lprintf( a,##__VA_ARGS__ )
@@ -90,6 +91,7 @@ namespace objStore {
 #define vfs_SEEK vfs_os_SEEK
 #define vfs_BSEEK vfs_os_BSEEK
 
+
 #define l vfs_os_local
 static struct {
 	struct directory_entry zero_entkey;
@@ -102,11 +104,14 @@ static struct {
 #define EOFBLOCK  (~(BLOCKINDEX)0)
 #define EOBBLOCK  ((BLOCKINDEX)1)
 #define EODMARK   (1)
-#define GFB_INIT_NONE       0
-#define GFB_INIT_DIRENT     1
-#define GFB_INIT_NAMES      2
-#define GFB_INIT_PATCHBLOCK 3
-#define GFB_INIT_TIMELINE   4
+enum getFreeBlockInit {
+	GFB_INIT_NONE       ,
+	GFB_INIT_DIRENT     ,
+	GFB_INIT_NAMES      ,
+	GFB_INIT_PATCHBLOCK ,
+	GFB_INIT_TIMELINE   ,
+	GFB_INIT_TIMELINE_MORE,
+};
 // End Of Text Block
 #define UTF8_EOTB 0xFF
 // End Of Text
@@ -120,6 +125,107 @@ static struct {
 // use this character in hash as parent directory (block & char)
 #define DIRNAME_CHAR_PARENT 0xFF
 
+struct dirent_cache {
+	BLOCKINDEX entry_fpi;
+	struct directory_entry entry;  // has file size within
+	struct directory_entry entry_key;  // has file size within
+
+	struct dirent_cache *patches;
+	int usedPatches;
+	int availPatches;
+} dirCache;
+
+
+struct storageTimelineCache {
+	BLOCKINDEX timelineSector;
+	FPI dirEntry[BLOCK_SIZE / sizeof( FPI )];
+	struct dirent_cache caches[BLOCK_SIZE / sizeof( FPI )];
+	//	struct dirent_cache caches[BLOCK_SIZE / sizeof( FPI )];
+};
+
+#define timelineBlockIndexNull 0
+
+
+typedef union timelineBlockType {
+	// 0 is invalid; indexes must subtract 1 to get
+	// real timeline index.
+	uint64_t raw;
+	struct timelineBlockReference {
+		uint64_t index : 58;
+		uint64_t depth : 6;
+	} ref;
+} TIMELINE_BLOCK_TYPE;
+// this is milliseconds since 1970 (unix epoc) * 256 + timezoneOffset /15 in the low byte
+typedef struct timelineTimeType {
+	uint64_t tick  : 56;
+	uint64_t tzOfs : 8;
+} TIMELINE_TIME_TYPE;
+
+PREFIX_PACKED struct timelineHeader {
+	TIMELINE_BLOCK_TYPE first_free_entry;
+	TIMELINE_BLOCK_TYPE crootNode;
+	TIMELINE_BLOCK_TYPE srootNode;
+} PACKED;
+
+PREFIX_PACKED struct storageTimelineNode {
+	// if dirent_fpi == 0; it's free.
+	FPI dirent_fpi;   // FPI on disk
+
+	// if the block is free, cgreater is used as pointer to next free block
+	// delete an object can leave free timeline nodes in the middle of the physical chain.
+
+	union {
+		uint64_t raw;
+		TIMELINE_TIME_TYPE parts;        // file time tick/ created stamp, sealing stamp
+	}ctime;
+	TIMELINE_BLOCK_TYPE clesser;         // FPI/32 within timeline chain
+	TIMELINE_BLOCK_TYPE cgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
+	union {
+		uint64_t raw;
+		TIMELINE_TIME_TYPE parts;        // time file was stored
+	}stime;
+	TIMELINE_BLOCK_TYPE slesser;         // FPI/32 within timeline chain
+	TIMELINE_BLOCK_TYPE sgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
+} PACKED;
+
+struct memoryTimelineNode {
+	// if dirent_fpi == 0; it's free.
+	FPI dirent_fpi;   // FPI on disk
+	FPI this_fpi;
+	uint64_t index;
+	// if the block is free, cgreater is used as pointer to next free block
+	// delete an object can leave free timeline nodes in the middle of the physical chain.
+
+	union {
+		uint64_t raw;
+		TIMELINE_TIME_TYPE parts;        // file time tick/ created stamp, sealing stamp
+	}ctime;
+	TIMELINE_BLOCK_TYPE clesser;         // FPI/32 within timeline chain
+	TIMELINE_BLOCK_TYPE cgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
+	union {
+		uint64_t raw;
+		TIMELINE_TIME_TYPE parts;        // time file was stored
+	}stime;
+	TIMELINE_BLOCK_TYPE slesser;         // FPI/32 within timeline chain
+	TIMELINE_BLOCK_TYPE sgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
+};
+
+
+struct storageTimelineCursor {
+	PDATASTACK parentNodes;  // save stack of parents in cursor
+	struct storageTimelineCache dirents; // temp; needs work.
+};
+
+#define NUM_ROOT_TIMELINE_NODES (BLOCK_SIZE - sizeof( struct timelineHeader )) / sizeof( struct storageTimelineNode )
+PREFIX_PACKED struct storageTimeline {
+	struct timelineHeader header;
+	struct storageTimelineNode entries[NUM_ROOT_TIMELINE_NODES];
+} PACKED;
+
+#define NUM_TIMELINE_NODES (BLOCK_SIZE) / sizeof( struct storageTimelineNode )
+PREFIX_PACKED struct storageTimelineBlock {
+	struct storageTimelineNode entries[(BLOCK_SIZE) / sizeof( struct storageTimelineNode )];
+} PACKED;
 
 
 PREFIX_PACKED struct directory_hash_lookup_block
@@ -138,7 +244,7 @@ PREFIX_PACKED struct directory_patch_block
 			BIT_FIELD index : 8;
 			BIT_FIELD hash_block : 24;
 		} dirIndex;
-		FPI raw; 
+		FPI raw;
 	}entries[(BLOCK_SIZE-sizeof(BLOCKINDEX))/sizeof(uint32_t)];
 	uint8_t usedEntries;
 	BLOCKINDEX morePatches;
@@ -149,7 +255,7 @@ PREFIX_PACKED struct directory_patch_ref_block
 {
 	PREFIX_PACKED struct directory_patch_ref_entry {
 		BLOCKINDEX patchBlockStart;
-		BLOCKINDEX dirBlock; // first patch block 
+		BLOCKINDEX dirBlock; // first patch block
 		uint16_t patchNum;
 		uint8_t dirEntry; // which directory entry this patches
 	} entries[(BLOCK_SIZE)/sizeof( struct directory_patch_ref_entry )] PACKED;
@@ -169,12 +275,12 @@ enum sack_vfs_os_seal_states {
 
 PREFIX_PACKED struct sealant_suffix {
 	BLOCKINDEX firstPatchBlock;
-	BLOCKINDEX patchRefBlock; // first patch block 
+	BLOCKINDEX patchRefBlock; // first patch block
 	uint16_t patchRefIndex; // patch entry that this is a patch to.
 }PACKED;
 
 
-static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS );
+static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, enum getFreeBlockInit init DBG_PASS );
 #define _os_GetFreeBlock(v,i) _os_GetFreeBlock_(v,i DBG_SRC )
 
 LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
@@ -187,21 +293,78 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 );
 #define _os_ScanDirectory(v,f,db,nb,file,pm) ((l.leadinDepth = 0), _os_ScanDirectory_(v,f,db,nb,file,pm, l.leadin, &l.leadinDepth ))
 
-static BLOCKINDEX vfs_os_GetNextBlock( struct volume *vol, BLOCKINDEX block, int init, LOGICAL expand );
+// This getNextBlock is optional allocate new one; it uses _os_getFreeBlock_
+static BLOCKINDEX vfs_os_GetNextBlock( struct volume *vol, BLOCKINDEX block, enum getFreeBlockInit init, LOGICAL expand );
+
 static LOGICAL _os_ExpandVolume( struct volume *vol );
 
 #define vfs_os_BSEEK(v,b,c) vfs_os_BSEEK_(v,b,c DBG_SRC )
 uintptr_t vfs_os_BSEEK_( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index DBG_PASS );
 #define vfs_os_DSEEK(v,b,c,pp) vfs_os_DSEEK_(v,b,c,pp DBG_SRC )
 
+static void _os_ExtendBlockChain( struct sack_vfs_file *file ) {
+	int newSize = (file->blockChainAvail) * 2 + 1;
+	file->blockChain = (BLOCKINDEX*)Reallocate( file->blockChain, newSize * sizeof( BLOCKINDEX ) );
+#ifdef _DEBUG
+	// debug
+	memset( file->blockChain + file->blockChainAvail, 0, (newSize - file->blockChainAvail) * sizeof( BLOCKINDEX ) );
+#endif
+	file->blockChainAvail = newSize;
+
+}
+
+static void _os_SetBlockChain( struct sack_vfs_file *file, FPI fpi, BLOCKINDEX newBlock ) {
+	FPI fileBlock = fpi >> BLOCK_SIZE_BITS;
+#ifdef _DEBUG
+	if( !newBlock ) DebugBreak();
+#endif
+	while( (fileBlock) >= file->blockChainAvail ) {
+		_os_ExtendBlockChain( file );
+	}
+	if( fileBlock >= file->blockChainLength )
+		file->blockChainLength = (unsigned int)(fileBlock + 1);
+	//_lprintf(DBG_RELAY)( "setting %d to %d", (int)fileBlock, (int)newBlock );
+	if( file->blockChain[fileBlock] ) {
+		if( file->blockChain[fileBlock] == newBlock ) {
+			return;
+		}
+	}
+	file->blockChain[fileBlock] = newBlock;
+}
+
 
 // seek by byte position from a starting block; as file; result with an offset into a block.
-uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
+uintptr_t vfs_os_FSEEK( struct volume *vol
+	, struct sack_vfs_file *file
+	, BLOCKINDEX firstblock
+	, FPI offset
+	, enum block_cache_entries *cache_index ) 
+{
 	uint8_t *data;
+	FPI pos = 0;
+	if( file ) {
+		if( (offset >> BLOCK_SHIFT) < file->blockChainLength ) {
+			firstblock = file->blockChain[offset >> BLOCK_SHIFT];
+			pos = offset & ~BLOCK_SHIFT;
+			offset = offset & BLOCK_MASK;
+		}
+		else {
+			if( file->blockChainLength ) {
+				// go to the last known block
+				firstblock = file->blockChain[pos = file->blockChainLength - 1];
+				pos <<= BLOCK_SHIFT;
+				offset -= pos;
+			} 
+			// else there is no known blocks... continue as usual
+		}
+	}
 	while( firstblock != EOFBLOCK && offset >= BLOCK_SIZE ) {
 		//LoG( "Skipping a whole block of 'file' %d %d", firstblock, offset );
-		firstblock = vfs_os_GetNextBlock( vol, firstblock, 0, 0 );
+		firstblock = vfs_os_GetNextBlock( vol, firstblock, GFB_INIT_NONE, 0 );
+		if( file )
+			_os_SetBlockChain( file, pos, firstblock );
 		offset -= BLOCK_SIZE;
+		pos += BLOCK_SIZE;
 	}
 	data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, cache_index DBG_NULL );
 	return (uintptr_t)(data + (offset));
@@ -232,7 +395,7 @@ static int  _os_PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
 // compare against the filename bytes.
 static int _os_MaskStrCmp( struct volume *vol, const char * filename, BLOCKINDEX nameBlock, FPI name_offset, int path_match ) {
 	enum block_cache_entries cache = BC(NAMES);
-	const char *dirname = (const char*)vfs_os_FSEEK( vol, nameBlock, name_offset, &cache );
+	const char *dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset, &cache );
 	const char *dirkey;
 	if( !dirname ) return 1;
 	dirkey = (const char*)(vol->usekey[cache]) + (name_offset & BLOCK_MASK );
@@ -326,7 +489,7 @@ static int _os_dumpDirectories( struct volume *vol, BLOCKINDEX start, LOGICAL in
 			}
 
 			name_cache = BC( NAMES );
-			filename = (const char *)vfs_os_FSEEK( vol, dirBlock->names_first_block ^ dirBlockKey->names_first_block, name_ofs, &name_cache );
+			filename = (const char *)vfs_os_FSEEK( vol, NULL, dirBlock->names_first_block ^ dirBlockKey->names_first_block, name_ofs, &name_cache );
 			if( !filename ) return;
 			outfilenamelen = 0;
 			for( l = 0; l < leadinDepth; l++ ) outfilename[outfilenamelen++] = leadin[l];
@@ -412,7 +575,7 @@ static void _os_updateCacheAge_( struct volume *vol, enum block_cache_entries *c
 			break;
 		}
 		if( (age[n] < least) && !TESTFLAG( vol->seglock, cache_idx[0] + n) ) {
-			least = age[n]; 
+			least = age[n];
 			nLeast = n; // this one will be oldest, unlocked candidate
 		}
 	}
@@ -433,8 +596,14 @@ static void _os_updateCacheAge_( struct volume *vol, enum block_cache_entries *c
 #ifdef DEBUG_DISK_IO
 			LoG_( "MUST CLAIM SEGMENT Flush dirty segment: %d %x %d", nLeast, vol->bufferFPI[useCache], vol->segment[useCache] );
 #endif
+			uint8_t *crypt;
+			size_t cryptlen;
 			sack_fseek( vol->file, (size_t)vol->bufferFPI[useCache], SEEK_SET );
-			sack_fwrite( vol->usekey_buffer[useCache], 1, BLOCK_SIZE, vol->file );
+			SRG_XSWS_encryptData( vol->usekey_buffer[useCache], BLOCK_SIZE
+				, 0, NULL, 0
+				, NULL, NULL );
+			sack_fwrite( crypt, 1, BLOCK_SIZE, vol->file );
+			Deallocate( uint8_t*, crypt );
 			RESETFLAG( vol->dirty, useCache );
 			RESETFLAG( vol->_dirty, useCache );
 		}
@@ -447,6 +616,11 @@ static void _os_updateCacheAge_( struct volume *vol, enum block_cache_entries *c
 #endif
 		if( !sack_fread( vol->usekey_buffer[cache_idx[0]], 1, BLOCK_SIZE, vol->file ) )
 			memset( vol->usekey_buffer[cache_idx[0]], 0, BLOCK_SIZE );
+		else {
+			SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE
+				, 0, NULL, 0
+				, NULL, NULL );
+		}
 	}
 #ifdef DEBUG_CACHE_AGING
 	lprintf( "age end2:" );
@@ -480,7 +654,13 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct volume *vol, enum 
 				LoG_( "MUST CLAIM SEGEMNT Flush dirty segment: %x %d", vol->bufferFPI[cache_idx], vol->segment[cache_idx] );
 #endif
 				sack_fseek( vol->file, (size_t)vol->bufferFPI[cache_idx], SEEK_SET );
-				sack_fwrite( vol->usekey_buffer[cache_idx], 1, BLOCK_SIZE, vol->file );
+				uint8_t *crypt;
+				size_t cryptlen;
+				SRG_XSWS_encryptData( vol->usekey_buffer[cache_idx], BLOCK_SIZE
+					, 0, NULL, 0
+					, NULL, NULL );
+				sack_fwrite( crypt, 1, BLOCK_SIZE, vol->file );
+				Deallocate( uint8_t*, crypt );
 				RESETFLAG( vol->dirty, cache_idx );
 				RESETFLAG( vol->_dirty, cache_idx );
 #ifdef DEBUG_DISK_IO
@@ -496,6 +676,11 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct volume *vol, enum 
 			if( !sack_fread( vol->usekey_buffer[cache_idx], 1, BLOCK_SIZE, vol->file ) ) {
 				//lprintf( "Cleared BLock on failed read." );
 				memset( vol->usekey_buffer[cache_idx], 0, BLOCK_SIZE );
+			}
+			else {
+				SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx], BLOCK_SIZE
+					, 0, NULL, 0
+					, NULL, NULL );
 			}
 		}
 		vol->segment[cache_idx] = segment;
@@ -558,7 +743,7 @@ static LOGICAL _os_ValidateBAT( struct volume *vol ) {
 	if( vol->key ) {
 		for( n = first_slab; n < slab; n += BLOCKS_PER_SECTOR  ) {
 			size_t m;
-			BLOCKINDEX *BAT; 
+			BLOCKINDEX *BAT;
 			BLOCKINDEX *blockKey;
 			BAT = TSEEK( BLOCKINDEX*, vol, n * BLOCK_SIZE, cache );
 			//sack_fseek( vol->file, (size_t)n * BLOCK_SIZE, SEEK_SET );
@@ -606,6 +791,15 @@ static LOGICAL _os_ValidateBAT( struct volume *vol ) {
 		}
 	}
 	if( !_os_ScanDirectory( vol, NULL, FIRST_DIR_BLOCK, NULL, NULL, 0 ) ) return FALSE;
+
+	vol->timeline_cache = New( struct storageTimelineCursor );
+	vol->timeline_cache->parentNodes = CreateDataStack( sizeof( struct storageTimelineNode ) );
+	vol->timeline_file = New( struct sack_vfs_file );
+	MemSet( vol->timeline_file, 0, sizeof( struct sack_vfs_file ) );
+	vol->timeline_file->_first_block = FIRST_TIMELINE_BLOCK;
+	vol->timeline_file->block = FIRST_TIMELINE_BLOCK;
+	vol->timeline_file->vol = vol;
+
 	return TRUE;
 }
 
@@ -812,7 +1006,7 @@ uintptr_t vfs_os_DSEEK_( struct volume *vol, FPI dataFPI, enum block_cache_entri
 	}
 }
 
-static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS )
+static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, enum getFreeBlockInit init DBG_PASS )
 {
 	size_t n;
 	unsigned int b = 0;
@@ -820,6 +1014,8 @@ static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS )
 	BLOCKINDEX *current_BAT;// = TSEEK( BLOCKINDEX*, vol, 0, cache );
 	BLOCKINDEX *blockKey;
 	BLOCKINDEX check_val;
+	enum block_cache_entries newcache;
+
 	if( vol->pdlFreeBlocks->Cnt ) {
 		BLOCKINDEX newblock = ((BLOCKINDEX*)GetDataItem( &vol->pdlFreeBlocks, vol->pdlFreeBlocks->Cnt - 1 ))[0];
 		check_val = 0;
@@ -856,9 +1052,8 @@ static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS )
 		SETFLAG( vol->dirty, cache );
 	}
 
-	if( init ) {
-		enum block_cache_entries newcache;
-		if( init == GFB_INIT_DIRENT ) {
+	switch( init ) {
+	case GFB_INIT_DIRENT: {
 			struct directory_hash_lookup_block *dir;
 			struct directory_hash_lookup_block *dirkey;
 			LoG( "Create new directory: result %d", (int)(b * BLOCKS_PER_BAT + n) );
@@ -870,28 +1065,44 @@ static BLOCKINDEX _os_GetFreeBlock_( struct volume *vol, int init DBG_PASS )
 			dir->names_first_block = _os_GetFreeBlock( vol, GFB_INIT_NAMES ) ^ dirkey->names_first_block;
 			dir->used_names = 0 ^ dirkey->used_names;
 			//((struct directory_hash_lookup_block*)(vol->usekey_buffer[newcache]))->entries[0].first_block = EODMARK ^ ((struct directory_hash_lookup_block*)vol->usekey[cache])->entries[0].first_block;
+			break;
 		}
-		else if( init == GFB_INIT_TIMELINE ) {
+	case GFB_INIT_TIMELINE: {
+			struct storageTimeline *tl;
+			struct storageTimeline *tlkey;
 			newcache = _os_UpdateSegmentKey_( vol, BC( TIMELINE ), b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
-			
+			tl = (struct storageTimeline *)vol->usekey_buffer[newcache];
+			tlkey = (struct storageTimeline *)vol->usekey[newcache];
+			//tl->header.timeline_length  = 0 ^ tlkey->header.timeline_length;
+			tl->header.crootNode.raw = 0 ^ tlkey->header.crootNode.raw;
+			tl->header.srootNode.raw = 0 ^ tlkey->header.srootNode.raw;
+			tl->header.first_free_entry.ref.index = 1 ^ tlkey->header.first_free_entry.ref.index;
+			tl->header.first_free_entry.ref.depth = 0 ^ tlkey->header.first_free_entry.ref.depth;
+			break;
 		}
-		else if( init == GFB_INIT_NAMES ) {
+	case GFB_INIT_TIMELINE_MORE: {
+			newcache = _os_UpdateSegmentKey_( vol, BC( TIMELINE ), b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
+
+			break;
+		}
+	case GFB_INIT_NAMES: {
 			newcache = _os_UpdateSegmentKey_( vol, BC( NAMES ), b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
 			memset( vol->usekey_buffer[newcache], 0, BLOCK_SIZE );
 			((char*)(vol->usekey_buffer[newcache]))[0] = (char)UTF8_EOTB ^ ((char*)vol->usekey[newcache])[0];
 			//LoG( "New Name Buffer: %x %p", vol->segment[newcache], vol->usekey_buffer[newcache] );
+			break;
 		}
-		else {
+	default: {
 			//	memcpy( ((uint8_t*)vol->disk) + (vol->segment[newcache]-1) * BLOCK_SIZE, vol->usekey[newcache], BLOCK_SIZE );
 			newcache = _os_UpdateSegmentKey_( vol, BC( FILE ), b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
 		}
-		SETFLAG( vol->dirty, newcache );
 	}
+	SETFLAG( vol->dirty, newcache );
 	LoG( "Return block:%d   %d  %d", (int)(b*BLOCKS_PER_BAT + n), (int)b, (int)n );
 	return b * BLOCKS_PER_BAT + n;
 }
 
-static BLOCKINDEX vfs_os_GetNextBlock( struct volume *vol, BLOCKINDEX block, int init, LOGICAL expand ) {
+static BLOCKINDEX vfs_os_GetNextBlock( struct volume *vol, BLOCKINDEX block, enum getFreeBlockInit init, LOGICAL expand ) {
 	BLOCKINDEX sector = block / BLOCKS_PER_BAT;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX *, vol, sector * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
@@ -1039,7 +1250,13 @@ void sack_vfs_os_flush_volume( struct volume * vol ) {
 			if( TESTFLAG( vol->dirty, idx ) || TESTFLAG( vol->_dirty, idx ) ) {
 				LoG( "Flush dirty segment: %zx %d", vol->bufferFPI[idx], vol->segment[idx] );
 				sack_fseek( vol->file, (size_t)vol->bufferFPI[idx], SEEK_SET );
-				sack_fwrite( vol->usekey_buffer[idx], 1, BLOCK_SIZE, vol->file );
+				uint8_t *crypt;
+				size_t cryptlen;
+				SRG_XSWS_encryptData( vol->usekey_buffer[idx], BLOCK_SIZE
+					, 0, NULL, 0
+					, NULL, NULL );
+				sack_fwrite( crypt, 1, BLOCK_SIZE, vol->file );
+				Deallocate( uint8_t*, crypt );
 				RESETFLAG( vol->dirty, idx );
 				RESETFLAG( vol->_dirty, idx );
 			}
@@ -1068,7 +1285,7 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 					vol->lock = 0; // data changed, don't flush.
 					WakeableSleep( 256 );
 				}
-				else 
+				else
 					break; // have lock, break; flush dirty sectors(if any)
 			}
 			else // didn't get lock, wait.
@@ -1080,6 +1297,11 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 			for( idx = 0; idx < BC(COUNT); idx++ )
 				if( TESTFLAG( vol->_dirty, idx ) ) {
 					sack_fseek( vol->file, (size_t)vol->bufferFPI[idx], SEEK_SET );
+					uint8_t *crypt;
+					size_t cryptlen;
+					SRG_XSWS_encryptData( vol->usekey_buffer[idx], BLOCK_SIZE
+						, 0, NULL, 0
+						, NULL, NULL );
 					sack_fwrite( vol->usekey_buffer[idx], 1, BLOCK_SIZE, vol->file );
 					RESETFLAG( vol->_dirty, idx );
 				}
@@ -1217,7 +1439,7 @@ LOGICAL sack_vfs_os_decrypt_volume( struct volume *vol )
 		BLOCKINDEX slab = vol->dwSize / ( BLOCKS_PER_SECTOR * BLOCK_SIZE );
 		for( n = 0; n < slab; n++  ) {
 			size_t m;
-			BLOCKINDEX *blockKey; 
+			BLOCKINDEX *blockKey;
 			BLOCKINDEX *block;// = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * (BLOCKS_PER_SECTOR * BLOCK_SIZE));
 			block = TSEEK( BLOCKINDEX*, vol, n * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
 			blockKey = ((BLOCKINDEX*)vol->usekey[cache]);
@@ -1329,132 +1551,656 @@ const char *sack_vfs_os_get_signature( struct volume *vol ) {
 // Timeline Support Functions
 //-----------------------------------------------------------------------------------
 
-void reloadTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol, FPI timeEntry ) {
+void reloadTimeEntry( struct memoryTimelineNode *time, struct volume *vol, uint64_t timeEntry ) {
 	enum block_cache_entries cache = BC( TIMELINE );
 	//uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
-	struct storageTimelineNode *nodeKey;
-	struct storageTimelineNode *node = (struct storageTimelineNode *)vfs_os_DSEEK( vol, timeEntry, &cache, (POINTER*)&nodeKey );
-	time->next = node->next ^ nodeKey->next;
+	FPI pos = offsetof( struct storageTimeline, entries[timeEntry - 1] );
+	struct storageTimelineNode *node = (struct storageTimelineNode *)vfs_os_FSEEK( vol, vol->timeline_file, FIRST_TIMELINE_BLOCK, pos, &cache );
+	struct storageTimelineNode *nodeKey = (struct storageTimelineNode *)(vol->usekey[cache] + (pos & BLOCK_MASK));
+	time->index = timeEntry;
+
 	time->dirent_fpi = node->dirent_fpi ^ nodeKey->dirent_fpi;
-	time->ctime = node->ctime ^ nodeKey->ctime;
-	time->stime = node->stime ^ nodeKey->stime;
-	time->this_fpi = vol->bufferFPI[cache] + ( timeEntry & BLOCK_MASK );
+
+	time->ctime.raw = node->ctime.raw ^ nodeKey->ctime.raw;
+	time->clesser.raw = node->clesser.raw ^ nodeKey->clesser.raw;
+	time->cgreater.raw = node->cgreater.raw ^ nodeKey->cgreater.raw;
+
+	time->stime.raw = node->stime.raw ^ nodeKey->stime.raw;
+	time->slesser.raw = node->slesser.raw ^ nodeKey->slesser.raw;
+	time->sgreater.raw = node->sgreater.raw ^ nodeKey->sgreater.raw;
+
+	time->this_fpi = vol->bufferFPI[cache] + ( pos & BLOCK_MASK );
 }
 
-void updateTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) {
+void updateTimeEntry( struct memoryTimelineNode *time, struct volume *vol ) {
 	FPI timeEntry = time->this_fpi;
 
 	enum block_cache_entries cache = BC( TIMELINE );
-	//uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
 	struct storageTimelineNode *nodeKey;
 	struct storageTimelineNode *node = (struct storageTimelineNode *)vfs_os_DSEEK( vol, time->this_fpi, &cache, (POINTER*)&nodeKey );
+
 	node->dirent_fpi = time->dirent_fpi ^ nodeKey->dirent_fpi;
-	node->stime = time->stime ^ nodeKey->stime;
+
+	node->ctime.raw = time->ctime.raw ^ nodeKey->ctime.raw;
+	node->clesser.raw = time->clesser.raw ^ nodeKey->clesser.raw;
+	node->cgreater.raw = time->cgreater.raw ^ nodeKey->cgreater.raw;
+
+	node->stime.raw = time->stime.raw ^ nodeKey->stime.raw;
+	node->slesser.raw = time->slesser.raw ^ nodeKey->slesser.raw;
+	node->sgreater.raw = time->sgreater.raw ^ nodeKey->sgreater.raw;
+
 	SETFLAG( vol->dirty, cache );
 }
 
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+
+static void _os_AVL_RotateToRight(
+	struct volume *vol,
+	LOGICAL bSortCreation,
+	PDATASTACK *pdsStack,
+	int depth,
+	uint64_t nodeIndex,
+	struct memoryTimelineNode *node
+)
+{
+	//node->lesser.ref.index *
+	struct memoryTimelineNode left;
+	struct memoryTimelineNode *parent;
+	parent = (struct memoryTimelineNode *)PeekDataEx( pdsStack, depth - 1 );
+
+	if( bSortCreation ) {
+		reloadTimeEntry( &left, vol, node->clesser.ref.index );
+		/* Perform rotation*/
+		if( parent->clesser.ref.index == nodeIndex )
+			parent->clesser.ref.index = node->clesser.ref.index;
+		else if( parent->cgreater.ref.index == nodeIndex )
+			parent->cgreater.ref.index = node->clesser.ref.index;
+		else
+			DebugBreak();
+		left.cgreater.ref.index = nodeIndex;
+		node->clesser.ref.index = left.cgreater.ref.index;
+
+		PushData( pdsStack, &left );
+
+		/* Update heights */
+		{
+			int leftDepth, rightDepth;
+			leftDepth = node->clesser.ref.depth;
+			rightDepth = node->cgreater.ref.depth;
+
+			if( leftDepth > rightDepth )
+				if( parent->cgreater.ref.index == nodeIndex )
+					parent->cgreater.ref.depth = leftDepth + 1;
+				else if( parent->clesser.ref.index == nodeIndex )
+					parent->clesser.ref.depth = leftDepth + 1;
+				//node->clesser.ref.depth = left.leftDepth + 1;
+			else
+				if( parent->cgreater.ref.index == nodeIndex )
+					parent->cgreater.ref.depth = rightDepth + 1;
+				else if( parent->clesser.ref.index == nodeIndex )
+					parent->clesser.ref.depth = rightDepth + 1;
+
+			leftDepth = left.clesser.ref.depth;
+			rightDepth = left.cgreater.ref.depth;
+			if( leftDepth > rightDepth )
+				node->clesser.ref.depth = leftDepth + 1;
+			else
+				node->clesser.ref.depth = rightDepth + 1;
+		}
+	}
+	else {
+		reloadTimeEntry( &left, vol, node->slesser.ref.index );
+		/* Perform rotation*/
+		if( parent->slesser.ref.index == nodeIndex )
+			parent->slesser.ref.index = node->slesser.ref.index;
+		else if( parent->sgreater.ref.index == nodeIndex )
+			parent->sgreater.ref.index = node->slesser.ref.index;
+		else
+			DebugBreak();
+		left.sgreater.ref.index = nodeIndex;
+		node->slesser.ref.index = left.sgreater.ref.index;
+
+		PushData( pdsStack, &left );
+
+		/* Update heights */
+		{
+			int leftDepth, rightDepth;
+			leftDepth = node->slesser.ref.depth;
+			rightDepth = node->sgreater.ref.depth;
+
+			if( leftDepth > rightDepth )
+				if( parent->sgreater.ref.index == nodeIndex )
+					parent->sgreater.ref.depth = leftDepth + 1;
+				else if( parent->slesser.ref.index == nodeIndex )
+					parent->slesser.ref.depth = leftDepth + 1;
+			//node->slesser.ref.depth = left.leftDepth + 1;
+				else
+					if( parent->sgreater.ref.index == nodeIndex )
+						parent->sgreater.ref.depth = rightDepth + 1;
+					else if( parent->slesser.ref.index == nodeIndex )
+						parent->slesser.ref.depth = rightDepth + 1;
+
+			leftDepth = left.clesser.ref.depth;
+			rightDepth = left.cgreater.ref.depth;
+			if( leftDepth > rightDepth )
+				node->slesser.ref.depth = leftDepth + 1;
+			else
+				node->slesser.ref.depth = rightDepth + 1;
+		}
+	}
+	updateTimeEntry( parent, vol );
+	updateTimeEntry( node, vol );
+	updateTimeEntry( &left, vol );
+}
+
+//---------------------------------------------------------------------------
+
+static void _os_AVL_RotateToLeft(
+	struct volume *vol,
+	LOGICAL bSortCreation,
+	PDATASTACK *pdsStack,
+	int depth,
+	uint64_t nodeIndex,
+	struct memoryTimelineNode *node )
+//#define _os_AVL_RotateToLeft(node)
+{
+	struct memoryTimelineNode right;
+	struct memoryTimelineNode *right_;
+	struct memoryTimelineNode *parent;
+	uint64_t rightIndex;
+	parent = (struct memoryTimelineNode *)PeekData( pdsStack );
+	if( bSortCreation ) {
+		reloadTimeEntry( &right, vol, rightIndex = node->cgreater.ref.index );
+
+		if( parent->clesser.ref.index == nodeIndex )
+			parent->clesser.ref.index = node->cgreater.ref.index;
+		else if( parent->cgreater.ref.index == nodeIndex )
+			parent->cgreater.ref.index = node->cgreater.ref.index;
+		else
+			DebugBreak();
+
+		right.clesser.ref.index = nodeIndex;
+		PushData( pdsStack, &right );
+		right_ = (struct memoryTimelineNode *)PeekData( pdsStack );
+
+		node->cgreater.ref.index = right.clesser.ref.index;
+
+		/*  Update heights */
+		{
+			int left, rightDepth;
+			left = node->clesser.ref.depth;
+			rightDepth = node->cgreater.ref.depth;
+			if( left > rightDepth )
+				right_->clesser.ref.depth = left + 1;
+			else
+				right_->clesser.ref.depth = rightDepth + 1;
+
+			left = right_->clesser.ref.depth;
+			rightDepth = right_->cgreater.ref.depth;
+
+			struct memoryTimelineNode *parent;
+			parent = (struct memoryTimelineNode *)PeekData( pdsStack );
+
+			if( left > rightDepth ) {
+				if( parent->clesser.ref.index == rightIndex )
+					parent->clesser.ref.depth = left + 1;
+				else if( parent->cgreater.ref.index == rightIndex )
+					parent->cgreater.ref.depth = left + 1;
+			} 
+			else {
+				if( parent->clesser.ref.index == rightIndex )
+					parent->clesser.ref.depth = rightDepth + 1;
+				else if( parent->cgreater.ref.index == rightIndex )
+					parent->cgreater.ref.depth = rightDepth + 1;
+			}
+		}
+
+	}
+	else {
+		reloadTimeEntry( &right, vol, rightIndex = node->sgreater.ref.index );
+
+		if( parent->slesser.ref.index == nodeIndex )
+			parent->slesser.ref.index = node->sgreater.ref.index;
+		else if( parent->sgreater.ref.index == nodeIndex )
+			parent->sgreater.ref.index = node->sgreater.ref.index;
+		else
+			DebugBreak();
+
+		right.clesser.ref.index = nodeIndex;
+		PushData( pdsStack, &right );
+		right_ = (struct memoryTimelineNode *)PeekData( pdsStack );
+
+		node->sgreater.ref.index = right.clesser.ref.index;
+
+		/*  Update heights */
+		{
+			int left, rightDepth;
+			left = node->slesser.ref.depth;
+			rightDepth = node->sgreater.ref.depth;
+			if( left > rightDepth )
+				right_->slesser.ref.depth = left + 1;
+			else
+				right_->slesser.ref.depth = rightDepth + 1;
+
+			left = right_->slesser.ref.depth;
+			rightDepth = right_->sgreater.ref.depth;
+
+			struct memoryTimelineNode *parent;
+			parent = (struct memoryTimelineNode *)PeekData( pdsStack );
+
+			if( left > rightDepth ) {
+				if( parent->slesser.ref.index == rightIndex )
+					parent->slesser.ref.depth = left + 1;
+				else if( parent->sgreater.ref.index == rightIndex )
+					parent->sgreater.ref.depth = left + 1;
+			}
+			else {
+				if( parent->slesser.ref.index == rightIndex )
+					parent->slesser.ref.depth = rightDepth + 1;
+				else if( parent->sgreater.ref.index == rightIndex )
+					parent->sgreater.ref.depth = rightDepth + 1;
+			}
+		}
+
+	}
 
 
-void getTimeEntry( struct sack_vfs_os_file_timeline *time, struct volume *vol ) {
+
+}
+
+//---------------------------------------------------------------------------
+
+
+static void _os_AVLbalancer( struct volume *vol, LOGICAL bSortCreation, PDATASTACK *pdsStack
+	, struct memoryTimelineNode *node ) {
+	struct memoryTimelineNode *_x = NULL;
+	struct memoryTimelineNode *_y = NULL;
+	struct memoryTimelineNode *_z = NULL;
+	struct memoryTimelineNode *tmp;
+	int leftDepth;
+	int rightDepth;
+
+	_z = node;
+	if( bSortCreation )
+	while( _z && !pdsStack[0]->Top ) {
+		int doBalance;
+		doBalance = FALSE;
+		rightDepth = _z->cgreater.ref.depth;
+		leftDepth = _z->clesser.ref.depth;
+		tmp = (struct memoryTimelineNode *)PeekData( pdsStack );
+		if( leftDepth > rightDepth ) {
+			if( tmp->cgreater.ref.index == _z->index ) {
+				if( (1 + leftDepth) == tmp->cgreater.ref.depth ) {
+					//if( zz )
+					//	lprintf( "Stopped checking: %d %d %d", height, leftDepth, rightDepth );
+					break;
+				}
+				tmp->clesser.ref.depth = 1 + leftDepth;
+			}
+			else if( tmp->clesser.ref.index == _z->index ) {
+				if( (1 + leftDepth) == tmp->clesser.ref.depth ) {
+					//if( zz )
+					//	lprintf( "Stopped checking: %d %d %d", height, leftDepth, rightDepth );
+					break;
+				}
+				tmp->cgreater.ref.depth = 1 + leftDepth;
+			}
+			else
+				DebugBreak();// Should be one or the other... 
+			if( (leftDepth - rightDepth) > 1 ) {
+				doBalance = TRUE;
+			}
+		}
+		else {
+			if( tmp->cgreater.ref.index == _z->index ) {
+				if( (1 + rightDepth) == tmp->cgreater.ref.depth ) {
+					//if(zz)
+					//	lprintf( "Stopped checking: %d %d %d", height, leftDepth, rightDepth );
+					break;
+				}
+				tmp->cgreater.ref.depth = 1 + rightDepth;
+			}
+			else if( tmp->clesser.ref.index == _z->index ) {
+				if( (1 + rightDepth) == tmp->clesser.ref.depth ) {
+					//if(zz)
+					//	lprintf( "Stopped checking: %d %d %d", height, leftDepth, rightDepth );
+					break;
+				}
+				tmp->clesser.ref.depth = 1 + rightDepth;
+			}
+			else
+				DebugBreak();
+			if( (rightDepth - leftDepth) > 1 ) {
+				doBalance = TRUE;
+			}
+		}
+
+
+		if( doBalance ) {
+			if( _x ) {
+				if( _x->index == _y->clesser.ref.index ) {
+					if( _y->index == _z->clesser.ref.index ) {
+						// left/left
+						_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _z->index, _z );
+					}
+					else {
+						//left/rightDepth
+						_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _y->index, _y );
+						_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _z->index, _z );
+					}
+				}
+				else {
+					if( _y->index == _z->clesser.ref.index ) {
+						_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _y->index, _y );
+						_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _z->index, _z );
+						// rightDepth.left
+					}
+					else {
+						//rightDepth/rightDepth
+						_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _z->index, _z );
+					}
+				}
+			}
+			else {
+				//lprintf( "Not deep enough for balancing." );
+			}
+		}
+		_x = _y;
+		_y = _z;
+		_z = (struct memoryTimelineNode *)PopData( pdsStack );
+	}
+	else
+	while( _z && !pdsStack[0]->Top ) {
+		int doBalance;
+		doBalance = FALSE;
+		rightDepth = _z->sgreater.ref.depth;
+		leftDepth = _z->slesser.ref.depth;
+		tmp = (struct memoryTimelineNode *)PeekData( pdsStack );
+		if( leftDepth > rightDepth ) {
+			if( tmp->sgreater.ref.index == _z->index ) {
+				if( (1 + leftDepth) == tmp->sgreater.ref.depth ) {
+					//if( zz )
+					//	lprintf( "Stopped checking: %d %d %d", height, leftDepth, rightDepth );
+					break;
+				}
+				tmp->slesser.ref.depth = 1 + leftDepth;
+			}
+			else if( tmp->slesser.ref.index == _z->index ) {
+				if( (1 + leftDepth) == tmp->slesser.ref.depth ) {
+					//if( zz )
+					//	lprintf( "Stopped checking: %d %d %d", height, leftDepth, rightDepth );
+					break;
+				}
+				tmp->sgreater.ref.depth = 1 + leftDepth;
+			}
+			else
+				DebugBreak();// Should be one or the other... 
+			if( (leftDepth - rightDepth) > 1 ) {
+				doBalance = TRUE;
+			}
+		}
+		else {
+			if( tmp->sgreater.ref.index == _z->index ) {
+				if( (1 + rightDepth) == tmp->sgreater.ref.depth ) {
+					//if(zz)
+					//	lprintf( "Stopped checking: %d %d %d", height, leftDepth, rightDepth );
+					break;
+				}
+				tmp->sgreater.ref.depth = 1 + rightDepth;
+			}
+			else if( tmp->slesser.ref.index == _z->index ) {
+				if( (1 + rightDepth) == tmp->slesser.ref.depth ) {
+					//if(zz)
+					//	lprintf( "Stopped checking: %d %d %d", height, leftDepth, rightDepth );
+					break;
+				}
+				tmp->slesser.ref.depth = 1 + rightDepth;
+			}
+			else
+				DebugBreak();
+			if( (rightDepth - leftDepth) > 1 ) {
+				doBalance = TRUE;
+			}
+		}
+
+
+		if( doBalance ) {
+			if( _x ) {
+				if( _x->index == _y->slesser.ref.index ) {
+					if( _y->index == _z->slesser.ref.index ) {
+						// left/left
+						_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _z->index, _z );
+					}
+					else {
+						//left/rightDepth
+						_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _y->index, _y );
+						_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _z->index, _z );
+					}
+				}
+				else {
+					if( _y->index == _z->slesser.ref.index ) {
+						_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _y->index, _y );
+						_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _z->index, _z );
+						// rightDepth.left
+					}
+					else {
+						//rightDepth/rightDepth
+						_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, pdsStack[0]->Top, _z->index, _z );
+					}
+				}
+			}
+			else {
+				//lprintf( "Not deep enough for balancing." );
+			}
+		}
+		_x = _y;
+		_y = _z;
+		_z = (struct memoryTimelineNode *)PopData( pdsStack );
+	}
+
+
+}
+
+//---------------------------------------------------------------------------
+
+
+static int hangTimelineNode( struct volume *vol
+	, TIMELINE_BLOCK_TYPE index
+	, LOGICAL bSortCreation
+	, struct storageTimeline *timeline
+	, struct storageTimeline *timelineKey
+	, struct memoryTimelineNode *timelineNode
+)
+{
+	PDATASTACK pdsStack = CreateDataStack( sizeof(struct memoryTimelineNode ) );
+	struct memoryTimelineNode curNode;
+	struct memoryTimelineNode *curNode_;
+
+	if( bSortCreation ) {
+		if( !timeline->header.crootNode.ref.index ) {
+			timeline->header.crootNode.ref.index = index.ref.index ^ timeline->header.crootNode.ref.index;
+			timeline->header.crootNode.ref.depth = 1 ^ timeline->header.crootNode.ref.depth;
+			return 1;
+		}
+
+		reloadTimeEntry( &curNode, vol
+			, timeline->header.crootNode.ref.index ^ timelineKey->header.crootNode.ref.index );
+	}
+	else {
+		if( !timeline->header.srootNode.ref.index ) {
+			timeline->header.srootNode.ref.index = index.ref.index ^ timeline->header.srootNode.ref.index;
+			timeline->header.srootNode.ref.depth = 1 ^ timeline->header.srootNode.ref.depth;
+			return 1;
+		}
+		reloadTimeEntry( &curNode, vol
+			, timeline->header.srootNode.ref.index ^ timelineKey->header.srootNode.ref.index );
+	}
+
+	//check = root->tree;
+	while( 1 ) {
+		int dir;// = root->Compare( node->key, check->key );
+		PushData( &pdsStack, &curNode );
+		curNode_ = (struct memoryTimelineNode *)PeekData( &pdsStack );
+		if( bSortCreation ) {
+			if( curNode_->ctime.raw > timelineNode->ctime.raw )
+				dir = 1;
+			else if( curNode_->ctime.raw < timelineNode->ctime.raw )
+				dir = -1;
+			else
+				dir = 0;
+		} else {
+			if( curNode_->stime.raw > timelineNode->stime.raw )
+				dir = 1;
+			else if( curNode_->stime.raw < timelineNode->stime.raw )
+				dir = -1;
+			else
+				dir = 0;
+
+		}
+
+		uint64_t nextIndex;
+		if( dir < 0 ) {
+			if( nextIndex = bSortCreation?curNode_->clesser.ref.index:curNode_->slesser.ref.index ) {
+				reloadTimeEntry( &curNode, vol
+					, nextIndex );
+				//check = check->lesser;
+			}
+			else {
+				if( bSortCreation ) {
+					curNode_->clesser.ref.index = index.ref.index;
+					curNode_->clesser.ref.depth = 1;
+				} else {
+					curNode_->slesser.ref.index = index.ref.index;
+					curNode_->slesser.ref.depth = 1;
+				}
+				break;
+			}
+		}
+		else if( dir > 0 )
+			if( nextIndex = bSortCreation ? curNode_->cgreater.ref.index : curNode_->sgreater.ref.index ) {
+				reloadTimeEntry( &curNode, vol
+					, nextIndex );
+			}
+			else {
+				if( bSortCreation ) {
+					curNode_->cgreater.ref.index = index.ref.index;
+					curNode_->cgreater.ref.depth = 1;
+				}
+				else {
+					curNode_->sgreater.ref.index = index.ref.index;
+					curNode_->sgreater.ref.depth = 1;
+				}
+				break;
+			}
+		else {
+			// allow duplicates; but link in as a near node, either left
+			// or right... depending on the depth.
+			int leftdepth = 0, rightdepth = 0;
+			uint64_t nextLesserIndex, nextGreaterIndex;
+			if( nextLesserIndex = bSortCreation ? curNode_->clesser.ref.index : curNode_->slesser.ref.index )
+				leftdepth = bSortCreation ? curNode_->clesser.ref.depth : curNode_->slesser.ref.depth;
+			if( nextGreaterIndex = bSortCreation ? curNode_->cgreater.ref.index : curNode_->sgreater.ref.index )
+				rightdepth = bSortCreation ? curNode_->cgreater.ref.depth : curNode_->sgreater.ref.depth;
+			if( leftdepth < rightdepth )
+			{
+				if( nextLesserIndex )
+					reloadTimeEntry( &curNode, vol
+						, nextLesserIndex );
+				else {
+					if( bSortCreation ) {
+						curNode_->clesser.ref.index = index.ref.index;
+						curNode_->clesser.ref.depth = 1;
+					} else {
+						curNode_->slesser.ref.index = index.ref.index;
+						curNode_->slesser.ref.depth = 1;
+					}
+					updateTimeEntry( &curNode, vol );
+					break;
+				}
+			}
+			else {
+				if( nextGreaterIndex )
+					reloadTimeEntry( &curNode, vol
+						, nextGreaterIndex );
+				else {
+					if( bSortCreation ) {
+						curNode_->cgreater.ref.index = index.ref.index;
+						curNode_->cgreater.ref.depth = 1;
+					}
+					else {
+						curNode_->sgreater.ref.index = index.ref.index;
+						curNode_->sgreater.ref.depth = 1;
+					}
+					updateTimeEntry( &curNode, vol );
+					break;
+				}
+			}
+		}
+	}
+	_os_AVLbalancer( vol, bSortCreation, &pdsStack, &curNode );
+	DeleteDataStack( &pdsStack );
+	return 1;
+}
+
+
+void getTimeEntry( struct memoryTimelineNode *time, struct volume *vol, LOGICAL keepDirent, void(*init)(uintptr_t,struct memoryTimelineNode*),uintptr_t psv ) {
 	enum block_cache_entries cache = BC( TIMELINE );
 	enum block_cache_entries cache_last = BC( TIMELINE );
 	enum block_cache_entries cache_free = BC( TIMELINE );
 	enum block_cache_entries cache_new = BC( TIMELINE );
-	BLOCKINDEX curBlock;
-	//uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
-	struct storageTimeline *timeline = (struct storageTimeline *)vfs_os_BSEEK( vol, curBlock = FIRST_TIMELINE_BLOCK, &cache );
+	FPI orig_dirent;
+	struct storageTimeline *timeline = (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, &cache );
 	struct storageTimeline *timelineKey = (struct storageTimeline *)(vol->usekey[cache]);
-	FPI next =
-#ifdef __GNUC__
-		0;
-#else
-		offsetof( struct storageTimeline, entries[ ( timeline->header.timeline_length ^ timelineKey->header.timeline_length) ] );
-#endif
+	TIMELINE_BLOCK_TYPE freeIndex;
+	FPI nextFree =
+		offsetof( struct storageTimeline
+			, entries[ (freeIndex.ref.index = timeline->header.first_free_entry.ref.index
+						^ timeline->header.first_free_entry.ref.index) -1 ] );
+	SETFLAG( vol->seglock, cache );
+	freeIndex.ref.depth = 0;
 
-	struct storageTimelineNode *timelineNode;
-	struct storageTimelineNode *timelineNodeKey;
-	struct storageTimelineNode *timelineLastNode;
-	struct storageTimelineNode *timelineLastNodeKey;
-	struct storageTimelineNode *timelineNextNode;
-	struct storageTimelineNode *timelineNextNodeKey;
+	// update next free.
+	if( init ) orig_dirent = time->dirent_fpi;
+	reloadTimeEntry( time, vol, nextFree );
+	time->dirent_fpi = orig_dirent;
 
-	time->next = 0;
-	time->stime = time->ctime = GetTimeOfDay();
-	time->this_fpi = 0;
-
-	if( timeline->header.lastNode ) {
-		if( timeline->header.first_free_entry ) {
-			timelineNode = (struct storageTimelineNode *)vfs_os_DSEEK( vol, timeline->header.first_free_entry, &cache_free, (POINTER*)&timelineNodeKey );
-			timeline->header.first_free_entry = timelineNode->next;
-			// mark that this now has a known entry.
-			time->this_fpi = timeline->header.first_free_entry;
-			timelineNode->next = time->next ^ timelineNodeKey->next;
-			timelineNode->ctime = time->ctime ^ timelineNodeKey->ctime;
-			timelineNode->stime = time->stime ^ timelineNodeKey->stime;
-			SETFLAG( vol->dirty, cache_free );  // the free node now has different content
-			SETFLAG( vol->dirty, cache ); // timeline; first free block updated.
-		}
-		
-		{
-
-			timelineLastNode = (struct storageTimelineNode *)vfs_os_DSEEK( vol, timeline->header.lastNode, &cache_last, (POINTER*)&timelineLastNodeKey );
-
-			if( !time->this_fpi ) {
-				int lastEntryIndex = (int)(timelineLastNode - (struct storageTimelineNode*)vol->usekey_buffer[cache_last]);
-				if( vol->segment[cache_last] == FIRST_TIMELINE_BLOCK ) {
-					lastEntryIndex -= sizeof( timeline->header );
-					lastEntryIndex /= sizeof( *timelineLastNode );
-					if( lastEntryIndex == NUM_ROOT_TIMELINE_NODES ) {
-						curBlock = vfs_os_GetNextBlock( vol, curBlock, GFB_INIT_TIMELINE, TRUE );
-						time->this_fpi = curBlock * BLOCK_SIZE;
-					}
-					else {
-#ifdef __GNUC__
-						time->this_fpi = 0;
-#else
-						time->this_fpi = curBlock * BLOCK_SIZE + offsetof( struct storageTimeline, entries[lastEntryIndex + 1] );
-#endif
-					}
-				}
-				else {
-					lastEntryIndex /= sizeof( *timelineLastNode );
-					if( lastEntryIndex == NUM_TIMELINE_NODES ) {
-						curBlock = vfs_os_GetNextBlock( vol, curBlock, GFB_INIT_TIMELINE, TRUE );
-						time->this_fpi = curBlock * BLOCK_SIZE;
-					}
-					else {
-#ifdef __GNUC__
-						time->this_fpi = 0;
-#else
-						time->this_fpi = curBlock * BLOCK_SIZE + offsetof( struct storageTimelineBlock, entries[lastEntryIndex + 1] );
-#endif
-					}
-				}
-				timelineNextNode = (struct storageTimelineNode*) vfs_os_DSEEK( vol, time->this_fpi, &cache_new, (POINTER*)&timelineNextNodeKey );
-				timelineNextNode->dirent_fpi = time->dirent_fpi;
-				timelineNextNode->next = (time->next=0) ^ timelineNextNodeKey->ctime;
-				timelineNextNode->ctime = time->ctime ^ timelineNextNodeKey->ctime;
-				timelineNextNode->stime = time->stime ^ timelineNextNodeKey->stime;
-
-				timeline->header.lastNode = time->this_fpi;
-				SETFLAG( vol->dirty, cache ); // timeline
-			}
-			timelineLastNode->next = time->this_fpi ^ timelineLastNodeKey->next;
-			SETFLAG( vol->dirty, cache_last ); // the last block now next is this.
-		}
+	if( time->cgreater.ref.index ) {
+		timeline->header.first_free_entry.ref.index = time->cgreater.ref.index;
+		SETFLAG( vol->dirty, cache );
 	}
 	else {
-		// there is no last, setup this.
-		time->this_fpi = ( curBlock * BLOCK_SIZE ) + offsetof( struct storageTimeline, entries[0] );
-		timeline->entries[0].dirent_fpi = time->dirent_fpi ^ timelineKey->entries[0].dirent_fpi;
-		timeline->entries[0].next = time->next ^ timelineKey->entries[0].next;
-		timeline->entries[0].ctime = time->ctime ^ timelineKey->entries[0].ctime;
-		timeline->entries[0].stime = time->stime ^ timelineKey->entries[0].stime;
-		timeline->header.lastNode = time->this_fpi;
-		SETFLAG( vol->dirty, cache_last ); // first block used; claimed; updated.
-		timelineLastNode = NULL;
-		return;
+		timeline->header.first_free_entry.ref.index++;
+		SETFLAG( vol->dirty, cache );
 	}
+
+	// make sure the new entry is emptied.
+	time->clesser.ref.index = 0;
+	time->clesser.ref.depth = 0;
+	time->cgreater.ref.index = 0;
+	time->cgreater.ref.depth = 0;
+
+	time->slesser.ref.index = 0;
+	time->slesser.ref.depth = 0;
+	time->sgreater.ref.index = 0;
+	time->sgreater.ref.depth = 0;
+
+	time->stime.raw = time->ctime.raw = GetTimeOfDay();
+
+	if( init ) init( psv, time );
+
+	hangTimelineNode( vol
+		, freeIndex
+		, 0
+		, timeline, timelineKey
+		, time );
+	hangTimelineNode( vol
+		, freeIndex
+		, 1
+		, timeline, timelineKey
+		, time );
+
 }
 
 
@@ -1472,7 +2218,7 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 	, BLOCKINDEX dirBlockSeg
 	, BLOCKINDEX *nameBlockStart
 	, struct sack_vfs_file *file
-	, int path_match 
+	, int path_match
 	, char *leadin
 	, int *leadinDepth
 ) {
@@ -1522,7 +2268,7 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 		{
 			next_entries = dirblock->entries;
 			while( minName <= usedNames && ( curName < usedNames ) && ( curName > 0 ) )
-			//for( n = 0; n < VFS_DIRECTORY_ENTRIES; n++ ) 
+			//for( n = 0; n < VFS_DIRECTORY_ENTRIES; n++ )
 			{
 				BLOCKINDEX bi;
 				enum block_cache_entries name_cache = BC(NAMES);
@@ -1530,7 +2276,7 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 				struct directory_entry *entry = dirblock->entries + n;
 				//const char * testname;
 				FPI name_ofs = ( next_entries[n].name_offset ^ entkey->name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
-		        
+		
 				//if( filename && !name_ofs )	return FALSE; // done.
 				if(0)
 					LoG( "%d name_ofs = %" _size_f "(%" _size_f ") block = %d  vs %s"
@@ -1572,12 +2318,12 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 					}
 					curName = (minName + usedNames) >> 1;
 				}
-				else 
+				else
 					minName++;
 			}
 			return filename ? FALSE : (2); // done.;
 		}
-		next_dir_block = vfs_os_GetNextBlock( vol, this_dir_block, FALSE, TRUE );
+		next_dir_block = vfs_os_GetNextBlock( vol, this_dir_block, GFB_INIT_NONE, TRUE );
 #ifdef _DEBUG
 		if( this_dir_block == next_dir_block ) DebugBreak();
 		if( next_dir_block == 0 ) { DebugBreak(); return FALSE; }  // should have a last-entry before no more blocks....
@@ -1647,7 +2393,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 		dirblockkey = (struct directory_hash_lookup_block *)vol->usekey[cache];
 		{
 			static int counters[256];
-			static uint8_t namebuffer[18*4096]; 
+			static uint8_t namebuffer[18*4096];
 			uint8_t *nameblock;
 			uint8_t *namekey;
 			int maxc = 0;
@@ -1667,13 +2413,13 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 				else
 					for( n = 0; n < 4096; n++ )
 						(*out++) = (*nameblock++);
-				name_block = vfs_os_GetNextBlock( vol, name_block, 0, 0 );
+				name_block = vfs_os_GetNextBlock( vol, name_block, GFB_INIT_NONE, 0 );
 				nameoffset += 4096;
 			} while( name_block != EOFBLOCK );
 
 
 			memset( counters, 0, sizeof( counters ) );
-			// 257/85 
+			// 257/85
 			for( f = 0; f < VFS_DIRECTORY_ENTRIES; f++ ) {
 				BLOCKINDEX first = dirblock->entries[f].first_block ^ dirblockkey->entries[f].first_block;
 				FPI name;
@@ -1689,7 +2435,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 			// after finding most used first byte; get a new block, and point
 			// hash entry to that.
 			dirblock->next_block[imax]
-				= ( new_dir_block 
+				= ( new_dir_block
 				  = _os_GetFreeBlock( vol, GFB_INIT_DIRENT ) ) ^ dirblockkey->next_block[imax];
 
 
@@ -1752,7 +2498,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 						dirblock->used_names = ((dirblock->used_names ^ dirblockkey->used_names) - 1) ^ dirblockkey->used_names;
 						newEntry->filesize = (entry->filesize ^ entkey->filesize) ^ newEntkey->filesize;
 						{
-							struct sack_vfs_os_file_timeline time;
+							struct memoryTimelineNode time;
 							FPI oldFPI;
 							enum block_cache_entries  timeCache = BC( TIMELINE );
 							reloadTimeEntry( &time, vol, (entry->timelineEntry     ^ entkey->timelineEntry) );
@@ -1810,7 +2556,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 							^ dirblockkey->entries[m + offset].timelineEntry)
 							^ dirblockkey->entries[m].timelineEntry;
 						{
-							struct sack_vfs_os_file_timeline time;
+							struct memoryTimelineNode time;
 							enum block_cache_entries  timeCache = BC( TIMELINE );
 							reloadTimeEntry( &time, vol, (dirblock->entries[m + offset].timelineEntry ^ dirblockkey->entries[m + offset].timelineEntry) );
 							time.dirent_fpi = vol->bufferFPI[cache] + ((uintptr_t)(((struct directory_hash_lookup_block *)0)->entries + m));
@@ -1849,8 +2595,8 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 						entry = dirblock->entries + (f);
 						entkey = dirblockkey->entries + (f);
 						name = ( entry->name_offset ^ entkey->name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
-						entry->name_offset = ( newout ^ entkey->name_offset ) 
-							| ( (entry->name_offset ^ entkey->name_offset) 
+						entry->name_offset = ( newout ^ entkey->name_offset )
+							| ( (entry->name_offset ^ entkey->name_offset)
 								& ~DIRENT_NAME_OFFSET_OFFSET );
 						while( namebuffer[name] != UTF8_EOT )
 							newnamebuffer[newout++] = namebuffer[name++];
@@ -1879,7 +2625,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 							for( n = 0; n < 4096; n++ )
 								(*out++) = (*nameblock++);
 						SETFLAG( vol->dirty, cache );
-						name_block = vfs_os_GetNextBlock( vol, name_block, 0, 0 );
+						name_block = vfs_os_GetNextBlock( vol, name_block, GFB_INIT_NONE, 0 );
 						nameoffset += 4096;
 					} while( name_block != EOFBLOCK );
 				}
@@ -1972,21 +2718,21 @@ static struct directory_entry * _os_GetNewDirectory( struct volume *vol, const c
 			//LoG( "Get New Directory save naem:%s", filename );
 			name_ofs = _os_SaveFileName( vol, firstNameBlock, filename, StrLen( filename ) ) ^ entkey->name_offset;
 			// have to allocate a block for the file, otherwise it would be deleted.
-			first_blk = _os_GetFreeBlock( vol, FALSE ) ^ entkey->first_block;
-		        
+			first_blk = _os_GetFreeBlock( vol, GFB_INIT_NONE) ^ entkey->first_block;
+		
 			ent->filesize = entkey->filesize;
 			ent->name_offset = name_ofs;
 			ent->first_block = first_blk;
 			{
-				struct sack_vfs_os_file_timeline time_;
-				struct sack_vfs_os_file_timeline *time = &time_;
+				struct memoryTimelineNode time_;
+				struct memoryTimelineNode *time = &time_;
 				if( file )
-					time = &file->timeline;
+					time = file->timeline;
 				else
-					time_.ctime = GetTimeOfDay();
+					time_.ctime.raw = GetTimeOfDay();
 				time->dirent_fpi = dirblockFPI + ((uintptr_t)(((struct directory_hash_lookup_block *)0)->entries + n));
 				// associate a time entry with this directory entry, and vice-versa.
-				getTimeEntry( time, vol );
+				getTimeEntry( time, vol, 1, NULL, 0 );
 				ent->timelineEntry = time->this_fpi ^ entkey->timelineEntry;
 				//updateTimeEntry( time, vol );
 			}
@@ -2130,7 +2876,7 @@ size_t CPROC sack_vfs_os_seek( struct sack_vfs_file *file, size_t pos, int whenc
 					file->vol->lock = 0;
 					return (size_t)file->fpi;
 				}
-				file->block = vfs_os_GetNextBlock( file->vol, file->block, FALSE, TRUE );
+				file->block = vfs_os_GetNextBlock( file->vol, file->block, GFB_INIT_NONE, TRUE );
 				old_fpi += BLOCK_SIZE;
 			} while( 1 );
 		}
@@ -2139,7 +2885,7 @@ size_t CPROC sack_vfs_os_seek( struct sack_vfs_file *file, size_t pos, int whenc
 		size_t n = 0;
 		BLOCKINDEX b = file->_first_block;
 		while( n * BLOCK_SIZE < ( pos & ~BLOCK_MASK ) ) {
-			b = vfs_os_GetNextBlock( file->vol, b, FALSE, TRUE );
+			b = vfs_os_GetNextBlock( file->vol, b, GFB_INIT_NONE, TRUE );
 			n++;
 		}
 		file->block = b;
@@ -2167,7 +2913,7 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 	uint8_t *cdata;
 	size_t cdataLen;
 	if( file->readKey ) {
-		SRG_XSWS_encryptData( (uint8_t*)data, length, file->timeline.ctime
+		SRG_XSWS_encryptData( (uint8_t*)data, length, file->timeline->ctime.raw
 			, file->readKey, file->readKeyLen
 			, &cdata, &cdataLen );
 		data = (const char *)cdata;
@@ -2206,7 +2952,7 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 				updated = TRUE;
 			}
 
-			file->block = vfs_os_GetNextBlock( file->vol, file->block, FALSE, TRUE );
+			file->block = vfs_os_GetNextBlock( file->vol, file->block, GFB_INIT_NONE, TRUE );
 			length -= BLOCK_SIZE - ofs;
 		} else {
 			_os_MaskBlock( file->vol, file->vol->usekey[cache], block, ofs, ofs, data, length );
@@ -2239,7 +2985,7 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 				updated = TRUE;
 				file->entry->filesize = file->fpi ^ file->dirent_key.filesize;
 			}
-			file->block = vfs_os_GetNextBlock( file->vol, file->block, FALSE, TRUE );
+			file->block = vfs_os_GetNextBlock( file->vol, file->block, GFB_INIT_NONE, TRUE );
 			length -= BLOCK_SIZE;
 		} else {
 			_os_MaskBlock( file->vol, file->vol->usekey[cache], block, 0, 0, data, length );
@@ -2327,7 +3073,7 @@ size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t l
 			data += BLOCK_SIZE - ofs;
 			length -= BLOCK_SIZE - ofs;
 			file->fpi += BLOCK_SIZE - ofs;
-			file->block = vfs_os_GetNextBlock( file->vol, file->block, FALSE, TRUE );
+			file->block = vfs_os_GetNextBlock( file->vol, file->block, GFB_INIT_NONE, TRUE );
 		} else {
 			_os_MaskBlock( file->vol, file->vol->usekey[cache], (uint8_t*)data, 0, ofs, (const char*)(block+ofs), length );
 			written += length;
@@ -2345,7 +3091,7 @@ size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t l
 			data += BLOCK_SIZE;
 			length -= BLOCK_SIZE;
 			file->fpi += BLOCK_SIZE;
-			file->block = vfs_os_GetNextBlock( file->vol, file->block, FALSE, TRUE );
+			file->block = vfs_os_GetNextBlock( file->vol, file->block, GFB_INIT_NONE, TRUE );
 		} else {
 			_os_MaskBlock( file->vol, file->vol->usekey[cache], (uint8_t*)data, 0, 0, (const char*)block, length );
 			written += length;
@@ -2356,12 +3102,12 @@ size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t l
 
 	if( file->readKey
 	   && ( file->fpi == ( file->entry->filesize ^ file->dirent_key.filesize ) )
-	   && ( (file->entry->name_offset ^ file->dirent_key.name_offset) 
+	   && ( (file->entry->name_offset ^ file->dirent_key.name_offset)
 	      & DIRENT_NAME_OFFSET_FLAG_READ_KEYED) )
 	{
 		uint8_t *outbuf;
 		size_t outlen;
-		SRG_XSWS_decryptData( (uint8_t*)data, written, file->timeline.ctime
+		SRG_XSWS_decryptData( (uint8_t*)data, written, file->timeline->ctime.raw
 		                    , file->readKey, file->readKeyLen
 		                    , &outbuf, &outlen );
 		memcpy( data, outbuf, outlen );
@@ -2474,7 +3220,7 @@ static void sack_vfs_os_unlink_file_entry( struct volume *vol, struct sack_vfs_f
 			// after seek, block was read, and file position updated.
 			SETFLAG( vol->dirty, cache );
 
-			block = vfs_os_GetNextBlock( vol, block, FALSE, FALSE );
+			block = vfs_os_GetNextBlock( vol, block, GFB_INIT_NONE, FALSE );
 			this_BAT[_block & (BLOCKS_PER_BAT-1)] = _thiskey;
 			AddDataItem( &vol->pdlFreeBlocks, &_block );
 
@@ -2495,7 +3241,7 @@ static void _os_shrinkBAT( struct sack_vfs_file *file ) {
 		BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), cache );
 		BLOCKINDEX _thiskey;
 		_thiskey = ( vol->key )?((BLOCKINDEX*)vol->usekey[cache])[_block & (BLOCKS_PER_BAT-1)]:0;
-		block = vfs_os_GetNextBlock( vol, block, FALSE, FALSE );
+		block = vfs_os_GetNextBlock( vol, block, GFB_INIT_NONE, FALSE );
 		if( bsize > (file->entry->filesize ^ file->dirent_key.filesize) ) {
 			uint8_t* blockData = (uint8_t*)vfs_os_BSEEK( file->vol, _block, &data_cache );
 			//LoG( "clearing a datablock after a file..." );
@@ -2588,7 +3334,7 @@ struct _os_find_info {
 	char leadin[256];
 	int leadinDepth;
 	PDATASTACK pds_directories;
-#else 
+#else
 	BLOCKINDEX this_dir_block;
 	size_t thisent;
 #endif
@@ -2613,7 +3359,7 @@ static int _os_iterate_find( struct find_info *_info ) {
 	struct directory_hash_lookup_block *dirBlockKey;
 	struct directory_entry *next_entries;
 	int n;
-	do 
+	do
 	{
 		enum block_cache_entries cache = BC(DIRECTORY);
 		enum block_cache_entries name_cache = BC(NAMES);
@@ -2653,7 +3399,7 @@ static int _os_iterate_find( struct find_info *_info ) {
 			}
 
 			name_cache = BC( NAMES );
-			filename = (const char *)vfs_os_FSEEK( info->vol, dirBlock->names_first_block ^ dirBlockKey->names_first_block, name_ofs, &name_cache );
+			filename = (const char *)vfs_os_FSEEK( info->vol, NULL, dirBlock->names_first_block ^ dirBlockKey->names_first_block, name_ofs, &name_cache );
 			info->filenamelen = 0;
 			for( l = 0; l < node.leadinDepth; l++ ) info->filename[info->filenamelen++] = node.leadin[l];
 
@@ -2860,7 +3606,7 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 					char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, FALSE, idBuf, idBufLen );
 
 					if( sack_vfs_os_exists( vol, idBuf ) ) {
-						if( !sealBuf ) { // accidental key collision. 
+						if( !sealBuf ) { // accidental key collision.
 							continue; // try again.
 						}
 						else {
@@ -2905,7 +3651,7 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 		while( 1 ) {
 			char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, owner, idBuf, idBufLen );
 			if( sack_vfs_os_exists( vol, idBuf ) ) {
-				if( !sealBuf ) { // accidental key collision. 
+				if( !sealBuf ) { // accidental key collision.
 					continue; // try again.
 				}
 				else {

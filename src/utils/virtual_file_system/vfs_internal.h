@@ -124,55 +124,6 @@ PREFIX_PACKED struct directory_entry
 #endif
 
 
-#ifdef VIRTUAL_OBJECT_STORE
-
-typedef FPI TIMELINE_BLOCK_TYPE;
-typedef uint64_t TIMELINE_TIME_TYPE;
-
-PREFIX_PACKED struct timelineHeader {
-	uint32_t timeline_length;
-	FPI first_free_entry;
-	FPI lastNode;
-} PACKED;
-
-PREFIX_PACKED struct storageTimelineNode {
-	// if next == 0; it's free.
-	TIMELINE_BLOCK_TYPE next;         // FPI/32 within timeline chain
-	TIMELINE_BLOCK_TYPE dirent_fpi;   // FPI on disk
-	TIMELINE_TIME_TYPE ctime;        // file time tick/ created stamp, sealing stamp
-	TIMELINE_TIME_TYPE stime;        // time file was stored
-} PACKED;
-
-#define NUM_ROOT_TIMELINE_NODES (BLOCK_SIZE - sizeof( struct timelineHeader )) / sizeof( struct storageTimelineNode )
-PREFIX_PACKED struct storageTimeline {
-	struct timelineHeader header;
-	struct storageTimelineNode entries[NUM_ROOT_TIMELINE_NODES];
-} PACKED;
-
-#define NUM_TIMELINE_NODES (BLOCK_SIZE) / sizeof( struct storageTimelineNode )
-PREFIX_PACKED struct storageTimelineBlock {
-	struct storageTimelineNode entries[(BLOCK_SIZE) / sizeof( struct storageTimelineNode )];
-} PACKED;
-
-struct dirent_cache {
-	BLOCKINDEX entry_fpi;
-	struct directory_entry entry;  // has file size within
-	struct directory_entry entry_key;  // has file size within
-
-	struct dirent_cache *patches;
-	int usedPatches;
-	int availPatches;
-} dirCache;
-
-
-struct storageTimelineCursor {
-	BLOCKINDEX timelineSector;
-	FPI dirEntry[BLOCK_SIZE / sizeof( FPI )];
-	struct dirent_cache caches[BLOCK_SIZE / sizeof( FPI )];
-	//	struct dirent_cache caches[BLOCK_SIZE / sizeof( FPI )];
-};
-
-#endif
 
 struct disk
 {
@@ -218,7 +169,8 @@ PREFIX_PACKED struct volume {
 	BLOCKINDEX segment[BC(COUNT)];// associated with usekey[n]
 #  ifdef VIRTUAL_OBJECT_STORE
 	//BLOCKINDEX timelineStart; // constant 2
-	struct storageTimelineCursor timeline;
+	struct sack_vfs_file *timeline_file;
+	struct storageTimelineCursor *timeline_cache;
 	FLAGSET( seglock, BC( COUNT ) );  // segment is locked into cache.
 #  endif
 
@@ -257,25 +209,25 @@ PREFIX_PACKED struct volume {
 
 
 #  ifdef VIRTUAL_OBJECT_STORE
-struct sack_vfs_os_file_timeline {
-	FPI next;          // FPI/32
-
-	FPI dirent_fpi;    // FPI
-
-	uint64_t ctime;         // file time tick
-	uint64_t stime;         // file time tick
-
-	FPI this_fpi;
-};
 #  endif
 
 struct sack_vfs_file
 {
+	struct volume *vol; // which volume this is in
+	struct directory_entry dirent_key;
+	FPI fpi;
+	BLOCKINDEX _first_block;
+	BLOCKINDEX block; // this should be in-sync with current FPI always; plz
+	LOGICAL delete_on_close;  // someone already deleted this...
+	BLOCKINDEX *blockChain;
+	unsigned int blockChainAvail;
+	unsigned int blockChainLength;
+
 #  ifdef FILE_BASED_VFS
 	FPI entry_fpi;  // where to write the directory entry update to
 #    ifdef VIRTUAL_OBJECT_STORE
 	enum block_cache_entries cache;
-	struct sack_vfs_os_file_timeline timeline;
+	struct memoryTimelineNode *timeline;
 	uint8_t *seal;
 	uint8_t *sealant;
 	uint8_t *readKey;
@@ -289,15 +241,7 @@ struct sack_vfs_file
 #  else
 	struct directory_entry *entry;  // has file size within
 #  endif
-	struct directory_entry dirent_key;
-	struct volume *vol; // which volume this is in
-	FPI fpi;
-	BLOCKINDEX _first_block;
-	BLOCKINDEX block; // this should be in-sync with current FPI always; plz
-	LOGICAL delete_on_close;  // someone already deleted this...
-	BLOCKINDEX *blockChain;
-	unsigned int blockChainAvail;
-	unsigned int blockChainLength;
+
 };
 
 #  undef TSEEK
@@ -336,4 +280,3 @@ uintptr_t vfs_fs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_e
 uintptr_t vfs_os_SEEK( struct volume *vol, FPI offset, enum block_cache_entries *cache_index ) HIDDEN;
 uintptr_t vfs_os_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
 #endif
-
