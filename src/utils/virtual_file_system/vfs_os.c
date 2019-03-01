@@ -1255,8 +1255,7 @@ void sack_vfs_os_flush_volume( struct volume * vol ) {
 				SRG_XSWS_encryptData( vol->usekey_buffer[idx], BLOCK_SIZE
 					, 0, NULL, 0
 					, NULL, NULL );
-				sack_fwrite( crypt, 1, BLOCK_SIZE, vol->file );
-				Deallocate( uint8_t*, crypt );
+				sack_fwrite( vol->usekey_buffer[idx], 1, BLOCK_SIZE, vol->file );
 				RESETFLAG( vol->dirty, idx );
 				RESETFLAG( vol->_dirty, idx );
 			}
