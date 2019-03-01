@@ -318,38 +318,34 @@ int SRG_AES_decrypt( uint8_t *ciphertext, int ciphertext_len, uint8_t *key, uint
 #define RNGHASH 256
 
 
-static void encryptBlock( struct byte_shuffle_key *bytKey
-	, uint8_t *output, size_t outlen 
-	, uint8_t bufKey[RNGHASH/8]
-) {
+static __inline void encryptBlock( uint8_t const * const map
+	, uint8_t * const output, size_t const outlen
+	, uint8_t const bufKey[RNGHASH/8]
+) 
+{
 	uint8_t *curBuf_out;
 	size_t n;
+	uint8_t p = 0x55;
 
 	curBuf_out = output;
 #if __64__
 	for( n = 0; n < outlen; n += 8, curBuf_out += 8 ) {
-		((uint64_t*)curBuf_out)[0] ^= /*((uint64_t*)curBuf_in)[0] ^*/ ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
+		((uint64_t*)curBuf_out)[0] ^= ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
 	}
 #else
 	for( n = 0; n < outlen; n += 4, curBuf_out += 4 ) {
-		((uint32_t*)curBuf_out)[0] ^= /* ((uint32_t*)curBuf_in)[0] ^ */ ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];
+		((uint32_t*)curBuf_out)[0] ^= ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];
 	}
 #endif
-	//BlockShuffle_SubBytes_( bytKey, output, output, outlen );
 	curBuf_out = output;
-	uint8_t p = 0x55;
 	for( n = 0; n < outlen; n++, curBuf_out++ ) {
-		p = curBuf_out[0] = BlockShuffle_Sub1Byte_( bytKey, curBuf_out[0] ^ p );
-		//p = curBuf_out[0] = curBuf_out[0] ^ p;
+		p = curBuf_out[0] = map[curBuf_out[0] ^ p];
 	}
-	//BlockShuffle_SubBytes_( bytKey, output, output, outlen );
 	curBuf_out--;
 	p = 0xAA;
 	for( n = 0; n < outlen; n++, curBuf_out-- ) {
-		p = curBuf_out[0] = BlockShuffle_Sub1Byte_( bytKey, curBuf_out[0] ^ p );
-		//p = curBuf_out[0] = curBuf_out[0] ^ p;
+		p = curBuf_out[0] = map[curBuf_out[0] ^ p];
 	}
-	//BlockShuffle_SubBytes_( bytKey, output, output, outlen );
 }
 
 void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
@@ -388,47 +384,39 @@ void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
 	for( b = 0; b < (*outBufLen); b += 4096 ) {
 		size_t bs = (*outBufLen) - b;
 		if( bs > 4096 )
-			encryptBlock( bytKey, outBuf[0] + b, 4096, bufKey );
+			encryptBlock( bytKey->map, outBuf[0] + b, 4096, bufKey );
 		else
-			encryptBlock( bytKey, outBuf[0] + b, bs, bufKey );
+			encryptBlock( bytKey->map, outBuf[0] + b, bs, bufKey );
 	}
 
 	BlockShuffle_DropByteShuffler( bytKey );
 	EnqueLink( &crypt_local.plqCrypters, signEntropy );
 }
 
-static void decryptBlock( struct byte_shuffle_key *bytKey
-	, uint8_t *input, size_t len
+static __inline void decryptBlock( uint8_t const * const dmap
+	, uint8_t *input, size_t const len
 	, uint8_t *output
-	, uint8_t bufKey[RNGHASH / 8]
+	, uint8_t const bufKey[RNGHASH / 8]
 ) {
-	int n;
-	//BlockShuffle_BusBytes_( bytKey, input, output, len );
-
+	size_t n;
 	uint8_t *curBuf = output;
-	for( n = 0; n < (int)(len - 1); n++, curBuf++ ) {
-		curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ) ^ curBuf[1];
-		//curBuf[0] = curBuf[0] ^ curBuf[1];
+	for( n = 0; n < (len - 1); n++, curBuf++, input++ ) {
+		curBuf[0] = dmap[input[0]] ^ input[1];
 	}
-	curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ^ 0xAA );
-	//curBuf[0] = curBuf[0] ^ 0xAA;
+	curBuf[0] = dmap[input[0]] ^ 0xAA;
 
-	//BlockShuffle_BusBytes_( bytKey, output, output, len );
 	curBuf = output + len - 1;
 	for( n = (int)(len - 1); n > 0; n--, curBuf-- ) {
-		curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ) ^ curBuf[-1];
-		//curBuf[0] = curBuf[0] ^ curBuf[-1];
+		curBuf[0] = dmap[curBuf[0]] ^ curBuf[-1];
 	}
-	curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ) ^ 0x55;
-	//curBuf[0] = curBuf[0] ^ 0x55;
+	curBuf[0] = dmap[curBuf[0]] ^ 0x55;
 
-	//BlockShuffle_BusBytes_( bytKey, output, output, len );
 #if __64__
 	for( n = 0; n < len; n += 8, output += 8 ) {
 		((uint64_t*)output)[0] ^= ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];
 	}
 #else
-	for( n = 0; n < (int)len; n += 4, output += 4 ) {
+	for( n = 0; n < len; n += 4, output += 4 ) {
 		((uint32_t*)output)[0] ^= ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];
 	}
 #endif
@@ -455,9 +443,9 @@ void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 		for( b = 0; b < objBufLen; b += 4096 ) {
 			size_t bs = objBufLen - b;
 			if( bs > 4096 )
-				decryptBlock( bytKey, objBuf + b, 4096, objBuf + b, bufKey );
+				decryptBlock( bytKey->dmap, objBuf + b, 4096, objBuf + b, bufKey );
 			else
-				decryptBlock( bytKey, objBuf + b, bs, objBuf + b, bufKey );
+				decryptBlock( bytKey->dmap, objBuf + b, bs, objBuf + b, bufKey );
 		}
 	}
 	else {
@@ -466,9 +454,9 @@ void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 		for( b = 0; b < objBufLen; b += 4096 ) {
 			size_t bs = objBufLen - b;
 			if( bs > 4096 )
-				decryptBlock( bytKey, objBuf + b, 4096, outBuf[0] + b, bufKey );
+				decryptBlock( bytKey->dmap, objBuf + b, 4096, outBuf[0] + b, bufKey );
 			else
-				decryptBlock( bytKey, objBuf + b, bs, outBuf[0] + b, bufKey );
+				decryptBlock( bytKey->dmap, objBuf + b, bs, outBuf[0] + b, bufKey );
 		}
 		// enforce pad bytes to be 0.
 		(*outBufLen) -= ((uint8_t*)(outBuf[0] + objBufLen - 1))[0];
