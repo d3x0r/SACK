@@ -471,7 +471,7 @@ void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 }
 
 
-#if 1
+#if 0
 // internal test code...
 // some performance benchmarking for instance.
 
