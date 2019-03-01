@@ -184,7 +184,7 @@ void CPROC KeystrokePaste( PCONSOLE_INFO pdp )
 
 int CPROC RenderChildWindow( PSI_CONTROL pc )
 {
-	PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetCommonUserData(pc);
+	PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetControlUserData(pc);
 	//lprintf( WIDE("Rendering window.") );
 	if( !pdp )
 	{
@@ -217,7 +217,7 @@ int CPROC RenderChildWindow( PSI_CONTROL pc )
 
 int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 {
-	PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetCommonUserData( pc );
+	PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetControlUserData( pc );
 	// this must here gather keystrokes and pass them forward into the
 	// opened sentience...
 	if( pdp )
@@ -265,7 +265,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 		PCONSOLE_INFO pdp;
 		if( (b & MK_LBUTTON) && !(_b & MK_LBUTTON) )
 		  { // mouse down.
-			  pdp = (PCONSOLE_INFO)GetCommonUserData( pc );
+			  pdp = (PCONSOLE_INFO)GetControlUserData( pc );
 			  if( !pdp )
 				  return 0;
 			  xPos = x; 
@@ -283,7 +283,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 		else if( ( !(b & MK_LBUTTON) && (_b & MK_LBUTTON) )
 				  ||( b & MK_LBUTTON ) )
 		{ // mouse up
-			pdp = (PCONSOLE_INFO)GetCommonUserData( pc );
+			pdp = (PCONSOLE_INFO)GetControlUserData( pc );
 			if( !pdp )
 				return 0;
 			xPos = x;
@@ -382,7 +382,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 
 	if( (b & MK_RBUTTON) && !(_b & MK_RBUTTON ) )
 	{
-		PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetCommonUserData( pc );
+		PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetControlUserData( pc );
 		int cmd;
 		if( !pdp )
 			return 0;
@@ -844,7 +844,7 @@ int CPROC InitDekwareConsole( PSI_CONTROL pc )
 		pdp->common.Owner = ps;
 		//Log( WIDE("Create frame!!") );
 		pdp->psicon.frame = pc;
-		SetCommonUserData( pc, (uintptr_t)pdp );
+		SetControlUserData( pc, (uintptr_t)pdp );
 
 		pdp->psicon.image = GetFrameSurface( pdp->psicon.frame );
 		GetStringSize( WIDE(" "), &pdp->nFontWidth, &pdp->nFontHeight );
@@ -1008,7 +1008,7 @@ static PDATAPATH OnInitDevice( WIDE("psicon"), WIDE("Windows MDI interactive int
 		return NULL;
 	}
 
-	SetCommonUserData( pdp->psicon.frame, (uintptr_t)pdp );
+	SetControlUserData( pdp->psicon.frame, (uintptr_t)pdp );
 	//SetFrameDraw( pdp->psicon.frame, RenderChildWindow );
 	//SetFrameKey( pdp->psicon.frame, KeyEventProc, (uintptr_t)pdp );
 	//SetFrameMouse( pdp->psicon.frame, MouseHandler );

@@ -13,7 +13,7 @@ typedef struct mydatapath_tag {
 		uint32_t bLastWasIAC : 1; // secondary IAC (255) received
 	} flags;
 // buffers needed for proc_iac
-	TEXTCHAR iac_data[256];
+	uint8_t iac_data[256];
 	int iac_count;
 	PVARTEXT vt; // collects var text....
 } MYDATAPATH, *PMYDATAPATH;
@@ -115,13 +115,14 @@ static uint32_t status;
 //static int wwdd_val; // unsure of this value
 //---------------------------------------------------------------------------
 
-static int proc_iac(PMYDATAPATH pmdp, TEXTCHAR tchar)
+static int proc_iac(PMYDATAPATH pmdp, uint8_t tchar)
 {
 	// 0 data is just incomming use it
 	// 1 we used the data don't do any thing with it
 	// 3 send data....
-	TEXTCHAR i;
-	TEXTCHAR retval=0;   /* assume we will use the character */
+	uint8_t i;
+	LOGICAL retval=0;   /* assume we will use the character */
+	//lprintf( "TCHAR: %d(%c) %d", tchar, tchar, pmdp->iac_count );
 
 	/* don't start if not telnet and not an IAC character string */
 	/* also need to filter out double IAC into a single IAC */
@@ -243,6 +244,27 @@ static int proc_iac(PMYDATAPATH pmdp, TEXTCHAR tchar)
 			{
 				pmdp->iac_data[1] = DO;
 				goto send_iac;
+			}
+			else if( pmdp->iac_data[2] == DO_EOR ) {
+				// accept, and knowingly reject.
+				// There is nothing different to do with or without this.
+				/*
+					As the EOR code indicates the end of an effective data unit, Telnet
+					should attempt to send the data up to and including the EOR code
+					together to promote communication efficiency.
+				*/
+				goto senddont;
+			} 
+			else {
+				int n;
+				for( n = 0; n < MAX_DO_S; n++ ) {
+					if( pmdp->iac_data[2] == DoText[n].dovalue ) {
+						Log1( WIDE( "Server request for WILL %s" ), DoText[n].dotext );
+						break;
+					}
+				}
+				if( n == MAX_DO_S )
+					Log1( WIDE( "Server request for unknown WILL: %02X" ), pmdp->iac_data[2] );
 			}
 			goto senddont;
  
