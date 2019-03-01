@@ -1,13 +1,18 @@
 # XSWS
 
+This was Xor, Sub, Wipe(LR,sub,RL), Sub.  While this had slightly higher performance, it produced
+encrypted data with an obvious period.  
+
+# X(WS)*(WS)*
+
+Revision 2
+  - Moves byte map swap into wipe stage.
+
 This is an encryption algorithm called Xor-Sub-Wipe-Sub (XSWS). 
  - Xor - the initial masking of data with a mask
- - Sub - substituted masked bytes for some other random byte
  - Wipe - 
-     - xor each byte with the previous byte L->R
-     - Sub each byte with some other random byte.
-     - xor each byte with the previous byte R->L
- - Sub - substitute each byte with other random byte.
+     - subByte ( xor each byte with the previous byte L->R ).
+     - subByte ( xor each byte with the previous byte R->L ).
 
  
 It is built on Salty Random Generator(SRG).  SRG uses various hash
@@ -31,19 +36,74 @@ byte; unused padding bytes will be set to 0.
 Summary; again
 
    - Simple xor-chains a 256 bit mask computed from the key using KangarooTwelve(K12) over the data.
-   - swap all bytes for some other byte through a reversible map.
-   - xor 0x55 into first byte, store that result, use that result to xor on the next byte, repeatedly.
-   - swap all bytes for some other byte through a reversible map.
-   - xor 0xAA into last byte, store that result, use that result to xor on the previous byte, repeatedly.
-   - swap all bytes for some other byte through a reversible map.
+   - xor 0x55 into first byte, swap byte for some other byte, store that result, use that result to xor on the next byte, repeatedly.
+       1. T(0) = B(0) ^ 0x55
+       1. R(0) = map T(0) byte to naother byte
+       1. T(N) = B(N) ^ R(N-1)
+       1. R(N) = map T(N) byte to naother byte
+       1. repeat  3-4 until no byte bytes
+   - xor 0xAA into last byte, swap byte for some other byte, store that result, use that result to xor on the previous byte, repeatedly.
+       1. T(N) = B(N) ^ 0xAA
+       1. R(N) = map T(N) byte to naother byte
+       1. T(N-1) = B(N-1) ^ R(N)
+       1. R(N-1) = map T(N-1) byte to naother byte
+       1. repeat  3-4 until first byte
  
+   - T is a temporary value
+   - B is input Byte 
+   - R is Result byte
+   - N represents position in a string of bytes
  
-Data is processed in blocks of 4096 bytes.  The last block of data is processed only 8-4096 bytes (of
-only 8 byte length units).  This allows multiple sections of large data to be processed in parallel.
+Data is processed in blocks of 4096 bytes.  XOR pass uses wide integers to reduce time.  Blocks
+MUST be padded to a multiple of 8 bytes.  Blocks that ARE a multiple of 8 bytes may or may not have
+padding.  This allows multiple sections of large data to be processed in parallel.
 A 1 bit change in the plain text will only affect the 4096 byte block it is in; but will on average
-cause 16384 bits to change in the output.
+cause 16384 (of 32768) bits to change in the output.
 
 
+## xbox generation
+
+The XBox is a unique 2way mapping of input A to output B, and B to A.  This
+is done with 1 512 byte array.  This is the mapping used for 'swap byte with
+another random byte'
+
+This uses 256*8 bits of entropy and does a quick in-place swapping algorithm
+to shuffle the bytes.  The first 256 bits of entropy are used for masking the
+blocks initially, followed by these.
+
+This is done with the same random_context as the source hash; very improbable
+this could be less-than-random.
+
+
+```
+struct byte_shuffle_key {
+    uint8_t map[256], dmap[256];
+};
+
+struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx ) {
+	struct byte_shuffle_key *key = New( struct byte_shuffle_key );
+	int n;
+	int srcMap;
+	for( n = 0; n < 256; n++ )
+		key->map[n] = n;
+
+	// simple-in-place shuffler.
+	for( n = 0; n < 256; n++ ) {
+		int m;
+		int t;
+		SRG_GetByte_( m, ctx ); // m = random 8 bits
+		t = key->map[m];
+		key->map[m] = key->map[n];
+		key->map[n] = t;
+	}
+        /* generate reverse map */
+	for( n = 0; n < 256; n++ )
+		key->dmap[key->map[n]] = n;
+	return key;
+}
+```
+
+## Block padding...
 ```
 encrypt( data, datalen ) { 
   int outlen = datalen + 1; // add 1 byte for pad length
@@ -85,6 +145,11 @@ same K12 bitstream to shuffle the substitution map (**)[xbox-generation]. __
  
 
 ## Detail of the algorithm
+
+This is very old notes; the weakness with just a XOR operation swipe left-right.
+Not implemented this way.
+
+
 
 input keys of < hash size bits are the same as a buffer filled with 0's 
 to pad to length of hash.  ( a 3-bit 0 is same as a 0-bit 0 ).
@@ -209,47 +274,6 @@ for the swap instead. (xor-wipe is inversed too)
 	   
 ```
 
-
-## xbox generation
-
-The XBox is a unique 2way mapping of input A to output B, and B to A.  This
-is done with 1 512 byte array.
-
-This uses 256*8 bits of entropy and does a quick in-place swapping algorithm
-to shuffle the bytes.  The first 256 bits of entropy are used for masking the
-blocks initially, followed by these.
-
-This is done with the same random_context as the source hash; very improbable
-this could be less-than-random.
-
-
-```
-struct byte_shuffle_key {
-    uint8_t map[256], dmap[256];
-};
-
-struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx ) {
-	struct byte_shuffle_key *key = New( struct byte_shuffle_key );
-	int n;
-	int srcMap;
-	for( n = 0; n < 256; n++ )
-		key->map[n] = n;
-
-	// simple-in-place shuffler.
-	for( n = 0; n < 256; n++ ) {
-		int m;
-		int t;
-		SRG_GetByte_( m, ctx ); // m = random 8 bits
-		t = key->map[m];
-		key->map[m] = key->map[n];
-		key->map[n] = t;
-	}
-        /* generate reverse map */
-	for( n = 0; n < 256; n++ )
-		key->dmap[key->map[n]] = n;
-	return key;
-}
-```
 
 ---
 

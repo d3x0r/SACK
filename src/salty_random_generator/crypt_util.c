@@ -335,20 +335,21 @@ static void encryptBlock( struct byte_shuffle_key *bytKey
 		((uint32_t*)curBuf_out)[0] ^= /* ((uint32_t*)curBuf_in)[0] ^ */ ((uint32_t*)(bufKey + (n % (RNGHASH / 8))))[0];
 	}
 #endif
-	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
+	//BlockShuffle_SubBytes_( bytKey, output, output, outlen );
 	curBuf_out = output;
 	uint8_t p = 0x55;
 	for( n = 0; n < outlen; n++, curBuf_out++ ) {
-		//p = curBuf_out[0] = BlockShuffle_Sub1Byte_( bytKey, curBuf_out[0] ^ p );
-		p = curBuf_out[0] = curBuf_out[0] ^ p;
+		p = curBuf_out[0] = BlockShuffle_Sub1Byte_( bytKey, curBuf_out[0] ^ p );
+		//p = curBuf_out[0] = curBuf_out[0] ^ p;
 	}
-	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
+	//BlockShuffle_SubBytes_( bytKey, output, output, outlen );
 	curBuf_out--;
 	p = 0xAA;
 	for( n = 0; n < outlen; n++, curBuf_out-- ) {
-		p = curBuf_out[0] = curBuf_out[0] ^ p;
+		p = curBuf_out[0] = BlockShuffle_Sub1Byte_( bytKey, curBuf_out[0] ^ p );
+		//p = curBuf_out[0] = curBuf_out[0] ^ p;
 	}
-	BlockShuffle_SubBytes_( bytKey, output, output, outlen );
+	//BlockShuffle_SubBytes_( bytKey, output, output, outlen );
 }
 
 void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
@@ -402,24 +403,26 @@ static void decryptBlock( struct byte_shuffle_key *bytKey
 	, uint8_t bufKey[RNGHASH / 8]
 ) {
 	int n;
-	BlockShuffle_BusBytes_( bytKey, input, output, len );
+	//BlockShuffle_BusBytes_( bytKey, input, output, len );
 
 	uint8_t *curBuf = output;
 	for( n = 0; n < (int)(len - 1); n++, curBuf++ ) {
-		curBuf[0] = curBuf[0] ^ curBuf[1];
+		curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ) ^ curBuf[1];
+		//curBuf[0] = curBuf[0] ^ curBuf[1];
 	}
-	curBuf[0] = curBuf[0] ^ 0xAA;
+	curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ^ 0xAA );
+	//curBuf[0] = curBuf[0] ^ 0xAA;
 
-	BlockShuffle_BusBytes_( bytKey, output, output, len );
+	//BlockShuffle_BusBytes_( bytKey, output, output, len );
 	curBuf = output + len - 1;
 	for( n = (int)(len - 1); n > 0; n--, curBuf-- ) {
-		//curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ) ^ curBuf[-1];
-		curBuf[0] = curBuf[0] ^ curBuf[-1];
+		curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ) ^ curBuf[-1];
+		//curBuf[0] = curBuf[0] ^ curBuf[-1];
 	}
-	//curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ) ^ 0x55;
-	curBuf[0] = curBuf[0] ^ 0x55;
+	curBuf[0] = BlockShuffle_Bus1Byte_( bytKey, curBuf[0] ) ^ 0x55;
+	//curBuf[0] = curBuf[0] ^ 0x55;
 
-	BlockShuffle_BusBytes_( bytKey, output, output, len );
+	//BlockShuffle_BusBytes_( bytKey, output, output, len );
 #if __64__
 	for( n = 0; n < len; n += 8, output += 8 ) {
 		((uint64_t*)output)[0] ^= ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];
@@ -480,7 +483,7 @@ void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 }
 
 
-#if 0
+#if 1
 // internal test code...
 // some performance benchmarking for instance.
 
@@ -533,7 +536,7 @@ PRELOAD( CryptTestBuiltIn ) {
 	uint8_t *orig;
 	size_t origlen;
 
-//#define DO_PERF_TESTS 
+#define DO_PERF_TESTS 
 #define LENGTH_RECOVERY_TESTING
 
 #ifdef LENGTH_RECOVERY_TESTING
