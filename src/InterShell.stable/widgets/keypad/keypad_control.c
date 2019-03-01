@@ -853,7 +853,7 @@ static int _InitKeypad( PSI_CONTROL frame )
 											, keypad->flags.bAlphaNum?ACCUM_TEXT
 													 : (keypad->flags.bEntry?0:ACCUM_DOLLARS) );
 	SetAccumulatorUpdateProc( keypad->accum, KeypadAccumUpdated, (uintptr_t)keypad );
-	SetCommonTransparent( frame, TRUE );
+	SetControlTransparent( frame, TRUE );
 	//AddCommonDraw( frame, KeypadDraw );
 
 	keywidth = ReduceFraction( ScaleFraction( &tmp

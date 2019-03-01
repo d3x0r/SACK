@@ -1408,8 +1408,8 @@ PKEY_BUTTON MakeKeyExx( PSI_CONTROL frame
 				background = l.default_theme->buttons.color;
 		}
 		//SetCustomButtonMethods( );
-		SetCommonTransparent( result->button, TRUE );
-		SetCommonBorder( result->button, BORDER_NONE|BORDER_FIXED );
+		SetControlTransparent( result->button, TRUE );
+		SetControlBorder( result->button, BORDER_NONE|BORDER_FIXED );
 		//result->flags.bMultiShade = 0;
 		result->lense = lense;
 		//result->lense_alpha = 0;
@@ -1431,7 +1431,7 @@ PKEY_BUTTON MakeKeyExx( PSI_CONTROL frame
 			result->background.color = background;
 		}
 		result->text_color = Color( 0, 0, 0 );
-		SetCommonFont( result->button, font );
+		SetControlFont( result->button, font );
 		SetKeyText( result, content );
 		result->PressHandler = PressHandler;
 		result->psvPress = psvPress;
