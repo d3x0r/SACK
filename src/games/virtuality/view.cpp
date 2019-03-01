@@ -394,10 +394,11 @@ static void OnDraw3d( WIDE("Virtuality") )( uintptr_t psvUnusedOne )
 		if( timeGetTime() != frame_time && ( (frames %30 ) == 0 ))
 		{
 			//Image pImage = GetDisplayImage( v->hVideo );
+#if 0
 			TEXTCHAR buf[256];
 			snprintf( buf, 256, WIDE("fps : %d  (x10)")
-      					, frames * 10000 /( timeGetTime() - frame_time )
-					 );
+			        , frames * 10000 /( timeGetTime() - frame_time )
+			        );
 			lprintf( WIDE("%s"), buf );
 			/*
 			PutString( pImage
@@ -405,9 +406,10 @@ static void OnDraw3d( WIDE("Virtuality") )( uintptr_t psvUnusedOne )
 						, Color( 255,255,255 ), Color(0,0,0)
 						, buf );
 						*/
-			
-      }
-      frames++;
+#endif
+
+		}
+		frames++;
 		if( frames > 200 )
 		{
 			frame_time = timeGetTime();
