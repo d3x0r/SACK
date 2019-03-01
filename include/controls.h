@@ -704,6 +704,8 @@ PSI_PROC( void, SetCommonBorderEx )( PSI_CONTROL pc, uint32_t BorderType DBG_PAS
    b :  new border style
  */
 #define SetCommonBorder(pc,b) SetCommonBorderEx(pc,b DBG_SRC)
+#define SetControlBorder(pc,b) SetCommonBorderEx(pc,b DBG_SRC)
+#define SetFrameBorder(pc,b) SetCommonBorderEx(pc,b DBG_SRC)
 
 /* Update the border type of a control.  Border is drawn by routine
    Parameters
@@ -978,6 +980,7 @@ PSI_PROC( SFTFont, GetCommonFontEx )( PSI_CONTROL pc DBG_PASS );
 #define GetFrameFont(pf) GetCommonFont((PSI_CONTROL)pf)
 PSI_PROC( void, SetCommonFont )( PSI_CONTROL pc, SFTFont font );
 #define SetFrameFont(pf,font) SetCommonFont((PSI_CONTROL)pf,font)
+#define SetControlFont(pf,font) SetCommonFont((PSI_CONTROL)pf,font)
 
 // setting scale of this control immediately scales all contained
 // controls, but the control itself remains at it's current size.
