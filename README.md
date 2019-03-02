@@ -77,6 +77,6 @@ This is a control library build on registered callbacks of classes of controls. 
 
 # Dekware
 
-Dekware build product is a Mud client/MUD.  Documentation and downloads of prebuilt versions are available at (d3x0r.org)[https://d3x0r.org/dekware] or (www.d3x0r.org)[https://www.d3x0r.org:444/dekware].
+Dekware build product is a Mud client/MUD.  Documentation and downloads of prebuilt versions are available at [d3x0r.org](https://d3x0r.org/dekware) or [www.d3x0r.org](https://www.d3x0r.org:444/dekware).
 
 
