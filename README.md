@@ -5,7 +5,7 @@
 
 A document published from header document information - http://sack.sf.net  ( https://sourceforge.net/projects/sack/ )
 
-Git is often more up to date.  Internal mercurial server is often used.
+Git is often more up to date.  Git is the primary development source control system.  Mercurial is no longer used. (Sourceforge obsolete)
 
 Monotone would have been best; but; well... maybe they were too closed.
 
@@ -74,4 +74,9 @@ Started a vulkan layer, which would simplify some things.  The image opengl inte
 This is better implemented as a [Node GUI](https://github.com/d3x0r/sack.vfs/tree/sack-gui)
 
 This is a control library build on registered callbacks of classes of controls.  The library is built on the image and renderer interfaces... it tracks higher level things like sliders, listboxes, buttons, and provides custom extensions based on each class.
+
+# Dekware
+
+Dekware build product is a Mud client/MUD.  Documentation and downloads of prebuilt versions are available at (d3x0r.org)[https://d3x0r.org/dekware] or (www.d3x0r.org)[https://www.d3x0r.org:444/dekware].
+
 
