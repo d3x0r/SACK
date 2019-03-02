@@ -79,4 +79,19 @@ This is a control library build on registered callbacks of classes of controls. 
 
 Dekware build product is a Mud client/MUD.  Documentation and downloads of prebuilt versions are available at [d3x0r.org](https://d3x0r.org/dekware) or [www.d3x0r.org](https://www.d3x0r.org:444/dekware).
 
+# SACK.vfs
+
+Node addon that exposes core library support to Javascript.  Provides Websockets, HTTP, JSON, JSOX parsers, Sqlite/ODBC interface.
+
+[NPM package](npmjs.com/package/sack.vfs) and [GIT Repository](https://github.com/d3x0r/sack.vfs)
+
+# sack-gui
+
+Node addon that includes all interfaces from sack.vfs, but also begins to implement interfafce to GUI subsystem.  
+
+[NPM package](npmjs.com/package/sack-gui) and [GIT Repository](https://github.com/d3x0r/sack.vfs/tree/sack-gui).  
+The GIT repository is a branch rooted in the master of SACK.vfs, and is just additions to existing interfaces; 
+although it does change from using a sack.cc amaglamation, it uses cmake external project to download sack 
+repository from github.
+
 
