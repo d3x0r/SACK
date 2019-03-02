@@ -82,10 +82,10 @@ public:
 		if( _wd && _ht )
 		{
 			//Log4( WIDE("Flushing update to display... %d,%d - %d,%d"), _x, _y, _wd, _ht );
-         if( pDisplay )
+			if( pDisplay )
 				UpdateDisplayPortion( pDisplay, _x, _y, _wd, _ht );
 			else
-            SmudgeCommon( pControl );
+				;//SmudgeCommon( pControl );
 		}
 		_wd = 0;
 		_ht = 0;

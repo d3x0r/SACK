@@ -1000,20 +1000,23 @@ int DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 {
    INDEX i;
    int bOutput = FALSE;
+//   PTEXT key_ = SegCreate( GetTextSize( stroke ) );
+//#define key (*key_)
    DECLTEXT( key, WIDE("                    ") );
    //Log1( WIDE("Do Stroke with %c"), stroke->data.data[0] );
    while( stroke )
    {
+	   INDEX i_;
       for( i = 0; i < stroke->data.size; i++ )
       {
-         switch( key.data.data[i] = stroke->data.data[i] )
+         switch( key.data.data[0] = stroke->data.data[i] )
          {
          case '\r':
             // output is always prefix linefed...
-            key.data.data[i] = '\n'; // carriage return = linefeed
+            key.data.data[0] = '\n'; // carriage return = linefeed
             goto normal_process;  // do not output return... extra lines otherwise
          case 9:
-            key.data.data[i] = ' ';
+            key.data.data[0] = ' ';
          case 27:
          case '\b':
             //pdp->bUpdateToEnd = FALSE; // need update ALL not just to end
@@ -1038,14 +1041,14 @@ int DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 #else
 //						EnqueLink( &pdp->Input, newseg );
 #endif
-                  i = stroke->data.size;
-                  break;
-               }
-               else
-               {
-				   key.data.data[i+1] = 0;
-				   key.data.size = i+1;
-						if( ( pLine =
+					i = stroke->data.size;
+					break;
+				}
+				else
+				{
+					key.data.data[1] = 0;
+					key.data.size = 1;
+					if( ( pLine =
 							  GatherCommand( pdp->
 #ifdef __DEKWARE_PLUGIN__
 												 common.

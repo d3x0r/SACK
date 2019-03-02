@@ -44,7 +44,8 @@ CORE_PROC( PTEXT, GetName )( void *p )
 			return ((PMACRO)p)->pName;
 		return pe->pName;
 	}
-	DebugBreak();
+	//DebugBreak();
+	lprintf( "Resulting with 'no name', Null entity" );
 	return (PTEXT)&other;
 }
 
@@ -1261,7 +1262,7 @@ CORE_PROC( PENTITY, GetTheVoid )( void )
 static PTEXT CPROC GetSentientName( uintptr_t psv, POINTER p )
 {
 	PSENTIENT ps = (PSENTIENT)p;
-	return GetName( ps->Current );
+	return GetName( ps? ps->Current:NULL );
 }
 //--------------------------------------------------------------------------
 
@@ -2457,7 +2458,7 @@ static uintptr_t CPROC DekwareThread( PTHREAD thread )
 		Log( WIDE("Goodnight!") );
 		WakeableSleep( SLEEP_FOREVER );
 	}
-	Cleanup();
+	//Cleanup();
 	return 0;
 }
 
@@ -2471,7 +2472,7 @@ PRELOAD( BeginDekwareSpace )
 
 ATEXIT( EndDekwareSpace )
 {
-	Cleanup();
+	//Cleanup();
 }
 
 #ifdef __cplusplus
@@ -2496,7 +2497,8 @@ int CPROC Begin( TEXTCHAR *lpCmdLine, int bCommand )
 			Log( WIDE("Goodnight!") );
 			WakeableSleep( SLEEP_FOREVER );
 		}
-		Cleanup();
+		lprintf( "TODO: Work on Cleanup()..." );
+		//Cleanup();
 	}
 	return 0;
 }
