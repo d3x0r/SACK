@@ -1,6 +1,23 @@
 #if !defined( SACK_AMALGAMATE ) || defined( __cplusplus )
 
 /*
+
+	FILE Data has extra fields stored with the data.
+	
+	   File Data - Directory entry filesize
+	   Sealant - length stored in NAME_OFFSET field of directory entry
+	   references - a reference to a blockchain that contains the references to this object.
+	        In the reference data block is FPI which is the directory entry ( converted directories? )  
+	   patches - a sealed object has the ability to be modified with other signed and sealed patches.
+	         A reference to the patch FileData is stored for each patch object.
+			 (The patch object has a unique object identifier?  Or does it only exist for this object?)
+	
+
+*/
+
+
+
+/*
  BLOCKINDEX BAT[BLOCKS_PER_BAT] // link of next blocks; 0 if free, FFFFFFFF if end of file block
  uint8_t  block_data[BLOCKS_PER_BAT][BLOCK_SIZE];
 
@@ -101,9 +118,14 @@ static struct {
 	int leadinDepth;
 	PLINKQUEUE plqCrypters;
 } l;
+
 #define EOFBLOCK  (~(BLOCKINDEX)0)
 #define EOBBLOCK  ((BLOCKINDEX)1)
 #define EODMARK   (1)
+#undef GFB_INIT_NONE
+#undef GFB_INIT_DIRENT
+#undef GFB_INIT_NAMES
+
 enum getFreeBlockInit {
 	GFB_INIT_NONE       ,
 	GFB_INIT_DIRENT     ,
@@ -3175,6 +3197,50 @@ static size_t sack_vfs_os_set_patch_block( struct sack_vfs_file *file, BLOCKINDE
 		BLOCKINDEX saveSize = file->entry->filesize;
 		file->entry->filesize = ((file->entry->filesize
 			^ file->dirent_key.filesize) + file->sealantLen + sizeof( BLOCKINDEX ))
+			^ file->dirent_key.filesize;
+		sack_vfs_os_seek( file, file->sealantLen, SEEK_CUR );
+		sack_vfs_os_write( file, (char*)&patchBlock, sizeof( BLOCKINDEX ) );
+		file->entry->filesize = saveSize;
+		file->fpi = saveFpi;
+	} else {
+		BLOCKINDEX saveSize = file->entry->filesize;
+		file->entry->filesize = ((file->entry->filesize
+			^ file->dirent_key.filesize) + sizeof( BLOCKINDEX ))
+			^ file->dirent_key.filesize;
+		sack_vfs_os_seek( file, file->sealantLen, SEEK_CUR );
+		sack_vfs_os_write( file, (char*)&patchBlock, sizeof( BLOCKINDEX ) );
+		file->entry->filesize = saveSize;
+		file->fpi = saveFpi;
+	}
+	file->vol->lock = 0;
+	return written;
+}
+
+static size_t sack_vfs_os_set_reference_block( struct sack_vfs_file *file, BLOCKINDEX patchBlock ) {
+	size_t written = 0;
+	size_t length;
+	BLOCKINDEX saveFpi = file->fpi;
+	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
+	length = (size_t)(file->entry->filesize  ^ file->dirent_key.filesize);
+
+	if( !length ) { file->vol->lock = 0; return 0; }
+
+	sack_vfs_os_seek( file, length, SEEK_SET );
+
+	if( file->sealant ) {
+		BLOCKINDEX saveSize = file->entry->filesize;
+		file->entry->filesize = ((file->entry->filesize
+			^ file->dirent_key.filesize) + file->sealantLen + sizeof( BLOCKINDEX ) + sizeof( BLOCKINDEX ))
+			^ file->dirent_key.filesize;
+		sack_vfs_os_seek( file, file->sealantLen, SEEK_CUR );
+		sack_vfs_os_write( file, (char*)&patchBlock, sizeof( BLOCKINDEX ) );
+		file->entry->filesize = saveSize;
+		file->fpi = saveFpi;
+	}
+	else {
+		BLOCKINDEX saveSize = file->entry->filesize;
+		file->entry->filesize = ((file->entry->filesize
+			^ file->dirent_key.filesize) + sizeof( BLOCKINDEX ) + sizeof( BLOCKINDEX ))
 			^ file->dirent_key.filesize;
 		sack_vfs_os_seek( file, file->sealantLen, SEEK_CUR );
 		sack_vfs_os_write( file, (char*)&patchBlock, sizeof( BLOCKINDEX ) );
