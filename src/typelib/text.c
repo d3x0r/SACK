@@ -532,7 +532,7 @@ void LineReleaseEx(PTEXT line DBG_PASS )
 	PTEXT temp;
 
 	if( !line )
-		return;/
+		return;
 
 	SetStart(line);
 	while(line)
