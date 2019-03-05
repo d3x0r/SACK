@@ -1387,39 +1387,12 @@ int PSI_DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
                }
                else
                {
-						if( ( pLine =
-							  GatherUserInput( pdp->
+					GatherUserInput( pdp->
 #ifdef __DEKWARE_PLUGIN__
-												 common.
+											 common.
 #endif
-												 CommandInfo
-												, (PTEXT)&key ) ) )
-						{
-                     // I dunno - maybe we shouldn't enque the
-                     // command... maybe we should count on whatever
-                     // the destination is to echo it
-                     // or - perhaps this should be another
-                     // option only effective while bDirect...
-                     if( pdp->flags.bDirect && !pdp->flags.bNoLocalEcho )
-                     {
-                        PTEXT pEcho;
-                        pEcho = BuildLine( pLine );
-                        pEcho->data.size--; // trim the last character (probably cr)
-								pEcho->flags |= TF_NORETURN;
-                        PSI_WinLogicWriteEx( pdp, pEcho, 1 );
-                        lprintf( "Should this local echo be marked somehow?" );
-                        //pdp->History.flags.bEnqueuedLocalEcho = 1;
-                        //pdp->flags.bLastEnqueCommand = TRUE;
-							}
-#ifdef __DEKWARE_PLUGIN__
-                     EnqueLink( &pdp->common.Input, TextDuplicate( pLine, FALSE ) );
-							WakeAThread( pdp->common.Owner );
-#endif
-                  }
-                  else // didn't get a linefeed... so.. safe echo
-                  {
-                     //Log( "Failed to Gather Line..." );
-                  }
+											 CommandInfo
+											, (PTEXT)&key );
                }
             }
             bOutput = TRUE;

@@ -102,6 +102,18 @@ PSI_Console_Phrase PSIConsoleDirectOutput( PSI_CONTROL pc, PTEXT lines )
 static void sendInputEvent( uintptr_t arg, PTEXT line ) {
 	PCONSOLE_INFO console = (PCONSOLE_INFO)arg;
 	int n;
+
+	if( console->flags.bDirect && !console->flags.bNoLocalEcho ) {
+		PTEXT pEcho;
+		pEcho = BuildLine( line );
+		//pEcho->data.size--; // trim the last character (probably cr)
+		pEcho->flags |= TF_NORETURN;
+		PSI_WinLogicWriteEx( console, pEcho, 1 );
+		//lprintf( "Should this local echo be marked somehow?" );
+		//pdp->History.flags.bEnqueuedLocalEcho = 1;
+		//pdp->flags.bLastEnqueCommand = TRUE;
+	}
+
 	for( n = 0; n < console->lockCount; n++ )
 		LeaveCriticalSec( &console->Lock );
 	console->InputEvent( console->psvInputEvent, line );
