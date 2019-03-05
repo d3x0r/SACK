@@ -77,6 +77,8 @@ static void RenderTextLine(
 	, int nMinLine
 	, LOGICAL mark_applies
 	, LOGICAL allow_segment_coloring
+	, int leadinOffset
+	, int nBottomOffset
 						)
 {
 	// left and right are relative... to the line segment only...
@@ -97,7 +99,7 @@ static void RenderTextLine(
 #endif
 			return;
 		}
-		(*r).top = pCurrentLine->nLineTop;
+		(*r).top = pCurrentLine->nLineTop - nBottomOffset;
 		if( nFirst >= 0 )
 			(*r).bottom = (*r).top + pCurrentLine->nLineHeight + 2;
 		else
@@ -111,10 +113,18 @@ static void RenderTextLine(
 		}
 		y = (*r).top;
 
-		(*r).left = 0;
-		x = (*r).right = 0;//pdp->nXPad;
-		//if( pdp->FillConsoleRect )
-		//	pdp->FillConsoleRect(pdp, r, FILL_DISPLAY_BACK );
+		if( !pCurrentLine->nPixelStart ) {
+			r->left = 0;
+			r->right = pdp->nXPad;
+			if( pdp->FillConsoleRect )
+				pdp->FillConsoleRect(pdp, r, FILL_DISPLAY_BACK );
+		}
+		else {
+			r->right = pdp->nXPad;
+		}
+
+		(*r).left = r->right + pCurrentLine->nPixelStart;
+		x = (*r).right = pCurrentLine->nPixelStart;//pdp->nXPad;
 
 		//(*r).left = x;
 		nChar = 0;
@@ -279,25 +289,22 @@ static void RenderTextLine(
 					// not first character on line...
 					x = (*r).left = (*r).right;
 				}
-				else
-				{
-					(*r).left = (*r).right;
-					x = pdp->nXPad;
-				}
-				if( !(*r).right )
-				{
-					if( justify == 1 )
-					{
-						x = (*r).right = ( pdp->nWidth - ( pdp->nXPad + pCurrentLine->nPixelEnd ) ) + (*r).left;
+				else {
+					if( !(*r).right ) {
+						if( justify == 1 ) {
+							x = (*r).right = (pdp->nWidth - (pdp->nXPad + pCurrentLine->nPixelEnd)) + (*r).left;
+						}
+						else if( justify == 2 ) {
+							x = (*r).right = ((pdp->nWidth - pCurrentLine->nPixelEnd) / 2) + (*r).left;
+						}
+						else if( !(*r).left )
+							(*r).right = (*r).left + pdp->nXPad;
+						else
+							(*r).right = (*r).left;
+						if( r->right != r->left )
+							if( pdp->FillConsoleRect )
+								pdp->FillConsoleRect( pdp, r, FILL_DISPLAY_BACK );
 					}
-					else if ( justify == 2 ) 
-					{
-						x = (*r).right = ( ( pdp->nWidth - pCurrentLine->nPixelEnd ) / 2  ) + (*r).left;
-					}
-					else
-						(*r).right = (*r).left + pdp->nXPad;
-					if( pdp->FillConsoleRect )
-						pdp->FillConsoleRect(pdp, r, FILL_DISPLAY_BACK );
 				}
 				//(*r).right = pdp->nXPad + pCurrentLine->nPixelEnd;
 				(*r).right = (*r).left + pCurrentLine->nPixelEnd;
@@ -347,8 +354,9 @@ static void RenderTextLine(
 #ifdef DEBUG_HISTORY_RENDER
 				lprintf( WIDE("Fill empty to right (%d-%d)  (%d-%d)"), (*r).left, (*r).right, (*r).top, (*r).bottom );
 #endif
-				if( pdp->FillConsoleRect )
-					pdp->FillConsoleRect( pdp, r, FILL_DISPLAY_BACK );
+				if( nLine )
+					if( pdp->FillConsoleRect )
+						pdp->FillConsoleRect( pdp, r, FILL_DISPLAY_BACK );
 				//FillConsoleRect();
 			}
 		}
@@ -380,6 +388,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	int nMaxLen, nShow, nCurrentCol, x, y, nCursorPos;
 	int nCursorIdx;
 	int lines;
+	int nLeadinoffset;
 	int line_offset;
 	int nShown;
 	int start, end;
@@ -408,6 +417,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 											, &nCurrentCol
 											, &start
 											, &end
+											, &nLeadinoffset
 											, &nCursorPos
 											, &line_offset);
 	// nYpad at bottom of screen, font height up begins the top of the
@@ -428,7 +438,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 			 , nCurrentCol
 			 );
 			 */
-	if( !nCurrentCol )
+	if( !nCurrentCol && !nLeadinoffset )
 	{
 		// need to blatcolor for the 5 pixels left of first char...
 		r.left = 0;
@@ -443,9 +453,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	else
 	{
 		if( pdp->flags.bDirect )
-			r.right = upd.left = ( pdp->nNextCharacterBegin );
+			r.right = nLeadinoffset;
 		else
-			r.right = upd.left = pdp->nXPad;
+			r.right = pdp->nXPad;
 	}
 
 	//r.left = x = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
@@ -485,20 +495,24 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		lines = CountDisplayedLines( pdp->pCommandDisplay );
 		if( !lines )
 			lines = 1;
+#ifdef DEBUG_OUTPUT
 		lprintf( WIDE("want to do this in %d lines"), lines );
+#endif
 		if( lines > 3 )
 		{
 			skip_lines = lines - 3;
 			lines = 3;
 		}
-		pdlCommand = (PDISPLAYED_LINE)GetDataItem( GetDisplayInfo( pdp->pCommandDisplay ), lines );
 		if( pdp->flags.bDirect )
 		{
-			pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart;
+			// should already be set from last doStroke
+			//pdp->nDisplayLineStartDynamic = ((PDISPLAYED_LINE)GetDataItem( &pdp->pCommandDisplay->DisplayLineInfo
+			//	, pdp->pCommandDisplay->DisplayLineInfo->Cnt - 1 ))->nLineTop;
 		}
 		else
 		{
-			upd.top = 
+			pdlCommand = (PDISPLAYED_LINE)GetDataItem( GetDisplayInfo( pdp->pCommandDisplay ), lines-1 );
+			upd.top =
 			pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart
 				- (pdlCommand->nLineTop
 					+ ( pdp->nYPad ) // one at bottom, one above separator
@@ -527,7 +541,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 					RenderTextLine( pdp, pCurrentLine, &upd
 						, nLine, TRUE, y, pdp->nCommandLineStart - pCurrentLine->nLineTop
 						, FALSE
-						, FALSE );  // cursor; to know where to draw the mark...
+						, FALSE, nLeadinoffset, 0 );  // cursor; to know where to draw the mark...
+				y -= pdp->nFontHeight;
+				nLeadinoffset = 0;
 			}
 		}
 		if( pdp->RenderCursor )
@@ -692,7 +708,7 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 }
 
 //----------------------------------------------------------------------------
-void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nStartLineOffset, PENDING_RECT *region );
+void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffset, int nStartLineOffset, PENDING_RECT *region );
 
 void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 {
@@ -702,27 +718,32 @@ void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 	MemSet( &upd.cs, 0, sizeof( upd.cs ) );
 	EnterCriticalSec( &pdp->Lock );
 	pdp->lockCount++;
+	/*
+	lprintf( WIDE( "Render Console... %d  %d %d  %d" )
+			, pdp->nDisplayLineStartDynamic, pdp->nCommandLineStart
+		, pdp->nHistoryLineStart, pdp->nHeight );
+	*/
 	//lprintf( WIDE("Render Console... %d %d"), pdp->nDisplayLineStart, pdp->nHistoryLineStart );
 
 	if( pdp->RenderSeparator )
 	{
-		if( pdp->nDisplayLineStartDynamic != pdp->nCommandLineStart )
+		if( !pdp->flags.bDirect && pdp->nDisplayLineStartDynamic != pdp->nCommandLineStart )
 			pdp->nSeparatorHeight = pdp->RenderSeparator( pdp, pdp->nDisplayLineStartDynamic );
 		//lprintf( WIDE("Render AGAIN the hsitory line separator") );
 		if( pdp->nHistoryLineStart && pdp->nHistoryLineStart != pdp->nDisplayLineStartDynamic )
 			pdp->nSeparatorHeight = pdp->RenderSeparator( pdp, pdp->nHistoryLineStart );
 	}
 
-	if( !(pdp->flags.bDirect && pdp->flags.bCharMode) )
+	if( !pdp->flags.bDirect )
 		PSI_RenderCommandLine( pdp, &upd );
 
 	SetBrowserFirstLine( pdp->pCurrentDisplay, pdp->nDisplayLineStartDynamic );
 	BuildDisplayInfoLines( pdp->pCurrentDisplay, NULL, font );
 
 	if( pdp->pCommandDisplay ) {
-		if( (pdp->flags.bDirect && !pdp->flags.bCharMode) ) {
-			BuildDisplayInfoLines( pdp->pCommandDisplay, pdp->pCurrentDisplay, font );
-		}
+		//if( (pdp->flags.bDirect && !pdp->flags.bCharMode) ) {
+		//	BuildDisplayInfoLines( pdp->pCommandDisplay, pdp->pCurrentDisplay, font );
+		//}
 		PSI_RenderCommandLine( pdp, &upd );
 	}
 
@@ -731,12 +752,12 @@ void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 	// if history is showing, first line is below the top (> 0 )
 	if( pdp->nHistoryLineStart )
 	{
-		DoRenderHistory( pdp, TRUE, 0, &upd );
+		DoRenderHistory( pdp, TRUE, 0, 0, &upd );
 	}
 	// if there's a section of display left to render between history and command
 	if( pdp->nDisplayLineStartDynamic != pdp->nHistoryLineStart )
 	{
-		DoRenderHistory( pdp, FALSE, 0, &upd );
+		DoRenderHistory( pdp, FALSE, pdp->nCommandLineStart - pdp->nDisplayLineStartDynamic, 0, &upd );
 	}
 
 	if( pdp->Update && upd.flags.bHasContent )
@@ -1058,7 +1079,7 @@ int GetMaxDisplayedLine( PCONSOLE_INFO pdp, int nStart )
 
 //----------------------------------------------------------------------------
 
-void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nStartLineOffset, PENDING_RECT *region )
+void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffset, int nStartLineOffset, PENDING_RECT *region )
 {
 	int nMinLine, nFirst = 0;
 	INDEX nLine = 0;
@@ -1140,11 +1161,14 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nStartLineOffset
 #endif
 			break;
 		}
-
+		r.left = pCurrentLine->nPixelStart;
+		r.right = pCurrentLine->nPixelEnd;
+		r.top = pCurrentLine->nLineTop;
+		r.bottom = r.top + pCurrentLine->nLineHeight;
 		RenderTextLine( pdp, pCurrentLine, &r
 			, (int)nLine, nFirst, nFirstLine - nStartLineOffset, nMinLine
 			, ppCurrentLineInfo == &pdp->pCurrentDisplay->DisplayLineInfo 
-			, TRUE ); 
+			, TRUE, 0, nBottomLineOffset );
 
 		if( nFirst >= 0 )
 			nFirst = -1;
@@ -1171,8 +1195,8 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nStartLineOffset
 						, upd.left, upd.top
 						, upd.right-upd.left, (upd.bottom - nStartLineOffset) - upd.top );
 	// screen updates affect the posititon of the last line/command line
-	if( pdp->flags.bDirect && !bHistoryStart )
-		PSI_RenderCommandLine( pdp, region );
+	//if( pdp->flags.bDirect && !bHistoryStart )
+	//	PSI_RenderCommandLine( pdp, region );
 	pdp->lockCount--;
 	LeaveCriticalSec( &pdp->Lock );
 }
@@ -1184,6 +1208,8 @@ void PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 	pdp->lockCount++;
 	if( PSI_DoStroke( pdp, stroke ) )
 	{
+		pdp->pCommandDisplay->flags.bUpdated = 1;
+
 		if( !pdp->pCommandDisplay->pBlock )
 		{
 			pdp->pCommandDisplay->pBlock = pdp->pCommandDisplay->region->pHistory.root.next;
@@ -1193,10 +1219,18 @@ void PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 		}
 		pdp->pCommandDisplay->pBlock->pLines[0].flags.nLineLength = (int)LineLengthExEx( pdp->CommandInfo->CollectionBuffer, FALSE, 8, NULL );
 		pdp->pCommandDisplay->pBlock->pLines[0].pLine = pdp->CommandInfo->CollectionBuffer;
-		if( !pdp->flags.bDirect && pdp->flags.bWrapCommand )
+		if( !pdp->flags.bDirect )
 			BuildDisplayInfoLines( pdp->pCommandDisplay, NULL, GetCommonFont( pdp->psicon.frame ) );
-		else
-			BuildDisplayInfoLines( pdp->pCommandDisplay, pdp->pHistoryDisplay, GetCommonFont( pdp->psicon.frame ) );
+		else {
+			BuildDisplayInfoLines( pdp->pCommandDisplay, pdp->pCurrentDisplay, GetCommonFont( pdp->psicon.frame ) );
+			// update bias of displayed section above the last (complete)
+			if( pdp->pCommandDisplay->DisplayLineInfo->Cnt > 1 )
+				pdp->nDisplayLineStartDynamic = ((PDISPLAYED_LINE)GetDataItem( &pdp->pCommandDisplay->DisplayLineInfo
+					, pdp->pCommandDisplay->DisplayLineInfo->Cnt - 2 ))->nLineTop;
+			else {
+				pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart;
+			}
+		}
 	}
 
 	pdp->lockCount--;
@@ -1241,7 +1275,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp, SFTFont font )
 			MemSet( &upd.cs, 0, sizeof( upd.cs ) );
 			BuildDisplayInfoLines( pdp->pHistoryDisplay, NULL, font );
 			//lprintf( WIDE("ALready showing history?!") );
-			DoRenderHistory(pdp, TRUE, 0, &upd);
+			DoRenderHistory(pdp, TRUE, 0, 0, &upd);
 
 			// history only changed - safe to update
 			// its content on result here...

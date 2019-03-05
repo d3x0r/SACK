@@ -734,7 +734,12 @@ static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, RECT *r, CTEX
 		r->right = r->left + w;
 		r->bottom = r->top + h;
 	}
-	//lprintf( WIDE("Output string (%d-%d)  (%d-%d) %*.*s"), (*r).left, (*r).right, (*r).top, (*r).bottom, nShow, nShow, s + nShown );
+#ifdef DEBUG_OUTPUT
+	lprintf( WIDE("Output string  xy(%d,%d)   lr(%d-%d)  tb(%d-%d) %*.*s  %08x %08x")
+		, x, y
+		, (*r).left, (*r).right, (*r).top, (*r).bottom
+		, nShow, nShow, s + nShown, console->psicon.crText, console->psicon.crBack );
+#endif 
 	PutStringFontEx( console->psicon.image, x, y
 						, console->psicon.crText, console->psicon.crBack
 						, s + nShown
@@ -905,6 +910,8 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 
 		//console->common.Type = myTypeID;
 		console->flags.bDirect = 1;
+		console->flags.bWrapCommand = 1;
+		console->flags.bNoLocalEcho = 1;
 		//console->common.flags.Formatted = TRUE;
 
 		console->psicon.crCommand = AColor( 32, 192, 192, text_alpha );
@@ -915,10 +922,11 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 
 		console->pHistory = PSI_CreateHistoryRegion();   // this is the history backing buffer; the set of lines that make up the raw history.
 		console->pCursor = PSI_CreateHistoryCursor( console->pHistory ); // cursor is where output into the history region happens.
+		console->pCommandHistory = PSI_CreateHistoryRegion();   // this is the history backing buffer; the set of lines that make up the raw history.
 
 		console->pCurrentDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
 		console->pHistoryDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
-		console->pCommandDisplay = PSI_CreateHistoryBrowser( console->pHistory, PSIMeasureString, (uintptr_t)console );
+		console->pCommandDisplay = PSI_CreateHistoryBrowser( console->pCommandHistory, PSIMeasureString, (uintptr_t)console );
 
 		PSI_SetHistoryBrowserNoPageBreak( console->pHistoryDisplay );
 

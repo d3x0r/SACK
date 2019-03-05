@@ -91,6 +91,7 @@ PSI_Console_Phrase PSIConsoleDirectOutput( PSI_CONTROL pc, PTEXT lines )
 	// ansi filter?
 	// conditions for getting text lines which have format elements
 	// break lines?
+	//lprintf( "Direct Output:%s", GetText( lines ) );
 	phrase  = PSI_WinLogicWriteEx( console, lines, 0 );
 
 	SmudgeCommon( pc );
@@ -137,6 +138,8 @@ int vpcprintf( PSI_CONTROL pc, CTEXTSTR format, va_list args )
 		PTEXT output;
 		vvtprintf( pvt, format, args );
 		output = VarTextGet( pvt );
+		//lprintf( "printf Output:%s", GetText( output ) );
+
 		PSIConsoleOutput( pc, output );
 	}
 	return 1;
@@ -156,6 +159,15 @@ void PSIConsoleSetLocalEcho( PSI_CONTROL pc, LOGICAL yesno )
 	{
 		console->flags.bNoLocalEcho = !yesno;
 	}
+}
+
+LOGICAL PSIConsoleGetLocalEcho( PSI_CONTROL pc )
+{
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	if( console ) {
+		return !console->flags.bNoLocalEcho;
+	}
+	return FALSE;
 }
 
 struct history_tracking_info *PSIConsoleSaveHistory( PSI_CONTROL pc )
@@ -226,8 +238,10 @@ void PSIConsoleSetInputMode( PSI_CONTROL pc, int mode )
 				console->flags.bWrapCommand = 0;
 			}
 		}
-		else
+		else {
 			console->flags.bDirect = 1; // direct in with text... (0) mode only
+			console->flags.bWrapCommand = 1;
+		}
 		if( console->nHeight )
 		{
 			// may not have gotten visual fittting yet...

@@ -26,6 +26,7 @@
 
 #include <psi/console.h>
 
+//#define DEBUG_OUTPUT
 
 #ifdef DEKWARE_PLUGIN
 #define PLUGIN_MODULE
@@ -205,6 +206,8 @@ typedef struct myconsolestruc {
 	// output is performed here.
 	// view is always built from tail backward.(?)
 	PHISTORY_BROWSER pCurrentDisplay;
+
+	PHISTORY_REGION pCommandHistory; // the data for pCommandDisplay to use... overlapping the input history had issues.
 	// a display browser for formatting the command input line
 	// in wrapped mode.
 	PHISTORY_BROWSER pCommandDisplay;
