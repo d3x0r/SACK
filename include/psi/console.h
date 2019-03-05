@@ -57,7 +57,7 @@ PSI_CONSOLE_PROC( void, PSIConsoleInputEvent )( PSI_CONTROL pc, void(CPROC*Event
 
 /* if TRUE, then the line that was read is immediately queued to the output stream */
 PSI_CONSOLE_PROC( void, PSIConsoleSetLocalEcho )( PSI_CONTROL pc, LOGICAL yesno );
-
+PSI_CONSOLE_PROC( LOGICAL, PSIConsoleGetLocalEcho )( PSI_CONTROL pc );
 
 PSI_CONSOLE_PROC( PSI_Console_Feedback, PSI_ConsoleDefineFeedback )( PSI_Console_FeedbackClick, uintptr_t );
 
