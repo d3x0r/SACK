@@ -2256,8 +2256,11 @@ void ReadConfiguration( void )
 }
 #endif
 //-----------------------------------------------------------------------
+POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS ) {
+	return GetInterface_v4( pServiceName, ReadConfig, FALSE DBG_RELAY );
+}
 
-POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS )
+POINTER GetInterface_v4( CTEXTSTR pServiceName, LOGICAL ReadConfig, int quietFail DBG_PASS )
 {
 	TEXTCHAR interface_name[256];
 	POINTER (CPROC *load)( void );
@@ -2291,7 +2294,7 @@ POINTER GetInterfaceExx( CTEXTSTR pServiceName, LOGICAL ReadConfig DBG_PASS )
 			return p; //load();
 		}
 #ifdef _DEBUG
-		else
+		else if( !quietFail )
 		{
 			if( l.flags.bInterfacesLoaded )
 			{

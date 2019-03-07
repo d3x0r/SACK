@@ -798,7 +798,7 @@ extern
 // somehow this ended up as 69 and 69 was also PRELOAD() priority... bad.
 PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 {
-	InterShell = (struct intershell_interface*)GetInterface( WIDE("intershell") );
+	InterShell = (struct intershell_interface*)GetInterfaceV4( WIDE("intershell"), TRUE );
 }
 
 #  endif

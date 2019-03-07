@@ -585,6 +585,10 @@ PROCREG_PROC( int, LoadTree )( void );
    
    </code>                                                     */
 PROCREG_PROC( void, DropInterface )( CTEXTSTR pServiceName, POINTER interface_x );
+
+PROCREG_PROC( POINTER, GetInterface_v4 )( CTEXTSTR pServiceName, LOGICAL ReadConfig, int quietFail DBG_PASS );
+#define GetInterfaceV4( a, b )  GetInterface_v4( a, FALSE, b )
+
 /* \Returns the pointer to a registered interface. This is
    typically a structure that contains pointer to functions. Takes
    a text string to an interface. Interfaces are registered at a
