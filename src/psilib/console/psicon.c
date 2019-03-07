@@ -25,15 +25,16 @@
 #include <controls.h>
 #include <keybrd.h>
 */
-
-
-//#define PutStringEx(i,x,y,f,b,s,l) { Log6( "Putting string: %ld,%ld %ld %*.*s", x,y,l,l,l,s); PutStringFontEx( i,x,y,f,b,s,l,NULL); }
-//#define BlatColor(i,x,y,w,h,c)	  { Log5( "BlatColor: %ld,%ld %ld,%ld %08lx", x, y, w, h, c ); BlatColor( i,x,y,w,h,c ); }
+#include <psi/console.h>
 #include "consolestruc.h"
 #include "interface.h"
 #include "WinLogic.h"
 
+//#define PutStringEx(i,x,y,f,b,s,l) { Log6( "Putting string: %ld,%ld %ld %*.*s", x,y,l,l,l,s); PutStringFontEx( i,x,y,f,b,s,l,NULL); }
+//#define BlatColor(i,x,y,w,h,c)	  { Log5( "BlatColor: %ld,%ld %ld,%ld %08lx", x, y, w, h, c ); BlatColor( i,x,y,w,h,c ); }
+
 PSI_CONSOLE_NAMESPACE
+
 
 #define text_alpha 255
 #define back_alpha 255

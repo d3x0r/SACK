@@ -1,10 +1,14 @@
 #define NO_LOGGING
 #define KEYS_DEFINED
 #include <stdhdrs.h>
-#include "consolestruc.h"
 #include <keybrd.h>
+#include <psi/console.h>
 // included to have pending struct available to pass to
 // command line update....
+
+#include "consolestruc.h"
+#include "histstruct.h"
+//#include "history.h"
 #include "WinLogic.h"
 
 PSI_CONSOLE_NAMESPACE
@@ -1477,7 +1481,31 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 																				 common.
 #endif
 																				 CommandInfo );
-			SmudgeCommon( pdp->psicon.frame );
+			if( result == UPDATE_COMMAND ) {
+				pdp->pCommandDisplay->flags.bUpdated = 1;
+
+				if( !pdp->pCommandDisplay->pBlock ) {
+					pdp->pCommandDisplay->pBlock = pdp->pCommandDisplay->region->pHistory.root.next;
+					pdp->pCommandDisplay->pBlock->nLinesUsed = 1;
+					pdp->pCommandDisplay->pBlock->pLines[0].flags.deleted = 0;
+					pdp->pCommandDisplay->nLine = 1;
+				}
+				pdp->pCommandDisplay->pBlock->pLines[0].flags.nLineLength = (int)LineLengthExEx( pdp->CommandInfo->CollectionBuffer, FALSE, 8, NULL );
+				pdp->pCommandDisplay->pBlock->pLines[0].pLine = pdp->CommandInfo->CollectionBuffer;
+				if( !pdp->flags.bDirect )
+					BuildDisplayInfoLines( pdp->pCommandDisplay, NULL, GetCommonFont( pdp->psicon.frame ) );
+				else {
+					BuildDisplayInfoLines( pdp->pCommandDisplay, pdp->pCurrentDisplay, GetCommonFont( pdp->psicon.frame ) );
+					// update bias of displayed section above the last (complete)
+					if( pdp->pCommandDisplay->DisplayLineInfo->Cnt > 1 )
+						pdp->nDisplayLineStartDynamic = ((PDISPLAYED_LINE)GetDataItem( &pdp->pCommandDisplay->DisplayLineInfo
+							, pdp->pCommandDisplay->DisplayLineInfo->Cnt - 2 ))->nLineTop;
+					else {
+						pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart;
+					}
+				}
+				SmudgeCommon( pdp->psicon.frame );
+			}
 			break;
 		case HISTORYKEY:
 			result = ConsoleKeyDefs[key_index].op[mod].data.HistoryKey( pdp->pHistoryDisplay );

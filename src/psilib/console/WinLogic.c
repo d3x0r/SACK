@@ -462,9 +462,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	r.left = x = r.right;
 	//lprintf( WIDE( "x/left is %d" ), x );
 	// for now...
-
+	upd.left = x;
 	upd.right = pdp->nWidth;
-	upd.top = r.top;
+	upd.top = pdp->nDisplayLineStartDynamic - pdp->nFontHeight;
 	upd.bottom = r.bottom;
 
 
@@ -495,6 +495,8 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		lines = CountDisplayedLines( pdp->pCommandDisplay );
 		if( !lines )
 			lines = 1;
+		if( lines > 1 )
+			upd.left = 0;
 #ifdef DEBUG_OUTPUT
 		lprintf( WIDE("want to do this in %d lines"), lines );
 #endif
@@ -512,7 +514,6 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		else
 		{
 			pdlCommand = (PDISPLAYED_LINE)GetDataItem( GetDisplayInfo( pdp->pCommandDisplay ), lines-1 );
-			upd.top =
 			pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart
 				- (pdlCommand->nLineTop
 					+ ( pdp->nYPad ) // one at bottom, one above separator
@@ -1031,7 +1032,9 @@ int PSI_ConvertXYToLineCol( PCONSOLE_INFO pdp
 {
 	// x, y is top, left biased...
 	// line is bottom biased... (also have to account for history)
+#ifdef DEBUG_OUTPUT
 	lprintf( "Convert XY to LineCol needs work.... it needs to iterate through the computed dipslayable lines..." );
+#endif
 	(*line) = 0;
 	(*col) = 0;
 #if 0

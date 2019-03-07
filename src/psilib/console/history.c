@@ -4,12 +4,15 @@
 #include <logging.h>
 #include <psi/console.h>
 
+#include "regaccess.h"
+
 #include "consolestruc.h" // all relavent includes
 #include "history.h"
-
 #include "histstruct.h"
-#include "regaccess.h"
+
 PSI_CONSOLE_NAMESPACE
+
+
 
 
 	//#include "interface.h"
@@ -1853,6 +1856,13 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 							// shown - show part of this segment... but not the whole segment...
 							if( !nLen )
 							{
+								// zero size segments can end up in the display because they contain 
+								// position or other formatting information.
+								// generally systems will filter out the newlines and convert it to 
+								// a separatly queued line.
+								pText = NEXTLINE( pText );
+								nSegShown = 0;
+								continue;
 								trim_char = 0;
 								pText = NEXTLINE( pText );
 								if( !pText ) break;
@@ -2015,7 +2025,9 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 			dl.nLineHeight = h;
 			dl.nLineTop = nLineTop - h;
 			phbr->nLineHeight = dl.nLineHeight = h;
+#ifdef DEBUG_OUTPUT
 			lprintf( "Set first empty dataline." );
+#endif
 			SetDataItem( CurrentLineInfo, 0 , &dl );
 		}
 		//clear_remaining_lines:
