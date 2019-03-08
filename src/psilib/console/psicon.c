@@ -4,6 +4,7 @@
 #endif
 //#define NO_LOGGING
 #include <stdhdrs.h>
+#include <sqlgetoption.h>
 #include <stdio.h> // sprintf ?
 #include <string.h> // strchr
 #include <logging.h>
@@ -213,7 +214,9 @@ static int OnDrawCommon( WIDE("PSI Console") )( PSI_CONTROL pc )
 		return 0;
 	}
 	console->psicon.image = GetFrameSurface( pc );
-	ClearImage( console->psicon.image );
+	//ClearImage( console->psicon.image );
+	BlatColor( console->psicon.image, 0, 0, console->psicon.image->width, console->psicon.image->height, AColor( 5, 5, 5, 64 ) );
+
 	// this is the only place which size is changed.
 	if( console->nWidth != console->psicon.image->width ||
 		console->nHeight != console->psicon.image->height )
@@ -430,24 +433,21 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 			( cmd <= MNU_BKWHITE ) )
 		{
 			PSI_SetHistoryDefaultBackground( console->pCursor, cmd - MNU_BKBLACK );
+			SACK_WriteProfileInt( "sack/PSI/console", "background", cmd - MNU_BKBLACK );
 		}
 		else if( ( cmd >= MNU_BLACK ) &&
 				  ( cmd <= MNU_WHITE ) )
 		{
-			PSI_SetHistoryDefaultForeground( console->pCursor, cmd - MNU_BKBLACK );
+			PSI_SetHistoryDefaultForeground( console->pCursor, cmd - MNU_BLACK );
+			SACK_WriteProfileInt( "sack/PSI/console", "foreground", cmd - MNU_BLACK );
 		}
 		else switch( cmd )
 		{
 		case MNU_DIRECT:
 			{
 				console->flags.bDirect ^= 1;
-				/*
-				 {
-				 SetRegistryInt( WIDE( "Dekware\\Wincon\\Direct" )
-				 , GetText( GetName( console->common.Owner->Current ) )
-				 , console->flags.bDirect );
-														}
-										  */
+				SACK_WriteProfileInt( "sack/PSI/console", "direct", console->flags.bDirect );
+
 				EnterCriticalSec( &console->Lock );
 				console->lockCount++;
 				PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
@@ -461,6 +461,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 		case MNU_HISTORYSIZE100:
 			{
 				console->nHistoryPercent =  cmd - MNU_HISTORYSIZE25;
+				SACK_WriteProfileInt( "sack/PSI/console", "direct", console->nHistoryPercent );
 				if( console->flags.bHistoryShow ) // currently showing history
 				{
 					EnterCriticalSec( &console->Lock );
@@ -475,10 +476,14 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 			{
 				//console->cfFont.hwndOwner = hWnd;
 				size_t size;
-				POINTER font;
+				SFTFont font;
 				POINTER info = NULL;
 				if( font = PickFont( -1, -1, &size, &info, NULL ) )
 				{
+					//POINTER data;
+					//size_t datalen;
+					//GetFontRenderData( font, &data, &datalen );
+					SACK_WriteProfileString( "sack/PSI/console", "font", (CTEXTSTR)info );
 					//console->psicon.hFont = (SFTFont)font;
 					SetCommonFont( console->psicon.frame, (SFTFont)font );
 					//GetDefaultFont();
@@ -838,9 +843,12 @@ static void CPROC RenderCursor( PCONSOLE_INFO console, RECT *r, int column )
 			y = r->top + 4;
 		if( console->CommandInfo->CollectionIndex == GetTextSize( console->CommandInfo->CollectionBuffer) )
 			GetStringSizeFontEx( " ", 1, &w, &h, GetCommonFont( console->psicon.frame ) );
-		else
+		else if( console->CommandInfo->CollectionBuffer )
 			GetStringSizeFontEx( GetText( console->CommandInfo->CollectionBuffer ) + console->CommandInfo->CollectionIndex, 1
 			                   , &w, &h, GetCommonFont( console->psicon.frame ) );
+		else {
+			w = 0; h = 0;
+		}
 
 		do_lineAlpha( console->psicon.image, x, y+3, x, y, cPenCursor );
 		do_lineAlpha( console->psicon.image, x, y, x + w, y, cPenCursor );
@@ -914,6 +922,18 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 		console->flags.bWrapCommand = 1;
 		console->flags.bNoLocalEcho = 1;
 		//console->common.flags.Formatted = TRUE;
+
+		console->flags.bDirect = SACK_GetProfileInt( "SACK/PSI/console", "direct", 0 );
+		console->nHistoryPercent = SACK_GetProfileInt( "SACK/PSI/console", "history", 1 );
+
+		{
+			char fontdata[256];
+			SACK_GetProfileString( "sack/PSI/console", "font", "", fontdata, 256 );
+			if( fontdata[0] ) {
+				FRACTION one = { 1,1 };
+				SetControlFont( pc, RenderScaledFontData( (PFONTDATA)fontdata, &one, &one ) );
+			}
+		}
 
 		console->psicon.crCommand = AColor( 32, 192, 192, text_alpha );
 		console->psicon.crCommandBackground = AColor( 0, 0, 1, back_alpha );
