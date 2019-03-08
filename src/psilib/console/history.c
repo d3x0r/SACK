@@ -3,7 +3,7 @@
 #include <filesys.h>
 #include <logging.h>
 #include <psi/console.h>
-
+#include <sqlgetoption.h>
 #include "regaccess.h"
 
 #include "consolestruc.h" // all relavent includes
@@ -145,27 +145,9 @@ PHISTORY_LINE_CURSOR PSI_CreateHistoryCursor( PHISTORY_REGION phr )
 		PHISTORY_LINE_CURSOR phlc = (PHISTORY_LINE_CURSOR)Allocate( sizeof( HISTORY_LINE_CURSOR ) );
 		MemSet( phlc, 0, sizeof( HISTORY_LINE_CURSOR ) );
 
-		{
-			int nValue;
-			PTEXT name = NULL;
-			nValue = -1;
-			GetRegistryInt( "Dekware\\Wincon\\Background"
-				, name ? GetText( name ) : "default"
-				, &nValue );
-			if( nValue < 0 )
-				phlc->output.DefaultColor.flags.background = 0;
-			else
-				phlc->output.DefaultColor.flags.background = nValue;
+		phlc->output.DefaultColor.flags.background = SACK_GetProfileInt( "SACK/PSI/console", "background", 0 );
+		phlc->output.DefaultColor.flags.foreground = SACK_GetProfileInt( "SACK/PSI/console", "foreground", 7 );
 
-			nValue = -1;
-			GetRegistryInt( "Dekware\\Wincon\\Foreground"
-				, name ? GetText( name ) : "default"
-				, &nValue );
-			if( nValue < 0 )
-				phlc->output.DefaultColor.flags.foreground = 7;
-			else
-				phlc->output.DefaultColor.flags.foreground = nValue;
-		}
 		phlc->output.PriorColor = phlc->output.DefaultColor;
 
 		phlc->region = phr;
@@ -1137,15 +1119,22 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, u
 
 				if( ( (*col_offset) + nSegSize  ) >= colsize )
 				{
-					if( !nSpace )
-						return 0;
+					if( (nSpace - nShown) < 2 ) {
+						if( *col_offset ) return 0;
+						best_char_size = nSegSize;
+						best_chars = nShown + 1;  // minimum of 1 character to use.
+						break;
+					}
 					best_chars = (nSpace - 1);
 					break;
 				}
-				else 
+				else {
 					best_char_size = nSegSize;
+				}
 			}
 		}
+		if( !best_chars && !has_good_space && best_char_size && (*col_offset) == 0 )
+			best_chars = nSpace - 1;
 
 		// found a space, please show up to that.
 		if( has_good_space )
@@ -1200,8 +1189,10 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, u
 		 nShow = nLen - nShown;
 		(*col_offset) += nLenSize;
 	}
-	 //lprintf( "Show %d", nShow );
-	 return nShow + result_bias;
+	if( (nShow + result_bias) < 0 )
+		DebugBreak();
+	//lprintf( "Show %d", nShow );
+	return nShow + result_bias;
 }
 
 //----------------------------------------------------------------------------
@@ -1860,9 +1851,14 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 								// position or other formatting information.
 								// generally systems will filter out the newlines and convert it to 
 								// a separatly queued line.
-								pText = NEXTLINE( pText );
-								nSegShown = 0;
-								continue;
+								if( 1 ) /* !pText->format.flags.prior_background ||
+									!pText->format.flags.prior_background ) */ {
+
+									pText = NEXTLINE( pText );
+									nSegShown = 0;
+									continue;
+								}
+
 								trim_char = 0;
 								pText = NEXTLINE( pText );
 								if( !pText ) break;

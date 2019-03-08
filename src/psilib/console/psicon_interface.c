@@ -51,7 +51,7 @@ PSI_Console_Phrase PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 					prior->format.position.offset.spaces += (uint16_t)console->pending_spaces;
 					prior->format.position.offset.tabs += (uint16_t)console->pending_tabs;
 					que = BuildLine( prior );
-					if( console->flags.bNewLine )
+					if( !console->flags.bNewLine )
 						que->flags |= TF_NORETURN;
 					phrase  = PSI_WinLogicWriteEx( console, que, 0 );
 					LineRelease( prior );
@@ -72,6 +72,9 @@ PSI_Console_Phrase PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 		if( remainder )
 		{
 			PTEXT que = BuildLine( remainder );
+			if( !console->flags.bNewLine ) {
+				que->flags |= TF_NORETURN;
+			}
 			phrase = PSI_WinLogicWriteEx( console, que, 0 );
 			console->flags.bNewLine = 0;
 		}
