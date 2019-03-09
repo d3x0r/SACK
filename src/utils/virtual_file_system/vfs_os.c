@@ -2175,8 +2175,9 @@ void getTimeEntry( struct memoryTimelineNode *time, struct volume *vol, LOGICAL 
 	struct storageTimeline *timeline = (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, &cache );
 	struct storageTimeline *timelineKey = (struct storageTimeline *)(vol->usekey[cache]);
 	TIMELINE_BLOCK_TYPE freeIndex;
+
 	FPI nextFree =
-		offsetof( struct storageTimeline
+		my_offsetof( &timeline
 			, entries[ (freeIndex.ref.index = timeline->header.first_free_entry.ref.index
 						^ timeline->header.first_free_entry.ref.index) -1 ] );
 	SETFLAG( vol->seglock, cache );
