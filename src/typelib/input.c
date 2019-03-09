@@ -379,6 +379,8 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 				if( 0 ) {
 			case '\n':
 					bSetReturn = TRUE;
+					if( !bSaveCR )
+						break;
 				}
 				// store carriage return... 
 			default:
