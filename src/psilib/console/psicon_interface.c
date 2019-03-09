@@ -56,8 +56,12 @@ PSI_Console_Phrase PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 					phrase  = PSI_WinLogicWriteEx( console, que, 0 );
 					LineRelease( prior );
 				}
-				else
-					phrase  = PSI_WinLogicWriteEx( console, SegCreate( 0 ), 0 );
+				else {
+					que = SegCreate( 0 );
+					if( !console->flags.bNewLine )
+						que->flags |= TF_NORETURN;
+					phrase = PSI_WinLogicWriteEx( console, que, 0 );
+				}
 
 				console->flags.bNewLine = 1;
 
@@ -112,6 +116,7 @@ static void sendInputEvent( uintptr_t arg, PTEXT line ) {
 		//pEcho->data.size--; // trim the last character (probably cr)
 		pEcho->flags |= TF_NORETURN;
 		PSI_WinLogicWriteEx( console, pEcho, 1 );
+		console->flags.bNewLine = 1;
 		//lprintf( "Should this local echo be marked somehow?" );
 		//pdp->History.flags.bEnqueuedLocalEcho = 1;
 		//pdp->flags.bLastEnqueCommand = TRUE;

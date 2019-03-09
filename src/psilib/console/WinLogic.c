@@ -79,6 +79,7 @@ static void RenderTextLine(
 	, LOGICAL allow_segment_coloring
 	, int leadinOffset
 	, int nBottomOffset
+	, int bClearEnd
 						)
 {
 	// left and right are relative... to the line segment only...
@@ -90,6 +91,7 @@ static void RenderTextLine(
 		PTEXT pText;
 		int nShow, nShown;
 #ifdef DEBUG_HISTORY_RENDER
+		lprintf( "Rect is %d-%d   %d-%d", r->left, r->right, r->top, r->bottom );
 		lprintf( WIDE("Get display line %d"), nLine );
 #endif
 		if( !pCurrentLine )
@@ -116,6 +118,7 @@ static void RenderTextLine(
 		if( !pCurrentLine->nPixelStart ) {
 			r->left = 0;
 			r->right = pdp->nXPad;
+			//lprintf( "Rect is %d-%d   %d-%d", r->left, r->right, r->top, r->bottom );
 			if( pdp->FillConsoleRect )
 				pdp->FillConsoleRect(pdp, r, FILL_DISPLAY_BACK );
 		}
@@ -123,8 +126,8 @@ static void RenderTextLine(
 			r->right = pdp->nXPad;
 		}
 
-		(*r).left = r->right + pCurrentLine->nPixelStart;
-		x = (*r).right = pCurrentLine->nPixelStart;//pdp->nXPad;
+		x = (*r).left = r->right + pCurrentLine->nPixelStart;
+		(*r).right = (*r).left;
 
 		//(*r).left = x;
 		nChar = 0;
@@ -136,6 +139,7 @@ static void RenderTextLine(
 				justify = 1;
 			}
 		}
+		//lprintf( "Rect is %d-%d   %d-%d", r->left, r->right, r->top, r->bottom );
 
 		if( allow_segment_coloring )
 			if( pdp->SetCurrentColor )
@@ -283,6 +287,7 @@ static void RenderTextLine(
 						}
 					}
 				}
+				//lprintf( "Rect is %d-%d   %d-%d", r->left, r->right, r->top, r->bottom );
 				//lprintf( WIDE("Some stats %d %d %d"), nChar, nShow, nShown );
 				if( nChar )
 				{
@@ -354,7 +359,7 @@ static void RenderTextLine(
 #ifdef DEBUG_HISTORY_RENDER
 				lprintf( WIDE("Fill empty to right (%d-%d)  (%d-%d)"), (*r).left, (*r).right, (*r).top, (*r).bottom );
 #endif
-				if( nLine )
+				if( nLine || bClearEnd )
 					if( pdp->FillConsoleRect )
 						pdp->FillConsoleRect( pdp, r, FILL_DISPLAY_BACK );
 				//FillConsoleRect();
@@ -442,12 +447,14 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	{
 		// need to blatcolor for the 5 pixels left of first char...
 		r.left = 0;
-		r.right = pdp->nXPad;
+		r.right = 0;
+		/*
 		if( pdp->FillConsoleRect )
 		{
-			lprintf( WIDE( "draw blank to left %d-%d" ), r.left, r.right );
+			lprintf( WIDE( "draw blank to left %d-%d   %d-%d" ), r.left, r.right, r.top, r.bottom );
 			pdp->FillConsoleRect( pdp, &r, FILL_COMMAND_BACK );
 		}
+		*/
 		upd.left = 0;
 	}
 	else
@@ -542,7 +549,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 					RenderTextLine( pdp, pCurrentLine, &upd
 						, nLine, TRUE, y, pdp->nCommandLineStart - pCurrentLine->nLineTop
 						, FALSE
-						, FALSE, nLeadinoffset, 0 );  // cursor; to know where to draw the mark...
+						, FALSE, nLeadinoffset, 0, 1 );  // cursor; to know where to draw the mark...
 				y -= pdp->nFontHeight;
 				nLeadinoffset = 0;
 			}
@@ -593,7 +600,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		if( r.right > r.left )
 		{
 			// clear the remainder of the line...
-			//lprintf( WIDE("Clearing end of line...") );
+			lprintf( WIDE("Clearing end of line... %d-%d   %d-%d"), r.left, r.right, r.top, r.bottom );
 			if( pdp->FillConsoleRect )
 				pdp->FillConsoleRect( pdp, &r, FILL_DISPLAY_BACK );
 		}
@@ -1171,7 +1178,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 		RenderTextLine( pdp, pCurrentLine, &r
 			, (int)nLine, nFirst, nFirstLine - nStartLineOffset, nMinLine
 			, ppCurrentLineInfo == &pdp->pCurrentDisplay->DisplayLineInfo 
-			, TRUE, 0, nBottomLineOffset );
+			, TRUE, 0, nBottomLineOffset, 0 );
 
 		if( nFirst >= 0 )
 			nFirst = -1;
