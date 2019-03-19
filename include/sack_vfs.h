@@ -112,6 +112,8 @@ SACK_VFS_PROC int CPROC sack_vfs_find_next( struct find_info *info );
 SACK_VFS_PROC char * CPROC sack_vfs_find_get_name( struct find_info *info );
 // get file information for the file at the current cursor position...
 SACK_VFS_PROC size_t CPROC sack_vfs_find_get_size( struct find_info *info );
+SACK_VFS_PROC uint64_t CPROC sack_vfs_find_get_ctime( struct find_info *info );
+SACK_VFS_PROC uint64_t CPROC sack_vfs_find_get_wtime( struct find_info *info );
 
 #ifdef __cplusplus
 namespace fs {
@@ -236,7 +238,7 @@ namespace objStore {
 //     char result[44];
 //     sack_vfs_os_ioctl_store_rw_object( vol, data, sizeof( data ), result, 44 );
 // }
-#define sack_vfs_os_ioctl_store_rw_object( vol, obj,objlen, result, resultlen )                                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, FALSE, obj, objlen, NULL, 0, NULL, 0, result, resultlen )
+#define sack_vfs_os_ioctl_store_rw_object( vol, obj,objlen, result, resultlen )                                 sack_fs_ioctl( vol, SOSFSSIO_STORE_OBJECT, FALSE, obj, objlen, NULL, 0, NULL, 0, NULL, 0, result, resultlen )
 
 // re-write an object with new content using old ID.
 // returns TRUE/FALSE. true if the patch already exists, or was successfully written.
@@ -246,7 +248,7 @@ namespace objStore {
 //     char result[44];
 //     sack_vfs_os_ioctl_patch_rw_object( vol, oldResult, sizeof( oldReult-1 ), data, sizeof( data ), result, 44 );
 // }
-#define sack_vfs_os_ioctl_patch_rw_object( vol, objId,objIdLen, obj,objlen )                                     sack_fs_ioctl( vol, SOSFSSIO_PATCH_OBJECT, FALSE, FALSE, objId, objIdLen, NULL, 0, obj, objlen, NULL, 0, NULL, 0 )
+#define sack_vfs_os_ioctl_patch_rw_object( vol, objId,objIdLen, obj,objlen )                                     sack_fs_ioctl( vol, SOSFSSIO_PATCH_OBJECT, FALSE, objId, objIdLen, NULL, 0, obj, objlen, NULL, 0, NULL, 0 )
 
 // sealed store and patch
 // store a unencrypted, sealed object using specified sealant
@@ -448,6 +450,8 @@ SACK_VFS_PROC size_t CPROC sack_vfs_os_find_get_size( struct find_info *info );
 #define sack_vfs_find_next  sack_vfs_fs_find_next
 #define sack_vfs_find_get_name  sack_vfs_fs_find_get_name
 #define sack_vfs_find_get_size  sack_vfs_fs_find_get_size
+#define sack_vfs_find_get_cdate  sack_vfs_fs_find_get_cdate
+#define sack_vfs_find_get_wdate  sack_vfs_fs_find_get_wdate
 
 #endif
 
@@ -482,6 +486,8 @@ SACK_VFS_PROC size_t CPROC sack_vfs_os_find_get_size( struct find_info *info );
 #define sack_vfs_find_next  sack_vfs_os_find_next
 #define sack_vfs_find_get_name  sack_vfs_os_find_get_name
 #define sack_vfs_find_get_size  sack_vfs_os_find_get_size
+#define sack_vfs_find_get_cdate  sack_vfs_os_find_get_cdate
+#define sack_vfs_find_get_wdate  sack_vfs_os_find_get_wdate
 
 #endif
 

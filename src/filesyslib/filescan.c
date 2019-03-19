@@ -286,11 +286,16 @@ typedef struct myfinddata {
 #define findinfo(pInfo)     (((PMFD)(*pInfo)))
 #define findcursor(pInfo)     ( ((PMFD)(*pInfo))->cursor)
 
+struct find_cursor *GetScanFileCursor( void *pInfo ) {
+	PMFD mfd = (PMFD)pInfo;
+	return mfd->cursor;
+}
+
  int  ScanFilesEx ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
            , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, int flags )
-           , int flags 
+           , enum ScanFileFlags flags 
            , uintptr_t psvUser 
 		   , LOGICAL begin_sub_path 
 		   , struct file_system_mounted_interface *mount
@@ -759,11 +764,13 @@ getnext:
 		Release( tmp_base );
 	return (*pInfo)?1:0;
 }
- int  ScanFiles ( CTEXTSTR base
+
+
+int  ScanFiles ( CTEXTSTR base
                 , CTEXTSTR mask
                 , void **pInfo
                 , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, int flags )
-                , int flags 
+                , enum ScanFileFlags flags
                 , uintptr_t psvUser )
  {
 	 return ScanFilesEx( base, mask, pInfo, Process, flags, psvUser, FALSE, NULL );

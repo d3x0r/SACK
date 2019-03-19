@@ -356,6 +356,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 	if( (*winfile_local).flags.bLogOpenClose )
 		lprintf( WIDE( "input path is [%s]" ), path );
 #endif
+	LocalInit();
 	if( path )
 	{
 		if( !fsi && !IsAbsolutePath( path ) )
@@ -2312,6 +2313,49 @@ static	size_t CPROC sack_filesys_find_get_size( struct find_cursor *_cursor ) {
 	return 0;
 }
 
+static	uint64_t CPROC sack_filesys_find_get_ctime( struct find_cursor *_cursor ) {
+	struct find_cursor_data *cursor = (struct find_cursor_data *)_cursor;
+#ifdef WIN32
+	if( cursor )
+		return cursor->fileinfo.time_create;
+	return 0;
+#else
+	if( cursor ) {
+		struct stat s;
+		char filename[280];
+		snprintf( filename, 280, "%s/%s", cursor->root, cursor->de->d_name );
+		if( stat( filename, &s ) ) {
+			lprintf( "getsize stat error:%d", errno );
+			return -2;
+		}
+		return s.st_ctime;
+	}
+#endif
+	return 0;
+}
+
+static	uint64_t CPROC sack_filesys_find_get_wtime( struct find_cursor *_cursor ) {
+	struct find_cursor_data *cursor = (struct find_cursor_data *)_cursor;
+#ifdef WIN32
+	if( cursor )
+		return cursor->fileinfo.time_write;
+	return 0;
+#else
+	if( cursor ) {
+		struct stat s;
+		char filename[280];
+		snprintf( filename, 280, "%s/%s", cursor->root, cursor->de->d_name );
+		if( stat( filename, &s ) ) {
+			lprintf( "getsize stat error:%d", errno );
+			return -2;
+		}
+		return s.st_mtime;
+	}
+#endif
+	return 0;
+}
+
+
 static	LOGICAL CPROC sack_filesys_find_is_directory( struct find_cursor *_cursor ){
 	struct find_cursor_data *cursor = (struct find_cursor_data *)_cursor;
 #ifdef WIN32
@@ -2351,9 +2395,13 @@ static struct file_system_interface native_fsi = {
 		, sack_filesys_find_next
 		, sack_filesys_find_get_name
 		, sack_filesys_find_get_size
-																 , sack_filesys_find_is_directory
-																 , sack_filesys_is_directory
-                                                 , sack_filesys_rename // rename
+		, sack_filesys_find_is_directory
+		, sack_filesys_is_directory
+		, sack_filesys_rename // rename
+		, NULL   // file ioctl
+		, NULL   // file-system ioctl
+		, sack_filesys_find_get_ctime
+		, sack_filesys_find_get_wtime
 } ;
 
 PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
