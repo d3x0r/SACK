@@ -270,14 +270,15 @@ CDATA CPROC getpixel( ImageFile *pi, int32_t x, int32_t y )
 
 void CPROC plotalpha( ImageFile *pi, int32_t x, int32_t y, CDATA c )
 {
-   CDATA *po;
-   if( !pi || !pi->image ) return;
-   if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
-       ( y >= pi->y ) && ( y < (pi->y + pi->height) ) )
-   {
-      po = IMG_ADDRESS(pi,x,y);
-      *po = DOALPHA( *po, c, AlphaVal(c) );
-   }
+	CDATA *po;
+	if( !pi || !pi->image ) return;
+	if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
+	    ( y >= pi->y ) && ( y < (pi->y + pi->height) ) )
+	{
+		int r, g, b, aout;                                                                                    \
+		po = IMG_ADDRESS(pi,x,y);
+		*po = DOALPHA_( *po, c, AlphaVal(c) );
+	}
 }
 
 //---------------------------------------------------------------------------

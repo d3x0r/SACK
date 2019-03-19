@@ -56,6 +56,11 @@
 //#define SYMBIT(bit) ( 0x080 >> (bit&0x7) )
 //#endif
 
+ASM_IMAGE_NAMESPACE
+extern unsigned char AlphaTable[256][256];
+ASM_IMAGE_NAMESPACE_END
+
+
 IMAGE_NAMESPACE
 
 static TEXTCHAR maxbase1[] = WIDE("0123456789abcdefghijklmnopqrstuvwxyz");
@@ -89,7 +94,13 @@ PFONT GetDefaultFont( void )
 #if __3D__
 #define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha( (Image)pRealImage->reverse_interface_instance, x, y, color ) : plot( pRealImage, x, y, color ) )
 #else
-#define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha( (Image)pRealImage->reverse_interface_instance, x, y, color ) : plotalpha( pRealImage, x, y, color ) )
+#define CharPlotAlpha(pRealImage,x,y,color) do{   \
+	CDATA *po;                                  \
+	int r, g, b, aout;                          \
+    ( pRealImage->reverse_interface             \
+         ? pRealImage->reverse_interface->_plotalpha( (Image)pRealImage->reverse_interface_instance, x, y, color )   \
+         : plotalpha_( pRealImage, x, y, color ));   \
+}while(0)
 #endif
 
 //---------------------------------------------------------------------------

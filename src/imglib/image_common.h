@@ -2,6 +2,43 @@
 #define IMAGE_COMMON_HEADER_INCLUDED
 ASM_IMAGE_NAMESPACE
 uint32_t DOALPHA( uint32_t over, uint32_t in, uint8_t a );
+
+
+#define DOALPHA_( over, in, a )  (                                                                        \
+	/*int r, g, b, aout;   */                                                                             \
+	(!a)?(over):(                                                                                         \
+		( (a) == 255 )?(in | 0xFF000000/* force alpha full on.*/):(                                         \
+                                                                                                          \
+			(aout = AlphaTable[a][AlphaVal( over )] << 24),                                               \
+                                                                                                          \
+			(r = ((((((in) & 0x00FF0000) >> 8)  *((a) + 1)) + ((((over) & 0x00FF0000) >> 8)*(256 - (a)))))),    \
+			(r = ( r & 0xFF000000 )?(0x00FF0000):(r & 0x00FF0000)),                                       \
+                                                                                                          \
+			(g = ((((((in) & 0x0000FF00) >> 8)  *((a) + 1)) + ((((over) & 0x0000FF00) >> 8)*(256 - (a)))))),    \
+			(g=( g & 0x00FF0000 )?0x0000FF00:(g & 0x0000FF00) ),                                          \
+                                                                                                          \
+			(b = ((((in) & 0x000000FF)*((a) + 1)) + (((over) & 0x000000FF)*(256 - (a)))) >> 8 ),                \
+			b = ( b & 0x0000FF00 )?0x000000FF:(b),                                                        \
+                                                                                                          \
+			(aout | b | g | r)                                                                            \
+		)                                                                                                 \
+	)                                                                                                     \
+)
+
+//CDATA *po;
+//int r, g, b, aout;                                                                                    \
+
+#define plotalpha_( pi, x_, y_, c ) (                         \
+	( !pi || !pi->image )?0:(                                   \
+	( ((x_) >= pi->x) && ((x_) < (pi->x + pi->width)) &&        \
+		((y_) >= pi->y) && ((y_) < (pi->y + pi->height)) )?(    \
+			(po = IMG_ADDRESS( pi, (x_), (y_) )),               \
+			(*po = DOALPHA_( *po, c, AlphaVal( c ) ))       \
+		):0                                                 \
+	)      \
+)
+
+
 ASM_IMAGE_NAMESPACE_END
 
 #if !defined( _D3D_DRIVER ) && !defined( _D3D10_DRIVER ) && !defined( _D3D11_DRIVER )

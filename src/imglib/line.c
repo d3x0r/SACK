@@ -1,6 +1,6 @@
 /*
  *  Crafted by Jim Buckeyne
- *   (c)1999-2006++ Freedom Collective
+ *	(c)1999-2006++ Freedom Collective
  *
  * Simple Line operations on Images.  Single pixel, no anti aliasing.
  *  There is a line routine which steps through each point and calls
@@ -21,6 +21,7 @@
 #include <image.h>
 
 #include "blotproto.h"
+#include "image_common.h"
 
 /* void do_line(BITMAP *bmp, int x1, y1, x2, y2, int d, void (*proc)())
  *  Calculates all the points along a line between x1, y1 and x2, y2,
@@ -40,375 +41,377 @@ extern "C" {
 #define ROUND_ERROR ( ( 1<< ( FIX_SHIFT - 1 ) ) - 1 )
 
 void CPROC do_line( Image pImage, int32_t x1, int32_t y1
-                            , int32_t x2, int32_t y2, CDATA d )
+									 , int32_t x2, int32_t y2, CDATA d )
 {
-   int err, delx, dely, len, inc;
-   if( !pImage || !pImage->image ) return;
-   delx = x2 - x1;
-   if( delx < 0 )
-      delx = -delx;
+	int err, delx, dely, len, inc;
+	if( !pImage || !pImage->image ) return;
+	delx = x2 - x1;
+	if( delx < 0 )
+		delx = -delx;
 
-   dely = y2 - y1;
-   if( dely < 0 )
-      dely = -dely;
+	dely = y2 - y1;
+	if( dely < 0 )
+		dely = -dely;
 
-   if( dely > delx ) // length for y is more than length for x
-   {
-      len = dely;
-      if( y1 > y2 )
-      {
-         int tmp = x1;
-         x1 = x2;
-         x2 = tmp;
-         y1 = y2; // x1 is start...
-      }
-      if( x2 > x1 )
-         inc = 1;
-      else
-         inc = -1;
+	if( dely > delx ) // length for y is more than length for x
+	{
+		len = dely;
+		if( y1 > y2 )
+		{
+			int tmp = x1;
+			x1 = x2;
+			x2 = tmp;
+			y1 = y2; // x1 is start...
+		}
+		if( x2 > x1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(dely / 2);
-      while( len >= 0 )
-      {
-         plot( pImage, x1, y1, d );
-         y1++;
-         err += delx;
-         while( err >= 0 )
-         {
-            err -= dely;
-            x1 += inc;
-         }
-         len--;
-      }
-   }
-   else
-   {
-      if( !delx ) // 0 length line
-         return;
-      len = delx;
-      if( x1 > x2 )
-      {
-         int tmp = y1;
-         y1 = y2;
-         y2 = tmp;
-         x1 = x2; // x1 is start...
-      }
-      if( y2 > y1 )
-         inc = 1;
-      else
-         inc = -1;
+		err = -(dely / 2);
+		while( len >= 0 )
+		{
+			plot( pImage, x1, y1, d );
+			y1++;
+			err += delx;
+			while( err >= 0 )
+			{
+				err -= dely;
+				x1 += inc;
+			}
+			len--;
+		}
+	}
+	else
+	{
+		if( !delx ) // 0 length line
+			return;
+		len = delx;
+		if( x1 > x2 )
+		{
+			int tmp = y1;
+			y1 = y2;
+			y2 = tmp;
+			x1 = x2; // x1 is start...
+		}
+		if( y2 > y1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(delx / 2);
-      while( len >= 0 )
-      {
-         plot( pImage, x1, y1, d );
-         x1++;
-         err += dely;
-         while( err >= 0 )
-         {
-            err -= delx;
-            y1 += inc;
-         }
-         len--;
-      }
-   }
+		err = -(delx / 2);
+		while( len >= 0 )
+		{
+			plot( pImage, x1, y1, d );
+			x1++;
+			err += dely;
+			while( err >= 0 )
+			{
+				err -= delx;
+				y1 += inc;
+			}
+			len--;
+		}
+	}
 }
 
 void CPROC do_lineAlpha( Image pImage, int32_t x1, int32_t y1
-                            , int32_t x2, int32_t y2, CDATA d )
+									 , int32_t x2, int32_t y2, CDATA d )
 {
-   int err, delx, dely, len, inc;
-   if( !pImage || !pImage->image ) return;
-   delx = x2 - x1;
-   if( delx < 0 )
-      delx = -delx;
+	int err, delx, dely, len, inc;
+	if( !pImage || !pImage->image ) return;
+	delx = x2 - x1;
+	if( delx < 0 )
+		delx = -delx;
 
-   dely = y2 - y1;
-   if( dely < 0 )
-      dely = -dely;
+	dely = y2 - y1;
+	if( dely < 0 )
+		dely = -dely;
 
-   if( dely > delx ) // length for y is more than length for x
-   {
-      len = dely;
-      if( y1 > y2 )
-      {
-         int tmp = x1;
-         x1 = x2;
-         x2 = tmp;
-         y1 = y2; // x1 is start...
-      }
-      if( x2 > x1 )
-         inc = 1;
-      else
-         inc = -1;
+	if( dely > delx ) // length for y is more than length for x
+	{
+		len = dely;
+		if( y1 > y2 )
+		{
+			int tmp = x1;
+			x1 = x2;
+			x2 = tmp;
+			y1 = y2; // x1 is start...
+		}
+		if( x2 > x1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(dely / 2);
-      while( len >= 0 )
-      {
-         plotalpha( pImage, x1, y1, d );
-         y1++;
-         err += delx;
-         while( err >= 0 )
-         {
-            err -= dely;
-            x1 += inc;
-         }
-         len--;
-      }
-   }
-   else
-   {
-      if( !delx ) // 0 length line
-         return;
-      len = delx;
-      if( x1 > x2 )
-      {
-         int tmp = y1;
-         y1 = y2;
-         y2 = tmp;
-         x1 = x2; // x1 is start...
-      }
-      if( y2 > y1 )
-         inc = 1;
-      else
-         inc = -1;
+		err = -(dely / 2);
+		while( len >= 0 )
+		{
+			plotalpha( pImage, x1, y1, d );
+			y1++;
+			err += delx;
+			while( err >= 0 )
+			{
+				err -= dely;
+				x1 += inc;
+			}
+			len--;
+		}
+	}
+	else
+	{
+		if( !delx ) // 0 length line
+			return;
+		len = delx;
+		if( x1 > x2 )
+		{
+			int tmp = y1;
+			y1 = y2;
+			y2 = tmp;
+			x1 = x2; // x1 is start...
+		}
+		if( y2 > y1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(delx / 2);
-      while( len >= 0 )
-      {
-         plotalpha( pImage, x1, y1, d );
-         x1++;
-         err += dely;
-         while( err >= 0 )
-         {
-            err -= delx;
-            y1 += inc;
-         }
-         len--;
-      }
-   }
+		err = -(delx / 2);
+		while( len >= 0 )
+		{
+			plotalpha( pImage, x1, y1, d );
+			x1++;
+			err += dely;
+			while( err >= 0 )
+			{
+				err -= delx;
+				y1 += inc;
+			}
+			len--;
+		}
+	}
 }
 
 void CPROC do_lineExV( Image pImage, int32_t x1, int32_t y1
-                            , int32_t x2, int32_t y2, uintptr_t d
-                            , void (*func)(Image pif, int32_t x, int32_t y, uintptr_t d ) )
+									 , int32_t x2, int32_t y2, uintptr_t d
+									 , void (*func)(Image pif, int32_t x, int32_t y, uintptr_t d ) )
 {
-   int err, delx, dely, len, inc;
-   //if( !pImage || !pImage->image ) return;
-   delx = x2 - x1;
-   if( delx < 0 )
-      delx = -delx;
+	int err, delx, dely, len, inc;
+	//if( !pImage || !pImage->image ) return;
+	delx = x2 - x1;
+	if( delx < 0 )
+		delx = -delx;
 
-   dely = y2 - y1;
-   if( dely < 0 )
-      dely = -dely;
+	dely = y2 - y1;
+	if( dely < 0 )
+		dely = -dely;
 
-   if( dely > delx ) // length for y is more than length for x
-   {
-      len = dely;
-      if( y1 > y2 )
-      {
-         int tmp = x1;
-         x1 = x2;
-         x2 = tmp;
-         y1 = y2; // x1 is start...
-      }
-      if( x2 > x1 )
-         inc = 1;
-      else
-         inc = -1;
+	if( dely > delx ) // length for y is more than length for x
+	{
+		len = dely;
+		if( y1 > y2 )
+		{
+			int tmp = x1;
+			x1 = x2;
+			x2 = tmp;
+			y1 = y2; // x1 is start...
+		}
+		if( x2 > x1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(dely / 2);
-      while( len >= 0 )
-      {
-         func( pImage, x1, y1, d );
-         y1++;
-         err += delx;
-         while( err >= 0 )
-         {
-            err -= dely;
-            x1 += inc;
-         }
-         len--;
-      }
-   }
-   else
-   {
-      if( !delx ) // 0 length line
-         return;
-      len = delx;
-      if( x1 > x2 )
-      {
-         int tmp = y1;
-         y1 = y2;
-         y2 = tmp;
-         x1 = x2; // x1 is start...
-      }
-      if( y2 > y1 )
-         inc = 1;
-      else
-         inc = -1;
+		err = -(dely / 2);
+		while( len >= 0 )
+		{
+			func( pImage, x1, y1, d );
+			y1++;
+			err += delx;
+			while( err >= 0 )
+			{
+				err -= dely;
+				x1 += inc;
+			}
+			len--;
+		}
+	}
+	else
+	{
+		if( !delx ) // 0 length line
+			return;
+		len = delx;
+		if( x1 > x2 )
+		{
+			int tmp = y1;
+			y1 = y2;
+			y2 = tmp;
+			x1 = x2; // x1 is start...
+		}
+		if( y2 > y1 )
+			inc = 1;
+		else
+			inc = -1;
 
-      err = -(delx / 2);
-      while( len >= 0 )
-      {
-         func( pImage, x1, y1, d );
-         x1++;
-         err += dely;
-         while( err >= 0 )
-         {
-            err -= delx;
-            y1 += inc;
-         }
-         len--;
-      }
-   }
+		err = -(delx / 2);
+		while( len >= 0 )
+		{
+			func( pImage, x1, y1, d );
+			x1++;
+			err += dely;
+			while( err >= 0 )
+			{
+				err -= delx;
+				y1 += inc;
+			}
+			len--;
+		}
+	}
 }
 
 void CPROC do_hline( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color )
 {
-   PCDATA po;
-   int len;
-   if( !pImage || !pImage->image ) return;
+	PCDATA po;
+	int len;
+	if( !pImage || !pImage->image ) return;
 
-   if( y < 0 || y >= (pImage->height ))
-   {
-      //Log4( WIDE("hline failed: %d<%d or %d>%d"), y, pImage->y, y, pImage->y+pImage->height );
-      return;
-   }
+	if( y < 0 || y >= (pImage->height ))
+	{
+		//Log4( WIDE("hline failed: %d<%d or %d>%d"), y, pImage->y, y, pImage->y+pImage->height );
+		return;
+	}
 
-   if( xfrom > xto )
-   {
-      int tmp = xto;
-      xto = xfrom;
-      xfrom = tmp;
-   }
-   if( xto < 0 || xfrom >= (pImage->width))
-   {
-      //Log4( WIDE("hline(2) failed: %d<%d or %d>%d"), xto, pImage->x, xfrom, pImage->x + pImage->width );
-      return;
-   }
+	if( xfrom > xto )
+	{
+		int tmp = xto;
+		xto = xfrom;
+		xfrom = tmp;
+	}
+	if( xto < 0 || xfrom >= (pImage->width))
+	{
+		//Log4( WIDE("hline(2) failed: %d<%d or %d>%d"), xto, pImage->x, xfrom, pImage->x + pImage->width );
+		return;
+	}
 
-   if( xfrom < 0 )
-      xfrom = 0;
-   if( xto >= pImage->width )
-      xto = pImage->width - 1;
+	if( xfrom < 0 )
+		xfrom = 0;
+	if( xto >= pImage->width )
+		xto = pImage->width - 1;
 
-   len = (xto - xfrom) + 1;
-   po = IMG_ADDRESS(pImage,xfrom,y);
-   while( len )
-   {
-      *po = color;
-      po++;
-      len--;
-   }
+	len = (xto - xfrom) + 1;
+	po = IMG_ADDRESS(pImage,xfrom,y);
+	while( len )
+	{
+		*po = color;
+		po++;
+		len--;
+	}
 }
 
 void CPROC do_vline( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color )
 {
-   PCDATA po;
-   int oo;
-   int len;
+	PCDATA po;
+	int oo;
+	int len;
 	//cpg26dec2006 Warning! W124: Comparison result always 0
 	if( !pImage || !pImage->image /*|| pImage->height < 0*/ ) return;
 
-   if( x < 0 || x >= (pImage->width ))
-      return;
+	if( x < 0 || x >= (pImage->width ))
+		return;
 
-   if( yfrom > yto )
-   {
-      int tmp = yto;
-      yto = yfrom;
-      yfrom = tmp;
-   }
-   if( yto < 0 || yfrom >= (pImage->height))
-      return;
+	if( yfrom > yto )
+	{
+		int tmp = yto;
+		yto = yfrom;
+		yfrom = tmp;
+	}
+	if( yto < 0 || yfrom >= (pImage->height))
+		return;
 
-   if( yfrom < 0 )
-      yfrom = 0;
-   if( yto >= pImage->height )
-      yto = pImage->height-1;
+	if( yfrom < 0 )
+		yfrom = 0;
+	if( yto >= pImage->height )
+		yto = pImage->height-1;
 
-   len = (yto - yfrom) + 1;
-   oo = pImage->pwidth;
+	len = (yto - yfrom) + 1;
+	oo = pImage->pwidth;
 	if( pImage->flags & IF_FLAG_INVERTED )
 		po = (CDATA*)IMG_ADDRESS(pImage,x,yto);
-   else
+	else
 		po = (CDATA*)IMG_ADDRESS(pImage,x,yfrom);
-   while( len )
-   {
-      *po = color;
-      po += oo;
-      len--;
-   }
+	while( len )
+	{
+		*po = color;
+		po += oo;
+		len--;
+	}
 }
 
 void CPROC do_hlineAlpha( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color )
 {
-   PCDATA po;
-   int len;
-   int alpha = AlphaVal( color );
-   if( !pImage || !pImage->image ) return;
-   if( y < 0 || y >= (pImage->height) )
-      return;
-   if( xfrom > xto )
-   {
-      int tmp = xto;
-      xto = xfrom;
-      xfrom = tmp;
-   }
-   if( xto < 0 || xfrom >= (pImage->width))
-      return;
+	PCDATA po;
+	int len;
+	int alpha = AlphaVal( color );
+	if( !pImage || !pImage->image ) return;
+	if( y < 0 || y >= (pImage->height) )
+		return;
+	if( xfrom > xto )
+	{
+		int tmp = xto;
+		xto = xfrom;
+		xfrom = tmp;
+	}
+	if( xto < 0 || xfrom >= (pImage->width))
+		return;
 
-   if( xfrom < 0 )
-      xfrom = 0;
-   if( xto >= pImage->width )
-      xto = pImage->width - 1;
-   len = (xto - xfrom) + 1;
-   po = (CDATA*)IMG_ADDRESS(pImage,xfrom,y);
-   while( len )
-   {
-      *po = DOALPHA( *po, color, alpha );
-      po++;
-      len--;
-   }
+	if( xfrom < 0 )
+		xfrom = 0;
+	if( xto >= pImage->width )
+		xto = pImage->width - 1;
+	len = (xto - xfrom) + 1;
+	po = (CDATA*)IMG_ADDRESS(pImage,xfrom,y);
+	while( len )
+	{
+		int r, g, b, aout;																												\
+		*po = DOALPHA_( *po, color, alpha );
+		po++;
+		len--;
+	}
 }
 
 void CPROC do_vlineAlpha( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color )
 {
-   PCDATA po;
-   int oo;
-   int len;
-   int alpha = AlphaVal( color );
-   if( !pImage || !pImage->image ) return;
+	PCDATA po;
+	int oo;
+	int len;
+	int alpha = AlphaVal( color );
+	if( !pImage || !pImage->image ) return;
 
-   if( x < 0 || x >= (pImage->width) )
-      return;
+	if( x < 0 || x >= (pImage->width) )
+		return;
 
-   if( yfrom > yto )
-   {
-      int tmp = yto;
-      yto = yfrom;
-      yfrom = tmp;
-   }
-   if( yto < 0 || yfrom >= (pImage->height))
-      return;
-   if( yfrom < pImage->y )
-      yfrom = pImage->y;
-   if( yto >= pImage->y + pImage->height )
-      yto = pImage->y + pImage->height-1;
-   len = (yto - yfrom) + 1;
-   oo = pImage->pwidth;
+	if( yfrom > yto )
+	{
+		int tmp = yto;
+		yto = yfrom;
+		yfrom = tmp;
+	}
+	if( yto < 0 || yfrom >= (pImage->height))
+		return;
+	if( yfrom < pImage->y )
+		yfrom = pImage->y;
+	if( yto >= pImage->y + pImage->height )
+		yto = pImage->y + pImage->height-1;
+	len = (yto - yfrom) + 1;
+	oo = pImage->pwidth;
 	if( pImage->flags & IF_FLAG_INVERTED )
 		po = (CDATA*)IMG_ADDRESS(pImage,x,yto);
-   else
+	else
 		po = (CDATA*)IMG_ADDRESS(pImage,x,yfrom);
-   while( len )
-   {
-      *po = DOALPHA( *po, color, alpha );
-      po += oo;
-      len--;
-   }
+	while( len )
+	{
+		int r, g, b, aout;																												\
+		*po = DOALPHA_( *po, color, alpha );
+		po += oo;
+		len--;
+	}
 }
 
 #ifdef __cplusplus
