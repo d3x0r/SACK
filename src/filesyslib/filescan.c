@@ -191,13 +191,13 @@ typedef struct result_buffer
 	int result_len;
 } RESULT_BUFFER, *PRESULT_BUFFER;
 
-static void CPROC MatchFile( uintptr_t psvUser, CTEXTSTR name, int flags )
+static void CPROC MatchFile( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	PRESULT_BUFFER buffer = (PRESULT_BUFFER)psvUser;
 	buffer->result_len = tnprintf( buffer->buffer, buffer->len*sizeof(TEXTCHAR), WIDE("%s"), name );
 }
 
-int  GetMatchingFileName ( CTEXTSTR filemask, int flags, TEXTSTR pResult, int nResult )
+int  GetMatchingFileName ( CTEXTSTR filemask, enum ScanFileFlags  flags, TEXTSTR pResult, int nResult )
 {
 	void *info = NULL;
 	RESULT_BUFFER result_buf;
@@ -294,7 +294,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
  int  ScanFilesEx ( CTEXTSTR base
            , CTEXTSTR mask
            , void **pInfo
-           , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, int flags )
+           , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags )
            , enum ScanFileFlags flags 
            , uintptr_t psvUser 
 		   , LOGICAL begin_sub_path 
@@ -304,7 +304,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 	PMFD pDataCurrent = (PMFD)(pInfo);
 	PMFD pData = (PMFD)(*pInfo);
 	TEXTSTR tmp_base = NULL;
-	int sendflags;
+	enum ScanFileProcessFlags sendflags;
 	int processed = 0;
 #ifndef WIN32
 	struct dirent *de;
@@ -740,7 +740,7 @@ getnext:
 												 && ( IsPath( pData->buffer ) )
 
 #endif
-												) ) || ( sendflags = 0, CompareMask( findmask( pInfo )
+												) ) || ( (sendflags = (enum ScanFileProcessFlags)0), CompareMask( findmask( pInfo )
 #ifdef WIN32
 #  ifdef UNDER_CE
 																							  , finddata(pInfo)->cFileName
@@ -769,7 +769,7 @@ getnext:
 int  ScanFiles ( CTEXTSTR base
                 , CTEXTSTR mask
                 , void **pInfo
-                , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, int flags )
+                , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags )
                 , enum ScanFileFlags flags
                 , uintptr_t psvUser )
  {
