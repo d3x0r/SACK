@@ -349,12 +349,12 @@ static __inline void encryptBlock( uint8_t const * const map
 }
 
 void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
-	, uint64_t tick, uint8_t *keyBuf, size_t keyBufLen
+	, uint64_t tick, const uint8_t *keyBuf, size_t keyBufLen
 	, uint8_t **outBuf, size_t *outBufLen
 ) {
 	struct random_context *signEntropy = (struct random_context *)DequeLink( &crypt_local.plqCrypters );
 	size_t b;
-	size_t outLen_;
+	//size_t outLen_;
 	if( !signEntropy )
 		signEntropy = SRG_CreateEntropy4( NULL, (uintptr_t)0 );
 	SRG_ResetEntropy( signEntropy );
@@ -423,7 +423,7 @@ static __inline void decryptBlock( uint8_t const * const dmap
 }
 
 void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
-	, uint64_t tick, uint8_t *keyBuf, size_t keyBufLen
+	, uint64_t tick, const uint8_t *keyBuf, size_t keyBufLen
 	, uint8_t **outBuf, size_t *outBufLen
 ) {
 	

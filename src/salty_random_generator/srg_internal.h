@@ -49,7 +49,7 @@ struct byte_shuffle_key {
 };
 
 #define MY_MASK_MASK(n,length)	(MASK_TOP_MASK(length) << ((n)&0x7) )
-#define MY_GET_MASK(v,n,mask_size)  ( ( ((MASKSET_READTYPE*)((((uintptr_t)v))+(n)/CHAR_BIT))[0]											\
+#define MY_GET_MASK(v,n,mask_size)  ( ( ((MASKSET_READTYPE*)((((uint8_t*)v))+(n)/CHAR_BIT))[0]											\
  & MY_MASK_MASK(n,mask_size) )																									\
 	>> (((n))&0x7))
 

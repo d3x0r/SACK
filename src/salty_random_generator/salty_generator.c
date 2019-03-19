@@ -195,6 +195,7 @@ uint32_t SRG_GetBit( struct random_context *ctx )
 	if( (ctx->bits_used) >= ctx->bits_avail ) {
 		NeedBits( ctx );
 	}
+	tmp = MY_MASK_MASK( ctx->bits_used, 1 );
 	tmp = MY_GET_MASK( ctx->entropy, ctx->bits_used, 1 );
 	ctx->bits_used += 1;
 	return tmp;

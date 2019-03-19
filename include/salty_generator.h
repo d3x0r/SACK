@@ -136,7 +136,7 @@ SRG_EXPORT size_t SRG_AES_encrypt( uint8_t *plaintext, size_t plaintext_len, uin
 // pointers refrenced passed to outBuf and outBufLen are filled in with the result
 // Will automatically add 4 bytes and pad up to 8
 SRG_EXPORT void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
-	, uint64_t tick, uint8_t *keyBuf, size_t keyBufLen
+	, uint64_t tick, const uint8_t *keyBuf, size_t keyBufLen
 	, uint8_t **outBuf, size_t *outBufLen
 );
 
@@ -146,7 +146,7 @@ SRG_EXPORT void SRG_XSWS_encryptData( uint8_t *objBuf, size_t objBufLen
 // 
 
 SRG_EXPORT void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
-	, uint64_t tick, uint8_t *keyBuf, size_t keyBufLen
+	, uint64_t tick, const uint8_t *keyBuf, size_t keyBufLen
 	, uint8_t **outBuf, size_t *outBufLen
 );
 
