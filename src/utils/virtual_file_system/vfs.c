@@ -617,7 +617,7 @@ static LOGICAL ExpandVolume( struct volume *vol ) {
 	else if( !oldsize )  {
 		memset( vol->disk, 0, vol->dwSize );
 	} else if( oldsize )  {
-		memset( ((uint8_t*)vol->disk) + oldsize, 0, vol->dwSize - oldsize );
+		memset( ((uint8_t*)vol->disk) + oldsize, 0, (size_t)(vol->dwSize - oldsize) );
 	}
 
 	if( !oldsize ) {
@@ -1706,6 +1706,8 @@ LOGICAL CPROC sack_vfs_is_directory( uintptr_t psvInstance, const char *path ) {
 	}
 	return FALSE;
 }
+uint64_t CPROC sack_vfs_find_get_ctime( struct find_info *info ) { return (size_t)0; }
+uint64_t CPROC sack_vfs_find_get_wtime( struct find_info *info ) { return (size_t)0; }
 
 LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, const char *newname ) {
 	struct volume *vol = (struct volume *)psvInstance;
@@ -1755,7 +1757,11 @@ static struct file_system_interface sack_vfs_fsi = {
                                                    , sack_vfs_find_is_directory
                                                    , sack_vfs_is_directory
                                                    , sack_vfs_rename
-                                                   };
+	, NULL
+	, NULL
+	, sack_vfs_find_get_ctime
+	, sack_vfs_find_get_wtime
+};
 
 PRIORITY_PRELOAD( Sack_VFS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )
 {
