@@ -1759,16 +1759,16 @@ int CompareStrings( PTEXT pt1, int single1
 
 //--------------------------------------------------------------------------
 
-int64_t IntCreateFromText( CTEXTSTR p )
+int64_t IntCreateFromTextRef( CTEXTSTR *p_ )
 {
-	//CTEXTSTR p;
+	CTEXTSTR p = p_[0];
 	int s;
 	int begin;
 	int64_t num;
 	LOGICAL altBase = FALSE;
 	LOGICAL altBase2 = FALSE;
 	int64_t base = 10;
-	//p = GetText( pText );
+
 	if( !p )
 		return 0;
 	//if( pText->flags & TF_INDIRECT )
@@ -1792,6 +1792,7 @@ int64_t IntCreateFromText( CTEXTSTR p )
 		{
 			if( !altBase2 ) {
 				if( *p == 'x' ) { altBase2 = TRUE; base = 16; }
+				else if( *p == 'o' ) { altBase2 = TRUE; base = 8; }
 				else if( *p == 'b' ) { altBase2 = TRUE; base = 2; }
 				else break;
 			} else {
@@ -1819,9 +1820,17 @@ int64_t IntCreateFromText( CTEXTSTR p )
 		begin = FALSE;
 		p++;
 	}
+	p_[0] = p;
 	if( s & 1 )
 		num *= -1;
 	return num;
+}
+
+//--------------------------------------------------------------------------
+
+int64_t IntCreateFromText( CTEXTSTR p )
+{
+	return IntCreateFromTextRef( &p );
 }
 
 //--------------------------------------------------------------------------
