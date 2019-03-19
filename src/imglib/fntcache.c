@@ -684,7 +684,7 @@ static PCACHE_FONT_STYLE AddFontStyle( PCACHE_FONT_ENTRY pfe, PCACHE_DICT_ENTRY 
 //-------------------------------------------------------------------------
 static uint32_t fonts_checked;
 
-void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, int flags )
+void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	FT_Face face;
 	int face_idx;

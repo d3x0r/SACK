@@ -1406,7 +1406,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 	int success;
 	PTHREAD pThread;
 	uint64_t oldval;
-	while( LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
+	while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) ) {
 		globalTimerData.lock_thread_create = oldval;
 		Relinquish();
 	}
@@ -1497,7 +1497,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 	int success;
 	PTHREAD pThread;
 	uint64_t oldval;
-	while( LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
+	while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) ) {
 		globalTimerData.lock_thread_create = oldval;
 		Relinquish();
 	}
