@@ -2234,8 +2234,24 @@ TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  FlattenLine ( PTEXT pLine );
 /* Create a highest precision signed integer from a PTEXT. */
 TYPELIB_PROC  int64_t TYPELIB_CALLTYPE  IntCreateFromSeg( PTEXT pText );
 /* Converts a text to the longest precision signed integer
-   value.                                                  */
+   value.            
+     allows +/- leadin ([-*]|[+*])*
+     supports 0x### (hex), 0b#### (binary), 0o#### (octal), 0### (octal) 
+	 decimal 1-9[0-9]*
+
+	 buggy implementation supports +/- inline continue number and are either ignored(+)
+	 or changes the overall sign of the number(-).  A Decimal definatly ends the number.
+	 And octal/binary digits aren't checked for range, so 8/9 will over-flow in octal,
+	 and 2-9 overflow to upper bits in octal... 
+	    0b901090 // would be like   0b 10100110    0b1001 +  010 + 1001<<3 + 0
+   */
 TYPELIB_PROC  int64_t TYPELIB_CALLTYPE  IntCreateFromText( CTEXTSTR p );
+/* Converts a text to the longest precision signed integer
+   value.  Does the work of IntCreateFromText.
+   IntCreateFromTextRef updates the pointer passed by reference so 
+   the pointer ends at the first character after the returned number.
+   */
+TYPELIB_PROC  int64_t TYPELIB_CALLTYPE  IntCreateFromTextRef( CTEXTSTR *p_ );
 
 /* Create a high precision floating point value from PTEXT
    segment.                                                */

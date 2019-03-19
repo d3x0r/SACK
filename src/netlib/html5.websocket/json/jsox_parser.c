@@ -1100,9 +1100,11 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					}
 				} else if( ( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD ) || state->parse_context == JSOX_CONTEXT_CLASS_VALUE ) {
 					if( state->val.value_type != JSOX_VALUE_UNSET ) {
-						struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
-						state->val.name = field->name;
-						state->val.nameLen = field->nameLen;
+						if( state->current_class ) {
+							struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
+							state->val.name = field->name;
+							state->val.nameLen = field->nameLen;
+						}
 #ifdef DEBUG_PARSING
 						lprintf( "Push value closing class value %d %p", state->current_class_item, state->current_class );
 #endif
@@ -2021,9 +2023,110 @@ LOGICAL jsox_parse_message( const char * msg
 	return FALSE;
 }
 
-struct jsox_parse_state *jsox_get_messge_parser( void ) {
+struct jsox_parse_state *jsox_get_message_parser( void ) {
 	return jxpsd._state;
 }
+
+static void stepPath( const char **path ) {
+	int skipped;
+	do {
+		skipped = 0;
+		switch( path[0][0] ) {
+		case '.':
+		case '/':
+		case '\\':
+		case ' ':
+			path[0]++;
+			skipped = 1;
+			break;
+		}
+		
+	} while( skipped );
+}
+
+
+
+struct jsox_value_container *jsox_get_parsed_array_value( struct jsox_value_container *val, const char *path
+	, void( *callback )(uintptr_t psv, struct jsox_value_container *val), uintptr_t psv
+) {
+	INDEX idx;
+	if( path[0] == '[' )
+		path++;
+	int64_t index = IntCreateFromTextRef( &path );
+	if( path[0] == ']' )
+		path++;
+	struct jsox_value_container * member = (struct jsox_value_container*)GetDataItem( &val->contains, index );
+	stepPath( &path );
+	if( !path[0] ) {
+		callback( psv, member );
+		return member;
+	}
+	else {
+		if( member->value_type == JSOX_VALUE_ARRAY ) {
+			return jsox_get_parsed_array_value( member, path, callback, psv );
+		}
+		else if( member->value_type == JSOX_VALUE_OBJECT ) {
+			return jsox_get_parsed_object_value( member, path, callback, psv );
+		}
+		else {
+			lprintf( "Path across pimitive value...." );
+		}
+	}
+}
+
+struct jsox_value_container *jsox_get_parsed_object_value( struct jsox_value_container *val, const char *path
+	, void( *callback )(uintptr_t psv, struct jsox_value_container *val), uintptr_t psv
+) {
+	INDEX idx;
+	struct jsox_value_container * member;
+	DATA_FORALL( val->contains, idx, struct jsox_value_container *, member ) {
+		if( StrCmpEx( member->name, path, member->nameLen ) == 0 ) {
+			const char *subpath = path + member->nameLen;
+			stepPath( &subpath );
+			if( !subpath[0] ) {
+				callback( psv, member );
+				return member;
+			}
+			else {
+				if( member->value_type == JSOX_VALUE_ARRAY ) {
+					return jsox_get_parsed_array_value( member, subpath, callback, psv );
+				}
+				else if( member->value_type == JSOX_VALUE_OBJECT ) {
+					return jsox_get_parsed_object_value( member, subpath, callback, psv );
+				}
+				else {
+					lprintf( "Path across pimitive value...." );
+				}
+			}
+		}
+	}
+}
+
+struct jsox_value_container *jsox_get_parsed_value( PDATALIST pdlMessage, const char *path
+	, void( *callback )(uintptr_t psv, struct jsox_value_container *val), uintptr_t psv
+) {
+	INDEX idx;
+	struct jsox_value_container * val;
+	DATA_FORALL( pdlMessage, idx, struct jsox_value_container *, val ) {
+		if( !path || !path[0] ) {
+			callback( psv, val );
+			return val;
+		}
+		if( val->value_type == JSOX_VALUE_OBJECT ) {
+			jsox_get_parsed_object_value( val, path, callback, psv );
+		}
+		else if( val->value_type == JSOX_VALUE_ARRAY ) {
+			jsox_get_parsed_array_value( val, path, callback, psv );
+		}
+		else {
+			if( path && path[0] ) {
+				lprintf( "Error; path across a primitive value" );
+			}
+		}
+	}
+}
+
+
 
 #undef GetUtfChar
 

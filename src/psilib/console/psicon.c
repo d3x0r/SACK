@@ -231,8 +231,9 @@ static int OnDrawCommon( WIDE("PSI Console") )( PSI_CONTROL pc )
 		
 		PSI_ConsoleCalculate( console, GetCommonFont( pc ) ); // this includes doing a render.
 	}
-	else
+	else {
 		PSI_RenderConsole( console, GetCommonFont( pc ) );
+	}
 	//lprintf( WIDE( "Done rendering child." ) );
 	return TRUE;
 }

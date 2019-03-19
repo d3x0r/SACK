@@ -167,6 +167,47 @@ JSOX_PARSER_PROC( struct jsox_parse_state *, jsox_get_messge_parser )(void);
 JSOX_PARSER_PROC( char *, jsox_escape_string_length )(const char *string, size_t len, size_t *outlen);
 JSOX_PARSER_PROC( char *, jsox_escape_string )(const char *string);
 
+/*
+	jsox_get_pared_value() 
+	takes a parsed message data list as a parameer, and a path.
+	A message may have been parsed into multiple parts.  This 
+	early version will return just the first value in the datalist.
+	If there is an optional `path` specified, then that is used to
+	step through the JSOX parsed structure to get deeper values.
+
+	Path is specified as a list of fieldnames and array index numbers.
+	optional separator characters may be used between members '.', ' ', '/' and '\'.  
+	Separator characters may be repeated or mixed with other seaprators and are all
+	considered a single separation.
+	optional bracket characters around an array index may be used     [0]    is often as good as 0.
+
+	Some example paths
+		messages[0]from
+		messages.0.from
+		messages [0] from
+		messages [0] lines[0] 
+
+
+	{ messages : [ // array of messages
+	    { from : "someone", lines: [ "lines","of","message"] }
+	  ]
+	}
+	     
+	jsox_get_parsed_value() returns a value from a PDATALIST
+	jsox_get_parsed_object_value() and jsox_get_parsed_array_value() :  returns a value from a value member.
+
+*/
+JSOX_PARSER_PROC( struct jsox_value_container *, jsox_get_parsed_value )(PDATALIST pdlMessage, const char *path
+	, void( *callback )(uintptr_t psv, struct jsox_value_container *val), uintptr_t psv
+	);
+JSOX_PARSER_PROC( struct jsox_value_container *, jsox_get_parsed_object_value )(struct jsox_value_container *pdlMessage, const char *path
+	, void( *callback )(uintptr_t psv, struct jsox_value_container *val), uintptr_t psv
+	);
+JSOX_PARSER_PROC( struct jsox_value_container *, jsox_get_parsed_array_value )(struct jsox_value_container * pdlMessage, const char *path
+	, void( *callback )(uintptr_t psv, struct jsox_value_container *val), uintptr_t psv
+	);
+
+
 #ifdef __cplusplus
 } } SACK_NAMESPACE_END
 using namespace sack::network::jsox;

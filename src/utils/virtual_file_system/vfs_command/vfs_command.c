@@ -20,6 +20,21 @@ static struct vfs_command_local
 	struct file_system_mounted_interface *current_mount_source;
 } l;
 
+#ifdef USE_VFS_OS_INTERFACE
+const char *testDatas[] = {
+	"Test File Data...."
+};
+static void testVolume_os( void ) {
+	CTEXTSTR result;
+	size_t resultLen;
+	int n;
+	for( n = 0; n < 256; n++ ) {
+		sack_vfs_os_ioctl_store_rw_object( l.current_mount, testDatas[0], strlen( testDatas[0] ), &result, &resultLen );
+		printf( "Received identifier? %s\n", result );
+	}
+}
+#endif
+
 static void testVolume( void ) {
 	struct sack_vfs_file *db;
 	struct sack_vfs_file *dbj;
@@ -535,21 +550,41 @@ static void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 	}
 }
 
+struct scanFileInfo {
+	struct volume * vol;
+	POINTER *ppInfo;
+};
+
 static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, int flags )
 {
+	struct scanFileInfo *pInfo = (struct scanFileInfo*)psv;
+	uint64_t ctime;
+	uint64_t wtime;
 	size_t ofs = 0;
-	void *f;
+	SACK_TIME ct, wt;
+	struct find_cursor * cursor = GetScanFileCursor( pInfo->ppInfo[0] );
+	ctime = l.fsi->find_get_ctime?l.fsi->find_get_ctime( (uintptr_t)cursor):0;
+	wtime = l.fsi->find_get_wtime?l.fsi->find_get_wtime( (uintptr_t)cursor ):0;
+	if( !ctime )DebugBreak();
+	ConvertTickToTime( ctime, &ct );
+	ConvertTickToTime( wtime, &wt );
 	if( file[0] == '.' && file[1] == '/' ) ofs = 2;
-	f = l.fsi->open( (uintptr_t)psv, file + ofs, "rb" );
-	printf( "%9zd %s\n", l.fsi->size( f ), file );
-	l.fsi->_close( f );
+	size_t size = l.fsi->find_get_size( (uintptr_t)cursor );
+	//printf( "%9zd %s %" PRId64 "  %" PRId64 "\n", l.fsi->size( f ), file, ctime, wtime );
+	if( !size ) DebugBreak();
+	printf( "%9zd %s " "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "\n"
+		, size, file
+		, ct.yr, ct.mo, ct.dy, ct.hr, ct.mn, ct.sc, ct.ms, ct.zhr
+		, wt.yr, wt.mo, wt.dy, wt.hr, wt.mn, wt.sc, wt.ms, wt.zhr
+		);
 }
 
 static void GetDirectory( void )
 {
 	POINTER info = NULL;
+	struct scanFileInfo sfi = { l.current_vol, &info };
 	while( ScanFilesEx( NULL, "*", &info, ShowFile, SFF_SUBCURSE|SFF_SUBPATHONLY
-	                  , (uintptr_t)l.current_vol, FALSE, l.current_mount ) );
+	                  , (uintptr_t)&sfi, FALSE, l.current_mount ) );
 	//l.fsi->
 }
 
@@ -674,6 +709,11 @@ SaneWinMain( argc, argv )
 			case '3':
 				testVolume_alt();
 				break;
+#ifdef USE_VFS_OS_INTERFACE
+			case '4':
+				testVolume_os();
+				break;
+#endif
 			}
 			arg++;
 		}

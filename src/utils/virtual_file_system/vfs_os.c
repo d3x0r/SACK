@@ -684,7 +684,7 @@ static void _os_updateCacheAge_( struct volume *vol, enum block_cache_entries *c
 			sack_fseek( vol->file, (size_t)vol->bufferFPI[useCache], SEEK_SET );
 			if( vol->userkey ) {
 				SRG_XSWS_encryptData( vol->usekey_buffer[useCache], BLOCK_SIZE
-					, vol->segment[useCache], vol->userkey, strlen( vol->userkey )
+					, vol->segment[useCache], (const uint8_t*)vol->userkey, strlen( vol->userkey )
 					, &crypt, &cryptlen );
 				sack_fwrite( crypt, 1, BLOCK_SIZE, vol->file );
 				Deallocate( uint8_t*, crypt );
@@ -705,7 +705,7 @@ static void _os_updateCacheAge_( struct volume *vol, enum block_cache_entries *c
 		else {
 			if( vol->userkey )
 				SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE
-					, vol->segment[cache_idx[0]], vol->userkey, strlen( vol->userkey )
+					, vol->segment[cache_idx[0]], (const uint8_t*)vol->userkey, strlen( vol->userkey )
 					, NULL, NULL );
 		}
 	}
@@ -748,7 +748,7 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct volume *vol, enum 
 				size_t cryptlen;
 				if( vol->userkey ) {
 					SRG_XSWS_encryptData( vol->usekey_buffer[cache_idx], BLOCK_SIZE
-						, vol->segment[cache_idx], vol->userkey, strlen( vol->userkey )
+						, vol->segment[cache_idx], (const uint8_t*)vol->userkey, strlen( vol->userkey )
 						, &crypt, &cryptlen );
 					sack_fwrite( crypt, 1, BLOCK_SIZE, vol->file );
 					Deallocate( uint8_t*, crypt );
@@ -775,7 +775,7 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct volume *vol, enum 
 			else {
 				if( vol->userkey )
 					SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx], BLOCK_SIZE
-						, vol->segment[cache_idx], vol->userkey, strlen( vol->userkey )
+						, vol->segment[cache_idx], (const uint8_t*)vol->userkey, strlen( vol->userkey )
 						, NULL, NULL );
 			}
 		}
@@ -1450,14 +1450,14 @@ void sack_vfs_os_flush_volume( struct volume * vol, LOGICAL unload ) {
 					sack_fseek( vol->file, (size_t)vol->bufferFPI[idx], SEEK_SET );
 					if( vol->userkey )
 						SRG_XSWS_encryptData( vol->usekey_buffer[idx], BLOCK_SIZE
-							, vol->segment[idx], vol->userkey, strlen( vol->userkey )
+							, vol->segment[idx], (const uint8_t*)vol->userkey, strlen( vol->userkey )
 							, NULL, NULL );
 					sack_fwrite( vol->usekey_buffer[idx], 1, BLOCK_SIZE, vol->file );
 					if( !TESTFLAG( vol->seglock, idx ) ) {
 						vol->segment[idx] = ~0;
 						if( vol->userkey )
 							SRG_XSWS_decryptData( vol->usekey_buffer[idx], BLOCK_SIZE
-								, vol->segment[idx], vol->userkey, strlen( vol->userkey )
+								, vol->segment[idx], (const uint8_t*)vol->userkey, strlen( vol->userkey )
 								, NULL, NULL );
 					}
 					RESETFLAG( vol->dirty, idx );
@@ -1506,7 +1506,7 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 					//size_t cryptlen;
 					if( vol->userkey )
 						SRG_XSWS_encryptData( vol->usekey_buffer[idx], BLOCK_SIZE
-							, vol->segment[idx], vol->userkey, strlen( vol->userkey )
+							, vol->segment[idx], (const uint8_t*)vol->userkey, strlen( vol->userkey )
 							, NULL, NULL );
 					sack_fwrite( vol->usekey_buffer[idx], 1, BLOCK_SIZE, vol->file );
 					RESETFLAG( vol->_dirty, idx );
@@ -1883,7 +1883,7 @@ void reloadDirectoryEntry( struct volume *vol, struct memoryTimelineNode *time, 
 	// could fill leadin....
 	decoded_dirent->leadin[0] = 0;
 	decoded_dirent->leadinDepth = 0;
-	while( c = PopData( &pdsChars ) )
+	while( c = (char*)PopData( &pdsChars ) )
 		decoded_dirent->filename[n++] = c[0];
 	DeleteDataStack( &pdsChars );
 
@@ -3525,7 +3525,7 @@ size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, s
 	size_t cdataLen;
 	if( file->readKey ) {
 		SRG_XSWS_encryptData( (uint8_t*)data, length, file->timeline->ctime.raw
-			, file->readKey, file->readKeyLen
+			, (const uint8_t*)file->readKey, file->readKeyLen
 			, &cdata, &cdataLen );
 		data = (const char *)cdata;
 		length = cdataLen;
@@ -3720,7 +3720,7 @@ size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t l
 		uint8_t *outbuf;
 		size_t outlen;
 		SRG_XSWS_decryptData( (uint8_t*)data, written, file->timeline->ctime.raw
-		                    , file->readKey, file->readKeyLen
+		                    , (const uint8_t*)file->readKey, file->readKeyLen
 		                    , &outbuf, &outlen );
 		memcpy( data, outbuf, outlen );
 		Release( outbuf );
@@ -4140,12 +4140,12 @@ LOGICAL CPROC sack_vfs_os_is_directory( uintptr_t psvInstance, const char *path 
 	}
 	return FALSE;
 }
-uint64_t CPROC sack_vfs_os_find_get_ctime( struct find_info *_info ) {
+uint64_t CPROC sack_vfs_os_find_get_ctime( struct find_cursor *_info ) {
 	struct _os_find_info *info = (struct _os_find_info *)_info;
 	if( info ) return info->ctime;
 	return 0;
 }
-uint64_t CPROC sack_vfs_os_find_get_wtime( struct find_info *_info ) {
+uint64_t CPROC sack_vfs_os_find_get_wtime( struct find_cursor *_info ) {
 	struct _os_find_info *info = (struct _os_find_info *)_info;
 	if( info ) return info->wtime;
 	return 0;
@@ -4288,7 +4288,7 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 				while( 1 ) {
 					//char objId[45];
 					//size_t objIdLen;
-					char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, FALSE, idBuf, idBufLen );
+					char *seal = getFilename( objBuf, objBufLen, sealBuf, sealBufLen, FALSE, &idBuf, &idBufLen );
 
 					if( sack_vfs_os_exists( vol, idBuf ) ) {
 						if( !sealBuf ) { // accidental key collision.

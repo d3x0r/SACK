@@ -28,7 +28,7 @@ void RedrawTemplate( uintptr_t psv )
 
 PSI_CONTROL pLoading;
 
-void CPROC AddFile( uintptr_t user, CTEXTSTR pathname, int flags )
+void CPROC AddFile( uintptr_t user, CTEXTSTR pathname, enum ScanFileProcessFlags flags )
 {
 	PLISTITEM newitem;
 //cpg26dec2006 c:\work\sack\src\psilib\fileopen.c(34): Warning! W202: Symbol 'pfod' has been defined, but not referenced
@@ -74,7 +74,7 @@ void LoadList( PSI_CONTROL list, FILEOPENDATA *pfod )
    SetControlText( GetNearControl( list, TXT_PATHNAME ), pfod->basepath );
 	if( !pfod->basepath[0] )
 	{
-		ScanDrives( AddFile, (uintptr_t)pfod );
+		ScanDrives( (void (CPROC *)( uintptr_t, CTEXTSTR, int))AddFile, (uintptr_t)pfod );
 	}
 	else
 	{

@@ -13,6 +13,7 @@
 // BLOCKINDEX is either 4 or 8 bytes... sizeof( size_t )... 
 // all constants though should compile out to a single value... and just for grins went to 16 bit size_t and 0 shift... or 1 byte
 #define BLOCK_SHIFT (BLOCK_SIZE_BITS-(sizeof(BLOCKINDEX)==16?4:sizeof(BLOCKINDEX)==8?3:sizeof(BLOCKINDEX)==4?2:sizeof(BLOCKINDEX)==2?1:0) )
+#define BLOCK_BYTE_SHIFT (BLOCK_SIZE_BITS)
 #define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
 #define BLOCK_MASK (BLOCK_SIZE-1) 
 #define BLOCKS_PER_BAT (1<<BLOCK_SHIFT)
@@ -168,7 +169,12 @@ PREFIX_PACKED struct volume {
 	BLOCKINDEX _segment[BC(COUNT)];// cached segment with usekey[n]
 	BLOCKINDEX segment[BC(COUNT)];// associated with usekey[n]
 #  ifdef VIRTUAL_OBJECT_STORE
+	PDATASTACK pdsCTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
+	PDATASTACK pdsWTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
+
 	//BLOCKINDEX timelineStart; // constant 2
+	struct storageTimeline *timeline; // timeline root
+	struct storageTimeline *timelineKey; // timeline root key
 	struct sack_vfs_file *timeline_file;
 	struct storageTimelineCursor *timeline_cache;
 	FLAGSET( seglock, BC( COUNT ) );  // segment is locked into cache.
@@ -178,6 +184,7 @@ PREFIX_PACKED struct volume {
 #  ifdef VIRTUAL_OBJECT_STORE
 	uint8_t dirHashCacheAge[BC(DIRECTORY_LAST) - BC(DIRECTORY)];
 	uint8_t batHashCacheAge[BC(BAT_LAST) - BC(BAT)];
+	uint8_t timelineCacheAge[BC( TIMELINE_LAST ) - BC( TIMELINE )];
 #  endif
 	uint8_t nameCacheAge[BC(NAMES_LAST) - BC(NAMES)];
 
@@ -202,7 +209,7 @@ PREFIX_PACKED struct volume {
 	LOGICAL read_only;
 	LOGICAL external_memory;
 	LOGICAL closed;
-	uint32_t lock;
+	volatile uint32_t lock;
 	uint8_t tmpSalt[16];
 	uintptr_t clusterKeyVersion;
 } PACKED;
