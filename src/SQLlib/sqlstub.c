@@ -30,7 +30,7 @@
 #include <filesys.h>
 #include <sqlgetoption.h>
 #include <salty_generator.h>
-#include <json_emitter.h>  // uses generic 'json_value_container'
+#include <jsox_parser.h>  // uses generic 'jsox_value_container'
 #include <sha1.h>
 // please remove this reference ASAP
 //#include <controls.h> // temp graphic interface for debugging....
@@ -3339,8 +3339,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		ReleaseCollectionResults( collection, FALSE );
 		if( collection->ppdlResults ) {
 			int len;
-			struct json_value_container *val = (struct json_value_container *)GetDataItem( collection->ppdlResults, collection->columns );
-			struct json_value_container valSet;
+			struct jsox_value_container *val = (struct jsox_value_container *)GetDataItem( collection->ppdlResults, collection->columns );
+			struct jsox_value_container valSet;
 			if( !val ) {
 				val = &valSet;
 				memset( &valSet, 0, sizeof( valSet ) );
@@ -3348,7 +3348,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				for( len = 0; len < collection->columns; len++ )
 					SetDataItem( collection->ppdlResults, len, &valSet );
 
-				val->value_type = VALUE_UNDEFINED;
+				val->value_type = JSOX_VALUE_UNDEFINED;
 				SetDataItem( collection->ppdlResults, collection->columns, val );
 				// okay and now - pull column info from magic place...
 				{
@@ -3358,7 +3358,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 					int idx;
 					for( idx = 1; idx <= collection->columns; idx++ ) {
-						val = (struct json_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
+						val = (struct jsox_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
 
 #  if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 						if( odbc->flags.bSQLite_native ) {
@@ -3561,7 +3561,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 					TEXTSTR real_text;
 					int colsize;
 					if( collection->ppdlResults ) {
-						struct json_value_container *val = (struct json_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
+						struct jsox_value_container *val = (struct jsox_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
 						int coltype;
 						switch( coltype = sqlite3_column_type( collection->stmt, idx - 1 ) ) {
 						default:
@@ -3575,26 +3575,26 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							real_text = DupCStrLen( text, colsize );
 							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), real_text );
 							val->string = real_text;
-							val->value_type = VALUE_STRING;
+							val->value_type = JSOX_VALUE_STRING;
 
 							break;
 						case SQLITE_NULL:
 							if( val->string )
 								Release( val->string );
 							val->string = NULL;
-							val->value_type = VALUE_NULL;
+							val->value_type = JSOX_VALUE_NULL;
 							break;
 						case SQLITE_FLOAT:
 							val->float_result = 1;
 							val->result_d = sqlite3_column_double( collection->stmt, idx - 1 );
 							if( pvtData )vtprintf( pvtData, WIDE( "%s%g" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), val->result_d );
-							val->value_type = VALUE_NUMBER;
+							val->value_type = JSOX_VALUE_NUMBER;
 							break;
 						case SQLITE_INTEGER:
 							val->float_result = 0;
 							val->result_n = sqlite3_column_int64( collection->stmt, idx - 1 );
 							if( pvtData )vtprintf( pvtData, WIDE( "%s%d" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), (int)val->result_n );
-							val->value_type = VALUE_NUMBER;
+							val->value_type = JSOX_VALUE_NUMBER;
 							break;
 						case SQLITE_BLOB:
 							text = (char*)sqlite3_column_blob( collection->stmt, idx - 1 );
@@ -3611,7 +3611,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								val->string = NULL;
 								val->stringLen = 0;
 							}
-							val->value_type = VALUE_TYPED_ARRAY;
+							val->value_type = JSOX_VALUE_TYPED_ARRAY;
 							break;
 						case SQLITE_TEXT:
 							text = (char*)sqlite3_column_text( collection->stmt, idx - 1 );
@@ -3622,7 +3622,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							real_text = DupCStrLen( text, colsize );
 							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), real_text );
 							val->string = real_text;
-							val->value_type = VALUE_STRING;
+							val->value_type = JSOX_VALUE_STRING;
 							break;
 						}
 					}
@@ -3698,7 +3698,24 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 
 					if( collection->ppdlResults ) {
 
-						struct json_value_container *val = (struct json_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
+//#define SQL_LONGVARCHAR         (-1)
+//#define SQL_BINARY              (-2)
+//#define SQL_VARBINARY           (-3)
+//#define SQL_LONGVARBINARY       (-4)
+//#define SQL_BIGINT              (-5)
+//#define SQL_TINYINT             (-6)
+//#define SQL_BIT                 (-7)
+//#define SQL_WCHAR               (-8)
+//#define SQL_WVARCHAR            (-9)
+//#define SQL_WLONGVARCHAR        (-10)
+//#define SQL_GUID		  (-11)  ODBCVER >= 0x0350
+//#define SQL_SS_VARIANT          (-150) SQL Server 2008
+//#define SQL_SS_UDT              (-151) SQL Server 2008
+//#define SQL_SS_XML              (-152) SQL Server 2008
+//#define SQL_SS_TABLE            (-153) SQL Server 2008
+//#define SQL_SS_TIME2            (-154) SQL Server 2008
+//#define SQL_SS_TIMESTAMPOFFSET  (-155) SQL Server 2008
+						struct jsox_value_container *val = (struct jsox_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
 						switch( coltype ) {
 						default:
 							lprintf( "Unhandled coltype:%d", coltype );
@@ -3706,7 +3723,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						case SQL_CHAR:
 						case SQL_VARCHAR:
 						case SQL_WCHAR:
-							val->value_type = VALUE_STRING;
+						case SQL_LONGVARCHAR:
+							val->value_type = JSOX_VALUE_STRING;
 							rc = SQLGetData( collection->hstmt
 								, (short)(idx)
 								, SQL_CHAR
@@ -3714,7 +3732,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								, colsize
 								, &ResultLen );
 							if( ResultLen == SQL_NULL_DATA ) {
-								val->value_type = VALUE_NULL;
+								val->value_type = JSOX_VALUE_NULL;
 								val->string = NULL;
 								val->stringLen = 0;
 							}
@@ -3723,11 +3741,49 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								val->stringLen = ResultLen;
 							}
 							break;
+						case SQL_BIT:
+							{
+								uint8_t tmp;
+								colsize = 1;
+								rc = SQLGetData( collection->hstmt
+									, (short)(idx)
+									, SQL_C_BIT
+									, &tmp
+									, colsize
+									, &ResultLen );
+								if( tmp )
+									val->value_type = JSOX_VALUE_TRUE;
+								else
+									val->value_type = JSOX_VALUE_FALSE;
+							}
+							break;
+						case SQL_TIMESTAMP:
+							{
+								TIMESTAMP_STRUCT ts;
+								SACK_TIME st;
+								rc = SQLGetData( collection->hstmt
+									, (short)(idx)
+									, SQL_C_TIMESTAMP
+									, &ts
+									, colsize
+									, &ResultLen );
+
+								val->value_type = JSOX_VALUE_DATE;
+								st.yr = ts.year;
+								st.mo = ts.month;
+								st.dy = ts.day;
+								st.hr = ts.hour;
+								st.mn = ts.minute;
+								st.sc = ts.second;
+								st.ms = ts.fraction;
+								val->result_n = ConvertTimeToTick( &st );
+							}
+							break;
 						case SQL_DECIMAL:
 						case SQL_REAL:
 						case SQL_FLOAT:
 						case SQL_DOUBLE:
-							val->value_type = VALUE_NUMBER;
+							val->value_type = JSOX_VALUE_NUMBER;
 							val->float_result = 1;
 							rc = SQLGetData( collection->hstmt
 								, (short)(idx)
@@ -3736,14 +3792,15 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								, colsize
 								, &ResultLen );
 							if( ResultLen == SQL_NULL_DATA ) {
-								val->value_type = VALUE_NULL;
+								val->value_type = JSOX_VALUE_NULL;
 								val->string = NULL;
 								val->stringLen = 0;
 							}
 							break;
 						case SQL_INTEGER:
 						case SQL_SMALLINT:
-							val->value_type = VALUE_NUMBER;
+						case SQL_TINYINT:
+							val->value_type = JSOX_VALUE_NUMBER;
 							val->float_result = 1;
 							val->result_n = 0;
 							rc = SQLGetData( collection->hstmt
@@ -3753,7 +3810,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								, colsize
 								, &ResultLen );
 							if( ResultLen == SQL_NULL_DATA ) {
-								val->value_type = VALUE_NULL;
+								val->value_type = JSOX_VALUE_NULL;
 								val->string = NULL;
 								val->stringLen = 0;
 							}
@@ -4125,8 +4182,8 @@ int GetSQLResult( CTEXTSTR *result )
 #if defined USE_ODBC && 0
 static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 	INDEX idx;
-	struct json_value_container *val;
-	DATA_FORALL( pdlItems, idx, struct json_value_container *, val ) {
+	struct jsox_value_container *val;
+	DATA_FORALL( pdlItems, idx, struct jsox_value_container *, val ) {
 		int useIndex = idx + 1;
 		int rc;
 		//if( val->name ) {
@@ -4137,7 +4194,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 			lprintf( "Failed to handline binding for type: %d", val->value_type );
 			DebugBreak();
 			break;
-		case VALUE_NUMBER:
+		case JSOX_VALUE_NUMBER:
 			if( val->float_result ) {
 				rc = SQLBindParamter( hstmt
 										  , useIndex  // parameter number
@@ -4164,10 +4221,10 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 										  );
 			}
 			break;
-		case VALUE_TYPED_ARRAY:
+		case JSOX_VALUE_TYPED_ARRAY:
 			//rc = sqlite3_bind_blob( db, useIndex, val->string, val->stringLen, NULL );
 			break;
-		case VALUE_STRING:
+		case JSOX_VALUE_STRING:
 			//rc = sqlite3_bind_text( db, useIndex, val->string, val->stringLen, NULL );
 				rc = SQLBindParamter( hstmt
 										  , useIndex  // parameter number
@@ -4192,8 +4249,8 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
 	INDEX idx;
-	struct json_value_container *val;
-	DATA_FORALL( pdlItems, idx, struct json_value_container *, val ) {
+	struct jsox_value_container *val;
+	DATA_FORALL( pdlItems, idx, struct jsox_value_container *, val ) {
 		int useIndex = (int)(idx + 1);
 		int rc;
 		if( val->name ) {
@@ -4204,20 +4261,20 @@ static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
 			lprintf( "Failed to handline binding for type: %d", val->value_type );
 			DebugBreak();
 			break;
-		case VALUE_NULL:
+		case JSOX_VALUE_NULL:
 			rc = sqlite3_bind_null( db, useIndex );
 			break;
-		case VALUE_NUMBER:
+		case JSOX_VALUE_NUMBER:
 			if( val->float_result ) {
 				rc = sqlite3_bind_double( db, useIndex, val->result_d );
 			} else {
 				rc = sqlite3_bind_int64( db, useIndex, val->result_n );
 			}
 			break;
-		case VALUE_TYPED_ARRAY:
+		case JSOX_VALUE_TYPED_ARRAY:
 			rc = sqlite3_bind_blob( db, useIndex, val->string, (int)val->stringLen, NULL );
 			break;
-		case VALUE_STRING:
+		case JSOX_VALUE_STRING:
 			rc = sqlite3_bind_text( db, useIndex, val->string, (int)val->stringLen, NULL );
 			break;
 		}
@@ -4596,7 +4653,7 @@ int SQLRecordQuery_js( PODBC odbc
 	PODBC use_odbc;
 	int once = 0;
 	if( !(*pdlResults) )
-		(*pdlResults) = CreateDataList( sizeof ( struct json_value_container  ) );
+		(*pdlResults) = CreateDataList( sizeof ( struct jsox_value_container  ) );
 
 	// clean up what we think of as our result set data (reset to nothing)
 

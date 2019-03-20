@@ -1138,7 +1138,7 @@ PSSQL_PROC( int, SQLRecordQueryEx )( PODBC odbc
    odbc :     connection to do the query on.
    query :    query to execute.
    queryLength : actual length of the query (allows embedded NUL characters)
-   PDATALIST* :  pointer to datalist pointer which will contain struct json_val_containers.
+   PDATALIST* :  pointer to datalist pointer which will contain struct jsox_value_container.
 			 for each result in this list until VALUE_UNDEFINED is used.
 		.name is the field name (constant)
 		.string is the text, value_type is the value type (so numbers can stay numbers)
