@@ -115,7 +115,7 @@ namespace objStore {
 #define vfs_BSEEK vfs_os_BSEEK
 
 
-	static struct sack_vfs_file * _os_createFile( struct volume *vol, BLOCKINDEX first_block )
+static struct sack_vfs_file * _os_createFile( struct volume *vol, BLOCKINDEX first_block );
 
 #include "vfs_os_index.c"
 
