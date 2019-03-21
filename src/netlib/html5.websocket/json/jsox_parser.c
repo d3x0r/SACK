@@ -2072,6 +2072,7 @@ struct jsox_value_container *jsox_get_parsed_array_value( struct jsox_value_cont
 			lprintf( "Path across pimitive value...." );
 		}
 	}
+	return NULL;
 }
 
 struct jsox_value_container *jsox_get_parsed_object_value( struct jsox_value_container *val, const char *path
@@ -2100,6 +2101,7 @@ struct jsox_value_container *jsox_get_parsed_object_value( struct jsox_value_con
 			}
 		}
 	}
+	return NULL;
 }
 
 struct jsox_value_container *jsox_get_parsed_value( PDATALIST pdlMessage, const char *path
@@ -2113,10 +2115,10 @@ struct jsox_value_container *jsox_get_parsed_value( PDATALIST pdlMessage, const 
 			return val;
 		}
 		if( val->value_type == JSOX_VALUE_OBJECT ) {
-			jsox_get_parsed_object_value( val, path, callback, psv );
+			return jsox_get_parsed_object_value( val, path, callback, psv );
 		}
 		else if( val->value_type == JSOX_VALUE_ARRAY ) {
-			jsox_get_parsed_array_value( val, path, callback, psv );
+			return jsox_get_parsed_array_value( val, path, callback, psv );
 		}
 		else {
 			if( path && path[0] ) {
@@ -2124,6 +2126,7 @@ struct jsox_value_container *jsox_get_parsed_value( PDATALIST pdlMessage, const 
 			}
 		}
 	}
+	return NULL;
 }
 
 

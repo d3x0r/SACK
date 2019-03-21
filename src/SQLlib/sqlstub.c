@@ -3760,7 +3760,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						case SQL_TIMESTAMP:
 							{
 								TIMESTAMP_STRUCT ts;
-								SACK_TIME st;
 								char *isoTime = NewArray( char, 32 );
 								rc = SQLGetData( collection->hstmt
 									, (short)(idx)
@@ -3775,6 +3774,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								val->value_type = JSOX_VALUE_DATE;
 								val->string = isoTime;
 								/*
+								SACK_TIME st;
 								st.yr = ts.year;
 								st.mo = ts.month;
 								st.dy = ts.day;
