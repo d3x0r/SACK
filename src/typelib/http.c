@@ -205,27 +205,33 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 	lockHttp( pHttpState );
 	if( pHttpState->final )
 	{
-		if( pHttpState->response_version ) {
-			GatherHttpData( pHttpState );
-
-			unlockHttp( pHttpState );
-			if( pHttpState->flags.success && !pHttpState->returned_status ) {
-				pHttpState->returned_status = 1;
-				return pHttpState->numeric_code;
-			}
-		} else {
-			if( pHttpState->content_length ) {
+		if( !pHttpState->method ) {
+			//lprintf( "Reading more, after returning a packet before... %d", pHttpState->response_version );
+			if( pHttpState->response_version ) {
 				GatherHttpData( pHttpState );
-				unlockHttp( pHttpState );
-				if( ( ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
-					  ||( GetTextSize( pHttpState->content ) >= pHttpState->content_length ) )
-				  ) {
-					// prorbably a POST with a body?
-					// had to gather the body...
-					return HTTP_STATE_RESULT_CONTENT;
+
+				if( pHttpState->flags.success && !pHttpState->returned_status ) {
+					unlockHttp( pHttpState );
+					pHttpState->returned_status = 1;
+					return pHttpState->numeric_code;
+				}
+			}
+			else {
+				if( pHttpState->content_length ) {
+					GatherHttpData( pHttpState );
+					if( ((GetTextSize( pHttpState->partial ) >= pHttpState->content_length)
+						|| (GetTextSize( pHttpState->content ) >= pHttpState->content_length))
+						) {
+						unlockHttp( pHttpState );
+						// prorbably a POST with a body?
+						// had to gather the body...
+						return HTTP_STATE_RESULT_CONTENT;
+					}
 				}
 			}
 		}
+		unlockHttp( pHttpState );
+
 		return HTTP_STATE_RESULT_NOTHING;
 	}
 	else
@@ -695,7 +701,7 @@ void EndHttp( struct HttpState *pHttpState )
 	lockHttp( pHttpState );
 	pHttpState->bLine = 0;
 	pHttpState->final = 0;
-
+	pHttpState->response_version = 0;
 	pHttpState->content_length = 0;
 	LineRelease( pHttpState->method );
 	pHttpState->method = NULL;
