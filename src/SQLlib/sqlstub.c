@@ -3761,6 +3761,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							{
 								TIMESTAMP_STRUCT ts;
 								SACK_TIME st;
+								char *isoTime = NewArray( char, 32 );
 								rc = SQLGetData( collection->hstmt
 									, (short)(idx)
 									, SQL_C_TIMESTAMP
@@ -3768,7 +3769,12 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 									, colsize
 									, &ResultLen );
 
+								val->stringLen = snprintf( isoTime, 32, "%d-%02d-%02dT%02d:%02d:%02d.%03dZ"
+									, ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.fraction );
+
 								val->value_type = JSOX_VALUE_DATE;
+								val->string = isoTime;
+								/*
 								st.yr = ts.year;
 								st.mo = ts.month;
 								st.dy = ts.day;
@@ -3777,6 +3783,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								st.sc = ts.second;
 								st.ms = ts.fraction;
 								val->result_n = ConvertTimeToTick( &st );
+								*/
 							}
 							break;
 						case SQL_DECIMAL:
@@ -3801,7 +3808,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						case SQL_SMALLINT:
 						case SQL_TINYINT:
 							val->value_type = JSOX_VALUE_NUMBER;
-							val->float_result = 1;
+							val->float_result = 0;
 							val->result_n = 0;
 							rc = SQLGetData( collection->hstmt
 								, (short)(idx)
