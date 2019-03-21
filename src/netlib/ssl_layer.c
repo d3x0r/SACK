@@ -28,7 +28,7 @@
 
 //#define DEBUG_SSL_IO
 
-#if NO_SSL
+#if defined ( NO_SSL )
 
 SACK_NETWORK_NAMESPACE
 
