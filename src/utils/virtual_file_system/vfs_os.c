@@ -5,13 +5,14 @@
 	FILE Data has extra fields stored with the data.
 	
 	   File Data - Directory entry filesize
-	   Sealant - length stored in NAME_OFFSET field of directory entry
 	   references - a reference to a blockchain that contains the references to this object.
 	        In the reference data block is FPI which is the directory entry ( converted directories? )  
+
+	   Sealant - length stored in NAME_OFFSET field of directory entry
 	   patches - a sealed object has the ability to be modified with other signed and sealed patches.
-	         A reference to the patch FileData is stored for each patch object.
+			 A reference to the patch FileData is stored for each patch object.
 			 (The patch object has a unique object identifier?  Or does it only exist for this object?)
-	
+
 
 */
 
@@ -2286,8 +2287,10 @@ static void _os_AVLbalancer( struct volume *vol, LOGICAL bSortCreation, PDATASTA
 					}
 					else {
 #ifdef _DEBUG
-						if( tmp->clesser.ref.index == _z->index ) {
+						if( tmp->clesser.ref.index == _z->index )
+						
 #endif
+						{
 							if( (1 + leftDepth) == tmp->clesser.ref.depth ) {
 								break;
 							}
@@ -2308,8 +2311,9 @@ static void _os_AVLbalancer( struct volume *vol, LOGICAL bSortCreation, PDATASTA
 					}
 					else {
 #ifdef _DEBUG
-						if( tmp->clesser.ref.index == _z->index ) {
+						if( tmp->clesser.ref.index == _z->index ) 
 #endif
+						{
 							if( (1 + rightDepth) == tmp->clesser.ref.depth ) {
 								break;
 							}

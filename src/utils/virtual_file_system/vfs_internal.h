@@ -103,6 +103,8 @@ enum block_cache_entries
 #define DIRENT_NAME_OFFSET_FLAG_READ_KEYED    0x00800000
 #define DIRENT_NAME_OFFSET_UNUSED             0xFF000000
 
+
+
 PREFIX_PACKED struct directory_entry
 {
 	FPI name_offset;  // name offset from beginning of disk
