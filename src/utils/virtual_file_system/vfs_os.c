@@ -115,6 +115,10 @@ namespace objStore {
 #define vfs_BSEEK vfs_os_BSEEK
 
 
+	static struct sack_vfs_file * _os_createFile( struct volume *vol, BLOCKINDEX first_block )
+
+#include "vfs_os_index.c"
+
 #define l vfs_os_local
 static struct {
 	struct directory_entry zero_entkey;
@@ -465,9 +469,8 @@ static int  _os_PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
 static int _os_MaskStrCmp( struct volume *vol, const char * filename, BLOCKINDEX nameBlock, FPI name_offset, int path_match ) {
 	enum block_cache_entries cache = BC(NAMES);
 	const char *dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset, &cache );
-	const char *dirname_ = dirname;
 	const char *dirkey;
-	const char *prior_dirname;
+	const char *prior_dirname = dirname;
 	if( !dirname ) return 1;
 	dirkey = (const char*)(vol->usekey[cache]) + (name_offset & BLOCK_MASK );
 	if( vol->key ) {
@@ -482,6 +485,7 @@ static int _os_MaskStrCmp( struct volume *vol, const char * filename, BLOCKINDEX
 				if( del ) return del;
 				filename++;
 				dirname++;
+				name_offset++;
 				dirkey++;
 				if( path_match && !filename[0] ) {
 					c = (dirname[0] ^ dirkey[0]);
@@ -489,9 +493,8 @@ static int _os_MaskStrCmp( struct volume *vol, const char * filename, BLOCKINDEX
 				}
 			}
 			if( ((((uintptr_t)prior_dirname) & BLOCK_MASK) != (((uintptr_t)dirname) & BLOCK_MASK)) ) {
-				int partial = (dirname - dirname_);
-				dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset + partial, &cache );
-				dirname_ = dirname - partial;
+				dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset, &cache );
+				prior_dirname = dirname;
 				continue;
 			}
 			// didn't stop because it exceeded a sector boundary
@@ -898,6 +901,18 @@ static void DumpTimelineTree( struct volume *vol, LOGICAL bSortCreation ) {
 	DumpTimelineTreeWork( vol, 0, &curNode, bSortCreation );
 }
 
+struct sack_vfs_file * _os_createFile( struct volume *vol, BLOCKINDEX first_block ) 
+{
+	struct sack_vfs_file * file = New( struct sack_vfs_file );
+	MemSet( file, 0, sizeof( struct sack_vfs_file ) );
+	_os_SetBlockChain( file, 0, first_block );
+	file->_first_block = first_block;
+	file->block = first_block;
+	file->vol = vol;
+	return file;
+}
+
+
 //---------------------------------------------------------------------------
 
 
@@ -961,12 +976,7 @@ static LOGICAL _os_ValidateBAT( struct volume *vol ) {
 
 	vol->timeline_cache = New( struct storageTimelineCursor );
 	vol->timeline_cache->parentNodes = CreateDataStack( sizeof( struct storageTimelineNode ) );
-	vol->timeline_file = New( struct sack_vfs_file );
-	MemSet( vol->timeline_file, 0, sizeof( struct sack_vfs_file ) );
-	_os_SetBlockChain( vol->timeline_file, 0, FIRST_TIMELINE_BLOCK );
-	vol->timeline_file->_first_block = FIRST_TIMELINE_BLOCK;
-	vol->timeline_file->block = FIRST_TIMELINE_BLOCK;
-	vol->timeline_file->vol = vol;
+	vol->timeline_file = _os_createFile( vol, FIRST_TIMELINE_BLOCK );
 	{
 		enum block_cache_entries cache = BC( TIMELINE );
 		vol->timeline = (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, &cache );
