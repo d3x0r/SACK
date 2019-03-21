@@ -40,8 +40,13 @@ void Start( void )
 int main( int argc, char **argv )
 {
 	if( argc == 1 ) {
-		lprintf( "usage: <task> <path> <arguments....>" );
-		printf( "usage: <task> <path> <arguments....>" );
+		lprintf( "usage: [install/uninstall] [service_description] <task> <start-in path> <arguments....>" );
+		lprintf( "     install [service_description] <task> <start-in path> <arguments....>" );
+		lprintf( "     uninstall" );
+		printf( "usage: [install/uninstall] [service_description] <task> <start-in path> <arguments....>\n" );
+		printf( "     install [service_description] <task> <start-in path> <arguments....>\n" );
+		printf( "     uninstall\n" );
+		return 0;
 	}
 	if( argc > 1 )
 	{
@@ -55,10 +60,11 @@ int main( int argc, char **argv )
 			PVARTEXT pvt = VarTextCreate();
 			{
 				int first = 1;
+				int argofs = 3;
 				args = argv + 3;
-				while( ( argc > 2 ) && args && args[0] )
+				while( ( argofs < argc ) && args && args[0] )
 				{
-					lprintf( "arg is %s", args[0] );
+					//lprintf( "arg is %s", args[0] );
 					if( args[0][0] == 0 )
 						vtprintf( pvt, WIDE( "%s\"\"" ), first ? "" : " " );
 					else if( StrChr( args[0], ' ' ) )
@@ -67,6 +73,7 @@ int main( int argc, char **argv )
 						vtprintf( pvt, WIDE("%s%s"), first ? "" : " ", args[0] );
 					first = 0;
 					args++;
+					argofs++;
 				}
 			}
 			//lprintf( "args string is [%s]", GetText( VarTextPeek( pvt ) ) );

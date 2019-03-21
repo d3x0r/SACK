@@ -114,9 +114,9 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
         )
 SET_PROPERTY(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "__NO_INTERFACE_SUPPORT__;__NO_OPTIONS__;__STATIC__;SACK_BAG_EXPORTS" )
 
-target_link_libraries( ${PROJECT_NAME} timerlib )
+#target_link_libraries( ${PROJECT_NAME} timerlib )
 
-target_link_libraries( ${PROJECT_NAME} ws2_32 )
+target_link_libraries( ${PROJECT_NAME} ws2_32 winmm )
 install_default_dest( ${PROJECT_NAME} )
 if( NOT CMAKE_COMPILER_IS_GNUCC )
   set( CMAKE_COMPILER_IS_GNUCC OFF ) # set non-blank option for the following
