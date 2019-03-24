@@ -828,12 +828,13 @@ static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct js
 	if( val->value_type == JSOX_VALUE_ARRAY ) {
 
 		if( state->arrayType >= 0 ) {
+			struct jsox_value_container *innerVal = (struct jsox_value_container *)GetDataItem( &val->contains, 0 );
 			//size_t size;
 			val->className = (char*)GetLink( &knownArrayTypeNames, state->arrayType );
 			val->value_type = (enum jsox_value_types)(JSOX_VALUE_TYPED_ARRAY + state->arrayType);
 			//lprintf( "INPUT:%d %s", val->stringLen, val->string );
 			if( state->arrayType < 12 )
-				val->string = (char*)DecodeBase64Ex( val->string, val->stringLen, &val->stringLen, NULL );
+				val->string = (char*)DecodeBase64Ex( innerVal->string, innerVal->stringLen, &val->stringLen, NULL );
 			//lprintf( "base:%s", EncodeBase64Ex( "HELLO, World!", 13, NULL, NULL ) );
 			//lprintf( "Resolve base64 string:%s", val->string );
 		}
@@ -1017,7 +1018,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				break;
 
 			case ':':
-				if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD )
+				if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD 
+					|| state->parse_context == JSOX_CONTEXT_CLASS_FIELD ) 
 				{
 					if( state->word != JSOX_WORD_POS_RESET
 						&& state->word != JSOX_WORD_POS_FIELD
@@ -1036,7 +1038,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->val.stringLen = ( output->pos - state->val.string );
 						(*output->pos++) = 0;
 					}
-					state->word = JSOX_WORD_POS_RESET;
 					if( state->val.name ) {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
 						vtprintf( state->pvtError, "two names single value?" );
@@ -1046,7 +1047,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->val.nameLen = state->val.stringLen;
 					state->val.string = NULL;
 					state->val.stringLen = 0;
-					state->parse_context = JSOX_CONTEXT_OBJECT_FIELD_VALUE;
+					state->parse_context = (state->parse_context == JSOX_CONTEXT_CLASS_FIELD) ? JSOX_CONTEXT_CLASS_VALUE : JSOX_CONTEXT_OBJECT_FIELD_VALUE;
 					state->val.value_type = JSOX_VALUE_UNSET;
 				}
 				else
@@ -1097,13 +1098,24 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					} else {
 						vtprintf( state->pvtError, WIDE( "State error; gathering class fields, and lost the class; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
 							, c, state->n, state->line, state->col );
+						state->status = FALSE;
 					}
 				} else if( ( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD ) || state->parse_context == JSOX_CONTEXT_CLASS_VALUE ) {
 					if( state->val.value_type != JSOX_VALUE_UNSET ) {
 						if( state->current_class ) {
-							struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
-							state->val.name = field->name;
-							state->val.nameLen = field->nameLen;
+							if( state->current_class->fields ) {
+								struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
+								state->val.name = field->name;
+								state->val.nameLen = field->nameLen;
+							}
+							else {
+								if( !state->val.name ) {
+									vtprintf( state->pvtError, "State error; class fields, class has no fields, and one was needed; '%c' unexpected at %" _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+										, c, state->n, state->line, state->col );
+									state->status = FALSE;
+									break;
+								}
+							}
 						}
 #ifdef DEBUG_PARSING
 						lprintf( "Push value closing class value %d %p", state->current_class_item, state->current_class );
@@ -1256,12 +1268,21 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				}
 				else if( state->parse_context == JSOX_CONTEXT_CLASS_VALUE ) {
 					if( state->val.value_type != JSOX_VALUE_UNSET ) {
-						struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
-						state->val.name = field->name;
-						state->val.nameLen = field->nameLen;
+						if( state->current_class->fields ) {
+							struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
+							state->val.name = field->name;
+							state->val.nameLen = field->nameLen;
+						}
+						else if( !state->val.name ) {
+							if( !state->pvtError ) state->pvtError = VarTextCreate();
+							vtprintf( state->pvtError, WIDE( "class field has no matching field definitions; fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->parse_context, c, state->n, state->line, state->col );// fault
+							state->status = FALSE;
+							break;
+						}
 						pushValue( state, state->elements, &state->val );
 
 						JSOX_RESET_STATE_VAL();
+						state->parse_context = JSOX_CONTEXT_CLASS_FIELD;
 						state->word = JSOX_WORD_POS_RESET;
 					}
 				}
