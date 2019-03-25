@@ -32,6 +32,7 @@ set( PROJECT sack_vfs.pp.module )
 set( VFSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs.cc )
 set( VFSFSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_fs.cc )
 set( VFSOSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os.cc )
+set( VFSOSIPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os_index.c )
 set( VFSPPH ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_internal.h )
 
        add_custom_command( OUTPUT ${VFSPP}
@@ -49,6 +50,11 @@ set( VFSPPH ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_internal.h )
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/vfs_os.c ${VFSOSPP}
                            COMMAND ${CMAKE_COMMAND} -E touch ${VFSOSPP}
                            )
+       add_custom_command( OUTPUT ${VFSOSIPP}
+                           DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vfs_os_index.c
+                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/vfs_os_index.c ${VFSOSIPP}
+                           COMMAND ${CMAKE_COMMAND} -E touch ${VFSOSIPP}
+                           )
        add_custom_command( OUTPUT ${VFSPPH}
                            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vfs_internal.h
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/vfs_internal.h ${VFSPPH}
@@ -57,6 +63,12 @@ set( VFSPPH ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_internal.h )
 
 
 sack_add_library( ${PROJECT} SHARED ${VFSPP} ${VFSFSPP} ${VFSOSPP} ${VFSPPH} )
+
+add_custom_target(
+    generate-foo
+    DEPENDS ${VFSOSIPP}
+    )
+add_dependencies( ${PROJECT} generate-foo )
 
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils

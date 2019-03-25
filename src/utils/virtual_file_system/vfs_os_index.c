@@ -62,10 +62,11 @@ struct storageIndex {
 };
 
 struct vfs_os_storageIndex * CreateStorageIndex( char *hash ) {
-	
+	return NULL;
 }
 
 struct vfs_os_storageIndex * LoadStorageIndex( char *hash ) {
+	return NULL;
 
 }
 
