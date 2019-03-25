@@ -3768,7 +3768,7 @@ uint8_t *DecodeBase64Ex( const char* buf, size_t length, size_t *outsize, const 
 	else if( ((uintptr_t)base64) == 1 )
 		base64 = _base642;
 	if( useBase64 != base64 ) {
-		base64 = useBase64;
+		useBase64 = base64;
 		setupDecodeBytes( base64 );
 	}
 	real_output = NewArray( uint8_t, ( ( ( length + 1 ) * 3 ) / 4 ) + 1 );
@@ -3782,15 +3782,21 @@ uint8_t *DecodeBase64Ex( const char* buf, size_t length, size_t *outsize, const 
 				blocklen = 4;
 			decodeblock( buf + n * 4, real_output + n*3, blocklen, base64 );
 		}
-		if( buf[length - 1] == '=' ) {
+		if( length % 4 == 1 )
+			(*outsize) = (((length + 3) / 4) * 3) - 3;
+		else if( length % 4 == 2 )
+			(*outsize) = (((length + 3) / 4) * 3) - 2;
+		else if( length % 4 == 3 )
+			(*outsize) = (((length + 3) / 4) * 3) - 1;
+		else if( buf[length - 1] == '=' ) {
 			if( buf[length - 2] == '=' ) {
-				(*outsize) = (length * 3 / 4) - 2;
+				(*outsize) = (((length + 3) / 4) * 3) - 2;
 			}
 			else
-				(*outsize) = (length * 3 / 4) - 1;
+				(*outsize) = (((length + 3) / 4) * 3) - 1;
 		}
 		else
-			(*outsize) = (length * 3 / 4) - 2;
+			(*outsize) = (((length + 3) / 4) * 3);
 		real_output[(*outsize)] = 0;
 	}
 	return real_output;
