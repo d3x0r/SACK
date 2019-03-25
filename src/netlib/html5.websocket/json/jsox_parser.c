@@ -487,6 +487,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 }
 
 static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buffer* output, int c ) {
+	PJSOX_CLASS cls = NULL;
 	if( state->word > JSOX_WORD_POS_RESET && state->word < JSOX_WORD_POS_FIELD )
 		recoverIdent(state,output,c);
 	if( state->word == JSOX_WORD_POS_FIELD ) {
@@ -510,11 +511,20 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 			state->val.string = output->pos;
 		}
 		else {
+			cls = GetFromSet( JSOX_CLASS, &jxpsd.classes );
+			cls->name = state->val.string;
+			cls->nameLen = output->pos - state->val.string;
+			cls->fields = NULL;
+			AddLink( &state->classes, cls );
+
+#if 0
+			// might be an external type
 			if( !state->pvtError ) state->pvtError = VarTextCreate();
 			vtprintf( state->pvtError, WIDE( "Unknown type specified for array:; %s at '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
 				, state->val.string, c, state->n, state->line, state->col );
 			state->status = FALSE;
 			return FALSE;
+#endif
 		}
 	} else if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD ) {
 		if( !state->pvtError ) state->pvtError = VarTextCreate();
@@ -534,7 +544,7 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		old_context->current_class = state->current_class;
 		old_context->current_class_item = state->current_class_item;
 		old_context->arrayType = state->arrayType;
-		state->current_class = NULL;
+		state->current_class = cls;
 		state->current_class_item = 0;
 		state->arrayType = -1;
 		state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
@@ -1019,7 +1029,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 
 			case ':':
 				if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD 
-					|| state->parse_context == JSOX_CONTEXT_CLASS_FIELD ) 
+					|| state->parse_context == JSOX_CONTEXT_CLASS_VALUE
+					|| state->parse_context == JSOX_CONTEXT_CLASS_FIELD
+					)
 				{
 					if( state->word != JSOX_WORD_POS_RESET
 						&& state->word != JSOX_WORD_POS_FIELD
@@ -1030,7 +1042,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						vtprintf( state->pvtError, WIDE( "unquoted keyword used as object field name:parsing fault; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
 						break;
 					}
-					else if( state->word == JSOX_WORD_POS_FIELD ) {
+					else if( state->word == JSOX_WORD_POS_FIELD || state->word == JSOX_WORD_POS_AFTER_FIELD && !state->completedString ) {
 						state->val.stringLen = ( output->pos - state->val.string );
 						(*output->pos++) = 0;
 					}
@@ -1047,7 +1059,12 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->val.nameLen = state->val.stringLen;
 					state->val.string = NULL;
 					state->val.stringLen = 0;
-					state->parse_context = (state->parse_context == JSOX_CONTEXT_CLASS_FIELD) ? JSOX_CONTEXT_CLASS_VALUE : JSOX_CONTEXT_OBJECT_FIELD_VALUE;
+					// classname will later indicate this was a class...
+					// this can no longer be a prototype definition (class_field)
+					// but if it's a value, we want to stay that we're collecting class values.
+					state->parse_context = (state->parse_context == JSOX_CONTEXT_OBJECT_FIELD || state->parse_context == JSOX_CONTEXT_CLASS_FIELD)
+						? JSOX_CONTEXT_OBJECT_FIELD_VALUE 
+						: JSOX_CONTEXT_CLASS_FIELD_VALUE;
 					state->val.value_type = JSOX_VALUE_UNSET;
 				}
 				else
@@ -1071,7 +1088,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						// allow blank comma at end to not be a field
 						struct jsox_parse_context *old_context = (struct jsox_parse_context *)PopLink( state->context_stack );
 						
-						if(state->val.string) { 
+						if(state->val.string) {
 							struct jsox_class_field *field = GetFromSet( JSOX_CLASS_FIELD, &jxpsd.class_fields );
 							field->name = state->val.string;
 							field->nameLen = output->pos - state->val.string;
@@ -1083,6 +1100,13 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 
 						JSOX_RESET_STATE_VAL();
 						state->word = JSOX_WORD_POS_RESET;
+						/*
+						state->val.value_type = JSOX_VALUE_OBJECT;
+						state->val.contains = state->elements[0];
+						state->val._contains = state->elements;
+						if( state->current_class )
+							state->val.className = state->current_class->name;
+						*/
 #ifdef DEBUG_PARSING_STCK
 						lprintf( "object pop stack (close obj) %d %p", context_stack.length, old_context );
 #endif
@@ -1169,6 +1193,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->val.string = NULL;
 					state->val.contains = state->elements[0];
 					state->val._contains = state->elements;
+					if( state->current_class )
+						state->val.className = state->current_class->name;
 					{
 						struct jsox_parse_context *old_context = (struct jsox_parse_context *)PopLink( state->context_stack );
 						//struct jsox_value_container *oldVal = (struct jsox_value_container *)GetDataItem( &old_context->elements, old_context->elements->Cnt - 1 );
@@ -1218,6 +1244,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					//state->val.string = NULL;
 					state->val.contains = state->elements[0];
 					state->val._contains = state->elements;
+					if( state->current_class )
+						state->val.className = state->current_class->name;
 
 					{
 						struct jsox_parse_context *old_context = (struct jsox_parse_context *)PopLink( state->context_stack );
@@ -1282,7 +1310,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						pushValue( state, state->elements, &state->val );
 
 						JSOX_RESET_STATE_VAL();
-						state->parse_context = JSOX_CONTEXT_CLASS_FIELD;
+						//state->parse_context = JSOX_CONTEXT_CLASS_FIELD;
 						state->word = JSOX_WORD_POS_RESET;
 					}
 				}
@@ -1301,6 +1329,17 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				}
 				else if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD_VALUE )
 				{
+					// after an array value, it will have returned to OBJECT_FIELD anyway	
+#ifdef DEBUG_PARSING
+					lprintf( "comma after field value, push field to object: %s", state->val.name );
+#endif
+					state->parse_context = JSOX_CONTEXT_OBJECT_FIELD;
+					state->word = JSOX_WORD_POS_RESET;
+					if( state->val.value_type != JSOX_VALUE_UNSET )
+						pushValue( state, state->elements, &state->val );
+					JSOX_RESET_STATE_VAL();
+				}
+				else if( state->parse_context == JSOX_CONTEXT_CLASS_VALUE ) {
 					// after an array value, it will have returned to OBJECT_FIELD anyway	
 #ifdef DEBUG_PARSING
 					lprintf( "comma after field value, push field to object: %s", state->val.name );
