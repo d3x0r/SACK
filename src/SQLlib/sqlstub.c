@@ -3565,8 +3565,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						int coltype;
 						switch( coltype = sqlite3_column_type( collection->stmt, idx - 1 ) ) {
 						default:
-							lprintf( "Uhnaldes SQL data type:%d", coltype );
-
+							lprintf( "Unhandled SQL data type:%d", coltype );
 							text = (char*)sqlite3_column_text( collection->stmt, idx - 1 );
 							colsize = sqlite3_column_bytes( collection->stmt, idx - 1 );
 							val->stringLen = colsize;
@@ -3576,7 +3575,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), real_text );
 							val->string = real_text;
 							val->value_type = JSOX_VALUE_STRING;
-
 							break;
 						case SQLITE_NULL:
 							if( val->string )
