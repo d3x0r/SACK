@@ -105,8 +105,9 @@ namespace objStore {
 #define LoG( a,... )
 #define LoG_( a,... )
 #endif
-
-
+#if defined __GNUC__ and defined( __CPLUSPLUS )
+#define offsetof(type,member) ((size_t)(((type*)0)->member))
+#endif
 
 #define FILE_BASED_VFS
 #define VIRTUAL_OBJECT_STORE

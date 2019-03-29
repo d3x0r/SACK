@@ -18,7 +18,7 @@ PREFIX_PACKED struct indexHeader {
 } PACKED;
 
 PREFIX_PACKED struct storageIndexNode {
-	PREFIX_PACKED union {
+	union {
 		//FPI dirent_fpi;   // FPI on disk
 		PREFIX_PACKED struct dataTypeInfo {
 			uint32_t type : 1; // text/binary 16 types... 
@@ -27,7 +27,7 @@ PREFIX_PACKED struct storageIndexNode {
 			uint32_t unused : 24; // remaining bits for data description.
 		}type PACKED;
 		uint8_t bigEndianData[4];
-	} data PACKED;
+	} data;
 	// if dirent_fpi == 0; it's free.
 	uint64_t dirent_fpi;
 
