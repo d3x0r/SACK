@@ -187,7 +187,7 @@ FILESYS_PROC struct find_cursor * FILESYS_API GetScanFileCursor( void *pInfo );
 
 // result is length of name filled into pResult if pResult == NULL && nResult = 0
 // the result will the be length of the name matching the file.
-FILESYS_PROC  int FILESYS_API  GetMatchingFileName ( CTEXTSTR filemask, int flags, TEXTSTR pResult, int nResult );
+FILESYS_PROC  int FILESYS_API  GetMatchingFileName ( CTEXTSTR filemask, enum ScanFileFlags flags, TEXTSTR pResult, int nResult );
 
 // searches a path for the last '/' or '\'
 FILESYS_PROC  CTEXTSTR FILESYS_API  pathrchr ( CTEXTSTR path );

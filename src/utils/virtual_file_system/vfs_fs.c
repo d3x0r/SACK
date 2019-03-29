@@ -1499,8 +1499,8 @@ int CPROC sack_vfs_fs_find_first( struct find_info *info ) {
 
 int CPROC sack_vfs_fs_find_close( struct find_info *info ) { Deallocate( struct find_info*, info ); return 0; }
 int CPROC sack_vfs_fs_find_next( struct find_info *info ) { return _fs_iterate_find( info ); }
-char * CPROC sack_vfs_fs_find_get_name( struct find_info *info ) { return info->filename; }
-size_t CPROC sack_vfs_fs_find_get_size( struct find_info *info ) { return info->filesize; }
+char * CPROC sack_vfs_fs_find_get_name( struct find_cursor *info ) { return ((struct find_info*)info)->filename; }
+size_t CPROC sack_vfs_fs_find_get_size( struct find_cursor *info ) { return ((struct find_info*)info)->filesize; }
 LOGICAL CPROC sack_vfs_fs_find_is_directory( struct find_cursor *cursor ) { return FALSE; }
 LOGICAL CPROC sack_vfs_fs_is_directory( uintptr_t psvInstance, const char *path ) {
 	if( path[0] == '.' && path[1] == 0 ) return TRUE;
