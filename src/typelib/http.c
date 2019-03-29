@@ -677,6 +677,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 	else
 	{
 		//lprintf( "Add HTTP Data:%d", size );
+		//LogBinary( (uint8_t*)buffer, 256>size?size:256 );
 		if( size )
 			VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)buffer, size );
 		unlockHttp( pHttpState );
@@ -961,11 +962,16 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 {
 	struct HttpState *data = (struct HttpState *)GetNetworkLong( pc, 0 );
 	PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
-	if( ppc )
-		ppc[0] = NULL;
-	if( data->waiter ) {
-		//lprintf( "(on close) Waking waiting to return with result." );
-		WakeThread( data->waiter );
+	if( ppc[0] == pc ) {
+		if( ppc )
+			ppc[0] = NULL;
+		if( data->waiter ) {
+			//lprintf( "(on close) Waking waiting to return with result." );
+			WakeThread( data->waiter );
+		}
+	}
+	else {
+		lprintf( "Close resulting on a socket using the same state, but that state is now already busy." );
 	}
 	//if( !data->flags.success )
 	//	DestroyHttpState( data );
@@ -1127,6 +1133,10 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 		struct pendingConnect *connect = New( struct pendingConnect );
 		connect->state = state;
 		AddLink( &l.pendingConnects, connect );
+		if( retries ) {
+			lprintf( "HTTPS QUery (retry):%s", GetText( url ) );
+			//lprintf( "PC of connect:%p  %d", pc, retries );
+		}
 		//DumpAddr( "Http Address:", addr );
 		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, httpConnected, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
 		connect->pc = pc;
@@ -1155,7 +1165,7 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 					return NULL;
 				}
 				state->waiter = MakeThread();
-				while( pc && ( state->last_read_tick > ( GetTickCount() - 20000 ) ) )
+				while( pc && ( state->last_read_tick > ( GetTickCount() - 3000 ) ) )
 				{
 					WakeableSleep( 1000 );
 				}
