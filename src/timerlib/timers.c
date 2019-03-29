@@ -501,7 +501,7 @@ static PTHREAD FindWakeup( CTEXTSTR name )
 		uint64_t oldval;
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
 		while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
-			globalTimerData.lock_thread_create = oldval;
+			//globalTimerData.lock_thread_create = oldval;
 			Relinquish();
 		}
 	}
@@ -555,7 +555,7 @@ static PTHREAD FindThreadWakeup( CTEXTSTR name, THREAD_ID thread )
 		uint64_t oldval;
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
 		while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
-			globalTimerData.lock_thread_create = oldval;
+			//globalTimerData.lock_thread_create = oldval;
 			Relinquish();
 		}
 	}
@@ -602,7 +602,7 @@ static PTHREAD FindThread( THREAD_ID thread )
 		uint64_t oldval;
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
 		while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
-			globalTimerData.lock_thread_create = oldval;
+			//globalTimerData.lock_thread_create = oldval;
 			Relinquish();
 		}
 	}
@@ -1178,7 +1178,7 @@ void  UnmakeThread( void )
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 	uint64_t oldval;
 	while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, _MyThreadInfo->nThread ) ) { //-V595
-		globalTimerData.lock_thread_create = oldval;
+		//globalTimerData.lock_thread_create = oldval;
 		Relinquish();
 	}
 	pThread
@@ -1337,9 +1337,9 @@ PTHREAD  MakeThread( void )
 		{
 			THREAD_ID oldval;
 			LOGICAL dontUnlock = FALSE;
-			while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, thread_ident ) ) && ( oldval != thread_ident ) )
+			while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) /*&& ( oldval != thread_ident )*/ )
 			{
-				globalTimerData.lock_thread_create = oldval;
+				//globalTimerData.lock_thread_create = oldval;
 				Relinquish();
 			}
 			dontUnlock = TRUE;
@@ -1358,8 +1358,8 @@ PTHREAD  MakeThread( void )
 
 			InitWakeup( pThread, NULL );
 			// something else is in the process of trying to lock this...
-			while( thread_ident != globalTimerData.lock_thread_create )
-				Relinquish();
+			//while( thread_ident != globalTimerData.lock_thread_create )
+			//	Relinquish();
 			globalTimerData.lock_thread_create = 0;
 #ifdef LOG_THREAD
 			Log3( WIDE("Created thread address: %p %" PRIxFAST64 " at %p")
@@ -1407,7 +1407,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 	PTHREAD pThread;
 	uint64_t oldval;
 	while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) ) {
-		globalTimerData.lock_thread_create = oldval;
+		//globalTimerData.lock_thread_create = oldval;
 		Relinquish();
 	}
 	do
@@ -1480,7 +1480,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 		uint64_t oldval;
 		// unlink from globalTimerData.threads list.
 		while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
-			globalTimerData.lock_thread_create = oldval;
+			//globalTimerData.lock_thread_create = oldval;
 			Relinquish();
 		}
 		DeleteFromSet( THREAD, globalTimerData.threadset, pThread ) /*Release( pThread )*/;
@@ -1498,7 +1498,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 	PTHREAD pThread;
 	uint64_t oldval;
 	while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) ) {
-		globalTimerData.lock_thread_create = oldval;
+		//globalTimerData.lock_thread_create = oldval;
 		Relinquish();
 	}
 	pThread = GetFromSet( THREAD, &globalTimerData.threadset );
@@ -1559,7 +1559,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 		uint64_t oldval;
 		// unlink from globalTimerData.threads list.
 		while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
-			globalTimerData.lock_thread_create = oldval;
+			//globalTimerData.lock_thread_create = oldval;
 			Relinquish();
 		}
 		DeleteFromSet( THREAD, globalTimerData.threadset, pThread ) /*Release( pThread )*/;
