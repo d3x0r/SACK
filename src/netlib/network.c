@@ -3588,10 +3588,12 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 						lpClient->close.CPPCloseCallback( lpClient->psvClose );
 					else
 						lpClient->close.CloseCallback( lpClient );
+
+					lpClient->close.CloseCallback = NULL;
 				}
 #ifdef LOG_DEBUG_CLOSING
 				else
-					lprintf( WIDE( "no close callback!?" ) );
+					lprintf( WIDE( "no close callback!? (or duplicate close?)" ) );
 #endif
 				// leave the flag closing set... we'll use that later
 				// to avoid the double-lock;

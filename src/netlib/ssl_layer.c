@@ -197,6 +197,30 @@ static int handshake( PCLIENT pc ) {
 #endif
 			return -1;
 		}
+		{
+			size_t pending;
+			while( ( pending = BIO_ctrl_pending( ses->wbio) ) > 0 ) {
+				if (pending > 0) {
+					int read;
+					if( pending > ses->obuflen ) {
+						if( ses->obuffer )
+							Deallocate( uint8_t *, ses->obuffer );
+						ses->obuffer = NewArray( uint8_t, ses->obuflen = pending*2 );
+						//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
+					}
+					read = BIO_read(ses->wbio, ses->obuffer, (int)pending);
+#ifdef DEBUG_SSL_IO
+  					lprintf( "send %d %d for handshake", pending, read );
+#endif
+  					if( read > 0 ) {
+#ifdef DEBUG_SSL_IO
+  						lprintf( "handshake send %d", read );
+#endif
+  						SendTCP( pc, ses->obuffer, read );
+  					}
+  				}
+  			}
+  		}
 		if (r < 0) {
 
 			r = SSL_get_error(ses->ssl, r);
@@ -209,28 +233,6 @@ static int handshake( PCLIENT pc ) {
 			}
 			if (SSL_ERROR_WANT_READ == r) 
 			{
-				size_t pending;
-				while( ( pending = BIO_ctrl_pending( ses->wbio) ) > 0 ) {
-					if (pending > 0) {
-						int read;
-						if( pending > ses->obuflen ) {
-							if( ses->obuffer )
-								Deallocate( uint8_t *, ses->obuffer );
-							ses->obuffer = NewArray( uint8_t, ses->obuflen = pending*2 );
-							//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
-						}
-						read = BIO_read(ses->wbio, ses->obuffer, (int)pending);
-#ifdef DEBUG_SSL_IO
-						lprintf( "send %d %d for handshake", pending, read );
-#endif
-						if( read > 0 ) {
-#ifdef DEBUG_SSL_IO
-							lprintf( "handshake send %d", read );
-#endif
-							SendTCP( pc, ses->obuffer, read );
-						}
-					}
-				}
 			}
 			else {
 				ERR_print_errors_cb( logerr, (void*)__LINE__ );
@@ -294,7 +296,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			// == 1 if is already done, and not newly done
 			if( hs_rc == 2 ) {
 				// newly completed handshake.
-				if( !(pc->dwFlags & CF_READPENDING) ) {
+				{
 					if( !pc->ssl_session->ignoreVerification && SSL_get_peer_certificate( pc->ssl_session->ssl ) ) {
 						int r;
 						if( ( r = SSL_get_verify_result( pc->ssl_session->ssl ) ) != X509_V_OK ) {
@@ -318,9 +320,11 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				}
 				len = 0;
 			}
-			else if( hs_rc == 1 )
+			if( hs_rc >= 1 )
 			{
 			read_more:
+				// if read isn't done before pending, pending doesn't get set
+				// but this read doens't return a useful length.
 				len = SSL_read( pc->ssl_session->ssl, NULL, 0 ); //-V575
 				//lprintf( "return of 0 read: %d", len );
 				//if( len < 0 )
@@ -398,7 +402,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			if( len > 0 ) {
 #ifdef DEBUG_SSL_IO
 				lprintf( "READ BUFFER:" );
-				LogBinary( pc->ssl_session->dbuffer, len );
+				LogBinary( pc->ssl_session->dbuffer, 256 > len ? len : 256 );
 #endif
 				if( pc->ssl_session->dwOriginalFlags & CF_CPPREAD )
 					pc->ssl_session->cpp_user_read( pc->psvRead, pc->ssl_session->dbuffer, len );
@@ -471,11 +475,11 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 	struct ssl_session *ses = pc->ssl_session;
 	if( !ses )
 		return FALSE;
-	while( length ) {
 #ifdef DEBUG_SSL_IO
-		lprintf( "SSL SEND...." );
-		LogBinary( (uint8_t*)buffer, length );
+	lprintf( "SSL SEND...." );
+	LogBinary( (((uint8_t*)buffer) + offset), 256 > length ? length : 256 );
 #endif
+	while( length ) {
 		if( pending_out > 4327 )
 			pending_out = 4327;
 #ifdef DEBUG_SSL_IO
