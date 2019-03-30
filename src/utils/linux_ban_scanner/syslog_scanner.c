@@ -169,15 +169,28 @@ static void ReadConfig( void )
 }
 
 static uint8_t buf[4096];
-int main( void )
+int main( int argc, char **argv )
 {
 	int size;
 	ReadConfig();
 	InitBanScan();
-	while( fgets( buf, 4096, stdin ) )
-	{
-		ProcessConfigurationInput( lbs.pch_scanner, buf, strlen(buf), 0 );
-	}
+	if( argc > 1 ) {
+		FILE *in = fopen( argv[1], "rt" );
+		if( in ) {
+			while( fgets( buf, 4096, in ) )
+			{
+				ProcessConfigurationInput( lbs.pch_scanner, buf, strlen(buf), 0 );
+			}
+			lprintf( "got null from file.." );
+		}
+	} else
+		while( fgets( buf, 4096, stdin ) )
+		{
+		  lprintf( "Processing buffer:%s", buf );
+			ProcessConfigurationInput( lbs.pch_scanner, buf, strlen(buf), 0 );
+			lprintf( "done with that buffer");
+		}
+			lprintf( "got null from file.." );
 	return 0;
 }
 
