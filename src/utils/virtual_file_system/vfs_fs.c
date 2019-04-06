@@ -1425,14 +1425,14 @@ struct find_info {
 	size_t thisent;
 };
 
-struct find_info * CPROC sack_vfs_fs_find_create_cursor(uintptr_t psvInst,const char *base,const char *mask )
+struct find_cursor * CPROC sack_vfs_fs_find_create_cursor(uintptr_t psvInst,const char *base,const char *mask )
 {
 	struct find_info *info = New( struct find_info );
 	info->base = base;
 	info->base_len = StrLen( base );
 	info->mask = mask;
 	info->vol = (struct volume *)psvInst;
-	return info;
+	return (struct find_cursor*)info;
 }
 
 static int _fs_iterate_find( struct find_info *info ) {
