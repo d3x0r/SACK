@@ -900,7 +900,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				memcpy( (char*)newBuf, input->pos, unused );
 				memcpy( (char*)newBuf + unused, msg, msglen );
 				if( input->tempBuf )
-					Deallocate( POINTER, input->buf );
+					Deallocate( CPOINTER, input->buf );
 				input->pos = input->buf = newBuf;
 				input->tempBuf = TRUE;
 			}
@@ -1893,7 +1893,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		if( input ) {
 			if( state->n >= input->size ) {
 				if( input->tempBuf )
-					Deallocate( POINTER, input->buf );
+					Deallocate( CPOINTER, input->buf );
 
 				DeleteFromSet( JSOX_PARSE_BUFFER, jxpsd.parseBuffers, input );
 				if( state->gatheringString

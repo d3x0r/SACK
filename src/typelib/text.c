@@ -923,14 +923,14 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 				{
 					int c;
 					if( has_plus == -1 ) {
-						if( !punctuation || StrChr( punctuation, '-' ) )
+						if( !punctuation || StrChr( punctuation, '+' ) )
 							has_plus = 1;
 						else
 							has_plus = 0;
 					}
 					if( !has_plus )
 					{
-						VarTextAddCharacterEx( &out, '-' DBG_OVERRIDE );
+						VarTextAddCharacterEx( &out, '+' DBG_OVERRIDE );
 						break;
 					}
 					if( ( c = NextChar() ) &&

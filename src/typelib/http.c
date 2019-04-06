@@ -132,8 +132,9 @@ void GatherHttpData( struct HttpState *pHttpState )
 
 
 static PTEXT  resolvePercents( PTEXT urlword ) {
-	PTEXT  url = SegDuplicate( urlword );
-
+	PTEXT  url = BuildLine( urlword );
+	LineRelease( urlword );
+	//while( url = urlword )
 	{
 		char *_url = GetText(url);
 		TEXTRUNE ch;
@@ -172,8 +173,9 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 		}
 		newUrl[0] = _url[0];
 		SetTextSize( url, _url - GetText( url ) );
-		return url;
+		urlword = NEXTLINE( url );
 	}
+	return url;
 }
 
 void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
@@ -181,13 +183,27 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 	PTEXT start = TextParse( params, WIDE( "&=" ), NULL, 1, 1 DBG_SRC );
 	PTEXT next = start;
 	PTEXT tmp;
+	for( tmp = start; tmp; tmp = NEXTLINE( tmp ) ) {
+		if( tmp->format.position.offset.spaces ) {
+			SegBreak( tmp );
+			LineRelease( tmp );
+			if( tmp == start )
+				return;
+		}
+	}
 	//lprintf( "Input was %s", GetText( params ) );
 	while( ( tmp = next ) )
 	{
 		PTEXT name = tmp;
-		/*PTEXT equals = */( next = NEXTLINE( tmp ) );
+		/*PTEXT equals = */(next = NEXTLINE( tmp ));
+		while( next && GetText( next )[0] != '=' )
+			next = NEXTLINE( next );
+		SegBreak( next );
 		PTEXT value = ( next = NEXTLINE( next ) );
-		/*PTEXT ampersand = */( next = NEXTLINE( next ) );
+		while( next && GetText( next )[0] != '&' )
+			next = NEXTLINE( next );
+
+		if( next ) SegBreak( next );
 
 		struct HttpField *field = New( struct HttpField );
 		field->name = name?resolvePercents( name ):NULL;
@@ -196,7 +212,8 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 		AddLink( &pHttpState->cgi_fields, field );
 		next = NEXTLINE( next );
 	}
-	LineRelease( start );
+	if( !GetLinkCount( pHttpState->cgi_fields ) ) // otherwise it will have been relesaed with the assignment.
+		LineRelease( start );
 }
 
 //int ProcessHttp( struct HttpState *pHttpState )
