@@ -122,12 +122,14 @@ struct jsox_input_buffer {
 	char const * buf;      // prior input buffer
 	size_t       size; // size of prior input buffer
 	char const * pos;  // last position in _input if context closed before end of buffer
+	LOGICAL      tempBuf;
 };
 
 struct jsox_output_buffer {
 	char * buf;      // prior input buffer
 	size_t  size; // size of prior input buffer
 	char * pos;  // last position in _input if context closed before end of buffer
+	LOGICAL      unusedTempBuf;
 };
 
 typedef struct jsox_input_buffer JSOX_PARSE_BUFFER, *PJSOX_PARSE_BUFFER;

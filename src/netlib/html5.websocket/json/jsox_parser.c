@@ -154,38 +154,39 @@ char *jsox_escape_string( const char *string ) {
 	return jsox_escape_string_length( string, strlen( string ), NULL );
 }
 
+#define BADUTF8 0xFFFFFFF
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))
-#define _zero(result,from)  ((*from)++,0) 
+#define _zero(result,from)  ((*from)++,BADUTF8) 
 #define _3char(result,from) ( ((*from) += 3),( ( ( result & 0xF ) << 12 ) | ( ( result & 0x3F00 ) >> 2 ) | ( ( result & 0x3f0000 ) >> 16 )) )
 
 #define _4char(result,from)  ( ((*from) += 4), ( ( ( result & 0x7 ) << 18 )     \
-						| ( ( result & 0x3F00 ) << 4 )   \
-						| ( ( result & 0x3f0000 ) >> 10 )    \
-						| ( ( result & 0x3f000000 ) >> 24 ) ) )
+                        | ( ( result & 0x3F00 ) << 4 )   \
+                        | ( ( result & 0x3f0000 ) >> 10 )    \
+                        | ( ( result & 0x3f000000 ) >> 24 ) ) )
 
+// load 4 bytes in a little endian way; might result in a 8 byte variable, but only 4 are valid.
 #define get4Chars(p) ((((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[0]  \
-				>> (CHAR_BIT*((uintptr_t)(p) & 0x3)))             \
-			| (( ((uintptr_t)(p)) & 0x3 )                          \
-				? (((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[1]      \
-					<< (CHAR_BIT*(4-((uintptr_t)(p) & 0x3))))     \
-				:(TEXTRUNE)0 ))
+                >> (CHAR_BIT*((uintptr_t)(p) & 0x3)))             \
+            | (( ((uintptr_t)(p)) & 0x3 )                          \
+                ? (((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[1]      \
+                    << (CHAR_BIT*(4-((uintptr_t)(p) & 0x3))))     \
+                :(TEXTRUNE)0 ))
 
 #define __GetUtfChar( result, from )           ((result = get4Chars(*from)),     \
-		( ( !(result & 0xFF) )    \
+        ( ( !(result & 0xFF) )    \
           ?_zero(result,from)   \
-                                               \
-	  :( ( result & 0x80 )                       \
-		?( ( result & 0xE0 ) == 0xC0 )   \
-			?( ( ( result & 0xC000 ) == 0x8000 ) ?_2char(result,from) : _zero(result,from)  )    \
-			:( ( ( result & 0xF0 ) == 0xE0 )                           \
-				?( ( ( ( result & 0xC000 ) == 0x8000 ) && ( ( result & 0xC00000 ) == 0x800000 ) ) ? _3char(result,from) : _zero(result,from)  )   \
-				:( ( ( result & 0xF8 ) == 0xF0 )   \
-		                    ? ( ( ( ( result & 0xC000 ) == 0x8000 ) && ( ( result & 0xC00000 ) == 0x800000 ) && ( ( result & 0xC0000000 ) == 0x80000000 ) )  \
-					?_4char(result,from):_zero(result,from) )                                                                                                              \
-				    :( ( ( result & 0xC0 ) == 0x80 )                                                                                                 \
-			 		?_zero(result,from)                                                                                                                       \
-					: ( (*from)++, (result & 0x7F) ) ) ) )                                                                                       \
-		: ( (*from)++, (result & 0x7F) ) ) ) )
+      :( ( result & 0x80 )                       \
+        ?( ( result & 0xE0 ) == 0xC0 )   \
+            ?( ( ( result & 0xC000 ) == 0x8000 ) ?_2char(result,from) : _zero(result,from)  )    \
+            :( ( ( result & 0xF0 ) == 0xE0 )                           \
+                ?( ( ( ( result & 0xC000 ) == 0x8000 ) && ( ( result & 0xC00000 ) == 0x800000 ) ) ? _3char(result,from) : _zero(result,from)  )   \
+                :( ( ( result & 0xF8 ) == 0xF0 )   \
+                            ? ( ( ( ( result & 0xC000 ) == 0x8000 ) && ( ( result & 0xC00000 ) == 0x800000 ) && ( ( result & 0xC0000000 ) == 0x80000000 ) )  \
+                    ?_4char(result,from):_zero(result,from) )                                                                                                              \
+                    :( ( ( result & 0xC0 ) == 0x80 )                                                                                                 \
+                     ?_zero(result,from)                                                                                                                       \
+                    : ( (*from)++, (result & 0x7F) ) ) ) )                                                                                       \
+        : ( (*from)++, (result & 0x7F) ) ) ) )
 
 #define GetUtfChar(x) __GetUtfChar(c,x)
 
@@ -196,13 +197,20 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 	// collect a string
 	int status = 0;
 	size_t n;
+	size_t nextN = ( *msg_input ) - msg;
 	//int escape;
 	//LOGICAL cr_escaped;
 	TEXTRUNE c;
 	//escape = 0;
 	//cr_escaped = FALSE;
-	while( ( ( n = (*msg_input) - msg ), ( n < msglen ) ) && ( ( c = GetUtfChar( msg_input ) ), ( status >= 0 ) ) )
+	while( ( ( n = nextN ), ( n < msglen ) ) 
+		&& ( ( ( c = GetUtfChar( msg_input ) ) != BADUTF8 ) 
+			&& ( status >= 0 ) ) )
 	{
+		if( (nextN = msg_input[0] - msg ) > msglen ) {
+			(msg_input[0]) = msg + n; // restore input position.
+			return status;
+		}
 		(state->col)++;
 
 		if( c == start_c ) {
@@ -884,11 +892,28 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		return -1;
 
 	if( msg && msglen ) {
-		input = GetFromSet( JSOX_PARSE_BUFFER, &jxpsd.parseBuffers );
-		input->pos = input->buf = msg;
-		input->size = msglen;
-		EnqueLinkNL( state->inBuffers, input );
-
+		if( input = (PJSOX_PARSE_BUFFER)PeekQueue( state->inBuffers[0] ) ) {
+			size_t used = input->pos - input->buf;
+			size_t unused = input->size - used;
+			if( input->tempBuf || ( unused < 6 ) ) {
+				const char *newBuf = NewArray( const char, unused + msglen );
+				memcpy( (char*)newBuf, input->pos, unused );
+				memcpy( (char*)newBuf + unused, msg, msglen );
+				if( input->tempBuf )
+					Deallocate( POINTER, input->buf );
+				input->pos = input->buf = newBuf;
+				input->tempBuf = TRUE;
+			}
+		}
+		// no input; or this buffer wasn't appended to the previous buffer... 
+		if( !input || !input->tempBuf )
+		{
+			input = GetFromSet( JSOX_PARSE_BUFFER, &jxpsd.parseBuffers );
+			input->pos = input->buf = msg;
+			input->size = msglen;
+			input->tempBuf = FALSE;
+			EnqueLinkNL( state->inBuffers, input );
+		}
 		if( state->gatheringString
 			|| state->gatheringNumber
 			|| state->word == JSOX_WORD_POS_FIELD
@@ -947,6 +972,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 	}
 
 	while( state->status && ( input = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) ) {
+		size_t newN;
 		output = (struct jsox_output_buffer*)DequeLinkNL( state->outQueue );
 		//lprintf( "output is %p", output );
 		state->n = input->pos - input->buf;
@@ -972,7 +998,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			}
 			else {
 				state->n = input->pos - input->buf;
-				if( state->n > input->size ) DebugBreak();
+				if( state->n > input->size ) {
+					DebugBreak();
+				}
 			}
 		}
 		if( state->gatheringNumber ) {
@@ -981,15 +1009,19 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		}
 
 		//lprintf( "Completed at start?%d", state->completed );
-		while( state->status && (state->n < input->size) && (c = GetUtfChar( &input->pos )) )
+		while( state->status && (state->n < input->size) && ( (c = GetUtfChar( &input->pos ))!= BADUTF8) )
 		{
 #ifdef DEBUG_PARSING
 			lprintf( "parse character %c %d %d %d %d", c<32?'.':c, state->word, state->parse_context, state->parse_context, state->word );
 #endif
 			state->col++;
-			state->n = input->pos - input->buf;
-			if( state->n > input->size ) DebugBreak();
-
+			newN = input->pos - input->buf;
+			if( newN > input->size ) {
+				// partial utf8 character across buffer boundaries.
+				//DebugBreak();
+				break;
+			}
+			state->n = newN;
 			if( state->comment ) {
 				if( state->comment == 1 ) {
 					if( c == '*' ) { state->comment = 3; continue; }
@@ -1680,11 +1712,16 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						continueNumber:
 							fromDate = state->numberFromDate;
 						}
-						while( (_msg_input = input->pos), ((state->n < input->size) && (c = GetUtfChar( &input->pos ))) )
+						while( (_msg_input = input->pos), ((state->n < input->size) && ( (c = GetUtfChar( &input->pos ))!= BADUTF8)) )
 						{
+							newN = input->pos - input->buf;
+							if( newN > input->size ) {
+								break;
+							}
+							state->n = newN;
+
 							//lprintf( "Number input:%c", c );
 							state->col++;
-							state->n = (input->pos - input->buf);
 							if( state->n > input->size ) DebugBreak();
 							// leading zeros should be forbidden.
 							if( c == '_' )
@@ -1855,6 +1892,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		//lprintf( "at end... %d %d comp:%d", state->n, input->size, state->completed );
 		if( input ) {
 			if( state->n >= input->size ) {
+				if( input->tempBuf )
+					Deallocate( POINTER, input->buf );
+
 				DeleteFromSet( JSOX_PARSE_BUFFER, jxpsd.parseBuffers, input );
 				if( state->gatheringString
 					|| state->gatheringNumber
