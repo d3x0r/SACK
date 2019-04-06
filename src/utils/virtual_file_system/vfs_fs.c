@@ -1499,7 +1499,7 @@ int CPROC sack_vfs_fs_find_first( struct find_cursor *cinfo ) {
 	return _fs_iterate_find( info );
 }
 
-int CPROC sack_vfs_fs_find_close( struct find_cursor *info ) { Deallocate( struct find_info*, info ); return 0; }
+int CPROC sack_vfs_fs_find_close( struct find_cursor *info ) { Deallocate( struct find_cursor*, info ); return 0; }
 int CPROC sack_vfs_fs_find_next( struct find_cursor *info ) { return _fs_iterate_find( (struct find_info*)info ); }
 char * CPROC sack_vfs_fs_find_get_name( struct find_cursor *info ) { return ((struct find_info*)info)->filename; }
 size_t CPROC sack_vfs_fs_find_get_size( struct find_cursor *info ) { return ((struct find_info*)info)->filesize; }
