@@ -184,17 +184,17 @@ namespace fs {
 	// -----------  directory interface commands. ----------------------
 
 	// returns find_info which is then used in subsequent commands.
-	SACK_VFS_PROC struct find_info * CPROC sack_vfs_fs_find_create_cursor( uintptr_t psvInst, const char *base, const char *mask );
+	SACK_VFS_PROC struct find_cursor * CPROC sack_vfs_fs_find_create_cursor( uintptr_t psvInst, const char *base, const char *mask );
 	// reset find_info to the first directory entry.  returns 0 if no entry.
-	SACK_VFS_PROC int CPROC sack_vfs_fs_find_first( struct find_info *info );
+	SACK_VFS_PROC int CPROC sack_vfs_fs_find_first( struct find_cursor *info );
 	// closes a find cursor; returns 0.
-	SACK_VFS_PROC int CPROC sack_vfs_fs_find_close( struct find_info *info );
+	SACK_VFS_PROC int CPROC sack_vfs_fs_find_close( struct find_cursor *info );
 	// move to the next entry returns 0 if no entry.
-	SACK_VFS_PROC int CPROC sack_vfs_fs_find_next( struct find_info *info );
+	SACK_VFS_PROC int CPROC sack_vfs_fs_find_next( struct find_cursor *info );
 	// get file information for the file at the current cursor position...
-	SACK_VFS_PROC char * CPROC sack_vfs_fs_find_get_name( struct find_info *info );
+	SACK_VFS_PROC char * CPROC sack_vfs_fs_find_get_name( struct find_cursor *info );
 	// get file information for the file at the current cursor position...
-	SACK_VFS_PROC size_t CPROC sack_vfs_fs_find_get_size( struct find_info *info );
+	SACK_VFS_PROC size_t CPROC sack_vfs_fs_find_get_size( struct find_cursor *info );
 
 #ifdef __cplusplus
 }
