@@ -93,7 +93,6 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/contrib/sha1lib/sha1.c
     ${SOURCES_ROOT}/src/contrib/sha2lib/sha2.c
     ${SOURCES_ROOT}/src/contrib/sha3lib/sha3.c
-    ${SOURCES_ROOT}/src/contrib/K12/sha3.c
     ${K12_SOURCES}
     ${SNPRINTF_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
