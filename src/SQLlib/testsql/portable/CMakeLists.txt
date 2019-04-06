@@ -11,10 +11,13 @@ endif( PLATFORM_CMAKE_DEFINES )
 
 include( ${SACK_BASE}/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include/SACK )
+STRING( REPLACE " " ";" K12_SOURCES ${K12_SOURCES} )
 STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
 STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
 add_definitions( ${PLATFORM_DEFINES} )
+include_directories( ${K12_INCLUDES} )
 
+ADD_DEFINITIONS( -DNO_SSL )
 
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
@@ -89,6 +92,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/filesyslib/pathops.c
     ${SOURCES_ROOT}/src/filesyslib/winfiles.c
     ${SOURCES_ROOT}/src/salty_random_generator/salty_generator.c
+    ${SOURCES_ROOT}/src/salty_random_generator/block_shuffle.c
     ${SOURCES_ROOT}/src/salty_random_generator/crypt_util.c
     ${SOURCES_ROOT}/src/contrib/sha1lib/sha1.c
     ${SOURCES_ROOT}/src/contrib/sha2lib/sha2.c
@@ -108,7 +112,6 @@ endif( NOT __NO_ODBC__ )
 
 set_source_files_properties( ${BASE_SOURCES} PROPERTIES 
 		COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;__STATIC__;__NO_GUI__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;${MoreDefinitions};USE_SQLITE;__DISABLE_UDP_SYSLOG__;__NO_MSGSVR__;NO_DEADSTART_DLLMAIN;SQLITE_ENABLE_COLUMN_METADATA" 
-                COMPILE_FLAGS "${K12_INCLUDES}"
                 )
 
 sack_add_executable(${project} ${BASE_SOURCES} )
