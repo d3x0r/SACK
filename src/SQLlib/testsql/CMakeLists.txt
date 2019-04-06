@@ -14,6 +14,8 @@ target_link_libraries( ${project} ${SACK_LIBRARIES} ${SACK_PSI_LIBRARY} )
 install_default_dest( ${project} )
 
 
+string( REPLACE ";" " " K12_SOURCES_ARG "${K12_SOURCES}" )
+string( REPLACE ";" " " K12_INCLUDE_ARG "${K12_INCLUDES}" )
 string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${SACK_PLATFORM_LIBRARIES}" )
 string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${PLATFORM_DEFINES}" )
 string( REPLACE ";" "," PLATFORM_CMAKE_DEFINES_ARG "${PLATFORM_CMAKE_DEFINES}" )
@@ -30,6 +32,8 @@ ExternalProject_Add( ${project}_portable
 		-DSHA1_SOURCES=${SHA1_SOURCES}
 		-DSHA2_SOURCES=${SHA2_SOURCES}
 		-DSHA3_SOURCES=${SHA3_SOURCES}
+		-DK12_SOURCES=${K12_SOURCES_ARG}
+		-DK12_INCLUDES=${K12_INCLUDE_ARG}
 )
 #add_subdirectory( portable )
 
