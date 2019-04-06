@@ -1435,7 +1435,7 @@ struct find_cursor * CPROC sack_vfs_fs_find_create_cursor(uintptr_t psvInst,cons
 	return (struct find_cursor*)info;
 }
 
-static int _fs_iterate_find( struct find_cursor* cinfo ) {
+static int _fs_iterate_find( struct find_info* cinfo ) {
 	struct find_info *info = (struct find_info*)cinfo;
 	struct directory_entry *next_entries;
 	size_t n;
