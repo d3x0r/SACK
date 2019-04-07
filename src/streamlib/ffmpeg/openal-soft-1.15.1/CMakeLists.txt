@@ -653,7 +653,7 @@ ENDIF()
 
 IF(HAVE_WINDOWS_H)
     IF(WINMM)
-        CHECK_INCLUDE_FILES("windows.h;mmsystem.h" HAVE_MMSYSTEM_H -D_WIN32_WINNT=0x0501)
+        CHECK_INCLUDE_FILES("windows.h;mmsystem.h" HAVE_MMSYSTEM_H) #-D_WIN32_WINNT=0x0501
         IF(HAVE_MMSYSTEM_H AND HAVE_LIBWINMM)
             SET(HAVE_WINMM 1)
             SET(ALC_OBJS  ${ALC_OBJS} Alc/backends/winmm.c)
