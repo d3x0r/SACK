@@ -13,6 +13,15 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 target_link_libraries( ${project} ${SACK_LIBRARIES} ${SACK_PSI_LIBRARY} )
 install_default_dest( ${project} )
 
+set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../ )
+
+set( K12_SOURCES
+  ${SOURCES_ROOT}src/contrib/K12/lib/KangarooTwelve.c 
+  ${SOURCES_ROOT}src/contrib/K12/lib/KangarooTwelve.h
+  ${SOURCES_ROOT}src/contrib/K12/lib/brg_endian.h 
+)
+set( K12_INCLUDES ${SOURCES_ROOT}/src/contrib/K12/lib )
+
 
 string( REPLACE ";" " " K12_SOURCES_ARG "${K12_SOURCES}" )
 string( REPLACE ";" " " K12_INCLUDE_ARG "${K12_INCLUDES}" )
