@@ -278,7 +278,7 @@ void InitSimpleTextureShader( uintptr_t psv_data, PImageShaderTracker tracker )
 	SetShaderOpInit( tracker, SimpleTextureShader_OpInit );
 	SetShaderAppendTristrip( tracker, SimpleTexture_AppendTristrip );
 
-	if( l.glslVersion < 140 )
+	if( l.glslVersion < 150 )
 	{
 		v_codeblocks[0] = gles_simple_v_shader_1_30;
 		v_codeblocks[1] = NULL;
@@ -425,7 +425,7 @@ void InitSimpleShadedTextureShader( uintptr_t psv, PImageShaderTracker tracker )
 	SetShaderReset( tracker, SimpleTextureReset2 );
 	SetShaderOpInit( tracker, SimpleTextureShader_OpInit2 );
 
-	if( l.glslVersion < 140 )
+	if( l.glslVersion < 150 )
 	{
 		v_codeblocks[0] = gles_simple_v_shader_shaded_texture_1_30;
 		v_codeblocks[1] = NULL;

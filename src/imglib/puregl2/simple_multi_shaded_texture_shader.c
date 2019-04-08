@@ -291,7 +291,7 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 		lprintf( WIDE("unhandled error before shader") );
 	}
 
-	if( l.glslVersion < 140 )
+	if( l.glslVersion < 150 )
 	{
 		v_codeblocks[0] = gles_simple_v_multi_shader_1_30;
 		v_codeblocks[1] = NULL;

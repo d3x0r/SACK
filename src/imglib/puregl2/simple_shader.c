@@ -177,7 +177,7 @@ void InitSuperSimpleShader( uintptr_t psv, PImageShaderTracker tracker )
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
 
-	if( l.glslVersion < 140 )
+	if( l.glslVersion < 150 )
 	{
 		v_codeblocks[0] = gles_simple_v_shader_1_30;
 		v_codeblocks[1] = NULL;
