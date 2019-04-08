@@ -1621,8 +1621,6 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			tnprintf( library->name
 				, fullnameLen - (library->name-library->full_name)
 				, WIDE("%s"), libname );
-			//library->long_name = library->name;
-			library->name = (char*)pathrchr( library->full_name );
 		}
 		else
 		{
@@ -1730,10 +1728,12 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #    else
 		library->library = dlopen( library->name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 #    endif
+
 		if( !library->library )
 		{
-			if( l.flags.bLog )
-				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)", libname, funcname?funcname:"all", dlerror() );
+			//if( l.flags.bLog )
+				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)"
+				          , library->name, funcname?funcname:"all", dlerror() );
 #  endif
 #  ifdef UNICODE
 			{
@@ -1746,11 +1746,29 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #  endif
 			if( !library->library )
 			{
-				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)"), library->full_name, funcname?funcname:WIDE("all"), dlerror() );
-				UnlinkThing( library );
-				ReleaseEx( library DBG_SRC );
-				ResumeDeadstart();
-				return NULL;
+				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)")
+						, library->full_name, funcname?funcname:WIDE("all"), dlerror() );
+
+				library->library = dlopen( library->alt_full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
+
+				if( !library->library )
+				{
+					_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)")
+							, library->alt_full_name, funcname?funcname:WIDE("all"), dlerror() );
+
+					library->library = dlopen( library->cur_full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
+
+					if( !library->library )
+					{
+						_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)")
+								, library->cur_full_name, funcname?funcname:WIDE("all"), dlerror() );
+
+						UnlinkThing( library );
+						ReleaseEx( library DBG_SRC );
+						ResumeDeadstart();
+						return NULL;
+					}
+				}
 			}
 #  ifndef __ANDROID__
 		}
