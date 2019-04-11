@@ -10,9 +10,8 @@ Revision 2
 
 This is an encryption algorithm called Xor-Sub-Wipe-Sub (XSWS). 
  - Xor - the initial masking of data with a mask
- - Wipe - 
-     - subByte ( xor each byte with the previous byte L->R ).
-     - subByte ( xor each byte with the previous byte R->L ).
+ - Wipe-subByte ( xor each byte with the previous byte L->R ). (use 0x55 as first prvious byte)
+ - Wipe-subByte ( xor each byte with the previous byte R->L ). (use 0xAA as the first previous byte)
 
  
 It is built on Salty Random Generator(SRG).  SRG uses various hash
@@ -24,16 +23,15 @@ be done directly against the hash digests.
 Byte 0 is least significant byte, and is consumed from hashes first.
 bit 0 is the least value (1) of byte 0 is the very first bit consumed.
 Otherwise all other operations are on parallel bytes, and endian-ness
-should not matter; all final entropy reads are done in byte sized units
-anyhow; so bit order isn't really a consideration.
+should not matter; all final entropy reads are done in byte sized units.
 
 ## Overview
 
-Basically, this takes an input, adds one byte to the length, and pads
+Take an input if less than 4096 bytes, add one byte to the length, and pad
 to 8 byte boundary (int64); the length of the pad is stored in the last
 byte; unused padding bytes will be set to 0.  
 
-Summary; again
+### Summary; again
 
    - Simple xor-chains a 256 bit mask computed from the key using KangarooTwelve(K12) over the data.
    - xor 0x55 into first byte, swap byte for some other byte, store that result, use that result to xor on the next byte, repeatedly.
@@ -63,16 +61,16 @@ cause 16384 (of 32768) bits to change in the output.
 
 ## xbox generation
 
-The XBox is a unique 2way mapping of input A to output B, and B to A.  This
-is done with 1 512 byte array.  This is the mapping used for 'swap byte with
-another random byte'
+The XBox is a unique 2way exchange mapping of input A to output B, and B to A.  
+This is done with 1 512 byte array.  This is the mapping used for 'swap byte with
+another random byte'.  The first 256 bytes map A->B, and the second 256 bytes map B->A.
+The second 256 bytes are derrived from the first 256 bytes.
 
 This uses 256*8 bits of entropy and does a quick in-place swapping algorithm
 to shuffle the bytes.  The first 256 bits of entropy are used for masking the
 blocks initially, followed by these.
 
-This is done with the same random_context as the source hash; very improbable
-this could be less-than-random.
+This is done with the same random_context as the source hash.
 
 
 ```
@@ -84,43 +82,67 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 	struct byte_shuffle_key *key = New( struct byte_shuffle_key );
 	int n;
 	int srcMap;
+
+	// initialize map with default 1:1 map
 	for( n = 0; n < 256; n++ )
 		key->map[n] = n;
 
 	// simple-in-place shuffler.
 	for( n = 0; n < 256; n++ ) {
-		int m;
-		int t;
+		int m; // the position to move
+		int t; // temp
 		SRG_GetByte_( m, ctx ); // m = random 8 bits
 		t = key->map[m];
 		key->map[m] = key->map[n];
 		key->map[n] = t;
 	}
-        /* generate reverse map */
+
+	/* generate reverse map */
 	for( n = 0; n < 256; n++ )
 		key->dmap[key->map[n]] = n;
+
 	return key;
 }
 ```
 
 ## Block padding...
+
+Encryption is done in 4096 byte blocks.  If the data is fewer than 4096 bytes,
+then 1 byte is added to the length, and then padded up to the next 8 byte boundary.
+Adding 1 byte first causes there to always be extra space added, where a buffer might 
+already be a length that is a multiple of 8 bytes; In this case, 8 more bytes will be
+added (1 + 7 to pad to next boundary).
+
+If a block of data is larger than 4096 bytes; then each 4096 byte block is processed
+separately.  Again, if the last block after all other complete 4096 byte blocks have
+been processed is shorter than 4096 bytes, then the padding is applied to this block.
+
+The padding is merely to allow wide parallel operations across the data, and serves no
+other purpose.
+
 ```
+// 
 encrypt( data, datalen ) { 
-  int outlen = datalen + 1; // add 1 byte for pad length
-  if( outlen & 7 )
-	outlen += ( 8 - (outlen&7) );
-  char *output = malloc( outlen );
-  ((uin64_t*)( output + outlen-8 ))[0] = 0; // make sure all extra pad bytes are 0
-  output[outlen-1] = outlen - datalen; // save pad to recover length.
-  memcpy( output, data, datalen );
-  /* ... do real work ... */
+	int outlen = datalen;
+	if( outlen < 4096 ) {
+		outlen += 1; // add 1 byte for pad length
+		if( outlen & 7 )
+			outlen += ( 8 - (outlen&7) );
+	}
+	
+	char *output = malloc( outlen );
+	((uin64_t*)( output + outlen-8 ))[0] = 0; // make sure all extra pad bytes are 0
+	output[outlen-1] = outlen - datalen; // save pad to recover length.
+	memcpy( output, data, datalen );
+
+	/* ... do real work ... */
 }
 ```
  
 ## Algorithm Setup
 
 The, current, strongest, fastest setup is done with K12.  Internally there is
-support to change the CSPRNG; (SHA[1/2_256/2_512/3]/k12).
+support to change the CSPRNG; (SHA[1|2_256|2_512|3]|k12).
 
 The algorithm performs quite a bit of setup before applying the transform
 to data. There is a mask generated (basically) with 256 bits from K12(key data).
@@ -128,26 +150,24 @@ to data. There is a mask generated (basically) with 256 bits from K12(key data).
 The same K12 hash generator is used from the initial seeding of the specified key information
 is used for the mask and byte subtitution mapping creation.
 
-K12.Init()
-K12.Update( key );
-K12.Final();
-mask_entropy = K12.Squeeze( 256 );     // bits
-shuffle_entropy = K12.Squeeze( 256*8 );  // bits
-
-
-
+```
+	K12.Init()
+	K12.Update( key );
+	K12.Final();
+	mask_entropy = K12.Squeeze( 256 );     // bits
+	shuffle_entropy = K12.Squeeze( 256*8 );  // bits
+```
 
 
 __The other pre-generated data is the xbox, which uses 25+86 bits from the
 same K12 bitstream to shuffle the substitution map (**)[xbox-generation]. __
  
 
- 
 
 ## Detail of the algorithm
 
 This is very old notes; the weakness with just a XOR operation swipe left-right.
-Not implemented this way.
+With the sustitution done with each xor swap the following weakness disappears.
 
 
 
@@ -277,7 +297,7 @@ for the swap instead. (xor-wipe is inversed too)
 
 ---
 
-## Simple XOr L->R, R-> Expanded...
+## Simple XOr L->R, R-> Expanded... (continued obsolete)
 
 
 ```
@@ -349,7 +369,6 @@ H" = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G ^ H ^ 0xAA
 
 Disregard from here down.
 
-
 ---
 
 byte permuations
@@ -357,6 +376,7 @@ byte permuations
 2^256 ...(ish)
 116,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000.
 
+256! (factorial)
 2^1684 (?) bits
 
 8578177753428426541190822716812326251577815202794856198596556503772694525531475893774402913604514084
@@ -512,7 +532,6 @@ Mega DID 300 in 6594   45 188743680
 This is a modified version of the above, it uses only approximately 112 bits of 
 entropy to shuffle the deck.  This causes fewer hashes generated internally.
 
-
 Pseudo-Random Bit (PRB) is a single bit from the entropy generating hash
 function.  
 
@@ -567,7 +586,7 @@ of 2^112 different outcomes.  Ideal permutations of 256 cards is factorial(256).
 ```
 
 
-### Example Configurations
+### Example Configurations (for minimal shuffler)
 
 
 ```
