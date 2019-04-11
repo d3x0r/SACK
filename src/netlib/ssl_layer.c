@@ -27,6 +27,8 @@
 #include "netstruc.h"
 
 //#define DEBUG_SSL_IO
+//#define DEBUG_SSL_IO_BUFFERS
+//#define DEBUG_SSL_IO_VERBOSE
 
 #if defined ( NO_SSL )
 
@@ -179,13 +181,15 @@ static int handshake( PCLIENT pc ) {
 	struct ssl_session *ses = pc->ssl_session;
 	if (!SSL_is_init_finished(ses->ssl)) {
 		int r;
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "doing handshake...." );
 #endif
 		/* NOT INITIALISED */
-
+#ifdef DEBUG_SSL_IO		
+		lprintf(" Handshake is not finished? %p", pc );
+#endif
 		r = SSL_do_handshake(ses->ssl);
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "handle data posted to SSL? %d", r );
 #endif
 		if( r == 0 ) {
@@ -209,7 +213,7 @@ static int handshake( PCLIENT pc ) {
 						//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
 					}
 					read = BIO_read(ses->wbio, ses->obuffer, (int)pending);
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_VERBOSE
   					lprintf( "send %d %d for handshake", pending, read );
 #endif
   					if( read > 0 ) {
@@ -243,6 +247,9 @@ static int handshake( PCLIENT pc ) {
 	}
 	else {
 		/* SSL IS INITIALISED */
+#ifdef DEBUG_SSL_IO		
+		lprintf(" Handshake is and has been finished?");
+#endif
 		return 1;
 	}
 }
@@ -251,7 +258,7 @@ static int handshake( PCLIENT pc ) {
 static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 {
 #ifdef DEBUG_SSL_IO
-	lprintf( "SSL Read complete %p %zd", buffer, length );
+	lprintf( "SSL Read complete %p %p %zd", pc, buffer, length );
 #endif
 	if( pc->ssl_session )
 	{
@@ -265,7 +272,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			EnterCriticalSec( &pc->ssl_session->csReadWrite );
 
 			len = BIO_write( pc->ssl_session->rbio, buffer, (int)length );
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_VERBOSE
 			lprintf( "Wrote %zd", len );
 #endif
 			if( len < (int)length ) {
@@ -281,7 +288,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 					LeaveCriticalSec( &pc->ssl_session->csReadWrite ); //-V522
 					return;
 				}
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_VERBOSE
 				// normal condition...
 				lprintf( "Receive handshake not complete iBuffer" );
 #endif
@@ -339,7 +346,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 						pc->ssl_session->dbuffer = NewArray( uint8_t, pc->ssl_session->dbuflen );
 					}
 					len = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, (int)pc->ssl_session->dbuflen );
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_VERBOSE
 					lprintf( "normal read - just get the data from the other buffer : %d", len );
 #endif
 					if( len < 0 ) {
@@ -370,7 +377,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				}
 				if( pending > 0 ) {
 					int read; 
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_VERBOSE
 					lprintf( "pending to send is %zd into %zd %p " , pending, pc->ssl_session->obuflen, pc->ssl_session->obuffer );
 #endif
 					if( pending > pc->ssl_session->obuflen ) {
@@ -400,7 +407,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 
 			// do was have any decrypted data to give to the application?
 			if( len > 0 ) {
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_BUFFERS
 				lprintf( "READ BUFFER:" );
 				LogBinary( pc->ssl_session->dbuffer, 256 > len ? len : 256 );
 #endif
@@ -414,7 +421,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				}
 			}
 			else if( len == 0 ) {
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_VERBOSE
 				lprintf( "incomplete read" );
 #endif
 			}
@@ -475,14 +482,17 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 	struct ssl_session *ses = pc->ssl_session;
 	if( !ses )
 		return FALSE;
-#ifdef DEBUG_SSL_IO
-	lprintf( "SSL SEND...." );
+#if defined( DEBUG_SSL_IO ) || defined( DEBUG_SSL_IO_VERBOSE)
+	lprintf( "SSL SEND....%d ", length );
+#endif
+#ifdef DEBUG_SSL_IO_BUFFERS
+	lprintf( "SSL SEND....%d ", length );
 	LogBinary( (((uint8_t*)buffer) + offset), 256 > length ? length : 256 );
 #endif
 	while( length ) {
 		if( pending_out > 4327 )
 			pending_out = 4327;
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "Sending %d of %d at %d", pending_out, length, offset );
 #endif
 		EnterCriticalSec( &pc->ssl_session->csReadWrite );
@@ -514,7 +524,7 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 		len_out = BIO_read( pc->ssl_session->wbio, ses->obuffer, (int)ses->obuflen );
 		if( pc->ssl_session )
 			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
-#ifdef DEBUG_SSL_IO
+#ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "ssl_Send  %d", len_out );
 #endif
 		SendTCP( pc, ses->obuffer, len_out );
@@ -601,6 +611,19 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 	Release( ses );
 }
 
+#ifdef DEBUG_SSL_IO_VERBOSE
+static void infoCallback( const SSL *ssl, int where, int ret ){
+	if( !ret )
+		lprintf( "ERROR : SSL Info Event %p %s %x %x", ssl, SSL_state_string(ssl), where, ret );
+	else if( ret & SSL_CB_ALERT ) {
+		lprintf( "ALERT : SSL Alert Event %p %s %s %s", ssl, SSL_state_string(ssl), SSL_alert_type_string_long(ret), SSL_alert_desc_string_long(ret) );		
+	}
+	else
+		lprintf( "INFO : SSL Info Event %p %s %x %x %s %s", ssl, SSL_state_string(ssl)
+			, where, ret, SSL_alert_type_string_long(ret), SSL_alert_desc_string_long(ret) );
+}
+#endif
+
 static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	struct ssl_session *ses;
 	ses = New( struct ssl_session );
@@ -617,6 +640,9 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	SSL_set_accept_state( ses->ssl );
 
 	pcNew->ssl_session = ses;
+#ifdef DEBUG_SSL_IO_VERBOSE
+	SSL_set_info_callback( pcNew->ssl_session->ssl, infoCallback );
+#endif
 
 	if( pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
 		pcServer->ssl_session->cpp_user_connected( pcServer->psvConnect, pcNew );
@@ -847,6 +873,9 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 
 
 	pc->ssl_session = ses;
+#ifdef DEBUG_SSL_IO_VERBOSE
+	SSL_set_info_callback( pc->ssl_session->ssl, infoCallback );
+#endif
 
 	return TRUE;
 }
