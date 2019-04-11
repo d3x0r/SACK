@@ -1149,9 +1149,6 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 		// if the pending finishes it will call the ReadComplete Callback.
 		// otherwise there will be more data to read...
 		//lprintf( WIDE("Ok ... buffers set up - now we can handle read events") );
-#ifdef LOG_PENDING
-		lprintf( WIDE( "Setup read pending %08x" ), lpClient->dwFlags );
-#endif
 		lpClient->dwFlags |= CF_READPENDING;
 #ifdef LOG_PENDING
 		lprintf( WIDE( "Setup read pending %p %08x" ), lpClient, lpClient->dwFlags );
@@ -1314,7 +1311,9 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 (int)pc->lpFirstPending->dwAvail,
 							 0);
   			dwError = WSAGetLastError();
-			//lprintf( "sent result: %d %d %d", nSent, pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
+#ifdef DEBUG_SOCK_IO
+			lprintf( "sent result: %d %d %d", nSent, pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
+#endif
 			if (nSent == SOCKET_ERROR) {
 				if( dwError == WSAEWOULDBLOCK )  // this is alright.
 				{
@@ -1368,7 +1367,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 			nSent = 0;
 
 #ifdef DEBUG_SOCK_IO
-		lprintf( "sent... %d %d %d", nSent, pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
+		lprintf( "sent... %d %d %d", nSent, pc->lpFirstPending?pc->lpFirstPending->dwUsed:0, pc->lpFirstPending?pc->lpFirstPending->dwAvail:0 );
 #endif
 
 		{  // sent some data - update pending buffer status.
