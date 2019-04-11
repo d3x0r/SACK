@@ -2096,8 +2096,13 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							if( globalNetworkData.flags.bLogNotices )
 								lprintf( WIDE( "TCP Write Event..." ) );
 #endif
-							event_data->pc->dwFlags &= ~CF_WRITEISPENDED;
-							TCPWrite( event_data->pc );
+							// if write did not get locked, a write is in progress
+							// wait until it finished there?
+							// did this wake up because that wrote?
+							if( locked ) {
+								event_data->pc->dwFlags &= ~CF_WRITEISPENDED;
+								TCPWrite( event_data->pc );
+							}
 						}
 						if( locked )
 							NetworkUnlock( event_data->pc, 0 );
