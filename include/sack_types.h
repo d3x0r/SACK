@@ -239,6 +239,9 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #include <wchar.h> // wchar for X_16 definition
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifndef _WIN32
+#  include <syscall.h>
+#endif
 
 
 #ifndef MY_TYPES_INCLUDED
@@ -1336,7 +1339,7 @@ typedef uint64_t THREAD_ID;
 #    ifdef __ANDROID__
 #      define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(gettid()) ) )
 #    else
-#      define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(pthread_self()) ) )
+#      define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(syscall(SYS_gettid)) ) )
 #    endif
 #  else
 #    define GetMyThreadID()  (( ((uint64_t)getppid()) << 32 ) | ( (uint64_t)(getpid()|0x40000000)) )
