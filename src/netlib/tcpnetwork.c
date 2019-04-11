@@ -151,13 +151,15 @@ void AcceptClient(PCLIENT pListen)
 		else
 			SET_SOCKADDR_LENGTH( pNewClient->saSource, nLen );
 	}
-	pNewClient->read.ReadComplete = pListen->read.ReadComplete;
-	pNewClient->psvRead = pListen->psvRead;
+	pNewClient->errorCallback           = pListen->errorCallback;
+	pNewClient->psvErrorCallback        = pListen->psvErrorCallback;
+	pNewClient->read.ReadComplete       = pListen->read.ReadComplete;
+	pNewClient->psvRead                 = pListen->psvRead;
 	pNewClient->close.CloseCallback     = pListen->close.CloseCallback;
-	pNewClient->psvClose = pListen->psvClose;
+	pNewClient->psvClose                = pListen->psvClose;
 	pNewClient->write.WriteComplete     = pListen->write.WriteComplete;
-	pNewClient->psvWrite = pListen->psvWrite;
-	pNewClient->dwFlags |= CF_CONNECTED | ( pListen->dwFlags & CF_CALLBACKTYPES );
+	pNewClient->psvWrite                = pListen->psvWrite;
+	pNewClient->dwFlags                |= CF_CONNECTED | ( pListen->dwFlags & CF_CALLBACKTYPES );
 	if( IsValid(pNewClient->Socket) )
 	{ // and we get one from the accept...
 #ifdef _WIN32

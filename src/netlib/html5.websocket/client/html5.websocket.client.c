@@ -259,7 +259,7 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 		wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
 
 	websock->buffer = Allocate( 4096 );
-	websock->pHttpState = CreateHttpState();
+	websock->pHttpState = CreateHttpState( &websock->pc );
 	websock->input_state.on_open = on_open;
 	websock->input_state.on_event = on_event;
 	websock->input_state.on_close = on_closed;

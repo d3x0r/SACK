@@ -66,7 +66,7 @@ enum ProcessHttpResult{
 
 HTTP_EXPORT /* Creates an empty http state, the next operation should be
    AddHttpData.                                              */
-HTTPState  HTTPAPI CreateHttpState( void );
+HTTPState  HTTPAPI CreateHttpState( PCLIENT *pc );
 HTTP_EXPORT /* Destroys a http state, releasing all resources associated
    with it.                                                  */
 void HTTPAPI DestroyHttpState( HTTPState pHttpState );

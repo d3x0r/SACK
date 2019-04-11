@@ -28,6 +28,7 @@
 
 //#define DEBUG_SSL_IO
 //#define DEBUG_SSL_IO_BUFFERS
+//#define DEBUG_SSL_IO_RAW
 //#define DEBUG_SSL_IO_VERBOSE
 
 #if defined ( NO_SSL )
@@ -115,6 +116,7 @@ EVP_PKEY *genKey() {
 struct ssl_session {
 	SSL_CTX        *ctx;
 	LOGICAL ignoreVerification;
+	LOGICAL firstPacket;
 	BIO *rbio;
 	BIO *wbio;
 	//EVP_PKEY *privkey;
@@ -196,6 +198,7 @@ static int handshake( PCLIENT pc ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 			r = SSL_get_error( ses->ssl, r );
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+
 #ifdef DEBUG_SSL_IO
 			lprintf( "SSL_Read failed... %d", r );
 #endif
@@ -232,7 +235,8 @@ static int handshake( PCLIENT pc ) {
 #ifdef DEBUG_SSL_IO
 				lprintf( "SSL_Read failed... %d", r );
 #endif
-				ERR_print_errors_cb( logerr, (void*)__LINE__ );
+				if( !pc->errorCallback )
+					ERR_print_errors_cb( logerr, (void*)__LINE__ );
 				return -1;
 			}
 			if (SSL_ERROR_WANT_READ == r) 
@@ -240,6 +244,7 @@ static int handshake( PCLIENT pc ) {
 			}
 			else {
 				ERR_print_errors_cb( logerr, (void*)__LINE__ );
+				return -1;
 			}
 			return 0;
 		}
@@ -257,8 +262,11 @@ static int handshake( PCLIENT pc ) {
 
 static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 {
-#ifdef DEBUG_SSL_IO
+#if defined( DEBUG_SSL_IO ) || defined( DEBUG_SSL_IO_RAW )
 	lprintf( "SSL Read complete %p %p %zd", pc, buffer, length );
+#  if defined( DEBUG_SSL_IO_RAW )
+	LogBinary( (const uint8_t*)buffer, length );
+#  endif
 #endif
 	if( pc->ssl_session )
 	{
@@ -276,7 +284,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			lprintf( "Wrote %zd", len );
 #endif
 			if( len < (int)length ) {
-				lprintf( "Protocol failure?" );
+				lprintf( "Internal buffer error; wrote less to buffer than specified?" );
 				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
 				Release( pc->ssl_session );
 				RemoveClient( pc );
@@ -307,6 +315,8 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 					if( !pc->ssl_session->ignoreVerification && SSL_get_peer_certificate( pc->ssl_session->ssl ) ) {
 						int r;
 						if( ( r = SSL_get_verify_result( pc->ssl_session->ssl ) ) != X509_V_OK ) {
+							if( pc->errorCallback )
+								pc->errorCallback( pc->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_CERTCHAIN_FAIL );
 							lprintf( "Certificate verification failed. %d", r );
 							LeaveCriticalSec( &pc->ssl_session->csReadWrite );
 							RemoveClientEx( pc, 0, 1 );
@@ -355,6 +365,8 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 							lprintf( "want more data?" );
 						} else
 							lprintf( "SSL_Read failed. %d", error );
+						if( pc->errorCallback )
+							pc->errorCallback( pc->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_FAIL );
 						//ERR_print_errors_cb( logerr, (void*)__LINE__ );
 						//RemoveClient( pc );
 						//return;
@@ -362,13 +374,19 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				}
 			}
 			else if( hs_rc == -1 ) {
-				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
-  				RemoveClient( pc );
-  				return;
+				if( pc->errorCallback )
+					pc->errorCallback( pc->psvErrorCallback, pc, pc->ssl_session->firstPacket
+						? SACK_NETWORK_ERROR_SSL_HANDSHAKE
+						: SACK_NETWORK_ERROR_SSL_HANDSHAKE_2
+						, buffer, length );
+				if( pc->ssl_session ) {
+					LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+					RemoveClient( pc );
+				}
+				return;
 			}
 			else
 				len = 0;
-
 			{
 				// the read generated write data, output that data
 				size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
@@ -467,6 +485,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
 		}
 		//lprintf( "Read more data..." );
+		if( !buffer )
+			pc->ssl_session->firstPacket = 1;
+		else
+			pc->ssl_session->firstPacket = 0;
 		if( pc->ssl_session ) {
 			ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
 		}
@@ -586,10 +608,11 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 	}
 	pc->ssl_session = NULL;
 	//lprintf( "Socket got close event... notify application..." );
+
 	if( ses->dwOriginalFlags & CF_CPPCLOSE )
-		ses->cpp_user_close( pc->psvClose );
+		if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
 	else
-		ses->user_close( pc );
+		if( ses->user_close ) ses->user_close( pc );
 
 	DeleteCriticalSec( &ses->csReadWrite );
 	//DeleteCriticalSec( &ses->csWrite );
@@ -880,9 +903,37 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	return TRUE;
 }
 
-
-LOGICAL ssl_IsClientSecure(PCLIENT pc) {
+LOGICAL ssl_IsClientSecure( PCLIENT pc ) {
 	return pc->ssl_session != NULL;
+}
+
+
+void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
+	if( pc && pc->ssl_session ) {
+		// revert native socket methods.
+		pc->read.ReadComplete = pc->ssl_session->user_read;
+		pc->close.CloseCallback = pc->ssl_session->user_close;
+		pc->connect.ClientConnected = pc->ssl_session->user_connected;
+		// restore all the native specified options for callbacks.
+		(*(uint32_t*)&pc->dwFlags) |= (pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE));
+		// prevent close event...
+		pc->ssl_session->user_close = NULL;
+		pc->ssl_session->cpp_user_close = NULL;
+		ssl_CloseCallback( pc );
+		
+		// SSL callback failed, but it may be possible to connect direct.
+		// and if so; setup to return a redirect.
+		if( buffer ) {
+			if( pc->dwFlags & CF_CPPREAD ) {
+				pc->read.CPPReadComplete( pc->psvRead, NULL, 0 );  // process read to get data already pending...
+				pc->read.CPPReadComplete( pc->psvRead, buffer, length );
+			}
+			else {
+				pc->read.ReadComplete( pc, NULL, 0 );
+				pc->read.ReadComplete( pc, buffer, length );
+			}
+		}
+	}
 }
 
 void ssl_SetIgnoreVerification( PCLIENT pc ) {

@@ -206,6 +206,17 @@ typedef void (CPROC*cppWriteComplete)(uintptr_t );
 typedef void (CPROC*cppNotifyCallback)(uintptr_t, PCLIENT newClient);
 typedef void (CPROC*cppConnectCallback)(uintptr_t, int);
 
+enum SackNetworkErrorIdentifier {
+	SACK_NETWORK_ERROR_,
+	SACK_NETWORK_ERROR_SSL_HANDSHAKE, // error during control information exchange over TLS
+	SACK_NETWORK_ERROR_SSL_HANDSHAKE_2, // error after first packet.
+	SACK_NETWORK_ERROR_SSL_CERTCHAIN_FAIL, // error verifying validity of certificate chain from server.
+	SACK_NETWORK_ERROR_SSL_FAIL, // other ssl error
+	SACK_NETWORK_ERROR_HTTP_CHUNK, // 
+	SACK_NETWORK_ERROR_HTTP_UNSUPPORTED, // command parsing resulted in invalid command.  (HTTPS request to HTTP)
+};
+typedef void (CPROC*cErrorCallback)(uintptr_t psvError, PCLIENT pc, enum SackNetworkErrorIdentifier error, ... );
+
 NETWORK_PROC( void, SetNetworkWriteComplete )( PCLIENT, cWriteComplete );
 #ifdef __cplusplus
 /* <combine sack::network::SetNetworkWriteComplete@PCLIENT@cWriteComplete>
@@ -241,6 +252,26 @@ NETWORK_PROC( void, SetCPPNetworkCloseCallback )( PCLIENT, cppCloseCallback, uin
    \ \                                                                     */
 #define SetCloseCallback SetNetworkCloseCallback
 
+/* Sets an error event callback which is triggered during low level (SSL) 
+   operations.  Error code passed to callback will give more information.
+
+   Parameters
+   pc :              socket to set event handler on
+   callback :        Address of error handling callback.
+   psvUser :         data passed to callback for application purposes.
+*/
+
+NETWORK_PROC( void, SetNetworkErrorCallback )(PCLIENT pc, cErrorCallback callback, uintptr_t psvUser );
+/* 
+   Trigger error callback with specified error code (meta code like http.c can trigger this(?))
+
+   Parameters
+   pc :              socket to set event handler on
+   code :        Address of error handling callback.
+
+ */
+NETWORK_PROC( void, TriggerNetworkErrorCallback )(PCLIENT pc, enum SackNetworkErrorIdentifier error );
+
  // wwords is BYTES and wClients=16 is defaulted to 16
 #ifdef __LINUX__
 NETWORK_PROC( LOGICAL, NetworkWait )(POINTER unused,uint32_t wClients,int wUserData);
@@ -267,9 +298,14 @@ NETWORK_PROC( SOCKADDR *, CreateAddress_hton )( uint32_t dwIP,uint16_t nHisPort)
 #ifndef WIN32
 NETWORK_PROC( SOCKADDR *, CreateUnixAddress )( CTEXTSTR path );
 #endif
+
+/* obsolete */
 NETWORK_PROC( SOCKADDR *, CreateAddress )( uint32_t dwIP,uint16_t nHisPort);
+/* obsolete */
 NETWORK_PROC( SOCKADDR *, SetAddressPort )( SOCKADDR *pAddr, uint16_t nDefaultPort );
+/* obsolete */
 NETWORK_PROC( SOCKADDR *, SetNonDefaultPort )( SOCKADDR *pAddr, uint16_t nDefaultPort );
+
 /*
  * this is the preferred method to create an address
  * name may be "* / *" with a slash, then the address result will be a unix socket (if supported)
@@ -327,9 +363,6 @@ NETWORK_PROC( LOGICAL, IsAddressV6 )( SOCKADDR *addr );
  */
 NETWORK_PROC( SOCKADDR *, DuplicateAddressEx )( SOCKADDR *pAddr DBG_PASS ); // return a copy of this address...
 #define DuplicateAddress(a) DuplicateAddressEx( a DBG_SRC )
-
-NETWORK_PROC( void, SackNetwork_SetSocketSecure )( PCLIENT lpClient );
-NETWORK_PROC( void, SackNetwork_AllowSecurityDowngrade )( PCLIENT lpClient );
 
 /* Transmission Control Protocol connection methods. This
    controls opening sockets that are based on TCP.        */
@@ -544,8 +577,6 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS );
 #define NetworkConnectTCP( pc ) NetworkConnectTCPEx( pc DBG_SRC )
 
 
-
-
 /* Drain is an operation on a TCP socket to just drop the next X
    bytes. They are ignored and not stored into any user buffer.
    Drain reads take precedence over any other queued reads.
@@ -748,11 +779,12 @@ _TCP_NAMESPACE_END
 
 
 NETWORK_PROC( void, SetNetworkLong )(PCLIENT lpClient,int nLong,uintptr_t dwValue);
-NETWORK_PROC( void, SetNetworkInt )(PCLIENT lpClient,int nLong, int value);
+NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient, int nLong);
+
 /* Obsolete. See SetNetworkLong. */
+NETWORK_PROC( void, SetNetworkInt )(PCLIENT lpClient,int nLong, int value);
+NETWORK_PROC( int, GetNetworkInt )(PCLIENT lpClient, int nLong);
 NETWORK_PROC( void, SetNetworkWord )(PCLIENT lpClient,int nLong,uint16_t wValue);
-NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong);
-NETWORK_PROC( int, GetNetworkInt )(PCLIENT lpClient,int nLong);
 NETWORK_PROC( uint16_t, GetNetworkWord )(PCLIENT lpClient,int nLong);
 
 /* Symbols which may be passed to GetNetworkLong to get internal
@@ -801,6 +833,16 @@ NETWORK_PROC( LOGICAL, ssl_BeginServer )( PCLIENT pc, CPOINTER cert, size_t cert
 NETWORK_PROC( LOGICAL, ssl_GetPrivateKey )(PCLIENT pc, POINTER *keydata, size_t *keysize);
 NETWORK_PROC( LOGICAL, ssl_IsClientSecure )(PCLIENT pc);
 NETWORK_PROC( void, ssl_SetIgnoreVerification )(PCLIENT pc);
+
+// during ssl error callback, this can be used to revert (server) sockets to 
+// non SSL.
+// a CLient socket will have already sent SSL Data on the socket, and it would
+// be unclean to try to change protocol.
+// the Server, however, fails the handshake on the first receive, and previously
+// just closed, but new error handling allows fallback to HTTP in order to send
+// a redirect to the HTTPS address proper.
+NETWORK_PROC( void, ssl_EndSecure )(PCLIENT pc, POINTER buffer, size_t buflen );
+
 
 /* use this to send on SSL Connection instead of SendTCP. */
 NETWORK_PROC( LOGICAL, ssl_Send )( PCLIENT pc, CPOINTER buffer, size_t length );

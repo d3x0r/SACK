@@ -535,22 +535,35 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		}
 		else
 		{
-			//lprintf( WIDE("Okay then hand this as data to process... within protocol") );
 			if( socket->flags.rfc6455 )
-			{
 				ProcessWebSockProtocol( &socket->input_state, pc, (uint8_t*)buffer, length );
-			}
 			else
 				HandleData( socket, pc, buffer, length );
 		}
+		if( !socket->input_state.flags.use_ssl )
+			ReadTCP( pc, socket->buffer, WSS_DEFAULT_BUFFER_SIZE );
 	}
 	else
 	{
-		//HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
-		buffer = socket->buffer = Allocate( WSS_DEFAULT_BUFFER_SIZE );
+		// it's possible that we ended SSL on first read and are falling back...
+		// re-check here to see if it's still SSL.
+
+		// this has to be complicated, because otherwise we can get partial out of order reads.
+		// first read after is no-long SSL needs to not generate a real read because there's
+		// already pending data to receive.
+		if( socket->input_state.flags.use_ssl ) {
+			socket->input_state.flags.use_ssl = ssl_IsClientSecure( pc );
+			if( !socket->input_state.flags.use_ssl )
+				buffer = socket->buffer = Allocate( WSS_DEFAULT_BUFFER_SIZE );
+		}
+		else {
+			socket->input_state.flags.use_ssl = ssl_IsClientSecure( pc );
+			if( !socket->input_state.flags.use_ssl ) {
+				buffer = socket->buffer = Allocate( WSS_DEFAULT_BUFFER_SIZE );
+				ReadTCP( pc, socket->buffer, WSS_DEFAULT_BUFFER_SIZE );
+			}
+		}
 	}
-	if( !socket->input_state.flags.use_ssl )
-		ReadTCP( pc, buffer, WSS_DEFAULT_BUFFER_SIZE );
 }
 
 static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
@@ -564,17 +577,12 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	socket->input_state.close_code = 1006;
 	if( ssl_IsClientSecure( pc_new ) )
 		socket->input_state.flags.use_ssl = 1;
-	socket->http_state = CreateHttpState(); // start a new http state collector
+	socket->http_state = CreateHttpState( &socket->pc ); // start a new http state collector
 	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
 	SetNetworkLong( pc_new, 0, (uintptr_t)socket );
 	SetNetworkLong( pc_new, 1, (uintptr_t)&socket->input_state );
 	SetNetworkReadComplete( pc_new, read_complete );
 	SetNetworkCloseCallback( pc_new, closed );
-}
-
-static LOGICAL CPROC HandleWebsockRequest( uintptr_t psv, HTTPState pHttpState )
-{
-	return 0;
 }
 
 PCLIENT WebSocketCreate( CTEXTSTR hosturl
@@ -598,11 +606,11 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	url = SACK_URLParse( hosturl );
 	socket->pc = OpenTCPListenerAddrEx( CreateSockAddress( url->host, url->port?url->port:url->default_port ), connected );
 	SACK_ReleaseURL( url );
-  if( !socket->pc ) {
-    Deallocate( HTML5WebSocket, socket );
-    return NULL;
-  }
-	socket->http_state = CreateHttpState();
+	if( !socket->pc ) {
+		Deallocate( HTML5WebSocket, socket );
+		return NULL;
+	}
+	socket->http_state = CreateHttpState( &socket->pc );
 	SetNetworkLong( socket->pc, 0, (uintptr_t)socket );
 	SetNetworkLong( socket->pc, 1, (uintptr_t)&socket->input_state );
 	return socket->pc;

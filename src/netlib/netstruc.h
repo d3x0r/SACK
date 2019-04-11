@@ -232,11 +232,15 @@ struct NetworkClient
 		cppReadCompleteEx CPPReadCompleteEx;
 	}read;
 	uintptr_t psvRead;
+
 	union {
 		void (CPROC*WriteComplete)( struct NetworkClient * );
 		void (CPROC*CPPWriteComplete)( uintptr_t psv );
 	}write;
 	uintptr_t psvWrite;
+
+	cErrorCallback errorCallback;
+	uintptr_t psvErrorCallback;
 
 	LOGICAL        bWriteComplete; // set during bWriteComplete Notify...
 

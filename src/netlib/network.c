@@ -1196,6 +1196,21 @@ void SetCPPNetworkReadComplete( PCLIENT pClient
 
 //----------------------------------------------------------------------------
 
+void SetNetworkErrorCallback( PCLIENT pc, cErrorCallback callback, uintptr_t psvUser ) {
+	if( pc ) {
+		pc->errorCallback = callback;
+		pc->psvErrorCallback = psvUser;
+	}
+}
+
+//----------------------------------------------------------------------------
+
+void TriggerNetworkErrorCallback( PCLIENT pc, enum SackNetworkErrorIdentifier error ) {
+	if( pc && pc->errorCallback )
+		pc->errorCallback( pc->psvErrorCallback, pc, error );
+}
+
+//----------------------------------------------------------------------------
 
 #if defined( _WIN32 )
 //----------------------------------------------------------------------------
