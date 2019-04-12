@@ -607,12 +607,12 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 		return;
 	}
 	pc->ssl_session = NULL;
-	//lprintf( "Socket got close event... notify application..." );
 
-	if( ses->dwOriginalFlags & CF_CPPCLOSE )
+	if( ses->dwOriginalFlags & CF_CPPCLOSE ){
 		if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
-	else
+	}else{
 		if( ses->user_close ) ses->user_close( pc );
+	}
 
 	DeleteCriticalSec( &ses->csReadWrite );
 	//DeleteCriticalSec( &ses->csWrite );
