@@ -347,8 +347,12 @@ void WebSocketClose( PCLIENT pc, int code, const char *reason )
 		if( websock->Magic == 0x20130911 ) { // struct web_socket_client
 			//lprintf( "send client side close?" );
 			if( websock->flags.connected ) {
-				while( !NetworkLockEx( pc, 1 DBG_SRC ) )
+				while( !NetworkLockEx( pc, 1 DBG_SRC ) ){
+					// closing closed socket....
+					if( !sack_network_is_active(pc) )
+						return;
 					Relinquish();
+				}
 				SendWebSocketMessage( pc, 8, 1, websock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen, websock->input_state.flags.use_ssl );
 				websock->input_state.flags.closed = 1;
 				NetworkUnlock( pc, 1 );

@@ -558,6 +558,11 @@ PCLIENT AddActive( PCLIENT pClient )
 	return pClient;
 }
 
+LOGICAL sack_network_is_active( PCLIENT pc ) {
+	if( pc && ( pc->dwFlags & ( CF_ACTIVE )) && !( pc->dwFlags & (CF_CLOSED)) ) return TRUE;
+	return FALSE;
+}
+
 //----------------------------------------------------------------------------
 
 static PCLIENT AddClosed( PCLIENT pClient )

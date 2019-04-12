@@ -226,6 +226,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			//lprintf( "Reading more, after returning a packet before... %d", pHttpState->response_version );
 			if( pHttpState->response_version ) {
 				GatherHttpData( pHttpState );
+				//lprintf( "return http nothing  %d", pHttpState->flags.success );
 
 				if( pHttpState->flags.success && !pHttpState->returned_status ) {
 					unlockHttp( pHttpState );
@@ -575,6 +576,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			) )
 	{
 		pHttpState->returned_status = 1;
+		//lprintf( "return http %d",pHttpState->numeric_code );
 		if( pHttpState->numeric_code == 500 )
 			return HTTP_STATE_INTERNAL_SERVER_ERROR;
 		if( pHttpState->content && (pHttpState->numeric_code == 200) ) {
@@ -588,6 +590,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			return HTTP_STATE_BAD_REQUEST;
 		return pHttpState->numeric_code;
 	}
+	//lprintf( "return http nothing" );
 	return HTTP_STATE_RESULT_NOTHING;
 }
 
@@ -978,14 +981,18 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 	}
 	else
 	{
+#ifdef _DEBUG
 		if( l.flags.bLogReceived )
 		{
 			lprintf( WIDE("Received web request... %zu"), size );
-			//LogBinary( buffer, size );
+			LogBinary( (const uint8_t*) buffer, size );
 		}
+#endif
+		//lprintf( "adding data:%d", size );
 		if( AddHttpData( state, buffer, size ) )
 			if( ProcessHttp( pc, state ) )
 			{
+				//lprintf( "this is where we should close and not end... %d %d",state->flags.close , !state->flags.keep_alive );
 				if( state->flags.close || !state->flags.keep_alive) {
 					RemoveClient( pc );
 					return;
@@ -1005,9 +1012,11 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 {
 	struct HttpState *data = (struct HttpState *)GetNetworkLong( pc, 0 );
 	PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
+	//lprintf( "Closing http: %p ", pc );
 	if( ppc[0] == pc ) {
 		if( ppc )
 			ppc[0] = NULL;
+		//lprintf( "So now i's null?" );
 		if( data->waiter ) {
 			//lprintf( "(on close) Waking waiting to return with result." );
 			WakeThread( data->waiter );
@@ -1036,6 +1045,7 @@ static void CPROC HttpConnected( PCLIENT pc, int error ) {
 	}
 	SetNetworkLong( pc, 0, (uintptr_t)connect->state );
 	Release( connect );
+	lprintf( "Got connected... so connect gets released?");
 }
 
 HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
@@ -1055,7 +1065,8 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 	if( pc )
 	{
 		PTEXT send = VarTextGet( pvtOut );
-		state->pc = &pc;
+		state->request_socket = pc;
+		state->pc = &state->request_socket;
 		state->waiter = MakeThread();
 		SetNetworkLong( pc, 0, (uintptr_t)state );
 		SetNetworkCloseCallback( pc, HttpReaderClose );
@@ -1064,9 +1075,9 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 			lprintf( WIDE("Sending POST...") );
 			LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 		}
-		SendTCP( pc, GetText( send ), GetTextSize( send ) );
+		SendTCP( state->request_socket, GetText( send ), GetTextSize( send ) );
 		LineRelease( send );
-		while( pc )
+		while( state->request_socket )
 		{
 			WakeableSleep( 100 );
 		}
@@ -1189,7 +1200,8 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 		{
 			state->last_read_tick = GetTickCount();
 			state->waiter = MakeThread();
-			state->pc = &connect->pc;
+			state->request_socket = connect->pc;
+			state->pc = &state->request_socket;
 			SetNetworkLong( pc, 0, (uintptr_t)state );
 
 			//SetNetworkConn
@@ -1211,19 +1223,19 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 				}
 				state->waiter = MakeThread();
 				// wait for response.
-				while( connect->pc && ( state->last_read_tick > ( GetTickCount() - 3000 ) ) )
+				while( state->request_socket && ( state->last_read_tick > ( GetTickCount() - 3000 ) ) )
 				{
 					WakeableSleep( 1000 );
 				}
 				//lprintf( "Request has completed.... %p %p", pc, state->content );
-				if( connect->pc )
-					RemoveClient( connect->pc ); // this shouldn't happen... it should have ben closed already.
+				if( state->request_socket )
+					RemoveClient( state->request_socket ); // this shouldn't happen... it should have ben closed already.
 			}
 			else
-				RemoveClient( connect->pc ); // ssl begin failed to start.
+				RemoveClient( state->request_socket ); // ssl begin failed to start.
 #endif
 			VarTextDestroy( &state->pvtOut );
-			if( !connect->pc )
+			if( !state->request_socket )
 				return state;
 		}
 		else
@@ -1309,6 +1321,7 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 		pHttpState->ssl = pHttpStateServer->ssl;
 		buffer = pHttpState->buffer = Allocate( 4096 );
 		pHttpState->request_socket = pc;
+		//lprintf( "update pc here?" );
 		pHttpState->pc = &pHttpState->request_socket;
 		SetNetworkLong( pc, 1, (uintptr_t)pHttpState );
 	}
@@ -1330,7 +1343,7 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 		{
 			int status;
 			struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc, 0 );
-			//lprintf( "result = %d", result );
+			lprintf( "result = %d", result );
 			switch( result )
 			{
 			case HTTP_STATE_RESULT_CONTENT:
