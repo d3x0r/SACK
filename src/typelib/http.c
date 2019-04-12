@@ -1045,7 +1045,7 @@ static void CPROC HttpConnected( PCLIENT pc, int error ) {
 	}
 	SetNetworkLong( pc, 0, (uintptr_t)connect->state );
 	Release( connect );
-	lprintf( "Got connected... so connect gets released?");
+	//lprintf( "Got connected... so connect gets released?");
 }
 
 HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
