@@ -1394,6 +1394,10 @@ size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const char * data, size
 			if( file->fpi > ( file->entry->filesize ^ file->dirent_key.filesize ) )
 				file->entry->filesize = file->fpi ^ file->dirent_key.filesize;
 			file->block = vfs_GetNextBlock( file->vol, file->block, FALSE, TRUE );
+			if( !file->block ) {
+				lprintf( "File is corrupt");
+				return written;
+			}
 			block = (uint8_t*)vfs_BSEEK( file->vol, file->block, &cache ); // in case the block needs to be allocated/expanded.
 			LoG( "file block is %d", (int)file->block );
 			SetBlockChain( file, file->fpi, file->block );
