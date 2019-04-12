@@ -324,9 +324,10 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 										nextBlock = BAT_[nn] ^ blockKey_[nn];
 									}
 									if( !nextBlock ) {
-										lprintf( "FELL OFF OF FILE CHAIN INTO EMPTY SPACE (0)!" );
+										lprintf( "FELL OFF OF FILE CHAIN INTO EMPTY SPACE (0)! (find file and delete it?)" );
 										LogBinary( usedSectors, size * sizeof( FLAGSETTYPE ) );
 										DebugBreak();
+										break;
 									}
 								}
 								else {
