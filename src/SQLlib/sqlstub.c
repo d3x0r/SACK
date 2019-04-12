@@ -194,6 +194,11 @@ ATEXIT_PRIORITY( CloseConnections, ATEXIT_PRIORITY_SYSLOG - 3 )
 
 #else
 
+PRIORITY_PRELOAD( InitGlobalData, SQL_PRELOAD_PRIORITY )
+{
+	SqlStubInitLibrary();
+}
+
 ATEXIT_PRIORITY( CloseConnections, ATEXIT_PRIORITY_SYSLOG - 3 )
 {
 	PODBC odbc;
