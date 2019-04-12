@@ -1343,7 +1343,7 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 		{
 			int status;
 			struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc, 0 );
-			lprintf( "result = %d", result );
+			//lprintf( "result = %d", result );
 			switch( result )
 			{
 			case HTTP_STATE_RESULT_CONTENT:
