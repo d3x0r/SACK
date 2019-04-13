@@ -1384,6 +1384,7 @@ size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const char * data, size
 			file->block = vfs_GetNextBlock( file->vol, file->block, FALSE, TRUE );
 			if( !file->block ) {
 				lprintf( "File is corrupt");
+				file->vol->lock = 0;
 				return written;
 			}
 			block = (uint8_t*)vfs_BSEEK( file->vol, file->block, &cache ); // in case the block needs to be allocated/expanded.
@@ -1413,6 +1414,7 @@ size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const char * data, size
 			file->block = vfs_GetNextBlock( file->vol, file->block, FALSE, TRUE );
 			if( !file->block ) {
 				lprintf( "File is corrupt");
+				file->vol->lock = 0;
 				return written;
 			}
 			LoG( "File block was %d", file->block );
@@ -1464,6 +1466,7 @@ size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t leng
 			file->block = vfs_GetNextBlock( file->vol, file->block, FALSE, TRUE );
 			if( !file->block ) {
 				lprintf( "File is corrupt");
+				file->vol->lock = 0;
 				return written;
 			}
 			block = (uint8_t*)vfs_BSEEK( file->vol, file->block, &cache ); // in case the block needs to be allocated/expanded.
@@ -1489,6 +1492,7 @@ size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t leng
 			file->block = vfs_GetNextBlock( file->vol, file->block, FALSE, TRUE );
 			if( !file->block ) {
 				lprintf( "File is corrupt");
+				file->vol->lock = 0;
 				return written;
 			}
 			block = (uint8_t*)vfs_BSEEK( file->vol, file->block, &cache ); // in case the block needs to be allocated/expanded.
