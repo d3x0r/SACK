@@ -60,7 +60,6 @@ static struct directory_entry * ScanDirectory( struct volume *vol, const char * 
 
 static char mytolower( int c ) {	if( c == '\\' ) return '/'; return tolower( c ); }
 
-
 static int  PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
 {
 	if( !s1 )
@@ -257,12 +256,13 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 	BLOCKINDEX last_block = ( slab * BLOCKS_PER_BAT ) / BLOCKS_PER_SECTOR;
 	BLOCKINDEX n;
 	int sector;
+	int sector_b = -1;
 	FLAGSETTYPE *usedSectors;
 	if( vol->dwSize & 0xfFF ) {
 		lprintf( "Volume is setup to fail with an odd number of bytes total : %d %08x %08x", (int)(vol->dwSize & 0xFFF), vol->dwSize, vol->dwSize );
 	}
 	size_t size;
-	usedSectors = NewArray( FLAGSETTYPE, size= (2+(vol->dwSize / 4096)/(CHAR_BIT*sizeof(FLAGSETTYPE) )) );
+	usedSectors = NewArray( FLAGSETTYPE, size= (2+(vol->dwSize / BLOCK_SIZE)/(CHAR_BIT*sizeof(FLAGSETTYPE) )) );
 	MemSet( usedSectors, 0, size * sizeof( FLAGSETTYPE ) );
 
 	//if( vol->key ) 
@@ -280,24 +280,28 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 			// have to update the key first... it might not be pointing at the right thing.
 			blockKey_ = blockKey = ((BLOCKINDEX*)vol->usekey[BC( BAT )]);
 
+
 			for( m = 0; m < BLOCKS_PER_BAT; m++ )
 			{
 				BLOCKINDEX block = BAT[0] ^ blockKey[0];
+				BLOCKINDEX blockIndex = (sector*BLOCKS_PER_BAT) + m;
 				BAT++; blockKey++;
 				if( block == EOBBLOCK ) {
-					vol->lastBatBlock = n + m;
+					LoGB( "Bat Length was %d is now: %d (really %d)", vol->lastBatBlock, n+m, (sector*BLOCKS_PER_BAT)+m );
+					vol->lastBatBlock = (sector*BLOCKS_PER_BAT) + m;
 					break;
 				}
 				if( block )
-					if( !TESTFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m ) ) {
+					if( !TESTFLAG( usedSectors, blockIndex ) ) {
 						if( block == EOFBLOCK )
-							SETFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m );
+							SETFLAG( usedSectors, blockIndex );
 						else {
 							int chainLen = 0;
 							enum block_cache_entries cache = BC( FILE );
 							BLOCKINDEX nextBlock = block;
 							BLOCKINDEX nextBlock_;
-							SETFLAG( usedSectors, (sector*BLOCKS_PER_BAT) + m );
+							SETFLAG( usedSectors, blockIndex );
+							LoG( "ValidateBAT: following chain of blocks from block %d", blockIndex );
 							while( nextBlock != EOFBLOCK ) {
 								BLOCKINDEX b;
 								BLOCKINDEX nn;
@@ -311,24 +315,29 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 								}
 								b = nextBlock / (BLOCKS_PER_BAT);
 								nn = nextBlock & (BLOCKS_PER_BAT - 1);
-								if( !TESTFLAG( usedSectors, (b*BLOCKS_PER_BAT) + nn ) ) {
+								if( !TESTFLAG( usedSectors, nextBlock ) ) {
 									nextBlock_ = nextBlock;
-									SETFLAG( usedSectors, (b*BLOCKS_PER_BAT) + nn );
+									SETFLAG( usedSectors, nextBlock );
 									if( b != sector ) {
 										checkBAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + (b)* BLOCKS_PER_SECTOR*BLOCK_SIZE);
 										checkBlockKey = ((BLOCKINDEX*)vol->usekey[BC( DATAKEY )]);
-										UpdateSegmentKey( vol, BC( DATAKEY ), ((b)* BLOCKS_PER_SECTOR) + 1 );
-										nextBlock = checkBAT[nn] ^ checkBlockKey[nn];
+										if( b != sector_b ) {
+											UpdateSegmentKey( vol, BC( DATAKEY ), ((b)* BLOCKS_PER_SECTOR) + 1 );
+											sector_b = b;
+										}
 									}
 									else {
-										nextBlock = BAT_[nn] ^ blockKey_[nn];
+										checkBAT = BAT_;
+										checkBlockKey = blockKey_;
 									}
+									nextBlock = checkBAT[nn] ^ checkBlockKey[nn];
 									if( !nextBlock ) {
 										lprintf( "FELL OFF OF FILE CHAIN INTO EMPTY SPACE (0)! (find file and delete it?)" );
 										LogBinary( usedSectors, size * sizeof( FLAGSETTYPE ) );
 										DebugBreak();
 										break;
-									}
+									} 
+									LoG( "Next block in chain to follow: %d %p", nextBlock, checkBAT );
 								}
 								else {
 									if( nextBlock < ((sector*BLOCKS_PER_BAT) + m) ) {
@@ -351,39 +360,16 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 					}
 				if( block == EOFBLOCK ) continue;
 				if( block >= last_block ) return FALSE;
-				if( block == 0 ) {
-					vol->lastBatBlock = (sector*BLOCKS_PER_BAT) + m; // use as a temp variable....
-					LoGB( "SET LAST BLOCK AVAIL: %d", (int)vol->lastBatBlock );
-					AddDataItem( &vol->pdlFreeBlocks, &vol->lastBatBlock );
-				}
+				//if( initial )
+					if( block == 0 ) {
+						vol->lastBatBlock = (sector*BLOCKS_PER_BAT) + m; // use as a temp variable....
+						LoGB( "SET LAST BLOCK AVAIL: %d", (int)vol->lastBatBlock );
+						AddDataItem( &vol->pdlFreeBlocks, &vol->lastBatBlock );
+					}
 			}
 			if( m < BLOCKS_PER_BAT ) break;
 		}
 	}
-#if 0
-	// complexity of the above code shouldn't HAVE To be replicated
-	// keyless disk works the same way.
-	else {
-		for( n = first_slab; n < slab; n += BLOCKS_PER_SECTOR  ) {
-			size_t m;
-			BLOCKINDEX *BAT = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * BLOCK_SIZE);
-			for( m = 0; m < BLOCKS_PER_BAT; m++ ) {
-				BLOCKINDEX block = BAT[m];
-				if( block == EOFBLOCK ) continue;
-				if( block == EOBBLOCK ) {
-					vol->lastBatBlock = n + m;
-					break;
-				}
-				if( block >= last_block ) return FALSE;
-				if( block == 0 ) {
-					vol->lastBatBlock = n + m; // use as a temp variable....
-					AddDataItem( &vol->pdlFreeBlocks, &vol->lastBatBlock );
-				}
-			}
-			if( m < BLOCKS_PER_BAT ) break;
-		}
-	}
-#endif
 	Release( usedSectors );
 	if( !ScanDirectory( vol, NULL, NULL, 0 ) ) return FALSE;
 	return TRUE;
@@ -673,9 +659,11 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, int init )
 	size_t n;
 	unsigned int b = 0;
 	enum block_cache_entries cache = BC(BAT);
-	BLOCKINDEX *current_BAT = TSEEK( BLOCKINDEX*, vol, 0, cache );
+	// don't need to init to 0 anymore.
+	BLOCKINDEX *current_BAT;// = TSEEK( BLOCKINDEX*, vol, 0, cache );
 	BLOCKINDEX *blockKey;
 	BLOCKINDEX check_val;
+	BLOCKINDEX result;
 	if( vol->pdlFreeBlocks->Cnt ) {
 		BLOCKINDEX newblock = ((BLOCKINDEX*)GetDataItem( &vol->pdlFreeBlocks, vol->pdlFreeBlocks->Cnt - 1 ))[0];
 		LoGB( "Got free block from existin tracked blocks:%d", newblock );
@@ -692,15 +680,15 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, int init )
 	LoG( "(should be 0) check, start, b, n %d %d %d %d", (int)check_val, (int) vol->lastBatBlock, (int)b, (int)n );
 	current_BAT = TSEEK( BLOCKINDEX*, vol, b*BLOCKS_PER_SECTOR*BLOCK_SIZE, cache ) + n;
 	blockKey = ((BLOCKINDEX*)vol->usekey[cache]) + n;
-
+	result = b * BLOCKS_PER_BAT + n;
 	if( !current_BAT ) return 0;
 
 	current_BAT[0] = EOFBLOCK ^ blockKey[0];
-	LoGB( "Write to BAT: EOF at %d  %d", (int)n, b * BLOCKS_PER_BAT + n );
+	LoGB( "Write to BAT: EOF at %d  %d", (int)n, result );
 	if( (check_val == EOBBLOCK) ) {
 		if( n < (BLOCKS_PER_BAT - 1) ) {
 			current_BAT[1] = EOBBLOCK ^ blockKey[1];
-			LoGB( "Write to BAT: EOB at %d  %d", (int)n+1, b * BLOCKS_PER_BAT + n + 1 );
+			LoGB( "Write to BAT: EOB at %d  %d", (int)n+1, result + 1 );
 			vol->lastBatBlock++;
 		}
 		else {
@@ -717,7 +705,7 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, int init )
 
 	if( init ) {
 		enum block_cache_entries cache;
-		cache = UpdateSegmentKey( vol, BC( FILE ), b * (BLOCKS_PER_SECTOR)+n + 1 + 1 );
+		cache = UpdateSegmentKey( vol, BC( FILE ), result + 1 + 1 );
 		while( ((vol->segment[cache] - 1)*BLOCK_SIZE) > vol->dwSize ) {
 			LoG( "looping to get a size %d", ((vol->segment[cache] - 1)*BLOCK_SIZE) );
 			if( !ExpandVolume( vol ) ) return 0;
@@ -730,7 +718,7 @@ static BLOCKINDEX GetFreeBlock( struct volume *vol, int init )
 		//	memcpy( ((uint8_t*)vol->disk) + (vol->segment[cache]-1) * BLOCK_SIZE, vol->usekey[cache], BLOCK_SIZE );
 	}
 	//lprintf( "Return block:%d   %d  %d", (int)(b*BLOCKS_PER_BAT + n), (int)b, (int)n );
-	return b * BLOCKS_PER_BAT + n;
+	return result;
 
 }
 
@@ -762,14 +750,14 @@ static BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int in
 			// free block might have expanded...
 			cache = BC( BAT );
 			this_BAT = TSEEK( BLOCKINDEX*, vol, sector * ( BLOCKS_PER_SECTOR*BLOCK_SIZE ), cache );
-			key = vol->key ? ((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT - 1)] : 0;
+			key = ((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT - 1)];
 			if( !this_BAT ) return 0;
 #ifdef _DEBUG
 			if( !block ) DebugBreak();
 #endif
 			// segment could already be set from the GetFreeBlock...
 			this_BAT[block & (BLOCKS_PER_BAT-1)] = check_val ^ key;
-			LoGB( "Write to BAT: Chain %d at %d  %d", check_val, (int)(block&(BLOCKS_PER_BAT-1)), block );
+			LoGB( "Write to BAT: Chain %d at %d  %d  %p", check_val, (int)(block&(BLOCKS_PER_BAT-1)), block, this_BAT );
 		}
 	}
 	return check_val;
@@ -1545,7 +1533,7 @@ static void sack_vfs_unlink_file_entry( struct volume *vol, struct directory_ent
 			memset( blockData, 0, BLOCK_SIZE );
 			block = vfs_GetNextBlock( vol, block, FALSE, FALSE );
 			this_BAT[_block & (BLOCKS_PER_BAT-1)] = _thiskey;
-			LoGB( "Write to BAT: 0 at %d  %d  (STORE FREE too)", (int)(_block&(BLOCKS_PER_BAT - 1)), _block );
+			LoGB( "Write to BAT: 0 at %d  %d  %p (STORE FREE too)", (int)(_block&(BLOCKS_PER_BAT - 1)), _block, this_BAT );
 			AddDataItem( &vol->pdlFreeBlocks, &_block );
 			_block = block;
 		} while( block != EOFBLOCK );
