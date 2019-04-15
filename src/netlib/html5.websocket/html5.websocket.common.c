@@ -478,16 +478,17 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 
 void WebSocketPing( PCLIENT pc, uint32_t timeout )
 {
-	uint32_t start_at = timeGetTime();
-	uint32_t target = start_at + timeout;
-	uint32_t now;
 	struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
 	SendWebSocketMessage( pc, 9, 1, input_state->flags.expect_masking, NULL, 0, input_state->flags.use_ssl );
-
-	while( !input_state->flags.received_pong
-			&& ( ( ( now=timeGetTime() ) - start_at ) < timeout ) )
-		IdleFor( target-now );
-	input_state->flags.received_pong = 0;
+	if( timeout ) {
+		uint32_t start_at = timeGetTime();
+		uint32_t target = start_at + timeout;
+		uint32_t now;
+		while( !input_state->flags.received_pong
+			&& (((now = timeGetTime()) - start_at) < timeout) )
+			IdleFor( target - now );
+		input_state->flags.received_pong = 0;
+	}
 }
 
 
