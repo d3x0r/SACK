@@ -637,7 +637,7 @@ void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
 #  define sg (*global_sqlstub_data)
 		extern struct pssql_global *global_sqlstub_data;
 #endif
-		lprintf( "Sqlite3 Notice: wal recovered: generating checkpoint:%s", zMsg);
+		lprintf( "Sqlite3 Notice: wal recovered: generating checkpoint:%s", zMsg );
 		// after open returns, generate an automatic wal_checkpoint.
 		sg.flags.bAutoCheckpointRecover = 1;
 	}
@@ -645,6 +645,8 @@ void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
 		lprintf( "Sqlite3 Notice: journal rollback:%s", zMsg );
 	}
 	else if( iErrCode == SQLITE_ERROR )
+		; // these will generally be logged by other error handling.
+	else if( (iErrCode & SQLITE_CONSTRAINT) == SQLITE_CONSTRAINT )		
 		; // these will generally be logged by other error handling.
 	else
 		lprintf( "Sqlite3 Err: (%d) %s", iErrCode, zMsg);

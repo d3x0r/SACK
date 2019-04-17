@@ -3326,7 +3326,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				result_cmd = WM_SQL_RESULT_ERROR;
 				break;
 			default:
-				lprintf( WIDE("Step status %d:%s %08x"), rc3, sqlite3_errmsg(odbc->db ), sqlite3_extended_errcode(odbc->db) );
+				vtprintf( collection->pvt_errorinfo, WIDE("Step status %d:%s %08x"), rc3, sqlite3_errmsg(odbc->db ), sqlite3_extended_errcode(odbc->db) );
 				result_cmd = WM_SQL_RESULT_ERROR;
 				break;
 			}
