@@ -263,6 +263,7 @@ struct NetworkClient
 		BIT_FIELD bRemoveFromEvents : 1;
 		BIT_FIELD bSecure : 1;
 		BIT_FIELD bAllowDowngrade : 1;
+		BIT_FIELD bWaiting : 1; // waiting is a accept() flag to prevent accepting sockets before really setup.
 	} flags;
 	// this is set to what the thread that's waiting for this event is.
 	struct peer_thread_info * volatile this_thread;

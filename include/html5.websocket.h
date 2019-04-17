@@ -44,6 +44,15 @@ HTML5_WEBSOCKET_NAMESPACE
 
 // need some sort of other methods to work with an HTML5WebSocket...
 // server side.
+HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate_v2 )(CTEXTSTR hosturl
+	, web_socket_opened on_open
+	, web_socket_event on_event
+	, web_socket_closed on_closed
+	, web_socket_error on_error
+	, uintptr_t psv
+	, int webSocketOptions
+);
+#define WEBSOCK_SERVER_OPTION_WAIT 1
 	HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate )( CTEXTSTR server_url
 																	, web_socket_opened on_open
 																	, web_socket_event on_event

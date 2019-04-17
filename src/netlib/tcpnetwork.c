@@ -88,6 +88,10 @@ _TCP_NAMESPACE
 LOGICAL TCPDrainRead( PCLIENT pClient );
 //----------------------------------------------------------------------------
 
+void SetNetworkListenerReady( PCLIENT pListen ) {
+	pListen->flags.bWaiting = 0;
+}
+
 void AcceptClient(PCLIENT pListen)
 {
 #ifdef __LINUX__
@@ -100,7 +104,7 @@ void AcceptClient(PCLIENT pListen)
 
 	pNewClient = GetFreeNetworkClient();
 	// new client will be locked...
-	if( !pNewClient )
+	if( !pNewClient || !pListen || pListen->flags.bWaiting )
 	{
 		SOCKADDR *junk = AllocAddr();
 		nTemp = MAGIC_SOCKADDR_LENGTH;
@@ -257,9 +261,10 @@ void AcceptClient(PCLIENT pListen)
 
 //----------------------------------------------------------------------------
 
-PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
+PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
                                  , cppNotifyCallback NotifyCallback
                                  , uintptr_t psvConnect
+                                 , LOGICAL waitForReady
                                  DBG_PASS )
 {
 	PCLIENT pListen;
@@ -294,6 +299,7 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 #endif
 	pListen->dwFlags &= ~CF_UDP; // make sure this flag is clear!
 	pListen->dwFlags |= CF_LISTEN;
+	pListen->flags.bWaiting = waitForReady;
 	if( pListen->Socket == INVALID_SOCKET )
 	{
 		lprintf( WIDE(" Open Listen Socket Fail... %d"), errno);
@@ -390,12 +396,30 @@ PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
 	return pListen;
 }
 
+PCLIENT CPPOpenTCPListenerAddrExx( SOCKADDR *pAddr
+	, cppNotifyCallback NotifyCallback
+	, uintptr_t psvConnect
+	DBG_PASS )
+{
+	return CPPOpenTCPListenerAddr_v2d( pAddr, NotifyCallback, psvConnect, FALSE DBG_RELAY );
+}
+//----------------------------------------------------------------------------
+PCLIENT OpenTCPListenerAddr_v2d( SOCKADDR *pAddr
+                              , cNotifyCallback NotifyCallback
+                              , LOGICAL waitForReady DBG_PASS )
+{
+	PCLIENT result = CPPOpenTCPListenerAddr_v2d( pAddr, (cppNotifyCallback)NotifyCallback, 0, waitForReady DBG_RELAY );
+	if( result )
+		result->dwFlags &= ~CF_CPPCONNECT;
+	return result;
+}
+
 //----------------------------------------------------------------------------
 
 PCLIENT OpenTCPListenerAddrExx( SOCKADDR *pAddr
                               , cNotifyCallback NotifyCallback DBG_PASS )
 {
-	PCLIENT result = CPPOpenTCPListenerAddrExx( pAddr, (cppNotifyCallback)NotifyCallback, 0 DBG_RELAY );
+	PCLIENT result = CPPOpenTCPListenerAddr_V2d( pAddr, (cppNotifyCallback)NotifyCallback, 0, FALSE DBG_RELAY );
 	if( result )
 		result->dwFlags &= ~CF_CPPCONNECT;
 	return result;

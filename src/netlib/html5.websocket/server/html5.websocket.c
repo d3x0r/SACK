@@ -585,12 +585,14 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	SetNetworkCloseCallback( pc_new, closed );
 }
 
-PCLIENT WebSocketCreate( CTEXTSTR hosturl
+PCLIENT WebSocketCreate_v2( CTEXTSTR hosturl
 							, web_socket_opened on_open
 							, web_socket_event on_event
 							, web_socket_closed on_closed
 							, web_socket_error on_error
-							, uintptr_t psv )
+							, uintptr_t psv
+							, int webSocketOptions
+						)
 {
 	struct url_data *url;
 	HTML5WebSocket socket = New( struct html5_web_socket );
@@ -604,7 +606,9 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	socket->input_state.psv_on = psv;
 	socket->input_state.close_code = 1006;
 	url = SACK_URLParse( hosturl );
-	socket->pc = OpenTCPListenerAddrEx( CreateSockAddress( url->host, url->port?url->port:url->default_port ), connected );
+	socket->pc = OpenTCPListenerAddr_v2( CreateSockAddress( url->host, url->port?url->port:url->default_port )
+		, connected
+		, (webSocketOptions & WEBSOCK_SERVER_OPTION_WAIT)?TRUE:FALSE );
 	SACK_ReleaseURL( url );
 	if( !socket->pc ) {
 		Deallocate( HTML5WebSocket, socket );
@@ -614,6 +618,16 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	SetNetworkLong( socket->pc, 0, (uintptr_t)socket );
 	SetNetworkLong( socket->pc, 1, (uintptr_t)&socket->input_state );
 	return socket->pc;
+}
+
+PCLIENT WebSocketCreate( CTEXTSTR hosturl
+	, web_socket_opened on_open
+	, web_socket_event on_event
+	, web_socket_closed on_closed
+	, web_socket_error on_error
+	, uintptr_t psv )
+{
+	return WebSocketCreate_v2( hosturl, on_open, on_event, on_closed, on_error, psv, 0 );
 }
 
 PLIST GetWebSocketHeaders( PCLIENT pc ) {
