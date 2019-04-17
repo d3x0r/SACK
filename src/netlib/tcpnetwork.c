@@ -419,7 +419,7 @@ PCLIENT OpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 PCLIENT OpenTCPListenerAddrExx( SOCKADDR *pAddr
                               , cNotifyCallback NotifyCallback DBG_PASS )
 {
-	PCLIENT result = CPPOpenTCPListenerAddr_V2d( pAddr, (cppNotifyCallback)NotifyCallback, 0, FALSE DBG_RELAY );
+	PCLIENT result = CPPOpenTCPListenerAddr_v2d( pAddr, (cppNotifyCallback)NotifyCallback, 0, FALSE DBG_RELAY );
 	if( result )
 		result->dwFlags &= ~CF_CPPCONNECT;
 	return result;
