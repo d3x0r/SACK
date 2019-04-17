@@ -239,207 +239,210 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #include <wchar.h> // wchar for X_16 definition
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifndef _WIN32
+#if !defined( _WIN32 ) && !defined( __MAC__ )
 #  include <syscall.h>
+#elif defined( __MAC__ )
+#  include <sys/syscall.h>
 #endif
 
 
 #ifndef MY_TYPES_INCLUDED
-#define MY_TYPES_INCLUDED
+#  define MY_TYPES_INCLUDED
 // include this before anything else
 // thereby allowing us to redefine exit()
-#include <limits.h> // CHAR_BIT
-#include <stdlib.h>
-#include <stdarg.h> // typelib requires this
-#ifdef _MSC_VER
-#ifndef UNDER_CE
-#include <intrin.h> // memlib requires this, and it MUST be included befoer string.h if it is used.
-#endif
-#endif
-#include <string.h> // typelib requires this
-#if !defined( WIN32 ) && !defined( _WIN32 ) && !defined( _PNACL )
-#include <dlfcn.h>
-#endif
+#  include <limits.h> // CHAR_BIT
+#  include <stdlib.h>
+#  include <stdarg.h> // typelib requires this
+#  ifdef _MSC_VER
+#    ifndef UNDER_CE
+#      include <intrin.h> // memlib requires this, and it MUST be included befoer string.h if it is used.
+#    endif
+#  endif
+#  include <string.h> // typelib requires this
+#  if !defined( WIN32 ) && !defined( _WIN32 ) && !defined( _PNACL )
+#    include <dlfcn.h>
+#  endif
 
-#if defined( _MSC_VER )
+#  if defined( _MSC_VER )
 // disable pointer conversion warnings - wish I could disable this
 // according to types...
 //#pragma warning( disable:4312; disable:4311 )
 // disable deprication warnings of snprintf, et al.
 //#pragma warning( disable:4996 )
-#define EMPTY_STRUCT struct { char nothing[]; }
-#endif
-#if defined( __WATCOMC__ )
-#define EMPTY_STRUCT char
-#endif
+#    define EMPTY_STRUCT struct { char nothing[]; }
+#  endif
+#  if defined( __WATCOMC__ )
+#     define EMPTY_STRUCT char
+#  endif
 
-#ifdef __cplusplus
+#  ifdef __cplusplus
 /* Could also consider defining 'SACK_NAMESPACE' as 'extern "C"
    ' {' and '..._END' as '}'                                    */
-#define SACK_NAMESPACE namespace sack {
+#    define SACK_NAMESPACE namespace sack {
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define SACK_NAMESPACE_END }
+#    define SACK_NAMESPACE_END }
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _CONTAINER_NAMESPACE namespace containers {
+#    define _CONTAINER_NAMESPACE namespace containers {
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _CONTAINER_NAMESPACE_END }
+#    define _CONTAINER_NAMESPACE_END }
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _LINKLIST_NAMESPACE namespace list {
+#    define _LINKLIST_NAMESPACE namespace list {
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _LINKLIST_NAMESPACE_END }
+#    define _LINKLIST_NAMESPACE_END }
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _DATALIST_NAMESPACE namespace data_list {
+#    define _DATALIST_NAMESPACE namespace data_list {
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _DATALIST_NAMESPACE_END }
+#    define _DATALIST_NAMESPACE_END }
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _SETS_NAMESPACE namespace sets {
+#    define _SETS_NAMESPACE namespace sets {
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _SETS_NAMESPACE_END }
+#    define _SETS_NAMESPACE_END }
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _TEXT_NAMESPACE namespace text {
+#    define _TEXT_NAMESPACE namespace text {
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _TEXT_NAMESPACE_END }
+#    define _TEXT_NAMESPACE_END }
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define TEXT_NAMESPACE SACK_NAMESPACE _CONTAINER_NAMESPACE namespace text {
+#    define TEXT_NAMESPACE SACK_NAMESPACE _CONTAINER_NAMESPACE namespace text {
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define TEXT_NAMESPACE_END  } _CONTAINER_NAMESPACE_END SACK_NAMESPACE_END
-#else
+#    define TEXT_NAMESPACE_END  } _CONTAINER_NAMESPACE_END SACK_NAMESPACE_END
+#  else
 /* Define the sack namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define SACK_NAMESPACE
+#    define SACK_NAMESPACE
 /* Define the sack namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define SACK_NAMESPACE_END
+#    define SACK_NAMESPACE_END
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _CONTAINER_NAMESPACE
+#    define _CONTAINER_NAMESPACE
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _CONTAINER_NAMESPACE_END
+#    define _CONTAINER_NAMESPACE_END
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _LINKLIST_NAMESPACE
+#    define _LINKLIST_NAMESPACE
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _LINKLIST_NAMESPACE_END
+#    define _LINKLIST_NAMESPACE_END
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _DATALIST_NAMESPACE
+#    define _DATALIST_NAMESPACE
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _DATALIST_NAMESPACE_END
+#    define _DATALIST_NAMESPACE_END
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _SETS_NAMESPACE
+#    define _SETS_NAMESPACE
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _SETS_NAMESPACE_END
+#    define _SETS_NAMESPACE_END
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _TEXT_NAMESPACE
+#    define _TEXT_NAMESPACE
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define _TEXT_NAMESPACE_END
+#    define _TEXT_NAMESPACE_END
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define TEXT_NAMESPACE
+#    define TEXT_NAMESPACE
 /* Define the container namespace (when building with C++, the
    wrappers are namespace{} instead of extern"c"{} )           */
-#define TEXT_NAMESPACE_END
-#endif
+#    define TEXT_NAMESPACE_END
+#  endif
 
 /* declare composite SACK_CONTAINER namespace to declare sack::container in a single line */
-#define SACK_CONTAINER_NAMESPACE SACK_NAMESPACE _CONTAINER_NAMESPACE
+#  define SACK_CONTAINER_NAMESPACE SACK_NAMESPACE _CONTAINER_NAMESPACE
 /* declare composite SACK_CONTAINER namespace to close sack::container in a single line */
-#define SACK_CONTAINER_NAMESPACE_END _CONTAINER_NAMESPACE_END SACK_NAMESPACE_END
+#  define SACK_CONTAINER_NAMESPACE_END _CONTAINER_NAMESPACE_END SACK_NAMESPACE_END
 /* declare composite SACK_CONTAINER namespace to declare sack::container::list in a single line */
-#define SACK_CONTAINER_LINKLIST_NAMESPACE SACK_CONTAINER_NAMESPACE _LISTLIST_NAMESPACE
+#  define SACK_CONTAINER_LINKLIST_NAMESPACE SACK_CONTAINER_NAMESPACE _LISTLIST_NAMESPACE
 /* declare composite SACK_CONTAINER namespace to close sack::container::list in a single line */
-#define SACK_CONTAINER_LINKLIST_NAMESPACE_END _LISTLIST_NAMESPACE_END SACK_CONTAINER_NAMESPACE
+#  define SACK_CONTAINER_LINKLIST_NAMESPACE_END _LISTLIST_NAMESPACE_END SACK_CONTAINER_NAMESPACE
 
 // this symbols is defined to enforce
 // the C Procedure standard - using a stack, and resulting
 // in EDX:EAX etc...
-#define CPROC
+#  define CPROC
 
-#ifdef SACK_BAG_EXPORTS
-# ifdef BUILD_GLUE
+#  ifdef SACK_BAG_EXPORTS
+#    ifdef BUILD_GLUE
 // this is used as the export method appropriate for C#?
-#  define EXPORT_METHOD [DllImport(LibName)] public
-# else
-#  ifdef __cplusplus_cli
-#   if defined( __STATIC__ ) || defined( __LINUX__ ) || defined( __ANDROID__ )
-#     define EXPORT_METHOD
-#     define IMPORT_METHOD extern
-#   else
-#     define EXPORT_METHOD __declspec(dllexport)
-#     define IMPORT_METHOD __declspec(dllimport)
-#   endif
-#   define LITERAL_LIB_EXPORT_METHOD __declspec(dllexport)
-#   define LITERAL_LIB_IMPORT_METHOD extern
-//__declspec(dllimport)
-#  else
-#   if defined( __STATIC__ ) || defined( __LINUX__ ) || defined( __ANDROID__ )
-#      define EXPORT_METHOD
-#      define IMPORT_METHOD extern
+#      define EXPORT_METHOD [DllImport(LibName)] public
 #    else
+#      ifdef __cplusplus_cli
+#        if defined( __STATIC__ ) || defined( __LINUX__ ) || defined( __ANDROID__ )
+#          define EXPORT_METHOD
+#          define IMPORT_METHOD extern
+#        else
+#          define EXPORT_METHOD __declspec(dllexport)
+#          define IMPORT_METHOD __declspec(dllimport)
+#        endif
+#        define LITERAL_LIB_EXPORT_METHOD __declspec(dllexport)
+#        define LITERAL_LIB_IMPORT_METHOD extern
+//__declspec(dllimport)
+#      else
+#        if defined( __STATIC__ ) || defined( __LINUX__ ) || defined( __ANDROID__ )
+#          define EXPORT_METHOD
+#          define IMPORT_METHOD extern
+#        else
 /* Method to declare functions exported from a DLL. (nothign on
    LINUX or building statically, but __declspec(dllimport) on
    windows )                                                    */
-#      define EXPORT_METHOD __declspec(dllexport)
+#          define EXPORT_METHOD __declspec(dllexport)
 /* method to define a function which will be Imported from a
    library. Under windows, this is probably
    __declspec(dllimport). Under linux this is probably 'extern'. */
-#      define IMPORT_METHOD __declspec(dllimport)
+#          define IMPORT_METHOD __declspec(dllimport)
+#        endif
+#        define LITERAL_LIB_EXPORT_METHOD __declspec(dllexport)
+#        define LITERAL_LIB_IMPORT_METHOD __declspec(dllimport)
+#      endif
 #    endif
-#      define LITERAL_LIB_EXPORT_METHOD __declspec(dllexport)
-#      define LITERAL_LIB_IMPORT_METHOD __declspec(dllimport)
-#  endif
-# endif
-#else
-# if ( !defined( __STATIC__ ) && defined( WIN32 ) && !defined( __cplusplus_cli) )
-#  define EXPORT_METHOD __declspec(dllexport)
-#  define IMPORT_METHOD __declspec(dllimport)
-#  define LITERAL_LIB_EXPORT_METHOD __declspec(dllexport)
-#  define LITERAL_LIB_IMPORT_METHOD __declspec(dllimport)
-# else
-// MRT:  This is needed.  Need to see what may be defined wrong and fix it.
-#  if defined( __LINUX__ ) || defined( __STATIC__ ) /*&& !defined( __cplusplus_cli ) */
-#    define EXPORT_METHOD
-#    define IMPORT_METHOD extern
-#    define LITERAL_LIB_EXPORT_METHOD
-#    define LITERAL_LIB_IMPORT_METHOD extern
 #  else
+#  if ( !defined( __STATIC__ ) && defined( WIN32 ) && !defined( __cplusplus_cli) )
 #    define EXPORT_METHOD __declspec(dllexport)
 #    define IMPORT_METHOD __declspec(dllimport)
+#    define LITERAL_LIB_EXPORT_METHOD __declspec(dllexport)
+#    define LITERAL_LIB_IMPORT_METHOD __declspec(dllimport)
+#  else
+// MRT:  This is needed.  Need to see what may be defined wrong and fix it.
+#    if defined( __LINUX__ ) || defined( __STATIC__ ) /*&& !defined( __cplusplus_cli ) */
+#      define EXPORT_METHOD
+#      define IMPORT_METHOD extern
+#      define LITERAL_LIB_EXPORT_METHOD
+#      define LITERAL_LIB_IMPORT_METHOD extern
+#    else
+#      define EXPORT_METHOD __declspec(dllexport)
+#      define IMPORT_METHOD __declspec(dllimport)
 /* Define how methods in LITERAL_LIBRARIES are exported.
    literal_libraries are libraries that are used for plugins,
    and are dynamically loaded by code. They break the rules of
    system prefix and suffix extensions. LITERAL_LIBRARIES are
    always dynamic, and never static.                           */
-#    define LITERAL_LIB_EXPORT_METHOD __declspec(dllexport)
+#      define LITERAL_LIB_EXPORT_METHOD __declspec(dllexport)
 /* Define how methods in LITERAL_LIBRARIES are imported.
    literal_libraries are libraries that are used for plugins,
    and are dynamically loaded by code. They break the rules of
    system prefix and suffix extensions. LITERAL_LIBRARIES are
    always dynamic, and never static.                           */
-#    define LITERAL_LIB_IMPORT_METHOD __declspec(dllimport)
+#      define LITERAL_LIB_IMPORT_METHOD __declspec(dllimport)
+#    endif
 #  endif
-# endif
 #endif
+
 // used when the keword specifying a structure is packed
 // needs to prefix the struct keyword.
 #define PREFIX_PACKED
@@ -1326,25 +1329,29 @@ SACK_NAMESPACE
 typedef uint64_t THREAD_ID;
 #define GetMyThreadIDNL GetMyThreadID
 
-#if defined( _WIN32 ) || defined( __CYGWIN__ )
+#if defined( _WIN32 )
 #  define _GetMyThreadID()  ( (( ((uint64_t)GetCurrentProcessId()) << 32 ) | ( (uint64_t)GetCurrentThreadId() ) ) )
 #  define GetMyThreadID()  (GetThisThreadID())
 #else
 // this is now always the case
 // it's a safer solution anyhow...
-#  ifndef GETPID_RETURNS_PPID
-#    define GETPID_RETURNS_PPID
-#  endif
-#  ifdef GETPID_RETURNS_PPID
-#    ifdef __ANDROID__
-#      define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(gettid()) ) )
-#    else
-#      define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(syscall(SYS_gettid)) ) )
-#    endif
+#  ifdef __MAC__
+#    define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)( syscall(SYS_thread_selfid) ) ) )
 #  else
-#    define GetMyThreadID()  (( ((uint64_t)getppid()) << 32 ) | ( (uint64_t)(getpid()|0x40000000)) )
+#    ifndef GETPID_RETURNS_PPID
+#      define GETPID_RETURNS_PPID
+#    endif
+#    ifdef GETPID_RETURNS_PPID
+#      ifdef __ANDROID__
+#        define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(gettid()) ) )
+#      else
+#        define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(syscall(SYS_gettid)) ) )
+#      endif
+#    else
+#      define GetMyThreadID()  (( ((uint64_t)getppid()) << 32 ) | ( (uint64_t)(getpid()|0x40000000)) )
+#    endif
+#      define _GetMyThreadID GetMyThreadID
 #  endif
-#    define _GetMyThreadID GetMyThreadID
 #endif
 
 
@@ -1854,7 +1861,7 @@ IMPORT_METHOD
 SACK_NAMESPACE_END // namespace sack {
 
 // this should become common to all libraries and programs...
-#include <construct.h> // pronounced 'kahn-struct'
+//#include <construct.h> // pronounced 'kahn-struct'
 #include <logging.h>
 #include <signed_unsigned_comparisons.h>
 
