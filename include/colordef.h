@@ -6,7 +6,7 @@
    are not exactly the same. If the OpenGL driver is specified
    as the output device, the entire code would need to be
    rebuilt for specifying colors correctly for opengl. While
-   otherwise they are both 32 bits, and peices work, they get
+   otherwise they are both 32 bits, and pieces work, they get
    very ugly colors output.
    See Also
    <link Colors>                                                */

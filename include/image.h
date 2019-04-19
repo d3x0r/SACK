@@ -468,24 +468,24 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       Example
       Use 1: An image might contain a grid of symbols or
       characters, each exactly the same size. These may be token
-      peices used in a game or a special graphic font.
+      pieces used in a game or a special graphic font.
       <code lang="c++">
-      Image peices_image = LoadImageFile( "Game Peices.image" );
-      PLIST peices = NULL;
+      Image pieces_image = LoadImageFile( "Game Pieces.image" );
+      PLIST pieces = NULL;
       int x, y;
-      \#define PEICE_WIDTH 32
-      \#define PEICE_HEIGHT 32
+      \#define PIECE_WIDTH 32
+      \#define PIECE_HEIGHT 32
       for( x = 0; x \< 10; x++ )
          for( y = 0; y \< 2; y++ )
          {
-             AddLink( &amp;peices, MakeSubImage( peices_image
-                                           , x * PEICE_WIDTH, y * PEICE_HEIGHT
-                                           , PEICE_WIDTH, PEICE_HEIGHT );
+             AddLink( &amp;pieces, MakeSubImage( pieces_image
+                                           , x * PIECE_WIDTH, y * PIECE_HEIGHT
+                                           , PIECE_WIDTH, PIECE_HEIGHT );
          }
       
       // at this point there we have a list with all the tokens,
       // which were 32x32 pixels each.
-      // Any of these peice images may be output using a scaled or direct blot.
+      // Any of these piece images may be output using a scaled or direct blot.
       </code>
       
       Use 2: Partitioning views on an image for things like
