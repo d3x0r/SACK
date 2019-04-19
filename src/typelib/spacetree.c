@@ -1375,20 +1375,20 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 				dup->max[0] = here->min[0] - 1;
 				space->min[0] = here->min[0];
 #ifdef HANG_DEBUG
-				Log( WIDE("Clipped left peice off....") );
+				Log( WIDE("Clipped left piece off....") );
 #endif
 				{
 					if( dup->max[1] < here->min[1] )
 					{
 #ifdef HANG_DEBUG
-						Log( WIDE("Clipped peice is to the upper left of here") );
+						Log( WIDE("Clipped piece is to the upper left of here") );
 #endif
 						HangSpaceNodeExx( here->area + AREA_UPPERLEFT, here, dup DBG_LEVEL );
 					}
 					else if( dup->min[1] > here->max[1] )
 					{
 #ifdef HANG_DEBUG
-						Log( WIDE("Clipped peice is to the upper right of here") );
+						Log( WIDE("Clipped piece is to the upper right of here") );
 #endif
 						HangSpaceNodeExx( here->area + AREA_LOWERLEFT, here, dup DBG_LEVEL );
 					}
@@ -1405,7 +1405,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 						{
 							PSPACENODE dup2 = DupNodeEx( dup DBG_LEVEL );
 #ifdef HANG_DEBUG
-							Log( WIDE("Clipped peice is up and left of here (hang clip)") );
+							Log( WIDE("Clipped piece is up and left of here (hang clip)") );
 #endif
 							dup2->max[1] = here->min[1] - 1;
 							dup->min[1] = here->min[1];
@@ -1415,14 +1415,14 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 						{
 							PSPACENODE dup2 = DupNodeEx( dup DBG_LEVEL );
 #ifdef HANG_DEBUG
-							Log( WIDE("Clipped peice is below and left of here") );
+							Log( WIDE("Clipped piece is below and left of here") );
 #endif
 							dup2->min[1] = here->max[1] + 1;
 							dup->max[1] = here->max[1];
 							HangSpaceNodeExx( here->area + AREA_LOWERLEFT, here, dup2 DBG_LEVEL );
 						}
 #ifdef HANG_DEBUG
-						Log( WIDE("Remaining peice is to the left of here.") );
+						Log( WIDE("Remaining piece is to the left of here.") );
 #endif
 						HangSpaceNodeExx( here->area + AREA_LEFT, here, dup DBG_LEVEL );
 					}
@@ -1436,20 +1436,20 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 				dup->min[0] = here->max[0] + 1;
 				space->max[0] = here->max[0];
 #ifdef HANG_DEBUG
-				Log( WIDE("Clipped right peice off...") );
+				Log( WIDE("Clipped right piece off...") );
 #endif
 				{
 					if( dup->max[1] < here->min[1] )
 					{
 #ifdef HANG_DEBUG
-						Log( WIDE("Clipped peice is to the upper right of here") );
+						Log( WIDE("Clipped piece is to the upper right of here") );
 #endif
 						HangSpaceNodeExx( here->area + AREA_UPPERRIGHT, here, dup DBG_LEVEL );
 					}
 					else if( dup->min[1] > here->max[1] )
 					{
 #ifdef HANG_DEBUG
-						Log( WIDE("Clipped peice is to the lower right of here") );
+						Log( WIDE("Clipped piece is to the lower right of here") );
 #endif
 						HangSpaceNodeExx( here->area + AREA_LOWERRIGHT, here, dup DBG_LEVEL );
 					}
@@ -1461,7 +1461,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 							dup2->max[1] = here->min[1] - 1;
 							dup->min[1] = here->min[1];
 #ifdef HANG_DEBUG
-							Log( WIDE("Clipped peice is to the right and up of here") );
+							Log( WIDE("Clipped piece is to the right and up of here") );
 #endif
 							HangSpaceNodeExx( here->area + AREA_UPPERRIGHT, here, dup2 DBG_LEVEL );
 						}
@@ -1471,12 +1471,12 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 							dup2->min[1] = here->max[1] + 1;
 							dup->max[1] = here->max[1];
 #ifdef HANG_DEBUG
-							Log( WIDE("Clipped peice is to the right and below of here") );
+							Log( WIDE("Clipped piece is to the right and below of here") );
 #endif
 							HangSpaceNodeExx( here->area + AREA_LOWERRIGHT, here, dup2 DBG_LEVEL );
 						}
 #ifdef HANG_DEBUG
-						Log( WIDE("Remaining peice is to the right of here") );
+						Log( WIDE("Remaining piece is to the right of here") );
 #endif
 						HangSpaceNodeExx( here->area + AREA_RIGHT, here, dup DBG_LEVEL );
 					}
@@ -1488,7 +1488,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 			if( space->max[1] < here->min[1] )
 			{
 #ifdef HANG_DEBUG
-				Log( WIDE("Total peice remaining is up from here") );
+				Log( WIDE("Total piece remaining is up from here") );
 #endif
 				parent = here;
 				root =here->area + AREA_UP;
@@ -1496,7 +1496,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 			else if( space->min[1] > here->max[1] )
 			{
 #ifdef HANG_DEBUG
-				Log( WIDE("Total peice remaining is down from here") );
+				Log( WIDE("Total piece remaining is down from here") );
 #endif
 				parent = here;
 				root =here->area + AREA_DOWN;

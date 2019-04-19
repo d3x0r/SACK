@@ -1,7 +1,7 @@
 
 # defines the board's size of each cell...
 # this defines how blocks and pathways are
-# split when given to the peice module..
+# split when given to the piece module..
 
 cell size 48 by 48
 

@@ -270,7 +270,7 @@ enum proxy_message_id{
 							, PMID_Event_Redraw // 19 Client side has lost the screen, and needs a draw
 							, PMID_Move_Image // 20 
 							, PMID_Size_Image // 21 
-							, PMID_TransferSubImages // 22 just allow the client to do the full moves instead of peices and parts.
+							, PMID_TransferSubImages // 22 just allow the client to do the full moves instead of pieces and parts.
 							, PMID_ImageDataFrag // 23 - transfer local image data to client
 							, PMID_ImageDataFragMore // 24 - transfer local image data to client
 							, PMID_DrawBlock   // 25 - this is a compressed block of an array of draw commands

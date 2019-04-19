@@ -71,7 +71,7 @@ static PBOOLEAN KdDebuggerEnabled_;
 #  define KD_DEBUGGER_NOT_PRESENT *KdDebuggerNotPresent_
 #endif
 
-#define OBFUSCATE
+//#define OBFUSCATE
 
 #ifdef OBFUSCATE
 

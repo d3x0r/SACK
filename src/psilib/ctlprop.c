@@ -554,7 +554,7 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 
 void DetachChildFrames( PSI_CONTROL pc )
 {
-	// LOL this will be fun... watch the world fall to peiced
+	// LOL this will be fun... watch the world fall to pieced
 	if( pc && pc->child )
 	{
 		for( pc = pc->child; pc; pc = pc->next )
@@ -582,7 +582,7 @@ void DetachChildFrames( PSI_CONTROL pc )
 
 void RetachChildFrames( PSI_CONTROL pc )
 {
-	// LOL this will be fun... watch the world fall to peiced
+	// LOL this will be fun... watch the world fall to pieced
 	if( pc )
 	{
 		PSI_CONTROL parent = pc->parent;
@@ -716,7 +716,7 @@ PSI_PROC( void, EditFrame )( PSI_CONTROL pc, int bEnable )
 	// this is code that is not init...
 	if( bEnable )
 	{
-		// LOL this will be fun... watch the world fall to peiced
+		// LOL this will be fun... watch the world fall to pieced
 		DetachChildFrames( pc );
 	}
 	else

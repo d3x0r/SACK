@@ -738,7 +738,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 //#define DBG_OVERRIDE DBG_SRC
 #define DBG_OVERRIDE DBG_RELAY
 	/* takes a line of input and creates a line equivalent to it, but
-	   burst into its block peices.*/
+	   burst into its block pieces.*/
 	VARTEXT out;
 	PTEXT outdata=(PTEXT)NULL,
 	      word;
@@ -1002,7 +1002,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 //#define DBG_OVERRIDE DBG_SRC
 //#define DBG_OVERRIDE DBG_RELAY
 	/* takes a line of input and creates a line equivalent to it, but
-		burst into its block peices.*/
+		burst into its block pieces.*/
 	VARTEXT out;
 	PTEXT outdata=(PTEXT)NULL,
 			word;
@@ -1332,7 +1332,7 @@ INDEX LineLengthEx( PTEXT pt, LOGICAL bSingle )
 
 // attempts to build a solitary line segment from the text passed
 // however, if there are color changes, or absolute position changes
-// this cannot work... and it must provide multiple peices...
+// this cannot work... and it must provide multiple pieces...
 
 #undef BuildLineExx
 PTEXT BuildLineExx( PTEXT pt, LOGICAL bSingle, PTEXT pEOL DBG_PASS )

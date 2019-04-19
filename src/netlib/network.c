@@ -417,19 +417,19 @@ const char * GetAddrString( SOCKADDR *addr )
 		int after0 = 0;
 		int n;
 		int ofs = 0;
-		uint32_t peice;
+		uint32_t piece;
 		for( n = 0; n < 8; n++ ) {
-			peice = (*(((unsigned short *)((unsigned char*)addr + 8 + (n * 2)))));
-			if( peice ) {
+			piece = (*(((unsigned short *)((unsigned char*)addr + 8 + (n * 2)))));
+			if( piece ) {
 				if( first0 < 8 )
 					after0 = 1;
 				if( !ofs ) {
-					ofs += snprintf( buf + ofs, 256 - ofs, "%x", ntohs( peice ) );
+					ofs += snprintf( buf + ofs, 256 - ofs, "%x", ntohs( piece ) );
 				}
 				else {
 					//console.log( last0, n );
 					if( last0 == 4 && first0 == 0 )
-						if( peice == 0xFFFF ) {
+						if( piece == 0xFFFF ) {
 							snprintf( buf, 256, "::ffff:%d.%d.%d.%d",
 								(*((unsigned char*)addr + 20)),
 								(*((unsigned char*)addr + 21)),
@@ -437,7 +437,7 @@ const char * GetAddrString( SOCKADDR *addr )
 								(*((unsigned char*)addr + 23)) );
 							break;
 						}
-					ofs += snprintf( buf + ofs, 256 - ofs, ":%x", ntohs( peice ) );
+					ofs += snprintf( buf + ofs, 256 - ofs, ":%x", ntohs( piece ) );
 				}
 			}
 			else {
@@ -450,7 +450,7 @@ const char * GetAddrString( SOCKADDR *addr )
 						last0 = n;
 				}
 				if( last0 < n )
-					ofs += snprintf( buf + ofs, 256 - ofs, ":%x", ntohs( peice ) );
+					ofs += snprintf( buf + ofs, 256 - ofs, ":%x", ntohs( piece ) );
 			}
 		}
 		if( !after0 )

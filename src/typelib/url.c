@@ -24,8 +24,8 @@ static struct default_port default_ports[] = { { WIDE("http"), 80 }
 
 // TEXTSTR result = ConvertURIText( addr, length )
 
-// SACK_ParseURL takes a URL string and gets the peices it can identify
-// if a peice is not specified, the result will be NULL.
+// SACK_ParseURL takes a URL string and gets the pieces it can identify
+// if a piece is not specified, the result will be NULL.
 
 
 
