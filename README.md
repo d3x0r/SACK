@@ -9,7 +9,7 @@ Git is often more up to date.  Git is the primary development source control sys
 
 Monotone would have been best; but; well... maybe they were too closed.
 
-## Single Source+Header Amalagamations
+## Single Source+Header Amalgamations
 
 C single source packages.  C/C++ compilable sources, and a single header.  Links to relavent docs in each project...
 
