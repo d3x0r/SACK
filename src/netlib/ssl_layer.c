@@ -920,7 +920,6 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		POINTER tmp;
 		pc->ssl_session->user_close = NULL;
 		pc->ssl_session->cpp_user_close = NULL;
-		LogBinary( (const uint8_t*)buffer, 32 );
 		tmp = pc->ssl_session->ibuffer;
 		pc->ssl_session->ibuffer = NULL;
 		ssl_CloseCallback( pc );
