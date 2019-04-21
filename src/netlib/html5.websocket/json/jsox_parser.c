@@ -157,6 +157,7 @@ char *jsox_escape_string( const char *string ) {
 #define BADUTF8 0xFFFFFFF
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))
 #define _zero(result,from)  ((*from)++,BADUTF8) 
+#define _gzero(result,from)  ((*from)++,0) 
 #define _3char(result,from) ( ((*from) += 3),( ( ( result & 0xF ) << 12 ) | ( ( result & 0x3F00 ) >> 2 ) | ( ( result & 0x3f0000 ) >> 16 )) )
 
 #define _4char(result,from)  ( ((*from) += 4), ( ( ( result & 0x7 ) << 18 )     \
@@ -174,7 +175,7 @@ char *jsox_escape_string( const char *string ) {
 
 #define __GetUtfChar( result, from )           ((result = get4Chars(*from)),     \
         ( ( !(result & 0xFF) )    \
-          ?_zero(result,from)   \
+          ?_gzero(result,from)   \
       :( ( result & 0x80 )                       \
         ?( ( result & 0xE0 ) == 0xC0 )   \
             ?( ( ( result & 0xC000 ) == 0x8000 ) ?_2char(result,from) : _zero(result,from)  )    \
