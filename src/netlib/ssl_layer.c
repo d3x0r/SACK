@@ -917,10 +917,13 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		// restore all the native specified options for callbacks.
 		(*(uint32_t*)&pc->dwFlags) |= (pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE));
 		// prevent close event...
+		POINTER tmp;
 		pc->ssl_session->user_close = NULL;
 		pc->ssl_session->cpp_user_close = NULL;
+		LogBinary( (const uint8_t*)buffer, 32 );
+		tmp = pc->ssl_session->ibuffer;
+		pc->ssl_session->ibuffer = NULL;
 		ssl_CloseCallback( pc );
-		
 		// SSL callback failed, but it may be possible to connect direct.
 		// and if so; setup to return a redirect.
 		if( buffer ) {
@@ -933,6 +936,7 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 				pc->read.ReadComplete( pc, buffer, length );
 			}
 		}
+		Release( tmp );
 	}
 }
 
