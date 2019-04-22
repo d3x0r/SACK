@@ -154,6 +154,10 @@ char *jsox_escape_string( const char *string ) {
 	return jsox_escape_string_length( string, strlen( string ), NULL );
 }
 
+#undef __GetUtfChar
+#undef _zero
+
+
 #define BADUTF8 0xFFFFFFF
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))
 #define _zero(result,from)  ((*from)++,BADUTF8) 
@@ -2233,6 +2237,8 @@ struct jsox_value_container *jsox_get_parsed_value( PDATALIST pdlMessage, const 
 
 
 #undef GetUtfChar
+#undef __GetUtfChar
+#undef _zero
 
 #ifdef __cplusplus
 } } SACK_NAMESPACE_END
