@@ -106,7 +106,7 @@ namespace objStore {
 #define LoG_( a,... )
 #endif
 //#if !defined __GNUC__ and defined( __CPLUSPLUS )
-#define offsetof(type,member) ((size_t)&(((type*)0)->member))
+#define sane_offsetof(type,member) ((size_t)&(((type*)0)->member))
 //#endif
 
 #define FILE_BASED_VFS
@@ -1779,7 +1779,7 @@ void reloadTimeEntry( struct memoryTimelineNode *time, struct volume *vol, uint6
 	enum block_cache_entries cache = BC( TIMELINE );
 	//uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
 	//if( timeEntry > 62 )DebugBreak();
-	FPI pos = offsetof( struct storageTimeline, entries[timeEntry - 1] );
+	FPI pos = sane_offsetof( struct storageTimeline, entries[timeEntry - 1] );
 	struct storageTimelineNode *node = (struct storageTimelineNode *)vfs_os_FSEEK( vol, vol->timeline_file, FIRST_TIMELINE_BLOCK, pos, &cache );
 	struct storageTimelineNode *nodeKey = (struct storageTimelineNode *)(vol->usekey[cache] + (pos & BLOCK_MASK));
 	time->index = timeEntry;
@@ -2833,7 +2833,7 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 					// make sure timeline and file entries reference each other.
 					struct memoryTimelineNode time;
 					reloadTimeEntry( &time, vol, entry->timelineEntry^entkey->timelineEntry );
-					FPI entry_fpi = vol->bufferFPI[cache] + offsetof( struct directory_hash_lookup_block, entries[n] );
+					FPI entry_fpi = vol->bufferFPI[cache] + sane_offsetof( struct directory_hash_lookup_block, entries[n] );
 					if( entry_fpi != time.dirent_fpi ) DebugBreak();
 				}
 #endif
@@ -3101,7 +3101,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 							// new entry is still the same timeline entry as the old entry.
 							newEntry->timelineEntry = (entry->timelineEntry     ^ entkey->timelineEntry)     ^ newEntkey->timelineEntry;
 							// timeline points at new entry.
-							time.dirent_fpi = vol->bufferFPI[newdir_cache] + offsetof( struct directory_hash_lookup_block , entries[nf]);
+							time.dirent_fpi = vol->bufferFPI[newdir_cache] + sane_offsetof( struct directory_hash_lookup_block , entries[nf]);
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
 							lprintf( "Set timeline %d to %d", (int)time.index, (int)time.dirent_fpi );
 #endif
@@ -3164,7 +3164,7 @@ static void ConvertDirectory( struct volume *vol, const char *leadin, int leadin
 							struct memoryTimelineNode time;
 							enum block_cache_entries  timeCache = BC( TIMELINE );
 							reloadTimeEntry( &time, vol, (dirblock->entries[m + offset].timelineEntry ^ dirblockkey->entries[m + offset].timelineEntry) );
-							time.dirent_fpi = vol->bufferFPI[cache] + offsetof( struct directory_hash_lookup_block, entries[m] );
+							time.dirent_fpi = vol->bufferFPI[cache] + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
 							lprintf( "Set timeline %d to %d", (int)time.index, (int)time.dirent_fpi );
 #endif
@@ -3323,7 +3323,7 @@ static struct directory_entry * _os_GetNewDirectory( struct volume *vol, const c
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
 						lprintf( "direntry at %d  %d is time %d", (int)this_dir_block, (int)m, (int)dirblock->entries[m].timelineEntry );
 #endif
-						node.dirent_fpi = dirblockFPI + offsetof( struct directory_hash_lookup_block, entries[m] );
+						node.dirent_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
 						lprintf( "Set timeline %d to %d", (int)node.index, (int)node.dirent_fpi );
 #endif
@@ -3352,7 +3352,7 @@ static struct directory_entry * _os_GetNewDirectory( struct volume *vol, const c
 					time = file->timeline;
 				else
 					time_.ctime.raw = GetTimeOfDay();
-				time->dirent_fpi = dirblockFPI + offsetof( struct directory_hash_lookup_block, entries[n] );;
+				time->dirent_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[n] );;
 				// associate a time entry with this directory entry, and vice-versa.
 				getTimeEntry( time, vol, 1, NULL, 0 );
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
@@ -3366,7 +3366,7 @@ static struct directory_entry * _os_GetNewDirectory( struct volume *vol, const c
 			}
 			if( file ) {
 				SETFLAG( vol->seglock, cache );
-				file->entry_fpi = dirblockFPI + offsetof( struct directory_hash_lookup_block, entries[n] );;
+				file->entry_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[n] );;
 				file->entry = ent;
 				file->dirent_key = entkey[n];
 				file->cache = cache;
