@@ -88,7 +88,7 @@ namespace objStore {
 #endif
 	//#define PARANOID_INIT
 
-	#define DEBUG_TRACE_LOG
+	//#define DEBUG_TRACE_LOG
 	//#define DEBUG_FILE_OPS
 	//#define DEBUG_DISK_IO
 	//#define DEBUG_DIRECTORIESa
