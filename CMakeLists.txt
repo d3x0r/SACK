@@ -1822,7 +1822,7 @@ endif( INCLUDE_EXTRAS )
 
  if( USE_OPTIONS AND NOT ( __NO_ODBC__ AND NOT USE_SQLITE ) )
   if( NOT __NO_GUI__ )
-    add_subdirectory( src/games/automaton )
+    #add_subdirectory( src/games/automaton )
     add_subdirectory( src/SQLlib/optlib/editoption )
     add_subdirectory( src/translationlib/edit_translations )
   endif( NOT __NO_GUI__ )
