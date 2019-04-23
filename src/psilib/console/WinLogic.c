@@ -1104,9 +1104,9 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 		lprintf( WIDE("nodisplay!") );
 		return;
 	}
-	lprintf( "Begin render history line" );
+	//lprintf( "Begin render history line" );
 	EnterCriticalSec( &pdp->Lock );
-	lprintf( "Begin render history locked" );
+	//lprintf( "Begin render history locked" );
 	pdp->lockCount++;
 #ifdef DEBUG_HISTORY_RENDER
 	lprintf( WIDE("Begin Render history.") );
@@ -1213,7 +1213,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 	//	PSI_RenderCommandLine( pdp, region );
 	pdp->lockCount--;
 	LeaveCriticalSec( &pdp->Lock );
-	lprintf( "Done render history line" );
+	//lprintf( "Done render history line" );
 }
 
 //----------------------------------------------------------------------------
