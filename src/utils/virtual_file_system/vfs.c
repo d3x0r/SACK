@@ -313,6 +313,10 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 									lprintf( "Empty space should never be in a file chain." );
 									DebugBreak();
 								}
+								if( nextBlock >= last_block ) {
+									Release( usedSectors );
+									return FALSE;
+								}
 								b = nextBlock / (BLOCKS_PER_BAT);
 								nn = nextBlock & (BLOCKS_PER_BAT - 1);
 								if( !TESTFLAG( usedSectors, nextBlock ) ) {
