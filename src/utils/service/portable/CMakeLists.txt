@@ -70,11 +70,13 @@ if( WIN32 )
 endif( WIN32 )
 
 if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
-    SET( SERVICE_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/service.manifest )
     #SET( EXTRACTER_LINK_FLAGS "/MANIFEST:NO" )
+else()
+    SET( SERVICE_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/service.manifest )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 if( MSVC )
     SET( SERVICE_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
+
 endif( MSVC )
 
 
