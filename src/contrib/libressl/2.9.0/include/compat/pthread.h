@@ -16,6 +16,22 @@
  * Once definitions.
  */
 struct pthread_once {
+	volatile LONG inited;
+	volatile LONG initDone;
+};
+typedef struct pthread_once pthread_once_t;
+
+static inline int
+pthread_once(pthread_once_t *once, void (*cb) (void) ) {
+	if( !InterlockedExchange( &once->inited, 1 ) ) {
+		cb();
+		once->initDone = 1;
+	}
+	while( !once->initDone ) Sleep(0);
+	return 0;
+}
+#if 0
+struct pthread_once {
 	INIT_ONCE once;
 };
 typedef struct pthread_once pthread_once_t;
@@ -37,6 +53,7 @@ pthread_once(pthread_once_t *once, void (*cb) (void))
 	else
 		return 0;
 }
+#endif
 
 typedef DWORD pthread_t;
 
