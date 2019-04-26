@@ -83,6 +83,10 @@ struct procreg_local_tag {
 #endif
 #define l (*procreg_local_data)
 
+#ifdef __STATIC_GLOBALS__
+static struct procreg_local_tag procreg_local_data__;
+#endif
+
 static struct procreg_local_tag *procreg_local_data;
 
 static CTEXTSTR SaveName( CTEXTSTR name );
@@ -498,8 +502,15 @@ static void Init( void )
 {
 	// don't call this function, preserves the process line cache, just check the flag and simple skip any call.
 	// use SAFE_INIT();
+#ifndef __STATIC_GLOBALS__
 #define SAFE_INIT() if( !procreg_local_data ) RegisterAndCreateGlobalWithInit( (POINTER*)&procreg_local_data, sizeof( *procreg_local_data ), "procreg_local_data", InitGlobalSpace )
 	SAFE_INIT();
+#else
+	if( !procreg_local_data ) {
+		procreg_local_data = &procreg_local_data__;
+		InitGlobalSpace( procreg_local_data, sizeof( procreg_local_data[0] ) );
+	}
+#endif
 }
 
 static void ReadConfiguration( void );
@@ -791,6 +802,7 @@ PROCREG_PROC( PCLASSROOT, GetClassRootEx )( PCLASSROOT root, CTEXTSTR name_class
 
 PROCREG_PROC( PCLASSROOT, GetClassRoot )( CTEXTSTR name_class )
 {
+	if( !procreg_local_data ) return NULL;
 	return (PCLASSROOT)GetClassTreeEx( l.Names, (PTREEDEF)name_class, NULL, TRUE );
 }
 #ifdef __cplusplus

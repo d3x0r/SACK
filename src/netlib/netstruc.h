@@ -289,7 +289,7 @@ typedef struct client_slab_tag {
 } CLIENT_SLAB, *PCLIENT_SLAB;
 
 // global network data goes here...
-LOCATION struct network_global_data{
+struct network_global_data{
 	uint32_t     nMaxClients;
 	int     nUserData;     // number of longs.
 	//uint8_t*     pUserData;
@@ -341,7 +341,16 @@ LOCATION struct network_global_data{
 	WNDCLASS wc;
 #endif
 }
-*global_network_data; // aka 'globalNetworkData'
+#ifdef __STATIC_GLOBALS__
+    global_network_data__
+#endif
+;
+
+LOCATION struct network_global_data *global_network_data
+#ifdef __STATIC_GLOBALS__
+   = &global_network_data__;
+#endif
+; // aka 'globalNetworkData'
 
 #define globalNetworkData (*global_network_data)
 

@@ -7,7 +7,12 @@ MSGCLIENT_NAMESPACE
 
 PRIORITY_PRELOAD( LoadMsgClientGlobal, MESSAGE_CLIENT_PRELOAD_PRIORITY )
 {
+#ifndef __STATIC_GLOBALS__
 	SimpleRegisterAndCreateGlobal( global_msgclient );
+#else
+	static struct global_message_service_tag global_msgclient__;
+	global_msgclient = &global_msgclient__;
+#endif
 	InitializeCriticalSec( &g.csMsgTransact );
 	InitializeCriticalSec( &g.csLoading );
 	//InitializeCriticalSec( &g._handler.csMsgTransact );

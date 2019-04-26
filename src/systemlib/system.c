@@ -583,7 +583,10 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 #       ifdef __MAC__
 			loadMacLibraries( init_l );
 #       endif
+#ifndef __STATIC_GLOBALS__
+         // allow retriggering init for some reason.
 			local_systemlib = NULL;
+#endif
 			{
 				PLIBRARY library = (*init_l).libraries;
 				while( library )
@@ -658,10 +661,12 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 
 static void SystemInit( void )
 {
-	if( !local_systemlib )
+	if( !
+		local_systemlib )
 	{
 #ifdef __STATIC_GLOBALS__
-      SetupSystemServices( local_systemlib, sizeof( local_systemlib[0] ) );
+		local_systemlib = &local_systemlib__;
+		SetupSystemServices( local_systemlib, sizeof( local_systemlib[0] ) );
 #else
 		RegisterAndCreateGlobalWithInit( (POINTER*)&local_systemlib, sizeof( *local_systemlib ), WIDE("system"), SetupSystemServices );
 #endif

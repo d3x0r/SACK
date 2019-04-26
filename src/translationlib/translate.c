@@ -40,9 +40,14 @@ static struct translation_local_tag
 
 //---------------------------------------------------------------------------
 
-PRELOAD( InitTrasnlationLocal )
+PRELOAD( InitTranslationLocal )
 {
+#ifdef __STATIC_GLOBALS__
+	static struct translation_local_tag translate_local__;
+	_translate_local = &translate_local__;
+#else
 	SimpleRegisterAndCreateGlobal( _translate_local );
+#endif
 	translate_local.index = CreateBinaryTreeEx( (GenericCompare)(int (MEM_API *)(CTEXTSTR , CTEXTSTR ))StrCmp, NULL );
 }
 

@@ -109,11 +109,7 @@ typedef struct loaded_library_tag
 #ifndef SYSTEM_CORE_SOURCE
 extern
 #endif
-	  struct local_systemlib_data *local_systemlib
-#f defined( __STATIC_GLOBAL__ ) && defined( SYSTEM_CORE_SOURCE )
-      = &local_systemlib__;
-#endif
-	  ;
+	  struct local_systemlib_data *local_systemlib;
 
 
 #ifdef l

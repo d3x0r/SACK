@@ -156,7 +156,7 @@ struct thread_event
 };
 
 
-static struct {
+struct timer_local_data {
 	uint32_t timerID;
 	PTIMERSET timer_pool;
 	PTIMER timers;
@@ -200,7 +200,17 @@ static struct {
 #elif defined( __LINUX__ )
 	pthread_key_t my_thread_info_tls;
 #endif
-} *global_timer_structure;// = { 1000 };
+} 
+#ifdef __STATIC_GLOBALS__
+  global_timer_structure__
+#endif
+;
+
+struct timer_local_data *global_timer_structure
+#ifdef __STATIC_GLOBALS__
+    = &global_timer_structure__;
+#endif
+;// = { 1000 };
 
 
 #if HAS_TLS

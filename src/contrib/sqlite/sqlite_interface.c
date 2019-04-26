@@ -86,7 +86,17 @@ struct my_sqlite3_vfs
 
 struct local_data {
 	PLIST registered_vfs;
-} *local_sqlite_interface;
+} 
+#ifdef __STATIC_GLOBALS__
+    local_sqlite_interface__
+#endif
+;
+
+struct local_data *local_sqlite_interface
+#ifdef __STATIC_GLOBALS__
+	= &local_sqlite_interface__
+#endif
+;
 
 //typedef struct sqlite3_io_methods sqlite3_io_methods;
 
@@ -733,7 +743,9 @@ static void CPROC DropSQLiteInterface( POINTER p )
 
 PRIORITY_PRELOAD( RegisterSQLiteInterface, SQL_PRELOAD_PRIORITY-2 )
 {
+#ifndef __STATIC_GLOBALS__
 	SimpleRegisterAndCreateGlobal( local_sqlite_interface );
+#endif
 	if( !GetInterface( "sqlite3" ) )
 		RegisterInterface( WIDE("sqlite3"), GetSQLiteInterface, DropSQLiteInterface );
 
