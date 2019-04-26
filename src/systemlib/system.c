@@ -660,7 +660,11 @@ static void SystemInit( void )
 {
 	if( !local_systemlib )
 	{
+#ifdef __STATIC_GLOBALS__
+      SetupSystemServices( local_systemlib, sizeof( local_systemlib[0] ) );
+#else
 		RegisterAndCreateGlobalWithInit( (POINTER*)&local_systemlib, sizeof( *local_systemlib ), WIDE("system"), SetupSystemServices );
+#endif
 #ifdef WIN32
 		if( !l.flags.bInitialized )
 		{

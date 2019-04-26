@@ -77,9 +77,6 @@ typedef struct loaded_library_tag
 	TEXTCHAR full_name[1];// this is more than 1; allocation pads extra bytes for the name. prefixed iwth l.load_path
 } LIBRARY, *PLIBRARY;
 
-#ifndef SYSTEM_CORE_SOURCE
-extern
-#endif
   struct local_systemlib_data {
 	CTEXTSTR load_path;
 	CTEXTSTR library_path;
@@ -103,7 +100,21 @@ extern
 	BOOL (WINAPI* EnumProcessModules)( HANDLE hProcess, HMODULE *lphModule
 	                                 , DWORD cb, LPDWORD lpcbNeeded );
 #endif
-} *local_systemlib;
+  }
+#ifdef __STATIC_GLOBALS__
+  local_systemlib__
+#endif
+  ;
+
+#ifndef SYSTEM_CORE_SOURCE
+extern
+#endif
+	  struct local_systemlib_data *local_systemlib
+#f defined( __STATIC_GLOBAL__ ) && defined( SYSTEM_CORE_SOURCE )
+      = &local_systemlib__;
+#endif
+	  ;
+
 
 #ifdef l
 #   undef l
