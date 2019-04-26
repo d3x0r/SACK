@@ -34,7 +34,16 @@ extern
 	TEXTSTR producer;
 	TEXTSTR application;
 
-} *winfile_local;
+ }
+#ifdef __STATIC_GLOBALS__
+winfile_local__;
+#endif
+;
+struct winfile_local_tag *winfile_local
+#ifdef __STATIC_GLOBALS__
+   = &winfile_local__;
+#endif
+	;
 
 
 //#define l (*winfile_local)

@@ -159,7 +159,9 @@ static void LocalInit( void )
 {
 	if( !winfile_local )
 	{
+#ifndef __STATIC_GLOBAL__
 		SimpleRegisterAndCreateGlobal( winfile_local );
+#endif
 		if( !(*winfile_local).flags.bInitialized )
 		{
 			InitializeCriticalSec( &(*winfile_local).cs_files );
