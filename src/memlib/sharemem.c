@@ -1271,8 +1271,9 @@ uintptr_t GetFileSize( int fd )
  		}
 		else if( pWhat )
 		{
+#ifndef __STATIC_GLOBALS__
 			int len;
-         char tmpbuf[256];
+         		char tmpbuf[256];
 #ifdef __ANDROID__
 			//if( !IsPath( "./tmp" ) )
 			//	if( !MakePath( "./tmp" ) )
@@ -1285,6 +1286,7 @@ uintptr_t GetFileSize( int fd )
 
 #endif
 			bTemp = TRUE;
+#endif
 		}
 
 		//ll_lprintf( "Open Space: %s", filename?filename:"anonymous" );
