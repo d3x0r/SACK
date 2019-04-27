@@ -196,6 +196,7 @@ else( __ANDROID__ )
             endif( NOT ${FREETYPE_FOUND} )
             endif( NOT NEED_FREETYPE )
             #########
+            set( OpenGL_GL_PREFERENCE GLVND )
             find_package( OpenGL )
             #set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${OPENGL_LIBRARIES} )
             #########
