@@ -9,7 +9,7 @@ struct file_system_mounted_interface
 	LOGICAL writeable;
 };
 
-#ifndef WINFILE_COMMON_SOURCE
+#if !defined( WINFILE_COMMON_SOURCE ) && defined( __STATIC_GLOBALS__ )
 extern
 #endif
  struct winfile_local_tag {
@@ -39,6 +39,10 @@ extern
 winfile_local__;
 #endif
 ;
+
+#ifndef WINFILE_COMMON_SOURCE
+extern
+#endif
 struct winfile_local_tag *winfile_local
 #ifdef __STATIC_GLOBALS__
    = &winfile_local__;
