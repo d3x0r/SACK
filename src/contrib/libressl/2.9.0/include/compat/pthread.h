@@ -10,25 +10,29 @@
 /*
  * Static once initialization values.
  */
-#define PTHREAD_ONCE_INIT   { INIT_ONCE_STATIC_INIT }
+#define PTHREAD_ONCE_INIT   { 0, 0  }
 
 /*
  * Once definitions.
  */
 struct pthread_once {
+	HANDLE event;
 	volatile LONG inited;
-	volatile LONG initDone;
 };
 typedef struct pthread_once pthread_once_t;
 
 static inline int
 pthread_once(pthread_once_t *once, void (*cb) (void) ) {
 	if( !InterlockedExchange( &once->inited, 1 ) ) {
+		once->event = CreateEvent( NULL, TRUE, FALSE, NULL );
 		cb();
-		once->initDone = 1;
+		SetEvent( once->event );
 	}
-	while( !once->initDone ) Sleep(0);
-	return 0;
+	while( !once->event ) Sleep( 0 );
+	DWORD rc = WaitForSingleObject( once->event, INFINITE );
+	if( rc == WAIT_OBJECT_0 )
+		return 0;
+	return 1;
 }
 #if 0
 struct pthread_once {
