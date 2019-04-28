@@ -91,11 +91,14 @@ enum {
 	root->prior = root_node;
 	if( node )
 		node = node->child;
-	else
+	else {
+		//lprintf( "from Root of family..." );
 		node = root->family;
+	}
 	while( node )
 	{
 		int d;
+		//lprintf( "compare %s %s", node->key, psvKey );
 		if( root->Compare )
 			d = root->Compare( node->key, psvKey );
 		else
@@ -152,7 +155,7 @@ LOGICAL FamilyTreeForEach( PFAMILYTREE root, PFAMILYNODE node
 	while( node )
 	{
 		LOGICAL process_result;
-		//lprintf( "node %p", node );
+		//lprintf( "node %p %s", node, node->key );
 		process_result = ProcessNode( psvUserData, (uintptr_t)node->userdata, level );
 		if( !process_result )
 			return process_result;
@@ -197,6 +200,7 @@ void  FamilyTreeReset ( PFAMILYTREE *option_tree )
 
 PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, PFAMILYNODE parent, POINTER userdata, uintptr_t key )
 {
+	//lprintf( "Add TreeCHild: to %p %s %s", parent, parent?(char*)parent->key:"---", key );
 	if( root )
 	{
 		PFAMILYNODE node;
@@ -211,11 +215,15 @@ PFAMILYNODE  FamilyTreeAddChild ( PFAMILYTREE *root, PFAMILYNODE parent, POINTER
 		node->parent = parent;//(*root)->prior;
 		if( !node->parent )
 		{
-			if( (*root)->prior ) {
+			/*if( (*root)->prior ) {
 				if( ( node->elder = (*root)->prior->child ) )
 					(*root)->family->younger = node;
-			} else
-				node->elder = NULL;
+			}
+			else */
+			{
+				if( ( node->elder = (*root)->family) )
+					node->elder->younger = node;
+			}
 			(*root)->family = node;
 		}
 		else
