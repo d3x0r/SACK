@@ -95,7 +95,7 @@ static uintptr_t CPROC MouseThread( PTHREAD unused )
 {
 	MSG msg;
 	{
-		HMODULE self = GetModuleHandle( _WIDE( TARGETNAME ) );
+		HMODULE self = GetModuleHandle( TARGETNAME );
 
 		countdown_local.nexthook =
 			SetWindowsHookEx( WH_MOUSE_LL, (HOOKPROC)MouseHook

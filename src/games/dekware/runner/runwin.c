@@ -50,7 +50,7 @@ int main( int argc, char **argv )
 	if( !hModule )
 	{
 #ifdef LOAD_LIBNAME
-		hModule = LoadFunction( libname = _WIDE(LOAD_LIBNAME), NULL );
+		hModule = LoadFunction( libname = LOAD_LIBNAME, NULL );
 		if( !hModule )
 		{
 #ifndef UNDER_CE

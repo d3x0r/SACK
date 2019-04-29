@@ -84,7 +84,7 @@ int main( int argc, char **argv )
 		while( buf[0] == ' ' || buf[0] == '\t' )
          buf++;
 		len = strlen( buf );
-		if( buf[0] == WIDE('#') )
+		if( buf[0] == '#' )
 			continue;
 		if( ( len > 0 ) && buf[len-1] == '\n' )
 		{

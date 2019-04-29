@@ -99,8 +99,8 @@ static uintptr_t CPROC HandleHook( PTHREAD thread )
 {	
 	MSG msg;
 
-	l.gMouseHook = SetWindowsHookEx( WH_MOUSE_LL, (HOOKPROC)LowLevelMouseProc, GetModuleHandle( _WIDE(TARGETNAME) ), 0 );
-	l.gKeyboardHook = SetWindowsHookEx( WH_KEYBOARD_LL, (HOOKPROC)LowLevelKeyboardProc, GetModuleHandle( _WIDE(TARGETNAME) ), 0 );
+	l.gMouseHook = SetWindowsHookEx( WH_MOUSE_LL, (HOOKPROC)LowLevelMouseProc, GetModuleHandle( TARGETNAME ), 0 );
+	l.gKeyboardHook = SetWindowsHookEx( WH_KEYBOARD_LL, (HOOKPROC)LowLevelKeyboardProc, GetModuleHandle( TARGETNAME ), 0 );
 
 	while( GetMessage( &msg, NULL, 0, 0 ) )
 		DispatchMessage( &msg );

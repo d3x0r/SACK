@@ -18,7 +18,7 @@ HINSTANCE hInstMe;
 
 LIBMAIN()
 {
-	hInstMe = GetModuleHandle (_WIDE(TARGETNAME));//hInstance;
+	hInstMe = GetModuleHandle (TARGETNAME);//hInstance;
    return 1;
 }
 LIBEXIT()

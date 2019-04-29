@@ -116,7 +116,7 @@ typedef int mediacontrol_PositionKey;
 static struct vlc_interface
 {
 #define declare_func(a,b,c) a (CPROC *b) c
-#define setup_func(a,b,c) vlc.b=(a(CPROC*)c)LoadFunction( lib, _WIDE(#b) )
+#define setup_func(a,b,c) vlc.b=(a(CPROC*)c)LoadFunction( lib, #b )
 
 	declare_func( libvlc_instance_t *,libvlc_new,( int , const char *const *) );
 

@@ -59,12 +59,12 @@ static void CPROC OnSliderUpdateProc(uintptr_t, PSI_CONTROL, int val);
 //---------------------------------------------------------------------------
 PRELOAD( RegisterExtraSliderConfig )
 {
-	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), CHECKBOX_HORIZONTAL, RADIO_BUTTON_NAME );
-	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), CHECKBOX_DRAGGING, RADIO_BUTTON_NAME );
-	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
-	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), EDIT_MIN, EDIT_FIELD_NAME );
-	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), EDIT_MAX, EDIT_FIELD_NAME );
-	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), EDIT_CURRENT, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/" TARGETNAME, CHECKBOX_HORIZONTAL, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/" TARGETNAME, CHECKBOX_DRAGGING, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/" TARGETNAME, EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/" TARGETNAME, EDIT_MIN, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/" TARGETNAME, EDIT_MAX, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/" TARGETNAME, EDIT_CURRENT, EDIT_FIELD_NAME );
 
 }
 

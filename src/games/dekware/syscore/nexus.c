@@ -2308,7 +2308,7 @@ void Startup( TEXTCHAR *lpCmdLine )
 		{
 			TEXTCHAR pMyLoadPath[256];
 			TEXTCHAR *truncname;
-			HMODULE mylib = LoadLibrary( _WIDE(TARGETNAME) );
+			HMODULE mylib = LoadLibrary( TARGETNAME );
 			if( !GetModuleFileName( mylib, pMyLoadPath, sizeof( pMyLoadPath ) ) )
 			{
 				lprintf( "Not compiled correctly!  You didn't set targetname to my name, so I don't know where I'm running." );

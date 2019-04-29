@@ -77,10 +77,10 @@ PRELOAD( RegisterKeypadIDs )
 	SACK_GetProfileString( GetProgramName(), "Crossfade Player/application path", "@/crossfade_vid_playlist.exe", l.video_application, sizeof( l.video_application ) );
 	SACK_GetProfileString( GetProgramName(), "Crossfade Player/application args", "@crossfade_vid_playlist.config", l.video_application_args, sizeof( l.video_application_args ) );
 
-	EasyRegisterResource( "InterShell/Crossfade Media Mount" _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_WINDOW_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( "InterShell/Crossfade Media Mount" _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_CLASS_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( "InterShell/Crossfade Media Mount" _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_ADDRESS, EDIT_FIELD_NAME );
-	EasyRegisterResource( "InterShell/Crossfade Media Mount" _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_SEND_FROM, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Crossfade Media Mount" TARGETNAME, EDIT_CROSSFADE_MOUNT_WINDOW_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Crossfade Media Mount" TARGETNAME, EDIT_CROSSFADE_MOUNT_CLASS_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Crossfade Media Mount" TARGETNAME, EDIT_CROSSFADE_MOUNT_ADDRESS, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Crossfade Media Mount" TARGETNAME, EDIT_CROSSFADE_MOUNT_SEND_FROM, EDIT_FIELD_NAME );
 }
 
 //------------------------- External program loader -------------------------------------------

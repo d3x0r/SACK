@@ -62,10 +62,10 @@ EasyRegisterControl( "Application Mount", sizeof( MY_CONTROL) );
 
 PRELOAD( RegisterKeypadIDs )
 {
-	EasyRegisterResource( "InterShell/Application Mount" _WIDE(TARGETNAME), EDIT_APP_WINDOW_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( "InterShell/Application Mount" _WIDE(TARGETNAME), EDIT_APP_CLASS_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( "InterShell/Application Mount" _WIDE(TARGETNAME), EDIT_APP_ADDRESS, EDIT_FIELD_NAME );
-	EasyRegisterResource( "InterShell/Application Mount" _WIDE(TARGETNAME), EDIT_APP_SEND_FROM, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Application Mount" TARGETNAME, EDIT_APP_WINDOW_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Application Mount" TARGETNAME, EDIT_APP_CLASS_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Application Mount" TARGETNAME, EDIT_APP_ADDRESS, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Application Mount" TARGETNAME, EDIT_APP_SEND_FROM, EDIT_FIELD_NAME );
 }
 
 static uintptr_t OnEditControl( "Application Mount" )( uintptr_t psv, PSI_CONTROL pc_parent )

@@ -1259,7 +1259,7 @@ int CPROC CheckWallInRect( PWALL wall, PGROUPWALLSELECTINFO psi )
 			if( psi->ppwalls )
 			{
 				psi->ppwalls[psi->nwalls++] = GetWallIndex( wall );
-				lprintf( "Server side " _WIDE(TARGETNAME) " needs balance line." );
+				lprintf( "Server side " TARGETNAME " needs balance line." );
 				//BalanceALine( psi->iWorld, wall->iLine );
 			}
 			else

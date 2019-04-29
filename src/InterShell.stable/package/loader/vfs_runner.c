@@ -342,7 +342,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		}
 		//vfs_memory = GetExtraData( memory );
 		//printf( "extra is %d(%08x)\n", vfs_memory, vfs_memory );
-		l.rom_fs = sfxappload( _WIDE(CMAKE_BUILD_TYPE), CPACK_PACKAGE_VERSION_PATCH );
+		l.rom_fs = sfxappload( CMAKE_BUILD_TYPE, CPACK_PACKAGE_VERSION_PATCH );
 		if( !l.rom_fs )
 		{
 			MessageBox( NULL, "Failed to load ROM", "Startup Error", MB_OK );

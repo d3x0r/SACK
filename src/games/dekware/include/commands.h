@@ -48,7 +48,7 @@ typedef struct command_entry
 	CPROC paste(name,line)argtypes;       \
 	PRIORITY_PRELOAD( paste(paste(paste(Register,name),Method),line), priority ) {  \
 	SimpleRegisterMethod( task "/" classtype, paste(name,line)  \
-	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
+	, #returntype, methodname, #argtypes ); \
    RegisterValue( task "/" classtype "/" methodname, "Description", desc ); \
    RegisterValue( task "/" classtype "/" methodname, "Command Class", classname ); \
 }                                                                          \
