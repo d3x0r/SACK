@@ -42,17 +42,11 @@
 #  define DBG_FILELINEFMT
 #endif
 
-#ifdef UNICODE
-#error unicode not defined.
-#else
-#define WIDE(s)  s
-#endif
-
 #ifndef FALSE
-#define FALSE 0
+#  define FALSE 0
 #endif
 #ifndef TRUE
-#define TRUE (!FALSE)
+#  define TRUE (!FALSE)
 #endif
 //typedef void           _0;
 typedef void *P_0;

@@ -328,7 +328,7 @@ void WriteLineInfo( char *name, int line )
 			{
 			if( g.flags.bLineUsesLineKeyword )
 			{
-				fprintf( out, WIDE("#line %d \"%s\"\n")
+				fprintf( out, "#line %d \"%s\"\n"
 				       //"//line %s(%d)\n"
 				       , LastLineWritten
 				       , LastFileWritten
@@ -337,7 +337,7 @@ void WriteLineInfo( char *name, int line )
 			else
 			{
 				// gcc is wonderful, eh?
-				fprintf( out, WIDE("# %d \"%s\"\n")
+				fprintf( out, "# %d \"%s\"\n"
 				       //"//line %s(%d)\n"
 				       , LastLineWritten
 				       , LastFileWritten

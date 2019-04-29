@@ -253,7 +253,7 @@ int ProcessInclude( int bNext )
 			basename[i] = 0;
 			if( !pEnd )
 			{
-				fprintf( stderr, WIDE("%s(%d) Error: Invalid name end bounding for #include \"...\n")
+				fprintf( stderr, "%s(%d) Error: Invalid name end bounding for #include \"...\n"
 						, GetCurrentFileName(), GetCurrentLine() );
 				g.ErrorCount++;
 				return TRUE;
@@ -261,7 +261,7 @@ int ProcessInclude( int bNext )
 			strcpy( Workname, basename );
 			if( g.bDebugLog )
 			{
-				fprintf( stddbg, WIDE("attempting: \"%s\"\n"), basename );
+				fprintf( stddbg, "attempting: \"%s\"\n", basename );
 			}
 			if( g.flags.load_once )
 			{
@@ -301,7 +301,7 @@ int ProcessInclude( int bNext )
 					sprintf( Workname, "%s/%s", GetText( pPath ), basename );
 					if( g.bDebugLog )
 					{
-						fprintf( stddbg, WIDE("attempting \"%s\"\n") , Workname );
+						fprintf( stddbg, "attempting \"%s\"\n" , Workname );
 					}
 					/*1234*/
 					if( g.flags.load_once )
@@ -320,7 +320,7 @@ int ProcessInclude( int bNext )
 						return TRUE;
 					}
 				}
-				fprintf( stderr, WIDE("%s(%d): Warning could not find include file \"%s\". try <%s>? I won't - but maybe...\n")
+				fprintf( stderr, "%s(%d): Warning could not find include file \"%s\". try <%s>? I won't - but maybe...\n"
 						, GetCurrentFileName()
 						, GetCurrentLine()
 						, basename, basename );
@@ -721,7 +721,7 @@ int PreProcessLine( void )
 		{
 			if( !NEXTLINE( pDirective ) )
 			{
-				fprintf( stderr, WIDE("\"#define\" keyword alone is NOT allowed...") );
+				fprintf( stderr, "\"#define\" keyword alone is NOT allowed..." );
 				return FALSE; // can still continue....
 			}
 
@@ -1271,7 +1271,7 @@ void usage( void )
 	printf( "\t -ssio               Skip System Include Out;try to keep #includes that are missing as #include\n" );
 	printf( "\t -F                  force \\ into /\n" );
 	printf( "\t -[Oo]<file>         specify the output filename; output filename must be set before input(s) are read\n" );
-	printf( WIDE("\t                         -o output \"process this file into output.c\"\n" ) );
+	printf( "\t                         -o output \"process this file into output.c\"\n"  );
 	printf( "\t -once               only load any include once\n" );
 	printf( "\t -[Zz]#              debug info mode. where number is in ( 1, 2, 4 )\n" );
 	printf( "\t @<file>              any option read from a file...\n" );

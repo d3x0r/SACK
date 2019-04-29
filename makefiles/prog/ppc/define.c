@@ -168,9 +168,9 @@ void InitDefines( void )
 		DECLTEXT( constname, "__TIME__" );
 		char time[15];
 #if defined( __UNIXTIME__ )
-		strftime( time, 15, WIDE("\"%H:%M:%S\""), &tm );
+		strftime( time, 15, "\"%H:%M:%S\"", &tm );
 #elif defined( __WINTIME__ )
-		snprintf( time, 15, WIDE("\"%2d:%02d:%02d.%03d\"")
+		snprintf( time, 15, "\"%2d:%02d:%02d.%03d\""
 				  , st.wHour, st.wMinute
 				  , st.wSecond, st.wMilliseconds );
 #endif
@@ -187,9 +187,9 @@ void InitDefines( void )
 		DECLTEXT( constname, "__DATE__" );
 		char date[20];
 #if defined( __UNIXTIME__ )
-		strftime( date, 20, WIDE("\"%b %e %Y\""), &tm );
+		strftime( date, 20, "\"%b %e %Y\"", &tm );
 #elif defined( __WINTIME__ )
-		snprintf( date, 20, WIDE("\"%02d/%02d/%04d\"")
+		snprintf( date, 20, "\"%02d/%02d/%04d\""
 				  , st.wMonth, st.wDay, st.wYear );
 #endif
 		DefineDate.pName = (PTEXT)&constname;
