@@ -319,11 +319,11 @@ void DoEvenSomethingElse( PODBC odbc )
    CTEXTSTR result = NULL;
 	PushSQLQueryEx( odbc );
 #define stuff "12 + 5 / 2"
-	for( SQLQuery( odbc, WIDE("select ")stuff, &result );
+	for( SQLQuery( odbc, "select " stuff, &result );
 		 result;
 		  FetchSQLResult( odbc, &result ) )
 	{
-      lprintf( WIDE("result of")stuff" = %s", result );
+      lprintf( "result of" stuff" = %s", result );
 	}
    PopODBCEx( odbc );
 }
@@ -332,12 +332,12 @@ void DoSomethingElse( PODBC odbc )
 {
    CTEXTSTR result = NULL;
 	PushSQLQueryEx( odbc );
-	for( SQLQuery( odbc, WIDE("select 5 * 3"), &result );
+	for( SQLQuery( odbc, "select 5 * 3", &result );
 		 result;
 		  FetchSQLResult( odbc, &result ) )
 	{
       DoEvenSomethingElse( odbc );
-      lprintf( WIDE("result of 5*3 = %s"), result );
+      lprintf( "result of 5*3 = %s", result );
 	}
    PopODBCEx( odbc );
 }
@@ -346,15 +346,15 @@ void DoSomething( PODBC odbc )
 {
    CTEXTSTR result = NULL;
 	PushSQLQueryEx( odbc );
-	for( SQLQuery( odbc, WIDE("select * from systems"), &result );
+	for( SQLQuery( odbc, "select * from systems", &result );
 		 result;
 		  FetchSQLResult( odbc, &result ) )
 	{
       char cmd[256];
-      lprintf( WIDE("Adding a new system address into the table...") );
-      sprintf( cmd, WIDE("insert into systems (address) values ('%d')"), GetTickCount() );
+      lprintf( "Adding a new system address into the table..." );
+      sprintf( cmd, "insert into systems (address) values ('%d')", GetTickCount() );
       SQLCommand( odbc, cmd );
-      lprintf( WIDE("Got %s from system"), result );
+      lprintf( "Got %s from system", result );
       DoSomethingElse( odbc );
 	}
    PopODBCEx( odbc );
@@ -366,8 +366,8 @@ int main ( int argc, char **argv )
 {
    /// do stuff
 
-// PODBC odbc = ConnectToDatabase( WIDE("lMySQL") );
-	PODBC odbc = ConnectToDatabase( WIDE("MySQL") );
+// PODBC odbc = ConnectToDatabase( "lMySQL" );
+	PODBC odbc = ConnectToDatabase( "MySQL" );
 
 	xlprintf(LOG_ADVISORY)("Welcome to testsql3");
 

@@ -81,12 +81,12 @@ int main( int argc, char **argv )
 	{
 		CTEXTSTR *result = NULL;
 		size_t len;
-		while( buf[0] == WIDE(' ') || buf[0] == WIDE('\t') )
+		while( buf[0] == ' ' || buf[0] == '\t' )
          buf++;
 		len = strlen( buf );
 		if( buf[0] == WIDE('#') )
 			continue;
-		if( ( len > 0 ) && buf[len-1] == WIDE('\n') )
+		if( ( len > 0 ) && buf[len-1] == '\n' )
 		{
 			len--;
 			buf[len] = 0;
@@ -98,7 +98,7 @@ int main( int argc, char **argv )
 		if( !buf[0] && VarTextLength( pvt_cmd ) == 0 )
 			continue;
 
-		if( ( len > 0 ) && buf[len-1] == WIDE('\\') )
+		if( ( len > 0 ) && buf[len-1] == '\\' )
 		{
 			buf[len-1] = 0;
 			len--;
@@ -116,7 +116,7 @@ int main( int argc, char **argv )
 
 		buf = GetText( VarTextPeek( pvt_cmd ) );
 
-		if( buf[0] == WIDE('?') )
+		if( buf[0] == '?' )
 		{
 			int fields;
 			int replace = 0;
@@ -124,7 +124,7 @@ int main( int argc, char **argv )
 			CTEXTSTR *columns;
 			TEXTSTR *_columns;
 			PVARTEXT pvt = NULL;
-			if( buf[1] == WIDE('!') )
+			if( buf[1] == '!' )
 			{
 				replace = 1;
 				ofs = 2;
@@ -289,7 +289,7 @@ int main( int argc, char **argv )
 				DeleteList( &output );
 			}
 		}
-		else if( buf[0] == WIDE('!') )
+		else if( buf[0] == '!' )
 		{
 			if( output )
 			{
@@ -332,11 +332,11 @@ int main( int argc, char **argv )
 					fprintf( stderr, "Ok.\n" );
 			}
 		}
-		else if( buf[0] == WIDE('=') )
+		else if( buf[0] == '=' )
 		{
 			TEXTCHAR *start = buf + 1;
 			TEXTCHAR *end;
-			end = strchr( start, WIDE('@') );
+			end = strchr( start, '@' );
 			if( !end )
 			{
 				printf( "Must specify table@dsn,dsn,dsn... no @ found on :%s\n", buf );
@@ -349,7 +349,7 @@ int main( int argc, char **argv )
 				while( ( start = end ) != 0 )
 				{
 					PODBC odbc;
-					end = strchr( start, WIDE(',') );
+					end = strchr( start, ',' );
 					if( end )
 					{
 						end[0] = 0;

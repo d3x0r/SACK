@@ -834,7 +834,7 @@ PRELOAD( InitSQLPassword )
 		g.permission_count++; // should stay in sync with list...
 	}
 	ReloadUserCache( NULL );
-	//ReadNameTableExx( WIDE("names"), WIDE("program_identifiers"), WIDE("program_id"), WIDE("menu login"), NULL );
+	//ReadNameTableExx( "names", ("program_identifiers"), ("program_id"), ("menu login"), NULL );
 	
 	g.flags.bPrintAccountCreated = SACK_GetProfileInt( "PASSWORD", "Report Account Creation", 0 );
 

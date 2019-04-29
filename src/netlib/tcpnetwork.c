@@ -948,7 +948,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 #endif
 			return (int)lpClient->RecvPending.dwUsed; // amount of data available...
 		}
-		//lprintf( WIDE("FinishPendingRead of %d"), lpClient->RecvPending.dwAvail );
+		//lprintf( ("FinishPendingRead of %d"), lpClient->RecvPending.dwAvail );
 		if( !( lpClient->dwFlags & CF_READPENDING ) )
 		{
 			//lpClient->dwFlags |= CF_READREADY; // read ready is set if FinishPendingRead returns 0; and it's from the core read...

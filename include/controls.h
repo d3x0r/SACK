@@ -2153,10 +2153,10 @@ PSI_PROC( int, SimpleUserQueryEx )( TEXTSTR result, int reslen, CTEXTSTR questio
 
 PSI_PROC( void, RegisterResource )( CTEXTSTR appname, CTEXTSTR resource_name, int ID, int resource_name_range, CTEXTSTR type_name );
 // assuming one uses a
-#define SimpleRegisterResource( name, typename ) RegisterResource( "application", WIDE(#name), name, 1, typename );
-#define EasyRegisterResource( domain, name, typename ) RegisterResource( domain, WIDE(#name), name, 1, typename );
-#define EasyRegisterResourceRange( domain, name, range, typename ) RegisterResource( domain, WIDE(#name), name, range, typename );
-#define SimpleRegisterAppResource( name, typename, class ) RegisterResource( "application/" class, WIDE(#name), name, 1, typename );
+#define SimpleRegisterResource( name, typename ) RegisterResource( "application", #name, name, 1, typename );
+#define EasyRegisterResource( domain, name, typename ) RegisterResource( domain, #name, name, 1, typename );
+#define EasyRegisterResourceRange( domain, name, range, typename ) RegisterResource( domain, #name, name, range, typename );
+#define SimpleRegisterAppResource( name, typename, class ) RegisterResource( "application/" class, #name, name, 1, typename );
 
 PSI_PROC( size_t, _SQLPromptINIValue )(
 												CTEXTSTR lpszSection,

@@ -565,7 +565,7 @@ static PDATAPATH OnInitDevice("tcp", "Telnet type clear text socket connection..
 	}
 
 	pDestination = BuildLineExx( GetParam( ps, &parameters ), TRUE, NULL DBG_SRC );
-	Log1( WIDE("Address: \"%s\""), GetText( pDestination ) );
+	Log1( "Address: \"%s\"", GetText( pDestination ) );
 	sa = CreateSockAddress( GetText( pDestination ), 23 );
 	LineRelease( pDestination );
 	if( sa )
@@ -621,7 +621,7 @@ static PDATAPATH OnInitDevice("tls", "Telnet type clear text TLS socket connecti
 	}
 
 	pDestination = BuildLineExx( GetParam( ps, &parameters ), TRUE, NULL DBG_SRC );
-	Log1( WIDE("Address: \"%s\""), GetText( pDestination ) );
+	Log1( "Address: \"%s\"", GetText( pDestination ) );
 	sa = CreateSockAddress( GetText( pDestination ), 23 );
 	LineRelease( pDestination );
 	if( sa )

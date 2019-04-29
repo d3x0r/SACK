@@ -8770,11 +8770,6 @@ HWND wnd = NULL;
 HDC dc = NULL;
 HGLRC rc = NULL;
 
-#ifdef UNICODE
-#define WIDE(s) L##s
-#else
-#define WIDE(s) s
-#endif
 
 GLboolean glewCreateContext (int* pixelformat)
 {

@@ -2836,7 +2836,7 @@ WM_DROPFILES
 					if( l.flags.bUseLLKeyhook )
 						AddLink( &l.ll_keyhooks,
 								  added = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KeyHook2
-																  , GetModuleHandle(_WIDE(TARGETNAME)), 0 /*GetCurrentThreadId()*/
+																  , GetModuleHandle(TARGETNAME), 0 /*GetCurrentThreadId()*/
 																  )
 								 );
 					else
@@ -3541,7 +3541,7 @@ static struct display_camera *OpenCameras( void )
 	struct display_camera *camera;
 	INDEX idx;
 
- 	hMe = GetModuleHandle (_WIDE(TARGETNAME));
+ 	hMe = GetModuleHandle (TARGETNAME);
 	//lprintf( "-----Create WIndow Stuff----- %s %s", hVideo->flags.bLayeredWindow?"layered":"solid"
 		//		 , hVideo->flags.bChildWindow?"Child(tool)":"user-selectable" );
 	LoadOptions();
@@ -4198,7 +4198,7 @@ uintptr_t CPROC VideoThreadProc (PTHREAD thread)
    if( l.flags.bUseLLKeyhook )
 		AddLink( &l.ll_keyhooks,
 				  SetWindowsHookEx (WH_KEYBOARD_LL, (HOOKPROC)KeyHook2
-										 ,GetModuleHandle(_WIDE(TARGETNAME)), 0 /*GetCurrentThreadId()*/
+										 ,GetModuleHandle(TARGETNAME), 0 /*GetCurrentThreadId()*/
 										 ) );
    else
 		AddLink( &l.keyhooks,
@@ -4260,7 +4260,7 @@ int  InitDisplay (void)
 			 ;
 
 		wc.lpfnWndProc = (WNDPROC) VideoWindowProc;
-		wc.hInstance = GetModuleHandle (_WIDE(TARGETNAME));
+		wc.hInstance = GetModuleHandle (TARGETNAME);
 		wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
 		wc.lpszClassName = "GLVideoOutputClass";
 		wc.cbWndExtra = sizeof(PVIDEO);   // one extra DWORD

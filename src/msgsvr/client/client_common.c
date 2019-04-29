@@ -353,7 +353,7 @@ static MSGQ_TYPE OpenQueueEx( CTEXTSTR name, int key, int flags DBG_PASS )
 		{
 			//strerror_s(errbuf, sizeof( errbuf ), errno);
          errbuf[0] = 0;
-			lprintf( WIDE("Failed to create message Q for \"%s\":%s for") DBG_FILELINEFMT, name
+			lprintf( "Failed to create message Q for \"%s\":%s for" DBG_FILELINEFMT, name
 				, errbuf
 				DBG_RELAY );
 			queue = msgget( name, key, 0 );
@@ -371,7 +371,7 @@ static MSGQ_TYPE OpenQueueEx( CTEXTSTR name, int key, int flags DBG_PASS )
 				{
 					//strerror_s(errbuf, sizeof( errbuf ), errno);
 					errbuf[0] = 0;
-					lprintf( WIDE("Failed to open message Q for \"%s\":%s"), name
+					lprintf( "Failed to open message Q for \"%s\":%s", name
 						, errbuf
 						);
 				}
@@ -386,7 +386,7 @@ static MSGQ_TYPE OpenQueueEx( CTEXTSTR name, int key, int flags DBG_PASS )
 #ifdef DEBUG_MSGQ_OPEN
 			//strerror_s(errbuf, sizeof( errbuf ), errno);
          errbuf[0] = 0;
-			lprintf( WIDE("Failed to create message Q for \"%s\":%s for ") DBG_FILELINEFMT, name
+			lprintf( "Failed to create message Q for \"%s\":%s for " DBG_FILELINEFMT, name
 				, errbuf
 				DBG_RELAY );
 #endif

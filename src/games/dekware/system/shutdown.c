@@ -232,7 +232,7 @@ int CPROC Sound( PSENTIENT ps, PTEXT parameters )
 	}
 	else
 	{
-		Log1( WIDE("Playing Sound: \"%s\""), GetText( temp ) );
+		Log1( "Playing Sound: \"%s\"", GetText( temp ) );
 		PlaySound( GetText( temp ), NULL, 0x00020001L );
 		LineRelease( temp );
 	}

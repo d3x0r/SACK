@@ -160,9 +160,9 @@
 #define NUM_COMMANDS (sizeof(commands)/sizeof(command_entry))
  // NAME used is name of interpreted command and also name of function
  // to call taking paramters( PSENTIENT, PTEXT )
-#define DEFCMD( name,desc ) { DEFTEXT(WIDE(#name)),DEFTEXT("Nexus Core"),0,(sizeof(WIDE(#name))/sizeof(TEXTCHAR))-1,DEFTEXT(desc),name }
+#define DEFCMD( name,desc ) { DEFTEXT(#name),DEFTEXT("Nexus Core"),0,(sizeof(#name)/sizeof(TEXTCHAR))-1,DEFTEXT(desc),name }
  // the function to call and the name interpreted do not match...
-#define DEFCMDEX( name,desc,func) { DEFTEXT(WIDE(#name)),DEFTEXT("Nexus Core"),0,(sizeof(WIDE(#name))/sizeof(TEXTCHAR))-1,DEFTEXT(desc),func }
+#define DEFCMDEX( name,desc,func) { DEFTEXT(#name),DEFTEXT("Nexus Core"),0,(sizeof(#name)/sizeof(TEXTCHAR))-1,DEFTEXT(desc),func }
 
  command_entry commands[]={ DEFCMDEX(?,"",HELP )
 								  , DEFCMDEX(MACRO, "Create new macro.", CMD_MACRO)
@@ -1872,12 +1872,12 @@ int UNIMPLEMENTED( PSENTIENT ps, PTEXT parameters ) /*FOLD00*/
 	 PTEXT temp;
 	 PVARTEXT vt;
 	 vt = VarTextCreate();
-	 vtprintf( vt, WIDE("Command \"%s\" is unimplemented."),
+	 vtprintf( vt, "Command \"%s\" is unimplemented.",
 				 GetText(PRIORLINE(parameters) ) );
 	 EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 	 while( ( temp = GetParam( ps, &parameters ) ) )
 	 {
-		  vtprintf( vt, WIDE("	 Parameter: \"%s\""), GetText(temp) );
+		  vtprintf( vt, "	 Parameter: \"%s\"", GetText(temp) );
 		  EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 	 }
 	 VarTextDestroy( &vt );

@@ -178,7 +178,7 @@ static void DumpMacro( PVARTEXT vt, PMACRO pm, TEXTCHAR *type )
 {
 	PTEXT pt;
    INDEX idx;
-	vtprintf( vt, WIDE("/%s \"%s\""), type, GetText( GetName(pm) ) );
+	vtprintf( vt, "/%s \"%s\"", type, GetText( GetName(pm) ) );
 	{
 		PTEXT param;
 		param = pm->pArgs;

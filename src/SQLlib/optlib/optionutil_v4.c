@@ -114,7 +114,7 @@ void New4EnumOptions( PODBC odbc
 
 				// psv is a pointer to args in some cases...
 				//lprintf( "Enum %s %ld", optname, node );
-				//ReadFromNameTable( name, WIDE(""OPTION_NAME""), "name_id", &result);
+				//ReadFromNameTable( name, (""OPTION_NAME""), "name_id", &result);
 				if( !Process( psvUser, tmp_node->name, tmp_node
 								, ((tmp_node->flags.bHasValue )?1:0)
 								) )

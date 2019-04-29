@@ -712,7 +712,7 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 				if( pc->lpFirstPending != &pc->FirstWritePending )
 				{
 #ifdef LOG_PENDING
-					lprintf( WIDE("Data queued...Deleting in remove.") );
+					lprintf( "Data queued...Deleting in remove." );
 #endif
 					Deallocate( PendingBuffer*, pc->lpFirstPending);
 				}
@@ -1117,7 +1117,7 @@ static void HandleEvent( PCLIENT pClient )
 			// no longer a socket, probably in a closed or closing state.
 		}
 		else
-			lprintf( WIDE( "Event enum failed... do what? close socket? %p %" _32f ), pClient, dwError );
+			lprintf( "Event enum failed... do what? close socket? %p %" _32f, pClient, dwError );
 	}
 	pClient->dwFlags &= ~CF_PROCESSING;
 }
@@ -3056,7 +3056,7 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 #else
 #define FMT "s"
 #endif
-					Log1( WIDE("Could not resolve \"%" ) FMT WIDE("\" as a valid service name"), port );
+					Log1( "Could not resolve \"%" FMT "\" as a valid service name", port );
 					//return NULL;
 					wPort = nDefaultPort;
 				}

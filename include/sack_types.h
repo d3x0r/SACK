@@ -532,14 +532,14 @@ SACK_NAMESPACE
 
 #if defined( __WATCOMC__ )
 #define LIBMAIN()   static int __LibMain( HINSTANCE ); PRELOAD( LibraryInitializer ) { \
-	__LibMain( GetModuleHandle(_WIDE(TARGETNAME)) );   } \
+	__LibMain( GetModuleHandle(TARGETNAME) );   } \
 	static int __LibMain( HINSTANCE hInstance ) { /*Log( "Library Enter" );*/
 #define LIBEXIT() } static int LibExit( void ); ATEXIT( LiraryUninitializer ) { LibExit(); } int LibExit(void) { /*Log( "Library Exit" );*/
 #define LIBMAIN_END() }
 #else
 #ifdef TARGETNAME
 #define LIBMAIN()   static int __LibMain( HINSTANCE ); PRELOAD( LibraryInitializer ) { \
-	__LibMain( GetModuleHandle(_WIDE(TARGETNAME)) );   } \
+	__LibMain( GetModuleHandle(TARGETNAME) );   } \
 	static int __LibMain( HINSTANCE hInstance ) { /*Log( "Library Enter" );*/
 #else
 #define LIBMAIN()   TARGETNAME_NOT_DEFINED
@@ -628,10 +628,10 @@ SACK_NAMESPACE
 #endif
 
 #define TOCHR(n) #n[0]
-#define TOSTR(n) WIDE(#n)
+#define TOSTR(n) #n
 #define STRSYM(n) TOSTR(n)
 
-#define _WIDE__FILE__(n) WIDE(n)
+#define _WIDE__FILE__(n) n
 #define WIDE__FILE__ _WIDE__FILE__(__FILE__)
 
 /* a constant text string that represents the current source
@@ -650,10 +650,10 @@ SACK_NAMESPACE
 #endif
 
 /* specify a consistant macro to pass current file and line information.   This are appended parameters, and common usage is to only use these with _DEBUG set. */
-#define FILELINE_SRC         , (CTEXTSTR)_WIDE(__FILE__), __LINE__
+#define FILELINE_SRC         , __FILE__, __LINE__
 /* specify a consistant macro to pass current file and line information, to functions which void param lists.   This are appended parameters, and common usage is to only use these with _DEBUG set. */
-#define FILELINE_VOIDSRC     (CTEXTSTR)_WIDE(__FILE__), __LINE__
-//#define FILELINE_LEADSRC     (CTEXTSTR)_WIDE(__FILE__), __LINE__,
+#define FILELINE_VOIDSRC     __FILE__, __LINE__
+//#define FILELINE_LEADSRC     __FILE__, __LINE__,
 /* specify a consistant macro to define file and line parameters, to functions with otherwise void param lists.  This are appended parameters, and common usage is to only use these with _DEBUG set. */
 #define FILELINE_VOIDPASS    CTEXTSTR pFile, uint32_t nLine
 //#define FILELINE_LEADPASS    CTEXTSTR pFile, uint32_t nLine,
@@ -674,7 +674,7 @@ SACK_NAMESPACE
   usage
     FILELINE_VARSRC: // declare pFile and nLine variables.
 	*/
-#define FILELINE_VARSRC       CTEXTSTR pFile = _WIDE(__FILE__); uint32_t nLine = __LINE__
+#define FILELINE_VARSRC       CTEXTSTR pFile = __FILE__; uint32_t nLine = __LINE__
 
 // this is for passing FILE, LINE information to allocate
 // useful during DEBUG phases only...
@@ -1026,34 +1026,13 @@ typedef wchar_t X_16;
    character data, and is not signed or unsigned.       */
 typedef wchar_t *PX_16;
 
-#if defined( UNICODE ) || defined( SACK_COM_OBJECT )
-//should also consider revisiting code that was updated for TEXTCHAR to char conversion methods...
-#  ifdef _MSC_VER
-#    ifdef UNDER_CE
-#      define NULTERM
-#    else
-#      define NULTERM __nullterminated
-#    endif
-#  else
-#    define NULTERM
-#  endif
-#define WIDE(s)  L##s
-#define _WIDE(s)  WIDE(s)
-#define cWIDE(s)  s
-#define _cWIDE(s)  cWIDE(s)
-typedef NULTERM          const X_16      *CTEXTSTR; // constant text string content
-typedef NULTERM          CTEXTSTR        *PCTEXTSTR; // pointer to constant text string content
-typedef NULTERM          X_16            *TEXTSTR;
-/* a text 16 bit character  */
-typedef X_16             TEXTCHAR;
-
-#else
-#define WIDE(s)   s
-#define _WIDE(s)  s
-#define cWIDE(s)   s
+//#define WIDE(s)   s
+//#define _WIDE(s)  s
+//#define cWIDE(s)   s
 /* Modified WIDE wrapper that actually forces non-unicode
    string.                                                */
-#define _cWIDE(s)  s
+//#define _cWIDE(s)  s
+
 // constant text string content
 typedef const char     *CTEXTSTR;
 /* A non constant array of TEXTCHAR. A pointer to TEXTCHAR. A
@@ -1069,7 +1048,7 @@ typedef CTEXTSTR const *PCTEXTSTR;
 #endif
 /* a text 8 bit character  */
 typedef char            TEXTCHAR;
-#endif
+
 /* a character rune.  Strings should be interpreted as UTF-8 or 16 depending on UNICODE compile option.
    GetUtfChar() from strings.  */
 typedef uint32_t             TEXTRUNE;
@@ -1136,20 +1115,20 @@ SACK_NAMESPACE
 
 #if defined( __STDC_FORMAT_MACROS )
 
-#  define _32f   _WIDE( PRIu32 )
-#  define _32fx   _WIDE( PRIx32 )
-#  define _32fX   _WIDE( PRIX32 )
-#  define _32fs   _WIDE( PRId32 )
+#  define _32f   PRIu32
+#  define _32fx    PRIx32 
+#  define _32fX    PRIX32 
+#  define _32fs    PRId32 
 
-#  define _64f    _WIDE(PRIu64)
-#  define _64fx   _WIDE(PRIx64)
-#  define _64fX   _WIDE(PRIX64)
-#  define _64fs   _WIDE(PRId64)
+#  define _64f    PRIu64
+#  define _64fx   PRIx64
+#  define _64fX   PRIX64
+#  define _64fs   PRId64
 
-#  define _64f    _WIDE(PRIu64)
-#  define _64fx   _WIDE(PRIx64)
-#  define _64fX   _WIDE(PRIX64)
-#  define _64fs   _WIDE(PRId64)
+#  define _64f    PRIu64
+#  define _64fx   PRIx64
+#  define _64fX   PRIX64
+#  define _64fs   PRId64
 
 // non-unicode strings
 #  define c_32f    PRIu32
@@ -1178,25 +1157,19 @@ SACK_NAMESPACE
 
 #endif
 
-#if defined( UNICODE )
-#  define _cstring_f "s"
-#  define _string_f "S"
-#  define _ustring_f "S"
-#else
 #  define _cstring_f "s"
 #  define _string_f "s"
 #  define _ustring_f "S"
-#endif
 
 #if defined( __64__ )
 
 #  if defined( __STDC_FORMAT_MACROS )
 
 #    if !defined( __GNUC__ ) || defined( _WIN32 )
-#      define _size_f    _WIDE( PRIu64 )
-#      define _size_fx   _WIDE( PRIx64 )
-#      define _size_fX   _WIDE( PRIX64 )
-#      define _size_fs   _WIDE( PRId64 )
+#      define _size_f     PRIu64 
+#      define _size_fx    PRIx64 
+#      define _size_fX    PRIX64 
+#      define _size_fs    PRId64 
 #      define c_size_f    PRIu64
 #      define c_size_fx   PRIx64
 #      define c_size_fX   PRIX64
@@ -1212,8 +1185,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs _WIDE( PRIuPTR )
-#    define _PTRSZVALfx _WIDE( PRIxPTR )
+#    define _PTRSZVALfs  PRIuPTR 
+#    define _PTRSZVALfx  PRIxPTR 
 #    define cPTRSZVALfs PRIuPTR
 #    define cPTRSZVALfx PRIxPTR
 
@@ -1238,8 +1211,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs _WIDE( PRIuPTR )
-#    define _PTRSZVALfx _WIDE( PRIxPTR )
+#    define _PTRSZVALfs  PRIuPTR 
+#    define _PTRSZVALfx  PRIxPTR 
 #    define cPTRSZVALfs PRIuPTR
 #    define cPTRSZVALfx PRIxPTR
 #  endif
@@ -1250,10 +1223,10 @@ SACK_NAMESPACE
 
       // this HAS been fixed in UCRT - 2015!  but it'll take 5 years before everyone has that...
 #    if !defined( __GNUC__ ) || defined( _WIN32 )
-#      define _size_f    _WIDE( PRIu32 )
-#      define _size_fx   _WIDE( PRIx32 )
-#      define _size_fX   _WIDE( PRIX32 )
-#      define _size_fs   _WIDE( PRId32 )
+#      define _size_f     PRIu32 
+#      define _size_fx    PRIx32 
+#      define _size_fX    PRIX32 
+#      define _size_fs    PRId32 
 #      define c_size_f    PRIu32
 #      define c_size_fx   PRIx32
 #      define c_size_fX   PRIX32
@@ -1269,8 +1242,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs _WIDE( PRIuPTR )
-#    define _PTRSZVALfx _WIDE( PRIxPTR )
+#    define _PTRSZVALfs  PRIuPTR 
+#    define _PTRSZVALfx  PRIxPTR 
 #    define cPTRSZVALfs PRIuPTR
 #    define cPTRSZVALfx PRIxPTR
 #  else
@@ -1296,8 +1269,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs _WIDE( PRIuPTR )
-#    define _PTRSZVALfx _WIDE( PRIxPTR )
+#    define _PTRSZVALfs  PRIuPTR 
+#    define _PTRSZVALfx  PRIxPTR 
 #    define cPTRSZVALfs PRIuPTR
 #    define cPTRSZVALfx PRIxPTR
 #  endif

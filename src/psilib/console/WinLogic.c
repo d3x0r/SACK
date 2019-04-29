@@ -369,7 +369,7 @@ static void RenderTextLine(
 			nFirst = -1;
 		nLine++;
 	}
-	//lprintf( WIDE("(*(*r)...bottom nMin %d %d"), (*r)..bottom, nMinLine );
+	//lprintf( "(*(*r)...bottom nMin %d %d", (*r)..bottom, nMinLine );
 	if( (*r).bottom > nMinLine )
 	{
 		(*r).bottom = (*r).top;

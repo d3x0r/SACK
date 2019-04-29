@@ -1229,7 +1229,7 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level )
 			if( name->flags.bIntVal )
 				vtprintf( pvt, "[%ld]", name->data.name.iValue );
 			if( name->flags.bStringVal )
-				vtprintf( pvt, WIDE("\"%s\""), name->data.name.sValue );
+				vtprintf( pvt, "\"%s\"", name->data.name.sValue );
 			if( name->flags.bProc )
             vtprintf( pvt, "*%p", name->data.proc.proc );
 		}
@@ -2157,8 +2157,8 @@ void ReadConfiguration( void )
 		AddConfigurationMethod( pch, "option set %m=%m", SetOptionSet );
 		AddConfigurationMethod( pch, "default option %m=%m", SetOptionDefault );
 		AddConfigurationMethod( pch, "set option %m=%m", SetOptionSet );
-		AddConfigurationMethod( pch, WIDE( "start directory \"%m\"" ), SetDefaultDirectory );
-		AddConfigurationMethod( pch, WIDE( "include \"%m\"" ), IncludeAdditional );
+		AddConfigurationMethod( pch, "start directory \"%m\"", SetDefaultDirectory );
+		AddConfigurationMethod( pch, "include \"%m\"", IncludeAdditional );
 		AddConfigurationMethod( pch, "if %m==%m", TestOption );
 		AddConfigurationMethod( pch, "endif", EndTestOption );
 		AddConfigurationMethod( pch, "else", ElseTestOption );

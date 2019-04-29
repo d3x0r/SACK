@@ -174,7 +174,7 @@ OnKeyPressEvent( "Windows->Start" )( uintptr_t psv )
 	 * if( is98 )
 	 * BuildMenuItemsPopup( menu, "/users/all users/start menu" );
 	 * if( isXP )
-	 * BuildMenuItemsPopup( menu, WIDE("/documents and settings/all users/start menu") );
+	 * BuildMenuItemsPopup( menu, "/documents and settings/all users/start menu" );
 	 * if( isVista )
 	 * BuildMenuItemsPopup( menu, "/????" );
 	 */

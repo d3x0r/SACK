@@ -1860,24 +1860,10 @@ TYPELIB_PROC  int TYPELIB_CALLTYPE  TextSimilar  ( PTEXT pText, CTEXTSTR text );
 #  include <strings.h>
 /* windows went with stricmp() and strnicmp(), whereas linux
  went with strcasecmp() and strncasecmp()                  */
-#  ifdef UNICODE
-#    ifndef NO_UNICODE_C
-#      define strnicmp strncasecmp
+#  define strnicmp strncasecmp
 /* windows went with stricmp() and strnicmp(), whereas linux
    went with strcasecmp() and strncasecmp()                  */
-#      define stricmp strcasecmp
-#    else
-#      define strnicmp wcsncasecmp
-/* windows went with stricmp() and strnicmp(), whereas linux
-   went with strcasecmp() and strncasecmp()                  */
-#      define stricmp wcscasecmp
-#    endif
-#  else
-#    define strnicmp strncasecmp
-/* windows went with stricmp() and strnicmp(), whereas linux
-   went with strcasecmp() and strncasecmp()                  */
-#     define stricmp strcasecmp
-#  endif
+#  define stricmp strcasecmp
 #endif
 
 /* Copy segment formatting to another segment... */

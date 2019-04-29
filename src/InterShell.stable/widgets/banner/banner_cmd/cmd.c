@@ -47,9 +47,9 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 					  " -yesno and -okaycancel : returns error level 0 for yes and 1 for no, 2 for cancel, 3 for ok.\n"
 					  " \n"
 					  " any other unknown argument or other word will show as text.\n"
-					  WIDE( " banner_command -back $20800010 -text $FF70A080 Show \"This Text On\" Banner\n" )
+					  " banner_command -back $20800010 -text $FF70A080 Show \"This Text On\" Banner\n"
 					  "   - the prior command will show 3 lines 'show', 'this text on', 'banner'"
-					  WIDE( " banner_command Show \"\\\"This Text On\\\"\" Banner\n" )
+					  " banner_command Show \"\\\"This Text On\\\"\" Banner\n" 
 					  "   - the prior command shows how to include showing quotes"
 					 , "Usage"
 					 , MB_OK );

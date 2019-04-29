@@ -2186,14 +2186,14 @@ void OutputHTMLSpaceTable( PSPACENODE root
 	{
 		INDEX row, col;
 		PLIST cols;
-		vtprintf( pvt_output, WIDE( "<table border=\"1\">\r\n" ) );
+		vtprintf( pvt_output,  "<table border=\"1\">\r\n" );
 		{
 			int n;
 
 			vtprintf( pvt_output, "<colgroup>" );
 			for( n = 0; n < (table->cols-1); n++ )
 			{
-				vtprintf( pvt_output, WIDE( "<col width=\"%d\">" ), (table->col_width[n+1]-table->col_width[n]) * 10 );
+				vtprintf( pvt_output,  "<col width=\"%d\">" , (table->col_width[n+1]-table->col_width[n]) * 10 );
 			}
 			vtprintf( pvt_output, "</colgroup>\n" );
 		}
@@ -2203,7 +2203,7 @@ void OutputHTMLSpaceTable( PSPACENODE root
 			vtprintf( pvt_output, "<tr>" );
 			LIST_FORALL( cols, col, PSPACENODE, node )
 			{
-				vtprintf( pvt_output, WIDE( "<td data=\"%08X\" bgcolor=\"#%06X\" colspan=\"%d\" rowspan=\"%d\">X" )
+				vtprintf( pvt_output, "<td data=\"%08X\" bgcolor=\"#%06X\" colspan=\"%d\" rowspan=\"%d\">X" 
 							, node->data
 							, rand() << 6
 						  , node->col_span, node->row_span );
@@ -2228,14 +2228,14 @@ void OutputHTMLSpaceTable( PSPACENODE root
 		INDEX row, col;
 		PLIST cols;
 		int output_row = 0;
-		vtprintf( pvt_output, WIDE( "<table border=\"1\">\r\n" ) );
+		vtprintf( pvt_output,  "<table border=\"1\">\r\n"  );
 		{
 			int n;
 
 			vtprintf( pvt_output, "<colgroup>" );
 			for( n = 0; n < (table->cols-1); n++ )
 			{
-				vtprintf( pvt_output, WIDE( "<col width=\"%d\">" ), (table->col_width[n+1]-table->col_width[n]) * 10 );
+				vtprintf( pvt_output, "<col width=\"%d\">", (table->col_width[n+1]-table->col_width[n]) * 10 );
 			}
 			vtprintf( pvt_output, "</colgroup>" );
 		}
@@ -2250,7 +2250,7 @@ void OutputHTMLSpaceTable( PSPACENODE root
 					vtprintf( pvt_output, "<tr>" );
 					output_row = 1;
 				}
-				vtprintf( pvt_output, WIDE( "<td data=\"%08X\" bgcolor=\"#%06X\" colspan=\"%d\" rowspan=\"%d\">Y" )
+				vtprintf( pvt_output, "<td data=\"%08X\" bgcolor=\"#%06X\" colspan=\"%d\" rowspan=\"%d\">Y"
 							, node->data
 							, rand() << 6
 						  , node->col_span, node->row_span );

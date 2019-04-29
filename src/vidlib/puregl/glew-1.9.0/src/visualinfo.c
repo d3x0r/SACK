@@ -41,12 +41,6 @@
 #include <GL/glxew.h>
 #endif
 
-#ifdef _UNICODE
-#define WIDE(a) L##a
-#else
-#define WIDE(a) a
-#endif
-
 #ifdef GLEW_MX
 GLEWContext _glewctx;
 #  define glewGetContext() (&_glewctx)

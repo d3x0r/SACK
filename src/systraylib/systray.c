@@ -275,7 +275,7 @@ void BasicExitMenu( void )
 {
 	TEXTCHAR filepath[256];
 	GetModuleFileName( NULL, filepath, sizeof( filepath ) );
-	hInstMe = GetModuleHandle( _WIDE(TARGETNAME) );
+	hInstMe = GetModuleHandle( TARGETNAME );
 #ifdef WIN32
  	hMainMenu = CreatePopupMenu();
 	AppendMenu( hMainMenu, MF_STRING, TXT_STATIC, filepath );

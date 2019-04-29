@@ -231,7 +231,7 @@ typedef struct server_function_entry_tag{
 } SERVER_FUNCTION;
 
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
-#define ServerFunctionEntry(name) { _WIDE(#name), name }
+#define ServerFunctionEntry(name) { #name, name }
 #else
 #define ServerFunctionEntry(name) { name }
 #endif

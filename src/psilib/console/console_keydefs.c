@@ -544,10 +544,10 @@ PRELOAD( WriteSymbols)
 					tmp2[2] = 0;
 				}
 				fprintf( junk, ", {%s%s%s,%s%s%s,%s|%s|%s|%s|%s|%s,{"
-						 , ConsoleKeyDefs[n].name1?"WIDE(\"":""
+						 , ConsoleKeyDefs[n].name1?"\"":""
 						 , ConsoleKeyDefs[n].name1?n1:"NULL"
 						 , ConsoleKeyDefs[n].name1?"\")":""
-						 , ConsoleKeyDefs[n].name2?"WIDE(\"":""
+						 , ConsoleKeyDefs[n].name2?"\"":""
 						 , ConsoleKeyDefs[n].name2?n2:"NULL"
 						 , ConsoleKeyDefs[n].name2?"\")":""
 						 , ConsoleKeyDefs[n].flags&KDF_NODEFINE?"KDF_NODEFINE":"0"

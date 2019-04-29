@@ -43,12 +43,6 @@
 #include <GL/Regal.h>
 #endif
 
-#ifdef _UNICODE
-#define WIDE(a) L##a
-#else
-#define WIDE(a) a
-#endif
-
 static FILE* f;
 
 #ifdef GLEW_MX

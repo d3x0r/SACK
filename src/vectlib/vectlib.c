@@ -1103,7 +1103,7 @@ LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 			)
 		{
 			VECTOR  r;
-			//lprintf( WIDE("Time scale is not applied") );
+			//lprintf( "Time scale is not applied" );
 			moved = TRUE;
 			DOFUNC(addscaled)( motion->rotation, motion->rotation, motion->rot_accel, rotation_step );
 			DOFUNC(scale)( r, motion->rotation, rotation_step );
@@ -1238,7 +1238,7 @@ LOGICAL EXTERNAL_NAME( Move )(PTRANSFORM pt)
 	if( pt->rotation[0] || pt->rotation[1] || pt->rotation[2] )
 	{
 		VECTOR  r;
-		//lprintf( WIDE("Time scale is not applied") );
+		//lprintf( "Time scale is not applied" );
 		DOFUNC(addscaled)( pt->motion->rotation, pt->motion->rotation, pt->motion->rot_accel, -rotation_step );
 		scale( r, pt->motion->rotation, -rotation_step );
 
@@ -1747,8 +1747,8 @@ void EXTERNAL_NAME(ShowTransformEx)( PTRANSFORM pt, char *header DBG_PASS )
 {
    _xlprintf( 1 DBG_RELAY )( "transform %s", header );
 	_xlprintf( 1 DBG_RELAY )( "     -----------------");
-#define F4(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT "> " DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], pt->name[3], EXTERNAL_NAME(Length)( pt->name ) )
-#define F(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT "> " DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], EXTERNAL_NAME(Length)( pt->name ) )
+#define F4(name) _xlprintf( 1 DBG_RELAY )( #name " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT "> " DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], pt->name[3], EXTERNAL_NAME(Length)( pt->name ) )
+#define F(name) _xlprintf( 1 DBG_RELAY )( #name " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT "> " DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], EXTERNAL_NAME(Length)( pt->name ) )
 	if( pt->motions )
 	{
 		F(motions->speed);
@@ -1772,8 +1772,8 @@ void EXTERNAL_NAME(showstd)( PTRANSFORM pt, char *header )
 	TEXTCHAR byMsg[256];
 #undef F4
 #undef F
-#define F4(name) SPRINTF( byMsg, _WIDE(#name) " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT ">", pt->name[0], pt->name[1], pt->name[2], pt->name[3] )
-#define F(name) SPRINTF( byMsg, _WIDE(#name) " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT ">", pt->name[0], pt->name[1], pt->name[2] )
+#define F4(name) SPRINTF( byMsg, #name " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT ">", pt->name[0], pt->name[1], pt->name[2], pt->name[3] )
+#define F(name) SPRINTF( byMsg, #name " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT ">", pt->name[0], pt->name[1], pt->name[2] )
    PRINTF( "%s", header );
    PRINTF( "%s", "     -----------------\n");
    F(motions->speed);

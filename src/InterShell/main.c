@@ -467,7 +467,7 @@ PCanvasData GetCanvasEx( PSI_CONTROL pc DBG_PASS )
 		if( !canvas )
 		{
 			PSI_CONTROL parent;
-			//lprintf( WIDE( "Control %p is not a canvas, go to parent, check it..." ) );
+			//lprintf( "Control %p is not a canvas, go to parent, check it..."  );
 			for( parent = GetParentControl( pc ); parent; parent = GetParentControl( parent ) )
 			{
 				ValidatedControlData( PPAGE_DATA*, new_menu_surface.TypeID, _page, parent );
@@ -477,7 +477,7 @@ PCanvasData GetCanvasEx( PSI_CONTROL pc DBG_PASS )
 					canvas = _canvas;
 					break;
 				}
-				//lprintf( WIDE( "Control %p is not a canvas, go to parent, check it..." ) );
+				//lprintf( "Control %p is not a canvas, go to parent, check it..."  );
 			}
 		}
 		return canvas;
@@ -1468,7 +1468,7 @@ static LOGICAL InvokeButtonCreate( PMENU_BUTTON button, LOGICAL bVisible )
 					SimplePressHandler handler;
 					TEXTCHAR realname[256];
 					snprintf( realname, sizeof(realname), "sack/widgets/keypad/press handler/%s", button->pTypeName );
-#define GetRegisteredProcedure2(nc,rtype,name,args) (rtype (CPROC*)args)GetRegisteredProcedureEx((nc),WIDE(#rtype), name, WIDE(#args) )
+#define GetRegisteredProcedure2(nc,rtype,name,args) (rtype (CPROC*)args)GetRegisteredProcedureEx((nc),#rtype, name, #args )
 
 					handler = GetRegisteredProcedure2( realname, void, "on_keypress_event", (uintptr_t) );
 					if( handler )

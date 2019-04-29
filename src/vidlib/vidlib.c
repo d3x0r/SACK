@@ -3286,9 +3286,9 @@ WM_DROPFILES
 				if( thread == NULL )
 				{		
 					HINSTANCE hInst;
-					hInst =  GetModuleHandle(_WIDE(TARGETNAME));
+					hInst =  GetModuleHandle(TARGETNAME);
 					if( hInst == NULL )
-						hInst = (HMODULE)GetPrivateModuleHandle( _WIDE(TARGETNAME) );
+						hInst = (HMODULE)GetPrivateModuleHandle( TARGETNAME );
 				// definatly add whatever thread made it to the WM_CREATE.			
 					AddLink( &l.threads, me );
 					AddIdleProc( (int(CPROC*)(uintptr_t))ProcessDisplayMessages, 0 );
@@ -3410,9 +3410,9 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 #ifndef __NO_WIN32API__
 	static HMODULE hMe;
 	if( hMe == NULL )
-		hMe = GetModuleHandle (_WIDE(TARGETNAME));
+		hMe = GetModuleHandle (TARGETNAME);
 	if( hMe == NULL )
-		hMe = (HMODULE)GetPrivateModuleHandle( _WIDE(TARGETNAME) );
+		hMe = (HMODULE)GetPrivateModuleHandle( TARGETNAME );
 	if( hMe == NULL )
 		hMe = GetModuleHandle( NULL );
 	//lprintf( "-----Create WIndow Stuff----- %s %s", hVideo->flags.bLayeredWindow?"layered":"solid"
@@ -4027,12 +4027,12 @@ uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 		prochook = SetWindowsHookEx(
 											 WH_CALLWNDPROC,
 											 AllWndProc,
-											 GetModuleHandle(_WIDE(TARGETNAME)),
+											 GetModuleHandle(TARGETNAME),
 											 0);
 		get_prochook = SetWindowsHookEx(
 												  WH_CALLWNDPROC,
 												  AllGetWndProc,
-												  GetModuleHandle(_WIDE(TARGETNAME)),
+												  GetModuleHandle(TARGETNAME),
 												  0);
 	}
 #endif
@@ -4040,7 +4040,7 @@ uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 	if( l.flags.bUseLLKeyhook )
 		AddLink( &l.ll_keyhooks,
 				  SetWindowsHookEx (WH_KEYBOARD_LL, (HOOKPROC)KeyHook2
-										 ,GetModuleHandle(_WIDE(TARGETNAME)), 0 /*GetCurrentThreadId()*/
+										 ,GetModuleHandle(TARGETNAME), 0 /*GetCurrentThreadId()*/
 										 ) );
 	else
 		AddLink( &l.keyhooks,
@@ -4141,9 +4141,9 @@ RENDER_PROC (int, InitDisplay) (void)
 			 ;
 
 		wc.lpfnWndProc = (WNDPROC) VideoWindowProc;
-		wc.hInstance = (HINSTANCE)GetModuleHandle (_WIDE(TARGETNAME));
+		wc.hInstance = (HINSTANCE)GetModuleHandle (TARGETNAME);
 		if( wc.hInstance == NULL )
-			wc.hInstance = (HMODULE)GetPrivateModuleHandle( _WIDE(TARGETNAME) );
+			wc.hInstance = (HMODULE)GetPrivateModuleHandle( TARGETNAME );
 		if( !wc.hInstance )
 			wc.hInstance = GetModuleHandle( NULL );
 		wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);

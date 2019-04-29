@@ -12,7 +12,7 @@ SQL_NAMESPACE
 #undef SQLRecordQueryf_v2
 
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
-#define WRAP(a,b,c)  CTEXTSTR _FILE_##b = _WIDE(__FILE__); int _LINE_##b; __f_##b __##b(DBG_VOIDPASS)  { _FILE_##b = pFile; _LINE_##b = nLine; return b; }
+#define WRAP(a,b,c)  CTEXTSTR _FILE_##b = __FILE__; int _LINE_##b; __f_##b __##b(DBG_VOIDPASS)  { _FILE_##b = pFile; _LINE_##b = nLine; return b; }
 #define DBG_ARGS(n)  , _FILE_##n, _LINE_##n
 #else
 #define WRAP(a,b,c)  __f_##b __##b(void)  { return b; }

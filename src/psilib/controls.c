@@ -83,21 +83,21 @@ typedef struct resource_names
 static RESOURCE_NAMES resource_names[] = {
 #define BUILD_NAMES
 #ifdef __cplusplus
-#define FIRST_SYMNAME(name,control_type_name)  { name, 1, WIDE(#name), control_type_name }
-#define SYMNAME(name,control_type_name)  , { name, 1, WIDE(#name), control_type_name }
-#define SYMNAME_SKIP(prior,range,name,control_type_name)  , { prior, range, WIDE(#prior), control_type_name } \
-	, { name, 1, WIDE(#name), control_type_name }
+#define FIRST_SYMNAME(name,control_type_name)  { name, 1, #name, control_type_name }
+#define SYMNAME(name,control_type_name)  , { name, 1, #name, control_type_name }
+#define SYMNAME_SKIP(prior,range,name,control_type_name)  , { prior, range, #prior, control_type_name } \
+	, { name, 1, #name, control_type_name }
 #else
 #ifdef __WATCOMC__
-#define FIRST_SYMNAME(name,control_type_name)  [name - FIRST_SYMBOL] = { name, 1, WIDE(#name), control_type_name }
-#define SYMNAME(name,control_type_name)  , [name - FIRST_SYMBOL] = { name, 1, WIDE(#name), control_type_name }
-#define SYMNAME_SKIP(prior,range,name,control_type_name)  , [prior - FIRST_SYMBOL] = { prior, range, WIDE(#prior), control_type_name } \
-	, [name - FIRST_SYMBOL] = { name, 1, WIDE(#name), control_type_name }
+#define FIRST_SYMNAME(name,control_type_name)  [name - FIRST_SYMBOL] = { name, 1, #name, control_type_name }
+#define SYMNAME(name,control_type_name)  , [name - FIRST_SYMBOL] = { name, 1, #name, control_type_name }
+#define SYMNAME_SKIP(prior,range,name,control_type_name)  , [prior - FIRST_SYMBOL] = { prior, range, #prior, control_type_name } \
+	, [name - FIRST_SYMBOL] = { name, 1, #name, control_type_name }
 #else
-#define FIRST_SYMNAME(name,control_type_name)  { name, 1, WIDE(#name), control_type_name }
-#define SYMNAME(name,control_type_name)  , { name, 1, WIDE(#name), control_type_name }
-#define SYMNAME_SKIP(prior,range,name,control_type_name)  , { prior, range, WIDE(#prior), control_type_name } \
-	, { name, 1, WIDE(#name), control_type_name }
+#define FIRST_SYMNAME(name,control_type_name)  { name, 1, #name, control_type_name }
+#define SYMNAME(name,control_type_name)  , { name, 1, #name, control_type_name }
+#define SYMNAME_SKIP(prior,range,name,control_type_name)  , { prior, range, #prior, control_type_name } \
+	, { name, 1, #name, control_type_name }
 #endif
 #endif
 #include "resource.h"
@@ -1695,7 +1695,7 @@ void AddCommonUpdateRegionEx( PPSI_PENDING_RECT update_rect, int bSurface, PSI_C
 			}
 			if( y + (int32_t)ht > update_rect->y + (int32_t)update_rect->height )
 				update_rect->height = ( y + (int32_t)ht ) - update_rect->y;
-			//lprintf( WIDE(fs"result (%d,%d)-(%d,%d)")
+			//lprintf( (fs"result (%d,%d)-(%d,%d)")
 		 //       , update_rect->x, update_rect->y
 		 //       , update_rect->width, update_rect->height
 			//		 );

@@ -100,8 +100,8 @@ _FFMPEG_INTERFACE_NAMESPACE
 static struct fmpeg_interface
 {
 #define declare_func(a,b,c) a (CPROC *b) c
-#define setup_func_test(lib, a,b,c) if( ffmpeg.b=(a(CPROC*)c)LoadFunction( lib, _WIDE(#b) ) )
-#define setup_func(lib, a,b,c) do{ ffmpeg.b=(a(CPROC*)c)LoadFunction( lib, _WIDE(#b) ); }while(0)
+#define setup_func_test(lib, a,b,c) if( ffmpeg.b=(a(CPROC*)c)LoadFunction( lib, #b ) )
+#define setup_func(lib, a,b,c) do{ ffmpeg.b=(a(CPROC*)c)LoadFunction( lib, #b ); }while(0)
 
 	declare_func( void, av_register_all,(void) );
 	declare_func( int, avformat_open_input, (AVFormatContext **ps, const char *filename, AVInputFormat *fmt, AVDictionary **options) );
@@ -196,9 +196,9 @@ static struct fmpeg_interface
 static struct openal_interface
 {
 #define declare_func2(a,b,c) a (ALC_APIENTRY *b) c
-#define setup_func2(lib, a,b,c) openal.b=(a(ALC_APIENTRY*)c)LoadFunction( lib, _WIDE(#b) )
+#define setup_func2(lib, a,b,c) openal.b=(a(ALC_APIENTRY*)c)LoadFunction( lib, #b )
 #define declare_func3(a,b,c) a (AL_APIENTRY *b) c
-#define setup_func3(lib, a,b,c) openal.b=(a(AL_APIENTRY*)c)LoadFunction( lib, _WIDE(#b) )
+#define setup_func3(lib, a,b,c) openal.b=(a(AL_APIENTRY*)c)LoadFunction( lib, #b )
 	declare_func2( ALCdevice *, alcOpenDevice, (CPOINTER) );
 	declare_func2( ALCdevice* ,alcCaptureOpenDevice, (const ALCchar *devicename, ALCuint frequency, ALCenum format, ALCsizei buffersize) );
 	declare_func2( void       ,alcCaptureStart, (ALCdevice *device) );
@@ -2652,7 +2652,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 				if( file->flags.video.flushing )
 					file->flags.video.first_flush = 0;
 #ifdef DEBUG_VIDEO_PACKET_READ
-				lprintf( WIDE("for the record we're lookin at %" _64fs" %" _64fs), processed_time - file->video_decode_start, video_time_tick );
+				lprintf( "for the record we're lookin at %" _64fs" %" _64fs, processed_time - file->video_decode_start, video_time_tick );
 #endif
 				if( pause_resume )
 					pause_resume--;

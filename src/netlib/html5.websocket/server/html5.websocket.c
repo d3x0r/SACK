@@ -54,7 +54,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 	{
 		if( check[c] == ' ' )
 			spaces1++;
-		if( check[c] >= '0' && check[c] <= WIDE( '9' ) )
+		if( check[c] >= '0' && check[c] <= '9' )
 			buf1[buf1_idx++] = check[c];
 	}
 	buf1[buf1_idx++] = 0;
@@ -66,7 +66,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 	{
 		if( check[c] == ' ' )
 			spaces2++;
-		if( check[c] >= '0' && check[c] <= WIDE( '9' ) )
+		if( check[c] >= '0' && check[c] <= '9' )
 			buf2[buf2_idx++] = check[c];
 	}
 	buf2[buf2_idx++] = 0;

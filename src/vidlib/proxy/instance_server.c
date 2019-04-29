@@ -35,7 +35,7 @@ IMAGE_INTERFACE InstanceProxyImageInterface;
 
 static void FormatColor( PVARTEXT pvt, CPOINTER data )
 {
-	vtprintf( pvt, WIDE("\"rgba(%u,%u,%u,%g)\"")
+	vtprintf( pvt, "\"rgba(%u,%u,%u,%g)\""
 		, ((*(PCDATA)data) >> 16) & 0xFF
 		, ((*(PCDATA)data) >> 8) & 0xFF
 		, ((*(PCDATA)data) >> 0) & 0xFF 

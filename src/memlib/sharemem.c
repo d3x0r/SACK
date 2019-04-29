@@ -444,8 +444,8 @@ static void DumpSection( PCRITICALSECTION pcs )
 	ll_lprintf( "Critical Section....." );
 	ll_lprintf( "------------------------------" );
 	ll_lprintf( "Update: %08x", pcs->dwUpdating );
-	ll_lprintf( WIDE( "Current Process: %16"_64fx"" ), pcs->dwThreadID );
-	ll_lprintf( WIDE( "Next Process:    %16"_64fx"" ), pcs->dwThreadWaiting );
+	ll_lprintf( "Current Process: %16"_64fx, pcs->dwThreadID );
+	ll_lprintf( "Next Process:    %16"_64fx, pcs->dwThreadWaiting );
 	ll_lprintf( "Last update: %s(%d)", pcs->pFile ? pcs->pFile : "unknown", pcs->nLine );
 }
 #endif
@@ -744,7 +744,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 			}
 #ifdef DEBUG_CRITICAL_SECTIONS
 			//if( g.bLogCritical > 1 )
-			// ll_lprintf( DBG_FILELINEFMT WIDE( "Leaving %"_64fx"x %"_64fx"x %p" ) DBG_RELAY ,pcs->dwThreadID, dwCurProc, pcs );
+			// ll_lprintf( DBG_FILELINEFMT ( "Leaving %"_64fx"x %"_64fx"x %p" ) DBG_RELAY ,pcs->dwThreadID, dwCurProc, pcs );
 #endif
 			if( pcs->dwThreadID == dwCurProc )
 			{
@@ -1835,7 +1835,7 @@ uintptr_t GetFileSize( int fd )
 	}
 	{
 		pMem->pRoot[0].dwPad += 2*MAGIC_SIZE;
-		BLOCK_FILE( pMem->pRoot ) = _WIDE(__FILE__);
+		BLOCK_FILE( pMem->pRoot ) = __FILE__;
 		BLOCK_LINE( pMem->pRoot ) = __LINE__;
 	}
 #endif
@@ -3301,7 +3301,7 @@ lineNumber)
 			);
 		break;
 	case _HOOK_FREE:
-		ll_lprintf( WIDE( "CRT Free: %p[%"_PTRSZVALfs"](%d) %s(%d)" )
+		ll_lprintf( ( "CRT Free: %p[%"_PTRSZVALfs"](%d) %s(%d)" )
 			, userData
 			, (uintptr_t)userData
 			, size

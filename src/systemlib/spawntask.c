@@ -372,7 +372,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 
 
 		if( needs_quotes )
-			vtprintf( pvt, WIDE( "\"" ) );
+			vtprintf( pvt,  "\"" );
 
 		/*
 		if( !IsAbsolutePath( expanded_path ) && expanded_working_path )
@@ -384,7 +384,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		vtprintf( pvt, "%s", expanded_path );
 
 		if( needs_quotes )
-			vtprintf( pvt, WIDE( "\"" ) );
+			vtprintf( pvt, "\"" );
 
 		if( flags & LPP_OPTION_FIRST_ARG_IS_ARG )
 			;
@@ -396,9 +396,9 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		while( args && args[0] )
 		{
 			if( args[0][0] == 0 )
-				vtprintf( pvt, WIDE( " \"\"" ) );
+				vtprintf( pvt, " \"\"" );
 			else if( StrChr( args[0], ' ' ) )
-				vtprintf( pvt, WIDE(" \"%s\""), args[0] );
+				vtprintf( pvt, " \"%s\"", args[0] );
 			else
 				vtprintf( pvt, " %s", args[0] );
 			first = FALSE;

@@ -9,7 +9,7 @@
 
 
 /* A macro to build a wide character string of __FILE__ */
-#define _WIDE__FILE__(n) WIDE(n)
+#define _WIDE__FILE__(n) n
 #define WIDE__FILE__ _WIDE__FILE__(__FILE__)
 
 #if _XOPEN_SOURCE < 500
@@ -295,44 +295,22 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 # define PATH_MAX MAXPATH
 #endif
 
-#ifdef _UNICODE
-#  ifdef _WIN32
-#    ifdef CONSOLE_SHELL
-    // in order to get wide characters from the commandline we have to use the GetCommandLineW function, convert it to utf8 for internal usage.
-#      define SaneWinMain(a,b) int main( int a, char **argv_real ) { char *tmp; TEXTCHAR **b; ParseIntoArgs( GetCommandLineW(), &a, &b ); Deallocate( char*, tmp ); {
-	//int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
-#      define EndSaneWinMain() } }
-#    else
-#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { char *tmp; int a; TEXTCHAR **b; ParseIntoArgs( tmp = WcharConvert( GetCommandLineW() ), &a, &b ); Deallocate( char*, tmp ); {
-#      define EndSaneWinMain() } }
-#    endif
+#ifdef _WIN32
+#  ifdef CONSOLE_SHELL
+ // in order to get wide characters from the commandline we have to use the GetCommandLineW function, convert it to utf8 for internal usage.
+#    define SaneWinMain(a,b) int main( int a, char **argv_real ) { char *tmp; TEXTCHAR **b; ParseIntoArgs( tmp = WcharConvert( GetCommandLineW() ), &a, &b ); Deallocate( char*, tmp ); {
+#    define EndSaneWinMain() } }
 #  else
-#    if defined( __ANDROID__ ) && !defined( ANDROID_CONSOLE_UTIL )
-#      define SaneWinMain(a,b) int SACK_Main( int a, char **b )
-#      define EndSaneWinMain()
-#    else
-#      define SaneWinMain(a,b) int main( int a, char **argv_real ) { int n; TEXTCHAR **b; b = NewArray( TEXTSTR, a + 1 ); for( n = 0; n < a; n++ ) b[n] = DupCharToText( argv_real[n] ); b[n] = NULL; {
-#      define EndSaneWinMain() } }
-#    endif
+#    define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; char *tmp; TEXTCHAR **b; ParseIntoArgs( tmp = WcharConvert( GetCommandLineW() ), &a, &b ); {
+#    define EndSaneWinMain() } }
 #  endif
 #else
-#  ifdef _WIN32
-#    ifdef CONSOLE_SHELL
-// in order to get wide characters from the commandline we have to use the GetCommandLineW function, convert it to utf8 for internal usage.
-#      define SaneWinMain(a,b) int main( int a, char **argv_real ) { char *tmp; TEXTCHAR **b; ParseIntoArgs( tmp = WcharConvert( GetCommandLineW() ), &a, &b ); Deallocate( char*, tmp ); {
-#      define EndSaneWinMain() } }
-#    else
-#      define SaneWinMain(a,b) int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCmdShow ) { int a; char *tmp; TEXTCHAR **b; ParseIntoArgs( tmp = WcharConvert( GetCommandLineW() ), &a, &b ); {
-#      define EndSaneWinMain() } }
-#    endif
+#  if defined( __ANDROID__ ) && !defined( ANDROID_CONSOLE_UTIL )
+#    define SaneWinMain(a,b) int SACK_Main( int a, char **b )
+#    define EndSaneWinMain()
 #  else
-#    if defined( __ANDROID__ ) && !defined( ANDROID_CONSOLE_UTIL )
-#      define SaneWinMain(a,b) int SACK_Main( int a, char **b )
-#      define EndSaneWinMain()
-#    else
-#      define SaneWinMain(a,b) int main( int a, char **b ) { char **argv_real = b; {
-#      define EndSaneWinMain() } }
-#    endif
+#    define SaneWinMain(a,b) int main( int a, char **b ) { char **argv_real = b; {
+#    define EndSaneWinMain() } }
 #  endif
 #endif
 

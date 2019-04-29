@@ -163,10 +163,10 @@ static PaddTimerExx CheckDebugger( void )
 			stringbuf[n] = "@ATLWvpajcgArdWrgr"[n] ^ 0x13;
 		}
 		stringbuf[n] = 0;
-		_DecryptRawData = (void (*)( CPOINTER , size_t , uint8_t* *, size_t * ))LoadFunction( WIDE(LIBNAME), stringbuf );
+		_DecryptRawData = (void (*)( CPOINTER , size_t , uint8_t* *, size_t * ))LoadFunction( LIBNAME, stringbuf );
 
 		_DecryptRawData( sAddTimerExx + 1, sAddTimerExx[0], &output, &outsize );
-		addTimer = (PaddTimerExx)LoadFunction( WIDE(LIBNAME), (CTEXTSTR)output );
+		addTimer = (PaddTimerExx)LoadFunction( LIBNAME, (CTEXTSTR)output );
 		Release( output );
 	}
 

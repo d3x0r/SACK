@@ -596,15 +596,15 @@ void LogTable( PTABLE table )
 			for( n = 0; n < table->fields.count; n++ )
 				sack_fprintf( out, "\t%s{%s%s%s, %s%s%s, %s%s%s }\n"
 					, n?", ":""
-					, table->fields.field[n].name?WIDE("\""):""
+					, table->fields.field[n].name?"\"":""
 					, table->fields.field[n].name?table->fields.field[n].name:"NULL"
-					, table->fields.field[n].name?WIDE("\""):""
-					, table->fields.field[n].type?WIDE("\""):""
+					, table->fields.field[n].name?"\"":""
+					, table->fields.field[n].type?"\"":""
 					, table->fields.field[n].type?table->fields.field[n].type:"NULL"
-					, table->fields.field[n].type?WIDE("\""):""
-					, table->fields.field[n].extra?WIDE("\""):""
+					, table->fields.field[n].type?"\"":""
+					, table->fields.field[n].extra?"\"":""
 					, table->fields.field[n].extra?table->fields.field[n].extra:"NULL"
-					, table->fields.field[n].extra?WIDE("\""):""
+					, table->fields.field[n].extra?"\"":""
 				);
 			sack_fprintf( out, "};\n" );
 			sack_fprintf( out, "\n" );
@@ -615,13 +615,13 @@ void LogTable( PTABLE table )
 				{
 					int m;
 					sack_fprintf( out, "#ifdef __cplusplus\n" );
-					sack_fprintf( out, WIDE("\t%srequired_key_def( %d, %d, %s%s%s, \"%s\" )\n")
+					sack_fprintf( out, "\t%srequired_key_def( %d, %d, %s%s%s, \"%s\" )\n"
 							 , n?", ":""
 							 , table->keys.key[n].flags.bPrimary
 							 , table->keys.key[n].flags.bUnique
-							 , table->keys.key[n].name?WIDE("\""):""
+							 , table->keys.key[n].name?"\"":""
 							 , table->keys.key[n].name?table->keys.key[n].name:"NULL"
-							 , table->keys.key[n].name?WIDE("\""):""
+							 , table->keys.key[n].name?"\"":""
 							 , table->keys.key[n].colnames[0] );
 					if( table->keys.key[n].colnames[1] )
 						sack_fprintf( out, ", ... columns are short this is an error.\n" );
@@ -630,12 +630,12 @@ void LogTable( PTABLE table )
 							 , n?", ":""
 							 , table->keys.key[n].flags.bPrimary
 							 , table->keys.key[n].flags.bUnique
-							 , table->keys.key[n].name?WIDE("\""):""
+							 , table->keys.key[n].name?"\"":""
 							 , table->keys.key[n].name?table->keys.key[n].name:"NULL"
-							 , table->keys.key[n].name?WIDE("\""):""
+							 , table->keys.key[n].name?"\"":""
 							 );
 					for( m = 0; table->keys.key[n].colnames[m]; m++ )
-						sack_fprintf( out, WIDE("%s\"%s\"")
+						sack_fprintf( out, "%s\"%s\""
 								 , m?", ":""
 								 , table->keys.key[n].colnames[m] );
 					sack_fprintf( out, " } }\n" );
@@ -645,7 +645,7 @@ void LogTable( PTABLE table )
 				sack_fprintf( out, "\n" );
 			}
 			sack_fprintf( out, "\n" );
-			sack_fprintf( out, WIDE("TABLE %s = { \"%s\" \n"), table->name, table->name );
+			sack_fprintf( out, "TABLE %s = { \"%s\" \n", table->name, table->name );
 			sack_fprintf( out, "	 , FIELDS( %s_fields )\n", table->name );
 			if( table->keys.count )
 				sack_fprintf( out, "	 , TABLE_KEYS( %s_keys )\n", table->name );
@@ -692,7 +692,7 @@ PTABLE GetFieldsInSQLEx( CTEXTSTR cmd, int writestate DBG_PASS )
 			if( str[n] == '\n' )
 				str[n] = ' ';
 	}
-	pParsed = TextParse( tmp, WIDE("\'\"\\({[<>]}):@%/,;!?=*&$^~#`"), " \t\n\r", 1, 1 DBG_RELAY );
+	pParsed = TextParse( tmp, "\'\"\\({[<>]}):@%/,;!?=*&$^~#`", " \t\n\r", 1, 1 DBG_RELAY );
 	LineRelease( tmp );
 	//{
 	//   PTEXT outline = DumpText( pParsed );

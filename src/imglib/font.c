@@ -1092,7 +1092,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 						(*nLen) -= (*pc) - _pc;
 					_pc = (*pc);
 
-			while( ch && ( ch != WIDE( '\x9C' ) ) )
+			while( ch && ( ch != '\x9C' ) )
 			{
 				int code;
 				ch = GetUtfChar( pc );

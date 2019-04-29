@@ -1254,7 +1254,7 @@ WM_DROPFILES
 					if( l.flags.bUseLLKeyhook )
 						AddLink( &l.ll_keyhooks,
 								  added = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KeyHook2
-																  , GetModuleHandle(_WIDE(TARGETNAME)), 0 /*GetCurrentThreadId()*/
+																  , GetModuleHandle(TARGETNAME), 0 /*GetCurrentThreadId()*/
 																  )
 								 );
 					else
@@ -1557,7 +1557,7 @@ void OpenWin32Camera( struct display_camera *camera )
 	TEXTCHAR window_name[128];
 	if( !camera->hWndInstance )
 	{
-		hMe = GetModuleHandle (_WIDE(TARGETNAME));
+		hMe = GetModuleHandle (TARGETNAME);
 
 		if( !camera->display )
 			tnprintf( window_name, 128, "%s:3D View", GetProgramName() );
@@ -1706,12 +1706,12 @@ uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 		prochook = SetWindowsHookEx(
 											 WH_CALLWNDPROC,
 											 AllWndProc,
-											 GetModuleHandle(_WIDE(TARGETNAME)),
+											 GetModuleHandle(TARGETNAME),
 											 0);
 		get_prochook = SetWindowsHookEx(
 												  WH_CALLWNDPROC,
 												  AllGetWndProc,
-												  GetModuleHandle(_WIDE(TARGETNAME)),
+												  GetModuleHandle(TARGETNAME),
 												  0);
 	}
 #endif
@@ -1719,7 +1719,7 @@ uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 	if( l.flags.bUseLLKeyhook )
 		AddLink( &l.ll_keyhooks,
 				  SetWindowsHookEx (WH_KEYBOARD_LL, (HOOKPROC)KeyHook2
-										 ,GetModuleHandle(_WIDE(TARGETNAME)), 0 /*GetCurrentThreadId()*/
+										 ,GetModuleHandle(TARGETNAME), 0 /*GetCurrentThreadId()*/
 										 ) );
 	else
 		AddLink( &l.keyhooks,
@@ -1780,7 +1780,7 @@ PRELOAD( HostSystem_InitDisplayInfo )
 			 ;
 
 		wc.lpfnWndProc = (WNDPROC) VideoWindowProc;
-		wc.hInstance = GetModuleHandle (_WIDE(TARGETNAME));
+		wc.hInstance = GetModuleHandle (TARGETNAME);
 		wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
 		wc.lpszClassName = "GLVideoOutputClass";
 		wc.cbWndExtra = sizeof( PVIDEO );	// one extra DWORD

@@ -46,7 +46,7 @@ static void BuildTextFlags( PVARTEXT vt, PTEXT pSeg )
 	if( pSeg->flags & TF_STATIC )
 		vtprintf( vt, "static " );
 	if( pSeg->flags & TF_QUOTE )
-		vtprintf( vt, WIDE("\"\" ") );
+		vtprintf( vt, "\"\" " );
 	if( pSeg->flags & TF_SQUOTE )
 		vtprintf( vt, "\'\' " );
 	if( pSeg->flags & TF_BRACKET )

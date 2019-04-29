@@ -50,10 +50,10 @@
 
 
 #define MakeAddFlag( string, bName ) \
-	AddConfigurationMethod( pch, string WIDE(#bName) "=%b", SetDeck##bName );
+	AddConfigurationMethod( pch, string #bName "=%b", SetDeck##bName );
 
 #define SaveStackFlag( string, bName )    \
-	fprintf( file, string WIDE(#bName)  "=%s\n", stack->flags.bName?"yes":"no" );
+	fprintf( file, string #bName  "=%s\n", stack->flags.bName?"yes":"no" );
 
 
 //typedef struct deck_tag *PDECK;

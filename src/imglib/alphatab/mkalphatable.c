@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 
-#define WIDE(s) s
 	
 int main( void )
 {

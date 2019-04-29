@@ -64,7 +64,7 @@ PRELOAD( RegisterMacroDialogResources )
 	EasyRegisterResource( "intershell/macros", BUTTON_ELEMENT_CLONE_ELEMENT, NORMAL_BUTTON_NAME );
 	EasyRegisterResource( "intershell/macros", LIST_MACRO_ELEMENTS, LISTBOX_CONTROL_NAME );
 #define EasyAlias( x, y )	\
-	RegisterClassAlias( "psi/resources/intershell/macros/"y "/"WIDE(#x), "psi/resources/application/" y "/" WIDE(#x) )
+	RegisterClassAlias( "psi/resources/intershell/macros/"y "/"#x, "psi/resources/application/" y "/" #x )
 	// migration path...
 	EasyAlias(LIST_CONTROL_TYPES, LISTBOX_CONTROL_NAME );
 	EasyAlias(BUTTON_ADD_CONTROL, NORMAL_BUTTON_NAME );

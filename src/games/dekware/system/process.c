@@ -85,10 +85,10 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 	{
 		PTEXT text, cmd = NULL;
 		text = GetParam( ps, &parameters );
-		if( text && TextIs( text, WIDE("\"") ) )
+		if( text && TextIs( text, "\"" ) )
 		{
 	      Log( "Found a quote, getting command line" );
-			while( (text = GetParam( ps, &parameters )) && !TextIs( text, WIDE("\"") ) )
+			while( (text = GetParam( ps, &parameters )) && !TextIs( text, "\"" ) )
 			{
 				cmd = SegAppend( cmd, SegDuplicate( text ) );
 			}
@@ -97,10 +97,10 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 			if( text ) // closed, and may have start path....
 			{
 				text = GetParam( ps, &parameters );
-		   	if( text && TextIs( text, WIDE("\"") ) )
+		   	if( text && TextIs( text, "\"" ) )
 				{
 					Log( "Found a quote, getting the path" );
-					while( (text = GetParam( ps, &parameters )) && !TextIs( text, WIDE("\"") ) )
+					while( (text = GetParam( ps, &parameters )) && !TextIs( text, "\"" ) )
 					{
 						cmd = SegAppend( cmd, SegDuplicate( text ) );
 		   		}
@@ -124,7 +124,7 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 	if( StartProcess( process ) )
 	{
 		DECLTEXTSZ( msg, 256 );
-		msg.data.size = snprintf( msg.data.data, 256*sizeof(TEXTCHAR), WIDE("Failed to start \"%s\" in \"%s\" error: %ld"),
+		msg.data.size = snprintf( msg.data.data, 256*sizeof(TEXTCHAR), "Failed to start \"%s\" in \"%s\" error: %ld",
 										 GetText( process->command ),
 										 GetText( process->directory ),
 										 GetLastError() );

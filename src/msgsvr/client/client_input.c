@@ -27,7 +27,7 @@ PTRANSACTIONHANDLER GetTransactionHandler( PSERVICE_ROUTE route )
 //--------------------------------------------------------------------
 
 static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int flags DBG_PASS )
-#define GetAMessage(m,x,f) GetAMessageEx(m,x,_WIDE(#m),f DBG_SRC)
+#define GetAMessage(m,x,f) GetAMessageEx(m,x,#m,f DBG_SRC)
 {
 	//int bLog = 0;
 	if( IsThisThread( g.pThread ) )

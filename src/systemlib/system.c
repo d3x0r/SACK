@@ -2149,9 +2149,9 @@ TEXTSTR GetArgsString( PCTEXTSTR pArgs )
 		int space = (StrChr( pArgs[n], ' ' )!=NULL);
 		len += tnprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), "%s%s%s%s"
 							, n>1?" ":""
-							, space?WIDE("\""):""
+							, space?"\"":""
 							, pArgs[n]
-							, space?WIDE("\""):""
+							, space?"\"":""
 							);
 	}
 	return args;

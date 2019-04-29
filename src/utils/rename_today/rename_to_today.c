@@ -2,9 +2,6 @@
 #include <stdio.h>
 //#include <sack_types.h> // wIDE()
 
-#ifndef WIDE
-#define WIDE TEXT
-#endif
 
 int main( int argc, char **argv )
 {

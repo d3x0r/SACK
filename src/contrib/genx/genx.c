@@ -1188,9 +1188,9 @@ static genxStatus writeStartTag(genxWriter w)
 	SendCheck(w, ":");
       }
       SendCheck(w, aa[i]->name);
-      SendCheck(w, WIDE("=\""));
+      SendCheck(w, "=\"");
       SendCheck(w, aa[i]->value.buf);
-      SendCheck(w, WIDE("\""));
+      SendCheck(w, "\"");
     }
   }
   SendCheck(w, ">");

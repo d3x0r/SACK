@@ -341,7 +341,7 @@ PROCREG_PROC( PROCEDURE, ReadRegisteredProcedureEx )( PCLASSROOT root
                                                     , CTEXTSTR returntype
 																	 , CTEXTSTR parms
 																  );
-#define ReadRegisteredProcedure( root,rt,a) ((rt(CPROC*)a)ReadRegisteredProcedureEx(root,WIDE(#rt),WIDE(#a)))
+#define ReadRegisteredProcedure( root,rt,a) ((rt(CPROC*)a)ReadRegisteredProcedureEx(root,#rt,#a))
 /* Gets a function that has been registered. */
 PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root
 																	 , PCLASSROOT name_class
@@ -349,9 +349,9 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root
 																	 , CTEXTSTR name
 																	 , CTEXTSTR parms
 																	 );
-#define GetRegisteredProcedureExx(root,nc,rt,n,a) ((rt (CPROC*)a)GetRegisteredProcedureExxx(root,nc,_WIDE(#rt),n,_WIDE(#a)))
-#define GetRegisteredProcedure2(nc,rtype,name,args) (rtype (CPROC*)args)GetRegisteredProcedureEx((nc),WIDE(#rtype), name, WIDE(#args) )
-#define GetRegisteredProcedureNonCPROC(nc,rtype,name,args) (rtype (*)args)GetRegisteredProcedureEx((nc),WIDE(#rtype), name, WIDE(#args) )
+#define GetRegisteredProcedureExx(root,nc,rt,n,a) ((rt (CPROC*)a)GetRegisteredProcedureExxx(root,nc,#rt,n,#a))
+#define GetRegisteredProcedure2(nc,rtype,name,args) (rtype (CPROC*)args)GetRegisteredProcedureEx((nc),#rtype, name, #args )
+#define GetRegisteredProcedureNonCPROC(nc,rtype,name,args) (rtype (*)args)GetRegisteredProcedureEx((nc),#rtype, name, #args )
 
 /* <combine sack::app::registry::GetRegisteredProcedureExxx@PCLASSROOT@PCLASSROOT@CTEXTSTR@CTEXTSTR@CTEXTSTR>
    
@@ -426,7 +426,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( CTEXTSTR root
 
 #define SimpleRegisterMethod(r,proc,rt,name,args) RegisterFunctionExx(r,NULL,name,rt,(PROCEDURE)proc,args,NULL,NULL DBG_SRC )
 
-#define GetRegisteredProcedure(nc,rtype,name,args) (rtype (CPROC*)args)GetRegisteredProcedureEx((nc),_WIDE(#rtype), _WIDE(#name), _WIDE(#args) )
+#define GetRegisteredProcedure(nc,rtype,name,args) (rtype (CPROC*)args)GetRegisteredProcedureEx((nc),#rtype, #name, #args )
 PROCREG_PROC( int, RegisterIntValueEx )( PCLASSROOT root, CTEXTSTR name_class, CTEXTSTR name, uintptr_t value );
 PROCREG_PROC( int, RegisterIntValue )( CTEXTSTR name_class, CTEXTSTR name, uintptr_t value );
 
@@ -612,7 +612,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 #define ReleaseRegisteredFunction(nc,pn) ReleaseRegisteredFunctionEx(NULL,nc,pn)
 
 /* This is a macro used to paste two symbols together. */
-#define paste_(a,b) _WIDE(a##b)
+#define paste_(a,b) a##b
 #define paste(a,b) paste_(a,b)
 
 #ifdef __cplusplus
@@ -625,7 +625,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 	CPROC paste(name,line)argtypes;       \
 	PRIORITY_PRELOAD( paste(paste(paste(paste(Register,name),Method),EXTRA_PRELOAD_SYMBOL),line), SQL_PRELOAD_PRIORITY ) {  \
 	SimpleRegisterMethod( task "/" classtype, paste(name,line)  \
-	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
+	, #returntype, methodname, #argtypes ); \
    RegisterValue( task "/" classtype "/" methodname, "Description", desc ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
@@ -641,7 +641,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 	CPROC paste(name,line)argtypes;       \
 	PRIORITY_PRELOAD( paste(paste(paste(paste(Register,name),Method),EXTRA_PRELOAD_SYMBOL),line), priority ) {  \
 	SimpleRegisterMethod( task "/" classtype, paste(name,line)  \
-	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
+	, #returntype, methodname, #argtypes ); \
    RegisterValue( task "/" classtype "/" methodname, "Description", desc ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
@@ -659,7 +659,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 	CPROC paste(name,line)argtypes;       \
 	PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line) ) {  \
 	SimpleRegisterMethod( task "/" classtype "/" classbase, paste(name,line)  \
-	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
+	, #returntype, methodname, #argtypes ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
 
@@ -681,7 +681,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 	CPROC paste(name,line)argtypes;       \
 	PRIOR_PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line), priority ) {  \
 	SimpleRegisterMethod( task "/" classtype "/" classbase, paste(name,line)  \
-	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
+	, #returntype, methodname, #argtypes ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
 */
@@ -741,7 +741,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 	CPROC paste(name,line)argtypes;       \
 	PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line) ) {  \
 	SimpleRegisterMethod( task "/" classtype "/" classbase "/" methodname, paste(name,line)  \
-	, _WIDE(#returntype), subname, _WIDE(#argtypes) ); \
+	, #returntype, subname, #argtypes ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
 
@@ -781,7 +781,7 @@ PROCREG_PROC( void, RegisterAndCreateGlobal )( POINTER *ppGlobal, uintptr_t glob
 /* <combine sack::app::registry::RegisterAndCreateGlobal@POINTER *@uintptr_t@CTEXTSTR>
    
    \ \                                                                                   */
-#define SimpleRegisterAndCreateGlobal( name ) 	RegisterAndCreateGlobal( (POINTER*)&name, sizeof( *name ), WIDE(#name) )
+#define SimpleRegisterAndCreateGlobal( name ) 	RegisterAndCreateGlobal( (POINTER*)&name, sizeof( *name ), #name )
 /* Init routine is called, otherwise a 0 filled space is
    returned. Init routine is passed the pointer to the global
    and the size of the global block the global data block is
@@ -820,7 +820,7 @@ PROCREG_PROC( void, RegisterAndCreateGlobalWithInit )( POINTER *ppGlobal, uintpt
 /* <combine sack::app::registry::RegisterAndCreateGlobalWithInit@POINTER *@uintptr_t@CTEXTSTR@void __cdecl*InitPOINTER\,uintptr_t>
    
    \ \                                                                                                                              */
-#define SimpleRegisterAndCreateGlobalWithInit( name,init ) 	RegisterAndCreateGlobalWithInit( (POINTER*)&name, sizeof( *name ), WIDE(#name), init )
+#define SimpleRegisterAndCreateGlobalWithInit( name,init ) 	RegisterAndCreateGlobalWithInit( (POINTER*)&name, sizeof( *name ), #name, init )
 
 /* a tree dump will result with dictionary names that may translate automatically. */
 /* This has been exported as a courtesy for StrDup.

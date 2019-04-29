@@ -465,7 +465,7 @@ SaneWinMain(argc, argv )
 		for( arg = 1; arg < argc; arg++ )
 		{
 
-			if( argv[arg][0] == WIDE('-') )
+			if( argv[arg][0] == '-' )
 			{
 				switch( state )
 				{
@@ -494,7 +494,7 @@ SaneWinMain(argc, argv )
 				}
 				state++;
 			}
-			else if( argv[arg][0] == WIDE('@') )
+			else if( argv[arg][0] == '@' )
 			{
 				ReadConfigFile( argv[arg] + 1 );
 			}

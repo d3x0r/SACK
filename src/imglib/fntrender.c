@@ -87,7 +87,7 @@ void PrintLeadin( CTEXTSTR name, SFTFont font, int bits )
 	if( bits == 2)
 		sack_fprintf( output, "#define BITS_GREY2\n" );
 	if( bits != 8 )
-		sack_fprintf( output, WIDE("#include \"symbits.h\"\n") );
+		sack_fprintf( output, "#include \"symbits.h\"\n" );
 
 	sack_fprintf( output, "IMAGE_NAMESPACE\n" );
 	sack_fprintf( output, "	typedef struct font_tag *PFONT ;\n" );
@@ -313,7 +313,7 @@ void PrintFontTable( CTEXTSTR name, PFONT font )
 			  "#else\n"
 			  "       __%s\n"
 			  "#endif\n"
-			  WIDE( "= { \n%d, %d, %d, %d, 0, \"%s\", {")
+			  "= { \n%d, %d, %d, %d, 0, \"%s\", {"
 	       , font->characters
 	       , name
 	       , name

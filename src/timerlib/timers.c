@@ -331,7 +331,7 @@ uintptr_t closesem( POINTER p, uintptr_t psv )
 {
 	PTHREAD thread = (PTHREAD)p;
 #ifdef USE_PIPE_SEMS
-	//lprintf( "CLOSE PIPES %s %"_64fx, thread->thread_event_name, thread->thread_ident );
+	//lprintf( "CLOSE PIPES %s %" _64fx, thread->thread_event_name, thread->thread_ident );
 	close( thread->pipe_ends[0] );
 	close( thread->pipe_ends[1] );
 	thread->pipe_ends[0] = -1;
@@ -872,7 +872,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 				while(1)
 				{
 					int stat;
-					//lprintf( WIDE("Lock on semop on semdo... %08x %016"_64fx"x"), pThread->semaphore, pThread->thread_ident );
+					//lprintf( "Lock on semop on semdo... %08x %016" _64fx "x", pThread->semaphore, pThread->thread_ident );
 					//lprintf( "Before semval = %d %08lx", semctl( pThread->semaphore, 0, GETVAL ), pThread->semaphore );
 					if( n != SLEEP_FOREVER )
 					{
@@ -1205,7 +1205,7 @@ void  UnmakeThread( void )
 		{
 			int tmp = SetAllocateLogging( FALSE );
 #ifdef _WIN32
-			//lprintf( WIDE("Unmaking thread event! on thread %016"_64fx"x"), pThread->thread_ident );
+			//lprintf( "Unmaking thread event! on thread %016" _64fx"x", pThread->thread_ident );
 			CloseHandle( pThread->thread_event->hEvent );
 			{
 				struct my_thread_info* _MyThreadInfo = GetThreadTLS();
@@ -1267,7 +1267,7 @@ static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 	//DebugBreak();
 	InitWakeup( pThread, NULL );
 #ifdef LOG_THREAD
-	Log1( WIDE("Set thread ident: %016"_64fx""), pThread->thread_ident );
+	Log1( "Set thread ident: %016" _64fx, pThread->thread_ident );
 #endif
 	if( pThread->proc )
 		result = pThread->proc( pThread );
@@ -1372,7 +1372,7 @@ PTHREAD  MakeThread( void )
 			//	Relinquish();
 			globalTimerData.lock_thread_create = 0;
 #ifdef LOG_THREAD
-			Log3( WIDE("Created thread address: %p %" PRIxFAST64 " at %p")
+			Log3( "Created thread address: %p %" PRIxFAST64 " at %p"
 			    , pThread->proc, pThread->thread_ident, pThread );
 #endif
 		}
@@ -1481,7 +1481,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 				Relinquish();
 		}
 #ifdef LOG_THREAD
-		Log3( WIDE("Created thread address: %p %016"_64fx" at %p")
+		Log3( "Created thread address: %p %016" _64fx" at %p"
 		    , pThread->proc, pThread->thread_ident, pThread );
 #endif
 	}
@@ -1560,7 +1560,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 		while( !pThread->thread_ident )
 			Relinquish();
 #ifdef LOG_THREAD
-		lprintf( WIDE("Created thread address: %p %016"_64fx" at %p")
+		lprintf( "Created thread address: %p %016" _64fx" at %p"
 		       , pThread->proc, pThread->thread_ident, pThread );
 #endif
 	}
@@ -1974,7 +1974,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 					{
 						level++;
 #ifdef _DEBUG
-						lprintf( "%d Dispatching timer %"_32fs " freq %"_32fs " %s(%d)", level, timer->ID, timer->frequency
+						lprintf( "%d Dispatching timer %" _32fs " freq %" _32fs " %s(%d)", level, timer->ID, timer->frequency
 						       , timer->pFile, timer->nLine );
 #else
 						lprintf( "%d Dispatching timer %" _32fs " freq %" _32fs, level, timer->ID, timer->frequency );
@@ -2160,7 +2160,7 @@ uint32_t  AddTimerExx( uint32_t start, uint32_t frequency, TimerCallbackProc cal
 	if( !globalTimerData.pTimerThread )
 	{
 
-		//Log( WIDE("Starting \"a\" timer thread!!!!" ) );
+		//Log( "Starting \"a\" timer thread!!!!" );
 		if( !( ThreadTo( ThreadProc, 0 ) ) )
 		{
 			//Log1( "Failed to start timer ThreadProc... %d", GetLastError() );
@@ -2337,13 +2337,13 @@ void  RescheduleTimer( uint32_t ID )
 #ifndef TARGETNAME
 #  define TARGETNAME ""
 #endif
-static void OnDisplayPause( "@Internal Timers" _WIDE(TARGETNAME) )( void )
+static void OnDisplayPause( "@Internal Timers" TARGETNAME )( void )
 {
 	globalTimerData.flags.bHaltTimers = 1;
 }
 
 //--------------------------------------------------------------------------
-static void OnDisplayResume( "@Internal Timers" _WIDE(TARGETNAME))( void )
+static void OnDisplayResume( "@Internal Timers" TARGETNAME)( void )
 {
 	globalTimerData.flags.bHaltTimers = 0;
 	if( globalTimerData.pTimerThread )
@@ -2379,7 +2379,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef LOG_DEBUG_CRITICAL_SECTIONS
 #ifdef _DEBUG
 	if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-		_lprintf( DBG_RELAY )( "Enter critical section %p (owner) %"_64fx, pcs, pcs->dwThreadID );
+		_lprintf( DBG_RELAY )( "Enter critical section %p (owner) %" _64fx, pcs, pcs->dwThreadID );
 #endif
 #endif
 	do
@@ -2529,7 +2529,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			{
 #ifdef ENABLE_CRITICALSEC_LOGGING
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					_lprintf( DBG_RELAY )( "%8"_64fx " Waking a thread which is waiting...", dwWaiting );
+					_lprintf( DBG_RELAY )( "%8" _64fx " Waking a thread which is waiting...", dwWaiting );
 #endif
 				// don't clear waiting... so the proper thread can
 				// allow itself to claim section...
@@ -2543,7 +2543,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
 		{
-			_lprintf( DBG_RELAY )("Sorry - you can't leave a section owned by %016"_64fx " locks:%08"_32fx
+			_lprintf( DBG_RELAY )("Sorry - you can't leave a section owned by %016" _64fx " locks:%08" _32fx
 #  ifdef DEBUG_CRITICAL_SECTIONS
 				"%s(%d)..."
 #  endif

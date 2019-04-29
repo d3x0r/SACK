@@ -241,7 +241,7 @@ void Collect( uint32_t* buf, uint32_t len )
       Log( "Returning without collectinl...");
 		return;
 	}
-	Log1( WIDE("Collecting: \"%s\""), buf );
+	Log1( "Collecting: \"%s\"", buf );
 	if( len )
 	{
       //Log2( "has a length... %d %d", len, len+l.result_len );

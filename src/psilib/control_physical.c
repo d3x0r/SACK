@@ -98,7 +98,7 @@ void GetCurrentDisplaySurface( PPHYSICAL_DEVICE device ) {
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-static void OnDisplaySizeChange( "PSI Controls" _WIDE( TARGETNAME ) ) ( uintptr_t psvFrame, int display, int32_t x, int32_t y, uint32_t width, uint32_t height )
+static void OnDisplaySizeChange( "PSI Controls" TARGETNAME ) ( uintptr_t psvFrame, int display, int32_t x, int32_t y, uint32_t width, uint32_t height )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvFrame;
 	if( pf )

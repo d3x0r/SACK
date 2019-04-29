@@ -703,7 +703,7 @@ size_t SQLPromptINIValue(
 #ifndef __STATIC__
 	static _F _SQLPromptINIValue;
 	if( !_SQLPromptINIValue )
-		_SQLPromptINIValue = (_F)LoadFunction( _WIDE( TARGETNAME ), "_SQLPromptINIValue" );
+		_SQLPromptINIValue = (_F)LoadFunction(  TARGETNAME, "_SQLPromptINIValue" );
 	if( !_SQLPromptINIValue )
 		_SQLPromptINIValue = (_F)LoadFunction( "bag.psi.dll", "_SQLPromptINIValue" );
 	if( !_SQLPromptINIValue )
@@ -1215,7 +1215,7 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileExceptionString )( CTEXTSTR pSec
 		system = GetSystemIndex( pSystemName );
 
 		tnprintf( exception, sizeof( exception ), "insert into option_exception (`apply_from`,`apply_to`,`value_id`,`override_value_id`,`system`) "
-																	  "values( \'%04d%02d%02d%02d%02d\', \'%04d%02d%02d%02d%02d\', %" _size_f ", %" _size_f WIDE(",%" _size_f )
+																	  "values( \'%04d%02d%02d%02d%02d\', \'%04d%02d%02d%02d%02d\', %" _size_f ", %" _size_f ",%" _size_f
              , wYrFrom, wMoFrom, wDyFrom
              , wHrFrom, wMnFrom,wScFrom
              , wYrTo, wMoTo, wDyTo

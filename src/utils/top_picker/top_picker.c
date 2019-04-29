@@ -144,18 +144,18 @@ void PromptAndYesNo( CTEXTSTR name, CTEXTSTR total_players )
 	vtprintf( pvt_remote, "%s %s %s %s ", l.launchpad_path, l.launchpad_args, l.remote_banner_path, l.remote_banner_args );
 
 	if( l.nPlayers > 1 )
-		vtprintf( pvt_local, WIDE("\"%s Place\" "), ords[l.first_place + l.claimed+1] );
+		vtprintf( pvt_local, "\"%s Place\" ", ords[l.first_place + l.claimed+1] );
 
 	for( tmp = burst_name; tmp; tmp = NEXTLINE( tmp ) )
 	{
 		if( StrCmp( GetText( tmp ), "," ) == 0 )
 			break;
-		vtprintf( pvt_local, WIDE("\"%s\" "), GetText( tmp ) );
-		vtprintf( pvt_remote, WIDE("\"%s\" "), GetText( tmp ) );
+		vtprintf( pvt_local, "\"%s\" ", GetText( tmp ) );
+		vtprintf( pvt_remote, "\"%s\" ", GetText( tmp ) );
 	}
 
 	if( total_players )
-		vtprintf( pvt_local, WIDE("\"Players : %s\" "), total_players );
+		vtprintf( pvt_local, "\"Players : %s\" ", total_players );
 
 	ParseIntoArgs( GetText( VarTextPeek( pvt_remote ) ), &nArgs, &pArgs );
 	lprintf( "staring remote." );
@@ -200,7 +200,7 @@ void PromptLocalYesNo( CTEXTSTR name, CTEXTSTR total_players )
 	vtprintf( pvt_local, "%s", name );
 
 	if( total_players )
-		vtprintf( pvt_local, WIDE("\"Players : %s\" "), total_players );
+		vtprintf( pvt_local, "\"Players : %s\" ", total_players );
 
 	ParseIntoArgs( GetText( VarTextPeek( pvt_local ) ), &nArgs, &pArgs );
 	l.local_task = LaunchPeerProgram( l.local_banner_path, NULL, (PCTEXTSTR)pArgs, LocalOutput, LocalEnd, 0 );
@@ -250,7 +250,7 @@ void PromptResult( CTEXTSTR name )
 	vtprintf( pvt_local, "%s %s ", l.local_banner_path, l.local_banner_args );
 
 	for( tmp = burst_name; tmp; tmp = NEXTLINE( tmp ) )
-		vtprintf( pvt_local, WIDE("\"%s\" "), GetText( tmp ) );
+		vtprintf( pvt_local, "\"%s\" ", GetText( tmp ) );
 
 	ParseIntoArgs( GetText( VarTextPeek( pvt_local ) ), &nArgs, &pArgs );
 	l.local_task = LaunchPeerProgram( l.local_banner_path, NULL, (PCTEXTSTR)pArgs, LocalOutput, LocalEnd, 0 );
@@ -258,7 +258,7 @@ void PromptResult( CTEXTSTR name )
 	vtprintf( pvt_remote, "%s %s %s %s ", l.launchpad_path, l.launchpad_args, l.remote_banner_path, l.remote_banner_args );
 
 	for( tmp = burst_name; tmp; tmp = NEXTLINE( tmp ) )
-		vtprintf( pvt_remote, WIDE("\"%s\" "), GetText( tmp ) );
+		vtprintf( pvt_remote, "\"%s\" ", GetText( tmp ) );
 
 	ParseIntoArgs( GetText( VarTextPeek( pvt_remote ) ), &nArgs, &pArgs );
 	l.remote_task = LaunchPeerProgram( l.launchpad_path, NULL, (PCTEXTSTR)pArgs, LocalOutput, NULL, 0 );
@@ -300,13 +300,13 @@ void PromptAll( void )
 							 );
 			if( l.nPlayers > 1 )
 			{
-				vtprintf( pvt_local, WIDE("\"%d. %*.*s\" "), idx + 1, (extra-name), (extra-name), name );
-				vtprintf( pvt_remote, WIDE("\"%d. %*.*s\" "), idx + 1, (extra-name), (extra-name), name );
+				vtprintf( pvt_local, "\"%d. %*.*s\" ", idx + 1, (extra-name), (extra-name), name );
+				vtprintf( pvt_remote, "\"%d. %*.*s\" ", idx + 1, (extra-name), (extra-name), name );
 			}
 			else
 			{
-				vtprintf( pvt_local, WIDE("\"%*.*s\" "), (extra-name), (extra-name), name );
-				vtprintf( pvt_remote, WIDE("\"%*.*s\" "), (extra-name), (extra-name), name );
+				vtprintf( pvt_local, "\"%*.*s\" ", (extra-name), (extra-name), name );
+				vtprintf( pvt_remote, "\"%*.*s\" ", (extra-name), (extra-name), name );
 			}
 		}
 		else
@@ -320,13 +320,13 @@ void PromptAll( void )
 							  );
 			if( l.nPlayers > 1 )
 			{
-				vtprintf( pvt_local, WIDE("\"%d. %s\" "), idx + 1, name );
-				vtprintf( pvt_remote, WIDE("\"%d.%s\" "), idx + 1, name );
+				vtprintf( pvt_local, "\"%d. %s\" ", idx + 1, name );
+				vtprintf( pvt_remote, "\"%d.%s\" ", idx + 1, name );
 			}
 			else
 			{
-				vtprintf( pvt_local, WIDE("\"%s\" "), name );
-				vtprintf( pvt_remote, WIDE("\"%s\" "), name );
+				vtprintf( pvt_local, "\"%s\" ", name );
+				vtprintf( pvt_remote, "\"%s\" ", name );
 			}
 		}
 	}
@@ -338,7 +338,7 @@ void PromptAll( void )
 
 	VarTextDestroy( &pvt_local );
 	VarTextDestroy( &pvt_remote );
-	PromptLocal( WIDE("\"Touch Anywhere\" \"to continue\"") );
+	PromptLocal( "\"Touch Anywhere\" \"to continue\"" );
 	while( l.local_task )
 	{
 		WakeableSleep( 20000 );

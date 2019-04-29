@@ -700,7 +700,7 @@ TEXTCHAR NextCharEx( PTEXT input, size_t idx )
 		tabs = 0; } while(0)
 
 
-//static CTEXTSTR normal_punctuation=WIDE("\'\"\\({[<>]}):@%/,;!?=*&$^~#`");
+//static CTEXTSTR normal_punctuation="\'\"\\({[<>]}):@%/,;!?=*&$^~#`";
 //static CTEXTSTR not_punctuation;
 
 PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int bTabs, int bSpaces  DBG_PASS )
@@ -2431,7 +2431,7 @@ static void BuildTextFlags( PVARTEXT vt, PTEXT pSeg )
 	if( pSeg->flags & TF_STATIC )
 		vtprintf( vt, "static " );
 	if( pSeg->flags & TF_QUOTE )
-		vtprintf( vt, WIDE( "\"\" " ) );
+		vtprintf( vt, "\"\" " );
 	if( pSeg->flags & TF_SQUOTE )
 		vtprintf( vt, "\'\' " );
 	if( pSeg->flags & TF_BRACKET )
@@ -3427,9 +3427,9 @@ static int Step( CTEXTSTR *pc, size_t *nLen )
 
 	if( ch )
 	{
-		while( ch == WIDE('\x9F') )
+		while( ch == '\x9F' )
 		{
-			while( ch && ( ch != WIDE( '\x9C' ) ) )
+			while( ch && ( ch != '\x9C' ) )
 			{
 				ch = GetUtfChar( pc );
 				if( nLen )

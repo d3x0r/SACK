@@ -247,14 +247,14 @@ VECTOR_METHOD( void, PrintVectorEx, ( CTEXTSTR lpName, PCVECTOR v DBG_PASS ) );
 /* <combine sack::math::vector::PrintVectorEx@CTEXTSTR@PCVECTOR v>
    
    \ \                                                               */
-#define PrintVector(v) PrintVectorEx( WIDE(#v), v DBG_SRC )
+#define PrintVector(v) PrintVectorEx( #v, v DBG_SRC )
 /* Same as PrintVectorEx, but prints to standard output using
    printf.                                                    */
 VECTOR_METHOD( void, PrintVectorStdEx, ( CTEXTSTR lpName, VECTOR v DBG_PASS ) );
 /* <combine sack::math::vector::PrintVectorStdEx@CTEXTSTR@VECTOR v>
    
    \ \                                                                */
-#define PrintVectorStd(v) PrintVectorStd( WIDE(#v), v DBG_SRC )
+#define PrintVectorStd(v) PrintVectorStd( #v, v DBG_SRC )
 /* Dumps to syslog a current matrix. Shows both matrix content,
    and the cross products between the matrix that cross1 should
    be row 0, cross2 should be row 1 and cross3 should be row2.
@@ -272,7 +272,7 @@ VECTOR_METHOD( void, PrintMatrixEx, ( CTEXTSTR lpName, MATRIX m DBG_PASS ) );
 /* <combine sack::math::vector::PrintMatrixEx@CTEXTSTR@MATRIX m>
    
    \ \                                                             */
-#define PrintMatrix(m) PrintMatrixEx( WIDE(#m), m DBG_SRC )
+#define PrintMatrix(m) PrintMatrixEx( #m, m DBG_SRC )
 
 /* <combine sack::math::vector::TransformationMatrix>
    

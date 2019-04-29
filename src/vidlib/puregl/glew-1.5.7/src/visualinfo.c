@@ -980,11 +980,6 @@ void InitContext (GLContext* ctx)
   ctx->rc = NULL;
 }
 
-#ifdef UNICODE
-#define WIDE(s) L##s
-#else
-#define WIDE(s) s
-#endif
 
 GLboolean CreateContext (GLContext* ctx)
 {

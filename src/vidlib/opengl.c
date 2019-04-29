@@ -452,7 +452,7 @@ int EnableOpenGL( PVIDEO hVideo )
 			Image i = GetDisplayImage( hVideo );
 			static HMODULE hMe;
 			if( hMe == NULL )
-				hMe = GetModuleHandle (_WIDE(TARGETNAME));
+				hMe = GetModuleHandle (TARGETNAME);
 			hVideo->hWndOutputFake = CreateWindowEx( 0
 																, (TEXTCHAR *) l.aClass2
 																, "InvisiGlWindow"
@@ -561,7 +561,7 @@ RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h 
 	{
 		static HMODULE hMe;
 		if( hMe == NULL )
-			hMe = GetModuleHandle (_WIDE(TARGETNAME));
+			hMe = GetModuleHandle (TARGETNAME);
 		hVideo->hWndOutputFake = CreateWindowEx( 0
 						  , (TEXTCHAR*)l.aClass2
 						  , "InvisiGlWindow"

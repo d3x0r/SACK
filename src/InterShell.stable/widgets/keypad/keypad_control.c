@@ -263,7 +263,7 @@ static TEXTCHAR *keyboardtext[]= { "AEs\0",  "A1\0", "A2\0", "A3\0", "A4\0", "A5
 };
 static TEXTCHAR *keyboard_shifted_text[]= { "AEs\0", "A!\0", "A@\0", "A#\0", "A$\0", "A%\0", "A^\0", "A&\0", "A*\0", "A(\0", "A)\0", "A_\0", "A+\0"
 														, "A|\0", "AQ\0", "AW\0", "AE\0", "AR\0", "AT\0", "AY\0", "AU\0", "AI\0", "AO\0", "AP\0", "A{\0", "A}\0"
-														, "A^^\0", "AA\0", "AS\0", "AD\0", "AF\0", "AG\0", "AH\0", "AJ\0", "AK\0", "AL\0", "A:\0", WIDE("A\"\0" ), "A<-\0"
+														, "A^^\0", "AA\0", "AS\0", "AD\0", "AF\0", "AG\0", "AH\0", "AJ\0", "AK\0", "AL\0", "A:\0", "A\"\0" , "A<-\0"
 														, "A^\0" , "AZ\0", "AX\0", "AC\0", "AV\0", "AB\0", "AN\0", "AM\0", "A[ ]\0", "A<\0", "A>\0", "A?\0", "ABS\0"
 };
 static CTEXTSTR keyboardval[] = { "\x1b",  "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="
@@ -273,7 +273,7 @@ static CTEXTSTR keyboardval[] = { "\x1b",  "1", "2", "3", "4", "5", "6", "7", "8
 };
 static CTEXTSTR keyboard_shifted_val[] = {  "\x1b", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+"
 													  ,  "|",  "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "{", "}"
-													  , (CTEXTSTR)-1,  "A", "S", "D", "F", "G", "H", "J", "K", "L", ":", WIDE("\""),  (CTEXTSTR)-2
+													  , (CTEXTSTR)-1,  "A", "S", "D", "F", "G", "H", "J", "K", "L", ":", "\"",  (CTEXTSTR)-2
 													  , (TEXTCHAR*)-3, "Z", "X", "C", "V", "B", "N", "M", " ", "<", ">", "?", "\b"
 };
 

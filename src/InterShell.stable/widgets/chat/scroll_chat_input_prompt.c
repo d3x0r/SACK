@@ -296,7 +296,7 @@ void RenderTextLine(
 			pText = NEXTLINE( pText );
 		}
 	}
-	//lprintf( WIDE("(*(*r)...bottom nMin %d %d"), (*r)..bottom, nMinLine );
+	//lprintf( ("(*(*r)...bottom nMin %d %d"), (*r)..bottom, nMinLine );
 	if( (*r).bottom > nMinLine )
 	{
 		(*r).bottom = (*r).top;

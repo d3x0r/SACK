@@ -129,7 +129,7 @@ static uintptr_t CPROC AddInputFile( uintptr_t psv, arg_list args )
 
 static void OnLoadCommon( "File Variables" )( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, WIDE( "file variable input \"%m\" \"%m\"" ), AddInputFile );
+	AddConfigurationMethod( pch, "file variable input \"%m\" \"%m\"", AddInputFile );
 }
 
 static void OnSaveCommon( "File Variables" )( FILE *output )
@@ -139,7 +139,7 @@ static void OnSaveCommon( "File Variables" )( FILE *output )
 	LIST_FORALL( l.files, idx, struct input_file*, file )
 	{
 		if( !file->flags.bDeleted )
-			fprintf( output, WIDE("file variable input \"%s\" \"%s\"\n"), file->varname, EscapeMenuString( file->filename ) );
+			fprintf( output, "file variable input \"%s\" \"%s\"\n", file->varname, EscapeMenuString( file->filename ) );
 	}
 }
 

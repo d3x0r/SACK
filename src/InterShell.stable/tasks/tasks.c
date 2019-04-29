@@ -232,7 +232,7 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash )
 									 , result
 									 , GetLastError() );
 							//MessageBox( NULL, msg
-							//			 , WIDE("Resolution Failed"), MB_OK );
+							//			 , "Resolution Failed", MB_OK );
 						}
 						else
 						{
@@ -525,7 +525,7 @@ TEXTCHAR *GetTaskArgs( PLOAD_TASK pTask, LOGICAL bShutdown )
 	for( n = 1; bShutdown?(pTask->pShutdownArgs && pTask->pShutdownArgs[n]):(pTask->pArgs && pTask->pArgs[n]); n++ )
 	{
 		if( (bShutdown?pTask->pShutdownArgs[n][0]:pTask->pArgs[n][0]) == 0 )
-			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s\"\""), n>1?" ":"" );
+			len += snprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), "%s\"\"", n>1?" ":"" );
 		else if( StrChr( bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], ' ' ) )
 		{
 			if( StrChr( bShutdown?pTask->pShutdownArgs[n]:pTask->pArgs[n], '\"' ) )
@@ -2104,8 +2104,8 @@ static void OnLoadCommon( "Tasks" )( PCONFIG_HANDLER pch )
 	AddConfigurationMethod( pch, "Power Shell ISE", CreatePowerShellISECommand );
 	//AddConfigurationMethod( pch, "{task_info}", BeginButtonTaskInfo );
 
-	AddConfigurationMethod( pch, WIDE("<path more=\"%m\"}"), AddAdditionalPath );
-	AddConfigurationMethod( pch, WIDE("<path less=\"%m\">"), AddPrependPath );
+	AddConfigurationMethod( pch, "<path more=\"%m\"}", AddAdditionalPath );
+	AddConfigurationMethod( pch, "<path less=\"%m\">", AddPrependPath );
 	AddConfigurationMethod( pch, "wait for network? %b", SetWaitForNetwork );
 }
 
@@ -2245,9 +2245,9 @@ static void OnSaveCommon( "Tasks" )( FILE *file )
 			}
 		}
 		if( l.more_path )
-			sack_fprintf( file, WIDE( "<path more=\"%s\">\n" ), l.more_path );
+			sack_fprintf( file, "<path more=\"%s\">\n", l.more_path );
 		if( l.less_path )
-			sack_fprintf( file, WIDE( "<path less=\"%s\">\n" ), l.less_path );
+			sack_fprintf( file, "<path less=\"%s\">\n", l.less_path );
 		sack_fprintf( file, "wait for network? %s\n\n", l.flags.wait_for_network_drive?"yes":"no" );
 
 }

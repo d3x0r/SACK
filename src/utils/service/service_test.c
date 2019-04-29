@@ -66,9 +66,9 @@ int main( int argc, char **argv )
 				{
 					//lprintf( "arg is %s", args[0] );
 					if( args[0][0] == 0 )
-						vtprintf( pvt, WIDE( "%s\"\"" ), first ? "" : " " );
+						vtprintf( pvt,  "%s\"\"" , first ? "" : " " );
 					else if( StrChr( args[0], ' ' ) )
-						vtprintf( pvt, WIDE("%s\\\"%s\\\""), first?"":" ", args[0] );
+						vtprintf( pvt, "%s\\\"%s\\\"", first?"":" ", args[0] );
 					else
 						vtprintf( pvt, "%s%s", first ? "" : " ", args[0] );
 					first = 0;

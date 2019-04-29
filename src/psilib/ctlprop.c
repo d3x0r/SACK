@@ -243,9 +243,7 @@ static
 #endif
 TEXTCHAR control_property_frame_xml[] = {
 //#define stuff(a) #a
-//stuff(
 #include "CommonEdit.Frame"
-//    )
  };
 
 

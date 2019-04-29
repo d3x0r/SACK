@@ -37,13 +37,8 @@ typedef struct addrinfoW {
     struct addrinfoW    *ai_next;
 } ADDRINFOW;
 typedef ADDRINFOW   *PADDRINFOW;
-#ifdef UNICODE
-typedef ADDRINFOW   ADDRINFOT;
-typedef ADDRINFOW   *PADDRINFOT;
-#else
 typedef ADDRINFOA   ADDRINFOT;
 typedef ADDRINFOA   *PADDRINFOT;
-#endif
 typedef ADDRINFOA   ADDRINFO;
 typedef ADDRINFOA   *LPADDRINFO;
 

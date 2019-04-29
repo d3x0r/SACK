@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include <sack_types.h>  // for purposes of WIDE()
+#include <sack_types.h>  // for purposes of ()
 
 char names[2560][16];
 int nNames;

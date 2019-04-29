@@ -221,7 +221,7 @@ void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR descrip, CTEXTSTR extraArg
 	CTEXTSTR pname = GetProgramName();
 	CTEXTSTR ppath = GetProgramPath();
 
-	vtprintf( pvt_cmd, WIDE( "sc create \"%s\" start= auto binpath= \"" )
+	vtprintf( pvt_cmd,  "sc create \"%s\" start= auto binpath= \"" 
 			  , ServiceName
 			  );
 
@@ -262,7 +262,7 @@ void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR descrip, CTEXTSTR extraArg
 	}
 
 
-	vtprintf( pvt_cmd, WIDE( "sc start \"%s\"" )
+	vtprintf( pvt_cmd,  "sc start \"%s\"" 
 			  , ServiceName );
 	ParseIntoArgs( GetText( VarTextPeek( pvt_cmd ) ), &nArgs, &args );
 	VarTextEmpty( pvt_cmd );
@@ -283,7 +283,7 @@ void ServiceUninstall( CTEXTSTR ServiceName )
 	TEXTCHAR **args;
 	int nArgs;
 	PVARTEXT pvt_cmd = VarTextCreate();
-	vtprintf( pvt_cmd, WIDE( "sc stop \"%s\"" )
+	vtprintf( pvt_cmd,  "sc stop \"%s\"" 
 			  , ServiceName );
 	ParseIntoArgs( GetText( VarTextPeek( pvt_cmd ) ), &nArgs, &args );
 	VarTextEmpty( pvt_cmd );
@@ -291,7 +291,7 @@ void ServiceUninstall( CTEXTSTR ServiceName )
 	while( !task_done )
 		WakeableSleep( 100 );
 	task_done = 0;
-	vtprintf( pvt_cmd, WIDE( "sc delete \"%s\"" )
+	vtprintf( pvt_cmd, "sc delete \"%s\"" 
 			  , ServiceName );
 	ParseIntoArgs( GetText( VarTextPeek( pvt_cmd ) ), &nArgs, &args );
 	VarTextEmpty( pvt_cmd );
