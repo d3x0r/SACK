@@ -175,7 +175,11 @@ static void LocalInit( void )
 				sack_set_common_data_application( GetProgramName() );
 
 #else
-				(*winfile_local).data_file_root = StrDup( "~" );
+				{
+					char tmpPath[256];
+					snprintf( tmpPath, 256, "%s/%s", getenv("HOME"), ".Freedom Collective" );
+					(*winfile_local).data_file_root = StrDup( tmpPath );
+				}	
 #endif
 			}
 		}
