@@ -31,9 +31,9 @@ It's SDL (sort of), it's GTK (sorta), it's STL (stacks, lists, queue, constainer
 
 ### Where Did it Come from/Why Does it Exist?
 
-In the beginning, there was a DOS serial terminal program.  It was written in C.  There were of course the basic container types missing, so basically every structure was some new implementation of something old; but it was concise and didn't have extra things it iddn't 'need' in the case of a generic class which may provide things that are unused except in specific cases. This actually had threads;  it had several instruction stacks at vairous states that it could relinquish time to.
+In the beginning, there was a DOS serial terminal program.  It was written in C.  There were of course the basic container types missing, so basically every structure was some new implementation of something old; but it was concise and didn't have extra things it didn't 'need' in the case of a generic class which may provide things that are unused except in specific cases. This actually had threads;  it had several instruction stacks at vairous states that it could relinquish time to.
 
-It evolved into a proprietary OS called NIPC (new inter process communications), which not only had threads, but could load DOS .exe files as processes into the threads (not just .COM files).  This managed memory allocation, display access, disk acceses, and CPU time in a round-robin fashion.  In the beginning there was no sleep, but later threads could take themselves out of schedule to not even be woken.  On a 286-25 it got aound 1500 cycles a second.  But most of its real work was in interrupt handling, communicating with some other system.
+It evolved into a proprietary OS called NIPC (new inter process communications), which not only had threads, but could load DOS .exe files as processes into the threads (not just .COM files).  This managed memory allocation, display access, disk acceses, and CPU time in a round-robin fashion.  In the beginning there was no sleep, but later threads could take themselves out of schedule to not even be woken.  On a 386-25 it got aound 1500 cycles a second.  But most of its real work was in interrupt handling, communicating with some other system.
 
 Then there was windows 3.1... and NT 3.51 for a short time until NT4 came out.  So now all the custom thread control was fairly obsolete, but that allocator, that was pretty good.  And there was lots of development of shared memory pipes/queues/etc and Sockets.  There were sockets in NIPC too; written as a UDP/TCP/IP stack, to a network card that was directly written to; the API for that was of course event based, because I really didn't know any other sort of method to deal with network.  There was of course Berkley sockets, and they told me I should implement that API, and it was so very convoluted... I have to sit and wait for data?
 
@@ -49,7 +49,7 @@ Once you have images you can draw to, then it's just a matter of getting the sys
 So, given this as a platform, Dekware as a application based on SACK took form and eventually manifested; serving as a test fixture for the library.  
 
 SO there was a single Image library and Render library, so they were all sort of packaged into one large package.  (CMake still has BUILD_MONOLITHIC options, which is probably fairly broken now).  I was at the time playing a lot of MUD using Dekware (was even support Dekware for someone else who was running on FreeBSD, with non-gnu Make; what a pain that was... did I mention, back then I was using make, and had lots of various flavors of makefiles for lots of systems?)...  anyway, this is really the origin of SACK; before that it was just 'common' after the pattern I had learned in my previous job.
-A sack is a large bag.  A bag can hold like 5 bags, but a sack can hold like 25 bags.  a BAG is a Basic Aggregate Group, or a sub-module... a peice that itself could be ommitted and not affect anything else; and SACK contains many BAGs.
+A sack is a large bag.  A bag can hold like 5 bags, but a sack can hold like 25 bags.  a BAG is a Basic Aggregate Group, or a sub-module... a piece that itself could be ommitted and not affect anything else; and SACK contains many BAGs.
 
 So then there was a new job, building new software, and I was able to leverage SACK and build applications very quickly that would run on windows or linux with the same code and no #ifdef's.  I developed the msgsvr layer using SYSVIPC message queues, and did a common display driver for applications;  I've since lost that, I suppose I decided it was broken enough that it needed to be killed and redone.  At that time I had OpenGL, GL2, GLES, QNX, Websocket/HTML canvas display drivers already; and the message system looked good, but really was pretty bad.  (It's still there, and some things still use it; it works....)
 Here, at this new job, I got to present my library to others; I didn't realize how 'sack' could mean something entirely other than I intended.  It became espcailly bad when I made this project (MILK - Modular Interface Layout Kit), which is based on my SACK; or comes from... 
@@ -62,7 +62,7 @@ InterShell is a program meant for quick production of full screen dedicated func
 
 
 
-## What are the Peices?
+## What are the Pieces?
 
 Sources are generally separate, requiring fewest dependancies of others.
 Someday this should be combed into actual dependancy tree that can be leveraged at a higher level.
