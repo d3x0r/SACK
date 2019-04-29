@@ -49,7 +49,7 @@ PFILESOURCE AddDependCopy( PFILESOURCE pfs, CTEXTSTR name )
 	return pfsNew;
 }
 
-void CPROC DoScanFile( uintptr_t psv, CTEXTSTR name, int flags )
+void CPROC DoScanFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	PFILESOURCE pfs = CreateFileSource( name );
 	pfs->next = copytree;

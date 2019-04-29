@@ -1442,8 +1442,8 @@ void DoSystemLog( const TEXTCHAR *buffer )
 		(*syslog_local).UserCallback( buffer );
 }
 
-	static uint32_t openLock;
-	static uint32_t lowLevelLock;
+	static volatile uint32_t openLock;
+	static volatile uint32_t lowLevelLock;
 void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 {
 	static TEXTCHAR buffer[4096];

@@ -43,9 +43,9 @@ winfile_local__;
 #ifndef WINFILE_COMMON_SOURCE
 extern
 #endif
-struct winfile_local_tag *winfile_local
-#ifdef __STATIC_GLOBALS__
-   = &winfile_local__;
+	struct winfile_local_tag *winfile_local
+#if defined( __STATIC_GLOBALS__ ) && defined( WINFILE_COMMON_SOURCE )
+		   = &winfile_local__
 #endif
 	;
 

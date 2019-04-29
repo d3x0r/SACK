@@ -9,7 +9,7 @@
 #include <idle.h>
 #include "resources.h"
 
-extern PCOMMON frame;
+extern PSI_CONTROL frame;
 
 #define NL_MYSELF 0
 
@@ -19,7 +19,7 @@ PCLIENT *ppc_current;
 
 void BasicMessageBox( TEXTCHAR *title, TEXTCHAR *content )
 {
-   	PCOMMON msg;
+   	PSI_CONTROL msg;
 TEXTCHAR *start, *end;
         TEXTCHAR msgtext[256];
    	int done = 0, okay = 0;
@@ -118,7 +118,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 			}
          else if( (test = ((*(uint64_t*)"WINNERS:")+1)), (LastMessage == test) )
          {
-				PCONTROL pcList = GetControl( frame, LST_WINNERS );
+				PSI_CONTROL pcList = GetControl( frame, LST_WINNERS );
 				TEXTCHAR *winnerlist = (TEXTCHAR*)buffer;
 				TEXTCHAR *endline, lastchar;
 				ResetList( pcList );
@@ -180,7 +180,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 			}
 			else if(  (test = ((*(uint64_t*)"USERLIST")+1) ), (LastMessage == test) )
 			{
-				PCONTROL pcList = GetControl( frame, LST_USERS );
+				PSI_CONTROL pcList = GetControl( frame, LST_USERS );
 				TEXTCHAR *userlist = (TEXTCHAR*)buffer;
 				TEXTCHAR *endline;
 				//Log1( "Got %d bytes of data...", size );
@@ -260,7 +260,7 @@ PCLIENT ConnectToRelay( PCLIENT *pc )
 }
 
 
-void CPROC GetUserButton(uintptr_t psv, PCONTROL pcButton)
+void CPROC GetUserButton(uintptr_t psv, PSI_CONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -272,7 +272,7 @@ void CPROC GetUserButton(uintptr_t psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC KillRelayButton(uintptr_t psv, PCONTROL pcButton)
+void CPROC KillRelayButton(uintptr_t psv, PSI_CONTROL pcButton)
 {
 	PCLIENT pc;
 	int i = 0;
@@ -294,7 +294,7 @@ void CPROC KillRelayButton(uintptr_t psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC KillUserButton(uintptr_t psv, PCONTROL pcButton)
+void CPROC KillUserButton(uintptr_t psv, PSI_CONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -312,7 +312,7 @@ void CPROC KillUserButton(uintptr_t psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC RebootUserButton(uintptr_t psv, PCONTROL pcButton)
+void CPROC RebootUserButton(uintptr_t psv, PSI_CONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -330,7 +330,7 @@ void CPROC RebootUserButton(uintptr_t psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC ScanUserButton(uintptr_t psv, PCONTROL pcButton)
+void CPROC ScanUserButton(uintptr_t psv, PSI_CONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -348,7 +348,7 @@ void CPROC ScanUserButton(uintptr_t psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC UpdateUserButton(uintptr_t psv, PCONTROL pcButton)
+void CPROC UpdateUserButton(uintptr_t psv, PSI_CONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -366,7 +366,7 @@ void CPROC UpdateUserButton(uintptr_t psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC ScanAllButton(uintptr_t psv, PCONTROL pcButton)
+void CPROC ScanAllButton(uintptr_t psv, PSI_CONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -381,7 +381,7 @@ void CPROC ScanAllButton(uintptr_t psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC GetMasterStatusButton(uintptr_t psv, PCONTROL pcButton)
+void CPROC GetMasterStatusButton(uintptr_t psv, PSI_CONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -394,7 +394,7 @@ void CPROC GetMasterStatusButton(uintptr_t psv, PCONTROL pcButton)
 }
 
 
-void CPROC UpdateAllButton(uintptr_t psv, PCONTROL pcButton)
+void CPROC UpdateAllButton(uintptr_t psv, PSI_CONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );
@@ -406,7 +406,7 @@ void CPROC UpdateAllButton(uintptr_t psv, PCONTROL pcButton)
 	}
 }
 
-void CPROC RequestWinnersButton(uintptr_t psv, PCONTROL pcButton)
+void CPROC RequestWinnersButton(uintptr_t psv, PSI_CONTROL pcButton)
 {
 	PCLIENT pc;
 	ConnectToRelay( &pc );

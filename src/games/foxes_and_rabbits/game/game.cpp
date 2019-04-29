@@ -1,4 +1,4 @@
-
+#define INCLUDE_SAMPLE_CPLUSPLUS_WRAPPERS
 #include <stdhdrs.h>
 
 #include <brain.hpp>

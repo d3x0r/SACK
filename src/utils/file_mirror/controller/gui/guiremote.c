@@ -5,22 +5,22 @@
 
 #include "local.h"
 
-PCONTROL frame;
+PSI_CONTROL frame;
 
 
 // list extern procs here
 
-void CPROC GetUserButton(uintptr_t psv, PCONTROL pc);
-void CPROC KillRelayButton(uintptr_t psv, PCONTROL pc);
-void CPROC RebootUserButton(uintptr_t psv, PCONTROL pc);
-void CPROC KillUserButton(uintptr_t psv, PCONTROL pc);
-void CPROC ScanUserButton(uintptr_t psv, PCONTROL pc);
-void CPROC UpdateUserButton(uintptr_t psv, PCONTROL pc);
-void CPROC ScanAllButton(uintptr_t psv, PCONTROL pc);
-void CPROC UpdateAllButton(uintptr_t psv, PCONTROL pc);
-void CPROC GetMasterStatusButton(uintptr_t psv, PCONTROL pc);
-void CPROC UpdateAllButton(uintptr_t psv, PCONTROL pc);
-void CPROC RequestWinnersButton( uintptr_t psv, PCONTROL pc );
+void CPROC GetUserButton(uintptr_t psv, PSI_CONTROL pc);
+void CPROC KillRelayButton(uintptr_t psv, PSI_CONTROL pc);
+void CPROC RebootUserButton(uintptr_t psv, PSI_CONTROL pc);
+void CPROC KillUserButton(uintptr_t psv, PSI_CONTROL pc);
+void CPROC ScanUserButton(uintptr_t psv, PSI_CONTROL pc);
+void CPROC UpdateUserButton(uintptr_t psv, PSI_CONTROL pc);
+void CPROC ScanAllButton(uintptr_t psv, PSI_CONTROL pc);
+void CPROC UpdateAllButton(uintptr_t psv, PSI_CONTROL pc);
+void CPROC GetMasterStatusButton(uintptr_t psv, PSI_CONTROL pc);
+void CPROC UpdateAllButton(uintptr_t psv, PSI_CONTROL pc);
+void CPROC RequestWinnersButton( uintptr_t psv, PSI_CONTROL pc );
 
 #define COLUMN1 338
 #define COLUMN2 435

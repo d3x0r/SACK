@@ -111,9 +111,9 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 		}
 		else
 		{
-			DECLTEXT( msg, "Must specify process to execute in quotes (\"") );
+			DECLTEXT( msg, "Must specify process to execute in quotes (\"\")" );
 			EnqueLink( &ps->Command->Output, &msg );
-		WakeAThread( ps2 );
+			WakeAThread( ps2 );
 			return -1; // abort creation.
 		}
 	}

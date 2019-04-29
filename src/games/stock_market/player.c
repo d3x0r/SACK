@@ -81,7 +81,7 @@ int CPROC PlayerMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 			if( pCheck == pPlayer )
 			{
 				TEXTCHAR select[4];
-				snprintf( select, sizeof( select ), "%ld%s"
+				snprintf( select, sizeof( select ), "%" _PTRSZVALf "%s"
 						 , idx + 1
 						 , g.flags.bChoiceNeedsEnter?"\n":"" );
 				EnqueStrokes( select );
@@ -195,10 +195,10 @@ void ChoosePlayerColor( PPLAYER pPlayer )
 
     do
     {
-        printf( "Enter a name for player %d:", pPlayer->id );
+        printf( "Enter a name for player %" _PTRSZVALf ":", pPlayer->id );
         GetAString( pPlayer->name, sizeof( pPlayer->name ) );
         pPlayer->name[strlen(pPlayer->name)-1] = 0; // kill \n
-        printf( "Player %d is %s, right?", pPlayer->id, pPlayer->name );
+        printf( "Player %" _PTRSZVALf " is %s, right?", pPlayer->id, pPlayer->name );
         buffer[0] = GetYesNo();
         if( buffer[0] )
             break;
@@ -265,7 +265,7 @@ void StepNextPlayer( void )
 	}
 	LIST_NEXTALL( g.Players, g.iCurrentPlayer, PPLAYER, g.pCurrentPlayer )
 	{
-		printf( "Setting current player to %d %s\n", g.iCurrentPlayer, g.pCurrentPlayer->name );
+		printf( "Setting current player to %" _PTRSZVALf " %s\n", g.iCurrentPlayer, g.pCurrentPlayer->name );
 		break;
 	}
 	if( !g.pCurrentPlayer )
@@ -423,14 +423,14 @@ void InitPlayer( void )
 										 , Surface->width - 18, ( g.scale * 3 / 2)
 										 , CST_PORTFOLIO
 										 );
-      SetCommonUserData( pc, 0 );
+		SetControlUserData( pc, 0 );
 		//SetControlDraw( pc, DrawPortfolio, 0 );
 		pc = MakeControl( g.Player, portfolio.TypeID
 							 , 5, 56 + 3 + ( g.scale * 3 / 2)
 							 , Surface->width - 18, ( g.scale * 3 / 2)
 							 , CST_PORTFOLIO );
 		//SetControlDraw( pc, DrawPortfolio, 4 );
-      SetCommonUserData( pc, 4 );
+		SetControlUserData( pc, 4 );
 	}
 
 }

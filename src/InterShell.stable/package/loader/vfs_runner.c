@@ -318,14 +318,14 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		SetExternalLoadLibrary( LoadLibraryDependant );
 		lprintf( "Open Core FS Log" );
 
-#define _appload( a, b )  sack_vfs_load_crypt_volume( "application.dat", NULL /*#a "-" b*/, NULL/*app_signature*/ )
+#define _appload( a, b )  sack_vfs_load_crypt_volume( "application.dat", 0, NULL /*#a "-" b*/, NULL/*app_signature*/ )
 #define appload( a,b )  _appload( a,b )
 
-#define _sfxappload( a, b )  sack_vfs_use_crypt_volume( memory, sz, NULL, NULL )
+#define _sfxappload( a, b )  sack_vfs_use_crypt_volume( memory, sz, 0, NULL, NULL )
 //#define _appload( a,b )  sack_vfs_load_crypt_volume( "application.dat", a, b )
 #define sfxappload( a,b )  _sfxappload( a,b )
 
-#define _resload( a,b )  sack_vfs_load_crypt_volume( "resources.kw", #a, "" b )
+#define _resload( a,b )  sack_vfs_load_crypt_volume( "resources.kw", #a, 0, "" b )
 //#define _resload( a,b )  sack_vfs_load_crypt_volume( "resources.kw", a, b )
 #define resload( a,b )  _resload( a,b )
 

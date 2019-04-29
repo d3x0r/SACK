@@ -240,7 +240,7 @@ void CPROC DoSell( uintptr_t psv, PSI_CONTROL button )
 		{
 			snprintf( strokes, 16
 					 , "%d\n%ld\ny"
-					 , (struct stock_tag*)GetAccountIndex( &g.pCurrentPlayer->portfolio
+					 , GetAccountIndex( &g.pCurrentPlayer->portfolio
 											, GetStockByID( n + 1 ) )
 					 , sell.sell[n] );
 			EnqueStrokes( strokes );
@@ -412,11 +412,11 @@ int CPROC DrawPortfolio( PSI_CONTROL pc )
 		PSTOCKACCOUNT pAccount =
 			GetStockAccount( &g.pCurrentPlayer->portfolio
 								, stock );
-		x = ( Surface->width * (n-GetCommonUserData(pc)) ) / 4;
+		x = ( Surface->width * (n- GetControlUserData(pc)) ) / 4;
 		if( pAccount &&
 			pAccount->shares &&
-			(n >= GetCommonUserData(pc)) &&
-			(n < (GetCommonUserData(pc) + 4)) )
+			(n >= GetControlUserData(pc)) &&
+			(n < (GetControlUserData(pc) + 4)) )
 		{
 			y = 2;
 			snprintf( symbol, 5, "%4.4s", stock->Symbol );

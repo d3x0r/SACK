@@ -1020,7 +1020,7 @@ void PutDirectedText( Image image, int x, int y
 int CPROC DrawSpace( PSI_CONTROL pc )
 {
 	PSI_CONTROL pRegion = pc;
-	PSPACE pSpace = (PSPACE)GetCommonUserData( pc );
+	PSPACE pSpace = (PSPACE)GetControlUserData( pc );
 	//ValidatedControlData( PSPACE, board_space.TypeID, pSpace, pc );
     TEXTCHAR text[15];
     int x = 2
@@ -1252,9 +1252,8 @@ void CPROC FlashSpaces( uintptr_t psv )
 {
 	PSPACE pSpace;
 	CDATA Border;
-	Image Surface;
 	INDEX idx;
-   //lprintf( "FLASH!!!!!!!!!!" );
+	//lprintf( "FLASH!!!!!!!!!!" );
 	g.flags.bFlashOn = !g.flags.bFlashOn;
 	if( g.flags.bFlashing )
 	{
@@ -1263,10 +1262,10 @@ void CPROC FlashSpaces( uintptr_t psv )
 			lprintf( "It's a possible space..." );
 			pSpace->flags.bFlashOn = g.flags.bFlashOn;
 			pSpace->flags.bFlashing = 1;
-         SmudgeCommon( pSpace->region );
+			SmudgeCommon( pSpace->region );
 		}
-      lprintf( "How many psosible spaces was that?" );
-      g.flags.bFlashed = 1;
+		lprintf( "How many psosible spaces was that?" );
+		g.flags.bFlashed = 1;
 	}
 	else
 	{
@@ -1274,7 +1273,7 @@ void CPROC FlashSpaces( uintptr_t psv )
 		{
 			LIST_FORALL( g.PossibleSpaces, idx, PSPACE, pSpace )
 			{
-            pSpace->flags.bFlashing = 0;
+				pSpace->flags.bFlashing = 0;
 				SmudgeCommon( pSpace->region );
 			}
 			// so we don't get confused....
@@ -1291,10 +1290,10 @@ void CPROC FlashSpaces( uintptr_t psv )
 		{
 			if( _player )
 			{
-            lprintf( "Update last player token" );
+				lprintf( "Update last player token" );
 				SmudgeCommon( _player->pPlayerToken );
 			}
-         _player = g.pCurrentPlayer;
+			_player = g.pCurrentPlayer;
 		}
 		if( g.pCurrentPlayer )
 		{
@@ -1310,7 +1309,7 @@ void CPROC FlashSpaces( uintptr_t psv )
 
 int CPROC MouseSpace( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
-   PSPACE  pSpace = (PSPACE)GetCommonUserData( pc );
+   PSPACE  pSpace = (PSPACE)GetControlUserData( pc );
     // hmm not sure how these buttons will work
     // and what I'm supposed to track... maybe alias some of the
 	// combinations...
@@ -1399,7 +1398,7 @@ void CreateBoardDisplay( void )
                                                 , pSpace->position.width * g.scale
                                               , pSpace->position.height * g.scale
 												, 0 );
-        SetCommonUserData( pSpace->region, (uintptr_t)pSpace );
+        SetControlUserData( pSpace->region, (uintptr_t)pSpace );
         //SetControlDraw( pSpace->region, (RedrawCallback)DrawSpace, (uintptr_t)pSpace );
         //SetControlMouse( pSpace->region, (MouseCallback)MouseSpace, (uintptr_t)pSpace );
 	}

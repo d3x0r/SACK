@@ -97,9 +97,9 @@ private:
 	uint32_t nCycle;
 public:
 	// lists had to be made public because iterator didn't work (not thread safe)
-	iList Inputs; // list of PCONNECTORs
-	iList Outputs;  // list of PCONNECTORs
-	iList Modules;  // brainstems provide a good way to glob things...
+	class iList Inputs; // list of PCONNECTORs
+	class iList Outputs;  // list of PCONNECTORs
+	class iList Modules;  // brainstems provide a good way to glob things...
 private:
 	int nGroups;
 	PBRAIN_STEM *group; // array of connector groups... 

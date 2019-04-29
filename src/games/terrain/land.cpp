@@ -1,4 +1,5 @@
 //#define MAKE_RCOORD_SINGLE
+#define INCLUDE_SAMPLE_CPLUSPLUS_WRAPPERS
 #include <stdhdrs.h>
 #define USE_RENDER_INTERFACE l.pri
 #define USE_IMAGE_INTERFACE l.pii
