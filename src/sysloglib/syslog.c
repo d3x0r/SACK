@@ -367,9 +367,9 @@ void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
 	// sharemem will just fai(*syslog_local).  (it's probably trying to log... )
 	newpath = (TEXTCHAR*)malloc( len = sizeof(TEXTCHAR)*(9 + StrLen( filepath ) + StrLen( filename ) + (extra?StrLen(extra):0) + 5) );
 #ifdef __cplusplus_cli
-	tnprintf( newpath, len, "%s/%s%s.cli.log", filepath, filename, extra?extra:"" );
+	tnprintf( newpath, len, "%s%s%s.cli.log", filepath, filename, extra?extra:"" );
 #else
-	tnprintf( newpath, len, "%s/%s%s.log", filepath, filename, extra?extra:"" );
+	tnprintf( newpath, len, "%s%s%s.log", filepath, filename, extra?extra:"" );
 #endif
 	gFilename = newpath;//( newpath ); // use the C heap.
 	//free( newpath ); // get rid of this ...
