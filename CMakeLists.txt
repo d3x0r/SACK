@@ -117,12 +117,12 @@ if( __ANDROID__ )
 	endif( __ANDROID_OLD_PLATFORM_SUPPORT__ )
 	SET( __LINUX__ ON )
 	SET( __ARM__ ON )
-	SET( BUILD_MONOLITHIC OFF )
+	#SET( BUILD_MONOLITHIC OFF )
 	SET( __NO_ODBC__ ON )
         SET( NEED_UUID ON )
 	DEFINE_DEFAULT( __LINUX__ ON )
 	DEFINE_DEFAULT( __ARM__ ON )
-	DEFINE_DEFAULT( BUILD_MONOLITHIC OFF )
+	#DEFINE_DEFAULT( BUILD_MONOLITHIC OFF )
 	DEFINE_DEFAULT( __NO_ODBC__ ON )
         DEFINE_DEFAULT( NEED_UUID ON )
         if( OFF )
@@ -250,7 +250,7 @@ endif( NOT __LINUX__ )
 if( NOT __ARM__ )
 OPTION( __ARM__ "Enable specific arm-linux features (disable WIN32)" OFF )
 endif( NOT __ARM__ )
-OPTION( __CLR__ "Enable specific arm-linux features (disable WIN32)" OFF )
+# OPTION( __CLR__ "Enable specific C# CLI/CLR compilation" OFF )
 OPTION( __INCLUDE_INTERSHELL__ "Include building intershell core in root project" OFF )
 if( NOT __NO_ODBC__ )
 OPTION( __NO_ODBC__ "Use Odbc" ${__NO_GUI__} )
@@ -286,8 +286,8 @@ OPTION( __WINDOWS_ARM_CE__ "Build for windows CE 5.0 ARM" 0 )
 OPTION( USE_ASSEMBLY "Use Assembly files as available.  NASM required for this." OFF )
 OPTION( USE_HARDWARE_INFO "Include Hardware information utilities" ${WIN32} )
 
-OPTION( BUILD_MONOLITHIC "Build one giant library" ${BUILD_MONOLITHIC} )
-OPTION( BUILD_UNICODE "Build All as Unicode" ${BUILD_UNICODE} )
+#OPTION( BUILD_MONOLITHIC "Build one giant library" ${BUILD_MONOLITHIC} )
+#OPTION( BUILD_UNICODE "Build All as Unicode" ${BUILD_UNICODE} )
 
 OPTION( INCLUDE_VULKAN "Include vulkan interfaces" ${ENABLE_VULKAN} )
 
@@ -325,19 +325,6 @@ if( MSVC )
 # message( "CREL:" ${CMAKE_C_FLAGS_RELWITHDEBINFO} )
 # message( "CREL:" ${CMAKE_CXX_FLAGS_RELWITHDEBINFO} )
 
-  if( __CLR__ )
-    add_definitions( -D__CLR__ )
-    set( INTERFACE_OUTPUT_DIR . )
-    set( BUILD_UNICODE ON )
-    string( REPLACE "/EHsc" "" CMAKE_CXX_FLAGS_INIT ${CMAKE_CXX_FLAGS_INIT} )
-    string( REPLACE "/EHsc" "" CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} )
-    string( REPLACE "/EHs" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_INIT} )
-    string( REPLACE "/EHs" "" CMAKE_C_FLAGS_INIT ${CMAKE_C_FLAGS_INIT} )
-    string( REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG} )
-    # cannot set CLR for C code anyway
-    #string( REPLACE "/RTC1" "/CLR" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG} )
-    set( FORCE_CXX ON )
-  endif( __CLR__ )
 endif( MSVC )
 
 if( __NO_NETWORK__ )
@@ -381,9 +368,9 @@ if( __QNX__ )
 ADD_DEFINITIONS( -D__QNX__ )
 endif( __QNX__ )
 
-if( BUILD_UNICODE )
-	add_definitions( -D_UNICODE -DUNICODE )
-endif( BUILD_UNICODE )
+#if( BUILD_UNICODE )
+#	add_definitions( -D_UNICODE -DUNICODE )
+#endif( BUILD_UNICODE )
 
 if( ALLOW_IMAGE_INTERFACES )
 	add_definitions( -DALLOW_IMAGE_INTERFACES )
@@ -405,8 +392,6 @@ if( __ARM__ OR __BUILD_ARM_CE__ )
     #set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__LINUX__ -DARM -D_ARM_ )
     add_definitions( -D__LINUX__ -DARM -D_ARM_ )
   else(__LINUX__)
-    #set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D_WIN32_WCE=0x501 -DUNDER_CE -DWINCE -D_WINDOWS -DARM -D_ARM_ -DWIN32_PLATFORM_WFSP -D_UNICODE -DUNICODE -DPOCKETPC2003_UI_MODEL -DWIN32 )
-    add_definitions( -D_WIN32_WCE=0x501 -DUNDER_CE -DWINCE -D_WINDOWS -DARM -D_ARM_ -DWIN32_PLATFORM_WFSP -D_UNICODE -DUNICODE -DPOCKETPC2003_UI_MODEL -DWIN32 )
   endif( __LINUX__ )
 else( )
   if( MSVC )
@@ -481,10 +466,8 @@ macro( setupDefines PLATFORM_DEFINES PLATFORM_CMAKE_DEFINES PLATFORM_LIBRARIES A
 #message( "MACRO ARGUMENTS: android ${__ANDROID__} linux ${__LINUX__} no odbc ${__NO_ODBC__}" )
 
   if( ${WIN32} )
-      if( NOT __CLR__ )
         set( SOCKET_LIBRARIES  )
         set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} advapi32 )
-      endif( NOT __CLR__ )
       set( SOCKET_LIBRARIES ${SOCKET_LIBRARIES} ws2_32 iphlpapi )
       set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${SOCKET_LIBRARIES} winmm rpcrt4 )
       set( OPENGL_LIBRARY opengl32 )
@@ -695,12 +678,10 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINES} )
 SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 
-if( NOT __CLR__ )
 	set( LIBRESSL_SKIP_INSTALL ON )
 	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
         include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
         set( SSL_LIBS ssl tls crypto )
-endif( NOT __CLR__ )
 
 add_subdirectory( src/contrib/gsm-1.0-pl13 )
 #add_subdirectory( src/contrib/libvlc/2.2.4 )
@@ -810,11 +791,9 @@ if( WATCOM )
   set( BAG_PLUSPLUS bag_pp )
   set( BAG_PSI_PLUSPLUS bag.psi_pp )
 else(WATCOM)
-  if( NOT __CLR__ )
     set( SACK_BAG_PLUSPLUS sack_bag++ )
     set( BAG_PLUSPLUS bag++ )
     set( BAG_PSI_PLUSPLUS bag.psi++ )
-  endif( NOT __CLR__ )
 endif(WATCOM)
 
 FOREACH(SOURCE ${SACK_PLUSPLUS_HEADERS})
@@ -901,303 +880,7 @@ ENDFOREACH(SOURCE)
 endmacro( COPY_CPLUSPLUS )
 
 
-if( BUILD_MONOLITHIC )
 
-
-
-  if( NOT FORCE_INTERFACE )
-    add_definitions( -DFORCE_NO_INTERFACE )
-  endif( NOT FORCE_INTERFACE )
-
-  add_definitions( -DSACK_MONOLITHIC_BUILD )
-  if( NOT __NO_GUI__ )
-    set( BASE_SOURCES ${BASE_SOURCES}
-         ${IMAGE_SOURCES}
-         ${VIDLIB_SOURCES}
-         ${PSI_SOURCES}
-    )
-  endif( NOT __NO_GUI__ )
-
-set( C_SOURCES
-    ${JPEG_SOURCE}
-    ${ZLIB_SOURCE}
-    ${PNG_SOURCE}
-    ${FREETYPE_SOURCE}
-    ${FUSE_SOURCES}
-    ${EXPAT_SOURCES}
-)
-if( NEED_UUID )
-set( C_SOURCES ${C_SOURCES} ${UUID_SOURCES} )
-endif( NEED_UUID )
-
-Set( ExternalExtraDefinitions ${ExternalExtraDefinitions} PNG_INTERNAL )
-set( SACK_SOURCES
-  ${FIRST_GCC_LIBRARY_SOURCE}
-    ${BASE_SOURCES}
-	${VIDLIB_HEADLESS_SOURCES}
-    ${VECTLIB_SOURCES}
-    ${VECTLIB_MORE_SOURCES}
-    ${ODBC_SOURCES}
-    ${BAG_SQLITE_INTERFACE}
-    ${BAG_SQLITE_SOURCES}
-    ${C_SOURCES}
-    ${GENX_SOURCES}
-  ${LAST_GCC_LIBRARY_SOURCE}
-)
-
-
-if( NOT __NO_CPLUSPLUS )
-if( NOT FORCE_CXX )
-
-set( cplusplus_sources )
-
-set( SACK_PLUSPLUS_SOURCES
-    ${BASE_SOURCES}
-    ${ODBC_SOURCES}
-    ${GENX_SOURCES}
-    ${BAG_SQLITE_INTERFACE}
-	)
-
-
-
-COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} include/sha1.h include/md5.h )
-
-set( cplusplus_sources
-  #${FIRST_GCC_LIBRARY_SOURCE}
-    ${plusplus_header_dup}
-    ${cplusplus_sources}
-    ${VECTLIB_PLUSPLUS_SOURCES}
-    ${BAG_SQLITE_SOURCES}
-  #${LAST_GCC_LIBRARY_SOURCE}
-)
-
-endif( NOT FORCE_CXX )
-
-endif( NOT __NO_CPLUSPLUS )
-
-add_library( sack_bag SHARED ${SACK_SOURCES} )
-SET_TARGET_PROPERTIES(sack_bag PROPERTIES
-                  COMPILE_FLAGS  "${ExtraFlags}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}sack_bag${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
-                  LINK_FLAGS "${extra_link_flags}"
-)
-target_link_libraries( sack_bag gsm-1.0-pl13 )
-if( NOT __CLR__ )
-	#target_link_libraries( sack_bag MatrixSSL )
-	target_link_libraries( sack_bag ${SSL_LIBS} )
-endif( NOT __CLR__ )
-
-
-if( SACK_BUILD_STATIC_LIBS )
-add_library( sack_bag_static ${SACK_SOURCES} )
-SET_TARGET_PROPERTIES(sack_bag_static PROPERTIES
-                  COMPILE_FLAGS  "${ExtraFlags}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}sack_bag${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
-                  LINK_FLAGS "${extra_link_flags}"
-)
-target_link_libraries( sack_bag_static gsm-1.0-pl13 )
-endif( SACK_BUILD_STATIC_LIBS )
-
-if( NOT __NO_CPLUSPLUS )
-if( NOT FORCE_CXX )
-
-add_library( ${SACK_BAG_PLUSPLUS} SHARED ${cplusplus_sources} )
-SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS} PROPERTIES
-                  COMPILE_FLAGS  "${ExtraFlags}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${SACK_BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
-                  LINK_FLAGS "${extra_link_flags}"
-)
-target_link_libraries( ${SACK_BAG_PLUSPLUS} gsm-1.0-pl13 )
-if( NOT __CLR__ )
-	#target_link_libraries( ${SACK_BAG_PLUSPLUS} MatrixSSL )
-	target_link_libraries( ${SACK_BAG_PLUSPLUS} ${SSL_LIBS} )
-endif( NOT __CLR__ )
-
-if( SACK_BUILD_STATIC_LIBS )
-add_library( ${SACK_BAG_PLUSPLUS}_static ${cplusplus_sources} )
-SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS}_static PROPERTIES
-                  COMPILE_FLAGS  "${ExtraFlags}"
-                  COMPILE_DEFINITIONS "SACK_BAG_EXPORTS;${ExtraDefinitions};${ExternalExtraDefinitions};${PSIExtraDefinitions};TARGET_LABEL=sack_bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${SACK_BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
-                  LINK_FLAGS "${extra_link_flags}"
-)
-target_link_libraries( ${SACK_BAG_PLUSPLUS}_static gsm-1.0-pl13 )
-endif( SACK_BUILD_STATIC_LIBS )
-
-endif( NOT FORCE_CXX )
-endif( NOT __NO_CPLUSPLUS )
-
-
-if( __WINDOWS_ARM_CE__ )
-  SET_TARGET_PROPERTIES( sack_bag PROPERTIES LINK_LIBRARIES "" )
-endif()
-
-if( WATCOM )
-  ADD_DEPENDENCIES( sack_bag generate_foo )
-  SET_TARGET_PROPERTIES(sack_bag PROPERTIES LINK_FLAGS "option resource=all_resources.res")
-  if( SACK_BUILD_STATIC_LIBS )
-    SET_TARGET_PROPERTIES(sack_bag_static PROPERTIES LINK_FLAGS "option resource=all_resources.res")
-  endif( SACK_BUILD_STATIC_LIBS )
-  if( NOT __NO_CPLUSPLUS )
-  if( NOT FORCE_CXX )
-    SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS} PROPERTIES LINK_FLAGS "option resource=all_resources.res")
-    if( SACK_BUILD_STATIC_LIBS )
-      SET_TARGET_PROPERTIES(${SACK_BAG_PLUSPLUS}_static PROPERTIES LINK_FLAGS "option resource=all_resources.res")
-    endif( SACK_BUILD_STATIC_LIBS )
-  endif( NOT FORCE_CXX )
-  endif( NOT __NO_CPLUSPLUS )
-
-elseif( MINGW )
-  #ADD_DEPENDENCIES( sack_bag generate_foo )
-  #if( SACK_BUILD_STATIC_LIBS )
-  #  ADD_DEPENDENCIES( sack_bag_static generate_foo )
-  #endif( SACK_BUILD_STATIC_LIBS )
-  #ADD_DEPENDENCIES( sack_bag all_resources.res )
-  #SET_TARGET_PROPERTIES(sack_bag PROPERTIES LINK_FLAGS "all_resources.res")
-endif()
-
-set( SACK_LIBRARY sack_bag )
-if( NOT __NO_CPLUSPLUS )
-set( SACK_LIBRARIES sack_bag ${SACK_BAG_PLUSPLUS} )
-endif( NOT __NO_CPLUSPLUS )
-set( SACK_CORE_LIBRARY sack_bag )
-
-if( WIN32 )
-  if( __ARM__ )
-    my_target_link_libraries( sack_bag ws2 mmtimer iphlpapi coredll corelibc.lib ${OPENGL_LIBRARY} ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES} )
-    if( SACK_BUILD_STATIC_LIBS )
-      my_target_link_libraries( sack_bag_static ws2 mmtimer iphlpapi coredll corelibc.lib ${OPENGL_LIBRARY} ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES} )
-    endif( SACK_BUILD_STATIC_LIBS )
-    if( NOT __NO_CPLUSPLUS )
-    if( NOT FORCE_CXX )
-      my_target_link_libraries( ${SACK_BAG_PLUSPLUS} sack_bag ws2 mmtimer iphlpapi coredll corelibc.lib ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES})
-      if( SACK_BUILD_STATIC_LIBS )
-        my_target_link_libraries( ${SACK_BAG_PLUSPLUS}_static sack_bag_static ws2 mmtimer iphlpapi coredll corelibc.lib ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES})
-      endif( SACK_BUILD_STATIC_LIBS )
-    endif( NOT FORCE_CXX )
-    endif( NOT __NO_CPLUSPLUS )
-  else()
-    my_target_link_libraries( sack_bag ${ODBC_LIBRARY} ${SOCKET_LIBRARIES} ${OPENGL_LIBRARY} ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES})
-    if( SACK_BUILD_STATIC_LIBS )
-      my_target_link_libraries( sack_bag_static ${ODBC_LIBRARY} ${SOCKET_LIBRARIES} ${OPENGL_LIBRARY} ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES})
-    endif( SACK_BUILD_STATIC_LIBS )
-    if( NOT __NO_CPLUSPLUS )
-    if( NOT FORCE_CXX )
-      my_target_link_libraries( ${SACK_BAG_PLUSPLUS} ${ODBC_LIBRARY} ${SOCKET_LIBRARIES} sack_bag ${OPENGL_LIBRARY} ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES} )
-      if( SACK_BUILD_STATIC_LIBS )
-        my_target_link_libraries( ${SACK_BAG_PLUSPLUS}_static ${ODBC_LIBRARY} ${SOCKET_LIBRARIES} sack_bag_static ${OPENGL_LIBRARY} ${SQLITE3_LIBRARIES} ${PLATFORM_LIBRARIES} )
-      endif( SACK_BUILD_STATIC_LIBS )
-    endif( NOT FORCE_CXX )
-    endif( NOT __NO_CPLUSPLUS )
-  endif()
-else( WIN32 )
-  my_target_link_libraries( sack_bag ${ODBC_LIBRARY} ${SQLITE3_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${PLATFORM_LIBRARIES} )
-  if( SACK_BUILD_STATIC_LIBS )
-    my_target_link_libraries( sack_bag_static ${ODBC_LIBRARY} ${SQLITE3_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${PLATFORM_LIBRARIES} )
-  endif( SACK_BUILD_STATIC_LIBS )
-  if( NOT __NO_CPLUSPLUS )
-  if( NOT FORCE_CXX )
-    my_target_link_libraries( ${SACK_BAG_PLUSPLUS} sack_bag ${ODBC_LIBRARY} ${SQLITE3_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${PLATFORM_LIBRARIES} )
-    if( SACK_BUILD_STATIC_LIBS )
-      my_target_link_libraries( ${SACK_BAG_PLUSPLUS}_static sack_bag_static ${ODBC_LIBRARY} ${SQLITE3_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${PLATFORM_LIBRARIES} )
-    endif( SACK_BUILD_STATIC_LIBS )
-  endif( NOT FORCE_CXX )
-  endif( NOT __NO_CPLUSPLUS )
-endif( WIN32 )
-
-install_mode_dest( sack_bag )
-if( SACK_BUILD_STATIC_LIBS )
-  install_mode_dest( sack_bag_static )
-endif( SACK_BUILD_STATIC_LIBS )
-if( NOT __NO_CPLUSPLUS )
-if( NOT FORCE_CXX )
-install_mode_dest( ${SACK_BAG_PLUSPLUS} )
-if( SACK_BUILD_STATIC_LIBS )
-  install_mode_dest( ${SACK_BAG_PLUSPLUS}_static )
-endif( SACK_BUILD_STATIC_LIBS )
-endif( NOT FORCE_CXX )
-endif( NOT __NO_CPLUSPLUS )
-
-if( CMAKE_COMPILER_IS_GNUCC AND NOT MINGW)
-if( __CLR__ )
-       set( INTERFACE_CONFIGURATION data/interface.conf.new )
-else( __CLR__ )
-       set( INTERFACE_CONFIGURATION data/interface.conf.new )
-endif(__CLR__)
-else( CMAKE_COMPILER_IS_GNUCC )
-   if( BUILD_UNICODE )
-       set( INTERFACE_CONFIGURATION data/interface.conf.unicode )
-   else( BUILD_UNICODE )
-      if( SUPPORTS_PARALLEL_BUILD_TYPE )
-        if( __CLR__ )
-          set( INTERFACE_CONFIGURATION data/interface.conf )
-        else( __CLR__ )
-          set( INTERFACE_CONFIGURATION data/interface.conf )
-        endif( __CLR__ )
-      else( SUPPORTS_PARALLEL_BUILD_TYPE )
-        set( INTERFACE_CONFIGURATION data/interface.conf )
-      endif( SUPPORTS_PARALLEL_BUILD_TYPE )
-   endif( BUILD_UNICODE )
-endif( CMAKE_COMPILER_IS_GNUCC AND NOT MINGW)
-
-INSTALL(
-  FILES
-    ${INTERFACE_CONFIGURATION}
-  DESTINATION
-    # this could also be /etc
-    ${INTERFACE_OUTPUT_DIR}
-  RENAME interface.conf
-)
-
-
-
-if( NOT NEED_PNG )
-  my_target_link_libraries( sack_bag png )
-  if( SACK_BUILD_STATIC_LIBS )
-    my_target_link_libraries( sack_bag_static png )
-  endif( SACK_BUILD_STATIC_LIBS )
-  if( NOT __NO_CPLUSPLUS )
-  if( NOT FORCE_CXX )
-    my_target_link_libraries( ${SACK_BAG_PLUSPLUS} png )
-    if( SACK_BUILD_STATIC_LIBS )
-      my_target_link_libraries( ${SACK_BAG_PLUSPLUS}_static png )
-    endif( SACK_BUILD_STATIC_LIBS )
-  endif( NOT FORCE_CXX )
-  endif( NOT __NO_CPLUSPLUS )
-endif()
-if( NOT NEED_JPEG )
-  my_target_link_libraries( sack_bag jpeg   )
-  if( SACK_BUILD_STATIC_LIBS )
-    my_target_link_libraries( sack_bag_static jpeg   )
-  endif( SACK_BUILD_STATIC_LIBS )
-  if( NOT __NO_CPLUSPLUS )
-  if( NOT FORCE_CXX )
-    my_target_link_libraries( ${SACK_BAG_PLUSPLUS} jpeg   )
-    if( SACK_BUILD_STATIC_LIBS )
-      my_target_link_libraries( ${SACK_BAG_PLUSPLUS}_static jpeg   )
-    endif( SACK_BUILD_STATIC_LIBS )
-  endif( NOT FORCE_CXX )
-  endif( NOT __NO_CPLUSPLUS )
-endif()
-
-if( NOT NEED_FREETYPE )
-  my_target_link_libraries( sack_bag ${Freetype_LIBRARIES}  )
-  if( SACK_BUILD_STATIC_LIBS )
-    my_target_link_libraries( sack_bag_static  ${Freetype_LIBRARIES}  )
-  endif( SACK_BUILD_STATIC_LIBS )
-  if( NOT __NO_CPLUSPLUS )
-    if( NOT FORCE_CXX )
-      my_target_link_libraries( ${SACK_BAG_PLUSPLUS}  ${Freetype_LIBRARIES}  )
-      if( SACK_BUILD_STATIC_LIBS )
-        my_target_link_libraries( ${SACK_BAG_PLUSPLUS}_static  ${Freetype_LIBRARIES}  )
-      endif( SACK_BUILD_STATIC_LIBS )
-    endif( NOT FORCE_CXX )
-  endif( NOT __NO_CPLUSPLUS )
-  include_directories( ${FREETYPE_INCLUDE_DIRS} )
-endif()
-
-
-#------------
-else( BUILD_MONOLITHIC )
 #------------
 if( NOT NO_C )
 
@@ -1213,14 +896,9 @@ add_library( bag SHARED
   ${LAST_GCC_LIBRARY_SOURCE}
 )
 target_link_libraries( bag gsm-1.0-pl13 )
-if( NOT __CLR__ )
 	#target_link_libraries( bag MatrixSSL mssl_core )
 	target_link_libraries( bag ${SSL_LIBS} )
-endif( NOT __CLR__ )
 
-if( __CLR__ )
-#set( ExtraFlags ${ExtraFlags} /CLR )
-endif( __CLR__ )
 
 SET_TARGET_PROPERTIES(bag PROPERTIES
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
@@ -1268,10 +946,8 @@ COPY_CPLUSPLUS( psi_cplusplus_sources ${PSI_SOURCES} )
 
 add_library( ${BAG_PLUSPLUS} SHARED ${cplusplus_sources} )
 target_link_libraries( ${BAG_PLUSPLUS} gsm-1.0-pl13 )
-if( NOT __CLR__ )
 	#target_link_libraries( ${BAG_PLUSPLUS} MatrixSSL )
 	target_link_libraries( ${BAG_PLUSPLUS} ${SSL_LIBS} )
-endif( NOT __CLR__ )
 
 SET_TARGET_PROPERTIES(${BAG_PLUSPLUS} PROPERTIES
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
@@ -1467,8 +1143,6 @@ endif( NOT __NO_GUI__ )
 ###########
 
 
-endif( BUILD_MONOLITHIC )
-
 install( FILES makefiles/cmake/DefaultInstall.cmake DESTINATION . )
 
 # this SACK_CORE_BUILD is for building before we get 'installed' some of the header locations get moved.
@@ -1507,7 +1181,7 @@ endif( WATCOM )
     #endif( __ANDROID__ )
 
 
-IF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNICODE )
+IF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
   if( WATCOM )
     message( "bullet is not watcom friendly" )
   else( WATCOM )
@@ -1570,10 +1244,10 @@ IF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNICOD
   endif( WATCOM )
 else()
   set( __BULLET_ENABLED__ OFF )
-endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt AND NOT BUILD_UNICODE )
+endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
 
 #alternative video system
-if( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
+if( NOT __NO_GUI__ )
 	#include vidlib first incase glew is used, then imglib
 	add_subdirectory( src/imglib/puregl2 )
     if( INCLUDE_VULKAN )
@@ -1628,46 +1302,20 @@ if( CMAKE_COMPILER_IS_GNUCC )
     elseif( __QNX__ )
        set( INTERFACE_CONFIGURATION data/interface.conf.puregl.qnx )
     elseif( WIN32 )
-       if( BUILD_UNICODE)
-          set( INTERFACE_CONFIGURATION data/interface.conf.puregl.gcc.unicode )
-       else( BUILD_UNICODE)
           set( INTERFACE_CONFIGURATION data/interface.conf.puregl.gcc )
-       endif( BUILD_UNICODE)
     else( )
         set( INTERFACE_CONFIGURATION data/interface.conf.puregl.lnx )
     endif( __ANDROID__ )
 
 else( CMAKE_COMPILER_IS_GNUCC )
-  if( BUILD_UNICODE )
-     set( INTERFACE_CONFIGURATION data/interface.conf.puregl.vc.unicode )
-  else( BUILD_UNICODE )
      set( INTERFACE_CONFIGURATION data/interface.conf.puregl.vc )
-  endif( BUILD_UNICODE )
 
 endif( CMAKE_COMPILER_IS_GNUCC )
 
-if( BUILD_UNICODE )
-  macro( DO_CONFIGURE_FILE input output )
-    if( $ENV{COMSPEC} MATCHES cmd )
-      STRING( REPLACE "/" "\\" s1 ${CMAKE_CURRENT_SOURCE_DIR}/${input} )
-      STRING( REPLACE "/" "\\" s2 ${CMAKE_BINARY_DIR}/${output} )
-      STRING( REPLACE "/" "\\" finalout ${CMAKE_INSTALL_PREFIX}/${INTERFACE_OUTPUT_DIR}/${output} )
-      STRING( REPLACE "/" "\\" leader ${CMAKE_CURRENT_SOURCE_DIR}\\BlankUnicode.txt )
-      file(MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/${INTERFACE_OUTPUT_DIR})
-      EXECUTE_PROCESS(COMMAND cmd /c type ${s1} OUTPUT_FILE ${s2}.tmp )
-      configure_file( ${s2}.tmp ${s2}.configured )
-      EXECUTE_PROCESS(COMMAND cmd /U /C type ${s2}.configured OUTPUT_FILE ${s2}.configured.unicode )
-      EXECUTE_PROCESS(COMMAND cmd /c copy /b ${leader}+${s2}.configured.unicode ${finalout} OUTPUT_FILE NULL )
-    else()
-      message( "NO METHOD TO CONFIGURE INTERFACE FILES" )
-      abort()
-    endif( $ENV{COMSPEC} MATCHES cmd )
-  endmacro( DO_CONFIGURE_FILE )
-else( BUILD_UNICODE )
   macro( DO_CONFIGURE_FILE input output )
     configure_file( ${input} ${CMAKE_INSTALL_PREFIX}/${INTERFACE_OUTPUT_DIR}/${output} )
   endmacro( DO_CONFIGURE_FILE )
-endif( BUILD_UNICODE )
+
 
 if( UNIX AND NOT __ANDROID__ )
   set( INTERFACE_TARGET opengl1.5 )
@@ -1697,7 +1345,7 @@ endif( NOT __ANDROID__ )
 
 
 
-endif( NOT BUILD_MONOLITHIC AND NOT __NO_GUI__ )
+endif( NOT __NO_GUI__ )
 
 # parts of SDK ...
 set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}/images CACHE STRING "Option to install default images actually" )
@@ -1737,10 +1385,10 @@ if( BUILD_TESTS )
    # ment to be tests based on binary target output
    #add_subdirectory( src/games/simple_vector_tester )
    #add_subdirectory( src/games/simple_array_tester )
-   if( NOT BUILD_MONOLITHIC AND DIRECTX_SDK )
+   if( DIRECTX_SDK )
       # monolithic has interfaces forced off; so we can't get the shader compiler interface
       add_subdirectory( src/games/simple_vector_tester/d3d )
-   endif( NOT BUILD_MONOLITHIC AND DIRECTX_SDK )
+   endif( DIRECTX_SDK )
 
 if( NOT __NO_NETWORK__ )
    add_subdirectory( src/netlib/html5.websocket/server )
@@ -1762,9 +1410,7 @@ endif( NOT __NO_NETWORK__ )
    add_subdirectory( src/psilib/menutst )
    add_subdirectory( src/psilib/sheettst )
    add_subdirectory( src/psilib/paltst )
-   IF( NOT BUILD_MONOLITHIC )
-      add_subdirectory( src/typelib )
-   ENDIF( NOT BUILD_MONOLITHIC )
+   add_subdirectory( src/typelib )
    add_subdirectory( src/imglib/testsprite )
 
 
@@ -1784,9 +1430,7 @@ if( NOT __ANDROID__ AND NOT __NO_MSGSVR__ )
 endif( NOT __ANDROID__ AND NOT __NO_MSGSVR__ )
 if( WIN32 )
    add_subdirectory( src/utils/application_delay )
-   if( NOT __CLR__ )
      add_subdirectory( src/utils/debugger_lockout )
-   endif( NOT __CLR__ )
 endif( WIN32 )
    add_subdirectory( src/salty_random_generator )
 #if( NOT UNIX )

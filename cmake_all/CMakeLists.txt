@@ -63,11 +63,9 @@ if( __ANDROID__ )
    set( __LINUX__ 1 )    # build as if it's linux
    DEFINE_DEFAULT( __ARM__ ON )
    set( D__ANDROID__ "-D__ANDROID__=${__ANDROID__} -DANDROID_DIR=${ANDROID_DIR} -DANDROID_NDK_VERSION=${ANDROID_NDK_VERSION}" )
-   DEFINE_DEFAULT( BUILD_MONOLITHIC OFF )
    DEFINE_DEFAULT( BUILD_EXTRAS ON )
 else( __ANDROID_ )
    DEFINE_DEFAULT( __ARM__ OFF )
-   DEFINE_DEFAULT( BUILD_MONOLITHIC OFF )
    DEFINE_DEFAULT( BUILD_EXTRAS OFF )
 endif( __ANDROID__ )
 
@@ -115,14 +113,14 @@ IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 set( BULLET_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../../bullet" CACHE STRING "bullet source path "  )
 #OPTION( BULLET_SOURCE "bullet source path" "${CMAKE_CURRENT_SOURCE_DIR}/../../bullet/source" )
-OPTION( BUILD_MONOLITHIC "Build as one big library instead of parts" ${BUILD_MONOLITHIC} )
+#OPTION( BUILD_MONOLITHIC "Build as one big library instead of parts" ${BUILD_MONOLITHIC} )
 OPTION( BUILD_EXTRAS "Enable building extra projects (dekware, games, ... )" ${BUILD_EXTRAS} )
 OPTION( BUILD_TESTS "Enable building test projects" ${BUILD_TESTS} )
 OPTION( GENERATOR_BUILD_ALL_NOW "Enable building during the generate" ${GENERATOR_BUILD_ALL_NOW} )
 OPTION( GENERATOR_BUILD_INSTALL_NOW "Enable building during the generate" ${GENERATOR_BUILD_INSTALL_NOW} )
 OPTION( GENERATOR_BUILD_PACKAGE_NOW "Enable building installable packages (will mostly fail)" ${GENERATOR_BUILD_PACKAGE_NOW} )
 OPTION( FORCE_MSVCRT "force using msvcrt instead of current version SDK libraries" ${FORCE_MSVCRT} )
-option( BUILD_UNICODE "Enable building everything as unicode" ${BUILD_UNICODE} )
+#option( BUILD_UNICODE "Enable building everything as unicode" ${BUILD_UNICODE} )
 option( __ANDROID__ "Enable target to android" ${__ANDROID__} )
 
 if( DIRECTX_SDK )
@@ -155,11 +153,6 @@ if( FORCE_MSVCRT )
 SET( DFORCE_MSVCRT -DFORCE_MSVCRT=${FORCE_MSVCRT} )
 endif( FORCE_MSVCRT )
 
-if( BUILD_UNICODE )
-SET( DBUILD_UNICODE -DBUILD_UNICODE=${BUILD_UNICODE} )
-endif( BUILD_UNICODE )
-
-
 
 SET( SACK_REQUIREMENTS -DNEED_FREETYPE=${NEED_FREETYPE} -DNEED_JPEG=${NEED_JPEG} -DNEED_PNG=${NEED_PNG} -DNEED_ZLIB=${NEED_ZLIB} )
 if( UNIX )
@@ -177,13 +170,12 @@ endIF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
 
 
 set( PROJECT core )
-set( EXTRA_FLAGS -DBUILD_MONOLITHIC=${BUILD_MONOLITHIC} -DBUILD_EXTRAS=${BUILD_EXTRAS}
+set( EXTRA_FLAGS  -DBUILD_EXTRAS=${BUILD_EXTRAS}
 			-D__NO_ODBC__=${__NO_ODBC__}
 			${DDIRECTX_SDK}
         	        ${SACK_REQUIREMENTS} 
                 	${DFORCE_MSVCRT} 
 	                ${DBUILD_TESTS} 
-        	        ${DBUILD_UNICODE} 
                         ${DBULLET_SOURCE}
                         ${D__ARM__}
                         ${D__LINUX__}
@@ -243,23 +235,21 @@ if( NOT __ANDROID__ )
   BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/utils/mercurial_version_tagger MERCURIAL_TAGGER_ROOT_PATH ${EXTRA_FLAGS} )
 endif( NOT __ANDROID__ )
 
-if( NOT BUILD_MONOLITHIC )
-  IF( BULLET_ENABLED )
-    message( "Congratz, you get Bullet projects" )
-    if( NOT __ANDROID__ )
-      set( PROJECT ball_mixer1 )
-      set( EXTRA_FLAGS_MIXER  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DSACK_BINARY_SDK_ROOT_PATH=${SACK_BINARY_SDK_ROOT_PATH} -DINTERSHELL_SDK_ROOT_PATH=${INTERSHELL_SDK_ROOT_PATH} ${D__ANDROID__} )
-      BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ball_mixer INSTALL ${EXTRA_FLAGS_MIXER} )
-      add_dependencies( ${LAST_TARGET} Buildcore Buildbinary Buildintershell )
-    endif( NOT __ANDROID__ )
-
-    set( PROJECT ball_mixer2 )
+IF( BULLET_ENABLED )
+  message( "Congratz, you get Bullet projects" )
+  if( NOT __ANDROID__ )
+    set( PROJECT ball_mixer1 )
     set( EXTRA_FLAGS_MIXER  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DSACK_BINARY_SDK_ROOT_PATH=${SACK_BINARY_SDK_ROOT_PATH} -DINTERSHELL_SDK_ROOT_PATH=${INTERSHELL_SDK_ROOT_PATH} ${D__ANDROID__} )
-    BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ball_mixer2 INSTALL ${EXTRA_FLAGS_MIXER} )
+    BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ball_mixer INSTALL ${EXTRA_FLAGS_MIXER} )
     add_dependencies( ${LAST_TARGET} Buildcore Buildbinary Buildintershell )
+  endif( NOT __ANDROID__ )
 
-  ENDIF( BULLET_ENABLED )
-endif( NOT BUILD_MONOLITHIC )
+  set( PROJECT ball_mixer2 )
+  set( EXTRA_FLAGS_MIXER  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DSACK_BINARY_SDK_ROOT_PATH=${SACK_BINARY_SDK_ROOT_PATH} -DINTERSHELL_SDK_ROOT_PATH=${INTERSHELL_SDK_ROOT_PATH} ${D__ANDROID__} )
+  BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ball_mixer2 INSTALL ${EXTRA_FLAGS_MIXER} )
+  add_dependencies( ${LAST_TARGET} Buildcore Buildbinary Buildintershell )
+
+ENDIF( BULLET_ENABLED )
 
 if( BUILD_EXTRAS )
   include( ${CMAKE_CURRENT_LIST_DIR}/CMakeLists.extras.txt )

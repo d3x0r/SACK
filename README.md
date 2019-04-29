@@ -26,8 +26,8 @@ Exposed through interop to V8 through Node.js...
 
 # System Abstraction Component Kit
 
-This is generally a large collection of tiny things.  It compiles for C/C++.  It provides abstractions between Windows and Posix and even various flavors of posix, such as Linux, Android, MAC, et al.
-It's SDL (sort of), it's GTK (sorta), it's STL (stacks, lists, queue, constainers, generics, ...), it can rely on almost none of the C library even. 
+This is generally a large collection of tiny things.  It compiles for C/C++.  It is a library, with some support/utility programs; that is the core; there are several more standalone sort of applications included.  It provides abstractions between Windows and Posix and even various flavors of posix, such as Linux, Android, MAC, et al.
+It's SDL (sort of), It's busybox, but not really.  it's GTK (sorta), it's STL (stacks, lists, queue, constainers, generics, ...), it can rely on almost none of the C library even. 
 
 ### Where Did it Come from/Why Does it Exist?
 
