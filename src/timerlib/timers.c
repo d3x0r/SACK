@@ -354,11 +354,13 @@ static uintptr_t threadrunning( POINTER p, uintptr_t psv )
 // sharemem exit priority +1 (exit after everything else, except emmory; globals at memory+1)
 PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_THREAD_SEMS )
 {
+	_32 start = GetTickCount() + 50;
 	//pid_t mypid = getppid();
 	// not sure if mypid is needed...
-	while( ForAllInSet( THREAD, globalTimerData.threadset, threadrunning, 0 ) )
+	while( ( start > GetTIckCount() ) && ForAllInSet( THREAD, globalTimerData.threadset, threadrunning, 0 ) )
 		Relinquish();
-	lprintf( "Destroy thread semaphores..." );
+
+	//lprintf( "Destroy thread semaphores..." );
 	ForAllInSet( THREAD, globalTimerData.threadset, closesem, (uintptr_t)0 );
 	DeleteSet( (GENERICSET**)&globalTimerData.threadset );
 	globalTimerData.pTimerThread = NULL;
