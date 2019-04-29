@@ -5,12 +5,6 @@
 
 #include <stdio.h>
 
-#ifdef UNICODE
-#error WIDE NOT DEFINED
-#else
-#define WIDE(s) s
-#endif
-
 #define IMAGE_DOS_SIGNATURE 0x5A4D
 
 typedef struct _IMAGE_DOS_HEADER {

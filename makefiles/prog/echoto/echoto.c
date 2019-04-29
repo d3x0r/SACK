@@ -3,13 +3,6 @@
 #include <windows.h>
 #endif
 
-#ifndef WIDE
-#ifdef UNICODE
-#error WIDE NOT DEFINED
-#else
-#define WIDE(s) s
-#endif
-#endif
 
 // Okay this was originally intended to merely
 // add tabs to commands written for target commands to perform...
