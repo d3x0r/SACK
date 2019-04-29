@@ -1115,7 +1115,7 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 	LeaveCriticalSec( &(*winfile_local).cs_files );
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( "return iopen of [%s]=%p(%"_size_f ")?", filename, (void*)(uintptr_t)h, (size_t)result );
+		lprintf( "return iopen of [%s]=%p(%" _size_f ")?", filename, (void*)(uintptr_t)h, (size_t)result );
 #endif
 	return result;
 }

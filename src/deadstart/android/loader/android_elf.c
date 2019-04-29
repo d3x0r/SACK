@@ -142,8 +142,8 @@ struct elf_loader_lib*LoadMemoryLibrary( char *libname, char * real_memory, size
          lprintf( "covered %d bytes...  %d", sizeof( Elf_Ehdr ), real_dos_header->e_ehsize );
 			//CompareMemoryBlock( real_memory, real_memory, 0, 0, real_dos_header->e_ehsize );
 #define _size_fX  "zd"
-			lprintf( "source point a : %"_size_fX, real_dos_header->e_entry );
-			lprintf( "real point a : %"_size_fX, real_dos_header->e_entry );
+			lprintf( "source point a : %" _size_fX, real_dos_header->e_entry );
+			lprintf( "real point a : %" _size_fX, real_dos_header->e_entry );
 
 			/* ELF format has lots of places that zero-test for failed or unused */
 

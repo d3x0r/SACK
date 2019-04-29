@@ -243,7 +243,7 @@ no_mem2:
 			{
 				if( USS_GT( rowbytes, size_t, pImage->pwidth * 4, int ) )
 				{				
-					lprintf(" bytes generated and bytes allocated mismatched! %"_size_f "  %" _32f, rowbytes, pImage->pwidth*4 );
+					lprintf(" bytes generated and bytes allocated mismatched! %" _size_f "  %" _32f, rowbytes, pImage->pwidth*4 );
 
 						goto no_mem2;                        // Yuck! Something went wrong!
 					//Log( "We're okay as long as what it wants is less...(first number)" );

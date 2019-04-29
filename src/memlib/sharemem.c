@@ -2159,7 +2159,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment 
 				if( ExpandSpace( pMem, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE ) )
 				{
 #ifndef NO_LOGGING
-					//ll__lprintf(DBG_RELAY)( "Creating a new expanded space... %"_size_fs, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE );
+					//ll__lprintf(DBG_RELAY)( "Creating a new expanded space... %" _size_fs, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE );
 #endif
 					goto search_for_free_memory;
 				}

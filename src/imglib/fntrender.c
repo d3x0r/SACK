@@ -773,7 +773,7 @@ void RenderMonoChar( PFONT font
 		//charleft = charleft;
 		//charheight = CEIL( metrics->height );
 		//if( 0 )
-		//lprintf( "(%"_size_f "(%c)) Character parameters: %d %d %d %d %d"
+		//lprintf( "(%" _size_f "(%c)) Character parameters: %d %d %d %d %d"
 		//		 , idx, (char)(idx< 32 ? ' ':idx)
 		//		 , character->width
 		//		 , character->offset

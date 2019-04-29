@@ -496,7 +496,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 					t = sep + 1;
 					//p = DoFindThing( Around, type, foundtype, &cnt, t );
 					sep[0] = '.';
-					lprintf( "Object count is now %"_size_f " . %s", cnt, t );
+					lprintf( "Object count is now %" _size_f " . %s", cnt, t );
 				}
 			}
 			else if( IsIntNumber( pText, &long_cnt )  )
