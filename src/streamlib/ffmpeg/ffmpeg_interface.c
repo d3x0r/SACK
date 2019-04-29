@@ -2008,17 +2008,17 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 
 	if( pause_wait )
 	{
-		//lprintf( "ticks : %d, num : %"_32fs " den: %"_32fs, file->pVideoCodecCtx->ticks_per_frame, file->pVideoCodecCtx->time_base.num, file->pVideoCodecCtx->time_base.den );
+		//lprintf( "ticks : %d, num : %" _32fs " den: %" _32fs, file->pVideoCodecCtx->ticks_per_frame, file->pVideoCodecCtx->time_base.num, file->pVideoCodecCtx->time_base.den );
 
 
-		lprintf( "video in frames = %"_64fs " played = %"_64fs "  video_tick = %"_64fs "  audio 1k tick= %"_64fs
+		lprintf( "video in frames = %" _64fs " played = %" _64fs "  video_tick = %" _64fs "  audio 1k tick= %" _64fs
 				 , video_time_in_audio_frames
 				 , file->audioSamplesPlayed
 				 , video_time_tick, audio_time_pending_1000_tick );
 
-		//lprintf( "audio time : %32" _64fs " %"_64fs, audio_time, file->audioSamplesPlayed );
+		//lprintf( "audio time : %32" _64fs " %" _64fs, audio_time, file->audioSamplesPlayed );
 		//lprintf( "audio time2: %32" _64fs, audio_time2 );
-		//lprintf( "video time : %32" _64fs " %"_64fs, video_time, file->videoFrame );
+		//lprintf( "video time : %32" _64fs " %" _64fs, video_time, file->videoFrame );
 		//lprintf( "Video time2: %32" _64fs, file->video_current_pts_time - file->media_start_time  );
 		//lprintf( "real  time : %32" _64fs, real_time );
 	}
@@ -2079,21 +2079,21 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 					//;
 			}
 			// delta in ms....
-			 //lprintf( "something %"_64fs , (  ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate );
-			 //lprintf( "something %"_64fs , file->video_next_pts_time - file->media_start_time );
-			 //lprintf( "something %"_64fs , file->video_next_pts_time - clock_time );
+			 //lprintf( "something %" _64fs , (  ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate );
+			 //lprintf( "something %" _64fs , file->video_next_pts_time - file->media_start_time );
+			 //lprintf( "something %" _64fs , file->video_next_pts_time - clock_time );
 
-			//lprintf( "Delta in samples: %"_64fs, video_time_in_audio_frames - file->audioSamplesPlayed );
-			//lprintf( "Time1 = %"_64fs, file->media_start_time + video_time_now * 1000 - file->media_start_time);
-			//lprintf( "Time2 = %"_64fs, file->video_current_pts_time );
-			//lprintf( "Time2 = %"_64fs, file->media_start_time );
-			//lprintf( "Time2 = %"_64fs, file->al_last_buffer_reclaim );
-			//lprintf( "Time2 = %"_64fs, file->video_current_pts_time - file->media_start_time );
+			//lprintf( "Delta in samples: %" _64fs, video_time_in_audio_frames - file->audioSamplesPlayed );
+			//lprintf( "Time1 = %" _64fs, file->media_start_time + video_time_now * 1000 - file->media_start_time);
+			//lprintf( "Time2 = %" _64fs, file->video_current_pts_time );
+			//lprintf( "Time2 = %" _64fs, file->media_start_time );
+			//lprintf( "Time2 = %" _64fs, file->al_last_buffer_reclaim );
+			//lprintf( "Time2 = %" _64fs, file->video_current_pts_time - file->media_start_time );
 		}
 	}
 	//if( pause_wait )
 	//	_lprintf(DBG_RELAY)( "%s %s", leader, file->szTime );
-	tnprintf( file->szTime, 256, "%s%s%s %zd %zd %zd %02"_64fs ":%02"_64fs ":%03"_64fs "A(%02"_64fs ":%02"_64fs ".%03"_64fs ") (%02"_64fs ".%03"_64fs ") V: %"_64fs " (%02"_64fs ":%02"_64fs ".%03"_64fs ") (%02"_64fs ":%02"_64fs ".%03"_64fs ")"
+	tnprintf( file->szTime, 256, "%s%s%s %zd %zd %zd %02" _64fs ":%02" _64fs ":%03" _64fs "A(%02" _64fs ":%02" _64fs ".%03" _64fs ") (%02" _64fs ".%03" _64fs ") V: %" _64fs " (%02" _64fs ":%02" _64fs ".%03" _64fs ") (%02" _64fs ":%02" _64fs ".%03" _64fs ")"
 		, file->flags.need_audio_frame?"(A)":""
 		, file->flags.need_video_frame?"(V)":""
 		, file->flags.reading_frames?"(R)":""
@@ -2652,7 +2652,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 				if( file->flags.video.flushing )
 					file->flags.video.first_flush = 0;
 #ifdef DEBUG_VIDEO_PACKET_READ
-				lprintf( WIDE("for the record we're lookin at %"_64fs" %"_64fs), processed_time - file->video_decode_start, video_time_tick );
+				lprintf( WIDE("for the record we're lookin at %" _64fs" %" _64fs), processed_time - file->video_decode_start, video_time_tick );
 #endif
 				if( pause_resume )
 					pause_resume--;
@@ -2697,7 +2697,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 				LogTime(file, TRUE, "video", pause_resume DBG_SRC );
 
 				if( pause_resume )
-					lprintf("Frame [%"_64fs "][%d](%d): s.pts=%"_64fs " p.pts=%"_64fs " pts=%"_64fx ", pkt_pts=%"_64fs ", pkt_dts=%"_64fs
+					lprintf("Frame [%" _64fs "][%d](%d): s.pts=%" _64fs " p.pts=%" _64fs " pts=%" _64fx ", pkt_pts=%" _64fs ", pkt_dts=%" _64fs
 						 , file->videoFrame
 						 , file->pVideoFrame->coded_picture_number
 						 , file->pVideoFrame->repeat_pict
@@ -2718,7 +2718,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 														  * file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num ) / file->pVideoCodecCtx->time_base.den
 						+ file->media_start_time;
 #ifdef DEBUG_VIDEO_PACKET_READ
-					lprintf( "Setting next time to %"_64fs " %"_64fs, file->video_next_pts_time, file->video_next_pts_time - file->media_start_time );
+					lprintf( "Setting next time to %" _64fs " %" _64fs, file->video_next_pts_time, file->video_next_pts_time - file->media_start_time );
 #endif
 				}
 
@@ -2738,13 +2738,13 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 				else
 				{
 					if( pause_resume )
-						lprintf( " something %"_64fs "  %"_64fs
+						lprintf( " something %" _64fs "  %" _64fs
 								, ( file->pVideoFrame->pkt_pts - file->video_current_pts )
 								, file->video_next_pts_time - processed_time );
 
 					{
 						if( pause_resume )
-							lprintf( "now is %"_64fs "  %" _64fs "  to be is %" _64fs " and that's a span of %" _64fs
+							lprintf( "now is %" _64fs "  %" _64fs "  to be is %" _64fs " and that's a span of %" _64fs
 							       , file->frame_del
 							       , file->video_current_pts
 							       , file->pVideoFrame->pkt_pts 
@@ -2752,7 +2752,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 
 					}
 
-					//lprintf( "Next wb %"_64fs "  time is %"_64fs "  and del is %"_64fs
+					//lprintf( "Next wb %" _64fs "  time is %" _64fs "  and del is %" _64fs
 				//			, file->video_next_pts_time, time
 					//		, file->video_next_pts_time - time );
 					file->video_current_pts_time = file->video_next_pts_time;
@@ -3278,7 +3278,7 @@ void ffmpeg_SeekFile( struct ffmpeg_file *file, int64_t target_time )
 {
 	int was_paused = file->flags.paused;
 #ifdef DEBUG_LOW_LEVEL_PACKET_IO
-	lprintf( "Do Seek to %"_64fs, target_time );
+	lprintf( "Do Seek to %" _64fs, target_time );
 #endif
 	if( !file->readThread )
 	{

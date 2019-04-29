@@ -216,7 +216,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 					}
 					handler->flags.bCheckedResponce = 0;
 
-					//lprintf( "Going to sleep for %"_32fs
+					//lprintf( "Going to sleep for %" _32fs
 					//		 , handler->wait_for_responce - timeGetTime()
 					//		 );
 					WakeableSleep( handler->wait_for_responce - timeGetTime() );
@@ -234,7 +234,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 			if( !handler->flags.bCheckedResponce )
 				received = 1;
 
-			//lprintf( "When we finished this loop still was waiting %"_32fs, handler->wait_for_responce - timeGetTime() );
+			//lprintf( "When we finished this loop still was waiting %" _32fs, handler->wait_for_responce - timeGetTime() );
 			//else
 			{
 				//lprintf( "Excellent... the responce is back before I could sleep!" );
@@ -263,7 +263,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 			//Log2( "Got responce: %08x %d long", *MsgIn, LengthIn?*LengthIn:-1 );
 			if( ( *handler->MessageID & 0x0FFFFFFF ) != ( (handler->LastMsgID) & 0x0FFFFFFF ) )
 			{
-				lprintf( "Mismatched server responce to client message: %"_MsgID_f " to %"_MsgID_f 
+				lprintf( "Mismatched server responce to client message: %" _MsgID_f " to %" _MsgID_f
 						 , *handler->MessageID & 0x0FFFFFFF
 						 , handler->LastMsgID & 0x0FFFFFFF
 						  );

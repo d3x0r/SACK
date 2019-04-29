@@ -246,7 +246,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 			{
 				PushSQLQueryExEx(tree->odbc DBG_RELAY );
 				tnprintf( query, sizeof( query )
-						  , "select option_id from "OPTION4_MAP " where parent_option_id='%s' and name_id='%s'"
+						  , "select option_id from " OPTION4_MAP " where parent_option_id='%s' and name_id='%s'"
 						  , parent?parent->guid:GuidZero()
 						  , IDName );
 			}
@@ -258,7 +258,7 @@ POPTION_TREE_NODE New4GetOptionIndexExxx( PODBC odbc, POPTION_TREE tree, POPTION
 					// this is the only place where ID must be set explicit...
 						// otherwise our root node creation failes if said root is gone.
 					//lprintf( "New entry... create it..." );
-					tnprintf( query, sizeof( query ), "Insert into "OPTION4_MAP "(`option_id`,`parent_option_id`,`name_id`) values ('%s','%s','%s')"
+					tnprintf( query, sizeof( query ), "Insert into " OPTION4_MAP "(`option_id`,`parent_option_id`,`name_id`) values ('%s','%s','%s')"
 							  , ID = GetSeqGUID(), parent->guid, IDName ); //-V595
 					OpenWriter( tree );
 					if( SQLCommand( tree->odbc_writer, query ) )
@@ -366,7 +366,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 	}
 
 #if 0
-	tnprintf( query, sizeof( query ), "select override_value_id from "OPTION4_EXCEPTION " "
+	tnprintf( query, sizeof( query ), "select override_value_id from " OPTION4_EXCEPTION " "
             "where ( apply_from<=now() or apply_from=0 )"
             "and ( apply_until>now() or apply_until=0 )"
             "and ( system_id=%d or system_id=0 )"
@@ -385,7 +385,7 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 #endif
 
 	PushSQLQueryEx( odbc );
-	query_len = tnprintf( query, sizeof( query ), "select string from "OPTION4_VALUES " where option_id='%s' order by segment", optval->guid );
+	query_len = tnprintf( query, sizeof( query ), "select string from " OPTION4_VALUES " where option_id='%s' order by segment", optval->guid );
 	// have to push here, the result of the prior is kept outstanding
 	// if this was not pushed, the prior result would evaporate.
 	(*buffer) = NULL;
@@ -436,7 +436,7 @@ int New4GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR *
 	lprintf( "do query for value string..." );
 #endif
 	if( SQLRecordQueryf( odbc, NULL, &result, NULL
-							  , "select `binary`,length(`binary`) from "OPTION4_BLOBS " where option_id='%s'"
+							  , "select `binary`,length(`binary`) from " OPTION4_BLOBS " where option_id='%s'"
 							  , optval->guid ) )
 	{
 		int success = FALSE;
@@ -469,7 +469,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 	value->value = NULL;
 	if( pValue == NULL )
 	{
-		tnprintf( insert, sizeof( insert ), "delete from "OPTION4_VALUES " where `option_id`='%s'"
+		tnprintf( insert, sizeof( insert ), "delete from " OPTION4_VALUES " where `option_id`='%s'"
 				  , value->guid
 				  );
 	}
@@ -482,7 +482,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 		while( len > 95)
 		{
 			newval = EscapeSQLBinaryExx( tree->odbc_writer, pValue + offset, 95, &valLen, TRUE DBG_SRC );
-			tmpOfs = tnprintf( insert, sizeof( insert ), "replace into "OPTION4_VALUES " (`option_id`,`string`,`segment` ) values ('%s',"
+			tmpOfs = tnprintf( insert, sizeof( insert ), "replace into " OPTION4_VALUES " (`option_id`,`string`,`segment` ) values ('%s',"
 				, value->guid
 			);
 			memcpy( insert + tmpOfs, newval, valLen );
@@ -506,7 +506,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 			segment++;
 		}
 		newval = EscapeSQLBinaryExx( tree->odbc_writer, pValue + offset, len, &valLen, TRUE DBG_SRC );
-		tmpOfs = tnprintf( insert, sizeof( insert ), "replace into "OPTION4_VALUES " (`option_id`,`string`,`segment` ) values ('%s',"
+		tmpOfs = tnprintf( insert, sizeof( insert ), "replace into " OPTION4_VALUES " (`option_id`,`string`,`segment` ) values ('%s',"
 				  , value->guid
 				  );
 		memcpy( insert + tmpOfs, newval, valLen );
@@ -517,7 +517,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 		if( SQLCommandExx( tree->odbc_writer, insert, tmpOfs DBG_SRC ) )
 		{
 		}
-		tnprintf( insert, sizeof( insert ), "delete from "OPTION4_VALUES " where `option_id`='%s' and segment > %d"
+		tnprintf( insert, sizeof( insert ), "delete from " OPTION4_VALUES " where `option_id`='%s' and segment > %d"
 				  , value->guid
 				  , segment
 				  );

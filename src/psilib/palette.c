@@ -649,7 +649,7 @@ static int CPROC ColorWellMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t 
 				if( PickColorEx( &result, pcw->color, GetFrame( pc ), x + FRAME_WIDTH, y + FRAME_WIDTH ) )
 				{
 					lprintf( "PICK_COLOR_DONE" );
-				   lprintf( "Updating my color to %08"_32fx "", result );
+				   lprintf( "Updating my color to %08" _32fx "", result );
 					pcw->color = result;
 					if( pcw->UpdateProc )
 				      pcw->UpdateProc( pcw->psvUpdate, result );

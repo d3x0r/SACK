@@ -885,7 +885,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 				// with no further consideration.
 				if( pLastReadMsg && ( pLastReadMsg->msg.length & MARK_MESSAGE_ALREADY_READ ) )
 				{
-					lprintf( "Collapsing two already read messages prior length was %" _32f "(%" _size_f ") and %"_32f "(%" _size_f ") (%s)"
+					lprintf( "Collapsing two already read messages prior length was %" _32f "(%" _size_f ") and %" _32f "(%" _size_f ") (%s)"
 							 , pLastReadMsg->msg.length& ACTUAL_LEN_MASK
 							 , (uintptr_t)pLastReadMsg-(uintptr_t)pmq->data
 							 , pReadMsg->msg.length& ACTUAL_LEN_MASK
@@ -894,7 +894,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 						// prior message was read; collapse this one into it.
 					pLastReadMsg->msg.length |= (pReadMsg->msg.length & MARK_END_OF_QUE);
 					pLastReadMsg->msg.length += (pReadMsg->msg.length & ACTUAL_LEN_MASK);
-					lprintf( "Result in %"_32f " %p   (tmp is %" _size_f ",t:%" _size_f ",b:%" _size_f ")", pLastReadMsg->msg.length & ACTUAL_LEN_MASK
+					lprintf( "Result in %" _32f " %p   (tmp is %" _size_f ",t:%" _size_f ",b:%" _size_f ")", pLastReadMsg->msg.length & ACTUAL_LEN_MASK
 						, (POINTER)((uintptr_t)pmq->data + (pLastReadMsg->msg.length & ACTUAL_LEN_MASK))
 						, tmp
 						, pmq->Top
@@ -975,7 +975,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 							, pReadMsg->msg.real_length + sizeof( pReadMsg->MsgID ) );
 					p = pReadMsg->msg.real_length;
 #ifndef DISABLE_MSGQUE_LOGGING
-					lprintf( "DequeMessage [%p] %"_MsgID_f " len %" _size_f , result, *(MSGIDTYPE*)result, p+sizeof( pReadMsg->MsgID ) );
+					lprintf( "DequeMessage [%p] %" _MsgID_f " len %" _size_f , result, *(MSGIDTYPE*)result, p+sizeof( pReadMsg->MsgID ) );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
 					LogBinary( (uint8_t*)result, p+sizeof( pReadMsg->MsgID ) );
 #  endif
@@ -995,7 +995,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 			else if( *MsgID )
 			{
 #ifndef DISABLE_MSGQUE_LOGGING
-				lprintf( "Looking for a message %"_MsgID_f "...at %" _size_f " haven't found one yet.", *MsgID, tmp );
+				lprintf( "Looking for a message %" _MsgID_f "...at %" _size_f " haven't found one yet.", *MsgID, tmp );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
 				LogBinary( (uint8_t*)pReadMsg, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #  endif

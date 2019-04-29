@@ -87,8 +87,8 @@ void New4EnumOptions( PODBC odbc
 		tnprintf( query
 			  , sizeof( query )
 			  , "select option_id,n.name,n.name_id "
-				"from "OPTION4_MAP " as m "
-				"join "OPTION4_NAME " as n on n.name_id=m.name_id "
+				"from " OPTION4_MAP " as m "
+				"join " OPTION4_NAME " as n on n.name_id=m.name_id "
 				"where parent_option_id='%s' "
 				"order by n.name"
 			  , parent->guid?parent->guid:GuidZero() );
@@ -173,7 +173,7 @@ void New4DuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName
 
 void New4DeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot )
 {
-	SQLCommandf( odbc, "delete from "OPTION4_MAP " where option_id='%s'", iRoot->guid );
+	SQLCommandf( odbc, "delete from " OPTION4_MAP " where option_id='%s'", iRoot->guid );
 	//   foriegn keys should be cascade, so these will disappear without specifically removing.
 }
 

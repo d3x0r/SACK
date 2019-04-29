@@ -212,7 +212,7 @@ static int gatherString( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTS
 						else if( c >= 'a' && c <= 'f' ) hex_char += (c - 'a') + 10;
 						else {
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %"_size_f " (near %*.*s[%c]%s)", c, n
+							vtprintf( state->pvtError, "(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 								, (int)((n>3) ? 3 : n), (int)((n>3) ? 3 : n)
 								, (*msg_input) - ((n>3) ? 3 : n)
 								, c
@@ -250,7 +250,7 @@ static int gatherString( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTS
 						else if( c >= 'a' && c <= 'f' ) hex_char += (c - 'a') + 10;
 						else {
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %"_size_f " (near %*.*s[%c]%s)", c, n
+							vtprintf( state->pvtError, "(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 								, (int)((n > 3) ? 3 : n), (int)((n > 3) ? 3 : n)
 								, (*msg_input) - ((n > 3) ? 3 : n)
 								, c
@@ -270,7 +270,7 @@ static int gatherString( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTS
 					}
 					else {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "(escaped character) fault while parsing; '%c' unexpected %"_size_f " (near %*.*s[%c]%s)", c, n
+						vtprintf( state->pvtError, "(escaped character) fault while parsing; '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, n
 							, (int)((n>3) ? 3 : n), (int)((n>3) ? 3 : n)
 							, (*msg_input) - ((n>3) ? 3 : n)
 							, c
@@ -859,7 +859,7 @@ int json_parse_add_data( struct json_parse_state *state
 						// fault, illegal characer (whitespace?)
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "fault parsing '%c' unexpected %"_size_f " (near %*.*s[%c]%s)", c, state->n
+						vtprintf( state->pvtError, "fault parsing '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, state->n
 							, (int)((state->n > 4) ? 3 : (state->n - 1)), (int)((state->n > 4) ? 3 : (state->n - 1))
 							, input->pos + state->n - ((state->n > 4) ? 4 : state->n)
 							, c

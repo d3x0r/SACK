@@ -12,9 +12,6 @@
  * see also - include/typelib.h
  *
  */
-#ifdef _UNICODE
-#define _INCLUDE_NLS
-#endif
 #define NO_UNICODE_C
 #include <stdhdrs.h>
 #include <deadstart.h>
@@ -294,16 +291,8 @@ PTEXT SegCreateFromCharLenEx( const char *text, size_t len DBG_PASS )
 	PTEXT pTemp;
 	if( text )
 	{
-#ifdef _UNICODE
-		TEXTSTR text_string = CharWConvertLen( text, len );
-		pTemp = SegCreateEx( len DBG_RELAY );
-		// include nul on copy
-		MemCpy( pTemp->data.data, text_string, sizeof( TEXTCHAR ) * ( len + 1 ) );
-		Deallocate( TEXTSTR, text_string );
-#else
 		pTemp = SegCreateEx( len DBG_RELAY );
 		MemCpy( pTemp->data.data, text, sizeof( TEXTCHAR ) * ( len + 1 ) );
-#endif
 		return pTemp;
 	}
 	return NULL;
@@ -323,11 +312,6 @@ PTEXT SegCreateFromWideLenEx( const wchar_t *text, size_t nSize DBG_PASS )
 	PTEXT pTemp;
 	if( text )
 	{
-#ifdef _UNICODE
-		pTemp = SegCreateEx( nSize DBG_RELAY );
-		// include nul on copy
-		MemCpy( pTemp->data.data, text, sizeof( TEXTCHAR ) * ( nSize + 1 ) );
-#else
 		TEXTSTR text_string = WcharConvertLen( text, nSize );
 		int outlen;
 		for( outlen = 0; text_string[outlen]; outlen++ );
@@ -335,7 +319,6 @@ PTEXT SegCreateFromWideLenEx( const wchar_t *text, size_t nSize DBG_PASS )
 		// include nul on copy
 		MemCpy( pTemp->data.data, text_string, sizeof( TEXTCHAR ) * ( outlen + 1 ) );
 		Deallocate( TEXTSTR, text_string );
-#endif
 		return pTemp;
 	}
 	return NULL;
@@ -354,11 +337,7 @@ PTEXT SegCreateFromIntEx( int value DBG_PASS )
 {
 	PTEXT pResult;
 	pResult = SegCreateEx( 12 DBG_RELAY);
-#ifdef _UNICODE
-	pResult->data.size = swprintf( pResult->data.data, 12, "%d", value );
-#else
 	pResult->data.size = snprintf( pResult->data.data, 12, "%d", value ); //-V512
-#endif
 	pResult->data.data[11] = 0;
 	return pResult;
 }
@@ -369,11 +348,7 @@ PTEXT SegCreateFrom_64Ex( int64_t value DBG_PASS )
 {
 	PTEXT pResult;
 	pResult = SegCreateEx( 32 DBG_RELAY);
-#ifdef _UNICODE
-	pResult->data.size = swprintf( pResult->data.data, 32, "%"_64f, value );
-#else
-	pResult->data.size = snprintf( pResult->data.data, 32, "%"_64f, value ); //-V512
-#endif
+	pResult->data.size = snprintf( pResult->data.data, 32, "%" _64f, value ); //-V512
 pResult->data.data[31] = 0;
 	return pResult;
 }
@@ -384,11 +359,7 @@ PTEXT SegCreateFromFloatEx( float value DBG_PASS )
 {
 	PTEXT pResult;
 	pResult = SegCreateEx( 32 DBG_RELAY);
-#ifdef _UNICODE
-	pResult->data.size = swprintf( pResult->data.data, 32, "%f", value );
-#else
 	pResult->data.size = snprintf( pResult->data.data, 32, "%f", value ); //-V512
-#endif
 	pResult->data.data[31] = 0;
 	return pResult;
 }
@@ -2139,13 +2110,8 @@ void VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c, LOGICAL overlong DBG_PASS )
 {
 	int chars;
 	int n;
-#ifdef _UNICODE
-	wchar_t output[3];
-	chars = ConvertToUTF16( output, c );
-#else
 	char output[6];
 	chars = ConvertToUTF8Ex( output, c, overlong );
-#endif
 	for( n = 0; n < chars; n++ )
 		VarTextAddCharacterEx( pvt, output[n] DBG_RELAY );
 }
@@ -2290,9 +2256,6 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 	{
 		va_list tmp_args;
 		va_copy( tmp_args, args );
-#    ifdef _UNICODE
-#       define vsnprintf vswprintf
-#    endif
 		// len returns number of characters (not NUL)
 		len = vsnprintf( NULL, 0, format
 							, args
@@ -2346,9 +2309,6 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 	{
 		va_list tmp_args;
 		va_copy( tmp_args, args );
-#    ifdef _UNICODE
-#      define vsnprintf vswprintf
-#    endif
 		// len returns number of characters (not NUL)
 		len = vsnprintf( NULL, 0, format
 #  ifdef __GNUC__
@@ -2387,9 +2347,6 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 #  endif
 			args[0] = _args[0];
 			//va_start( args, format );
-#  ifdef _UNICODE
-#    define vsnprintf _vsnwprintf
-#  endif
 			len = vsnprintf( pvt->collect_text + pvt->collect_used
 								, destlen = pvt->collect_avail - pvt->collect_used
 								, format, args );
@@ -3572,16 +3529,6 @@ LOGICAL ParseIntVector( CTEXTSTR data, int **pData, int *nData )
 		end = data;
 		do
 		{
-#ifndef _MSC_VER
-#if defined( _UNICODE )
-#   define sscanf     swscanf
-#endif
-#else
-#if defined( _UNICODE )
-#   undef sscanf
-#   define sscanf     swscanf_s
-#endif
-#endif
 			start = end;
 			sscanf( start, "%d", (*pData) + count );
 			count++;

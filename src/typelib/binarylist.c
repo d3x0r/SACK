@@ -763,7 +763,7 @@ void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, uint
 	//else
 	if( print ) {
 #ifdef SACK_BINARYLIST_USE_PRIMITIVE_LOGGING
-		snprintf( buf, 256, "[%3d] %p Node has %3d depth  %3"_32f " children (%p %3"_32f ",%p %3"_32f "). %10" _PTRSZVALfs
+		snprintf( buf, 256, "[%3d] %p Node has %3d depth  %3" _32f " children (%p %3" _32f ",%p %3" _32f "). %10" _PTRSZVALfs
 			, level, node, node->depth, node->children
 			, node->lesser
 			, (node->lesser) ? (node->lesser->children + 1) : 0
@@ -773,7 +773,7 @@ void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, uint
 		);
 		puts( buf );
 #else
-		lprintf( "[%3d] %p Node has %3d depth  %3"_32f " children (%p %3"_32f ",%p %3"_32f "). %10" _PTRSZVALfs
+		lprintf( "[%3d] %p Node has %3d depth  %3" _32f " children (%p %3" _32f ",%p %3" _32f "). %10" _PTRSZVALfs
 			, level, node, node->depth, node->children
 			, node->lesser
 			, (node->lesser) ? (node->lesser->children + 1) : 0
@@ -805,7 +805,7 @@ void DumpTree( PTREEROOT root
 	static char buf[256];
 	maxlevel = 0;
 	if( !Dump ) {
-		snprintf( buf, 256, "Tree %p has %"_32f " nodes. %p is root", root, root->children, root->tree );
+		snprintf( buf, 256, "Tree %p has %" _32f " nodes. %p is root", root, root->children, root->tree );
 		puts( buf );
 	}
 	DumpNode( root->tree, 1, Dump );
@@ -817,7 +817,7 @@ void DumpTree( PTREEROOT root
 #else
 	maxlevel = 0;
 	if( !Dump ) {
-		lprintf(  "Tree %p has %"_32f " nodes. %p is root", root, root->children, root->tree );
+		lprintf(  "Tree %p has %" _32f " nodes. %p is root", root, root->children, root->tree );
 	}
 	DumpNode( root->tree, 1, Dump );
 	if( !Dump ) {

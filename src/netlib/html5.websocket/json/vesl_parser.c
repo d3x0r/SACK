@@ -344,7 +344,7 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 				else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 				else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 				else {
-					lprintf("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %"_size_f " (near %*.*s[%c]%s)", c, n
+					lprintf("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n > 3 ) ? 3 : n ), (int)( ( n > 3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n > 3 ) ? 3 : n )
 						, c
@@ -366,7 +366,7 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 					else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 					else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 					else {
-						lprintf("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %"_size_f " (near %*.*s[%c]%s)", c, n
+						lprintf("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 							, c
@@ -447,7 +447,7 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 					state->escape = FALSE;
 					mOut += ConvertToUTF8(mOut, c);
 				} else {
-					lprintf("(escaped character) fault while parsing; '%c' unexpected %"_size_f " (near %*.*s[%c]%s)", c, n
+					lprintf("(escaped character) fault while parsing; '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 						, c

@@ -57,18 +57,18 @@ static void ComputeHeight( PSI_CONTROL pc )
 	{
 		if( tmp1 > tmp2 )
 		{
-			lprintf( "Settin tab height to %"_32f "", tmp1 );
+			lprintf( "Settin tab height to %" _32f, tmp1 );
 			TAB_HEIGHT = tmp1;
 		}
 		else
 		{
-			lprintf( "Settin tab height tox %"_32f "", tmp2 );
+			lprintf( "Settin tab height tox %" _32f, tmp2 );
 			TAB_HEIGHT = tmp2;
 		}
 	}
 	else if( tmp2 > TAB_HEIGHT )
 	{
-		lprintf( "Settin tab height to %"_32fs "", tmp2 );
+		lprintf( "Settin tab height to %" _32fs, tmp2 );
 		TAB_HEIGHT = tmp2;
 	}
 

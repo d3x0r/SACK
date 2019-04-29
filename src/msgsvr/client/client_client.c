@@ -148,7 +148,7 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 		//}
 		if( MsgLen != sizeof( msg ) )
 		{
-			lprintf( "Server responce was the wrong length!!! %" _size_f " expecting %"_size_f, MsgLen, sizeof( msg ) );
+			lprintf( "Server responce was the wrong length!!! %" _size_f " expecting %" _size_f, MsgLen, sizeof( msg ) );
 			Release( pHandler );
 			LeaveCriticalSec( &g.csLoading );
 			return NULL;

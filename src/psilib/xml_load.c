@@ -230,7 +230,7 @@ PSI_CONTROL ParseXMLFrameEx( POINTER buffer, size_t size DBG_PASS )
 	MemCpy( xml_buffer, buffer, size );
 	if( XML_ParseBuffer( userdata.xp, size, TRUE ) == XML_STATUS_ERROR )
 	{
-		lprintf( "Error in XML parse %d  at line %"_size_f "(%"_size_f ")", XML_GetErrorCode( userdata.xp ),XML_GetCurrentLineNumber( userdata.xp ), XML_GetCurrentColumnNumber( userdata.xp ) );
+		lprintf( "Error in XML parse %d  at line %" _size_f "(%" _size_f ")", XML_GetErrorCode( userdata.xp ),XML_GetCurrentLineNumber( userdata.xp ), XML_GetCurrentColumnNumber( userdata.xp ) );
 	}
 	XML_ParserFree( userdata.xp );
 	userdata.xp = 0;

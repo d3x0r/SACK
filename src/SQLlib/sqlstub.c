@@ -4446,7 +4446,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			// this will have to have a Char based version
 			if( strnicmp( tmp, "no such table", 13 ) == 0 )
 				vtprintf( collection->pvt_errorinfo, "(S0002)" );
-			vtprintf( collection->pvt_errorinfo, "Result of prepare failed? (%d) %s at-or near char %"_size_f "[%" _cstring_f "] in [%" _string_f "]", rc3, tmp, tail - query, tail, query );
+			vtprintf( collection->pvt_errorinfo, "Result of prepare failed? (%d) %s at-or near char %" _size_f "[%" _cstring_f "] in [%" _string_f "]", rc3, tmp, tail - query, tail, query );
 			if( EnsureLogOpen(odbc ) )
 			{
 				sack_fprintf( g.pSQLLog, "#SQLITE ERROR:%s\n", GetText( VarTextPeek( collection->pvt_errorinfo ) ) );

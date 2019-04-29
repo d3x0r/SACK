@@ -158,7 +158,7 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 				else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 				else {
-					lprintf("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %"_size_f " (near %*.*s[%c]%s)", c, n
+					lprintf("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n > 3 ) ? 3 : n ), (int)( ( n > 3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n > 3 ) ? 3 : n )
 						, c
@@ -180,7 +180,7 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 					else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 					else {
-						lprintf("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %"_size_f " (near %*.*s[%c]%s)", c, n
+						lprintf("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 							, c
@@ -261,7 +261,7 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					state->escape = FALSE;
 					mOut += ConvertToUTF8(mOut, c);
 				} else {
-					lprintf("(escaped character) fault while parsing; '%c' unexpected %"_size_f " (near %*.*s[%c]%s)", c, n
+					lprintf("(escaped character) fault while parsing; '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 						, c
@@ -1142,7 +1142,7 @@ int json6_parse_add_data( struct json_parse_state *state
 						// fault, illegal characer
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "fault parsing '%c' unexpected %"_size_f " (near %*.*s[%c]%s)", c, state->n
+						vtprintf( state->pvtError, "fault parsing '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, state->n
 							, (int)((state->n > 4) ? 3 : (state->n-1)), (int)((state->n > 4) ? 3 : (state->n-1))
 							, input->buf + state->n - ((state->n > 3) ? 3 : state->n)
 							, c

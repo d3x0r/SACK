@@ -457,7 +457,7 @@ NETWORK_PROC( int, doUDPRead )( PCLIENT pc, POINTER lpBuffer, int nBytes )
 {
 	if( pc->RecvPending.dwAvail )
 	{
-		lprintf( "Read already pending for %"_size_fs "... not doing anything for this one.."
+		lprintf( "Read already pending for %" _size_fs "... not doing anything for this one.."
 		        , pc->RecvPending.dwAvail );
 		return FALSE;
 	}

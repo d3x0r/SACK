@@ -868,11 +868,11 @@ PSI_Console_Phrase PSI_EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLin
 void DumpBlock( PHISTORYBLOCK pBlock DBG_PASS )
 {
 	INDEX idx;
-	_xlprintf( 0 DBG_RELAY )("History block used lines: %"_size_f " of %d", pBlock->nLinesUsed, MAX_HISTORY_LINES );
+	_xlprintf( 0 DBG_RELAY )("History block used lines: %" _size_f " of %d", pBlock->nLinesUsed, MAX_HISTORY_LINES );
 	for( idx = 0; idx < pBlock->nLinesUsed; idx++ )
 	{
 		PTEXTLINE ptl = pBlock->pLines + idx;
-		_xlprintf( 0 DBG_RELAY )("line: %"_size_f " = (%d,%"_size_f ",%s)", idx, ptl->flags.nLineLength, GetTextSize( ptl->pLine ), GetText( ptl->pLine ) );
+		_xlprintf( 0 DBG_RELAY )("line: %" _size_f " = (%d,%" _size_f ",%s)", idx, ptl->flags.nLineLength, GetTextSize( ptl->pLine ), GetText( ptl->pLine ) );
 	}
 }
 
@@ -976,7 +976,7 @@ void WriteHistoryToFile( FILE *file, PHISTORY_REGION phr )
 	INDEX idx;
 	while( pHistory )
 	{
-		lprintf( "Have a history block with %"_size_f " lines", pHistory->nLinesUsed );
+		lprintf( "Have a history block with %" _size_f " lines", pHistory->nLinesUsed );
 		for( idx = 0; idx < pHistory->nLinesUsed; idx++ )
 		{
 			size_t length;
@@ -1502,7 +1502,7 @@ int32_t GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font )
 				, pHistory->pLines[n].pLine, font, FALSE );
 		}
 	}
-	lprintf( "Browser is %"_size_f " lines from end...", nLines );
+	lprintf( "Browser is %" _size_f " lines from end...", nLines );
 	return nLines;
 }
 
@@ -1979,7 +1979,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 							{
 								dl.nLine = start; // just has to be different
 								//dl.start = pText; // text in history that started this...
-								lprintf( "Adding line to display: %p (%"_size_f ") %"_size_f " %d"
+								lprintf( "Adding line to display: %p (%" _size_f ") %" _size_f " %d"
 										 , dl.start, dl.nFirstSegOfs, dl.nLine, nLinesShown+nLines );
 								if( nLinesShown + nLines > 0 )
 								{
@@ -1996,7 +1996,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 					if( !pLastSetLine )
 					{
 						// dl will be initialized as a blank line...
-						lprintf( "Adding line to display: %p (%"_size_f ") %" _size_f, dl.start, dl.nFirstSegOfs, dl.nLine );
+						lprintf( "Adding line to display: %p (%" _size_f ") %" _size_f, dl.start, dl.nFirstSegOfs, dl.nLine );
 						if( nLinesShown + nLines > 0 )
 						{
 							lprintf( "Set line %d", nLinesShown + nLines -1 );

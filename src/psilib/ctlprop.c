@@ -58,7 +58,7 @@ void CreateAControl( PSI_CONTROL frame, uint32_t type, PEDIT_PROP_DATA pepd )
 	{
 		int32_t x = pepd->x;
 		int32_t y = pepd->y;
-		//lprintf( "new control at %"_32fs ",%"_32fs " %"_32f ",%"_32f "", x, y, frame->rect.x, frame->rect.y );
+		//lprintf( "new control at %" _32fs ",%" _32fs " %" _32f ",%" _32f, x, y, frame->rect.x, frame->rect.y );
 
 		PFRACTION ix, iy;
 		GetCommonScale( frame, &ix, &iy );
@@ -167,13 +167,13 @@ void InitFrameControls( PSI_CONTROL pcFrame, PSI_CONTROL pc )
 	SetControlText( GetControl( pcFrame, LABEL_ID ), "ID" );
 	tnprintf( buffer, sizeof( buffer ), "%s", pc->caption.text?GetText( pc->caption.text ):"" );
 	SetControlText( GetControl( pcFrame, EDT_CAPTION ), buffer );
-	tnprintf( buffer, sizeof( buffer ), "%"_32fs "", pc->rect.x );
+	tnprintf( buffer, sizeof( buffer ), "%" _32fs, pc->rect.x );
 	SetControlText( GetControl( pcFrame, EDT_X ), buffer );
-	tnprintf( buffer, sizeof( buffer ), "%"_32fs "", pc->rect.y );
+	tnprintf( buffer, sizeof( buffer ), "%" _32fs, pc->rect.y );
 	SetControlText( GetControl( pcFrame, EDT_Y ), buffer );
-	tnprintf( buffer, sizeof( buffer ), "%"_32f "", pc->rect.width );
+	tnprintf( buffer, sizeof( buffer ), "%" _32f, pc->rect.width );
 	SetControlText( GetControl( pcFrame, EDT_WIDTH ), buffer );
-	tnprintf( buffer, sizeof( buffer ), "%"_32f "", pc->rect.height );
+	tnprintf( buffer, sizeof( buffer ), "%" _32f, pc->rect.height );
 	SetControlText( GetControl( pcFrame, EDT_HEIGHT ), buffer );
 	tnprintf( buffer, sizeof( buffer ), "%d", pc->nID );
 	SetControlText( GetControl( pcFrame, EDT_ID ), buffer );
@@ -319,13 +319,13 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 					MakeTextControl( pSheet, PROP_PAD, 101, 58, 14, TXT_STATIC, "ID Name", 0 );
 					tnprintf( buffer, sizeof( buffer ), "%s", GetText( control->caption.text ) );
 					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 04, PROP_WIDTH-10-(58+5), 14, EDT_CAPTION, buffer, 0 );
-					tnprintf( buffer, sizeof( buffer ), "%"_32fs "", control->rect.x );
+					tnprintf( buffer, sizeof( buffer ), "%" _32fs, control->rect.x );
 					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 20, 56, 14, EDT_X, buffer, 0 );
-					tnprintf( buffer, sizeof( buffer ), "%"_32fs "", control->rect.y );
+					tnprintf( buffer, sizeof( buffer ), "%" _32fs, control->rect.y );
 					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 36, 56, 14, EDT_Y, buffer, 0 );
-					tnprintf( buffer, sizeof( buffer ), "%"_32f "", control->rect.width );
+					tnprintf( buffer, sizeof( buffer ), "%" _32f, control->rect.width );
 					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 52, 56, 14, EDT_WIDTH, buffer, 0 );
-					tnprintf( buffer, sizeof( buffer ), "%"_32f "", control->rect.height );
+					tnprintf( buffer, sizeof( buffer ), "%" _32f, control->rect.height );
 					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 68, 56, 14, EDT_HEIGHT, buffer, 0 );
 					tnprintf( buffer, sizeof( buffer ), "%d", control->nID );
 					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 84, 56, 14, EDT_ID, buffer, 0 );
@@ -498,19 +498,19 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 								, PROP_PAD + PROP_PAD + 58, 04
 								, PROP_WIDTH-10-(58+5), 14
 								, EDT_CAPTION, buffer, 0 );
-			tnprintf( buffer, sizeof( buffer ), "%"_32fs "", frame->rect.x );
+			tnprintf( buffer, sizeof( buffer ), "%" _32fs, frame->rect.x );
 			MakeEditControl( pf
 								, PROP_PAD + PROP_PAD + 58, 20
 								, 56, 14, EDT_X, buffer, 0 );
-			tnprintf( buffer, sizeof( buffer ), "%"_32fs "", frame->rect.y );
+			tnprintf( buffer, sizeof( buffer ), "%" _32fs, frame->rect.y );
 			MakeEditControl( pf
 								, PROP_PAD + PROP_PAD + 58, 36
 								, 56, 14, EDT_Y, buffer, 0 );
-			tnprintf( buffer, sizeof( buffer ), "%"_32f "", frame->rect.width );
+			tnprintf( buffer, sizeof( buffer ), "%" _32f, frame->rect.width );
 			MakeEditControl( pf
 								, PROP_PAD + PROP_PAD + 58, 52
 								, 56, 14, EDT_WIDTH, buffer, 0 );
-			tnprintf( buffer, sizeof( buffer ), "%"_32f "", frame->rect.height );
+			tnprintf( buffer, sizeof( buffer ), "%" _32f, frame->rect.height );
 			MakeEditControl( pf
 								, PROP_PAD + PROP_PAD + 58, 68
 								, 56, 14, EDT_HEIGHT, buffer, 0 );

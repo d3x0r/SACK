@@ -817,7 +817,7 @@ static PTEXT GetConfigurationLine( PCONFIG_HANDLER pConfigHandler )
 				PTEXT x = p;
 				while( x )
 				{
-					lprintf( "Word is: %s (%"_size_f ",%d)", GetText( x ), GetTextSize( x ), x->format.position.offset.spaces );
+					lprintf( "Word is: %s (%" _size_f ",%d)", GetText( x ), GetTextSize( x ), x->format.position.offset.spaces );
 					x = NEXTLINE( x );
 				}
 			}

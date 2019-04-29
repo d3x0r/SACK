@@ -234,7 +234,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 			{
 				if( websock->frame_length > 125 )
 				{
-					lprintf( "Bad length of control packet: %"_size_f, length );
+					lprintf( "Bad length of control packet: %" _size_f, length );
 					// RemoveClient( websock->pc );
 					ResetInputState( websock );
 					// drop the rest of the data, maybe the beginning of the next packet will make us happy

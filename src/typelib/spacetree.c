@@ -1853,7 +1853,7 @@ void BuildTableGrid( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOIN
 	int i,f,m; // initial, final, mid
 	i = 0;
 	f = table->cols - 1;
-		  xlprintf(LOG_ALWAYS)( "Node %p is %"_32fs ",%" _32fs " - %" _32fs ",%" _32fs, node, min[0], min[1], max[0], max[1] );
+		  xlprintf(LOG_ALWAYS)( "Node %p is %" _32fs ",%" _32fs " - %" _32fs ",%" _32fs, node, min[0], min[1], max[0], max[1] );
 	while( i <= f )
 	{
 		m = (f+i)/2;

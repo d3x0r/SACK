@@ -542,24 +542,24 @@ POPTION_TREE_NODE New4DuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalOpt
 	TEXTSTR tmp;
 	PushSQLQueryEx( odbc );
 	// my nested parent may have a select state in a condition that I think it's mine.
-	SQLRecordQueryf( odbc, NULL, &results, NULL, "select `string` from "OPTION4_VALUES " where option_id='%s'", iOriginalOption->guid );
+	SQLRecordQueryf( odbc, NULL, &results, NULL, "select `string` from " OPTION4_VALUES " where option_id='%s'", iOriginalOption->guid );
 
 	if( results && results[0] )
 	{
 		tnprintf( query, sizeof( query )
-			  , "replace into "OPTION4_VALUES " (option_id,`string`) values ('%s',%s)"
+			  , "replace into " OPTION4_VALUES " (option_id,`string`) values ('%s',%s)"
 				  , iNewOption->guid, tmp = EscapeSQLBinaryOpt( odbc, results[0], StrLen( results[0] ), TRUE ) );
 		Release( tmp );
 		SQLEndQuery( odbc );
 		SQLCommand( odbc, query );
 	}
 
-	SQLRecordQueryf( odbc, NULL, &results, NULL, "select `binary` from "OPTION4_BLOBS " where option_id='%s'", iOriginalOption->guid );
+	SQLRecordQueryf( odbc, NULL, &results, NULL, "select `binary` from " OPTION4_BLOBS " where option_id='%s'", iOriginalOption->guid );
 
 	if( results && results[0] )
 	{
 		tnprintf( query, sizeof( query )
-				  , "replace into "OPTION4_BLOBS " (option_id,`binary`) values ('%s',%s)"
+				  , "replace into " OPTION4_BLOBS " (option_id,`binary`) values ('%s',%s)"
 				  , iNewOption->guid, tmp = EscapeSQLBinaryOpt( odbc, results[0], StrLen( results[0] ), TRUE ) );
 		Release( tmp );
 		SQLEndQuery( odbc );
@@ -605,7 +605,7 @@ int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buf
 		len = &tmplen;
 	PushSQLQueryEx( odbc );
 	if( SQLRecordQueryf( odbc, NULL, &result, NULL
-								, "select `binary`,length(`binary`) from "OPTION4_BLOBS " where option_id='%s'"
+								, "select `binary`,length(`binary`) from " OPTION4_BLOBS " where option_id='%s'"
 								, optval->guid ) )
 	{
 		int success = FALSE;
@@ -666,7 +666,7 @@ static LOGICAL SetOptionBlobValueEx( POPTION_TREE tree, POPTION_TREE_NODE optval
 	{
 		TEXTSTR newval = EscapeSQLBinaryOpt( tree->odbc_writer, (CTEXTSTR)buffer, length, TRUE );
 		LOGICAL retval =
-			SQLCommandf( tree->odbc_writer, "replace into "OPTION4_BLOBS " (`option_id`,`binary` ) values ('%s',%s)"
+			SQLCommandf( tree->odbc_writer, "replace into " OPTION4_BLOBS " (`option_id`,`binary` ) values ('%s',%s)"
 							, optval->guid
 							, newval
 							);
@@ -1215,7 +1215,7 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileExceptionString )( CTEXTSTR pSec
 		system = GetSystemIndex( pSystemName );
 
 		tnprintf( exception, sizeof( exception ), "insert into option_exception (`apply_from`,`apply_to`,`value_id`,`override_value_id`,`system`) "
-																	  "values( \'%04d%02d%02d%02d%02d\', \'%04d%02d%02d%02d%02d\', %"_size_f ", %"_size_f WIDE(",%" _size_f )
+																	  "values( \'%04d%02d%02d%02d%02d\', \'%04d%02d%02d%02d%02d\', %" _size_f ", %" _size_f WIDE(",%" _size_f )
              , wYrFrom, wMoFrom, wDyFrom
              , wHrFrom, wMnFrom,wScFrom
              , wYrTo, wMoTo, wDyTo
@@ -1312,7 +1312,7 @@ SQLGETOPTION_PROC( CTEXTSTR, GetSystemID )( void )
 {
 #ifndef __NO_NETWORK__
 	static TEXTCHAR result[12];
-	tnprintf( result, 12, "%"_size_f, GetSystemIndex( GetSystemName() ) );
+	tnprintf( result, 12, "%" _size_f, GetSystemIndex( GetSystemName() ) );
 	return result;
 #else
 	{

@@ -710,7 +710,7 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddExtendedFileChangeCallback )( PMONITOR moni
 		Change->monitor        = monitor;
 		LinkThing( monitor->ChangeHandlers, Change );
 		if( l.flags.bLog )
-			lprintf( "Setting scan time to %"_32fs, timeGetTime() - 1 );
+			lprintf( "Setting scan time to %" _32fs, timeGetTime() - 1 );
 		monitor->DoScanTime = timeGetTime() + monitor->scan_delay;
 		monitor->flags.bPendingScan = 1;
 		{
