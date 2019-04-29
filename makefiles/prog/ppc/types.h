@@ -56,60 +56,40 @@ typedef const unsigned char *CTEXTSTR;
 typedef unsigned char TEXTCHAR;
 typedef TEXTCHAR *TEXTSTR;
 
-#ifdef _WIN32
-#ifndef CALLBACK
-//#pragma message ("Setting CALLBACK to __stcall" )
-#define CALLBACK    __stdcall
-#endif
-#else
-#ifndef CALLBACK
-//#pragma message ("Setting CALLBACK to c call" )
-#define CALLBACK
-#endif
-#endif
-//#define SOCKADDR    sockaddr
 
 typedef size_t   INDEX;
 #define INVALID_INDEX ((size_t)-1) 
 typedef void  *POINTER;
 typedef const void *CPOINTER;
 typedef uint32_t LOGICAL;
-//typedef uint32_t uintptr_t;
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef TRUE
-#define TRUE (!FALSE)
-#endif
-
 
 #define DECLDATA(name,sz) struct {uintptr_t size; uint8_t data[sz];} name
 
 typedef struct DataBlock {
-   uintptr_t size;     // size is sometimes a pointer value...
+	uintptr_t size;     // size is sometimes a pointer value...
                  // this means bad thing when we change platforms...
-   uint8_t  data[1]; // beginning of var data - this is created size+sizeof(VPA)
+	uint8_t  data[1]; // beginning of var data - this is created size+sizeof(VPA)
 } DATA, *PDATA;
 
 typedef struct LinkBlock
 {
-   size_t     Cnt;
-   uint32_t     Lock;
-   POINTER pNode[1];
+	size_t     Cnt;
+	uint32_t     Lock;
+	POINTER pNode[1];
 } LIST, *PLIST;
 
 typedef struct DataListBlock
 {
 	size_t     Cnt;
-   size_t     Size;
-   uint8_t      data[1];
+	size_t     Size;
+	uint8_t      data[1];
 } DATALIST, *PDATALIST; 
 
 typedef struct LinkStack
 {
 	size_t     Top;
-   size_t     Cnt;
-   POINTER pNode[1];
+	size_t     Cnt;
+	POINTER pNode[1];
 } LINKSTACK, *PLINKSTACK;
 
 typedef struct DataListStack
@@ -117,25 +97,25 @@ typedef struct DataListStack
 	size_t     Top; // next avail...
 	size_t     Cnt;
 	size_t     Size;
-   uint8_t      data[1];
+	uint8_t      data[1];
 } DATASTACK, *PDATASTACK;
 
 typedef struct LinkQueue
 {
-   size_t     Top;
-   size_t     Bottom;
-   size_t     Cnt;
-   uint32_t     Lock;  // thread interlock using InterlockedExchange semaphore
-   POINTER pNode[2]; // need two to have distinct empty/full conditions
+	size_t     Top;
+	size_t     Bottom;
+	size_t     Cnt;
+	uint32_t     Lock;  // thread interlock using InterlockedExchange semaphore
+	POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKQUEUE, *PLINKQUEUE;
 
 typedef struct LinkStackQueue // additional step function... 
 {
 	size_t     Top;
-   size_t     Bottom;
-   size_t     Next;
-   size_t     Cnt;
-   POINTER pNode[2]; // need two to have distinct empty/full conditions
+	size_t     Bottom;
+	size_t     Next;
+	size_t     Cnt;
+	POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKSTACKQUEUE, *PLINKSTACKQUEUE;
 
 #endif
