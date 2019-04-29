@@ -456,7 +456,7 @@ endif( NOT CMAKE_CXX_FLAGS_DEBUG MATCHES "-D_DEBUG_INFO" )
 
 # visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined
 if( NOT CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
-	set(  CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO" )
+	set(  CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -D_DEBUG_INFO" )
 endif( NOT CMAKE_CXX_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
 
 if( NOT CMAKE_C_FLAGS_DEBUG MATCHES "-D_DEBUG" )
@@ -468,7 +468,7 @@ endif( NOT CMAKE_C_FLAGS_DEBUG MATCHES "-D_DEBUG_INFO" )
 
 # visual studio headers change with _DEBUG defined... so it can't be release with _DEBUG defined
 if( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
-	set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO" )
+	set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -D_DEBUG_INFO" )
 endif( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
 
 
@@ -696,8 +696,6 @@ SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 
 if( NOT __CLR__ )
-	#add_subdirectory( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
-        #include_directories( src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
 	set( LIBRESSL_SKIP_INSTALL ON )
 	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
         include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
