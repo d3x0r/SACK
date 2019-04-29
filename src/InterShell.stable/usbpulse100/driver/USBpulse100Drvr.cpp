@@ -322,15 +322,15 @@ int GetPortNumXP2000(unsigned short  vID, unsigned short  Pid, char* SerialStrin
 
         if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\", 0, KEY_QUERY_VALUE, &HKLMKey))   //cant set to all rights ! Wont work if user priviledge//s too low !
 		{
-            if (ERROR_SUCCESS == RegOpenKey(HKLMKey, WIDE("Enum\\USB\\"), &EnumKey))
+            if (ERROR_SUCCESS == RegOpenKey(HKLMKey, "Enum\\USB\\", &EnumKey))
 			{
-            	sprintf(VidPidString,WIDE("Vid_%04X&Pid_%04X&Mi_00\\%s_00"),vID,Pid,SerialString);
+            	sprintf(VidPidString,"Vid_%04X&Pid_%04X&Mi_00\\%s_00",vID,Pid,SerialString);
                 //VidPidString = "Vid_" + LCase(Hex(vID)) + "&Pid_" + LCase(Hex(Pid)) + "&Mi_00\" + Replace(SerialString, " ", "_") + "_00"
                 if (ERROR_SUCCESS == RegOpenKey(EnumKey, VidPidString, &VidPidKey))
                 {
-                    if (ERROR_SUCCESS == RegOpenKey(VidPidKey, WIDE("Device Parameters"), &PortKey))
+                    if (ERROR_SUCCESS == RegOpenKey(VidPidKey, "Device Parameters", &PortKey))
 					{
-                        if (ERROR_SUCCESS == RegQueryValueEx(PortKey, WIDE("PortName"), 0, &Valtype, (UCHAR*)TmpStr, &Length))
+                        if (ERROR_SUCCESS == RegQueryValueEx(PortKey, "PortName", 0, &Valtype, (UCHAR*)TmpStr, &Length))
                         {
                             TmpStr[0] = 48;
                             TmpStr[1] = 48;
@@ -369,13 +369,13 @@ int GetPortNum98(unsigned short  vID, unsigned short  Pid, char* SerialString)
     portnum = -1;
 
     SerialIndex = 0;
-    sprintf(SerialKeyString,WIDE("Enum\\SLABCR\\guid\\000%d"),SerialIndex);
-    sprintf(VidPidString,WIDE("USB\\VID_%04X&PID_%04X&MI_00\\%s_00"),vID,Pid,SerialString);
+    sprintf(SerialKeyString,"Enum\\SLABCR\\guid\\000%d",SerialIndex);
+    sprintf(VidPidString,"USB\\VID_%04X&PID_%04X&MI_00\\%s_00",vID,Pid,SerialString);
 
     while (ERROR_SUCCESS == RegOpenKey(HKEY_LOCAL_MACHINE, SerialKeyString, &PortKey))
     {
 
-        status = RegQueryValueEx(PortKey, WIDE("CRLowerDeviceID"), 0, &Valtype, (UCHAR*)TmpStr, &Length);
+        status = RegQueryValueEx(PortKey, "CRLowerDeviceID", 0, &Valtype, (UCHAR*)TmpStr, &Length);
         if (status == ERROR_MORE_DATA)
             SerialIndex = SerialIndex - 1;
         else
@@ -383,7 +383,7 @@ int GetPortNum98(unsigned short  vID, unsigned short  Pid, char* SerialString)
         {
             if (strcmp(VidPidString ,TmpStr) == 0)
 			{
-				if (ERROR_SUCCESS == RegQueryValueEx(PortKey, WIDE("PortName"), 0, &Valtype, (UCHAR*)TmpStr, &Length))
+				if (ERROR_SUCCESS == RegQueryValueEx(PortKey, "PortName", 0, &Valtype, (UCHAR*)TmpStr, &Length))
 				{
 					TmpStr[0] = 48;
 					TmpStr[1] = 48;
@@ -395,7 +395,7 @@ int GetPortNum98(unsigned short  vID, unsigned short  Pid, char* SerialString)
 		}
 
         SerialIndex = SerialIndex + 1;
-    	sprintf(SerialKeyString,WIDE("Enum\\SLABCR\\guid\\000%d"),SerialIndex);
+    	sprintf(SerialKeyString,"Enum\\SLABCR\\guid\\000%d",SerialIndex);
 
         RegCloseKey(PortKey);
 	}
@@ -661,7 +661,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 	  WORD wCodePage;
 	} *lpTranslate;
 
-	snprintf(libissue,256,WIDE("Problem getting issue"));
+	snprintf(libissue,256,"Problem getting issue");
 
 	GetModuleFileName((HINSTANCE)hMe,DLLName,99);	//hModule for a DLL is same as hInstance so just cast it !
 
@@ -675,19 +675,19 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 	if (!status)
       {
    	StrCpy(libissue,DLLName);
-   	//snprintf(libissue,100,WIDE("Problem getting File Ver. Info"));
+   	//snprintf(libissue,100,"Problem getting File Ver. Info");
 		free(lpData);
       return;
       }
 
 	VerQueryValue(lpData,
-              WIDE("\\VarFileInfo\\Translation"),
+              "\\VarFileInfo\\Translation",
               (LPVOID*)&lpTranslate,
               &cbTranslate);
 
 	//Now look up the 1st (only) set of strings for the lang and codepage returned
 	snprintf( SubBlock, 100
-		, WIDE("\\StringFileInfo\\%04x%04x\\FileDescription"),
+		, "\\StringFileInfo\\%04x%04x\\FileDescription",
 		lpTranslate[0].wLanguage,
 		lpTranslate[0].wCodePage);
 
@@ -696,10 +696,10 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 					SubBlock,
 					&lpBuffer,
 					&dwBytes);
-	snprintf(FileName,100, WIDE("%s "),(TEXTCHAR *)lpBuffer);
+	snprintf(FileName,100, "%s ",(TEXTCHAR *)lpBuffer);
 
 	snprintf( SubBlock, 100
-		, WIDE("\\StringFileInfo\\%04x%04x\\FileVersion"),
+		, "\\StringFileInfo\\%04x%04x\\FileVersion",
 		lpTranslate[0].wLanguage,
 		lpTranslate[0].wCodePage);
 
@@ -709,9 +709,9 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 					&lpBuffer,
 					&dwBytes);
 
-	snprintf(FileVer,100,WIDE("%s"),(TEXTCHAR *)lpBuffer);
+	snprintf(FileVer,100,"%s",(TEXTCHAR *)lpBuffer);
 
-	snprintf(libissue,100,WIDE("Name: %s Ver: %s"),FileName,FileVer);
+	snprintf(libissue,100,"Name: %s Ver: %s",FileName,FileVer);
 
 	free(lpData);
 

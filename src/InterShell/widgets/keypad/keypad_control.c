@@ -218,62 +218,62 @@ static struct {
 // when buttons are pressed...
 
 
-static TEXTCHAR *keytext[]= { WIDE( "A7\0" ), WIDE("A8\0"), WIDE("A9\0")
-								, WIDE("A4\0"), WIDE("A5\0"), WIDE("A6\0")
-								, WIDE("A1\0"), WIDE("A2\0"), WIDE("A3\0")
-								, WIDE("A<-\0"), WIDE("A0\0"), WIDE("A00\0")  };
-static TEXTCHAR *entrytext[]= {  WIDE( "A7\0" ), WIDE("A8\0"), WIDE("A9\0")
-								  ,  WIDE( "A4\0" ), WIDE("A5\0"), WIDE("A6\0")
-								  ,  WIDE( "A1\0" ), WIDE("A2\0"), WIDE("A3\0")
-								  ,  WIDE( "~BRedAN\0" ), WIDE("A0\0"), WIDE("~BgreenAY\0") };
-static TEXTCHAR *entrytext2[]= {  WIDE( "A7\0" ), WIDE("A8\0"), WIDE("A9\0")
-									,  WIDE( "A4\0" ), WIDE("A5\0"), WIDE("A6\0")
-									,  WIDE( "A1\0" ), WIDE("A2\0"), WIDE("A3\0")
-									,  WIDE( "AC\0" ), WIDE("A0\0"), WIDE("~BgreenA*\0") };
+static TEXTCHAR *keytext[]= { "A7\0", "A8\0", "A9\0"
+								, "A4\0", "A5\0", "A6\0"
+								, "A1\0", "A2\0", "A3\0"
+								, "A<-\0", "A0\0", "A00\0"  };
+static TEXTCHAR *entrytext[]= {  "A7\0", "A8\0", "A9\0"
+								  ,  "A4\0", "A5\0", "A6\0"
+								  ,  "A1\0", "A2\0", "A3\0"
+								  ,  "~BRedAN\0", "A0\0", "~BgreenAY\0" };
+static TEXTCHAR *entrytext2[]= {  "A7\0", "A8\0", "A9\0"
+									,  "A4\0", "A5\0", "A6\0"
+									,  "A1\0", "A2\0", "A3\0"
+									,  "AC\0", "A0\0", "~BgreenA*\0" };
 
-static TEXTCHAR *entrytext3[]= {  WIDE( "A7\0" ), WIDE("A8\0"), WIDE("A9\0")
-									,  WIDE( "A4\0" ), WIDE("A5\0"), WIDE("A6\0")
-									,  WIDE( "A1\0" ), WIDE("A2\0"), WIDE("A3\0")
-//									,  WIDE( "~BblueAC\0" ), WIDE("A0\0"), WIDE("~BgreenAE\0") };
-									,  WIDE( "AC\0" ), WIDE("A0\0"), WIDE("AE\0") };
-static TEXTCHAR *entrytext4[]= {  WIDE( "A7\0" ), WIDE("A8\0"), WIDE("A9\0")
-									,  WIDE( "A4\0" ), WIDE("A5\0"), WIDE("A6\0")
-									,  WIDE( "A1\0" ), WIDE("A2\0"), WIDE("A3\0")
-										 ,  WIDE( "AClr\0" ), WIDE("A0\0"), WIDE("~BgreenAGo\0") };
-static TEXTCHAR *entrytext5[]= {  WIDE( "A7\0" ), WIDE("A8\0"), WIDE("A9\0")
-									,  WIDE( "A4\0" ), WIDE("A5\0"), WIDE("A6\0")
-									,  WIDE( "A1\0" ), WIDE("A2\0"), WIDE("A3\0")
-										 ,  WIDE( "~BredC\0" ), WIDE("A0\0"), WIDE("~BgreenAE\0") };
+static TEXTCHAR *entrytext3[]= {  "A7\0", "A8\0", "A9\0"
+									,  "A4\0", "A5\0", "A6\0"
+									,  "A1\0", "A2\0", "A3\0"
+//									,  "~BblueAC\0", "A0\0", "~BgreenAE\0" };
+									,  "AC\0", "A0\0", "AE\0" };
+static TEXTCHAR *entrytext4[]= {  "A7\0", "A8\0", "A9\0"
+									,  "A4\0", "A5\0", "A6\0"
+									,  "A1\0", "A2\0", "A3\0"
+										 ,  "AClr\0", "A0\0", "~BgreenAGo\0" };
+static TEXTCHAR *entrytext5[]= {  "A7\0", "A8\0", "A9\0"
+									,  "A4\0", "A5\0", "A6\0"
+									,  "A1\0", "A2\0", "A3\0"
+										 ,  "~BredC\0", "A0\0", "~BgreenAE\0" };
 
-static TEXTCHAR *entrytext6[]= {  WIDE( "A7\0" ), WIDE("A8\0"), WIDE("A9\0")
-									,  WIDE( "A4\0" ), WIDE("A5\0"), WIDE("A6\0")
-									,  WIDE( "A1\0" ), WIDE("A2\0"), WIDE("A3\0")
-										 ,  WIDE( "A<-\0" ), WIDE("A0\0"), WIDE("~BgreenAGo\0") };
-static TEXTCHAR * keyval[] = {  WIDE( "7" ), WIDE("8"), WIDE("9")
-							  ,  WIDE( "4" ), WIDE("5"), WIDE("6")
-							  ,  WIDE( "1" ), WIDE("2"), WIDE("3")
-							  ,  (TEXTSTR)-1, WIDE("0"), (TEXTSTR)-2 };
+static TEXTCHAR *entrytext6[]= {  "A7\0", "A8\0", "A9\0"
+									,  "A4\0", "A5\0", "A6\0"
+									,  "A1\0", "A2\0", "A3\0"
+										 ,  "A<-\0", "A0\0", "~BgreenAGo\0" };
+static TEXTCHAR * keyval[] = {  "7", "8", "9"
+							  ,  "4", "5", "6"
+							  ,  "1", "2", "3"
+							  ,  (TEXTSTR)-1, "0", (TEXTSTR)-2 };
 
 
-static TEXTCHAR *keyboardtext[]= { WIDE("AEs\0"),  WIDE("A1\0"), WIDE("A2\0"), WIDE("A3\0"), WIDE("A4\0"), WIDE("A5\0"), WIDE("A6\0"), WIDE("A7\0"), WIDE("A8\0"),    WIDE("A9\0"), WIDE("A0\0"), WIDE("A-\0" ), WIDE("A=\0" )
-											, WIDE("A\\\0" ), WIDE("Aq\0"), WIDE("Aw\0"), WIDE("Ae\0"), WIDE("Ar\0"), WIDE("At\0"), WIDE("Ay\0"), WIDE("Au\0"), WIDE("Ai\0"),    WIDE("Ao\0"), WIDE("Ap\0"), WIDE("A[\0"), WIDE("A]\0")
-											, WIDE("A^^\0" ), WIDE("Aa\0"), WIDE("As\0"), WIDE("Ad\0"), WIDE("Af\0"), WIDE("Ag\0"), WIDE("Ah\0"), WIDE("Aj\0"), WIDE("Ak\0"),    WIDE("Al\0"), WIDE("A;\0" ), WIDE( "A'\0" ), WIDE("A<-\0")
-											, WIDE("A^\0"),   WIDE("Az\0"), WIDE("Ax\0"), WIDE("Ac\0"), WIDE("Av\0"), WIDE("Ab\0"), WIDE("An\0"), WIDE("Am\0"), WIDE("A[ ]\0" ), WIDE("A,\0"), WIDE("A.\0"), WIDE("A/\0"), WIDE("ABS\0")
+static TEXTCHAR *keyboardtext[]= { "AEs\0",  "A1\0", "A2\0", "A3\0", "A4\0", "A5\0", "A6\0", "A7\0", "A8\0",    "A9\0", "A0\0", "A-\0", "A=\0"
+											, "A\\\0", "Aq\0", "Aw\0", "Ae\0", "Ar\0", "At\0", "Ay\0", "Au\0", "Ai\0",    "Ao\0", "Ap\0", "A[\0", "A]\0"
+											, "A^^\0", "Aa\0", "As\0", "Ad\0", "Af\0", "Ag\0", "Ah\0", "Aj\0", "Ak\0",    "Al\0", "A;\0", "A'\0", "A<-\0"
+											, "A^\0",   "Az\0", "Ax\0", "Ac\0", "Av\0", "Ab\0", "An\0", "Am\0", "A[ ]\0", "A,\0", "A.\0", "A/\0", "ABS\0"
 };
-static TEXTCHAR *keyboard_shifted_text[]= { WIDE("AEs\0"), WIDE("A!\0"), WIDE("A@\0"), WIDE("A#\0"), WIDE("A$\0"), WIDE("A%\0"), WIDE("A^\0"), WIDE("A&\0"), WIDE("A*\0"), WIDE("A(\0"), WIDE("A)\0"), WIDE("A_\0" ), WIDE("A+\0" )
-														, WIDE("A|\0" ), WIDE("AQ\0"), WIDE("AW\0"), WIDE("AE\0"), WIDE("AR\0"), WIDE("AT\0"), WIDE("AY\0"), WIDE("AU\0"), WIDE("AI\0"), WIDE("AO\0"), WIDE("AP\0"), WIDE("A{\0" ), WIDE("A}\0" )
-														, WIDE( "A^^\0"), WIDE("AA\0"), WIDE("AS\0"), WIDE("AD\0"), WIDE("AF\0"), WIDE("AG\0"), WIDE("AH\0"), WIDE("AJ\0"), WIDE("AK\0"), WIDE("AL\0"), WIDE("A:\0" ), WIDE("A\"\0" ), WIDE("A<-\0")
-														, WIDE("A^\0") , WIDE("AZ\0"), WIDE("AX\0"), WIDE("AC\0"), WIDE("AV\0"), WIDE("AB\0"), WIDE("AN\0"), WIDE("AM\0"), WIDE("A[ ]\0" ), WIDE("A<\0"), WIDE("A>\0" ), WIDE("A?\0"), WIDE("ABS\0")
+static TEXTCHAR *keyboard_shifted_text[]= { "AEs\0", "A!\0", "A@\0", "A#\0", "A$\0", "A%\0", "A^\0", "A&\0", "A*\0", "A(\0", "A)\0", "A_\0", "A+\0"
+														, "A|\0", "AQ\0", "AW\0", "AE\0", "AR\0", "AT\0", "AY\0", "AU\0", "AI\0", "AO\0", "AP\0", "A{\0", "A}\0"
+														, "A^^\0", "AA\0", "AS\0", "AD\0", "AF\0", "AG\0", "AH\0", "AJ\0", "AK\0", "AL\0", "A:\0", WIDE("A\"\0" ), "A<-\0"
+														, "A^\0" , "AZ\0", "AX\0", "AC\0", "AV\0", "AB\0", "AN\0", "AM\0", "A[ ]\0", "A<\0", "A>\0", "A?\0", "ABS\0"
 };
-static CTEXTSTR keyboardval[] = { WIDE("\x1b"),  WIDE("1"), WIDE("2"), WIDE("3"), WIDE("4"), WIDE("5"), WIDE("6"), WIDE("7"), WIDE("8"), WIDE("9"), WIDE("0"), WIDE("-"), WIDE("=" )
-										  , WIDE("\\" ),   WIDE("q"), WIDE("w"), WIDE("e"), WIDE("r"), WIDE("t"), WIDE("y"), WIDE("u"), WIDE("i"), WIDE("o"), WIDE("p"), WIDE("["), WIDE("]" )
-										  , (CTEXTSTR)-1,  WIDE("a"), WIDE("s"), WIDE("d"), WIDE("f"), WIDE("g"), WIDE("h"), WIDE("j"), WIDE("k"), WIDE("l"), WIDE(";"), WIDE("'"), (CTEXTSTR)-2
-										  , (TEXTCHAR*)-3, WIDE("z"), WIDE("x"), WIDE("c"), WIDE("v"), WIDE("b"), WIDE("n"), WIDE("m"), WIDE(" "), WIDE(","), WIDE("."), WIDE("/"), WIDE("\b")
+static CTEXTSTR keyboardval[] = { "\x1b",  "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="
+										  , "\\",   "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]"
+										  , (CTEXTSTR)-1,  "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'", (CTEXTSTR)-2
+										  , (TEXTCHAR*)-3, "z", "x", "c", "v", "b", "n", "m", " ", ",", ".", "/", "\b"
 };
-static CTEXTSTR keyboard_shifted_val[] = {  WIDE("\x1b"), WIDE("!"), WIDE("@"), WIDE("#"), WIDE("$"), WIDE("%"), WIDE("^"), WIDE("&"), WIDE("*"), WIDE("("), WIDE(")"), WIDE("_" ), WIDE("+")
-													  ,  WIDE( "|" ),  WIDE("Q"), WIDE("W"), WIDE("E"), WIDE("R"), WIDE("T"), WIDE("Y"), WIDE("U"), WIDE("I"), WIDE("O"), WIDE("P"), WIDE("{" ), WIDE("}")
-													  , (CTEXTSTR)-1,  WIDE("A"), WIDE("S"), WIDE("D"), WIDE("F"), WIDE("G"), WIDE("H"), WIDE("J"), WIDE("K"), WIDE("L"), WIDE(":"), WIDE("\""),  (CTEXTSTR)-2
-													  , (TEXTCHAR*)-3, WIDE("Z"), WIDE("X"), WIDE("C"), WIDE("V"), WIDE("B"), WIDE("N"), WIDE("M"), WIDE(" "), WIDE("<"), WIDE(">"), WIDE( "?" ), WIDE("\b")
+static CTEXTSTR keyboard_shifted_val[] = {  "\x1b", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+"
+													  ,  "|",  "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "{", "}"
+													  , (CTEXTSTR)-1,  "A", "S", "D", "F", "G", "H", "J", "K", "L", ":", WIDE("\""),  (CTEXTSTR)-2
+													  , (TEXTCHAR*)-3, "Z", "X", "C", "V", "B", "N", "M", " ", "<", ">", "?", "\b"
 };
 
 
@@ -285,13 +285,13 @@ int CPROC InitKeypadDisplay( PCOMMON pc );
 static int CPROC DrawKeypadDisplay( PCONTROL pc );
 
 
-CONTROL_REGISTRATION keypad_control = { WIDE( "Keypad Control 2" )
+CONTROL_REGISTRATION keypad_control = { "Keypad Control 2"
 												  , { { 240, 320 }, sizeof( KEYPAD ), BORDER_NONE }
 												  , InitKeypad
 												  , NULL
                                       , NULL // KeypadDraw
 };
-CONTROL_REGISTRATION keypad_display = { WIDE( "Keypad Display 2" )
+CONTROL_REGISTRATION keypad_display = { "Keypad Display 2"
 												  , { { 180, 20 }, sizeof( DISPLAY ), BORDER_INVERT|BORDER_THIN }
 												  , InitKeypadDisplay
 												  , NULL
@@ -419,12 +419,12 @@ int CPROC InitKeypadDisplay( PCOMMON pc )
 		Image surface = GetControlSurface( pc );
 		display->width = surface->width;
 		display->height = surface->height;
-		display->font = RenderFontFile( WIDE("Crysta.ttf")
+		display->font = RenderFontFile( "Crysta.ttf"
 												, display->height - display->height/10
 												, display->height - display->height/10
 												, 3 );
 		if( !display->font )
-			display->font = RenderFontFile( WIDE("fonts/Crysta.ttf")
+			display->font = RenderFontFile( "fonts/Crysta.ttf"
 													, display->height - display->height/10
 													, display->height - display->height/10
 													, 3 );
@@ -607,9 +607,9 @@ static int resize_keys( PKEYPAD keypad )
 				//{
 				//	TEXTCHAR tmp[32];
 				//	sLogFraction( tmp, &posx );
-				//	lprintf( WIDE("Position x: %s - %d %d"), tmp, keyx, keypad->width );
+				//	lprintf( "Position x: %s - %d %d", tmp, keyx, keypad->width );
 				//	sLogFraction( tmp, &posy );
-				//	lprintf( WIDE("Position y: %s - %d %d"), tmp, keyy, keypad->height );
+				//	lprintf( "Position y: %s - %d %d", tmp, keyy, keypad->height );
 				//}
 				MoveSizeCommon( GetKeyCommon( keypad->keys[row * cols + col].key )
 								  , keyx, keyy
@@ -620,7 +620,7 @@ static int resize_keys( PKEYPAD keypad )
 				{
 					//TEXTCHAR tmp[32];
 					//sLogFraction( tmp, &posx );
-					//lprintf( WIDE("NEW Position x: %s - %d %d"), tmp, keyx, keypad->width );
+					//lprintf( "NEW Position x: %s - %d %d", tmp, keyx, keypad->width );
 				}
 			}
 			if( keypad->flags.bDisplay )
@@ -639,10 +639,10 @@ static int resize_keys( PKEYPAD keypad )
 }
 
 
-static int OnDrawCommon( WIDE( "Keypad Control 2" ) )( PSI_CONTROL frame )//CPROC KeypadDraw( PCOMMON frame )
+static int OnDrawCommon( "Keypad Control 2" )( PSI_CONTROL frame )//CPROC KeypadDraw( PCOMMON frame )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, frame );
-	//lprintf( WIDE("attempt Drawing blue keypad backgorund... on %p"), frame );
+	//lprintf( "attempt Drawing blue keypad backgorund... on %p", frame );
 	if( keypad )
 	{
 		Image surface = GetControlSurface( frame );
@@ -657,7 +657,7 @@ static int OnDrawCommon( WIDE( "Keypad Control 2" ) )( PSI_CONTROL frame )//CPRO
 		}
 		// there is no border - so if we have a border this
 		// needs to be drawn ourselves....
-		//lprintf( WIDE("Drawing blue keypad backgorund...") );
+		//lprintf( "Drawing blue keypad backgorund..." );
       BlatColorAlpha( surface, 0, 0, surface->width, surface->height, keypad->background_color );
 		//ClearImageTo( surface, Color( 0, 0, 64 ) );
 		//UpdateControl( frame );
@@ -765,7 +765,7 @@ static int _InitKeypad( PSI_CONTROL frame )
 	keypad->cancelkey_color = Color( 192, 75, 10 );
 	keypad->cancelkey_text_color = Color( 0, 0, 0 );
 	// this is the earliest that logging can take place (above here exist declarations...)
-   //lprintf( WIDE("Making a keypad at %d,%d %d,%d"), x, w, w, h );
+   //lprintf( "Making a keypad at %d,%d %d,%d", x, w, w, h );
 	LinkThing( keypads, keypad );
 
 	{
@@ -826,7 +826,7 @@ static int _InitKeypad( PSI_CONTROL frame )
 		}
 		else
 		{
-			lprintf( WIDE("Just a keypad, not alphanum.") );
+			lprintf( "Just a keypad, not alphanum." );
 			pKeySizing = &keypad_sizing;
 		}
 	}
@@ -843,7 +843,7 @@ static int _InitKeypad( PSI_CONTROL frame )
 	keypad->flags.bLeftJustify = (new_flags & KEYPAD_FLAG_DISPLAY_LEFT_JUSTIFY) != 0;
 	keypad->flags.bCenterJustify = (new_flags & KEYPAD_FLAG_DISPLAY_CENTER_JUSTIFY) != 0;
 	keypad->key_spacing = pKeySizing;
-	keypad->accum = GetAccumulator( WIDE("Keypad Entry")
+	keypad->accum = GetAccumulator( "Keypad Entry"
 											, keypad->flags.bAlphaNum?ACCUM_TEXT
 													 : (keypad->flags.bEntry?0:ACCUM_DOLLARS) );
 	SetAccumulatorUpdateProc( keypad->accum, KeypadAccumUpdated, (uintptr_t)keypad );
@@ -875,15 +875,15 @@ static int _InitKeypad( PSI_CONTROL frame )
 		posy = pKeySizing->KeySpacingY;
 	}
 
-	//Log2( WIDE("Rendering Font sized: %ld, %ld"), keywidth / 2, keyheight / 2 );
+	//Log2( "Rendering Font sized: %ld, %ld", keywidth / 2, keyheight / 2 );
 
 	//lprintf( "Actually will be %d,%d", keywidth - keywidth/3, keyheight - keyheight/4 );
 
-	keypad->font = RenderFontFile( WIDE("arialbd.ttf")
+	keypad->font = RenderFontFile( "arialbd.ttf"
 										  , keywidth - keywidth/3, keyheight - keyheight/4
 										  , 3 );
    if( !keypad->font )
-		keypad->font = RenderFontFile( WIDE("fonts/arialbd.ttf")
+		keypad->font = RenderFontFile( "fonts/arialbd.ttf"
 											  , keywidth - keywidth/3, keyheight - keyheight/4
 											  , 3 );
 
@@ -916,9 +916,9 @@ static int _InitKeypad( PSI_CONTROL frame )
 			//{
 			//	TEXTCHAR tmp[32];
          //   sLogFraction( tmp, &posx );
-			//	lprintf( WIDE("Position x: %s - %d %d"), tmp, keyx, w );
+			//	lprintf( "Position x: %s - %d %d", tmp, keyx, w );
          //   sLogFraction( tmp, &posy );
-			//	lprintf( WIDE("Position y: %s - %d %d"), tmp, keyy, h );
+			//	lprintf( "Position y: %s - %d %d", tmp, keyy, h );
 			//}
 			keypad->keys[row * cols + col].psv_key
 				= keypad->flags.bAlphaNum
@@ -969,7 +969,7 @@ static int _InitKeypad( PSI_CONTROL frame )
 			{
 				//TEXTCHAR tmp[32];
             //sLogFraction( tmp, &posx );
-				//Log3( WIDE("NEW Position x: %s - %d %d"), tmp, keyx, w );
+				//Log3( "NEW Position x: %s - %d %d", tmp, keyx, w );
 			}
 		}
 		if( new_flags & KEYPAD_FLAG_DISPLAY )
@@ -995,7 +995,7 @@ PRELOAD( KeypadDisplayRegister)
 {
    DoRegisterControl( &keypad_display );
 	DoRegisterControl( &keypad_control );
-   flags.log_key_events = SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Widgets/Log key events for keypads"), 0 );
+   flags.log_key_events = SACK_GetProfileInt( GetProgramName(), "SACK/Widgets/Log key events for keypads", 0 );
 }
 
 #if 0
@@ -1026,7 +1026,7 @@ static void CPROC KeyPressed( uintptr_t psv, PKEY_BUTTON key )
 	int32_t value;
 
 	if( flags.log_key_events )
-		lprintf( WIDE("Press Key %p"), key );
+		lprintf( "Press Key %p", key );
 
 	string = (pKeyPad->shift_lock ^ pKeyPad->shifted)?(TEXTCHAR*)holder->psv_shifted_key:(TEXTCHAR*)holder->psv_key;
 
@@ -1038,27 +1038,27 @@ static void CPROC KeyPressed( uintptr_t psv, PKEY_BUTTON key )
 			break;
 		case -1:
 			if( pKeyPad->flags.bAlphaNum )
-				InvokeMagicSequences( pKeyPad->frame, WIDE("\\L") );  // Shift-Lock
+				InvokeMagicSequences( pKeyPad->frame, "\\L" );  // Shift-Lock
 			else
-				InvokeMagicSequences( pKeyPad->frame, WIDE("\\C") );  // Clear/Correct
+				InvokeMagicSequences( pKeyPad->frame, "\\C" );  // Clear/Correct
 			break;
 		case -2:
-			InvokeMagicSequences( pKeyPad->frame, WIDE("\\E") );
+			InvokeMagicSequences( pKeyPad->frame, "\\E" );
 			break;
 		case -3: // shift
 			if( pKeyPad->flags.bAlphaNum )
-				InvokeMagicSequences( pKeyPad->frame, WIDE("\\S") );
+				InvokeMagicSequences( pKeyPad->frame, "\\S" );
 			// there is no -3 on numeric pad.  (only 2 special keys)
 			break;
 		default:
 			if( string[0] == '\\' )
-				InvokeMagicSequences( pKeyPad->frame, WIDE("\\\\") );
+				InvokeMagicSequences( pKeyPad->frame, "\\\\" );
 			else
 				InvokeMagicSequences( pKeyPad->frame, string );
 			break;
 		}
 	}
-	//lprintf( WIDE("keypressed %p %p"), key, string );
+	//lprintf( "keypressed %p %p", key, string );
 	if( pKeyPad->flags.bAlphaNum )
 	{
 		if( string == (TEXTCHAR*)-3 )
@@ -1101,7 +1101,7 @@ static void CPROC KeyPressed( uintptr_t psv, PKEY_BUTTON key )
 			}
 			else
 			{
-				if( flags.log_key_events )lprintf( WIDE("Add \'%s\'"), string );
+				if( flags.log_key_events )lprintf( "Add \'%s\'", string );
 
 				// if the shift key is still down.
 				if( pKeyPad->want_shifted )
@@ -1273,7 +1273,7 @@ static LOGICAL CPROC KeyboardHandler( uintptr_t psv
 	PKEY_BUTTON button = NULL;
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, pKeyPad, (PSI_CONTROL)psv );
 	if( flags.log_key_events )
-		lprintf( WIDE("Key trigger : %d"), KEY_CODE(key) );
+		lprintf( "Key trigger : %d", KEY_CODE(key) );
 
 	if( IsControlHidden( (PSI_CONTROL)psv ) )
 		return FALSE;
@@ -1281,7 +1281,7 @@ static LOGICAL CPROC KeyboardHandler( uintptr_t psv
 	if( IsKeyPressed( key ) && pKeyPad )
 	{
 		if( flags.log_key_events )
-			lprintf( WIDE("press and .. %d"),pKeyPad->flags.bAlphaNum );
+			lprintf( "press and .. %d",pKeyPad->flags.bAlphaNum );
       //lprintf( "Key Trigger" );
 		if( !pKeyPad->flags.bAlphaNum )
 		{
@@ -1392,7 +1392,7 @@ static LOGICAL CPROC KeyboardHandler( uintptr_t psv
 		}
 		else{
 			if( flags.log_key_events )
-				lprintf( WIDE("IS alphanum... %lx"), key );
+				lprintf( "IS alphanum... %lx", key );
 			switch( KEY_CODE(key) )
 			{
 			case KEY_BACKSPACE:
@@ -1628,7 +1628,7 @@ static LOGICAL CPROC KeyboardHandler( uintptr_t psv
 	else if( pKeyPad )// key is being released...
 	{
 		if( flags.log_key_events )
-			lprintf( WIDE("Key release %d"), KEY_CODE(key) )
+			lprintf( "Key release %d", KEY_CODE(key) )
 				;
       switch( KEY_CODE(key) )
 		{
@@ -1645,15 +1645,15 @@ static LOGICAL CPROC KeyboardHandler( uintptr_t psv
 			}
 			else
 			{
-				//lprintf( WIDE("Was just a shift toggle, don't shift now?") );
+				//lprintf( "Was just a shift toggle, don't shift now?" );
             /*
 				if( pKeyPad->shifted )
 				{
-               lprintf( WIDE("was shifted?") );
+               lprintf( "was shifted?" );
 					KeyPressed( psv, button = pKeyPad->keys[39].key );
 				}
 				else
-				lprintf( WIDE("wasn't shifted?") );
+				lprintf( "wasn't shifted?" );
             */
 			}
          break;
@@ -1779,12 +1779,12 @@ void SetDisplayPadKeypad( PSI_CONTROL pc, PKEYPAD keypad )
 			if( keypad->flags.bAlphaNum )
 			{
 				DestroyFont( &display->font );
-				display->font = RenderFontFile( WIDE("arial.ttf")
+				display->font = RenderFontFile( "arial.ttf"
 														, (display->height - 5) * 8 / 8
 														, display->height - 5
 														, 1 );
 				if( !display->font )
-					display->font = RenderFontFile( WIDE("fonts/arial.ttf")
+					display->font = RenderFontFile( "fonts/arial.ttf"
 															, (display->height - 5) * 8 / 8
 															, display->height - 5
 															, 1 );
@@ -1826,7 +1826,7 @@ PSI_CONTROL MakeKeypad( PCOMMON parent
 }
 
 
-static void OnHideCommon( WIDE("Keypad Control 2") )( PSI_CONTROL pc )
+static void OnHideCommon( "Keypad Control 2" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc );
 	if( keypad )
@@ -1837,7 +1837,7 @@ static void OnHideCommon( WIDE("Keypad Control 2") )( PSI_CONTROL pc )
 	}
 }
 
-static void OnRevealCommon( WIDE("Keypad Control 2") )( PSI_CONTROL pc )
+static void OnRevealCommon( "Keypad Control 2" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc );
 	if( keypad )
@@ -1947,10 +1947,10 @@ PSI_CONTROL MakeKeypadHotkey( PSI_CONTROL frame
 							, KEY_BACKGROUND_COLOR
 							, Color( 220, 220, 12 )
 							 // if flags is DISPLAY only (not password)
-							, WIDE("") // key text
+							, "" // key text
 							, NULL
 							, HotkeyPressed, 0
-							, WIDE("") // value
+							, "" // value
 							);
 
 	return NULL;
@@ -2193,21 +2193,21 @@ void KeypadSetC_KeyTextColor( PSI_CONTROL pc_keypad, CDATA color )
 void KeypadWriteConfig( FILE *file, CTEXTSTR indent, PSI_CONTROL pc_keypad )
 {
 	ValidatedControlData( PKEYPAD, keypad_control.TypeID, keypad, pc_keypad );
-	fprintf( file, WIDE( "%skeypad background=%s\n" ), indent, FormatColor( keypad->background_color ) );
-	fprintf( file, WIDE( "%skeypad display background=%s\n" ), indent, FormatColor( keypad->display_background_color ) );
-	fprintf( file, WIDE( "%skeypad display text color=%s\n" ), indent, FormatColor( keypad->display_text_color ) );
-	fprintf( file, WIDE( "%skeypad color numkey=%s\n" ), indent, FormatColor( keypad->numkey_color ) );
-	fprintf( file, WIDE( "%skeypad color enterkey=%s\n" ), indent, FormatColor( keypad->enterkey_color ) );
-	fprintf( file, WIDE( "%skeypad color cancelkey=%s\n" ), indent, FormatColor( keypad->cancelkey_color ) );
-	fprintf( file, WIDE( "%skeypad color numkey text=%s\n" ), indent, FormatColor( keypad->numkey_text_color ) );
-	fprintf( file, WIDE( "%skeypad color enterkey text=%s\n" ), indent, FormatColor( keypad->enterkey_text_color ) );
-	fprintf( file, WIDE( "%skeypad color cancelkey text=%s\n" ), indent, FormatColor( keypad->cancelkey_text_color ) );
-	fprintf( file, WIDE( "%skeypad style=%ld\n" ), indent, keypad->style );
+	fprintf( file, "%skeypad background=%s\n", indent, FormatColor( keypad->background_color ) );
+	fprintf( file, "%skeypad display background=%s\n", indent, FormatColor( keypad->display_background_color ) );
+	fprintf( file, "%skeypad display text color=%s\n", indent, FormatColor( keypad->display_text_color ) );
+	fprintf( file, "%skeypad color numkey=%s\n", indent, FormatColor( keypad->numkey_color ) );
+	fprintf( file, "%skeypad color enterkey=%s\n", indent, FormatColor( keypad->enterkey_color ) );
+	fprintf( file, "%skeypad color cancelkey=%s\n", indent, FormatColor( keypad->cancelkey_color ) );
+	fprintf( file, "%skeypad color numkey text=%s\n", indent, FormatColor( keypad->numkey_text_color ) );
+	fprintf( file, "%skeypad color enterkey text=%s\n", indent, FormatColor( keypad->enterkey_text_color ) );
+	fprintf( file, "%skeypad color cancelkey text=%s\n", indent, FormatColor( keypad->cancelkey_text_color ) );
+	fprintf( file, "%skeypad style=%ld\n", indent, keypad->style );
 	if( keypad->display_format )
 	{
 		TEXTCHAR outbuf[256];
 		ExpandConfigString( outbuf, keypad->display_format );
-		fprintf( file, WIDE( "%skeypad formatting='%s'\n" ), indent, outbuf );
+		fprintf( file, "%skeypad formatting='%s'\n", indent, outbuf );
 	}
 }
 
@@ -2295,20 +2295,20 @@ static uintptr_t CPROC SetKeypadFormatConfig( uintptr_t psv, arg_list args )
 void KeypadSetupConfig( PCONFIG_HANDLER pch, uintptr_t *psv )
 {
 	ppsv = psv;
-	AddConfigurationMethod( pch, WIDE( "keypad background=%c" ), SetBackgroundColor );
-	AddConfigurationMethod( pch, WIDE( "keypad display background=%c" ), SetDisplayBackgroundColor );
-	AddConfigurationMethod( pch, WIDE( "keypad display text color=%c" ), SetDisplayTextColor );
-	AddConfigurationMethod( pch, WIDE( "keypad color numkey=%c" ), SetNumkeyColor );
-	AddConfigurationMethod( pch, WIDE( "keypad color enterkey=%c" ), SetEnterKeyColor );
-	AddConfigurationMethod( pch, WIDE( "keypad color cancelkey=%c" ), SetCancelKeyColor );
-	AddConfigurationMethod( pch, WIDE( "keypad color numkey text=%c" ), SetNumkeyTextColor );
-	AddConfigurationMethod( pch, WIDE( "keypad color enterkey text=%c" ), SetEnterKeyTextColor );
-	AddConfigurationMethod( pch, WIDE( "keypad color cancelkey text=%c" ), SetCancelKeyTextColor );
-	AddConfigurationMethod( pch, WIDE( "keypad style=%i" ), SetKeypadStyleConfig );
-	AddConfigurationMethod( pch, WIDE( "keypad formatting='%m'" ), SetKeypadFormatConfig );
+	AddConfigurationMethod( pch, "keypad background=%c", SetBackgroundColor );
+	AddConfigurationMethod( pch, "keypad display background=%c", SetDisplayBackgroundColor );
+	AddConfigurationMethod( pch, "keypad display text color=%c", SetDisplayTextColor );
+	AddConfigurationMethod( pch, "keypad color numkey=%c", SetNumkeyColor );
+	AddConfigurationMethod( pch, "keypad color enterkey=%c", SetEnterKeyColor );
+	AddConfigurationMethod( pch, "keypad color cancelkey=%c", SetCancelKeyColor );
+	AddConfigurationMethod( pch, "keypad color numkey text=%c", SetNumkeyTextColor );
+	AddConfigurationMethod( pch, "keypad color enterkey text=%c", SetEnterKeyTextColor );
+	AddConfigurationMethod( pch, "keypad color cancelkey text=%c", SetCancelKeyTextColor );
+	AddConfigurationMethod( pch, "keypad style=%i", SetKeypadStyleConfig );
+	AddConfigurationMethod( pch, "keypad formatting='%m'", SetKeypadFormatConfig );
 }
 
-static void OnThemeChanged( WIDE( "Keypad 2 Control" ) )( PCanvasData canvas, int theme_id )
+static void OnThemeChanged( "Keypad 2 Control" )( PCanvasData canvas, int theme_id )
 {
 	PKEYPAD keypad;
 
@@ -2330,7 +2330,7 @@ static void OnThemeChanged( WIDE( "Keypad 2 Control" ) )( PCanvasData canvas, in
 		image_data[2].color = keypad->cancelkey_color;
 		image_data[3].color = keypad->numkey_color;
 
-		GetKeyLenses( WIDE("Keypad Data"), theme_id
+		GetKeyLenses( "Keypad Data", theme_id
 						, &image_data[0].use_color
 						, &image_data[0].color
 						, &image_data[0].text_color
@@ -2340,7 +2340,7 @@ static void OnThemeChanged( WIDE( "Keypad 2 Control" ) )( PCanvasData canvas, in
 						, &image_data[0].mask
 						);
 
-		GetKeyLenses( WIDE("Keypad Shift"), theme_id
+		GetKeyLenses( "Keypad Shift", theme_id
 						, &image_data[3].use_color
 						, &image_data[3].color
 						, &image_data[3].text_color
@@ -2349,7 +2349,7 @@ static void OnThemeChanged( WIDE( "Keypad 2 Control" ) )( PCanvasData canvas, in
 						, &image_data[3].up
 						, &image_data[3].mask
 						);
-		GetKeyLenses( WIDE("Keypad Confirm"), theme_id
+		GetKeyLenses( "Keypad Confirm", theme_id
 						, &image_data[1].use_color
 						, &image_data[1].color
 						, &image_data[1].text_color
@@ -2358,7 +2358,7 @@ static void OnThemeChanged( WIDE( "Keypad 2 Control" ) )( PCanvasData canvas, in
 						, &image_data[1].up
 						, &image_data[1].mask
 						);
-		GetKeyLenses( WIDE("Keypad Cancel"), theme_id
+		GetKeyLenses( "Keypad Cancel", theme_id
 						, &image_data[2].use_color
 						, &image_data[2].color
 						, &image_data[2].text_color

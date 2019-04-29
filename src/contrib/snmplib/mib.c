@@ -98,11 +98,11 @@ uptimeString(//timeticks, buf)
     seconds = timeticks % 60;
 
     if (days == 0){
-	sprintf(buf, WIDE("%d:%02d:%02d"), hours, minutes, seconds);
+	sprintf(buf, "%d:%02d:%02d", hours, minutes, seconds);
     } else if (days == 1) {
-	sprintf(buf, WIDE("%d day, %d:%02d:%02d"), days, hours, minutes, seconds);
+	sprintf(buf, "%d day, %d:%02d:%02d", days, hours, minutes, seconds);
     } else {
-	sprintf(buf, WIDE("%d days, %d:%02d:%02d"), days, hours, minutes, seconds);
+	sprintf(buf, "%d days, %d:%02d:%02d", days, hours, minutes, seconds);
     }
     return buf;
 }
@@ -114,15 +114,15 @@ static void sprint_hexstring(//buf, cp, len)
 {
 
     for(; len >= 16; len -= 16){
-	sprintf(buf, WIDE("%02X %02X %02X %02X %02X %02X %02X %02X "), cp[0], cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7]);
+	sprintf(buf, "%02X %02X %02X %02X %02X %02X %02X %02X ", cp[0], cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7]);
 	buf += strlen(buf);
 	cp += 8;
-	sprintf(buf, WIDE("%02X %02X %02X %02X %02X %02X %02X %02X\n"), cp[0], cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7]);
+	sprintf(buf, "%02X %02X %02X %02X %02X %02X %02X %02X\n", cp[0], cp[1], cp[2], cp[3], cp[4], cp[5], cp[6], cp[7]);
 	buf += strlen(buf);
 	cp += 8;
     }
     for(; len > 0; len--){
-	sprintf(buf, WIDE("%02X "), *cp++);
+	sprintf(buf, "%02X ", *cp++);
 	buf += strlen(buf);
     }
     *buf = '\0';
@@ -159,7 +159,7 @@ struct enum_list *foo,
     u_char *cp;
 
     if (var->type != ASN_OCTET_STR){
-	sprintf(buf, WIDE("Wrong Type (should be OCTET STRING): "));
+	sprintf(buf, "Wrong Type (should be OCTET STRING): ");
 	buf += strlen(buf);
 	sprint_by_type(buf, var, (struct enum_list *)NULL, quiet);
 	return;
@@ -187,13 +187,13 @@ struct enum_list *foo,
 #endif
     if (hex){
       if (!quiet) {
-	sprintf(buf, WIDE("OCTET STRING-   (hex):\t"));
+	sprintf(buf, "OCTET STRING-   (hex):\t");
 	buf += strlen(buf);
       }
 	sprint_hexstring(buf, var->val.string, var->val_len);
     } else {
       if (!quiet) {
-	sprintf(buf, WIDE("OCTET STRING- (ascii):\t"));
+	sprintf(buf, "OCTET STRING- (ascii):\t");
 	buf += strlen(buf);
       }
 	sprint_asciistring(buf, var->val.string, var->val_len);
@@ -209,13 +209,13 @@ struct enum_list *foo,
 {
 
     if (var->type != SMI_OPAQUE){
-	sprintf(buf, WIDE("Wrong Type (should be Opaque): "));
+	sprintf(buf, "Wrong Type (should be Opaque): ");
 	buf += strlen(buf);
 	sprint_by_type(buf, var, (struct enum_list *)NULL, quiet);
 	return;
     }
     if (!quiet) {
-      sprintf(buf, WIDE("OPAQUE -   (hex):\t"));
+      sprintf(buf, "OPAQUE -   (hex):\t");
       buf += strlen(buf);
     }
     sprint_hexstring(buf, var->val.string, var->val_len);
@@ -229,13 +229,13 @@ struct enum_list *foo,
     int quiet)
 {
     if (var->type != SMI_OBJID){
-	sprintf(buf, WIDE("Wrong Type (should be OBJECT IDENTIFIER): "));
+	sprintf(buf, "Wrong Type (should be OBJECT IDENTIFIER): ");
 	buf += strlen(buf);
 	sprint_by_type(buf, var, (struct enum_list *)NULL, quiet);
 	return;
     }
     if (!quiet) {
-      sprintf(buf, WIDE("OBJECT IDENTIFIER:\t"));
+      sprintf(buf, "OBJECT IDENTIFIER:\t");
       buf += strlen(buf);
     }
     sprint_objid(buf, (oid *)(var->val.objid), var->val_len / sizeof(oid));
@@ -251,16 +251,16 @@ struct enum_list *foo,
     char timebuf[32];
 
     if (var->type != SMI_TIMETICKS){
-	sprintf(buf, WIDE("Wrong Type (should be Timeticks): "));
+	sprintf(buf, "Wrong Type (should be Timeticks): ");
 	buf += strlen(buf);
 	sprint_by_type(buf, var, (struct enum_list *)NULL, quiet);
 	return;
     }
     if (!quiet) {
-      sprintf(buf, WIDE("Timeticks: "));
+      sprintf(buf, "Timeticks: ");
       buf += strlen(buf);
     }
-    sprintf(buf, WIDE("(%u) %s"),
+    sprintf(buf, "(%u) %s",
 	    *(var->val.integer),
 	    uptimeString(*(var->val.integer), timebuf));
 }
@@ -275,7 +275,7 @@ sprint_integer(//buf, var, enums, quiet)
     char    *enum_string = NULL;
 
     if (var->type != SMI_INTEGER){
-	sprintf(buf, WIDE("Wrong Type (should be INTEGER): "));
+	sprintf(buf, "Wrong Type (should be INTEGER): ");
 	buf += strlen(buf);
 	sprint_by_type(buf, var, (struct enum_list *)NULL, quiet);
 	return;
@@ -287,14 +287,14 @@ sprint_integer(//buf, var, enums, quiet)
 	}
 
     if (!quiet) {
-      sprintf(buf, WIDE("INTEGER: "));
+      sprintf(buf, "INTEGER: ");
       buf += strlen(buf);
     }
 
     if (enum_string == NULL)
-	sprintf(buf, WIDE("%u"), *var->val.integer);
+	sprintf(buf, "%u", *var->val.integer);
     else
-	sprintf(buf, WIDE("%s(%u)"), enum_string, *var->val.integer);
+	sprintf(buf, "%s(%u)", enum_string, *var->val.integer);
 }
 
 static void
@@ -305,16 +305,16 @@ struct enum_list *foo,
 int quiet)
 {
     if (var->type != SMI_GAUGE32){
-	sprintf(buf, WIDE("Wrong Type (should be Gauge): "));
+	sprintf(buf, "Wrong Type (should be Gauge): ");
 	buf += strlen(buf);
 	sprint_by_type(buf, var, (struct enum_list *)NULL, quiet);
 	return;
     }
     if (!quiet) {
-      sprintf(buf, WIDE("Gauge: "));
+      sprintf(buf, "Gauge: ");
       buf += strlen(buf);
     }
-    sprintf(buf, WIDE("%u"), *var->val.integer);
+    sprintf(buf, "%u", *var->val.integer);
 }
 
 static void
@@ -325,16 +325,16 @@ struct enum_list *foo,
     int quiet)
 {
     if (var->type != SMI_COUNTER32){
-	sprintf(buf, WIDE("Wrong Type (should be Counter): "));
+	sprintf(buf, "Wrong Type (should be Counter): ");
 	buf += strlen(buf);
 	sprint_by_type(buf, var, (struct enum_list *)NULL, quiet);
 	return;
     }
     if (!quiet) {
-      sprintf(buf, WIDE("Counter: "));
+      sprintf(buf, "Counter: ");
       buf += strlen(buf);
     }
-    sprintf(buf, WIDE("%u"), *var->val.integer);
+    sprintf(buf, "%u", *var->val.integer);
 }
 
 static void
@@ -348,13 +348,13 @@ void *foo,
     u_char *cp;
 
     if (!quiet) {
-      sprintf(buf, WIDE("Network Address:\t"));
+      sprintf(buf, "Network Address:\t");
       buf += strlen(buf);
     }
     cp = var->val.string;
     len = var->val_len;
     for(x = 0; x < len; x++){
-	sprintf(buf, WIDE("%02X"), *cp++);
+	sprintf(buf, "%02X", *cp++);
 	buf += strlen(buf);
 	if (x < (len - 1))
 	    *buf++ = ':';
@@ -371,17 +371,17 @@ int quiet)
     u_char *ip;
 
     if (var->type != SMI_IPADDRESS){
-	sprintf(buf, WIDE("Wrong Type (should be Ipaddress): "));
+	sprintf(buf, "Wrong Type (should be Ipaddress): ");
 	buf += strlen(buf);
 	sprint_by_type(buf, var, (struct enum_list *)NULL, quiet);
 	return;
     }
     ip = var->val.string;
     if (!quiet) {
-      sprintf(buf, WIDE("IPAddress:\t"));
+      sprintf(buf, "IPAddress:\t");
       buf += strlen(buf);
     }
-    sprintf(buf, WIDE("%d.%d.%d.%d"),ip[0], ip[1], ip[2], ip[3]);
+    sprintf(buf, "%d.%d.%d.%d",ip[0], ip[1], ip[2], ip[3]);
 }
 //cpg26dec2006 src\snmplib\mib.c(388): Warning! W202: Symbol 'sprint_unsigned_short' has been defined, but not referenced
 static void
@@ -392,16 +392,16 @@ void *foo,
     int quiet)
 {
     if (var->type != SMI_INTEGER){
-	sprintf(buf, WIDE("Wrong Type (should be INTEGER): "));
+	sprintf(buf, "Wrong Type (should be INTEGER): ");
 	buf += strlen(buf);
 	sprint_by_type(buf, var, (struct enum_list *)NULL, quiet);
 	return;
     }
     if (!quiet) {
-      sprintf(buf, WIDE("INTEGER (0..65535): "));
+      sprintf(buf, "INTEGER (0..65535): ");
       buf += strlen(buf);
     }
-    sprintf(buf, WIDE("%u"), *var->val.integer);
+    sprintf(buf, "%u", *var->val.integer);
 }
 
 static void
@@ -412,12 +412,12 @@ struct enum_list *foo,
 int quiet)
 {
     if (var->type != SMI_NULLOBJ){
-	sprintf(buf, WIDE("Wrong Type (should be NULL): "));
+	sprintf(buf, "Wrong Type (should be NULL): ");
 	buf += strlen(buf);
 	sprint_by_type(buf, var, (struct enum_list *)NULL, quiet);
 	return;
     }
-    sprintf(buf, WIDE("NULL"));
+    sprintf(buf, "NULL");
 }
 
 static void
@@ -427,7 +427,7 @@ sprint_unknowntype(//buf, var, foo, quiet)
 void *foo,
 int quiet)
 {
-/*    sprintf(buf, WIDE("Variable has bad type")); */
+/*    sprintf(buf, "Variable has bad type"); */
     sprint_by_type(buf, var, (struct enum_list*)foo, quiet);
 }
 
@@ -435,7 +435,7 @@ static void
 sprint_badtype(//buf)
     char *buf)
 {
-    sprintf(buf, WIDE("Variable has bad type"));
+    sprintf(buf, "Variable has bad type");
 }
 
 #define SPRINT_BY_TYPE_TYPE (int (*)( char *buf, struct variable_list *var, struct enum_list *enums, int quiet))
@@ -584,7 +584,7 @@ int init_mib(void)
 #define MIBDIR "."
     if (Mib == NULL) {
       char path[MAXPATHLEN];
-      sprintf(path, WIDE("%s/mib-v2.txt"), MIBDIR);
+      sprintf(path, "%s/mib-v2.txt", MIBDIR);
       Mib = read_mib_v2(path);
     }
 #endif /* WIN32 */
@@ -599,7 +599,7 @@ int init_mib(void)
 #ifndef WIN32
     if (Mib == NULL) {
       char path[MAXPATHLEN];
-      sprintf(path, WIDE("%s/mib.txt"), MIBDIR);
+      sprintf(path, "%s/mib.txt", MIBDIR);
       Mib = read_mib(path);
     }
 #endif /* WIN32 */
@@ -660,7 +660,7 @@ int init_mib(void)
             FORMAT_MESSAGE_IGNORE_INSERTS, NULL, ret,
             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (TCHAR *)&lpMsgBuf, 0, NULL);
 #ifdef STDERR_OUTPUT
-          fprintf(stderr, WIDE("Reg Read Error: %s\n"), (LPTSTR)lpMsgBuf);
+          fprintf(stderr, "Reg Read Error: %s\n", (LPTSTR)lpMsgBuf);
 #endif
         }
         /* And close the registry */
@@ -674,7 +674,7 @@ int init_mib(void)
 		      FORMAT_MESSAGE_IGNORE_INSERTS, NULL, ret,
 		      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (TCHAR *)&lpMsgBuf, 0, NULL);
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Reg Open Error: %s\n"), (LPTSTR)lpMsgBuf);
+    fprintf(stderr, "Reg Open Error: %s\n", (LPTSTR)lpMsgBuf);
 #endif
       }
     }
@@ -682,7 +682,7 @@ int init_mib(void)
 
     if (Mib == NULL) {
 #ifdef STDERR_OUTPUT
-      fprintf(stderr, WIDE("Couldn't find mib file\n"));
+      fprintf(stderr, "Couldn't find mib file\n");
 #endif
       return(0);
     }
@@ -798,7 +798,7 @@ parse_subtree(//subtree, input, output, out_len)
 	 */
 	if (tp == NULL) {
 #ifdef STDERR_OUTPUT
-	    fprintf(stderr, WIDE("sub-identifier not found: %s\n"), buf);
+	    fprintf(stderr, "sub-identifier not found: %s\n", buf);
 #endif
 	    return (0);
 	}
@@ -809,7 +809,7 @@ parse_subtree(//subtree, input, output, out_len)
 	 if(subid > (u_int)MAX_SUBID){
 		 {
 #ifdef STDERR_OUTPUT
-			 fprintf(stderr, WIDE("sub-identifier too large: %s\n"), buf);
+			 fprintf(stderr, "sub-identifier too large: %s\n", buf);
 #endif
 			 return (0);
 		 }
@@ -817,7 +817,7 @@ parse_subtree(//subtree, input, output, out_len)
 
     if ((*out_len)-- <= 0){
 #ifdef STDERR_OUTPUT
-	fprintf(stderr, WIDE("object identifier too long\n"));
+	fprintf(stderr, "object identifier too long\n");
 #endif
 	return (0);
     }
@@ -849,7 +849,7 @@ int read_objid(//input, output, out_len)
 		*output++ = RFC1066_MIB[i];
 	    else {
 #ifdef STDERR_OUTPUT
-		fprintf(stderr, WIDE("object identifier too long\n"));
+		fprintf(stderr, "object identifier too long\n");
 #endif
 		return (0);
 	    }
@@ -862,7 +862,7 @@ int read_objid(//input, output, out_len)
       oid *tmp;
       if (!mib_TxtToOid(input, &tmp, out_len)) {
 #ifdef STDERR_OUTPUT
-	fprintf(stderr, WIDE("Mib not initialized.  Exiting.\n"));
+	fprintf(stderr, "Mib not initialized.  Exiting.\n");
 #endif
 	return(0);
       }
@@ -958,14 +958,14 @@ void sprint_variable(//buf, objid, objidlen, variable)
 	strlen((char *)RFC1066_MIB_text))){
 	    cp += sizeof(RFC1066_MIB_text);
     }
-    sprintf(buf, WIDE("Name: %s -> "), cp);
+    sprintf(buf, "Name: %s -> ", cp);
     buf += strlen(buf);
     if (subtree->printer)
 		 (SPRINT_BY_TYPE_TYPE subtree->printer)(buf, variable, subtree->enums, 0);
     else {
 	sprint_by_type(buf, variable, subtree->enums, 0);
     }
-    strcat(buf, WIDE("\n"));
+    strcat(buf, "\n");
 }
 
 int sprint_value_ex(//buf, objid, objidlen, variable, subtree)
@@ -1028,7 +1028,7 @@ get_symbol(//objid, objidlen, subtree, buf)
 
     /* subtree not found */
     while(objidlen--){	/* output rest of name, uninterpreted */
-	sprintf(buf, WIDE("%u."), *objid++);
+	sprintf(buf, "%u.", *objid++);
 	while(*buf)
 	    buf++;
     }

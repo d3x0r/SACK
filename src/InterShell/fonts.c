@@ -17,10 +17,10 @@ extern CONTROL_REGISTRATION new_menu_surface;
 
 PRELOAD( RegisterFontConfigurationIDs )
 {
-	EasyRegisterResource( WIDE( "intershell/font" ), BTN_PICKFONT, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "intershell/font" ), BTN_PICKFONT_PRICE, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "intershell/font" ), BTN_PICKFONT_QTY, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "intershell/font" ), BTN_EDITFONT, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "intershell/font", BTN_PICKFONT, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "intershell/font", BTN_PICKFONT_PRICE, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "intershell/font", BTN_PICKFONT_QTY, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "intershell/font", BTN_EDITFONT, NORMAL_BUTTON_NAME );
 }
 
 typedef struct font_preset
@@ -103,7 +103,7 @@ PFONT_PRESET _CreateAFont( PCanvasData canvas, CTEXTSTR name, SFTFont font, POIN
 		{
 			if( !font && !data )
 			{
-				font = RenderScaledFontEx( WIDE("Times New Roman"), 25, 35, &canvas->width_scale, &canvas->height_scale, 3, &font_preset->fontdatalen, &font_preset->fontdata );
+				font = RenderScaledFontEx( "Times New Roman", 25, 35, &canvas->width_scale, &canvas->height_scale, 3, &font_preset->fontdatalen, &font_preset->fontdata );
 			}
 		}
 		if( !theme_index )
@@ -127,12 +127,12 @@ PFONT_PRESET _CreateAFont( PCanvasData canvas, CTEXTSTR name, SFTFont font, POIN
 	else
 	{
 #ifdef DEBUG_FONT_CREATION
-		lprintf( WIDE("Font was %p... and so it stays."), font_preset->font );
+		lprintf( "Font was %p... and so it stays.", font_preset->font );
 #endif
 		if( theme_font_preset )
 		{
 #ifdef DEBUG_FONT_CREATION
-			lprintf( WIDE("Actually update this one's font to %p"), theme_font_preset->font );
+			lprintf( "Actually update this one's font to %p", theme_font_preset->font );
 #endif
 			font_preset->font = theme_font_preset->font;
 		}
@@ -274,7 +274,7 @@ static void CPROC CreatePageFont( uintptr_t psv, PSI_CONTROL pc )
 	//if( !font_select->selected_font )
 	{
 		if( !SimpleUserQuery(  name_buffer, sizeof( name_buffer )
-								  , WIDE("Enter new font preset name"), GetFrame( pc ) ) )
+								  , "Enter new font preset name", GetFrame( pc ) ) )
 			return;
 		{
 			PFONT_PRESET font_preset;
@@ -283,7 +283,7 @@ static void CPROC CreatePageFont( uintptr_t psv, PSI_CONTROL pc )
 			{
 				if( StrCaseCmp( font_preset->name, name_buffer ) == 0 )
 				{
-					Banner2Message( WIDE("Font name already exists") );
+					Banner2Message( "Font name already exists" );
 					return;
 				}
 			}
@@ -320,7 +320,7 @@ SFTFont * UseACanvasFont( PCanvasData canvas, CTEXTSTR name )
 	PFONT_PRESET font_preset;
 	INDEX idx;
 	if( !name )
-		name = WIDE( "Default" );
+		name = "Default";
 	if( FindLink( &l.canvas, canvas ) == INVALID_INDEX )
 		AddLink( &l.canvas, canvas );
 	LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, font_preset )
@@ -355,7 +355,7 @@ SFTFont *SelectACanvasFont( PCanvasData canvas, PSI_CONTROL parent, CTEXTSTR*def
 	font_select.canvas = canvas;
 	//font_select.fontdata = pfontdata;
 	//font_select.fontdatalen = pfontdatalen;
-	frame = LoadXMLFrame( WIDE("font_preset_property.isframe") );
+	frame = LoadXMLFrame( "font_preset_property.isframe" );
 	if( frame )
 	{
 
@@ -415,7 +415,7 @@ SFTFont *SelectACanvasFont( PCanvasData canvas, PSI_CONTROL parent, CTEXTSTR*def
 }
 
 
-static void OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
+static void OnSaveCommon( "Common Fonts" )( FILE *out )
 {
 	PCanvasData canvas = g.current_saving_canvas;
 	PFONT_PRESET preset;
@@ -430,14 +430,14 @@ static void OnSaveCommon( WIDE( "Common Fonts" ) )( FILE *out )
 			if( theme_preset->fontdata && theme_preset->fontdatalen )
 			{
 				EncodeBinaryConfig( &data, theme_preset->fontdata, theme_preset->fontdatalen );
-				fprintf( out, WIDE("font preset %s=%s\n")
+				fprintf( out, "font preset %s=%s\n"
 						 , theme_preset->name
 						 , data );
 				Release( data );
 			}
 			// if there's no data, don't bother saving anything.
 			//else
-			//	fprintf( out, WIDE("font preset %s={}\n"), theme_preset->name );
+			//	fprintf( out, "font preset %s={}\n", theme_preset->name );
 		}
 	}
 }
@@ -455,12 +455,12 @@ static uintptr_t CPROC RecreateFont( uintptr_t psv, arg_list args )
 	return 0;
 }
 
-static void OnLoadCommon( WIDE( "Common Fonts" ) )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( "Common Fonts" )( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, WIDE("font preset %m=%B"), RecreateFont );
+	AddConfigurationMethod( pch, "font preset %m=%B", RecreateFont );
 }
 
-static void OnThemeAdded( WIDE( "Fonts" ) )( PCanvasData canvas, int theme_id )
+static void OnThemeAdded( "Fonts" )( PCanvasData canvas, int theme_id )
 {
 	INDEX idx;
 	PFONT_PRESET preset;
@@ -474,7 +474,7 @@ static void OnThemeAdded( WIDE( "Fonts" ) )( PCanvasData canvas, int theme_id )
 			PFONT_PRESET theme_preset = (PFONT_PRESET)GetLink( preset->font_theme, theme_id );
 			if( !theme_preset )
 			{
-				snprintf( buf, sizeof( buf ), WIDE("%s.%d"), preset->name, theme_id );
+				snprintf( buf, sizeof( buf ), "%s.%d", preset->name, theme_id );
 #ifdef DEBUG_FONT_CREATION
 				lprintf( "Theme Added..." );
 #endif
@@ -503,14 +503,14 @@ void UpdateFontScaling( PCanvasData canvas )
 	PFONT_PRESET font_preset;
 	INDEX idx;
 #ifdef DEBUG_FONT_CREATION
-	lprintf( WIDE("Updating font scaling....") );
+	lprintf( "Updating font scaling...." );
 #endif
 	LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, font_preset )
 	{
 		INDEX theme_idx;
 		PFONT_PRESET theme_font;
 #ifdef DEBUG_FONT_CREATION
-		lprintf( WIDE("Rescale font %p"), font_preset->base_font );
+		lprintf( "Rescale font %p", font_preset->base_font );
 #endif
 		RerenderFont( font_preset->base_font
 						, 0, 0

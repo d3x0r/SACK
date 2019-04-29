@@ -61,7 +61,7 @@ void CPROC UDPClose( PCLIENT pc )
 
  void BuildAddr( TEXTCHAR *addr, size_t buflen, SOCKADDR *sa )
 {
-	snprintf( addr, buflen, WIDE("%d.%d.%d.%d:%d"),
+	snprintf( addr, buflen, "%d.%d.%d.%d:%d",
     				*(((unsigned char *)sa)+4),
     				*(((unsigned char *)sa)+5),
     				*(((unsigned char *)sa)+6),
@@ -87,7 +87,7 @@ void CPROC UDPRead( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *saFrom )
    int sent = 0;
 	if( !buffer )
 	{
-      Log( WIDE("Allocating buffer to read into...") );
+      Log( "Allocating buffer to read into..." );
 		buffer = Allocate( 4096 );
 		SetNetworkLong( pc, NL_BUFFER, (uintptr_t)buffer );
 	}
@@ -130,7 +130,7 @@ void CPROC UDPRead( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *saFrom )
 						{
 							//BuildAddr( addr, saFrom );
 							//BuildAddr( addr2, route->sendto );
-							//Log3( WIDE("Received (%d bytes) from %s to %s"), size, addr, addr2 );
+							//Log3( "Received (%d bytes) from %s to %s", size, addr, addr2 );
 							while( !( other = (PCLIENT)GetNetworkLong( pc, NL_OTHER ) ) )
 								Relinquish(); // not quite set yet... SOON.
 							{
@@ -139,7 +139,7 @@ void CPROC UDPRead( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *saFrom )
 								LIST_FORALL( output->sendto, idx_sendto, SOCKADDR*, sendto )
 								{
 									//BuildAddr( addr2, sendto );
-									//Log3( WIDE("Received (%d bytes) from %s to %s"), size, addr, addr2 );
+									//Log3( "Received (%d bytes) from %s to %s", size, addr, addr2 );
                            sent=1;
 									SendUDPEx( output->socket
 												, buffer
@@ -162,7 +162,7 @@ void CPROC UDPRead( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *saFrom )
 
 void RemoveRoute( PROUTE route )
 {
-	Log1( WIDE("Removeing route: %s"), route->name );
+	Log1( "Removeing route: %s", route->name );
 	ReleaseAddress( route->listen_addr );
 	//ReleaseAddress( route->out );
    //ReleaseAddress( route->sendto );
@@ -175,7 +175,7 @@ void RemoveRoute( PROUTE route )
 
 void RemoveOutputRoute( PROUTE input, PROUTE_OUTPUT route )
 {
-	Log1( WIDE("Removeing route: %s"), route->name );
+	Log1( "Removeing route: %s", route->name );
 	ReleaseAddress( route->socket_addr );
 	//ReleaseAddress( route->out );
    //ReleaseAddress( route->sendto );
@@ -206,12 +206,12 @@ PROUTE_OUTPUT CreateOutput( TEXTCHAR *name, SOCKADDR *addr, SOCKADDR *sendto )
 	{
 		route = (PROUTE_OUTPUT)Allocate( sizeof( *route ) );
 		MemSet( route, 0, sizeof( *route ) );
-		snprintf( route->name, sizeof( route->name ), WIDE("%s"), name?name:WIDE("unnamed") );
+		snprintf( route->name, sizeof( route->name ), "%s", name?name:"unnamed" );
       /*
 		{
 			TEXTCHAR saFrom[32];
 			BuildAddr( saFrom, addr );
-			lprintf( WIDE("Output socket = %s"), saFrom );
+			lprintf( "Output socket = %s", saFrom );
 			}
          */
 		route->socket_addr = addr;
@@ -233,7 +233,7 @@ PROUTE CreateInput( TEXTCHAR *name, SOCKADDR *addr )
 	{
 		uint16_t port;
 		GetAddressParts( addr, NULL, &port );
-		bind_addr = CreateSockAddress( WIDE("0.0.0.0"), port );
+		bind_addr = CreateSockAddress( "0.0.0.0", port );
 	}
 	LIST_FORALL( inputs, idx, PROUTE, route )
 	{
@@ -244,7 +244,7 @@ PROUTE CreateInput( TEXTCHAR *name, SOCKADDR *addr )
 	{
 		route = (PROUTE)Allocate( sizeof( *route ) );
 		MemSet( route, 0, sizeof( *route ) );
-		snprintf( route->name, sizeof( route->name ), WIDE("%s"), name?name:WIDE("unnamed") );
+		snprintf( route->name, sizeof( route->name ), "%s", name?name:"unnamed" );
 		route->listen_addr = addr;
 		{
 			uint16_t port;
@@ -273,7 +273,7 @@ void AddRoute( TEXTCHAR *route_name
 	{
 		TEXTCHAR blah[32];
       BuildAddr( blah, out );
-		lprintf( WIDE("output bind addr %s:%d= %s"), dest_name, dest_port, blah );
+		lprintf( "output bind addr %s:%d= %s", dest_name, dest_port, blah );
 		}
       */
 	output = CreateOutput( route_name
@@ -281,11 +281,11 @@ void AddRoute( TEXTCHAR *route_name
 												  , CreateSockAddress( ipto, to_port ) );
 	AddLink( &route->outputs, output );
 
-	lprintf( WIDE("Adding Route %s: %s:%d %s:%d sendto %s:%d")
+	lprintf( "Adding Route %s: %s:%d %s:%d sendto %s:%d"
 			 , route_name
-			 , src_name?src_name:WIDE("0.0.0.0"), src_port
-			 , dest_name?dest_name:WIDE("0.0.0.0"), dest_port
-			 , ipto?ipto:WIDE("BAD ADDRESS"), to_port);
+			 , src_name?src_name:"0.0.0.0", src_port
+			 , dest_name?dest_name:"0.0.0.0", dest_port
+			 , ipto?ipto:"BAD ADDRESS", to_port);
 
   // route->in = CreateSockAddress( src_name, src_port );
 
@@ -321,7 +321,7 @@ void BeginRouting( void )
 						{
 							TEXTCHAR szAddr[54];
 							BuildAddr( szAddr, other->socket_addr );
-                     lprintf( WIDE("serving at %s"), szAddr );
+                     lprintf( "serving at %s", szAddr );
 							}
                      */
 						other->socket = ServeUDPAddr( other->socket_addr, UDPRead, UDPClose );
@@ -331,11 +331,11 @@ void BeginRouting( void )
 							SetNetworkLong( other->socket, NL_ROUTE, (uintptr_t)start );
 							SetNetworkLong( other->socket, NL_OTHER, (uintptr_t)start->listen );
 							SetNetworkLong( start->listen, NL_OTHER, (uintptr_t)other->socket );
-							Log( WIDE("Successfully mated listener with retransmitter, and vice versa") );
+							Log( "Successfully mated listener with retransmitter, and vice versa" );
 						}
 						else
 						{
-							lprintf( WIDE("Failed to open retrans side of %s"), other->name );
+							lprintf( "Failed to open retrans side of %s", other->name );
 							RemoveOutputRoute( start, other );
 						}
 					}
@@ -344,7 +344,7 @@ void BeginRouting( void )
 		}
 		else
 		{
-			lprintf( WIDE("Failed to open listener for route %s."), start->name );
+			lprintf( "Failed to open listener for route %s.", start->name );
 			RemoveRoute( start );
 		}
 	}
@@ -369,7 +369,7 @@ void ReadConfig( FILE *file )
 		len = strlen( buffer );
 		if( len == 255 )
 		{
-			Log( WIDE("FATAL: configuration line is just toooo long.") );
+			Log( "FATAL: configuration line is just toooo long." );
 			break;
 		}
 		buffer[len] = 0; len--; // terminate (remove '\n')
@@ -386,17 +386,17 @@ void ReadConfig( FILE *file )
 			end++;
 		if( !end[0] )
 		{
-			//Log( WIDE("No name field, assuming no route on line.") );
+			//Log( "No name field, assuming no route on line." );
 			continue;
 		}
 		end[0] = 0;
 
-		if( !strcmp( start, WIDE("sockets") ) )
+		if( !strcmp( start, "sockets" ) )
 		{
 			wSockets = atoi( end+1 );
 			if( !wSockets )
 				wSockets = DEFAULT_SOCKETS;
-			Log1( WIDE("Setting socket limit to %d sockets"), wSockets );
+			Log1( "Setting socket limit to %d sockets", wSockets );
 		}
       else
 		{
@@ -409,7 +409,7 @@ void ReadConfig( FILE *file )
 				end++;
 			if( !end[0] )
 			{
-				Log( WIDE("Only found one address on the line... invalid route.") );
+				Log( "Only found one address on the line... invalid route." );
 				continue;
 			}
 			end[0] = 0;
@@ -435,7 +435,7 @@ void ReadConfig( FILE *file )
 				end[0] = 0;
 			addr3 = start;
 
-			lprintf( WIDE("3 things : [%s][%s][%s]"), addr1, addr2, addr3 );
+			lprintf( "3 things : [%s][%s][%s]", addr1, addr2, addr3 );
 			AddRoute( name, addr1, 25001, addr2, 25004, addr3, 25001 );
 		}
 	}
@@ -448,11 +448,11 @@ SaneWinMain( argc, argv )
 	FILE *file;
 	TEXTCHAR *filename;
 	if( argc < 2 )
-		filename = WIDE("forward.conf");
+		filename = "forward.conf";
 	else
 		filename = argv[1];
 
-   file = sack_fopen( 0, filename, WIDE("rb") );
+   file = sack_fopen( 0, filename, "rb" );
 
 	SetSystemLog( SYSLOG_FILE, stdout );
    SystemLogTime( SYSLOG_TIME_HIGH|SYSLOG_TIME_DELTA );
@@ -460,7 +460,7 @@ SaneWinMain( argc, argv )
 
 	if( !file )
 	{
-		Log1( WIDE("Could not locate %s in current directory."), filename );
+		Log1( "Could not locate %s in current directory.", filename );
 		return -1;
 	}
 	ReadConfig( file );
@@ -468,12 +468,12 @@ SaneWinMain( argc, argv )
 
 	if( !NetworkWait( 0, wSockets, 5 ) )
 	{
-		Log( WIDE("Could not begin network!") );
+		Log( "Could not begin network!" );
 		return -1;
 	}
 
 	BeginRouting();
-   Log( WIDE("Ready!") );
+   Log( "Ready!" );
 	while( 1 )
 		Sleep( 100000 );
 	return 0;

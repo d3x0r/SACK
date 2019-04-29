@@ -28,7 +28,7 @@ static PSERVICE_CLIENT AddClient( PSERVICE_ROUTE pid )
 		PSERVICE_CLIENT client = FindClient( pid );
 		if( client )
 		{
-			//Log( WIDE("Client has reconnected?!?!?!") );
+			//Log( "Client has reconnected?!?!?!" );
 			// reconnect is done when requesting a service from
 			// a server that supplies one or more services itself...
 			// suppose we can just let him continue...
@@ -44,7 +44,7 @@ static PSERVICE_CLIENT AddClient( PSERVICE_ROUTE pid )
 		client->flags.valid = 1;
 		LinkThing( g.clients, client );
 		g.clients = client;
-		//Log( WIDE("Added client...") );
+		//Log( "Added client..." );
 		return client;
 	}
 }
@@ -73,7 +73,7 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 	if( !_InitMessageService( service?FALSE:TRUE ) )
 	{
 #ifdef DEBUG_MSGQ_OPEN
-		lprintf( WIDE("Load of %s message service failed."), service );
+		lprintf( "Load of %s message service failed.", service );
 #endif
 		return NULL;
 	}
@@ -113,7 +113,7 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 		pHandler->RouteID.source.process_id = g.my_message_id;
 		pHandler->RouteID.source.service_id = 0;
 
-		//lprintf( WIDE("Allocating local structure which manages our connection to this service...") );
+		//lprintf( "Allocating local structure which manages our connection to this service..." );
  
 		// MsgInfo is used both on the send and receives the
 		// responce from the service...
@@ -126,14 +126,14 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 															, service, (StrLen( service ) + 1) *sizeof(TEXTCHAR) // include NUL
 															) )
 		{
-			Log( WIDE("Transact message timeout.") );
+			Log( "Transact message timeout." );
 			Release( pHandler );
 			LeaveCriticalSec( &g.csLoading );
 			return NULL;
 		}
 		if( MsgID != (MSG_ServiceLoad|SERVER_SUCCESS) )
 		{
-			lprintf( WIDE("Server reports it failed to load [%s] (%08") _MsgID_f WIDE("!=%08" ) _MsgID_f WIDE(")")
+			lprintf( "Server reports it failed to load [%s] (%08" _MsgID_f "!=%08" _MsgID_f ")"
 					 , service
 					 , MsgID
 					 , (MSGIDTYPE)(MSG_ServiceLoad|SERVER_SUCCESS) );
@@ -144,11 +144,11 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 		// uncorrectable anymore.
 		//if( MsgLen == 16 )
 		//{
-		//	lprintf( WIDE("Old server load service responce... lacks the PID of the event handler.") );
+		//	lprintf( "Old server load service responce... lacks the PID of the event handler." );
 		//}
 		if( MsgLen != sizeof( msg ) )
 		{
-			lprintf( WIDE("Server responce was the wrong length!!! %") _size_f WIDE(" expecting %")_size_f, MsgLen, sizeof( msg ) );
+			lprintf( "Server responce was the wrong length!!! %" _size_f " expecting %"_size_f, MsgLen, sizeof( msg ) );
 			Release( pHandler );
 			LeaveCriticalSec( &g.csLoading );
 			return NULL;
@@ -164,18 +164,18 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 		//InitializeCriticalSec( &pHandler->csMsgTransact );
 		pHandler->RouteID.dest.process_id = g.my_message_id;
 		pHandler->RouteID.dest.service_id = 0;
-		pHandler->servicename = StrDup( WIDE("local_events") );
+		pHandler->servicename = StrDup( "local_events" );
 
 		msg.ServiceID = 0; // this is a special event channel to myself.
 
-		//lprintf( WIDE("opening local only service... we're making up numbers here.") );
+		//lprintf( "opening local only service... we're making up numbers here." );
 		if( g.pLocalEventThread )
 		{
 			msg.thread = GetThreadID( g.pLocalEventThread );
 		}
 		else
 		{
-			lprintf( WIDE("Event message system has not started correctly...") );
+			lprintf( "Event message system has not started correctly..." );
 			Release( pHandler );
 			LeaveCriticalSec( &g.csLoading );
 			return NULL;
@@ -187,7 +187,7 @@ static PSERVICE_ROUTE _LoadService( CTEXTSTR service
 	{
 		//pHandler = Allocate( sizeof( EVENTHANDLER ) + strlen( service?service:"local_events" ) );
 		//strcpy( pHandler->servicename, service?service:"local_events" );
-		//lprintf( WIDE("Allocating local structure which manages our connection to this service...") );
+		//lprintf( "Allocating local structure which manages our connection to this service..." );
 		pHandler->flags.destroyed = 0;
 		pHandler->flags.dispatched = 0;
 
@@ -261,25 +261,25 @@ CLIENTMSG_PROC( void, UnloadService )( CTEXTSTR name )
 	if( pHandler )
 	{
 		MSGIDTYPE Responce;
-		//lprintf( WIDE("Unload service: %s"), pHandler->servicename );
+		//lprintf( "Unload service: %s", pHandler->servicename );
 		if( pHandler->flags.local_service )
 		{
-			//lprintf( WIDE("Local service... resulting quick success...") );
+			//lprintf( "Local service... resulting quick success..." );
 			Responce = (MSG_ServiceUnload)|SERVER_SUCCESS;
 		}
 		else
 		{
-			//lprintf( WIDE("Requesting message %d from %d "), MSG_ServiceUnload , pHandler->MsgBase );
+			//lprintf( "Requesting message %d from %d ", MSG_ServiceUnload , pHandler->MsgBase );
 			Responce = ((MSG_ServiceUnload)|SERVER_SUCCESS);
 			if( !TransactServerMessage( &pHandler->RouteID
 											  , MSG_ServiceUnload, NULL, 0
 											  , &Responce/*NULL*/, NULL, 0 ) )
 			{
-				lprintf( WIDE("Transaction to ServiceUnload failed...") );
+				lprintf( "Transaction to ServiceUnload failed..." );
 			}
 			else if( Responce != ((MSG_ServiceUnload)|SERVER_SUCCESS) )
 			{
-				lprintf( WIDE("Server reports it failed to unload the service %08") _MsgID_f WIDE(" %08") _MsgID_f WIDE("")
+				lprintf( "Server reports it failed to unload the service %08" _MsgID_f " %08" _MsgID_f ""
 						 , Responce, (MSGIDTYPE)((MSG_ServiceUnload)|SERVER_SUCCESS) );
 			// no matter what the result, this must still release this
 			// resource....
@@ -293,11 +293,11 @@ CLIENTMSG_PROC( void, UnloadService )( CTEXTSTR name )
 
 		UnlinkThing( pHandler );
 
-		//lprintf( WIDE("Release? wow release hangs forever?") );
+		//lprintf( "Release? wow release hangs forever?" );
 		//Release( pHandler );
 		if( 0 && !g.pHandlers )
 		{
-			Log( WIDE("No more services loaded - killing threads, disconnecting") );
+			Log( "No more services loaded - killing threads, disconnecting" );
 			if( g.pLocalEventThread )
 			{
 				EndThread( g.pLocalEventThread );
@@ -315,10 +315,10 @@ CLIENTMSG_PROC( void, UnloadService )( CTEXTSTR name )
 			g.flags.message_handler_ready = 0;
 			g.flags.message_responce_handler_ready = 0;
 		}
-		//Log( WIDE("Done unloading services...") );
+		//Log( "Done unloading services..." );
 		return;
 	}
-	Log( WIDE("Service was already Unloaded!?!?!?!?!?") );
+	Log( "Service was already Unloaded!?!?!?!?!?" );
 }
 
 

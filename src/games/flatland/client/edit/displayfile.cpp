@@ -42,7 +42,7 @@ void ResetDisplay( PDISPLAY display )
 
 int WriteDisplayInfo( INDEX iWorld, /*FILE *file, */PDISPLAY display )
 {
-   FILE *file = sack_fopen( 0, WIDE("display_file_named_by_world"), WIDE("wb") );
+   FILE *file = sack_fopen( 0, "display_file_named_by_world", "wb" );
    //-------------------------------
    // Version 1: lacked bShowGrid Flag
    // Version 2: lacked display scale
@@ -54,7 +54,7 @@ int WriteDisplayInfo( INDEX iWorld, /*FILE *file, */PDISPLAY display )
 	size_t sz = 0;
 	int version;
 	size_t pos;
-	sz += fwrite( WIDE("DISP"), 1, 4, file );
+	sz += fwrite( "DISP", 1, 4, file );
 	pos = ftell( file );
 	sz += fwrite( &sz, 1, sizeof( sz ), file );
 	sz = 0;
@@ -96,7 +96,7 @@ int WriteDisplayInfo( INDEX iWorld, /*FILE *file, */PDISPLAY display )
 
 int ReadDisplayInfo(INDEX iWorld,  PDISPLAY display )
 {
-	FILE *file = sack_fopen( 0, WIDE("display_file_named_by_world"), WIDE("rb") );
+	FILE *file = sack_fopen( 0, "display_file_named_by_world", "rb" );
 	size_t sz = 0;
 	if( file ){
 		int version, size;
@@ -104,7 +104,7 @@ int ReadDisplayInfo(INDEX iWorld,  PDISPLAY display )
 		sz = fread( section, 1, 4, file );
 		section[4] = 0;
 		if( sz &&
-		    !StrCmp( section, WIDE("DISP") ) )
+		    !StrCmp( section, "DISP" ) )
 		{
 			fread( &size, 1, sizeof( size ), file );
 			sz = 0;
@@ -147,12 +147,12 @@ int ReadDisplayInfo(INDEX iWorld,  PDISPLAY display )
 			if( version > 4 )
 			{
 				if( sz != size )
-					Log2( WIDE("Display section size %d was not %d"), sz, size );
+					Log2( "Display section size %d was not %d", sz, size );
 			}
 		}
 		else
 		{
-			Log1( WIDE("Display information was not present - setting defaults...(%d)"), sz );
+			Log1( "Display information was not present - setting defaults...(%d)", sz );
 			ResetDisplay( display );
 		}
 	fclose( file );

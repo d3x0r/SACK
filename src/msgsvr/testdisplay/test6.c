@@ -21,16 +21,16 @@ int main( void )
 	PCOMMON display[2];
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();
-	SetSystemLog( SYSLOG_FILENAME, WIDE("Test3.Log") );
+	SetSystemLog( SYSLOG_FILENAME, "Test3.Log" );
 	//SetAllocateLogging( TRUE );
 
 	SetControlImageInterface( GetImageInterface() );
 	SetControlInterface( GetDisplayInterface() );
 
-	display[0] = CreateFrame( WIDE("Frame 1"), 50, 50, 150, 150, 0, NULL );
+	display[0] = CreateFrame( "Frame 1", 50, 50, 150, 150, 0, NULL );
 	DisplayFrame( display[0] );
 
-	display[1] = CreateFrame( WIDE("Frame 2"), 100, 100, 150, 150, 0, NULL );
+	display[1] = CreateFrame( "Frame 2", 100, 100, 150, 150, 0, NULL );
 	DisplayFrame( display[1] );
 
    OpenDisplaySizedAt( 0, 250, 250, 50, 50 );

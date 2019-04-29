@@ -93,7 +93,7 @@ void *GetNodeData( PSPACENODE node )
 	if( node )
 	{
 		if( !node->data )
-			lprintf( WIDE("Node without data!") );
+			lprintf( "Node without data!" );
 		return node->data;
 	}
 	return NULL;
@@ -111,25 +111,25 @@ PSPACENODE GetDirtyNode( void *p, P_IMAGE_RECTANGLE rect )
 	INDEX idx;
 	// this is actually a funny way of geteting
 	// the first node in the list...
-	//lprintf( WIDE("Getting a dirty node... ") );
+	//lprintf( "Getting a dirty node... " );
 	EnterCriticalSec( &csSpace );
-	//lprintf( WIDE("pDirtyNodes = %p"), pDirtyNodes );
+	//lprintf( "pDirtyNodes = %p", pDirtyNodes );
 	LIST_FORALL( pDirtyNodes, idx, PSPACENODE, node )
 	{
 		if( !node->flags.bDirty )
 		{
-			lprintf( WIDE("Node was not dirty (anymore)?") );
+			lprintf( "Node was not dirty (anymore)?" );
 			SetLink( &pDirtyNodes, idx, NULL );
 			continue;
 		}
 #ifdef DIRTY_NODE_DEBUG
-		lprintf( WIDE("%p == %p? "), p, GetNodeData( node ) );
+		lprintf( "%p == %p? ", p, GetNodeData( node ) );
 #endif
 		if( !p || ( GetNodeData( node ) == p ) )
 		{
 		// mark all nodes cleaned.
 #ifdef DIRTY_NODE_DEBUG
-			lprintf( WIDE("Resulting with %p"), node );
+			lprintf( "Resulting with %p", node );
 #endif
 			SetLink( &pDirtyNodes, idx, NULL );
 			if( rect )
@@ -145,7 +145,7 @@ PSPACENODE GetDirtyNode( void *p, P_IMAGE_RECTANGLE rect )
 		}
 	}
 #ifdef DIRTY_NODE_DEBUG
-	lprintf( WIDE("Done...") );
+	lprintf( "Done..." );
 #endif
 	LeaveCriticalSec( &csSpace );
 	return NULL;
@@ -190,7 +190,7 @@ void MarkNodeDirty( PSPACENODE node, P_IMAGE_RECTANGLE rect )
 		if( !node->flags.bDirty )
 		{
 #ifdef DIRTY_NODE_DEBUG
-			lprintf( WIDE("Adding dirty node ... %p "), node );
+			lprintf( "Adding dirty node ... %p ", node );
 #endif
 			if( rect )
 				node->dirty = *rect;
@@ -203,13 +203,13 @@ void MarkNodeDirty( PSPACENODE node, P_IMAGE_RECTANGLE rect )
 			}
 			node->flags.bDirty = 1;
 			AddLink( &pDirtyNodes, node );
-			//lprintf( WIDE("pDirtyNodes = %p"), pDirtyNodes );
+			//lprintf( "pDirtyNodes = %p", pDirtyNodes );
 		}
 //#ifdef DIRTY_NODE_DEBUG
 		else
 		{
 			//AddLink( &pDirtyNodes, node );
-			//lprintf( WIDE("skipping dirty node(already dirty)...expanding rect? %p "), node );
+			//lprintf( "skipping dirty node(already dirty)...expanding rect? %p ", node );
 			MergeRectangles( &node->dirty, rect );
 		}
 //#endif
@@ -233,7 +233,7 @@ PSPACENODE FindDeepestNode( PSPACENODE root, int level )
 	{
 		if( level > deepest )
 		{
-			//Log2( WIDE("Deepest: %d %08x"), level, root );
+			//Log2( "Deepest: %d %08x", level, root );
 			deepest = level;
 			pDeepest = root;
 		}
@@ -255,11 +255,11 @@ void ValidateSpaceTreeEx( PSPACENODE root DBG_PASS )
 		if( root->area[i] )
 		{
 			if( root->area[i]->me != &root->area[i] )
-				_xlprintf(LOG_NOISE DBG_RELAY)( WIDE(":Node in quadrant %d does not reference itself..?")
+				_xlprintf(LOG_NOISE DBG_RELAY)( ":Node in quadrant %d does not reference itself..?"
 					 , i );
 			if( root->area[i]->parent != root )
 			{
-				_xlprintf(LOG_NOISE DBG_RELAY)( WIDE(":Node %p in quadrant %d does not reference me?(%p)")
+				_xlprintf(LOG_NOISE DBG_RELAY)( ":Node %p in quadrant %d does not reference me?(%p)"
 					 , root->area[i], i, root->area[i]->parent );
 				//DumpSpaceTree( root );
 			}
@@ -281,7 +281,7 @@ void ValidateSpaceRoot( PSPACENODE chunk DBG_PASS )
 		{
 			if( ((uintptr_t)((*root)->parent)) & 3 )
 			{
-				Log( WIDE("We're in trouble - attempting to fix...") );
+				Log( "We're in trouble - attempting to fix..." );
 				(*root)->parent = (PSPACENODE)((uintptr_t)((*root)->parent) + 1 );
 			}
 			root = (*root)->parent->me;
@@ -304,7 +304,7 @@ PSPACENODE *GrabSpace( PSPACENODE node )
 			*(node->me) = NULL;
 		while( node->parent )
 		{
-			//Log2( WIDE("Updating %08x's children from %d"), node->parent, node->parent->children );
+			//Log2( "Updating %08x's children from %d", node->parent, node->parent->children );
 			//node->parent->children -= node->children + 1;
 			node->parent = node->parent->parent;
 		}
@@ -413,7 +413,7 @@ PSPACENODE RemoveSpaceNode2( PSPACENODE *root, PSPACENODE space )
 	PSPACENODE last, chunk, next;
 	if( !space )
 	{
-		Log( WIDE("Couldn't remove nothing") );
+		Log( "Couldn't remove nothing" );
 		return NULL;
 	}
 
@@ -424,7 +424,7 @@ PSPACENODE RemoveSpaceNode2( PSPACENODE *root, PSPACENODE space )
 		space = space->prior;
 	if( !chunk->me || *chunk->me != chunk )
 	{
-		Log1( WIDE("Couldn't remove something already removed (%p)"), chunk );
+		Log1( "Couldn't remove something already removed (%p)", chunk );
 		return NULL;
 	}
 
@@ -463,7 +463,7 @@ PSPACENODE RemoveSpaceNode2( PSPACENODE *root, PSPACENODE space )
 	if( chunk )
 	{
 		if( !chunk->next )
-			Log( WIDE("We're screwed! should be 2 nodes - the original, and one other") );
+			Log( "We're screwed! should be 2 nodes - the original, and one other" );
 		if( chunk != space )
 		{
 #ifdef PARTITION_SCREEN
@@ -486,9 +486,9 @@ PSPACENODE RemoveSpaceNode2( PSPACENODE *root, PSPACENODE space )
 	}
 	if( space->prior || space->next )
 	{
-		Log( WIDE("Fatal - removed node is not solitary...") );
+		Log( "Fatal - removed node is not solitary..." );
 	}
-	//Log( WIDE("This should be non null result...") );
+	//Log( "This should be non null result..." );
 	return space;
 }
 
@@ -502,21 +502,21 @@ PSPACENODE RemoveSpaceNode( PSPACENODE space )
 	PSPACENODE *root;
 	if( !space )
 	{
-		Log( WIDE("Couldn't remove nothing") );
+		Log( "Couldn't remove nothing" );
 		return NULL;
 	}
 	// first chunk may not actually be IN the tree... but just track
 	// the space for rehanging as a child removed and rehung..
 	if( space->prior )
 	{
-		Log( WIDE("***Removing a node which is not the master... may be bad!") );
+		Log( "***Removing a node which is not the master... may be bad!" );
 	}
 	chunk = space;
 	while( chunk->next )
 		chunk = chunk->next;
 	if( !chunk->me || *chunk->me != chunk )
 	{
-		Log1( WIDE("Couldn't remove something already removed (%p)"), chunk );
+		Log1( "Couldn't remove something already removed (%p)", chunk );
 		return NULL;
 	}
 	last = chunk; 		  // keep this for second stage looping...
@@ -527,23 +527,23 @@ PSPACENODE RemoveSpaceNode( PSPACENODE space )
 		{
 			if( ((uintptr_t)((*root)->parent)) & 3 )
 			{
-				Log( WIDE("We're in trouble - attempting to fix...") );
+				Log( "We're in trouble - attempting to fix..." );
 				(*root)->parent = (PSPACENODE)((uintptr_t)((*root)->parent) + 1 );
 			}
-			//Log3( WIDE("step to root...%08x %08x %08x"), (*root), (*root)->parent, (*root)->parent->me );
+			//Log3( "step to root...%08x %08x %08x", (*root), (*root)->parent, (*root)->parent->me );
 			root = (*root)->parent->me;
 		}
-		//Log( WIDE("step to root Final...") );
+		//Log( "step to root Final..." );
 		root = (*root)->me; // step back one more - REAL root of tree.
 	}
 
 	while( chunk && ( chunk->prior || ( !chunk->next && !chunk->prior ) ) )
 	{
-		//Log( WIDE("To grab chunk...") );
+		//Log( "To grab chunk..." );
 		GrabSpace( chunk ); // space->me is NOT valid...
 		//chunk->children = 0;
 		chunk = chunk->prior;
-		//Log3( WIDE("Grabbed a chunk...%08x %08x %08x"), chunk, (chunk)?chunk->prior:0, (chunk)?chunk->next:0 );
+		//Log3( "Grabbed a chunk...%08x %08x %08x", chunk, (chunk)?chunk->prior:0, (chunk)?chunk->next:0 );
 	}
 
 	chunk = last;
@@ -552,19 +552,19 @@ PSPACENODE RemoveSpaceNode( PSPACENODE space )
 		for( i = 0; i < AREAS; i++ )
 			if( chunk->area[i] )
 			{
-				//Log( WIDE("Rehang child of me...") );
+				//Log( "Rehang child of me..." );
 				// if this was linked to itself within the same node
 				// then by now it is currently unlinked from itself, and
 				// this part of this loop would not run... therefore it
 				// should be safe and never hit this point...
 				if( chunk->area[i]->data == space->data )
 				{
-					Log( WIDE("DIE DIE! we're hanging on ourselves still :(") );
+					Log( "DIE DIE! we're hanging on ourselves still :(" );
 				}
 				HangSpaceNode( root, RemoveSpaceNode2( root, chunk->area[i] ) );
 				if( chunk->area[i] )
 				{
-					Log( WIDE("Removal failed somehow - or perhaps we requeued more?") );
+					Log( "Removal failed somehow - or perhaps we requeued more?" );
 					chunk->area[i] = NULL; // lose information :(
 				}
 			}
@@ -585,10 +585,10 @@ PSPACENODE RemoveSpaceNode( PSPACENODE space )
 	if( chunk )
 	{
 		if( !chunk->next )
-			Log( WIDE("We're screwed! should be 2 nodes - the original, and one other") );
+			Log( "We're screwed! should be 2 nodes - the original, and one other" );
 		if( chunk != space )
 		{
-			Log( WIDE("Abnormal chunk space linking - but that's ok...") );
+			Log( "Abnormal chunk space linking - but that's ok..." );
 #ifdef PARTITION_SCREEN
 			space->min[0] = chunk->min[0];
 			space->min[1] = chunk->min[1];
@@ -609,20 +609,20 @@ PSPACENODE RemoveSpaceNode( PSPACENODE space )
 	}
 	if( space->prior || space->next )
 	{
-		Log( WIDE("Fatal - removed node is not solitary...") );
+		Log( "Fatal - removed node is not solitary..." );
 	}
 	/*
-	Log4( WIDE("This should be non null result...%08x %08x %08x %08x"), space->prior, space->next, space->parent, space->me );
+	Log4( "This should be non null result...%08x %08x %08x %08x", space->prior, space->next, space->parent, space->me );
 	for( i = 0; i < AREAS; i++ )
 	{
-		Log1( WIDE("My areas are: %08x"), space->area[i] );
+		Log1( "My areas are: %08x", space->area[i] );
 	}
 	if( root && *root )
 	{
-		Log4( WIDE("This should be non null result...%08x %08x %08x %08x"), (*root)->prior, (*root)->next, (*root)->parent, (*root)->me );
+		Log4( "This should be non null result...%08x %08x %08x %08x", (*root)->prior, (*root)->next, (*root)->parent, (*root)->me );
 		for( i = 0; i < AREAS; i++ )
 		{
-			Log1( WIDE("My areas are: %08x"), (*root)->area[i] );
+			Log1( "My areas are: %08x", (*root)->area[i] );
 		}
 	}
 	*/
@@ -637,7 +637,7 @@ PSPACENODE FindPointInSpace( PSPACENODE root, PSPACEPOINT p, int (*Validate)(voi
 	while( root )
 	{
 #ifdef FIND_DEBUG
-		lprintf( WIDE("Finding point in space: %08x  %d,%d in (%d,%d)-(%d,%d)")
+		lprintf( "Finding point in space: %08x  %d,%d in (%d,%d)-(%d,%d)"
 				 , root
 				 , p[0], p[1]
 				 , root->min[0], root->min[1]
@@ -685,7 +685,7 @@ PSPACENODE FindPointInSpace( PSPACENODE root, PSPACEPOINT p, int (*Validate)(voi
 		{
 			if( Validate )
 			{
-				//Log2( WIDE("Validating data %08x->%08x"), root, root->data );
+				//Log2( "Validating data %08x->%08x", root, root->data );
 				SPACEPOINT x;
 				PSPACENODE node = root;
 #ifdef PARTITION_SCREEN
@@ -700,7 +700,7 @@ PSPACENODE FindPointInSpace( PSPACENODE root, PSPACEPOINT p, int (*Validate)(voi
 				// this should be an option - but this application
 					  // this is the desired effect.
 #ifdef FIND_DEBUG
-				lprintf( WIDE("Pass this off to validation routine ...") );
+				lprintf( "Pass this off to validation routine ..." );
 #endif
 				if( Validate( root->data, x ) )
 					return root;
@@ -754,9 +754,9 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 	// what to do if no stack?!
 	// well - we could pray?
 #ifdef FIND_DEBUG
-	Log5( WIDE("- Findinging area: min(%ld,%ld) max(%ld,%ld) level %d"), min[0], min[1], max[0], max[1], ++levels );
+	Log5( "- Findinging area: min(%ld,%ld) max(%ld,%ld) level %d", min[0], min[1], max[0], max[1], ++levels );
 	if( root )
-		Log5( WIDE("- Node: %p min(%ld,%ld) max(%ld,%ld)"), root
+		Log5( "- Node: %p min(%ld,%ld) max(%ld,%ld)", root
 					, root->min[0], root->min[1]
 					, root->max[0], root->max[1] );
 #endif
@@ -776,7 +776,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 		while( root )
 		{
 #ifdef FIND_DEBUG
-			Log5( WIDE("* Findinging area: min(%ld,%ld) max(%ld,%ld) level %d"), min[0], min[1], max[0], max[1], levels );
+			Log5( "* Findinging area: min(%ld,%ld) max(%ld,%ld) level %d", min[0], min[1], max[0], max[1], levels );
 #endif
 			if( max[0] < root->min[0] )
 			{
@@ -858,7 +858,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 					if( max[1] < root->min[1] )
 					{
 #ifdef FIND_DEBUG
-						lprintf( WIDE("--- to upper left") );
+						lprintf( "--- to upper left" );
 #endif
 						if( root->area[AREA_UPPERLEFT] )
 							InternalFindRectInSpaceEx( root->area[AREA_UPPERLEFT], newmin, newmax, stack, FALSE DBG_RELAY );
@@ -866,7 +866,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 					else if( min[1] > root->max[1] )
 					{
 #ifdef FIND_DEBUG
-						lprintf( WIDE("--- to lower left") );
+						lprintf( "--- to lower left" );
 #endif
 						if( root->area[AREA_LOWERLEFT] )
 							InternalFindRectInSpaceEx( root->area[AREA_LOWERLEFT], newmin, newmax, stack, FALSE DBG_RELAY );
@@ -881,7 +881,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 							newmax2[0] = newmax[0];
 							newmax2[1] = root->min[1] - 1;
 #ifdef FIND_DEBUG
-							lprintf( WIDE("--- to upper left") );
+							lprintf( "--- to upper left" );
 #endif
 							if( root->area[AREA_UPPERLEFT] )
 							{
@@ -896,7 +896,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 							newmax2[0] = newmax[0];
 							newmax2[1] = newmax[1];
 #ifdef FIND_DEBUG
-							lprintf( WIDE("--- to lower left") );
+							lprintf( "--- to lower left" );
 #endif
 							if( root->area[AREA_LOWERLEFT] )
 								InternalFindRectInSpaceEx( root->area[AREA_LOWERLEFT], newmin2, newmax2, stack, FALSE DBG_RELAY );
@@ -905,7 +905,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 						newmax[1] = root->max[1];
 						// remaining part to the left.
 #ifdef FIND_DEBUG
-						lprintf( WIDE("--- to left") );
+						lprintf( "--- to left" );
 #endif
 						if( root->area[AREA_LEFT] )
 							InternalFindRectInSpaceEx( root->area[AREA_LEFT], newmin, newmax, stack, FALSE DBG_RELAY );
@@ -923,7 +923,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 					if( max[1] < root->min[1] )
 					{
 #ifdef FIND_DEBUG
-						lprintf( WIDE("--- to upper right") );
+						lprintf( "--- to upper right" );
 #endif
 						if( root->area[AREA_UPPERRIGHT] )
 							InternalFindRectInSpaceEx( root->area[AREA_UPPERRIGHT], newmin, newmax, stack, FALSE DBG_RELAY );
@@ -931,7 +931,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 					else if( min[1] > root->max[1] )
 					{
 #ifdef FIND_DEBUG
-						lprintf( WIDE("--- to lower right") );
+						lprintf( "--- to lower right" );
 #endif
 						if( root->area[AREA_LOWERRIGHT] )
 							InternalFindRectInSpaceEx( root->area[AREA_LOWERRIGHT], newmin, newmax, stack, FALSE DBG_RELAY );
@@ -947,7 +947,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 							newmax2[1] = root->min[1] - 1;
 							newmin[1] = root->min[1];
 #ifdef FIND_DEBUG
-							lprintf( WIDE("--- to upper right") );
+							lprintf( "--- to upper right" );
 #endif
 							if( root->area[AREA_UPPERRIGHT] )
 								InternalFindRectInSpaceEx( root->area[AREA_UPPERRIGHT], newmin2, newmax2, stack, FALSE DBG_RELAY );
@@ -961,14 +961,14 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 							newmax2[1] = newmax[1];
 							newmax[1] = root->max[1];
 #ifdef FIND_DEBUG
-							lprintf( WIDE("--- to lower right") );
+							lprintf( "--- to lower right" );
 #endif
 							if( root->area[AREA_LOWERRIGHT] )
 								InternalFindRectInSpaceEx( root->area[AREA_LOWERRIGHT], newmin2, newmax2, stack, FALSE DBG_RELAY );
 						}
 						// remaining part to the left.
 #ifdef FIND_DEBUG
-						lprintf( WIDE("--- to  right") );
+						lprintf( "--- to  right" );
 #endif
 						if( root->area[AREA_RIGHT] )
 							InternalFindRectInSpaceEx( root->area[AREA_RIGHT], newmin, newmax, stack, FALSE DBG_RELAY );
@@ -1014,7 +1014,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 						frd.min[1] = min[1];
 						frd.node = root;
 #ifdef FIND_DEBUG
-						Log6( WIDE("Observing node: %p(%p) result (%ld,%ld)-(%ld,%ld)")
+						Log6( "Observing node: %p(%p) result (%ld,%ld)-(%ld,%ld)"
 							 , frd.node
 							 , frd.node->data
 							 , min[0], min[1]
@@ -1044,7 +1044,7 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 		PFIND_RECT_DATA data;
 //      if( DequeData( findstack, (POINTER)&data ) )
 #ifdef FIND_DEBUG
-		Log1( WIDE("return Stack: %d"), (*stack)->Top );
+		Log1( "return Stack: %d", (*stack)->Top );
 #endif
 		if( ( data = (PFIND_RECT_DATA)PopData( stack ) ) )
 		{
@@ -1053,18 +1053,18 @@ static PSPACENODE InternalFindRectInSpaceEx( PSPACENODE root
 			max[0] = data->max[0];
 			max[1] = data->max[1];
 #ifdef FIND_DEBUG
-			lprintf( WIDE("result to (%d,%d)-(%d,%d) %p"), min[0], min[1], max[0], max[1], data->node );
+			lprintf( "result to (%d,%d)-(%d,%d) %p", min[0], min[1], max[0], max[1], data->node );
 #endif
 			return data->node;
 		}
-		//Log( WIDE("No more data - clear find data stack...") );
+		//Log( "No more data - clear find data stack..." );
 		//findstack = NULL;
 //		DeleteDataQueue( findstack );
 		//DeleteDataStackEx( findstack DBG_RELAY );
 		//LeaveCriticalSec( &csSpace );
 		return NULL;	
 	}
-	//Log( WIDE("No get node result...") );
+	//Log( "No get node result..." );
 	//LeaveCriticalSec( &csSpace );
 	return NULL;
 }
@@ -1088,7 +1088,7 @@ PSPACENODE FindRectInSpaceEx( PSPACENODE root
 	PSPACENODE node;
 	static uint32_t entering;
 	static int bLocks;
-	//Log( WIDE("No find stack (first call)") );
+	//Log( "No find stack (first call)" );
 	// allow multiple people to do a find in the list
 	// that is harmless... and lock it while all people finding are still busy
 
@@ -1099,10 +1099,10 @@ PSPACENODE FindRectInSpaceEx( PSPACENODE root
 	{
 		if((max[0] < min[0]) || (max[1] < min[1]))
 		{
-			Log( WIDE("Aborting on range failure.") );
+			Log( "Aborting on range failure." );
 			return NULL;
 		}
-	//lprintf( WIDE("Initial find started with a root.  Create a stack.") );
+	//lprintf( "Initial find started with a root.  Create a stack." );
 		do
 		{
 			for( nDataFinder = 0; nDataFinder < 16; nDataFinder++ )
@@ -1128,34 +1128,34 @@ PSPACENODE FindRectInSpaceEx( PSPACENODE root
 		Relinquish();
 	if( !bLocks )
 	{
-		//lprintf( WIDE("First find to start... %p %p"), root, *stack );
+		//lprintf( "First find to start... %p %p", root, *stack );
 		EnterCriticalSec( &csSpace );
 		((PFINDDATA)(*stack))->bLocked = 1;
 	}
 	if( root )
 	{
-		//_xlprintf( DBG_AVAILABLE DBG_RELAY )( WIDE("New stack... incrementing locks from %d to %d"), bLocks, bLocks + 1 );
+		//_xlprintf( DBG_AVAILABLE DBG_RELAY )( "New stack... incrementing locks from %d to %d", bLocks, bLocks + 1 );
 		bLocks++;
 	}
 	entering = 0;
 
-	//lprintf( WIDE("Begin finding a node...") );
+	//lprintf( "Begin finding a node..." );
 	node = InternalFindRectInSpaceEx( root, min, max, &((PFINDDATA)(*stack))->pds, TRUE DBG_RELAY );
-	//lprintf( WIDE("resulted with a node ... %p %p"), root, node );
+	//lprintf( "resulted with a node ... %p %p", root, node );
 	if( !node )
 	{
-		//_xlprintf(1 DBG_RELAY)( WIDE("Final node was returned from the stack. %ld %d")
+		//_xlprintf(1 DBG_RELAY)( "Final node was returned from the stack. %ld %d"
 		//		 , bLocks
 		 ///  	 , ((PFINDDATA)(*stack))->bLocked );
 		//DeleteDataStackEx( &((PFINDDATA)(*stack))->pds DBG_RELAY );
 		while( LockedExchange( &entering, 1 ) )
 			Idle();
-		//_xlprintf( DBG_AVAILABLE DBG_RELAY )( WIDE("last node result... unlocking from %d to %d"), bLocks, bLocks - 1 );
+		//_xlprintf( DBG_AVAILABLE DBG_RELAY )( "last node result... unlocking from %d to %d", bLocks, bLocks - 1 );
 		--bLocks;
 		while( ((PFINDDATA)(*stack))->bLocked && bLocks )
 		{
 			entering = 0;
-			//lprintf( WIDE("Waiting for another stupid thread is finding... waiting for him to finish.") );
+			//lprintf( "Waiting for another stupid thread is finding... waiting for him to finish." );
 			do
 			{
 				Relinquish();
@@ -1163,12 +1163,12 @@ PSPACENODE FindRectInSpaceEx( PSPACENODE root
 		}
 		if( !bLocks && ((PFINDDATA)(*stack))->bLocked )
 		{
-			//lprintf( WIDE("Final find leaving section.") );
+			//lprintf( "Final find leaving section." );
 			LeaveCriticalSec( &csSpace );
 		}
 		else
 		{
-			//lprintf( WIDE("Non final find leaving...%d,%d"), bLocks, ((PFINDDATA)(*stack))->bLocked );
+			//lprintf( "Non final find leaving...%d,%d", bLocks, ((PFINDDATA)(*stack))->bLocked );
 		}
 
 		if( bLocks && ((PFINDDATA)(*stack))->bLocked )
@@ -1201,7 +1201,7 @@ static PSPACENODE DuplicateSpaceNodeEx( PSPACENODE space DBG_PASS )
 {
 	PSPACENODE dup = GetFromSet( SPACENODE, SpaceNodes );
 	MemSet( dup, 0, sizeof( SPACENODE ) );
-	//Log1( WIDE("DuP!%d"), CountUsedInSet( SPACENODE, SpaceNodes )  );
+	//Log1( "DuP!%d", CountUsedInSet( SPACENODE, SpaceNodes )  );
 	dup->data = space->data;
 #ifdef PARTITION_SCREEN
 	dup->min[0] = space->min[0];
@@ -1216,7 +1216,7 @@ static PSPACENODE DuplicateSpaceNodeEx( PSPACENODE space DBG_PASS )
 		space->next->prior = dup;
 	dup->prior = space;
 	space->next = dup;
-	//Log( WIDE("Duplicating Node...") );
+	//Log( "Duplicating Node..." );
 	return dup;
 }
 
@@ -1231,7 +1231,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 		return;
 	//EnterCriticalSec( &csSpace );
 #ifdef HANG_DEBUG
-	Log5( WIDE("Adding area: min(%d,%d) max(%d,%d) level %d"), space->min[0], space->min[1], space->max[0], space->max[1], ++levels );
+	Log5( "Adding area: min(%d,%d) max(%d,%d) level %d", space->min[0], space->min[1], space->max[0], space->max[1], ++levels );
 #endif
 	while( ( here = *root ) )
 	{
@@ -1241,7 +1241,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 			//char name[256], rootname[256];
 			//GetNameText( rootname, ((PSECTOR)here->data)->name );
 			//GetNameText( name, ((PSECTOR)space->data)->name );
-			Log10( WIDE("adding node (%08x)(%d,%d)-(%d,%d) under (%08x)(%d,%d)(%d,%d)")
+			Log10( "adding node (%08x)(%d,%d)-(%d,%d) under (%08x)(%d,%d)(%d,%d)"
 								, space
 								, space->min[0]
 								, space->min[1]
@@ -1258,12 +1258,12 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 		if( space->max[0] < here->min[0] ) // space is left of here total.
 		{
 #ifdef HANG_DEBUG
-			Log( WIDE("Total area is to the left.") );
+			Log( "Total area is to the left." );
 #endif
 			if( space->max[1] < here->min[1] ) // space is above this.
 			{
 #ifdef HANG_DEBUG
-				Log1( WIDE("Total area to upper left....%d"), __LINE__ );
+				Log1( "Total area to upper left....%d", __LINE__ );
 #endif
 				parent = here;
 				root = here->area + AREA_UPPERLEFT;
@@ -1271,7 +1271,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 			else if( space->min[1] > here->max[1] ) // space is below this.
 			{
 #ifdef HANG_DEBUG
-				Log1( WIDE("Total area to lower left....%d"), __LINE__ );
+				Log1( "Total area to lower left....%d", __LINE__ );
 #endif
 				parent = here;
 				root = here->area + AREA_LOWERLEFT;
@@ -1287,7 +1287,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 						space = DupNodeEx( space DBG_LEVEL );
 					dup->max[1] = here->min[1] - 1;
 #ifdef HANG_DEBUG
-					Log1( WIDE("clipped top part, and hangning part is to upper left....%d"), __LINE__ );
+					Log1( "clipped top part, and hangning part is to upper left....%d", __LINE__ );
 #endif
 					
 					HangSpaceNodeExx( here->area + AREA_UPPERLEFT, here, dup DBG_LEVEL );
@@ -1299,12 +1299,12 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 						space = DupNodeEx( space DBG_LEVEL );
 					dup->min[1] = here->max[1] + 1;
 #ifdef HANG_DEBUG
-					Log1( WIDE("clipped bottom part, hang clip to lower left....%d"), __LINE__ );
+					Log1( "clipped bottom part, hang clip to lower left....%d", __LINE__ );
 #endif
 					HangSpaceNodeExx( here->area + AREA_LOWERLEFT, here, dup DBG_LEVEL );
 				}
 #ifdef HANG_DEBUG
-				Log1( WIDE("This (remaining?) part is to the left....%d"), __LINE__ );
+				Log1( "This (remaining?) part is to the left....%d", __LINE__ );
 #endif
 				parent = here;
 				root = here->area + AREA_LEFT;
@@ -1313,13 +1313,13 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 		else if( space->min[0] > here->max[0] ) // space is right of this one...
 		{
 #ifdef HANG_DEBUG
-			Log( WIDE("Total area is to the right.") );
+			Log( "Total area is to the right." );
 #endif
 			// UPPER_RIGHT is handled above when space is above and right.
 			if( space->min[1] > here->max[1] ) // space is below this one
 			{
 #ifdef HANG_DEBUG
-				Log1( WIDE("Total area is right and below this....%d"), __LINE__ );
+				Log1( "Total area is right and below this....%d", __LINE__ );
 #endif
 				parent = here;
 				root = here->area + AREA_LOWERRIGHT;
@@ -1327,7 +1327,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 			else if( space->max[1] < here->min[1] ) // space is above this.
 			{
 #ifdef HANG_DEBUG
-				Log1( WIDE("Total area to upper right....%d"), __LINE__ );
+				Log1( "Total area to upper right....%d", __LINE__ );
 #endif
 				parent = here;
 				root = here->area + AREA_UPPERRIGHT;
@@ -1343,7 +1343,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 						space = DupNodeEx( space DBG_LEVEL );
 					dup->min[1] = here->max[1] + 1;
 #ifdef HANG_DEBUG
-					Log1( WIDE("This part is to lower right....%d"), __LINE__ );
+					Log1( "This part is to lower right....%d", __LINE__ );
 #endif
 					HangSpaceNodeExx( here->area + AREA_LOWERRIGHT, here, dup DBG_LEVEL );
 				}
@@ -1354,12 +1354,12 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 						space = DupNodeEx( space DBG_LEVEL );
 					dup->max[1] = here->min[1] - 1;
 #ifdef HANG_DEBUG
-					Log1( WIDE("This part is to upper right....%d"), __LINE__ );
+					Log1( "This part is to upper right....%d", __LINE__ );
 #endif
 					HangSpaceNodeExx( here->area + AREA_UPPERRIGHT, here, dup DBG_LEVEL );
 				}
 #ifdef HANG_DEBUG
-				Log1( WIDE("This (remaining?) part is to the right....%d"), __LINE__ );
+				Log1( "This (remaining?) part is to the right....%d", __LINE__ );
 #endif
 				parent = here;
 				root = here->area + AREA_RIGHT;
@@ -1375,27 +1375,27 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 				dup->max[0] = here->min[0] - 1;
 				space->min[0] = here->min[0];
 #ifdef HANG_DEBUG
-				Log( WIDE("Clipped left piece off....") );
+				Log( "Clipped left piece off...." );
 #endif
 				{
 					if( dup->max[1] < here->min[1] )
 					{
 #ifdef HANG_DEBUG
-						Log( WIDE("Clipped piece is to the upper left of here") );
+						Log( "Clipped piece is to the upper left of here" );
 #endif
 						HangSpaceNodeExx( here->area + AREA_UPPERLEFT, here, dup DBG_LEVEL );
 					}
 					else if( dup->min[1] > here->max[1] )
 					{
 #ifdef HANG_DEBUG
-						Log( WIDE("Clipped piece is to the upper right of here") );
+						Log( "Clipped piece is to the upper right of here" );
 #endif
 						HangSpaceNodeExx( here->area + AREA_LOWERLEFT, here, dup DBG_LEVEL );
 					}
 					else 
 					{	
 #ifdef HANG_DEBUG
-						Log8( WIDE("Dup min(%d,%d) max(%d,%d) here min(%d,%d)  max(%d,%d)"), 
+						Log8( "Dup min(%d,%d) max(%d,%d) here min(%d,%d)  max(%d,%d)", 
 									dup->min[0], dup->min[1],
 									dup->max[0], dup->max[1],
 									here->min[0], here->min[1],
@@ -1405,7 +1405,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 						{
 							PSPACENODE dup2 = DupNodeEx( dup DBG_LEVEL );
 #ifdef HANG_DEBUG
-							Log( WIDE("Clipped piece is up and left of here (hang clip)") );
+							Log( "Clipped piece is up and left of here (hang clip)" );
 #endif
 							dup2->max[1] = here->min[1] - 1;
 							dup->min[1] = here->min[1];
@@ -1415,14 +1415,14 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 						{
 							PSPACENODE dup2 = DupNodeEx( dup DBG_LEVEL );
 #ifdef HANG_DEBUG
-							Log( WIDE("Clipped piece is below and left of here") );
+							Log( "Clipped piece is below and left of here" );
 #endif
 							dup2->min[1] = here->max[1] + 1;
 							dup->max[1] = here->max[1];
 							HangSpaceNodeExx( here->area + AREA_LOWERLEFT, here, dup2 DBG_LEVEL );
 						}
 #ifdef HANG_DEBUG
-						Log( WIDE("Remaining piece is to the left of here.") );
+						Log( "Remaining piece is to the left of here." );
 #endif
 						HangSpaceNodeExx( here->area + AREA_LEFT, here, dup DBG_LEVEL );
 					}
@@ -1436,20 +1436,20 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 				dup->min[0] = here->max[0] + 1;
 				space->max[0] = here->max[0];
 #ifdef HANG_DEBUG
-				Log( WIDE("Clipped right piece off...") );
+				Log( "Clipped right piece off..." );
 #endif
 				{
 					if( dup->max[1] < here->min[1] )
 					{
 #ifdef HANG_DEBUG
-						Log( WIDE("Clipped piece is to the upper right of here") );
+						Log( "Clipped piece is to the upper right of here" );
 #endif
 						HangSpaceNodeExx( here->area + AREA_UPPERRIGHT, here, dup DBG_LEVEL );
 					}
 					else if( dup->min[1] > here->max[1] )
 					{
 #ifdef HANG_DEBUG
-						Log( WIDE("Clipped piece is to the lower right of here") );
+						Log( "Clipped piece is to the lower right of here" );
 #endif
 						HangSpaceNodeExx( here->area + AREA_LOWERRIGHT, here, dup DBG_LEVEL );
 					}
@@ -1461,7 +1461,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 							dup2->max[1] = here->min[1] - 1;
 							dup->min[1] = here->min[1];
 #ifdef HANG_DEBUG
-							Log( WIDE("Clipped piece is to the right and up of here") );
+							Log( "Clipped piece is to the right and up of here" );
 #endif
 							HangSpaceNodeExx( here->area + AREA_UPPERRIGHT, here, dup2 DBG_LEVEL );
 						}
@@ -1471,12 +1471,12 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 							dup2->min[1] = here->max[1] + 1;
 							dup->max[1] = here->max[1];
 #ifdef HANG_DEBUG
-							Log( WIDE("Clipped piece is to the right and below of here") );
+							Log( "Clipped piece is to the right and below of here" );
 #endif
 							HangSpaceNodeExx( here->area + AREA_LOWERRIGHT, here, dup2 DBG_LEVEL );
 						}
 #ifdef HANG_DEBUG
-						Log( WIDE("Remaining piece is to the right of here") );
+						Log( "Remaining piece is to the right of here" );
 #endif
 						HangSpaceNodeExx( here->area + AREA_RIGHT, here, dup DBG_LEVEL );
 					}
@@ -1488,7 +1488,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 			if( space->max[1] < here->min[1] )
 			{
 #ifdef HANG_DEBUG
-				Log( WIDE("Total piece remaining is up from here") );
+				Log( "Total piece remaining is up from here" );
 #endif
 				parent = here;
 				root =here->area + AREA_UP;
@@ -1496,7 +1496,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 			else if( space->min[1] > here->max[1] )
 			{
 #ifdef HANG_DEBUG
-				Log( WIDE("Total piece remaining is down from here") );
+				Log( "Total piece remaining is down from here" );
 #endif
 				parent = here;
 				root =here->area + AREA_DOWN;
@@ -1507,7 +1507,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 				if( space->min[1] < here->min[1] )
 				{
 #ifdef HANG_DEBUG
-					Log( WIDE("Part of this is up") );
+					Log( "Part of this is up" );
 #endif
 					dup = DupNodeEx( space DBG_LEVEL );
 					if( !(space->prior) )
@@ -1519,7 +1519,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 				if( space->max[1] > here->max[1] )
 				{
 #ifdef HANG_DEBUG
-					Log( WIDE("Part of this is down") );
+					Log( "Part of this is down" );
 #endif
 					dup = DupNodeEx( space DBG_LEVEL );
 					if( !(space->prior) )
@@ -1529,7 +1529,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 					HangSpaceNodeExx( here->area + AREA_DOWN, here, dup DBG_LEVEL );
 				}
 #ifdef HANG_DEBUG
-				Log( WIDE("Any (remaining?) part is HERE") );
+				Log( "Any (remaining?) part is HERE" );
 #endif
 				parent = here;
 				root = here->area + AREA_HERE;
@@ -1539,7 +1539,7 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 
 	{
 #ifdef HANG_DEBUG
-		Log2( WIDE(" -- Added space node %08x %08x-- "), space, parent );
+		Log2( " -- Added space node %08x %08x-- ", space, parent );
 #endif
 		space->parent = parent;
 		*root = space;
@@ -1568,16 +1568,16 @@ PSPACENODE AddSpaceNodeEx( PSPACENODE *root, void *data, PSPACEPOINT min, PSPACE
 {
 	PSPACENODE space;
 	if( !data )
-		Log( WIDE("Storing NULL data?!") );
+		Log( "Storing NULL data?!" );
 #ifdef HANG_DEBUG
-	Log1( WIDE("Adding node for %08x"), data );
+	Log1( "Adding node for %08x", data );
 #endif
 	if( !root )
 	{
-		Log( WIDE("Cannot add a node to an unreferenced tree (root = NULL)") );
+		Log( "Cannot add a node to an unreferenced tree (root = NULL)" );
 		return NULL; // can't add to a non tree...
 	}
-	//Log1( WIDE("Add Space Node : %d"), CountUsedInSet( SPACENODE, SpaceNodes ) );
+	//Log1( "Add Space Node : %d", CountUsedInSet( SPACENODE, SpaceNodes ) );
 	space = GetFromSet( SPACENODE, SpaceNodes );
 	MemSet( space, 0, sizeof( SPACENODE ) );
 #ifdef PARTITION_SCREEN
@@ -1594,7 +1594,7 @@ PSPACENODE AddSpaceNodeEx( PSPACENODE *root, void *data, PSPACEPOINT min, PSPACE
 	{
 		char name[256];
 		//GetNameText( name, ((PSECTOR)data)->name );
-		Log1( WIDE("---- Building nodes for %p ----"), data );
+		Log1( "---- Building nodes for %p ----", data );
 	}
 #endif
 	EnterCriticalSec( &csSpace );
@@ -1620,7 +1620,7 @@ void MoveSpace( PSPACENODE *root, PSPACENODE space, PSPACEPOINT min, PSPACEPOINT
 
 void DeleteSpaceNode( PSPACENODE node )
 {
-	//Log( WIDE("Delete Node?") );
+	//Log( "Delete Node?" );
 	if( node )
 	{
 		DeleteFromSet( SPACENODE, SpaceNodes, node );
@@ -1637,12 +1637,12 @@ void DeleteSpaceTree( PSPACENODE *root )
 		// any dirty nodes queued are now invalid.
 		EnterCriticalSec( &csSpace );
 		DeleteList( &pDirtyNodes );
-		//lprintf( WIDE("pDirtyNodes = %p"), pDirtyNodes );
+		//lprintf( "pDirtyNodes = %p", pDirtyNodes );
 	}
 	del_level++;
 	if( *root )
 	{
-		//Log( WIDE("Deleting a node... "));
+		//Log( "Deleting a node... ");
 		here = *root;
 		*root = NULL;
 		for( i = 0; i < AREAS; i++ )
@@ -1701,17 +1701,17 @@ int CountSpaces( PSPACENODE space )
 
 void WriteSpaceNodeEx( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT max )
 {
-	Log4( WIDE("(%d) Node(%p) under %p has %d parts")
+	Log4( "(%d) Node(%p) under %p has %d parts"
 					, levels, WriteNode, WriteNode->parent, CountSpaces( WriteNode ) );
 #ifdef PARTITION_SCREEN
-	Log5( WIDE("(%") _32f WIDE(",%") _32f WIDE(")-(%") _32f WIDE(",%") _32f WIDE(") data %p")
+	Log5( "(%" _32f ",%" _32f ")-(%" _32f ",%" _32f ") data %p"
 					, min[0]
 					, min[1]
 					, max[0]
 					, max[1]
 		 , node?node->data:(POINTER)psv );
 #else
-	Log7( WIDE("(%g,%g,%g)-(%g,%g,%g) data %08x")
+	Log7( "(%g,%g,%g)-(%g,%g,%g) data %08x"
 					, min[0]
 					, min[1]
 					, min[2]
@@ -1753,7 +1753,7 @@ void WalkSpaceTreeEx( PSPACENODE root
 			if( root->area[i] )
 			{
 				if( Callback == WriteSpaceNodeEx )
-					Log1( WIDE("Q%d:"), i );
+					Log1( "Q%d:", i );
 				WalkSpaceTreeEx( root->area[i], Callback, psv );
 		  	}
 		}
@@ -1783,7 +1783,7 @@ void WalkSpaceTree( PSPACENODE root
 			if( root->area[i] )
 			{
 				if( Callback == WriteSpaceNode )
-					Log1( WIDE("Q%d:"), i );
+					Log1( "Q%d:", i );
 				WalkSpaceTree( root->area[i], Callback );
 		  	}
 		}
@@ -1803,11 +1803,11 @@ void BrowseSpaceTreeEx( PSPACENODE root
 	WalkSpaceTreeEx( root, Callback, psv );
 	if( Callback == WriteSpaceNodeEx )
 	{
-		Log2( WIDE("Max levels of nodes: %d total: %d")
+		Log2( "Max levels of nodes: %d total: %d"
 						, maxlevels
 						, nodecount
 				);
-		Log( WIDE("----------------------------------------") );
+		Log( "----------------------------------------" );
 	}	
 }
 
@@ -1822,11 +1822,11 @@ void BrowseSpaceTree( PSPACENODE root
 	WalkSpaceTree( root, Callback );
 	if( Callback == WriteSpaceNode )
 	{
-		Log2( WIDE("Max levels of nodes: %d total: %d")
+		Log2( "Max levels of nodes: %d total: %d"
 						, maxlevels
 						, nodecount
 				);
-		Log( WIDE("----------------------------------------") );
+		Log( "----------------------------------------" );
 	}	
 }
 
@@ -1853,7 +1853,7 @@ void BuildTableGrid( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOIN
 	int i,f,m; // initial, final, mid
 	i = 0;
 	f = table->cols - 1;
-		  xlprintf(LOG_ALWAYS)( WIDE("Node %p is %")_32fs WIDE(",%") _32fs WIDE(" - %") _32fs WIDE(",%") _32fs, node, min[0], min[1], max[0], max[1] );
+		  xlprintf(LOG_ALWAYS)( "Node %p is %"_32fs ",%" _32fs " - %" _32fs ",%" _32fs, node, min[0], min[1], max[0], max[1] );
 	while( i <= f )
 	{
 		m = (f+i)/2;
@@ -1869,7 +1869,7 @@ void BuildTableGrid( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOIN
 	{
 		int n;
 		int *new_widths = NewArray( int, table->cols+1 );
-		lprintf( WIDE( "New min[0]" ) );
+		lprintf( "New min[0]" );
 		table->cols++;
 		for( n = 0; n < table->cols; n++ )
 		{
@@ -1908,7 +1908,7 @@ void BuildTableGrid( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOIN
 	{
 		int n;
 		int *new_widths = NewArray( int, table->cols+1 );
-		lprintf( WIDE( "New max[0]" ) );
+		lprintf( "New max[0]" );
 		table->cols++;
 		for( n = 0; n < table->cols; n++ )
 		{
@@ -1947,7 +1947,7 @@ void BuildTableGrid( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOIN
 	{
 		int n;
 		int *new_heights = NewArray( int, (table->rows+1) );
-		lprintf( WIDE( "New min[1]" ) );
+		lprintf( "New min[1]" );
 		table->rows++;
 		for( n = 0; n < table->rows; n++ )
 		{
@@ -1985,7 +1985,7 @@ void BuildTableGrid( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOIN
 		int n;
 		int *new_heights = NewArray( int, (table->rows+1) );
 		table->rows++;
-		lprintf( WIDE( "New max[1]" ) );
+		lprintf( "New max[1]" );
 		for( n = 0; n < table->rows; n++ )
 		{
 			if( n == (table->rows-1) || (max[1]+1) < table->row_height[n] )
@@ -2067,7 +2067,7 @@ void FitTableGrid( uintptr_t psv, PSPACENODE node, PSPACEPOINT min, PSPACEPOINT 
 				SetLink( &table->row_cells, m2, CreateList() );
 			node->col_span = n - m;
 			node->row_span = n2 - m2;
-			lprintf( WIDE( "Set image %p(%p) section %d,%d to width %d,%d" ), node, node->data, m, m2, node->col_span, node->row_span );
+			lprintf( "Set image %p(%p) section %d,%d to width %d,%d", node, node->data, m, m2, node->col_span, node->row_span );
 			SetLink( (PLIST*)GetLinkAddress( &table->row_cells, m2 ), m, node );
 		}
 		else
@@ -2175,11 +2175,11 @@ void OutputHTMLSpaceTable( PSPACENODE root
 		int n;
 		for( n = 0; n < table->cols; n++ )
 		{
-			lprintf( WIDE( "col %d is %d" ), n, table->col_width[n] );
+			lprintf( "col %d is %d", n, table->col_width[n] );
 		}
 		for( n = 0; n < table->rows; n++ )
 		{
-			lprintf( WIDE( "row %d is %d" ), n, table->row_height[n] );
+			lprintf( "row %d is %d", n, table->row_height[n] );
 		}
 	}
 	BrowseSpaceTreeEx( root, FitTableGrid, (uintptr_t)table );
@@ -2190,17 +2190,17 @@ void OutputHTMLSpaceTable( PSPACENODE root
 		{
 			int n;
 
-			vtprintf( pvt_output, WIDE( "<colgroup>" ) );
+			vtprintf( pvt_output, "<colgroup>" );
 			for( n = 0; n < (table->cols-1); n++ )
 			{
 				vtprintf( pvt_output, WIDE( "<col width=\"%d\">" ), (table->col_width[n+1]-table->col_width[n]) * 10 );
 			}
-			vtprintf( pvt_output, WIDE( "</colgroup>\n" ) );
+			vtprintf( pvt_output, "</colgroup>\n" );
 		}
 		LIST_FORALL( table->row_cells, row, PLIST, cols )
 		{
 			PSPACENODE node;
-			vtprintf( pvt_output, WIDE( "<tr>" ) );
+			vtprintf( pvt_output, "<tr>" );
 			LIST_FORALL( cols, col, PSPACENODE, node )
 			{
 				vtprintf( pvt_output, WIDE( "<td data=\"%08X\" bgcolor=\"#%06X\" colspan=\"%d\" rowspan=\"%d\">X" )
@@ -2215,12 +2215,12 @@ void OutputHTMLSpaceTable( PSPACENODE root
 					max[1] = table->row_height[row+node->row_span];
 					Callback( psv, pvt_output, node->data, min, max );
 				}
-				vtprintf( pvt_output, WIDE( "</td>" ) );
+				vtprintf( pvt_output, "</td>" );
 			}
 			// so what if this deletes the wrong reference?
-			vtprintf( pvt_output, WIDE( "</tr>\n" ) );
+			vtprintf( pvt_output, "</tr>\n" );
 		}
-		vtprintf( pvt_output, WIDE( "</table><br>\n" ) );
+		vtprintf( pvt_output, "</table><br>\n" );
 	}
 
 	GlobTableGrid( table );
@@ -2232,12 +2232,12 @@ void OutputHTMLSpaceTable( PSPACENODE root
 		{
 			int n;
 
-			vtprintf( pvt_output, WIDE( "<colgroup>" ) );
+			vtprintf( pvt_output, "<colgroup>" );
 			for( n = 0; n < (table->cols-1); n++ )
 			{
 				vtprintf( pvt_output, WIDE( "<col width=\"%d\">" ), (table->col_width[n+1]-table->col_width[n]) * 10 );
 			}
-			vtprintf( pvt_output, WIDE( "</colgroup>" ) );
+			vtprintf( pvt_output, "</colgroup>" );
 		}
 		LIST_FORALL( table->row_cells, row, PLIST, cols )
 		{
@@ -2247,7 +2247,7 @@ void OutputHTMLSpaceTable( PSPACENODE root
 			{
 				if( !output_row )
 				{
-					vtprintf( pvt_output, WIDE( "<tr>" ) );
+					vtprintf( pvt_output, "<tr>" );
 					output_row = 1;
 				}
 				vtprintf( pvt_output, WIDE( "<td data=\"%08X\" bgcolor=\"#%06X\" colspan=\"%d\" rowspan=\"%d\">Y" )
@@ -2262,14 +2262,14 @@ void OutputHTMLSpaceTable( PSPACENODE root
 					max[1] = table->row_height[row+node->row_span];
 					Callback( psv, pvt_output, node->data, min, max );
 				}
-				vtprintf( pvt_output, WIDE( "</td>" ) );
+				vtprintf( pvt_output, "</td>" );
 			}
 			// so what if this deletes the wrong reference?
 			DeleteList( &cols );
 			if( output_row )
-				vtprintf( pvt_output, WIDE( "</tr>\n" ) );
+				vtprintf( pvt_output, "</tr>\n" );
 		}
-		vtprintf( pvt_output, WIDE( "</table>" ) );
+		vtprintf( pvt_output, "</table>" );
 		DeleteList( &table->row_cells );
 		Release( table->col_width );
 		Release( table->row_height );

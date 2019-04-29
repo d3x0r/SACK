@@ -36,7 +36,7 @@ static int DoFunction(PSENTIENT  ps, PTEXT parameters, double (*f)(double) )
 			}
 			else
 			{
-				DECLTEXT( msg, WIDE("Primary Operand is not a value.") );
+				DECLTEXT( msg, "Primary Operand is not a value." );
 				EnqueLink( &ps->Command->Output, &msg );
 				return FALSE;
 			}

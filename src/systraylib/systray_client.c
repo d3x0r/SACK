@@ -40,7 +40,7 @@ static int CPROC HandleEvents( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID
 {
    int retval;
 
-	lprintf(WIDE("Welcome to EventHandler <HandleEvents>.  MsgID is %") _MsgID_f , MsgID);
+	lprintf("Welcome to EventHandler <HandleEvents>.  MsgID is %" _MsgID_f , MsgID);
 
 	if ( !param_length && !MsgID )
       return 0;
@@ -53,7 +53,7 @@ static int CPROC HandleEvents( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID
       //(*result_length) = INVALID_INDEX;
       return 0;
 	case MSG_MateStarted:
-		lprintf(WIDE("EventHandler <HandleEvents>.:MateStarted , client XX") WIDE(" is connecting to %s"), (char*)params );
+		lprintf("EventHandler <HandleEvents>.:MateStarted , client XX" " is connecting to %s", (char*)params );
 
 
       break;
@@ -63,7 +63,7 @@ static int CPROC HandleEvents( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID
 //  		}
 	default:
 		{
-			lprintf( WIDE("EventHandler <HandleEvents>.:Received message %") _MsgID_f WIDE(" from %") _32f WIDE("\n"), MsgID, 0 );
+			lprintf( "EventHandler <HandleEvents>.:Received message %" _MsgID_f " from %" _32f "\n", MsgID, 0 );
 			retval = 0;
 			break;
 		}
@@ -87,14 +87,14 @@ static int ConnectToServer( void )
       xlprintf(LOG_ALWAYS)("systray server not connected, trying to connect.");
 		//if( InitMessageService() )
       {
-         g.systrayserver.MsgBase = LoadServiceEx( WIDE("systray"), HandleEvents );
-         xlprintf(LOG_ALWAYS)( WIDE("systray message base is %p"), g.systrayserver.MsgBase );
+         g.systrayserver.MsgBase = LoadServiceEx( "systray", HandleEvents );
+         xlprintf(LOG_ALWAYS)( "systray message base is %p", g.systrayserver.MsgBase );
          if( g.systrayserver.MsgBase )
             g.systrayserver.flags.connected = 1;
       }
    }
    if( !g.systrayserver.flags.connected )
-      xlprintf(LOG_ALWAYS)( WIDE("Failed to connect") );
+      xlprintf(LOG_ALWAYS)( "Failed to connect" );
    return g.systrayserver.flags.connected;
 }
 
@@ -104,7 +104,7 @@ static int ConnectToServer( void )
 //  void CPROC clientf(Image image, int32_t x, int32_t y, CDATA c )
 //  {
 //  	if( !ConnectToServer() ) return;
-//  	//lprintf( WIDE("Do plot color...") );
+//  	//lprintf( "Do plot color..." );
 //     TransactServerMultiMessage( MSG_clientf, 4
 //                               , NULL, NULL, 0
 //                               , SafeNULL(MyImage), 2

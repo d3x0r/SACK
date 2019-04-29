@@ -30,12 +30,12 @@ static PTEXT CPROC FilterAscii( PMYDATAPATH pdp, PTEXT buffer )
 		{
 			if( ( text[0] >= 32 && text[0] < 128 )
 				|| ( text[0] == '\t' || text[0] == '\n' || text[0] == '\r' ) )
-				vtprintf( pvt, WIDE("%c"), text[0] );
+				vtprintf( pvt, "%c", text[0] );
          text++;
 		}
       // store segment by segment...
 		newsegs = SegAppend( newsegs, newseg = VarTextGet( pvt ) );
-      lprintf( WIDE("Should consider copying curbuf->flags/format to newseg...") );
+      lprintf( "Should consider copying curbuf->flags/format to newseg..." );
       curbuf = NEXTLINE( curbuf );
 	}
    LineRelease( buffer );
@@ -88,7 +88,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("text"), WIDE("Filter to ascii text..."), Open );
+   myTypeID = RegisterDevice( "text", "Filter to ascii text...", Open );
    return DekVersion;
 }
 
@@ -96,7 +96,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("text") );
+	UnregisterDevice( "text" );
 }
 // $Log: nil.c,v $
 // Revision 1.9  2005/02/21 12:08:34  d3x0r

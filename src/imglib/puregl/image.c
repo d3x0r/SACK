@@ -74,19 +74,19 @@ void MarkImageUpdated( Image child_image )
 	}
 }
 
-static void OnFirstDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psv )
+static void OnFirstDraw3d( "@00 PUREGL Image Library" )( uintptr_t psv )
 {
 	l.glActiveSurface = (struct glSurfaceData *)psv;
 }
 
-static uintptr_t OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
+static uintptr_t OnInit3d( "@00 PUREGL Image Library" )( PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
 	struct glSurfaceData *glSurface = New( struct glSurfaceData );
 	glSurface->T_Camera = camera;
 	glSurface->identity_depth = pIdentity_depty;
 	glSurface->aspect = aspect;
 	MemSet( &glSurface->shader, 0, sizeof( glSurface->shader ) );
-	lprintf( WIDE("Init library...") );
+	lprintf( "Init library..." );
 	AddLink( &l.glSurface, glSurface );
 	{
 		INDEX idx;
@@ -101,7 +101,7 @@ static uintptr_t OnInit3d( WIDE( "@00 PUREGL Image Library" ) )( PMatrix project
 	return (uintptr_t)glSurface;
 }
 
-static void OnBeginDraw3d( WIDE( "@00 PUREGL Image Library" ) )( uintptr_t psvInit, PTRANSFORM camera )
+static void OnBeginDraw3d( "@00 PUREGL Image Library" )( uintptr_t psvInit, PTRANSFORM camera )
 {
 	l.glActiveSurface = (struct glSurfaceData *)psvInit;
 	l.glImageIndex = l.glActiveSurface->index;
@@ -133,7 +133,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 		// might have no displays open, so no GL contexts...
 		if( image_data )
 		{
-			//lprintf( WIDE( "Reload %p %d" ), image, option );
+			//lprintf( "Reload %p %d", image, option );
 			// should be checked outside.
 			if( image_data->glIndex == 0 )
 			{
@@ -141,12 +141,12 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				gl_error = glGetError() ;
 				if( gl_error )
 				{
-					lprintf( WIDE("Previous error") );
+					lprintf( "Previous error" );
 				}
 				glGenTextures(1, &image_data->glIndex);			// Create One Texture
 				if( ( gl_error = glGetError() ) || !image_data->glIndex)
 				{
-					lprintf( WIDE( "gen text %d or bad surafce" ), gl_error );
+					lprintf( "gen text %d or bad surafce", gl_error );
 					return 0;
 				}
 			}
@@ -160,7 +160,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 #endif
 					//glGenTextures(3, bump); 
 				}
-				//lprintf( WIDE( "gen text %d" ), glGetError() );
+				//lprintf( "gen text %d", glGetError() );
 				// Create Linear Filtered Texture
 				image_data->flags.updated = 0;
 				glBindTexture(GL_TEXTURE_2D, image_data->glIndex);
@@ -178,7 +178,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 #endif
 				if( glGetError() )
 				{
-					lprintf( WIDE( "gen text error %d" ), glGetError() );
+					lprintf( "gen text error %d", glGetError() );
 				}
 			}
 			image->glActiveSurface = image_data->glIndex;
@@ -235,7 +235,7 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 	int  oo;
 	if( !pifDest /*|| !pifDest->image*/ )
 	{
-		lprintf( WIDE( "No dest, or no dest image." ) );
+		lprintf( "No dest, or no dest image." );
 		return;
 	}
 
@@ -257,7 +257,7 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 		r2.height = pifDest->height;
 		if( !IntersectRectangle( &r, &r1, &r2 ) )
 		{
-			//lprintf( WIDE("blat color is out of bounds (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(") (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(")")
+			//lprintf( "blat color is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 			//	, x, y, w, h
 			//	, r2.x, r2.y, r2.width, r2.height );
 			return;
@@ -265,7 +265,7 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 #ifdef DEBUG_BLATCOLOR
 		// trying to figure out why there are stray lines for DISPLAY surfaces
       // apparently it's a logic in space node min/max to region conversion
-		lprintf( WIDE("Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d ofs %d,%d %d,%d")
+		lprintf( "Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d ofs %d,%d %d,%d"
 				 , r1.x, r1.y
 				 ,r1.width, r1.height
 				 , r2.x, r2.y
@@ -349,7 +349,7 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 	}
 	else
 	{
-		//lprintf( WIDE("Blotting %d,%d - %d,%d"), x, y, w, h );
+		//lprintf( "Blotting %d,%d - %d,%d", x, y, w, h );
 		// start at origin on destination....
 #ifdef _INVERT_IMAGE
 		//y += h-1; // least address in memory.
@@ -370,7 +370,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, int32_t x, int32_t y, uint32_t w, uin
 	int  oo;
 	if( !pifDest /*|| !pifDest->image */ )
 	{
-		lprintf( WIDE( "No dest, or no dest image." ) );
+		lprintf( "No dest, or no dest image." );
 		return;
 	}
 	if( !w )
@@ -390,8 +390,8 @@ void  BlatColorAlpha ( ImageFile *pifDest, int32_t x, int32_t y, uint32_t w, uin
 		if( !IntersectRectangle( &r, &r1, &r2 ) )
 		{
          /*
-			lprintf( WIDE( "Blat color out of bounds" ) );
-		lprintf( WIDE("Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d")
+			lprintf( "Blat color out of bounds" );
+		lprintf( "Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d"
 				 , r1.x, r1.y
 				 ,r1.width, r1.height
 				 , r2.x, r2.y
@@ -401,7 +401,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, int32_t x, int32_t y, uint32_t w, uin
 			return;
 		}
 #ifdef DEBUG_BLATCOLOR
-		lprintf( WIDE("Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d")
+		lprintf( "Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d"
 				 , r1.x, r1.y
 				 ,r1.width, r1.height
 				 , r2.x, r2.y
@@ -553,7 +553,7 @@ CDATA CPROC getpixel( ImageFile *pi, int32_t x, int32_t y )
 		if( ( pi->flags & IF_FLAG_FINAL_RENDER )
 			&& !( pi->flags & IF_FLAG_IN_MEMORY ) )
 		{
-			lprintf( WIDE( "get pixel option on opengl surface" ) );
+			lprintf( "get pixel option on opengl surface" );
 		}
 		else
 		{
@@ -809,10 +809,10 @@ void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 	ReloadOpenGlTexture( pifSrc, 0 );
 	if( !pifSrc->glActiveSurface )
 	{
-		lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+		lprintf( "gl texture hasn't downloaded or went away?" );
 		return;
 	}
-	//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
+	//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
 
 	{
 		tmp->v = 0;
@@ -912,7 +912,7 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 	}
 
 	// closed loop to get the top imgae size.
-	//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
+	//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
 	GetStringSizeFontEx( string, characters, (uint32_t*)&output.real_width, (uint32_t*)&output.real_height, font );
 	SetImageTransformRelation( &output, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 	ApplyRotationT( l.camera, output.transform, VectorConst_I );
@@ -960,14 +960,14 @@ void InitShader( void )
 		result = glGetError();
 		if( result )
 		{
-				lprintf( WIDE( "fragment shader enable resulted %d" ), result );
+				lprintf( "fragment shader enable resulted %d", result );
 		}
 
  		glEnable(GL_VERTEX_PROGRAM_ARB);
 		result = glGetError();
 		if( result )
 		{
-				lprintf( WIDE( "vertext shader enable resulted %d" ), result );
+				lprintf( "vertext shader enable resulted %d", result );
 		}
 
 		{
@@ -977,7 +977,7 @@ void InitShader( void )
 			result = glGetError();
 			if( result )
 			{
-					lprintf( WIDE( "shader resulted %d" ), result );
+					lprintf( "shader resulted %d", result );
 			}
 			glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, l.glActiveSurface->shader.multi_shader);
 			{
@@ -1055,8 +1055,8 @@ void InitShader( void )
 					static char infoLog[4096];
 					int length = 0;
 					const GLubyte *tmp = glGetString(GL_PROGRAM_ERROR_STRING_ARB);
-					lprintf( WIDE( "error: %s" ), tmp);
-					lprintf( WIDE( "shader resulted %d" ), result );
+					lprintf( "error: %s", tmp);
+					lprintf( "shader resulted %d", result );
 				}
 #if 0
 				glUseProgramObjectARB( l.glActiveSurface->shader.multi_shader );
@@ -1068,8 +1068,8 @@ void InitShader( void )
 					int length = 0;
 					const GLubyte *tmp = glGetString(GL_PROGRAM_ERROR_STRING_ARB);
 					glGetInfoLogARB( l.shader.multi_shader, 4096, &length, infoLog );
-					lprintf( WIDE( "error: %s" ), tmp);
-					lprintf( WIDE( "shader resulted %d" ), result );
+					lprintf( "error: %s", tmp);
+					lprintf( "shader resulted %d", result );
 				}
 
 				{
@@ -1099,20 +1099,20 @@ void InitShader( void )
 					int indeces[10];
 
 					glGetUniformIndices(l.glActiveSurface->shader.multi_shader, 3, names, indeces);
-					lprintf( WIDE( "ya..." ) );
+					lprintf( "ya..." );
 					result = glGetError();
 					if( result )
 					{
 						const GLubyte *tmp = glGetString(GL_PROGRAM_ERROR_STRING_ARB);
-						lprintf( WIDE( "error: %s" ), tmp);
-						lprintf( WIDE( "shader resulted %d" ), result );
+						lprintf( "error: %s", tmp);
+						lprintf( "shader resulted %d", result );
 					}
 					//glGetUniform
 					result = glGetUniformLocation(l.glActiveSurface->shader.multi_shader, "c[0]");
 					result = glGetUniformLocation(l.glActiveSurface->shader.multi_shader, "c");
 
 					//glUniform1ui( l.glActiveSurface->shader.multi_shader, 0, 
-					lprintf( WIDE( "ya..." ) );
+					lprintf( "ya..." );
 				}
 #endif
 			}
@@ -1123,7 +1123,7 @@ void InitShader( void )
 			result = glGetError();
 			if( result )
 			{
-					lprintf( WIDE( "shader resulted %d" ), result );
+					lprintf( "shader resulted %d", result );
 			}
 			glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, l.glActiveSurface->shader.inverse_shader);
 			{
@@ -1206,8 +1206,8 @@ void InitShader( void )
 					static char infoLog[4096];
 					int length = 0;
 					const GLubyte *tmp = glGetString(GL_PROGRAM_ERROR_STRING_ARB);
-					lprintf( WIDE( "error: %s" ), tmp);
-					lprintf( WIDE( "shader resulted %d" ), result );
+					lprintf( "error: %s", tmp);
+					lprintf( "shader resulted %d", result );
 				}
 			}
 

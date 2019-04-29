@@ -90,7 +90,7 @@ void HTTPCollapse( PTEXT *ppText )
 			if( !PRIORLINE( input ) )
             (*ppText) = input;
 		}
-		else if( TextIs( input, WIDE("%") ) )
+		else if( TextIs( input, "%" ) )
 		{
 			PTEXT next = NEXTLINE( input );
 			if( next )
@@ -155,12 +155,12 @@ void ProcessPostCGI( PSENTIENT ps, PTEXT block )
 			state = CGI_VARNAME;
 			continue;
 		case CGI_VARNAME:
-			if( TextIs( words, WIDE("=") ) )
+			if( TextIs( words, "=" ) )
 			{
 				HTTPCollapse( &varname );
             state = CGI_VARVALUE;
 			}
-			else if( TextIs( words, WIDE("&") ) )
+			else if( TextIs( words, "&" ) )
 			{
 				// this is kinda messed up...
 				// something like varname1&varname2&varname3 with no actual value?
@@ -173,7 +173,7 @@ void ProcessPostCGI( PSENTIENT ps, PTEXT block )
 			}
          break;
 		case CGI_VARVALUE:
-			if( TextIs( words, WIDE("=") ) )
+			if( TextIs( words, "=" ) )
 			{
 				// this would be illegal... something like
 				// varname1=val1=junk3&value2&value3=1=3=4=5
@@ -181,7 +181,7 @@ void ProcessPostCGI( PSENTIENT ps, PTEXT block )
 				goto AddCGIVariable; // flush what we have... it's a confused state...
             // though after this next state is
 			}
-			else if( TextIs( words, WIDE("&") ) )
+			else if( TextIs( words, "&" ) )
 			{
 			AddCGIVariable:
 				HTTPCollapse( &varvalue );
@@ -236,7 +236,7 @@ static PTEXT CPROC HttpRead( PDATAPATH pdp, PTEXT block )
    ps = pmdp->common.Owner;
 	if( pmdp->flags.bInvalid )
 	{
-      lprintf( WIDE("Throwing away a block, the HTTP connection has reached invalidity.") );
+      lprintf( "Throwing away a block, the HTTP connection has reached invalidity." );
       LineRelease( block );
       return NULL;
 	}
@@ -294,11 +294,11 @@ static PTEXT CPROC HttpRead( PDATAPATH pdp, PTEXT block )
 					}
 					else
 					{
-						InvokeBehavior( WIDE("http.request")
+						InvokeBehavior( "http.request"
 										  , pmdp->common.Owner->Current
 										  , pmdp->common.Owner
 										  , NULL );
-						InvokeBehavior( WIDE("http_request")
+						InvokeBehavior( "http_request"
 										  , pmdp->common.Owner->Current
 										  , pmdp->common.Owner
 										  , NULL );
@@ -310,8 +310,8 @@ static PTEXT CPROC HttpRead( PDATAPATH pdp, PTEXT block )
 			}
 			else while( words )
 			{
-            DECLTEXT( page, WIDE("page") );
-            DECLTEXT( CGI, WIDE("CGI") );
+            DECLTEXT( page, "page" );
+            DECLTEXT( CGI, "CGI" );
 				// what does stuff have now?  the whole thign?  a line?
 				if( !GetTextSize( words ) ) switch( pmdp->state )
 				{
@@ -330,12 +330,12 @@ static PTEXT CPROC HttpRead( PDATAPATH pdp, PTEXT block )
                continue;  // skip ahead  and try new state;
 					break;
 				case GET_COMMAND:
-					if( TextLike( words, WIDE("GET") ) )
+					if( TextLike( words, "GET" ) )
 					{
 						pmdp->state = GET_FILENAME;
 						pmdp->flags.bGet = TRUE;
 					}
-					else if( TextLike( words, WIDE("POST") ) )
+					else if( TextLike( words, "POST" ) )
 					{
 						pmdp->state = GET_FILENAME;
 						pmdp->flags.bPost = TRUE;
@@ -346,14 +346,14 @@ static PTEXT CPROC HttpRead( PDATAPATH pdp, PTEXT block )
 					}
 					break;
 				case GET_FILENAME:
-					if( !pmdp->filename && TextIs( words, WIDE("/") ) )
+					if( !pmdp->filename && TextIs( words, "/" ) )
 					{
 						// this is rude, and should never be done,
 						// however this filter consumes all data anyhow, SO
                   // mangling this will not hurt much...
 						words->format.position.offset.spaces = 0;
 					}
-					if( TextIs( words, WIDE("?") ) || words->format.position.offset.spaces )
+					if( TextIs( words, "?" ) || words->format.position.offset.spaces )
 					{
                   if( !words->format.position.offset.spaces )
 							pmdp->state = GET_CGI;
@@ -380,17 +380,17 @@ static PTEXT CPROC HttpRead( PDATAPATH pdp, PTEXT block )
 					}
 					else
 					{
-						if( TextIs( words, WIDE("=") ) )
+						if( TextIs( words, "=" ) )
 						{
 							HTTPCollapse( &pmdp->varname );
                      pmdp->flags.bValue = 1;
 						}
-						else if( TextIs( words, WIDE("&") ) )
+						else if( TextIs( words, "&" ) )
 						{
 						AddCGIVariable:
 							HTTPCollapse( &pmdp->varvalue );
 							HTTPCollapse( &pmdp->varname );
-							if( TextLike( pmdp->varname, WIDE("content-length") ) )
+							if( TextLike( pmdp->varname, "content-length" ) )
 							{
                         pmdp->content_length= atoi( GetText( pmdp->varvalue ) );
 							}
@@ -415,13 +415,13 @@ static PTEXT CPROC HttpRead( PDATAPATH pdp, PTEXT block )
 					}
 					break;
 				case GET_HTTP_VERSION:
-					if( TextIs( words, WIDE("HTTP") ) )
+					if( TextIs( words, "HTTP" ) )
 					{
 						// okay - don't really do anything... next word is the version...
 					}
 					else
 					{
-                  // TextIs( words, WIDE("/") ); // this is a token before the number...
+                  // TextIs( words, "/" ); // this is a token before the number...
 						// Version better be something like 1.1 1.0?
 						// well wait for EOL...
 						pmdp->state = GET_HTTP_EOL;
@@ -435,7 +435,7 @@ static PTEXT CPROC HttpRead( PDATAPATH pdp, PTEXT block )
 					break;
 				case GET_HTTP_METAVAR:
 					{
-						if( !pmdp->flags.bValue && TextIs( words, WIDE(":") ) )
+						if( !pmdp->flags.bValue && TextIs( words, ":" ) )
 						{
                      pmdp->flags.bValue = TRUE;
 						}
@@ -469,8 +469,8 @@ static PTEXT CPROC HttpRead( PDATAPATH pdp, PTEXT block )
 							//AddVariable( ps, ps->Current, (PTEXT)&CGI, pmdp->content );
 							LineRelease( pmdp->content );
 
-							InvokeBehavior( WIDE("http.request"), pmdp->common.Owner->Current, pmdp->common.Owner, NULL );
-							InvokeBehavior( WIDE("http_request"), pmdp->common.Owner->Current, pmdp->common.Owner, NULL );
+							InvokeBehavior( "http.request", pmdp->common.Owner->Current, pmdp->common.Owner, NULL );
+							InvokeBehavior( "http_request", pmdp->common.Owner->Current, pmdp->common.Owner, NULL );
 							pmdp->state = RESET;
 						}
                   words = NULL;
@@ -526,16 +526,16 @@ static int CPROC Close( PDATAPATH pdp )
 
 //---------------------------------------------------------------------------
 
-static int HandleOption( WIDE("http"), WIDE("flush"), WIDE("Sends all gathered output to the requesting client (completes with content-length)") )( PDATAPATH pdp, PSENTIENT ps, PTEXT params )
+static int HandleOption( "http", "flush", "Sends all gathered output to the requesting client (completes with content-length)" )( PDATAPATH pdp, PSENTIENT ps, PTEXT params )
 {
 	PMYDATAPATH pmdp = (PMYDATAPATH)pdp;
 	PTEXT send = VarTextPeek( pmdp->pvt_result );
 	if( send )
 	{
       PVARTEXT pvt_header = VarTextCreate();
-		vtprintf( pvt_header, WIDE("HTTP-1.1 200 OK\r\n") );
-		vtprintf( pvt_header, WIDE("Context-Length: %d\r\n"), GetTextSize( send ) );
-		vtprintf( pvt_header, WIDE("\r\n") );
+		vtprintf( pvt_header, "HTTP-1.1 200 OK\r\n" );
+		vtprintf( pvt_header, "Context-Length: %d\r\n", GetTextSize( send ) );
+		vtprintf( pvt_header, "\r\n" );
       D_MSG( pdp->pPrior, GetText( VarTextPeek( pvt_header ) ) );
       D_MSG( pdp->pPrior, GetText( send ) );
       VarTextDestroy( &pvt_header );
@@ -559,9 +559,9 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
    pdp->common.Write = Write;
 	pdp->common.Close = Close;
    // burst unfriendly name.
-	AddBehavior( ps->Current, WIDE("http.request"), WIDE("http request complete, please handle request.") );
+	AddBehavior( ps->Current, "http.request", "http request complete, please handle request." );
    // burst friendly name.
-	AddBehavior( ps->Current, WIDE("http_request"), WIDE("http request complete, please handle request.") );
+	AddBehavior( ps->Current, "http_request", "http request complete, please handle request." );
    return (PDATAPATH)pdp;
 }
 
@@ -569,7 +569,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("http"), WIDE("Handles HTTP request parsing..."), Open );
+   myTypeID = RegisterDevice( "http", "Handles HTTP request parsing...", Open );
    return DekVersion;
 }
 
@@ -577,7 +577,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("http") );
+	UnregisterDevice( "http" );
 }
 // $Log: nil.c,v $
 // Revision 1.9  2005/02/21 12:08:34  d3x0r

@@ -72,7 +72,7 @@ OnCreateControl( "Launcher Launchpad" )( PSI_CONTROL frame, int32_t x, int32_t y
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( frame
-								, WIDE("Launcher Launchpad")
+								, "Launcher Launchpad"
 								, x
 								, y
 								, w

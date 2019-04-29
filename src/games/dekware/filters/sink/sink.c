@@ -61,7 +61,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("sink"), WIDE("Sink eats all output, and passes any input"), Open );
+   myTypeID = RegisterDevice( "sink", "Sink eats all output, and passes any input", Open );
    return DekVersion;
 }
 
@@ -69,7 +69,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("sink") );
+	UnregisterDevice( "sink" );
 }
 // $Log: sink.c,v $
 // Revision 1.8  2005/02/21 12:08:35  d3x0r

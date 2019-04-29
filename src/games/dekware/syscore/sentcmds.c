@@ -20,7 +20,7 @@ int KillWake( int bWake, PSENTIENT ps, PTEXT parameters )
 		pe = (PENTITY)FindThing( ps, &parameters, ps->Current, FIND_VISIBLE, NULL );
 		if( !pe )
 		{
-			vtprintf( pvt, WIDE("Kill/wake Cannot see %s."), GetText(parameters) );
+			vtprintf( pvt, "Kill/wake Cannot see %s.", GetText(parameters) );
 			EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
 			parameters = NEXTLINE( parameters ); // if find failed, parameters did not update
 		}
@@ -30,7 +30,7 @@ int KillWake( int bWake, PSENTIENT ps, PTEXT parameters )
 			{
 					if( !pe->pControlledBy )
 				{
-					vtprintf( pvt, WIDE("%s is not aware."), GetText(parameters) );
+					vtprintf( pvt, "%s is not aware.", GetText(parameters) );
 					EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
 				}
 				else if( DestroyAwareness( pe->pControlledBy ) )
@@ -40,7 +40,7 @@ int KillWake( int bWake, PSENTIENT ps, PTEXT parameters )
 				}
 				else
 				{
-					vtprintf( pvt, WIDE("%s is scheduled to be destroyed."), GetText(parameters) );
+					vtprintf( pvt, "%s is scheduled to be destroyed.", GetText(parameters) );
 						EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
 					if( ps->CurrentMacro )
 						ps->CurrentMacro->state.flags.bSuccess = TRUE;
@@ -54,7 +54,7 @@ int KillWake( int bWake, PSENTIENT ps, PTEXT parameters )
 					UnlockAwareness( ps );
 				}
 				else
-					Log1( WIDE("Failed to create awareness for %p"), pe );
+					Log1( "Failed to create awareness for %p", pe );
 			}
 		}
 	}
@@ -104,23 +104,23 @@ int CPROC CMD_RUN( PSENTIENT ps, PTEXT parameters )
 			{
 				PTEXT t;
 				 vt = VarTextCreate();
-				 vtprintf( vt, WIDE("Macro requires: ") );
+				 vtprintf( vt, "Macro requires: " );
 				 t = match->pArgs;
 				 while( t )
 				 {
-					 vtprintf( vt, WIDE("%s"), GetText( t ) );
+					 vtprintf( vt, "%s", GetText( t ) );
 					 t = NEXTLINE( t );
 					 if( t )
-						 vtprintf( vt, WIDE(", ") );
+						 vtprintf( vt, ", " );
 				}
-				vtprintf( vt, WIDE(".") );
+				vtprintf( vt, "." );
 				EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 				VarTextDestroy( &vt );
 				return FALSE; // return...
 			}
 			if( i > match->nArgs )
 			{
-				DECLTEXT( msg, WIDE("Extra parameters passed to macro. Continuing but ignoring extra.") );
+				DECLTEXT( msg, "Extra parameters passed to macro. Continuing but ignoring extra." );
 				EnqueLink( &ps->Command->Output, &msg );
 			}
 		}
@@ -150,13 +150,13 @@ void Tell( PSENTIENT ps // source
 {
 	PVARTEXT vt;
 	PENTITY peEnt;
-	//Log( WIDE("Tell being issued...") );
+	//Log( "Tell being issued..." );
 	if( !pEnt )
 	{
-		//lprintf( WIDE("Have to find our own entity...") );
+		//lprintf( "Have to find our own entity..." );
 		if( peEnt = (PENTITY)FindThing( ps, &pWhat, ps->Current, FIND_VISIBLE, NULL ) )
 		{
-			//lprintf( WIDE("Found an entity from parameters.... ") );
+			//lprintf( "Found an entity from parameters.... " );
 			if( peEnt &&
 				 peEnt->flags.bShadow )
 				peEnt = ((PSHADOW_OBJECT)peEnt)->pForm;
@@ -165,8 +165,8 @@ void Tell( PSENTIENT ps // source
 		else
 		{
 			vt = VarTextCreate();
-			//lprintf( WIDE("Cannot see entity: %s"), GetText( pWhat ) );
-			vtprintf( vt, WIDE("Tell cannot see entity: %s"), GetText( pWhat ) );
+			//lprintf( "Cannot see entity: %s", GetText( pWhat ) );
+			vtprintf( vt, "Tell cannot see entity: %s", GetText( pWhat ) );
 			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 			VarTextDestroy( &vt );
 		}
@@ -177,7 +177,7 @@ void Tell( PSENTIENT ps // source
 		PTEXT pFrom;
 
 		//line = BuildLine( pWhat );
-		//lprintf( WIDE("Entity was given to us...[%s]"), GetText( line ) );
+		//lprintf( "Entity was given to us...[%s]", GetText( line ) );
 		//LineRelease( line );
 
 		ps->pLastTell = pEnt->Current;
@@ -202,7 +202,7 @@ void Tell( PSENTIENT ps // source
 		peEnt->pControlledBy = NULL;
 		ps->Current = peMe;
 
-		//DECLTEXT( msg, WIDE("Object is not aware.") );
+		//DECLTEXT( msg, "Object is not aware." );
 		// this state should never happen anymore
 		//EnqueLink( &ps->Command->Output, &msg );
 	}
@@ -224,7 +224,7 @@ int CPROC REPLY( PSENTIENT ps, PTEXT parameters )
 		{
 			if( !( psReplyTo = ps->pToldBy ) )
 			{
-				DECLTEXT( msg, WIDE("Reply may only be used from a macro, or last command was not a tell."));
+				DECLTEXT( msg, "Reply may only be used from a macro, or last command was not a tell.");
 				EnqueLink( &ps->Command->Output, &msg );
 				return FALSE;
 			}
@@ -283,7 +283,7 @@ int CPROC DELAY( PSENTIENT ps, PTEXT parameters )
 	PTEXT temp;
 	if( !ps->CurrentMacro )
 	{
-		DECLTEXT( msg, WIDE("Must be in a macro to execute a /DELAY") );
+		DECLTEXT( msg, "Must be in a macro to execute a /DELAY" );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -293,7 +293,7 @@ int CPROC DELAY( PSENTIENT ps, PTEXT parameters )
 		len = atoi( GetText( temp ) );
 		if( !len )
 		{
-			DECLTEXT( msg, WIDE("Invalid delay length...") );
+			DECLTEXT( msg, "Invalid delay length..." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 		else
@@ -301,7 +301,7 @@ int CPROC DELAY( PSENTIENT ps, PTEXT parameters )
 			if( !ps->flags.resume_run )
 			{
 				ps->flags.scheduled = 1;
-				lprintf( WIDE("Setting wait on thread.") );
+				lprintf( "Setting wait on thread." );
 				AddTimerEx( len, 0, TimerWake, (uintptr_t)ps );
 				ps->CurrentMacro->state.flags.data.delay_end = GetTickCount() + len;
 				ps->CurrentMacro->state.flags.macro_delay = TRUE;
@@ -316,11 +316,11 @@ int CPROC GetDelay( PSENTIENT ps, PTEXT parameters )
 {
 	PVARTEXT vt;
 	if( !ps->CurrentMacro )
-		ps->pLastResult = SegCreateFromText( WIDE("0") );
+		ps->pLastResult = SegCreateFromText( "0" );
 	else
 	{
 		vt = VarTextCreate();
-		vtprintf( vt, WIDE("%ld")
+		vtprintf( vt, "%ld"
 					, ps->CurrentMacro->state.flags.data.delay_end );
 		ps->pLastResult = VarTextGet( vt );
 	}
@@ -333,7 +333,7 @@ int CPROC CMD_WAIT( PSENTIENT ps, PTEXT parameters )
 		ps->CurrentMacro->state.flags.bInputWait = TRUE;
 	else
 	{
-		DECLTEXT( msg, WIDE("Must be in a macro to /WAIT.") );
+		DECLTEXT( msg, "Must be in a macro to /WAIT." );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	return FALSE;
@@ -346,10 +346,10 @@ int CPROC CMD_TRACE( PSENTIENT ps, PTEXT parameters )
 	{
 		if( ( temp = GetParam( ps, &parameters ) ) )
 		{
-			if( TextIs( temp, WIDE("on") ) )
+			if( TextIs( temp, "on" ) )
 			{
 				ps->CurrentMacro->state.flags.bTrace = TRUE;
-			} else if( TextIs( temp, WIDE("off") ) )
+			} else if( TextIs( temp, "off" ) )
 			{
 				ps->CurrentMacro->state.flags.bTrace = FALSE;
 			}
@@ -362,9 +362,9 @@ int CPROC CMD_TRACE( PSENTIENT ps, PTEXT parameters )
 		extern int gbTrace;
 		if( ( temp = GetParam( ps, &parameters ) ) )
 		{
-			if( TextIs( temp, WIDE("on") ) )
+			if( TextIs( temp, "on" ) )
 				gbTrace = TRUE;
-			else if( TextIs( temp, WIDE("off") ) )
+			else if( TextIs( temp, "off" ) )
 				gbTrace = FALSE;
 			else
 				gbTrace ^= 1;
@@ -383,20 +383,20 @@ int CPROC BECOME( PSENTIENT ps, PTEXT parameters )
 	{
 		if( !pe->pControlledBy )
 		{
-			DECLTEXT( msg, WIDE("You are now that object.") );
+			DECLTEXT( msg, "You are now that object." );
 			ps->Current->pControlledBy = NULL; // is no longer controlled
 			ps->Current = pe;
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Object is already aware - please use /monitor.") );
+			DECLTEXT( msg, "Object is already aware - please use /monitor." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}
 	else
 	{
-		DECLTEXT( msg, WIDE("Object is not visible...") );
+		DECLTEXT( msg, "Object is not visible..." );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	return FALSE;
@@ -412,12 +412,12 @@ int CPROC MONITOR( PSENTIENT ps, PTEXT parameters )
 	{
 		if( !pe->pControlledBy )
 		{
-			DECLTEXT( msg, WIDE("Object is not aware - please use /become.") );
+			DECLTEXT( msg, "Object is not aware - please use /become." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("You are now act as that object.") );
+			DECLTEXT( msg, "You are now act as that object." );
 			ps =
 				global.PLAYER = pe->pControlledBy;
 			EnqueLink( &ps->Command->Output, &msg );
@@ -445,7 +445,7 @@ int CPROC CMD_GETRESULT( PSENTIENT ps, PTEXT parameters )
 	}
 	else
 	{
-		DECLTEXT( msg, WIDE("Must specify a variable name to store result in...") );
+		DECLTEXT( msg, "Must specify a variable name to store result in..." );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 
@@ -460,7 +460,7 @@ int CPROC CMD_INPUT( PSENTIENT ps, PTEXT parameters )
 	{
 		if( temp == pSave )
 		{
-			DECLTEXT( msg, WIDE("Invalid Variable Reference to INPUT...") );
+			DECLTEXT( msg, "Invalid Variable Reference to INPUT..." );
 			EnqueLink( &ps->Command->Output, &msg );
 			return FALSE;
 		}
@@ -474,7 +474,7 @@ int CPROC CMD_INPUT( PSENTIENT ps, PTEXT parameters )
 //--------------------------------------
 int CPROC PAGE( PSENTIENT ps, PTEXT parameters )
 {
-	DECLTEXT( page_break, WIDE("") );
+	DECLTEXT( page_break, "" );
 	page_break.flags |= TF_FORMATEX;
 	page_break.format.flags.format_op = FORMAT_OP_PAGE_BREAK;
 	EnqueLink( &ps->Command->Output, (PTEXT)&page_break );
@@ -492,13 +492,13 @@ int CPROC ECHO( PSENTIENT ps, PTEXT parameters )
 	{
 		pLine->format.position.offset.spaces = 0;
 		pOutput = BuildLine( pLine );
-		//lprintf( WIDE("Built line from macro substitution... %s %s"), GetText( pLine ), GetText( pOutput ) );
+		//lprintf( "Built line from macro substitution... %s %s", GetText( pLine ), GetText( pOutput ) );
 		EnqueLink( &ps->Command->Output, pOutput );
 		LineRelease( pLine );
 	}
 	else
 	{
-		 DECLTEXT( blank, WIDE(" ") );
+		 DECLTEXT( blank, " " );
 		EnqueLink( &ps->Command->Output, &blank );
 	}
 	return FALSE;
@@ -532,19 +532,19 @@ int CPROC CMD_MACRO( PSENTIENT ps, PTEXT parameters )
 			return FALSE;
 		}
 		// blah - to be /macro in object named <parameters...>
-		if( TextLike( temp, WIDE("in") ) )
+		if( TextLike( temp, "in" ) )
 		{
 			pe = (PENTITY)FindThing( ps, &parameters, ps->Current, FIND_VISIBLE, NULL );
 			if( !pe )
 			{
-				DECLTEXT( msg, WIDE("Could not see the entity to define macro in...") );
+				DECLTEXT( msg, "Could not see the entity to define macro in..." );
 				EnqueLink( &ps->Command->Output, &msg );
 				return FALSE;
 			}
 			temp = GetParam( ps, &parameters );
 			if( !temp )
 			{
-				DECLTEXT( msg, WIDE("Must specify a name for the macro to create.") );
+				DECLTEXT( msg, "Must specify a name for the macro to create." );
 				EnqueLink( &ps->Command->Output, &msg );
 				return FALSE;
 			}
@@ -562,7 +562,7 @@ int CPROC CMD_MACRO( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Macro name conflicts with previous command or macro.") );
+			DECLTEXT( msg, "Macro name conflicts with previous command or macro." );
 			EnqueLink( &ps->Command->Output, &msg );
 			ps->pRecord = pr; // restore record to last...
 		}
@@ -644,26 +644,26 @@ void ListMacro( PSENTIENT ps, PVARTEXT vt, PMACRO pm, TEXTCHAR *type )
 {
 	PTEXT pt;
 	INDEX idx;
-	vtprintf( vt, WIDE("%s \'%s\' ("), type, GetText( GetName(pm) ) );
+	vtprintf( vt, "%s \'%s\' (", type, GetText( GetName(pm) ) );
 	{
 		PTEXT param;
 		param = pm->pArgs;
 		while( param )
 		{
 			if( PRIORLINE( param ) )
-				vtprintf( vt, WIDE(", %s"), GetText( param ) );
+				vtprintf( vt, ", %s", GetText( param ) );
 			else
-				vtprintf( vt, WIDE("%s"), GetText( param ) );
+				vtprintf( vt, "%s", GetText( param ) );
 			param = NEXTLINE( param );
 		}
-		vtprintf( vt, WIDE(")") );
+		vtprintf( vt, ")" );
 		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 	}
 	LIST_FORALL( pm->pCommands, idx, PTEXT, pt )
 	{
 		PTEXT x;
 		x = BuildLine( pt );
-		vtprintf( vt, WIDE("	 %s"), GetText( x ) );
+		vtprintf( vt, "	 %s", GetText( x ) );
 		LineRelease( x );
 		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 	}
@@ -681,7 +681,7 @@ int CPROC CMD_LIST( PSENTIENT ps, PTEXT parameters )
 		INDEX idx;
 		int bFound = FALSE;
 		PMACRO pm;
-		if( TextLike( temp, WIDE("on") ) )
+		if( TextLike( temp, "on" ) )
 		{
 			INDEX idx;
 			PMACRO behavior;
@@ -691,7 +691,7 @@ int CPROC CMD_LIST( PSENTIENT ps, PTEXT parameters )
 				if( LikeText( temp, (PTEXT)GetLink( &global.behaviors, idx ) ) == 0 )
 				{
 					bFound = TRUE;
-					ListMacro( ps, vt, behavior, WIDE("Global Behavior") );
+					ListMacro( ps, vt, behavior, "Global Behavior" );
 					break;
 				}
 			}
@@ -702,14 +702,14 @@ int CPROC CMD_LIST( PSENTIENT ps, PTEXT parameters )
 					if( LikeText( temp, (PTEXT)GetLink( &ps->Current->behaviors, idx ) ) == 0 )
 					{
 						bFound = TRUE;
-						ListMacro( ps, vt, behavior, WIDE("Object Behavior") );
+						ListMacro( ps, vt, behavior, "Object Behavior" );
 						break;
 					}
 				}
 			}
 			if (!bFound)
 			{
-				vtprintf( vt, WIDE("Behavior %s is not defined."), GetText(temp));
+				vtprintf( vt, "Behavior %s is not defined.", GetText(temp));
 			}
 
 		}
@@ -719,36 +719,36 @@ int CPROC CMD_LIST( PSENTIENT ps, PTEXT parameters )
 				if( SameText( temp, GetName(pm) ) == 0 )
 				{
 					bFound = TRUE;
-					ListMacro( ps, vt, pm, WIDE("Macro") );
+					ListMacro( ps, vt, pm, "Macro" );
 					break;
 				}
 			if (!bFound)
 			{
-				vtprintf( vt, WIDE("Macro %s is not defined."), GetText(temp));
+				vtprintf( vt, "Macro %s is not defined.", GetText(temp));
 			}
 		}
 	}
 	else
 	{
-			vtprintf( vt, WIDE("Defined Macros: ") );
+			vtprintf( vt, "Defined Macros: " );
 		{
 			INDEX idx;
 			PMACRO pm;
 			LOGICAL didone = FALSE;
 			LIST_FORALL( ps->Current->pMacros, idx, PMACRO, pm )
 			{
-					vtprintf( vt, WIDE("%s%s"), (didone)?WIDE(", "): WIDE(""),
+					vtprintf( vt, "%s%s", (didone)?", ": "",
 											GetText( GetName(pm) ));
 				didone = TRUE;
 			}
 			if( didone )
-					vtprintf( vt, WIDE(".") );
+					vtprintf( vt, "." );
 			else
-					vtprintf( vt, WIDE("None.") );
+					vtprintf( vt, "None." );
 			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 
 		}
-		vtprintf( vt, WIDE("Defined Behaviors: ") );
+		vtprintf( vt, "Defined Behaviors: " );
 		{
 			INDEX idx;
 			PMACRO behavior;
@@ -758,7 +758,7 @@ int CPROC CMD_LIST( PSENTIENT ps, PTEXT parameters )
 				// although the name exists in the behavior macro
 				// that name is 'on accept'... the better name to choose
 				// is the related name node from global.beavhiors or current->behaviors
-				vtprintf( vt, WIDE("%s%s"), (didone)?WIDE(", "):WIDE(""), GetText( (PTEXT)GetLink( &global.behaviors, idx ) ) );
+				vtprintf( vt, "%s%s", (didone)?", ":"", GetText( (PTEXT)GetLink( &global.behaviors, idx ) ) );
 				didone = TRUE;
 			}
 			LIST_FORALL( ps->Current->pBehaviors, idx, PMACRO, behavior )
@@ -766,12 +766,12 @@ int CPROC CMD_LIST( PSENTIENT ps, PTEXT parameters )
 				// although the name exists in the behavior macro
 				// that name is 'on accept'... the better name to choose
 				// is the related name node from global.beavhiors or current->behaviors
-				vtprintf( vt, WIDE("%s%s"), (didone)?WIDE(", "):WIDE(""), GetText( (PTEXT)GetLink( &ps->Current->behaviors, idx ) ) );
+				vtprintf( vt, "%s%s", (didone)?", ":"", GetText( (PTEXT)GetLink( &ps->Current->behaviors, idx ) ) );
 				didone = TRUE;
 			}
 			if( didone )
 			{
-				vtprintf( vt, WIDE(".") );
+				vtprintf( vt, "." );
 				EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 			}
 		}
@@ -910,19 +910,19 @@ int TestList( PTEXT word, PTEXT list, int same )
 	{
 		if( same )
 		{
-			Log2( WIDE("Testing %s vs %s\n"), GetText( word ), GetText( list ) );
+			Log2( "Testing %s vs %s\n", GetText( word ), GetText( list ) );
 			if( SameText( word, list ) == 0 )
 			{
-				Log( WIDE("Success\n") );
+				Log( "Success\n" );
 				return 1;
 			}
 		}
 		else
 		{
-			Log2( WIDE("Testing %s vs %s\n"), GetText( word ), GetText( list ) );
+			Log2( "Testing %s vs %s\n", GetText( word ), GetText( list ) );
 			if( LikeText( word, list ) == 0 )
 			{
-				Log( WIDE("Success\n") );
+				Log( "Success\n" );
 				return 1;
 			}
 		}
@@ -960,13 +960,13 @@ int CPROC CMD_COMPARE( PSENTIENT ps, PTEXT parameters )
 				// d2 may be more than one word...
 				if( d1 && d2 )
 				{
-					if( TextIs( op, WIDE("is") ) ) {
+					if( TextIs( op, "is" ) ) {
 						ps->CurrentMacro->state.flags.bSuccess =
 								CompareStrings( d1, !d1IsVar
 												  , d2, FALSE // (d2->flags & TF_SINGLE)
 												  , TRUE );
-					} else if( TextIs( op, WIDE("like") ) ) {
-						lprintf( WIDE("Comparing like '%s' and '%s'"),  GetText( d1 ), GetText( d2 ) );
+					} else if( TextIs( op, "like" ) ) {
+						lprintf( "Comparing like '%s' and '%s'",  GetText( d1 ), GetText( d2 ) );
 						if( GetTextSize( d1 ) && GetTextSize( d2 ) )
 							ps->CurrentMacro->state.flags.bSuccess =
 								CompareStrings( d1, !d1IsVar
@@ -976,7 +976,7 @@ int CPROC CMD_COMPARE( PSENTIENT ps, PTEXT parameters )
 							if( !GetTextSize( d1 ) && !GetTextSize( d2 ) )
 								ps->CurrentMacro->state.flags.bSuccess = TRUE;
 
-					} else if( TextIs( op, WIDE("in") ) )
+					} else if( TextIs( op, "in" ) )
 					{
 						if( GetTextSize( d1 ) && GetTextSize( d2 ) )
 						{
@@ -988,7 +988,7 @@ int CPROC CMD_COMPARE( PSENTIENT ps, PTEXT parameters )
 							if( !GetTextSize( d1 ) && !GetTextSize( d2 ) )
 								ps->CurrentMacro->state.flags.bSuccess = TRUE;
 						}
-					} else if( TextIs( op, WIDE("typeof") ) )
+					} else if( TextIs( op, "typeof" ) )
 					{
 						if( GetTextSize( d1 ) && GetTextSize( d2 ) )
 						{
@@ -997,7 +997,7 @@ int CPROC CMD_COMPARE( PSENTIENT ps, PTEXT parameters )
 						}
 					}
 					// morethan, if fail, is less or equal
-					else if ( TextIs( op, WIDE("morethan") ) )
+					else if ( TextIs( op, "morethan" ) )
 					{
 						if( IsNumber( d1 ) && IsNumber( d2 ) )
 						{
@@ -1012,7 +1012,7 @@ int CPROC CMD_COMPARE( PSENTIENT ps, PTEXT parameters )
 								ps->CurrentMacro->state.flags.bSuccess = TRUE;
 					}
 					// lessthan, if fail, is more or equal
-					else if( TextIs( op, WIDE("lessthan") ) )
+					else if( TextIs( op, "lessthan" ) )
 					{
 						if( IsNumber( d1 ) && IsNumber( d2 ) )
 						{
@@ -1027,46 +1027,46 @@ int CPROC CMD_COMPARE( PSENTIENT ps, PTEXT parameters )
 								ps->CurrentMacro->state.flags.bSuccess = TRUE;
 					}
 					else {
-						DECLTEXT( msg, WIDE("Compare : Operand undefined value.") );
+						DECLTEXT( msg, "Compare : Operand undefined value." );
 						EnqueLink( &ps->Command->Output, &msg );
 					}
 				}
 				else
 				{
-					if( TextIs( op, WIDE("is_tag") ) ) {
+					if( TextIs( op, "is_tag" ) ) {
 						ps->CurrentMacro->state.flags.bSuccess = (d1->flags & TF_TAG);
 					}
-					else if( TextIs( op, WIDE("is_quote") ) ) {
+					else if( TextIs( op, "is_quote" ) ) {
 						if( d1 && d1->flags & TF_QUOTE )
 							ps->CurrentMacro->state.flags.bSuccess = TRUE;
 					}
-					else if( TextIs( op, WIDE("is_device") ) ) {
+					else if( TextIs( op, "is_device" ) ) {
 						if( d1 && FindDevice( d1 ) )
 							ps->CurrentMacro->state.flags.bSuccess = TRUE;
 					}
-					else if( TextIs( op, WIDE("blank") ) ) {
+					else if( TextIs( op, "blank" ) ) {
 						ps->CurrentMacro->state.flags.bSuccess = IsBlank( d1 );
 					}
-					else if( TextIs( op, WIDE("eol") ) ) {
+					else if( TextIs( op, "eol" ) ) {
 						ps->CurrentMacro->state.flags.bSuccess = d1 && !GetTextSize( d1 ) && !(d1->flags&IS_DATA_FLAGS);
 					}
-					else if( TextIs( op, WIDE("is") ) ) {
+					else if( TextIs( op, "is" ) ) {
 						ps->CurrentMacro->state.flags.bSuccess = FALSE;
 					}
-					else if( TextIs( op, WIDE("like") ) ) {
+					else if( TextIs( op, "like" ) ) {
 						ps->CurrentMacro->state.flags.bSuccess = FALSE;
 					}
-					else if( TextIs( op, WIDE("binary") ) ) {
+					else if( TextIs( op, "binary" ) ) {
 						if( d1->flags & TF_BINARY )
 							ps->CurrentMacro->state.flags.bSuccess = TRUE;
 					}
-					else if( TextIs( op, WIDE("number") ) )
+					else if( TextIs( op, "number" ) )
 					{
 						if( IsNumber( d1 ) )
 							ps->CurrentMacro->state.flags.bSuccess = TRUE;
 					}
 					else {
-						DECLTEXT( msg, WIDE("Compare : Operand undefined value.") );
+						DECLTEXT( msg, "Compare : Operand undefined value." );
 						ps->CurrentMacro->state.flags.bSuccess = FALSE;
 						EnqueLink( &ps->Command->Output, &msg );
 					}
@@ -1077,7 +1077,7 @@ int CPROC CMD_COMPARE( PSENTIENT ps, PTEXT parameters )
 				if( !(d1->flags&TF_INDIRECT) ||
 					 GetIndirect( d1 ) ) // might have been a null variable in indirect
 				{
-					if( TextIs( d1, WIDE("connected") ) )
+					if( TextIs( d1, "connected" ) )
 					{
 						if( ps->Data &&
 							 ps->Data->Type &&
@@ -1085,12 +1085,12 @@ int CPROC CMD_COMPARE( PSENTIENT ps, PTEXT parameters )
 							ps->CurrentMacro->state.flags.bSuccess = TRUE;
 					}
 					// not sure about this keyword......
-					else if( TextIs( d1, WIDE("active") ) )
+					else if( TextIs( d1, "active" ) )
 					{
 						if( ps->Command )
 							ps->CurrentMacro->state.flags.bSuccess = TRUE;
 					}
-					else if( TextIs( d1, WIDE("is_console") ) )
+					else if( TextIs( d1, "is_console" ) )
 					{
 						extern int IsConsole;
 						if( IsConsole )
@@ -1102,7 +1102,7 @@ int CPROC CMD_COMPARE( PSENTIENT ps, PTEXT parameters )
 	}
 	else
 	{
-		DECLTEXT( msg, WIDE("Compare should be used in a macro...") );
+		DECLTEXT( msg, "Compare should be used in a macro..." );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	return FALSE;
@@ -1114,14 +1114,14 @@ int CPROC CMD_IF( PSENTIENT ps, PTEXT parameters )
 	PTEXT temp;
 	if( !ps->CurrentMacro )
 	{
-		DECLTEXT( msg, WIDE("Must be in a macro to execute IF.") );
+		DECLTEXT( msg, "Must be in a macro to execute IF." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
 	if( ( temp = GetParam( ps, &parameters ) ) )
 	{
-		if( TextLike( temp, WIDE("success") )
-		  || TextLike( temp, WIDE("true") )
+		if( TextLike( temp, "success" )
+		  || TextLike( temp, "true" )
 		  		  )
 		{
 			if( !ps->CurrentMacro->state.flags.bSuccess )
@@ -1130,9 +1130,9 @@ int CPROC CMD_IF( PSENTIENT ps, PTEXT parameters )
 				ps->CurrentMacro->state.flags.data.levels = 0;
 			}
 		}
-		else if( TextLike( temp, WIDE("fail") )
-				  || TextLike( temp, WIDE("failure") )
-				  || TextLike( temp, WIDE("false") )
+		else if( TextLike( temp, "fail" )
+				  || TextLike( temp, "failure" )
+				  || TextLike( temp, "false" )
 				 )
 		{
 			if( ps->CurrentMacro->state.flags.bSuccess )
@@ -1144,14 +1144,14 @@ int CPROC CMD_IF( PSENTIENT ps, PTEXT parameters )
 		else
 		{
 			PVARTEXT pvt = VarTextCreate();
-			vtprintf( pvt, WIDE("Unknown expression for IF:%s"), GetText( temp ) );
+			vtprintf( pvt, "Unknown expression for IF:%s", GetText( temp ) );
 			EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
 			VarTextDestroy( &pvt );
 		}
 	}
 	else
 	{
-		DECLTEXT( msg, WIDE("Have to specify either [true/success] or [false/fail/failure] after IF.") );
+		DECLTEXT( msg, "Have to specify either [true/success] or [false/fail/failure] after IF." );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	return FALSE;
@@ -1161,7 +1161,7 @@ int CPROC CMD_ELSE( PSENTIENT ps, PTEXT parameters )
 {
 	if( !ps->CurrentMacro )
 	{
-		DECLTEXT( msg, WIDE("Must be in a macro to execute ELSE.") );
+		DECLTEXT( msg, "Must be in a macro to execute ELSE." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -1179,7 +1179,7 @@ int CPROC CMD_ENDIF( PSENTIENT ps, PTEXT parameters )
 {
 	if( !ps->CurrentMacro )
 	{
-		DECLTEXT( msg, WIDE("Must be in a macro to execute ENDIF.") );
+		DECLTEXT( msg, "Must be in a macro to execute ENDIF." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 
@@ -1199,7 +1199,7 @@ int CPROC CMD_LABEL( PSENTIENT ps, PTEXT parameters )
 	PTEXT temp;
 	if( !ps->CurrentMacro )
 	{
-		DECLTEXT( msg, WIDE("Must be in a macro to execute a LABEL.") );
+		DECLTEXT( msg, "Must be in a macro to execute a LABEL." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
@@ -1207,7 +1207,7 @@ int CPROC CMD_LABEL( PSENTIENT ps, PTEXT parameters )
 	{
 		if( ( temp = GetParam( ps, &parameters ) ) )
 		{
-			//lprintf( WIDE("Comparing %s and %s"), GetText( temp ), GetText( ps->CurrentMacro->state.flags.data.pLabel ) );
+			//lprintf( "Comparing %s and %s", GetText( temp ), GetText( ps->CurrentMacro->state.flags.data.pLabel ) );
 			if( SameText( ps->CurrentMacro->state.flags.data.pLabel,
 							  temp ) == 0 )
 			{
@@ -1225,7 +1225,7 @@ int CPROC CMD_GOTO( PSENTIENT ps, PTEXT parameters )
 	PTEXT temp;
 	if( !ps->CurrentMacro )
 	{
-		DECLTEXT( msg, WIDE("Must be in a macro to execute a GOTO.") );
+		DECLTEXT( msg, "Must be in a macro to execute a GOTO." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -1248,7 +1248,7 @@ int CPROC ForEach( PSENTIENT ps, PTEXT parameters )
 	FOREACH_STATE newstate;
 	if( !ps->CurrentMacro )
 	{
-		S_MSG( ps, WIDE("FOREACH may only be used in a macro.") );
+		S_MSG( ps, "FOREACH may only be used in a macro." );
 		return 0;
 	}
 	{
@@ -1259,14 +1259,14 @@ int CPROC ForEach( PSENTIENT ps, PTEXT parameters )
 		newstate.variablename = SegDuplicate( GetParam( ps, &parameters ) );
 		if( !newstate.variablename )
 		{
-			S_MSG( ps, WIDE("You need to specify a variable name for foreach") );
+			S_MSG( ps, "You need to specify a variable name for foreach" );
 			return 0;
 		}
 	}
 	{
 		PTEXT iteration_type = GetParam( ps, &parameters );
 		// switch( iternation_type ) blah...
-		if( TextLike( iteration_type, WIDE("in") ) )
+		if( TextLike( iteration_type, "in" ) )
 		{
 			PLIST paramlist = NULL;
 			PENTITY pe;
@@ -1295,14 +1295,14 @@ int CPROC ForEach( PSENTIENT ps, PTEXT parameters )
 			//AddVariableExx( ps, ps->Current, newstate.variablename, newstate.item );
 			PushData( &ps->CurrentMacro->pdsForEachState, &newstate );
 		}
-		else if( TextLike( iteration_type, WIDE("token") ) )
+		else if( TextLike( iteration_type, "token" ) )
 		{
 		}
-		else if( TextLike( iteration_type, WIDE("phrase") ) )
+		else if( TextLike( iteration_type, "phrase" ) )
 		{
 
 		}
-		else if( TextLike( iteration_type, WIDE("near") ) )
+		else if( TextLike( iteration_type, "near" ) )
 		{
 			PLIST paramlist = NULL;
 			PENTITY pe;
@@ -1331,13 +1331,13 @@ int CPROC ForEach( PSENTIENT ps, PTEXT parameters )
 			PushData( &ps->CurrentMacro->pdsForEachState, &newstate );
 
 		}
-		else if( TextLike( iteration_type, WIDE("around") ) )
+		else if( TextLike( iteration_type, "around" ) )
 		{
 
 		}
-		else if( TextLike( iteration_type, WIDE("exit") ) ||
-				  TextLike( iteration_type, WIDE("attached") ) ||
-				  TextLike( iteration_type, WIDE("on") ) )
+		else if( TextLike( iteration_type, "exit" ) ||
+				  TextLike( iteration_type, "attached" ) ||
+				  TextLike( iteration_type, "on" ) )
 		{
 
 		}
@@ -1349,7 +1349,7 @@ int CPROC StepEach( PSENTIENT ps, PTEXT parameters )
 {
 	if( !ps->CurrentMacro )
 	{
-		S_MSG( ps, WIDE("STEP may only be used in a macro.") );
+		S_MSG( ps, "STEP may only be used in a macro." );
 		return 0;
 	}
 	// consider using an alternate parameter to skip to a higher top level
@@ -1363,13 +1363,13 @@ int CPROC StepEach( PSENTIENT ps, PTEXT parameters )
 		PFOREACH_STATE pfes = (PFOREACH_STATE)PeekData( &ps->CurrentMacro->pdsForEachState );
 		if( !pfes )
 		{
-			S_MSG( ps, WIDE("STEP may only be used after a FOREACH.") );
+			S_MSG( ps, "STEP may only be used after a FOREACH." );
 			return 0;
 		}
 		{
 			PTEXT direction = GetParam( ps, &parameters );
 			if( !direction
-				|| TextLike( direction, WIDE("next") ) )
+				|| TextLike( direction, "next" ) )
 			{
 				pfes->list_prior = SegInsert( pfes->item, pfes->list_prior );
 				pfes->item = pfes->list_next;
@@ -1388,13 +1388,13 @@ int CPROC StepEach( PSENTIENT ps, PTEXT parameters )
 				// wonder how CMD_GOTO handles this...
 				ps->CurrentMacro->nCommand = pfes->nForEachTopMacroCmd;
 			}
-			else if( TextLike( direction, WIDE("prior") ) )
+			else if( TextLike( direction, "prior" ) )
 			{
 			}
-			else if( TextLike( direction, WIDE("first") ) )
+			else if( TextLike( direction, "first" ) )
 			{
 			}
-			else if( TextLike( direction, WIDE("last") ) )
+			else if( TextLike( direction, "last" ) )
 			{
 			}
 		}
@@ -1418,7 +1418,7 @@ int CPROC PROMPT( PSENTIENT ps, PTEXT parameters )
 
 //--------------------------------------------------------------------------
 // behaviors are called, run in/by the object they are defined for
-// a useful variable is then WIDE("%commander") which is the object
+// a useful variable is then "%commander" which is the object
 // which caused the invokation of the behavior.
 #if 0
 #define DEF_BEHAVIOR( ps, name, member )			  if( ps->pRecord ) \
@@ -1496,7 +1496,7 @@ int CPROC DefineOnBehavior( PSENTIENT ps, PTEXT parameters )
 				PTEXT pMacroName;
 				//TEXTCHAR name[64];
 
-				//snprintf( name, sizeof( name ), WIDE("%s"), GetText( pTest ) );
+				//snprintf( name, sizeof( name ), "%s", GetText( pTest ) );
 				pMacroName = SegCreateFromText( GetText( pTest ) );
 				pMacro = New( MACRO );
 				MemSet( pMacro, 0, sizeof( MACRO ) );
@@ -1518,7 +1518,7 @@ int CPROC DefineOnBehavior( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 		{
-			S_MSG( ps, WIDE("Could not find behavior called \'%s\'"), GetText( pAction ) );
+			S_MSG( ps, "Could not find behavior called \'%s\'", GetText( pAction ) );
 		}
 	}
 	else
@@ -1528,16 +1528,16 @@ int CPROC DefineOnBehavior( PSENTIENT ps, PTEXT parameters )
 			PVARTEXT pvt = VarTextCreate();
 			PTEXT name;
 			INDEX idx;
-			vtprintf( pvt, WIDE(" --- Available behaviors --- ") );
+			vtprintf( pvt, " --- Available behaviors --- " );
 			EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
 			LIST_FORALL( global.behaviors, idx, PTEXT, name )
 			{
-				vtprintf( pvt, WIDE("%-15s %s"), GetText( name ), GetText( NEXTLINE( name ) ) );
+				vtprintf( pvt, "%-15s %s", GetText( name ), GetText( NEXTLINE( name ) ) );
 				EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
 			}
 			LIST_FORALL( ps->Current->behaviors, idx, PTEXT, name )
 			{
-				vtprintf( pvt, WIDE("%-15s %s"), GetText( name ), GetText( NEXTLINE( name ) ) );
+				vtprintf( pvt, "%-15s %s", GetText( name ), GetText( NEXTLINE( name ) ) );
 				EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
 			}
 		}

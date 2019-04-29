@@ -46,7 +46,7 @@ void _UpdatePos( INDEX *tmp, INDEX inc DBG_PASS )
 	if( (*tmp) > 0x8000 )
 		DebugBreak();
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-	_xlprintf(5 DBG_RELAY )( WIDE("updating position from %d,%d,%d by %d"), __tmp, _tmp, (*tmp), inc );
+	_xlprintf(5 DBG_RELAY )( "updating position from %d,%d,%d by %d", __tmp, _tmp, (*tmp), inc );
 #endif
 }
 
@@ -54,9 +54,9 @@ void _SetPos( INDEX *tmp, INDEX inc, INDEX initial DBG_PASS )
 {
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
 	if( initial )
-		_xlprintf(5 DBG_RELAY )( WIDE("Setting position to %d"), inc );
+		_xlprintf(5 DBG_RELAY )( "Setting position to %d", inc );
 	else
-		_xlprintf(5 DBG_RELAY )( WIDE("Setting position from %d to %d"), (*tmp), inc );
+		_xlprintf(5 DBG_RELAY )( "Setting position from %d to %d", (*tmp), inc );
 #endif
 	if( !initial )
 	{
@@ -160,7 +160,7 @@ typedef struct MsgDataHandle
 	uint32_t bCreated;
 #ifdef __LINUX__
 	TEXTCHAR tmpname[128];
-	sprintf( tmpname, WIDE("/tmp/%s"), name );
+	sprintf( tmpname, "/tmp/%s", name );
 #endif
 	pmq = (PMSGQUEUE)OpenSpaceExx(
 #ifdef __LINUX__
@@ -187,7 +187,7 @@ typedef struct MsgDataHandle
 	// so if the second open results before the create
 	// always increment this - otherwise the create open will
 	// obliterate the second opener's presense.
-	StrCpyEx( pmq->name, name?name:WIDE("Anonymous"),127 );
+	StrCpyEx( pmq->name, name?name:"Anonymous",127 );
 	pmq->name[127] = 0;
 	pmq->Cnt++;
 	if( bCreated )
@@ -212,7 +212,7 @@ typedef struct MsgDataHandle
 	uint32_t bCreated;
 #ifdef __LINUX__
 	char tmpname[128];
-	sprintf( tmpname, WIDE("/tmp/%s"), name );
+	sprintf( tmpname, "/tmp/%s", name );
 #endif
 	pmq = (PMSGQUEUE)OpenSpaceExx(
 #ifdef __LINUX__
@@ -237,11 +237,11 @@ typedef struct MsgDataHandle
 	// so if the second open results before the create
 	// always increment this - otherwise the create open will
 	// obliterate the second opener's presense.
-	StrCpyEx( pmq->name, name?name:WIDE("Anonymous"), sizeof( pmq->name ) );
+	StrCpyEx( pmq->name, name?name:"Anonymous", sizeof( pmq->name ) );
 	pmq->Cnt++;
 	if( bCreated )
 	{
-		lprintf( WIDE("SackOpenMsgQueue should never result with a created queue!") );
+		lprintf( "SackOpenMsgQueue should never result with a created queue!" );
 		DebugBreak();
 		//pmq->Size = size;
 	}
@@ -260,7 +260,7 @@ typedef struct MsgDataHandle
 		{
 			INDEX owners;
 			owners = --(*ppmh)->pmq->Cnt;
-			lprintf( WIDE("Remaining owners of queue: %") _size_f, owners );
+			lprintf( "Remaining owners of queue: %" _size_f, owners );
 			CloseSpaceEx( (*ppmh)->pmq, (!owners) );
 		}
 		Release( *ppmh );
@@ -298,7 +298,7 @@ void DumpWaiterQueue( PMSGQUEUE pmq )
 	tmp = pmq->waiter_bottom;
 	while( tmp != pmq->waiter_top )
 	{
-		lprintf( WIDE("[%d] waiter sleeping is %016") _64fX WIDE(" for %") _32f WIDE("")
+		lprintf( "[%d] waiter sleeping is %016" _64fX " for %" _32f ""
 				  , tmp
 				 , pmq->waiters[tmp].me
 				 , pmq->waiters[tmp].msg
@@ -317,7 +317,7 @@ static void CollapseWaiting( PMSGQUEUE pmq, long msg )
 
 	int32_t tmp = pmq->waiter_bottom;
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-	lprintf( WIDE("before moving the waiters forward on %s... msg %ld (or me? %s)"), pmq->name, msg, msg?"no":"yes" );
+	lprintf( "before moving the waiters forward on %s... msg %ld (or me? %s)", pmq->name, msg, msg?"no":"yes" );
 	DumpWaiterQueue( pmq );
 #endif
 	// now walk tmp backwards...
@@ -342,19 +342,19 @@ static void CollapseWaiting( PMSGQUEUE pmq, long msg )
 				 ( msg == pmq->waiters[next].msg ) ) )
 			{
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-				lprintf( WIDE("Skipping a next %d... "), next );
+				lprintf( "Skipping a next %d... ", next );
 #endif
 				if( !marked )
 				{
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-					lprintf( WIDE("marking tmp to copy into...") );
+					lprintf( "marking tmp to copy into..." );
 #endif
 					tmp = next;
 					marked = 1;
 				}
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
 				else
-					lprintf( WIDE("Already marked... and moving every element..") );
+					lprintf( "Already marked... and moving every element.." );
 #endif
 				if( (++tmp_bottom) >= 1024 )
 				{
@@ -369,7 +369,7 @@ static void CollapseWaiting( PMSGQUEUE pmq, long msg )
 				if( marked )
 				{
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-					lprintf( WIDE("Marked something... and now we move next %d into %d"), next, tmp );
+					lprintf( "Marked something... and now we move next %d into %d", next, tmp );
 #endif
 					pmq->waiters[tmp--] = pmq->waiters[next];
 					if( tmp < 0 )
@@ -377,7 +377,7 @@ static void CollapseWaiting( PMSGQUEUE pmq, long msg )
 					//continue;
 				}
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-				lprintf( WIDE("Next queue element is kept... set temp here.") );
+				lprintf( "Next queue element is kept... set temp here." );
 #endif
 			}
 			// update next
@@ -390,14 +390,14 @@ static void CollapseWaiting( PMSGQUEUE pmq, long msg )
 		if( !found )
 		{
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-			lprintf( WIDE("Found nothing of interest.  Empty queue.") );
+			lprintf( "Found nothing of interest.  Empty queue." );
 #endif
 			pmq->waiter_bottom = pmq->waiter_top;
 		}
 		else if( marked )
 		{
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-			lprintf( WIDE("Moving final into last position, and updating bottom to %d"), tmp_bottom );
+			lprintf( "Moving final into last position, and updating bottom to %d", tmp_bottom );
 #endif
 			pmq->waiters[tmp] = pmq->waiters[next];
 			pmq->waiter_bottom = (uint32_t)tmp_bottom;
@@ -405,7 +405,7 @@ static void CollapseWaiting( PMSGQUEUE pmq, long msg )
 	}
 
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-	lprintf( WIDE("And then after moving waiters forward....") );
+	lprintf( "And then after moving waiters forward...." );
 	DumpWaiterQueue( pmq );
 #endif
 }
@@ -418,7 +418,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 
 	INDEX tmp = pmq->waiter_bottom;
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-	lprintf( WIDE("before Scanning waiting on %s"), pmq->name );
+	lprintf( "before Scanning waiting on %s", pmq->name );
 	DumpWaiterQueue( pmq );
 #endif
 	while( tmp != pmq->waiter_top )
@@ -434,7 +434,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 				 : (pmq->waiters[tmp].msg == msg) ) )
 			{
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-				lprintf( WIDE("Wake thread %016Lx"), pmq->waiters[tmp].me );
+				lprintf( "Wake thread %016Lx", pmq->waiters[tmp].me );
 #endif
 				WakeThreadID( pmq->waiters[tmp].me );
 				// reset the waiter ID... it's been
@@ -448,7 +448,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
 			else
 			{
-				lprintf( WIDE("Not waking thread %016Lx %08lx %08lx"), pmq->waiters[tmp].me
+				lprintf( "Not waking thread %016Lx %08lx %08lx", pmq->waiters[tmp].me
 						 , msg, pmq->waiters[tmp].msg );
 			}
 #endif
@@ -464,7 +464,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 	if( nWoken )
 	{
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-		lprintf( WIDE("Scanning to delete messages that have been awoken.") );
+		lprintf( "Scanning to delete messages that have been awoken." );
 #endif
 		CollapseWaiting( pmq, 0 );
 	}
@@ -472,7 +472,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 	if( nWoken > 1 )
 	{
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-		lprintf( WIDE("Woke %d threads as a result of message id %08lx"), nWoken, msg );
+		lprintf( "Woke %d threads as a result of message id %08lx", nWoken, msg );
 #endif
 	}
 	return 0;
@@ -504,12 +504,12 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 		// probably someday need an error variable of
 		// some sort or another...
 #ifndef DISABLE_MSGQUE_LOGGING
-		_xlprintf(3 DBG_RELAY)( WIDE("Enque space left...raw: %") _size_f WIDE(" %") _size_f WIDE(" Avail: %") _size_f WIDE(" %") _size_f WIDE(" used: %") _size_f WIDE(" %") _size_f WIDE(" %d")
+		_xlprintf(3 DBG_RELAY)( "Enque space left...raw: %" _size_f " %" _size_f " Avail: %" _size_f " %" _size_f " used: %" _size_f " %" _size_f " %d"
 				 , pmq->Top, pmq->Bottom
 				 , pmq->Bottom-pmq->Top, pmq->Size-pmq->Top + pmq->Bottom
 				 , pmq->Top-pmq->Bottom, pmq->Size-pmq->Bottom + pmq->Top
 				 , realsize );
-		_xlprintf(3 DBG_RELAY)( WIDE("[%s] ENqueMessage [%p] %ld len %") _MsgID_f WIDE(" %08") _32fx WIDE(""), pmq->name, pmq, *(MSGIDTYPE*)msg, size, *(uint32_t*)(pmq->data + pmq->Bottom) );
+		_xlprintf(3 DBG_RELAY)( "[%s] ENqueMessage [%p] %ld len %" _MsgID_f " %08" _32fx "", pmq->name, pmq, *(MSGIDTYPE*)msg, size, *(uint32_t*)(pmq->data + pmq->Bottom) );
 		//LogBinary( pmq->data + pmq->Bottom, 32 );
 #endif
 		while( msg )
@@ -529,7 +529,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 				pStoreMsg->msg.real_length = (uint32_t)size;
 				pStoreMsg->msg.length = realsize | MARK_END_OF_QUE | (( opts & MSGQUE_WAIT_ID )?MARK_THREAD_WAITING:0 );
 #ifndef DISABLE_MSGQUE_LOGGING
-				lprintf( WIDE("New tmp will be 0.") );
+				lprintf( "New tmp will be 0." );
 #endif
 				SetPos( tmp, 0 );
 			}
@@ -541,7 +541,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 					// going to have to store at start, or I suppose whenever the
 					// queue has enough space...
 #ifndef DISABLE_MSGQUE_LOGGING
-					lprintf( WIDE("space left is not big enough for the message... %") _size_f WIDE(" %") _size_f WIDE(" %") _size_f WIDE(" %") _size_f WIDE("")
+					lprintf( "space left is not big enough for the message... %" _size_f " %" _size_f " %" _size_f " %" _size_f ""
 							 , pmq->Top, pmq->Bottom, pmq->Bottom-pmq->Top, pmq->Size-pmq->Top + pmq->Bottom );
 #endif
 					if( ( pmq->Bottom == 0 ) ||
@@ -555,13 +555,13 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 							return -1;
 						}
 #ifndef DISABLE_MSGQUE_LOGGING
-						lprintf( WIDE("bottom isn't far enough away either. Waiting for space") );
+						lprintf( "bottom isn't far enough away either. Waiting for space" );
 #endif
 						Relinquish(); // someone's gotta run and take their message.
 						continue;
 					}
 #ifndef DISABLE_MSGQUE_LOGGING
-					lprintf( WIDE("Setting step to origin in length, going to origin, setting data %p"), pStoreMsg );
+					lprintf( "Setting step to origin in length, going to origin, setting data %p", pStoreMsg );
 #endif
 					// 0 data length, marked end, just junk...
 					// okay there, and it's deleted, so noone can read it
@@ -570,7 +570,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 					// tmp needs to point to the next top.
 					SetPos( tmp, realsize );
 					pStoreMsg = (PMSGDATA)pmq->data;
-					lprintf( WIDE("pStoreMsg = %p, %") _size_f, pStoreMsg, pmq->Top );
+					lprintf( "pStoreMsg = %p, %" _size_f, pStoreMsg, pmq->Top );
 				}
 				else
 				{
@@ -579,7 +579,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 					// at least 0 bytes at the end.
 					if( tmp > pmq->Bottom && pmq->Top < pmq->Bottom )
 					{
-						lprintf( WIDE("No room left in queue...") );
+						lprintf( "No room left in queue..." );
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
 						DumpMessageQueue( pmq );
 #endif
@@ -589,7 +589,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 					}
 				}
 				pStoreMsg->msg.ttl = timeGetTime() + pmh->default_ttl;
-				lprintf( WIDE( "Send Message TTL Expired in queue... %d %d %d" ), pStoreMsg->msg.ttl, pmh->default_ttl );
+				lprintf( "Send Message TTL Expired in queue... %d %d %d", pStoreMsg->msg.ttl, pmh->default_ttl );
 				pStoreMsg->msg.real_length = (uint32_t)size;
 				pStoreMsg->msg.length = realsize | (( opts & MSGQUE_WAIT_ID )?MARK_THREAD_WAITING:0 );
 			}
@@ -597,7 +597,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 			{
 #ifndef DISABLE_MSGQUE_LOGGING
 				bNoSpace = 1;
-				lprintf( WIDE("Head would collide with tail...") );
+				lprintf( "Head would collide with tail..." );
 #endif
 				LeaveCriticalSec( &pmq->cs );
 				if( opts & MSGQUE_NOWAIT )
@@ -606,7 +606,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 					return -1;
 				}
 #ifndef DISABLE_MSGQUE_LOGGING
-				lprintf( WIDE("Waiting for space") );
+				lprintf( "Waiting for space" );
 #endif
 				Relinquish(); // someone's gotta run and take their message.
 				continue;
@@ -615,20 +615,20 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 			{
 #ifndef DISABLE_MSGQUE_LOGGING
 				if( bNoSpace )
-					lprintf( WIDE("Okay there's space now...") );
+					lprintf( "Okay there's space now..." );
 #endif
 			}
 
 			MemCpy( &pStoreMsg->MsgID, msg, size + sizeof( pStoreMsg->MsgID ) );
 #ifndef DISABLE_MSGQUE_LOGGING
-			lprintf( WIDE("[%s] Stored message data..... at %") _size_f WIDE(" %") _size_f WIDE(""), pmq->name, pmq->Top ,size );
+			lprintf( "[%s] Stored message data..... at %" _size_f " %" _size_f "", pmq->name, pmq->Top ,size );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
 			LogBinary( (uint8_t*)pStoreMsg, size + sizeof( pStoreMsg->MsgID ) + offsetof( MSGDATA, MsgID ) );
 #  endif
 #endif
 			msg = NULL;
 #ifndef DISABLE_MSGQUE_LOGGING
-			lprintf( WIDE("Update top to %") _size_f,tmp );
+			lprintf( "Update top to %" _size_f,tmp );
 #endif
 			pmq->Top = tmp;
 			if( !(opts & MSGQUE_WAIT_ID) )
@@ -636,7 +636,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 				// look for, and wake anyone waiting for this
 				// type of message... or anyone waiting on any message
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-				lprintf( WIDE("not sending a wait, therefore scan for messages...") );
+				lprintf( "not sending a wait, therefore scan for messages..." );
 #endif
 				nWaiting = ScanForWaiting( pmq, pStoreMsg->MsgID );
 				LeaveCriticalSec( &pmq->cs );
@@ -645,7 +645,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 			}
 			else
 			{
-				//lprintf( WIDE("Okay then we leave here?") );
+				//lprintf( "Okay then we leave here?" );
 				LeaveCriticalSec( &pmq->cs );
 			}
 		}
@@ -689,11 +689,11 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 	// instead the routine to handle
 	p = 0;
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-	_xlprintf(3 DBG_RELAY)( WIDE("[%s] Enter dequeue... for %") _32f WIDE(""), pmq->name, MsgID?*MsgID:0 );
+	_xlprintf(3 DBG_RELAY)( "[%s] Enter dequeue... for %" _32f "", pmq->name, MsgID?*MsgID:0 );
 #endif
 	EnterCriticalSec( &pmq->cs );
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-	_xlprintf(3 DBG_RELAY)( WIDE("Deque space left... Top:%d Bottom:%d Avail: %d %d used: %d %d")
+	_xlprintf(3 DBG_RELAY)( "Deque space left... Top:%d Bottom:%d Avail: %d %d used: %d %d"
 			 , pmq->Top, pmq->Bottom
 			 , pmq->Bottom-pmq->Top, pmq->Size-pmq->Top + pmq->Bottom
 			 , pmq->Top-pmq->Bottom, pmq->Size-pmq->Bottom + pmq->Top );
@@ -706,7 +706,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 		PMSGDATA pReadMsg;
 		PMSGDATA pLastReadMsg;
 		_tmp = tmp = pmq->Bottom;
-		//lprintf( WIDE("tmp = %d"), tmp );
+		//lprintf( "tmp = %d", tmp );
 		if( !(options & MSGQUE_NOWAIT) )
 		{
 			long LastMsgID = *MsgID;
@@ -717,7 +717,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 					(pmq->Bottom == _Bottom &&
 					pmq->Top == _Top )) && !slept )
 			{
-				//lprintf( WIDE("no message, waiting...") );
+				//lprintf( "no message, waiting..." );
 				{
 					uint32_t tmp_top = pmq->waiter_top + 1;
 					if( tmp_top >= 1024 )
@@ -733,10 +733,10 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 					tmp_top = pmq->waiter_bottom;
 					while( tmp_top != pmq->waiter_top )
 					{
-						//lprintf( WIDE("Checking %d msg:%d"), tmp_top, pmq->waiters[tmp_top].msg );
+						//lprintf( "Checking %d msg:%d", tmp_top, pmq->waiters[tmp_top].msg );
 						if( pmq->waiters[tmp_top].msg == *MsgID )
 						{
-							//lprintf( WIDE("waiting... leave...") );
+							//lprintf( "waiting... leave..." );
 							break;
 						}
 						tmp_top++;
@@ -758,7 +758,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 							pmq->waiters[pmq->waiter_top].me = GetMyThreadID();
 							pmq->waiters[pmq->waiter_top].msg = *MsgID;
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-							lprintf( WIDE("New waiter - waiting for %016") _64fX WIDE(" %") _32f WIDE("")
+							lprintf( "New waiter - waiting for %016" _64fX " %" _32f ""
 									 , pmq->waiters[pmq->waiter_top].me
 									 , pmq->waiters[pmq->waiter_top].msg );
 #endif
@@ -766,20 +766,20 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 						}
 						else
 						{
-							lprintf( WIDE("CRITICAL ERROR - No space to mark this process to wait.") );
+							lprintf( "CRITICAL ERROR - No space to mark this process to wait." );
 							Relinquish();
 							continue;
 						}
 					}
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
 					else
-						lprintf( WIDE("Already waiting...") );
+						lprintf( "Already waiting..." );
 					DumpWaiterQueue( pmq );
 #endif
 				}
 				LeaveCriticalSec( &pmq->cs );
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-				lprintf( WIDE("(left section) sleeping until message (%016Lx)")
+				lprintf( "(left section) sleeping until message (%016Lx)"
 						 , GetMyThreadID() );
 #endif
 				// if someone wakes wakeable sleep - either a> there's a new message
@@ -788,21 +788,21 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 				WakeableSleep( SLEEP_FOREVER );
 				// remove wait message...
 #ifndef DISABLE_MSGQUE_LOGGING_DETAILED
-				lprintf( WIDE("Re-enter critical section here...(%016Lx)")
+				lprintf( "Re-enter critical section here...(%016Lx)"
 						 , GetMyThreadID() );
 #endif
 				EnterCriticalSec( &pmq->cs );
 				CollapseWaiting( pmq, LastMsgID );
 				if( (*MsgID) == 0xFFFFFFFF )
 				{
-					lprintf( WIDE( "Aborting waiting read..." ) );
+					lprintf( "Aborting waiting read..." );
 					SetLastError( MSGQUE_ERROR_EABORT );
 					break;
 				}
 				//pmq->waiting = prior;
 			}
 #ifndef DISABLE_MSGQUE_LOGGING
-			//lprintf( WIDE("Fetching a message...") );
+			//lprintf( "Fetching a message..." );
 #endif
 			now = timeGetTime();
 		}
@@ -812,7 +812,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 			if( tmp == pmq->Top )
 			{
 #ifndef DISABLE_MSGQUE_LOGGING
-				lprintf( WIDE("[%s] NOWAIT option selected... resulting NOMSG."), pmq->name );
+				lprintf( "[%s] NOWAIT option selected... resulting NOMSG.", pmq->name );
 #endif
 				SetLastError( MSGQUE_ERROR_NOMSG );
 				LeaveCriticalSec( &pmq->cs );
@@ -820,7 +820,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 			}
 		}
 #ifndef DISABLE_MSGQUE_LOGGING
-		_xlprintf( 1 DBG_RELAY )( WIDE("------- tmp = %") _size_f WIDE(" bottom=%") _size_f WIDE(" top = %") _size_f WIDE(" ------"), tmp, pmq->Bottom, pmq->Top );
+		_xlprintf( 1 DBG_RELAY )( "------- tmp = %" _size_f " bottom=%" _size_f " top = %" _size_f " ------", tmp, pmq->Bottom, pmq->Top );
 #endif
 		pLastReadMsg = NULL;
 
@@ -832,19 +832,19 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 			// be consumed until said condition is not set.
 			pReadMsg = (PMSGDATA)(pmq->data + tmp);
 #ifndef DISABLE_MSGQUE_LOGGING
-			//lprintf( WIDE("Check for a message at %d (%08lx)"), tmp, pReadMsg->msg.length );
+			//lprintf( "Check for a message at %d (%08lx)", tmp, pReadMsg->msg.length );
 			//LogBinary( (POINTER)pReadMsg, pReadMsg->msg.real_length + sizeof( pReadMsg->MsgID ) + sizeof( MSGDATA ));
 #endif
 			if( pReadMsg->msg.ttl < now )
 			{
-				lprintf( WIDE("Message TTL Expired in queue... %d %d %d"), pReadMsg->msg.ttl, now, now - pReadMsg->msg.ttl );
+				lprintf( "Message TTL Expired in queue... %d %d %d", pReadMsg->msg.ttl, now, now - pReadMsg->msg.ttl );
 				LogBinary( (uint8_t*)pReadMsg, pReadMsg->msg.length & ACTUAL_LEN_MASK );
 				pReadMsg->msg.length |= MARK_MESSAGE_ALREADY_READ;
 			}
 			if( pReadMsg->msg.length & MARK_MESSAGE_ALREADY_READ )
 			{
 #ifndef DISABLE_MSGQUE_LOGGING
-				//lprintf( WIDE("Message has already been read...") );
+				//lprintf( "Message has already been read..." );
 #endif
 				if( tmp == pmq->Bottom )
 				{
@@ -865,14 +865,14 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 					if( pReadMsg->msg.length & MARK_END_OF_QUE )
 					{
 #ifndef DISABLE_MSGQUE_LOGGING
-						lprintf( WIDE("Looking for a message %") _size_f WIDE("...at %") _size_f WIDE(" haven't found one yet. (%") _size_f WIDE(")"), *MsgID, tmp, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
+						lprintf( "Looking for a message %" _size_f "...at %" _size_f " haven't found one yet. (%" _size_f ")", *MsgID, tmp, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #endif
 						SetPos( tmp, 0 );
 					}
 					else
 					{
 #ifndef DISABLE_MSGQUE_LOGGING
-						lprintf( WIDE("Looking for a message %") _size_f WIDE("...at %") _size_f WIDE(" haven't found one yet. (%") _size_f WIDE(")"), *MsgID, tmp, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
+						lprintf( "Looking for a message %" _size_f "...at %" _size_f " haven't found one yet. (%" _size_f ")", *MsgID, tmp, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
 						LogBinary( (uint8_t*)pReadMsg, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #  endif 
@@ -885,16 +885,16 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 				// with no further consideration.
 				if( pLastReadMsg && ( pLastReadMsg->msg.length & MARK_MESSAGE_ALREADY_READ ) )
 				{
-					lprintf( WIDE("Collapsing two already read messages prior length was %") _32f WIDE("(%") _size_f WIDE(") and %")_32f WIDE("(%") _size_f WIDE(") (%s)")
+					lprintf( "Collapsing two already read messages prior length was %" _32f "(%" _size_f ") and %"_32f "(%" _size_f ") (%s)"
 							 , pLastReadMsg->msg.length& ACTUAL_LEN_MASK
 							 , (uintptr_t)pLastReadMsg-(uintptr_t)pmq->data
 							 , pReadMsg->msg.length& ACTUAL_LEN_MASK
 							 , (uintptr_t)pReadMsg-(uintptr_t)pmq->data
-							 , (pReadMsg->msg.length&MARK_END_OF_QUE)?WIDE("end"):WIDE("") );
+							 , (pReadMsg->msg.length&MARK_END_OF_QUE)?"end":"" );
 						// prior message was read; collapse this one into it.
 					pLastReadMsg->msg.length |= (pReadMsg->msg.length & MARK_END_OF_QUE);
 					pLastReadMsg->msg.length += (pReadMsg->msg.length & ACTUAL_LEN_MASK);
-					lprintf( WIDE("Result in %")_32f WIDE(" %p   (tmp is %") _size_f WIDE(",t:%") _size_f WIDE(",b:%") _size_f WIDE(")"), pLastReadMsg->msg.length & ACTUAL_LEN_MASK
+					lprintf( "Result in %"_32f " %p   (tmp is %" _size_f ",t:%" _size_f ",b:%" _size_f ")", pLastReadMsg->msg.length & ACTUAL_LEN_MASK
 						, (POINTER)((uintptr_t)pmq->data + (pLastReadMsg->msg.length & ACTUAL_LEN_MASK))
 						, tmp
 						, pmq->Top
@@ -912,7 +912,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 			if( pReadMsg->msg.length & MARK_THREAD_WAITING )
 			{
 #ifndef DISABLE_MSGQUE_LOGGING
-				lprintf( WIDE("A thread is waiting message...") );
+				lprintf( "A thread is waiting message..." );
 #endif
 				// skip these... don't care on read?
 				// well maybe we care if this is the
@@ -925,7 +925,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 				{
 					// retest this current message as already read.
 #ifndef DISABLE_MSGQUE_LOGGING
-					lprintf( WIDE("And it's the message that denoted *I* was waiting... delete please") );
+					lprintf( "And it's the message that denoted *I* was waiting... delete please" );
 #endif
 					if( tmp != pmq->Bottom )
 					{
@@ -934,18 +934,18 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 						{
 							((PTHREADMSGDATA)pReadMsg)->thread = pTmpMsg->thread;
 							((PTHREADMSGDATA)pReadMsg)->msgdata.MsgID = pTmpMsg->msgdata.MsgID;
-							lprintf( WIDE("Mark message as having been read( should be a temporary wait message...") );
+							lprintf( "Mark message as having been read( should be a temporary wait message..." );
 							pTmpMsg->msgdata.msg.length |= MARK_MESSAGE_ALREADY_READ;
 						}
 						else
 						{
-							lprintf( WIDE("First message in queue is not a thread wait?!") );
+							lprintf( "First message in queue is not a thread wait?!" );
 							pReadMsg->msg.length |= MARK_MESSAGE_ALREADY_READ;
 						}
 					}
 					else
 					{
-						lprintf( WIDE("Mark message as having been read( should be a temporary wait message...") );
+						lprintf( "Mark message as having been read( should be a temporary wait message..." );
 						pReadMsg->msg.length |= MARK_MESSAGE_ALREADY_READ;
 					}
 					// and now move forward still...
@@ -975,7 +975,7 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 							, pReadMsg->msg.real_length + sizeof( pReadMsg->MsgID ) );
 					p = pReadMsg->msg.real_length;
 #ifndef DISABLE_MSGQUE_LOGGING
-					lprintf( WIDE("DequeMessage [%p] %")_MsgID_f WIDE(" len %") _size_f , result, *(MSGIDTYPE*)result, p+sizeof( pReadMsg->MsgID ) );
+					lprintf( "DequeMessage [%p] %"_MsgID_f " len %" _size_f , result, *(MSGIDTYPE*)result, p+sizeof( pReadMsg->MsgID ) );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
 					LogBinary( (uint8_t*)result, p+sizeof( pReadMsg->MsgID ) );
 #  endif
@@ -989,13 +989,13 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 #endif
 					return -1;
 				}
-				//lprintf( WIDE("...") );
+				//lprintf( "..." );
 				continue; // reprocess this mesage...
 			}
 			else if( *MsgID )
 			{
 #ifndef DISABLE_MSGQUE_LOGGING
-				lprintf( WIDE("Looking for a message %")_MsgID_f WIDE("...at %") _size_f WIDE(" haven't found one yet."), *MsgID, tmp );
+				lprintf( "Looking for a message %"_MsgID_f "...at %" _size_f " haven't found one yet.", *MsgID, tmp );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
 				LogBinary( (uint8_t*)pReadMsg, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #  endif
@@ -1015,11 +1015,11 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 		if( !p )
 		{
 #ifndef DISABLE_MSGQUE_LOGGING
-			lprintf( WIDE("No message found... looping...") );
+			lprintf( "No message found... looping..." );
 #endif
 			if( options & MSGQUE_NOWAIT )
 			{
-				lprintf( WIDE("Retunign - not looping...err uhh...") );
+				lprintf( "Retunign - not looping...err uhh..." );
 				SetLastError( MSGQUE_ERROR_NOMSG );
 				LeaveCriticalSec( &pmq->cs );
 				return -1;

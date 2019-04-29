@@ -113,7 +113,7 @@ static void CPROC _InitShader( uintptr_t psvSetup, PImageShaderTracker tracker )
 ZRender_Shader_Gui_Texture::ZRender_Shader_Gui_Texture( ZRender_Interface *render )
 {
 	this->render = render;
-	shader = ImageGetShaderInit( WIDE("BV GUI Shader")
+	shader = ImageGetShaderInit( "BV GUI Shader"
 		, _SetupShader
 		, _InitShader, (uintptr_t)this );
 

@@ -50,8 +50,8 @@ int main( int argc, char **argv )
 	NetworkWait( 0, 6000, 16 );
 	if( argc < 2 )
 	{
-		printf( WIDE("usage: %s <listen port> (defaulting to telnet)\n"), DupCharToText( argv[0] ) );
-		port = CreateSockAddress( WIDE("localhost:23"), 23 );
+		printf( "usage: %s <listen port> (defaulting to telnet)\n", DupCharToText( argv[0] ) );
+		port = CreateSockAddress( "localhost:23", 23 );
 		pcListen = OpenTCPListenerAddrEx( port, ClientConnected );
 	}
 	else {
@@ -78,7 +78,7 @@ int main( int argc, char **argv )
 		}
 	}
 	else
-		printf( WIDE("Failed to listen on port %s\n"), DupCharToText( argv[1] ) );
+		printf( "Failed to listen on port %s\n", DupCharToText( argv[1] ) );
 	return 0;
 }
 // $Log: echo.c,v $

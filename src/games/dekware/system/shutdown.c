@@ -72,25 +72,25 @@ int CPROC SystemShutdown( PSENTIENT ps, PTEXT param )
 					//ExitWindowsEx( EWX_LOGOFF|EWX_FORCE, 0 );
 					{
 						PTEXT temp;
-						DECLTEXT( msg, WIDE("Initiating system shutdown...") );
+						DECLTEXT( msg, "Initiating system shutdown..." );
 						EnqueLink( &ps->Command->Output, &msg );
 						if( !(temp = GetParam( ps, &param ) ) )
 							ExitWindowsEx( EWX_REBOOT|EWX_FORCE, 0 );
 						else
 						{
-							if( TextLike( temp, WIDE("logoff") ) )
+							if( TextLike( temp, "logoff" ) )
 								ExitWindowsEx( EWX_LOGOFF|EWX_FORCE, 0 );
-							else if( TextLike( temp, WIDE("reboot") ) )
+							else if( TextLike( temp, "reboot" ) )
 								ExitWindowsEx( EWX_REBOOT|EWX_FORCE, 0 );
-							else if( TextLike( temp, WIDE("shutdown") ) )
+							else if( TextLike( temp, "shutdown" ) )
 								ExitWindowsEx( EWX_SHUTDOWN|EWX_FORCE, 0 );
 						}
 					}
 				}
 				else
 				{
-					DECLTEXT( msg, WIDE("Failed to get privledge lookup...###############") );
-					msg.data.size = snprintf( msg.data.data, msg.data.size, WIDE("Failed to get privledge lookup...%ld"), GetLastError() );
+					DECLTEXT( msg, "Failed to get privledge lookup...###############" );
+					msg.data.size = snprintf( msg.data.data, msg.data.size, "Failed to get privledge lookup...%ld", GetLastError() );
 					EnqueLink( &ps->Command->Output, &msg );
 				GetLastError();
 
@@ -98,8 +98,8 @@ int CPROC SystemShutdown( PSENTIENT ps, PTEXT param )
 			}
 			else
 			{
-				DECLTEXT( msg, WIDE("Failed to open process token... ################") );
-				msg.data.size = snprintf( msg.data.data, msg.data.size, WIDE("Failed to open process token...%ld"), GetLastError() );
+				DECLTEXT( msg, "Failed to open process token... ################" );
+				msg.data.size = snprintf( msg.data.data, msg.data.size, "Failed to open process token...%ld", GetLastError() );
 				EnqueLink( &ps->Command->Output, &msg );
 				GetLastError();
 			}
@@ -221,7 +221,7 @@ int CPROC Sound( PSENTIENT ps, PTEXT parameters )
 		// SND_FILENAME 0x00020000L
 		// SND_ASYNC 1
 		// SND_NODEFAULT  2
-		Log1( WIDE("Playing Sound: %s"), GetText( (PTEXT)GetLink( &pSounds, sIndex ) ) );
+		Log1( "Playing Sound: %s", GetText( (PTEXT)GetLink( &pSounds, sIndex ) ) );
 		PlaySound( GetText( (PTEXT)GetLink( &pSounds, sIndex ) ), NULL, 0x00020003L );
 		{
 			INDEX idx;
@@ -336,7 +336,7 @@ static PTEXT ValidateEOL( PTEXT line )
 static int CPROC WriteSystem( PDATAPATH pdpX )
 {
 	PMYDATAPATH pdp = (PMYDATAPATH)pdpX;
-	//Log3( WIDE("Write system... %d %d %d")
+	//Log3( "Write system... %d %d %d"
 	//	 , IsQueueEmpty( &pdp->common.Output )
 	//	 , pdp->child_pid
 	//	 , waitpid( pdp->child_pid, NULL, WNOHANG )
@@ -359,9 +359,9 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 		ValidateEOL( pLine );
 		//if( pdp->common.flags.Formatted )
 		{
-			if( TextIs( pLine, WIDE(".") ) )
+			if( TextIs( pLine, "." ) )
 			{
-				Log( WIDE("Forwarding a dot command to next layer...") );
+				Log( "Forwarding a dot command to next layer..." );
 					if( pdp->common.pPrior )
 					{	
 					PTEXT next = NEXTLINE( pLine );
@@ -384,7 +384,7 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 		{
 			PTEXT seg;
 			seg = pOutput;
-			//Log2( WIDE("Writing to system...(%d)%08x"), GetTextSize( seg ), NEXTLINE(seg) );
+			//Log2( "Writing to system...(%d)%08x", GetTextSize( seg ), NEXTLINE(seg) );
 			//LogBinary( seg );
 			while( seg )
 			{
@@ -401,7 +401,7 @@ static int CPROC WriteSystem( PDATAPATH pdpX )
 					if( poll( &pfd, 1, 0 ) &&
 						 pfd.revents & POLLERR )
 					{
-						Log( WIDE("Pipe has no readers...") );
+						Log( "Pipe has no readers..." );
 							break;
 					}
 					LogBinary( GetText( seg ), GetTextSize( seg ) );
@@ -437,7 +437,7 @@ static void CPROC TaskEndHandler(uintptr_t psvpdp, PTASK_INFO task_ended)
 	pdp->common.flags.Closed = 1;
 	WakeAThread( pdp->common.Owner );
 	if( !deleted )
-		InvokeBehavior( WIDE( "close_process" ), pdp->common.Owner->Current, pdp->common.Owner, NULL );
+		InvokeBehavior( "close_process", pdp->common.Owner->Current, pdp->common.Owner, NULL );
 
 	Release( pdp );
 	if( deleted )
@@ -524,13 +524,13 @@ PDATAPATH CPROC SysCommand( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters 
 		pdp->common.Owner = ps;
 		//pdp->common.flags.Formatted = TRUE;
 
-		pdp->hStdIn.name = WIDE("Standard In");
-		pdp->hStdOut.name = WIDE("Standard Out");
-		//pdp->hStdErr.name = WIDE("Standard Error");
+		pdp->hStdIn.name = "Standard In";
+		pdp->hStdOut.name = "Standard Out";
+		//pdp->hStdErr.name = "Standard Error";
 	}
 	{
 		TEXTCHAR *pc;
-		DECLTEXT( eol, WIDE("\n") );
+		DECLTEXT( eol, "\n" );
 		pdp->pEndOfLine = (PTEXT)&eol;
 		while( ( pc = GetText( parameters ) ) &&
 				 pc[0] == '_' && 
@@ -540,37 +540,37 @@ PDATAPATH CPROC SysCommand( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters 
 			localopt = GetParam( ps, &parameters );
 #ifndef __ANDROID__
 #ifdef __LINUX__
-			if( TextLike( localopt, WIDE("__pty") ) )
+			if( TextLike( localopt, "__pty" ) )
 			{
-				Log( WIDE("Opening Pseudo tty") );
+				Log( "Opening Pseudo tty" );
 				pdp->flags.use_pty = 1;
 			}
 #endif
 #endif
-			if( TextLike( localopt, WIDE("__raw") ) )
+			if( TextLike( localopt, "__raw" ) )
 			{
 				pdp->flags.no_auto_newline = TRUE;
 			}
-			if( TextLike( localopt, WIDE("__eol") ) )
+			if( TextLike( localopt, "__eol" ) )
 			{
 				pdp->pEndOfLine = GetParam( ps, &parameters );
 				//pdp->common.flags.Formatted = FALSE;
 			}
 		}
 	}
-	//Log1( WIDE("Input(%s)"), GetText( parameters ) );
+	//Log1( "Input(%s)", GetText( parameters ) );
 	pLine = MacroDuplicate( ps, parameters );
 	pCmdLine = BuildLine( pLine );
-	Log1( WIDE("BuiltLine(%s)"), GetText( pCmdLine ) );
+	Log1( "BuiltLine(%s)", GetText( pCmdLine ) );
 
 	if( !LaunchSystemCommand( pdp, pCmdLine ) )
 	{
-		DECLTEXT( msg, WIDE("Failure to launch command") );
+		DECLTEXT( msg, "Failure to launch command" );
 		EnqueLink( &ps->Command->Output, &msg );
 		DestroyDataPath( (PDATAPATH)pdp );
 		pdp = NULL;
 	}
-	AddBehavior( ps->Current, WIDE("close_process"), WIDE("Datapath has closed (multiple same-type datapaths fail") );
+	AddBehavior( ps->Current, "close_process", "Datapath has closed (multiple same-type datapaths fail" );
 
 	LineRelease( pLine );
 	return (PDATAPATH)pdp;

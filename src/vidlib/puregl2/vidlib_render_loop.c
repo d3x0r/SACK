@@ -62,7 +62,7 @@ void MygluPerspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 void WantRender3D( void )
 {
 	if( l.flags.bLogRenderTiming )
-		lprintf( WIDE("Begin Want Render") );
+		lprintf( "Begin Want Render" );
 
 	{
 		PRENDERER other = NULL;
@@ -71,13 +71,13 @@ void WantRender3D( void )
 		{
 			other = hVideo;
 			if( l.flags.bLogWrites )
-				lprintf( WIDE("Have a video in stack...") );
+				lprintf( "Have a video in stack..." );
 			if( hVideo->flags.bDestroy )
 				continue;
 			if( hVideo->flags.bHidden || !hVideo->flags.bShown )
 			{
 				if( l.flags.bLogWrites )
-					lprintf( WIDE("But it's not exposed...") );
+					lprintf( "But it's not exposed..." );
 				continue;
 			}
 			if( hVideo->flags.bUpdated )
@@ -96,15 +96,15 @@ void Render3D( struct display_camera *camera )
 	struct plugin_reference *reference;
 	int first_draw;
 	if( l.flags.bLogRenderTiming )
-		lprintf( WIDE("Begin Render") );
+		lprintf( "Begin Render" );
 
 	if( camera->flags.first_draw )
 	{
 		struct plugin_reference *reference;
-		//lprintf( WIDE("camera is in first_draw...") );
+		//lprintf( "camera is in first_draw..." );
 		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 		{
-			//lprintf( WIDE("so reset plugin... is there one?") );
+			//lprintf( "so reset plugin... is there one?" );
 			reference->flags.did_first_draw = 0;
 		}
 	}
@@ -141,7 +141,7 @@ void Render3D( struct display_camera *camera )
 				if( first_draw )
 				{
 					if( l.flags.bLogRenderTiming )
-						lprintf( WIDE("Send first draw") );
+						lprintf( "Send first draw" );
 					if( reference->FirstDraw3d )
 						reference->FirstDraw3d( reference->psv );
 				}
@@ -180,11 +180,11 @@ void Render3D( struct display_camera *camera )
 #endif
 
 		if( l.flags.bLogRenderTiming )
-			lprintf( WIDE("Begin drawing from bottom up") );
+			lprintf( "Begin drawing from bottom up" );
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 		{
 			if( l.flags.bLogRenderTiming )
-				lprintf( WIDE("Have a video in stack... %p"), hVideo );
+				lprintf( "Have a video in stack... %p", hVideo );
 			hVideo->flags.bRendering = 1;
 			if( hVideo->flags.bDestroy )
 			{
@@ -194,7 +194,7 @@ void Render3D( struct display_camera *camera )
 			if( hVideo->flags.bHidden || !hVideo->flags.bShown )
 			{
 				if( l.flags.bLogWrites )
-					lprintf( WIDE("But it's not exposed...") );
+					lprintf( "But it's not exposed..." );
 				hVideo->flags.bRendering = 0;
 				continue;
 			}
@@ -202,7 +202,7 @@ void Render3D( struct display_camera *camera )
 			hVideo->flags.bUpdated = 0;
 
 			if( l.flags.bLogWrites )
-				lprintf( WIDE("------ BEGIN A REAL DRAW -----------") );
+				lprintf( "------ BEGIN A REAL DRAW -----------" );
 
 #ifdef _OPENGL_DRIVER
 //#if 0
@@ -255,7 +255,7 @@ void Render3D( struct display_camera *camera )
 			hVideo->flags.bRendering = 0;
 		}
 		if( l.flags.bLogRenderTiming )
-			lprintf( WIDE("Begin Render (plugins)") );
+			lprintf( "Begin Render (plugins)" );
 
 		{
 			INDEX idx;
@@ -267,7 +267,7 @@ void Render3D( struct display_camera *camera )
 			}
 		}
 		if( l.flags.bLogRenderTiming )
-			lprintf( WIDE("End Render") );
+			lprintf( "End Render" );
 	}
 	EndActive3D( camera );
 }
@@ -279,19 +279,19 @@ void drawCamera( struct display_camera *camera )
 	if( !camera->plugins && !l.flags.bUpdateWanted )
 	{
 		if( l.flags.bLogRenderTiming )
-			lprintf( WIDE("nothing to do...") );
+			lprintf( "nothing to do..." );
 		return;
 	}
 	if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
 	{
 		if( l.flags.bLogRenderTiming )
-			lprintf( WIDE("Open Camera...") );
+			lprintf( "Open Camera..." );
 		OpenCamera( camera );
 	}
 	if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
 	{
 		if( l.flags.bLogRenderTiming )
-			lprintf( WIDE("not ready to draw camera.... %p"), camera->hVidCore );
+			lprintf( "not ready to draw camera.... %p", camera->hVidCore );
 		return;
 	}
 	if( camera->flags.first_draw )
@@ -299,15 +299,15 @@ void drawCamera( struct display_camera *camera )
 		struct plugin_reference *reference;
 		INDEX idx;
 		if( l.flags.bLogRenderTiming )
-			lprintf( WIDE("camera is in first_draw...") );
+			lprintf( "camera is in first_draw..." );
 		LIST_FORALL( camera->plugins, idx, struct plugin_reference *, reference )
 		{
-			//lprintf( WIDE("so reset plugin... is there one?") );
+			//lprintf( "so reset plugin... is there one?" );
 			reference->flags.did_first_draw = 0;
 		}
 	}
 	if( l.flags.bLogRenderTiming )
-		lprintf( WIDE("Render camera %p"), camera );
+		lprintf( "Render camera %p", camera );
 	// drawing may cause subsequent draws; so clear this first
 	Render3D( camera );
 	camera->flags.first_draw = 0;
@@ -317,14 +317,14 @@ void drawCamera( struct display_camera *camera )
 LOGICAL ProcessGLDraw( LOGICAL draw_all )
 {
 	if( l.flags.bLogRenderTiming )
-		lprintf( WIDE("Begin Draw Tick") );
+		lprintf( "Begin Draw Tick" );
 	Move( l.origin );
 
 	{
 		INDEX idx;
 		Update3dProc proc;
 		if( l.flags.bLogRenderTiming )
-			lprintf( WIDE("check plugin updates") );
+			lprintf( "check plugin updates" );
 		LIST_FORALL( l.update, idx, Update3dProc, proc )
 		{
 			//lprintf( "Calling 3d callback...%p", proc );
@@ -340,13 +340,13 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 	if( !l.flags.bUpdateWanted )
 	{
 		if( l.flags.bLogRenderTiming )
-			lprintf( WIDE("Check if a render surface wants to draw...") );
+			lprintf( "Check if a render surface wants to draw..." );
 		// set l.flags.bUpdateWanted for window surfaces.
 		WantRender3D();
 	}
 	else
 		if( l.flags.bLogRenderTiming )
-			lprintf( WIDE("Update is wanted already...") );
+			lprintf( "Update is wanted already..." );
 
 	if( draw_all || l.flags.bUpdateWanted )
 	{
@@ -358,7 +358,7 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 			if( !idx )
 				continue;
 			if( l.flags.bLogRenderTiming )
-				lprintf( WIDE("draw a camera %p"), camera );
+				lprintf( "draw a camera %p", camera );
 			drawCamera( camera );
 		}
 		l.flags.bUpdateWanted = 0;

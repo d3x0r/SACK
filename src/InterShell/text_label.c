@@ -15,7 +15,7 @@
 
 INTERSHELL_NAMESPACE
 
-#define TEXT_LABEL_NAME WIDE("Text Label")
+#define TEXT_LABEL_NAME "Text Label"
 
 
 
@@ -55,8 +55,8 @@ enum { BTN_VARNAME = 1322
 
 PRIORITY_PRELOAD( AliasPageTitle, DEFAULT_PRELOAD_PRIORITY-3 )
 {
-	EasyRegisterResource( WIDE( "intershell/text" ), BTN_VARNAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "intershell/text" ), BTN_VARVAL, EDIT_FIELD_NAME );
+	EasyRegisterResource( "intershell/text", BTN_VARNAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "intershell/text", BTN_VARVAL, EDIT_FIELD_NAME );
 }
 
 typedef struct variable_tag VARIABLE;
@@ -190,7 +190,7 @@ PVARIABLE CreateLabelVariable( CTEXTSTR name, enum label_variable_types type, CP
 {
 	if( type == LABEL_TYPE_PROC_EX )
 	{
-		xlprintf( LOG_ALWAYS )( WIDE( "Cannot Register an EX Proc tyep label with CreateLabelVariable!" ) );
+		xlprintf( LOG_ALWAYS )( "Cannot Register an EX Proc tyep label with CreateLabelVariable!" );
 		DebugBreak();
 	}
 	return CreateLabelVariableEx( name, type, data, 0 );
@@ -204,7 +204,7 @@ CTEXTSTR InterShell_GetLabelText( PPAGE_LABEL label, CTEXTSTR variable )
 // somehow, variables need to get udpate events...
 // which can then update the text labels referencing said variable.
 
-//OnUpdateVariable( WIDE("Current User Total") )( TEXTCHAR *variable )
+//OnUpdateVariable( "Current User Total" )( TEXTCHAR *variable )
 //{
 //}
 
@@ -237,27 +237,27 @@ int GetHighlight( uintptr_t psv, PMENU_BUTTON button )
 static CTEXTSTR TestParam1( int64_t arg )
 {
 	static TEXTCHAR val[32];
-	snprintf( val, 32, WIDE("%lld"), arg * 2 );
+	snprintf( val, 32, "%lld", arg * 2 );
 	return val;
 }
 
 static CTEXTSTR TestParam2( int64_t arg )
 {
 	static TEXTCHAR val[32];
-	snprintf( val, 32, WIDE("%lld"), arg * 3 );
+	snprintf( val, 32, "%lld", arg * 3 );
 	return val;
 }
 
 static CTEXTSTR GetPageTitle( uintptr_t psv, PMENU_BUTTON control )
 {
 	PPAGE_DATA page = ShellGetCurrentPage( InterShell_GetButtonCanvas( control ) );
-	return page->title?page->title:WIDE( "DEFAULT PAGE" );
+	return page->title?page->title:"DEFAULT PAGE";
 }
 
 PRELOAD( PreconfigureVariables )
 {
-	CreateLabelVariableEx( WIDE( "Current Page" ), LABEL_TYPE_PROC_CONTROL_EX, (POINTER)GetPageTitle, 0 );
-	CreateLabelVariable( WIDE( "Highlight State" ), LABEL_TYPE_VALUE_STRING, (POINTER)GetHighlight );
+	CreateLabelVariableEx( "Current Page", LABEL_TYPE_PROC_CONTROL_EX, (POINTER)GetPageTitle, 0 );
+	CreateLabelVariable( "Highlight State", LABEL_TYPE_VALUE_STRING, (POINTER)GetHighlight );
 	AddTimer( 50, ScrollingLabelUpdate, 0 );
 }
 
@@ -323,12 +323,12 @@ static CTEXTSTR HandleValueProc( CTEXTSTR *pvariable, PVARIABLE var, TEXTCHAR *o
 		}
 		option = var->data.value_proc( var->psvUserData, button );
 		nOutput += snprintf( output + nOutput, output_len - nOutput - 1
-								 , WIDE("%s"), GetLink( &opts, option ) );
-		//lprintf( WIDE("Before adjustment : [%s]"), variable );
+								 , "%s", GetLink( &opts, option ) );
+		//lprintf( "Before adjustment : [%s]", variable );
 		variable = variable + ( value - tmp ) + 2;
 		(*pvariable) = variable;
 		(*pnOutput) = nOutput;
-		//lprintf( WIDE("AFter adjustment : [%s]"), variable );
+		//lprintf( "AFter adjustment : [%s]", variable );
 		Release( tmp );
 	}
 	return output;
@@ -360,7 +360,7 @@ static CTEXTSTR HandleParameterProc( CTEXTSTR *pvariable, PVARIABLE var, TEXTCHA
 		CTEXTSTR result = var->data.value_param_proc( param );
 
 		nOutput += snprintf( output + nOutput, output_len - nOutput - 1
-								 , WIDE("%s"), result );
+								 , "%s", result );
 
 		variable = variable + ( value_end - values + 1 - offset );  // one for the leading %, one for the end?
 		(*pvariable) = variable;
@@ -405,43 +405,43 @@ CTEXTSTR InterShell_GetControlLabelText( PMENU_BUTTON button, PPAGE_LABEL label,
 					{
 						if( *var->data.string_value )
 							nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-													 , WIDE("%s"), (*var->data.string_value) );
+													 , "%s", (*var->data.string_value) );
 					}
 					else if( var->flags.bConstString )
 					{
 					nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-											 , WIDE("%s"), (var->data.string_const_value?var->data.string_const_value:WIDE("")) );
+											 , "%s", (var->data.string_const_value?var->data.string_const_value:"") );
 					}
 					else if( var->flags.bInt )
 					{
 						nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("%ld"), (*var->data.int_value) );
+												 , "%ld", (*var->data.int_value) );
 					}
 					else if( var->flags.bProc )
 					{
 						//lprintf( "Calling external function to get value..." );
 						nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("%s"), var->data.proc() );
+												 , "%s", var->data.proc() );
 						//lprintf( "New output is [%s]", output );
 					}
 					else if( var->flags.bProcControlEx )
 					{
 						//lprintf( "Calling external function to get value..." );
 						nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("%s"), var->data.proc_control_ex(var->psvUserData,button) );
+												 , "%s", var->data.proc_control_ex(var->psvUserData,button) );
 						//lprintf( "New output is [%s]", output );
 					}
 					else if( var->flags.bProcEx )
 					{
 						//lprintf( "Calling external extended function to get value..." );
 						nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("%s"), var->data.proc_ex( var->psvUserData ) );
+												 , "%s", var->data.proc_ex( var->psvUserData ) );
 						//lprintf( "New output is [%s]", output );
 					}
 					else
 					{
 						nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("%%%s"), var->name );
+												 , "%%%s", var->name );
 					}
 					if( label )
 					{
@@ -463,7 +463,7 @@ CTEXTSTR InterShell_GetControlLabelText( PMENU_BUTTON button, PPAGE_LABEL label,
 						CTEXTSTR env_var;
 						TEXTSTR tmp = NewArray( TEXTCHAR, env - variable );
 						StrCpyEx( tmp, variable+1, (env-variable) );
-						//lprintf( WIDE("failed var try %s"), tmp );
+						//lprintf( "failed var try %s", tmp );
 #ifdef HAVE_ENVIRONMENT
 #ifdef __ANDROID__
 						if( StrCaseCmp( tmp, "hostname" ) == 0 ||
@@ -476,7 +476,7 @@ CTEXTSTR InterShell_GetControlLabelText( PMENU_BUTTON button, PPAGE_LABEL label,
 						if( env_var )
 						{
 							nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-													 , WIDE( "%s" ), env_var );
+													 , "%s", env_var );
 							variable += (env-variable);
 						}
 						else
@@ -484,7 +484,7 @@ CTEXTSTR InterShell_GetControlLabelText( PMENU_BUTTON button, PPAGE_LABEL label,
 						{
 #ifdef OUTPUT_BAD_VARIABLES
 							nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-													 , WIDE("[bad variable]") );
+													 , "[bad variable]" );
 #endif
 						}
 					}
@@ -503,7 +503,7 @@ CTEXTSTR InterShell_GetControlLabelText( PMENU_BUTTON button, PPAGE_LABEL label,
 
 #ifdef OUTPUT_BAD_VARIABLES
 						nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("[bad variable]") );
+												 , "[bad variable]" );
 #endif
 					}
 					var = (PVARIABLE)1;
@@ -529,7 +529,7 @@ CTEXTSTR InterShell_GetControlLabelText( PMENU_BUTTON button, PPAGE_LABEL label,
 					}
 #ifdef OUTPUT_BAD_VARIABLES
 					nOutput += snprintf( output + nOutput, sizeof( output ) - (nOutput - 1)*sizeof(TEXTCHAR)
-											 , WIDE("[bad variable(%d)]"), n );
+											 , "[bad variable(%d)]", n );
 #endif
 				}
 			}
@@ -584,29 +584,29 @@ CTEXTSTR InterShell_TranslateLabelTextEx( PMENU_BUTTON button, PPAGE_LABEL label
 					else if( var->flags.bString )
 					{
 						nOutput += snprintf( output + nOutput, buffer_len - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("%s"), (*var->data.string_value) );
+												 , "%s", (*var->data.string_value) );
 					}
 					else if( var->flags.bConstString )
 					{
 						nOutput += snprintf( output + nOutput, buffer_len - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("%s"), (var->data.string_const_value?var->data.string_const_value:WIDE("")) );
+												 , "%s", (var->data.string_const_value?var->data.string_const_value:"") );
 					}
 					else if( var->flags.bInt )
 					{
 						nOutput += snprintf( output + nOutput, buffer_len - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("%ld"), (*var->data.int_value) );
+												 , "%ld", (*var->data.int_value) );
 					}
 					else if( var->flags.bProc )
 					{
 						//lprintf( "Calling external function to get value..." );
 						nOutput += snprintf( output + nOutput, buffer_len - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("%s"), var->data.proc() );
+												 , "%s", var->data.proc() );
 					//lprintf( "New output is [%s]", output );
 					}
 					else
 					{
 						nOutput += snprintf( output + nOutput, buffer_len - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("%%%s"), var->name );
+												 , "%%%s", var->name );
 					}
 					if( label )
 					{
@@ -628,13 +628,13 @@ CTEXTSTR InterShell_TranslateLabelTextEx( PMENU_BUTTON button, PPAGE_LABEL label
 						CTEXTSTR env_var;
 						TEXTSTR tmp = NewArray( TEXTCHAR, env - variable );
 						StrCpyEx( tmp, variable+1, (env-variable) );
-						//lprintf( WIDE("failed var try %s"), tmp );
+						//lprintf( "failed var try %s", tmp );
 #ifdef HAVE_ENVIRONMENT
 						env_var = OSALOT_GetEnvironmentVariable( tmp );
 						if( env_var )
 						{
 							nOutput += snprintf( output + nOutput, buffer_len - (nOutput - 1)*sizeof(TEXTCHAR)
-													 , WIDE( "%s" ), env_var );
+													 , "%s", env_var );
 							variable += (env-variable);
 						}
 						else
@@ -642,7 +642,7 @@ CTEXTSTR InterShell_TranslateLabelTextEx( PMENU_BUTTON button, PPAGE_LABEL label
 						{
 #ifdef OUTPUT_BAD_VARIABLES
 							nOutput += snprintf( output + nOutput, buffer_len - (nOutput - 1)*sizeof(TEXTCHAR)
-													 , WIDE("[bad variable]") );
+													 , "[bad variable]" );
 #endif
 						}
 					}
@@ -661,7 +661,7 @@ CTEXTSTR InterShell_TranslateLabelTextEx( PMENU_BUTTON button, PPAGE_LABEL label
 
 #ifdef OUTPUT_BAD_VARIABLES
 						nOutput += snprintf( output + nOutput, buffer_len - (nOutput - 1)*sizeof(TEXTCHAR)
-												 , WIDE("[bad variable]") );
+												 , "[bad variable]" );
 #endif
 					}
 				}
@@ -785,19 +785,19 @@ static PSI_CONTROL OnGetControl( TEXT_LABEL_NAME )( uintptr_t psv )
 static void OnSaveControl( TEXT_LABEL_NAME )( FILE *file,uintptr_t psv )
 {
 	PPAGE_LABEL title = (PPAGE_LABEL)psv;
-	fprintf( file, WIDE("%scolor=%s\n"), InterShell_GetSaveIndent(), FormatColor( title->color ) );
-	fprintf( file, WIDE("%sbackground color=%s\n"), InterShell_GetSaveIndent(), FormatColor( title->back_color ) );
-	fprintf( file, WIDE( "%salign center?%s\n" ), InterShell_GetSaveIndent(), title->flags.bCenter?WIDE( "on" ):WIDE( "off" ) );
-	fprintf( file, WIDE( "%salign right?%s\n" ), InterShell_GetSaveIndent(), title->flags.bRight?WIDE( "on" ):WIDE( "off" ) );
-	fprintf( file, WIDE( "%salign scroll?%s\n" ), InterShell_GetSaveIndent(), title->flags.bScroll?WIDE( "on" ):WIDE( "off" ) );
-	fprintf( file, WIDE( "%salign vertical?%s\n" ), InterShell_GetSaveIndent(), title->flags.bVertical?WIDE( "on" ):WIDE( "off" ) );
-	fprintf( file, WIDE( "%salign inverted?%s\n" ), InterShell_GetSaveIndent(), title->flags.bInverted?WIDE( "on" ):WIDE( "off" ) );
+	fprintf( file, "%scolor=%s\n", InterShell_GetSaveIndent(), FormatColor( title->color ) );
+	fprintf( file, "%sbackground color=%s\n", InterShell_GetSaveIndent(), FormatColor( title->back_color ) );
+	fprintf( file, "%salign center?%s\n", InterShell_GetSaveIndent(), title->flags.bCenter?"on":"off" );
+	fprintf( file, "%salign right?%s\n", InterShell_GetSaveIndent(), title->flags.bRight?"on":"off" );
+	fprintf( file, "%salign scroll?%s\n", InterShell_GetSaveIndent(), title->flags.bScroll?"on":"off" );
+	fprintf( file, "%salign vertical?%s\n", InterShell_GetSaveIndent(), title->flags.bVertical?"on":"off" );
+	fprintf( file, "%salign inverted?%s\n", InterShell_GetSaveIndent(), title->flags.bInverted?"on":"off" );
 	if( title->preset_name )
 	{
-		fprintf( file, WIDE("%sfont name=%s\n"), InterShell_GetSaveIndent(),title->preset_name );
+		fprintf( file, "%sfont name=%s\n", InterShell_GetSaveIndent(),title->preset_name );
 	}
 	if( title->button->text )
-		fprintf( file, WIDE("%slabel=%s\n"), InterShell_GetSaveIndent(), EscapeMenuString( title->button->text ) );
+		fprintf( file, "%slabel=%s\n", InterShell_GetSaveIndent(), EscapeMenuString( title->button->text ) );
 }
 
 
@@ -884,16 +884,16 @@ static uintptr_t CPROC SetTitleFontByName( uintptr_t psv, arg_list args )
 
 static void OnLoadControl( TEXT_LABEL_NAME )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("color=%c"), SetTitleColor );
-	AddConfigurationMethod( pch, WIDE("background color=%c"), SetTitleBackColor );
-	AddConfigurationMethod( pch, WIDE("font name=%m"), SetTitleFontByName );
-	AddConfigurationMethod( pch, WIDE("label=%m"), SetTitleLabel );
-	AddConfigurationMethod( pch, WIDE("align center?%b"), SetTitleCenter );
-	AddConfigurationMethod( pch, WIDE("align scroll?%b"), SetTitleScrollRightLeft );
-	AddConfigurationMethod( pch, WIDE("align right?%b"), SetTitleRight );
-	AddConfigurationMethod( pch, WIDE("align vertical?%b"), SetTitleVertical );
-	AddConfigurationMethod( pch, WIDE("align vertical?%b"), SetTitleTextShadow );
-	AddConfigurationMethod( pch, WIDE("align inverted?%b"), SetTitleInverted );
+	AddConfigurationMethod( pch, "color=%c", SetTitleColor );
+	AddConfigurationMethod( pch, "background color=%c", SetTitleBackColor );
+	AddConfigurationMethod( pch, "font name=%m", SetTitleFontByName );
+	AddConfigurationMethod( pch, "label=%m", SetTitleLabel );
+	AddConfigurationMethod( pch, "align center?%b", SetTitleCenter );
+	AddConfigurationMethod( pch, "align scroll?%b", SetTitleScrollRightLeft );
+	AddConfigurationMethod( pch, "align right?%b", SetTitleRight );
+	AddConfigurationMethod( pch, "align vertical?%b", SetTitleVertical );
+	AddConfigurationMethod( pch, "align vertical?%b", SetTitleTextShadow );
+	AddConfigurationMethod( pch, "align inverted?%b", SetTitleInverted );
 }
 
 static LOGICAL OnQueryShowControl( TEXT_LABEL_NAME )( uintptr_t psv )
@@ -975,7 +975,7 @@ static uintptr_t OnEditControl( TEXT_LABEL_NAME )( uintptr_t psv, PSI_CONTROL pa
 		// basically this should call (psv=CreatePaper(button)) to create a blank button, and then launch
 		// the config, and return the button created.
 		//PPAPER_INFO issue = button->paper;
-		frame = LoadXMLFrame( WIDE("page_label_property.isframe") );
+		frame = LoadXMLFrame( "page_label_property.isframe" );
 		if( frame )
 		{
 			//could figure out a way to register methods under
@@ -1120,11 +1120,11 @@ void SetVariable( CTEXTSTR name, CTEXTSTR value )
 		LabelVariableChanged( pVar );
 	}
 	else
-		lprintf( WIDE( "Attempt to set a variable that is not direct text, cannot override routines...name:%s newval:%s" )
+		lprintf( "Attempt to set a variable that is not direct text, cannot override routines...name:%s newval:%s"
 				 , name, value );
 }
 
-static void OnKeyPressEvent( WIDE( "InterShell/Set Variable" ) )( uintptr_t psv )
+static void OnKeyPressEvent( "InterShell/Set Variable" )( uintptr_t psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	SetVariable( pSetVar->varname, pSetVar->newval );
@@ -1132,21 +1132,21 @@ static void OnKeyPressEvent( WIDE( "InterShell/Set Variable" ) )( uintptr_t psv 
 	//return 1;
 }
 
-static uintptr_t OnCreateMenuButton( WIDE( "InterShell/Set Variable" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "InterShell/Set Variable" )( PMENU_BUTTON button )
 {
 	PSETVAR pSetVar = New( SETVAR );
 	pSetVar->varname = NULL;
 	pSetVar->newval = NULL;
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
 
 	return (uintptr_t)pSetVar;
 }
 
-static uintptr_t OnConfigureControl( WIDE( "InterShell/Set Variable" ) )( uintptr_t psv, PSI_CONTROL parent )
+static uintptr_t OnConfigureControl( "InterShell/Set Variable" )( uintptr_t psv, PSI_CONTROL parent )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	PSI_CONTROL frame;
-	frame = LoadXMLFrameOver( parent, WIDE( "configure_text_setvar_button.isframe" ) );
+	frame = LoadXMLFrameOver( parent, "configure_text_setvar_button.isframe" );
 	if( frame )
 	{
 		int okay = 0;
@@ -1183,14 +1183,14 @@ static uintptr_t OnConfigureControl( WIDE( "InterShell/Set Variable" ) )( uintpt
 	return psv;
 }
 
-static void OnSaveControl( WIDE( "InterShell/Set Variable" ) )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "InterShell/Set Variable" )( FILE *file, uintptr_t psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
-	fprintf( file, WIDE( "set variable text name=%s\n" ), EscapeMenuString( pSetVar->varname ) );
-	fprintf( file, WIDE( "set variable text value=%s\n" ), EscapeMenuString( pSetVar->newval ) );
+	fprintf( file, "set variable text name=%s\n", EscapeMenuString( pSetVar->varname ) );
+	fprintf( file, "set variable text value=%s\n", EscapeMenuString( pSetVar->newval ) );
 }
 
-static void OnCloneControl( WIDE( "InterShell/Set Variable" ) )( uintptr_t psvNew, uintptr_t psvOld )
+static void OnCloneControl( "InterShell/Set Variable" )( uintptr_t psvNew, uintptr_t psvOld )
 {
 	PSETVAR pSetVarNew = (PSETVAR)psvNew;
 	PSETVAR pSetVarOld = (PSETVAR)psvOld;
@@ -1219,10 +1219,10 @@ static uintptr_t CPROC SetVariableVariableValue( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE( "InterShell/Set Variable" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "InterShell/Set Variable" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch,  WIDE( "set variable text name=%m" ), SetVariableVariableName );
-	AddConfigurationMethod( pch,  WIDE( "set variable text value=%m" ), SetVariableVariableValue );
+	AddConfigurationMethod( pch,  "set variable text name=%m", SetVariableVariableName );
+	AddConfigurationMethod( pch,  "set variable text value=%m", SetVariableVariableValue );
 }
 
 #undef SetTextLabelOptions

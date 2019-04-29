@@ -8,31 +8,31 @@
 
 PRELOAD( InitCalculator )
 {
-	CreateKeypadType( WIDE("Calculator Pad") );
+	CreateKeypadType( "Calculator Pad" );
 
 }
 
 static void CPROC Easter1( uintptr_t psv )
 {
-	BannerMessage( WIDE("Enabled Sequence 1") );
+	BannerMessage( "Enabled Sequence 1" );
 }
 
 static void CPROC Easter2( uintptr_t psv )
 {
-	BannerMessage( WIDE("Enabled Sequence 2") );
+	BannerMessage( "Enabled Sequence 2" );
 }
 
 
-static void OnFinishAllInit( WIDE("Calculator") )( void )
+static void OnFinishAllInit( "Calculator" )( void )
 {
 	PLIST keypads = NULL;
 	PSI_CONTROL keypad;
 	INDEX idx;
-	GetKeypadsOfType( &keypads, WIDE("Calculator Pad") );
+	GetKeypadsOfType( &keypads, "Calculator Pad" );
 	LIST_FORALL( keypads, idx, PSI_CONTROL, keypad )
 	{
-		Keypad_AddMagicKeySequence( keypad, WIDE("314159"), Easter1, 0 );
-		Keypad_AddMagicKeySequence( keypad, WIDE("\\C\\C0\\C\\C0\\C"), Easter2, 0 );
+		Keypad_AddMagicKeySequence( keypad, "314159", Easter1, 0 );
+		Keypad_AddMagicKeySequence( keypad, "\\C\\C0\\C\\C0\\C", Easter2, 0 );
 
 	}
 }

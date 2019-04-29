@@ -16,7 +16,7 @@
 #define CheckErr()  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-						lprintf( WIDE("err=%d"),err ); \
+						lprintf( "err=%d",err ); \
 				}                               \
 
 struct BulletInfo

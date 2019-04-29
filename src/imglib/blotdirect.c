@@ -481,7 +481,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 	}
 	bd.ws = ws;
 	bd.hs = hs;
-	//lprintf( WIDE("Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)"), xs, ys, ws, hs, xd, yd, wd, hd );
+	//lprintf( "Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)", xs, ys, ws, hs, xd, yd, wd, hd );
 	if( (int32_t)ws <= 0 ||
 		 (int32_t)hs <= 0 )
 		return;
@@ -517,7 +517,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 		bd.po = IMG_ADDRESS( pifDest, xd, yd );
 		bd.oo = 4*(pifDest->pwidth - ws);	  // w is how much we can copy...
 	}
-	//lprintf( WIDE("Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)"), xs, ys, ws, hs, xd, yd, wd, hd );
+	//lprintf( "Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)", xs, ys, ws, hs, xd, yd, wd, hd );
 	//oo = 4*(pifDest->pwidth - ws);	  // w is how much we can copy...
 	//oi = 4*(pifSrc->pwidth - ws); // adding remaining width...
 	//while( LockedExchange( &lock, 1 ) )

@@ -103,7 +103,7 @@ void CPROC AcceptChanges( void )
 			// maybe some kinda aliasing so that server1-world1 and server2-world1 do not overlap.
 			{
 				PWORLD world = GetSetMember( WORLD, &g.worlds, ((INDEX*)params)[0] );
-				lprintf( WIDE("Create a world... %d"), ((INDEX*)params)[0] );
+				lprintf( "Create a world... %d", ((INDEX*)params)[0] );
 				world->name = ((INDEX*)params)[1];
 			}
 			break;
@@ -117,7 +117,7 @@ void CPROC AcceptChanges( void )
 				//PWORLD pWorld = GetSetMember( WORLD, &g.worlds, ((INDEX*)params)[0] );
 				PWALL wall = GetWall( ((INDEX*)params)[1] );
 				PWALL copy_from = (PWALL)(((INDEX*)params)+2);
-				lprintf( WIDE("Create a wall... %d"), ((INDEX*)params)[1] );
+				lprintf( "Create a wall... %d", ((INDEX*)params)[1] );
 				wall[0] = copy_from[0];
 			}
 			// client event notice refresh...
@@ -125,7 +125,7 @@ void CPROC AcceptChanges( void )
 			break;
 		case MSG_EVENT_DELETEWALL:
 			{
-				lprintf( WIDE("Destroy a wall... %d"), ((INDEX*)params)[1] );
+				lprintf( "Destroy a wall... %d", ((INDEX*)params)[1] );
 				DestroyWall( ((INDEX*)params)[0], ((INDEX*)params)[1] );
 			}
 			break;
@@ -133,7 +133,7 @@ void CPROC AcceptChanges( void )
 			{
 				GETWORLD( ((INDEX*)params)[0] );
 				PNAME name = GetSetMember( NAME, &world->names, ((INDEX*)params)[1] );
-				lprintf( WIDE("Create a name... %d"), ((INDEX*)params)[1] );
+				lprintf( "Create a name... %d", ((INDEX*)params)[1] );
 				MemCpy( name, ((INDEX*)params)+2, offsetof( NAME, name ) );
 				name->name = NewArray( struct name_data, name->lines );
 				{
@@ -154,13 +154,13 @@ void CPROC AcceptChanges( void )
 			{
 				PWORLD world;
 				PSECTOR sector;
-				lprintf( WIDE("Create a sector... %d"), ((INDEX*)params)[1] );
+				lprintf( "Create a sector... %d", ((INDEX*)params)[1] );
 				world = GetSetMember( WORLD, &g.worlds, ((INDEX*)params)[0] );
 				sector = GetSetMember( SECTOR, &world->sectors, ((INDEX*)params)[1] );
 				if(0)
 				{
 		case MSG_EVENT_UPDATESECTOR:
-					lprintf( WIDE("update a sector... %d"), ((INDEX*)params)[1] );
+					lprintf( "update a sector... %d", ((INDEX*)params)[1] );
 					world = GetSetMember( WORLD, &g.worlds, ((INDEX*)params)[0] );
 					sector = GetUsedSetMember( SECTOR, &world->sectors, ((INDEX*)params)[1] );
 				}
@@ -175,7 +175,7 @@ void CPROC AcceptChanges( void )
 			break;
 		case MSG_EVENT_DELETESECTOR:
 			{
-				lprintf( WIDE("delete sector %d:%d"), ((INDEX*)params)[0], ((INDEX*)params)[1] );
+				lprintf( "delete sector %d:%d", ((INDEX*)params)[0], ((INDEX*)params)[1] );
 				DestroySector( ((INDEX*)params)[0], ((INDEX*)params)[1] );
 			}
 			break;
@@ -191,13 +191,13 @@ void CPROC AcceptChanges( void )
 			{
 				PWORLD world;
 				PFLATLAND_MYLINESEG line;
-				//lprintf( WIDE("create line: %d"), ((INDEX*)params)[1] );
-				lprintf( WIDE("Create a line... %p in %p"), ((INDEX*)params)[1], ((INDEX*)params)[0] );
+				//lprintf( "create line: %d", ((INDEX*)params)[1] );
+				lprintf( "Create a line... %p in %p", ((INDEX*)params)[1], ((INDEX*)params)[0] );
 				world = GetUsedSetMember( WORLD, &g.worlds, ((INDEX*)params)[0] );
 				line = GetSetMember( FLATLAND_MYLINESEG, &world->lines, ((INDEX*)params)[1] );
 				if( 0 ){
 		case MSG_EVENT_UPDATELINE:
-					lprintf( WIDE("update line: %p in %p"), ((INDEX*)params)[1], ((INDEX*)params)[1] );
+					lprintf( "update line: %p in %p", ((INDEX*)params)[1], ((INDEX*)params)[1] );
 					world = GetUsedSetMember( WORLD, &g.worlds, ((INDEX*)params)[0] );
 					line = GetUsedSetMember( FLATLAND_MYLINESEG, &world->lines, ((INDEX*)params)[1] );
 				}
@@ -205,18 +205,18 @@ void CPROC AcceptChanges( void )
 				{
 					PFLATLAND_MYLINESEG copy_from = (PFLATLAND_MYLINESEG)(((INDEX*)params) + 2);
 					MemCpy( line, copy_from, sizeof( line[0] ) );
-					lprintf( WIDE("Create a line... %d %g %g %g"), ((INDEX*)params)[1], line->r.n[0], line->r.n[1], line->r.n[2] );
+					lprintf( "Create a line... %d %g %g %g", ((INDEX*)params)[1], line->r.n[0], line->r.n[1], line->r.n[2] );
 				}
 				else
-					lprintf( WIDE("No Line?") );
+					lprintf( "No Line?" );
 			}
 			break;
 		case MSG_EVENT_DELETELINE:
 			{
 				PWORLD world;
 				//PFLATLAND_MYLINESEG line;
-				//lprintf( WIDE("create line: %d"), ((INDEX*)params)[1] );
-				lprintf( WIDE("Delete a line... %d"), ((INDEX*)params)[1] );
+				//lprintf( "create line: %d", ((INDEX*)params)[1] );
+				lprintf( "Delete a line... %d", ((INDEX*)params)[1] );
 				world = GetUsedSetMember( WORLD, &g.worlds, ((INDEX*)params)[0] );
 				DeleteSetMember( FLATLAND_MYLINESEG, world->lines, ((INDEX*)params)[1] );
 			}
@@ -234,20 +234,20 @@ int CPROC ConnectToServer( void )
 	if( !g.flags.connected )
 	{
 		g.MsgBase = LoadService( WORLD_SCAPE_INTERFACE_NAME, EventHandler );
-		Log1( WIDE("worldscape message base is %d"), g.MsgBase );
+		Log1( "worldscape message base is %d", g.MsgBase );
 		if( g.MsgBase )
 			g.flags.connected = 1;
 		else
 		{
-			LoadFunction( WIDE("world_scape_msg_server.dll"), NULL );
+			LoadFunction( "world_scape_msg_server.dll", NULL );
 			g.MsgBase = LoadService( WORLD_SCAPE_INTERFACE_NAME, EventHandler );
-			Log1( WIDE("worldscape message base is %d"), g.MsgBase );
+			Log1( "worldscape message base is %d", g.MsgBase );
 			if( g.MsgBase )
 				g.flags.connected = 1;
 		}
 	}
 	if( !g.flags.connected )
-		Log( WIDE("Failed to connect") );
+		Log( "Failed to connect" );
 	return g.flags.connected;
 }
 
@@ -255,7 +255,7 @@ static void DisconnectFromServer( void )
 {
 	if( g.flags.connected )
 	{
-		Log( WIDE("Disconnecting from service (worldscape)") );
+		Log( "Disconnecting from service (worldscape)" );
 		UnloadService( WORLD_SCAPE_INTERFACE_NAME );
 		g.MsgBase = 0;
 		g.flags.connected = 0;
@@ -502,7 +502,7 @@ static void CPROC DropMyInterface( POINTER p )
 {
 	if( references )
 	{
-		Log1( WIDE("Dropping 1 of %d display connections.."), references );
+		Log1( "Dropping 1 of %d display connections..", references );
 		references--;
 		if( !references )
 			DisconnectFromServer();

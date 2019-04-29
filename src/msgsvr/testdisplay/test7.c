@@ -32,25 +32,25 @@ int main( void )
 	SetControlInterface( GetDisplayInterface() );
 //#endif
 	GetMemStats( &free, &used, &blocks, &freeblocks );
-	printf( WIDE("Mem Stats: %d %d %d %d\n"), used, free, blocks, freeblocks );
-	pf = CreateFrame( WIDE("ListBox Test"), 0, 0, 256, 256, 0, NULL );
+	printf( "Mem Stats: %d %d %d %d\n", used, free, blocks, freeblocks );
+	pf = CreateFrame( "ListBox Test", 0, 0, 256, 256, 0, NULL );
 
 	pcList = MakeListBox( pf, 0, 5, 5, 140, 150, LST_FIRST );
-	AddListItem( pcList, WIDE("One") );
-	AddListItem( pcList, WIDE("Four") );
-	AddListItem( pcList, WIDE("Nine") );
-	AddListItem( pcList, WIDE("Items to add") );
-	AddListItem( pcList, WIDE("And a very very very long one") );
+	AddListItem( pcList, "One" );
+	AddListItem( pcList, "Four" );
+	AddListItem( pcList, "Nine" );
+	AddListItem( pcList, "Items to add" );
+	AddListItem( pcList, "And a very very very long one" );
 	/*
 	for( i = 0; i <  100; i++ )
 	{
 		char item[256];
-		sprintf( item, WIDE("Item #%03d"), i );
+		sprintf( item, "Item #%03d", i );
 		AddListItem( pcList, item );
 	}
 	*/
-	MakeButton( pf, 5, 180, 70, 18, BTN_ADD, WIDE("Add Item"), 0, AddItem, 
-		(uintptr_t)MakeEditControl( pf, 5, 160, 140, 14, EDT_NEWTEXT, WIDE("New Item"), 0 ) );
+	MakeButton( pf, 5, 180, 70, 18, BTN_ADD, "Add Item", 0, AddItem, 
+		(uintptr_t)MakeEditControl( pf, 5, 160, 140, 14, EDT_NEWTEXT, "New Item", 0 ) );
 
 	AddCommonButtons( pf, &bDone, &bOkay );
 
@@ -60,10 +60,10 @@ int main( void )
 	DestroyFrame( &pf );
 
 	GetMemStats( &free, &used, &blocks, &freeblocks );
-	printf( WIDE("Mem Stats: %d %d %d %d\n"), used, free, blocks, freeblocks );
+	printf( "Mem Stats: %d %d %d %d\n", used, free, blocks, freeblocks );
 	if( used )
 	{
-		DebugDumpMemFile( WIDE("memory.dump") );
+		DebugDumpMemFile( "memory.dump" );
 	}
 	return 0;
 }

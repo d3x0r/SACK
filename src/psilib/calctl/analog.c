@@ -19,7 +19,7 @@
 
 PSI_CLOCK_NAMESPACE 
 
-#define CLOCK_NAME WIDE("Basic Clock Widget")
+#define CLOCK_NAME "Basic Clock Widget"
 extern CONTROL_REGISTRATION clock_control;
 
 
@@ -102,7 +102,7 @@ void DrawClock( Image surface, PANALOG_CLOCK analog )
 										  , ( 0x10000 * surface->height ) / analog->face->height
 										  );
 			}
-			//xlprintf(LOG_NOISE-1)( WIDE("Surface is %ld,%ld,%ld"), surface, surface->x, surface->y );
+			//xlprintf(LOG_NOISE-1)( "Surface is %ld,%ld,%ld", surface, surface->x, surface->y );
 			if( surface != analog->composite )
 				BlotImageAlpha( surface, analog->composite, 0, 0, ALPHA_TRANSPARENT );
 			//BlotImageSizedAlpha( surface, analog->composite, 0, 0, surface->width, surface->height, ALPHA_TRANSPARENT );
@@ -248,26 +248,26 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 				int minute_hand_center, minute_hand_width, minute_hand_pivot;
 				int hour_hand_center, hour_hand_width, hour_hand_pivot;
 				TEXTCHAR tmp[256];
-				tnprintf( tmp, sizeof( tmp ), WIDE( "Analog Clock/%s" ), imagename );
+				tnprintf( tmp, sizeof( tmp ), "Analog Clock/%s", imagename );
 #ifdef __NO_OPTIONS__
 #define SACK_GetProfileInt(a,b,c) (c)
 #endif
 
-				x = SACK_GetProfileInt( tmp, WIDE( "face x" ), 0 );
-				y = SACK_GetProfileInt( tmp, WIDE( "face y" ), 0 );
-				w = SACK_GetProfileInt( tmp, WIDE( "face width" ), 358 );
-				h = SACK_GetProfileInt( tmp, WIDE( "face height" ), 358 );
-				face_center_x = SACK_GetProfileInt( tmp, WIDE( "face.center.x" ), 178 );
-				face_center_y = SACK_GetProfileInt( tmp, WIDE( "face.center.y" ), 179 );
-				second_hand_center = SACK_GetProfileInt( tmp, WIDE( "hand.second.center" ), 400 );
-				second_hand_width = SACK_GetProfileInt( tmp, WIDE( "hand.second.width" ), 40 );
-				second_hand_pivot = SACK_GetProfileInt( tmp, WIDE( "hand.second.pivot" ), 179 );
-				minute_hand_center = SACK_GetProfileInt( tmp, WIDE( "hand.minute.center" ), 440 );
-				minute_hand_width = SACK_GetProfileInt( tmp, WIDE( "hand.minute.width" ), 40 );
-				minute_hand_pivot = SACK_GetProfileInt( tmp, WIDE( "hand.minute.pivot" ), 179 );
-				hour_hand_center = SACK_GetProfileInt( tmp, WIDE( "hand.hour.center" ), 480 );
-				hour_hand_width = SACK_GetProfileInt( tmp, WIDE( "hand.hour.width" ), 40 );
-				hour_hand_pivot = SACK_GetProfileInt( tmp, WIDE( "hand.hour.pivot" ), 179 );
+				x = SACK_GetProfileInt( tmp, "face x", 0 );
+				y = SACK_GetProfileInt( tmp, "face y", 0 );
+				w = SACK_GetProfileInt( tmp, "face width", 358 );
+				h = SACK_GetProfileInt( tmp, "face height", 358 );
+				face_center_x = SACK_GetProfileInt( tmp, "face.center.x", 178 );
+				face_center_y = SACK_GetProfileInt( tmp, "face.center.y", 179 );
+				second_hand_center = SACK_GetProfileInt( tmp, "hand.second.center", 400 );
+				second_hand_width = SACK_GetProfileInt( tmp, "hand.second.width", 40 );
+				second_hand_pivot = SACK_GetProfileInt( tmp, "hand.second.pivot", 179 );
+				minute_hand_center = SACK_GetProfileInt( tmp, "hand.minute.center", 440 );
+				minute_hand_width = SACK_GetProfileInt( tmp, "hand.minute.width", 40 );
+				minute_hand_pivot = SACK_GetProfileInt( tmp, "hand.minute.pivot", 179 );
+				hour_hand_center = SACK_GetProfileInt( tmp, "hand.hour.center", 480 );
+				hour_hand_width = SACK_GetProfileInt( tmp, "hand.hour.width", 40 );
+				hour_hand_pivot = SACK_GetProfileInt( tmp, "hand.hour.pivot", 179 );
 			analog->face = MakeSubImage( analog->image, x, y, w, h );
 			analog->composite = MakeImageFile( w, h );
 			analog->w = w;
@@ -292,7 +292,7 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 				int32_t x = 0;
 				int32_t y = 0;
 				GetPhysicalCoordinate( pc, &x, &y, FALSE );
-					lprintf( WIDE( "Making clock uhm... %d %d %d %d over %p" ), x, y,surface->width
+					lprintf( "Making clock uhm... %d %d %d %d over %p", x, y,surface->width
 																	 , surface->height );
 				analog->render = OpenDisplayAboveSizedAt( DISPLAY_ATTRIBUTE_LAYERED
 																	  |DISPLAY_ATTRIBUTE_NO_MOUSE
@@ -332,9 +332,9 @@ void MakeClockAnalog( PSI_CONTROL pc )
 {
 	TEXTCHAR namebuf[256];
 #ifndef __NO_OPTIONS__
-	SACK_GetProfileString( GetProgramName(), WIDE("Analog Clock/Use Image"), WIDE("images/Clock.png"), namebuf, 256 );
+	SACK_GetProfileString( GetProgramName(), "Analog Clock/Use Image", "images/Clock.png", namebuf, 256 );
 #else
-   StrCpy( namebuf, WIDE("images/Clock.png") );
+   StrCpy( namebuf, "images/Clock.png" );
 #endif
 	MakeClockAnalogEx( pc, namebuf, NULL );
 }

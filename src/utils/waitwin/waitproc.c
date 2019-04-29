@@ -14,7 +14,7 @@ BOOL GetProcessList( const TEXTCHAR *file )
 	hProcessSnap = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
 	if( hProcessSnap == INVALID_HANDLE_VALUE )
 	{
-		printf( WIDE("CreateToolhelp32Snapshot Failed: %d"), GetLastError() );
+		printf( "CreateToolhelp32Snapshot Failed: %d", GetLastError() );
 		return( FALSE );
 	}
 
@@ -25,7 +25,7 @@ BOOL GetProcessList( const TEXTCHAR *file )
 	// and exit if unsuccessful
 	if( !Process32First( hProcessSnap, &pe32 ) )
 	{
-		printf( WIDE("Failed Process32First: %d"), GetLastError() );
+		printf( "Failed Process32First: %d", GetLastError() );
 		CloseHandle( hProcessSnap );          // clean the snapshot object
 		return( FALSE );
 	}
@@ -34,7 +34,7 @@ BOOL GetProcessList( const TEXTCHAR *file )
 	// display information about each process in turn
 	do
 	{
-		//printf( WIDE("Does %s contain %s"), pe32.szExeFile, file );
+		//printf( "Does %s contain %s", pe32.szExeFile, file );
 		if( StrCaseStr( pe32.szExeFile, file ) )
 			return 1;
 	} while( Process32Next( hProcessSnap, &pe32 ) );
@@ -49,9 +49,9 @@ SaneWinMain( argc, argv )
 	if( argv[1] )
 	{
 		int wait_exit = 1;
-		printf( WIDE("waiting for [%s]\n"), argv[1] );
+		printf( "waiting for [%s]\n", argv[1] );
 		if( argc > 2 && argv[2] )
-			if( StrCaseCmp( argv[2], WIDE("started") ) == 0 )
+			if( StrCaseCmp( argv[2], "started" ) == 0 )
 			{
 				wait_exit = 0;
 				while( !GetProcessList( argv[1] ) )
@@ -63,10 +63,10 @@ SaneWinMain( argc, argv )
 	}
 	else
 	{
-		printf( WIDE("%s <process partial name> <started>\n")
-				 WIDE(" - while a process containing the partial name exists, this waits.\n")
-				 WIDE(" - if 'started' is specified as a second argument, ")
-				 WIDE("   then this waits for the process to start instead of waiting for it to exit\n")
+		printf( "%s <process partial name> <started>\n"
+				 " - while a process containing the partial name exists, this waits.\n"
+				 " - if 'started' is specified as a second argument, "
+				 "   then this waits for the process to start instead of waiting for it to exit\n"
 				, argv[0] );
 	}
 	return 0;

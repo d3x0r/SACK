@@ -10,7 +10,7 @@
 // second
 // first
 
-static CTEXTSTR ords[] = { WIDE("Zeroth"), WIDE("First"), WIDE("Second"), WIDE("Third"), WIDE("Fourth"), WIDE("Fifth"), WIDE("Sixth"), WIDE("Seventh"), WIDE("Eighth"), WIDE("Ninth"), WIDE("Tenth") };
+static CTEXTSTR ords[] = { "Zeroth", "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth" };
 
 static struct {
 	PLIST players;
@@ -71,13 +71,13 @@ void ReadPlayers( CTEXTSTR query )
 
 static void CPROC LocalOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-	lprintf( WIDE("Task %p"), task );
+	lprintf( "Task %p", task );
 	if( strncmp( (char*)buffer, "~CONNECT OK", 11 )== 0 )
 	{
 		l.flags.bShowLocal = 1;
 		WakeThread( l.wait_show_local );
 	}
-	lprintf( WIDE("banner output: %s"), buffer );
+	lprintf( "banner output: %s", buffer );
 }
 
 static void CPROC RemoteKillEnd( uintptr_t psv, PTASK_INFO task )
@@ -112,7 +112,7 @@ static void CPROC LocalEnd( uintptr_t psv, PTASK_INFO task )
 		l.flags.bDone = 1;
 	}
 	l.flags.bResult = 1;
-	lprintf( WIDE("result yes is %d %d"), l.flags.bResultYes, result );
+	lprintf( "result yes is %d %d", l.flags.bResultYes, result );
 	l.local_task = NULL;
 	CloseRemote();
 	WakeThread( l.wait );
@@ -121,7 +121,7 @@ static void CPROC LocalEnd( uintptr_t psv, PTASK_INFO task )
 PTEXT my_burst( PTEXT text )
 {
 	// just break on spaces and tabs.
-	return TextParse( text, WIDE(","), WIDE(" \t"), 1, 1 DBG_SRC );
+	return TextParse( text, ",", " \t", 1, 1 DBG_SRC );
 }
 
 void PromptAndYesNo( CTEXTSTR name, CTEXTSTR total_players )
@@ -140,15 +140,15 @@ void PromptAndYesNo( CTEXTSTR name, CTEXTSTR total_players )
 	l.flags.bShowLocal = 0;
 	l.wait_show_local = MakeThread();
 
-	vtprintf( pvt_local, WIDE("%s %s "), l.local_banner_path, l.local_banner_args );
-	vtprintf( pvt_remote, WIDE("%s %s %s %s "), l.launchpad_path, l.launchpad_args, l.remote_banner_path, l.remote_banner_args );
+	vtprintf( pvt_local, "%s %s ", l.local_banner_path, l.local_banner_args );
+	vtprintf( pvt_remote, "%s %s %s %s ", l.launchpad_path, l.launchpad_args, l.remote_banner_path, l.remote_banner_args );
 
 	if( l.nPlayers > 1 )
 		vtprintf( pvt_local, WIDE("\"%s Place\" "), ords[l.first_place + l.claimed+1] );
 
 	for( tmp = burst_name; tmp; tmp = NEXTLINE( tmp ) )
 	{
-		if( StrCmp( GetText( tmp ), WIDE(",") ) == 0 )
+		if( StrCmp( GetText( tmp ), "," ) == 0 )
 			break;
 		vtprintf( pvt_local, WIDE("\"%s\" "), GetText( tmp ) );
 		vtprintf( pvt_remote, WIDE("\"%s\" "), GetText( tmp ) );
@@ -158,9 +158,9 @@ void PromptAndYesNo( CTEXTSTR name, CTEXTSTR total_players )
 		vtprintf( pvt_local, WIDE("\"Players : %s\" "), total_players );
 
 	ParseIntoArgs( GetText( VarTextPeek( pvt_remote ) ), &nArgs, &pArgs );
-	lprintf( WIDE("staring remote.") );
+	lprintf( "staring remote." );
 	l.remote_task = LaunchPeerProgram( l.launchpad_path, NULL, (PCTEXTSTR)pArgs, LocalOutput, NULL, 0 );
-	lprintf( WIDE("send start remote? %p"), l.remote_task );
+	lprintf( "send start remote? %p", l.remote_task );
 
 
 	if( l.flags.bWaitForRemote )
@@ -195,9 +195,9 @@ void PromptLocalYesNo( CTEXTSTR name, CTEXTSTR total_players )
 	l.flags.bShowLocal = 0;
 	l.wait_show_local = MakeThread();
 
-	vtprintf( pvt_local, WIDE("%s %s "), l.local_banner_path, l.local_banner_args );
+	vtprintf( pvt_local, "%s %s ", l.local_banner_path, l.local_banner_args );
 
-	vtprintf( pvt_local, WIDE("%s"), name );
+	vtprintf( pvt_local, "%s", name );
 
 	if( total_players )
 		vtprintf( pvt_local, WIDE("\"Players : %s\" "), total_players );
@@ -223,9 +223,9 @@ void PromptLocal( CTEXTSTR name )
 	l.flags.bShowLocal = 0;
 	l.wait_show_local = MakeThread();
 
-	vtprintf( pvt_local, WIDE("%s %s "), l.local_banner_path, l.local_banner_noprompt_args );
+	vtprintf( pvt_local, "%s %s ", l.local_banner_path, l.local_banner_noprompt_args );
 
-	vtprintf( pvt_local, WIDE("%s"), name );
+	vtprintf( pvt_local, "%s", name );
 
 	ParseIntoArgs( GetText( VarTextPeek( pvt_local ) ), &nArgs, &pArgs );
 	l.local_task = LaunchPeerProgram( l.local_banner_path, NULL, (PCTEXTSTR)pArgs, LocalOutput, LocalEnd, 0 );
@@ -247,7 +247,7 @@ void PromptResult( CTEXTSTR name )
 	l.flags.bResultYes = 0;
 	l.flags.bResult = 0;
 
-	vtprintf( pvt_local, WIDE("%s %s "), l.local_banner_path, l.local_banner_args );
+	vtprintf( pvt_local, "%s %s ", l.local_banner_path, l.local_banner_args );
 
 	for( tmp = burst_name; tmp; tmp = NEXTLINE( tmp ) )
 		vtprintf( pvt_local, WIDE("\"%s\" "), GetText( tmp ) );
@@ -255,7 +255,7 @@ void PromptResult( CTEXTSTR name )
 	ParseIntoArgs( GetText( VarTextPeek( pvt_local ) ), &nArgs, &pArgs );
 	l.local_task = LaunchPeerProgram( l.local_banner_path, NULL, (PCTEXTSTR)pArgs, LocalOutput, LocalEnd, 0 );
 
-	vtprintf( pvt_remote, WIDE("%s %s %s %s "), l.launchpad_path, l.launchpad_args, l.remote_banner_path, l.remote_banner_args );
+	vtprintf( pvt_remote, "%s %s %s %s ", l.launchpad_path, l.launchpad_args, l.remote_banner_path, l.remote_banner_args );
 
 	for( tmp = burst_name; tmp; tmp = NEXTLINE( tmp ) )
 		vtprintf( pvt_remote, WIDE("\"%s\" "), GetText( tmp ) );
@@ -280,15 +280,15 @@ void PromptAll( void )
 	GetLocalTime( &st );
 
 
-	vtprintf( pvt_local, WIDE("%s %s "), l.local_banner_path, l.local_banner_final_args );
-	vtprintf( pvt_remote, WIDE("%s %s %s %s "), l.launchpad_path, l.launchpad_args, l.remote_banner_path, l.remote_banner_final_args );
+	vtprintf( pvt_local, "%s %s ", l.local_banner_path, l.local_banner_final_args );
+	vtprintf( pvt_remote, "%s %s %s %s ", l.launchpad_path, l.launchpad_args, l.remote_banner_path, l.remote_banner_final_args );
 
 	LIST_FORALL( l.claims, idx, CTEXTSTR, name )
 	{
 		extra = StrChr( name, ',' );
 		if( extra )
 		{
-			DoSQLCommandf( WIDE("insert into tp_drawing (place,name,bingoday,whenstamp,account_number,card_number,session) values (%d,'%*.*s',%04d%02d%02d,%04d%02d%02d%02d%02d%02d,'%s','%s',current_session())")
+			DoSQLCommandf( "insert into tp_drawing (place,name,bingoday,whenstamp,account_number,card_number,session) values (%d,'%*.*s',%04d%02d%02d,%04d%02d%02d%02d%02d%02d,'%s','%s',current_session())"
 							 , idx + 1
 							 , (extra-name), (extra-name)
 							 , name
@@ -311,7 +311,7 @@ void PromptAll( void )
 		}
 		else
 		{
-			DoSQLCommandf( WIDE("insert into tp_drawing (place,name,bingoday,whenstamp,session) values (%d,'%*.*s',%04d%02d%02d,%04d%02d%02d%02d%02d%02d,current_session())")
+			DoSQLCommandf( "insert into tp_drawing (place,name,bingoday,whenstamp,session) values (%d,'%*.*s',%04d%02d%02d,%04d%02d%02d%02d%02d%02d,current_session())"
 							 , idx + 1
 							 , (extra-name), (extra-name), name
 							 , st.wYear, st.wMonth, st.wDay
@@ -347,20 +347,20 @@ void PromptAll( void )
 
 }
 
-CTEXTSTR DrawCreate = WIDE("CREATE TABLE if not exists `tp_drawing` (                     ")
-					 WIDE("  `drawing_id` int(10) unsigned NOT NULL auto_increment,")
-					 WIDE("  `first_name` varchar(45) default NULL,                       ")
-					 WIDE("  `last_name` varchar(45) default NULL,                        ")
-					 WIDE("  `account_number` varchar(25) default NULL,              ")
-					 WIDE("  `bingoday` date default NULL,                                ")
-					 WIDE("  `session` int default '0',                                ")
-					 WIDE("  `card_number` varchar(45) default NULL,                      ")
-					 WIDE("  `whenstamp` datetime default NULL,                           ")
-					 WIDE("  `name` varchar(80) default NULL,                             ")
-					 WIDE("  `modified_when` timestamp NOT NULL default CURRENT_TIMESTAMP,")
-					 WIDE("  `place` int(10) unsigned NOT NULL,                   ")
-					 WIDE("  PRIMARY KEY  USING BTREE (`drawing_id`)              ")
-					 WIDE(") ");
+CTEXTSTR DrawCreate = "CREATE TABLE if not exists `tp_drawing` (                     "
+					 "  `drawing_id` int(10) unsigned NOT NULL auto_increment,"
+					 "  `first_name` varchar(45) default NULL,                       "
+					 "  `last_name` varchar(45) default NULL,                        "
+					 "  `account_number` varchar(25) default NULL,              "
+					 "  `bingoday` date default NULL,                                "
+					 "  `session` int default '0',                                "
+					 "  `card_number` varchar(45) default NULL,                      "
+					 "  `whenstamp` datetime default NULL,                           "
+					 "  `name` varchar(80) default NULL,                             "
+					 "  `modified_when` timestamp NOT NULL default CURRENT_TIMESTAMP,"
+					 "  `place` int(10) unsigned NOT NULL,                   "
+					 "  PRIMARY KEY  USING BTREE (`drawing_id`)              "
+					 ") ";
 
 void Init( void )
 {
@@ -372,56 +372,56 @@ void Init( void )
 	/*
 	DoSQLCommand( DrawCreate );
 	*/
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("player source query"), WIDE("select * from xxx"), querybuf, sizeof( querybuf ) );
+	SACK_GetProfileString( "Top Player Picker", "player source query", "select * from xxx", querybuf, sizeof( querybuf ) );
 
 	ReadPlayers( querybuf );
 	if( !l.players ) {
 		lprintf( "Failed to load any players." );
 		return;
 	}
-	if( SACK_GetProfileInt( WIDE("Top Player Picker"), WIDE("select places claimed (resume from picked)"), 0 ) )
+	if( SACK_GetProfileInt( "Top Player Picker", "select places claimed (resume from picked)", 0 ) )
 	{
 		CTEXTSTR *results;
-		if( DoSQLRecordQueryf( NULL, &results, NULL, WIDE("select max(place) from tp_drawing where place>0 and bingoday=%s and session=current_session()")
-									,GetSQLOffsetDate( NULL, WIDE("Bingoday"), 500 ) ) && results )
+		if( DoSQLRecordQueryf( NULL, &results, NULL, "select max(place) from tp_drawing where place>0 and bingoday=%s and session=current_session()"
+									,GetSQLOffsetDate( NULL, "Bingoday", 500 ) ) && results )
 		{
 			l.first_place = results[0]?atoi( results[0] ):0;
 		}
 	}
 
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("Local Banner program path"), WIDE("banner_command"), buf, sizeof( buf ) );
+	SACK_GetProfileString( "Top Player Picker", "Local Banner program path", "banner_command", buf, sizeof( buf ) );
 	l.local_banner_path = StrDup( buf );
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("Local Banner Arguments"), WIDE("-okcancel -yesno -lines 5 -cols 60"), buf, sizeof( buf ) );
+	SACK_GetProfileString( "Top Player Picker", "Local Banner Arguments", "-okcancel -yesno -lines 5 -cols 60", buf, sizeof( buf ) );
 	l.local_banner_args = StrDup( buf );
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("Local Banner No Prompt Arguments"), WIDE("-lines 5 -cols 10"), buf, sizeof( buf ) );
+	SACK_GetProfileString( "Top Player Picker", "Local Banner No Prompt Arguments", "-lines 5 -cols 10", buf, sizeof( buf ) );
 	l.local_banner_noprompt_args = StrDup( buf );
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("Local Banner Final Arguments"), WIDE("-okcancel -yesno -lines 10 -cols 60"), buf, sizeof( buf ) );
+	SACK_GetProfileString( "Top Player Picker", "Local Banner Final Arguments", "-okcancel -yesno -lines 10 -cols 60", buf, sizeof( buf ) );
 	l.local_banner_final_args = StrDup( buf );
 
 
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("Launchcmd Command Path"), WIDE("launch_command.exe"), buf, sizeof( buf ) );
+	SACK_GetProfileString( "Top Player Picker", "Launchcmd Command Path", "launch_command.exe", buf, sizeof( buf ) );
 	l.launchpad_path = StrDup( buf );
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("Launchcmd Command args"), WIDE("-h -l -s 255.255.255.255 -c flashboard"), buf, sizeof( buf ) );
+	SACK_GetProfileString( "Top Player Picker", "Launchcmd Command args", "-h -l -s 255.255.255.255 -c flashboard", buf, sizeof( buf ) );
 	l.launchpad_args = StrDup( buf );
 
 
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("Remote Banner program path"), WIDE("banner_command"), buf, sizeof( buf ) );
+	SACK_GetProfileString( "Top Player Picker", "Remote Banner program path", "banner_command", buf, sizeof( buf ) );
 	l.remote_banner_path = StrDup( buf );
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("Remote Banner Args"), WIDE(""), buf, sizeof( buf ) );
+	SACK_GetProfileString( "Top Player Picker", "Remote Banner Args", "", buf, sizeof( buf ) );
 	l.remote_banner_args = StrDup( buf );
 
-	l.flags.bRemoteKillRequired = SACK_GetProfileInt( WIDE("Top Player Picker"), WIDE("Remote Kill Required"), 1 );
+	l.flags.bRemoteKillRequired = SACK_GetProfileInt( "Top Player Picker", "Remote Kill Required", 1 );
 	if( l.flags.bRemoteKillRequired )
 	{
-		SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("Remote Kill Program Command"), WIDE("launchcmd -s 255.255.255.255 -c flashboard taskkill.exe /IM banner_command.exe"), buf, sizeof( buf ) );
+		SACK_GetProfileString( "Top Player Picker", "Remote Kill Program Command", "launchcmd -s 255.255.255.255 -c flashboard taskkill.exe /IM banner_command.exe", buf, sizeof( buf ) );
 		l.remote_kill = StrDup( buf );
 	}
 
-	SACK_GetProfileString( WIDE("Top Player Picker"), WIDE("Remote Banner Final Args"), WIDE("-lines 7 -cols 20"), buf, sizeof( buf ) );
+	SACK_GetProfileString( "Top Player Picker", "Remote Banner Final Args", "-lines 7 -cols 20", buf, sizeof( buf ) );
 	l.remote_banner_final_args = StrDup( buf );
 
-	l.flags.bWaitForRemote = SACK_GetProfileIntEx( WIDE("Top Player Picker"), WIDE("Wait for remote task start"), 1, TRUE );
-	l.max_places = SACK_GetProfileInt( WIDE("Top Player Picker"), WIDE("Max Places"), 5 );
+	l.flags.bWaitForRemote = SACK_GetProfileIntEx( "Top Player Picker", "Wait for remote task start", 1, TRUE );
+	l.max_places = SACK_GetProfileInt( "Top Player Picker", "Max Places", 5 );
 }
 
 void ProcessList( void )

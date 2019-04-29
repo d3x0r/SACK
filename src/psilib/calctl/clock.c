@@ -21,22 +21,22 @@ extern CONTROL_REGISTRATION clock_control;
 //--------------------------------------------------------------------------
 //cpg26dec2006 calctl\clock.c(20): Warning! W202: Symbol 'Months' has been defined, but not referenced
 /*
-static TEXTCHAR Months[13][10] = { WIDE("default")
-                  , WIDE("January")
-                  , WIDE("February")
-                  , WIDE("March")
-                  , WIDE("April")
-                  , WIDE("May")
-                  , WIDE("June")
-                  , WIDE("July")
-                  , WIDE("August")
-                  , WIDE("September")
-                  , WIDE("October")
-                  , WIDE("November")
-                  , WIDE("December") };
+static TEXTCHAR Months[13][10] = { "default"
+                  , "January"
+                  , "February"
+                  , "March"
+                  , "April"
+                  , "May"
+                  , "June"
+                  , "July"
+                  , "August"
+                  , "September"
+                  , "October"
+                  , "November"
+                  , "December" };
 *///cpg26dec2006 calctl\clock.c(33): Warning! W202: Symbol 'Days' has been defined, but not referenced
-/*static TEXTCHAR Days[7][10] = {WIDE("Sunday"), WIDE("Monday"), WIDE("Tuesday"), WIDE("Wednesday")
-               , WIDE("Thursday"), WIDE("Friday"), WIDE("Saturday") };
+/*static TEXTCHAR Days[7][10] = {"Sunday", "Monday", "Tuesday", "Wednesday"
+               , "Thursday", "Friday", "Saturday" };
 */
 //DECLTEXTSZ( timenow, 80 );
 
@@ -60,7 +60,7 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 		clock->time_data.yr = st.wYear;
 		clock->time_data.ms = st.wMilliseconds;
 	/*
-	 n = sprintf( pTime->data.data, WIDE("%s, %s %d, %d, %02d:%02d:%02d"),
+	 n = sprintf( pTime->data.data, "%s, %s %d, %d, %02d:%02d:%02d",
 	 Days[st.wDayOfWeek], Months[st.wMonth],
 	 st.wDay, st.wYear
 	 , st.wHour, st.wMinute, st.wSecond );
@@ -70,7 +70,7 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 			static int prior_milli;
 			if( clock->flags.bHighTime && ( last_second == st.wSecond || ( ( last_second+1)%60 == st.wSecond && prior_milli ) ) )
 			{
-				timenow->data.size = tnprintf( timenow->data.data, 80*sizeof(TEXTCHAR), WIDE("%02d/%02d/%d%c%02d:%02d:%02d.%03d%s")
+				timenow->data.size = tnprintf( timenow->data.data, 80*sizeof(TEXTCHAR), "%02d/%02d/%d%c%02d:%02d:%02d.%03d%s"
 													  , st.wMonth, st.wDay, st.wYear
 													  , bNewline?'\n':' '
 													  , clock->flags.bAmPm?(st.wHour == 0?12:(st.wHour > 12?st.wHour-12:st.wHour)):st.wHour
@@ -81,7 +81,7 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 			}
 			else
 			{
-				timenow->data.size = tnprintf( timenow->data.data, 80*sizeof(TEXTCHAR), WIDE("%02d/%02d/%d%c%02d:%02d:%02d%s")
+				timenow->data.size = tnprintf( timenow->data.data, 80*sizeof(TEXTCHAR), "%02d/%02d/%d%c%02d:%02d:%02d%s"
 													  , st.wMonth, st.wDay, st.wYear
 													  , bNewline?'\n':' '
 													  , clock->flags.bAmPm?(st.wHour == 0?12:(st.wHour > 12?st.wHour-12:st.wHour)):st.wHour
@@ -241,7 +241,7 @@ int CPROC InitClock( PSI_CONTROL pc )
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, (PSI_CONTROL)pc );
 	// 7 lines, width non-specified...
 #ifndef __NO_OPTIONS__
-	pClk->flags.bHighTime = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "PSI/Clock Control/Default to high resolution time?" ), 0, TRUE );
+	pClk->flags.bHighTime = SACK_GetProfileIntEx( "SACK", "PSI/Clock Control/Default to high resolution time?", 0, TRUE );
 #endif
 	SetCommonFont( pc
 					 , RenderFontFile( NULL
@@ -262,7 +262,7 @@ void CPROC DestroyClock( PSI_CONTROL pc )
 	DeleteLink( &g.clocks, pc );
 }
 
-CONTROL_REGISTRATION clock_control = { WIDE("Basic Clock Widget")
+CONTROL_REGISTRATION clock_control = { "Basic Clock Widget"
 									  , { { 270, 120 }, sizeof( CLOCK_CONTROL )
 										 , BORDER_FIXED|BORDER_NONE|BORDER_NOCAPTION }
 									  , InitClock
@@ -397,7 +397,7 @@ PRELOAD( DoRegisterClockControl )
 }
 
 /* Android support; when the app stops, stop updating timers */
-static void OnDisplayPause( WIDE("PSI_Clock") _WIDE(TARGETNAME) )( void )
+static void OnDisplayPause( "PSI_Clock" _WIDE(TARGETNAME) )( void )
 {
 	INDEX idx;
 	PSI_CONTROL clock;
@@ -408,7 +408,7 @@ static void OnDisplayPause( WIDE("PSI_Clock") _WIDE(TARGETNAME) )( void )
 }
 
 /* Android support; when the app reumes, start updating timers */
-static void OnDisplayResume( WIDE("PSI_Clock") _WIDE(TARGETNAME))( void )
+static void OnDisplayResume( "PSI_Clock" _WIDE(TARGETNAME))( void )
 {
 	INDEX idx;
 	PSI_CONTROL clock;

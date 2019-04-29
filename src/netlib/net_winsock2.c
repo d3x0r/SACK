@@ -71,18 +71,18 @@ int SystemCheck( void )
 
 	if (WSAStartup(MAKEWORD(2, 0), &wd) != 0)
 	{
-		lprintf(WIDE( "WSAStartup 2.0 failed: %d" ), h_errno);
+		lprintf("WSAStartup 2.0 failed: %d", h_errno);
 		return 0;
 	}
 	if( globalNetworkData.flags.bLogProtocols )
-		lprintf(WIDE( "Winsock Version: %d.%d" ), LOBYTE(wd.wVersion), HIBYTE(wd.wVersion));
+		lprintf("Winsock Version: %d.%d", LOBYTE(wd.wVersion), HIBYTE(wd.wVersion));
 
 	size = 0;
 	if ((globalNetworkData.nProtos = WSAEnumProtocolsW(NULL, NULL, (DWORD *) &size)) == -1)
 	{
 		if( WSAGetLastError() != WSAENOBUFS )
 		{
-			lprintf(WIDE( "WSAEnumProtocols: %d" ), h_errno);
+			lprintf("WSAEnumProtocols: %d", h_errno);
 			return 0;
 		}
 	}
@@ -90,7 +90,7 @@ int SystemCheck( void )
 	globalNetworkData.pProtos = (WSAPROTOCOL_INFOW*)Allocate( size );
 	if ((globalNetworkData.nProtos = WSAEnumProtocolsW(NULL, globalNetworkData.pProtos, (DWORD *) &size)) == -1)
 	{
-		lprintf(WIDE( "WSAEnumProtocols: %d" ), h_errno);
+		lprintf("WSAEnumProtocols: %d", h_errno);
 		return 0;
 	}
 	for (i = 0; i < globalNetworkData.nProtos; i++)
@@ -114,12 +114,12 @@ int SystemCheck( void )
 			globalNetworkData.udp_protocolv6 = i;
 		}
 		if( globalNetworkData.flags.bLogProtocols )
-			lprintf(WIDE( "Index #%d - name: '%S', type: %d, proto: %d" ), i, globalNetworkData.pProtos[i].szProtocol,
+			lprintf("Index #%d - name: '%S', type: %d, proto: %d", i, globalNetworkData.pProtos[i].szProtocol,
 					  globalNetworkData.pProtos[i].iSocketType, globalNetworkData.pProtos[i].iProtocol);
 	}
 	if (protoIndex == -1)
 	{
-		lprintf(WIDE( "no valid TCP/IP protocol available" ));
+		lprintf("no valid TCP/IP protocol available");
 		return 0;
 	}
 	return 0;

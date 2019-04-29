@@ -233,8 +233,8 @@ int main( void )
 	g.pii = GetImageInterface();
 	SetSystemLog( SYSLOG_FILE, stdout );
 	GetDisplaySize( &width, &height );;
-   g.background = LoadImageFile( WIDE("background.jpg") );
-	g.strip = LoadImageFile( WIDE("slot_strip.jpg") );
+   g.background = LoadImageFile( "background.jpg" );
+	g.strip = LoadImageFile( "slot_strip.jpg" );
 	{
 		int n;
 		for( n = 0; n < 10; n++ )

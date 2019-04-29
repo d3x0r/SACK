@@ -80,20 +80,20 @@ retry:
 		// client has failed... attempt to become a server
 		l.flags.bClient = 0;
 		l.client_msgbase = 0; // no longer valid.
-		l.service_msgbase = RegisterService( WIDE("Data Storage Share"), HandleStorageServiceEvents );
+		l.service_msgbase = RegisterService( "Data Storage Share", HandleStorageServiceEvents );
 		if( !l.service_msgbase )
 		{
-			lprintf( WIDE("Client transaction failed to server, and server still exists...") );
-			l.client_msgbase = LoadService( WIDE("Data Storage Share"), NULL );
+			lprintf( "Client transaction failed to server, and server still exists..." );
+			l.client_msgbase = LoadService( "Data Storage Share", NULL );
 			if( !l.client_msgbase )
 			{
-				lprintf( WIDE("Hmm service is still absent... should have had someone register by now...") );
-				lprintf( WIDE("Fail to local only mode.") );
+				lprintf( "Hmm service is still absent... should have had someone register by now..." );
+				lprintf( "Fail to local only mode." );
 				l.flags.bLocal = 1;
 			}
 			else
 			{
-				lprintf( WIDE("Okay - so... either the base is the same or it's different...") );
+				lprintf( "Okay - so... either the base is the same or it's different..." );
 				// re-set client bit... we're still slaving... go back up to retry
 				l.flags.bClient = 1;
 				goto retry;
@@ -101,7 +101,7 @@ retry:
 		}
 		else
 		{
-			lprintf( WIDE("Okay, I'm now the server... clients will now talk to me, once they fail to aquire server.") );
+			lprintf( "Okay, I'm now the server... clients will now talk to me, once they fail to aquire server." );
 			l.flags.bService = 1;
 		}
 	}
@@ -143,20 +143,20 @@ INDEX DataStore_RegisterNamedDataType( CTEXTSTR name, uint32_t size )
 			// client has failed... attempt to become a server
          l.flags.bClient = 0;
          l.client_msgbase = 0; // no longer valid.
-			l.service_msgbase = RegisterService( WIDE("Data Storage Share"), HandleStorageServiceEvents );
+			l.service_msgbase = RegisterService( "Data Storage Share", HandleStorageServiceEvents );
 			if( !l.service_msgbase )
 			{
-				lprintf( WIDE("Client transaction failed to server, and server still exists...") );
-				l.client_msgbase = LoadService( WIDE("Data Storage Share"), NULL );
+				lprintf( "Client transaction failed to server, and server still exists..." );
+				l.client_msgbase = LoadService( "Data Storage Share", NULL );
 				if( !l.client_msgbase )
 				{
-					lprintf( WIDE("Hmm service is still absent... should have had someone register by now...") );
-               lprintf( WIDE("Fail to local only mode.") );
+					lprintf( "Hmm service is still absent... should have had someone register by now..." );
+               lprintf( "Fail to local only mode." );
                l.flags.bLocal = 1;
 				}
 				else
 				{
-					lprintf( WIDE("Okay - so... either the base is the same or it's different...") );
+					lprintf( "Okay - so... either the base is the same or it's different..." );
                // re-set client bit... we're still slaving... go back up to retry
 					l.flags.bClient = 1;
                goto retry;
@@ -164,7 +164,7 @@ INDEX DataStore_RegisterNamedDataType( CTEXTSTR name, uint32_t size )
 			}
 			else
 			{
-				lprintf( WIDE("Okay, I'm now the server... clients will now talk to me, once they fail to aquire server.") );
+				lprintf( "Okay, I'm now the server... clients will now talk to me, once they fail to aquire server." );
             l.flags.bService = 1;
 			}
 		}
@@ -381,13 +381,13 @@ int CPROC HandleStorageEvents( uint32_t MsgID, uint32_t *params, uint32_t paraml
 
 PRELOAD( RegisterDataStorageService )
 {
-	l.service_msgbase = RegisterServiceHandler( WIDE("Data Storage Share"), HandleStorageServiceEvents );
+	l.service_msgbase = RegisterServiceHandler( "Data Storage Share", HandleStorageServiceEvents );
 	if( !l.service_msgbase )
 	{
-		l.client_msgbase = LoadService( WIDE("Data Storage Share"), HandleStorageEvents );
+		l.client_msgbase = LoadService( "Data Storage Share", HandleStorageEvents );
 		if( !l.client_msgbase )
 		{
-			lprintf( WIDE("message service not enabled... enabling local mode.") );
+			lprintf( "message service not enabled... enabling local mode." );
 			l.flags.bLocal = 1;
 		}
 		else
@@ -401,7 +401,7 @@ EXPORTED_DATA INDEX iTransform;
 
 PRELOAD( RegisterSackKnownTypes )
 {
-	iTransform = RegisterNamedDataType( WIDE("space frame transform"), sizeof( TRANSFORM ) );
+	iTransform = RegisterNamedDataType( "space frame transform", sizeof( TRANSFORM ) );
 }
 
 

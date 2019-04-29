@@ -59,7 +59,7 @@ static int ConnectToServer( void )
       }
    }
    if( !l.flags.connected )
-      Log( WIDE("Failed to connect") );
+      Log( "Failed to connect" );
    return l.flags.connected;
 }
 
@@ -128,7 +128,7 @@ static int CPROC EventHandler( uint32_t EventMsg, uint32_t *data, uint32_t lengt
 	case MSG_DispatchSimpleEvent:
 		// data[0] = client event_id;
 		// data + 1 = extra information
-      lprintf( WIDE("dispatch simple event...") );
+      lprintf( "dispatch simple event..." );
 		{
 			PEVENT_DISPATCHER event_dispatch = (PEVENT_DISPATCHER)GetLink( &l.dispatchers, data[0] );
 			if( event_dispatch )
@@ -139,7 +139,7 @@ static int CPROC EventHandler( uint32_t EventMsg, uint32_t *data, uint32_t lengt
 		}
 		break;
 	default:
-      lprintf( WIDE("Unhandled message...") );
+      lprintf( "Unhandled message..." );
       break;
 	}
    return 0;

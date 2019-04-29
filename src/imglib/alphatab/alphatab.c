@@ -10,17 +10,17 @@ int main( void )
 	int x, y, val;
 	HVIDEO output;
 	ImageFile *surface;
-	output = InitVideoSizedEx( WIDE("Alpha Table Output"), TRUE, 270, 270 );
+	output = InitVideoSizedEx( "Alpha Table Output", TRUE, 270, 270 );
    surface = GetVideoImage( output );
 	for( x = 0; x < 256; x++ )
 		for( y = 0; y < 256; y++ )
 		{
 			val = y * 0x100;
-			//printf( WIDE("%d "), val );
-			//printf( WIDE("%d "), 0x10000 - val );
+			//printf( "%d ", val );
+			//printf( "%d ", 0x10000 - val );
 			val = val + ( ( ( 0x10000 - val ) * ( x ) ) / 0x100 );
 			val /= 0x100;
-			//printf( WIDE("(%d,%d)=%d\n"), x, y, val );
+			//printf( "(%d,%d)=%d\n", x, y, val );
 			alphatable[y][x] = val;
 			if( val == 0x40 || 
 				 val == 0x80 || 

@@ -15,7 +15,7 @@ GLOBAL g;
 void CPROC RedrawTwo( uintptr_t psvUser, PRENDERER renderer )
 {
 	Image image = GetDisplayImage( renderer );
-	Log2( WIDE("Update image two (0,0)-(%d,%d)"), image->width, image->height );
+	Log2( "Update image two (0,0)-(%d,%d)", image->width, image->height );
 	BlatColor( image, 0, 0, image->width, image->height, psvUser );
 }
 
@@ -29,7 +29,7 @@ int main( int argc, char **argv )
 		nDisplays = atoi( argv[1] );
 		if( !nDisplays )
 		{
-         fprintf( stderr, WIDE("Invalid number specified, defaulting to 10 panels.") );
+         fprintf( stderr, "Invalid number specified, defaulting to 10 panels." );
 			nDisplays = 10;
 		}
 	}
@@ -42,11 +42,11 @@ int main( int argc, char **argv )
 		displays[n] = OpenDisplaySizedAt( 0, 100+n, 100+n, 100 + n * 20, 100 + n * 20 );
 		if( !displays[n] )
 		{
-			printf( WIDE("Failed to open display 0\n") );
+			printf( "Failed to open display 0\n" );
 			return 0;
 		}
       else
-			lprintf( WIDE("Managed to create display %d"), n );
+			lprintf( "Managed to create display %d", n );
 		{
          CDATA color = ColorAverage( Color( 72, 83, 10 )
 																				, Color( 219, 142, 153 )

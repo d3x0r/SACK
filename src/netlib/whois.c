@@ -12,7 +12,7 @@
 
 SACK_NETWORK_NAMESPACE
 
-TEXTCHAR DefaultServer[] = WIDE( "whois.nsiregistry.net:43" ); //whois";
+TEXTCHAR DefaultServer[] = "whois.nsiregistry.net:43"; //whois";
 
 LOGICAL DoWhois( CTEXTSTR pHost, CTEXTSTR pServer, PVARTEXT pvtResult )
 {
@@ -24,13 +24,13 @@ LOGICAL DoWhois( CTEXTSTR pHost, CTEXTSTR pServer, PVARTEXT pvtResult )
 	//SetSystemLog( SYSLOG_FILE, stdout );
 	if( !pHost )
 	{
-		vtprintf( pvtResult, WIDE("Must specify a host, handle, or domain name\n") );
+		vtprintf( pvtResult, "Must specify a host, handle, or domain name\n" );
 		return FALSE;
 	}
 	S = socket( 2,1,6 );
 	if( S == INVALID_SOCKET )
 	{
-		vtprintf( pvtResult, WIDE("Could not allocate socket resource\n") );
+		vtprintf( pvtResult, "Could not allocate socket resource\n" );
 		return FALSE;
 	}
 
@@ -40,7 +40,7 @@ LOGICAL DoWhois( CTEXTSTR pHost, CTEXTSTR pServer, PVARTEXT pvtResult )
 	sa1 = CreateSockAddress( pServer, 43 );
 	if( connect( S, sa1, sizeof(*sa1) ) )
 	{
-		vtprintf( pvtResult, WIDE("Failed to connect (%d)\n"), WSAGetLastError());
+		vtprintf( pvtResult, "Failed to connect (%d)\n", WSAGetLastError());
 		closesocket( S );
 		return FALSE;
 	}
@@ -49,27 +49,27 @@ LOGICAL DoWhois( CTEXTSTR pHost, CTEXTSTR pServer, PVARTEXT pvtResult )
 		static TEXTCHAR buf[4096];
 		int  l;
 
-		l = tnprintf( buf, sizeof( buf ), WIDE("%s\n"), pHost );
+		l = tnprintf( buf, sizeof( buf ), "%s\n", pHost );
 
 		if( send( S, (char*)buf, l, 0 ) != l )
 		{
-			vtprintf( pvtResult, WIDE("Failed to be able to write data to the network\n") );
+			vtprintf( pvtResult, "Failed to be able to write data to the network\n" );
 			closesocket( S );
 			return FALSE;
 		}
 
 		// insert WAIT FOR RESPONCE code....
-		//vtprintf( pvtResult, WIDE("Version 1.0   ADA Software Developers, Inc.  Copyright 1999.\n") );
+		//vtprintf( pvtResult, "Version 1.0   ADA Software Developers, Inc.  Copyright 1999.\n" );
 		while( ( l = recv( S, (char*)buf, sizeof( buf ), 0 ) ) > 0 )
 		{
 			if( l < sizeof(buf) )
 				buf[l] = 0;
-			vtprintf( pvtResult, WIDE("%s"), buf );
+			vtprintf( pvtResult, "%s", buf );
 		}
 		{
 			TEXTSTR pNext, pEnd;
 			PTEXT result = VarTextGet( pvtResult );
-			if( ( pNext = (TEXTSTR)StrCaseStr( GetText( result ), WIDE("Whois Server: ") ) ) )
+			if( ( pNext = (TEXTSTR)StrCaseStr( GetText( result ), "Whois Server: " ) ) )
 			{
 				pNext += 14;
 				pEnd = pNext;
@@ -79,7 +79,7 @@ LOGICAL DoWhois( CTEXTSTR pHost, CTEXTSTR pServer, PVARTEXT pvtResult )
 				pEnd[1] = '4';
 				pEnd[2] = '3';
 				pEnd[3] = 0;
-				//StrCpyEx( pEnd, WIDE(":43"),  ); // whois" );
+				//StrCpyEx( pEnd, ":43",  ); // whois" );
 				DoWhois( pHost, pNext, pvtResult );
 			}
 		}

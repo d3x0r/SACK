@@ -70,7 +70,7 @@ void NEURON::Init( CTEXTSTR name )
 	{
 		static int nDefault = 1;
 		TEXTCHAR tmpname[32];
-		Name = NewArray( TEXTCHAR, snprintf( tmpname, sizeof( tmpname ), WIDE("Neuron %d"), nDefault ) + 1);
+		Name = NewArray( TEXTCHAR, snprintf( tmpname, sizeof( tmpname ), "Neuron %d", nDefault ) + 1);
 		nDefault++;
 		strcpy( Name, tmpname );
 	}
@@ -215,15 +215,15 @@ NATIVE NEURON::Collect( uint32_t cycle )
 	if( ( nCycle != cycle ) && ( nType != NT_FREE ) ) // from brain...
 	{
 		nCycle = cycle;
-		//lprintf( WIDE("collect for %s %p"), Name, this );
+		//lprintf( "collect for %s %p", Name, this );
 		if( nType == NT_INPUT )
 		{
-			//lprintf(WIDE("Input : ") NATIVE_FORMAT WIDE("\n"), Input.get() );
+			//lprintf("Input : " NATIVE_FORMAT "\n", Input.get() );
 			Output.set( Input.get() );
 		}
 		else
 		{
-			//lprintf( WIDE("Gathering inputs...") );
+			//lprintf( "Gathering inputs..." );
 			Input.set(NATIVE(0));
 
 			bAdd = TRUE;
@@ -239,8 +239,8 @@ NATIVE NEURON::Collect( uint32_t cycle )
 						DebugBreak(); // incomplete synaptical linkage...
 					else
 					{
-                  //lprintf( WIDE("Gather from chain...") );
-						//lprintf( WIDE("Collecting from an attached neuron. %g + %g = %g")
+                  //lprintf( "Gather from chain..." );
+						//lprintf( "Collecting from an attached neuron. %g + %g = %g"
 						//		 , Input.get()
                   //       , ps->Collect( cycle )
 						//		 , Input.get() + ps->Collect( cycle ) );
@@ -258,17 +258,17 @@ NATIVE NEURON::Collect( uint32_t cycle )
 
 void NEURON::Emit( void )
 {
-   //lprintf( WIDE("Emitting a value... %d"), nType );
+   //lprintf( "Emitting a value... %d", nType );
     switch( nType )
     {
     case NT_OUTPUT:
         {
            Output.set( Input.get() );
-           //lprintf( WIDE("emit value into output ") NATIVE_FORMAT, Input.get() );
+           //lprintf( "emit value into output " NATIVE_FORMAT, Input.get() );
         }
         break;
 	 case NT_DIGITAL:
-		 //lprintf( WIDE("emit digital %g %g %g %g"), Threshold.get(), Input.get(), Min.get(), Max.get() );
+		 //lprintf( "emit digital %g %g %g %g", Threshold.get(), Input.get(), Min.get(), Max.get() );
 		if( Input.get() <= Threshold.get() )
 			Output.set( Min.get() );
 		else
@@ -278,7 +278,7 @@ void NEURON::Emit( void )
 		 {
 			 NATIVE tmp;
 			 NATIVE n = Input.get() - Threshold.get();
-			 //lprintf( WIDE("emit analog") );
+			 //lprintf( "emit analog" );
 
 			 if( n < (tmp=Min.get()) )
 				 Output.set( tmp );
@@ -303,7 +303,7 @@ void NEURON::SaveBegin( PODBC odbc )
 {
 	if( iNeuron && iNeuron != INVALID_INDEX  )
 	{
-		SQLCommandf( odbc, WIDE("delete from brain_neuron where brain_neuron_id=%lu"), iNeuron );
+		SQLCommandf( odbc, "delete from brain_neuron where brain_neuron_id=%lu", iNeuron );
 	}
 	iNeuron = 0;
 }
@@ -316,13 +316,13 @@ INDEX NEURON::Save( PODBC odbc, INDEX iParent )
 	if( !iNeuron )
 	{
 		TEXTCHAR szThreshold[32];
-		snprintf( szThreshold, sizeof( szThreshold ), WIDE("%g"), Threshold.get() );
-		if( SQLInsert( odbc, WIDE("brain_neuron")
-						 , WIDE("threshold"), 0, szThreshold
-						 , WIDE("parent_id"), 2, iParent
-						 , WIDE("type"), 2, nType
-						 , WIDE("min_output"), 0, WIDE("0")
-						 , WIDE("max_output"), 0, WIDE("0")
+		snprintf( szThreshold, sizeof( szThreshold ), "%g", Threshold.get() );
+		if( SQLInsert( odbc, "brain_neuron"
+						 , "threshold", 0, szThreshold
+						 , "parent_id", 2, iParent
+						 , "type", 2, nType
+						 , "min_output", 0, "0"
+						 , "max_output", 0, "0"
 						 , NULL, 0, NULL ) )
 		{
 			iNeuron = FetchLastInsertID( odbc, NULL, NULL );
@@ -351,7 +351,7 @@ INDEX NEURON::Save( PODBC odbc, INDEX iParent )
 LOGICAL NEURON::Load( PODBC odbc, INDEX iInstance )
 {
 	CTEXTSTR *result;
-	if( SQLRecordQueryf( odbc, NULL, &result, NULL, WIDE("select threshold,type,min_output,max_output,brain_neuron_id from brain_neuron where brain_neuron_id=%lu")
+	if( SQLRecordQueryf( odbc, NULL, &result, NULL, "select threshold,type,min_output,max_output,brain_neuron_id from brain_neuron where brain_neuron_id=%lu"
 		, iInstance )
 		&& result )
 	{

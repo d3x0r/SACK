@@ -63,7 +63,7 @@ int CPROC DrawGrid( PSI_CONTROL frame )
 					{
 						// 640 / 4 = 160
 						// 480 / 3 = 160
-						//lprintf( WIDE("r_left is %d -> %d r_right is %d"), r_left(x), r_left(x+1), r_width(x) );
+						//lprintf( "r_left is %d -> %d r_right is %d", r_left(x), r_left(x+1), r_width(x) );
 
 						if( x == cur_x && y == cur_y && p == cur_s )
 						{
@@ -115,7 +115,7 @@ void CPROC UpdateGrid( uintptr_t psv )
 void CreateGPSGridDisplay( void )
 {
 	PSI_CONTROL frame;
-	frame = CreateFrame( WIDE("GPS Grid Display"), 640, 480, 640, 480, BORDER_RESIZABLE|BORDER_NORMAL, NULL );
+	frame = CreateFrame( "GPS Grid Display", 640, 480, 640, 480, BORDER_RESIZABLE|BORDER_NORMAL, NULL );
 
 	AddCommonDraw( frame, DrawGrid) ;
 

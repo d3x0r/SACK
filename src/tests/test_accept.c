@@ -11,7 +11,7 @@ void CPROC ReadCallback( PCLIENT pc, POINTER buffer, size_t len )
 	}
 	else
 	{
-		lprintf( WIDE("Received data on %p"), pc );
+		lprintf( "Received data on %p", pc );
 		LogBinary( buffer, len );
 	}
 	ReadTCP( pc, buffer, 256 );
@@ -26,7 +26,7 @@ void CPROC ReadCallback3( PCLIENT pc, POINTER buffer, size_t len )
 	}
 	else
 	{
-		lprintf( WIDE("Received data on %p"), pc );
+		lprintf( "Received data on %p", pc );
 		LogBinary( buffer, len );
 		RemoveClient( pc );
 		return;
@@ -42,7 +42,7 @@ void CPROC ReadCallback2( PCLIENT pc, POINTER buffer, size_t len )
 	}
 	else
 	{
-		lprintf( WIDE("Received data on %p"), pc );
+		lprintf( "Received data on %p", pc );
 		LogBinary( buffer, len );
 		RemoveClient( pc );
 	}
@@ -51,23 +51,23 @@ void CPROC ReadCallback2( PCLIENT pc, POINTER buffer, size_t len )
 
 void CPROC WriteCallback( PCLIENT pc )
 {
-	lprintf( WIDE("disconnect client after write") );
+	lprintf( "disconnect client after write" );
 	RemoveClient( pc );
 }
 
 void CPROC WriteCallback2( PCLIENT pc )
 {
-	lprintf( WIDE("disconnect client after write") );
+	lprintf( "disconnect client after write" );
 	RemoveClient( pc );
 }
 
 void CPROC ConnectCallback( PCLIENT pc, int error )
 {
 	if( error )
-		lprintf( WIDE("Connect event error : %d"), error );
+		lprintf( "Connect event error : %d", error );
 	else
 	{
-		lprintf( WIDE("Connect completed (remove client)") );
+		lprintf( "Connect completed (remove client)" );
 		RemoveClient( pc );
 	}
 	return;
@@ -77,12 +77,12 @@ void CPROC ConnectCallback2( PCLIENT pc, int error )
 {
 	if( error )
 	{
-		lprintf( WIDE("Connect event error : %d"), error );
+		lprintf( "Connect event error : %d", error );
 	}
 	else
 	{
-		lprintf( WIDE("Connect completed") );
-		SendTCP( pc, WIDE("network event thread send"), sizeof( WIDE("network event thread send") ) );
+		lprintf( "Connect completed" );
+		SendTCP( pc, "network event thread send", sizeof( "network event thread send" ) );
 	}
 	return;
 }
@@ -94,8 +94,8 @@ int main( void )
 	NetworkStart();
 	for( n = 0; n < 10000; n++ )
 	{
-		PCLIENT pc = OpenTCPClient( WIDE("127.0.0.1"), 23, NULL );
-		lprintf( WIDE("1) result %p"), pc );
+		PCLIENT pc = OpenTCPClient( "127.0.0.1", 23, NULL );
+		lprintf( "1) result %p", pc );
 		if( pc )
 		{
 			RemoveClient( pc );
@@ -103,58 +103,58 @@ int main( void )
 		}
 
 
-		pc = OpenTCPClientExx( WIDE("127.0.0.1"), 23, NULL, NULL, WriteCallback, ConnectCallback );
-		lprintf( WIDE("2) result %p"), pc );
+		pc = OpenTCPClientExx( "127.0.0.1", 23, NULL, NULL, WriteCallback, ConnectCallback );
+		lprintf( "2) result %p", pc );
 		if( pc )
 		{
 			d++;
 		}
 
-		pc = OpenTCPClientExx( WIDE("127.0.0.1"), 23, ReadCallback, NULL, WriteCallback2, ConnectCallback );
-		lprintf( WIDE("3) result %p"), pc );
+		pc = OpenTCPClientExx( "127.0.0.1", 23, ReadCallback, NULL, WriteCallback2, ConnectCallback );
+		lprintf( "3) result %p", pc );
 		if( pc )
 		{
 			d++;
 		}
 
-		pc = OpenTCPClientExx( WIDE("127.0.0.1"), 23, NULL, NULL, NULL, NULL );
-		lprintf( WIDE("4) result %p"), pc );
+		pc = OpenTCPClientExx( "127.0.0.1", 23, NULL, NULL, NULL, NULL );
+		lprintf( "4) result %p", pc );
 		if( pc )
 		{
-			SendTCP( pc, WIDE("other thread send"), sizeof( WIDE("other thread send") ) );
+			SendTCP( pc, "other thread send", sizeof( "other thread send" ) );
 			RemoveClient( pc );
 			d++;
 		}
 
-		pc = OpenTCPClientExx( WIDE("127.0.0.1"), 23, ReadCallback, NULL, NULL, NULL );
-		lprintf( WIDE("5) result %p"), pc );
+		pc = OpenTCPClientExx( "127.0.0.1", 23, ReadCallback, NULL, NULL, NULL );
+		lprintf( "5) result %p", pc );
 		if( pc )
 		{
-			SendTCP( pc, WIDE("other thread send"), sizeof( WIDE("other thread send") ) );
+			SendTCP( pc, "other thread send", sizeof( "other thread send" ) );
 			RemoveClient( pc );
 			d++;
 		}
 
-		pc = OpenTCPClientExx( WIDE("127.0.0.1"), 23, ReadCallback2, NULL, NULL, NULL );
-		lprintf( WIDE("6) result %p"), pc );
+		pc = OpenTCPClientExx( "127.0.0.1", 23, ReadCallback2, NULL, NULL, NULL );
+		lprintf( "6) result %p", pc );
 		if( pc )
 		{
-			SendTCP( pc, WIDE("other thread send"), sizeof( WIDE("other thread send") ) );
+			SendTCP( pc, "other thread send", sizeof( "other thread send" ) );
 			RemoveClient( pc );
 			d++;
 		}
-		pc = OpenTCPClientExx( WIDE("127.0.0.1"), 23, ReadCallback3, NULL, NULL, NULL );
-		lprintf( WIDE("7) result %p"), pc );
+		pc = OpenTCPClientExx( "127.0.0.1", 23, ReadCallback3, NULL, NULL, NULL );
+		lprintf( "7) result %p", pc );
 		if( pc )
 		{
-			SendTCP( pc, WIDE("other thread send"), sizeof( WIDE("other thread send") ) );
+			SendTCP( pc, "other thread send", sizeof( "other thread send" ) );
 			RemoveClient( pc );
 			d++;
 		}
 
 
-		pc = OpenTCPClientExx( WIDE("127.0.0.1"), 23, NULL, NULL, NULL, ConnectCallback2 );
-		lprintf( WIDE("8) result %p"), pc );
+		pc = OpenTCPClientExx( "127.0.0.1", 23, NULL, NULL, NULL, ConnectCallback2 );
+		lprintf( "8) result %p", pc );
 		if( pc )
 		{
 			RemoveClient( pc );
@@ -163,7 +163,7 @@ int main( void )
 
 		//if( ( n % 100 ) == 0 )
 		{
-			printf( WIDE("\rconections: %d of %d"), d, n );
+			printf( "\rconections: %d of %d", d, n );
 			fflush( stdout );
 		}
 	}

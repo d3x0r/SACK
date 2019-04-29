@@ -7,10 +7,10 @@ PRELOAD( loginfo )
 	FILE *input[4];
 	TEXTCHAR buffer[4][256];
 
-	input[0] = sack_fopen( 0, WIDE("@/info/generator.txt"), WIDE("rt") );
-	input[1] = sack_fopen( 0, WIDE("@/info/type.txt"), WIDE("rt") );
-	input[2] = sack_fopen( 0, WIDE("@/info/ver.txt"), WIDE("rt") );
-	input[3] = sack_fopen( 0, WIDE("@/info/project.txt"), WIDE("rt") );
+	input[0] = sack_fopen( 0, "@/info/generator.txt", "rt" );
+	input[1] = sack_fopen( 0, "@/info/type.txt", "rt" );
+	input[2] = sack_fopen( 0, "@/info/ver.txt", "rt" );
+	input[3] = sack_fopen( 0, "@/info/project.txt", "rt" );
 
 	if( input[0] && input[1] && input[2] )
 	{
@@ -31,10 +31,10 @@ PRELOAD( loginfo )
 			{
 				if( (tmp_len = strlen( buffer[3] ) ), buffer[3][tmp_len-1] == '\n' )
 					buffer[3][tmp_len-1] = 0;
-				lprintf( WIDE("Version %s: %s[%s]%s"), buffer[3], buffer[0], buffer[1], buffer[2] );
+				lprintf( "Version %s: %s[%s]%s", buffer[3], buffer[0], buffer[1], buffer[2] );
 			}
 			else
-				lprintf( WIDE("Version %d: %s[%s]%s"), j, buffer[0], buffer[1], buffer[2] );
+				lprintf( "Version %d: %s[%s]%s", j, buffer[0], buffer[1], buffer[2] );
 			j++;
 		}
 	}

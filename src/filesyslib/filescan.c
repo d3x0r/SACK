@@ -52,13 +52,13 @@ try_mask:
 	wasmaskmatch = 0;
 	matchone = 0;
 #if ( DEBUG_COMPARE < 3 )
-	lprintf( WIDE("Check %s vs %s"), mask + m, name );
+	lprintf( "Check %s vs %s", mask + m, name );
 #endif
 	do
 	{
 		if( mask[m] == '\t' || mask[m] == '|' )
 		{
-			lprintf( WIDE("Found mask seperator - skipping to next mask :%s"), mask + m + 1 );
+			lprintf( "Found mask seperator - skipping to next mask :%s", mask + m + 1 );
 			n = 0;
 			m++;
 			continue;
@@ -71,7 +71,7 @@ try_mask:
 		while( mask[m] == '?' )
 		{
 #if ( DEBUG_COMPARE < 2 )
-         //Log( WIDE("Match any one character") );
+         //Log( "Match any one character" );
 #endif
 			matchone++;
 			m++;
@@ -98,12 +98,12 @@ try_mask:
 		}
 		else if(
 #if ( DEBUG_COMPARE < 2 )
-				  lprintf( WIDE("Check %c == %c?"), maskch, namech ),
+				  lprintf( "Check %c == %c?", maskch, namech ),
 #endif
 				  maskch == namech )
 		{
 #if ( DEBUG_COMPARE < 2 )
-			lprintf( WIDE(" yes.") );
+			lprintf( " yes." );
 #endif
 		 	if( anymatch )
 		 	{
@@ -116,23 +116,23 @@ try_mask:
 		}
 		else if(
 #if ( DEBUG_COMPARE < 2 )
-				  lprintf( WIDE(" no. Any match?") ),
+				  lprintf( " no. Any match?" ),
 #endif
 				  anymatch )
 		{
 #if ( DEBUG_COMPARE < 2 )
-			lprintf( WIDE(" yes"));
+			lprintf( " yes");
 #endif
 			n++;
 		}
 		else if(
 #if ( DEBUG_COMPARE < 2 )
-				  lprintf( WIDE(" No. wasanymatch?") ),
+				  lprintf( " No. wasanymatch?" ),
 #endif
 				  wasanymatch )
 		{
 #if ( DEBUG_COMPARE < 2 )
-			lprintf( WIDE(" yes. reset to anymatch.") );
+			lprintf( " yes. reset to anymatch." );
 #endif
 			n = wasanymatch - 1;
 			m = wasmaskmatch - 1;
@@ -142,7 +142,7 @@ try_mask:
 		else
 		{
 #if ( DEBUG_COMPARE < 2 )
-			lprintf( WIDE(" No. match failed.") );
+			lprintf( " No. match failed." );
 #endif
 			break;
 		}
@@ -152,7 +152,7 @@ try_mask:
 	while( mask[m] && mask[m] == '*' )
 		m++;
 #if ( DEBUG_COMPARE < 3 )
-	lprintf( WIDE("Skipping to next mask") );
+	lprintf( "Skipping to next mask" );
 #endif
 	if( mask[m] &&
 		 ( mask[m] != '\t' &&
@@ -173,7 +173,7 @@ try_mask:
 			goto try_mask;
 		m = mask_m;
 	}
-	//lprintf( WIDE("Result: %d %c %d"), matchone, mask[m], name[n] );
+	//lprintf( "Result: %d %c %d", matchone, mask[m], name[n] );
 	// match ???? will not match abc 
 	// a??? abc not match
 	if( !matchone && (!mask[m] || mask[m] == '\t' || mask[m] == '|' ) && !name[n] )
@@ -194,7 +194,7 @@ typedef struct result_buffer
 static void CPROC MatchFile( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	PRESULT_BUFFER buffer = (PRESULT_BUFFER)psvUser;
-	buffer->result_len = tnprintf( buffer->buffer, buffer->len*sizeof(TEXTCHAR), WIDE("%s"), name );
+	buffer->result_len = tnprintf( buffer->buffer, buffer->len*sizeof(TEXTCHAR), "%s", name );
 }
 
 int  GetMatchingFileName ( CTEXTSTR filemask, enum ScanFileFlags  flags, TEXTSTR pResult, int nResult )
@@ -406,14 +406,14 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 			}
 			else
 			{
-				StrCpyEx( findbasename(pInfo), WIDE(""), 2 );
+				StrCpyEx( findbasename(pInfo), "", 2 );
 				StrCpyEx( findmask(pInfo), mask, MAX_PATH_NAME );
 			}
 		}
 		if( findbasename(pInfo)[0] )
-			tnprintf( findmask, sizeof(findmask), WIDE("%s/*"), findbasename(pInfo) );
+			tnprintf( findmask, sizeof(findmask), "%s/*", findbasename(pInfo) );
 		else {
-			tnprintf( findmask, sizeof( findmask ), WIDE( "*" ) );
+			tnprintf( findmask, sizeof( findmask ), "*" );
 		}
 		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL ) {
 #ifndef _WIN32
@@ -463,7 +463,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 				if( !begin_sub_path ) {
 					Release( pData ); pInfo[0] = NULL;
 				}
-				//lprintf( WIDE( "%p %d" ), prior, processed );
+				//lprintf( "%p %d", prior, processed );
 				if( tmp_base )
 					Release( tmp_base );
 				return prior?processed:0;
@@ -544,15 +544,15 @@ getnext:
 #ifdef WIN32 
 		//lprintf( "... %s", finddata(pInfo)->name );
 #  ifdef UNDER_CE
-		if( !StrCmp( WIDE("."), finddata(pInfo)->cFileName ) ||
-		    !StrCmp( WIDE(".."), finddata(pInfo)->cFileName ) )
+		if( !StrCmp( ".", finddata(pInfo)->cFileName ) ||
+		    !StrCmp( "..", finddata(pInfo)->cFileName ) )
 #  else
-		if( !StrCmp( WIDE("."), finddata(pInfo)->name ) ||
-		    !StrCmp( WIDE(".."), finddata(pInfo)->name ) )
+		if( !StrCmp( ".", finddata(pInfo)->name ) ||
+		    !StrCmp( "..", finddata(pInfo)->name ) )
 #  endif
 #else
-		if( !StrCmp( WIDE("."), de->d_name ) ||
-		    !StrCmp( WIDE(".."), de->d_name ) )
+		if( !StrCmp( ".", de->d_name ) ||
+		    !StrCmp( "..", de->d_name ) )
 #endif
 			goto getnext;
 	}
@@ -560,25 +560,25 @@ getnext:
 	{
 		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 		{
-			tnprintf( pData->file_buffer, MAX_PATH_NAME, WIDE("%s"), pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
+			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
 			if( findbasename( pInfo )[0] )
-				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), pData->file_buffer );
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s/%s", findbasename(pInfo), pData->file_buffer );
 			else
-				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE( "%s" ), pData->file_buffer );
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s", pData->file_buffer );
 		}
 		else
 		{
 #ifdef WIN32
 #  ifdef UNDER_CE
-			tnprintf( pData->file_buffer, MAX_PATH_NAME, WIDE( "%s" ), finddata( pInfo )->cFileName );
-			tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s/%s"), findbasename(pInfo), finddata(pInfo)->cFileName );
+			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", finddata( pInfo )->cFileName );
+			tnprintf( pData->buffer, MAX_PATH_NAME, "%s/%s", findbasename(pInfo), finddata(pInfo)->cFileName );
 #  else
-			tnprintf( pData->file_buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
-			tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s"), findbasename(pInfo), findbasename( pInfo )[0]?"/":"", pData->file_buffer );
+			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", finddata(pInfo)->name );
+			tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s", findbasename(pInfo), findbasename( pInfo )[0]?"/":"", pData->file_buffer );
 #  endif
 #else
-			tnprintf( pData->file_buffer, MAX_PATH_NAME, WIDE("%s"), de->d_name );
-			tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s"), findbasename(pInfo), findbasename( pInfo )[0]?"/":"", de->d_name );
+			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", de->d_name );
+			tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s", findbasename(pInfo), findbasename( pInfo )[0]?"/":"", de->d_name );
 #endif
 		}
 	}
@@ -588,9 +588,9 @@ getnext:
 		{
 			if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 			{
-				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
-					  , pData->prior?pData->prior->buffer:WIDE( "" )
-					  , pData->prior?WIDE( "/" ):WIDE( "" )
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
+					  , pData->prior?pData->prior->buffer:""
+					  , pData->prior?"/":""
 					, pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) 
 					);
 			}
@@ -598,20 +598,20 @@ getnext:
 			{
 #ifdef WIN32
 #  ifdef UNDER_CE
-				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
-						  , pData->prior?pData->prior->buffer:WIDE( "" )
-						  , pData->prior?WIDE( "/" ):WIDE( "" )
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
+						  , pData->prior?pData->prior->buffer:""
+						  , pData->prior?"/":""
 						  , finddata(pInfo)->cFileName );
 #  else
-				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
-						  , pData->prior?pData->prior->buffer:WIDE( "" )
-						  , pData->prior?WIDE( "/" ):WIDE( "" )
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
+						  , pData->prior?pData->prior->buffer:""
+						  , pData->prior?"/":""
 						  , finddata(pInfo)->name );
 #  endif
 #else
-				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s%s%s")
-					  , pData->prior?pData->prior->buffer:WIDE( "" )
-					  , pData->prior?WIDE( "/" ):WIDE( "" )
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
+					  , pData->prior?pData->prior->buffer:""
+					  , pData->prior?"/":""
 					  , de->d_name );
 					  lprintf( "resulting is %s", pData->buffer );
 #endif
@@ -621,22 +621,22 @@ getnext:
 		{
 			if( pData->scanning_mount?pData->scanning_mount->fsi:NULL )
 			{
-				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s", pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
 			}
 			else
 			{
 #ifdef WIN32
 #  ifdef UNDER_CE
-				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->cFileName );
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s", finddata(pInfo)->cFileName );
 #  else
 #    ifdef UNICODE
-				snwprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
+				snwprintf( pData->buffer, MAX_PATH_NAME, "%s", finddata(pInfo)->name );
 #    else
-				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), finddata(pInfo)->name );
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s", finddata(pInfo)->name );
 #    endif
 #  endif
 #else
-				tnprintf( pData->buffer, MAX_PATH_NAME, WIDE("%s"), de->d_name );
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s", de->d_name );
 #endif
 			}
 		}
@@ -690,22 +690,22 @@ getnext:
 				// even in name only - need to have this full buffer for subcurse.
 				if( pData->scanning_mount && pData->scanning_mount->fsi )
 				{
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) );
 				}
 				else
 				{
 #ifdef WIN32
 #  ifdef UNDER_CE
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), finddata( pInfo )->cFileName );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), finddata( pInfo )->cFileName );
 #  else
 #    ifdef UNICODE
-					/*ofs = */snwprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), finddata( pInfo )->name );
+					/*ofs = */snwprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), finddata( pInfo )->name );
 #    else
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), finddata( pInfo )->name );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), finddata( pInfo )->name );
 #    endif
 #  endif
 #else	
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), WIDE( "%s/%s" ), findbasename( pInfo ), de->d_name );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), de->d_name );
 #endif
 				}
 				//lprintf( "process sub... %s %s", tmpbuf, findmask(pInfo)  );
@@ -784,7 +784,7 @@ int  ScanFiles ( CTEXTSTR base
 {
 #ifdef WIN32
 #  ifdef UNDER_CE
-	Process( user, WIDE(""), SFF_DRIVE );
+	Process( user, "", SFF_DRIVE );
 #  else
 	uint32_t drives;
 	int i;

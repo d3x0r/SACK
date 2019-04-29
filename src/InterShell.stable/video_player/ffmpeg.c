@@ -16,11 +16,11 @@ static CTEXTSTR GetActiveDisplay( void )
 {
 	static TEXTCHAR result[12];
 	if( l.full_display == -1 )
-		return WIDE( "Not Full Screen" );
+		return "Not Full Screen";
 	if( l.full_display == 0 )
-		return WIDE( "Default" );
+		return "Default";
 
-	tnprintf( result, 12,  WIDE( "%d" ), l.full_display );
+	tnprintf( result, 12,  "%d", l.full_display );
 	return result;
 }
 
@@ -30,10 +30,10 @@ PRELOAD( LoadInterface )
 	l.pii = GetImageInterface();
 	l.button_display_id = -1;
 	GetDisplaySize( &l.display_width, &l.display_height );
-	l.label_active_display = CreateLabelVariable( WIDE( "<Video/Active Display>"), LABEL_TYPE_PROC, GetActiveDisplay );
+	l.label_active_display = CreateLabelVariable( "<Video/Active Display>", LABEL_TYPE_PROC, GetActiveDisplay );
 }
 
-static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Load" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Test Video Player Load" )( PMENU_BUTTON button )
 {
 	struct my_button *me = New( struct my_button );
 	MemSet( me, 0, sizeof( struct my_button ) );
@@ -169,7 +169,7 @@ static uintptr_t CPROC LoadMovieThread( PTHREAD thread )
 
 }
 
-static void OnKeyPressEvent( WIDE( "Test Video Player Load" ) )( uintptr_t psv_button )
+static void OnKeyPressEvent( "Test Video Player Load" )( uintptr_t psv_button )
 {
 	struct my_button *me = ( struct my_button *)psv_button;
 	//struct GetDisplayParams params;
@@ -199,7 +199,7 @@ static void OnKeyPressEvent( WIDE( "Test Video Player Load" ) )( uintptr_t psv_b
 	}
 }
 
-static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Set Display" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Test Video Player Set Display" )( PMENU_BUTTON button )
 {
 	struct my_button *me = New( struct my_button );
 	MemSet( me, 0, sizeof( struct my_button ) );
@@ -208,14 +208,14 @@ static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Set Display" ) )( 
 	return (uintptr_t)me;
 }
 
-static void OnKeyPressEvent( WIDE( "Test Video Player Set Display" ) )( uintptr_t psv_button )
+static void OnKeyPressEvent( "Test Video Player Set Display" )( uintptr_t psv_button )
 {
 	struct my_button *me = ( struct my_button *)psv_button;
 	l.full_display = me->ID;
 	LabelVariableChanged( l.label_active_display );
 }
 
-static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Pause" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Test Video Player Pause" )( PMENU_BUTTON button )
 {
 	struct my_button *me = New( struct my_button );
 	MemSet( me, 0, sizeof( struct my_button ) );
@@ -224,7 +224,7 @@ static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Pause" ) )( PMENU_
 	return (uintptr_t)me;
 }
 
-static void OnKeyPressEvent( WIDE( "Test Video Player Pause" ) )( uintptr_t psv_button )
+static void OnKeyPressEvent( "Test Video Player Pause" )( uintptr_t psv_button )
 {
 	struct my_button *me = ( struct my_button *)psv_button;
 	INDEX idx;
@@ -242,7 +242,7 @@ static void OnKeyPressEvent( WIDE( "Test Video Player Pause" ) )( uintptr_t psv_
 }
 
 
-static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Stop" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Test Video Player Stop" )( PMENU_BUTTON button )
 {
 	struct my_button *me = New( struct my_button );
 	me->ID = l.button_stop_id++;
@@ -250,7 +250,7 @@ static uintptr_t OnCreateMenuButton( WIDE( "Test Video Player Stop" ) )( PMENU_B
 	return (uintptr_t)me;
 }
 
-static void OnKeyPressEvent( WIDE( "Test Video Player Stop" ) )( uintptr_t psv_button )
+static void OnKeyPressEvent( "Test Video Player Stop" )( uintptr_t psv_button )
 {
 	struct my_button *me = ( struct my_button *)psv_button;
 	INDEX idx;
@@ -270,7 +270,7 @@ static void OnKeyPressEvent( WIDE( "Test Video Player Stop" ) )( uintptr_t psv_b
 	}
 }
 
-static void OnDisplayPause( WIDE("Video Player") )( void )
+static void OnDisplayPause( "Video Player" )( void )
 {
 	struct ffmpeg_file * file;
 	INDEX idx;
@@ -279,7 +279,7 @@ static void OnDisplayPause( WIDE("Video Player") )( void )
 		ffmpeg_PauseFile( file );
 }
 
-static void OnDisplayResume( WIDE("Video Player") )( void )
+static void OnDisplayResume( "Video Player" )( void )
 {
 	struct ffmpeg_file * file;
 	INDEX idx;

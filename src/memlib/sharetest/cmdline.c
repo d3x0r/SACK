@@ -42,7 +42,7 @@ void IsDone( POINTER *pMem, char *pFile, int nLine )
 #ifdef _WIN32
          DebugBreak();
 #endif
-         ODSEx( WIDE("Memory Holder not Releaseed"), pFile, nLine );
+         ODSEx( "Memory Holder not Releaseed", pFile, nLine );
          pMem[i] = 0;
       }
 
@@ -66,7 +66,7 @@ POINTER *A2( POINTER *pMem )
 {
 int i;
    TEXTCHAR byBuffer[256];
-   sprintf( byBuffer, WIDE("allocate (n*32) 0..%d"), MAX_I);
+   sprintf( byBuffer, "allocate (n*32) 0..%d", MAX_I);
    ODS( byBuffer );
    IsDone();
    for( i = 0; i < MAX_I; i++ )
@@ -82,7 +82,7 @@ int i;
    TEXTCHAR byBuffer[256];
    int nSize;
    BOOL bFail = FALSE;
-   sprintf( byBuffer, WIDE("allocate ((%d-n)*32) 0..%d"), MAX_I,MAX_I);
+   sprintf( byBuffer, "allocate ((%d-n)*32) 0..%d", MAX_I,MAX_I);
    ODS( byBuffer );
    IsDone();
    for( i = 0; i < MAX_I; i++ )
@@ -98,7 +98,7 @@ POINTER *A3( POINTER *pMem )
 int i;
    int s = 8137;
    TEXTCHAR byBuffer[256];
-   sprintf( byBuffer, WIDE("allocate to fill memory"), MAX_I,MAX_I);
+   sprintf( byBuffer, "allocate to fill memory", MAX_I,MAX_I);
    ODS( byBuffer );
    IsDone();
    for( i = 0; i < MAX_I; i++ )
@@ -112,7 +112,7 @@ int i;
       if( !s )
       {
          TEXTCHAR byDebug[256];
-         sprintf( byDebug, WIDE("Failed at %d..."), i );
+         sprintf( byDebug, "Failed at %d...", i );
          break;
       }
    }
@@ -121,7 +121,7 @@ int i;
 
 POINTER *T1( POINTER *pMem )
 {
-      ODS( WIDE("Starting FALR"));
+      ODS( "Starting FALR");
       {
          int i;
          for( i = MAX_I-1; i >=0; i-- )
@@ -135,7 +135,7 @@ POINTER *T1( POINTER *pMem )
 
 POINTER *T2( POINTER *pMem )
 {
-      ODS( WIDE("Starting FirstAllocFirstRelease"));
+      ODS( "Starting FirstAllocFirstRelease");
       {
          int i;
            for( i = 0; i < MAX_I; i++ )
@@ -149,7 +149,7 @@ POINTER *T2( POINTER *pMem )
 
 POINTER *T3( POINTER *pMem )
 {
-      ODS( WIDE("Starting Stagger Deallocate"));
+      ODS( "Starting Stagger Deallocate");
       {
       
          int i, r;
@@ -168,7 +168,7 @@ POINTER *T3( POINTER *pMem )
 
 POINTER *T3i( POINTER *pMem )
 {
-      ODS( WIDE("Starting Inverted Stagger Deallocate"));
+      ODS( "Starting Inverted Stagger Deallocate");
       {
       
          int i, r;
@@ -180,7 +180,7 @@ POINTER *T3i( POINTER *pMem )
             if( 0 )
             {
                TEXTCHAR byDebug[256];
-               sprintf( byDebug, WIDE("Deallocate : %4d"), r );
+               sprintf( byDebug, "Deallocate : %4d", r );
                ODS( byDebug );
             }
             pMem[r] = Release( pMem[r] );
@@ -192,7 +192,7 @@ POINTER *T3i( POINTER *pMem )
 
 POINTER *T3is( POINTER *pMem )
 {
-      ODS( WIDE("Starting Inverted Sequential Stagger Deallocate"));
+      ODS( "Starting Inverted Sequential Stagger Deallocate");
       {
          int i, r;
          for( i = 0; i < MAX_I; i++ )
@@ -210,7 +210,7 @@ POINTER *T3is( POINTER *pMem )
 
 POINTER *T4( POINTER *pMem )
 {
-      ODS( WIDE("Starting 3-Stagger Deallocate"));
+      ODS( "Starting 3-Stagger Deallocate");
       {
          int i, r;
          for( i = 0; i < MAX_I; i++ )
@@ -232,7 +232,7 @@ void DumpStats( void )
             uint32_t dwFree, dwUsed, dwChunks, dwFreeChunks;
             char msg[256];
             GetMemStats(&dwFree, &dwUsed, &dwChunks, &dwFreeChunks);
-            sprintf( msg, WIDE("MemStat: Used: %d(%d) Free: %d(%d)")
+            sprintf( msg, "MemStat: Used: %d(%d) Free: %d(%d)"
                         , dwUsed, dwChunks - dwFreeChunks
                         , dwFree, dwFreeChunks );
             ODS( msg );
@@ -241,7 +241,7 @@ void DumpStats( void )
 
 POINTER *T5( POINTER *pMem )
 {
-      ODS( WIDE("Starting Defrag test"));
+      ODS( "Starting Defrag test");
       DumpStats();
       {
 
@@ -341,8 +341,8 @@ void ThreadProc( POINTER *pMem )
 
 int main( void )
 {
-	SetSystemLog( SYSLOG_FILE, fopen( WIDE("CmdLine.log"), WIDE("wt") ) );
-	printf( WIDE("Doing Test...") );
+	SetSystemLog( SYSLOG_FILE, fopen( "CmdLine.log", "wt" ) );
+	printf( "Doing Test..." );
 	ThreadProc( pMem[0] );
 }
 // $Log: $

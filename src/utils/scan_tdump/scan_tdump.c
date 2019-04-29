@@ -35,7 +35,7 @@ int main( void )
 
 		while( p[0] == ' ' ) p++;
 
-		if( strncmp( p, WIDE("Module Name: '"), 14 ) == 0 )
+		if( strncmp( p, "Module Name: '", 14 ) == 0 )
 		{
          char *end;
 			p+=14;
@@ -52,7 +52,7 @@ int main( void )
 				}
 				if( n == nModules )
 				{
-					printf( WIDE("Module: %s(%d)\n"), p, nModules );
+					printf( "Module: %s(%d)\n", p, nModules );
 					strcpy( modules[nModules], p );
                nModules++;
 				}
@@ -60,7 +60,7 @@ int main( void )
 			}
 
 		}
-		if( strncmp( p, WIDE("Name: "), 6 )== 0 )
+		if( strncmp( p, "Name: ", 6 )== 0 )
 		{
          char *name, *ord;
 			p += 6;
@@ -71,7 +71,7 @@ int main( void )
 			ord[0] = 0; // terminate the name.
 			ord++;
 			while( ord[0] == ' ' ) ord++;
-			if( strncmp( ord, WIDE("Entry:"), 6 ) == 0 )
+			if( strncmp( ord, "Entry:", 6 ) == 0 )
 			{
 				// sucess...
 				ord += 6;
@@ -89,34 +89,34 @@ int main( void )
 						strcpy( exports[n].name, name );
 						exports[n].nModule = nModules-1;
                   if( ord[0] == '0' )
-							sscanf( ord, WIDE("%X"), &exports[n].number  );
+							sscanf( ord, "%X", &exports[n].number  );
                   else
 							exports[n].number = atoi( ord );
-						printf( WIDE("Export: %s=%d\n"), exports[n].name,exports[n].number );
+						printf( "Export: %s=%d\n", exports[n].name,exports[n].number );
                   nExports++;
 					}
 				}
 			}
 		}
 
-		if( strncmp( p, WIDE("PTR"), 3 )== 0 )
+		if( strncmp( p, "PTR", 3 )== 0 )
 		{
 			while( p[0] != 'h' ) p++;
 			p++;
 			while( p[0] == ' ' || p[0] == '\t' ) p++;
-			if( strnicmp( p, WIDE("kernel"), 6 ) == 0 )
+			if( strnicmp( p, "kernel", 6 ) == 0 )
             continue;
-			if( strnicmp( p, WIDE("gdi."), 4 ) == 0 )
+			if( strnicmp( p, "gdi.", 4 ) == 0 )
             continue;
-			if( strnicmp( p, WIDE("user."), 5 ) == 0 )
+			if( strnicmp( p, "user.", 5 ) == 0 )
             continue;
-			if( strnicmp( p, WIDE("VER."), 4 ) == 0 )
+			if( strnicmp( p, "VER.", 4 ) == 0 )
             continue;
-			if( strnicmp( p, WIDE("winsock."), 8 ) == 0 )
+			if( strnicmp( p, "winsock.", 8 ) == 0 )
             continue;
-			if( strnicmp( p, WIDE("0002h:"), 6 ) == 0 )
+			if( strnicmp( p, "0002h:", 6 ) == 0 )
             continue;
-			if( strnicmp( p, WIDE("0001h:"), 6 ) == 0 )
+			if( strnicmp( p, "0001h:", 6 ) == 0 )
             continue;
 			{
 				int n;
@@ -127,7 +127,7 @@ int main( void )
 				}
 				if( n == nRefs )
 				{
-					printf( WIDE("Reference: %s\n"), p );
+					printf( "Reference: %s\n", p );
                refs[nRefs].nModule = nModules-1;
 					strcpy( refs[nRefs].name, p );
                nRefs++;
@@ -137,7 +137,7 @@ int main( void )
 		}
 
       if(0)
-		if( strncmp( p, WIDE("Module  "), 6 ) == 0 )
+		if( strncmp( p, "Module  ", 6 ) == 0 )
 		{
          int n = 0;
 			p+=6;
@@ -151,9 +151,9 @@ int main( void )
 			{
 				p++;
             while( p[0] == ' ' )p++;
-				if( strncmp( WIDE("kernel"), p, 6 ) &&
-					strncmp( WIDE("gdi"), p, 3) &&
-					strncmp( WIDE("user"), p, 4) )
+				if( strncmp( "kernel", p, 6 ) &&
+					strncmp( "gdi", p, 3) &&
+					strncmp( "user", p, 4) )
 				{
 					{
 						int n;
@@ -164,7 +164,7 @@ int main( void )
 						}
 						if( n == nNames )
 						{
-							printf( WIDE("copy %%SOURCEPATH%%\\%s.dll\n"), p );
+							printf( "copy %%SOURCEPATH%%\\%s.dll\n", p );
 							strcpy( names[n], p );
                      nNames++;
 						}
@@ -197,7 +197,7 @@ int main( void )
 				}
 				if( m == nModules )
 				{
-					printf( WIDE("FATAL: FAILED TO FIND %s\n"), tmp );
+					printf( "FATAL: FAILED TO FIND %s\n", tmp );
 				}
 				for( o = 0; o < nExports; o++ )
 				{
@@ -209,15 +209,15 @@ int main( void )
 				}
 				if( o == nExports )
 				{
-					printf( WIDE("Failed to resolve %s in %s\n"), refs[n].name, modules[refs[n].nModule] );
+					printf( "Failed to resolve %s in %s\n", refs[n].name, modules[refs[n].nModule] );
 				}
 			}
 		}
 	}
 
-	printf( WIDE("exports: %d of 12000\n"), nExports );
-printf( WIDE("refs: %d of 3000\n"), nRefs );
-printf( WIDE("modules: %d of 512\n"), nModules );
-		 printf( WIDE("names: %d of 2560\n"), nNames );
+	printf( "exports: %d of 12000\n", nExports );
+printf( "refs: %d of 3000\n", nRefs );
+printf( "modules: %d of 512\n", nModules );
+		 printf( "names: %d of 2560\n", nNames );
 }
 

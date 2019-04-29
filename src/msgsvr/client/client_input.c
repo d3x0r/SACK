@@ -40,7 +40,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 		{
 			//if( bLog )
 #ifdef DEBUG_THREADS
-			lprintf( WIDE("Attempt to recieve for %08lx %p"), MsgFilter, msgq );
+			lprintf( "Attempt to recieve for %08lx %p", MsgFilter, msgq );
 #endif
 			//lprintf( "vvv" );
 			MessageLen = msgrcv( msgq, MSGTYPE MessageIn, 8192, MsgFilter, flags );
@@ -48,10 +48,10 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 			LogBinary( (uint8_t*)MessageIn, MessageLen + sizeof( MSGIDTYPE ) );
 #endif
 			//lprintf( "^^^" );
-			//lprintf( WIDE("Got a receive...") );
+			//lprintf( "Got a receive..." );
 			if( ( MessageLen == (-((int32_t)sizeof(MSGIDTYPE))) ) ) // retry
 			{
-				lprintf( WIDE("Recieved -4 message (no data?!) no message, should have been -1, ENOMSG") );
+				lprintf( "Recieved -4 message (no data?!) no message, should have been -1, ENOMSG" );
 				MessageIn->hdr.msgid = RU_ALIVE;
 				continue; // continue on do-while checks while condition - gofigure.
 			}
@@ -66,28 +66,28 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 #endif
 				if( errno == ENOMSG )
 				{
-					lprintf( WIDE("No message... nowait was set?") );
+					lprintf( "No message... nowait was set?" );
 					return 0;
 				}
 				else if( errno == EIDRM )
 				{
-					lprintf( WIDE("No message... Message queue removed") );
+					lprintf( "No message... Message queue removed" );
 					return -1;
 				}
 				else
 				{
 					if( errno == EINTR ){
 						//bLog = 1;
-						//lprintf( WIDE("Error Interrupt - that's okay...") );
+						//lprintf( "Error Interrupt - that's okay..." );
 					}
 					else if( errno == EINVAL )
 					{
-						lprintf( WIDE("msgrecv on q %d is invalid! open it. or what is %") _MsgID_f WIDE("(%08") _MsgID_f WIDE(") or %08d")
+						lprintf( "msgrecv on q %d is invalid! open it. or what is %" _MsgID_f "(%08" _MsgID_f ") or %08d"
 								 , msgq, g.my_message_id, g.my_message_id, flags );
 					}
 					else
 					{
-						xlprintf( LOG_ALWAYS )( WIDE("msgrcv resulted in error: %d"), errno );
+						xlprintf( LOG_ALWAYS )( "msgrcv resulted in error: %d", errno );
 					}
 					MessageIn->hdr.msgid = RU_ALIVE; // loop back around.
 				}
@@ -96,7 +96,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 			{
 				if( MessageIn->dest.process_id == 0 )
 				{
-					lprintf( WIDE("---------- DO NOT BE HERE ----------------") );
+					lprintf( "---------- DO NOT BE HERE ----------------" );
 					HandleCoreMessage( MessageIn, (MessageLen-(sizeof(QMSG)-sizeof(MSGIDTYPE))) DBG_SRC );
 				}
 			}
@@ -105,7 +105,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 				&& MessageIn->hdr.msgid == RU_ALIVE );  // RU_ALIVE receives are no receive.
 
 #ifdef DEBUG_THREADS
-		lprintf( WIDE("Responce received...%08lX"), MessageIn->hdr.msgid );
+		lprintf( "Responce received...%08lX", MessageIn->hdr.msgid );
 #endif
 		if( !g.flags.disconnected )
 		{
@@ -113,7 +113,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 			INDEX idx;
 			PSLEEPER sleeper;
 #ifdef DEBUG_THREADS
-			lprintf( WIDE("waking sleepers.") );
+			lprintf( "waking sleepers." );
 #endif
 			LIST_FORALL( g.pSleepers, idx, PSLEEPER, sleeper )
 			{
@@ -128,21 +128,21 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 
 					cnt++;
 #ifdef DEBUG_THREADS
-					lprintf( WIDE("Wake thread waiting for responces...%p"), sleeper->thread  );
+					lprintf( "Wake thread waiting for responces...%p", sleeper->thread  );
 #endif
 					WakeThread( sleeper->thread );
 				}
 			}
 			if( !cnt )
 			{
-			//lprintf( WIDE("FATALITY - received responce from service, and noone was waiting for it!") );
-			//lprintf( WIDE("No Sleepers woken - maybe - they haven't gotten around to sleeping yet?") );
+			//lprintf( "FATALITY - received responce from service, and noone was waiting for it!" );
+			//lprintf( "No Sleepers woken - maybe - they haven't gotten around to sleeping yet?" );
 			}
 		}
 	}
 	else
 	{
-		//lprintf( WIDE("Not the message thread... exiting quietly... %d %p %d %Ld")
+		//lprintf( "Not the message thread... exiting quietly... %d %p %d %Ld"
 		//	, g.my_message_id
 		//	 , g.pThread
 		//	 , getpid()
@@ -168,9 +168,9 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 	{
 		int received;
 		int IsThread = IsThisThread( g.pThread );
-		//lprintf( WIDE("waiting for cmd result") );
+		//lprintf( "waiting for cmd result" );
 #ifdef DEBUG_THREAD
-		lprintf( WIDE("This thread? %s"), IsThread?"Yes":"No" );
+		lprintf( "This thread? %s", IsThread?"Yes":"No" );
 #endif
 		do
 		{
@@ -182,7 +182,7 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 					(
 #ifdef DEBUG_DATA_XFER
 #ifdef _DEBUG
-					 (lprintf( WIDE("Compare %") _32f WIDE(" vs %") _32f WIDE(" (=%") _32fs WIDE(") (positive keep waiting)")
+					 (lprintf( "Compare %" _32f " vs %" _32f " (=%" _32fs ") (positive keep waiting)"
 								, handler->wait_for_responce
 								, timeGetTime()
 								, handler->wait_for_responce - timeGetTime()  ) ),
@@ -195,14 +195,14 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 				// will return immediate if is not this thread which
 				// is supposed to be there...
 #ifdef DEBUG_DATA_XFER
-				_lprintf(DBG_RELAY)( WIDE("getting or waiting for... a message...") );
+				_lprintf(DBG_RELAY)( "getting or waiting for... a message..." );
 #endif
 				if( IsThread )
 				{
-					lprintf( WIDE("Get message (might be my thread") );
+					lprintf( "Get message (might be my thread" );
 					if( GetAMessage( g.msgq_in, g.my_message_id, IPC_NOWAIT ) == 2 )
 					{
-						Log( WIDE("Okay - won't check for messages anymore - just wait...") );
+						Log( "Okay - won't check for messages anymore - just wait..." );
 						IsThread = 0;
 					}
 				}
@@ -216,11 +216,11 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 					}
 					handler->flags.bCheckedResponce = 0;
 
-					//lprintf( WIDE("Going to sleep for %")_32fs
+					//lprintf( "Going to sleep for %"_32fs
 					//		 , handler->wait_for_responce - timeGetTime()
 					//		 );
 					WakeableSleep( handler->wait_for_responce - timeGetTime() );
-					//lprintf( WIDE("AWAKE! %d"), handler->flags.responce_received );
+					//lprintf( "AWAKE! %d", handler->flags.responce_received );
 
 					DeleteLink( &g.pSleepers, sleeper );
 				}
@@ -234,25 +234,25 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 			if( !handler->flags.bCheckedResponce )
 				received = 1;
 
-			//lprintf( WIDE("When we finished this loop still was waiting %")_32fs, handler->wait_for_responce - timeGetTime() );
+			//lprintf( "When we finished this loop still was waiting %"_32fs, handler->wait_for_responce - timeGetTime() );
 			//else
 			{
-				//lprintf( WIDE("Excellent... the responce is back before I could sleep!") );
+				//lprintf( "Excellent... the responce is back before I could sleep!" );
 			}
 			if( !handler->flags.responce_received )
 			{
-				Log( WIDE("Responce timeout!") );
+				Log( "Responce timeout!" );
 				handler->flags.waiting_for_responce = 0;
 				LeaveCriticalSec( &handler->csMsgTransact );
 				return FALSE; // DONE - fail! abort!
 			}
 			else
 			{
-				//Log( WIDE("Result to application... ") );
+				//Log( "Result to application... " );
 			}
 		dont_sleep: ;
 			handler->flags.bCheckedResponce = 1;
-			//lprintf( WIDE("Read message...") );
+			//lprintf( "Read message..." );
 			// if the message is a response to me.....
 		}
 		while( received && ReceiveServerMessageEx( handler, handler->MessageIn, handler->MessageLen DBG_RELAY ) );
@@ -260,10 +260,10 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 		{
 			handler->flags.waiting_for_responce = 0;
 
-			//Log2( WIDE("Got responce: %08x %d long"), *MsgIn, LengthIn?*LengthIn:-1 );
+			//Log2( "Got responce: %08x %d long", *MsgIn, LengthIn?*LengthIn:-1 );
 			if( ( *handler->MessageID & 0x0FFFFFFF ) != ( (handler->LastMsgID) & 0x0FFFFFFF ) )
 			{
-				lprintf( WIDE("Mismatched server responce to client message: %")_MsgID_f WIDE(" to %")_MsgID_f 
+				lprintf( "Mismatched server responce to client message: %"_MsgID_f " to %"_MsgID_f 
 						 , *handler->MessageID & 0x0FFFFFFF
 						 , handler->LastMsgID & 0x0FFFFFFF
 						  );
@@ -278,17 +278,17 @@ int WaitReceiveServerMsg ( PSLEEPER sleeper
 					handler->route->dest = handler->MessageIn->hdr.source; //-V595
 				}
 			}	
-			//lprintf( WIDE( "Clear received response" ) );
+			//lprintf( "Clear received response" );
 			//handler->flags.responce_received = 0; // allow more responces to be received.
 		}
 	}
 	if( handler )
 	{
-		//lprintf( WIDE("cleanup...%p"), handler );
+		//lprintf( "cleanup...%p", handler );
 		handler->flags.waiting_for_responce = 0;
 		//LeaveCriticalSec( &handler->csMsgTransact );
 	}
-	//lprintf( WIDE("done waiting...") );
+	//lprintf( "done waiting..." );
 	return TRUE;
 }
 
@@ -303,9 +303,9 @@ int QueueWaitReceiveServerMsg ( PSLEEPER sleeper, PTRANSACTIONHANDLER handler
 {
 	if( MsgIn )
 	{
-		//lprintf( WIDE("waiting for cmd result") );
+		//lprintf( "waiting for cmd result" );
 #ifdef DEBUG_THREAD
-		lprintf( WIDE("This thread? %s"), IsThread?"Yes":"No" );
+		lprintf( "This thread? %s", IsThread?"Yes":"No" );
 #endif
 		handler->MessageID = MsgIn;
 		handler->msg = BufferIn;
@@ -321,7 +321,7 @@ int QueueWaitReceiveServerMsg ( PSLEEPER sleeper, PTRANSACTIONHANDLER handler
 		sleeper->handler = handler;
 		sleeper->thread = NULL;
 	}
-	//lprintf( WIDE("done waiting...") );
+	//lprintf( "done waiting..." );
 	return TRUE;
 }
 
@@ -331,23 +331,23 @@ uintptr_t CPROC HandleMessages( PTHREAD thread )
 	MSGIDTYPE MsgFilter = (MSGIDTYPE)GetThreadParam( thread );
 	g.pThread = thread;
 #ifdef DEBUG_THREADS
-	lprintf( WIDE("threadID: %lx"), g.my_message_id );
+	lprintf( "threadID: %lx", g.my_message_id );
 #endif
 
 	g.flags.message_responce_handler_ready = TRUE;
 	while( !g.flags.disconnected )
 	{
 		int r;
-		//Log( WIDE("enter read a message...") );
+		//Log( "enter read a message..." );
 		if( ( r = GetAMessage( g.msgq_in, MsgFilter, 0 ) ) < 0 )
 		{
-			Log( WIDE("thread is exiting...") );
+			Log( "thread is exiting..." );
 			g.flags.message_responce_handler_ready = FALSE;
 			break;
 		}
 		if( r == 2 )
 		{
-			Log( WIDE("THIS thread is no longer THE thread!?!?!?!?!?!") );
+			Log( "THIS thread is no longer THE thread!?!?!?!?!?!" );
 			break;
 		}
 	}

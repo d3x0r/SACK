@@ -1,5 +1,5 @@
 
-#define thing(name) printf( WIDE("%d,%d"), a->name b->name );
+#define thing(name) printf( "%d,%d", a->name b->name );
 
 thing(x)
 
@@ -18,8 +18,8 @@ add(1,2, +);
 #define TEXT "add stuff"
 
 
-printf( WIDE("one ") TEXT " two" );
-printf( WIDE("one \")" TEXT "\" two" );
+printf( "one " TEXT " two" );
+printf( "one \"" TEXT "\" two" );
 
 #define concat(a,b) a##b
 

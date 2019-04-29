@@ -112,8 +112,8 @@ static void ComLocalInit( void )
 		bLogDataXfer = 0;
 		gbLog = 0;
 #else
-		bLogDataXfer = SACK_GetPrivateProfileInt( WIDE("COM PORTS"), WIDE("Log IO"), 0, WIDE("comports.ini") );
-		gbLog = SACK_GetPrivateProfileIntEx( WIDE("COM PORTS"), WIDE("allow logging"), 0, WIDE("comports.ini"), TRUE );
+		bLogDataXfer = SACK_GetPrivateProfileInt( "COM PORTS", "Log IO", 0, "comports.ini" );
+		gbLog = SACK_GetPrivateProfileIntEx( "COM PORTS", "allow logging", 0, "comports.ini", TRUE );
 #endif
 		sack_com_local.flags.bInited = 1;
 	}
@@ -152,7 +152,7 @@ int WriteComm( int nCom, POINTER buffer, uint32_t nSize )
    if( bLogDataXfer & 1 )
    {
     	int nOut = nSize;
-		lprintf( WIDE("Send COM: dump buffer (%d)"), nSize );
+		lprintf( "Send COM: dump buffer (%d)", nSize );
 		#if defined( _TRACE_DATA_MIN )
 		   if( nOut > 16 ) nOut = 16;
 		#endif
@@ -167,7 +167,7 @@ uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 {
    ComLocalInit();
 	if( gbLog )
-		Log1( WIDE("Going to open:%s"), name );
+		Log1( "Going to open:%s", name );
 	{
 		COMMTIMEOUTS timeout;
 
@@ -180,7 +180,7 @@ uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 									  , NULL );
 		timeout.ReadIntervalTimeout = 
 #ifndef __NO_OPTIONS__
-					SACK_GetPrivateProfileInt( name, WIDE( "port timeout" ), 100, WIDE( "comports.ini" ) );
+					SACK_GetPrivateProfileInt( name, "port timeout", 100, "comports.ini" );
 #else
 					100;
 #endif
@@ -190,7 +190,7 @@ uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 		timeout.WriteTotalTimeoutConstant = 1;
 		SetCommTimeouts(hCom, &timeout);
 		if( gbLog )
-			Log2( WIDE("Result: %p %d"), hCom, GetLastError() );
+			Log2( "Result: %p %d", hCom, GetLastError() );
 		return (uintptr_t)hCom;
 	}
 }
@@ -209,7 +209,7 @@ int GetCommError( int nCom, COMSTAT *pcs )
 int FlushComm( int nComm, int nQueues )
 {
 	// hmm not sure how to implement this one...
-	//xlprintf(LOG_NOISE)( WIDE("Flush comm - the fake one...") );
+	//xlprintf(LOG_NOISE)( "Flush comm - the fake one..." );
 	return 0;
 }
 //-----------------------------------------------------------------------
@@ -227,14 +227,14 @@ int FlushComm( int nComm, int nQueues )
 		if( n )
 		{
 			//if( gbLog )
-			//	lprintf( WIDE("Received data %d"), n );
+			//	lprintf( "Received data %d", n );
 			if( nSize < n )
 				n = nSize;
 			n = read( nCom, buffer, n );
 			if( n < 0 && errno == EAGAIN )
 			{
 				if( gbLog )
- 					lprintf( WIDE("wait for more data...") );
+ 					lprintf( "wait for more data..." );
 				return 0;
 			}
 			return n;
@@ -242,7 +242,7 @@ int FlushComm( int nComm, int nQueues )
 	}
 	else
 	{
-		lprintf( WIDE("read ioctl error: %d"), errno );
+		lprintf( "read ioctl error: %d", errno );
 	}
 	if( n == 0 )
 	{
@@ -264,7 +264,7 @@ uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 {
    ComLocalInit();
 	if( gbLog )
-		Log1( WIDE("Going to open:%s"), name );
+		Log1( "Going to open:%s", name );
    return open( name, O_RDWR|O_NONBLOCK|O_NOCTTY );
 }
 //-----------------------------------------------------------------------
@@ -281,7 +281,7 @@ int GetCommError( int nCom, COMSTAT *pcs )
 int FlushComm( int nComm, int nQueues )
 {
 	// hmm not sure how to implement this one...
-	//xlprintf(LOG_NOISE)( WIDE("Flush comm - the fake one...") );
+	//xlprintf(LOG_NOISE)( "Flush comm - the fake one..." );
 	return 0;
 }
 #endif
@@ -344,12 +344,12 @@ void RemoveComTracking( PCOM_TRACK pComTrack )
 		pComTrack->flags.bDestroy = 1;
 		return;
 	}
-	//Log2( WIDE("Unlink... %p %p"),pComTrack->me, pComTrack->next );
+	//Log2( "Unlink... %p %p",pComTrack->me, pComTrack->next );
 	if( ( (*pComTrack->me) = pComTrack->next ) )
 		pComTrack->next->me = pComTrack->me;
-	//xlprintf(LOG_NOISE)( WIDE("Release redbuffer...") );
+	//xlprintf(LOG_NOISE)( "Release redbuffer..." );
 	Release( pComTrack->pReadBuffer );
-	//xlprintf(LOG_NOISE)( WIDE("Release comtrack..") );
+	//xlprintf(LOG_NOISE)( "Release comtrack.." );
 	Release( pComTrack );
 }
 
@@ -375,7 +375,7 @@ static int
   if ( *p != ',' )
   {
     if ( ppErr )
-      *ppErr = WIDE( "{baud}?" );
+      *ppErr = "{baud}?";
     return -5;
   }
   p++;
@@ -426,21 +426,21 @@ static int
   else
   {
     if ( ppErr )
-      *ppErr = WIDE( "{baud},?" );
+      *ppErr = "{baud},?";
     return -6;
   }
   p++;
   if ( *p != ',' )
   {
     if ( ppErr )
-      *ppErr = WIDE( "{baud},{parity}?" );
+      *ppErr = "{baud},{parity}?";
     return -7;
   }
   p++;
   if ( *p < '4' || *p > '8' )
   {
     if ( ppErr )
-      *ppErr = WIDE( "{baud},{parity},?" );
+      *ppErr = "{baud},{parity},?";
     return -8;
   }
 #ifdef __LINUX__
@@ -466,7 +466,7 @@ static int
   if ( *p != ',' )
   {
     if ( ppErr )
-      *ppErr = WIDE( "{baud},{parity},{data}?" );
+      *ppErr = "{baud},{parity},{data}?";
     return -9;
   }
   p++;
@@ -503,7 +503,7 @@ static int
   else
   {
     if ( ppErr )
-      *ppErr = WIDE( "{baud},{parity},{data},?" );
+      *ppErr = "{baud},{parity},{data},?";
     return -10;
   }
 
@@ -582,7 +582,7 @@ static int
   				if( (dwBaud != 57600ul) && (dwBaud != 38400ul) )
   				{
       		 static TEXTCHAR buf[64];
-      		 tnprintf( buf, sizeof( buf ), WIDE("Invalid Baud rate %08x"), dwBaud );
+      		 tnprintf( buf, sizeof( buf ), "Invalid Baud rate %08x", dwBaud );
 		 		 if ( ppErr )
    		 			*ppErr = buf;
 				return -15;
@@ -631,7 +631,7 @@ static int
       if ( HIWORD(dwBaud) )
       {
       	static TEXTCHAR buf[64];
-      	tnprintf( buf, sizeof( buf ), WIDE("Invalid Baud rate %08x"), dwBaud );
+      	tnprintf( buf, sizeof( buf ), "Invalid Baud rate %08x", dwBaud );
 		 	 if ( ppErr )
    		 	*ppErr = buf;
           return -15;
@@ -676,7 +676,7 @@ CALLBACKPROC( void, ReadTimer)( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 				if( len < 0 )
 				{
 					if( gbLog )
-						lprintf( WIDE("!!!!!!! Some sort of com error occured...%d"), errno );
+						lprintf( "!!!!!!! Some sort of com error occured...%d", errno );
 					// flush this data out...
 					goto issue_callbacks;
 					len = -len;
@@ -687,20 +687,20 @@ CALLBACKPROC( void, ReadTimer)( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 			}
 			// if we didn't read anything, and have previosly read...
 									// or if the buffer is totally full now...
-         //lprintf( WIDE("len %d last %d start %d max %d"), len, pct->nReadLen, start, DEFAULT_READ_BUFFER );
+         //lprintf( "len %d last %d start %d max %d", len, pct->nReadLen, start, DEFAULT_READ_BUFFER );
 			if( ( !len && pct->nReadLen && (start < GetTickCount()) ) ||
 			    pct->nReadLen == pct->nReadTotal )
 			{
 				PCHANNEL_CALLBACK pcc, pccNext;
 issue_callbacks:
 				pcc = pct->callbacks;
-				//lprintf( WIDE("log %d and log %d"), gbLog, bLogDataXfer );
+				//lprintf( "log %d and log %d", gbLog, bLogDataXfer );
 				if( gbLog )
 				{
-					//Log1( WIDE("Dump information to people with callbacks...%d"), pct->nReadLen );
+					//Log1( "Dump information to people with callbacks...%d", pct->nReadLen );
 					if( bLogDataXfer & 2 )
 					{
-						lprintf( WIDE("COM Receive") );
+						lprintf( "COM Receive" );
 						LogBinary( (uint8_t*)pct->pReadBuffer
 								  , pct->nReadLen );
 					}
@@ -758,13 +758,13 @@ void DumpTermios( struct termios *opts )
 {
 	if( !gbLog )
       return;
-   lprintf( WIDE("iflag %x"), opts->c_iflag );
-   lprintf( WIDE("oflag %x"), opts->c_oflag );
-   lprintf( WIDE("cflag %x"), opts->c_cflag );
-	lprintf( WIDE("lflag %x"), opts->c_lflag );
+   lprintf( "iflag %x", opts->c_iflag );
+   lprintf( "oflag %x", opts->c_oflag );
+   lprintf( "cflag %x", opts->c_cflag );
+	lprintf( "lflag %x", opts->c_lflag );
 #ifndef __ARM__
-	lprintf( WIDE("ispeed: %x"), opts->c_ispeed );
-	lprintf( WIDE("ospeed: %x"), opts->c_ospeed );
+	lprintf( "ispeed: %x", opts->c_ispeed );
+	lprintf( "ospeed: %x", opts->c_ospeed );
 #endif
 }
 #endif
@@ -787,12 +787,12 @@ void DumpTermios( struct termios *opts )
 		// capital letters on carrier, rts, rtsflow mean to enable - otherwise
 		// don't pay attention to those signals.
 #ifndef __NO_OPTIONS__
-		SACK_GetPrivateProfileString( WIDE("COM PORTS"), szPort, WIDE("57600,N,8,1,cARRIER,RTS,rTSFLOW"), szInit, sizeof( szInit ), WIDE("comports.ini") );
+		SACK_GetPrivateProfileString( "COM PORTS", szPort, "57600,N,8,1,cARRIER,RTS,rTSFLOW", szInit, sizeof( szInit ), "comports.ini" );
 #else
 #ifdef _WIN32
-		GetPrivateProfileString( WIDE("COM PORTS"), szPort, WIDE(""), szInit, sizeof( szInit ), WIDE("comports.ini") );
+		GetPrivateProfileString( "COM PORTS", szPort, "", szInit, sizeof( szInit ), "comports.ini" );
 		if( !szPort[0] ) {
-			WritePrivateProfileString( WIDE("COM PORTS"), szPort, WIDE("57600,N,8,1,cARRIER,RTS,rTSFLOW"), WIDE("comports.ini") );
+			WritePrivateProfileString( "COM PORTS", szPort, "57600,N,8,1,cARRIER,RTS,rTSFLOW", "comports.ini" );
 		}
 #else
 		StrCpy( szInit, "57600,N,8,1,cARRIER,RTS,rTSFLOW" );
@@ -817,9 +817,9 @@ void DumpTermios( struct termios *opts )
    	                   , &szErr ) )
 		{
 #ifndef __LINUX__
-   	 MessageBox ( (HWND)NULL, szErr, WIDE("SackOpenComm: invalid init string")
+   	 MessageBox ( (HWND)NULL, szErr, "SackOpenComm: invalid init string"
 		             , MB_OK | MB_ICONHAND );
-   	 MessageBox ( (HWND)NULL, szInit, WIDE("SackOpenComm: invalid init string")
+   	 MessageBox ( (HWND)NULL, szInit, "SackOpenComm: invalid init string"
 						, MB_OK | MB_ICONHAND );
 #endif
    	 return FALSE;
@@ -839,7 +839,7 @@ void DumpTermios( struct termios *opts )
 				pct->callbacks = pcc;
 			}
 			if( gbLog )
-				Log1( WIDE("Resulting in comm already open...: %s"), szPort );
+				Log1( "Resulting in comm already open...: %s", szPort );
 			pct->iUsers++;
 			return (int)pct->iCommId;
 		}
@@ -847,11 +847,11 @@ void DumpTermios( struct termios *opts )
 		{
 			uintptr_t iCommId = OpenComm( szPort, uiRcvQ, uiSendQ );
 			if( gbLog )
-				lprintf( WIDE("attempted to open: %s result %p"), szPort, (void*)iCommId );
+				lprintf( "attempted to open: %s result %p", szPort, (void*)iCommId );
 			if( (int)iCommId >= 0 )
 			{
 				pct = AddComTracking( szPort, iCommId );
-				if( StrCaseCmpEx( szPort, WIDE("lpt"), 3 ) != 0 )
+				if( StrCaseCmpEx( szPort, "lpt", 3 ) != 0 )
 				{
 					pct->flags.bOutputOnly = 0;
 					SackFlushComm( (int)iCommId, 0 );
@@ -880,7 +880,7 @@ void DumpTermios( struct termios *opts )
 #endif
 					pct->dcb.fDtrControl = DTR_CONTROL_ENABLE;
 					pct->flags.bUseCarrierDetect = iCarrier; // try this - remove maybe.
-					lprintf( WIDE( " pct->dcb.BaudRate is %lu pct->dcb.ByteSize is %lu pct->dcb.Parity is %lu pct->dcb.fRtsControl is %lu " )
+					lprintf( " pct->dcb.BaudRate is %lu pct->dcb.ByteSize is %lu pct->dcb.Parity is %lu pct->dcb.fRtsControl is %lu "
 					       , pct->dcb.BaudRate
 					       , pct->dcb.ByteSize
 					       , pct->dcb.Parity
@@ -897,7 +897,7 @@ void DumpTermios( struct termios *opts )
 #endif
 					{
 #ifdef _WIN32
-						lprintf( WIDE("Open: Invalid initialization string %d"), GetLastError() );
+						lprintf( "Open: Invalid initialization string %d", GetLastError() );
 #endif
 						SackCloseComm( (int)iCommId );
 						iCommId = -1;
@@ -930,7 +930,7 @@ void DumpTermios( struct termios *opts )
 
 						DumpTermios(&opts);
 						if( tcsetattr( iCommId, TCSANOW, &opts ) )
-							lprintf( WIDE("tcsetattr failed: %d"), errno );
+							lprintf( "tcsetattr failed: %d", errno );
 					}
 					// setup the com port here (termios)
 #endif
@@ -941,7 +941,7 @@ void DumpTermios( struct termios *opts )
 				}
 			}
 			//else
-			//	xlprintf(LOG_NOISE)( WIDE("Failed!") );
+			//	xlprintf(LOG_NOISE)( "Failed!" );
 			if( (int)iCommId >= 0 )
 			{
 				if( func )
@@ -957,7 +957,7 @@ void DumpTermios( struct termios *opts )
 					pct->callbacks = pcc;
 				}
 			}
-			//xlprintf(LOG_NOISE)( WIDE("Resulting to the client...") );
+			//xlprintf(LOG_NOISE)( "Resulting to the client..." );
 			return  (int)iCommId;
 		}
 	}
@@ -973,12 +973,12 @@ void DumpTermios( struct termios *opts )
 {
 	PCOM_TRACK pct;
 	pct = FindComByNumber( iCommId );
-	lprintf( WIDE( "updating read length to %d %p %d" ), iCommId, pct, pct->nReadTotal ); //-V595
+	lprintf( "updating read length to %d %p %d", iCommId, pct, pct->nReadTotal ); //-V595
 	if( pct )
 	{
 		if( readlen < DEFAULT_READ_BUFFER )
 		{
-         lprintf( WIDE( "updating read length to %d" ), pct->nReadTotal );
+         lprintf( "updating read length to %d", pct->nReadTotal );
 			pct->nReadTotal = readlen;
 		}
 	}
@@ -1004,7 +1004,7 @@ void DumpTermios( struct termios *opts )
 	}
 	else
 	{
-		Log1( WIDE("Comm ID %d is not open?"), iCommId );
+		Log1( "Comm ID %d is not open?", iCommId );
 	}
 }
               
@@ -1029,17 +1029,17 @@ void DumpTermios( struct termios *opts )
 		if( pcc )
 		{
 			Release( pcc );
-			Log1( WIDE("Comm ID %d had the callback, successfully removed"), iCommId );
+			Log1( "Comm ID %d had the callback, successfully removed", iCommId );
 			return TRUE;
 		}
 		else
 		{
-			Log1( WIDE("Comm ID %d did not have the specified read callback"), iCommId );
+			Log1( "Comm ID %d did not have the specified read callback", iCommId );
 		}
 	}
 	else
 	{
-		Log1( WIDE("Comm ID %d is not open?"), iCommId );
+		Log1( "Comm ID %d is not open?", iCommId );
 	}
 	return FALSE;
 }
@@ -1094,7 +1094,7 @@ void DumpTermios( struct termios *opts )
 #ifdef BCC16
 	 return SetCommState( lpDcb );
 #else
-	xlprintf(LOG_NOISE)( WIDE("SackSetCommState cannot work in 32 bit system") );
+	xlprintf(LOG_NOISE)( "SackSetCommState cannot work in 32 bit system" );
 	return 0;
 #endif
 #else
@@ -1165,7 +1165,7 @@ void DumpTermios( struct termios *opts )
 		return SACKCOMM_ERR_NOTOPEN;
 	if( pComTrack->flags.bInRead )
 	{
-		xlprintf(LOG_NOISE)( WIDE("Result busy in comm read buffer") );
+		xlprintf(LOG_NOISE)( "Result busy in comm read buffer" );
 		return SACKCOMM_ERR_BUSY;
 	}
   /********************************************************************\
@@ -1173,17 +1173,17 @@ void DumpTermios( struct termios *opts )
   \********************************************************************/
   if( !pnCharsRead )
   {
-	  xlprintf(LOG_NOISE)( WIDE("Failing - bad return count") );
+	  xlprintf(LOG_NOISE)( "Failing - bad return count" );
 	  return SACKCOMM_ERR_BUFSIZE;
   }
   if( !buffer )
   {
-  		xlprintf(LOG_NOISE)( WIDE("Failing - bad buffer") );
+  		xlprintf(LOG_NOISE)( "Failing - bad buffer" );
   		return SACKCOMM_ERR_POINTER;
   }
    pComTrack->flags.bInRead = 1;
    if( gbLog )
-		Log2( DBG_FILELINEFMT WIDE("comm read buffer len:%d timeout:%d") DBG_RELAY, len, timeout );
+		Log2( DBG_FILELINEFMT "comm read buffer len:%d timeout:%d" DBG_RELAY, len, timeout );
    if( !pComTrack->current.dwEnd )
    {
    	// save this information for later use...
@@ -1202,15 +1202,15 @@ void DumpTermios( struct termios *opts )
           timeout != pComTrack->current.timeout )
       {
          // hmm...
-      	xlprintf(LOG_NOISE)( WIDE("********* Read is not the same as the exsiting read.") );
+      	xlprintf(LOG_NOISE)( "********* Read is not the same as the exsiting read." );
       	pComTrack->flags.bInRead = 0; 
       	return SACKCOMM_ERR_BUSY;
       }
    	if( gbLog )
-			xlprintf(LOG_NOISE)( WIDE("Resuming previous read...") );
+			xlprintf(LOG_NOISE)( "Resuming previous read..." );
    }
   //assert_far_call ( ! IsBadWritePtr(pnCharsRead,sizeof(*pnCharsRead))
-  //                , WIDE("SackCommReadBuffer: bad pnCharsRead") ); 
+  //                , "SackCommReadBuffer: bad pnCharsRead" ); 
 
   /*********************************************************************\
   * As per the original code, the communications channel is checked for *
@@ -1251,11 +1251,11 @@ void DumpTermios( struct termios *opts )
 		}
 		else
 		{
-			xlprintf(LOG_NOISE)( WIDE("No Carrier - failing read. ") );
+			xlprintf(LOG_NOISE)( "No Carrier - failing read. " );
 			*pnCharsRead = 0;
 			pComTrack->flags.bInRead = 0;
 			if( gbLog )
-				xlprintf(LOG_NOISE)( WIDE("Leave comm read buffer") );
+				xlprintf(LOG_NOISE)( "Leave comm read buffer" );
 			pComTrack->current.dwEnd = 0;
 			return SACKCOMM_ERR_TIMEOUT;
 		}
@@ -1281,7 +1281,7 @@ void DumpTermios( struct termios *opts )
 		{
 			if( bLogDataXfer & 2 )
 			{
-				xlprintf(LOG_NOISE)( WIDE("Recv COM: dump buffer") );
+				xlprintf(LOG_NOISE)( "Recv COM: dump buffer" );
 				//xlprintf(LOG_NOISE)( buffer + pComTrack->current.nTotalRead, nCharsRead );
 			}
 			pComTrack->current.dwLastRead = GetTickCount();
@@ -1290,11 +1290,11 @@ void DumpTermios( struct termios *opts )
 			{
 				*pnCharsRead = pComTrack->current.nTotalRead;
 				pComTrack->flags.bInRead = 0;
-				xlprintf(LOG_NOISE)( WIDE("Return buffer full.") );
+				xlprintf(LOG_NOISE)( "Return buffer full." );
 				pComTrack->current.dwEnd = 0;
 				return SACKCOMM_ERR_NONE;
 			}
-			//Log1( WIDE("SackCommReadBuffer => SUCCESS : %d"), nCharsRead );
+			//Log1( "SackCommReadBuffer => SUCCESS : %d", nCharsRead );
 			continue; // try reading some more...
 		}
 
@@ -1312,11 +1312,11 @@ void DumpTermios( struct termios *opts )
 #else 
 			nCommError = 0;
 #endif
-			tnprintf ( cOut, sizeof( cOut ), WIDE("SackCommReadBuffer: read %d chars, error=%d")
+			tnprintf ( cOut, sizeof( cOut ), "SackCommReadBuffer: read %d chars, error=%d"
                , nCharsRead, nCommError );
-			xlprintf(LOG_NOISE)( WIDE("%s"), cOut );
+			xlprintf(LOG_NOISE)( "%s", cOut );
 #ifndef __LINUX__
-			lprintf ( WIDE("    cs.status=%u,0x%02X  cs.in=%u  cs.out=%u")
+			lprintf ( "    cs.status=%u,0x%02X  cs.in=%u  cs.out=%u"
 #ifdef BCC_16
                , pComTrack->cs.status
 #else
@@ -1335,7 +1335,7 @@ void DumpTermios( struct termios *opts )
 			if( pComTrack->current.nTotalRead )
 			{
     		// can't get this message - the above code leaves with any data.
-				_lprintf( DBG_RELAY )( WIDE( "SackCommReadBuffer() => TIMEOUT (WITH DATA %d)" )
+				_lprintf( DBG_RELAY )( "SackCommReadBuffer() => TIMEOUT (WITH DATA %d)"
 	                 , pComTrack->current.nTotalRead );
 				iResult = SACKCOMM_ERR_NONE;
 				break; // get out of this loop.
@@ -1355,19 +1355,19 @@ void DumpTermios( struct termios *opts )
 					if( !(iEvents & EV_RLSD ) )
 #endif
 					{
-						lprintf( WIDE("SackCommReadBuffer() => TIMEOUT(No Carrier)") );
+						lprintf( "SackCommReadBuffer() => TIMEOUT(No Carrier)" );
 						pComTrack->flags.bHaveCarrier = 0;
 					}
 					else
 					{
-						lprintf( WIDE("SackCommReadBuffer() => TIMEOUT(With carrier)") );
+						lprintf( "SackCommReadBuffer() => TIMEOUT(With carrier)" );
 						iResult = SACKCOMM_ERR_TIMEOUT;
 					}
 #endif
 				}
 				else
 				{
-					lprintf( WIDE("SackCommReadBuffer() => TIMEOUT(ignore carrier)") );
+					lprintf( "SackCommReadBuffer() => TIMEOUT(ignore carrier)" );
 					iResult = SACKCOMM_ERR_TIMEOUT;
 				}
 			}
@@ -1382,7 +1382,7 @@ void DumpTermios( struct termios *opts )
 			{
 				*pnCharsRead = pComTrack->current.nTotalRead;
 				pComTrack->flags.bInRead = 0;
-				//xlprintf(LOG_NOISE)( WIDE("Leave comm read buffer") );
+				//xlprintf(LOG_NOISE)( "Leave comm read buffer" );
 				iResult = SACKCOMM_ERR_NONE_MORE;
 			}
 			if( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
@@ -1390,7 +1390,7 @@ void DumpTermios( struct termios *opts )
 				// unlock ourselves... think we can come back in and resume...
 				pComTrack->flags.bInRead = 0;
 				if( gbLog )
-					Log1( WIDE("Dispatching Message.. %d"), msg.message );
+					Log1( "Dispatching Message.. %d", msg.message );
 				DispatchMessage( &msg );
 				pComTrack->flags.bInRead = 1;
 			}
@@ -1401,7 +1401,7 @@ void DumpTermios( struct termios *opts )
 	*pnCharsRead = pComTrack->current.nTotalRead;
 	pComTrack->flags.bInRead = 0;
 	pComTrack->current.dwEnd = 0;
-	//xlprintf(LOG_NOISE)( WIDE("Leave comm read buffer") );
+	//xlprintf(LOG_NOISE)( "Leave comm read buffer" );
 	return iResult;
 }
 
@@ -1449,7 +1449,7 @@ int  SackCommReadDataEx( int iCommId
     //if( fnuiIsUnitConnected() || gbyTimeOut == 0 || gfDoCommAnyway)
 	if( !len )
 	{
-		lprintf( WIDE("Sorry, no, you cannot SEND nothing.") );
+		lprintf( "Sorry, no, you cannot SEND nothing." );
       return SACKCOMM_ERR_BUFSIZE;
 	}
    do
@@ -1457,15 +1457,15 @@ int  SackCommReadDataEx( int iCommId
    	{
     	 int thissend;
 		 int dosend = sendlen;
-       //xlprintf(LOG_NOISE)( WIDE("Write") );
+       //xlprintf(LOG_NOISE)( "Write" );
 		 thissend = SackWriteComm( iCommId, buffer + sendofs, dosend );
-       //xlprintf(LOG_NOISE)( WIDE("Did Write") );
+       //xlprintf(LOG_NOISE)( "Did Write" );
     	 if( thissend <= 0 )
     	 {
 #ifdef _WIN32
 			 return SACKCOMM_ERR_TIMEOUT;
 #endif    	 	
-		 	 Log1( WIDE("Send Error occured: %d"), GetCommError( iCommId, NULL ) );
+		 	 Log1( "Send Error occured: %d", GetCommError( iCommId, NULL ) );
 #ifndef __LINUX__
 			 SackGetCommError ( iCommId, &pComTrack->cs );
 #else
@@ -1475,7 +1475,7 @@ int  SackCommReadDataEx( int iCommId
 			 thissend = -thissend;
 			 if( thissend == 0 )
 			 {
-				 xlprintf(LOG_NOISE)( WIDE("Data is not going anywhere - bail out.") );
+				 xlprintf(LOG_NOISE)( "Data is not going anywhere - bail out." );
 				 return SACKCOMM_ERR_COMM;
 			 }
     	 }
@@ -1484,7 +1484,7 @@ int  SackCommReadDataEx( int iCommId
     	}
    }
    while( sendlen && dwEnd > GetTickCount() );
-   //Log1( WIDE("SackCommWriteBuffer Leave : %d"), sendlen );
+   //Log1( "SackCommWriteBuffer Leave : %d", sendlen );
    if( sendlen )
    	return SACKCOMM_ERR_TIMEOUT;
    return SACKCOMM_ERR_NONE;
@@ -1519,7 +1519,7 @@ void  SackCommFlush ( int nCommID )
 		 nCharsRead = ReadComm ( (int)pComTrack->iCommId
                 , cBuf
                 , 100 );
-		 //Log1( WIDE("Read com chars: %d"), nCharsRead );
+		 //Log1( "Read com chars: %d", nCharsRead );
 		 if ( nCharsRead < 0 )
 			 nCharsRead = -nCharsRead;
 		 else if( nCharsRead > 0 )

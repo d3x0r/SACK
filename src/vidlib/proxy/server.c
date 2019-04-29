@@ -54,27 +54,27 @@ static struct json_context_object *WebSockInitReplyJson( enum proxy_message_id m
 		l.json_reply_context = json_create_context();
 	cto = json_create_object( l.json_reply_context, 0 );
 	SetLink( &l.messages, (int)message, cto );
-	json_add_object_member( cto, WIDE("MsgID"), 0, JSON_Element_Unsigned_Integer_8, 0 );
-	cto_data = json_add_object_member( cto, WIDE( "data" ), 1, JSON_Element_Object, 0 );
+	json_add_object_member( cto, "MsgID", 0, JSON_Element_Unsigned_Integer_8, 0 );
+	cto_data = json_add_object_member( cto, "data", 1, JSON_Element_Object, 0 );
 
 	ofs = 0;
 	switch( message )
 	{
 	case PMID_Reply_OpenDisplayAboveUnderSizedAt:
-		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("client_render_id"), ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "server_render_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "client_render_id", ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_Event_Mouse:
-		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("b"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "server_render_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "x", ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "y", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "b", ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
 
 		break;
 	case PMID_Event_Key:
-		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("key"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("pressed"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "server_render_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "key", ofs = ofs + sizeof(uintptr_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "pressed", ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
 		break;
 	}
 	return cto;
@@ -89,144 +89,144 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 		l.json_context = json_create_context();
 	cto = json_create_object( l.json_context, 0 );
 	SetLink( &l.messages, (int)message, cto );
-	json_add_object_member( cto, WIDE("MsgID"), 0, JSON_Element_Unsigned_Integer_8, 0 );
-	cto_data = json_add_object_member( cto, WIDE( "data" ), 1, JSON_Element_Object, 0 );
+	json_add_object_member( cto, "MsgID", 0, JSON_Element_Unsigned_Integer_8, 0 );
+	cto_data = json_add_object_member( cto, "data", 1, JSON_Element_Object, 0 );
 
 	ofs = 0;
 	switch( message )
 	{
 	case PMID_Version:
-		json_add_object_member( cto_data, WIDE("version"), 0, JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "version", 0, JSON_Element_Unsigned_Integer_32, 0 );
 		break;
 	case PMID_SetApplicationTitle:
-		json_add_object_member( cto_data, WIDE("title"), 0, JSON_Element_CharArray, 0 );
+		json_add_object_member( cto_data, "title", 0, JSON_Element_CharArray, 0 );
 		break;
 	case PMID_TransferSubImages:
-		json_add_object_member( cto_data, WIDE("image_to_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("image_from_id"), ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "image_to_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "image_from_id", ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_OpenDisplayAboveUnderSizedAt:
-		json_add_object_member( cto_data, WIDE("x"), ofs = 0, JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("attrib"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("over_render_id"), ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL_BLANK_0, 0 );
-		json_add_object_member( cto_data, WIDE("under_render_id"), ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL_BLANK_0, 0 );
+		json_add_object_member( cto_data, "x", ofs = 0, JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "y", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "width", ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "height", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "attrib", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "server_render_id", ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "over_render_id", ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL_BLANK_0, 0 );
+		json_add_object_member( cto_data, "under_render_id", ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL_BLANK_0, 0 );
 		break;
 	case PMID_CloseDisplay:
-		json_add_object_member( cto_data, WIDE("server_render_id"), 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "server_render_id", 0, JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_Flush_Draw:
-		json_add_object_member( cto_data, WIDE("server_render_id"), 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "server_render_id", 0, JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_MoveSizeDisplay:
-		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "server_render_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "x", ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "y", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "width", ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "height", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
 		break;
 	case PMID_MakeImage:
-		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof( uintptr_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("server_render_id"), ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "server_image_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "width", ofs = ofs + sizeof( uintptr_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "height", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "server_render_id", ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_Move_Image:
-		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof( uintptr_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "server_image_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "x", ofs = ofs + sizeof( uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "y", ofs = ofs + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
 		break;
 	case PMID_Size_Image:
-		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof( uintptr_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "server_image_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "width", ofs = ofs + sizeof( uintptr_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "height", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
 		break;
 	case PMID_MakeSubImage:
-		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("server_parent_image_id"), ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "server_image_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "x", ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "y", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "width", ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "height", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "server_parent_image_id", ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_BlatColor:
 	case PMID_BlatColorAlpha:
-		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		json_add_object_member( cto_data, "server_image_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "x", ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "y", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "width", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "height", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member_user_routine( cto_data, "color", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
 		break;
 	case PMID_PutString:
-		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("orientation"), ofs = ofs + sizeof(int), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("justification"), ofs = ofs + sizeof(int), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("font_id"), ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
-		json_add_object_member_user_routine( cto_data, WIDE("background"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
-		json_add_object_member( cto_data, WIDE("string"), ofs = ofs + sizeof( uint32_t ), JSON_Element_CharArray, 0 );
+		json_add_object_member( cto_data, "server_image_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "x", ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "y", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "orientation", ofs = ofs + sizeof(int), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "justification", ofs = ofs + sizeof(int), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "width", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "font_id", ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member_user_routine( cto_data, "color", ofs = ofs + sizeof(uintptr_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		json_add_object_member_user_routine( cto_data, "background", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		json_add_object_member( cto_data, "string", ofs = ofs + sizeof( uint32_t ), JSON_Element_CharArray, 0 );
 		break;
 	case PMID_FontData:
-		json_add_object_member( cto_data, WIDE("server_font_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("baseline"), ofs = ofs + sizeof( uintptr_t ), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof( uint32_t ), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE( "bias_x" ), ofs = ofs + sizeof( uint32_t ), JSON_Element_Integer_8, 0 );
-		json_add_object_member( cto_data, WIDE( "bias_y" ), ofs = ofs + sizeof( uint8_t ), JSON_Element_Integer_8, 0 );
-		//json_add_object_member( cto_data, WIDE("characters"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "server_font_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "baseline", ofs = ofs + sizeof( uintptr_t ), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "height", ofs = ofs + sizeof( uint32_t ), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "bias_x", ofs = ofs + sizeof( uint32_t ), JSON_Element_Integer_8, 0 );
+		json_add_object_member( cto_data, "bias_y", ofs = ofs + sizeof( uint8_t ), JSON_Element_Integer_8, 0 );
+		//json_add_object_member( cto_data, "characters", ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
 		{
 			int ofs_inner;
 			struct json_context_object *cto_data_member;
-			cto_data_member = json_add_object_member_list( cto_data, WIDE("data"), ofs = ofs + sizeof(uint8_t), (enum JSON_ObjectElementTypes)0, 0 );
-			json_add_object_member( cto_data_member, WIDE("c"), ofs_inner = 0, JSON_Element_Integer_32, 0 );
-			json_add_object_member( cto_data_member, WIDE("x"), ofs_inner = ofs_inner + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
-			json_add_object_member( cto_data_member, WIDE("y"), ofs_inner = ofs_inner + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-			json_add_object_member( cto_data_member, WIDE("w"), ofs_inner = ofs_inner + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-			json_add_object_member( cto_data_member, WIDE("h"), ofs_inner = ofs_inner + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
-			json_add_object_member( cto_data_member, WIDE("a"), ofs_inner = ofs_inner + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
-			cto_data_member = json_add_object_member_list( cto_data, WIDE("colors"), ofs = ofs + sizeof(PLIST), (enum JSON_ObjectElementTypes)0, 0 );
-			json_add_object_member( cto_data_member, WIDE("color"), ofs_inner = 0, JSON_Element_Unsigned_Integer_32, 0 );
-			json_add_object_member( cto_data, WIDE("image_id"), ofs = ofs + sizeof(PLIST), JSON_Element_PTRSZVAL, 0 );
+			cto_data_member = json_add_object_member_list( cto_data, "data", ofs = ofs + sizeof(uint8_t), (enum JSON_ObjectElementTypes)0, 0 );
+			json_add_object_member( cto_data_member, "c", ofs_inner = 0, JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, "x", ofs_inner = ofs_inner + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, "y", ofs_inner = ofs_inner + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, "w", ofs_inner = ofs_inner + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+			json_add_object_member( cto_data_member, "h", ofs_inner = ofs_inner + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+			json_add_object_member( cto_data_member, "a", ofs_inner = ofs_inner + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
+			cto_data_member = json_add_object_member_list( cto_data, "colors", ofs = ofs + sizeof(PLIST), (enum JSON_ObjectElementTypes)0, 0 );
+			json_add_object_member( cto_data_member, "color", ofs_inner = 0, JSON_Element_Unsigned_Integer_32, 0 );
+			json_add_object_member( cto_data, "image_id", ofs = ofs + sizeof(PLIST), JSON_Element_PTRSZVAL, 0 );
 		}
 		break;
 	case PMID_BlotScaledImageSizedTo:
 	case PMID_BlotImageSizedTo:
-		json_add_object_member( cto_data, WIDE("server_image_id"), ofs, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("width"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("height"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("xs"), ofs = ofs + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("ys"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "server_image_id", ofs, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "x", ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "y", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "width", ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "height", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+		json_add_object_member( cto_data, "xs", ofs = ofs + sizeof(uint32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "ys", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
 		if( message == PMID_BlotScaledImageSizedTo )
 		{
-			json_add_object_member( cto_data, WIDE("ws"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
-			json_add_object_member( cto_data, WIDE("hs"), ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
+			json_add_object_member( cto_data, "ws", ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0 );
+			json_add_object_member( cto_data, "hs", ofs = ofs + sizeof(uint32_t), JSON_Element_Unsigned_Integer_32, 0 );
 		}
-		json_add_object_member( cto_data, WIDE("image_id"), ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "image_id", ofs = ofs + sizeof(uint32_t), JSON_Element_PTRSZVAL, 0 );
 		break;
 	case PMID_ImageData:
-		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("data"), ofs = ofs + sizeof(uintptr_t), JSON_Element_CharArray, 0 );
+		json_add_object_member( cto_data, "server_image_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "data", ofs = ofs + sizeof(uintptr_t), JSON_Element_CharArray, 0 );
 		break;
 	case PMID_DrawBlock:
-		json_add_object_member( cto_data, WIDE("server_image_id"), ofs = 0, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("length"), ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("data"), ofs = ofs + sizeof(uintptr_t), JSON_Element_CharArray, 0 );
+		json_add_object_member( cto_data, "server_image_id", ofs = 0, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "length", ofs = ofs + sizeof(uintptr_t), JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "data", ofs = ofs + sizeof(uintptr_t), JSON_Element_CharArray, 0 );
 		break;
 	case PMID_DrawLine:
-		json_add_object_member( cto_data, WIDE("server_image_id"), ofs, JSON_Element_PTRSZVAL, 0 );
-		json_add_object_member( cto_data, WIDE("x1"), ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y1"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("x2"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member( cto_data, WIDE("y2"), ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
-		json_add_object_member_user_routine( cto_data, WIDE("color"), ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
+		json_add_object_member( cto_data, "server_image_id", ofs, JSON_Element_PTRSZVAL, 0 );
+		json_add_object_member( cto_data, "x1", ofs = ofs + sizeof(uintptr_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "y1", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "x2", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member( cto_data, "y2", ofs = ofs + sizeof(int32_t), JSON_Element_Integer_32, 0 );
+		json_add_object_member_user_routine( cto_data, "color", ofs = ofs + sizeof(int32_t), JSON_Element_Unsigned_Integer_32, 0, FormatColor );
 		break;
 	}
 	return cto;
@@ -263,7 +263,7 @@ static TEXTCHAR *Encode64Image( CTEXTSTR mime, uint8_t* buf, LOGICAL bmp, size_t
 	TEXTCHAR * real_output;
 	size_t mimelen = StrLen( mime );
 	real_output = NewArray( TEXTCHAR, 13 + mimelen + ( ( length * 4 + 2) / 3 ) + 1 + 1 + 1 + (bmp?1:0) );
-	tnprintf( real_output, 13 + mimelen, WIDE("data:%s;base64,"), mime );
+	tnprintf( real_output, 13 + mimelen, "data:%s;base64,", mime );
 	//if( bmp )
 	//	strcpy( real_output, "data:image/bmp;base64," );
 	//else
@@ -382,13 +382,13 @@ static uint8_t* EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 
 static void ClearDirtyFlag( PVPImage image )
 {
-	//lprintf( WIDE("Clear dirty on %p  (%p) %08x"), image, (image)?image->image:NULL, image?image->image->flags:0 );
+	//lprintf( "Clear dirty on %p  (%p) %08x", image, (image)?image->image:NULL, image?image->image->flags:0 );
 	for( ; image; image = image->next )
 	{
 		if( image->image )
 		{
 			image->image->flags &= ~IF_FLAG_UPDATED;
-			//lprintf( WIDE("Clear dirty on %08x"), (image)?(image)->image->flags:0 );
+			//lprintf( "Clear dirty on %08x", (image)?(image)->image->flags:0 );
 		}
 		if( image->child )
 			ClearDirtyFlag( image->child );
@@ -656,7 +656,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			raw_image = EncodeImage( image->image, FALSE, &outlen );
 			if( outlen > (16000-5) && !websock )
 			{
-				lprintf( WIDE( "need to send image in parts : %d" ), outlen );
+				lprintf( "need to send image in parts : %d", outlen );
 				msg = NewArray( uint8_t, 16004 );
 				outmsg = (struct common_message*)(msg + 4);
 
@@ -668,7 +668,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 					outmsg = (struct common_message*)(msg + 4);
 					outmsg->message_id = offset?PMID_ImageDataFragMore:PMID_ImageDataFrag;
 					outmsg->data.image_data.server_image_id = image->id;
-					lprintf( WIDE("Send Image %p %d  %d"), image, image->id, ((uint32_t*)msg)[0] );
+					lprintf( "Send Image %p %d  %d", image, image->id, ((uint32_t*)msg)[0] );
 					SendTCP( pc, msg, 16004 );
 					outlen -= (16000 - 5);
 					offset += (16000 - 5);
@@ -683,14 +683,14 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 
 			if( websock )
 			{
-				encoded_image = Encode64Image( WIDE("image/png"), raw_image, FALSE, outlen, &outlen );
+				encoded_image = Encode64Image( "image/png", raw_image, FALSE, outlen, &outlen );
 				msg = NewArray( uint8_t, sendlen = ( 4 + 1 + sizeof( struct image_data_data ) + outlen * sizeof( TEXTCHAR ) ) );
 				outmsg = (struct common_message*)(msg + 4);
 				MemCpy( outmsg->data.image_data.data, encoded_image, outlen * sizeof( TEXTCHAR ) );
 			}
 			else
 			{
-				lprintf( WIDE("outlen = %d"), outlen );
+				lprintf( "outlen = %d", outlen );
 				MemCpy( outmsg->data.image_data.data, raw_image + offset, outlen * sizeof( TEXTCHAR ) );
 			}
 			((uint32_t*)msg)[0] = (uint32_t)(sendlen - 4);
@@ -698,7 +698,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			outmsg->message_id = message;
 			outmsg->data.image_data.server_image_id = image->id;
 			// include nul in copy
-			lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
+			lprintf( "Send Image %p %d  %d", image, image->id, sendlen );
 			if( websock )
 			{
 				json_msg = json_build_message( cto, outmsg );
@@ -744,7 +744,7 @@ static void SendTCPMessage( PCLIENT pc, LOGICAL websock, enum proxy_message_id m
 			outmsg->message_id = message;
 			outmsg->data.image_data.server_image_id = image->id;
 			// include nul in copy
-			lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
+			lprintf( "Send Image %p %d  %d", image, image->id, sendlen );
 			if( websock )
 			{
 				json_msg = json_build_message( cto, outmsg );
@@ -914,7 +914,7 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			char * encoded_data;
 			encoded_data = CStrDup( (CTEXTSTR)image->websock_buffer );
 			// do not include the NULL...
-			//lprintf( WIDE("Encode buffer (%d):%s"),  CStrLen( encoded_data ), image->websock_buffer );
+			//lprintf( "Encode buffer (%d):%s",  CStrLen( encoded_data ), image->websock_buffer );
 			compress2( output, &destlen, (Bytef*)encoded_data, CStrLen( encoded_data ), Z_BEST_COMPRESSION );
 			Deallocate( char *, encoded_data );
 #else
@@ -922,9 +922,9 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			compress2( output, &destlen, image->websock_buffer, image->websock_sendlen + 1, Z_BEST_COMPRESSION );
 #endif
 
-			text_encoded_data = Encode64Image( WIDE("application/zip"), output, TRUE, destlen, &outlen );
+			text_encoded_data = Encode64Image( "application/zip", output, TRUE, destlen, &outlen );
 			
-			lprintf( WIDE("would have only been %d and is %d but really %d")
+			lprintf( "would have only been %d and is %d but really %d"
 				, image->websock_sendlen + 1
 				, destlen
 				, outlen
@@ -941,7 +941,7 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			outmsg->data.draw_block.server_image_id = image->id;
 			outmsg->data.draw_block.length = destlen;
 			// include nul in copy
-			lprintf( WIDE("Send Image %p %d  %d"), image, image->id, sendlen );
+			lprintf( "Send Image %p %d  %d", image, image->id, sendlen );
 			{
 				TEXTSTR json_msg;
 				struct json_context_object *cto;
@@ -1050,7 +1050,7 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 	struct server_socket_state *state;
 	if( !buffer )
 	{
-		lprintf( WIDE("init read") );
+		lprintf( "init read" );
 		state = New(struct server_socket_state);
 		MemSet( state, 0, sizeof( struct server_socket_state ) );
 		state->flags.get_length = 1;
@@ -1062,14 +1062,14 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 		state = (struct server_socket_state*)GetNetworkLong( pc, 0 );
 		if( state->flags.get_length )
 		{
-			//lprintf( WIDE("length is %d"), state->read_length );
+			//lprintf( "length is %d", state->read_length );
 			if( state->read_length < 2048 )
 			{
 				state->flags.get_length = 0;
 			}
 			else
 			{
-				lprintf( WIDE("Message is too long to read...") );
+				lprintf( "Message is too long to read..." );
 			}
 		}
 		else
@@ -1132,12 +1132,12 @@ static void CPROC SocketRead( PCLIENT pc, POINTER buffer, size_t size )
 	}
 	if( state->flags.get_length )
 	{
-		//lprintf( WIDE("Read next length...") );
+		//lprintf( "Read next length..." );
 		ReadTCPMsg( pc, &state->read_length, 4 );
 	}
 	else
 	{
-		//lprintf( WIDE("read message %d"), state->read_length );
+		//lprintf( "read message %d", state->read_length );
 		ReadTCPMsg( pc, state->buffer, state->read_length );
 	}
 }
@@ -1214,7 +1214,7 @@ static void WebSockEvent( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER bu
 	CTEXTSTR buf = CharWConvertExx( (char*)buffer, msglen DBG_SRC );
 	json_parse_message( buf, msglen, &parsedMsg );
 	if( json_decode_message( l.json_reply_context, parsedMsg, &json_object ) )
-	//lprintf( WIDE("Received:%*.*") _cstring_f, msglen,msglen,buffer );
+	//lprintf( "Received:%*.*" _cstring_f, msglen,msglen,buffer );
 #else
 	json_parse_message( buffer, msglen, &parsedMsg );
 	if( json_decode_message( l.json_reply_context, parsedMsg, &json_object, &msg ) )
@@ -1295,7 +1295,7 @@ static void WebSockEvent( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER bu
 				}
 #if defined( __LINUX__ )
             // windows doesn't need this translation
-				lprintf( WIDE("so.... do the state...") );
+				lprintf( "so.... do the state..." );
 				SACK_Vidlib_ProcessKeyState( message->data.key_event.pressed, message->data.key_event.key, &used );
 #endif
 				if( !used && render && render->key_callback )
@@ -1307,7 +1307,7 @@ static void WebSockEvent( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER bu
 		json_dispose_message( msg );
 	}
 	else
-		lprintf( WIDE("Failed to reverse map message...") );
+		lprintf( "Failed to reverse map message..." );
 }
 
 
@@ -1316,8 +1316,8 @@ static void InitService( void )
 	if( !l.listener )
 	{
 		NetworkStart();
-		l.listener = OpenTCPListenerAddrEx( CreateSockAddress( WIDE("0.0.0.0"), 4241 ), Connected );
-		l.web_listener = WebSocketCreate( WIDE("ws://0.0.0.0:4240/Sack/Vidlib/Proxy")
+		l.listener = OpenTCPListenerAddrEx( CreateSockAddress( "0.0.0.0", 4241 ), Connected );
+		l.web_listener = WebSocketCreate( "ws://0.0.0.0:4240/Sack/Vidlib/Proxy"
 													, WebSockOpen
 													, WebSockEvent
 													, WebSockClose
@@ -1358,15 +1358,15 @@ static void CPROC VidlibProxy_SetApplicationTitle( CTEXTSTR title )
 static void CPROC VidlibProxy_GetDisplaySize( uint32_t *width, uint32_t *height )
 {
 	if( width )
-		(*width) = SACK_GetProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Width"), 1024 );
+		(*width) = SACK_GetProfileInt( "SACK/Vidlib", "Default Display Width", 1024 );
 	if( height )
-		(*height) = SACK_GetProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Height"), 768 );
+		(*height) = SACK_GetProfileInt( "SACK/Vidlib", "Default Display Height", 768 );
 }
 
 static void CPROC VidlibProxy_SetDisplaySize		( uint32_t width, uint32_t height )
 {
-	SACK_WriteProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Width"), width );
-	SACK_WriteProfileInt( WIDE("SACK/Vidlib"), WIDE("Default Display Height"), height );
+	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Width", width );
+	SACK_WriteProfileInt( "SACK/Vidlib", "Default Display Height", height );
 }
 
 
@@ -1578,7 +1578,7 @@ static void CPROC VidlibProxy_MoveSizeDisplayRel( PRENDERER r
 
 static void CPROC VidlibProxy_PutDisplayAbove		( PRENDERER r, PRENDERER above )
 {
-	lprintf( WIDE("window ordering is not implemented") );
+	lprintf( "window ordering is not implemented" );
 }
 
 static Image CPROC VidlibProxy_GetDisplayImage( PRENDERER r )
@@ -1657,20 +1657,20 @@ static const TEXTCHAR* CPROC VidlibProxy_GetKeyText		 ( int key )
 	if (!c)
 	{
 		// check prior key bindings...
-		//printf( WIDE("no translation\n") );
+		//printf( "no translation\n" );
 		return 0;
 	}
 	else if (c == 2)
 	{
-		//printf( WIDE("Key Translated: %d %d\n"), ch[0], ch[1] );
+		//printf( "Key Translated: %d %d\n", ch[0], ch[1] );
 		return 0;
 	}
 	else if (c < 0)
 	{
-		//printf( WIDE("Key Translation less than 0\n") );
+		//printf( "Key Translation less than 0\n" );
 		return 0;
 	}
-	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+	//printf( "Key Translated: %d(%c)\n", ch[0], ch[0] );
 #ifdef UNICODE
 	{
 		static wchar_t *out;
@@ -2060,14 +2060,14 @@ static Image CPROC VidlibProxy_RemakeImageEx	 ( Image pImage, PCOLOR pc, uint32_
 		image->render_id = INVALID_INDEX;
 		AddLink( &l.images, image );
 	}
-	//lprintf( WIDE("CRITICAL; RemakeImageFile is not possible") );
+	//lprintf( "CRITICAL; RemakeImageFile is not possible" );
 	image->w = width;
 	image->h = height;
 	image->image = l.real_interface->_RemakeImageEx( image->image, pc, width, height DBG_RELAY );
 	image->image->reverse_interface = &ProxyImageInterface;
 	image->image->reverse_interface_instance = image;
 	image->id = FindLink( &l.images, image );
-	//lprintf( WIDE("%p(%p) is %d"), image, image->image, image->id );
+	//lprintf( "%p(%p) is %d", image, image->image, image->id );
 	return (Image)image;
 }
 
@@ -2089,14 +2089,14 @@ static Image CPROC VidlibProxy_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR f
 	SendClientMessage( PMID_ImageData, image );
 	AddLink( &l.images, image );
 	image->id = FindLink( &l.images, image );
-	//lprintf( WIDE("%p(%p) is %d"), image, image->image, image->id );
-	//lprintf( WIDE("loaded proxy image %p %d(%d,%d)"), image, image->id, image->w, image->w );
+	//lprintf( "%p(%p) is %d", image, image->image, image->id );
+	//lprintf( "loaded proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 	return (Image)image;
 }
 
 static Image CPROC VidlibProxy_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 {
-	return VidlibProxy_LoadImageFileFromGroupEx( GetFileGroup( WIDE("Images"), WIDE("./images") ), filename DBG_RELAY );
+	return VidlibProxy_LoadImageFileFromGroupEx( GetFileGroup( "Images", "./images" ), filename DBG_RELAY );
 }
 
 
@@ -2547,7 +2547,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 		// ok - how to figure out how to do this
 		// need to update the position and width to be within the 
 		// the bounds of pifDest....
-		//	lprintf( WIDE(" begin scaled output...") );
+		//	lprintf( " begin scaled output..." );
 		errx = -(signed)dwd;
 		erry = -(signed)dhd;
 
@@ -2581,13 +2581,13 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 			}
 			wd = w;
 		}
-		//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+		//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 		//		 xs, ys, ws, hs, xd, yd, wd, hd );
 		if( ( yd < 0 ) || ( yd +(int32_t)(hd&0x7FFFFFFF) ) > image->h )
 		{
 			int y = yd;
 			int h = 0;
-			//lprintf( WIDE( "height fix : %d %d %d %d" ), yd, hd, image->y, image->h );
+			//lprintf( "height fix : %d %d %d %d", yd, hd, image->y, image->h );
 			while( yd < image->y )
 			{
 				erry += (signed)dhs;
@@ -2600,7 +2600,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				hd--;
 				y++;
 			}
-			//lprintf( WIDE( "height fix : %d %d %d %d" ), y, yd, hd, hs );
+			//lprintf( "height fix : %d %d %d %d", y, yd, hd, hs );
 			hs = 0;
 			while( y < image->h && h < (int)hd )
 			{
@@ -2613,12 +2613,12 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				h++;
 				y++;
 			}
-			//lprintf( WIDE( "height fix : %d %d %d" ), y, h, hs );
+			//lprintf( "height fix : %d %d %d", y, h, hs );
 			hd = h;
 		}
 		if( !wd || !hd )
 			return;
-		//lprintf( WIDE( "------------------------ " ) );
+		//lprintf( "------------------------ " );
 		EnterCriticalSec( &l.message_formatter );
 		cto = (struct json_context_object *)GetLink( &l.messages, PMID_BlotScaledImageSizedTo );
 		if( !cto )
@@ -2658,7 +2658,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 				if( !shaded_image->reverse_interface )
 				{
 					// new image, and we need to reverse track it....
-					lprintf( WIDE("wrap shaded image for %p %d"), ((PVPImage)pifSrc), ((PVPImage)pifSrc)->id );
+					lprintf( "wrap shaded image for %p %d", ((PVPImage)pifSrc), ((PVPImage)pifSrc)->id );
 					actual_image = WrapImageFile( shaded_image );
 				}
 				else
@@ -2740,7 +2740,7 @@ static void CPROC VidlibProxy_BlotScaledImageSizedEx( Image pifDest, Image pifSr
 static void CPROC VidlibProxy_MarkImageDirty ( Image pImage )
 {
 	// this library tracks the IF_FLAG_UPDATED which is set by native routine;native routine marks child and all parents.
-	//lprintf( WIDE("Mark image %p dirty"), pImage );
+	//lprintf( "Mark image %p dirty", pImage );
 	l.real_interface->_MarkImageDirty( ((PVPImage)pImage)->image );
 	if( 0 )
 	{
@@ -3547,14 +3547,14 @@ static void CPROC Drop3dProxyImageInterface( POINTER i )
 PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 {
 	InitializeCriticalSec( &l.message_formatter );
-	RegisterInterface( WIDE( "sack.image.proxy.server" ), GetProxyImageInterface, DropProxyImageInterface );
-	RegisterInterface( WIDE( "sack.image.3d.proxy.server" ), Get3dProxyImageInterface, Drop3dProxyImageInterface );
-	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
-	RegisterInterface( WIDE( "sack.render.3d.proxy.server" ), Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
+	RegisterInterface( "sack.image.proxy.server", GetProxyImageInterface, DropProxyImageInterface );
+	RegisterInterface( "sack.image.3d.proxy.server", Get3dProxyImageInterface, Drop3dProxyImageInterface );
+	RegisterInterface( "sack.render.proxy.server", GetProxyDisplayInterface, DropProxyDisplayInterface );
+	RegisterInterface( "sack.render.3d.proxy.server", Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
 #ifdef _WIN32
-	LoadFunction( WIDE("bag.image.dll"), NULL );
+	LoadFunction( "bag.image.dll", NULL );
 #endif
-	l.real_interface = (PIMAGE_INTERFACE)GetInterface( WIDE( "sack.image" ) );
+	l.real_interface = (PIMAGE_INTERFACE)GetInterface( "sack.image" );
 
 	InitProxyInterface();
 	// needs sack.image loaded before; fonts are passed to this

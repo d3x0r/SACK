@@ -32,11 +32,11 @@ static int CPROC HandleSummonerEvents( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID,
 		SendRoutedServerMessage( SourceID, MSG_IM_ALIVE, data, len );
 		break;
 	case MSG_DIE:
-		lprintf( WIDE("Command to die, therefore I shall...") );
+		lprintf( "Command to die, therefore I shall..." );
 		exit(0);
 		break;
 	default:
-		lprintf( WIDE("Received unknown message %") _MsgID_f WIDE(" from %p"), MsgID, SourceID );
+		lprintf( "Received unknown message %" _MsgID_f " from %p", MsgID, SourceID );
 		break;
 	}
    return TRUE;
@@ -46,14 +46,14 @@ static int CPROC HandleSummonerEvents( PSERVICE_ROUTE SourceID, MSGIDTYPE MsgID,
 PRELOAD( Started )
 {
 #ifndef __NO_OPTIONS__
-	if( SACK_GetProfileIntEx( WIDE( "SACK/Summoner" ), WIDE( "Auto register with summoner?" ), 0, TRUE ) )
+	if( SACK_GetProfileIntEx( "SACK/Summoner", "Auto register with summoner?", 0, TRUE ) )
 #else
    if( 0 )
 #endif
 	{
 		l.init_ran = 1;
 		l.MsgBase = LoadServiceEx( SUMMONER_NAME, HandleSummonerEvents );
-		lprintf( WIDE("Message base for service is %d"), l.MsgBase );
+		lprintf( "Message base for service is %d", l.MsgBase );
 		if( l.MsgBase )
 		{
 			MSGIDTYPE result;
@@ -63,21 +63,21 @@ PRELOAD( Started )
 											  , &result, l.my_name, &result_length ) )
 			{
 				// since we JUST loaded it, this shold be nearly impossible to hit.
-				lprintf( WIDE("Failed to find out who I am from summoner.") );
+				lprintf( "Failed to find out who I am from summoner." );
 				UnloadService( SUMMONER_NAME );
 				l.MsgBase = NULL;
 				return;
 			}
 			else if( result != ((MSG_WHOAMI)|SERVER_SUCCESS ) )
 			{
-				lprintf( WIDE("Server responce was in error... disable support") );
+				lprintf( "Server responce was in error... disable support" );
 				UnloadService( SUMMONER_NAME );
 				l.MsgBase = NULL;
 				return;
 			}
 			else if( !result_length )
 			{
-				lprintf( WIDE("Summoner is not responsible for us, and requires no notifications." ) );
+				lprintf( "Summoner is not responsible for us, and requires no notifications." );
 				//UnloadService( SUMMONER_NAME );
 				l.MsgBase = NULL;
 				return;
@@ -88,12 +88,12 @@ PRELOAD( Started )
 											  , NULL, NULL, 0 ) )
 			{
 				// this should almost be guaranteed to work...
-				lprintf( WIDE("Failed to send starting to summoner... disable support") );
+				lprintf( "Failed to send starting to summoner... disable support" );
 				UnloadService( SUMMONER_NAME );
 				l.MsgBase = NULL;
 				return;
 			}
-			//lprintf( WIDE("We're starting, go ahead.") );
+			//lprintf( "We're starting, go ahead." );
 		}
 	}
 	else
@@ -108,7 +108,7 @@ PRELOAD( Started )
    // if we registered with the summoner...
 	if( l.MsgBase )
 	{
-		lprintf( WIDE("Sending IM_READY to summoner...\n") );
+		lprintf( "Sending IM_READY to summoner...\n" );
 		result = ((MSG_IM_READY) | SERVER_SUCCESS);
 		if( TransactServerMessage( l.MsgBase, MSG_IM_READY, l.my_name, (uint32_t)strlen( l.my_name ) + 1
 										 , NULL /*&result*/, NULL, 0 )
@@ -120,25 +120,25 @@ PRELOAD( Started )
 			}
 			else
 			{
-				lprintf( WIDE("Summoner has somehow complained that we're started?!") );
+				lprintf( "Summoner has somehow complained that we're started?!" );
 				DebugBreak();
 			}
 		}
 		else
 		{
-			lprintf( WIDE("Summoner has dissappeared.  Disabling support.") );
+			lprintf( "Summoner has dissappeared.  Disabling support." );
 			l.MsgBase = NULL;
 		}
 	}
 	//else
-   //   lprintf( WIDE("Service has been disabled.") );
+   //   lprintf( "Service has been disabled." );
 }
 
 ATEXIT( Ended )
 {
 	if( l.init_ran && l.MsgBase )
 	{
-		lprintf( WIDE("mark ready in summoner (dispatch as ended?)") );
+		lprintf( "mark ready in summoner (dispatch as ended?)" );
 		LoadComplete();
 		UnloadService( SUMMONER_NAME );
 	}

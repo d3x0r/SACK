@@ -197,7 +197,7 @@ void SaveTranslationDataToFile( FILE *output )
 void SaveTranslationDataEx( const char *filename )
 {
 	if( translate_local.updated ) {
-		FILE *output = sack_fopen( 0, filename, WIDE("wb") );
+		FILE *output = sack_fopen( 0, filename, "wb" );
 		if( !output )
 			return;
 		SaveTranslationDataToFile( output );

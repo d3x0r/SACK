@@ -20,106 +20,106 @@ typedef struct resource_names *PRESOURCE_NAMES;
 
 PRELOAD( RegisterInterShellResources )
 {
-#define f(name,range,stringname,typename) RegisterResource( WIDE( "intershell" ), stringname, name, range, typename )
+#define f(name,range,stringname,typename) RegisterResource( "intershell", stringname, name, range, typename )
 
- ; f( MNU_CREATE_CONTROL, 1, WIDE( "MNU_CREATE_CONTROL" ), WIDE( "Popup Menu" ) )
- ; f( MNU_EDIT_CONTROL, 1, WIDE( "MNU_EDIT_CONTROL" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_DESTROY_CONTROL, 1, WIDE( "MNU_DESTROY_CONTROL" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_CREATE_CLOCK, 1, WIDE( "MNU_CREATE_CLOCK" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_CREATE_MANAGER, 1, WIDE( "MNU_CREATE_MANAGER" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_EXTRA_CONTROL, 1, WIDE( "MNU_EXTRA_CONTROL" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_CREATE_KEYPAD, 1, WIDE( "MNU_CREATE_KEYPAD" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_CREATE_ISSUE, 1, WIDE( "MNU_CREATE_ISSUE" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_CREATE_USERINFO, 1, WIDE( "MNU_CREATE_USERINFO" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_CLONE, 1, WIDE( "MNU_CLONE" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_MAKE_CLONE, 1, WIDE( "MNU_MAKE_CLONE" ), WIDE( "Popup Menu" ) ) 
+ ; f( MNU_CREATE_CONTROL, 1, "MNU_CREATE_CONTROL", "Popup Menu" )
+ ; f( MNU_EDIT_CONTROL, 1, "MNU_EDIT_CONTROL", "Popup Menu" ) 
+ ; f( MNU_DESTROY_CONTROL, 1, "MNU_DESTROY_CONTROL", "Popup Menu" ) 
+ ; f( MNU_CREATE_CLOCK, 1, "MNU_CREATE_CLOCK", "Popup Menu" ) 
+ ; f( MNU_CREATE_MANAGER, 1, "MNU_CREATE_MANAGER", "Popup Menu" ) 
+ ; f( MNU_EXTRA_CONTROL, 1, "MNU_EXTRA_CONTROL", "Popup Menu" ) 
+ ; f( MNU_CREATE_KEYPAD, 1, "MNU_CREATE_KEYPAD", "Popup Menu" ) 
+ ; f( MNU_CREATE_ISSUE, 1, "MNU_CREATE_ISSUE", "Popup Menu" ) 
+ ; f( MNU_CREATE_USERINFO, 1, "MNU_CREATE_USERINFO", "Popup Menu" ) 
+ ; f( MNU_CLONE, 1, "MNU_CLONE", "Popup Menu" ) 
+ ; f( MNU_MAKE_CLONE, 1, "MNU_MAKE_CLONE", "Popup Menu" ) 
 
 // start a whole new range
- ; f( MNU_CREATE_EXTRA, 1, WIDE( "MNU_CREATE_EXTRA" ), WIDE( "Popup Menu" ) ) 
-		 ; f( MNU_CREATE_EXTRA, 1000, WIDE( "MNU_CREATE_EXTRA" ), WIDE( "Popup Menu" ) ) ; f( MNU_CREATE_EXTRA_MAX, 1, WIDE( "MNU_CREATE_EXTRA_MAX" ), WIDE( "Popup Menu" ) ) 
-		 ; f( MNU_CHANGE_PAGE, 1, WIDE( "MNU_CHANGE_PAGE" ), WIDE( "Popup Menu" ) ) 
-       ; f( MNU_CHANGE_PAGE, 256, WIDE( "MNU_CHANGE_PAGE" ), WIDE( "Popup Menu" ) ) ; f( MNU_CHANGE_PAGE_MAX, 1, WIDE( "MNU_CHANGE_PAGE_MAX" ), WIDE( "Popup Menu" ) ) 
-		 ; f( MNU_DESTROY_PAGE, 1, WIDE( "MNU_DESTROY_PAGE" ), WIDE( "Popup Menu" ) ) 
-       ; f( MNU_DESTROY_PAGE, 256, WIDE( "MNU_DESTROY_PAGE" ), WIDE( "Popup Menu" ) ) ; f( MNU_DESTROY_PAGE_MAX, 1, WIDE( "MNU_DESTROY_PAGE_MAX" ), WIDE( "Popup Menu" ) ) 
-		 ; f( MNU_UNDELETE_PAGE, 1, WIDE( "MNU_UNDELETE_PAGE" ), WIDE( "Popup Menu" ) ) 
-       ; f( MNU_UNDELETE_PAGE, 256, WIDE( "MNU_UNDELETE_PAGE" ), WIDE( "Popup Menu" ) ) ; f( MNU_UNDELETE_PAGE_MAX, 1, WIDE( "MNU_UNDELETE_PAGE_MAX" ), WIDE( "Popup Menu" ) ) 
+ ; f( MNU_CREATE_EXTRA, 1, "MNU_CREATE_EXTRA", "Popup Menu" ) 
+		 ; f( MNU_CREATE_EXTRA, 1000, "MNU_CREATE_EXTRA", "Popup Menu" ) ; f( MNU_CREATE_EXTRA_MAX, 1, "MNU_CREATE_EXTRA_MAX", "Popup Menu" ) 
+		 ; f( MNU_CHANGE_PAGE, 1, "MNU_CHANGE_PAGE", "Popup Menu" ) 
+       ; f( MNU_CHANGE_PAGE, 256, "MNU_CHANGE_PAGE", "Popup Menu" ) ; f( MNU_CHANGE_PAGE_MAX, 1, "MNU_CHANGE_PAGE_MAX", "Popup Menu" ) 
+		 ; f( MNU_DESTROY_PAGE, 1, "MNU_DESTROY_PAGE", "Popup Menu" ) 
+       ; f( MNU_DESTROY_PAGE, 256, "MNU_DESTROY_PAGE", "Popup Menu" ) ; f( MNU_DESTROY_PAGE_MAX, 1, "MNU_DESTROY_PAGE_MAX", "Popup Menu" ) 
+		 ; f( MNU_UNDELETE_PAGE, 1, "MNU_UNDELETE_PAGE", "Popup Menu" ) 
+       ; f( MNU_UNDELETE_PAGE, 256, "MNU_UNDELETE_PAGE", "Popup Menu" ) ; f( MNU_UNDELETE_PAGE_MAX, 1, "MNU_UNDELETE_PAGE_MAX", "Popup Menu" ) 
 
 
- ; f( KEYPAD_KEYS, 1, WIDE( "KEYPAD_KEYS" ), WIDE( "Keypad Control" ) ) 
+ ; f( KEYPAD_KEYS, 1, "KEYPAD_KEYS", "Keypad Control" ) 
 
 //--- Super menu options...
- ; f( MNU_EDIT_SCREEN, 1, WIDE( "MNU_EDIT_SCREEN" ), WIDE( "Popup Menu" ) ) 
+ ; f( MNU_EDIT_SCREEN, 1, "MNU_EDIT_SCREEN", "Popup Menu" ) 
 
 
 //--- Edit menu options...
- ; f( MNU_ADD_KEYPAD, 1, WIDE( "MNU_ADD_KEYPAD" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_EDIT_DONE, 1, WIDE( "MNU_EDIT_DONE" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_PAGE_PROPERTIES, 1, WIDE( "MNU_PAGE_PROPERTIES" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_CREATE_PAGE, 1, WIDE( "MNU_CREATE_PAGE" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_RENAME_PAGE, 1, WIDE( "MNU_RENAME_PAGE" ), WIDE( "Popup Menu" ) ) 
+ ; f( MNU_ADD_KEYPAD, 1, "MNU_ADD_KEYPAD", "Popup Menu" ) 
+ ; f( MNU_EDIT_DONE, 1, "MNU_EDIT_DONE", "Popup Menu" ) 
+ ; f( MNU_PAGE_PROPERTIES, 1, "MNU_PAGE_PROPERTIES", "Popup Menu" ) 
+ ; f( MNU_CREATE_PAGE, 1, "MNU_CREATE_PAGE", "Popup Menu" ) 
+ ; f( MNU_RENAME_PAGE, 1, "MNU_RENAME_PAGE", "Popup Menu" ) 
 
 
 //--- Keypad property menu...
- ; f( MNU_SETFONT, 1, WIDE( "MNU_SETFONT" ), WIDE( "Popup Menu" ) ) 
+ ; f( MNU_SETFONT, 1, "MNU_SETFONT", "Popup Menu" ) 
 
 //--- Button property menu...
 //SYMNAME( MNU_SETFONT
 
 
- ; f( TXT_CONTROL_TEXT, 1, WIDE( "TXT_CONTROL_TEXT" ), WIDE( "EditControl" ) ) 
+ ; f( TXT_CONTROL_TEXT, 1, "TXT_CONTROL_TEXT", "EditControl" ) 
 //SYMNAME( TXT_TASK_NAME       , EDIT_FIELD_NAME )
 //SYMNAME( TXT_TASK_PATH       , EDIT_FIELD_NAME )
 //SYMNAME( TXT_TASK_ARGS       , EDIT_FIELD_NAME )
- ; f( CLR_BACKGROUND, 1, WIDE( "CLR_BACKGROUND" ), WIDE( "Color Well" ) ) 
- ; f( CHK_BACK_IMAGE, 1, WIDE( "CHK_BACK_IMAGE" ), WIDE( "CheckButton" ) ) 
- ; f( TXT_IMAGE_NAME, 1, WIDE( "TXT_IMAGE_NAME" ), WIDE( "EditControl" ) ) 
- ; f( TXT_ANIMATION_NAME, 1, WIDE( "TXT_ANIMATION_NAME" ), WIDE( "EditControl" ) ) 
- ; f( BTN_PICKFILE, 1, WIDE( "BTN_PICKFILE" ), WIDE( "Button" ) ) 
- ; f( BTN_ADD_PAGE_THEME, 1, WIDE( "BTN_ADD_PAGE_THEME" ), WIDE( "Button" ) )
- ; f( BTN_PICKANIMFILE, 1, WIDE( "BTN_PICKANIMFILE" ), WIDE( "Button" ) ) 
- ; f( CLR_TEXT_COLOR, 1, WIDE( "CLR_TEXT_COLOR" ), WIDE( "Color Well" ) ) 
- ; f( CHK_ROUND, 1, WIDE( "CHK_ROUND" ), WIDE( "CheckButton" ) ) 
- ; f( CHK_SQUARE, 1, WIDE( "CHK_SQUARE" ), WIDE( "CheckButton" ) ) 
- ; f( CHK_NOLENSE, 1, WIDE( "CHK_NOLENSE" ), WIDE( "CheckButton" ) ) 
- ; f( CHK_NOPRESS, 1, WIDE( "CHK_NOPRESS" ), WIDE( "CheckButton" ) ) 
- ; f( CLR_RING_BACKGROUND, 1, WIDE( "CLR_RING_BACKGROUND" ), WIDE( "Color Well" ) ) 
- ; f( LST_PAGES, 1, WIDE( "LST_PAGES" ), WIDE( "ListBox" ) )  // listbox for pages 
- ; f( LST_VARIABLES, 1, WIDE( "LST_VARIABLES" ), WIDE( "ListBox" ) ) 
- ; f( LISTBOX_PAGE_THEME, 1, WIDE( "LISTBOX_PAGE_THEME" ), WIDE( "ListBox" ) )
-		 ; f( LST_FONTS, 1, WIDE( "LST_FONTS" ), WIDE( "ListBox" ) ) 
-		 ; f( LST_SELECT_USER, 1, WIDE( "LST_SELECT_USER" ), WIDE( "ListBox" ) ) 
-		 ; f( EDT_PASSWORD, 1, WIDE( "EDT_PASSWORD" ), WIDE( "EditControl" ) ) 
-       ; f( LST_BUTTON_STYLE, 1, WIDE( "LST_BUTTON_STYLE" ), WIDE( "ListBox" ) ) 
- ; f( MNU_EDIT_BEHAVIORS, 1, WIDE( "MNU_EDIT_BEHAVIORS" ), WIDE( "Popup Menu" ) ) 
+ ; f( CLR_BACKGROUND, 1, "CLR_BACKGROUND", "Color Well" ) 
+ ; f( CHK_BACK_IMAGE, 1, "CHK_BACK_IMAGE", "CheckButton" ) 
+ ; f( TXT_IMAGE_NAME, 1, "TXT_IMAGE_NAME", "EditControl" ) 
+ ; f( TXT_ANIMATION_NAME, 1, "TXT_ANIMATION_NAME", "EditControl" ) 
+ ; f( BTN_PICKFILE, 1, "BTN_PICKFILE", "Button" ) 
+ ; f( BTN_ADD_PAGE_THEME, 1, "BTN_ADD_PAGE_THEME", "Button" )
+ ; f( BTN_PICKANIMFILE, 1, "BTN_PICKANIMFILE", "Button" ) 
+ ; f( CLR_TEXT_COLOR, 1, "CLR_TEXT_COLOR", "Color Well" ) 
+ ; f( CHK_ROUND, 1, "CHK_ROUND", "CheckButton" ) 
+ ; f( CHK_SQUARE, 1, "CHK_SQUARE", "CheckButton" ) 
+ ; f( CHK_NOLENSE, 1, "CHK_NOLENSE", "CheckButton" ) 
+ ; f( CHK_NOPRESS, 1, "CHK_NOPRESS", "CheckButton" ) 
+ ; f( CLR_RING_BACKGROUND, 1, "CLR_RING_BACKGROUND", "Color Well" ) 
+ ; f( LST_PAGES, 1, "LST_PAGES", "ListBox" )  // listbox for pages 
+ ; f( LST_VARIABLES, 1, "LST_VARIABLES", "ListBox" ) 
+ ; f( LISTBOX_PAGE_THEME, 1, "LISTBOX_PAGE_THEME", "ListBox" )
+		 ; f( LST_FONTS, 1, "LST_FONTS", "ListBox" ) 
+		 ; f( LST_SELECT_USER, 1, "LST_SELECT_USER", "ListBox" ) 
+		 ; f( EDT_PASSWORD, 1, "EDT_PASSWORD", "EditControl" ) 
+       ; f( LST_BUTTON_STYLE, 1, "LST_BUTTON_STYLE", "ListBox" ) 
+ ; f( MNU_EDIT_BEHAVIORS, 1, "MNU_EDIT_BEHAVIORS", "Popup Menu" ) 
 
- ; f( LST_HALL, 1, WIDE( "LST_HALL" ), WIDE( "ListBox" ) ) 
- ; f( LST_BUTTON_MODES, 1, WIDE( "LST_BUTTON_MODES" ), WIDE( "ListBox" ) ) 
- ; f( LST_ELECTRONIC_ITEMS, 1, WIDE( "LST_ELECTRONIC_ITEMS" ), WIDE( "ListBox" ) ) 
- ; f( LST_REGION_SELECT, 1, WIDE( "LST_REGION_SELECT" ), WIDE( "ListBox" ) ) 
-		 ; f( MNU_EDIT_FONTS, 1, WIDE( "MNU_EDIT_FONTS" ), WIDE( "Popup Menu" ) ) 
-		 ; f( CLR_RING_HIGHLIGHT, 1, WIDE( "CLR_RING_HIGHLIGHT" ), WIDE( "Color Well" ) ) 
+ ; f( LST_HALL, 1, "LST_HALL", "ListBox" ) 
+ ; f( LST_BUTTON_MODES, 1, "LST_BUTTON_MODES", "ListBox" ) 
+ ; f( LST_ELECTRONIC_ITEMS, 1, "LST_ELECTRONIC_ITEMS", "ListBox" ) 
+ ; f( LST_REGION_SELECT, 1, "LST_REGION_SELECT", "ListBox" ) 
+		 ; f( MNU_EDIT_FONTS, 1, "MNU_EDIT_FONTS", "Popup Menu" ) 
+		 ; f( CLR_RING_HIGHLIGHT, 1, "CLR_RING_HIGHLIGHT", "Color Well" ) 
 
 		/* glare set edit resources */
 		/* menu set for global property plugins - auto loaded tasks, wait for caller flags, etc...
          first module to use this is tasks.isp */
-		 ; f( MNU_GLOBAL_PROPERTIES, 1, WIDE( "MNU_GLOBAL_PROPERTIES" ), WIDE( "Popup Menu" ) ) 
-       ; f( MNU_GLOBAL_PROPERTIES, 256, WIDE( "MNU_GLOBAL_PROPERTIES" ), WIDE( "Popup Menu" ) ) ; f( MNU_GLOBAL_PROPERTIES_MAX, 1, WIDE( "MNU_GLOBAL_PROPERTIES_MAX" ), WIDE( "Popup Menu" ) ) 
-       ; f( CHECKBOX_LABEL_CENTER, 1, WIDE( "CHECKBOX_LABEL_CENTER" ), WIDE( "CheckButton" ) ) 
-       ; f( CHECKBOX_LABEL_RIGHT, 1, WIDE( "CHECKBOX_LABEL_RIGHT" ), WIDE( "CheckButton" ) ) 
-       ; f( CHECKBOX_LABEL_SCROLL, 1, WIDE( "CHECKBOX_LABEL_SCROLL" ), WIDE( "CheckButton" ) )
-       ; f( CHECKBOX_LABEL_SHADOW, 1, WIDE( "CHECKBOX_LABEL_SHADOW" ), WIDE( "CheckButton" ) )
-       ; f( CHECKBOX_LIST_MULTI_SELECT, 1, WIDE( "CHECKBOX_LIST_MULTI_SELECT" ), WIDE( "CheckButton" ) ) 
-       ; f( CHECKBOX_LIST_LAZY_MULTI_SELECT, 1, WIDE( "CHECKBOX_LIST_LAZY_MULTI_SELECT" ), WIDE( "CheckButton" ) ) 
+		 ; f( MNU_GLOBAL_PROPERTIES, 1, "MNU_GLOBAL_PROPERTIES", "Popup Menu" ) 
+       ; f( MNU_GLOBAL_PROPERTIES, 256, "MNU_GLOBAL_PROPERTIES", "Popup Menu" ) ; f( MNU_GLOBAL_PROPERTIES_MAX, 1, "MNU_GLOBAL_PROPERTIES_MAX", "Popup Menu" ) 
+       ; f( CHECKBOX_LABEL_CENTER, 1, "CHECKBOX_LABEL_CENTER", "CheckButton" ) 
+       ; f( CHECKBOX_LABEL_RIGHT, 1, "CHECKBOX_LABEL_RIGHT", "CheckButton" ) 
+       ; f( CHECKBOX_LABEL_SCROLL, 1, "CHECKBOX_LABEL_SCROLL", "CheckButton" )
+       ; f( CHECKBOX_LABEL_SHADOW, 1, "CHECKBOX_LABEL_SHADOW", "CheckButton" )
+       ; f( CHECKBOX_LIST_MULTI_SELECT, 1, "CHECKBOX_LIST_MULTI_SELECT", "CheckButton" ) 
+       ; f( CHECKBOX_LIST_LAZY_MULTI_SELECT, 1, "CHECKBOX_LIST_LAZY_MULTI_SELECT", "CheckButton" ) 
 
       //--- added additional options for menu, not implemented on menu
- ; f( MNU_COPY, 1, WIDE( "MNU_COPY" ), WIDE( "Popup Menu" ) ) 
- ; f( MNU_PASTE, 1, WIDE( "MNU_PASTE" ), WIDE( "Popup Menu" ) ) 
-		 ; f( MNU_EDIT_CONTROL_COMMON, 1, WIDE( "MNU_EDIT_CONTROL_COMMON" ), WIDE( "Popup Menu" ) ) 
- ; f( TXT_IMAGE_H_MARGIN, 1, WIDE( "TXT_IMAGE_H_MARGIN" ), WIDE( "EditControl" ) ) 
- ; f( TXT_IMAGE_V_MARGIN, 1, WIDE( "TXT_IMAGE_V_MARGIN" ), WIDE( "EditControl" ) ) 
+ ; f( MNU_COPY, 1, "MNU_COPY", "Popup Menu" ) 
+ ; f( MNU_PASTE, 1, "MNU_PASTE", "Popup Menu" ) 
+		 ; f( MNU_EDIT_CONTROL_COMMON, 1, "MNU_EDIT_CONTROL_COMMON", "Popup Menu" ) 
+ ; f( TXT_IMAGE_H_MARGIN, 1, "TXT_IMAGE_H_MARGIN", "EditControl" ) 
+ ; f( TXT_IMAGE_V_MARGIN, 1, "TXT_IMAGE_V_MARGIN", "EditControl" ) 
  ;
-  f( LABEL_TEXT_COLOR           , 1, WIDE("LABEL_TEXT_COLOR"), STATIC_TEXT_NAME );
-  f(LABEL_BACKGROUND_COLOR     , 1, WIDE( "LABEL_BACKGROUND_COLOR"), STATIC_TEXT_NAME );
-  f(LABEL_RING_COLOR           , 1, WIDE( "LABEL_RING_COLOR"), STATIC_TEXT_NAME );
-  f(LABEL_RING_HIGHLIGHT_COLOR , 1, WIDE( "LABEL_RING_HIGHTLIGHT_COLOR" ), STATIC_TEXT_NAME );
+  f( LABEL_TEXT_COLOR           , 1, "LABEL_TEXT_COLOR", STATIC_TEXT_NAME );
+  f(LABEL_BACKGROUND_COLOR     , 1, "LABEL_BACKGROUND_COLOR", STATIC_TEXT_NAME );
+  f(LABEL_RING_COLOR           , 1, "LABEL_RING_COLOR", STATIC_TEXT_NAME );
+  f(LABEL_RING_HIGHLIGHT_COLOR , 1, "LABEL_RING_HIGHTLIGHT_COLOR", STATIC_TEXT_NAME );
 }

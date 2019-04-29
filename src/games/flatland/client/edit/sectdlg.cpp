@@ -60,12 +60,12 @@ void CPROC NewTexture( uintptr_t psvParent, PCONTROL button )
 		PCOMMON parent;
 	} *args = (struct arg_tag *)psvParent;
 	name[0] = 0;
-	if( SimpleUserQuery( name, 256, WIDE("Enter new texture name..."), args->parent ) )
+	if( SimpleUserQuery( name, 256, "Enter new texture name...", args->parent ) )
 	{
 		PCONTROL pcList;
 		if( !StrLen( name ) )
 		{
-			SimpleMessage( WIDE("Hey - gotta put in a name :) ") );
+			SimpleMessage( "Hey - gotta put in a name :) " );
 			return;
 		}
 		texture = MakeTexture( args->display->pWorld, MakeName( args->display->pWorld, name ) );
@@ -119,7 +119,7 @@ void CPROC DelTexture( uintptr_t unused, PCONTROL button )
 		PFLATLAND_TEXTURE texture = (PFLATLAND_TEXTURE)GetItemData( hli );
 		if( texture->refcount )
 		{
-			SimpleMessage( WIDE("Texture is referenced - cannot delete") );
+			SimpleMessage( "Texture is referenced - cannot delete" );
 			return;
 		}
 		//DeleteTexture( texture, display->pWorld );
@@ -135,7 +135,7 @@ void ShowSectorProperties( PCOMMON pc, int nSectors, INDEX *ppsectors, int x, in
 	PCOMMON pf;
 	PDISPLAY display = ControlData( PDISPLAY, pc );
 	PCONTROL pcName, pcVertical, pcList;
-	pf = CreateFrame( WIDE("Sector Properties"), 0, 0, 255, 235, 0, pc );
+	pf = CreateFrame( "Sector Properties", 0, 0, 255, 235, 0, pc );
 	MoveFrame( pf, x, y );
 
 	if( nSectors == 1 )
@@ -144,8 +144,8 @@ void ShowSectorProperties( PCOMMON pc, int nSectors, INDEX *ppsectors, int x, in
 		GetNameText( display->pWorld, GetSectorName( display->pWorld, ppsectors[0] )
 				, oldname, sizeof( oldname ) );
 		pcName = MakeEditControl( pf, 50, 5, 200, 14, EDT_NAME, oldname, 0 );
-		MakeTextControl( pf, 5, 6, 45, 12, -1, WIDE("Name:"), 0 );
-		pcVertical = MakeCheckButton( pf, 5, 24, 78, 14, CHK_INVERT, WIDE("Vertical"), 0, NULL, 0 );
+		MakeTextControl( pf, 5, 6, 45, 12, -1, "Name:", 0 );
+		pcVertical = MakeCheckButton( pf, 5, 24, 78, 14, CHK_INVERT, "Vertical", 0, NULL, 0 );
 		//if( ppsectors[0]->iName )
 		//	SetCheckState( pcVertical, ppsectors[0]->name->flags.bVertical );
 	}
@@ -172,10 +172,10 @@ void ShowSectorProperties( PCOMMON pc, int nSectors, INDEX *ppsectors, int x, in
 		} args;
 		args.display = display;
 		args.parent = pf;
-		MakeButton( pf, 5, 147, 105, 19, BTN_NEWTEXTURE, WIDE("New Texture"), 0, NewTexture, (uintptr_t)&args );
+		MakeButton( pf, 5, 147, 105, 19, BTN_NEWTEXTURE, "New Texture", 0, NewTexture, (uintptr_t)&args );
 	}
-	MakeButton( pf, 5, 169, 105, 19, BTN_TEXTURECOLOR, WIDE("Texture Color"), 0, SetTextureColor, display->pWorld );
-	MakeButton( pf, 115, 147, 115, 19, BTN_DELTEXTURE, WIDE("Delete Texture"), 0, DelTexture, 0 );
+	MakeButton( pf, 5, 169, 105, 19, BTN_TEXTURECOLOR, "Texture Color", 0, SetTextureColor, display->pWorld );
+	MakeButton( pf, 115, 147, 115, 19, BTN_DELTEXTURE, "Delete Texture", 0, DelTexture, 0 );
 
 	AddCommonButtons( pf, &Fail, &OK );
 

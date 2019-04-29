@@ -248,7 +248,7 @@ DeclareSet( BUFFER_LENGTH_PAIR );
 
 #define DEBUG_DATA_XFER
 #ifdef DEBUG_DATA_XFER
-#  define msgsnd( q,msg,len,opt) ( _lprintf(DBG_RELAY)( WIDE("Send Message...%d %d"), len, len+4 ), LogBinary( (uint8_t*)msg, (len)+4  ), EnqueMsg( q,(msg),(len),(opt)) )
+#  define msgsnd( q,msg,len,opt) ( _lprintf(DBG_RELAY)( "Send Message...%d %d", len, len+4 ), LogBinary( (uint8_t*)msg, (len)+4  ), EnqueMsg( q,(msg),(len),(opt)) )
 #else
 #  define msgsnd(a,b,c,d) EnqueMsg((PMSGHANDLE)a,b,c,d)
 #endif
@@ -268,8 +268,8 @@ DeclareSet( BUFFER_LENGTH_PAIR );
 	#define MSGFAIL NULL
 #else
 #ifdef DEBUG_DATA_XFER
-	//#define msgsnd( q,msg,len,opt) ( _xlprintf(1 DBG_RELAY)( WIDE("Send Message...") ), LogBinary( (POINTER)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
-	#define msgsnd( q,msg,len,opt) ( lprintf( WIDE("Send Message...") ), LogBinary( (uint8_t*)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
+	//#define msgsnd( q,msg,len,opt) ( _xlprintf(1 DBG_RELAY)( "Send Message..." ), LogBinary( (POINTER)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
+	#define msgsnd( q,msg,len,opt) ( lprintf( "Send Message..." ), LogBinary( (uint8_t*)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
 #endif
 	#define msgget( name,n,opts) msgget( n,opts )
 	#define MSGFAIL -1

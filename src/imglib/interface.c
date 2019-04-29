@@ -187,26 +187,26 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
 #ifdef SACK_BAG_EXPORTS
 #  ifdef __cplusplus_cli 
-#     define NAME WIDE("sack.image")
+#     define NAME "sack.image"
 #  else
 #    ifdef __cplusplus
-#define NAME WIDE("sack.image++")
+#define NAME "sack.image++"
 #    else
-#define NAME WIDE("sack.image")
+#define NAME "sack.image"
 #    endif
 #  endif
 #else
 #  ifdef UNDER_CE
-#define NAME WIDE("image")
+#define NAME "image"
 #  else
 #    ifdef __cplusplus
 #      ifdef __cplusplus_cli 
-#         define NAME WIDE("sack.image")
+#         define NAME "sack.image"
 #      else
-#         define NAME WIDE("sack.image++")
+#         define NAME "sack.image++"
 #      endif
 #    else
-#      define NAME WIDE("sack.image")
+#      define NAME "sack.image"
 #    endif
 #  endif
 #endif

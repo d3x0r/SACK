@@ -163,7 +163,7 @@ SYSTEM_PROC( generic_function, LoadPrivateFunctionEx )( CTEXTSTR libname, CTEXTS
 #define LoadPrivateFunction(l,f) LoadPrivateFunctionEx(l,f DBG_SRC )
 
 #define OnLibraryLoad(name)  \
-	DefineRegistryMethod(WIDE("SACK"),_OnLibraryLoad,WIDE("system/library"),WIDE("load_event"),name WIDE("_LoadEvent"),void,(void), __LINE__)
+	DefineRegistryMethod("SACK",_OnLibraryLoad,"system/library","load_event",name "_LoadEvent",void,(void), __LINE__)
 
 // the callback passed will be called during LoadLibrary to allow an external
 // handler to download or extract the library; the resulting library should also

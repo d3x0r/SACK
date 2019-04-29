@@ -87,7 +87,7 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 	// can use handle from memory allocation level.....
 	if (!hVideo)         // wait......
 		return FALSE;
-	//lprintf( WIDE("And here I might want to update the video, hope someone else does for me.") );
+	//lprintf( "And here I might want to update the video, hope someone else does for me." );
 	return nFracture + 1;
 }
 

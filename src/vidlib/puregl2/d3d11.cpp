@@ -103,7 +103,7 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 	// can use handle from memory allocation level.....
 	if (!hVideo)         // wait......
 		return FALSE;
-	//lprintf( WIDE("And here I might want to update the video, hope someone else does for me.") );
+	//lprintf( "And here I might want to update the video, hope someone else does for me." );
 	return nFracture + 1;
 }
 
@@ -272,13 +272,13 @@ int InitDxDisplays( struct display_camera *camera )
 		{
 			Deallocate( struct dxgi_adapter *, adapter );
 			if( result != DXGI_ERROR_NOT_FOUND )
-				lprintf( WIDE("Fatal no adapaters?  enumerated %d %x"), nAdapters, result );
+				lprintf( "Fatal no adapaters?  enumerated %d %x", nAdapters, result );
 			break;
 		}
 		else
 		{
 			adapter->adapter->GetDesc( &adapter->adapterDesc );
-			lprintf( WIDE("Found adapter [%s]"), adapter->adapterDesc.Description );
+			lprintf( "Found adapter [%s]", adapter->adapterDesc.Description );
 			AddLink( &l.adapters, adapter );
 		}
 	}
@@ -303,7 +303,7 @@ int InitDxDisplays( struct display_camera *camera )
 			else
 			{
 				output->adapterOutput->GetDesc( &output->adapterOutputDesc );
-				lprintf( WIDE("Found output on [%s]%s"), adapter->adapterDesc.Description, output->adapterOutputDesc.DeviceName );
+				lprintf( "Found output on [%s]%s", adapter->adapterDesc.Description, output->adapterOutputDesc.DeviceName );
 				AddLink( &adapter->adapter_outputs, output );
 			}
 		}while( result != DXGI_ERROR_NOT_FOUND );
@@ -499,7 +499,7 @@ int EnableD3d( struct display_camera *camera )
 					, &camera->device_context);
 		if( result )
 		{
-			lprintf( WIDE("Failed to create device.") );
+			lprintf( "Failed to create device." );
 			return FALSE;
 		}
 	}
@@ -540,7 +540,7 @@ int EnableD3d( struct display_camera *camera )
 									  format);
 
 
-	lprintf( WIDE("don't know what to do with a target anyway (yet); set it as a render target I suppose.") );
+	lprintf( "don't know what to do with a target anyway (yet); set it as a render target I suppose." );
 	  	l.d2d1_factory->CreateDxgiSurfaceRenderTarget(
 																 camera->surface,
 																 &properties,
@@ -557,7 +557,7 @@ int EnableD3d( struct display_camera *camera )
 		camera->device_context->OMSetRenderTargets(1, &camera->render_target_view, camera->depth_stencil_view );
 	}
 	else
-		lprintf( WIDE("Fatal gettigg backbuffer.") );
+		lprintf( "Fatal gettigg backbuffer." );
 
 
 	D3D11_RASTERIZER_DESC rasterDesc;

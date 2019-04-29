@@ -219,7 +219,7 @@ CDATA ColorAverage( CDATA c1, CDATA c2
 	if( USS_GT( ( bound->height + bound->y - 1 ),IMAGE_SIZE_COORDINATE,pImage->eff_maxy,int) )
 		bound->height = ( pImage->eff_maxy - bound->y ) + 1;
 
-	//Log4( WIDE("Setting image bound to (%d,%d)-(%d,%d)"),
+	//Log4( "Setting image bound to (%d,%d)-(%d,%d)",
 	 //    bound->x, bound->y, bound->width, bound->height );
 	// what if it is hidden?
 	if( ( pImage->image ) &&
@@ -258,7 +258,7 @@ static void ComputeImageData( ImageFile *pImage )
 	// check for parent to clip to...
 	if( ( pParent = pImage->pParent ) )
 	{
-		//Log( WIDE("Subimage has a parent...") );
+		//Log( "Subimage has a parent..." );
 		if( x <= pParent->eff_x )
 		{
 			pImage->eff_x = pParent->eff_x - x;
@@ -323,7 +323,7 @@ static void ComputeImageData( ImageFile *pImage )
 		// This computes sub image data only
 		// so if there is no parent, then there
 		// is no surface, and it is hidden.
-		//Log( WIDE("Subimage had no parent - hiding image") );
+		//Log( "Subimage had no parent - hiding image" );
 		pImage->image = NULL;
 		pImage->flags |= IF_FLAG_HIDDEN;
 		pImage->pwidth = 0;
@@ -338,14 +338,14 @@ static void ComputeImageData( ImageFile *pImage )
 			pSub = pSub->pElder;
 		}
 	}
-	//Log5( WIDE("Resulting real image: (%d,%d)-(%d,%d) %p")
+	//Log5( "Resulting real image: (%d,%d)-(%d,%d) %p"
 	//  , pImage->real_x , pImage->real_y
 	 //   , pImage->real_x + pImage->real_width
 	//  , pImage->real_y + pImage->real_height
 	//    , pImage->image);
 	//if( pParent )
 	//{
-	// Log4( WIDE("   Within image: (%d,%d)-(%d,%d)")
+	// Log4( "   Within image: (%d,%d)-(%d,%d)"
 	///       , pParent->real_x , pParent->real_y
 	//     , pParent->real_x + pParent->real_width
 	//     , pParent->real_y + pParent->real_height
@@ -362,7 +362,7 @@ static void ComputeImageData( ImageFile *pImage )
 		return;
 	pImage->real_x = x;
 	pImage->real_y = y;
-	//Log( WIDE("Result image data from move image") );
+	//Log( "Result image data from move image" );
 	ComputeImageData( pImage );
 }
 
@@ -396,7 +396,7 @@ static void ComputeImageData( ImageFile *pImage )
 	if( !pImage->pParent
 		|| ( pImage->flags & IF_FLAG_OWN_DATA ) ) // reallocate the image buffer
 	{
-		//lprintf( WIDE("BLAH") );
+		//lprintf( "BLAH" );
 		if( pImage->real_height != height || pImage->real_width != width )
 		{
 			if( !( pImage->flags & IF_FLAG_EXTERN_COLORS ) )
@@ -412,7 +412,7 @@ static void ComputeImageData( ImageFile *pImage )
 			pImage->eff_maxy =  pImage->y + ( pImage->real_height - 1 );
 			pImage->eff_x = pImage->x;
 			pImage->eff_y = pImage->y;
-			//Log( WIDE("Compute from resize image ( no parent )") );
+			//Log( "Compute from resize image ( no parent )" );
 			// cannot compute this - because computeimage data would
 			// hide an image without a parent.
 
@@ -476,10 +476,10 @@ static void SmearFlag( Image image, int flag )
 {
 	if( !pFoster || !pOrphan || pOrphan->pParent )
 	{
-		Log( WIDE("Cannot adopt an orphan that has parents - it's not an orphan!") );
+		Log( "Cannot adopt an orphan that has parents - it's not an orphan!" );
 		return;
 	}
-	//lprintf( WIDE("Adopting %p(%p) by %p(%p)")
+	//lprintf( "Adopting %p(%p) by %p(%p)"
 	//		 , pOrphan
 	//       , pFoster
 	//		 );
@@ -591,7 +591,7 @@ static void SmearFlag( Image image, int flag )
 	// buffers...
 	if( !pImage )
 	{
-		//Log3( WIDE("Building new image for buffer %08x (%d by %d)"), pc, width, height );
+		//Log3( "Building new image for buffer %08x (%d by %d)", pc, width, height );
 		pImage = BuildImageFileEx( pc, width, height DBG_RELAY );
 		pImage->flags |= IF_FLAG_EXTERN_COLORS;
 	}
@@ -599,7 +599,7 @@ static void SmearFlag( Image image, int flag )
 	{
 		if( !pImage->pParent )
 		{
-			//Log3( WIDE("Re-building new image for buffer %08x (%d by %d)"), pc, width, height );
+			//Log3( "Re-building new image for buffer %08x (%d by %d)", pc, width, height );
 			pImage->image = pc;
 			pImage->flags |= IF_FLAG_EXTERN_COLORS;
 			pImage->real_width = width;
@@ -642,7 +642,7 @@ static void SmearFlag( Image image, int flag )
 
  ImageFile * MakeImageFileEx (uint32_t Width, uint32_t Height DBG_PASS)
 {
-	//lprintf( WIDE("Allocate %d"),sizeof( COLOR ) * Width * Height  );
+	//lprintf( "Allocate %d",sizeof( COLOR ) * Width * Height  );
 	Image tmp = BuildImageFileEx( (PCOLOR)AllocateEx( sizeof( COLOR ) * Width * Height DBG_RELAY )
 										 , Width
 										 , Height
@@ -747,7 +747,7 @@ static void SmearFlag( Image image, int flag )
 Image DecodeMemoryToImage( uint8_t* buf, size_t size )
 {
 	Image file = NULL;
-	//lprintf( WIDE("Attempting to decode an image...") );
+	//lprintf( "Attempting to decode an image..." );
 #ifdef DO_PNG
 	if( !file )
 		file = ImagePngFile( buf, size );
@@ -787,7 +787,7 @@ ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 	uint8_t* buf;
 	ImageFile* file = NULL;
 	FILE* fp;
-	fp = sack_fopen( group, filename, WIDE("rb"));
+	fp = sack_fopen( group, filename, "rb");
 	if (!fp)
 		return NULL;
 
@@ -798,7 +798,7 @@ ImageFile*  LoadImageFileFromGroupEx ( INDEX group, CTEXTSTR filename DBG_PASS )
 	sack_fread (buf, size + 1, 1, fp);
 	sack_fclose (fp);
 
-	//lprintf(WIDE("so far okay -%s %d (%d)"), filename, buf, size );
+	//lprintf("so far okay -%s %d (%d)", filename, buf, size );
 	{ 
 		void setPngImageName( const char *filename );
 		setPngImageName( filename );
@@ -820,7 +820,7 @@ ImageFile*  LoadImageFileEx ( CTEXTSTR filename DBG_PASS )
 {
 	Image result = LoadImageFileFromGroupEx( 0, filename DBG_RELAY );
 	if( !result )
-		result = LoadImageFileFromGroupEx( GetFileGroup( WIDE("Images"), WIDE("./images") ), filename DBG_RELAY );
+		result = LoadImageFileFromGroupEx( GetFileGroup( "Images", "./images" ), filename DBG_RELAY );
 	return result;
 }
 
@@ -830,7 +830,7 @@ void TranslateCoord( Image image, int32_t *x, int32_t *y )
 {
 	while( image )
 	{
-		//lprintf( WIDE("%p adjust image %d,%d "), image, image->real_x, image->real_y );
+		//lprintf( "%p adjust image %d,%d ", image, image->real_x, image->real_y );
 		if( x )
 			(*x) += image->real_x;
 		if( y )
@@ -880,11 +880,11 @@ void TranslateCoord( Image image, int32_t *x, int32_t *y )
 {
 	int tmp1, tmp2;
 	/*
-	lprintf( WIDE("Intersecting rectangles.........") );
-	lprintf( WIDE("r1: (%d,%d)-(%d,%d)  (%d,%d)-(%d,%d)")
+	lprintf( "Intersecting rectangles........." );
+	lprintf( "r1: (%d,%d)-(%d,%d)  (%d,%d)-(%d,%d)"
 			  , r1->x, r1->y, r1->width, r1->height
 			  , r1->x, r1->y, r1->x + r1->width, r1->y + r1->height );
-	lprintf( WIDE("r2: (%d,%d)-(%d,%d)  (%d,%d)-(%d,%d)")
+	lprintf( "r2: (%d,%d)-(%d,%d)  (%d,%d)-(%d,%d)"
 			  , r2->x, r2->y, r2->width, r2->height
 			  , r2->x, r2->y, r2->x + r2->width, r2->y + r2->height );
 	*/
@@ -939,7 +939,7 @@ void TranslateCoord( Image image, int32_t *x, int32_t *y )
 		return FALSE;
 	}
 	/*
-	lprintf( WIDE("r : (%d,%d)-(%d,%d)  (%d,%d)-(%d,%d)")
+	lprintf( "r : (%d,%d)-(%d,%d)  (%d,%d)-(%d,%d)"
 			  , r->x, r->y, r->width, r->height
 			  , r->x, r->y, r->x + r->width, r->y + r->height );
 	*/
@@ -1021,7 +1021,7 @@ void  SetColorAlpha( PCDATA po, int oo, int w, int h, CDATA color )
 {
 	PCOLOR temp, del;
 	int i;
-	//( WIDE("Flip image is VERY VERY VERY DANGEROUS!!!!!!!!!") );
+	//( "Flip image is VERY VERY VERY DANGEROUS!!!!!!!!!" );
 	// if related to any other image - do NOT  flip...
 	if( pif->pParent || pif->pChild || pif->pElder || pif->pYounger )
 		return;
@@ -1073,7 +1073,7 @@ void  SetStringBehavior ( ImageFile *pImage, uint32_t behavior )
 
  void  SetImageAuxRect ( Image pImage, P_IMAGE_RECTANGLE pRect )
 {
-	//lprintf( WIDE("Setting aux rect on %p = %d,%d - %d,%d"), pImage, pRect->x, pRect->y, pRect->width, pRect->height );
+	//lprintf( "Setting aux rect on %p = %d,%d - %d,%d", pImage, pRect->x, pRect->y, pRect->width, pRect->height );
 	if( pImage && pRect )
 		pImage->auxrect = *pRect;
 }

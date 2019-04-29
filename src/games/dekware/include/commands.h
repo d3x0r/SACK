@@ -47,10 +47,10 @@ typedef struct command_entry
 #define ___DefineRegistryMethod3P(priority,task,name,classtype,classname,methodname,desc,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRIORITY_PRELOAD( paste(paste(paste(Register,name),Method),line), priority ) {  \
-	SimpleRegisterMethod( task WIDE("/") classtype, paste(name,line)  \
+	SimpleRegisterMethod( task "/" classtype, paste(name,line)  \
 	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
-   RegisterValue( task WIDE("/") classtype WIDE("/") methodname, WIDE("Description"), desc ); \
-   RegisterValue( task WIDE("/") classtype WIDE("/") methodname, WIDE("Command Class"), classname ); \
+   RegisterValue( task "/" classtype "/" methodname, "Description", desc ); \
+   RegisterValue( task "/" classtype "/" methodname, "Command Class", classname ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
 
@@ -61,39 +61,39 @@ typedef struct command_entry
 
 // static int HandleCommand( "Command Text", "..." )(PSENTIENT ps,PTEXT parameters)
 #define HandleCommand( classname, name, desc )   \
-	__DefineRegistryMethod3P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleExtendedCommand,WIDE("commands"),classname,name,desc,int,(PSENTIENT,PTEXT),__LINE__)
+	__DefineRegistryMethod3P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleExtendedCommand,"commands",classname,name,desc,int,(PSENTIENT,PTEXT),__LINE__)
 
-// static int OnCreateObject( WIDE("object_type"), WIDE( "Friendly description") )(PSENTIENT ps,PENTITY pe_created,PTEXT parameters)
+// static int OnCreateObject( "object_type", "Friendly description" )(PSENTIENT ps,PENTITY pe_created,PTEXT parameters)
 #define OnCreateObject( name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleCreateObject,WIDE("objects"),name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleCreateObject,"objects",name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)
 
-// static int ObjectMethod( WIDE("object_type"), WIDE( "command" ), WIDE( "Friendly command description") )(PSENTIENT ps, PENTITY pe_object, PTEXT parameters)
+// static int ObjectMethod( "object_type", "command", "Friendly command description" )(PSENTIENT ps, PENTITY pe_object, PTEXT parameters)
 #define ObjectMethod( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("objects/")object WIDE("/methods"),name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMethod,"objects/"object "/methods",name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)
 
 #define ObjectMacroCreated( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMacroCreate,WIDE("objects/")object WIDE("/macro/create"),name,desc,void,(PENTITY,PMACRO),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMacroCreate,"objects/"object "/macro/create",name,desc,void,(PENTITY,PMACRO),__LINE__)
 
 #define ObjectMacroDestroyed( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMacroDestroy,WIDE("objects/")object WIDE("/macro/destroy"),name,desc,void,(PENTITY,PMACRO),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMacroDestroy,"objects/"object "/macro/destroy",name,desc,void,(PENTITY,PMACRO),__LINE__)
 
 #define DeviceMethod( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("devices/")object WIDE("/methods"),name,desc,int,(PSENTIENT,PTEXT),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMethod,"devices/"object "/methods",name,desc,int,(PSENTIENT,PTEXT),__LINE__)
 
 #define ObjectVolatileVariableGet( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),ObjectVolatileVariableGet,WIDE("objects/")object WIDE("/variables/")name,WIDE("get"),desc,PTEXT,(PENTITY,PTEXT*),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",ObjectVolatileVariableGet,"objects/"object "/variables/"name,"get",desc,PTEXT,(PENTITY,PTEXT*),__LINE__)
 
 #define DeviceVolatileVariableGet( device, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),DeviceVolatileVariableGet,WIDE("devices/")device WIDE("/variables/")name,WIDE("get"),desc,PTEXT,(PENTITY,PTEXT*),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",DeviceVolatileVariableGet,"devices/"device "/variables/"name,"get",desc,PTEXT,(PENTITY,PTEXT*),__LINE__)
 
 #define ObjectVolatileVariableSet( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),ObjectVolatileVariableSet,WIDE("objects/")object WIDE("/variables/")name,WIDE("set"),desc,PTEXT,(PENTITY,PTEXT),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",ObjectVolatileVariableSet,"objects/"object "/variables/"name,"set",desc,PTEXT,(PENTITY,PTEXT),__LINE__)
 
 #define DeviceVolatileVariableSet( device, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),DeviceVolatileVariableSet,WIDE("devices/")devic WIDE("/variables/")name,WIDE("set"),desc,PTEXT,(PENTITY,PTEXT),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",DeviceVolatileVariableSet,"devices/"devic "/variables/"name,"set",desc,PTEXT,(PENTITY,PTEXT),__LINE__)
 
 #define OnInitDevice( device, desc ) \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, WIDE("Dekware"),HandleObjectMethod,WIDE("devices"),device,desc,PDATAPATH,(PDATAPATH*,PSENTIENT,PTEXT),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMethod,"devices",device,desc,PDATAPATH,(PDATAPATH*,PSENTIENT,PTEXT),__LINE__)
 
 typedef struct volatile_variable_entry
 {

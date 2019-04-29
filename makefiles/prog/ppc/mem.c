@@ -42,9 +42,9 @@ void ValidateMemory( void )
 		if( (mem->start_tag) != 0x12345678 )
 		{
 #ifdef _DEBUG
-			fprintf( stddbg, WIDE("Block %s(%d) underflowed\n"), mem->file, mem->line );
+			fprintf( stddbg, "Block %s(%d) underflowed\n", mem->file, mem->line );
 #else
- 			fprintf( stddbg, WIDE("Block %p underflowed\n"), mem );
+ 			fprintf( stddbg, "Block %p underflowed\n", mem );
 #endif
 			g.ErrorCount++;
 			exit(g.ErrorCount);
@@ -52,9 +52,9 @@ void ValidateMemory( void )
 		if( *(long*)(mem->data + mem->size ) != 0x12345678 )
 		{
 #ifdef _DEBUG
-			fprintf( stddbg, WIDE("Block %s(%d) overflowed\n"), mem->file, mem->line );
+			fprintf( stddbg, "Block %s(%d) overflowed\n", mem->file, mem->line );
 #else
- 			fprintf( stddbg, WIDE("Block %p overflowed\n"), mem );
+ 			fprintf( stddbg, "Block %p overflowed\n", mem );
 #endif
 			g.ErrorCount++;
 			exit(g.ErrorCount);
@@ -86,9 +86,9 @@ void *AllocateEx( size_t size DBG_PASS ) {
 	if( !mem )
 	{
 #ifdef _DEBUG
-		fprintf( stddbg, WIDE("%s(%d) Out of memory.\n"), pFile, nLine );
+		fprintf( stddbg, "%s(%d) Out of memory.\n", pFile, nLine );
 #else
-		fprintf( stddbg, WIDE("Out of memory.\n") );
+		fprintf( stddbg, "Out of memory.\n" );
 #endif
 		g.ErrorCount++;
 		exit(g.ErrorCount);
@@ -96,7 +96,7 @@ void *AllocateEx( size_t size DBG_PASS ) {
 #ifdef _DEBUG
 #ifdef MEMLOG
 	if( g.bDebugLog & DEBUG_MEMORY ) {
-		fprintf( stddbg, WIDE( "%s(%d): Allocate %zd %p\n" ), pFile, nLine, size, mem->data );
+		fprintf( stddbg, "%s(%d): Allocate %zd %p\n", pFile, nLine, size, mem->data );
 		fflush( stddbg );
 	}
 #endif
@@ -131,16 +131,16 @@ void ReleaseExx( void **pp DBG_PASS ) {
 #ifdef MEMLOG
 	if( g.bDebugLog & DEBUG_MEMORY ) {
 #ifdef _DEBUG
-		fprintf( stddbg, WIDE( "%s(%d): Release %p\n" )
+		fprintf( stddbg, "%s(%d): Release %p\n"
 			, pFile, nLine
 			, p );
-		fprintf( stddbg, WIDE( "%s(%d): %s(%d)Release %p\n" )
+		fprintf( stddbg, "%s(%d): %s(%d)Release %p\n"
 			, pFile, nLine
 			, mem->file, mem->line
 			, p );
 		fflush( stddbg );
 #else
-		fprintf( stddbg, WIDE("Release %lp\n")
+		fprintf( stddbg, "Release %lp\n"
 			, p );
 #endif
 	}
@@ -153,7 +153,7 @@ void ReleaseExx( void **pp DBG_PASS ) {
 #endif
 	if( mem->owners != 1 )
 	{
-		fprintf( stddbg, WIDE("Block %p already free from: %s(%d) - or long ago freed (%d)...")
+		fprintf( stddbg, "Block %p already free from: %s(%d) - or long ago freed (%d)..."
 #ifdef _DEBUG
 						" %s(%d)"
 #endif
@@ -175,7 +175,7 @@ void ReleaseExx( void **pp DBG_PASS ) {
 	if( ( *(long*)(mem->data + mem->size ) != 0x12345678 ||
 		  mem->start_tag != 0x12345678 ) )
 	{
-		fprintf( stddbg, WIDE("Application overflowed memory.%p(%d) %s(%d)")
+		fprintf( stddbg, "Application overflowed memory.%p(%d) %s(%d)"
 				 " %s(%d)"
 				, mem->data
 				, mem->size
@@ -205,7 +205,7 @@ void DumpMemory( void )
 	PMEMBLOCK mem = root;
 	while( mem )
 	{
-		fprintf( stddbg, WIDE("Block: %d %p ")
+		fprintf( stddbg, "Block: %d %p "
 #ifdef _DEBUG
 							"%s(%d)"
 #endif

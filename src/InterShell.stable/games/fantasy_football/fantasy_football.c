@@ -13,10 +13,10 @@
 #include "../../intershell_registry.h"
 #include "../../intershell_export.h"
 
-RegisterControlWithBorderEx( WIDE("FF_Attract"), sizeof( struct attract_control *), BORDER_NONE, FF_Attract );
-RegisterControlWithBorderEx( WIDE("FF_Grid"), sizeof( struct game_grid_control *), BORDER_NONE, FF_Grid );
-RegisterControlWithBorderEx( WIDE("FF_Grid_Cell"), sizeof( struct game_cell_control *), BORDER_NONE, FF_GridCell );
-RegisterControlWithBorderEx( WIDE("FF_Scoreboard"), sizeof( struct attract_control *), BORDER_NONE, FF_Scoreboard );
+RegisterControlWithBorderEx( "FF_Attract", sizeof( struct attract_control *), BORDER_NONE, FF_Attract );
+RegisterControlWithBorderEx( "FF_Grid", sizeof( struct game_grid_control *), BORDER_NONE, FF_Grid );
+RegisterControlWithBorderEx( "FF_Grid_Cell", sizeof( struct game_cell_control *), BORDER_NONE, FF_GridCell );
+RegisterControlWithBorderEx( "FF_Scoreboard", sizeof( struct attract_control *), BORDER_NONE, FF_Scoreboard );
 
 struct game_grid_control
 {
@@ -400,9 +400,9 @@ static uintptr_t CPROC SetPrizeLineCount( uintptr_t psv, arg_list args )
 	PARAM( args, int64_t, line );
 	PARAM( args, int64_t, count );
 	TEXTCHAR buf[12];
-	snprintf( buf, 12, WIDE("%")_64fs, line );
+	snprintf( buf, 12, "%"_64fs, line );
 	GetPrizeLine( line );
-	ffl.prizes.lines[line-1].count = SACK_GetProfileIntEx( WIDE("Prizes/Lines"), buf, count, TRUE );
+	ffl.prizes.lines[line-1].count = SACK_GetProfileIntEx( "Prizes/Lines", buf, count, TRUE );
 	return psv;
 }
 static uintptr_t CPROC SetPrizeLinePicks( uintptr_t psv, arg_list args )
@@ -485,29 +485,29 @@ static uintptr_t CPROC 	SetScoreboardMovie ( uintptr_t psv, arg_list args )
 
 static void AddRules( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, WIDE("config=%B"), ProcessConfig );
-	AddConfigurationMethod( pch, WIDE("Attract=%m"), SetAttract );
-	AddConfigurationMethod( pch, WIDE("Down %i=%m"), SetDownIntro );
-	AddConfigurationMethod( pch, WIDE("Grid Background=%m"), SetGameBackground );
-	AddConfigurationMethod( pch, WIDE("Grid Foreground=%m"), SetGameForeground );
-	AddConfigurationMethod( pch, WIDE("Team %i Helmet=%m"), SetTeamHelmet );
-	AddConfigurationMethod( pch, WIDE("Team %i Helmet Sticker=%m"), SetTeamHelmetSticker );
-	AddConfigurationMethod( pch, WIDE("Grid offset XY=%q %q"), SetGameOffset );
-	AddConfigurationMethod( pch, WIDE("Grid Cell Size=%q %q"), SetGameSize );
-	//AddConfigurationMethod( pch, WIDE("Helmet Sound=%m"), SetHelmetSound );
-	AddConfigurationMethod( pch, WIDE("card swipe enable=%i"), SetSwipeEnable );
-	AddConfigurationMethod( pch, WIDE("card start character=%w"), SetStartCharacter );
-	AddConfigurationMethod( pch, WIDE("card end character=%w"), SetEndCharacter );
+	AddConfigurationMethod( pch, "config=%B", ProcessConfig );
+	AddConfigurationMethod( pch, "Attract=%m", SetAttract );
+	AddConfigurationMethod( pch, "Down %i=%m", SetDownIntro );
+	AddConfigurationMethod( pch, "Grid Background=%m", SetGameBackground );
+	AddConfigurationMethod( pch, "Grid Foreground=%m", SetGameForeground );
+	AddConfigurationMethod( pch, "Team %i Helmet=%m", SetTeamHelmet );
+	AddConfigurationMethod( pch, "Team %i Helmet Sticker=%m", SetTeamHelmetSticker );
+	AddConfigurationMethod( pch, "Grid offset XY=%q %q", SetGameOffset );
+	AddConfigurationMethod( pch, "Grid Cell Size=%q %q", SetGameSize );
+	//AddConfigurationMethod( pch, "Helmet Sound=%m", SetHelmetSound );
+	AddConfigurationMethod( pch, "card swipe enable=%i", SetSwipeEnable );
+	AddConfigurationMethod( pch, "card start character=%w", SetStartCharacter );
+	AddConfigurationMethod( pch, "card end character=%w", SetEndCharacter );
 
-	AddConfigurationMethod( pch, WIDE("Prize Image fot value %i=%m"), SetValueImage);
-	AddConfigurationMethod( pch, WIDE("Use Grid Prize Lines=%b"), SetUsePrizeLines );
-	AddConfigurationMethod( pch, WIDE("Total Games=%i"), SetGameCount );
-	AddConfigurationMethod( pch, WIDE("Prize Line %i count = %i"), SetPrizeLineCount );
-	AddConfigurationMethod( pch, WIDE("Prize Line %i picks = %i"), SetPrizeLinePicks );
-	AddConfigurationMethod( pch, WIDE("Prize Line %i down %i = %i"), SetPrizeLinePickValue );
-	AddConfigurationMethod( pch, WIDE("Grid Prize= %i,%i"), SetGridPrize );
+	AddConfigurationMethod( pch, "Prize Image fot value %i=%m", SetValueImage);
+	AddConfigurationMethod( pch, "Use Grid Prize Lines=%b", SetUsePrizeLines );
+	AddConfigurationMethod( pch, "Total Games=%i", SetGameCount );
+	AddConfigurationMethod( pch, "Prize Line %i count = %i", SetPrizeLineCount );
+	AddConfigurationMethod( pch, "Prize Line %i picks = %i", SetPrizeLinePicks );
+	AddConfigurationMethod( pch, "Prize Line %i down %i = %i", SetPrizeLinePickValue );
+	AddConfigurationMethod( pch, "Grid Prize= %i,%i", SetGridPrize );
 
-	AddConfigurationMethod( pch, WIDE("Scoreboard movie=%m"), SetScoreboardMovie );	AddConfigurationMethod( pch, WIDE("Scoreboard static=%m"), SetScoreboardStatic );	AddConfigurationMethod( pch, WIDE("Scoreboard font=%m"), SetScoreboardFont );	AddConfigurationMethod( pch, WIDE("Scoreboard leader position=%q %q"), SetScoreLeaderPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard down position=%q %q"), SetScoreDownPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard total position=%q %q"), SetScoreTotalPosition );	AddConfigurationMethod( pch, WIDE("Scoreboard leader text size=%q %q"), SetScoreLeaderFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard down text size=%q %q"), SetScoreDownFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard total text size=%q %q"), SetScoreTotalFontSize );	AddConfigurationMethod( pch, WIDE("Scoreboard Start time=%i"), SetScoreDrawDelay );	AddConfigurationMethod( pch, WIDE("Scoreboard End time=%i"), SetScoreOutputDoneDelay );
+	AddConfigurationMethod( pch, "Scoreboard movie=%m", SetScoreboardMovie );	AddConfigurationMethod( pch, "Scoreboard static=%m", SetScoreboardStatic );	AddConfigurationMethod( pch, "Scoreboard font=%m", SetScoreboardFont );	AddConfigurationMethod( pch, "Scoreboard leader position=%q %q", SetScoreLeaderPosition );	AddConfigurationMethod( pch, "Scoreboard down position=%q %q", SetScoreDownPosition );	AddConfigurationMethod( pch, "Scoreboard total position=%q %q", SetScoreTotalPosition );	AddConfigurationMethod( pch, "Scoreboard leader text size=%q %q", SetScoreLeaderFontSize );	AddConfigurationMethod( pch, "Scoreboard down text size=%q %q", SetScoreDownFontSize );	AddConfigurationMethod( pch, "Scoreboard total text size=%q %q", SetScoreTotalFontSize );	AddConfigurationMethod( pch, "Scoreboard Start time=%i", SetScoreDrawDelay );	AddConfigurationMethod( pch, "Scoreboard End time=%i", SetScoreOutputDoneDelay );
 
 }
 
@@ -519,7 +519,7 @@ static void ReadConfigFile( CTEXTSTR filename )
 	DestroyConfigurationHandler( pch );
 }
 
-static void OnFinishInit( WIDE( "Fantasy Football" ) )( PSI_CONTROL canvas )
+static void OnFinishInit( "Fantasy Football" )( PSI_CONTROL canvas )
 {
 	// final init.. count how many prizes...
 	int n;
@@ -529,7 +529,7 @@ static void OnFinishInit( WIDE( "Fantasy Football" ) )( PSI_CONTROL canvas )
 	}
 }
 
-static void OnLoadCommon( WIDE( "Fantasy Football" ) )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( "Fantasy Football" )( PCONFIG_HANDLER pch )
 {
 	ReadConfigFile( "fantasy_football_game.config" );
 }
@@ -581,12 +581,12 @@ static void CPROC EndGridCellSound( uintptr_t psv )
 	//SmudgeCommon( gcc->pc ); // one more draw to make sure movie part is cleared
 }
 
-static int OnCreateCommon( WIDE( "FF_Attract" ) )( PSI_CONTROL pc )
+static int OnCreateCommon( "FF_Attract" )( PSI_CONTROL pc )
 {
 	return 1;
 }
 
-static void OnHideCommon( WIDE("FF_Attract") )( PSI_CONTROL pc )
+static void OnHideCommon( "FF_Attract" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, pc );
 	struct attract_control *ac = (*ppac);
@@ -604,7 +604,7 @@ static void OneShotDelay( uintptr_t psv )
 	RestartAttract( psv );
 }
 
-static void OnRevealCommon( WIDE("FF_Attract") )( PSI_CONTROL pc )
+static void OnRevealCommon( "FF_Attract" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, pc );
 	struct attract_control *ac = (*ppac);
@@ -617,12 +617,12 @@ static void OnRevealCommon( WIDE("FF_Attract") )( PSI_CONTROL pc )
 }
 
 
-static int OnCreateCommon( WIDE( "FF_Grid" ) )( PSI_CONTROL pc )
+static int OnCreateCommon( "FF_Grid" )( PSI_CONTROL pc )
 {
 	return 1;
 }
 
-static int OnDrawCommon( WIDE( "FF_Grid" ) )( PSI_CONTROL pc )
+static int OnDrawCommon( "FF_Grid" )( PSI_CONTROL pc )
 {
 	Image surface = GetControlSurface( pc );
 	BlotScaledImage( surface, ffl.grid.control.background );
@@ -630,12 +630,12 @@ static int OnDrawCommon( WIDE( "FF_Grid" ) )( PSI_CONTROL pc )
 	return 1;
 }
 
-static int OnCreateCommon( WIDE( "FF_Grid_Cell" ) )( PSI_CONTROL pc )
+static int OnCreateCommon( "FF_Grid_Cell" )( PSI_CONTROL pc )
 {
 	return 1;
 }
 
-static int OnMouseCommon( WIDE( "FF_Grid_Cell") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
+static int OnMouseCommon( "FF_Grid_Cell" )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	if( b )
 	{
@@ -653,7 +653,7 @@ static int OnMouseCommon( WIDE( "FF_Grid_Cell") )( PSI_CONTROL pc, int32_t x, in
 	return 1;
 }
 
-static void OnHideCommon( WIDE("FF_Grid_Cell") )( PSI_CONTROL pc )
+static void OnHideCommon( "FF_Grid_Cell" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( struct game_cell_control **, FF_GridCell.TypeID, ppgcc, pc );
 	struct game_cell_control *gcc = (*ppgcc);
@@ -697,7 +697,7 @@ static void DrawCellPrize( PSI_CONTROL pc )
 		, ppgcc[0]->fw, ppgcc[0]->fh, ALPHA_TRANSPARENT, BLOT_COPY );
 }
 
-static int OnDrawCommon( WIDE( "FF_Grid_Cell" ) )( PSI_CONTROL pc )
+static int OnDrawCommon( "FF_Grid_Cell" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( struct game_cell_control **, FF_GridCell.TypeID, ppgcc, pc );
 	if( ppgcc[0] )
@@ -719,7 +719,7 @@ static int OnDrawCommon( WIDE( "FF_Grid_Cell" ) )( PSI_CONTROL pc )
 }
 
 
-static int OnCreateCommon( WIDE( "FF_Scoreboard" ) )( PSI_CONTROL pc )
+static int OnCreateCommon( "FF_Scoreboard" )( PSI_CONTROL pc )
 {
 	return 1;
 }
@@ -898,7 +898,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 }
 
 
-static int OnDrawCommon( WIDE( "FF_Scoreboard" ) )( PSI_CONTROL pc )
+static int OnDrawCommon( "FF_Scoreboard" )( PSI_CONTROL pc )
 {
 	BlotScaledImage( GetControlSurface( pc ), ffl.scoreboard.static_image );
 	if( ffl.scoreboard.tick_draw || ffl.scoreboard.tick_finish )
@@ -906,7 +906,7 @@ static int OnDrawCommon( WIDE( "FF_Scoreboard" ) )( PSI_CONTROL pc )
 	return 1;
 }
 
-static void OnHideCommon( WIDE("FF_Scoreboard") )( PSI_CONTROL pc )
+static void OnHideCommon( "FF_Scoreboard" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, pc );
 	struct attract_control *ac = (*ppac);
@@ -923,14 +923,14 @@ static void CPROC NextPage( uintptr_t psv )
 
 
 
-static uintptr_t OnCreateControl(WIDE( "Fantasy Football/Attract" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
+static uintptr_t OnCreateControl("Fantasy Football/Attract")(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
 	ac->attract = TRUE;
-	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
+	ac->pc = MakeNamedControl( parent, "FF_Attract", x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
 		(*ppac) = ac;
@@ -944,18 +944,18 @@ static uintptr_t OnCreateControl(WIDE( "Fantasy Football/Attract" ))(PSI_CONTROL
 	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Attract") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Fantasy Football/Attract" )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
 
-static uintptr_t OnCreateControl(WIDE( "Fantasy Football/Game Grid" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
+static uintptr_t OnCreateControl("Fantasy Football/Game Grid")(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct game_grid_control *ac;
 	ac = &ffl.grid.control;
 
-	ac->pc = MakeNamedControl( parent, WIDE("FF_Grid"), x, y, w, h, 0 );
+	ac->pc = MakeNamedControl( parent, "FF_Grid", x, y, w, h, 0 );
 	ac->background = LoadImageFile( ffl.grid.background );
 	ac->foreground = LoadImageFile( ffl.grid.foreground );
 	InitKeys();
@@ -1009,7 +1009,7 @@ static uintptr_t OnCreateControl(WIDE( "Fantasy Football/Game Grid" ))(PSI_CONTR
 					, ffl.grid.cell[r*8+c].fy
 					, ffl.grid.cell[r*8+c].fw
 					, ffl.grid.cell[r*8+c].fh );
-				ffl.grid.cell[r*8+c].pc = MakeNamedControl( ac->pc, WIDE("FF_Grid_Cell"), cx, cy, cw, ch, 0 );
+				ffl.grid.cell[r*8+c].pc = MakeNamedControl( ac->pc, "FF_Grid_Cell", cx, cy, cw, ch, 0 );
 				{
 					ValidatedControlData( struct game_cell_control **, FF_GridCell.TypeID, ppgcc, ffl.grid.cell[r*8+c].pc );
 					(*ppgcc) = ffl.grid.cell + (r*8+c);
@@ -1037,21 +1037,21 @@ static uintptr_t OnCreateControl(WIDE( "Fantasy Football/Game Grid" ))(PSI_CONTR
 	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Game Grid") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Fantasy Football/Game Grid" )( uintptr_t psv )
 {
 	struct game_grid_control *ggc = (struct game_grid_control *)psv;
 	return ggc->pc;
 }
 
 
-static uintptr_t OnCreateControl(WIDE( "Fantasy Football/1st Down" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
+static uintptr_t OnCreateControl("Fantasy Football/1st Down")(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
 	ac->attract = FALSE;
-	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
+	ac->pc = MakeNamedControl( parent, "FF_Attract", x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
 		(*ppac) = ac;
@@ -1065,20 +1065,20 @@ static uintptr_t OnCreateControl(WIDE( "Fantasy Football/1st Down" ))(PSI_CONTRO
 	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/1st Down") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Fantasy Football/1st Down" )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
 
-static uintptr_t OnCreateControl(WIDE( "Fantasy Football/2nd Down" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
+static uintptr_t OnCreateControl("Fantasy Football/2nd Down")(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
 	ac->attract = FALSE;
-	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
+	ac->pc = MakeNamedControl( parent, "FF_Attract", x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
 		(*ppac) = ac;
@@ -1092,20 +1092,20 @@ static uintptr_t OnCreateControl(WIDE( "Fantasy Football/2nd Down" ))(PSI_CONTRO
 	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/2nd Down") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Fantasy Football/2nd Down" )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
 
-static uintptr_t OnCreateControl(WIDE( "Fantasy Football/3rd Down" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
+static uintptr_t OnCreateControl("Fantasy Football/3rd Down")(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
 	ac->attract = FALSE;
-	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
+	ac->pc = MakeNamedControl( parent, "FF_Attract", x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
 		(*ppac) = ac;
@@ -1119,20 +1119,20 @@ static uintptr_t OnCreateControl(WIDE( "Fantasy Football/3rd Down" ))(PSI_CONTRO
 	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/3rd Down") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Fantasy Football/3rd Down" )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
 
-static uintptr_t OnCreateControl(WIDE( "Fantasy Football/4th Down" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
+static uintptr_t OnCreateControl("Fantasy Football/4th Down")(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
 	ac->attract = FALSE;
-	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
+	ac->pc = MakeNamedControl( parent, "FF_Attract", x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
 		(*ppac) = ac;
@@ -1146,20 +1146,20 @@ static uintptr_t OnCreateControl(WIDE( "Fantasy Football/4th Down" ))(PSI_CONTRO
 	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/4th Down") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Fantasy Football/4th Down" )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;
 }
 
-static uintptr_t OnCreateControl(WIDE( "Fantasy Football/Scoreboard" ))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
+static uintptr_t OnCreateControl("Fantasy Football/Scoreboard")(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	struct attract_control *ac;
 	ac = New( struct attract_control );
 
 	ac->playing = FALSE;
 	ac->attract = TRUE;
-	ac->pc = MakeNamedControl( parent, WIDE("FF_Attract"), x, y, w, h, 0 );
+	ac->pc = MakeNamedControl( parent, "FF_Attract", x, y, w, h, 0 );
 	{
 		ValidatedControlData( struct attract_control **, FF_Attract.TypeID, ppac, ac->pc );
 		(*ppac) = ac;
@@ -1174,7 +1174,7 @@ static uintptr_t OnCreateControl(WIDE( "Fantasy Football/Scoreboard" ))(PSI_CONT
 	return (uintptr_t)ac;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Fantasy Football/Scoreboard") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Fantasy Football/Scoreboard" )( uintptr_t psv )
 {
 	struct attract_control *ac = (struct attract_control *)psv;
 	return ac->pc;

@@ -45,8 +45,8 @@ int KeystrokePaste( PRENDERER pRenderer )
         format = EnumClipboardFormats( 0 );
         while( format )
         {
-            //DECLTEXT( msg, WIDE("                                     ") );
-            //msg.data.size = sprintf( msg.data.data, WIDE("Format: %d"), format );
+            //DECLTEXT( msg, "                                     " );
+            //msg.data.size = sprintf( msg.data.data, "Format: %d", format );
             //EnqueLink( pdp->ps->Command->ppOutput, SegDuplicate( (PTEXT)&msg ) );
             if( format == CF_TEXT )
             {
@@ -81,7 +81,7 @@ int KeystrokePaste( PRENDERER pRenderer )
     }
     else
     {
-        //DECLTEXT( msg, WIDE("Clipboard was not available") );
+        //DECLTEXT( msg, "Clipboard was not available" );
         //EnqueLink( &pdp->ps->Command->Output, &msg );
     }
     return 0;
@@ -97,9 +97,9 @@ int KeystrokePaste( PRENDERER pRenderer )
 
 #define NUM_MODS ( sizeof( ModNames ) / sizeof( char * ) )
 #if 0
-char *ModNames[] = { "shift", WIDE("ctrl"), WIDE("alt")
-                   , NULL, WIDE("control"), NULL
-                   , WIDE("$"), WIDE("^"), WIDE("@") };
+char *ModNames[] = { "shift", "ctrl", "alt"
+                   , NULL, "control", NULL
+                   , "$", "^", "@" };
 
 int FindMod( PTEXT pMod )
 {
@@ -229,21 +229,21 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 	//l.flags.bLogKeyEvent = 1;
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
-		lprintf( WIDE("received key %08x %d(%x) %d(%x) %s %s"), key, keycode, keycode, keymod,keymod
-			, IsKeyExtended( key )?WIDE("extended"): WIDE( ""),IsKeyPressed( key )? WIDE( "press"): WIDE( "release") );
+		lprintf( "received key %08x %d(%x) %d(%x) %s %s", key, keycode, keycode, keymod,keymod
+			, IsKeyExtended( key )?"extended": "",IsKeyPressed( key )? "press": "release" );
 #endif
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
-		lprintf( WIDE("Key event for %08lx ... %d %s %s %s")
+		lprintf( "Key event for %08lx ... %d %s %s %s"
 				 , key
 				 , keycode
-				 , keymod&1? WIDE( "SHIFT"): WIDE( ""), keymod&2? WIDE( "CTRL"): WIDE( ""), keymod&4? WIDE( "ALT"): WIDE( "") );
+				 , keymod&1? "SHIFT": "", keymod&2? "CTRL": "", keymod&4? "ALT": "" );
 #endif
 	if( pKeyDefs[keycode].mod[keymod].flags.bFunction )
 	{
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
-		lprintf( WIDE("And there is a function... key is %s"), IsKeyPressed( key )? WIDE( "Pressed"): WIDE( "Released") );
+		lprintf( "And there is a function... key is %s", IsKeyPressed( key )? "Pressed": "Released" );
 #endif
 		if( pKeyDefs[keycode].mod[keymod].flags.bAll ||
 			( IsKeyPressed( key ) && !pKeyDefs[keycode].mod[keymod].flags.bRelease) ||
@@ -252,7 +252,7 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
          //DebugBreak();
 #ifdef LOG_KEY_EVENTS
 			if( l.flags.bLogKeyEvent )
-				lprintf( WIDE("Invoke!") );
+				lprintf( "Invoke!" );
 #endif
 			if( IsKeyExtended( key ) )
 			{
@@ -260,7 +260,7 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 				PKEY_FUNCTION keyfunc;
 #ifdef LOG_KEY_EVENTS
 				if( l.flags.bLogKeyEvent )
-					lprintf(WIDE( "extended key method configured" ) );
+					lprintf("extended key method configured" );
 #endif
 				LIST_FORALL( pKeyDefs[keycode].mod[keymod].key_procs, idx, PKEY_FUNCTION, keyfunc )
 				{
@@ -268,17 +268,17 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 					{
 #ifdef LOG_KEY_EVENTS
 						if( l.flags.bLogKeyEvent )
-							lprintf(WIDE( "extended key method configured" ) );
+							lprintf("extended key method configured" );
 #endif
 						if( keyfunc->data.extended_key_trigger( keyfunc->extended_key_psv
 																									  , key ) )
 						{
-							lprintf( WIDE("handled.") );
+							lprintf( "handled." );
 							return 1;
 						}
 					}
 				}
-				lprintf( WIDE("not handled") );
+				lprintf( "not handled" );
 				return 0;
 			}
 			else
@@ -287,7 +287,7 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 				PKEY_FUNCTION keyfunc;
 #ifdef LOG_KEY_EVENTS
 				if( l.flags.bLogKeyEvent )
-					lprintf(WIDE( "not extended key method" ) );
+					lprintf("not extended key method" );
 #endif
 				LIST_FORALL( pKeyDefs[keycode].mod[keymod].key_procs, idx, PKEY_FUNCTION, keyfunc )
 				{
@@ -295,27 +295,27 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 					{
 #ifdef LOG_KEY_EVENTS
 						if( l.flags.bLogKeyEvent )
-							lprintf(WIDE( "key method configured %p" ), keyfunc->data.trigger );
+							lprintf("key method configured %p", keyfunc->data.trigger );
 #endif
 						if( keyfunc->data.trigger( keyfunc->psv, key ) )
 						{
-							lprintf( WIDE("handled.") );
+							lprintf( "handled." );
 							return 1;
 						}
 					}
 				}
-				lprintf( WIDE( "not handled") );
+				lprintf( "not handled" );
 				return 0;
 			}
 		}
 		if( l.flags.bLogKeyEvent )
-			lprintf( WIDE( "Probably handled..." ) );
-		lprintf( WIDE( "not handled.") );
+			lprintf( "Probably handled..." );
+		lprintf( "not handled." );
 		// for consistancy better just say we handled this key
 		return 0;
 	}
 	if( l.flags.bLogKeyEvent )
-		lprintf( WIDE( "not handled..." ) );
+		lprintf( "not handled..." );
 	return 0;
 }
 

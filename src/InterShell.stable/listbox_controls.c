@@ -21,7 +21,7 @@ void InterShell_EditListbox( void )
 		// the config, and return the button created.
 		//PPAPER_INFO issue = button->paper;
 		int created = 0;
-		frame = LoadXMLFrame( WIDE("ListboxProperty.isframe") );
+		frame = LoadXMLFrame( "ListboxProperty.isframe" );
 		if( frame )
 		{
 			//could figure out a way to register methods under

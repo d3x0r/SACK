@@ -113,12 +113,12 @@ PRELOAD( RegisterReel)
 }
 
 
-static uintptr_t OnCreateControl( WIDE("Games/Slots/Status Patch"))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
+static uintptr_t OnCreateControl( "Games/Slots/Status Patch")(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	return (uintptr_t)MakeNamedControl( parent, reel_control.name, x, y, w, h, status_local.ID++ );
 }
 
- static PSI_CONTROL OnGetControl(WIDE("Games/Slots/Status Patch"))(uintptr_t psvInit)
+ static PSI_CONTROL OnGetControl("Games/Slots/Status Patch")(uintptr_t psvInit)
  { 
 	 return (PSI_CONTROL)psvInit; 
  }

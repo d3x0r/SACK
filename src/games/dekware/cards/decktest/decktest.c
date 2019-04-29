@@ -14,25 +14,25 @@
 //#
 #endif
 
-TEXTCHAR * create_table=WIDE("CREATE TABLE if not exists `poker_odds` (")
-WIDE("  `ID` int(11) NOT NULL auto_increment,")
-WIDE("  `card1` int(11) NOT NULL default '0',")
-WIDE("  `card2` int(11) NOT NULL default '0',")
-WIDE("  `card3` int(11) NOT NULL default '0',")
-WIDE("  `card4` int(11) NOT NULL default '0',")
-WIDE("  `card5` int(11) NOT NULL default '0',")
-WIDE("  `value` int(11) NOT NULL default '0',")
-WIDE("  `class` int(11) NOT NULL default '0',")
-WIDE("  `name` varchar(32) NOT NULL default '',")
-WIDE("  `split` int(11) NOT NULL default '0',")
-WIDE("  `win` int(11) NOT NULL default '0',")
-WIDE("  `lose` int(11) NOT NULL default '0',")
-WIDE("  `best` int(11) NOT NULL default '0',")
-WIDE("  `better` int(11) NOT NULL default '0',")
-WIDE("  PRIMARY KEY  (`ID`),")
-WIDE("  UNIQUE KEY `hand` (`card1`,`card2`,`card3`,`card4`,`card5`),")
-WIDE("  KEY `valkey` (`value`)")
-WIDE("								  ) TYPE=MyISAM COMMENT='massive lookup for referencing odds on poker hands...';");
+TEXTCHAR * create_table="CREATE TABLE if not exists `poker_odds` ("
+"  `ID` int(11) NOT NULL auto_increment,"
+"  `card1` int(11) NOT NULL default '0',"
+"  `card2` int(11) NOT NULL default '0',"
+"  `card3` int(11) NOT NULL default '0',"
+"  `card4` int(11) NOT NULL default '0',"
+"  `card5` int(11) NOT NULL default '0',"
+"  `value` int(11) NOT NULL default '0',"
+"  `class` int(11) NOT NULL default '0',"
+"  `name` varchar(32) NOT NULL default '',"
+"  `split` int(11) NOT NULL default '0',"
+"  `win` int(11) NOT NULL default '0',"
+"  `lose` int(11) NOT NULL default '0',"
+"  `best` int(11) NOT NULL default '0',"
+"  `better` int(11) NOT NULL default '0',"
+"  PRIMARY KEY  (`ID`),"
+"  UNIQUE KEY `hand` (`card1`,`card2`,`card3`,`card4`,`card5`),"
+"  KEY `valkey` (`value`)"
+"								  ) TYPE=MyISAM COMMENT='massive lookup for referencing odds on poker hands...';";
 
 PRELOAD( CreateCardOddsTable )
 {
@@ -94,7 +94,7 @@ void ResetTable( void )
 	for( s = 0; s < 4; s++ )
 		for( f = 0; f < 13; f++ )
 		{
-         //lprintf( WIDE("picking cards... uhh...") );
+         //lprintf( "picking cards... uhh..." );
 			l.cards[s][f] = PickACard( l.deck, CARD_ID( s, f ) );
 		}
 }
@@ -127,11 +127,11 @@ int CPROC TableDraw( PCOMMON pf )
 			GetPokerHandName( l.hand, &hand_string );
 			if( hand_string )
 			{
-            snprintf( output, sizeof( output ), WIDE("%s                             "), GetText( hand_string ) );
+            snprintf( output, sizeof( output ), "%s                             ", GetText( hand_string ) );
 				PutString( surface, 50, 200, GetBaseColor( TEXTCOLOR ), GetBaseColor( NORMAL ), output );
 			}
 			else
-				PutString( surface, 50, 200, GetBaseColor( TEXTCOLOR ), GetBaseColor( NORMAL ), WIDE("Uhh no hand?!") );
+				PutString( surface, 50, 200, GetBaseColor( TEXTCOLOR ), GetBaseColor( NORMAL ), "Uhh no hand?!" );
 
 			LineRelease( hand_string );
 		}
@@ -144,7 +144,7 @@ int CPROC TableMouse( PCOMMON psv, int32_t x, int32_t y, uint32_t b )
 {
 	// what can I do with a mouse?
 	// I can drraw on a frame... I don't need to be a control...
-	//lprintf( WIDE("mouse: %d %d %x"), x, y, b);
+	//lprintf( "mouse: %d %d %x", x, y, b);
 	if( ( b & MK_LBUTTON ) && !( l._b & MK_LBUTTON ) )
 	{
 		int s = y / l.step_y;
@@ -155,11 +155,11 @@ int CPROC TableMouse( PCOMMON psv, int32_t x, int32_t y, uint32_t b )
 		if( f > 12 )
 			if( SUS_LT(x, int32_t, ((l.step_x * 13 ) + l.width ), uint32_t ) )
             f = 12;
-		lprintf( WIDE("s:%d f:%d %p"), s, f, l.cards[s][f] );
+		lprintf( "s:%d f:%d %p", s, f, l.cards[s][f] );
 		if( ( s < 4 && s >= 0 )
 			&&( f >= 0 && f < 13 ) )
 		{
-			lprintf( WIDE("s:%d f:%d %p"), s, f, l.cards[s][f] );
+			lprintf( "s:%d f:%d %p", s, f, l.cards[s][f] );
 			if( l.cards[s][f] )
 			{
 				if( l.nHand < 2 )
@@ -229,7 +229,7 @@ void ProcessHands( int level, int start )
 		if( !no_output )
 		{
 			pvt_sql = VarTextCreate();
-			vtprintf( pvt_sql, WIDE("insert into poker_odds (ID,card1,card2,card3,card4,card5,value,class,name) values ") );
+			vtprintf( pvt_sql, "insert into poker_odds (ID,card1,card2,card3,card4,card5,value,class,name) values " );
 			first = 1;
 		}
 	}
@@ -237,7 +237,7 @@ void ProcessHands( int level, int start )
 	if( ( handcount & 0xFFF ) == 0 )
 	{
       uint32_t tick = GetTickCount();
-      lprintf( WIDE("hands %ld in %ld = %ld"), handcount, tick - start_tick, (handcount)/(tick-start_tick));
+      lprintf( "hands %ld in %ld = %ld", handcount, tick - start_tick, (handcount)/(tick-start_tick));
 			start_tick = tick;
          handcount = 0;
 	}
@@ -250,7 +250,7 @@ void ProcessHands( int level, int start )
 		//if( ( value = ValuePokerHand( l.hand, NULL, TRUE ) ) >= 0x100000 )
 		GetPokerHandName( l.hand, &hand_string );
       /*
-		lprintf( WIDE("hand %d,%d,%d,%d,%d,%d,%d,%d,\'%s\'")
+		lprintf( "hand %d,%d,%d,%d,%d,%d,%d,%d,\'%s\'"
 				 , handcount
 				 , hand[0]->id
 				 , hand[1]->id
@@ -259,13 +259,13 @@ void ProcessHands( int level, int start )
 				 , hand[4]->id
 				 , value
 				 , value >> 20
-				 , hand_string?GetText( hand_string ):WIDE("unknown")
+				 , hand_string?GetText( hand_string ):"unknown"
 				 );
       */
 		if( !no_output )
 		{
-			vtprintf( pvt_sql, WIDE("%s(%d,%d,%d,%d,%d,%d,%d,%d,\'%s\')")
-					 , first?WIDE(""):WIDE(",")
+			vtprintf( pvt_sql, "%s(%d,%d,%d,%d,%d,%d,%d,%d,\'%s\')"
+					 , first?"":","
 					 , handcount
 					 , hand[0]->id
 					 , hand[1]->id
@@ -274,7 +274,7 @@ void ProcessHands( int level, int start )
 					 , hand[4]->id
 					 , value
 					 , value >> 20
-					 , hand_string?GetText( hand_string ):WIDE("unknown")
+					 , hand_string?GetText( hand_string ):"unknown"
 					  );
          first = 0;
 		}
@@ -298,7 +298,7 @@ void ProcessHands( int level, int start )
 				PTEXT cmd = VarTextGet( pvt_sql );
 				DoSQLCommand( GetText( cmd ) );
 				LineRelease( cmd );
-				vtprintf( pvt_sql, WIDE("insert into poker_odds (ID,card1,card2,card3,card4,card5,value,class,name) values ") );
+				vtprintf( pvt_sql, "insert into poker_odds (ID,card1,card2,card3,card4,card5,value,class,name) values " );
 				first = 1;
 			}
 
@@ -317,7 +317,7 @@ void ProcessHands( int level, int start )
 	{
 		{
 			uint32_t tick = GetTickCount();
-			lprintf( WIDE("hands %ld in %ld = %ld"), handcount, tick - start_tick, (handcount)/(tick-start_tick));
+			lprintf( "hands %ld in %ld = %ld", handcount, tick - start_tick, (handcount)/(tick-start_tick));
 			start_tick = tick;
          handcount = 0;
 		}
@@ -328,7 +328,7 @@ void ProcessHands( int level, int start )
 			{
 				DoSQLCommand( GetText( cmd ) );
 				LineRelease( cmd );
-				vtprintf( pvt_sql, WIDE("insert into poker_odds (ID,card1,card2,card3,card4,card5,value,class,name) values ") );
+				vtprintf( pvt_sql, "insert into poker_odds (ID,card1,card2,card3,card4,card5,value,class,name) values " );
 				first = 1;
 			}
 			VarTextDestroy( &pvt_sql );
@@ -342,7 +342,7 @@ void ProcessHands( int level, int start )
 void CreateNames( void )
 {
    int n;
-	DoSQLCommand( WIDE("Create table if not exists `poker_cards`( card_id int auto_increment, name varchar(32),nicename varchar(32), primary key (card_id) )") );
+	DoSQLCommand( "Create table if not exists `poker_cards`( card_id int auto_increment, name varchar(32),nicename varchar(32), primary key (card_id) )" );
 	for( n = 0; n < 52; n++ )
 	{
 		PTEXT name;
@@ -350,14 +350,14 @@ void CreateNames( void )
       TEXTCHAR cmd[256];
 		name = CardName( l.cards[0][n] );
 
-		snprintf( cmd, sizeof( cmd ), WIDE("insert into poker_cards (card_id,name,nicename) values (%d,\'%s\',\'%s\')")
+		snprintf( cmd, sizeof( cmd ), "insert into poker_cards (card_id,name,nicename) values (%d,\'%s\',\'%s\')"
 				  , n
 				  , GetText( name )
               , GetText( nicename )
 				  );
 		if( !DoSQLCommand( cmd ) )
 		{
-			snprintf( cmd, sizeof( cmd ), WIDE("update poker_cards set name=\'%s\' where card_id=%d")
+			snprintf( cmd, sizeof( cmd ), "update poker_cards set name=\'%s\' where card_id=%d"
 					  , GetText( name ), n );
          DoSQLCommand( cmd );
 		}
@@ -376,12 +376,12 @@ void BuildAlt( void )
 	{
 		for( b = a+1; b < 52; b++ )
 		{
-			snprintf( cmd, sizeof( cmd ), WIDE("insert into poker_odds_2card(hand_id,pair_id,card1,card2) select id,%d,%d,%d ")
-					  WIDE("from `poker_odds`")
-					  WIDE("where")
-						WIDE("( (card1=%d or card2=%d or card3=%d or card4=%d ) and")
-						WIDE("  ( card2=%d or card3=%d or card4=%d or card5=%d ) and")
-					  WIDE("   ( card1<52 and card2<52 and card3<52 and card4<52 and card5<52) )")
+			snprintf( cmd, sizeof( cmd ), "insert into poker_odds_2card(hand_id,pair_id,card1,card2) select id,%d,%d,%d "
+					  "from `poker_odds`"
+					  "where"
+						"( (card1=%d or card2=%d or card3=%d or card4=%d ) and"
+						"  ( card2=%d or card3=%d or card4=%d or card5=%d ) and"
+					  "   ( card1<52 and card2<52 and card3<52 and card4<52 and card5<52) )"
 					  , ((a+1) * 100) + (b+1)
                   , a, b
 					 , a, a, a, a
@@ -395,11 +395,11 @@ void BuildAlt( void )
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-	DECLTEXT( name, WIDE("table") );
+	DECLTEXT( name, "table" );
 	//return NULL;
 	l.pe = CreateEntityIn( NULL, (PTEXT)&name );
 	l.ps = CreateAwareness( l.pe );
-	l.deck = CreateDeck( WIDE("Holdem") ,IterateHoldemHand );
+	l.deck = CreateDeck( "Holdem" ,IterateHoldemHand );
 	l.hand = CreateHand( l.deck );
 	ResetTable();
 	{
@@ -415,7 +415,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
       //BuildAlt();
 	}
 	// and now what do I do with it?
-	l.frame = CreateFrame( WIDE("Cards and stuff"), 0, 0, 800, 600
+	l.frame = CreateFrame( "Cards and stuff", 0, 0, 800, 600
 								, BORDER_WANTMOUSE|BORDER_NORMAL|BORDER_RESIZABLE
 								, NULL );
 	SetCommonMouse( l.frame, TableMouse );
@@ -426,7 +426,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 			for( f = 0; f < 13; f++ )
 			{
 				TEXTCHAR filename[64];
-				snprintf( filename, sizeof( filename ), WIDE("images/cards/card%d-%02d.bmp"), s+1, ( 12 + f ) % 13 + 2 );
+				snprintf( filename, sizeof( filename ), "images/cards/card%d-%02d.bmp", s+1, ( 12 + f ) % 13 + 2 );
 				l.card_image[s][f] = LoadImageFile( filename );
 			}
 

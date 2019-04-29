@@ -50,7 +50,7 @@ enum { UP
 
 #include "local.h"
 
-EasyRegisterControlWithBorder( WIDE("Terrain View"), 0, BORDER_NONE );
+EasyRegisterControlWithBorder( "Terrain View", 0, BORDER_NONE );
 
 struct world_body_map bodymap;
 int cur_x, cur_y, cur_s;
@@ -166,7 +166,7 @@ struct band {
 												 , &bodymap.near_areas[s+3][c][r][3].x
 												 , &bodymap.near_areas[s+3][c][r][3].y
 												);
-						lprintf( WIDE("%d,%d,%d is near(3) %d,%d,%d")
+						lprintf( "%d,%d,%d is near(3) %d,%d,%d"
 								 , s+3, c, r
 								 , bodymap.near_areas[s+3][c][r][3].s
 								 , bodymap.near_areas[s+3][c][r][3].x
@@ -353,7 +353,7 @@ struct band {
 			for( r = 0; r < HEX_SIZE; r++ )
 				for( c = 0; c < HEX_SIZE; c++ )
 				{
-					fprintf( file, WIDE("%g,%g,%g,\n"), patches[s].grid[c][r][0], patches[s].grid[c][r][1], patches[s].grid[c][r][2] );
+					fprintf( file, "%g,%g,%g,\n", patches[s].grid[c][r][0], patches[s].grid[c][r][1], patches[s].grid[c][r][2] );
 
 				}
 
@@ -368,15 +368,15 @@ struct band {
 				for( c = 0; c < HEX_SIZE; c++ )
 				{
 					int p;
-               fprintf( file, WIDE("\t\t") );
+               fprintf( file, "\t\t" );
 					for( p = 0; p < 4; p++ )
 					{
 						// indexes of points for squares are...
 						int idx;
                   idx = s * HEX_SIZE * HEX_SIZE + c * HEX_SIZE + r;
-						fprintf( file, WIDE("%d,%d,%d,%d,-1,"), idx, idx + 1, idx + HEX_SIZE, idx + HEX_SIZE + 1 );
+						fprintf( file, "%d,%d,%d,%d,-1,", idx, idx + 1, idx + HEX_SIZE, idx + HEX_SIZE + 1 );
 					}
-               fprintf( file, WIDE("\n") );
+               fprintf( file, "\n" );
 				}
 	}
 } band;
@@ -525,20 +525,20 @@ struct pole{
 						// beyond the first square.
 
 						ConvertPolarToRect( level, col, &ax, &ay );
-						if(bLog)lprintf( WIDE("level %d,%d is base square %d,%d"), level, col, ax, ay );
+						if(bLog)lprintf( "level %d,%d is base square %d,%d", level, col, ax, ay );
 						if( level < (HEX_SIZE-1) )
 						{
 							ConvertPolarToRect( level, col, &x, &y );
 							patches[p].near_area[x][y][0].s = p;
 							patches[p].near_area[x][y][0].x = x;
 							patches[p].near_area[ax][ay][0].y = y;
-							if(bLog)lprintf( WIDE("level %d col %d is near (0) %d,%d,%d"), level, col, p, x, y );
+							if(bLog)lprintf( "level %d col %d is near (0) %d,%d,%d", level, col, p, x, y );
 
 							ConvertPolarToRect( level-1, col, &x, &y );
 							patches[p].near_area[ax][ay][1].s = p;
 							patches[p].near_area[ax][ay][1].x = x;
 							patches[p].near_area[ax][ay][1].y = y;
-							if(bLog)lprintf( WIDE("level %d col %d is near (1) %d,%d,%d"), level, col, p, x, y );
+							if(bLog)lprintf( "level %d col %d is near (1) %d,%d,%d", level, col, p, x, y );
 
 							if( col )
 							{
@@ -549,14 +549,14 @@ struct pole{
 								patches[p].near_area[ax][ay][2].s = p;
 								patches[p].near_area[ax][ay][2].x = x;
 								patches[p].near_area[ax][ay][2].y = y;
-								if(bLog)lprintf( WIDE("level %d col %d is near (2) %d,%d"), level, col, x, y );
+								if(bLog)lprintf( "level %d col %d is near (2) %d,%d", level, col, x, y );
 								if( col == (level*2) )
 								{	
 									ConvertPolarToRect( level-1, 0, &x, &y );
 									patches[p].near_area[ax][ay][3].s = (p+1)%3;
 									patches[p].near_area[ax][ay][3].x = y;
 									patches[p].near_area[ax][ay][3].y = x;
-									if(bLog)lprintf( WIDE("level %d col %d is near (3) %d,%d"), level, col, x, y );
+									if(bLog)lprintf( "level %d col %d is near (3) %d,%d", level, col, x, y );
 								}
 								else
 								{
@@ -566,7 +566,7 @@ struct pole{
 									patches[p].near_area[ax][ay][3].s = p;
 									patches[p].near_area[ax][ay][3].x = x;
 									patches[p].near_area[ax][ay][3].y = y;
-									if(bLog)lprintf( WIDE("level %d col %d is near (3) %d,%d"), level, col, x, y );
+									if(bLog)lprintf( "level %d col %d is near (3) %d,%d", level, col, x, y );
 								}
 							}
 							else
@@ -575,13 +575,13 @@ struct pole{
 								patches[p].near_area[ax][ay][2].s = (p+2)%3;
 								patches[p].near_area[ax][ay][2].x = x;
 								patches[p].near_area[ax][ay][2].y = y;
-								if(bLog)lprintf( WIDE("level %d col %d is near (2) %d,%d,%d"), level, col, (p+2)%3, x, y );
+								if(bLog)lprintf( "level %d col %d is near (2) %d,%d,%d", level, col, (p+2)%3, x, y );
 
 								ConvertPolarToRect( level, (level)*2, &x, &y );
 								patches[p].near_area[ax][ay][3].s = (p+2)%3;
 								patches[p].near_area[ax][ay][3].x = x;
 								patches[p].near_area[ax][ay][3].y = y;
-								if(bLog)lprintf( WIDE("level %d col %d is near (3) %d,%d,%d"), level, col, (p+2)%3, x, y );
+								if(bLog)lprintf( "level %d col %d is near (3) %d,%d,%d", level, col, (p+2)%3, x, y );
 							}
 
 							}
@@ -597,35 +597,35 @@ struct pole{
 						int ax, ay;
 						ConvertPolarToRect( level, col, &ax, &ay );
 #ifdef POLE_NEAR_AREA_DEBUG
-						lprintf( WIDE("level %d,%d is base square %d,%d"), level, col, ax, ay );
+						lprintf( "level %d,%d is base square %d,%d", level, col, ax, ay );
 #endif
 							ConvertPolarToRect( level, col, &x, &y );
 							patches[p].near_area[ax][ay][0].s = p;
 							patches[p].near_area[ax][ay][0].x = x;
 							patches[p].near_area[ax][ay][0].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (0) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (0) %d,%d", level, col, x, y );
 #endif
 							ConvertPolarToRect( level, col+1, &x, &y );
 							patches[p].near_area[ax][ay][1].s = p;
 							patches[p].near_area[ax][ay][1].x = x;
 							patches[p].near_area[ax][ay][1].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (1) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (1) %d,%d", level, col, x, y );
 #endif
 							ConvertPolarToRect( level-1, col-1, &x, &y );
 							patches[p].near_area[ax][ay][2].s = p;
 							patches[p].near_area[ax][ay][2].x = x;
 							patches[p].near_area[ax][ay][2].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (2) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (2) %d,%d", level, col, x, y );
 #endif
 							ConvertPolarToRect( level, col-1, &x, &y );
 							patches[p].near_area[ax][ay][3].s = p;
 							patches[p].near_area[ax][ay][3].x = x;
 							patches[p].near_area[ax][ay][3].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (3) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (3) %d,%d", level, col, x, y );
 #endif
 					}
 					for( col = level+1; col <= level*2; col++ )
@@ -634,7 +634,7 @@ struct pole{
 						int ax, ay;
 						ConvertPolarToRect( level, col, &ax, &ay );
 #ifdef POLE_NEAR_AREA_DEBUG
-						lprintf( WIDE("level %d,%d is base square %d,%d"), level, col, ax, ay );
+						lprintf( "level %d,%d is base square %d,%d", level, col, ax, ay );
 #endif
 						// square 1, upper left, considering that up and left are totally relative 
 						// beyond the first square.
@@ -646,7 +646,7 @@ struct pole{
 							patches[p].near_area[ax][ay][0].x = x;
 							patches[p].near_area[ax][ay][0].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (0) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (0) %d,%d", level, col, x, y );
 #endif
 
 							ConvertPolarToRect( level-1, col-2, &x, &y );
@@ -654,7 +654,7 @@ struct pole{
 							patches[p].near_area[ax][ay][3].x = x;
 							patches[p].near_area[ax][ay][3].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (3) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (3) %d,%d", level, col, x, y );
 #endif
 
 							if( col != level*2 )
@@ -667,7 +667,7 @@ struct pole{
 								patches[p].near_area[ax][ay][1].x = x;
 								patches[p].near_area[ax][ay][1].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (1) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (1) %d,%d", level, col, x, y );
 #endif
 								ConvertPolarToRect( level-1, col -1
 										, &x
@@ -676,7 +676,7 @@ struct pole{
 								patches[p].near_area[ax][ay][2].x = x;
 								patches[p].near_area[ax][ay][2].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (2) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (2) %d,%d", level, col, x, y );
 #endif
 							}
 							else
@@ -689,7 +689,7 @@ struct pole{
 								patches[p].near_area[ax][ay][1].x = x;
 								patches[p].near_area[ax][ay][1].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (1) %d,%d,%d"), level, col, (p+1)%3, x, y );
+							lprintf( "level %d col %d is near (1) %d,%d,%d", level, col, (p+1)%3, x, y );
 #endif
 
 								ConvertPolarToRect( level-1, 0
@@ -699,7 +699,7 @@ struct pole{
 								patches[p].near_area[ax][ay][2].x = x;
 								patches[p].near_area[ax][ay][2].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-								lprintf( WIDE("level %d col %d is near (2) %d,%d,%d"), level, col, (p+1)%3, x, y );
+								lprintf( "level %d col %d is near (2) %d,%d,%d", level, col, (p+1)%3, x, y );
 #endif
 							}
 							}
@@ -781,7 +781,7 @@ struct pole{
 					}
 				}
 			}
-			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") ); }
+			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( "Pole Patch Excepted." ); }
 		}
 	}
 
@@ -844,7 +844,7 @@ class Radar
 			PBRAIN_STEM check_stem;
 			for( n = 0; n < 24; n++ )
 			{
-				snprintf( buffer, sizeof( buffer ), WIDE("radar %d"), n+1 );
+				snprintf( buffer, sizeof( buffer ), "radar %d", n+1 );
 				for( check_stem = add_to_brainstem->first_module(); 
 						check_stem; 
 						check_stem = add_to_brainstem->next_module() )
@@ -858,17 +858,17 @@ class Radar
 		}
 		else
 		{
-			snprintf( buffer, sizeof( buffer ), WIDE("radar %d"), ++n );
+			snprintf( buffer, sizeof( buffer ), "radar %d", ++n );
 		}
 		brainstem = new BRAIN_STEM( buffer );
 		power = 256;
-		motion[0] = new connector( WIDE("power"), &power );
+		motion[0] = new connector( "power", &power );
 		turn = 0;
-		motion[1] = new connector( WIDE("turn"), &turn );
+		motion[1] = new connector( "turn", &turn );
 		current_angle = 0;
-		motion[2] = new connector( WIDE("angle"), &current_angle );
+		motion[2] = new connector( "angle", &current_angle );
 		nearest = 0;
-		motion[3] = new connector( WIDE("nearest"), &nearest );
+		motion[3] = new connector( "nearest", &nearest );
 		brainstem->AddOutput( motion[0] );
 		brainstem->AddOutput( motion[1] );
 		brainstem->AddInput( motion[2] );
@@ -927,9 +927,9 @@ public:
 		own_speed = 10;
 		own_rotation = 2;
 		AddTransformCallbackd( object->Ti, SphereBodyCorrect, (uintptr_t)this );
-		brainstem = new BRAIN_STEM( WIDE("body") );
-		motion[0] = new CONNECTOR( WIDE("forward"), &speed );
-		motion[1] = new CONNECTOR( WIDE("turn"), &rotation );
+		brainstem = new BRAIN_STEM( "body" );
+		motion[0] = new CONNECTOR( "forward", &speed );
+		motion[1] = new CONNECTOR( "turn", &rotation );
 		brainstem->AddOutput( motion[0] );
 		brainstem->AddOutput( motion[1] );
 		for( n = 0; n < 3; n++ )
@@ -956,7 +956,7 @@ public:
 				Invert( force );
 				//if( Length( force ) > 1.0 )
 				//	DebugBreak();
-				//lprintf( WIDE("Force vector is %g"), Length( force ) );
+				//lprintf( "Force vector is %g", Length( force ) );
 				{
 					_POINT v;
 					
@@ -968,7 +968,7 @@ public:
 					int s, x, y;
 					ConvertToSphereGrid( vertical, &s, &x, &y );
 					//PrintVector( vertical );
-					//lprintf( WIDE("Body at sphere part %d,%d,%d"), s, x, y );
+					//lprintf( "Body at sphere part %d,%d,%d", s, x, y );
 					UnlinkThing( this );
 					LinkThing( bodymap.band[s][x][y], this );
 				}
@@ -1041,9 +1041,9 @@ public:
 	{
       //DebugBreak();
       position_history = CreateLargeDataQueueEx( sizeof( struct position_history ), 500, 2500 DBG_SRC );
-		//motion[0] = new CONNECTOR( WIDE("right"), &speed );
-		//motion[1] = new CONNECTOR( WIDE("left"), &rotation );
-      //motion[2] = new CONNECTOR( WIDE("forward_distance"), &rotation );
+		//motion[0] = new CONNECTOR( "right", &speed );
+		//motion[1] = new CONNECTOR( "left", &rotation );
+      //motion[2] = new CONNECTOR( "forward_distance", &rotation );
 	  AddTransformCallbackd( body_object->Ti, InvokeCycleMove, (uintptr_t)this );
 	}
 	void Reset( void )
@@ -1186,7 +1186,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 			for( level = 1; level <= HEX_SIZE; level++ )
 			{
 				VECTOR v1;
-				//if( bLog )lprintf( WIDE("---------") );
+				//if( bLog )lprintf( "---------" );
 				//if( 0)  {
 				glBegin( GL_TRIANGLE_STRIP );
 				r = 0;
@@ -1208,7 +1208,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 							x2 = pole_patch.patches[s].near_area[x][y][n].x;
 							y2 = pole_patch.patches[s].near_area[x][y][n].y;
 
-							if( bLog )lprintf( WIDE("point %d,%d,%d,%d is near %d,%d,%d")
+							if( bLog )lprintf( "point %d,%d,%d,%d is near %d,%d,%d"
 								, s, level, c, n
 								, pole_patch.patches[s].near_area[x][y][n].s
 								, pole_patch.patches[s].near_area[x][y][n].x
@@ -1238,12 +1238,12 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 					}
 					if( bodynear )
 					{
-						if( bLog )lprintf( WIDE("Is bodynear") );
+						if( bLog )lprintf( "Is bodynear" );
 						glColor3d( 1.0, 1.0, 1.0 );
 					}
 					else if( bodynearnear )
 					{
-						if( bLog )lprintf( WIDE("Is bodynearnear") );
+						if( bLog )lprintf( "Is bodynearnear" );
 						glColor3d( 0.4, 0, 0 );
 					}
 					else
@@ -1288,7 +1288,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 							//		[pole_patch.patches[s].near_area[x][y][n].y] )
 							if( pole_patch.patches[s].near_area[x][y][n].s < 0 )
 								continue;
-							if( bLog )lprintf( WIDE("point %d,%d,%d,%d is near %d,%d,%d")
+							if( bLog )lprintf( "point %d,%d,%d,%d is near %d,%d,%d"
 								, s, level-1, c, n
 								, pole_patch.patches[s].near_area[x][y][n].s
 								, pole_patch.patches[s].near_area[x][y][n].x
@@ -1313,12 +1313,12 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 						}
 						if( bodynear2 )
 						{
-							if( bLog )lprintf( WIDE("Is bodynear") );
+							if( bLog )lprintf( "Is bodynear" );
 							glColor3d( 1.0, 1.0, 1.0 );
 						}
 						else if( bodynearnear2 )
 						{
-							if( bLog )lprintf( WIDE("Is bodynearnearnear") );
+							if( bLog )lprintf( "Is bodynearnearnear" );
 							glColor3d( 0.4, 0.0, 0.0 );
 						}
 						else
@@ -1339,7 +1339,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 				}
 				glEnd();
 				//}
-				if( bLog )lprintf( WIDE("---------") );
+				if( bLog )lprintf( "---------" );
 				//glFlush();
 				glBegin( GL_TRIANGLE_STRIP );
 				for( c = level; c <= level*2; c++ )
@@ -1353,7 +1353,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 						{
 							int m;
 							int s2, x2, y2;
-							if( bLog )lprintf( WIDE("zzzpoint %d,%d,%d,%d is near %d,%d,%d")
+							if( bLog )lprintf( "zzzpoint %d,%d,%d,%d is near %d,%d,%d"
 								, s, level, c, n
 								, pole_patch.patches[s].near_area[x][y][n].s
 								, pole_patch.patches[s].near_area[x][y][n].x
@@ -1381,12 +1381,12 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 						}
 						if( bodynear )
 						{
-							if( bLog )lprintf( WIDE("Is bodynear") );
+							if( bLog )lprintf( "Is bodynear" );
 							glColor3d( 1.0, 1.0, 1.0 );
 						}
 						else if( bodynearnear )
 						{
-							if( bLog )lprintf( WIDE("Is bodynearnear") );
+							if( bLog )lprintf( "Is bodynearnear" );
 							glColor3d( 0.4, 0.0, 0.0 );
 						}
 						else
@@ -1399,7 +1399,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 						}
 					}
 					//ConvertPolarToRect( level, c, &x, &y );
-					//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c,level);
+					//if( bLog )lprintf( "Render corner %d,%d", 2*level-c,level);
 					scale( v1, pole_patch.patches[s].grid[x][y], SPHERE_SIZE + patch[north].height[s][x][y] );
 					glVertex3d( v1[0]
 					, north?v1[1]:-v1[1]
@@ -1418,7 +1418,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 							 int s2, x2, y2;
 							 if( (pole_patch.patches[s].near_area[x][y][n].s) < 0 )
 								 continue;
-							 if( bLog )lprintf( WIDE("point %d,%d,%d,%d is near %d,%d,%d")
+							 if( bLog )lprintf( "point %d,%d,%d,%d is near %d,%d,%d"
 								 , s, level-1, c-1, n
 								 , pole_patch.patches[s].near_area[x][y][n].s
 								 , pole_patch.patches[s].near_area[x][y][n].x
@@ -1446,12 +1446,12 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 						 }
 						 if( bodynear )
 						 {
-							 if( bLog )lprintf( WIDE("Is bodynear") );
+							 if( bLog )lprintf( "Is bodynear" );
 							 glColor3f( 1.0,1.0,1.0 );
 						 }
 						 else if( bodynear )
 						 {
-							 if( bLog )lprintf( WIDE("Is bodynearnear") );
+							 if( bLog )lprintf( "Is bodynearnear" );
 							 glColor3f( 0.5, 0.0, 0.0 );
 
 						 }
@@ -1466,7 +1466,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 					 }
 
 					 //ConvertPolarToRect( level-1, c-1, &x, &y );
-					 //if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c-1,level-1);
+					 //if( bLog )lprintf( "Render corner %d,%d", 2*level-c-1,level-1);
 					 scale( v1, pole_patch.patches[s].grid[x][y], SPHERE_SIZE + patch[north].height[s][x][y] );
 					 glVertex3d( v1[0]
 					 , north?v1[1]:-v1[1]
@@ -1478,7 +1478,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 			}
 		}
 	}
-	//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") );return 0; }
+	//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( "Pole Patch Excepted." );return 0; }
 	return 1;
 }
 
@@ -1509,16 +1509,16 @@ void RenderBandPatch( void )
 				int bodynear2 = 0;
 				int bodynearnear2 = 0;
 				int n;
-				//lprintf( WIDE("---------------------------------------------") );
+				//lprintf( "---------------------------------------------" );
 				for( n = 0; n < 4; n++ )
 				{
 					/*
-					lprintf( WIDE("%d,%d,%d is near %d,%d,%d"), s, section%HEX_SIZE, section2
+					lprintf( "%d,%d,%d is near %d,%d,%d", s, section%HEX_SIZE, section2
 					, band.patches[s].near_area[section%HEX_SIZE][section2][n].s
 					, band.patches[s].near_area[section%HEX_SIZE][section2][n].x
 					, band.patches[s].near_area[section%HEX_SIZE][section2][n].y
 					);
-					lprintf( WIDE("%d,%d,%d is near %d,%d,%d"), s, section, section2+1
+					lprintf( "%d,%d,%d is near %d,%d,%d", s, section, section2+1
 					, band.patches[s].near_area[section%HEX_SIZE][section2+1][n].s
 					, band.patches[s].near_area[section%HEX_SIZE][section2+1][n].x
 					, band.patches[s].near_area[section%HEX_SIZE][section2+1][n].y
@@ -1581,7 +1581,7 @@ void RenderBandPatch( void )
 						}
 					}
 				}
-				//lprintf( WIDE("---------------------------------------------") );
+				//lprintf( "---------------------------------------------" );
 
 				if( bodynear )
 				{
@@ -1665,7 +1665,7 @@ int DrawSphereThing( PHEXPATCH patch )
 void MateEdge( PHEXPATCH patch, int section1, int section2 )
 {
 	int n;
-   lprintf( WIDE("mating %d and %d"), section1, section2 );
+   lprintf( "mating %d and %d", section1, section2 );
 	switch( section1 )
 	{
 	case 0:
@@ -1726,7 +1726,7 @@ void MateEdge( PHEXPATCH patch, int section1, int section2 )
 void MateAnotherEdge( PHEXPATCH patch1, PHEXPATCH patch2, int section1, int section2 )
 {
 	int n;
-   lprintf( WIDE("mating %d and %d"), section1, section2 );
+   lprintf( "mating %d and %d", section1, section2 );
 	switch( section1 )
 	{
 	case 0:
@@ -1817,7 +1817,7 @@ void ConvertToSphereGrid( P_POINT p, int *s, int *x, int *y ) // s 0-3, s 4-9, 1
 	normalize( p );
 	(*x)=-1;
 	(*y)=-1;
-	//lprintf( WIDE("z is %g"), p[2] );
+	//lprintf( "z is %g", p[2] );
    (*s) = 0;
 	if( p[vUp] < -0.5 )
 	{
@@ -1840,26 +1840,26 @@ void ConvertToSphereGrid( P_POINT p, int *s, int *x, int *y ) // s 0-3, s 4-9, 1
 /*
 		if( *s )
 
-			lprintf( WIDE("South pole") );
+			lprintf( "South pole" );
 		else
-			lprintf( WIDE("North pole") );
+			lprintf( "North pole" );
 			*/
-		//lprintf( WIDE("radial length: %g"), len );
+		//lprintf( "radial length: %g", len );
 		//PrintVector( p );
 		for( level = 0; level <= HEX_SIZE; level++ )
 		{
 			//PrintVector( pole_patch.patches[0].grid[level][0] );
 			if( len < -pole_patch.patches[0].grid[level][0][vRight] )
 			{
-				//lprintf( WIDE("Comparison is %g > %g at %d"), len, pole_patch.patches[0].grid[level][0][vRight], level );
-				//lprintf( WIDE("result level is %d"), level );
+				//lprintf( "Comparison is %g > %g at %d", len, pole_patch.patches[0].grid[level][0][vRight], level );
+				//lprintf( "result level is %d", level );
 				level = level-1;
 				break;
 			}
 		}
 		if( p[vForward] > 0 )
 		{
-			//lprintf( WIDE("forward from origin...") );
+			//lprintf( "forward from origin..." );
 			if( p[vRight] > -0.5 )
 			{
 				for( r = 0; r <= (level*2); r++ )
@@ -1943,7 +1943,7 @@ void ConvertToSphereGrid( P_POINT p, int *s, int *x, int *y ) // s 0-3, s 4-9, 1
 	else
 	{
 		int level; // y level of band
-		//lprintf( WIDE("equator") );
+		//lprintf( "equator" );
 		//PrintVector( p );
 		// turns out the the band coordinates are stored from top town... and that everything
       // we're viewing is upside down.
@@ -2036,9 +2036,9 @@ void ConvertToSphereGrid( P_POINT p, int *s, int *x, int *y ) // s 0-3, s 4-9, 1
 				(*s) += 4;
 			}
 		}
-		//lprintf( WIDE("Middle Band") );
+		//lprintf( "Middle Band" );
 	}
-   //lprintf( WIDE("Result %d,%d,%d"), (*s), (*x), (*y) );
+   //lprintf( "Result %d,%d,%d", (*s), (*x), (*y) );
    //   sqrt( p[0]*p[0]+p[2]*p[2] )
 }
 
@@ -2129,7 +2129,7 @@ int ShowPatch( PHEXPATCH patch )
 					break;
 				case 1:
 					//glBegin(GL_TRIANGLES);
-				//	lprintf( WIDE("uhh %g %g %g")
+				//	lprintf( "uhh %g %g %g"
 				//			 ,patch->origin[0] - (HEX_SIZE-x) * HEX_HORZ_STRIDE/2 - y * HEX_HORZ_STRIDE/2
 				//			 , patch->origin[1] - (HEX_SIZE-y) * HEX_VERT_STRIDE
             //           , patch->origin[2] - patch->height[s][x][y] );
@@ -2180,7 +2180,7 @@ int ShowPatch( PHEXPATCH patch )
 				case 2:
 //					glBegin(GL_TRIANGLES);
 					//glColor3f( (1.0 * y) / HEX_SIZE, (1.0 * x) / HEX_SIZE, 1.0 );
-			  // 	lprintf( WIDE("uhh %g %g %g")
+			  // 	lprintf( "uhh %g %g %g"
 			  // 			 ,patch->origin[0] - (HEX_SIZE-x) * HEX_HORZ_STRIDE/2 - y * HEX_HORZ_STRIDE/2
 			  // 			 , patch->origin[1] - (HEX_SIZE-y) * HEX_VERT_STRIDE
            //            , patch->origin[2] - patch->height[s][x][y] );
@@ -2273,7 +2273,7 @@ void DistortPatch( PHEXPATCH patch
 	{
       int p;
 		int near_points[6][3];
-		//lprintf( WIDE("Delta is %g"), delta );
+		//lprintf( "Delta is %g", delta );
 		for( p = 0; p < 6; p++ )
 		{
 			near_points[p][0] = x + delta_table[section][p][0];
@@ -2292,7 +2292,7 @@ void DistortPatch( PHEXPATCH patch
 				near_points[1][1] = 1;
 				if( x == (HEX_SIZE-1) )
 				{
-					lprintf( WIDE("this isn't right... might not be...") );
+					lprintf( "this isn't right... might not be..." );
 					near_points[2][2] = 2;
 					near_points[2][0] = 1;
 					near_points[2][1] = 1;
@@ -2519,15 +2519,15 @@ void RipplePatch( PHEXPATCH patch )
 			TEXTCHAR filename[32];
 			n++;
 			if( n > 25 ) n = 0;
-			snprintf( filename, sizeof( filename ), WIDE("state-%d"), n );
+			snprintf( filename, sizeof( filename ), "state-%d", n );
 			{
-				FILE *last = sack_fopen( 0, WIDE("state-last"), WIDE("wt") );
-				fprintf( last, WIDE("%d"), n );
+				FILE *last = sack_fopen( 0, "state-last", "wt" );
+				fprintf( last, "%d", n );
 				fclose( last );
 			}
 			SaveTransformd( T, filename );
 		}
-		//SaveTransform( T, WIDE("recoverme") );
+		//SaveTransform( T, "recoverme" );
 	}
 
 	// update body motion according to brain statistics...
@@ -2539,7 +2539,7 @@ void RipplePatch( PHEXPATCH patch )
 		LIST_FORALL( bodies, idx, PBODY, body )
 		{
 			glider = body->object;
-			//lprintf( WIDE("body->speed %g"), body->speed );
+			//lprintf( "body->speed %g", body->speed );
 			Forward( glider->Ti, body->own_speed + ( body->speed / 25.60 ) );
 			//Rotate( a,m[vForward],m[vRight] )
 			{
@@ -2568,8 +2568,8 @@ PRELOAD( RegisterResources )
 {
 	l.pri = GetDisplayInterface();
 	l.pii = GetImageInterface();
-	EasyRegisterResource( WIDE("terrain/body interface"), LISTBOX_BODIES, LISTBOX_CONTROL_NAME  );
-	EasyRegisterResource( WIDE("terrain/body interface"), BUTTON_SHOW_BRAIN, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "terrain/body interface", LISTBOX_BODIES, LISTBOX_CONTROL_NAME  );
+	EasyRegisterResource( "terrain/body interface", BUTTON_SHOW_BRAIN, NORMAL_BUTTON_NAME );
 	TCam = CreateTransform();
 }
 
@@ -2603,7 +2603,7 @@ void CPROC ShowSelectedBrain( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 
 void CreateBodyInterface( void )
 {
-	PSI_CONTROL frame = LoadXMLFrame( WIDE("BodyInterface.Frame") );
+	PSI_CONTROL frame = LoadXMLFrame( "BodyInterface.Frame" );
 	if( frame )
 	{
 		PSI_CONTROL list = GetControl( frame, LISTBOX_BODIES );
@@ -2615,7 +2615,7 @@ void CreateBodyInterface( void )
 			LIST_FORALL( bodies, idx, PBODY, body )
 			{
 				TEXTCHAR name[256];
-				snprintf( name, sizeof( name ), WIDE("Body %d"), idx );
+				snprintf( name, sizeof( name ), "Body %d", idx );
 				SetItemData( AddListItem( list, name ), (uintptr_t)body );
 			}
 		}
@@ -2710,10 +2710,10 @@ static int EvalExcept( int n )
 	switch( n )
 	{
 	case 		STATUS_ACCESS_VIOLATION:
-		lprintf( WIDE("Access violation - OpenGL layer at this moment..") );
+		lprintf( "Access violation - OpenGL layer at this moment.." );
 		return EXCEPTION_EXECUTE_HANDLER;
 	default:
-		lprintf( WIDE("Filter unknown : %08X"), n );
+		lprintf( "Filter unknown : %08X", n );
 
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
@@ -2726,13 +2726,13 @@ PHEXPATCH patch;
 PVIEW view;
 int bEnabledGL;
 
-static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM transform, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( "Terrain View" )( PMatrix projection, PTRANSFORM transform, RCOORD *identity_depth, RCOORD *aspect )
 {
 	return 1;
 }
 
-static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvView )
-//static int OnDrawCommon( WIDE("Terrain View") )( PSI_CONTROL pc )
+static void OnDraw3d( "Terrain View" )( uintptr_t psvView )
+//static int OnDrawCommon( "Terrain View" )( PSI_CONTROL pc )
 {
 	//PRENDERER pRend = GetFrameRenderer( pc );
 	MATRIX m;
@@ -2743,7 +2743,7 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvView )
 #endif
 	if( 1 )//SetActiveGLDisplay( pRend ) )
 	{
-		//SaveTransform( T, WIDE("recoverme") );
+		//SaveTransform( T, "recoverme" );
 		if(0)
 		{
 			static PTRANSFORM tmp[2];
@@ -2758,8 +2758,8 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvView )
 				tmp[0] = CreateTransform();
 				tmp[1] = CreateTransform();
 			}
-			snprintf( buffer, sizeof( buffer ), WIDE("state-%d"), n );
-			lprintf( WIDE("Loading transform %d"), n );
+			snprintf( buffer, sizeof( buffer ), "state-%d", n );
+			lprintf( "Loading transform %d", n );
 			LoadTransformd( tmp[d], buffer );
 			ShowTransform( tmp[d] );
 			//if( ( tmp[d].m[0][1] > 0.983537 )
@@ -2779,15 +2779,15 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvView )
 			ApplyT( VectorConst_I, T, tmp[d] );
 			d = 1-d;
 		}
-		//LoadTransform( T, WIDE("state-21") );
+		//LoadTransform( T, "state-21" );
 		//PrintMatrix( T->m );
-		//LoadTransform( T, WIDE("state-22") );
+		//LoadTransform( T, "state-22" );
 		//PrintMatrix( T->m );
-		//LoadTransform( T, WIDE("state-23") );
+		//LoadTransform( T, "state-23" );
 		//PrintMatrix( T->m );
-		//LoadTransform( T, WIDE("recoverme") );
+		//LoadTransform( T, "recoverme" );
 		//PrintMatrix( T );
-		//lprintf( WIDE("Getting matrix...") );
+		//lprintf( "Getting matrix..." );
 		//if( !T_camera )
 		//	return;
 		//GetGLMatrix( T_camera, m );
@@ -2825,14 +2825,14 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvView )
 	}
 						__except( EvalExcept( GetExceptionCode() ) )
 					{
-						lprintf( WIDE(" ...") );
+						lprintf( " ..." );
 						;
 					}
 #endif
 	return;
 }
 
-static int OnMouseCommon( WIDE("Terrain View") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
+static int OnMouseCommon( "Terrain View" )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int _b;
 	static struct {
@@ -2911,7 +2911,7 @@ int main( int argc, char **argv )
 	// can be activated - otherwise certain facts about the window
 	// do not exist.
 
-	//pcDisplay = MakeNamedControl( NULL, WIDE("Terrain View"), 0, 0, 640, 640, -1 );
+	//pcDisplay = MakeNamedControl( NULL, "Terrain View", 0, 0, 640, 640, -1 );
 
 	//DisplayFrame( pcDisplay );
 	//SetAllocateLogging( TRUE );
@@ -2921,13 +2921,13 @@ int main( int argc, char **argv )
 	//EnableOpenGL( GetFrameRenderer( pcDisplay ) );
 	bEnabledGL = 1;
 	//SetActiveGLDisplay( pRend );
-	//view = CreateViewWithUpdateLockEx( V_FORWARD, NULL, WIDE("Forward 1"), 200, 200, &csUpdate );
+	//view = CreateViewWithUpdateLockEx( V_FORWARD, NULL, "Forward 1", 200, 200, &csUpdate );
 #if 0
-	CreateViewEx( V_RIGHT, NULL, WIDE("Forward 1"), 200, 200 );
-	CreateViewEx( V_LEFT, NULL, WIDE("Forward 1"), 200, 200 );
-	CreateViewEx( V_UP, NULL, WIDE("Forward 1"), 200, 200 );
-	CreateViewEx( V_DOWN, NULL, WIDE("Forward 1"), 200, 200 );
-	CreateViewEx( V_BACK, NULL, WIDE("Forward 1"), 200, 200 );
+	CreateViewEx( V_RIGHT, NULL, "Forward 1", 200, 200 );
+	CreateViewEx( V_LEFT, NULL, "Forward 1", 200, 200 );
+	CreateViewEx( V_UP, NULL, "Forward 1", 200, 200 );
+	CreateViewEx( V_DOWN, NULL, "Forward 1", 200, 200 );
+	CreateViewEx( V_BACK, NULL, "Forward 1", 200, 200 );
 #endif
 	{
 		VECTOR v;

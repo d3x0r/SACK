@@ -167,7 +167,7 @@ __declspec(dllimport) DWORD WINAPI timeGetTime(void);
 
 #  ifdef __cplusplus_cli
 #    include <vcclr.h>
-#    define DebugBreak() System::Console::WriteLine( /*lprintf( */gcnew System::String( WIDE__FILE__ WIDE("(") STRSYM(__LINE__) WIDE(") Would DebugBreak here...") ) );
+#    define DebugBreak() System::Console::WriteLine( /*lprintf( */gcnew System::String( WIDE__FILE__ "(" STRSYM(__LINE__) ") Would DebugBreak here..." ) );
 //typedef unsigned int HANDLE;
 //typedef unsigned int HMODULE;
 //typedef unsigned int HWND;

@@ -709,7 +709,7 @@ void RenderBumpTextureFragment( Image texture
 		if( 0)
 		{
 			SetShader = TRUE;
-			lprintf( WIDE("Use program") );
+			lprintf( "Use program" );
 			ImageEnableShader( l.shader.normal_shader.shader);
 
 			glVertexAttrib4fv((GLuint)2, background); // set constant color attribute
@@ -744,7 +744,7 @@ void RenderBumpTextureFragment( Image texture
 	{
 		SetShader = TRUE;
 
-		//lprintf( WIDE("Use program") );
+		//lprintf( "Use program" );
 		ImageEnableShader( l.shader.simple_shader.shader );
 		ImageSetUniform4fv( l.shader.simple_shader.material.ambient, 1, background );
 		//SetUniform4fv( l.shader.simple_shader.material.diffuse, 1, background );
@@ -760,7 +760,7 @@ void RenderBumpTextureFragment( Image texture
 
 	if( SetShader )
 	{
-		lprintf( WIDE("disable program") );
+		lprintf( "disable program" );
 	}
 
 	glBindVertexArray(0);

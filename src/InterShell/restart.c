@@ -35,11 +35,11 @@ int main( int argc, char **argv )
       // this would be an invalid name.
 		return 0;
 	}
-	snprintf( lockname, 256, WIDE( "%s.instance.lock" ), myname );
-	lprintf( WIDE( "Checking lock %s" ), lockname );
+	snprintf( lockname, 256, "%s.instance.lock", myname );
+	lprintf( "Checking lock %s", lockname );
 	mem_lock = OpenSpace( lockname
 		, NULL
-		//, WIDE("memory.delete")
+		//, "memory.delete"
 		, &size );
 	if( mem_lock )
 	{
@@ -62,7 +62,7 @@ int main( int argc, char **argv )
 				if( IsWindow( video->hWndOutput ) )
 #define WM_EXIT_PLEASE 0xd1e
 					if( !SendMessage( video->hWndOutput, WM_QUERYENDSESSION, 0, 0 ) )
-						lprintf( WIDE( "Failed to post queyendsession." ) );
+						lprintf( "Failed to post queyendsession." );
 			}
 #endif
 		}
@@ -76,7 +76,7 @@ int main( int argc, char **argv )
          size = 0;
 			while( ( mem_lock = OpenSpace( lockname
 												, NULL
-												 //, WIDE("memory.delete")
+												 //, "memory.delete"
 												  , &size ) )
                && size )
 			{
@@ -88,9 +88,9 @@ int main( int argc, char **argv )
 		}
 	}
 	else
-		lprintf( WIDE("lock region not found.") );
+		lprintf( "lock region not found." );
 	{
-		snprintf( lockname, 256, WIDE("@/%s.exe"), myname );
+		snprintf( lockname, 256, "@/%s.exe", myname );
 		LaunchProgram( lockname, NULL, NULL );
 	}
 	return 0;

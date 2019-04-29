@@ -274,7 +274,7 @@ void CPROC do_hline( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA 
 
 	if( y < 0 || y >= (pImage->height ))
 	{
-		//Log4( WIDE("hline failed: %d<%d or %d>%d"), y, pImage->y, y, pImage->y+pImage->height );
+		//Log4( "hline failed: %d<%d or %d>%d", y, pImage->y, y, pImage->y+pImage->height );
 		return;
 	}
 
@@ -286,7 +286,7 @@ void CPROC do_hline( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA 
 	}
 	if( xto < 0 || xfrom >= (pImage->width))
 	{
-		//Log4( WIDE("hline(2) failed: %d<%d or %d>%d"), xto, pImage->x, xfrom, pImage->x + pImage->width );
+		//Log4( "hline(2) failed: %d<%d or %d>%d", xto, pImage->x, xfrom, pImage->x + pImage->width );
 		return;
 	}
 

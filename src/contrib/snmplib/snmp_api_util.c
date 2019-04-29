@@ -475,10 +475,10 @@ printf("LIBSNMP:  Retransmitting, %d try.\n",rp->retries);
 		         if (snmp_build(sp , rp->pdu, packet, &length) < 0)
                {
 #ifdef STDERR_OUTPUT
-                  fprintf(stderr, WIDE("Error building packet\n"));
+                  fprintf(stderr, "Error building packet\n");
 #endif
                }
-		         snmp_dump(packet, length, WIDE("sending"), rp->pdu->address.sin_addr);
+		         snmp_dump(packet, length, "sending", rp->pdu->address.sin_addr);
 
 		         gettimeofday(&tv, (struct timezone *)0);
 //		         if (sendto(isp->sd, (char *)packet, length, 0, (struct sockaddr *)&rp->pdu->address, sizeof(rp->pdu->address)) < 0)

@@ -66,7 +66,7 @@ typedef struct option_interface_tag
 
 } *POPTION_INTERFACE;
 
-#define GetOptionInterface() ((POPTION_INTERFACE)GetInterface( WIDE("options") ))
+#define GetOptionInterface() ((POPTION_INTERFACE)GetInterface( "options" ))
 //POPTION_INTERFACE GetOptionInterface( void );
 //void DropOptionInterface( POPTION_INTERFACE );
 #ifndef DEFAULT_OPTION_INTERFACE

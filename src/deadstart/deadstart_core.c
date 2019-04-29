@@ -172,12 +172,12 @@ void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
 			if( proc->priority < check->priority )
 			{
 #ifndef  DISABLE_DEBUG_REGISTER_AND_DISPATCH
-				_lprintf(DBG_RELAY)( WIDE("%s(%d) is to run before %s and after %s first is %s")
+				_lprintf(DBG_RELAY)( "%s(%d) is to run before %s and after %s first is %s"
 						 , proc->func
 						 , proc - procs
 						 , check->func
-						 , (check->me==root)?WIDE("Is First"):((PSTARTUP_PROC)check->me)->func
-						 , (*root)?(*root)->func:WIDE("First")
+						 , (check->me==root)?"Is First":((PSTARTUP_PROC)check->me)->func
+						 , (*root)?(*root)->func:"First"
 						 );
 #endif
 				proc->next = check;
@@ -191,7 +191,7 @@ void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
 		if( !check )
 		{
 #ifndef  DISABLE_DEBUG_REGISTER_AND_DISPATCH
-			lprintf( WIDE("%s(%d) is to run after all")
+			lprintf( "%s(%d) is to run after all"
 					 , proc->func
 					 , proc - procs
 					 );
@@ -223,7 +223,7 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 		(1
 #endif
 		&& l.flags.bLog ))
-		lprintf( WIDE("Register %s@") DBG_FILELINEFMT_MIN WIDE(" %d"), func DBG_RELAY, priority);
+		lprintf( "Register %s@" DBG_FILELINEFMT_MIN " %d", func DBG_RELAY, priority);
 	if( nProcs == 1024 )
 	{
 		for( use_proc = 0; use_proc < 1024; use_proc++ )
@@ -231,7 +231,7 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 				break;
 		if( use_proc == 1024 )
 		{
-			lprintf( WIDE( "Used all 1024, and, have 1024 startups total scheduled." ) );
+			lprintf( "Used all 1024, and, have 1024 startups total scheduled." );
 			DebugBreak();
 		}
 	}
@@ -256,7 +256,7 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 	/*
 	if( nProcs == 1024 )
 	{
-		lprintf( WIDE( "Excessive number of startup procs!" ) );
+		lprintf( "Excessive number of startup procs!" );
 		DebugBreak();
 	}
 	*/
@@ -264,11 +264,11 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 	{
 #define ONE_MACRO(a,b) a,b
 #ifdef _DEBUG
-		_xlprintf(LOG_NOISE,pFile,nLine)( WIDE( "Initial done, not suspended, dispatch immediate." ) );
+		_xlprintf(LOG_NOISE,pFile,nLine)( "Initial done, not suspended, dispatch immediate." );
 #endif
 		InvokeDeadstart();
 	}
-	//lprintf( WIDE("Total procs %d"), nProcs );
+	//lprintf( "Total procs %d", nProcs );
 }
 
 #ifdef __LINUX__
@@ -338,7 +338,7 @@ void InvokeDeadstart( void )
 	if( bSuspend )
 	{
 		if( l.flags.bLog )
-			lprintf( WIDE("Suspended, first proc is %s"), proc_schedule?proc_schedule->func:WIDE("No First") ); //-V595
+			lprintf( "Suspended, first proc is %s", proc_schedule?proc_schedule->func:"No First" ); //-V595
 		return;
 	}
 #ifdef WIN32
@@ -374,9 +374,9 @@ void InvokeDeadstart( void )
 		&& l.flags.bLog ))
 		{
 #ifdef _DEBUG
-			lprintf( WIDE("Dispatch %s@%s(%d)p:%d "), proc->func,proc->file,proc->line, proc->priority );
+			lprintf( "Dispatch %s@%s(%d)p:%d ", proc->func,proc->file,proc->line, proc->priority );
 #else
-			lprintf( WIDE("Dispatch %s@p:%d "), proc->func, proc->priority );
+			lprintf( "Dispatch %s@p:%d ", proc->func, proc->priority );
 #endif
 		}
 		{
@@ -440,7 +440,7 @@ PRIORITY_PRELOAD( InitDeadstartOptions, NAMESPACE_PRELOAD_PRIORITY+1 )
 {
 #ifdef DISABLE_DEBUG_REGISTER_AND_DISPATCH
 #  ifndef __NO_OPTIONS
-	l.flags.bLog = SACK_GetProfileIntEx( WIDE( "SACK/Deadstart" ), WIDE( "Logging Enabled?" ), 0, TRUE );
+	l.flags.bLog = SACK_GetProfileIntEx( "SACK/Deadstart", "Logging Enabled?", 0, TRUE );
 #  else
 	l.flags.bLog = 0;
 #  endif
@@ -462,7 +462,7 @@ void RegisterPriorityShutdownProc( void (CPROC*proc)(void), CTEXTSTR func, int p
 		 (1
 #endif
 		  && l.flags.bLog ))
-		lprintf( WIDE("Exit Proc %s(%p) from ") DBG_FILELINEFMT_MIN WIDE(" registered...")
+		lprintf( "Exit Proc %s(%p) from " DBG_FILELINEFMT_MIN " registered..."
 				 , func
 				 , proc DBG_RELAY );
 	shutdown_procs[nShutdownProcs].proc = proc;
@@ -480,7 +480,7 @@ void RegisterPriorityShutdownProc( void (CPROC*proc)(void), CTEXTSTR func, int p
 			if( shutdown_procs[nShutdownProcs].priority >= check->priority )
 			{
 #ifdef DEBUG_SHUTDOWN
-				lprintf( WIDE("%s(%d) is to run before %s(%d) %s")
+				lprintf( "%s(%d) is to run before %s(%d) %s"
 						 , shutdown_procs[nShutdownProcs].func
 						 , nShutdownProcs
 						 , check->file
@@ -496,12 +496,12 @@ void RegisterPriorityShutdownProc( void (CPROC*proc)(void), CTEXTSTR func, int p
 		}
 		if( !check )
 			LinkLast( shutdown_proc_schedule, PSHUTDOWN_PROC, shutdown_procs + nShutdownProcs );
-		//lprintf( WIDE("first routine is %s(%d)")
+		//lprintf( "first routine is %s(%d)"
 		//		 , shutdown_proc_schedule->func
 		//		 , shutdown_proc_schedule->line );
 	}
 	nShutdownProcs++;
-	//lprintf( WIDE("Total procs %d"), nProcs );
+	//lprintf( "Total procs %d", nProcs );
 }
 
 void InvokeExits( void )
@@ -537,7 +537,7 @@ void InvokeExits( void )
 		while( ( proc = proclist ) )
 		{
 #if defined( DEBUG_SHUTDOWN )
-			lprintf( WIDE("Exit Proc %s(%p)(%d) priority %d from %s(%d)...")
+			lprintf( "Exit Proc %s(%p)(%d) priority %d from %s(%d)..."
 			       , proc->func
 			       , proc->proc
 			       , proc - shutdown_procs
@@ -565,7 +565,7 @@ void InvokeExits( void )
 			}
 			// okay I have the whol elist... so...
 #ifdef DEBUG_SHUTDOWN
-			lprintf( WIDE("Okay and that's done... next is %p %p"), proclist, shutdown_proc_schedule );
+			lprintf( "Okay and that's done... next is %p %p", proclist, shutdown_proc_schedule );
 #endif
 		}
 		// nope by this time memory doesn't exist anywhere.

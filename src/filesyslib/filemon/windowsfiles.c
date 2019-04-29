@@ -25,10 +25,10 @@ void ScanDirectory( PMONITOR monitor )
 	HANDLE hFile;
 	TEXTCHAR match[256];
 	WIN32_FIND_DATA FindFileData;
-	tnprintf( match, sizeof(match), WIDE("%s/*.*"), monitor->directory );
+	tnprintf( match, sizeof(match), "%s/*.*", monitor->directory );
 	hFile = FindFirstFile( match, &FindFileData );
 	if( l.flags.bLog )
-		lprintf( WIDE( "Scan directory: %s" ), match );
+		lprintf( "Scan directory: %s", match );
 	if( hFile != INVALID_HANDLE_VALUE )
 	{
 		do
@@ -38,7 +38,7 @@ void ScanDirectory( PMONITOR monitor )
 				PCHANGECALLBACK Change;
 				if( monitor->flags.bLogFilesFound )
 					if( l.flags.bLog )
-						Log1( WIDE("Found file %s"), FindFileData.cFileName );
+						Log1( "Found file %s", FindFileData.cFileName );
 				// invoke change on this and it's parent (if there was a parent)
 				for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 				{
@@ -48,7 +48,7 @@ void ScanDirectory( PMONITOR monitor )
 										, FALSE ) )
 					{
 						if( monitor->flags.bLogFilesFound )
-							if( l.flags.bLog ) Log( WIDE("And the mask matched.") );
+							if( l.flags.bLog ) Log( "And the mask matched." );
 						AddMonitoredFile( Change, FindFileData.cFileName );
 					}
 				}
@@ -57,8 +57,8 @@ void ScanDirectory( PMONITOR monitor )
 		FindClose( hFile );
 	}
 	else
-		if( l.flags.bLog ) Log( WIDE("FindFirstFile returned an invalid find handle") );
-	if( l.flags.bLog ) lprintf( WIDE( "Scanned directory: %s" ), match );
+		if( l.flags.bLog ) Log( "FindFirstFile returned an invalid find handle" );
+	if( l.flags.bLog ) lprintf( "Scanned directory: %s", match );
 }
 
 
@@ -79,7 +79,7 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 	}
 	if( monitor->flags.bClosing )
 	{
-		if( l.flags.bLog ) Log( WIDE("Monitor already closing...") );
+		if( l.flags.bLog ) Log( "Monitor already closing..." );
 		return;
 	}
 	EnterCriticalSec( &monitor->cs );
@@ -92,13 +92,13 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 		while( !monitor->flags.bRemovedFromEvents )
 			Relinquish();
 	}
-	//Log1( WIDE("Closing the monitor on %s and killing thread...")
+	//Log1( "Closing the monitor on %s and killing thread..."
 	//    , monitor->directory );
 	if( monitor->hChange != INVALID_HANDLE_VALUE )
 	{
-		lprintf( WIDE( "close ntoification (wakes thread?" ) );
+		lprintf( "close ntoification (wakes thread?" );
 		FindCloseChangeNotification( monitor->hChange );
-		lprintf( WIDE( "and then we wait..." ) );
+		lprintf( "and then we wait..." );
 	}
 	monitor->hChange = INVALID_HANDLE_VALUE;
 	{
@@ -111,7 +111,7 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 		EndThread( monitor->pThread );
 	}
 	//else
-	//	Log( WIDE("Thread already left...") );
+	//	Log( "Thread already left..." );
 	CloseFileMonitors( monitor );
 	RemoveTimer( monitor->timer );
 	UnlinkThing( monitor );
@@ -188,7 +188,7 @@ static void AddThreadEvent( PMONITOR monitor, struct peer_thread_info *info )
 	if( !peer )
 	{
 		if( l.flags.bLog )
-			lprintf( WIDE( "Now at event capacity, this is where next should resume from" ) );
+			lprintf( "Now at event capacity, this is where next should resume from" );
 		ThreadTo( MonitorFileThread, (uintptr_t)last_peer );
 		while( !last_peer->child_peer )
 			Relinquish();
@@ -206,7 +206,7 @@ static void AddThreadEvent( PMONITOR monitor, struct peer_thread_info *info )
 			AddDataItem( &peer->event_list, &monitor->hChange );
 			if( l.flags.bLog )
 			{
-				lprintf( WIDE("Added handle %d on %s"), monitor->hChange, monitor->directory );
+				lprintf( "Added handle %d on %s", monitor->hChange, monitor->directory );
 				//LogBinary( event_list->data, (nEvents +1)* sizeof( HANDLE ));
 			}
 			peer->nEvents++;
@@ -221,7 +221,7 @@ static void ReadChanges( PMONITOR monitor )
 	DWORD dwResultSize;
 
    if( l.flags.bLog )
-		lprintf( WIDE("Begin getting changes on %p (%d)"), monitor, monitor->hChange );
+		lprintf( "Begin getting changes on %p (%d)", monitor, monitor->hChange );
 
 	if( ReadDirectoryChangesW( monitor->hChange
 									, buffer
@@ -254,7 +254,7 @@ static void ReadChanges( PMONITOR monitor )
             MemCpy( dupname, pni->FileName, pni->FileNameLength );
 				dupname[pni->FileNameLength/2] = '\0';
 				if( l.flags.bLog )
-					lprintf( WIDE( "offset %d, next %d" ), dwOffset, pni->NextEntryOffset );
+					lprintf( "offset %d, next %d", dwOffset, pni->NextEntryOffset );
 				if( !pni->NextEntryOffset )
 					dwOffset = (DWORD)INVALID_INDEX;
 				else
@@ -267,33 +267,33 @@ static void ReadChanges( PMONITOR monitor )
 				a_name = DupWideToText( dupname );
 
 				if( l.flags.bLog )
-					lprintf( WIDE( "File change was on %s" ), a_name );
+					lprintf( "File change was on %s", a_name );
 				switch( pni->Action )
 				{
 				case FILE_ACTION_MODIFIED:
 					if( l.flags.bLog )
-						lprintf( WIDE( "File modified" ) );
+						lprintf( "File modified" );
 					if( 0 )
 					{
 				case FILE_ACTION_ADDED:
 					if( l.flags.bLog )
-						lprintf( WIDE( "File added" ) );
+						lprintf( "File added" );
 					}
 					{
 						PCHANGECALLBACK Change;
 						if( l.flags.bLog )
-							lprintf( WIDE( "checking handlers %p" ), monitor->ChangeHandlers );
+							lprintf( "checking handlers %p", monitor->ChangeHandlers );
 						for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 						{
 							if( l.flags.bLog )
-								lprintf( WIDE( "checking handlers %p %s %s" ), Change->mask, Change->mask?Change->mask: WIDE("*"), a_name );
+								lprintf( "checking handlers %p %s %s", Change->mask, Change->mask?Change->mask: "*", a_name );
 							if( !Change->mask ||
 								CompareMask( Change->mask
 											  , a_name
 											  , FALSE ) )
 							{
 								if( monitor->flags.bLogFilesFound )
-									if( l.flags.bLog ) Log( WIDE("And the mask matched.") );
+									if( l.flags.bLog ) Log( "And the mask matched." );
 								AddMonitoredFile( Change, a_name );
 							}
 						}
@@ -301,7 +301,7 @@ static void ReadChanges( PMONITOR monitor )
 					break;
 				case FILE_ACTION_REMOVED:
 					if( l.flags.bLog )
-						lprintf( WIDE( "File removed" ) );
+						lprintf( "File removed" );
 					{
 						PCHANGECALLBACK Change;
 						for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
@@ -326,7 +326,7 @@ static void ReadChanges( PMONITOR monitor )
 					break;
 				case FILE_ACTION_RENAMED_OLD_NAME:
 					if( l.flags.bLog )
-						lprintf( WIDE( "old rename" ) );
+						lprintf( "old rename" );
 					{
 						PCHANGECALLBACK Change;
 						for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
@@ -350,7 +350,7 @@ static void ReadChanges( PMONITOR monitor )
 					break;
 				case FILE_ACTION_RENAMED_NEW_NAME:
 					if( l.flags.bLog )
-						lprintf( WIDE( "new rename" ) );
+						lprintf( "new rename" );
 					{
 						PCHANGECALLBACK Change;
 						for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
@@ -442,7 +442,7 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 	(*this_thread.phMyThread) = CreateEvent( NULL, TRUE, FALSE, NULL );
 
 	if( l.flags.bLog )
-		lprintf( WIDE( "thread control handle %p" ), (*this_thread.phMyThread) );
+		lprintf( "thread control handle %p", (*this_thread.phMyThread) );
 
 	SetLink( &this_thread.monitor_list, 0, (POINTER)1 ); // has to be a non zero value.  monitor is not referenced for wait event 0
 	SetDataItem( &this_thread.event_list, 0, this_thread.phMyThread );
@@ -453,21 +453,21 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 		if( rebuild_events )
 		{
 			if( l.flags.bLog )
-				lprintf( WIDE( "rebuilding events." ) );
+				lprintf( "rebuilding events." );
 			this_thread.flags.bBuildingList = 1;
 			this_thread.flags.bProcessing = 0;
 
 			while( PeerIsBusy( &this_thread ) )
 			{
-				lprintf( WIDE( "a peer is busy with an event?" ) );
+				lprintf( "a peer is busy with an event?" );
 				Relinquish();
 			}
 
 			ClearThreadEvents( &this_thread );
 
          // this is the routine 'buildthreadevents'
-			//lprintf( WIDE( "...%p %p %p" ), peer_thread, peer_thread?peer_thread->resume_from:NULL, next_monitor );
-			//lprintf( WIDE( "first monitor is %p" ), next_monitor );
+			//lprintf( "...%p %p %p", peer_thread, peer_thread?peer_thread->resume_from:NULL, next_monitor );
+			//lprintf( "first monitor is %p", next_monitor );
 			for( monitor = Monitors; monitor; monitor = NextThing( monitor ) )
 			{
             PMONITOR sub_monitor;
@@ -488,14 +488,14 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 
 		if( l.flags.bLog )
 		{
-			lprintf( WIDE( "begin wait on %d events" ), this_thread.nEvents );
+			lprintf( "begin wait on %d events", this_thread.nEvents );
 			//LogBinary( event_list->data, this_thread. * sizeof( HANDLE ));
 		}
 
 
 		this_thread.flags.bProcessing = 0;
 		dwResult = WaitForMultipleObjects( this_thread.nEvents
-												  , (const HANDLE *)this_thread.event_list->data			//Log( WIDE("Waiting for a change...") );
+												  , (const HANDLE *)this_thread.event_list->data			//Log( "Waiting for a change..." );
 												  , FALSE
 												  , INFINITE
 													);
@@ -504,12 +504,12 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 		if( PeerIsBuilding( &this_thread ) )
 		{
 			if( l.flags.bLog )
-				lprintf( WIDE( "Work on %ld but peer is building my lists, so I can't use them" ), dwResult );
+				lprintf( "Work on %ld but peer is building my lists, so I can't use them", dwResult );
          continue;
 		}
 
 		if( l.flags.bLog )
-			lprintf( WIDE( "Result of wait was %ld" ), dwResult );
+			lprintf( "Result of wait was %ld", dwResult );
 		//dwResult = WaitForSingleObject( monitor->hChange, monitor->free_scan_delay /*900000*/ /*3600000*/ );
 		if( dwResult == WAIT_FAILED )
 		{
@@ -519,38 +519,38 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 				if( l.flags.bLog )
 				{
 					LogBinary( this_thread.event_list->data, this_thread.nEvents * sizeof( HANDLE ));
-					lprintf( WIDE("Wait failed on %d... %d"), this_thread.nEvents, GetLastError() );
+					lprintf( "Wait failed on %d... %d", this_thread.nEvents, GetLastError() );
 				}
 				continue;
 			}
 			if( l.flags.bLog )
 			{
 				LogBinary( this_thread.event_list->data, this_thread.nEvents * sizeof( HANDLE ));
-				lprintf( WIDE("Wait failed on %d... %d"), this_thread.nEvents, GetLastError() );
+				lprintf( "Wait failed on %d... %d", this_thread.nEvents, GetLastError() );
 			}
 			break;
 		}
 		else if( dwResult == WAIT_ABANDONED )
 		{
-			if( l.flags.bLog ) lprintf( WIDE("Wait abandoned - have to leave...") );
-			//MessageBox( NULL, WIDE("Wait returned bad error"), WIDE("Monitor Failed"), MB_OK );
+			if( l.flags.bLog ) lprintf( "Wait abandoned - have to leave..." );
+			//MessageBox( NULL, "Wait returned bad error", "Monitor Failed", MB_OK );
 			break;
 		}
 		else if( dwResult == WAIT_OBJECT_0 )
 		{
 			if( l.flags.bLog ) 
-				lprintf( WIDE( "signaled to rebuild events..." ) );
+				lprintf( "signaled to rebuild events..." );
 			ResetEvent( (*this_thread.phMyThread) );
 
 			// if not the root thread, our lists will be built for us.
 			if( this_thread.parent_peer == NULL )
 			{
 				if( l.flags.bLog ) 
-					lprintf( WIDE( "this is the root thread... " ) );
+					lprintf( "this is the root thread... " );
 				rebuild_events = TRUE;
 			}
 			else
-            lprintf( WIDE( "Nevermind, we're nto the root thread." ) );
+            lprintf( "Nevermind, we're nto the root thread." );
 		}
 		else if( dwResult >= (WAIT_OBJECT_0+1) && dwResult <= (WAIT_OBJECT_0+this_thread.nEvents ) )
 		{
@@ -559,9 +559,9 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 			if( !FindNextChangeNotification( monitor->hChange ) )
 			{
 				DWORD dwError = GetLastError();
-				lprintf( WIDE("Find next change failed...%d %s"), dwError, monitor->directory );
+				lprintf( "Find next change failed...%d %s", dwError, monitor->directory );
 				// bad things happened
-				//MessageBox( NULL, WIDE("Find change notification failed"), WIDE("Monitor Failed"), MB_OK );
+				//MessageBox( NULL, "Find change notification failed", "Monitor Failed", MB_OK );
 				if( dwError == ERROR_TOO_MANY_CMDS )
 				{
 					WakeableSleep( 50 );
@@ -583,7 +583,7 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 		}
  
 	} while( 1 );
-	if( l.flags.bLog ) Log( WIDE("Leaving the thread...") );
+	if( l.flags.bLog ) Log( "Leaving the thread..." );
 
 	for( monitor = Monitors; monitor; monitor = Monitors )
 	{
@@ -601,14 +601,14 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 	if( !scan_delay )
 		scan_delay = 1000;
 	if( l.flags.bLog )
-		Log1( WIDE("Going to start monitoring changes to: %s"), directory );
+		Log1( "Going to start monitoring changes to: %s", directory );
 
 	{
 		for( monitor = Monitors; monitor; monitor = NextThing( monitor ) )
 		{
 			if( StrCaseCmp( monitor->directory, directory ) == 0 )
 			{
-				lprintf( WIDE( "already monitoring this directory; should check flags...." ) );
+				lprintf( "already monitoring this directory; should check flags...." );
 				return monitor;
 			}
 		}
@@ -633,16 +633,16 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 																  | FILE_NOTIFY_CHANGE_LAST_WRITE
 																 );
 
-	if( l.flags.bLog ) lprintf( WIDE("Opened handle %d on %s"), monitor->hChange, monitor->directory );
+	if( l.flags.bLog ) lprintf( "Opened handle %d on %s", monitor->hChange, monitor->directory );
 	if( monitor->hChange == INVALID_HANDLE_VALUE )
 	{
 		TEXTCHAR msg[128];
-		tnprintf( msg, sizeof(msg), WIDE("Cannot monitor directory: %s"), monitor->directory );
+		tnprintf( msg, sizeof(msg), "Cannot monitor directory: %s", monitor->directory );
 		// probably log something like we didn't have a good directory?
 		// this needs to be a visible failure - likely a
 		// configuration error...
 		// and being in windows this is allowed?
-		MessageBox( NULL, msg, WIDE("Monitor Failed"), MB_OK );
+		MessageBox( NULL, msg, "Monitor Failed", MB_OK );
 	}
 
 	if( !l.directory_monitor_thread )
@@ -658,11 +658,11 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 	LinkLast( Monitors, PMONITOR, monitor );
 
 	if( l.flags.bLog )
-		lprintf( WIDE( "Signal monitor to wake on %d" ), l.hMonitorThreadControlEvent );
+		lprintf( "Signal monitor to wake on %d", l.hMonitorThreadControlEvent );
 	SetEvent( l.hMonitorThreadControlEvent );
 
 	if( l.flags.bLog )
-		Log1( WIDE("Adding timer %d"), scan_delay / 3 );
+		Log1( "Adding timer %d", scan_delay / 3 );
 	monitor->timer = AddTimer( scan_delay/3, ScanTimer, (uintptr_t)monitor );
 
 	return monitor;

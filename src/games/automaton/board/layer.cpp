@@ -105,7 +105,7 @@ void LAYER::Draw( PIBOARD board, Image image, int32_t x, int32_t y )
 	int scale;
 	if( flags.bRoot )
 		return;
-	//lprintf( WIDE("Drawing a cell...%p at %d,%d"), image, x, y );
+	//lprintf( "Drawing a cell...%p at %d,%d", image, x, y );
 	scale = board->GetScale();
 	board->GetSize( &boardx, &boardy );
 	board->GetCellSize( &cellx, &celly, scale );
@@ -120,7 +120,7 @@ void LAYER::Draw( PIBOARD board, Image image, int32_t x, int32_t y )
 		{
 			int xofs, yofs;
 			Image fill;
-			//lprintf( WIDE("Drawing route path node %p %d,%d  %d,%d")
+			//lprintf( "Drawing route path node %p %d,%d  %d,%d"
 			//		 , node, node->x, node->y
 			//		 , node->flags.ForeDir, node->flags.BackDir );
 			fill = viaset->GetViaFromTo( node->flags.BackDir, node->flags.ForeDir, scale );
@@ -134,7 +134,7 @@ void LAYER::Draw( PIBOARD board, Image image, int32_t x, int32_t y )
 
 			}
 			//else
-         //   lprintf( WIDE("filler for %d,%d failed"), node->flags.BackDir, node->flags.ForeDir );
+         //   lprintf( "filler for %d,%d failed", node->flags.BackDir, node->flags.ForeDir );
 			fill = viaset->GetViaFill1( &xofs, &yofs, node->flags.ForeDir, scale );
 			if( fill )
 			{
@@ -145,7 +145,7 @@ void LAYER::Draw( PIBOARD board, Image image, int32_t x, int32_t y )
 								 , y + (node->y + yofs) * celly );
 			}
 			//else
-         //   lprintf( WIDE("filler for %d,%d failed"), node->flags.BackDir, node->flags.ForeDir );
+         //   lprintf( "filler for %d,%d failed", node->flags.BackDir, node->flags.ForeDir );
 			fill = viaset->GetViaFill2( &xofs, &yofs, node->flags.ForeDir, scale );
 			if( fill )
 			{
@@ -157,7 +157,7 @@ void LAYER::Draw( PIBOARD board, Image image, int32_t x, int32_t y )
 
 			}
 			//else
-         //   lprintf( WIDE("filler for %d,%d failed"), node->flags.BackDir, node->flags.ForeDir );
+         //   lprintf( "filler for %d,%d failed", node->flags.BackDir, node->flags.ForeDir );
 		}
 	}
 	else
@@ -173,7 +173,7 @@ void LAYER::Draw( PIBOARD board, Image image, int32_t x, int32_t y )
 	// later, when I get more picky, only draw those cells that changed
    // which may include an offset
 	pLayerData->peice->getsize( &rows, &cols );
-	//lprintf( WIDE("Drawing layer at %d,%d (%d,%d) origin at %d,%d"), LAYER::x, LAYER::y, hotx, hoty, x, y );
+	//lprintf( "Drawing layer at %d,%d (%d,%d) origin at %d,%d", LAYER::x, LAYER::y, hotx, hoty, x, y );
 	if( 1 )
 	{
 		for( xofs = -hotx; xofs < ((signed)cols-hotx); xofs++ )
@@ -467,13 +467,13 @@ LAYER::LAYER( PODBC odbc, PLIST peices, INDEX iLoadLayer )
 		return;
 	if( iLayer && iLayer != INVALID_INDEX )
 	{
-		lprintf( WIDE("Recovering prior layer") );
+		lprintf( "Recovering prior layer" );
 		return;
 	}
 	{
 		CTEXTSTR *results;
 		if( SQLRecordQueryf( odbc, NULL, &results, NULL
-					  , WIDE("select x,y,min_x,min_y,width,height,linked_from_id,linked_from_x,linked_from_y,linked_to_id,linked_to_x,linked_to_y,route,peice_info_id,peice_type from board_layer where board_layer_id=%lu")
+					  , "select x,y,min_x,min_y,width,height,linked_from_id,linked_from_x,linked_from_y,linked_to_id,linked_to_x,linked_to_y,route,peice_info_id,peice_type from board_layer where board_layer_id=%lu"
 					  , iLoadLayer
 					  ) && results )
 		{
@@ -529,7 +529,7 @@ LAYER::LAYER( PODBC odbc, PLIST peices, INDEX iLoadLayer )
 			//}
 		}
 		SQLEndQuery( odbc );
-		for( SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE("select x,y,fore,back from board_layer_path where board_layer_id=%lu order by board_layer_path_id desc"), iLoadLayer );
+		for( SQLRecordQueryf( odbc, NULL, &results, NULL, "select x,y,fore,back from board_layer_path where board_layer_id=%lu order by board_layer_path_id desc", iLoadLayer );
 			results;
 			FetchSQLRecord( odbc, &results ) )
 		{
@@ -639,7 +639,7 @@ int LAYER::IsLayerAt( int32_t *x, int32_t *y )
 	int n;
 	// width of 3.. offset 1, should be -1 and +1 of the x, y... not -1 and +2 (3)
 	// difference is really only 2 when comparing as a corrdinate
-	//lprintf( WIDE("layer test %d,%d within %d,%d-%d,%d"), *x, *y, min_x, min_y, w, h );
+	//lprintf( "layer test %d,%d within %d,%d-%d,%d", *x, *y, min_x, min_y, w, h );
 	if( flags.bRoot ||
 		(LAYER::min_x+(signed)LAYER::w) <= (*x) ||
 		(LAYER::min_y+(signed)LAYER::h) <= (*y) ||
@@ -682,7 +682,7 @@ int LAYER::Overlaps( int x, int y )
 	for( n = 1; node = (PLAYER_PATH_NODE)PeekDataEx( &pds_path, n ); n++ )
 	{
 		int xofs, yofs;
-		lprintf( WIDE("checking overlap of %d,%d at %d,%d (%d)")
+		lprintf( "checking overlap of %d,%d at %d,%d (%d)"
 				 , x, y
 				 , node->x, node->y, n );
 		// should we test for overlap on via?
@@ -698,25 +698,25 @@ int LAYER::Overlaps( int x, int y )
 		if( viaset->GetViaFill1( &xofs, &yofs, node->flags.ForeDir ) )
 			if( ( ( node->x + xofs ) == x ) && ( ( node->y + yofs ) == y ) )
 			{
-            lprintf(WIDE("hit via fill1 of node %d,%d"), xofs, yofs );
+            lprintf("hit via fill1 of node %d,%d", xofs, yofs );
             return n;
 			}
 		if( viaset->GetViaFill2( &xofs, &yofs, node->flags.ForeDir ) )
 			if( ( ( node->x + xofs ) == x ) && ( ( node->y + yofs ) == y ) )
 			{
-            lprintf(WIDE("hit via fill2 of node %d,%d"), xofs, yofs );
+            lprintf("hit via fill2 of node %d,%d", xofs, yofs );
             return n;
 			}
 		if( viaset->GetViaFill1( &xofs, &yofs, node->flags.BackDir ) )
 			if( ( ( node->x + xofs ) == x ) && ( ( node->y + yofs ) == y ) )
 			{
-            lprintf(WIDE("hit via fill1 of node back %d,%d"), xofs, yofs );
+            lprintf("hit via fill1 of node back %d,%d", xofs, yofs );
             return n;
 			}
 		if( viaset->GetViaFill2( &xofs, &yofs, node->flags.BackDir ) )
 			if( ( ( node->x + xofs ) == x ) && ( ( node->y + yofs ) == y ) )
 			{
-            lprintf(WIDE("hit via fill2 of node back %d,%d"), xofs, yofs );
+            lprintf("hit via fill2 of node back %d,%d", xofs, yofs );
             return n;
 			}
 		}
@@ -733,10 +733,10 @@ PLAYER_PATH_NODE LAYER::UnlayPath( int nLayers )
 	// other functionality.
 	int n;
 	PLAYER_PATH_NODE node;// = (PLAYER_PATH_NODE)PopData( &pds_path );
-	lprintf( WIDE("overlapped self at path segment %d"), nLayers );
+	lprintf( "overlapped self at path segment %d", nLayers );
 	for( n = nLayers; (n && (node = (PLAYER_PATH_NODE)PopData( &pds_path ))), n; n-- )
 	{
-		lprintf( WIDE("Popped node %d(%p)"), n, node );
+		lprintf( "Popped node %d(%p)", n, node );
 		// grab the NEXT node...
 		// if it has bForced set... then this node must exist.
 		PLAYER_PATH_NODE next = (PLAYER_PATH_NODE)PeekData( &pds_path );
@@ -753,10 +753,10 @@ PLAYER_PATH_NODE LAYER::UnlayPath( int nLayers )
 		}
 		//if( node->x == dest_x && node->y == dest_y )
 		{
-			//lprintf( WIDE("And then we find the node we overlaped...") );
+			//lprintf( "And then we find the node we overlaped..." );
 		}
 	}
-	lprintf( WIDE("Okay done popping... %d, %p"), n, node );
+	lprintf( "Okay done popping... %d, %p", n, node );
 	if( node )
 	{
 		PLAYER_PATH_NODE next = (PLAYER_PATH_NODE)PeekData( &pds_path );
@@ -795,7 +795,7 @@ PLAYER_PATH_NODE LAYER::UnlayPath( int nLayers )
 		else
 		{
 			next->flags.ForeDir = NOWHERE;
-         lprintf( WIDE("this node itself is okay...") );
+         lprintf( "this node itself is okay..." );
 		}
       return next;
 	}
@@ -844,12 +844,12 @@ BackTrace:   // method here to remove one peice from the trail.
 		// should perhaps join this and the loop removal -
 		// and do a BackTrace UNTIL _x = tx, _y = ty or we are at the start...
 #ifdef DEBUG_BACKTRACE
-		Log( WIDE("Start...") );
+		Log( "Start..." );
 #endif
 		while( bBackTrace || bLoop )
 		{
 #ifdef DEBUG_BACKTRACE
-			Log( WIDE("BackTrace...\n") );
+			Log( "BackTrace...\n" );
 #endif
 			if( bStarted )  // bStarted = bCompleted...
 			{
@@ -858,7 +858,7 @@ BackTrace:   // method here to remove one peice from the trail.
 #ifdef DEBUG_BACKTRACE
 				{
 					BYTE byString[256];
-					sprintf( (char*)byString, WIDE(" %d, %d, %d to %d, %d\n"),
+					sprintf( (char*)byString, " %d, %d, %d to %d, %d\n",
 							  nDir, _x, _y,
 							  _x + DirDeltaMap[nDir].x,
 							  _y + DirDeltaMap[nDir].y );
@@ -871,7 +871,7 @@ BackTrace:   // method here to remove one peice from the trail.
 			else
 			{
 #ifdef DEBUG_BACKTRACE
-				Log( WIDE("Not Started...") );
+				Log( "Not Started..." );
 #endif
 				if( bLoop )  // just abort cause we're sooo confused
 				{
@@ -889,7 +889,7 @@ BackTrace:   // method here to remove one peice from the trail.
 			if( _x == xStart && _y == yStart )
 			{
 #ifdef DEBUG_BACKTRACE
-				Log( WIDE("At Beginning...") );
+				Log( "At Beginning..." );
 #endif
 				bStarted = FALSE;
 				bLoop = FALSE;
@@ -897,7 +897,7 @@ BackTrace:   // method here to remove one peice from the trail.
 			else if( (abs( _x - tx ) + abs( _y - ty))<2 ) // almost back at start...???
 			{
 #ifdef DEBUG_BACKTRACE
-				Log( WIDE("Loop Removed...") );
+				Log( "Loop Removed..." );
 #endif
 				bLoop = FALSE;  // uhmm delayed one step...(if just now stating)
 			}
@@ -940,7 +940,7 @@ void LAYER::move( int32_t del_x, int32_t del_y )
 					}
 					else
 					{
-						lprintf( WIDE("This via should have been deleted?!") );
+						lprintf( "This via should have been deleted?!" );
 					}
 					//layer->UnlayPath(
 					// RelayPathFrom( wX, wY );
@@ -961,7 +961,7 @@ void LAYER::LayPath( int32_t wX, int32_t wY )
 		bFailed = FALSE;
 
 	PLAYER_PATH_NODE node;
-	lprintf( WIDE("Laying path %p to %d,%d"), this, wX, wY );
+	lprintf( "Laying path %p to %d,%d", this, wX, wY );
 	node = (PLAYER_PATH_NODE)PeekData( &pds_path );
 	// sanity validations...
 	// being done already, etc...
@@ -971,7 +971,7 @@ void LAYER::LayPath( int32_t wX, int32_t wY )
 	{
 		if( node->x == wX && node->y == wY )
 		{
-			lprintf( WIDE("Already at this end point, why are you telling me to end where I already did?") );
+			lprintf( "Already at this end point, why are you telling me to end where I already did?" );
 			return;
 		}
 		// should range check wX and wY to sane limits
@@ -979,12 +979,12 @@ void LAYER::LayPath( int32_t wX, int32_t wY )
 		if( abs( node->x - wX ) > 100 || abs( node->y - wY ) > 100 )
 		{
 			DebugBreak();
-			lprintf( WIDE("Laying a LONG path - is this okay?!") );
+			lprintf( "Laying a LONG path - is this okay?!" );
 		}
 	}
 
 	#ifdef DEBUG_BACKTRACE
-		Log( WIDE("Enter...") );
+		Log( "Enter..." );
 	#endif
 
 		//------------ FORWARD DRAWING NOW .....
@@ -1002,7 +1002,7 @@ void LAYER::LayPath( int32_t wX, int32_t wY )
 			if( nNewDir == NOWHERE )
 			{
 				// already have this node at the current spot...
-				lprintf( WIDE("Node has ended here...") );
+				lprintf( "Node has ended here..." );
 				break;
 			}
 			nDir = NOWHERE; // intialize this, in case we missed a path below...
@@ -1011,16 +1011,16 @@ void LAYER::LayPath( int32_t wX, int32_t wY )
 				// if it is newdir, we're okay to go ahead with this plan.
 				if( node->flags.ForeDir != nNewDir && flags.bForced )
 				{
-					lprintf( WIDE("Have a forced begin point, and no way to get there from here....") );
+					lprintf( "Have a forced begin point, and no way to get there from here...." );
 					DebugBreak();
 					if( NearDir( node->flags.ForeDir, nNewDir ) == 10 )
 					{
-						lprintf( WIDE("MUST go %d , have to go %d from here.  Go nowhere."), node->flags.ForeDir, nNewDir );
-						lprintf( WIDE("Okay - consider a arbitrary jump to go forward... until we can go backward.") );
+						lprintf( "MUST go %d , have to go %d from here.  Go nowhere.", node->flags.ForeDir, nNewDir );
+						lprintf( "Okay - consider a arbitrary jump to go forward... until we can go backward." );
 					}
 					else
 					{
-						lprintf( WIDE("It's just not quite right... return, a less radical assumption may be made.") );
+						lprintf( "It's just not quite right... return, a less radical assumption may be made." );
 					}
 					return;
 				}
@@ -1030,12 +1030,12 @@ void LAYER::LayPath( int32_t wX, int32_t wY )
 			else
 			{
 				// need to determine a valid foredir based on nNewDir desire, and nBackDir given.
-				lprintf( WIDE("%d, %d = %d")
+				lprintf( "%d, %d = %d"
 						 , Opposite( node->flags.BackDir )
 						 , nNewDir
 						 , NearDir(Opposite( node->flags.BackDir )
 									 , nNewDir ) );
-				lprintf( WIDE("newdir = %d backdir = %d"), nNewDir, node->flags.BackDir );
+				lprintf( "newdir = %d backdir = %d", nNewDir, node->flags.BackDir );
 				//pold->TopLayer->ForeDir;
 				if( NearDir( nNewDir, Opposite( node->flags.BackDir ) ) != 10 )
 				{
@@ -1044,7 +1044,7 @@ void LAYER::LayPath( int32_t wX, int32_t wY )
 				}
 				else
 				{
-					lprintf( WIDE("Unlay path cause we can't get there from here.") );
+					lprintf( "Unlay path cause we can't get there from here." );
 					node = UnlayPath( nPathLayed + 1 );
 					// at this point always unlay at least one more than we put down.
 					nPathLayed = 1;
@@ -1066,7 +1066,7 @@ void LAYER::LayPath( int32_t wX, int32_t wY )
 
 						// this should be a random chance to go left or right...
 						// maybe tend to the lower x or higher x ?
-						lprintf( WIDE("Choosing an arbitrary directino of 1, and only on1") );
+						lprintf( "Choosing an arbitrary directino of 1, and only on1" );
 						//node->flags.ForeDir = Right( nBase + 1 );
 						node->flags.bFlopped = 0;
 						node->flags.bTry = 1;
@@ -1084,13 +1084,13 @@ void LAYER::LayPath( int32_t wX, int32_t wY )
 				int  n;
 				tx = node->x + DirDeltaMap[node->flags.ForeDir].x;
 				ty = node->y + DirDeltaMap[node->flags.ForeDir].y;
-				lprintf( WIDE("New coordinate will be %d,%d"), tx, ty );
+				lprintf( "New coordinate will be %d,%d", tx, ty );
 				if( n = Overlaps( tx, ty ) ) // aleady drew something here...
 					// the distance of the overlap is n layers, including Nth layer
 					// for( ; n; PopData(&pds_stack), n-- )
 					// and some fixups which unlay path does.
 				{
-					lprintf( WIDE("Unlaying path %d steps to overlap") , n );
+					lprintf( "Unlaying path %d steps to overlap" , n );
 					node = UnlayPath( n );
 					// at an unlay point of forced, unlay path should be 'smart' and 'wait'
 					// otherwise we may unwind to our tail and be confused... specially when moving away
@@ -1136,7 +1136,7 @@ void LAYER::LayPath( int32_t wX, int32_t wY )
 							h = yy - min_y + 1;
 
 					}
-					lprintf( WIDE("Push path %d,%d  min=%d,%d size=%d,%d"), newnode.x, newnode.y, min_x, min_y, w, h );
+					lprintf( "Push path %d,%d  min=%d,%d size=%d,%d", newnode.x, newnode.y, min_x, min_y, w, h );
 					PushData( &pds_path, &newnode );
 					nPathLayed++;
 					node = (PLAYER_PATH_NODE)PeekData( &pds_path ); // okay this is now where we are.
@@ -1165,7 +1165,7 @@ INDEX LAYER::Save( PODBC odbc )
 		return INVALID_INDEX;
 	if( iLayer && iLayer != INVALID_INDEX )
 	{
-		lprintf( WIDE("Recovering prior layer") );
+		lprintf( "Recovering prior layer" );
 		return iLayer;
 	}
 
@@ -1177,25 +1177,25 @@ INDEX LAYER::Save( PODBC odbc )
 			iPeice = pLayerData->peice->Save( odbc, iLayer, pLayerData->psvInstance );
 		else
 			iPeice = INVALID_INDEX;
-		SQLInsert( odbc, WIDE("board_layer")
-					  ,WIDE("x") , 2, x
-					  ,WIDE("y"), 2, y
-					  ,WIDE("min_x"), 2, min_x
-					  ,WIDE("min_y"), 2, min_y
-					  ,WIDE("width"), 2, w
-					  ,WIDE("height"), 2, h
-					  ,WIDE("linked_from_id"), 2, iStart
-					  ,WIDE("linked_from_x"), 2, route_start_layer.x
-					  ,WIDE("linked_from_y"), 2, route_start_layer.y
-					  ,WIDE("linked_to_id"), 2, iEnd
-					  ,WIDE("linked_to_x"), 2, route_end_layer.x
-					  ,WIDE("linked_to_y"),  2, route_end_layer.y
-					  ,WIDE("route"), 2, flags.bRoute
-					  ,WIDE("peice_info_id"), 2, iPeice
-					  ,WIDE("peice_type"), 1, pLayerData->peice->name() 
+		SQLInsert( odbc, "board_layer"
+					  ,"x" , 2, x
+					  ,"y", 2, y
+					  ,"min_x", 2, min_x
+					  ,"min_y", 2, min_y
+					  ,"width", 2, w
+					  ,"height", 2, h
+					  ,"linked_from_id", 2, iStart
+					  ,"linked_from_x", 2, route_start_layer.x
+					  ,"linked_from_y", 2, route_start_layer.y
+					  ,"linked_to_id", 2, iEnd
+					  ,"linked_to_x", 2, route_end_layer.x
+					  ,"linked_to_y",  2, route_end_layer.y
+					  ,"route", 2, flags.bRoute
+					  ,"peice_info_id", 2, iPeice
+					  ,"peice_type", 1, pLayerData->peice->name() 
 					  , NULL, 0, NULL );
 		iLayer = FetchLastInsertID( odbc, NULL, NULL );
-		lprintf( WIDE("Saved %lu"), iLayer );
+		lprintf( "Saved %lu", iLayer );
 	}
 
 	if( flags.bRoute /*&& pds_path*/ )
@@ -1205,7 +1205,7 @@ INDEX LAYER::Save( PODBC odbc )
 	  for( idx = 0; path_node = (PLAYER_PATH_NODE)PeekDataEx( &pds_path, idx ); idx++ )
 		{
 			SQLCommandf( odbc
-				, WIDE("insert into board_layer_path(board_layer_id,x,y,fore,back)values(%lu,%ld,%ld,%d,%d)")
+				, "insert into board_layer_path(board_layer_id,x,y,fore,back)values(%lu,%ld,%ld,%d,%d)"
 				, iLayer
 				, path_node->x, path_node->y
 				, path_node->flags.ForeDir, path_node->flags.BackDir );

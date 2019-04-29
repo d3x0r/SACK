@@ -8,17 +8,17 @@
 
 #ifdef _MSC_VER
 #define CheckErr()  				{    \
-						lprintf( WIDE("CheckErr is not implemented in vulkan")  ); \
+						lprintf( "CheckErr is not implemented in vulkan"  ); \
 				}                               
 #define CheckErrf(f,...)  				{    \
-						lprintf( WIDE("CheckErr is not implemented in vulkan")  ); \
+						lprintf( "CheckErr is not implemented in vulkan"  ); \
 				}                               
 #else
 #define CheckErr()  				{    \
-						lprintf( WIDE("CheckErr is not implemented in vulkan")  ); \
+						lprintf( "CheckErr is not implemented in vulkan"  ); \
 				}                               
 #define CheckErrf(f,...)  				{    \
-						lprintf( WIDE("CheckErr is not implemented in vulkan")  ); \
+						lprintf( "CheckErr is not implemented in vulkan"  ); \
 				}                               
 #endif
 

@@ -76,7 +76,7 @@ void HTTPCollapse( PTEXT *ppText )
 			if( !PRIORLINE( input ) )
             (*ppText) = input;
 		}
-		else if( TextIs( input, WIDE("%") ) )
+		else if( TextIs( input, "%" ) )
 		{
 			PTEXT next = NEXTLINE( input );
 			if( next )
@@ -154,8 +154,8 @@ void ParseURI( CTEXTSTR string )
 
 	while( words )
 	{
-		DECLTEXT( page, WIDE("page") );
-		DECLTEXT( CGI, WIDE("CGI") );
+		DECLTEXT( page, "page" );
+		DECLTEXT( CGI, "CGI" );
 		//printf( "state:%d word:%s \r\n",state, GetText(words ) );
 		// what does stuff have now?  the whole thign?  a line?
 		if( !GetTextSize( words ) ) switch( state )
@@ -175,12 +175,12 @@ void ParseURI( CTEXTSTR string )
 			continue;  // skip ahead  and try new state;
 			break;
 		case GET_COMMAND:
-			if( TextLike( words, WIDE("GET") ) )
+			if( TextLike( words, "GET" ) )
 			{
 				state = GET_FILENAME;
 				//flags.bGet = TRUE;
 			}
-			else if( TextLike( words, WIDE("POST") ) )
+			else if( TextLike( words, "POST" ) )
 			{
 				state = GET_FILENAME;
 				//flags.bPost = TRUE;
@@ -191,14 +191,14 @@ void ParseURI( CTEXTSTR string )
 			}
 			break;
 		case GET_FILENAME:
-			if( !filename && TextIs( words, WIDE("/") ) )
+			if( !filename && TextIs( words, "/" ) )
 			{
 				// this is rude, and should never be done,
 				// however this filter consumes all data anyhow, SO
 				// mangling this will not hurt much...
 				words->format.position.offset.spaces = 0;
 			}
-			if( TextIs( words, WIDE("?") ) || words->format.position.offset.spaces )
+			if( TextIs( words, "?" ) || words->format.position.offset.spaces )
 			{
 				if( !words->format.position.offset.spaces )
 					state = GET_CGI;
@@ -225,17 +225,17 @@ void ParseURI( CTEXTSTR string )
 			}
 			else
 			{
-				if( TextIs( words, WIDE("=") ) )
+				if( TextIs( words, "=" ) )
 				{
 					HTTPCollapse( &varname );
 					flags.bValue = 1;
 				}
-				else if( TextIs( words, WIDE("&") ) )
+				else if( TextIs( words, "&" ) )
 				{
 				AddCGIVariable:
 					HTTPCollapse( &varvalue );
 					HTTPCollapse( &varname );
-					if( TextLike( varname, WIDE("content-length") ) )
+					if( TextLike( varname, "content-length" ) )
 					{
 						content_length= (int)IntCreateFromText( GetText( varvalue ) );
 					}
@@ -269,7 +269,7 @@ void ParseURI( CTEXTSTR string )
 			}
 			break;
 		case GET_HTTP_VERSION:
-			if( TextIs( words, WIDE("HTTP") ) )
+			if( TextIs( words, "HTTP" ) )
 					{
 						// okay - don't really do anything... next word is the version...
 					}
@@ -289,7 +289,7 @@ void ParseURI( CTEXTSTR string )
 					break;
 				case GET_HTTP_METAVAR:
 					{
-						if( !flags.bValue && TextIs( words, WIDE(":") ) )
+						if( !flags.bValue && TextIs( words, ":" ) )
 						{
                      flags.bValue = TRUE;
 						}
@@ -355,7 +355,7 @@ void DumpValue( void )
 	struct VAR *v;
 	LIST_FORALL( l.vars, idx, struct VAR*, v )
 	{
-      lprintf( WIDE("%s=%s"), GetText( v->varname ), GetText( v->varvalue ) );
+      lprintf( "%s=%s", GetText( v->varname ), GetText( v->varvalue ) );
 	}
 }
 CTEXTSTR GetValue( CTEXTSTR name )
@@ -388,20 +388,20 @@ PTEXT GetValueText( CTEXTSTR name )
 
 int main( void )
 {
-	const TEXTCHAR *method = getenv( WIDE("REQUEST_METHOD") );
-	const TEXTCHAR *url = getenv( WIDE("QUERY_STRING") );
-	ParseURI( getenv( WIDE("REQUEST_URI") ) );
+	const TEXTCHAR *method = getenv( "REQUEST_METHOD" );
+	const TEXTCHAR *url = getenv( "QUERY_STRING" );
+	ParseURI( getenv( "REQUEST_URI" ) );
 	DumpValue();
 	//printf( "content-type:plain/text\r\n\r\n" );
 	{
-		const TEXTCHAR *file = GetValue( WIDE("file") );
-      PTEXT red = GetValueText( WIDE("red") );
-      PTEXT green = GetValueText( WIDE("green") );
-		PTEXT blue = GetValueText( WIDE("blue") );
-		PTEXT x_source = GetValueText( WIDE("x") );
-		PTEXT y_source = GetValueText( WIDE("y") );
-		PTEXT width_source = GetValueText( WIDE("width") );
-		PTEXT height_source = GetValueText( WIDE("height") );
+		const TEXTCHAR *file = GetValue( "file" );
+      PTEXT red = GetValueText( "red" );
+      PTEXT green = GetValueText( "green" );
+		PTEXT blue = GetValueText( "blue" );
+		PTEXT x_source = GetValueText( "x" );
+		PTEXT y_source = GetValueText( "y" );
+		PTEXT width_source = GetValueText( "width" );
+		PTEXT height_source = GetValueText( "height" );
       CDATA cred, cblue, cgreen;
 		if( file && red && blue && green )
 		{
@@ -427,17 +427,17 @@ int main( void )
 			if( image )
 			{
 				Image out = MakeImageFile( width, height );
-            lprintf(WIDE("%s %s %s"), GetText( red ), GetText( green) , GetText( blue ) );
+            lprintf("%s %s %s", GetText( red ), GetText( green) , GetText( blue ) );
 				if( !GetColorVar( &red, &cred ) )
-               lprintf( WIDE("FAIL RED") );
+               lprintf( "FAIL RED" );
 				if( !GetColorVar( &blue, &cblue ) )
-					lprintf( WIDE("FAIL BLUE") );
+					lprintf( "FAIL BLUE" );
 
 				if( !GetColorVar( &green, &cgreen ) )
-					lprintf( WIDE("FAIL gREEN") );
+					lprintf( "FAIL gREEN" );
 
 				ClearImage( out );
-				lprintf( WIDE("uhmm... %08x %08x %08x"), cred, cgreen, cblue );
+				lprintf( "uhmm... %08x %08x %08x", cred, cgreen, cblue );
 				BlotImageSizedEx( out, image, 0, 0, x, y, width, height, ALPHA_TRANSPARENT, BLOT_MULTISHADE, cred, cgreen, cblue );
 
 				//BlotImageMultiShaded( out, image, 0, 0, cred, cgreen, cblue );

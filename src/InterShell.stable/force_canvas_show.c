@@ -36,11 +36,11 @@ int main( int argc, char **argv )
       // this would be an invalid name.
 		return 0;
 	}
-	snprintf( lockname, sizeof( lockname ), WIDE( "%s.instance.lock" ), myname );
-	lprintf( WIDE( "Checking lock %s" ), lockname );
+	snprintf( lockname, sizeof( lockname ), "%s.instance.lock", myname );
+	lprintf( "Checking lock %s", lockname );
 	mem_lock = OpenSpace( lockname
 		, NULL
-		//, WIDE("memory.delete")
+		//, "memory.delete"
 		, &size );
 	if( mem_lock )
 	{
@@ -60,6 +60,6 @@ int main( int argc, char **argv )
 #endif
 	}
 	else
-		lprintf( WIDE("lock region not found.") );
+		lprintf( "lock region not found." );
 	return 0;
 }

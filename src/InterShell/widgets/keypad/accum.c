@@ -88,7 +88,7 @@ void KeyIntoAccumulator( PACCUMULATOR accum, int64_t val, uint32_t base )
 	*/
 	if( accum->flags.bText )
 	{
-      vtprintf( accum->pvt_text, WIDE("%")_64fs, val );
+      vtprintf( accum->pvt_text, "%"_64fs, val );
 	}
 	else
 	{
@@ -113,7 +113,7 @@ void KeyDecimalIntoAccumulator( PACCUMULATOR accum )
 	//lprintf( "Accumulator %s  add '.'", accum->name );
 	if( accum->flags.bText )
 	{
-      KeyTextIntoAccumulator( accum, WIDE( "." ) );
+      KeyTextIntoAccumulator( accum, "." );
 	}
 	else if( accum->flags.bDecimal )
 	{
@@ -134,7 +134,7 @@ void ClearAccumulatorDigit( PACCUMULATOR accum, uint32_t base )
 {
 	if( accum->flags.bText )
 	{
-      KeyTextIntoAccumulator( accum, WIDE( "\b" ) );
+      KeyTextIntoAccumulator( accum, "\b" );
 	}
 	else
 	{
@@ -165,11 +165,11 @@ PACCUMULATOR AddAcummulator( PACCUMULATOR accum_dest, PACCUMULATOR accum_source 
 		if( accum_source->flags.bText )
 		{
 			PTEXT text = VarTextPeek( accum_source->pvt_text );
-			vtprintf( accum_dest->pvt_text, WIDE( "%s" ), GetText( text ) );
+			vtprintf( accum_dest->pvt_text, "%s", GetText( text ) );
 		}
 		else
 		{
-			vtprintf( accum_dest->pvt_text, WIDE("%")_64fs, accum_source->value );
+			vtprintf( accum_dest->pvt_text, "%"_64fs, accum_source->value );
 		}
 	}
 	else
@@ -187,12 +187,12 @@ PACCUMULATOR TransferAccumluator( PACCUMULATOR accum_dest, PACCUMULATOR accum_so
 		if( accum_source->flags.bText )
 		{
 			PTEXT text = VarTextGet( accum_source->pvt_text );
-			vtprintf( accum_dest->pvt_text, WIDE( "%s" ), accum_source->pvt_text );
+			vtprintf( accum_dest->pvt_text, "%s", accum_source->pvt_text );
 			Release( text );
 		}
 		else
 		{
-			vtprintf( accum_dest->pvt_text, WIDE("%")_64fs, accum_source->value );
+			vtprintf( accum_dest->pvt_text, "%"_64fs, accum_source->value );
 			accum_source->value = 0;
 		}
 	}
@@ -219,11 +219,11 @@ size_t GetAccumulatorText( PACCUMULATOR accum, TEXTCHAR *text, int nLen )
 		}
 	}
 	else if( accum->flags.bDollars )
-		len = snprintf( text, nLen, WIDE("$%") _64fs WIDE(".%02") _64fs
+		len = snprintf( text, nLen, "$%" _64fs ".%02" _64fs
 				 , accum->value / 100
 				  , accum->value % 100 );
 	else
-		len = snprintf( text, nLen,  WIDE("%") _64fs, accum->value );
+		len = snprintf( text, nLen,  "%" _64fs, accum->value );
 	return len;
 }
 
@@ -242,7 +242,7 @@ PACCUMULATOR GetAccumulator( CTEXTSTR name, uint32_t flags )
 		}
 		if( !pHeap )
 		{
-			fprintf( stderr, WIDE("Abort! Could not allocate accumulators!") );
+			fprintf( stderr, "Abort! Could not allocate accumulators!" );
 			exit(1);
 		}
 	}

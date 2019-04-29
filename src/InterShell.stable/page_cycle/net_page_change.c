@@ -23,7 +23,7 @@ static void CPROC NetEvent( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *s
 	if( buffer )
 	{
 		uint32_t tmp;
-		sscanf( (CTEXTSTR)buffer, WIDE("%d"), &tmp );
+		sscanf( (CTEXTSTR)buffer, "%d", &tmp );
 		if( tmp != l.last_msg )
 		{
 			CTEXTSTR end = strrchr( (CTEXTSTR)buffer, ':' );
@@ -46,24 +46,24 @@ static void CPROC NetEvent( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *s
 	ReadUDP( pc, buffer, 256 );
 }
 
-static void OnFinishInit( WIDE("Net Page Changer") )( PSI_CONTROL pc_canvas )
+static void OnFinishInit( "Net Page Changer" )( PSI_CONTROL pc_canvas )
 {
 	TEXTCHAR tmp[256];
-	SACK_GetPrivateProfileString( WIDE("Network Page Changer"), WIDE("listen on interface"), WIDE("0.0.0.0:7636"), tmp, sizeof( tmp ), WIDE("page_changer.ini") );
+	SACK_GetPrivateProfileString( "Network Page Changer", "listen on interface", "0.0.0.0:7636", tmp, sizeof( tmp ), "page_changer.ini" );
 	if( tmp[0] )
 	{
 		l.udp_server = ServeUDP( tmp, 7636, NetEvent, NULL );
 		SetNetworkLong( l.udp_server, 1, (uintptr_t)pc_canvas );
-		SACK_GetPrivateProfileString( WIDE("Network Page Changer"), WIDE("send change to"), WIDE("255.255.255.255:7636"), tmp, sizeof( tmp ), WIDE("page_changer.ini") );
+		SACK_GetPrivateProfileString( "Network Page Changer", "send change to", "255.255.255.255:7636", tmp, sizeof( tmp ), "page_changer.ini" );
 	}
  }
 
-static void OnKeyPressEvent(  WIDE("page/send page change") )( uintptr_t psv )
+static void OnKeyPressEvent(  "page/send page change" )( uintptr_t psv )
 {
 	struct sendbutton *button = (struct sendbutton *)psv;
 	PVARTEXT pvt = VarTextCreate();
 	PTEXT out;
-	vtprintf( pvt, WIDE("%d:change:%s"), timeGetTime(), button->page );
+	vtprintf( pvt, "%d:change:%s", timeGetTime(), button->page );
 	out = VarTextGet( pvt );
 	SendUDPEx( l.udp_server, GetText( out ), GetTextSize( out )+1, l.saBroadcast );
 	SendUDPEx( l.udp_server, GetText( out ), GetTextSize( out )+1, l.saBroadcast );
@@ -72,11 +72,11 @@ static void OnKeyPressEvent(  WIDE("page/send page change") )( uintptr_t psv )
 	VarTextDestroy( &pvt );
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("page/send page change") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "page/send page change" )( PMENU_BUTTON button )
 {
 	struct sendbutton *newbutton = New( struct sendbutton );
 	newbutton->button = button;
-	newbutton->page = StrDup( WIDE("next") );
+	newbutton->page = StrDup( "next" );
 	return (uintptr_t)newbutton;
 }
 
@@ -89,16 +89,16 @@ static uintptr_t CPROC SetSendPage( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("page/send page change") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "page/send page change" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	struct sendbutton *button = (struct sendbutton *)psv;
-	AddConfigurationMethod( pch, WIDE("send page='%m'"), SetSendPage );
+	AddConfigurationMethod( pch, "send page='%m'", SetSendPage );
 }
 
-static void OnSaveControl( WIDE("page/send page change") )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "page/send page change" )( FILE *file, uintptr_t psv )
 {
 	struct sendbutton *button = (struct sendbutton *)psv;
-	sack_fprintf( file, WIDE("send page='%s'\n"), button->page );
+	sack_fprintf( file, "send page='%s'\n", button->page );
 }
 
 PUBLIC( void, ExportedSymbolToMakeWatcomHappy )( void )

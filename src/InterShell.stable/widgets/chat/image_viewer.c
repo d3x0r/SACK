@@ -19,9 +19,9 @@
 #include "chat_control.h"
 #include "chat_control_internal.h"   // l defintiion
 
-#define CONTROL_NAME WIDE("Image Viewer Popup")
+#define CONTROL_NAME "Image Viewer Popup"
 
-#define INTERSHELL_CONTROL_NAME WIDE("Intershell/test/Image Viewer")
+#define INTERSHELL_CONTROL_NAME "Intershell/test/Image Viewer"
 
 //
 
@@ -322,7 +322,7 @@ PSI_CONTROL ImageViewer_ShowImage( PSI_CONTROL parent, Image image
 	pViewer = ControlData( ImageViewer *, pc );
 	{
 		PSI_CONTROL done_button;
-		done_button = MakeButton( pc, -10, -10, 1, 1, IDCANCEL, WIDE(""), 0, 0, 0  );
+		done_button = MakeButton( pc, -10, -10, 1, 1, IDCANCEL, "", 0, 0, 0  );
 		SetButtonPushMethod( done_button, DoneButton, 0 );
 	}
 	//AddCommonButtons( pc, &pViewer->done, NULL );

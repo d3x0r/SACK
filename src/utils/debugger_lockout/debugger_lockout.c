@@ -304,8 +304,8 @@ static PaddTimerExx CheckDebugger( void )
 		_DecryptRawData( sDebugWndClassLocks + 1, sDebugWndClassLocks[0], &output, &outsize );
 		do
 		{
-			tnprintf( key, 12, WIDE("%d"), n );
-			SACK_GetProfileString( (CTEXTSTR)output, key, WIDE(""), classname, 64 );
+			tnprintf( key, 12, "%d", n );
+			SACK_GetProfileString( (CTEXTSTR)output, key, "", classname, 64 );
 			if( classname[0] )
 				if( findWindow( classname, NULL ) )
 				{
@@ -318,8 +318,8 @@ static PaddTimerExx CheckDebugger( void )
 		_DecryptRawData( sDebugWndNameLocks + 1, sDebugWndNameLocks[0], &output, &outsize );
 		do
 		{
-			tnprintf( key, 12, WIDE("%d"), n );
-			SACK_GetProfileString( (CTEXTSTR)output, key, WIDE(""), classname, 64 );
+			tnprintf( key, 12, "%d", n );
+			SACK_GetProfileString( (CTEXTSTR)output, key, "", classname, 64 );
 			if( classname[0] )
 			{
 				if( findWindow( NULL, classname ) )

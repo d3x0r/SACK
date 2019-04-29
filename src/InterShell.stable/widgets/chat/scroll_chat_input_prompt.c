@@ -86,7 +86,7 @@ static void CPROC SetCurrentColor( PCHAT_LIST list, enum current_color_type type
 		}
 		break;
 	}
-	//lprintf( WIDE( "Set Color :%p %d #%08lX #%08lX" ), console, type
+	//lprintf( "Set Color :%p %d #%08lX #%08lX", console, type
 	//		 , list.crText, list.crBack );
 }
 
@@ -94,7 +94,7 @@ static void CPROC SetCurrentColor( PCHAT_LIST list, enum current_color_type type
 static uint32_t CPROC DrawString( Image window, SFTFont font, int x, int y, CDATA crText, CDATA crBack, RECT *r, CTEXTSTR s, int nShown, int nShow )
 {
 	uint32_t width;
-	//lprintf( WIDE( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX" ), console, s, nShown, nShow,x,y,r->left,r->top
+	//lprintf( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX", console, s, nShown, nShow,x,y,r->left,r->top
 	//		 , console->psicon.crText, console->psicon.crBack );
 	if( 1 /*debug*/)
 	{
@@ -102,7 +102,7 @@ static uint32_t CPROC DrawString( Image window, SFTFont font, int x, int y, CDAT
 		width = GetStringSizeFontEx( s + nShown, nShow, &w, &h, font );
 		r->right = r->left + w;
 		r->bottom = r->top + h;
-		//lprintf( WIDE("Output string (%d-%d)  (%d-%d) %*.*s"), (*r).left, (*r).right, (*r).top, (*r).bottom, nShow, nShow, s + nShown );
+		//lprintf( "Output string (%d-%d)  (%d-%d) %*.*s", (*r).left, (*r).right, (*r).top, (*r).bottom, nShow, nShow, s + nShown );
 	}
 	PutStringFontEx( window, x, y
 						, crText, crBack
@@ -136,12 +136,12 @@ void RenderTextLine(
 		int nShow, nShown;
 		int nTotalShown = pCurrentLine->nLineStart;
 #ifdef DEBUG_HISTORY_RENDER
-		lprintf( WIDE("Get display line %d"), nLine );
+		lprintf( "Get display line %d", nLine );
 #endif
 		if( !pCurrentLine )
 		{
 #ifdef DEBUG_HISTORY_RENDER
-			lprintf( WIDE("No such line... %d"), nLine );
+			lprintf( "No such line... %d", nLine );
 #endif
 			return;
 		}
@@ -150,7 +150,7 @@ void RenderTextLine(
 		if( (*r).bottom <= nMinLine )
 		{
 #ifdef DEBUG_HISTORY_RENDER
-			lprintf( WIDE("bottom < minline..") );
+			lprintf( "bottom < minline.." );
 #endif
 			return;
 		}
@@ -175,7 +175,7 @@ void RenderTextLine(
 		nShown = (int)pCurrentLine->nFirstSegOfs;
 #ifdef DEBUG_HISTORY_RENDER
 		if( !pText )
-			lprintf( WIDE("Okay no text to show... end up filling line blank.") );
+			lprintf( "Okay no text to show... end up filling line blank." );
 #endif
 		while( pText && SUS_LT( nChar, int, pCurrentLine->nToShow, INDEX ) )
 		{
@@ -184,7 +184,7 @@ void RenderTextLine(
 #ifdef __DEKWARE_PLUGIN__
 			if( !list->flags.bDirect && ( pText->flags & TF_PROMPT ) )
 			{
-				lprintf( WIDE("Segment is promtp - and we need to skip it.") );
+				lprintf( "Segment is promtp - and we need to skip it." );
 				pText = NEXTLINE( pText );
 				continue;
 			}
@@ -192,29 +192,29 @@ void RenderTextLine(
 
 			nLen = GetTextSize( pText );
 #ifdef DEBUG_HISTORY_RENDER
-			lprintf( WIDE("start: %d  len: %d"), nShown, nLen );
+			lprintf( "start: %d  len: %d", nShown, nLen );
 #endif
 			while( SUS_LT( nShown, int, nLen, size_t ) )
 			{
 #ifdef DEBUG_HISTORY_RENDER
-				lprintf( WIDE("nShown < nLen... char %d len %d toshow %d"), nChar, nLen, pCurrentLine->nToShow );
+				lprintf( "nShown < nLen... char %d len %d toshow %d", nChar, nLen, pCurrentLine->nToShow );
 #endif
 				if( ( nChar + ( nLen - nShown ) ) > pCurrentLine->nToShow )
 					nShow = (int)pCurrentLine->nToShow - nChar;
 				else
 				{
 #ifdef DEBUG_HISTORY_RENDER
-					lprintf( WIDE("nShow is what's left of now to nLen from nShown... %d,%d"), nLen, nShown );
+					lprintf( "nShow is what's left of now to nLen from nShown... %d,%d", nLen, nShown );
 #endif
 					nShow = (int)nLen - nShown;
 				}
 				if( !nShow )
 				{
-					//lprintf( WIDE("nothing to show...") );
+					//lprintf( "nothing to show..." );
 					break;
 				}
 
-				//lprintf( WIDE("Some stats %d %d %d"), nChar, nShow, nShown );
+				//lprintf( "Some stats %d %d %d", nChar, nShow, nShown );
 				if( nChar )
 				{
 					// not first character on line...
@@ -245,7 +245,7 @@ void RenderTextLine(
 				if( (*r).bottom > nMinLine )
 				{
 					(*r).left = x;
-					//lprintf( WIDE("putting string %s at %d,%d (left-right) %d,%d"), text, x, y, (*r).left, (*r).right );
+					//lprintf( "putting string %s at %d,%d (left-right) %d,%d", text, x, y, (*r).left, (*r).right );
 					if( nTotalShown < mark_start )
 					{
 						if( nTotalShown + nShow > mark_start )
@@ -289,14 +289,14 @@ void RenderTextLine(
 				nChar += nShow;
 			}
 #ifdef DEBUG_HISTORY_RENDER
-			lprintf( WIDE("nShown >= nLen...") );
+			lprintf( "nShown >= nLen..." );
 #endif
 
 			nShown = 0;
 			pText = NEXTLINE( pText );
 		}
 	}
-	//lprintf( WIDE(WIDE("(*(*r)...bottom nMin %d %d")), (*r)..bottom, nMinLine );
+	//lprintf( WIDE("(*(*r)...bottom nMin %d %d"), (*r)..bottom, nMinLine );
 	if( (*r).bottom > nMinLine )
 	{
 		(*r).bottom = (*r).top;
@@ -304,7 +304,7 @@ void RenderTextLine(
 		(*r).left = 0;
 		(*r).right = window->width;
 #ifndef PSI_LIB
-		//lprintf( WIDE("Would be blanking the screen here, but no, there's no reason to.") );
+		//lprintf( "Would be blanking the screen here, but no, there's no reason to." );
 				 //FillEmptyScreen();
 #endif
 	}

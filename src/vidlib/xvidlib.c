@@ -41,14 +41,14 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PXPANEL pPanel
       if (!w)
          w = pImage->width;
 
-      //_xlprintf( 1 DBG_RELAY )( WIDE("Write to Window: %d %d %d %d"), x, y, w, h );
+      //_xlprintf( 1 DBG_RELAY )( "Write to Window: %d %d %d %d", x, y, w, h );
 
       if (!pPanel->flags.bShown)
 		{
-         lprintf( WIDE("Setting shown...") );
+         lprintf( "Setting shown..." );
 			pPanel->flags.bShown = TRUE;
 #ifdef LOG_RECT_UPDATE
-			_xlprintf( 1 DBG_RELAY )( WIDE("Show Window: %d %d %d %d"), x, y, w, h );
+			_xlprintf( 1 DBG_RELAY )( "Show Window: %d %d %d %d", x, y, w, h );
 #endif
 // this is done at update...
 			XMapWindow(l.display, pPanel->win);
@@ -78,9 +78,9 @@ int errorHandler( Display *dpy, XErrorEvent *e )
 {
     char errorText[1024];
     XGetErrorText( dpy, e->error_code, errorText, sizeof(errorText) );
-    printf( WIDE("**********************************\n") );
-    printf( WIDE("X Error: %s\n"), errorText );
-    printf( WIDE("**********************************\n") );
+    printf( "**********************************\n" );
+    printf( "X Error: %s\n", errorText );
+    printf( "**********************************\n" );
 
     exit( 1 );
 }
@@ -89,13 +89,13 @@ int InitDisplay( void )
 {
 	if( !l.flags.bInited )
 	{
-		char *display_name = getenv( WIDE("DISPLAY") );
+		char *display_name = getenv( "DISPLAY" );
 		if( !display_name )
 			display_name="127.0.0.1:0";
 		l.display = XOpenDisplay( display_name );
 		if( !l.display )
 		{
-         lprintf( WIDE("Failed to connect to X") );
+         lprintf( "Failed to connect to X" );
 			return;
 		}
       l.screen_num = DefaultScreen(l.display);
@@ -171,7 +171,7 @@ unsigned long valuemask = GCCapStyle | GCJoinStyle;
 /* create a new graphical context. */
 gc = XCreateGC(display, win, valuemask, &values);
 if (gc < 0) {
-    fprintf(stderr, WIDE("XCreateGC: \n"));
+    fprintf(stderr, "XCreateGC: \n");
 }
 
 

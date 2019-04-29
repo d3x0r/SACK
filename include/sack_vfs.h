@@ -36,7 +36,7 @@ SACK_VFS_NAMESPACE
 
 // if the option to auto mount a file system is used, this is the
 // name of the 'file system interface'  ( sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME ) )
-#define SACK_VFS_FILESYSTEM_NAME WIDE("sack_shmem")
+#define SACK_VFS_FILESYSTEM_NAME "sack_shmem"
 
 // open a volume at the specified pathname.
 // if the volume does not exist, will create it.

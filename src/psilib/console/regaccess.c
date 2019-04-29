@@ -2,7 +2,7 @@
 #include <stdhdrs.h>
 #include <sqlgetoption.h>
 #include "regaccess.h"
-#define KEY_PREFIX WIDE( "Software\\Freedom Collective\\" )
+#define KEY_PREFIX "Software\\Freedom Collective\\"
 
 int GetRegistryItem( HKEY hRoot, CTEXTSTR pPrefix, 
                      CTEXTSTR pProduct, CTEXTSTR pKey, 
@@ -12,9 +12,9 @@ int GetRegistryItem( HKEY hRoot, CTEXTSTR pPrefix,
 	TEXTCHAR szString[512];
 
 	if( pProduct )
-		snprintf( szString, 512, WIDE( "%s%s" ), pPrefix, pProduct );
+		snprintf( szString, 512, "%s%s", pPrefix, pProduct );
 	else
-		snprintf( szString, 512, WIDE( "%s" ), pPrefix );
+		snprintf( szString, 512, "%s", pPrefix );
 
 	switch( dwType ) {
 	case REG_SZ:
@@ -116,9 +116,9 @@ int SetRegistryItem( HKEY hRoot, CTEXTSTR pPrefix,
 	TEXTCHAR szString[512];
 
 	if( pProduct )
-		snprintf( szString, 512, WIDE( "%s%s" ), pPrefix, pProduct );
+		snprintf( szString, 512, "%s%s", pPrefix, pProduct );
 	else
-		snprintf( szString, 512, WIDE( "%s" ), pPrefix );
+		snprintf( szString, 512, "%s", pPrefix );
 	switch( dwType ) {
 	case REG_DWORD:
 		SACK_WriteProfileInt( szString, pKey, ((int*)pValue)[0] );

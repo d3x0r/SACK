@@ -437,14 +437,14 @@ int main( void )
 	g.surface = GetControlSurface( g.frame );
 	//SetMouseHandler( g.render, MouseMethod, 0 );
 
-//	blank = LoadImageFile( WIDE("blankimage.jpg"));
+//	blank = LoadImageFile( "blankimage.jpg");
 	g.blank = MakeImageFile(96,96);
    ClearImageTo( g.blank, BASE_COLOR_CYAN );
-	g.playagain=LoadImageFile( WIDE("playagain.jpg"));
-	g.playing  =LoadImageFile( WIDE("playing.jpg"));
-   g.background = LoadImageFile( WIDE("background.jpg") );
+	g.playagain=LoadImageFile( "playagain.jpg");
+	g.playing  =LoadImageFile( "playing.jpg");
+   g.background = LoadImageFile( "background.jpg" );
 //   g.background = blank;
-	g.strip = LoadImageFile( WIDE("slot_strip.jpg") );
+	g.strip = LoadImageFile( "slot_strip.jpg" );
 	g.nReels = NUM_REELS;
 
 

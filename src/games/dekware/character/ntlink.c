@@ -11,7 +11,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-   UnregisterRoutine( WIDE("Roll") );
+   UnregisterRoutine( "Roll" );
 }
 // $Log: ntlink.c,v $
 // Revision 1.7  2003/10/08 02:29:20  panther

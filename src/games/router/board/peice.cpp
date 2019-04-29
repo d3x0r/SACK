@@ -91,8 +91,8 @@ PEICE_EXTERN(DIR_DELTA, DirDeltaMap[8]) = { { 0, -1 },
 	void PEICE_METHODS::Draw( uintptr_t psvInstance, Image surface, int x, int y, int cellx, int celly )
 	{
 		// first 0 is current scale.
-		lprintf( WIDE("Drawing peice instance %p cell: %d,%d at: %d,%d"), psvInstance, cellx, celly, x, y );
-		//lprintf( WIDE("Drawing %d by %d"), rows, cols );
+		lprintf( "Drawing peice instance %p cell: %d,%d at: %d,%d", psvInstance, cellx, celly, x, y );
+		//lprintf( "Drawing %d by %d", rows, cols );
 		BlotImage( surface
 					, master->getcell(cellx, celly)
 					, x, y
@@ -102,8 +102,8 @@ PEICE_EXTERN(DIR_DELTA, DirDeltaMap[8]) = { { 0, -1 },
 	void PEICE_METHODS::Draw( uintptr_t psvInstance, Image surface, Image peice, int32_t x, int32_t y )
 	{
 		// first 0 is current scale.
-		//lprintf( WIDE("Drawing peice instance %p"), psvInstance );
-		//lprintf( WIDE("Drawing %d by %d"), rows, cols );
+		//lprintf( "Drawing peice instance %p", psvInstance );
+		//lprintf( "Drawing %d by %d", rows, cols );
 
 		BlotImageAlpha( surface
 						  , peice
@@ -169,7 +169,7 @@ public:
 //	void PEICE_METHODS::Draw( uintptr_t psvInstance, Image surface, Image peice, int x, int y )
 //	{
 		// first 0 is current scale.
-//		lprintf( WIDE("Drawing peice instance %p"), psvInstance );
+//		lprintf( "Drawing peice instance %p", psvInstance );
 //		BlotImageAlpha( surface, peice, x, y, ALPHA_TRANSPARENT);
 //	}
 
@@ -208,11 +208,11 @@ PEICE_DATA::PEICE_DATA( PIBOARD board
 		if( scaled )
 			Release( scaled );
 		scaled = (Image*)Allocate( sizeof( Image ) * (1 + rows * cols)* 3 );
-      lprintf( WIDE("Begin scaling..") );
+      lprintf( "Begin scaling.." );
 		scaled[0] = MakeImageFile( cell_width * cols, cell_height * rows );
-      lprintf( WIDE("scale %d scaling.. to %d %d"), scale, cell_width * cols, cell_height * rows );
+      lprintf( "scale %d scaling.. to %d %d", scale, cell_width * cols, cell_height * rows );
 		BlotScaledImage( scaled[0], original );
-      lprintf( WIDE("Begin scaling..") );
+      lprintf( "Begin scaling.." );
 
 		for( scale = 0; scale < 3; scale++ )
 		{
@@ -225,7 +225,7 @@ PEICE_DATA::PEICE_DATA( PIBOARD board
 				BlotScaledImage( scaled[scale * ( (rows*cols) + 1 ) ]
 									, original );
 			}
-      lprintf( WIDE("scale %d scaling.."), scale );
+      lprintf( "scale %d scaling..", scale );
 			// if anything - because of blocking and clipping
 			// then ANY thing may need to be cut into cells
 
@@ -256,12 +256,12 @@ PEICE_DATA::PEICE_DATA( PIBOARD board
 
 void PEICE_METHODS::SaveBegin( PODBC odbc, uintptr_t psvInstance )
 {
-	lprintf( WIDE("No peice data to save... just the path... please override save to avoid this message.") );
+	lprintf( "No peice data to save... just the path... please override save to avoid this message." );
 	//return INVALID_INDEX;
 }
 INDEX PEICE_METHODS::Save( PODBC odbc, INDEX iParent, uintptr_t psvInstance )
 {
-	lprintf( WIDE("No peice data to save... just the path... please override save to avoid this message.") );
+	lprintf( "No peice data to save... just the path... please override save to avoid this message." );
 	return INVALID_INDEX;
 }
 INDEX IPEICE::Save( PODBC odbc, INDEX iParent, uintptr_t psvInstance )
@@ -276,7 +276,7 @@ uintptr_t IPEICE::Load( PODBC odbc, INDEX iInstance )
 
 uintptr_t PEICE_METHODS::Load( PODBC odbc, INDEX iInstance )
 {
-	lprintf( WIDE("Load a peice here... Bad programmer, you didn't override this.") );
+	lprintf( "Load a peice here... Bad programmer, you didn't override this." );
 	return 0;
 }
 
@@ -673,12 +673,12 @@ public:
 
 int VIA_METHODS::OnClick( uintptr_t psv, int32_t x, int32_t y )
 {
-	//	lprintf(WIDE(" Psh we have to find segment at %d,%d again... actually we only care if it's the last..."), x, y );
+	//	lprintf(" Psh we have to find segment at %d,%d again... actually we only care if it's the last...", x, y );
 	//	PLAYER_NODE_DATA pld = (PLAYER_NODE_DATA)PeekStack( &pds_path );
 	//	if( pld->x == x && pld->y == y )
 	{
 		// mouse current layer...
-		lprintf( WIDE("GENERATE DISCONNECT!") );
+		lprintf( "GENERATE DISCONNECT!" );
 		((VIA*)master)->board->UnendPath( );
 		//Disconnect();
 	}
@@ -716,7 +716,7 @@ void VIA::Destroy( void )
 //}
 
 
-PIPEICE DoCreatePeice( PIBOARD board, CTEXTSTR name //= WIDE("A Peice")
+PIPEICE DoCreatePeice( PIBOARD board, CTEXTSTR name //= "A Peice"
 						 , Image image //= NULL
 						 , int rows //= 1
 						 , int cols //= 1
@@ -732,7 +732,7 @@ PIPEICE DoCreatePeice( PIBOARD board, CTEXTSTR name //= WIDE("A Peice")
 	return (PIPEICE)peice; // should be able to auto cast this...
 }
 
-PIVIA DoCreateVia( PIBOARD board, CTEXTSTR name //= WIDE("A Peice")
+PIVIA DoCreateVia( PIBOARD board, CTEXTSTR name //= "A Peice"
 											 , Image image //= NULL
 											 , PVIA_METHODS methods //= NULL
 											 , uintptr_t psv

@@ -220,7 +220,7 @@ static void EndTriggerAlias( PSENTIENT ps, PMACROSTATE pms, int bAlias )
   	}
 	else // hmm not sure what to do in this case.....
 	{
-		Log( WIDE("Could not find trigger set for ending trigger?!") );
+		Log( "Could not find trigger set for ending trigger?!" );
 	}
 }
 
@@ -250,7 +250,7 @@ static int TestTriggerTemplate( PTEXT *ppArgs, int *nArg
 		*nArg = nArgsStart;
 	pWord = pLine;
 #ifdef DEBUG_TRIGGER_MATCHING
-		lprintf( WIDE("Line: %s word: %s"), GetText( pLine ), GetText( pWord ) );
+		lprintf( "Line: %s word: %s", GetText( pLine ), GetText( pWord ) );
 #endif
 		if( bAnchored )
 			pLine = NULL;  // don't restart anywhere else on this line...
@@ -263,7 +263,7 @@ static int TestTriggerTemplate( PTEXT *ppArgs, int *nArg
 		{
 			int data;
 #ifdef DEBUG_TRIGGER_MATCHING
-		lprintf( WIDE("word: %s testword %s"), GetText( pWord ), GetText( pTestWord ) );
+		lprintf( "word: %s testword %s", GetText( pWord ), GetText( pTestWord ) );
 #endif
 			if( pTestWord && ( data = ( pTestWord->flags & IS_DATA_FLAGS ) ) )
 			{
@@ -272,7 +272,7 @@ static int TestTriggerTemplate( PTEXT *ppArgs, int *nArg
 					PTEXT pSubText;
 					if( !( pWord->flags & TF_INDIRECT ) )
 					{
-						DECLTEXT(holder,WIDE("") );
+						DECLTEXT(holder,"" );
 						SegSubst( pWord, (PTEXT)&holder );
 						pSubText = burst( pWord );
 						SegSubst( (PTEXT)&holder, pWord );
@@ -300,7 +300,7 @@ static int TestTriggerTemplate( PTEXT *ppArgs, int *nArg
 				if( pTestWord->flags & TF_MULTIARG )
 				{
 #ifdef DEBUG_TRIGGER_MATCHING
-					lprintf( WIDE("word: %s  added as multiarg"), GetText( pWord ) );
+					lprintf( "word: %s  added as multiarg", GetText( pWord ) );
 #endif
 					pWord->flags |= TF_MULTIARG;
 					bMultiArg = TRUE;
@@ -310,7 +310,7 @@ static int TestTriggerTemplate( PTEXT *ppArgs, int *nArg
 				{
 					bMultiArg = FALSE;
 #ifdef DEBUG_TRIGGER_MATCHING
-					lprintf( WIDE("word: %s  added as single"), GetText( pWord ) );
+					lprintf( "word: %s  added as single", GetText( pWord ) );
 #endif
 				}
 				pTestWord = NEXTLINE( pTestWord );
@@ -322,7 +322,7 @@ static int TestTriggerTemplate( PTEXT *ppArgs, int *nArg
 				if( !GetText( pWord ) || !GetText( pTestWord ) )
 				{
 #ifdef DEBUG_TRIGGER_MATCHING
-					lprintf( WIDE("word and testword are null..") );
+					lprintf( "word and testword are null.." );
 #endif
 					if( bMultiArg )
 						pWord->flags |= TF_MULTIARG;
@@ -334,7 +334,7 @@ static int TestTriggerTemplate( PTEXT *ppArgs, int *nArg
 					if( !strcmp( GetText( pWord ), GetText( pTestWord ) ) )
 					{
 #ifdef DEBUG_TRIGGER_MATCHING
-						lprintf( WIDE("word and testword matched..") );
+						lprintf( "word and testword matched.." );
 #endif
 
 						pTestWord = NEXTLINE( pTestWord );
@@ -361,7 +361,7 @@ static int TestTriggerTemplate( PTEXT *ppArgs, int *nArg
 						{
 							pWord->flags |= TF_MULTIARG;
 #ifdef DEBUG_TRIGGER_MATCHING
-							lprintf( WIDE("word: %s  added as multiarg"), GetText( pWord ) );
+							lprintf( "word: %s  added as multiarg", GetText( pWord ) );
 #endif
 						}
 					}
@@ -372,7 +372,7 @@ static int TestTriggerTemplate( PTEXT *ppArgs, int *nArg
 		if( !pTestWord )
 		{
 #ifdef DEBUG_TRIGGER_MATCHING
-			lprintf( WIDE("Matched!") );
+			lprintf( "Matched!" );
 #endif
 			return TRUE;
 		}
@@ -449,7 +449,7 @@ static int TestTriggers( PTRIGGERSET pts, PTEXT pInput )
 		{
 			nArg = 0;
 #ifdef DEBUG_TRIGGER_MATCHING
-		lprintf( WIDE("test trigger %s"), GetText( pTest->Actions.pName ) );
+		lprintf( "test trigger %s", GetText( pTest->Actions.pName ) );
 #endif
 			if( TestTriggerTemplate( pTest->pArgs
 										  , &nArg
@@ -587,13 +587,13 @@ static int TestTriggers( PTRIGGERSET pts, PTEXT pInput )
 static PTEXT CPROC HandleRead( PDATAPATH pdp, PTEXT pLine )
 {
 	//PTRIGGERSET pts = (PTRIGGERSET)pdp;
-	//lprintf( WIDE("Triggers received:%s (%p)%s"), GetText(pdp->pName), pLine, GetText( pLine ) );
+	//lprintf( "Triggers received:%s (%p)%s", GetText(pdp->pName), pLine, GetText( pLine ) );
 	if( TestTriggers( (PTRIGGERSET)pdp, pLine ) )
 	{
 		LineRelease( pLine );
 		pLine = (PTEXT)1;
 	}
-	//lprintf( WIDE("Resulting with:%s %p"), GetText(pdp->pName), pLine );
+	//lprintf( "Resulting with:%s %p", GetText(pdp->pName), pLine );
 	return pLine;
 }
 
@@ -655,7 +655,7 @@ static int DestroyTrigger( PSENTIENT ps
 	}
 	if( !pSet )
 	{
-		DECLTEXT( msg, WIDE("No triggers defined...") );
+		DECLTEXT( msg, "No triggers defined..." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return TRUE;
 	}
@@ -827,16 +827,16 @@ static int CPROC LOCK( PDATAPATH pdp, PSENTIENT ps, PTEXT text )
 //--------------------------------------------------------------------------
 
 command_entry commands[]={
-  {DEFTEXT(WIDE("Help")),DEFTEXT(WIDE("TRIGGER/Commands")),0,4  ,DEFTEXT(WIDE("Show this command list...")),(Function)HELP}
+  {DEFTEXT("Help"),DEFTEXT("TRIGGER/Commands"),0,4  ,DEFTEXT("Show this command list..."),(Function)HELP}
 
- ,{DEFTEXT(WIDE("Clear")),DEFTEXT(WIDE("TRIGGER/Commands")),0,5  ,DEFTEXT(WIDE("Erase all triggers")),(Function)CLEAR}
- ,{DEFTEXT(WIDE("Create")),DEFTEXT(WIDE("TRIGGER/Commands")),0,6  ,DEFTEXT(WIDE("Create a new trigger")),(Function)TRIGGER_CREATE}
-// ,{DEFTEXT(WIDE("Describe")),0,8  ,DEFTEXT(WIDE("Describe a trigger for LIST")),DESCRIBE}
- ,{DEFTEXT(WIDE("List")),DEFTEXT(WIDE("TRIGGER/Commands")),0,4  ,DEFTEXT(WIDE("List present triggers... or a trigger")),(Function)LISTTRIGGERS}
- ,{DEFTEXT(WIDE("Destroy")),DEFTEXT(WIDE("TRIGGER/Commands")),0,7  ,DEFTEXT(WIDE("Destroy a trigger")),(Function)DESTROY}
- ,{DEFTEXT(WIDE("Options")),DEFTEXT(WIDE("TRIGGER/Commands")),0,7  ,DEFTEXT(WIDE("Set options for a trigger")),(Function)OPTIONS}
-// ,{DEFTEXT(WIDE("Trip"))	,DEFTEXT(WIDE("TRIGGER/Commands")),0,4  ,DEFTEXT(WIDE("Invoke a trigger now")),TRIP}
- ,{DEFTEXT(WIDE("Store"))  ,DEFTEXT(WIDE("TRIGGER/Commands")),0,5  ,DEFTEXT(WIDE("Store triggers, and variables associated.")), (Function)TRIGGER_STORE }
+ ,{DEFTEXT("Clear"),DEFTEXT("TRIGGER/Commands"),0,5  ,DEFTEXT("Erase all triggers"),(Function)CLEAR}
+ ,{DEFTEXT("Create"),DEFTEXT("TRIGGER/Commands"),0,6  ,DEFTEXT("Create a new trigger"),(Function)TRIGGER_CREATE}
+// ,{DEFTEXT("Describe"),0,8  ,DEFTEXT("Describe a trigger for LIST"),DESCRIBE}
+ ,{DEFTEXT("List"),DEFTEXT("TRIGGER/Commands"),0,4  ,DEFTEXT("List present triggers... or a trigger"),(Function)LISTTRIGGERS}
+ ,{DEFTEXT("Destroy"),DEFTEXT("TRIGGER/Commands"),0,7  ,DEFTEXT("Destroy a trigger"),(Function)DESTROY}
+ ,{DEFTEXT("Options"),DEFTEXT("TRIGGER/Commands"),0,7  ,DEFTEXT("Set options for a trigger"),(Function)OPTIONS}
+// ,{DEFTEXT("Trip")	,DEFTEXT("TRIGGER/Commands"),0,4  ,DEFTEXT("Invoke a trigger now"),TRIP}
+ ,{DEFTEXT("Store")  ,DEFTEXT("TRIGGER/Commands"),0,5  ,DEFTEXT("Store triggers, and variables associated."), (Function)TRIGGER_STORE }
 };
 
 #define NUM_COMMANDS (sizeof(commands)/sizeof(command_entry))
@@ -845,20 +845,20 @@ int nCommands = NUM_COMMANDS;
 
 
 option_entry options[]={
-  {DEFTEXT(WIDE("ANCHOR")) ,0,6  ,DEFTEXT(WIDE("Trigger must start first on line")),ANCHOR}
- ,{DEFTEXT(WIDE("FREE"))	,0,4  ,DEFTEXT(WIDE("Trigger may occur at any time")),FREE}
- ,{DEFTEXT(WIDE("ONCE"))	,0,4  ,DEFTEXT(WIDE("Once trigger occurs, it auto disables")),ONCE}
- ,{DEFTEXT(WIDE("ONCEOFF")),0,7  ,DEFTEXT(WIDE("Disable a trigger once, it auto enables")),ONCEOFF}
- ,{DEFTEXT(WIDE("MULTI"))  ,0,5  ,DEFTEXT(WIDE("Enables and clears ONCE option")),MULTI}
- ,{DEFTEXT(WIDE("CONSUME")),0,7  ,DEFTEXT(WIDE("If input line trips trigger, delete data")),CONSUME}
- ,{DEFTEXT(WIDE("PASS"))	,0,4  ,DEFTEXT(WIDE("Trigger does not delete input data")),PASS}
- ,{DEFTEXT(WIDE("ENABLE")) ,0,6  ,DEFTEXT(WIDE("Enable a trigger")),ENABLE}
- ,{DEFTEXT(WIDE("DISABLE")),0,7  ,DEFTEXT(WIDE("Disable a trigger")),DISABLE}
- ,{DEFTEXT(WIDE("EXACT"))  ,0,5  ,DEFTEXT(WIDE("Compare template case sensitive")),EXACT}
- ,{DEFTEXT(WIDE("SIMILAR")),0,7  ,DEFTEXT(WIDE("Compare template without case")),SIMILAR}
- ,{DEFTEXT(WIDE("RUN"))	 ,0,3  ,DEFTEXT(WIDE("Allow trigger to run and relay data")),RUN}
- ,{DEFTEXT(WIDE("LOCK"))	,0,4  ,DEFTEXT(WIDE("Stop relaying data while trigger runs")),LOCK}
- ,{DEFTEXT(WIDE("HELP"))	,0,4  ,DEFTEXT(WIDE("Show this list")),HELPVAL}
+  {DEFTEXT("ANCHOR") ,0,6  ,DEFTEXT("Trigger must start first on line"),ANCHOR}
+ ,{DEFTEXT("FREE")	,0,4  ,DEFTEXT("Trigger may occur at any time"),FREE}
+ ,{DEFTEXT("ONCE")	,0,4  ,DEFTEXT("Once trigger occurs, it auto disables"),ONCE}
+ ,{DEFTEXT("ONCEOFF"),0,7  ,DEFTEXT("Disable a trigger once, it auto enables"),ONCEOFF}
+ ,{DEFTEXT("MULTI")  ,0,5  ,DEFTEXT("Enables and clears ONCE option"),MULTI}
+ ,{DEFTEXT("CONSUME"),0,7  ,DEFTEXT("If input line trips trigger, delete data"),CONSUME}
+ ,{DEFTEXT("PASS")	,0,4  ,DEFTEXT("Trigger does not delete input data"),PASS}
+ ,{DEFTEXT("ENABLE") ,0,6  ,DEFTEXT("Enable a trigger"),ENABLE}
+ ,{DEFTEXT("DISABLE"),0,7  ,DEFTEXT("Disable a trigger"),DISABLE}
+ ,{DEFTEXT("EXACT")  ,0,5  ,DEFTEXT("Compare template case sensitive"),EXACT}
+ ,{DEFTEXT("SIMILAR"),0,7  ,DEFTEXT("Compare template without case"),SIMILAR}
+ ,{DEFTEXT("RUN")	 ,0,3  ,DEFTEXT("Allow trigger to run and relay data"),RUN}
+ ,{DEFTEXT("LOCK")	,0,4  ,DEFTEXT("Stop relaying data while trigger runs"),LOCK}
+ ,{DEFTEXT("HELP")	,0,4  ,DEFTEXT("Show this list"),HELPVAL}
 };
 
 #define NUM_OPTIONS (sizeof(options)/sizeof(command_entry))
@@ -872,7 +872,7 @@ static int CPROC HELPVAL( PDATAPATH pdp, PSENTIENT ps, PTEXT text )
 	//if( pThis )
 	{
 		{
-			DECLTEXT( leader, WIDE(" --- Trigger Options ---") );
+			DECLTEXT( leader, " --- Trigger Options ---" );
 			EnqueLink( &ps->Command->Output, &leader );
 			WriteOptionList( &ps->Command->Output, options, nOptions, NULL );
 		}
@@ -909,7 +909,7 @@ static PTRIGGER OptionCommon( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 	pTrigger = GetParam( ps, &parameters );
 	if( !pTrigger )
 	{
-		DECLTEXT( msg, WIDE("Must specify trigger to set options for...") );
+		DECLTEXT( msg, "Must specify trigger to set options for..." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -923,7 +923,7 @@ static PTEXT ProcessTemplate( PSENTIENT ps, PTEXT pArgs, PTEXT *ppArgs, int *pnA
 {
 	PTEXT pTmp, pName;
 	PTEXT pTemplate = NULL;
-	DECLTEXT( var, WIDE("TRUELINE") );
+	DECLTEXT( var, "TRUELINE" );
 	int bNextArg = FALSE, bMultiArg;
 
 	// now there is a variable for triggers which is THE line
@@ -938,7 +938,7 @@ static PTEXT ProcessTemplate( PSENTIENT ps, PTEXT pArgs, PTEXT *ppArgs, int *pnA
 		if( pTmp->flags & IS_DATA_FLAGS )
 		{
 			PTEXT pData, pInd;
-			DECLTEXT(holder,WIDE("") );
+			DECLTEXT(holder,"" );
 			SegSubst( pTmp, (PTEXT)&holder );
 			pData = burst( pTmp );
 			SegSubst( (PTEXT)&holder, pTmp );
@@ -995,8 +995,8 @@ static PTEXT ProcessTemplate( PSENTIENT ps, PTEXT pArgs, PTEXT *ppArgs, int *pnA
 
 static PDATAPATH CPROC OpenTriggerSet( PDATAPATH *pChannel, PSENTIENT ps, PTEXT params )
 {
-	DECLTEXT( name1, WIDE("$Triggers") );
-	DECLTEXT( name2, WIDE("$Aliae") );
+	DECLTEXT( name1, "$Triggers" );
+	DECLTEXT( name2, "$Aliae" );
 	PTRIGGERSET pSet;
 	int bAlias;
 	if( pChannel == &ps->Command )
@@ -1037,7 +1037,7 @@ static PTRIGGER CreateTrigger( PSENTIENT ps, PTEXT pName, PTEXT args, int bAlias
 		// cannot log message if no input...
 		//if( !ps->Command )
 		//{
-		//	DECLTEXT( msg, WIDE("Data path is not currently open... cannot add triggers.") );
+		//	DECLTEXT( msg, "Data path is not currently open... cannot add triggers." );
 		//	EnqueLink( &ps->Command->Output, &msg );
 		//	return NULL;
 		//}
@@ -1046,12 +1046,12 @@ static PTRIGGER CreateTrigger( PSENTIENT ps, PTEXT pName, PTEXT args, int bAlias
 	{
 		if( !ps->Data )
 		{
-			DECLTEXT( msg, WIDE("Data path is not currently open... cannot add triggers.") );
+			DECLTEXT( msg, "Data path is not currently open... cannot add triggers." );
 			EnqueLink( &ps->Command->Output, &msg );
 			return NULL;
 		}
 	}
-	//Log( WIDE("Creating a trigger...") );
+	//Log( "Creating a trigger..." );
 	if( ( pTrigger = FindTrigger( ps, pSet, pName, bAlias ) ) )
 	{
 		DestroyTrigger( ps, pSet, pTrigger, bAlias );
@@ -1065,22 +1065,22 @@ static PTRIGGER CreateTrigger( PSENTIENT ps, PTEXT pName, PTEXT args, int bAlias
 		pTrigger->nOptions |= OPT_CONSUME|OPT_ANCHOR;
 	ps->pRecord = &pTrigger->Actions;
 	nArgs = 0;
-	//Log( WIDE("Processing Template") );
+	//Log( "Processing Template" );
 	pTrigger->pTemplate = ProcessTemplate( ps, args
 													 , &pTrigger->Actions.pArgs
 													 , &nArgs );
-	//Log( WIDE("Processed Template") );
+	//Log( "Processed Template" );
 	pTrigger->pArgs = NewArray( PTEXT, nArgs );
 	if( !pTrigger->pTemplate )
 	{
-		DECLTEXT( msg, WIDE("Although allowed, it is unadvisable to define a trigger with no template") );
+		DECLTEXT( msg, "Although allowed, it is unadvisable to define a trigger with no template" );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	// this works except if we have a chain of things open...
 	// then well we'll have to figure out what to do...
 
 	// Duh - this is done when we first enter...
-	//Log( WIDE("finding my datapath....") );
+	//Log( "finding my datapath...." );
 	//if( bAlias )
 	//	pSet = (PTRIGGERSET)FindCommandDatapath( ps, myTypeID );
 	//else
@@ -1090,16 +1090,16 @@ static PTRIGGER CreateTrigger( PSENTIENT ps, PTEXT pName, PTEXT args, int bAlias
 	{
 		if( bAlias )
 		{
-			//Log( WIDE("Could not find datapath - making a new command") );
+			//Log( "Could not find datapath - making a new command" );
 			pSet = (PTRIGGERSET)OpenTriggerSet( &ps->Command, ps, NULL );
 		}
 		else
 		{
-			//Log( WIDE("Could not find datapath - making a new data") );
+			//Log( "Could not find datapath - making a new data" );
 			pSet = (PTRIGGERSET)OpenTriggerSet( &ps->Data, ps, NULL );
 		}
 	}
-	//Log( WIDE("Queuing Trigger...") );
+	//Log( "Queuing Trigger..." );
   	pTrigger->pNext = pSet->pFirst;
 	if( pSet->pFirst )
 	  	pSet->pFirst->me = &pTrigger->pNext;
@@ -1126,24 +1126,24 @@ static void StoreTriggers( FILE *pFile, PSENTIENT ps, int bAlias )
 		PLIST pVars;
 		PTEXT pVar, pVal;
 		pVars = ps->Current->pVars;
-		fprintf( pFile, WIDE("\n## Begin Variables\n") );
+		fprintf( pFile, "\n## Begin Variables\n" );
 		LIST_FORALL( pVars, idx, PTEXT, pVar )
 		{
-			fprintf( pFile, WIDE("/Declare %s "), GetText( pVar ) );
+			fprintf( pFile, "/Declare %s ", GetText( pVar ) );
 			pVal = BuildLine( GetIndirect( NEXTLINE( pVar ) ) );
 			if( pVal )
-				fprintf( pFile, WIDE("%s\n"), GetText( pVal ) );
+				fprintf( pFile, "%s\n", GetText( pVal ) );
 			else
-				fprintf( pFile, WIDE("\n") );
+				fprintf( pFile, "\n" );
 		}
-		fprintf( pFile, WIDE("\n## Begin Triggers\n") );
+		fprintf( pFile, "\n## Begin Triggers\n" );
 	}
  	while( pTrigger )
 	{
 		PTEXT pParam, pCmd, pVar;
 		INDEX idx;
-		fprintf( pFile, WIDE("/trigger dest %s\n"), GetText( pTrigger->Actions.pName ) );
-		fprintf( pFile, WIDE("/trigger create %s "), GetText( pTrigger->Actions.pName ) );
+		fprintf( pFile, "/trigger dest %s\n", GetText( pTrigger->Actions.pName ) );
+		fprintf( pFile, "/trigger create %s ", GetText( pTrigger->Actions.pName ) );
 		idx = 0;
 		pVar = pTrigger->Actions.pArgs;
 		pParam = pTrigger->pTemplate;
@@ -1151,22 +1151,22 @@ static void StoreTriggers( FILE *pFile, PSENTIENT ps, int bAlias )
 		{
 			if( !GetTextSize( pParam ) )
 			{
-				fprintf( pFile, WIDE("&%s "), GetText( pVar ) );
+				fprintf( pFile, "&%s ", GetText( pVar ) );
 				pVar = NEXTLINE( pVar );
 			}
 			else
-				fprintf( pFile, WIDE("%s "), GetText(pParam) );
+				fprintf( pFile, "%s ", GetText(pParam) );
 			pParam = NEXTLINE( pParam );
 		}
-		fprintf( pFile, WIDE("\n") );
+		fprintf( pFile, "\n" );
 		LIST_FORALL( pTrigger->Actions.pCommands, idx, PTEXT, pCmd )
 		{
 			PTEXT pOut; // oh - maintain some sort of order
 			pOut = BuildLine( pCmd );
-			fprintf( pFile, WIDE("%s\n"), GetText( pOut ) );
+			fprintf( pFile, "%s\n", GetText( pOut ) );
 			LineRelease( pOut );
 		}
-		fprintf( pFile, WIDE("\n") );
+		fprintf( pFile, "\n" );
 		pTrigger = pTrigger->pNext;
 	}
 }
@@ -1189,7 +1189,7 @@ static int CLEAR( PSENTIENT ps, PTEXT parameters, int bAlias )
 
 	if( !pdp )
 	{
-		DECLTEXT( msg, WIDE("Did not find trigger datapath... ") );
+		DECLTEXT( msg, "Did not find trigger datapath... " );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
@@ -1212,7 +1212,7 @@ static int TRIGGER_CREATE(PSENTIENT ps, PTEXT parameters, int bAlias )
 	pName = GetParam( ps, &parameters );
 	if( !pName )
 	{
-		DECLTEXT( msg, WIDE("Have to specify the name of trigger to create.") );
+		DECLTEXT( msg, "Have to specify the name of trigger to create." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -1233,7 +1233,7 @@ static int DESTROY(PSENTIENT ps, PTEXT parameters, int bAlias )
 	pName = GetParam( ps, &parameters );
 	if( !pName )
 	{
-		DECLTEXT( msg, WIDE("Have to specify the name of trigger to destroy.") );
+		DECLTEXT( msg, "Have to specify the name of trigger to destroy." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -1257,7 +1257,7 @@ static int LISTTRIGGERS(PSENTIENT ps, PTEXT parameters, int bAlias )
 
 	if( !pSet )
 	{
-		DECLTEXT( msg, WIDE("Data path not open, or no triggers defined") );
+		DECLTEXT( msg, "Data path not open, or no triggers defined" );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -1278,25 +1278,25 @@ static int LISTTRIGGERS(PSENTIENT ps, PTEXT parameters, int bAlias )
 				bFound = TRUE;
 				pm = &pTrig->Actions;
 				
-				nOutput += snprintf(byOutput+nOutput,sizeof( byOutput ), WIDE("Trigger \'%s\'"), GetText( pm->pName ) );
+				nOutput += snprintf(byOutput+nOutput,sizeof( byOutput ), "Trigger \'%s\'", GetText( pm->pName ) );
 				if( pm->pArgs )
 				{
 					PTEXT param;
 					param = pm->pArgs;
-					nOutput += snprintf(byOutput+nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR),  WIDE("(") );
+					nOutput += snprintf(byOutput+nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR),  "(" );
 					while( param )
 					{
 						if( PRIORLINE( param ) )
-							nOutput += snprintf( byOutput+nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE(", ") );
-						nOutput += snprintf( byOutput+nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE("%s"), GetText( param ) );
+							nOutput += snprintf( byOutput+nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), ", " );
+						nOutput += snprintf( byOutput+nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), "%s", GetText( param ) );
 						param = NEXTLINE( param );
 					}
-					nOutput += snprintf( byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE(")") );
+					nOutput += snprintf( byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), ")" );
 					EnqueLink( ppOutput, SegDuplicate((PTEXT)&outmsg) );
 				}
 				else
 					EnqueLink( ppOutput, SegDuplicate((PTEXT)&outmsg) );
-				nOutput = snprintf( byOutput, sizeof( byOutput ), WIDE("Template: ") );
+				nOutput = snprintf( byOutput, sizeof( byOutput ), "Template: " );
 				{
 					PTEXT pTemplate;
 					PTEXT pArg;
@@ -1307,28 +1307,28 @@ static int LISTTRIGGERS(PSENTIENT ps, PTEXT parameters, int bAlias )
 						if( !GetTextSize( pTemplate ) )
 						{
 							if( pArg->flags & TF_MULTIARG )
-								nOutput += snprintf(byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE(" [%s]"), GetText( pArg ) );
+								nOutput += snprintf(byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), " [%s]", GetText( pArg ) );
 							else
-								nOutput += snprintf(byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE(" (%s)"), GetText( pArg ) );
+								nOutput += snprintf(byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), " (%s)", GetText( pArg ) );
 							pArg = NEXTLINE( pArg );
 
 						}
 						else
 						{
-							nOutput += snprintf(byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE(" %s"), GetText( pTemplate ) );
+							nOutput += snprintf(byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), " %s", GetText( pTemplate ) );
 						}
 						pTemplate = NEXTLINE( pTemplate );
 					}
 					EnqueLink( ppOutput, SegDuplicate( (PTEXT)&outmsg ) );
 				}
-				nOutput = snprintf( byOutput,sizeof( byOutput ), WIDE("Options: %s %s %s %s %s %s"),
-						 ( pTrig->nOptions & OPT_DISABLE )?WIDE("DISABLED"):WIDE("enabled")
-						,( pTrig->nOptions & OPT_ONCE )?WIDE("ONCE")
-									:(pTrig->nOptions & OPT_ONCEOFF )? WIDE("ONCEOFF"):WIDE("multi")
-						,( pTrig->nOptions & OPT_ANCHOR )?WIDE("ANCHOR"):WIDE("free")
-						,( pTrig->nOptions & OPT_EXACT )?WIDE("EXACT"):WIDE("similar")
-						,( pTrig->nOptions & OPT_CONSUME )?WIDE("CONSUME"):WIDE("passdata") 
-						,( pTrig->nOptions & OPT_RUNLOCK )?WIDE("lock"):WIDE("RUN")
+				nOutput = snprintf( byOutput,sizeof( byOutput ), "Options: %s %s %s %s %s %s",
+						 ( pTrig->nOptions & OPT_DISABLE )?"DISABLED":"enabled"
+						,( pTrig->nOptions & OPT_ONCE )?"ONCE"
+									:(pTrig->nOptions & OPT_ONCEOFF )? "ONCEOFF":"multi"
+						,( pTrig->nOptions & OPT_ANCHOR )?"ANCHOR":"free"
+						,( pTrig->nOptions & OPT_EXACT )?"EXACT":"similar"
+						,( pTrig->nOptions & OPT_CONSUME )?"CONSUME":"passdata" 
+						,( pTrig->nOptions & OPT_RUNLOCK )?"lock":"RUN"
 						);
 				EnqueLink( ppOutput, SegDuplicate( (PTEXT)&outmsg ) );
 
@@ -1336,7 +1336,7 @@ static int LISTTRIGGERS(PSENTIENT ps, PTEXT parameters, int bAlias )
 				{
 					PTEXT x;
 					x = BuildLine( pt );
-					nOutput = snprintf( byOutput,sizeof( byOutput ), WIDE("	 %s") ,
+					nOutput = snprintf( byOutput,sizeof( byOutput ), "	 %s" ,
 												GetText( x ) );
 					LineRelease( x );
 					EnqueLink( ppOutput, SegDuplicate((PTEXT)&outmsg) );
@@ -1347,26 +1347,26 @@ static int LISTTRIGGERS(PSENTIENT ps, PTEXT parameters, int bAlias )
 		}
 		if (!bFound)
 		{
-			nOutput = snprintf(byOutput,sizeof( byOutput ),WIDE("Trigger %s is not defined."),GetText(pTriggerName));
+			nOutput = snprintf(byOutput,sizeof( byOutput ),"Trigger %s is not defined.",GetText(pTriggerName));
 			EnqueLink( &ps->Command->Output, SegDuplicate( (PTEXT)&outmsg ) );
 		}
 	}
 	else
 	{
-		nOutput = snprintf( byOutput,sizeof( byOutput ), WIDE("Defined Triggers: ") );
+		nOutput = snprintf( byOutput,sizeof( byOutput ), "Defined Triggers: " );
 		{
 			LOGICAL didone = FALSE;
 			while( pTrig )
 			{
-				nOutput += snprintf( byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE("%s%s"), (didone)?WIDE(", "): WIDE(""),
+				nOutput += snprintf( byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), "%s%s", (didone)?", ": "",
 											GetText( pTrig->Actions.pName ) );
 				didone = TRUE;
 				pTrig = pTrig->pNext;
 			}
 			if( didone )
-				nOutput += snprintf( byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE(".") );
+				nOutput += snprintf( byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), "." );
 			else
-				nOutput += snprintf( byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), WIDE("None.") );
+				nOutput += snprintf( byOutput + nOutput,sizeof( byOutput )-nOutput*sizeof(TEXTCHAR), "None." );
 		}
 		EnqueLink( &ps->Command->Output, SegDuplicate( (PTEXT)&outmsg ) );
 	}
@@ -1379,15 +1379,15 @@ static int HELP(PSENTIENT ps, PTEXT parameters, int bAlias )
 {
 	if( bAlias )
 	{
-		DECLTEXT( leader, WIDE(" --- Alias Builtin Commands ---") );
+		DECLTEXT( leader, " --- Alias Builtin Commands ---" );
 			EnqueLink( &ps->Command->Output, &leader );
 	}
 	else
 	{
-		DECLTEXT( leader, WIDE(" --- Trigger Builtin Commands ---") );
+		DECLTEXT( leader, " --- Trigger Builtin Commands ---" );
 			EnqueLink( &ps->Command->Output, &leader );
 	}
-	WriteCommandList2( &ps->Command->Output, WIDE("dekware/commands/TRIGGER/Commands"), NULL );
+	WriteCommandList2( &ps->Command->Output, "dekware/commands/TRIGGER/Commands", NULL );
 	return FALSE;
 }
 
@@ -1399,7 +1399,7 @@ static int TRIGGER_STORE(PSENTIENT ps, PTEXT parameters, int bAlias )
 	PTEXT pName = GetFileName( ps, &parameters );
 	if( pName )
 	{
-		file = sack_fopen( 0, GetText( pName ), WIDE("wt") );
+		file = sack_fopen( 0, GetText( pName ), "wt" );
 		if( file )
 		{
 			StoreTriggers( file, ps, bAlias );
@@ -1409,7 +1409,7 @@ static int TRIGGER_STORE(PSENTIENT ps, PTEXT parameters, int bAlias )
 		}
 		else if( !ps->CurrentMacro )
 		{
-			DECLTEXT( msg, WIDE("Could not open that file.") );
+			DECLTEXT( msg, "Could not open that file." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 		LineRelease( pName );
@@ -1428,13 +1428,13 @@ static int OPTIONS(PSENTIENT ps, PTEXT parameters, int bAlias )
 	pTrigger = GetParam( ps, &parameters );
 	if( !pTrigger )
 	{
-		DECLTEXT( msg, WIDE("Must specify trigger to set options for...") );
+		DECLTEXT( msg, "Must specify trigger to set options for..." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
-	if( TextLike( pTrigger, WIDE("help") ) )
+	if( TextLike( pTrigger, "help" ) )
 	{
-		DECLTEXT( leader, WIDE(" --- Trigger Options ---") );
+		DECLTEXT( leader, " --- Trigger Options ---" );
 		EnqueLink( &ps->Command->Output, &leader );
 		WriteOptionList( &ps->Command->Output, options, nOptions, NULL );
 		return FALSE;
@@ -1445,7 +1445,7 @@ static int OPTIONS(PSENTIENT ps, PTEXT parameters, int bAlias )
 	if( !pThis )
 	{
 		DECLTEXTSZ( msg, 256 );
-		msg.data.size = snprintf( msg.data.data, msg.data.size, WIDE("Could not find trigger %s."), GetText( pTrigger ) );
+		msg.data.size = snprintf( msg.data.data, msg.data.size, "Could not find trigger %s.", GetText( pTrigger ) );
 		EnqueLink( &ps->Command->Output, SegDuplicate( (PTEXT)&msg ) );
 			return FALSE;
 	}
@@ -1455,12 +1455,12 @@ static int OPTIONS(PSENTIENT ps, PTEXT parameters, int bAlias )
 		OptionHandler opt;
 		bSet = TRUE;
 		lprintf( "Trigger options are not tested." );
-		opt = GetOptionRegistered( WIDE("trigger"), pOpt );
+		opt = GetOptionRegistered( "trigger", pOpt );
 		if( opt )
 			opt( (PDATAPATH)pSet, ps, pTrigger );
 		else
 		{
-			DECLTEXT( msg, WIDE("Unkown option... try /trigger option help") );
+			DECLTEXT( msg, "Unkown option... try /trigger option help" );
 			EnqueLink( &ps->Command->Output, &msg );
 			return FALSE;
 		}
@@ -1510,7 +1510,7 @@ static int OPTIONS(PSENTIENT ps, PTEXT parameters, int bAlias )
 			break;
 		case HELPVAL:
 			{
-				DECLTEXT( leader, WIDE(" --- Trigger Options ---") );
+				DECLTEXT( leader, " --- Trigger Options ---" );
 				EnqueLink( &ps->Command->Output, &leader );
 				WriteOptionList( &ps->Command->Output, options, nOptions, NULL );
 			}
@@ -1520,15 +1520,15 @@ static int OPTIONS(PSENTIENT ps, PTEXT parameters, int bAlias )
 	}
 	if( pThis && !bSet )
 	{
-		nOutput = snprintf( byOutput, sizeof( byOutput ), WIDE("%s options: %s %s %s %s %s %s")
+		nOutput = snprintf( byOutput, sizeof( byOutput ), "%s options: %s %s %s %s %s %s"
 				,( GetText( pTrigger ) )
-				,( pThis->nOptions & OPT_DISABLE )?WIDE("DISABLED"):WIDE("enabled")
-				,( pThis->nOptions & OPT_ONCE )?WIDE("ONCE")
-							:(pThis->nOptions & OPT_ONCEOFF )? WIDE("ONCEOFF"):WIDE("multi")
-				,( pThis->nOptions & OPT_ANCHOR )?WIDE("ANCHOR"):WIDE("free")
-				,( pThis->nOptions & OPT_EXACT )?WIDE("EXACT"):WIDE("similar")
-				,( pThis->nOptions & OPT_CONSUME )?WIDE("CONSUME"):WIDE("passdata") 
-				,( pThis->nOptions & OPT_RUNLOCK )?WIDE("lock"):WIDE("RUN")
+				,( pThis->nOptions & OPT_DISABLE )?"DISABLED":"enabled"
+				,( pThis->nOptions & OPT_ONCE )?"ONCE"
+							:(pThis->nOptions & OPT_ONCEOFF )? "ONCEOFF":"multi"
+				,( pThis->nOptions & OPT_ANCHOR )?"ANCHOR":"free"
+				,( pThis->nOptions & OPT_EXACT )?"EXACT":"similar"
+				,( pThis->nOptions & OPT_CONSUME )?"CONSUME":"passdata" 
+				,( pThis->nOptions & OPT_RUNLOCK )?"lock":"RUN"
 				);
 		EnqueLink( &ps->Command->Output, SegDuplicate( (PTEXT)&outmsg ) );
 	}
@@ -1537,7 +1537,7 @@ static int OPTIONS(PSENTIENT ps, PTEXT parameters, int bAlias )
 
 //--------------------------------------------------------------------------
 
-static int HandleCommand(WIDE("IO"), WIDE("TRIGGER"), WIDE("Trigger macro commands - handle data filter on input") )( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand("IO", "TRIGGER", "Trigger macro commands - handle data filter on input" )( PSENTIENT ps, PTEXT parameters )
 //static int CPROC Trigger( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT op;
@@ -1545,12 +1545,12 @@ static int HandleCommand(WIDE("IO"), WIDE("TRIGGER"), WIDE("Trigger macro comman
 	if( op )
 	{
 		//int idx;
-		MyFunction f = (MyFunction)(GetRoutineRegistered( WIDE("TRIGGER/Commands"), op ));
+		MyFunction f = (MyFunction)(GetRoutineRegistered( "TRIGGER/Commands", op ));
 		//idx = GetCommandIndex( commands, NUM_COMMANDS
 		//							, GetTextSize(op), GetText(op) );
 		if( !f )
 		{
-			DECLTEXT( msg, WIDE("Trigger Operation unknown....check /trigger HELP...") );
+			DECLTEXT( msg, "Trigger Operation unknown....check /trigger HELP..." );
 			EnqueLink( &ps->Command->Output, &msg );
 			return 0;
 		}
@@ -1562,20 +1562,20 @@ static int HandleCommand(WIDE("IO"), WIDE("TRIGGER"), WIDE("Trigger macro comman
 
 //--------------------------------------------------------------------------
 
-static int HandleCommand( WIDE("IO"), WIDE("ALIAS"), WIDE("Alias macro commands - handle command filter on input") )( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand( "IO", "ALIAS", "Alias macro commands - handle command filter on input" )( PSENTIENT ps, PTEXT parameters )
 //static int CPROC Alias( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT op;
 	op = GetParam( ps, &parameters );
 	if( op )
 	{
-		Function f = GetRoutineRegistered( WIDE("TRIGGER/Commands"), op );
+		Function f = GetRoutineRegistered( "TRIGGER/Commands", op );
  //  	int idx;
 	//	idx = GetCommandIndex( commands, NUM_COMMANDS
 	  //							 , GetTextSize(op), GetText(op) );
 		if( !f )
 		{
-			DECLTEXT( msg, WIDE("Alias Operation unknown....check /alias HELP...") );
+			DECLTEXT( msg, "Alias Operation unknown....check /alias HELP..." );
 			EnqueLink( &ps->Command->Output, &msg );
 			return 0;
 		}
@@ -1588,13 +1588,13 @@ static int HandleCommand( WIDE("IO"), WIDE("ALIAS"), WIDE("Alias macro commands 
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-	RegisterCommands( WIDE("TRIGGER/Commands"), commands, nCommands );
-	//RegisterCommands( WIDE("TRIGGER/Options"), options, nOptions );
-	//RegisterDeviceOpts( WIDE("TRIGGER"), options, nOptions );
-	myTypeID = RegisterDeviceOpts( WIDE("trigger"), WIDE("Fictional Trigger device layer"), OpenTriggerSet, options, nOptions  );
-	//RegisterRoutine( WIDE("Trigger"), WIDE("Data trigger functions"), Trigger );
-	//RegisterRoutine( WIDE("Alias"), WIDE("Data trigger functions"), Alias );
-	nTrigExten = RegisterExtension( WIDE("Trigger") );
+	RegisterCommands( "TRIGGER/Commands", commands, nCommands );
+	//RegisterCommands( "TRIGGER/Options", options, nOptions );
+	//RegisterDeviceOpts( "TRIGGER", options, nOptions );
+	myTypeID = RegisterDeviceOpts( "trigger", "Fictional Trigger device layer", OpenTriggerSet, options, nOptions  );
+	//RegisterRoutine( "Trigger", "Data trigger functions", Trigger );
+	//RegisterRoutine( "Alias", "Data trigger functions", Alias );
+	nTrigExten = RegisterExtension( "Trigger" );
 	return DekVersion;
 }
 
@@ -1602,9 +1602,9 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterRoutine( WIDE("Trigger") );
-	UnregisterRoutine( WIDE("Alias") );
-	UnregisterDevice( WIDE("trigger") );
+	UnregisterRoutine( "Trigger" );
+	UnregisterRoutine( "Alias" );
+	UnregisterDevice( "trigger" );
 
 }
 

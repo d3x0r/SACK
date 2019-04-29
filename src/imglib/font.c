@@ -63,8 +63,8 @@ ASM_IMAGE_NAMESPACE_END
 
 IMAGE_NAMESPACE
 
-static TEXTCHAR maxbase1[] = WIDE("0123456789abcdefghijklmnopqrstuvwxyz");
-static TEXTCHAR maxbase2[] = WIDE("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+static TEXTCHAR maxbase1[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+static TEXTCHAR maxbase2[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 #define NUM_COLORS sizeof( color_defs ) / sizeof( color_defs[0] )
 static struct {
@@ -579,11 +579,11 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 				struct image_shader_op *op;
 				if( background )
 				{
-					op = BeginImageShaderOp( GetShader( WIDE("Simple Shader") ), pifDest, _back_color );
+					op = BeginImageShaderOp( GetShader( "Simple Shader" ), pifDest, _back_color );
 					AppendImageShaderOpTristrip( op, 2, v2[vi] );
 				}
 
-				op = BeginImageShaderOp( GetShader( WIDE("Simple Shaded Texture") ), pifDest, pifSrc->glActiveSurface, _color  );
+				op = BeginImageShaderOp( GetShader( "Simple Shaded Texture" ), pifDest, pifSrc->glActiveSurface, _color  );
 				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			// Back Face
@@ -642,7 +642,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 
 					pData[n].fU1 = texture_v[n][vRight];
 					pData[n].fV1 = texture_v[n][vUp];
-					//lprintf( WIDE("point %d  %g,%g,%g   %g,%g  %08x")
+					//lprintf( "point %d  %g,%g,%g   %g,%g  %08x"
 					//		 , n
 					//		 , pData[n].fX
 					//		 , pData[n].fY
@@ -764,7 +764,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 
 					pData[n].fU1 = texture_v[n][vRight];
 					pData[n].fV1 = texture_v[n][vUp];
-					//lprintf( WIDE("point %d  %g,%g,%g   %g,%g  %08x")
+					//lprintf( "point %d  %g,%g,%g   %g,%g  %08x"
 					//		 , n
 					//		 , pData[n].fX
 					//		 , pData[n].fY
@@ -853,7 +853,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		{
 			int line_target;
 			//if( 0 )
-			//	lprintf( WIDE("%d  %d %d %d %d %d"), UseFont->baseline, UseFont->baseline - pchar->ascent, y, UseFont->baseline - pchar->descent, pchar->descent, pchar->ascent );
+			//	lprintf( "%d  %d %d %d %d %d", UseFont->baseline, UseFont->baseline - pchar->ascent, y, UseFont->baseline - pchar->descent, pchar->descent, pchar->ascent );
 			// bias the left edge of the character
 
 			if( internal_render )
@@ -1072,7 +1072,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 		{
 			// use a long unique code for color sequencing...
          // so we can encode other things like images..
-#define PREFIX WIDE("org.d3x0r.sack.image:color")
+#define PREFIX "org.d3x0r.sack.image:color"
   			if( StrCmp( (*pc), PREFIX ) != 0 )
 			{
 				while( ch && ( ch != (unsigned char)'\x9C' ) )
@@ -1124,7 +1124,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 						uint32_t accum = 0;
 						CTEXTSTR digit = (*pc);
 						ch = GetUtfChar( &digit );
-						//lprintf( WIDE("COlor testing: %s"), digit );
+						//lprintf( "COlor testing: %s", digit );
 						// less than or equal - have to count the $
 						while( digit && digit[0] && ( ( digit - (*pc) ) <= 8 ) )
 						{
@@ -1151,7 +1151,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 						}
 						if( ( digit - (*pc) ) < 6 )
 						{
-							lprintf( WIDE("Perhaps an error in color variable...") );
+							lprintf( "Perhaps an error in color variable..." );
 							accum = accum | 0xFF000000;
 						}
 						else
@@ -1171,7 +1171,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 							COLOR_CHANNEL b = (COLOR_CHANNEL)( file_color >> 0 ) & 0xFF;
 							accum = AColor( r,grn,b,a );
 						}
-						//Log4( WIDE("Color is: $%08X/(%d,%d,%d)")
+						//Log4( "Color is: $%08X/(%d,%d,%d)"
 						//		, pce->data[0].Color
 						//		, RedVal( pce->data[0].Color ), GreenVal(pce->data[0].Color), BlueVal(pce->data[0].Color) );
 
@@ -1189,7 +1189,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 						size_t len;
 						for( n = 0; n < NUM_COLORS; n++ )
 						{
-							//lprintf( WIDE("(*pc) %s =%s?"), (*pc)
+							//lprintf( "(*pc) %s =%s?", (*pc)
 							//		 , color_defs[n].name );
 							if( StrCaseCmpEx( (*pc)
 											, color_defs[n].name
@@ -1230,7 +1230,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 					(*pc)++;
 					GetStringSizeFontEx( (*pc), len-1, &text_width, &text_height, font );
 					if( 0 )
-						lprintf( WIDE("%d lines %d line  width %d  height %d"), lines, line, text_width, text_height );
+						lprintf( "%d lines %d line  width %d  height %d", lines, line, text_width, text_height );
 					switch( (*pc)[-1] )
 					{
 					case 'A':
@@ -1250,7 +1250,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 						break;
 					}
 					if( 0 )
-						lprintf( WIDE("Finally string is %s at %d,%d max %d"), (*pc), textx, texty, key->height );
+						lprintf( "Finally string is %s at %d,%d max %d", (*pc), textx, texty, key->height );
 					PutStringFontEx( surface
 										, textx, texty
 										, key->flags.bGreyed?BASE_COLOR_WHITE:key->text_color
@@ -1751,7 +1751,7 @@ uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, CDATA col
 		{
 			InternalRenderFontCharacter( NULL, font, ' ' );
 		}
-		//lprintf( WIDE("Resulting with %d height"), font->height );
+		//lprintf( "Resulting with %d height", font->height );
 		return font->height;
 	}
 	return DEFAULTFONT.height;
@@ -1772,47 +1772,47 @@ PRELOAD( InitColorDefaults )
 {
 	int n;
 	color_defs[0].color = BASE_COLOR_BLACK;
-	color_defs[0].name = WIDE("black");
+	color_defs[0].name = "black";
 	color_defs[1].color = BASE_COLOR_BLUE;
-	color_defs[1].name = WIDE("blue");
+	color_defs[1].name = "blue";
 	color_defs[2].color = BASE_COLOR_GREEN;
-	color_defs[2].name = WIDE("green");
+	color_defs[2].name = "green";
 	color_defs[3].color = BASE_COLOR_RED;
-	color_defs[3].name = WIDE("red");
+	color_defs[3].name = "red";
 	n = 4;
-	color_defs[n].name = WIDE("dark blue");
+	color_defs[n].name = "dark blue";
 	color_defs[n++].color = BASE_COLOR_DARKBLUE;
-	color_defs[n].name = WIDE("cyan");
+	color_defs[n].name = "cyan";
 	color_defs[n++].color = BASE_COLOR_CYAN;
-	color_defs[n].name = WIDE("brown");
+	color_defs[n].name = "brown";
 	color_defs[n++].color = BASE_COLOR_BROWN;
-	color_defs[n].name = WIDE("brown");
+	color_defs[n].name = "brown";
 	color_defs[n++].color = BASE_COLOR_LIGHTBROWN;
-	color_defs[n].name = WIDE("light brown");
+	color_defs[n].name = "light brown";
 	color_defs[n++].color =BASE_COLOR_MAGENTA;
-	color_defs[n].name = WIDE("magenta");
+	color_defs[n].name = "magenta";
 	color_defs[n++].color =BASE_COLOR_LIGHTGREY;
-	color_defs[n].name = WIDE("light grey");
+	color_defs[n].name = "light grey";
 	color_defs[n++].color =BASE_COLOR_DARKGREY;
-	color_defs[n].name = WIDE("dark grey");
+	color_defs[n].name = "dark grey";
 	color_defs[n++].color =BASE_COLOR_LIGHTBLUE;
-	color_defs[n].name = WIDE("light blue");
+	color_defs[n].name = "light blue";
 	color_defs[n++].color =BASE_COLOR_LIGHTGREEN;
-	color_defs[n].name = WIDE("light green");
+	color_defs[n].name = "light green";
 	color_defs[n++].color =BASE_COLOR_LIGHTCYAN;
-	color_defs[n].name = WIDE("light cyan");
+	color_defs[n].name = "light cyan";
 	color_defs[n++].color =BASE_COLOR_LIGHTRED;
-	color_defs[n].name = WIDE("light red");
+	color_defs[n].name = "light red";
 	color_defs[n++].color =BASE_COLOR_LIGHTMAGENTA;
-	color_defs[n].name = WIDE("light magenta");
+	color_defs[n].name = "light magenta";
 	color_defs[n++].color =BASE_COLOR_YELLOW;
-	color_defs[n].name = WIDE("yellow");
+	color_defs[n].name = "yellow";
 	color_defs[n++].color =BASE_COLOR_WHITE;
-	color_defs[n].name = WIDE("white");
+	color_defs[n].name = "white";
 	color_defs[n++].color =BASE_COLOR_ORANGE;
-	color_defs[n].name = WIDE("orange");
+	color_defs[n].name = "orange";
 	color_defs[n++].color =BASE_COLOR_NICE_ORANGE;
-	color_defs[n].name = WIDE("purple");
+	color_defs[n].name = "purple";
 	color_defs[n++].color =BASE_COLOR_PURPLE;
 }
 

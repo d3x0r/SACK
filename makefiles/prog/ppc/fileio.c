@@ -96,7 +96,7 @@ PFILEDEP AddDepend( PFILEDEP root, char *basename, char *filename )
 	PFILEDEP pfd = root;
 	if( !root )
 		root = FileDependancyRoot;
-	//fprintf( stderr, WIDE("Adding dependancy for: %s %s\n"), root?root->full_name:"Base File", filename );
+	//fprintf( stderr, "Adding dependancy for: %s %s\n", root?root->full_name:"Base File", filename );
 	while( pfd && pfd->pDependedBy )
 		pfd = pfd->pDependedBy;
 	if( !( pfd = FindDependFile( pfd, basename ) ) )
@@ -128,19 +128,19 @@ PFILEDEP AddDepend( PFILEDEP root, char *basename, char *filename )
 			{
 				if( strcmp( pCheck->full_name, pfd->full_name ) == 0 )
 				{
-					fprintf( stderr, WIDE("Check name matched...\n") );
+					fprintf( stderr, "Check name matched...\n" );
 					count++;
 					if( count > 3 )
 					{
 						PFILEDEP pDump = pfd->pDependedBy;
-						fprintf( stderr, WIDE("Possible header recursion: \'%s\'"), pfd->full_name );
+						fprintf( stderr, "Possible header recursion: \'%s\'", pfd->full_name );
 						while( pDump && pDump != pCheck )
 						{
-							fprintf( stderr, WIDE(" included by \'%s\'"), pDump->full_name );
+							fprintf( stderr, " included by \'%s\'", pDump->full_name );
 							pDump = pDump->pDependedBy;
 						}
-						fprintf( stderr, WIDE("\n") );
-						fprintf( stderr, WIDE("Aborting processing.\n") );
+						fprintf( stderr, "\n" );
+						fprintf( stderr, "Aborting processing.\n" );
 						exit(0);
 					}
 				}
@@ -167,15 +167,15 @@ void DumpDependLevel( PFILEDEP pfd, int level )
 	{
 		if( !level && g.AutoTargetName[0] && !pfd->pDependedBy )
 		{
-			fprintf( g.AutoDependFile, WIDE("%s:%s "), g.AutoTargetName, pfd->full_name );
+			fprintf( g.AutoDependFile, "%s:%s ", g.AutoTargetName, pfd->full_name );
 		}
 		//else if( level )
-		//	fprintf( g.AutoDependFile, WIDE("%s "), pfd->name );
+		//	fprintf( g.AutoDependFile, "%s ", pfd->name );
 
-		//fprintf( g.AutoDependFile, WIDE("%s:"), pfd->name );
+		//fprintf( g.AutoDependFile, "%s:", pfd->name );
 		while( pDep )
 		{
-			fprintf( g.AutoDependFile, WIDE("%s "), pDep->full_name );
+			fprintf( g.AutoDependFile, "%s ", pDep->full_name );
 			pDep = pDep->pAlso;
 		}
 		// for all files which this one depended on, 
@@ -187,7 +187,7 @@ void DumpDependLevel( PFILEDEP pfd, int level )
 				DumpDependLevel( pDep, ++level );
 			pDep = pDep->pAlso;
 		}
-		//fprintf( g.AutoDependFile, WIDE("\n") );
+		//fprintf( g.AutoDependFile, "\n" );
 	}
 }
 
@@ -206,7 +206,7 @@ void DumpDepends( void )
 		DumpDependLevel( pfd, level++ );
 		pfd = pfd->pAlso;
 	}
-  	fprintf( g.AutoDependFile, WIDE("\n") );
+  	fprintf( g.AutoDependFile, "\n" );
 }
 
 //----------------------------------------------------------------------
@@ -215,7 +215,7 @@ void DestroyDependLevel( PFILEDEP pfd )
 {
 	PFILEDEP pDep = pfd->pDependsOn, next;
 	//if( pfd )
-	//	fprintf( stderr, WIDE("destory level...%s \n"), pfd->name );
+	//	fprintf( stderr, "destory level...%s \n", pfd->name );
 	if( pDep )
 	{
 		//pDep = pfd->pDependsOn;
@@ -269,7 +269,7 @@ char *FixName( char *file )
 {
 	static char realname[__MAX_PATH__];
 	if( file[0] != '/' && file[1] != ':' )
-		snprintf( realname, __MAX_PATH__, WIDE("%s/%s"), g.pWorkPath, file );
+		snprintf( realname, __MAX_PATH__, "%s/%s", g.pWorkPath, file );
 	else
 		strcpy( realname, file );
 	{
@@ -366,7 +366,7 @@ void WriteLine( size_t len, char *line )
 		fputc( '\n', out );
 		//fflush( out );
 	}
-	//fprintf( out, WIDE("%s\n"), line );
+	//fprintf( out, "%s\n", line );
 }
 
 //----------------------------------------------------------------------
@@ -435,13 +435,13 @@ uintptr_t OpenInputFile( char *basename, char *file )
 	char *tmp;
 	if( g.pFileStack )
 	{
-			fprintf( stderr, WIDE("warning: Already have a root level file open.") );
+			fprintf( stderr, "warning: Already have a root level file open." );
 	}
 	if( AlreadyLoaded( basename ) )
 	{
 		return 0;
 	}
-	fp = fopen( tmp = FixName(file), WIDE("rt") );
+	fp = fopen( tmp = FixName(file), "rt" );
 	if( fp )
 	{
 		pft = (PFILETRACK)Allocate( sizeof( FILETRACK ) );
@@ -457,7 +457,7 @@ uintptr_t OpenInputFile( char *basename, char *file )
 		pft->pParsed = NULL;
 		pft->pNextWord = NULL;
 		pft->prior = g.pFileStack;
-		//fprintf( stderr, WIDE("Add in OpenInputFile\n") );
+		//fprintf( stderr, "Add in OpenInputFile\n" );
 		pft->pFileDep = AddDepend( NULL, basename, tmp );
 		g.pFileStack = pft;
 	}
@@ -485,7 +485,7 @@ uintptr_t OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, 
 		}
 	}
 
-	fp = fopen( tmp = FixName(name), WIDE("rt") );
+	fp = fopen( tmp = FixName(name), "rt" );
 	if( fp )
 	{
 		pftNew = (PFILETRACK)Allocate( sizeof( FILETRACK ) );
@@ -509,7 +509,7 @@ uintptr_t OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, 
 		pftNew->prior = g.pFileStack;
 		if( bDepend && ( pft->pFileDep ) )
 		{
-			//fprintf( stderr, WIDE("Add in OpenNewInputFile\n") );
+			//fprintf( stderr, "Add in OpenNewInputFile\n" );
 			pftNew->pFileDep = AddDepend( pft->pFileDep, basename, tmp );
 		}
 		else
@@ -526,7 +526,7 @@ uintptr_t OpenOutputFile( char *newfile )
 	//PFILETRACK pft = g.pFileStack;
 	//if( pft )
 	{
-		g.output = fopen( FixName( newfile ), WIDE("wb") );
+		g.output = fopen( FixName( newfile ), "wb" );
 		if( g.output )
 		{
 			return 1;
@@ -558,7 +558,7 @@ void CloseInputFileEx( DBG_VOIDPASS )
 	PFILETRACK pft = g.pFileStack;
 	if( pft->nIfLevel != g.nIfLevels )
 	{
-		fprintf( stderr, WIDE("Warning: Unmatched #if/#endif in %s (%d extra #if)\n")
+		fprintf( stderr, "Warning: Unmatched #if/#endif in %s (%d extra #if)\n"
 		       , pft->longname
 		       , g.nIfLevels - pft->nIfLevel );
 	}
@@ -639,7 +639,7 @@ Restart:
 			{
 				if( bContinue )
 				{
-					fprintf( stderr, WIDE("%s(%d) Warning: Continuation(\\) at end of file will continue to next file...\n"),
+					fprintf( stderr, "%s(%d) Warning: Continuation(\\) at end of file will continue to next file...\n",
 									GetCurrentFileName(), GetCurrentLine() );
 				}
 				CloseInputFile();
@@ -663,7 +663,7 @@ Restart:
 		{
 			if( g.bDebugLog & DEBUG_READING )
 			{
-				fprintf( stddbg, WIDE("Returning NULL line...\n") );
+				fprintf( stddbg, "Returning NULL line...\n" );
 			}
 			return NULL;
 		}
@@ -674,7 +674,7 @@ Restart:
 		{
 			if( g.bDebugLog & DEBUG_READING )
 			{
-				printf( WIDE("No content...") );
+				printf( "No content..." );
 			}
 			LineRelease( pNew );
 			goto GetNewLine;
@@ -727,13 +727,13 @@ Restart:
 				{
 					if( g.bDebugLog & DEBUG_READING )
 					{
-						fprintf( stddbg, WIDE("Have a slash...\n") );
+						fprintf( stddbg, "Have a slash...\n" );
 					}
 					if( nStar ) // leading stars up to close...
 					{
 						if( g.bDebugLog & DEBUG_READING )
 						{
-							fprintf( stddbg, WIDE("ending comment...\n") );
+							fprintf( stddbg, "ending comment...\n" );
 						}
 						if( p->format.spaces )
 						{
@@ -745,7 +745,7 @@ Restart:
 						{
 							// this may be the case - may also be a case of invalid paramters....
 							// */ is an illegal operator combination anyhow....
-							fprintf( stderr, WIDE("%s(%d) Warning: close block comment which was not started.\n")
+							fprintf( stderr, "%s(%d) Warning: close block comment which was not started.\n"
 											, pft->name, pft->nLine );
 						}
 						pft->bBlockComment = 0;
@@ -753,7 +753,7 @@ Restart:
 						{
 							if( g.bDebugLog & DEBUG_READING )
 							{
-								fprintf( stddbg, WIDE("had a start of comment...\n") );
+								fprintf( stddbg, "had a start of comment...\n" );
 							}
 							if( NEXTLINE( p ) )
 							{
@@ -787,14 +787,14 @@ Restart:
 							{
 								if( g.bDebugLog & DEBUG_READING )
 								{
-									fprintf( stddbg, WIDE("Trailing part of line was block comment...\n") );
+									fprintf( stddbg, "Trailing part of line was block comment...\n" );
 								}
 								// whole line is a block comment...
 								if( pStart == pNew )
 								{
 									if( g.bDebugLog & DEBUG_READING )
 									{
-										fprintf( stddbg, WIDE("while line In block comment...") );
+										fprintf( stddbg, "while line In block comment..." );
 									}
 									if( g.flags.keep_comments /*&&
 									   ( !g.flags.bSkipSystemIncludeOut && !g.flags.doing_system_file )*/
@@ -849,7 +849,7 @@ Restart:
 							else
 							{
 								// entire line within block comment...
-								//printf( WIDE("in block comment... ") );
+								//printf( "in block comment... " );
 								if( g.flags.keep_comments )
 								{
 									PTEXT pOut;
@@ -875,7 +875,7 @@ Restart:
 					{
 						if( g.bDebugLog & DEBUG_READING )
 						{
-							fprintf( stddbg, WIDE("Marking begin...\n") );
+							fprintf( stddbg, "Marking begin...\n" );
 						}
 						pStart = p;
 					}
@@ -883,7 +883,7 @@ Restart:
 					{
 						if( g.bDebugLog & DEBUG_READING )
 						{
-							fprintf( stddbg, WIDE("Pending states: %s%s%s\n")
+							fprintf( stddbg, "Pending states: %s%s%s\n"
 									, nSlash?"nSlash ":""
 									, nStar?"nStar ":""
 									, pft->bBlockComment?"In block": "" );
@@ -906,7 +906,7 @@ Restart:
 							if( pStart == pNew )
 							{
 								// releasing the whole line...
-								//printf( WIDE("Whole line commented...\n") );
+								//printf( "Whole line commented...\n" );
 								if( g.flags.keep_comments )
 								{
 									PTEXT pOut;
@@ -955,7 +955,7 @@ Restart:
 				{
 					if( g.bDebugLog & DEBUG_READING )
 					{
-						fprintf( stddbg, WIDE("found a star... was there a slash?\n") );
+						fprintf( stddbg, "found a star... was there a slash?\n" );
 					}
 					if( nSlash == 1 ) // begin block comment
 					{
@@ -967,7 +967,7 @@ Restart:
 						}
 						if( g.bDebugLog & DEBUG_READING )
 						{
-							fprintf( stddbg, WIDE("okay defineatly block comment...\n") );
+							fprintf( stddbg, "okay defineatly block comment...\n" );
 						}
 						if( pft->bBlockComment )
 							nStar++;
@@ -985,7 +985,7 @@ Restart:
 						}
 						if( g.bDebugLog & DEBUG_READING )
 						{
-							fprintf( stddbg, WIDE("Adding another star...\n") );
+							fprintf( stddbg, "Adding another star...\n" );
 						}
 						nStar++; // this is beginning of end block comment maybe
 					}
@@ -1002,14 +1002,14 @@ Restart:
 			{
 				if( g.bDebugLog & DEBUG_READING )
 				{
-					fprintf( stddbg, WIDE("Daning block comment - continue reading...\n") );
+					fprintf( stddbg, "Daning block comment - continue reading...\n" );
 				}
 				if( pStart )
 				{
 					// began a block comment, but it continues....
 					if( pStart == pNew )
 					{
-						//printf( WIDE("In Block comment(3)...\n") );
+						//printf( "In Block comment(3)...\n" );
 						if( g.flags.keep_comments )
 						{
 							PTEXT pOut;
@@ -1068,7 +1068,7 @@ Restart:
 				}
 				else
 				{
-					//printf( WIDE("In Block comment(3)...\n") );
+					//printf( "In Block comment(3)...\n" );
 					// ignore this line completely!
 					if( g.flags.keep_comments )
 					{
@@ -1089,15 +1089,15 @@ Restart:
 			}
 		}
 	}while( !pNew );
-	//printf( WIDE("Adding %lp to %lp\n"), pNew, pft->pParsed );
+	//printf( "Adding %lp to %lp\n", pNew, pft->pParsed );
 	pft->pParsed = SegAppend( pft->pParsed, pNew );
 	if( !Append )
 		pft->pNextWord = pNew;
 	if( g.bDebugLog & DEBUG_READING )
 	{
-		fprintf(stddbg, WIDE("Readline result: ") );
+		fprintf(stddbg, "Readline result: " );
 		DumpSegs( pNew );
-		fprintf( stddbg, WIDE("\n") );
+		fprintf( stddbg, "\n" );
 	}
 	return pNew;
 }

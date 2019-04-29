@@ -56,7 +56,7 @@ PTREEROOT GetTableCache( PODBC odbc, CTEXTSTR tablename )
 	struct params parameters;
 	parameters.odbc = odbc;
 	parameters.name = tablename;
-	//lprintf( WIDE("Looking for name cache of table %s"), tablename );
+	//lprintf( "Looking for name cache of table %s", tablename );
 	if( !g.tables )
 	{
 		g.tables = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
@@ -112,8 +112,8 @@ INDEX GetNameIndexExtended( PODBC odbc
 
 	PushSQLQueryEx( odbc );
 
-	tnprintf( query, sizeof( query ), WIDE("select %s from %s where `%s`=%s")
-			  , col?col:WIDE( "id" )
+	tnprintf( query, sizeof( query ), "select %s from %s where `%s`=%s"
+			  , col?col:"id"
 			  , table
 			  , namecol
 			  , EscapeStringOpt( name, TRUE )
@@ -126,14 +126,14 @@ INDEX GetNameIndexExtended( PODBC odbc
 	}
 	else if( bCreate )
 	{
-		tnprintf( query, sizeof( query ), WIDE("insert into %s (`%s`) values(%s)")
+		tnprintf( query, sizeof( query ), "insert into %s (`%s`) values(%s)"
 				  , table
 				  ,namecol
 				  ,EscapeString( name )
 				  );
 		if( !SQLCommandEx( odbc, query DBG_RELAY ) )
 		{
-			lprintf( WIDE("isert failed, how can we define name %s?"), EscapeString( name ) );
+			lprintf( "isert failed, how can we define name %s?", EscapeString( name ) );
 			// inser failed...
 		}
 		else
@@ -176,7 +176,7 @@ CTEXTSTR FetchLastInsertKeyEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS
 #ifdef POSGRES_BACKEND
 	{
 		TEXTCHAR query[256];
-		sprintf( query, WIDE("select currval('%s_%s_seq')"), table, col );
+		sprintf( query, "select currval('%s_%s_seq')", table, col );
 		if( SQLQueryEx( odbc, query, &result ) && result DBG_RELAY )
 		{
 			RecordID = StrDup( result );
@@ -190,19 +190,19 @@ CTEXTSTR FetchLastInsertKeyEx( PODBC odbc, CTEXTSTR table, CTEXTSTR col DBG_PASS
 	{
 		// can also be done with 'select last_insert_rowid()'
 		RecordID = NewArray( TEXTCHAR, 32 );
-		tnprintf( RecordID, 32, WIDE("%") _size_f, (INDEX)sqlite3_last_insert_rowid( odbc->db ) );
+		tnprintf( RecordID, 32, "%" _size_f, (INDEX)sqlite3_last_insert_rowid( odbc->db ) );
 	}
 #endif
 #ifdef USE_ODBC
 	PushSQLQueryEx( odbc );
 	if( odbc->flags.bAccess )
 	{
-		if( SQLQueryEx( odbc, WIDE( "select @@IDENTITY" ), &result DBG_RELAY ) && result )
+		if( SQLQueryEx( odbc, "select @@IDENTITY", &result DBG_RELAY ) && result )
 			RecordID = StrDup( result );
 	}
 	else if( odbc->flags.bODBC )
 	{
-		if( SQLQueryEx( odbc, WIDE("select LAST_INSERT_ID()"), &result DBG_RELAY ) && result )
+		if( SQLQueryEx( odbc, "select LAST_INSERT_ID()", &result DBG_RELAY ) && result )
 		{
 			RecordID = StrDup( result );
 		}
@@ -419,8 +419,8 @@ TEXTCHAR * EscapeString ( CTEXTSTR name )
 
 uint8_t hexbyte( TEXTCHAR *string )
 {
-	static TEXTCHAR hex[17] = WIDE("0123456789abcdef");
-	static TEXTCHAR HEX[17] = WIDE("0123456789ABCDEF");
+	static TEXTCHAR hex[17] = "0123456789abcdef";
+	static TEXTCHAR HEX[17] = "0123456789ABCDEF";
 	TEXTCHAR *digit;
 	uint8_t value = 0;
 
@@ -487,7 +487,7 @@ TEXTSTR DeblobifyString( CTEXTSTR blob, TEXTSTR outbuf, size_t outbuflen  )
 		return result;
 	}
 	else
-		lprintf( WIDE("Duh.  No Blob.") );
+		lprintf( "Duh.  No Blob." );
 	return NULL;
 }
 
@@ -583,7 +583,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 
 			PushSQLQueryEx( odbc );
 			tmp = EscapeSQLStringEx( odbc, name DBG_RELAY );
-			tnprintf( query, sizeof( query ), WIDE("select %s from %s where %s like \'%s\'"), col?col:WIDE("id"), table, namecol, tmp );
+			tnprintf( query, sizeof( query ), "select %s from %s where %s like \'%s\'", col?col:"id", table, namecol, tmp );
 			Release( tmp );
 			if( SQLQueryEx( odbc, query, &result DBG_RELAY) && result )
 			{
@@ -592,16 +592,16 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 			else if( bCreate )
 			{
 				TEXTSTR newval = EscapeSQLString( odbc, name );
-				tnprintf( query, sizeof( query ), WIDE("insert into %s (%s) values( \'%s\' )"), table, namecol, newval );
+				tnprintf( query, sizeof( query ), "insert into %s (%s) values( \'%s\' )", table, namecol, newval );
 				if( !SQLCommandEx( odbc, query DBG_RELAY ) )
 				{
-					lprintf( WIDE("insert failed, how can we define name %s?"), name );
+					lprintf( "insert failed, how can we define name %s?", name );
 					// inser failed...
 				}
 				else
 				{
 					// all is well.
-					IDName = FetchLastInsertIDEx( odbc, table, col?col:WIDE("id") DBG_RELAY );
+					IDName = FetchLastInsertIDEx( odbc, table, col?col:"id" DBG_RELAY );
 				}
 				Release( newval );
 			}
@@ -640,21 +640,21 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 
 	 PushSQLQueryEx( odbc );
 	 tmp = EscapeSQLStringEx( odbc, name DBG_RELAY );
-	 tnprintf( query, sizeof( query ), WIDE( "select %s from %s where %s like \'%s\'" ), col ? col : WIDE( "id" ), table, namecol, tmp );
+	 tnprintf( query, sizeof( query ), "select %s from %s where %s like \'%s\'", col ? col : "id", table, namecol, tmp );
 	 Release( tmp );
 	 if( SQLQueryEx( odbc, query, &result DBG_RELAY ) && result ) {
 		 IDName = StrDup( result );
 	 }
 	 else if( bCreate ) {
 		 TEXTSTR newval = EscapeSQLString( odbc, name );
-		 tnprintf( query, sizeof( query ), WIDE( "insert into %s (%s) values( \'%s\' )" ), table, namecol, newval );
+		 tnprintf( query, sizeof( query ), "insert into %s (%s) values( \'%s\' )", table, namecol, newval );
 		 if( !SQLCommandEx( odbc, query DBG_RELAY ) ) {
-			 lprintf( WIDE( "insert failed, how can we define name %s?" ), name );
+			 lprintf( "insert failed, how can we define name %s?", name );
 			 // inser failed...
 		 }
 		 else {
 			 // all is well.
-			 IDName = (TEXTSTR)FetchLastInsertKeyEx( odbc, table, col ? col : WIDE( "id" ) DBG_RELAY );
+			 IDName = (TEXTSTR)FetchLastInsertKeyEx( odbc, table, col ? col : "id" DBG_RELAY );
 		 }
 		 Release( newval );
 	 }
@@ -674,7 +674,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 
  INDEX  ReadNameTableEx( CTEXTSTR name, CTEXTSTR table, CTEXTSTR col DBG_PASS )
 {
-	return ReadNameTableExEx( name,table,col,WIDE("name"),TRUE DBG_RELAY);
+	return ReadNameTableExEx( name,table,col,"name",TRUE DBG_RELAY);
 }
 
 //---------------------------------------------------------------------------
@@ -687,14 +687,14 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 	// the tree locally cached is in NAME order, but the data is
 	// the key, so we would have to scan the tree otherwise both directions
 	// keyed so that we could get the name key from the ID data..
-	tnprintf( query, sizeof( query ), WIDE("select %s from %s where %s=%") _size_f
-			  , name_colname?name_colname:WIDE("name")
+	tnprintf( query, sizeof( query ), "select %s from %s where %s=%" _size_f
+			  , name_colname?name_colname:"name"
 			  , table
-			  , id_colname?id_colname:WIDE("id")
+			  , id_colname?id_colname:"id"
 			  , id );
 	if( !DoSQLQueryEx( query, result DBG_RELAY ) || !(*result) )
 	{
-		lprintf( WIDE("name ID(%") _size_f WIDE(" as %s) was not found in %s.%s"), id, id_colname?id_colname:WIDE("id"), table, id_colname?id_colname:WIDE("id") );
+		lprintf( "name ID(%" _size_f " as %s) was not found in %s.%s", id, id_colname?id_colname:"id", table, id_colname?id_colname:"id" );
 		return FALSE;
 	}
 	else
@@ -714,14 +714,14 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 	// the tree locally cached is in NAME order, but the data is
 	// the key, so we would have to scan the tree otherwise both directions
 	// keyed so that we could get the name key from the ID data..
-	tnprintf( query, sizeof( query ), WIDE("select %s from %s where %s=%") _size_f
+	tnprintf( query, sizeof( query ), "select %s from %s where %s=%" _size_f
 			, colname
 			  , table
-			 , id_col?id_col:WIDE("id")
+			 , id_col?id_col:"id"
 			  , id );
 	if( !DoSQLQueryEx( query, result DBG_RELAY ) || !(*result) )
 	{
-		lprintf( WIDE("name ID(%") _size_fs WIDE(") was not found in %s.%s"), id, table, colname?colname:WIDE("id") );
+		lprintf( "name ID(%" _size_fs ") was not found in %s.%s", id, table, colname?colname:"id" );
 		return FALSE;
 	}
 	else
@@ -742,26 +742,26 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 	//if( odbc->flags.bSQLite_native )
 	//	;
 	//else if( odbc->flags.bAccess )
-	//	tnprintf( query, 256, WIDE("DESCRIBE [%s]"), tablename );
+	//	tnprintf( query, 256, "DESCRIBE [%s]", tablename );
 	//else
-	//	tnprintf( query, 256, WIDE("DESCRIBE `%s`"), tablename );
+	//	tnprintf( query, 256, "DESCRIBE `%s`", tablename );
 	//if( !SQLQuery( odbc, query, &result ) || !result || (options & (CTO_DROP|CTO_MATCH|CTO_MERGE)) )
 	{
 		TEXTCHAR sec_file[284];
 		FILE *file;
 		sec_file[0] = 0;
-		file = sack_fopen( 0, filename, WIDE("rt") );
+		file = sack_fopen( 0, filename, "rt" );
 		if( !file )
 		{
 			if( !pathchr( filename ) )
 			{
 #ifndef HAVE_ENVIRONMENT
-				CTEXTSTR path = OSALOT_GetEnvironmentVariable( WIDE( "MY_LOAD_PATH" ) );
-				tnprintf( sec_file, sizeof( sec_file ), WIDE( "%s/%s" ), path, filename );
+				CTEXTSTR path = OSALOT_GetEnvironmentVariable( "MY_LOAD_PATH" );
+				tnprintf( sec_file, sizeof( sec_file ), "%s/%s", path, filename );
 #else
-				tnprintf( sec_file, sizeof( sec_file ), WIDE( "%s" ), filename );
+				tnprintf( sec_file, sizeof( sec_file ), "%s", filename );
 #endif
-				file = sack_fopen( 0, sec_file, WIDE("rt") );
+				file = sack_fopen( 0, sec_file, "rt" );
 			}
 		}
 		if( file )
@@ -773,7 +773,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 			PVARTEXT pvt_cmd = VarTextCreate();
 			INDEX nOfs = 0;
 			if( !odbc->flags.bNoLogging )
-				lprintf( WIDE("Opened %s to read for table %s(%s)"), sec_file[0]?sec_file:filename, tablename,templatename );
+				lprintf( "Opened %s to read for table %s(%s)", sec_file[0]?sec_file:filename, tablename,templatename );
 			while( sack_fgets( fgets_buf, sizeof( fgets_buf ), file ) )
 			{
 				TEXTCHAR *p;
@@ -808,7 +808,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 					}
 					if( !gathering )
 					{
-						if( StrCaseCmpEx( p, WIDE("CREATE"), 6 ) == 0 )
+						if( StrCaseCmpEx( p, "CREATE", 6 ) == 0 )
 						{
 							CTEXTSTR tabname;
 							// cpg29dec2006  c:\work\sack\src\sqllib\sqlutil.c(498) : warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
@@ -827,7 +827,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 										trailer[0] != ' ' &&
 										trailer[0] != '\t' )
 									trailer++;
-								tnprintf( line, sizeof( line ), WIDE("%*.*s%s%s")
+								tnprintf( line, sizeof( line ), "%*.*s%s%s"
 										 , (int)(tabname - p), (int)(tabname - p), p
 										 , templatename
 										 , trailer
@@ -843,18 +843,18 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 					}
 					if( gathering )
 					{
-						nOfs += vtprintf( pvt_cmd, WIDE("%s "), p );
+						nOfs += vtprintf( pvt_cmd, "%s ", p );
 						if( done )
 						{
 							if( options & CTO_DROP )
 							{
 								TEXTCHAR buf[1024];
-								tnprintf( buf, 1024, WIDE("Drop table %s"), templatename );
+								tnprintf( buf, 1024, "Drop table %s", templatename );
 								if( !SQLCommand( odbc, buf ) )
 								{
 									CTEXTSTR result;
 									GetSQLError( &result );
-									lprintf( WIDE("Failed to do drop: %s"), result );
+									lprintf( "Failed to do drop: %s", result );
 								}
 							}
 							// result is set with the first describe result
@@ -878,14 +878,14 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 				Release( buf );
 #endif
 			}
-			//lprintf( WIDE("Done with create...") );
+			//lprintf( "Done with create..." );
 			VarTextDestroy( &pvt_cmd );
 			sack_fclose( file );
 		}
 		else
 		{
-			lprintf( WIDE("Unable to open templatefile: %s or %s/%s"), filename
-					 , OSALOT_GetEnvironmentVariable( WIDE( "MY_LOAD_PATH" ) )
+			lprintf( "Unable to open templatefile: %s or %s/%s", filename
+					 , OSALOT_GetEnvironmentVariable( "MY_LOAD_PATH" )
 			        , filename );
 
 		}
@@ -949,10 +949,10 @@ void DumpSQLTable( PTABLE table )
 	//if( 1 )
 	//   return;
 	// don't release tables created statically in C files...
-	lprintf( WIDE( "Table name: %s" ), table->name );
+	lprintf( "Table name: %s", table->name );
 	for( n = 0; n < table->fields.count; n++ )
 	{
-		lprintf( WIDE( "Column %d '%s' [%s] [%s]" )
+		lprintf( "Column %d '%s' [%s] [%s]"
 		        , n
 				 ,( table->fields.field[n].name )
 				, table->fields.field[n].type?table->fields.field[n].type:""
@@ -965,10 +965,10 @@ void DumpSQLTable( PTABLE table )
 	}
 	for( n = 0; n < table->keys.count; n++ )
 	{
-		lprintf( WIDE( "Key %s" ), table->keys.key[n].name?table->keys.key[n].name:WIDE( "<NONAME>" ) );
+		lprintf( "Key %s", table->keys.key[n].name?table->keys.key[n].name:"<NONAME>" );
 		for( m = 0; table->keys.key[n].colnames[m] && m < MAX_KEY_COLUMNS; m++ )
 		{
-			lprintf( WIDE( "Key part = %s" )
+			lprintf( "Key part = %s"
 					 , table->keys.key[n].colnames[m]
 					 );
 		}
@@ -985,7 +985,7 @@ void DumpSQLTable( PTABLE table )
 }
 
 #define FAILPARSE() do { if( ( start[0] < '0' ) || ( start[0] > '9' ) ) {  \
-lprintf( WIDE("string fails date parsing... %s"), timestring );                  \
+lprintf( "string fails date parsing... %s", timestring );                  \
 return 0; } } while (0);
 
  int  ConvertDBTimeString ( CTEXTSTR timestring
@@ -1069,7 +1069,7 @@ LOGICAL CheckAccessODBCTable( PODBC odbc, PTABLE table, uint32_t options )
 	CTEXTSTR *fields;
 	int columns;
 	PVARTEXT pvtCreate = NULL;
-	CTEXTSTR cmd = WIDE("select top 1 * from [%s]");
+	CTEXTSTR cmd = "select top 1 * from [%s]";
 	int retry = 0;
 retry:
 	if( SQLRecordQueryf( odbc, &columns, NULL, &_fields, cmd, table->name ) )
@@ -1111,21 +1111,21 @@ retry:
 						// In access rename is done with DROP and ADD column
 						ReleaseODBC( odbc ); // release so that the alter statement may be done.
 						SQLCommandf( odbc
-									  , WIDE("alter table [%s] add column [%s] %s%s%s")
+									  , "alter table [%s] add column [%s] %s%s%s"
 									  , table->name
 									  , table->fields.field[m].name
 									  , table->fields.field[m].type?table->fields.field[m].type:""
-									  , table->fields.field[m].extra?WIDE(" "):WIDE("")
-									  , table->fields.field[m].extra?table->fields.field[m].extra:WIDE("")
+									  , table->fields.field[m].extra?" ":""
+									  , table->fields.field[m].extra?table->fields.field[m].extra:""
 									  );
-						SQLCommandf( odbc, WIDE("update [%s] set [%s]=[%s]")
+						SQLCommandf( odbc, "update [%s] set [%s]=[%s]"
 									  , table->name
 									  , table->fields.field[m].name
 									  , fields[n] );
 					}
 					ReleaseODBC( odbc ); // release all prior locks on the table...
 					SQLCommandf( odbc
-								  , WIDE("alter table [%s] drop column [%s]")
+								  , "alter table [%s] drop column [%s]"
 								  , table->name
 								  , fields[n] );
 
@@ -1159,12 +1159,12 @@ retry:
 				PTEXT pt_cmd;
 				if( !pvtCreate )
 					pvtCreate = VarTextCreate();
-				vtprintf( pvtCreate, WIDE("alter table [%s] add column [%s] %s%s%s")
+				vtprintf( pvtCreate, "alter table [%s] add column [%s] %s%s%s"
 						  , table->name
 						  , table->fields.field[n].name
 						  , table->fields.field[n].type?table->fields.field[n].type:""
-						  , table->fields.field[n].extra?WIDE(" "):WIDE("")
-						  , table->fields.field[n].extra?table->fields.field[n].extra:WIDE("")
+						  , table->fields.field[n].extra?" ":""
+						  , table->fields.field[n].extra?table->fields.field[n].extra:""
 						  );
 				pt_cmd = VarTextGet( pvtCreate );
 				// close all prior statement handles so it's not locked
@@ -1184,7 +1184,7 @@ retry:
 		// table doesn't exist?
 		CTEXTSTR error = NULL;
 		FetchSQLError( odbc, &error );
-		if( StrCmpEx( error, WIDE("(37000)"), 7 ) == 0 )
+		if( StrCmpEx( error, "(37000)", 7 ) == 0 )
 		{
 			// ODBC driver is old and does not support
 			// 'TOP' command... please try again, using a less fancy
@@ -1192,53 +1192,53 @@ retry:
 			// all read, but one row at a time is read from the database.
 			if( !retry )
 			{
-				cmd = WIDE("select * from [%s]");
+				cmd = "select * from [%s]";
 				retry++;
 				goto retry;
 			}
 		}
-		if( StrCmpEx( error, WIDE("(S0002)"), 7 ) == 0 )
+		if( StrCmpEx( error, "(S0002)", 7 ) == 0 )
 		{
 			PTEXT pt_cmd;
 			int n;
 			int first = 1;
 			if( !pvtCreate )
 				pvtCreate = VarTextCreate();
-			vtprintf( pvtCreate, WIDE("create table [%s] ("), table->name );
+			vtprintf( pvtCreate, "create table [%s] (", table->name );
 			for( n = 0; n < table->fields.count; n++ )
 			{
 				CTEXTSTR type;
-				if( StrCaseCmpEx( table->fields.field[n].type, WIDE( "varchar" ), 7 ) == 0 )
-					type = WIDE( "TEXT" );
-				else if( StrCaseCmpEx( table->fields.field[n].type, WIDE( "tinyint" ), 7 ) == 0 )
-					type = WIDE( "INT" );
-				else if( StrCaseCmpEx( table->fields.field[n].type, WIDE( "int(" ), 4 ) == 0 )
-					type = WIDE( "INT" );
+				if( StrCaseCmpEx( table->fields.field[n].type, "varchar", 7 ) == 0 )
+					type = "TEXT";
+				else if( StrCaseCmpEx( table->fields.field[n].type, "tinyint", 7 ) == 0 )
+					type = "INT";
+				else if( StrCaseCmpEx( table->fields.field[n].type, "int(", 4 ) == 0 )
+					type = "INT";
 				else
 				{
-					if( table->fields.field[n].extra && StrStr( table->fields.field[n].extra, WIDE( "auto_increment" ) ) )
-						type = WIDE( "COUNTER" );
+					if( table->fields.field[n].extra && StrStr( table->fields.field[n].extra, "auto_increment" ) )
+						type = "COUNTER";
 					else
 						type = table->fields.field[n].type;
 				}
 				if( strchr( table->fields.field[n].name, ' ' ) )
 				{
-					vtprintf( pvtCreate, WIDE("%s[%s] %s%s%s")
-							  , first?WIDE( "" ):WIDE( "," )
+					vtprintf( pvtCreate, "%s[%s] %s%s%s"
+							  , first?"":","
 							  , table->fields.field[n].name
 							  , type?type:""
-							  , WIDE( "" )//table->fields.field[n].extra?WIDE( " " ):WIDE( "" )
-							  , WIDE( "" )//table->fields.field[n].extra?table->fields.field[n].extra:WIDE( "" )
+							  , ""//table->fields.field[n].extra?" ":""
+							  , ""//table->fields.field[n].extra?table->fields.field[n].extra:""
 							  );
 				}
 				else
 				{
-					vtprintf( pvtCreate, WIDE("%s[%s] %s%s%s")
-							  , first?WIDE( "" ):WIDE( "," )
+					vtprintf( pvtCreate, "%s[%s] %s%s%s"
+							  , first?"":","
 							  , table->fields.field[n].name
 							  , type?type:""
-							  , WIDE( "" )//(strstr( table->fields.field[n].extra, WIDE( "auto_increment" ) ))?WIDE( "COUNTER" ):WIDE( "" )
-							  , WIDE( "" )//table->fields.field[n].extra?table->fields.field[n].extra:WIDE( "" )
+							  , ""//(strstr( table->fields.field[n].extra, "auto_increment" ))?"COUNTER":""
+							  , ""//table->fields.field[n].extra?table->fields.field[n].extra:""
 							  );
 				}
 				first = 0;
@@ -1250,14 +1250,14 @@ retry:
 			//{
 				// for implementation see Check MYSQL
 			//}
-			vtprintf( pvtCreate, WIDE(")") );
+			vtprintf( pvtCreate, ")" );
 			pt_cmd = VarTextGet( pvtCreate );
 			SQLCommand( odbc, GetText( pt_cmd ) );
 			LineRelease( pt_cmd );
 		}
 		else
 		{
-			lprintf( WIDE("error is : %s"), error );
+			lprintf( "error is : %s", error );
 		}
 	}
 	if( pvtCreate )
@@ -1284,19 +1284,19 @@ LOGICAL CPROC CheckMySQLODBCTable( PODBC odbc, PTABLE table, uint32_t options )
 	TEXTCHAR *cmd;
 	if( options & CTO_LOG_CHANGES )
 	{
-		f_odbc = sack_fopen( 0, WIDE( "changes.sql" ), WIDE( "at+" ) );
+		f_odbc = sack_fopen( 0, "changes.sql", "at+" );
 		if( !f_odbc )
-			f_odbc = sack_fopen( 0, WIDE( "changes.sql" ), WIDE( "wt" ) );
+			f_odbc = sack_fopen( 0, "changes.sql", "wt" );
 	}
 	cmd = NewArray( TEXTCHAR, 1024);
 	buflen = 0;
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
-		buflen += tnprintf( cmd+buflen , 1024-buflen,WIDE("select tbl_name,sql from sqlite_master where type='table' and name='%s'")
+		buflen += tnprintf( cmd+buflen , 1024-buflen,"select tbl_name,sql from sqlite_master where type='table' and name='%s'"
 								, table->name );
 	else
 #endif
-		buflen += tnprintf( cmd+buflen , 1024-buflen,WIDE("show create table `%s`") ,table->name);
+		buflen += tnprintf( cmd+buflen , 1024-buflen,"show create table `%s`" ,table->name);
 	if( buflen < 1024 )
 		cmd[buflen] = 0;
 	else
@@ -1355,22 +1355,22 @@ retry:
 							if( options & CTO_DROP )
 							{
 								if( f_odbc )
-									fprintf( f_odbc, WIDE("drop table `%s`;\n"), table->name );
+									fprintf( f_odbc, "drop table `%s`;\n", table->name );
 								else
-									SQLCommandf( odbc, WIDE("drop table `%s`"), table->name );
+									SQLCommandf( odbc, "drop table `%s`", table->name );
 								goto do_create_table;
 							}
 							if( f_odbc )
 							{
 								fprintf( f_odbc
-										 , WIDE("alter table `%s` add column `%s` %s%s%s;\n")
+										 , "alter table `%s` add column `%s` %s%s%s;\n"
 										 , table->name
 										 , table->fields.field[m].name
 										 , table->fields.field[m].type?table->fields.field[m].type:""
-										 , table->fields.field[m].extra?WIDE(" "):WIDE("")
-										 , table->fields.field[m].extra?table->fields.field[m].extra:WIDE("")
+										 , table->fields.field[m].extra?" ":""
+										 , table->fields.field[m].extra?table->fields.field[m].extra:""
 										 );
-								fprintf( f_odbc, WIDE("update `%s` set `%s`=`%s`;\n")
+								fprintf( f_odbc, "update `%s` set `%s`=`%s`;\n"
 										 , table->name
 										 , table->fields.field[m].name
 										 , table->fields.field[m].previous_names[prev] );
@@ -1378,14 +1378,14 @@ retry:
 							else
 							{
 								SQLCommandf( odbc
-											  , WIDE("alter table `%s` add column `%s` %s%s%s")
+											  , "alter table `%s` add column `%s` %s%s%s"
 											  , table->name
 											  , table->fields.field[m].name
 											 , table->fields.field[m].type?table->fields.field[m].type:""
-											  , table->fields.field[m].extra?WIDE(" "):WIDE("")
-											  , table->fields.field[m].extra?table->fields.field[m].extra:WIDE("")
+											  , table->fields.field[m].extra?" ":""
+											  , table->fields.field[m].extra?table->fields.field[m].extra:""
 											  );
-								SQLCommandf( odbc, WIDE("update `%s` set `%s`=`%s`")
+								SQLCommandf( odbc, "update `%s` set `%s`=`%s`"
 											  , table->name
 											  , table->fields.field[m].name
 											  , table->fields.field[m].previous_names[prev] );
@@ -1396,19 +1396,19 @@ retry:
 							if( options & CTO_DROP )
 							{
 								if( f_odbc )
-									fprintf( f_odbc, WIDE("drop table `%s`"), table->name );
+									fprintf( f_odbc, "drop table `%s`", table->name );
 								else
-									SQLCommandf( odbc, WIDE("drop table `%s`"), table->name );
+									SQLCommandf( odbc, "drop table `%s`", table->name );
 								goto do_create_table;
 							}
 							if( f_odbc )
 								fprintf( f_odbc
-											  , WIDE("alter table `%s` drop column `%s`;\n")
+											  , "alter table `%s` drop column `%s`;\n"
 											  , table->name
 											  , pTestTable->fields.field[n].name );
 							else
 								SQLCommandf( odbc
-											  , WIDE("alter table `%s` drop column `%s`")
+											  , "alter table `%s` drop column `%s`"
 											  , table->name
 											  , pTestTable->fields.field[n].name );
 
@@ -1444,23 +1444,23 @@ retry:
 					if( options & CTO_DROP )
 					{
 						if( f_odbc )
-							fprintf( f_odbc, WIDE("drop table `%s`"), table->name );
+							fprintf( f_odbc, "drop table `%s`", table->name );
 						else
-							SQLCommandf( odbc, WIDE("drop table `%s`"), table->name );
+							SQLCommandf( odbc, "drop table `%s`", table->name );
 						goto do_create_table;
 					}
 					if( !pvtCreate )
 						pvtCreate = VarTextCreate();
-					vtprintf( pvtCreate, WIDE("alter table `%s` add column `%s` %s%s%s")
+					vtprintf( pvtCreate, "alter table `%s` add column `%s` %s%s%s"
 							  , table->name
 							  , table->fields.field[n].name
 							  , table->fields.field[n].type?table->fields.field[n].type:""
-							  , table->fields.field[n].extra?WIDE(" "):WIDE("")
-							  , table->fields.field[n].extra?table->fields.field[n].extra:WIDE("")
+							  , table->fields.field[n].extra?" ":""
+							  , table->fields.field[n].extra?table->fields.field[n].extra:""
 							  );
 					txt_cmd = VarTextGet( pvtCreate );
 					if( f_odbc )
-						fprintf( f_odbc, WIDE( "%s;\n" ), GetText( txt_cmd ) );
+						fprintf( f_odbc, "%s;\n", GetText( txt_cmd ) );
 					else
 						SQLCommand( odbc, GetText( txt_cmd ) );
 					LineRelease( txt_cmd );
@@ -1484,7 +1484,7 @@ retry:
 			CTEXTSTR error;
 			error = NULL;
 			FetchSQLError( odbc, &error );
-			if( StrCmpEx( error, WIDE("(37000)"), 7 ) == 0 )
+			if( StrCmpEx( error, "(37000)", 7 ) == 0 )
 			{
 				// ODBC driver is old and does not support
 				// 'TOP' command... please try again, using a less fancy
@@ -1492,13 +1492,13 @@ retry:
 				// all read, but one row at a time is read from the database.
 				if( !retry )
 				{
-					StrCpyEx( cmd, WIDE("select * from `%s`"), 1024 );
+					StrCpyEx( cmd, "select * from `%s`", 1024 );
 					retry++;
 					PopODBCEx(odbc);
 					goto retry;
 				}
 			}
-			if( StrCmpEx( error, WIDE("(S0002)"), 7 ) == 0 )
+			if( StrCmpEx( error, "(S0002)", 7 ) == 0 )
 			{
 				PTEXT txt_cmd;
 				int n;
@@ -1509,23 +1509,23 @@ retry:
 				first = 1;
 				if( !pvtCreate )
 					pvtCreate = VarTextCreate();
-				vtprintf( pvtCreate, WIDE("create table `%s` ("), table->name );
+				vtprintf( pvtCreate, "create table `%s` (", table->name );
 				for( n = 0; n < table->fields.count; n++ )
 				{
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 					if( odbc->flags.bSQLite_native )
 					{
 						if( table->fields.field[n].extra
-							&&  StrCaseStr( table->fields.field[n].extra, WIDE( "auto_increment" ) ) )
+							&&  StrCaseStr( table->fields.field[n].extra, "auto_increment" ) )
 						{
 							if( auto_increment_column )
-								lprintf( WIDE( "SQLITE ERROR: Failure will happen - more than one auto_increment" ) );
+								lprintf( "SQLITE ERROR: Failure will happen - more than one auto_increment" );
 							auto_increment_column = table->fields.field[n].name;
-							vtprintf( pvtCreate, WIDE( "%s`%s` %s%s" )
-									  , first?WIDE(""):WIDE(",")
+							vtprintf( pvtCreate, "%s`%s` %s%s"
+									  , first?"":","
 									  , table->fields.field[n].name
-									  , WIDE( "INTEGER" ) //table->fields.field[n].type
-									  , WIDE( " PRIMARY KEY" )
+									  , "INTEGER" //table->fields.field[n].type
+									  , " PRIMARY KEY"
 									  );
 						}
 						else
@@ -1533,12 +1533,12 @@ retry:
 							CTEXTSTR unsigned_word;
 							if(  table->fields.field[n].extra
 								&& (unsigned_word=StrStr( table->fields.field[n].extra
-								                        , WIDE( "unsigned" ) )) )
+								                        , "unsigned" )) )
 							{
 								TEXTSTR extra = StrDup( table->fields.field[n].extra );
 								size_t len = StrLen( unsigned_word + 8 );
 								// use same buffer allocated to write into...
-								tnprintf( extra, strlen( table->fields.field[n].extra ), WIDE( "%*.*s%*.*s" )
+								tnprintf( extra, strlen( table->fields.field[n].extra ), "%*.*s%*.*s"
 								       , (int)(unsigned_word-table->fields.field[n].extra)
 								       , (int)(unsigned_word-table->fields.field[n].extra)
 									   , table->fields.field[n].extra
@@ -1546,8 +1546,8 @@ retry:
 									   , (int)len
 									   , unsigned_word + 8
 									   );
-								vtprintf( pvtCreate, WIDE("%s`%s` %s %s")
-										  , first?WIDE(""):WIDE(",")
+								vtprintf( pvtCreate, "%s`%s` %s %s"
+										  , first?"":","
 										  , table->fields.field[n].name
 										  , table->fields.field[n].type? table->fields.field[n].type:""
 										  , extra
@@ -1555,23 +1555,23 @@ retry:
 								Release( extra );
 							}
 							else
-								vtprintf( pvtCreate, WIDE("%s`%s` %s%s%s")
-										  , first?WIDE(""):WIDE(",")
+								vtprintf( pvtCreate, "%s`%s` %s%s%s"
+										  , first?"":","
 										  , table->fields.field[n].name
 										  , table->fields.field[n].type ? table->fields.field[n].type : ""
-										  , table->fields.field[n].extra?WIDE(" "):WIDE("")
-										  , table->fields.field[n].extra?table->fields.field[n].extra:WIDE("")
+										  , table->fields.field[n].extra?" ":""
+										  , table->fields.field[n].extra?table->fields.field[n].extra:""
 										  );
 						}
 					}
 					else
 #endif
-						vtprintf( pvtCreate, WIDE("%s`%s` %s%s%s")
-								  , first?WIDE(""):WIDE(",")
+						vtprintf( pvtCreate, "%s`%s` %s%s%s"
+								  , first?"":","
 								  , table->fields.field[n].name
 								  , table->fields.field[n].type ? table->fields.field[n].type : ""
-								  , table->fields.field[n].extra?WIDE(" "):WIDE("")
-								  , table->fields.field[n].extra?table->fields.field[n].extra:WIDE("")
+								  , table->fields.field[n].extra?" ":""
+								  , table->fields.field[n].extra?table->fields.field[n].extra:""
 								  );
 
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
@@ -1584,14 +1584,14 @@ retry:
 							{
 								if( StrCmp( table->keys.key[k].colnames[0], table->fields.field[n].name ) == 0 )
 								{
-									vtprintf( pvtCreate, WIDE(" PRIMARY KEY") );
+									vtprintf( pvtCreate, " PRIMARY KEY" );
 								}
 							}
 							if( table->keys.key[k].flags.bUnique && !table->keys.key[k].colnames[1] )
 							{
 								if( StrCmp( table->keys.key[k].colnames[0], table->fields.field[n].name ) == 0 )
 								{
-									vtprintf( pvtCreate, WIDE( " UNIQUE" ) );
+									vtprintf( pvtCreate, " UNIQUE" );
 								}
 							}
 						}
@@ -1613,12 +1613,12 @@ retry:
 							{
 								if( table->keys.key[n].colnames[1] )
 								{
-									lprintf( WIDE( "SQLITE ERROR: Complex PRIMARY KEY promoting to UNIQUE" ) );
-									vtprintf( pvtCreate, WIDE("%sUNIQUE `primary` (")
-											  , first?WIDE(""):WIDE(",") );
+									lprintf( "SQLITE ERROR: Complex PRIMARY KEY promoting to UNIQUE" );
+									vtprintf( pvtCreate, "%sUNIQUE `primary` ("
+											  , first?"":"," );
 								}
 								if( strcmp( auto_increment_column, table->keys.key[n].colnames[0] ) ) {
-									lprintf( WIDE( "SQLITE ERROR: auto_increment column was not the PRMIARY KEY" ) );
+									lprintf( "SQLITE ERROR: auto_increment column was not the PRMIARY KEY" );
 								} else
 								{
 									// ignore key
@@ -1627,26 +1627,26 @@ retry:
 							}
 							else
 							{
-								//vtprintf( pvtCreate, WIDE("%sPRIMARY KEY (")
-								//		  , first?WIDE(""):WIDE(",") );
+								//vtprintf( pvtCreate, "%sPRIMARY KEY ("
+								//		  , first?"":"," );
 							}
 						}
 						else
 #endif
 						{
-							vtprintf( pvtCreate, WIDE("%sPRIMARY KEY (")
-									  , first?WIDE(""):WIDE(",") );
+							vtprintf( pvtCreate, "%sPRIMARY KEY ("
+									  , first?"":"," );
 							for( col = 0; table->keys.key[n].colnames[col]; col++ )
 							{
 								if( !table->keys.key[n].colnames[col] )
 									break;
-								vtprintf( pvtCreate, WIDE("%s`%s`")
-										  , colfirst?WIDE(""):WIDE(",")
+								vtprintf( pvtCreate, "%s`%s`"
+										  , colfirst?"":","
 										  , table->keys.key[n].colnames[col]
 										  );
 								colfirst = 0;
 							}
-							vtprintf( pvtCreate, WIDE(")") );
+							vtprintf( pvtCreate, ")" );
 						}
 					}
 					else
@@ -1660,15 +1660,15 @@ retry:
 								if( table->keys.key[n].colnames[1] )
 								{
 									int c;
-									vtprintf( pvtCreate, WIDE("%sCONSTRAINT `%s` UNIQUE (")
-											  , first?WIDE(""):WIDE(",")
+									vtprintf( pvtCreate, "%sCONSTRAINT `%s` UNIQUE ("
+											  , first?"":","
 											  , table->keys.key[n].name
 											  );
 									for( c = 0; table->keys.key[n].colnames[c]; c++ )
-										vtprintf( pvtCreate, WIDE( "%s`%s`"), (c==0)?WIDE(""):WIDE(","), table->keys.key[n].colnames[c] );
-									vtprintf( pvtCreate, WIDE(")") );
+										vtprintf( pvtCreate, "%s`%s`", (c==0)?"":",", table->keys.key[n].colnames[c] );
+									vtprintf( pvtCreate, ")" );
                            if( table->keys.key[n].flags.uniqueResolution != UNIQRES_UNSET )
-										vtprintf( pvtCreate, WIDE("ON CONFLICT %s")
+										vtprintf( pvtCreate, "ON CONFLICT %s"
 													, table->keys.key[n].flags.uniqueResolution == UNIQRES_REPLACE ? "REPLACE"
 													: table->keys.key[n].flags.uniqueResolution == UNIQRES_ABORT ? "ABORT"
 													: table->keys.key[n].flags.uniqueResolution == UNIQRES_FAIL ? "FAIL"
@@ -1683,21 +1683,21 @@ retry:
 						else
 #endif
 						{
-							vtprintf( pvtCreate, WIDE("%s%sKEY `%s` (")
-									  , first?WIDE(""):WIDE(",")
-									  , table->keys.key[n].flags.bUnique?WIDE("UNIQUE "):WIDE("")
+							vtprintf( pvtCreate, "%s%sKEY `%s` ("
+									  , first?"":","
+									  , table->keys.key[n].flags.bUnique?"UNIQUE ":""
 									  , table->keys.key[n].name );
 							for( col = 0; table->keys.key[n].colnames[col]; col++ )
 							{
 								if( !table->keys.key[n].colnames[col] )
 									break;
-								vtprintf( pvtCreate, WIDE("%s`%s`")
-										  , colfirst?WIDE(""):WIDE(",")
+								vtprintf( pvtCreate, "%s`%s`"
+										  , colfirst?"":","
 										  , table->keys.key[n].colnames[col]
 										  );
 								colfirst = 0;
 							}
-							vtprintf( pvtCreate, WIDE(")") );
+							vtprintf( pvtCreate, ")" );
 							first = 0;
 
 						}
@@ -1711,25 +1711,25 @@ retry:
 						{
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 							if( odbc->flags.bSQLite_native )
-								vtprintf( pvtCreate, WIDE("%s FOREIGN KEY  (" )
-										  , first?WIDE(""):WIDE(",") );
+								vtprintf( pvtCreate, "%s FOREIGN KEY  ("
+										  , first?"":"," );
 							else
 #endif
-								vtprintf( pvtCreate, WIDE("%sCONSTRAINT `%s` FOREIGN KEY (" )
-										  , first?WIDE(""):WIDE(",")
+								vtprintf( pvtCreate, "%sCONSTRAINT `%s` FOREIGN KEY ("
+										  , first?"":","
 										  , table->constraints.constraint[n].name );
 							colfirst = 1;
 							for( col = 0; table->constraints.constraint[n].colnames[col]; col++ )
 							{
 								if( !table->constraints.constraint[n].colnames[col] )
 									break;
-								vtprintf( pvtCreate, WIDE("%s`%s`")
-										  , colfirst?WIDE(""):WIDE(",")
+								vtprintf( pvtCreate, "%s`%s`"
+										  , colfirst?"":","
 										  , table->constraints.constraint[n].colnames[col]
 										  );
 								colfirst = 0;
 							}
-							vtprintf( pvtCreate, WIDE(") REFERENCES `%s`(")
+							vtprintf( pvtCreate, ") REFERENCES `%s`("
 									  , table->constraints.constraint[n].references );
 
 							colfirst = 1;
@@ -1737,49 +1737,49 @@ retry:
 							{
 								if( !table->constraints.constraint[n].foriegn_colnames[col] )
 									break;
-								vtprintf( pvtCreate, WIDE("%s`%s`")
-										  , colfirst?WIDE(""):WIDE(",")
+								vtprintf( pvtCreate, "%s`%s`"
+										  , colfirst?"":","
 										  , table->constraints.constraint[n].foriegn_colnames[col]
 										  );
 								colfirst = 0;
 							}
-							vtprintf( pvtCreate, WIDE(")%s %s")
+							vtprintf( pvtCreate, ")%s %s"
 
-									  , table->constraints.constraint[n].flags.cascade_on_update?WIDE("ON UPDATE CASCADE")
-										:table->constraints.constraint[n].flags.restrict_on_update?WIDE("ON UPDATE RESTRICT")
-										:table->constraints.constraint[n].flags.setnull_on_update?WIDE("ON UPDATE SET NULL")
-										:table->constraints.constraint[n].flags.setdefault_on_update?WIDE("ON UPDATE SET DEFAULT")
-										:table->constraints.constraint[n].flags.noaction_on_update?WIDE("ON UPDATE NO ACTION")
-										:WIDE("")
-									  , table->constraints.constraint[n].flags.cascade_on_delete?WIDE("ON DELETE CASCADE")
-										:table->constraints.constraint[n].flags.restrict_on_delete?WIDE("ON DELETE RESTRICT")
-										:table->constraints.constraint[n].flags.setnull_on_delete?WIDE("ON DELETE SET NULL")
-										:table->constraints.constraint[n].flags.setdefault_on_delete?WIDE("ON DELETE SET DEFAULT")
-										:table->constraints.constraint[n].flags.noaction_on_delete?WIDE("ON DELETE NO ACTION")
-										:WIDE("")
+									  , table->constraints.constraint[n].flags.cascade_on_update?"ON UPDATE CASCADE"
+										:table->constraints.constraint[n].flags.restrict_on_update?"ON UPDATE RESTRICT"
+										:table->constraints.constraint[n].flags.setnull_on_update?"ON UPDATE SET NULL"
+										:table->constraints.constraint[n].flags.setdefault_on_update?"ON UPDATE SET DEFAULT"
+										:table->constraints.constraint[n].flags.noaction_on_update?"ON UPDATE NO ACTION"
+										:""
+									  , table->constraints.constraint[n].flags.cascade_on_delete?"ON DELETE CASCADE"
+										:table->constraints.constraint[n].flags.restrict_on_delete?"ON DELETE RESTRICT"
+										:table->constraints.constraint[n].flags.setnull_on_delete?"ON DELETE SET NULL"
+										:table->constraints.constraint[n].flags.setdefault_on_delete?"ON DELETE SET DEFAULT"
+										:table->constraints.constraint[n].flags.noaction_on_delete?"ON DELETE NO ACTION"
+										:""
 									  );
  							first = 0;
 						}
 					}
 				}
-				vtprintf( pvtCreate, WIDE(")") ) ; // closing paren of all columns...
+				vtprintf( pvtCreate, ")" ) ; // closing paren of all columns...
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 				if( !odbc->flags.bSQLite_native )
 #endif
 				{
 					/* these are not supported under sqlite backend*/
 					if( table->type )
-						vtprintf( pvtCreate, WIDE("TYPE=%s"),table->type ) ;
+						vtprintf( pvtCreate, "TYPE=%s",table->type ) ;
 					//else
-					//	vtprintf( pvtCreate, WIDE("TYPE=MyISAM") ); // cpg 15 dec 2006
+					//	vtprintf( pvtCreate, "TYPE=MyISAM" ); // cpg 15 dec 2006
 					if( table->comment )
-						vtprintf( pvtCreate, WIDE(" COMMENT=\'%s\'" ), table->comment );
+						vtprintf( pvtCreate, " COMMENT=\'%s\'", table->comment );
 				}
 				PopODBCEx(odbc);
 
 				txt_cmd = VarTextPeek( pvtCreate );
 				if( f_odbc )
-					fprintf( f_odbc, WIDE( "%s;\n" ), GetText( txt_cmd ) );
+					fprintf( f_odbc, "%s;\n", GetText( txt_cmd ) );
 				else
 					if( !SQLCommand( odbc, GetText( txt_cmd ) ) )
 						status = 0;
@@ -1791,20 +1791,20 @@ retry:
 						int colfirst;
 						colfirst = 1;
 						if( !table->keys.key[n].flags.bPrimary) {
-							vtprintf( pvtCreate, WIDE( "CREATE %sINDEX '%s' ON '%s'(" )
-								, table->keys.key[n].flags.bUnique ? WIDE( "UNIQUE " ) : WIDE( "" )
+							vtprintf( pvtCreate, "CREATE %sINDEX '%s' ON '%s'("
+								, table->keys.key[n].flags.bUnique ? "UNIQUE " : ""
 								, table->keys.key[n].name
 								, table->name );
 							for( col = 0; table->keys.key[n].colnames[col]; col++ ) {
 								if( !table->keys.key[n].colnames[col] )
 									break;
-								vtprintf( pvtCreate, WIDE( "%s'%s'" )
-									, colfirst ? WIDE( "" ) : WIDE( "," )
+								vtprintf( pvtCreate, "%s'%s'"
+									, colfirst ? "" : ","
 									, table->keys.key[n].colnames[col]
 								);
 								colfirst = 0;
 							}
-							vtprintf( pvtCreate, WIDE( ")" ) );
+							vtprintf( pvtCreate, ")" );
 							first = 0;
 
 							if( !SQLCommand( odbc, GetText( VarTextPeek( pvtCreate ) ) ) )
@@ -1818,7 +1818,7 @@ retry:
 			}
 			else
 			{
-				lprintf( WIDE("error is : %s"), error );
+				lprintf( "error is : %s", error );
 			}
 		}
 	}
@@ -1871,7 +1871,7 @@ static void CreateNameTable( PODBC odbc, CTEXTSTR table_name )
 #else
 	DB_KEY_DEF keys[1];
 #endif
-	tnprintf( field1, sizeof( field1 ), WIDE("%s_id"), table_name );
+	tnprintf( field1, sizeof( field1 ), "%s_id", table_name );
 #ifdef __cplusplus
 	DB_KEY_DEF keys[1] = { required_key_def( TRUE, FALSE, NULL, field1 ) };
 #endif
@@ -1881,14 +1881,14 @@ static void CreateNameTable( PODBC odbc, CTEXTSTR table_name )
 	table.keys.count = 1;
 	table.keys.key = keys;
 	table.type = NULL;
-	table.comment = WIDE( "Auto Created table." );
+	table.comment = "Auto Created table.";
 	fields[0].name = field1;
-	fields[0].type = WIDE("int");
-	fields[0].extra = WIDE("auto_increment");
+	fields[0].type = "int";
+	fields[0].extra = "auto_increment";
 	fields[0].previous_names[0] = NULL;
-	tnprintf( field2, sizeof( field2 ), WIDE("%s_name"), table_name );
+	tnprintf( field2, sizeof( field2 ), "%s_name", table_name );
 	fields[1].name = field2;
-	fields[1].type = WIDE("varchar(100)");
+	fields[1].type = "varchar(100)";
 	fields[1].extra = NULL;
 	fields[1].previous_names[0] = NULL;
 
@@ -1912,15 +1912,15 @@ INDEX FetchSQLNameID( PODBC odbc, CTEXTSTR table_name, CTEXTSTR name )
 	retry:
 		if( !SQLQueryf( odbc
 						  , &result
-						  , WIDE("select %s_id from %s where %s_name=\'%s\'")
+						  , "select %s_id from %s where %s_name=\'%s\'"
 						  , table_name
 						  , table_name
 						  , table_name
 						  , name ) )
 		{
 			FetchSQLError( odbc, &result );
-			if( ( StrCmpEx( result, WIDE("(S0022)"), 7 ) == 0 ) ||
-				( StrCmpEx( result, WIDE("(S0002)"), 7 ) == 0 ) )
+			if( ( StrCmpEx( result, "(S0022)", 7 ) == 0 ) ||
+				( StrCmpEx( result, "(S0002)", 7 ) == 0 ) )
 			{
 				if( !bTried )
 				{
@@ -1934,14 +1934,14 @@ INDEX FetchSQLNameID( PODBC odbc, CTEXTSTR table_name, CTEXTSTR name )
 		{
 			if( !result )
 			{
-				if( !SQLCommandf( odbc, WIDE("insert into %s (%s_name)values(\'%s\')"), table_name, table_name, name ) )
+				if( !SQLCommandf( odbc, "insert into %s (%s_name)values(\'%s\')", table_name, table_name, name ) )
 				{
-					lprintf( WIDE("blah!") );
+					lprintf( "blah!" );
 				}
 				else
 				{
 					TEXTCHAR table_name_id[256];
-					tnprintf( table_name_id, sizeof( table_name_id ), WIDE("%s_id"), table_name );
+					tnprintf( table_name_id, sizeof( table_name_id ), "%s_id", table_name );
 					return FetchLastInsertID( odbc, table_name, table_name_id );
 				}
 			}
@@ -1962,15 +1962,15 @@ CTEXTSTR FetchSQLName( PODBC odbc, CTEXTSTR table_name, INDEX iName )
 	retry:
 		if( !SQLQueryf( odbc
 						  , &result
-						  , WIDE("select %s_name from %s where %s_id=%lu")
+						  , "select %s_name from %s where %s_id=%lu"
 						  , table_name
 						  , table_name
 						  , table_name
 						  , iName ) )
 		{
 			FetchSQLError( odbc, &result );
-			if( ( StrCmpEx( result, WIDE("(S0022)"), 7 ) == 0 ) ||
-				( StrCmpEx( result, WIDE("(S0002)"), 7 ) == 0 ) )
+			if( ( StrCmpEx( result, "(S0022)", 7 ) == 0 ) ||
+				( StrCmpEx( result, "(S0002)", 7 ) == 0 ) )
 			{
 				if( !bTried )
 				{

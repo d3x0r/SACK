@@ -127,7 +127,7 @@ void SACK_Vidlib_SetNativeWindowHandle( NativeWindowType displayWindow )
 		l.bThreadRunning = TRUE;
 		//SACK_Vidlib_OpenCameras();
 	}
-	//l.flags.disallow_3d = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Video Render/Disallow 3D"), 1 );
+	//l.flags.disallow_3d = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Video Render/Disallow 3D", 1 );
 }
 
 void SACK_Vidlib_SetAnimationWake( void (*wake_callback)(void))
@@ -214,7 +214,7 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 
 		MygluPerspective(90.0f,camera->aspect,1.0f,camera->depth);
 		CheckErr();
-		//lprintf( WIDE("First GL Init Done.") );
+		//lprintf( "First GL Init Done." );
 		camera->flags.init = 1;
 	}
 

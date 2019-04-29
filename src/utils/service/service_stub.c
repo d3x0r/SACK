@@ -21,11 +21,11 @@ static SERVICE_STATUS_HANDLE hStatus;
 
 static void ControlHandler( DWORD request )
 {
-	//lprintf( WIDE( "Received %08x" ), request );
+	//lprintf( "Received %08x", request );
 	switch(request) 
 	{ 
 		case SERVICE_CONTROL_STOP: 
-			//WriteToLog(WIDE( "Monitoring stopped." ));
+			//WriteToLog("Monitoring stopped.");
 			if( l.Stop )
 				l.Stop();
 
@@ -36,7 +36,7 @@ static void ControlHandler( DWORD request )
 			return; 
  
 		case SERVICE_CONTROL_SHUTDOWN: 
-			//WriteToLog(WIDE( "Monitoring stopped." ));
+			//WriteToLog("Monitoring stopped.");
 			if( l.Stop )
 				l.Stop();
 
@@ -78,31 +78,31 @@ static void APIENTRY ServiceMain( DWORD argc, TEXTCHAR **argv )
 	ServiceStatus.dwCheckPoint = 0; 
 	ServiceStatus.dwWaitHint = 0; 
 
-	//lprintf( WIDE( "Register service handler..." ) );
+	//lprintf( "Register service handler..." );
 	hStatus = RegisterServiceCtrlHandler(
 		l.next_service_name,
 		(LPHANDLER_FUNCTION)ControlHandler); 
 	if (hStatus == (SERVICE_STATUS_HANDLE)0) 
 	{ 
 		// Registering Control Handler failed
-		lprintf( WIDE( "Failed." ) );
+		lprintf( "Failed." );
 		return; 
 	}
 
 	// Initialize Service
 	if( l.Start )
 	{
-		//lprintf( WIDE( "Send the initialize..." ) );
+		//lprintf( "Send the initialize..." );
 		l.Start();
 	}
 
 	if( l.StartThread )
 	{
-		//lprintf( WIDE( "thread off to start thread..." ) );
+		//lprintf( "thread off to start thread..." );
 		ThreadTo( l.StartThread, l.psvStartThread );
 	}
 
-	//lprintf( WIDE( "Startup completd." ) );
+	//lprintf( "Startup completd." );
 
 	error = 0;//InitService();
 	if (error) 
@@ -140,9 +140,9 @@ void SetupService( TEXTSTR name, void (CPROC*Start)( void ) )
 	ServiceTable[0].lpServiceProc = ServiceMain;
 	ServiceTable[1].lpServiceName = NULL;
 	ServiceTable[1].lpServiceProc = NULL;
-	//lprintf( WIDE( "Send to startup monitor.." ) );
+	//lprintf( "Send to startup monitor.." );
 	if( !StartServiceCtrlDispatcher( ServiceTable ) )
-		lprintf( WIDE( "Startup monitor failed! %d" ), GetLastError() );
+		lprintf( "Startup monitor failed! %d", GetLastError() );
 }
 
 void SetupServiceEx( TEXTSTR name, void (CPROC*Start)( void ), void (CPROC*Stop)( void ) )
@@ -155,9 +155,9 @@ void SetupServiceEx( TEXTSTR name, void (CPROC*Start)( void ), void (CPROC*Stop)
 	ServiceTable[0].lpServiceProc = ServiceMain;
 	ServiceTable[1].lpServiceName = NULL;
 	ServiceTable[1].lpServiceProc = NULL;
-	//lprintf( WIDE( "Send to startup monitor.." ) );
+	//lprintf( "Send to startup monitor.." );
 	if( !StartServiceCtrlDispatcher( ServiceTable ) )
-		lprintf( WIDE( "Startup monitor failed! %d" ), GetLastError() );
+		lprintf( "Startup monitor failed! %d", GetLastError() );
 }
 
 void SetupServiceThread( TEXTSTR name, uintptr_t (CPROC*Start)( PTHREAD ), uintptr_t psv )
@@ -170,9 +170,9 @@ void SetupServiceThread( TEXTSTR name, uintptr_t (CPROC*Start)( PTHREAD ), uintp
 	ServiceTable[0].lpServiceProc = ServiceMain;
 	ServiceTable[1].lpServiceName = NULL;
 	ServiceTable[1].lpServiceProc = NULL;
-	//lprintf( WIDE( "Send to startup monitor.." ) );
+	//lprintf( "Send to startup monitor.." );
 	if( !StartServiceCtrlDispatcher( ServiceTable ) )
-		lprintf( WIDE( "Startup monitor failed! %d" ), GetLastError() );
+		lprintf( "Startup monitor failed! %d", GetLastError() );
 
 }
 
@@ -183,7 +183,7 @@ LOGICAL IsThisAService( void )
 	TEXTCHAR buffer[256];
 	DWORD length = 0;
 	GetUserObjectInformation( GetProcessWindowStation(), UOI_NAME, buffer, 256, &length);
-	if (!StrCaseCmp(buffer, WIDE("WinSta0")))
+	if (!StrCaseCmp(buffer, "WinSta0"))
 	{
 		// normal user session
 		return FALSE;
@@ -207,7 +207,7 @@ static void CPROC MyTaskEnd( uintptr_t psv, PTASK_INFO task )
 
 static void CPROC GetOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t length )
 {
-	lprintf( WIDE( "%s" ), buffer );
+	lprintf( "%s", buffer );
 }
 
 //---------------------------------------------------------------------------
@@ -243,7 +243,7 @@ void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR descrip, CTEXTSTR extraArg
 	}
 	*/
 	VarTextEmpty( pvt_cmd );
-	LaunchPeerProgram( WIDE( "sc.exe" ), NULL, (PCTEXTSTR)args,  GetOutput, MyTaskEnd, 0 );
+	LaunchPeerProgram( "sc.exe", NULL, (PCTEXTSTR)args,  GetOutput, MyTaskEnd, 0 );
 	while( !task_done )
 		WakeableSleep( 100 );
 	task_done = 0;
@@ -255,7 +255,7 @@ void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR descrip, CTEXTSTR extraArg
 		args_tmp[3] = descrip;
 		args_tmp[4] = NULL;
 
-		LaunchPeerProgram( WIDE( "sc.exe" ), NULL, (PCTEXTSTR)args_tmp, GetOutput, MyTaskEnd, 0 );
+		LaunchPeerProgram( "sc.exe", NULL, (PCTEXTSTR)args_tmp, GetOutput, MyTaskEnd, 0 );
 		while( !task_done )
 			WakeableSleep( 100 );
 		task_done = 0;
@@ -266,7 +266,7 @@ void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR descrip, CTEXTSTR extraArg
 			  , ServiceName );
 	ParseIntoArgs( GetText( VarTextPeek( pvt_cmd ) ), &nArgs, &args );
 	VarTextEmpty( pvt_cmd );
-	LaunchPeerProgram( WIDE( "sc.exe" ), NULL, (PCTEXTSTR)args,  GetOutput, MyTaskEnd, 0 );
+	LaunchPeerProgram( "sc.exe", NULL, (PCTEXTSTR)args,  GetOutput, MyTaskEnd, 0 );
 	while( !task_done )
 		WakeableSleep( 100 );
 }
@@ -287,7 +287,7 @@ void ServiceUninstall( CTEXTSTR ServiceName )
 			  , ServiceName );
 	ParseIntoArgs( GetText( VarTextPeek( pvt_cmd ) ), &nArgs, &args );
 	VarTextEmpty( pvt_cmd );
-	LaunchPeerProgram( WIDE( "sc" ), NULL, (PCTEXTSTR)args,  GetOutput, MyTaskEnd, 0 );
+	LaunchPeerProgram( "sc", NULL, (PCTEXTSTR)args,  GetOutput, MyTaskEnd, 0 );
 	while( !task_done )
 		WakeableSleep( 100 );
 	task_done = 0;
@@ -295,7 +295,7 @@ void ServiceUninstall( CTEXTSTR ServiceName )
 			  , ServiceName );
 	ParseIntoArgs( GetText( VarTextPeek( pvt_cmd ) ), &nArgs, &args );
 	VarTextEmpty( pvt_cmd );
-	LaunchPeerProgram( WIDE( "sc" ), NULL, (PCTEXTSTR)args,  GetOutput, MyTaskEnd, 0 );
+	LaunchPeerProgram( "sc", NULL, (PCTEXTSTR)args,  GetOutput, MyTaskEnd, 0 );
 	while( !task_done )
 		WakeableSleep( 100 );
 	task_done = 0;

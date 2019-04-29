@@ -77,7 +77,7 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 				if(!wglMakeCurrent( (HDC)hDisplay->pFractures[nFracture].hDCBitmap
 									, hDisplay->pFractures[nFracture].hRC))               // Try To Activate The Rendering Context
 				{
-					Log1( WIDE("GetLastERror == %d"), GetLastError() );
+					Log1( "GetLastERror == %d", GetLastError() );
 					//MessageBox(NULL,"Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 					return FALSE;                       // Return FALSE
 				}
@@ -90,14 +90,14 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 					,hDisplay->pFractures[nFracture].pImage->real_width
 					,hDisplay->pFractures[nFracture].pImage->real_height);                // Reset The Current Viewport
 				hDisplay->_prior_fracture = nFracture;
-				//lprintf( WIDE("lock+1") );
+				//lprintf( "lock+1" );
 				_hDisplay = hDisplay;
             //if( hDisplay->_prior_fracture == -1 )
 				//	EnterCriticalSec( &cs );
 			}
 			else
 			{
-				lprintf( WIDE( "Last fracture is the same as current." ) );
+				lprintf( "Last fracture is the same as current." );
 			}
 		}
 		else
@@ -118,7 +118,7 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 				{
 					DebugBreak();
 
-					Log1( WIDE("GetLastERror == %d"), GetLastError() );
+					Log1( "GetLastERror == %d", GetLastError() );
 					//MessageBox(NULL,"Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 					return FALSE;                       // Return FALSE
 				}
@@ -136,12 +136,12 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 			{
 				if( hDisplay == _hDisplay )
 				{
-					lprintf( WIDE("Active GL Context already on this renderer...") );
+					lprintf( "Active GL Context already on this renderer..." );
 				}
 				else
 				{
 					DebugBreak();
-					lprintf( WIDE("Active GL context is on another Display... please wait?!") );
+					lprintf( "Active GL context is on another Display... please wait?!" );
 				}
 			}
 		}
@@ -157,9 +157,9 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 		if( _hDisplay )
 		{
 #ifdef LOG_OPENGL_CONTEXT
-			lprintf( WIDE( "Prior GL Context being released." ) );
+			lprintf( "Prior GL Context being released." );
 #endif
-			lprintf( WIDE( "swapping buffer..." ) );
+			lprintf( "swapping buffer..." );
 			glFlush();
 			if( _hDisplay->flags.bLayeredWindow )
 			{
@@ -169,21 +169,21 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
          else
 				SwapBuffers( _hDisplay->hDCOutput );
 
-			lprintf( WIDE( "Steal surface from fake into my bitmap..." ) );
+			lprintf( "Steal surface from fake into my bitmap..." );
 
 
-         lprintf( WIDE( "Read from buffer is how Slow?" ) );
+         lprintf( "Read from buffer is how Slow?" );
 			//BitBlt ((HDC)_hDisplay->hDCFakeBitmap, 0, 0, _hDisplay->pWindowPos.cx, _hDisplay->pWindowPos.cy,
 			//		  (HDC)_hDisplay->hDCFakeWindow, 0, 0, SRCCOPY);
 			if(!wglMakeCurrent( NULL, NULL) )               // Try To Deactivate The Rendering Context
 			{
 				DebugBreak();
-				Log1( WIDE("GetLastERror == %d"), GetLastError() );
+				Log1( "GetLastERror == %d", GetLastError() );
 				//MessageBox(NULL,"Can't Deactivate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 				return FALSE;                       // Return FALSE
 			}
-         lprintf(WIDE( " Failure %d" ), GetLastError() );
-         lprintf( WIDE( "Done with that... shared surface, right? now we can put it out?" ) );
+         lprintf(" Failure %d", GetLastError() );
+         lprintf( "Done with that... shared surface, right? now we can put it out?" );
 
 			_hDisplay->_prior_fracture = -1;
 			//lprintf( "lock-1" );
@@ -242,7 +242,7 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 				PCOLOR pBuffer;
 				hVideo->pFractures[nFracture].hBm = CreateDIBSection (NULL, &bmInfo, DIB_RGB_COLORS, (void **) &pBuffer, NULL,   // hVideo (hMemView)
 														  0); // offset DWORD multiple
-				//lprintf( WIDE("New drawing surface, remaking the image, dispatch draw event...") );
+				//lprintf( "New drawing surface, remaking the image, dispatch draw event..." );
 				hVideo->pFractures[nFracture].pImage =
 					RemakeImage (hVideo->pFractures[nFracture].pImage
 									, pBuffer, bmInfo.bmiHeader.biWidth,
@@ -254,8 +254,8 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 				//DWORD dwError = GetLastError();
 				// this is normal if window minimizes...
 				if (bmInfo.bmiHeader.biWidth || bmInfo.bmiHeader.biHeight)  // both are zero on minimization
-					MessageBox (hVideo->hWndOutput, WIDE("Failed to create Window DIB"),
-									WIDE("ERROR"), MB_OK);
+					MessageBox (hVideo->hWndOutput, "Failed to create Window DIB",
+									"ERROR", MB_OK);
 				return FALSE;
 			}
 		}
@@ -271,12 +271,12 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 			} msg;
 			msg.hVideo = hVideo;
 			msg.nFracture = nFracture;
-			//lprintf( WIDE("Sending redraw for fracture %d on vid %p"), nFracture, hVideo );
+			//lprintf( "Sending redraw for fracture %d on vid %p", nFracture, hVideo );
 			//SendServiceEvent( local_vidlib.dwMsgBase + MSG_RedrawFractureMethod, &msg, sizeof( msg ) );
 		}
 	}
    hVideo->nFractures++;
-   //lprintf( WIDE("And here I might want to update the video, hope someone else does for me.") );
+   //lprintf( "And here I might want to update the video, hope someone else does for me." );
 	return nFracture + 1;
 }
 
@@ -290,13 +290,13 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 
 	PFNWGLEXTENSIONSSTRINGARBPROC
 		wglGetExtensionsStringARB =(PFNWGLEXTENSIONSSTRINGARBPROC)
-		wglGetProcAddress( WIDE("wglGetExtensionsStringARB") );
+		wglGetProcAddress( "wglGetExtensionsStringARB" );
 	if( wglGetExtensionsStringARB )
 	{
 		const Glubyte *extensions = (const Glubyte *)
 			wglGetExtensionsStringARB( wglGetCurrentDC() );
-		if( strstr( extensions, WIDE("WGL_ARB_pixel_format") ) &&
-			strstr( extension, WIDE("WGL_ARB_pbuffer") ) )
+		if( strstr( extensions, "WGL_ARB_pixel_format" ) &&
+			strstr( extension, "WGL_ARB_pbuffer" ) )
 		{
 #define INIT_ENTRY_POINT( funcname, type ) \
 	{ type funcname = (type) wglGetProcAddress(#funcname); \
@@ -455,7 +455,7 @@ int EnableOpenGL( PVIDEO hVideo )
 				hMe = GetModuleHandle (_WIDE(TARGETNAME));
 			hVideo->hWndOutputFake = CreateWindowEx( 0
 																, (TEXTCHAR *) l.aClass2
-																, WIDE("InvisiGlWindow")
+																, "InvisiGlWindow"
 																, WS_POPUP
 																, 10000, 0
 																, i->width
@@ -485,7 +485,7 @@ int EnableOpenGL( PVIDEO hVideo )
 		DebugBreak();
 		LeaveCriticalSec( &hVideo->cs );
 		//KillGLWindow();                        // Reset The Display
-      //MessageBox(NULL,WIDE("Can't Find A Suitable PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+      //MessageBox(NULL,"Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
       return FALSE;                       // Return FALSE
    }
 
@@ -495,7 +495,7 @@ int EnableOpenGL( PVIDEO hVideo )
 		LeaveCriticalSec( &hVideo->cs );
 
       KillGLWindow();                        // Reset The Display
-      MessageBox(NULL,WIDE("Can't Set The PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+      MessageBox(NULL,"Can't Set The PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
       return FALSE;                       // Return FALSE
    }
 
@@ -505,13 +505,13 @@ int EnableOpenGL( PVIDEO hVideo )
 
 		LeaveCriticalSec( &hVideo->cs );
 		KillGLWindow();                        // Reset The Display
-      MessageBox(NULL,WIDE("Can't Create A GL Rendering Context."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+      MessageBox(NULL,"Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
       return FALSE;                       // Return FALSE
 	}
 
 	if(!wglMakeCurrent(hdcEnable,hVideo->hRC))               // Try To Activate The Rendering Context
 	{
-		lprintf( WIDE("Error: %d"), GetLastError() );
+		lprintf( "Error: %d", GetLastError() );
 	}
 
 	if( hVideo->flags.bLayeredWindow )
@@ -564,7 +564,7 @@ RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h 
 			hMe = GetModuleHandle (_WIDE(TARGETNAME));
 		hVideo->hWndOutputFake = CreateWindowEx( 0
 						  , (TEXTCHAR*)l.aClass2
-						  , WIDE("InvisiGlWindow")
+						  , "InvisiGlWindow"
 						  , WS_POPUP
 						  , x, y
 						  , w
@@ -596,7 +596,7 @@ RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h 
 			{
 				DebugBreak();
 				KillGLWindow();                        // Reset The Display
-				MessageBox(NULL,WIDE("Can't Find A Suitable PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+				MessageBox(NULL,"Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 				return nFracture + 1;                       // Return FALSE
 			}
 		}
@@ -605,7 +605,7 @@ RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h 
 			DebugBreak();
 				
 			KillGLWindow();                        // Reset The Display
-			MessageBox(NULL,WIDE("Can't Set The PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+			MessageBox(NULL,"Can't Set The PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 			return FALSE;                       // Return FALSE
 		}
 
@@ -614,7 +614,7 @@ RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h 
 			DebugBreak();
 				
 			KillGLWindow();                        // Reset The Display
-			MessageBox(NULL,WIDE("Can't Create A GL Rendering Context."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+			MessageBox(NULL,"Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 			return FALSE;                       // Return FALSE
 		}
       return nFracture + 1;
@@ -785,7 +785,7 @@ PPBO_Info SetupPBO( Image dest_buffer )
 #ifdef _WIN32
    if( !glGenBuffersARB )
     // check PBO is supported by your video card
-    if(IsExtensionSupported(WIDE("GL_ARB_pixel_buffer_object")))
+    if(IsExtensionSupported("GL_ARB_pixel_buffer_object"))
     {
         // get pointers to GL functions
         glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
@@ -866,7 +866,7 @@ void ReadBuffer( PPBO_Info pbo )
         // OpenGL should perform asynch DMA transfer, so glReadPixels() will return immediately.
         //lprintf( "_ Update hdisplay buffer image" )          ;
         glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pbo->pboIds[pbo->index]);
-		  lprintf( WIDE("_ Update hdisplay buffer image") )          ;
+		  lprintf( "_ Update hdisplay buffer image" )          ;
 
 
 		  glReadPixels(0, 0
@@ -882,7 +882,7 @@ void ReadBuffer( PPBO_Info pbo )
         //t1.start();
 
         // map the PBO that contain framebuffer pixels before processing it
-           lprintf( WIDE("a Update hdisplay buffer image") )          ;
+           lprintf( "a Update hdisplay buffer image" )          ;
 			  glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pbo->pboIds[pbo->nextIndex]);
            //lprintf( "b Update hdisplay buffer image" )          ;
 			  {
@@ -913,7 +913,7 @@ void ReadBuffer( PPBO_Info pbo )
 					  //add(src, SCREEN_WIDTH, SCREEN_HEIGHT, shift, colorBuffer);
 					  //lprintf( "Update hdisplay buffer image" )          ;
 					  memcpy( pbo->dest_buffer->image,  pbo->raw, size );
-					  lprintf( WIDE("Output to display") );
+					  lprintf( "Output to display" );
 					  glUnmapBufferARB(GL_PIXEL_PACK_BUFFER_ARB);     // release pointer to the mapped buffer
 				  }
 			  }

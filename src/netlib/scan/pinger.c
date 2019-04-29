@@ -29,7 +29,7 @@ SaneWinMain( argc, argv )
 		{
 			uint32_t junk = htonl(IP);
 			StrCpy( address, DupCStr( inet_ntoa( *(struct in_addr*)&junk ) ) );
-			//printf( WIDE("Trying %s...\n"), address );
+			//printf( "Trying %s...\n", address );
 			 DoPing( address, 
       	         0,  // no ttl - just ping
          	    50,  // short timeout

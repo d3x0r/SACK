@@ -12,7 +12,7 @@ int main( void )
 #endif
 {
    // doesn't matter...
-	if( LoadPrivateFunction( WIDE("sack.msgsvr.service.plugin"), NULL ) )
+	if( LoadPrivateFunction( "sack.msgsvr.service.plugin", NULL ) )
 	{
 #ifdef WIN32
 #ifndef __NO_GUI__
@@ -23,6 +23,6 @@ int main( void )
 			WakeableSleep( SLEEP_FOREVER );
 	}
    else
-		printf( WIDE("Failed to load message core service.\n") );
+		printf( "Failed to load message core service.\n" );
    return 0;
 }

@@ -56,7 +56,7 @@ BOOL CALLBACK DialogProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 BOOL SimpleQuery( char *pText, char *pResult, int nResultLen )
 {
-   return DialogBoxParam( myInst, WIDE("SimpleQuery"), NULL, DialogProc, (long)&pText );
+   return DialogBoxParam( myInst, "SimpleQuery", NULL, DialogProc, (long)&pText );
 }
 
 

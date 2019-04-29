@@ -27,7 +27,7 @@ int main( int argc, char **argv )
 	SetSystemLog( SYSLOG_FILE, stdout );
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();
-	if(argc<3)lprintf( WIDE("Usage: %s <background image> <daubing image>\n"), argv[0] );
+	if(argc<3)lprintf( "Usage: %s <background image> <daubing image>\n", argv[0] );
 	GetDisplaySize( &width, &height );;
 	{
 		PRENDERER display = OpenDisplaySizedAt( 0, width, height, 0, 0 );

@@ -24,7 +24,7 @@ typedef struct mydatapath_tag {
 
 //--------------------------------------------------------------------------
 
-static TEXTCHAR pHEX[] = WIDE("0123456789ABCDEF");
+static TEXTCHAR pHEX[] = "0123456789ABCDEF";
 static PTEXT CPROC BinaryWrite( PMYDATAPATH pdp, PTEXT buffer )
 {
    PTEXT pLine, bufstart = buffer;
@@ -39,7 +39,7 @@ static PTEXT CPROC BinaryWrite( PMYDATAPATH pdp, PTEXT buffer )
 			sz = GetTextSize( buffer );
 			if( !sz )
 			{
-            Log( WIDE("END OF LINE!") );
+            Log( "END OF LINE!" );
 			}
    	   for( n = 0; n < sz; n += 16 )
       	{
@@ -92,11 +92,11 @@ static PTEXT CPROC BinaryWrite( PMYDATAPATH pdp, PTEXT buffer )
 					{
                   bLogged = TRUE;
 						if( pdp->flags.bInput )
-							Log1( WIDE("Inbound...:%s"), GetText( pdp->common.pName ) );
+							Log1( "Inbound...:%s", GetText( pdp->common.pName ) );
 						if( pdp->flags.bOutput )
-							Log1( WIDE("Outbound...:%s"), GetText( pdp->common.pName ) );
+							Log1( "Outbound...:%s", GetText( pdp->common.pName ) );
 					}
-					Log1( WIDE("%s"), GetText( pLine ) );
+					Log1( "%s", GetText( pLine ) );
 					LineRelease( pLine );
 				}
 				else
@@ -157,11 +157,11 @@ static PDATAPATH CPROC CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT para
    pdp = CreateDataPath( pChannel, MYDATAPATH );
 	while( ( option = GetParam( ps, &parameters ) ) )
 	{
-		if( OptionLike( option, WIDE("inbound") ) )
+		if( OptionLike( option, "inbound" ) )
 			pdp->flags.bInput = 1;
-		else if( OptionLike( option, WIDE("outbound") ) )
+		else if( OptionLike( option, "outbound" ) )
 			pdp->flags.bOutput = 1;
-		else if( OptionLike( option, WIDE("log") ) )
+		else if( OptionLike( option, "log" ) )
          pdp->flags.bLog = 1; // use Log instead of queuing input/output....
 	}
    pdp->common.Type = myTypeID;
@@ -175,7 +175,7 @@ static PDATAPATH CPROC CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT para
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("binary"), WIDE("Performs binary formatting..."), Open );
+   myTypeID = RegisterDevice( "binary", "Performs binary formatting...", Open );
    return DekVersion;
 }
 
@@ -183,7 +183,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("binary") );
+	UnregisterDevice( "binary" );
 }
 // $Log: binary.c,v $
 // Revision 1.14  2005/08/08 09:32:02  d3x0r

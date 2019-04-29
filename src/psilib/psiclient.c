@@ -87,7 +87,7 @@ PCLIENT_FRAME pClientFrames;
 
 static void ControlEventProcessor( uint32_t EventMsg, uint32_t *data, uint32_t length )
 {
-   Log1( WIDE("Event received... %ld"), EventMsg );
+   Log1( "Event received... %ld", EventMsg );
 	switch( EventMsg )
 	{
 	case MSG_MateEnded:  // server closed - all client resources defunct.
@@ -110,7 +110,7 @@ static void ControlEventProcessor( uint32_t EventMsg, uint32_t *data, uint32_t l
 	case MSG_ButtonClick:
       break;
 	default:
-		Log2( WIDE("Unknown event message: %ld (%ld bytes)"), EventMsg + g.MsgBase, length );
+		Log2( "Unknown event message: %ld (%ld bytes)", EventMsg + g.MsgBase, length );
 		break;
 	}
 }
@@ -121,13 +121,13 @@ static int ConnectToServer( void )
 	{
 		//if( InitMessageService() )
 		{
-			g.MsgBase = LoadService( WIDE("controls"), ControlEventProcessor );
+			g.MsgBase = LoadService( "controls", ControlEventProcessor );
 			if( g.MsgBase )
 				g.flags.connected = 1;
 		}
 	}
 	if( !g.flags.connected )
-		Log( WIDE("Failed to connect") );
+		Log( "Failed to connect" );
    return g.flags.connected;
 }
 

@@ -99,7 +99,7 @@ int CPROC MouseToolbin( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
  	return TRUE;
 }
 
-static int OnDrawCommon( WIDE("Board toolbin") )( PSI_CONTROL pc )
+static int OnDrawCommon( "Board toolbin" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PTOOLBIN, toolbin_control.TypeID, toolbin, pc );
 	if( toolbin )
@@ -208,7 +208,7 @@ int CPROC InitToolbinControl( PSI_CONTROL pc )
  	return TRUE;
 }
 
-CONTROL_REGISTRATION toolbin_control = { WIDE("Board Toolbin")
+CONTROL_REGISTRATION toolbin_control = { "Board Toolbin"
 										 , { { 64, 256 }, sizeof( TOOLBIN ), BORDER_NORMAL }
 										 , InitToolbinControl // Init
 										 , NULL // Load

@@ -26,7 +26,7 @@ namespace sack {
 		namespace buttons {
 #endif
 
-#define BUTTON_NAME WIDE("fancy button 2")
+#define BUTTON_NAME "fancy button 2"
 
 typedef struct text_placement_tag
 {
@@ -117,10 +117,10 @@ struct {
 	CTEXTSTR name;
 }color_defs[4];
 #if 0
-= { { BASE_COLOR_BLACK, WIDE("black") }
-					 , { BASE_COLOR_BLUE, WIDE("blue") }
-					 , { BASE_COLOR_GREEN, WIDE("green") }
-					 , { BASE_COLOR_RED, WIDE("red") }
+= { { BASE_COLOR_BLACK, "black" }
+					 , { BASE_COLOR_BLUE, "blue" }
+					 , { BASE_COLOR_GREEN, "green" }
+					 , { BASE_COLOR_RED, "red" }
 };
 #endif
 
@@ -176,7 +176,7 @@ void CPROC PressKeyButton( PKEY_BUTTON key, PSI_CONTROL pc )
 	//   turns out that bNoPress was never set.
 	//else
 	//{
-	//	lprintf( WIDE("Key is %s or %s"), key->flags.bNoPress?"NoPress":"(ok-pressable)",
+	//	lprintf( "Key is %s or %s", key->flags.bNoPress?"NoPress":"(ok-pressable)",
 	//			  key->PressHandler?"(ok-Has Handler)":"Has no handler" );
 	//}
 }
@@ -193,7 +193,7 @@ static int CPROC HandleMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 	{
 		if( button->buttonflags.pressed )
 		{
-			//lprintf( WIDE("releaseing press state sorta...") );
+			//lprintf( "releaseing press state sorta..." );
 			button->buttonflags.pressed = FALSE;
 			SmudgeCommon( pc );
 		}
@@ -207,7 +207,7 @@ static int CPROC HandleMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 	{
 		if( button->buttonflags.pressed )
 		{
-			//lprintf( WIDE("Releasing button.") );
+			//lprintf( "Releasing button." );
 			button->buttonflags.pressed = FALSE;
 			if( button->flags.bLayered )
 			{
@@ -478,7 +478,7 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	TEXTCHAR szBuffer[256];
    TEXTCHAR szThemeId[12];
 	struct theme_tag *theme;
-	static const CTEXTSTR gIniFileName = WIDE( "theme.ini" );
+	static const CTEXTSTR gIniFileName = "theme.ini";
 	PTHEME base_theme;
    INDEX idx;
 	// Allocate memory for structure
@@ -509,21 +509,21 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	}
 
 
-   snprintf( szThemeId, 12, WIDE("%d"), theme_id );
+   snprintf( szThemeId, 12, "%d", theme_id );
 	// Create Root Path for reading edit options ini
-	snprintf( szBuffer, 256, WIDE( "THEME/%s%s%s" ), name, theme_id?WIDE("."):WIDE(""), theme_id?szThemeId:WIDE("") );
+	snprintf( szBuffer, 256, "THEME/%s%s%s", name, theme_id?".":"", theme_id?szThemeId:"" );
 	
 	// Copy path
 	memcpy( szTheme, szBuffer, ( sizeof (szTheme) ) );
 
 	// Get Mask 
-	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "MASK" ), WIDE( "%resources%/images/colorLayer.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
+	retval =  SACK_GetPrivateProfileStringEx( szTheme, "MASK", "%resources%/images/colorLayer.png", szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
 
 	// Load Mask
-	if ( StrCmpEx( szBuffer, WIDE( "NULL" ), 4 ) )
+	if ( StrCmpEx( szBuffer, "NULL", 4 ) )
 	{
-		theme->buttons.iMask = LoadImageFileFromGroup( GetFileGroup( WIDE("Button Resources"), WIDE("%Resources%/images") ), szBuffer );
-		//xlprintf(LOG_NOISE+1)( WIDE(" LoadImageFile returned a pointer to %p ") , theme->buttons.iMask );
+		theme->buttons.iMask = LoadImageFileFromGroup( GetFileGroup( "Button Resources", "%Resources%/images" ), szBuffer );
+		//xlprintf(LOG_NOISE+1)( " LoadImageFile returned a pointer to %p " , theme->buttons.iMask );
 	}
 
 	else
@@ -532,57 +532,57 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	}
 	
 	// Get Glare
-	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "GLARE" ), WIDE( "NULL" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );	
+	retval =  SACK_GetPrivateProfileStringEx( szTheme, "GLARE", "NULL", szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );	
 	
 	// Load Glare
-	if (StrCmpEx(szBuffer, WIDE("NULL"), 4)  )
+	if (StrCmpEx(szBuffer, "NULL", 4)  )
 	{
-		theme->buttons.iGlare = LoadImageFileFromGroup( GetFileGroup( WIDE("Button Resources"), WIDE("%Resources%/images") ), szBuffer );
-		//xlprintf(LOG_NOISE+1)( WIDE(" LoadImageFile returned a pointer to %p ") , theme->buttons.iGlare );
+		theme->buttons.iGlare = LoadImageFileFromGroup( GetFileGroup( "Button Resources", "%Resources%/images" ), szBuffer );
+		//xlprintf(LOG_NOISE+1)( " LoadImageFile returned a pointer to %p " , theme->buttons.iGlare );
 	}
 
 	else
 	{
-		//xlprintf(LOG_NOISE+1)( WIDE("setting an image file to null") );
+		//xlprintf(LOG_NOISE+1)( "setting an image file to null" );
 		theme->buttons.iGlare = NULL;
 	}
 
 	// Get Pressed
-	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "PRESSED" ), WIDE( "%resources%/images/pressedLens.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
+	retval =  SACK_GetPrivateProfileStringEx( szTheme, "PRESSED", "%resources%/images/pressedLens.png", szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
 	
 	// Load Pressed
-	if (StrCmpEx(szBuffer, WIDE("NULL"), 4)  )
+	if (StrCmpEx(szBuffer, "NULL", 4)  )
 	{
-		theme->buttons.iPressed = LoadImageFileFromGroup( GetFileGroup( WIDE("Button Resources"), WIDE("%Resources%/images") ), szBuffer );
-		//xlprintf(LOG_NOISE+1)( WIDE(" LoadImageFile returned a pointer to %p ") , theme->buttons.iPressed );
+		theme->buttons.iPressed = LoadImageFileFromGroup( GetFileGroup( "Button Resources", "%Resources%/images" ), szBuffer );
+		//xlprintf(LOG_NOISE+1)( " LoadImageFile returned a pointer to %p " , theme->buttons.iPressed );
 	}
 
 	else
 	{
-		xlprintf(LOG_NOISE+1)( WIDE("setting an image file to null") );
+		xlprintf(LOG_NOISE+1)( "setting an image file to null" );
 		theme->buttons.iPressed = NULL;
 	}
 
 	// Get Normal
-	retval =  SACK_GetPrivateProfileStringEx( szTheme, WIDE( "NORMAL" ), WIDE( "%resources%/images/defaultLens.png" ), szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
+	retval =  SACK_GetPrivateProfileStringEx( szTheme, "NORMAL", "%resources%/images/defaultLens.png", szBuffer, sizeof( szBuffer ), gIniFileName, TRUE );
 
 	// Load Normal
-	if (StrCmpEx(szBuffer, WIDE("NULL"), 4)  )
+	if (StrCmpEx(szBuffer, "NULL", 4)  )
 	{
-		theme->buttons.iNormal = LoadImageFileFromGroup( GetFileGroup( WIDE("Button Resources"), WIDE("%Resources%/images") ), szBuffer );
-		xlprintf(LOG_NOISE+1)( WIDE(" LoadImageFile returned a pointer to %p ") , theme->buttons.iNormal );
+		theme->buttons.iNormal = LoadImageFileFromGroup( GetFileGroup( "Button Resources", "%Resources%/images" ), szBuffer );
+		xlprintf(LOG_NOISE+1)( " LoadImageFile returned a pointer to %p " , theme->buttons.iNormal );
 	}
 
 	else
 	{
-		xlprintf(LOG_NOISE+1)( WIDE("setting an image file to null") );
+		xlprintf(LOG_NOISE+1)( "setting an image file to null" );
 		theme->buttons.iNormal = NULL;
 	}
 	
 	// Get color and style
-	theme->buttons.color =  SACK_GetPrivateProfileIntEx( szTheme, WIDE( "Color" ), default_color?default_color:0x63F00013, gIniFileName, TRUE );
-	theme->buttons.color =  SACK_GetPrivateProfileIntEx( szTheme, WIDE( "Color" ), default_text_color?default_text_color:0x63F0F0D3, gIniFileName, TRUE );
-	theme->buttons.style =  SACK_GetPrivateProfileIntEx( szTheme, WIDE( "Style" ), 2, gIniFileName, TRUE );
+	theme->buttons.color =  SACK_GetPrivateProfileIntEx( szTheme, "Color", default_color?default_color:0x63F00013, gIniFileName, TRUE );
+	theme->buttons.color =  SACK_GetPrivateProfileIntEx( szTheme, "Color", default_text_color?default_text_color:0x63F0F0D3, gIniFileName, TRUE );
+	theme->buttons.style =  SACK_GetPrivateProfileIntEx( szTheme, "Style", 2, gIniFileName, TRUE );
 
    SetLink( theme->theme_list, theme_id, theme );
 
@@ -601,16 +601,16 @@ void LoadButtonTheme( void )
 	if( !l.flags.theme_loaded )
 	{
 		color_defs[0].color = BASE_COLOR_BLACK;
-		color_defs[0].name = WIDE("black");
+		color_defs[0].name = "black";
 		color_defs[1].color = BASE_COLOR_BLUE;
-		color_defs[1].name = WIDE("blue");
+		color_defs[1].name = "blue";
 		color_defs[2].color = BASE_COLOR_GREEN;
-		color_defs[2].name = WIDE("green");
+		color_defs[2].name = "green";
 		color_defs[3].color = BASE_COLOR_RED;
-		color_defs[3].name = WIDE("red");		
+		color_defs[3].name = "red";		
 
 		{
-			PTHEME theme = LoadButtonThemeByName( WIDE("Normal Button"), 0 );
+			PTHEME theme = LoadButtonThemeByName( "Normal Button", 0 );
 			SetLink( &l.theme_list, 0, theme );
 			l.default_theme = theme;
 		}
@@ -636,7 +636,7 @@ void UpdateLayoutPosition( PKEY_BUTTON pKey, PTEXT_PLACEMENT layout )
 			layout->last_font = (*layout->font);
 		else
 			layout->last_font = NULL;
-		GetStringSizeFont( WIDE("M"), &w, &h, layout->font?(*layout->font):NULL );
+		GetStringSizeFont( "M", &w, &h, layout->font?(*layout->font):NULL );
 		if( layout->orig_x < 0 )
 			layout->x = pKey->width - ( (-layout->orig_x) * w ) / 10;
 		else
@@ -645,7 +645,7 @@ void UpdateLayoutPosition( PKEY_BUTTON pKey, PTEXT_PLACEMENT layout )
 			layout->y = pKey->height - ( (-layout->orig_y) * h ) / 10;
 		else
 			layout->y = ( layout->orig_y * h ) / 10;
-		//lprintf( WIDE("output %s at %ld measured by %d,%d"), layout->content, layout->y, w, h );
+		//lprintf( "output %s at %ld measured by %d,%d", layout->content, layout->y, w, h );
 	}
 }
 
@@ -682,7 +682,7 @@ int CPROC DrawButtonText( PSI_CONTROL pc, Image surface, PKEY_BUTTON key )
 					}
 				}
 			}
-			//lprintf( WIDE("output %s at %ld"), layout->content, layout->y );
+			//lprintf( "output %s at %ld", layout->content, layout->y );
 			PutStringFont( surface
 							 , layout->x + xofs, layout->y + yofs
 							 , key->flags.bGreyed?BASE_COLOR_WHITE:layout->text
@@ -716,7 +716,7 @@ int CPROC DrawButtonText( PSI_CONTROL pc, Image surface, PKEY_BUTTON key )
 						size_t len;
 						for( n = 0; n < NUM_COLORS; n++ )
 						{
-							//lprintf( WIDE("text %s =%s?"), text
+							//lprintf( "text %s =%s?", text
 							//		 , color_defs[n].name );
 							if( StrCaseCmpEx( text
 											, color_defs[n].name
@@ -761,7 +761,7 @@ int CPROC DrawButtonText( PSI_CONTROL pc, Image surface, PKEY_BUTTON key )
 					text++;
 					GetStringSizeFontEx( text, len-1, &text_width, &text_height, font );
 					if( 0 )
-						lprintf( WIDE("%d lines %d line  width %d  height %d"), lines, line, text_width, text_height );
+						lprintf( "%d lines %d line  width %d  height %d", lines, line, text_width, text_height );
 					switch( text[-1] )
 					{
 					case 'A':
@@ -781,7 +781,7 @@ int CPROC DrawButtonText( PSI_CONTROL pc, Image surface, PKEY_BUTTON key )
 						break;
 					}
 					if( 0 )
-						lprintf( WIDE("Finally string is %s at %d,%d max %d"), text, textx, texty, key->height );
+						lprintf( "Finally string is %s at %d,%d max %d", text, textx, texty, key->height );
 					PutStringFontEx( surface
 										, textx, texty
 										, key->flags.bGreyed?BASE_COLOR_WHITE:key->text_color
@@ -914,7 +914,7 @@ void DrawButtonLayers( PKEY_BUTTON key, Image surface, PSI_CONTROL pc)
 				}
 				if( key->flags.background_image )
 				{
-					//lprintf( WIDE("background image...") );
+					//lprintf( "background image..." );
 					if( key->flags.bGreyed )
 						BlotScaledImageSizedToMultiShadedAlpha( surface, key->background.image
 																		  , 0 + key->background.hMargin
@@ -1030,7 +1030,7 @@ static int OnDrawCommon( BUTTON_NAME )( PSI_CONTROL pc )
 		key->width = surface->width;
 		key->height = surface->height;
 		text = key->content;
-		//Log4( WIDE("Drawing ... %d,%d   %d,%d"), key->width, key->height, surface->width, surface->height );
+		//Log4( "Drawing ... %d,%d   %d,%d", key->width, key->height, surface->width, surface->height );
 		//lprintf( "Update the lense layer which was draw already.." );
 		if( key->flags.bLayered )
 		{
@@ -1161,7 +1161,7 @@ int SetKeyImageByName( PKEY_BUTTON key, CTEXTSTR name )
 		if( name )
 		{
 			//TEXTSTR tmpGroup[256];
-			if( ( key->background.image = LoadImageFileFromGroup( GetFileGroup( WIDE( "Button Resources" ), NULL ), name ) ) )
+			if( ( key->background.image = LoadImageFileFromGroup( GetFileGroup( "Button Resources", NULL ), name ) ) )
 			{
 				key->flags.background_by_name = 1;
 				key->flags.background_image = 1;
@@ -1328,9 +1328,9 @@ void SetKeyPressNamedEvent( PKEY_BUTTON key, CTEXTSTR PressHandlerName, uintptr_
 {
 	SimplePressHandler handler;
 	TEXTCHAR realname[256];
-	snprintf( realname, sizeof(realname), WIDE("sack/widgets/keypad/press handler/%s"), PressHandlerName );
+	snprintf( realname, sizeof(realname), "sack/widgets/keypad/press handler/%s", PressHandlerName );
 
-	handler = GetRegisteredProcedure2( realname, void, WIDE("on_keypress_event"), (uintptr_t) );
+	handler = GetRegisteredProcedure2( realname, void, "on_keypress_event", (uintptr_t) );
 	if( handler )
 	{
 		key->SimplePressHandler = handler;
@@ -1566,7 +1566,7 @@ PTEXT_PLACEMENT AddKeyLayout( PKEY_BUTTON pKey, int x, int y, SFTFont *font, CDA
 	layout->last_font = (SFTFont)INVALID_INDEX;
 	layout->font = font;
 	layout->text = color;
-	layout->content = WIDE( "" );
+	layout->content = "";
 	if( flags & BUTTON_FIELD_CENTER )
 		layout->flags.bHorizCenter = 1;
 	if( flags & BUTTON_FIELD_RIGHT )
@@ -1742,10 +1742,10 @@ PRENDERER GetButtonAnimationLayer( PSI_CONTROL pc_key_button )
 
 
  // Intended use: Supply configuration slots for theme_id
-static void OnThemeAdded( WIDE( "Button Widget" ) )( int theme_id )
+static void OnThemeAdded( "Button Widget" )( int theme_id )
 {
 	// Allocate memory for structure
-	PTHEME theme = LoadButtonThemeByName( WIDE("Normal Button"), theme_id );
+	PTHEME theme = LoadButtonThemeByName( "Normal Button", theme_id );
 
 	// Add Theme Struct pointer to theme list
 	SetLink( &l.theme_list, theme_id, theme );
@@ -1754,13 +1754,13 @@ static void OnThemeAdded( WIDE( "Button Widget" ) )( int theme_id )
 }
 
 /* Intended use: Theme is changing, the theme_id that is given was the prior theme set */
-static void OnThemeChanging( WIDE( "Button Widget" ) )( int theme_id )
+static void OnThemeChanging( "Button Widget" )( int theme_id )
 {
 
 	return;
 }
 
-static void OnThemeChanged( WIDE( "Button Widget" ) )( int theme_id )
+static void OnThemeChanged( "Button Widget" )( int theme_id )
 {
 	INDEX idx;
 	PTHEME use_theme = (PTHEME)GetLink( &l.theme_list, theme_id );

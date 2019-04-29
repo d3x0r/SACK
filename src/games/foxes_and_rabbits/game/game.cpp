@@ -9,11 +9,11 @@
 void SetupIntershellInteface( void )
 {
 	void (*Main)(int, CTEXTSTR *, int );
-	Main = (void (*)(int,CTEXTSTR*, int ))LoadFunction( WIDE( "InterShell.core" ), WIDE( "Main" ) );
+	Main = (void (*)(int,CTEXTSTR*, int ))LoadFunction( "InterShell.core", "Main" );
 	if( Main )
 	{
-		static CTEXTSTR args[] = { WIDE( "InterShell.core" ), WIDE( "-tsr" ), NULL };
-		lprintf( WIDE( "Calling InterShell..." ) );
+		static CTEXTSTR args[] = { "InterShell.core", "-tsr", NULL };
+		lprintf( "Calling InterShell..." );
 		Main( 2, args, 0 );
 	}
 }
@@ -21,11 +21,11 @@ void SetupIntershellInteface( void )
 void SetupDekwareInteface( void )
 {
 	void (*Main)( CTEXTSTR, int );
-	Main = (void (*)( CTEXTSTR, int ))LoadFunction( WIDE( "dekware.core" ), WIDE( "Begin" ) );
+	Main = (void (*)( CTEXTSTR, int ))LoadFunction( "dekware.core", "Begin" );
 	if( Main )
 	{
-		lprintf( WIDE( "Calling dekware..." ) );
-		Main( WIDE("-tsr"), 0 );
+		lprintf( "Calling dekware..." );
+		Main( "-tsr", 0 );
 	}
 }
 

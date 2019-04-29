@@ -14,7 +14,7 @@ SaneWinMain( argc, argv )
 {
 	if( argc < 1 )
 	{
-		printf( WIDE("Usage: %s <name>\n"), argv[0] );
+		printf( "Usage: %s <name>\n", argv[0] );
       return 1;
 	}
    if( NetworkWait(NULL,1,0) )
@@ -23,7 +23,7 @@ SaneWinMain( argc, argv )
 		uint32_t IP;
 		GetAddressParts( sa, &IP, NULL );
 
-		printf( WIDE("%")_32f WIDE(".%")_32f WIDE(".%")_32f WIDE(".%")_32f WIDE("")
+		printf( "%"_32f ".%"_32f ".%"_32f ".%"_32f ""
 				, (IP & 0xFF)
 				, (IP & 0xFF00) >> 8
 				, (IP & 0xFF0000) >> 16
@@ -31,7 +31,7 @@ SaneWinMain( argc, argv )
 				);
 	}
 	else
-      printf( WIDE("Failed to enable network.") );
+      printf( "Failed to enable network." );
 	return 0;
 }
 EndSaneWinMain()

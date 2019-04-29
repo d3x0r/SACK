@@ -29,7 +29,7 @@ static struct local
 static void AddTranslation( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR name[256];
-	if( SimpleUserQuery( name, 256, WIDE("Enter Translation Name"), NULL ) )
+	if( SimpleUserQuery( name, 256, "Enter Translation Name", NULL ) )
 	{
 		PLISTITEM pli;
 		PTranslation translation = CreateTranslation( name );
@@ -47,7 +47,7 @@ static void FillBaseInformation( void )
 
 		translations = GetTranslations();
 		ResetComboBox( l.pc_translations );
-		AddComboBoxItem( l.pc_translations, WIDE("Native") );
+		AddComboBoxItem( l.pc_translations, "Native" );
 		LIST_FORALL( translations, idx, PTranslation, translation )
 		{
 			CTEXTSTR name = GetTranslationName( translation );
@@ -75,7 +75,7 @@ static void UpdateTranslation( uintptr_t psv, PSI_CONTROL pc )
 	{
 		PVARTEXT pvt = VarTextCreate();
 		PTEXT out;
-		vtprintf( pvt, WIDE("%s\t%s"), GetLink( &l.index_strings, l.selected_string ), buf );
+		vtprintf( pvt, "%s\t%s", GetLink( &l.index_strings, l.selected_string ), buf );
 		out = VarTextGet( pvt );
 		SetItemText( l.pli_selected_string, GetText( out ) );
 		LineRelease( out );
@@ -105,7 +105,7 @@ static void UpdateTranslatedStrings( void )
 		if( translation_strings )
 		{
 			translation_string = (CTEXTSTR)GetLink( &translation_strings, idx );
-			vtprintf( pvt, WIDE("%s\t%s"), string, translation_string );
+			vtprintf( pvt, "%s\t%s", string, translation_string );
 			out = VarTextGet( pvt );
 			pli = AddListItem( l.pc_translation_text, GetText( out ) );
 			SetItemData( pli, (uintptr_t)idx );
@@ -134,7 +134,7 @@ static void CPROC TranslationSelected( uintptr_t psv, PSI_CONTROL pc, PLISTITEM 
 static void AddTranslatable( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR name[256];
-	if( SimpleUserQuery( name, 256, WIDE("Enter Translatable String"), NULL ) )
+	if( SimpleUserQuery( name, 256, "Enter Translatable String", NULL ) )
 	{
 		TranslateText( name );
 		UpdateTranslatedStrings();
@@ -162,19 +162,19 @@ static void InitFrame( void )
 	if( !l.frame )
 	{
 		PLIST translations;
-		l.frame = CreateFrame( WIDE("Edit Translations"), 0, 0, 900, 500, 0, NULL );
+		l.frame = CreateFrame( "Edit Translations", 0, 0, 900, 500, 0, NULL );
 		l.pc_translations = MakeNamedControl( l.frame, COMBOBOX_CONTROL_NAME, 5, 5, 250, 21, 0 );
 		SetComboBoxSelChangeHandler( l.pc_translations, TranslationSelected, 0 );
-		l.pc_add_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 260, 5, 120, 21, 0, WIDE("Add Translation") );
+		l.pc_add_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 260, 5, 120, 21, 0, "Add Translation" );
 		SetButtonPushMethod( l.pc_add_translation, AddTranslation, 0 );
-		l.pc_add_translatable = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 385, 5, 120, 21, 0, WIDE("Add Translatable") );
+		l.pc_add_translatable = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 385, 5, 120, 21, 0, "Add Translatable" );
 		SetButtonPushMethod( l.pc_add_translatable, AddTranslatable, 0 );
-		l.pc_save_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 510, 5, 60, 21, 0, WIDE("Save") );
+		l.pc_save_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 510, 5, 60, 21, 0, "Save" );
 		SetButtonPushMethod( l.pc_save_translation, SaveTranslation, 0 );
-		l.pc_load_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 575, 5, 60, 21, 0, WIDE("Reload") );
+		l.pc_load_translation = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 575, 5, 60, 21, 0, "Reload" );
 		SetButtonPushMethod( l.pc_load_translation, LoadTranslation, 0 );
 		l.pc_edit_translated_text = MakeNamedControl( l.frame, EDIT_FIELD_NAME, 5, 31, 820, 21, 0 );
-		l.pc_update_text = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 830, 31, 60, 21, 0, WIDE("Update") );
+		l.pc_update_text = MakeNamedCaptionedControl( l.frame, NORMAL_BUTTON_NAME, 830, 31, 60, 21, 0, "Update" );
 		SetButtonPushMethod( l.pc_update_text, UpdateTranslation, 0 );
 		l.pc_translation_text = MakeNamedControl( l.frame, LISTBOX_CONTROL_NAME, 5, 57, 890, 400, 0 );
 		SetSelChangeHandler( l.pc_translation_text, SelectString, 0 );

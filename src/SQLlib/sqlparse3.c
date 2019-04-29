@@ -12,27 +12,27 @@ SQL_NAMESPACE
 int ValidateCreateTable( PTEXT *word )
 {
 
-	if( !TextLike( (*word), WIDE( "create" ) ) )
+	if( !TextLike( (*word), "create" ) )
 		return FALSE;
 
 	(*word) = NEXTLINE( (*word) );
 
-	if( TextLike( (*word), WIDE( "temporary" ) ) )
+	if( TextLike( (*word), "temporary" ) )
 		(*word) = NEXTLINE( (*word) );
-	else if( TextLike( (*word), WIDE( "temp" ) ) )
+	else if( TextLike( (*word), "temp" ) )
 		(*word) = NEXTLINE( (*word) );
 
-	if( !TextLike( (*word), WIDE( "table" ) ) )
+	if( !TextLike( (*word), "table" ) )
 		return FALSE;
 
 	(*word) = NEXTLINE( (*word) );
-	if( TextLike( (*word), WIDE( "if" ) ) )
+	if( TextLike( (*word), "if" ) )
 	{
 		(*word) = NEXTLINE( (*word) );
-		if( TextLike( (*word), WIDE( "not" ) ) )
+		if( TextLike( (*word), "not" ) )
 		{
 			(*word) = NEXTLINE( (*word) );
-			if( TextLike( (*word), WIDE( "exists" ) ) )
+			if( TextLike( (*word), "exists" ) )
 				(*word) = NEXTLINE( (*word) );
 			else
 				return FALSE;
@@ -50,8 +50,8 @@ int GrabName( PTEXT *word, TEXTSTR *result, int *bQuoted DBG_PASS )
 	TEXTSTR name = NULL;
 	CTEXTSTR open;
 	//PTEXT start = (*word);
-	//printf( WIDE( "word is %s" ), GetText( *word ) );
-	if( TextLike( (*word), open = WIDE( "`" ) ) || TextLike( (*word), open = "\'" ) || TextLike( (*word),open="\"") )
+	//printf( "word is %s", GetText( *word ) );
+	if( TextLike( (*word), open = "`" ) || TextLike( (*word), open = "\'" ) || TextLike( (*word),open="\"") )
 	{
 		PTEXT phrase = NULL;
 		PTEXT line;
@@ -70,7 +70,7 @@ int GrabName( PTEXT *word, TEXTSTR *result, int *bQuoted DBG_PASS )
 			(*word) = NEXTLINE( *word );
 			LineRelease( phrase );
 			phrase = NULL;
-			if( TextLike( (*word), open = WIDE( "`" ) ) || TextLike( (*word), open = "\'" ) || TextLike( (*word), open = "\"" ) )
+			if( TextLike( (*word), open = "`" ) || TextLike( (*word), open = "\'" ) || TextLike( (*word), open = "\"" ) )
 			{
 				(*word) = NEXTLINE( *word );
 				while( (*word) && ( GetText( *word )[0] != open[0]) )
@@ -134,7 +134,7 @@ static int GrabType( PTEXT *word, TEXTSTR *result DBG_PASS )
 			type->format.position.offset.tabs = 0;
 			(*word) = NEXTLINE( *word );
 
-			if( StrCaseCmp( GetText( type ), WIDE( "unsigned" ) ) == 0 )
+			if( StrCaseCmp( GetText( type ), "unsigned" ) == 0 )
 			{
 				SegAppend( type, SegDuplicate(*word) );
 				(*word) = NEXTLINE( *word );
@@ -215,7 +215,7 @@ void GrabKeyColumns( PTEXT *word, CTEXTSTR *columns )
 			(*word) = NEXTLINE( *word );
 			if( cols >= MAX_KEY_COLUMNS )
 			{
-				lprintf( WIDE( "Too many key columns specified in key for current structure limits." ) );
+				lprintf( "Too many key columns specified in key for current structure limits." );
 				DebugBreak();
 			}
 			GrabName( word, (TEXTSTR*)columns + cols, NULL DBG_SRC );
@@ -232,10 +232,10 @@ void AddConstraint( PTABLE table, PTEXT *word )
 {
 	TEXTSTR tmpname;
 	GrabName( word, (TEXTSTR*)&tmpname, NULL  DBG_SRC);
-	if( StrCaseCmp( GetText(*word), WIDE( "UNIQUE" ) ) == 0 )
+	if( StrCaseCmp( GetText(*word), "UNIQUE" ) == 0 )
 	{
 		(*word) = NEXTLINE( *word );
-		if( StrCaseCmp( GetText(*word), WIDE( "KEY" ) ) == 0 )
+		if( StrCaseCmp( GetText(*word), "KEY" ) == 0 )
 		{
 			(*word) = NEXTLINE( *word );
 		}
@@ -250,33 +250,33 @@ void AddConstraint( PTABLE table, PTEXT *word )
 		table->keys.key[table->keys.count-1].colnames[0] = NULL;
 		table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_UNSET;
 		GrabKeyColumns( word, table->keys.key[table->keys.count-1].colnames );
-		if( StrCaseCmp( GetText(*word), WIDE( "ON" ) ) == 0 )
+		if( StrCaseCmp( GetText(*word), "ON" ) == 0 )
 		{
 			(*word) = NEXTLINE( *word );
-			if( StrCaseCmp( GetText(*word), WIDE( "CONFLICT" ) ) == 0 )
+			if( StrCaseCmp( GetText(*word), "CONFLICT" ) == 0 )
 			{
 				(*word) = NEXTLINE( *word );
-				if( StrCaseCmp( GetText(*word), WIDE( "REPLACE" ) ) == 0 )
+				if( StrCaseCmp( GetText(*word), "REPLACE" ) == 0 )
 				{
 					table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_REPLACE;
 					(*word) = NEXTLINE( *word );
 				}
-				if( StrCaseCmp( GetText(*word), WIDE( "IGNORE" ) ) == 0 )
+				if( StrCaseCmp( GetText(*word), "IGNORE" ) == 0 )
 				{
 					table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_IGNORE;
 					(*word) = NEXTLINE( *word );
 				}
-				if( StrCaseCmp( GetText(*word), WIDE( "FAIL" ) ) == 0 )
+				if( StrCaseCmp( GetText(*word), "FAIL" ) == 0 )
 				{
 					table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_FAIL;
 					(*word) = NEXTLINE( *word );
 				}
-				if( StrCaseCmp( GetText(*word), WIDE( "ABORT" ) ) == 0 )
+				if( StrCaseCmp( GetText(*word), "ABORT" ) == 0 )
 				{
 					table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ABORT;
 					(*word) = NEXTLINE( *word );
 				}
-				if( StrCaseCmp( GetText(*word), WIDE( "ROLLBACK" ) ) == 0 )
+				if( StrCaseCmp( GetText(*word), "ROLLBACK" ) == 0 )
 				{
 					table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ROLLBACK;
 					(*word) = NEXTLINE( *word );
@@ -293,14 +293,14 @@ void AddConstraint( PTABLE table, PTEXT *word )
                           , table->constraints.constraint
                           , table->constraints.count + 1 );
 	table->constraints.constraint[table->constraints.count-1].name = tmpname;
-	if( StrCaseCmp( GetText(*word), WIDE( "UNIQUE" ) ) == 0 )
+	if( StrCaseCmp( GetText(*word), "UNIQUE" ) == 0 )
 	{
 		(*word) = NEXTLINE( *word );
 	}
-	else if( StrCaseCmp( GetText(*word), WIDE( "FOREIGN" ) ) == 0 )
+	else if( StrCaseCmp( GetText(*word), "FOREIGN" ) == 0 )
 	{
 		(*word) = NEXTLINE( *word );
-		if( StrCaseCmp( GetText(*word), WIDE( "KEY" ) ) == 0 )
+		if( StrCaseCmp( GetText(*word), "KEY" ) == 0 )
 		{
 			// next word is the type, skip that word too....
 			(*word) = NEXTLINE( *word );
@@ -309,84 +309,84 @@ void AddConstraint( PTABLE table, PTEXT *word )
 			table->constraints.constraint[table->constraints.count-1].flags.foreign_key = 1;
 	}
 	GrabKeyColumns( word, table->constraints.constraint[table->constraints.count-1].colnames );
-	if( StrCaseCmp( GetText(*word), WIDE( "REFERENCES" ) ) == 0 )
+	if( StrCaseCmp( GetText(*word), "REFERENCES" ) == 0 )
 	{
 		(*word) = NEXTLINE( *word );
 		GrabName( word, (TEXTSTR*)&table->constraints.constraint[table->constraints.count-1].references, NULL  DBG_SRC);
 		GrabKeyColumns( word, table->constraints.constraint[table->constraints.count-1].foriegn_colnames );
 	}
 
-	while( StrCaseCmp( GetText(*word), WIDE( "ON" ) ) == 0 )
+	while( StrCaseCmp( GetText(*word), "ON" ) == 0 )
 	{
 		(*word) = NEXTLINE( *word );
-		if( StrCaseCmp( GetText(*word), WIDE( "DELETE" ) ) == 0 )
+		if( StrCaseCmp( GetText(*word), "DELETE" ) == 0 )
 		{
 			(*word) = NEXTLINE( *word );
-			if( StrCaseCmp( GetText(*word), WIDE( "CASCADE" ) ) == 0 )
+			if( StrCaseCmp( GetText(*word), "CASCADE" ) == 0 )
 			{
 				table->constraints.constraint[table->constraints.count-1].flags.cascade_on_delete = 1;
 				(*word) = NEXTLINE( *word );
 			}
-			else if( StrCaseCmp( GetText(*word), WIDE( "RESTRICT" ) ) == 0 )
+			else if( StrCaseCmp( GetText(*word), "RESTRICT" ) == 0 )
 			{
 				table->constraints.constraint[table->constraints.count-1].flags.restrict_on_delete = 1;
 				(*word) = NEXTLINE( *word );
 			}
-			else if( StrCaseCmp( GetText(*word), WIDE( "NO" ) ) == 0 )
+			else if( StrCaseCmp( GetText(*word), "NO" ) == 0 )
 			{
 				(*word) = NEXTLINE( *word );
-				if( StrCaseCmp( GetText(*word), WIDE( "ACTION" ) ) == 0 )
+				if( StrCaseCmp( GetText(*word), "ACTION" ) == 0 )
 				{
 					table->constraints.constraint[table->constraints.count-1].flags.noaction_on_delete = 1;
 					(*word) = NEXTLINE( *word );
 				}
 			}
-			if( StrCaseCmp( GetText(*word), WIDE( "SET" ) ) == 0 )
+			if( StrCaseCmp( GetText(*word), "SET" ) == 0 )
 			{
 				(*word) = NEXTLINE( *word );
-				if( StrCaseCmp( GetText(*word), WIDE( "NULL" ) ) == 0 )
+				if( StrCaseCmp( GetText(*word), "NULL" ) == 0 )
 				{
 					table->constraints.constraint[table->constraints.count-1].flags.setnull_on_delete = 1;
 					(*word) = NEXTLINE( *word );
 				}
-				else if( StrCaseCmp( GetText(*word), WIDE( "DEFAULT" ) ) == 0 )
+				else if( StrCaseCmp( GetText(*word), "DEFAULT" ) == 0 )
 				{
 					table->constraints.constraint[table->constraints.count-1].flags.setdefault_on_delete = 1;
 					(*word) = NEXTLINE( *word );
 				}
 			}
 		}
-		if( StrCaseCmp( GetText(*word), WIDE( "UPDATE" ) ) == 0 )
+		if( StrCaseCmp( GetText(*word), "UPDATE" ) == 0 )
 		{
 			(*word) = NEXTLINE( *word );
-			if( StrCaseCmp( GetText(*word), WIDE( "CASCADE" ) ) == 0 )
+			if( StrCaseCmp( GetText(*word), "CASCADE" ) == 0 )
 			{
 				table->constraints.constraint[table->constraints.count-1].flags.cascade_on_update = 1;
 				(*word) = NEXTLINE( *word );
 			}
-			else if( StrCaseCmp( GetText(*word), WIDE( "RESTRICT" ) ) == 0 )
+			else if( StrCaseCmp( GetText(*word), "RESTRICT" ) == 0 )
 			{
 				table->constraints.constraint[table->constraints.count-1].flags.restrict_on_update = 1;
 				(*word) = NEXTLINE( *word );
 			}
-			else if( StrCaseCmp( GetText(*word), WIDE( "NO" ) ) == 0 )
+			else if( StrCaseCmp( GetText(*word), "NO" ) == 0 )
 			{
 				(*word) = NEXTLINE( *word );
-				if( StrCaseCmp( GetText(*word), WIDE( "ACTION" ) ) == 0 )
+				if( StrCaseCmp( GetText(*word), "ACTION" ) == 0 )
 				{
 					table->constraints.constraint[table->constraints.count-1].flags.noaction_on_update = 1;
 					(*word) = NEXTLINE( *word );
 				}
 			}
-			else if( StrCaseCmp( GetText(*word), WIDE( "SET" ) ) == 0 )
+			else if( StrCaseCmp( GetText(*word), "SET" ) == 0 )
 			{
 				(*word) = NEXTLINE( *word );
-				if( StrCaseCmp( GetText(*word), WIDE( "NULL" ) ) == 0 )
+				if( StrCaseCmp( GetText(*word), "NULL" ) == 0 )
 				{
 					table->constraints.constraint[table->constraints.count-1].flags.setnull_on_update = 1;
 					(*word) = NEXTLINE( *word );
 				}
-				else if( StrCaseCmp( GetText(*word), WIDE( "DEFAULT" ) ) == 0 )
+				else if( StrCaseCmp( GetText(*word), "DEFAULT" ) == 0 )
 				{
 					table->constraints.constraint[table->constraints.count-1].flags.setdefault_on_update = 1;
 					(*word) = NEXTLINE( *word );
@@ -412,7 +412,7 @@ void AddIndexKey( PTABLE table, PTEXT *word, int has_name, int primary, int uniq
 	//lprintf( "add index key name: %s",table->keys.key[table->keys.count-1].name );
 	//table->keys.key[table->keys.count-1].colnames = New( CTEXTSTR );
 	table->keys.key[table->keys.count-1].colnames[0] = NULL;
-	if( StrCaseCmp( GetText(*word), WIDE( "USING" ) ) == 0 )
+	if( StrCaseCmp( GetText(*word), "USING" ) == 0 )
 	{
 		(*word) = NEXTLINE( *word );
 		// next word is the type, skip that word too....
@@ -420,39 +420,39 @@ void AddIndexKey( PTABLE table, PTEXT *word, int has_name, int primary, int uniq
 	}
 	GrabKeyColumns( word, table->keys.key[table->keys.count-1].colnames );
 	// using can be after the columns also...
-	if( StrCaseCmp( GetText(*word), WIDE( "USING" ) ) == 0 )
+	if( StrCaseCmp( GetText(*word), "USING" ) == 0 )
 	{
 		(*word) = NEXTLINE( *word );
 		// next word is the type, skip that word too....
 		(*word) = NEXTLINE( *word );
 	}
-	if( StrCaseCmp( GetText(*word), WIDE( "ON" ) ) == 0 )
+	if( StrCaseCmp( GetText(*word), "ON" ) == 0 )
 	{
 		(*word) = NEXTLINE( *word );
-		if( StrCaseCmp( GetText(*word), WIDE( "CONFLICT" ) ) == 0 )
+		if( StrCaseCmp( GetText(*word), "CONFLICT" ) == 0 )
 		{
 			(*word) = NEXTLINE( *word );
-			if( StrCaseCmp( GetText(*word), WIDE( "REPLACE" ) ) == 0 )
+			if( StrCaseCmp( GetText(*word), "REPLACE" ) == 0 )
 			{
 				table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_REPLACE;
 				(*word) = NEXTLINE( *word );
 			}
-			if( StrCaseCmp( GetText(*word), WIDE( "IGNORE" ) ) == 0 )
+			if( StrCaseCmp( GetText(*word), "IGNORE" ) == 0 )
 			{
 				table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_IGNORE;
 				(*word) = NEXTLINE( *word );
 			}
-			if( StrCaseCmp( GetText(*word), WIDE( "FAIL" ) ) == 0 )
+			if( StrCaseCmp( GetText(*word), "FAIL" ) == 0 )
 			{
 				table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_FAIL;
 				(*word) = NEXTLINE( *word );
 			}
-			if( StrCaseCmp( GetText(*word), WIDE( "ABORT" ) ) == 0 )
+			if( StrCaseCmp( GetText(*word), "ABORT" ) == 0 )
 			{
 				table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ABORT;
 				(*word) = NEXTLINE( *word );
 			}
-			if( StrCaseCmp( GetText(*word), WIDE( "ROLLBACK" ) ) == 0 )
+			if( StrCaseCmp( GetText(*word), "ROLLBACK" ) == 0 )
 			{
 				table->keys.key[table->keys.count-1].flags.uniqueResolution = UNIQRES_ROLLBACK;
 				(*word) = NEXTLINE( *word );
@@ -471,8 +471,8 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 	if( GetText( *word )[0] != '(' )
 	{
 		PTEXT line;
-		lprintf( WIDE( "Failed to find columns... extra data between table name and columns...." ) );
-		lprintf( WIDE( "Failed at %s" ), GetText( line = BuildLine( *word ) ) );
+		lprintf( "Failed to find columns... extra data between table name and columns...." );
+		lprintf( "Failed at %s", GetText( line = BuildLine( *word ) ) );
 		LineRelease( line );
 		return FALSE;
 	}
@@ -490,18 +490,18 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 		//	(*word) = NEXTLINE( *word );
 		if( !GrabName( word, &name, &bQuoted  DBG_SRC) )
 		{
-			lprintf( WIDE( "Failed column parsing..." ) );
+			lprintf( "Failed column parsing..." );
 		}
 		else
 		{
 			if( !bQuoted )
 			{
-				if( StrCaseCmp( name, WIDE( "PRIMARY" ) ) == 0 )
+				if( StrCaseCmp( name, "PRIMARY" ) == 0 )
 				{
-					if( StrCaseCmp( GetText(*word), WIDE( "KEY" ) ) == 0 )
+					if( StrCaseCmp( GetText(*word), "KEY" ) == 0 )
 					{
 						(*word) = NEXTLINE( *word );
-						if( StrCaseCmp( GetText(*word), WIDE( "USING" ) ) == 0 )
+						if( StrCaseCmp( GetText(*word), "USING" ) == 0 )
 						{
 							(*word) = NEXTLINE( *word );
 							// next word is the type, skip that word too....
@@ -511,15 +511,15 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 					}
 					else
 					{
-						lprintf( WIDE( "PRIMARY keyword without KEY keyword is invalid." ) );
+						lprintf( "PRIMARY keyword without KEY keyword is invalid." );
 						DebugBreak();
 					}
 					Release( name );
 				}
-				else if( StrCaseCmp( name, WIDE( "UNIQUE" ) ) == 0 )
+				else if( StrCaseCmp( name, "UNIQUE" ) == 0 )
 				{
-					if( ( StrCaseCmp( GetText(*word), WIDE( "KEY" ) ) == 0 )
-						|| ( StrCaseCmp( GetText(*word), WIDE( "INDEX" ) ) == 0 ) )
+					if( ( StrCaseCmp( GetText(*word), "KEY" ) == 0 )
+						|| ( StrCaseCmp( GetText(*word), "INDEX" ) == 0 ) )
 					{
 						// skip this word.
 						(*word) = NEXTLINE( *word );
@@ -527,14 +527,14 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 					AddIndexKey( table, word, 1, 0, 1 );
 					Release( name );
 				}
-				else if( StrCaseCmp( name, WIDE( "CONSTRAINT" ) ) == 0 || StrCaseCmp( name, WIDE( "FOREIGN" ) ) == 0 )
+				else if( StrCaseCmp( name, "CONSTRAINT" ) == 0 || StrCaseCmp( name, "FOREIGN" ) == 0 )
 				{
 					//lprintf( "Skipping constraint parsing" );
 					AddConstraint( table, word );
 					Release( name );
 				}
-				else if( ( StrCaseCmp( name, WIDE( "INDEX" ) ) == 0 )
-				      || ( StrCaseCmp( name, WIDE( "KEY" ) ) == 0 ) )
+				else if( ( StrCaseCmp( name, "INDEX" ) == 0 )
+				      || ( StrCaseCmp( name, "KEY" ) == 0 ) )
 				{
 					AddIndexKey( table, word, 1, 0, 0 );
 					Release( name );
@@ -579,90 +579,90 @@ int GetTableExtra( PTABLE table, PTEXT *word )
 void LogTable( PTABLE table )
 {
 	FILE *out;
-	out = sack_fopen( 0, WIDE("sparse.txt"), WIDE("at") );
+	out = sack_fopen( 0, "sparse.txt", "at" );
 	if( out )
 	{
 		if( table )
 		{
 			int n;
-			sack_fprintf( out, WIDE( "\n" ) );
-			sack_fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
-			sack_fprintf( out, WIDE( "// %s \n" ), table->name );
-			sack_fprintf( out, WIDE( "// Total number of fields = %d\n" ), table->fields.count );
-			sack_fprintf( out, WIDE( "// Total number of keys = %d\n" ), table->keys.count );
-			sack_fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
-			sack_fprintf( out, WIDE( "\n" ) );
-			sack_fprintf( out, WIDE( "FIELD %s_fields[] = {\n" ), table->name );
+			sack_fprintf( out, "\n" );
+			sack_fprintf( out, "//--------------------------------------------------------------------------\n" );
+			sack_fprintf( out, "// %s \n", table->name );
+			sack_fprintf( out, "// Total number of fields = %d\n", table->fields.count );
+			sack_fprintf( out, "// Total number of keys = %d\n", table->keys.count );
+			sack_fprintf( out, "//--------------------------------------------------------------------------\n" );
+			sack_fprintf( out, "\n" );
+			sack_fprintf( out, "FIELD %s_fields[] = {\n", table->name );
 			for( n = 0; n < table->fields.count; n++ )
-				sack_fprintf( out, WIDE( "\t%s{%s%s%s, %s%s%s, %s%s%s }\n" )
-					, n?WIDE( ", " ):WIDE( "" )
-					, table->fields.field[n].name?WIDE("\""):WIDE( "" )
-					, table->fields.field[n].name?table->fields.field[n].name:WIDE( "NULL" )
-					, table->fields.field[n].name?WIDE("\""):WIDE( "" )
-					, table->fields.field[n].type?WIDE("\""):WIDE( "" )
-					, table->fields.field[n].type?table->fields.field[n].type:WIDE( "NULL" )
-					, table->fields.field[n].type?WIDE("\""):WIDE( "" )
-					, table->fields.field[n].extra?WIDE("\""):WIDE( "" )
-					, table->fields.field[n].extra?table->fields.field[n].extra:WIDE( "NULL" )
-					, table->fields.field[n].extra?WIDE("\""):WIDE( "" )
+				sack_fprintf( out, "\t%s{%s%s%s, %s%s%s, %s%s%s }\n"
+					, n?", ":""
+					, table->fields.field[n].name?WIDE("\""):""
+					, table->fields.field[n].name?table->fields.field[n].name:"NULL"
+					, table->fields.field[n].name?WIDE("\""):""
+					, table->fields.field[n].type?WIDE("\""):""
+					, table->fields.field[n].type?table->fields.field[n].type:"NULL"
+					, table->fields.field[n].type?WIDE("\""):""
+					, table->fields.field[n].extra?WIDE("\""):""
+					, table->fields.field[n].extra?table->fields.field[n].extra:"NULL"
+					, table->fields.field[n].extra?WIDE("\""):""
 				);
-			sack_fprintf( out, WIDE( "};\n" ) );
-			sack_fprintf( out, WIDE( "\n" ) );
+			sack_fprintf( out, "};\n" );
+			sack_fprintf( out, "\n" );
 			if( table->keys.count )
 			{
-				sack_fprintf( out, WIDE( "DB_KEY_DEF %s_keys[] = { \n" ), table->name );
+				sack_fprintf( out, "DB_KEY_DEF %s_keys[] = { \n", table->name );
 				for( n = 0; n < table->keys.count; n++ )
 				{
 					int m;
-					sack_fprintf( out, WIDE( "#ifdef __cplusplus\n" ) );
+					sack_fprintf( out, "#ifdef __cplusplus\n" );
 					sack_fprintf( out, WIDE("\t%srequired_key_def( %d, %d, %s%s%s, \"%s\" )\n")
 							 , n?", ":""
 							 , table->keys.key[n].flags.bPrimary
 							 , table->keys.key[n].flags.bUnique
-							 , table->keys.key[n].name?WIDE("\""):WIDE(""  )
-							 , table->keys.key[n].name?table->keys.key[n].name:WIDE("NULL")
-							 , table->keys.key[n].name?WIDE("\""):WIDE("")
+							 , table->keys.key[n].name?WIDE("\""):""
+							 , table->keys.key[n].name?table->keys.key[n].name:"NULL"
+							 , table->keys.key[n].name?WIDE("\""):""
 							 , table->keys.key[n].colnames[0] );
 					if( table->keys.key[n].colnames[1] )
-						sack_fprintf( out, WIDE( ", ... columns are short this is an error.\n" ) );
-					sack_fprintf( out, WIDE( "#else\n" ) );
-					sack_fprintf( out, WIDE( "\t%s{ {%d,%d}, %s%s%s, { " )
-							 , n?WIDE( ", " ):WIDE( "" )
+						sack_fprintf( out, ", ... columns are short this is an error.\n" );
+					sack_fprintf( out, "#else\n" );
+					sack_fprintf( out, "\t%s{ {%d,%d}, %s%s%s, { "
+							 , n?", ":""
 							 , table->keys.key[n].flags.bPrimary
 							 , table->keys.key[n].flags.bUnique
-							 , table->keys.key[n].name?WIDE("\""):WIDE( "" )
-							 , table->keys.key[n].name?table->keys.key[n].name:WIDE( "NULL" )
-							 , table->keys.key[n].name?WIDE("\""):WIDE( "" )
+							 , table->keys.key[n].name?WIDE("\""):""
+							 , table->keys.key[n].name?table->keys.key[n].name:"NULL"
+							 , table->keys.key[n].name?WIDE("\""):""
 							 );
 					for( m = 0; table->keys.key[n].colnames[m]; m++ )
 						sack_fprintf( out, WIDE("%s\"%s\"")
-								 , m?WIDE( ", " ):WIDE( "" )
+								 , m?", ":""
 								 , table->keys.key[n].colnames[m] );
-					sack_fprintf( out, WIDE( " } }\n" ) );
-					sack_fprintf( out, WIDE( "#endif\n" ) );
+					sack_fprintf( out, " } }\n" );
+					sack_fprintf( out, "#endif\n" );
 				}
-				sack_fprintf( out, WIDE( "};\n" ) );
-				sack_fprintf( out, WIDE( "\n" ) );
+				sack_fprintf( out, "};\n" );
+				sack_fprintf( out, "\n" );
 			}
-			sack_fprintf( out, WIDE( "\n" ) );
+			sack_fprintf( out, "\n" );
 			sack_fprintf( out, WIDE("TABLE %s = { \"%s\" \n"), table->name, table->name );
-			sack_fprintf( out, WIDE( "	 , FIELDS( %s_fields )\n" ), table->name );
+			sack_fprintf( out, "	 , FIELDS( %s_fields )\n", table->name );
 			if( table->keys.count )
-				sack_fprintf( out, WIDE( "	 , TABLE_KEYS( %s_keys )\n" ), table->name );
+				sack_fprintf( out, "	 , TABLE_KEYS( %s_keys )\n", table->name );
 			else
-				sack_fprintf( out, WIDE( "	 , { 0, NULL }\n" ) );
-			sack_fprintf( out, WIDE( "	, { 0 }\n" ) );
-			sack_fprintf( out, WIDE( "	, NULL\n" ) );
-			sack_fprintf( out, WIDE( "	, NULL\n" ) );
-			sack_fprintf( out, WIDE( "	,NULL\n" ) );
-			sack_fprintf( out, WIDE( "};\n" ) );
-			sack_fprintf( out, WIDE( "\n" ) );
+				sack_fprintf( out, "	 , { 0, NULL }\n" );
+			sack_fprintf( out, "	, { 0 }\n" );
+			sack_fprintf( out, "	, NULL\n" );
+			sack_fprintf( out, "	, NULL\n" );
+			sack_fprintf( out, "	,NULL\n" );
+			sack_fprintf( out, "};\n" );
+			sack_fprintf( out, "\n" );
 		}
 		else
 		{
-			sack_fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
-			sack_fprintf( out, WIDE( "// No Table\n" ) );
-			sack_fprintf( out, WIDE( "//--------------------------------------------------------------------------\n" ) );
+			sack_fprintf( out, "//--------------------------------------------------------------------------\n" );
+			sack_fprintf( out, "// No Table\n" );
+			sack_fprintf( out, "//--------------------------------------------------------------------------\n" );
 		}
 		sack_fclose( out );
 	}
@@ -692,7 +692,7 @@ PTABLE GetFieldsInSQLEx( CTEXTSTR cmd, int writestate DBG_PASS )
 			if( str[n] == '\n' )
 				str[n] = ' ';
 	}
-	pParsed = TextParse( tmp, WIDE("\'\"\\({[<>]}):@%/,;!?=*&$^~#`"), WIDE(" \t\n\r" ), 1, 1 DBG_RELAY );
+	pParsed = TextParse( tmp, WIDE("\'\"\\({[<>]}):@%/,;!?=*&$^~#`"), " \t\n\r", 1, 1 DBG_RELAY );
 	LineRelease( tmp );
 	//{
 	//   PTEXT outline = DumpText( pParsed );

@@ -88,31 +88,31 @@ PRELOAD( AllowWindowsShell )
 {
 	// Credit to Nicolas Escuder for figuring out how to *Hide the pretteh XP Logon screen*!
 	// Credit also to GeoShell 4.11.8 changelog entry
-	lprintf( WIDE("Credit to Nicolas Escuder for figuring out how to *Hide the pretteh XP Logon screen*!") );
-	lprintf( WIDE("Credit also to GeoShell version 4.11.8 changelog entry...") );
+	lprintf( "Credit to Nicolas Escuder for figuring out how to *Hide the pretteh XP Logon screen*!" );
+	lprintf( "Credit also to GeoShell version 4.11.8 changelog entry..." );
 	{
 		GetModuleFileName( NULL, l.shell, sizeof( l.shell ) );
-		SACK_GetProfileString( GetProgramName(), WIDE("Windows Shell/Set Shell To"), l.shell, l.shell, sizeof( l.shell ) );
+		SACK_GetProfileString( GetProgramName(), "Windows Shell/Set Shell To", l.shell, l.shell, sizeof( l.shell ) );
 	}
 	// Code borrowed from LiteStep (give it back when we're done using it ^.^).
 	{
-		HANDLE hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, WIDE("Global\\msgina: ShellReadyEvent") );	 // also: "Global\msgina: ReturnToWelcome"
+		HANDLE hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, "Global\\msgina: ShellReadyEvent" );	 // also: "Global\msgina: ReturnToWelcome"
 
 		if( !hLogonEvent )
 		{
-			//lprintf( WIDE("Error : %d"), GetLastError() );
-			hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, WIDE("msgina: ShellReadyEvent") );	 // also: "Global\msgina: ReturnToWelcome"
+			//lprintf( "Error : %d", GetLastError() );
+			hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, "msgina: ShellReadyEvent" );	 // also: "Global\msgina: ReturnToWelcome"
 			if( !hLogonEvent )
 			{
-				//lprintf( WIDE("Error : %d"), GetLastError() );
-				hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, WIDE("Global\\ShellDesktopSwitchEvent") );	 // also: "Global\msgina: ReturnToWelcome"
+				//lprintf( "Error : %d", GetLastError() );
+				hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, "Global\\ShellDesktopSwitchEvent" );	 // also: "Global\msgina: ReturnToWelcome"
 
 				if( !hLogonEvent )
 				{
-					//lprintf( WIDE("Error : %d"), GetLastError() );
-					hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, WIDE("ShellDesktopSwitchEvent") );	 // also: "Global\msgina: ReturnToWelcome"
+					//lprintf( "Error : %d", GetLastError() );
+					hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, "ShellDesktopSwitchEvent" );	 // also: "Global\msgina: ReturnToWelcome"
 					if( !hLogonEvent )
-						lprintf( WIDE("Error finding event to set for windows login") );
+						lprintf( "Error finding event to set for windows login" );
 				}
 			}
 		}
@@ -135,15 +135,15 @@ PRELOAD( AllowWindowsShell )
 		 */
 	}
 
-	EasyRegisterResource( WIDE("InterShell/Windows Shell"), EDIT_SHELL_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Windows Shell", EDIT_SHELL_NAME, EDIT_FIELD_NAME );
 }
 
-static void OnKeyPressEvent( WIDE("Windows Logoff") )( uintptr_t psv )
+static void OnKeyPressEvent( "Windows Logoff" )( uintptr_t psv )
 {
 	/*
-	HANDLE hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, WIDE("Global\\msgina: ReturnToWelcome") );
+	HANDLE hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, "Global\\msgina: ReturnToWelcome" );
 	if( !hLogonEvent )
-		hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, WIDE("msgina: ReturnToWelcome") );
+		hLogonEvent = OpenEvent( EVENT_MODIFY_STATE, 1, "msgina: ReturnToWelcome" );
 	SetEvent( hLogonEvent );
 
 	CloseHandle( hLogonEvent );
@@ -157,7 +157,7 @@ static void OnKeyPressEvent( WIDE("Windows Logoff") )( uintptr_t psv )
 	ExitWindowsEx( EWX_LOGOFF, SHTDN_REASON_FLAG_PLANNED | SHTDN_REASON_FLAG_USER_DEFINED );
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("Windows Logoff") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Windows Logoff" )( PMENU_BUTTON button )
 {
 	return 1;
 }
@@ -166,35 +166,35 @@ static uintptr_t OnCreateMenuButton( WIDE("Windows Logoff") )( PMENU_BUTTON butt
 /* this might be nice to have auto populated start menu
  * based on the original window system stuff... should be easy enough to do...
  */
-OnKeyPressEvent( WIDE("Windows->Start") )( uintptr_t psv )
+OnKeyPressEvent( "Windows->Start" )( uintptr_t psv )
 {
 	PMENU menu;
 	menu = CreatePopup();
 	/*
 	 * if( is98 )
-	 * BuildMenuItemsPopup( menu, WIDE("/users/all users/start menu") );
+	 * BuildMenuItemsPopup( menu, "/users/all users/start menu" );
 	 * if( isXP )
-	 * BuildMenuItemsPopup( menu, WIDE(WIDE("/documents and settings/all users/start menu")) );
+	 * BuildMenuItemsPopup( menu, WIDE("/documents and settings/all users/start menu") );
 	 * if( isVista )
-	 * BuildMenuItemsPopup( menu, WIDE("/????") );
+	 * BuildMenuItemsPopup( menu, "/????" );
 	 */
 }
 
-OnCreateMenuButton( WIDE("Windows->Start") )( PMENU_BUTTON button )
+OnCreateMenuButton( "Windows->Start" )( PMENU_BUTTON button )
 {
 	return 1;
 }
 #endif
 
 
-static void OnKeyPressEvent( WIDE("Windows/Set Permashell") )( uintptr_t psv )
+static void OnKeyPressEvent( "Windows/Set Permashell" )( uintptr_t psv )
 {
 	struct SetShellButton *my_button = ( struct SetShellButton *)psv;
 	DWORD dwStatus;
 	HKEY hTemp;
 
 	dwStatus = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
-									 WIDE("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon"), 0,
+									 "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", 0,
 									KEY_WRITE, &hTemp );
 
 	if( dwStatus == ERROR_FILE_NOT_FOUND )
@@ -202,8 +202,8 @@ static void OnKeyPressEvent( WIDE("Windows/Set Permashell") )( uintptr_t psv )
 	}
 	if( (dwStatus == ERROR_SUCCESS) && hTemp )
 	{
-		//lprintf( WIDE("Write shell to: %s"), my_button->shell );
-		dwStatus = RegSetValueEx(hTemp, WIDE("Shell"), 0
+		//lprintf( "Write shell to: %s", my_button->shell );
+		dwStatus = RegSetValueEx(hTemp, "Shell", 0
 										  , REG_SZ
 										  , (BYTE*)my_button->shell, strlen( my_button->shell ) * sizeof( TEXTCHAR ) );
 		RegCloseKey( hTemp );
@@ -211,7 +211,7 @@ static void OnKeyPressEvent( WIDE("Windows/Set Permashell") )( uintptr_t psv )
 		{
 		}
 		else
-			Banner2Message( WIDE("Failed to set shell") );
+			Banner2Message( "Failed to set shell" );
 		{
 			INDEX idx;
 			struct SetShellButton *button;
@@ -221,13 +221,13 @@ static void OnKeyPressEvent( WIDE("Windows/Set Permashell") )( uintptr_t psv )
 	}
 
 	dwStatus = RegOpenKeyEx( HKEY_CURRENT_USER,
-									 WIDE("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"), 0,
+									 "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", 0,
 									 KEY_WRITE, &hTemp );
 	if( dwStatus == ERROR_FILE_NOT_FOUND )
 	{
 		DWORD dwDispos;
 		dwStatus = RegCreateKeyEx( HKEY_CURRENT_USER
-										 , WIDE("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"), 0
+										 , "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", 0
 										 , NULL  //lpclass
 										 , 0  // dwOptions
 										 , KEY_WRITE //sam desired
@@ -243,20 +243,20 @@ static void OnKeyPressEvent( WIDE("Windows/Set Permashell") )( uintptr_t psv )
 	if( (dwStatus == ERROR_SUCCESS) && hTemp )
 	{
 		DWORD dwOne = 1;
-		dwStatus = RegSetValueEx(hTemp, WIDE("DisableTaskMgr"), 0
+		dwStatus = RegSetValueEx(hTemp, "DisableTaskMgr", 0
 										  , REG_DWORD
 										  , (const BYTE *)&dwOne, sizeof( dwOne ) );
 		if( dwStatus == ERROR_SUCCESS )
 		{
 		}
 		else
-			Banner2Message( WIDE("Failed to set disable task manager") );
+			Banner2Message( "Failed to set disable task manager" );
 
 		RegCloseKey( hTemp );
 	}
 }
 
-static void OnShowControl( WIDE("Windows/Set Permashell") )( uintptr_t psv )
+static void OnShowControl( "Windows/Set Permashell" )( uintptr_t psv )
 {
 	struct SetShellButton *my_button = ( struct SetShellButton *)psv;
 	{
@@ -264,7 +264,7 @@ static void OnShowControl( WIDE("Windows/Set Permashell") )( uintptr_t psv )
 		HKEY hTemp;
 
 		dwStatus = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
-										WIDE("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\WinLogon"), 0,
+										"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\WinLogon", 0,
 										KEY_QUERY_VALUE|KEY_WRITE, &hTemp );
 		if( dwStatus == ERROR_FILE_NOT_FOUND )
 		{
@@ -274,12 +274,12 @@ static void OnShowControl( WIDE("Windows/Set Permashell") )( uintptr_t psv )
 			DWORD dwType;
 			TEXTCHAR buffer[256];
 			DWORD bufsize = sizeof( buffer );
-			dwStatus = RegQueryValueEx( hTemp, WIDE("Shell"), 0
+			dwStatus = RegQueryValueEx( hTemp, "Shell", 0
 										 , &dwType, (LPBYTE)buffer, &bufsize );
-			lprintf( WIDE("status %d %d %d %s %s"), dwStatus, dwType, bufsize, buffer, my_button->shell );
+			lprintf( "status %d %d %d %s %s", dwStatus, dwType, bufsize, buffer, my_button->shell );
 			if( StrCaseCmp( buffer, my_button->shell ) == 0 )
 			{
-				lprintf( WIDE("yes it's permashell...") );
+				lprintf( "yes it's permashell..." );
 				InterShell_SetButtonHighlight( my_button->button, TRUE );
 			}
 			else
@@ -291,22 +291,22 @@ static void OnShowControl( WIDE("Windows/Set Permashell") )( uintptr_t psv )
 	}
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("Windows/Set Permashell") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Windows/Set Permashell" )( PMENU_BUTTON button )
 {
 	struct SetShellButton *my_button = New( struct SetShellButton );
 	my_button->button = button;
 	StrCpy( my_button->shell, l.shell );
 	AddLink( &l.buttons, my_button );
-	InterShell_SetButtonStyle( button, WIDE("square") );
-	InterShell_SetButtonText( button, WIDE("Disable_Windows_Shell") );
+	InterShell_SetButtonStyle( button, "square" );
+	InterShell_SetButtonText( button, "Disable_Windows_Shell" );
 	InterShell_SetButtonColors( button, BASE_COLOR_LIGHTGREY, BASE_COLOR_BLACK, BASE_COLOR_BLACK, BASE_COLOR_BLACK );
 	return (uintptr_t)my_button;
 }
 
-static void OnSaveControl( WIDE("Windows/Set Permashell") )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "Windows/Set Permashell" )( FILE *file, uintptr_t psv )
 {
 	struct SetShellButton *my_button = (struct SetShellButton*)psv;
-	fprintf( file, WIDE("Set Shell To:%s\n"), EscapeMenuString( my_button->shell ) );
+	fprintf( file, "Set Shell To:%s\n", EscapeMenuString( my_button->shell ) );
 }
 
 static uintptr_t CPROC SetButtonShell( uintptr_t psv, arg_list args )
@@ -317,15 +317,15 @@ static uintptr_t CPROC SetButtonShell( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("Windows/Set Permashell") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Windows/Set Permashell" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("Set Shell To:%m"), SetButtonShell );
+	AddConfigurationMethod( pch, "Set Shell To:%m", SetButtonShell );
 }
 
-static uintptr_t OnConfigureControl( WIDE("Windows/Set Permashell") )( uintptr_t psv, PSI_CONTROL parent )
+static uintptr_t OnConfigureControl( "Windows/Set Permashell" )( uintptr_t psv, PSI_CONTROL parent )
 {
 	struct SetShellButton *my_button = (struct SetShellButton*)psv;
-	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("ConfigurePermaShellButton.isFrame") );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent, "ConfigurePermaShellButton.isFrame" );
 	int ok = 0;
 	int done = 0;
 	if( frame )
@@ -348,28 +348,28 @@ static uintptr_t OnConfigureControl( WIDE("Windows/Set Permashell") )( uintptr_t
 
 }
 
-static void OnKeyPressEvent( WIDE("Windows/Set Windows Shell") )( uintptr_t psv )
+static void OnKeyPressEvent( "Windows/Set Windows Shell" )( uintptr_t psv )
 {
 	DWORD dwStatus;
 	HKEY hTemp;
 
 	dwStatus = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
-									 WIDE("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon"), 0,
+									 "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", 0,
 									 KEY_WRITE, &hTemp );
 	if( dwStatus == ERROR_FILE_NOT_FOUND )
 	{
 	}
 	if( (dwStatus == ERROR_SUCCESS) && hTemp )
 	{
-		dwStatus = RegSetValueEx(hTemp, WIDE("Shell"), 0
+		dwStatus = RegSetValueEx(hTemp, "Shell", 0
 										  , REG_SZ
-										  , (BYTE*)WIDE("explorer.exe"), strlen( WIDE("explorer.exe") ) * sizeof( WIDE(" ")[0] ) );
+										  , (BYTE*)"explorer.exe", strlen( "explorer.exe" ) * sizeof( " "[0] ) );
 		RegCloseKey( hTemp );
 		if( dwStatus == ERROR_SUCCESS )
 		{
 		}
 		else
-			Banner2Message( WIDE("Failed to set shell") );
+			Banner2Message( "Failed to set shell" );
 		{
 			INDEX idx;
 			struct SetShellButton *button;
@@ -380,13 +380,13 @@ static void OnKeyPressEvent( WIDE("Windows/Set Windows Shell") )( uintptr_t psv 
 
 
 	dwStatus = RegOpenKeyEx( HKEY_CURRENT_USER,
-									 WIDE("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"), 0,
+									 "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", 0,
 									 KEY_WRITE, &hTemp );
 	if( dwStatus == ERROR_FILE_NOT_FOUND )
 	{
 		DWORD dwDispos;
 		dwStatus = RegCreateKeyEx( HKEY_CURRENT_USER
-										 , WIDE("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"), 0
+										 , "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", 0
 										 , NULL
 										 , 0
 										 , KEY_WRITE
@@ -402,32 +402,32 @@ static void OnKeyPressEvent( WIDE("Windows/Set Windows Shell") )( uintptr_t psv 
 	if( (dwStatus == ERROR_SUCCESS) && hTemp )
 	{
 		DWORD dwOne = 0;
-		dwStatus = RegSetValueEx(hTemp, WIDE("DisableTaskMgr"), 0
+		dwStatus = RegSetValueEx(hTemp, "DisableTaskMgr", 0
 										  , REG_DWORD
 										  , (const BYTE *)&dwOne, sizeof( dwOne ) );
 		if( dwStatus == ERROR_SUCCESS )
 		{
 		}
 		else
-			Banner2Message( WIDE("Failed to set disable task manager") );
+			Banner2Message( "Failed to set disable task manager" );
 
 		RegCloseKey( hTemp );
 	}
 
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("Windows/Set Windows Shell") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Windows/Set Windows Shell" )( PMENU_BUTTON button )
 {
 	struct SetShellButton *my_button = New( struct SetShellButton );
 	my_button->button = button;
 	AddLink( &l.buttons, my_button );
-	InterShell_SetButtonStyle( button, WIDE("square") );
-	InterShell_SetButtonText( button, WIDE("Enable_Windows_Shell") );
+	InterShell_SetButtonStyle( button, "square" );
+	InterShell_SetButtonText( button, "Enable_Windows_Shell" );
 	InterShell_SetButtonColors( button, BASE_COLOR_LIGHTGREY, BASE_COLOR_BLACK, BASE_COLOR_BLACK, BASE_COLOR_BLACK );
 	return (uintptr_t)my_button;
 }
 
-static void OnShowControl( WIDE("Windows/Set Windows Shell") )( uintptr_t psv )
+static void OnShowControl( "Windows/Set Windows Shell" )( uintptr_t psv )
 {
 	struct SetShellButton * my_button = ( struct SetShellButton *)psv;
 	{
@@ -435,7 +435,7 @@ static void OnShowControl( WIDE("Windows/Set Windows Shell") )( uintptr_t psv )
 		HKEY hTemp;
 
 		dwStatus = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
-										WIDE("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\WinLogon"), 0,
+										"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\WinLogon", 0,
 										KEY_QUERY_VALUE|KEY_WRITE, &hTemp );
 		if( dwStatus == ERROR_FILE_NOT_FOUND )
 		{
@@ -445,14 +445,14 @@ static void OnShowControl( WIDE("Windows/Set Windows Shell") )( uintptr_t psv )
 			DWORD dwType = REG_SZ;
 			TEXTCHAR buffer[256];
 			DWORD bufsize = sizeof( buffer );
-			dwStatus = RegQueryValueEx( hTemp, WIDE("Shell"), 0
+			dwStatus = RegQueryValueEx( hTemp, "Shell", 0
 										 , &dwType, (LPBYTE)buffer, &bufsize );
-			//dwStatus = RegGetValue(hTemp, WIDE("Winlogon"), WIDE("Shell"), RRF_RT_REG_SZ
+			//dwStatus = RegGetValue(hTemp, "Winlogon", "Shell", RRF_RT_REG_SZ
 			//							 , &dwType, buffer, &bufsize );
-			lprintf( WIDE("status %d %d %d %s"), dwStatus, dwType, bufsize, buffer );
-			if( StrCaseCmp( buffer, WIDE("explorer.exe") ) == 0 )
+			lprintf( "status %d %d %d %s", dwStatus, dwType, bufsize, buffer );
+			if( StrCaseCmp( buffer, "explorer.exe" ) == 0 )
 			{
-				lprintf( WIDE("yes it's explorer...") );
+				lprintf( "yes it's explorer..." );
 				InterShell_SetButtonHighlight( my_button->button, TRUE );
 			}
 			else

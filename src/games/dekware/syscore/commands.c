@@ -160,46 +160,46 @@
 #define NUM_COMMANDS (sizeof(commands)/sizeof(command_entry))
  // NAME used is name of interpreted command and also name of function
  // to call taking paramters( PSENTIENT, PTEXT )
-#define DEFCMD( name,desc ) { DEFTEXT(WIDE(#name)),DEFTEXT(WIDE("Nexus Core")),0,(sizeof(WIDE(#name))/sizeof(TEXTCHAR))-1,DEFTEXT(desc),name }
+#define DEFCMD( name,desc ) { DEFTEXT(WIDE(#name)),DEFTEXT("Nexus Core"),0,(sizeof(WIDE(#name))/sizeof(TEXTCHAR))-1,DEFTEXT(desc),name }
  // the function to call and the name interpreted do not match...
-#define DEFCMDEX( name,desc,func) { DEFTEXT(WIDE(#name)),DEFTEXT(WIDE("Nexus Core")),0,(sizeof(WIDE(#name))/sizeof(TEXTCHAR))-1,DEFTEXT(desc),func }
+#define DEFCMDEX( name,desc,func) { DEFTEXT(WIDE(#name)),DEFTEXT("Nexus Core"),0,(sizeof(WIDE(#name))/sizeof(TEXTCHAR))-1,DEFTEXT(desc),func }
 
- command_entry commands[]={ DEFCMDEX(?,WIDE(""),HELP )
-								  , DEFCMDEX(MACRO, WIDE("Create new macro."), CMD_MACRO)
-								  , DEFCMDEX(ENDMACRO, WIDE("End Macro creation..."), CMD_ENDMACRO )
-								  , DEFCMDEX(LIST, WIDE("List a macro definition."), CMD_LIST )
-								  , DEFCMDEX(GETWORD, WIDE("Get Next parsed element from file"), CMD_GETWORD )
-								  , DEFCMDEX(GETLINE, WIDE("Get Next parsed line from file"), CMD_GETLINE )
-								  , DEFCMDEX(GETPARTIAL, WIDE("Gets any parital expression from the parser."), CMD_GETPARTIAL )
-								  , DEFCMDEX(ENDPARSE, WIDE("Stop (close) file being parsed."), CMD_ENDPARSE )
-								  , DEFCMDEX(CLOSE, WIDE("Stop (close) file being parsed."), CMD_ENDPARSE )
-								  , DEFCMDEX(ENDCOMMAND, WIDE("Stop (close) command processing"), CMD_ENDCOMMAND )
-								  , DEFCMDEX(IF, WIDE("Comparison operator <complex>"), CMD_IF )
-								  , DEFCMDEX(ELSE, WIDE("Begin here if previous IF result false"), CMD_ELSE )
-								  , DEFCMDEX(ENDIF, WIDE("End of IF expression"), CMD_ENDIF )
-								  , DEFCMDEX(LABEL, WIDE("Define a goto name in macro"), CMD_LABEL )
-								  , DEFCMDEX(GOTO, WIDE("Goto a label in a macro"), CMD_GOTO )
-								  , DEFCMDEX(EXECUTE, WIDE("Perform parameters as a command"), CMD_PROCESS )
-								  , DEFCMDEX(RUN, WIDE("Run a macro to completion"), CMD_RUN )
-								  , DEFCMDEX(COMPARE, WIDE("Comparison... sets fail/success"), CMD_COMPARE )
-								  , DEFCMDEX(RETURN, WIDE("End and return to prior macro"), CMD_RETURN )
-								  , DEFCMDEX(PUSH, WIDE("Add variable to end of variable"), VAR_PUSH )
-								  , DEFCMDEX(POP, WIDE("Take the first thing from src put in dest"), VAR_POP )
-								  , DEFCMDEX(HEAD, WIDE("Get Variable from beginning of variable"), VAR_HEAD )
-								  , DEFCMDEX(TAIL, WIDE("Get variable from end of variable"), VAR_TAIL )
-								  , DEFCMDEX(BREAK, WIDE("!!Generate debug breakpoint!!"), CMD_BREAK )
-								  , DEFCMDEX(DEBUG, WIDE("Start displaying executed commands"), CMD_TRACE )
-								  , DEFCMDEX(STOP, WIDE("Tell object to end current macro"), CMD_STOP )
-								  , DEFCMDEX(BURST, WIDE("Parse data... into variable"), CMD_BURST )
-								  , DEFCMDEX(INPUT, WIDE("Get Next command input line into variable"), CMD_INPUT )
-								  , DEFCMDEX(SHADOW, WIDE("Create a shadow of an object..."), _SHADOW )
-								  , DEFCMDEX(WAIT, WIDE("Wait for data to be available..."), CMD_WAIT )
-								  , DEFCMDEX(RESULT, WIDE("Set return result from macro"), CMD_RESULT )
-								  , DEFCMDEX(GETRESULT, WIDE("Get result from a macro"), CMD_GETRESULT )
-								  , DEFCMDEX(ON, WIDE("Define an action for an object"), DefineOnBehavior )
-								  , DEFCMDEX(MAKE, WIDE("Create an object from an archtype"), CreateRegisteredObject )
-								  , DEFCMDEX(SENDTO, WIDE("Send data directly to an object's input datapath"), SendToObject )
-								  , DEFCMDEX(WRITETO, WIDE("Send data directly to an object's output datapath"), WriteToObject )
+ command_entry commands[]={ DEFCMDEX(?,"",HELP )
+								  , DEFCMDEX(MACRO, "Create new macro.", CMD_MACRO)
+								  , DEFCMDEX(ENDMACRO, "End Macro creation...", CMD_ENDMACRO )
+								  , DEFCMDEX(LIST, "List a macro definition.", CMD_LIST )
+								  , DEFCMDEX(GETWORD, "Get Next parsed element from file", CMD_GETWORD )
+								  , DEFCMDEX(GETLINE, "Get Next parsed line from file", CMD_GETLINE )
+								  , DEFCMDEX(GETPARTIAL, "Gets any parital expression from the parser.", CMD_GETPARTIAL )
+								  , DEFCMDEX(ENDPARSE, "Stop (close) file being parsed.", CMD_ENDPARSE )
+								  , DEFCMDEX(CLOSE, "Stop (close) file being parsed.", CMD_ENDPARSE )
+								  , DEFCMDEX(ENDCOMMAND, "Stop (close) command processing", CMD_ENDCOMMAND )
+								  , DEFCMDEX(IF, "Comparison operator <complex>", CMD_IF )
+								  , DEFCMDEX(ELSE, "Begin here if previous IF result false", CMD_ELSE )
+								  , DEFCMDEX(ENDIF, "End of IF expression", CMD_ENDIF )
+								  , DEFCMDEX(LABEL, "Define a goto name in macro", CMD_LABEL )
+								  , DEFCMDEX(GOTO, "Goto a label in a macro", CMD_GOTO )
+								  , DEFCMDEX(EXECUTE, "Perform parameters as a command", CMD_PROCESS )
+								  , DEFCMDEX(RUN, "Run a macro to completion", CMD_RUN )
+								  , DEFCMDEX(COMPARE, "Comparison... sets fail/success", CMD_COMPARE )
+								  , DEFCMDEX(RETURN, "End and return to prior macro", CMD_RETURN )
+								  , DEFCMDEX(PUSH, "Add variable to end of variable", VAR_PUSH )
+								  , DEFCMDEX(POP, "Take the first thing from src put in dest", VAR_POP )
+								  , DEFCMDEX(HEAD, "Get Variable from beginning of variable", VAR_HEAD )
+								  , DEFCMDEX(TAIL, "Get variable from end of variable", VAR_TAIL )
+								  , DEFCMDEX(BREAK, "!!Generate debug breakpoint!!", CMD_BREAK )
+								  , DEFCMDEX(DEBUG, "Start displaying executed commands", CMD_TRACE )
+								  , DEFCMDEX(STOP, "Tell object to end current macro", CMD_STOP )
+								  , DEFCMDEX(BURST, "Parse data... into variable", CMD_BURST )
+								  , DEFCMDEX(INPUT, "Get Next command input line into variable", CMD_INPUT )
+								  , DEFCMDEX(SHADOW, "Create a shadow of an object...", _SHADOW )
+								  , DEFCMDEX(WAIT, "Wait for data to be available...", CMD_WAIT )
+								  , DEFCMDEX(RESULT, "Set return result from macro", CMD_RESULT )
+								  , DEFCMDEX(GETRESULT, "Get result from a macro", CMD_GETRESULT )
+								  , DEFCMDEX(ON, "Define an action for an object", DefineOnBehavior )
+								  , DEFCMDEX(MAKE, "Create an object from an archtype", CreateRegisteredObject )
+								  , DEFCMDEX(SENDTO, "Send data directly to an object's input datapath", SendToObject )
+								  , DEFCMDEX(WRITETO, "Send data directly to an object's output datapath", WriteToObject )
 		 // if the same variable name is used within a foreach
 		 //  foreach in item
 		 //	 /%item/foreach in item
@@ -216,83 +216,83 @@
 		 // /step first will reset the current position and should be reserved for exclusive
 		 //	 advanced programming efforts...
 		 // /step current - could also be used to go back to the beginnigng with the current element...
-								  , DEFCMDEX(FOREACH, WIDE("[variable_list_name,on,in,around,near,exit(attached to room),visible] variable_name"), ForEach )
-								  , DEFCMDEX(STEP, WIDE("[next(default),prior,first,last] variable_name"), StepEach )
-								  , DEFCMDEX( EXTENSIONS, WIDE("List registered extension types"), ListExtensions )
-								  , DEFCMDEX(GETDELAY, WIDE("Get last delay time, or if resumed delay left"), GetDelay )
-								  , DEFCMDEX(OPTION, WIDE("Sets options for a datapath/filter."), OptionDevice )
-								  , DEFCMDEX(CD, WIDE("Set Current Directory"), CHANGEDIR )
-								  , DEFCMDEX(DUPLICATE, WIDE("copy an object and all it contains"), _DUPLICATE )
-								  , DEFCMDEX(UNDECLARE, WIDE("Delete a variable"), UNDEFINE )
-								  , DEFCMD( BECOME, WIDE("Become an object.") )
-								  , DEFCMD( COUNT, WIDE("Get the number of objects by name." ) )
-								  , DEFCMD(ATTACH, WIDE("Attach object in your hand to another.") ) //ATTACH)
-								  , DEFCMD(CHANGEDIR, WIDE("Set Current Directory") ) // CHANGEDIR )
-								  , DEFCMD(CREATE, WIDE("Make something") ) //CREATE)
-								  , DEFCMD(DESCRIBE, WIDE("Add a description to an object.") ) //DESCRIBE)
-								  , DEFCMD(DESTROY, WIDE("Destroy something") ) //DESTROY)
-								  , DEFCMD(ECHO, WIDE("send output to command data channel...") )
-								  , DEFCMD(PAGE, WIDE("echo a page break on the command path...") )
-								  , DEFCMD(FECHO, WIDE("send output to command data channel...") ) // FECHO )
-								  , DEFCMD(DETACH, WIDE("take apart an object") ) // DETACH )
-								  , DEFCMD(DROP, WIDE("Drop the object in your hand") ) //DROP)
-								  , DEFCMD(DUMP, WIDE("Display information about an object/macro/variable") ) // DUMP )
-								  , DEFCMD(DUMPVAR, WIDE("Display information about a variable") ) // DUMPVAR )
-								  , DEFCMD(ENTER, WIDE("Go into an object.") ) //ENTER)
-								  , DEFCMD(EXIT, WIDE("leave this mess") ) //EXIT)
-								  , DEFCMD(GRAB, WIDE("Put object in your hand.") ) //GRAB)
-								  , DEFCMD(HELP, WIDE("this list :) ") ) //HELP)
-								  , DEFCMD(METHODS, WIDE("List plugin methods on this object") ) //METHODS)
-								  , DEFCMD(INVENTORY,WIDE("What you are holding.") ) //INVENTORY)
-								  , DEFCMD(LEAVE, WIDE("Go out of an object.") ) //LEAVE)
-								  // , DEFCMD(LOAD, WIDE("Load objects from a file to current location.") ) //LOAD)
-								  , DEFCMD(LOOK, WIDE("Look at an object or the room.") ) //LOOK)
-								  , DEFCMD(MAP, WIDE("Show a map of all cookies.") ) //MAP)
-								  , DEFCMD(SAVE, WIDE("Save all objects to a file.") ) //SAVE)
-								  , DEFCMD(SCRIPT, WIDE("Start parsing an external file as commands.") ) // SCRIPT)
-								  , DEFCMD(STORE, WIDE("Pockets the object in your hand.") ) //STORE)
-								  , DEFCMD(PARSE, WIDE("BEGIN Parse file through first level parser.") ) // PARSE )
-								  , DEFCMDEX(OPEN, WIDE("Open a data channel device."), PARSE )
-								  , DEFCMD(MEMORY, WIDE("Show Memory Statistics.") ) // MEMORY )
-								  , DEFCMD(MEMDUMP, WIDE("Dump current allocation table.") ) // MEMDUMP )
-								  , DEFCMD(DECLARE, WIDE("Define a variable") ) // DECLARE )
-								  , DEFCMDEX(SET, WIDE("Define a variable"), DECLARE )
-								  , DEFCMD(COLLAPSE, WIDE("Collapse value of a variable to an atom") ) // COLLAPSE )
-								  , DEFCMD(BINARY, WIDE("Define a variable no substitution") ) // BINARY )
-								  , DEFCMD(ALLOCATE, WIDE("Allocate a sized binary variable") ) // ALLOCATE )
-								  , DEFCMD(VARS, WIDE("List vars in object/macro") ) // VARS )
-								  , DEFCMD( VVARS, WIDE("List Volatile Variables") )
-								  , DEFCMD(TELL, WIDE("Tell an aware object to perform a command") ) // TELL )
-								  , DEFCMD(WAKE, WIDE("Give an object a mind") ) // WAKE )
-								  , DEFCMD(KILL, WIDE("Put object to sleep") ) // KILL )
-								  , DEFCMD(PROMPT, WIDE("Issue current command prompt") ) // PROMPT )
-								  , DEFCMD(STORY, WIDE("Show Introductory story...") ) // STORY )
-								  , DEFCMD(SUSPEND, WIDE("Pause object macro processing") ) // SUSPEND )
-								  , DEFCMD(RESUME, WIDE("Resume a suspended macro") ) // RESUME )
-								  , DEFCMD(DELAY, WIDE("Wait for N milliseconds") ) // DELAY )
-								  , DEFCMD(MONITOR, WIDE("Watch an object which is sentient") ) // MONITOR )
-								  , DEFCMD(REPLY, WIDE("Reply to object last telling") ) // REPLY )
-								  , DEFCMD(RENAME, WIDE("Rename an object") ) // RENAME )
-								  , DEFCMD(PLUGIN, WIDE("Load plugin file named....") ) // PLUGIN )
-								  , DEFCMD(UNLOAD, WIDE("Unload module which registered name") ) // UNLOAD )
-								  , DEFCMD(JOIN, WIDE("Attach self to specified object") ) // JOIN )
-								  , DEFCMD(COMMAND, WIDE("open a device as command channel of sentience...") ) // COMMAND )
-								  , DEFCMD(INCREMENT, WIDE("Increment a variable by amount") )//, INCREMENT )
-								  , DEFCMD(DECREMENT, WIDE("Decrement a variable by amount") )//, DECREMENT )
-								  , DEFCMD(MULTIPLY, WIDE("Multiply a variable by amount") )//, MULTIPLY )
-								  , DEFCMD(DIVIDE, WIDE("Divide a variable by amount") )//, DIVIDE )
-								  , DEFCMD(LALIGN, WIDE("Change variable alignment to left...") )//, LALIGN )
-								  , DEFCMD(RALIGN, WIDE("Change variable alignment to right...") )//, RALIGN )
-								  , DEFCMD(NOALIGN, WIDE("Change variable alignment to none...") )//, NOALIGN )
-								  , DEFCMD(UCASE, WIDE("Upper case a variable") )//, UCASE )
-								  , DEFCMD(LCASE, WIDE("Lower case a variable") )//, LCASE )
-								  , DEFCMD(PCASE, WIDE("Proper caes a variable (first letter upper)") )//, PCASE )
-								  , DEFCMD(BOUND, WIDE("Set a variable's boundry condition (lower, uppwer)") )//, BOUND )
-								  , DEFCMD(VERSION, WIDE("Get current program version into a variable(name)") )//, VERSION )
-								  , DEFCMD(RELAY, WIDE("Auto relay command input to data output") )//, RELAY )
-								  , DEFCMD(FILTER, WIDE("Add/modify filters on datapaths.") )// , FILTER )
-								  , DEFCMD(LOOKFOR, WIDE("Finds an object, sets result to entity.") )// , LOOKFOR )
-								  , DEFCMD(PRIORITY, WIDE("Set the priority of the dekware process.") )//), PRIORITY )
+								  , DEFCMDEX(FOREACH, "[variable_list_name,on,in,around,near,exit(attached to room),visible] variable_name", ForEach )
+								  , DEFCMDEX(STEP, "[next(default),prior,first,last] variable_name", StepEach )
+								  , DEFCMDEX( EXTENSIONS, "List registered extension types", ListExtensions )
+								  , DEFCMDEX(GETDELAY, "Get last delay time, or if resumed delay left", GetDelay )
+								  , DEFCMDEX(OPTION, "Sets options for a datapath/filter.", OptionDevice )
+								  , DEFCMDEX(CD, "Set Current Directory", CHANGEDIR )
+								  , DEFCMDEX(DUPLICATE, "copy an object and all it contains", _DUPLICATE )
+								  , DEFCMDEX(UNDECLARE, "Delete a variable", UNDEFINE )
+								  , DEFCMD( BECOME, "Become an object." )
+								  , DEFCMD( COUNT, "Get the number of objects by name." )
+								  , DEFCMD(ATTACH, "Attach object in your hand to another." ) //ATTACH)
+								  , DEFCMD(CHANGEDIR, "Set Current Directory" ) // CHANGEDIR )
+								  , DEFCMD(CREATE, "Make something" ) //CREATE)
+								  , DEFCMD(DESCRIBE, "Add a description to an object." ) //DESCRIBE)
+								  , DEFCMD(DESTROY, "Destroy something" ) //DESTROY)
+								  , DEFCMD(ECHO, "send output to command data channel..." )
+								  , DEFCMD(PAGE, "echo a page break on the command path..." )
+								  , DEFCMD(FECHO, "send output to command data channel..." ) // FECHO )
+								  , DEFCMD(DETACH, "take apart an object" ) // DETACH )
+								  , DEFCMD(DROP, "Drop the object in your hand" ) //DROP)
+								  , DEFCMD(DUMP, "Display information about an object/macro/variable" ) // DUMP )
+								  , DEFCMD(DUMPVAR, "Display information about a variable" ) // DUMPVAR )
+								  , DEFCMD(ENTER, "Go into an object." ) //ENTER)
+								  , DEFCMD(EXIT, "leave this mess" ) //EXIT)
+								  , DEFCMD(GRAB, "Put object in your hand." ) //GRAB)
+								  , DEFCMD(HELP, "this list :) " ) //HELP)
+								  , DEFCMD(METHODS, "List plugin methods on this object" ) //METHODS)
+								  , DEFCMD(INVENTORY,"What you are holding." ) //INVENTORY)
+								  , DEFCMD(LEAVE, "Go out of an object." ) //LEAVE)
+								  // , DEFCMD(LOAD, "Load objects from a file to current location." ) //LOAD)
+								  , DEFCMD(LOOK, "Look at an object or the room." ) //LOOK)
+								  , DEFCMD(MAP, "Show a map of all cookies." ) //MAP)
+								  , DEFCMD(SAVE, "Save all objects to a file." ) //SAVE)
+								  , DEFCMD(SCRIPT, "Start parsing an external file as commands." ) // SCRIPT)
+								  , DEFCMD(STORE, "Pockets the object in your hand." ) //STORE)
+								  , DEFCMD(PARSE, "BEGIN Parse file through first level parser." ) // PARSE )
+								  , DEFCMDEX(OPEN, "Open a data channel device.", PARSE )
+								  , DEFCMD(MEMORY, "Show Memory Statistics." ) // MEMORY )
+								  , DEFCMD(MEMDUMP, "Dump current allocation table." ) // MEMDUMP )
+								  , DEFCMD(DECLARE, "Define a variable" ) // DECLARE )
+								  , DEFCMDEX(SET, "Define a variable", DECLARE )
+								  , DEFCMD(COLLAPSE, "Collapse value of a variable to an atom" ) // COLLAPSE )
+								  , DEFCMD(BINARY, "Define a variable no substitution" ) // BINARY )
+								  , DEFCMD(ALLOCATE, "Allocate a sized binary variable" ) // ALLOCATE )
+								  , DEFCMD(VARS, "List vars in object/macro" ) // VARS )
+								  , DEFCMD( VVARS, "List Volatile Variables" )
+								  , DEFCMD(TELL, "Tell an aware object to perform a command" ) // TELL )
+								  , DEFCMD(WAKE, "Give an object a mind" ) // WAKE )
+								  , DEFCMD(KILL, "Put object to sleep" ) // KILL )
+								  , DEFCMD(PROMPT, "Issue current command prompt" ) // PROMPT )
+								  , DEFCMD(STORY, "Show Introductory story..." ) // STORY )
+								  , DEFCMD(SUSPEND, "Pause object macro processing" ) // SUSPEND )
+								  , DEFCMD(RESUME, "Resume a suspended macro" ) // RESUME )
+								  , DEFCMD(DELAY, "Wait for N milliseconds" ) // DELAY )
+								  , DEFCMD(MONITOR, "Watch an object which is sentient" ) // MONITOR )
+								  , DEFCMD(REPLY, "Reply to object last telling" ) // REPLY )
+								  , DEFCMD(RENAME, "Rename an object" ) // RENAME )
+								  , DEFCMD(PLUGIN, "Load plugin file named...." ) // PLUGIN )
+								  , DEFCMD(UNLOAD, "Unload module which registered name" ) // UNLOAD )
+								  , DEFCMD(JOIN, "Attach self to specified object" ) // JOIN )
+								  , DEFCMD(COMMAND, "open a device as command channel of sentience..." ) // COMMAND )
+								  , DEFCMD(INCREMENT, "Increment a variable by amount" )//, INCREMENT )
+								  , DEFCMD(DECREMENT, "Decrement a variable by amount" )//, DECREMENT )
+								  , DEFCMD(MULTIPLY, "Multiply a variable by amount" )//, MULTIPLY )
+								  , DEFCMD(DIVIDE, "Divide a variable by amount" )//, DIVIDE )
+								  , DEFCMD(LALIGN, "Change variable alignment to left..." )//, LALIGN )
+								  , DEFCMD(RALIGN, "Change variable alignment to right..." )//, RALIGN )
+								  , DEFCMD(NOALIGN, "Change variable alignment to none..." )//, NOALIGN )
+								  , DEFCMD(UCASE, "Upper case a variable" )//, UCASE )
+								  , DEFCMD(LCASE, "Lower case a variable" )//, LCASE )
+								  , DEFCMD(PCASE, "Proper caes a variable (first letter upper)" )//, PCASE )
+								  , DEFCMD(BOUND, "Set a variable's boundry condition (lower, uppwer)" )//, BOUND )
+								  , DEFCMD(VERSION, "Get current program version into a variable(name)" )//, VERSION )
+								  , DEFCMD(RELAY, "Auto relay command input to data output" )//, RELAY )
+								  , DEFCMD(FILTER, "Add/modify filters on datapaths." )// , FILTER )
+								  , DEFCMD(LOOKFOR, "Finds an object, sets result to entity." )// , LOOKFOR )
+								  , DEFCMD(PRIORITY, "Set the priority of the dekware process." )//), PRIORITY )
 };
 
 int gbTrace = FALSE;
@@ -368,7 +368,7 @@ CORE_PROC( void, WriteCommand )( PLINKQUEUE *Output
 										 )
 {
 	PVARTEXT vt = VarTextCreate();
-	vtprintf( vt,WIDE("[%.*s]%-*s - %s")
+	vtprintf( vt,"[%.*s]%-*s - %s"
 			  , significant
 			  , GetText(name)
 			  , 10 - significant
@@ -419,13 +419,13 @@ CORE_PROC( void, WriteCommandList2 )( PLINKQUEUE *Output, CTEXTSTR root
 
 			{						
 				CTEXTSTR desc;
-				desc = GetRegisteredValue( (CTEXTSTR)_current, WIDE("Description") );
-				vtprintf( vt,WIDE("[%.*s]%-*s - %s")
+				desc = GetRegisteredValue( (CTEXTSTR)_current, "Description" );
+				vtprintf( vt,"[%.*s]%-*s - %s"
 						  , diff
 						  , prior_name
 						  , 10-diff
 						  , prior_name+diff
-						  , desc?desc:WIDE("") );
+						  , desc?desc:"" );
 				EnqueLink( Output, VarTextGet( vt ) );
 			}
 		}
@@ -440,13 +440,13 @@ CORE_PROC( void, WriteCommandList2 )( PLINKQUEUE *Output, CTEXTSTR root
 		PCLASSROOT tmp;
 		CTEXTSTR desc;
 		tmp = GetClassRootEx( (PCLASSROOT)root, prior_name );
-		desc = GetRegisteredValue( (CTEXTSTR)tmp, WIDE("Description") );
-		vtprintf( vt,WIDE("[%.*s]%-*s - %s")
+		desc = GetRegisteredValue( (CTEXTSTR)tmp, "Description" );
+		vtprintf( vt,"[%.*s]%-*s - %s"
 				  , diff
 				  , prior_name
 				  , 10-diff
 				  , prior_name+diff
-				  , desc?desc:WIDE("") );
+				  , desc?desc:"" );
 		EnqueLink( Output, VarTextGet( vt ) );
 	}
 	VarTextDestroy( &vt );
@@ -522,23 +522,23 @@ void RegisterCommands(CTEXTSTR device, command_entry *cmds, INDEX nCommands)
 		TEXTCHAR tmp[256];
 		TEXTCHAR tmp2[256];
 		CTEXTSTR name;
-		snprintf( tmp, sizeof( tmp ), WIDE("Dekware/commands%s%s/%s")
-				  , device?WIDE("/"):WIDE("")
-				  , device?device:WIDE("")
+		snprintf( tmp, sizeof( tmp ), "Dekware/commands%s%s/%s"
+				  , device?"/":""
+				  , device?device:""
 				  , name = GetText( (PTEXT)&cmds[i].name ) );
-		snprintf( tmp2, sizeof( tmp2 ), WIDE("Dekware/commands%s%s")
-				  , device?WIDE("/"):WIDE("")
-				  , device?device:WIDE("") );
+		snprintf( tmp2, sizeof( tmp2 ), "Dekware/commands%s%s"
+				  , device?"/":""
+				  , device?device:"" );
 		if( CheckClassRoot( tmp ) )
 		{
-			lprintf( WIDE("%s already registered"), tmp );
+			lprintf( "%s already registered", tmp );
 			continue;
 		}
-		//lprintf( WIDE("regsiter %s"), tmp );
+		//lprintf( "regsiter %s", tmp );
 		SimpleRegisterMethod( tmp2, cmds[i].function
-								  , WIDE("int"), name, WIDE("(PSENTIENT,PTEXT)") );
-		RegisterValue( tmp, WIDE("Description"), GetText( (PTEXT)&cmds[i].description ) );
-		RegisterValue( tmp, WIDE("Command Class"), GetText( (PTEXT)&cmds[i].classname ) );
+								  , "int", name, "(PSENTIENT,PTEXT)" );
+		RegisterValue( tmp, "Description", GetText( (PTEXT)&cmds[i].description ) );
+		RegisterValue( tmp, "Command Class", GetText( (PTEXT)&cmds[i].classname ) );
 	}
 	lock--;
 }
@@ -561,25 +561,25 @@ void RegisterOptions(CTEXTSTR device, option_entry *cmds, INDEX nCommands)
 		TEXTCHAR tmp[256];
 		TEXTCHAR tmp2[256];
 		CTEXTSTR name;
-		snprintf( tmp, sizeof( tmp ), WIDE("Dekware/devices%s%s/options/%s")
-				  , device?WIDE("/"):WIDE("")
-				  , device?device:WIDE("")
+		snprintf( tmp, sizeof( tmp ), "Dekware/devices%s%s/options/%s"
+				  , device?"/":""
+				  , device?device:""
 				  , name = GetText( (PTEXT)&cmds[i].name ) );
-		snprintf( tmp2, sizeof( tmp2 ), WIDE("Dekware/devices%s%s/options")
-				  , device?WIDE("/"):WIDE("")
-				  , device?device:WIDE("") );
+		snprintf( tmp2, sizeof( tmp2 ), "Dekware/devices%s%s/options"
+				  , device?"/":""
+				  , device?device:"" );
 		if( CheckClassRoot( tmp ) )
 		{
-			lprintf( WIDE("%s already registered"), tmp );
+			lprintf( "%s already registered", tmp );
 			continue;
 		}
-		//lprintf( WIDE("regsiter %s"), tmp );
+		//lprintf( "regsiter %s", tmp );
 		SimpleRegisterMethod( tmp2, cmds[i].function
-								  , WIDE("int"), name, WIDE("(PDATAPATH,PSENTIENT,PTEXT)") );
-		RegisterValue( tmp, WIDE("Description"), GetText( (PTEXT)&cmds[i].description ) );
-		//RegisterIntValue( tmp, WIDE("option_entry"), (uintptr_t)(cmds+i) );
-		//RegisterIntValue( tmp, WIDE("significant"), strlen( name ) );
-		//RegisterIntValue( tmp, WIDE("max_length"), strlen( name ) );
+								  , "int", name, "(PDATAPATH,PSENTIENT,PTEXT)" );
+		RegisterValue( tmp, "Description", GetText( (PTEXT)&cmds[i].description ) );
+		//RegisterIntValue( tmp, "option_entry", (uintptr_t)(cmds+i) );
+		//RegisterIntValue( tmp, "significant", strlen( name ) );
+		//RegisterIntValue( tmp, "max_length", strlen( name ) );
 	}
 	lock--;
 }
@@ -594,7 +594,7 @@ void RegisterOptions(CTEXTSTR device, option_entry *cmds, INDEX nCommands)
 void LackingParam(PLINKQUEUE *Output, INDEX command) // and command table... /*FOLD00*/
 {
 	PTEXT pOut;
-	DECLTEXT( msg, WIDE("was expecting more parameters.") );
+	DECLTEXT( msg, "was expecting more parameters." );
 	pOut = SegAppend( SegCreateIndirect( (PTEXT)&commands[command].name )
 						 , SegCreateIndirect( (PTEXT)&msg ) );
 	EnqueLink( Output, pOut );
@@ -609,7 +609,7 @@ PTEXT Help( PSENTIENT ps, PTEXT pCommand ) /*FOLD00*/
 	uint16_t count;
 	PMACRO pm;
 	{
-		DECLTEXT( leader, WIDE(" --- Builtin Commands ---") );
+		DECLTEXT( leader, " --- Builtin Commands ---" );
 		EnqueLink( Output, &leader );
 	// this command may pause waiting for input...
 	// we have a limited number of threads for sentients...
@@ -617,16 +617,16 @@ PTEXT Help( PSENTIENT ps, PTEXT pCommand ) /*FOLD00*/
 	// nActiveSentients... then if it is greater than
 	// nAvailSentients... echo that help is temporarily
 	// unavailable...
-		WriteCommandList2( Output, WIDE("dekware/commands"), pCommand );
+		WriteCommandList2( Output, "dekware/commands", pCommand );
 	}
 	// list macros of current object
 	if( !pCommand )
 	{
 		PVARTEXT vt = VarTextCreate();
-		S_MSG( ps, WIDE(" --- Macros ---") );
+		S_MSG( ps, " --- Macros ---" );
 		LIST_FORALL( pEnt->pMacros, count, PMACRO, pm )
 		{
-			vtprintf( vt, WIDE("[%s] - %s")
+			vtprintf( vt, "[%s] - %s"
 						, GetText( GetName( pm ) )
 						, GetText( GetDescription( pm ) ) );
 			EnqueLink( Output, VarTextGet( vt ) );
@@ -635,17 +635,17 @@ PTEXT Help( PSENTIENT ps, PTEXT pCommand ) /*FOLD00*/
 	}
 //	if( !pCommand )
 	{
-		//S_MSG( ps, WIDE(" --- Plugins ---") );
+		//S_MSG( ps, " --- Plugins ---" );
 		//PrintRegisteredRoutines( Output, ps, pCommand );
 	}
 	if( !pCommand )
 	{
-		S_MSG( ps, WIDE(" --- Devices ---") );
+		S_MSG( ps, " --- Devices ---" );
 		PrintRegisteredDevices( Output );
 	}
 	if( !pCommand )
 	{
-		DECLTEXT( PluginSep, WIDE(" - parameter to help will show only matching commands") );
+		DECLTEXT( PluginSep, " - parameter to help will show only matching commands" );
 		EnqueLink( Output, &PluginSep );
 	}
 	return NULL;
@@ -662,7 +662,7 @@ PTEXT Methods( PSENTIENT ps ) /*FOLD00*/
 	{
 		PVARTEXT vt = VarTextCreate();
 		PENTITY pe = ps->Current;
-		DECLTEXT( msg, WIDE(" --- Object Methods ---") );
+		DECLTEXT( msg, " --- Object Methods ---" );
 		PCLASSROOT pme;
 		//command_entry *pme;
 
@@ -671,7 +671,7 @@ PTEXT Methods( PSENTIENT ps ) /*FOLD00*/
 			CTEXTSTR name;
 			CTEXTSTR desc;
 			PCLASSROOT tmp;
-			PCLASSROOT root = GetClassRootEx( pme, WIDE("methods") );
+			PCLASSROOT root = GetClassRootEx( pme, "methods" );
 			for( name = GetFirstRegisteredName( (CTEXTSTR)root, &tmp );
 				 name;
 				  name = GetNextRegisteredName( &tmp ) )
@@ -681,8 +681,8 @@ PTEXT Methods( PSENTIENT ps ) /*FOLD00*/
 					EnqueLink( Output, &msg );
 					bMethod = TRUE;
 				}
-				desc = GetRegisteredValue( (CTEXTSTR)(GetCurrentRegisteredTree(&tmp)), WIDE("Description") );
-				vtprintf( vt, WIDE("[%s] - %s")
+				desc = GetRegisteredValue( (CTEXTSTR)(GetCurrentRegisteredTree(&tmp)), "Description" );
+				vtprintf( vt, "[%s] - %s"
 						  , name
 						  , desc
 						  );
@@ -696,23 +696,23 @@ PTEXT Methods( PSENTIENT ps ) /*FOLD00*/
 
 //--------------------------------------------------------------------------
 
-TEXTCHAR Months[13][10] = { WIDE("")
-						, WIDE("January")
-						, WIDE("February")
-						, WIDE("March")
-						, WIDE("April")
-						, WIDE("May")
-						, WIDE("June")
-						, WIDE("July")
-						, WIDE("August")
-						, WIDE("September")
-						, WIDE("October")
-						, WIDE("November")
-						, WIDE("December") };
-TEXTCHAR Days[7][10] = {WIDE("Sunday"), WIDE("Monday"), WIDE("Tuesday"), WIDE("Wednesday")
-					, WIDE("Thursday"), WIDE("Friday"), WIDE("Saturday") };
+TEXTCHAR Months[13][10] = { ""
+						, "January"
+						, "February"
+						, "March"
+						, "April"
+						, "May"
+						, "June"
+						, "July"
+						, "August"
+						, "September"
+						, "October"
+						, "November"
+						, "December" };
+TEXTCHAR Days[7][10] = {"Sunday", "Monday", "Tuesday", "Wednesday"
+					, "Thursday", "Friday", "Saturday" };
 
-DECLTEXT( timenow, WIDE("00/00/0000 00:00:00						") );
+DECLTEXT( timenow, "00/00/0000 00:00:00						" );
 
 PTEXT GetTime( void ) /*FOLD00*/
 {
@@ -722,7 +722,7 @@ PTEXT GetTime( void ) /*FOLD00*/
 //	pTime = SegCreate( 38 );
 	GetLocalTime( &st );
 	/*
-	n = sprintf( pTime->data.data, WIDE("%s, %s %d, %d, %02d:%02d:%02d"),
+	n = sprintf( pTime->data.data, "%s, %s %d, %d, %02d:%02d:%02d",
 							Days[st.wDayOfWeek], Months[st.wMonth],
 							st.wDay, st.wYear
 							, st.wHour, st.wMinute, st.wSecond );
@@ -730,7 +730,7 @@ PTEXT GetTime( void ) /*FOLD00*/
 #if defined( _MSC_VER ) && defined( __cplusplus_cli )
 #define snprintf _snprintf
 #endif
-	timenow.data.size = snprintf( timenow.data.data, sizeof( timenow.data.data ), WIDE("%02d/%02d/%d %02d:%02d:%02d"),
+	timenow.data.size = snprintf( timenow.data.data, sizeof( timenow.data.data ), "%02d/%02d/%d %02d:%02d:%02d",
 							st.wMonth, st.wDay, st.wYear
 							, st.wHour, st.wMinute, st.wSecond );
 	return (PTEXT)&timenow;
@@ -742,7 +742,7 @@ PTEXT GetTime( void ) /*FOLD00*/
 	timething = localtime( &timevalnow );
 	strftime( timenow.data.data
 				, sizeof( timenow.data.data )
-				, WIDE("%m/%d/%Y %H:%M:%S")
+				, "%m/%d/%Y %H:%M:%S"
 				, timething );
 	return (PTEXT)&timenow;
 #endif
@@ -759,13 +759,13 @@ PTEXT GetShortTime( void ) /*FOLD00*/
 //	pTime = SegCreate( 38 );
 	GetLocalTime( &st );
 	/*
-	n = sprintf( pTime->data.data, WIDE("%s, %s %d, %d, %02d:%02d:%02d"),
+	n = sprintf( pTime->data.data, "%s, %s %d, %d, %02d:%02d:%02d",
 							Days[st.wDayOfWeek], Months[st.wMonth],
 							st.wDay, st.wYear
 							, st.wHour, st.wMinute, st.wSecond );
 	*/
 
-	n = snprintf( timenow.data.data, sizeof( timenow.data.data ), WIDE("%02d:%02d:%02d"),
+	n = snprintf( timenow.data.data, sizeof( timenow.data.data ), "%02d:%02d:%02d",
 							st.wHour, st.wMinute, st.wSecond );
 	if( n > (signed)timenow.data.size )
 		DebugBreak();
@@ -779,7 +779,7 @@ PTEXT GetShortTime( void ) /*FOLD00*/
 	timething = localtime( &timevalnow );
 	strftime( timenow.data.data
 				, sizeof( timenow.data.data )
-				, WIDE("%H:%M:%S")
+				, "%H:%M:%S"
 				, timething );
 	return (PTEXT)&timenow;
 #endif
@@ -800,7 +800,7 @@ CORE_PROC( PTEXT, MakeNumberText )( size_t val ) /*FOLD00*/
 {
 	 PVARTEXT vt = VarTextCreate();
 	 PTEXT pVal;
-	 vtprintf( vt, WIDE("%d"), val );
+	 vtprintf( vt, "%d", val );
 	 pVal = VarTextGet( vt );
 	 VarTextDestroy( &vt );
 	 return pVal;
@@ -867,46 +867,46 @@ CORE_PROC( PTEXT, SetVolatileVariable )( PENTITY pEnt, CTEXTSTR pNamed, PTEXT ne
 }
 //------------------------------------------------------------------------
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("me"), WIDE("my name") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "me", "my name" )( PENTITY pe, PTEXT *lastvalue )
 {
 	return GetName( pe );
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("room"), WIDE("my room's name") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "room", "my room's name" )( PENTITY pe, PTEXT *lastvalue )
 {
 	*lastvalue = TextDuplicate( GetName( FindContainer( pe ) ), FALSE );
 	return *lastvalue;
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("now"), WIDE("the current time") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "now", "the current time" )( PENTITY pe, PTEXT *lastvalue )
 {
 	*lastvalue = GetShortTime();
 	return *lastvalue;
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("time"), WIDE("the current time") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "time", "the current time" )( PENTITY pe, PTEXT *lastvalue )
 {
 	*lastvalue = GetTime();
 	return *lastvalue;
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("blank"), WIDE("a space character(segment)") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "blank", "a space character(segment)" )( PENTITY pe, PTEXT *lastvalue )
 {
-	DECLTEXT( blank, WIDE(" "));
+	DECLTEXT( blank, " ");
 	if( !*lastvalue )
 		*lastvalue = (PTEXT)&blank;
 	return *lastvalue;
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("EOL"), WIDE("end of line character(segment)") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "EOL", "end of line character(segment)" )( PENTITY pe, PTEXT *lastvalue )
 {
-	DECLTEXT( eol, WIDE(""));
+	DECLTEXT( eol, "");
 	if( !*lastvalue )
 		*lastvalue = (PTEXT)&eol;
 	return *lastvalue;
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("cmdline"), WIDE("end of line character(segment)") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "cmdline", "end of line character(segment)" )( PENTITY pe, PTEXT *lastvalue )
 {
 	extern PTEXT global_command_line;
 	if( !*lastvalue )
@@ -916,7 +916,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("cmdline"), WI
 	return *lastvalue;
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("program_path"), WIDE("the path to the .exe that ran this") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "program_path", "the path to the .exe that ran this" )( PENTITY pe, PTEXT *lastvalue )
 {
 	extern CTEXTSTR load_path;
 	if( !*lastvalue )
@@ -924,7 +924,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("program_path"
 	return *lastvalue;
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("core_path"), WIDE("the path to dekware.core") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "core_path", "the path to dekware.core" )( PENTITY pe, PTEXT *lastvalue )
 {
 	extern CTEXTSTR core_load_path;
 	if( !*lastvalue )
@@ -932,7 +932,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("core_path"), 
 	return *lastvalue;
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("caller"), WIDE("end of line character(segment)") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "caller", "end of line character(segment)" )( PENTITY pe, PTEXT *lastvalue )
 {
 	PSENTIENT ps = pe->pControlledBy;
 	if( *lastvalue )
@@ -946,7 +946,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("caller"), WID
 	return *lastvalue;
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("actor"), WIDE("end of line character(segment)") )( PENTITY pe, PTEXT *lastvalue )
+static PTEXT ObjectVolatileVariableGet( "core object", "actor", "end of line character(segment)" )( PENTITY pe, PTEXT *lastvalue )
 {
 	PSENTIENT ps = pe->pControlledBy;
 	if( *lastvalue )
@@ -986,34 +986,34 @@ static PTEXT LookupMacroVariable( CTEXTSTR ptext, PMACROSTATE pms )
 	PTEXT pReturn;
 	// if skipped a % retain all further...
 	// also cannot perform substition....
-	if( !strcmp( ptext, WIDE("...") ) ) // may test for 'elispes'?
+	if( !strcmp( ptext, "..." ) ) // may test for 'elispes'?
 	{
 		int32_t i;
-		//lprintf( WIDE("Gathering trailing macro args into one line...")  );
+		//lprintf( "Gathering trailing macro args into one line..."  );
 		if( pms->pMacro->nArgs < 0 )
 		{
-			//lprintf( WIDE("Skipping some arguments to get to ... ") );
+			//lprintf( "Skipping some arguments to get to ... " );
 			i = -pms->pMacro->nArgs;
 			pReturn = pms->pArgs;
 			while( i && --i && pReturn )
 			{
-				//lprintf( WIDE("Skipped %s"), GetText( pReturn ) );
+				//lprintf( "Skipped %s", GetText( pReturn ) );
 				pReturn = NEXTLINE( pReturn );
 			}
 		}
 		else
-			lprintf( WIDE("Macro has positive argument count - there is no ... param") );
-		//lprintf( WIDE("Okay at this point pReturn should be start of macro extra parms") );
+			lprintf( "Macro has positive argument count - there is no ... param" );
+		//lprintf( "Okay at this point pReturn should be start of macro extra parms" );
 		if( !(pReturn->flags & TF_INDIRECT) )
 		{
 			PTEXT pWrapper = SegCreateIndirect( pReturn );
-			lprintf( WIDE("Wrapping pReturn in a single seg wrapper") );
+			lprintf( "Wrapping pReturn in a single seg wrapper" );
 			SegAppend( SegBreak( pReturn ), pWrapper );
 			pWrapper->flags |= TF_DEEP;
 			pReturn = pWrapper;
 		}
 		//else // normal condition.
-		//	lprintf( WIDE("Result is already in a DEEP indirect? ") );
+		//	lprintf( "Result is already in a DEEP indirect? " );
 		return pReturn;
 	}
 
@@ -1089,7 +1089,7 @@ LOGICAL IsVariableBreak( PTEXT token )
 		TEXTCHAR *text = GetText( token );
 		if( text[0] == '[' || text[0] == ']' || text[0] == '(' || text[0] == ')' )
 			return FALSE;
-		if( StrChr( WIDE("!@#$%^&*,.<>/?\\|{}-=_+~`"), text[0] ) )
+		if( StrChr( "!@#$%^&*,.<>/?\\|{}-=_+~`", text[0] ) )
 			return TRUE;
 	}
 	return FALSE;
@@ -1136,7 +1136,7 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 			}
 			else
 			{
-				S_MSG( ps_out, WIDE( "Failed to find close paran phrase" ) );
+				S_MSG( ps_out, "Failed to find close paran phrase" );
 				return NULL;
 			}
 		}
@@ -1159,8 +1159,8 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 					}
 					else
 					{
-						S_MSG( ps_out, WIDE("Indexer phrase did not result in an integer") );
-						lprintf( WIDE("Indexer phrase did not result in an integer") );
+						S_MSG( ps_out, "Indexer phrase did not result in an integer" );
+						lprintf( "Indexer phrase did not result in an integer" );
 					}
 				}
 			}
@@ -1376,7 +1376,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 		{
 			if( ( c = GetListVariable( pEnt->pVars, ptext ) ) )
 			{
-				//lprintf( WIDE("Found global var %s"), GetText( c ) );
+				//lprintf( "Found global var %s", GetText( c ) );
 				if( IsVarLen )
 					return MakeTempNumber( LineLength( c ) );
 				else
@@ -1385,7 +1385,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 			// otherwise - unknown location - or unkonw variable..
 			if( !ps->CurrentMacro )
 			{
-				//S_MSG( ps, WIDE("Parameter named %s was not found.")
+				//S_MSG( ps, "Parameter named %s was not found."
 				//	  , GetText(pReturn) );
 			}
 			if( IsVarLen )
@@ -1425,20 +1425,20 @@ int32_t CountArguments( PSENTIENT ps, PTEXT args ) /*FOLD00*/
 	{
 		if( pSubst->flags & TF_INDIRECT )
 		{
-			//xlprintf(LOG_NOISE+1)( WIDE("Found indirect arguemtn count it from %d"), idx );
+			//xlprintf(LOG_NOISE+1)( "Found indirect arguemtn count it from %d", idx );
 			idx += CountArguments( ps, GetIndirect( pSubst ) );
-			//xlprintf(LOG_NOISE+1)( WIDE("Found indirect arguemtn count it to %d"), idx );
+			//xlprintf(LOG_NOISE+1)( "Found indirect arguemtn count it to %d", idx );
 		}
 		else
 		{
 			idx++;
-			if( TextIs( pSubst, WIDE("...") ) )
+			if( TextIs( pSubst, "..." ) )
 				return -idx;
 		}
 		if( pSubst->flags & TF_TEMP )
 			LineRelease( pSubst );
 	}
-	//xlprintf(LOG_NOISE+1)( WIDE("total args is %d"), idx );
+	//xlprintf(LOG_NOISE+1)( "total args is %d", idx );
 	return (int32_t)idx;
 }
 
@@ -1453,17 +1453,17 @@ void DestroyMacro( PENTITY pe, PMACRO pm ) /*FOLD00*/
 	// if the macro is in use (running) just mark that we wish to delete.
 	if( pm->flags.un.macro.bUsed )
 	{
-		xlprintf(LOG_NOISE)( WIDE("Macro is in use - mark delete, don't do it now.") );
+		xlprintf(LOG_NOISE)( "Macro is in use - mark delete, don't do it now." );
 		pm->flags.un.macro.bDelete = TRUE;
 		return;
 	}
-	xlprintf(LOG_NOISE+1)( WIDE("Destroying macro %s"), GetText( pm->pName ) );
+	xlprintf(LOG_NOISE+1)( "Destroying macro %s", GetText( pm->pName ) );
 	if( --pm->Used )
 	{
-		xlprintf(LOG_NOISE+1)(WIDE(" Macro usage count is now %d"), pm->Used );
+		xlprintf(LOG_NOISE+1)(" Macro usage count is now %d", pm->Used );
 		return;
 	}
-	xlprintf(LOG_NOISE+1)(WIDE(" Macro usage count is now %d"), pm->Used );
+	xlprintf(LOG_NOISE+1)(" Macro usage count is now %d", pm->Used );
 
 	// find the macro within this entity
 	if( pe )
@@ -1476,7 +1476,7 @@ void DestroyMacro( PENTITY pe, PMACRO pm ) /*FOLD00*/
 	else
 	{
 		// can't use pe if it's not set...
-		//DECLTEXT( msg, WIDE("Could not locate the macro specified") );
+		//DECLTEXT( msg, "Could not locate the macro specified" );
 		//EnqueLink( &pe->pControlledBy->Command->Output, &msg );
 	}
 	if( pe )
@@ -1492,7 +1492,7 @@ void DestroyMacro( PENTITY pe, PMACRO pm ) /*FOLD00*/
 			if( GetLink( &pe->pPlugin, idx ) )
 			{
 				PVARTEXT pvt = VarTextCreate();
-				vtprintf( pvt, WIDE("dekware/objects/%s/macro/destroy"), extension_name );
+				vtprintf( pvt, "dekware/objects/%s/macro/destroy", extension_name );
 				for( name2 = GetFirstRegisteredName( root = GetText( VarTextPeek( pvt ) ), &current );
 				 	name2;
 					name2 = GetNextRegisteredName( &current ) )
@@ -1514,7 +1514,7 @@ void DestroyMacro( PENTITY pe, PMACRO pm ) /*FOLD00*/
 	{
 		//{
 		//	PTEXT x = BuildLine( temp );
-		//	lprintf( WIDE("DestroyMacro: %s"), GetText( x ) );
+		//	lprintf( "DestroyMacro: %s", GetText( x ) );
 		//	LineRelease( x );
 		//}
 		LineRelease( temp );
@@ -1543,16 +1543,16 @@ CORE_PROC( PTEXT, MacroDuplicateExx )( PSENTIENT ps /*FOLD00*/
 		spaces = pText->format.position.offset.spaces;
 		if( hadargs && !pArgs )
 		{
-			lprintf( WIDE("Ran out of arguments to match, still have text:%s"), GetText( pText ) );
+			lprintf( "Ran out of arguments to match, still have text:%s", GetText( pText ) );
 		}
 		if( pText->flags & TF_BINARY )
 		{
 			pText = NEXTLINE( pText );
 			continue;
 		}
-		if( pArgs && strcmp( GetText( pArgs ), WIDE("...") ) == 0 )
+		if( pArgs && strcmp( GetText( pArgs ), "..." ) == 0 )
 		{
-			//lprintf( WIDE("Argname is ... therefore grab rest of line and be done.") );
+			//lprintf( "Argname is ... therefore grab rest of line and be done." );
 			pSubst = SegCreateIndirect( MacroDuplicateExx( ps
 																	  , pText
 																	  , bKeepEOL
@@ -1638,7 +1638,7 @@ CORE_PROC( PTEXT, MacroDuplicateExx )( PSENTIENT ps /*FOLD00*/
 	// show what the result of this is - then check value in addmacrocommand
 	//{
 	//	PTEXT x = BuildLine( pNew );
-	//	_lprintf( DBG_AVAILABLE, WIDE("Macroduplicate result:%p %s") DBG_RELAY, pNew, GetText( x ) );
+	//	_lprintf( DBG_AVAILABLE, "Macroduplicate result:%p %s" DBG_RELAY, pNew, GetText( x ) );
 	//	LineRelease( x );
 	//}
 	return pNew;
@@ -1829,7 +1829,7 @@ CORE_PROC( PTEXT, GetFileName )( PSENTIENT ps, PTEXT *parameters ) /*FOLD00*/
 
 		result = BuildLine( line );
 		LineRelease( line );
-		//lprintf( WIDE("GetFileName = %s"), GetText( result ) );
+		//lprintf( "GetFileName = %s", GetText( result ) );
 	}
 	else
 		result = NULL;
@@ -1921,20 +1921,20 @@ CORE_PROC( PMACRO, GetMacro )( PENTITY pe, CTEXTSTR pNamed ) /*FOLD00*/
 
 int CanProcess( PSENTIENT ps, Function function ) /*FOLD00*/
 {
-	//lprintf( WIDE("f is %p  (%p or %p?)"), function, CMD_ENDMACRO, CMD_MACRO );
+	//lprintf( "f is %p  (%p or %p?)", function, CMD_ENDMACRO, CMD_MACRO );
 	if( function == CMD_ENDMACRO ||
 		  function == CMD_MACRO ) // always can execute end...
 		return TRUE;
 
 	if( ps->pRecord )
 	{
-		//lprintf( WIDE("Recording... no process.") );
+		//lprintf( "Recording... no process." );
 		return FALSE;
 	}
 
 	if( !ps->CurrentMacro ) // then always process...
 	{
-		//lprintf( WIDE("not running in a macro, process.") );
+		//lprintf( "not running in a macro, process." );
 		return TRUE;
 	}
 
@@ -1943,7 +1943,7 @@ int CanProcess( PSENTIENT ps, Function function ) /*FOLD00*/
 	{
 		if( !function )
 		{
-			lprintf( WIDE("not a command, skip.") );
+			lprintf( "not a command, skip." );
 			return FALSE;
 		}
 		if( function == CMD_LABEL )
@@ -1995,10 +1995,10 @@ void EnqueCommandProcess( PTEXT pName, PLINKQUEUE *ppOutput, PTEXT pCommand ) /*
 {
 	PTEXT pOut, pLeader;
 	pLeader = SegAppend( SegCreateIndirect( pName )
-							 , SegCreateFromText( WIDE(" Processing:") ) );
+							 , SegCreateFromText( " Processing:" ) );
 	SegAppend( pLeader, SegCreateIndirect( pCommand ) );
 	pOut = BuildLine( pLeader );
-	//lprintf( WIDE("%s"), GetText( pOut ) );
+	//lprintf( "%s", GetText( pOut ) );
 	EnqueLink( ppOutput,  pOut );
 	LineRelease( pLeader );
 }
@@ -2010,7 +2010,7 @@ void EnqueBareCommandProcess( PTEXT pName, PLINKQUEUE *ppOutput, PTEXT pCommand 
 	PVARTEXT vt;
 	PTEXT pOut, pLeader;
 	vt = VarTextCreate();
-	vtprintf( vt, WIDE("%s Command(%p):"), GetText( pName ), pCommand );
+	vtprintf( vt, "%s Command(%p):", GetText( pName ), pCommand );
 	pLeader = VarTextGet( vt );
 	VarTextDestroy( &vt );
 	SegAppend( pLeader, SegCreateIndirect( pCommand ) );
@@ -2028,19 +2028,19 @@ void EnqueCommandRecord( PSENTIENT ps, PTEXT pName, PLINKQUEUE *ppOutput, PTEXT 
 	PTEXT pOut, pLeader;
 	if( !ps->pRecord )
 	{
-		vtprintf( pvt, WIDE("%s Recording(unknown) :")
+		vtprintf( pvt, "%s Recording(unknown) :"
 					);
 
 	}
 	else
-		vtprintf( pvt, WIDE("%s Recording(%s) :")
+		vtprintf( pvt, "%s Recording(%s) :"
 				  , GetText( pName )
 				  , GetText( GetName( ps->pRecord ) ) );
 	pLeader = VarTextGet( pvt );
 	VarTextDestroy( &pvt );
 	SegAppend( pLeader, SegCreateIndirect( pCommand ) );
 	pOut = BuildLine( pLeader );
-	lprintf( WIDE("%s"), GetText( pOut ) );
+	lprintf( "%s", GetText( pOut ) );
 	EnqueLink( ppOutput,  pOut );
 	LineRelease( pLeader );
 }
@@ -2057,7 +2057,7 @@ CORE_PROC( void, AddMacroCommand )( PMACRO pMacro, PTEXT Params )
 	if( Params )
 	{
 		// this indicates where the error is... between this and macro duplicate result...
-		//_lprintf( 0, WIDE("Adding a macro command to %s(%d)=%p")
+		//_lprintf( 0, "Adding a macro command to %s(%d)=%p"
 		//		  , GetText( GetName( pMacro ) )
 		//		  , (pMacro)->nCommands, Params );
 		pMacro->nCommands++;
@@ -2195,13 +2195,13 @@ int Process_Command(PSENTIENT ps, PTEXT *RealCommand) /*FOLD00*/
 					Command = NULL;
 					*RealCommand = NULL;
 					idx = -1;
-					//Log( WIDE("Sending blank line?!") );
+					//Log( "Sending blank line?!" );
 					return SendLiteral( ps, RealCommand, Command, EndLine );
 				}
 			}
 			if( EndLine && pNext )
 			{
-				Log( WIDE("Command input contained EOL within the line... FAULT") );
+				Log( "Command input contained EOL within the line... FAULT" );
 				DebugBreak();
 			}
 			pReturn = pNext;
@@ -2225,7 +2225,7 @@ int Process_Command(PSENTIENT ps, PTEXT *RealCommand) /*FOLD00*/
 
 	if( !Command )
 	{
-		DECLTEXT( msg, WIDE("null command told to me...") );
+		DECLTEXT( msg, "null command told to me..." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return SendLiteral( ps, RealCommand, Command, EndLine );
 	}
@@ -2265,19 +2265,19 @@ Recheck:
 	// preferred punctuation for transmit literal
 	if( data[0] == '.' )
 	{
-		//Log( WIDE("Consider send to datapath") );
+		//Log( "Consider send to datapath" );
 		if( CanProcess( ps, NULL ) )
 		{
 			if( GetTextSize( Command ) == 1 )
 			{
-				//Log( WIDE("Step to next token...") );
+				//Log( "Step to next token..." );
 				Command = NEXTLINE( Command );// skip period....
 			}
 			else
 			{
 				PTEXT period;
-				//Log( WIDE("Do split on line...") );
-				period = SegAppend( SegCreateFromText( WIDE(".") )
+				//Log( "Do split on line..." );
+				period = SegAppend( SegCreateFromText( "." )
 										  , SegCreateFromText( data+1 ) );
 				period->format.position.offset.spaces = Command->format.position.offset.spaces;
 				period->flags = Command->flags & (IS_DATA_FLAGS);
@@ -2285,7 +2285,7 @@ Recheck:
 				*RealCommand = period;
 				Command = NEXTLINE( period );
 			}
-			//Log( WIDE("Send to datapath") );
+			//Log( "Send to datapath" );
 			return SendLiteral( ps, RealCommand, Command, EndLine );
 		}
 		else
@@ -2301,16 +2301,16 @@ Recheck:
 	{
 		PTEXT evalcommand;
 		PDATAPATH pdp;
-		DECLTEXT( dev, WIDE("system") );
-		DECLTEXT( devname, WIDE("system") );
-		DECLTEXT( dev2, WIDE("ansi") );
-		DECLTEXT( dev2opt, WIDE("inbound newline") );
-		DECLTEXT( dev2name, WIDE("system parse") );
+		DECLTEXT( dev, "system" );
+		DECLTEXT( devname, "system" );
+		DECLTEXT( dev2, "ansi" );
+		DECLTEXT( dev2opt, "inbound newline" );
+		DECLTEXT( dev2name, "system parse" );
 		PTEXT exclam;
 		if( data[1] )
 		{
-			//Log( WIDE("Do split on line...") );
-			exclam = SegAppend( SegCreateFromText( WIDE( "!" ) )
+			//Log( "Do split on line..." );
+			exclam = SegAppend( SegCreateFromText( "!" )
 				, SegCreateFromText( data + 1 ) );
 			exclam->format.position.offset.spaces = Command->format.position.offset.spaces;
 			exclam->flags = Command->flags & (IS_DATA_FLAGS);
@@ -2327,7 +2327,7 @@ Recheck:
 			PDATAPATH pdp2;
 			PTEXT tmp;
 			pdp->pName = (PTEXT)&devname;
-			//pdp2 = OpenDevice( &ps->Data, ps, (PTEXT)&devdbg, tmp = SegAppend( SegCreateFromText( WIDE("outbound") ), SegCreateFromText( WIDE("log") ) ) );
+			//pdp2 = OpenDevice( &ps->Data, ps, (PTEXT)&devdbg, tmp = SegAppend( SegCreateFromText( "outbound" ), SegCreateFromText( "log" ) ) );
 			//if( pdp2) pdp2->pName = (PTEXT)&devdbgname;
 			//LineRelease( tmp );
 			//pdp2a = OpenDevice( &ps->Data, ps, (PTEXT)&dev2a, NULL );
@@ -2338,7 +2338,7 @@ Recheck:
 			LineRelease( tmp );
 			//pdp2 = OpenDevice( &ps->Data, ps, (PTEXT)&dev3, (PTEXT)&dev3opt );
 			//if( pdp2) pdp2->pName = (PTEXT)&dev3name;
-			//pdp2 = OpenDevice( &ps->Data, ps, (PTEXT)&devdbg, tmp = SegAppend( SegCreateFromText( WIDE("inbound") ), SegCreateFromText( WIDE("log") ) ) );
+			//pdp2 = OpenDevice( &ps->Data, ps, (PTEXT)&devdbg, tmp = SegAppend( SegCreateFromText( "inbound" ), SegCreateFromText( "log" ) ) );
 			//if( pdp2) pdp2->pName = (PTEXT)&devdbgname;
 			//LineRelease( tmp );
 
@@ -2386,7 +2386,7 @@ Recheck:
 						int status;
 						ps->Current = ps->pLastTell;
 						ps->pLastTell->pControlledBy = ps;
-						lprintf( WIDE("Executing command on entity without awareness using my own sentience.") );
+						lprintf( "Executing command on entity without awareness using my own sentience." );
 						status = Process_Command( ps, RealCommand );
 						ps->pLastTell->pControlledBy = NULL;
 						ps->Current = peMe;
@@ -2419,7 +2419,7 @@ Recheck:
 
 			if( result = RoutineRegistered( ps, Command ) )
 			{
-				//lprintf( WIDE("Executed by registered command...") );
+				//lprintf( "Executed by registered command..." );
 				if( EndLine )
 					SegAppend( *RealCommand, EndLine );
 				return TRUE;
@@ -2437,7 +2437,7 @@ Recheck:
 
 			LIST_FORALL( pe->pMethods, i, PCLASSROOT, pce )
 			{
-				PCLASSROOT root = GetClassRootEx( pce, WIDE("methods") );
+				PCLASSROOT root = GetClassRootEx( pce, "methods" );
 				CTEXTSTR name;
 				PCLASSROOT current;
 				for( name = GetFirstRegisteredName( (CTEXTSTR)root, &current );
@@ -2524,23 +2524,23 @@ Recheck:
 						PVARTEXT vt;
 						PTEXT t;
 						vt = VarTextCreate( );
-						vtprintf( vt, WIDE("Macro requires: ") );
+						vtprintf( vt, "Macro requires: " );
 						t = match->pArgs;
 						while( t )
 						{
-							vtprintf( vt, WIDE("%s"), GetText( t ) );
+							vtprintf( vt, "%s", GetText( t ) );
 							t = NEXTLINE( t );
 							if( t )
-								vtprintf( vt, WIDE(", ") );
+								vtprintf( vt, ", " );
 						}
-						vtprintf( vt, WIDE(".") );
+						vtprintf( vt, "." );
 						EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 						VarTextDestroy( &vt );
 						return FALSE; // return...
 					}	
 					if( ( i > match->nArgs ) || ( -i > match->nArgs ) )
 					{
-						DECLTEXT( msg, WIDE("Extra parameters passed to macro. Continuing but ignoring extra.") );
+						DECLTEXT( msg, "Extra parameters passed to macro. Continuing but ignoring extra." );
 						EnqueLink( &ps->Command->Output, &msg );
 					}
 				}
@@ -2648,7 +2648,7 @@ PMACRO CreateMacro( PENTITY pEnt, PLINKQUEUE *ppOutput, PTEXT name ) /*FOLD00*/
 				if( GetLink( &pEnt->pPlugin, idx ) )
 				{
 					PVARTEXT pvt = VarTextCreate();
-					vtprintf( pvt, WIDE("dekware/objects/%s/macro/create"), extension_name );
+					vtprintf( pvt, "dekware/objects/%s/macro/create", extension_name );
 					for( name2 = GetFirstRegisteredName( root = GetText( VarTextPeek( pvt ) ), &current );
 				 		name2;
 					  name2 = GetNextRegisteredName( &current ) )
@@ -2672,7 +2672,7 @@ PMACRO CreateMacro( PENTITY pEnt, PLINKQUEUE *ppOutput, PTEXT name ) /*FOLD00*/
 	}
 	else
 	{
-		DECLTEXT( msg, WIDE("Macro name overlaps internal command.") );
+		DECLTEXT( msg, "Macro name overlaps internal command." );
 		EnqueLink( ppOutput, &msg );
 	}
 
@@ -2686,7 +2686,7 @@ PMACRO DuplicateMacro( PMACRO pm ) /*FOLD00*/
 	if( pm )
 	{
 		pm->Used++;
-		lprintf(WIDE(" Macro %s usage count is now %d"), GetText( pm->pName ), pm->Used );
+		lprintf(" Macro %s usage count is now %d", GetText( pm->pName ), pm->Used );
 	}
 	return pm;
 	/*
@@ -2730,22 +2730,22 @@ CORE_PROC( void, QueueCommand )( PSENTIENT ps, CTEXTSTR Command )
 
 CORE_PROC( void, prompt )( PSENTIENT ps ) /*FOLD00*/
 {
-	DECLTEXT( nulprompt, WIDE("") );
+	DECLTEXT( nulprompt, "" );
 	PTEXT text;
 	PTEXT pPrompt;
 	if( ps->flags.no_prompt )
 		return;
 	if( gbTrace )
 	{
-		//DECLTEXT( msg, WIDE("Issuing prompt...") );
+		//DECLTEXT( msg, "Issuing prompt..." );
 		//EnqueLink( &ps->Command->Output, (PTEXT)&msg );
 	}
-	pPrompt = GetListVariable( ps->Current->pVars, WIDE("prompt") );
+	pPrompt = GetListVariable( ps->Current->pVars, "prompt" );
 	pPrompt = GetIndirect( pPrompt );
 	text = (PTEXT)&nulprompt;
 	if( ps->pRecord && pPrompt )
 	{
-		DECLTEXT( colon, WIDE(":") );
+		DECLTEXT( colon, ":" );
 		PTEXT pRec;
 		if( ( pPrompt->flags & IS_DATA_FLAGS ) || GetTextSize( pPrompt ) )
 			text = MacroDuplicateEx( ps, pPrompt, FALSE, TRUE );
@@ -2758,7 +2758,7 @@ CORE_PROC( void, prompt )( PSENTIENT ps ) /*FOLD00*/
 	}
 	else if( ps->pRecord )
 	{
-		DECLTEXT( colon, WIDE(":") );
+		DECLTEXT( colon, ":" );
 		PTEXT pRec;
 		text = pRec = SegDuplicate( GetName( (PENTITY)ps->pRecord ) );
 		pRec->flags |= TF_PAREN;
@@ -2827,7 +2827,7 @@ CORE_PROC( LOGICAL, Process )( PSENTIENT ps, TEXTCHAR *cmd, ... )
 	return vProcess( ps, cmd, args );
 }
 
-static int HandleCommand( WIDE("debug"),WIDE("dumpnames"), WIDE("Call DumpRegisteredNames()") )( PSENTIENT ps, PTEXT params )
+static int HandleCommand( "debug","dumpnames", "Call DumpRegisteredNames()" )( PSENTIENT ps, PTEXT params )
 {
 	DumpRegisteredNames();
 	return 0;

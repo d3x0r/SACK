@@ -24,7 +24,7 @@ public:
 	static void CPROC SaveColors( uintptr_t psv, PSI_CONTROL pc )
 	{
 		struct psv_type *psv_arg = (struct psv_type*)psv;
-		FILE *file = sack_fopen( 0, WIDE("values.dat"), WIDE("wb") );
+		FILE *file = sack_fopen( 0, "values.dat", "wb" );
 
 		if( file )
 		{
@@ -36,7 +36,7 @@ public:
 	static void CPROC LoadColors( uintptr_t psv, PSI_CONTROL pc )
 	{
 		struct psv_type *psv_arg = (struct psv_type*)psv;
-		FILE *file = sack_fopen( 0, WIDE("values.dat"), WIDE("rb") );
+		FILE *file = sack_fopen( 0, "values.dat", "rb" );
 		if( file )
 		{
 			fread( psv_arg->_this->values, sizeof( psv_arg->_this->values ), 1, file );

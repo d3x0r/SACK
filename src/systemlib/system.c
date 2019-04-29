@@ -191,9 +191,9 @@ void OSALOT_AppendEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	}
 	newpath = NewArray( TEXTCHAR, length = (uint32_t)(StrLen( oldpath ) + 2 + StrLen(value)) );
 #  ifdef UNICODE
-	snwprintf( newpath, length, WIDE("%s;%s"), oldpath, value );
+	snwprintf( newpath, length, "%s;%s", oldpath, value );
 #  else
-	snprintf( newpath, length, WIDE("%s;%s"), oldpath, value );
+	snprintf( newpath, length, "%s;%s", oldpath, value );
 #  endif
 	SetEnvironmentVariable( name, newpath );
 	ReleaseEx( newpath DBG_SRC );
@@ -210,7 +210,7 @@ void OSALOT_AppendEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	TEXTCHAR *newpath;
 	size_t maxlen;
 	newpath = NewArray( TEXTCHAR, maxlen = ( StrLen( oldpath ) + StrLen( value ) + 2 ) );
-	tnprintf( newpath, maxlen, WIDE("%s:%s"), oldpath, value );
+	tnprintf( newpath, maxlen, "%s:%s", oldpath, value );
 #ifdef UNICODE
 	{
 		char * tmpvalue = CStrDup( newpath );
@@ -240,9 +240,9 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	}
 	newpath = NewArray( TEXTCHAR, length = (uint32_t)(StrLen( oldpath ) + 2 + StrLen(value)) );
 #  ifdef UNICODE
-	snwprintf( newpath, length, WIDE("%s;%s"), value, oldpath );
+	snwprintf( newpath, length, "%s;%s", value, oldpath );
 #  else
-	snprintf( newpath, length, WIDE("%s;%s"), value, oldpath );
+	snprintf( newpath, length, "%s;%s", value, oldpath );
 #  endif
 	SetEnvironmentVariable( name, newpath );
 	ReleaseEx( newpath DBG_SRC );
@@ -258,7 +258,7 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	TEXTCHAR *newpath;
 	int length;
 	newpath = NewArray( TEXTCHAR, length = StrLen( oldpath ) + StrLen( value ) + 1 );
-	tnprintf( newpath, length, WIDE("%s:%s"), value, oldpath );
+	tnprintf( newpath, length, "%s:%s", value, oldpath );
 #ifdef UNICODE
 	{
 		char *tmpname = CStrDup( name );
@@ -378,7 +378,7 @@ void loadMacLibraries(struct local_systemlib_data *init_l) {
 				else
 				{
 						(*init_l).filename = StrDupEx( path DBG_SRC );
-						(*init_l).load_path = StrDupEx( WIDE("") DBG_SRC );
+						(*init_l).load_path = StrDupEx( "" DBG_SRC );
 				}
 		}
 
@@ -414,7 +414,7 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 		else
 		{
 			(*init_l).filename = StrDupEx( filepath DBG_SRC );
-			(*init_l).load_path = StrDupEx( WIDE("") DBG_SRC );
+			(*init_l).load_path = StrDupEx( "" DBG_SRC );
 		}
 
 		GetModuleFileName( LoadLibrary( TARGETNAME ), filepath, sizeof( filepath ) );
@@ -429,11 +429,11 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 		}
 		else
 		{
-			(*init_l).load_path = StrDupEx( WIDE("") DBG_SRC );
+			(*init_l).load_path = StrDupEx( "" DBG_SRC );
 		}
 
 #ifdef HAVE_ENVIRONMENT
-		OSALOT_SetEnvironmentVariable( WIDE("MY_LOAD_PATH"), filepath );
+		OSALOT_SetEnvironmentVariable( "MY_LOAD_PATH", filepath );
 #endif
 
 	}
@@ -480,15 +480,15 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			buf[1] = 0;
 		}
 
-		if( StrCmp( buf, WIDE("/.") ) == 0 )
+		if( StrCmp( buf, "/." ) == 0 )
 			GetCurrentPath( buf, 256 );
-		//lprintf( WIDE("My execution: %s"), buf);
+		//lprintf( "My execution: %s", buf);
 		(*init_l).load_path = StrDupEx( buf DBG_SRC );
-		OSALOT_SetEnvironmentVariable( WIDE("MY_LOAD_PATH"), (*init_l).load_path );
+		OSALOT_SetEnvironmentVariable( "MY_LOAD_PATH", (*init_l).load_path );
 		//strcpy( pMyPath, buf );
 
 		GetCurrentPath( buf, sizeof( buf ) );
-		OSALOT_SetEnvironmentVariable( WIDE( "MY_WORK_PATH" ), buf );
+		OSALOT_SetEnvironmentVariable( "MY_WORK_PATH", buf );
 		(*init_l).work_path = StrDupEx( buf DBG_SRC );
 		SetDefaultFilePath( (*init_l).work_path );
 	}
@@ -563,18 +563,18 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 				buf[n]=0; //linux
 				if( !n )
 				{
-					strcpy( buf, WIDE(".") );
-					buf[ n = readlink( WIDE("/proc/curproc/"),buf,256)]=0; // fbsd
+					strcpy( buf, "." );
+					buf[ n = readlink( "/proc/curproc/",buf,256)]=0; // fbsd
 				}
 			}
 			else
-				strcpy( buf, WIDE(".")) ;
+				strcpy( buf, ".") ;
 			pb = strrchr(buf,'/');
 			if( pb )
 				pb[0]=0;
 			else
 				pb = buf - 1;
-			//lprintf( WIDE("My execution: %s"), buf);
+			//lprintf( "My execution: %s", buf);
 			(*init_l).filename = StrDupEx( pb + 1 DBG_SRC );
 			(*init_l).load_path = StrDupEx( buf DBG_SRC );
 #       endif
@@ -617,11 +617,11 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
             else
 					(*init_l).library_path = ".";
 			}
-			setenv( WIDE("MY_LOAD_PATH"), (*init_l).load_path, TRUE );
+			setenv( "MY_LOAD_PATH", (*init_l).load_path, TRUE );
 			//strcpy( pMyPath, buf );
 
 			GetCurrentPath( buf, sizeof( buf ) );
-			setenv( WIDE( "MY_WORK_PATH" ), buf, TRUE );
+			setenv( "MY_WORK_PATH", buf, TRUE );
 			(*init_l).work_path = StrDupEx( buf DBG_SRC );
 		}
 		{
@@ -631,9 +631,9 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			if( oldpath )
 			{
 				newpath = NewArray( char, (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).library_path)) );
-				sprintf( newpath, WIDE("%s:%s"), (*init_l).library_path
+				sprintf( newpath, "%s:%s", (*init_l).library_path
 						 , oldpath );
-				setenv( WIDE("LD_LIBRARY_PATH"), newpath, 1 );
+				setenv( "LD_LIBRARY_PATH", newpath, 1 );
 				ReleaseEx( newpath DBG_SRC );
 			}
 		}
@@ -644,9 +644,9 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			if( oldpath )
 			{
 				newpath = NewArray( char, (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path)) );
-				sprintf( newpath, WIDE("%s:%s"), (*init_l).load_path
+				sprintf( newpath, "%s:%s", (*init_l).load_path
 						 , oldpath );
-				setenv( WIDE("PATH"), newpath, 1 );
+				setenv( "PATH", newpath, 1 );
 				ReleaseEx( newpath DBG_SRC );
 			}
 		}
@@ -668,7 +668,7 @@ static void SystemInit( void )
 		local_systemlib = &local_systemlib__;
 		SetupSystemServices( local_systemlib, sizeof( local_systemlib[0] ) );
 #else
-		RegisterAndCreateGlobalWithInit( (POINTER*)&local_systemlib, sizeof( *local_systemlib ), WIDE("system"), SetupSystemServices );
+		RegisterAndCreateGlobalWithInit( (POINTER*)&local_systemlib, sizeof( *local_systemlib ), "system", SetupSystemServices );
 #endif
 #ifdef WIN32
 		if( !l.flags.bInitialized )
@@ -678,16 +678,16 @@ static void SystemInit( void )
 			l.work_path = StrDupEx( filepath DBG_SRC );
 			SetDefaultFilePath( l.work_path );
 #ifdef HAVE_ENVIRONMENT
-			OSALOT_SetEnvironmentVariable( WIDE( "MY_WORK_PATH" ), filepath );
+			OSALOT_SetEnvironmentVariable( "MY_WORK_PATH", filepath );
 #endif
 			l.flags.bInitialized = 1;
 
 #  ifdef WIN32
-			l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( WIDE("psapi.dll"), WIDE("EnumProcessModules"));
+			l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "psapi.dll", "EnumProcessModules");
 			if( !l.EnumProcessModules )
-				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction(WIDE("kernel32.dll"), WIDE("EnumProcessModules"));
+				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction("kernel32.dll", "EnumProcessModules");
 			if( !l.EnumProcessModules )
-				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction(WIDE("kernel32.dll"), WIDE("K32EnumProcessModules") );
+				l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction("kernel32.dll", "K32EnumProcessModules" );
 #  endif
 		}
 #endif
@@ -704,10 +704,10 @@ PRIORITY_PRELOAD( SetupPath, OSALOT_PRELOAD_PRIORITY )
 PRELOAD( SetupSystemOptions )
 {
 	//lprintf( "SYSTEM OPTION INIT" );
-	l.flags.bLog = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/System/Enable Logging" ), 0, TRUE );
-	if( SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/System/Auto prepend program location to PATH environment" ), 0, TRUE ) ){
+	l.flags.bLog = SACK_GetProfileIntEx( GetProgramName(), "SACK/System/Enable Logging", 0, TRUE );
+	if( SACK_GetProfileIntEx( GetProgramName(), "SACK/System/Auto prepend program location to PATH environment", 0, TRUE ) ){
 		//lprintf( "Add %s to path", l.load_path );
-		OSALOT_PrependEnvironmentVariable( WIDE("PATH"), l.load_path );
+		OSALOT_PrependEnvironmentVariable( "PATH", l.load_path );
 	}
 
 }
@@ -774,11 +774,11 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 	if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, task->pi.dwProcessId ) )
 	{
 		error = GetLastError();
-		lprintf( WIDE( "Failed to send CTRL_C_EVENT %d" ), error );
+		lprintf( "Failed to send CTRL_C_EVENT %d", error );
 		if( !GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, task->pi.dwProcessId ) )
 		{
 			error = GetLastError();
-			lprintf( WIDE( "Failed to send CTRL_BREAK_EVENT %d" ), error );
+			lprintf( "Failed to send CTRL_BREAK_EVENT %d", error );
 		}
 	}
 	// try and copy some code to it..
@@ -829,7 +829,7 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 		{
 			task->flags.closed = 1;
 
-			//lprintf( WIDE( "%ld, %ld %p %p" ), task->pi.dwProcessId, task->pi.dwThreadId, task->pi.hProcess, task->pi.hThread );
+			//lprintf( "%ld, %ld %p %p", task->pi.dwProcessId, task->pi.dwThreadId, task->pi.hProcess, task->pi.hThread );
 
 #if defined( WIN32 )
 			if( WaitForSingleObject( task->pi.hProcess, 0 ) != WAIT_OBJECT_0 )
@@ -838,11 +838,11 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 				// try using ctrl-c, ctrl-break to end process...
 				if( !StopProgram( task ) )
 				{
-					xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("Program did not respond to ctrl-c or ctrl-break...") );
+					xlprintf(LOG_LEVEL_DEBUG+1)( "Program did not respond to ctrl-c or ctrl-break..." );
 					// if ctrl-c fails, try finding the window, and sending exit (systray close)
 					if( EndTaskWindow( task ) )
 					{
-						xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("failed to find task window to send postquitmessage...") );
+						xlprintf(LOG_LEVEL_DEBUG+1)( "failed to find task window to send postquitmessage..." );
 						// didn't find the window - result was continue_enum with no more (1)
 						// so didn't find the window - nothing to wait for, fall through
 						nowait = 1;
@@ -850,16 +850,16 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 				}
 				if( nowait || ( WaitForSingleObject( task->pi.hProcess, 500 ) != WAIT_OBJECT_0 ) )
 				{
-					xlprintf(LOG_LEVEL_DEBUG+1)( WIDE("Terminating process....") );
+					xlprintf(LOG_LEVEL_DEBUG+1)( "Terminating process...." );
 					bDontCloseProcess = 1;
 					if( !TerminateProcess( task->pi.hProcess, 0xD1E ) )
 					{
 						HANDLE hTmp;
-						lprintf( WIDE("Failed to terminate process... %p %ld : %d (will try again with OpenProcess)"), task->pi.hProcess, task->pi.dwProcessId, GetLastError() );
+						lprintf( "Failed to terminate process... %p %ld : %d (will try again with OpenProcess)", task->pi.hProcess, task->pi.dwProcessId, GetLastError() );
 						hTmp = OpenProcess( SYNCHRONIZE|PROCESS_TERMINATE, FALSE, task->pi.dwProcessId);
 						if( !TerminateProcess( hTmp, 0xD1E ) )
 						{
-							lprintf( WIDE("Failed to terminate process... %p %ld : %d"), task->pi.hProcess, task->pi.dwProcessId, GetLastError() );
+							lprintf( "Failed to terminate process... %p %ld : %d", task->pi.hProcess, task->pi.dwProcessId, GetLastError() );
 						}
 						CloseHandle( hTmp );
 					}
@@ -867,21 +867,21 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 			}
 			if( !task->EndNotice )
 			{
-				lprintf( WIDE( "Closing handle (no end notification)" ) );
+				lprintf( "Closing handle (no end notification)" );
 				// task end notice - will get the event and close these...
 				CloseHandle( task->pi.hThread );
 				task->pi.hThread = 0;
 				if( !bDontCloseProcess )
 				{
-					lprintf( WIDE( "And close process handle" ) );
+					lprintf( "And close process handle" );
 					CloseHandle( task->pi.hProcess );
 					task->pi.hProcess = 0;
 				}
 				else
-					lprintf( WIDE( "Keeping process handle" ) );
+					lprintf( "Keeping process handle" );
 			}
 //			else
-//				lprintf( WIDE( "Would have close handles rudely." ) );
+//				lprintf( "Would have close handles rudely." );
 #else
 #ifndef PEDANTIC_TEST
 			kill( task->pid, SIGTERM );
@@ -949,7 +949,7 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 			// vista++ so this won't work for XP support...
 			static BOOL (WINAPI *MyCancelSynchronousIo)( HANDLE hThread ) = (BOOL(WINAPI*)(HANDLE))-1;
 			if( (uintptr_t)MyCancelSynchronousIo == (uintptr_t)-1 )
-				MyCancelSynchronousIo = (BOOL(WINAPI*)(HANDLE))LoadFunction( WIDE( "kernel32.dll" ), WIDE( "CancelSynchronousIo" ) );
+				MyCancelSynchronousIo = (BOOL(WINAPI*)(HANDLE))LoadFunction( "kernel32.dll", "CancelSynchronousIo" );
 			if( MyCancelSynchronousIo )
 			{
 				if( !MyCancelSynchronousIo( GetThreadHandle( task->hStdOut.hThread ) ) )
@@ -962,16 +962,16 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 			{
 				static BOOL (WINAPI *MyCancelIoEx)( HANDLE hFile,LPOVERLAPPED ) = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))-1;
 				if( (uintptr_t)MyCancelIoEx == (uintptr_t)-1 )
-					MyCancelIoEx = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))LoadFunction( WIDE( "kernel32.dll" ), WIDE( "CancelIoEx" ) );
+					MyCancelIoEx = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))LoadFunction( "kernel32.dll", "CancelIoEx" );
 				if( MyCancelIoEx )
 					MyCancelIoEx( task->hStdOut.handle, NULL );
 				else
 				{
 					DWORD written;
-					//lprintf( WIDE( "really? You're still using xp or less?" ) );
+					//lprintf( "really? You're still using xp or less?" );
 					task->flags.bSentIoTerminator = 1;
-					if( !WriteFile( task->hWriteOut, WIDE( "\x04" ), 1, &written, NULL ) )
-					lprintf( WIDE( "write pipe failed! %d" ), GetLastError() );
+					if( !WriteFile( task->hWriteOut, "\x04", 1, &written, NULL ) )
+					lprintf( "write pipe failed! %d", GetLastError() );
 					//lprintf( "Pipe write was %d", written );
 				}
 			}
@@ -985,7 +985,7 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 		if( task->EndNotice )
 			task->EndNotice( task->psvEnd, task );
 #if defined( WIN32 )
-		//lprintf( WIDE( "Closing process and thread handles." ) );
+		//lprintf( "Closing process and thread handles." );
 		if( task->pi.hProcess )
 		{
 			CloseHandle( task->pi.hProcess );
@@ -1010,7 +1010,7 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 static int DumpError( void )
 {
 #ifdef _DEBUG
-	lprintf( WIDE("Failed create process:%d"), GetLastError() );
+	lprintf( "Failed create process:%d", GetLastError() );
 #endif
 	return 0;
 }
@@ -1022,7 +1022,7 @@ static BOOL CALLBACK EnumDesktopProc( LPTSTR lpszDesktop,
 												 LPARAM lParam
 												)
 {
-	lprintf( WIDE( "Desktop found [%s]" ), lpszDesktop );
+	lprintf( "Desktop found [%s]", lpszDesktop );
 	return 1;
 }
 
@@ -1041,7 +1041,7 @@ void EnumDesktop( void )
 
 static BOOL CALLBACK EnumStationProc( LPTSTR lpszWindowStation, LPARAM lParam )
 {
-	lprintf( WIDE( "station found [%s]" ), lpszWindowStation );
+	lprintf( "station found [%s]", lpszWindowStation );
 	return 1;
 }
 
@@ -1063,29 +1063,29 @@ void SetDefaultDesktop( void )
 	DWORD length;
 	char buffer[256];
 
-	lprintf( WIDE( "Desktop this is %p %p" ), station, desk );
+	lprintf( "Desktop this is %p %p", station, desk );
 
 	GetUserObjectInformation( desk, UOI_NAME, buffer, sizeof( buffer ), &length );
-	lprintf( WIDE( "desktop is %s" ), buffer );
+	lprintf( "desktop is %s", buffer );
 	GetUserObjectInformation( station, UOI_NAME, buffer, sizeof( buffer ), &length );
-	lprintf( WIDE( "station is %s" ), buffer );
+	lprintf( "station is %s", buffer );
 
 	EnumDesktop();
 	EnumStations();
 
 	// these should be const strings, but they're not... add typecast for GCC
-	lngWinSta0 = OpenWindowStation( (LPTSTR)WIDE( "WinSta0" ), FALSE, WINSTA_ALL_ACCESS );
-	//lngWinSta0 = OpenWindowStation(WIDE( "msswindowstation" ), FALSE, WINSTA_ALL_ACCESS );
-	lprintf( WIDE( "sta = %p %d" ), lngWinSta0, GetLastError() );
+	lngWinSta0 = OpenWindowStation( (LPTSTR)"WinSta0", FALSE, WINSTA_ALL_ACCESS );
+	//lngWinSta0 = OpenWindowStation("msswindowstation", FALSE, WINSTA_ALL_ACCESS );
+	lprintf( "sta = %p %d", lngWinSta0, GetLastError() );
 	if( !SetProcessWindowStation(lngWinSta0) )
-		lprintf( WIDE( "Failed station set?" ) );
+		lprintf( "Failed station set?" );
 
 	// these should be const strings, but they're not... add typecast for GCC
-	lngDefaultDesktop = OpenDesktop( (LPTSTR)WIDE( "Default" ), 0, FALSE, 0x10000000);
-	//lngDefaultDesktop = OpenDesktop(WIDE( "WinSta0" ), 0, FALSE, 0x10000000);
-	lprintf( WIDE( "defa = %p" ), lngDefaultDesktop );
+	lngDefaultDesktop = OpenDesktop( (LPTSTR)"Default", 0, FALSE, 0x10000000);
+	//lngDefaultDesktop = OpenDesktop("WinSta0", 0, FALSE, 0x10000000);
+	lprintf( "defa = %p", lngDefaultDesktop );
 	if( !SetThreadDesktop(lngDefaultDesktop) )
-		lprintf( WIDE( "Failed desktop set?" ) );
+		lprintf( "Failed desktop set?" );
 	}
 }
 		/*
@@ -1108,7 +1108,7 @@ DWORD GetExplorerProcessID()
 	if( !process_find[0] )
 	{
 #ifndef __NO_OPTIONS__
-		SACK_GetProfileStringEx( GetProgramName(), WIDE( "SACK/System/Impersonate Process" ), WIDE( "explorer.exe" ), process_find, sizeof( process_find ), TRUE );
+		SACK_GetProfileStringEx( GetProgramName(), "SACK/System/Impersonate Process", "explorer.exe", process_find, sizeof( process_find ), TRUE );
 #endif
 	}
 	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -1119,10 +1119,10 @@ DWORD GetExplorerProcessID()
 	{
 		do
 		{
-			//lprintf( WIDE( "Thing is %s" ), pe32.szExeFile );
+			//lprintf( "Thing is %s", pe32.szExeFile );
 			if(!StrCmp(pe32.szExeFile,process_find))
 			{
-				//MessageBox(0,pe32.szExeFile,WIDE( "test" ),0);
+				//MessageBox(0,pe32.szExeFile,"test",0);
 				temp = pe32.th32ProcessID;
 				break;
 			}
@@ -1140,9 +1140,9 @@ void ImpersonateInteractiveUser( void )
 	DWORD processID;
 	SetDefaultDesktop();
 	processID = GetExplorerProcessID();
-	//lprintf( WIDE( "Enum EDesktops..." ) );
+	//lprintf( "Enum EDesktops..." );
 	//EnumDesktop();
-	//lprintf( WIDE( "explorer is %p" ), processID );
+	//lprintf( "explorer is %p", processID );
 	if( processID)
 	{
 		hProcess =
@@ -1153,7 +1153,7 @@ void ImpersonateInteractiveUser( void )
 
 		if( hProcess)
 		{
-			//lprintf( WIDE( "Success getting process %p" ), hProcess );
+			//lprintf( "Success getting process %p", hProcess );
 			if( OpenProcessToken(
 										hProcess,
 										TOKEN_EXECUTE |
@@ -1166,22 +1166,22 @@ void ImpersonateInteractiveUser( void )
 										TOKEN_IMPERSONATE,
 										&hToken))
 			{
-				//lprintf( WIDE( "Sucess opening token" ) );
+				//lprintf( "Sucess opening token" );
 				if( ImpersonateLoggedOnUser( hToken ) )
 					;
 				else
-					lprintf( WIDE( "Fail impersonate %d" ), GetLastError() );
+					lprintf( "Fail impersonate %d", GetLastError() );
 				CloseHandle( hToken );
 			}
 			else
-				lprintf( WIDE( "Failed opening token %d" ), GetLastError() );
+				lprintf( "Failed opening token %d", GetLastError() );
 			CloseHandle( hProcess );
 		}
 		else
-			lprintf( WIDE( "Failed open process: %d" ), GetLastError() );
+			lprintf( "Failed open process: %d", GetLastError() );
 	}
 	else
-		lprintf( WIDE( "Failed get explorer process: %d" ), GetLastError() );
+		lprintf( "Failed get explorer process: %d", GetLastError() );
 }
 
 HANDLE GetImpersonationToken( void )
@@ -1191,9 +1191,9 @@ HANDLE GetImpersonationToken( void )
 
 	DWORD processID;
 	processID = GetExplorerProcessID();
-	//lprintf( WIDE( "Enum EDesktops..." ) );
+	//lprintf( "Enum EDesktops..." );
 	//EnumDesktop();
-	//lprintf( WIDE( "explorer is %p" ), processID );
+	//lprintf( "explorer is %p", processID );
 	if( processID)
 	{
 		hProcess =
@@ -1204,7 +1204,7 @@ HANDLE GetImpersonationToken( void )
 
 		if( hProcess)
 		{
-			//lprintf( WIDE( "Success getting process %p" ), hProcess );
+			//lprintf( "Success getting process %p", hProcess );
 			if( OpenProcessToken(
 										hProcess,
 										TOKEN_EXECUTE |
@@ -1217,22 +1217,22 @@ HANDLE GetImpersonationToken( void )
 										TOKEN_IMPERSONATE,
 										&hToken))
 			{
-				//lprintf( WIDE( "Sucess opening token" ) );
+				//lprintf( "Sucess opening token" );
 				//if( ImpersonateLoggedOnUser( hToken ) )
 				//   ;
 				//else
-				//   lprintf( WIDE( "Fail impersonate %d" ), GetLastError() );
+				//   lprintf( "Fail impersonate %d", GetLastError() );
 				//CloseHandle( hToken );
 			}
 			else
-				lprintf( WIDE( "Failed opening token %d" ), GetLastError() );
+				lprintf( "Failed opening token %d", GetLastError() );
 			CloseHandle( hProcess );
 		}
 		else
-			lprintf( WIDE( "Failed open process: %d" ), GetLastError() );
+			lprintf( "Failed open process: %d", GetLastError() );
 	}
 	else
-		lprintf( WIDE( "Failed get explorer process: %d" ), GetLastError() );
+		lprintf( "Failed get explorer process: %d", GetLastError() );
 	return hToken;
 }
 
@@ -1285,7 +1285,7 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 		for( params = GetText( cmdline ); params[0] && params[0] != ' '; params++ );
 		if( params[0] )
 		{
-			//lprintf( WIDE( "adding extra parames [%s]" ), params );
+			//lprintf( "adding extra parames [%s]", params );
 			execinfo.lpParameters = params;
 		}
 	}
@@ -1298,12 +1298,12 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 			{
 			case 42:
 #ifdef _DEBUG
-				lprintf( WIDE( "No association picked : %p (gle:%d)" ), (uintptr_t)execinfo.hInstApp , GetLastError() );
+				lprintf( "No association picked : %p (gle:%d)", (uintptr_t)execinfo.hInstApp , GetLastError() );
 #endif
 				break;
 			}
 #ifdef _DEBUG
-			lprintf( WIDE( "sucess with shellexecute of(%p) %s " ), execinfo.hInstApp, program );
+			lprintf( "sucess with shellexecute of(%p) %s ", execinfo.hInstApp, program );
 #endif
 			task->pi.hProcess = execinfo.hProcess;
 			task->pi.hThread = 0;
@@ -1314,14 +1314,14 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 			//switch( (uintptr_t)execinfo.hInstApp )
 			{
 			//default:
-				lprintf( WIDE( "Shell exec error : %p (gle:%d)" ), (uintptr_t)execinfo.hInstApp , GetLastError() );
+				lprintf( "Shell exec error : %p (gle:%d)", (uintptr_t)execinfo.hInstApp , GetLastError() );
 				//break;
 			}
 			return FALSE;
 		}
 	}
 	else
-		lprintf( WIDE( "Shellexec error %d" ), GetLastError() );
+		lprintf( "Shellexec error %d", GetLastError() );
 	return FALSE;
 
 }
@@ -1349,7 +1349,7 @@ void InvokeLibraryLoad( void )
 {
 	void (CPROC *f)(void);
 	PCLASSROOT data = NULL;
-	PCLASSROOT event_root = GetClassRoot( WIDE("SACK/system/library/load_event") );
+	PCLASSROOT event_root = GetClassRoot( "SACK/system/library/load_event" );
 	CTEXTSTR name;
 	for( name = GetFirstRegisteredName( event_root, &data );
 		 name;
@@ -1378,7 +1378,7 @@ static void LoadExistingLibraries( void )
 	}
 	l.EnumProcessModules( GetCurrentProcess(), modules, sizeof( HMODULE ) * 256, &needed );
 	if( needed / sizeof( HMODULE ) == n )
-		lprintf( WIDE("loaded module overflow") );
+		lprintf( "loaded module overflow" );
 	needed /= sizeof( HMODULE );
 	for( n = 0; n < needed; n++ )
 	{
@@ -1622,14 +1622,14 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			library->cur_full_name = library->full_name + fullnameLen + orignameLen;
 			library->alt_full_name = library->full_name + fullnameLen + orignameLen + curnameLen;
 			library->name = library->full_name
-				+ tnprintf( library->full_name, maxlen, WIDE("%s/"), l.load_path );
-			tnprintf( library->orig_name, maxlen, WIDE( "%s" ), libname );
-			tnprintf( library->cur_full_name, maxlen, WIDE( "%s/%s" ), curPath, libname );
-			tnprintf( library->alt_full_name, maxlen, WIDE( "%s/%s" ), l.library_path, libname );
+				+ tnprintf( library->full_name, maxlen, "%s/", l.load_path );
+			tnprintf( library->orig_name, maxlen, "%s", libname );
+			tnprintf( library->cur_full_name, maxlen, "%s/%s", curPath, libname );
+			tnprintf( library->alt_full_name, maxlen, "%s/%s", l.library_path, libname );
 
 			tnprintf( library->name
 				, fullnameLen - (library->name-library->full_name)
-				, WIDE("%s"), libname );
+				, "%s", libname );
 		}
 		else
 		{
@@ -1717,7 +1717,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	if( !library->library ) {
 		if( !library->loading ) {
 			if( l.flags.bLog )
-				_xlprintf( 2 DBG_RELAY )(WIDE( "Attempt to load %s[%s](%s) failed: %d." ), libname, library->full_name, funcname ? funcname : WIDE( "all" ), GetLastError()); //-V595
+				_xlprintf( 2 DBG_RELAY )("Attempt to load %s[%s](%s) failed: %d.", libname, library->full_name, funcname ? funcname : "all", GetLastError()); //-V595
 			UnlinkThing( library );
 			ReleaseEx( library DBG_SRC );
 		}
@@ -1741,7 +1741,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		if( !library->library )
 		{
 			//if( l.flags.bLog )
-				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load %s%s(%s) failed: %s."), bPrivate?"(local)":"(global)"
+				_xlprintf( 2 DBG_RELAY)( "Attempt to load %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
 				          , library->name, funcname?funcname:"all", dlerror() );
 #  endif
 #  ifdef UNICODE
@@ -1755,22 +1755,22 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #  endif
 			if( !library->library )
 			{
-				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)")
-						, library->full_name, funcname?funcname:WIDE("all"), dlerror() );
+				_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
+						, library->full_name, funcname?funcname:"all", dlerror() );
 
 				library->library = dlopen( library->alt_full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 
 				if( !library->library )
 				{
-					_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)")
-							, library->alt_full_name, funcname?funcname:WIDE("all"), dlerror() );
+					_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
+							, library->alt_full_name, funcname?funcname:"all", dlerror() );
 
 					library->library = dlopen( library->cur_full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 
 					if( !library->library )
 					{
-						_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to load  %s%s(%s) failed: %s."), bPrivate?WIDE("(local)"):WIDE("(global)")
-								, library->cur_full_name, funcname?funcname:WIDE("all"), dlerror() );
+						_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
+								, library->cur_full_name, funcname?funcname:"all", dlerror() );
 
 						UnlinkThing( library );
 						ReleaseEx( library DBG_SRC );
@@ -1788,7 +1788,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		{
 			void (CPROC *f)( void );
 			if( l.flags.bLog )
-				lprintf( WIDE( "GetInvokePreloads" ) );
+				lprintf( "GetInvokePreloads" );
 			f = (void(CPROC*)(void))GetProcAddress( library->library, "InvokePreloads" );
 			if( f )
 				f();
@@ -1829,12 +1829,12 @@ get_function_name:
 				PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)library->library;
 				PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( library->library, source_dos_header->e_lfanew );
 				if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE )
-					lprintf( WIDE("Basic signature check failed; not a library") );
+					lprintf( "Basic signature check failed; not a library" );
 				if( source_nt_header->Signature != IMAGE_NT_SIGNATURE )
-					lprintf(WIDE("Basic NT signature check failed; not a library") );
+					lprintf("Basic NT signature check failed; not a library" );
 				if( source_nt_header->FileHeader.SizeOfOptionalHeader )
 					if( source_nt_header->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR_MAGIC )
-						lprintf(WIDE("Optional header signature is incorrect...") );
+						lprintf("Optional header signature is incorrect..." );
 				{
 					PIMAGE_DATA_DIRECTORY dir;
 					PIMAGE_EXPORT_DIRECTORY exp_dir;
@@ -1923,7 +1923,7 @@ get_function_name:
 				{
 					function = NewPlus( FUNCTION, (len=(sizeof(TEXTCHAR)*( (uint32_t)StrLen( funcname ) + 1 ) ) ) );
 					function->name = function->_name;
-					tnprintf( function->_name, len, WIDE( "%s" ), funcname );
+					tnprintf( function->_name, len, "%s", funcname );
 				}
 			}
 			function->library = library;
@@ -1932,7 +1932,7 @@ get_function_name:
 #  ifdef __cplusplus_cli
 			char *procname = CStrDup( function->name );
 			if( l.flags.bLog )
-				lprintf( WIDE( "Get:%s" ), procname );
+				lprintf( "Get:%s", procname );
 			if( !(function->function = (generic_function)GetProcAddress( library->library, procname )) )
 #  else
 #    ifdef _UNICODE
@@ -1940,7 +1940,7 @@ get_function_name:
 			char *tmp;
 #    endif
   			if( l.flags.bLog )
-				lprintf( WIDE( "Get:%s" ), (((uintptr_t)function->name&0xFFFF)==(uintptr_t)function->name)?function->name:"ordinal" );
+				lprintf( "Get:%s", (((uintptr_t)function->name&0xFFFF)==(uintptr_t)function->name)?function->name:"ordinal" );
 			if( !(function->function = (generic_function)GetProcAddress( library->library
 #    ifdef _UNICODE
 																						  , tmp = DupTextToChar( function->name )
@@ -1952,19 +1952,19 @@ get_function_name:
 			{
 				TEXTCHAR tmpname[128];
 #  ifdef UNICODE
-				snwprintf( tmpname, sizeof( tmpname ), WIDE("_%s"), funcname );
+				snwprintf( tmpname, sizeof( tmpname ), "_%s", funcname );
 #  else
-				snprintf( tmpname, sizeof( tmpname ), WIDE("_%s"), funcname );
+				snprintf( tmpname, sizeof( tmpname ), "_%s", funcname );
 #  endif
 #  ifdef __cplusplus_cli
 				char *procname = CStrDup( tmpname );
 				if( l.flags.bLog )
-					lprintf( WIDE( "Get:%s" ), procname );
+					lprintf( "Get:%s", procname );
 				function->function = (generic_function)GetProcAddress( library->library, procname );
 				ReleaseEx( procname DBG_SRC );
 #  else
 				if( l.flags.bLog )
-					lprintf( WIDE( "Get:%s" ), function->name );
+					lprintf( "Get:%s", function->name );
 				function->function = (generic_function)GetProcAddress( library->library
 #    ifdef _UNICODE
 																					  , WcharConvert( tmpname )
@@ -1985,7 +1985,7 @@ get_function_name:
 			if( !function->function )
 			{
 				if( l.flags.bLog )
-					_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to get function %s from %s failed. %d"), funcname, libname, GetLastError() );
+					_xlprintf( 2 DBG_RELAY)( "Attempt to get function %s from %s failed. %d", funcname, libname, GetLastError() );
 				ReleaseEx( function DBG_SRC );
 				return NULL;
 			}
@@ -2007,14 +2007,14 @@ get_function_name:
 			}
 			if( !function->function )
 			{
-				_xlprintf( 2 DBG_RELAY)( WIDE("Attempt to get function %s from %s failed. %s"), funcname, libname, dlerror() );
+				_xlprintf( 2 DBG_RELAY)( "Attempt to get function %s from %s failed. %s", funcname, libname, dlerror() );
 				ReleaseEx( function DBG_SRC );
 				return NULL;
 			}
 #endif
 			if( !l.pFunctionTree )
 				l.pFunctionTree = CreateBinaryTree();
-			//lprintf( WIDE("Adding function %p"), function->function );
+			//lprintf( "Adding function %p", function->function );
 			AddBinaryNode( l.pFunctionTree, function, (uintptr_t)function->function );
 			LinkThing( library->functions, function );
 		}
@@ -2064,7 +2064,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 {
 	if( !f  )
 		return 0;
-	_xlprintf( 1 DBG_RELAY )( WIDE("Unloading function %p"), *f );
+	_xlprintf( 1 DBG_RELAY )( "Unloading function %p", *f );
 	if( (uintptr_t)(*f) < 1000 )
 	{
 		// unload library only...
@@ -2095,7 +2095,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 			 !(--function->references) )
 		{
 			UnlinkThing( function );
-			lprintf( WIDE( "Should remove the node from the tree here... but it crashes intermittantly. (tree list is corrupted)" ) );
+			lprintf( "Should remove the node from the tree here... but it crashes intermittantly. (tree list is corrupted)" );
 			//RemoveLastFoundNode( l.pFunctionTree );
 			library = function->library;
 			if( !library->functions )
@@ -2113,7 +2113,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 		}
 		else
 		{
-			lprintf( WIDE("function was not found - or ref count = %") _32f WIDE(" (5566 means no function)"), function?function->references:5566 );
+			lprintf( "function was not found - or ref count = %" _32f " (5566 means no function)", function?function->references:5566 );
 		}
 	}
 	return FALSE;
@@ -2125,7 +2125,7 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 SYSTEM_PROC( PTHREAD, SpawnProcess )( CTEXTSTR filename, va_list args )
 {
 	uintptr_t (CPROC *newmain)( PTHREAD pThread );
-	newmain = (uintptr_t(CPROC*)(PTHREAD))LoadFunction( filename, WIDE("main") );
+	newmain = (uintptr_t(CPROC*)(PTHREAD))LoadFunction( filename, "main" );
 	if( newmain )
 	{
 		// hmm... suppose I should even thread through my own little header here
@@ -2147,11 +2147,11 @@ TEXTSTR GetArgsString( PCTEXTSTR pArgs )
 	for( n = 1; pArgs && pArgs[n]; n++ )
 	{
 		int space = (StrChr( pArgs[n], ' ' )!=NULL);
-		len += tnprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), WIDE("%s%s%s%s")
-							, n>1?WIDE(" "):WIDE("")
-							, space?WIDE("\""):WIDE("")
+		len += tnprintf( args + len, sizeof( args ) - len * sizeof( TEXTCHAR ), "%s%s%s%s"
+							, n>1?" ":""
+							, space?WIDE("\""):""
 							, pArgs[n]
-							, space?WIDE("\""):WIDE("")
+							, space?WIDE("\""):""
 							);
 	}
 	return args;
@@ -2237,7 +2237,7 @@ LOGICAL IsSystemShuttingDown( void )
 #ifdef WIN32
 	static HANDLE h = INVALID_HANDLE_VALUE;
 	if( h == INVALID_HANDLE_VALUE )
-		h = CreateEvent( NULL, TRUE, FALSE, WIDE( "Windows Is Shutting Down" ) );
+		h = CreateEvent( NULL, TRUE, FALSE, "Windows Is Shutting Down" );
 	if( h != INVALID_HANDLE_VALUE )
 		if( WaitForSingleObject( h, 0 ) == WAIT_OBJECT_0 )
 			return TRUE;

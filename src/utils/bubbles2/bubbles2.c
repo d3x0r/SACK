@@ -115,9 +115,9 @@ SaneWinMain( argc, argv )
 		GetDisplaySizeEx( atoi( argv[1] ), &x, &y, &w, &h );
    else
 		GetDisplaySizeEx( 0, &x, &y, &w, &h );
-	l.shadow = LoadImageFile( WIDE("117.png") );
-	l.cover = LoadImageFile( WIDE("123.png") );
-	l.shaded = LoadImageFile( WIDE("121.png") );
+	l.shadow = LoadImageFile( "117.png" );
+	l.cover = LoadImageFile( "123.png" );
+	l.shaded = LoadImageFile( "121.png" );
 	{
 		GetDisplaySize( &l.w, &l.h );
 		if( w )

@@ -63,16 +63,16 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 	else switch( uMsg )
 	{
 	case WM_MOUSEMOVE:
-		//printf( WIDE("Mouse: %d, %d"), HIWORD( wParam ), LOWORD( wParam ) );
+		//printf( "Mouse: %d, %d", HIWORD( wParam ), LOWORD( wParam ) );
 		break;
 	case WM_USERICONMSG:
-		//lprintf( WIDE("anythign %08x"), lParam );
+		//lprintf( "anythign %08x", lParam );
 		switch( lParam & 0xFF )
 		{
 		case 6: // double right.
 			break;
 		case 4:  // right button down
-			//printf( WIDE("RightDown") );
+			//printf( "RightDown" );
 			break;
 		case 5: // right button up
 			{
@@ -90,20 +90,20 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 					SendMessage( hWnd, WM_COMMAND, MNU_EXIT, 0 );
 #endif
 			}
-			//printf( WIDE("RightUp") );
+			//printf( "RightUp" );
 			break;
 		case 3: // double left
 			if( DblClkCallback )
 				DblClkCallback();
 			break;
 		case 2: // left button down
-			//printf( WIDE("LeftUp") );
+			//printf( "LeftUp" );
 			break;
 		case 1: // left button up
-			//printf( WIDE("LeftDown") );
+			//printf( "LeftDown" );
 			break;
 		default:
-			//Log3( WIDE("Mouse: %d, %d %08x"), HIWORD( wParam ), LOWORD( wParam ), lParam );
+			//Log3( "Mouse: %d, %d %08x", HIWORD( wParam ), LOWORD( wParam ), lParam );
 			break;
 		}
 		break;
@@ -113,7 +113,7 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		{
 		case MNU_EXIT:
 			if( l.flags.bLog )
-				lprintf( WIDE( "Posting quit Message" ) );
+				lprintf( "Posting quit Message" );
 			UnregisterIcon();
 			PostQuitMessage( 0 );
 			exit(0);
@@ -147,7 +147,7 @@ static int CPROC systrayidle( uintptr_t unused )
 		if( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
 		{
 			if( l.flags.bLog )
-				lprintf( WIDE("dispatch %d ..."), msg.message );
+				lprintf( "dispatch %d ...", msg.message );
 			DispatchMessage( &msg );
 			return 1;
 		}
@@ -166,22 +166,22 @@ uintptr_t CPROC RegisterAndCreate( PTHREAD thread )
 	static WNDCLASS wc;  // zero init.
 	static ATOM ac;
 #ifndef __NO_OPTIONS__
-	l.flags.bLog = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/System Tray/Logging Enable" ), 0, TRUE );
+	l.flags.bLog = SACK_GetProfileIntEx( GetProgramName(), "SACK/System Tray/Logging Enable", 0, TRUE );
 #endif
 	if( !ac )
 	{
-		WM_TASKBARCREATED = RegisterWindowMessage(WIDE( "TaskbarCreated" ));
+		WM_TASKBARCREATED = RegisterWindowMessage("TaskbarCreated");
 		memset( &wc, 0, sizeof( WNDCLASS ) );
    		wc.lpfnWndProc   = (WNDPROC)IconMessageHandler;
 		wc.hInstance     = GetModuleHandle( NULL ) ;
-		wc.lpszClassName = WIDE( "AlertAgentIcon" );
+		wc.lpszClassName = "AlertAgentIcon";
 		if( !( ac = RegisterClass(&wc) ) )
 		{
 			TEXTCHAR byBuf[256];
 			if( GetLastError() != ERROR_CLASS_ALREADY_EXISTS )
 			{
-				tnprintf( byBuf, sizeof( byBuf ), WIDE("RegisterClassError: %p %d"), GetModuleHandle( NULL ), GetLastError() );
-				MessageBox( NULL, byBuf, WIDE("BAD"), MB_OK );
+				tnprintf( byBuf, sizeof( byBuf ), "RegisterClassError: %p %d", GetModuleHandle( NULL ), GetLastError() );
+				MessageBox( NULL, byBuf, "BAD", MB_OK );
 				return FALSE;   // stop thread
 			}
 		}
@@ -191,9 +191,9 @@ uintptr_t CPROC RegisterAndCreate( PTHREAD thread )
 	{
 		TEXTCHAR wndname[256];
 		//if( (uintptr_t)icon < 0x10000)
-		//	snprintf( wndname, sizeof( wndname ), WIDE("AlertAgentIcon:%d"), icon );
+		//	snprintf( wndname, sizeof( wndname ), "AlertAgentIcon:%d", icon );
 		//else
-		tnprintf( wndname, sizeof( wndname ), WIDE("AlertAgentIcon:%s"), GetProgramName() );
+		tnprintf( wndname, sizeof( wndname ), "AlertAgentIcon:%s", GetProgramName() );
       /*
 		{
 			HWND prior = NULL;
@@ -212,7 +212,7 @@ uintptr_t CPROC RegisterAndCreate( PTHREAD thread )
 	}
 	if( !ghWndIcon )
 	{
-		MessageBox( NULL, WIDE("System Tray icon cannot load (no window)"), WIDE("Exiting now"), MB_OK );
+		MessageBox( NULL, "System Tray icon cannot load (no window)", "Exiting now", MB_OK );
 		return FALSE;
 	}
 
@@ -245,7 +245,7 @@ int RegisterIconHandler( CTEXTSTR param_icon )
 		// and continues to receive messages... since the thread parameter is NOT NULL
 		// when a threadproc is invoked by ThreadTo();
 		if( !param_icon )
-			icon = WIDE("default");
+			icon = "default";
 		else
 			icon = param_icon;
 		ThreadTo( RegisterAndCreate, 0 );
@@ -279,11 +279,11 @@ void BasicExitMenu( void )
 #ifdef WIN32
  	hMainMenu = CreatePopupMenu();
 	AppendMenu( hMainMenu, MF_STRING, TXT_STATIC, filepath );
-	AppendMenu( hMainMenu, MF_STRING, MNU_EXIT, WIDE("&Exit") );
+	AppendMenu( hMainMenu, MF_STRING, MNU_EXIT, "&Exit" );
 #else
 	hMainMenu = CreatePopup();
 	AppendPopupItem( hMainMenu, MF_STRING, TXT_STATIC, filepath );
-	AppendPopupItem( hMainMenu, MF_STRING, MNU_EXIT, WIDE("&Exit") );
+	AppendPopupItem( hMainMenu, MF_STRING, MNU_EXIT, "&Exit" );
 #endif
 	{
 		INDEX idx;
@@ -431,7 +431,7 @@ int RegisterIconEx( CTEXTSTR user_icon DBG_PASS )
 		//char msg[128];
 		tried_default++;
 		//sprintf( msg, DBG_FILELINEFMT "Failed to load icon" DBG_RELAY );
-		//MessageBox( NULL, msg, WIDE("Systray Library"), MB_OK );
+		//MessageBox( NULL, msg, "Systray Library", MB_OK );
       goto SetDefault;
 	}
 	status = Shell_NotifyIcon( NIM_ADD, &nid );
@@ -489,8 +489,8 @@ void ChangeIconEx( CTEXTSTR icon DBG_PASS )
 	if( !nid.hIcon )
 	{
 		TEXTCHAR msg[128];
-		tnprintf( msg, sizeof( msg ), DBG_FILELINEFMT WIDE("Failed to load icon") DBG_RELAY );
-		MessageBox( NULL, msg, WIDE("Systray Library"), MB_OK );
+		tnprintf( msg, sizeof( msg ), DBG_FILELINEFMT "Failed to load icon" DBG_RELAY );
+		MessageBox( NULL, msg, "Systray Library", MB_OK );
 	}
 	Shell_NotifyIcon( NIM_MODIFY, &nid );
 	DeleteObject( hLastIcon );
@@ -517,11 +517,11 @@ void TerminateIcon( void )
 	int attempt = 0;
 	HWND hWndOld;
 	TEXTCHAR iconwindow[256];
-	tnprintf( iconwindow, sizeof( iconwindow ), WIDE( "AlertAgentIcon:%s" ), GetProgramName() );
-	while( ( hWndOld = FindWindow( WIDE("AlertAgentIcon"), iconwindow ) ) && ( attempt < 5 ) )
+	tnprintf( iconwindow, sizeof( iconwindow ), "AlertAgentIcon:%s", GetProgramName() );
+	while( ( hWndOld = FindWindow( "AlertAgentIcon", iconwindow ) ) && ( attempt < 5 ) )
 	{
 		if( l.flags.bLog )
-			Log( WIDE("Telling previous instance to exit.") );
+			Log( "Telling previous instance to exit." );
 		SendMessage( hWndOld, WM_COMMAND, /*MNU_EXIT*/1000, 0 );
 		Sleep( 100 );
       attempt++;
@@ -532,12 +532,12 @@ void TerminateIcon( void )
 		DWORD dwThread = GetWindowThreadProcessId( hWndOld, &dwProcess );
 		HANDLE hProc;
 		if( l.flags.bLog )
-			lprintf( WIDE( "posting didn't cause process to exit... attempting to terminate." ) );
+			lprintf( "posting didn't cause process to exit... attempting to terminate." );
 		hProc = OpenProcess( SYNCHRONIZE | PROCESS_TERMINATE, FALSE, dwProcess );
 		if( hProc == NULL )
 		{
 			if( l.flags.bLog )
-				lprintf( WIDE( "Failed to open process handle..." ) );
+				lprintf( "Failed to open process handle..." );
 			return;
 		}
 		TerminateProcess( hProc, 0xFEED );

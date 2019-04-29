@@ -15,7 +15,7 @@
 #define EINVAL -3
 #define E2BIG -4
 #ifdef DEBUG_DATA_XFER
-#  define msgsnd( q,msg,len,opt) ( lprintf( WIDE("Send Message...") ), LogBinary( (uint8_t*)msg, (len)+4  ), EnqueMsg( q,(msg),(len),(opt)) )
+#  define msgsnd( q,msg,len,opt) ( lprintf( "Send Message..." ), LogBinary( (uint8_t*)msg, (len)+4  ), EnqueMsg( q,(msg),(len),(opt)) )
 #else
 #  define msgsnd EnqueMsg
 #endif
@@ -35,8 +35,8 @@
 	#define MSGFAIL NULL
 #else
 #ifdef DEBUG_DATA_XFER
-   //#define msgsnd( q,msg,len,opt) ( _xlprintf(1 DBG_RELAY)( WIDE("Send Message...") ), LogBinary( (POINTER)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
-   #define msgsnd( q,msg,len,opt) ( lprintf( WIDE("Send Message...") ), LogBinary( (POINTER)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
+   //#define msgsnd( q,msg,len,opt) ( _xlprintf(1 DBG_RELAY)( "Send Message..." ), LogBinary( (POINTER)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
+   #define msgsnd( q,msg,len,opt) ( lprintf( "Send Message..." ), LogBinary( (POINTER)msg, (len)+4  ), msgsnd( q,(msg),(len),(opt)) )
 #endif
 	#define msgget( name,n,opts) msgget( n,opts )
    #define MSGFAIL -1
@@ -48,9 +48,9 @@
 int main( void )
 {
 #ifdef __64__
-#define ssize_tf WIDE("lu")
+#define ssize_tf "lu"
 #else
-#define ssize_tf WIDE("u")
+#define ssize_tf "u"
 #endif
 	static char buffer[4096];
 	ssize_t len;
@@ -83,7 +83,7 @@ int main( void )
 			len = msgrcv( queue, (MSGBUF_TYPE)buffer, sizeof( buffer ) - sizeof(long), 0, IPC_NOWAIT );
 			if( len != MSGFAIL )
 			{
-				lprintf( WIDE("Received %") ssize_tf WIDE(" bytes from queue 1")
+				lprintf( "Received %" ssize_tf " bytes from queue 1"
 						 , len );
             LogBinary( (uint8_t*)buffer, len + sizeof( long ) );
 			}
@@ -101,7 +101,7 @@ int main( void )
 			len = msgrcv( queue, (MSGBUF_TYPE)buffer, sizeof( buffer ) - sizeof(long), 0, IPC_NOWAIT );
 			if( len != MSGFAIL )
 			{
-				lprintf( WIDE("Received %") ssize_tf WIDE(" bytes from queue 2"), len );
+				lprintf( "Received %" ssize_tf " bytes from queue 2", len );
             LogBinary( (uint8_t*)buffer, len + sizeof( long ) );
 			}
 		} while( len != MSGFAIL );
@@ -117,7 +117,7 @@ int main( void )
 			len = msgrcv( queue, (MSGBUF_TYPE)buffer, sizeof( buffer ) - sizeof(long), 0, IPC_NOWAIT );
 			if( len != MSGFAIL )
 			{
-				lprintf( WIDE("Received %") ssize_tf WIDE(" bytes from queue 3"), len );
+				lprintf( "Received %" ssize_tf " bytes from queue 3", len );
             LogBinary( (uint8_t*)buffer, len + sizeof( long ) );
 			}
 		} while( len != MSGFAIL );
@@ -133,7 +133,7 @@ int main( void )
 			len = msgrcv( queue, (MSGBUF_TYPE)buffer, sizeof( buffer ) - sizeof(long), 0, IPC_NOWAIT );
 			if( len != MSGFAIL )
 			{
-				lprintf( WIDE("Received %") ssize_tf WIDE(" bytes from queue 4"), len );
+				lprintf( "Received %" ssize_tf " bytes from queue 4", len );
             LogBinary( (uint8_t*)buffer, len + sizeof( long ) );
 			}
 		} while( len != MSGFAIL );

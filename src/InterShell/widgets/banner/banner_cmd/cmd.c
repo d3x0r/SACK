@@ -30,28 +30,28 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 	int arg = 1;
 	if( argc == 1 )
 	{
-		MessageBox( NULL, WIDE( "Available Arguments\n" )
-					  WIDE( " -back $aarrggbb  : set background color in hex, alpha, red, green, blue [default black]\n" )
-					  WIDE( " -text $aarrggbb  : set text color in hex, alpha, red, green, blue [default white]\n" )
-					  WIDE( " -lines N  : Set the target number of lines (font height, bigger number is smaller) [default 20]\n" )
-					  WIDE( " -cols N  : Set the target number of columns (font width, bigger number is smaller) [default 30]\n" )
-					  WIDE( " -file <filename>  : Use contents fo the file specified for text\n" )
-					  WIDE( " -alpha : enable alpha transparency display\n" )
-					  WIDE( " -dead : disable click and keyboard bypass\n" )
-					  WIDE( " -display N : specify which display to show on\n" )
-					  WIDE( " -timeout N : default time delay for no action (milliseconds)\n" )
-					  WIDE( "\n" )
-					  WIDE( " -notop : shows the banner as not topmost (default is top).\n" )
-					  WIDE( " -yesno : shows the Yes/No buttons, and returns error level 0 for yes and 1 for no.\n" )
-					  WIDE( " -okcancel : shows the Okay/Cancel buttons, and returns error level 0 for yes and 1 for no.\n" )
-					  WIDE( " -yesno and -okaycancel : returns error level 0 for yes and 1 for no, 2 for cancel, 3 for ok.\n" )
-					  WIDE( " \n" )
-					  WIDE( " any other unknown argument or other word will show as text.\n" )
+		MessageBox( NULL, "Available Arguments\n"
+					  " -back $aarrggbb  : set background color in hex, alpha, red, green, blue [default black]\n"
+					  " -text $aarrggbb  : set text color in hex, alpha, red, green, blue [default white]\n"
+					  " -lines N  : Set the target number of lines (font height, bigger number is smaller) [default 20]\n"
+					  " -cols N  : Set the target number of columns (font width, bigger number is smaller) [default 30]\n"
+					  " -file <filename>  : Use contents fo the file specified for text\n"
+					  " -alpha : enable alpha transparency display\n"
+					  " -dead : disable click and keyboard bypass\n"
+					  " -display N : specify which display to show on\n"
+					  " -timeout N : default time delay for no action (milliseconds)\n"
+					  "\n"
+					  " -notop : shows the banner as not topmost (default is top).\n"
+					  " -yesno : shows the Yes/No buttons, and returns error level 0 for yes and 1 for no.\n"
+					  " -okcancel : shows the Okay/Cancel buttons, and returns error level 0 for yes and 1 for no.\n"
+					  " -yesno and -okaycancel : returns error level 0 for yes and 1 for no, 2 for cancel, 3 for ok.\n"
+					  " \n"
+					  " any other unknown argument or other word will show as text.\n"
 					  WIDE( " banner_command -back $20800010 -text $FF70A080 Show \"This Text On\" Banner\n" )
-					  WIDE( "   - the prior command will show 3 lines 'show', 'this text on', 'banner'" )
+					  "   - the prior command will show 3 lines 'show', 'this text on', 'banner'"
 					  WIDE( " banner_command Show \"\\\"This Text On\\\"\" Banner\n" )
-					  WIDE( "   - the prior command shows how to include showing quotes" )
-					 , WIDE( "Usage" )
+					  "   - the prior command shows how to include showing quotes"
+					 , "Usage"
 					 , MB_OK );
       return 0;
 	}
@@ -62,7 +62,7 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 	{
 		if( argv[arg][0]=='-' )
 		{
-			if( StrCaseCmp( argv[arg]+1, WIDE( "back" ) ) == 0 )
+			if( StrCaseCmp( argv[arg]+1, "back" ) == 0 )
 			{
 				// blah
 				arg++;
@@ -75,7 +75,7 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 					LineRelease( tmp2 );
 				}
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "text" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "text" ) == 0 )
 			{
 				arg++;
 				if( arg < argc )
@@ -88,7 +88,7 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 				}
 
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "lines" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "lines" ) == 0 )
 			{
 				arg++;
 				if( arg < argc )
@@ -100,7 +100,7 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 #endif
 				}
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "cols" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "cols" ) == 0 )
 			{
 				arg++;
 				if( arg < argc )
@@ -112,7 +112,7 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 #endif
 				}
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "display" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "display" ) == 0 )
 			{
 				arg++;
 				if( arg < argc )
@@ -124,7 +124,7 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 #endif
 				}
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "timeout" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "timeout" ) == 0 )
 			{
 				arg++;
 				if( arg < argc )
@@ -136,15 +136,15 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 #endif
 				}
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "dead" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "dead" ) == 0 )
 			{
             l.flags.bDead = 1;
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "alpha" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "alpha" ) == 0 )
 			{
             l.flags.bAlpha = 1;
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "file" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "file" ) == 0 )
 			{
 				// blah
 				arg++;
@@ -162,15 +162,15 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 					}
 				}
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "notop" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "notop" ) == 0 )
 			{
             l.flags.bTop = 0;
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "yesno" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "yesno" ) == 0 )
 			{
             l.flags.bYesNo = 1;
 			}
-			else if( StrCaseCmp( argv[arg]+1, WIDE( "okcancel" ) ) == 0 )
+			else if( StrCaseCmp( argv[arg]+1, "okcancel" ) == 0 )
 			{
             l.flags.bOkayCancel = 1;
 			}
@@ -179,10 +179,10 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 				if( !pvt )
 				{
 					pvt = VarTextCreate();
-					vtprintf( pvt, WIDE( "%s" ), argv[arg] );
+					vtprintf( pvt, "%s", argv[arg] );
 				}
 				else
-					vtprintf( pvt, WIDE( "\n%s" ), argv[arg] );
+					vtprintf( pvt, "\n%s", argv[arg] );
 			}
 		}
 		else
@@ -190,10 +190,10 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 			if( !pvt )
 			{
 				pvt = VarTextCreate();
-            vtprintf( pvt, WIDE( "%s" ), argv[arg] );
+            vtprintf( pvt, "%s", argv[arg] );
 			}
          else
-            vtprintf( pvt, WIDE( "\n%s" ), argv[arg] );
+            vtprintf( pvt, "\n%s", argv[arg] );
 		}
       arg++;
 	}
@@ -204,7 +204,7 @@ int HandleArgs( int argc, TEXTCHAR **argv )
 
 	if( !l.text )
 	{
-      l.text = WIDE( "INVALID COMMAND LINE\nARGUMENTS" ) ;
+      l.text = "INVALID COMMAND LINE\nARGUMENTS" ;
 	}
 	else
 	{
@@ -257,7 +257,7 @@ SaneWinMain( argc, argv )
 
 	{
 		int result2 = WaitForBanner2( banner );
-      lprintf( WIDE( "result is %d" ), result,result2 );
+      lprintf( "result is %d", result,result2 );
 		return result;
 	}
 

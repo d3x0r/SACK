@@ -87,7 +87,7 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
    {
 		PrintVector( R1 );
 		PrintVector( R2 );
-		lprintf( WIDE("too far from the same... %g %g "), t1, t2 );
+		lprintf( "too far from the same... %g %g ", t1, t2 );
       return FALSE;
    }
    *pT2 = t2;
@@ -123,7 +123,7 @@ int Parallel( PVECTOR pv1, PVECTOR pv2 )
        a > -0.0001 )  // near zero is sufficient...
 	{
 #ifdef DEBUG_PLANE_INTERSECTION
-		Log( WIDE("Planes are not parallel") );
+		Log( "Planes are not parallel" );
 #endif
       return FALSE; // not parallel..
    }
@@ -136,7 +136,7 @@ int Parallel( PVECTOR pv1, PVECTOR pv2 )
 
    cosTheta = a / ( b * c );
 #ifdef FULL_DEBUG
-   lprintf( WIDE(" a: %g b: %g c: %g cos: %g \n"), a, b, c, cosTheta );
+   lprintf( " a: %g b: %g c: %g cos: %g \n", a, b, c, cosTheta );
 #endif
    if( cosTheta > 0.99999 ||
        cosTheta < -0.999999 ) // not near 0degrees or 180degrees (aligned or opposed)
@@ -168,7 +168,7 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 
    if( !a )
 	{
-		//Log1( DBG_FILELINEFMT WIDE("Bad choice - slope vs normal is 0") DBG_RELAY, 0 );
+		//Log1( DBG_FILELINEFMT "Bad choice - slope vs normal is 0" DBG_RELAY, 0 );
 		//PrintVector( Slope );
       //PrintVector( n );
       return FALSE;
@@ -178,7 +178,7 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
    c = Length( n );
 	if( !b || !c )
 	{
-      Log( WIDE("Slope and or n are near 0") );
+      Log( "Slope and or n are near 0" );
 		return FALSE; // bad vector choice - if near zero length...
 	}
 
@@ -203,7 +203,7 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 	}
 	else
 	{
-		Log1( WIDE("Parallel... %g\n"), cosPhi );
+		Log1( "Parallel... %g\n", cosPhi );
 		PrintVector( Slope );
 		PrintVector( n );
       // plane and line are parallel if slope and normal are perpendicular
@@ -284,7 +284,7 @@ int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD 
 			SetPoint( v1, v2 );
 		ApplyInverse( camera->origin_camera, v2, v1 );
 
-		//lprintf( WIDE("%g,%g,%g  from %g,%g,%g "), v1[0], v1[1], v1[2], v2[0], v2[1] , v2[2] );
+		//lprintf( "%g,%g,%g  from %g,%g,%g ", v1[0], v1[1], v1[2], v2[0], v2[1] , v2[2] );
 
 		// so this puts the point back in world space
 		{
@@ -295,12 +295,12 @@ int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD 
 			v4[2] = 1.0;
 
 			cosphi = IntersectLineWithPlane( v2, _0, _Z, v4, &t );
-			//lprintf( WIDE("t is %g  cosph = %g"), t, cosphi );
+			//lprintf( "t is %g  cosph = %g", t, cosphi );
 			if( cosphi != 0 )
 				addscaled( v1, _0, v2, t );
 		}
 
-		//lprintf( WIDE("%g,%g became like %g,%g,%g or %g,%g"), x, y
+		//lprintf( "%g,%g became like %g,%g,%g or %g,%g", x, y
    		//		 , v1[0], v1[1], v1[2]
 		//		 , (v1[0]/2.5 * l.viewport[2]) + (l.viewport[2]/2)
 		//		 , (l.viewport[3]/2) - (v1[1]/(2.5/l.aspect) * l.viewport[3])
@@ -460,7 +460,7 @@ uintptr_t/*PRENDERER*/ CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t
 				newx = (int)target_surface_point[0];
 				newy = (int)target_surface_point[1];
 				if( 0 )
-				lprintf( WIDE("Is %d,%d in %d,%d(%dx%d) to %d,%d")
+				lprintf( "Is %d,%d in %d,%d(%dx%d) to %d,%d"
 					 ,newx, newy
 					 ,check->pWindowPos.x, check->pWindowPos.y
 					 ,check->pWindowPos.cx, check->pWindowPos.cy
@@ -474,7 +474,7 @@ uintptr_t/*PRENDERER*/ CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t
 					if( check && check->pMouseCallback)
 					{
 						if( l.flags.bLogMouseEvent )
-							lprintf( WIDE("Sent Mouse Proper. %d,%d %08x"), newx, newy, b );
+							lprintf( "Sent Mouse Proper. %d,%d %08x", newx, newy, b );
 						//InverseOpenGLMouse( camera, check, newx, newy, NULL, NULL );
 						l.current_mouse_event_camera = camera;
 						if( !l.flags.bVirtualManuallyCapturedMouse )
@@ -506,7 +506,7 @@ uintptr_t/*PRENDERER*/ CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t
 							//lprintf( "not used; not manual... reset %p to %p", l.hVirtualCaptured, l.hVirtualCapturedPrior );
 							if( l.hVirtualCaptured == NULL && l.hVirtualCapturedPrior != NULL )
 							{
-								lprintf( WIDE("This is an abnormality!") );
+								lprintf( "This is an abnormality!" );
 							}
 							if( l.hVirtualCaptured == l.hVirtualCapturedPrior && l.hVirtualCaptured )
 							{

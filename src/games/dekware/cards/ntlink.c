@@ -20,7 +20,7 @@ int CPROC Create(PSENTIENT ps, PENTITY pe, PTEXT parameters);
 int CPROC CreateTable(PSENTIENT ps, PENTITY pe, PTEXT parameters);
 
 #ifdef GCC
-#define DebugBreak() asm( WIDE("int $3\n") );
+#define DebugBreak() asm( "int $3\n" );
 #endif
 
 //extern int b95;
@@ -45,7 +45,7 @@ PTEXT ShowTable( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 	return *ppLastValue;
 }
 
-static int ObjectMethod( WIDE("Cards"), WIDE("PlayCard"), WIDE("Take a card from hand or deck and put into play.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Cards", "PlayCard", "Take a card from hand or deck and put into play." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int PlayCard( PSENTIENT ps, PTEXT pCard )
 {
 	PHAND pHand = (PHAND)GetLink( &ps->Current->pPlugin, iHand );
@@ -58,7 +58,7 @@ static int ObjectMethod( WIDE("Cards"), WIDE("PlayCard"), WIDE("Take a card from
 	else if( pd )
 	{
 		// play top card to the table.
-		DeckPlayCard( pd, GrabCard( GetCardStack( pd, WIDE("Draw") )->cards ) );
+		DeckPlayCard( pd, GrabCard( GetCardStack( pd, "Draw" )->cards ) );
 	}
 	else
 	{
@@ -68,7 +68,7 @@ static int ObjectMethod( WIDE("Cards"), WIDE("PlayCard"), WIDE("Take a card from
 }
 
 
-static int ObjectMethod( WIDE("Hand"), WIDE("PlayCard"), WIDE("Take a card from hand or deck and put into play.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Hand", "PlayCard", "Take a card from hand or deck and put into play." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int PlayCard( PSENTIENT ps, PTEXT pCard )
 {
 	PHAND pHand = (PHAND)GetLink( &ps->Current->pPlugin, iHand );
@@ -81,7 +81,7 @@ static int ObjectMethod( WIDE("Hand"), WIDE("PlayCard"), WIDE("Take a card from 
 	else if( pd )
 	{
 		// play top card to the table.
-		DeckPlayCard( pd, GrabCard( GetCardStack( pd, WIDE("Draw") )->cards ) );
+		DeckPlayCard( pd, GrabCard( GetCardStack( pd, "Draw" )->cards ) );
 	}
 	else
 	{
@@ -92,7 +92,7 @@ static int ObjectMethod( WIDE("Hand"), WIDE("PlayCard"), WIDE("Take a card from 
 
 //---------------------------------------------------------------------
 
-//static int ObjectMethod( WIDE("Hand"), WIDE("Discard"), WIDE("Take card from hand or put into discard.") )( PSENTIENT ps, PTEXT params )
+//static int ObjectMethod( "Hand", "Discard", "Take card from hand or put into discard." )( PSENTIENT ps, PTEXT params )
 static int DoDiscard( PSENTIENT ps, PENTITY pe, PTEXT pCards )
 {
    PTEXT pCard;
@@ -111,7 +111,7 @@ static int DoDiscard( PSENTIENT ps, PENTITY pe, PTEXT pCards )
       {
          if( !IsNumber( pCard ) )
          {
-            DECLTEXT( msg, WIDE("Parameter to discard is not a number...") );
+            DECLTEXT( msg, "Parameter to discard is not a number..." );
             if( !ps->CurrentMacro )
 		         EnqueLink( &ps->Command->Output, &msg );
             continue;
@@ -119,7 +119,7 @@ static int DoDiscard( PSENTIENT ps, PENTITY pe, PTEXT pCards )
          else
          {
             PCARD pCurrent;
-            pCurrent = GetCardStackFromHand( ph, WIDE("Cards") )->cards;
+            pCurrent = GetCardStackFromHand( ph, "Cards" )->cards;
             nCard = (INDEX)IntNumber( pCard );
             while( nCard > 1 && pCurrent ) // one based list
             {
@@ -132,14 +132,14 @@ static int DoDiscard( PSENTIENT ps, PENTITY pe, PTEXT pCards )
 		         	AddLink( &pCardList, pCurrent );
 					else
 					{
-						DECLTEXT( msg, WIDE("Selected the same card more than once") );
+						DECLTEXT( msg, "Selected the same card more than once" );
 						EnqueLink( &ps->Command->Output, &msg );
 					}
             }
 				else
 				{
 					// this aborts discarding anything if any one card was bad.
-		         DECLTEXT( msg, WIDE("Invalid card selected...") );
+		         DECLTEXT( msg, "Invalid card selected..." );
       	      if( !ps->CurrentMacro )
 		   	      EnqueLink( &ps->Command->Output, &msg );
 					DeleteList( &pCardList );
@@ -149,7 +149,7 @@ static int DoDiscard( PSENTIENT ps, PENTITY pe, PTEXT pCards )
       }
       LIST_FORALL( pCardList, nCard, PCARD, pcCard )
       {
-      	Log2( WIDE("Discarding %d %d"), nCard, pcCard->id );
+      	Log2( "Discarding %d %d", nCard, pcCard->id );
       	DeckDiscard( ph->Deck, GrabCard( pcCard ) );
       }
 		DeleteList( &pCardList );
@@ -161,7 +161,7 @@ static int DoDiscard( PSENTIENT ps, PENTITY pe, PTEXT pCards )
 		{
 			// no parameters...
 			// discards one card.
-			DeckDiscard( pd, GrabCard( GetCardStack( pd, WIDE("Draw") )->cards ) );
+			DeckDiscard( pd, GrabCard( GetCardStack( pd, "Draw" )->cards ) );
 		}
 		else
 		{
@@ -171,28 +171,28 @@ static int DoDiscard( PSENTIENT ps, PENTITY pe, PTEXT pCards )
    return 0;
 }
 
-static int ObjectMethod( WIDE("Hand"), WIDE("Discard"), WIDE("Take card from hand, put into discard.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Hand", "Discard", "Take card from hand, put into discard." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
    return DoDiscard( ps, pe, params );
 }
-static int ObjectMethod( WIDE("Cards"), WIDE("Discard"), WIDE("Take card from deck, put into discard.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Cards", "Discard", "Take card from deck, put into discard." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
    return DoDiscard( ps, pe, params );
 }
 
 //---------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Hand"), WIDE("draw"), WIDE("Draw a card from the deck.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Hand", "draw", "Draw a card from the deck." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int DrawACard( PSENTIENT ps, PTEXT pNames )
 {
 	PHAND ph = (PHAND)GetLink( &ps->Current->pPlugin, iHand );
 	if( ph )
 	{
-		HandAdd( ph, GrabCard( GetCardStack( ph->Deck, WIDE("Draw") )->cards ) );
+		HandAdd( ph, GrabCard( GetCardStack( ph->Deck, "Draw" )->cards ) );
 	}
 	else
    {
-      DECLTEXT( msg, WIDE("Cannot draw, object not a hand") );
+      DECLTEXT( msg, "Cannot draw, object not a hand" );
       EnqueLink( &ps->Command->Output, &msg );
    }
    return 0;
@@ -210,7 +210,7 @@ void EntDeleteHand( PENTITY pe )
       RemoveMethod( pe, Methods + METH_DISCARD );
 		RemoveMethod( pe, Methods + METH_DRAW );
 #endif
-		Log( WIDE("Removing volatile variables from hand") );
+		Log( "Removing volatile variables from hand" );
 #if 0
       RemoveVolatileVariable( pe, Variables );
       RemoveVolatileVariable( pe, Variables + 1 );
@@ -236,7 +236,7 @@ int DealPlayTo( PSENTIENT ps, PTEXT pNames, int bPlayTo )
 	pd = (PDECK)GetLink( &ps->Current->pPlugin, iCardDeck );
    if( !pd )
    {
-      vtprintf( pvt, WIDE("%s is not a deck of cards."), GetText( GetName( ps->Current ) ) );
+      vtprintf( pvt, "%s is not a deck of cards.", GetText( GetName( ps->Current ) ) );
       EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
       VarTextEmpty( pvt );
       return 0;
@@ -263,27 +263,27 @@ int DealPlayTo( PSENTIENT ps, PTEXT pNames, int bPlayTo )
 				{
 					if( !pe->pControlledBy )
 					{
-						vtprintf( pvt, WIDE("%s is not aware...."), GetText( pName ) );
+						vtprintf( pvt, "%s is not aware....", GetText( pName ) );
 						EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
 						break;
 					}
 					pe->pControlledBy->pToldBy = ps;
-					Assimilate( pe, ps, WIDE("Hand"), NULL );
+					Assimilate( pe, ps, "Hand", NULL );
 					ph = (PHAND)GetLink( &pe->pPlugin, iHand );
             }
-            pc = GetCardStack( pd, WIDE("Draw") )->cards;
+            pc = GetCardStack( pd, "Draw" )->cards;
             if( pc )
 			{
 				PCARD *ppDest;
 				// unlink from the draw list
-				if( GetCardStack( pd, WIDE("Draw") )->cards = pc->next )
-               		pc->next->me = &GetCardStack( pd, WIDE("Draw") )->cards;
+				if( GetCardStack( pd, "Draw" )->cards = pc->next )
+               		pc->next->me = &GetCardStack( pd, "Draw" )->cards;
 
 				// determine destination to link card to
 				if( bPlayTo )
-					ppDest = &GetCardStackFromHand( ph, WIDE("Showing") )->cards;
+					ppDest = &GetCardStackFromHand( ph, "Showing" )->cards;
 				else
-					ppDest = &GetCardStackFromHand( ph, WIDE("Cards") )->cards;
+					ppDest = &GetCardStackFromHand( ph, "Cards" )->cards;
 
 					// link card into new list.
 					if( pc->next = *ppDest )
@@ -294,7 +294,7 @@ int DealPlayTo( PSENTIENT ps, PTEXT pNames, int bPlayTo )
             }
             else
             {
-               DECLTEXT( msg, WIDE("Deck is out of cards.") );
+               DECLTEXT( msg, "Deck is out of cards." );
                EnqueLink( &ps->Command->Output, &msg );
                VarTextEmpty( pvt );
                return 0;
@@ -302,7 +302,7 @@ int DealPlayTo( PSENTIENT ps, PTEXT pNames, int bPlayTo )
          }
          else
          {
-            vtprintf( pvt, WIDE("Could not see %s to deal to."), GetText( pName ) );
+            vtprintf( pvt, "Could not see %s to deal to.", GetText( pName ) );
             EnqueLink( &ps->Command->Output, VarTextGet( pvt ) );
          }
 			pName = next_param;
@@ -315,7 +315,7 @@ int DealPlayTo( PSENTIENT ps, PTEXT pNames, int bPlayTo )
 
 //---------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Cards"), WIDE("DealTo"), WIDE("deal a card to an object.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Cards", "DealTo", "deal a card to an object." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int DealTo( PSENTIENT ps, PTEXT pNames )
 {
    return DealPlayTo( ps, params, FALSE );
@@ -323,14 +323,14 @@ static int ObjectMethod( WIDE("Cards"), WIDE("DealTo"), WIDE("deal a card to an 
 
 //---------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Cards"), WIDE("PlayTo"), WIDE("deal a card to an object (on table, face up).") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Cards", "PlayTo", "deal a card to an object (on table, face up)." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int PlayTo( PSENTIENT ps, PTEXT pNames )
 {
    return DealPlayTo( ps, params, TRUE );
 }
 //---------------------------------------------------------------------
 
-static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokerhand"), WIDE("Shows name of the current poker hand") )( PENTITY pe, PTEXT *ppLastValue )
+static PTEXT ObjectVolatileVariableGet( "hand", "pokerhand", "Shows name of the current poker hand" )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT GetPokerHand( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
 	return GetPokerHandName( (PHAND)GetLink( &pe->pPlugin, iHand ), ppLastValue );
@@ -338,7 +338,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokerhand"), WIDE("S
 
 //---------------------------------------------------------------------
 
-static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokervalue"), WIDE("Shows current poker value of hand (numeric)") )( PENTITY pe, PTEXT *ppLastValue )
+static PTEXT ObjectVolatileVariableGet( "hand", "pokervalue", "Shows current poker value of hand (numeric)" )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT GetPokerValue( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
     if( *ppLastValue )
@@ -351,7 +351,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokervalue"), WIDE("
 
 //---------------------------------------------------------------------
 
-static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("cards"), WIDE("count of cards in hand") )( PENTITY pe, PTEXT *ppLastValue )
+static PTEXT ObjectVolatileVariableGet( "hand", "cards", "count of cards in hand" )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT GetHandSize( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
    PHAND ph;
@@ -362,7 +362,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("cards"), WIDE("count
    ph = (PHAND)GetLink( &pe->pPlugin, iHand );
    if( !ph ) // this really can't happen anymore.
    {
-      DECLTEXT( msg, WIDE("Object is not a card player.") );
+      DECLTEXT( msg, "Object is not a card player." );
       *ppLastValue = (PTEXT)&msg;
       return *ppLastValue;
    }
@@ -375,7 +375,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("cards"), WIDE("count
 
 //---------------------------------------------------------------------
 
-static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokercards"), WIDE("Just list the cards of the hand(full player hand iterator?)") )( PENTITY pe, PTEXT *ppLastValue )
+static PTEXT ObjectVolatileVariableGet( "hand", "pokercards", "Just list the cards of the hand(full player hand iterator?)" )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT GetPokerCards( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
    // hmm where to put the output?! so that it can be used in script....
@@ -388,7 +388,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokercards"), WIDE("
    ph = (PHAND)GetLink( &pe->pPlugin, iHand );
    if( !ph )
    {
-      DECLTEXT( msg, WIDE("Object is not a card player.") );
+      DECLTEXT( msg, "Object is not a card player." );
       *ppLastValue = (PTEXT)&msg;
       return *ppLastValue;
    }
@@ -401,7 +401,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("pokercards"), WIDE("
 //---------------------------------------------------------------------
 
 
-static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("ShowHand"), WIDE("Shows the cards in the current hand") )( PENTITY pe, PTEXT *ppLastValue )
+static PTEXT ObjectVolatileVariableGet( "hand", "ShowHand", "Shows the cards in the current hand" )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT ShowHand( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
    // hmm where to put the output?! so that it can be used in script....
@@ -414,7 +414,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("ShowHand"), WIDE("Sh
    ph = (PHAND)GetLink( &pe->pPlugin, iHand );
    if( !ph )
    {
-      DECLTEXT( msg, WIDE("Object is not a card player.") );
+      DECLTEXT( msg, "Object is not a card player." );
       *ppLastValue = (PTEXT)&msg;
       return *ppLastValue;
    }
@@ -427,7 +427,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("hand"), WIDE("ShowHand"), WIDE("Sh
 
 //---------------------------------------------------------------------
 
-static PTEXT ObjectVolatileVariableGet( WIDE("cards"), WIDE("Rules"), WIDE("Shows the current rules of deck") )( PENTITY pe, PTEXT *ppLastValue )
+static PTEXT ObjectVolatileVariableGet( "cards", "Rules", "Shows the current rules of deck" )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT GetDeckRules( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
 	PVARTEXT pvt = VarTextCreate();
@@ -435,7 +435,7 @@ static PTEXT ObjectVolatileVariableGet( WIDE("cards"), WIDE("Rules"), WIDE("Show
 	return NULL;
 }
 
-static PTEXT ObjectVolatileVariableSet( WIDE("cards"), WIDE("Rules"), WIDE("Shows the current rules of deck") )( PENTITY pe, PTEXT pNewValue )
+static PTEXT ObjectVolatileVariableSet( "cards", "Rules", "Shows the current rules of deck" )( PENTITY pe, PTEXT pNewValue )
 //PTEXT SetDeckRules( uintptr_t psv, PENTITY pe, PTEXT pNewValue )
 {
 	// /deck/decl rules poker holdem
@@ -470,11 +470,11 @@ static PTEXT ObjectVolatileVariableSet( WIDE("cards"), WIDE("Rules"), WIDE("Show
 		PTEXT word;
 		for( word = pNewValue; word; word = NEXTLINE( word ) )
 		{
-			if( OptionLike( word, WIDE("hold") ) )
+			if( OptionLike( word, "hold" ) )
 			{	
 				pd->flags.bHold = TRUE;
 			}
-			else if( OptionLike( word, WIDE("play") ) )
+			else if( OptionLike( word, "play" ) )
 			{
 				pd->flags.bHold = FALSE;
 			}
@@ -492,14 +492,14 @@ static PTEXT ObjectVolatileVariableSet( WIDE("cards"), WIDE("Rules"), WIDE("Show
 
 //---------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Cards"), WIDE("shuffle"), WIDE("Gather and shuffle all cards.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Cards", "shuffle", "Gather and shuffle all cards." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int DoShuffle( PSENTIENT ps, PTEXT params )
 {
    PDECK pd;
    pd = (PDECK)GetLink( &ps->Current->pPlugin, iCardDeck );
    if( !pd )
    {
-      DECLTEXT( msg, WIDE("Object is not a deck of cards.") );
+      DECLTEXT( msg, "Object is not a deck of cards." );
       EnqueLink( &ps->Command->Output, &msg );
       return 1;
    }
@@ -523,7 +523,7 @@ void EntDeleteDeck( PENTITY pe )
 
 //---------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Cards"), WIDE("status"), WIDE("Show status of the deck.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Cards", "status", "Show status of the deck." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int DoStatus( PSENTIENT ps, PTEXT pNothing )
 {
    int CardsLeft = 0;
@@ -541,28 +541,28 @@ static int ObjectMethod( WIDE("Cards"), WIDE("status"), WIDE("Show status of the
    pd = (PDECK)GetLink( &ps->Current->pPlugin, iCardDeck );
    if( !pd )
    {
-      DECLTEXT( msg, WIDE("Entity is not a card deck??") );
+      DECLTEXT( msg, "Entity is not a card deck??" );
       EnqueLink( &ps->Command->Output, &msg );
       return 0;
    }
 
-   for( pc = GetCardStack( pd, WIDE("Draw") )->cards; pc; pc=pc->next )
+   for( pc = GetCardStack( pd, "Draw" )->cards; pc; pc=pc->next )
       CardsLeft++;
-   for( pc = GetCardStack( pd, WIDE("Discard") )->cards; pc; pc = pc->next )
+   for( pc = GetCardStack( pd, "Discard" )->cards; pc; pc = pc->next )
       CardsOut++;
-   for( pc = GetCardStack( pd, WIDE("Table") )->cards; pc; pc=pc->next )
+   for( pc = GetCardStack( pd, "Table" )->cards; pc; pc=pc->next )
 		CardsPlayed++;
 
 	LIST_FORALL( pd->Hands, idx, PHAND, hand )
 	{
-		for( pc = GetCardStackFromHand( hand, WIDE("Cards") )->cards; pc; pc = pc->next )
+		for( pc = GetCardStackFromHand( hand, "Cards" )->cards; pc; pc = pc->next )
 			CardsDealt++;
-		for( pc = GetCardStackFromHand( hand, WIDE("Gathered") )->cards; pc; pc = pc->next )
+		for( pc = GetCardStackFromHand( hand, "Gathered" )->cards; pc; pc = pc->next )
 			CardsGathered++;
 		HandsDealt++;
 	}
 	pvt = VarTextCreate();
-   vtprintf( pvt, WIDE("Cards Left: %d  Played: %d  Out: %d  Dealt: %d  Gathered: %d  Hands: %d"),
+   vtprintf( pvt, "Cards Left: %d  Played: %d  Out: %d  Dealt: %d  Gathered: %d  Hands: %d",
                      CardsLeft, CardsPlayed, CardsOut, CardsDealt, CardsGathered, HandsDealt );
 	if( ps->CurrentMacro )
 		ps->pLastResult = VarTextGet( pvt );
@@ -589,20 +589,20 @@ typedef struct table_tag
    PCARD cards;
 } TABLE, *PTABLE;
 
-DECLTEXT( TableDesc, WIDE("Game table.") );
+DECLTEXT( TableDesc, "Game table." );
 
-static int OnCreateObject( WIDE("Table"), WIDE("A table for cards - joins players, and a deck of cards with a common play area") )( PSENTIENT ps, PENTITY pe, PTEXT parameters )
+static int OnCreateObject( "Table", "A table for cards - joins players, and a deck of cards with a common play area" )( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 //int CPROC CreateTable( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 {
    //PTABLE table = New( TABLE );
 	//PSENTIENT ps;
    pe->pDescription = (PTEXT)&TableDesc;
-	SetLink( &pe->pPlugin, iCardDeck, CreateDeck( WIDE("Stud"), /*IterateStudHand*/IterateHoldemHand ) );
+	SetLink( &pe->pPlugin, iCardDeck, CreateDeck( "Stud", /*IterateStudHand*/IterateHoldemHand ) );
    ps = CreateAwareness( pe );
 	{
 		PVARTEXT pvt = VarTextCreate();
       PTEXT object, temp;
-		vtprintf( pvt, WIDE("deck of cards standard") );
+		vtprintf( pvt, "deck of cards standard" );
 		object = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
       // resulting object should be created within this one.
@@ -617,7 +617,7 @@ static int OnCreateObject( WIDE("Table"), WIDE("A table for cards - joins player
 
 //---------------------------------------------------------------------
 
-static int OnCreateObject( WIDE("Cards"), WIDE("A deck of cards") )( PSENTIENT ps, PENTITY pe, PTEXT parameters )
+static int OnCreateObject( "Cards", "A deck of cards" )( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 //int CPROC Create( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 {
     //PCARD card;
@@ -625,13 +625,13 @@ static int OnCreateObject( WIDE("Cards"), WIDE("A deck of cards") )( PSENTIENT p
     //int i;
 	if( GetLink( &pe->pPlugin, iCardDeck ) )
 	{
-      S_MSG( ps, WIDE("Entity %s is already a Cards"), GetText( GetName( pe ) ) );
+      S_MSG( ps, "Entity %s is already a Cards", GetText( GetName( pe ) ) );
       return 0;
 	}
     {
 		 PSENTIENT psNew;
        PTEXT tmp = GetParam( ps, &parameters );
-		 SetLink( &pe->pPlugin, iCardDeck, CreateDeck( tmp?GetText(tmp):WIDE("Stud"), /*IterateStudHand*/IterateHoldemHand ) );
+		 SetLink( &pe->pPlugin, iCardDeck, CreateDeck( tmp?GetText(tmp):"Stud", /*IterateStudHand*/IterateHoldemHand ) );
 		 // this may not have to be made aware....
 		 // creating the awareness on an entity already away will result NULL
 		 psNew = pe->pControlledBy;
@@ -653,7 +653,7 @@ static int OnCreateObject( WIDE("Cards"), WIDE("A deck of cards") )( PSENTIENT p
     return 0;
 }
 
-static int OnCreateObject( WIDE("Hand"), WIDE("A player hand of cards") )(PSENTIENT ps, PENTITY pe, PTEXT parameters )
+static int OnCreateObject( "Hand", "A player hand of cards" )(PSENTIENT ps, PENTITY pe, PTEXT parameters )
 {
 	if( !ps )
       return 1;
@@ -674,7 +674,7 @@ static int OnCreateObject( WIDE("Hand"), WIDE("A player hand of cards") )(PSENTI
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Only a deck of cards can cause assimilation of a hand...") );
+			DECLTEXT( msg, "Only a deck of cards can cause assimilation of a hand..." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 		return 0;
@@ -685,19 +685,19 @@ static int OnCreateObject( WIDE("Hand"), WIDE("A player hand of cards") )(PSENTI
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
 	srand( (int)time( NULL ) );
-	//RegisterObject( WIDE("Cards"), WIDE("Generic Card Deck... parameters determine type"), Create );
-	//RegisterObject( WIDE("Table"),GetText( (PTEXT)&TableDesc), CreateTable );
-   iTable = RegisterExtension( WIDE("card table") );
-   iCardDeck = RegisterExtension( WIDE("card deck") );
-   iHand = RegisterExtension( WIDE("card hand") );
+	//RegisterObject( "Cards", "Generic Card Deck... parameters determine type", Create );
+	//RegisterObject( "Table",GetText( (PTEXT)&TableDesc), CreateTable );
+   iTable = RegisterExtension( "card table" );
+   iCardDeck = RegisterExtension( "card deck" );
+   iHand = RegisterExtension( "card hand" );
 
 	return DekVersion;
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterObject( WIDE("Table") );
-	UnregisterObject( WIDE("Cards") );
+	UnregisterObject( "Table" );
+	UnregisterObject( "Cards" );
 }
 // $Log: ntlink.c,v $
 // Revision 1.20  2005/08/08 13:49:26  d3x0r

@@ -8,7 +8,7 @@ int main( void )
 
 	{
       size_t size;
-      POINTER mem = OpenSpace( NULL, WIDE("data.txt"), &size );
+      POINTER mem = OpenSpace( NULL, "data.txt", &size );
 	}
    return 0;
 }

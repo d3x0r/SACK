@@ -27,21 +27,21 @@ int main( void )
 	display = OpenDisplaySizedAt( 0, 150, 150, 50, 50 );
 	if( !display )
 	{
-		fprintf( stderr, WIDE("Failed to open a display") );
+		fprintf( stderr, "Failed to open a display" );
 		return 0;
 	}
    UpdateDisplay( display );
 	display = OpenDisplaySizedAt( 0, 250, 250, 50, 50 );
 	if( !display )
 	{
-		fprintf( stderr, WIDE("Failed to open a display") );
+		fprintf( stderr, "Failed to open a display" );
 		return 0;
 	}
    UpdateDisplay( display );
 	display = OpenDisplaySizedAt( 0, 350, 350, 50, 50 );
 	if( !display )
 	{
-		fprintf( stderr, WIDE("Failed to open a display") );
+		fprintf( stderr, "Failed to open a display" );
 		return 0;
 	}
    UpdateDisplay( display );

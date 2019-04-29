@@ -140,14 +140,14 @@ snmp_error(//psess, p_errno, p_snmp_errno, p_str)
 
     snmp_errnumber = psess->s_snmp_errno;
     if ((snmp_errnumber > SNMPERR_GENERR) || (snmp_errnumber < SNMPERR_LAST)){
-	sprintf(buf, WIDE("Unknown Error %d"), -snmp_errnumber);
+	sprintf(buf, "Unknown Error %d", -snmp_errnumber);
     } else {
 	strcpy(buf, api_errors[-snmp_errnumber]);
     }
 
     /* append a useful system errno interpretation. */
     if (psess->s_errno)
-        sprintf (&buf[strlen(buf)], WIDE(" (%s)"), strerror(psess->s_errno));
+        sprintf (&buf[strlen(buf)], " (%s)", strerror(psess->s_errno));
     *p_str = (char *)strdup(buf);
 }
 SNMP_NAMESPACE_END

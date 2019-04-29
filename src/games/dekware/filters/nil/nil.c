@@ -59,7 +59,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("nil"), WIDE("Performs no translation..."), Open );
+   myTypeID = RegisterDevice( "nil", "Performs no translation...", Open );
    return DekVersion;
 }
 
@@ -67,7 +67,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("nil") );
+	UnregisterDevice( "nil" );
 }
 // $Log: nil.c,v $
 // Revision 1.9  2005/02/21 12:08:34  d3x0r

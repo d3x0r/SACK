@@ -14,7 +14,7 @@ stuffit("one",two,three);
 
 #pragma note("Okay this is a note..." )
 
-#pragma warning( WIDE("NO warning really just a test...") )
+#pragma warning( "NO warning really just a test..." )
 
 #define blah(a,b,c) (#a b##c )
 
@@ -47,7 +47,7 @@ int l = g;
 
 #define fprintf if( 0 ) fprintf
 
-fprintf( stderr, WIDE("this string out") );
+fprintf( stderr, "this string out" );
 
 //int I = A;
 //int J = B;

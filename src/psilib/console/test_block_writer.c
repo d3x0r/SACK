@@ -8,7 +8,7 @@ int main( int argc, char **argv )
 	TEXTSTR result;
 	int n;
 	for( n= 1; n < argc; n++ )
-		vtprintf( pvt, WIDE("%s%s"), n==1?WIDE(""):WIDE(" "), argv[n] );
+		vtprintf( pvt, "%s%s", n==1?"":" ", argv[n] );
 
 	printf( "Test input: (%s)\n", GetText( VarTextPeek( pvt ) ) );
 

@@ -212,12 +212,12 @@ static void  CPROC DropImageInterface ( PIMAGE_INTERFACE p )
 
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
-	RegisterInterface( WIDE("puregl2.image"), (void*(CPROC*)(void))GetImageInterface, (void(CPROC*)(void*))DropImageInterface );
-	RegisterInterface( WIDE("puregl2.image.3d"), GetImage3dInterface, DropImage3dInterface );
-	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Scale"), 10 );
+	RegisterInterface( "puregl2.image", (void*(CPROC*)(void))GetImageInterface, (void(CPROC*)(void*))DropImageInterface );
+	RegisterInterface( "puregl2.image.3d", GetImage3dInterface, DropImage3dInterface );
+	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
 	if( l.scale == 0.0 )
 	{
-		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Inverse Scale"), 2 );
+		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Inverse Scale", 2 );
 		if( l.scale == 0.0 )
 			l.scale = 1;
 	}

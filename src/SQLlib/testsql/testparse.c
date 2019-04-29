@@ -59,7 +59,7 @@ static void DumpSQLTable( PTABLE table )
 void TestAllInFile( char *filename )
 {
 	FILE *file;
-		file = fopen( filename, WIDE("rt") );
+		file = fopen( filename, "rt" );
 		if( file )
 		{
 			int done = FALSE;
@@ -68,7 +68,7 @@ void TestAllInFile( char *filename )
 			char fgets_buf[4096];
 			TEXTCHAR cmd[4096];
 			int nOfs = 0;
-			lprintf( WIDE("Opened %s to read"), filename );
+			lprintf( "Opened %s to read", filename );
 			while( fgets( fgets_buf, sizeof( fgets_buf ), file ) )
 			{
 				TEXTCHAR *p;
@@ -107,14 +107,14 @@ void TestAllInFile( char *filename )
 					}
 					if( !gathering )
 					{
-						if( strnicmp( p, WIDE("CREATE"), 6 ) == 0 )
+						if( strnicmp( p, "CREATE", 6 ) == 0 )
 						{
 							gathering = TRUE;
 						}
 					}
 					if( gathering )
 					{
-						nOfs += sprintf( cmd + nOfs, WIDE("%s "), p );
+						nOfs += sprintf( cmd + nOfs, "%s ", p );
 						if( done )
 						{
 							// result is set with the first describe result
@@ -139,7 +139,7 @@ void TestAllInFile( char *filename )
 				Release( buf );
 #endif
 			}
-			lprintf( WIDE("Done with create...") );
+			lprintf( "Done with create..." );
 			fclose( file );
   	}
 

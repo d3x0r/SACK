@@ -94,7 +94,7 @@ int FinishCollection( PFRAME_COLLECT pfc )
 	{
 		if( !TESTFLAG( pfc->segments, n ) )
 		{
-			lprintf( WIDE("Failed bit %d of %d"), n, pfc->seg_count );
+			lprintf( "Failed bit %d of %d", n, pfc->seg_count );
          failed++;
 			//return 0;
 		}
@@ -111,10 +111,10 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size, SOCKADDR *source 
    if( pnd )
 	{
 		PPORTION portion = (PPORTION)buffer;
-      lprintf( WIDE("Received portion frame %ld part %ld of %ld"), portion->frame, portion->part, portion->parts );
+      lprintf( "Received portion frame %ld part %ld of %ld", portion->frame, portion->part, portion->parts );
 		if( pnd->last_frame != portion->frame )
 		{
-         lprintf( WIDE("new frame... process the old one.") );
+         lprintf( "new frame... process the old one." );
 			if( pnd->collecting != (PFRAME_COLLECT)INVALID_INDEX )
 			{
 				if( FinishCollection( pnd->collecting ) )
@@ -124,17 +124,17 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size, SOCKADDR *source 
 				}
 				else
 				{
-               lprintf( WIDE("Lost data in frame... consider reque...") );
+               lprintf( "Lost data in frame... consider reque..." );
 				}
 			}
 			{
 				pfc = (PFRAME_COLLECT)DequeFrame( &pnd->done );
 				if( pfc == (PFRAME_COLLECT)INVALID_INDEX )
 				{
-               lprintf( WIDE("beginning a new collection.") );
+               lprintf( "beginning a new collection." );
 					pfc = NewCollection();
 				}
-            lprintf( WIDE("INitializing collection") );
+            lprintf( "INitializing collection" );
 				InitCollection( pfc, portion->length, portion->parts );
 				pnd->collecting = pfc;
             pnd->last_frame = portion->frame;
@@ -142,14 +142,14 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, int size, SOCKADDR *source 
 		}
       else
 			pfc = pnd->collecting;
-      lprintf( WIDE("Received portion frame %ld part %ld of %ld"), portion->frame, portion->part, portion->parts );
+      lprintf( "Received portion frame %ld part %ld of %ld", portion->frame, portion->part, portion->parts );
 		MemCpy( pfc->bitstream + portion->pos
 				, portion->data
 				, portion->segment_length );
-		//lprintf( WIDE("received %d %d %d"), PACKET_SIZE, portion->pos, portion->pos/PACKET_SIZE );
+		//lprintf( "received %d %d %d", PACKET_SIZE, portion->pos, portion->pos/PACKET_SIZE );
 		SETFLAG( pfc->segments
 				 , portion->pos/PACKET_SIZE );
-		//lprintf( WIDE("read %d bytes"), size );
+		//lprintf( "read %d bytes", size );
 
       // frame ready...
 		ReadUDP( pc, pnd->buffer, 5000 );
@@ -196,7 +196,7 @@ uintptr_t OpenNetworkCapture( char *name )
 void CPROC RenderRequest( PCLIENT pc, POINTER buffer, int length, SOCKADDR *sa )
 {
 // this is a request for missing frame portions...
-   lprintf( WIDE("Request for missing portions.") );
+   lprintf( "Request for missing portions." );
 }
 
 void CPROC ExpireFrames( uintptr_t psv )
@@ -261,13 +261,13 @@ int CPROC RenderNetworkFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
       new_portion->part = part++;
 		if( portion.length - portion.pos < PACKET_SIZE )
 			new_portion->segment_length = portion.length - portion.pos;
-      //lprintf( WIDE("Send %d %d"), PACKET_SIZE, new_portion->segment_length );
+      //lprintf( "Send %d %d", PACKET_SIZE, new_portion->segment_length );
 		MemCpy( new_portion->data, data + portion.pos, PACKET_SIZE );
       AddLink( &pnd->portions, new_portion );
 		SendUDP( pnd->socket, new_portion, PACKET_SIZE );
       //Relinquish();
 	}
-   //lprintf( WIDE("----------------------------------") );
+   //lprintf( "----------------------------------" );
 	{
 		PFRAME_PORTION frame_portion = New( FRAME_PORTION );
 		frame_portion->portions = pnd->portions;

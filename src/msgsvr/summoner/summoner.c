@@ -150,7 +150,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 				l.current_task->flags.bWaitAgain = 1;
 				l.current_task->flags.bWaiting = 0;
 				l.current_task->flags.bWaitForStart = 1;
-				//lprintf( WIDE("Okay, task %s inquired for its ID"), l.current_task->name );
+				//lprintf( "Okay, task %s inquired for its ID", l.current_task->name );
 				{
 					PMYTASK_INFO task = l.current_task;
 					RelinkThing( l.aware, task );
@@ -166,7 +166,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 		}
 		return 1;
 	case MSG_IM_STARTING:
-		//printf( WIDE("%s is starting...\n"), params );
+		//printf( "%s is starting...\n", params );
 		{
 			PMYTASK_INFO task;
 			for( task = l.aware; task; task = NextThing( task ) )
@@ -174,7 +174,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 			{
 				if( strcmp( (char*)params, task->name ) == 0 )
 				{
-					lprintf( WIDE("Marking %s as waiting for ready...."), task->name );
+					lprintf( "Marking %s as waiting for ready....", task->name );
 				// all is well... continue starting tasks...
 
 				// relink removes the node from its prior list and
@@ -189,7 +189,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 			}
 			if( !task )
 			{
-				lprintf( WIDE("Failed to find the task...\n") );
+				lprintf( "Failed to find the task...\n" );
 			}
 			(*result_length) = 0;
 			return FALSE;
@@ -202,7 +202,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 			{
 				if( strcmp( (char*)params, task->name ) == 0 )
 				{
-					lprintf( WIDE("%s is claiming it is ready..."), (char*)params );
+					lprintf( "%s is claiming it is ready...", (char*)params );
 				// relink removes the node from its prior list and
 				// puts it in this new list...
 					RelinkThing( l.ready, task );
@@ -216,7 +216,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 			}
 			if( !task )
 			{
-				lprintf( WIDE("Failed to find task which claims it is starting : %s"), (char*)params );
+				lprintf( "Failed to find task which claims it is starting : %s", (char*)params );
 			}
 		}
 		break;
@@ -229,7 +229,7 @@ static int CPROC SummonerEvents( PSERVICE_ROUTE SourceRouteID, uint32_t MsgID
 	case MSG_DIE:
 		break;
 	default:
-		lprintf( WIDE("Received message %") _32f WIDE(" from %") _32f WIDE(" expecting %") _32f WIDE("... data follows...")
+		lprintf( "Received message %" _32f " from %" _32f " expecting %" _32f "... data follows..."
 				 , MsgID, SourceRouteID, result_length?(*result_length):-1 );
 		LogBinary( (uint8_t*)params, param_length );
 		return FALSE;
@@ -303,7 +303,7 @@ static uintptr_t CPROC AddTaskRequirement( uintptr_t psv, arg_list args )
 	required_task_info->flags.bOptional = 0;
 	required_task_info->name = StrDup( require );
 #ifdef DEBUG_WAIT_LIST
-	lprintf( WIDE("Adding required %s to %s"), require, task->name );
+	lprintf( "Adding required %s to %s", require, task->name );
 #endif
 	required_task_info->address = NULL;
 	required_task_info->task = NULL;
@@ -318,7 +318,7 @@ static uintptr_t CPROC LoadExternalService( uintptr_t psv, arg_list args )
 	PARAM( args, char *, name );
 // these are loaded at runtime, and
 // forgotten...
-	lprintf( WIDE("Loading external library %s"), name );
+	lprintf( "Loading external library %s", name );
 	LoadPrivateFunction( name, NULL );
 	return psv;
 }
@@ -398,7 +398,7 @@ static void BuildArgs( char ***pppArgs, char *newargs )
 		int count = 0;
 		int lastchar;
 		lastchar = ' '; // auto continue spaces...
-		//lprintf( WIDE("Got args: %s"), newargs );
+		//lprintf( "Got args: %s", newargs );
 		p = newargs;
 		while( p && p[0] )
 		{
@@ -414,7 +414,7 @@ static void BuildArgs( char ***pppArgs, char *newargs )
 		{
 			char *start;
 			lastchar = ' '; // auto continue spaces...
-			//lprintf( WIDE("Looks like we have %d args"), count );
+			//lprintf( "Looks like we have %d args", count );
 			pp = (*pppArgs) = (char**)Allocate( sizeof( char * ) * ( count + 2 ) );
 			p = newargs;
 			count = 0;
@@ -424,20 +424,20 @@ static void BuildArgs( char ***pppArgs, char *newargs )
 			pp[0] = NULL;
 			while( p[0] )
 			{
-				//lprintf( WIDE("check character %c %c"), lastchar, p[0] );
+				//lprintf( "check character %c %c", lastchar, p[0] );
 				if( lastchar != ' ' && p[0] == ' ' ) // and there's a space
 				{
 					p[0] = 0;
 					pp[0] = (char*)Allocate( strlen( start ) + 1 );
 					pp[0] = StrDup( start );
-					//lprintf( WIDE("Copied argument %d %s"), pp - (*pppArgs), pp[0] );
+					//lprintf( "Copied argument %d %s", pp - (*pppArgs), pp[0] );
 					lastchar = ' ';
 					pp++;
 					start = p;
 				}
 				else if( lastchar == ' ' && p[0] != ' ' )
 				{
-					//lprintf( WIDE("first char of argument?") );
+					//lprintf( "first char of argument?" );
 					lastchar = p[0];
 					start = p;
 				}
@@ -449,13 +449,13 @@ static void BuildArgs( char ***pppArgs, char *newargs )
 			}
 			if( start )
 			{
-				//lprintf( WIDE("Setting arg %d to %s"), pp - (*pppArgs), start );
+				//lprintf( "Setting arg %d to %s", pp - (*pppArgs), start );
 				pp[0] = StrDup( start );
 				pp[1] = NULL;
 			}
 			else
 			{
-				//lprintf( WIDE("No arguments.") );
+				//lprintf( "No arguments." );
 				pp[0] = NULL;
 			}
 
@@ -469,15 +469,15 @@ static uintptr_t CPROC SetTaskArguments( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char *, taskargs );
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
-	//lprintf( WIDE("args to build %s"), taskargs );
+	//lprintf( "args to build %s", taskargs );
 	BuildArgs( &task->args, taskargs );
-	//lprintf( WIDE("%p result array.."), task->args );
+	//lprintf( "%p result array..", task->args );
 	//		if( task->args )
 	//		{
 	//			char **p = task->args;
-	//         lprintf( WIDE("Have some args...") );
+	//         lprintf( "Have some args..." );
 	//         while( p[0] )
-	//				lprintf( WIDE("Arg: %s"), (p++)[0] );
+	//				lprintf( "Arg: %s", (p++)[0] );
 	//		}
 	return psv;
 }
@@ -540,7 +540,7 @@ static PMYTASK_INFO FindTask( char *address, char *taskname )
 {
 	if( address )
 	{
-		lprintf( WIDE("Remote tasks are not yet supported...") );
+		lprintf( "Remote tasks are not yet supported..." );
 	}
 	else
 	{
@@ -553,7 +553,7 @@ static PMYTASK_INFO FindTask( char *address, char *taskname )
 			if( stricmp( task->name, taskname ) == 0 )
 			{
 #ifdef DEBUG_WAIT_LIST
-				lprintf( WIDE("Task at idx %") _32fX WIDE(""), idx );
+				lprintf( "Task at idx %" _32fX "", idx );
 #endif
 				return task;
 			}
@@ -592,12 +592,12 @@ static void ScheduleTask( PMYTASK_INFO task )
 	}
 	if( task->flags.bSuspend )
 	{
-		lprintf( WIDE("Task suspended - not scheduling.") );
+		lprintf( "Task suspended - not scheduling." );
 		return;
 	}
 	if( task->flags.bScheduling )
 	{
-		lprintf( WIDE("Task %s is already being scheduled... circular dependancy?"), task->name );
+		lprintf( "Task %s is already being scheduled... circular dependancy?", task->name );
 		return;
 	}
 	task->flags.bScheduling = 1;
@@ -607,7 +607,7 @@ static void ScheduleTask( PMYTASK_INFO task )
 		if( ( tick - task->last_launch_time ) < task->min_launch_time )
 		{
 			task->flags.bTooFast = 1;
-			lprintf( WIDE("Choked restart of %s... ended %") _32fX WIDE("ms ago... speed violation of %") _32fX WIDE("\n")
+			lprintf( "Choked restart of %s... ended %" _32fX "ms ago... speed violation of %" _32fX "\n"
 					 , task->name
 					 , tick - task->last_launch_time
 					 , task->min_launch_time
@@ -626,7 +626,7 @@ static void ScheduleTask( PMYTASK_INFO task )
 			if( !req_task->task->flags.bScheduled )
 				ScheduleTask( req_task->task );
 		}
-		//lprintf( WIDE("Scheduling %s"), task->name );
+		//lprintf( "Scheduling %s", task->name );
 		RelinkThing( l.schedule, task );
 		task->flags.bScheduled = 1;
 	}
@@ -643,7 +643,7 @@ static void ScheduleTasks( void )
 	{
 		LIST_FORALL( l.tasks, idx, PMYTASK_INFO, task )
 		{
-			lprintf( WIDE("Scheduling... %s"), task->name );
+			lprintf( "Scheduling... %s", task->name );
 			ScheduleTask( task );
 		}
 	}
@@ -667,7 +667,7 @@ static void WriteConfig( char *name )
 	{
 		INDEX idx;
 		PMYTASK_INFO info;
-		fprintf( out, WIDE("%ssuspend startup"), l.flags.bSuspend?"":"#" );
+		fprintf( out, "%ssuspend startup", l.flags.bSuspend?"":"#" );
 		fprintf( out, "\n# service is another keyword that should be implememtned \n\n\n" );
 		fprintf( out, "#[Remote] task <some task name>   #create a new task referenced by name\n\n" );
 		LIST_FORALL( l.tasks, idx, PMYTASK_INFO, info )
@@ -678,24 +678,24 @@ static void WriteConfig( char *name )
 					 , info->remote_address?"@":""
 					 ,info->name );
 			if( info->args )
-				fprintf( out, WIDE("args %s\n"), GetArgsString( (PCTEXTSTR)info->args ) );
+				fprintf( out, "args %s\n", GetArgsString( (PCTEXTSTR)info->args ) );
 			else
-				fprintf( out, WIDE("#args <arguments to program>\n" ) );
-			fprintf( out, WIDE("program %s\n"), info->program );
+				fprintf( out, "#args <arguments to program>\n" );
+			fprintf( out, "program %s\n", info->program );
 			if( info->path )
-				fprintf( out, WIDE("path %s\n"), info->path );
+				fprintf( out, "path %s\n", info->path );
 			else
-				fprintf( out, WIDE("#path <working directory> # set where the task should start\n" ) );
-			fprintf( out, WIDE("suspend %s\n"), info->flags.bSuspend?"Yes":"No" );
-			fprintf( out, WIDE("exclusive %s\n"), info->flags.bExclusive?"Yes":"No" );
-			fprintf( out, WIDE("restart %s\n"), info->flags.bRestart?"Yes":"No" );
+				fprintf( out, "#path <working directory> # set where the task should start\n" );
+			fprintf( out, "suspend %s\n", info->flags.bSuspend?"Yes":"No" );
+			fprintf( out, "exclusive %s\n", info->flags.bExclusive?"Yes":"No" );
+			fprintf( out, "restart %s\n", info->flags.bRestart?"Yes":"No" );
 			if( info->requires )
 			{
 				INDEX idx;
 				PREQUIRED_TASK req;
 				LIST_FORALL( info->requires, idx, PREQUIRED_TASK, req )
 				{
-					fprintf( out, WIDE("%s %s%s%s\n")
+					fprintf( out, "%s %s%s%s\n"
 							 , req->flags.bOptional?"suggest":"require"
 							 , req->address?req->address:""
 							 , req->address?"@":""
@@ -705,18 +705,18 @@ static void WriteConfig( char *name )
 			}
 			else
 			{
-				fprintf( out, WIDE("#require [system@]<some task name> # system is optional, but requires an @ if used\n" ) );
-				fprintf( out, WIDE("#suggest [system@]<some task name> # task name is not optional, and should match a Task <name> entry\n" ) );
+				fprintf( out, "#require [system@]<some task name> # system is optional, but requires an @ if used\n" );
+				fprintf( out, "#suggest [system@]<some task name> # task name is not optional, and should match a Task <name> entry\n" );
 			}
 			// if I had a list of services to load...
-			//fprintf( out, WIDE("service %s\n"), LoadExternalService );
+			//fprintf( out, "service %s\n", LoadExternalService );
 
 
 			// if not assume ready, the task is known to be able to
 			// use the construct library to indicate that it is ready.
-			fprintf( out, WIDE("assume ready in %")_32f WIDE(" milliseconds\n"), info->ready_timeout );
-			fprintf( out, WIDE("min launch time is %")_32f WIDE(" milliseconds\n"), info->min_launch_time );
-			fprintf( out, WIDE("max launches in launch time is %")_32f WIDE("\n"), info->launch_threshold_count );
+			fprintf( out, "assume ready in %"_32f " milliseconds\n", info->ready_timeout );
+			fprintf( out, "min launch time is %"_32f " milliseconds\n", info->min_launch_time );
+			fprintf( out, "max launches in launch time is %"_32f "\n", info->launch_threshold_count );
 			fprintf( out, "\n\n" );
 		}
 		fclose( out );
@@ -729,25 +729,25 @@ static void ReadConfig( void )
 	//uintptr_t psvTask;
 	PCONFIG_HANDLER pch;
 	pch = CreateConfigurationHandler();
-	AddConfigurationMethod( pch, WIDE("suspend startup"), SetSuspendStartup );
-	AddConfigurationMethod( pch, WIDE("task %m"), CreateTaskWithName );
+	AddConfigurationMethod( pch, "suspend startup", SetSuspendStartup );
+	AddConfigurationMethod( pch, "task %m", CreateTaskWithName );
 		 // this is probably useless... since the require line is where
 		 // the address is actually specified...
-	AddConfigurationMethod( pch, WIDE("Remote Task %m@%m"), CreateRemoteTaskWithName );
-	AddConfigurationMethod( pch, WIDE("program %m"), SetTaskProgram );
-	AddConfigurationMethod( pch, WIDE("suspend %b"), SetTaskSuspend );
-	AddConfigurationMethod( pch, WIDE("args %m"), SetTaskArguments );
-	AddConfigurationMethod( pch, WIDE("path %m"), SetTaskPath );
-	AddConfigurationMethod( pch, WIDE("require %m"), AddTaskRequirement );
-	AddConfigurationMethod( pch, WIDE("suggest %m"), AddTaskSuggestion );
-	AddConfigurationMethod( pch, WIDE("require %m@%m"), AddRemoteTaskRequirement );
-	AddConfigurationMethod( pch, WIDE("restart %b"), SetTaskRestart );
-	AddConfigurationMethod( pch, WIDE("service %m"), LoadExternalService );
-	AddConfigurationMethod( pch, WIDE("exclusive %b %m"), SetTaskExclusive );
+	AddConfigurationMethod( pch, "Remote Task %m@%m", CreateRemoteTaskWithName );
+	AddConfigurationMethod( pch, "program %m", SetTaskProgram );
+	AddConfigurationMethod( pch, "suspend %b", SetTaskSuspend );
+	AddConfigurationMethod( pch, "args %m", SetTaskArguments );
+	AddConfigurationMethod( pch, "path %m", SetTaskPath );
+	AddConfigurationMethod( pch, "require %m", AddTaskRequirement );
+	AddConfigurationMethod( pch, "suggest %m", AddTaskSuggestion );
+	AddConfigurationMethod( pch, "require %m@%m", AddRemoteTaskRequirement );
+	AddConfigurationMethod( pch, "restart %b", SetTaskRestart );
+	AddConfigurationMethod( pch, "service %m", LoadExternalService );
+	AddConfigurationMethod( pch, "exclusive %b %m", SetTaskExclusive );
 		 // if not assume ready, the task is known to be able to
 		 // use the construct library to indicate that it is ready.
-	AddConfigurationMethod( pch, WIDE("assume ready in %i milliseconds"), SetTaskReadyTimeout );
-	AddConfigurationMethod( pch, WIDE("min launch time is %i milliseconds"), SetTaskMinLaunchTime );
+	AddConfigurationMethod( pch, "assume ready in %i milliseconds", SetTaskReadyTimeout );
+	AddConfigurationMethod( pch, "min launch time is %i milliseconds", SetTaskMinLaunchTime );
 	SetConfigurationEndProc( pch, EndTaskDefs );
 	ProcessConfigurationFile( pch, l.configfile, 0 );
 	DestroyConfigurationHandler( pch );
@@ -764,23 +764,23 @@ static void ReadConfig( void )
 			INDEX idx;
 			if( !task->name )
 			{
-				lprintf( WIDE("No task name!?") );
+				lprintf( "No task name!?" );
 				Release( task );
 				SetLink( &l.tasks, idx, NULL );
 				continue;
 			}
 			else if( !( task->program ) )
 			{
-				lprintf( WIDE("No program specified for task %s"), task->name );
+				lprintf( "No program specified for task %s", task->name );
 				Release( task->name );
 				Release( task );
 				SetLink( &l.tasks, idx, NULL );
 				continue;
 			}
-			//lprintf( WIDE("had a task... and it has requirements?") );
+			//lprintf( "had a task... and it has requirements?" );
 			if( !task->requires )
 			{
-				lprintf( WIDE("Task %s requires nothing."), task->name );
+				lprintf( "Task %s requires nothing.", task->name );
 			}
 			if( !task->args )
 			{
@@ -790,10 +790,10 @@ static void ReadConfig( void )
 			task->args[0] = StrDup( task->program );
 			LIST_FORALL( task->requires, idx, PREQUIRED_TASK, required )
 			{
-				//lprintf( WIDE("yes...") );
+				//lprintf( "yes..." );
 				if( !( required->task = FindTask( required->address, required->name ) ) )
 				{
-					fprintf( stderr, WIDE("Failed to find dependancy %s for %s\n")
+					fprintf( stderr, "Failed to find dependancy %s for %s\n"
 							 , required->name
 							 , task->name );
 					if( required->address ) Release( required->address );
@@ -804,7 +804,7 @@ static void ReadConfig( void )
 				else
 				{
 #ifdef DEBUG_WAIT_LIST
-					lprintf( WIDE("Found task %p(%")_32f WIDE(")..."), required->task, FindLink( &l.tasks, required->task ) );
+					lprintf( "Found task %p(%"_32f ")...", required->task, FindLink( &l.tasks, required->task ) );
 #endif
 					AddLink( &required->task->required_by, task );
 				}
@@ -838,18 +838,18 @@ static void KillDependants( PMYTASK_INFO task )
 	// so that we kill all dependants of dependants of this task...
 	PMYTASK_INFO dependant;
 	INDEX idx;
-	//lprintf( WIDE("A GOOD TASK IS DEAD!") );
+	//lprintf( "A GOOD TASK IS DEAD!" );
 	LIST_FORALL( task->required_by, idx, PMYTASK_INFO, dependant )
 	{
 		INDEX idx2;
 		PTASK_INFO info;
-		lprintf( WIDE("Terminating dependant program %s"), dependant->name );
+		lprintf( "Terminating dependant program %s", dependant->name );
 		//dependant->flags.bStopped = 1;
 		LIST_FORALL( dependant->spawns, idx2, PTASK_INFO, info )
 		{
-			lprintf( WIDE("begin terminate") );
+			lprintf( "begin terminate" );
 			TerminateProgram( info );
-			lprintf( WIDE("done terminate") );
+			lprintf( "done terminate" );
 		}
 	}
 }
@@ -860,17 +860,17 @@ static void KillDependants( PMYTASK_INFO task )
 static void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 {
 	PMYTASK_INFO task = (PMYTASK_INFO)psv;
-	lprintf( WIDE("Task %s has exited."), task->name );
-	lprintf( WIDE("finding task info in task->spawns %p %p"), &task->spawns, task_ended );
+	lprintf( "Task %s has exited.", task->name );
+	lprintf( "finding task info in task->spawns %p %p", &task->spawns, task_ended );
 	if( task->flags.bWaiting )
 	{
-		lprintf( WIDE("Task %s exited while we were waiting for it to begin.\n"), task->name );
+		lprintf( "Task %s exited while we were waiting for it to begin.\n", task->name );
 		task->flags.bFailedSpawn = 1;
  	}
 	if( task->flags.bWaitForStart || task->flags.bWaitForReady )
 	{
-		lprintf( WIDE("Task got a little further but still died before it began...\n") );
-		lprintf( WIDE("It appears to be slightly summoner aware.\n") );
+		lprintf( "Task got a little further but still died before it began...\n" );
+		lprintf( "It appears to be slightly summoner aware.\n" );
 		task->flags.bFailedSpawn = 1;
 	}
 	lprintf( "last spawn is %p %d %d %d", l.current_task
@@ -898,7 +898,7 @@ static void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 	}
 	else
 	{
-		lprintf( WIDE("Task wasn't started... why am I here?") );
+		lprintf( "Task wasn't started... why am I here?" );
 		DebugBreak(); // this should basically NEVER happen.
 		// if I didn't get a task_info, then this routine will NOT be
 		// called.
@@ -921,7 +921,7 @@ static int CPROC WaitingForDependancies( PMYTASK_INFO task )
 		if( !required->task->flags.bStarted )
 		{
 #ifdef DEBUG_WAIT_LIST
-			lprintf( WIDE("required task %s not started..."), required->task->name );
+			lprintf( "required task %s not started...", required->task->name );
 #endif
 			return 1;
 		}
@@ -960,8 +960,8 @@ static uintptr_t taskStartWait( PTHREAD thread ) {
 	//lprintf( "Done waiting... result?" );
 	if( task->flags.bWaiting )
 	{
-		lprintf( WIDE("Task %s appears to not be summoner aware.\n"), task->name );
-		//lprintf( WIDE("Forcing start...\n") );
+		lprintf( "Task %s appears to not be summoner aware.\n", task->name );
+		//lprintf( "Forcing start...\n" );
 		task->flags.bWaiting = 0;
 		task->flags.bStarted = 1;
 		RelinkThing( l.ready, task );
@@ -992,7 +992,7 @@ static void LoadTasks( void )
 			return;
 		}
 #ifdef DEBUG_WAIT_LIST
-		lprintf( WIDE("Searching for something to start...") );
+		lprintf( "Searching for something to start..." );
 #endif
 		for( task = l.schedule; task; task = nextTask )
 		{
@@ -1005,7 +1005,7 @@ static void LoadTasks( void )
 			if( l.flags.bSpawnActive )
 				if( task->flags.bStarted )
 				{
-					lprintf( WIDE("Task started... and still in list?") );
+					lprintf( "Task started... and still in list?" );
 					DebugBreak();
 					UnlinkThing( task );
 					continue;
@@ -1013,19 +1013,19 @@ static void LoadTasks( void )
 			if( task->flags.bWaiting )
 			{
 #ifdef DEBUG_WAIT_LIST
-				lprintf( WIDE("Task waiting - try another peer dependancy") );
+				lprintf( "Task waiting - try another peer dependancy" );
 #endif
 				continue;
 			}
 			if( WaitingForDependancies( task ) )
 			{
 #ifdef DEBUG_WAIT_LIST
-				lprintf( WIDE("Task %s is waiting for depends."), task->name );
+				lprintf( "Task %s is waiting for depends.", task->name );
 #endif
 				continue;
 			}
 #ifdef DEBUG_WAIT_LIST
-			lprintf( WIDE("Launching program... %s %s%s%s\n"), task->name
+			lprintf( "Launching program... %s %s%s%s\n", task->name
 					 , task->program
 					 , task->path?" in ":"", task->path?task->path:"" );
 #endif
@@ -1033,7 +1033,7 @@ static void LoadTasks( void )
 			{
 				char **p = task->args;
 				while( p[0] )
-					lprintf( WIDE("Arg: %s"), (p++)[0] );
+					lprintf( "Arg: %s", (p++)[0] );
 			}
 			task->flags.bWaiting = 1;
 			task->launch_count++;
@@ -1060,7 +1060,7 @@ static void LoadTasks( void )
 			{
 				lprintf( "failed spawn %p (%s)", task, task->name );
 				// task ended callback may still get invoked?
-				//lprintf( WIDE("in fact, END TASK may have already been invoked, but WILL definatly get invoked.") );
+				//lprintf( "in fact, END TASK may have already been invoked, but WILL definatly get invoked." );
 				task->flags.bFailedSpawn = 1;
  			}
 			l.flags.bSpawnActive = 0;
@@ -1078,13 +1078,13 @@ static void UnloadTask( PMYTASK_INFO task, LOGICAL bShutdown )
 	INDEX idx2;
 	PTASK_INFO info;
 	KillDependants( task );
-	lprintf( WIDE("Terminating program %s"), task->name );
+	lprintf( "Terminating program %s", task->name );
 	task->flags.bStopped = bShutdown;
 	LIST_FORALL( task->spawns, idx2, PTASK_INFO, info )
 	{
-		lprintf( WIDE("begin terminate") );
+		lprintf( "begin terminate" );
 		TerminateProgram( info );
-		lprintf( WIDE("end terminate") );
+		lprintf( "end terminate" );
 	}
 }
 
@@ -1168,9 +1168,9 @@ static void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 
 						SendTCP( pc, &op, sizeof( op ) );
 						SendTCP( pc, &idx, sizeof( idx ) );
-						len = snprintf( line, sizeof( line ), WIDE("%s\t%s")
+						len = snprintf( line, sizeof( line ), "%s\t%s"
 										  , task->name, state );
-						lprintf( WIDE("Sending back task index %")_32f WIDE(" = %s(%s)"), idx, task->name, state );
+						lprintf( "Sending back task index %"_32f " = %s(%s)", idx, task->name, state );
 						SendTCP( pc, &len, sizeof( len ) );
 						SendTCP( pc, line, len );
 					}
@@ -1194,7 +1194,7 @@ static void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 						PMYTASK_INFO task = (PMYTASK_INFO)GetLink( &l.tasks, idx );
 						PREQUIRED_TASK required;
 
-						lprintf( WIDE("Sending dependancies for %")_32f WIDE(""), idx );
+						lprintf( "Sending dependancies for %"_32f "", idx );
 						LIST_FORALL( task->requires, idx, PREQUIRED_TASK, required )
 							cnt++;
 						// send task_id back
@@ -1206,7 +1206,7 @@ static void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 						LIST_FORALL( task->requires, idx, PREQUIRED_TASK, required )
 						{
 							INDEX task_idx = FindLink( &l.tasks, required->task );
-							lprintf( WIDE("Sending task %p(%")_32f WIDE(") for %")_32f WIDE(""), required->task, task_idx, ((INDEX*)buffer)[0] );
+							lprintf( "Sending task %p(%"_32f ") for %"_32f "", required->task, task_idx, ((INDEX*)buffer)[0] );
 							SendTCP( pc, &task_idx, sizeof( task_idx ) );
 						}
 						pns->state = NET_STATE_COMMAND;
@@ -1258,7 +1258,7 @@ static void CPROC AvatarReadComplete( PCLIENT pc, POINTER buffer, size_t len )
 			}
 		}
 	}
-	lprintf( WIDE("Do read.. %")_32f WIDE(""), toread );
+	lprintf( "Do read.. %"_32f "", toread );
 	ReadTCPMsg( pc, buffer, toread );
 }
 
@@ -1344,7 +1344,7 @@ SaneWinMain( argc, argv )
 		// is required.
 		if( !RegisterServiceHandler( SUMMONER_NAME, SummonerEvents ) )
 		{
-			fprintf( stderr, WIDE("Could not register myself as the master service.  Perhaps I am already loaded?") );
+			fprintf( stderr, "Could not register myself as the master service.  Perhaps I am already loaded?" );
 			return -1;
 		}
 	}
@@ -1359,12 +1359,12 @@ SaneWinMain( argc, argv )
 	NetworkWait( NULL, 16, 2);
 	if( !OpenTCPListenerEx( l.avatar_port, AvatarConnect ) )
 	{
-		lprintf( WIDE("Failed to open avatar tcp port (%d)"), l.avatar_port );
+		lprintf( "Failed to open avatar tcp port (%d)", l.avatar_port );
 		return 0;
 	}
 	if( !OpenTCPListenerEx( l.peer_port, SummonerConnect ) )
 	{
-		lprintf( WIDE("Failed to open summoner tcp port (%d)"), l.peer_port );
+		lprintf( "Failed to open summoner tcp port (%d)", l.peer_port );
 		return 0;
 	}
 	ReadConfig();
@@ -1375,7 +1375,7 @@ SaneWinMain( argc, argv )
 		// attempt to load some tasks...
 		LoadTasks();
 		WakeableSleep( SLEEP_FOREVER );
-		lprintf( WIDE("Woke up?!") );
+		lprintf( "Woke up?!" );
 	}
 	return 0;
 }

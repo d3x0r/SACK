@@ -30,7 +30,7 @@ void clrscr( void )
 int main( void )
 {
 	gotoxy( 25,25 );
-	printf( WIDE("at 25,25") );
+	printf( "at 25,25" );
 	return 0;
 }
 

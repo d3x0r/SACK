@@ -192,22 +192,22 @@ void WriteAnimationButton( CTEXTSTR leader, FILE *file, uintptr_t psv )
 {
 	PANIMATION_INFO info = (PANIMATION_INFO)psv;
 
-	sack_fprintf( file, WIDE("Animation name =%s\n" ), info->animation_name?info->animation_name:"" );
-	sack_fprintf( file, WIDE("Animation X =%d\n" ), info->x );
-	sack_fprintf( file, WIDE("Animation Y =%d\n" ), info->y );
-	sack_fprintf( file, WIDE("Animation W =%d\n" ), info->w );
-	sack_fprintf( file, WIDE("Animation H =%d\n" ), info->h );
+	sack_fprintf( file, "Animation name =%s\n", info->animation_name?info->animation_name:"" );
+	sack_fprintf( file, "Animation X =%d\n", info->x );
+	sack_fprintf( file, "Animation Y =%d\n", info->y );
+	sack_fprintf( file, "Animation W =%d\n", info->w );
+	sack_fprintf( file, "Animation H =%d\n", info->h );
 
 }
 
 //---------------------------------------------------------------------------
 void ReadAnimationButton( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("Animation name =%m"), SetAnimationName );
-	AddConfigurationMethod( pch, WIDE("Animation X =%i"), SetAnimationXValue );
-	AddConfigurationMethod( pch, WIDE("Animation Y =%i"), SetAnimationYValue );
-	AddConfigurationMethod( pch, WIDE("Animation W =%i"), SetAnimationWValue );
-	AddConfigurationMethod( pch, WIDE("Animation H =%i"), SetAnimationHValue );
+	AddConfigurationMethod( pch, "Animation name =%m", SetAnimationName );
+	AddConfigurationMethod( pch, "Animation X =%i", SetAnimationXValue );
+	AddConfigurationMethod( pch, "Animation Y =%i", SetAnimationYValue );
+	AddConfigurationMethod( pch, "Animation W =%i", SetAnimationWValue );
+	AddConfigurationMethod( pch, "Animation H =%i", SetAnimationHValue );
 }
 
 

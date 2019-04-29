@@ -55,7 +55,7 @@ extern GLuint TextureName[1024];
 	#define CheckErr()  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-						lprintf( WIDE("err=%d (%") _cstring_f WIDE(")"),err, gluErrorString( err ) ); \
+						lprintf( "err=%d (%" _cstring_f ")",err, gluErrorString( err ) ); \
 				}                               
 
 

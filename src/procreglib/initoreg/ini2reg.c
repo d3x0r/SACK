@@ -6,7 +6,7 @@
 
 void CPROC ParseINI( uintptr_t psv, char *name, int flags )
 {
-	FILE *in = fopen( name, WIDE("rt") );
+	FILE *in = fopen( name, "rt" );
 	if( in )
 	{
 		char line[1024];
@@ -72,7 +72,7 @@ void CPROC ParseINI( uintptr_t psv, char *name, int flags )
                      p++;
 						}
 					}
-               sprintf( classname, WIDE("INI/%s/%s"), filename, section );
+               sprintf( classname, "INI/%s/%s", filename, section );
                RegisterValue( classname, line, val );
 				}
 			}
@@ -87,10 +87,10 @@ int main( void )
 	void *info = NULL;
 	uint32_t free, used, chuncks, freechunks;
    SetSystemLog( SYSLOG_FILE, stdout );
-	printf( WIDE("Lets see... ini files...") );
-	while( ScanFiles( WIDE("."), WIDE("*.ini"), &info, ParseINI, 0, 0 ) );
+	printf( "Lets see... ini files..." );
+	while( ScanFiles( ".", "*.ini", &info, ParseINI, 0, 0 ) );
 	GetMemStats( &free, &used, &chuncks, &freechunks );
-	printf( WIDE("Memory result : free:%ld used:%ld chuncks:%ld freechunks:%ld\n")
+	printf( "Memory result : free:%ld used:%ld chuncks:%ld freechunks:%ld\n"
 			, free, used, chuncks, freechunks );
 	DumpRegisteredNames();
 	SaveTree();

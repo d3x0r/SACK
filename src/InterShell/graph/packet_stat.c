@@ -30,9 +30,9 @@ static void CPROC ReadClient( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 	{
 		uint32_t IP;
 		uint16_t port;
-		lprintf( WIDE("Sending buffer received back to source...") );
+		lprintf( "Sending buffer received back to source..." );
 		GetAddressParts( source, &IP, &port );
-		lprintf( WIDE("From %08lx %d"), IP, port );
+		lprintf( "From %08lx %d", IP, port );
 		SendUDPEx( pc, buffer, size, source );
 	}
 	ReadUDP( pc, l.server_buffer, 4096 );
@@ -60,7 +60,7 @@ uintptr_t CreateUDPTarget( TARGET_ADDRESS target )
 	//udp_data->buffer = (uint64_t*)Allocate( 4096 );
 	// enough for a days worth of samples...
 	udp_data->queue = CreateLargeDataQueue( sizeof( UDP_SAMPLE ), 200000 );
-	lprintf( WIDE("result udp thing %p"), udp_data );
+	lprintf( "result udp thing %p", udp_data );
 	AddLink( &l.line_data, udp_data );
 	return (uintptr_t)udp_data;
 }
@@ -97,14 +97,14 @@ void RenderUDPClient( uintptr_t psvRenderWhat // user data to pass to render to 
 		EmptyDataList( points );
 		//(*points)->Cnt = 0;
 	}
-	//lprintf( WIDE("emptied data list of points... checking samples") );
+	//lprintf( "emptied data list of points... checking samples" );
 	base_value = (uint64_t)~0;
 	max_value = 0;
 	for( iSample = 0; tick < to && PeekDataQueueEx( &udp_data->queue, UDP_SAMPLE, &sample, iSample ); iSample++ )
 	{
 		if( sample.tick >= tick )
 		{
-			//lprintf( WIDE("Sample %Ld"), sample.cpu_tick_delta );
+			//lprintf( "Sample %Ld", sample.cpu_tick_delta );
 			if( sample.cpu_tick_delta < base_value )
 				base_value = sample.cpu_tick_delta;
 			if( sample.cpu_tick_delta > max_value )
@@ -128,13 +128,13 @@ void RenderUDPClient( uintptr_t psvRenderWhat // user data to pass to render to 
 					 ( sample.cpu_tick_delta - base_value )
 					 * value_resolution
 					) / ( (max_value - base_value) +1 ) );
-			lprintf( WIDE("Base %Ld max %Ld val %Ld out %ld"), base_value, max_value, sample.cpu_tick_delta, point.value );
+			lprintf( "Base %Ld max %Ld val %Ld out %ld", base_value, max_value, sample.cpu_tick_delta, point.value );
 			point.tick = sample.tick;
 			tick = sample.tick + 1;
 			AddDataItem( points, &point );
 		}
 	}
-	lprintf( WIDE("done rendering...") );
+	lprintf( "done rendering..." );
 }
 
 void RenderUDPClientDrops( uintptr_t psvRenderWhat // user data to pass to render to give render a thing to render
@@ -159,7 +159,7 @@ void RenderUDPClientDrops( uintptr_t psvRenderWhat // user data to pass to rende
 		EmptyDataList( points );
 		//(*points)->Cnt = 0;
 	}
-	//lprintf( WIDE("emptied data list of points... checking samples") );
+	//lprintf( "emptied data list of points... checking samples" );
 	base_value = (uint64_t)~0;
 	max_value = 0;
 	DebugBreak();
@@ -167,7 +167,7 @@ void RenderUDPClientDrops( uintptr_t psvRenderWhat // user data to pass to rende
 	{
 		if( sample.tick >= tick )
 		{
-			//lprintf( WIDE("Sample %Ld"), sample.dropped );
+			//lprintf( "Sample %Ld", sample.dropped );
 			if( sample.dropped < base_value )
 				base_value = sample.dropped;
 			if( sample.dropped > max_value )
@@ -191,13 +191,13 @@ void RenderUDPClientDrops( uintptr_t psvRenderWhat // user data to pass to rende
 					 ( sample.dropped - base_value )
 					 * value_resolution
 					) / ( (max_value - base_value) +1 );
-			//lprintf( WIDE("Base %ld max %ld val %ld out %ld"), base_value, max_value, sample.dropped, point.value );
+			//lprintf( "Base %ld max %ld val %ld out %ld", base_value, max_value, sample.dropped, point.value );
 			point.tick = sample.tick;
 			tick = sample.tick + 1;
 			AddDataItem( points, &point );
 		}
 	}
-	//lprintf( WIDE("done rendering...") );
+	//lprintf( "done rendering..." );
 }
 
 static void CPROC ClientReceive( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *addr )
@@ -221,7 +221,7 @@ static void CPROC ClientReceive( PCLIENT pc, POINTER buffer, size_t size, SOCKAD
 			sample.dropped = dropped;
 			sample.tick = timeGetTime();
 			sample.cpu_tick_delta = tick - l.client_buffer[0];
-			lprintf( WIDE("hrm tick %Ld %Ld %Ld"), tick, min_tick_in_packet, tick-min_tick_in_packet );
+			lprintf( "hrm tick %Ld %Ld %Ld", tick, min_tick_in_packet, tick-min_tick_in_packet );
 			EnqueData( &udp_data->queue, &sample );
 		}
 	}
@@ -243,10 +243,10 @@ static void CPROC UDPTick( uintptr_t psv )
 PRELOAD( RegisterConnectStats )
 {
 
-	GRAPH_LINE_TYPE line = RegisterLineClassType( WIDE("UDP Traffic"), CreateUDPTarget, DestroyUDPTarget, UDPTick);
-	RegisterLineSubType( line, WIDE("Latency"), RenderUDPClient );
-	RegisterLineSubType( line, WIDE("Drops"), RenderUDPClientDrops );
-	//RegisterLineType( WIDE("UDP Drops"), NULL, NULL, NULL, RenderUDPDrop );
+	GRAPH_LINE_TYPE line = RegisterLineClassType( "UDP Traffic", CreateUDPTarget, DestroyUDPTarget, UDPTick);
+	RegisterLineSubType( line, "Latency", RenderUDPClient );
+	RegisterLineSubType( line, "Drops", RenderUDPClientDrops );
+	//RegisterLineType( "UDP Drops", NULL, NULL, NULL, RenderUDPDrop );
 	//CreateLabelVariable( "UDP Min
 }
 

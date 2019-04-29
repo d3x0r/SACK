@@ -1,5 +1,5 @@
 //#include "autovers.h"
-#define LOCALVERSION WIDE("0")
+#define LOCALVERSION "0"
 
 // should get the last portion of the version
 // from plugin/module specific information...
@@ -15,11 +15,11 @@
 //   - adds additional, actually preliminary, interface to C direct usage.
 //
 
-#define DEKVERSION WIDE("2.6.") LOCALVERSION
+#define DEKVERSION "2.6." LOCALVERSION
 
 #ifdef _DEBUG
 //#pragma message "Debug Version: " DEKVERSION "dbg" 
-#define DekVersion WIDE("dbg") DEKVERSION 
+#define DekVersion "dbg" DEKVERSION 
 //static TEXTCHAR *DekVersion="DEKVERSION 
 #else
 //#pragma message "Release Version: " DEKVERSION 

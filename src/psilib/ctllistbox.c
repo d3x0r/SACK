@@ -80,7 +80,7 @@ void CPROC SetListBoxTabStops( PSI_CONTROL pc, int nStops, int *pStops )
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( nStops > 30 )
 	{
-		lprintf( WIDE("Only setting first 30 stops") );
+		lprintf( "Only setting first 30 stops" );
 		nStops = 30;
 	}
 	for( n = 0; ( plb->nTabstop[n] = pStops[n]),(n < nStops); n++ );
@@ -200,7 +200,7 @@ static void AdjustItemsIntoBox( PSI_CONTROL pc )
 	int x, y, maxchars;
 	PLISTITEM pli;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-	GetStringSize( WIDE(" "), &w, &h );
+	GetStringSize( " ", &w, &h );
 	maxchars = ( pc->surface_rect.width - 8 ) / w;
 	y = 2;
 	x = 4;
@@ -385,7 +385,7 @@ static void UpdateScrollForList//Ex
 				pli = pli->next;
 		}
 	}
-	//lprintf( WIDE("Set scroll params %d %d %d %d"), 0, current, onview, count );
+	//lprintf( "Set scroll params %d %d %d %d", 0, current, onview, count );
 	SetScrollParams( plb->pcScroll, 0, current, onview, count );
 }
 
@@ -540,7 +540,7 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 	BlatColorAlpha( plb->ListSurface, 0, 0, plb->ListSurface->width, plb->ListSurface->height, basecolor(pc)[EDIT_BACKGROUND] );
 	//ClearImageTo( pSurface, basecolor(pc)[EDIT_BACKGROUND] );
 	font = GetFrameFont( pc );
-	GetStringSizeFont( WIDE("X"), &w, &h, font );
+	GetStringSizeFont( "X", &w, &h, font );
 	//lprintf( "Measure returned %d %d", w, h );
 
 	maxchars = ( pc->surface_rect.width - 8 ) / w;
@@ -808,7 +808,7 @@ PLISTITEM GetNthTreeItem( PSI_CONTROL pc, PLISTITEM pli, int level, int idx )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	PLISTITEM _pli;
-	lprintf( WIDE("This function is unfinished in implementation.") );
+	lprintf( "This function is unfinished in implementation." );
 	_pli = pli = plb->items;
 	while( idx && pli )
 	{
@@ -1109,7 +1109,7 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 	if( plb )
 	{
 		PLISTITEM pli;
-		//printf( WIDE("%08x\n"), key );
+		//printf( "%08x\n", key );
 		if( key & 0x80000000 )
 		{
 			switch( key & 0xFF )
@@ -1238,7 +1238,7 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 		}
 	}
 	else
-		lprintf( WIDE("No listbox?") );
+		lprintf( "No listbox?" );
 	return handled;
 }	
 
@@ -1390,7 +1390,7 @@ PLISTITEM InsertListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
 		{
 			if( !plb->last )
 			{
-				Log( WIDE("Hmm adding after an item in a list which has none?!") );
+				Log( "Hmm adding after an item in a list which has none?!" );
 				DebugBreak();
 			}
 			if( ( pli->next = pPrior->next ) )
@@ -1402,7 +1402,7 @@ PLISTITEM InsertListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
 		}
 		if( !plb->flags.bNoUpdate )
 		{
-			//Log( WIDE("Added an item, therefore update this list?!") );
+			//Log( "Added an item, therefore update this list?!" );
 			// should only auto adjust when adding items...
 			AdjustItemsIntoBox( pc );
 			plb->flags.bInitial = TRUE;
@@ -1482,7 +1482,7 @@ PLISTITEM AddListItemEx( PSI_CONTROL pc, int nLevel, const TEXTCHAR *text ) {
 				else
 					bOpen = TRUE; // ROOT of tree is always open..
 			}
-			//Log( WIDE("Added an item, therefore update this list?!") );
+			//Log( "Added an item, therefore update this list?!" );
 			// should only auto adjust when adding items...
 			if( bOpen ) {
 				AdjustItemsIntoBox( pc );
@@ -1708,7 +1708,7 @@ PSI_PROC( int, DisableUpdateListBox )( PSI_CONTROL pc, LOGICAL bDisable )
 		bSaved = plb->flags.bNoUpdate;
 		if( !bDisable && plb->flags.bNoUpdate )
 		{
-			//Log( WIDE("Reenabling scrollbar updates causes an update... ") );
+			//Log( "Reenabling scrollbar updates causes an update... " );
 			// duh - must render before we know min/max/range...
 			SmudgeCommon( pc );
 			UpdateScrollForList( pc );

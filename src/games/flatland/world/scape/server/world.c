@@ -74,7 +74,7 @@ INDEX CreateSquareSector( INDEX iWorld, PC_POINT pOrigin, RCOORD size )
 	//DumpWall( pSector->wall->wall_at_end );
 	//DumpWall( pSector->wall->wall_at_start->wall_at_end );
 	{
-		INDEX texture = MakeTexture( iWorld, MakeName( iWorld, WIDE("Default") ) );
+		INDEX texture = MakeTexture( iWorld, MakeName( iWorld, "Default" ) );
 		PFLATLAND_TEXTURE pTexture = GetSetMember( FLATLAND_TEXTURE, &world->textures, texture );
 		if( !pTexture->flags.bColor )
 			SetSolidColor( iWorld, texture, AColor( 170, 170, 170, 0x80 ) );
@@ -135,7 +135,7 @@ INDEX ServerSideOpenWorld( PSERVICE_ROUTE iClient, CTEXTSTR name )
 
 INDEX CreateBasicWorld( INDEX iClient )
 {
-	INDEX world = ServerSideOpenWorld( iClient, WIDE("Default world") );
+	INDEX world = ServerSideOpenWorld( iClient, "Default world" );
 	CreateSquareSector( world, VectorConst_0, 50 );
 	return world;
 }
@@ -243,63 +243,63 @@ void ResetWorld( INDEX iWorld )
 			fseek( pFile, endpos, SEEK_SET );                      \
 			sz += name##size; }                                    
 
-CTEXTSTR table = WIDE("create table world_walls ( world_id int(11), world_wall_id int(11)")
-		WIDE(", world_line_id int(11)")
-		WIDE(", world_sector_id int(11)")
-		WIDE(", flag_wall_end int(1), flag_wall_start int(1)")
-		WIDE(", world_wall_id_into int(11), world_wall_id_start int(11), world_wall_id_end int(11)")
-		WIDE(", PRIMARY KEY (world_id,world_wall_id )");
-CTEXTSTR table2 = WIDE("create table world_lines ( world_id int(11), world_line_id int(11)")
-		WIDE(", start float, end float")
-		WIDE(", r_o_0 float, r_n_0 float")
-		WIDE(", r_o_1 float, r_n_1 float")
-		WIDE(", r_o_2 float, r_n_2 float")
-		WIDE(", PRIMARY KEY (world_id,world_line_id )");
-CTEXTSTR table3 = WIDE("create table world_sectors ( world_id int(11), world_sector_id int(11)")
-		WIDE(", world_wall_id int(11)")
-		WIDE(", world_texture_id int(11)")
-		WIDE(", world_name_id int(11)")
-		WIDE(", flags int(11)")
-		WIDE(", PRIMARY KEY (world_id,world_sector_id )");
+CTEXTSTR table = "create table world_walls ( world_id int(11), world_wall_id int(11)"
+		", world_line_id int(11)"
+		", world_sector_id int(11)"
+		", flag_wall_end int(1), flag_wall_start int(1)"
+		", world_wall_id_into int(11), world_wall_id_start int(11), world_wall_id_end int(11)"
+		", PRIMARY KEY (world_id,world_wall_id )";
+CTEXTSTR table2 = "create table world_lines ( world_id int(11), world_line_id int(11)"
+		", start float, end float"
+		", r_o_0 float, r_n_0 float"
+		", r_o_1 float, r_n_1 float"
+		", r_o_2 float, r_n_2 float"
+		", PRIMARY KEY (world_id,world_line_id )";
+CTEXTSTR table3 = "create table world_sectors ( world_id int(11), world_sector_id int(11)"
+		", world_wall_id int(11)"
+		", world_texture_id int(11)"
+		", world_name_id int(11)"
+		", flags int(11)"
+		", PRIMARY KEY (world_id,world_sector_id )";
 
-CTEXTSTR table4 = WIDE("create table world_textures ( world_id int(11), world_texture_id int(11)")
-		WIDE(", world_name_id int(11)")
-		WIDE(", is_color int")
-		WIDE(", color int")
-		WIDE(", PRIMARY KEY (world_id,world_texture_id )");
+CTEXTSTR table4 = "create table world_textures ( world_id int(11), world_texture_id int(11)"
+		", world_name_id int(11)"
+		", is_color int"
+		", color int"
+		", PRIMARY KEY (world_id,world_texture_id )";
 
 FIELD worlds_fields[] = {
-	{ WIDE("world_id"), WIDE("int(11)"), WIDE("auto_increment") }
-	, { WIDE("name"), WIDE("int(11)") }
-	, { WIDE("version"), WIDE("int(11)") }
+	{ "world_id", "int(11)", "auto_increment" }
+	, { "name", "int(11)" }
+	, { "version", "int(11)" }
 };
 
 DB_KEY_DEF worlds_keys[] = {
 #ifdef __cplusplus
-	required_key_def( 1, 0, NULL, WIDE("world_id") )
-	, required_key_def( 0, 1, WIDE("name"), WIDE("name") )
+	required_key_def( 1, 0, NULL, "world_id" )
+	, required_key_def( 0, 1, "name", "name" )
 #else
 
-	{ {1,0}, NULL, { WIDE("world_id") } }
-	, { { 0, 1 }, WIDE("dictionary"), { WIDE("name") } }
+	{ {1,0}, NULL, { "world_id" } }
+	, { { 0, 1 }, "dictionary", { "name" } }
 
 #endif
 };
 
 TABLE worlds = { 
-	 WIDE("worlds"), FIELDS( worlds_fields )
+	 "worlds", FIELDS( worlds_fields )
 	 , TABLE_KEYS( worlds_keys )
 };
 
-CTEXTSTR table5 = WIDE("create table world_name_lines ( world_id int, world_name_id int")
-		WIDE(", line_order int, text varchar(64)")
-		WIDE(", UNIQUE KEY( world_id,world_name_id,line_order) )");
+CTEXTSTR table5 = "create table world_name_lines ( world_id int, world_name_id int"
+		", line_order int, text varchar(64)"
+		", UNIQUE KEY( world_id,world_name_id,line_order) )";
 
 FIELD world_names_fields[] = {
-	{ WIDE("world_name_id"), WIDE("int(11)") }
-	, { WIDE("world_id"), WIDE("int(11)") }
-	, { WIDE("flags"), WIDE("int(11)") }
-	, { WIDE("text"), WIDE("varchar(128)"), NULL }
+	{ "world_name_id", "int(11)" }
+	, { "world_id", "int(11)" }
+	, { "flags", "int(11)" }
+	, { "text", "varchar(128)", NULL }
 };
 
 
@@ -307,12 +307,12 @@ DB_KEY_DEF world_names_keys[] = {
 
 #ifdef __cplusplus
 
-	required_key_def( 1, 0, NULL, WIDE("world_name_id") )
-	, required_key_def( 0, 1, WIDE("dictionary"), WIDE("name") )
+	required_key_def( 1, 0, NULL, "world_name_id" )
+	, required_key_def( 0, 1, "dictionary", "name" )
 #else
 
-	{ {1,0}, NULL, { WIDE("world_name_id") } }
-	, { { 0, 1 }, WIDE("dictionary"), { WIDE("name") } }
+	{ {1,0}, NULL, { "world_name_id" } }
+	, { { 0, 1 }, "dictionary", { "name" } }
 
 #endif
 
@@ -322,7 +322,7 @@ DB_KEY_DEF world_names_keys[] = {
 
 
 
-TABLE world_names = { WIDE("world_names" )
+TABLE world_names = { "world_names"
 	 , FIELDS( world_names_fields )
 	 , TABLE_KEYS( world_names_keys )
 };
@@ -332,7 +332,7 @@ void InitWorldsDb()
 	static LOGICAL inited;
 	if( !inited )
 	{
-		PODBC odbc = ConnectToDatabase( WIDE("worlds.db") );
+		PODBC odbc = ConnectToDatabase( "worlds.db" );
 		CheckODBCTable( odbc, &world_names, CTO_MERGE );
 		CheckODBCTable( odbc, &worlds, CTO_MERGE );
 		{
@@ -381,7 +381,7 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 	texturearray = GetLinearTextureArray( pWorld->textures, &ntextures );
 
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Built arrays: %d"), GetTickCount() - start );
+	Log1( "Built arrays: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
 
@@ -409,22 +409,22 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 	// version 11: 
 	//-------------------------------------------------
 
-	SQLCommand( odbc, WIDE("Begin transaction") );
+	SQLCommand( odbc, "Begin transaction" );
 
-	SQLCommandf( odbc, WIDE("update worlds set version=%d where world_id=%d"), CURRENTSAVEVERSION, world_id );
+	SQLCommandf( odbc, "update worlds set version=%d where world_id=%d", CURRENTSAVEVERSION, world_id );
 
 	
 	//----- write lines -------
-	SQLCommandf( odbc, WIDE("delete from world_lines where world_id=%d"), world_id );
+	SQLCommandf( odbc, "delete from world_lines where world_id=%d", world_id );
 
 	//sz += fwrite( "LINE", 1, 4, pFile );
 	//WriteSize( line );
 	//linesize += fwrite( &nlines, 1, sizeof(nlines), pFile );
 	for( cnt = 0; cnt < nlines; cnt++ )
 	{
-		SQLCommandf( odbc, WIDE("insert into world_lines (world_id,world_line_id")
-			WIDE(",r_o_0,r_o_1,r_o_2,r_n_0,r_n_1,r_n_2,start,end) ")
-			WIDE("values (%d,%d,%lg,%lg,%g,%g,%g,%g,%g,%g)")
+		SQLCommandf( odbc, "insert into world_lines (world_id,world_line_id"
+			",r_o_0,r_o_1,r_o_2,r_n_0,r_n_1,r_n_2,start,end) "
+			"values (%d,%d,%lg,%lg,%g,%g,%g,%g,%g,%g)"
 			, world_id
 			, cnt + 1
 			, linearray[cnt]->r.o[0]
@@ -438,11 +438,11 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 			);
 	}
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote Lines: %d"), GetTickCount() - start );
+	Log1( "Wrote Lines: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
 
-	SQLCommandf( odbc, WIDE("delete from world_walls where world_id=%d"), world_id );
+	SQLCommandf( odbc, "delete from world_walls where world_id=%d", world_id );
 	for( cnt = 0; cnt < nwalls; cnt++ )
 	{
 		FILEWALLV2 WriteWall;
@@ -451,33 +451,33 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 
 		tmp = WriteWall.nSector = FindInArray( (POINTER*)sectorarray, nsectors, GetUsedSetMember( SECTOR, &pWorld->sectors, pwall->iSector ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find referenced sector... save will fail %d"), cnt );
+			Log1( "Failed to find referenced sector... save will fail %d", cnt );
 
 		tmp = WriteWall.nLine = FindInArray( (POINTER*)linearray, nlines, GetUsedSetMember( FLATLAND_MYLINESEG, &pWorld->lines, pwall->iLine ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find referenced line... save will fail %d"), cnt );
+			Log1( "Failed to find referenced line... save will fail %d", cnt );
 
 		if( pwall->iWallInto != INVALID_INDEX )
 		{
 			tmp = WriteWall.nWallInto = FindInArray( (POINTER*)wallarray, nwalls, GetUsedSetMember( WALL, &pWorld->walls, pwall->iWallInto ) );
 			if( tmp < 0 )
-				Log1( WIDE("Failed to find referenced Intoing wall... save will fail %d"), cnt );
+				Log1( "Failed to find referenced Intoing wall... save will fail %d", cnt );
 		}
 		else
 			WriteWall.nWallInto = INVALID_INDEX; // +1 will be 0.
 		tmp = WriteWall.nWallStart = FindInArray( (POINTER*)wallarray, nwalls, GetUsedSetMember( WALL, &pWorld->walls, pwall->iWallStart ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find referenced starting wall... save will fail %d"), cnt );
+			Log1( "Failed to find referenced starting wall... save will fail %d", cnt );
 
 		tmp = WriteWall.nWallEnd = FindInArray( (POINTER*)wallarray, nwalls, GetUsedSetMember( WALL, &pWorld->walls, pwall->iWallEnd ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find referenced ending wall... save will fail %d"), cnt );
+			Log1( "Failed to find referenced ending wall... save will fail %d", cnt );
 
-		SQLCommandf( odbc, WIDE("insert into world_walls (world_id, world_wall_id")
-			WIDE(", world_line_id")
-			WIDE(", world_sector_id")
-			WIDE(", world_wall_id_into, world_wall_id_start, world_wall_id_end, flag_wall_end, flag_wall_start )")
-			WIDE("values (%d,%d,%d,%d,%d,%d,%d,%d,%d)") 
+		SQLCommandf( odbc, "insert into world_walls (world_id, world_wall_id"
+			", world_line_id"
+			", world_sector_id"
+			", world_wall_id_into, world_wall_id_start, world_wall_id_end, flag_wall_end, flag_wall_start )"
+			"values (%d,%d,%d,%d,%d,%d,%d,%d,%d)" 
 			, world_id
 			, cnt + 1
 			, WriteWall.nLine + 1
@@ -490,10 +490,10 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 			);
 	}
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote Walls: %d"), GetTickCount() - start );
+	Log1( "Wrote Walls: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
-	SQLCommandf( odbc, WIDE("delete from world_sectors where world_id=%d"), world_id );
+	SQLCommandf( odbc, "delete from world_sectors where world_id=%d", world_id );
 	for( cnt = 0; cnt < nsectors; cnt++ )
 	{
 		FILESECTORV8 WriteSector;
@@ -503,12 +503,12 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 		SetRay( &WriteSector.r, &sectorarray[cnt]->r );
 		tmp = WriteSector.nwall = FindInArray( (POINTER*)wallarray, nwalls, GetUsedSetMember( WALL, &pWorld->walls, sectorarray[cnt]->iWall ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find wall referenced by sector.. save failing %d"), cnt );
+			Log1( "Failed to find wall referenced by sector.. save failing %d", cnt );
 		WriteSector.nTexture = FindInArray( (POINTER*)texturearray, ntextures, GetUsedSetMember( FLATLAND_TEXTURE, &pWorld->textures, sectorarray[cnt]->iTexture ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find texture referenced by sector.. save failing %d"), cnt );
-		SQLCommandf( odbc, WIDE("insert into world_sectors (world_sector_id,world_id,world_texture_id,world_name_id,world_wall_id, flags)")
-			WIDE(" values (%d,%d,%d,%d,%d,%d)")
+			Log1( "Failed to find texture referenced by sector.. save failing %d", cnt );
+		SQLCommandf( odbc, "insert into world_sectors (world_sector_id,world_id,world_texture_id,world_name_id,world_wall_id, flags)"
+			" values (%d,%d,%d,%d,%d,%d)"
 			, cnt + 1
 			, world_id
 			, WriteSector.nTexture + 1
@@ -518,10 +518,10 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 			);
 	}
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote Sectors: %d"), GetTickCount() - start );
+	Log1( "Wrote Sectors: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
-	SQLCommandf( odbc, WIDE("delete from world_names where world_id=%d"), world_id );
+	SQLCommandf( odbc, "delete from world_names where world_id=%d", world_id );
 	for( cnt = 0; cnt < nnames; cnt++ )
 	{
 		int l;
@@ -529,11 +529,11 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 		PVARTEXT pvt = VarTextCreate();
 		for( l = 0; l < lines; l++ )
 		{
-			vtprintf( pvt, WIDE("%s%s")
+			vtprintf( pvt, "%s%s"
 				, namearray[cnt]->name[l].name
-				, (l < (lines-1))?WIDE("\n"):WIDE("") );
+				, (l < (lines-1))?"\n":"" );
 		}
-		SQLCommandf( odbc, WIDE("insert into world_names (world_id,world_name_id,text,flags) values (%d,%d,'%s',%d)")
+		SQLCommandf( odbc, "insert into world_names (world_id,world_name_id,text,flags) values (%d,%d,'%s',%d)"
 			, world_id
 			, cnt + 1
 			, GetText( VarTextPeek( pvt ) )
@@ -542,28 +542,28 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 		VarTextDestroy( &pvt );
 	}
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote Names: %d"), GetTickCount() - start );
+	Log1( "Wrote Names: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
-	SQLCommandf( odbc, WIDE("delete from world_textures where world_id=%d"), world_id );
+	SQLCommandf( odbc, "delete from world_textures where world_id=%d", world_id );
 	for( cnt = 0; cnt < ntextures; cnt++ )
 	{
 		int nName = FindInArray( (POINTER*)namearray, nnames, GetUsedSetMember( NAME, &pWorld->names, texturearray[cnt]->iName ) );
-		SQLCommandf( odbc, WIDE("insert into world_textures (world_id,world_texture_id,world_name_id,is_color,color) ")
-			WIDE("values (%d,%d,%d,%d,%d)")
+		SQLCommandf( odbc, "insert into world_textures (world_id,world_texture_id,world_name_id,is_color,color) "
+			"values (%d,%d,%d,%d,%d)"
 			, world_id, cnt + 1, nName + 1
 			, texturearray[cnt]->flags.bColor 
 			, texturearray[cnt]->data.color );
 	}
-	SQLCommand( odbc, WIDE("commit") );
+	SQLCommand( odbc, "commit" );
 
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote Textures: %d"), GetTickCount() - start );
+	Log1( "Wrote Textures: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
 
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote File: %d"), GetTickCount() - begin );
+	Log1( "Wrote File: %d", GetTickCount() - begin );
 #endif
 
 	Release( texturearray );
@@ -572,7 +572,7 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 	Release( wallarray );
 	Release( linearray );
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Released arrays: %d"), GetTickCount() - start );
+	Log1( "Released arrays: %d", GetTickCount() - start );
 #endif
 
 	return sz;
@@ -580,7 +580,7 @@ int SaveData( PODBC odbc, INDEX world_id, INDEX iWorld )
 
 int SaveWorld( INDEX iWorld )
 {
-	PODBC odbc = ConnectToDatabase( WIDE("worlds.db") );
+	PODBC odbc = ConnectToDatabase( "worlds.db" );
 
 	if( odbc )
 		
@@ -590,7 +590,7 @@ int SaveWorld( INDEX iWorld )
 		InitWorldsDb();
 		GetNameText( iWorld, world->name, buffer, sizeof( buffer ) );
 		{
- 			INDEX world_id = SQLReadNameTable( odbc, buffer, WIDE("worlds"), WIDE("world_id") );
+ 			INDEX world_id = SQLReadNameTable( odbc, buffer, "worlds", "world_id" );
 			
 			SaveData( odbc, world_id, iWorld );
 
@@ -633,7 +633,7 @@ int OldSaveWorldToFile
 	texturearray = GetLinearTextureArray( pWorld->textures, &ntextures );
 
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Built arrays: %d"), GetTickCount() - start );
+	Log1( "Built arrays: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
 	fwrite( "FLAT", 1, 4, pFile );
@@ -667,11 +667,11 @@ int OldSaveWorldToFile
 	fwrite( &sz, 1, sizeof( sz ), pFile ); 
 	sz = 0;
 
-	Log1( WIDE("Saving version %d"), tmp );
+	Log1( "Saving version %d", tmp );
 	sz += fwrite( &tmp, 1, sizeof( tmp ), pFile );
 
 	//----- write lines -------
-	sz += fwrite( WIDE("LINE"), 1, 4, pFile );
+	sz += fwrite( "LINE", 1, 4, pFile );
 	WriteSize( line );
 	linesize += fwrite( &nlines, 1, sizeof(nlines), pFile );
 	for( cnt = 0; cnt < nlines; cnt++ )
@@ -684,10 +684,10 @@ int OldSaveWorldToFile
 	}
 	UpdateSize( line );
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote Lines: %d"), GetTickCount() - start );
+	Log1( "Wrote Lines: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
-	sz += fwrite( WIDE("WALL"), 1, 4, pFile );
+	sz += fwrite( "WALL", 1, 4, pFile );
 	WriteSize( wall );
 	wallsize += fwrite( &nwalls, 1, sizeof(nwalls), pFile );
 	for( cnt = 0; cnt < nwalls; cnt++ )
@@ -698,37 +698,37 @@ int OldSaveWorldToFile
 
 		tmp = WriteWall.nSector = FindInArray( (POINTER*)sectorarray, nsectors, GetUsedSetMember( SECTOR, &pWorld->sectors, pwall->iSector ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find referenced sector... save will fail %d"), cnt );
+			Log1( "Failed to find referenced sector... save will fail %d", cnt );
 
 		tmp = WriteWall.nLine = FindInArray( (POINTER*)linearray, nlines, GetUsedSetMember( FLATLAND_MYLINESEG, &pWorld->lines, pwall->iLine ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find referenced line... save will fail %d"), cnt );
+			Log1( "Failed to find referenced line... save will fail %d", cnt );
 
 		if( pwall->iWallInto != INVALID_INDEX )
 		{
 			tmp = WriteWall.nWallInto = FindInArray( (POINTER*)wallarray, nwalls, GetUsedSetMember( WALL, &pWorld->walls, pwall->iWallInto ) );
 			if( tmp < 0 )
-				Log1( WIDE("Failed to find referenced wall into... save will fail %d"), cnt );
+				Log1( "Failed to find referenced wall into... save will fail %d", cnt );
 		}
 		else
 			WriteWall.nWallInto = -1;
 
 		tmp = WriteWall.nWallStart = FindInArray( (POINTER*)wallarray, nwalls, GetUsedSetMember( WALL, &pWorld->walls, pwall->iWallStart ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find referenced starting wall... save will fail %d"), cnt );
+			Log1( "Failed to find referenced starting wall... save will fail %d", cnt );
 
 		tmp = WriteWall.nWallEnd = FindInArray( (POINTER*)wallarray, nwalls, GetUsedSetMember( WALL, &pWorld->walls, pwall->iWallEnd ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find referenced ending wall... save will fail %d"), cnt );
+			Log1( "Failed to find referenced ending wall... save will fail %d", cnt );
 
 		wallsize += fwrite( &WriteWall, 1, sizeof( WriteWall ), pFile );	
 	}
 	UpdateSize( wall );
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote Walls: %d"), GetTickCount() - start );
+	Log1( "Wrote Walls: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
-	sz += fwrite( WIDE("SECT"), 1, 4, pFile );
+	sz += fwrite( "SECT", 1, 4, pFile );
 	WriteSize( sector );
 	sectorsize += fwrite( &nsectors, 1, sizeof( nsectors ), pFile );
 	for( cnt = 0; cnt < nsectors; cnt++ )
@@ -740,18 +740,18 @@ int OldSaveWorldToFile
 		SetRay( &WriteSector.r, &sectorarray[cnt]->r );
 		tmp = WriteSector.nwall = FindInArray( (POINTER*)wallarray, nwalls, GetUsedSetMember( WALL, &pWorld->walls, sectorarray[cnt]->iWall ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find wall referenced by sector.. save failing %d"), cnt );
+			Log1( "Failed to find wall referenced by sector.. save failing %d", cnt );
 		WriteSector.nTexture = FindInArray( (POINTER*)texturearray, ntextures, GetUsedSetMember( FLATLAND_TEXTURE, &pWorld->textures, sectorarray[cnt]->iTexture ) );
 		if( tmp < 0 )
-			Log1( WIDE("Failed to find texture referenced by sector.. save failing %d"), cnt );
+			Log1( "Failed to find texture referenced by sector.. save failing %d", cnt );
 		sectorsize += fwrite( &WriteSector, 1, sizeof( WriteSector ), pFile );
 	}
 	UpdateSize( sector );
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote Sectors: %d"), GetTickCount() - start );
+	Log1( "Wrote Sectors: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
-	sz += fwrite( WIDE("NAME"), 1, 4, pFile );
+	sz += fwrite( "NAME", 1, 4, pFile );
 	WriteSize( name );
 	namesize += fwrite( &nnames, 1, sizeof( nnames ), pFile );
 	for( cnt = 0; cnt < nnames; cnt++ )
@@ -768,10 +768,10 @@ int OldSaveWorldToFile
 	}
 	UpdateSize( name );
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote Names: %d"), GetTickCount() - start );
+	Log1( "Wrote Names: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
-	sz += fwrite( WIDE("TEXT"), 1, 4, pFile );
+	sz += fwrite( "TEXT", 1, 4, pFile );
 
 	WriteSize( texture );
 
@@ -793,7 +793,7 @@ int OldSaveWorldToFile
 	UpdateSize( texture );
 
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote Textures: %d"), GetTickCount() - start );
+	Log1( "Wrote Textures: %d", GetTickCount() - start );
 	start = GetTickCount();
 #endif
 	{
@@ -805,7 +805,7 @@ int OldSaveWorldToFile
 	}
 
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Wrote File: %d"), GetTickCount() - begin );
+	Log1( "Wrote File: %d", GetTickCount() - begin );
 #endif
 
 	Release( texturearray );
@@ -814,7 +814,7 @@ int OldSaveWorldToFile
 	Release( wallarray );
 	Release( linearray );
 #ifdef LOG_SAVETIMING
-	Log1( WIDE("Released arrays: %d"), GetTickCount() - start );
+	Log1( "Released arrays: %d", GetTickCount() - start );
 #endif
 
 	return sz;
@@ -849,20 +849,20 @@ int LoadData( PODBC odbc, INDEX world_id, INDEX iWorld )
 	ResetWorld( iWorld ); // make sure this thing is empty );
 
 	// select the version in case there's more/better data..
-	//Log1( WIDE("Loading version: %d"), version );
+	//Log1( "Loading version: %d", version );
 	// CTEXTSTR result;
-	if( !SQLQueryf( odbc, &result, WIDE("select version from worlds where world_id=%d"), world_id ) )
+	if( !SQLQueryf( odbc, &result, "select version from worlds where world_id=%d", world_id ) )
 		return -1;
 
 	version = atoi( result );
 
-	if( !SQLQueryf( odbc, &result, WIDE("select count(*) from world_lines where world_id=%d"), world_id ) || !result )
+	if( !SQLQueryf( odbc, &result, "select count(*) from world_lines where world_id=%d", world_id ) || !result )
 		return -1;
 
 	linearray = NewArray( PFLATLAND_MYLINESEG, atoi( result ) );
 
 
-	for( SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE("select world_line_id,start,end,r_o_0,r_o_1,r_o_2,r_n_0,r_n_1,r_n_2 from world_lines where world_id=%d order by world_line_id"), world_id );
+	for( SQLRecordQueryf( odbc, NULL, &results, NULL, "select world_line_id,start,end,r_o_0,r_o_1,r_o_2,r_n_0,r_n_1,r_n_2 from world_lines where world_id=%d order by world_line_id", world_id );
 		results;
 		FetchSQLRecord( odbc, &results ) )
 	{
@@ -879,7 +879,7 @@ int LoadData( PODBC odbc, INDEX world_id, INDEX iWorld )
 		MarkLineUpdated( iWorld, cnt );
 	}
 
-	if( !SQLQueryf( odbc, &result, WIDE("select count(*) from world_walls where world_id=%d"), world_id ) || !result )
+	if( !SQLQueryf( odbc, &result, "select count(*) from world_walls where world_id=%d", world_id ) || !result )
 		return -1;
 	nwalls = atoi( result );
 	wallarray = NewArray( PWALL, nwalls );
@@ -890,7 +890,7 @@ int LoadData( PODBC odbc, INDEX world_id, INDEX iWorld )
 	}
 
 
-	if( !SQLQueryf( odbc, &result, WIDE("select count(*) from world_sectors where world_id=%d"), world_id ) || !result )
+	if( !SQLQueryf( odbc, &result, "select count(*) from world_sectors where world_id=%d", world_id ) || !result )
 		return -1;
 	nsectors = atoi( result );
 	sectorarray = NewArray( PSECTOR, nsectors );
@@ -900,7 +900,7 @@ int LoadData( PODBC odbc, INDEX world_id, INDEX iWorld )
 		sectorarray[cnt] = GetFromSet( SECTOR, &world->sectors );
 	}
 
-	if( !SQLQueryf( odbc, &result, WIDE("select count(*) from world_textures where world_id=%d"), world_id ) || !result )
+	if( !SQLQueryf( odbc, &result, "select count(*) from world_textures where world_id=%d", world_id ) || !result )
 		return -1;
 	ntextures = atoi( result );
 	texturearray = NewArray( PFLATLAND_TEXTURE, ntextures );
@@ -910,7 +910,7 @@ int LoadData( PODBC odbc, INDEX world_id, INDEX iWorld )
 		texturearray[cnt] = GetFromSet( FLATLAND_TEXTURE, &world->textures );
 	}
 
-	if( !SQLQueryf( odbc, &result, WIDE("select count(*) from world_names where world_id=%d"), world_id ) || !result )
+	if( !SQLQueryf( odbc, &result, "select count(*) from world_names where world_id=%d", world_id ) || !result )
 		return -1;
 	nnames = atoi( result );
 	namearray = NewArray( PNAME, nnames );
@@ -920,7 +920,7 @@ int LoadData( PODBC odbc, INDEX world_id, INDEX iWorld )
 		texturearray[cnt] = GetFromSet( FLATLAND_TEXTURE, &world->textures );
 	}
 
-	for( SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE("select world_wall_id,world_wall_id_start,world_wall_id_end,world_sector_id,world_line_id,flag_wall_end,flag_wall_start,world_wall_id_into from world_walls where world_id=%d order by world_wall_id"), world_id );
+	for( SQLRecordQueryf( odbc, NULL, &results, NULL, "select world_wall_id,world_wall_id_start,world_wall_id_end,world_sector_id,world_line_id,flag_wall_end,flag_wall_start,world_wall_id_into from world_walls where world_id=%d order by world_wall_id", world_id );
 		results;
 		FetchSQLRecord( odbc, &results ) )
 	{
@@ -956,7 +956,7 @@ int LoadData( PODBC odbc, INDEX world_id, INDEX iWorld )
 		MarkWallUpdated( iWorld, cnt );
 	}	
 
-	for( SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE("select world_sector_id,world_texture_id,flags,world_name_id,world_wall_id from world_sectors where world_id=%d order by world_sector_id"), world_id );
+	for( SQLRecordQueryf( odbc, NULL, &results, NULL, "select world_sector_id,world_texture_id,flags,world_name_id,world_wall_id from world_sectors where world_id=%d order by world_sector_id", world_id );
 		results;
 		FetchSQLRecord( odbc, &results ) )
 	{
@@ -975,7 +975,7 @@ int LoadData( PODBC odbc, INDEX world_id, INDEX iWorld )
 	}
 
 	
-	for( SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE("select world_name_id,text,flags from world_names where world_id=%d order by world_name_id"), world_id );
+	for( SQLRecordQueryf( odbc, NULL, &results, NULL, "select world_name_id,text,flags from world_names where world_id=%d order by world_name_id", world_id );
 		results;
 		FetchSQLRecord( odbc, &results ) )
 	{
@@ -983,7 +983,7 @@ int LoadData( PODBC odbc, INDEX world_id, INDEX iWorld )
 		PNAME name = namearray[iName];
 	}		
 
-	for( SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE("select world_texture_id,is_color,color,world_name_id from world_textures where world_id=%d order by world_texture_id"), world_id );
+	for( SQLRecordQueryf( odbc, NULL, &results, NULL, "select world_texture_id,is_color,color,world_name_id from world_textures where world_id=%d order by world_texture_id", world_id );
 		results;
 		FetchSQLRecord( odbc, &results ) )
 	{
@@ -1007,7 +1007,7 @@ int LoadData( PODBC odbc, INDEX world_id, INDEX iWorld )
 
 int LoadWorld( INDEX iWorld )
 {
-	PODBC odbc = ConnectToDatabase( WIDE("worlds.db") );
+	PODBC odbc = ConnectToDatabase( "worlds.db" );
 
 	if( odbc )
 		
@@ -1018,7 +1018,7 @@ int LoadWorld( INDEX iWorld )
 		// should make sure reset tells client about deletions too.
 		GetNameText( iWorld, world->name, buffer, sizeof( buffer ) );
 		{
- 			INDEX world_id = SQLReadNameTable( odbc, buffer, WIDE("worlds"), WIDE("world_id") );
+ 			INDEX world_id = SQLReadNameTable( odbc, buffer, "worlds", "world_id" );
 			
 			LoadData( odbc, world_id, iWorld );
 
@@ -1059,7 +1059,7 @@ INDEX CPROC CheckWallSelect( PWALL wall, PWALLSELECTINFO si )
 			else
 				return 1; // breaks for_all loop
 		}
-		//Log4( WIDE("Results: %g %g (%g %g)"), t1, t2, line->start, line->dTo );
+		//Log4( "Results: %g %g (%g %g)", t1, t2, line->start, line->dTo );
 	}
 	return 0;
 }
@@ -1083,7 +1083,7 @@ int MergeSelectedWalls( INDEX iWorld, INDEX iDefinite, PORTHOAREA rect )
 	
 	if( !ForAllWalls( world->walls, CheckWallSelect, &si ) )
 	{
-		Log1( WIDE("Found %d walls to merge: %d"), si.nwalls );
+		Log1( "Found %d walls to merge: %d", si.nwalls );
 		if( si.nwalls == 2 && 
 			( GetWall( si.walls[0] )->iSector != GetWall( si.walls[1] )->iSector ) )
 		{
@@ -1131,7 +1131,7 @@ INDEX CPROC CheckSectorInRect( INDEX sector, PSECTORSELECTINFO psi )
 		{
 			addscaled( p, line->r.o, line->r.n, line->dFrom );
 		}
-		//Log7( WIDE("Checking (%g,%g) vs (%g,%g)-(%g,%g)"), 
+		//Log7( "Checking (%g,%g) vs (%g,%g)-(%g,%g)", 
 		if( p[0] < (rect->x) ||
 		    p[0] > (rect->x + rect->w) ||
           p[1] < (rect->y) ||
@@ -1173,11 +1173,11 @@ int MarkSelectedSectors( INDEX iWorld, PORTHOAREA rect, INDEX **sectorarray, int
 		rect->y += rect->h;
 		rect->h = -rect->h;
 	}
-	Log( WIDE("Marking Sectors") );
+	Log( "Marking Sectors" );
 	DoForAllSectors( world->sectors, CheckSectorInRect, (uintptr_t)&si );
 	if( si.nsectors )
 	{
-		Log1( WIDE("Found %d sectors in range"), si.nsectors );
+		Log1( "Found %d sectors in range", si.nsectors );
 		if( sectorcount )
 			*sectorcount = si.nsectors;
 		if( sectorarray )
@@ -1230,19 +1230,19 @@ int CPROC CheckWallInRect( PWALL wall, PGROUPWALLSELECTINFO psi )
 	if( wall->iLine == INVALID_INDEX )
 	{
 		PSECTOR sector = GetSector( wall->iSector );
-   		Log( WIDE("Line didn't exist...") );
+   		Log( "Line didn't exist..." );
    		if( sector )
 		{
 			PNAME name = GetName( sector->iName );
-   			Log( WIDE("Sector exists...") );
+   			Log( "Sector exists..." );
    			if( name &&
 				name[0].name )
-		   		Log1( WIDE("Wall in Sector %s does not have a line"), name[0].name );
+		   		Log1( "Wall in Sector %s does not have a line", name[0].name );
 			else
-				Log( WIDE("Sector referenced does not have a name") );
+				Log( "Sector referenced does not have a name" );
 		}
 		else
-			Log( WIDE("Wall should not be active... WHY is it?!") );
+			Log( "Wall should not be active... WHY is it?!" );
    }
    else
    {
@@ -1259,7 +1259,7 @@ int CPROC CheckWallInRect( PWALL wall, PGROUPWALLSELECTINFO psi )
 			if( psi->ppwalls )
 			{
 				psi->ppwalls[psi->nwalls++] = GetWallIndex( wall );
-				lprintf( WIDE("Server side ") _WIDE(TARGETNAME) WIDE(" needs balance line.") );
+				lprintf( "Server side " _WIDE(TARGETNAME) " needs balance line." );
 				//BalanceALine( psi->iWorld, wall->iLine );
 			}
 			else
@@ -1307,10 +1307,10 @@ void MergeOverlappingWalls( INDEX iWorld, PORTHOAREA rect )
 						if( PointInRect( start2, rect ) && 
 							 PointInRect( end2, rect ) )
 						{
-							Log4( WIDE("starts: (%12.12g,%12.12g) vs (%12.12g,%12.12g)") 
+							Log4( "starts: (%12.12g,%12.12g) vs (%12.12g,%12.12g)" 
 										,start[0], start[1]
 										,start2[0], start2[1] );
-							Log4( WIDE("ends  : (%12.12g,%12.12g) vs (%12.12g,%12.12g)") 
+							Log4( "ends  : (%12.12g,%12.12g) vs (%12.12g,%12.12g)" 
 										,end[0], end[1]
 										,end2[0], end2[1] );
 						}
@@ -1413,7 +1413,7 @@ int ValidateWorldLinks( INDEX iWorld )
 			if( m == nWalls )
 			{
 				status = FALSE;
-				Log1( WIDE("Line %08x is unreferenced... deleting now."), pLines[n] );
+				Log1( "Line %08x is unreferenced... deleting now.", pLines[n] );
 				DeleteLine( world->lines, pLines[n] );
 				pLines[n] = NULL;
 			}
@@ -1445,7 +1445,7 @@ int ValidateWorldLinks( INDEX iWorld )
 			if( m == nLines )
 			{
 				status = FALSE;
-				Log3( WIDE("Wall %08x in Sector %d referenced line %08x that does not exist"), 
+				Log3( "Wall %08x in Sector %d referenced line %08x that does not exist", 
 							pWalls[n], GetSector( pWalls[n]->iSector )->iName, pWalls[n]->iLine );
 			}
 		}
@@ -1453,7 +1453,7 @@ int ValidateWorldLinks( INDEX iWorld )
 		{
 			int count = 0;
 			if( !pLines[n]->refcount )
-				lprintf( WIDE("Line  %d exists with no reference count"), n );
+				lprintf( "Line  %d exists with no reference count", n );
 			for( m = 0; m < nWalls; m++ )
 			{
 				if( GetLine( pWalls[m]->iLine ) == pLines[n] )
@@ -1463,7 +1463,7 @@ int ValidateWorldLinks( INDEX iWorld )
 			}
 			if( count != pLines[n]->refcount )
 			{
-				Log2( WIDE("Line reference count of %d does not match actual %d")
+				Log2( "Line reference count of %d does not match actual %d"
 							, pLines[n]->refcount
 							, count );
 			}
@@ -1482,7 +1482,7 @@ int ValidateWorldLinks( INDEX iWorld )
 				}
 				if( i == nNames )
 				{
-					Log2( WIDE("Name %08x referenced by Sector %d does not exist"), pSectors[n]->iName, n );
+					Log2( "Name %08x referenced by Sector %d does not exist", pSectors[n]->iName, n );
 				}
 			}
 
@@ -1491,7 +1491,7 @@ int ValidateWorldLinks( INDEX iWorld )
 			{
 				if( pCur->iLine == INVALID_INDEX )
 				{
-					Log1( WIDE("Wall in sector %d has an invalid line def"), pSectors[n]->iName );
+					Log1( "Wall in sector %d has an invalid line def", pSectors[n]->iName );
 				}
 				
 				for( m = 0; m < nWalls; m++ )
@@ -1502,18 +1502,18 @@ int ValidateWorldLinks( INDEX iWorld )
 				if( m == nWalls )
 				{
 					status = FALSE;
-					Log4( WIDE("Sector %*.*s referenced wall %08x that does not exist"),
+					Log4( "Sector %*.*s referenced wall %08x that does not exist",
 								GetName( pSectors[n]->iName )->name[0].length,
 								GetName( pSectors[n]->iName )->name[0].length,
 								GetName( pSectors[n]->iName )->name[0].name, pCur );
 				}
 				if( pCur->iWallStart == INVALID_INDEX )
 				{
-					lprintf( WIDE("wall has no start : %d"), GetMemberIndex( WALL, world->walls, pCur ) );
+					lprintf( "wall has no start : %d", GetMemberIndex( WALL, world->walls, pCur ) );
 				}
 				if( pCur->iWallEnd == INVALID_INDEX )
 				{
-					lprintf( WIDE("wall has no end : %d"), GetMemberIndex( WALL, world->walls, pCur ) );
+					lprintf( "wall has no end : %d", GetMemberIndex( WALL, world->walls, pCur ) );
 				}
 				// code goes here....
 				if( priorend )

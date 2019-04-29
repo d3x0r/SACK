@@ -60,7 +60,7 @@ PRIORITY_PRELOAD( CreateFontRenderGlobal, IMAGE_PRELOAD_PRIORITY )
 		error = FT_Init_FreeType( &fg.library );
 		if( error )
 		{
-			Log1( WIDE("Free type init failed: %d"), error );
+			Log1( "Free type init failed: %d", error );
 			return ;
 		}
 	}
@@ -70,8 +70,8 @@ PRIORITY_PRELOAD( CreateFontRenderGlobal, IMAGE_PRELOAD_PRIORITY )
 
 void PrintLeadinJS( CTEXTSTR name, SFTFont font, int bits )
 {
-	//sack_fprintf( output, WIDE( "var font = {};\n" ) );
-	sack_fprintf( output, WIDE( "var font = { \nheight:%d, baseline:%d, flags:%d, characters:[")
+	//sack_fprintf( output, "var font = {};\n" );
+	sack_fprintf( output, "var font = { \nheight:%d, baseline:%d, flags:%d, characters:["
 	       , font->height 
 	       , font->baseline
 	       , font->flags
@@ -81,24 +81,24 @@ void PrintLeadinJS( CTEXTSTR name, SFTFont font, int bits )
 
 void PrintLeadin( CTEXTSTR name, SFTFont font, int bits )
 {
-	sack_fprintf( output, WIDE( "#include <vectlib.h>\n" ) );
-	sack_fprintf( output, WIDE( "#undef _X\n" ) );
+	sack_fprintf( output, "#include <vectlib.h>\n" );
+	sack_fprintf( output, "#undef _X\n" );
 
 	if( bits == 2)
-		sack_fprintf( output, WIDE("#define BITS_GREY2\n") );
+		sack_fprintf( output, "#define BITS_GREY2\n" );
 	if( bits != 8 )
 		sack_fprintf( output, WIDE("#include \"symbits.h\"\n") );
 
-	sack_fprintf( output, WIDE( "IMAGE_NAMESPACE\n") );
-	sack_fprintf( output, WIDE( "	typedef struct font_tag *PFONT ;\n") );
-	sack_fprintf( output, WIDE( "#ifdef __cplusplus \n") );
-	sack_fprintf( output, WIDE( "	namespace default_font {\n") );
-	sack_fprintf( output, WIDE( "#endif\n") );
-	sack_fprintf( output, WIDE( "\n") );
-	sack_fprintf( output, WIDE( "#define EXTRA_STRUCT  struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;\n") );
-	sack_fprintf( output, WIDE( "#define EXTRA_INIT  0,0,0,0,0,0\n") );
+	sack_fprintf( output, "IMAGE_NAMESPACE\n" );
+	sack_fprintf( output, "	typedef struct font_tag *PFONT ;\n" );
+	sack_fprintf( output, "#ifdef __cplusplus \n" );
+	sack_fprintf( output, "	namespace default_font {\n" );
+	sack_fprintf( output, "#endif\n" );
+	sack_fprintf( output, "\n" );
+	sack_fprintf( output, "#define EXTRA_STRUCT  struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;\n" );
+	sack_fprintf( output, "#define EXTRA_INIT  0,0,0,0,0,0\n" );
 
-	sack_fprintf( output, WIDE("typedef char CHARACTER, *PCHARACTER;\n") );
+	sack_fprintf( output, "typedef char CHARACTER, *PCHARACTER;\n" );
 }
 
 int PrintCharJS( int bits, int charnum, PCHARACTER character, int height )
@@ -106,9 +106,9 @@ int PrintCharJS( int bits, int charnum, PCHARACTER character, int height )
 	int  outwidth;
 	TEXTCHAR charid[64];
 	char *data = character?(char*)character->data:0;
-	tnprintf( charid, sizeof( charid ), WIDE("_char_%d"), charnum );
+	tnprintf( charid, sizeof( charid ), "_char_%d", charnum );
 
-	#define LINEPAD WIDE("                  ")
+	#define LINEPAD "                  "
 
 	if( !character )
 		sack_fprintf( output, "%snull\n", charnum?",":""  );
@@ -121,7 +121,7 @@ int PrintCharJS( int bits, int charnum, PCHARACTER character, int height )
 		else
 			outwidth = ((character->size+7) & 0xF8 )/8; // round up to next byte increments size.
 
-		sack_fprintf( output, WIDE("%s{sz:%d,w:%d,ofs:%d,asc:%d,dsc:%d")
+		sack_fprintf( output, "%s{sz:%d,w:%d,ofs:%d,asc:%d,dsc:%d"
 					, charnum?",":""
 							, character->size
 							, character->width
@@ -131,7 +131,7 @@ int PrintCharJS( int bits, int charnum, PCHARACTER character, int height )
 							);
 
 		if( character->size )
-			sack_fprintf( output, WIDE(",data:new Uint8Array([") );
+			sack_fprintf( output, ",data:new Uint8Array([" );
 
 		{
 			int line, bit;
@@ -143,15 +143,15 @@ int PrintCharJS( int bits, int charnum, PCHARACTER character, int height )
 			{
 				if( line != character->ascent )
 				{
-					sack_fprintf( output, WIDE(",") );
+					sack_fprintf( output, "," );
 				}
 				dataline = data;
 				{
 					for( bit = 0; bit < outwidth; bit++ )
 					{
 						if( bit )
-							sack_fprintf( output, WIDE(",") );
-						sack_fprintf( output, WIDE("%u"), (unsigned)((unsigned char*)dataline)[bit] );
+							sack_fprintf( output, "," );
+						sack_fprintf( output, "%u", (unsigned)((unsigned char*)dataline)[bit] );
 					}
 				}
 
@@ -160,8 +160,8 @@ int PrintCharJS( int bits, int charnum, PCHARACTER character, int height )
 			}
 		}
 		if( character->size )
-			sack_fprintf( output, WIDE("]) ") );
-		sack_fprintf( output, WIDE("}\n") );
+			sack_fprintf( output, "]) " );
+		sack_fprintf( output, "}\n" );
 	}
 
 	return 0;
@@ -175,9 +175,9 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 	char *data;
 	if( !character ) return 0;
 	data = (char*)character->data;
-	tnprintf( charid, sizeof( charid ), WIDE("_char_%d"), charnum );
+	tnprintf( charid, sizeof( charid ), "_char_%d", charnum );
 
-	#define LINEPAD WIDE("                  ")
+	#define LINEPAD "                  "
 	if( bits == 8 )
 		outwidth = character->size; // round up to next byte increments size.
 	else if( bits == 2 )
@@ -186,14 +186,14 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 		outwidth = ((character->size+7) & 0xF8 ); // round up to next byte increments size.
 
 	if( ((outwidth) / (8 / bits))*((character->ascent - character->descent) + 1) )
-		sack_fprintf( output, WIDE( "static struct{ char s, w, o, j; short a, d; uint32_t rf; EXTRA_STRUCT unsigned char data[%d]; } %s =\n" ),
+		sack_fprintf( output, "static struct{ char s, w, o, j; short a, d; uint32_t rf; EXTRA_STRUCT unsigned char data[%d]; } %s =\n",
 						((outwidth)/(8/bits))*( ( character->ascent - character->descent ) + 1 )
 						, charid );
 	else
-		sack_fprintf( output, WIDE("static struct{ char s, w, o, j; short a, d; EXTRA_STRUCT } %s =\n")
+		sack_fprintf( output, "static struct{ char s, w, o, j; short a, d; EXTRA_STRUCT } %s =\n"
 						, charid );
 
-	sack_fprintf( output, WIDE("{ %2d, %2d, %2d, 0, %2d, %2d, %d EXTRA_INIT ")
+	sack_fprintf( output, "{ %2d, %2d, %2d, 0, %2d, %2d, %d EXTRA_INIT "
 							, character->size
 							, character->width
 							, (signed)character->offset
@@ -203,7 +203,7 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 							);
 
 	if( character->size )
-		sack_fprintf( output, WIDE(", { \n") LINEPAD );
+		sack_fprintf( output, ", { \n" LINEPAD );
 
 	{
 		int line, bit;
@@ -216,9 +216,9 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 			if( line != character->ascent )
 			{
 				if( !line )
-					sack_fprintf( output, WIDE(", // <---- baseline\n") LINEPAD );
+					sack_fprintf( output, ", // <---- baseline\n" LINEPAD );
 				else
-					sack_fprintf( output, WIDE(",\n") LINEPAD );
+					sack_fprintf( output, ",\n" LINEPAD );
 			}
 			dataline = data;
 			if( bits == 1 )
@@ -226,13 +226,13 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 				for( bit = 0; bit < character->size; bit++ )
 				{
 					if( bit && ((bit % 8) == 0 ) )
-						sack_fprintf( output, WIDE(",") );
+						sack_fprintf( output, "," );
 					if( dataline[bit >> 3] & SYMBIT(bit) )
 					{
-						sack_fprintf( output, WIDE("X") );
+						sack_fprintf( output, "X" );
 					}
 					else
-						sack_fprintf( output, WIDE("_") );
+						sack_fprintf( output, "_" );
 				}
 			}
 			else if( bits == 2)
@@ -240,27 +240,27 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 				/*
 				for( bit = 0; bit < (character->size+(3))/(8/bits); bit++ )
 				{
-					sack_fprintf( output, WIDE("%02x "), dataline[bit] );
+					sack_fprintf( output, "%02x ", dataline[bit] );
 					}
 					*/
 				for( bit = 0; bit < character->size; bit++ )
 				{
 					if( bit && ((bit % 4) == 0 ) )
-						sack_fprintf( output, WIDE(",") );
-					//sack_fprintf( output, WIDE("%02x "), (dataline[bit >> 2] >> (2*(bit&0x3))) & 3 );
+						sack_fprintf( output, "," );
+					//sack_fprintf( output, "%02x ", (dataline[bit >> 2] >> (2*(bit&0x3))) & 3 );
 					switch( (dataline[bit >> 2] >> (2*(bit&0x3))) & 3 )
 					{
 					case 3:
-						sack_fprintf( output, WIDE("X") );
+						sack_fprintf( output, "X" );
 						break;
 					case 2:
-						sack_fprintf( output, WIDE("O") );
+						sack_fprintf( output, "O" );
 						break;
 					case 1:
-						sack_fprintf( output, WIDE("o") );
+						sack_fprintf( output, "o" );
 						break;
 					case 0:
-						sack_fprintf( output, WIDE("_") );
+						sack_fprintf( output, "_" );
 						break;
 					}
 				}
@@ -270,8 +270,8 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 				for( bit = 0; bit < character->size; bit++ )
 				{
 					if( bit )
-						sack_fprintf( output, WIDE(",") );
-					sack_fprintf( output, WIDE("%3u"), (unsigned)((unsigned char*)dataline)[bit] );
+						sack_fprintf( output, "," );
+					sack_fprintf( output, "%3u", (unsigned)((unsigned char*)dataline)[bit] );
 				}
 
 			}
@@ -280,15 +280,15 @@ int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 			if( bits < 8 )
 			{
 				for( ; bit < outwidth; bit++ )
-					sack_fprintf( output, WIDE("_") );
+					sack_fprintf( output, "_" );
 			}
 			data += (character->size+(bits==8?0:bits==2?3:7))/(8/bits);
 		}
 	}
 
 	if( character->size )
-		sack_fprintf( output, WIDE("]) ") );
-	sack_fprintf( output, WIDE("};\n\n\n") );
+		sack_fprintf( output, "]) " );
+	sack_fprintf( output, "};\n\n\n" );
 	return 0;
 }
 
@@ -305,14 +305,14 @@ void PrintFontTable( CTEXTSTR name, PFONT font )
 			if( font->character[i]->width > maxwidth )
 				maxwidth = font->character[i]->width;
 	}
-	sack_fprintf( output, WIDE("struct { unsigned short height, baseline, chars; unsigned char flags, junk;\n")
-				WIDE("         char *fontname;\n")
-			  WIDE("         PCHARACTER character[%d]; }\n")
-			  WIDE("#ifdef __cplusplus\n")
-			  WIDE( "       ___%s\n")
-			  WIDE("#else\n")
-			  WIDE( "       __%s\n")
-			  WIDE("#endif\n")
+	sack_fprintf( output, "struct { unsigned short height, baseline, chars; unsigned char flags, junk;\n"
+				"         char *fontname;\n"
+			  "         PCHARACTER character[%d]; }\n"
+			  "#ifdef __cplusplus\n"
+			  "       ___%s\n"
+			  "#else\n"
+			  "       __%s\n"
+			  "#endif\n"
 			  WIDE( "= { \n%d, %d, %d, %d, 0, \"%s\", {")
 	       , font->characters
 	       , name
@@ -327,17 +327,17 @@ void PrintFontTable( CTEXTSTR name, PFONT font )
 	for( i = 0; i < font->characters; i++ )
 	{
 		if( font->character[i] )
-			sack_fprintf( output, WIDE(" %c(PCHARACTER)&_char_%d\n"), (i)?',':' ', i );
+			sack_fprintf( output, " %c(PCHARACTER)&_char_%d\n", (i)?',':' ', i );
 		else
-			sack_fprintf( output, WIDE(" %cNULL\n"), (i)?',':' ' );
+			sack_fprintf( output, " %cNULL\n", (i)?',':' ' );
 
 	}
-	sack_fprintf( output, WIDE("\n} };") );
+	sack_fprintf( output, "\n} };" );
 
-	sack_fprintf( output, WIDE("\n") );
-	sack_fprintf( output, WIDE("#ifdef __cplusplus\n") );
-	sack_fprintf( output, WIDE("PFONT __%s = (PFONT)&___%s;\n"), name, name );
-	sack_fprintf( output, WIDE("#endif\n") );
+	sack_fprintf( output, "\n" );
+	sack_fprintf( output, "#ifdef __cplusplus\n" );
+	sack_fprintf( output, "PFONT __%s = (PFONT)&___%s;\n", name, name );
+	sack_fprintf( output, "#endif\n" );
 
 }
 
@@ -349,17 +349,17 @@ void PrintFontTableJS( CTEXTSTR name, PFONT font )
 
 void PrintFooterJS( void )
 {
-	sack_fprintf( output, WIDE("\n] };") );
-	sack_fprintf( output, WIDE("\n") );
+	sack_fprintf( output, "\n] };" );
+	sack_fprintf( output, "\n" );
 
 }
 
 void PrintFooter( void )
 {
-	sack_fprintf( output, WIDE("#ifdef __cplusplus\n" ) );
-	sack_fprintf( output, WIDE("      }; // default_font namespace\n" ) );
-	sack_fprintf( output, WIDE("#endif\n" ) );
-	sack_fprintf( output, WIDE( "IMAGE_NAMESPACE_END\n") );
+	sack_fprintf( output, "#ifdef __cplusplus\n" );
+	sack_fprintf( output, "      }; // default_font namespace\n" );
+	sack_fprintf( output, "#endif\n" );
+	sack_fprintf( output, "IMAGE_NAMESPACE_END\n" );
 
 }
 
@@ -389,7 +389,7 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 		}
 	if( font )
 	{
-		output = sack_fopen( 0, name, WIDE("wt") );
+		output = sack_fopen( 0, name, "wt" );
 		if( output )
 		{
 			uint32_t charid;
@@ -425,7 +425,7 @@ void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump )
 		}
 	}
 	else
-		Log( WIDE("No font to dump...") );
+		Log( "No font to dump..." );
 }
 
 //-------------------------------------------------------------------------
@@ -464,7 +464,7 @@ typedef struct font_renderer_tag FONT_RENDERER;
 
 static PLIST fonts;
 
-static void OnDisplayConnect( WIDE( "@00 Image Core" ) )( struct display_app*app, struct display_app_local ***pppLocal )
+static void OnDisplayConnect( "@00 Image Core" )( struct display_app*app, struct display_app_local ***pppLocal )
 {
 	INDEX idx;
 	PFONT_RENDERER renderer;
@@ -602,7 +602,7 @@ Image AllocateCharacterSpace( Image target_image, PFONT_RENDERER renderer, PCHAR
 		// if we got here, didn't find room on any line.
 		if( !renderer->surface )
 		{
-			//lprintf( WIDE( "make new image" ) );
+			//lprintf( "make new image" );
 			// gonna need lines and character chain starts too... don't continue
 			UpdateRendererImage( target_image, renderer, character->width, height );
 		}
@@ -610,14 +610,14 @@ Image AllocateCharacterSpace( Image target_image, PFONT_RENDERER renderer, PCHAR
 		// this should NOT go more than once.... but it could with nasty fonts...
 		if( ( last_line_top + height ) > renderer->surface->real_height )
 		{
-			//lprintf( WIDE( "expand font image %d %d %d" ), last_line_top, height, renderer->surface->real_height );
+			//lprintf( "expand font image %d %d %d", last_line_top, height, renderer->surface->real_height );
 			UpdateRendererImage( target_image, renderer, character->width, height );
 			continue; // go to top of while loop;
 		}
 
 		if( renderer->nLinesUsed == renderer->nLinesAvail )
 		{
-			//lprintf( WIDE( "make new lines" ) );
+			//lprintf( "make new lines" );
 			renderer->nLinesAvail += 16; // another 16 lines... (16 ever should be enough)
 			renderer->pLineStarts = (int*)HeapReallocate( 0, renderer->pLineStarts, sizeof( int ) * renderer->nLinesAvail );
 			renderer->ppCharacterLineStarts = (PCHARACTER*)HeapReallocate( 0, renderer->ppCharacterLineStarts, sizeof( PCHARACTER ) * renderer->nLinesAvail );
@@ -641,7 +641,7 @@ Image AllocateCharacterSpace( Image target_image, PFONT_RENDERER renderer, PCHAR
 													);
 		break;
 	} while( 1 );
-	//lprintf( WIDE( "Result %d,%d" ), character->cell->real_x, character->cell->real_y );
+	//lprintf( "Result %d,%d", character->cell->real_x, character->cell->real_y );
 	return character->cell;
 }
 
@@ -689,25 +689,25 @@ void RenderMonoChar( PFONT font
 					)
 {
 	/*
-	Log2( WIDE("Character: %d(%c)"), idx, idx>32&&idx<127?idx:0 );
-	//Log1( WIDE("Font Height %d"), font->height );
-	//Log5( WIDE("Bitmap information: (%d by %d) %d %d %d")
+	Log2( "Character: %d(%c)", idx, idx>32&&idx<127?idx:0 );
+	//Log1( "Font Height %d", font->height );
+	//Log5( "Bitmap information: (%d by %d) %d %d %d"
 	//	 , bitmap->width
 	//	 , bitmap->rows
 	//	 , bitmap->pitch
 	//	 , bitmap->pixel_mode
 	//	 , bitmap->palette
 	//	 );
-	Log2( WIDE("Metrics: height %d bearing Y %d"), metrics->height, metrics->horiBearingY );
-	Log2( WIDE("Metrics: width %d bearing X %d"), metrics->width, metrics->horiBearingX );
-	Log2( WIDE("Metrics: advance %d %d"), metrics->horiAdvance, metrics->vertAdvance );
+	Log2( "Metrics: height %d bearing Y %d", metrics->height, metrics->horiBearingY );
+	Log2( "Metrics: width %d bearing X %d", metrics->width, metrics->horiBearingX );
+	Log2( "Metrics: advance %d %d", metrics->horiAdvance, metrics->vertAdvance );
 	*/
 	if( bitmap->width > 1000 ||
 	    bitmap->width < 0 ||
 	    bitmap->rows > 1000 ||
 	    bitmap->rows < 0 )
 	{
-		Log3( WIDE("Failing character %") _size_f WIDE(" rows: %") _32f WIDE("  width: %") _32f, idx, bitmap->width, bitmap->rows );
+		Log3( "Failing character %" _size_f " rows: %" _32f "  width: %" _32f, idx, bitmap->width, bitmap->rows );
 		font->character[idx] = NULL;
 		return;
 	}
@@ -729,14 +729,14 @@ void RenderMonoChar( PFONT font
 		font->character[idx]->cell = NULL;
 		if( !character )
 		{
-			Log( WIDE("Failed to allocate character") );
-			Log2( WIDE("rows: %d width: %d"), bitmap->rows, bitmap->width );
+			Log( "Failed to allocate character" );
+			Log2( "rows: %d width: %d", bitmap->rows, bitmap->width );
 			return;
 		}
 		character->width = width /*CEIL(metrics->horiAdvance)*/;
 		if( !bitmap->rows && !bitmap->width )
 		{
-			//Log( WIDE("No physical data for this...") );
+			//Log( "No physical data for this..." );
 			character->ascent = 0;
 			character->descent = 0;
 			character->offset = 0;
@@ -746,7 +746,7 @@ void RenderMonoChar( PFONT font
 
 		if( CEIL( metrics->width ) != bitmap->width )
 		{
-			//Log4( WIDE("%d(%c) metric and bitmap width mismatch : %d %d")
+			//Log4( "%d(%c) metric and bitmap width mismatch : %d %d"
 			//		, idx, (idx>=32 && idx<=127)?idx:'.'
 			//	 , CEIL( metrics->width ), bitmap->width );
 			if( !CEIL( metrics->width ) && bitmap->width )
@@ -754,7 +754,7 @@ void RenderMonoChar( PFONT font
 		}
 		if( CEIL( metrics->height ) != bitmap->rows )
 		{
-			//lprintf( WIDE("%d(%c) metric and bitmap height mismatch : %d %d using height %d")
+			//lprintf( "%d(%c) metric and bitmap height mismatch : %d %d using height %d"
 			//		, idx, (idx>=32 && idx<=127)?idx:'.'
 			//	 , CEIL( metrics->height )
 			//	 , bitmap->rows
@@ -773,7 +773,7 @@ void RenderMonoChar( PFONT font
 		//charleft = charleft;
 		//charheight = CEIL( metrics->height );
 		//if( 0 )
-		//lprintf( WIDE("(%")_size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
+		//lprintf( "(%"_size_f "(%c)) Character parameters: %d %d %d %d %d"
 		//		 , idx, (char)(idx< 32 ? ' ':idx)
 		//		 , character->width
 		//		 , character->offset
@@ -789,7 +789,7 @@ void RenderMonoChar( PFONT font
 
 			linetop = 0;
 			linebottom = character->ascent - character->descent;
-			//lprintf( WIDE("Linetop: %d linebottom: %d"), linetop, linebottom );
+			//lprintf( "Linetop: %d linebottom: %d", linetop, linebottom );
 
 			for( line = linetop; line <= linebottom; line++ )
 			{
@@ -801,7 +801,7 @@ void RenderMonoChar( PFONT font
 				}
 				if( bit == character->size )
 				{
-					//Log( WIDE("Dropping a line...") );
+					//Log( "Dropping a line..." );
 					character->ascent--;
 				}
 				else
@@ -814,7 +814,7 @@ void RenderMonoChar( PFONT font
 			}
 			if( line == linebottom + 1 )
 			{
-				//Log( WIDE("No character data... might still have a width though") );
+				//Log( "No character data... might still have a width though" );
 				character->size = 0;
 				return;
 			}
@@ -829,7 +829,7 @@ void RenderMonoChar( PFONT font
 				}
 				if( bit == character->size )
 				{
-					//Log( WIDE("Dropping a line...") );
+					//Log( "Dropping a line..." );
 					character->descent++;
 				}
 				else
@@ -857,7 +857,7 @@ void RenderMonoChar( PFONT font
 			}
 			if( charleft )
 			{
-				//Log3( WIDE("Reduced char(%c) size by %d to %d"), idx>32&&idx<127?idx:'.', charleft, character->size-charleft );
+				//Log3( "Reduced char(%c) size by %d to %d", idx>32&&idx<127?idx:'.', charleft, character->size-charleft );
 			}
 			// if zero no change...
 
@@ -874,12 +874,12 @@ void RenderMonoChar( PFONT font
 				}
 			}
 			charright ++; // add one back in... so we have a delta between left and right
-			//Log2( WIDE("Reduced char right size %d to %d"), charright, charright - charleft );
+			//Log2( "Reduced char right size %d to %d", charright, charright - charleft );
 
 			character->offset = (uint8_t)charleft;
 			character->size = (uint8_t)(charright - charleft);
 
-			//Log7( WIDE("(%d(%c)) Character parameters: %d %d %d %d %d")
+			//Log7( "(%d(%c)) Character parameters: %d %d %d %d %d"
 			//	 , idx, idx< 32 ? ' ':idx
 			//	 , character->width
 			//	 , character->offset
@@ -925,27 +925,27 @@ void RenderGreyChar( PFONT font
 						 , uint32_t bits // 2 or 8
 						 )
 {
-	//lprintf( WIDE("Rending char %d bits %d"), idx, bits );
+	//lprintf( "Rending char %d bits %d", idx, bits );
 	/*
-	 Log2( WIDE("Character: %d(%c)"), idx, idx>32&&idx<127?idx:0 );
-	 //Log1( WIDE("Font Height %d"), font->height );
-	 //Log5( WIDE("Bitmap information: (%d by %d) %d %d %d")
+	 Log2( "Character: %d(%c)", idx, idx>32&&idx<127?idx:0 );
+	 //Log1( "Font Height %d", font->height );
+	 //Log5( "Bitmap information: (%d by %d) %d %d %d"
 	 //	 , bitmap->width
 	//	 , bitmap->rows
 	//	 , bitmap->pitch
 	//	 , bitmap->pixel_mode
 	//	 , bitmap->palette
 	//	 );
-	Log2( WIDE("Metrics: height %d bearing Y %d"), metrics->height, metrics->horiBearingY );
-	Log2( WIDE("Metrics: width %d bearing X %d"), metrics->width, metrics->horiBearingX );
-	Log2( WIDE("Metrics: advance %d %d"), metrics->horiAdvance, metrics->vertAdvance );
+	Log2( "Metrics: height %d bearing Y %d", metrics->height, metrics->horiBearingY );
+	Log2( "Metrics: width %d bearing X %d", metrics->width, metrics->horiBearingX );
+	Log2( "Metrics: advance %d %d", metrics->horiAdvance, metrics->vertAdvance );
 	*/
 	if( bitmap->width > 2000 ||
 	    bitmap->width < 0 ||
 	    bitmap->rows > 2000 ||
 	    bitmap->rows < 0 )
 	{
-		Log3( WIDE("Failing character %") _size_f WIDE(" rows: %d  width: %d"), idx, bitmap->width, bitmap->rows );
+		Log3( "Failing character %" _size_f " rows: %d  width: %d", idx, bitmap->width, bitmap->rows );
 		font->character[idx] = NULL;
 		return;
 	}
@@ -969,14 +969,14 @@ void RenderGreyChar( PFONT font
 		font->character[idx]->cell = NULL;
 		if( !character )
 		{
-			Log( WIDE("Failed to allocate character") );
-			Log2( WIDE("rows: %d width: %d"), bitmap->rows, bitmap->width );
+			Log( "Failed to allocate character" );
+			Log2( "rows: %d width: %d", bitmap->rows, bitmap->width );
 			return;
 		}
 		character->width = width /*CEIL(metrics->horiAdvance)*/;
 		if( !bitmap->rows && !bitmap->width )
 		{
-			//Log( WIDE("No physical data for this...") );
+			//Log( "No physical data for this..." );
 			character->ascent = 0;
 			character->descent = 0;
 			character->offset = 0;
@@ -986,13 +986,13 @@ void RenderGreyChar( PFONT font
 
 		if( CEIL( metrics->width ) != bitmap->width )
 		{
-			Log4( WIDE("%") _size_f WIDE("(%c) metric and bitmap width mismatch : %d %d")
+			Log4( "%" _size_f "(%c) metric and bitmap width mismatch : %d %d"
 					, idx, (int)((idx>=32 && idx<=127)?idx:'.')
 					, CEIL( metrics->width ), bitmap->width );
 		}
 		if( CEIL( metrics->height ) != bitmap->rows )
 		{
-			Log4( WIDE("%") _size_f WIDE("(%c) metric and bitmap height mismatch : %d %d")
+			Log4( "%" _size_f "(%c) metric and bitmap height mismatch : %d %d"
 					, idx, (int)((idx>=32 && idx<=127)?idx:'.')
 					, CEIL( metrics->height ), bitmap->rows );
 			metrics->height = TOSCALED( bitmap->rows );
@@ -1008,7 +1008,7 @@ void RenderGreyChar( PFONT font
 
 		//lprintf( "heights %d %d %d", font->height, bitmap->rows, CEIL(metrics->height) );
 		//if( 0 )
-		//	lprintf( WIDE("(%") _size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
+		//	lprintf( "(%" _size_f "(%c)) Character parameters: %d %d %d %d %d"
 		//			 , idx, (char)(idx< 32 ? ' ':idx)
 		//			 , character->width
 		//			 , character->offset
@@ -1022,7 +1022,7 @@ void RenderGreyChar( PFONT font
 
 		linetop = 0;
 		linebottom = character->ascent - character->descent;
-		//Log2( WIDE("Linetop: %d linebottom: %d"), linetop, linebottom );
+		//Log2( "Linetop: %d linebottom: %d", linetop, linebottom );
 
 		// reduce ascent to character data minimum....
 		for( line = linetop; line <= linebottom; line++ )
@@ -1035,7 +1035,7 @@ void RenderGreyChar( PFONT font
 			}
 			if( bit == character->size )
 			{
-				//Log( WIDE("Dropping a line...") );
+				//Log( "Dropping a line..." );
 				character->ascent--;
 			}
 			else
@@ -1048,7 +1048,7 @@ void RenderGreyChar( PFONT font
 		if( line == linebottom + 1 )
 		{
 			character->size = 0;
-			//Log( WIDE("No character data usable...") );
+			//Log( "No character data usable..." );
 			return;
 		}
 
@@ -1062,7 +1062,7 @@ void RenderGreyChar( PFONT font
 			}
 			if( bit == character->size )
 			{
-				//Log( WIDE("Dropping a line...") );
+				//Log( "Dropping a line..." );
 				character->descent++;
 			}
 			else
@@ -1102,7 +1102,7 @@ void RenderGreyChar( PFONT font
 			}
 		}
 		charright ++; // add one back in... so we have a delta between left and right
-		//Log2( WIDE("Reduced char right size %d to %d"), charright, charright - charleft );
+		//Log2( "Reduced char right size %d to %d", charright, charright - charleft );
 
 		character->offset = (uint8_t)charleft;
 		character->size = (uint8_t)(charright - charleft);
@@ -1120,21 +1120,21 @@ void RenderGreyChar( PFONT font
 				for( bit = 0; bit < (character->size); bit++ )
 				{
 					int grey = GREY_MASK( data, bit + character->offset );
-					//printf( WIDE("(%02x)"), grey );
+					//printf( "(%02x)", grey );
 					if( grey )
 					{
 						if( bits == 2 )
 						{
 							outdata[bit>>2] |= grey << ((bit % 4) * 2);
-							//printf( WIDE("%02x "), outdata[bit>>2] );
+							//printf( "%02x ", outdata[bit>>2] );
 							/*
 							switch( grey )
 							{
-							case 3: printf( WIDE("X") ); break;
-							case 2: printf( WIDE("O") ); break;
-							case 1: printf( WIDE("o") ); break;
-							case 0: printf( WIDE("_") ); break;
-							default: printf( WIDE("%02X"), grey );
+							case 3: printf( "X" ); break;
+							case 2: printf( "O" ); break;
+							case 1: printf( "o" ); break;
+							case 0: printf( "_" ); break;
+							default: printf( "%02X", grey );
 							}
 							*/
 						}
@@ -1142,9 +1142,9 @@ void RenderGreyChar( PFONT font
 							outdata[bit] = grey;
 					}
 					//else
-					//	printf( WIDE("_") );
+					//	printf( "_" );
 				}
-				//printf( WIDE("\n") );
+				//printf( "\n" );
 			}
 		}
 		character->offset += left_ofs;
@@ -1159,27 +1159,27 @@ void RenderColorChar( PFONT font
 						 , FT_Int width
 						 )
 {
-	//lprintf( WIDE("Rending char %d bits %d"), idx, bits );
+	//lprintf( "Rending char %d bits %d", idx, bits );
 	/*
-	 Log2( WIDE("Character: %d(%c)"), idx, idx>32&&idx<127?idx:0 );
-	 //Log1( WIDE("Font Height %d"), font->height );
-	 //Log5( WIDE("Bitmap information: (%d by %d) %d %d %d")
+	 Log2( "Character: %d(%c)", idx, idx>32&&idx<127?idx:0 );
+	 //Log1( "Font Height %d", font->height );
+	 //Log5( "Bitmap information: (%d by %d) %d %d %d"
 	 //	 , bitmap->width
 	//	 , bitmap->rows
 	//	 , bitmap->pitch
 	//	 , bitmap->pixel_mode
 	//	 , bitmap->palette
 	//	 );
-	Log2( WIDE("Metrics: height %d bearing Y %d"), metrics->height, metrics->horiBearingY );
-	Log2( WIDE("Metrics: width %d bearing X %d"), metrics->width, metrics->horiBearingX );
-	Log2( WIDE("Metrics: advance %d %d"), metrics->horiAdvance, metrics->vertAdvance );
+	Log2( "Metrics: height %d bearing Y %d", metrics->height, metrics->horiBearingY );
+	Log2( "Metrics: width %d bearing X %d", metrics->width, metrics->horiBearingX );
+	Log2( "Metrics: advance %d %d", metrics->horiAdvance, metrics->vertAdvance );
 	*/
 	if( bitmap->width > 1000 ||
 	    bitmap->width < 0 ||
 	    bitmap->rows > 1000 ||
 	    bitmap->rows < 0 )
 	{
-		Log3( WIDE("Failing character %") _size_f WIDE(" rows: %d  width: %d"), idx, bitmap->width, bitmap->rows );
+		Log3( "Failing character %" _size_f " rows: %d  width: %d", idx, bitmap->width, bitmap->rows );
 		font->character[idx] = NULL;
 		return;
 	}
@@ -1202,14 +1202,14 @@ void RenderColorChar( PFONT font
 		font->character[idx]->cell = NULL;
 		if( !character )
 		{
-			Log( WIDE("Failed to allocate character") );
-			Log2( WIDE("rows: %d width: %d"), bitmap->rows, bitmap->width );
+			Log( "Failed to allocate character" );
+			Log2( "rows: %d width: %d", bitmap->rows, bitmap->width );
 			return;
 		}
 		character->width = width /*CEIL(metrics->horiAdvance)*/;
 		if( !bitmap->rows && !bitmap->width )
 		{
-			//Log( WIDE("No physical data for this...") );
+			//Log( "No physical data for this..." );
 			character->ascent = 0;
 			character->descent = 0;
 			character->offset = 0;
@@ -1219,13 +1219,13 @@ void RenderColorChar( PFONT font
 
 		if( CEIL( metrics->width ) != bitmap->width )
 		{
-			Log4( WIDE("%") _size_f WIDE("(%c) metric and bitmap width mismatch : %d %d")
+			Log4( "%" _size_f "(%c) metric and bitmap width mismatch : %d %d"
 					, idx, (int)((idx>=32 && idx<=127)?idx:'.')
 					, CEIL( metrics->width ), bitmap->width );
 		}
 		if( CEIL( metrics->height ) != bitmap->rows )
 		{
-			Log4( WIDE("%") _size_f WIDE("(%c) metric and bitmap height mismatch : %d %d")
+			Log4( "%" _size_f "(%c) metric and bitmap height mismatch : %d %d"
 					, idx, (int)((idx>=32 && idx<=127)?idx:'.')
 					, CEIL( metrics->height ), bitmap->rows );
 			metrics->height = TOSCALED( bitmap->rows );
@@ -1241,7 +1241,7 @@ void RenderColorChar( PFONT font
 
 		//lprintf( "heights %d %d %d", font->height, bitmap->rows, CEIL(metrics->height) );
 		//if( 0 )
-		//	lprintf( WIDE("(%") _size_f WIDE("(%c)) Character parameters: %d %d %d %d %d")
+		//	lprintf( "(%" _size_f "(%c)) Character parameters: %d %d %d %d %d"
 		//			 , idx, (char)(idx< 32 ? ' ':idx)
 		//			 , character->width
 		//			 , character->offset
@@ -1255,7 +1255,7 @@ void RenderColorChar( PFONT font
 
 		linetop = 0;
 		linebottom = character->ascent - character->descent;
-		//Log2( WIDE("Linetop: %d linebottom: %d"), linetop, linebottom );
+		//Log2( "Linetop: %d linebottom: %d", linetop, linebottom );
 
 		// reduce ascent to character data minimum....
 		for( line = linetop; line <= linebottom; line++ )
@@ -1268,7 +1268,7 @@ void RenderColorChar( PFONT font
 			}
 			if( bit == character->size )
 			{
-				//Log( WIDE("Dropping a line...") );
+				//Log( "Dropping a line..." );
 				character->ascent--;
 			}
 			else
@@ -1281,7 +1281,7 @@ void RenderColorChar( PFONT font
 		if( line == linebottom + 1 )
 		{
 			character->size = 0;
-			//Log( WIDE("No character data usable...") );
+			//Log( "No character data usable..." );
 			return;
 		}
 
@@ -1295,7 +1295,7 @@ void RenderColorChar( PFONT font
 			}
 			if( bit == character->size )
 			{
-				//Log( WIDE("Dropping a line...") );
+				//Log( "Dropping a line..." );
 				character->descent++;
 			}
 			else
@@ -1335,7 +1335,7 @@ void RenderColorChar( PFONT font
 			}
 		}
 		charright ++; // add one back in... so we have a delta between left and right
-		//Log2( WIDE("Reduced char right size %d to %d"), charright, charright - charleft );
+		//Log2( "Reduced char right size %d to %d", charright, charright - charleft );
 
 		character->offset = (uint8_t)charleft;
 		character->size = (uint8_t)(charright - charleft);
@@ -1353,16 +1353,16 @@ void RenderColorChar( PFONT font
 				for( bit = 0; bit < (character->size); bit++ )
 				{
 					//int grey = data[0] || data[1] || data[2];
-					//printf( WIDE("(%02x)"), grey );
+					//printf( "(%02x)", grey );
 					{
 						outdata[bit + 0] = data[0];
 						outdata[bit + 1] = data[1];
 						outdata[bit + 2] = data[2];
 					}
 					//else
-					//	printf( WIDE("_") );
+					//	printf( "_" );
 				}
-				//printf( WIDE("\n") );
+				//printf( "\n" );
 			}
 		}
 		character->offset += left_ofs;
@@ -1418,7 +1418,7 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 			}
 		if( !renderer )
 		{
-			lprintf( WIDE("Couldn't find by font either...") );
+			lprintf( "Couldn't find by font either..." );
 			//DebugBreak();
 			return;
 		}
@@ -1438,7 +1438,7 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 			LeaveCriticalSec( &fg.cs );
 			return;
 		}
-		//lprintf( WIDE("Character %d is glyph %d"), idx, glyph_index );
+		//lprintf( "Character %d is glyph %d", idx, glyph_index );
 		status = FT_Load_Glyph( face
 						 , glyph_index
 						 , 0
@@ -1467,24 +1467,24 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 		switch( face->glyph->format )
 		{
 		case FT_GLYPH_FORMAT_OUTLINE:
-			//Log( WIDE("Outline render glyph....") );
+			//Log( "Outline render glyph...." );
 			if( (( renderer->flags & 3 )<1) )
 				FT_Render_Glyph( face->glyph, FT_RENDER_MODE_MONO );
 			else
 				FT_Render_Glyph( face->glyph, FT_RENDER_MODE_NORMAL );
 		case FT_GLYPH_FORMAT_BITMAP:
 			/*
-			Log2( WIDE("bitmap params: left %d top %d"), face->glyph->bitmap_left, face->glyph->bitmap_top );
-			Log6( WIDE("Glyph Params: %d(%d) %d(%d) %d %d")
+			Log2( "bitmap params: left %d top %d", face->glyph->bitmap_left, face->glyph->bitmap_top );
+			Log6( "Glyph Params: %d(%d) %d(%d) %d %d"
 					, face->glyph->linearHoriAdvance
 					, face->glyph->linearHoriAdvance>>16
 					, face->glyph->linearVertAdvance
 					, face->glyph->linearVertAdvance>>16
 					, face->glyph->advance.x
 					, face->glyph->advance.y );
-					Log3( WIDE("bitmap height: %d ascent: %d descent: %d"), face->height>>6, face->ascender>>6, face->descender>>6);
+					Log3( "bitmap height: %d ascent: %d descent: %d", face->height>>6, face->ascender>>6, face->descender>>6);
 					*/
-			//Log( WIDE("Bitmap") );
+			//Log( "Bitmap" );
 			if( renderer->flags & FONT_FLAG_COLOR )
 			{
 				RenderColorChar( renderer->font
@@ -1526,11 +1526,11 @@ void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx
 			}
 			break;
 		//case FT_GLYPH_FORMAT_COMPOSITE:
-		//	Log( WIDE("unsupported Composit") );
+		//	Log( "unsupported Composit" );
 		//	break;
 		default:
 			renderer->font->character[idx] = NULL;
-			Log1( WIDE("unsupported Unknown format(%4.4s)"), (char*)&face->glyph->format );
+			Log1( "unsupported Unknown format(%4.4s)", (char*)&face->glyph->format );
 			break;
 		}
 	}
@@ -1559,7 +1559,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 		int charcount;
 		if( !renderer->font )
 		{
-			//lprintf( WIDE("Need font resource (once)") );
+			//lprintf( "Need font resource (once)" );
 			renderer->font = NewPlus( FONT, (charcount=65535) * sizeof(PCHARACTER) );
 			// this is okay it's a kludge so some other code worked magically
 			// it's redundant and should be dleete...
@@ -1581,7 +1581,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			font->baseline = 0;
 			font->flags = ( renderer->flags & 3 );
 			if( 0 )
-				lprintf( WIDE("Setting pixel size %d %d"), ScaleValue( &renderer->width_scale, renderer->nWidth )
+				lprintf( "Setting pixel size %d %d", ScaleValue( &renderer->width_scale, renderer->nWidth )
 						 , ScaleValue( &renderer->height_scale, renderer->nHeight ) );
 
 			{
@@ -1601,7 +1601,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			*/
 			if( error )
 			{
-				Log1( WIDE("Fault setting char size - %d"), error );
+				Log1( "Fault setting char size - %d", error );
 			}
 			font->character[0] = NULL;
 			font->height = 0; //CEIL(face->size->metrics.height);
@@ -1612,7 +1612,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			{
 				FT_Face face = renderer->face;
 				int glyph_index = FT_Get_Char_Index( face, (FT_ULong)idx );
-				//lprintf( WIDE("Character %d is glyph %d"), idx, glyph_index );
+				//lprintf( "Character %d is glyph %d", idx, glyph_index );
 				if( glyph_index < 0 )
 					continue;
 				FT_Load_Glyph( face
@@ -1643,10 +1643,10 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 								- ( renderer->max_ascent - renderer->min_descent ) )
 							 / 2 );
 						if( 0 )
-							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+							lprintf( "Result baseline %c(%d %x) %d  %d   %d,%d", idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 					}
 					if( 0 )
-							lprintf( WIDE("Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d")
+							lprintf( "Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d"
 								, idx?idx:' ', idx, idx
 								, ascent, descent
 								, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
@@ -1658,7 +1658,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 								- ( renderer->max_ascent - renderer->min_descent ) )
 							 / 2 );
 						if( 0 )
-							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+							lprintf( "Result baseline %c(%d %x) %d  %d   %d,%d", idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 					}
 				}
 				{
@@ -1670,7 +1670,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 								- ( renderer->max_ascent - renderer->min_descent ) )
 							 / 2 );
 						if( 0 )
-							lprintf( WIDE("Result baseline %d   %d,%d"), renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+							lprintf( "Result baseline %d   %d,%d", renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 
 					}
 				}
@@ -1696,10 +1696,10 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 								- ( renderer->max_ascent - renderer->min_descent ) )
 							 / 2 );
 						if( 0 )
-							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+							lprintf( "Result baseline %c(%d %x) %d  %d   %d,%d", idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 					}
 					if( 0 )
-							lprintf( WIDE("Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d")
+							lprintf( "Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d"
 								, idx?idx:' ', idx, idx
 								, ascent, descent
 								, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
@@ -1711,7 +1711,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 								- ( renderer->max_ascent - renderer->min_descent ) )
 							 / 2 );
 						if( 0 )
-							lprintf( WIDE("Result baseline %c(%d %x) %d  %d   %d,%d"), idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+							lprintf( "Result baseline %c(%d %x) %d  %d   %d,%d", idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 					}
 				}
 				{
@@ -1723,7 +1723,7 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 								- ( renderer->max_ascent - renderer->min_descent ) )
 							 / 2 );
 						if( 0 )
-							lprintf( WIDE("Result baseline %d   %d,%d"), renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
+							lprintf( "Result baseline %d   %d,%d", renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
 
 					}
 				}
@@ -1751,7 +1751,7 @@ SFTFont InternalRenderFontFile( CTEXTSTR file
 	EnterCriticalSec( &fg.cs );
 	//if( !InitFont() )
 	{
-		//lprintf( WIDE("Failed to init fonts.. failing font render.") );
+		//lprintf( "Failed to init fonts.. failing font render." );
 		//LeaveCriticalSec( &fg.cs );
 	//	return NULL;
 	}
@@ -1767,13 +1767,13 @@ try_another_default:
 		switch( bDefaultFile )
 		{
 		case 0:  	
-			file = WIDE("arialbd.ttf"); 	  	
+			file = "arialbd.ttf"; 	  	
 			break;
 		case 1:
-			file = WIDE("fonts/arialbd.ttf");
+			file = "fonts/arialbd.ttf";
 			break;
 		case 2:
-			 lprintf( WIDE("default font arialbd.ttf or fonts/arialbd.ttf did not load.") );
+			 lprintf( "default font arialbd.ttf or fonts/arialbd.ttf did not load." );
 			LeaveCriticalSec( &fg.cs );
 			return NULL;
 		}
@@ -1863,7 +1863,7 @@ try_another_default:
 				if( !renderer->face || error )
 				{
 				  //DebugBreak();
-					//lprintf( WIDE("Failed to load font...Err:%d %s %d %d"), error, file, nWidth, nHeight );
+					//lprintf( "Failed to load font...Err:%d %s %d %d", error, file, nWidth, nHeight );
 					DeleteLink( &fonts, renderer );
 					Deallocate( POINTER, renderer->file );
 					Deallocate( POINTER, renderer );
@@ -1892,7 +1892,7 @@ try_another_default:
 		}
 		else
 		{
-			//lprintf( WIDE("using existing renderer for this font...") );
+			//lprintf( "using existing renderer for this font..." );
 		}
 	}
 
@@ -1902,7 +1902,7 @@ try_another_default:
 	// and that ascent is less than baseline.
 	// however, if we have used a LoadFont function
 	// which has replaced the font thing with a handle...
-	//DumpFontFile( WIDE("font.h"), font );
+	//DumpFontFile( "font.h", font );
 	LeaveCriticalSec( &fg.cs );
 	return renderer->ResultFont;;
 }
@@ -2013,7 +2013,7 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 				Deallocate( PFONTDATA, pfd );
 			return return_font;
 		}
-		//lprintf( WIDE("[%s][%s][%s]"), name1, name2, name3 );
+		//lprintf( "[%s][%s][%s]", name1, name2, name3 );
 	}
 	else if( pfd->magic == MAGIC_RENDER_FONT )
 	{
@@ -2046,7 +2046,7 @@ SFTFont RenderScaledFontData( PFONTDATA pfd, PFRACTION width_scale, PFRACTION he
 		return result_font;
 	}
 	LogBinary( pfd, 32 );
-	lprintf( WIDE("Font parameters are no longer valid.... could not be found in cache issue font dialog here?") );
+	lprintf( "Font parameters are no longer valid.... could not be found in cache issue font dialog here?" );
 	return NULL;
 }
 
@@ -2070,16 +2070,16 @@ SFTFont InternalRenderFont( uint32_t nFamily
 		nStyle < pfe->nStyles &&
 		nFile < pfe->styles[nStyle].nFiles )
 	{
-	tnprintf( name, sizeof( name ), WIDE("%s/%s")
+	tnprintf( name, sizeof( name ), "%s/%s"
 			  , pfe->styles[nStyle].files[nFile].path
 			  , pfe->styles[nStyle].files[nFile].file );
 
-	//Log1( WIDE("Font: %s"), name );
+	//Log1( "Font: %s", name );
 	do
 	{
 		if( nAlt )
 		{
-			tnprintf( name, sizeof( name ), WIDE("%s/%s")
+			tnprintf( name, sizeof( name ), "%s/%s"
 					  , pfe->styles[nStyle].files[nFile].pAlternate[nAlt-1].path
 					  , pfe->styles[nStyle].files[nFile].pAlternate[nAlt-1].file );
 		}
@@ -2108,7 +2108,7 @@ void DestroyFont( SFTFont *font )
 	{
 		if( *font )
 		{
-			xlprintf( LOG_ALWAYS )( WIDE("font destruction is NOT implemented, this WILL result in a memory leak!!!!!!!") );
+			xlprintf( LOG_ALWAYS )( "font destruction is NOT implemented, this WILL result in a memory leak!!!!!!!" );
 			(*font) = NULL;
 		}
 	}

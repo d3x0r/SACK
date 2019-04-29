@@ -22,7 +22,7 @@ enum{
 
 #ifdef __cplusplus
 #else
-//TEXT DELETE_STROKE = DEFTEXT( WIDE("\x7f") );
+//TEXT DELETE_STROKE = DEFTEXT( "\x7f" );
 #endif
 
 KEYDEFINE KeyDefs[256];
@@ -38,8 +38,8 @@ int KeystrokePaste( PRENDERER pRenderer )
         format = EnumClipboardFormats( 0 );
         while( format )
         {
-            //DECLTEXT( msg, WIDE("                                     ") );
-            //msg.data.size = sprintf( msg.data.data, WIDE("Format: %d"), format );
+            //DECLTEXT( msg, "                                     " );
+            //msg.data.size = sprintf( msg.data.data, "Format: %d", format );
             //EnqueLink( pdp->ps->Command->ppOutput, SegDuplicate( (PTEXT)&msg ) );
             if( format == CF_TEXT )
             {
@@ -74,7 +74,7 @@ int KeystrokePaste( PRENDERER pRenderer )
     }
     else
     {
-        //DECLTEXT( msg, WIDE("Clipboard was not available") );
+        //DECLTEXT( msg, "Clipboard was not available" );
         //EnqueLink( &pdp->ps->Command->Output, &msg );
     }
     return 0;
@@ -90,9 +90,9 @@ int KeystrokePaste( PRENDERER pRenderer )
 
 #define NUM_MODS ( sizeof( ModNames ) / sizeof( char * ) )
 #if 0
-char *ModNames[] = { "shift", WIDE("ctrl"), WIDE("alt")
-                   , NULL, WIDE("control"), NULL
-                   , WIDE("$"), WIDE("^"), WIDE("@") };
+char *ModNames[] = { "shift", "ctrl", "alt"
+                   , NULL, "control", NULL
+                   , "$", "^", "@" };
 
 int FindMod( PTEXT pMod )
 {
@@ -222,7 +222,7 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 	int keymod = KEY_MOD(key);
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
-		lprintf( WIDE("Key event for %08lx ... %d %s %s %s")
+		lprintf( "Key event for %08lx ... %d %s %s %s"
 				 , key
 				 , keycode
 				 , keymod&1?"SHIFT":"", keymod&2?"CTRL":"", keymod&4?"ALT":"" );
@@ -231,7 +231,7 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 	{
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
-		lprintf( WIDE("And there is a function... key is %s"), IsKeyPressed( key )?"Pressed":"Released" );
+		lprintf( "And there is a function... key is %s", IsKeyPressed( key )?"Pressed":"Released" );
 #endif
 		if( pKeyDefs[keycode].mod[keymod].flags.bAll ||
 			( IsKeyPressed( key ) && !pKeyDefs[keycode].mod[keymod].flags.bRelease) ||
@@ -242,13 +242,13 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 			//DebugBreak();
 #ifdef LOG_KEY_EVENTS
 			if( l.flags.bLogKeyEvent )
-				lprintf( WIDE("Invoke!") );
+				lprintf( "Invoke!" );
 #endif
 			if( IsKeyExtended( key ) )
 			{
 #ifdef LOG_KEY_EVENTS
 				if( l.flags.bLogKeyEvent )
-					lprintf(WIDE( "extended key method configured" ) );
+					lprintf("extended key method configured" );
 #endif
 				LIST_FORALL( pKeyDefs[keycode].mod[keymod].key_procs, idx, PKEY_FUNCTION, keyfunc )
 				{
@@ -256,7 +256,7 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 					{
 #ifdef LOG_KEY_EVENTS
 						if( l.flags.bLogKeyEvent )
-							lprintf(WIDE( "extended key method configured" ) );
+							lprintf("extended key method configured" );
 #endif
 						if( keyfunc->data.extended_key_trigger( keyfunc->extended_key_psv
 																		  , key ) )
@@ -269,7 +269,7 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 			{
 #ifdef LOG_KEY_EVENTS
 				if( l.flags.bLogKeyEvent )
-					lprintf(WIDE( "not extended key method" ) );
+					lprintf("not extended key method" );
 #endif
 				LIST_FORALL( pKeyDefs[keycode].mod[keymod].key_procs, idx, PKEY_FUNCTION, keyfunc )
 				{
@@ -277,7 +277,7 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 					{
 #ifdef LOG_KEY_EVENTS
 						if( l.flags.bLogKeyEvent )
-							lprintf(WIDE( "extended key method configured" ) );
+							lprintf("extended key method configured" );
 #endif
 						if( keyfunc->data.trigger( keyfunc->psv, key ) )
                      return 1;
@@ -287,12 +287,12 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 			}
 		}
 		if( l.flags.bLogKeyEvent )
-			lprintf( WIDE( "Probably handled..." ) );
+			lprintf( "Probably handled..." );
 		// for consistancy better just say we handled this key
 		return 1;
 	}
 	if( l.flags.bLogKeyEvent )
-		lprintf( WIDE( "not handled..." ) );
+		lprintf( "not handled..." );
 	return 0;
 }
 
@@ -313,7 +313,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 			{
 				l.kbd.key[KEY_CODE(key)] &= ~0x80;  //(unpressed)
 			}
-			//lprintf( WIDE("Set local keyboard %d to %d"), wParam& 0xFF, l.kbd.key[wParam&0xFF]);
+			//lprintf( "Set local keyboard %d to %d", wParam& 0xFF, l.kbd.key[wParam&0xFF]);
 			if( hVideo )
 				hVideo->kbd.key[KEY_CODE(key)] = l.kbd.key[KEY_CODE(key)];
 
@@ -358,11 +358,11 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 		{
 			hVideo->flags.event_dispatched = 1;
 			if( l.flags.bLogKeyEvent )
-				lprintf( WIDE("Dispatched KEY!") );
+				lprintf( "Dispatched KEY!" );
 			if( hVideo->flags.key_dispatched )
 			{
 				if( l.flags.bLogKeyEvent )
-					lprintf( WIDE("already dispatched, delay it.") );
+					lprintf( "already dispatched, delay it." );
 				EnqueLink( &hVideo->pInput, (POINTER)(uintptr_t)key );
 			}
 			else
@@ -371,11 +371,11 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 				do
 				{
 					if( l.flags.bLogKeyEvent )
-						lprintf( WIDE("Dispatching key %08lx"), key );
+						lprintf( "Dispatching key %08lx", key );
 					if( KEY_MOD( key ) & 6 )
 						if( HandleKeyEvents( KeyDefs, key )  )
 						{
-							lprintf( WIDE( "Sent global first." ) );
+							lprintf( "Sent global first." );
 							dispatch_handled = 1;
 						}
 
@@ -385,22 +385,22 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 						// but we want to give priority to handled keys.
 						dispatch_handled = hVideo->pKeyProc( hVideo->dwKeyData, key );
 						if( l.flags.bLogKeyEvent )
-							lprintf( WIDE( "Result of dispatch was %ld" ), dispatch_handled );
+							lprintf( "Result of dispatch was %ld", dispatch_handled );
 						if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
 							break;
 
 						if( !dispatch_handled )
 						{
 							if( l.flags.bLogKeyEvent )
-								lprintf( WIDE("Local Keydefs Dispatch key : %p %08lx"), hVideo, key );
+								lprintf( "Local Keydefs Dispatch key : %p %08lx", hVideo, key );
 							if( hVideo && !HandleKeyEvents( hVideo->KeyDefs, key ) )
 							{
 								if( l.flags.bLogKeyEvent )
-									lprintf( WIDE("Global Keydefs Dispatch key : %08lx"), key );
+									lprintf( "Global Keydefs Dispatch key : %08lx", key );
 								if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
 								{
 									if( l.flags.bLogKeyEvent )
-										lprintf( WIDE( "lost window..." ) );
+										lprintf( "lost window..." );
 									break;
 								}
 							}
@@ -417,15 +417,15 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 					if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
 					{
 						if( l.flags.bLogKeyEvent )
-							lprintf( WIDE( "lost active window." ) );
+							lprintf( "lost active window." );
 						break;
 					}
 					key = (uint32_t)(uintptr_t)DequeLink( &hVideo->pInput );
 					if( l.flags.bLogKeyEvent )
-						lprintf( WIDE( "key from deque : %p" ), key );
+						lprintf( "key from deque : %p", key );
 				} while( key );
 				if( l.flags.bLogKeyEvent )
-					lprintf( WIDE( "completed..." ) );
+					lprintf( "completed..." );
 				hVideo->flags.key_dispatched = 0;
 			}
 			hVideo->flags.event_dispatched = 0;
@@ -448,14 +448,14 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 	else
 	{
 		if( l.flags.bLogKeyEvent )
-			lprintf( WIDE( "Not active window?" ) );
+			lprintf( "Not active window?" );
 		HandleKeyEvents( KeyDefs, key ); /* global events, if no keyproc */
 	}
 	//else9
-	//	lprintf( WIDE( "Failed to find active window..." ) );
+	//	lprintf( "Failed to find active window..." );
 
 	// dispatch a mouse event!
-   //lprintf( WIDE("Missing dispatch for no key method to mouse event") );
+   //lprintf( "Missing dispatch for no key method to mouse event" );
    return dispatch_handled;
 }
 

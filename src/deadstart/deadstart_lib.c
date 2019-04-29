@@ -61,7 +61,7 @@ void paste2( TARGET_LABEL,_RegisterStartups)( void )
 			else
 			{
 #ifndef  DISABLE_DEBUG_REGISTER_AND_DISPATCH
-				lprintf( WIDE("Not Register(already did this once) %d %s@%s(%d)"), current->priority, current->funcname, current->file, current->line );
+				lprintf( "Not Register(already did this once) %d %s@%s(%d)", current->priority, current->funcname, current->file, current->line );
 #endif
 			}
 		}

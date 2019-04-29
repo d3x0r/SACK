@@ -26,10 +26,10 @@ static void EndClient( PSERVICE_CLIENT client )
 	PCLIENT_SERVICE service;
 	INDEX idx;
 	// for all services inform it that the client is defunct.
-	Log( WIDE("Ending client (from death)") );
+	Log( "Ending client (from death)" );
 	if( client->flags.is_service )
 	{
-		lprintf( WIDE("Service is gone! please tell client...") );
+		lprintf( "Service is gone! please tell client..." );
 		if( client->handler->Handler )
 			client->handler->Handler( MSG_MateEnded, NULL, 0 ); //-V595
 		if( client->handler->HandlerEx )
@@ -43,7 +43,7 @@ static void EndClient( PSERVICE_CLIENT client )
 	{
 		LIST_FORALL( client->services, idx, PCLIENT_SERVICE, service )
 		{
-			//lprintf( WIDE("Client had service... %p"), service );
+			//lprintf( "Client had service... %p", service );
 			if( service->handler )
 			{
 				service->handler( &client->route, MSG_ServiceUnload
@@ -64,10 +64,10 @@ static void EndClient( PSERVICE_CLIENT client )
 				service->functions[MSG_ServiceUnload].function( &client->route, NULL, 0
 																			 , resultbuf, &resultlen );
 			}
-			//Log( WIDE("Ending service on client...") );
+			//Log( "Ending service on client..." );
 			// Use ungloadservice to signal server services of client loss...
 			//if( !UnloadService( service->first_message_index, client->pid ) )
-			//	Log( WIDE("Somehow unloading a known service failed...") );
+			//	Log( "Somehow unloading a known service failed..." );
 		}
 		DeleteList( &client->services );
 		{
@@ -76,7 +76,7 @@ static void EndClient( PSERVICE_CLIENT client )
 			//lprintf( "vvv" );
 			while( (len=msgrcv( g.msgq_out, MSGTYPE msg, 8192, client->route.source.process_id, IPC_NOWAIT )) >= 0 )
 				//	errno != ENOMSG )
-				lprintf( WIDE("Flushed a message to dead client(%") _MsgID_f WIDE(",%") _32f WIDE(") from output (%08") _32fx WIDE(":%") _32fs WIDE(" bytes)")
+				lprintf( "Flushed a message to dead client(%" _MsgID_f ",%" _32f ") from output (%08" _32fx ":%" _32fs " bytes)"
 						 , client->route.source.process_id
 						 , msg[0]
 						 , msg[1]
@@ -85,12 +85,12 @@ static void EndClient( PSERVICE_CLIENT client )
 			//lprintf( "vvv" );
 			while( msgrcv( g.msgq_event, MSGTYPE msg, 8192, client->route.source.process_id, IPC_NOWAIT ) >= 0 ||
 					GetLastError() != ENOMSG )
-				Log( WIDE("Flushed a message to dead client from event") );
+				Log( "Flushed a message to dead client from event" );
 			//lprintf( "^^^" );
 		}
 	}
 	// delete the client.
-	Log( WIDE("Finally unlinking the client...") );
+	Log( "Finally unlinking the client..." );
 	UnlinkThing( client );
 	Release( client );
 }
@@ -105,7 +105,7 @@ void CPROC MonitorClientActive( uintptr_t psv )
 	//const char *pFile = __FILE__;
 	//int nLine = __LINE__;
 #ifdef DEBUG_RU_ALIVE_CHECK
-	Log( WIDE("Checking client alive") );
+	Log( "Checking client alive" );
 #endif
 	// if am handling a message don't check alivenmess..
 	if( !g.flags.handling_client_message )
@@ -114,11 +114,11 @@ void CPROC MonitorClientActive( uintptr_t psv )
 		{
 			next = client->next;
 #ifdef DEBUG_RU_ALIVE_CHECK
-			lprintf( WIDE("Client %d(%p) last received %d ms ago"), client->pid, client, timeGetTime() - client->last_time_received );
+			lprintf( "Client %d(%p) last received %d ms ago", client->pid, client, timeGetTime() - client->last_time_received );
 #endif
 			if( ( client->last_time_received + CLIENT_TIMEOUT ) < timeGetTime() )
 			{
-				Log( WIDE("Client has been silent +") STRSYM(CLIENT_TIMEOUT) WIDE("ms - he's dead. (maybe he unloaded and we forgot to forget him?!)") );
+				Log( "Client has been silent +" STRSYM(CLIENT_TIMEOUT) "ms - he's dead. (maybe he unloaded and we forgot to forget him?!)" );
 				EndClient( client );
 			}
 			else if( ( client->last_time_received + (CLIENT_TIMEOUT/2) ) <  timeGetTime() )
@@ -131,7 +131,7 @@ void CPROC MonitorClientActive( uintptr_t psv )
 					DBG_VARSRC;
 #endif
 
-					//Log1( WIDE("Asking if client %d is alive"), client->pid );
+					//Log1( "Asking if client %d is alive", client->pid );
 					msg.dest.process_id            = client->route.dest.process_id;
 					msg.dest.service_id            = client->route.dest.service_id;
 					msg.hdr.source.process_id = client->route.source.process_id;
@@ -201,7 +201,7 @@ void ResumeThreads( void )
 	if( g.pThread )
 	{
 #ifdef DEBUG_SERVICE_INPUT
-		lprintf( WIDE("Resume Service") );
+		lprintf( "Resume Service" );
 #endif
 		tick = timeGetTime();
 		g.pending = 1;
@@ -211,7 +211,7 @@ void ResumeThreads( void )
 	if( g.pMessageThread )
 	{
 #ifdef DEBUG_SERVICE_INPUT
-		lprintf( WIDE("Resume Responce") );
+		lprintf( "Resume Responce" );
 #endif
 		tick = timeGetTime();
 		g.pending = 1;
@@ -222,7 +222,7 @@ void ResumeThreads( void )
 	if( g.pEventThread )
 	{
 #ifdef DEBUG_SERVICE_INPUT
-		lprintf( WIDE("Resume event") );
+		lprintf( "Resume event" );
 #endif
 		tick = timeGetTime();
 		g.pending = 1;
@@ -232,7 +232,7 @@ void ResumeThreads( void )
 	if( g.pLocalEventThread )
 	{
 #ifdef DEBUG_SERVICE_INPUT
-		lprintf( WIDE("Resume local event") );
+		lprintf( "Resume local event" );
 #endif
 		tick = timeGetTime();
 		g.pending = 1;
@@ -281,7 +281,7 @@ void RegisterWithMasterService( void )
 				// just have to give it to the local service.
 				if( service->ServiceID == 0 )
 				{
-					//lprintf( WIDE("Found the service...%s"), service->name );
+					//lprintf( "Found the service...%s", service->name );
 					break;
 				}
 			}
@@ -289,19 +289,19 @@ void RegisterWithMasterService( void )
 			{
 				service = New( CLIENT_SERVICE );
 				service->entries = 0;
-				service->name = WIDE( "Core Service" );
+				service->name = "Core Service";
 				//service->
 			}
 		}
 		*/
-		//lprintf( WIDE("Connecting first time to service server...%")_MsgID_f WIDE(",%") _MsgID_f, g.master_service_route.dest.process_id, g.master_service_route.dest.service_id );
+		//lprintf( "Connecting first time to service server...%"_MsgID_f ",%" _MsgID_f, g.master_service_route.dest.process_id, g.master_service_route.dest.service_id );
 		if( !TransactServerMultiMessageExEx(DBG_VOIDSRC)( &g.master_service_route, CLIENT_CONNECT, 0
 													, &Result, &ServiceID, &msglen
 													, 100
 													)
 		  || Result != (CLIENT_CONNECT|SERVER_SUCCESS) )
 		{
-			Log( WIDE("Failed CLIENT_CONNECT") );
+			Log( "Failed CLIENT_CONNECT" );
 			//g.flags.failed = TRUE;
 			// I see no purpose for this other than troubleshooting
 			// RegisterWithMaster is called well after this should
@@ -318,13 +318,13 @@ void RegisterWithMasterService( void )
 			// and where repsonces will be returned
 		// this therefore means that
 #ifdef DEBUG_SERVICE_INPUT
-			lprintf( WIDE("Initial service contact success") );
+			lprintf( "Initial service contact success" );
 #endif
 			g.flags.found_server = 1;
 			g.flags.connected = 1;
 			//g.my_message_id = msg[0];
 
-			//lprintf( WIDE("Have changed my_message_id and now we need to wake all receivers...") );
+			//lprintf( "Have changed my_message_id and now we need to wake all receivers..." );
 			// this causes them to re-queue their requests with the new
 			// flag... although the windows implementation passes the address
 			// of this variable, so next message will wake this thread, however,
@@ -360,11 +360,11 @@ static MSGQ_TYPE OpenQueueEx( CTEXTSTR name, int key, int flags DBG_PASS )
 			if( queue == MSGFAIL )
 			{
 
-				//perror( WIDE("Failed to open message Q") );
+				//perror( "Failed to open message Q" );
 			}
 			else
 			{
-				lprintf( WIDE("Removing message queue id for %s"), name );
+				lprintf( "Removing message queue id for %s", name );
 				msgctl( queue, IPC_RMID, NULL );
 				queue = msgget( name, key, IPC_CREAT|IPC_EXCL|0666 );
 				if( queue == MSGFAIL )
@@ -390,7 +390,7 @@ static MSGQ_TYPE OpenQueueEx( CTEXTSTR name, int key, int flags DBG_PASS )
 				, errbuf
 				DBG_RELAY );
 #endif
-			//lprintf( WIDE("Failed to open message Q for \")%s\":%s", name, strerror(errno) );
+			//lprintf( "Failed to open message Q for \"%s\":%s", name, strerror(errno) );
 		}
 	}
 	return queue;
@@ -401,8 +401,8 @@ static MSGQ_TYPE OpenQueueEx( CTEXTSTR name, int key, int flags DBG_PASS )
 #ifndef WIN32
 static void ResumeSignal( int signal )
 {
-	//lprintf( WIDE("Got a resume signal.... resuming uhmm some thread.") );
-	//lprintf( WIDE("Uhmm and then pending should be 0?") );
+	//lprintf( "Got a resume signal.... resuming uhmm some thread." );
+	//lprintf( "Uhmm and then pending should be 0?" );
 	g.pending = 0;
 }
 #endif
@@ -440,7 +440,7 @@ int _InitMessageService( int local )
 	{
 		if( g.flags.disconnected )
 		{
-			lprintf( WIDE("Previously we had closed all communication... allowing re-open.") );
+			lprintf( "Previously we had closed all communication... allowing re-open." );
 			g.flags.disconnected = 0;
 			g.my_message_id = 0; // reset this... so we re-request for new path...
 		}
@@ -475,12 +475,12 @@ int _InitMessageService( int local )
 	if( !local && !g.msgq_in && !g.flags.message_responce_handler_ready )
 	{
 #ifdef DEBUG_MSGQ_OPEN
-		lprintf( WIDE("opening message queue? %d %d %d")
+		lprintf( "opening message queue? %d %d %d"
 				 , local, g.msgq_in, g.flags.message_responce_handler_ready );
 #endif
-		g.msgq_in = OpenQueue( MSGQ_ID_BASE WIDE("1"), key2, 0 );
+		g.msgq_in = OpenQueue( MSGQ_ID_BASE "1", key2, 0 );
 #ifdef DEBUG_MSGQ_OPEN
-		lprintf( WIDE("Result msgq_in = %ld"), g.msgq_in );
+		lprintf( "Result msgq_in = %ld", g.msgq_in );
 #endif
 		if( g.msgq_in == MSGFAIL )
 		{
@@ -488,7 +488,7 @@ int _InitMessageService( int local )
 			return FALSE;
 		}
 #ifdef DEBUG_THREADS
-		lprintf( WIDE("Creating thread to handle responces...") );
+		lprintf( "Creating thread to handle responces..." );
 #endif
 		AddIdleProc( ProcessClientMessages, 0 );
 		ThreadTo( HandleMessages, g.my_message_id );
@@ -497,7 +497,7 @@ int _InitMessageService( int local )
 	}
 	if( !local && !g.msgq_out && !g.flags.message_handler_ready )
 	{
-		g.msgq_out = OpenQueue( MSGQ_ID_BASE WIDE("0"), key, 0 );
+		g.msgq_out = OpenQueue( MSGQ_ID_BASE "0", key, 0 );
 		if( g.msgq_out == MSGFAIL )
 		{
 			g.msgq_out = 0;
@@ -506,20 +506,20 @@ int _InitMessageService( int local )
 		// just allow this thread to be created later...
 		// need to open the Queue... but that's about it.
 #ifdef DEBUG_THREADS
-		//lprintf( WIDE("Creating thread to handle messages...") );
+		//lprintf( "Creating thread to handle messages..." );
 		// thread is now created in RegisterService portion
 #endif
 	}
 	if( !local && !g.msgq_event && !g.flags.events_ready )
 	{
-		g.msgq_event = OpenQueue( MSGQ_ID_BASE WIDE("2"), key3, 0 );
+		g.msgq_event = OpenQueue( MSGQ_ID_BASE "2", key3, 0 );
 		if( g.msgq_event == MSGFAIL )
 		{
 			g.msgq_event = 0;
 			return FALSE;
 		}
 #ifdef DEBUG_THREADS
-		lprintf( WIDE("Creating thread to handle events...") );
+		lprintf( "Creating thread to handle events..." );
 #endif
 		ThreadTo( HandleEventMessages, 0 );
 		while( !g.flags.events_ready )
@@ -535,7 +535,7 @@ int _InitMessageService( int local )
 			return FALSE;
 		}
 #ifdef DEBUG_THREADS
-		lprintf( WIDE("Creating thread to handle local events...") );
+		lprintf( "Creating thread to handle local events..." );
 #endif
 		AddIdleProc( ProcessClientMessages, 0 );
 		ThreadTo( HandleLocalEventMessages, 0 );
@@ -617,7 +617,7 @@ void CloseMessageQueues( void )
 			if( g.pThread || g.pMessageThread || g.pEventThread || g.pLocalEventThread )
 			{
 				attempts++;
-				lprintf( WIDE("Threads are not exiting... %") _32f WIDE(" times"), attempts );
+				lprintf( "Threads are not exiting... %" _32f " times", attempts );
 				if( attempts < 10 )
 					continue; // skips
 			}
@@ -639,13 +639,13 @@ static void DisconnectClient(void)
 		return;
 	bDone = 1;
 
-	//lprintf( WIDE("Disconnect all clients... %Lx"), GetMyThreadID() );
+	//lprintf( "Disconnect all clients... %Lx", GetMyThreadID() );
 	while( ( pHandler = g.pHandlers ) )
 	{
-		//lprintf( WIDE("Unloading a service...") );
+		//lprintf( "Unloading a service..." );
 		UnloadService( pHandler->servicename );
 	}
-	//lprintf( WIDE("Okay all registered services are gone.") );
+	//lprintf( "Okay all registered services are gone." );
 	// no real purpose in this....
 	// well perhaps... but eh...
 	// if( !master server )
@@ -667,10 +667,10 @@ CLIENTMSG_PROC( int, ProbeClientAlive )( PSERVICE_ENDPOINT RouteID )
 	SERVICE_ROUTE ping_route;
 	if( RouteID->process_id == g.my_message_id )
 	{
-		lprintf( WIDE("Yes, I, myself, am alive...") );
+		lprintf( "Yes, I, myself, am alive..." );
 		return TRUE;
 	}
-	//lprintf( WIDE("Hmm is client %p") WIDE(" alive?"), RouteID );
+	//lprintf( "Hmm is client %p" " alive?", RouteID );
 	{
 		PEVENTHANDLER handler;
 		for( handler = g.pHandlers; handler; handler = handler->next )
@@ -685,7 +685,7 @@ CLIENTMSG_PROC( int, ProbeClientAlive )( PSERVICE_ENDPOINT RouteID )
 			//InitializeCriticalSec( &handler->csMsgTransact );
 			handler->RouteID.dest = RouteID[0];
 			LinkThing( g.pHandlers, handler );
-			//lprintf( WIDE("Created a HANDLER to coordinate probe alive request..") );
+			//lprintf( "Created a HANDLER to coordinate probe alive request.." );
 		}
 	}
 	ping_route.dest.process_id = RouteID->process_id;
@@ -704,10 +704,10 @@ CLIENTMSG_PROC( int, ProbeClientAlive )( PSERVICE_ENDPOINT RouteID )
 													  , NULL, NULL ) &&
 		Responce == ( IM_ALIVE ) )
 	{
-		//lprintf( WIDE("Ping Success.") );
+		//lprintf( "Ping Success." );
 		return TRUE;
 	}
-	//lprintf( WIDE("Ping Failure.") );
+	//lprintf( "Ping Failure." );
 	return FALSE;
 }
 
@@ -726,7 +726,7 @@ CLIENTMSG_PROC( int, SendOutMessageEx )( PQMSG buffer, size_t len DBG_PASS )
 		TEXTCHAR msg[256];
 		//strerror_s(errbuf, sizeof( errbuf ), errno);
 		msg[0] = 0;
-		lprintf( WIDE("Error sending message: %s")
+		lprintf( "Error sending message: %s"
 			, msg );
 	}
 	return stat;
@@ -758,12 +758,12 @@ CLIENTMSG_PROC( void, DumpServiceList )(void )
 	mydata.pbDone = &bDone;
 	if( !_InitMessageService( FALSE ) )
 	{
-		lprintf( WIDE("Initization of public message participation failed, cannot query service master") );
+		lprintf( "Initization of public message participation failed, cannot query service master" );
 		return;
 	}
 	RegisterWithMasterService();
 	mydata.me = MakeThread();
-	lprintf( WIDE("Sending message to server ... list services...") );
+	lprintf( "Sending message to server ... list services..." );
 	LogBinary( (uint8_t*)&mydata, sizeof(mydata) );
 	SendServerMessage( &g.master_service_route, CLIENT_LIST_SERVICES, &mydata, sizeof(mydata) );
 	// wait for end of list...
@@ -772,7 +772,7 @@ CLIENTMSG_PROC( void, DumpServiceList )(void )
 		WakeableSleep( 5000 );
 		if( !bDone )
 		{
-			lprintf( WIDE("Treading water, but I think I'm stuck here forever...") );
+			lprintf( "Treading water, but I think I'm stuck here forever..." );
 		}
 	}
 	{
@@ -782,10 +782,10 @@ CLIENTMSG_PROC( void, DumpServiceList )(void )
 		{
 			// ID of service MAY be available... but is not yet through
 			// thsi interface...
-			lprintf( WIDE("Available Service: %s"), service );
+			lprintf( "Available Service: %s", service );
 			Release( service );
 		}
-		lprintf( WIDE("End of service list.") );
+		lprintf( "End of service list." );
 		DeleteList( &list );
 	}
 }
@@ -804,12 +804,12 @@ CLIENTMSG_PROC( void, GetServiceList )( PLIST *list )
 	mydata.pbDone = &bDone;
 	if( !_InitMessageService( FALSE ) )
 	{
-		lprintf( WIDE("Initization of public message participation failed, cannot query service master") );
+		lprintf( "Initization of public message participation failed, cannot query service master" );
 		return;
 	}
 	RegisterWithMasterService();
 	mydata.me = MakeThread();
-	lprintf( WIDE("Sending message to server ... list services...") );
+	lprintf( "Sending message to server ... list services..." );
 	SendServerMessage( &g.master_service_route, CLIENT_LIST_SERVICES, &mydata, sizeof(mydata) );
 	// wait for end of list...
 	while( !bDone )
@@ -817,7 +817,7 @@ CLIENTMSG_PROC( void, GetServiceList )( PLIST *list )
 		WakeableSleep( 5000 );
 		if( !bDone )
 		{
-			lprintf( WIDE("Treading water, but I think I'm stuck here forever...") );
+			lprintf( "Treading water, but I think I'm stuck here forever..." );
 		}
 	}
 	/*
@@ -828,9 +828,9 @@ CLIENTMSG_PROC( void, GetServiceList )( PLIST *list )
 		{
 			// ID of service MAY be available... but is not yet through
 			// thsi interface...
-			lprintf( WIDE("Available Service: %s"), service );
+			lprintf( "Available Service: %s", service );
 		}
-		lprintf( WIDE("End of service list.") );
+		lprintf( "End of service list." );
 		}
 		*/
 }

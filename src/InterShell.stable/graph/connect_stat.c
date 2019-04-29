@@ -32,12 +32,12 @@ void CPROC ReadClient( PCLIENT pc, POINTER buffer, size_t size )
 
 void CPROC ServerClosed( PCLIENT pc )
 {
-	lprintf( WIDE("Closed connection from someone... no tracking") );
+	lprintf( "Closed connection from someone... no tracking" );
 }
 
 void CPROC Connected( PCLIENT pcServer, PCLIENT pcListen )
 {
-	lprintf( WIDE("Received connection from someone...") );
+	lprintf( "Received connection from someone..." );
 	SetNetworkReadComplete( pcListen, ReadClient );
 	SetTCPNoDelay( pcListen, TRUE );
 
@@ -272,10 +272,10 @@ void CPROC ClientReceive( PCLIENT pc, POINTER buffer, size_t size )
 			sample->dropped = dropped;
 			sample->tick = timeGetTime();
 			sample->cpu_tick_delta = tick - min_tick_in_packet;
-			lprintf( WIDE("hrm tick %p %Ld %Ld %Ld"), pc, tick, min_tick_in_packet, tick-min_tick_in_packet );
+			lprintf( "hrm tick %p %Ld %Ld %Ld", pc, tick, min_tick_in_packet, tick-min_tick_in_packet );
 		}
 		else
-			lprintf( WIDE("zero ofs?") );
+			lprintf( "zero ofs?" );
 	}
 	ReadTCP( pc, buffer, 4096 );
 
@@ -292,7 +292,7 @@ void CPROC ClientConnected( PCLIENT pc, int error )
 	// all is well.
 	if( !error )
 	{
-		lprintf( WIDE("all is well, mark sendable...%s"), tcp_data->target->name );
+		lprintf( "all is well, mark sendable...%s", tcp_data->target->name );
 		tcp_data->flags.bSend = 1;
 		SetTCPNoDelay( pc, TRUE );
 	}
@@ -337,9 +337,9 @@ void CPROC TCPTick( uintptr_t psv )
 PRELOAD( RegisterConnectStats )
 {
 
-	GRAPH_LINE_TYPE line = RegisterLineClassType( WIDE("TCP Traffic"), CreateTCPTarget, DestroyTCPTarget, TCPTick);
-	RegisterLineSubType( line, WIDE("Latency"), RenderTCPClient );
-	RegisterLineSubType( line, WIDE("Drops"), RenderTCPClientDrops );
+	GRAPH_LINE_TYPE line = RegisterLineClassType( "TCP Traffic", CreateTCPTarget, DestroyTCPTarget, TCPTick);
+	RegisterLineSubType( line, "Latency", RenderTCPClient );
+	RegisterLineSubType( line, "Drops", RenderTCPClientDrops );
 	//RegisterLineType( "TCP Drops", NULL, NULL, NULL, RenderTCPDrop );
 	//CreateLabelVariable( "TCP Min
 }

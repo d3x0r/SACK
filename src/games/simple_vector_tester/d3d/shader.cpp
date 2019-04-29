@@ -118,7 +118,7 @@ struct vertex
 	float col[4];
 };
 
-static void OnDraw3d( WIDE("Simple Shader Array") )( uintptr_t psvView )
+static void OnDraw3d( "Simple Shader Array" )( uintptr_t psvView )
 {
 	int result;
 	{
@@ -203,18 +203,18 @@ static void OnDraw3d( WIDE("Simple Shader Array") )( uintptr_t psvView )
 	}
 }
 
-static void OnBeginDraw3d( WIDE( "Simple Shader Array" ) )( uintptr_t psv,PTRANSFORM camera )
+static void OnBeginDraw3d( "Simple Shader Array" )( uintptr_t psv,PTRANSFORM camera )
 {
 
 }
 
-static void OnFirstDraw3d( WIDE( "Simple Shader Array" ) )( uintptr_t psvInit )
+static void OnFirstDraw3d( "Simple Shader Array" )( uintptr_t psvInit )
 {
-	l.shader = ImageGetShader(	WIDE("test_d3d_shader"), InitShader );
+	l.shader = ImageGetShader(	"test_d3d_shader", InitShader );
 
 }
 
-static uintptr_t OnInit3d( WIDE( "Simple Shader Array" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( "Simple Shader Array" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.pi3i = GetImage3dInterface();
 	l.pr3i = GetRender3dInterface();

@@ -34,7 +34,7 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 
 	GetVersionEx( &osvinfo );
 
-	lprintf( WIDE(" Platform ID: %d, Major Version: %d"), osvinfo.dwPlatformId, osvinfo.dwMajorVersion );
+	lprintf( " Platform ID: %d, Major Version: %d", osvinfo.dwPlatformId, osvinfo.dwMajorVersion );
 
 	switch( osvinfo.dwPlatformId )
 	{
@@ -84,7 +84,7 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 
 static LOGICAL Win9xListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 {
-	return ScanEnumTree( WIDE( "ENUM" ), lpCallback, psv );
+	return ScanEnumTree( "ENUM", lpCallback, psv );
 }
 
 static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
@@ -102,7 +102,7 @@ static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 	TEXTSTR lpValueName = NULL;
 	TEXTSTR lpPortName = NULL;
 
-	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, WIDE( "HARDWARE\\DEVICEMAP\\SERIALCOMM" ), 0, KEY_READ,&hKey ) )
+	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM", 0, KEY_READ,&hKey ) )
 	{
 		/* it is really strange that this key does not exist, but could happen in theory */
 		if( dwError == ERROR_FILE_NOT_FOUND ) dwError = 0;
@@ -152,7 +152,7 @@ static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 
 		portinfo.lpPortName = lpPortName;
 		portinfo.lpFriendlyName = lpPortName; /* no friendly name in NT 4.0 */
-		portinfo.lpTechnology = WIDE(""); /* this information is not available */
+		portinfo.lpTechnology = ""; /* this information is not available */
 
 		if( !lpCallback( psv,&portinfo ) )
 		{
@@ -201,14 +201,14 @@ static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
  *           · PORTNAME=   "COM1"
  */
 {
-  return ScanEnumTree( WIDE( "SYSTEM\\CURRENTCONTROLSET\\ENUM" ), lpCallback, psv );
+  return ScanEnumTree( "SYSTEM\\CURRENTCONTROLSET\\ENUM", lpCallback, psv );
 }
 
 static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 /* Available COM ports on Pocket PC/Windows CE devices are stored in registry under
  * key: HKLM\Drivers\BuiltIn. Note, that also other stuff like native Bluetooth ports
  * are written in this part of registry, so we must skip them using condition
- * (_tcsncicmp(lpPortName,WIDE("COM"),3)!=0) below.
+ * (_tcsncicmp(lpPortName,"COM",3)!=0) below.
  */
 {
 	uint32_t                 dwError = 0;
@@ -223,7 +223,7 @@ static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 
 	portinfo.lpPortName = (TEXTSTR)malloc( 64 );
 
-	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, WIDE( "Drivers\\BuiltIn" ), 0, KEY_READ, &hKey ) )
+	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, "Drivers\\BuiltIn", 0, KEY_READ, &hKey ) )
 	{
 		/* it is really strange that this key does not exist, but could happen in theory */
 		if( dwError == ERROR_FILE_NOT_FOUND )
@@ -242,7 +242,7 @@ static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 			break;
 		}
 
-		if ( dwError = QueryStringValue( hkLevel1, WIDE( "PREFIX" ), &lpPortName ) ) 
+		if ( dwError = QueryStringValue( hkLevel1, "PREFIX", &lpPortName ) ) 
 		{
 			if( dwError == ERROR_FILE_NOT_FOUND )
 				continue; 
@@ -251,10 +251,10 @@ static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 				break;
 		}
 
-		if ( StrCaseCmpEx( lpPortName, WIDE( "COM" ), 3 ) != 0 ) 
+		if ( StrCaseCmpEx( lpPortName, "COM", 3 ) != 0 ) 
 			continue; // We want only COM serial ports
 
-		if ( dwError = RegQueryValueEx( hkLevel1, WIDE( "INDEX" ), NULL, NULL, (LPBYTE)&index, (LPDWORD)&wordSize) )
+		if ( dwError = RegQueryValueEx( hkLevel1, "INDEX", NULL, NULL, (LPBYTE)&index, (LPDWORD)&wordSize) )
 		{
 			if( dwError == ERROR_FILE_NOT_FOUND ) 
 				continue; 
@@ -265,13 +265,13 @@ static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 
 		// Now "index" contains serial port number, we put it together with "COM"
 		// to format like "COM<index>"
-		snprintf( portinfo.lpPortName, sizeof( portinfo.lpPortName ), WIDE("COM%u"), index );		 //-V579
+		snprintf( portinfo.lpPortName, sizeof( portinfo.lpPortName ), "COM%u", index );		 //-V579
 
 		// Get friendly name
-		dwError = QueryStringValue( hkLevel1, WIDE( "FRIENDLYNAME" ), &lpFriendlyName );
-		portinfo.lpFriendlyName = dwError ? (TEXTSTR)WIDE( "" ) : lpFriendlyName;
+		dwError = QueryStringValue( hkLevel1, "FRIENDLYNAME", &lpFriendlyName );
+		portinfo.lpFriendlyName = dwError ? (TEXTSTR)"" : lpFriendlyName;
 
-		portinfo.lpTechnology = WIDE( "" ); /* this information is not available */
+		portinfo.lpTechnology = ""; /* this information is not available */
 
 		if( !lpCallback( psv, &portinfo ) )
 		{
@@ -302,8 +302,8 @@ end:
 
 static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, uintptr_t psv )
 {
-	static const TEXTCHAR lpstrPortsClass[] =    WIDE( "PORTS" );
-	static const TEXTCHAR lpstrPortsClassGUID[] = WIDE( "{4D36E978-E325-11CE-BFC1-08002BE10318}" );
+	static const TEXTCHAR lpstrPortsClass[] =    "PORTS";
+	static const TEXTCHAR lpstrPortsClassGUID[] = "{4D36E978-E325-11CE-BFC1-08002BE10318}";
 	int terd = 0;
 	uint32_t    dwError = 0;
 	HKEY   hkEnum = NULL;
@@ -399,7 +399,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 
 				cbClass = sizeof( lpClass );
 				
-				if( ( terd = RegQueryValueEx( hkLevel3, WIDE( "CLASS" ), NULL, NULL, (LPBYTE)lpClass, (LPDWORD)&cbClass ) ) == ERROR_SUCCESS && StrCaseCmp( lpClass, lpstrPortsClass ) == 0 )
+				if( ( terd = RegQueryValueEx( hkLevel3, "CLASS", NULL, NULL, (LPBYTE)lpClass, (LPDWORD)&cbClass ) ) == ERROR_SUCCESS && StrCaseCmp( lpClass, lpstrPortsClass ) == 0 )
 				{						 
 					/* ok */
 				}
@@ -407,7 +407,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 				else
 				{
 					cbClassGUID = sizeof( lpClassGUID );					
-					if( RegQueryValueEx( hkLevel3, WIDE( "CLASSGUID" ), NULL, NULL, (LPBYTE)lpClassGUID, (LPDWORD)&cbClassGUID ) == ERROR_SUCCESS && StrCaseCmp( lpClassGUID, lpstrPortsClassGUID ) == 0 )
+					if( RegQueryValueEx( hkLevel3, "CLASSGUID", NULL, NULL, (LPBYTE)lpClassGUID, (LPDWORD)&cbClassGUID ) == ERROR_SUCCESS && StrCaseCmp( lpClassGUID, lpstrPortsClassGUID ) == 0 )
 					{						
 						/* ok */
 					}
@@ -418,7 +418,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 
 				/* get "PORTNAME" */
 
-				dwError = QueryStringValue( hkLevel3, WIDE( "PORTNAME" ), &lpPortName );
+				dwError = QueryStringValue( hkLevel3, "PORTNAME", &lpPortName );
 				if( dwError == ERROR_FILE_NOT_FOUND )
 				{
 					/* In Win200, "PORTNAME" is located under the subkey "DEVICE PARAMETERS".
@@ -431,9 +431,9 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 						hkDeviceParameters = NULL;
 					}
 				
-					if( RegOpenKeyEx( hkLevel3, WIDE( "DEVICE PARAMETERS" ), 0, KEY_READ, &hkDeviceParameters ) == ERROR_SUCCESS )
+					if( RegOpenKeyEx( hkLevel3, "DEVICE PARAMETERS", 0, KEY_READ, &hkDeviceParameters ) == ERROR_SUCCESS )
 					{
-						dwError = QueryStringValue( hkDeviceParameters, WIDE( "PORTNAME" ), &lpPortName );
+						dwError = QueryStringValue( hkDeviceParameters, "PORTNAME", &lpPortName );
 					}
 				}
 
@@ -452,12 +452,12 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 
 				/* check if it is a serial port (instead of, say, a parallel port) */
 
-				if( StrCaseCmpEx( lpPortName, WIDE( "COM" ), 3 ) != 0 )
+				if( StrCaseCmpEx( lpPortName, "COM", 3 ) != 0 )
 					continue;
 
 				/* now go for "FRIENDLYNAME" */
 
-				if( dwError = QueryStringValue( hkLevel3, WIDE( "FRIENDLYNAME" ), &lpFriendlyName ) )
+				if( dwError = QueryStringValue( hkLevel3, "FRIENDLYNAME", &lpFriendlyName ) )
 				{
 					if( dwError == ERROR_FILE_NOT_FOUND )
 					{

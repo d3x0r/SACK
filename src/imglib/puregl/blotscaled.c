@@ -406,7 +406,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 	uint32_t dhd, dwd, dhs, dws;
 	va_list colors;
 	va_start( colors, method );
-	//lprintf( WIDE("Blot enter (%d,%d)"), _wd, _hd );
+	//lprintf( "Blot enter (%d,%d)", _wd, _hd );
 	if( nTransparent > ALPHA_TRANSPARENT_MAX )
 	{
 		return;
@@ -452,7 +452,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			xd++;
 		}
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//       xs, ys, ws, hs, xd, yd, wd, hd );
 	if( yd < pifDest->y )
 	{
@@ -469,7 +469,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			yd++;
 		}
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//       xs, ys, ws, hs, xd, yd, wd, hd );
 	if( ( xd + (signed)wd ) > ( pifDest->x + pifDest->width) )
 	{
@@ -477,7 +477,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		//ws -= ((int64_t)( (int)wd - newwd)* (int64_t)ws )/(int)wd;
 		wd = ( pifDest->x + pifDest->width ) - xd;
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//       xs, ys, ws, hs, xd, yd, wd, hd );
 	if( ( yd + (signed)hd ) > (pifDest->y + pifDest->height) )
 	{
@@ -493,7 +493,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		return;
 	}
    
-	//Log9( WIDE("Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)")
+	//Log9( "Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)"
 	//          , xs, FROMFIXED(xs), FIXEDPART(xs)
 	//          , ys, FROMFIXED(ys)
 	//          , xd, FROMFIXED(xd)
@@ -517,7 +517,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 #endif
 	while( LockedExchange( &lock, 1 ) )
 		Relinquish();
-   //Log8( WIDE("Do blot work...%d(%d),%d(%d) %d(%d) %d(%d)")
+   //Log8( "Do blot work...%d(%d),%d(%d) %d(%d) %d(%d)"
    //    , ws, FROMFIXED(ws), hs, FROMFIXED(hs) 
 	//    , wd, FROMFIXED(wd), hd, FROMFIXED(hd) );
 
@@ -533,11 +533,11 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		ReloadOpenGlTexture( pifSrc, 0 );
 		if( !pifSrc->glActiveSurface )
 		{
-			lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+			lprintf( "gl texture hasn't downloaded or went away?" );
 			lock = 0;
 			return;
 		}
-		//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
+		//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
 
 		{
 			int glDepth = 1;
@@ -596,12 +596,12 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 #if 0
 			if( glDepth )
 			{
-				//lprintf( WIDE( "enqable depth..." ) );
+				//lprintf( "enqable depth..." );
 				glEnable( GL_DEPTH_TEST );
 			}
 			else
 			{
-				//lprintf( WIDE( "disable depth..." ) );
+				//lprintf( "disable depth..." );
 				glDisable( GL_DEPTH_TEST );
 			}
 #endif
@@ -652,7 +652,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				if( l.glActiveSurface->shader.inverse_shader )
 				{
 					int err;
-					//lprintf( WIDE( "HAVE SHADER %d" ), l.glActiveSurface->shader.inverse_shader );
+					//lprintf( "HAVE SHADER %d", l.glActiveSurface->shader.inverse_shader );
 					glEnable(GL_FRAGMENT_PROGRAM_ARB);
 					glUseProgram( l.glActiveSurface->shader.inverse_shader );
 					err = glGetError();
@@ -661,7 +661,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 #endif
 				{
 					Image output_image;
-					//lprintf( WIDE( "DID NOT HAVE SHADER" ) );
+					//lprintf( "DID NOT HAVE SHADER" );
 					output_image = GetInvertedImage( pifSrc );
 					glBindTexture( GL_TEXTURE_2D, output_image->glActiveSurface );
 					glColor4ub( 255,255,255,255 );
@@ -756,7 +756,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		break;
 	}
 	lock = 0;
-//   Log( WIDE("Blot done") );
+//   Log( "Blot done" );
 }
 
 

@@ -297,11 +297,11 @@ PRELOAD( ConfigureTimers )
 {
 #ifndef __NO_OPTIONS__
 #  ifdef ENABLE_CRITICALSEC_LOGGING
-	globalTimerData.flags.bLogCriticalSections = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Memory Library/Log critical sections" ), 0 );
+	globalTimerData.flags.bLogCriticalSections = SACK_GetProfileInt( GetProgramName(), "SACK/Memory Library/Log critical sections", 0 );
 #  endif
-	globalTimerData.flags.bLogThreadCreate = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Thread Create" ), 0 );
-	globalTimerData.flags.bLogSleeps = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Sleeps" ), 0 );
-	globalTimerData.flags.bLogTimerDispatch = SACK_GetProfileInt( GetProgramName(), WIDE( "SACK/Timers/Log Timer Dispatch" ), 0 );
+	globalTimerData.flags.bLogThreadCreate = SACK_GetProfileInt( GetProgramName(), "SACK/Timers/Log Thread Create", 0 );
+	globalTimerData.flags.bLogSleeps = SACK_GetProfileInt( GetProgramName(), "SACK/Timers/Log Sleeps", 0 );
+	globalTimerData.flags.bLogTimerDispatch = SACK_GetProfileInt( GetProgramName(), "SACK/Timers/Log Timer Dispatch", 0 );
 #endif
 }
 
@@ -358,7 +358,7 @@ PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_THREAD_SEMS )
 	// not sure if mypid is needed...
 	while( ForAllInSet( THREAD, globalTimerData.threadset, threadrunning, 0 ) )
 		Relinquish();
-	lprintf( WIDE("Destroy thread semaphores...") );
+	lprintf( "Destroy thread semaphores..." );
 	ForAllInSet( THREAD, globalTimerData.threadset, closesem, (uintptr_t)0 );
 	DeleteSet( (GENERICSET**)&globalTimerData.threadset );
 	globalTimerData.pTimerThread = NULL;
@@ -397,18 +397,18 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 #endif
 
 	if( !event_name )
-		event_name = WIDE("ThreadSignal");
+		event_name = "ThreadSignal";
 	thread->thread_event_name = StrDup( event_name );
 #ifdef _WIN32
 	if( !thread->thread_event )
 	{
 		PTHREAD_EVENT thread_event;
 		TEXTCHAR name[64];
-		tnprintf( name, 64, WIDE("%s:%08lX:%08lX"), event_name, (uint32_t)(thread->thread_ident >> 32)
+		tnprintf( name, 64, "%s:%08lX:%08lX", event_name, (uint32_t)(thread->thread_ident >> 32)
 		        , (uint32_t)(thread->thread_ident & 0xFFFFFFFF) );
 		name[sizeof(name)/sizeof(name[0])-1] = 0;
 #ifdef LOG_CREATE_EVENT_OBJECT
-		lprintf( WIDE("Thread Event created is: %s everyone should use this..."), name );
+		lprintf( "Thread Event created is: %s everyone should use this...", name );
 #endif
 		thread_event = New( THREAD_EVENT );
 		thread_event->name = StrDup( name );
@@ -425,7 +425,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 
 	if( ( thread->semaphore = pipe( thread->pipe_ends ) )  == -1 )
 	{
-		lprintf( WIDE("Failed to get pipe! %d:%s"), errno, strerror( errno ) );
+		lprintf( "Failed to get pipe! %d:%s", errno, strerror( errno ) );
 	}
 	else
 	{
@@ -448,7 +448,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 			stat = select(thread->pipe_ends[0] + 1, &set, NULL, NULL, &timeout);
 			if(stat == -1)
 			{
-				lprintf( WIDE("select error %d %d"), errno, thread->pipe_ends[0]); /* an error accured */
+				lprintf( "select error %d %d", errno, thread->pipe_ends[0]); /* an error accured */
 			}
 			else if(stat == 0)
 			{
@@ -479,7 +479,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	if( thread->semaphore == -1 )
 	{
 		// basically this can't really happen....
-		lprintf( WIDE("Failed to get semaphore! %d"), errno );
+		lprintf( "Failed to get semaphore! %d", errno );
 	}
 	if( thread->semaphore != -1 )
 	{
@@ -599,7 +599,7 @@ uintptr_t CPROC check_thread( POINTER p, uintptr_t psv )
 	THREAD_ID ID = *((THREAD_ID*)psv);
 	//lprintf( "Check thread %016llx %016llx %s", thread->thread_ident, ID, thread->thread_event_name );
 	if( ( thread->thread_ident == ID )
-		&& ( StrCmp( thread->thread_event_name, WIDE("ThreadSignal") ) == 0 ) )
+		&& ( StrCmp( thread->thread_event_name, "ThreadSignal" ) == 0 ) )
 		return (uintptr_t)p;
 	return 0;
 }
@@ -643,32 +643,32 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 {
 	if( !thread ) // can't wake nothing
 	{
-		//_lprintf(DBG_RELAY)( WIDE("Failed to find thread to wake...") );
+		//_lprintf(DBG_RELAY)( "Failed to find thread to wake..." );
 		return;
 	}
-	//_xlprintf( 0 DBG_RELAY )( WIDE("Waking a thread: %p"), thread );
+	//_xlprintf( 0 DBG_RELAY )( "Waking a thread: %p", thread );
 	//while( thread->flags.bLock )
 	//{
-	//	Log( WIDE("Waiting for thread to go to sleep") );
+	//	Log( "Waiting for thread to go to sleep" );
 	//	Relinquish();
 	//}
 	//if( thread->flags.bLocal && !thread->flags.bSleeping )
 	//{
-	//	//Log( WIDE("Waking thread which is already awake") );
+	//	//Log( "Waking thread which is already awake" );
 	//  thread->flags.bWakeWhileRunning = 1;
 	//  Relinquish(); // wake implies that we want the other thing to run.
 	//  lprintf( DBG_FILELINEFMT "Thread is not sleeping... woke it before it slept" );
 	//  return;
 	//}
 #ifdef _WIN32
-	//	lprintf( WIDE("setting event.") );
+	//	lprintf( "setting event." );
 	{
 		PTHREAD_EVENT thread_event;
 		INDEX idx;
 		TEXTCHAR name[64];
 		if( !(thread_event = thread->thread_event ) )
 		{
-			tnprintf( name, sizeof(name), WIDE("%s:%08lX:%08lX")
+			tnprintf( name, sizeof(name), "%s:%08lX:%08lX"
 			        , thread->thread_event_name, (uint32_t)(thread->thread_ident >> 32)
 			        , (uint32_t)(thread->thread_ident & 0xFFFFFFFF));
 			name[sizeof(name)/sizeof(name[0])-1] = 0;
@@ -678,13 +678,13 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 					break;
 			}
 #ifdef LOG_CREATE_EVENT_OBJECT
-			lprintf( WIDE("Event opened is: %s"), name );
+			lprintf( "Event opened is: %s", name );
 #endif
 		}
 #ifdef LOG_CREATE_EVENT_OBJECT
 		else
 		{
-			lprintf( WIDE("Event opened is thread.") );
+			lprintf( "Event opened is thread." );
 		}
 #endif
 		if( !thread_event )
@@ -697,20 +697,20 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		}
 		if( thread_event->hEvent )
 		{
-			//lprintf( WIDE("event opened successfully... %d"), WaitForSingleObject( hEvent, 0 ) );
+			//lprintf( "event opened successfully... %d", WaitForSingleObject( hEvent, 0 ) );
 #ifndef NO_LOGGING
 			if( globalTimerData.flags.bLogSleeps )
-				_xlprintf(1 DBG_RELAY )( WIDE("About to wake on %d Thread event created...%016llx")
+				_xlprintf(1 DBG_RELAY )( "About to wake on %d Thread event created...%016llx"
 				                       , thread->thread_event->hEvent
 				                       , thread->thread_ident );
 #endif
 			if( !SetEvent( thread_event->hEvent ) )
-				lprintf( WIDE("Set event FAILED..%d"), GetLastError() );
+				lprintf( "Set event FAILED..%d", GetLastError() );
 			Relinquish(); // may or may not execute other thread before this...
 		}
 		else
 		{
-			lprintf( WIDE("Failed to open that event! %d"), GetLastError() );
+			lprintf( "Failed to open that event! %d", GetLastError() );
 			// thread to wake is not ready to be
 			// woken, does not exist, or some other
 			// BAD problem.
@@ -808,7 +808,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 		//lprintf( "pthread is %p", pThread );
 		if( !pThread )
 		{
-			//lprintf( WIDE("had to init thread...") );
+			//lprintf( "had to init thread..." );
 			MakeThread();
 			pThread = MyThreadInfo.pThread;
 		}
@@ -824,7 +824,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 #ifdef _WIN32
 #ifndef NO_LOGGING
 		if( globalTimerData.flags.bLogSleeps )
-			_xlprintf(1 DBG_RELAY )( WIDE("About to sleep on %d Thread event created...%s:%016llx")
+			_xlprintf(1 DBG_RELAY )( "About to sleep on %d Thread event created...%s:%016llx"
   			                       , pThread->thread_event->hEvent
   			                       , pThread->thread_event_name
   			                       , pThread->thread_ident );
@@ -833,7 +833,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 		                       , n==SLEEP_FOREVER?INFINITE:(n) ) != WAIT_TIMEOUT )
 		{
 #ifdef LOG_LATENCY
-			_lprintf(DBG_RELAY)( WIDE("Woke up- reset event") );
+			_lprintf(DBG_RELAY)( "Woke up- reset event" );
 #endif
 			ResetEvent( pThread->thread_event->hEvent );
 			//if( n == SLEEP_FOREVER )
@@ -841,7 +841,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 		}
 #ifdef LOG_LATENCY
 		else
-			_lprintf(DBG_RELAY)( WIDE("Timed out from %d"), n );
+			_lprintf(DBG_RELAY)( "Timed out from %d", n );
 #endif
 #else
 		{
@@ -850,14 +850,14 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 			int nTimer = 0;
 			if( n != SLEEP_FOREVER )
 			{
-				//lprintf( WIDE("Wakeable sleep in %ld (oneshot, no frequency)"), n );
+				//lprintf( "Wakeable sleep in %ld (oneshot, no frequency)", n );
 				nTimer = AddTimerExx( n, 0, TimerWake, (uintptr_t)pThread DBG_RELAY );
 			}
 #endif
 #endif
 			if( pThread->semaphore == -1 )
 			{
-				//lprintf( WIDE("Invalid semaphore...fixing?") );
+				//lprintf( "Invalid semaphore...fixing?" );
 				InitWakeup( pThread, name );
 			}
 			if( pThread->semaphore != -1 )
@@ -873,7 +873,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 				{
 					int stat;
 					//lprintf( WIDE("Lock on semop on semdo... %08x %016"_64fx"x"), pThread->semaphore, pThread->thread_ident );
-					//lprintf( WIDE("Before semval = %d %08lx"), semctl( pThread->semaphore, 0, GETVAL ), pThread->semaphore );
+					//lprintf( "Before semval = %d %08lx", semctl( pThread->semaphore, 0, GETVAL ), pThread->semaphore );
 					if( n != SLEEP_FOREVER )
 					{
 #ifdef USE_PIPE_SEMS
@@ -895,7 +895,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 							stat = select(pThread->pipe_ends[0] + 1, &set, NULL, NULL, &timeout);
 							if(stat == -1)
 							{
-								lprintf(WIDE("select error %d %d"), errno, pThread->pipe_ends[0]); /* an error accured */
+								lprintf("select error %d %d", errno, pThread->pipe_ends[0]); /* an error accured */
 							}
 							else if(stat == 0)
 							{
@@ -950,38 +950,38 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 						//stat = semop( pThread->semaphore, semdo, 1 );
 #endif
 					}
-					//lprintf( WIDE("After semval = %d %08lx"), semctl( pThread->semaphore, 0, GETVAL ), pThread->semaphore );
-					//lprintf( WIDE("Lock passed.") );
+					//lprintf( "After semval = %d %08lx", semctl( pThread->semaphore, 0, GETVAL ), pThread->semaphore );
+					//lprintf( "Lock passed." );
 					if( stat < 0 )
 					{
 						if( errno == EINTR )
 						{
-							//lprintf( WIDE("EINTR") );
+							//lprintf( "EINTR" );
 							break;
 							//continue;
 						}
 						if( errno == EAGAIN )
 						{
-							//lprintf( WIDE("EAGAIN?") );
+							//lprintf( "EAGAIN?" );
 							// timeout elapsed on semtimedop - or IPC_NOWAIT was specified
 							// but since it's not, it must be the timeout condition.
 							break;
 						}
 						if( errno == EIDRM )
 						{
-							lprintf( WIDE("Semaphore has been removed on us!?") );
+							lprintf( "Semaphore has been removed on us!?" );
 							pThread->semaphore = -1;
 							break;
 						}
 						if( errno == EINVAL )
 						{
-							lprintf( WIDE("Semaphore is no longer valid on this thread object... %d")
+							lprintf( "Semaphore is no longer valid on this thread object... %d"
 							       , pThread->semaphore );
 							// this probably means that it has gone away..
 							pThread->semaphore = -1;
 							break;
 						}
-						lprintf( WIDE("stat from sempop on thread semaphore %p = %d (%d)")
+						lprintf( "stat from sempop on thread semaphore %p = %d (%d)"
 						       , pThread
 						       , stat
 						       , stat<0?errno:0 );
@@ -991,7 +991,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 					{
 						// reset semaphore to nothing.... might
 						// have been woken up MANY times.
-							//lprintf( WIDE("Resetting our lock count from %d to 0....")
+							//lprintf( "Resetting our lock count from %d to 0...."
 						//		 , semctl( pThread->semaphore, 0, GETVAL ));
 #ifdef USE_PIPE_SEMS
 						// flush? empty the pipe?
@@ -1004,8 +1004,8 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 			}
 			else
 			{
-				lprintf( WIDE("Still an invalid semaphore? Dang.") );
-				fprintf( stderr, WIDE("Out of semaphores.") );
+				lprintf( "Still an invalid semaphore? Dang." );
+				fprintf( stderr, "Out of semaphores." );
 				BAG_Exit(0);
 			}
 		}
@@ -1014,7 +1014,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 	}
 	else
 	{
-		lprintf( WIDE("You, as a thread, do not exist, sorry.") );
+		lprintf( "You, as a thread, do not exist, sorry." );
 	}
 }
 
@@ -1052,7 +1052,7 @@ void  WakeableSleep( uint32_t n )
 #ifdef __LINUX__
 static void ContinueSignal( int sig )
 {
-	lprintf( WIDE("Sigusr1") );
+	lprintf( "Sigusr1" );
 }
 
 // network is at GLOBAL_INIT_PRIORITY
@@ -1089,7 +1089,7 @@ static void TimerWakeableSleep( uint32_t n )
 		if( n != SLEEP_FOREVER )
 		{
 			struct itimerval val;
-			//lprintf( WIDE("Wakeable sleep in %") _32f WIDE(""), n );
+			//lprintf( "Wakeable sleep in %" _32f "", n );
 			val.it_value.tv_sec = n / 1000;
 			val.it_value.tv_usec = (n % 1000) * 1000;
 			val.it_interval.tv_sec = 0;
@@ -1109,7 +1109,7 @@ static void TimerWakeableSleep( uint32_t n )
 			semdo.sem_num = 0;
 			semdo.sem_op = -1;
 			semdo.sem_flg = 0;
-			//lprintf( WIDE("Before semval = %d %08lx")
+			//lprintf( "Before semval = %d %08lx"
 			//		 , semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL )
 			//		 , globalTimerData.pTimerThread->semaphore );
 			while( semop( globalTimerData.pTimerThread->semaphore, &semdo, 1 ) < 0 )
@@ -1121,21 +1121,21 @@ static void TimerWakeableSleep( uint32_t n )
 					globalTimerData.pTimerThread->semaphore = -1; // closed.
 					return;
 				}
-				//lprintf( WIDE("Before semval = %d"), semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL ) );
+				//lprintf( "Before semval = %d", semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL ) );
 				if( errno == EINTR )
 				{
-					//lprintf( WIDE("Before semval = %d"), semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL ) );
+					//lprintf( "Before semval = %d", semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL ) );
 					continue;
 				}
 				else
 				{
-					lprintf( WIDE("Semop failed: %d %08x"), errno, globalTimerData.pTimerThread->semaphore );
+					lprintf( "Semop failed: %d %08x", errno, globalTimerData.pTimerThread->semaphore );
 					break;
 				}
 			}
 #   endif
 #endif
-			//lprintf( WIDE("After semval = %d %08lx")
+			//lprintf( "After semval = %d %08lx"
 			//	      , semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL )
 			//       , globalTimerData.pTimerThread->semaphore );
 		}
@@ -1158,10 +1158,10 @@ int  IsThisThreadEx( PTHREAD pThreadTest DBG_PASS )
 #else
 		= FindThread( GetMyThreadID() );
 #endif
-//   lprintf( WIDE("Found thread; %p is it %p?"), pThread, pThreadTest );
+//   lprintf( "Found thread; %p is it %p?", pThread, pThreadTest );
 	if( pThread == pThreadTest )
 		return TRUE;
-	//lprintf( WIDE("Found thread; %p is not  %p?"), pThread, pThreadTest );
+	//lprintf( "Found thread; %p is not  %p?", pThread, pThreadTest );
 	return FALSE;
 }
 
@@ -1271,7 +1271,7 @@ static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 #endif
 	if( pThread->proc )
 		result = pThread->proc( pThread );
-	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
+	//lprintf( "%s(%d):Thread is exiting... ", pThread->pFile, pThread->nLine );
 	//DeAttachThreadToLibraries( FALSE );
 	UnmakeThread();
 #ifdef __LINUX__
@@ -1279,7 +1279,7 @@ static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 #else
 	pThread->hThread = NULL;
 #endif
-	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
+	//lprintf( "%s(%d):Thread is exiting... ", pThread->pFile, pThread->nLine );
 #ifdef __WATCOMC__
 	return (void*)result;
 #else
@@ -1300,7 +1300,7 @@ static uintptr_t CPROC SimpleThreadWrapper( PTHREAD pThread )
 #ifdef _WIN32
 	while( !pThread->hThread )
 	{
-		Log( WIDE("wait for main thread to process...") );
+		Log( "wait for main thread to process..." );
 		Relinquish();
 	}
 #endif
@@ -1314,13 +1314,13 @@ static uintptr_t CPROC SimpleThreadWrapper( PTHREAD pThread )
 		pThread->thread_ident = GetMyThreadID();
 	InitWakeup( pThread, NULL );
 #ifdef LOG_THREAD
-	Log1( WIDE("Set thread ident: %016") _64fx, pThread->thread_ident );
+	Log1( "Set thread ident: %016" _64fx, pThread->thread_ident );
 #endif
 	if( pThread->proc )
 		result = pThread->simple_proc( (POINTER)GetThreadParam( pThread ) );
-	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
+	//lprintf( "%s(%d):Thread is exiting... ", pThread->pFile, pThread->nLine );
 	UnmakeThread();
-	//lprintf( WIDE("%s(%d):Thread is exiting... "), pThread->pFile, pThread->nLine );
+	//lprintf( "%s(%d):Thread is exiting... ", pThread->pFile, pThread->nLine );
 #ifdef __WATCOMC__
 	return (void*)result;
 #else
@@ -1354,7 +1354,7 @@ PTHREAD  MakeThread( void )
 			}
 			dontUnlock = TRUE;
 			pThread = GetFromSet( THREAD, &globalTimerData.threadset ); /*Allocate( sizeof( THREAD ) )*/;
-			//lprintf( WIDE("Get Thread %p"), pThread );
+			//lprintf( "Get Thread %p", pThread );
 			MemSet( pThread, 0, sizeof( THREAD ) );
 			pThread->flags.bLocal = TRUE;
 			pThread->proc = NULL;
@@ -1424,11 +1424,11 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 	{
 		pThread = GetFromSet( THREAD, &globalTimerData.threadset );
 		if( !pThread )
-			xlprintf(LOG_ALWAYS)( WIDE( "Thread to pThread allocation failed!" ) );
+			xlprintf(LOG_ALWAYS)( "Thread to pThread allocation failed!" );
 	} while( !pThread );
 	/*AllocateEx( sizeof( THREAD ) DBG_RELAY );*/
 	if( globalTimerData.flags.bLogThreadCreate )
-		_lprintf(DBG_RELAY)( WIDE("Create New thread %p"), pThread );
+		_lprintf(DBG_RELAY)( "Create New thread %p", pThread );
 	MemSet( pThread, 0, sizeof( THREAD ) );
 	pThread->flags.bLocal = TRUE;
 	pThread->proc = proc;
@@ -1440,7 +1440,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 #endif
 	globalTimerData.lock_thread_create = 0;
 #ifdef LOG_THREAD
-	Log( WIDE("Begin Create Thread") );
+	Log( "Begin Create Thread" );
 #endif
 #ifdef _WIN32
 #if defined( __WATCOMC__ ) || defined( __WATCOM_CPLUSPLUS__ )
@@ -1514,8 +1514,8 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 	pThread = GetFromSet( THREAD, &globalTimerData.threadset );
 	/*AllocateEx( sizeof( THREAD ) DBG_RELAY );*/
 #ifdef LOG_THREAD
-	Log( WIDE("Creating a new thread... ") );
-	lprintf( WIDE("New thread %p"), pThread );
+	Log( "Creating a new thread... " );
+	lprintf( "New thread %p", pThread );
 #endif
 	MemSet( pThread, 0, sizeof( THREAD ) );
 	pThread->flags.bLocal = TRUE;
@@ -1528,7 +1528,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 #endif
 	globalTimerData.lock_thread_create = 0;
 #ifdef LOG_THREAD
-	Log( WIDE("Begin Create Thread") );
+	Log( "Begin Create Thread" );
 #endif
 #ifdef _WIN32
 #if defined( __WATCOMC__ ) || defined( __WATCOM_CPLUSPLUS__ )
@@ -1592,7 +1592,7 @@ void  EndThread( PTHREAD thread )
 #else
 		TerminateThread( thread->hThread, 0xD1E );
 #ifdef LOG_THREAD
-		lprintf( WIDE("Killing thread...") );
+		lprintf( "Killing thread..." );
 #endif
 		CloseHandle( thread->thread_event->hEvent );
 #endif
@@ -1635,13 +1635,13 @@ static void DoInsertTimer( PTIMER timer )
 	if( !(check = globalTimerData.timers) )
 	{
 #ifdef LOG_INSERTS
-		Log( WIDE("First(only known) timer!") );
+		Log( "First(only known) timer!" );
 #endif
 		// subtract already existing time... (ONLY if first timer)
 		//timer->delta -= ( globalTimerData.this_tick - globalTimerData.last_tick );
 		(*(timer->me = &globalTimerData.timers))=timer;
 #ifdef LOG_INSERTS
-		Log( WIDE("Done with addition") );
+		Log( "Done with addition" );
 #endif
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		SetCriticalLogging( 0 );
@@ -1659,13 +1659,13 @@ static void DoInsertTimer( PTIMER timer )
 		// was previously <= which would schedule equal timers at the
 		// head of the queue constantly.
 #ifdef LOG_INSERTS
-		lprintf( WIDE("Timer to store %d freq: %d delta: %d check delta: %d"), timer->ID, timer->frequency, timer->delta, check->delta );
+		lprintf( "Timer to store %d freq: %d delta: %d check delta: %d", timer->ID, timer->frequency, timer->delta, check->delta );
 #endif
 		if( timer->delta < check->delta )
 		{
 			check->delta -= timer->delta;
 #ifdef LOG_INSERTS
-			Log3( WIDE("Storing before timer: %d delta %d next %d"), check->ID, timer->delta, check->delta );
+			Log3( "Storing before timer: %d delta %d next %d", check->ID, timer->delta, check->delta );
 #endif
 			timer->next = check;
 			(*(timer->me = check->me))=timer;
@@ -1679,7 +1679,7 @@ static void DoInsertTimer( PTIMER timer )
 		if( !check->next )
 		{
 #ifdef LOG_INSERTS
-			Log1( WIDE("Storing after last timer. Delta %d"), timer->delta );
+			Log1( "Storing after last timer. Delta %d", timer->delta );
 #endif
 			(*(timer->me = &check->next))=timer;
 			break;
@@ -1687,10 +1687,10 @@ static void DoInsertTimer( PTIMER timer )
 		check = check->next;
 	}
 #ifdef LOG_INSERTS
-	Log( WIDE("Done with addition") );
+	Log( "Done with addition" );
 #endif
 	if( !check )
-		Log( WIDE("Fatal! Didn't add the timer!") );
+		Log( "Fatal! Didn't add the timer!" );
 #ifdef ENABLE_CRITICALSEC_LOGGING
 	SetCriticalLogging( 0 );
 	globalTimerData.flags.bLogCriticalSections = 0;
@@ -1743,7 +1743,7 @@ static void  DoRemoveTimer( uint32_t timerID DBG_PASS )
 			DeleteFromSet( TIMER, globalTimerData.timer_pool, timer );
 		}
 		else
-			_lprintf(DBG_RELAY)( WIDE("Failed to find timer to grab") );
+			_lprintf(DBG_RELAY)( "Failed to find timer to grab" );
 	}
 	LeaveCriticalSec( &globalTimerData.csGrab );
 }
@@ -1773,12 +1773,12 @@ static void InsertTimer( PTIMER timer DBG_PASS )
 			globalTimerData.flags.insert_while_away = 0;
 		}
 #ifdef LOG_INSERTS
-		Log( WIDE("Inserting timer...to wait for change allow") );
+		Log( "Inserting timer...to wait for change allow" );
 #endif
 		// lockout multiple additions...
 		EnterCriticalSec( &globalTimerData.cs_timer_change );
 #ifdef LOG_INSERTS
-		Log( WIDE("Inserting timer...to wait for free add") );
+		Log( "Inserting timer...to wait for free add" );
 #endif
 		// don't add a timer while there's one being added...
 		while( globalTimerData.add_timer )
@@ -1787,13 +1787,13 @@ static void InsertTimer( PTIMER timer DBG_PASS )
 			//Relinquish();
 		}
 #ifdef LOG_INSERTS
-		Log( WIDE("Inserting timer...setup dataa") );
+		Log( "Inserting timer...setup dataa" );
 #endif
 		globalTimerData.add_timer = timer;
 		LeaveCriticalSec( &globalTimerData.cs_timer_change );
 		// it might be sleeping....
 #ifdef LOG_INSERTS
-		Log( WIDE("Inserting timer...wake and done") );
+		Log( "Inserting timer...wake and done" );
 #endif
 
 #ifdef LOG_SLEEPS
@@ -1835,7 +1835,7 @@ static PTIMER GrabTimer( PTIMER timer )
 	{
 		// the thing that points at me points at my next....
 #ifdef LOG_INSERTS
-		Log1( WIDE("Grab Timer: %d"), timer->ID );
+		Log1( "Grab Timer: %d", timer->ID );
 #endif
 		if( ( (*timer->me) = timer->next ) )
 		{
@@ -1865,7 +1865,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 		return -1;
 	if( !psvForce && !IsThisThread( globalTimerData.pTimerThread ) )
 	{
-		//Log( WIDE("Unknown thread attempting to process timers...") );
+		//Log( "Unknown thread attempting to process timers..." );
 		return -1;
 	}
 #ifndef _WIN32
@@ -1879,7 +1879,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 			if( !psvForce )
 				return 1;
 #ifdef LOG_SLEEPS
-			lprintf( WIDE("Timer thread sleeping forever...") );
+			lprintf( "Timer thread sleeping forever..." );
 #endif
 #ifdef __LINUX__
 			if( globalTimerData.pTimerThread )
@@ -1890,7 +1890,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 			// had no timers - but NOW either we woke up by default...
 			// OR - we go kicked awake - so mark the beginning of known time.
 #ifdef LOG_LATENCY
-			Log( WIDE("Re-synch first tick...") );
+			Log( "Re-synch first tick..." );
 #endif
 			globalTimerData.last_tick = timeGetTime();//GetTickCount();
 		}
@@ -1899,7 +1899,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 		if( globalTimerData.add_timer )
 		{
 #ifdef LOG_INSERTS
-			Log( WIDE("Adding timer really...") );
+			Log( "Adding timer really..." );
 #endif
 			DoInsertTimer( globalTimerData.add_timer );
 			globalTimerData.add_timer = NULL;
@@ -1907,7 +1907,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 		if( globalTimerData.del_timer )
 		{
 #ifdef LOG_INSERTS
-			Log( WIDE("Scheduled remove timer...") );
+			Log( "Scheduled remove timer..." );
 #endif
 			DoRemoveTimer( globalTimerData.del_timer DBG_SRC );
 			globalTimerData.del_timer = 0;
@@ -1915,13 +1915,13 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 		// get the time now....
 		newtick = globalTimerData.this_tick = timeGetTime();//GetTickCount();
 #ifdef LOG_LATENCY
-		Log3( WIDE("total - Tick: %u Last: %u  delta: %u"), globalTimerData.this_tick, globalTimerData.last_tick, globalTimerData.this_tick-globalTimerData.last_tick );
+		Log3( "total - Tick: %u Last: %u  delta: %u", globalTimerData.this_tick, globalTimerData.last_tick, globalTimerData.this_tick-globalTimerData.last_tick );
 #endif
 		//if( globalTimerData.timers )
 		//	 delay_skew = globalTimerData.this_tick-globalTimerData.last_tick - globalTimerData.timers->delta;
 		// delay_skew = 0; // already chaotic...
 		//if( timers )
-		//	Log1( WIDE("timer delta: %ud"), timers->delta );
+		//	Log1( "timer delta: %ud", timers->delta );
 
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		SetCriticalLogging( 0 );
@@ -1936,10 +1936,10 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 #endif
 #ifdef LOG_LATENCY
 #ifdef _DEBUG
-			_xlprintf( 1, timer->pFile, timer->nLine )( WIDE("Tick: %u Last: %u  delta: %u Timerdelta: %u")
+			_xlprintf( 1, timer->pFile, timer->nLine )( "Tick: %u Last: %u  delta: %u Timerdelta: %u"
 																	, globalTimerData.this_tick, globalTimerData.last_tick, globalTimerData.this_tick-globalTimerData.last_tick, timer->delta );
 #else
-			lprintf( WIDE("Tick: %u Last: %u  delta: %u Timerdelta: %u")
+			lprintf( "Tick: %u Last: %u  delta: %u Timerdelta: %u"
 			       , globalTimerData.this_tick, globalTimerData.last_tick, globalTimerData.this_tick-globalTimerData.last_tick, timer->delta );
 #endif
 #endif
@@ -1961,7 +1961,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 #if PARANOID
 				if( IsBadCodePtr( (FARPROC)timer->callback ) )
 				{
-					Log1( WIDE("Timer %d proc has been unloaded! kiling timer"), timer->ID );
+					Log1( "Timer %d proc has been unloaded! kiling timer", timer->ID );
 					timer->frequency = 0;
 				}
 				else
@@ -1974,10 +1974,10 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 					{
 						level++;
 #ifdef _DEBUG
-						lprintf( WIDE("%d Dispatching timer %")_32fs WIDE(" freq %")_32fs WIDE(" %s(%d)"), level, timer->ID, timer->frequency
+						lprintf( "%d Dispatching timer %"_32fs " freq %"_32fs " %s(%d)", level, timer->ID, timer->frequency
 						       , timer->pFile, timer->nLine );
 #else
-						lprintf( WIDE("%d Dispatching timer %") _32fs WIDE(" freq %") _32fs, level, timer->ID, timer->frequency );
+						lprintf( "%d Dispatching timer %" _32fs " freq %" _32fs, level, timer->ID, timer->frequency );
 #endif
 					}
 					//#endif
@@ -1989,7 +1989,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 					if( globalTimerData.flags.bLogTimerDispatch )
 					{
 						level--;
-						lprintf( WIDE("timer done. (%d)"), level );
+						lprintf( "timer done. (%d)", level );
 					}
 					globalTimerData.flags.away_in_timer = 0;
 					while( globalTimerData.flags.insert_while_away )
@@ -2025,7 +2025,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 					if( ( newtick - globalTimerData.last_tick ) > timer->frequency )
 					{
 #ifdef LOG_LATENCY_LIGHT
-						lprintf( WIDE("Timer used more time than its frequency.  Scheduling at 1 ms.") );
+						lprintf( "Timer used more time than its frequency.  Scheduling at 1 ms." );
 #endif
 						timer->delta = ( newtick - globalTimerData.last_tick ) + 1;
 					}
@@ -2033,7 +2033,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 					{
 #ifdef LOG_LATENCY_LIGHT
 						// timer alwyas goes +1 frequency from its base tick.
-						lprintf( WIDE("Scheduling timer at 1 frequency.") );
+						lprintf( "Scheduling timer at 1 frequency." );
 #endif
 						timer->delta = timer->frequency;
 					}
@@ -2043,7 +2043,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 			else
 			{
 #ifdef LOG_INSERTS
-				lprintf( WIDE("Removing one shot timer. %d"), timer->ID );
+				lprintf( "Removing one shot timer. %d", timer->ID );
 #endif
 				// was a one shot timer.
 				DeleteFromSet( TIMER, globalTimerData.timer_pool, timer );
@@ -2062,7 +2062,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 		if( timer )
 		{
 #ifdef LOG_LATENCY
-			lprintf( WIDE("Pending timer in: %d Sleeping %d (%d) [%d]")
+			lprintf( "Pending timer in: %d Sleeping %d (%d) [%d]"
 			       , timer->delta
 			       , timer->delta - (newtick-globalTimerData.last_tick)
 			       , timer->delta - (globalTimerData.this_tick-globalTimerData.last_tick)
@@ -2072,11 +2072,11 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 			globalTimerData.last_sleep = ( timer->delta - ( globalTimerData.this_tick - globalTimerData.last_tick ) );
 			if( globalTimerData.last_sleep < 0 )
 			{
-				lprintf( WIDE( "next pending sleep is %d" ), globalTimerData.last_sleep );
+				lprintf( "next pending sleep is %d", globalTimerData.last_sleep );
 				globalTimerData.last_sleep = 1;
 			}
 #ifdef LOG_LATENCY
-			Log1( WIDE("Sleeping %d"), globalTimerData.last_sleep );
+			Log1( "Sleeping %d", globalTimerData.last_sleep );
 #endif
 			if( !psvForce )
 				return 1;
@@ -2097,7 +2097,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 		}
 		// else no timers - go back up to the top - where we sleep.
 	}
-	//Log( WIDE("Timer thread is exiting...") );
+	//Log( "Timer thread is exiting..." );
 	return 1;
 	}
 	return -1;
@@ -2116,12 +2116,12 @@ uintptr_t CPROC ThreadProc( PTHREAD pThread )
 #ifndef _WIN32
 	nice( -3 ); // allow ourselves a bit more priority...
 #endif
-	//Log( WIDE("Permanently lock timers - indicates that thread is running...") );
+	//Log( "Permanently lock timers - indicates that thread is running..." );
 	globalTimerData.lock_timers = 1;
-	//Log( WIDE("Get first tick") );
+	//Log( "Get first tick" );
 	globalTimerData.last_tick = timeGetTime();//GetTickCount();
 	while( ProcessTimers( 1 ) > 0 );
-	//Log( WIDE("Timer thread is exiting...") );
+	//Log( "Timer thread is exiting..." );
 	globalTimerData.pTimerThread = NULL;
 	return 0;
 }
@@ -2163,17 +2163,17 @@ uint32_t  AddTimerExx( uint32_t start, uint32_t frequency, TimerCallbackProc cal
 		//Log( WIDE("Starting \"a\" timer thread!!!!" ) );
 		if( !( ThreadTo( ThreadProc, 0 ) ) )
 		{
-			//Log1( WIDE("Failed to start timer ThreadProc... %d"), GetLastError() );
+			//Log1( "Failed to start timer ThreadProc... %d", GetLastError() );
 			return 0;
 		}
 		while( !globalTimerData.lock_timers )
 			Relinquish();
-		//Log1( WIDE("Thread started successfully? %d"), GetLastError() );
+		//Log1( "Thread started successfully? %d", GetLastError() );
 
 		// make sure that the thread is running, and had setup its
 		// locks, and tick reference
 	}
-	//_xlprintf(1 DBG_RELAY)( WIDE("Inserting newly created timer.") );
+	//_xlprintf(1 DBG_RELAY)( "Inserting newly created timer." );
 	InsertTimer( timer DBG_RELAY );
 	// don't need to sighup here, cause we MUST have permission
 	// from the idle thread to add the timer, which means we issue it
@@ -2245,7 +2245,7 @@ void  RemoveTimerEx( uint32_t ID DBG_PASS )
 #ifdef LOG_INSERTS
 		lprintf( "wake thread, scheduled delete" );
 #endif
-		//Log( WIDE("waking timer thread to indicate deletion...") );
+		//Log( "waking timer thread to indicate deletion..." );
 		WakeThread( globalTimerData.pTimerThread );
 	}
 }
@@ -2271,7 +2271,7 @@ static void InternalRescheduleTimerEx( PTIMER timer, uint32_t delay )
 #endif
 		if( bGrabbed )
 		{
-			//lprintf( WIDE("Rescheduling timer...") );
+			//lprintf( "Rescheduling timer..." );
 			DoInsertTimer( timer );
 			if( timer == globalTimerData.timers )
 			{
@@ -2337,13 +2337,13 @@ void  RescheduleTimer( uint32_t ID )
 #ifndef TARGETNAME
 #  define TARGETNAME ""
 #endif
-static void OnDisplayPause( WIDE("@Internal Timers") _WIDE(TARGETNAME) )( void )
+static void OnDisplayPause( "@Internal Timers" _WIDE(TARGETNAME) )( void )
 {
 	globalTimerData.flags.bHaltTimers = 1;
 }
 
 //--------------------------------------------------------------------------
-static void OnDisplayResume( WIDE("@Internal Timers") _WIDE(TARGETNAME))( void )
+static void OnDisplayResume( "@Internal Timers" _WIDE(TARGETNAME))( void )
 {
 	globalTimerData.flags.bHaltTimers = 0;
 	if( globalTimerData.pTimerThread )
@@ -2379,7 +2379,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef LOG_DEBUG_CRITICAL_SECTIONS
 #ifdef _DEBUG
 	if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-		_lprintf( DBG_RELAY )( WIDE("Enter critical section %p (owner) %")_64fx, pcs, pcs->dwThreadID );
+		_lprintf( DBG_RELAY )( "Enter critical section %p (owner) %"_64fx, pcs, pcs->dwThreadID );
 #endif
 #endif
 	do
@@ -2394,14 +2394,14 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef ENABLE_CRITICALSEC_LOGGING
 #  ifdef _DEBUG
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					lprintf( WIDE("Failed to enter section... sleeping (forever)...") );
+					lprintf( "Failed to enter section... sleeping (forever)..." );
 #  endif
 #endif
-				WakeableNamedThreadSleepEx( WIDE("sack.critsec"), SLEEP_FOREVER DBG_RELAY );
+				WakeableNamedThreadSleepEx( "sack.critsec", SLEEP_FOREVER DBG_RELAY );
 #ifdef ENABLE_CRITICALSEC_LOGGING
 #  ifdef _DEBUG
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					lprintf( WIDE("Allowed to retry section entry, woken up...") );
+					lprintf( "Allowed to retry section entry, woken up..." );
 #  endif
 #endif
 			}
@@ -2410,7 +2410,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			else
 			{
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					lprintf( WIDE("Lock Released while we logged?") );
+					lprintf( "Lock Released while we logged?" );
 			}
 #  endif
 #endif
@@ -2420,7 +2420,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef ENABLE_CRITICALSEC_LOGGING
 #  ifdef _DEBUG
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					lprintf( WIDE("Entered section, restore prior waiting thread. %") _64fx  WIDE(" %" ) _64fx, prior, pcs->dwThreadWaiting );
+					lprintf( "Entered section, restore prior waiting thread. %" _64fx  " %" _64fx, prior, pcs->dwThreadWaiting );
 #  endif
 #endif
 			}
@@ -2451,7 +2451,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #endif
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-			_xlprintf( LOG_NOISE DBG_RELAY )( WIDE( "Begin leave critical section %p %" ) _64fx, pcs, pcs->dwThreadWaiting );
+			_xlprintf( LOG_NOISE DBG_RELAY )( "Begin leave critical section %p %" _64fx, pcs, pcs->dwThreadWaiting );
 #endif
 		while( LockedExchange( &pcs->dwUpdating, 1 )
 #ifdef _DEBUG
@@ -2461,7 +2461,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			) {
 #ifdef ENABLE_CRITICALSEC_LOGGING
 			if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-				_lprintf( DBG_RELAY )( WIDE( "On leave - section is updating, wait..." ) );
+				_lprintf( DBG_RELAY )( "On leave - section is updating, wait..." );
 #endif
 			Relinquish();
 }
@@ -2479,7 +2479,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 					 , pcs->nLine[(pcs->nPrior+(MAX_SECTION_LOG_QUEUE-3))%MAX_SECTION_LOG_QUEUE]
 					 );
 #endif
-			lprintf( WIDE( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle" ) );
+			lprintf( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle" );
 			//DebugBreak();
 			//continue;
 		}
@@ -2490,7 +2490,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	{
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-			_lprintf( DBG_RELAY )( WIDE("Leaving a blank critical section") );
+			_lprintf( DBG_RELAY )( "Leaving a blank critical section" );
 #endif
 		DebugBreak();
 		pcs->dwUpdating = 0;
@@ -2515,7 +2515,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 		pcs->dwLocks--;
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-			lprintf( WIDE("Remaining locks... %08") _32fx, pcs->dwLocks );
+			lprintf( "Remaining locks... %08" _32fx, pcs->dwLocks );
 #endif
 		if( !( pcs->dwLocks & ~(SECTION_LOGGED_WAIT) ) )
 		{
@@ -2529,11 +2529,11 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			{
 #ifdef ENABLE_CRITICALSEC_LOGGING
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					_lprintf( DBG_RELAY )( WIDE("%8")_64fx WIDE(" Waking a thread which is waiting..."), dwWaiting );
+					_lprintf( DBG_RELAY )( "%8"_64fx " Waking a thread which is waiting...", dwWaiting );
 #endif
 				// don't clear waiting... so the proper thread can
 				// allow itself to claim section...
-				WakeNamedThreadSleeperEx( WIDE("sack.critsec"), dwWaiting DBG_RELAY );
+				WakeNamedThreadSleeperEx( "sack.critsec", dwWaiting DBG_RELAY );
 				//WakeThreadIDEx( wake DBG_RELAY);
 			}
 			return TRUE;
@@ -2543,14 +2543,14 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
 		{
-			_lprintf( DBG_RELAY )(WIDE( "Sorry - you can't leave a section owned by %016" )_64fx WIDE( " locks:%08" )_32fx
+			_lprintf( DBG_RELAY )("Sorry - you can't leave a section owned by %016"_64fx " locks:%08"_32fx
 #  ifdef DEBUG_CRITICAL_SECTIONS
-				WIDE( "%s(%d)..." )
+				"%s(%d)..."
 #  endif
 				, pcs->dwThreadID
 				, pcs->dwLocks
 #  ifdef DEBUG_CRITICAL_SECTIONS
-				, (pcs->pFile[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]) ? (pcs->pFile[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]) : WIDE( "Unknown" ), pcs->nLine[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]
+				, (pcs->pFile[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]) ? (pcs->pFile[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]) : "Unknown", pcs->nLine[(pcs->nPrior + 15) % MAX_SECTION_LOG_QUEUE]
 #  endif
 				);
 		}

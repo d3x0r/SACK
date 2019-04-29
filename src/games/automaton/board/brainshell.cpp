@@ -42,7 +42,7 @@
 #define MNU_ADD_OUTPUT_START 6000
 #define MNU_ADD_OUTPUT_LAST  6999
 
-//#include WIDE("brainshell.hpp")
+//#include "brainshell.hpp"
 
 //typedef class local_tag BRAINBOARD;
 
@@ -149,23 +149,23 @@ public:
 	}
 //	PEICE_PROC( int, OnClick )( uintptr_t psv, int x, int y )
 //	{
-//		lprintf( WIDE("syn") );
+//		lprintf( "syn" );
  //     return 0;
  //  }
 	void SaveBegin( PODBC odbc, uintptr_t psvInstance )
 	{
-		//SQLCommandf( odbc, WIDE("delete from board_layer_neuron where board_layer_id=%lu"), iParent );
+		//SQLCommandf( odbc, "delete from board_layer_neuron where board_layer_id=%lu", iParent );
 		PSYNAPSE synapse = (PSYNAPSE)psvInstance;
 		synapse->SaveBegin( odbc );
 	}
 	INDEX Save( PODBC odbc, INDEX iParent, uintptr_t psvInstance )
 	{
-		//SQLCommandf( odbc, WIDE("delete from board_layer_synapse where board_layer_id=%lu"), iParent );
+		//SQLCommandf( odbc, "delete from board_layer_synapse where board_layer_id=%lu", iParent );
 		//INDEX iBrainSynapse = 
 		return ((PSYNAPSE)psvInstance)->Save( odbc, iParent );
-		//SQLInsert( odbc, WIDE("board_layer_synapse")
-		//			, WIDE("board_layer_id"), 2, iParent
-		//			, WIDE("brain_synapse_id"), 2, iBrainSynapse
+		//SQLInsert( odbc, "board_layer_synapse"
+		//			, "board_layer_id", 2, iParent
+		//			, "brain_synapse_id", 2, iBrainSynapse
 		//			, NULL, 0, NULL );
 		//return FetchLastInsertID( odbc, NULL, NULL );
 	}
@@ -189,7 +189,7 @@ public:
 	{
 		//brainboard->create_input_type = (POUTPUT_INPUT)psvExtra;
 		//brainboard->create_input_type->flags.bOutput = 0;
-		lprintf( WIDE("Creating a new input (peice instance)") );
+		lprintf( "Creating a new input (peice instance)" );
 		//this->brainboard->brain->GetInputNeuron( ((POUTPUT_INPUT)psvExtra)->pbs, ((POUTPUT_INPUT)psvExtra)->conn
 		return (uintptr_t)((POUTPUT_INPUT)psvExtra); // still not the real create...  but this is psviNstance...
 	}
@@ -204,7 +204,7 @@ public:
 		CDATA cPrimary;
 		POUTPUT_INPUT input = (POUTPUT_INPUT)psvInstance;
 		NATIVE value = input->conn->get();
-		lprintf( WIDE("input value is %g"), value );
+		lprintf( "input value is %g", value );
 		if( value < 0 )
 			cPrimary = ColorAverage( level_colors[1]
 										  , level_colors[0]
@@ -247,7 +247,7 @@ public:
 	}
 	int OnClick( uintptr_t psv, int32_t x, int32_t y )
 	{
-		lprintf( WIDE("click on input! at %d,%d"), x, y );
+		lprintf( "click on input! at %d,%d", x, y );
 		if( x == 0 && y == 0 )
 		{
 			// this is implied to be the current peice that
@@ -273,7 +273,7 @@ public:
 	{
 		POUTPUT_INPUT neuron = (POUTPUT_INPUT)psv;
 		INDEX fake_parent_id = neuron->neuron->Save( odbc, iParent ); //io_node->Save( odbc, neuron->pbs->name(), iParent, TRUE );
-		DoSQLCommandf( WIDE("insert into brain_connectors (connector_name,input,parent_id) values ('%s/%s',1,%d)")
+		DoSQLCommandf( "insert into brain_connectors (connector_name,input,parent_id) values ('%s/%s',1,%d)"
 			, neuron->conn->pbs->fullname()
 			, neuron->conn->name()
 			//, iParent 
@@ -289,7 +289,7 @@ public:
 		
 		PushSQLQueryEx( odbc );
 //		DebugBreak();
-		if( SQLRecordQueryf( odbc, NULL, &result, NULL, WIDE("select connector_name from brain_connectors where parent_id=%ld")
+		if( SQLRecordQueryf( odbc, NULL, &result, NULL, "select connector_name from brain_connectors where parent_id=%ld"
 								, iInstance )
 			&& result ) 
 		{
@@ -320,7 +320,7 @@ private:
 	{
 		//brainboard->create_output_type = (POUTPUT_INPUT)psv;
 		//brainboard->create_output_type->flags.bOutput = 1;
-        lprintf( WIDE("Creating a new output (peice instance)") );
+        lprintf( "Creating a new output (peice instance)" );
 
 		POUTPUT_INPUT poi = (POUTPUT_INPUT)psvExtra;
 
@@ -396,7 +396,7 @@ public:
 	}
 	int OnClick( uintptr_t psv, int32_t x, int32_t y )
 	{
-		lprintf( WIDE("click on neuron! at %d,%d"), x, y );
+		lprintf( "click on neuron! at %d,%d", x, y );
 		if( x == 0 && y == 0 )
 		{
 			// this is implied to be the current peice that
@@ -422,7 +422,7 @@ public:
 	{
 		POUTPUT_INPUT neuron = (POUTPUT_INPUT)psv;
 		INDEX fake_parent_id = neuron->neuron->Save( odbc, iParent ); //io_node->Save( odbc, neuron->pbs->name(), iParent, TRUE );
-		DoSQLCommandf( WIDE("insert into brain_connectors (connector_name,input,parent_id) values ('%s/%s',0,%d)")
+		DoSQLCommandf( "insert into brain_connectors (connector_name,input,parent_id) values ('%s/%s',0,%d)"
 			, neuron->conn->pbs->fullname()
 			, neuron->conn->name()
 			//, iParent 
@@ -435,7 +435,7 @@ public:
 		// result with psvInstance....
 		//PNEURON neuron = (PNEURON)psv;
 		CTEXTSTR *result;
-		if( SQLRecordQueryf( odbc, NULL, &result, NULL, WIDE("select connector_name from brain_connectors where parent_id=%ld")
+		if( SQLRecordQueryf( odbc, NULL, &result, NULL, "select connector_name from brain_connectors where parent_id=%ld"
 								, iInstance )
 			&& result ) 
 		{
@@ -485,7 +485,7 @@ public:
 	}
 	uintptr_t Create( uintptr_t psvExtra )
 	{
-		lprintf( WIDE("Creating a new neuron (peice instance)") );
+		lprintf( "Creating a new neuron (peice instance)" );
 		return (uintptr_t)(brainboard->brain->DupNeuron( brainboard->DefaultNeuron ));
 	}
 	void Destroy( uintptr_t psv )
@@ -495,7 +495,7 @@ public:
 	
 	void Draw( uintptr_t psvInstance, Image image, Image cell, int32_t x, int32_t y )
 	{
-      //lprintf( WIDE("---------- DRAW NEURON ------------") );
+      //lprintf( "---------- DRAW NEURON ------------" );
 
 		CDATA cPrimary, cSecondary, cTertiary;
       NATIVE base,range,value,input,threshold;
@@ -553,7 +553,7 @@ public:
 
 	void Update( uintptr_t psv, uint32_t cycle )
 	{
-		lprintf( WIDE("updating color information for a neuron...") );
+		lprintf( "updating color information for a neuron..." );
 	}
 
 	int ConnectEnd( uintptr_t psv_to_instance, int32_t x, int32_t y
@@ -600,7 +600,7 @@ public:
 
 	int OnClick( uintptr_t psv, int32_t x, int32_t y )
 	{
-		lprintf( WIDE("click on neuron! at %d,%d"), x, y );
+		lprintf( "click on neuron! at %d,%d", x, y );
 		if( x == 0 && y == 0 )
 		{
 			// this is implied to be the current peice that
@@ -624,7 +624,7 @@ public:
 	}
 	void SaveBegin( PODBC odbc, uintptr_t psvInstance )
 	{
-		//SQLCommandf( odbc, WIDE("delete from board_layer_neuron where board_layer_id=%lu"), iParent );
+		//SQLCommandf( odbc, "delete from board_layer_neuron where board_layer_id=%lu", iParent );
 		PNEURON neuron = (PNEURON)psvInstance;
 		neuron->SaveBegin( odbc );
 	}
@@ -654,7 +654,7 @@ static LOGICAL SelectNewFile( HWND hParent, PSTR szFile )
    ofn.hwndOwner = hParent;
    ofn.lpstrFile = szFile;
    ofn.nMaxFile = 256;
-   ofn.lpstrFilter = WIDE("Bodies\0*.Body\0");
+   ofn.lpstrFilter = "Bodies\0*.Body\0";
    ofn.nFilterIndex = 1;
    ofn.Flags = OFN_NOTESTFILECREATE
               | OFN_NOREADONLYRETURN ;// Display the Open dialog box. 
@@ -667,7 +667,7 @@ static LOGICAL SelectNewFile( HWND hParent, PSTR szFile )
 void CPROC CreateNewBoardName( uintptr_t psv, PSI_CONTROL button )
 {
 	TEXTCHAR *newname = (TEXTCHAR*)psv;
-	SimpleUserQuery( newname, 256, WIDE("Enter a new board name"), button );
+	SimpleUserQuery( newname, 256, "Enter a new board name", button );
 }
 
 void CPROC SelectedItem( uintptr_t psv, PSI_CONTROL list, PLISTITEM item )
@@ -696,7 +696,7 @@ PRELOAD( register_control_ids )
 
 CTEXTSTR PickBoardName( PODBC odbc, int bMustExist )
 {
-	PSI_CONTROL frame = LoadXMLFrame( WIDE("PickBoardName.frame") );
+	PSI_CONTROL frame = LoadXMLFrame( "PickBoardName.frame" );
 	if( frame )
 	{
 		static TEXTCHAR newname[256];
@@ -707,7 +707,7 @@ CTEXTSTR PickBoardName( PODBC odbc, int bMustExist )
 			PSI_CONTROL list = GetControl( frame, LST_NEWBOARD );
 			if( list )
 			{
-				for( SQLRecordQuery( odbc, WIDE("select board_name from board_info"), NULL, &results, NULL );
+				for( SQLRecordQuery( odbc, "select board_name from board_info", NULL, &results, NULL );
 					results;
 					FetchSQLRecord( odbc, &results ) )
 				{
@@ -772,7 +772,7 @@ public:
 
 	void Update( uintptr_t psv, uint32_t cycle )
 	{
-      lprintf( WIDE("Update background - nothing to do.") );
+      lprintf( "Update background - nothing to do." );
 		Parent::Update(psv,cycle);
 	}
 
@@ -790,7 +790,7 @@ public:
 		//DebugBreak();
 		if( result >= MNU_ADD_INPUT_START && result < MNU_ADD_OUTPUT_START )
 		{
-			lprintf( WIDE("Put input peice at %d,%d"), x, y );
+			lprintf( "Put input peice at %d,%d", x, y );
 			POUTPUT_INPUT io_thing = (POUTPUT_INPUT)Allocate( sizeof( *io_thing ) );
 			io_thing->brainboard = brainboard;
 			io_thing->brain = io_thing->brainboard->brain;
@@ -804,7 +804,7 @@ public:
 		}
 		else if( result >= MNU_ADD_OUTPUT_START && result <= MNU_ADD_OUTPUT_LAST )
 		{
-			lprintf( WIDE("Put output peice at %d,%d"), x, y );
+			lprintf( "Put output peice at %d,%d", x, y );
 			POUTPUT_INPUT io_thing = (POUTPUT_INPUT)Allocate( sizeof( *io_thing ) );
 			io_thing->brainboard = brainboard;
 			io_thing->brain = io_thing->brainboard->brain;
@@ -816,7 +816,7 @@ public:
 		else switch( result )
 		{
 		case MNU_ADDNEURON:
-			lprintf( WIDE("Put neuron peice at %d,%d"), x, y );
+			lprintf( "Put neuron peice at %d,%d", x, y );
 			brainboard->board->PutPeice( brainboard->NeuronPeice, x, y, 0 );
 			return TRUE;
       case MNU_ZOOM:
@@ -834,10 +834,10 @@ public:
                //FILE *file;
                //strcpy( (char*)byTemp, (char*)byFile );
                //strupr( (char*)byTemp );
-               //if( !strstr( (char*)byTemp, WIDE(".BOARD") ) )
-               //   strcat( (char*)byFile, WIDE(".Board") );
+               //if( !strstr( (char*)byTemp, ".BOARD" ) )
+               //   strcat( (char*)byFile, ".Board" );
 
-               //file = fopen( (char*)byFile, WIDE("wb") );
+               //file = fopen( (char*)byFile, "wb" );
 				//	if( file  )
 					{
 						CTEXTSTR name = PickBoardName( NULL, FALSE );
@@ -915,19 +915,19 @@ uintptr_t DefineAColor( uintptr_t psv, arg_list args )
 PPEICE_METHODS BRAINBOARD::FindPeiceMethods( TEXTCHAR *type )
 {
 	PPEICE_METHODS methods = NULL;
-	if( StrCaseCmp( type, WIDE("neuron") ) == 0 )
+	if( StrCaseCmp( type, "neuron" ) == 0 )
 		methods =neuron_methods;
-	else if( StrCaseCmp( type, WIDE("background") ) == 0 )
+	else if( StrCaseCmp( type, "background" ) == 0 )
 		methods =background_methods;
-	else if( StrCaseCmp( type, WIDE("nerve") ) == 0 )
+	else if( StrCaseCmp( type, "nerve" ) == 0 )
 		methods =nerve_methods;
-	else if( StrCaseCmp( type, WIDE("input") ) == 0 )
+	else if( StrCaseCmp( type, "input" ) == 0 )
 		methods =input_methods;
-	else if( StrCaseCmp( type, WIDE("output") ) == 0 )
+	else if( StrCaseCmp( type, "output" ) == 0 )
 		methods =output_methods;
 	if( methods && methods->master )
 	{
-		lprintf( WIDE("Peice for methods is already defined... there is a tight relationship between a single graphic and these methods") );
+		lprintf( "Peice for methods is already defined... there is a tight relationship between a single graphic and these methods" );
 		//return NULL;
 	}
 	return methods;
@@ -989,37 +989,37 @@ void BRAINBOARD::DefineABlock( arg_list args )
 	Image image = LoadImageFile( filename );
 	if( image )
 	{
-		lprintf( WIDE("Make block %s : %s"), type, filename );
+		lprintf( "Make block %s : %s", type, filename );
 		PIPEICE pip = board->CreatePeice( type, image
 										, (int)cx, (int)cy
 										, ((int)cx-1)/2, ((int)cy-1)/2
 										, methods 
 										, (uintptr_t)this /* brainboard*/
 										 );
-		lprintf( WIDE("Make block %s : %s"), type, filename );
+		lprintf( "Make block %s : %s", type, filename );
 		if( methods == background_methods )
 		{
 			board->SetBackground( pip );
-		lprintf( WIDE("Make block %s : %s"), type, filename );
+		lprintf( "Make block %s : %s", type, filename );
 		}
 		else if( methods == neuron_methods )
 		{
 			NeuronPeice = pip;
-		lprintf( WIDE("Make block %s : %s"), type, filename );
+		lprintf( "Make block %s : %s", type, filename );
 		}
 		else if( methods == input_methods )
 		{
 			InputPeice = pip;
-		lprintf( WIDE("Make block %s : %s"), type, filename );
+		lprintf( "Make block %s : %s", type, filename );
 		}
 		else if( methods == output_methods )
 		{
 			OutputPeice = pip;
-		lprintf( WIDE("Make block %s : %s"), type, filename );
+		lprintf( "Make block %s : %s", type, filename );
 		}
 	}
 	else
-		lprintf( WIDE("Failed to open %s"), filename );
+		lprintf( "Failed to open %s", filename );
 }
 uintptr_t CPROC DefineABlock( uintptr_t psv, arg_list args )
 {
@@ -1034,9 +1034,9 @@ void BRAINBOARD::DefineABlockNoOpt( arg_list args )
 	PARAM( args, TEXTCHAR *, filename );
 	//PPEICE_METHODS methods = FindPeiceMethods( type );
 	Image image = LoadImageFile( filename );
-	lprintf( WIDE("Attempt to define via with %s"), filename );
+	lprintf( "Attempt to define via with %s", filename );
 	if( image )
-		NervePeice = board->CreateVia( WIDE("nerve"), image, nerve_methods, (uintptr_t)this );
+		NervePeice = board->CreateVia( "nerve", image, nerve_methods, (uintptr_t)this );
 }
 uintptr_t CPROC DefineABlockNoOpt( uintptr_t psv, arg_list args )
 {
@@ -1063,16 +1063,16 @@ BRAINBOARD::BRAINBOARD(PBRAIN _brain )
 void BRAINBOARD::LoadPeices( CTEXTSTR file )
 {
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
-	AddConfigurationMethod( pch, WIDE("cell size %i by %i"), ::SetCellSize );
-	//#AddConfigurationMethod( pch, WIDE("color %w %c"), DefineAColor );
-	AddConfigurationMethod( pch, WIDE("block %m (%i by %i) %p"), ::DefineABlock );
-	AddConfigurationMethod( pch, WIDE("color %m %i %c %c %c"), ::DefinePeiceColors );
-	AddConfigurationMethod( pch, WIDE("pathway %p"), ::DefineABlockNoOpt );
+	AddConfigurationMethod( pch, "cell size %i by %i", ::SetCellSize );
+	//#AddConfigurationMethod( pch, "color %w %c", DefineAColor );
+	AddConfigurationMethod( pch, "block %m (%i by %i) %p", ::DefineABlock );
+	AddConfigurationMethod( pch, "color %m %i %c %c %c", ::DefinePeiceColors );
+	AddConfigurationMethod( pch, "pathway %p", ::DefineABlockNoOpt );
 	
 	if( !ProcessConfigurationFile( pch, file, (uintptr_t)this ) )
 	{
 		TEXTCHAR otherfile[256];
-		snprintf( otherfile, 256, WIDE("%%resources%%/%s"), file );
+		snprintf( otherfile, 256, "%%resources%%/%s", file );
 		ProcessConfigurationFile( pch, otherfile, (uintptr_t)this );
 	}
 	DestroyConfigurationHandler( pch );
@@ -1096,7 +1096,7 @@ void BuildBrainstemMenus( PMENU hMenuComponents, PBRAIN_STEM pbs
 									, (uintptr_t)(comp_menu = CreatePopup())
 									, pbs->name() );
 			AddLink( menus, (POINTER)comp_menu );
-			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (uintptr_t)(menu = CreatePopup() ), WIDE("inputs") );
+			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (uintptr_t)(menu = CreatePopup() ), "inputs" );
 			AddLink( menus, (POINTER)menu );
 			
 			LIST_FORALL( pbs->Inputs.list, idx, PCONNECTOR, connector )
@@ -1104,7 +1104,7 @@ void BuildBrainstemMenus( PMENU hMenuComponents, PBRAIN_STEM pbs
 				AddLink( connectors, (POINTER)connector );
 				AppendPopupItem( menu, MF_STRING, MNU_ADD_INPUT_START + FindLink( connectors, (POINTER)connector) + ( n * 80 ), connector->name() );
 			}
-			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (uintptr_t)(menu = CreatePopup() ), WIDE("outputs") );
+			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (uintptr_t)(menu = CreatePopup() ), "outputs" );
 			AddLink( menus, (POINTER)menu );
 			
 			LIST_FORALL( pbs->Outputs.list, idx, PCONNECTOR, connector )
@@ -1113,7 +1113,7 @@ void BuildBrainstemMenus( PMENU hMenuComponents, PBRAIN_STEM pbs
 				AppendPopupItem( menu, MF_STRING, MNU_ADD_OUTPUT_START + FindLink( connectors, (POINTER)connector) + ( n * 80 ), connector->name() );
 			}
 			
-			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (uintptr_t)(menu = CreatePopup() ), WIDE("module") );
+			AppendPopupItem( comp_menu, MF_STRING|MF_POPUP, (uintptr_t)(menu = CreatePopup() ), "module" );
 			AddLink( menus, (POINTER)menu );
 			
 			for( module = pbs->first_module(); module; idx++, module = pbs->next_module() )
@@ -1146,9 +1146,9 @@ void BRAINBOARD::RebuildComponentPopups()
 void BRAINBOARD::InitMenus( void )
 {
 	hMenu = CreatePopup();
-	AppendPopupItem( hMenu, MF_STRING, MNU_ADDNEURON, WIDE("Add &Neuron") );
+	AppendPopupItem( hMenu, MF_STRING, MNU_ADDNEURON, "Add &Neuron" );
    
-	AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (uintptr_t)(hMenuComponents=CreatePopup()), WIDE("Add &Component") );
+	AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (uintptr_t)(hMenuComponents=CreatePopup()), "Add &Component" );
 	{
 		int n = 0;
 		INDEX idx;
@@ -1159,27 +1159,27 @@ void BRAINBOARD::InitMenus( void )
 		}
 	}
 	AppendPopupItem( hMenu,MF_SEPARATOR,0,0 );
-	AppendPopupItem( hMenu,MF_STRING, MNU_RESET, WIDE("Reset") );
-	AppendPopupItem( hMenu,MF_STRING, MNU_RUN, WIDE("RUN") );
+	AppendPopupItem( hMenu,MF_STRING, MNU_RESET, "Reset" );
+	AppendPopupItem( hMenu,MF_STRING, MNU_RUN, "RUN" );
 	AppendPopupItem( hMenu,MF_SEPARATOR,0,0 );
 	{
 		PMENU hPopup;
-		AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (uintptr_t)(hPopup = CreatePopup()), WIDE("Zoom") );
+		AppendPopupItem( hMenu,MF_STRING|MF_POPUP, (uintptr_t)(hPopup = CreatePopup()), "Zoom" );
 		AddLink( &menus, hPopup );
 
 		//hPopup = (PMENU)GetPopupData( hMenu, 6 );
-		AppendPopupItem( hPopup, MF_STRING, MNU_ZOOM + 0, WIDE("x1") );
-		AppendPopupItem( hPopup, MF_STRING, MNU_ZOOM + 1, WIDE("x2") );
-		AppendPopupItem( hPopup, MF_STRING, MNU_ZOOM + 2, WIDE("x4") );
+		AppendPopupItem( hPopup, MF_STRING, MNU_ZOOM + 0, "x1" );
+		AppendPopupItem( hPopup, MF_STRING, MNU_ZOOM + 1, "x2" );
+		AppendPopupItem( hPopup, MF_STRING, MNU_ZOOM + 2, "x4" );
 	}
 
-	AppendPopupItem( hMenu,MF_STRING, MNU_NEURON, WIDE("Default Neuron") );
-	AppendPopupItem( hMenu,MF_STRING, MNU_SYNAPSE, WIDE("Default Synapse") );
-	AppendPopupItem( hMenu,MF_STRING, MNU_SIGMOID, WIDE("Sigmoid Constant") );
-	AppendPopupItem( hMenu,MF_STRING, MNU_SAVE, WIDE("Save...") );
-	AppendPopupItem( hMenu,MF_STRING, MNU_LOAD, WIDE("Load...") );
+	AppendPopupItem( hMenu,MF_STRING, MNU_NEURON, "Default Neuron" );
+	AppendPopupItem( hMenu,MF_STRING, MNU_SYNAPSE, "Default Synapse" );
+	AppendPopupItem( hMenu,MF_STRING, MNU_SIGMOID, "Sigmoid Constant" );
+	AppendPopupItem( hMenu,MF_STRING, MNU_SAVE, "Save..." );
+	AppendPopupItem( hMenu,MF_STRING, MNU_LOAD, "Load..." );
 	AppendPopupItem( hMenu,MF_SEPARATOR,0,0 );
-	AppendPopupItem( hMenu,MF_STRING, MNU_CLOSE, WIDE("Close") );
+	AppendPopupItem( hMenu,MF_STRING, MNU_CLOSE, "Close" );
 
 }
 
@@ -1194,7 +1194,7 @@ void BRAINBOARD::Init( void )
 	NervePeice = NULL;
 	BackgroundPeice = NULL;
 
-	//PSI_CONTROL frame = CreateFrame( WIDE("Brain Editor"), 0, 0, 640, 480, BORDER_RESIZABLE, NULL );
+	//PSI_CONTROL frame = CreateFrame( "Brain Editor", 0, 0, 640, 480, BORDER_RESIZABLE, NULL );
 	board = CreateBoardControl( NULL /*frame*/, 0, 0, 640, 480 );
 	//DisplayFrame( frame );
 	//CreateToolbin( board );
@@ -1206,7 +1206,7 @@ void BRAINBOARD::Init( void )
 	}
 	else
 		flags.bOwnBrain = 0;
-	LoadPeices( WIDE("brain.peices.txt") );
+	LoadPeices( "brain.peices.txt" );
 	connectors = NULL;
 	menus = NULL;
 
@@ -1288,31 +1288,31 @@ PIBOARD GetBoard( PBRAINBOARD board )
 
 #ifdef BUILD_TEST_SHELL
 float f_values[10];
-CONNECTOR *connectors_in[] = { new connector( WIDE("one"), &f_values[0] )
-,new connector( WIDE("two"), &f_values[1] )
-,new connector( WIDE("three"), &f_values[2] )
-,new connector( WIDE("four"), &f_values[3] )
-,new connector( WIDE("five"), &f_values[4] )
-,new connector( WIDE("six"), &f_values[5] )
-,new connector( WIDE("seven"), &f_values[6] )
-,new connector( WIDE("eight"), &f_values[7] )
-,new connector( WIDE("nine"), &f_values[8] )
-,new connector( WIDE("ten"), &f_values[9] )
+CONNECTOR *connectors_in[] = { new connector( "one", &f_values[0] )
+,new connector( "two", &f_values[1] )
+,new connector( "three", &f_values[2] )
+,new connector( "four", &f_values[3] )
+,new connector( "five", &f_values[4] )
+,new connector( "six", &f_values[5] )
+,new connector( "seven", &f_values[6] )
+,new connector( "eight", &f_values[7] )
+,new connector( "nine", &f_values[8] )
+,new connector( "ten", &f_values[9] )
 };
 
-CONNECTOR *connectors_out[] = { new connector( WIDE("one"), &f_values[0] )
-,new connector( WIDE("two"), &f_values[1] )
-,new connector( WIDE("three"), &f_values[2] )
-,new connector( WIDE("four"), &f_values[3] )
-,new connector( WIDE("five"), &f_values[4] )
-,new connector( WIDE("six"), &f_values[5] )
-,new connector( WIDE("seven"), &f_values[6] )
-,new connector( WIDE("eight"), &f_values[7] )
-,new connector( WIDE("nine"), &f_values[8] )
-,new connector( WIDE("ten"), &f_values[9] )
+CONNECTOR *connectors_out[] = { new connector( "one", &f_values[0] )
+,new connector( "two", &f_values[1] )
+,new connector( "three", &f_values[2] )
+,new connector( "four", &f_values[3] )
+,new connector( "five", &f_values[4] )
+,new connector( "six", &f_values[5] )
+,new connector( "seven", &f_values[6] )
+,new connector( "eight", &f_values[7] )
+,new connector( "nine", &f_values[8] )
+,new connector( "ten", &f_values[9] )
 };
 
-BRAIN_STEM clusters[1] = { BRAIN_STEM( WIDE("Basic Structure")
+BRAIN_STEM clusters[1] = { BRAIN_STEM( "Basic Structure"
 												 , connectors_in, sizeof(connectors_in)/sizeof(connectors_in[0])
 												 , connectors_out, sizeof(connectors_out)/sizeof(connectors_out[0]) ) };
 

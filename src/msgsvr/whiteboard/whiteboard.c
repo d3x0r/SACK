@@ -203,7 +203,7 @@ int CPROC MessageHandler( uint32_t SourceID, uint32_t MsgID
 
 PRELOAD( RegisterMyService )
 {
-   RegisterServiceHandler( WIDE("Whiteboard Service"), MessageHandler );
+   RegisterServiceHandler( "Whiteboard Service", MessageHandler );
 }
 
 int main( void )

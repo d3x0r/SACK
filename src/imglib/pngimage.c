@@ -81,7 +81,7 @@ void PNGCBAPI NotSoFatalError( png_structp png_ptr, png_const_charp c )
 	if( strcmp( c, "iCCP: known incorrect sRGB profile" ) != 0 
 		&& strcmp( c, "iCCP: cHRM chunk does not match sRGB" ) != 0
 		&& strcmp( c, "Interlace handling should be turned on when using png_read_image" ) != 0 )
-		lprintf( WIDE("Error in PNG stuff:%s %s"), loadingPng?loadingPng:"<DATA>", c );
+		lprintf( "Error in PNG stuff:%s %s", loadingPng?loadingPng:"<DATA>", c );
 }
 
 // this is specific to a compiler so it needs to be non-decorated in any way.
@@ -198,7 +198,7 @@ no_mem2:
 		             , NULL, NULL, NULL);
 
 		/* this message is important to someone for some reason or another... */
-		//lprintf( WIDE("Image is %ld by %ld - %d/%d\n"), Width, Height, bit_depth, color_type );
+		//lprintf( "Image is %ld by %ld - %d/%d\n", Width, Height, bit_depth, color_type );
 
 		if (bit_depth > 8)
 		// tell libpng to strip 16 bit/color files down to 8 bits/color
@@ -210,7 +210,7 @@ no_mem2:
 		if( (color_type & PNG_COLOR_MASK_PALETTE ) )
 		{
 			png_set_palette_to_rgb( png_ptr );
-			//Log( WIDE("At the moment only 8 bit RGB/Grey images are allowed...\n") );
+			//Log( "At the moment only 8 bit RGB/Grey images are allowed...\n" );
 			//goto no_mem2;
 		}
 
@@ -225,7 +225,7 @@ no_mem2:
 
 		if( !(color_type & PNG_COLOR_MASK_ALPHA ) )
 		{
-			//lprintf( WIDE( "missing alpha in color, so add color" ) );
+			//lprintf( "missing alpha in color, so add color" );
 			png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
 		}
 		// else
@@ -243,10 +243,10 @@ no_mem2:
 			{
 				if( USS_GT( rowbytes, size_t, pImage->pwidth * 4, int ) )
 				{				
-					lprintf(WIDE(" bytes generated and bytes allocated mismatched! %")_size_f WIDE("  %") _32f, rowbytes, pImage->pwidth*4 );
+					lprintf(" bytes generated and bytes allocated mismatched! %"_size_f "  %" _32f, rowbytes, pImage->pwidth*4 );
 
 						goto no_mem2;                        // Yuck! Something went wrong!
-					//Log( WIDE("We're okay as long as what it wants is less...(first number)") );
+					//Log( "We're okay as long as what it wants is less...(first number)" );
 				}
 			}
 
@@ -328,7 +328,7 @@ static void CPROC ImagePngFlush(png_structp png_ptr)
 
 void CPROC NotSoFatalError2( png_structp png_ptr, png_const_charp c )
 {
-	lprintf( WIDE("Error in PNG stuff: %s"), c );
+	lprintf( "Error in PNG stuff: %s", c );
 }
 
 LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size)

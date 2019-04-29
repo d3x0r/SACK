@@ -67,7 +67,7 @@ static LRESULT CALLBACK LowLevelMouseProc( int nCode, WPARAM wParam, LPARAM lPar
 	{
 		PMSLLHOOKSTRUCT pmll = (PMSLLHOOKSTRUCT)lParam;
 
-		//lprintf( WIDE(" Mouse Activity Hook: %lu, x:%ld, y:%ld"), wParam, pmll->pt.x, pmll->pt.y );		 
+		//lprintf( " Mouse Activity Hook: %lu, x:%ld, y:%ld", wParam, pmll->pt.x, pmll->pt.y );		 
 
 		l.flags.countingDown = 0;
 		l.last_event_time = timeGetTime();
@@ -84,7 +84,7 @@ static LRESULT CALLBACK LowLevelKeyboardProc( int nCode, WPARAM wParam, LPARAM l
 	{
 		PMSLLHOOKSTRUCT pmll = (PMSLLHOOKSTRUCT)lParam;
 
-		//lprintf( WIDE(" Keyboard Activity Hook: %lu, x:%ld, y:%ld"), wParam, pmll->pt.x, pmll->pt.y );		
+		//lprintf( " Keyboard Activity Hook: %lu, x:%ld, y:%ld", wParam, pmll->pt.x, pmll->pt.y );		
 
 		l.flags.countingDown = 0;
 		l.last_event_time = timeGetTime();
@@ -113,16 +113,16 @@ static uintptr_t CPROC HandleHook( PTHREAD thread )
 // Output handler for system call
 void CPROC LogOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-	lprintf( WIDE("%s"), buffer );
+	lprintf( "%s", buffer );
 }
 
 static LOGICAL HaveCurrentUser( PODBC odbc )
 {
 	CTEXTSTR *results;
 
-	SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE("select count(*) from login_history")
-	                                             WIDE(" where logout_whenstamp=11111111111111")
-	                                             WIDE(" and system_id=%d")
+	SQLRecordQueryf( odbc, NULL, &results, NULL, "select count(*) from login_history"
+	                                             " where logout_whenstamp=11111111111111"
+	                                             " and system_id=%d"
 						     , g.system_id );
 
 	if( results )
@@ -159,7 +159,7 @@ static uintptr_t CPROC countDown( PTHREAD thread )
 		if( l.flags.bLogSleeps )
 		{
 			long x =  ( l.iIdleTime*(60)*(1000) ) - ( startTime - l.last_event_time );
-			lprintf( WIDE("Sleep for... %d:%02d.%03d"), x / 60000, (x / 1000 ) %60, x % 1000 );
+			lprintf( "Sleep for... %d:%02d.%03d", x / 60000, (x / 1000 ) %60, x % 1000 );
 		}
 
 		if( ( l.iIdleTime*(60)*(1000) ) > ( startTime - l.last_event_time ) )
@@ -175,7 +175,7 @@ static uintptr_t CPROC countDown( PTHREAD thread )
 		odbc = SQLGetODBC( l.option_dsn );
 
 		if( l.flags.bLogSleeps )
-			lprintf( WIDE("woke up and user is %p (%d)"), HaveCurrentUser( odbc ), ( startTime - l.last_event_time ) );
+			lprintf( "woke up and user is %p (%d)", HaveCurrentUser( odbc ), ( startTime - l.last_event_time ) );
 		// If there is current user, else there is no active logins or processes to kill
 
 		if( HaveCurrentUser( odbc ) )
@@ -188,7 +188,7 @@ static uintptr_t CPROC countDown( PTHREAD thread )
 			if( remaining < 0 )
 			{
 				if( l.flags.bLogSleeps )
-					lprintf( WIDE("Not enough time, go back and wait...") );
+					lprintf( "Not enough time, go back and wait..." );
 
 				// Close Connection to database
 				SQLDropODBC( odbc );
@@ -207,7 +207,7 @@ static uintptr_t CPROC countDown( PTHREAD thread )
 				remaining = ( target_tick - startTime );
 
 				// Update Banner Message
-				snprintf( buf, sizeof( buf ), WIDE(" The system will logout in %d.%03d seconds...")
+				snprintf( buf, sizeof( buf ), " The system will logout in %d.%03d seconds..."
 						  , remaining / 1000, remaining % 1000 );
 				BannerTopNoWait( buf );
 
@@ -223,11 +223,11 @@ static uintptr_t CPROC countDown( PTHREAD thread )
 				uint32_t x;
 				uint32_t y;
 				// Logout users
-				SQLCommandf( odbc , WIDE("update login_history set logout_whenstamp=now() where logout_whenstamp=11111111111111 and system_id=%d"), g.system_id );
+				SQLCommandf( odbc , "update login_history set logout_whenstamp=now() where logout_whenstamp=11111111111111 and system_id=%d", g.system_id );
 
 				// Get current process list
 				if ( !EnumProcesses( l.pidList2, sizeof( l.pidList2 ), &l.pidListLength2 ) )					
-						lprintf( WIDE(" Getting Process List 2 Failed!") );
+						lprintf( " Getting Process List 2 Failed!" );
 
 				// Kill Processes
 				for( x = 0; x < l.pidListLength2; x++ )
@@ -246,7 +246,7 @@ static uintptr_t CPROC countDown( PTHREAD thread )
 					if( !found )
 					{
 						TEXTCHAR cmd[25];
-						snprintf( cmd, sizeof( cmd ), WIDE("pskill %d"), l.pidList2[x] );
+						snprintf( cmd, sizeof( cmd ), "pskill %d", l.pidList2[x] );
 						System( cmd, LogOutput, 0 );
 					}
 
@@ -276,11 +276,11 @@ static uintptr_t CPROC countDown( PTHREAD thread )
 	return 0;
 }
  
-static void OnTaskLaunchComplete( WIDE("Login Monitor") )( void )
+static void OnTaskLaunchComplete( "Login Monitor" )( void )
 {
 	// RE-Get Process List
 	if ( !EnumProcesses( l.pidList1, sizeof( l.pidList1 ), &l.pidListLength1 ) )
-		lprintf( WIDE(" Getting Process List 1 Failed(2)!") );
+		lprintf( " Getting Process List 1 Failed(2)!" );
 }
 
 //----------------------------------------------------------------------------------------
@@ -292,28 +292,28 @@ PRELOAD( InitLoginMon )
 		PODBC odbc;
 
 		// Check if logging is to be turned on
-		l.flags.bLog = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SECURITY/Do Logging" ), 0, NULL );
-		l.flags.bLogSleeps = SACK_GetPrivateProfileInt( GetProgramName(), WIDE( "SECURITY/SQL Password/Do Logging (Sleeps)" ), 0, NULL );
-		lprintf( WIDE(" Inactivity Service has been started.") );
+		l.flags.bLog = SACK_GetPrivateProfileInt( GetProgramName(), "SECURITY/Do Logging", 0, NULL );
+		l.flags.bLogSleeps = SACK_GetPrivateProfileInt( GetProgramName(), "SECURITY/SQL Password/Do Logging (Sleeps)", 0, NULL );
+		lprintf( " Inactivity Service has been started." );
 
 		// Set up for pulling options
-		SACK_GetProfileString( WIDE("SECURITY/SQL Passwords"), WIDE( "password DSN" ), GetDefaultOptionDatabaseDSN(), l.option_dsn, sizeof( l.option_dsn ) );
+		SACK_GetProfileString( "SECURITY/SQL Passwords", "password DSN", GetDefaultOptionDatabaseDSN(), l.option_dsn, sizeof( l.option_dsn ) );
 		odbc = GetOptionODBC( l.option_dsn );
 
 		// Get Idle Time ( Minutes )
-		l.iIdleTime = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Timeouts"), WIDE("idle"), 30, NULL );
-		//lprintf( WIDE(" Idle Time: %d minutes"), l.iIdleTime );
+		l.iIdleTime = SACK_GetPrivateOptionInt( odbc, "SECURITY/Login/Timeouts", "idle", 30, NULL );
+		//lprintf( " Idle Time: %d minutes", l.iIdleTime );
 
 		// If option enabled
 		if( l.iIdleTime )
 		{
 			// Get Screen Saver Wait Time ( Seconds )
-			l.iScreenSaverWaitTime = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Timeouts"), WIDE("message time"), 10, NULL );
-			//lprintf( WIDE(" Screen Saver Wait Time: %d seconds"), l.iScreenSaverWaitTime );
+			l.iScreenSaverWaitTime = SACK_GetPrivateOptionInt( odbc, "SECURITY/Login/Timeouts", "message time", 10, NULL );
+			//lprintf( " Screen Saver Wait Time: %d seconds", l.iScreenSaverWaitTime );
 
 			// Get Process List
 			if ( !EnumProcesses( l.pidList1, sizeof( l.pidList1 ), &l.pidListLength1 ) )
-				lprintf( WIDE(" Getting Process List 1 Failed!") );
+				lprintf( " Getting Process List 1 Failed!" );
 
 			// Setup Timer Thread
 			l.last_event_time = timeGetTime();
@@ -334,7 +334,7 @@ ATEXIT( ExitLoginMon )
 	if( g.flags.bInitializeLogins )
 	{
 		// Log Service Stopped
-		lprintf( WIDE(" Inactivity Service has stopped.") );
+		lprintf( " Inactivity Service has stopped." );
 
 		// Unhook hooks
 		UnhookWindowsHookEx( l.gMouseHook );

@@ -244,11 +244,11 @@ print_error(//string, token, type)
 {
 #ifdef STDERR_OUTPUT
     if (type == ENDOFFILE)
-	fprintf(stderr, WIDE("%s(EOF): On or around line %d\n"), string, Line);
+	fprintf(stderr, "%s(EOF): On or around line %d\n", string, Line);
     else if (token)
-	fprintf(stderr, WIDE("%s(%s): On or around line %d\n"), string, token, Line);
+	fprintf(stderr, "%s(%s): On or around line %d\n", string, token, Line);
     else
-	fprintf(stderr, WIDE("%s: On or around line %d\n"), string, Line);
+	fprintf(stderr, "%s: On or around line %d\n", string, Line);
 #endif
 }
 
@@ -423,7 +423,7 @@ build_tree(//nodes)
     tp->next_peer = NULL;
     tp->child_list = NULL;
     tp->enums = NULL;
-    strcpy(tp->label, WIDE("iso"));
+    strcpy(tp->label, "iso");
     tp->subid = 1;
     tp->type = 0;
     build_translation_table();
@@ -443,12 +443,12 @@ build_tree(//nodes)
     }
     if (nodes_left){
 #ifdef STDERR_OUTPUT
-	fprintf(stderr, WIDE("The mib description doesn't seem to be consistent.\n"));
-	fprintf(stderr, WIDE("Some nodes couldn't be linked under the \")iso\" tree.\n");
-	fprintf(stderr, WIDE("these nodes are left:\n"));
+	fprintf(stderr, "The mib description doesn't seem to be consistent.\n");
+	fprintf(stderr, "Some nodes couldn't be linked under the \"iso\" tree.\n");
+	fprintf(stderr, "these nodes are left:\n");
 	for(bucket = 0; bucket < NHASHSIZE; bucket++){
 	    for(np = nbuckets[bucket]; np; np = np->next)
-	        fprintf(stderr, WIDE("%s ::= { %s %d } (%d)\n"), np->label, np->parent, np->subid,
+	        fprintf(stderr, "%s ::= { %s %d } (%d)\n", np->label, np->parent, np->subid,
 		        np->type);
 	}
 #endif
@@ -768,10 +768,10 @@ parse_objecttype(//fp, name)
 	case SEQUENCE:
 	    strcpy(syntax, token);
 	    if (nexttype == OF){
-			strcat(syntax, WIDE(" "));
+			strcat(syntax, " ");
 			strcat(syntax, nexttoken);
 			nexttype = get_token(fp, nexttoken);
-			strcat(syntax, WIDE(" "));
+			strcat(syntax, " ");
 			strcat(syntax, nexttoken);
 			nexttype = get_token(fp, nexttoken);
 	    }
@@ -1002,7 +1002,7 @@ parse(//fp, root)
 	    if (type == ENDOFFILE){
 		return root;
 	    }
-	    print_error(token, WIDE("is a reserved word"), type);
+	    print_error(token, "is a reserved word", type);
 	    return NULL;
 	}
 	strncpy(name, token, 64);
@@ -1078,13 +1078,13 @@ read_mib(//filename)
     struct node *nodes;
     struct snmp_mib_tree *tree;
 
-    fp = fopen(filename, WIDE("r"));
+    fp = fopen(filename, "r");
     if (fp == NULL)
 	return(NULL);
     nodes = parse(fp, NULL); // JAB: no previous tree (pass NULL)
     if (!nodes){
 #ifdef STDERR_OUTPUT
-	fprintf(stderr, WIDE("Mib table is bad.\n"));
+	fprintf(stderr, "Mib table is bad.\n");
 #endif
 	return(NULL);
     }

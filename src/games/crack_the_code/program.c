@@ -506,7 +506,7 @@ void XMLCALL start_tags( void *UserData
 	TEXTSTR p[2];
 	p[0] = NULL;
 	p[1] = NULL;
-	//lprintf( WIDE("begin a tag %s with..."), name );
+	//lprintf( "begin a tag %s with...", name );
 	if( StrCmp( name, "player" ) == 0 )
 	{
 		LOGICAL make_new;
@@ -586,7 +586,7 @@ void XMLCALL start_tags( void *UserData
 	while( SetP( p, atts ) )
 	{
 		
-		lprintf( WIDE("begin a attrib %s=%s with..."), p[0], p[1] );
+		lprintf( "begin a attrib %s=%s with...", p[0], p[1] );
 	}
 	*/
 }
@@ -773,7 +773,7 @@ void ParseXML( POINTER buffer, size_t size, int *first_swipe, int *today_swipes,
 {
 	POINTER xml_buffer;
 	struct xml_userdata userdata;
-	//lprintf( WIDE("Beginning parse frame...") );
+	//lprintf( "Beginning parse frame..." );
 	XML_memhandler.malloc_fcn = MyAllocate;
 	XML_memhandler.realloc_fcn = MyReallocate;
 	XML_memhandler.free_fcn = MyRelease;
@@ -811,7 +811,7 @@ void ParseXML( POINTER buffer, size_t size, int *first_swipe, int *today_swipes,
 	MemCpy( xml_buffer, buffer, size );
 	if( XML_ParseBuffer( userdata.xp, size, TRUE ) == XML_STATUS_ERROR )
 	{
-		lprintf( WIDE( "Error in XML parse %d  at line %")_size_f WIDE("(%")_size_f WIDE(")" ), XML_GetErrorCode( userdata.xp ),XML_GetCurrentLineNumber( userdata.xp ), XML_GetCurrentColumnNumber( userdata.xp ) );
+		lprintf( "Error in XML parse %d  at line %"_size_f "(%"_size_f ")", XML_GetErrorCode( userdata.xp ),XML_GetCurrentLineNumber( userdata.xp ), XML_GetCurrentColumnNumber( userdata.xp ) );
 	}
 	XML_ParserFree( userdata.xp );
 	userdata.xp = 0;
@@ -871,7 +871,7 @@ void ParseXML( POINTER buffer, size_t size, int *first_swipe, int *today_swipes,
 			SQLEndQuery( ffl.user_tracking );
 		}
 	}
-	//lprintf( WIDE("Parse done...") );
+	//lprintf( "Parse done..." );
 	//return l.frame;
 }
 
@@ -900,7 +900,7 @@ static void ReadXML( int *first, int *today, LOGICAL bQuery )
 			buffer = Allocate( zz );
 			sack_fread( buffer, 1, zz, file_read );
 			sack_fclose( file_read );
-			//lprintf( WIDE( "loaded font blob %s %d %p" ), file, zz, buffer );
+			//lprintf( "loaded font blob %s %d %p", file, zz, buffer );
 		}
 	}
 

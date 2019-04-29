@@ -10,7 +10,7 @@
 
 #define KEYPAD_ISP_SOURCE
 // KEYPAD_KEYS
-// SYMNAME( KEYPAD_KEYS, WIDE("Keypad Control") )
+// SYMNAME( KEYPAD_KEYS, "Keypad Control" )
 
 enum {
 	LISTBOX_KEYPAD_TYPE = 4000,
@@ -40,31 +40,31 @@ enum {
 
 PRELOAD( RegisterKeypadIDs )
 {
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), LISTBOX_KEYPAD_TYPE, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), BTN_EDIT_VISUAL, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), COLOR_NUMKEYS, WIDE( "Color Well" ) );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), COLOR_ENTER, WIDE( "Color Well" ) );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), COLOR_CANCEL, WIDE( "Color Well" ) );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), COLOR_NUMKEYS_TEXT, WIDE( "Color Well" ) );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), COLOR_ENTER_TEXT, WIDE( "Color Well" ) );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), COLOR_CANCEL_TEXT, WIDE( "Color Well" ) );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), COLOR_KEYPAD_BACKGROUND, WIDE( "Color Well" ) );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), COLOR_DISPLAY_BACKGROUND, WIDE( "Color Well" ) );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), COLOR_DISPLAY_TEXT, WIDE( "Color Well" ) );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), EDIT_WIDTH, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), EDIT_HEIGHT, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), EDIT_FORMAT, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Keypad", LISTBOX_KEYPAD_TYPE, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/Keypad", BTN_EDIT_VISUAL, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Keypad", COLOR_NUMKEYS, "Color Well" );
+	EasyRegisterResource( "InterShell/Keypad", COLOR_ENTER, "Color Well" );
+	EasyRegisterResource( "InterShell/Keypad", COLOR_CANCEL, "Color Well" );
+	EasyRegisterResource( "InterShell/Keypad", COLOR_NUMKEYS_TEXT, "Color Well" );
+	EasyRegisterResource( "InterShell/Keypad", COLOR_ENTER_TEXT, "Color Well" );
+	EasyRegisterResource( "InterShell/Keypad", COLOR_CANCEL_TEXT, "Color Well" );
+	EasyRegisterResource( "InterShell/Keypad", COLOR_KEYPAD_BACKGROUND, "Color Well" );
+	EasyRegisterResource( "InterShell/Keypad", COLOR_DISPLAY_BACKGROUND, "Color Well" );
+	EasyRegisterResource( "InterShell/Keypad", COLOR_DISPLAY_TEXT, "Color Well" );
+	EasyRegisterResource( "InterShell/Keypad", EDIT_WIDTH, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Keypad", EDIT_HEIGHT, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Keypad", EDIT_FORMAT, EDIT_FIELD_NAME );
 
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), RADIO_STYLE_CORRECT_ENTER, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), RADIO_STYLE_CANCEL_ENTER,  RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), RADIO_STYLE_YES_NO,  RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), RADIO_STYLE_DOUBLE0_CLEAR, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), RADIO_STYLE_CLEAR_ENTER, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Keypad", RADIO_STYLE_CORRECT_ENTER, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Keypad", RADIO_STYLE_CANCEL_ENTER,  RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Keypad", RADIO_STYLE_YES_NO,  RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Keypad", RADIO_STYLE_DOUBLE0_CLEAR, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Keypad", RADIO_STYLE_CLEAR_ENTER, RADIO_BUTTON_NAME );
 
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_INVERT,			  RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_PASSWORD,			 RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_ALIGN_CENTER,			  RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/Keypad" ), CHECKBOX_ALIGN_LEFT,			  RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Keypad", CHECKBOX_INVERT,			  RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Keypad", CHECKBOX_PASSWORD,			 RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Keypad", CHECKBOX_ALIGN_CENTER,			  RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Keypad", CHECKBOX_ALIGN_LEFT,			  RADIO_BUTTON_NAME );
 
 }
 
@@ -117,7 +117,7 @@ void CPROC InvokeKeypadEnterEvent( uintptr_t psv, PSI_CONTROL pcKeypad )
 			TEXTCHAR buffer[256];
 			if( StrCmp( name, keypad->keypad_type ) == 0 )
 			{
-				snprintf( buffer, sizeof( buffer ), TASK_PREFIX WIDE( "/common/%s/keypad enter" ), name );
+				snprintf( buffer, sizeof( buffer ), TASK_PREFIX "/common/%s/keypad enter", name );
 
 				GETALL_REGISTERED( buffer, void, (PSI_CONTROL) )
 				{ /* creates a magic f variable :( */
@@ -132,7 +132,7 @@ void CPROC InvokeKeypadEnterEvent( uintptr_t psv, PSI_CONTROL pcKeypad )
 	else
 	{
 		LOGICAL did_one = 0;
-		GETALL_REGISTERED( TASK_PREFIX WIDE( "/common/keypad enter" ), void,(PSI_CONTROL) )
+		GETALL_REGISTERED( TASK_PREFIX "/common/keypad enter", void,(PSI_CONTROL) )
 		{  /* creates a magic f variable :( */
 			if(f) { 
 				did_one = 1;
@@ -160,7 +160,7 @@ void CPROC InvokeKeypadCancelEvent( uintptr_t psv, PSI_CONTROL pcKeypad )
 			TEXTCHAR buffer[256];
 			if( StrCmp( name, keypad->keypad_type ) == 0 )
 			{
-				snprintf( buffer, sizeof( buffer ), TASK_PREFIX WIDE( "/common/%s/keypad cancel" ), name );
+				snprintf( buffer, sizeof( buffer ), TASK_PREFIX "/common/%s/keypad cancel", name );
 
 				GETALL_REGISTERED( buffer, void, (PSI_CONTROL) )
 				{ /* creates a magic f variable :( */
@@ -174,7 +174,7 @@ void CPROC InvokeKeypadCancelEvent( uintptr_t psv, PSI_CONTROL pcKeypad )
 
 	else
 	{
-		GETALL_REGISTERED( TASK_PREFIX WIDE( "/common/keypad cancel" ), void,(PSI_CONTROL) )
+		GETALL_REGISTERED( TASK_PREFIX "/common/keypad cancel", void,(PSI_CONTROL) )
 		{  /* creates a magic f variable :( */
 			if(f) f(pcKeypad);
 		}
@@ -251,7 +251,7 @@ PUBLIC( void, GetKeypadsOfType )( PLIST *ppResultList, CTEXTSTR type )
 
 static void CPROC EditVisualProperties( uintptr_t psvKeypad, PSI_CONTROL parent )
 {
-	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "ConfigureKeypadVisual.isFrame" ) );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent, "ConfigureKeypadVisual.isFrame" );
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psvKeypad;
 
 	if( frame )
@@ -421,10 +421,10 @@ static void CPROC EditVisualProperties( uintptr_t psvKeypad, PSI_CONTROL parent 
 
 }
 
-static uintptr_t OnEditControl( WIDE( "Keypad 2" ) )( uintptr_t psv, PSI_CONTROL pc_parent )
+static uintptr_t OnEditControl( "Keypad 2" )( uintptr_t psv, PSI_CONTROL pc_parent )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
-	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureKeypad.isFrame") );
+	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, "ConfigureKeypad.isFrame" );
 
 	if( frame )
 	{
@@ -440,7 +440,7 @@ static uintptr_t OnEditControl( WIDE( "Keypad 2" ) )( uintptr_t psv, PSI_CONTROL
 				INDEX idx;
 				CTEXTSTR name;
 				PLISTITEM pli;
-				pli = AddListItem( list, WIDE("- None") );
+				pli = AddListItem( list, "- None" );
 
 				LIST_FORALL( l.keypad_types, idx, CTEXTSTR, name )
 				{
@@ -494,7 +494,7 @@ static uintptr_t OnEditControl( WIDE( "Keypad 2" ) )( uintptr_t psv, PSI_CONTROL
 	return psv;
 }
 
-static uintptr_t OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "Keypad 2" )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PPAGE_KEYPAD page_keypad = NULL;
 	{
@@ -535,7 +535,7 @@ static uintptr_t OnCreateControl( WIDE( "Keypad 2" ) )( PSI_CONTROL frame, int32
 	return (uintptr_t)page_keypad;
 }
 
-static int OnChangePage( WIDE( "Keypad 2" ) )( PSI_CONTROL pc_canvas )
+static int OnChangePage( "Keypad 2" )( PSI_CONTROL pc_canvas )
 {
 	PPAGE_KEYPAD keypad;
 	INDEX idx;
@@ -546,17 +546,17 @@ static int OnChangePage( WIDE( "Keypad 2" ) )( PSI_CONTROL pc_canvas )
 	return TRUE;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "Keypad 2" ) )(uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Keypad 2" )(uintptr_t psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	return keypad->keypad;
 }
 
 
-static void OnSaveControl( WIDE( "Keypad 2" ) )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "Keypad 2" )( FILE *file, uintptr_t psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
-	sack_fprintf( file, WIDE( "%sKeypad type='%s'\n" ), InterShell_GetSaveIndent(), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
+	sack_fprintf( file, "%sKeypad type='%s'\n", InterShell_GetSaveIndent(), keypad->keypad_type?keypad->keypad_type:"." );
 	KeypadWriteConfig( file, InterShell_GetSaveIndent(), keypad->keypad );
 	//sack_fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
 }
@@ -566,7 +566,7 @@ static uintptr_t CPROC MySetKeypadType( uintptr_t psv, arg_list args )
 	PARAM( args, CTEXTSTR, name );
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 
-	if( StrCmp( name, WIDE( "." ) ) )
+	if( StrCmp( name, "." ) )
 	{
 		keypad->keypad_type = StrDup( name );
 		KeypadSetAccumulator( keypad->keypad, name );
@@ -577,18 +577,18 @@ static uintptr_t CPROC MySetKeypadType( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE( "Keypad 2" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Keypad 2" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE( "Keypad type='%m'" ), MySetKeypadType );
+	AddConfigurationMethod( pch, "Keypad type='%m'", MySetKeypadType );
 	KeypadSetupConfig( pch, &l.psv_read_keypad );
 }
 
 //-------------------------------------------------------------------------------------------
 
-static uintptr_t OnEditControl( WIDE( "Keyboard 2" ) )( uintptr_t psv, PSI_CONTROL pc_parent )
+static uintptr_t OnEditControl( "Keyboard 2" )( uintptr_t psv, PSI_CONTROL pc_parent )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
-	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureKeypad.isFrame") );
+	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, "ConfigureKeypad.isFrame" );
 
 	if( frame )
 	{
@@ -604,7 +604,7 @@ static uintptr_t OnEditControl( WIDE( "Keyboard 2" ) )( uintptr_t psv, PSI_CONTR
 				INDEX idx;
 				CTEXTSTR name;
 				PLISTITEM pli;
-				pli = AddListItem( list, WIDE("- None") );
+				pli = AddListItem( list, "- None" );
 
 				LIST_FORALL( l.keypad_types, idx, CTEXTSTR, name )
 				{
@@ -659,7 +659,7 @@ static uintptr_t OnEditControl( WIDE( "Keyboard 2" ) )( uintptr_t psv, PSI_CONTR
 	return psv;
 }
 
-static uintptr_t OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "Keyboard 2" )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PPAGE_KEYPAD page_keypad = NULL;
 	{
@@ -706,35 +706,35 @@ static uintptr_t OnCreateControl( WIDE( "Keyboard 2" ) )( PSI_CONTROL frame, int
 	return (uintptr_t)page_keypad;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "Keyboard 2" ) )(uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Keyboard 2" )(uintptr_t psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
 	return keypad->keypad;
 }
 
 
-static void OnSaveControl( WIDE( "Keyboard 2" ) )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "Keyboard 2" )( FILE *file, uintptr_t psv )
 {
 	PPAGE_KEYPAD keypad = (PPAGE_KEYPAD)psv;
-	sack_fprintf( file, WIDE( "Keypad type='%s'\n" ), keypad->keypad_type?keypad->keypad_type:WIDE(".") );
+	sack_fprintf( file, "Keypad type='%s'\n", keypad->keypad_type?keypad->keypad_type:"." );
 	KeypadWriteConfig( file, InterShell_GetSaveIndent(), keypad->keypad );
 	//sack_fprintf( file, "Keypad Option Go-Clear=%s", GetKeypadGoClear( keypad->keypad ) );
 }
 
-static void OnLoadControl( WIDE( "Keyboard 2" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Keyboard 2" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE( "Keypad type='%m'" ), MySetKeypadType );
+	AddConfigurationMethod( pch, "Keypad type='%m'", MySetKeypadType );
 	KeypadSetupConfig( pch, &l.psv_read_keypad );
 }
 
 //-------------------------------------------------------------------------------------------
 
-static void OnKeyPressEvent( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv )
+static void OnKeyPressEvent( "Keypad Hotkey 2" )( uintptr_t psv )
 {
 	// Because of the way this has to be created, this event has a funny
 	// rule about its parameters...
 	PHOTKEY hotkey = (PHOTKEY)(psv);
-	//BannerMessage( WIDE("HAH!") );
+	//BannerMessage( "HAH!" );
 	if( hotkey->flags.bNegative )
 	{
 		PSI_CONTROL keypad = GetKeypadOfType( hotkey->keypad_type );
@@ -747,13 +747,13 @@ static void OnKeyPressEvent( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv )
 	}
 }
 
-static uintptr_t OnCreateMenuButton( WIDE( "Keypad Hotkey 2" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Keypad Hotkey 2" )( PMENU_BUTTON button )
 {
 	PHOTKEY hotkey = New( HOTKEY );
 	MemSet( hotkey, 0, sizeof( *hotkey ) );
 	hotkey->button = button;
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "10" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "10" );
 	hotkey->value = 10;
 	return (uintptr_t)hotkey;
 }
@@ -771,11 +771,11 @@ static void CPROC PickHotkeyFont( uintptr_t psv, PSI_CONTROL pc )
 }
 
 
-static uintptr_t OnEditControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv, PSI_CONTROL parent_frame )
+static uintptr_t OnEditControl( "Keypad Hotkey 2" )( uintptr_t psv, PSI_CONTROL parent_frame )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 	int okay = 0, done = 0;
-	PSI_CONTROL frame = LoadXMLFrameOver( parent_frame, WIDE( "hotkey_change_property.isframe" ) );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent_frame, "hotkey_change_property.isframe" );
 
 	if( frame )
 	{
@@ -784,13 +784,13 @@ static uintptr_t OnEditControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv, PSI_
 
 		if( hotkey->flags.bNegative )
 		{
-			SetControlText( GetControl( frame, TXT_CONTROL_TEXT ), WIDE( "-" ) );
+			SetControlText( GetControl( frame, TXT_CONTROL_TEXT ), "-" );
 		}
 
 		else
 		{
 			TEXTCHAR value[32];
-			snprintf( value, sizeof( value ), WIDE( "%" ) _64fs, hotkey->value );
+			snprintf( value, sizeof( value ), "%" _64fs, hotkey->value );
 			SetControlText( GetControl( frame, TXT_CONTROL_TEXT ), value );
 		}
 
@@ -808,13 +808,13 @@ static uintptr_t OnEditControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv, PSI_
 			hotkey->font = hotkey->new_font;
 			InterShell_SetButtonFont( hotkey->button, hotkey->font );
 
-			if( strcmp( buffer, WIDE( "-" ) ) == 0 )
+			if( strcmp( buffer, "-" ) == 0 )
 			{
 				hotkey->flags.bNegative = TRUE;
 			}
 			
-			else if( !sscanf( buffer, WIDE( "%" ) _64fs, &hotkey->value ) )
-				Banner2Message(WIDE( "It's No Good!" ) );
+			else if( !sscanf( buffer, "%" _64fs, &hotkey->value ) )
+				Banner2Message("It's No Good!" );
 
 			UpdateButton( hotkey->button );
 		}
@@ -825,7 +825,7 @@ static uintptr_t OnEditControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv, PSI_
 	return psv;
 }
 
-static void OnSaveControl( WIDE( "Keypad Hotkey 2" ) )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "Keypad Hotkey 2" )( FILE *file, uintptr_t psv )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 
@@ -833,10 +833,10 @@ static void OnSaveControl( WIDE( "Keypad Hotkey 2" ) )( FILE *file, uintptr_t ps
 	{
 
 		if( hotkey->flags.bNegative )
-			sack_fprintf( file, WIDE( "%shotkey is negative sign\n" ), InterShell_GetSaveIndent() );
+			sack_fprintf( file, "%shotkey is negative sign\n", InterShell_GetSaveIndent() );
 		else
-			sack_fprintf( file, WIDE( "%shotkey value=%Ld\n" ), InterShell_GetSaveIndent(), hotkey->value );
-		sack_fprintf( file, WIDE( "%shotkey target keypad type=%s\n"), InterShell_GetSaveIndent(), hotkey->keypad_type );
+			sack_fprintf( file, "%shotkey value=%Ld\n", InterShell_GetSaveIndent(), hotkey->value );
+		sack_fprintf( file, "%shotkey target keypad type=%s\n", InterShell_GetSaveIndent(), hotkey->keypad_type );
 	}
 }
 
@@ -879,7 +879,7 @@ static uintptr_t CPROC SetHotkeyTarget( uintptr_t psv, arg_list args )
 		Deallocate( TEXTSTR, hotkey->keypad_type );
 		hotkey->keypad_type = NULL;
 	}
-	if( StrCmp( name, WIDE( "." ) ) )
+	if( StrCmp( name, "." ) )
 	{
 		hotkey->keypad_type = StrDup( name );
 	}
@@ -887,16 +887,16 @@ static uintptr_t CPROC SetHotkeyTarget( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE( "Keypad Hotkey 2" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Keypad Hotkey 2" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE( "hotkey font=%m" ), SetHotkeyFontByName );
-	AddConfigurationMethod( pch, WIDE( "hotkey value=%i" ), SetHotkeyValue );
-	AddConfigurationMethod( pch, WIDE( "hotkey is negative sign" ), SetHotkeyNegative );
-	AddConfigurationMethod( pch, WIDE( "hotkey target keypad type=%m" ), SetHotkeyTarget );
+	AddConfigurationMethod( pch, "hotkey font=%m", SetHotkeyFontByName );
+	AddConfigurationMethod( pch, "hotkey value=%i", SetHotkeyValue );
+	AddConfigurationMethod( pch, "hotkey is negative sign", SetHotkeyNegative );
+	AddConfigurationMethod( pch, "hotkey target keypad type=%m", SetHotkeyTarget );
 }
 
 
-static void OnFixupControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv )
+static void OnFixupControl( "Keypad Hotkey 2" )( uintptr_t psv )
 {
 	PHOTKEY hotkey = (PHOTKEY)psv;
 	TEXTCHAR buffer[256];
@@ -905,11 +905,11 @@ static void OnFixupControl( WIDE( "Keypad Hotkey 2" ) )( uintptr_t psv )
 	InterShell_SetButtonFont( hotkey->button, hotkey->font );
 
 	if( hotkey->flags.bNegative )
-		InterShell_SetButtonText( hotkey->button, WIDE( "-" ) );
+		InterShell_SetButtonText( hotkey->button, "-" );
 
 	else
 	{
-		len = snprintf( buffer, sizeof(buffer), WIDE( "%" ) _64fs, hotkey->value );
+		len = snprintf( buffer, sizeof(buffer), "%" _64fs, hotkey->value );
 		buffer[len+1] = 0; // double null terminate
 		InterShell_SetButtonText( hotkey->button, buffer );
 	}

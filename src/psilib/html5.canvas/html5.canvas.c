@@ -37,7 +37,7 @@ static void InvokeControlWrite( HTML5Canvas canvas, PSI_CONTROL pc )
 {
 	void (CPROC *OnHandler)(HTML5Canvas,PSI_CONTROL);
 	PCLASSROOT data = NULL;
-	PCLASSROOT event_root = GetClassRootEx( pc->class_root, WIDE( "draw_to_canvas" ) );
+	PCLASSROOT event_root = GetClassRootEx( pc->class_root, "draw_to_canvas" );
 	CTEXTSTR name;
 	for( name = GetFirstRegisteredName( event_root, &data );
 		 name;
@@ -76,7 +76,7 @@ LOGICAL WriteCanvas( HTML5Canvas canvas, CTEXTSTR filename )
          next = (PSI_CONTROL)PopLink( &backtrace );
 	}
 	{
-		FILE *output = sack_fopen( 0, filename, WIDE("wt") );
+		FILE *output = sack_fopen( 0, filename, "wt" );
 		EmitCanvas( canvas, output );
 		fclose( output );
 	}

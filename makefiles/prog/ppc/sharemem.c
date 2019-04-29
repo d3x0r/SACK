@@ -45,16 +45,16 @@ int bLogCritical;
 #ifdef _DEBUG
 #define ODSEx(s,pFile,nLine) ( Log6( DBG_FILELINEFMT "[%03lX:%03lX] [%ld]: %s", pFile, nLine, GetCurrentProcessId(), GetCurrentThreadId(), GetLastError(), s ) )
 #else
-#define ODSEx(s,pFile,nLine) ( Log4( WIDE("[%03lX:%03lX] [%ld]: %s"),GetCurrentProcessId(), GetCurrentThreadId(), GetLastError(), s ) )
+#define ODSEx(s,pFile,nLine) ( Log4( "[%03lX:%03lX] [%ld]: %s",GetCurrentProcessId(), GetCurrentThreadId(), GetLastError(), s ) )
 #endif
 #define ODS(s) ODSEx(s,__FILE__, __LINE__ )
 */
 #ifdef _DEBUG
 #define ODSEx(s,pFile,nLine) //Log6( DBG_FILELINEFMT "[%03lX:%03lX] [%ld]: %s", pFile, nLine ,GetCurrentProcessId(), GetCurrentThreadId(), GetLastError(), s )
 #else
-#define ODSEx(s,pFile,nLine) //Log4( WIDE("[%03lX:%03lX] [%ld]: %s"),GetCurrentProcessId(), GetCurrentThreadId(), GetLastError(), s )
+#define ODSEx(s,pFile,nLine) //Log4( "[%03lX:%03lX] [%ld]: %s",GetCurrentProcessId(), GetCurrentThreadId(), GetLastError(), s )
 #endif
-#define ODS(s)   //Log4( WIDE("[%03lX:%03lX] [%ld]: %s"), GetCurrentProcessId(), GetCurrentThreadId(), GetLastError(), s )
+#define ODS(s)   //Log4( "[%03lX:%03lX] [%ld]: %s", GetCurrentProcessId(), GetCurrentThreadId(), GetLastError(), s )
 
 
 #define Log1(a,b)  //fprintf( stderr, a, b )
@@ -62,7 +62,7 @@ int bLogCritical;
 #define Log3(a,b,c,d) //fprintf( stderr, a, b,c,d )
 #define Log4(a,b,c,d,e) //fprintf( stderr, a, b,c,d,e )
 #define Log5(a,b,c,d,e,f) //fprintf( stderr, a, b,c,d,e,f )
-#define Log(a) //fprintf( stderr, WIDE("%s"), a )
+#define Log(a) //fprintf( stderr, "%s", a )
 
 //MEM_PROC( void DebugDumpMemEx( LOGICAL bVerbose );
 
@@ -177,7 +177,7 @@ LOGICAL EnterCriticalSecNoWaitEx( PCRITICALSECTION pcs DBG_PASS )
    dwCurProc = (GetCurrentProcessId() << 16) | (GetCurrentThreadId() & 0xffff);
 #ifdef _DEBUG
    if( bLogCritical > 1 )
-       Log5( WIDE("%s(%ld) [%08lx:%08lx] Attempt enter critical Section %08lx"), pFile, nLine
+       Log5( "%s(%ld) [%08lx:%08lx] Attempt enter critical Section %08lx", pFile, nLine
             , GetCurrentProcessId(), GetCurrentThreadId()
             , pcs->dwLocks );
 #endif
@@ -206,7 +206,7 @@ LOGICAL EnterCriticalSecNoWaitEx( PCRITICALSECTION pcs DBG_PASS )
 			 if( bLogCritical )
 			 {
            char msg[256];
-           sprintf( msg, WIDE("Waiting on critical section owned by %s(%d)."), (pcs->pFile)?(pcs->pFile):"Unknown", pcs->nLine );
+           sprintf( msg, "Waiting on critical section owned by %s(%d).", (pcs->pFile)?(pcs->pFile):"Unknown", pcs->nLine );
 			  ODSEx( msg, pFile, nLine );
 			 }
 #endif
@@ -228,11 +228,11 @@ LOGICAL EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 LOGICAL LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
    unsigned long dwCurProc;
-   //Log( WIDE("Leave critical Sec - begin ") );
+   //Log( "Leave critical Sec - begin " );
 #ifdef _DEBUG
 	if( bLogCritical > 1 )
 	{
-		Log5( WIDE("%s(%ld) [%08lx:%08lx] Leave critical Section(1) %08lx"), pFile, nLine
+		Log5( "%s(%ld) [%08lx:%08lx] Leave critical Section(1) %08lx", pFile, nLine
 				, GetCurrentProcessId(), GetCurrentThreadId()  
 				, pcs->dwLocks ); 
 	}
@@ -245,9 +245,9 @@ LOGICAL LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
    if( !pcs->dwLocks )
    {
 #ifdef _DEBUG
-      ODSEx( WIDE("Leaving a blank critical section"), pFile, nLine );
+      ODSEx( "Leaving a blank critical section", pFile, nLine );
 #else
-      ODS( WIDE("Leaving a blank critical section") );
+      ODS( "Leaving a blank critical section" );
 #endif
       //while( 1 );
 		pcs->dwUpdating = 0;
@@ -266,7 +266,7 @@ LOGICAL LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef _DEBUG
 			 if( bLogCritical )
 			 {
-				 ODSEx( WIDE("Releasing critical section being waited for."), pFile, nLine );
+				 ODSEx( "Releasing critical section being waited for.", pFile, nLine );
 			 }
 #endif
           if( !( pcs->dwLocks & ~(SECTION_LOGGED_WAIT) ) )
@@ -287,14 +287,14 @@ LOGICAL LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #ifdef _DEBUG
 		{
 			char msg[256];
-			sprintf( msg, WIDE("Sorry - you can't leave a section owned by %08lx %08lx %s(%d)...")
+			sprintf( msg, "Sorry - you can't leave a section owned by %08lx %08lx %s(%d)..."
 							, pcs->dwThread
 							, pcs->dwLocks
 							, (pcs->pFile)?(pcs->pFile):"Unknown", pcs->nLine );
 			ODSEx( msg, pFile, nLine );
 		}
 #else
-      ODS( WIDE("Sorry - you can't leave a section you don't own...") );
+      ODS( "Sorry - you can't leave a section you don't own..." );
 #endif
 		pcs->dwUpdating = 0;
       return FALSE;
@@ -384,7 +384,7 @@ void TRACK_HOLD( void *pt, char *pFile, int nLine )
    }
    if( pos == max )
    {
-      ODS( WIDE("Failed to find allocated reference...") );
+      ODS( "Failed to find allocated reference..." );
       DebugBreak();
    }
    else
@@ -403,7 +403,7 @@ void TRACK_DEALLOC( void *pt, char *pFile, int nLine )
    }
    if( pos == max )
    {
-      ODS( WIDE("Failed to find allocation reference...") );
+      ODS( "Failed to find allocation reference..." );
       DebugBreak();
    }
    else
@@ -419,7 +419,7 @@ void TRACK_DEALLOC( void *pt, char *pFile, int nLine )
       }
       else
       {
-         ODS( WIDE("This block was already deallocated...") ); // check block for prior releaser...
+         ODS( "This block was already deallocated..." ); // check block for prior releaser...
          DebugBreak();
       }
    }
@@ -435,7 +435,7 @@ void TRACK_DUMP( void )
           pDebugLog->DebugLog[n].dwTime >= lastdumptime)
       {
          TEXTCHAR msg[256];
-         sprintf( msg, WIDE("%9d[%08x]: (%08x)%d"),
+         sprintf( msg, "%9d[%08x]: (%08x)%d",
                      pDebugLog->DebugLog[n].dwTime,
                      pDebugLog->DebugLog[n].dwID,
                      pDebugLog->DebugLog[n].p,
@@ -531,7 +531,7 @@ void InitSharedMemory( void )
 #else
         pagesize = getpagesize();
 #endif
-        Log2( WIDE("CHUNK: %d  MEM:%d"), CHUNK_SIZE, MEM_SIZE );
+        Log2( "CHUNK: %d  MEM:%d", CHUNK_SIZE, MEM_SIZE );
         bInit = TRUE;  // onload was definatly a zero.
         {
             uint32_t dwSize = MAX_PER_BLOCK * sizeof( SPACE );
@@ -539,13 +539,13 @@ void InitSharedMemory( void )
             if( pSpacePool )
             {
                 MemSet( pSpacePool, 0, dwSize );
-                Log1( WIDE("Allocated Space pool %lu"), dwSize );
+                Log1( "Allocated Space pool %lu", dwSize );
             }
         }
     }
     else
     {
-        ODS( WIDE("already initialized?") );
+        ODS( "already initialized?" );
      }
 }
 
@@ -573,7 +573,7 @@ static PSPACE AddSpace( PSPACE pSpacePool, HANDLE hFile, HANDLE hMem, POINTER pM
    int i;
    if( !pSpacePool || InAdding )
    {
-       Log2( WIDE("No space pool(%p) or InAdding(%d)"), pSpacePool, InAdding );
+       Log2( "No space pool(%p) or InAdding(%d)", pSpacePool, InAdding );
        return NULL;
    }
    InAdding = 1;
@@ -610,7 +610,7 @@ Retry:
       MemSet( ps, 0, dwSize );
       goto Retry;
    }
-   //Log7( WIDE("Managing space (s)%p (pm)%p (hf)%08lx (hm)%08lx (sz)%ld %08lx-%08lx")
+   //Log7( "Managing space (s)%p (pm)%p (hf)%08lx (hm)%08lx (sz)%ld %08lx-%08lx"
    //				, ps, pMem, (uint32_t)hFile, (uint32_t)hMem, dwSize
    //            , (uint32_t)pMem, ((uint32_t)pMem + dwSize)
    //				);
@@ -626,7 +626,7 @@ Retry:
       AddAfter = pFirst;
    	while( AddAfter && AddAfter->pNext )
 			AddAfter = AddAfter->pNext;
-   	//Log2( WIDE("Linked into space...%p after %p "), ps, AddAfter );
+   	//Log2( "Linked into space...%p after %p ", ps, AddAfter );
 		if( AddAfter )
 		{
    	   ps->me = &AddAfter->pNext;
@@ -650,13 +650,13 @@ void DumpSpaces( void )
 	PSPACE ps = pSpacePool;
 	while( ps )
 	{
-		Log3( WIDE("Space: %p mem: %p-%p"), ps, ps->pMem, (uint8_t*)ps->pMem + ps->dwSmallSize );
+		Log3( "Space: %p mem: %p-%p", ps, ps->pMem, (uint8_t*)ps->pMem + ps->dwSmallSize );
 		if( ps->expansion )
 		{
          PSPACE pe = ps->expansion;
 			while( pe )
 			{
-				Log4( WIDE("expanded space: %p mem: %p-%p(%d)")
+				Log4( "expanded space: %p mem: %p-%p(%d)"
 					 , pe
 					 , pe->pMem, (uint8_t*)pe->pMem + pe->dwSmallSize
 					 , pe->dwSmallSize );
@@ -685,7 +685,7 @@ PSPACE FindSpace( POINTER pMem )
 			if( pes->pMem == (POINTER)1 )
 			{
 				// space block continuation expansion....
-				Log( WIDE("UNTESTED SPACE EXTENSION!") );
+				Log( "UNTESTED SPACE EXTENSION!" );
 				ps = ps->expansion;
 				continue;
 			}
@@ -706,7 +706,7 @@ static void DoCloseSpace( PSPACE ps )
 {
    if( ps )
    {
-       //Log( WIDE("Closing a space...") );
+       //Log( "Closing a space..." );
 #ifdef _WIN32
       UnmapViewOfFile( ps->pMem );
       CloseHandle( ps->hMem );
@@ -725,7 +725,7 @@ static void DoCloseSpace( PSPACE ps )
       }
       else
       {
-          Log( WIDE("UNHANDLED! Unlink space which is an expansion!") );
+          Log( "UNHANDLED! Unlink space which is an expansion!" );
       }
       MemSet( ps, 0, sizeof( SPACE ) );
    }
@@ -767,7 +767,7 @@ MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t addres
 
    if( !bInit )
    {
-       //ODS( WIDE("Doing Init") );
+       //ODS( "Doing Init" );
        InitSharedMemory();
    }
 #ifdef __LINUX__
@@ -803,7 +803,7 @@ MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t addres
 					}
 					if( fd == -1 )
 					{
-						Log2( WIDE("Sorry - failed to open: %d %s"), errno, pWhere);
+						Log2( "Sorry - failed to open: %d %s", errno, pWhere);
                    return NULL;
                }
            }
@@ -842,7 +842,7 @@ MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t addres
        }
        if( pMem )
        {
-           //ODS( WIDE("Adding a space") );
+           //ODS( "Adding a space" );
            AddSpace( pSpacePool, (HANDLE)fd, 0, pMem, *dwSize, TRUE );
        }
    }
@@ -855,7 +855,7 @@ MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t addres
       hMem = CreateFileMapping( INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, *dwSize, NULL );
       if( !hMem )
       {
-      	ODS( WIDE("Failed to allocate pagefile memory?!") );
+      	ODS( "Failed to allocate pagefile memory?!" );
       }
    }
    else
@@ -889,7 +889,7 @@ MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t addres
                	         , pWhat );
 			if( hMem )
 				goto isokay;
-         ODS( WIDE("Sorry - Nothing good can happen to day with a filename like that..."));
+         ODS( "Sorry - Nothing good can happen to day with a filename like that...");
          return NULL;
       }
 
@@ -936,7 +936,7 @@ MEM_PROC( POINTER, OpenSpaceEx )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t addres
       if( !hMem )
       {
 	      TEXTCHAR byDebug[256];
-   	   sprintf( byDebug, WIDE("Create of mapping failed on object specified? %p"), hFile );
+   	   sprintf( byDebug, "Create of mapping failed on object specified? %p", hFile );
       	ODS( byDebug );
       	*dwSize = 1;
          CloseHandle( hFile );
@@ -952,7 +952,7 @@ isokay:
 #endif
    if( !pMem )
    {
-   	Log1( WIDE("Create view of file for memory access failed at %p"), (POINTER)address );
+   	Log1( "Create view of file for memory access failed at %p", (POINTER)address );
 #ifdef _win32
       CloseHandle( hMem );
       if( hFile != INVALID_HANDLE_VALUE )
@@ -1018,12 +1018,12 @@ PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t* dwSize )
     {
         TEXTCHAR byDebug[256];
         // did reference BASE_MEMORY...
-        sprintf( byDebug, WIDE("Create view of file for memory access failed at ????") );
+        sprintf( byDebug, "Create view of file for memory access failed at ????" );
         ODS( byDebug );
         CloseSpace( (POINTER)pMem );
         return NULL;
     }
-    Log( WIDE("Go to init the heap...") );
+    Log( "Go to init the heap..." );
     InitHeap( pMem, *dwSize );
     return pMem;
 }
@@ -1076,7 +1076,7 @@ static PMEM GrabMemEx( PMEM pMem DBG_PASS )
          if( !pMem )
          {
             bMemInstanced = FALSE;
-            ODS( WIDE("Failed to allocate memory - assuming fatailty at Allocation service level.") );
+            ODS( "Failed to allocate memory - assuming fatailty at Allocation service level." );
             return NULL;
          }
 		}
@@ -1121,14 +1121,14 @@ search_for_free_memory:
 	for( pc = NULL, pMemSpace = FindSpace( pMem ); !pc && pMemSpace; pMemSpace = pMemSpace->expansion )
 	{
       // pMem is guaranteed not to change until Dropped
-      //Log1( WIDE("Scan Block: %08x"), pMemSpace );
+      //Log1( "Scan Block: %08x", pMemSpace );
       //DropMem( pCurMem );
 	   pCurMem = (PMEM)pMemSpace->pMem;
 	   GrabMem( pCurMem );
       pc = pCurMem->pFirstFree; // current pChunk(pc)
 	   while( pc )
    	{
-	   	//Log2( WIDE("Check %d vs %d"), pc->dwSize, dwSize );
+	   	//Log2( "Check %d vs %d", pc->dwSize, dwSize );
    	   if( pc->dwSize >= dwSize ) // if free block size is big enough...
       	{
 	         // split block
@@ -1195,7 +1195,7 @@ search_for_free_memory:
 
                	if( pFirstFree != pc )
 	               {
-   	               ODS( WIDE("This NEVER happens!"));
+   	               ODS( "This NEVER happens!");
       	            pNew->pNextFree = pFirstFree;
          	         pFirstFree->pPriorFree = pNew;
             	   }
@@ -1213,7 +1213,7 @@ search_for_free_memory:
    {
    	{
    		char msg[256];
-   		sprintf( msg, WIDE("Failed to allocate %ld bytes"), dwSize );
+   		sprintf( msg, "Failed to allocate %ld bytes", dwSize );
 	   	ODSEx( msg, pFile, nLine );
 	   }
       if( dwSize < SYSTEM_CAPACITY )
@@ -1226,7 +1226,7 @@ search_for_free_memory:
          if( ExpandSpace( pMem, dwSize + CHUNK_SIZE + MEM_SIZE ) )
             goto search_for_free_memory;
       }
-      ODS( WIDE("Remaining space in memory block is insufficient.  Please EXPAND block."));
+      ODS( "Remaining space in memory block is insufficient.  Please EXPAND block.");
       //DropMem( pMem );
 		//DebugDumpMemEx( TRUE );
 #ifdef DEBUG_FIND_SPACE
@@ -1237,7 +1237,7 @@ search_for_free_memory:
    if( bLogAllocate )
    {
       TEXTCHAR byMsg[256];
-      sprintf( byMsg, WIDE("Allocate : %p(%p) - %ld bytes")
+      sprintf( byMsg, "Allocate : %p(%p) - %ld bytes"
                     , pc->byData, pc, pc->dwSize );
       ODSEx( byMsg, pFile, nLine );
    }
@@ -1428,14 +1428,14 @@ MEM_PROC( POINTER, ReleaseEx )( POINTER pData DBG_PASS )
    		 )
         )
 	{
-		Log( WIDE("ERROR: This block should have immediatly referenced it's correct heap!") );
+		Log( "ERROR: This block should have immediatly referenced it's correct heap!" );
        pMemSpace = pMemSpace->expansion;
    }
    if( !pMemSpace )
    {
 #ifdef _DEBUG
       TEXTCHAR byMsg[256];
-      sprintf( byMsg, WIDE("This Block is NOT within the managed heap! : %p")
+      sprintf( byMsg, "This Block is NOT within the managed heap! : %p"
                     , pData );
       ODSEx( byMsg, pFile, nLine );
 #endif
@@ -1447,7 +1447,7 @@ MEM_PROC( POINTER, ReleaseEx )( POINTER pData DBG_PASS )
    if( bLogAllocate )
    {
       TEXTCHAR byMsg[256];
-      sprintf( byMsg, WIDE("Release  : %p(%p) - %ld bytes")
+      sprintf( byMsg, "Release  : %p(%p) - %ld bytes"
                     , pc->byData, pc, pc->dwSize );
       ODSEx( byMsg, pFile, nLine );
    }
@@ -1460,11 +1460,11 @@ MEM_PROC( POINTER, ReleaseEx )( POINTER pData DBG_PASS )
       {
          TEXTCHAR byMsg[256];
 #ifdef _DEBUG
-         sprintf( (char*)byMsg, WIDE("Block is already Free! %p by %s(%ld)"), pc,
+         sprintf( (char*)byMsg, "Block is already Free! %p by %s(%ld)", pc,
                  pc->pFile, pc->nLine );
 #else
 			// CRITICAL ERROR!
-         sprintf( (char*)byMsg, WIDE("Block is already Free! %p "), pc );
+         sprintf( (char*)byMsg, "Block is already Free! %p ", pc );
 #endif
          ODSEx( byMsg, pFile, nLine );
          //DropMem( pMem );
@@ -1475,15 +1475,15 @@ MEM_PROC( POINTER, ReleaseEx )( POINTER pData DBG_PASS )
 		if( !bDisableDebug )
 			if( *(int*)(pc->byData + pc->dwSize - 4 ) != 0x78563412 )
 			{
-				Log1( WIDE("memory block: %p"), pc->byData );
-				ODSEx( WIDE("Application overflowed requested memory..."), pc->pFile, pc->nLine );
+				Log1( "memory block: %p", pc->byData );
+				ODSEx( "Application overflowed requested memory...", pc->pFile, pc->nLine );
 					DebugBreak();
 			}
 #endif
       pc->dwOwners--;
       if( pc->dwOwners )
       {
-         //ODS( WIDE("Released Block was held by other owners") );
+         //ODS( "Released Block was held by other owners" );
          //DebugBreak();
          //DebugDumpMem();
 #ifdef _DEBUG
@@ -1621,7 +1621,7 @@ MEM_PROC( POINTER, HoldEx )( POINTER pData DBG_PASS )
    if( bLogAllocate )
    {
       TEXTCHAR byMsg[256];
-      sprintf( byMsg, WIDE("Hold     : %p - %ld bytes"),
+      sprintf( byMsg, "Hold     : %p - %ld bytes",
                            pc,pc->dwSize );
       ODSEx( byMsg, pFile, nLine );
    }
@@ -1666,7 +1666,7 @@ MEM_PROC( void, DebugDumpHeapMemEx )( PMEM pHeap, LOGICAL bVerbose )
    ODS(" ------ Memory Dump ------- " );
    {
       TEXTCHAR byDebug[256];
-      sprintf( byDebug, WIDE("FirstFree : %p"),
+      sprintf( byDebug, "FirstFree : %p",
                pMem->pFirstFree );
       ODS( byDebug );
    }
@@ -1685,7 +1685,7 @@ MEM_PROC( void, DebugDumpHeapMemEx )( PMEM pHeap, LOGICAL bVerbose )
          	nTotalFree += pc->dwSize;
 	         if( bVerbose )
    	      {
-      	      sprintf( byDebug, WIDE("Free at %p size: %ld(%lx) Prior:%p NF:%p PF:%p"),
+      	      sprintf( byDebug, "Free at %p size: %ld(%lx) Prior:%p NF:%p PF:%p",
          	       pc, pc->dwSize, pc->dwSize,
             	    pc->pPrior,
                	 pc->pNextFree, pc->pPriorFree );
@@ -1696,7 +1696,7 @@ MEM_PROC( void, DebugDumpHeapMemEx )( PMEM pHeap, LOGICAL bVerbose )
    	      nTotalUsed += pc->dwSize;
       	   if( bVerbose )
          	{
-            	sprintf( byDebug, WIDE("Used at %p size: %ld(%lx) Prior:%p"),
+            	sprintf( byDebug, "Used at %p size: %ld(%lx) Prior:%p",
                	 pc, pc->dwSize, pc->dwSize,
 	                pc->pPrior );
    	      }
@@ -1713,13 +1713,13 @@ MEM_PROC( void, DebugDumpHeapMemEx )( PMEM pHeap, LOGICAL bVerbose )
    	   pc = (PCHUNK)(pc->byData + pc->dwSize );
       	if( pc == _pc )
 	      {
-	      	ODS( WIDE("Next block is the current block...") );
+	      	ODS( "Next block is the current block..." );
    	      DebugBreak(); // broken memory chain
       	   break;
 	      }
 	   }
    }
-   sprintf( byDebug, WIDE("Total Free: %d  TotalUsed: %d  TotalChunks: %d TotalMemory:%d"),
+   sprintf( byDebug, "Total Free: %d  TotalUsed: %d  TotalChunks: %d TotalMemory:%d",
             nTotalFree, nTotalUsed, nChunks,
             nTotalFree + nTotalUsed + nChunks * CHUNK_SIZE );
    ODS( byDebug );
@@ -1743,7 +1743,7 @@ MEM_PROC( void, DebugDumpMemEx )( LOGICAL bVerbose )
 MEM_PROC( void, DebugDumpHeapMemFile )( PMEM pHeap, char *pFilename )
 {
 	FILE *file;
-	file = fopen( pFilename, WIDE("wt") );
+	file = fopen( pFilename, "wt" );
 	if( file )
 	{
       PCHUNK pc, _pc;
@@ -1756,12 +1756,12 @@ MEM_PROC( void, DebugDumpHeapMemFile )( PMEM pHeap, char *pFilename )
 
       pMem = GrabMem( pHeap );
 
-      fprintf( file, WIDE(" ------ Memory Dump ------- \n") );
+      fprintf( file, " ------ Memory Dump ------- \n" );
       {
          TEXTCHAR byDebug[256];
-         sprintf( byDebug, WIDE("FirstFree : %p"),
+         sprintf( byDebug, "FirstFree : %p",
                   pMem->pFirstFree );
-         fprintf( file, WIDE("%s\n"), byDebug );
+         fprintf( file, "%s\n", byDebug );
       }
 
 		for( pc = NULL, pMemSpace = FindSpace( pMem ); pMemSpace; pMemSpace = pMemSpace->expansion )
@@ -1776,7 +1776,7 @@ MEM_PROC( void, DebugDumpHeapMemFile )( PMEM pHeap, char *pFilename )
 	         if( !pc->dwOwners )
    	      {
       	      nTotalFree += pc->dwSize;
-         	   sprintf( byDebug, WIDE("Free at %p size: %ld(%lx) Prior:%p NF:%p PF:%p"),
+         	   sprintf( byDebug, "Free at %p size: %ld(%lx) Prior:%p NF:%p PF:%p",
             	    pc, pc->dwSize, pc->dwSize,
                	 pc->pPrior,
 	                pc->pNextFree, pc->pPriorFree );
@@ -1784,14 +1784,14 @@ MEM_PROC( void, DebugDumpHeapMemFile )( PMEM pHeap, char *pFilename )
       	   else
          	{
             	nTotalUsed += pc->dwSize;
-	            sprintf( byDebug, WIDE("Used at %p size: %ld(%lx) Prior:%p"),
+	            sprintf( byDebug, "Used at %p size: %ld(%lx) Prior:%p",
    	             pc, pc->dwSize, pc->dwSize,
       	          pc->pPrior );
          	}
    #ifdef _DEBUG
-	   		fprintf( file, WIDE("%s(%ld):%s\n"), pc->pFile, pc->nLine, byDebug );
+	   		fprintf( file, "%s(%ld):%s\n", pc->pFile, pc->nLine, byDebug );
    #else
-   	      fprintf( file, WIDE("%s\n"), byDebug );
+   	      fprintf( file, "%s\n", byDebug );
    #endif
 	         _pc = pc;
    	      pc = (PCHUNK)(pc->byData + pc->dwSize );
@@ -1802,7 +1802,7 @@ MEM_PROC( void, DebugDumpHeapMemFile )( PMEM pHeap, char *pFilename )
       	   }
 	      }
       }
-      fprintf( file, WIDE("--------------- FREE MEMORY LIST --------------------\n") );
+      fprintf( file, "--------------- FREE MEMORY LIST --------------------\n" );
 
 		for( pc = NULL, pMemSpace = FindSpace( pMem ); pMemSpace; pMemSpace = pMemSpace->expansion )
 		{
@@ -1811,21 +1811,21 @@ MEM_PROC( void, DebugDumpHeapMemFile )( PMEM pHeap, char *pFilename )
 
 	      while( pc ) // while PC not off end of memory
    	   {
-      	   sprintf( byDebug, WIDE("Free at %p size: %ld(%lx) "),
+      	   sprintf( byDebug, "Free at %p size: %ld(%lx) ",
          	 		   pc, pc->dwSize, pc->dwSize );
 
    #ifdef _DEBUG
-	   		fprintf( file, WIDE("%s(%ld):%s\n"), pc->pFile, pc->nLine, byDebug );
+	   		fprintf( file, "%s(%ld):%s\n", pc->pFile, pc->nLine, byDebug );
    #else
-   	      fprintf( file, WIDE("%s\n"), byDebug );
+   	      fprintf( file, "%s\n", byDebug );
    #endif
 	      	pc = pc->pNextFree;
    	   }
 		}
-      sprintf( byDebug, WIDE("Total Free: %d  TotalUsed: %d  TotalChunks: %d TotalMemory:%d"),
+      sprintf( byDebug, "Total Free: %d  TotalUsed: %d  TotalChunks: %d TotalMemory:%d",
                nTotalFree, nTotalUsed, nChunks,
                nTotalFree + nTotalUsed + nChunks * CHUNK_SIZE );
-      fprintf( file, WIDE("%s\n"), byDebug );
+      fprintf( file, "%s\n", byDebug );
       Relinquish();
    #ifdef MEM_TRACKING
    	if( !bDisableDebug )
@@ -1958,13 +1958,13 @@ MEM_PROC( void, GetHeapMemStatsEx )( PMEM pHeap, uint32_t *pFree, uint32_t *pUse
 					 {
 						 if( pc->dwSize > pMem->dwSize )
 						 {
-                      Log1( WIDE("Memory block %p has a corrupt size."), pc->byData );
+                      Log1( "Memory block %p has a corrupt size.", pc->byData );
 							 DebugBreak();
 						 }
 						 else if( *(int*)( pc->byData + pc->dwSize - 4 ) != 0x78563412 )
 						 {
-							 Log1( WIDE("memory block: %p"), pc->byData );
-							 ODSEx( WIDE("Application overflowed allocated memory."), pc->pFile, pc->nLine );
+							 Log1( "memory block: %p", pc->byData );
+							 ODSEx( "Application overflowed allocated memory.", pc->pFile, pc->nLine );
 							 DebugBreak();
 						 }
 					 }
@@ -1977,13 +1977,13 @@ MEM_PROC( void, GetHeapMemStatsEx )( PMEM pHeap, uint32_t *pFree, uint32_t *pUse
             {
                 if( pc == _pc )
                 {
-                    Log( WIDE("Current block is the same as the last block we checked!") );
+                    Log( "Current block is the same as the last block we checked!" );
                     DebugBreak(); // broken memory chain
                     break;
                 }
                 if( pc->pPrior != _pc )
                 {
-                    Log4( WIDE("Block's prior is not the last block we checked! prior %p sz: %d current: %p currentprior: %p")
+                    Log4( "Block's prior is not the last block we checked! prior %p sz: %d current: %p currentprior: %p"
                     			, _pc
                     			, _pc->dwSize
                     			, pc
@@ -1998,7 +1998,7 @@ MEM_PROC( void, GetHeapMemStatsEx )( PMEM pHeap, uint32_t *pFree, uint32_t *pUse
         {
             if( pc->dwOwners )
             {  // owned block is in free memory chain ! ?
-                Log( WIDE("Owned block is in free memory chain!") );
+                Log( "Owned block is in free memory chain!" );
                 DebugBreak();
                 break;
             }
@@ -2212,200 +2212,3 @@ int strnicmp( char *one, char *two, int len )
 #endif
 
 
-// $Log: sharemem.c,v $
-// Revision 1.3  2003/08/12 14:55:48  panther
-// Remove debug logging
-//
-// Revision 1.2  2003/08/12 14:54:37  panther
-// Optimize watcom ppc - nhmalloc was hella slow
-//
-// Revision 1.79  2003/08/12 12:13:08  panther
-// fix resulting code from open space - still not happy with it - but it kinda works
-//
-// Revision 1.78  2003/08/08 07:46:38  panther
-// Protect against unloaded DLLs
-//
-// Revision 1.77  2003/06/08 16:44:53  panther
-// Fix release mode logging message..
-//
-// Revision 1.76  2003/06/04 11:41:40  panther
-// Fix logging to log correct line...
-//
-// Revision 1.75  2003/06/03 08:11:26  panther
-// Revert logging to LogX() style from lprintf
-//
-// Revision 1.74  2003/05/19 07:38:44  panther
-// More betterer debug logging
-//
-// Revision 1.73  2003/05/13 09:12:10  panther
-// Remove confusing parens around string token for ODS
-//
-// Revision 1.72  2003/05/12 01:31:15  panther
-// Don't need to export finaldest now
-//
-// Revision 1.71  2003/04/25 00:51:52  panther
-// Add some protection against corrupd chunk sizes
-//
-// Revision 1.70  2003/04/24 16:32:50  panther
-// Initial calibration support in display (incomplete)...
-// mods to support more features in controls... (returns set interface)
-// Added close service support to display_server and display_image_server
-//
-// Revision 1.69  2003/04/24 00:03:49  panther
-// Added ColorAverage to image... Fixed a couple macros
-//
-// Revision 1.68  2003/04/21 23:33:50  panther
-// Add inline assembly for VC support
-//
-// Revision 1.67  2003/04/21 20:01:44  panther
-// Don't force memory to any particular size... on open space
-//
-// Revision 1.66  2003/04/06 09:56:04  panther
-// Dont' map a file handle anonymous - unix mmap
-//
-// Revision 1.65  2003/04/02 10:39:28  panther
-// Use critical section logging flag more
-//
-// Revision 1.64  2003/03/17 23:15:25  panther
-// Removed noisy release-mode message
-//
-// Revision 1.63  2003/03/05 16:44:44  panther
-// add MemCmp function (assembly and C)
-//
-// Revision 1.62  2003/03/03 00:16:34  panther
-// Fixed freeing the very last block in a heap
-//
-// Revision 1.61  2003/02/24 09:31:51  panther
-// Fix void pointer to char pointer to offset
-//
-// Revision 1.60  2003/02/23 18:24:51  panther
-// Add logging for which pointer was overflowed
-//
-// Revision 1.59  2003/02/23 00:16:27  panther
-// Fixed find space code
-//
-// Revision 1.58  2003/02/21 20:52:25  panther
-// Add breakpoint on block out of HEAP
-//
-// Revision 1.57  2003/02/09 04:03:28  panther
-// General tweaks to improve functionality
-//
-// Revision 1.56  2003/02/04 16:43:14  panther
-// Added MemDup to duplicate any given allocated pointer
-//
-// Revision 1.55  2003/01/31 17:09:31  panther
-// Remove DWORD in favor of uint32_t
-//
-// Revision 1.54  2003/01/28 16:38:15  panther
-// Added debugging info option to relay through
-//
-// Revision 1.53  2003/01/28 11:30:38  panther
-// uncertain what changed
-//
-// Revision 1.52  2003/01/28 02:24:43  panther
-// Fixes to network - common timer for network pause... minor updates which should have been commited already
-//
-// Revision 1.51  2003/01/19 14:52:17  panther
-// Removed extra Relinquish associated with critical sections
-//
-// Revision 1.50  2002/12/22 00:14:11  panther
-// Cleanup function declarations and project defines.
-//
-// Revision 1.49  2002/12/13 08:53:56  panther
-// Allow named regions backed by page file (no file, but name on region)
-//
-// Revision 1.48  2002/11/16 16:36:13  panther
-// Another stage - default panel mouse handler to handle 'move'
-// now - let us try playing with SDL in framebuffer/svga mode.
-//
-// Revision 1.47  2002/11/06 09:51:18  panther
-// When a heap is initialized, it must be added to the list of spaces open,
-// even if they are part of some other space tracked.
-//
-// Revision 1.46  2002/10/09 13:16:02  panther
-// Support for linux shared memory mapping.
-// Support for better linux compilation of configuration scripts...
-// Timers library is now Threads AND Timers.
-//
-// Revision 1.45  2002/10/07 08:06:09  panther
-// More docs.  Various patches for better working.
-// Sharemem - heap local allocate
-// config - handle color format.
-// controls - use new video subsystem.
-//
-// Revision 1.44  2002/09/08 19:43:24  panther
-// Basically mods to config script handler...
-// sharemem? syslog?
-//
-// Revision 1.43  2002/08/23 23:11:05  panther
-// Modified parameters to ODSEx to clean warnings.  Added option for bLogCritical
-// more than 1 (TRUE) to show more information.
-//
-// Revision 1.42  2002/08/21 23:23:42  panther
-// *** empty log message ***
-//
-// Revision 1.41  2002/08/21 23:21:40  panther
-// Modified logging format. (next change will be like - modified logging.)
-//
-// Revision 1.40  2002/08/02 21:44:34  panther
-// Added logging of ranges of memory regions being tracked.
-//
-// Revision 1.39  2002/07/09 21:25:52  panther
-// Replace all references of Sleep(0) or Sleep(n) with Relinquish().
-//
-// Revision 1.38  2002/07/09 21:19:41  panther
-// On error of a memory block outside of tracked space did not return
-// the memory lock.  This would cause the next allocate/deallocate to
-// block forever, without a message.
-//
-// Revision 1.37  2002/07/09 21:03:21  panther
-// Modified logging of mismanaged blocks.  Also fixed bug where the very very last block allocated as a small size
-// appeared to be outside the memory block and  was not released.
-//
-// Revision 1.36  2002/06/18 11:08:37  panther
-// Modified the VC projects to build into a specific subdirectory to avoid
-// conflict between LCC and MSVC
-// Updated some control structures
-// changed buildorder in makeall.bat
-// vidlib change?
-//
-// Revision 1.35  2002/05/20 16:52:59  panther
-// Lets add a nowait enter critical secion...
-//
-// Revision 1.34  2002/05/03 23:13:15  panther
-// Added Reallocate() *shudder* well ... sometimes it's a good thing I guess.
-//
-// Revision 1.33  2002/05/03 14:57:33  panther
-// Modifed masking on building dwThreadID for leaving a critical section.
-// Modified logging to include the ID of the owner...
-//
-// Revision 1.32  2002/05/01 14:59:40  panther
-// Memlib - minor log change?
-// Network - modification on FD_CLOSE events to not leave critical sec
-// controls - changed loop... added then removed logging
-//
-// Revision 1.31  2002/04/25 17:47:00  panther
-// Cleaned up message formats ... makes GCC a lot quieter.
-//
-// Revision 1.30  2002/04/25 17:15:10  panther
-// Minor tweak to the loops for debug mem dumps..
-//
-// Revision 1.29  2002/04/25 08:14:29  panther
-// Forgot some DBG_FORWARD kinda stuff...
-//
-// Revision 1.28  2002/04/25 02:56:51  panther
-// Follow chains of PSPACES in debug loggings...
-//
-// Revision 1.27  2002/04/22 22:43:31  panther
-// Added external option to enable critical section logging - so we
-// can STOP updating this to and from.
-//
-// Revision 1.26  2002/04/21 22:04:06  panther
-// Minor changes to when enter/leave/blocked critical sections are done.
-//
-// Revision 1.25  2002/04/18 20:36:58  panther
-// Added Relinquish() if section was known to have someone waiting for it.
-//
-// Revision 1.24  2002/04/18 16:47:50  panther
-// Modified critical section code to (if someone logged wait) log release.
-//

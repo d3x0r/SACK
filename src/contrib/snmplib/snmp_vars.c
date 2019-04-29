@@ -374,7 +374,7 @@ u_char *snmp_var_EncodeVarBind(u_char *Buffer, int *BufLenP,
 
     case SMI_COUNTER64:
 #ifdef STDERR_OUTPUT
-      fprintf(stderr, WIDE("Unable to encode type SMI_COUNTER64!\n"));
+      fprintf(stderr, "Unable to encode type SMI_COUNTER64!\n");
 #endif
       /* Fall through */
 
@@ -606,7 +606,7 @@ u_char *snmp_var_DecodeVarBind(u_char *Buffer, int *BufLen,
 
     case SMI_COUNTER64:
 #ifdef STDERR_OUTPUT
-      fprintf(stderr, WIDE("Unable to parse type SMI_COUNTER64!\n"));
+      fprintf(stderr, "Unable to parse type SMI_COUNTER64!\n");
 #endif
       snmp_set_api_error(SNMPERR_UNSUPPORTED_TYPE);
       return(NULL);
@@ -614,7 +614,7 @@ u_char *snmp_var_DecodeVarBind(u_char *Buffer, int *BufLen,
 
     default:
 #ifdef STDERR_OUTPUT
-      fprintf(stderr, WIDE("bad type returned (%x)\n"), Var->type);
+      fprintf(stderr, "bad type returned (%x)\n", Var->type);
 #endif
       snmp_set_api_error(SNMPERR_PDU_PARSE);
       return(NULL);

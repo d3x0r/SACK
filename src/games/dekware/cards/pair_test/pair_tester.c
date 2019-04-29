@@ -42,13 +42,13 @@ uintptr_t CPROC PlayHands( PTHREAD thread )
 {
 	int hand = 0;
 	int h;
-	l.deck = CreateDeck( WIDE("test_4kind_Holdem") ,IterateHoldemHand );
+	l.deck = CreateDeck( "test_4kind_Holdem" ,IterateHoldemHand );
 	for( h = 0; h < 9; h++ )
 	{
 		l.hand[h] = CreateHand( l.deck );
 	}
-	l.out = fopen( WIDE("carddata.csv"), WIDE("wt") );
-	fprintf( l.out, WIDE("Game Win, hand, qualified, ontable, howmany, winning player, real_poker_value, 4kind_number,table, player 1, player 2, player 3, player 4, player 5, player 6, player 7, player 8, player 9\n") );
+	l.out = fopen( "carddata.csv", "wt" );
+	fprintf( l.out, "Game Win, hand, qualified, ontable, howmany, winning player, real_poker_value, 4kind_number,table, player 1, player 2, player 3, player 4, player 5, player 6, player 7, player 8, player 9\n" );
 	while( hand < 0x40000000 )
 	{
 		int h;
@@ -101,23 +101,23 @@ uintptr_t CPROC PlayHands( PTHREAD thread )
 				PCARD card;
 				int qualified = 0;
 				int ontable = 0;
-				PCARD_STACK Draw = GetCardStack( l.deck, WIDE("Table") );
-				vtprintf( pvt, WIDE("'") );
+				PCARD_STACK Draw = GetCardStack( l.deck, "Table" );
+				vtprintf( pvt, "'" );
 				for( card = Draw->cards; card; card = card->next )
 				{
 					PTEXT tmp;
 					if( (card->id % 13) == ((bestval & 0xF0)>>4) )
 						ontable++;
-					vtprintf( pvt, WIDE("%3s "), GetText( tmp = CardName( card ) ) );
+					vtprintf( pvt, "%3s ", GetText( tmp = CardName( card ) ) );
 					LineRelease( tmp );
 				}
-				vtprintf( pvt, WIDE("'") );
+				vtprintf( pvt, "'" );
 
 				for( h = 0; h < 9; h++ )
 				{
 					int first = 1;
-					Draw = GetCardStackFromHand( l.hand[h], WIDE("Cards") );
-					vtprintf( pvt, WIDE(",'") );
+					Draw = GetCardStackFromHand( l.hand[h], "Cards" );
+					vtprintf( pvt, ",'" );
 					ontable = 0;
 					for( card = Draw->cards; card; card = card->next )
 					{
@@ -126,14 +126,14 @@ uintptr_t CPROC PlayHands( PTHREAD thread )
 							ontable++;
 						if( ontable >= 2 )
 							qualified++;
-						vtprintf( pvt, WIDE("%s%3s"), first?WIDE(""):WIDE(" "), GetText( tmp = CardName( card ) ) );
+						vtprintf( pvt, "%s%3s", first?"":" ", GetText( tmp = CardName( card ) ) );
 						first = 0;
 						LineRelease( tmp );
 					}
-					vtprintf( pvt, WIDE("'") );
+					vtprintf( pvt, "'" );
 					
 				}
-				fprintf( l.out, WIDE("'4kind Win',%d,%d,%d,%d,%d,%06X,%d,%s\n"), hand, qualified, ontable, multi
+				fprintf( l.out, "'4kind Win',%d,%d,%d,%d,%d,%06X,%d,%s\n", hand, qualified, ontable, multi
 					, bestplayer+1
 					, bestval
 					, ( ( bestval & 0xF0 ) >> 4 ) + 1
@@ -145,38 +145,38 @@ uintptr_t CPROC PlayHands( PTHREAD thread )
 				PVARTEXT pvt = VarTextCreate();
 				PCARD card;
 				int ontable = 0;
-				PCARD_STACK Draw = GetCardStack( l.deck, WIDE("Table") );
-				vtprintf( pvt, WIDE("'") );
+				PCARD_STACK Draw = GetCardStack( l.deck, "Table" );
+				vtprintf( pvt, "'" );
 				for( card = Draw->cards; card; card = card->next )
 				{
 					PTEXT tmp;
 					if( card->id % 13 == (bestval & 0xF0000)>>16 )
 						ontable++;
-					vtprintf( pvt, WIDE("%3s "), GetText( tmp = CardName( card ) ) );
+					vtprintf( pvt, "%3s ", GetText( tmp = CardName( card ) ) );
 					LineRelease( tmp );
 				}
-				vtprintf( pvt, WIDE("'") );
+				vtprintf( pvt, "'" );
 
 				for( h = 0; h < 9; h++ )
 				{
 					int first = 1;
-					Draw = GetCardStackFromHand( l.hand[h], WIDE("Cards") );
-					vtprintf( pvt, WIDE(",'") );
+					Draw = GetCardStackFromHand( l.hand[h], "Cards" );
+					vtprintf( pvt, ",'" );
 					for( card = Draw->cards; card; card = card->next )
 					{
 						PTEXT tmp;
 						if( card->id % 13 == (bestval & 0xF0000)>>16 )
 							ontable++;
-						vtprintf( pvt, WIDE("%s%3s"), first?WIDE(""):WIDE(" "), GetText( tmp = CardName( card ) ) );
+						vtprintf( pvt, "%s%3s", first?"":" ", GetText( tmp = CardName( card ) ) );
 						first = 0;
 						LineRelease( tmp );
 					}
-					vtprintf( pvt, WIDE("'") );
+					vtprintf( pvt, "'" );
 					
 				}
 				{
 					PTEXT tmp = NULL;
-					fprintf( l.out, WIDE("'%s',%d,0,%d,%d,%d,%06X,%d,%s\n"), GetText( GetPokerHandName(best_hand, &tmp ) ), hand, 0, 0, bestplayer+1, bestval, 0, GetText( VarTextPeek( pvt ) ) );
+					fprintf( l.out, "'%s',%d,0,%d,%d,%d,%06X,%d,%s\n", GetText( GetPokerHandName(best_hand, &tmp ) ), hand, 0, 0, bestplayer+1, bestval, 0, GetText( VarTextPeek( pvt ) ) );
 					Release( tmp );
 				}
 				VarTextDestroy( &pvt );

@@ -90,7 +90,7 @@ void CPROC Output( uintptr_t psv, PRENDERER display )
 		Image surface = GetDisplayImage( display );
 		Image imgGraphic;
 		struct video_element *element = (struct video_element*)GetLink( &g.current_list[psv]->images, g.currents[psv] );
-		//lprintf( WIDE("Current on %d is %d"), psv, g.currents[psv] );
+		//lprintf( "Current on %d is %d", psv, g.currents[psv] );
 		imgGraphic = element->image;
 		BlotScaledImage( surface, imgGraphic );
 	}
@@ -154,7 +154,7 @@ void BeginFadeIn( uint32_t tick_start, uint32_t tick )
 	struct video_sequence *current_seq = g.current_list[g.next_up];
 	struct video_element *current_element = (struct video_element *)GetLink( &current_seq->images, current_seq->current_image );
 	PRENDERER r;
-	//lprintf( WIDE("Begin fading in the new image...") );
+	//lprintf( "Begin fading in the new image..." );
 	
 	g.currents[g.next_up] = current_seq->current_image;
 	
@@ -172,8 +172,8 @@ void BeginFadeIn( uint32_t tick_start, uint32_t tick )
 		PlayItem( player->vlc ); // start the video clip now... allow fadein.
 	}
 
-	//lprintf( WIDE("Begin Showing %p"), r );
-	//lprintf( WIDE("(!)Setting fade to..> %d"), 255 - (255*(now-g.target_in_start))/(g.target_in-g.target_in_start) );
+	//lprintf( "Begin Showing %p", r );
+	//lprintf( "(!)Setting fade to..> %d", 255 - (255*(now-g.target_in_start))/(g.target_in-g.target_in_start) );
 	SetDisplayFade( r, 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
 	RestoreDisplay( r );
 
@@ -206,7 +206,7 @@ void ContinueFadeIn( uint32_t tick )
 			// wait until stop event to set when next fadin starts.
 			g.target_in_start = current_element->display_time ? (tick+current_element->display_time) : 0;
 		}
-		//lprintf( WIDE("Fade is is complete, set alpha to 0 (opaque), and hide old display...") );
+		//lprintf( "Fade is is complete, set alpha to 0 (opaque), and hide old display..." );
 		SetDisplayFade( r, 0 );
 		if( upd )
 			UpdateDisplay( r );
@@ -216,7 +216,7 @@ void ContinueFadeIn( uint32_t tick )
 
 		g.prior_up = r;
 
-		//lprintf( WIDE("Image fully up - setup to show next image...") );
+		//lprintf( "Image fully up - setup to show next image..." );
 		current_seq->current_image++;
 		if( current_seq->current_image >= current_seq->nImages )
 		{
@@ -253,8 +253,8 @@ void ContinueFadeIn( uint32_t tick )
 			struct video_player *player = current_element->player;
 			r = player->surface;
 		}
-		//lprintf( WIDE("Setting fade to..> %d"), 255 - (255*(tick-target_in_start))/(target_in-target_in_start) );
-		//lprintf( WIDE("Increasing %p"), r );
+		//lprintf( "Setting fade to..> %d", 255 - (255*(tick-target_in_start))/(target_in-target_in_start) );
+		//lprintf( "Increasing %p", r );
 		SetDisplayFade( r, 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
 		if( upd )
 			UpdateDisplay( r );
@@ -306,7 +306,7 @@ static struct video_element *LoadVideo( struct video_sequence *seq, CTEXTSTR fil
 													, g.x //0
 													, g.y //0
 													);
-	player->vlc = PlayItemOnEx( player->surface, file, WIDE("--repeat --loop") );
+	player->vlc = PlayItemOnEx( player->surface, file, "--repeat --loop" );
 	SetStopEvent( player->vlc, OnStopFade, (uintptr_t)player );
 
    // only used if there is only 1 video - just show video.
@@ -333,14 +333,14 @@ static uintptr_t CPROC AddVideo( uintptr_t psv, arg_list args )
 	PARAM( args, int64_t, play_length );
 	PARAM( args, CTEXTSTR, filename );
 	struct video_sequence *seq = GetSequence( (int)list_id );
-	lprintf( WIDE( "adding video %s" ), filename );
+	lprintf( "adding video %s", filename );
 	g.next_fade_in = (uint32_t)play_length;
 
-	if( StrCaseStr( filename, WIDE(".jpg") ) ||
-		StrCaseStr( filename, WIDE(".jpeg") ) ||
-		StrCaseStr( filename, WIDE(".bmp") ) ||
-		StrCaseStr( filename, WIDE(".png") ) ||
-		StrCaseStr( filename, WIDE(".tga") ) )
+	if( StrCaseStr( filename, ".jpg" ) ||
+		StrCaseStr( filename, ".jpeg" ) ||
+		StrCaseStr( filename, ".bmp" ) ||
+		StrCaseStr( filename, ".png" ) ||
+		StrCaseStr( filename, ".tga" ) )
 	{
 		Image img = LoadImageFile( filename );
 		if( img )
@@ -385,9 +385,9 @@ static uintptr_t CPROC SetDefaultFadeInTime( uintptr_t psv, arg_list args )
 static void ReadConfigFile( CTEXTSTR filename )
 {
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
-	AddConfigurationMethod( pch, WIDE("%i,%i,%i,%m"), AddVideo );
-	AddConfigurationMethod( pch, WIDE("default show time=%i"), SetDefaultShowTime );
-	AddConfigurationMethod( pch, WIDE("default fade in time=%i"), SetDefaultFadeInTime );
+	AddConfigurationMethod( pch, "%i,%i,%i,%m", AddVideo );
+	AddConfigurationMethod( pch, "default show time=%i", SetDefaultShowTime );
+	AddConfigurationMethod( pch, "default fade in time=%i", SetDefaultFadeInTime );
 	ProcessConfigurationFile( pch, filename, 0 );
 	DestroyConfigurationHandler( pch );
 }
@@ -432,7 +432,7 @@ static void CPROC ReadPacket( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 static void BeginNetwork( void )
 {
 	TEXTCHAR host_addr[256];
-	SACK_GetProfileString( GetProgramName(), WIDE("Interface Address"), WIDE("0.0.0.0:3020"), host_addr, sizeof( host_addr ) );
+	SACK_GetProfileString( GetProgramName(), "Interface Address", "0.0.0.0:3020", host_addr, sizeof( host_addr ) );
 	if( NetworkStart() )
 	{
 		g.host_socket = ServeUDP( host_addr, 3020, ReadPacket, NULL );
@@ -499,7 +499,7 @@ SaneWinMain(argc, argv )
 				ReadConfigFile( argv[arg] + 1 );
 			}
 			else
-				lprintf( WIDE("Unhandled argument: %s"), argv[arg] );
+				lprintf( "Unhandled argument: %s", argv[arg] );
 		}
 	}
 
@@ -542,8 +542,8 @@ SaneWinMain(argc, argv )
 		}
 		else
 		{
-			lprintf( WIDE("No Images to display, exiting") );
-			printf( WIDE("No Images to display, exiting\n") );
+			lprintf( "No Images to display, exiting" );
+			printf( "No Images to display, exiting\n" );
 		}
 	}
 	return 0;

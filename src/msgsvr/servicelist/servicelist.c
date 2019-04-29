@@ -9,11 +9,11 @@ int main( void )
 	char *service;
 	LoadComplete();
 	GetServiceList( &list );
-	printf( WIDE("Available services\n")
-	        WIDE("---------------------------\n") );
+	printf( "Available services\n"
+	        "---------------------------\n" );
 	LIST_FORALL( list, idx, char *, service )
 	{
-		printf( WIDE("%s\n"), service );
+		printf( "%s\n", service );
 	}
 	return 0;
 }

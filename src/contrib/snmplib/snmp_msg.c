@@ -112,7 +112,7 @@ u_char *snmp_msg_Encode(u_char *Buffer, int *BufLenP,
 			  (*BufLenP));
   if (bufp == NULL) {
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Error encoding SNMP Message Header (Header)!\n"));
+    fprintf(stderr, "Error encoding SNMP Message Header (Header)!\n");
 #endif
     return(NULL);
   }
@@ -126,7 +126,7 @@ u_char *snmp_msg_Encode(u_char *Buffer, int *BufLenP,
 		       (int *)(&Version), sizeof(Version));
   if (bufp == NULL){
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Error encoding SNMP Message Header (Version)!\n"));
+    fprintf(stderr, "Error encoding SNMP Message Header (Version)!\n");
 #endif
     return(NULL);
   }
@@ -143,7 +143,7 @@ u_char *snmp_msg_Encode(u_char *Buffer, int *BufLenP,
 			  Community, CommLen);
   if (bufp == NULL){
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Error encoding SNMP Message Header (Community)!\n"));
+    fprintf(stderr, "Error encoding SNMP Message Header (Community)!\n");
 #endif
     return(NULL);
   }
@@ -232,13 +232,13 @@ u_char *snmp_msg_Decode(u_char *Packet, int *PacketLenP,
   bufp = asn_parse_header(Packet, PacketLenP, &type);
   if (bufp == NULL){
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Error decoding SNMP Messsage Header (Header)!\n"));
+    fprintf(stderr, "Error decoding SNMP Messsage Header (Header)!\n");
 #endif
     ASN_PARSE_ERROR(NULL);
   }
   if (type != (ASN_SEQUENCE | ASN_CONSTRUCTOR)) {
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Error decoding SNMP Messsage Header (Header)!\n"));
+    fprintf(stderr, "Error decoding SNMP Messsage Header (Header)!\n");
 #endif
     ASN_PARSE_ERROR(NULL);
   }
@@ -248,14 +248,14 @@ u_char *snmp_msg_Decode(u_char *Packet, int *PacketLenP,
 		       (int *)Version, sizeof(*Version));
   if (bufp == NULL){
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Error decoding SNMP Messsage Header (Version)!\n"));
+    fprintf(stderr, "Error decoding SNMP Messsage Header (Version)!\n");
 #endif
     ASN_PARSE_ERROR(NULL);
   }
   bufp = asn_parse_string(bufp, PacketLenP, &type, Community, CommLenP);
   if (bufp == NULL){
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Error decoding SNMP Messsage Header (Community)!\n"));
+    fprintf(stderr, "Error decoding SNMP Messsage Header (Community)!\n");
 #endif
     ASN_PARSE_ERROR(NULL);
   }
@@ -267,8 +267,8 @@ u_char *snmp_msg_Decode(u_char *Packet, int *PacketLenP,
     /* Don't know how to handle this one. */
     snmpInBadVersions_Add(1);
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Unable to parse Version %u\n"), *Version);
-    fprintf(stderr, WIDE("Continuing anyway\n"));
+    fprintf(stderr, "Unable to parse Version %u\n", *Version);
+    fprintf(stderr, "Continuing anyway\n");
 #endif
   }
 

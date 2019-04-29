@@ -63,7 +63,7 @@ public:
 	}
 	void add( int32_t x, int32_t y, uint32_t w, uint32_t h )
 	{
-		//Log4( WIDE("Adding update region %d,%d -%d,%d"), x, y, w, h );
+		//Log4( "Adding update region %d,%d -%d,%d", x, y, w, h );
 		if( _wd == 0 && _ht == 0 )
 		{
 			_x = x;
@@ -89,7 +89,7 @@ public:
       /*
 		if( _wd && _ht )
 		{
-			//Log4( WIDE("Flushing update to display... %d,%d - %d,%d"), _x, _y, _wd, _ht );
+			//Log4( "Flushing update to display... %d,%d - %d,%d", _x, _y, _wd, _ht );
          if( pDisplay )
 				UpdateDisplayPortion( pDisplay, _x, _y, _wd, _ht );
 			else
@@ -284,7 +284,7 @@ private:
 				if( layer != notlayer )
 					if( layer->IsLayerAt( wX, wY ) )
 					{
-						lprintf( WIDE("Okay got a layer to return...") );
+						lprintf( "Okay got a layer to return..." );
 						return layer;
 					}
 				layer = layer->next;
@@ -355,7 +355,7 @@ PLAYER_DATA GetLayerDataAt( int32_t *wX, int32_t *wY, PLAYER notlayer = NULL )
 				if( connect_okay )
 				{
 					//DebugBreak();
-					lprintf( WIDE("Heh guess we should do something when connect succeeds?") );
+					lprintf( "Heh guess we should do something when connect succeeds?" );
 					// keep route_current_layer;
 					layer->Link( route_current_layer, LINK_VIA_END, (wX-layer->x), (wY-layer->y) );
 					route_current_layer = NULL;
@@ -461,11 +461,11 @@ void DoMouse( int X, int Y, int b )
 
 	wX = SCRN_TO_GRID_X( X );
 	wY = SCRN_TO_GRID_Y( Y );
-	//lprintf( WIDE("mouse at %d,%d"), wX, wY );
+	//lprintf( "mouse at %d,%d", wX, wY );
 	{
 		int32_t x = wX, y = wY;
 		PLAYER_DATA pld = GetLayerDataAt( &x, &y );
-		//lprintf( WIDE("%s at %d,%d"), pld?WIDE("something"):WIDE("nothing"), x, y );
+		//lprintf( "%s at %d,%d", pld?"something":"nothing", x, y );
 	}
 
 #ifdef __WINDOWS__
@@ -481,11 +481,11 @@ void DoMouse( int X, int Y, int b )
 	   if( !route_current_layer )
 	   {
 			int32_t x = wX, y = wY;
-			lprintf( WIDE("right at %d,%d"), wX, wY );
+			lprintf( "right at %d,%d", wX, wY );
 			PLAYER_DATA pld = GetLayerDataAt( &x, &y );
 			if( pld )
 			{
-				lprintf( WIDE("Okay it's on a layer, and it's at %d,%d on the layer"), wX, wY );
+				lprintf( "Okay it's on a layer, and it's at %d,%d on the layer", wX, wY );
 				if( !pld->peice->methods->OnRightClick( pld->psvInstance, wX, wY ) )
 					return; // routine has done something to abort processing...
 			}
@@ -511,7 +511,7 @@ void DoMouse( int X, int Y, int b )
 			{
 				if( size_current_layer )
 				{
-               //lprintf( WIDE("Delta is like %d,%d"), wX-xStart, wY-yStart );
+               //lprintf( "Delta is like %d,%d", wX-xStart, wY-yStart );
 					switch( flags.fSizeCorner )
 					{
 					case UP_LEFT:
@@ -550,7 +550,7 @@ void DoMouse( int X, int Y, int b )
 				wY != yStart )
 			{
 				flags.bSlid = TRUE;
-				lprintf( WIDE("updating board origin by %d,%d"), wX-xStart, wY-yStart );
+				lprintf( "updating board origin by %d,%d", wX-xStart, wY-yStart );
 				board_origin_x += wX - xStart;
 				board_origin_y += wY - yStart;
 				wX = xStart;
@@ -599,7 +599,7 @@ void DoMouse( int X, int Y, int b )
 		{
 			int32_t x = wX, y = wY;
 			PLAYER layer = GetLayerAt( &x, &y, route_current_layer );
-			lprintf( WIDE("event at %d,%d"), wX, wY );
+			lprintf( "event at %d,%d", wX, wY );
 			if( route_current_layer )
 			{
 				if( flags.bLeftChanged )
@@ -621,13 +621,13 @@ void DoMouse( int X, int Y, int b )
 			{
 				PLAYER_DATA pld = layer->pLayerData;
 				mouse_current_layer = layer;
-				lprintf( WIDE("Generate on Drag Begin method to peice.") );
+				lprintf( "Generate on Drag Begin method to peice." );
 				pld->peice->methods->OnBeginDrag( pld->psvInstance, x, y );
 				mouse_current_layer = NULL;
 			}
 			else if( default_peice )
 			{
-				lprintf( WIDE("Default peice begin drag.") );
+				lprintf( "Default peice begin drag." );
             // if unhandled...
 				if( default_peice->methods->OnBeginDrag(default_peice_instance,wX,wY) == 0 )
 				{
@@ -644,7 +644,7 @@ void DoMouse( int X, int Y, int b )
 
 			int32_t x = wX, y = wY;
 			PLAYER layer = GetLayerAt( &x, &y, route_current_layer );
-			lprintf( WIDE("event at %d,%d"), wX, wY );
+			lprintf( "event at %d,%d", wX, wY );
 			if( route_current_layer )
 			{
 				if( flags.bLeftChanged )
@@ -662,13 +662,13 @@ void DoMouse( int X, int Y, int b )
 			{
 				PLAYER_DATA pld = layer->pLayerData;
 				mouse_current_layer = layer;
-				lprintf( WIDE("Generate onclick method to peice.") );
+				lprintf( "Generate onclick method to peice." );
 				pld->peice->methods->OnClick( pld->psvInstance, x, y );
 				mouse_current_layer = NULL;
 			}
 			else if( default_peice )
 			{
-				lprintf( WIDE("Default peice click.") );
+				lprintf( "Default peice click." );
 				default_peice->methods->OnClick(default_peice_instance,wX,wY);
 			}
 		}
@@ -711,7 +711,7 @@ IMPORT void LockDrag( void )
 			flags.bLockLeft = FALSE;
 		}
 	}
-	//Log( WIDE("Based on current OnMouse cell data message, lock that into cursor move...") );
+	//Log( "Based on current OnMouse cell data message, lock that into cursor move..." );
 }
 IMPORT void LockPeiceDrag( void )
 {
@@ -734,7 +734,7 @@ IMPORT void LockPeiceDrag( void )
 			flags.bLockLeft = FALSE;
 		}
 	}
-	//Log( WIDE("Based on current OnMouse cell data message, lock that into cursor move...") );
+	//Log( "Based on current OnMouse cell data message, lock that into cursor move..." );
 }
 private:
    void Init( void );
@@ -744,7 +744,7 @@ public:
    BOARD();
    BOARD(PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h );
    ~BOARD();
-	PIPEICE CreatePeice( CTEXTSTR name //= WIDE("A Peice")
+	PIPEICE CreatePeice( CTEXTSTR name //= "A Peice"
 								  , Image image //= NULL
 								  , int rows //= 1
 								  , int cols //= 1
@@ -753,7 +753,7 @@ public:
 								  , PPEICE_METHODS methods //= NULL
 								  , uintptr_t psv
 								  );
-	PIVIA CreateVia( CTEXTSTR name //= WIDE("A Peice")
+	PIVIA CreateVia( CTEXTSTR name //= "A Peice"
 						, Image image //= NULL
 						, PVIA_METHODS methods //= NULL
 					  , uintptr_t psv
@@ -895,7 +895,7 @@ BOARD::BOARD()
 		GetDisplaySize( &w, &h );
 		pDisplay = OpenDisplaySizedAt( 0, w, h, 0, 0 );
 	}
-	//PSI_CONTROL frame = CreateFrameFromRenderer( WIDE("Brain Editor"), BORDER_RESIZABLE, pDisplay );
+	//PSI_CONTROL frame = CreateFrameFromRenderer( "Brain Editor", BORDER_RESIZABLE, pDisplay );
 	update = new UPDATE( pDisplay );
 
 	SetMouseHandler( pDisplay, DoMouseExtern, (uintptr_t)this );
@@ -919,7 +919,7 @@ extern CONTROL_REGISTRATION board_control; // forward declaration so we have the
 BOARD *creating_board;
 
 
-static int OnCreateCommon( WIDE("Brain Edit Control") )( PSI_CONTROL pc )
+static int OnCreateCommon( "Brain Edit Control" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( BOARD **, board_control.TypeID, ppBoard, pc );
 	if( ppBoard )
@@ -943,7 +943,7 @@ static int OnCreateCommon( WIDE("Brain Edit Control") )( PSI_CONTROL pc )
    return TRUE;
 }
 
-static int OnDrawCommon( WIDE("Brain Edit Control") )( PSI_CONTROL pc )
+static int OnDrawCommon( "Brain Edit Control" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( BOARD **, board_control.TypeID, ppBoard, pc );
 	if( ppBoard )
@@ -953,7 +953,7 @@ static int OnDrawCommon( WIDE("Brain Edit Control") )( PSI_CONTROL pc )
 	return 1;
 }
 
-static int OnMouseCommon( WIDE("Brain Edit Control") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
+static int OnMouseCommon( "Brain Edit Control" )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( class BOARD * *, board_control.TypeID, ppBoard, pc );
 	if( ppBoard )
@@ -975,7 +975,7 @@ void CPROC BoardPositionChanging( PSI_CONTROL pc, LOGICAL bStart )
 			LeaveCriticalSec( &(*ppBoard)->cs );
 	}
 }
-CONTROL_REGISTRATION board_control = { WIDE("Brain Edit Control"), { { 256, 256 }, sizeof( class BOARD * ), BORDER_RESIZABLE }
+CONTROL_REGISTRATION board_control = { "Brain Edit Control", { { 256, 256 }, sizeof( class BOARD * ), BORDER_RESIZABLE }
 												 , NULL //InitBrainEditorControl /* int CPROC init(PSI_CONTROL) */
 												 , NULL /* load*/
 												 , NULL //DrawBrainEditorControl
@@ -1050,7 +1050,7 @@ void BOARD::DrawLayer( PLAYER layer )
 	// later, when I get more picky, only draw those cells that changed
    // which may include an offset
 	//peice->getsize( &rows, &cols );
-   //lprintf( WIDE("Drawing layer at %d,%d (%d,%d) origin at %d,%d"), layer->x, layer->y, hotx, hoty, board_origin_x, board_origin_y );
+   //lprintf( "Drawing layer at %d,%d (%d,%d) origin at %d,%d", layer->x, layer->y, hotx, hoty, board_origin_x, board_origin_y );
 	//peice->methods->Draw( layer->pLayerData->psvInstance
 	//						  , GetDisplayImage( pDisplay )
 	//						  , SCREEN_PAD + ( board_origin_x + (layer->x) ) * cell_width
@@ -1121,7 +1121,7 @@ void BOARD::BoardRefresh( void )  // put current board on screen.
 			for( x = sx; x < (signed)board_width; x += cols )
 				for( y = sy; y < (signed)board_height; y += rows )
 				{
-					//lprintf( WIDE("background") );
+					//lprintf( "background" );
 					default_peice->methods->Draw( default_peice_instance
 														 , pImage
 														 , default_peice->getimage(scale)
@@ -1159,13 +1159,13 @@ PLAYER BOARD::PutPeice( PIPEICE peice, int32_t x, int32_t y, uintptr_t psv )
 	uint32_t rows, cols;
 	int32_t hotx, hoty;
 	if( !peice ) {
-		lprintf( WIDE("PEICE IS NULL!") );
+		lprintf( "PEICE IS NULL!" );
 		return NULL;
 	}
 	EnterCriticalSec( &cs );
 	peice->getsize( &rows, &cols );
 	peice->gethotspot( &hotx, &hoty );
-	lprintf( WIDE("hotspot offset of created cell is %d,%d so layer covers from %d,%d to %d,%d,")
+	lprintf( "hotspot offset of created cell is %d,%d so layer covers from %d,%d to %d,%d,"
 			 , hotx, hoty
 			 , x-hotx, y-hoty
 			 , x-hotx+cols, y-hoty+rows );
@@ -1214,7 +1214,7 @@ PIBOARD GetBoardFromControl( PSI_CONTROL pc )
 }
 
 
-PIPEICE BOARD::CreatePeice( CTEXTSTR name //= WIDE("A Peice")
+PIPEICE BOARD::CreatePeice( CTEXTSTR name //= "A Peice"
 								  , Image image //= NULL
 								  , int rows //= 1
 								  , int cols //= 1
@@ -1229,7 +1229,7 @@ PIPEICE BOARD::CreatePeice( CTEXTSTR name //= WIDE("A Peice")
 	return peice; // should be able to auto cast this...
 }
 
-PIVIA BOARD::CreateVia( CTEXTSTR name //= WIDE("A Peice")
+PIVIA BOARD::CreateVia( CTEXTSTR name //= "A Peice"
 											 , Image image //= NULL
 											 , PVIA_METHODS methods //= NULL
 											 , uintptr_t psv
@@ -1296,7 +1296,7 @@ uintptr_t CPROC SaveLayer( POINTER p, uintptr_t psv )
 	{
 		struct save_struct *save_struct = (struct save_struct*)psv;
 		INDEX iLayer = layer->Save( save_struct->odbc );
-		SQLCommandf( save_struct->odbc, WIDE("insert into board_layer_link (board_info_id,board_layer_id) values (%lu,%lu)")
+		SQLCommandf( save_struct->odbc, "insert into board_layer_link (board_info_id,board_layer_id) values (%lu,%lu)"
 					  , save_struct->iBoard
 					  , iLayer );
 	}
@@ -1309,7 +1309,7 @@ uintptr_t CPROC BeginSaveLayer( POINTER p, uintptr_t psv )
 	struct save_struct *save_struct = (struct save_struct*)psv;
 	if( layer->iLayer && layer->iLayer != INVALID_INDEX )
 	{
-		SQLCommandf( save_struct->odbc, WIDE("delete from board_layer_path where board_layer_id=%lu"), layer->iLayer );
+		SQLCommandf( save_struct->odbc, "delete from board_layer_path where board_layer_id=%lu", layer->iLayer );
 		layer->pLayerData->peice->SaveBegin( save_struct->odbc, layer->pLayerData->psvInstance );
 	}
 	layer->iLayer = 0; // or invalid_index
@@ -1323,7 +1323,7 @@ INDEX BOARD::Save( PODBC odbc, CTEXTSTR boardname )
 	save_struct.odbc = odbc;
    CheckTables( odbc );
 
-	if( SQLQueryf( odbc, &result, WIDE("select board_info_id from board_info where board_name=\'%s\'"), EscapeString( boardname ) )
+	if( SQLQueryf( odbc, &result, "select board_info_id from board_info where board_name=\'%s\'", EscapeString( boardname ) )
 		&& result )
 	{
 		save_struct.iBoard = atoi( result );
@@ -1331,11 +1331,11 @@ INDEX BOARD::Save( PODBC odbc, CTEXTSTR boardname )
 	}
 	else
 	{
-		SQLCommandf( odbc, WIDE("insert into board_info (board_name) values (\'%s\')"), EscapeString( boardname ) );
+		SQLCommandf( odbc, "insert into board_info (board_name) values (\'%s\')", EscapeString( boardname ) );
 		save_struct.iBoard = FetchLastInsertID( odbc, NULL, NULL );
 	}
-	//SQLCommandf( odbc, WIDE("update board_info ") );
-	SQLCommandf( odbc, WIDE("delete from board_layer_link where board_info_id = %lu"), save_struct.iBoard );
+	//SQLCommandf( odbc, "update board_info " );
+	SQLCommandf( odbc, "delete from board_layer_link where board_info_id = %lu", save_struct.iBoard );
 
 	ForAllInSet( LAYER, LayerPool, BeginSaveLayer, (uintptr_t)&save_struct );
 	ForAllInSet( LAYER, LayerPool, SaveLayer, (uintptr_t)&save_struct );
@@ -1365,7 +1365,7 @@ LOGICAL BOARD::Load( PODBC odbc, CTEXTSTR boardname )
 	CTEXTSTR result;
 	save_struct.odbc = odbc;
 		
-	if( SQLQueryf( odbc, &result, WIDE("select board_info_id from board_info where board_name=\'%s\'"), EscapeString( boardname ) )
+	if( SQLQueryf( odbc, &result, "select board_info_id from board_info where board_name=\'%s\'", EscapeString( boardname ) )
 		&& result )
 	{
 		EnterCriticalSec( &cs );
@@ -1375,7 +1375,7 @@ LOGICAL BOARD::Load( PODBC odbc, CTEXTSTR boardname )
 		{
 			CTEXTSTR *results;
 			for( SQLRecordQueryf( odbc, NULL, &results, NULL
-							, WIDE("select board_layer_id from board_layer_link where board_info_id=%s order by board_layer_id")
+							, "select board_layer_id from board_layer_link where board_info_id=%s order by board_layer_id"
 							, result );
 				results;
 				FetchSQLRecord( odbc, &results ) )
@@ -1439,7 +1439,7 @@ uintptr_t CPROC DefinePeiceColors( uintptr_t psv, arg_list args )
 		TEXTCHAR keyname[256];\
 		PCLASSROOT data = NULL;\
 		CTEXTSTR name;\
-		tnprintf( keyname, sizeof( keyname ), root WIDE("/%s/") method, method_name );\
+		tnprintf( keyname, sizeof( keyname ), root "/%s/" method, method_name );\
 		for( name = GetFirstRegisteredName( keyname, &data );\
 			 name;\
 			  name = GetNextRegisteredName( &data ) )\
@@ -1460,7 +1460,7 @@ uintptr_t CPROC DefinePeiceColors( uintptr_t psv, arg_list args )
 		TEXTCHAR keyname[256];\
 		PCLASSROOT data = NULL;\
 		CTEXTSTR name;\
-		tnprintf( keyname, sizeof( keyname ), root WIDE("/%s/") method, method_name );\
+		tnprintf( keyname, sizeof( keyname ), root "/%s/" method, method_name );\
 		for( name = GetFirstRegisteredName( keyname, &data );\
 			 name;\
 			  name = GetNextRegisteredName( &data ) )\
@@ -1479,7 +1479,7 @@ uintptr_t CPROC DefinePeiceColors( uintptr_t psv, arg_list args )
 		TEXTCHAR keyname[256];\
 		PCLASSROOT data = NULL;\
 		CTEXTSTR name;\
-		tnprintf( keyname, sizeof( keyname ), root WIDE("/%s/") method, method_name );\
+		tnprintf( keyname, sizeof( keyname ), root "/%s/" method, method_name );\
 		for( name = GetFirstRegisteredName( keyname, &data );\
 			 name;\
 			  name = GetNextRegisteredName( &data ) )\
@@ -1515,43 +1515,43 @@ private:
 public:
 	uintptr_t Create(uintptr_t psvExtra, PLAYER_DATA layer )
 	{
-		GenericInvoke( WIDE("/automaton/board"), WIDE("OnCreate"), uintptr_t, (uintptr_t,PLAYER_DATA), psvExtra, layer );
+		GenericInvoke( "/automaton/board", "OnCreate", uintptr_t, (uintptr_t,PLAYER_DATA), psvExtra, layer );
 		//return (uintptr_t)(brainboard->brain->DupSynapse( brainboard->DefaultSynapse ));
 	}
 	void Destroy( uintptr_t psv )
 	{
-		GenericVoidInvoke( WIDE("/automaton/board"), WIDE("OnDestroy"), (uintptr_t), psv );
+		GenericVoidInvoke( "/automaton/board", "OnDestroy", (uintptr_t), psv );
 	}
 	int Disconnect( uintptr_t psv )
 	{
-		GenericInvoke( WIDE("/automaton/board"), WIDE("OnDisconnect"), int, (uintptr_t), psv );
+		GenericInvoke( "/automaton/board", "OnDisconnect", int, (uintptr_t), psv );
 		return TRUE;
 	}
 	int OnRightClick( uintptr_t psv, int32_t x, int32_t y )
 	{
-      GenericVoidInvoke( WIDE("/automaton/board"), WIDE("Properties"), (uintptr_t,PSI_CONTROL), psv, board->GetControl() );
+      GenericVoidInvoke( "/automaton/board", "Properties", (uintptr_t,PSI_CONTROL), psv, board->GetControl() );
 		//ShowSynapseDialog( (PSYNAPSE)psv );
 		return 1;
 	}
 //	PEICE_PROC( int, OnClick )( uintptr_t psv, int x, int y )
 //	{
-//		lprintf( WIDE("syn") );
+//		lprintf( "syn" );
  //     return 0;
  //  }
 	void SaveBegin( PODBC odbc, uintptr_t psvInstance )
 	{
-		//SQLCommandf( odbc, WIDE("delete from board_layer_neuron where board_layer_id=%lu"), iParent );
+		//SQLCommandf( odbc, "delete from board_layer_neuron where board_layer_id=%lu", iParent );
 		//PSYNAPSE synapse = (PSYNAPSE)psvInstance;
 		//synapse->SaveBegin( odbc );
 	}
 	INDEX Save( PODBC odbc, INDEX iParent, uintptr_t psvInstance )
 	{
-		//SQLCommandf( odbc, WIDE("delete from board_layer_synapse where board_layer_id=%lu"), iParent );
+		//SQLCommandf( odbc, "delete from board_layer_synapse where board_layer_id=%lu", iParent );
 		//INDEX iBrainSynapse = 
 		//return ((PSYNAPSE)psvInstance)->Save( odbc, iParent );
-		//SQLInsert( odbc, WIDE("board_layer_synapse")
-		//			, WIDE("board_layer_id"), 2, iParent
-		//			, WIDE("brain_synapse_id"), 2, iBrainSynapse
+		//SQLInsert( odbc, "board_layer_synapse"
+		//			, "board_layer_id", 2, iParent
+		//			, "brain_synapse_id", 2, iBrainSynapse
 		//			, NULL, 0, NULL );
 		//return FetchLastInsertID( odbc, NULL, NULL );
       return INVALID_INDEX;
@@ -1582,16 +1582,16 @@ public:
 
 	uintptr_t Create(uintptr_t psvExtra, PLAYER_DATA layer )
 	{
-		GenericInvoke( WIDE("/automaton/board"), WIDE("OnCreate"), uintptr_t, (uintptr_t,PLAYER_DATA), psvExtra, layer );
+		GenericInvoke( "/automaton/board", "OnCreate", uintptr_t, (uintptr_t,PLAYER_DATA), psvExtra, layer );
 	}
 
 	void Destroy( uintptr_t asdf )
 	{
-      GenericVoidInvoke( WIDE("/automaton/board"), WIDE("OnDestroy"), (uintptr_t), asdf );
+      GenericVoidInvoke( "/automaton/board", "OnDestroy", (uintptr_t), asdf );
 	}
 	PEICE_PROC( void, Properties )( uintptr_t psv, PSI_CONTROL parent )
 	{
-      	GenericVoidInvoke( WIDE("/automaton/board"), WIDE("Properties"), (uintptr_t,PSI_CONTROL), psv, parent );
+      	GenericVoidInvoke( "/automaton/board", "Properties", (uintptr_t,PSI_CONTROL), psv, parent );
 
 	}
 	PEICE_PROC( int, Connect )( uintptr_t psvTo
@@ -1599,43 +1599,43 @@ public:
 				  , uintptr_t psvFrom
 				  , int rowfrom, int colfrom )
 	{
-		GenericInvoke( WIDE("/automaton/board"), WIDE("connect"), int
+		GenericInvoke( "/automaton/board", "connect", int
 						 , (uintptr_t,int,int,uintptr_t,int,int)
 						 , psvTo, rowto, colto, psvFrom, rowfrom, colfrom );
 	}
 
 	void Update( uintptr_t psv, uint32_t cycle )
 	{
-		GenericVoidInvoke( WIDE("/automaton/board"), WIDE("update"), (uintptr_t,uint32_t), psv, cycle );
+		GenericVoidInvoke( "/automaton/board", "update", (uintptr_t,uint32_t), psv, cycle );
 	}
 
 	int OnBeginDrag( uintptr_t psv, int32_t x, int32_t y )
 	{
-		GenericInvoke( WIDE("/automaton/board"), WIDE("OnMouseBeginDrag"), int, (uintptr_t,int32_t,int32_t), psv, x, y );
+		GenericInvoke( "/automaton/board", "OnMouseBeginDrag", int, (uintptr_t,int32_t,int32_t), psv, x, y );
       	return 0;
 	}
 
 	int OnClick( uintptr_t psv, int32_t x, int32_t y )
 	{
-		GenericInvoke( WIDE("/automaton/board"), WIDE("OnMouseDown"), int, (uintptr_t,int32_t,int32_t), psv, x, y );
+		GenericInvoke( "/automaton/board", "OnMouseDown", int, (uintptr_t,int32_t,int32_t), psv, x, y );
 		//board->LockDrag();
 		return 0;
 	}
 	int OnTap( uintptr_t psv, int32_t x, int32_t y )
 	{
-		GenericInvoke( WIDE("/automaton/board"), WIDE("OnMouseTap"), int, (uintptr_t,int32_t,int32_t), psv, x, y );
+		GenericInvoke( "/automaton/board", "OnMouseTap", int, (uintptr_t,int32_t,int32_t), psv, x, y );
 		//board->LockDrag();
 		return 0;
 	}
 	int OnRightClick( uintptr_t psv, int32_t x, int32_t y )
 	{
-		GenericVoidInvoke( WIDE("/automaton/board"), WIDE("Properties"), (uintptr_t,PSI_CONTROL), psv,board->GetControl() );
+		GenericVoidInvoke( "/automaton/board", "Properties", (uintptr_t,PSI_CONTROL), psv,board->GetControl() );
 		return 1;
 	}
 	void  Draw( uintptr_t psvInstance, Image surface, Image peice, int32_t x, int32_t y )
 	{
 		bool result = false;
-		GenericVoidInvokeEx( result, WIDE("/automaton/board"), WIDE("OnDraw"), (uintptr_t,Image,Image,int32_t,int32_t), psvInstance, surface, peice, x, y );
+		GenericVoidInvokeEx( result, "/automaton/board", "OnDraw", (uintptr_t,Image,Image,int32_t,int32_t), psvInstance, surface, peice, x, y );
 		if( !result )
 		{
 			PEICE_METHODS::Draw( psvInstance, surface, peice, x, y );
@@ -1650,13 +1650,13 @@ public:
 	int ConnectEnd( uintptr_t psv_to_instance, int32_t x, int32_t y
 									  , PIPEICE peice_from, uintptr_t psv_from_instance )
 	{
-		GenericInvoke( WIDE("/automaton/board"), WIDE("OnEndConnect"), int, (uintptr_t,int32_t,int32_t,PIPEICE,uintptr_t)
+		GenericInvoke( "/automaton/board", "OnEndConnect", int, (uintptr_t,int32_t,int32_t,PIPEICE,uintptr_t)
 						 , psv_to_instance, x, y, peice_from, psv_from_instance );
 	}
 	int ConnectBegin( uintptr_t psv_to_instance, int32_t x, int32_t y
 									  , PIPEICE peice_from, uintptr_t psv_from_instance )
 	{
-		GenericInvoke( WIDE("/automaton/board"), WIDE("OnBeginConnect"), int, (uintptr_t,int32_t,int32_t,PIPEICE,uintptr_t)
+		GenericInvoke( "/automaton/board", "OnBeginConnect", int, (uintptr_t,int32_t,int32_t,PIPEICE,uintptr_t)
 						 , psv_to_instance, x, y, peice_from, psv_from_instance );
 	}
 
@@ -1677,7 +1677,7 @@ void BOARD::DefineABlock( arg_list args )
 	Image image = LoadImageFile( filename );
 	if( image )
 	{
-		lprintf( WIDE("Make block %s : %s"), type, filename );
+		lprintf( "Make block %s : %s", type, filename );
 		PIPEICE pip = CreatePeice( type, image
 										, (int)cx, (int)cy
 										, ((int)cx-1)/2, ((int)cy-1)/2
@@ -1686,7 +1686,7 @@ void BOARD::DefineABlock( arg_list args )
 										 );
 	}
 	else
-		lprintf( WIDE("Failed to open %s"), filename );
+		lprintf( "Failed to open %s", filename );
 }
 uintptr_t CPROC DefineABlock( uintptr_t psv, arg_list args )
 {
@@ -1702,7 +1702,7 @@ void BOARD::DefineABlockNoOpt( arg_list args )
 	PARAM( args, TEXTCHAR *, filename );
 	//PPEICE_METHODS methods = FindPeiceMethods( type );
 	Image image = LoadImageFile( filename );
-	lprintf( WIDE("Attempt to define via with %s"), filename );
+	lprintf( "Attempt to define via with %s", filename );
 	if( image )
 		CreateVia( type, image, new PROCREG_VIA_INVOKE( this, type ), (uintptr_t)this );
 }
@@ -1722,12 +1722,12 @@ LOGICAL BOARD::LoadPeiceConfiguration( CTEXTSTR file )
 {
 	int result;
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
-	AddConfigurationMethod( pch, WIDE("cell size %i by %i"), ::ConfigSetCellSize );
-	//#AddConfigurationMethod( pch, WIDE("color %w %c"), DefineAColor );
-	AddConfigurationMethod( pch, WIDE("block %w (%i by %i) %p"), ::DefineABlock );
-	AddConfigurationMethod( pch, WIDE("color %w %i %c %c %c"), ::DefinePeiceColors );
-	AddConfigurationMethod( pch, WIDE("pathway %w %p"), ::DefineABlockNoOpt );
-	lprintf( WIDE("Load %s"), file );
+	AddConfigurationMethod( pch, "cell size %i by %i", ::ConfigSetCellSize );
+	//#AddConfigurationMethod( pch, "color %w %c", DefineAColor );
+	AddConfigurationMethod( pch, "block %w (%i by %i) %p", ::DefineABlock );
+	AddConfigurationMethod( pch, "color %w %i %c %c %c", ::DefinePeiceColors );
+	AddConfigurationMethod( pch, "pathway %w %p", ::DefineABlockNoOpt );
+	lprintf( "Load %s", file );
 	result = ProcessConfigurationFile( pch, file, (uintptr_t)this );
 	DestroyConfigurationHandler( pch );
 	return result;

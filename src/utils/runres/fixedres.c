@@ -152,13 +152,13 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash, char const * c
 								break;
 							}
 							//char msg[256];
-							lprintf( WIDE("Failed to change resolution to %d by %d (16,24 or 32 bit) %d %d")
+							lprintf( "Failed to change resolution to %d by %d (16,24 or 32 bit) %d %d"
 									 , mode->dmPelsWidth
 									 , mode->dmPelsHeight
 									 , result
 									 , GetLastError() );
 							//MessageBox( NULL, msg
-							//			 , WIDE("Resolution Failed"), MB_OK );
+							//			 , "Resolution Failed", MB_OK );
 						}
 						else
 						{
@@ -270,8 +270,8 @@ int main( int argc, char const *const *argv )
    FindDevice();
 	if( argc < 3 )
 	{
-		printf( WIDE("usage: %0 <width> <height> [<bits>] program [<arguments...>]\n"), argv[0] );
-		lprintf( WIDE("usage: %0 <width> <height> [<bits>] program [<arguments...>]"), argv[0] );
+		printf( "usage: %0 <width> <height> [<bits>] program [<arguments...>]\n", argv[0] );
+		lprintf( "usage: %0 <width> <height> [<bits>] program [<arguments...>]", argv[0] );
       return 1;
 	}
 	{
@@ -284,7 +284,7 @@ int main( int argc, char const *const *argv )
 		if( argv[arg] && ( argv[arg][0] >= '0' && argv[arg][0] <= '9' ) )
 			bits = atol( argv[arg++] );
 		//program = argv[arg];
-      printf( WIDE("Setting %d,%d (%d)\n"), program, width, height, bits );
+      printf( "Setting %d,%d (%d)\n", program, width, height, bits );
 #ifdef WIN32
       SetResolution( width, height, argv[arg++] );
 #endif

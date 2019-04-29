@@ -36,8 +36,8 @@ static int myTypeID4; // udp server
 PTEXT CPROC GetClientIP( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue );
 PTEXT CPROC GetServerIP( uintptr_t psv, struct entity_tag *pe, PTEXT *lastvalue );
 
-static volatile_variable_entry vve_clientIP = { DEFTEXT( WIDE("client_ip") ), GetClientIP, NULL };
-static volatile_variable_entry vve_serverIP = { DEFTEXT( WIDE("server_ip") ), GetServerIP, NULL };
+static volatile_variable_entry vve_clientIP = { DEFTEXT( "client_ip" ), GetClientIP, NULL };
+static volatile_variable_entry vve_serverIP = { DEFTEXT( "server_ip" ), GetServerIP, NULL };
 #endif
 //static volatile_variable_entry vve_clientIP;
 //static volatile_variable_entry vve_serverIP;
@@ -55,15 +55,15 @@ int InitNetwork( PSENTIENT ps )
 	static int bIniting = FALSE;
 	while( bIniting )
 	{
-		//Log( WIDE("Delay to init...\n"));
+		//Log( "Delay to init...\n");
 		Sleep(5);
 	}
 	bIniting = TRUE;
-	//Log( WIDE("Start NetInit\n") );
+	//Log( "Start NetInit\n" );
 	if( !bInit &&
 		 !NetworkWait( 0, MAX_CLIENTS, 32 ) )
 	{
-		DECLTEXT( msg, WIDE("Absolutely no network.") );
+		DECLTEXT( msg, "Absolutely no network." );
 		if( ps->Command )
 			EnqueLink( &ps->Command->Output, &msg );
 
@@ -84,7 +84,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER pbuf, size_t nSize )
 		pdp = (PMYDATAPATH)GetNetworkLong( pc, DATA_PATH );
 		if( !pdp )
 		{
-			Log( WIDE("Terminal waiting for datapath to be present...") );
+			Log( "Terminal waiting for datapath to be present..." );
 			Relinquish();
 		}
 	}while( !pdp );
@@ -133,20 +133,20 @@ static void CPROC TerminalCloseCallback( PCLIENT pc )
 		pdp->common.flags.Closed = TRUE;
 		//if(!ps->CurrentMacro)
 		{
-			//DECLTEXT( msg, WIDE("Terminal data connection closed.") );
+			//DECLTEXT( msg, "Terminal data connection closed." );
 			//EnqueLink( &pdp->common.Input, &msg );
 			// do find macro, do command - else enque the message...
-			if( !InvokeBehavior( WIDE("close_tcp"), ps->Current, ps, NULL ) )
+			if( !InvokeBehavior( "close_tcp", ps->Current, ps, NULL ) )
 			{
 				// at least with this close method we can see it happen under /debug...
-				QueueCommand( ps, WIDE("/CloseTerm") );
+				QueueCommand( ps, "/CloseTerm" );
 			}
 		}
 		pdp->handle = NULL; // will be closed after callback exits.
 		WakeAThread( ps );
 	}
 	else
-		lprintf( WIDE("Failed to get stuff... ") );
+		lprintf( "Failed to get stuff... " );
 }
 //---------------------------------------------------------------------------
 
@@ -162,7 +162,7 @@ static void CPROC ClientDisconnected( PCLIENT pc )
 
 	if( ps )
 	{
-		if( !InvokeBehavior( WIDE("close_tcp"), ps->Current, ps, NULL ) )
+		if( !InvokeBehavior( "close_tcp", ps->Current, ps, NULL ) )
 		{
 			// at least with this close method we can see it happen under /debug...
 			DestroyEntity( ps->Current );
@@ -195,7 +195,7 @@ static void CPROC ServerRecieve( PCLIENT pc, POINTER pBuffer, size_t nSize )
 		PTEXT pBuild;
 		Buffer->data.size = nSize;
 		pBuild = SegDuplicate( Buffer );
-		//lprintf( WIDE("Received: %s"), GetText( pBuild ) );
+		//lprintf( "Received: %s", GetText( pBuild ) );
 		EnqueLink( &pdp->common.Input, pBuild );
 		WakeAThread( pdp->common.Owner );
 	}
@@ -233,7 +233,7 @@ static int CPROC TerminalTransmitEx( PDATAPATH pdpX, LOGICAL secure )
 		while( ( pdel = tokens = (PTEXT)DequeLink( &pdp->common.Output ) ) )
 		{
 			{
-				//Log2( WIDE("Sending %d bytes to connection FORMATTED! %08x"), GetTextSize( tokens ), NEXTLINE(tokens ) );
+				//Log2( "Sending %d bytes to connection FORMATTED! %08x", GetTextSize( tokens ), NEXTLINE(tokens ) );
 				if( pdp->bCommandOut && !(tokens->flags & TF_NORETURN ))
 				{
 					if(( ofs + 2) < sizeof(byOutputBuf) )
@@ -275,7 +275,7 @@ static int CPROC TerminalTransmitEx( PDATAPATH pdpX, LOGICAL secure )
 						{
 							if( ofs )
 							{
-								lprintf( WIDE("sending (%d) %s"), ofs, byOutputBuf );
+								lprintf( "sending (%d) %s", ofs, byOutputBuf );
 								if( secure )
 									ssl_Send( pdp->handle, byOutputBuf, ofs );
 								else
@@ -296,7 +296,7 @@ static int CPROC TerminalTransmitEx( PDATAPATH pdpX, LOGICAL secure )
 							MemCpy( byOutputBuf+ofs
 									, GetText( pSeg )
 									, len );
-							//lprintf( WIDE("Enque block...") );
+							//lprintf( "Enque block..." );
 							//LogBinary( byOutputBuf + ofs, len );
 							ofs += len;
 						}
@@ -317,7 +317,7 @@ static int CPROC TerminalTransmitEx( PDATAPATH pdpX, LOGICAL secure )
 #if 0
 	else
 	{
-		Log( WIDE("We're so fucked...\n") );
+		Log( "We're so fucked...\n" );
 		DebugBreak();
 	}
 #endif
@@ -362,7 +362,7 @@ static int CPROC Close( PDATAPATH pdpClose )
 			if( ps->Command )
 			{
 				// do find macro, do command - else enque the message...
-				QueueCommand( ps, WIDE("/CloseTerm") );
+				QueueCommand( ps, "/CloseTerm" );
 			}
 		}
 		return 0;
@@ -380,7 +380,7 @@ static int CPROC AutoRelay( PDATAPATH pdp )
 static void ClearCommandHold( struct sentient_tag *ps// sentient processing macro
 						 , struct macro_state_tag *pMacState ) // saves extra peek...
 {
-	//Log( WIDE("Clearing commands for macro...") );
+	//Log( "Clearing commands for macro..." );
 	ps->flags.bHoldCommands = FALSE;
 	PopData( &ps->MacroStack );
 }
@@ -423,7 +423,7 @@ static void CPROC ServerContacted( PCLIENT pListen,PCLIENT pNew  )
 		}
 
 		psNew = CreateAwareness( pe );
-		//Assimilate( psNew, tmp = SegCreateFromText( WIDE("net device") ) );
+		//Assimilate( psNew, tmp = SegCreateFromText( "net device" ) );
 		//LineRelease( tmp );
 		psNew->flags.bHoldCommands = TRUE;
 		if( bCommand )
@@ -432,26 +432,26 @@ static void CPROC ServerContacted( PCLIENT pListen,PCLIENT pNew  )
 			// even though this is eally a fancy forced-opening...
 			//DestroyDataPath( psNew->Command ); // new sentients have one already...
 			pdp = CreateDataPath( &psNew->Command, MYDATAPATH );
-			pdp->common.pName = SegCreateFromText( WIDE("cmd") );
+			pdp->common.pName = SegCreateFromText( "cmd" );
 		}
 		else
 		{
 			DeleteLinkQueue( &psNew->Command->Output );
 			pdp = CreateDataPath( &psNew->Data, MYDATAPATH );
-			pdp->common.pName = SegCreateFromText( WIDE("data") );
+			pdp->common.pName = SegCreateFromText( "data" );
 		}
 		pdp->common.Owner = psNew;
 		{
 			PMACROSTATE pms;
 			// case doesn't matter, and we'll prove it.
-			pms = InvokeBehavior( WIDE("accept_tcp"), ps->Current, psNew, NULL );
+			pms = InvokeBehavior( "accept_tcp", ps->Current, psNew, NULL );
 			if( !pms )
 			{
 				PMACRO match;
-				match = LocateMacro( psNew->Current, WIDE("Accept") );
+				match = LocateMacro( psNew->Current, "Accept" );
 				if( match )
 				{
-					Log( WIDE("Invoking Accept macro..") );
+					Log( "Invoking Accept macro.." );
 					InvokeMacro( psNew, match, NULL );
 					pms = (PMACROSTATE)PeekData( &psNew->MacroStack );
 				}
@@ -494,7 +494,7 @@ static int CPROC serverwrite( PDATAPATH ps )
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-static PDATAPATH OnInitDevice( WIDE("tcpserver"), WIDE("Telnet server socket connection...")  )( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
+static PDATAPATH OnInitDevice( "tcpserver", "Telnet server socket connection..."  )( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
 	PMYDATAPATH pdp;
 	PTEXT pAddress;
@@ -514,15 +514,15 @@ static PDATAPATH OnInitDevice( WIDE("tcpserver"), WIDE("Telnet server socket con
 		ReleaseAddress( sa );
 		if( !pdp->handle )
 		{
-			DECLTEXT( msg, WIDE("Couldn't listen at network address\n") );
+			DECLTEXT( msg, "Couldn't listen at network address\n" );
 			EnqueLink( &ps->Command->Output, &msg );
 			DestroyDataPath( (PDATAPATH)pdp );
 			return NULL;
 		}
 		else
 		{
-			AddBehavior( ps->Current, WIDE("accept_tcp"), WIDE("This is a new connected, just now accepted") );
-			AddBehavior( ps->Current, WIDE("close_tcp"), WIDE("Datapath has closed (multiple same-type datapaths fail") );
+			AddBehavior( ps->Current, "accept_tcp", "This is a new connected, just now accepted" );
+			AddBehavior( ps->Current, "close_tcp", "Datapath has closed (multiple same-type datapaths fail" );
 		}
 		pdp->common.Type = 1;//myTypeID2;
 		pdp->common.Close = Close;
@@ -541,7 +541,7 @@ static void  CPROC TerminalConnect( PCLIENT pClient, int nError )
 {
 	if( nError )
 	{
-			Log1( WIDE("Aborted connect after return : %d"), nError );
+			Log1( "Aborted connect after return : %d", nError );
 		TerminalCloseCallback( pClient ); // calls remove client..
 	}
 	else
@@ -549,7 +549,7 @@ static void  CPROC TerminalConnect( PCLIENT pClient, int nError )
 }
 
 //---------------------------------------------------------------------------
-static PDATAPATH OnInitDevice(WIDE("tcp"), WIDE("Telnet type clear text socket connection..."))( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
+static PDATAPATH OnInitDevice("tcp", "Telnet type clear text socket connection...")( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
 	SOCKADDR *sa;
 	PTEXT pDestination;
@@ -594,7 +594,7 @@ static PDATAPATH OnInitDevice(WIDE("tcp"), WIDE("Telnet type clear text socket c
 		}
 		else
 		{
-			Log( WIDE("Aborted during connect...") );
+			Log( "Aborted during connect..." );
 			LineRelease( pdp->Buffer );
 			DestroyDataPath( (PDATAPATH)pdp );
 			pdp = NULL;
@@ -605,7 +605,7 @@ static PDATAPATH OnInitDevice(WIDE("tcp"), WIDE("Telnet type clear text socket c
 
 
 //---------------------------------------------------------------------------
-static PDATAPATH OnInitDevice(WIDE("tls"), WIDE("Telnet type clear text TLS socket connection..."))( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
+static PDATAPATH OnInitDevice("tls", "Telnet type clear text TLS socket connection...")( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
 	SOCKADDR *sa;
 	PTEXT pDestination;
@@ -650,7 +650,7 @@ static PDATAPATH OnInitDevice(WIDE("tls"), WIDE("Telnet type clear text TLS sock
 		}
 		else
 		{
-			Log( WIDE("Aborted during connect...") );
+			Log( "Aborted during connect..." );
 			LineRelease( pdp->Buffer );
 			DestroyDataPath( (PDATAPATH)pdp );
 			pdp = NULL;
@@ -727,7 +727,7 @@ static int CPROC UDPTransmit( PDATAPATH pdpX )
 							  , pSend->data.size
 							  , (SOCKADDR*)pAddrData ) )
 			{
-				//DECLTEXT( msg, WIDE("Send Failed...") );
+				//DECLTEXT( msg, "Send Failed..." );
 			}
 		}
 		LineRelease( pSend );
@@ -743,7 +743,7 @@ static int CPROC UDPTransmit( PDATAPATH pdpX )
 //---------------------------------------------------------------------------
 
 // udp
-static PDATAPATH OnInitDevice(WIDE("udpserver"), WIDE("UDP datagram connection..."))( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
+static PDATAPATH OnInitDevice("udpserver", "UDP datagram connection...")( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
 	// blah - uhmm like stuff....
 	PMYDATAPATH pdp;
@@ -767,7 +767,7 @@ static PDATAPATH OnInitDevice(WIDE("udpserver"), WIDE("UDP datagram connection..
 		ReleaseAddress( sa );
 		if( !pdp->handle )
 		{
-			DECLTEXT( msg, WIDE("Could not open UDP Receiver") );
+			DECLTEXT( msg, "Could not open UDP Receiver" );
 			EnqueLink( &ps->Command->Output, &msg );
 			Release( pdp->Buffer );
 			DestroyDataPath( (PDATAPATH)pdp );
@@ -794,7 +794,7 @@ static PDATAPATH OnInitDevice(WIDE("udpserver"), WIDE("UDP datagram connection..
 
 //---------------------------------------------------------------------------
 
-static PDATAPATH OnInitDevice(WIDE("udp"), WIDE("UDP datagram connection..."))( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
+static PDATAPATH OnInitDevice("udp", "UDP datagram connection...")( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
 	PMYDATAPATH pdp;
 	PTEXT pDestination, pSource;
@@ -825,7 +825,7 @@ static PDATAPATH OnInitDevice(WIDE("udp"), WIDE("UDP datagram connection..."))( 
 			ReleaseAddress( saFrom );
 		if( !pdp->handle )
 		{
-			DECLTEXT( msg, WIDE("Could not open UDP Socket...") );
+			DECLTEXT( msg, "Could not open UDP Socket..." );
 			EnqueLink( &ps->Command->Output, &msg );
 			Release( pdp->Buffer );
 			DestroyDataPath( (PDATAPATH)pdp );
@@ -852,21 +852,21 @@ static PDATAPATH OnInitDevice(WIDE("udp"), WIDE("UDP datagram connection..."))( 
 
 //---------------------------------------------------------------------------
 
-static int HandleCommand( WIDE("Network"), WIDE("getaddr") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand( "Network", "getaddr" , "Get network address from message...")( PSENTIENT ps, PTEXT parameters )
 {
 	return 0;
 }
 
 //---------------------------------------------------------------------------
 
-static int HandleCommand(WIDE("Network"), WIDE("getip") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters )	// input is %textaddr %outvar
+static int HandleCommand("Network", "getip" , "Get network address from message...")( PSENTIENT ps, PTEXT parameters )	// input is %textaddr %outvar
 {
 	PTEXT var1, var2, save, pPort;
 	save = parameters;
 	var1 = GetParam( ps, &parameters );
 	if( var1 == save )
 	{
-		DECLTEXT( msg, WIDE("Invalid variable reference...") );
+		DECLTEXT( msg, "Invalid variable reference..." );
 		EnqueLink( &ps->Command->Output, &msg );
 //		return 0;
 	}
@@ -879,7 +879,7 @@ static int HandleCommand(WIDE("Network"), WIDE("getip") , WIDE("Get network addr
 	var2 = GetParam( ps, &parameters );
 	if( var2 == save )
 	{
-		DECLTEXT( msg, WIDE("Invalid variable reference...") );
+		DECLTEXT( msg, "Invalid variable reference..." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
@@ -893,14 +893,14 @@ static int HandleCommand(WIDE("Network"), WIDE("getip") , WIDE("Get network addr
 			sa = (SOCKADDR*)GetText( var1 );
 			if( sa->sa_family != AF_INET )
 			{
-				DECLTEXT( msg, WIDE("Binary data is not an INET address...") );
+				DECLTEXT( msg, "Binary data is not an INET address..." );
 				EnqueLink( &ps->Command->Output, &msg );
 				return 0;
 			}
 			else
 			{
 				pPort = SegCreate( 15 );
-				pPort->data.size = snprintf( pPort->data.data, pPort->data.size*sizeof(TEXTCHAR), WIDE("%s")
+				pPort->data.size = snprintf( pPort->data.data, pPort->data.size*sizeof(TEXTCHAR), "%s"
 												  , inet_ntoa( (
 #ifdef __LINUX__
 																	 *(struct in_addr*)&
@@ -919,7 +919,7 @@ static int HandleCommand(WIDE("Network"), WIDE("getip") , WIDE("Get network addr
 			}
 			else
 			{
-				DECLTEXT( msg, WIDE("Dunno how to interpret as an IP:PORT...") );
+				DECLTEXT( msg, "Dunno how to interpret as an IP:PORT..." );
 				EnqueLink( &ps->Command->Output, &msg );
 			}
 		}
@@ -931,7 +931,7 @@ static int HandleCommand(WIDE("Network"), WIDE("getip") , WIDE("Get network addr
 	}
 	else
 	{
-		DECLTEXT( msg, WIDE("Parameters to GetIP are wrong... /getip ip:port %into") );
+		DECLTEXT( msg, "Parameters to GetIP are wrong... /getip ip:port %into" );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
@@ -940,14 +940,14 @@ static int HandleCommand(WIDE("Network"), WIDE("getip") , WIDE("Get network addr
 
 //---------------------------------------------------------------------------
 
-static int HandleCommand(WIDE("Network"), WIDE("getport") , WIDE("Get network address from message..."))( PSENTIENT ps, PTEXT parameters ) // input is %textaddr %outvar
+static int HandleCommand("Network", "getport" , "Get network address from message...")( PSENTIENT ps, PTEXT parameters ) // input is %textaddr %outvar
 {
 	PTEXT var1, var2, save, pPort;
 	save = parameters;
 	var1 = GetParam( ps, &parameters );
 	if( var1 == save )
 	{
-		DECLTEXT( msg, WIDE("Invalid variable reference...") );
+		DECLTEXT( msg, "Invalid variable reference..." );
 		EnqueLink( &ps->Command->Output, &msg );
 //		return 0;
 	}
@@ -957,7 +957,7 @@ static int HandleCommand(WIDE("Network"), WIDE("getport") , WIDE("Get network ad
 	var2 = GetParam( ps, &parameters );
 	if( var2 == save )
 	{
-		DECLTEXT( msg, WIDE("Invalid variable reference...") );
+		DECLTEXT( msg, "Invalid variable reference..." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
@@ -970,14 +970,14 @@ static int HandleCommand(WIDE("Network"), WIDE("getport") , WIDE("Get network ad
 			sa = (SOCKADDR*)GetText( var1 );
 			if( sa->sa_family != AF_INET )
 			{
-				DECLTEXT( msg, WIDE("Binary data is not an INET address...") );
+				DECLTEXT( msg, "Binary data is not an INET address..." );
 				EnqueLink( &ps->Command->Output, &msg );
 				return 0;
 			}
 			else
 			{
 				pPort = SegCreate( 5 );
-				pPort->data.size = snprintf( pPort->data.data, pPort->data.size*sizeof(TEXTCHAR), WIDE("%d")
+				pPort->data.size = snprintf( pPort->data.data, pPort->data.size*sizeof(TEXTCHAR), "%d"
 									  , ntohs( *(unsigned short*)sa->sa_data ) );
 			}
 		}
@@ -992,7 +992,7 @@ static int HandleCommand(WIDE("Network"), WIDE("getport") , WIDE("Get network ad
 			}
 			else
 			{
-				DECLTEXT( msg, WIDE("Dunno how to interpret as an IP:PORT...") );
+				DECLTEXT( msg, "Dunno how to interpret as an IP:PORT..." );
 				EnqueLink( &ps->Command->Output, &msg );
 			}
 		}
@@ -1004,7 +1004,7 @@ static int HandleCommand(WIDE("Network"), WIDE("getport") , WIDE("Get network ad
 	}
 	else
 	{
-		DECLTEXT( msg, WIDE("Parameters to GetIP are wrong... /getip ip:port %into") );
+		DECLTEXT( msg, "Parameters to GetIP are wrong... /getip ip:port %into" );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
@@ -1022,7 +1022,7 @@ static int HandleCommand(WIDE("Network"), WIDE("getport") , WIDE("Get network ad
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-static int HandleCommand(WIDE("Network"), WIDE("whois"), WIDE("Perform whois query on listed names."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand("Network", "whois", "Perform whois query on listed names.")( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT temp;
 #undef byOutput // ... yuck.
@@ -1064,7 +1064,7 @@ static int HandleCommand(WIDE("Network"), WIDE("whois"), WIDE("Perform whois que
 	return 0;
 }
 
-static int HandleCommand(WIDE("Network"), WIDE("ping"), WIDE("Ping a network address..."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand("Network", "ping", "Ping a network address...")( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT temp;
 	PVARTEXT pvt = VarTextCreate();
@@ -1101,7 +1101,7 @@ static int HandleCommand(WIDE("Network"), WIDE("ping"), WIDE("Ping a network add
 	return 0;
 }
 
-static int HandleCommand(WIDE("Network"), WIDE("trace"), WIDE("Route trace a network address..."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand("Network", "trace", "Route trace a network address...")( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT temp;
 	PVARTEXT pvt = VarTextCreate();
@@ -1159,7 +1159,7 @@ static uintptr_t CPROC ThreadProc( PTHREAD pThread )
 	{
 		PTEXT pOutput;
 		TEXTCHAR byOutput[256];
-		snprintf( byOutput, sizeof( byOutput ), WIDE("Connected to address at port: %ld"), dwPort );
+		snprintf( byOutput, sizeof( byOutput ), "Connected to address at port: %ld", dwPort );
 		pOutput = SegCreateFromText( byOutput );
 		EnqueLink( &psScanning->Command->Output, pOutput );
 		RemoveClient( pc );
@@ -1188,7 +1188,7 @@ uintptr_t CPROC PortScanner( PTHREAD thread )
 	{
 		PTEXT pOutput;
 		TEXTCHAR byOutput[256];
-		snprintf( byOutput, sizeof( byOutput ), WIDE("Checked ports %d - %d"), wPortFrom, wPortNow );
+		snprintf( byOutput, sizeof( byOutput ), "Checked ports %d - %d", wPortFrom, wPortNow );
 		pOutput = SegCreateFromText( byOutput );
 		EnqueLink( &psScanning->Command->Output, pOutput );
 	}
@@ -1197,7 +1197,7 @@ uintptr_t CPROC PortScanner( PTHREAD thread )
 	return 0;
 }
 
-static int HandleCommand(WIDE("Network"), WIDE("portscan"), WIDE("scan first 2000 ports at an address..."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand("Network", "portscan", "scan first 2000 ports at an address...")( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT temp;
 	PSENTIENT psOld;
@@ -1209,7 +1209,7 @@ static int HandleCommand(WIDE("Network"), WIDE("portscan"), WIDE("scan first 200
 	{
 		PTEXT pOutput;
 		TEXTCHAR byOutput[256];
-		snprintf( byOutput, sizeof( byOutput ), WIDE("Port scan running to %s ports %d - %d now on %d"),
+		snprintf( byOutput, sizeof( byOutput ), "Port scan running to %s ports %d - %d now on %d",
 						pAddr, wPortFrom, wPortTo, wPortNow );
 		pOutput = SegCreateFromText( byOutput );
 		EnqueLink( &psScanning->Command->Output, pOutput );
@@ -1238,7 +1238,7 @@ static int HandleCommand(WIDE("Network"), WIDE("portscan"), WIDE("scan first 200
 }
 
 
-static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("client_ip"), WIDE("current client side IP") )( PENTITY pe, PTEXT *ppLastValue )
+static PTEXT DeviceVolatileVariableGet( "net object", "client_ip", "current client side IP" )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT GetClientIP( uintptr_t psv, struct entity_tag *pe, PTEXT *ppLastValue )
 {
 	PCLIENT pc = (PCLIENT)GetLink( &pe->pPlugin, iNetObject );
@@ -1252,7 +1252,7 @@ static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("client_ip"), W
 	return *ppLastValue;
 }
 
-static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("server_ip"), WIDE("current remote side IP") )( PENTITY pe, PTEXT *ppLastValue )
+static PTEXT DeviceVolatileVariableGet( "net object", "server_ip", "current remote side IP" )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT GetServerIP( uintptr_t psv, struct entity_tag *pe, PTEXT *ppLastValue )
 {
 	PCLIENT pc = (PCLIENT)GetLink( &pe->pPlugin, iNetObject );
@@ -1268,27 +1268,27 @@ static PTEXT DeviceVolatileVariableGet( WIDE("net object"), WIDE("server_ip"), W
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-	iNetObject = RegisterExtension( WIDE("net object") );
+	iNetObject = RegisterExtension( "net object" );
 	return DekVersion;
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-//	UnregisterRoutine( WIDE("send") );
-	UnregisterRoutine( WIDE("getaddr") );
-	UnregisterRoutine( WIDE("getip") );
-	UnregisterRoutine( WIDE("getport") );
-	UnregisterRoutine( WIDE("ping") );
-	UnregisterRoutine( WIDE("trace") );
-	UnregisterRoutine( WIDE("portscan") );
-	UnregisterRoutine( WIDE("whois") );
-	UnregisterRoutine( WIDE("ReadData") );
-	UnregisterRoutine( WIDE("SendData") );
-	UnregisterRoutine( WIDE("HTTP") );
-	UnregisterDevice( WIDE("tcp") );
-	UnregisterDevice( WIDE("udp") );
-	UnregisterDevice( WIDE("tcpserver") );
-	UnregisterDevice( WIDE("udpserver") );
+//	UnregisterRoutine( "send" );
+	UnregisterRoutine( "getaddr" );
+	UnregisterRoutine( "getip" );
+	UnregisterRoutine( "getport" );
+	UnregisterRoutine( "ping" );
+	UnregisterRoutine( "trace" );
+	UnregisterRoutine( "portscan" );
+	UnregisterRoutine( "whois" );
+	UnregisterRoutine( "ReadData" );
+	UnregisterRoutine( "SendData" );
+	UnregisterRoutine( "HTTP" );
+	UnregisterDevice( "tcp" );
+	UnregisterDevice( "udp" );
+	UnregisterDevice( "tcpserver" );
+	UnregisterDevice( "udpserver" );
 	NetworkQuit();
 }
 

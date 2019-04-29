@@ -18,7 +18,7 @@ static void _SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mas
 	size_t length_out = length + 2; // minimum additional is the opcode and tiny payload length (2 bytes)
 	if( ( opcode & 8 ) && ( length > 125 ) )
 	{
-		lprintf( WIDE("Invalid send, control packet with large payload. (opcode %d  length %") _size_f WIDE(")"), opcode, length );
+		lprintf( "Invalid send, control packet with large payload. (opcode %d  length %" _size_f ")", opcode, length );
 		return;
 	}
 	if( length > 125 )
@@ -234,7 +234,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 			{
 				if( websock->frame_length > 125 )
 				{
-					lprintf( WIDE("Bad length of control packet: %")_size_f, length );
+					lprintf( "Bad length of control packet: %"_size_f, length );
 					// RemoveClient( websock->pc );
 					ResetInputState( websock );
 					// drop the rest of the data, maybe the beginning of the next packet will make us happy
@@ -459,7 +459,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 					websock->fragment_collection_length = 0;
 					break;
 				default:
-					lprintf( WIDE("Bad WebSocket opcode: %d"), websock->opcode );
+					lprintf( "Bad WebSocket opcode: %d", websock->opcode );
 					RemoveClient( pc );
 					return;
 				}

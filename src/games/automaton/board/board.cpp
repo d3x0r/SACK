@@ -56,7 +56,7 @@ public:
 	}
 	void add( int32_t x, int32_t y, uint32_t w, uint32_t h )
 	{
-		//Log4( WIDE("Adding update region %d,%d -%d,%d"), x, y, w, h );
+		//Log4( "Adding update region %d,%d -%d,%d", x, y, w, h );
 		if( _wd == 0 && _ht == 0 )
 		{
 			_x = x;
@@ -81,7 +81,7 @@ public:
 	{
 		if( _wd && _ht )
 		{
-			//Log4( WIDE("Flushing update to display... %d,%d - %d,%d"), _x, _y, _wd, _ht );
+			//Log4( "Flushing update to display... %d,%d - %d,%d", _x, _y, _wd, _ht );
 			if( pDisplay )
 				UpdateDisplayPortion( pDisplay, _x, _y, _wd, _ht );
 			else
@@ -252,7 +252,7 @@ PLAYER GetLayerAt( int32_t *wX, int32_t *wY, PLAYER notlayer = NULL )
 		if( layer != notlayer )
 			if( layer->IsLayerAt( wX, wY ) )
 			{
-				lprintf( WIDE("Okay got a layer to return...") );
+				lprintf( "Okay got a layer to return..." );
 				return layer;
 			}
 		layer = layer->next;
@@ -302,7 +302,7 @@ PLAYER_DATA GetLayerDataAt( int32_t *wX, int32_t *wY, PLAYER notlayer = NULL )
 				if( connect_okay )
 				{
 					//DebugBreak();
-					lprintf( WIDE("Heh guess we should do something when connect succeeds?") );
+					lprintf( "Heh guess we should do something when connect succeeds?" );
 					// keep route_current_layer;
 					layer->Link( route_current_layer, LINK_VIA_END, (wX-layer->x), (wY-layer->y) );
 					route_current_layer = NULL;
@@ -385,11 +385,11 @@ void DoMouse( int X, int Y, int b )
 
 	wX = SCRN_TO_GRID_X( X );
 	wY = SCRN_TO_GRID_Y( Y );
-	//lprintf( WIDE("mouse at %d,%d"), wX, wY );
+	//lprintf( "mouse at %d,%d", wX, wY );
 	{
 		//int32_t x = wX, y = wY;
 		//PLAYER_DATA pld = GetLayerDataAt( &x, &y );
-		//lprintf( WIDE("%s at %d,%d"), pld?WIDE("something"):WIDE("nothing"), x, y );
+		//lprintf( "%s at %d,%d", pld?"something":"nothing", x, y );
 	}
 
 #ifdef __WINDOWS__
@@ -405,11 +405,11 @@ void DoMouse( int X, int Y, int b )
 	   if( !route_current_layer )
 	   {
 			int32_t x = wX, y = wY;
-			lprintf( WIDE("right at %d,%d"), wX, wY );
+			lprintf( "right at %d,%d", wX, wY );
 			PLAYER_DATA pld = GetLayerDataAt( &x, &y );
 			if( pld )
 			{
-				lprintf( WIDE("Okay it's on a layer, and it's at %d,%d on the layer"), wX, wY );
+				lprintf( "Okay it's on a layer, and it's at %d,%d on the layer", wX, wY );
 				if( !pld->peice->methods->OnRightClick( pld->psvInstance, wX, wY ) )
 					return; // routine has done something to abort processing...
 			}
@@ -434,7 +434,7 @@ void DoMouse( int X, int Y, int b )
 				if( wX != xStart ||
 					wY != yStart )
 				{
-					lprintf( WIDE("updating board origin by %d,%d"), wX-xStart, wY-yStart );
+					lprintf( "updating board origin by %d,%d", wX-xStart, wY-yStart );
 					board_origin_x += wX - xStart;
 					board_origin_y += wY - yStart;
 					wX = xStart;
@@ -482,7 +482,7 @@ void DoMouse( int X, int Y, int b )
 
 			int32_t x = wX, y = wY;
 			PLAYER layer = GetLayerAt( &x, &y, route_current_layer );
-			lprintf( WIDE("event at %d,%d"), wX, wY );
+			lprintf( "event at %d,%d", wX, wY );
 			if( route_current_layer )
 			{
 				if( flags.bLeftChanged )
@@ -500,13 +500,13 @@ void DoMouse( int X, int Y, int b )
 			{
 				PLAYER_DATA pld = layer->pLayerData;
 				mouse_current_layer = layer;
-				lprintf( WIDE("Generate onclick method to peice.") );
+				lprintf( "Generate onclick method to peice." );
 				pld->peice->methods->OnClick( pld->psvInstance, x, y );
 				mouse_current_layer = NULL;
 			}
 			else if( default_peice )
 			{
-				lprintf( WIDE("Default peice click.") );
+				lprintf( "Default peice click." );
 				default_peice->methods->OnClick(NULL,wX,wY);
 			}
 		}
@@ -545,7 +545,7 @@ IMPORT void LockDrag( void )
 			flags.bLockLeft = FALSE;
 		}
 	}
-	//Log( WIDE("Based on current OnMouse cell data message, lock that into cursor move...") );
+	//Log( "Based on current OnMouse cell data message, lock that into cursor move..." );
 }
 IMPORT void LockPeiceDrag( void )
 {
@@ -568,7 +568,7 @@ IMPORT void LockPeiceDrag( void )
 			flags.bLockLeft = FALSE;
 		}
 	}
-	//Log( WIDE("Based on current OnMouse cell data message, lock that into cursor move...") );
+	//Log( "Based on current OnMouse cell data message, lock that into cursor move..." );
 }
 private:
    void Init( void );
@@ -578,7 +578,7 @@ public:
    BOARD();
    BOARD(PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h );
    ~BOARD();
-	PIPEICE CreatePeice( CTEXTSTR name //= WIDE("A Peice")
+	PIPEICE CreatePeice( CTEXTSTR name //= "A Peice"
 								  , Image image //= NULL
 								  , int rows //= 1
 								  , int cols //= 1
@@ -587,7 +587,7 @@ public:
 								  , PPEICE_METHODS methods //= NULL
 								  , uintptr_t psv
 								  );
-	PIVIA CreateVia( CTEXTSTR name //= WIDE("A Peice")
+	PIVIA CreateVia( CTEXTSTR name //= "A Peice"
 						, Image image //= NULL
 						, PVIA_METHODS methods //= NULL
 					  , uintptr_t psv
@@ -730,7 +730,7 @@ BOARD::BOARD()
 		GetDisplaySize( &w, &h );
 		pDisplay = OpenDisplaySizedAt( 0, w, h, 0, 0 );
 	}
-	//PSI_CONTROL frame = CreateFrameFromRenderer( WIDE("Brain Editor"), BORDER_RESIZABLE, pDisplay );
+	//PSI_CONTROL frame = CreateFrameFromRenderer( "Brain Editor", BORDER_RESIZABLE, pDisplay );
 	update = new UPDATE( pDisplay );
 
 	SetMouseHandler( pDisplay, DoMouseExtern, (uintptr_t)this );
@@ -775,7 +775,7 @@ int CPROC MouseBrainEditorControl( PSI_CONTROL pc, int32_t x, int32_t y, uint32_
 	return 0;
 }
 
-CONTROL_REGISTRATION board_control = { WIDE("Brain Edit Control"), { { 256, 256 }, sizeof( class BOARD * ), BORDER_RESIZABLE }
+CONTROL_REGISTRATION board_control = { "Brain Edit Control", { { 256, 256 }, sizeof( class BOARD * ), BORDER_RESIZABLE }
 												 , NULL /* InitBrainEditorControl /* int CPROC init(PSI_CONTROL) */
 												 , NULL /* load*/
 												 , DrawBrainEditorControl
@@ -799,7 +799,7 @@ BOARD::BOARD(PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 	BOARD::Init();
 	pControl = MakeCaptionedControl( parent, board_control.TypeID
 		, x, y, w, h
-		, -1/*ID*/, WIDE("Brain Editor") );
+		, -1/*ID*/, "Brain Editor" );
 	{
 		ValidatedControlData( BOARD **, board_control.TypeID, ppBoard, pControl );
 		if( ppBoard )
@@ -922,13 +922,13 @@ void BOARD::PutPeice( PIPEICE peice, int32_t x, int32_t y, uintptr_t psv )
 	uint32_t rows, cols;
 	int32_t hotx, hoty;
 	if( !peice ) {
-		lprintf( WIDE("PEICE IS NULL!") );
+		lprintf( "PEICE IS NULL!" );
 		return;
 	}
 	EnterCriticalSec( &cs );
 	peice->getsize( &rows, &cols );
 	peice->gethotspot( &hotx, &hoty );
-	lprintf( WIDE("hotspot offset of created cell is %d,%d so layer covers from %d,%d to %d,%d,")
+	lprintf( "hotspot offset of created cell is %d,%d so layer covers from %d,%d to %d,%d,"
 			 , hotx, hoty
 			 , x-hotx, y-hoty
 			 , x-hotx+cols, y-hoty+rows );
@@ -953,7 +953,7 @@ PIBOARD CreateBoardControl( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w
 }
 
 
-PIPEICE BOARD::CreatePeice( CTEXTSTR name //= WIDE("A Peice")
+PIPEICE BOARD::CreatePeice( CTEXTSTR name //= "A Peice"
 								  , Image image //= NULL
 								  , int rows //= 1
 								  , int cols //= 1
@@ -968,7 +968,7 @@ PIPEICE BOARD::CreatePeice( CTEXTSTR name //= WIDE("A Peice")
 	return peice; // should be able to auto cast this...
 }
 
-PIVIA BOARD::CreateVia( CTEXTSTR  name //= WIDE("A Peice")
+PIVIA BOARD::CreateVia( CTEXTSTR  name //= "A Peice"
 											 , Image image //= NULL
 											 , PVIA_METHODS methods //= NULL
 											 , uintptr_t psv
@@ -1015,7 +1015,7 @@ uintptr_t CPROC SaveLayer( POINTER p, uintptr_t psv )
 	{
 		struct save_struct *save_struct = (struct save_struct*)psv;
 		INDEX iLayer = layer->Save( save_struct->odbc );
-		SQLCommandf( save_struct->odbc, WIDE("insert into board_layer_link (board_info_id,board_layer_id) values (%lu,%lu)")
+		SQLCommandf( save_struct->odbc, "insert into board_layer_link (board_info_id,board_layer_id) values (%lu,%lu)"
 					  , save_struct->iBoard
 					  , iLayer );
 	}
@@ -1028,7 +1028,7 @@ uintptr_t CPROC BeginSaveLayer( POINTER p, uintptr_t psv )
 	struct save_struct *save_struct = (struct save_struct*)psv;
 	if( layer->iLayer && layer->iLayer != INVALID_INDEX )
 	{
-		SQLCommandf( save_struct->odbc, WIDE("delete from board_layer_path where board_layer_id=%lu"), layer->iLayer );
+		SQLCommandf( save_struct->odbc, "delete from board_layer_path where board_layer_id=%lu", layer->iLayer );
 		layer->pLayerData->peice->SaveBegin( save_struct->odbc, layer->pLayerData->psvInstance );
 	}
 	layer->iLayer = 0; // or invalid_index
@@ -1040,7 +1040,7 @@ INDEX BOARD::Save( PODBC odbc, CTEXTSTR boardname )
 	struct save_struct save_struct;
 	CTEXTSTR result;
 	save_struct.odbc = odbc;
-	if( SQLQueryf( odbc, &result, WIDE("select board_info_id from board_info where board_name=\'%s\'"), EscapeString( boardname ) )
+	if( SQLQueryf( odbc, &result, "select board_info_id from board_info where board_name=\'%s\'", EscapeString( boardname ) )
 		&& result )
 	{
 		save_struct.iBoard = atoi( result );
@@ -1048,11 +1048,11 @@ INDEX BOARD::Save( PODBC odbc, CTEXTSTR boardname )
 	}
 	else
 	{
-		SQLCommandf( odbc, WIDE("insert into board_info (board_name) values (\'%s\')"), EscapeString( boardname ) );
+		SQLCommandf( odbc, "insert into board_info (board_name) values (\'%s\')", EscapeString( boardname ) );
 		save_struct.iBoard = FetchLastInsertID( odbc, NULL, NULL );
 	}
-	//SQLCommandf( odbc, WIDE("update board_info ") );
-	SQLCommandf( odbc, WIDE("delete from board_layer_link where board_info_id = %lu"), save_struct.iBoard );
+	//SQLCommandf( odbc, "update board_info " );
+	SQLCommandf( odbc, "delete from board_layer_link where board_info_id = %lu", save_struct.iBoard );
 
 	ForAllInSet( LAYER, LayerPool, BeginSaveLayer, (uintptr_t)&save_struct );
 	ForAllInSet( LAYER, LayerPool, SaveLayer, (uintptr_t)&save_struct );
@@ -1094,7 +1094,7 @@ LOGICAL BOARD::Load( PODBC odbc, CTEXTSTR boardname )
 	CTEXTSTR result;
 	save_struct.odbc = odbc;
 		
-	if( SQLQueryf( odbc, &result, WIDE("select board_info_id from board_info where board_name=\'%s\'"), EscapeString( boardname ) )
+	if( SQLQueryf( odbc, &result, "select board_info_id from board_info where board_name=\'%s\'", EscapeString( boardname ) )
 		&& result )
 	{
 		EnterCriticalSec( &cs );
@@ -1104,7 +1104,7 @@ LOGICAL BOARD::Load( PODBC odbc, CTEXTSTR boardname )
 		{
 			CTEXTSTR *results;
 			for( SQLRecordQueryf( odbc, NULL, &results, NULL
-							, WIDE("select board_layer_id from board_layer_link where board_info_id=%s order by board_layer_id")
+							, "select board_layer_id from board_layer_link where board_info_id=%s order by board_layer_id"
 							, result );
 				results;
 				FetchSQLRecord( odbc, &results ) )

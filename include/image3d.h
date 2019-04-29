@@ -75,7 +75,7 @@ typedef struct image_3d_interface_tag
 
 #  define IMAGE3D_PROC_ALIAS(name) ((USE_IMAGE_3D_INTERFACE)->_##name)
 
-#  define GetImage3dInterface() (PIMAGE_3D_INTERFACE)GetInterface( WIDE("image.3d") )
+#  define GetImage3dInterface() (PIMAGE_3D_INTERFACE)GetInterface( "image.3d" )
 
 #  define ImageGetShaderInit(a,b,c,d)             IMAGE3D_PROC_ALIAS(ImageGetShaderInit)(a,b,c,d)
 #  define ImageGetShader(a)             IMAGE3D_PROC_ALIAS(ImageGetShaderInit)(a,NULL,NULL,0)

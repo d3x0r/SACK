@@ -199,12 +199,12 @@ static void CPROC _ImageDropImageInterface( POINTER p )
 
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
-	RegisterInterface( WIDE("d3d11.image"), _ImageGetImageInterface, _ImageDropImageInterface );
-	RegisterInterface( WIDE("d3d11.image.3d"), GetImage3dInterface, DropImage3dInterface );
-	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Scale"), 10 );
+	RegisterInterface( "d3d11.image", _ImageGetImageInterface, _ImageDropImageInterface );
+	RegisterInterface( "d3d11.image.3d", GetImage3dInterface, DropImage3dInterface );
+	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
 	if( l.scale == 0.0 )
 	{
-		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Inverse Scale"), 2 );
+		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Inverse Scale", 2 );
 		if( l.scale == 0.0 )
 			l.scale = 1;
 	}

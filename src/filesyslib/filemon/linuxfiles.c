@@ -58,7 +58,7 @@ void ScanDirectory( PMONITOR monitor )
         {
 				PCHANGECALLBACK Change;
 				if( monitor->flags.bLogFilesFound )
-					Log1( WIDE("Found file %s"), dirent->d_name );
+					Log1( "Found file %s", dirent->d_name );
 				for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 				{
 					if( !Change->mask ||
@@ -66,7 +66,7 @@ void ScanDirectory( PMONITOR monitor )
 										, dirent->d_name
 										, FALSE ) )
 						if( monitor->flags.bLogFilesFound )
-                     Log( WIDE("And the mask matched.") );
+                     Log( "And the mask matched." );
                   AddMonitoredFile( Change, dirent->d_name );
 				}
         }
@@ -112,7 +112,7 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 	}
 	if( monitor->flags.bClosing )
 	{
-		//Log( WIDE("Monitor already closing...") );
+		//Log( "Monitor already closing..." );
 		return;
 	}
 	EnterCriticalSec( &monitor->cs );
@@ -128,7 +128,7 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 		fcntl( monitor->fdMon, F_SETSIG, 0 );
 		fcntl( monitor->fdMon, F_NOTIFY, 0 );
 #endif
-		Log1( WIDE("Closing monitor handle: %d"), monitor->fdMon );
+		Log1( "Closing monitor handle: %d", monitor->fdMon );
 		close( monitor->fdMon );
 		UnlinkThing( monitor );
 		Release( monitor );
@@ -152,7 +152,7 @@ static void handler( int sig, siginfo_t *si, void *data )
 			  if( si->si_fd == cur->fdMon )
 #endif
             {
-                Log1( WIDE("Setting to scan due to event.. %s"), cur->directory );
+                Log1( "Setting to scan due to event.. %s", cur->directory );
 					 if( !cur->DoScanTime )
 						 cur->DoScanTime = GetTickCount() - 1;
                 break;
@@ -161,7 +161,7 @@ static void handler( int sig, siginfo_t *si, void *data )
         if( !cur )
         {
 #ifndef __QNX__
-           Log1( WIDE("Signal on handle which did not exist?! %d Invoking failure scanall!"), si->si_fd );
+           Log1( "Signal on handle which did not exist?! %d Invoking failure scanall!", si->si_fd );
 			  close( si->si_fd );
 #endif
 	        for( cur = Monitors; cur; cur = cur->next )
@@ -208,7 +208,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 		act.sa_flags = SA_SIGINFO;
 		if( sigaction( SIGRTMIN, &act, NULL ) != 0 )
 		{
-			Log( WIDE("Failed to set signal handler") );
+			Log( "Failed to set signal handler" );
 			return NULL;
 		}
 #endif
@@ -216,7 +216,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 
 	{
 		int fdMon;
-		Log2( WIDE("Attempting to monitor:(%d) %s"), getpid(), dirname );
+		Log2( "Attempting to monitor:(%d) %s", getpid(), dirname );
 	// if I include <fcntl.h> then <linux/fcntl.h> is broken
 	// or vice-versa.  Please suffer with no definition on these lines.
 #if 0
@@ -244,11 +244,11 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 			//monitor->Client = Client;
 			monitor->DoScanTime = GetTickCount() - 1; // do first scan NOW
 			monitor->timer = AddTimerEx( 0, SCAN_DELAY/2, (void(*)(uintptr_t))ScanTimer, (uintptr_t)monitor );
-			Log2( WIDE("Created timer: %") _32f WIDE(" Monitor handle: %d"), monitor->timer, monitor->fdMon );
+			Log2( "Created timer: %" _32f " Monitor handle: %d", monitor->timer, monitor->fdMon );
 			return monitor;
 		}
 		else
-			Log( WIDE("Failed to open directory to monitor") );
+			Log( "Failed to open directory to monitor" );
 	}
 	return NULL;
 }

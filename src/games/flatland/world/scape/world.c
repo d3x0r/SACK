@@ -81,7 +81,7 @@ INDEX SrvrCreateSquareSector( uint32_t client_id, INDEX iWorld, PC_POINT pOrigin
 	//DumpWall( pSector->wall->wall_at_end );
 	//DumpWall( pSector->wall->wall_at_start->wall_at_end );
 	{
-		INDEX texture = SrvrMakeTexture( client_id, iWorld, SrvrMakeName( client_id, iWorld, WIDE( "Default" ) ) );
+		INDEX texture = SrvrMakeTexture( client_id, iWorld, SrvrMakeName( client_id, iWorld, "Default" ) );
 		PFLATLAND_TEXTURE pTexture = GetSetMember( FLATLAND_TEXTURE, &world->textures, texture );
 		if( !pTexture->flags.bColor )
 			SrvrSetSolidColor( client_id, iWorld, texture, AColor( 170, 170, 170, 0x80 ) );
@@ -525,7 +525,7 @@ int SrvrLoadWorldFromFile( uint32_t client_id, FILE *file, INDEX iWorld )
 
 	if( version < 8 )
 	{
-		texture = SrvrMakeTexture( client_id, iWorld, SrvrMakeName( client_id, iWorld, WIDE( "Default" ) ) );
+		texture = SrvrMakeTexture( client_id, iWorld, SrvrMakeName( client_id, iWorld, "Default" ) );
 		SrvrSetSolidColor( client_id, iWorld, texture, AColor( 43, 76, 180, 0x80 ) );
 	}
 	Log1( "Loading version: %d", version );

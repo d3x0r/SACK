@@ -81,14 +81,14 @@ unsigned long CPROC CheckAliveThread( void *unused )
 		int i;
 		global_alive = 0;	 
 		if( !PostMessage( _display.hVideo->hWndOutput, WM_RUALIVE, 0, (LPARAM)&global_alive ) )
-			Log( WIDE("Failed to post message...") );
+			Log( "Failed to post message..." );
 		else
 		{
 			for( i = 0; i < 5; i++ )
 			{
 				while( is_alive ) // force knowledge that we are alive...
 				{
-					//Log1( WIDE("Forced alive: %d"), i );
+					//Log1( "Forced alive: %d", i );
 					Sleep(100);
 				}
 				if( global_alive )
@@ -97,7 +97,7 @@ unsigned long CPROC CheckAliveThread( void *unused )
 			}	  
 			if( !global_alive ) // half a second - no responce to alive message...
 			{
-				Log( WIDE("Window thread is dead!") );
+				Log( "Window thread is dead!" );
 				//DebugBreak();
 			}
 		}
@@ -525,13 +525,13 @@ void DrawDisplayGrid( PDISPLAY display )
 			{
 				setdraw = ( (int)(nextreal/set)==((int)(real/set)));
 				unitdraw = ( (int)(nextreal/units)==((int)(real/units)) );
-				//Log7( WIDE("test: %d %d %d %g %g %d %d"), setdraw, unitdraw, x, nextreal, units, (int)(nextreal/units), (int)(real/units) );
+				//Log7( "test: %d %d %d %g %g %d %d", setdraw, unitdraw, x, nextreal, units, (int)(nextreal/units), (int)(real/units) );
 			}
 			else
 			{
 				setdraw = ( ((int)(nextreal/set))!=((int)(real/set)) );
 				unitdraw = ( ((int)(nextreal/units))!=((int)(real/units)) );
-				//Log7( WIDE("test: %d %d %d %g %g %d %d"), setdraw, unitdraw, x, nextreal, units, (int)(nextreal/units), (int)(real/units) );
+				//Log7( "test: %d %d %d %g %g %d %d", setdraw, unitdraw, x, nextreal, units, (int)(nextreal/units), (int)(real/units) );
 			}
 
 			if( !setdraw )
@@ -568,7 +568,7 @@ void DrawDisplayGrid( PDISPLAY display )
 		}
 		if( dotiming ) 
 		{
-			Log3( WIDE("%s(%d): %d Vertical Grid"), __FILE__, __LINE__, GetTickCount() - start );
+			Log3( "%s(%d): %d Vertical Grid", __FILE__, __LINE__, GetTickCount() - start );
 			start = GetTickCount();
 		}  
 
@@ -639,7 +639,7 @@ void DrawDisplayGrid( PDISPLAY display )
 		}
 		if( dotiming )
 		{
-			Log3( WIDE("%s(%d): %d Horizontal Grid"), __FILE__, __LINE__, GetTickCount() - start );
+			Log3( "%s(%d): %d Horizontal Grid", __FILE__, __LINE__, GetTickCount() - start );
 			start = GetTickCount();
 		}
 	}
@@ -663,7 +663,7 @@ void DrawDisplayGrid( PDISPLAY display )
 
 void RedrawWorld( PCOMMON pc, int nLine );
 
-static int OnDrawCommon( WIDE("Flatland Editor") )( PCOMMON pc )
+static int OnDrawCommon( "Flatland Editor" )( PCOMMON pc )
 {
 	ValidatedControlData( PDISPLAY, editor.TypeID, pd, pc );
 	if( pd )
@@ -688,7 +688,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 	PDISPLAY display = ControlData( PDISPLAY, pc );
 	uint32_t start, resizestart;
 	//if( updateonmove == mousemove )
-	//	Log3( WIDE("Dual Draw World %d last:%d this:%d"), mousemove, lastupdate, nLine );
+	//	Log3( "Dual Draw World %d last:%d this:%d", mousemove, lastupdate, nLine );
 
    AcceptChanges(); // make sure we get all changes applied before drawing.
 	updateonmove = mousemove;
@@ -701,7 +701,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 		resizestart = start = GetTickCount();
 
 	//ValidateWorldLinks( display->pWorld );
-	//Log3( WIDE("%s(%d): %d Validate"), __FILE__, __LINE__, GetTickCount() - start );
+	//Log3( "%s(%d): %d Validate", __FILE__, __LINE__, GetTickCount() - start );
 	//start = GetTickCount();
 
 	ClearImageTo( display->pImage, display->Background );
@@ -715,7 +715,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 	display->ybias = display->pImage->height/2;
 	if( dotiming )
 	{
-		Log3( WIDE("%s(%d): %d Clear/Init"), __FILE__, __LINE__, GetTickCount() - start );
+		Log3( "%s(%d): %d Clear/Init", __FILE__, __LINE__, GetTickCount() - start );
 		start = GetTickCount();
 	}
 
@@ -723,7 +723,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 		DrawDisplayGrid( display );
 	if( dotiming )
 	{
-		Log3( WIDE("%s(%d): %d Grid(top)"), __FILE__, __LINE__, GetTickCount() - start );
+		Log3( "%s(%d): %d Grid(top)", __FILE__, __LINE__, GetTickCount() - start );
 		start = GetTickCount();
 	}
 	sectorsdrawn = 0;
@@ -731,12 +731,12 @@ void RedrawWorld( PCOMMON pc, int nLine )
 
 	if( display->flags.bShowSectorTexture )
 	{
-		//lprintf( WIDE("Draw sector texture.") );
+		//lprintf( "Draw sector texture." );
 		ForAllSectors( display->pWorld, DrawSectorTexture, (uintptr_t)pc );
 	}
 	if( dotiming )
 	{
-		Log5( WIDE("%s(%d): %d Sector Textures %d %d"), __FILE__, __LINE__, GetTickCount() - start
+		Log5( "%s(%d): %d Sector Textures %d %d", __FILE__, __LINE__, GetTickCount() - start
 						, sectorsdrawn, sectorsskipped);
 		start = GetTickCount();
 	}
@@ -759,7 +759,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 	}
 	if( dotiming )
 	{
-		Log3( WIDE("%s(%d): %d SectorLines"), __FILE__, __LINE__, GetTickCount() - start );
+		Log3( "%s(%d): %d SectorLines", __FILE__, __LINE__, GetTickCount() - start );
 		start = GetTickCount();
 	}
 
@@ -768,7 +768,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 		ForAllSectors( display->pWorld, DrawSectorName, (uintptr_t)display );
 	if( dotiming )
 	{
-		Log3( WIDE("%s(%d): %d Sector Text"), __FILE__, __LINE__, GetTickCount() - start );
+		Log3( "%s(%d): %d Sector Text", __FILE__, __LINE__, GetTickCount() - start );
 		start = GetTickCount();
 	}
 
@@ -844,7 +844,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 		}
 	if( display->nSectors )
 	{
-		//Log1( WIDE("Sectorset is %d sectors...\n"), display->nSectors );
+		//Log1( "Sectorset is %d sectors...\n", display->nSectors );
 		ComputeSectorSetOrigin( display->pWorld, display->nSectors
 									 , display->CurSector.SectorList
 									 , display->SectorOrigin );
@@ -855,7 +855,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 	}
 	if( dotiming )
 	{
-		Log3( WIDE("%s(%d): %d Line Origins"), __FILE__, __LINE__, GetTickCount() - start );
+		Log3( "%s(%d): %d Line Origins", __FILE__, __LINE__, GetTickCount() - start );
 		start = GetTickCount();
 	}
 
@@ -883,7 +883,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 	}
 	if( dotiming )
 	{
-		Log3( WIDE("%s(%d): %d Select Rect"), __FILE__, __LINE__, GetTickCount() - start );
+		Log3( "%s(%d): %d Select Rect", __FILE__, __LINE__, GetTickCount() - start );
 		start = GetTickCount();
 	}
 
@@ -891,7 +891,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 		DrawDisplayGrid( display );
 	if( dotiming )
 	{
-		Log3( WIDE("%s(%d): %d Grid(top)"), __FILE__, __LINE__, GetTickCount() - start );
+		Log3( "%s(%d): %d Grid(top)", __FILE__, __LINE__, GetTickCount() - start );
 		start = GetTickCount();
 	}
 	}
@@ -903,12 +903,12 @@ void RedrawWorld( PCOMMON pc, int nLine )
 		uint32_t used, free, chunks, freechunks;
        // gues this doesn't work anymore...
 		GetMemStats( &free, &used, &chunks, &freechunks );
-		sprintf( msg, WIDE("Used: %d Free: %d UsedChunks: %d FreeChunks: %d")
+		sprintf( msg, "Used: %d Free: %d UsedChunks: %d FreeChunks: %d"
 						, used, free, chunks-freechunks, freechunks );
 		PutString( display->pImage, 5, 5, BASE_COLOR_WHITE, Color(0,0,1), msg );
       */
 		{
-			snprintf( msg, 256, WIDE("Sectors: %d(%d) Walls: %d(%d)")
+			snprintf( msg, 256, "Sectors: %d(%d) Walls: %d(%d)"
 					 , display->CurSector.SectorList[0]
 					 , display->nSectors
 					 , display->CurWall.WallList[0]
@@ -919,7 +919,7 @@ void RedrawWorld( PCOMMON pc, int nLine )
 			sectors = GetSectorCount( display->pWorld );
 			walls = GetWallCount( display->pWorld );
 			lines = GetLineCount( display->pWorld );
-			snprintf( msg, 256, WIDE("Sector: %d Wall: %d Lines: %d")
+			snprintf( msg, 256, "Sector: %d Wall: %d Lines: %d"
 						, sectors, walls, lines );
 			PutString( display->pImage, 5, 29, BASE_COLOR_WHITE, Color(0,0,1), msg );
 		}
@@ -929,13 +929,13 @@ void RedrawWorld( PCOMMON pc, int nLine )
 	// frame - otherwise I need to knwo specfic parts.
 	if( dotiming )
 	{
-		Log3( WIDE("%s(%d): %d Write to Window"), __FILE__, __LINE__, GetTickCount() - start );
+		Log3( "%s(%d): %d Write to Window", __FILE__, __LINE__, GetTickCount() - start );
 		start = GetTickCount();
 	}
 
 	if( dotiming )
 	{
-		Log3( WIDE("%s(%d): %d Resize World"), __FILE__, __LINE__, GetTickCount() - resizestart );
+		Log3( "%s(%d): %d Resize World", __FILE__, __LINE__, GetTickCount() - resizestart );
 		start = GetTickCount();
 	}
 #ifdef CHECK_ALIVE
@@ -951,17 +951,17 @@ void DoSave( int bAutoSave, PDISPLAY display, INDEX iWorld )
 		{
 		}
 		if( WriteDisplayInfo( iWorld, display ) < 0 )
-			Log( WIDE("Error saving display info...") );
+			Log( "Error saving display info..." );
 }
 
 #define LOCK_THRESHOLD 5
 
 uint32_t AutoSaveTimer;
 
-static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
+static int OnMouseCommon( "Flatland Editor" )( PCOMMON pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PDISPLAY, editor.TypeID, display, pc );
-	//lprintf( WIDE("mouse event %d,%d %d"), x, y, b );
+	//lprintf( "mouse event %d,%d %d", x, y, b );
 	if( !display )
 		return 0;
 	AcceptChanges(); // make sure we get all changes applied before drawing.
@@ -1007,7 +1007,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 
 		{
 			TEXTCHAR msg[256], len;
-			len = snprintf( msg, 256, WIDE("X: %5g Y: %5g  (%3d,%3d)")
+			len = snprintf( msg, 256, "X: %5g Y: %5g  (%3d,%3d)"
 							 , REAL_X(display, x)
 							 , REAL_Y(display, y)
 							 , delx, dely );
@@ -1015,7 +1015,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 			PutString( display->pImage, 5, 29+12, BASE_COLOR_WHITE, Color(0,0,1), msg );
 			UpdateDisplayPortion( display->hVideo, 5, 29, len*8, 12 );
 		}
-		//Log5( WIDE("Mouse Move: (%d,%d) %d del:(%d,%d)"), x, y, b, delx, dely );
+		//Log5( "Mouse Move: (%d,%d) %d del:(%d,%d)", x, y, b, delx, dely );
 		if( b & MK_OBUTTON )
 		{
 			if( KeyDown( display->hVideo, KEY_SHIFT ) )
@@ -1054,7 +1054,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 
 			if( KeyDown( display->hVideo, KEY_D ) )
 			{
-				DebugDumpMemFile( WIDE("Memory.Dump") );
+				DebugDumpMemFile( "Memory.Dump" );
 				//DumpSpaceTree( display->pWorld->spacetree );
 			}
 
@@ -1062,7 +1062,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 			{
 				TEXTCHAR name[32];
 				static int n;
-				snprintf( name, 32, WIDE("memory.dump.%d"), ++n );
+				snprintf( name, 32, "memory.dump.%d", ++n );
 				//TestSpaceBalance( &display->pWorld->spacetree );
 				//DumpQuadTree( display->pWorld->quadtree );
 				DebugDumpMemFile( name );
@@ -1090,8 +1090,8 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 											  , display->CurWall.Wall
 											  , &display->SelectRect ) )
 					SimpleMessageBox( pc
-										 , WIDE("Selection rectangle contains too many walls; merge not done.")
-										 , WIDE("Merge Error") );
+										 , "Selection rectangle contains too many walls; merge not done."
+										 , "Merge Error" );
 				display->flags.bMarkingMerge = FALSE;
 				SmudgeCommon( pc );
 			}
@@ -1173,7 +1173,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 												, display->SectorOrigin );
 				else if( display->flags.bOrigin )
 				{
-					//Log( WIDE("Dragging the Origin!") );
+					//Log( "Dragging the Origin!" );
 					if( !(display->flags.bWallList) &&
 						IsKeyDown( display->hVideo, KEY_SHIFT ) )
 					{
@@ -1206,14 +1206,14 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 				int n;
 				ps = FindSectorAroundPoint( display->pWorld, o );
 				if( ps )
-					Log( WIDE("Found Sector to add to list!") );
+					Log( "Found Sector to add to list!" );
 				for( n = 0; n < display->nSectors; n++ )
 				{
 					if( display->CurSector.SectorList[n] == ps )
 					{
 						if( display->flags.bSectorList )
 						{
-							lprintf( WIDE("Found sector in list - removeing from list.") );
+							lprintf( "Found sector in list - removeing from list." );
 							if( n < ( display->nSectors-1 ) )
 								MemCpy( display->CurSector.SectorList + n
 										, display->CurSector.SectorList + n + 1
@@ -1257,7 +1257,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 	}
 	else // prior down, current down (left button)
 	{
-		//lprintf( WIDE("Checking for nearness - still down...") );
+		//lprintf( "Checking for nearness - still down..." );
 		if( delx || dely /*!Near( display->lastpoint, o )*/ )
 		 // (  delx || dely )
 		{
@@ -1265,7 +1265,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 			{
 				if( display->flags.bDisplay )
 				{
-					//lprintf( WIDE("delx = %d (%d) [%g] dely = %d (%d) [%g]")
+					//lprintf( "delx = %d (%d) [%g] dely = %d (%d) [%g]"
 					//		 , delx, x - display->x, REAL_SCALE(display,delx )
 					//		  , dely, y - display->y, REAL_SCALE( display,dely ) );
 					display->origin[0] += REAL_SCALE( display, x - display->x );
@@ -1278,7 +1278,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 					sub( del, o, display->WallOrigin );
 					if( Length( del ) > 0 )
 					{
-						//lprintf( WIDE("moving origin by %g %g %d"), del[0], del[1],display->CurWall.WallList[0] );
+						//lprintf( "moving origin by %g %g %d", del[0], del[1],display->CurWall.WallList[0] );
 						if( !MoveWalls( display->pWorld, display->nWalls
 										  , display->CurWall.WallList
 										  , del
@@ -1299,7 +1299,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 					GetLineData( display->pWorld, line, &pLine );
 					ls = ((PLINESEG)pLine)[0];
 					sub( ls.r.n, o, ls.r.o );
-					lprintf( WIDE("Send line update...") );
+					lprintf( "Send line update..." );
 					SendLineChanged( display->pWorld, display->CurWall.Wall, line, &ls, FALSE, FALSE );
 				}
 				else if( display->flags.bSectorOrigin )
@@ -1321,7 +1321,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 				}
 				else if( display->flags.bEndStart )
 				{
-					lprintf( WIDE("at start end...") );
+					lprintf( "at start end..." );
 					if( display->flags.bNormalMode )
 					{
 						PFLATLAND_MYLINESEG pls;
@@ -1336,7 +1336,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 						ls.normals.at_from[1] = o[1] - v[1];
 						ls.normals.at_from[2] = 10;//o[2] - v[2];
 #endif
-						lprintf( WIDE("Should be sending this line...") );
+						lprintf( "Should be sending this line..." );
 						// don't send this just yet...
 						//SendLineNormalsChanged( display->pWorld, line, display->CurWall.Wall, &ls, TRUE );
 						// resulting smudge will happen from server event.
@@ -1357,10 +1357,10 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 						SetPoint( ls.r.o, ptEnd );
 						sub( ls.r.n, ptEnd, o );
 
-						lprintf( WIDE("Send changed line....") );
+						lprintf( "Send changed line...." );
 						SendLineChanged( display->pWorld, display->CurWall.Wall, line, &ls, FALSE, IsKeyDown( display->hVideo, KEY_CONTROL ) );
 
-						lprintf( WIDE("Should be sending line...") );
+						lprintf( "Should be sending line..." );
 						// balance is really a local artifact...
 						//BalanceALine( display->pWorld, display->CurWall.Wall, line, &ls, IsKeyDown( display->hVideo, KEY_CONTROL ) );
 						//MarkLineChanged( display->pWorld, line );
@@ -1383,7 +1383,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 				}
 				else if( display->flags.bEndEnd )
 				{
-					lprintf( WIDE("at ending end...") );
+					lprintf( "at ending end..." );
 					if( display->flags.bNormalMode )
 					{
 						PFLATLAND_MYLINESEG pls;
@@ -1441,7 +1441,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 		}
 		else
 		{
-			lprintf( WIDE("Near last point...") );
+			lprintf( "Near last point..." );
 		}
 	}
 
@@ -1466,7 +1466,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 				display->SelectRect.y += display->SelectRect.h;
 				display->SelectRect.h = -display->SelectRect.h;
 			}
-			Log( WIDE("Starting popup track...") );
+			Log( "Starting popup track..." );
 			if( display->SelectRect.w < 5 &&
 				 display->SelectRect.h < 5 )
 			{
@@ -1481,7 +1481,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 					o[0] = REAL_X(display, x);
 					o[1] = REAL_Y(display, y);
 					o[2] = 0;
-					//Log4( WIDE("Checking (%g,%g) within %d sectors (%08x)"), o[0], o[1], display->nSectors, display->CurSector.SectorList[0] );
+					//Log4( "Checking (%g,%g) within %d sectors (%08x)", o[0], o[1], display->nSectors, display->CurSector.SectorList[0] );
 					if( FlatlandPointWithin( display->pWorld, display->nSectors, display->CurSector.SectorList, o ) != INVALID_INDEX )
 					{
 						i = TrackPopup( hSectorMenu, pc );
@@ -1492,7 +1492,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 			}
 			else // had a selection rectangle, and we should launch select menu
 				i = TrackPopup( hSelectMenu, pc );
-			Log1( WIDE("Popup returned: %d"), i );
+			Log1( "Popup returned: %d", i );
 			if( i >= MNU_MINZOOM && i <= MNU_MAXZOOM )
 			{
 				_POINT neworigin;
@@ -1530,7 +1530,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 				display->x = x;
 				display->y = y;
 				display->b = b;
-				Log( WIDE("Showing display properties") );
+				Log( "Showing display properties" );
 				{
 					int32_t posx, posy;
 					GetDisplayPosition( display->hVideo, &posx, &posy, NULL, NULL );
@@ -1559,12 +1559,12 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 				break;
 			case MNU_DELETELINE:
 				ClearUndo(display->pWorld);
-				Log( WIDE("Removing a wall...") );
+				Log( "Removing a wall..." );
 				if( !display->flags.bWallList )
 					RemoveWall( display->pWorld, display->CurWall.Wall );
-				Log( WIDE("Removed a wall...") );
+				Log( "Removed a wall..." );
 				ClearCurrentWalls( display );
-				Log( WIDE("Clear current walls...") );
+				Log( "Clear current walls..." );
 				SmudgeCommon( pc );
 				//RedrawWorld( (uintptr_t)display );
 				break;
@@ -1612,8 +1612,8 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 				}
 				if( !MergeSelectedWalls( display->pWorld, INVALID_INDEX, &display->SelectRect ) )
 					SimpleMessageBox( pc
-									, WIDE("Selection rectangle contains too many walls; merge not done.")
-									, WIDE("Merge Error") );
+									, "Selection rectangle contains too many walls; merge not done."
+									, "Merge Error" );
 				SmudgeCommon( pc );
 				//RedrawWorld( (uintptr_t) display );
 				break;
@@ -1727,7 +1727,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 						{
 							if( LoadWorldFromFile( display->pWorld ) < 0 )
 							{
-								Log( WIDE("Error loading the world...") );
+								Log( "Error loading the world..." );
 							}
 							ReadDisplayInfo( display->pWorld, display );
 							ClearCurrentSectors( display );
@@ -1736,7 +1736,7 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 							//RedrawWorld( (uintptr_t) display );
 						}
 #endif
-					Log( WIDE("Done with file load?") );
+					Log( "Done with file load?" );
 #ifdef CHECK_ALIVE
 					global_alive = TRUE;
 					is_alive = FALSE;
@@ -1832,36 +1832,36 @@ static int OnMouseCommon( WIDE("Flatland Editor") )( PCOMMON pc, int32_t x, int3
 						}			  
 					}
 					//else
-					//	lprintf( WIDE("no current sector...") );
+					//	lprintf( "no current sector..." );
 
 					o[0] = REAL_X( display, x );
 					o[1] = REAL_Y( display, y );
 					o[2] = 0;
-					//lprintf( WIDE("Checking point (%g,%g)"), o[0], o[1] );
+					//lprintf( "Checking point (%g,%g)", o[0], o[1] );
 					{ 
 						uint32_t start = GetTickCount();
-						//lprintf( WIDE("point %s within %p"), PointWithinSingle( display->pWorld, display->CurSector.Sector, o )?WIDE("is"):WIDE("is not")
+						//lprintf( "point %s within %p", PointWithinSingle( display->pWorld, display->CurSector.Sector, o )?"is":"is not"
 						//		 , display->CurSector.Sector );
 						if( ( (ps = display->CurSector.Sector) == INVALID_INDEX ) ||
 							 ( FlatlandPointWithinSingle( display->pWorld, display->CurSector.Sector, o ) == INVALID_INDEX ) )
 						{
-							//lprintf( WIDE("Find sector around this point!") );
+							//lprintf( "Find sector around this point!" );
 							ps = FindSectorAroundPoint( display->pWorld, o );
 							if( ps != INVALID_INDEX )
 							{
 								//display->CurSector.Sector = ps;
-								//lprintf( WIDE("Yes found one...") );
+								//lprintf( "Yes found one..." );
 							}
 							if( dotiming )
 							{
-								Log1( WIDE("Finding Sector: %d"), GetTickCount() - start );
+								Log1( "Finding Sector: %d", GetTickCount() - start );
 							}
 						}
 					}
 
 					if( ps != INVALID_INDEX && ( ps != display->CurSector.Sector ) )
 					{
-						//lprintf( WIDE("marking new current sector? ") );
+						//lprintf( "marking new current sector? " );
 						display->nSectors = 1;
 						display->CurSector.SectorList = &display->CurSector.Sector;
 						display->CurSector.Sector = ps;
@@ -1918,13 +1918,13 @@ void CPROC UpdateVisual( uintptr_t psv )
 
 //----------------------------------------------------------------------------
 
-static int OnCreateCommon(WIDE("Flatland Editor"))( PCOMMON pc )
+static int OnCreateCommon("Flatland Editor")( PCOMMON pc )
 {
 	ValidatedControlData( PDISPLAY, editor.TypeID, pd, pc );
 	if( pd )
 	{
 		//display = pd;
-		pd->pWorld = OpenWorld( WIDE("Default Flatland World") );
+		pd->pWorld = OpenWorld( "Default Flatland World" );
 		//ResetWorld( pd->pWorld );
 		ResetDisplay( pd );
 		AddUpdateCallback( UpdateVisual, (uintptr_t)pc );
@@ -1937,7 +1937,7 @@ static int OnCreateCommon(WIDE("Flatland Editor"))( PCOMMON pc )
 	return 0;
 }
 
-static int OnKeyCommon( WIDE("Flatland Editor") )( PCOMMON pc, uint32_t key )
+static int OnKeyCommon( "Flatland Editor" )( PCOMMON pc, uint32_t key )
 {
 	ValidatedControlData( PDISPLAY, editor.TypeID, display, pc );
 	// hmm probably have to move the keyboard handling routines from
@@ -1979,7 +1979,7 @@ static int OnKeyCommon( WIDE("Flatland Editor") )( PCOMMON pc, uint32_t key )
 
 			if( KeyDown( display->hVideo, KEY_D ) )
 			{
-				DebugDumpMemFile( WIDE("Memory.Dump") );
+				DebugDumpMemFile( "Memory.Dump" );
 				//DumpSpaceTree( display->pWorld->spacetree );
 			}
 
@@ -1987,7 +1987,7 @@ static int OnKeyCommon( WIDE("Flatland Editor") )( PCOMMON pc, uint32_t key )
 			{
 				TEXTCHAR name[32];
 				static int n;
-				snprintf( name, 32, WIDE("memory.dump.%d"), ++n );
+				snprintf( name, 32, "memory.dump.%d", ++n );
 				//TestSpaceBalance( &display->pWorld->spacetree );
 				//DumpQuadTree( display->pWorld->quadtree );
 				DebugDumpMemFile( name );
@@ -2009,7 +2009,7 @@ static int OnKeyCommon( WIDE("Flatland Editor") )( PCOMMON pc, uint32_t key )
 
 //----------------------------------------------------------------------------
 
-CONTROL_REGISTRATION editor = { WIDE("Flatland Editor")
+CONTROL_REGISTRATION editor = { "Flatland Editor"
 										, { { 640, 480 }
 										, sizeof( DISPLAY )
 										, BORDER_NORMAL|BORDER_RESIZABLE }
@@ -2020,74 +2020,74 @@ PUBLIC( void, FlatlandMain )( void )
 {
 	AlignBaseToWindows();
 	hZoomMenu = CreatePopup();
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+10, WIDE("x128") );
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+9, WIDE("x64") );
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+8, WIDE("x32") );
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+7, WIDE("x16") );
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+6, WIDE("x8") );
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+5, WIDE("x4") );
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+4, WIDE("x2") );
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+3, WIDE("x1") );
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+2, WIDE("x1/2") );
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+1, WIDE("x1/4") );
-	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+0, WIDE("x1/8") );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+10, "x128" );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+9, "x64" );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+8, "x32" );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+7, "x16" );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+6, "x8" );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+5, "x4" );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+4, "x2" );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+3, "x1" );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+2, "x1/2" );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+1, "x1/4" );
+	AppendPopupItem( hZoomMenu, MF_STRING, MNU_MINZOOM+0, "x1/8" );
 
 	hMainMenu = CreatePopup();
-	AppendPopupItem( hMainMenu, MF_STRING, MNU_RESET, WIDE("Reset") );
-	AppendPopupItem( hMainMenu, MF_STRING, MNU_NEWSECTOR, WIDE("New Sector") );
-	AppendPopupItem( hMainMenu, MF_STRING, MNU_UNSELECTSECTORS, WIDE("Unslect All") );
-	AppendPopupItem( hMainMenu, MF_POPUP|MF_STRING, (int)hZoomMenu, WIDE("Zoom") );
+	AppendPopupItem( hMainMenu, MF_STRING, MNU_RESET, "Reset" );
+	AppendPopupItem( hMainMenu, MF_STRING, MNU_NEWSECTOR, "New Sector" );
+	AppendPopupItem( hMainMenu, MF_STRING, MNU_UNSELECTSECTORS, "Unslect All" );
+	AppendPopupItem( hMainMenu, MF_POPUP|MF_STRING, (int)hZoomMenu, "Zoom" );
 	AppendPopupItem( hMainMenu, MF_SEPARATOR, 0, NULL );
-	AppendPopupItem( hMainMenu, MF_STRING, MNU_DISPLAYPROP, WIDE("Display Properties") );
-	AppendPopupItem( hMainMenu, MF_STRING, MNU_UNDO, WIDE("Undo") );
-	AppendPopupItem( hMainMenu, MF_STRING, MNU_SAVE, WIDE("Save") );
-	AppendPopupItem( hMainMenu, MF_STRING, MNU_LOAD, WIDE("Load") );
-	AppendPopupItem( hMainMenu, MF_STRING, MNU_QUIT, WIDE("Quit") );
+	AppendPopupItem( hMainMenu, MF_STRING, MNU_DISPLAYPROP, "Display Properties" );
+	AppendPopupItem( hMainMenu, MF_STRING, MNU_UNDO, "Undo" );
+	AppendPopupItem( hMainMenu, MF_STRING, MNU_SAVE, "Save" );
+	AppendPopupItem( hMainMenu, MF_STRING, MNU_LOAD, "Load" );
+	AppendPopupItem( hMainMenu, MF_STRING, MNU_QUIT, "Quit" );
 
 	hOriginMenu = CreatePopup();
-	AppendPopupItem( hOriginMenu, MF_STRING, MNU_MARK, WIDE("Mark Wall") );
-	AppendPopupItem( hOriginMenu, MF_STRING, MNU_MERGE, WIDE("Merge Walls") );
-	AppendPopupItem( hOriginMenu, MF_STRING, MNU_SPLIT, WIDE("Split Wall") );
-	AppendPopupItem( hOriginMenu, MF_STRING, MNU_BREAK, WIDE("Break Wall") );
-	AppendPopupItem( hOriginMenu, MF_STRING, MNU_DELETELINE, WIDE("Delete Wall") );
-	AppendPopupItem( hOriginMenu, MF_STRING, MNU_UNSELECTSECTORS, WIDE("Unselect All") );
-	AppendPopupItem( hOriginMenu, MF_POPUP|MF_STRING, (int)hZoomMenu, WIDE("Zoom") );
+	AppendPopupItem( hOriginMenu, MF_STRING, MNU_MARK, "Mark Wall" );
+	AppendPopupItem( hOriginMenu, MF_STRING, MNU_MERGE, "Merge Walls" );
+	AppendPopupItem( hOriginMenu, MF_STRING, MNU_SPLIT, "Split Wall" );
+	AppendPopupItem( hOriginMenu, MF_STRING, MNU_BREAK, "Break Wall" );
+	AppendPopupItem( hOriginMenu, MF_STRING, MNU_DELETELINE, "Delete Wall" );
+	AppendPopupItem( hOriginMenu, MF_STRING, MNU_UNSELECTSECTORS, "Unselect All" );
+	AppendPopupItem( hOriginMenu, MF_POPUP|MF_STRING, (int)hZoomMenu, "Zoom" );
 	AppendPopupItem( hOriginMenu, MF_SEPARATOR, 0, NULL );
-	AppendPopupItem( hOriginMenu, MF_STRING, MNU_DISPLAYPROP, WIDE("Display Properties") );
-	AppendPopupItem( hOriginMenu, MF_STRING, MNU_UNDO, WIDE("Undo") );
-	AppendPopupItem( hOriginMenu, MF_STRING, MNU_SAVE, WIDE("Save") );
-	AppendPopupItem( hOriginMenu, MF_STRING, MNU_LOAD, WIDE("Load") );
+	AppendPopupItem( hOriginMenu, MF_STRING, MNU_DISPLAYPROP, "Display Properties" );
+	AppendPopupItem( hOriginMenu, MF_STRING, MNU_UNDO, "Undo" );
+	AppendPopupItem( hOriginMenu, MF_STRING, MNU_SAVE, "Save" );
+	AppendPopupItem( hOriginMenu, MF_STRING, MNU_LOAD, "Load" );
 
 	hSectorMenu = CreatePopup();
 
-	AppendPopupItem( hSectorMenu, MF_STRING, MNU_SECTPROP, WIDE("Properties") );
-	AppendPopupItem( hSectorMenu, MF_STRING, MNU_DELETE, WIDE("Delete Sector") );
-	AppendPopupItem( hSectorMenu, MF_STRING, MNU_SETTOP, WIDE("Set Wall Top") );
-	AppendPopupItem( hSectorMenu, MF_STRING, MNU_UNSELECTSECTORS, WIDE("Unslect All") );
-	AppendPopupItem( hSectorMenu, MF_POPUP|MF_STRING, (int)hZoomMenu, WIDE("Zoom") );
+	AppendPopupItem( hSectorMenu, MF_STRING, MNU_SECTPROP, "Properties" );
+	AppendPopupItem( hSectorMenu, MF_STRING, MNU_DELETE, "Delete Sector" );
+	AppendPopupItem( hSectorMenu, MF_STRING, MNU_SETTOP, "Set Wall Top" );
+	AppendPopupItem( hSectorMenu, MF_STRING, MNU_UNSELECTSECTORS, "Unslect All" );
+	AppendPopupItem( hSectorMenu, MF_POPUP|MF_STRING, (int)hZoomMenu, "Zoom" );
 	AppendPopupItem( hSectorMenu, MF_SEPARATOR, 0, NULL );
-	AppendPopupItem( hSectorMenu, MF_STRING, MNU_DISPLAYPROP, WIDE("Display Properties") );
-	AppendPopupItem( hSectorMenu, MF_STRING, MNU_UNDO, WIDE("Undo") );
-	AppendPopupItem( hSectorMenu, MF_STRING, MNU_SAVE, WIDE("Save") );
-	AppendPopupItem( hSectorMenu, MF_STRING, MNU_LOAD, WIDE("Load") );
+	AppendPopupItem( hSectorMenu, MF_STRING, MNU_DISPLAYPROP, "Display Properties" );
+	AppendPopupItem( hSectorMenu, MF_STRING, MNU_UNDO, "Undo" );
+	AppendPopupItem( hSectorMenu, MF_STRING, MNU_SAVE, "Save" );
+	AppendPopupItem( hSectorMenu, MF_STRING, MNU_LOAD, "Load" );
 
 	hSelectMenu = CreatePopup();
 
-	AppendPopupItem( hSelectMenu, MF_STRING, MNU_MERGEWALLS, WIDE("Merge Walls") );
-	AppendPopupItem( hSelectMenu, MF_STRING, MNU_MERGEOVERLAP, WIDE("Merge Overlaps") );
-	AppendPopupItem( hSelectMenu, MF_STRING, MNU_SECTSELECT, WIDE("Select Sectors") );
-	AppendPopupItem( hSelectMenu, MF_STRING, MNU_WALLSELECT, WIDE("Select Walls") );
-	AppendPopupItem( hSelectMenu, MF_STRING, MNU_UNSELECTSECTORS, WIDE("Unslect All") );
-	AppendPopupItem( hSelectMenu, MF_POPUP|MF_STRING, (int)hZoomMenu, WIDE("Zoom") );
+	AppendPopupItem( hSelectMenu, MF_STRING, MNU_MERGEWALLS, "Merge Walls" );
+	AppendPopupItem( hSelectMenu, MF_STRING, MNU_MERGEOVERLAP, "Merge Overlaps" );
+	AppendPopupItem( hSelectMenu, MF_STRING, MNU_SECTSELECT, "Select Sectors" );
+	AppendPopupItem( hSelectMenu, MF_STRING, MNU_WALLSELECT, "Select Walls" );
+	AppendPopupItem( hSelectMenu, MF_STRING, MNU_UNSELECTSECTORS, "Unslect All" );
+	AppendPopupItem( hSelectMenu, MF_POPUP|MF_STRING, (int)hZoomMenu, "Zoom" );
 	AppendPopupItem( hSelectMenu, MF_SEPARATOR, 0, NULL );
-	AppendPopupItem( hSelectMenu, MF_STRING, MNU_DISPLAYPROP, WIDE("Display Properties") );
-	AppendPopupItem( hSelectMenu, MF_STRING, MNU_UNDO, WIDE("Undo") );
-	AppendPopupItem( hSelectMenu, MF_STRING, MNU_SAVE, WIDE("Save") );
-	AppendPopupItem( hSelectMenu, MF_STRING, MNU_LOAD, WIDE("Load") );
+	AppendPopupItem( hSelectMenu, MF_STRING, MNU_DISPLAYPROP, "Display Properties" );
+	AppendPopupItem( hSelectMenu, MF_STRING, MNU_UNDO, "Undo" );
+	AppendPopupItem( hSelectMenu, MF_STRING, MNU_SAVE, "Save" );
+	AppendPopupItem( hSelectMenu, MF_STRING, MNU_LOAD, "Load" );
 
 	{
 		PDISPLAY pDisplay;
-		g.pc = MakeCaptionedControl( NULL, editor.TypeID, 0, 0, 0, 0, 0, WIDE("Flatland Editor") );
+		g.pc = MakeCaptionedControl( NULL, editor.TypeID, 0, 0, 0, 0, 0, "Flatland Editor" );
 		pDisplay = ControlData( PDISPLAY, g.pc );
 		SetCommonUserData( g.pc, (uintptr_t)pDisplay );	
 		DisplayFrame( g.pc );
@@ -2110,7 +2110,7 @@ PUBLIC( void, FlatlandMain )( void )
 SaneWinMain( argc, argv )
 {
 //	SetAllocateLogging( TRUE );
-	//LoadFunction( WIDE("msgsvr.core.dll"), NULL );
+	//LoadFunction( "msgsvr.core.dll", NULL );
 	/* register the server within us for debugging... */
 	SuspendDeadstart();
 	g.pri = GetDisplayInterface();
@@ -2120,11 +2120,11 @@ SaneWinMain( argc, argv )
 		PSERVICE_ROUTE tmp;
 		if( ( tmp = LoadService( WORLD_SCAPE_INTERFACE_NAME, NULL ) ) == NULL )
 		{
-			LoadFunction( WIDE("world_scape_msg_server.dll"), NULL );
+			LoadFunction( "world_scape_msg_server.dll", NULL );
 		}
 	}
 	/* register the client interface manually, load interface will not work otherwise (interface.conf?) */
-	LoadFunction( WIDE("world_scape_client.dll"), NULL );
+	LoadFunction( "world_scape_client.dll", NULL );
 	ResumeDeadstart();
 
 	{
@@ -2145,7 +2145,7 @@ SaneWinMain( argc, argv )
 		lprintf( "failed to find world scape interface. No work can be done." );
 		return 0;
 	}
-	//CreateView(NULL, WIDE("FORWARD"));
+	//CreateView(NULL, "FORWARD");
 	FlatlandMain();
 	while( 1 )
 		WakeableSleep( SLEEP_FOREVER );

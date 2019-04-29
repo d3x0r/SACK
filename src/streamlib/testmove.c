@@ -53,7 +53,7 @@ void SendUpdate( uint32_t x, uint32_t y, uint32_t w, uint32_t h )
 	buffer[3] = y;
 	buffer[4] = w;
 	buffer[5] = h;
-	lprintf( WIDE("update %d %d %d %d"), x, y, w, h );
+	lprintf( "update %d %d %d %d", x, y, w, h );
 
    SendUDPEx( l.pc, buffer, sizeof( buffer ), l.sendto );
    WakeableSleep( 10 );
@@ -67,11 +67,11 @@ int main( int argc, char **argv )
    int x, y, w, h;
 	NetworkStart();
 
-	l.pc = ConnectUDP( NULL, 2997, WIDE("127.0.0.1"), 5151, NULL, NULL );
+	l.pc = ConnectUDP( NULL, 2997, "127.0.0.1", 5151, NULL, NULL );
    if( !l.pc )
-		l.pc = ConnectUDP( NULL, 2996, WIDE("127.0.0.1"), 5151, NULL, NULL );
+		l.pc = ConnectUDP( NULL, 2996, "127.0.0.1", 5151, NULL, NULL );
    UDPEnableBroadcast( l.pc, TRUE );
-	l.sendto = CreateSockAddress( WIDE("127.0.0.1"), 2999 );
+	l.sendto = CreateSockAddress( "127.0.0.1", 2999 );
 
 	x = atoi( DupCharToText( argv[1] ) );
 	y = atoi( DupCharToText( argv[2] ) );

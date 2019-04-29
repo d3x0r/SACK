@@ -35,14 +35,14 @@ OnKeyPressEvent( "SQL Password/Users/User Report" )( uintptr_t psv )
 	//ReadPasswordFile();
    ClearReportHeaders();
 	CAL_P_YMDHMS_OF_FDATETIME( now, &time.wYr, &time.wMo, &time.wDy, &time.wHr, &time.wMn, &time.wSc );
-	snprintf( szString, sizeof( szString ), WIDE("Active User Report")
+	snprintf( szString, sizeof( szString ), "Active User Report"
 			  , time.wMo, time.wDy, time.wYr);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Printed at %d:%02d:%02d on %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Printed at %d:%02d:%02d on %02d/%02d/%02d"
 			  , time.wHr, time.wMn, time.wSc
 			  , time.wMo, time.wDy, time.wYr%100);
 	AddReportHeader( szString );
-	AddReportHeader( WIDE("") );
+	AddReportHeader( "" );
 
 	if( g.flags.bPrintAccountCreated )
 	{
@@ -149,7 +149,7 @@ OnCreateMenuButton( "SQL Password/Users/User Report" )( PMENU_BUTTON button )
 {
 	InterShell_SetButtonStyle( button, "bicolor square" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_PURPLE, BASE_COLOR_BLACK, 0 );
-	InterShell_SetButtonText( button, WIDE("User_Report") );
+	InterShell_SetButtonText( button, "User_Report" );
 	return 1;
 }
 
@@ -177,19 +177,19 @@ OnKeyPressEvent( "SQL Password/Users/History Report" )( uintptr_t psv )
 	CAL_P_YMDHMS_OF_FDATETIME( now, &time.wYr, &time.wMo, &time.wDy, &time.wHr, &time.wMn, &time.wSc );
 	CAL_P_YMDHMS_OF_FDATETIME( now - (100*(24*60*60))
 									 , &report_from.wYr, &report_from.wMo, &report_from.wDy, NULL, NULL, NULL );
-	snprintf( szString, sizeof( szString ), WIDE("User History Report")
+	snprintf( szString, sizeof( szString ), "User History Report"
 			  , time.wMo, time.wDy, time.wYr);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Printed at %d:%02d:%02d on %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Printed at %d:%02d:%02d on %02d/%02d/%02d"
 			  , time.wHr, time.wMn, time.wSc
 			  , time.wMo, time.wDy, time.wYr%100);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Report from %02d/%02d/%02d to %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Report from %02d/%02d/%02d to %02d/%02d/%02d"
 			  , report_from.wMo, report_from.wDy, report_from.wYr%100
 			  , time.wMo, time.wDy, time.wYr%100
 			  );
 	AddReportHeader( szString );
-	AddReportHeader( WIDE("") );
+	AddReportHeader( "" );
 
 	AddReportHeader( "Time                UserName             Event              Message" );
 	//               "00/00/0000 00:00:00 
@@ -236,7 +236,7 @@ OnCreateMenuButton( "SQL Password/Users/History Report" )( PMENU_BUTTON button )
 {
 	MILK_SetButtonStyle( button, "bicolor square" );
 	MILK_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_PURPLE, BASE_COLOR_BLACK, 0 );
-	MILK_SetButtonText( button, WIDE("User_History") );
+	MILK_SetButtonText( button, "User_History" );
 	return 1;
 }
 
@@ -264,19 +264,19 @@ OnKeyPressEvent( "SQL Password/Users/Permission Report" )( uintptr_t psv )
 	CAL_P_YMDHMS_OF_FDATETIME( now, &time.wYr, &time.wMo, &time.wDy, &time.wHr, &time.wMn, &time.wSc );
 	CAL_P_YMDHMS_OF_FDATETIME( now - (60*(24*60*60))
 									 , &report_from.wYr, &report_from.wMo, &report_from.wDy, NULL, NULL, NULL );
-	snprintf( szString, sizeof( szString ), WIDE("User Permission Report")
+	snprintf( szString, sizeof( szString ), "User Permission Report"
 			  , time.wMo, time.wDy, time.wYr);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Printed at %d:%02d:%02d on %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Printed at %d:%02d:%02d on %02d/%02d/%02d"
 			  , time.wHr, time.wMn, time.wSc
 			  , time.wMo, time.wDy, time.wYr%100);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Report from %02d/%02d/%02d to %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Report from %02d/%02d/%02d to %02d/%02d/%02d"
 			  , report_from.wMo, report_from.wDy, report_from.wYr%100
 			  , time.wMo, time.wDy, time.wYr%100
 			  );
 	AddReportHeader( szString );
-	AddReportHeader( WIDE("") );
+	AddReportHeader( "" );
 
 
    ClearReportHeaders();
@@ -284,14 +284,14 @@ OnKeyPressEvent( "SQL Password/Users/Permission Report" )( uintptr_t psv )
 	CAL_P_YMDHMS_OF_FDATETIME( now, &time.wYr, &time.wMo, &time.wDy, &time.wHr, &time.wMn, &time.wSc );
 	CAL_P_YMDHMS_OF_FDATETIME( now - (60*(24*60*60))
 									 , &report_from.wYr, &report_from.wMo, &report_from.wDy, NULL, NULL, NULL );
-	snprintf( szString, sizeof( szString ), WIDE("User Permission Report")
+	snprintf( szString, sizeof( szString ), "User Permission Report"
 			  , time.wMo, time.wDy, time.wYr);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Printed at %d:%02d:%02d on %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Printed at %d:%02d:%02d on %02d/%02d/%02d"
 			  , time.wHr, time.wMn, time.wSc
 			  , time.wMo, time.wDy, time.wYr%100);
 	AddReportHeader( szString );
-	AddReportHeader( WIDE("") );
+	AddReportHeader( "" );
 
 	AddReportHeader( "Group                Permission      " );
 	//               "00/00/0000 00:00:00 
@@ -375,7 +375,7 @@ OnCreateMenuButton( "SQL Password/Users/Permission Report" )( PMENU_BUTTON butto
 {	
 	MILK_SetButtonStyle( button, "bicolor square" );
 	MILK_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_PURPLE, BASE_COLOR_BLACK, 0 );
-	MILK_SetButtonText( button, WIDE("User_History") );
+	MILK_SetButtonText( button, "User_History" );
 	return 1;
 }
 #endif

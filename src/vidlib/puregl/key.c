@@ -21,7 +21,7 @@ RENDER_PROC( uint32_t, IsKeyDown )( PRENDERER hVideo, int c )
 		return hVideo->kbd.key[c] & 0x80;
 	else
 	{
-		//lprintf( WIDE("test local key %d as %d vs %d"), c, l.kbd.key[c], 0x80 );
+		//lprintf( "test local key %d as %d vs %d", c, l.kbd.key[c], 0x80 );
 		return l.kbd.key[c] & 0x80;
 	}
 }

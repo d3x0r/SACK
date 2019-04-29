@@ -305,7 +305,7 @@ void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
     {
         RCOORD delta_x = x11_gl_window->mouse_x - (hVideo->WindowPos.cx/2);
         RCOORD delta_y = x11_gl_window->mouse_y - (hVideo->WindowPos.cy/2);
-        //lprintf( WIDE("mouse came in we're at %d,%d %g,%g"), x11_gl_window->mouse_x, x11_gl_window->mouse_y, delta_x, delta_y );
+        //lprintf( "mouse came in we're at %d,%d %g,%g", x11_gl_window->mouse_x, x11_gl_window->mouse_y, delta_x, delta_y );
         if( delta_y && delta_y )
         {
             static int toggle;
@@ -324,7 +324,7 @@ void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
             toggle = 1-toggle;
             x11_gl_window->mouse_x = hVideo->WindowPos.cx/2;
             x11_gl_window->mouse_y = hVideo->WindowPos.cy/2;
-				lprintf( WIDE("Set curorpos.. %d,%d")
+				lprintf( "Set curorpos.. %d,%d"
 						 , x11_gl_window->mouse_x, x11_gl_window->mouse_y
 						 );
             XWarpPointer( x11_gl_window->dpy, None
@@ -332,7 +332,7 @@ void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
                          , 0, 0, 0, 0
                          , x11_gl_window->mouse_x, x11_gl_window->mouse_y);
             //SetCursorPos( hVideo->pWindowPos.cx/2, hVideo->pWindowPos.cy / 2 );
-            //lprintf( WIDE("Set curorpos Done..") );
+            //lprintf( "Set curorpos Done.." );
         }
     }
     else if (hVideo->pMouseCallback)
@@ -506,10 +506,10 @@ uintptr_t CPROC ProcessDisplayMessages( PTHREAD thread )
 				{
 					XNextEvent(x11_gl_window->dpy, &event);
 					//if( l.flags.bLogMessageDispatch )
-					//	lprintf( WIDE("(E)Got message:%d"), event.type );
+					//	lprintf( "(E)Got message:%d", event.type );
 					HandleMessage( camera->hVidCore, x11_gl_window, &event );
 					//if( l.flags.bLogMessageDispatch )
-					//	lprintf( WIDE("(X)Got message:%d"), event.type );
+					//	lprintf( "(X)Got message:%d", event.type );
 				}
 				//lprintf( "Draw GL..." );
 				//drawGLScene( camera, x11_gl_window );

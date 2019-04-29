@@ -62,13 +62,13 @@ void RemovePath( PPATH path )
 {
 	if( path )
 	{
-		xlprintf( 2100 )( WIDE("Removing path to %s %p"), path->route->name, path );
+		xlprintf( 2100 )( "Removing path to %s %p", path->route->name, path );
 		GetMemStats( NULL, NULL, NULL, NULL );
 		if( ( *path->me = path->next ) )
 		{
-		   xlprintf( 2100 )( WIDE("Have a next... %p"), path->me );
+		   xlprintf( 2100 )( "Have a next... %p", path->me );
 			GetMemStats( NULL, NULL, NULL, NULL );
-			xlprintf( 2100 )( WIDE("Updating next me to my me %p"), &path->next->me );
+			xlprintf( 2100 )( "Updating next me to my me %p", &path->next->me );
 			path->next->me = path->me;
 			GetMemStats( NULL, NULL, NULL, NULL );
 		}	
@@ -77,7 +77,7 @@ void RemovePath( PPATH path )
 	}
 	else
 	{
-		xlprintf( 2100 )( WIDE("No path defined to remove?!") );
+		xlprintf( 2100 )( "No path defined to remove?!" );
 	}
 }
 
@@ -86,7 +86,7 @@ void RemovePath( PPATH path )
 void CPROC TCPClose( PCLIENT pc )
 {
 	PCLIENT other = (PCLIENT)GetNetworkLong( pc, NL_OTHER );
-   xlprintf( 2100 )( WIDE("TCP Close") );
+   xlprintf( 2100 )( "TCP Close" );
 	Release( (POINTER)GetNetworkLong( pc, NL_BUFFER ) );
 	if( other )
 	{
@@ -101,7 +101,7 @@ void CPROC TCPClose( PCLIENT pc )
 
 void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size )
 {
-   //xlprintf( 2100 )( WIDE("TCP Read Enter...") );
+   //xlprintf( 2100 )( "TCP Read Enter..." );
 	if( !buffer )
 	{
 		PROUTE route = (PROUTE)GetNetworkLong( pc, NL_ROUTE );
@@ -110,7 +110,7 @@ void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size )
 		SetNetworkLong( pc, NL_BUFFER, (uintptr_t)buffer );
 		if( route->flags.ip_route && !path )
 		{
-         xlprintf( 2100 )( WIDE("Was delayed connect, reading 4 bytes for address") );
+         xlprintf( 2100 )( "Was delayed connect, reading 4 bytes for address" );
 			ReadTCPMsg( pc, buffer, 4 ); // MUST read 4 and only 4
          return;
 		}
@@ -127,10 +127,10 @@ void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size )
 			PROUTE route = (PROUTE)GetNetworkLong( pc, NL_ROUTE );
 			// so - get the route of this one, see if we have to read
 			// an IP...
-			xlprintf( 2100 )( WIDE("Route address: %p"), route );
+			xlprintf( 2100 )( "Route address: %p", route );
 			if( !route )
 			{
-            xlprintf( 2100 )( WIDE("FATALITY! I die!") );
+            xlprintf( 2100 )( "FATALITY! I die!" );
 			}
          else if( route->flags.ip_route )
 			{
@@ -138,18 +138,18 @@ void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size )
 				((uint32_t*)&saTo)[1] = *(uint32_t*)buffer;
 				if( !ConnectMate( route, pc, &saTo ) )
 				{
-               xlprintf( 2100 )( WIDE("Connect mate failed... remove connection") );
+               xlprintf( 2100 )( "Connect mate failed... remove connection" );
 					RemoveClient( pc );
 					return;
 				}
 				else
-               xlprintf( 2100 )( WIDE("Successful connection to remote (pending)") );
+               xlprintf( 2100 )( "Successful connection to remote (pending)" );
 			}
 		}
 		else
 		{
 #ifdef _DEBUG
-			//xlprintf( 2100 )( WIDE("Sending %d bytes to mate %p"), size, other );
+			//xlprintf( 2100 )( "Sending %d bytes to mate %p", size, other );
 #endif
 			SendTCP( other, buffer, size );
 		}
@@ -161,7 +161,7 @@ void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size )
 
 PPATH MakeNewPath( PROUTE pRoute, PCLIENT in, PCLIENT out )
 {
-   xlprintf( 2100 )( WIDE("Adding path to %s"), pRoute->name );
+   xlprintf( 2100 )( "Adding path to %s", pRoute->name );
    {
 	PPATH path = (PPATH)Allocate( sizeof( PATH ) );
 	path->me = &pRoute->paths;
@@ -186,7 +186,7 @@ PPATH MakeNewPath( PROUTE pRoute, PCLIENT in, PCLIENT out )
 void CPROC TCPConnected( PCLIENT pc, int error )
 {
 	// delay connect finished...
-	xlprintf( 2100 )( WIDE("Connection finished...") );
+	xlprintf( 2100 )( "Connection finished..." );
 	SetTCPNoDelay( pc, TRUE );
 	SetClientKeepAlive( pc, TRUE );
 	{
@@ -200,12 +200,12 @@ void CPROC TCPConnected( PCLIENT pc, int error )
 	}
 	if( !error )
 	{
-      //xlprintf( 2100 )( WIDE("Proxied connect success!") );
+      //xlprintf( 2100 )( "Proxied connect success!" );
 		// should be okay here....
 	}
 	else
 	{
-		xlprintf( 2100 )( WIDE("Delayed connect failed... ") );
+		xlprintf( 2100 )( "Delayed connect failed... " );
 		RemoveClient( pc );
 	}
 }
@@ -215,14 +215,14 @@ void CPROC TCPConnected( PCLIENT pc, int error )
 PCLIENT ConnectMate( PROUTE pRoute, PCLIENT pExisting, SOCKADDR *sa )
 {
 	PCLIENT out;
-   xlprintf( 2100 )( WIDE("Connecting mating connection... ") );
+   xlprintf( 2100 )( "Connecting mating connection... " );
 	out = OpenTCPClientAddrExx( sa, TCPRead, TCPClose, NULL, TCPConnected );
 	if( out )
 	{
       uint32_t dwIP = (uint32_t)GetNetworkLong( pExisting, GNL_IP );
 		if( pRoute->flags.ip_transmit )
 		{
-			xlprintf( 2100 )( WIDE("Sending initiant's IP : %08") _32fX, dwIP );
+			xlprintf( 2100 )( "Sending initiant's IP : %08" _32fX, dwIP );
 			SendTCP( out, &dwIP, 4 );
 		}
 		SetNetworkLong( out, NL_ROUTE, (uintptr_t)pRoute );
@@ -233,7 +233,7 @@ PCLIENT ConnectMate( PROUTE pRoute, PCLIENT pExisting, SOCKADDR *sa )
 	else
 	{
 		// should only fail on like - no clients at all...
-		xlprintf( 2100 )( WIDE("Failed to make proxy connection for: %s"), pRoute->name );
+		xlprintf( 2100 )( "Failed to make proxy connection for: %s", pRoute->name );
 		RemoveClient( pExisting );
 	}
    return out;
@@ -245,14 +245,14 @@ void CPROC TCPConnect( PCLIENT pServer, PCLIENT pNew )
 {
 	PCLIENT out;
 	PROUTE pRoute = (PROUTE)GetNetworkLong( pServer, NL_ROUTE );
-   xlprintf( 2100 )( WIDE("TCP Connect received.") );
+   xlprintf( 2100 )( "TCP Connect received." );
    SetTCPNoDelay( pNew, TRUE );
 	SetClientKeepAlive( pNew, TRUE );
 	if( pRoute->flags.ip_route )
 	{
 		// hmm this connection's outbound needs to be held off
 		// until we get the desired destination....
-      xlprintf( 2100 )( WIDE("Delayed connection to mate...") );
+      xlprintf( 2100 )( "Delayed connection to mate..." );
 	}
 	else
 	{
@@ -270,7 +270,7 @@ void CPROC TCPConnect( PCLIENT pServer, PCLIENT pNew )
 
 void RemoveRoute( PROUTE route )
 {
-   xlprintf( 2100 )( WIDE("Remove route...") );
+   xlprintf( 2100 )( "Remove route..." );
 	if( ( *route->me = route->next ) )
 		route->next->me = route->me;
 	ReleaseAddress( route->in );
@@ -288,14 +288,14 @@ void AddRoute( int set_ip_transmit
 				 , TEXTCHAR *dest_name, int dest_port )
 {
 	PROUTE route = (PROUTE)Allocate( sizeof( ROUTE ) );
-	xlprintf( 2100 )( WIDE("Adding Route %s: %s:%d %s:%d")
+	xlprintf( 2100 )( "Adding Route %s: %s:%d %s:%d"
 					, route_name
-					, src_name?src_name:WIDE("0.0.0.0"), src_port
-					, dest_name?dest_name:WIDE("0.0.0.0"), dest_port );
+					, src_name?src_name:"0.0.0.0", src_port
+					, dest_name?dest_name:"0.0.0.0", dest_port );
 	if( route_name )
 		StrCpyEx( route->name, route_name, sizeof( route->name ) );
 	else
-		StrCpyEx( route->name, WIDE("unnamed"), sizeof( route->name ) );
+		StrCpyEx( route->name, "unnamed", sizeof( route->name ) );
 	route->flags.ip_transmit = set_ip_transmit;
 	route->flags.ip_route = set_ip_route;
 	route->in = CreateSockAddress( src_name, src_port );
@@ -320,7 +320,7 @@ void BeginRouting( void )
 			SetNetworkLong( start->listen, NL_ROUTE, (uintptr_t)start );
 		else
 		{
-			xlprintf( 2100 )( WIDE("Failed to open listener for route: %s"), start->name );
+			xlprintf( 2100 )( "Failed to open listener for route: %s", start->name );
 			RemoveRoute( start );
 		}
 		start = next;
@@ -346,7 +346,7 @@ void ReadConfig( FILE *file )
 		len = strlen( buffer );
 		if( len == 255 )
 		{
-			xlprintf( 2100 )( WIDE("FATAL: configuration line is just toooo long.") );
+			xlprintf( 2100 )( "FATAL: configuration line is just toooo long." );
 			break;
 		}
 		buffer[len] = 0; len--; // terminate (remove '\n')
@@ -365,7 +365,7 @@ void ReadConfig( FILE *file )
 			end++;
 		if( !end[0] )
 		{
-			//xlprintf( 2100 )( WIDE("No name field, assuming no route on line.") );
+			//xlprintf( 2100 )( "No name field, assuming no route on line." );
 			continue;
 		}
 		end[0] = 0; // terminate ':'
@@ -378,7 +378,7 @@ void ReadConfig( FILE *file )
 			end++;
 		}
 
-		if( !StrCaseCmpEx( end, WIDE("ip"), 2 ) )
+		if( !StrCaseCmpEx( end, "ip", 2 ) )
 		{
          set_ip_transmit = 1;
          end += 2;
@@ -388,7 +388,7 @@ void ReadConfig( FILE *file )
          end[0] = 0;
 			end++;
 		}
-		if( !StrCaseCmpEx( end, WIDE("switch"), 6 ) )
+		if( !StrCaseCmpEx( end, "switch", 6 ) )
 		{
 			set_ip_route = 1;
 			end += 6;
@@ -411,23 +411,23 @@ void ReadConfig( FILE *file )
 		}
 
 
-		if( !strcmp( start, WIDE("sockets") ) )
+		if( !strcmp( start, "sockets" ) )
 		{
 			wSockets = atoi( end );
 			if( !wSockets )
 				wSockets = DEFAULT_SOCKETS;
 			if( !NetworkWait( 0, wSockets, NETWORK_WORDS ) )
 			{
-				xlprintf( 2100 )( WIDE("Could not begin network!") );
+				xlprintf( 2100 )( "Could not begin network!" );
 			}
-			xlprintf( 2100 )( WIDE("Setting socket limit to %d sockets"), wSockets );
+			xlprintf( 2100 )( "Setting socket limit to %d sockets", wSockets );
 		}
-		else if( !strcmp( start, WIDE("timeout") ) )
+		else if( !strcmp( start, "timeout" ) )
 		{
 			dwTimeout = (uint32_t)IntCreateFromText( end );
 			if( !dwTimeout )
 				dwTimeout = DEFAULT_TIMEOUT;
-			xlprintf( 2100 )( WIDE("Setting socket connect timeout to %")_32f WIDE(" milliseconds"), dwTimeout );
+			xlprintf( 2100 )( "Setting socket connect timeout to %"_32f " milliseconds", dwTimeout );
 		}
 		else
 		{
@@ -448,7 +448,7 @@ void ReadConfig( FILE *file )
 			if( !end[0] )
 			{
             // spaces followed name, but there was no name content...
-				xlprintf( 2100 )( WIDE("Only found one address on the line... invalid route.") );
+				xlprintf( 2100 )( "Only found one address on the line... invalid route." );
 				continue;
 			}
 
@@ -509,13 +509,13 @@ uintptr_t CPROC CheckPendingConnects( PTHREAD pUnused )
 		{
 			uintptr_t dwStart = GetNetworkLong( pending, NL_CONNECT_START );
 
-			//xlprintf( 2100 )( WIDE("Checking pending connect %ld vs %ld"),
+			//xlprintf( 2100 )( "Checking pending connect %ld vs %ld",
 			//     ( GetNetworkLong( pending, NL_CONNECT_START ) + dwTimeout ) , GetTickCount() );
 			if( dwStart && ( ( dwStart + dwTimeout ) < timeGetTime() ) )
 			{
-				xlprintf( 2100 )( WIDE("Failed Connect... timeout") );
+				xlprintf( 2100 )( "Failed Connect... timeout" );
 				RemoveClient( pending );
-				xlprintf( 2100 )( WIDE("Done removing the pending client... "));
+				xlprintf( 2100 )( "Done removing the pending client... ");
 				SetLink( &l.pPendingList, idx, NULL ); // remove it from the list.
 			}
 		}
@@ -533,7 +533,7 @@ void CPROC MyTaskEnd( uintptr_t psv, PTASK_INFO task )
 }
 void CPROC GetOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, uint32_t length )
 {
-   xlprintf( 2100 )( WIDE("%s"), buffer );
+   xlprintf( 2100 )( "%s", buffer );
 }
 
 //---------------------------------------------------------------------------
@@ -543,8 +543,8 @@ static void CPROC Start( void )
 {
 	FILE *file;
 	// should clear all routes here, and reload them.
-	file = sack_fopen( 0, filename, WIDE("rb") );
-	xlprintf( 2100 )( WIDE("config would be [%s]"), filename );
+	file = sack_fopen( 0, filename, "rb" );
+	xlprintf( 2100 )( "config would be [%s]", filename );
 
 	if( !l.flags.not_first_run )
 	{
@@ -553,7 +553,7 @@ static void CPROC Start( void )
 
 		if( !file )
 		{
-			xlprintf( 2100 )( WIDE("Could not locate %s in current directory."), filename );
+			xlprintf( 2100 )( "Could not locate %s in current directory.", filename );
 			return;
 		}
 		ReadConfig( file );
@@ -564,18 +564,18 @@ static void CPROC Start( void )
 			wSockets = DEFAULT_SOCKETS;
 			if( !NetworkWait( 0, wSockets, NETWORK_WORDS ) )
 			{
-				xlprintf( 2100 )( WIDE("Could not begin network!") );
+				xlprintf( 2100 )( "Could not begin network!" );
 				return;
 			}
 		}
 
-		xlprintf( 2100 )( WIDE("Pending timer is set to %") _32f, dwTimeout );
+		xlprintf( 2100 )( "Pending timer is set to %" _32f, dwTimeout );
 		ThreadTo( CheckPendingConnects, 0 );
 		BeginRouting();
 	}
 	else
 	{
-		xlprintf( 2100 )( WIDE("Might want to re-read configuration and do something with it.") );
+		xlprintf( 2100 )( "Might want to re-read configuration and do something with it." );
       fclose( file );
 	}
 
@@ -589,17 +589,17 @@ SaneWinMain( argc, argv )
    int ofs = 0;
 #ifdef BUILD_SERVICE
    normal = 0;
-	if( argc > (1) && StrCaseCmp( argv[1], WIDE("install") ) == 0 )
+	if( argc > (1) && StrCaseCmp( argv[1], "install" ) == 0 )
 	{
 		ServiceInstall( GetProgramName() );
 		return 0;
 	}
-	else if( argc > (1) && StrCaseCmp( argv[1], WIDE("uninstall") ) == 0 )
+	else if( argc > (1) && StrCaseCmp( argv[1], "uninstall" ) == 0 )
 	{
 		ServiceUninstall( GetProgramName() );
 		return 0;
 	}
-	else if( argc > 1 && StrCaseCmp( argv[1], WIDE("normal") ) == 0 )
+	else if( argc > 1 && StrCaseCmp( argv[1], "normal" ) == 0 )
 	{
 		normal = 1;
       ofs = 1;
@@ -608,7 +608,7 @@ SaneWinMain( argc, argv )
 	{
 		{
 			static TEXTCHAR tmp[256];
-			snprintf( tmp, sizeof( tmp ), WIDE("%s/%s.conf"), GetProgramPath(), GetProgramName() );
+			snprintf( tmp, sizeof( tmp ), "%s/%s.conf", GetProgramPath(), GetProgramName() );
 			filename = tmp;
 		}
 		// for some reason service registration requires a non-const string.  pretty sure it doesn't get modified....
@@ -620,7 +620,7 @@ SaneWinMain( argc, argv )
 		if( argc < (2 + ofs ) )
 		{
 			static TEXTCHAR tmp[256];
-			snprintf( tmp, sizeof( tmp ), WIDE("%s/%s.conf"), GetProgramPath(), GetProgramName() );
+			snprintf( tmp, sizeof( tmp ), "%s/%s.conf", GetProgramPath(), GetProgramName() );
 			filename = tmp;
 		}
 		else

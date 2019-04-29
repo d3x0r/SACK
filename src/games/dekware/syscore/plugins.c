@@ -58,7 +58,7 @@ void DumpLoadedPluginList( PSENTIENT ps )
 	vt = VarTextCreate();
 	while( pPlugin )
 	{
-		vtprintf( vt, WIDE("%s"), pPlugin->pName );
+		vtprintf( vt, "%s", pPlugin->pName );
 		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		pPlugin = pPlugin->pNext;
 	}
@@ -145,17 +145,17 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 	TEXTCHAR *pVersion;
 	gpFile = pFile;
 
-	//Log1( WIDE("Loading Plugin %s"), pFile );
+	//Log1( "Loading Plugin %s", pFile );
 	if( pFile )
 	{
 
-		RegisterRoutines = (RegisterRoutinesProc)LoadPrivateFunctionEx( pFile, WIDE("RegisterRoutines") DBG_SRC );
-		Unload = (UnloadPluginProc)LoadPrivateFunctionEx( pFile, WIDE("UnloadPlugin") DBG_SRC );
+		RegisterRoutines = (RegisterRoutinesProc)LoadPrivateFunctionEx( pFile, "RegisterRoutines" DBG_SRC );
+		Unload = (UnloadPluginProc)LoadPrivateFunctionEx( pFile, "UnloadPlugin" DBG_SRC );
 		if( RegisterRoutines )
 		{
 			AddPlugin( pFile, RegisterRoutines, Unload );
 			pVersion = RegisterRoutines( );
-			Log2( WIDE("Loaded a plugin: %s(%s)"), pFile, pVersion );
+			Log2( "Loaded a plugin: %s(%s)", pFile, pVersion );
 			if( pVersion )
 			{  
 				int dots = 0;
@@ -175,12 +175,12 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 					if( chkVersion[0] != chkDekVersion[0] )
 					{
 						TEXTCHAR byMsg[256];
-						snprintf( byMsg, sizeof( byMsg ), WIDE("Plugin %s is version %s not version %s.")
+						snprintf( byMsg, sizeof( byMsg ), "Plugin %s is version %s not version %s."
 										, pFile, pVersion, DekVersion  );
 #ifdef _WIN32
-						MessageBox( NULL, byMsg, WIDE("Plugin Failure"), MB_OK );
+						MessageBox( NULL, byMsg, "Plugin Failure", MB_OK );
 #else
-						fprintf( stderr, WIDE("%s\n"), byMsg );
+						fprintf( stderr, "%s\n", byMsg );
 #endif
 						UnloadPlugin( pPluginLoading );
 						break; // do NOT continue testing version!
@@ -192,11 +192,11 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 			else
 			{
 				TEXTCHAR byMsg[256];
-				snprintf( byMsg, sizeof( byMsg ), WIDE("Plugin %s did not return proper version information"), pFile );
+				snprintf( byMsg, sizeof( byMsg ), "Plugin %s did not return proper version information", pFile );
 #ifdef _WIN32
-				MessageBox( NULL, byMsg, WIDE("Plugin Version Failure"), MB_OK );
+				MessageBox( NULL, byMsg, "Plugin Version Failure", MB_OK );
 #else
-				fprintf( stderr, WIDE("%s\n"), byMsg );
+				fprintf( stderr, "%s\n", byMsg );
 #endif
 				AbortPlugin();
 			}
@@ -206,10 +206,10 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 			if( ps && parameters )
 			{
 				MainFunction Main;
-				Main = (MainFunction)LoadPrivateFunction( pFile, WIDE("Main") );
+				Main = (MainFunction)LoadPrivateFunction( pFile, "Main" );
 				if( Main )
 				{
-					PTEXT line = SegAppend( SegCreateFromText( WIDE("DekwarePlugin ") ), MacroDuplicateEx( ps, parameters, TRUE, TRUE ) );
+					PTEXT line = SegAppend( SegCreateFromText( "DekwarePlugin " ), MacroDuplicateEx( ps, parameters, TRUE, TRUE ) );
 					PTEXT flat = BuildLine( line );
 					int argc;
 					TEXTCHAR **argv;
@@ -227,11 +227,11 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 	else
 	{
 		//TEXTCHAR byMsg[256];
-		//sprintf( byMsg, WIDE("Failed to resolve plugin module routine in %s"), pFile );
+		//sprintf( byMsg, "Failed to resolve plugin module routine in %s", pFile );
 #ifdef _WIN32
-		//MessageBox( NULL, byMsg, WIDE("Plugin Failure"), MB_OK );
+		//MessageBox( NULL, byMsg, "Plugin Failure", MB_OK );
 #else
-		//fprintf( stderr, WIDE("%s\n"), byMsg );
+		//fprintf( stderr, "%s\n", byMsg );
 #endif
 		//			AbortPlugin();
 	}
@@ -246,7 +246,7 @@ void CPROC LoadAPlugin( uintptr_t psv, CTEXTSTR name, int flags )
 static LOGICAL AddTmpPath( TEXTCHAR *tmp )
 {
 	// if loading a plugin from a path, add that path to the PATH
-	CTEXTSTR old_environ = OSALOT_GetEnvironmentVariable( WIDE( "PATH" ) );
+	CTEXTSTR old_environ = OSALOT_GetEnvironmentVariable( "PATH" );
 #ifdef WIN32
 #define PATH_SEP_CHAR ';'
 #else
@@ -257,7 +257,7 @@ static LOGICAL AddTmpPath( TEXTCHAR *tmp )
 	CTEXTSTR result;
 	if( !( result = StrCaseStr( old_environ, tmp ) ) )
 	{
-		OSALOT_PrependEnvironmentVariable( WIDE( "PATH" ), tmp );
+		OSALOT_PrependEnvironmentVariable( "PATH", tmp );
 		return TRUE;
 	}
 	else
@@ -266,7 +266,7 @@ static LOGICAL AddTmpPath( TEXTCHAR *tmp )
 		{
 			if( result[len] != PATH_SEP_CHAR )
 			{
-				OSALOT_PrependEnvironmentVariable( WIDE( "PATH" ), tmp );
+				OSALOT_PrependEnvironmentVariable( "PATH", tmp );
 				return TRUE;
 			}
 		}
@@ -276,13 +276,13 @@ static LOGICAL AddTmpPath( TEXTCHAR *tmp )
 			// otherwise end of string is OK.
 			if( result[len] && ( result[len] != PATH_SEP_CHAR ) )
 			{
-				OSALOT_PrependEnvironmentVariable( WIDE( "PATH" ), tmp );
+				OSALOT_PrependEnvironmentVariable( "PATH", tmp );
 				return TRUE;
 			}
 		}
 		else
 		{
-			OSALOT_PrependEnvironmentVariable( WIDE( "PATH" ), tmp );
+			OSALOT_PrependEnvironmentVariable( "PATH", tmp );
 			return TRUE;
 		}
 	}
@@ -296,7 +296,7 @@ void LoadPlugins( CTEXTSTR base )
 	TEXTCHAR savepath[256];
 	void *pInfo;
 	FILE *pluginfile;
-	CTEXTSTR old_environ = StrDup( OSALOT_GetEnvironmentVariable( WIDE( "PATH" ) ) );
+	CTEXTSTR old_environ = StrDup( OSALOT_GetEnvironmentVariable( "PATH" ) );
 	pInfo = NULL;
 	// this *.nex is ignored except in windows pattern search support...
 #ifndef __ANDROID__
@@ -304,13 +304,13 @@ void LoadPlugins( CTEXTSTR base )
 	SetCurrentPath( base );
 #endif
 
-	pluginfile = sack_fopen( 0, WIDE("plugins.list"), WIDE("rt") );
+	pluginfile = sack_fopen( 0, "plugins.list", "rt" );
 	if( !pluginfile )
 	{
 #ifdef __ANDROID__
-		while( ScanFiles( base, WIDE("lib*.nex.so"), &pInfo, LoadAPlugin, 0, 0 ) );
+		while( ScanFiles( base, "lib*.nex.so", &pInfo, LoadAPlugin, 0, 0 ) );
 #else
-		while( ScanFiles( base, WIDE("*.nex"), &pInfo, LoadAPlugin, 0, 0 ) );
+		while( ScanFiles( base, "*.nex", &pInfo, LoadAPlugin, 0, 0 ) );
 #endif
 	}
 	else
@@ -330,7 +330,7 @@ void LoadPlugins( CTEXTSTR base )
 					PTEXT result;
 
 					pvt = VarTextCreate();
-					vtprintf( pvt,	WIDE("%s/%*.*s"), base, r-buf, r-buf, buf );
+					vtprintf( pvt,	"%s/%*.*s", base, r-buf, r-buf, buf );
 					result = VarTextGet( pvt );
 					VarTextDestroy( &pvt );
 
@@ -341,7 +341,7 @@ void LoadPlugins( CTEXTSTR base )
 
 				while( ScanFiles( filename, r+1, &pInfo, LoadAPlugin, 0, 0 ) );
 				if( bAppended )
-					OSALOT_SetEnvironmentVariable( WIDE("PATH"), old_environ );
+					OSALOT_SetEnvironmentVariable( "PATH", old_environ );
 			}
 			else
 			{
@@ -354,13 +354,13 @@ void LoadPlugins( CTEXTSTR base )
 #ifndef __ANDROID__
 	SetCurrentPath( savepath );
 #endif
-	OSALOT_SetEnvironmentVariable( WIDE("PATH"), old_environ );
+	OSALOT_SetEnvironmentVariable( "PATH", old_environ );
 	Release( (POINTER)old_environ );
 
 	pPluginLoading = (PPLUGIN)1;
 	{
 		//		 extern PDATAPATH (CPROC OpenObject)( PDATAPATH *pChannel, PSENTIENT ps, PTEXT params );
-		//		 iObjectDevice = RegisterDevice( WIDE("object"), WIDE("Datapath designed to accept input from other objects"), OpenObject );
+		//		 iObjectDevice = RegisterDevice( "object", "Datapath designed to accept input from other objects", OpenObject );
 	}
 	pPluginLoading = NULL;
 }
@@ -373,7 +373,7 @@ void UnloadPlugins( void )
 	{
 		UnloadPlugin( pPlugins );
 	}
-//	UnregisterDevice( WIDE("object") );
+//	UnregisterDevice( "object" );
 }
 
 //--------------------------------------------------------------------------
@@ -409,21 +409,21 @@ CORE_PROC( void, RegisterRoutine )( CTEXTSTR pClassname, CTEXTSTR pName, CTEXTST
 	TEXTCHAR tmp[256];
 	if( !pPluginLoading )
 	{
-		Log1( WIDE("Cannot Register routines except when plugin is loading...%p\n"), pPluginLoading );
+		Log1( "Cannot Register routines except when plugin is loading...%p\n", pPluginLoading );
 		//return;
 	}
-	snprintf( tmp, sizeof( tmp ), WIDE("Dekware/commands/%s"), pName );
-	SimpleRegisterMethod( WIDE("Dekware/commands"), Routine
-							  , WIDE("int"), pName, WIDE("(PSENTIENT,PTEXT)") );
-	RegisterValue( tmp, WIDE("Description"), pDescription );
-	RegisterValue( tmp, WIDE("Command Class"), pClassname );
+	snprintf( tmp, sizeof( tmp ), "Dekware/commands/%s", pName );
+	SimpleRegisterMethod( "Dekware/commands", Routine
+							  , "int", pName, "(PSENTIENT,PTEXT)" );
+	RegisterValue( tmp, "Description", pDescription );
+	RegisterValue( tmp, "Command Class", pClassname );
 }
 
 //--------------------------------------------------------------------------
 
 CORE_PROC( void, UnregisterRoutine )( CTEXTSTR pName )
 {
-	Log( WIDE("Plugin is attempting to Unregister an unknown routine...") );
+	Log( "Plugin is attempting to Unregister an unknown routine..." );
 }
 //--------------------------------------------------------------------------
 
@@ -435,9 +435,9 @@ Function GetRoutineRegistered( TEXTSTR prefix, PTEXT Command )
 	Function f;
 	TEXTCHAR tmp[256];
 	if( prefix )
-		snprintf( tmp, sizeof( tmp ), WIDE("dekware/commands/%s"), prefix );
+		snprintf( tmp, sizeof( tmp ), "dekware/commands/%s", prefix );
 	else
-		StrCpy( tmp, WIDE("dekware/commands") );
+		StrCpy( tmp, "dekware/commands" );
 
 	f = GetRegisteredProcedure2( tmp, int, GetText(Command), (PSENTIENT,PTEXT) );
 	return f;
@@ -448,9 +448,9 @@ OptionHandler GetOptionRegistered( TEXTSTR prefix, PTEXT Command )
 	OptionHandler f;
 	TEXTCHAR tmp[256];
 	if( prefix )
-		snprintf( tmp, sizeof( tmp ), WIDE("dekware/devices/%s/options"), prefix );
+		snprintf( tmp, sizeof( tmp ), "dekware/devices/%s/options", prefix );
 	else
-		snprintf( tmp, sizeof( tmp ), WIDE("dekware/options") );
+		snprintf( tmp, sizeof( tmp ), "dekware/options" );
 
 	f = GetRegisteredProcedure2( tmp, int, GetText(Command), (PDATAPATH,PSENTIENT,PTEXT) );
 	return f;
@@ -491,15 +491,15 @@ CORE_PROC( int, RegisterDeviceOpts )( CTEXTSTR pName
 	{
 		PCLASSROOT root;
 
-		SimpleRegisterMethod( WIDE("dekware/devices"), Open, WIDE("PDATAPATH"), pName, WIDE("(PDATAPATH*,PSENTIENT,PTEXT)") );
-		root = GetClassRootEx( (PCLASSROOT)WIDE("dekware/devices"), pName );
-		RegisterValue( (CTEXTSTR)root, WIDE("Description"), pDescription );
-		RegisterValue( (CTEXTSTR)root, WIDE("Name"), pName );
-		RegisterIntValue( (CTEXTSTR)root, WIDE("TypeID"), nTypeID );
+		SimpleRegisterMethod( "dekware/devices", Open, "PDATAPATH", pName, "(PDATAPATH*,PSENTIENT,PTEXT)" );
+		root = GetClassRootEx( (PCLASSROOT)"dekware/devices", pName );
+		RegisterValue( (CTEXTSTR)root, "Description", pDescription );
+		RegisterValue( (CTEXTSTR)root, "Name", pName );
+		RegisterIntValue( (CTEXTSTR)root, "TypeID", nTypeID );
 
 		{
 			TEXTCHAR tmp[64];
-			snprintf( tmp, sizeof( tmp ), WIDE("dekware/devices/%d"), nTypeID );
+			snprintf( tmp, sizeof( tmp ), "dekware/devices/%d", nTypeID );
 			RegisterClassAlias( root, tmp );
 		}
 		
@@ -511,20 +511,20 @@ CORE_PROC( int, RegisterDeviceOpts )( CTEXTSTR pName
 				TEXTCHAR tmp[256];
 				TEXTCHAR tmp2[256];
 				CTEXTSTR name;
-				snprintf( tmp, sizeof( tmp ), WIDE("Dekware/devices/%s/options/%s")
+				snprintf( tmp, sizeof( tmp ), "Dekware/devices/%s/options/%s"
 						  , pName
 						  , name = GetText( (PTEXT)&pOptions[i].name ) );
-				snprintf( tmp2, sizeof( tmp2 ), WIDE("Dekware/devices/%s/options")
+				snprintf( tmp2, sizeof( tmp2 ), "Dekware/devices/%s/options"
 						  , pName );
 				if( CheckClassRoot( tmp ) )
 				{
-					lprintf( WIDE("%s already registered"), tmp );
+					lprintf( "%s already registered", tmp );
 					continue;
 				}
-				//lprintf( WIDE("regsiter %s"), tmp );
+				//lprintf( "regsiter %s", tmp );
 				SimpleRegisterMethod( tmp2, pOptions[i].function
-										  , WIDE("int"), name, WIDE("(PDATAPATH,PSENTIENT,PTEXT)") );
-				RegisterValue( tmp, WIDE("Description"), GetText( (PTEXT)&pOptions[i].description ) );
+										  , "int", name, "(PDATAPATH,PSENTIENT,PTEXT)" );
+				RegisterValue( tmp, "Description", GetText( (PTEXT)&pOptions[i].description ) );
 			}
 			//RegisterOptions( pName, pOptions, nOptions );
 		}
@@ -553,7 +553,7 @@ CORE_PROC( void, UnregisterDevice )( CTEXTSTR pName )
 			INDEX idx;
 			LIST_FORALL( pdev->pOpenPaths, idx, PDATAPATH, pdp ) 
 			{
-				lprintf( WIDE("Unregister is destroying path: %s(%d) %p (%p:%p)"), pName, pdev->TypeID, pdp, pDeviceRoot, pdev );
+				lprintf( "Unregister is destroying path: %s(%d) %p (%p:%p)", pName, pdev->TypeID, pdp, pDeviceRoot, pdev );
 				DestroyDataPath( pdp );
 			}
 
@@ -563,7 +563,7 @@ CORE_PROC( void, UnregisterDevice )( CTEXTSTR pName )
 			}
 			else
 				pDeviceRoot = pdev->pNext;
-			//Log1( WIDE("Unlinked from possible datapaths:%s"), pName );
+			//Log1( "Unlinked from possible datapaths:%s", pName );
 			LineRelease( pdev->name );
 			LineRelease( pdev->description );
 			DeleteList( &pdev->pOpenPaths );
@@ -580,7 +580,7 @@ CORE_PROC( void, UnregisterDevice )( CTEXTSTR pName )
 
 void PrintRegisteredDevices( PLINKQUEUE *ppOutput )
 {
-	WriteCommandList2( ppOutput, WIDE("dekware/devices"), NULL );
+	WriteCommandList2( ppOutput, "dekware/devices", NULL );
 }
 
 //--------------------------------------------------------------------------
@@ -597,7 +597,7 @@ CORE_PROC( PDATAPATH, FindOpenDevice )( PSENTIENT ps, PTEXT pName )
 			pdp = ps->Data;
 		while( pdp )
 		{
-			CTEXTSTR devname = GetRegisteredValue( (CTEXTSTR)pdp->pDeviceRoot, WIDE("Name") );
+			CTEXTSTR devname = GetRegisteredValue( (CTEXTSTR)pdp->pDeviceRoot, "Name" );
 
 			if( SameText( pName, pdp->pName ) == 0 )
 			{
@@ -617,7 +617,7 @@ CORE_PROC( PDATAPATH, FindOpenDevice )( PSENTIENT ps, PTEXT pName )
 
 CORE_PROC( DeviceOpenDevice, FindDevice )( PTEXT pName )
 {
-	DeviceOpenDevice f = GetRegisteredProcedure2( WIDE("dekware/devices"), PDATAPATH, GetText( pName ), (PDATAPATH*,PSENTIENT,PTEXT));
+	DeviceOpenDevice f = GetRegisteredProcedure2( "dekware/devices", PDATAPATH, GetText( pName ), (PDATAPATH*,PSENTIENT,PTEXT));
 	return f;
 }
 
@@ -632,7 +632,7 @@ int CPROC OptionDevice( PSENTIENT ps, PTEXT params )
 		PDATAPATH pdp = FindOpenDevice( ps, devname );
 		if( pdp )
 		{
-			PCLASSROOT option_root = GetClassRootEx( pdp->pDeviceRoot, WIDE("options") );
+			PCLASSROOT option_root = GetClassRootEx( pdp->pDeviceRoot, "options" );
 			//int32_t idx = -1;
 			if( params )
 			{
@@ -668,7 +668,7 @@ int CPROC OptionDevice( PSENTIENT ps, PTEXT params )
 					}
 					else
 					{
-						DECLTEXT( msg, WIDE("No options for device.") );
+						DECLTEXT( msg, "No options for device." );
 						EnqueLink( &ps->Command->Output, &msg );
 					}
 				}
@@ -686,7 +686,7 @@ int CPROC OptionDevice( PSENTIENT ps, PTEXT params )
 			}
 			else
 			{
-				DECLTEXT( msg, WIDE("Unknown device specified for options") );
+				DECLTEXT( msg, "Unknown device specified for options" );
 				EnqueLink( &ps->Command->Output, &msg );
 			}
 		}
@@ -699,7 +699,7 @@ int CPROC OptionDevice( PSENTIENT ps, PTEXT params )
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Must supply a device name to set options for.") );
+			DECLTEXT( msg, "Must supply a device name to set options for." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}
@@ -719,15 +719,15 @@ void SetDatapathType( PDATAPATH pdp, int nType )
 		//PDEVICE olddev = pdp->Type?FindDeviceByID( pdp->Type ):NULL;
 		//if( olddev )
 		//{
-			//lprintf( WIDE("deleting device %p from list on %p"), pdp, pdev );
+			//lprintf( "deleting device %p from list on %p", pdp, pdev );
 		//	DeleteLink( &olddev->pOpenPaths, pdp );
 		//}
 		//if( pdev )
 
 		{
 			TEXTCHAR tmp[20];
-			snprintf( tmp, sizeof( tmp ), WIDE("%d"), nType );
-			pdp->pDeviceRoot = GetClassRootEx( (PCLASSROOT)WIDE("dekware/devices"), tmp );
+			snprintf( tmp, sizeof( tmp ), "%d", nType );
+			pdp->pDeviceRoot = GetClassRootEx( (PCLASSROOT)"dekware/devices", tmp );
 			pdp->Type = nType;
 		}
 	}
@@ -744,34 +744,34 @@ PDATAPATH OpenDevice( PDATAPATH *pChannel, PSENTIENT ps, PTEXT pName, PTEXT para
 	if( !dev_open )
 	{
 		if( !PeekData( &ps->MacroStack ) )
-			S_MSG( ps, WIDE("No device type named %s"), GetText( pName ) );
+			S_MSG( ps, "No device type named %s", GetText( pName ) );
 	}
 	else
 	{
-		//lprintf( WIDE("Opening a device named %s"), GetText( pName ) );
+		//lprintf( "Opening a device named %s", GetText( pName ) );
 		pdp = dev_open( pChannel, ps, parameters );
 		if( pdp )
 		{
-			pdp->pDeviceRoot = GetClassRootEx( (PCLASSROOT)WIDE("dekware/devices"), GetText( pName ) );
+			pdp->pDeviceRoot = GetClassRootEx( (PCLASSROOT)"dekware/devices", GetText( pName ) );
 			if( !pdp->pDeviceRoot )
-				DumpRegisteredNamesFrom( (PCLASSROOT)WIDE("dekware/devices") );
+				DumpRegisteredNamesFrom( (PCLASSROOT)"dekware/devices" );
 			{
-				uintptr_t id = GetRegisteredIntValue( pdp->pDeviceRoot, WIDE("TypeID") );
+				uintptr_t id = GetRegisteredIntValue( pdp->pDeviceRoot, "TypeID" );
 				if( !id )
 				{
 					TEXTCHAR tmp[20];
 					nTypeID = ++nDevice;
 					id = nTypeID;
-					RegisterIntValue( (CTEXTSTR)pdp->pDeviceRoot, WIDE("TypeID"), nTypeID );
-					RegisterValue( (CTEXTSTR)pdp->pDeviceRoot, WIDE("Name"), GetText( pName  ) );
-					snprintf( tmp, sizeof( tmp ), WIDE("%d"), nTypeID );
-					RegisterClassAlias( GetClassRootEx( (PCLASSROOT)WIDE("dekware/devices"), tmp ), pdp->pDeviceRoot );
+					RegisterIntValue( (CTEXTSTR)pdp->pDeviceRoot, "TypeID", nTypeID );
+					RegisterValue( (CTEXTSTR)pdp->pDeviceRoot, "Name", GetText( pName  ) );
+					snprintf( tmp, sizeof( tmp ), "%d", nTypeID );
+					RegisterClassAlias( GetClassRootEx( (PCLASSROOT)"dekware/devices", tmp ), pdp->pDeviceRoot );
 				}
 				pdp->Type = nTypeID;
 				//SetDatapathType( pdp, (int)id );
 			}
 			AddVolatileVariables( ps->Current, (CTEXTSTR)pdp->pDeviceRoot );
-			//lprintf( WIDE("Adding device %p to list on %p"), pdp, pdev );
+			//lprintf( "Adding device %p to list on %p", pdp, pdev );
 			// if it's previously set, this will delete and re-add
 			// maintaining a single reference count
 			pdp->Owner = ps;
@@ -792,19 +792,19 @@ int CloseDevice( PDATAPATH pdp )
 		{
 			if( pdp->Type != nType )
 			{
-				//lprintf( WIDE("Lost the type - restoring") );
+				//lprintf( "Lost the type - restoring" );
 				pdp->Type = nType;
 			}
 			return FALSE;
 		}
 		if( pdp->Type != nType )
 		{
-			//lprintf( WIDE("Lost the type - restoring") );
+			//lprintf( "Lost the type - restoring" );
 			pdp->Type = nType;
 		}
 	}
 	//else
-	//	lprintf( WIDE("No close to call on %s"), pDevice?GetText( pDevice->name ):WIDE("UNREGISTERED DEVICE") );
+	//	lprintf( "No close to call on %s", pDevice?GetText( pDevice->name ):"UNREGISTERED DEVICE" );
 
 	if( pdp->Type )
 	{
@@ -816,7 +816,7 @@ int CloseDevice( PDATAPATH pdp )
 		pDevice = pDeviceRoot;
 		while( pDevice )
 		{
-			//Log3( WIDE("Close Device: is %d(%s) == %d? ")
+			//Log3( "Close Device: is %d(%s) == %d? "
 			//		, pDevice->TypeID
 			//		, GetText( pDevice->name )
 			//		, pdp->Type );
@@ -828,23 +828,23 @@ int CloseDevice( PDATAPATH pdp )
 		}
 		if( pDevice )
 		{
-			//lprintf( WIDE("Deleting device %p from list on %p"), pdp, pDevice );
+			//lprintf( "Deleting device %p from list on %p", pdp, pDevice );
 			if( !DeleteLink( &pDevice->pOpenPaths, pdp ) )
 			{
-				lprintf( WIDE("Failed to find link to delete device %s"), GetText( pDevice->name ) );
+				lprintf( "Failed to find link to delete device %s", GetText( pDevice->name ) );
 				DebugBreak();
 			}
 		}
 		else
 		{
 			DebugBreak();
-			Log( WIDE("Failed to find device to remove datapath from.") );
+			Log( "Failed to find device to remove datapath from." );
 		}
 #endif
 	}
 	else
 	{
-		//lprintf( WIDE("Device called %s had type 0 (sysinternal)"), GetText( pdp->pName ) );
+		//lprintf( "Device called %s had type 0 (sysinternal)", GetText( pdp->pName ) );
 		//DebugBreak();
 		// only device that this should be is uhmm user interface...
 	}
@@ -867,7 +867,7 @@ CORE_PROC( void, AddVolatileVariables )( PENTITY pe, CTEXTSTR root )
 	{
 		PCLASSROOT data;
 		CTEXTSTR name;
-		PCLASSROOT tmproot = GetClassRootEx( (PCLASSROOT)root, WIDE("variables") );
+		PCLASSROOT tmproot = GetClassRootEx( (PCLASSROOT)root, "variables" );
 		for( name = GetFirstRegisteredName( (CTEXTSTR)tmproot, &data );
 			  name;
 			  name = GetNextRegisteredName( &data ) )
@@ -875,8 +875,8 @@ CORE_PROC( void, AddVolatileVariables )( PENTITY pe, CTEXTSTR root )
 			// foreach root/variables create a volatile variable reference on the object
 			volatile_variable_entry *pvve_add = New( volatile_variable_entry );
 			pvve_add->pName = name;
-			pvve_add->get = GetRegisteredProcedure2( GetCurrentRegisteredTree(&data), PTEXT, WIDE("get"), (PENTITY,PTEXT*));
-			pvve_add->set = GetRegisteredProcedure2( GetCurrentRegisteredTree(&data), PTEXT, WIDE("set"), (PENTITY,PTEXT));
+			pvve_add->get = GetRegisteredProcedure2( GetCurrentRegisteredTree(&data), PTEXT, "get", (PENTITY,PTEXT*));
+			pvve_add->set = GetRegisteredProcedure2( GetCurrentRegisteredTree(&data), PTEXT, "set", (PENTITY,PTEXT));
 			pvve_add->pLastValue = NULL; // no last value.
 			AddLink( &pe->pVariables, pvve_add );
 		}
@@ -911,7 +911,7 @@ CORE_PROC( void,  UnregisterObject )( CTEXTSTR pName )
 	}
 	else
 	{
-		Log1( WIDE("Failed to find registered object : %s"), pName );
+		Log1( "Failed to find registered object : %s", pName );
 	}
 #endif
 	unregistering = 0;
@@ -925,8 +925,8 @@ CORE_PROC( void, RegisterObjectEx )( CTEXTSTR pName
 												DBG_PASS )
 {
 	// should confirm the names... and delete duplicates...
-	SimpleRegisterMethod( WIDE("dekware/objects"), Init, WIDE("int"), pName, WIDE("(PSENTIENT,PENTITY,PTEXT)"));
-	RegisterValueExx( WIDE("dekware/objects"), pName, WIDE("Description"), FALSE, pDescription );
+	SimpleRegisterMethod( "dekware/objects", Init, "int", pName, "(PSENTIENT,PENTITY,PTEXT)");
+	RegisterValueExx( "dekware/objects", pName, "Description", FALSE, pDescription );
 }
 
 ObjectInit ScanRegisteredObjects( PENTITY pe, CTEXTSTR for_name )
@@ -936,7 +936,7 @@ ObjectInit ScanRegisteredObjects( PENTITY pe, CTEXTSTR for_name )
 	//DebugBreak();
 	if( !for_name )
 		return NULL;
-	for( name = GetFirstRegisteredName( (CTEXTSTR)WIDE("dekware/objects"), &current_obj );
+	for( name = GetFirstRegisteredName( (CTEXTSTR)"dekware/objects", &current_obj );
 					 name;
 		  name = GetNextRegisteredName( &current_obj ) )
 	{
@@ -961,16 +961,16 @@ int ListRegisteredObjects( PSENTIENT ps, PTEXT parameters )
 	// enques the list of registered objects and descriptions to the sentient
 	PCLASSROOT current_obj;
 	CTEXTSTR name;
-	for( name = GetFirstRegisteredName( (CTEXTSTR)WIDE("dekware/objects"), &current_obj );
+	for( name = GetFirstRegisteredName( (CTEXTSTR)"dekware/objects", &current_obj );
 					 name;
 		  name = GetNextRegisteredName( &current_obj ) )
 //	while( pCurrent )
 	{
 		PTEXT out;
 		out = SegCreate( 256 );
-		out->data.size = snprintf(out->data.data, 256 * sizeof( TEXTCHAR ), WIDE("%-20s %s")
+		out->data.size = snprintf(out->data.data, 256 * sizeof( TEXTCHAR ), "%-20s %s"
 										, name
-										, GetRegisteredValue( (CTEXTSTR)GetCurrentRegisteredTree(&current_obj), WIDE("Description") )
+										, GetRegisteredValue( (CTEXTSTR)GetCurrentRegisteredTree(&current_obj), "Description" )
 										);
 		EnqueLink( &ps->Command->Output, out );
 	}
@@ -981,7 +981,7 @@ int ListRegisteredObjects( PSENTIENT ps, PTEXT parameters )
 
 void DestroyRegisteredObject( PENTITY pe )
 {
-	Log( WIDE("Could not find entity to destroy?!") );
+	Log( "Could not find entity to destroy?!" );
 }
 
 //--------------------------------------------------------------------------
@@ -1009,7 +1009,7 @@ int Assimilate( PENTITY pe, PSENTIENT ps, CTEXTSTR name, PTEXT parameters )
 		{
 			if( ps )
 			{
-				DECLTEXT( msg, WIDE("Initialzation method failed.") );
+				DECLTEXT( msg, "Initialzation method failed." );
 				// if in a macro, should not log just set result...
 				EnqueLink( &ps->Command->Output, &msg );
 			}
@@ -1020,7 +1020,7 @@ int Assimilate( PENTITY pe, PSENTIENT ps, CTEXTSTR name, PTEXT parameters )
 	{
 		if( ps )
 		{
-			DECLTEXT( msg, WIDE("No such object type has been registered.") );
+			DECLTEXT( msg, "No such object type has been registered." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 		return 0;
@@ -1028,12 +1028,12 @@ int Assimilate( PENTITY pe, PSENTIENT ps, CTEXTSTR name, PTEXT parameters )
 	return 0;
 }
 
-static int HandleCommand( WIDE("Object"), WIDE("Assimilate"), WIDE("This object inherits being an objec to some type") )( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand( "Object", "Assimilate", "This object inherits being an objec to some type" )( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT type = GetParam( ps, &parameters );
 	if( !type )
 	{
-		DECLTEXT( msg, WIDE("Must specify type of object to make...") );
+		DECLTEXT( msg, "Must specify type of object to make..." );
 		EnqueLink( &ps->Command->Output, &msg );
 		ListRegisteredObjects( ps, NULL );
 		return 0;	
@@ -1051,7 +1051,7 @@ int CPROC CreateRegisteredObject( PSENTIENT ps, PTEXT parameters )
 	name = GetParam( ps, &parameters );
 	if( !name )
 	{
-		DECLTEXT( msg, WIDE("Must specify name and type of object to make...") );
+		DECLTEXT( msg, "Must specify name and type of object to make..." );
 		EnqueLink( &ps->Command->Output, &msg );
 		ListRegisteredObjects( ps, NULL );
 		return 0;
@@ -1059,7 +1059,7 @@ int CPROC CreateRegisteredObject( PSENTIENT ps, PTEXT parameters )
 	type = GetParam( ps, &parameters );
 	if( !type )
 	{
-		DECLTEXT( msg, WIDE("Must specify type of object to make...") );
+		DECLTEXT( msg, "Must specify type of object to make..." );
 		EnqueLink( &ps->Command->Output, &msg );
 		ListRegisteredObjects( ps, NULL );
 		return 0;
@@ -1077,7 +1077,7 @@ int CPROC CreateRegisteredObject( PSENTIENT ps, PTEXT parameters )
 			}
 			else
 			{
-				DECLTEXT( msg, WIDE("Initialzation method failed.") );
+				DECLTEXT( msg, "Initialzation method failed." );
 				// if in a macro, should not log just set result...
 				EnqueLink( &ps->Command->Output, &msg );
 				DestroyEntity( pe );
@@ -1087,7 +1087,7 @@ int CPROC CreateRegisteredObject( PSENTIENT ps, PTEXT parameters )
 	}
 	else
 	{
-		DECLTEXT( msg, WIDE("No such object type has been registered.") );
+		DECLTEXT( msg, "No such object type has been registered." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
@@ -1116,18 +1116,18 @@ int IsObjectTypeOf( PSENTIENT ps, PTEXT entity, PTEXT form )
 					// else object does not have one of these extensions
 				}
 			}
-			S_MSG( ps, WIDE("Object %s is not a type of %s"), GetText( GetName( pe ) ), GetText( form ) );
+			S_MSG( ps, "Object %s is not a type of %s", GetText( GetName( pe ) ), GetText( form ) );
 		}
 		//else
 		//{
 		//	if( !ps->CurrentMacro )
-		//		S_MSG( ps, WIDE("Type %s is not a registered type"), GetText( form ) );
+		//		S_MSG( ps, "Type %s is not a registered type", GetText( form ) );
 		//}
 	}
 	else
 	{
 		if( !ps->CurrentMacro )
-			S_MSG( ps, WIDE("Failed to find object named %s"), GetText( entity ) );
+			S_MSG( ps, "Failed to find object named %s", GetText( entity ) );
 	}
 	return FALSE;
 }
@@ -1140,15 +1140,15 @@ int CPROC ListExtensions( PSENTIENT ps, PTEXT parameters )
 	CTEXTSTR name;
 	LIST_FORALL( global.ExtensionNames, idx, CTEXTSTR, name )
 	{
-		vtprintf(  pvt, WIDE("%s%s")
-				  , first?WIDE(""):WIDE(", ")
+		vtprintf(  pvt, "%s%s"
+				  , first?"":", "
 				  , name );
 		first = 0;
 	}
 	if( first )
-		vtprintf( pvt, WIDE("none.") );
+		vtprintf( pvt, "none." );
 	else
-		vtprintf( pvt, WIDE(".") );
+		vtprintf( pvt, "." );
 	{
 		PTEXT out = VarTextGet( pvt );
 		EnqueLink( &ps->Command->Output, out );
@@ -1159,8 +1159,8 @@ int CPROC ListExtensions( PSENTIENT ps, PTEXT parameters )
 
 //--------------------------------------------------------------------------
 
-static PDATAPATH OnInitDevice( WIDE("object"), WIDE("Datapath designed to accept input from other objects") )
-//		 iObjectDevice = RegisterDevice( WIDE("object"), WIDE("Datapath designed to accept input from other objects"), OpenObject );
+static PDATAPATH OnInitDevice( "object", "Datapath designed to accept input from other objects" )
+//		 iObjectDevice = RegisterDevice( "object", "Datapath designed to accept input from other objects", OpenObject );
 //PDATAPATH OpenObject
 ( PDATAPATH *pChannel, PSENTIENT ps, PTEXT params )
 {
@@ -1180,7 +1180,7 @@ int SendToObjectEx( PSENTIENT ps, PTEXT parameters, int bInput )
 		pName = GetParam( ps, &parameters );
 		if( !pName )
 		{
-			DECLTEXT( msg, WIDE("must specify a name of an entity to send data to...") );
+			DECLTEXT( msg, "must specify a name of an entity to send data to..." );
 			EnqueLink( &ps->Command->Output, &msg );
 			return 0;
 		}
@@ -1190,20 +1190,20 @@ int SendToObjectEx( PSENTIENT ps, PTEXT parameters, int bInput )
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Could not see entity to send data to...") );
+			DECLTEXT( msg, "Could not see entity to send data to..." );
 			EnqueLink( &ps->Command->Output, &msg );
 			return 0;
 		}
 	}
 	if( !pe->pControlledBy )
 	{
-		DECLTEXT( msg, WIDE("Entity is not aware and cannot process data.") );
+		DECLTEXT( msg, "Entity is not aware and cannot process data." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
 	if( !pe->pControlledBy->Data )
 	{
-		DECLTEXT( msg, WIDE("Entity to send to has not opened its datapath.") );
+		DECLTEXT( msg, "Entity to send to has not opened its datapath." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 
@@ -1216,7 +1216,7 @@ int SendToObjectEx( PSENTIENT ps, PTEXT parameters, int bInput )
 		EnqueLink( &pe->pControlledBy->Data->Input, pMsg );
 	else
 	{
-		lprintf( WIDE("Enqueying output on %s"), GetText( GetName( pe ) ) );
+		lprintf( "Enqueying output on %s", GetText( GetName( pe ) ) );
 		EnqueLink( &pe->pControlledBy->Data->Output, pMsg );
 	}
 
@@ -1456,7 +1456,7 @@ void AddCommonBehavior( CTEXTSTR name, CTEXTSTR description )
 //(/command file, /command token, /option file close )
 //
 //Revision 1.11  2002/04/25 18:34:19  panther
-//Added check for file called WIDE("plugins.list") to specify which plugins should
+//Added check for file called "plugins.list" to specify which plugins should
 //be loaded.  If this file is absent, normal scan directory method is done.
 //
 //Revision 1.10  2002/04/15 18:23:57  panther

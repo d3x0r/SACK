@@ -13,7 +13,7 @@ int CPROC EventHandler( MSGIDTYPE Msg, uint32_t *params, size_t paramlen )
 {
 
 	uint32_t tick;
-	printf( WIDE("Got event %08lx at %ld\n"), Msg, ( tick = GetTickCount() ) - last_tick );
+	printf( "Got event %08lx at %ld\n", Msg, ( tick = GetTickCount() ) - last_tick );
 	last_tick = tick;
 	LogBinary( (POINTER)params, paramlen );
 	return 0;
@@ -37,12 +37,12 @@ uintptr_t CPROC LongWaitTrans( PTHREAD thread )
 										  , buffer, buflen
 										  , &responce, result, &reslen ) )
 		{
-			printf( WIDE("Transact message generally failed - suppose that's a timeout.\n") );
+			printf( "Transact message generally failed - suppose that's a timeout.\n" );
 		}
 		else
 		{
 			if( responce & 0x80000000 )
-				printf( WIDE("Responce was faillure from the server...\n") );
+				printf( "Responce was faillure from the server...\n" );
 			else
 			{
 				nlongmsgs++;
@@ -60,9 +60,9 @@ SaneWinMain( argc, argv )
 	{
 		TEXTCHAR logname[64];
 		if( argc > 2 )
-			snprintf( logname, 64, WIDE("service_client_%s.log"), argv[2] );
+			snprintf( logname, 64, "service_client_%s.log", argv[2] );
 		else
-			snprintf( logname, 64, WIDE("service_client_%s.log"), argv[1] );
+			snprintf( logname, 64, "service_client_%s.log", argv[1] );
 		SetSystemLog( SYSLOG_FILENAME, logname );
 	}
 	if( argc > 3 )
@@ -72,20 +72,20 @@ SaneWinMain( argc, argv )
 	}
 	else
 	{
-		OtherBaseID = LoadService( WIDE("Test Service 1"), EventHandler );
+		OtherBaseID = LoadService( "Test Service 1", EventHandler );
 		if( OtherBaseID )
 		{
 			ThreadTo( LongWaitTrans, 0 );
 		}
 		else
-			lprintf( WIDE("Failed to connect to first service") );
+			lprintf( "Failed to connect to first service" );
 	}
-	BaseID = LoadService( (argc < 2)?WIDE("Test Service 1"):argv[1], EventHandler );
+	BaseID = LoadService( (argc < 2)?"Test Service 1":argv[1], EventHandler );
 	if( BaseID )
 	{
 		uint32_t msgs = 0;
 		uint32_t endat = GetTickCount() + 3000;
-		printf( WIDE("Starting 3 second wait... sending messages and validating responses...\n") );
+		printf( "Starting 3 second wait... sending messages and validating responses...\n" );
 		while( endat > GetTickCount() )
 		{
 			uint32_t buffer[32];
@@ -101,28 +101,28 @@ SaneWinMain( argc, argv )
 											  , buffer, buflen
 											  , &responce, result, &reslen ) )
 			{
-				printf( WIDE("Transact message generally failed - suppose that's a timeout.\n") );
+				printf( "Transact message generally failed - suppose that's a timeout.\n" );
 			}
 			else
 			{
 				if( responce & 0x80000000 )
-					printf( WIDE("Responce was faillure from the server...\n") );
+					printf( "Responce was faillure from the server...\n" );
 				else
 				{
 					msgs++;
 				}
 			}
 		}
-		printf( WIDE("Did %d short and %d long pause messages in %ld.%03ld seconds (or so)\n"), msgs, nlongmsgs
+		printf( "Did %d short and %d long pause messages in %ld.%03ld seconds (or so)\n", msgs, nlongmsgs
 				, ( GetTickCount() - endat + 3000 ) / 1000
 				, ( GetTickCount() - endat + 3000 ) % 1000
 				);
 		// wait some time for the event test to complete....
 		WakeableSleep( 1000 );
-		printf( WIDE("Waited 1 second (should get responces in microseconds)\n") );
+		printf( "Waited 1 second (should get responces in microseconds)\n" );
 	}
 	else
-		printf( WIDE("Failed to connect to second service\n") );
+		printf( "Failed to connect to second service\n" );
    return 0;
 }
 EndSaneWinMain()

@@ -231,7 +231,7 @@ void Mark##Name##Deleted( INDEX iWorld, INDEX iName )   \
 		if( client->world_trackers && TESTFLAG( client->worlds.created, iWorld ) )  \
 		{  \
 			PCLIENT_WORLD_TRACKER cworld = client->world_trackers + iWorld;  \
-			lprintf (WIDE("aadffzzf") );\
+			lprintf ("aadffzzf" );\
 			ExpandBitset( &cworld->name##s, iName );  \
 			SETFLAG( cworld->name##s.deleted, iName);   \
 			SETFLAG( cworld->name##s.updated, iName);   \
@@ -276,7 +276,7 @@ struct set_active_tag
 uintptr_t CPROC MarkUpdated( INDEX p, uintptr_t psv )
 {
 	struct set_active_tag *sat = (struct set_active_tag *)psv;
-	lprintf( WIDE("Mark %d updated"), sat->type );
+	lprintf( "Mark %d updated", sat->type );
 	switch( sat->type )
 	{
 	case UpdateSector:
@@ -330,7 +330,7 @@ void MarkAllInWorldUpdated( PSERVICE_ROUTE pidClient, INDEX iWorld )
 			params.type = UpdateName;
 			ForEachSetMember( NAME, world->names, MarkUpdated, (uintptr_t)&params );
 			params.type = UpdateWall;
-			lprintf( WIDE("Mark the walls updated?") );
+			lprintf( "Mark the walls updated?" );
 			ForEachSetMember( WALL, world->walls, MarkUpdated, (uintptr_t)&params );
 			params.type = UpdateLine;
 			ForEachSetMember( FLATLAND_MYLINESEG, world->lines, MarkUpdated, (uintptr_t)&params );
@@ -499,7 +499,7 @@ void ClientCreateLine( PWORLDSCAPE_CLIENT client, INDEX iWorld, INDEX iLine, LOG
 void ClientCreateWall( PWORLDSCAPE_CLIENT client, INDEX iWorld, INDEX iWall, LOGICAL bCreate )
 {
 	PWORLD world  = GetUsedSetMember( WORLD, &g.worlds, iWorld );
-   lprintf( WIDE("...") );
+   lprintf( "..." );
 	if( world )
 	{
 		PCLIENT_WORLD_TRACKER pcwt;
@@ -700,9 +700,9 @@ void UpdateClients( void )
 					UPDATE_THING( name, Name );
 					UPDATE_THING( texture, Texture );
 					UPDATE_THING( line, Line );
-					lprintf( WIDE("Walls here...") );
+					lprintf( "Walls here..." );
 					UPDATE_THING( wall, Wall );
-					lprintf( WIDE("done with walls...") );
+					lprintf( "done with walls..." );
 					UPDATE_THING( sector, Sector );
 				}
 			}
@@ -873,7 +873,7 @@ int CPROC ServerMoveWalls( PSERVICE_ROUTE route, uint32_t *params, size_t param_
 								 )
 {
 	int result_code;
-	lprintf( WIDE(" >... %d %d "), sizeof(_POINT), ( sizeof( _POINT ) / sizeof params[0] ) );
+	lprintf( " >... %d %d ", sizeof(_POINT), ( sizeof( _POINT ) / sizeof params[0] ) );
 	result_code = MoveWalls( ((INDEX*)params)[0]
 								, ((int*)(((INDEX*)params)+1))[0]
 								, (INDEX*)(params + 2 + 1 * sizeof( INDEX)/sizeof(params[0]) + sizeof(_POINT)/sizeof(params[0]) )
@@ -954,7 +954,7 @@ int CPROC HandleLineChanged( PSERVICE_ROUTE route, uint32_t *params, size_t para
 		if( pls )
 		{
 			((LINESEG*)pls)[0] = ((LINESEG*)(((LOGICAL*)(((INDEX*)params)+3))+2))[0];
-			lprintf( WIDE("this update has only unlocked slopes... ") );
+			lprintf( "this update has only unlocked slopes... " );
 			// should result in all affected lines getting marked as updated...
 			if( !no_update ) // the boolean for no update mate..
 			{
@@ -1163,14 +1163,14 @@ PRELOAD( RegisterFlatlandService )
 						, sizeof( functions ) / sizeof( functions[0] ) ) ) )
 
 	{
-		lprintf( WIDE("Service not available, attempt to load core server myself.... then register my service") );
+		lprintf( "Service not available, attempt to load core server myself.... then register my service" );
 		SuspendDeadstart();
-		LoadFunction( WIDE("sack.msgsvr.service.plugin"), NULL );
+		LoadFunction( "sack.msgsvr.service.plugin", NULL );
 		if( !( l.SrvrMsgBase = RegisterService( WORLD_SCAPE_INTERFACE_NAME
 							, functions
 							, sizeof( functions ) / sizeof( functions[0] ) ) ) )
 		{
-			lprintf( WIDE("Failed to register service, Exiting.") );
+			lprintf( "Failed to register service, Exiting." );
 			return;                                             
 		}
 	}

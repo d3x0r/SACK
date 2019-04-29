@@ -40,22 +40,22 @@ HKEY GetHive(LPSTR *lpszPath)
       lpTemp[wOffset++] = *lpPath++;
    }
    lpTemp[wOffset++] = 0;
-   if( stricmp( lpTemp, WIDE("HKEY_CURRENT_USER") ) == 0 )
+   if( stricmp( lpTemp, "HKEY_CURRENT_USER" ) == 0 )
    {
       *lpszPath += wOffset;
       return(HKEY_CURRENT_USER);
    }
-   if( stricmp( lpTemp, WIDE("HKEY_CLASSES_ROOT") ) == 0 )
+   if( stricmp( lpTemp, "HKEY_CLASSES_ROOT" ) == 0 )
    {
       *lpszPath += wOffset;
       return(HKEY_CLASSES_ROOT);
    }
-   if( stricmp( lpTemp, WIDE("HKEY_LOCAL_MACHINE")) == 0 )
+   if( stricmp( lpTemp, "HKEY_LOCAL_MACHINE") == 0 )
    {
       *lpszPath += wOffset;
       return(HKEY_LOCAL_MACHINE);
    }
-   if( stricmp( lpTemp, WIDE("HKEY_USERS")) == 0 )
+   if( stricmp( lpTemp, "HKEY_USERS") == 0 )
    {
       *lpszPath += wOffset;
       return(HKEY_USERS);
@@ -89,7 +89,7 @@ DWORD GetConfigString(LPCTSTR lpszSection, LPSTR lpszKey,
       // Validate the string is not too long
       if( (strlen(lpszPath) + strlen(lpszSection) + 2) <= GCS_MAX_STRING_LEN )
       {
-         wsprintf( szString, WIDE("%s\\%s"), lpszPath, lpszSection);
+         wsprintf( szString, "%s\\%s", lpszPath, lpszSection);
          dwStatus = RegOpenKeyEx( hRoot, szString, 0, KEY_READ, &hTemp);
          if( (dwStatus == ERROR_SUCCESS) && hTemp )
          {
@@ -138,7 +138,7 @@ DWORD SetConfigString(LPCTSTR lpszSection,LPSTR lpszKey,
       return(ERROR_PATH_NOT_FOUND);
    }
 
-   wsprintf( szString, WIDE("%s\\%s"), lpszPath, lpszSection);
+   wsprintf( szString, "%s\\%s", lpszPath, lpszSection);
    dwStatus = RegOpenKeyEx( hRoot, szString, 0, KEY_WRITE, &hTemp );
    switch( dwStatus )
    {
@@ -146,7 +146,7 @@ DWORD SetConfigString(LPCTSTR lpszSection,LPSTR lpszKey,
       break;
    case ERROR_FILE_NOT_FOUND:
       dwStatus = RegCreateKeyEx(hRoot, szString, 0
-                             , WIDE("")
+                             , ""
                              , REG_OPTION_NON_VOLATILE
                              , KEY_WRITE
                              , NULL
@@ -194,7 +194,7 @@ BOOL DelConfigString( LPCSTR lpszSection, LPSTR lpszKey, LPTSTR lpszPath )
       return(ERROR_PATH_NOT_FOUND);
    }
 
-   wsprintf( szString, WIDE("%s\\%s"), lpszPath, lpszSection); // open the key.
+   wsprintf( szString, "%s\\%s", lpszPath, lpszSection); // open the key.
    dwStatus = RegOpenKeyEx( hRoot, szString, 0, KEY_WRITE, &hTemp );
    switch( dwStatus )
    {
@@ -232,9 +232,9 @@ int GetRegistryItem( HKEY hRoot, char *pPrefix,
    HKEY hTemp;
 
    if( pProduct )
-      wsprintf( pszString, WIDE("%s%s"), pPrefix, pProduct );
+      wsprintf( pszString, "%s%s", pPrefix, pProduct );
    else
-      wsprintf( pszString, WIDE("%s"), pPrefix );
+      wsprintf( pszString, "%s", pPrefix );
 
    dwStatus = RegOpenKeyEx( hRoot, 
                             pszString, 0, 
@@ -319,9 +319,9 @@ int SetRegistryItem( HKEY hRoot, char *pPrefix,
    HKEY hTemp;
 
    if( pProduct )
-      wsprintf( pszString, WIDE("%s%s"), pPrefix, pProduct );
+      wsprintf( pszString, "%s%s", pPrefix, pProduct );
    else
-      wsprintf( pszString, WIDE("%s"), pPrefix );
+      wsprintf( pszString, "%s", pPrefix );
 
    dwStatus = RegOpenKeyEx( hRoot, 
                             pszString, 0, 
@@ -331,14 +331,14 @@ int SetRegistryItem( HKEY hRoot, char *pPrefix,
       DWORD dwDisposition;
       dwStatus = RegCreateKeyEx( hRoot, 
                                  pszString, 0
-                             , WIDE("")
+                             , ""
                              , REG_OPTION_NON_VOLATILE
                              , KEY_WRITE
                              , NULL
                              , &hTemp
                              , &dwDisposition);
       if( dwDisposition == REG_OPENED_EXISTING_KEY )
-         OutputDebugString( WIDE("Failed to open, then could open???") );
+         OutputDebugString( "Failed to open, then could open???" );
       if( dwStatus )   // ERROR_SUCCESS == 0 
          return FALSE; 
    }

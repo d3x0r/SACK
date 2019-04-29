@@ -20,7 +20,7 @@ extern "C"  {
 
 // what is an abstract name for the memory mapping handle...
 // where is a filename for the filebacking of the shared memory
-// DigSpace( WIDE("Picture Memory"), WIDE("Picture.mem"), 100000 );
+// DigSpace( "Picture Memory", "Picture.mem", 100000 );
 
 // raw shared file view...
 MEM_PROC( POINTER, OpenSpace )( TEXTSTR pWhat, TEXTSTR pWhere, uint32_t *dwSize );

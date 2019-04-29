@@ -1164,11 +1164,11 @@ static genxStatus writeStartTag(genxWriter w)
     unsetDefaultNamespace(w);
   w->status = GENX_SUCCESS;
 
-  SendCheck(w, WIDE("<"));
+  SendCheck(w, "<");
   if (e->ns && (e->ns->declaration != w->xmlnsEquals))
   {
     SendCheck(w, e->ns->declaration->name + STRLEN_XMLNS_COLON);
-    SendCheck(w, WIDE(":"));
+    SendCheck(w, ":");
   }
   SendCheck(w, e->type);
 
@@ -1180,12 +1180,12 @@ static genxStatus writeStartTag(genxWriter w)
 	  aa[i]->ns->declaration == w->xmlnsEquals)
 	return w->status = GENX_ATTRIBUTE_IN_DEFAULT_NAMESPACE;
 
-      SendCheck(w, WIDE(" "));
+      SendCheck(w, " ");
 
       if (aa[i]->ns)
       {
 	SendCheck(w, aa[i]->ns->declaration->name + STRLEN_XMLNS_COLON)
-	SendCheck(w, WIDE(":"));
+	SendCheck(w, ":");
       }
       SendCheck(w, aa[i]->name);
       SendCheck(w, WIDE("=\""));
@@ -1193,7 +1193,7 @@ static genxStatus writeStartTag(genxWriter w)
       SendCheck(w, WIDE("\""));
     }
   }
-  SendCheck(w, WIDE(">"));
+  SendCheck(w, ">");
   return GENX_SUCCESS;
 }
 

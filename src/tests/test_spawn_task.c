@@ -4,14 +4,14 @@ LOGICAL ended;
 
 void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task_ended )
 {
-   printf( WIDE("Ended.\n") );
+   printf( "Ended.\n" );
 	fflush( stdout );
    ended = TRUE;
 }
 
 void CPROC HandleTaskOutput( uintptr_t psvTaskInfo, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-	printf( WIDE("%s"), buffer );
+	printf( "%s", buffer );
    fflush( stdout );
 }
 
@@ -19,7 +19,7 @@ void CPROC HandleTaskOutput( uintptr_t psvTaskInfo, PTASK_INFO task, CTEXTSTR bu
 
 int main( void )
 {
-	PTASK_INFO task = LaunchPeerProgram( WIDE("ping.exe")
+	PTASK_INFO task = LaunchPeerProgram( "ping.exe"
 												  , NULL
 												  , NULL
 												  , HandleTaskOutput

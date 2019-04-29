@@ -144,7 +144,7 @@ static void init_snmp(void)
   if (Reqid) return;
   Reqid = 1; /* To stop other threads from doing this as well */
 
-  servp = getservbyname("snmp", WIDE("udp"));
+  servp = getservbyname("snmp", "udp");
   if (servp)
     default_s_port = ntohs(servp->s_port);
 
@@ -418,7 +418,7 @@ snmp_sess_close(void * sessp)
 #endif
          dwLong = GetNetworkLong( slp->internal->sd, 1 );
 #ifdef LOG_DEBUG
-         wsprintf( msg, WIDE("Closing Session Removing NetBuf: %08x\n"), dwLong );
+         wsprintf( msg, "Closing Session Removing NetBuf: %08x\n", dwLong );
          OutputDebugString( msg );
 #endif
          free( (void*)dwLong );
@@ -643,7 +643,7 @@ snmp_sess_async_send(void *sessp, struct snmp_pdu *pdu,
       return 0;
     }
 
-    snmp_dump(packet, length, WIDE("sending"), pdu->address.sin_addr);
+    snmp_dump(packet, length, "sending", pdu->address.sin_addr);
 
     gettimeofday(&tv, (struct timezone *)0);
 
@@ -738,7 +738,7 @@ void CPROC snmp_sess_read( PCLIENT pc
        sp->s_snmp_errno = 0;
        sp->s_errno = 0;
 
-  	    snmp_dump(pBuf, nSize, WIDE("received"), sa->sin_addr);
+  	    snmp_dump(pBuf, nSize, "received", sa->sin_addr);
 
 	   pdu = snmp_pdu_create(0);
 	   pdu->address = *sa;
@@ -794,7 +794,7 @@ void CPROC snmp_sess_read( PCLIENT pc
 		      pdu->command == SNMP_PDU_INFORM ||
 		      pdu->command == SNMP_PDU_V2TRAP) {
 #ifdef LOG_DEBUG
-        OutputDebugString( WIDE("You're asking for trouble, aren't you?! issuing commands to a manager shame shame") );
+        OutputDebugString( "You're asking for trouble, aren't you?! issuing commands to a manager shame shame" );
 #endif
 	     if (sp->callback)
 	       sp->callback(RECEIVED_MESSAGE, sp, pdu->reqid, 
@@ -813,7 +813,7 @@ void CPROC snmp_sess_read( PCLIENT pc
 #endif
           pBuffer = (PBYTE)malloc( 4096 );
 #ifdef LOG_DEBUG
-          wsprintf( msg, WIDE("Alloced NetBufer: %08x\n"), pBuffer );
+          wsprintf( msg, "Alloced NetBufer: %08x\n", pBuffer );
           OutputDebugString( msg );
 #endif
           SetNetworkLong( pc, 1, (DWORD)pBuffer );
@@ -1063,14 +1063,14 @@ void snmp_api_stats(void *outP)
   int count = 0;
   int rcount = 0;
 
-  fprintf(out, WIDE("LIBSNMP: Session List Dump\n"));
-  fprintf(out, WIDE("LIBSNMP: ----------------------------------------\n"));
+  fprintf(out, "LIBSNMP: Session List Dump\n");
+  fprintf(out, "LIBSNMP: ----------------------------------------\n");
   for(slp = Sessions; slp; slp = slp->next){
 
     isp = slp->internal;
     active++;
     count++;
-    fprintf(out, WIDE("LIBSNMP: %2d: Host %s\n"), count, 
+    fprintf(out, "LIBSNMP: %2d: Host %s\n", count, 
 	    (slp->session->peername == NULL) ? "NULL" : slp->session->peername);
 
     if (isp->requests) {
@@ -1083,15 +1083,15 @@ void snmp_api_stats(void *outP)
 	  struct hostent *hp;
 	  hp = gethostbyaddr((char *)&(rp->pdu->address), 
 			     sizeof(u_int), AF_INET);
-	  fprintf(out, WIDE("LIBSNMP: %2d: ReqId %d (%s) (%s)\n"), 
+	  fprintf(out, "LIBSNMP: %2d: ReqId %d (%s) (%s)\n", 
 		  rcount, rp->request_id, snmp_pdu_type(rp->pdu),
 		  (hp == NULL) ? "NULL" : hp->h_name);
 	}
       }
     }
-    fprintf(out, WIDE("LIBSNMP: ----------------------------------------\n"));
+    fprintf(out, "LIBSNMP: ----------------------------------------\n");
   }
-  fprintf(out, WIDE("LIBSNMP: Session List: %d active, %d have requests pending.\n"),
+  fprintf(out, "LIBSNMP: Session List: %d active, %d have requests pending.\n",
 	  active, requests);
 }
 

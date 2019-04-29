@@ -248,7 +248,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 
 PSI_PROC( int, FrameBorderXOfs )( PSI_CONTROL pc, uint32_t BorderType )
 {
-   //lprintf( WIDE("Result border offset for %08x"), BorderType );
+   //lprintf( "Result border offset for %08x", BorderType );
     switch( BorderType & BORDER_TYPE )
     {
     case BORDER_NONE:
@@ -286,7 +286,7 @@ PSI_PROC( int, FrameBorderXOfs )( PSI_CONTROL pc, uint32_t BorderType )
 
 PSI_PROC( int, FrameBorderX )( PSI_CONTROL pc, uint32_t BorderType )
 {
-   //lprintf( WIDE("Result total for %08x"), BorderType );
+   //lprintf( "Result total for %08x", BorderType );
     switch( BorderType & BORDER_TYPE )
     {
     case BORDER_NONE:
@@ -337,7 +337,7 @@ PSI_PROC( int, CaptionHeight )( PSI_CONTROL pf, CTEXTSTR text )
 	    pf->caption.text &&
 	    !(pf->BorderType & (BORDER_NOCAPTION|BORDER_WITHIN)) ) )
 	{
-		GetStringSizeFontEx( WIDE(" "), 1, NULL, NULL, GetCommonFont( pf ) );
+		GetStringSizeFontEx( " ", 1, NULL, NULL, GetCommonFont( pf ) );
 		return GetFontHeight( GetCommonFont(pf) ) + 10; // 5 above 5 below?
 		//return 17; // should probably be more specific...
 	}
@@ -777,11 +777,11 @@ void DrawFrameCaption( PSI_CONTROL pc )
 		h = CaptionHeight( pc, pc?GetText(pc->caption.text):NULL ) - 1;
 		if( h <= 0 ) // no caption to...
 		{
-			//lprintf( WIDE("But... there's no caption to render.") );
+			//lprintf( "But... there's no caption to render." );
 			return;
 		}
 #ifdef DEBUG_BORDER_FLAGS
-		xlprintf(LOG_NOISE+1)( WIDE("Rendering a caption %d high"), h );
+		xlprintf(LOG_NOISE+1)( "Rendering a caption %d high", h );
 #endif
 #define TEXT_INSET 5
 		GetImageSize( pc->Window, &width, &height );
@@ -824,7 +824,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 				}
 				else
 				{
-					//lprintf( WIDE("Draw focused caption on pcWindow") );
+					//lprintf( "Draw focused caption on pcWindow" );
 					BlatColor( pc->Window
 								, xofs+1, yofs+1
 								, width - 2*(xofs+1)
@@ -875,7 +875,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 			}
 			else
 			{
-				//lprintf( WIDE("Draw unfocused caption on pcWindow") );
+				//lprintf( "Draw unfocused caption on pcWindow" );
 				if( g.FrameCaptionFocusedImage || g.FrameCaptionImage )
 				{
 					out = g.FrameCaptionImage;
@@ -992,7 +992,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 			}
 		}
 	}
-	//lprintf( WIDE("Is anything going to output this to the window?") );
+	//lprintf( "Is anything going to output this to the window?" );
 }
 
 //---------------------------------------------------------------------------
@@ -1135,16 +1135,16 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 	}
 	//if( !pc->nType )
 	//{
-	//   lprintf( WIDE("Draw frame caption....") );
+	//   lprintf( "Draw frame caption...." );
 	//}
 	if( pc->flags.bInitial )
 	{
 #ifdef DEBUG_BORDER_FLAGS
-		lprintf( WIDE("Initial set - return early.") );
+		lprintf( "Initial set - return early." );
 #endif
 		return;
 	}
-	//lprintf( WIDE("Oka so the caption will be draw...") );
+	//lprintf( "Oka so the caption will be draw..." );
 	if( !g.flags.always_draw )
 	{
 		if( pc->DrawBorder && pc->Window )
@@ -1220,7 +1220,7 @@ void UpdateSurface( PSI_CONTROL pc )
 	if( pc->Surface )
 	{
 #ifdef DEBUG_BORDER_FLAGS
-		lprintf( WIDE("- - - -- -- -  -- - -  ---- position is like %d,%d  %d,%d")
+		lprintf( "- - - -- -- -  -- - -  ---- position is like %d,%d  %d,%d"
 				 , pc->surface_rect.x, pc->surface_rect.y
 				 , pc->surface_rect.width, pc->surface_rect.height );
 #endif
@@ -1230,14 +1230,14 @@ void UpdateSurface( PSI_CONTROL pc )
 	else
 	{
 #ifdef DEBUG_BORDER_FLAGS
-		lprintf( WIDE("--------------------------------- "));
+		lprintf( "--------------------------------- ");
 #endif
 		pc->Surface = MakeSubImage( pc->Window
 										  , pc->surface_rect.x
 										  , pc->surface_rect.y
 										  , pc->surface_rect.width
 										  , pc->surface_rect.height );
-		//lprintf( WIDE("Resulting surface is %p in %p"), pc->Surface, pc->Window );
+		//lprintf( "Resulting surface is %p in %p", pc->Surface, pc->Window );
 	}
 	if( pos_changed )
 	{
@@ -1253,7 +1253,7 @@ void UpdateSurface( PSI_CONTROL pc )
 
 PSI_PROC( void, SetCommonBorderEx )( PSI_CONTROL pc, uint32_t BorderType DBG_PASS )
 {
-	//_xlprintf((LOG_NOISE+2) DBG_RELAY)( WIDE("Setting border for %s to %08x(%08x,%08x) %08x %08x"), pc->pTypeName, pc, pc->parent, pc->device, pc->BorderType, BorderType );
+	//_xlprintf((LOG_NOISE+2) DBG_RELAY)( "Setting border for %s to %08x(%08x,%08x) %08x %08x", pc->pTypeName, pc, pc->parent, pc->device, pc->BorderType, BorderType );
 	if( pc->BorderType != BorderType )
 	{
 		pc->BorderType = BorderType;

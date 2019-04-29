@@ -22,7 +22,7 @@ char *strip( char *p )
 	static char tmp[256];
 	char *out = tmp;
 	char escape = 0;
-	printf( WIDE("Strip: %s\n"), p );
+	printf( "Strip: %s\n", p );
 	while( p && p[0] )
 	{
 		if( escape )
@@ -68,7 +68,7 @@ char *nextarg( char **arg )
 	while( p[0] && ( p[0] == '\t' || p[0] == ' ' ) ) p++;
 	start = *arg;
    *arg = p;
-   //printf( WIDE("nextarg=%s\n"), start );
+   //printf( "nextarg=%s\n", start );
    return start;
 }
 
@@ -79,20 +79,20 @@ int main( int argc, char **argv )
    char *myargv;
 #ifdef _WIN32
 	char *cmdline = strdup( GetCommandLine() );
-	//fprintf( stderr, WIDE("cmdline=%s\n"), cmdline );
+	//fprintf( stderr, "cmdline=%s\n", cmdline );
 	while( cmdline[0] && cmdline[0] != ' ' ) cmdline++;
    if( cmdline[0] )
 		*(cmdline++) = 0;
 	while( cmdline[0] && cmdline[0] == ' ' ) cmdline++;
-	//fprintf( stderr, WIDE("cmdline=%s\n"), cmdline );
+	//fprintf( stderr, "cmdline=%s\n", cmdline );
 #else
    int n = 1;
 #define nextarg(unused) ((n)<(argc)?(argv)[(n)++]:NULL)
 #endif
 	if( argc < 2 )
 	{
-		printf( WIDE("usage: echoto [-x] <output> <command line.....>\n") );
-		printf( WIDE("usage:    x : execute the command line also...\n") );
+		printf( "usage: echoto [-x] <output> <command line.....>\n" );
+		printf( "usage:    x : execute the command line also...\n" );
 		return 1;
 	}
 
@@ -120,31 +120,31 @@ int main( int argc, char **argv )
          c++;
 			break;
 		default:
-			printf( WIDE("Unknown option: %c\n"), myargv[c] );
+			printf( "Unknown option: %c\n", myargv[c] );
          c++;
          break;
 		}
 	}
 	{
 		int ofs = 0;
-		FILE *out = fopen( myargv, WIDE("at+") );
+		FILE *out = fopen( myargv, "at+" );
 		if( !out )
-			out =fopen( myargv, WIDE("wt") );
+			out =fopen( myargv, "wt" );
 		if( !out )
 		{
-			printf( WIDE("echoto: Failed to open %s for output\n"), myargv );
+			printf( "echoto: Failed to open %s for output\n", myargv );
 			return 1;
 		}
 		if( iscmd )
-         fprintf( out, WIDE("\t") );
+         fprintf( out, "\t" );
 		while( myargv = nextarg(&cmdline) )
 		{
 			if( execute )
-				ofs += sprintf( cmd + ofs, WIDE("%s "), strip(myargv) );
-			//printf( WIDE("Word=%s\n"),myargv );
-			fprintf( out, WIDE("%s "), myargv );
+				ofs += sprintf( cmd + ofs, "%s ", strip(myargv) );
+			//printf( "Word=%s\n",myargv );
+			fprintf( out, "%s ", myargv );
 		}
-      fprintf( out, WIDE("\n") );
+      fprintf( out, "\n" );
 		fclose( out );
 		if( execute )
 		{

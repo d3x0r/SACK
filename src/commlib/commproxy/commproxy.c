@@ -31,7 +31,7 @@ void CPROC ReadCallback( uintptr_t psv, int iCommId, POINTER buffer, int nReadLe
 	int ofs, c;
    char *p = buffer;
 	char szTmp[241];
-	//Log( WIDE("Received data...") );
+	//Log( "Received data..." );
    //LogBinary( buffer, nReadLen );
    for( ofs = 0; ofs < nReadLen; ofs += c )
 	{
@@ -46,10 +46,10 @@ void CPROC ReadCallback( uintptr_t psv, int iCommId, POINTER buffer, int nReadLe
 		}
       szTmp[c*2] = 0;
 		Atom = GlobalAddAtom( szTmp );
-		//Log1( WIDE("Posting atom for data: %s"), szTmp );
+		//Log1( "Posting atom for data: %s", szTmp );
 		PostMessage( pComPort->hWndRecv, WM_COMM_DATA, pComPort->handle, Atom );
 	}
-	Log( WIDE("...read data.") );
+	Log( "...read data." );
    Relinquish();
 }
 
@@ -71,14 +71,14 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
             uint32_t tick = GetTickCount();
 				if( ( pComPort->dwLastMsg + 20000 ) < tick )
 				{
-					Log3( WIDE("Com port last is: %lu cur is: %lu (%lu)"),pComPort->dwLastMsg, tick, tick - pComPort->dwLastMsg );
+					Log3( "Com port last is: %lu cur is: %lu (%lu)",pComPort->dwLastMsg, tick, tick - pComPort->dwLastMsg );
 					if( ( pComPort->dwLastMsg + 40000 ) < tick )
 					{
-					Log3( WIDE("Com port last is: %lu cur is: %lu (%lu)"),pComPort->dwLastMsg, tick, tick - pComPort->dwLastMsg );
+					Log3( "Com port last is: %lu cur is: %lu (%lu)",pComPort->dwLastMsg, tick, tick - pComPort->dwLastMsg );
 						if( ( pComPort->dwLastMsg + 60000 ) < tick )
 						{
-					Log3( WIDE("Com port last is: %lu cur is: %lu (%lu)"),pComPort->dwLastMsg, tick, tick - pComPort->dwLastMsg );
-							lprintf( WIDE("Receiving window died, closing his comport") );
+					Log3( "Com port last is: %lu cur is: %lu (%lu)",pComPort->dwLastMsg, tick, tick - pComPort->dwLastMsg );
+							lprintf( "Receiving window died, closing his comport" );
 							if( StubCloseComm( pComPort->handle ) )
 							{
 								Release( UnlinkThing( pComPort ) );
@@ -87,13 +87,13 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 						}
 						else
 						{
-							Log( WIDE("Com inactive , ping about it...") );
+							Log( "Com inactive , ping about it..." );
 							SendMessage( pComPort->hWndRecv, WM_COMM_PING, pComPort->handle, 0 );
 						}
 					}
 					else
 					{
-                  Log( WIDE("Com inactive , ping about it...") );
+                  Log( "Com inactive , ping about it..." );
 						SendMessage( pComPort->hWndRecv, WM_COMM_PING, pComPort->handle, 0 );
 					}
 				}
@@ -127,23 +127,23 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
          pComPort->hWndRecv = (HWND)wParam;
 			pComPort->handle = StubOpenCommEx( szPort, 4096, 4096, ReadCallback, (uintptr_t)pComPort );
          pComPort->dwLastMsg = GetTickCount();
-         Log1( WIDE("Resulted with %d"), pComPort->handle );
+         Log1( "Resulted with %d", pComPort->handle );
 			GlobalDeleteAtom( lParam );
 			if( pComPort->handle >= 0 )
 			{
-            Log( WIDE("Linking in com port...") );
+            Log( "Linking in com port..." );
             LinkThing( g.pComPorts, pComPort );
 				return pComPort->handle;
 			}
-         Log( WIDE("Remove this allocated com port..") );
+         Log( "Remove this allocated com port.." );
 			Release( pComPort );
-         Log( WIDE("Released and resulting with error status...") );
+         Log( "Released and resulting with error status..." );
          return -1;
 		}
 		break;
 	case WM_COMM_CLOSE:
 		// wParam == handle of com port
-      Log1( WIDE("Closing com port %d"), wParam );
+      Log1( "Closing com port %d", wParam );
 		{
 			PCOM_PORT pComPort = g.pComPorts;
 			while( pComPort )
@@ -159,7 +159,7 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		}
       return STUBCOMM_ERR_NOTOPEN;
 	case WM_COMM_CLOSE_ALL:
-      Log1( WIDE("Closing all com ports assocated with %d"), wParam );
+      Log1( "Closing all com ports assocated with %d", wParam );
 		while( g.pComPorts )
 		{
 			if( g.pComPorts->hWndRecv == (HWND)wParam )
@@ -177,17 +177,17 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 			PCOM_PORT pComPort = g.pComPorts;
 			while( pComPort )
 			{
-            //Log( WIDE("Checking a com port for match...") );
+            //Log( "Checking a com port for match..." );
 				if( pComPort->handle == wParam )
 				{
 					unsigned char tmp;
 					char szData[257];
 					char *p = szData;
 					pComPort->dwLastMsg = GetTickCount();
-               //Log( WIDE("Matched the port, now build the atom...") );
+               //Log( "Matched the port, now build the atom..." );
 					GlobalGetAtomName( lParam, szData, sizeof( szData ) );
 					szData[256] = 0;
-					//Log2( WIDE("Got the atom: %d %s"), pComPort->buflen, szData );
+					//Log2( "Got the atom: %d %s", pComPort->buflen, szData );
 					while( p[0] )
 					{
                   tmp = ( p[0] - 'A' ) | ((p[1] - 'A') << 4);
@@ -199,7 +199,7 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 				}
 				pComPort = pComPort->next;
 			}
-			Log( WIDE("Failed to find handle for write data...") );
+			Log( "Failed to find handle for write data..." );
 		}
       return STUBCOMM_ERR_NOTOPEN;
 	case WM_COMM_WRITE:
@@ -207,7 +207,7 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 			PCOM_PORT pComPort = g.pComPorts;
 			while( pComPort )
 			{
-            //Log( WIDE("Checking a com port for match...") );
+            //Log( "Checking a com port for match..." );
 				if( pComPort->handle == wParam )
 				{
 					unsigned char tmp;
@@ -215,10 +215,10 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 					char szData[257];
 					char *p = szData;
 					pComPort->dwLastMsg = GetTickCount();
-               //Log( WIDE("Matched the port, now build the atom...") );
+               //Log( "Matched the port, now build the atom..." );
 					GlobalGetAtomName( lParam, szData, sizeof( szData ) );
 					szData[256] = 0;
-					//Log1( WIDE("Got the atom: %s"), szData );
+					//Log1( "Got the atom: %s", szData );
 					while( p[0] )
 					{
                   tmp = ( p[0] - 'A' ) | ((p[1] - 'A') << 4);
@@ -226,27 +226,27 @@ int CALLBACK WndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
                   pComPort->buffer[pComPort->buflen++] = tmp;
 					}
 					GlobalDeleteAtom( lParam );
-               Log( WIDE("Writing data...") );
+               Log( "Writing data..." );
                //LogBinary( pComPort->buffer, pComPort->buflen );
 					result = StubCommWriteBuffer( pComPort->handle, pComPort->buffer, pComPort->buflen, g.nWriteTimeout );
-               //Log( WIDE("Done writing data...") );
+               //Log( "Done writing data..." );
                pComPort->buflen = 0;
                return result;
 				}
             pComPort = pComPort->next;
 			}
-			Log( WIDE("Failed to find handle for write data...") );
+			Log( "Failed to find handle for write data..." );
 		}
 		return STUBCOMM_ERR_NOTOPEN;
 	case WM_COMM_FLUSH:
-      //Log1( WIDE("Flushing com port %d"), wParam );
+      //Log1( "Flushing com port %d", wParam );
 		{
 			PCOM_PORT pComPort ;
 			for( pComPort = g.pComPorts;
 				  pComPort;
 				  pComPort = pComPort->next )
 			{
-            //Log( WIDE("Checking a com port for match...") );
+            //Log( "Checking a com port for match..." );
 				if( pComPort->handle == wParam )
 				{
 					pComPort->dwLastMsg = GetTickCount();
@@ -275,7 +275,7 @@ int MakeProxyWindow( void )
 		aClass = RegisterClass( &wc );
 		if( !aClass )
 		{
-			MessageBox( NULL, WIDE("Failed to register class to handle SQL Proxy messagses."), WIDE("INIT FAILURE"), MB_OK );
+			MessageBox( NULL, "Failed to register class to handle SQL Proxy messagses.", "INIT FAILURE", MB_OK );
 			return FALSE;
 		}
 	}
@@ -294,8 +294,8 @@ int MakeProxyWindow( void )
 								 (void*)1 );
 	if( !g.hWnd )
 	{
-      Log( WIDE("Failed to create window!?!?!?!") );
-		MessageBox( NULL, WIDE("Failed to create window to handle COM Proxy Messages"), WIDE("INIT FAILURE"), MB_OK );
+      Log( "Failed to create window!?!?!?!" );
+		MessageBox( NULL, "Failed to create window to handle COM Proxy Messages", "INIT FAILURE", MB_OK );
       return FALSE;
 	}
    return TRUE;
@@ -307,7 +307,7 @@ int APIENTRY WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmdLine, int nCm
 	g.nWriteTimeout = 150; // at 9600 == 144 characters
 	SystemLogTime( SYSLOG_TIME_HIGH|SYSLOG_TIME_DELTA );
    RegisterIcon( NULL );
-	//SetSystemLog( SYSLOG_FILENAME, WIDE("comproxy.log") );
+	//SetSystemLog( SYSLOG_FILENAME, "comproxy.log" );
 #ifdef _DEBUG
 	SetSystemLog( SYSLOG_UDPBROADCAST, 0 );
 #endif

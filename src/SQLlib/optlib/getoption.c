@@ -76,7 +76,7 @@ SQL table create is in 'mkopttabs.sql'
 
 //int mystrcmp( TEXTCHAR *x, TEXTCHAR *y )
 //{
-//   lprintf( WIDE("Is %s==%s?"), x, y );
+//   lprintf( "Is %s==%s?", x, y );
 //   return strcmp( x, y );
 //}
 
@@ -141,7 +141,7 @@ POPTION_TREE GetOptionTreeExxx( PODBC odbc, PFAMILYTREE existing_tree DBG_PASS )
 	}
 	if( !tree )
 	{
-		//_lprintf(DBG_RELAY)( WIDE( "need a new option tree for %p" ), odbc );
+		//_lprintf(DBG_RELAY)( "need a new option tree for %p", odbc );
 		tree = New( struct sack_option_tree_family );
 		MemSet( tree, 0, sizeof( struct sack_option_tree_family ) );
 		tree->root = GetFromSet( OPTION_TREE_NODE, &tree->nodes );
@@ -183,7 +183,7 @@ POPTION_TREE SetOptionDatabase( PODBC odbc )
 		POPTION_TREE tree;
 		// maybe, if previously open with private database, close that connection
 #ifdef DETAILED_LOGGING
-		lprintf( WIDE( "Set a new option databsae : %p" ), odbc );
+		lprintf( "Set a new option databsae : %p", odbc );
 #endif
 		//lprintf( "new global database is %p", odbc );
 		og.Option = odbc;
@@ -236,14 +236,14 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 			{
 				// this needs a self-looped root to satisfy constraints.
 				CTEXTSTR result;
-				if( !SQLQueryf( tree->odbc, &result, WIDE("select parent_option_id from option4_map where option_id='%s'"), GuidZero() )
+				if( !SQLQueryf( tree->odbc, &result, "select parent_option_id from option4_map where option_id='%s'", GuidZero() )
 					|| !result )
 				{
 					OpenWriter( tree );
 					SQLCommandf( tree->odbc_writer
-					           , WIDE("insert into option4_map (option_id,parent_option_id,name_id)values('%s','%s','%s' )")
+					           , "insert into option4_map (option_id,parent_option_id,name_id)values('%s','%s','%s' )"
 					           , GuidZero(), GuidZero()
-					           , New4ReadOptionNameTable(tree,WIDE("."),OPTION4_NAME,WIDE( "name_id" ),WIDE( "name" ),1 DBG_SRC)
+					           , New4ReadOptionNameTable(tree,".",OPTION4_NAME,"name_id","name",1 DBG_SRC)
 									);
 				}
 				SQLEndQuery( tree->odbc );
@@ -290,7 +290,7 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 	if( !option->odbc_writer )
 	{
 #ifdef DETAILED_LOGGING
-		_lprintf(DBG_RELAY)( WIDE( "Connect to writer database for tree %p odbc %p" ), option, option->odbc );
+		_lprintf(DBG_RELAY)( "Connect to writer database for tree %p odbc %p", option, option->odbc );
 #endif
 		option->odbc_writer = ConnectToDatabaseExx( option->odbc?option->odbc->info.pDSN:sg.Primary.info.pDSN, FALSE DBG_RELAY );
 		SQLCommand( option->odbc_writer, "pragma foreign_keys=on" );
@@ -358,7 +358,7 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 
 //------------------------------------------------------------------------
 
-#define CreateName(o,n) SQLReadNameTable(o,n,OPTION_MAP,WIDE( "name_id" ))
+#define CreateName(o,n) SQLReadNameTable(o,n,OPTION_MAP,"name_id")
 
 //------------------------------------------------------------------------
 
@@ -384,8 +384,8 @@ INDEX ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR table, CTE
 	PushSQLQueryEx( tree->odbc );
 retry:
 	tmp = EscapeSQLStringEx( tree->odbc, name DBG_RELAY );
-	tnprintf( query, sizeof( query ), WIDE("select %s from %s where %s like '%s'")
-			  , col?col:WIDE("id")
+	tnprintf( query, sizeof( query ), "select %s from %s where %s like '%s'"
+			  , col?col:"id"
 			  , table, namecol, tmp );
 	Release( tmp );
 	if( SQLQueryEx( tree->odbc, query, &result DBG_RELAY) && result )
@@ -396,7 +396,7 @@ retry:
 	else if( bCreate )
 	{
 		TEXTSTR newval = EscapeSQLString( tree->odbc, name );
-		tnprintf( query, sizeof( query ), WIDE("insert into %s (%s) values( '%s' )"), table, namecol, newval );
+		tnprintf( query, sizeof( query ), "insert into %s (%s) values( '%s' )", table, namecol, newval );
       //lprintf( "openwriter..." );
 		OpenWriterEx( tree DBG_RELAY );
       //lprintf( "and the command..." );
@@ -405,19 +405,19 @@ retry:
 			// insert failed;  assume it's a duplicate key now, and retry.
 			// on an option connection, maybe the name has been inserted, and is waiting in a commit-on-idle
 			// ... if we try this a few times, the commit will happen; then we can re-select and continue as normal
-			//lprintf( WIDE("insert failed, how can we define name %s?"), name );
+			//lprintf( "insert failed, how can we define name %s?", name );
 			if( first_try )
 			{
 				first_try = 0;
 				goto retry;
 			}
          else
-				lprintf( WIDE("insert failed, and retry again failed, how can we define name %s?"), name );
+				lprintf( "insert failed, and retry again failed, how can we define name %s?", name );
 		}
 		else
 		{
 			// all is well.
-			IDName = FetchLastInsertIDEx( tree->odbc_writer, table, col?col:WIDE("id") DBG_RELAY );
+			IDName = FetchLastInsertIDEx( tree->odbc_writer, table, col?col:"id" DBG_RELAY );
 		}
 		Release( newval );
 	}
@@ -506,7 +506,7 @@ static POPTION_TREE_NODE GetOptionIndexExxx( PODBC odbc, POPTION_TREE_NODE paren
 #endif
 		system = _system;
 	}
-	//lprintf( WIDE("GetOptionIndex for %s %s %s"), program?program:WIDE("NO PROG"), file, pBranch );
+	//lprintf( "GetOptionIndex for %s %s %s", program?program:"NO PROG", file, pBranch );
 	return New4GetOptionIndexExxx( odbc, tree, parent, system, program, file, pBranch, pValue, bCreate, bBypassParsing, bIKnowItDoesntExist DBG_RELAY );
 }
 
@@ -524,11 +524,11 @@ POPTION_TREE_NODE GetOptionIndexEx( POPTION_TREE_NODE parent, const TEXTCHAR *fi
 INDEX GetSystemIndex( CTEXTSTR pSystemName )
 {
 	if( pSystemName )
-		return SQLReadNameTable( og.Option, pSystemName, WIDE("systems"), WIDE("system_id") );
+		return SQLReadNameTable( og.Option, pSystemName, "systems", "system_id" );
 	else
 	{
 		if( !og.SystemID )
-			og.SystemID = SQLReadNameTable( og.Option, pSystemName, WIDE("systems"), WIDE("system_id")  );
+			og.SystemID = SQLReadNameTable( og.Option, pSystemName, "systems", "system_id"  );
 		return og.SystemID;
 	}
 }
@@ -542,24 +542,24 @@ POPTION_TREE_NODE New4DuplicateValue( PODBC odbc, POPTION_TREE_NODE iOriginalOpt
 	TEXTSTR tmp;
 	PushSQLQueryEx( odbc );
 	// my nested parent may have a select state in a condition that I think it's mine.
-	SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE( "select `string` from " )OPTION4_VALUES WIDE( " where option_id='%s'" ), iOriginalOption->guid );
+	SQLRecordQueryf( odbc, NULL, &results, NULL, "select `string` from "OPTION4_VALUES " where option_id='%s'", iOriginalOption->guid );
 
 	if( results && results[0] )
 	{
 		tnprintf( query, sizeof( query )
-			  , WIDE( "replace into " )OPTION4_VALUES WIDE( " (option_id,`string`) values ('%s',%s)" )
+			  , "replace into "OPTION4_VALUES " (option_id,`string`) values ('%s',%s)"
 				  , iNewOption->guid, tmp = EscapeSQLBinaryOpt( odbc, results[0], StrLen( results[0] ), TRUE ) );
 		Release( tmp );
 		SQLEndQuery( odbc );
 		SQLCommand( odbc, query );
 	}
 
-	SQLRecordQueryf( odbc, NULL, &results, NULL, WIDE( "select `binary` from " )OPTION4_BLOBS WIDE( " where option_id='%s'" ), iOriginalOption->guid );
+	SQLRecordQueryf( odbc, NULL, &results, NULL, "select `binary` from "OPTION4_BLOBS " where option_id='%s'", iOriginalOption->guid );
 
 	if( results && results[0] )
 	{
 		tnprintf( query, sizeof( query )
-				  , WIDE( "replace into " )OPTION4_BLOBS WIDE( " (option_id,`binary`) values ('%s',%s)" )
+				  , "replace into "OPTION4_BLOBS " (option_id,`binary`) values ('%s',%s)"
 				  , iNewOption->guid, tmp = EscapeSQLBinaryOpt( odbc, results[0], StrLen( results[0] ), TRUE ) );
 		Release( tmp );
 		SQLEndQuery( odbc );
@@ -605,11 +605,11 @@ int GetOptionBlobValueOdbc( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR **buf
 		len = &tmplen;
 	PushSQLQueryEx( odbc );
 	if( SQLRecordQueryf( odbc, NULL, &result, NULL
-								, WIDE("select `binary`,length(`binary`) from ")OPTION4_BLOBS WIDE(" where option_id='%s'")
+								, "select `binary`,length(`binary`) from "OPTION4_BLOBS " where option_id='%s'"
 								, optval->guid ) )
 	{
 		int success = FALSE;
-		//lprintf( WIDE(" query succeeded....") );
+		//lprintf( " query succeeded...." );
 		if( buffer && result && result[0] && result[1] )
 		{
 			success = TRUE;
@@ -666,7 +666,7 @@ static LOGICAL SetOptionBlobValueEx( POPTION_TREE tree, POPTION_TREE_NODE optval
 	{
 		TEXTSTR newval = EscapeSQLBinaryOpt( tree->odbc_writer, (CTEXTSTR)buffer, length, TRUE );
 		LOGICAL retval =
-			SQLCommandf( tree->odbc_writer, WIDE( "replace into " )OPTION4_BLOBS WIDE( " (`option_id`,`binary` ) values ('%s',%s)" )
+			SQLCommandf( tree->odbc_writer, "replace into "OPTION4_BLOBS " (`option_id`,`binary` ) values ('%s',%s)"
 							, optval->guid
 							, newval
 							);
@@ -703,13 +703,13 @@ size_t SQLPromptINIValue(
 #ifndef __STATIC__
 	static _F _SQLPromptINIValue;
 	if( !_SQLPromptINIValue )
-		_SQLPromptINIValue = (_F)LoadFunction( _WIDE( TARGETNAME ), WIDE( "_SQLPromptINIValue" ) );
+		_SQLPromptINIValue = (_F)LoadFunction( _WIDE( TARGETNAME ), "_SQLPromptINIValue" );
 	if( !_SQLPromptINIValue )
-		_SQLPromptINIValue = (_F)LoadFunction( WIDE( "bag.psi.dll" ), WIDE( "_SQLPromptINIValue" ) );
+		_SQLPromptINIValue = (_F)LoadFunction( "bag.psi.dll", "_SQLPromptINIValue" );
 	if( !_SQLPromptINIValue )
-		_SQLPromptINIValue =  (_F)LoadFunction( WIDE( "libbag.psi.so" ), WIDE( "_SQLPromptINIValue" ) );
+		_SQLPromptINIValue =  (_F)LoadFunction( "libbag.psi.so", "_SQLPromptINIValue" );
 	if( !_SQLPromptINIValue )
-		_SQLPromptINIValue =  (_F)LoadFunction( WIDE( "sack_bag.dll" ), WIDE( "_SQLPromptINIValue" ) );
+		_SQLPromptINIValue =  (_F)LoadFunction( "sack_bag.dll", "_SQLPromptINIValue" );
 	if( _SQLPromptINIValue )
 		return _SQLPromptINIValue(lpszSection, lpszEntry, lpszDefault, lpszReturnBuffer, cbReturnBuffer, filename );
 #else
@@ -717,7 +717,7 @@ size_t SQLPromptINIValue(
 #endif
 #endif
 #if prompt_stdout
-	fprintf( stdout, WIDE( "[%s]%s=%s?\nor enter new value:" ), lpszSection, lpszEntry, lpszDefault );
+	fprintf( stdout, "[%s]%s=%s?\nor enter new value:", lpszSection, lpszEntry, lpszDefault );
 	fflush( stdout );
 	if( fgets( lpszReturnBuffer, cbReturnBuffer, stdin ) && lpszReturnBuffer[0] != '\n' && lpszReturnBuffer[0] )
 	{
@@ -750,8 +750,8 @@ static int CPROC CheckMasks( uintptr_t psv_params, CTEXTSTR name, POPTION_TREE_N
 		{
 			TEXTCHAR resultbuf[12];
 			TEXTCHAR key[256];
-			tnprintf( key, 256, WIDE("System Settings/Map INI Local/%s"), params->file_name );
-			SACK_GetPrivateProfileStringExxx( params->odbc, key, name, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+			tnprintf( key, 256, "System Settings/Map INI Local/%s", params->file_name );
+			SACK_GetPrivateProfileStringExxx( params->odbc, key, name, "0", resultbuf, 12, NULL, TRUE DBG_SRC );
 			if( resultbuf[0] != '0' )
 				params->is_mapped = TRUE;
 		}
@@ -776,8 +776,8 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 		{
 			//lprintf( "(Convert %s)", pINIFile );
 			if( og.flags.bEnableSystemMapping == 2 )
-				og.flags.bEnableSystemMapping = SACK_GetPrivateProfileIntExx( odbc, WIDE( "System Settings")
-																									 , WIDE( "Enable System Mapping" ), 0, NULL, TRUE DBG_SRC );
+				og.flags.bEnableSystemMapping = SACK_GetPrivateProfileIntExx( odbc, "System Settings"
+																									 , "Enable System Mapping", 0, NULL, TRUE DBG_SRC );
 			if( og.flags.bEnableSystemMapping )
 			{
 				TEXTCHAR resultbuf[12];
@@ -792,7 +792,7 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 					params.file_name = pINIFile;
 					params.odbc = odbc;
 					//lprintf( "FILE is not mapped entirly, check enumerated options..." );
-					tnprintf( buf, 128, WIDE("System Settings/Map INI Local Masks/%s"), pINIFile );
+					tnprintf( buf, 128, "System Settings/Map INI Local Masks/%s", pINIFile );
 					//lprintf( "buf is %s", buf );
 					node = GetOptionIndexExxx( odbc, NULL, DEFAULT_PUBLIC_KEY, NULL, NULL, buf, TRUE, FALSE, FALSE DBG_SRC );
 					if( node )
@@ -804,7 +804,7 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 				}
 				if( !params.is_found )
 				{
-					SACK_GetPrivateProfileStringExxx( odbc, WIDE("System Settings/Map INI Local"), pINIFile, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+					SACK_GetPrivateProfileStringExxx( odbc, "System Settings/Map INI Local", pINIFile, "0", resultbuf, 12, NULL, TRUE DBG_SRC );
 					if( resultbuf[0] != '0' )
 					{
 						params.is_found = 1;
@@ -813,8 +813,8 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 				}
 				if( !params.is_found )
 				{
-					tnprintf( buf, 128, WIDE("System Settings/Map INI Local/%s"), pINIFile );
-					SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, WIDE("0"), resultbuf, 12, NULL, TRUE DBG_SRC );
+					tnprintf( buf, 128, "System Settings/Map INI Local/%s", pINIFile );
+					SACK_GetPrivateProfileStringExxx( odbc, buf, pSection, "0", resultbuf, 12, NULL, TRUE DBG_SRC );
 					if( resultbuf[0] != '0' )
 						params.is_mapped = TRUE;
 				}
@@ -822,7 +822,7 @@ static CTEXTSTR CPROC ResolveININame( PODBC odbc, CTEXTSTR pSection, TEXTCHAR *b
 #ifndef __NO_NETWORK__
 				if( params.is_mapped )
 				{
-					tnprintf( buf, 128, WIDE("System Settings/%s/%s"), GetSystemName(), pINIFile );
+					tnprintf( buf, 128, "System Settings/%s/%s", GetSystemName(), pINIFile );
 					buf[127] = 0;
 					pINIFile = buf;
 				}
@@ -872,7 +872,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 		// maybe do an if( l.flags.bLogOptionsRead )
 #if defined( _DEBUG )
 		if( sg.flags.bLogOptionConnection )
-			_lprintf(DBG_RELAY)( WIDE( "Getting option {%s}[%s]%s=%s" ), pINIFile, pSection, pOptname, pDefaultbuf );
+			_lprintf(DBG_RELAY)( "Getting option {%s}[%s]%s=%s", pINIFile, pSection, pOptname, pDefaultbuf );
 #endif
 		opt_node = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pINIFile, pSection, pOptname, TRUE, FALSE DBG_RELAY );
 		// used to have a test - get option value index; but option index == node_id
@@ -909,7 +909,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 				SetOptionStringValue( GetOptionTreeExxx( odbc, NULL DBG_SRC ), opt_node, pBuffer );
 #if defined( _DEBUG )
 				if( sg.flags.bLogOptionConnection )
-					lprintf( WIDE("default Result [%s]"), pBuffer );
+					lprintf( "default Result [%s]", pBuffer );
 #endif
 				if( drop_odbc )
 					DropOptionODBC( odbc );
@@ -925,7 +925,7 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExxx )( PODBC odbc
 			pBuffer[buflen] = 0;
 #if defined( _DEBUG )
 			if( sg.flags.bLogOptionConnection )
-				lprintf( WIDE( "buffer result is [%s]" ), pBuffer );
+				lprintf( "buffer result is [%s]", pBuffer );
 #endif
 			if( drop_odbc )
 				DropOptionODBC( odbc );
@@ -987,7 +987,7 @@ SQLGETOPTION_PROC( int32_t, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR
 {
 	TEXTCHAR buffer[32];
 	TEXTCHAR defaultbuf[32];
-	tnprintf( defaultbuf, sizeof( defaultbuf ), WIDE("%") _32fs, nDefault );
+	tnprintf( defaultbuf, sizeof( defaultbuf ), "%" _32fs, nDefault );
 	if( SACK_GetPrivateProfileStringExxx( odbc, pSection, pOptname, defaultbuf, buffer, sizeof( buffer )/sizeof(TEXTCHAR), pINIFile, bQuiet DBG_RELAY ) )
 	{
 		if( buffer[0] == 'Y' || buffer[0] == 'y' )
@@ -1033,7 +1033,7 @@ SQLGETOPTION_PROC( int, SACK_GetProfileBlobOdbc )( PODBC odbc, CTEXTSTR pSection
 {
 	POPTION_TREE_NODE optval;
 #ifdef DETAILED_LOGGING
-	lprintf( WIDE( "Only single odbc available here." ) );
+	lprintf( "Only single odbc available here." );
 #endif
 	optval = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, NULL, pSection, pOptname, FALSE, FALSE DBG_SRC );
 	if( !optval )
@@ -1080,12 +1080,12 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
 	}
 #if defined( _DEBUG )
 	if( sg.flags.bLogOptionConnection )
-		_lprintf( DBG_SRC )( WIDE( "Setting option {%s}[%s]%s=%s" ), pINIFile, pSection, pName, pValue );
+		_lprintf( DBG_SRC )( "Setting option {%s}[%s]%s=%s", pINIFile, pSection, pName, pValue );
 #endif
 	optval = GetOptionIndexExxx( odbc, NULL, NULL, pINIFile, pSection, pName, TRUE, FALSE, FALSE DBG_SRC );
 	if( !optval )
 	{
-		lprintf( WIDE("Creation of path failed!") );
+		lprintf( "Creation of path failed!" );
 		return FALSE;
 	}
 	else
@@ -1095,7 +1095,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
 		if( flush && tree->odbc_writer )
 			SQLCommit( tree->odbc_writer );
 #ifdef DETAILED_LOGGING
-		lprintf( WIDE( "Set option value %d [%d]" ), optval, pValue );
+		lprintf( "Set option value %d [%d]", optval, pValue );
 #endif
 		return result;
 	}
@@ -1126,7 +1126,7 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionString )( PODBC odbc, CTEXTST
 SQLGETOPTION_PROC( int32_t, SACK_WritePrivateProfileInt )( CTEXTSTR pSection, CTEXTSTR pName, int32_t value, CTEXTSTR pINIFile )
 {
 	TEXTCHAR valbuf[32];
-	tnprintf( valbuf, sizeof( valbuf ), WIDE("%") _32fs, value );
+	tnprintf( valbuf, sizeof( valbuf ), "%" _32fs, value );
 	return SACK_WritePrivateProfileString( pSection, pName, valbuf, pINIFile );
 }
 
@@ -1160,7 +1160,7 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileBlobOdbc )( PODBC odbc, CTEXTSTR
 	optval = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, app, NULL, pSection, pOptname, TRUE, FALSE DBG_SRC );
 	if( !optval )
 	{
-		lprintf( WIDE("Creation of path failed!") );
+		lprintf( "Creation of path failed!" );
 		return FALSE;
 	}
 	else
@@ -1203,7 +1203,7 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileExceptionString )( CTEXTSTR pSec
 	INDEX optval = GetOptionIndexEx( OPTION_ROOT_VALUE, pINIFile, pSection, pName, TRUE DBG_SRC );
 	if( optval == INVALID_INDEX )
 	{
-		lprintf( WIDE("Creating of path failed!") );
+		lprintf( "Creating of path failed!" );
 		return FALSE;
 	}
 	else
@@ -1214,8 +1214,8 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileExceptionString )( CTEXTSTR pSec
 		INDEX IDValue = CreateValue( og.Option, optval,pValue );
 		system = GetSystemIndex( pSystemName );
 
-		tnprintf( exception, sizeof( exception ), WIDE("insert into option_exception (`apply_from`,`apply_to`,`value_id`,`override_value_id`,`system`) ")
-																	  WIDE( "values( \'%04d%02d%02d%02d%02d\', \'%04d%02d%02d%02d%02d\', %")_size_f WIDE(", %")_size_f WIDE(",%" _size_f )
+		tnprintf( exception, sizeof( exception ), "insert into option_exception (`apply_from`,`apply_to`,`value_id`,`override_value_id`,`system`) "
+																	  "values( \'%04d%02d%02d%02d%02d\', \'%04d%02d%02d%02d%02d\', %"_size_f ", %"_size_f WIDE(",%" _size_f )
              , wYrFrom, wMoFrom, wDyFrom
              , wHrFrom, wMnFrom,wScFrom
              , wYrTo, wMoTo, wDyTo
@@ -1228,13 +1228,13 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileExceptionString )( CTEXTSTR pSec
 		{
 			CTEXTSTR result = NULL;
 			GetSQLResult( &result );
-			lprintf( WIDE("Insert exception failed: %s"), result );
+			lprintf( "Insert exception failed: %s", result );
 		}
 		else
 		{
 			if( system || session )
 			{
-	            INDEX IDTime = FetchLastInsertID( og.Option, WIDE("option_exception"), WIDE("exception_id") );
+	            INDEX IDTime = FetchLastInsertID( og.Option, "option_exception", "exception_id" );
 				// lookup system name... provide detail record
 			}
 		}
@@ -1290,7 +1290,7 @@ PRIORITY_PRELOAD(RegisterSQLOptionInterface, SQL_PRELOAD_PRIORITY + 1 )
 	if( !og.flags.bRegistered )
 	{
 		og.flags.bRegistered = 1;
-		RegisterInterface( WIDE("SACK_SQL_Options"), (POINTER(CPROC *)(void))GetOptionInterface, (void(CPROC *)(POINTER))DropOptionInterface );
+		RegisterInterface( "SACK_SQL_Options", (POINTER(CPROC *)(void))GetOptionInterface, (void(CPROC *)(POINTER))DropOptionInterface );
 		og.flags.bEnableSystemMapping = 2;
 	}
 }
@@ -1299,8 +1299,8 @@ PRIORITY_PRELOAD(RegisterSQLOptionInterface, SQL_PRELOAD_PRIORITY + 1 )
 PRIORITY_PRELOAD( ReadOptionOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
 #ifndef __NO_OPTIONS__
-	og.flags.bUseProgramDefault = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/SQL/Options/Options Use Program Name Default" ), 1, TRUE );
-	og.flags.bUseSystemDefault = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/SQL/Options/Options Use System Name Default" ), 0, TRUE );
+	og.flags.bUseProgramDefault = SACK_GetProfileIntEx( GetProgramName(), "SACK/SQL/Options/Options Use Program Name Default", 1, TRUE );
+	og.flags.bUseSystemDefault = SACK_GetProfileIntEx( GetProgramName(), "SACK/SQL/Options/Options Use System Name Default", 0, TRUE );
 #else
 	og.flags.bUseProgramDefault = 1;
 	og.flags.bUseSystemDefault = 0;
@@ -1312,7 +1312,7 @@ SQLGETOPTION_PROC( CTEXTSTR, GetSystemID )( void )
 {
 #ifndef __NO_NETWORK__
 	static TEXTCHAR result[12];
-	tnprintf( result, 12, WIDE("%")_size_f, GetSystemIndex( GetSystemName() ) );
+	tnprintf( result, 12, "%"_size_f, GetSystemIndex( GetSystemName() ) );
 	return result;
 #else
 	{
@@ -1326,12 +1326,12 @@ SQLGETOPTION_PROC( CTEXTSTR, GetSystemID )( void )
 SQLGETOPTION_PROC( void, BeginBatchUpdate )( void )
 {
 	//   SQLCommand(
-   //SQLCommand( og.Option, WIDE( "BEGIN TRANSACTION" ) );
+   //SQLCommand( og.Option, "BEGIN TRANSACTION" );
 }
 
 SQLGETOPTION_PROC( void, EndBatchUpdate )( void )
 {
-   //SQLCommand( og.Option, WIDE( "COMMIT" ) );
+   //SQLCommand( og.Option, "COMMIT" );
 }
 
 ATEXIT( CommitOptions )
@@ -1339,7 +1339,7 @@ ATEXIT( CommitOptions )
 	INDEX idx;
 	POPTION_TREE tree;
 #ifdef DETAILED_LOGGING
-	lprintf( WIDE( "Running Option cleanup..." ) );
+	lprintf( "Running Option cleanup..." );
 #endif
 #ifndef __STATIC_GLOBALS__
 	if( sack_global_option_data )
@@ -1350,7 +1350,7 @@ ATEXIT( CommitOptions )
 			if( tree->odbc_writer )
 			{
 #ifdef DETAILED_LOGGING
-				lprintf( WIDE( "flushing a write on %p" ), tree->odbc_writer );
+				lprintf( "flushing a write on %p", tree->odbc_writer );
 #endif
 				SQLCommit( tree->odbc_writer );
 			}
@@ -1607,7 +1607,7 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 				LIST_FORALL( sg.option_database_init, idx, CTEXTSTR, cmd ) {
 					SQLQueryf( odbc, &result, cmd );
 					//if( result )
-					//	lprintf( WIDE( " %s" ), result );
+					//	lprintf( " %s", result );
 					SQLEndQuery( odbc );
 				}
 			}
@@ -1668,7 +1668,7 @@ void DropOptionODBCEx( PODBC odbc DBG_PASS )
 		}
 		if( !connection )
 		{
-			lprintf( WIDE("Failed to find the thing to drop.") );
+			lprintf( "Failed to find the thing to drop." );
 		}
 		if( connection )
 			break;
@@ -1686,14 +1686,14 @@ PRIORITY_PRELOAD( CommitOptionsLoad, 150 )
 	INDEX idx;
 	POPTION_TREE tree;
 #ifdef DETAILED_LOGGING
-	lprintf( WIDE( "Running Option cleanup..." ) );
+	lprintf( "Running Option cleanup..." );
 #endif
 	LIST_FORALL( og.trees, idx, POPTION_TREE, tree )
 	{
 		if( tree->odbc_writer )
 		{
 #ifdef DETAILED_LOGGING
-			lprintf( WIDE( "flushing a write on %p" ), tree->odbc_writer );
+			lprintf( "flushing a write on %p", tree->odbc_writer );
 #endif
 			SQLCommit( tree->odbc_writer );
 		}

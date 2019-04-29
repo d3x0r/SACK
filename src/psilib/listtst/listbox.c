@@ -31,19 +31,19 @@ PSI_CONTROL CreateListTester( PSI_CONTROL parent )
    	PSI_CONTROL pf;
 	GetMemStats( &free, &used, &blocks, &freeblocks );
 
-	printf( WIDE("Mem Stats: %") _32f WIDE(" %") _32f WIDE(" %") _32f WIDE(" %") _32f WIDE("\n")
+	printf( "Mem Stats: %" _32f " %" _32f " %" _32f " %" _32f "\n"
 			, used, free, blocks, freeblocks );
 
 	for( n = 0; n < 1; n++ )
 	{
-	pf = CreateFrame( WIDE("ListBox Test"), 0, 0, 400, 256, 0, parent );
-	lprintf( WIDE("To make list...") );
+	pf = CreateFrame( "ListBox Test", 0, 0, 400, 256, 0, parent );
+	lprintf( "To make list..." );
 	pcList = MakeListBox( pf, 5, 5, 140, 150, LST_FIRST, 0 );
-	AddListItem( pcList, WIDE("One") );
-	AddListItem( pcList, WIDE("Four") );
-	AddListItem( pcList, WIDE("Nine") );
-	AddListItem( pcList, WIDE("Items to add") );
-	AddListItem( pcList, WIDE("And a very very very long one") );
+	AddListItem( pcList, "One" );
+	AddListItem( pcList, "Four" );
+	AddListItem( pcList, "Nine" );
+	AddListItem( pcList, "Items to add" );
+	AddListItem( pcList, "And a very very very long one" );
 
    SetCommonTransparent( pcList, TRUE );
    SetCommonTransparent( GetFirstChildControl( pcList ), TRUE );
@@ -57,25 +57,25 @@ PSI_CONTROL CreateListTester( PSI_CONTROL parent )
 	for( i = 0; i <  100; i++ )
 	{
 		char item[256];
-		sprintf( item, WIDE("Item #%03d"), i );
+		sprintf( item, "Item #%03d", i );
 		AddListItem( pcList, item );
 	}
 	*/
-	MakeButton( pf, 5, 180, 70, 18, BTN_ADD, WIDE("Add Item"), 0, AddItem,
-				  (uintptr_t)MakeEditControl( pf, 5, 160, 140, 16, EDT_NEWTEXT, WIDE("New Item"), 0 ) );
-   pcText = MakeTextControl( pf, 5, 203, 140, 18, TXT_TEST, WIDE("text to change"), 0 );
+	MakeButton( pf, 5, 180, 70, 18, BTN_ADD, "Add Item", 0, AddItem,
+				  (uintptr_t)MakeEditControl( pf, 5, 160, 140, 16, EDT_NEWTEXT, "New Item", 0 ) );
+   pcText = MakeTextControl( pf, 5, 203, 140, 18, TXT_TEST, "text to change", 0 );
    pcTree = MakeListBox( pf, 150, 5, 200, 150, LST_TREE, LISTOPT_TREE );
    SetListboxIsTree( pcTree, TRUE );
-   AddListItemEx( pcTree, 0, WIDE("tree top") );
-   AddListItemEx( pcTree, 1, WIDE("one") );
-   AddListItemEx( pcTree, 1, WIDE("one") );
-   AddListItemEx( pcTree, 2, WIDE("two tree top") );
-   AddListItemEx( pcTree, 3, WIDE("three tree top") );
-   AddListItemEx( pcTree, 1, WIDE("one tree top") );
-   AddListItemEx( pcTree, 0, WIDE("0 tree top") );
-   AddListItemEx( pcTree, 1, WIDE("one tree top") );
-   AddListItemEx( pcTree, 2, WIDE("two tree top") );
-   AddListItemEx( pcTree, 3, WIDE("three tree top") );
+   AddListItemEx( pcTree, 0, "tree top" );
+   AddListItemEx( pcTree, 1, "one" );
+   AddListItemEx( pcTree, 1, "one" );
+   AddListItemEx( pcTree, 2, "two tree top" );
+   AddListItemEx( pcTree, 3, "three tree top" );
+   AddListItemEx( pcTree, 1, "one tree top" );
+   AddListItemEx( pcTree, 0, "0 tree top" );
+   AddListItemEx( pcTree, 1, "one tree top" );
+   AddListItemEx( pcTree, 2, "two tree top" );
+   AddListItemEx( pcTree, 3, "three tree top" );
 
 	AddCommonButtons( pf, &bDone, &bOkay );
 	if( parent )
@@ -86,10 +86,10 @@ PSI_CONTROL CreateListTester( PSI_CONTROL parent )
 //	DestroyFrame( pf );
 
 	GetMemStats( &free, &used, &blocks, &freeblocks );
-	printf( WIDE("Mem Stats: %") _32f WIDE(" %") _32f WIDE(" %") _32f WIDE(" %") _32f WIDE("\n"), used, free, blocks, freeblocks );
+	printf( "Mem Stats: %" _32f " %" _32f " %" _32f " %" _32f "\n", used, free, blocks, freeblocks );
 	if( used )
 	{
-		DebugDumpMemFile( WIDE("memory.dump") );
+		DebugDumpMemFile( "memory.dump" );
 	}
    return pf;
 }

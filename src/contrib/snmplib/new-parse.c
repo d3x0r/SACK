@@ -312,7 +312,7 @@ static MyTokenType ReadNextToken(FILE *fp, char *TokenBuf)
 
       if (tp) {
 #ifdef DEBUG_RYAN
-	fprintf(stdout, WIDE("TOKEN: Found '%s'\n"), TokenBuf);
+	fprintf(stdout, "TOKEN: Found '%s'\n", TokenBuf);
 #endif /* DEBUG_RYAN */
 	return (tp->Type);
       }
@@ -349,13 +349,13 @@ static MyTokenType ReadNextToken(FILE *fp, char *TokenBuf)
       for(TokenBufPtr = TokenBuf; *TokenBufPtr; TokenBufPtr++)
 	if (!isdigit(*TokenBufPtr)) {
 #ifdef DEBUG_RYAN
-	  fprintf(stdout, WIDE("TOKEN: '%s' (LABEL)\n"), TokenBuf);
+	  fprintf(stdout, "TOKEN: '%s' (LABEL)\n", TokenBuf);
 #endif /* DEBUG_RYAN */
 	  return(tok_Label);
 	}
 
 #ifdef DEBUG_RYAN
-      fprintf(stdout, WIDE("TOKEN: '%s' (NUMBER)\n"), TokenBuf);
+      fprintf(stdout, "TOKEN: '%s' (NUMBER)\n", TokenBuf);
 #endif /* DEBUG_RYAN */
       return(tok_Number);
     }
@@ -478,7 +478,7 @@ static void Error(char *fmt, ...)
 
   va_start(args, fmt);
 #ifdef STDERR_OUTPUT
-  fprintf(stderr, WIDE("Line %3d: "), Line);
+  fprintf(stderr, "Line %3d: ", Line);
   vfprintf(stderr, fmt, args);
 #endif
   va_end(args);
@@ -511,7 +511,7 @@ static int ParseOID(FILE *fp, struct subid *SubOid, int length)
   MyTokenType type;
   char token[TOKENSIZE];
 
-  EAT_TOKEN(tok_LeftBracket, WIDE("ParseOID"), 0);
+  EAT_TOKEN(tok_LeftBracket, "ParseOID", 0);
 
   /* Can only read things as long as we have array space */
   type = ReadNextToken(fp, token);
@@ -837,7 +837,7 @@ static struct node *ParseObjectType(FILE *fp, char *name)
 
   /* Grab the syntax
    */
-  EAT_TOKEN(tok_Syntax, WIDE("ObjectType Syntax"), NULL);
+  EAT_TOKEN(tok_Syntax, "ObjectType Syntax", NULL);
 
   /* Create a new node */
   np = node_New();
@@ -852,11 +852,11 @@ static struct node *ParseObjectType(FILE *fp, char *name)
     /* TABLE: Sequence Of Blah */
   case tok_Sequence:
     strcpy(syntax, token);
-    if ((nexttype == tok_Label) || (!strcmp(token, WIDE("OF")))) {
-      strcat(syntax, WIDE(" "));
+    if ((nexttype == tok_Label) || (!strcmp(token, "OF"))) {
+      strcat(syntax, " ");
       strcat(syntax, nexttoken);
       nexttype = ReadNextToken(fp, nexttoken); /* Blah */
-      strcat(syntax, WIDE(" "));
+      strcat(syntax, " ");
       strcat(syntax, nexttoken);
       nexttype = ReadNextToken(fp, nexttoken); /* Read ahead */
     }
@@ -928,13 +928,13 @@ static struct node *ParseObjectType(FILE *fp, char *name)
 
   case tok_Octet:
     /* Assume "Octet String" */
-    strcpy(syntax, WIDE("Octet String"));
+    strcpy(syntax, "Octet String");
     nexttype = ReadNextToken(fp, nexttoken);
     break;
 
   case tok_Object:
     /* Assume "Object Identifier" */
-    strcpy(syntax, WIDE("Object Identifier"));
+    strcpy(syntax, "Object Identifier");
     nexttype = ReadNextToken(fp, nexttoken);
     break;
 
@@ -1193,21 +1193,21 @@ static MyTokenType ParseASNType(FILE *fp, char *name, char *token)
     NextType = ReadNextToken(fp, NextToken);
 
     if (type == tok_Object) {
-      if ((NextType == tok_Label) && (!strcmp(NextToken, WIDE("IDENTIFIER")))) {
+      if ((NextType == tok_Label) && (!strcmp(NextToken, "IDENTIFIER"))) {
 	/* 2-word type.  Read initial size */
 	NextType = ReadNextToken(fp, NextToken);
       }
     }
 
     else if (type == tok_Octet) {
-      if ((NextType == tok_Label) && (!strcmp(NextToken, WIDE("STRING")))) {
+      if ((NextType == tok_Label) && (!strcmp(NextToken, "STRING"))) {
 	/* 2-word type.  Read initial size */
 	NextType = ReadNextToken(fp, NextToken);
       }
     }
 
     else if (type == tok_Sequence) {
-      if ((NextType == tok_Label) && (!strcmp(NextToken, WIDE("OF")))) {
+      if ((NextType == tok_Label) && (!strcmp(NextToken, "OF"))) {
 	/* 3-word type.  Fetch next, and then we're ready to look at the
 	 * size info. 
 	 */
@@ -1347,7 +1347,7 @@ static int ParseTrapType(FILE *fp)
 
   /* Finally, read the number
    */
-  EAT_TOKEN(tok_Number, WIDE("TrapType Value"), 0);
+  EAT_TOKEN(tok_Number, "TrapType Value", 0);
 
   return(1);
 }
@@ -1385,7 +1385,7 @@ static struct node *parse(FILE *fp, struct node *pStart)
 
 ReadyToReadNextToken:
 #ifdef DEBUG_RYAN
-      fprintf(stdout, WIDE("PARSER:  Top of the loop\n"));
+      fprintf(stdout, "PARSER:  Top of the loop\n");
 #endif
       type = ReadNextToken(fp, token);
 
@@ -1432,7 +1432,7 @@ ReadyToReadNextToken:
            }
            //---^^^--- JAB : FILE INCLUSION EXTENSION 
 
-           fp = fopen(pFile, WIDE("r"));
+           fp = fopen(pFile, "r");
            if (fp == NULL)
              return(NULL);
            parse( fp, root );
@@ -1473,7 +1473,7 @@ ReadyToReadNextToken:
 
     else {
       /* Standalone labels */
-      if (!strcmp(token, WIDE("END"))) {
+      if (!strcmp(token, "END")) {
 	goto ReadyToReadNextToken;
       }
     }
@@ -1498,11 +1498,11 @@ ReadyToReadNextToken:
       /* XXXXX -- Keep track of current MIB for new nodes? */
 
       if (VerboseMIB)
-	      fprintf(stdout, WIDE("Loading MIB '%s'\n"), name);
+	      fprintf(stdout, "Loading MIB '%s'\n", name);
 
-      EAT_TOKEN(tok_Equals, WIDE("DEFINITIONS ::= BEGIN"), NULL);
+      EAT_TOKEN(tok_Equals, "DEFINITIONS ::= BEGIN", NULL);
       EAT_TOKEN(tok_Label,  "DEFINITIONS ::= BEGIN", NULL);
-      if (strcmp(token, WIDE("BEGIN"))) {
+      if (strcmp(token, "BEGIN")) {
 	      Error("Label should have been BEGIN: %s", token);
 	      return(NULL);
       }
@@ -1511,8 +1511,8 @@ ReadyToReadNextToken:
     /* ------------------------------------------------------ */
 
     else if (type == tok_Object) {
-      EAT_TOKEN(tok_Label, WIDE("OBJECT ?? Identifier ??"), NULL);
-      if (strcmp(token, WIDE("IDENTIFIER"))) {
+      EAT_TOKEN(tok_Label, "OBJECT ?? Identifier ??", NULL);
+      if (strcmp(token, "IDENTIFIER")) {
 	Error("Expected IDENTIFIER");
 	return(NULL);
       }
@@ -1522,7 +1522,7 @@ ReadyToReadNextToken:
 printf("== OBJECT IDENTIFIER\n");
 #endif
 
-      EAT_TOKEN(tok_Equals, WIDE("OBJECT IDENTIFIER ?? ::= ??"), NULL);
+      EAT_TOKEN(tok_Equals, "OBJECT IDENTIFIER ?? ::= ??", NULL);
 
       np->Next = ParseObjectIdentifier(fp, name);
       if (np->Next == NULL) {
@@ -1728,9 +1728,9 @@ printf("== NOTIFICATION GROUP\n");
 
       /* Label could be numerous things. */
 
-      if (!strcmp(token, WIDE("MACRO"))) {
+      if (!strcmp(token, "MACRO")) {
 	/* Skip MACROs.  I'm not writing something to handle them. */
-	while(!( (type==tok_Label) && (!strcmp(token, WIDE("END")))))
+	while(!( (type==tok_Label) && (!strcmp(token, "END"))))
 	  type = ReadNextToken(fp, token);
       }
 
@@ -1887,7 +1887,7 @@ static struct snmp_mib_tree *build_tree(struct node *nodes)
   tp = (struct snmp_mib_tree *)malloc(sizeof(struct snmp_mib_tree));
   memset(tp, '\0', sizeof(struct snmp_mib_tree));
 
-  strcpy(tp->label, WIDE("iso"));
+  strcpy(tp->label, "iso");
   tp->subid = 1;
   tp->type = 0;
 
@@ -1909,12 +1909,12 @@ static struct snmp_mib_tree *build_tree(struct node *nodes)
    
   if (nodes_left){
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("The mib description doesn't seem to be consistent.\n"));
-    fprintf(stderr, WIDE("Some nodes couldn't be linked under the \")iso\" tree.\n");
-    fprintf(stderr, WIDE("these nodes are left:\n"));
+    fprintf(stderr, "The mib description doesn't seem to be consistent.\n");
+    fprintf(stderr, "Some nodes couldn't be linked under the \"iso\" tree.\n");
+    fprintf(stderr, "these nodes are left:\n");
     for(bucket = 0; bucket < NHASHSIZE; bucket++){
       for(np = NodeBuckets[bucket]; np; np = np->Next)
-	 fprintf(stderr, WIDE("%s ::= { %s %d } (%d)\n"),
+	 fprintf(stderr, "%s ::= { %s %d } (%d)\n",
 		np->Label, np->Parent, np->SubID,
 		np->Type);
     }
@@ -1963,7 +1963,7 @@ struct snmp_mib_tree *read_mib_v2(char *filename)
   }
   //---^^^--- JAB : FILE INCLUSION EXTENSION 
 
-  fp = fopen(pFile, WIDE("r"));
+  fp = fopen(pFile, "r");
   if (fp == NULL)
     return(NULL);
 
@@ -1971,7 +1971,7 @@ struct snmp_mib_tree *read_mib_v2(char *filename)
 
   if (!nodes){
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Mib table is bad.\n"));
+    fprintf(stderr, "Mib table is bad.\n");
 #endif
     return(NULL);
   }

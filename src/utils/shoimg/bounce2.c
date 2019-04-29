@@ -347,7 +347,7 @@ SaneWinMain(argc, argv )
 
 	for( x = 0; x < argc; x++ )
 	{
-		lprintf(WIDE("[%u] %s"), x, argv[x] );
+		lprintf("[%u] %s", x, argv[x] );
 	}
    y = x  = 0;
 
@@ -361,7 +361,7 @@ SaneWinMain(argc, argv )
 			y = IntCreateFromText( argv[5] );
 			if( strchr( argv[6] , '-' ) )
 			{
-            lprintf( WIDE("\n\n %s was passed as seconds parameter.  Setting it to zero, which will be sleep forever"), argv[6]);
+            lprintf( "\n\n %s was passed as seconds parameter.  Setting it to zero, which will be sleep forever", argv[6]);
 				z = 0;
 			}
 			else
@@ -387,21 +387,21 @@ SaneWinMain(argc, argv )
 		break;
 	case 2:
 		{
-			if( !( StrCaseCmpEx( argv[1], WIDE("--help"), 6 ) ) )
+			if( !( StrCaseCmpEx( argv[1], "--help", 6 ) ) )
 			{
-				lprintf( WIDE("\n\n\tThere is no help.\n") );
-				printf(WIDE("\n\n\tThere is no help. Try examining shoimg.log.\n"));
+				lprintf( "\n\n\tThere is no help.\n" );
+				printf("\n\n\tThere is no help. Try examining shoimg.log.\n");
 				SuccessOrFailure = FALSE;
 			}
-			else if( !( StrCaseCmpEx( argv[1], WIDE("--ver"), 5 ) ) )
+			else if( !( StrCaseCmpEx( argv[1], "--ver", 5 ) ) )
 			{
-            lprintf( WIDE("\n\n\tThere is only one version.\n") );
-				printf(WIDE("\n\n\tThere is only one version.\n"));
+            lprintf( "\n\n\tThere is only one version.\n" );
+				printf("\n\n\tThere is only one version.\n");
             SuccessOrFailure = FALSE;
 			}
 			else
 			{
-				lprintf( WIDE("Using default parameters, which means %s full screen for better or for worse, for ten seconds."), argv[1] );
+				lprintf( "Using default parameters, which means %s full screen for better or for worse, for ten seconds.", argv[1] );
 				w = ( width -1 );
 				h = ( height - 1 );
 			}
@@ -419,7 +419,7 @@ SaneWinMain(argc, argv )
 		( !( imgGraphic = LoadImageFile( argv[1] ) ) )
 	  )
 	{
-		lprintf( WIDE("Tried to load %s but couldn't.  Sorry it didn't work out."),argv[1] );
+		lprintf( "Tried to load %s but couldn't.  Sorry it didn't work out.",argv[1] );
 		SuccessOrFailure = FALSE;
 	}
 
@@ -427,7 +427,7 @@ SaneWinMain(argc, argv )
 		( !w || !h  )
 	  )
 	{
-		lprintf( WIDE("Cannot have width ( %u ), height ( %u ).  Sorry it didn't work out.")
+		lprintf( "Cannot have width ( %u ), height ( %u ).  Sorry it didn't work out."
 				 , w, h );
 		SuccessOrFailure = FALSE;
       DebugBreak();
@@ -448,7 +448,7 @@ SaneWinMain(argc, argv )
 														  , y //0
 											 );
       AddTimer( 33, tick, 0 );
-      lprintf( WIDE("Entered main at %lld"), a );
+      lprintf( "Entered main at %lld", a );
 		SetRedrawHandler( display, Output, 0 );
       g.flags.bBlacking = 1;
 		UpdateDisplay( display );
@@ -468,16 +468,16 @@ SaneWinMain(argc, argv )
 	else
 	{
 		uint32_t x;
-		lprintf( WIDE("\n\n\tUsage: %s <image> [[[<width> <height>] <x> <y>] <seconds>].  \n\t\
+		lprintf( "\n\n\tUsage: %s <image> [[[<width> <height>] <x> <y>] <seconds>].  \n\t\
 						  Must be width of %u by height of %u or less, controlled by Display.Config. \n\t\
 						  Example:  shoimg sky.jpg  orients at default (top left) and will use default resolution (maximum) and display full screen for the default time period (ten seconds).\n\t\
 						  Example:  shoimg ball.jpg 999 743 orients at default (top left) and sizes to 999 width 743 height to display for the default time period (ten seconds).\n\t\
 						  Example:  shoimg bingo.jpg 1220 944 30 30 orients at 30,30 and has the effect of a 30 pixel border ( given a 1280x1024 setup ) and shows for the default time period (ten seconds).\n\t\
 						  Example:  shoimg slotstrip.jpg 1004 758 10 5 25 places a 10 pixel/5 pixel border (given a 1024x768 setup) and shows for twenty five seconds.\n\t\
-						  Your parameters:\n\n"), argv[0] , width, height);
+						  Your parameters:\n\n", argv[0] , width, height);
 		for( x = 0; x < argc; x++ )
 		{
-         lprintf( WIDE( "\t[Parameter %u] is %s"),x,argv[x] );
+         lprintf( "\t[Parameter %u] is %s",x,argv[x] );
 		}
 
 	}

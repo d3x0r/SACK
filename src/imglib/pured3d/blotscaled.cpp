@@ -391,7 +391,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 	_32 dhd, dwd, dhs, dws;
 	va_list colors;
 	va_start( colors, method );
-	//lprintf( WIDE("Blot enter (%d,%d)"), _wd, _hd );
+	//lprintf( "Blot enter (%d,%d)", _wd, _hd );
 	if( nTransparent > ALPHA_TRANSPARENT_MAX )
 	{
 		return;
@@ -437,7 +437,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			xd++;
 		}
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//       xs, ys, ws, hs, xd, yd, wd, hd );
 	if( yd < pifDest->y )
 	{
@@ -454,7 +454,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			yd++;
 		}
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//       xs, ys, ws, hs, xd, yd, wd, hd );
 	if( ( xd + (signed)wd ) > ( pifDest->x + pifDest->width) )
 	{
@@ -462,7 +462,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		//ws -= ((S_64)( (int)wd - newwd)* (S_64)ws )/(int)wd;
 		wd = ( pifDest->x + pifDest->width ) - xd;
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//       xs, ys, ws, hs, xd, yd, wd, hd );
 	if( ( yd + (signed)hd ) > (pifDest->y + pifDest->height) )
 	{
@@ -480,7 +480,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
    
 	while( LockedExchange( &lock, 1 ) )
 		Relinquish();
-   //Log8( WIDE("Do blot work...%d(%d),%d(%d) %d(%d) %d(%d)")
+   //Log8( "Do blot work...%d(%d),%d(%d) %d(%d) %d(%d)"
    //    , ws, FROMFIXED(ws), hs, FROMFIXED(hs) 
 	//    , wd, FROMFIXED(wd), hd, FROMFIXED(hd) );
 
@@ -491,7 +491,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 
 		// closed loop to get the top imgae size.
 		for( topmost_parent = pifSrc; topmost_parent->pParent; topmost_parent = topmost_parent->pParent );
-		//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
+		//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
 
 		{
 			_32 color = 0xffffffff;
@@ -526,7 +526,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			x_size2 = (RCOORD) (xs+ws)/ (RCOORD)topmost_parent->width;
 			y_size = (RCOORD) ys/ (RCOORD)topmost_parent->height;
 			y_size2 = (RCOORD) (ys+hs)/ (RCOORD)topmost_parent->height;
-			//lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
+			//lprintf( "Texture size is %g,%g to %g,%g", x_size, y_size, x_size2, y_size2 );
 			while( pifDest && pifDest->pParent )
 			{
 				glDepth = 0;
@@ -554,7 +554,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				ReloadD3DTexture( pifSrc, 0 );
 				if( !pifSrc->pActiveSurface )
 				{
-					lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+					lprintf( "gl texture hasn't downloaded or went away?" );
 					lock = 0;
 					return;
 				}
@@ -576,7 +576,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				ReloadD3DTexture( output_image, 0 );
 				if( !output_image->pActiveSurface )
 				{
-					lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+					lprintf( "gl texture hasn't downloaded or went away?" );
 					lock = 0;
 					return;
 				}
@@ -641,7 +641,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 	}
 	else
 	{
-		//Log9( WIDE("Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)")
+		//Log9( "Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)"
 		//          , xs, FROMFIXED(xs), FIXEDPART(xs)
 		//          , ys, FROMFIXED(ys)
 		//          , xd, FROMFIXED(xd)
@@ -721,7 +721,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		}
 	}
 	lock = 0;
-//   Log( WIDE("Blot done") );
+//   Log( "Blot done" );
 }
 
 

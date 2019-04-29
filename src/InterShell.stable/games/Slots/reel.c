@@ -111,7 +111,7 @@ int CPROC MouseReel( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 	return TRUE;
 }
 
-CONTROL_REGISTRATION reel_control = { WIDE("Simple Slot Reel"), { { 3*96, 96 }, sizeof( REEL ), BORDER_NONE }
+CONTROL_REGISTRATION reel_control = { "Simple Slot Reel", { { 3*96, 96 }, sizeof( REEL ), BORDER_NONE }
 												, InitReel
 												, NULL
 												, DrawReel
@@ -123,12 +123,12 @@ PRELOAD( RegisterReel)
 	DoRegisterControl( &reel_control );
 }
 
-static uintptr_t OnCreateControl( WIDE("Games/Slots/Slot Reel"))(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
+static uintptr_t OnCreateControl( "Games/Slots/Slot Reel")(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
 	return MakeNamedControl( parent, reel_control.name, x, y, w, h, reel_local.ID++ );
 }
 
- static PSI_CONTROL OnGetControl(WIDE("Games/Slots/Slot Reel"))(uintptr_t psvInit)
+ static PSI_CONTROL OnGetControl("Games/Slots/Slot Reel")(uintptr_t psvInit)
  { 
 	 return (PSI_CONTROL)psvInit; 
  }

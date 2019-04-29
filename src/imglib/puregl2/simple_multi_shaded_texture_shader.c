@@ -288,7 +288,7 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 
 	if( result = glGetError() )
 	{
-		lprintf( WIDE("unhandled error before shader") );
+		lprintf( "unhandled error before shader" );
 	}
 
 	if( l.glslVersion < 150 )

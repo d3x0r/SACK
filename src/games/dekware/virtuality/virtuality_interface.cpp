@@ -12,12 +12,12 @@ PRELOAD( Init )
 }
 
 static Image tmp ;
-static uintptr_t OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( "Virtuality interface" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.transform = camera;
 	{
 		//Image 
-		tmp = LoadImageFile( WIDE("%resources%/images/AN00236511_001_l.jpg") );
+		tmp = LoadImageFile( "%resources%/images/AN00236511_001_l.jpg" );
 		SetImageTransformRelation( tmp, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 		SetObjectColor( l.root_object, BASE_COLOR_BLUE );
 		InvertObject( l.root_object );
@@ -35,11 +35,11 @@ static uintptr_t OnInit3d( WIDE( "Virtuality interface" ) )( PMatrix projection,
 	return 1;
 }
 
-static void OnFirstDraw3d( WIDE( "Terrain View" ) )( uintptr_t psvInit )
+static void OnFirstDraw3d( "Terrain View" )( uintptr_t psvInit )
 {
 }
 
-static LOGICAL OnUpdate3d( WIDE( "Virtuality interface" ) )( PTRANSFORM origin )
+static LOGICAL OnUpdate3d( "Virtuality interface" )( PTRANSFORM origin )
 {
 	l.transform = origin;
 	
@@ -77,7 +77,7 @@ static void DrawLabel( struct virtuality_object *vobj )
 }
 
 
-static void OnDraw3d( WIDE( "Virtuality interface" ) )( uintptr_t psvInit )
+static void OnDraw3d( "Virtuality interface" )( uintptr_t psvInit )
 {
 	INDEX idx;
 	struct virtuality_object *vobj;
@@ -128,7 +128,7 @@ static int GetVector( VECTOR pos, PSENTIENT ps, PTEXT *parameters, LOGICAL log_e
 		else
 		{
 			if( log_error )
-				S_MSG( ps, WIDE("vector part %d is not a number"), n + 1 );
+				S_MSG( ps, "vector part %d is not a number", n + 1 );
 			parameters[0] = original;
 			return 0;
 		}
@@ -137,10 +137,10 @@ static int GetVector( VECTOR pos, PSENTIENT ps, PTEXT *parameters, LOGICAL log_e
 	return 1;
 }
 
-static int OnCreateObject( WIDE("Point Label"), WIDE( "This is a point in space that has text") )(PSENTIENT ps,PENTITY pe_created,PTEXT parameters)
+static int OnCreateObject( "Point Label", "This is a point in space that has text" )(PSENTIENT ps,PENTITY pe_created,PTEXT parameters)
 {
 	if( !l.extension )
-		l.extension = RegisterExtension( WIDE( "Point Label" ) );
+		l.extension = RegisterExtension( "Point Label" );
 	{
 		struct virtuality_object *vobj = New( struct virtuality_object );
 		MemSet( vobj, 0, sizeof( struct virtuality_object ) );
@@ -168,7 +168,7 @@ static int OnCreateObject( WIDE("Point Label"), WIDE( "This is a point in space 
 	return 0;
 }
 
-static PTEXT ObjectVolatileVariableSet( WIDE("Point Label"), WIDE("text"), WIDE( "Set label text") )(PENTITY pe, PTEXT value )
+static PTEXT ObjectVolatileVariableSet( "Point Label", "text", "Set label text" )(PENTITY pe, PTEXT value )
 {
 	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe->pPlugin, l.extension );
 	PTEXT text = BuildLine( value );
@@ -178,24 +178,24 @@ static PTEXT ObjectVolatileVariableSet( WIDE("Point Label"), WIDE("text"), WIDE(
 	return NULL;
 }
 
-static PTEXT ObjectVolatileVariableGet( WIDE("Point Label"), WIDE("position"), WIDE( "get current position") )(PENTITY pe, PTEXT *prior )
+static PTEXT ObjectVolatileVariableGet( "Point Label", "position", "get current position" )(PENTITY pe, PTEXT *prior )
 {
 	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe->pPlugin, l.extension );
 	PVARTEXT pvt = VarTextCreate();
 	PTEXT result;
 		PCVECTOR o = GetOrigin( vobj->object->Ti );
-	vtprintf( pvt, WIDE("%g %g %g"), o[0], o[1], o[2] );
+	vtprintf( pvt, "%g %g %g", o[0], o[1], o[2] );
 	result = VarTextGet( pvt );
 	VarTextDestroy( &pvt );
 	return result;
 }
 
-static PTEXT ObjectVolatileVariableSet( WIDE("Point Label"), WIDE("position"), WIDE( "get current position") )(PENTITY pe, PTEXT value )
+static PTEXT ObjectVolatileVariableSet( "Point Label", "position", "get current position" )(PENTITY pe, PTEXT value )
 {
 	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe->pPlugin, l.extension );
 	PTEXT line = BuildLine( value );
 	float vals[3];
-	if( sscanf( GetText( line ), WIDE("%g %g %g"), vals+0, vals+1, vals+2 ) == 3 )
+	if( sscanf( GetText( line ), "%g %g %g", vals+0, vals+1, vals+2 ) == 3 )
 	{
 		// float precision may mismatch, so pass as discrete values...
 		Translate( vobj->object->Ti,vals[0],vals[1], vals[2] );
@@ -206,7 +206,7 @@ static PTEXT ObjectVolatileVariableSet( WIDE("Point Label"), WIDE("position"), W
 
 
 
-static int ObjectMethod( WIDE("Point Label"), WIDE("move"), WIDE( "set the position of the object") )(PSENTIENT ps, PENTITY pe_object, PTEXT parameters)
+static int ObjectMethod( "Point Label", "move", "set the position of the object" )(PSENTIENT ps, PENTITY pe_object, PTEXT parameters)
 {
 	VECTOR pos;
 	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe_object->pPlugin, l.extension );

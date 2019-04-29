@@ -59,7 +59,7 @@ CLIENTMSG_PROC(int, SendMultiServiceEventPairsEx)( PSERVICE_ROUTE RouteID, uint3
 	}
 						// outgoing que for this handler.
 #if defined( DEBUG_EVENTS ) 
-	_lprintf(DBG_RELAY)( WIDE("Send Event...") );
+	_lprintf(DBG_RELAY)( "Send Event..." );
 #if !defined( DEBUG_DATA_XFER )
 	LogBinary( (uint8_t*)&msg, sendlen + sizeof( MSGHDR ) + sizeof( MSGIDTYPE ) );
 #endif
@@ -123,7 +123,7 @@ uintptr_t CPROC HandleEventMessages( PTHREAD thread )
 	g.pEventThread = thread;
 	g.flags.events_ready = TRUE;
 #ifdef DEBUG_THREADS
-	lprintf( WIDE("threadID: %Lx %lx"), GetThreadID( thread ), (unsigned long)(GetThreadID( thread ) & 0xFFFFFFFF) );
+	lprintf( "threadID: %Lx %lx", GetThreadID( thread ), (unsigned long)(GetThreadID( thread ) & 0xFFFFFFFF) );
 #endif
 	//g.my_message_id = g.my_message_id; //(uint32_t)( thread->ThreadID & 0xFFFFFFFF );
 	while( !g.flags.disconnected )
@@ -133,26 +133,26 @@ uintptr_t CPROC HandleEventMessages( PTHREAD thread )
 		{
 			static uint32_t MessageEvent[2048]; // 8192 bytes
 #ifdef DEBUG_EVENTS
-			lprintf( WIDE("Reading event...") );
+			lprintf( "Reading event..." );
 #endif
 			if( ( r = HandleEvents( g.msgq_event, (PQMSG)MessageEvent, 0 ) ) < 0 )
 			{
-				Log( WIDE("EventHandler has reported a fatal error condition.") );
+				Log( "EventHandler has reported a fatal error condition." );
 				break;
 			}
 #ifdef DEBUG_EVENTS
-			lprintf( WIDE("Read event...") );
+			lprintf( "Read event..." );
 #endif
 		}
 		else if( r == 2 )
 		{
-			Log( WIDE("Thread has been restarted.") );
+			Log( "Thread has been restarted." );
 			// don't clear ready or main event flag
 			// things.
 			return 0;
 		}
 	}
-	lprintf( WIDE("Done with this event thread - BAD! ") );
+	lprintf( "Done with this event thread - BAD! " );
 	g.flags.events_ready = FALSE;
 	g.pEventThread = NULL;
 	return 0;
@@ -168,7 +168,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 	{
 		int32_t MessageLen;
 #ifdef DEBUG_EVENTS
-		lprintf( WIDE("Reading eventqueue... my_message_id = %d"), g.my_message_id );
+		lprintf( "Reading eventqueue... my_message_id = %d", g.my_message_id );
 #endif
 			//lprintf( "vvv" );
 		MessageLen = msgrcv( msgq
@@ -182,7 +182,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 #endif
 		if( (MessageLen+ sizeof( MSGIDTYPE )) == 0 )
 		{
-			lprintf( WIDE("Recieved -4 message (no data?!) no message, should have been -1, ENOMSG") );
+			lprintf( "Recieved -4 message (no data?!) no message, should have been -1, ENOMSG" );
 		}
 		else if( MessageLen == -1 )
 		{
@@ -193,23 +193,23 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 #  endif
 #  define errno my_errno
 #endif
-			//Log( WIDE("Failed a message...") );
+			//Log( "Failed a message..." );
 			if( errno == ENOMSG )
 			{
-				//Log( WIDE("No message...") );
+				//Log( "No message..." );
 				if( receive_count )
 				{
 					PEVENTHANDLER pLastHandler;
 					PEVENTHANDLER pHandler = g.pHandlers;
 #ifdef DEBUG_EVENTS
-					lprintf( WIDE("Dispatch dispatch_pending..") );
+					lprintf( "Dispatch dispatch_pending.." );
 #endif
 					while( pHandler )
 					{
 						pHandler->flags.dispatched = 1;
 						if( pHandler->flags.notify_if_dispatched )
 						{
-							//lprintf( WIDE("Okay one had something pending...") );
+							//lprintf( "Okay one had something pending..." );
 							if( pHandler->Handler )
 								pHandler->Handler( MSG_EventDispatchPending, NULL, 0 );
 							else if( pHandler->HandlerEx )
@@ -222,25 +222,25 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 						pLastHandler = pHandler;
 						pHandler = pHandler->next;
 						pLastHandler->flags.dispatched = 0;
-						//lprintf( WIDE("next handler please...") );
+						//lprintf( "next handler please..." );
 					}
 				}
 				receive_flags = 0; // re-enable pause.
-				//lprintf( WIDE("Done reading...") );
+				//lprintf( "Done reading..." );
 				break; // done;
 			}
 			else if( errno == EIDRM )
 			{
-				Log( WIDE("Queue was removed.") );
+				Log( "Queue was removed." );
 				g.flags.events_ready = 0;
 				return -1;
 			}
 			else
 			{
 				if( errno != EINTR )
-					xlprintf( LOG_ALWAYS )( WIDE("msgrcv resulted in error: %d"), errno );
+					xlprintf( LOG_ALWAYS )( "msgrcv resulted in error: %d", errno );
 				//else
-				//	Log( WIDE("EINTR received.") );
+				//	Log( "EINTR received." );
 				break;
 			}
 		}
@@ -250,7 +250,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 			receive_flags = IPC_NOWAIT;
 			receive_count++;
 #ifdef DEBUG_EVENTS
-			lprintf( WIDE("Got an event message...") );
+			lprintf( "Got an event message..." );
 #endif
 			if( MessageEvent->hdr.msgid < MSG_EventUser )
 			{
@@ -273,7 +273,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 						PLIST *list = data_msg->list;
 						// MessageEvent[3] for this message is client_id
 						// which may be used to directly contact the client.
-						//lprintf( WIDE("Adding service %ld called %s to list.."), MessageEvent[4], MessageEvent + 5 );
+						//lprintf( "Adding service %ld called %s to list..", MessageEvent[4], MessageEvent + 5 );
 						// SetLink( data_msg->list, data_msg->dest.service_id, data_msg->newname );
 						AddLink( list
 								 , StrDup( &data_msg->newname ) );
@@ -300,7 +300,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 			{
 				uint32_t Msg;
 #ifdef DEBUG_EVENTS
-				lprintf( WIDE("Finding handler for %ld-%d %p (from %lx to %lx)")
+				lprintf( "Finding handler for %ld-%d %p (from %lx to %lx)"
 						 , MessageEvent->hdr.msgid
 						 , 0//pHandler->MsgCountEvents
 						 , pHandler->Handler
@@ -316,7 +316,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 					continue;
 				}
 				Msg = MessageEvent->hdr.msgid;
-				//lprintf( WIDE("Msg now %d base %d %d"), Msg, pHandler->MsgBase, pHandler->MsgCountEvents );
+				//lprintf( "Msg now %d base %d %d", Msg, pHandler->MsgBase, pHandler->MsgCountEvents );
 				if(( pHandler->Handler // have a handler
 					 || pHandler->HandlerEx // have a fancier handler....
                 || pHandler->HandlerExx ) // or an even fancier handler...
@@ -325,17 +325,17 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 				{
 					int result_yesno;
 #ifdef DEBUG_EVENTS
-					lprintf( WIDE("Dispatch event message to handler...") );
+					lprintf( "Dispatch event message to handler..." );
 #endif
 					pHandler->flags.dispatched = 1;
 					if( pHandler->Handler )
 					{
-						//lprintf( WIDE("small handler") );
+						//lprintf( "small handler" );
 						result_yesno = pHandler->Handler( Msg, (uint32_t*)((&MessageEvent->hdr)+1), MessageLen - sizeof( MSGHDR ) );
 					}
 					else if( pHandler->HandlerEx )
 					{
-						//lprintf( WIDE("ex handler...%d"), Msg );
+						//lprintf( "ex handler...%d", Msg );
 						result_yesno = pHandler->HandlerEx( (PSERVICE_ROUTE)MessageEvent
 																	 , Msg
 																	 , (uint32_t*)((&MessageEvent->hdr)+1)
@@ -343,7 +343,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 					}
 					else if( pHandler->HandlerExx )
 					{
-						//lprintf( WIDE("ex handler...%d"), Msg );
+						//lprintf( "ex handler...%d", Msg );
 						result_yesno = pHandler->HandlerExx( pHandler->psv
 																	  , (PSERVICE_ROUTE)(uintptr_t)MessageEvent->hdr.source.process_id
 																	  , Msg
@@ -352,7 +352,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 					}
 					if( result_yesno & EVENT_WAIT_DISPATCH )
 					{
-						//lprintf( WIDE("Setting status to send dispatch_events...") );
+						//lprintf( "Setting status to send dispatch_events..." );
 						pHandler->flags.notify_if_dispatched = 1;
 					}
 					pHandler->flags.dispatched = 0;
@@ -373,13 +373,13 @@ CLIENTMSG_PROC( int, ProcessClientMessages )( uintptr_t unused )
 	static uint32_t MessageBuffer[2048];
 	if( IsThisThread( g.pEventThread ) )
 	{
-		lprintf( WIDE("External handle event messages...") );
+		lprintf( "External handle event messages..." );
 		return HandleEvents( g.msgq_event, (PQMSG)MessageBuffer, 0/*IPC_NOWAIT*/ );
 	}
 	if( g.pLocalEventThread && IsThisThread( g.pLocalEventThread ) )
 	{
 #ifdef LOG_LOCAL_EVENT
-		lprintf( WIDE("External handle local event messages...") );
+		lprintf( "External handle local event messages..." );
 #endif
 		// if this is thE thread... chances are someone can wake it up
 		// and it is allowed to go to sleep.  This thread is indeed wakable

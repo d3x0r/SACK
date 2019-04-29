@@ -144,7 +144,7 @@ void InitSimpleMultiShadedTextureShader( PImageShaderTracker tracker )
 
 	if( result = 0 )
 	{
-		lprintf( WIDE("unhandled error before shader") );
+		lprintf( "unhandled error before shader" );
 	}
 
 	if( CompileShaderEx( tracker, gles_simple_v_multi_shader, 1

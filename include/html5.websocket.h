@@ -70,7 +70,7 @@ HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketSetProtocols )( PCLIENT pc, const char *
  *       static int OnDrawToHTML("Control Name")(CONTROL, HTML5WebSocket ){ }
  */
 //#define OnDrawToHTML(name)  \
-//	__DefineRegistryMethodP(PRELOAD_PRIORITY,ROOT_REGISTRY,_OnDrawCommon,WIDE("control"),name WIDE("/rtti"),WIDE("draw_to_canvas"),int,(CONTROL, HTML5WebSocket ), __LINE__)
+//	__DefineRegistryMethodP(PRELOAD_PRIORITY,ROOT_REGISTRY,_OnDrawCommon,"control",name "/rtti","draw_to_canvas",int,(CONTROL, HTML5WebSocket ), __LINE__)
 
 
 /* a server side utility to get the request headers that came in.

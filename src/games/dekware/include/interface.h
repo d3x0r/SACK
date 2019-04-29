@@ -125,7 +125,7 @@ extern
 // somehow this ended up as 69 and 69 was also PRELOAD() priority... bad.
 PRIORITY_PRELOAD( InitDekwareInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 {
-	DekwareInterface = (struct dekware_interface*)GetInterface( WIDE("dekware") );
+	DekwareInterface = (struct dekware_interface*)GetInterface( "dekware" );
 }
 
 #  endif

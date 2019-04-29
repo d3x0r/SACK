@@ -69,7 +69,7 @@ static PCLIENT AddClient( PSERVICE_ROUTE client_id )
 		// cause nothing is reliable anymore under linux!
 		if( client->route_id.dest.process_id == client_id->source.process_id )
 		{
-			Log( WIDE("Client has reconnected?!?!?!") );
+			Log( "Client has reconnected?!?!?!" );
 			// suppose we can just let him continue...
 			return client;
 		}
@@ -85,12 +85,12 @@ static PCLIENT AddClient( PSERVICE_ROUTE client_id )
 		client->route_id.source.service_id = 0;
 
 		client->flags.valid = 1;
-		//lprintf( WIDE("New client..."));
+		//lprintf( "New client...");
 		if( ( client->next = g.clients ) )
 			g.clients->me = &client->next;
 		client->me = &g.clients;
 		g.clients = client;
-		//Log( WIDE("Added client...") );
+		//Log( "Added client..." );
 		return client;
 	}
 }
@@ -113,7 +113,7 @@ static PSERVICE FindService( TEXTCHAR *name )
 	}
 	if( service )
 	{
-		//Log( WIDE("Already loaded the service, resulting base ID") );
+		//Log( "Already loaded the service, resulting base ID" );
 		if( !service->flags.bRemote )
 		{
 			// if the service is remote, it is not our job today to keep track of _____
@@ -133,7 +133,7 @@ static int CPROC MY_CLIENT_CONNECT( PSERVICE_ROUTE route, uint32_t *params, size
 	{
 		// this is the ID that the client should use
 		// to receive on.
-		//lprintf( WIDE("Client ID will be %d"), client->route_id.dest.service_id );
+		//lprintf( "Client ID will be %d", client->route_id.dest.service_id );
 		((MSGIDTYPE*)result)[0] = client->route_id.dest.service_id;
 		(*result_length) = sizeof( MSGIDTYPE );
 		return TRUE;
@@ -160,7 +160,7 @@ static int CPROC MY_CLIENT_LOAD_SERVICE( PSERVICE_ROUTE route, uint32_t *params,
 			{
 				// need to send this message to the real person... and have them
 				// result with this message....
-				//lprintf( WIDE("Actually this is a remote process... and we're going to forward to it's handler...") );
+				//lprintf( "Actually this is a remote process... and we're going to forward to it's handler..." );
 				if( ProbeClientAlive( &service->client_id ) )
 				{
 					PQMSG msg = (PQMSG)( ((uint8_t*)params) - (sizeof( SERVICE_ENDPOINT )*2 + sizeof( uint32_t ) ));
@@ -183,14 +183,14 @@ static int CPROC MY_CLIENT_LOAD_SERVICE( PSERVICE_ROUTE route, uint32_t *params,
 				}
 				else
 				{
-					lprintf( WIDE("Oops, turns out that remote process is no longer active.") );
+					lprintf( "Oops, turns out that remote process is no longer active." );
 					// and remove from the lsit...
 					DeleteAService( service );
 				}
 			}
 			else
 			{
-				//lprintf( WIDE("This 'remote' service is really local...") );
+				//lprintf( "This 'remote' service is really local..." );
 				(*result_length) = INVALID_INDEX;
 				//HandleServerMessageEx( (PMSGHDR)(params - 2) DBG_SRC );
 				return TRUE;
@@ -299,7 +299,7 @@ static int CPROC MY_CLIENT_LIST_SERVICES( PSERVICE_ROUTE route, uint32_t *params
 		POINTER thread;
 	} PACKED *msg_data = (struct msg*)params;
 	PSERVICE service;
-	lprintf( WIDE("Received list service message...") );
+	lprintf( "Received list service message..." );
 	for( service = g.services; service; service = service->next )
 	{
 		SendMultiServiceEvent( route, MSG_SERVICE_DATA
@@ -346,7 +346,7 @@ PRIORITY_PRELOAD( RegisterMasterService, MESSAGE_SERVICE_PRELOAD_PRIORITY )
 
 PUBLIC( void, ExportASymboleSoExportLibraryGetsBuilt )( void )
 {
-	lprintf( WIDE("Don't call me, I don't do anything.") );
+	lprintf( "Don't call me, I don't do anything." );
 }
 
 //---------------------------------------------------------------------

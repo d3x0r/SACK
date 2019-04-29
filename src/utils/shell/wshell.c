@@ -9,12 +9,12 @@ PTASK_INFO task;
 
 void CPROC output( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-	lprintf( WIDE("%*.*s"), size, size, buffer );
+	lprintf( "%*.*s", size, size, buffer );
 }
 
 void CPROC ended( uintptr_t psv, PTASK_INFO task )
 {
-	lprintf( WIDE("Task has ended.") );
+	lprintf( "Task has ended." );
 	done = 1;
 }
 
@@ -35,9 +35,9 @@ SaneWinMain( argc, argv )
 	if( argc < 2 )
 	{
 #ifdef WIN32
-		const TEXTCHAR * const args[] ={ WIDE("cmd.exe"), NULL };
+		const TEXTCHAR * const args[] ={ "cmd.exe", NULL };
 #else
-		const TEXTCHAR * const args[] ={ WIDE("/bin/sh"), NULL };
+		const TEXTCHAR * const args[] ={ "/bin/sh", NULL };
 #endif
 
 		if( !( task = LaunchPeerProgram( args[0], NULL, args, output, ended, 0 ) ) )
@@ -49,17 +49,17 @@ SaneWinMain( argc, argv )
 		int offset = 1;
 		while( argv[offset] && argv[offset][0] == '-' )
 		{
-			if( StrCaseCmp( argv[offset]+1, WIDE("nowait") ) == 0 )
+			if( StrCaseCmp( argv[offset]+1, "nowait" ) == 0 )
 				nowait = 1;
-			if( StrCaseCmp( argv[offset]+1, WIDE("taskmon") ) == 0 )
+			if( StrCaseCmp( argv[offset]+1, "taskmon" ) == 0 )
 				task_monitor = 1;
-			if( StrCaseCmp( argv[offset]+1, WIDE("noin") ) == 0 )
+			if( StrCaseCmp( argv[offset]+1, "noin" ) == 0 )
 				noinput = 1;
-			if( StrCaseCmp( argv[offset]+1, WIDE("local") ) == 0 )
+			if( StrCaseCmp( argv[offset]+1, "local" ) == 0 )
 			{
-				SetCurrentPath( OSALOT_GetEnvironmentVariable( WIDE("MY_LOAD_PATH") ) );
+				SetCurrentPath( OSALOT_GetEnvironmentVariable( "MY_LOAD_PATH" ) );
 			}
-			if( StrCaseCmp( argv[offset]+1, WIDE("delay") ) == 0 )
+			if( StrCaseCmp( argv[offset]+1, "delay" ) == 0 )
 			{
 				delay = atoi( argv[offset+1] );
 				offset++; // used an extra parameter
@@ -77,9 +77,9 @@ SaneWinMain( argc, argv )
 		else
 		{
 #ifdef WIN32
-			const TEXTCHAR * const args[] ={ WIDE("cmd.exe"), NULL };
+			const TEXTCHAR * const args[] ={ "cmd.exe", NULL };
 #else
-			const TEXTCHAR * const args[] ={ WIDE("/bin/sh"), NULL };
+			const TEXTCHAR * const args[] ={ "/bin/sh", NULL };
 #endif
 			if( !( task = LaunchPeerProgram( args[0], NULL, args, noinput?NULL:output, ended, 0 ) ) )
 				done = 1;
@@ -96,8 +96,8 @@ SaneWinMain( argc, argv )
 		}
 	}
 	if( task_monitor )
-		SendMessage( FindWindow( WIDE("TaskMonClass"), WIDE("Task Completion Monitor") ), WM_USER+500, 0, 0 );
-	fprintf( stdout, WIDE("Shell Completed.") );
+		SendMessage( FindWindow( "TaskMonClass", "Task Completion Monitor" ), WM_USER+500, 0, 0 );
+	fprintf( stdout, "Shell Completed." );
 	return 0;
 }
 EndSaneWinMain()

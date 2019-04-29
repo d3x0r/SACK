@@ -74,13 +74,13 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("merge"), WIDE("Performs no translation..."), Open );
+   myTypeID = RegisterDevice( "merge", "Performs no translation...", Open );
    return DekVersion;
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("merge") );
+	UnregisterDevice( "merge" );
 }
 // $Log: merge.c,v $
 // Revision 1.8  2005/02/21 12:08:34  d3x0r

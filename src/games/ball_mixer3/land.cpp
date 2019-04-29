@@ -414,7 +414,7 @@ struct band {
 			for( r = 0; r < hex_size; r++ )
 				for( c = 0; c < hex_size; c++ )
 				{
-					fprintf( file, WIDE("%g,%g,%g,\n"), patches[s].grid[c][r][0], patches[s].grid[c][r][1], patches[s].grid[c][r][2] );
+					fprintf( file, "%g,%g,%g,\n", patches[s].grid[c][r][0], patches[s].grid[c][r][1], patches[s].grid[c][r][2] );
 
 				}
 
@@ -429,15 +429,15 @@ struct band {
 				for( c = 0; c < hex_size; c++ )
 				{
 					int p;
-					fprintf( file, WIDE("\t\t") );
+					fprintf( file, "\t\t" );
 					for( p = 0; p < 4; p++ )
 					{
 						// indexes of points for squares are...
 						int idx;
 						idx = s * hex_size * hex_size + c * hex_size + r;
-						fprintf( file, WIDE("%d,%d,%d,%d,-1,"), idx, idx + 1, idx + hex_size, idx + hex_size + 1 );
+						fprintf( file, "%d,%d,%d,%d,-1,", idx, idx + 1, idx + hex_size, idx + hex_size + 1 );
 					}
-					fprintf( file, WIDE("\n") );
+					fprintf( file, "\n" );
 				}
 	}
 };
@@ -542,7 +542,7 @@ struct pole{
 							}
 						}
 
-						if( bLog )lprintf( WIDE("---------") );
+						if( bLog )lprintf( "---------" );
 
 						row = (level-1)*2 + 1;
 						row_verts = patches[s].verts[row] = NewArray( _POINT, level * (level+1)*2-1 );
@@ -562,7 +562,7 @@ struct pole{
 							if( c < (level)*2 )
 							{
 								ConvertPolarToRect( level-1, c-1, &x, &y );
-								//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c-1,level-1);
+								//if( bLog )lprintf( "Render corner %d,%d", 2*level-c-1,level-1);
 								scale( row_verts[v_idx+1], patches[s].grid[x][y], SPHERE_SIZE /*+ patch->height[s+(north*6)][x][y]*/ );
 								if( north )
 									row_verts[v_idx+1][1] = -row_verts[v_idx+1][1];
@@ -589,7 +589,7 @@ struct pole{
 				}
 			}
 		}
-		//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") );return 0; }
+		//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( "Pole Patch Excepted." );return 0; }
 	}
 
 
@@ -688,7 +688,7 @@ struct pole{
 				}
 			}
 			DestroyTransform( work );
-			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") ); }
+			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( "Pole Patch Excepted." ); }
 		}
 		CreatePoleFragments( north );
 	}
@@ -865,7 +865,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 			}
 		}
 	}
-	//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") );return 0; }
+	//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( "Pole Patch Excepted." );return 0; }
 	return 1;
 }
 
@@ -1194,7 +1194,7 @@ void DistortPatch( PHEXPATCH patch
 	{
 		int p;
 		int near_points[6][3];
-		//lprintf( WIDE("Delta is %g"), delta );
+		//lprintf( "Delta is %g", delta );
 		for( p = 0; p < 6; p++ )
 		{
 			near_points[p][0] = x + delta_table[section][p][0];
@@ -1213,7 +1213,7 @@ void DistortPatch( PHEXPATCH patch
 				near_points[1][1] = 1;
 				if( x == (patch->hex_size-1) )
 				{
-					lprintf( WIDE("this isn't right... might not be...") );
+					lprintf( "this isn't right... might not be..." );
 					near_points[2][2] = 2;
 					near_points[2][0] = 1;
 					near_points[2][1] = 1;
@@ -1340,10 +1340,10 @@ static int EvalExcept( int n )
 	switch( n )
 	{
 	case 		STATUS_ACCESS_VIOLATION:
-		lprintf( WIDE("Access violation - OpenGL layer at this moment..") );
+		lprintf( "Access violation - OpenGL layer at this moment.." );
 		return EXCEPTION_EXECUTE_HANDLER;
 	default:
-		lprintf( WIDE("Filter unknown : %08X"), n );
+		lprintf( "Filter unknown : %08X", n );
 
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
@@ -1891,7 +1891,7 @@ void MoveCameraToHome( void )
 	TranslateV( l.transform, scaled_origin  );
 }
 
-static void OnFirstDraw3d( WIDE( "Terrain View" ) )( uintptr_t psvInit )
+static void OnFirstDraw3d( "Terrain View" )( uintptr_t psvInit )
 {
 	PTRANSFORM camera = (PTRANSFORM)psvInit;
 	// and really if initshader fails, it sets up in local flags and 
@@ -1962,7 +1962,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( uintptr_t psvInit )
 
 }
 
-static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( "Terrain View" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.identity_depth = identity_depth;
 	l.aspect = aspect;
@@ -1976,7 +1976,7 @@ static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSF
 
 	// override display default camera
 	{
-		PTRANSFORM transform = CreateNamedTransform( WIDE("render.camera") );
+		PTRANSFORM transform = CreateNamedTransform( "render.camera" );
 		RCOORD quat[4];
 
 		//<-31.9047,309.653,711.449> <0.0023503,0.0506664,0.996322,-0.0690609>
@@ -1993,7 +1993,7 @@ static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSF
 }
 
 
-static void OnResume3d( WIDE( "Terrain View" ) )( void )
+static void OnResume3d( "Terrain View" )( void )
 {
 	// initializing last_tick will cause the next update to skip
    // and then compute motion from that point.
@@ -2001,7 +2001,7 @@ static void OnResume3d( WIDE( "Terrain View" ) )( void )
 }
 
 static void CPROC UpdatePositions( uintptr_t psv, PTRANSFORM origin );
-static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
+static LOGICAL OnUpdate3d( "Terrain View" )( PTRANSFORM origin )
 {
 	l.transform = origin;
 	{
@@ -2021,7 +2021,7 @@ static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
 }
 
 LOGICAL hold_update;
-static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv,PTRANSFORM camera )
+static void OnBeginDraw3d( "Terrain View" )( uintptr_t psv,PTRANSFORM camera )
 {
 	int mode = 1;
 #ifndef GL_LIGHT_MODEL_COLOR_CONTROL
@@ -2189,7 +2189,7 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv,PTRANSFORM ca
 	}
 }
 
-static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvInit )
+static void OnDraw3d( "Terrain View" )( uintptr_t psvInit )
 {
 		{
 			// First simple object

@@ -21,7 +21,7 @@ void CPROC UpdateImage( uintptr_t psv, PRENDERER hVideo )
 int main( void )
 {
 	PRENDERER hDisplay;
-	SetApplicationTitle( WIDE("Train Test Application") );
+	SetApplicationTitle( "Train Test Application" );
 	//pImage = MakeImageFile( 320, 200 );
 	hDisplay = OpenDisplaySizedAt( 0, 0, 0, 250, 250 );
 	SetRedrawHandler( hDisplay, UpdateImage, 0 );

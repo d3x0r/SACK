@@ -56,7 +56,7 @@ int main()
      */
     for(j = 0; j < 4; ++j)
     {
-        printf( WIDE("\nTest %d: %ld, '%s'\n"),
+        printf( "\nTest %d: %ld, '%s'\n",
                 j+1,
                 repeatcount[j],
                 testarray[j]);
@@ -64,7 +64,7 @@ int main()
         err = SHA1Reset(&sha);
         if (err)
         {
-            fprintf(stderr, WIDE("SHA1Reset Error %d.\n"), err );
+            fprintf(stderr, "SHA1Reset Error %d.\n", err );
             break;    /* out of for j loop */
         }
 
@@ -75,7 +75,7 @@ int main()
                   strlen(testarray[j]));
             if (err)
             {
-                fprintf(stderr, WIDE("SHA1Input Error %d.\n"), err );
+                fprintf(stderr, "SHA1Input Error %d.\n", err );
                 break;    /* out of for i loop */
             }
         }

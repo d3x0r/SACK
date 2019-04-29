@@ -45,27 +45,27 @@ static int BeginNetwork( void )
 
 static int OpenSender( void )
 {
-	l.pcCommand = ConnectUDP( NULL, 3007, WIDE("255.255.255.255"), 3006, NULL, NULL );
+	l.pcCommand = ConnectUDP( NULL, 3007, "255.255.255.255", 3006, NULL, NULL );
 	if( !l.pcCommand )
-		l.pcCommand = ConnectUDP( NULL, 3008, WIDE("255.255.255.255"), 3006, NULL, NULL );
+		l.pcCommand = ConnectUDP( NULL, 3008, "255.255.255.255", 3006, NULL, NULL );
 	if( !l.pcCommand )
-		l.pcCommand = ConnectUDP( NULL, 3009, WIDE("255.255.255.255"), 3006, NULL, NULL );
+		l.pcCommand = ConnectUDP( NULL, 3009, "255.255.255.255", 3006, NULL, NULL );
 	if( !l.pcCommand )
-		l.pcCommand = ConnectUDP( NULL, 3010, WIDE("255.255.255.255"), 3006, NULL, NULL );
+		l.pcCommand = ConnectUDP( NULL, 3010, "255.255.255.255", 3006, NULL, NULL );
 	if( !l.pcCommand )
-		l.pcCommand = ConnectUDP( NULL, 3011, WIDE("255.255.255.255"), 3006, NULL, NULL );
+		l.pcCommand = ConnectUDP( NULL, 3011, "255.255.255.255", 3006, NULL, NULL );
 	if( !l.pcCommand )
-		l.pcCommand = ConnectUDP( NULL, 3012, WIDE("255.255.255.255"), 3006, NULL, NULL );
+		l.pcCommand = ConnectUDP( NULL, 3012, "255.255.255.255", 3006, NULL, NULL );
 	if( !l.pcCommand )
 	{
 		srand( GetTickCount() );
-		l.pcCommand = ConnectUDP( NULL, (uint16_t)(3000 + rand() % 10000), WIDE("255.255.255.255"), 3006, NULL, NULL );
+		l.pcCommand = ConnectUDP( NULL, (uint16_t)(3000 + rand() % 10000), "255.255.255.255", 3006, NULL, NULL );
 	}
 
 
 	if( !l.pcCommand )
 	{
-		printf( WIDE("Failed to bind to any port!\n") );
+		printf( "Failed to bind to any port!\n" );
 		return 0;
 	}
 	return 1;
@@ -109,9 +109,9 @@ static void CPROC Received( PCLIENT pc, POINTER buffer, size_t size )
 				{
 					buf[size] = 0;
 #if defined( CONSOLE ) || !defined(WINDOWS_MODE)
-					printf( WIDE("%s"), buf+1 );
+					printf( "%s", buf+1 );
 #else
-					lprintf( WIDE("Received %s"), buf+1 );
+					lprintf( "Received %s", buf+1 );
 #endif
 
 				}
@@ -129,7 +129,7 @@ static void CPROC Received( PCLIENT pc, POINTER buffer, size_t size )
 static void CPROC Closed( PCLIENT pc )
 {
 	struct network_read_state *pns = (struct network_read_state *)GetNetworkLong( pc, 0 );
-	//lprintf( WIDE("Received close...") );
+	//lprintf( "Received close..." );
 	DeleteLink( &l.client_connections, pc );
 	l.closed_clients++;
 	if( pns->ppClient )
@@ -146,7 +146,7 @@ static uintptr_t CPROC SendConsoleInput( PTHREAD thread )
 	while( fgets( cmd+1, sizeof( cmd )-1, stdin ) )
 	{
 		size_t len = strlen(cmd);
-		lprintf( WIDE("Sending [%s]"), cmd );
+		lprintf( "Sending [%s]", cmd );
 		LIST_FORALL( l.client_connections, idx, PCLIENT, pc )
 		{
 			SendTCP( pc, &len, 4 );
@@ -167,13 +167,13 @@ static uintptr_t CPROC MonitorConnection( PTHREAD thread )
 			l.last_receive = GetTickCount();
 			if( l.alive_probes++ < 3 )
 			{
-				//lprintf( WIDE("no output from remote task, are we alive?") );
+				//lprintf( "no output from remote task, are we alive?" );
 				// send one byte length and one nul
 				SendTCP( pc, "\1\0\0\0\0", 5 );
 			}
 			else
 			{
-				lprintf( WIDE("lost remote...") );
+				lprintf( "lost remote..." );
 				RemoveClient( pc );
 			}
 		}
@@ -187,7 +187,7 @@ static void CPROC Connected( PCLIENT pc_server, PCLIENT pc_new )
 {
 	struct network_read_state *pns = New( struct network_read_state );
 	MemSet( pns, 0, sizeof( struct network_read_state ) );
-	//lprintf( WIDE("Recieved connect...") );
+	//lprintf( "Recieved connect..." );
 	l.clients++;
 	SetNetworkLong( pc_new, 0, (uintptr_t)pns );
 	SetNetworkReadComplete( pc_new, Received );
@@ -197,8 +197,8 @@ static void CPROC Connected( PCLIENT pc_server, PCLIENT pc_new )
 		l.output_thread = ThreadTo( SendConsoleInput, (uintptr_t)pc_new );
 	ThreadTo( MonitorConnection, (uintptr_t)pc_new );
 #ifdef CONSOLE
-	//lprintf( WIDE("Sending back status 'connect ok'") );
-	printf( WIDE("~CONNECT OK\n") );
+	//lprintf( "Sending back status 'connect ok'" );
+	printf( "~CONNECT OK\n" );
 	fflush( stdout );
 #endif
 }
@@ -212,20 +212,20 @@ SaneWinMain( argc, argv )
 #else
           printf(
 #endif
-			  WIDE("Usage: launchcmd [-r] [-l] [-r] [-h] [[-L] -s address] [-c class]   ....remote command....\n")
-					  WIDE(" -L : ...\n")
-					  WIDE("         when used with -s connect to remote with a TCP connection, and get task\n")
-					  WIDE("         relay local input to task and task output back to local console..\n")
-					  WIDE(" -l : listen to remote output, stays connected, and ... (relay input to all remotes that back connect)\n")
-					  WIDE(" -r : auto-restart when task ends on remote side.\n")
-					  WIDE(" -h : launch task hidden\n")
-					  WIDE(" -r : auto restart the task on the remote (when it dies, start it again)\n")
-					  WIDE(" -S : launch task non-user(system)\n")
-					  WIDE(" -s : specify target address to send to (instead of local broadcast)\n")
-					  WIDE(" -c : specify class of launchpads to respond to commands (matches -c arguments on launchpad)\n")
-					  WIDE(" -d : Set start in path on remote when launching task\n")
+			  "Usage: launchcmd [-r] [-l] [-r] [-h] [[-L] -s address] [-c class]   ....remote command....\n"
+					  " -L : ...\n"
+					  "         when used with -s connect to remote with a TCP connection, and get task\n"
+					  "         relay local input to task and task output back to local console..\n"
+					  " -l : listen to remote output, stays connected, and ... (relay input to all remotes that back connect)\n"
+					  " -r : auto-restart when task ends on remote side.\n"
+					  " -h : launch task hidden\n"
+					  " -r : auto restart the task on the remote (when it dies, start it again)\n"
+					  " -S : launch task non-user(system)\n"
+					  " -s : specify target address to send to (instead of local broadcast)\n"
+					  " -c : specify class of launchpads to respond to commands (matches -c arguments on launchpad)\n"
+					  " -d : Set start in path on remote when launching task\n"
 #ifdef WIN32
-								, WIDE("Usage")
+								, "Usage"
 								, MB_OK );
 #else
                   );
@@ -246,7 +246,7 @@ SaneWinMain( argc, argv )
 		int arg_ofs;
 		uint32_t sequence = GetTickCount(); // this should be fairly unique...
 #ifdef CONSOLE
-		printf( WIDE("launchcmd version %s\n"), VERSION );
+		printf( "launchcmd version %s\n", VERSION );
 		fflush( stdout );
 #endif
 		{
@@ -284,16 +284,16 @@ SaneWinMain( argc, argv )
 							if( !l.pcTrack )
 							{
 								// failed to open TCP listener... forget this.
-								lprintf( WIDE("Failed to open receiving monitor socket to listen for remote back-connect") );
+								lprintf( "Failed to open receiving monitor socket to listen for remote back-connect" );
 #if 0
 #ifdef WIN32
 								MessageBox( NULL,
 #else
 											  printf(
 #endif
-														WIDE("Failed to open receiving monitor socket...")
+														"Failed to open receiving monitor socket..."
 #ifdef WIN32
-													  , WIDE("Abort Launch")
+													  , "Abort Launch"
 													  , MB_OK );
 #else
 											 );
@@ -343,25 +343,25 @@ SaneWinMain( argc, argv )
 		}
 		ofs = 0;
 		if( listen_output )
-			ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR), WIDE("~capture%d"), l.track_port );
+			ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR), "~capture%d", l.track_port );
 
 		if( want_hide )
-			ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR), WIDE("~hide") );
+			ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR), "~hide" );
 
 		if( lpStartPath[0] )
-			ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR), WIDE("~path%s%%"), lpStartPath );
+			ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR), "~path%s%%", lpStartPath );
 
 		if( l.class_name )
-			ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR), WIDE("$%s"), l.class_name );
-		ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR), WIDE("^%ld%c"), sequence, want_restart?'@':'#' );
+			ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR), "$%s", l.class_name );
+		ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR), "^%ld%c", sequence, want_restart?'@':'#' );
 		for( n = arg_ofs; n < argc; n++ )
 		{
 			ofs += snprintf( lpCmd + ofs, sizeof( lpCmd ) - ofs * sizeof(TEXTCHAR)
-								, WIDE("%s")
+								, "%s"
 								, argv[n] );
          ofs++; // include '\0' in buffer so we can recover exact parameters...
 		}
-		//lprintf( WIDE("Sending [%s]"), lpCmd );
+		//lprintf( "Sending [%s]", lpCmd );
 		if( listen_output && l.send_to && !listen_output_remote_connect )
 		{
 			PCLIENT pc_launchpad = OpenTCPClientAddrEx( l.send_to, Received, Closed, NULL );
@@ -383,7 +383,7 @@ SaneWinMain( argc, argv )
 				}
 			}
 			else
-				lprintf( WIDE("Failed to make TCP connection to launch command (bad send address?)") );
+				lprintf( "Failed to make TCP connection to launch command (bad send address?)" );
 		}
 		else if( l.send_to )
 		{
@@ -413,22 +413,22 @@ SaneWinMain( argc, argv )
 			uint32_t tick_start = GetTickCount();
 			while( !l.clients && ( ( GetTickCount() - tick_start ) < 6000 ) )
 			{
-				//lprintf( WIDE("waiting a second for reverse connect...") );
+				//lprintf( "waiting a second for reverse connect..." );
 				WakeableSleep( 100 );
 			}
 			if( !l.clients )
 			{
-				lprintf( WIDE("No remote launchpads accepted this command.  Request to monitor task output failed.") );
+				lprintf( "No remote launchpads accepted this command.  Request to monitor task output failed." );
 			}
 			while( (l.clients-l.closed_clients) )
 			{
-				//lprintf( WIDE("waiting...") );
+				//lprintf( "waiting..." );
 				WakeableSleep( 500 );
 			}
 		}
 	}
 	else
-		printf( WIDE("Failed to start network\n") );
+		printf( "Failed to start network\n" );
 	if( l.pcCommand )
 		RemoveClient( l.pcCommand );
 	return 0;

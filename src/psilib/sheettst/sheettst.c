@@ -22,24 +22,24 @@ PSI_CONTROL MakePages( PSI_CONTROL frame )
 	width = surface->width;
 	height = surface->height;
 	//GetImageSize( GetControlSurface( frame ), &width, &height );
-	Log2( WIDE("Making sheet control %") _32f WIDE(" by %") _32f WIDE(""), width, height );
+	Log2( "Making sheet control %" _32f " by %" _32f "", width, height );
 	sheets = MakeSheetControl( frame, 5, 5, width - 10, height - 10 - (first?(COMMON_BUTTON_PAD + COMMON_BUTTON_HEIGHT):0), SHT_SHEETS );
 	SetTabImages( sheets, active, inactive );
 	SetTabTextColors( sheets, cActive, cInactive );
 	first = 0;
 	GetSheetSize( sheets, &width, &height );
-	Log2( WIDE("Pages are %") _32f WIDE(" by %") _32f WIDE(""), width, height );
-	sheet[0] = CreateFrame( WIDE("One"), 0, 0, width, height, BORDER_FIXED|BORDER_NOCAPTION|BORDER_WITHIN|BORDER_NONE, sheets );
+	Log2( "Pages are %" _32f " by %" _32f "", width, height );
+	sheet[0] = CreateFrame( "One", 0, 0, width, height, BORDER_FIXED|BORDER_NOCAPTION|BORDER_WITHIN|BORDER_NONE, sheets );
 	SetControlID( sheet[0], SHT_ONE );
-	//MakeTextControl( sheet[0], 0, 5, 5, width - 10, 15, TXT_STATIC, WIDE("Sheet One") );
+	//MakeTextControl( sheet[0], 0, 5, 5, width - 10, 15, TXT_STATIC, "Sheet One" );
 
-	sheet[1] = CreateFrame( WIDE("Two"), 0, 0, width, height, BORDER_FIXED|BORDER_NOCAPTION|BORDER_WITHIN|BORDER_NONE, sheets );
+	sheet[1] = CreateFrame( "Two", 0, 0, width, height, BORDER_FIXED|BORDER_NOCAPTION|BORDER_WITHIN|BORDER_NONE, sheets );
 	SetControlID( sheet[1], SHT_TWO );
-	MakeTextControl( sheet[1], 5, 5, width - 10, 15, TXT_STATIC, WIDE("Sheet Two"), 0 );
+	MakeTextControl( sheet[1], 5, 5, width - 10, 15, TXT_STATIC, "Sheet Two", 0 );
 
-	sheet[2] = CreateFrame( WIDE("Three"), 0, 0, width, height, BORDER_FIXED|BORDER_NOCAPTION|BORDER_WITHIN|BORDER_NONE, sheets );
+	sheet[2] = CreateFrame( "Three", 0, 0, width, height, BORDER_FIXED|BORDER_NOCAPTION|BORDER_WITHIN|BORDER_NONE, sheets );
 	SetControlID( sheet[2], SHT_THREE );
-	MakeTextControl( sheet[2], 5, 5, width - 10, 15, TXT_STATIC, WIDE("Sheet Three"), 0 );
+	MakeTextControl( sheet[2], 5, 5, width - 10, 15, TXT_STATIC, "Sheet Three", 0 );
 
 	AddSheet( sheets, sheet[0] );
 	AddSheet( sheets, sheet[1] );
@@ -51,16 +51,16 @@ SaneWinMain( argc, argv )
 {
 	{
 		PSI_CONTROL frame;
-		active = LoadImageFile( WIDE("whitetab.png") );
-		inactive = LoadImageFile( WIDE("blacktab.png") );
-		frame = CreateFrame( WIDE("Sheet Test"), 0, 0, 480, 320, BORDER_NORMAL, NULL );
+		active = LoadImageFile( "whitetab.png" );
+		inactive = LoadImageFile( "blacktab.png" );
+		frame = CreateFrame( "Sheet Test", 0, 0, 480, 320, BORDER_NORMAL, NULL );
 		if( frame )
 		{
 			int done = 0, okay = 0;
 			if( argc > 1 )
 			{
 				FRACTION f = { 1, 1 };
-				SetFrameFont( frame, RenderFontFile( WIDE("arialbd.ttf"), 20, 20, 3 ) );
+				SetFrameFont( frame, RenderFontFile( "arialbd.ttf", 20, 20, 3 ) );
 				// reset the scaling from the font (do allow it to scale the outer frame)
 				// (this gives us a bigger surface for better visibility)
 				SetCommonScale( frame, &f, &f );

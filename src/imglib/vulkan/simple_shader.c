@@ -82,7 +82,7 @@ void CPROC SimpleShader_Output( PImageShaderTracker tracker, uintptr_t psv, uint
 
 	//////glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, data->data.vert_pos->data );
 	//////glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, data->data.vert_color->data );
-	//lprintf( WIDE("Set data %p %p  %d,%d"), data->vert_pos->data, data->vert_color->data, from,to );
+	//lprintf( "Set data %p %p  %d,%d", data->vert_pos->data, data->vert_color->data, from,to );
 	//CheckErr();
 	//glUniform4fv( psv, 1, color );
 	//CheckErr();

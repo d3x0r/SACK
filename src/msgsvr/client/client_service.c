@@ -8,12 +8,12 @@ MSGCLIENT_NAMESPACE
 LOGICAL HandleCoreMessage( PQMSG msg, size_t msglen DBG_PASS )
 {
 #ifdef DEBUG_SERVICE_INPUT
-	lprintf( WIDE("Read message to %d (%08x)"), msglen, msg->hdr.msgid );
+	lprintf( "Read message to %d (%08x)", msglen, msg->hdr.msgid );
 #endif
 	if( msg->hdr.msgid == IM_TARDY )
 	{
 		PTRANSACTIONHANDLER handler;
-		lprintf( WIDE("Server wants to extend timout to %") _32f WIDE(""), QMSGDATA( msg )[0] );
+		lprintf( "Server wants to extend timout to %" _32f "", QMSGDATA( msg )[0] );
 		for( handler = g.pTransactions; handler; handler = handler->next )
 			if( ( handler->route->dest.process_id == msg->dest.process_id )
 				&& ( handler->route->dest.service_id == msg->dest.service_id ) )
@@ -24,7 +24,7 @@ LOGICAL HandleCoreMessage( PQMSG msg, size_t msglen DBG_PASS )
 			}
 		if( !handler )
 		{
-			lprintf( WIDE("A service announced it was going to be tardy to someone who was not talking to it!") );
+			lprintf( "A service announced it was going to be tardy to someone who was not talking to it!" );
 			DebugBreak();
 		}
 		// okay continue in a do_while will execute the while condition
@@ -38,7 +38,7 @@ LOGICAL HandleCoreMessage( PQMSG msg, size_t msglen DBG_PASS )
 #ifdef DEBUG_MESSAGE_BASE_ID
 		DBG_VARSRC;
 #endif
-		//Log( WIDE("Got RU_ALIVE am responding  AM ALIVE!!") );
+		//Log( "Got RU_ALIVE am responding  AM ALIVE!!" );
 		Msg.dest.process_id              = msg->hdr.source.process_id;
 		Msg.dest.service_id     = msg->hdr.source.service_id;
 		Msg.hdr.source.process_id = msg->dest.process_id;
@@ -54,11 +54,11 @@ LOGICAL HandleCoreMessage( PQMSG msg, size_t msglen DBG_PASS )
 	{
 		PSERVICE_CLIENT client = FindClient( (PSERVICE_ROUTE)&msg );
 #ifdef DEBUG_RU_ALIVE_CHECK
-		lprintf( WIDE("Got message IM_ALIVE from client... %") _32f WIDE(""), msg->hdr.source.process_id );
+		lprintf( "Got message IM_ALIVE from client... %" _32f "", msg->hdr.source.process_id );
 #endif
 		if( client )
 		{
-			//lprintf( WIDE("Updating client %p with current time...allowing him to requery.."), client );
+			//lprintf( "Updating client %p with current time...allowing him to requery..", client );
 			if( client->flags.status_queried )
 			{
 				client->flags.status_queried = 0;
@@ -103,12 +103,12 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 					 , msgid
 					 , IPC_NOWAIT ) > 0 )
 	{
-		//lprintf( WIDE("Dropping a message...") );
+		//lprintf( "Dropping a message..." );
 	}
 			//lprintf( "^^^" );
 	while( !g.flags.disconnected )
 	{
-		//lprintf( WIDE("service is waiting for messages to %08lx"), g.my_message_id );
+		//lprintf( "service is waiting for messages to %08lx", g.my_message_id );
 		// receiving from the 'out' queue which is commands TO a service.
 			//lprintf( "vvv" );
 		g.flags.bWaitingInReceive = 1;
@@ -140,29 +140,29 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 				continue;
 			if( errno == EIDRM )
 			{
-				Log( WIDE("Server ended.") );
+				Log( "Server ended." );
 				break;
 			}
 			if( errno == EINVAL )
 			{
-				Log( WIDE("Queues Closed?") );
+				Log( "Queues Closed?" );
 				g.flags.disconnected = 1;
 				break;
 			}
 #if defined( _WIN32 ) || defined( USE_SACK_MSGQ )
 			if( errno == EABORT )
 			{
-				Log( WIDE( "Server Read Abort." ) );
+				Log( "Server Read Abort." );
 				break;
 			}
 #endif
-			Log1( WIDE("msgrecv error: %d"), errno );
+			Log1( "msgrecv error: %d", errno );
 			continue;
 		}
 #ifdef DEBUG_DATA_XFER
 		else
 		{
-			lprintf( WIDE("Received Message.... g.msgq_out %d"), length );
+			lprintf( "Received Message.... g.msgq_out %d", length );
 			LogBinary( (uint8_t*)recv, length + sizeof( QMSG ) );
 		}
 #endif
@@ -197,7 +197,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 #endif
 					if( service->ServiceID == recv->dest.service_id )
 					{
-						//lprintf( WIDE("Found the service...%s"), service->name );
+						//lprintf( "Found the service...%s", service->name );
 						break;
 					}
 				}
@@ -205,7 +205,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 				{
 					uint32_t msgid = recv->hdr.msgid;
 #ifdef DEBUG_MESSAGE_BASE_ID
-					lprintf( WIDE("service base %ld(+%ld) and this is from %s")
+					lprintf( "service base %ld(+%ld) and this is from %s"
 							 , msgid
                        , service->entries
 							 , ( g.my_message_id == recv->hdr.source.process_id )?"myself":"someone else" );
@@ -217,7 +217,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 						if( service->handler_ex )
 						{
 #if defined( LOG_HANDLED_MESSAGES )
-							lprintf( WIDE("Got a service message to handler: %08lx length %ld")
+							lprintf( "Got a service message to handler: %08lx length %ld"
 									 , recv->hdr.source.process_id
 									 , length + sizeof(QMSG) );
 #endif
@@ -233,7 +233,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 						if( !handled && service->handler )
 						{
 #if defined( LOG_HANDLED_MESSAGES )
-							lprintf( WIDE("Got a service message to handler: %08lx length %ld")
+							lprintf( "Got a service message to handler: %08lx length %ld"
 									 , recv->hdr.source.process_id
 									 , length + sizeof(QMSG) );
 #endif
@@ -254,12 +254,12 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 							{
 								//result_length = 4096; // maximum responce buffer...
 #if defined( LOG_HANDLED_MESSAGES )
-								lprintf( WIDE("Got a service : (%d)%s from %08lx length %ld")
+								lprintf( "Got a service : (%d)%s from %08lx length %ld"
 										 , msgid
 #ifdef _DEBUG
 										 , service->functions[msgid].name
 #else
-										 , WIDE("noname")
+										 , "noname"
 #endif
 										 , recv->hdr.source.process_id
 										 , length + sizeof(QMSG) );
@@ -309,13 +309,13 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 								default:
 #if defined( LOG_HANDLED_MESSAGES )
 									DebugBreak();
-									lprintf( WIDE("didn't have a function for 0x%lx (%ld) or %s")
+									lprintf( "didn't have a function for 0x%lx (%ld) or %s"
 											 , msgid
 											 , msgid
 #ifdef _DEBUG
 											 , service->functions[msgid].name
 #else
-											 , WIDE("noname")
+											 , "noname"
 #endif
 
 										 );
@@ -349,17 +349,17 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 						}
 						else
 						{
-							//Log( WIDE("No responce sent") );
+							//Log( "No responce sent" );
 						}
 					}
 				}
 				else
 				{
-					lprintf( WIDE("Failed to find target service for message.") );
+					lprintf( "Failed to find target service for message." );
 				}
 			}
 #if defined(_DEBUG) && defined( LOG_HANDLED_MESSAGES )
-			Log( WIDE("Message complete...") );
+			Log( "Message complete..." );
 #endif
 			g.flags.handling_client_message = 0;
 		}
@@ -380,24 +380,24 @@ void DoRegisterService( PCLIENT_SERVICE pService )
 
 	if( !pService->flags.bFailed )
 	{
-		//lprintf( WIDE("Transacting a message....") );
+		//lprintf( "Transacting a message...." );
 		size_t result_len = sizeof( pService->ServiceID );
-		//lprintf( WIDE("Transacting a message....") );
+		//lprintf( "Transacting a message...." );
 		if( !TransactServerMultiMessage( &g.master_service_route, CLIENT_REGISTER_SERVICE, 1
 												 , &MsgID, &pService->ServiceID, &result_len
 												 , pService->name, (StrLen( pService->name ) + 1) * sizeof(TEXTCHAR) // include NUL
 												 ) )
 		{
 			pService->flags.bFailed = 1;
-			lprintf( WIDE("registration failed.") );
+			lprintf( "registration failed." );
 		}
 		else
 		{
-			//lprintf( WIDE("MsgID is %lx and should be %lx? "),MsgID , ( CLIENT_REGISTER_SERVICE | SERVER_SUCCESS ) );
+			//lprintf( "MsgID is %lx and should be %lx? ",MsgID , ( CLIENT_REGISTER_SERVICE | SERVER_SUCCESS ) );
 			if( MsgID != ( CLIENT_REGISTER_SERVICE | SERVER_SUCCESS ) )
 			{
 				pService->flags.bFailed = 1;
-				lprintf( WIDE("registration failed.") );
+				lprintf( "registration failed." );
 			}
 		}
 		pService->flags.bRegistered = 1;
@@ -414,7 +414,7 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
     */
 	if( (MessageIn->hdr.msgid&0xFFFFFFF) == (MSG_ServiceLoad) )
 	{
-		//lprintf( WIDE("Loading service responce... setup the service ID for future com") );
+		//lprintf( "Loading service responce... setup the service ID for future com" );
 		handler->route->dest.process_id = MessageIn->hdr.source.process_id;
 		handler->route->dest.service_id = MessageIn->hdr.source.service_id;
 		handler->route->source.process_id = MessageIn->dest.process_id;
@@ -430,7 +430,7 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
 		//if( handler != &g._handler )
 		{
 			// result received from some other handler (probably something like
-			//lprintf( WIDE("message from core service ... wrong handler?") );
+			//lprintf( "message from core service ... wrong handler?" );
 			if( MessageIn->hdr.msgid & SERVER_FAILURE )
 			{
 				// eat this message...
@@ -448,24 +448,24 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
 	if( ( handler->route->dest.process_id != MessageIn->hdr.source.process_id )
 		|| ( handler->route->dest.service_id != MessageIn->hdr.source.service_id ) )
 	{
-		//lprintf( WIDE("%ld and %ld "), handler->ServiceID, MessageIn->hdr.source.process_id );
+		//lprintf( "%ld and %ld ", handler->ServiceID, MessageIn->hdr.source.process_id );
 		// this handler is not for this message responce...
 		//DebugBreak();
 
-		//lprintf( WIDE("this handler is not THE handler!") );
+		//lprintf( "this handler is not THE handler!" );
 		return 1;
 	}
 	else
 	{
-		//lprintf( WIDE("All is well, check message ID %p"), handler );
+		//lprintf( "All is well, check message ID %p", handler );
 		if( handler->MessageID )
 			(*handler->MessageID) = MessageIn->hdr.msgid;
 
 		if( handler->LastMsgID != ( (MessageIn->hdr.msgid)& 0xFFFFFFF ) )
 		{
 			LogBinary( (uint8_t*)MessageIn, MessageLen );
-			lprintf( WIDE("len was %") _size_f, MessageLen );
-			lprintf( WIDE("Message is for this guy - but isn't the right ID! %") _MsgID_f WIDE(" %") _32f WIDE(" %") _32f WIDE("")
+			lprintf( "len was %" _size_f, MessageLen );
+			lprintf( "Message is for this guy - but isn't the right ID! %" _MsgID_f " %" _32f " %" _32f ""
 					 , handler->LastMsgID, (MessageIn->hdr.msgid) & 0xFFFFFFF, 0 );
 			//DebugBreak();
 			return 1;
@@ -479,7 +479,7 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
 		{
 			if( (int32_t)(*handler->len) < MessageLen )
 			{
-				_lprintf( DBG_RELAY )( WIDE("Cutting out possible data to the application - should provide a failure! %") _size_f WIDE(" expected %") _size_f WIDE(" returned"), (*handler->len), MessageLen );
+				_lprintf( DBG_RELAY )( "Cutting out possible data to the application - should provide a failure! %" _size_f " expected %" _size_f " returned", (*handler->len), MessageLen );
 				MessageLen = (*handler->len);
 			}
 			MemCpy( handler->msg, QMSGDATA( MessageIn ), MessageLen );
@@ -493,7 +493,7 @@ int ReceiveServerMessageEx( PTRANSACTIONHANDLER handler, PQMSG MessageIn, size_t
 		if( MessageLen - ( sizeof( QMSG ) - sizeof( MSGIDTYPE ) ) )
 		{
 			LogBinary( (uint8_t*)MessageIn, MessageLen + sizeof( QMSG ) );
-			SystemLogEx( WIDE("Server returned result data which the client did not get") DBG_RELAY );
+			SystemLogEx( "Server returned result data which the client did not get" DBG_RELAY );
 		}
 	}
 	// we now have to wait for another response.
@@ -534,9 +534,9 @@ CLIENTMSG_PROC( LOGICAL, RegisterServiceExx )( CTEXTSTR name
 	if( ( status = _InitMessageService( FALSE ) ) < 1 )
 	{
 		if( status == -1 )
-			lprintf( WIDE("Initization of %s message service failed (service already exists? communication)."), name );
+			lprintf( "Initization of %s message service failed (service already exists? communication).", name );
 		//if( status == 0 )
-		//	; //lprintf( WIDE("Initization of %s message service failed to initialize?)."), name );
+		//	; //lprintf( "Initization of %s message service failed to initialize?).", name );
 		return FALSE;
 	}
 	else
@@ -556,7 +556,7 @@ CLIENTMSG_PROC( LOGICAL, RegisterServiceExx )( CTEXTSTR name
 		if( !name )
 		{
 			pService->flags.bMasterServer = 1;
-			pService->name = StrDup( WIDE("Master Server") );
+			pService->name = StrDup( "Master Server" );
 		}
 		else
 		{

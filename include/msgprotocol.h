@@ -40,7 +40,7 @@ SACK_NAMESPACE
 		message ID from a user interface structure.                */
 	_PROTOCOL_NAMESPACE
 
-#define MSGQ_ID_BASE WIDE("Srvr")
+#define MSGQ_ID_BASE "Srvr"
 
 // this is a fun thing, in order to use it,
 // undefine MyInterface, and define your own to your

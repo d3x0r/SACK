@@ -62,16 +62,16 @@ static int RollDice( int count, int sides )
    while( count-- )
 	{
 		n = RAND(sides) + 1;
-      Log1( WIDE("Rolled %d..."), n );
+      Log1( "Rolled %d...", n );
       accum += n;
 	}
-	Log1( WIDE("Total: %d..."), accum );
+	Log1( "Total: %d...", accum );
    return accum;
 }
 
 //--------------------------------------------------------------------------
 
-static int HandleCommand( WIDE("Dice"),WIDE("Roll"), WIDE("Roll dice stored in macro result") )( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand( "Dice","Roll", "Roll dice stored in macro result" )( PSENTIENT ps, PTEXT parameters )
 {
    TEXTCHAR *p;
 	PTEXT pDice;
@@ -80,7 +80,7 @@ static int HandleCommand( WIDE("Dice"),WIDE("Roll"), WIDE("Roll dice stored in m
    p = GetText( pDice );
    if( !pDice || !GetDice( p, &count, &sides ) )
    {
-      DECLTEXT( msg, WIDE("parameter is not a dice description... #d#") );
+      DECLTEXT( msg, "parameter is not a dice description... #d#" );
       EnqueLink( &ps->Command->Output, &msg );
       return 0;
    }

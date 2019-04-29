@@ -76,34 +76,34 @@ struct do_text_tag
 	uint8_t dovalue;
 	TEXTSTR dotext;
 } DoText [] = {
-	{DO_TB, WIDE("TB")}
-	,{DO_ECHO, WIDE("ECHO")}
-	,{DO_SGA, WIDE("SGA")}
-	,{DO_STATUS, WIDE("STATUS")}
-	,{DO_TIMINGMARK, WIDE("TIMINGMARK")}
-	,{DO_BM, WIDE("BM")}
-	,{DO_DET, WIDE("DET")}     
-	,{DO_TERM_TYPE, WIDE("TERM_TYPE")}         
-	,{DO_EOR, WIDE("EOR")}
-	,{DO_TUID, WIDE("TUID")}
-	,{DO_OUTMRK, WIDE("OUTMRK")}
-	,{DO_TTYLOC, WIDE("TTYLOC")}  
-	,{DO_3270_REGIME, WIDE("3270_REGIME")}      
-	,{DO_X3_PAD, WIDE("X3_PAD")}          
-	,{DO_NAWS, WIDE("NAWS")}
-	,{DO_TERMSPEED, WIDE("TERMSPEED")}
-	,{DO_FLOW_CONTROL, WIDE("FLOW_CONTROL")}
-	,{DO_LINEMODE, WIDE("LINEMODE")}
-	,{DO_X_DISPLAY_LOCATION, WIDE("X_DISPLAY_LOCATION")}
-	,{DO_AUTHENTICATION, WIDE("AUTHENTICATION")}
-	,{DO_SUPDUP, WIDE("SUPDUP")}
-	,{DO_NEW_ENVIRON, WIDE("NEW_ENVIRON")}
+	{DO_TB, "TB"}
+	,{DO_ECHO, "ECHO"}
+	,{DO_SGA, "SGA"}
+	,{DO_STATUS, "STATUS"}
+	,{DO_TIMINGMARK, "TIMINGMARK"}
+	,{DO_BM, "BM"}
+	,{DO_DET, "DET"}     
+	,{DO_TERM_TYPE, "TERM_TYPE"}         
+	,{DO_EOR, "EOR"}
+	,{DO_TUID, "TUID"}
+	,{DO_OUTMRK, "OUTMRK"}
+	,{DO_TTYLOC, "TTYLOC"}  
+	,{DO_3270_REGIME, "3270_REGIME"}      
+	,{DO_X3_PAD, "X3_PAD"}          
+	,{DO_NAWS, "NAWS"}
+	,{DO_TERMSPEED, "TERMSPEED"}
+	,{DO_FLOW_CONTROL, "FLOW_CONTROL"}
+	,{DO_LINEMODE, "LINEMODE"}
+	,{DO_X_DISPLAY_LOCATION, "X_DISPLAY_LOCATION"}
+	,{DO_AUTHENTICATION, "AUTHENTICATION"}
+	,{DO_SUPDUP, "SUPDUP"}
+	,{DO_NEW_ENVIRON, "NEW_ENVIRON"}
 
-	,{DO_COMPRESS, WIDE("COMPRESS")}
+	,{DO_COMPRESS, "COMPRESS"}
 
-	,{DO_EXOPL, WIDE("EXOPL")}
-	,{(TEXTCHAR)DO_RANDOMLOSE, WIDE("RANDOMLOSE")}
-	,{(TEXTCHAR)DO_SUBLIMINAL, WIDE("SUBLIMINAL")}};
+	,{DO_EXOPL, "EXOPL"}
+	,{(TEXTCHAR)DO_RANDOMLOSE, "RANDOMLOSE"}
+	,{(TEXTCHAR)DO_SUBLIMINAL, "SUBLIMINAL"}};
 	
 #define TWECHO     1
 #define BREAKEVNT  2
@@ -152,24 +152,24 @@ static int proc_iac(PMYDATAPATH pmdp, uint8_t tchar)
 		retval = 1;
 		if(pmdp->iac_count>255)
 			pmdp->iac_count=255;
-		//Log1( WIDE("Added byte: %02x"), tchar );
+		//Log1( "Added byte: %02x", tchar );
 		pmdp->iac_data[pmdp->iac_count++]=tchar;
 
       switch( (uint8_t)pmdp->iac_data[1])
 		{
 		case IAC:
-			// displayln(traceout,WIDE("double iac on %hd\n"),Channel);
+			// displayln(traceout,"double iac on %hd\n",Channel);
 			pmdp->iac_count=0;
 			retval=0; /* return the character is yours */
 			goto done;
 		case DO:
 			if(pmdp->iac_count<3)break; /* get entire option request */
-			// displayln(traceout,WIDE("DO   %n "),pmdp->iac_data[2]);
+			// displayln(traceout,"DO   %n ",pmdp->iac_data[2]);
 			if(pmdp->iac_data[2]== DO_ECHO )      /* ECHO */
 			{
 				if(status&TWECHO)
 				{
-					// displayln(traceout,WIDE("no response %n \n"),pmdp->iac_data[2]);
+					// displayln(traceout,"no response %n \n",pmdp->iac_data[2]);
 					goto processed;/* ECHO IS CORRECT DONT RESPOND */
 				}
 				status|= TWECHO;
@@ -194,23 +194,23 @@ static int proc_iac(PMYDATAPATH pmdp, uint8_t tchar)
 				{
 					if( pmdp->iac_data[2] == DoText[n].dovalue )
 					{
-						Log1( WIDE("Server request for DO %s"), DoText[n].dotext );
+						Log1( "Server request for DO %s", DoText[n].dotext );
 						break;
 					}
 				}
 				if( n == MAX_DO_S )
-					Log1( WIDE("Server request for unknown DO: %02X"), pmdp->iac_data[2] );
+					Log1( "Server request for unknown DO: %02X", pmdp->iac_data[2] );
 			}
 			goto sendwont;
 
 		case DONT:
 			if(pmdp->iac_count<3)break; /* get entire option request */
-			// displayln(traceout,WIDE("DONT %n "),pmdp->iac_data[2]);
+			// displayln(traceout,"DONT %n ",pmdp->iac_data[2]);
 			if(pmdp->iac_data[2]==DO_ECHO)           /* ECHO */
 			{
 				if( (status&TWECHO) ==0)
 				{
-					// displayln(traceout,WIDE("no response %n \n"),pmdp->iac_data[2]);
+					// displayln(traceout,"no response %n \n",pmdp->iac_data[2]);
 					goto processed;/* ECHO IS CORRECT DONT RESPOND */
 				}
 				status&=~TWECHO;
@@ -226,12 +226,12 @@ static int proc_iac(PMYDATAPATH pmdp, uint8_t tchar)
 				{
 					if( pmdp->iac_data[2] == DoText[n].dovalue )
 					{
-						Log1( WIDE("Server request for DONT %s"), DoText[n].dotext );
+						Log1( "Server request for DONT %s", DoText[n].dotext );
 						break;
 					}
 				}
 				if( n == MAX_DO_S )
-					Log1( WIDE("Server request for unknown DONT: %02X"), pmdp->iac_data[2] );
+					Log1( "Server request for unknown DONT: %02X", pmdp->iac_data[2] );
 			}
 		sendwont:
 			pmdp->iac_data[1]=WONT;
@@ -239,7 +239,7 @@ static int proc_iac(PMYDATAPATH pmdp, uint8_t tchar)
 
 		case WILL:
 			if(pmdp->iac_count<3)break; /* get entire option request */
-			// displayln(traceout,WIDE("WILL %n "),pmdp->iac_data[2]);
+			// displayln(traceout,"WILL %n ",pmdp->iac_data[2]);
 			if( pmdp->iac_data[2] == DO_SGA )
 			{
 				pmdp->iac_data[1] = DO;
@@ -259,18 +259,18 @@ static int proc_iac(PMYDATAPATH pmdp, uint8_t tchar)
 				int n;
 				for( n = 0; n < MAX_DO_S; n++ ) {
 					if( pmdp->iac_data[2] == DoText[n].dovalue ) {
-						Log1( WIDE( "Server request for WILL %s" ), DoText[n].dotext );
+						Log1( "Server request for WILL %s", DoText[n].dotext );
 						break;
 					}
 				}
 				if( n == MAX_DO_S )
-					Log1( WIDE( "Server request for unknown WILL: %02X" ), pmdp->iac_data[2] );
+					Log1( "Server request for unknown WILL: %02X", pmdp->iac_data[2] );
 			}
 			goto senddont;
  
 		case WONT:
 			if(pmdp->iac_count<3)break; /* get entire option request */
-			// displayln(traceout,WIDE("WONT %n "),pmdp->iac_data[2]);
+			// displayln(traceout,"WONT %n ",pmdp->iac_data[2]);
 
 		senddont:
 			pmdp->iac_data[1]=DONT;
@@ -289,19 +289,19 @@ static int proc_iac(PMYDATAPATH pmdp, uint8_t tchar)
 			switch(i)
 			{
 			case DO:
-				Log( WIDE("response DO   "));
+				Log( "response DO   ");
 				break;
 			case DONT:
-				Log( WIDE("response DONT "));
+				Log( "response DONT ");
 				break;
 			case WILL:
-				Log( WIDE("response WILL "));
+				Log( "response WILL ");
 				break;
 			case WONT:
-				Log( WIDE("response WONT "));
+				Log( "response WONT ");
 				break;
 			}
-			//Log1(WIDE("command data byte... %02d"),pmdp->iac_data[2]);
+			//Log1("command data byte... %02d",pmdp->iac_data[2]);
 
 			retval=3; /* we used the character and we need a write */
 			goto processed;
@@ -312,11 +312,11 @@ static int proc_iac(PMYDATAPATH pmdp, uint8_t tchar)
 
 		case IACBK:
 			status |= BREAKEVNT;
-			// displayln(traceout,WIDE("iac break\n"));
+			// displayln(traceout,"iac break\n");
 			goto processed;
 
 		case NOP:
-			// displayln(traceout,WIDE("iac nop\n"));
+			// displayln(traceout,"iac nop\n");
 			goto processed;
  
 		case GA:
@@ -331,10 +331,10 @@ static int proc_iac(PMYDATAPATH pmdp, uint8_t tchar)
 		default:
 		unknown:
 
-			// displayln(traceout,WIDE("iac on %hd ="),Channel);
+			// displayln(traceout,"iac on %hd =",Channel);
 			// for (i=0;i<pmdp->iac_count;i++)
-			//   displayln(traceout,WIDE(" %hd"),pmdp->iac_data[i]);
-			// displayln(traceout,WIDE("\n"));
+			//   displayln(traceout," %hd",pmdp->iac_data[i]);
+			// displayln(traceout,"\n");
 
 		processed:
 			pmdp->iac_count=0;
@@ -357,7 +357,7 @@ static PTEXT CPROC TelnetHandle( PDATAPATH pdPSI_CONTROL, PTEXT pText )
    PTEXT save;
    save = pText;
    nState = 0;
-	//Log1( WIDE("Telnet input... %s"), GetText( pText ) );
+	//Log1( "Telnet input... %s", GetText( pText ) );
    for( save = pText; pText; pText = NEXTLINE(pText) )
    {
       ptext = GetText( pText );
@@ -374,7 +374,7 @@ static PTEXT CPROC TelnetHandle( PDATAPATH pdPSI_CONTROL, PTEXT pText )
             		PTEXT responce = SegCreate( 3 );
             		MemCpy( responce->data.data, pdp->iac_data, 3 );
 						responce->flags |= TF_BINARY;
-						//Log3( WIDE("Enquing a responce... %02x %02x %02x")
+						//Log3( "Enquing a responce... %02x %02x %02x"
 						//	 , pdp->iac_data[0]
 						//	 , pdp->iac_data[1]
 						//	 , pdp->iac_data[2]  );
@@ -392,7 +392,7 @@ static PTEXT CPROC TelnetHandle( PDATAPATH pdPSI_CONTROL, PTEXT pText )
 							out[0] = IAC;
 							out[1] = SB;
 							out[2] = DO_NAWS;
-							val = GetVolatileVariable( pdp->common.Owner->Current, WIDE("cols") );
+							val = GetVolatileVariable( pdp->common.Owner->Current, "cols" );
 							if( val )
 								tmp = atoi( GetText( val ) );
 							else
@@ -400,7 +400,7 @@ static PTEXT CPROC TelnetHandle( PDATAPATH pdPSI_CONTROL, PTEXT pText )
 							out[3] = ( tmp & 0xFF00 ) >> 8;
 							out[4] = tmp & 0xFF;
 
-							val = GetVolatileVariable( pdp->common.Owner->Current, WIDE("rows") );
+							val = GetVolatileVariable( pdp->common.Owner->Current, "rows" );
 							if( val )
 								tmp = atoi( GetText( val ) );
 							else
@@ -457,7 +457,7 @@ static PTEXT CPROC ValidateEOL( PDATAPATH pdPSI_CONTROL, PTEXT line )
 	    GetTextSize( end ) && !(end->flags&TF_BINARY) )
 	{
 		//PTEXT junk = BuildLine( line );
-		//Log1( WIDE("Adding a end of line before shipping to network... %s"), GetText( junk ) );
+		//Log1( "Adding a end of line before shipping to network... %s", GetText( junk ) );
 		//LineRelease( junk );
 		SegAppend( end, SegCreate( 0 ) );
 	}	
@@ -498,7 +498,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-	iTelnet = RegisterDevice( WIDE("telnet"), WIDE("Processes telnet IAC sequences"), Open );
+	iTelnet = RegisterDevice( "telnet", "Processes telnet IAC sequences", Open );
    return DekVersion;
 }
 
@@ -506,7 +506,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void )
 {
-	UnregisterDevice( WIDE("telnet") );
+	UnregisterDevice( "telnet" );
 }
 
 // $Log: telnet.c,v $

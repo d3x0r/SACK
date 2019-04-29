@@ -115,7 +115,7 @@ static
 		if( l.byFontSizeInt != byFontSizeInt )
 		{
 			l.byFontSizeInt = byFontSizeInt;
-			l.hfn = RenderFontFile( WIDE("courbd.ttf"), (l.w/5)/byFontSizeInt, (l.h*3/2)/byFontSizeInt, 2 );
+			l.hfn = RenderFontFile( "courbd.ttf", (l.w/5)/byFontSizeInt, (l.h*3/2)/byFontSizeInt, 2 );
 		}
 		// maybe we didn't create a new font this time
 		// but still need to select it into context.
@@ -139,12 +139,12 @@ static int CPROC DrawFrame( PCOMMON pc )
 {
 	if( !l.SQLMsgBase )
 		FillInWindow ( TRUE, Color(255,0,0), Color( 255,255,255 )
-						 , WIDE("Waiting for\nSQL Proxy...")
+						 , "Waiting for\nSQL Proxy..."
 						 , 2 );
 	else if( l.flags.bWaitingForResult )
 	{
 		FillInWindow ( TRUE, Color(255,0,0), Color( 255,255,255 )
-						 , WIDE("Waiting for\nSQL Result...")
+						 , "Waiting for\nSQL Result..."
 						 , 2 );
 	}
 	//FillInWindow ( FALSE, 0UL, 0UL, NULL, 0 );
@@ -187,15 +187,15 @@ static int GenerateCommand( char *command, int nSQLCommand )
 		{
 			if( len > MSG_PACKET_SIZE )
 			{
-				//Log2( WIDE("Len: %d cmd: %s"), len, command );
-				//Log( WIDE("Sending a fragment...") );
+				//Log2( "Len: %d cmd: %s", len, command );
+				//Log( "Sending a fragment..." );
 				if( first )
 				{
-					//Log( WIDE("Sending WM_SQL_DATA_START") );
+					//Log( "Sending WM_SQL_DATA_START" );
 					if( !SendServerMessage( l.SQLMsgBase + WM_SQL_DATA_START
 												  , command, MSG_PACKET_SIZE ) )
 					{
-						Log( WIDE("Failed to post message...") );
+						Log( "Failed to post message..." );
 						l.flags.bReady = FALSE;
                   return FALSE;
 					}
@@ -203,11 +203,11 @@ static int GenerateCommand( char *command, int nSQLCommand )
 				}
 				else
 				{
-				   //Log( WIDE("Sending WM_SQL_DATA_MORE") );
+				   //Log( "Sending WM_SQL_DATA_MORE" );
 					if( !SendServerMessage( l.SQLMsgBase + WM_SQL_DATA_MORE
 												  , command, MSG_PACKET_SIZE ) )
 					{
-						Log( WIDE("Failed to post message...") );
+						Log( "Failed to post message..." );
 						l.flags.bReady = FALSE;
                   return FALSE;
 					}
@@ -219,7 +219,7 @@ static int GenerateCommand( char *command, int nSQLCommand )
 				break;
 		}
 		l.Rv = 0;// make sure we wait for result.
-		//Log( WIDE("Final bit of data going out in atom...") );
+		//Log( "Final bit of data going out in atom..." );
 		if( !SendServerMessage( l.SQLMsgBase + nSQLCommand
 									  , command, len ) )
 		{
@@ -238,39 +238,39 @@ void Collect( uint32_t* buf, uint32_t len )
 	char *newbuf;
 	if( !buf || !len )
 	{
-      Log( WIDE("Returning without collectinl..."));
+      Log( "Returning without collectinl...");
 		return;
 	}
 	Log1( WIDE("Collecting: \"%s\""), buf );
 	if( len )
 	{
-      //Log2( WIDE("has a length... %d %d"), len, len+l.result_len );
+      //Log2( "has a length... %d %d", len, len+l.result_len );
 		newbuf = Allocate( len + l.result_len + 1 );
 		if( !newbuf )
 		{
-			Log( WIDE("Damn we ran outa memory!") );
+			Log( "Damn we ran outa memory!" );
 			(*(int*)0)=0;
 		}
 		if( l.result_data )
 		{
-         //Log( WIDE("Copying old buffer...") );
+         //Log( "Copying old buffer..." );
 			memcpy( newbuf, l.result_data, l.result_len );
 		}
-      //Log4( WIDE("Copying new buffer at %d (%d) %p %p")
+      //Log4( "Copying new buffer at %d (%d) %p %p"
       //     , l.result_len, len + 1
       //     , newbuf, buf );
 		memcpy( newbuf + l.result_len, buf, len + 1 );
 		l.result_len += len;
 		if( l.result_data )
 		{
-         //Log1( WIDE("Releasing old data %p"), l.result_data );
+         //Log1( "Releasing old data %p", l.result_data );
 			Release( l.result_data );
 		}
-      //Log2( WIDE("Setting new data %p %s"), newbuf, newbuf );
+      //Log2( "Setting new data %p %s", newbuf, newbuf );
 		l.result_data = newbuf;
 	}
 	//else
-   //   Log( WIDE("Data was 0 length...") );
+   //   Log( "Data was 0 length..." );
 }
 
 //-------------------------------------------------------------------------
@@ -280,7 +280,7 @@ static int CPROC ClientEventHandlerFunction(uint32_t SourceID
 														 , uint32_t*params
 														 , uint32_t paramlen)
 {
-   lprintf( WIDE("SQL Result .... %d"), MsgID );
+   lprintf( "SQL Result .... %d", MsgID );
 	switch( MsgID )
 	{
 	case MSG_DispatchPending:
@@ -347,7 +347,7 @@ static int CPROC ClientEventHandlerFunction(uint32_t SourceID
 		}
       break;
 	default:
-      lprintf( WIDE("Unknown message %d"), MsgID );
+      lprintf( "Unknown message %d", MsgID );
       break;
 	}
 
@@ -359,7 +359,7 @@ static int CPROC ClientEventHandlerFunction(uint32_t SourceID
 void CPROC ConnectionTimer( uintptr_t psv )
 {
 	if( !l.SQLMsgBase )
-		l.SQLMsgBase = LoadServiceEx( WIDE("SQL"), ClientEventHandlerFunction );
+		l.SQLMsgBase = LoadServiceEx( "SQL", ClientEventHandlerFunction );
 	if( psv == 100 && ( !l.SQLMsgBase || l.flags.bWaitingForResult ) )
 	{
 		if( !l.flags.bShown )
@@ -399,7 +399,7 @@ void CPROC ConnectionTimer( uintptr_t psv )
          AddTimer( 1500, ConnectionTimer, 100 );
 			//SetTimer( hWnd, 100, 1500, MB_OK );
 			FillInWindow ( TRUE, Color(255,0,0), Color( 255,255,255 )
-							 , WIDE("Waiting for\nSQL Result...")
+							 , "Waiting for\nSQL Result..."
 							 , 2 );
 		}
 	}
@@ -416,7 +416,7 @@ int InitSQLStubWindow( void )
 	do
 	{
 		if( !l.SQLMsgBase )
-			l.SQLMsgBase = LoadServiceEx( WIDE("SQL"), ClientEventHandlerFunction );
+			l.SQLMsgBase = LoadServiceEx( "SQL", ClientEventHandlerFunction );
 
 		if( !l.frame )
 		{
@@ -424,14 +424,14 @@ int InitSQLStubWindow( void )
 			l.Rv = 0;
 			nw = w * 3 / 4;
 			nh = h * 5 / 8;
-			l.frame = CreateFrame( WIDE("SQL Error")
+			l.frame = CreateFrame( "SQL Error"
 										, l.x = (w - nw) / 2, l.y = ( h - nh ) / 2
 										, nw, nh
 										, BORDER_NOMOVE|BORDER_NOCAPTION|BORDER_BUMP, NULL );
 			if( !l.frame )
 			{
 				//l.flags.bFatalError = TRUE;
-				lprintf( WIDE("Failed to create SQL Stub Window. - FATAL ERROR") );
+				lprintf( "Failed to create SQL Stub Window. - FATAL ERROR" );
 				return FALSE;
 			}
 			l.w = nw;
@@ -523,7 +523,7 @@ int DoSQLCommandEx( char *command DBG_PASS )
 
 
 //-------------------------------------------------------------------------
-// parameters to this are pairs of "name", WIDE("value")
+// parameters to this are pairs of "name", "value"
 // the last pair's name is NULL, and value does not matter.
 // insert values into said table.
 int DoSQLInsert( char *table, ... )
@@ -564,19 +564,19 @@ int DoSQLInsert( char *table, ... )
 				nVarLen++; // ','
 				nValLen++; // ','
 			}
-			//Log5( WIDE("Length is: %d  %d,%d %p %p"),quote, nVarLen,nValLen, varname, varval);
+			//Log5( "Length is: %d  %d,%d %p %p",quote, nVarLen,nValLen, varname, varval);
 			nVarLen += strlen( varname );
 			nValLen += strlen( varval );
-			//Log3( WIDE("Length is: %d  %d,%d"),quote, nVarLen,nValLen);
+			//Log3( "Length is: %d  %d,%d",quote, nVarLen,nValLen);
 			if( quote )
             nValLen+=2;
 		}
 		command = Allocate( 12 + strlen( table ) + nVarLen + 8 + nValLen );
-      //Log2( WIDE("Command = %p (%d)"), command, 12 + strlen( table ) + nVarLen + 7 + nValLen );
-		nCmdLen = sprintf( command, WIDE("Insert into %s"), table );
+      //Log2( "Command = %p (%d)", command, 12 + strlen( table ) + nVarLen + 7 + nValLen );
+		nCmdLen = sprintf( command, "Insert into %s", table );
 		second_half = nValOfs = nCmdLen + nVarLen;
-		nValOfs += sprintf( command+nValOfs, WIDE(" values") );
-		//Log2( WIDE("Command is now: %s %s"), command, command+second_half );
+		nValOfs += sprintf( command+nValOfs, " values" );
+		//Log2( "Command is now: %s %s", command, command+second_half );
 		first = 1;
 		va_start( args, table );
 		for( varname = va_arg( args, char * );
@@ -585,20 +585,20 @@ int DoSQLInsert( char *table, ... )
 		{
          quote = va_arg( args, int );
 			varval = va_arg( args, char *);
-			nCmdLen += sprintf( command + nCmdLen, WIDE("%s%s"), first?"(":",", varname );
-			nValOfs += sprintf( command + nValOfs, WIDE("%s%s%s%s")
+			nCmdLen += sprintf( command + nCmdLen, "%s%s", first?"(":",", varname );
+			nValOfs += sprintf( command + nValOfs, "%s%s%s%s"
 									, first?"(":","
 									, quote?"\'":""
 									, varval
 									, quote?"\'":""
 									);
-			//Log2( WIDE("Command is now: %s %s"), command, command+second_half );
+			//Log2( "Command is now: %s %s", command, command+second_half );
 			first = 0;
 		}
       command[nCmdLen] = ')';
       command[nValOfs] = ')';
       command[nValOfs+1] = 0;
-		//Log1( WIDE("Command is now: %s"), command );
+		//Log1( "Command is now: %s", command );
 
 		if( GenerateCommand( command, WM_SQL_COMMAND ) )
 		{
@@ -629,7 +629,7 @@ int DoSQLQueryEx( CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 	{
 		if( WaitForResponce() )
 		{
-         //Log( WIDE("QUery Resulting data...") );
+         //Log( "QUery Resulting data..." );
 			*result = l.result_data;
          l.result_len = 0;
          l.result_data = NULL;
@@ -665,14 +665,14 @@ int GetSQLResult( CTEXTSTR *result )
 			}
 			else if( l.Rv == RV_SQL_MORE )
 			{
-	         Log( WIDE("Resulting data...") );
+	         Log( "Resulting data..." );
 				*result = l.result_data;
       	   l.result_len = 0;
          	l.result_data = NULL;
 			}
 			else
 			{
-				Log( WIDE("SEQUENCE ERROR! or no more data...") );
+				Log( "SEQUENCE ERROR! or no more data..." );
 			}
          return TRUE;
 		}
@@ -705,14 +705,14 @@ int GetSQLRecordResult( char ***result, int *count, char ***fields )
 		{
 			if( l.Rv == RV_SQL_MORE )
 			{
-	         Log( WIDE("Resulting data...") );
+	         Log( "Resulting data..." );
 				*result = l.record_result_data;
       	   l.result_len = 0;
          	l.result_data = NULL;
 			}
 			else
 			{
-				Log( WIDE("SEQUENCE ERROR! or no more data...") );
+				Log( "SEQUENCE ERROR! or no more data..." );
 			}
          return TRUE;
 		}
@@ -741,14 +741,14 @@ int GetSQLError( CTEXTSTR *result )
 		{
 			if( l.Rv == RV_SQL_MORE )
 			{
-	         Log( WIDE("Resulting data...") );
+	         Log( "Resulting data..." );
 				*result = l.result_data;
       	   l.result_len = 0;
          	l.result_data = NULL;
 			}
 			else
 			{
-				Log( WIDE("SEQUENCE ERROR! or no more data...") );
+				Log( "SEQUENCE ERROR! or no more data..." );
 			}
          return TRUE;
 		}

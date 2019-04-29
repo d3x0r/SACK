@@ -79,12 +79,12 @@ static void CPROC ImagePngFlush(png_structp png_ptr)
 
 void NotSoFatalError( png_structp png_ptr, png_const_charp c )
 {
-	lprintf( WIDE("Error in PNG stuff: %s"), c );
+	lprintf( "Error in PNG stuff: %s", c );
 }
 
 void CPROC NotSoFatalError2( png_structp png_ptr, png_const_charp c )
 {
-	lprintf( WIDE("Error in PNG stuff: %s"), c );
+	lprintf( "Error in PNG stuff: %s", c );
 }
 
 LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, int *size)

@@ -48,17 +48,17 @@ enum {
 
 PRELOAD( RegisterPluginResources )
 {
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), LISTBOX_SYSTEMS, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), LISTBOX_PLUGINS, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), SYSTEM_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), PLUGIN_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), ADD_PLUGIN, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), REMOVE_PLUGIN, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), ADD_SYSTEM, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), REMOVE_SYSTEM, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), LISTBOX_NO_SYSTEMS, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), ADD_NO_SYSTEM, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/plugins" ), REMOVE_NO_SYSTEM, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/plugins", LISTBOX_SYSTEMS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/plugins", LISTBOX_PLUGINS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/plugins", SYSTEM_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/plugins", PLUGIN_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/plugins", ADD_PLUGIN, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/plugins", REMOVE_PLUGIN, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/plugins", ADD_SYSTEM, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/plugins", REMOVE_SYSTEM, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/plugins", LISTBOX_NO_SYSTEMS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/plugins", ADD_NO_SYSTEM, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/plugins", REMOVE_NO_SYSTEM, NORMAL_BUTTON_NAME );
 
 }
 
@@ -360,18 +360,18 @@ void ClearControls( void )
 	l.current_plugin = NULL;
 }
 
-static void OnGlobalPropertyEdit( WIDE( "Edit Plugins" ) )( PSI_CONTROL parent )
+static void OnGlobalPropertyEdit( "Edit Plugins" )( PSI_CONTROL parent )
 {
-	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "EditPlugins.isFrame" ) );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent, "EditPlugins.isFrame" );
 	if( frame )
 	{
 		int okay = 0;
 		int done = 0;
 		SetCommonButtons( frame, &done, &okay );
 		InitControls( frame );
-		//lprintf( WIDE( "show frame over parent." ) );
+		//lprintf( "show frame over parent." );
 		DisplayFrameOver( frame, parent );
-		//lprintf( WIDE( "Begin waiting..." ) );
+		//lprintf( "Begin waiting..." );
 		CommonWait( frame );
 		if( okay )
 		{
@@ -433,18 +433,18 @@ static uintptr_t CPROC LoadConfigPluginOn( uintptr_t psv, arg_list args )
 
 // load at a high priority... so that plugins loaded by this might have a chance
 // to register their own load common things, before the line happens in the file
-static void OnLoadCommon( WIDE( "@00 Plugins" ) )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( "@00 Plugins" )( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, WIDE( "<plugin filemask='%m'>" ), LoadConfigPlugin );
-	AddConfigurationMethod( pch, WIDE( "<plugin_load system='%m'>" ), LoadConfigPluginOn );
-	AddConfigurationMethod( pch, WIDE( "<plugin_no_load system='%m'>" ), NoLoadConfigPluginOn );
+	AddConfigurationMethod( pch, "<plugin filemask='%m'>", LoadConfigPlugin );
+	AddConfigurationMethod( pch, "<plugin_load system='%m'>", LoadConfigPluginOn );
+	AddConfigurationMethod( pch, "<plugin_no_load system='%m'>", NoLoadConfigPluginOn );
 
 }
 
 //-------------------------------------------------------------------------------
 // save at a high priority... so that plugins loaded by this might have a chance
 // to register their own load common things...
-static void OnSaveCommon( WIDE( "@00 Plugins" ) )( FILE *file )
+static void OnSaveCommon( "@00 Plugins" )( FILE *file )
 {
 	struct configured_plugin *plugin;
 	INDEX idx;
@@ -452,21 +452,21 @@ static void OnSaveCommon( WIDE( "@00 Plugins" ) )( FILE *file )
 	{
 		INDEX idx;
 		CTEXTSTR system;
-  		sack_fprintf( file, WIDE( "<plugin filemask=\'%s\'>\n" ), EscapeMenuString( plugin->plugin_full_name ) );
+  		sack_fprintf( file, "<plugin filemask=\'%s\'>\n", EscapeMenuString( plugin->plugin_full_name ) );
 		LIST_FORALL( plugin->pNoLoadOn, idx, CTEXTSTR, system )
 		{
-			sack_fprintf( file, WIDE( "<plugin_no_load system=\'%s\'>\n" ), EscapeMenuString( system ) );
+			sack_fprintf( file, "<plugin_no_load system=\'%s\'>\n", EscapeMenuString( system ) );
 		}
 		LIST_FORALL( plugin->pLoadOn, idx, CTEXTSTR, system )
 		{
-			sack_fprintf( file, WIDE( "<plugin_load system=\'%s\'>\n" ), EscapeMenuString( system ) );
+			sack_fprintf( file, "<plugin_load system=\'%s\'>\n", EscapeMenuString( system ) );
 		}
 	}
 }
 
 
 //-------------------------------------------------------------------------------
-static void OnFinishInit( WIDE( "Plugins" ) )( PSI_CONTROL pc_canvas )
+static void OnFinishInit( "Plugins" )( PSI_CONTROL pc_canvas )
 {
 	l.current_plugin = NULL; // clean this up after the config handlers above...
 }

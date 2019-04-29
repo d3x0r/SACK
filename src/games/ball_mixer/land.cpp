@@ -106,7 +106,7 @@ enum { UP
 
 #include "local.h"
 
-EasyRegisterControlWithBorder( WIDE("Terrain View"), 0, BORDER_NONE );
+EasyRegisterControlWithBorder( "Terrain View", 0, BORDER_NONE );
 
 struct world_body_map *bodymap;
 
@@ -337,7 +337,7 @@ struct band {
 			for( r = 0; r < hex_size; r++ )
 				for( c = 0; c < hex_size; c++ )
 				{
-					fprintf( file, WIDE("%g,%g,%g,\n"), patches[s].grid[c][r][0], patches[s].grid[c][r][1], patches[s].grid[c][r][2] );
+					fprintf( file, "%g,%g,%g,\n", patches[s].grid[c][r][0], patches[s].grid[c][r][1], patches[s].grid[c][r][2] );
 
 				}
 
@@ -352,15 +352,15 @@ struct band {
 				for( c = 0; c < hex_size; c++ )
 				{
 					int p;
-					fprintf( file, WIDE("\t\t") );
+					fprintf( file, "\t\t" );
 					for( p = 0; p < 4; p++ )
 					{
 						// indexes of points for squares are...
 						int idx;
 						idx = s * hex_size * hex_size + c * hex_size + r;
-						fprintf( file, WIDE("%d,%d,%d,%d,-1,"), idx, idx + 1, idx + hex_size, idx + hex_size + 1 );
+						fprintf( file, "%d,%d,%d,%d,-1,", idx, idx + 1, idx + hex_size, idx + hex_size + 1 );
 					}
-					fprintf( file, WIDE("\n") );
+					fprintf( file, "\n" );
 				}
 	}
 };
@@ -481,7 +481,7 @@ struct pole{
 				}
 			}
 					DestroyTransform( work );
-			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") ); }
+			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( "Pole Patch Excepted." ); }
 		}
 	}
 	pole( int size )
@@ -611,7 +611,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 					r++;
 				}
 				glEnd();
-				if( bLog )lprintf( WIDE("---------") );
+				if( bLog )lprintf( "---------" );
 
 				{
 					switch( s )
@@ -629,7 +629,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 				for( c = level; c <= level*2; c++ )
 				{
 					ConvertPolarToRect( level, c, &x, &y );
-					//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c,level);
+					//if( bLog )lprintf( "Render corner %d,%d", 2*level-c,level);
 					scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE + patch->height[s+(north*6)][x][y] );
 					if( north )
 						v1[1] = -v1[1];
@@ -639,7 +639,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 					{
 
 						ConvertPolarToRect( level-1, c-1, &x, &y );
-						//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c-1,level-1);
+						//if( bLog )lprintf( "Render corner %d,%d", 2*level-c-1,level-1);
 						scale( v1, pole_patch->patches[s].grid[x][y], SPHERE_SIZE + patch->height[s+(north*6)][x][y] );
 						if( north )
 							v1[1] = -v1[1];
@@ -651,7 +651,7 @@ int RenderPolePatch( PHEXPATCH patch, btScalar *m, int mode, int north )
 			}
 		}
 	}
-	//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") );return 0; }
+	//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( "Pole Patch Excepted." );return 0; }
 	return 1;
 }
 
@@ -902,7 +902,7 @@ int DrawSphereThing( PHEXPATCH patch, int mode )
 		RCOORD target1 = 40;
 		RCOORD target2 = 540;
 		RCOORD real_factor = (target1 * scale + target2 * (1.0-scale));
-		lprintf( WIDE("scale is %g   %g"), scale, real_factor );
+		lprintf( "scale is %g   %g", scale, real_factor );
 
 		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 		glPushMatrix();
@@ -1048,7 +1048,7 @@ void DistortPatch( PHEXPATCH patch
 	{
 		int p;
 		int near_points[6][3];
-		//lprintf( WIDE("Delta is %g"), delta );
+		//lprintf( "Delta is %g", delta );
 		for( p = 0; p < 6; p++ )
 		{
 			near_points[p][0] = x + delta_table[section][p][0];
@@ -1067,7 +1067,7 @@ void DistortPatch( PHEXPATCH patch
 				near_points[1][1] = 1;
 				if( x == (patch->hex_size-1) )
 				{
-					lprintf( WIDE("this isn't right... might not be...") );
+					lprintf( "this isn't right... might not be..." );
 					near_points[2][2] = 2;
 					near_points[2][0] = 1;
 					near_points[2][1] = 1;
@@ -1192,10 +1192,10 @@ static int EvalExcept( int n )
 	switch( n )
 	{
 	case 		STATUS_ACCESS_VIOLATION:
-		lprintf( WIDE("Access violation - OpenGL layer at this moment..") );
+		lprintf( "Access violation - OpenGL layer at this moment.." );
 		return EXCEPTION_EXECUTE_HANDLER;
 	default:
-		lprintf( WIDE("Filter unknown : %08X"), n );
+		lprintf( "Filter unknown : %08X", n );
 
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
@@ -1212,7 +1212,7 @@ void ParseImage( Image image, int size, int rows, int cols )
 	l.numbers.rows = rows;
 	l.numbers.cols = cols;
 
-	lprintf( WIDE("parsing image for %dx%d and size %d"), rows, cols, size );
+	lprintf( "parsing image for %dx%d and size %d", rows, cols, size );
 
 	if( size > l.numbers.max_size )
 	{
@@ -1279,7 +1279,7 @@ static void CPROC UpdateSliderVal( uintptr_t psv, PSI_CONTROL pc, int val )
 
 static void CPROC SaveColors( uintptr_t psv, PSI_CONTROL pc )
 {
-	FILE *file = sack_fopen( 0, WIDE("values.dat"), WIDE("wb") );
+	FILE *file = sack_fopen( 0, "values.dat", "wb" );
 	if( file )
 	{
 		fwrite( l.values, sizeof( l.values ), 1, file );
@@ -1289,7 +1289,7 @@ static void CPROC SaveColors( uintptr_t psv, PSI_CONTROL pc )
 
 static void CPROC LoadColors( uintptr_t psv, PSI_CONTROL pc )
 {
-	FILE *file = sack_fopen( 0, WIDE("values.dat"), WIDE("rb") );
+	FILE *file = sack_fopen( 0, "values.dat", "rb" );
 	if( file )
 	{
 		fread( l.values, sizeof( l.values ), 1, file );
@@ -1372,7 +1372,7 @@ void EndWatchBall( void )
 		}
 		else
 		{
-			//lprintf( WIDE("End watcom ball...set return to home") );
+			//lprintf( "End watcom ball...set return to home" );
 			l.return_to_home = l.last_tick + TIME_TO_HOME;
 		}
 
@@ -1406,7 +1406,7 @@ void ShowBalls( void )
 		if( patch->flags.simulated )
 		{
 			btVector3 ball_vector = patch->fallRigidBody->getWorldTransform().getOrigin();
-			lprintf( WIDE("result at %g,%g,%g"), ball_vector[0], ball_vector[1], ball_vector[2] );
+			lprintf( "result at %g,%g,%g", ball_vector[0], ball_vector[1], ball_vector[2] );
 		}
 	}
 }
@@ -1434,11 +1434,11 @@ void RackBalls( void )
 			patch->flags.fade = 0;
 			patch->fade_target_tick = 0;
 			if( 0 )
-				lprintf( WIDE("putting patch %d at %g,%g,%g"), patch->number, patch->origin[0], patch->origin[1], patch->origin[2] );
+				lprintf( "putting patch %d at %g,%g,%g", patch->number, patch->origin[0], patch->origin[1], patch->origin[2] );
 			patch->fallRigidBody->translate( btVector3( patch->origin[0], patch->origin[1], patch->origin[2] ) );
 			{
 				btTransform t;
-				//lprintf( WIDE("SET ROTATION") );
+				//lprintf( "SET ROTATION" );
 				t.setRotation(btQuaternion(0,0,0,1));
 				t.setOrigin(btVector3(patch->origin[0], patch->origin[1], patch->origin[2]));
       
@@ -1460,7 +1460,7 @@ void RackBalls( void )
 			if( 0 )
 			{
 				btVector3 ball_vector = patch->fallRigidBody->getWorldTransform().getOrigin();
-				lprintf( WIDE("result at %g,%g,%g"), ball_vector[0], ball_vector[1], ball_vector[2] );
+				lprintf( "result at %g,%g,%g", ball_vector[0], ball_vector[1], ball_vector[2] );
 			}
 		}
 	}
@@ -1473,7 +1473,7 @@ void PointCameraAtNextActiveBall( void )
 	if( !patch )
 		return;
 
-	lprintf( WIDE("Point at next active") );
+	lprintf( "Point at next active" );
 	btVector3 ball_vector = patch->fallRigidBody->getWorldTransform().getOrigin();
 	SetPoint( l.ball_grab_position, ball_vector );
 
@@ -1494,7 +1494,7 @@ void PointCameraAtNextActiveBall( void )
 
 	btTransform trans;
 	patch->fallRigidBody->getMotionState()->getWorldTransform(trans);
-	lprintf( WIDE("SET ROTATION") );
+	lprintf( "SET ROTATION" );
 	trans.setRotation( ball_orient );
 	patch->fallRigidBody->getMotionState()->setWorldTransform(trans);
 
@@ -1590,7 +1590,7 @@ void MoveBallToCameraApproach( void )
 	RCOORD delta;
 	RCOORD scale;
 	PHEXPATCH patch = (PHEXPATCH)GetLink( &l.patches, l.next_active_ball - 1 );
-	lprintf( WIDE("Ball to camera...") );
+	lprintf( "Ball to camera..." );
 	if( l.next_active_ball )
 	{
 		// the ball is not locked-to-view yet, but is being watched, or is moving into position...
@@ -1606,12 +1606,12 @@ void MoveBallToCameraApproach( void )
 	{
 		scale = 1.0;
 		// we now have a ball directly
-		lprintf( WIDE("active (%d %d, remaining %d)"), l.active_ball_forward_tick, l.last_tick, l.active_ball_forward_tick - l.last_tick );
+		lprintf( "active (%d %d, remaining %d)", l.active_ball_forward_tick, l.last_tick, l.active_ball_forward_tick - l.last_tick );
 		if( l.active_ball_forward_tick )
 		{
 			if(  l.active_ball_forward_tick < l.last_tick )
 			{
-				lprintf( WIDE("rotated.") );
+				lprintf( "rotated." );
             l.end_watch_tick = l.last_tick + l.time_to_watch_ball;
 				rotating =FALSE;
 				rotated = TRUE;
@@ -1660,7 +1660,7 @@ void MoveBallToCameraApproach( void )
 	//btVector3 new_ball_pos = ((l.ball_grab_position -bt_camera_origin) *( 1.0 - scale )) + bt_camera_origin;
 	if( 0 )
 	{
-		lprintf( WIDE("new ball pos = %g,%g,%g  (from %g,%g,%g to %g,%g,%g)  %g %g")
+		lprintf( "new ball pos = %g,%g,%g  (from %g,%g,%g to %g,%g,%g)  %g %g"
 			, new_ball_pos[0], new_ball_pos[1], new_ball_pos[2]
 						, l.ball_grab_position[0]
 						, l.ball_grab_position[1]
@@ -1699,7 +1699,7 @@ void MoveBallToCameraApproach( void )
 			ball_orient = ball_orient * ( 1.0 - delta ) + ball_orient2 * delta;
 		}
 	}
-	//lprintf( WIDE("Ball orient %g,%g,%g,%g"), ball_orient[0], ball_orient[1], ball_orient[2], ball_orient[3] );
+	//lprintf( "Ball orient %g,%g,%g,%g", ball_orient[0], ball_orient[1], ball_orient[2], ball_orient[3] );
 	trans.setRotation( ball_orient );
 
 	patch->fallRigidBody->getMotionState()->setWorldTransform(trans);
@@ -1719,7 +1719,7 @@ void MoveCameraToHome( void )
 		scaled_quat[n] = Avg( l.initial_view_quat[n], l.final_view_quat[n]
 		                    , delta, TIME_TO_HOME );
 		/*
-		lprintf( WIDE("quat %d %g %g %g %d %d")
+		lprintf( "quat %d %g %g %g %d %d"
 			, n, scaled_quat[n], l.final_view_quat[n], l.initial_view_quat[n]
 		    , l.return_to_home-l.last_tick
 			, TIME_TO_HOME );
@@ -1740,18 +1740,18 @@ void MoveCameraToHome( void )
 		                    , delta, TIME_TO_HOME );
 	}
 	//scaled_quat[0] = -scaled_quat[0];
-	lprintf( WIDE("SET ROTATION") );
+	lprintf( "SET ROTATION" );
 	SetRotationMatrix( l.transform, scaled_quat );
 	{
 		RCOORD test[4];
 		//GetRotationMatrix( l.transform, test );
-		//lprintf( WIDE("%g %g %g %g"), test[0], test[1], test[2], test[3] );
+		//lprintf( "%g %g %g %g", test[0], test[1], test[2], test[3] );
 	}
 				
 	TranslateV( l.transform, scaled_origin  );
 }
 
-static void OnFirstDraw3d( WIDE( "Terrain View" ) )( uintptr_t psvInit )
+static void OnFirstDraw3d( "Terrain View" )( uintptr_t psvInit )
 {
 	PTRANSFORM camera = (PTRANSFORM)psvInit;
 	// and really if initshader fails, it sets up in local flags and 
@@ -1787,7 +1787,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( uintptr_t psvInit )
 				TEXTCHAR text[12];
 				PTRANSFORM t;
 				uint32_t w, h;
-				snprintf( text, 12, WIDE("%d"), patch->number );
+				snprintf( text, 12, "%d", patch->number );
 				GetStringSizeFont( text, &w, &h, NULL );
 				PutStringFont( patch->label, (60-w)/2, (20-h)/2, BASE_COLOR_WHITE, 0, text, NULL );
 				t = GetImageTransformation( patch->label );
@@ -1817,7 +1817,7 @@ static void OnFirstDraw3d( WIDE( "Terrain View" ) )( uintptr_t psvInit )
 
 }
 
-static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( "Terrain View" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	l.identity_depth = identity_depth;
 	l.aspect = aspect;
@@ -1825,15 +1825,15 @@ static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSF
 	l.numbers.image = LoadImageFile( l.numbers.image_name );
 	l.numbers.bump_image = LoadImageFile( l.numbers.bump_image_name );
 	ParseImage( l.numbers.image, l.hex_size						
-		, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Rows"), 11 )
-		, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Cols"), 10 )
+		, SACK_GetProfileInt( "Ball Animation", "Ball Numbers Rows", 11 )
+		, SACK_GetProfileInt( "Ball Animation", "Ball Numbers Cols", 10 )
 		);
 
 	l.logo = LoadImageFile( l.logo_name );
 
 	// override display default camera
 	{
-		PTRANSFORM transform = CreateNamedTransform( WIDE("render.camera") );
+		PTRANSFORM transform = CreateNamedTransform( "render.camera" );
 		RCOORD quat[4];
 
 		//<-31.9047,309.653,711.449> <0.0023503,0.0506664,0.996322,-0.0690609>
@@ -1850,7 +1850,7 @@ static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSF
 }
 
 static void CPROC UpdatePositions( uintptr_t psv );
-static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
+static LOGICAL OnUpdate3d( "Terrain View" )( PTRANSFORM origin )
 {
 	l.transform = origin;
 	{
@@ -1860,17 +1860,17 @@ static LOGICAL OnUpdate3d( WIDE( "Terrain View" ) )( PTRANSFORM origin )
 	GetRotationMatrix( l.transform, l.initial_view_quat );
 
 #ifdef DEBUG_TIMING
-	lprintf( WIDE("Tick.") );
+	lprintf( "Tick." );
 #endif
 	UpdatePositions( 0 );  // updates last_tick to now.
 #ifdef DEBUG_TIMING
-	lprintf( WIDE("(end tick physics)Tick.") );
+	lprintf( "(end tick physics)Tick." );
 #endif
    return TRUE;
 }
 
 LOGICAL hold_update;
-static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv,PTRANSFORM camera )
+static void OnBeginDraw3d( "Terrain View" )( uintptr_t psv,PTRANSFORM camera )
 {
 	int mode = 1;
 #ifndef GL_LIGHT_MODEL_COLOR_CONTROL
@@ -1908,7 +1908,7 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv,PTRANSFORM ca
 
 	if( l.return_to_home )
 	{
-		lprintf( WIDE("return to home...") );
+		lprintf( "return to home..." );
 		if( 1 )
 		{
 			l.return_to_home = 0;
@@ -1925,7 +1925,7 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv,PTRANSFORM ca
 			}
 			else
 			{
-				//lprintf( WIDE("at home position...") );
+				//lprintf( "at home position..." );
 				if( l.active_ball )
 				{
 					FadeBall( l.active_ball );
@@ -1946,14 +1946,14 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv,PTRANSFORM ca
 	// update the camera to one of the balls....
 	else if( l.next_active_ball && !l.active_ball )
 	{
-		lprintf( WIDE("next ball is %d now(%d)  watch(%d)  next(%d)  endwatch(%d)")
+		lprintf( "next ball is %d now(%d)  watch(%d)  next(%d)  endwatch(%d)"
 				 , l.last_tick, l.next_active_ball
 				 , l.watch_ball_tick
 				 , l.next_active_tick
 				 , l.end_watch_tick );
 		if( l.next_active_ball && l.watch_ball_tick || l.next_active_tick == 0 )
 		{
-			lprintf( WIDE("Pointing camera...") );
+			lprintf( "Pointing camera..." );
 			PointCameraAtNextActiveBall();
 			// when we are done watching; clear watch flag.
 			if( l.watch_ball_tick <= l.last_tick )
@@ -1967,7 +1967,7 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv,PTRANSFORM ca
 		{
 			if( l.next_active_tick < l.last_tick )
 			{
-				lprintf( WIDE("Trigger pivot") );
+				lprintf( "Trigger pivot" );
 				l.active_ball = l.next_active_ball;
 				l.next_active_ball = 0;
 				l.next_active_tick = 0;
@@ -1985,10 +1985,10 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv,PTRANSFORM ca
 	else if( l.active_ball )
 	{
 		PHEXPATCH ball = (PHEXPATCH)GetLink( &l.patches, l.active_ball-1 ); // pick one of the balls to follow....
-		lprintf( WIDE("active ball...") );
+		lprintf( "active ball..." );
 		if( !ball->flags.simulated && !ball->flags.grabbed )
 		{
-			lprintf( WIDE("No ball.") );
+			lprintf( "No ball." );
 			// no, ball is no longer simulated.
 			l.active_ball = 0;
 			l.return_to_home = l.last_tick + TIME_TO_HOME;
@@ -1997,13 +1997,13 @@ static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv,PTRANSFORM ca
 	}
 	else
 	{
-		//lprintf( WIDE("begin watch   %d"), l.nNextBalls[0] );
+		//lprintf( "begin watch   %d", l.nNextBalls[0] );
 		BeginWatch( l.nNextBalls[0] );
-		//lprintf( WIDE("at home position") );
+		//lprintf( "at home position" );
 	}
 }
 
-static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvInit )
+static void OnDraw3d( "Terrain View" )( uintptr_t psvInit )
 {
 	MATRIX m;
 	static uint32_t prior_tick;
@@ -2013,12 +2013,12 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvInit )
 	static uint32_t fps;
 	frames++;
 #ifdef DEBUG_TIMING
-	lprintf( WIDE("Tick.") );
+	lprintf( "Tick." );
 #endif
 	do
 	{
 #ifdef DEBUG_TIMING7
-		lprintf( WIDE("fps:%d (%d/%d %d)"), fps, frames, now-prior_tick, (now-prior_tick)/frames  );
+		lprintf( "fps:%d (%d/%d %d)", fps, frames, now-prior_tick, (now-prior_tick)/frames  );
 #endif
 		if( ( frames % 100 ) == 0 )
 		{
@@ -2034,7 +2034,7 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvInit )
 
 		if( prior_tick )
 		{
-			//lprintf( WIDE("delay time: %ld / %d (%d)"), now - prior_tick, frames, (now - prior_tick)/ frames );
+			//lprintf( "delay time: %ld / %d (%d)", now - prior_tick, frames, (now - prior_tick)/ frames );
 			
 			if( frames == 10 )
 			{
@@ -2047,8 +2047,8 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvInit )
 				
 					l.hex_size = l.hex_size + 1;
 					ParseImage( l.numbers.image, l.hex_size
-						, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Rows"), 11 ) 
-						, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Cols"), 10 ) 
+						, SACK_GetProfileInt( "Ball Animation", "Ball Numbers Rows", 11 ) 
+						, SACK_GetProfileInt( "Ball Animation", "Ball Numbers Cols", 10 ) 
 						);
 						{
 							INDEX idx;
@@ -2074,8 +2074,8 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvInit )
 					{
 						l.hex_size = l.hex_size / 2;
 						ParseImage( l.numbers.image, l.hex_size
-							, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Rows"), 11 ) 
-							, SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Numbers Cols"), 10 ) 
+							, SACK_GetProfileInt( "Ball Animation", "Ball Numbers Rows", 11 ) 
+							, SACK_GetProfileInt( "Ball Animation", "Ball Numbers Cols", 10 ) 
 							);
 						{
 							INDEX idx;
@@ -2341,13 +2341,13 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvInit )
 	}
 	//					__except( EvalExcept( GetExceptionCode() ) )
 					{
-		//				lprintf( WIDE(WIDE(" ...")) );
+		//				lprintf( WIDE(" ...") );
 						;
 					}
 #endif
 	hold_update = FALSE;
 #ifdef DEBUG_TIMING
-	lprintf( WIDE("(end draw Tick.") );
+	lprintf( "(end draw Tick." );
 #endif
 	return;
 }
@@ -2457,7 +2457,7 @@ CRITICALSECTION csUpdate;
 
 	if( l.last_tick )
 	{
-		//lprintf( WIDE("Step simulation %d"), now-l.last_tick );
+		//lprintf( "Step simulation %d", now-l.last_tick );
 		l.bullet.dynamicsWorld->stepSimulation( (now-l.last_tick)/(TIME_SCALE*1000.f), 20, 0.016/TIME_SCALE );
 	}
 	l.last_tick = now;
@@ -2638,9 +2638,9 @@ void CreateMixerBar( struct BulletInfo *_bullet )
 		, btVector3( 0, 1, 0 ) // axisInB
 		, true // use refernceframeA (the ground)
 		);
-	//lprintf( WIDE("yesno = %d"), pivot->getAngularOnly() );
-	//lprintf( WIDE("Limits = %g"), pivot->getLowerLimit() );
-	//lprintf( WIDE("Limits = %g"), pivot->getUpperLimit() );
+	//lprintf( "yesno = %d", pivot->getAngularOnly() );
+	//lprintf( "Limits = %g", pivot->getLowerLimit() );
+	//lprintf( "Limits = %g", pivot->getUpperLimit() );
 	pivot->setLimit( 1, -1
 		, 0.1  // softness
 		, 0.3 // biasFactor
@@ -2666,7 +2666,7 @@ void TestPopulatedBullet( struct BulletInfo *_bullet )
                 btTransform trans;
                 _bullet->fallRigidBody->getMotionState()->getWorldTransform(trans);
  
-                lprintf( WIDE("sphere height: %g"), trans.getOrigin().getY() );
+                lprintf( "sphere height: %g", trans.getOrigin().getY() );
         }
 }
 
@@ -2725,7 +2725,7 @@ void CPROC tick( uintptr_t psv )
 		}
 		break;
 	case 2:
-		lprintf( WIDE("***** BEGIN PIVOT ") );
+		lprintf( "***** BEGIN PIVOT " );
 		BeginPivot();
 		l.demo_tick_delay = now + l.demo_time_wait_front;
 		phase = 3;
@@ -2751,7 +2751,7 @@ PRELOAD( InitDisplay )
 	//PopulateBulletTest( &l.bullet );
 	//TestPopulatedBullet( &l.bullet );
 
-	if( SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Enable Demo Mode"), 1 ) )
+	if( SACK_GetProfileInt( "Ball Animation", "Enable Demo Mode", 1 ) )
 	{
 		AddTimer( 100, tick, 0 );
 	}
@@ -2761,60 +2761,60 @@ PRELOAD( InitDisplay )
 	//l.active_ball = 20;
 	//l.active_ball_forward_tick = timeGetTime();
 	
-	l.time_to_home = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to home position"), 750 );
+	l.time_to_home = SACK_GetProfileInt( "Ball Animation", "time to home position", 750 );
 	l.time_to_home = 4000;
-	l.time_to_track = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to track ball"), 1500 );
-	l.time_to_rack = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to rack ball"), 1800 );
-	l.time_to_approach = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to approach ball"), 1500 );
-	l.time_to_turn_ball = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to turn ball"), 800 );
-   l.time_to_watch_ball = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("time to watch ball"), 4000 );
+	l.time_to_track = SACK_GetProfileInt( "Ball Animation", "time to track ball", 1500 );
+	l.time_to_rack = SACK_GetProfileInt( "Ball Animation", "time to rack ball", 1800 );
+	l.time_to_approach = SACK_GetProfileInt( "Ball Animation", "time to approach ball", 1500 );
+	l.time_to_turn_ball = SACK_GetProfileInt( "Ball Animation", "time to turn ball", 800 );
+   l.time_to_watch_ball = SACK_GetProfileInt( "Ball Animation", "time to watch ball", 4000 );
 
 		 
-	l.demo_time_wait_after_drop  = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to pick first ball"), 12000 );
+	l.demo_time_wait_after_drop  = SACK_GetProfileInt( "Ball Animation", "Demo Mode/time to pick first ball", 12000 );
    // this also is time to watch, time to approach plus some time.
-	l.demo_time_wait_turn = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to wait on back"), 3200 );
-	l.demo_time_wait_front = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to wait on front"), 5000 );
-	l.demo_time_to_pick_ball = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Demo Mode/time to pick a new ball"), 7000 );
+	l.demo_time_wait_turn = SACK_GetProfileInt( "Ball Animation", "Demo Mode/time to wait on back", 3200 );
+	l.demo_time_wait_front = SACK_GetProfileInt( "Ball Animation", "Demo Mode/time to wait on front", 5000 );
+	l.demo_time_to_pick_ball = SACK_GetProfileInt( "Ball Animation", "Demo Mode/time to pick a new ball", 7000 );
 
 
-	l.flags.nextball_mode = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Display as Nextball mode"), 0 );
+	l.flags.nextball_mode = SACK_GetProfileInt( "Ball Animation", "Display as Nextball mode", 0 );
 	if( !l.flags.nextball_mode )
-		l.show_ball_time = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Show Ball For How long"), 8000 );
+		l.show_ball_time = SACK_GetProfileInt( "Ball Animation", "Show Ball For How long", 8000 );
 	else
-		l.show_back_time = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Show Ball back For How long"), 2000 );
+		l.show_back_time = SACK_GetProfileInt( "Ball Animation", "Show Ball back For How long", 2000 );
 
-	l.fade_duration = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Called balls fade in how long"), 1300 );
-	l.hex_size = SACK_GetProfileInt( WIDE("Ball Animation"), WIDE("Ball Resolution"), 9 );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Player Appreciation"), WIDE("Images/balls/PlayerBall.png"), name, 256 );
+	l.fade_duration = SACK_GetProfileInt( "Ball Animation", "Called balls fade in how long", 1300 );
+	l.hex_size = SACK_GetProfileInt( "Ball Animation", "Ball Resolution", 9 );
+	SACK_GetProfileString( "Ball Animation", "Images/Player Appreciation", "Images/balls/PlayerBall.png", name, 256 );
 	l.player_image = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Wild Ball"), WIDE("Images/balls/wild.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Wild Ball", "Images/balls/wild.png", name, 256 );
 	l.wild_image = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 1"), WIDE("Images/balls/hotballtext.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 1", "Images/balls/hotballtext.png", name, 256 );
 	l.hotball_image[0] = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 2"), WIDE("Images/balls/troll.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 2", "Images/balls/troll.png", name, 256 );
 	l.hotball_image[1] = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 3"), WIDE("Images/balls/hotballtext.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 3", "Images/balls/hotballtext.png", name, 256 );
 	l.hotball_image[2] = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 4"), WIDE("Images/balls/hotballtext.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 4", "Images/balls/hotballtext.png", name, 256 );
 	l.hotball_image[3] = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 5"), WIDE("Images/balls/hotballtext.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 5", "Images/balls/hotballtext.png", name, 256 );
 	l.hotball_image[4] = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 6"), WIDE("Images/balls/hotballtext.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 6", "Images/balls/hotballtext.png", name, 256 );
 	l.hotball_image[5] = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 7"), WIDE("Images/balls/hotballtext.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 7", "Images/balls/hotballtext.png", name, 256 );
 	l.hotball_image[6] = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 8"), WIDE("Images/balls/hotballtext.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 8", "Images/balls/hotballtext.png", name, 256 );
 	l.hotball_image[7] = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 9"), WIDE("Images/balls/hotballtext.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 9", "Images/balls/hotballtext.png", name, 256 );
 	l.hotball_image[8] = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 10"), WIDE("Images/balls/hotballtext.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 10", "Images/balls/hotballtext.png", name, 256 );
 	l.hotball_image[9] = LoadImageFile( name );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Hotball 11"), WIDE("Images/balls/hotballtext.png"), name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Hotball 11", "Images/balls/hotballtext.png", name, 256 );
 	l.hotball_image[10] = LoadImageFile( name );
 
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Logo"), WIDE("Images/balls/logoblank.png"), l.logo_name, 256 );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers"), WIDE("Images/balls/NewBallTextGrid.png"), l.numbers.image_name, 256 );
-	SACK_GetProfileString( WIDE("Ball Animation"), WIDE("Images/Ball Numbers Normal"), WIDE("Images/balls/roughbump.png"), l.numbers.bump_image_name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Ball Logo", "Images/balls/logoblank.png", l.logo_name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Ball Numbers", "Images/balls/NewBallTextGrid.png", l.numbers.image_name, 256 );
+	SACK_GetProfileString( "Ball Animation", "Images/Ball Numbers Normal", "Images/balls/roughbump.png", l.numbers.bump_image_name, 256 );
 
 
 	InitializeCriticalSec( &csUpdate );

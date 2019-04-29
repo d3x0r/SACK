@@ -1284,7 +1284,7 @@ PRIORITY_PRELOAD( RegisterAndroidNativeWindowInterface, VIDLIB_PRELOAD_PRIORITY 
 	l.flags.display_closed = 1;
 	LoadFunction( "libbag.image.so", NULL );
 	l.real_interface = (PIMAGE_INTERFACE)GetInterface( "sack.image" );
-	RegisterInterface( WIDE( "sack.render.android" ), GetAndroidANWDisplayInterface, DropAndroidANWDisplayInterface );
+	RegisterInterface( "sack.render.android", GetAndroidANWDisplayInterface, DropAndroidANWDisplayInterface );
 	InitAndroidANWInterface();
    l.default_background = LoadImageFile( "images/sky.jpg" );
 }
@@ -1467,11 +1467,11 @@ static void InvokeDisplaySizeChange( PRENDERER r, int nDisplay, int32_t x, int32
    PVPRENDER render = (PVPRENDER)r;
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
-	for( name = GetFirstRegisteredName( WIDE("sack/render/display"), &data );
+	for( name = GetFirstRegisteredName( "sack/render/display", &data );
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		size_change = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,WIDE("on_display_size_change"),( uintptr_t psv_redraw, int nDisplay, int32_t x, int32_t y, uint32_t width, uint32_t height ));
+		size_change = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,"on_display_size_change",( uintptr_t psv_redraw, int nDisplay, int32_t x, int32_t y, uint32_t width, uint32_t height ));
 
 		if( size_change )
 			size_change( render->psv_redraw, nDisplay, x, y, width, height );
@@ -1484,11 +1484,11 @@ static void InvokePause( void )
 	void (CPROC *pause)(void);
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
-	for( name = GetFirstRegisteredName( WIDE("sack/render/android/display"), &data );
+	for( name = GetFirstRegisteredName( "sack/render/android/display", &data );
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		pause = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,WIDE("on_display_pause"),(void));
+		pause = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,"on_display_pause",(void));
 
 		if( pause )
 			pause();
@@ -1502,11 +1502,11 @@ static void InvokeResume( void )
 	void (CPROC *resume)(void);
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
-	for( name = GetFirstRegisteredName( WIDE("sack/render/android/display"), &data );
+	for( name = GetFirstRegisteredName( "sack/render/android/display", &data );
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		resume = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,WIDE("on_display_resume"),(void));
+		resume = GetRegisteredProcedureExx( data,(CTEXTSTR)name,void,"on_display_resume",(void));
 
 		if( resume )
 			resume();

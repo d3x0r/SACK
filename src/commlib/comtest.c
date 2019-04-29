@@ -4,7 +4,7 @@
 
 void CPROC callback( uintptr_t psv, int com, POINTER buffer, int len )
 {
-	lprintf( WIDE("received %p %d\n"), buffer, len );
+	lprintf( "received %p %d\n", buffer, len );
 	LogBinary( buffer, len );
 }
 

@@ -83,11 +83,11 @@ void InitPing( CTEXTSTR address )
 	rawSocket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
    if (rawSocket == SOCKET_ERROR)
 	{
-		lprintf( WIDE("Uhmm bad things happened for sockraw!\n") );
+		lprintf( "Uhmm bad things happened for sockraw!\n" );
        if( WSAGetLastError() == 10013 )
        {
-			 lprintf(  WIDE("User is not an administrator, cannot create a RAW socket.\n")
-						WIDE("Unable to override this.\n"));
+			 lprintf(  "User is not an administrator, cannot create a RAW socket.\n"
+						"Unable to override this.\n");
            return;
        }
        else
@@ -332,7 +332,7 @@ int RecvEchoReply(TEXTSTR pResult, SOCKET s, SOCKADDR_IN *lpsaFrom, u_char *pTTL
 // What happened?
 TEXTSTR ReportError(TEXTSTR pInto, TEXTSTR pWhere)
 {
-    return pInto + sprintf( pInto, WIDE("\n%s error: %d\n"),
+    return pInto + sprintf( pInto, "\n%s error: %d\n",
                             pWhere, WSAGetLastError());
 }
 

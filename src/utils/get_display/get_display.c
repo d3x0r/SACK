@@ -77,7 +77,7 @@ void GetDisplaySizeEx( int nDisplay
 			{
 				RECT r;
 				GetWindowRect (GetDesktopWindow (), &r);
-				//Log4( WIDE("Desktop rect is: %d, %d, %d, %d"), r.left, r.right, r.top, r.bottom );
+				//Log4( "Desktop rect is: %d, %d, %d, %d", r.left, r.right, r.top, r.bottom );
 				if (width)
 					*width = r.right - r.left;
 				if (height)

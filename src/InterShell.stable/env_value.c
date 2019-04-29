@@ -29,9 +29,9 @@ typedef struct button_set_text *PSETVAR;
 
 PRELOAD( AliasPageTitle )
 {
-	EasyRegisterResource( WIDE( "intershell/Set Environment" ), BTN_VARNAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "intershell/Set Environment" ), BTN_VARVAL, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "intershell/Set Environment" ), CHECKBOX_USER_VARIABLE, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "intershell/Set Environment", BTN_VARNAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "intershell/Set Environment", BTN_VARVAL, EDIT_FIELD_NAME );
+	EasyRegisterResource( "intershell/Set Environment", CHECKBOX_USER_VARIABLE, RADIO_BUTTON_NAME );
 }
 
 static void SetEnvVariable( CTEXTSTR name, CTEXTSTR value, LOGICAL bUser )
@@ -46,11 +46,11 @@ static void SetEnvVariable( CTEXTSTR name, CTEXTSTR value, LOGICAL bUser )
 	//HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
 	if( bUser )
 		dwStatus = RegOpenKeyEx( HKEY_CURRENT_USER,
-								WIDE("Environment"), 0,
+								"Environment", 0,
 										KEY_WRITE, &hTemp );
 	else
 		dwStatus = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
-		 						WIDE("SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment"), 0,
+		 						"SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", 0,
 										KEY_WRITE, &hTemp );
 
 	if( dwStatus == ERROR_FILE_NOT_FOUND )
@@ -58,7 +58,7 @@ static void SetEnvVariable( CTEXTSTR name, CTEXTSTR value, LOGICAL bUser )
 	}
 	if( (dwStatus == ERROR_SUCCESS) && hTemp )
 	{
-		//lprintf( WIDE("Write shell to: %s"), my_button->shell );
+		//lprintf( "Write shell to: %s", my_button->shell );
 		dwStatus = RegSetValueEx(hTemp, name, 0
                                 , REG_SZ
                                 , (BYTE*)value, strlen( value ) );
@@ -67,19 +67,19 @@ static void SetEnvVariable( CTEXTSTR name, CTEXTSTR value, LOGICAL bUser )
 		{
 		}
 		else
-			Banner2Message( WIDE("Failed to set environment variable") );
+			Banner2Message( "Failed to set environment variable" );
 	}
 	else
 	{
 		if( bUser )
-			Banner2Message( WIDE("Failed to open User environment registry") );
+			Banner2Message( "Failed to open User environment registry" );
 		else
-			Banner2Message( WIDE("Failed to open System environment registry") );
+			Banner2Message( "Failed to open System environment registry" );
 	}
 #endif
 }
 
-static void OnKeyPressEvent( WIDE( "InterShell/Set Environment" ) )( uintptr_t psv )
+static void OnKeyPressEvent( "InterShell/Set Environment" )( uintptr_t psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	SetEnvVariable( pSetVar->varname, pSetVar->newval, pSetVar->bUser );
@@ -87,21 +87,21 @@ static void OnKeyPressEvent( WIDE( "InterShell/Set Environment" ) )( uintptr_t p
 	//return 1;
 }
 
-static uintptr_t OnCreateMenuButton( WIDE( "InterShell/Set Environment" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "InterShell/Set Environment" )( PMENU_BUTTON button )
 {
 	PSETVAR pSetVar = New( SETVAR );
 	pSetVar->varname = NULL;
 	pSetVar->newval = NULL;
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
 
 	return (uintptr_t)pSetVar;
 }
 
-static uintptr_t OnConfigureControl( WIDE( "InterShell/Set Environment" ) )( uintptr_t psv, PSI_CONTROL parent )
+static uintptr_t OnConfigureControl( "InterShell/Set Environment" )( uintptr_t psv, PSI_CONTROL parent )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
 	PSI_CONTROL frame;
-	frame = LoadXMLFrameOver( parent, WIDE( "configure_environment_setvar_button.isframe" ) );
+	frame = LoadXMLFrameOver( parent, "configure_environment_setvar_button.isframe" );
 	if( frame )
 	{
 		int okay = 0;
@@ -134,15 +134,15 @@ static uintptr_t OnConfigureControl( WIDE( "InterShell/Set Environment" ) )( uin
 	return psv;
 }
 
-static void OnSaveControl( WIDE( "InterShell/Set Environment" ) )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "InterShell/Set Environment" )( FILE *file, uintptr_t psv )
 {
 	PSETVAR pSetVar = (PSETVAR)psv;
-	sack_fprintf( file, WIDE( "Set Environment User=%s\n" ), pSetVar->bUser?WIDE("yes"):WIDE("no") );
-	sack_fprintf( file, WIDE( "Set Environment text name=%s\n" ), EscapeMenuString( pSetVar->varname ) );
-	sack_fprintf( file, WIDE( "Set Environment text value=%s\n" ), EscapeMenuString( pSetVar->newval ) );
+	sack_fprintf( file, "Set Environment User=%s\n", pSetVar->bUser?"yes":"no" );
+	sack_fprintf( file, "Set Environment text name=%s\n", EscapeMenuString( pSetVar->varname ) );
+	sack_fprintf( file, "Set Environment text value=%s\n", EscapeMenuString( pSetVar->newval ) );
 }
 
-static void OnCloneControl( WIDE( "InterShell/Set Environment" ) )( uintptr_t psvNew, uintptr_t psvOld )
+static void OnCloneControl( "InterShell/Set Environment" )( uintptr_t psvNew, uintptr_t psvOld )
 {
 	PSETVAR pSetVarNew = (PSETVAR)psvNew;
 	PSETVAR pSetVarOld = (PSETVAR)psvOld;
@@ -175,9 +175,9 @@ static uintptr_t CPROC SetVariableUser( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE( "InterShell/Set Environment" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "InterShell/Set Environment" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch,  WIDE( "Set Environment user=%b" ), SetVariableUser );
-	AddConfigurationMethod( pch,  WIDE( "Set Environment text name=%m" ), SetVariableVariableName );
-	AddConfigurationMethod( pch,  WIDE( "Set Environment text value=%m" ), SetVariableVariableValue );
+	AddConfigurationMethod( pch,  "Set Environment user=%b", SetVariableUser );
+	AddConfigurationMethod( pch,  "Set Environment text name=%m", SetVariableVariableName );
+	AddConfigurationMethod( pch,  "Set Environment text value=%m", SetVariableVariableValue );
 }

@@ -1,5 +1,5 @@
 
-#define CONTROL_SCROLL_KNOB_NAME WIDE("Scroll Knob" )
+#define CONTROL_SCROLL_KNOB_NAME "Scroll Knob"
 
 typedef void (CPROC *KnobEvent)( uintptr_t psv, int ticks );
 

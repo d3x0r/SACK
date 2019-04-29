@@ -57,20 +57,20 @@ __declspec(dllimport)
 #ifndef __GNUC__
 
 #define NUM_METHODS ( sizeof( methods ) / sizeof( methods[0] ))
-static option_entry methods[] = { { DEFTEXT( WIDE("keybind") ), 4, 7, DEFTEXT( WIDE("Redefine a key...") ), KeyBind }
-                         , { DEFTEXT( WIDE("keyunbind") ), 4, 9, DEFTEXT( WIDE("Undefine a key...") ), KeyUnBind }
-                         , { DEFTEXT( WIDE("setcolor") ), 4, 8, DEFTEXT( WIDE("Set default terminal color") ), ConSetColor }
-                                 , { DEFTEXT( WIDE("history") ), 3, 7, DEFTEXT( WIDE("Show status of histor") ), HistoryStat }
-                                 , { DEFTEXT( WIDE("mode") ), 4, 4, DEFTEXT( WIDE("Set display modes (direct/line) (TEXTCHAR/buffer)")), SetMode }
+static option_entry methods[] = { { DEFTEXT( "keybind" ), 4, 7, DEFTEXT( "Redefine a key..." ), KeyBind }
+                         , { DEFTEXT( "keyunbind" ), 4, 9, DEFTEXT( "Undefine a key..." ), KeyUnBind }
+                         , { DEFTEXT( "setcolor" ), 4, 8, DEFTEXT( "Set default terminal color" ), ConSetColor }
+                                 , { DEFTEXT( "history" ), 3, 7, DEFTEXT( "Show status of histor" ), HistoryStat }
+                                 , { DEFTEXT( "mode" ), 4, 4, DEFTEXT( "Set display modes (direct/line) (TEXTCHAR/buffer)"), SetMode }
 #ifdef WINCON
-                         , { DEFTEXT( WIDE("flash") ), 5, 5, DEFTEXT( WIDE("Flash the window in the taskbar")), SetFlash }
+                         , { DEFTEXT( "flash" ), 5, 5, DEFTEXT( "Flash the window in the taskbar"), SetFlash }
 #endif
-                         , { DEFTEXT( WIDE("tabsize")), 3, 7, DEFTEXT( WIDE("Set the size of the tab character") ), SetTabs }
-                         , { DEFTEXT( WIDE("sethistory")), 4, 10, DEFTEXT( WIDE("Set the size of history") ), SetHistory }
-                         //, { DEFTEXT( WIDE("status") ), 3, 6, DEFTEXT( WIDE("Define a status field in the status bar")), StatusField }
-//, { DEFTEXT( WIDE("update") ), 3, 6, DEFTEXT( WIDE("Refresh that status bar's values") ), UpdateStatusBar }
+                         , { DEFTEXT( "tabsize"), 3, 7, DEFTEXT( "Set the size of the tab character" ), SetTabs }
+                         , { DEFTEXT( "sethistory"), 4, 10, DEFTEXT( "Set the size of history" ), SetHistory }
+                         //, { DEFTEXT( "status" ), 3, 6, DEFTEXT( "Define a status field in the status bar"), StatusField }
+//, { DEFTEXT( "update" ), 3, 6, DEFTEXT( "Refresh that status bar's values" ), UpdateStatusBar }
 //#if 0
-                           , { DEFTEXT( WIDE("dump") ), 1, 4, DEFTEXT( WIDE("Dumps history to a file")), DumpHistory }
+                           , { DEFTEXT( "dump" ), 1, 4, DEFTEXT( "Dumps history to a file"), DumpHistory }
 //#endif
 };
 #endif
@@ -78,13 +78,13 @@ static option_entry methods[] = { { DEFTEXT( WIDE("keybind") ), 4, 7, DEFTEXT( W
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
 #if defined( CURSECON )
-#define NAME WIDE("cursecon")
+#define NAME "cursecon"
 #elif defined( PSICON )
-#define NAME WIDE("psicon")
+#define NAME "psicon"
 #elif defined( WINCON )
-#define NAME WIDE("wincon")
+#define NAME "wincon"
 #elif defined( CONSOLECON )
-#define NAME WIDE("console")
+#define NAME "console"
 #endif
 
 	//	DebugBreak();
@@ -98,7 +98,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 		}
 	}
 #endif
-   //myTypeID = RegisterDeviceOpts( NAME, WIDE("interface device...."), CreateConsole, methods, NUM_METHODS  );
+   //myTypeID = RegisterDeviceOpts( NAME, "interface device....", CreateConsole, methods, NUM_METHODS  );
    return DekVersion;
 }
 

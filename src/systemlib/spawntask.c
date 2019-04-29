@@ -42,7 +42,7 @@ typedef struct task_info_tag TASK_INFO;
 static int DumpErrorEx( DBG_VOIDPASS )
 #define DumpError() DumpErrorEx( DBG_VOIDSRC )
 {
-	_lprintf(DBG_RELAY)( WIDE("Failed create process:%d"), GetLastError() );
+	_lprintf(DBG_RELAY)( "Failed create process:%d", GetLastError() );
 	return 0;
 }
 #endif
@@ -70,7 +70,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 					lastloop = TRUE;
 				{
 						if( task->flags.log_input )
-							lprintf( WIDE( "Go to read task's stdout." ) );
+							lprintf( "Go to read task's stdout." );
 #ifdef _WIN32
 						if( !task->flags.process_ended &&
 							 ReadFile( phi->handle
@@ -84,18 +84,18 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 							if( !dwRead )
 							{
 #  ifdef _DEBUG
-												//lprintf( WIDE( "Ending system thread because of broke pipe! %d" ), errno );
+												//lprintf( "Ending system thread because of broke pipe! %d", errno );
 #  endif
 #  ifdef WIN32
 								continue;
 #  else
-												//lprintf( WIDE( "0 read = pipe failure." ) );
+												//lprintf( "0 read = pipe failure." );
 								break;
 #  endif
 							}
 #endif
 							if( task->flags.log_input )
-								lprintf( WIDE( "got read on task's stdout: %d" ), dwRead );
+								lprintf( "got read on task's stdout: %d", dwRead );
 							if( task->flags.bSentIoTerminator )
 							{
 								if( dwRead > 1 )
@@ -103,12 +103,12 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 								else
 								{
 									if( task->flags.log_input )
-										lprintf( WIDE( "Finished, no more data, task has ended; no need for once more around" ) );
+										lprintf( "Finished, no more data, task has ended; no need for once more around" );
 									lastloop = 1;
 									break; // we're done; task ended, and we got an io terminator on XP
 								}
 							}
-							//lprintf( WIDE( "result %d" ), dwRead );
+							//lprintf( "result %d", dwRead );
 							GetText( pInput )[dwRead] = 0;
 							pInput->data.size = dwRead;
 							//LogBinary( GetText( pInput ), GetTextSize( pInput ) );
@@ -129,7 +129,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 								{
 									if( dwAvail > 0 )
 									{
-										lprintf( WIDE( "caught data" ) );
+										lprintf( "caught data" );
 										// there is still data in the pipe, just that the process closed
 										// and we got the sync even before getting the data.
 									}
@@ -153,12 +153,12 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 #ifdef _DEBUG
 			if( lastloop )
 			{
-				//DECLTEXT( msg, WIDE( "Ending system thread because of process exit!" ) );
+				//DECLTEXT( msg, "Ending system thread because of process exit!" );
 				//EnqueLink( phi->pdp->&ps->Command->Output, &msg );
 			}
 			else
 			{
-				//DECLTEXT( msg, WIDE( "Guess we exited from broken pipe" ) );
+				//DECLTEXT( msg, "Guess we exited from broken pipe" );
 				//EnqueLink( phi->pdp->&ps->Command->Output, &msg );
 			}
 #endif
@@ -168,7 +168,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 			CloseHandle( task->hReadOut );
 			CloseHandle( task->hWriteIn );
 			CloseHandle( task->hWriteOut );
-			//lprintf( WIDE( "Closing process handle %p" ), task->pi.hProcess );
+			//lprintf( "Closing process handle %p", task->pi.hProcess );
 			phi->hThread = 0;
 #else
 			//close( phi->handle );
@@ -330,7 +330,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 {
 	PTASK_INFO task;
 	TEXTSTR expanded_path = ExpandPath( program );
-	TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( WIDE(".") );
+	TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( "." );
 	if( program && program[0] )
 	{
 #ifdef WIN32
@@ -357,9 +357,9 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			}
 		}
 #ifdef _DEBUG
-		//xlprintf(LOG_NOISE)( WIDE("%s[%s]"), path, expanded_working_path );
+		//xlprintf(LOG_NOISE)( "%s[%s]", path, expanded_working_path );
 #endif
-		if( StrCmp( path, WIDE(".") ) == 0 )
+		if( StrCmp( path, "." ) == 0 )
 		{
 			path = NULL;
 			Release( expanded_working_path );
@@ -378,10 +378,10 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		if( !IsAbsolutePath( expanded_path ) && expanded_working_path )
 		{
 			//lprintf( "needs working path too" );
-			vtprintf( pvt, WIDE("%s/"), expanded_working_path );
+			vtprintf( pvt, "%s/", expanded_working_path );
 		}
 		*/
-		vtprintf( pvt, WIDE("%s"), expanded_path );
+		vtprintf( pvt, "%s", expanded_path );
 
 		if( needs_quotes )
 			vtprintf( pvt, WIDE( "\"" ) );
@@ -400,19 +400,19 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			else if( StrChr( args[0], ' ' ) )
 				vtprintf( pvt, WIDE(" \"%s\""), args[0] );
 			else
-				vtprintf( pvt, WIDE(" %s"), args[0] );
+				vtprintf( pvt, " %s", args[0] );
 			first = FALSE;
 			args++;
 		}
 		cmdline = VarTextGet( pvt );
-		vtprintf( pvt, WIDE( "cmd.exe /c %s" ), GetText( cmdline ) );
+		vtprintf( pvt, "cmd.exe /c %s", GetText( cmdline ) );
 		final_cmdline = VarTextGet( pvt );
 		VarTextDestroy( &pvt );
 		MemSet( &task->si, 0, sizeof( STARTUPINFO ) );
 		task->si.cb = sizeof( STARTUPINFO );
 
 #ifdef _DEBUG
-		//xlprintf(LOG_NOISE)( WIDE( "quotes?%s path [%s] program [%s]  [cmd.exe (%s)]"), needs_quotes?WIDE( "yes"):WIDE( "no"), expanded_working_path, expanded_path, GetText( final_cmdline ) );
+		//xlprintf(LOG_NOISE)( "quotes?%s path [%s] program [%s]  [cmd.exe (%s)]", needs_quotes?"yes":"no", expanded_working_path, expanded_path, GetText( final_cmdline ) );
 #endif
 		/*
 		if( path )
@@ -482,7 +482,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 												, expanded_working_path
 												, &task->si
 												, &task->pi ) || FixHandles(task) || DumpError() ) ||
-					( CreateProcessAsUser( hExplorer, WIDE( "cmd.exe" )
+					( CreateProcessAsUser( hExplorer, "cmd.exe"
 												, GetText( final_cmdline )
 												, NULL, NULL, TRUE
 												, launch_flags | CREATE_NEW_PROCESS_GROUP
@@ -524,7 +524,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 										, &task->si
 										, &task->pi ) || FixHandles(task) || DumpError() ) ||
 					( TryShellExecute( task, expanded_working_path, program, cmdline ) ) ||
-					( CreateProcess( NULL//WIDE( "cmd.exe" )
+					( CreateProcess( NULL//"cmd.exe"
 										, GetText( final_cmdline )
 										, NULL, NULL, TRUE
 										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
@@ -543,7 +543,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				//CloseHandle( task->hReadIn );
 				//CloseHandle( task->hWriteOut );
 #ifdef _DEBUG
-				//xlprintf(LOG_NOISE)( WIDE("Success running %s[%s] in %s (%p): %d"), program, GetText( cmdline ), expanded_working_path, task->pi.hProcess, GetLastError() );
+				//xlprintf(LOG_NOISE)( "Success running %s[%s] in %s (%p): %d", program, GetText( cmdline ), expanded_working_path, task->pi.hProcess, GetLastError() );
 #endif
 				if( OutputHandler )
 				{
@@ -568,7 +568,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			}
 			else
 			{
-				xlprintf(LOG_NOISE)( WIDE("Failed to run %s[%s]: %d"), program, GetText( cmdline ), GetLastError() );
+				xlprintf(LOG_NOISE)( "Failed to run %s[%s]: %d", program, GetText( cmdline ), GetLastError() );
 				CloseHandle( task->hWriteIn );
 				CloseHandle( task->hReadIn );
 				CloseHandle( task->hWriteOut );
@@ -653,7 +653,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				DispelDeadstart();
 
 				execve( _program, (char *const*)args, environ );
-				//lprintf( WIDE( "Direct execute failed... trying along path..." ) );
+				//lprintf( "Direct execute failed... trying along path..." );
 				{
 					char *tmp = strdup( getenv( "PATH" ) );
 					char *tok;
@@ -662,13 +662,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 						char fullname[256];
 						snprintf( fullname, sizeof( fullname ), "%s/%s", tok, _program );
 
-						lprintf( WIDE( "program:[%s]" ), fullname );
+						lprintf( "program:[%s]", fullname );
 						((char**)args)[0] = fullname;
 						execve( fullname, (char*const*)args, environ );
 					}
 					Release( tmp );
 				}
-				lprintf( WIDE( "exec failed - and this is ALLL bad... %d" ), errno );
+				lprintf( "exec failed - and this is ALLL bad... %d", errno );
 				if( OutputHandler ) {
 					close( task->hStdIn.pair[0] );
 					close( task->hStdOut.pair[1] );
@@ -842,7 +842,7 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 					if( poll( &pfd, 1, 0 ) &&
 						 pfd.revents & POLLERR )
 					{
-						Log( WIDE( "Pipe has no readers..." ) );
+						Log( "Pipe has no readers..." );
 							break;
 					}
 					LogBinary( (uint8_t*)GetText( seg ), GetTextSize( seg ) );
@@ -858,7 +858,7 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 	}
 	else
 	{
-		lprintf( WIDE("Task has ended, write  aborted.") );
+		lprintf( "Task has ended, write  aborted." );
 	}
 	VarTextDestroy( &pvt );
 	return 0;

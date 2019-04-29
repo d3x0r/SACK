@@ -42,14 +42,14 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, ui
 			}
 			if( y + ht > update_rect->y + update_rect->height )
 				update_rect->height = (y + ht) - update_rect->y;
-			//lprintf( WIDE("result (%d,%d)-(%d,%d)")
+			//lprintf( "result (%d,%d)-(%d,%d)"
 			//		, update_rect->x, update_rect->y
 			//		, update_rect->width, update_rect->height
 			//  	);
 		}
 		else
 		{
-			//_lprintf( DBG_AVAILABLE, WIDE("Setting (%d,%d)-(%d,%d)") DBG_RELAY
+			//_lprintf( DBG_AVAILABLE, "Setting (%d,%d)-(%d,%d)" DBG_RELAY
 			//		, x, y
 			//		, wd, ht
 			//		);
@@ -92,12 +92,12 @@ static void RenderTextLine(
 		int nShow, nShown;
 #ifdef DEBUG_HISTORY_RENDER
 		lprintf( "Rect is %d-%d   %d-%d", r->left, r->right, r->top, r->bottom );
-		lprintf( WIDE("Get display line %d"), nLine );
+		lprintf( "Get display line %d", nLine );
 #endif
 		if( !pCurrentLine )
 		{
 #ifdef DEBUG_HISTORY_RENDER
-			lprintf( WIDE("No such line... %d"), nLine );
+			lprintf( "No such line... %d", nLine );
 #endif
 			return;
 		}
@@ -109,7 +109,7 @@ static void RenderTextLine(
 		if( (*r).bottom <= nMinLine )
 		{
 #ifdef DEBUG_HISTORY_RENDER
-			lprintf( WIDE("bottom < minline..") );
+			lprintf( "bottom < minline.." );
 #endif
 			return;
 		}
@@ -147,7 +147,7 @@ static void RenderTextLine(
 		nShown = (int)pCurrentLine->nFirstSegOfs;
 #ifdef DEBUG_HISTORY_RENDER
 		if( !pText )
-			lprintf( WIDE("Okay no text to show... end up filling line blank.") );
+			lprintf( "Okay no text to show... end up filling line blank." );
 #endif
 		while( pText )
 		{
@@ -156,7 +156,7 @@ static void RenderTextLine(
 #ifdef __DEKWARE_PLUGIN__
 			if( !pdp->flags.bDirect && ( pText->flags & TF_PROMPT ) )
 			{
-				lprintf( WIDE("Segment is promtp - and we need to skip it.") );
+				lprintf( "Segment is promtp - and we need to skip it." );
 				pText = NEXTLINE( pText );
 				continue;
 			}
@@ -167,25 +167,25 @@ static void RenderTextLine(
 
 			nLen = GetTextSize( pText );
 #ifdef DEBUG_HISTORY_RENDER
-			lprintf( WIDE("start: %d  len: %d"), nShown, nLen );
+			lprintf( "start: %d  len: %d", nShown, nLen );
 #endif
 			while( nShown < nLen )
 			{
 #ifdef DEBUG_HISTORY_RENDER
-				lprintf( WIDE("nShown < nLen... char %d len %d toshow %d"), nChar, nLen, pCurrentLine->nToShow );
+				lprintf( "nShown < nLen... char %d len %d toshow %d", nChar, nLen, pCurrentLine->nToShow );
 #endif
 				if( nChar + nLen > pCurrentLine->nToShow )
 					nShow = (int)(pCurrentLine->nToShow - nChar);
 				else
 				{
 #ifdef DEBUG_HISTORY_RENDER
-					lprintf( WIDE("nShow is what's left of now to nLen from nShown... %d,%d"), nLen, nShown );
+					lprintf( "nShow is what's left of now to nLen from nShown... %d,%d", nLen, nShown );
 #endif
 					nShow = (int)(nLen - nShown);
 				}
 				if( !nShow )
 				{
-					//lprintf( WIDE("nothing to show...") );
+					//lprintf( "nothing to show..." );
 					break;
 				}
 				if( pdp->flags.bMarking &&
@@ -288,7 +288,7 @@ static void RenderTextLine(
 					}
 				}
 				//lprintf( "Rect is %d-%d   %d-%d", r->left, r->right, r->top, r->bottom );
-				//lprintf( WIDE("Some stats %d %d %d"), nChar, nShow, nShown );
+				//lprintf( "Some stats %d %d %d", nChar, nShow, nShown );
 				if( nChar )
 				{
 					// not first character on line...
@@ -317,10 +317,10 @@ static void RenderTextLine(
 				{
 					uint32_t nSegSize, nSegHeight;
 #ifdef DEBUG_HISTORY_RENDER
-					lprintf( WIDE("And finally we can show some text... %s %d"), text, y );
+					lprintf( "And finally we can show some text... %s %d", text, y );
 #endif
 					(*r).left = x;
-					//lprintf( WIDE("putting string %s at %d,%d (left-right) %d,%d"), text, x, y, (*r).left, (*r).right );
+					//lprintf( "putting string %s at %d,%d (left-right) %d,%d", text, x, y, (*r).left, (*r).right );
 					if( pdp->pHistoryDisplay->measureString )
 						pdp->pHistoryDisplay->measureString( pdp->pHistoryDisplay->psvMeasure, GetText( pText ) + nShown
 							, nShow, &nSegSize, &nSegHeight, GetCommonFont( pdp->psicon.frame ) );
@@ -332,11 +332,11 @@ static void RenderTextLine(
 					if( nLine == 0 )  // only keep the (last) line's end.
 						pdp->nNextCharacterBegin = (*r).right;
 					//DrawString( text );
-					//lprintf( WIDE("putting string %s at %d,%d (left-right) %d,%d"), text, x, y, (*r).left, (*r).right );
+					//lprintf( "putting string %s at %d,%d (left-right) %d,%d", text, x, y, (*r).left, (*r).right );
 				}
 #ifdef DEBUG_HISTORY_RENDER
 				else
-					lprintf( WIDE("Hmm bottom < minline?") );
+					lprintf( "Hmm bottom < minline?" );
 #endif
 				// fill to the end of the line...
 				//nLen -= nShow;
@@ -344,7 +344,7 @@ static void RenderTextLine(
 				nChar += nShow;
 			}
 #ifdef DEBUG_HISTORY_RENDER
-			lprintf( WIDE("nShown >= nLen...") );
+			lprintf( "nShown >= nLen..." );
 #endif
 
 			nShown -= (int)nLen;
@@ -357,7 +357,7 @@ static void RenderTextLine(
 			if( (*r).left < (*r).right )
 			{
 #ifdef DEBUG_HISTORY_RENDER
-				lprintf( WIDE("Fill empty to right (%d-%d)  (%d-%d)"), (*r).left, (*r).right, (*r).top, (*r).bottom );
+				lprintf( "Fill empty to right (%d-%d)  (%d-%d)", (*r).left, (*r).right, (*r).top, (*r).bottom );
 #endif
 				if( nLine || bClearEnd )
 					if( pdp->FillConsoleRect )
@@ -369,7 +369,7 @@ static void RenderTextLine(
 			nFirst = -1;
 		nLine++;
 	}
-	//lprintf( WIDE(WIDE("(*(*r)...bottom nMin %d %d")), (*r)..bottom, nMinLine );
+	//lprintf( WIDE("(*(*r)...bottom nMin %d %d"), (*r)..bottom, nMinLine );
 	if( (*r).bottom > nMinLine )
 	{
 		(*r).bottom = (*r).top;
@@ -377,7 +377,7 @@ static void RenderTextLine(
 		(*r).left = 0;
 		(*r).right = pdp->nWidth;
 #ifndef PSI_LIB
-		//lprintf( WIDE("Would be blanking the screen here, but no, there's no reason to.") );
+		//lprintf( "Would be blanking the screen here, but no, there's no reason to." );
 				 //FillEmptyScreen();
 #endif
 	}
@@ -437,7 +437,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		toppad = pdp->nCmdLinePad;
 	r.top -= toppad;
 /*
-	lprintf( WIDE("*** Commandline %d,%d  uhh %d %d  %d and %d")
+	lprintf( "*** Commandline %d,%d  uhh %d %d  %d and %d"
 			, r.top, r.bottom
 			, start, end
 			, nCursorPos
@@ -452,7 +452,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		/*
 		if( pdp->FillConsoleRect )
 		{
-			lprintf( WIDE( "draw blank to left %d-%d   %d-%d" ), r.left, r.right, r.top, r.bottom );
+			lprintf( "draw blank to left %d-%d   %d-%d", r.left, r.right, r.top, r.bottom );
 			pdp->FillConsoleRect( pdp, &r, FILL_COMMAND_BACK );
 		}
 		*/
@@ -468,7 +468,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 
 	//r.left = x = pdp->nXPad + ( nCurrentCol * pdp->nFontWidth );
 	r.left = x = r.right;
-	//lprintf( WIDE( "x/left is %d" ), x );
+	//lprintf( "x/left is %d", x );
 	// for now...
 	upd.left = x;
 	upd.right = pdp->nWidth;
@@ -506,7 +506,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		if( lines > 1 )
 			upd.left = 0;
 #ifdef DEBUG_OUTPUT
-		lprintf( WIDE("want to do this in %d lines"), lines );
+		lprintf( "want to do this in %d lines", lines );
 #endif
 		if( lines > 3 )
 		{
@@ -542,7 +542,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 				if( !pCurrentLine )
 				{
 		#ifdef DEBUG_HISTORY_RENDER
-					lprintf( WIDE("No such line... %d"), nLine );
+					lprintf( "No such line... %d", nLine );
 		#endif
 					break;
 				}
@@ -594,14 +594,14 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 			pStart = NEXTLINE( pStart );
 		}
 		//if( pStart )
-		//	lprintf( WIDE("Stopped because of length.") );
+		//	lprintf( "Stopped because of length." );
 		r.left = r.right;
 		r.right = pdp->nWidth;
 		// only have to clean trail if on a direct input method...
 		if( r.right > r.left )
 		{
 			// clear the remainder of the line...
-			lprintf( WIDE("Clearing end of line... %d-%d   %d-%d"), r.left, r.right, r.top, r.bottom );
+			lprintf( "Clearing end of line... %d-%d   %d-%d", r.left, r.right, r.top, r.bottom );
 			if( pdp->FillConsoleRect )
 				pdp->FillConsoleRect( pdp, &r, FILL_DISPLAY_BACK );
 		}
@@ -625,7 +625,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 void WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 {
 	// there's some other related set of values to set here....
-	//lprintf( WIDE("Calculate history! %d %d"), pdp->nColumns, pdp->nLines );
+	//lprintf( "Calculate history! %d %d", pdp->nColumns, pdp->nLines );
 	if( !pdp->nFontHeight )
 		return;
 
@@ -642,13 +642,13 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 	if( pdp->pCommandDisplay )
 		pdp->pCommandDisplay->nLineHeight = pdp->nFontHeight;
 
-	//lprintf( WIDE("Don't forget we wanted to inset command for a button...") );
+	//lprintf( "Don't forget we wanted to inset command for a button..." );
 	if( pdp->pCommandDisplay )
 		SetBrowserWidth( pdp->pCommandDisplay, pdp->nWidth - pdp->nXPad*2 );
 	
 	if( pdp->flags.bHistoryShow )
 	{
-		//lprintf( WIDE("Doing history... check percent and set display/history approp.") );
+		//lprintf( "Doing history... check percent and set display/history approp." );
 		switch( pdp->nHistoryPercent )
 		{
 		case 0:  // 25
@@ -686,7 +686,7 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 		pdp->nHistoryLineStart = 0;
 		if( pdp->pHistoryDisplay )
 		{
-			//lprintf( WIDE("No history, all display") );
+			//lprintf( "No history, all display" );
 			// internally we'll need this amount to get into
 			// scrollback...
 			{
@@ -729,17 +729,17 @@ void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 	EnterCriticalSec( &pdp->Lock );
 	pdp->lockCount++;
 	/*
-	lprintf( WIDE( "Render Console... %d  %d %d  %d" )
+	lprintf( "Render Console... %d  %d %d  %d"
 			, pdp->nDisplayLineStartDynamic, pdp->nCommandLineStart
 		, pdp->nHistoryLineStart, pdp->nHeight );
 	*/
-	//lprintf( WIDE("Render Console... %d %d"), pdp->nDisplayLineStart, pdp->nHistoryLineStart );
+	//lprintf( "Render Console... %d %d", pdp->nDisplayLineStart, pdp->nHistoryLineStart );
 
 	if( pdp->RenderSeparator )
 	{
 		if( !pdp->flags.bDirect && pdp->nDisplayLineStartDynamic != pdp->nCommandLineStart )
 			pdp->nSeparatorHeight = pdp->RenderSeparator( pdp, pdp->nDisplayLineStartDynamic );
-		//lprintf( WIDE("Render AGAIN the hsitory line separator") );
+		//lprintf( "Render AGAIN the hsitory line separator" );
 		if( pdp->nHistoryLineStart && pdp->nHistoryLineStart != pdp->nDisplayLineStartDynamic )
 			pdp->nSeparatorHeight = pdp->RenderSeparator( pdp, pdp->nHistoryLineStart );
 	}
@@ -790,7 +790,7 @@ void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 {
 	//RECT rArea;
-	//lprintf( WIDE("*** DISPLAY is %d,%d by %d,%d"), pdp->rArea.top, pdp->rArea.left, pdp->rArea.right, pdp->rArea.bottom );
+	//lprintf( "*** DISPLAY is %d,%d by %d,%d", pdp->rArea.top, pdp->rArea.left, pdp->rArea.right, pdp->rArea.bottom );
 	if( ( ( pdp->rArea.right -  pdp->rArea.left )== 0 )
 		&& ( ( pdp->rArea.bottom -  pdp->rArea.top )== 0 ) )
 		return;
@@ -813,7 +813,7 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 
 	pdp->nCommandLineStart = pdp->rArea.bottom;
 
-	//lprintf( WIDE("Okay font height existsts... that's good") );
+	//lprintf( "Okay font height existsts... that's good" );
 	if( pdp->flags.bDirect )
 	{
 		SetCursorNoPrompt( pdp->pCurrentDisplay, FALSE );
@@ -849,13 +849,13 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 	pmdp->lockCount++;
 	{
 		//int flags = pLine->flags & (TF_NORETURN|TF_PROMPT);
-		//lprintf( WIDE("Updated... %d"), updated );
+		//lprintf( "Updated... %d", updated );
 		//updated++;
 
 		if( pLine->flags & TF_FORMATABS )
 		{
 			int32_t cursorx, cursory;
-			//lprintf( WIDE("absolute position format.") );
+			//lprintf( "absolute position format." );
 			GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
 			if( pLine->format.position.coords.x != -16384 )
 				cursorx = pLine->format.position.coords.x;
@@ -869,7 +869,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 		if( pLine->flags & TF_FORMATREL )
 		{
 			int32_t cursorx, cursory;
-			//lprintf( WIDE("relative position format") );
+			//lprintf( "relative position format" );
 			GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
 			cursorx += pLine->format.position.coords.x;
 			cursory += pLine->format.position.coords.y;
@@ -884,7 +884,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 			( pLine->flags & TF_FORMATREL ) ||
 			( phc->region->flags.bForceNewline ) )
 		{ // err new segment goes on a new line.  (even if we are in the past)
-			//Log2( WIDE("Line is automatically promoting itself to the next line. %d %d")
+			//Log2( "Line is automatically promoting itself to the next line. %d %d"
 			//  , pht->nCursorY, pht->pTrailer?pht->pTrailer->nLinesUsed:-1 );
 			if( !( pLine->flags & TF_NORETURN ) || phc->region->flags.bForceNewline )
 				(phc->nCursorY)++;
@@ -1101,7 +1101,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 	PDATALIST *ppCurrentLineInfo;
 	if( pdp->flags.bNoDisplay )
 	{
-		lprintf( WIDE("nodisplay!") );
+		lprintf( "nodisplay!" );
 		return;
 	}
 	//lprintf( "Begin render history line" );
@@ -1109,7 +1109,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 	//lprintf( "Begin render history locked" );
 	pdp->lockCount++;
 #ifdef DEBUG_HISTORY_RENDER
-	lprintf( WIDE("Begin Render history.") );
+	lprintf( "Begin Render history." );
 #endif
 	if( !bHistoryStart )
 	{
@@ -1118,7 +1118,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 		nFirstLine = ( upd.bottom = pdp->nDisplayLineStartDynamic );
 		if( !pdp->flags.bDirect && pdp->nDisplayLineStartDynamic != pdp->nCommandLineStart )
 		{
-			//lprintf( WIDE("Rendering display line seperator %d (not %d)"), pdp->nDisplayLineStart, pdp->nCommandLineStart );
+			//lprintf( "Rendering display line seperator %d (not %d)", pdp->nDisplayLineStart, pdp->nCommandLineStart );
 			if( pdp->RenderSeparator )
 				pdp->RenderSeparator( pdp, pdp->nDisplayLineStartDynamic );
 			nFirstLine -= pdp->nSeparatorHeight;
@@ -1127,7 +1127,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 		}
 
 #ifdef DEBUG_HISTORY_RENDER
-		lprintf( WIDE("nFirstline is %d"), nFirstLine );
+		lprintf( "nFirstline is %d", nFirstLine );
 #endif
 
 		// figure out if we draw up to history or all the screen...
@@ -1136,7 +1136,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 		else
 			nMinLine = 0;
 		ppCurrentLineInfo = GetDisplayInfo( pdp->pCurrentDisplay );
-		//lprintf( WIDE("ppCurrentLineInfo=%p"), ppCurrentLineInfo );
+		//lprintf( "ppCurrentLineInfo=%p", ppCurrentLineInfo );
 	}
 	else // do render history start...
 	{
@@ -1152,9 +1152,9 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 		nFirst = -1;
 		// the seperator is actually rendererd OVER the top of the displayed line.
 		ppCurrentLineInfo = GetDisplayInfo( pdp->pHistoryDisplay );
-		//lprintf( WIDE("ppCurrentLineInfo=%p"), ppCurrentLineInfo );
+		//lprintf( "ppCurrentLineInfo=%p", ppCurrentLineInfo );
 	}
-	//lprintf( WIDE("Render history separator %d"), pdp->nHistoryLineStart );
+	//lprintf( "Render history separator %d", pdp->nHistoryLineStart );
 	if( pdp->RenderSeparator )
 		pdp->RenderSeparator( pdp, pdp->nHistoryLineStart - nStartLineOffset );
 	r.bottom = nFirstLine;
@@ -1165,13 +1165,13 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 	{
 		PDISPLAYED_LINE pCurrentLine;
 #ifdef DEBUG_HISTORY_RENDER
-		lprintf( WIDE("Get display line %d"), nLine );
+		lprintf( "Get display line %d", nLine );
 #endif
 		pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
 		if( !pCurrentLine )
 		{
 #ifdef DEBUG_HISTORY_RENDER
-			lprintf( WIDE("No such line... %d"), nLine );
+			lprintf( "No such line... %d", nLine );
 #endif
 			break;
 		}
@@ -1188,7 +1188,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 			nFirst = -1;
 		nLine++;
 	}
-	//lprintf( WIDE("r.bottom nMin %d %d"), r.bottom, nMinLine );
+	//lprintf( "r.bottom nMin %d %d", r.bottom, nMinLine );
 	if( ( r.bottom - nStartLineOffset ) > nMinLine )
 	{
 		r.bottom = r.top;
@@ -1196,12 +1196,12 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 		r.left = 0;
 		r.right = pdp->nWidth;
 #ifndef PSI_LIB
-		//lprintf( WIDE("Would be blanking the screen here, but no, there's no reason to.") );
+		//lprintf( "Would be blanking the screen here, but no, there's no reason to." );
 				 //FillEmptyScreen();
 #endif
 	}
 	//RenderConsole( pdp );
-	//lprintf( WIDE("Render AGAIN the display line separator") );
+	//lprintf( "Render AGAIN the display line separator" );
 	upd.top = r.top;
 	upd.left = 0;
 	upd.right = pdp->nWidth;
@@ -1263,7 +1263,7 @@ void PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 int PSI_UpdateHistory( PCONSOLE_INFO pdp, SFTFont font )
 {
 	int bUpdate = 0;
-	lprintf( WIDE("nLines = %d  percent = %d  x = %d")
+	lprintf( "nLines = %d  percent = %d  x = %d"
 			, 0/*pdp->nLines*/
 			, pdp->nHistoryPercent
 			, ( 0/*pdp->nLines*/ * ( 3 - pdp->nHistoryPercent ) / 4 ) );
@@ -1275,7 +1275,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp, SFTFont font )
 		if( !pdp->flags.bHistoryShow )
 		{
 			extern PSIKEYDEFINE ConsoleKeyDefs[];
-			lprintf( WIDE("Key END shoudl end history..") );
+			lprintf( "Key END shoudl end history.." );
 			ConsoleKeyDefs[KEY_END].op[0].bFunction = HISTORYKEY;
 			ConsoleKeyDefs[KEY_END].op[0].data.HistoryKey = KeyEndHst;
 			pdp->flags.bHistoryShow = 1;
@@ -1289,7 +1289,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp, SFTFont font )
 			upd.flags.bTmpRect = 0;
 			MemSet( &upd.cs, 0, sizeof( upd.cs ) );
 			BuildDisplayInfoLines( pdp->pHistoryDisplay, NULL, font );
-			//lprintf( WIDE("ALready showing history?!") );
+			//lprintf( "ALready showing history?!" );
 			DoRenderHistory(pdp, TRUE, 0, 0, &upd);
 
 			// history only changed - safe to update
@@ -1310,7 +1310,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp, SFTFont font )
 		if( pdp->flags.bHistoryShow )
 		{
 			extern PSIKEYDEFINE ConsoleKeyDefs[];
-			lprintf( WIDE("key end command line now... please do renderings..") );
+			lprintf( "key end command line now... please do renderings.." );
 			{
 				int KeyEndCmd( uintptr_t list, PUSER_INPUT_BUFFER pci );
 

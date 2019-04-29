@@ -129,7 +129,7 @@ static PTEXT OutputDanglingCharsEx( PTEXT outdata, VARTEXT *out, uint32_t *space
 	}
 	if( n > 1 )
 	{
-		fprintf( stderr, WIDE("%s(%d): Fixed %d dangling character - perhaps misordered output\n")
+		fprintf( stderr, "%s(%d): Fixed %d dangling character - perhaps misordered output\n"
 		       , GetCurrentFileName(), GetCurrentLine()
 		       , n
 		);
@@ -169,7 +169,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 		size = GetTextSize(input);
 		if( spaces )
 		{
-			//Log( WIDE("Need to figure out - new word, new spaces? old word? new spaces?") );
+			//Log( "Need to figure out - new word, new spaces? old word? new spaces?" );
 			//outdata = Collapse( outdata );
 			//outdata->format.spaces = spaces;
 			//spaces = 0;
@@ -189,7 +189,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 		}
 		spaces += input->format.spaces;
 		tabs += input->format.tabs;
-		//Log1( WIDE("Assuming %d spaces... "), spaces );
+		//Log1( "Assuming %d spaces... ", spaces );
 		for (index=0;(character = tempText[index]),
 		             (index < size); index++) // while not at the
 		                                   // end of the line.
@@ -208,7 +208,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 						outdata = SegAdd( outdata, word );
 					}
 					//else
-					//	Log( WIDE("VarTextGet Failed to result.") );
+					//	Log( "VarTextGet Failed to result." );
 				}
 				elipses = FALSE;
 			}
@@ -389,7 +389,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 				}
 				else
 				{
-					fprintf( stderr, WIDE("%s(%d): Error unrecognized trigraph sequence!\n")
+					fprintf( stderr, "%s(%d): Error unrecognized trigraph sequence!\n"
 							, GetCurrentFileName()
 							, GetCurrentLine() );
 					OutputDanglingChars();
@@ -598,9 +598,9 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 	VarTextEmptyEx( &out DBG_OVERRIDE );
 	if( g.bDebugLog & DEBUG_READING )
 	{
-		fprintf( stddbg, WIDE("Returning segments:") );
+		fprintf( stddbg, "Returning segments:" );
 		DumpSegs( outdata );
-		fprintf( stddbg, WIDE("\n") );
+		fprintf( stddbg, "\n" );
 	}
 	return(outdata);
 }

@@ -83,7 +83,7 @@ struct pendingConnect {
 
 PRELOAD( loadOption ) {
 #ifndef __NO_OPTIONS__
-	l.flags.bLogReceived = SACK_GetProfileIntEx( GetProgramName(), WIDE( "SACK/HTTP/Enable Logging Received Data" ), 0, TRUE );
+	l.flags.bLogReceived = SACK_GetProfileIntEx( GetProgramName(), "SACK/HTTP/Enable Logging Received Data", 0, TRUE );
 #endif
 }
 
@@ -180,7 +180,7 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 
 void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 {
-	PTEXT start = TextParse( params, WIDE( "&=" ), NULL, 1, 1 DBG_SRC );
+	PTEXT start = TextParse( params, "&=", NULL, 1, 1 DBG_SRC );
 	PTEXT next = start;
 	PTEXT tmp;
 	for( tmp = start; tmp; tmp = NEXTLINE( tmp ) ) {
@@ -304,7 +304,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 								pLine = SegCreate( pos - start - pHttpState->bLine );
 								if( (pos-start) < pHttpState->bLine )
 								{
-									lprintf( WIDE("Failure.") );
+									lprintf( "Failure." );
 								}
 								MemCpy( line = GetText( pLine ), c + start, (pos - start - pHttpState->bLine)*sizeof(TEXTCHAR));
 								line[pos-start- pHttpState->bLine] = 0;
@@ -345,7 +345,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 								}
 								else
 								{
-									lprintf( WIDE( "Header field [%s] invalid" ), GetText( pLine ) );
+									lprintf( "Header field [%s] invalid", GetText( pLine ) );
 									LineRelease( pLine );
 								}
 							}
@@ -358,18 +358,18 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 								pHttpState->response_status = pLine;
 								pHttpState->numeric_code = 0; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 								{
-									PTEXT request = TextParse( pHttpState->response_status, WIDE( "?#" ), WIDE( " " ), 1, 1 DBG_SRC );
+									PTEXT request = TextParse( pHttpState->response_status, "?#", " ", 1, 1 DBG_SRC );
 									{
 										PTEXT tmp;
 										PTEXT resource_path = NULL;
 										PTEXT next;
-										if( TextSimilar( request, WIDE( "GET" ) ) )
+										if( TextSimilar( request, "GET" ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
 											pHttpState->method = SegBreak( request );
 										}
-										else if( TextSimilar( request, WIDE( "POST" ) ) )
+										else if( TextSimilar( request, "POST" ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
@@ -377,7 +377,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 										}
 										// this loop is used for both client and server http requests...
 										// this will be the first part of a HTTP response (this one will have a result code, the other is just version)
-										else if( TextSimilar( request, WIDE( "HTTP/" ) ) )
+										else if( TextSimilar( request, "HTTP/" ) )
 										{
 											TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( request ), '.' );
 											pHttpState->response_version = (int)((IntCreateFromText( GetText( request ) + 5 ) * 100) + IntCreateFromText( tmp2 + 1 ));
@@ -399,7 +399,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 												}
 												else
 												{
-													lprintf( WIDE( "failed to find result code in %s" ), line );
+													lprintf( "failed to find result code in %s", line );
 												}
 											}
 										}
@@ -415,10 +415,10 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 										}
 										for( tmp = request; tmp; tmp = next )
 										{
-											//lprintf( WIDE( "word %s" ), GetText( tmp ) );
+											//lprintf( "word %s", GetText( tmp ) );
 											next = NEXTLINE( tmp );
 											//lprintf( "Line : %s", GetText( pLine ) );
-											if( TextSimilar( tmp, WIDE("HTTP/") ) )
+											if( TextSimilar( tmp, "HTTP/" ) )
 											{
 												TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( tmp ), '.' );
 												pHttpState->response_version = (int)(( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 ));
@@ -442,7 +442,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											}
 											else if( GetText(tmp)[0] == '#' )
 											{
-												lprintf( WIDE("Page anchor of URL is lost(not saved)...%s %s")
+												lprintf( "Page anchor of URL is lost(not saved)...%s %s"
 													, GetText( tmp )
 													, GetText( next ) );
 												next = NEXTLINE( next );
@@ -520,13 +520,13 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			struct HttpField *field;
 			LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
 			{
-				if( TextLike( field->name, WIDE( "content-length" ) ) )
+				if( TextLike( field->name, "content-length" ) )
 				{
 					// down convert from int64_t
 					pHttpState->content_length = (int)IntCreateFromSeg( field->value );
 					//lprintf( "content length: %d", pHttpState->content_length );
 				}
-				else if( TextLike( field->name, WIDE( "upgrade" ) ) )
+				else if( TextLike( field->name, "upgrade" ) )
 				{
 					if( TextLike( field->value, "websocket" ) ) {
 						pHttpState->flags.ws_upgrade = 1;
@@ -535,13 +535,13 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 						pHttpState->flags.h2c_upgrade = 1;
 					}
 				}
-				else if( TextLike( field->name, WIDE( "connection" ) ) )
+				else if( TextLike( field->name, "connection" ) )
 				{
 					if( StrCaseStr( GetText( field->value ), "upgrade" ) ) {
 						pHttpState->flags.upgrade = 1;
 					}
 				}
-				else if( TextLike( field->name, WIDE( "Transfer-Encoding" ) ) )
+				else if( TextLike( field->name, "Transfer-Encoding" ) )
 				{
 					if( TextLike( field->value, "chunked" ) )
 					{
@@ -552,12 +552,12 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 						pHttpState->read_chunk_total_length = 0;
 					}
 				}
-				else if( TextLike( field->name, WIDE( "Expect" ) ) )
+				else if( TextLike( field->name, "Expect" ) )
 				{
-					if( TextLike( field->value, WIDE( "100-continue" ) ) )
+					if( TextLike( field->value, "100-continue" ) )
 					{
 						if( l.flags.bLogReceived )
-							lprintf( WIDE("Generating 100-continue response...") );
+							lprintf( "Generating 100-continue response..." );
 						SendTCP( pc, "HTTP/1.1 100 Continue\r\n\r\n", 25 );
 					}
 				}
@@ -895,27 +895,27 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 	PTEXT tmp_content;
 	//TEXTCHAR message[500];
 
-	vtprintf( pvt_message, WIDE( "HTTP/1.1 %d %s\r\n" ), numeric, text );
+	vtprintf( pvt_message, "HTTP/1.1 %d %s\r\n", numeric, text );
 	if( content_type && body )
 	{
-		vtprintf( pvt_message, WIDE( "Content-Length: %d\r\n" ), GetTextSize(body));
-		vtprintf( pvt_message, WIDE( "Content-Type: %s\r\n" )
+		vtprintf( pvt_message, "Content-Length: %d\r\n", GetTextSize(body));
+		vtprintf( pvt_message, "Content-Type: %s\r\n"
 				  , content_type?content_type
-					:(tmp_content=GetHttpField( pHttpState, WIDE("Accept") ))?GetText(tmp_content)
-					:WIDE("text/plain; charset=utf-8")  );
+					:(tmp_content=GetHttpField( pHttpState, "Accept" ))?GetText(tmp_content)
+					:"text/plain; charset=utf-8"  );
 	}
 	//else
-	//	vtprintf( pvt_message, WIDE( "%s\r\n" ), GetText( body ) );
-	vtprintf( pvt_message, WIDE( "Server: SACK Core Library 2.x\r\n" )  );
+	//	vtprintf( pvt_message, "%s\r\n", GetText( body ) );
+	vtprintf( pvt_message, "Server: SACK Core Library 2.x\r\n"  );
 
 	if( body )
-		vtprintf( pvt_message, WIDE( "\r\n" )  );
+		vtprintf( pvt_message, "\r\n"  );
 
 	header = VarTextPeek( pvt_message );
-	//offset += snprintf( message + offset, sizeof( message ) - offset, WIDE( "%s" ),  "Body");
+	//offset += snprintf( message + offset, sizeof( message ) - offset, "%s",  "Body");
 	if( l.flags.bLogReceived )
 	{
-		lprintf( WIDE("Sending response...") );
+		lprintf( "Sending response..." );
 		LogBinary( (uint8_t*)GetText( header ), GetTextSize( header ) );
 		if( content_type )
 			LogBinary( (uint8_t*)GetText( body ), GetTextSize( body ) );
@@ -934,16 +934,16 @@ void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
 	PVARTEXT pvt_message = VarTextCreate();
 	PTEXT content_type;
 
-	vtprintf( pvt_message, WIDE( "%s" ),  WIDE("HTTP/1.1 200 OK\r\n") );
-	vtprintf( pvt_message, WIDE( "Content-Length: %d\r\n" ), GetTextSize( body ));	
-	vtprintf( pvt_message, WIDE( "Content-Type: %s\r\n" )
-		, (content_type = GetHttpField( pHttpState, WIDE("Accept") ))?GetText(content_type):WIDE("text/plain" ));	
-	vtprintf( pvt_message, WIDE( "\r\n" )  );	
-	vtprintf( pvt_message, WIDE( "%s" ), GetText( body ));	
+	vtprintf( pvt_message, "%s",  "HTTP/1.1 200 OK\r\n" );
+	vtprintf( pvt_message, "Content-Length: %d\r\n", GetTextSize( body ));	
+	vtprintf( pvt_message, "Content-Type: %s\r\n"
+		, (content_type = GetHttpField( pHttpState, "Accept" ))?GetText(content_type):"text/plain");	
+	vtprintf( pvt_message, "\r\n"  );	
+	vtprintf( pvt_message, "%s", GetText( body ));	
 	message = VarTextGet( pvt_message );
 	if( l.flags.bLogReceived )
 	{
-		lprintf( WIDE(" Response Message:" ));
+		lprintf( " Response Message:");
 		LogBinary( (uint8_t*)GetText( message ), GetTextSize( message ));
 	}
 	SendTCP( pc, GetText( message ), GetTextSize( message ));		
@@ -962,7 +962,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 			PTEXT send = VarTextGet( state->pvtOut );
 			if( l.flags.bLogReceived )
 			{
-				lprintf( WIDE("Sending Request...") );
+				lprintf( "Sending Request..." );
 				LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 			}
 #ifndef NO_SSL
@@ -984,7 +984,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 #ifdef _DEBUG
 		if( l.flags.bLogReceived )
 		{
-			lprintf( WIDE("Received web request... %zu"), size );
+			lprintf( "Received web request... %zu", size );
 			LogBinary( (const uint8_t*) buffer, size );
 		}
 #endif
@@ -1058,9 +1058,9 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 	pc = OpenTCPClientExx( GetText( address ), 80, HttpReader, NULL, NULL, HttpConnected );
 	connect->pc = pc;
 	PVARTEXT pvtOut = VarTextCreate();
-	vtprintf( pvtOut, WIDE( "POST %s HTTP/1.1\r\n" ), url );
-	vtprintf( pvtOut, WIDE( "content-length:%d\r\n" ), GetTextSize( content ) );
-	vtprintf( pvtOut, WIDE( "\r\n\r\n" ) );
+	vtprintf( pvtOut, "POST %s HTTP/1.1\r\n", url );
+	vtprintf( pvtOut, "content-length:%d\r\n", GetTextSize( content ) );
+	vtprintf( pvtOut, "\r\n\r\n" );
 	VarTextAddData( pvtOut, GetText( content ), GetTextSize( content ) );
 	if( pc )
 	{
@@ -1072,7 +1072,7 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 		SetNetworkCloseCallback( pc, HttpReaderClose );
 		if( l.flags.bLogReceived )
 		{
-			lprintf( WIDE("Sending POST...") );
+			lprintf( "Sending POST..." );
 			LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 		}
 		SendTCP( state->request_socket, GetText( send ), GetTextSize( send ) );
@@ -1144,10 +1144,10 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		if( pc ) {
 			PVARTEXT pvtOut = VarTextCreate();
 			SetTCPNoDelay( pc, TRUE );
-			vtprintf( pvtOut, WIDE( "GET %s HTTP/1.0\r\n" ), GetText( url ) );
-			vtprintf( pvtOut, WIDE( "Host: %s\r\n" ), GetText( address ) );
+			vtprintf( pvtOut, "GET %s HTTP/1.0\r\n", GetText( url ) );
+			vtprintf( pvtOut, "Host: %s\r\n", GetText( address ) );
 			//vtprintf( pvtOut, "connection: close\r\n" );
-			vtprintf( pvtOut, WIDE( "\r\n" ) );
+			vtprintf( pvtOut, "\r\n" );
 			if( pc )
 			{
 				PTEXT send = VarTextGet( pvtOut );
@@ -1157,7 +1157,7 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 				SetNetworkCloseCallback( connect->pc, HttpReaderClose );
 				if( l.flags.bLogReceived )
 				{
-					lprintf( WIDE( "Sending POST..." ) );
+					lprintf( "Sending POST..." );
 					LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 				}
 				SendTCP( pc, GetText( send ), GetTextSize( send ) );
@@ -1207,11 +1207,11 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 			//SetNetworkConn
 			state->ssl = TRUE;
 			state->pvtOut = VarTextCreate();
-			vtprintf( state->pvtOut, WIDE( "GET %s HTTP/1.0\r\n" ), GetText( url ) );
-			vtprintf( state->pvtOut, WIDE( "Host: %s\r\n" ), GetText( address ) );
+			vtprintf( state->pvtOut, "GET %s HTTP/1.0\r\n", GetText( url ) );
+			vtprintf( state->pvtOut, "Host: %s\r\n", GetText( address ) );
 			vtprintf( state->pvtOut, "User-Agent: SACK(%s)\r\n", "System" );
 			//vtprintf( state->pvtOut, "connection: close\r\n" );
-			vtprintf( state->pvtOut, WIDE( "\r\n" ) );
+			vtprintf( state->pvtOut, "\r\n" );
 #ifndef NO_SSL
 			if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0, certChain, certChain ? strlen( certChain ) : 0 ) )
 			{
@@ -1283,8 +1283,8 @@ PTEXT GetHttps( PTEXT address, PTEXT url, const char *ca )
 static LOGICAL InvokeMethod( PCLIENT pc, struct HttpServer *server, struct HttpState *pHttpState )
 {
 	PTEXT method = GetHttpMethod( pHttpState );
-	//PTEXT request = TextParse( pHttpState->response_status, WIDE( "?#" ), WIDE( " " ), 1, 1 DBG_SRC );
-	if( TextLike( method, WIDE( "get" ) ) || TextLike( method, WIDE( "post" ) ) )
+	//PTEXT request = TextParse( pHttpState->response_status, "?#", " ", 1, 1 DBG_SRC );
+	if( TextLike( method, "get" ) || TextLike( method, "post" ) )
 	{
 		LOGICAL (CPROC *f)(uintptr_t, PCLIENT, struct HttpState *, PTEXT);
 		LOGICAL status = FALSE;
@@ -1300,13 +1300,13 @@ static LOGICAL InvokeMethod( PCLIENT pc, struct HttpServer *server, struct HttpS
 		}
 		if( !status )
 		{
-			DECLTEXT( body, WIDE( "<HTML><HEAD><TITLE>Bad Request</TITLE></HEAD><BODY>Resource handler not found" ) );
-			SendHttpResponse( pHttpState, NULL, 404, WIDE("NOT FOUND"), WIDE("text/html"), (PTEXT)&body );
+			DECLTEXT( body, "<HTML><HEAD><TITLE>Bad Request</TITLE></HEAD><BODY>Resource handler not found" );
+			SendHttpResponse( pHttpState, NULL, 404, "NOT FOUND", "text/html", (PTEXT)&body );
 		}
 		return 1;
 	}
 	else
-		lprintf( WIDE("not a get or a post?") );
+		lprintf( "not a get or a post?" );
 
 	//LineRelease( request );
 	return 0;
@@ -1332,7 +1332,7 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 #ifdef _DEBUG
 		if( l.flags.bLogReceived )
 		{
-			lprintf( WIDE("Received web request...") );
+			lprintf( "Received web request..." );
 			LogBinary( (uint8_t*)buffer, length );
 		}
 #endif
@@ -1398,14 +1398,14 @@ struct HttpServer *CreateHttpsServerEx( CTEXTSTR interface_address, CTEXTSTR Tar
 	server->handle_request = handle_request;
 	server->psvRequest = psv;
 	server->site = StrDup( site );
-	tnprintf( class_name, sizeof( class_name ), WIDE( "SACK/Http/Methods/%s%s%s" )
-		, TargetName ? TargetName : WIDE( "" )
-		, (TargetName && site) ? WIDE( "/" ) : WIDE( "" )
-		, site ? site : WIDE( "" ) );
+	tnprintf( class_name, sizeof( class_name ), "SACK/Http/Methods/%s%s%s"
+		, TargetName ? TargetName : ""
+		, (TargetName && site) ? "/" : ""
+		, site ? site : "" );
 	//lprintf( "Server root = %s", class_name );
 	server->methods = GetClassRoot( class_name );
 	NetworkStart();
-	server->server = OpenTCPListenerAddrEx( tmp = CreateSockAddress( interface_address ? interface_address : WIDE( "0.0.0.0" ), 80 )
+	server->server = OpenTCPListenerAddrEx( tmp = CreateSockAddress( interface_address ? interface_address : "0.0.0.0", 80 )
 		, AcceptHttpClient );
 	SetNetworkLong( server->server, 0, (uintptr_t)server );
 	ssl_BeginServer( server->server, NULL, 0, NULL, 0, NULL, 0 );
@@ -1430,14 +1430,14 @@ struct HttpServer *CreateHttpServerEx( CTEXTSTR interface_address, CTEXTSTR Targ
 	server->handle_request = handle_request;
 	server->psvRequest = psv;
 	server->site = StrDup( site );
-	tnprintf( class_name, sizeof( class_name ), WIDE( "SACK/Http/Methods/%s%s%s" )
-			  , TargetName?TargetName:WIDE("")
-			  , ( TargetName && site )?WIDE( "/" ):WIDE( "" )
-			  , site?site:WIDE( "" ) );
+	tnprintf( class_name, sizeof( class_name ), "SACK/Http/Methods/%s%s%s"
+			  , TargetName?TargetName:""
+			  , ( TargetName && site )?"/":""
+			  , site?site:"" );
 	//lprintf( "Server root = %s", class_name );
 	server->methods = GetClassRoot( class_name );
 	NetworkStart();
-	server->server = OpenTCPListenerAddrEx( tmp = CreateSockAddress( interface_address?interface_address:WIDE( "0.0.0.0" ), 80 )
+	server->server = OpenTCPListenerAddrEx( tmp = CreateSockAddress( interface_address?interface_address:"0.0.0.0", 80 )
 													  , AcceptHttpClient );
 	ReleaseAddress( tmp );
 	if( !server->server )

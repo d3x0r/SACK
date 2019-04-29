@@ -47,14 +47,14 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, ui
 			}
 			if( y + ht > update_rect->y + update_rect->height )
 				update_rect->height = ( y + ht ) - update_rect->y;
-			//lprintf( WIDE("result (%d,%d)-(%d,%d)")
+			//lprintf( "result (%d,%d)-(%d,%d)"
 			//      , update_rect->x, update_rect->y
 			//      , update_rect->width, update_rect->height
 			//  	 );
 		}
 		else
 		{
-			//_lprintf( DBG_AVAILABLE, WIDE("Setting (%d,%d)-(%d,%d)") DBG_RELAY
+			//_lprintf( DBG_AVAILABLE, "Setting (%d,%d)-(%d,%d)" DBG_RELAY
 			//		 , x, y
 			//       , wd, ht
 			//		 );
@@ -132,7 +132,7 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
       toppad = pdp->nCmdLinePad;
 	r.top -= toppad;
 /*
-	lprintf( WIDE("*** Commandline %d,%d  uhh %d %d  %d and %d")
+	lprintf( "*** Commandline %d,%d  uhh %d %d  %d and %d"
 			 , r.top, r.bottom
 			 , start, end
 			 , nCursorPos
@@ -189,7 +189,7 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
 		nShown = 0;
 		// hmm should do something fancy with this
 		// like make it externally definable like prompt is now...
-		nShow = snprintf( byName, sizeof( byName ), WIDE("(%s) ")
+		nShow = snprintf( byName, sizeof( byName ), "(%s) "
 							, GetText( GetName( pdp->common.Owner->pRecord ) )
 							 );
 		if( pdp->DrawString )
@@ -232,14 +232,14 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
 		pStart = NEXTLINE( pStart );
 	}
 	//if( pStart )
-	//   lprintf( WIDE("Stopped because of length.") );
+	//   lprintf( "Stopped because of length." );
 	r.left = r.right;
 	r.right = pdp->nWidth;
 	// only have to clean trail if on a direct input method...
 	if( r.right > r.left )
 	{
 		// clear the remainder of the line...
-		//lprintf( WIDE("Clearing end of line...") );
+		//lprintf( "Clearing end of line..." );
 		if( pdp->FillConsoleRect )
 			pdp->FillConsoleRect( pdp, &r, FILL_DISPLAY_BACK );
 	}
@@ -270,7 +270,7 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
 CORECON_PROC( void, WinLogicCalculateHistory )( PCONSOLE_INFO pdp )
 {
 	// there's some other related set of values to set here....
-	//lprintf( WIDE("Calculate history! %d %d"), pdp->nColumns, pdp->nLines );
+	//lprintf( "Calculate history! %d %d", pdp->nColumns, pdp->nLines );
 
 	SetCursorLines( pdp->pCursor, pdp->nLines );
 	SetCursorColumns( pdp->pCursor, pdp->nColumns );
@@ -279,7 +279,7 @@ CORECON_PROC( void, WinLogicCalculateHistory )( PCONSOLE_INFO pdp )
 
 	if( pdp->flags.bHistoryShow )
 	{
-		//lprintf( WIDE("Doing history... check percent and set display/history approp.") );
+		//lprintf( "Doing history... check percent and set display/history approp." );
 		switch( pdp->nHistoryPercent )
 		{
 		case 0:  // 25
@@ -306,7 +306,7 @@ CORECON_PROC( void, WinLogicCalculateHistory )( PCONSOLE_INFO pdp )
 	}
 	else
 	{
-		//lprintf( WIDE("No history, all display") );
+		//lprintf( "No history, all display" );
 		// internally we'll need this amount to get into
 		// scrollback...
 		pdp->nHistoryLineStart = 0;
@@ -335,10 +335,10 @@ void RenderConsole( PCONSOLE_INFO pdp )
 	upd.flags.bTmpRect = 1;
 	MemSet( &upd.cs, 0, sizeof( upd.cs ) );
 	EnterCriticalSec( &pdp->Lock );
-	//lprintf( WIDE("Render Console... %d %d"), pdp->nDisplayLineStart, pdp->nHistoryLineStart );
+	//lprintf( "Render Console... %d %d", pdp->nDisplayLineStart, pdp->nHistoryLineStart );
 	if( pdp->nHistoryLineStart )
 	{
-		//lprintf( WIDE("no history rende? %d"), pdp->flags.bNoHistoryRender );
+		//lprintf( "no history rende? %d", pdp->flags.bNoHistoryRender );
 		//if( !pdp->flags.bNoHistoryRender )
 		{
 			//BuildDisplayInfoLines( pdp->pHistoryDisplay );
@@ -371,7 +371,7 @@ void ChildCalculate( PCONSOLE_INFO pdp )
 {
 	 //RECT rArea;
 	int nLines;
-	 //lprintf( WIDE("*** DISPLAY is %d,%d by %d,%d"), pdp->rArea.top, pdp->rArea.left, pdp->rArea.right, pdp->rArea.bottom );
+	 //lprintf( "*** DISPLAY is %d,%d by %d,%d", pdp->rArea.top, pdp->rArea.left, pdp->rArea.right, pdp->rArea.bottom );
 	 if ( (pdp->rArea.right - pdp->rArea.left) <= 0 || 
 			 (pdp->rArea.bottom - pdp->rArea.top ) <= 0 )
 	 {
@@ -392,7 +392,7 @@ void ChildCalculate( PCONSOLE_INFO pdp )
 
 	 if( pdp->nFontHeight )
 	 {
-		 //lprintf( WIDE("Okay font height existsts... that's good") );
+		 //lprintf( "Okay font height existsts... that's good" );
 		 if( pdp->flags.bDirect )
 		 {
 			 pdp->nDisplayLineStart = pdp->nCommandLineStart;
@@ -403,7 +403,7 @@ void ChildCalculate( PCONSOLE_INFO pdp )
 		 {
 			 SetCursorNoPrompt( pdp->pCurrentDisplay, TRUE );
 			 SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
-			 //lprintf( WIDE("Starting display above command start") );
+			 //lprintf( "Starting display above command start" );
 			 pdp->nDisplayLineStart = pdp->nCommandLineStart
 				 - ( pdp->nFontHeight
 					 + ( pdp->nYPad * 2 )
@@ -415,7 +415,7 @@ void ChildCalculate( PCONSOLE_INFO pdp )
 	 }
 	 else
 	 {
-		 lprintf( WIDE("Font height does not exist :(") );
+		 lprintf( "Font height does not exist :(" );
 		 nLines = 0;
 	 }
 
@@ -430,10 +430,10 @@ void ChildCalculate( PCONSOLE_INFO pdp )
 #ifdef __DEKWARE_PLUGIN__
 	 /* this should be invoked as a behavior... */
 	 if( pdp->common.Owner &&
-			LocateMacro( pdp->common.Owner->Current, WIDE("WindowResize") ) )
+			LocateMacro( pdp->common.Owner->Current, "WindowResize" ) )
 	 {
 		  TEXTCHAR resize[256];
-		  snprintf( resize, sizeof( resize ), WIDE("/WindowResize %d %d")
+		  snprintf( resize, sizeof( resize ), "/WindowResize %d %d"
 									 , pdp->nColumns
 									 , pdp->nLines );
 		  QueueCommand( pdp->common.Owner, resize );
@@ -514,14 +514,14 @@ PTEXT CPROC SetCursorY( uintptr_t psv, struct entity_tag *pe, PTEXT newvalue )
 //----------------------------------------------------------------------------
 #ifdef __DEKWARE_PLUGIN__
 #if 0
-CORECON_EXPORT( volatile_variable_entry, vve_rows ) = { DEFTEXT( WIDE("rows") )
+CORECON_EXPORT( volatile_variable_entry, vve_rows ) = { DEFTEXT( "rows" )
 																		, GetRows, NULL };
-CORECON_EXPORT( volatile_variable_entry, vve_cols ) = { DEFTEXT( WIDE("cols") )
+CORECON_EXPORT( volatile_variable_entry, vve_cols ) = { DEFTEXT( "cols" )
 																		, GetCols, NULL };
-CORECON_EXPORT( volatile_variable_entry, vve_cursorx ) = { DEFTEXT( WIDE("cursorx") )
+CORECON_EXPORT( volatile_variable_entry, vve_cursorx ) = { DEFTEXT( "cursorx" )
 																			, GetCursorX
 																			, SetCursorX };
-CORECON_EXPORT( volatile_variable_entry, vve_cursory ) = { DEFTEXT( WIDE("cursory") )
+CORECON_EXPORT( volatile_variable_entry, vve_cursory ) = { DEFTEXT( "cursory" )
 																			, GetCursorY
 																			, SetCursorY };
 #endif
@@ -548,13 +548,13 @@ int WinLogicWrite( PDATAPATH pdp
 	{
 		first_read = 0;
 		//int flags = pLine->flags & (TF_NORETURN|TF_PROMPT);
-		//lprintf( WIDE("Updated... %d"), updated );
+		//lprintf( "Updated... %d", updated );
 		updated++;
 
 		if( pLine->flags & TF_FORMATABS )
 		{
 			int32_t cursorx, cursory;
-			//lprintf( WIDE("absolute position format.") );
+			//lprintf( "absolute position format." );
 			GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
 			if( pLine->format.position.coords.x != -16384 )
 				cursorx = pLine->format.position.coords.x;
@@ -568,7 +568,7 @@ int WinLogicWrite( PDATAPATH pdp
 		if( pLine->flags & TF_FORMATREL )
 		{
 			int32_t cursorx, cursory;
-			//lprintf( WIDE("relative position format") );
+			//lprintf( "relative position format" );
 			GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
 			cursorx += pLine->format.position.coords.x;
 			cursory += pLine->format.position.coords.y;
@@ -583,7 +583,7 @@ int WinLogicWrite( PDATAPATH pdp
 			( pLine->flags & TF_FORMATREL ) ||
 			( phc->region->flags.bForceNewline ) )
 		{ // err new segment goes on a new line.  (even if we are in the past)
-			//Log2( WIDE("Line is automatically promoting itself to the next line. %d %d")
+			//Log2( "Line is automatically promoting itself to the next line. %d %d"
 			//  , pht->nCursorY, pht->pTrailer?pht->pTrailer->nLinesUsed:-1 );
 			if( !( pLine->flags & TF_NORETURN ) || phc->region->flags.bForceNewline )
 				(phc->nCursorY)++;
@@ -610,7 +610,7 @@ int WinLogicWrite( PDATAPATH pdp
 		if( first_read )
 		{
 			PENDING_RECT upd;
-			//lprintf( WIDE("Okay well there's no data, first pass to check, end of stream... flush") );
+			//lprintf( "Okay well there's no data, first pass to check, end of stream... flush" );
 			MemSet( &upd.cs, 0, sizeof( upd.cs ) );
 			upd.flags.bTmpRect = 1;
 			upd.flags.bHasContent = 0;
@@ -628,7 +628,7 @@ int WinLogicWrite( PDATAPATH pdp
 				r.right = upd.x + upd.width;
 				r.top = upd.y;
 				r.bottom = upd.y + upd.height;
-				//lprintf( WIDE("Doing update call to display...") );
+				//lprintf( "Doing update call to display..." );
 				pmdp->Update( pmdp, &r );
 			}
 			updated = 0;
@@ -793,7 +793,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 	PDATALIST *ppCurrentLineInfo;
 	if( pdp->flags.bNoDisplay )
 	{
-		lprintf( WIDE("nodisplay!") );
+		lprintf( "nodisplay!" );
 		return;
 	}
 	EnterCriticalSec( &pdp->Lock );
@@ -805,14 +805,14 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 		nFirstLine = ( upd.bottom = pdp->nDisplayLineStart ) - ( ( pdp->nYPad ) + pdp->nFontHeight );
 		if( !pdp->flags.bDirect && pdp->nDisplayLineStart != pdp->nCommandLineStart )
 		{
-			//lprintf( WIDE("Rendering display line seperator %d (not %d)"), pdp->nDisplayLineStart, pdp->nCommandLineStart );
+			//lprintf( "Rendering display line seperator %d (not %d)", pdp->nDisplayLineStart, pdp->nCommandLineStart );
 			if( pdp->RenderSeparator )
 				pdp->RenderSeparator( pdp, pdp->nDisplayLineStart );
 			// add update region...
 			// but how big is the thing that just drew?!
 		}
 
-		//lprintf( WIDE("nFirstline is %d"), nFirstLine );
+		//lprintf( "nFirstline is %d", nFirstLine );
 
 		// figure out if we draw up to history or all the screen...
 		if( pdp->nHistoryLineStart )
@@ -835,7 +835,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 		// the seperator is actually rendererd OVER the top of the displayed line.
 		ppCurrentLineInfo = GetDisplayInfo( pdp->pHistoryDisplay );
 	}
-	//lprintf( WIDE("Render history separator %d"), pdp->nHistoryLineStart );
+	//lprintf( "Render history separator %d", pdp->nHistoryLineStart );
 	if( pdp->RenderSeparator )
 		pdp->RenderSeparator( pdp, pdp->nHistoryLineStart );
 	r.bottom = nFirstLine;
@@ -846,11 +846,11 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 	{
 		int nShow, nShown;
 		PDISPLAYED_LINE pCurrentLine;
-		//lprintf( WIDE("Get display line %d"), nLine );
+		//lprintf( "Get display line %d", nLine );
 		pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
 		if( !pCurrentLine )
 		{
-			//lprintf( WIDE("No such line... %d"), nLine );
+			//lprintf( "No such line... %d", nLine );
 			break;
 		}
 		r.top = nFirstLine - pdp->nFontHeight * nLine;
@@ -860,7 +860,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 			r.bottom = r.top + pdp->nFontHeight;
 		if( r.bottom <= nMinLine )
 		{
-			//lprintf( WIDE("bottom < minline..") );
+			//lprintf( "bottom < minline.." );
 			break;
 		}
 		y = r.top;
@@ -877,14 +877,14 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 			pdp->SetCurrentColor( pdp, COLOR_DEFAULT, NULL );
 		nShown = pCurrentLine->nOfs;
 		//if( !pText )
-		//	lprintf( WIDE("Okay no text to show... end up filling line blank.") );
+		//	lprintf( "Okay no text to show... end up filling line blank." );
 		while( pText )
 		{
 			TEXTCHAR *text = GetText( pText );
 #ifdef __DEKWARE_PLUGIN__
 			if( !pdp->flags.bDirect && ( pText->flags & TF_PROMPT ) )
 			{
-				//lprintf( WIDE("Segment is prompt - and we need to skip it.") );
+				//lprintf( "Segment is prompt - and we need to skip it." );
 				pText = NEXTLINE( pText );
 				continue;
 			}
@@ -893,20 +893,20 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 				pdp->SetCurrentColor( pdp, COLOR_SEGMENT, pText );
 
 			nLen = GetTextSize( pText );
-			//lprintf( WIDE("%d %d"), nShown, nLen );
+			//lprintf( "%d %d", nShown, nLen );
 			while( nShown < nLen )
 			{
-				//lprintf( WIDE("nShown < nLen... TEXTCHAR %d len %d toshow %d"), nChar, nLen, pCurrentLine->nToShow );
+				//lprintf( "nShown < nLen... TEXTCHAR %d len %d toshow %d", nChar, nLen, pCurrentLine->nToShow );
 				if( nChar + nLen > pCurrentLine->nToShow )
 					nShow = pCurrentLine->nToShow - nChar;
 				else
 				{
-					//lprintf( WIDE("nShow is what's left of now to nLen from nShown... %d,%d"), nLen, nShown );
+					//lprintf( "nShow is what's left of now to nLen from nShown... %d,%d", nLen, nShown );
 					nShow = nLen - nShown;
 				}
 				if( !nShow )
 				{
-					//lprintf( WIDE("nothing to show...") );
+					//lprintf( "nothing to show..." );
 					break;
 				}
 				if( pdp->flags.bMarking &&
@@ -1012,7 +1012,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 				}
 				if( r.bottom > nMinLine )
 				{
-					//lprintf( WIDE("And finally we can show some text... %s %d"), text, y );
+					//lprintf( "And finally we can show some text... %s %d", text, y );
 					if( pdp->DrawString )
 						pdp->DrawString( pdp, x, y, &r, text, nShown, nShow );
 					if( nLine == 0 )  // only keep the (last) line's end.
@@ -1020,14 +1020,14 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 					//DrawString( text );
 				}
 				else
-					lprintf( WIDE("Hmm bottom < minline?") );
+					lprintf( "Hmm bottom < minline?" );
 						  // fill to the end of the line...
 				//nLen -= nShow;
 				r.left = r.right;
 				nShown += nShow;
 				nChar += nShow;
 			}
-			//lprintf( WIDE("nShown >= nLen...") );
+			//lprintf( "nShown >= nLen..." );
 
 			nShown -= nLen;
 			pText = NEXTLINE( pText );
@@ -1038,7 +1038,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 					  // if soething left to fill, blank fill it...
 			if( r.left < r.right )
 			{
-				//lprintf( WIDE("WRiting empty string (over top?)") );
+				//lprintf( "WRiting empty string (over top?)" );
 				if( pdp->FillConsoleRect )
 					pdp->FillConsoleRect( pdp, &r, FILL_DISPLAY_BACK );
 			}
@@ -1047,7 +1047,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 			nFirst = -1;
 		nLine++;
 	}
-	//lprintf( WIDE("r.bottom nMin %d %d"), r.bottom, nMinLine );
+	//lprintf( "r.bottom nMin %d %d", r.bottom, nMinLine );
 	if( r.bottom > nMinLine )
 	{
 		r.bottom = r.top;
@@ -1055,19 +1055,19 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 		x = r.left = 0;
 		r.right = pdp->nWidth;
 #ifndef PSI_LIB
-		//lprintf( WIDE("Would be blanking the screen here, but no, there's no reason to.") );
+		//lprintf( "Would be blanking the screen here, but no, there's no reason to." );
 				  //FillEmptyScreen();
 #endif
 	}
 	else
 		r.top = r.bottom;
 	//RenderConsole( pdp );
-	//lprintf( WIDE("Render AGAIN the display line separator") );
+	//lprintf( "Render AGAIN the display line separator" );
 	if( pdp->RenderSeparator )
 	{
 		if( pdp->nDisplayLineStart != pdp->nCommandLineStart )
 			pdp->RenderSeparator( pdp, pdp->nDisplayLineStart );
-		//lprintf( WIDE("Render AGAIN the hsitory line separator") );
+		//lprintf( "Render AGAIN the hsitory line separator" );
 		pdp->RenderSeparator( pdp, pdp->nHistoryLineStart );
 	}
 	upd.top = r.top;
@@ -1119,48 +1119,48 @@ CORECON_PROC( int, SetMode )( PDATAPATH xpdp, PSENTIENT ps, PTEXT params )
 		firstopt = temp;
 		//if( pmdp->common.Type == myTypeID )
 		{
-			if( TextLike( temp, WIDE("direct") ) )
+			if( TextLike( temp, "direct" ) )
 			{
 				pmdp->flags.bDirect = TRUE;
 				EnterCriticalSec( &pdp->Lock );
 #ifdef WINCON
-				SetRegistryInt( WIDE("Dekware\\Wincon\\Direct")
+				SetRegistryInt( "Dekware\\Wincon\\Direct"
 								  , GetText( GetName( ps->Current ) )
 								  , pdp->flags.bDirect );
 #endif
 				ChildCalculate( pmdp );
 				LeaveCriticalSec( &pdp->Lock );
 			}
-			else if( TextLike( temp, WIDE("line") ) )
+			else if( TextLike( temp, "line" ) )
 			{
 				pmdp->flags.bDirect = FALSE;
 				EnterCriticalSec( &pmdp->Lock );
 #ifdef WINCON
-				SetRegistryInt( WIDE("Dekware\\Wincon\\Direct")
+				SetRegistryInt( "Dekware\\Wincon\\Direct"
 								  , GetText( GetName( ps->Current ) )
 								  , pdp->flags.bDirect );
 #endif
 				ChildCalculate( pmdp );
 				LeaveCriticalSec( &pmdp->Lock );
 			}
-			else if( TextLike( temp, WIDE("buffer") ) )
+			else if( TextLike( temp, "buffer" ) )
 			{
 				pmdp->flags.bCharMode = FALSE;
 			}
-			else if( TextLike( temp, WIDE("TEXTCHAR") ) )
+			else if( TextLike( temp, "TEXTCHAR" ) )
 			{
 				pmdp->flags.bCharMode = TRUE;
 			}
 		}
 		//else
 		//{
-		//  DECLTEXT( msg, WIDE("Command path is not a PSI Console") );
+		//  DECLTEXT( msg, "Command path is not a PSI Console" );
 		//  EnqueLink( &ps->Command->Output, &msg );
 		//}
 	}
 	if( !firstopt )
 	{
-		DECLTEXT( msg, WIDE("Must specify mode: Direct, Line.") );
+		DECLTEXT( msg, "Must specify mode: Direct, Line." );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	return 0;
@@ -1178,13 +1178,13 @@ int SetFlash( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters );
 //----------------------------------------------------------------------------
 
 #ifdef __DEKWARE_PLUGIN__
-TEXTCHAR *ColorTable[] = { WIDE("black"), WIDE("blue"), WIDE("green")
-                     , WIDE("cyan"), WIDE("red"), WIDE("magenta")
-                     , WIDE("brown"), WIDE("grey"), WIDE("darkgrey")
-                     , WIDE("lightblue"), WIDE("lightgreen")
-                     , WIDE("lightcyan"), WIDE("lightred")
-                     , WIDE("lightmagenta"), WIDE("yellow")
-                     , WIDE("white") };
+TEXTCHAR *ColorTable[] = { "black", "blue", "green"
+                     , "cyan", "red", "magenta"
+                     , "brown", "grey", "darkgrey"
+                     , "lightblue", "lightgreen"
+                     , "lightcyan", "lightred"
+                     , "lightmagenta", "yellow"
+                     , "white" };
 
 int ConSetColor( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 {
@@ -1196,7 +1196,7 @@ int ConSetColor( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 	color = GetParam( ps, &parameters );
 	if( !color )
 	{
-		DECLTEXT( msg, WIDE("Parameters to SetColor are : Foreground Background") );
+		DECLTEXT( msg, "Parameters to SetColor are : Foreground Background" );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
@@ -1213,7 +1213,7 @@ int ConSetColor( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 	}
 	else
 	{
-		DECLTEXT( msg, WIDE("First parameter was not a known color...") );
+		DECLTEXT( msg, "First parameter was not a known color..." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
@@ -1234,17 +1234,17 @@ int ConSetColor( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 		}
 		else
 		{
-			//DECLTEXT( msg, WIDE("Second parameter was not a known color...") );
+			//DECLTEXT( msg, "Second parameter was not a known color..." );
 			//EnqueLink( &ps->Command->Output, &msg );
 			//pmdp->Display.History->pCursor->DefaultColor.background
 			// = pmdp->Display.History->pCursor->PriorColor.background;
 		}
 	}
 #if defined( WINCON )
-	//SetRegistryInt( WIDE("Dekware\\Wincon\\Background")
+	//SetRegistryInt( "Dekware\\Wincon\\Background"
 	//                , GetText( GetName( pmdp->ps->Current ) )
 	//                , pmdp->Display.History->pCursor->DefaultColor.background );
-	//SetRegistryInt( WIDE("Dekware\\gggWincon\\Foreground")
+	//SetRegistryInt( "Dekware\\gggWincon\\Foreground"
 	//                , GetText( GetName( pmdp->ps->Current ) )
 	//                , pmdp->Display.History->pCursor->DefaultColor.foreground );
 #endif
@@ -1263,7 +1263,7 @@ int SetTabs( PDATAPATH pdp, PSENTIENT ps, PTEXT params )
 		PCONSOLE_INFO pmdp = (PCONSOLE_INFO)pdp;
 		if( !pmdp )
 		{
-			DECLTEXT( msg, WIDE("Window datapath is not open") );
+			DECLTEXT( msg, "Window datapath is not open" );
 			EnqueLink( &ps->Command->Output, &msg );
 			return 0;
 		}
@@ -1278,13 +1278,13 @@ int SetTabs( PDATAPATH pdp, PSENTIENT ps, PTEXT params )
 		PCONSOLE_INFO pmdp = (PCONSOLE_INFO)pdp;
 		if( !pmdp )
 		{
-			DECLTEXT( msg, WIDE("Window datapath is not open") );
+			DECLTEXT( msg, "Window datapath is not open" );
 			EnqueLink( &ps->Command->Output, &msg );
 			return 0;
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Tab size not specified defaulting to 8.") );
+			DECLTEXT( msg, "Tab size not specified defaulting to 8." );
 			EnqueLink( &ps->Command->Output, &msg );
 			pmdp->pHistory->tabsize = 8;
 		}
@@ -1297,7 +1297,7 @@ int SetTabs( PDATAPATH pdp, PSENTIENT ps, PTEXT params )
 int UpdateHistory( PCONSOLE_INFO pdp )
 {
    int bUpdate = 0;
-	lprintf( WIDE("nLines = %d  percent = %d  x = %d")
+	lprintf( "nLines = %d  percent = %d  x = %d"
 			 , pdp->nLines
 			 , pdp->nHistoryPercent
 			 , ( pdp->nLines * ( 3 - pdp->nHistoryPercent ) / 4 ) );
@@ -1308,7 +1308,7 @@ int UpdateHistory( PCONSOLE_INFO pdp )
 		if( !pdp->flags.bHistoryShow )
 		{
 			extern PSIKEYDEFINE KeyDefs[];
-			lprintf( WIDE("Key END shoudl end history..") );
+			lprintf( "Key END shoudl end history.." );
 			KeyDefs[KEY_END].op[0].bFunction = HISTORYKEY;
 			KeyDefs[KEY_END].op[0].data.HistoryKey = KeyEndHst;
 			pdp->flags.bHistoryShow = 1;
@@ -1322,7 +1322,7 @@ int UpdateHistory( PCONSOLE_INFO pdp )
 			upd.flags.bTmpRect = 0;
 			MemSet( &upd.cs, 0, sizeof( upd.cs ) );
 			BuildDisplayInfoLines( pdp->pHistoryDisplay );
-			//lprintf( WIDE("ALready showing history?!") );
+			//lprintf( "ALready showing history?!" );
 			if( pdp->psicon.frame )
 				SmudgeCommon( pdp->psicon.frame );
          else
@@ -1346,7 +1346,7 @@ int UpdateHistory( PCONSOLE_INFO pdp )
 		if( pdp->flags.bHistoryShow )
 		{
 			extern PSIKEYDEFINE KeyDefs[];
-			lprintf( WIDE("key end command line now... please do renderings..") );
+			lprintf( "key end command line now... please do renderings.." );
 			KeyDefs[KEY_END].op[0].bFunction = COMMANDKEY;
 			KeyDefs[KEY_END].op[0].data.CommandKey = KeyEndCmd;
 			pdp->flags.bHistoryShow = 0;

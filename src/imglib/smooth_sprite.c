@@ -153,7 +153,7 @@ static void PlotArbitrary( Image dest
 	verts[3].y = source_image->real_height << SCALE_SHIFT;
 #if 0
 	{
-		lprintf( WIDE("points : %d,%d %d,%d %d,%d %d,%d"), x1, y1, x2, y2, x3, y3, x4, y4 );
+		lprintf( "points : %d,%d %d,%d %d,%d %d,%d", x1, y1, x2, y2, x3, y3, x4, y4 );
 	}
 #endif
 	if( y1 < y2 || ( ( y3 < y2 ) && ( y3 < y1 ) ) || ( ( y4 < y2 ) && ( y4 < y1 ) ) )
@@ -177,7 +177,7 @@ static void PlotArbitrary( Image dest
 				}
 				else
 				{
-					lprintf( WIDE("Invalid configuration ( convex? )") );
+					lprintf( "Invalid configuration ( convex? )" );
 				}
 			}
 			else if( y4 < y1 )
@@ -206,7 +206,7 @@ static void PlotArbitrary( Image dest
 				else
 				{
 					DebugBreak();
-					lprintf( WIDE("Invalid configuration ( convex? )") );
+					lprintf( "Invalid configuration ( convex? )" );
 				}
 
 			}
@@ -261,7 +261,7 @@ static void PlotArbitrary( Image dest
 		else // y1 == y3
 		{
 			DebugBreak();
-			lprintf( WIDE("Invalid Configuration!") );
+			lprintf( "Invalid Configuration!" );
 		}
 	}
 	else if( y2 < y1 )
@@ -283,13 +283,13 @@ static void PlotArbitrary( Image dest
 					SET_POINTS( 2, 1, 4, 2, 3, 0 );
 				}
 				else
-					lprintf( WIDE("Invalid configuration!") );
+					lprintf( "Invalid configuration!" );
 				// y2 is the least
 			}
 			else if( y4 <= y2 )
 			{
 				DebugBreak();
-				lprintf( WIDE("Invalid configuration!") );
+				lprintf( "Invalid configuration!" );
 			}
 		}
 		else if( y3 < y4 )
@@ -316,7 +316,7 @@ static void PlotArbitrary( Image dest
 			else
 			{
 				DebugBreak();
-				lprintf( WIDE("Invalid configuration!") );
+				lprintf( "Invalid configuration!" );
 			}
 			// y3 is the least
 		}
@@ -400,11 +400,11 @@ static void PlotArbitrary( Image dest
 			}
 		}
 		else
-         lprintf( WIDE("Invalid configuration.. y1, y2, and y3 all equal") );
+         lprintf( "Invalid configuration.. y1, y2, and y3 all equal" );
 	}
 
 #ifdef DEBUG_TIMING
-	lprintf( WIDE("-- End Setup") );
+	lprintf( "-- End Setup" );
 #endif
 	{
 		struct {
@@ -1010,7 +1010,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				, (RCOORD)sprite->curx * sprite->scalex / (RCOORD)0x10000
 				, (RCOORD)sprite->cury*sprite->scaley / (RCOORD)0x10000
 				, (RCOORD)0 );
-	//lprintf( WIDE("angle = %ld"), sprite->angle );
+	//lprintf( "angle = %ld", sprite->angle );
 	Scale( transform, sprite->scalex / (RCOORD)0x10000, sprite->scaley / (RCOORD)0x10000, 0 );
 	RotateAbs( transform, (RCOORD)0, (RCOORD)0, (RCOORD)sprite->angle );
 	//Scale( transform, 1, 1, 0 );

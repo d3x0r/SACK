@@ -25,7 +25,7 @@ int APIENTRY WinMain( HINSTANCE h, HINSTANCE p, LPTSTR cmd, int nCmdShow )
 #endif
 	CDATA result;
    PRENDERER display;
-	SetSystemLog( SYSLOG_FILENAME, WIDE("Test3.Log") );
+	SetSystemLog( SYSLOG_FILENAME, "Test3.Log" );
 	//SetAllocateLogging( TRUE );
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();
@@ -35,8 +35,8 @@ int APIENTRY WinMain( HINSTANCE h, HINSTANCE p, LPTSTR cmd, int nCmdShow )
    display = OpenDisplaySizedAt( 0, 150, 150, 50, 50 );
    result = Color(127,127,127);
 	while( PickColorEx( &result, result, 0, 256, 150 ) )
-		printf( WIDE("Guess what! We got a color: %08x\n"), result );
-	printf( WIDE("Color Dialog was canceled.\n") );
+		printf( "Guess what! We got a color: %08x\n", result );
+	printf( "Color Dialog was canceled.\n" );
    CloseDisplay( display );
 	return 0;
 }

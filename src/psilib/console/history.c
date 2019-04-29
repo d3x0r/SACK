@@ -102,7 +102,7 @@ PHISTORYBLOCK CreateHistoryBlock( PHISTORY_BLOCK_LINK phbl )
 	// phbl needs to be valid node link thingy...
 	if( !phbl->me )
 	{
-		lprintf( WIDE("FATAL ERROR, NODE in list is not initialized correctly.") );
+		lprintf( "FATAL ERROR, NODE in list is not initialized correctly." );
 		DebugBreak();
 	}
 	pHistory = CreateRawHistoryBlock();
@@ -447,7 +447,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 
 	if( !pCurrentLine )
 	{
-		lprintf( WIDE("No line result from history...") );
+		lprintf( "No line result from history..." );
 	}
 
 	if( (phc->output.nCursorX) > pCurrentLine->flags.nLineLength )
@@ -456,7 +456,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 		PTEXT filler = SegCreate( (phc->output.nCursorX) - pCurrentLine->flags.nLineLength );
 		TEXTCHAR *data = GetText( filler );
 		int n;
-		lprintf( WIDE("Cursor beyond line, creating filler segment up to X") );
+		lprintf( "Cursor beyond line, creating filler segment up to X" );
 		filler->format.flags.foreground = segment->format.flags.foreground;
 		filler->format.flags.background = segment->format.flags.background;
 		//Log1( "Make a filler segment %d charactes", phc->region->(phc->output.nCursorX) - pCurrentLine->nLineLength );
@@ -480,7 +480,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 
 		// so - split the line, result with current segment.
 		int32_t pos = 0;
-		lprintf( WIDE("Okay insert/overwrite this segment on the display...") );
+		lprintf( "Okay insert/overwrite this segment on the display..." );
 		text = pCurrentLine->pLine;
 		while( pos < (phc->output.nCursorX) && text )
 		{
@@ -514,7 +514,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 	// expects 'text' to be the start of the correct segment.
 	if( segment->flags & TF_FORMATEX )
 	{
-		Log( WIDE("Extended info carried on this segment.") );
+		Log( "Extended info carried on this segment." );
 		segment->flags &= ~TF_FORMATEX;
 		switch( segment->format.flags.format_op )
 		{
@@ -531,37 +531,37 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 			len = 0;
 			break;
 		case FORMAT_OP_DELETE_CHARS:
-			Log1( WIDE("Delete %d characters"), segment->format.flags.background );
+			Log1( "Delete %d characters", segment->format.flags.background );
 			if( text ) // otherwise there's no characters to delete?  or does it mean next line?
 			{
 				PTEXT split;
-				Log1( WIDE("Has a current segment... %") _size_f, GetTextSize( text ) );
+				Log1( "Has a current segment... %" _size_f, GetTextSize( text ) );
 				if( text == pCurrentLine->pLine )
 				{
-					Log( WIDE("is the first segment... "));
+					Log( "is the first segment... ");
 					split = SegSplit( &pCurrentLine->pLine, segment->format.flags.background );
 					text = pCurrentLine->pLine;
 				}
 				else
 				{
-					Log(WIDE( "Is not first - splitting segment... "));
+					Log("Is not first - splitting segment... ");
 					split = SegSplit( &text, segment->format.flags.background );
 				}
 				if( split )
 				{
-					Log( WIDE("Resulting split...") );
+					Log( "Resulting split..." );
 					text = NEXTLINE( split );
 					LineRelease( SegGrab( split ) );
 				}
 				else
 				{
-					Log( WIDE("Didn't split the line - deleting the next segment.") );
+					Log( "Didn't split the line - deleting the next segment." );
 					LineRelease( SegGrab( text ) );
 				}
 			}
 			else
 			{
-				Log( WIDE("Didn't find a next semgnet( text)") );
+				Log( "Didn't find a next semgnet( text)" );
 			}
 			break;
 		case FORMAT_OP_CLEAR_START_OF_LINE:
@@ -576,7 +576,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 				{
 					data[n] = ' ';
 				}
-				Log( WIDE("This is all so terribly bad - clear start of line is horrid idea.") );
+				Log( "This is all so terribly bad - clear start of line is horrid idea." );
 				if( text ) // insert before text... else append to line.
 				{
 					PTEXT fill_here = SegCreate( 1 );
@@ -589,7 +589,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 						text = pCurrentLine->pLine;
 						SegSubst( pCurrentLine->pLine, fill_here );
 						if( GetTextSize( filler ) )
-							Log( WIDE("Size expected, zero size filler computed") );
+							Log( "Size expected, zero size filler computed" );
 						LineRelease( filler ); // should be zero sized...
 					}
 					else
@@ -628,7 +628,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 			segment->flags |= TF_FORMATEX;
 			break;
 		default:
-			Log( WIDE("Invalid extended format segment. ") );
+			Log( "Invalid extended format segment. " );
 			break;
 		}
 		if( !(segment->flags & TF_FORMATEX ) )
@@ -704,7 +704,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 	else
 	{
 		pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
-		//Log( WIDE("no data in segment.") );
+		//Log( "no data in segment." );
 	}
 	return word;
 }
@@ -715,7 +715,7 @@ void SetTopOfForm( PHISTORY_LINE_CURSOR phlc )
 {
 	if( phlc )
 	{
-		lprintf( WIDE("Set the top of form here...") );
+		lprintf( "Set the top of form here..." );
 		while( phlc->output.top_of_form.block &&
 				phlc->output.top_of_form.block->next )
 			phlc->output.top_of_form.block = phlc->output.top_of_form.block->next;
@@ -868,11 +868,11 @@ PSI_Console_Phrase PSI_EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLin
 void DumpBlock( PHISTORYBLOCK pBlock DBG_PASS )
 {
 	INDEX idx;
-	_xlprintf( 0 DBG_RELAY )(WIDE("History block used lines: %")_size_f WIDE(" of %d"), pBlock->nLinesUsed, MAX_HISTORY_LINES );
+	_xlprintf( 0 DBG_RELAY )("History block used lines: %"_size_f " of %d", pBlock->nLinesUsed, MAX_HISTORY_LINES );
 	for( idx = 0; idx < pBlock->nLinesUsed; idx++ )
 	{
 		PTEXTLINE ptl = pBlock->pLines + idx;
-		_xlprintf( 0 DBG_RELAY )(WIDE("line: %")_size_f WIDE(" = (%d,%")_size_f WIDE(",%s)"), idx, ptl->flags.nLineLength, GetTextSize( ptl->pLine ), GetText( ptl->pLine ) );
+		_xlprintf( 0 DBG_RELAY )("line: %"_size_f " = (%d,%"_size_f ",%s)", idx, ptl->flags.nLineLength, GetTextSize( ptl->pLine ), GetText( ptl->pLine ) );
 	}
 }
 
@@ -881,7 +881,7 @@ void DumpBlock( PHISTORYBLOCK pBlock DBG_PASS )
 void DumpRegion( PHISTORY_REGION region DBG_PASS )
 {
 	PHISTORYBLOCK blocks = region->pHistory.root.next;
-	_xlprintf( 0 DBG_RELAY )(WIDE("History blocks: %d history block size: %d"), region->nHistoryBlocks
+	_xlprintf( 0 DBG_RELAY )("History blocks: %d history block size: %d", region->nHistoryBlocks
 			 , region->nHistoryBlockSize
 			 );
 	while( blocks )
@@ -902,7 +902,7 @@ PTEXT EnumHistoryLineEx( PHISTORY_BROWSER phbr
 	int line = -(*offset);
 	if( !offset )
 	{
-		Log( WIDE("No start...") );
+		Log( "No start..." );
 		return NULL;
 	}
 	//lprintf("Getting line: %d ", line );
@@ -925,7 +925,7 @@ PTEXT EnumHistoryLineEx( PHISTORY_BROWSER phbr
 		}
 		else
 		{
-			DECLTEXT( nothing, WIDE("") );
+			DECLTEXT( nothing, "" );
 			nothing.format.flags.foreground = 0;
 			nothing.format.flags.background = 0;
 			if( length )
@@ -942,7 +942,7 @@ PTEXT EnumHistoryLineEx( PHISTORY_BROWSER phbr
 
 void SetHistoryLength( PHISTORY_REGION phr, int length )
 {
-	Log1( WIDE("Set Length to %") _size_f WIDE(" blocks"), length/MAX_HISTORY_LINES );
+	Log1( "Set Length to %" _size_f " blocks", length/MAX_HISTORY_LINES );
 	phr->nMaxHistoryBlocks = length/MAX_HISTORY_LINES;
 }
 
@@ -976,7 +976,7 @@ void WriteHistoryToFile( FILE *file, PHISTORY_REGION phr )
 	INDEX idx;
 	while( pHistory )
 	{
-		lprintf( WIDE("Have a history block with %")_size_f WIDE(" lines"), pHistory->nLinesUsed );
+		lprintf( "Have a history block with %"_size_f " lines", pHistory->nLinesUsed );
 		for( idx = 0; idx < pHistory->nLinesUsed; idx++ )
 		{
 			size_t length;
@@ -985,7 +985,7 @@ void WriteHistoryToFile( FILE *file, PHISTORY_REGION phr )
 			while( pText )
 			{
 				length = GetTextSize( pText );
-				lprintf( WIDE("%s"), GetText(pText) );
+				lprintf( "%s", GetText(pText) );
 				sack_fwrite( &length,  sizeof( length ), 1, file );
 				sack_fwrite( &pText->flags,  sizeof( pText->flags ), 1, file );
 				sack_fwrite( &pText->format,  sizeof( pText->format ), 1, file );
@@ -998,7 +998,7 @@ void WriteHistoryToFile( FILE *file, PHISTORY_REGION phr )
 		pHistory = pHistory->next;
 	}
 #else
-	lprintf( WIDE("Cannot write to file, please port file access") );
+	lprintf( "Cannot write to file, please port file access" );
 #endif
 }
 
@@ -1026,7 +1026,7 @@ void ReadHistoryFromFile( FILE *file, PHISTORY_REGION phr )
 		}
 	}
 #else
-	lprintf( WIDE("Cannot write to file, please port file access") );
+	lprintf( "Cannot write to file, please port file access" );
 #endif
 }
 
@@ -1180,7 +1180,7 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, u
 				(*col_offset) += nSegSize;
 				// ran out of characters in segment... whole segment fits.
 				// it didn't fit, but now it fits?!
-				//lprintf( WIDE("This should be a segfault or something") );
+				//lprintf( "This should be a segfault or something" );
 			}
 		}
 	 }
@@ -1366,7 +1366,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset, SFTFont font )
 		{
 			if( phbr->nOffset )
 			{
-				lprintf( WIDE("Previously had an offset... %d"), phbr->nOffset );
+				lprintf( "Previously had an offset... %d", phbr->nOffset );
 				phbr->nOffset--;
 			}
 			else
@@ -1384,7 +1384,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset, SFTFont font )
 		{
 			if( (*phbr->pBlock->prior->me) )
 			{
-				lprintf( WIDE("jumping back naturally.") );
+				lprintf( "jumping back naturally." );
 				phbr->pBlock = phbr->pBlock->prior;
 				phbr->nLine = phbr->pBlock->nLinesUsed;
 			}
@@ -1393,7 +1393,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset, SFTFont font )
 				// fell off the beginning of history.
 				// and nline is already 0....
 				// phlc->nLine = 0;
-				lprintf( WIDE("Fell off of history ... need to lock down at first line.") );
+				lprintf( "Fell off of history ... need to lock down at first line." );
 				phbr->pBlock = phbr->region->pHistory.next;
 				phbr->nLine = 1; // minimum.
 				nOffset = 0;
@@ -1408,7 +1408,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset, SFTFont font )
 				int tmp;
 				lprintf( "This counted on an monospaced font...." );
 				tmp = (phbr->pBlock->pLines[phbr->nLine - 1].flags.nLineLength - 1) / 12 /*phbr->nColumns*/;
-				lprintf( WIDE("Offset plus uhmm... %d"), tmp );
+				lprintf( "Offset plus uhmm... %d", tmp );
 				nOffset += tmp;
 			}
 		}
@@ -1502,7 +1502,7 @@ int32_t GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font )
 				, pHistory->pLines[n].pLine, font, FALSE );
 		}
 	}
-	lprintf( WIDE("Browser is %")_size_f WIDE(" lines from end..."), nLines );
+	lprintf( "Browser is %"_size_f " lines from end...", nLines );
 	return nLines;
 }
 
@@ -1555,7 +1555,7 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 			else
 				max = phbr->nWidth;
 			if( pixelWidth > max ) {
-				lprintf( WIDE( "Drawing direct command prompt is confusing... and I don't like it." ) );
+				lprintf( "Drawing direct command prompt is confusing... and I don't like it." );
 				// I have to put the command here, so I have to adjust the visible line...
 				// or go down to the next line, and if I'm on the next line, I have to result that also...
 				// but then I have to know this before I even start drawing so the last line is not
@@ -1766,7 +1766,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 				}
 				if( pLastLine && pText == pLastLine->pLine )
 				{
-					lprintf( WIDE("top of form reached, bailing early on available history.") );
+					lprintf( "top of form reached, bailing early on available history." );
 					break;
 				}
 				if( phbr->flags.bWrapText )
@@ -1955,7 +1955,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 
 					nChar = 0;
 					col_offset = 0;
-					lprintf( WIDE("Clearing last set line...") );
+					lprintf( "Clearing last set line..." );
 					pLastSetLine = NULL;
 					while( ( dl.start = pText ) )
 					{
@@ -1971,7 +1971,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 							nLen = (int)GetTextSize( pText );
 							if( USS_LT( (dl.nFirstSegOfs + nLen), uint32_t, phbr->nOffset, int ) )
 							{
-								lprintf( WIDE("Skipping segement, it's before the offset...") );
+								lprintf( "Skipping segement, it's before the offset..." );
 								dl.nLineEnd += nLen;
 								dl.nFirstSegOfs += nLen;
 							}
@@ -1979,16 +1979,16 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 							{
 								dl.nLine = start; // just has to be different
 								//dl.start = pText; // text in history that started this...
-								lprintf( WIDE("Adding line to display: %p (%")_size_f WIDE(") %")_size_f WIDE(" %d" )
+								lprintf( "Adding line to display: %p (%"_size_f ") %"_size_f " %d"
 										 , dl.start, dl.nFirstSegOfs, dl.nLine, nLinesShown+nLines );
 								if( nLinesShown + nLines > 0 )
 								{
-									lprintf( WIDE("Set line %d"), nLinesShown + nLines );
+									lprintf( "Set line %d", nLinesShown + nLines );
 									pLastSetLine = (PDISPLAYED_LINE)SetDataItem( CurrentLineInfo
 																							 , nLinesShown + nLines -1
 																							 , &dl );
 								}
-								lprintf( WIDE("After set last set line is %p"), pLastSetLine );
+								lprintf( "After set last set line is %p", pLastSetLine );
 							}
 						}
 						pText = NEXTLINE( pText );
@@ -1996,10 +1996,10 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 					if( !pLastSetLine )
 					{
 						// dl will be initialized as a blank line...
-						lprintf( WIDE("Adding line to display: %p (%")_size_f WIDE(") %") _size_f, dl.start, dl.nFirstSegOfs, dl.nLine );
+						lprintf( "Adding line to display: %p (%"_size_f ") %" _size_f, dl.start, dl.nFirstSegOfs, dl.nLine );
 						if( nLinesShown + nLines > 0 )
 						{
-							lprintf( WIDE("Set line %d"), nLinesShown + nLines -1 );
+							lprintf( "Set line %d", nLinesShown + nLines -1 );
 							pLastSetLine = (PDISPLAYED_LINE)SetDataItem( CurrentLineInfo
 																					 , nLinesShown + nLines -1
 																					 , &dl );

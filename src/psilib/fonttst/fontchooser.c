@@ -70,7 +70,7 @@ static void InitFont( void )
 		int error = FT_Init_FreeType( &g.library );
 		if( error )
 		{
-			Log1( WIDE("Free type init failed: %d"), error );
+			Log1( "Free type init failed: %d", error );
 		}
 		else
          g.flags.initialized = 1;
@@ -114,10 +114,10 @@ int UniqueStrCmp( char *s1, char *s2 )
          numstart[0] = 0;
          num = atoi( numstart+1 );
          strcpy( name, s1 );
-			sprintf( s1, WIDE("%s[%d]"), name, num+1 );
+			sprintf( s1, "%s[%d]", name, num+1 );
 		}
 		else
-         strcat( s1, WIDE("[1]") );
+         strcat( s1, "[1]" );
       return 1;
 	}
    return dir;
@@ -157,7 +157,7 @@ PDICT_ENTRY AddDictEntry( PTREEROOT *root, char *name, uint32_t ID )
       pde->ID = ID;
 		if( !AddBinaryNode( *root, pde, ID ) )
 		{
-         Log( WIDE("Already built this path!?!?!") );
+         Log( "Already built this path!?!?!" );
 		}
 	}
 	return pde;
@@ -250,18 +250,18 @@ void ListFontFile( uintptr_t psv, char *name, int flags )
    PDICT_ENTRY pFamilyEntry, pStyle;
    char *filename;
 	InitFont();
-	//Log1( WIDE("Try font: %s"), name );
+	//Log1( "Try font: %s", name );
 	error = FT_New_Face( g.library
 							 , name
 							 , 0, &face );
 	if( error == FT_Err_Unknown_File_Format )
 	{
-		Log1( WIDE("Unsupported font: %s"), name );
+		Log1( "Unsupported font: %s", name );
 		return;
 	}
 	else if( error )
 	{
-		Log1( WIDE("Error loading font: %d"), error );
+		Log1( "Error loading font: %d", error );
       return;
 	}
 	ppe = AddPath( name, INVALID_INDEX, &filename );
@@ -302,8 +302,8 @@ void ListFontFile( uintptr_t psv, char *name, int flags )
    if(0)
 	{
       char tmp[32];
-		Log7( WIDE("%s family: %s style: %s %s %s(%d) %s")
-			 , ((face->num_faces!=1)?sprintf( tmp, WIDE("Faces %d"), face->num_faces ), tmp:"")
+		Log7( "%s family: %s style: %s %s %s(%d) %s"
+			 , ((face->num_faces!=1)?sprintf( tmp, "Faces %d", face->num_faces ), tmp:"")
 			 , face->family_name
 			 , face->style_name
 			 , face->face_flags & FT_FACE_FLAG_SCALABLE?"scalable":""
@@ -326,7 +326,7 @@ void ListFontFile( uintptr_t psv, char *name, int flags )
       if( face->num_fixed_sizes )
 			for( n = 0; n < face->num_fixed_sizes; n++ )
 			{
-				//Log2( WIDE("Font Size: %dx%d")
+				//Log2( "Font Size: %dx%d"
 				//	 , face->available_sizes[n].width
 				//	 , face->available_sizes[n].height );
 				size = face->available_sizes[n].width << 16
@@ -338,7 +338,7 @@ void ListFontFile( uintptr_t psv, char *name, int flags )
 			}
 		else
 		{
-         Log( WIDE("Error adding font - it's fixed with no fixed defined") );
+         Log( "Error adding font - it's fixed with no fixed defined" );
 			//AddSizeFile( pfe, -2, -2, ppe, filename );
 		}
 	}
@@ -353,26 +353,26 @@ void ListFontFile( uintptr_t psv, char *name, int flags )
 
 void DumpFontCache( void )
 {
-	FILE *out = fopen( WIDE("Fonts.Cache"), WIDE("wt") );
+	FILE *out = fopen( "Fonts.Cache", "wt" );
 	PFONT_ENTRY pfe;
 	PDICT_ENTRY pde;
 	for( pde = (PDICT_ENTRY)GetLeastNode( g.pPaths );
         pde;
 		  pde = (PDICT_ENTRY)GetGreaterNode( g.pPaths ) )
 	{
-      fprintf( out, WIDE("@%s\n"), pde->word );
+      fprintf( out, "@%s\n", pde->word );
 	}
 	for( pde = (PDICT_ENTRY)GetLeastNode( g.pFamilies );
         pde;
 		  pde = (PDICT_ENTRY)GetGreaterNode( g.pFamilies ) )
 	{
-      fprintf( out, WIDE("$%s\n"), pde->word );
+      fprintf( out, "$%s\n", pde->word );
 	}
 	for( pde = (PDICT_ENTRY)GetLeastNode( g.pStyleNames );
         pde;
 		  pde = (PDICT_ENTRY)GetGreaterNode( g.pStyleNames ) )
 	{
-		fprintf( out, WIDE("#%s\n"), pde->word );
+		fprintf( out, "#%s\n", pde->word );
 	}
 
 	for( pfe = (PFONT_ENTRY)GetLeastNode( g.pFontCache );
@@ -383,7 +383,7 @@ void DumpFontCache( void )
       int first = 1;
       int mono = 2;
       // should dump name also...
-		linelen = fprintf( out, WIDE("%d")
+		linelen = fprintf( out, "%d"
 							  , pfe->name->ID
 							  );
 		INDEX idx;
@@ -393,18 +393,18 @@ void DumpFontCache( void )
 		{
 			INDEX idx;
 			if( first )
-				linelen += fprintf( out, WIDE("!%d*%s")
+				linelen += fprintf( out, "!%d*%s"
 										, pfs->name->ID
 										, pfs->flags.mono?"m":"" );
 			else
-				linelen = fprintf( out, WIDE("\n!%d*%s")
+				linelen = fprintf( out, "\n!%d*%s"
 										, pfs->name->ID
 										, pfs->flags.mono?"m":"" );
          first = 0;
 			if( pfs->flags.mono )
 			{
 				if( !mono )
-					Log2( WIDE("Mono-spaced and var spaced together:%s %s")
+					Log2( "Mono-spaced and var spaced together:%s %s"
 						, pfe->name->word, pfs->name->word );
 				mono = 1;
 			}
@@ -412,7 +412,7 @@ void DumpFontCache( void )
 			{
 				if( mono == 1 )
 				{
-					Log2( WIDE("Mono-spaced and var spaced together:%s %s")
+					Log2( "Mono-spaced and var spaced together:%s %s"
 						, pfe->name->word, pfs->name->word );
 				}
 			}
@@ -421,19 +421,19 @@ void DumpFontCache( void )
 				char outbuf[80];
 				int  newlen;
 				if( psf->width < 0 )
-					newlen = sprintf( outbuf, WIDE("#%d@%d:%s")
+					newlen = sprintf( outbuf, "#%d@%d:%s"
 										 , psf->width
 										 , psf->path->ID
 										 , psf->file );
 				else
-					newlen = sprintf( outbuf, WIDE("#%d|%d@%d:%s")
+					newlen = sprintf( outbuf, "#%d|%d@%d:%s"
 										 , psf->width
 										 , psf->height
 										 , psf->path->ID
 										 , psf->file );
 				if( linelen + newlen > 80 )
 				{
-					fprintf( out, WIDE("\n\\") );
+					fprintf( out, "\n\\" );
 					linelen = newlen + 1;
 				}
 				else
@@ -443,7 +443,7 @@ void DumpFontCache( void )
 			LIST_ENDFORALL();
 		}
       LIST_ENDFORALL();
-		fprintf( out, WIDE("\n") );
+		fprintf( out, "\n" );
       linelen = 0;
 	}
    LIST_ENDFORALL();
@@ -456,7 +456,7 @@ void BuildFontCache( void )
 {
 	void *data = NULL;
    // .psf.gz doesn't load directly....
-	while( ScanFiles( WIDE("/"), WIDE("*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
+	while( ScanFiles( "/", "*.ttf\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz", &data
 						 , ListFontFile, SFF_SUBCURSE, 0 ) );
 
 	SetIDs( g.pPaths );
@@ -472,7 +472,7 @@ void BuildFontCache( void )
    g.pFamilies = NULL;
 	g.pStyleNames = NULL;
    g.pFontCache = NULL;
-   DebugDumpMemFile( WIDE("cache.built") );
+   DebugDumpMemFile( "cache.built" );
 }
 
 //-------------------------------------------------------------------------
@@ -492,11 +492,11 @@ int IsNumber( char *num )
 
 void LoadAllFonts( void )
 {
-	FILE *in = fopen( WIDE("Fonts.Cache"), WIDE("rt") );
+	FILE *in = fopen( "Fonts.Cache", "rt" );
 	if( !in )
 	{
 		BuildFontCache();
-      in = fopen( WIDE("Fonts.Cache"), WIDE("rt") );
+      in = fopen( "Fonts.Cache", "rt" );
 	}
 
    if( in )
@@ -640,13 +640,13 @@ int main( void )
 	{
 		uint32_t a, b, c, d;
 		GetMemStats( &a, &b, &c, &d );
-		Log4( WIDE("Mem stats: Free: %ld Used: %ld Chunks: %ld FreeChunks: %ld"), a, b, c, d );
+		Log4( "Mem stats: Free: %ld Used: %ld Chunks: %ld FreeChunks: %ld", a, b, c, d );
 	}
 	{
 		extern void PickFont( int32_t x, int32_t y );
 		PickFont( 0, 0 );
 	}
-   //DebugDumpMemFile( WIDE("memory.dump") );
+   //DebugDumpMemFile( "memory.dump" );
    return 0;
 }
 // $Log: $

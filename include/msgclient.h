@@ -86,7 +86,7 @@ CLIENTMSG_PROC( void, UnloadService )( CTEXTSTR service );
  */
 #define OnServiceConnect(name)  \
 	__DefineRegistryMethodP(DEFAULT_PRELOAD_PRIORITY  \
-	,"SACK/Message Service",_OnServiceConnect,WIDE("server"),name,WIDE("on_connect")  \
+	,"SACK/Message Service",_OnServiceConnect,"server",name,"on_connect"  \
 	,LOGICAL,(PSERVICE_ROUTE), __LINE__)
 
 
@@ -152,7 +152,7 @@ CLIENTMSG_PROC( int, SendServerMessage )( PSERVICE_ROUTE RouteID
 
 // really I guess the integeration of all message handles [as a msg_base_id] allows some unique opportunities....
 // this message is one of those that does not take a base message ID...
-#define TellClientTardy( client_source_id, new_responce_timeout )  { uint32_t timeout = new_responce_timeout; lprintf( WIDE("TELL TARDY") ); SendInMessage( (client_source_id), IM_TARDY, &timeout, sizeof( timeout ) ); }
+#define TellClientTardy( client_source_id, new_responce_timeout )  { uint32_t timeout = new_responce_timeout; lprintf( "TELL TARDY" ); SendInMessage( (client_source_id), IM_TARDY, &timeout, sizeof( timeout ) ); }
 // TellClientTardy( 5000000 ); // tell client to wait a LONG time.
 // TellClientTardy( 3000 ); // reset timeout to 3 seconds
 

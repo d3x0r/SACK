@@ -36,17 +36,17 @@ typedef struct route_tag:NETWORK {
 		if( !wSockets )
 		{
 			wSockets= DEFAULT_SOCKETS;
-			Log( WIDE("Starting network with default sockets.") );
+			Log( "Starting network with default sockets." );
 			NetworkWait( 0, wSockets, NETWORK_WORDS );
 		}
-		lprintf( WIDE("Adding Route %s: %s %s")
+		lprintf( "Adding Route %s: %s %s"
 				 , route_name
 				 , src_name
 				 , dest_name );
 		if( route_name )
 			strcpy( name, route_name );
 		else
-			strcpy( name, WIDE("unnamed") );
+			strcpy( name, "unnamed" );
 		flags.ip_transmit = set_ip_transmit;
 		flags.ip_route = set_ip_route;
 		in = CreateSockAddress( src_name, 0 );
@@ -59,7 +59,7 @@ typedef struct route_tag:NETWORK {
 		}
 		else
 		{
-			Log1( WIDE("Failed to open listener for route: %s"), name );
+			Log1( "Failed to open listener for route: %s", name );
 			delete this;
 		}
 	}
@@ -90,7 +90,7 @@ typedef struct path {
 
 	path( struct route_tag * pRoute, PNETWORK incli, PNETWORK outcli )
 	{
-		Log1( WIDE("Adding path to %s"), pRoute->name );
+		Log1( "Adding path to %s", pRoute->name );
 		{
 			LinkThing( pRoute->paths, this );
 			route = pRoute;
@@ -122,7 +122,7 @@ typedef struct Connection:public NETWORK {
 	~Connection() {}
 	void CloseCallback( void ) {
 		PCLIENT other = (PCLIENT)GetLong( NL_OTHER );
-		Log( WIDE("TCP Close") );
+		Log( "TCP Close" );
 		Release( (POINTER)GetLong( NL_BUFFER ) );
 		if( other )
 		{
@@ -133,7 +133,7 @@ typedef struct Connection:public NETWORK {
 	}
 	void ReadComplete( POINTER buffer, int nSize ) {
 
-		Log( WIDE("TCP Read Enter...") );
+		Log( "TCP Read Enter..." );
 		if( !buffer )
 		{
 			PROUTE route = (PROUTE)GetLong( NL_ROUTE );
@@ -142,7 +142,7 @@ typedef struct Connection:public NETWORK {
 			SetLong( NL_BUFFER, (_32)buffer );
 			if( route->flags.ip_route && !path )
 			{
-				Log( WIDE("Was delayed connect, reading 4 bytes for address") );
+				Log( "Was delayed connect, reading 4 bytes for address" );
 				ReadBlock( buffer, 4 ); // MUST read 4 and only 4
 				return;
 			}
@@ -159,10 +159,10 @@ typedef struct Connection:public NETWORK {
 				PROUTE route = (PROUTE)GetLong( NL_ROUTE );
 				// so - get the route of this one, see if we have to read
 				// an IP...
-				Log1( WIDE("Route address: %p"), route );
+				Log1( "Route address: %p", route );
 				if( !route )
 				{
-					Log( WIDE("FATALITY! I die!") );
+					Log( "FATALITY! I die!" );
 				}
 				else if( route->flags.ip_route )
 				{
@@ -170,18 +170,18 @@ typedef struct Connection:public NETWORK {
 					((_32*)&saTo)[1] = *(_32*)buffer;
 					if( 1 /*!ConnectMate( route, pc, &saTo )*/ )
 					{
-						Log( WIDE("Connect mate failed... remove connection") );
+						Log( "Connect mate failed... remove connection" );
                   delete this;
 						return;
 					}
 					else
-						Log( WIDE("Successful connection to remote (pending)") );
+						Log( "Successful connection to remote (pending)" );
 				}
 			}
 			else
 			{
 #ifdef _DEBUG
-				Log2( WIDE("Sending %d bytes to mate %p"), nSize, other );
+				Log2( "Sending %d bytes to mate %p", nSize, other );
 #endif
 				SendTCP( other, buffer, nSize );
 			}
@@ -191,7 +191,7 @@ typedef struct Connection:public NETWORK {
 	void ConnectComplete( int error )
 	{
 		// delay connect finished...
-		Log( WIDE("Connection finished...") );
+		Log( "Connection finished..." );
 		{
          /*
 			PCONNECTION pending;
@@ -206,9 +206,9 @@ typedef struct Connection:public NETWORK {
 			{
 				if( pending == this )
 				{
-					Log1( WIDE("Delayed connect succeeded - removing. %p"), pc );
+					Log1( "Delayed connect succeeded - removing. %p", pc );
 					SetLink( &pPendingList, idx, NULL );
-					Log1( WIDE("Removed.... %d"), idx );
+					Log1( "Removed.... %d", idx );
 					break;
 				}
 				}
@@ -216,12 +216,12 @@ typedef struct Connection:public NETWORK {
 		}
 		if( !error )
 		{
-			Log( WIDE("Proxied connect success!") );
+			Log( "Proxied connect success!" );
 			// should be okay here....
 		}
 		else
 		{
-			Log( WIDE("Delayed connect failed... ") );
+			Log( "Delayed connect failed... " );
 			delete this;
 		}
 	}
@@ -236,14 +236,14 @@ typedef struct Connection:public NETWORK {
 PCONNECTION ConnectMate( PROUTE pRoute, PCONNECTION pExisting, SOCKADDR *sa )
 {
 	PCONNECTION out = new Connection;
-   Log( WIDE("Connecting mating connection... ") );
+   Log( "Connecting mating connection... " );
 	out->Connect( sa );
 	if( out )
 	{
       _32 dwIP = pExisting->GetLong( GNL_IP );
 		if( pRoute->flags.ip_transmit )
 		{
-			Log1( WIDE("Sending initiant's IP : %08lX"), dwIP );
+			Log1( "Sending initiant's IP : %08lX", dwIP );
 			out->Send( &dwIP, 4 );
 		}
 		out->SetTCPNoDelay( TRUE );
@@ -256,7 +256,7 @@ PCONNECTION ConnectMate( PROUTE pRoute, PCONNECTION pExisting, SOCKADDR *sa )
 	else
 	{
 		// should only fail on like - no clients at all...
-		Log1( WIDE("Failed to make proxy connection for: %s"), pRoute->name );
+		Log1( "Failed to make proxy connection for: %s", pRoute->name );
       delete pExisting;
 	}
    return out;
@@ -268,14 +268,14 @@ void CPROC ROUTE::ConnectComplete( PNETWORK &pNew )
 {
 	PROUTE pRoute = (PROUTE)GetLong( NL_ROUTE );
    PCONNECTION pNewConn = pNew;
-   Log( WIDE("TCP Connect received.") );
+   Log( "TCP Connect received." );
    pNew->SetNoDelay( TRUE );
 	pNew->SetClientKeepAlive( TRUE );
 	if( pRoute->flags.ip_route )
 	{
 		// hmm this connection's outbound needs to be held off
 		// until we get the desired destination....
-      Log( WIDE("Delayed connection to mate...") );
+      Log( "Delayed connection to mate..." );
 	}
 	else
 	{
@@ -295,7 +295,7 @@ void CPROC ROUTE::ConnectComplete( PNETWORK &pNew )
 PTRSZVAL CPROC SetSockets( PTRSZVAL psv, va_list args )
 {
    PARAM( args, _64, sockets );
-	printf( WIDE("sockets: %d\n"), sockets );
+	printf( "sockets: %d\n", sockets );
    NetworkWait( 0, sockets, NETWORK_WORDS );
   	wSockets = sockets;
   	if( !wSockets )
@@ -308,7 +308,7 @@ PTRSZVAL CPROC SetSockets( PTRSZVAL psv, va_list args )
 PTRSZVAL CPROC SetTimeout( PTRSZVAL psv, va_list args )
 {
    PARAM( args, _64, timeout );
-	printf( WIDE("Timeout: %d\n"), timeout );
+	printf( "Timeout: %d\n", timeout );
   	if( !timeout )
 		dwTimeout = DEFAULT_TIMEOUT;
    else
@@ -340,25 +340,25 @@ PTRSZVAL CPROC RouteConfig( PTRSZVAL psv, va_list args )
 	LineRelease( text );
 	while( segs )
 	{
-		lprintf( WIDE("inspect segment: %s"), GetText( segs ) );
-		if( TextLike( segs, WIDE("switch") ) )
+		lprintf( "inspect segment: %s", GetText( segs ) );
+		if( TextLike( segs, "switch" ) )
 		{
 			set_ip_route = 1;
 		}
-		else if( TextLike( segs, WIDE("ip") ) )
+		else if( TextLike( segs, "ip" ) )
 		{
          set_ip_transmit = 1;
 		}
-		else if( TextLike( segs, WIDE("pool") ) )
+		else if( TextLike( segs, "pool" ) )
 		{
 		}
-		else if( TextIs( segs, WIDE(":") ) )
+		else if( TextIs( segs, ":" ) )
 		{
          set_next_port = 1;
          add_next_address = 0;
          address[nAddress] = SegAppend( address[nAddress], SegDuplicate( segs ) );
 		}
-		else if( TextIs( segs, WIDE(".") ) )
+		else if( TextIs( segs, "." ) )
 		{
 			set_next_port = 0;
          add_next_address = 1;
@@ -395,17 +395,17 @@ PTRSZVAL CPROC RouteConfig( PTRSZVAL psv, va_list args )
 		PTEXT text = BuildLine( address[n] );
 		LineRelease( address[n] );
 		address[n] = text;
-		lprintf( WIDE("Address: %s")
+		lprintf( "Address: %s"
 				 , address[n]?GetText(address[n]):"" );
 	}
 
 	if( nAddress < 2 )
 	{
-		Log( WIDE("Only found one address on the line... invalid route.") );
+		Log( "Only found one address on the line... invalid route." );
 	}
 
 
-	printf( WIDE("Uhmm new route: \")%s\" \"%s\"\n", name, params );
+	printf( "Uhmm new route: \"%s\" \"%s\"\n", name, params );
 	new ROUTE( set_ip_transmit, set_ip_route
 				, name
 				, GetText( address[0] )
@@ -422,9 +422,9 @@ public:
 	Config(char *file) {
 		dwTimeout = DEFAULT_TIMEOUT;
 
-		add( WIDE("sockets:%i"), SetSockets );
-		add( WIDE("timeout:%i"), (USER_CONFIG_HANDLER)SetTimeout );
-		add( WIDE("%m:%m"), (USER_CONFIG_HANDLER)RouteConfig );
+		add( "sockets:%i", SetSockets );
+		add( "timeout:%i", (USER_CONFIG_HANDLER)SetTimeout );
+		add( "%m:%m", (USER_CONFIG_HANDLER)RouteConfig );
 		go( file, 0 );
 	}
 	~Config() { }
@@ -442,13 +442,13 @@ _32 CPROC CheckPendingConnects( PTHREAD pUnused )
 		{
 			_32 dwStart = GetNetworkLong( pending, NL_CONNECT_START );
 
-			//Log2( WIDE("Checking pending connect %ld vs %ld"),
+			//Log2( "Checking pending connect %ld vs %ld",
 			//     ( GetNetworkLong( pending, NL_CONNECT_START ) + dwTimeout ) , GetTickCount() );
 			if( dwStart && ( ( dwStart + dwTimeout ) < GetTickCount() ) )
 			{
-				Log( WIDE("Failed Connect... timeout") );
+				Log( "Failed Connect... timeout" );
 				RemoveClient( pending );
-				Log( WIDE("Done removing the pending client... "));
+				Log( "Done removing the pending client... ");
 				SetLink( &pPendingList, idx, NULL ); // remove it from the list.
 			}
 		}
@@ -469,7 +469,7 @@ int main( int argc, char **argv )
 	else
 		filename = argv[1];
 
-	file = fopen( filename, WIDE("rb") );
+	file = fopen( filename, "rb" );
    if( file )
 		fclose( file );
 
@@ -481,12 +481,12 @@ int main( int argc, char **argv )
 
 	if( !file )
 	{
-		Log1( WIDE("Could not locate %s in current directory."), filename );
+		Log1( "Could not locate %s in current directory.", filename );
 		return -1;
 	}
    delete new Config( filename );
 
-   Log1( WIDE("Pending timer is set to %ld"), dwTimeout );
+   Log1( "Pending timer is set to %ld", dwTimeout );
 	ThreadTo( CheckPendingConnects, 0 );
    //AddTimer( 250, CheckPendingConnects, 0 );
 	//BeginRouting();
@@ -499,7 +499,7 @@ int main( int argc, char **argv )
 #include <stdio.h>
 int main( void )
 {
-	return printf( WIDE("Compiled without a C++ compiler, program cannot function.") );
+	return printf( "Compiled without a C++ compiler, program cannot function." );
 }
 #endif
 

@@ -11,15 +11,15 @@ int main( void )
 	{
 #endif
 	CDATA result;
-	//SetSystemLog( SYSLOG_FILENAME, WIDE("Test3.Log") );
+	//SetSystemLog( SYSLOG_FILENAME, "Test3.Log" );
 	//SetAllocateLogging( TRUE );
 
   //SetBlotMethod( BLOT_MMX );
    //ActImage_GetMousePosition( &x, &y );
    result = Color(127,127,127);
 	while( PickColorEx( &result, result,(PSI_CONTROL) 0, 256, 150 ) )
-		printf( WIDE("Guess what! We got a color: %08x\n"), result );
-	printf( WIDE("Color Dialog was canceled.\n") );
+		printf( "Guess what! We got a color: %08x\n", result );
+	printf( "Color Dialog was canceled.\n" );
 	return 0;
 }
 

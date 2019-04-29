@@ -63,18 +63,18 @@ namespace sack {
 //      Same(Second line right align "$1.00"
 // double \0 terminator - end of content.
 
-#define CONTENT_NORMAL    WIDE( "N" )
-#define CONTENT_LEFT      WIDE( "L" )
-#define CONTENT_RIGHT     WIDE( "R" )
-#define CONTENT_CENTER    WIDE( "C" )
-#define CONTENT_VCENTER   WIDE( "V" )
-#define CONTENT_CENTERALL WIDE( "A" )
-#define CONTENT_SAMELINE_NORMAL    WIDE( "n" )
-#define CONTENT_SAMELINE_LEFT      WIDE( "l" )
-#define CONTENT_SAMELINE_RIGHT     WIDE( "r" )
-#define CONTENT_SAMELINE_CENTER    WIDE( "c" )
-#define CONTENT_SAMELINE_VCENTER   WIDE( "v" )
-#define CONTENT_SAMELINE_CENTERALL WIDE( "a" )
+#define CONTENT_NORMAL    "N"
+#define CONTENT_LEFT      "L"
+#define CONTENT_RIGHT     "R"
+#define CONTENT_CENTER    "C"
+#define CONTENT_VCENTER   "V"
+#define CONTENT_CENTERALL "A"
+#define CONTENT_SAMELINE_NORMAL    "n"
+#define CONTENT_SAMELINE_LEFT      "l"
+#define CONTENT_SAMELINE_RIGHT     "r"
+#define CONTENT_SAMELINE_CENTER    "c"
+#define CONTENT_SAMELINE_VCENTER   "v"
+#define CONTENT_SAMELINE_CENTERALL "a"
 
 //-- buttons.c --------------------
 typedef struct key_button_tag *PKEY_BUTTON;
@@ -89,13 +89,13 @@ KEYPAD_PROC( void, LoadButtonTheme )( void );
 #define BUTTON_FLAG_TEXT_ON_TOP 1
 
 #define OnKeyPressEvent(name)  \
-	  DefineRegistryMethod(WIDE( "sack/widgets" ),KeyPressHandler,WIDE( "keypad" ),WIDE( "press handler/" )name, WIDE( "on_keypress_event" ),void,(uintptr_t))
+	  DefineRegistryMethod("sack/widgets",KeyPressHandler,"keypad","press handler/"name, "on_keypress_event",void,(uintptr_t))
 
 	/*
 	 * {
 	 *  CTEXTSTR name;
 	 *  POINTER data = NULL;
-	 *  for( name = GetFirstRegisteredName( WIDE("sack/widgets/keypad/press handler"), &data );
+	 *  for( name = GetFirstRegisteredName( "sack/widgets/keypad/press handler", &data );
 	 *  	 name;
 	 *  	  name = GetNextRegisteredName( &data ) )
 	 *  {

@@ -21,7 +21,7 @@ HTML5_WEBSOCKET_NAMESPACE
 typedef struct html5_web_socket *HTML5WebSocket;
 
 
-const TEXTCHAR *wssbase64 = WIDE("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
+const TEXTCHAR *wssbase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 static void wssencodeblock( unsigned char in[3], TEXTCHAR out[4], int len )
 {
@@ -45,8 +45,8 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 	size_t len;
 	TEXTCHAR *check;
 	// test overrides
-	//key1 = SegCreateFromText( WIDE("4 @1  46546xW%0l 1 5" ) );
-	//key2 = SegCreateFromText( WIDE("12998 5 Y3 1  .P00" ) );
+	//key1 = SegCreateFromText( "4 @1  46546xW%0l 1 5" );
+	//key2 = SegCreateFromText( "12998 5 Y3 1  .P00" );
 
 	len = GetTextSize( key1 );
 	check = GetText( key1 );
@@ -105,7 +105,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 		{
 			int n;
 			// override text_content with....
-			//SegCreateFromText( WIDE("^n:ds[4U" ) );
+			//SegCreateFromText( "^n:ds[4U" );
 			PTEXT text_content = GetHttpContent( socket->http_state );
 			TEXTCHAR *content = GetText( text_content );
 			for( n = 0; n < 8; n++ )
@@ -119,7 +119,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
 			int n;
 			MD5Init( &ctx );
 			if( sizeof( buf ) != 16 )
-				xlprintf(LOG_ALWAYS)( WIDE("padding has been injected, and all will be bad.") );
+				xlprintf(LOG_ALWAYS)( "padding has been injected, and all will be bad." );
 			MD5Update( &ctx, (unsigned char*)&buf, 16 );
 			MD5Final(result, &ctx);
 			for( n = 0; n < 16; n++ )
@@ -173,13 +173,13 @@ static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_
 		{
 			if( socket->input_state.fragment_collection_length )
 			{
-				lprintf( WIDE("Message start with a message outstanding, double null chars?!") );
+				lprintf( "Message start with a message outstanding, double null chars?!" );
 				socket->input_state.fragment_collection_length = 0;
 			}
 		}
 		if( bytes[n] == 0xFF )
 		{
-			lprintf( WIDE("Completed message...") );
+			lprintf( "Completed message..." );
 			LogBinary( socket->input_state.fragment_collection, socket->input_state.fragment_collection_length );
 			socket->input_state.fragment_collection_length = 0;
 		}
@@ -262,22 +262,22 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		//lprintf( "handle data: handshake: %d",socket->flags.initial_handshake_done );
 		if( !socket->flags.initial_handshake_done || socket->flags.http_request_only )
 		{
-			//lprintf( WIDE("Initial handshake is not done...") );
+			//lprintf( "Initial handshake is not done..." );
 			AddHttpData( socket->http_state, tmp, length );
 			while( ( result = ProcessHttp( pc, socket->http_state ) ) )
 			{
 				switch( result )
 				{
 				default:
-					lprintf( WIDE("unexpected result is %d"), result );
+					lprintf( "unexpected result is %d", result );
 					break;
 				case HTTP_STATE_RESULT_CONTENT:
 				{
 					PVARTEXT pvt_output = VarTextCreate();
 					PTEXT value, value2;
 					PTEXT key1, key2;
-					value = GetHTTPField( socket->http_state, WIDE( "Connection" ) );
-					value2 = GetHTTPField( socket->http_state, WIDE( "Upgrade" ) );
+					value = GetHTTPField( socket->http_state, "Connection" );
+					value2 = GetHTTPField( socket->http_state, "Upgrade" );
 					if( !value || !value2
 						|| !StrCaseStr( GetText(value), "upgrade" )
 						|| !TextLike( value2, "websocket" ) ) {
@@ -300,7 +300,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						break;
 					}
 
-					value = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Extensions" ) );
+					value = GetHTTPField( socket->http_state, "Sec-WebSocket-Extensions" );
 					if( value )
 					{
 						PTEXT options = TextParse( value, "=", "; ", 0, 0 DBG_SRC );
@@ -384,7 +384,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						socket->input_state.flags.deflate = 0;
 					}
 
-					value = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Protocol" ) );
+					value = GetHTTPField( socket->http_state, "Sec-WebSocket-Protocol" );
 
 					if( value ) {
 						socket->protocols = GetText( value );
@@ -392,7 +392,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 					else socket->protocols = NULL;
 
 					{
-						PTEXT protocols = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Protocol" ) );
+						PTEXT protocols = GetHTTPField( socket->http_state, "Sec-WebSocket-Protocol" );
 						PTEXT resource = GetHttpResource( socket->http_state );
 						if( socket->input_state.on_accept ) {
 							socket->flags.accepted = socket->input_state.on_accept( pc, socket->input_state.psv_on, GetText( protocols ), GetText( resource ), &socket->protocols );
@@ -401,44 +401,44 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 							socket->flags.accepted = 1;
 					}
 
-					key1 = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Key1" ) );
-					key2 = GetHTTPField( socket->http_state, WIDE( "Sec-WebSocket-Key2" ) );
+					key1 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key1" );
+					key2 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key2" );
 					if( key1 && key2 )
 						socket->flags.rfc6455 = 0;
 					else
 						socket->flags.rfc6455 = 1;
 
 					if( !socket->flags.accepted ) {
-						vtprintf( pvt_output, WIDE( "HTTP/1.1 403 Connection refused\r\n" ) );
+						vtprintf( pvt_output, "HTTP/1.1 403 Connection refused\r\n" );
 					}
 					else
 					{
 						if( key1 && key2 )
-							vtprintf( pvt_output, WIDE( "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" ) );
+							vtprintf( pvt_output, "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" );
 						else
-							vtprintf( pvt_output, WIDE( "HTTP/1.1 101 Switching Protocols\r\n" ) );
-						vtprintf( pvt_output, WIDE( "Upgrade: WebSocket\r\n" ) );
-						vtprintf( pvt_output, WIDE( "Connection: Upgrade\r\n" ) );
+							vtprintf( pvt_output, "HTTP/1.1 101 Switching Protocols\r\n" );
+						vtprintf( pvt_output, "Upgrade: WebSocket\r\n" );
+						vtprintf( pvt_output, "Connection: Upgrade\r\n" );
 					}
 
-					value = GetHTTPField( socket->http_state, WIDE( "Origin" ) );
+					value = GetHTTPField( socket->http_state, "Origin" );
 					if( value )
 					{
 						if( key1 && key2 )
-							vtprintf( pvt_output, WIDE( "Sec-WebSocket-Origin: %s\r\n" ), GetText( value ) );
+							vtprintf( pvt_output, "Sec-WebSocket-Origin: %s\r\n", GetText( value ) );
 						else
-							vtprintf( pvt_output, WIDE( "WebSocket-Origin: %s\r\n" ), GetText( value ) );
+							vtprintf( pvt_output, "WebSocket-Origin: %s\r\n", GetText( value ) );
 					}
 
 					if( key1 && key2 )
 					{
-						vtprintf( pvt_output, WIDE( "Sec-WebSocket-Location: ws://%s%s\r\n" )
-							, GetText( GetHTTPField( socket->http_state, WIDE( "Host" ) ) )
+						vtprintf( pvt_output, "Sec-WebSocket-Location: ws://%s%s\r\n"
+							, GetText( GetHTTPField( socket->http_state, "Host" ) )
 							, GetText( GetHttpRequest( socket->http_state ) )
 						);
 					}
 					if( socket->flags.accepted ) {
-						value = GetHTTPField( socket->http_state, WIDE( "Sec-webSocket-Key" ) );
+						value = GetHTTPField( socket->http_state, "Sec-webSocket-Key" );
 						if( value )
 						{
 							{
@@ -446,7 +446,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 								size_t len;
 
 								char *resultval = NewArray( char, len = (GetTextSize( value ) + sizeof( guid ) ) );
-								snprintf( resultval, len, WIDE( "%s%s" )
+								snprintf( resultval, len, "%s%s"
 									, GetText( value )
 									, guid );
 								{
@@ -469,21 +469,21 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 									}
 									output[n * 4 + 0] = 0;
 									// s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
-									vtprintf( pvt_output, WIDE( "Sec-WebSocket-Accept: %s\r\n" ), output );
+									vtprintf( pvt_output, "Sec-WebSocket-Accept: %s\r\n", output );
 								}
 								Deallocate( char *, resultval );
 							}
 						}
 #ifndef __NO_WEBSOCK_COMPRESSION__
 						if( socket->input_state.flags.deflate ) {
-							vtprintf( pvt_output, WIDE( "Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_max_window_bits=%d\r\n" ), socket->input_state.server_max_bits );
+							vtprintf( pvt_output, "Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_max_window_bits=%d\r\n", socket->input_state.server_max_bits );
 						}
 #endif
 						if( socket->protocols )
-							vtprintf( pvt_output, WIDE( "Sec-WebSocket-Protocol: %s\r\n" ), socket->protocols );
-						vtprintf( pvt_output, WIDE( "WebSocket-Server: sack\r\n" ) );
+							vtprintf( pvt_output, "Sec-WebSocket-Protocol: %s\r\n", socket->protocols );
+						vtprintf( pvt_output, "WebSocket-Server: sack\r\n" );
 
-						vtprintf( pvt_output, WIDE( "\r\n" ) );
+						vtprintf( pvt_output, "\r\n" );
 
 						if( key1 && key2 )
 						{

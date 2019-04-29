@@ -36,13 +36,13 @@ int SendInMultiMessageEx( PSERVICE_ROUTE routeID, uint32_t MsgID, uint32_t parts
 #else
 			errno = E2BIG;
 #endif
-			_lprintf(DBG_RELAY)( WIDE("Length of message is too big to transport...%") _size_f WIDE(" (len %") _size_f WIDE(" ofs %") _size_f WIDE(")"), len + ofs, len, ofs );
+			_lprintf(DBG_RELAY)( "Length of message is too big to transport...%" _size_f " (len %" _size_f " ofs %" _size_f ")", len + ofs, len, ofs );
 			LeaveCriticalSec( &g.csMsgTransact );
 			return FALSE;
 		}
 		if( msg && len )
 		{
-			//Log3( WIDE("Adding %d bytes at %d: %08x "), len, ofs, ((uint32_t*)msg)[0] );
+			//Log3( "Adding %d bytes at %d: %08x ", len, ofs, ((uint32_t*)msg)[0] );
 			MemCpy( ((char*)QMSGDATA(MessageOut)) + ofs, msg, len );
 			ofs += len;
 		}
@@ -51,7 +51,7 @@ int SendInMultiMessageEx( PSERVICE_ROUTE routeID, uint32_t MsgID, uint32_t parts
 		int stat;
 	// send to application inbound queue..
 #ifdef DEBUG_OUTEVENTS
-		lprintf( WIDE("Sending result to application...") );
+		lprintf( "Sending result to application..." );
 		LogBinary( (uint8_t*)MessageOut, ofs );
 
 #endif
@@ -83,11 +83,11 @@ int SendInMessage( PSERVICE_ROUTE routeID, uint32_t MsgID, POINTER buffer, size_
 int metamsgrcv( MSGQ_TYPE q, POINTER p, int len, long id, int opt DBG_PASS )
 {
 	int stat;
-	_xlprintf(1 DBG_RELAY)( WIDE("*** Read Message %d"), id);
+	_xlprintf(1 DBG_RELAY)( "*** Read Message %d", id);
 	stat = msgrcv( q,MSGTYPE p,len,id,opt );
 #undef msgrcv
 	#define msgrcv(q,p,l,i,o) metamsgrcv(q,p,l,i,o DBG_SRC)
-	_xlprintf(1 DBG_RELAY)( WIDE("*** Got message %d"), stat );
+	_xlprintf(1 DBG_RELAY)( "*** Got message %d", stat );
 	return stat;
 }
 #endif
@@ -105,7 +105,7 @@ static int PrivateSendTransactionResponseMultiMessageEx( PSERVICE_ROUTE DestID
 	PQMSG MessageOut;
 	if( g.flags.disconnected )
 	{
-		_lprintf(DBG_RELAY)( WIDE("Have already disconnected from server... no further communication possible.") );
+		_lprintf(DBG_RELAY)( "Have already disconnected from server... no further communication possible." );
 		return TRUE;
 	}
 	MessageOut = GetMessageBuffer();
@@ -121,11 +121,11 @@ static int PrivateSendTransactionResponseMultiMessageEx( PSERVICE_ROUTE DestID
 	//{
 		// wow - this is a BIG message - lets see - what can we do?
 		//SetLastError( E2BIG );
-		//lprintf( WIDE("Lenght of message is too big to transport...") );
+		//lprintf( "Lenght of message is too big to transport..." );
 		//return FALSE;
 	//}
 	ofs = 0;
-	//Log1( WIDE("Adding %d params"), buffers );
+	//Log1( "Adding %d params", buffers );
 	for( param = 0; param < buffers; param++ )
 	{
 		msg = pairs[param].buffer;
@@ -138,20 +138,20 @@ static int PrivateSendTransactionResponseMultiMessageEx( PSERVICE_ROUTE DestID
 #else
 			errno = E2BIG;
 #endif
-			_lprintf(DBG_RELAY)( WIDE("Length of message is too big to transport...%") _size_f WIDE(" (len %") _size_f WIDE(" ofs %") _size_f WIDE(")"), len + ofs, len, ofs );
+			_lprintf(DBG_RELAY)( "Length of message is too big to transport...%" _size_f " (len %" _size_f " ofs %" _size_f ")", len + ofs, len, ofs );
 			return FALSE;
 		}
 		if( msg && len )
 		{
-			//Log3( WIDE("Adding %d bytes at %d: %08x "), len, ofs, ((uint32_t*)msg)[0] );
+			//Log3( "Adding %d bytes at %d: %08x ", len, ofs, ((uint32_t*)msg)[0] );
 			MemCpy( ((char*)QMSGDATA( MessageOut )) + ofs, msg, len );
 			ofs += len;
 		}
 	}
 	// subtract 4 from the offset (the msg_id is not counted)
-	//Log2( WIDE("Sent %d  (%d) bytes"), g.MessageOut[0], ofs - sizeof( MSGIDTYPE ) );
+	//Log2( "Sent %d  (%d) bytes", g.MessageOut[0], ofs - sizeof( MSGIDTYPE ) );
 	// 0 success, non zero failure - return notted state
-				  //lprintf( WIDE("Send Message. %08lX"), *(uint32_t*)g.MessageOut );
+				  //lprintf( "Send Message. %08lX", *(uint32_t*)g.MessageOut );
 	//_xlprintf( 1 DBG_RELAY )( "blah." );
 #ifdef LOG_SENT_MESSAGES
 	_lprintf(DBG_RELAY)( "Send is %d", ofs );
@@ -244,19 +244,19 @@ CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteI
 	{
 		if( !handler )
 		{
-			lprintf( WIDE("We have no business being here... no loadservice has been made to this service!") );
+			lprintf( "We have no business being here... no loadservice has been made to this service!" );
 			return 0;
 		}
-		//lprintf( WIDE("Enter %p"), handler );
+		//lprintf( "Enter %p", handler );
 		EnterCriticalSec( &handler->csMsgTransact );
 		switch( MsgOut )
 		{
 		case RU_ALIVE:
-			//lprintf( WIDE("Lying about message to expect") );
+			//lprintf( "Lying about message to expect" );
 			handler->LastMsgID = IM_ALIVE;
 			break;
 		default:
-			//lprintf( WIDE("set last msgID %") _MsgID_f, MsgOut );
+			//lprintf( "set last msgID %" _MsgID_f, MsgOut );
 			handler->LastMsgID = MsgOut;
 			break;
 		}
@@ -264,7 +264,7 @@ CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteI
 			(*MsgIn) = handler->LastMsgID;
 		handler->wait_for_responce = timeGetTime() + (timeout?timeout:DEFAULT_TIMEOUT);
 	}
-	//lprintf( WIDE("transact message...") );
+	//lprintf( "transact message..." );
 	va_start( args, timeout );
 	for( n = 0; n < buffers; n++ )
 	{
@@ -289,7 +289,7 @@ CLIENTMSG_PROC( int, TransactRoutedServerMultiMessageEx )( PSERVICE_ROUTE RouteI
  		return FALSE;
 	}
 	Release( pairs );
-	//lprintf( WIDE("Entering wait after serving a message...") );
+	//lprintf( "Entering wait after serving a message..." );
 	if( MsgIn || (BufferIn && LengthIn) )
 	{
 		status = WaitReceiveServerMsg( &sleeper, MsgOut DBG_SRC );
@@ -336,16 +336,16 @@ CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, MSGID
 											, LengthIn
 											 DBG_SRC );
 #ifdef LOG_SENT_MESSAGES
-	lprintf( WIDE( "%s(%d):Sending message..." ), next_transact.pFile, next_transact.nLine );
+	lprintf( "%s(%d):Sending message...", next_transact.pFile, next_transact.nLine );
 #endif
 	switch( MsgOut )
 	{
 	case RU_ALIVE:
-		lprintf( WIDE("Lying about message to expect") );
+		lprintf( "Lying about message to expect" );
 		handler->LastMsgID = IM_ALIVE;
 		break;
 	default:
-		//lprintf( WIDE("set last msgID %ld"), MsgOut );
+		//lprintf( "set last msgID %ld", MsgOut );
 		handler->LastMsgID = MsgOut;
 		break;
 	}
@@ -361,7 +361,7 @@ CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, MSGID
 																	) ) )
 #endif
 	{
-		//lprintf( WIDE("Leaving...") );
+		//lprintf( "Leaving..." );
 		//handler->flags.wait_for_responce = 0;
 		//LeaveCriticalSec( &handler->csMsgTransact );
 		DeleteLink( &g.pSleepers, &sleeper );	
@@ -371,7 +371,7 @@ CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, MSGID
 
 	Release( pairs );
 	handler->wait_for_responce = timeGetTime() + (DEFAULT_TIMEOUT);
-	//lprintf( WIDE("waiting... %p"), handler );
+	//lprintf( "waiting... %p", handler );
 	if( MsgIn || (BufferIn && LengthIn) )
 		stat = WaitReceiveServerMsg( &sleeper, MsgOut DBG_SRC );
 	else
@@ -381,7 +381,7 @@ CLIENTMSG_PROC( int, TransactServerMultiMessage )( PSERVICE_ROUTE RouteID, MSGID
 		stat = TRUE;
 	}
 	DeleteLink( &g.pSleepers, &sleeper );	
-	//lprintf( WIDE("Done %p %d"),handler, stat );
+	//lprintf( "Done %p %d",handler, stat );
 	return stat;
 
 }

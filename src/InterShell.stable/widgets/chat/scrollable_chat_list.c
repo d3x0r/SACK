@@ -26,9 +26,9 @@ struct chat_widget_message;
 #include "chat_control.h"
 #include "chat_control_internal.h" 
 
-#define CONTROL_NAME WIDE("Scrollable Message List")
+#define CONTROL_NAME "Scrollable Message List"
 
-#define INTERSHELL_CONTROL_NAME WIDE("Intershell/test/Scrollable Message List")
+#define INTERSHELL_CONTROL_NAME "Intershell/test/Scrollable Message List"
 
 /*
 typedef struct chat_time_tag
@@ -526,24 +526,24 @@ static uintptr_t CPROC SetSidePad( uintptr_t psv, arg_list args )
 
 void ScrollableChatControl_AddConfigurationMethods( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, WIDE("Chat Control Background Image=%m"), SetBackgroundImage );
-	AddConfigurationMethod( pch, WIDE("Chat Control Sent Arrow Area=%i,%i %i,%i"), SetSentArrowArea );
-	AddConfigurationMethod( pch, WIDE("Chat Control Received Arrow Area=%i,%i %i,%i"), SetReceiveArrowArea );
-	AddConfigurationMethod( pch, WIDE("Chat Control Sent Background Area=%i,%i %i,%i"), SetSentBackgroundArea );
-	AddConfigurationMethod( pch, WIDE("Chat Control Received Background Area=%i,%i %i,%i"), SetReceiveBackgroundArea );
-	AddConfigurationMethod( pch, WIDE("Chat Control Sent Background Dividers=%i,%i,%i,%i"), SetSentBackgroundDividers );
-	AddConfigurationMethod( pch, WIDE("Chat Control Received Background Dividers=%i,%i,%i,%i"), SetReceiveBackgroundDividers );
-	AddConfigurationMethod( pch, WIDE("Chat Control Sent Decoration Justification=%i"), SetSentJustification );
-	AddConfigurationMethod( pch, WIDE("Chat Control Received Decoration Justification=%i"), SetReceiveJustification );
-	AddConfigurationMethod( pch, WIDE("Chat Control Sent Text Justification=%i"), SetSentTextJustification );
-	AddConfigurationMethod( pch, WIDE("Chat Control Received Text Justification=%i"), SetReceiveTextJustification );
-	AddConfigurationMethod( pch, WIDE("Chat Control Side Pad = %i"), SetSidePad );
-	AddConfigurationMethod( pch, WIDE("Chat Control Sent Arrow Offset=%i,%i"), SetSentArrowOffset );
-	AddConfigurationMethod( pch, WIDE("Chat Control Received Arrow Offset=%i,%i"), SetReceiveArrowOffset );
+	AddConfigurationMethod( pch, "Chat Control Background Image=%m", SetBackgroundImage );
+	AddConfigurationMethod( pch, "Chat Control Sent Arrow Area=%i,%i %i,%i", SetSentArrowArea );
+	AddConfigurationMethod( pch, "Chat Control Received Arrow Area=%i,%i %i,%i", SetReceiveArrowArea );
+	AddConfigurationMethod( pch, "Chat Control Sent Background Area=%i,%i %i,%i", SetSentBackgroundArea );
+	AddConfigurationMethod( pch, "Chat Control Received Background Area=%i,%i %i,%i", SetReceiveBackgroundArea );
+	AddConfigurationMethod( pch, "Chat Control Sent Background Dividers=%i,%i,%i,%i", SetSentBackgroundDividers );
+	AddConfigurationMethod( pch, "Chat Control Received Background Dividers=%i,%i,%i,%i", SetReceiveBackgroundDividers );
+	AddConfigurationMethod( pch, "Chat Control Sent Decoration Justification=%i", SetSentJustification );
+	AddConfigurationMethod( pch, "Chat Control Received Decoration Justification=%i", SetReceiveJustification );
+	AddConfigurationMethod( pch, "Chat Control Sent Text Justification=%i", SetSentTextJustification );
+	AddConfigurationMethod( pch, "Chat Control Received Text Justification=%i", SetReceiveTextJustification );
+	AddConfigurationMethod( pch, "Chat Control Side Pad = %i", SetSidePad );
+	AddConfigurationMethod( pch, "Chat Control Sent Arrow Offset=%i,%i", SetSentArrowOffset );
+	AddConfigurationMethod( pch, "Chat Control Received Arrow Offset=%i,%i", SetReceiveArrowOffset );
 }
 
 
-static void OnLoadCommon( WIDE( "Chat Control" ) )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( "Chat Control" )( PCONFIG_HANDLER pch )
 {
 	ScrollableChatControl_AddConfigurationMethods( pch );
 }
@@ -602,7 +602,7 @@ static void SetupDefaultConfig( void )
 		l.sent.div_y2 = SACK_GetProfileInt( "widgets/Chat Control", "sent message background division inset bottom", 9 + 57 );
 		l.sent.arrow_x_offset = SACK_GetProfileInt( "widgets/Chat Control", "sent message arrow x offset", -2 );
 		l.sent.arrow_y_offset = SACK_GetProfileInt( "widgets/Chat Control", "sent message arrow y offset", -10 );
-		//l.sent.font = RenderFontFileScaledEx( WIDE("msyh.ttf"), 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+		//l.sent.font = RenderFontFileScaledEx( "msyh.ttf", 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		l.flags.sent_justification = SACK_GetProfileInt( "widgets/Chat Control", "sent message justification", 0 );
 		l.flags.sent_text_justification = SACK_GetProfileInt( "widgets/Chat Control", "sent message text justification", 1 );
 		{
@@ -641,75 +641,75 @@ static void SetupDefaultConfig( void )
 	ChopDecorations( );	
 }
 
-static void OnFinishInit( WIDE( "Chat Control" ) )( PSI_CONTROL canvas )
+static void OnFinishInit( "Chat Control" )( PSI_CONTROL canvas )
 {
 	SetupDefaultConfig();
 }
 
-static void OnSaveCommon( WIDE( "Chat Control" ) )( FILE *file )
+static void OnSaveCommon( "Chat Control" )( FILE *file )
 {
-	sack_fprintf( file, WIDE("%sChat Control Sent Arrow Area=%d,%d %u,%u\n")
+	sack_fprintf( file, "%sChat Control Sent Arrow Area=%d,%d %u,%u\n"
 			 , InterShell_GetSaveIndent()
 			 , l.sent.arrow_x
 			 , l.sent.arrow_y
 			 , l.sent.arrow_w
 			 , l.sent.arrow_h );
-	sack_fprintf( file, WIDE("%sChat Control Sent Arrow Offset=%d,%d\n")
+	sack_fprintf( file, "%sChat Control Sent Arrow Offset=%d,%d\n"
 			 , InterShell_GetSaveIndent()
 			 , l.sent.arrow_x_offset
 			 , l.sent.arrow_y_offset );
 
-	sack_fprintf( file, WIDE("%sChat Control Received Arrow Area=%d,%d %u,%u\n")
+	sack_fprintf( file, "%sChat Control Received Arrow Area=%d,%d %u,%u\n"
 			 , InterShell_GetSaveIndent()
 			 , l.received.arrow_x
 			 , l.received.arrow_y
 			 , l.received.arrow_w
 			 , l.received.arrow_h );
-	sack_fprintf( file, WIDE("%sChat Control Received Arrow Offset=%d,%d\n")
+	sack_fprintf( file, "%sChat Control Received Arrow Offset=%d,%d\n"
 			 , InterShell_GetSaveIndent()
 			 , l.received.arrow_x_offset
 			 , l.received.arrow_y_offset );
 
-	sack_fprintf( file, WIDE("%sChat Control Sent Background Area=%d,%d %u,%u\n")
+	sack_fprintf( file, "%sChat Control Sent Background Area=%d,%d %u,%u\n"
 			 , InterShell_GetSaveIndent()
 			 , l.sent.back_x
 			 , l.sent.back_y
 			 , l.sent.back_w
 			 , l.sent.back_h );
-	sack_fprintf( file, WIDE("%sChat Control Received Background Area=%d,%d %u,%u\n")
+	sack_fprintf( file, "%sChat Control Received Background Area=%d,%d %u,%u\n"
 			 , InterShell_GetSaveIndent()
 			 , l.received.back_x
 			 , l.received.back_y
 			 , l.received.back_w
 			 , l.received.back_h );
-	sack_fprintf( file, WIDE("%sChat Control Sent Background Dividers=%d,%d,%d,%d\n")
+	sack_fprintf( file, "%sChat Control Sent Background Dividers=%d,%d,%d,%d\n"
 			 , InterShell_GetSaveIndent()
 			 , l.sent.div_x1
 			 , l.sent.div_x2
 			 , l.sent.div_y1
 			 , l.sent.div_y2 );
-	sack_fprintf( file, WIDE("%sChat Control Received Background Dividers=%d,%d,%d,%d\n")
+	sack_fprintf( file, "%sChat Control Received Background Dividers=%d,%d,%d,%d\n"
 			 , InterShell_GetSaveIndent()
 			 , l.received.div_x1
 			 , l.received.div_x2
 			 , l.received.div_y1
 			 , l.received.div_y2 );
-	sack_fprintf( file, WIDE("%sChat Control Background Image=%s\n")
+	sack_fprintf( file, "%sChat Control Background Image=%s\n"
 			 , InterShell_GetSaveIndent()
 			 , l.decoration_name );
-	sack_fprintf( file, WIDE("%sChat Control Side Pad=%d\n")
+	sack_fprintf( file, "%sChat Control Side Pad=%d\n"
 			 , InterShell_GetSaveIndent()
 			 , l.side_pad );
-	sack_fprintf( file, WIDE("%sChat Control Received Decoration Justification=%d\n")
+	sack_fprintf( file, "%sChat Control Received Decoration Justification=%d\n"
 			 , InterShell_GetSaveIndent()
 			, l.flags.received_justification );
-	sack_fprintf( file, WIDE("%sChat Control Sent Decoration Justification=%d\n")
+	sack_fprintf( file, "%sChat Control Sent Decoration Justification=%d\n"
 			 , InterShell_GetSaveIndent()
 			, l.flags.sent_justification );
-	sack_fprintf( file, WIDE("%sChat Control Received Text Justification=%d\n")
+	sack_fprintf( file, "%sChat Control Received Text Justification=%d\n"
 			 , InterShell_GetSaveIndent()
 			, l.flags.received_text_justification );
-	sack_fprintf( file, WIDE("%sChat Control Sent Text Justification=%d\n")
+	sack_fprintf( file, "%sChat Control Sent Text Justification=%d\n"
 			 , InterShell_GetSaveIndent()
 			, l.flags.sent_text_justification );
 }
@@ -1015,7 +1015,7 @@ uint32_t DrawSendTextFrame( Image window, int y, int height, int inset )
 	int32_t x_offset_right;
 	height +=  l.send.BorderSegment[SEGMENT_TOP]->height + l.send.BorderSegment[SEGMENT_BOTTOM]->height;
 	y -= l.send.BorderSegment[SEGMENT_TOP]->height + l.send.BorderSegment[SEGMENT_BOTTOM]->height;
-	//lprintf( WIDE("Draw at %d   %d  bias %d") , y, height, inset );
+	//lprintf( "Draw at %d   %d  bias %d" , y, height, inset );
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, TRUE, FALSE, inset );
 	{
 		BlotScaledImageSizedToAlpha( window, l.send.BorderSegment[SEGMENT_TOP]
@@ -1078,7 +1078,7 @@ uint32_t DrawMessageFrame( Image window, int y, int height, int inset, LOGICAL r
 	int32_t x_offset_right;
 	height +=  l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
 	y -= l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
-	//lprintf( WIDE("Draw at %d   %d  bias %d") , y, height, inset );
+	//lprintf( "Draw at %d   %d  bias %d" , y, height, inset );
 	MeasureFrameWidth( window, &x_offset_left, &x_offset_right, received, complete, inset );
 	if( received )
 	{
@@ -1263,7 +1263,7 @@ int32_t UpdateContextExtents( Image window, PCHAT_LIST list, PCHAT_CONTEXT conte
 	else
 		context->sender_width = 0;
 
-	//lprintf( WIDE("Begin formatting messages...") );
+	//lprintf( "Begin formatting messages..." );
 	frame_height = 0;
 	for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 	{
@@ -1412,7 +1412,7 @@ void DrawAMessage( Image window, PCHAT_LIST list
 		x_offset_left += l.received.BorderSegment[SEGMENT_LEFT]->width ;
 		x_offset_right -= ( l.received.BorderSegment[SEGMENT_RIGHT]->width + l.received.arrow_w + l.received.arrow_x_offset ); 
 	}
-	//lprintf( WIDE("update next top by %d (%d+%d)"), msg->_message_y, msg->time_height, msg->_formatted_height );
+	//lprintf( "update next top by %d (%d+%d)", msg->_message_y, msg->time_height, msg->_formatted_height );
 	list->display.message_top -= msg->_message_y;
 	if( context->sent )
 	{
@@ -1590,7 +1590,7 @@ restart:
 							, StrLen( context->formatted_sender ), list->sender_font, 0, max_width );
 		}
 
-		//lprintf( WIDE("BEgin draw messages (in a context)...%d"), context->sent );
+		//lprintf( "BEgin draw messages (in a context)...%d", context->sent );
 		for( message_idx = -1; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, message_idx ); message_idx-- )
 		{
 			if( msg->deleted ) {
@@ -1603,7 +1603,7 @@ restart:
 				( ( list->display.message_top - msg->_message_y ) >= window->height ) )
 			{
 				//lprintf( "Skip a message %d (-%d)", list->display.message_top, msg->_message_y );
-				//lprintf( WIDE("have to skip message...") );
+				//lprintf( "have to skip message..." );
 				list->display.message_top -= msg->_message_y;
 				continue;
 			}
@@ -1614,7 +1614,7 @@ restart:
 				DrawAMessage( window, list, context, msg, x_offset_left, x_offset_right );
 			if( list->display.message_top < l.side_pad )
 			{
-				//lprintf( WIDE("Done.") );
+				//lprintf( "Done." );
 				break;
 			}
 		}
@@ -1644,7 +1644,7 @@ static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int x, int y )
 	//lprintf( "y to check is %d  message_top is %d", y, message_top );
 	for( context_idx = -1; context = (PCHAT_CONTEXT)PeekQueueEx( list->contexts, context_idx ); context_idx-- )
 	{
-		//lprintf( WIDE("BEgin find messages... context %d"), context_idx );
+		//lprintf( "BEgin find messages... context %d", context_idx );
 		if( context->deleted )
 			continue;
 		if( context_idx < -1 )
@@ -1665,7 +1665,7 @@ static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int x, int y )
 					continue;
 				if( msg->formatted_text )
 				{
-					//lprintf( WIDE("is a text skip message...") );
+					//lprintf( "is a text skip message..." );
 					check_message_top -= msg->_message_y;
 					//if( ( check_message_top - msg->_message_y ) >= list->message_window->height )
 					//{
@@ -1690,7 +1690,7 @@ static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int x, int y )
 				}
 				if( check_message_top < l.side_pad )
 				{
-					//lprintf( WIDE("Done.") );
+					//lprintf( "Done." );
 					msg = NULL;
 					break;
 				}
@@ -1716,7 +1716,7 @@ static PCHAT_MESSAGE FindMessage( PCHAT_LIST list, int x, int y )
 
 }
 
-static void OnDisplayConnect( WIDE("@chat resources") )( struct display_app*app, struct display_app_local ***pppLocal )
+static void OnDisplayConnect( "@chat resources" )( struct display_app*app, struct display_app_local ***pppLocal )
 {
 	SetupDefaultConfig();	
 }
@@ -2085,7 +2085,7 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 				if( !pCurrentLine )
 				{
 		#ifdef DEBUG_HISTORY_RENDER
-					lprintf( WIDE("No such line... %d"), nLine );
+					lprintf( "No such line... %d", nLine );
 		#endif
 					break;
 				}
@@ -2397,7 +2397,7 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int32_t y, 
 			{
 				uint32_t original_offset = list->control_offset;
 				list->control_offset += ( y - list->first_y );
-				//lprintf( WIDE("adjust position by %d"), ( y - list->first_y ) );
+				//lprintf( "adjust position by %d", ( y - list->first_y ) );
 				if( list->control_offset < 0 )
 					list->control_offset = 0;
 				else
@@ -2533,10 +2533,10 @@ static int EvalExcept( int n )
 	switch( n )
 	{
 	case 		STATUS_ACCESS_VIOLATION:
-			//lprintf( WIDE( "Access violation - OpenGL layer at this moment.." ) );
+			//lprintf( "Access violation - OpenGL layer at this moment.." );
 	return EXCEPTION_EXECUTE_HANDLER;
 	default:
-			//lprintf( WIDE( "Filter unknown : %08X" ), n );
+			//lprintf( "Filter unknown : %08X", n );
 
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
@@ -2560,7 +2560,7 @@ static void CPROC cursorTick( uintptr_t psv )
 			}
 			__except( EvalExcept( GetExceptionCode() ) )
 			{
-				lprintf( WIDE( "Caught exception in scrollable chat list control" ) );
+				lprintf( "Caught exception in scrollable chat list control" );
 				;
 			}
 #endif
@@ -2668,7 +2668,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 	// opened sentience...
 	if( list )
 	{
-		DECLTEXT( stroke, WIDE("           ") ); // single character ...
+		DECLTEXT( stroke, "           " ); // single character ...
 		//Log1( "Key: %08x", key );
 		if( !list || !l.decoration ) // not a valid window handle/device path
 			return 0;
@@ -2727,7 +2727,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			break;
 		case KEY_DELETE:
 			{
-				DECLTEXT( KeyStrokeDelete, WIDE("\x7f") ); // DECLTEXT implies 'static'
+				DECLTEXT( KeyStrokeDelete, "\x7f" ); // DECLTEXT implies 'static'
 				if( key & KEY_PRESSED ) {
 					DeleteUserInput( list->input.CommandInfo );
 					ReformatInput( list );
@@ -2737,7 +2737,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			break;
 		case KEY_BACKSPACE:
 			{
-				DECLTEXT( KeyStrokeBackspace, WIDE("\x08") ); // DECLTEXT implies 'static'
+				DECLTEXT( KeyStrokeBackspace, "\x08" ); // DECLTEXT implies 'static'
 				if( key & KEY_PRESSED ) {
 					Widget_WinLogicDoStroke( list, (PTEXT)&KeyStrokeBackspace );
 					SmudgeCommon( pc );
@@ -2906,7 +2906,7 @@ int Chat_ClearOldMessages( PSI_CONTROL pc, int delete_time )
 			if( context->deleted )
 				continue;
 			//y = list->message_window->height - y;
-			//lprintf( WIDE("BEgin draw messages...") );
+			//lprintf( "BEgin draw messages..." );
 			for( n = 0; msg = (PCHAT_MESSAGE)PeekQueueEx( context->messages, n ); n++ )
 			{
 				int64_t msg_time ;

@@ -19,9 +19,9 @@ int main( int argc, char **argv )
 	SetSystemLog( SYSLOG_FILE, stdout );
 	g.pdi = GetDisplayInterface();
 	g.pii = GetImageInterface();
-	printf( WIDE("Set log to stout...\n") );
-	lprintf( WIDE("Set log to stdout...") );
-	if(argc<3)lprintf( WIDE("Usage: %s <background image> <daubing image>\n"), argv[0] );
+	printf( "Set log to stout...\n" );
+	lprintf( "Set log to stdout..." );
+	if(argc<3)lprintf( "Usage: %s <background image> <daubing image>\n", argv[0] );
 	GetDisplaySize( &width, &height );;
 	{
 	PRENDERER display = OpenDisplaySizedAt( 0, width, height, 0, 0 );
@@ -55,8 +55,8 @@ int main( int argc, char **argv )
 		if( ( time(&now) ) > then )
 		{
 			char message[128];
-			sprintf( message, WIDE("%5d spots/second (update no image)"), (i - _i) / (now-then) );
-         printf( WIDE("%s\n"), message );
+			sprintf( message, "%5d spots/second (update no image)", (i - _i) / (now-then) );
+         printf( "%s\n", message );
 			PutString( surface, 0, 0, BASE_COLOR_BLACK, BASE_COLOR_WHITE, message );
          UpdateDisplayPortion( display, 0, 0, 400, 20 );
 			_i = i;
@@ -77,8 +77,8 @@ int main( int argc, char **argv )
 		if( ( time(&now) ) > then )
 		{
 			char message[128];
-			sprintf( message, WIDE("%5d spots/second (alpha image,no update)"), (i - _i) / (now-then) );
-         printf( WIDE("%s\n"), message );
+			sprintf( message, "%5d spots/second (alpha image,no update)", (i - _i) / (now-then) );
+         printf( "%s\n", message );
 			PutString( surface, 0, 0, BASE_COLOR_BLACK, BASE_COLOR_WHITE, message );
          UpdateDisplayPortion( display, 0, 0, 400, 20 );
 			_i = i;
@@ -103,8 +103,8 @@ int main( int argc, char **argv )
 		if( ( time(&now) ) > then )
 		{
 			char message[128];
-			sprintf( message, WIDE("%5d spots/second (alpha image)"), (i - _i) / (now-then) );
-         printf( WIDE("%s\n"), message );
+			sprintf( message, "%5d spots/second (alpha image)", (i - _i) / (now-then) );
+         printf( "%s\n", message );
 			PutString( surface, 0, 0, BASE_COLOR_BLACK, BASE_COLOR_WHITE, message );
          UpdateDisplayPortion( display, 0, 0, 400, 20 );
 			_i = i;
@@ -124,8 +124,8 @@ int main( int argc, char **argv )
 		if( ( time(&now) ) > then )
 		{
 			char message[128];
-			sprintf( message, WIDE("%5d spots/second (alpha image)"), (i - _i) / (now-then) );
-         printf( WIDE("%s\n"), message );
+			sprintf( message, "%5d spots/second (alpha image)", (i - _i) / (now-then) );
+         printf( "%s\n", message );
 			PutString( surface, 0, 0, BASE_COLOR_BLACK, BASE_COLOR_WHITE, message );
          UpdateDisplayPortion( display, 0, 0, 400, 20 );
 			_i = i;
@@ -145,8 +145,8 @@ int main( int argc, char **argv )
 		if( ( time(&now) ) > then )
 		{
 			char message[128];
-			sprintf( message, WIDE("%5d spots/second (alpha image)"), (i - _i) / (now-then) );
-         printf( WIDE("%s\n"), message );
+			sprintf( message, "%5d spots/second (alpha image)", (i - _i) / (now-then) );
+         printf( "%s\n", message );
 			PutString( surface, 0, 0, BASE_COLOR_BLACK, BASE_COLOR_WHITE, message );
          UpdateDisplayPortion( display, 0, 0, 400, 20 );
 			_i = i;
@@ -166,8 +166,8 @@ int main( int argc, char **argv )
 		if( ( time(&now) ) > then )
 		{
 			char message[128];
-			sprintf( message, WIDE("%5d spots/second (image, single transparent, no update)"), (i - _i) / (now-then) );
-         printf( WIDE("%s\n"), message );
+			sprintf( message, "%5d spots/second (image, single transparent, no update)", (i - _i) / (now-then) );
+         printf( "%s\n", message );
 			PutString( surface, 0, 0, BASE_COLOR_BLACK, BASE_COLOR_WHITE, message );
          UpdateDisplayPortion( display, 0, 0, 400, 20 );
 			_i = i;
@@ -187,8 +187,8 @@ int main( int argc, char **argv )
 		if( ( time(&now) ) > then )
 		{
 			char message[128];
-			sprintf( message, WIDE("%5d spots/second (image, single transparent)"), (i - _i) / (now-then) );
-         printf( WIDE("%s\n"), message );
+			sprintf( message, "%5d spots/second (image, single transparent)", (i - _i) / (now-then) );
+         printf( "%s\n", message );
 			PutString( surface, 0, 0, BASE_COLOR_BLACK, BASE_COLOR_WHITE, message );
          UpdateDisplayPortion( display, 0, 0, 400, 20 );
 			_i = i;

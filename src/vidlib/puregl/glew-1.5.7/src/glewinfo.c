@@ -8784,10 +8784,10 @@ GLboolean glewCreateContext (int* pixelformat)
   ZeroMemory(&wc, sizeof(WNDCLASS));
   wc.hInstance = GetModuleHandle(NULL);
   wc.lpfnWndProc = DefWindowProc;
-  wc.lpszClassName = WIDE("GLEW");
+  wc.lpszClassName = "GLEW";
   if (0 == RegisterClass(&wc)) return GL_TRUE;
   /* create window */
-  wnd = CreateWindow(WIDE("GLEW"), WIDE("GLEW"), 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
+  wnd = CreateWindow("GLEW", "GLEW", 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
                      CW_USEDEFAULT, NULL, NULL, GetModuleHandle(NULL), NULL);
   if (NULL == wnd) return GL_TRUE;
   /* get the device context */
@@ -8818,7 +8818,7 @@ void glewDestroyContext ()
   if (NULL != rc) wglDeleteContext(rc);
   if (NULL != wnd && NULL != dc) ReleaseDC(wnd, dc);
   if (NULL != wnd) DestroyWindow(wnd);
-  UnregisterClass(WIDE("GLEW"), GetModuleHandle(NULL));
+  UnregisterClass("GLEW", GetModuleHandle(NULL));
 }
 
 /* ------------------------------------------------------------------------ */

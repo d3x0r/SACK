@@ -5,13 +5,13 @@
 
 static genxStatus WriteBuffer( void *UserData, constUtf8 s )
 {
-	vtprintf( (PVARTEXT)UserData, WIDE("%s"), s );
+	vtprintf( (PVARTEXT)UserData, "%s", s );
 	return GENX_SUCCESS;
 }
 
 static genxStatus WriteBufferBounded( void *UserData, constUtf8 s, constUtf8 end )
 {
-	vtprintf( (PVARTEXT)UserData, WIDE("%*.*s"), end-s, end-s, s );
+	vtprintf( (PVARTEXT)UserData, "%*.*s", end-s, end-s, s );
 	return GENX_SUCCESS;
 }
 

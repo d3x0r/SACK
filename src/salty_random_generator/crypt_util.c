@@ -76,7 +76,7 @@ void SRG_DecryptData( CTEXTSTR local_password, uint8_t* *buffer, size_t *chars )
 		{
 			(*buffer) = 0;
 			(*chars) = 0;
-			//lprintf( WIDE("failed to decode data") );
+			//lprintf( "failed to decode data" );
 		}
 	}
 }

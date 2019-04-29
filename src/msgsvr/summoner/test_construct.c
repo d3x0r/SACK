@@ -8,10 +8,10 @@ int main( int argc, char **argv )
 	int bFail = 0;
    int nSleep;
    //extern void CPROC LoadComplete();
-	printf( WIDE("Okay... sending ready\n") );
+	printf( "Okay... sending ready\n" );
 	for( n = 1; n < argc; n++ )
 	{
-		if( strcmp( argv[n], WIDE("fail") ) == 0 )
+		if( strcmp( argv[n], "fail" ) == 0 )
 			bFail = 1;
 		else
          nSleep = atoi( argv[n] );

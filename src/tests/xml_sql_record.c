@@ -54,14 +54,14 @@ void WriteRecord( PCTEXTSTR record )
 
 int xmlSQLRecordQuery(
 
-	//FILE *out = fopen( file, WIDE("wb") );
+	//FILE *out = fopen( file, "wb" );
 	XML_CONTEXT context;
 	PXML_CONTEXT current_context;
 	if( !file )
 		file = frame->save_name;
 	if( !file )
 	{
-		lprintf( WIDE("Failure to save XML Frame... no filename passed, no filename available.") );
+		lprintf( "Failure to save XML Frame... no filename passed, no filename available." );
 		return 0;
 	}
 	MemSet( &context, 0, sizeof( context ) );
@@ -75,7 +75,7 @@ int xmlSQLRecordQuery(
 		if( !ext )
 			ext = current_context->name + strlen( current_context->name );
 		current_context->nChildren++;
-		vtprintf( context.vt, WIDE("%*.*s.%d-%d-child-%d%s")
+		vtprintf( context.vt, "%*.*s.%d-%d-child-%d%s"
 				  , ext - current_context->name
 				  , ext - current_context->name
 				  , current_context->name
@@ -91,7 +91,7 @@ int xmlSQLRecordQuery(
 	{
 		if( !file )
 		{
-         lprintf( WIDE("NULL filename passed to save frame.  Aborting.") );
+         lprintf( "NULL filename passed to save frame.  Aborting." );
 			return 0;
 		}
 		context.name = StrDup( file );

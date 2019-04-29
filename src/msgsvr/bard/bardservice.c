@@ -73,7 +73,7 @@ static LOCAL l;
 
 static void ExitBardService( void )
 {
-	xlprintf(LOG_ALWAYS)( WIDE("ExitBardService set bExit from %ld to TRUE"), l.flags.bExit);
+	xlprintf(LOG_ALWAYS)( "ExitBardService set bExit from %ld to TRUE", l.flags.bExit);
 	l.flags.bExit=TRUE;
 	WakeThread( l.pMainThread );
 }
@@ -137,7 +137,7 @@ static int CPROC HandleDisconnectionFromThisService( uint32_t *params, uint32_t 
 		{
 			if( event->source_id == params[-1] )
 			{
-				lprintf( WIDE("Found a client regisered... deleting %s"), event->name );
+				lprintf( "Found a client regisered... deleting %s", event->name );
 				SetLink( &l.simple_events, idx, NULL );
             Release( event );
 			}
@@ -159,8 +159,8 @@ static void SendSimpleMessage( char *type, char *data )
 	int n;
 	while( msg[0] )
       Relinquish();
-	ofs = snprintf( msg, sizeof( msg ), WIDE("%08lx:%s:%s"), GetTickCount(), type, data );
-	lprintf( WIDE("msg: %s"), msg );
+	ofs = snprintf( msg, sizeof( msg ), "%08lx:%s:%s", GetTickCount(), type, data );
+	lprintf( "msg: %s", msg );
 	// and all near, registered clients also need this message...
 	for( n = 0; n < 10; n++ )
 	{
@@ -195,14 +195,14 @@ static void DispatchSimpleEvent( char *eventname )
          // test exact name match of registered event->name....
 			//skip = strlen( event->name );
 		}
-		lprintf( WIDE("Event: %s  eventname: %s %d %d"), event->name, eventname, skip, strncmp( eventname, event->name, skip ) );
+		lprintf( "Event: %s  eventname: %s %d %d", event->name, eventname, skip, strncmp( eventname, event->name, skip ) );
 		if( !event->name ||
 			( skip
 			  ? ( strncmp( eventname, event->name, skip ) == 0 )
 			  : ( strcmp( eventname, event->name ) == 0 ) )
 		  )
 		{
-         //lprintf( WIDE("dsipatch...") );
+         //lprintf( "dsipatch..." );
 			SendMultiServiceEvent( event->source_id
 									  , l.MsgBase + MSG_DispatchSimpleEvent, 2
 									  , &event->event_id, sizeof( event->event_id )
@@ -294,8 +294,8 @@ static int CPROC HandleIssueSimpleEvent( uint32_t *params, uint32_t param_length
 	char msg[256];
 	int ofs;
    int n;
-	ofs = snprintf( msg, sizeof( msg ), WIDE("%08lx:simple event:%s"), GetTickCount(), params );
-	lprintf( WIDE("msg: %s"), msg );
+	ofs = snprintf( msg, sizeof( msg ), "%08lx:simple event:%s", GetTickCount(), params );
+	lprintf( "msg: %s", msg );
 	// and all near, registered clients also need this message...
 	{
 		INDEX idx;
@@ -366,11 +366,11 @@ int CPROC RegisterThis( int parm)
    // RegisterServiceHandler takes two parameters...the name of the new service, and a callback function to handle messages passed in.
 	if( !(l.MsgBase = RegisterService( BARD_SERVICE_NAME, functions, NUM_FUNCTIONS ) ) )  //yes, this is an assignment, not a comparison.
 	{
-		LoadFunction( WIDE("sack.msgsvr.service.plugin"), NULL );
+		LoadFunction( "sack.msgsvr.service.plugin", NULL );
 
 		if( !(l.MsgBase = RegisterService( BARD_SERVICE_NAME, functions, NUM_FUNCTIONS ) ) )  //yes, this is an assignment, not a comparison.
 		{
-			lprintf( WIDE("Sorry, could not register a service.") );
+			lprintf( "Sorry, could not register a service." );
 			return 0; // FALSE
 		}
 	}
@@ -431,10 +431,10 @@ void CPROC UDPReceive( PCLIENT pc, POINTER buffer, int size, SOCKADDR *source )
          lprintf( "received event from myself... ignore it?" );
 		}
 
-      lprintf( WIDE("Received UDP buffer") );
+      lprintf( "Received UDP buffer" );
 		LogBinary( (uint8_t*)buffer, size );
 
-		if( ( chars = TEST_MESSAGE( WIDE("register simple event:") ) ) )
+		if( ( chars = TEST_MESSAGE( "register simple event:" ) ) )
 		{
 			char *event = ((char*)buffer) + chars;
 			lprintf( "want these simple events:%s", event );
@@ -442,13 +442,13 @@ void CPROC UDPReceive( PCLIENT pc, POINTER buffer, int size, SOCKADDR *source )
       	CreateSimpleEvent( 0, 0, DuplicateAddress( source ), event );
 
 		}
-		if( ( chars = TEST_MESSAGE( WIDE("simple event:") ) ) )
+		if( ( chars = TEST_MESSAGE( "simple event:" ) ) )
 		{
 			char *event = ((char*)buffer) + chars;
          lprintf( "dispatching event %s", event );
 			DispatchSimpleEvent( event ); // strip the simple event: off the message.
 		}
-		if( ( chars = TEST_MESSAGE( WIDE("positive event:") ) ) )
+		if( ( chars = TEST_MESSAGE( "positive event:" ) ) )
 		{
          //  TO BE IMPLEMENTED!
 			//LOGICAL result = DispatchPositiveEvent( );
@@ -504,7 +504,7 @@ int CPROC MyIdle( uintptr_t psv )
 {
 	MSG msg;
 
-	//lprintf( WIDE("Hit my idle... which should be the main thread...") );
+	//lprintf( "Hit my idle... which should be the main thread..." );
 	if( IsThisThread( l.pMainThread  ) )
 	{
 		if( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
@@ -515,7 +515,7 @@ int CPROC MyIdle( uintptr_t psv )
 				//g.flags.bExit = 1;
 				return -1;
 			}
-         lprintf( WIDE("Dispatch message %d\n"), msg.message );
+         lprintf( "Dispatch message %d\n", msg.message );
 			DispatchMessage( &msg );
 		}
 	}
@@ -565,7 +565,7 @@ int main( int argc, char **argv )
 
 
 #ifdef WIN32
-	RegisterIcon( WIDE("Bard") );
+	RegisterIcon( "Bard" );
 	{
       ATOM aClass;
 		WNDCLASS wc;
@@ -579,7 +579,7 @@ int main( int argc, char **argv )
 		aClass = RegisterClass( &wc );
 		if( !aClass )
 		{
-			//MessageBox( NULL, WIDE("Failed to register class to handle SQL Proxy messagses."), WIDE("INIT FAILURE"), MB_OK );
+			//MessageBox( NULL, "Failed to register class to handle SQL Proxy messagses.", "INIT FAILURE", MB_OK );
 			return 0;
 		}
 		l.hWnd = CreateWindowEx( 0,
@@ -596,8 +596,8 @@ int main( int argc, char **argv )
 										(void*)1 );
 		if( !l.hWnd )
 		{
-			Log1( WIDE("Failed to create window!?!?!?! %d"), GetLastError() );
-			//MessageBox( NULL, WIDE("Failed to create window to handle SQL Proxy Messages"), WIDE("INIT FAILURE"), MB_OK );
+			Log1( "Failed to create window!?!?!?! %d", GetLastError() );
+			//MessageBox( NULL, "Failed to create window to handle SQL Proxy Messages", "INIT FAILURE", MB_OK );
 			return 0;
 		}
 	}
@@ -608,11 +608,11 @@ int main( int argc, char **argv )
 		return 0;
 
 	NetworkStart();
-   l.saBroadcast = CreateRemote( WIDE("255.255.255.255"), BARD_SERVICE_NETWORK_PORT );
+   l.saBroadcast = CreateRemote( "255.255.255.255", BARD_SERVICE_NETWORK_PORT );
 	l.pcService = ServeUDP( NULL, BARD_SERVICE_NETWORK_PORT, UDPReceive, NULL );
 	if( !l.pcService )
 	{
-		xlprintf( LOG_ERROR )( WIDE("Service failed to be able to open his broadcast receiption port at UDP:%d"), BARD_SERVICE_NETWORK_PORT );
+		xlprintf( LOG_ERROR )( "Service failed to be able to open his broadcast receiption port at UDP:%d", BARD_SERVICE_NETWORK_PORT );
       exit(0);
 	}
    // need to set this option, or broadcast packet may not work.
@@ -621,7 +621,7 @@ int main( int argc, char **argv )
    AddTimer( 2500, CheckEventTimer, 0 );
 
 	{//contruct lib is required
-		printf( WIDE("Okay... sending ready\n") );
+		printf( "Okay... sending ready\n" );
 		LoadComplete();
 	}
 

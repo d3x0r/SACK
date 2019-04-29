@@ -50,24 +50,24 @@ void WriteCommonData( PSI_CONTROL pc )
 		l.current_context->pc = pc;
 		genxAddText(l.current_context->w, (constUtf8)"\n");
 		genxStartElement( l.current_context->eControl );
-		tnprintf( buf, sizeof( buf ), PSI_ROOT_REGISTRY WIDE("/control/%d"), pc->nType );
-		genxAddAttribute( l.current_context->aType, (constUtf8)GetRegisteredValue( buf, WIDE("Type") ) );
-		tnprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(",") WIDE("%") _32f, pc->original_rect.x, pc->original_rect.y );
+		tnprintf( buf, sizeof( buf ), PSI_ROOT_REGISTRY "/control/%d", pc->nType );
+		genxAddAttribute( l.current_context->aType, (constUtf8)GetRegisteredValue( buf, "Type" ) );
+		tnprintf( buf, sizeof( buf ), "%" _32f "," "%" _32f, pc->original_rect.x, pc->original_rect.y );
 		genxAddAttribute( l.current_context->aPosition, (constUtf8)buf );
-		tnprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(",") WIDE("%") _32f, pc->original_rect.width, pc->original_rect.height );
+		tnprintf( buf, sizeof( buf ), "%" _32f "," "%" _32f, pc->original_rect.width, pc->original_rect.height );
 		genxAddAttribute( l.current_context->aSize, (constUtf8)buf );
 		if( pc->flags.bSetBorderType )
 		{
-			tnprintf( buf, sizeof( buf ), WIDE("%") _32fx WIDE(""), pc->BorderType );
+			tnprintf( buf, sizeof( buf ), "%" _32fx "", pc->BorderType );
 			genxAddAttribute( l.current_context->aBorder, (constUtf8)buf );
 		}
 
 		// Let's not write the number of this ID anymore...
-		//sprintf( buf, WIDE("%d"), pc->nID );
+		//sprintf( buf, "%d", pc->nID );
 		//genxAddAttribute( l.current_context->aID, (constUtf8)buf );
 		if( pc->pIDName )
 		{
-			PCLASSROOT pcr = GetClassRootEx( (PCLASSROOT)WIDE("psi/resources"), pc->pIDName );
+			PCLASSROOT pcr = GetClassRootEx( (PCLASSROOT)"psi/resources", pc->pIDName );
 			TEXTCHAR buffer[256];
 			TEXTSTR skip;
 			GetClassPath( buffer, 256, pcr );
@@ -76,7 +76,7 @@ void WriteCommonData( PSI_CONTROL pc )
 		}
 		if( pc->flags.bEditLoaded )
 		{
-			tnprintf( buf, sizeof( buf ), WIDE("%d"), pc->flags.bNoEdit );
+			tnprintf( buf, sizeof( buf ), "%d", pc->flags.bNoEdit );
 			genxAddAttribute( l.current_context->aEdit, (constUtf8)buf);
 		}
 
@@ -90,7 +90,7 @@ void WriteCommonData( PSI_CONTROL pc )
 			int (CPROC *Save)(PSI_CONTROL,PVARTEXT);
 			TEXTCHAR id[32];
 			PVARTEXT out = VarTextCreate();
-			tnprintf( id, sizeof( id ), PSI_ROOT_REGISTRY WIDE("/control/%d/rtti"), pc->nType );
+			tnprintf( id, sizeof( id ), PSI_ROOT_REGISTRY "/control/%d/rtti", pc->nType );
 			if( ( Save=GetRegisteredProcedure( id, int, save,(PSI_CONTROL,PVARTEXT)) ) )
 			{
 				PTEXT data;
@@ -118,7 +118,7 @@ void WriteCommonData( PSI_CONTROL pc )
 		if( l.current_context->nChildren )
 		{
 			l.current_context->pc = pc;
-			tnprintf( buf, sizeof( buf ), WIDE("%") _32f WIDE(""), l.current_context->nChildren );
+			tnprintf( buf, sizeof( buf ), "%" _32f "", l.current_context->nChildren );
 			genxAddAttribute( l.current_context->aChildren, (constUtf8)buf );
 			l.current_context->nChildren = 0;
 		}
@@ -134,13 +134,13 @@ void WriteCommonData( PSI_CONTROL pc )
 
 static genxStatus WriteBuffer( void *UserData, constUtf8 s )
 {
-	vtprintf( l.current_vt, WIDE("%s"), s );
+	vtprintf( l.current_vt, "%s", s );
 	return GENX_SUCCESS;
 }
 
 static genxStatus WriteBufferBounded( void *UserData, constUtf8 s, constUtf8 end )
 {
-	vtprintf( l.current_vt, WIDE("%*.*s"), end-s, end-s, s );
+	vtprintf( l.current_vt, "%*.*s", end-s, end-s, s );
 	return GENX_SUCCESS;
 }
 
@@ -155,7 +155,7 @@ genxSender senderprocs = { WriteBuffer
 
 int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 {
-	//FILE *out = fopen( file, WIDE("wb") );
+	//FILE *out = fopen( file, "wb" );
 	XML_CONTEXT context;
 	PXML_CONTEXT current_context;
 	if( !file )
@@ -167,7 +167,7 @@ int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 	}
 	if( !file )
 	{
-		lprintf( WIDE("Failure to save XML Frame... no filename passed, no filename available.") );
+		lprintf( "Failure to save XML Frame... no filename passed, no filename available." );
 		return 0;
 	}
 	MemSet( &context, 0, sizeof( context ) );
@@ -181,7 +181,7 @@ int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 		if( !ext )
 			ext = current_context->name + StrLen( current_context->name );
 		current_context->nChildren++;
-		vtprintf( context.vt, WIDE("%*.*s.%d-%d-child-%d%s")
+		vtprintf( context.vt, "%*.*s.%d-%d-child-%d%s"
 				  , ext - current_context->name
 				  , ext - current_context->name
 				  , current_context->name
@@ -197,7 +197,7 @@ int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 	{
 		if( !file )
 		{
-			lprintf( WIDE("NULL filename passed to save frame.  Aborting.") );
+			lprintf( "NULL filename passed to save frame.  Aborting." );
 			return 0;
 		}
 		context.name = StrDup( file );
@@ -210,7 +210,7 @@ int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 	//if( out )
 	{
 		genxStatus status;
-		//genxElement eFrame = genxDeclareElement( l.w, NULL, WIDE("frame"), &status );
+		//genxElement eFrame = genxDeclareElement( l.w, NULL, "frame", &status );
 		if( !l.current_context->w )
 		{
 			l.current_context->w = genxNew(NULL,NULL,NULL);
@@ -238,9 +238,9 @@ int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 
 		{
 			FILE *out;
-			out = sack_fopen( 0, l.current_context->name, WIDE("wt")
+			out = sack_fopen( 0, l.current_context->name, "wt"
 #ifdef _UNICODE
-								  WIDE(", ccs=UNICODE")
+								  ", ccs=UNICODE"
 #endif
 								 );
 			if( out )
@@ -254,7 +254,7 @@ int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 			}
 			else
 			{
-				SimpleMessageBox( frame, WIDE("FAILED TO OPEN"), l.current_context->name );
+				SimpleMessageBox( frame, "FAILED TO OPEN", l.current_context->name );
 			}
 		}
 		PopData( &l.contexts );

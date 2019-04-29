@@ -15,17 +15,17 @@ void ConnectProc( PCLIENT pc, int n )
 	{
 		if( n != 10061 ) // refused...
 		{
-			printf( WIDE("\rConnect on %zd = %d\n"), i, n );
+			printf( "\rConnect on %zd = %d\n", i, n );
  		}
 	}
 	else
 	{
-		printf( WIDE("Bad Address: %s\n"), pAddress );
+		printf( "Bad Address: %s\n", pAddress );
 		exit(0);
 	}
 	if( !n )
    {
-      fprintf( stderr, WIDE("\rSuccessful on %zd\n"), i );
+      fprintf( stderr, "\rSuccessful on %zd\n", i );
    }
    //else
       // should be noted that an error will result in the socket closing
@@ -41,7 +41,7 @@ SaneWinMain( argc, argv )
 	int i, start, stop;
 	if( argc < 2 ) 
    {
-   	printf( WIDE("Usage: %s <IP> [port] [range]\n"), argv[0] );
+   	printf( "Usage: %s <IP> [port] [range]\n", argv[0] );
    	return 0;
    }
    pAddress = argv[1];
@@ -55,11 +55,11 @@ SaneWinMain( argc, argv )
 	for( i = start; i < stop; i++ )
 	{
 		int bLogged;
-//		gpc[i] = OpenTCPClientExx( WIDE("65.0.7.180"), i, NULL, NULL, NULL, (cNotifyCallback)ConnectProc );
+//		gpc[i] = OpenTCPClientExx( "65.0.7.180", i, NULL, NULL, NULL, (cNotifyCallback)ConnectProc );
 		gpc[i] = OpenTCPClientExx( argv[1], (uint16_t)i, NULL, NULL, NULL, (cConnectCallback)ConnectProc );
 		if( !gpc[i] )
 		{
-			fprintf( stderr,WIDE("\rBad Failure: %d\n"), WSAGetLastError() ) ;
+			fprintf( stderr,"\rBad Failure: %d\n", WSAGetLastError() ) ;
 		}
 		else
 		{
@@ -71,12 +71,12 @@ SaneWinMain( argc, argv )
 		{
 			if( !bLogged )
 			{
-				fprintf( stderr, WIDE("\rSockets: %d (%d)"), i, nOpen );
+				fprintf( stderr, "\rSockets: %d (%d)", i, nOpen );
 				bLogged = TRUE;
 			}	
 			Sleep(0);
 		}	
-		fprintf( stderr, WIDE("\rSockets: %d (%d)"), i, nOpen );
+		fprintf( stderr, "\rSockets: %d (%d)", i, nOpen );
 	}
 	{
 		int bDone;

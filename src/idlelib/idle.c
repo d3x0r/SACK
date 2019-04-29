@@ -175,9 +175,9 @@ IDLE_PROC( int, IdleEx )( DBG_VOIDPASS )
 		if( check == NULL )
 			proc = proc->next;
 	}
-	//_lprintf( DBG_AVAILABLE, WIDE("Is Going idle.") DBG_RELAY );
+	//_lprintf( DBG_AVAILABLE, "Is Going idle." DBG_RELAY );
 	Relinquish();
-	//_lprintf( DBG_AVAILABLE, WIDE("Is back from idle.") DBG_RELAY );
+	//_lprintf( DBG_AVAILABLE, "Is back from idle." DBG_RELAY );
 	return success;
 }
 

@@ -98,7 +98,7 @@ void GetCurrentDisplaySurface( PPHYSICAL_DEVICE device ) {
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
-static void OnDisplaySizeChange( WIDE("PSI Controls") _WIDE( TARGETNAME ) ) ( uintptr_t psvFrame, int display, int32_t x, int32_t y, uint32_t width, uint32_t height )
+static void OnDisplaySizeChange( "PSI Controls" _WIDE( TARGETNAME ) ) ( uintptr_t psvFrame, int display, int32_t x, int32_t y, uint32_t width, uint32_t height )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvFrame;
 	if( pf )
@@ -120,7 +120,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvFrame;
 	uint32_t update = 0;
 	PSI_CONTROL pc;
-	//lprintf( WIDE("frame %p"), pf );
+	//lprintf( "frame %p", pf );
 	pc = pf->common;
 	if( !g.updateThread )
 		g.updateThread = MakeThread();
@@ -129,13 +129,13 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 	{
 #ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
-			Log( WIDE("no frame... early return") );
+			Log( "no frame... early return" );
 #endif
 		return;
 	}
 #ifdef DEBUG_UPDAATE_DRAW
 	if( g.flags.bLogDebugUpdate )
-		lprintf( WIDE( " ------------- BEGIN FRAME DRAW -----------------" ) );
+		lprintf( " ------------- BEGIN FRAME DRAW -----------------" );
 #endif
 
 	pc->flags.bShown = 1;
@@ -147,7 +147,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 		pc->flags.bDirty = 1;
 #ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
-			Log( WIDE("Redraw frame...") );
+			Log( "Redraw frame..." );
 #endif
 		AddUse( pc );
 
@@ -156,7 +156,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 			Image OldSurface;
 #ifdef DEBUG_UPDAATE_DRAW
 			if( g.flags.bLogDebugUpdate )
-				lprintf( WIDE( "!!Saving old image... (on frame)" ) );
+				lprintf( "!!Saving old image... (on frame)" );
 #endif
 			if( ( OldSurface = CopyOriginalSurface( pc, pc->OriginalSurface ) ) )
 			{
@@ -167,9 +167,9 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 				{
 #ifdef DEBUG_UPDAATE_DRAW
 					if( g.flags.bLogDebugUpdate )
-						lprintf( WIDE( "------------ Restoring old image..." ) );
+						lprintf( "------------ Restoring old image..." );
 					if( g.flags.bLogDebugUpdate )
-						lprintf( WIDE( "Restoring orignal background... " ) );
+						lprintf( "Restoring orignal background... " );
 #endif
 					BlotImage( pc->Surface, pc->OriginalSurface, 0, 0 );
 				}
@@ -180,13 +180,13 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 		//update++; // what if we only moved, and the driver requires a refresh?
 
 #ifdef __DISPLAY_NO_BUFFER__
-		lprintf( WIDE("REDRAW?!") );
+		lprintf( "REDRAW?!" );
 #endif
 		// if using "displaylib"
 		//if( update )
 		if( g.flags.always_draw || pc->flags.bResizedDirty )
 		{
-			//lprintf( WIDE("Recomputing border...") );
+			//lprintf( "Recomputing border..." );
 			// fix up surface rect.
 			if( pc->flags.bResizedDirty )
 			{
@@ -208,7 +208,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 			// dirty - so redundant smudges wont be merged... and we'll do this all twice.
 #ifdef DEBUG_UPDAATE_DRAW
 			if( g.flags.bLogDebugUpdate )
-				lprintf( WIDE( "Smudging the form... %p" ), pc );
+				lprintf( "Smudging the form... %p", pc );
 #endif
 		}
 		pc->flags.bResizedDirty = 0;
@@ -216,7 +216,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 		//else
 #ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
-			lprintf( WIDE("delete use should refresh rectangle. %p"), pc );
+			lprintf( "delete use should refresh rectangle. %p", pc );
 #endif
 
 		UpdateCommonEx( pc, TRUE DBG_SRC );
@@ -243,26 +243,26 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 			LOGICAL updated;
 #ifdef DEBUG_UPDAATE_DRAW
 			if( g.flags.bLogDebugUpdate )
-				lprintf( WIDE( "sending update for each dirty control...." ) );
+				lprintf( "sending update for each dirty control...." );
 #endif
 			do
 			{
 				loops++;
 				if( loops > 5 )
 				{
-					lprintf( WIDE( "Infinite recursion in drawing??" ) );
+					lprintf( "Infinite recursion in drawing??" );
 					break;
 				}
 				updated = FALSE;
 #ifdef DEBUG_UPDAATE_DRAW
 				if( g.flags.bLogDebugUpdate )
-					lprintf( WIDE( "scanning list of dirty controls..." ) );
+					lprintf( "scanning list of dirty controls..." );
 #endif
 				LIST_FORALL( pf->pending_dirty_controls, idx, PSI_CONTROL, pc )
 				{
 #ifdef DEBUG_UPDAATE_DRAW
 					if( g.flags.bLogDebugUpdate )
-						lprintf( WIDE( "updating dirty control %p"), pc );
+						lprintf( "updating dirty control %p", pc );
 #endif
 					updated = TRUE;
 					UpdateCommonEx( pc, TRUE DBG_SRC );
@@ -270,7 +270,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 				}
 			}
 			while( updated );
-			//lprintf( WIDE("done with with receiving sent redraw") );
+			//lprintf( "done with with receiving sent redraw" );
 			pf->flags.sent_redraw = 0;
 		}
 		else
@@ -280,7 +280,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 				UpdateCommonEx( pcChild, FALSE DBG_SRC );
 #ifdef DEBUG_UPDAATE_DRAW
 			if( g.flags.bLogDebugUpdate )
-				lprintf( WIDE( "trusting that the frame is already drawn to the stable buffer..." ) );
+				lprintf( "trusting that the frame is already drawn to the stable buffer..." );
 #endif
 			UpdateDisplay( pf->pActImg );
 		}
@@ -326,13 +326,13 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 #ifdef DEBUG_UPDAATE_DRAW
 	else
 		if( g.flags.bLogDebugUpdate )
-			lprintf( WIDE( "Frame is not initial..." ) );
+			lprintf( "Frame is not initial..." );
 #endif
 
 //#ifdef DEBUG_UPDAATE_DRAW
 #ifdef DEBUG_FOCUS_STUFF
 	if( g.flags.bLogDebugUpdate )
-		Log1( WIDE("PSI Focus change called: %p"), loss );
+		Log1( "PSI Focus change called: %p", loss );
 #endif
 //#endif
 	if( loss )
@@ -340,14 +340,14 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 		if( frame->pFocus && ( frame->pFocus != frame->common ) )
 		{
 #ifdef DEBUG_FOCUS_STUFF
-			lprintf( WIDE("Dispatch to current focused control also?") );
+			lprintf( "Dispatch to current focused control also?" );
 #endif
 			frame->pFocus->flags.bFocused = 0;
 			if( frame->pFocus->ChangeFocus )
 				frame->pFocus->ChangeFocus( frame->pFocus, FALSE );
 		}
 #ifdef DEBUG_FOCUS_STUFF
-		lprintf( WIDE("Control lost focus. (the frame itself loses focus)") );
+		lprintf( "Control lost focus. (the frame itself loses focus)" );
 #endif
 		pc->flags.bFocused = 0;
 		if( pc->ChangeFocus )
@@ -357,7 +357,7 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 	{
 		pc->flags.bFocused = 1;
 #ifdef DEBUG_FOCUS_STUFF
-		lprintf( WIDE("Control gains focus. (the frame itself gains focus)") );
+		lprintf( "Control gains focus. (the frame itself gains focus)" );
 #endif
 		if( pc->ChangeFocus )
 			pc->ChangeFocus( pc, TRUE );
@@ -368,7 +368,7 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 			// otherwise we get stupid cursors...
 			frame->pFocus->flags.bFocused = 1;
 #ifdef DEBUG_FOCUS_STUFF
-			lprintf( WIDE("Dispatch to current focused control also?") );
+			lprintf( "Dispatch to current focused control also?" );
 #endif
 			if( frame->pFocus->ChangeFocus )
 				frame->pFocus->ChangeFocus( frame->pFocus, FALSE );
@@ -391,13 +391,13 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 		if( pc->surface_rect.y && !pc->flags.bRestoring )
 		{
 #ifdef DEBUG_FOCUS_STUFF
-			lprintf( WIDE("Updating the frame caption...") );
-			lprintf( WIDE("Update portion %d,%d to %d,%d"), 0, 0, pc->rect.width, pc->surface_rect.y );
-			lprintf( WIDE( "Updating just the caption portion to the display" ) );
+			lprintf( "Updating the frame caption..." );
+			lprintf( "Update portion %d,%d to %d,%d", 0, 0, pc->rect.width, pc->surface_rect.y );
+			lprintf( "Updating just the caption portion to the display" );
 #endif
 #ifdef DEBUG_UPDAATE_DRAW
 			if( g.flags.bLogDebugUpdate )
-				lprintf( WIDE("updating display portion %d,%d")
+				lprintf( "updating display portion %d,%d"
 						 , pc->rect.width
 						 , pc->surface_rect.y );
 #endif
@@ -411,7 +411,7 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 #ifdef DEBUG_UPDAATE_DRAW
 	else
 		if( g.flags.bLogDebugUpdate )
-			lprintf( WIDE("Did not draw frame of hidden frame.") );
+			lprintf( "Did not draw frame of hidden frame." );
 #endif
 	if( added_use )
 		DeleteUse( pc );
@@ -429,7 +429,7 @@ static int CPROC FrameKeyProc( uintptr_t psvFrame, uint32_t key )
 		return 0;
 	AddUse( pc );
 	if( g.flags.bLogKeyEvents )
-		lprintf( WIDE("Added use for a key %08") _32fx, key );
+		lprintf( "Added use for a key %08" _32fx, key );
 	{
 		if( pf->EditState.flags.bActive && pf->EditState.pCurrent )
 		{
@@ -437,10 +437,10 @@ static int CPROC FrameKeyProc( uintptr_t psvFrame, uint32_t key )
 			//	pf->EditState.pCurrent->KeyProc( pf->EditState.pCurrent->psvKey, key );
 			AddUse( pf->EditState.pCurrent );
 			if( g.flags.bLogKeyEvents )
-				lprintf( WIDE("invoking control use... for %s"), pc->pTypeName );
+				lprintf( "invoking control use... for %s", pc->pTypeName );
 			InvokeResultingMethod( result, pf->EditState.pCurrent, _KeyProc, ( pf->EditState.pCurrent, key ) );
 			if( g.flags.bLogKeyEvents )
-				lprintf( WIDE("Result was %d"), result );
+				lprintf( "Result was %d", result );
 			DeleteUse( pf->EditState.pCurrent );
 		}
 		else if( pf->pFocus )
@@ -451,11 +451,11 @@ static int CPROC FrameKeyProc( uintptr_t psvFrame, uint32_t key )
 			//	pf->pFocus->KeyProc( pf->pFocus->psvKey, key );
 			AddUse( keep_focus );
 			if( g.flags.bLogKeyEvents )
-				lprintf( WIDE("invoking control focus use...%p %p %s"), pf, keep_focus, keep_focus->pTypeName );
-			//	lprintf( WIDE("dispatch a key event to focused contro... ") );
+				lprintf( "invoking control focus use...%p %p %s", pf, keep_focus, keep_focus->pTypeName );
+			//	lprintf( "dispatch a key event to focused contro... " );
 			InvokeResultingMethod( result, keep_focus, _KeyProc, ( keep_focus, key ) );
 			if( g.flags.bLogKeyEvents )
-				lprintf( WIDE("Result was %d"), result );
+				lprintf( "Result was %d", result );
 			DeleteUse( keep_focus );
 		}
 	}
@@ -464,10 +464,10 @@ static int CPROC FrameKeyProc( uintptr_t psvFrame, uint32_t key )
 	if( !result && pc && pc->_KeyProc )
 	{
 		if( g.flags.bLogKeyEvents )
-			lprintf( WIDE("Invoking control key method. %s"), pc->pTypeName );
+			lprintf( "Invoking control key method. %s", pc->pTypeName );
 		InvokeResultingMethod( result, pc, _KeyProc, (pc,key));
 		if( g.flags.bLogKeyEvents )
-			lprintf( WIDE("Result was %d"), result );
+			lprintf( "Result was %d", result );
 	}
 	if( !result )
 	{
@@ -620,13 +620,13 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 		if( !pActImg )
 		{
 #ifdef DEBUG_CREATE
-			lprintf( WIDE("Creating a device to show this control on ... %d,%d %d,%d")
+			lprintf( "Creating a device to show this control on ... %d,%d %d,%d"
 					 , pc->rect.x
 					 , pc->rect.y
 					 , pc->rect.width
 					 , pc->rect.height );
 #endif
-			//lprintf( WIDE("Original show - extending frame bounds...") );
+			//lprintf( "Original show - extending frame bounds..." );
 			//pc->original_rect.width += FrameBorderX(pc, pc->BorderType);
 			//pc->original_rect.height += FrameBorderY(pc, pc->BorderType, GetText( pc->caption.text ) );
 			// apply scale to rect from original...
@@ -648,7 +648,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 				AddLink( &g.shown_frames, pc );
 				SetRendererTitle( device->pActImg, GetText( pc->caption.text ) );
 #ifdef DEBUG_CREATE
-				lprintf( WIDE("Resulting with surface...") );
+				lprintf( "Resulting with surface..." );
 #endif
 			}
 		}
@@ -656,8 +656,8 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 		{
 			// have to resize the frame then to this display...
 #ifdef DEBUG_CREATE
-			lprintf( WIDE("Using externally assigned render surface...") );
-			lprintf( WIDE("Adjusting the frame to that size?!") );
+			lprintf( "Using externally assigned render surface..." );
+			lprintf( "Adjusting the frame to that size?!" );
 #endif
 			if( pc->rect.x && pc->rect.y )
 				MoveDisplay( pActImg, pc->rect.x, pc->rect.y );
@@ -684,7 +684,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 		// computes it's offset based on border type and caption
 		// characteristics...
 		// readjusts surface (again) after adoption.
-		//lprintf( WIDE("------------------- COMMON BORDER RE-SET on draw -----------------") );
+		//lprintf( "------------------- COMMON BORDER RE-SET on draw -----------------" );
 
 		if( pc->border && pc->border->BorderImage )
 			SetCommonTransparent( pc, TRUE );
@@ -723,7 +723,7 @@ void DetachFrameFromRenderer(PSI_CONTROL pc )
 	{
 		PPHYSICAL_DEVICE pf = pc->device;
 		//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, pc );
-		//lprintf( WIDE("Closing physical frame device...") );
+		//lprintf( "Closing physical frame device..." );
 		if( pf->EditState.flags.bActive )
 		{
 			// there may also be data in the edit state to take care of...

@@ -20,7 +20,7 @@ PSI_NAMESPACE
 TEXTCHAR *GetBorderTypeString( uint32_t BorderType )
 {
 	static TEXTCHAR string[256];
-   snprintf( string, sizeof( string ), WIDE("0x%")_32fX WIDE(""), BorderType );
+   snprintf( string, sizeof( string ), "0x%"_32fX "", BorderType );
    return string;
 }
 
@@ -30,18 +30,18 @@ TEXTCHAR *GetBorderTypeString( uint32_t BorderType )
 static void SaveCommon( PSI_CONTROL pc, PVARTEXT out )
 {
 	char id[32];
-	snprintf( id, sizeof( id ), PSI_ROOT_REGISTRY WIDE("/control/%d"), pc->nType );
-	vtprintf( out, WIDE("\'%s\'"), GetRegisteredValue( id, WIDE("Type") ) );
+	snprintf( id, sizeof( id ), PSI_ROOT_REGISTRY "/control/%d", pc->nType );
+	vtprintf( out, "\'%s\'", GetRegisteredValue( id, "Type" ) );
 
-	vtprintf( out, WIDE(" %d "), pc->nID );
-	vtprintf( out, WIDE("(%d,%d)[%d,%d]")
+	vtprintf( out, " %d ", pc->nID );
+	vtprintf( out, "(%d,%d)[%d,%d]"
 						 , pc->rect.x
 						 , pc->rect.y
 						 , pc->rect.width
 						 , pc->rect.height
 						 );
-	//vtprintf( out, WIDE(" %d "), /*GetBorderTypeString*/( pc->BorderType ) );
-	vtprintf( out, WIDE("\'%s\'"), pc->caption );
+	//vtprintf( out, " %d ", /*GetBorderTypeString*/( pc->BorderType ) );
+	vtprintf( out, "\'%s\'", pc->caption );
 }
 #endif
 
@@ -52,20 +52,20 @@ static int SaveControlFile( PSI_CONTROL pc, PVARTEXT out, int level )
 {
 	// + 1 includes the null - +3 & makes it integral number of dwords...
 	char id[32];
-	snprintf( id, sizeof( id ), PSI_ROOT_REGISTRY WIDE("/control/%d/rtti"), pc->nType );
+	snprintf( id, sizeof( id ), PSI_ROOT_REGISTRY "/control/%d/rtti", pc->nType );
 	{
 		int n;
 		for( n = 0; n < level; n++ )
-         vtprintf( out, WIDE("\t") );
+         vtprintf( out, "\t" );
 	}
-	vtprintf( out, WIDE("CONTROL ") );
+	vtprintf( out, "CONTROL " );
 	SaveCommon( (PSI_CONTROL)pc, out );
 	{
       void (CPROC *Save)(PSI_CONTROL,PVARTEXT);
 		if( Save=GetRegisteredProcedure( id, void,Save,(PSI_CONTROL,PVARTEXT)) )
          Save( pc, out );
 	}
-   vtprintf( out, WIDE("\n") );
+   vtprintf( out, "\n" );
 	return TRUE;
 }
 #endif
@@ -77,15 +77,15 @@ static int SaveFrameFile( PSI_CONTROL pc, PVARTEXT out, int level )
 	return 0;
 #if 0
 	char id[32];
-	snprintf( id, sizeof( id ), PSI_ROOT_REGISTRY WIDE("/control/%d"), pc->nType );
+	snprintf( id, sizeof( id ), PSI_ROOT_REGISTRY "/control/%d", pc->nType );
 	{
 		int n;
 		for( n = 0; n < level; n++ )
-         vtprintf( out, WIDE("\t") );
+         vtprintf( out, "\t" );
 	}
-	vtprintf( out, WIDE("GROUP ") );
+	vtprintf( out, "GROUP " );
    SaveCommon( pc, out );
-   vtprintf( out, WIDE("\n") );
+   vtprintf( out, "\n" );
 	{
 		PSI_CONTROL pControl;
 		for( pControl = pc->child; pControl; pControl = pControl->next )
@@ -100,14 +100,14 @@ static int SaveFrameFile( PSI_CONTROL pc, PVARTEXT out, int level )
 			}
 		}
 	}
-	vtprintf( out, WIDE("GROUP END ") );
+	vtprintf( out, "GROUP END " );
 	// for now I think this should be associated at end of grouping...
 	{
       void (CPROC *Save)(PSI_CONTROL,PVARTEXT);
 		if( Save=GetRegisteredProcedure( id, void,Save,(PSI_CONTROL,PVARTEXT)) )
 			Save( (PSI_CONTROL)pc, out );
 	}
-   vtprintf( out, WIDE("\n") );
+   vtprintf( out, "\n" );
 	return 1;
 #endif
 }
@@ -119,7 +119,7 @@ PSI_PROC( int, SaveFrame )( PSI_CONTROL pFrame, CTEXTSTR file )
 {
 	return SaveXMLFrame( pFrame, file );
    /*
-	FILE *out = fopen( file, WIDE("wb") );
+	FILE *out = fopen( file, "wb" );
 	if( out )
 	{
 		PVARTEXT pvt = VarTextCreate();
@@ -132,7 +132,7 @@ PSI_PROC( int, SaveFrame )( PSI_CONTROL pFrame, CTEXTSTR file )
 	}
 	else
 	{
-		Log( WIDE("Failed to open output file to save frame!") );
+		Log( "Failed to open output file to save frame!" );
 		return FALSE;
 	}
 	return TRUE;
@@ -166,12 +166,12 @@ static int DecodeControlInfo( POINTER rawinfo, uint32_t size, PSI_CONTROL pFrame
 
 	 PSI_CONTROL pc;
     int (CPROC *ControlInit)(uintptr_t,PSI_CONTROL,uint32_t);
-    Log5( WIDE("Decoding control: %s %d %d %d %d"),info->caption
+    Log5( "Decoding control: %s %d %d %d %d",info->caption
                                        , info->rect.x, info->rect.y
 		  , info->rect.width, info->rect.height );
 	 {
 		 char procclass[64];
-       sprintf( procclass, PSI_ROOT_REGISTRY WIDE("/control/%d"), info->nType );
+       sprintf( procclass, PSI_ROOT_REGISTRY "/control/%d", info->nType );
 		 ControlInit = GetRegisteredProcedure( procclass, int, Init, (uintptr_t,PSI_CONTROL,uint32_t) );
 		 pc = RestoreControl( pFrame, info->rect.x, info->rect.y
 							  , info->rect.width, info->rect.height
@@ -179,7 +179,7 @@ static int DecodeControlInfo( POINTER rawinfo, uint32_t size, PSI_CONTROL pFrame
 							  , (uintptr_t)((info + 1) + info->len) );
 		 if( info->len )
 		 {
-			 lprintf( WIDE("Setting caption for control: %s"), info->caption );
+			 lprintf( "Setting caption for control: %s", info->caption );
 			 SetCommonText( pc, info->caption );
 		 }
    }
@@ -187,7 +187,7 @@ static int DecodeControlInfo( POINTER rawinfo, uint32_t size, PSI_CONTROL pFrame
    // default state... now - to let the application put in its two cents...
     if( (sizeof( *info ) + info->len) != size )
     {
-        Log2( WIDE("Unused bytes are approx %d for control type %d")
+        Log2( "Unused bytes are approx %d for control type %d"
             , size - sizeof( *info ) + info->len
             , info->nType );
     }
@@ -212,7 +212,7 @@ static int DecodeFrameInfo( POINTER rawinfo, uint32_t size, PSI_CONTROL *pFrameR
 	uintptr_t Begin, Current;
 	if( !pFrameResult )
 		return 0;
-	Log5( WIDE("Decoding frame: %s %")_32fs WIDE(" %")_32fs WIDE(" %")_32f WIDE(" %")_32f WIDE("")
+	Log5( "Decoding frame: %s %"_32fs " %"_32fs " %"_32f " %"_32f ""
 		 ,info->caption
 		 , info->rect.x, info->rect.y
 		 , info->rect.width, info->rect.height );
@@ -254,7 +254,7 @@ static int DecodeFrameInfo( POINTER rawinfo, uint32_t size, PSI_CONTROL *pFrameR
 		}
 		else
 		{
-			Log1( WIDE("Data to decode is broken - %4.4s is not FRAM or CTRL"), (char*)&magic );
+			Log1( "Data to decode is broken - %4.4s is not FRAM or CTRL", (char*)&magic );
 			return 0;
 		}
 	}
@@ -275,11 +275,11 @@ PSI_PROC( PSI_CONTROL, LoadFrameFromMemory )( POINTER info, uint32_t size, PSI_C
 		PSI_CONTROL pFrame;
 		if( DecodeFrameInfo( (POINTER)(buffer + 4), this_size, &pFrame, hAbove, InitProc, psv ) != this_size )
 		{
-			Log( WIDE("Decode length did not match legnth of data passed...") );
+			Log( "Decode length did not match legnth of data passed..." );
 		}
 		return pFrame;
 	}
-	Log1( WIDE("File has become corrupt %4.4s is not FRAM"), (char*)&magic );
+	Log1( "File has become corrupt %4.4s is not FRAM", (char*)&magic );
 	return NULL;
 }
 
@@ -304,7 +304,7 @@ PSI_PROC( PSI_CONTROL, LoadFrameFromFile )( FILE *in, PSI_CONTROL hAbove, FrameI
 		}
 		else
 		{
-			Log1( WIDE("File has become corrupt %4.4s is not FRAM"), (char*)&magic );
+			Log1( "File has become corrupt %4.4s is not FRAM", (char*)&magic );
 		}
 	}
 	return pFrame;
@@ -349,7 +349,7 @@ uintptr_t CPROC GroupRead( uintptr_t psv, arg_list args )
 								DBG_SRC
 							  );
    PushLink( &readstack, pc );
-   lprintf( WIDE("Have to deal with %s"), more );
+   lprintf( "Have to deal with %s", more );
    return (uintptr_t)pc;
 }
 
@@ -385,7 +385,7 @@ uintptr_t CPROC ControlRead( uintptr_t psv, arg_list args )
 						, NULL
 						 DBG_SRC
 						);
-   lprintf( WIDE("Have to deal with %s"), more );
+   lprintf( "Have to deal with %s", more );
    return psv;
 }
 
@@ -393,11 +393,11 @@ PSI_PROC( PSI_CONTROL, LoadFrame )( CTEXTSTR file, PSI_CONTROL hAbove, FrameInit
 {
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
    PSI_CONTROL frame;
-	AddConfigurationMethod( pch, WIDE("GROUP \'%m\' %i (%i,%i)[%i,%i] \'%m\' %m")
+	AddConfigurationMethod( pch, "GROUP \'%m\' %i (%i,%i)[%i,%i] \'%m\' %m"
 								 , GroupRead );
-	AddConfigurationMethod( pch, WIDE("GROUP END")
+	AddConfigurationMethod( pch, "GROUP END"
 								 , GroupEnd );
-   AddConfigurationMethod( pch, WIDE("CONTROL  \'%m\' %i (%i,%i)[%i,%i] \'%m\' %m"), ControlRead );
+   AddConfigurationMethod( pch, "CONTROL  \'%m\' %i (%i,%i)[%i,%i] \'%m\' %m", ControlRead );
 	ProcessConfigurationFile( pch, file, (uintptr_t)&frame );
    DestroyConfigurationHandler( pch );
 	//return pFrame;

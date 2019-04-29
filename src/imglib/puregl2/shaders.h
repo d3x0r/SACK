@@ -13,23 +13,23 @@
 #define CheckErr()  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-						lprintf( WIDE("err=%d (%") _cstring_f WIDE(")"),err, gluErrorString( err ) ); \
+						lprintf( "err=%d (%" _cstring_f ")",err, gluErrorString( err ) ); \
 				}                               
 #define CheckErrf(f,...)  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-					lprintf( WIDE("err=%d ") f,err,##__VA_ARGS__ ); \
+					lprintf( "err=%d " f,err,##__VA_ARGS__ ); \
 				}                               
 #else
 #define CheckErr()  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-						lprintf( WIDE("err=%d "),err ); \
+						lprintf( "err=%d ",err ); \
 				}                               
 #define CheckErrf(f,...)  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-					lprintf( WIDE("err=%d ")f,err,##__VA_ARGS__ ); \
+					lprintf( "err=%d "f,err,##__VA_ARGS__ ); \
 				}                               
 #endif
 

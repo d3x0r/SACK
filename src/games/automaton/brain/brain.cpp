@@ -370,7 +370,7 @@ BRAIN::BRAIN()
 }
 
 //----------------------------------------------------------------------
-//PUBLIC_DATA( WIDE("brain"), class BRAIN, InitBrain, DestroyBrain );
+//PUBLIC_DATA( "brain", class BRAIN, InitBrain, DestroyBrain );
 
 PRELOAD( RegisterBrain )
 {
@@ -395,7 +395,7 @@ void BRAIN::Process( void )
 		return;
 	EnterCriticalSec( &cs );
 	nCycle++;  // starting a new cycle....
-	//lprintf( WIDE("Tick...") );
+	//lprintf( "Tick..." );
 	{
 		PBRAIN_STEM pbs;
 		for( pbs = (PBRAIN_STEM)BrainStems.first(); pbs; pbs = (PBRAIN_STEM)BrainStems.next() )
@@ -616,7 +616,7 @@ INDEX BRAIN::Save( PODBC odbc, CTEXTSTR brainname )
    TEXTCHAR tmpval[32];
 	uint32_t  dwWritten, dwZero;
 	if( !odbc )
-		odbc = ConnectToDatabase( WIDE("game_dev") );
+		odbc = ConnectToDatabase( "game_dev" );
 	if( !odbc )
 		return INVALID_INDEX;
 	Lock();
@@ -624,12 +624,12 @@ INDEX BRAIN::Save( PODBC odbc, CTEXTSTR brainname )
 	save_info.iParent = INVALID_INDEX;
 	dwZero = 0;
 	dwWritten = 0;
-   snprintf( tmpval, sizeof( tmpval), WIDE("%g"), k );
+   snprintf( tmpval, sizeof( tmpval), "%g", k );
 	SQLInsert( odbc
-				, WIDE("brain_info")
-				, WIDE("brain_name"), 1, brainname
-				, WIDE("version"), 2, 0
-             , WIDE("k"), 0, tmpval );
+				, "brain_info"
+				, "brain_name", 1, brainname
+				, "version", 2, 0
+             , "k", 0, tmpval );
 	save_info.iParent = FetchLastInsertID( odbc, NULL, NULL );
 
 	{
@@ -657,7 +657,7 @@ uint32_t BRAIN::Load( FILE *file )
    dwRead = 0;
    Lock();
     ReadFile( file, &dwVersion, sizeof( uint32_t ), &dwR, NULL );
-    if( dwVersion != *(uint32_t*)WIDE("MIND") )
+    if( dwVersion != *(uint32_t*)"MIND" )
         return 0; // failed to read any really...
 
    ReadFile( file, &dwVersion, sizeof( uint32_t ), &dwR, NULL );
@@ -783,7 +783,7 @@ CTEXTSTR BRAIN_STEM::fullname( void )
 {
 	if( this->parent )
 	{
-		snprintf( FullName, sizeof( FullName ), WIDE("%s/%s"), this->parent->fullname(), this->Name );
+		snprintf( FullName, sizeof( FullName ), "%s/%s", this->parent->fullname(), this->Name );
 		return FullName;
 	}
 	return Name;
@@ -850,7 +850,7 @@ void BRAIN::GetConnector( CTEXTSTR name, PCONNECTOR *connector_result, int bInpu
 	end = strchr( start, '/' );
 	if( !end )
 	{
-		lprintf( WIDE("Invalid name, should have at least one slash for brainstem/outputname") );
+		lprintf( "Invalid name, should have at least one slash for brainstem/outputname" );
 		return;
 	}
 	{
@@ -880,7 +880,7 @@ void BRAIN::GetConnector( CTEXTSTR name, PCONNECTOR *connector_result, int bInpu
 					pbs = actual;
 				else
 				{
-					lprintf( WIDE("Failed to find registered IO thing") );
+					lprintf( "Failed to find registered IO thing" );
 					return;
 				}
 				start = end+1;
@@ -962,7 +962,7 @@ static void DisconnectFromServer( void )
 
 ATEXIT( DropInterface )
 {
-   Log1( WIDE("Dropping 1 of %d display connections.."), references );
+   Log1( "Dropping 1 of %d display connections..", references );
 	references--;
 	if( !references )
       DisconnectFromServer();
@@ -971,47 +971,47 @@ ATEXIT( DropInterface )
 
 
 CTEXTSTR brain_info_table =
-WIDE("CREATE TABLE `brain_info` (                             ")
-WIDE("  `brain_info_id` int(11) NOT NULL auto_increment,		 ")
-WIDE("  `brain_name` varchar(100) NOT NULL default '',		 ")
-WIDE("  `version` int(11) NOT NULL default '0',				 ")
-WIDE("  `k` double NOT NULL default '0',						 ")
-WIDE("  PRIMARY KEY  (`brain_info_id`)						 ")
-WIDE(") TYPE=MyISAM;											 ")
+"CREATE TABLE `brain_info` (                             "
+"  `brain_info_id` int(11) NOT NULL auto_increment,		 "
+"  `brain_name` varchar(100) NOT NULL default '',		 "
+"  `version` int(11) NOT NULL default '0',				 "
+"  `k` double NOT NULL default '0',						 "
+"  PRIMARY KEY  (`brain_info_id`)						 "
+") TYPE=MyISAM;											 "
 ;														 
 
 CTEXTSTR brain_neuron_table =								 
-WIDE("CREATE TABLE `brain_neuron` (                          ")
-WIDE("  `brain_neuron_id` int(11) NOT NULL auto_increment,	")
-WIDE("  `brain_info_id` int(11) NOT NULL default '0',		")
-WIDE("  `parent_id` int(11) NOT NULL default '0',			")
-WIDE("  `type` int(11) NOT NULL default '0',					")
-WIDE("  `threshold` double NOT NULL default '0',				")
-WIDE("  `min_output` double NOT NULL default '0',			")
-WIDE("  `max_output` double NOT NULL default '0',			")
-WIDE("  PRIMARY KEY  (`brain_neuron_id`)						")
-WIDE(") TYPE=MyISAM;											")
+"CREATE TABLE `brain_neuron` (                          "
+"  `brain_neuron_id` int(11) NOT NULL auto_increment,	"
+"  `brain_info_id` int(11) NOT NULL default '0',		"
+"  `parent_id` int(11) NOT NULL default '0',			"
+"  `type` int(11) NOT NULL default '0',					"
+"  `threshold` double NOT NULL default '0',				"
+"  `min_output` double NOT NULL default '0',			"
+"  `max_output` double NOT NULL default '0',			"
+"  PRIMARY KEY  (`brain_neuron_id`)						"
+") TYPE=MyISAM;											"
 ;
 
 CTEXTSTR brain_synapse_table = 
-WIDE("CREATE TABLE `brain_synapse` (                         ")
-WIDE("  `brain_synapse_id` int(11) NOT NULL auto_increment,	")
-WIDE("  `brain_info_id` int(11) NOT NULL default '0',		")
-WIDE("  `brain_neuron_id_from` int(11) NOT NULL default '0',	")
-WIDE("  `brain_neuron_id_to` int(11) NOT NULL default '0',	")
-WIDE("  `synapse_gain` double NOT NULL default '0',			")
-WIDE("  PRIMARY KEY  (`brain_synapse_id`)					")
-WIDE(") TYPE=MyISAM;											")
+"CREATE TABLE `brain_synapse` (                         "
+"  `brain_synapse_id` int(11) NOT NULL auto_increment,	"
+"  `brain_info_id` int(11) NOT NULL default '0',		"
+"  `brain_neuron_id_from` int(11) NOT NULL default '0',	"
+"  `brain_neuron_id_to` int(11) NOT NULL default '0',	"
+"  `synapse_gain` double NOT NULL default '0',			"
+"  PRIMARY KEY  (`brain_synapse_id`)					"
+") TYPE=MyISAM;											"
 ;
 
 CTEXTSTR brain_connectors = 
-WIDE("CREATE TABLE `brain_connectors` (                         ")
-WIDE("  `brain_connector_id` int(11) NOT NULL auto_increment,	")
-WIDE("  `connector_name` varchar(100) NOT NULL default '0',		")
-WIDE("  `input` int(11) NOT NULL default '0',	")
-WIDE("  `parent_id` int(11) NOT NULL default '0',	")
-WIDE("  PRIMARY KEY  (`brain_connector_id`)					")
-WIDE(") TYPE=MyISAM;											")
+"CREATE TABLE `brain_connectors` (                         "
+"  `brain_connector_id` int(11) NOT NULL auto_increment,	"
+"  `connector_name` varchar(100) NOT NULL default '0',		"
+"  `input` int(11) NOT NULL default '0',	"
+"  `parent_id` int(11) NOT NULL default '0',	"
+"  PRIMARY KEY  (`brain_connector_id`)					"
+") TYPE=MyISAM;											"
 ;
 
 

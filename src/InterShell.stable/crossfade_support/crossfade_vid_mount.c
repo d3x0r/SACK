@@ -70,17 +70,17 @@ enum {
 	EDIT_CROSSFADE_MOUNT_SEND_FROM,
 };
 
-EasyRegisterControl( WIDE("Crossfade Media Mount"), sizeof( MY_CONTROL) );
+EasyRegisterControl( "Crossfade Media Mount", sizeof( MY_CONTROL) );
 
 PRELOAD( RegisterKeypadIDs )
 {
-	SACK_GetProfileString( GetProgramName(), WIDE("Crossfade Player/application path"), WIDE("@/crossfade_vid_playlist.exe"), l.video_application, sizeof( l.video_application ) );
-	SACK_GetProfileString( GetProgramName(), WIDE("Crossfade Player/application args"), WIDE("@crossfade_vid_playlist.config"), l.video_application_args, sizeof( l.video_application_args ) );
+	SACK_GetProfileString( GetProgramName(), "Crossfade Player/application path", "@/crossfade_vid_playlist.exe", l.video_application, sizeof( l.video_application ) );
+	SACK_GetProfileString( GetProgramName(), "Crossfade Player/application args", "@crossfade_vid_playlist.config", l.video_application_args, sizeof( l.video_application_args ) );
 
-	EasyRegisterResource( WIDE("InterShell/Crossfade Media Mount") _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_WINDOW_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/Crossfade Media Mount") _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_CLASS_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/Crossfade Media Mount") _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_ADDRESS, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/Crossfade Media Mount") _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_SEND_FROM, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Crossfade Media Mount" _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_WINDOW_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Crossfade Media Mount" _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_CLASS_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Crossfade Media Mount" _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_ADDRESS, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Crossfade Media Mount" _WIDE(TARGETNAME), EDIT_CROSSFADE_MOUNT_SEND_FROM, EDIT_FIELD_NAME );
 }
 
 //------------------------- External program loader -------------------------------------------
@@ -88,13 +88,13 @@ PRELOAD( RegisterKeypadIDs )
 ATEXIT( CloseVlcWindows )
 {
 #if defined( DEBUG_MESSAGES )
-	lprintf( WIDE("Terminating task...") );
+	lprintf( "Terminating task..." );
 #endif
 	l.flags.shutdown = 1;
 	TerminateProgram( l.task );
 }
 
-static void OnBeginShutdown( WIDE("VLC Stream Host") )( void )
+static void OnBeginShutdown( "VLC Stream Host" )( void )
 {
 	l.flags.shutdown = 1;
 	TerminateProgram( l.task );
@@ -124,7 +124,7 @@ static void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 
 	if( IsSystemShuttingDown() )
 	{
-		lprintf( WIDE("Do not re-start tasks, system is shutting down.") );
+		lprintf( "Do not re-start tasks, system is shutting down." );
 		return;
 	}
 
@@ -134,8 +134,8 @@ static void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 		CTEXTSTR *args;
 		CTEXTSTR executable_name;
 		args = NewArray( CTEXTSTR, 4 );
-		args[0] = WIDE("taskkill");
-		args[1] = WIDE("/IM");
+		args[0] = "taskkill";
+		args[1] = "/IM";
 		executable_name = pathrchr( l.video_application );
 		if( executable_name )
 			executable_name++;
@@ -176,9 +176,9 @@ static void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 //------------------------------------------------------------------------------------------
 
 
-static uintptr_t OnEditControl( WIDE( "Crossfade Media Mount" ) )( uintptr_t psv, PSI_CONTROL pc_parent )
+static uintptr_t OnEditControl( "Crossfade Media Mount" )( uintptr_t psv, PSI_CONTROL pc_parent )
 {
-	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureApplicationMount.isFrame") );
+	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, "ConfigureApplicationMount.isFrame" );
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( frame )
@@ -187,10 +187,10 @@ static uintptr_t OnEditControl( WIDE( "Crossfade Media Mount" ) )( uintptr_t psv
 		int done = 0;
 		SetCommonButtons( frame, &done, &okay );
 
-		SetControlText( GetControl( frame, EDIT_CROSSFADE_MOUNT_WINDOW_NAME ), control->app_window_name?control->app_window_name:WIDE("") );
-		SetControlText( GetControl( frame, EDIT_CROSSFADE_MOUNT_CLASS_NAME ), control->app_class_name?control->app_class_name:WIDE("") );
-		SetControlText( GetControl( frame, EDIT_CROSSFADE_MOUNT_ADDRESS ), control->send_to?control->send_to:WIDE("") );
-		SetControlText( GetControl( frame, EDIT_CROSSFADE_MOUNT_SEND_FROM ), control->send_from?control->send_from:WIDE("") );
+		SetControlText( GetControl( frame, EDIT_CROSSFADE_MOUNT_WINDOW_NAME ), control->app_window_name?control->app_window_name:"" );
+		SetControlText( GetControl( frame, EDIT_CROSSFADE_MOUNT_CLASS_NAME ), control->app_class_name?control->app_class_name:"" );
+		SetControlText( GetControl( frame, EDIT_CROSSFADE_MOUNT_ADDRESS ), control->send_to?control->send_to:"" );
+		SetControlText( GetControl( frame, EDIT_CROSSFADE_MOUNT_SEND_FROM ), control->send_from?control->send_from:"" );
 		DisplayFrameOver( frame, pc_parent );
 		CommonWait( frame );
 		if( okay )
@@ -438,10 +438,10 @@ static uintptr_t CPROC WaitForApplication( PTHREAD thread )
 				}
 				else
 				{
-					//xlprintf(2100)( WIDE("Want to be hidden...") );
+					//xlprintf(2100)( "Want to be hidden..." );
 					if( app && ( !app->flags.bFound || app->flags.bShown || app->flags.visible ) )
 					{
-						//xlprintf(2100)( WIDE("...") );
+						//xlprintf(2100)( "..." );
 						{
 							if( app->socket )
 							{
@@ -452,7 +452,7 @@ static uintptr_t CPROC WaitForApplication( PTHREAD thread )
 					}
 					else
 					{
-						//lprintf( WIDE("no app?") );
+						//lprintf( "no app?" );
 					}
 				}
 			}
@@ -464,10 +464,10 @@ static uintptr_t CPROC WaitForApplication( PTHREAD thread )
 	return 0;
 }
 
-static uintptr_t OnCreateControl( WIDE("Crossfade Media Mount") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "Crossfade Media Mount" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
-	pc = MakeNamedControl( parent, WIDE("Crossfade Media Mount"), x, y, w, h, -1 );
+	pc = MakeNamedControl( parent, "Crossfade Media Mount", x, y, w, h, -1 );
 	{
 		MyValidatedControlData( PMY_CONTROL, control, pc );
 
@@ -481,22 +481,22 @@ static uintptr_t OnCreateControl( WIDE("Crossfade Media Mount") )( PSI_CONTROL p
 	return (uintptr_t)pc;
 }
 
-static void OnFinishInit( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc_canvas )
+static void OnFinishInit( "Crossfade Media Mount" )( PSI_CONTROL pc_canvas )
 {
 	if( !l.waiting )
 		l.waiting = ThreadTo( WaitForApplication, 0 );
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Crossfade Media Mount") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Crossfade Media Mount" )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
-static void OnSaveControl( WIDE("Crossfade Media Mount") )( FILE* file, uintptr_t psv )
+static void OnSaveControl( "Crossfade Media Mount" )( FILE* file, uintptr_t psv )
 {
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
-	sack_fprintf( file, WIDE("Crossfade Server Address=%s\n"), control->send_to?control->send_to:WIDE("") );
-	sack_fprintf( file, WIDE("Crossfade Send From Address=%s\n"), control->send_from?control->send_from:WIDE("") );
+	sack_fprintf( file, "Crossfade Server Address=%s\n", control->send_to?control->send_to:"" );
+	sack_fprintf( file, "Crossfade Send From Address=%s\n", control->send_from?control->send_from:"" );
 }
 
 static uintptr_t CPROC SetApplicationName( uintptr_t psv, arg_list args )
@@ -535,29 +535,29 @@ static uintptr_t CPROC SetApplicationSendTo( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("Crossfade Media Mount") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Crossfade Media Mount" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("Application Server Address=%m\n"), SetApplicationSendTo );
-	AddConfigurationMethod( pch, WIDE("Application Send From Address=%m\n"), SetApplicationSendFrom );
+	AddConfigurationMethod( pch, "Application Server Address=%m\n", SetApplicationSendTo );
+	AddConfigurationMethod( pch, "Application Send From Address=%m\n", SetApplicationSendFrom );
 }
 
-static void OnHideCommon( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc )
+static void OnHideCommon( "Crossfade Media Mount" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
 	{
-		//lprintf( WIDE("begin hide...") );
+		//lprintf( "begin hide..." );
 		control->app = FindAppWindow( control->send_to, control->send_from );
 		control->app->flags.bWantShow = 0;
 		if( !l.waiting )
 			l.waiting = ThreadTo( WaitForApplication, 0 );
 		else
 			WakeThread( l.waiting );
-		//lprintf( WIDE("began hide...") );
+		//lprintf( "began hide..." );
 	}
 }
 
-static void OnRevealCommon( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc )
+static void OnRevealCommon( "Crossfade Media Mount" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
@@ -565,7 +565,7 @@ static void OnRevealCommon( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc )
 		int32_t x = 0;
 		int32_t y = 0;
 		Image image = GetControlSurface( pc );
-		//lprintf( WIDE("begin show(move)...") );
+		//lprintf( "begin show(move)..." );
 		GetPhysicalCoordinate( pc, &x, &y, TRUE );
 
 		control->app = FindAppWindow( control->send_to, control->send_from );
@@ -578,7 +578,7 @@ static void OnRevealCommon( WIDE("Crossfade Media Mount") )( PSI_CONTROL pc )
 			l.waiting = ThreadTo( WaitForApplication, 0 );
 		else
 			WakeThread( l.waiting );
-		//lprintf( WIDE("begin show(move)...") );
+		//lprintf( "begin show(move)..." );
 	}
 }
 

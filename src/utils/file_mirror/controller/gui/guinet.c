@@ -66,7 +66,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 	int ToRead = 8;
 	if( !buffer )
 	{
-		Log( WIDE("Initial Read issued allocated  buffer...read events a go.") );
+		Log( "Initial Read issued allocated  buffer...read events a go." );
 		buffer = Allocate( 1024 );
 	}
 	else
@@ -74,17 +74,17 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
      	((TEXTCHAR*)buffer)[size] = 0;
      	if( !LastMessage )
      	{
-			Log1( WIDE("Message is: %8.8s"), buffer );
+			Log1( "Message is: %8.8s", buffer );
 			if( *(uint64_t*)buffer == *(uint64_t*)"USERLIST" )
 			{
-				Log1( WIDE("Message is: USERLIST!!"), buffer );
+				Log1( "Message is: USERLIST!!", buffer );
 				ToRead = 2;
 				LastMessage = *(uint64_t*)buffer;
-				Log1( WIDE("Last Message is: %8.8s"), &LastMessage );
+				Log1( "Last Message is: %8.8s", &LastMessage );
 			}
 			else if( *(uint64_t*)buffer == *(uint64_t*)"USERDEAD" )
 			{
-				BasicMessageBox( WIDE("Relay Responce"), WIDE("User has been terminated!") );
+				BasicMessageBox( "Relay Responce", "User has been terminated!" );
 				RemoveClient( pc );
 			}
 			else if( *(uint64_t*)buffer == *(uint64_t*)"ALL DONE" )
@@ -103,16 +103,16 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 			}
 			else
 			{
-				printf( WIDE("Unknown responce from relay: %8.8s"), (char*)buffer );
+				printf( "Unknown responce from relay: %8.8s", (char*)buffer );
 			}
 		}
 		else
 		{
-			Log1( WIDE("Continuing message: %8.8s"), &LastMessage );
+			Log1( "Continuing message: %8.8s", &LastMessage );
 			if( LastMessage == *(uint64_t*)"MESSAGE!" ||
 			    LastMessage == *(uint64_t*)"WINNERS:" )
 			{
-				Log( WIDE("(1)") );
+				Log( "(1)" );
 				ToRead = *(uint8_t*)buffer;
 				LastMessage++;
 			}
@@ -123,7 +123,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 				TEXTCHAR *endline, lastchar;
 				ResetList( pcList );
 				winnerlist[size] = 0;
-				Log2( WIDE("Got %d bytes of data:%s"), size, winnerlist );
+				Log2( "Got %d bytes of data:%s", size, winnerlist );
 				endline = winnerlist;
 				do
 				{
@@ -150,32 +150,32 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
          }
 			else if( (test = ((*(uint64_t*)"MESSAGE!")+1)), (LastMessage == test) )
 			{
-				Log( WIDE("(2)") );
-				BasicMessageBox( WIDE("Relay Message"), DupCharToText( (char*)buffer ) );
+				Log( "(2)" );
+				BasicMessageBox( "Relay Message", DupCharToText( (char*)buffer ) );
 				LastMessage = 0;
 			}
 			else if( LastMessage == *(uint64_t*)"MASTERIS" )
 			{
 				if( *(uint64_t*)buffer == *(uint64_t*)"ABSENT.." )
 				{
-					SetControlText( GetControl( frame, CHK_MASTER ), WIDE("Game Master is absent") );
+					SetControlText( GetControl( frame, CHK_MASTER ), "Game Master is absent" );
 				}
 				else if( *(uint64_t*)buffer == *(uint64_t*)"PRESENT!" )
 				{
-					SetControlText( GetControl( frame, CHK_MASTER ), WIDE("Game Master is PRESENT") );
+					SetControlText( GetControl( frame, CHK_MASTER ), "Game Master is PRESENT" );
 				}
 				else
 				{
-					BasicMessageBox( WIDE("Master Status"), WIDE("Unknown Responce...") );
+					BasicMessageBox( "Master Status", "Unknown Responce..." );
 				}
 				LastMessage = 0;
 				RemoveClient( pc );
 			}
 			else if( LastMessage == (*(uint64_t*)"USERLIST") )
 			{
-				Log( WIDE("(3)") );
+				Log( "(3)" );
 				ToRead = *(uint16_t*)buffer;
-				Log1( WIDE("User list with size of %d"), ToRead );
+				Log1( "User list with size of %d", ToRead );
 				LastMessage++;
 			}
 			else if(  (test = ((*(uint64_t*)"USERLIST")+1) ), (LastMessage == test) )
@@ -183,7 +183,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 				PCONTROL pcList = GetControl( frame, LST_USERS );
 				TEXTCHAR *userlist = (TEXTCHAR*)buffer;
 				TEXTCHAR *endline;
-				//Log1( WIDE("Got %d bytes of data..."), size );
+				//Log1( "Got %d bytes of data...", size );
 				ResetList( pcList );
 				userlist[size] = 0;
 				endline = userlist;
@@ -218,7 +218,7 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 			}
 			else
 			{
-				Log1( WIDE("Unknonw Continuation state for %8.8s"), &LastMessage );
+				Log1( "Unknonw Continuation state for %8.8s", &LastMessage );
 			}
 		}
 	}
@@ -232,8 +232,8 @@ PCLIENT ConnectToRelay( PCLIENT *pc )
 	TEXTCHAR address[128];
 	if( InProgress )
 	{
-		BasicMessageBox( WIDE("Request in progress"), WIDE("Please wait a moment for\n")
-																 WIDE("the current operation to finish") );		
+		BasicMessageBox( "Request in progress", "Please wait a moment for\n"
+																 "the current operation to finish" );		
 		return NULL;
 	}
 	InProgress = TRUE;
@@ -243,16 +243,16 @@ PCLIENT ConnectToRelay( PCLIENT *pc )
 	*pc = OpenTCPClientEx( address, 3001, ReadComplete, ConnectionClose, NULL );
    if( !(*pc) )
    {
-   		BasicMessageBox( WIDE("Bad Address?"), 
-                       WIDE("Check the address - could not connect") );
+   		BasicMessageBox( "Bad Address?", 
+                       "Check the address - could not connect" );
 		return NULL;
 	}
    ppc_current = pc;
    {
-	   FILE *file = sack_fopen( 0, WIDE("LastConnection.data"), WIDE("wb") );
+	   FILE *file = sack_fopen( 0, "LastConnection.data", "wb" );
 	   if( file )
 	   {
-	   		fprintf( file, WIDE("%s"), address );
+	   		fprintf( file, "%s", address );
    			fclose( file );
    		}
    }
@@ -287,7 +287,7 @@ void CPROC KillRelayButton(uintptr_t psv, PCONTROL pcButton)
 			i++;
 			if( i == 5 )
 			{
-				BasicMessageBox( WIDE("Kill failed"), WIDE("Relay has not responded by ending connection") );
+				BasicMessageBox( "Kill failed", "Relay has not responded by ending connection" );
 				RemoveClient( pc );
 			}
 		}

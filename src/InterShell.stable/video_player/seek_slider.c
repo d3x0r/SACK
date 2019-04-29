@@ -11,7 +11,7 @@
 #include <ffmpeg_interface.h>
 #include "video_player_local.h"
 
-#define CONTROL_NAME WIDE("Video Player/Seek Slider")
+#define CONTROL_NAME "Video Player/Seek Slider"
 //---------------------------------------------------------------------------
 
 enum {
@@ -41,12 +41,12 @@ static uintptr_t CPROC SetSliderCurrentValue( uintptr_t psv, arg_list args );
 //---------------------------------------------------------------------------
 PRELOAD( RegisterExtraSliderConfig )
 {
-	EasyRegisterResource( WIDE("InterShell/")CONTROL_NAME, CHECKBOX_HORIZONTAL, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/")CONTROL_NAME, CHECKBOX_DRAGGING, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/")CONTROL_NAME, EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/")CONTROL_NAME, EDIT_MIN, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/")CONTROL_NAME, EDIT_MAX, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/")CONTROL_NAME, EDIT_CURRENT, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/"CONTROL_NAME, CHECKBOX_HORIZONTAL, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/"CONTROL_NAME, CHECKBOX_DRAGGING, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/"CONTROL_NAME, EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/"CONTROL_NAME, EDIT_MIN, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/"CONTROL_NAME, EDIT_MAX, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/"CONTROL_NAME, EDIT_CURRENT, EDIT_FIELD_NAME );
 
 }
 
@@ -81,7 +81,7 @@ static void CPROC OnSliderUpdateProc(uintptr_t psv, PSI_CONTROL pc, int val)
 static CTEXTSTR GetCurrentValueString( uintptr_t psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
-	snprintf( info->value, 32, WIDE("%")_32fs WIDE(".%")_32fs WIDE("%%"), info->current / 10000, info->current % 10000 );
+	snprintf( info->value, 32, "%"_32fs ".%"_32fs "%%", info->current / 10000, info->current % 10000 );
 	return info->value;
 }
 
@@ -147,7 +147,7 @@ static uintptr_t OnCreateControl(CONTROL_NAME)( PSI_CONTROL frame, int32_t x, in
 	MoveSizeCommon( info->control, x, y, w, h );
 	{
 		TEXTCHAR tmpname[32];
-		tnprintf( tmpname, 32, WIDE( "Player %d position" ), info->ID );
+		tnprintf( tmpname, 32, "Player %d position", info->ID );
 		info->label = CreateLabelVariableEx( tmpname, LABEL_TYPE_PROC_EX, GetCurrentValueString, (uintptr_t)info );
 	}
 
@@ -167,7 +167,7 @@ static uintptr_t OnConfigureControl( CONTROL_NAME )( uintptr_t psv, PSI_CONTROL 
 		int done = 0;
 		if( !frame )
 		{
-			frame = LoadXMLFrame( WIDE("seek_slider_properties.frame") );
+			frame = LoadXMLFrame( "seek_slider_properties.frame" );
 			if( frame )
 			{
 				 TEXTCHAR buffer[256];
@@ -178,13 +178,13 @@ static uintptr_t OnConfigureControl( CONTROL_NAME )( uintptr_t psv, PSI_CONTROL 
 				SetCheckState( GetControl( frame, CHECKBOX_DRAGGING ), info->flags.bDragging );
 				SetControlText( GetControl( frame, EDIT_BACKGROUND_IMAGE ), info->image_name );
 
-					 snprintf(buffer, sizeof(buffer), WIDE("%d"), info->min);
+					 snprintf(buffer, sizeof(buffer), "%d", info->min);
 				SetControlText( GetControl( frame, EDIT_MIN ), buffer );
 
-					 snprintf(buffer, sizeof(buffer), WIDE("%d"), info->max);
+					 snprintf(buffer, sizeof(buffer), "%d", info->max);
 				SetControlText( GetControl( frame, EDIT_MAX ), buffer );
 				
-					 snprintf(buffer, sizeof(buffer), WIDE("%d"), info->current);
+					 snprintf(buffer, sizeof(buffer), "%d", info->current);
 				SetControlText( GetControl( frame, EDIT_CURRENT ), buffer );
 				
 				SetCommonButtons( frame, &done, &okay );
@@ -231,24 +231,24 @@ static uintptr_t OnConfigureControl( CONTROL_NAME )( uintptr_t psv, PSI_CONTROL 
 static void OnSaveControl( CONTROL_NAME )( FILE *file,uintptr_t psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
-	sack_fprintf( file, WIDE("Seek Slider color=$%02X%02X%02X%02X\n")
+	sack_fprintf( file, "Seek Slider color=$%02X%02X%02X%02X\n"
 			 , AlphaVal( info->color )
 			 , RedVal( info->color )
 			 , GreenVal( info->color )
 			 , BlueVal( info->color )
 			 );
-	sack_fprintf( file, WIDE("Seek Slider back color=$%02X%02X%02X%02X\n")
+	sack_fprintf( file, "Seek Slider back color=$%02X%02X%02X%02X\n"
 			 , AlphaVal( info->backcolor )
 			 , RedVal( info->backcolor )
 			 , GreenVal( info->backcolor )
 			 , BlueVal( info->backcolor )
 			 );
-	sack_fprintf( file, WIDE("Seek Slider background image=%s\n" ), info->image_name?info->image_name:WIDE("") );
-	sack_fprintf( file, WIDE("Seek Slider is horizontal?%s\n"), info->flags.bHorizontal?WIDE("Yes"):WIDE("No") );
-	sack_fprintf( file, WIDE("Seek Slider is draggable?%s\n"), info->flags.bDragging?WIDE("Yes"):WIDE("No") );
-	sack_fprintf( file, WIDE("Seek Slider min value=%d\n"), info->min);
-	sack_fprintf( file, WIDE("Seek Slider max value=%d\n"), info->max);
-	sack_fprintf( file, WIDE("Seek Slider current value=%d\n"), info->current);
+	sack_fprintf( file, "Seek Slider background image=%s\n", info->image_name?info->image_name:"" );
+	sack_fprintf( file, "Seek Slider is horizontal?%s\n", info->flags.bHorizontal?"Yes":"No" );
+	sack_fprintf( file, "Seek Slider is draggable?%s\n", info->flags.bDragging?"Yes":"No" );
+	sack_fprintf( file, "Seek Slider min value=%d\n", info->min);
+	sack_fprintf( file, "Seek Slider max value=%d\n", info->max);
+	sack_fprintf( file, "Seek Slider current value=%d\n", info->current);
 
 
 	InterShell_SaveCommonButtonParameters( file );
@@ -325,14 +325,14 @@ static uintptr_t CPROC SetSliderCurrentValue( uintptr_t psv, arg_list args )
 
 static void OnLoadControl( CONTROL_NAME )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("Seek Slider color=%c"), ReloadSliderColor );
-	AddConfigurationMethod( pch, WIDE("Seek Slider back color=%c"), ReloadSliderBackColor );
-	AddConfigurationMethod( pch, WIDE("Seek Slider is horizontal?%b"), SetSliderHorizontal );
-	AddConfigurationMethod( pch, WIDE("Seek Slider is draggable?%b"), SetSliderDragging );
-	AddConfigurationMethod( pch, WIDE("Seek Slider background image=%m" ), SetSliderBackgroundImage );
-	AddConfigurationMethod( pch, WIDE("Seek Slider min value=%i"), SetSliderMinValue );
-	AddConfigurationMethod( pch, WIDE("Seek Slider max value=%i"), SetSliderMaxValue );
-	AddConfigurationMethod( pch, WIDE("Seek Slider current value=%i"), SetSliderCurrentValue );
+	AddConfigurationMethod( pch, "Seek Slider color=%c", ReloadSliderColor );
+	AddConfigurationMethod( pch, "Seek Slider back color=%c", ReloadSliderBackColor );
+	AddConfigurationMethod( pch, "Seek Slider is horizontal?%b", SetSliderHorizontal );
+	AddConfigurationMethod( pch, "Seek Slider is draggable?%b", SetSliderDragging );
+	AddConfigurationMethod( pch, "Seek Slider background image=%m", SetSliderBackgroundImage );
+	AddConfigurationMethod( pch, "Seek Slider min value=%i", SetSliderMinValue );
+	AddConfigurationMethod( pch, "Seek Slider max value=%i", SetSliderMaxValue );
+	AddConfigurationMethod( pch, "Seek Slider current value=%i", SetSliderCurrentValue );
 
 }
 

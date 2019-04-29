@@ -7,23 +7,23 @@
 void Usage( int bFull )
 {
 	if( bFull )
-		fprintf( stderr, WIDE("usage: %s [-f <script file>] [DSN or Sqlite db file] [-n(o headers)]\n"), GetProgramName() );
+		fprintf( stderr, "usage: %s [-f <script file>] [DSN or Sqlite db file] [-n(o headers)]\n", GetProgramName() );
 
-	fprintf( stderr, WIDE("Command must start with '?', '!' or '='.\n") );
-	fprintf( stderr, WIDE("?<query> results go to the current output, or the screen if non specified before\n") );
-	fprintf( stderr, WIDE("!<command> - issues command to \n") );
-	fprintf( stderr, WIDE("=<table>@<DSN><,DSN>,...> setup output to these DSN's for next command or query result\n") );
-	fprintf( stderr, WIDE("?!<query> results go to the current output (with replace instead of insert), or the screen if non specified before\n") );
-	fprintf( stderr, WIDE("\\q on a new line - quit\n") );
+	fprintf( stderr, "Command must start with '?', '!' or '='.\n" );
+	fprintf( stderr, "?<query> results go to the current output, or the screen if non specified before\n" );
+	fprintf( stderr, "!<command> - issues command to \n" );
+	fprintf( stderr, "=<table>@<DSN><,DSN>,...> setup output to these DSN's for next command or query result\n" );
+	fprintf( stderr, "?!<query> results go to the current output (with replace instead of insert), or the screen if non specified before\n" );
+	fprintf( stderr, "\\q on a new line - quit\n" );
 }
 
 void CPROC LogSQLStates( CTEXTSTR message )
 {
-	lprintf( WIDE("%s"), message );
+	lprintf( "%s", message );
 }
 void CPROC ShowSQLStates( CTEXTSTR message )
 {
-	fprintf( stderr, WIDE("%s\n"), message );
+	fprintf( stderr, "%s\n", message );
 }
 
 int main( int argc, char **argv )
@@ -56,7 +56,7 @@ int main( int argc, char **argv )
 				break;
 			case 'f':
 				arg_ofs++;
-				input = sack_fopen( 0, tmp = DupCharToText( argv[1+arg_ofs] ), WIDE("rt") );
+				input = sack_fopen( 0, tmp = DupCharToText( argv[1+arg_ofs] ), "rt" );
 				if( input )
 					SQLSetFeedbackHandler( LogSQLStates );
 				break;
@@ -92,7 +92,7 @@ int main( int argc, char **argv )
 			buf[len] = 0;
 		}
 
-		if( strcmp( buf, WIDE("\\q") ) == 0 )
+		if( strcmp( buf, "\\q" ) == 0 )
 			break;
 
 		if( !buf[0] && VarTextLength( pvt_cmd ) == 0 )
@@ -102,7 +102,7 @@ int main( int argc, char **argv )
 		{
 			buf[len-1] = 0;
 			len--;
-			vtprintf( pvt_cmd, WIDE("%s"), buf );
+			vtprintf( pvt_cmd, "%s", buf );
 			offset = 0;
 			//offset = (len - 1); // read over the slash
 			continue;
@@ -110,7 +110,7 @@ int main( int argc, char **argv )
 		else
 		{
 			if( len > 0 )
-				vtprintf( pvt_cmd, WIDE("%s"), buf );
+				vtprintf( pvt_cmd, "%s", buf );
 			offset = 0;
 		}
 
@@ -133,7 +133,7 @@ int main( int argc, char **argv )
 			{
 				if( !select_into || !select_into[0] )
 				{
-					printf( WIDE("Table name was invalid to insert into on the destination side...\'%s\'"), select_into );
+					printf( "Table name was invalid to insert into on the destination side...\'%s\'", select_into );
 					VarTextEmpty( pvt_cmd );
 					continue;
 				}
@@ -152,46 +152,46 @@ int main( int argc, char **argv )
 						{
 							_columns[n] = StrDup( columns[n] );
 							if( !pvt )
-								fprintf( stdout, WIDE("%s%s"), n?WIDE(","):WIDE(""), columns[n] );
+								fprintf( stdout, "%s%s", n?",":"", columns[n] );
 						}
 					}
 					if( !pvt )
-						fprintf( stdout, WIDE("\n") );
+						fprintf( stdout, "\n" );
 				}
 				for( ; result; FetchSQLRecord( default_odbc, &result ) )
 				{
 					if( pvt && first )
 					{
-						vtprintf( pvt, WIDE("%s into `%s` ("), replace?WIDE("replace"):WIDE("insert ignore"), select_into );
+						vtprintf( pvt, "%s into `%s` (", replace?"replace":"insert ignore", select_into );
 						{
 							int first = 1;
 							int n;
 							for( n = 0; n < fields; n++ )
 							{
-								vtprintf( pvt, WIDE("%s`%s`"), first?WIDE(""):WIDE(","), _columns[n] );
+								vtprintf( pvt, "%s`%s`", first?"":",", _columns[n] );
 								first = 0;
 							}
 						}
-						vtprintf( pvt, WIDE(") values ") );
+						vtprintf( pvt, ") values " );
 					}
 					if( pvt )
 					{
-						vtprintf( pvt, WIDE("%s("), first?WIDE(""):WIDE(",") );
+						vtprintf( pvt, "%s(", first?"":"," );
 						{
 							int first = 1; // private first, sorry :) parse that, Visual studio can.
 							int n;
 							for( n = 0; n < fields; n++ )
 							{
 								TEXTSTR tmp;
-								vtprintf( pvt, WIDE("%s%s")
-										  , first?WIDE(""):WIDE(",")
-										  , result[n]?(tmp=EscapeStringOpt( result[n], TRUE)):((tmp=NULL),WIDE("NULL"))
+								vtprintf( pvt, "%s%s"
+										  , first?"":","
+										  , result[n]?(tmp=EscapeStringOpt( result[n], TRUE)):((tmp=NULL),"NULL")
 										  );
 								Release( tmp );
 								first = 0;
 							}
 						}
-						vtprintf( pvt, WIDE(")") );
+						vtprintf( pvt, ")" );
 					}
 					else
 					{
@@ -200,10 +200,10 @@ int main( int argc, char **argv )
 						for( n = 0; n < fields; n++ )
 						{
 
-							fprintf( stdout, WIDE("%s%s"), first?WIDE(""):WIDE(","),result[n]?result[n]:WIDE("NULL") );
+							fprintf( stdout, "%s%s", first?"":",",result[n]?result[n]:"NULL" );
 							first = 0;
 						}
-						fprintf( stdout, WIDE("\n") );
+						fprintf( stdout, "\n" );
 					}
 					first = 0;
 					count++;
@@ -211,7 +211,7 @@ int main( int argc, char **argv )
 					{
 						PTEXT cmd;
 						first = 1; // reset first to rebuild the beginning of the insert.
-						printf( WIDE("Flushing at 100k characters...%d records\n"), count );
+						printf( "Flushing at 100k characters...%d records\n", count );
 						if( pvt )
 						{
 							cmd = VarTextGet( pvt );
@@ -222,7 +222,7 @@ int main( int argc, char **argv )
 								LIST_FORALL( output, idx, PODBC, odbc )
 								{
 									if( !SQLCommand( odbc, GetText( cmd ) ) )
-										printf( WIDE("Failed command to:%s\n"), (CTEXTSTR)GetLink( &outputs, idx ) );
+										printf( "Failed command to:%s\n", (CTEXTSTR)GetLink( &outputs, idx ) );
 								}
 								LineRelease( cmd );
 							}
@@ -244,14 +244,14 @@ int main( int argc, char **argv )
 				CTEXTSTR result;
 				FetchSQLError( default_odbc, &result );
 				if( result )
-					fprintf( stderr, WIDE("%s\n"), result );
+					fprintf( stderr, "%s\n", result );
 				else
-					fprintf( stderr, WIDE("Failed, no error result.\n") );
+					fprintf( stderr, "Failed, no error result.\n" );
 			}
 			if( pvt )
 			{
 				PTEXT cmd;
-				printf( WIDE("Flushing command\n") );
+				printf( "Flushing command\n" );
 				cmd = VarTextGet( pvt );
 				if( cmd )
 				{
@@ -259,12 +259,12 @@ int main( int argc, char **argv )
 					PODBC odbc;
 					LIST_FORALL( output, idx, PODBC, odbc )
 					{
-						printf( WIDE("Flushing command to %s\n"), (CTEXTSTR)GetLink( &outputs, idx ) );
+						printf( "Flushing command to %s\n", (CTEXTSTR)GetLink( &outputs, idx ) );
 						if( !SQLCommand( odbc, GetText( cmd ) ) )
 						{
 							CTEXTSTR error;
 							FetchSQLError( odbc, &error );
-							printf( WIDE("%s\n"), error );
+							printf( "%s\n", error );
 						}
 					}
 					LineRelease( cmd );
@@ -297,12 +297,12 @@ int main( int argc, char **argv )
 				INDEX idx;
 				LIST_FORALL( output, idx, PODBC, odbc )
 				{
-					printf( WIDE("Issue command to: %s\n"), (CTEXTSTR)GetLink( &outputs, idx ) );
+					printf( "Issue command to: %s\n", (CTEXTSTR)GetLink( &outputs, idx ) );
 					if( !SQLCommand( odbc, buf +1 ) )
 					{
 						CTEXTSTR result;
 						FetchSQLError( odbc, &result );
-						fprintf( stderr, WIDE("%s\n"), result );
+						fprintf( stderr, "%s\n", result );
 					}
 				}
 				if( output )
@@ -318,7 +318,7 @@ int main( int argc, char **argv )
 					DeleteList( &outputs );
 					DeleteList( &output );
 				}
-				printf( WIDE("Ok.\n") );
+				printf( "Ok.\n" );
 			}
 			else
 			{
@@ -326,10 +326,10 @@ int main( int argc, char **argv )
 				{
 					CTEXTSTR result;
 					FetchSQLError( default_odbc, &result );
-					fprintf( stderr, WIDE("%s\n"), result );
+					fprintf( stderr, "%s\n", result );
 				}
 				else
-					fprintf( stderr, WIDE("Ok.\n") );
+					fprintf( stderr, "Ok.\n" );
 			}
 		}
 		else if( buf[0] == WIDE('=') )
@@ -339,7 +339,7 @@ int main( int argc, char **argv )
 			end = strchr( start, WIDE('@') );
 			if( !end )
 			{
-				printf( WIDE("Must specify table@dsn,dsn,dsn... no @ found on :%s\n"), buf );
+				printf( "Must specify table@dsn,dsn,dsn... no @ found on :%s\n", buf );
 			}
 			else
 			{
@@ -359,14 +359,14 @@ int main( int argc, char **argv )
 					AddLink( &output, odbc = ConnectToDatabase( start ) );
 					if( IsSQLOpen( odbc ) )
 					{
-						printf( WIDE("Connected to: %s\n"), start );
+						printf( "Connected to: %s\n", start );
 						AddLink( &outputs, StrDup( start ) );
 					}
 					else
 					{
 						CTEXTSTR error;
 						FetchSQLError( odbc, &error );
-						printf( WIDE("Failed connect to:%s [%s]\n"), start, error );
+						printf( "Failed connect to:%s [%s]\n", start, error );
 					}
 				}
 
@@ -374,7 +374,7 @@ int main( int argc, char **argv )
 		}
 		else
 		{
-			fprintf( stderr, WIDE("%s"), buf );
+			fprintf( stderr, "%s", buf );
 			Usage( 0 );
 		}
 		VarTextEmpty( pvt_cmd );

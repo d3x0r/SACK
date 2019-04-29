@@ -693,9 +693,9 @@ static void copy( CTEXTSTR src, char *dst )
 
 	if( filetime <= filetime_dest )
 		return;
-	in = fopen( src, WIDE("rb") );
+	in = fopen( src, "rb" );
 	if( in )
-		out = fopen( dst, WIDE("wb") );
+		out = fopen( dst, "wb" );
 	else
 		out = NULL;
 	if( in && out )

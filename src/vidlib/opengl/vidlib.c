@@ -74,7 +74,7 @@ void CPROC TickDisplay( uintptr_t psv )
          static float xrot, yrot, zrot;
 #endif
 #ifdef LOG_RECT_UPDATE
-			//_xlprintf( 1 DBG_RELAY )( WIDE("Draw to Window: %d %d %d %d"), x, y, w, h );
+			//_xlprintf( 1 DBG_RELAY )( "Draw to Window: %d %d %d %d", x, y, w, h );
 #endif
 			EnterCriticalSec( &hVideo->cs );
 			//DebugBreak();
@@ -308,15 +308,15 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( HVIDEO hVideo
          w = pImage->width;
 
       if( l.flags.bLogWrites )
-			_xlprintf( 1 DBG_RELAY )( WIDE("Write to Window: %d %d %d %d"), x, y, w, h );
+			_xlprintf( 1 DBG_RELAY )( "Write to Window: %d %d %d %d", x, y, w, h );
 
       if (!hVideo->flags.bShown)
 		{
 			if( l.flags.bLogWrites )
-				lprintf( WIDE("Setting shown...") );
+				lprintf( "Setting shown..." );
 			hVideo->flags.bShown = TRUE;
 #ifdef LOG_RECT_UPDATE
-			_xlprintf( 1 DBG_RELAY )( WIDE("Show Window: %d %d %d %d"), x, y, w, h );
+			_xlprintf( 1 DBG_RELAY )( "Show Window: %d %d %d %d", x, y, w, h );
 #endif
 			ShowWindow (hVideo->hWndOutput, SW_NORMAL);
          AddTimer( 33, TickDisplay, (uintptr_t)hVideo );
@@ -343,7 +343,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( HVIDEO hVideo
          static float xrot, yrot, zrot;
 #endif
 #ifdef LOG_RECT_UPDATE
-			_xlprintf( 1 DBG_RELAY )( WIDE("Draw to Window: %d %d %d %d"), x, y, w, h );
+			_xlprintf( 1 DBG_RELAY )( "Draw to Window: %d %d %d %d", x, y, w, h );
 #endif
 			EnterCriticalSec( &hVideo->cs );
 			//DebugBreak();
@@ -551,7 +551,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( HVIDEO hVideo
 	}
 	else
 	{
-      //lprintf( WIDE("Rendering surface is not able to be updated (no surface, hdc, bitmap, etc)") );
+      //lprintf( "Rendering surface is not able to be updated (no surface, hdc, bitmap, etc)" );
 	}
 }
 
@@ -698,7 +698,7 @@ BOOL CreateDrawingSurface (HVIDEO hVideo)
 													 , NULL,   // hVideo (hMemView)
 													  0); // offset DWORD multiple
 #endif
-			//lprintf( WIDE("New drawing surface, remaking the image, dispatch draw event...") );
+			//lprintf( "New drawing surface, remaking the image, dispatch draw event..." );
 			if( hVideo->pImage )
             UnmakeImageFile( hVideo->pImage );
          hVideo->pImage =
@@ -750,8 +750,8 @@ BOOL CreateDrawingSurface (HVIDEO hVideo)
          //DWORD dwError = GetLastError();
          // this is normal if window minimizes...
          if (bmInfo.bmiHeader.biWidth || bmInfo.bmiHeader.biHeight)  // both are zero on minimization
-            MessageBox (hVideo->hWndOutput, WIDE("Failed to create Window DIB"),
-                        WIDE("ERROR"), MB_OK);
+            MessageBox (hVideo->hWndOutput, "Failed to create Window DIB",
+                        "ERROR", MB_OK);
          return FALSE;
       }
 #endif
@@ -767,10 +767,10 @@ BOOL CreateDrawingSurface (HVIDEO hVideo)
 	//}
 	if( hVideo->flags.bReady && !hVideo->flags.bHidden && hVideo->pRedrawCallback )
 	{
-		//lprintf( WIDE("Sending redraw for %p"), hVideo );
+		//lprintf( "Sending redraw for %p", hVideo );
 		SendServiceEvent( 0, l.dwMsgBase + MSG_RedrawMethod, &hVideo, sizeof( hVideo ) );
 	}
-   //lprintf( WIDE("And here I might want to update the video, hope someone else does for me.") );
+   //lprintf( "And here I might want to update the video, hope someone else does for me." );
 	return TRUE;
 }
 
@@ -845,42 +845,42 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				if( hVidPrior )
 				{
 #ifdef LOG_ORDERING_REFOCUS
-					lprintf( WIDE("-------------------------------- GOT FOCUS --------------------------") );
-					lprintf( WIDE("Instance is %p"), hWnd );
-					lprintf( WIDE("prior is %p"), hVidPrior->hWndOutput );
+					lprintf( "-------------------------------- GOT FOCUS --------------------------" );
+					lprintf( "Instance is %p", hWnd );
+					lprintf( "prior is %p", hVidPrior->hWndOutput );
 #endif
 					if( hVidPrior->pBelow )
 					{
 #ifdef LOG_ORDERING_REFOCUS
-						lprintf( WIDE("Set to window prior was below...") );
+						lprintf( "Set to window prior was below..." );
 #endif
 						SetFocus( hVidPrior->pBelow->hWndOutput );
 					}
 					else if( hVidPrior->pNext )
 					{
 #ifdef LOG_ORDERING_REFOCUS
-						lprintf( WIDE("Set to window prior last interrupted..") );
+						lprintf( "Set to window prior last interrupted.." );
 #endif
 						SetFocus( hVidPrior->pNext->hWndOutput );
 					}
 					else if( hVidPrior->pPrior )
 					{
 #ifdef LOG_ORDERING_REFOCUS
-						lprintf( WIDE("Set to window prior which interrupted us...") );
+						lprintf( "Set to window prior which interrupted us..." );
 #endif
 						SetFocus( hVidPrior->pPrior->hWndOutput );
 					}
 					else if( hVidPrior->pAbove )
 					{
 #ifdef LOG_ORDERING_REFOCUS
-						lprintf( WIDE("Set to a window which prior was above.") );
+						lprintf( "Set to a window which prior was above." );
 #endif
 						SetFocus( hVidPrior->pAbove->hWndOutput );
 					}
 #ifdef LOG_ORDERING_REFOCUS
 					else
 					{
-                  lprintf( WIDE("prior window is not around anythign!?") );
+                  lprintf( "prior window is not around anythign!?" );
 					}
 #endif
 				}
@@ -942,13 +942,13 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						else
 						{
 							HVIDEO me = hVideo;
-							//lprintf( WIDE("killfocus window thing %d"), hVidRecv );
+							//lprintf( "killfocus window thing %d", hVidRecv );
 							while( me )
 							{
 								if( me && me->pAbove == hVidRecv )
 								{
 #ifdef LOG_ORDERING_REFOCUS
-									lprintf( WIDE("And - we need to stop this from happening, I'm stacked on the window getting the focus... restore it back to me") );
+									lprintf( "And - we need to stop this from happening, I'm stacked on the window getting the focus... restore it back to me" );
 #endif
 									//SetFocus( hVideo->hWndOutput );
 									return 0;
@@ -957,7 +957,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 							}
 						}
 #ifdef LOG_ORDERING_REFOCUS
-						lprintf( WIDE("Dispatch lose focus callback....") );
+						lprintf( "Dispatch lose focus callback...." );
 #endif
 						SendMultiServiceEvent( 0, l.dwMsgBase + MSG_LoseFocusMethod, 2
 													, &hVideo, sizeof( hVideo )
@@ -967,13 +967,13 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #ifdef LOG_ORDERING_REFOCUS
 					else
 					{
-                  lprintf( WIDE("Hidden window or lose focus was not active.") );
+                  lprintf( "Hidden window or lose focus was not active." );
 					}
 #endif
 				}
 				else
 				{
-					lprintf( WIDE("this video window was not focused.") );
+					lprintf( "this video window was not focused." );
 				}
 			}
 		}
@@ -1030,14 +1030,14 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
          pwp = (LPWINDOWPOS) lParam;
 			hVideo = (HVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
 #ifdef LOG_ORDERING_REFOCUS
-			lprintf( WIDE("Being inserted after %x %x"), pwp->hwndInsertAfter, hWnd );
+			lprintf( "Being inserted after %x %x", pwp->hwndInsertAfter, hWnd );
 #endif
          if (!hVideo)      // not attached to anything...
 				return 0;
 			if( hVideo->flags.bHidden )
 			{
 #ifdef LOG_ORDERING_REFOCUS
-				lprintf( WIDE("Hmm don't really care about the motion of a hidden window...") );
+				lprintf( "Hmm don't really care about the motion of a hidden window..." );
 #endif
 				hVideo->pWindowPos = *pwp; // save always....!!!
             return 0;
@@ -1047,42 +1047,42 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
          {
             CreateDrawingSurface (hVideo);
 			}
-         //lprintf( WIDE("window pos changed - new ordering includes %p for %p(%p)"), pwp->hwndInsertAfter, pwp->hwnd, hWnd );
+         //lprintf( "window pos changed - new ordering includes %p for %p(%p)", pwp->hwndInsertAfter, pwp->hwnd, hWnd );
 			if( hVideo->pBelow )
 			{
 				HVIDEO below = hVideo->pBelow;
 				if( below->hWndOutput != pwp->hwndInsertAfter )
 				{
 #ifdef LOG_ORDERING_REFOCUS
-					lprintf( WIDE("Steal position behind what I'm below") );
+					lprintf( "Steal position behind what I'm below" );
 #endif
 					SetWindowPos( below->hWndOutput, pwp->hwndInsertAfter, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE );
 					SetWindowPos( hWnd, below->hWndOutput, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE );
 #ifdef LOG_ORDERING_REFOCUS
-					lprintf( WIDE("Stole position am now behind my child") );
+					lprintf( "Stole position am now behind my child" );
 #endif
 				}
 #ifdef LOG_ORDERING_REFOCUS
             else
-					lprintf( WIDE("Uhmm relationship is already fine.") );
+					lprintf( "Uhmm relationship is already fine." );
 #endif
             //return 0;
 			}
 			if( hVideo->pAbove )
 			{
 #ifdef LOG_ORDERING_REFOCUS
-				lprintf( WIDE("Putting the window I am above below myself.") );
+				lprintf( "Putting the window I am above below myself." );
 #endif
             SetWindowPos( hVideo->pAbove->hWndOutput, hVideo->hWndOutput
 						, 0, 0, 0, 0
 						, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE );
 			}
 #ifdef LOG_ORDERING_REFOCUS
-			lprintf( WIDE("window pos changed - new ordering includes %p for %p(%p)"), pwp->hwndInsertAfter, pwp->hwnd, hWnd );
+			lprintf( "window pos changed - new ordering includes %p for %p(%p)", pwp->hwndInsertAfter, pwp->hwnd, hWnd );
 #endif
          hVideo->pWindowPos = *pwp; // save always....!!!
 #ifdef LOG_ORDERING_REFOCUS
-			lprintf( WIDE("Window pos %d,%d %d,%d")
+			lprintf( "Window pos %d,%d %d,%d"
 					 , hVideo->pWindowPos.x
 					 , hVideo->pWindowPos.y
 					 , hVideo->pWindowPos.cx
@@ -1162,7 +1162,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if( l.hCaptured )
 		{
 #ifdef LOG_MOUSE_EVENTS
-			lprintf( WIDE("Captured mouse already - don't do anything?") );
+			lprintf( "Captured mouse already - don't do anything?" );
 #endif
 		}
 		else
@@ -1170,14 +1170,14 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			if( ( ( _mouse_b ^ l.mouse_b ) & l.mouse_b & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON) ) )
 			{
 #ifdef LOG_MOUSE_EVENTS
-				lprintf( WIDE("Auto owning mouse to surface which had the mouse clicked DOWN.") );
+				lprintf( "Auto owning mouse to surface which had the mouse clicked DOWN." );
 #endif
 				if( !l.hCaptured )
 					SetCapture( hWnd );
 			}
 			else if( ( (l.mouse_b & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON)) == 0 ) )
 			{
-				//lprintf( WIDE("Auto release mouse from surface which had the mouse unclicked.") );
+				//lprintf( "Auto release mouse from surface which had the mouse unclicked." );
 				if( !l.hCaptured )
 					ReleaseCapture();
 			}
@@ -1188,12 +1188,12 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			int dx, dy;
 			GetCursorPos (&p);
 #ifdef LOG_MOUSE_EVENTS
-			lprintf( WIDE("Mouse position %d,%d"), p.x, p.y );
+			lprintf( "Mouse position %d,%d", p.x, p.y );
 #endif
 			p.x -= (dx =(l.hCaptured?l.hCaptured:hVideo)->pWindowPos.x);
 			p.y -= (dy=(l.hCaptured?l.hCaptured:hVideo)->pWindowPos.y);
 #ifdef LOG_MOUSE_EVENTS
-			lprintf( WIDE("Mouse position results %d,%d %d,%d"), dx, dy, p.x, p.y );
+			lprintf( "Mouse position results %d,%d %d,%d", dx, dy, p.x, p.y );
 #endif
 			if (!(l.hCaptured?l.hCaptured:hVideo)->flags.bFull)
 			{
@@ -1221,7 +1221,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			msg[2] = l.mouse_y;
 			msg[3] = l.mouse_b;
 #ifdef LOG_MOUSE_EVENTS
-			lprintf( WIDE("Generate mouse message %p(%p?) %d %d,%08x %d+%d=%d"), l.hCaptured, hVideo, l.mouse_x, l.mouse_y, l.mouse_b, l.dwMsgBase, MSG_MouseMethod, l.dwMsgBase + MSG_MouseMethod );
+			lprintf( "Generate mouse message %p(%p?) %d %d,%08x %d+%d=%d", l.hCaptured, hVideo, l.mouse_x, l.mouse_y, l.mouse_b, l.dwMsgBase, MSG_MouseMethod, l.dwMsgBase + MSG_MouseMethod );
 #endif
 			SendServiceEvent( 0, l.dwMsgBase + MSG_MouseMethod
 								 , msg
@@ -1242,7 +1242,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             l.mouse_b != l._mouse_b )
          {
             // align mouse to be in bitmap coordinates...
-            //lprintf( WIDE("Mouse event from original source. %d %d %08x"), l.mouse_x, l.mouse_y, l.mouse_b );
+            //lprintf( "Mouse event from original source. %d %d %08x", l.mouse_x, l.mouse_y, l.mouse_b );
             hVideo->pMouseCallback (hVideo->dwMouseData,
                                     l.mouse_x, l.mouse_y, l.mouse_b);
             l._mouse_x = l.mouse_x;
@@ -1253,7 +1253,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
          */
       return 0;         // don't allow windows to think about this...
    case WM_PAINT:
-      Log( WIDE("Paint Message!") );
+      Log( "Paint Message!" );
       hVideo = (HVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
       SendServiceEvent( 0, l.dwMsgBase + MSG_RedrawMethod, &hVideo, sizeof( hVideo ) );
       //UpdateDisplayPortion (hVideo, 0, 0, 0, 0);
@@ -1272,7 +1272,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
    	return TRUE; // uhmm okay.
 	case WM_DESTROY:
 #ifdef LOG_DESTRUCTION
-		Log( WIDE("Destroying a window...") );
+		Log( "Destroying a window..." );
 #endif
       hVideo = (HVIDEO) GetWindowLong (hWnd, WD_HVIDEO);
       if (hVideo)
@@ -1286,7 +1286,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_ERASEBKGND:
 		// LIE! we don't care to ever erase the background...
 		// thanx for the invite though.
-      //lprintf( WIDE("Erase background, and we just say NO") );
+      //lprintf( "Erase background, and we just say NO" );
       return TRUE;
    case WM_CREATE:
       {
@@ -1410,7 +1410,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (HVIDEO hVideo, int x, int y,
 int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen )
 {
 #if defined( LOG_MOUSE_EVENTS ) || defined( OTHER_EVENTS_HERE )
-	lprintf( WIDE("Received message %d"), MsgID );
+	lprintf( "Received message %d", MsgID );
 #endif
    l.dwEventThreadID = GetCurrentThreadId();
 	//LogBinary( (POINTER)params, paramlen );
@@ -1420,7 +1420,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 		{
 			INDEX idx;
 			HVIDEO hVideo;
-         //lprintf( WIDE("dispatching outstanding events...") );
+         //lprintf( "dispatching outstanding events..." );
 			LIST_FORALL( l.pInactiveList, idx, HVIDEO, hVideo )
 			{
 				if( !hVideo->flags.bReady )
@@ -1440,7 +1440,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 					if( hVideo && hVideo->pMouseCallback)
 					{
 #ifdef LOG_MOUSE_EVENTS
-						lprintf( WIDE("Pending dispatch mouse %p (%d,%d) %08x")
+						lprintf( "Pending dispatch mouse %p (%d,%d) %08x"
 								 , hVideo
 								 , hVideo->mouse.x
 								 , hVideo->mouse.y
@@ -1470,7 +1470,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 		{
 			HVIDEO hVideo = (HVIDEO)params[0];
          if( l.flags.bLogFocus )
-				lprintf( WIDE("Got a losefocus for %p at %P"), params[0], params[1] );
+				lprintf( "Got a losefocus for %p at %P", params[0], params[1] );
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 			{
 				if( hVideo && hVideo->pLoseFocus )
@@ -1481,7 +1481,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 	case MSG_RedrawMethod:
 		{
 			HVIDEO hVideo = (HVIDEO)params[0];
-			//lprintf( WIDE("Show video %p"), hVideo );
+			//lprintf( "Show video %p", hVideo );
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 			{
 				EnterCriticalSec( &hVideo->cs );
@@ -1496,7 +1496,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 				LeaveCriticalSec( &hVideo->cs );
 			}
 			else
-            lprintf( WIDE("Failed to find window to show?") );
+            lprintf( "Failed to find window to show?" );
 		}
 		break;
 	case MSG_CloseMethod:
@@ -1505,7 +1505,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 		{
 			HVIDEO hVideo = (HVIDEO)params[0];
 #ifdef LOG_MOUSE_EVENTS
-			lprintf( WIDE("mouse method... forward to application please...") );
+			lprintf( "mouse method... forward to application please..." );
          lprintf( "params %ld %ld %ld", params[1], params[2], params[3] );
 #endif
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
@@ -1516,7 +1516,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 						( params[3] & MK_OBUTTON ) )
 					{
 #ifdef LOG_MOUSE_EVENTS
-						lprintf( WIDE("delta dispatching mouse (%d,%d) %08x")
+						lprintf( "delta dispatching mouse (%d,%d) %08x"
 								 , hVideo->mouse.x
 								 , hVideo->mouse.y
 								 , hVideo->mouse.b );
@@ -1561,7 +1561,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 				if( hVideo && hVideo->pKeyProc )
 				{
 					hVideo->flags.event_dispatched = 1;
-					//lprintf( WIDE("Dispatched KEY!") );
+					//lprintf( "Dispatched KEY!" );
 					if( hVideo->flags.key_dispatched )
 						EnqueLink( &hVideo->pInput, (POINTER)params[1] );
 					else
@@ -1575,12 +1575,12 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 							if( !dispatch_handled )
 							{
 #ifdef LOG_KEY_EVENTS
-								lprintf( WIDE("Local Keydefs Dispatch key : %p %08lx"), hVideo, params[1] );
+								lprintf( "Local Keydefs Dispatch key : %p %08lx", hVideo, params[1] );
 #endif
 								if( hVideo && !HandleKeyEvents( hVideo->KeyDefs, params[1] ) )
 								{
 #ifdef LOG_KEY_EVENTS
-									lprintf( WIDE("Global Keydefs Dispatch key : %08lx"), params[1] );
+									lprintf( "Global Keydefs Dispatch key : %08lx", params[1] );
 #endif
 									if( !HandleKeyEvents( KeyDefs, params[1] ) )
 									{
@@ -1598,7 +1598,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 		}
 		break;
 	default:
-      lprintf( WIDE("Got a unknown message %d with %d data"), MsgID, paramlen );
+      lprintf( "Got a unknown message %d with %d data", MsgID, paramlen );
       break;
 	}
    return 0;
@@ -1610,7 +1610,7 @@ void HandleDestroyMessage( HVIDEO hVidDestroy )
 {
    {
 #ifdef LOG_DESTRUCTION
-		lprintf( WIDE("To destroy! %p %d"), Msg.lParam, hVidDestroy->hWndOutput );
+		lprintf( "To destroy! %p %d", Msg.lParam, hVidDestroy->hWndOutput );
 #endif
 		// hide the window! then it can't be focused or active or anything!
 
@@ -1618,7 +1618,7 @@ void HandleDestroyMessage( HVIDEO hVidDestroy )
 		if( GetActiveWindow() == hVidDestroy->hWndOutput)
 		{
 #ifdef LOG_DESTRUCTION
-			lprintf( WIDE("Set ourselves inactive...") );
+			lprintf( "Set ourselves inactive..." );
 #endif
 			//SetActiveWindow( l.hWndInstance );
 			SetForegroundWindow( (HWND)l.hWndInstance );
@@ -1626,18 +1626,18 @@ void HandleDestroyMessage( HVIDEO hVidDestroy )
 		if( GetFocus() == hVidDestroy->hWndOutput)
 		{
 #ifdef LOG_DESTRUCTION
-			lprintf( WIDE("Fixed focus away from ourselves before destroy.") );
+			lprintf( "Fixed focus away from ourselves before destroy." );
 #endif
 			SetFocus( GetDesktopWindow() );
 		}
 		//ShowWindow( hVidDestroy->hWndOutput, SW_HIDE );
 #ifdef LOG_DESTRUCTION
-		lprintf( WIDE("------------ DESTROY! -----------") );
+		lprintf( "------------ DESTROY! -----------" );
 #endif
  		DestroyWindow (hVidDestroy->hWndOutput);
 		//UnlinkVideo (hVidDestroy);
 #ifdef LOG_DESTRUCTION
-		lprintf( WIDE("From destroy") );
+		lprintf( "From destroy" );
 #endif
 	}
 }
@@ -1741,7 +1741,7 @@ static int CPROC ProcessDisplayMessages(void )
          return -1;
       if (PeekMessage (&Msg, NULL, 0, 0, PM_REMOVE))
 		{
-			lprintf( WIDE("(E)Got message:%d"), Msg.message );
+			lprintf( "(E)Got message:%d", Msg.message );
          HandleMessage (Msg);
          if (l.bExitThread)
             return -1;
@@ -1756,12 +1756,12 @@ static int CPROC ProcessDisplayMessages(void )
 uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 {
 #ifdef LOG_STARTUP
-	Log( WIDE("Video thread...") );
+	Log( "Video thread..." );
 #endif
    if (l.bThreadRunning)
    {
 #ifdef LOG_STARTUP
-		Log( WIDE("Already exists - leaving.") );
+		Log( "Already exists - leaving." );
 #endif
       return 0;
    }
@@ -1771,7 +1771,7 @@ uintptr_t CPROC VideoThreadProc (PTHREAD thread)
       // setwindowshookex
 		MSG msg;
 #ifdef LOG_STARTUP
-		Log( WIDE("reading a message to create a message queue") );
+		Log( "reading a message to create a message queue" );
 #endif
 		PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE );
 	}
@@ -1781,7 +1781,7 @@ uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 	AddIdleProc ( (int(CPROC*)(uintptr_t))ProcessDisplayMessages, 0);
 	//AddIdleProc ( ProcessClientMessages, 0);
 #ifdef LOG_STARTUP
-	Log( WIDE("Registered Idle, and starting message loop") );
+	Log( "Registered Idle, and starting message loop" );
 #endif
 	{
 		MSG Msg;
@@ -1817,7 +1817,7 @@ RENDER_PROC (int, InitDisplay) (void)
       l.aClass = RegisterClass (&wc);
 		if (!l.aClass)
 		{
-         lprintf( WIDE("Failed to register class %s %d"), wc.lpszClassName, GetLastError() );
+         lprintf( "Failed to register class %s %d", wc.lpszClassName, GetLastError() );
 			return FALSE;
 		}
 		InitMessageService();
@@ -1845,19 +1845,19 @@ LRESULT CALLBACK
       aThisClass = (ATOM) GetClassLong (hWndFocus, GCW_ATOM);
       if (aThisClass != l.aClass && hWndFocus != l.hWndInstance )
 			return CallNextHookEx (l.hKeyHook, code, wParam, lParam);
-		//lprintf( WIDE("Keyhook mesasage... %08x %08x"), wParam, lParam );
-      //lprintf( WIDE("hWndFocus is %p"), hWndFocus );
+		//lprintf( "Keyhook mesasage... %08x %08x", wParam, lParam );
+      //lprintf( "hWndFocus is %p", hWndFocus );
 		if( hWndFocus == l.hWndInstance )
 		{
 #ifdef LOG_FOCUSEVENTS
-			lprintf( WIDE("hwndfocus is something...") );
+			lprintf( "hwndfocus is something..." );
 #endif
 			hVid = l.hVidFocused;
 		}
 		else
 		{
 #ifdef LOG_FOCUSEVENTS
-			lprintf( WIDE("hVid from focus") );
+			lprintf( "hVid from focus" );
 #endif
 			hVid = (HVIDEO) GetWindowLong (hWndFocus, WD_HVIDEO);
 			if( hVid && !hVid->flags.bReady )
@@ -1866,7 +1866,7 @@ LRESULT CALLBACK
 				hVid = NULL;
 			}
 		}
-      //lprintf( WIDE("hvid is %p"), hVid );
+      //lprintf( "hvid is %p", hVid );
       //if(hVid)
       {
          /*
@@ -1899,7 +1899,7 @@ LRESULT CALLBACK
          {
             l.kbd.key[wParam & 0xFF] &= ~0x80;  //(unpressed)
 			}
-         //lprintf( WIDE("Set local keyboard %d to %d"), wParam& 0xFF, l.kbd.key[wParam&0xFF]);
+         //lprintf( "Set local keyboard %d to %d", wParam& 0xFF, l.kbd.key[wParam&0xFF]);
 			if( hVid )
 			{
 				hVid->kbd.key[wParam & 0xFF] = l.kbd.key[wParam & 0xFF];
@@ -1933,7 +1933,7 @@ LRESULT CALLBACK
 					uint32_t Msg[2];
 					Msg[0] = (uint32_t)hVid;
 					Msg[1] = key;
-               //lprintf( WIDE("Dispatch key from raw handler into event system.") );
+               //lprintf( "Dispatch key from raw handler into event system." );
 					SendServiceEvent( 0, l.dwMsgBase + MSG_KeyMethod, Msg, sizeof( Msg ) );
 				}
 		}
@@ -1956,20 +1956,20 @@ RENDER_PROC (char, GetKeyText) (int key)
    if (!c)
    {
       // check prior key bindings...
-      //printf( WIDE("no translation\n") );
+      //printf( "no translation\n" );
       return 0;
    }
    else if (c == 2)
    {
-      //printf( WIDE("Key Translated: %d %d\n"), ch[0], ch[1] );
+      //printf( "Key Translated: %d %d\n", ch[0], ch[1] );
       return 0;
    }
    else if (c < 0)
    {
-      //printf( WIDE("Key Translation less than 0\n") );
+      //printf( "Key Translation less than 0\n" );
       return 0;
    }
-   //printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+   //printf( "Key Translated: %d(%c)\n", ch[0], ch[0] );
    return ch[0];
 }
 
@@ -2000,10 +2000,10 @@ RENDER_PROC (HVIDEO, OpenDisplaySizedAt) (uint32_t attr, uint32_t wx, uint32_t w
    if (!l.pThread)
    {
       int failcount = 0;
-      //Log( WIDE("Starting video thread...") );
+      //Log( "Starting video thread..." );
       l.pThread = ThreadTo (VideoThreadProc, 0);
 #ifdef LOG_STARTUP
-		Log( WIDE("Started video thread...") );
+		Log( "Started video thread..." );
 #endif
       do
       {
@@ -2032,13 +2032,13 @@ RENDER_PROC (HVIDEO, OpenDisplaySizedAt) (uint32_t attr, uint32_t wx, uint32_t w
 
 			if (RegisterRawInputDevices(Rid, 2, sizeof (Rid [0])) == FALSE)
 			{
-				lprintf( WIDE("Registration failed!?") );
+				lprintf( "Registration failed!?" );
 				//registration failed. Call GetLastError for the cause of the error
 			}
 		}
 #endif
 	}
-   lprintf( WIDE("Hardcoded right here for FULL window surfaces, no native borders.") );
+   lprintf( "Hardcoded right here for FULL window surfaces, no native borders." );
    hNextVideo->flags.bFull = TRUE; //FALSE;
    hNextVideo->pWindowPos.x = x;
    hNextVideo->pWindowPos.y = y;
@@ -2065,14 +2065,14 @@ RENDER_PROC (HVIDEO, OpenDisplaySizedAt) (uint32_t attr, uint32_t wx, uint32_t w
 										  (LPARAM) hNextVideo);
 			if (!d)
 			{
-				Log1( WIDE("Failed to post create new window message...%d" ),
+				Log1( "Failed to post create new window message...%d",
 						GetLastError ());
 				cnt--;
 			}
 #ifdef LOG_STARTUP
 			else
 			{
-				lprintf( WIDE("Posted create new window message...") );
+				lprintf( "Posted create new window message..." );
 			}
 #endif
 			Relinquish();
@@ -2092,7 +2092,7 @@ RENDER_PROC (HVIDEO, OpenDisplaySizedAt) (uint32_t attr, uint32_t wx, uint32_t w
 				// thIS thread did create this window...
 				if( !Idle() )
 				{
-					//lprintf( WIDE("Sleeping until the window is created.") );
+					//lprintf( "Sleeping until the window is created." );
 					//WakeableSleep( SLEEP_FOREVER );
 					Relinquish();
 				}
@@ -2100,14 +2100,14 @@ RENDER_PROC (HVIDEO, OpenDisplaySizedAt) (uint32_t attr, uint32_t wx, uint32_t w
 			if( !hNextVideo->flags.bReady )
 			{
             CloseDisplay( hNextVideo );
-				lprintf( WIDE("Fatality.. window creation did not complete in a timely manner.") );
+				lprintf( "Fatality.. window creation did not complete in a timely manner." );
 				// hnextvideo is null anyhow, but this is explicit.
 				return NULL;
 			}
 		}
 	}
 #ifdef LOG_STARTUP
-	lprintf( WIDE("Resulting new window %p %d"), hNextVideo, hNextVideo->hWndOutput );
+	lprintf( "Resulting new window %p %d", hNextVideo, hNextVideo->hWndOutput );
 #endif
    return hNextVideo;      // can return a-synchronously with creation... but WILL be valid...
 }
@@ -2142,7 +2142,7 @@ RENDER_PROC (void, CloseDisplay) (HVIDEO hVideo)
 	if (GetCurrentThreadId () == l.dwThreadID )
    {
 #ifdef LOG_DESTRUCTION
-		lprintf( WIDE("Scheduled for deletion") );
+		lprintf( "Scheduled for deletion" );
 #endif
       HandleDestroyMessage( hVideo );
    }
@@ -2170,7 +2170,7 @@ RENDER_PROC (void, CloseDisplay) (HVIDEO hVideo)
 		{
 			if( !logged )
 			{
-				lprintf( WIDE("Wait for window to go unready.") );
+				lprintf( "Wait for window to go unready." );
 				logged = 1;
 			}
 			Sleep (0);
@@ -2375,7 +2375,7 @@ RENDER_PROC (void, SetRedrawHandler) (HVIDEO hVideo,
    hVideo->dwRedrawData = dwUser;
 	if( (hVideo->pRedrawCallback = pRedrawCallback ) )
 	{
-		//lprintf( WIDE("Sending redraw for %p"), hVideo );
+		//lprintf( "Sending redraw for %p", hVideo );
       if( hVideo->flags.bShown )
 			SendServiceEvent( 0, l.dwMsgBase + MSG_RedrawMethod, &hVideo, sizeof( hVideo ) );
 		//hVideo->pRedrawCallback (hVideo->dwRedrawData, (PRENDERER) hVideo);
@@ -2463,7 +2463,7 @@ RENDER_PROC (void, HideDisplay) (HVIDEO hVideo)
 		ShowWindow (hVideo->hWndOutput, SW_HIDE);
 		if (hVideo->pAbove)
 		{
-			lprintf( WIDE("Focusing and activating my parent window.") );
+			lprintf( "Focusing and activating my parent window." );
 			{
 				static POINTER _NULL = NULL;
 				SendMultiServiceEvent( 0, l.dwMsgBase + MSG_LoseFocusMethod, 2
@@ -2515,7 +2515,7 @@ RENDER_PROC (void, GetDisplaySize) (uint32_t * width, uint32_t * height)
 {
    RECT r;
    GetWindowRect (GetDesktopWindow (), &r);
-	//Log4( WIDE("Desktop rect is: %d, %d, %d, %d"), r.left, r.right, r.top, r.bottom );
+	//Log4( "Desktop rect is: %d, %d, %d, %d", r.left, r.right, r.top, r.bottom );
 
 	if (width)
       //1024;//
@@ -2603,7 +2603,7 @@ RENDER_PROC (void, OwnMouseEx) (HVIDEO hVideo, uintptr_t own DBG_PASS)
 {
 	if (own)
 	{
-		lprintf( WIDE("Capture is set on %p"),hVideo );
+		lprintf( "Capture is set on %p",hVideo );
 		if( !l.hCaptured )
 		{
 			l.hCaptured = hVideo;
@@ -2614,7 +2614,7 @@ RENDER_PROC (void, OwnMouseEx) (HVIDEO hVideo, uintptr_t own DBG_PASS)
 		{
 			if( l.hCaptured != hVideo )
 			{
-				lprintf( WIDE("Another window now wants to capture the mouse... the prior window will ahve the capture stolen.") );
+				lprintf( "Another window now wants to capture the mouse... the prior window will ahve the capture stolen." );
 				l.hCaptured = hVideo;
 				hVideo->flags.bCaptured = 1;
 				SetCapture (hVideo->hWndOutput);
@@ -2623,7 +2623,7 @@ RENDER_PROC (void, OwnMouseEx) (HVIDEO hVideo, uintptr_t own DBG_PASS)
 			{
 				if( !hVideo->flags.bCaptured )
 				{
-					lprintf( WIDE("This should NEVER happen!") );
+					lprintf( "This should NEVER happen!" );
                *(int*)0 = 0;
 				}
 				// should already have the capture...
@@ -2634,7 +2634,7 @@ RENDER_PROC (void, OwnMouseEx) (HVIDEO hVideo, uintptr_t own DBG_PASS)
 	{
 		if( l.hCaptured == hVideo )
 		{
-			lprintf( WIDE("No more capture.") );
+			lprintf( "No more capture." );
 			//ReleaseCapture ();
 			hVideo->flags.bCaptured = 0;
 			l.hCaptured = NULL;
@@ -2685,12 +2685,12 @@ RENDER_PROC( void, ForceDisplayFocus )( PRENDERER pRender )
 RENDER_PROC( void, ForceDisplayForward )( PRENDERER pRender )
 {
    if( !SetWindowPos( pRender->hWndOutput, pRender->flags.bTopmost?HWND_TOPMOST:HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE ) )
-      lprintf( WIDE("Window Pos set failed: %d"), GetLastError() );
+      lprintf( "Window Pos set failed: %d", GetLastError() );
    if( !SetActiveWindow( pRender->hWndOutput ) )
-      lprintf( WIDE("active window failed: %d"), GetLastError() );
+      lprintf( "active window failed: %d", GetLastError() );
 
    if( !SetForegroundWindow( pRender->hWndOutput ) )
-      lprintf( WIDE("okay well foreground failed...?") );
+      lprintf( "okay well foreground failed...?" );
 }
 
 //----------------------------------------------------------------------------
@@ -2803,12 +2803,12 @@ int IsTouchDisplay( void )
 PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 {
    if( l.flags.bLogRegister )
-		lprintf( WIDE("Regstering video interface...") );
+		lprintf( "Regstering video interface..." );
    RegisterInterface( 
 #ifdef SACK_BAG_EXPORTS  // symbol defined by visual studio sack_bag.vcproj
-	   WIDE("render")
+	   "render"
 #else
-	   WIDE("video")
+	   "video"
 #endif
 	   , GetDisplayInterface, DropDisplayInterface );
 	BindEventToKey( NULL, KEY_F4, KEY_MOD_ALT, DefaultExit, 0 );

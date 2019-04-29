@@ -30,7 +30,7 @@ int APIENTRY WinMain( HINSTANCE h, HINSTANCE p, int cmd, int nCmdShow )
 	display[0] = OpenDisplaySizedAt( 0, 150, 150, 50, 50 );
 	if( !display[0] )
 	{
-		fprintf( stderr, WIDE("Failed to open a display") );
+		fprintf( stderr, "Failed to open a display" );
 		return 0;
 	}
 	image[0] = GetDisplayImage( display[0] );
@@ -38,7 +38,7 @@ int APIENTRY WinMain( HINSTANCE h, HINSTANCE p, int cmd, int nCmdShow )
 	display[1] = OpenDisplaySizedAt( 0, 250, 250, 50, 50 );
 	if( !display[1] )
 	{
-		fprintf( stderr, WIDE("Failed to open a display") );
+		fprintf( stderr, "Failed to open a display" );
 		return 0;
 	}
 	image[1] = GetDisplayImage( display[1] );
@@ -46,7 +46,7 @@ int APIENTRY WinMain( HINSTANCE h, HINSTANCE p, int cmd, int nCmdShow )
 	display[2] = OpenDisplaySizedAt( 0, 350, 350, 50, 50 );
 	if( !display[2] )
 	{
-		fprintf( stderr, WIDE("Failed to open a display") );
+		fprintf( stderr, "Failed to open a display" );
 		return 0;
 	}
 	image[2] = GetDisplayImage( display[2] );

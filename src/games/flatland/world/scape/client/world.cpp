@@ -78,7 +78,7 @@ INDEX OpenWorld( CTEXTSTR name )
 
 INDEX CreateBasicWorld( void )
 {
-	INDEX world = OpenWorld( WIDE("Default world") );
+	INDEX world = OpenWorld( "Default world" );
 	CreateSquareSector( world, VectorConst_0, 50 );
 	return world;
 }
@@ -240,7 +240,7 @@ INDEX CPROC CheckWallSelect( PWALL wall, PWALLSELECTINFO si )
 			else
 				return 1; // breaks for_all loop
 		}
-		//Log4( WIDE("Results: %g %g (%g %g)"), t1, t2, line->start, line->dTo );
+		//Log4( "Results: %g %g (%g %g)", t1, t2, line->start, line->dTo );
 	}
 	return 0;
 }
@@ -264,7 +264,7 @@ int MergeSelectedWalls( INDEX iWorld, INDEX iDefinite, PORTHOAREA rect )
 	
 	if( !ForAllWalls( world->walls, CheckWallSelect, &si ) )
 	{
-		Log1( WIDE("Found %d walls to merge: %d"), si.nwalls );
+		Log1( "Found %d walls to merge: %d", si.nwalls );
 		if( si.nwalls == 2 && 
 			( GetWall( si.walls[0] )->iSector != GetWall( si.walls[1] )->iSector ) )
 		{
@@ -312,7 +312,7 @@ INDEX CPROC CheckSectorInRect( INDEX sector, PSECTORSELECTINFO psi )
 		{
 			addscaled( p, line->r.o, line->r.n, line->dFrom );
 		}
-		//Log7( WIDE("Checking (%g,%g) vs (%g,%g)-(%g,%g)"), 
+		//Log7( "Checking (%g,%g) vs (%g,%g)-(%g,%g)", 
 		if( p[0] < (rect->x) ||
 		    p[0] > (rect->x + rect->w) ||
           p[1] < (rect->y) ||
@@ -354,11 +354,11 @@ int MarkSelectedSectors( INDEX iWorld, PORTHOAREA rect, INDEX **sectorarray, int
 		rect->y += rect->h;
 		rect->h = -rect->h;
 	}
-	Log( WIDE("Marking Sectors") );
+	Log( "Marking Sectors" );
 	DoForAllSectors( world->sectors, CheckSectorInRect, (uintptr_t)&si );
 	if( si.nsectors )
 	{
-		Log1( WIDE("Found %d sectors in range"), si.nsectors );
+		Log1( "Found %d sectors in range", si.nsectors );
 		if( sectorcount )
 			*sectorcount = si.nsectors;
 		if( sectorarray )
@@ -397,9 +397,9 @@ void DumpBinary( unsigned char *pc, int sz )
 	int n = 0;
 	while( sz-- )
 	{
-		n += snprintf( msg + n, 256 - n, WIDE("%02x"), *pc++ );
+		n += snprintf( msg + n, 256 - n, "%02x", *pc++ );
 		if( ( sz & 3 ) == 0 )
-			n += snprintf( msg + n, 256 - n, WIDE(" ") );
+			n += snprintf( msg + n, 256 - n, " " );
 	}
 	Log( msg );
 }
@@ -426,19 +426,19 @@ int CPROC CheckWallInRect( PWALL wall, PGROUPWALLSELECTINFO psi )
 	if( wall->iLine == INVALID_INDEX )
 	{
 		PSECTOR sector = GetSector( wall->iSector );
-   		Log( WIDE("Line didn't exist...") );
+   		Log( "Line didn't exist..." );
    		if( sector )
 		{
 			PNAME name = GetName( sector->iName );
-   			Log( WIDE("Sector exists...") );
+   			Log( "Sector exists..." );
    			if( name &&
 				name[0].name )
-		   		Log1( WIDE("Wall in Sector %s does not have a line"), name[0].name );
+		   		Log1( "Wall in Sector %s does not have a line", name[0].name );
 			else
-				Log( WIDE("Sector referenced does not have a name") );
+				Log( "Sector referenced does not have a name" );
 		}
 		else
-			Log( WIDE("Wall should not be active... WHY is it?!") );
+			Log( "Wall should not be active... WHY is it?!" );
    }
    else
    {
@@ -455,7 +455,7 @@ int CPROC CheckWallInRect( PWALL wall, PGROUPWALLSELECTINFO psi )
 			if( psi->ppwalls )
 			{
 				psi->ppwalls[psi->nwalls++] = GetWallIndex( wall );
-				lprintf( WIDE("Client side... nto sure if we need a balance here? "));
+				lprintf( "Client side... nto sure if we need a balance here? ");
 				//BalanceALine( psi->iWorld, psi->ppwalls[psi->nwalls++], wall->iLine, line );
 			}
 			else
@@ -503,10 +503,10 @@ void MergeOverlappingWalls( INDEX iWorld, PORTHOAREA rect )
 						if( PointInRect( start2, rect ) && 
 							 PointInRect( end2, rect ) )
 						{
-							Log4( WIDE("starts: (%12.12g,%12.12g) vs (%12.12g,%12.12g)") 
+							Log4( "starts: (%12.12g,%12.12g) vs (%12.12g,%12.12g)" 
 										,start[0], start[1]
 										,start2[0], start2[1] );
-							Log4( WIDE("ends  : (%12.12g,%12.12g) vs (%12.12g,%12.12g)") 
+							Log4( "ends  : (%12.12g,%12.12g) vs (%12.12g,%12.12g)" 
 										,end[0], end[1]
 										,end2[0], end2[1] );
 						}
@@ -609,7 +609,7 @@ int ValidateWorldLinks( INDEX iWorld )
 			if( m == nWalls )
 			{
 				status = FALSE;
-				Log1( WIDE("Line %08x is unreferenced... deleting now."), pLines[n] );
+				Log1( "Line %08x is unreferenced... deleting now.", pLines[n] );
 				DeleteLine( world->lines, pLines[n] );
 				pLines[n] = NULL;
 			}
@@ -641,7 +641,7 @@ int ValidateWorldLinks( INDEX iWorld )
 			if( m == nLines )
 			{
 				status = FALSE;
-				Log3( WIDE("Wall %08x in Sector %d referenced line %08x that does not exist"), 
+				Log3( "Wall %08x in Sector %d referenced line %08x that does not exist", 
 							pWalls[n], GetSector( pWalls[n]->iSector )->iName, pWalls[n]->iLine );
 			}
 		}
@@ -649,7 +649,7 @@ int ValidateWorldLinks( INDEX iWorld )
 		{
 			int count = 0;
 			if( !pLines[n]->refcount )
-				Log( WIDE("Line exists with no reference count") );
+				Log( "Line exists with no reference count" );
 			for( m = 0; m < nWalls; m++ )
 			{
 				if( GetLine( pWalls[m]->iLine ) == pLines[n] )
@@ -659,7 +659,7 @@ int ValidateWorldLinks( INDEX iWorld )
 			}
 			if( count != pLines[n]->refcount )
 			{
-				Log2( WIDE("Line reference count of %d does not match actual %d")
+				Log2( "Line reference count of %d does not match actual %d"
 							, pLines[n]->refcount
 							, count );
 			}
@@ -678,7 +678,7 @@ int ValidateWorldLinks( INDEX iWorld )
 				}
 				if( i == nNames )
 				{
-					Log2( WIDE("Name %08x referenced by Sector %d does not exist"), pSectors[n]->iName, n );
+					Log2( "Name %08x referenced by Sector %d does not exist", pSectors[n]->iName, n );
 				}
 			}
 
@@ -687,7 +687,7 @@ int ValidateWorldLinks( INDEX iWorld )
 			{
 				if( pCur->iLine == INVALID_INDEX )
 				{
-					Log1( WIDE("Wall in sector %d has an invalid line def"), pSectors[n]->iName );
+					Log1( "Wall in sector %d has an invalid line def", pSectors[n]->iName );
 				}
 				
 				for( m = 0; m < nWalls; m++ )
@@ -698,7 +698,7 @@ int ValidateWorldLinks( INDEX iWorld )
 				if( m == nWalls )
 				{
 					status = FALSE;
-					Log4( WIDE("Sector %*.*s referenced wall %08x that does not exist"),
+					Log4( "Sector %*.*s referenced wall %08x that does not exist",
 								GetName( pSectors[n]->iName )->name[0].length,
 								GetName( pSectors[n]->iName )->name[0].length,
 								GetName( pSectors[n]->iName )->name[0].name, pCur );

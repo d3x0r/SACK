@@ -59,7 +59,7 @@ int IntersectLines( PFLATLAND_MYLINESEG pLine1, int bEnd1, PFLATLAND_MYLINESEG p
  	if( !r )
 	{
 		TEXTCHAR msg[256];
-		snprintf( msg, 256, WIDE("Intersect N<%g,%g,%g> O<%g,%g,%g> with N<%g,%g,%g> O<%g,%g,%g>"), 
+		snprintf( msg, 256, "Intersect N<%g,%g,%g> O<%g,%g,%g> with N<%g,%g,%g> O<%g,%g,%g>", 
 							pLine1->r.n[0], 
 							pLine1->r.n[1], 
 							pLine1->r.n[2], 
@@ -73,9 +73,9 @@ int IntersectLines( PFLATLAND_MYLINESEG pLine1, int bEnd1, PFLATLAND_MYLINESEG p
 							pLine2->r.o[1], 
 							pLine2->r.o[2] );
 		Log( msg );
-		snprintf( msg, 256, WIDE("Result %d Times: %g and %g"), r, t1, t2 );
+		snprintf( msg, 256, "Result %d Times: %g and %g", r, t1, t2 );
 		Log( msg );
-		Log2( WIDE("End Flags: %d %d"), bEnd1, bEnd2 );
+		Log2( "End Flags: %d %d", bEnd1, bEnd2 );
 	}
 	if( r )
 	{
@@ -100,7 +100,7 @@ int IntersectLines( PFLATLAND_MYLINESEG pLine1, int bEnd1, PFLATLAND_MYLINESEG p
 //----------------------------------------------------------------------------
 void DumpLine( PFLATLAND_MYLINESEG pls )
 {
-	Log8( WIDE("Line: <%g,%g,%g> <%g,%g,%g> from:%g to:%g")
+	Log8( "Line: <%g,%g,%g> <%g,%g,%g> from:%g to:%g"
 						, pls->r.n[0]
 						, pls->r.n[1]
 						, pls->r.n[2]
@@ -152,12 +152,12 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 			{
             /*
 //#ifdef FULL_DEBUG
-				Log( WIDE("Bad!-------------------------------------------\n") );
+				Log( "Bad!-------------------------------------------\n" );
 //#endif
-				Log6( WIDE("Line 1: <%g %g %g> <%g %g %g>")
+				Log6( "Line 1: <%g %g %g> <%g %g %g>"
 							, s1[0], s1[1], s1[2] 
 							, o1[0], o1[1], o1[2] );
-				Log6( WIDE("Line 2:<%g %g %g> <%g %g %g>")
+				Log6( "Line 2:<%g %g %g> <%g %g %g>"
 							, s2[0], s2[1], s2[2] 
 							, o2[0], o2[1], o2[2] );
 				*/
@@ -201,11 +201,11 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 			( ((i=2),!COMPARE(R1[2],R2[2]) )) )
 		{ 
 			/*
-			Log7( WIDE("Points (%12.12g,%12.12g,%12.12g) and (%12.12g,%12.12g,%12.12g) coord %d is too far apart")
+			Log7( "Points (%12.12g,%12.12g,%12.12g) and (%12.12g,%12.12g,%12.12g) coord %d is too far apart"
 			, R1[0], R1[1], R1[2]
 			, R2[0], R2[1], R2[2] 
 			, i );
-			Log7( WIDE("Points (%08X,%08X,%08X) and (%08X,%08X,%08X) coord %d is too far apart")
+			Log7( "Points (%08X,%08X,%08X) and (%08X,%08X,%08X) coord %d is too far apart"
 			, *(int*)&R1[0], *(int*)&R1[1], *(int*)&R1[2]
 			, *(int*)&R2[0], *(int*)&R2[1], *(int*)&R2[2] 
 			, i );

@@ -22,19 +22,19 @@ extern FILE *__REDIRECT (tmpfile, (void) __THROW, tmpfile64);
 #pragma NOTE("Test me!!!! " __DATE__ " at " __TIME__ );
 
 #if (3*4 == 12 )
-#pragma NOTE( WIDE("multiply") )
+#pragma NOTE( "multiply" )
 #endif
 
 #if ( 15 & 12 == 12 )
-#pragma NOTE( WIDE("and") )
+#pragma NOTE( "and" )
 #endif
 
 #if ( 4/5 >= 0 )
-#pragma NOTE( WIDE("divide") )
+#pragma NOTE( "divide" )
 #endif
 
 #if ( 'a' == 97 )
-#pragma NOTE( WIDE("character equates") )
+#pragma NOTE( "character equates" )
 #endif
 
 #if ( 1 * 15 / 3 & 1 | 0xff + 4 ^ 8 - 2 > 0 || !0 == 1 && ~0 <= 0xFF )
@@ -46,8 +46,8 @@ extern FILE *__REDIRECT (tmpfile, (void) __THROW, tmpfile64);
 str(__LINE__)
 strsym(__LINE__)
 
-str( WIDE("Hello") );
-str( WIDE("He\")llo" );
+str( "Hello" );
+str( "He\"llo" );
 
 //#define a(n) x(n)
 
@@ -138,8 +138,8 @@ __LINE__
 f(baker, banana)
 f(one,
   two )
-f( WIDE("one string, some more text, one param")
-  , WIDE("Another String") )
+f( "one string, some more text, one param"
+  , "Another String" )
 f((1,baker), apple)
 
 //#define str(n) #n
@@ -151,4 +151,4 @@ strsym(__LINE__)
 
 #define test(f,...) fprintf( f DBG_SRC, ... )
 
-   test( WIDE("%d %d %d"), 1,2,3 )
+   test( "%d %d %d", 1,2,3 )

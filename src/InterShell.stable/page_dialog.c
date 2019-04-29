@@ -44,7 +44,7 @@ OnEditControl( PAGE_CHANGER_NAME )( uintptr_t psv, PSI_CONTROL parent_frame )
 		// the config, and return the button created.
 		//PPAPER_INFO issue = button->paper;
 		int created = 0;
-		frame = LoadXMLFrame( WIDE("page_change_property.isframe") );
+		frame = LoadXMLFrame( "page_change_property.isframe" );
 		if( frame )
 		{
 			//could figure out a way to register methods under

@@ -28,7 +28,7 @@ int IsDead( PSENTIENT ps, PTEXT parameters )
 void DestroyProcess( PENTITY pe )
 {
 	PPROCESS process = (PPROCESS)GetLink( &pe->pPlugin, iProcess );
-	Log( WIDE("Killing process this represents") );
+	Log( "Killing process this represents" );
 	if( process )
 	{
 		if( WaitForSingleObject( process->pi.hProcess, 0 ) == WAIT_TIMEOUT )
@@ -70,24 +70,24 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 	// parameters specify command and parameters to launch...
 	// perhaps a working directory? May or may not want it
 	// in the current directory...
-	// /make process test WIDE("command arguments") WIDE("work path") <attributes?>
-	// /make process test WIDE("notepad trigger.txt") 
+	// /make process test "command arguments" "work path" <attributes?>
+	// /make process test "notepad trigger.txt" 
 	PSENTIENT ps2;
 	PPROCESS process = New( PROCESS );
 	TEXTCHAR MyPath[256];
 	GetCurrentPath( MyPath, sizeof( MyPath ) );
 	ps2 = CreateAwareness( peInit );
 	MemSet( process, 0, sizeof( PROCESS ) );
-	Log( WIDE("Have a process, and woke it up... setting the link") );
+	Log( "Have a process, and woke it up... setting the link" );
 	SetLink( &peInit->pPlugin, iProcess, process );
 	SetLink( &peInit->pDestroy, iProcess, DestroyProcess );
-	Log( WIDE("Set the link, getting params...") );
+	Log( "Set the link, getting params..." );
 	{
 		PTEXT text, cmd = NULL;
 		text = GetParam( ps, &parameters );
 		if( text && TextIs( text, WIDE("\"") ) )
 		{
-	      Log( WIDE("Found a quote, getting command line") );
+	      Log( "Found a quote, getting command line" );
 			while( (text = GetParam( ps, &parameters )) && !TextIs( text, WIDE("\"") ) )
 			{
 				cmd = SegAppend( cmd, SegDuplicate( text ) );
@@ -99,7 +99,7 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 				text = GetParam( ps, &parameters );
 		   	if( text && TextIs( text, WIDE("\"") ) )
 				{
-					Log( WIDE("Found a quote, getting the path") );
+					Log( "Found a quote, getting the path" );
 					while( (text = GetParam( ps, &parameters )) && !TextIs( text, WIDE("\"") ) )
 					{
 						cmd = SegAppend( cmd, SegDuplicate( text ) );
@@ -111,13 +111,13 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters )
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Must specify process to execute in quotes (\")") );
+			DECLTEXT( msg, "Must specify process to execute in quotes (\"") );
 			EnqueLink( &ps->Command->Output, &msg );
 		WakeAThread( ps2 );
 			return -1; // abort creation.
 		}
 	}
-	Log2( WIDE("Starting %s in %s"), GetText( process->command ), GetText( process->directory ) );
+	Log2( "Starting %s in %s", GetText( process->command ), GetText( process->directory ) );
 	process->si.cb = sizeof( process->si );
 	// remaining startup info members are NULL - specifying we do NOT care
 	// why why when where how the process starts.

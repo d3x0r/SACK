@@ -66,7 +66,7 @@ struct page_data
 };
 typedef struct page_data PAGE_DATA;
 
-#define PAGE_CHANGER_NAME WIDE("page/Page Changer")
+#define PAGE_CHANGER_NAME "page/Page Changer"
 
 void SetCurrentPageID( PSI_CONTROL pc_canvas, uint32_t ID ); // MNU_CHANGE_PAGE ID (minus base)
 void DestroyPageID( PSI_CONTROL pc_canvas, uint32_t ID ); // MNU_DESTROY_PAGE ID (minus base)

@@ -65,13 +65,13 @@ static void StopRunMacro( uintptr_t psv, NATIVE value )
 	}
 }
 
-static void ObjectMacroCreated( WIDE("Point Label"), WIDE("Brain Interface"), WIDE( "Event on Add a macro") )(PENTITY pe_object, PMACRO macro)
+static void ObjectMacroCreated( "Point Label", "Brain Interface", "Event on Add a macro" )(PENTITY pe_object, PMACRO macro)
 {
 	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe_object->pPlugin, l.extension );
 	if( vobj )
 	{
 		PVARTEXT pvt = VarTextCreate();
-		vtprintf( pvt, WIDE("Run Macro %s"), GetText( GetName( macro ) ) );
+		vtprintf( pvt, "Run Macro %s", GetText( GetName( macro ) ) );
 
 		PBRAIN_STEM pbs = new BRAIN_STEM( GetText( VarTextPeek( pvt ) ) );
 		vobj->brain->AddBrainStem( pbs );
@@ -84,21 +84,21 @@ static void ObjectMacroCreated( WIDE("Point Label"), WIDE("Brain Interface"), WI
 			mis->running = 0;
 			mis->stopping = 0;
 			mis->vobj = vobj;
-			pbs->AddInput( new value(GetMacroRunning, (uintptr_t)mis ), WIDE( "Is Running" ) );
-			pbs->AddOutput( new value(StartRunMacro, (uintptr_t)mis ), WIDE( "Start" ) );
-			pbs->AddOutput( new value(StopRunMacro, (uintptr_t)mis ), WIDE( "Stop" ) );
+			pbs->AddInput( new value(GetMacroRunning, (uintptr_t)mis ), "Is Running" );
+			pbs->AddOutput( new value(StartRunMacro, (uintptr_t)mis ), "Start" );
+			pbs->AddOutput( new value(StopRunMacro, (uintptr_t)mis ), "Stop" );
 		}
 	}
 }
 
 
-static void ObjectMacroDestroyed( WIDE("Point Label"), WIDE("Brain Interface"), WIDE( "Event on deletion of a macro") )(PENTITY pe_object, PMACRO macro)
+static void ObjectMacroDestroyed( "Point Label", "Brain Interface", "Event on deletion of a macro" )(PENTITY pe_object, PMACRO macro)
 {
 	struct virtuality_object *vobj = (struct virtuality_object *)GetLink( &pe_object->pPlugin, l.extension );
 	if( vobj )
 	{
 		PVARTEXT pvt = VarTextCreate();
-		vtprintf( pvt, WIDE("Run Macro %s"), GetText( GetName( macro ) ) );
+		vtprintf( pvt, "Run Macro %s", GetText( GetName( macro ) ) );
 		PBRAIN_STEM pbs = vobj->brain->GetBrainStem( GetText( VarTextPeek( pvt ) ) );
 		vobj->brain->RemoveBrainStem( pbs );
 		delete( pbs );

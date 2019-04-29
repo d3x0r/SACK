@@ -106,7 +106,7 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
 	size_t l1 = srclen; // one for length, one for nul
 	size_t l2 = dst[-1] - 2; // one for length, one for nul
 	// case insensitive loop..
-	//lprintf( WIDE("Compare %s(%d) vs %s[%p](%d)"), src, l1, dst, dst, l2 );
+	//lprintf( "Compare %s(%d) vs %s[%p](%d)", src, l1, dst, dst, l2 );
 	// interesting... first sort by length
 	// and then by content?
 	//if( l1 != l2 )
@@ -124,7 +124,7 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
 		--l2;
 		--l1;
 	} while ( l2 && l1 && (f == last) );
-	//lprintf( WIDE("Results to compare...%d,%d  %c,%c"), l1, l2, f, last );
+	//lprintf( "Results to compare...%d,%d  %c,%c", l1, l2, f, last );
 	// if up to the end of some portion of the strings matched...
 	if( !f && !last )
 	{
@@ -147,7 +147,7 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
 
 static int CPROC SavedNameCmp(CTEXTSTR dst, CTEXTSTR src)
 {
-	//lprintf( WIDE("Compare names... (tree) %s,%s"), dst, src );
+	//lprintf( "Compare names... (tree) %s,%s", dst, src );
 	if( !src && !dst )
 		return 0;
 	if( !src ) {
@@ -256,7 +256,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 	// cannot save 0 length strings.
 	if( !stripped || !stripped[0] || !len )
 	{
-		//lprintf( WIDE("zero length string passed") );
+		//lprintf( "zero length string passed" );
 		return NULL;
 	}
 
@@ -295,7 +295,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 			p = space->buffer;
 			while( p[0] && len )
 			{
-				//lprintf( WIDE("Compare %s(%d) vs %s(%d)"), p+1, p[0], stripped,len );
+				//lprintf( "Compare %s(%d) vs %s(%d)", p+1, p[0], stripped,len );
 				if( SavedNameCmpEx( p+1, stripped, len ) == 0 )
 				{
 					// otherwise it will be single threaded?
@@ -433,7 +433,7 @@ CTEXTSTR SaveNameConcatN( CTEXTSTR name1, ... )
 		// concat order for libraries is
 		// args, return type, library, library_procname
 		// this is appeneded to the key value FUNCTION
-		//lprintf( WIDE("Concatting %s"), namex );
+		//lprintf( "Concatting %s", namex );
 		newlen = StrLen( StripName( stripbuffer + len, namex ) );
 		//if( newlen )
 		newlen++;
@@ -540,7 +540,7 @@ PRIORITY_PRELOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
 #endif
 #endif
 #ifndef __NO_OPTIONS__
-	l.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Process Registry/Disable Memory Logging"), 1, TRUE );
+	l.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( GetProgramName(), "SACK/Process Registry/Disable Memory Logging", 1, TRUE );
 #else
 	l.flags.bDisableMemoryLogging = 1;
 #endif
@@ -561,7 +561,7 @@ int GetClassPath( TEXTSTR out, size_t len, PCLASSROOT root )
 	while( ( name = (PNAME)PopLink( &pls ) ) )
 	{
 		//pcr->
-		ofs += tnprintf( out + ofs, len - ofs, WIDE("/%s"), name->name );
+		ofs += tnprintf( out + ofs, len - ofs, "/%s", name->name );
 	}
 	DeleteLinkStack( &pls );
 	return ofs;
@@ -584,10 +584,10 @@ static PTREEDEF AddClassTree( PCTREEDEF class_root, TEXTCHAR *name, PTREEROOT ro
 		classname->flags.bTree = TRUE;
 		classname->parent = (PTREEDEF)class_root;
 
-		//lprintf( WIDE("Adding class tree thing %p  %s"), class_root->Tree, classname->name );
+		//lprintf( "Adding class tree thing %p  %s", class_root->Tree, classname->name );
 		if( !AddBinaryNode( class_root->Tree, classname, (uintptr_t)classname->name ) )
 		{
-			//Log( WIDE("For some reason could not add new class tree to tree!") );
+			//Log( "For some reason could not add new class tree to tree!" );
 			DeleteFromSet( NAME, l.NameSet, classname );
 			return NULL;
 		}
@@ -701,7 +701,7 @@ PTREEDEF GetClassTreeEx( PCTREEDEF root, PCTREEDEF _name_class, PTREEDEF alias, 
 						TEXTCHAR buf[256];
 						//lprintf( "Finding a..." );
 						new_root = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, start ) );
-						//lprintf( WIDE("Found %p %s(%d)=%s"), new_root, buf+1, buf[0], start );
+						//lprintf( "Found %p %s(%d)=%s", new_root, buf+1, buf[0], start );
 					}
 					if( !new_root )
 					{
@@ -710,7 +710,7 @@ PTREEDEF GetClassTreeEx( PCTREEDEF root, PCTREEDEF _name_class, PTREEDEF alias, 
 						if( alias && !end )
 						{
 							// added name in this place name terminates on a '/'
-							//lprintf( WIDE("name not found, adding...!end && alias") );
+							//lprintf( "name not found, adding...!end && alias" );
 							class_root = AddClassTree( class_root
 															 , start
 															 , alias->Tree
@@ -728,7 +728,7 @@ PTREEDEF GetClassTreeEx( PCTREEDEF root, PCTREEDEF _name_class, PTREEDEF alias, 
 							// a member, branches are created.... should consider
 							// perhaps offering an option to read for class root without creating
 							// however it gives one an idea of what methods might be avaialable...
-							//lprintf( WIDE("name not found, adding.. [%s] %s"), start, class_root->self?class_root->self->name:"." );
+							//lprintf( "name not found, adding.. [%s] %s", start, class_root->self?class_root->self->name:"." );
 							new_root = AddClassTree( class_root
 															 , start
 															 , tree = CreateBinaryTreeExx( BT_OPT_NODUPLICATES
@@ -747,8 +747,8 @@ PTREEDEF GetClassTreeEx( PCTREEDEF root, PCTREEDEF _name_class, PTREEDEF alias, 
 									continue;
 								}
 #ifndef NO_LOGGING
-								SystemLog( WIDE("Failed to register...") );
-								lprintf( WIDE("name not found, adding.. [%s] %s"), start, class_root->self?class_root->self->name:WIDE(".") );
+								SystemLog( "Failed to register..." );
+								lprintf( "name not found, adding.. [%s] %s", start, class_root->self?class_root->self->name:"." );
 #endif
 								return NULL;
 							}
@@ -764,10 +764,10 @@ PTREEDEF GetClassTreeEx( PCTREEDEF root, PCTREEDEF _name_class, PTREEDEF alias, 
 							// this orphans the prior tree; but probably results from requests for values that aren't present
 							// and later are filled by an alias.
 							if( error_count > 20 )
-								lprintf( WIDE( " Name %s exists, but we want it to be an alias, and it is not...(a LOT of this is bad) " ), new_root->name );
+								lprintf( " Name %s exists, but we want it to be an alias, and it is not...(a LOT of this is bad) ", new_root->name );
 
 							if( new_root->tree.Magic != MAGIC_TREE_NUMBER )
-								lprintf( WIDE( "Hell it's not even a tree!" ) );
+								lprintf( "Hell it's not even a tree!" );
 							new_root->flags.bAlias = 1;
 							new_root->tree.Tree = alias->Tree;
 							new_root->tree.self = alias->self;
@@ -826,21 +826,21 @@ int AddNode( PTREEDEF class_root, POINTER data, uintptr_t key )
 		PNAME oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, (CTEXTSTR)key ) );
 		if( oldname )
 		{
-			//lprintf( WIDE("Name already in the tree... %s"), (CTEXTSTR)key );
+			//lprintf( "Name already in the tree... %s", (CTEXTSTR)key );
 			return FALSE;
 		}
 		else
 		{
-			//lprintf( WIDE("addnode? a data ndoe - create data structure") );
+			//lprintf( "addnode? a data ndoe - create data structure" );
 			if( !AddBinaryNode( class_root->Tree, data, key ) )
 			{
-				Log( WIDE("For some reason could not add new name to tree!") );
+				Log( "For some reason could not add new name to tree!" );
 				return FALSE;
 			}
 		}
 		return TRUE;
 	}
-	Log( WIDE("Nowhere to add the node...") );
+	Log( "Nowhere to add the node..." );
 	return FALSE;
 }
 
@@ -848,7 +848,7 @@ int AddNode( PTREEDEF class_root, POINTER data, uintptr_t key )
 
 static int CPROC MyStrCmp( uintptr_t s1, uintptr_t s2 )
 {
-	//lprintf( WIDE("Compare (%s) vs (%s)"), s1, s2 );
+	//lprintf( "Compare (%s) vs (%s)", s1, s2 );
 	return StrCaseCmp( (TEXTCHAR*)s1, (TEXTCHAR*)s2 );
 }
 //---------------------------------------------------------------------------
@@ -900,7 +900,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 
 		newname->data.proc.name = SaveNameConcatN( StripName( strippedargs, args )
 															  , returntype
-															  , library?library:WIDE("_")
+															  , library?library:"_"
 															  , func_name
 															  , NULL
 															  );
@@ -914,7 +914,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 				if( !oldname->data.proc.proc )
 				{
 					// old branch location might have existed, but no value assigned...
-					//lprintf( WIDE( "overloading prior %p with %p and %p with %p" )
+					//lprintf( "overloading prior %p with %p and %p with %p"
 					//		 , oldname->data.proc.proc, proc
 					//		 , oldname->data.proc.name, newname->data.proc.name
 					//		 );
@@ -926,16 +926,16 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 					newname->data.proc.name = NULL;
 				}
 				else if( oldname->data.proc.proc == proc )
-					Log( WIDE("And fortunatly it's the same address... all is well...") );
+					Log( "And fortunatly it's the same address... all is well..." );
 				else
 				{
 					TEXTSTR s1, s2;
 #ifndef NO_LOGGING
-					CTEXTSTR file = GetRegisteredValue( (CTEXTSTR)&oldname->tree, WIDE( "Source File" ) );
-					int line = (int)(uintptr_t)GetRegisteredValueEx( (CTEXTSTR)&oldname->tree, WIDE( "Source Line" ), TRUE );
-					_xlprintf( 2 DBG_RELAY)( WIDE("proc %s/%s regisry by %s of %s(%s) conflicts with %s(%d):%s(%s)...")
-												  , (CTEXTSTR)name_class?(CTEXTSTR)name_class:WIDE("@")
-												  , public_name?public_name:WIDE("@")
+					CTEXTSTR file = GetRegisteredValue( (CTEXTSTR)&oldname->tree, "Source File" );
+					int line = (int)(uintptr_t)GetRegisteredValueEx( (CTEXTSTR)&oldname->tree, "Source Line", TRUE );
+					_xlprintf( 2 DBG_RELAY)( "proc %s/%s regisry by %s of %s(%s) conflicts with %s(%d):%s(%s)..."
+												  , (CTEXTSTR)name_class?(CTEXTSTR)name_class:"@"
+												  , public_name?public_name:"@"
 												  , newname->name
 												  , s1 = GetFullName( newname->data.proc.name )
 													//,library
@@ -949,7 +949,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 					Release( s1 );
 					Release( s2 );
 					// perhaps it's same in a different library...
-					Log( WIDE("All is not well - found same function name in tree with different address. (ignoring second) ") );
+					Log( "All is not well - found same function name in tree with different address. (ignoring second) " );
 #endif
 				}
 				DeleteFromSet( NAME, l.NameSet, newname );
@@ -959,7 +959,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 			{
 				if( !AddBinaryNode( class_root->Tree, (PCLASSROOT)newname, (uintptr_t)newname->name ) )
 				{
-					Log( WIDE("For some reason could not add new name to tree!") );
+					Log( "For some reason could not add new name to tree!" );
 					DeleteFromSet( NAME, l.NameSet, newname );
 					return FALSE;
 				}
@@ -979,15 +979,15 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 						name++;
 					else
 						name = pFile;
-					RegisterValue( (CTEXTSTR)&newname->tree, WIDE( "Source File" ), name );
-					RegisterIntValue( (CTEXTSTR)&newname->tree, WIDE( "Source Line" ), nLine );
+					RegisterValue( (CTEXTSTR)&newname->tree, "Source File", name );
+					RegisterIntValue( (CTEXTSTR)&newname->tree, "Source Line", nLine );
 				}
 #endif
 			}
 		}
 		else
 		{
-			lprintf( WIDE("I'm relasing this name!?") );
+			lprintf( "I'm relasing this name!?" );
 			DeleteFromSet( NAME, l.NameSet, newname );
 		}
 		return 1;
@@ -1091,11 +1091,11 @@ PROCREG_PROC( PROCEDURE, ReadRegisteredProcedureEx )( PCLASSROOT root
 		{
 			proc = (PROCEDURE)LoadFunction( oldname->data.proc.library
 													, oldname->data.proc.procname );
-			//lprintf( WIDE("Found a procedure %s=%p  (%p)"), name, oldname, proc );
+			//lprintf( "Found a procedure %s=%p  (%p)", name, oldname, proc );
 			// should compare whether the types match...
 			if( !proc )
 			{
-				Log( WIDE("Failed to load function when requested from tree...") );
+				Log( "Failed to load function when requested from tree..." );
 			}
 			oldname->data.proc.proc = proc;
 		}
@@ -1128,7 +1128,7 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSRO
 	{
 		PNAME oldname;
 		//TEXTCHAR buf[256];
-		//lprintf( WIDE("Found class %s=%p for %s"), name_class, class_root, name );
+		//lprintf( "Found class %s=%p for %s", name_class, class_root, name );
 		//DumpRegisteredNamesWork( class_root, 5 );
 		oldname = (PNAME)LocateInBinaryTree( class_root->Tree, (uintptr_t)name, NULL );
 		//oldname = (PNAME)FindInBinaryTree( class_root->Tree, (uintptr_t)DressName( buf, name ) );
@@ -1140,11 +1140,11 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSRO
 			{
 				proc = (PROCEDURE)LoadFunction( oldname->data.proc.library
 														, oldname->data.proc.procname );
-				//lprintf( WIDE("Found a procedure %s=%p  (%p)"), name, oldname, proc );
+				//lprintf( "Found a procedure %s=%p  (%p)", name, oldname, proc );
 				// should compare whether the types match...
 				if( !proc )
 				{
-					Log( WIDE("Failed to load function when requested from tree...") );
+					Log( "Failed to load function when requested from tree..." );
 				}
 				oldname->data.proc.proc = proc;
 			}
@@ -1152,9 +1152,9 @@ PROCREG_PROC( PROCEDURE, GetRegisteredProcedureExxx )( PCLASSROOT root, PCLASSRO
 			return oldname->data.proc.proc;
 		}
 		//else
-      //   lprintf( WIDE("Failed to find %s in the tree"), buf );
+      //   lprintf( "Failed to find %s in the tree", buf );
 	}
-	//lprintf( WIDE("Failed to find the class root...") );
+	//lprintf( "Failed to find the class root..." );
 	return NULL;
 }
 
@@ -1221,17 +1221,17 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level )
 	{
 		int n;
 		for( n = 0; n < level; n++ )
-			vtprintf( pvt, WIDE("   ") );
-		vtprintf( pvt, WIDE("%s"), name->name );
+			vtprintf( pvt, "   " );
+		vtprintf( pvt, "%s", name->name );
 		if( name->flags.bValue )
 		{
-			vtprintf( pvt, WIDE(" = ") );
+			vtprintf( pvt, " = " );
 			if( name->flags.bIntVal )
-				vtprintf( pvt, WIDE("[%ld]"), name->data.name.iValue );
+				vtprintf( pvt, "[%ld]", name->data.name.iValue );
 			if( name->flags.bStringVal )
 				vtprintf( pvt, WIDE("\"%s\""), name->data.name.sValue );
 			if( name->flags.bProc )
-            vtprintf( pvt, WIDE("*%p"), name->data.proc.proc );
+            vtprintf( pvt, "*%p", name->data.proc.proc );
 		}
 		else if( name->flags.bProc )
 		{
@@ -1239,21 +1239,21 @@ void DumpRegisteredNamesWork( PTREEDEF tree, int level )
 			if( p )
 			{
 				size_t len = p[-1] - 2;
-				vtprintf( pvt, WIDE(" = ") );
+				vtprintf( pvt, " = " );
 				while( len )
 				{
 					size_t tmp;
-					vtprintf( pvt, WIDE("%s "), p );
+					vtprintf( pvt, "%s ", p );
 					tmp = StrLen( p ) + 1;
 					len-= tmp;
 					p += tmp;
 				}
-				vtprintf( pvt, WIDE("*%p"), name->data.proc.proc );
+				vtprintf( pvt, "*%p", name->data.proc.proc );
 
 			}
 		}
 		pText = VarTextGet( pvt );
-		xlprintf(LOG_INFO)( WIDE("%s"), GetText( pText ) );
+		xlprintf(LOG_INFO)( "%s", GetText( pText ) );
 		LineRelease( pText );
 		DumpRegisteredNamesWork( &name->tree, level + 1 );
 	}
@@ -1324,7 +1324,7 @@ PROCREG_PROC( CTEXTSTR, GetFirstRegisteredNameEx )( PCLASSROOT root, CTEXTSTR cl
 		name = (PNAME)GetLeastNodeEx( class_root->Tree, &class_root->cursor );
 		if( name )
 		{
-			//lprintf( WIDE("Resulting first name: %s"), name->name );
+			//lprintf( "Resulting first name: %s", name->name );
 			return name->name;
 		}
 	}
@@ -1354,7 +1354,7 @@ PROCREG_PROC( CTEXTSTR, GetNextRegisteredName )( PCLASSROOT *data )
 		name = (PNAME)GetGreaterNodeEx( class_root->Tree, &class_root->cursor );
 		if( name )
 		{
-			//lprintf( WIDE("Resulting next name: %s"), name->name );
+			//lprintf( "Resulting next name: %s", name->name );
 			return name->name;
 		}
 	}
@@ -1429,7 +1429,7 @@ PROCREG_PROC( int, RegisterValueExx )( PCLASSROOT root, CTEXTSTR name_class, CTE
 			//lprintf( "... adding %s (%s)", name, newname->name );
 			if( !AddBinaryNode( class_root->Tree, newname, (uintptr_t)newname->name ) )
 			{
-				lprintf( WIDE("Failed to add name to tree...%s"), name );
+				lprintf( "Failed to add name to tree...%s", name );
 			}
 		}
 		return TRUE;
@@ -1641,7 +1641,7 @@ PROCREG_PROC( uintptr_t, MakeRegisteredDataTypeEx)( PCLASSROOT root
 				if( !instancename )
 				{
 					TEXTCHAR buf[256];
-					tnprintf( buf, sizeof(buf), WIDE("%s_%d"), name, (int)pDataDef->unique++ );
+					tnprintf( buf, sizeof(buf), "%s_%d", name, (int)pDataDef->unique++ );
 					instancename = SaveName( buf );
 				}
 				else
@@ -1656,7 +1656,7 @@ PROCREG_PROC( uintptr_t, MakeRegisteredDataTypeEx)( PCLASSROOT root
 					}
 					else
 					{
-						lprintf( WIDE("Suck. We just created one externally, and want to use that data, but it already exists.") );
+						lprintf( "Suck. We just created one externally, and want to use that data, but it already exists." );
 						DumpRegisteredNames();
 						DebugBreak();
 						// increment instances referenced so that close does not
@@ -1669,7 +1669,7 @@ PROCREG_PROC( uintptr_t, MakeRegisteredDataTypeEx)( PCLASSROOT root
 		}
 		else
 		{
-			lprintf( WIDE("No such struct defined: %s"), name );
+			lprintf( "No such struct defined: %s", name );
 		}
 	}
 	return 0;
@@ -1695,7 +1695,7 @@ PROCREG_PROC( uintptr_t, CreateRegisteredDataTypeEx)( PCLASSROOT root
 				if( !instancename )
 				{
 					TEXTCHAR buf[256];
-					tnprintf( buf, sizeof(buf), WIDE("%s_%d"), name, (int)pDataDef->unique++ );
+					tnprintf( buf, sizeof(buf), "%s_%d", name, (int)pDataDef->unique++ );
 					instancename = SaveName( buf );
 				}
 				else
@@ -1706,7 +1706,7 @@ PROCREG_PROC( uintptr_t, CreateRegisteredDataTypeEx)( PCLASSROOT root
 					if( !( p = (POINTER)FindInBinaryTree( pDataDef->instances.Tree, (uintptr_t)instancename ) ) )
 					{
 #ifdef DEBUG_GLOBAL_REGISTRATION
-						lprintf( WIDE( "Allocating new struct data :%" )_32f, pDataDef->size );
+						lprintf( "Allocating new struct data :%"_32f, pDataDef->size );
 #endif
 						p = Allocate( pDataDef->size + sizeof( PLIST ) );
 						((PLIST*)p)[0] = NULL;
@@ -1724,7 +1724,7 @@ PROCREG_PROC( uintptr_t, CreateRegisteredDataTypeEx)( PCLASSROOT root
 						POINTER tmp_p = (POINTER)( (uintptr_t)p - sizeof( PLIST ) );
 						Hold( tmp_p );
 #ifdef DEBUG_GLOBAL_REGISTRATION
-						lprintf( WIDE("Resulting with previuosly created instance.") );
+						lprintf( "Resulting with previuosly created instance." );
 						// increment instances referenced so that close does not
 						// destroy - fortunatly this is persistant data, and therefore
 						// doesn't get destroyed yet.
@@ -1737,7 +1737,7 @@ PROCREG_PROC( uintptr_t, CreateRegisteredDataTypeEx)( PCLASSROOT root
 #ifdef DEBUG_GLOBAL_REGISTRATION
 		else
 		{
-			lprintf( WIDE("No such struct defined:[%s]%s"), classname, name );
+			lprintf( "No such struct defined:[%s]%s", classname, name );
 		}
 #endif
 	}
@@ -1767,27 +1767,27 @@ LOGICAL RegisterInterfaceEx( CTEXTSTR servicename, POINTER(CPROC*load)(void), vo
 	//PARAM( args, TEXTCHAR*, library );
 	//PARAM( args, TEXTCHAR*, load_proc_name );
 	//PARAM( args, TEXTCHAR*, unload_proc_name );
-	PCLASSROOT pcr = GetClassRoot( WIDE("system/interfaces") );
-	if( GetRegisteredProcedureExx( pcr, (PCLASSROOT)servicename, WIDE("POINTER"), WIDE("load"), WIDE("void") ) )
+	PCLASSROOT pcr = GetClassRoot( "system/interfaces" );
+	if( GetRegisteredProcedureExx( pcr, (PCLASSROOT)servicename, "POINTER", "load", "void" ) )
 	{
-		lprintf( WIDE("Service: %s has multiple definitions, using first registered.")
+		lprintf( "Service: %s has multiple definitions, using first registered."
 				 , servicename );
 		return FALSE;
 	}
-	//lprintf( WIDE("Registering library l:%p ul:%p"), load, unload );
+	//lprintf( "Registering library l:%p ul:%p", load, unload );
 	{
 		RegisterFunctionExx( pcr
 								  , (PCLASSROOT)servicename
-								  , WIDE("load")
-								  , WIDE("POINTER")
+								  , "load"
+								  , "POINTER"
 								  , (PROCEDURE)load
-								  , WIDE("(void)"), NULL, NULL DBG_RELAY );
+								  , "(void)", NULL, NULL DBG_RELAY );
 		RegisterFunctionExx( pcr
 								  , (PCLASSROOT)servicename
-								  , WIDE("unload")
-								  , WIDE("void")
+								  , "unload"
+								  , "void"
 								  , (PROCEDURE)unload
-								  , WIDE("(POINTER)"), NULL, NULL DBG_RELAY );
+								  , "(POINTER)", NULL, NULL DBG_RELAY );
 	}
 	return TRUE;
 }
@@ -1801,30 +1801,30 @@ static uintptr_t CPROC HandleLibrary( uintptr_t psv, arg_list args )
 	PARAM( args, TEXTCHAR*, library );
 	PARAM( args, TEXTCHAR*, load_proc_name );
 	PARAM( args, TEXTCHAR*, unload_proc_name );
-	PCLASSROOT pcr = GetClassRoot( WIDE("system/interfaces") );
+	PCLASSROOT pcr = GetClassRoot( "system/interfaces" );
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
-	if( GetRegisteredProcedureExx( pcr, (PCLASSROOT)servicename, WIDE("POINTER"), WIDE("load"), WIDE("void") ) )
+	if( GetRegisteredProcedureExx( pcr, (PCLASSROOT)servicename, "POINTER", "load", "void" ) )
 	{
-		lprintf( WIDE("Service: %s has multiple definitions, will use last first.")
+		lprintf( "Service: %s has multiple definitions, will use last first."
 				 , servicename );
 		return psv;
 	}
-	//lprintf( WIDE("Registering library %s function %s"), library, load_proc_name );
+	//lprintf( "Registering library %s function %s", library, load_proc_name );
 	{
 		RegisterProcedureExx( pcr
 		                    , servicename
-		                    , WIDE("load")
-		                    , WIDE("POINTER")
+		                    , "load"
+		                    , "POINTER"
 		                    , library
 		                    , load_proc_name
-		                    , WIDE("void") DBG_SRC );
+		                    , "void" DBG_SRC );
 		RegisterProcedureExx( pcr
 		                    , servicename
-		                    , WIDE("unload")
-		                    , WIDE("void")
+		                    , "unload"
+		                    , "void"
 		                    , library
-		                    , unload_proc_name, WIDE("POINTER") DBG_SRC );
+		                    , unload_proc_name, "POINTER" DBG_SRC );
 	}
 	return psv;
 }
@@ -1839,9 +1839,9 @@ static uintptr_t CPROC HandleAlias( uintptr_t psv, arg_list args )
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
 	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE( "alias %s=%s" ), servicename, originalname );
-	tnprintf( fullservicename, sizeof( fullservicename), WIDE("system/interfaces/%s"), servicename );
-	tnprintf( fulloriginalname, sizeof( fulloriginalname), WIDE("system/interfaces/%s"), originalname );
+		lprintf( "alias %s=%s", servicename, originalname );
+	tnprintf( fullservicename, sizeof( fullservicename), "system/interfaces/%s", servicename );
+	tnprintf( fulloriginalname, sizeof( fulloriginalname), "system/interfaces/%s", originalname );
 	RegisterClassAlias( fulloriginalname, fullservicename );
 	return psv;
 }
@@ -1859,7 +1859,7 @@ static uintptr_t CPROC HandleModule( uintptr_t psv, arg_list args )
 		tempPath = TRUE;
 	}
 	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE( "load module %s" ), module );
+		lprintf( "load module %s", module );
 	if( !l.flags.bHeldDeadstart )
 	{
 		l.flags.bHeldDeadstart = 1;
@@ -1880,7 +1880,7 @@ static uintptr_t CPROC HandlePrivateModule( uintptr_t psv, arg_list args )
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
 	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE( "load private module %s" ), module );
+		lprintf( "load private module %s", module );
 	if( !l.flags.bHeldDeadstart )
 	{
 		l.flags.bHeldDeadstart = 1;
@@ -1905,7 +1905,7 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 		// allow specifying %% for a single %.
 		// emit the stuff from start to the variable
 		if( start < this_var )
-			vtprintf( pvt, WIDE("%*.*s"), this_var-start, this_var-start, start );
+			vtprintf( pvt, "%*.*s", this_var-start, this_var-start, start );
 
 		if( this_var[1] == '%' )
 		{
@@ -1918,20 +1918,20 @@ static TEXTSTR SubstituteNameVars( CTEXTSTR name )
 		{
 			TEXTCHAR *tmpvar = NewArray( TEXTCHAR, end - this_var );
 			CTEXTSTR envvar;
-			tnprintf( tmpvar, end-this_var, WIDE("%*.*s"), (int)(end-this_var-1), (int)(end-this_var-1), this_var + 1 );
+			tnprintf( tmpvar, end-this_var, "%*.*s", (int)(end-this_var-1), (int)(end-this_var-1), this_var + 1 );
 			envvar = OSALOT_GetEnvironmentVariable( tmpvar );
 			if( envvar )
-				vtprintf( pvt, WIDE("%s"), OSALOT_GetEnvironmentVariable( tmpvar ) );
+				vtprintf( pvt, "%s", OSALOT_GetEnvironmentVariable( tmpvar ) );
 			else
-				lprintf( WIDE("failed to find environment variable '%s'"), tmpvar );
+				lprintf( "failed to find environment variable '%s'", tmpvar );
 			Release( tmpvar );
 			start = end + 1;
 		}
 		else
-			lprintf( WIDE("Bad framing on environment variable %%var%% syntax got [%s]"), start );
+			lprintf( "Bad framing on environment variable %%var%% syntax got [%s]", start );
 	}
 	if( start[0] )
-		vtprintf( pvt, WIDE("%s"), start );
+		vtprintf( pvt, "%s", start );
 	{
 		TEXTSTR result = StrDup( GetText( VarTextPeek( pvt ) ) );
 		VarTextDestroy( &pvt );
@@ -1947,10 +1947,10 @@ static uintptr_t CPROC HandleModulePath( uintptr_t psv, arg_list args )
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
 # ifdef __LINUX__
-	OSALOT_AppendEnvironmentVariable( WIDE("LD_LIBRARY_PATH"), filepath );
+	OSALOT_AppendEnvironmentVariable( "LD_LIBRARY_PATH", filepath );
 # else
 #  ifndef UNDER_CE
-	OSALOT_AppendEnvironmentVariable( WIDE("PATH"), filepath );
+	OSALOT_AppendEnvironmentVariable( "PATH", filepath );
 #  endif
 # endif
 	Release( filepath );
@@ -1986,7 +1986,7 @@ static uintptr_t CPROC SetOptionDefault( uintptr_t psv, arg_list args )
 	if( key[0] != '/' && key[0] != '\\' )
 	{
 		if( l.flags.bTraceInterfaceLoading )
-			lprintf( WIDE( "Default Option %s / [%s] = [%s}" ), GetProgramName(), key, value );
+			lprintf( "Default Option %s / [%s] = [%s}", GetProgramName(), key, value );
 		key = SubstituteNameVars( key );
 		SACK_GetProfileStringEx( GetProgramName(), key, value, buf, sizeof( buf ), TRUE );
 		Release( key );
@@ -2003,7 +2003,7 @@ static uintptr_t CPROC SetOptionDefault( uintptr_t psv, arg_list args )
 		optname = SubstituteNameVars( optname );
 		optpath = SubstituteNameVars( optpath );
 		if( l.flags.bTraceInterfaceLoading )
-			lprintf( WIDE( "Default Option [%s]/[%s]/[%s] = [%s}" ), key, optpath, optname, value );
+			lprintf( "Default Option [%s]/[%s]/[%s] = [%s}", key, optpath, optname, value );
 
 		SACK_GetPrivateProfileStringEx( optpath, optname, value, buf, sizeof( buf ), key, TRUE );
 		Release( optname );
@@ -2022,7 +2022,7 @@ static uintptr_t CPROC SetOptionSet( uintptr_t psv, arg_list args )
 	if( key[0] != '/' && key[0] != '\\' )
 	{
 		if( l.flags.bTraceInterfaceLoading )
-			lprintf( WIDE( "Set Option %s / [%s] = [%s}" ), GetProgramName(), key, value );
+			lprintf( "Set Option %s / [%s] = [%s}", GetProgramName(), key, value );
 		key = SubstituteNameVars( key );
 		SACK_WriteProfileStringEx( GetProgramName(), key, value, key, TRUE );
 		Release( key );
@@ -2039,7 +2039,7 @@ static uintptr_t CPROC SetOptionSet( uintptr_t psv, arg_list args )
 		optname = SubstituteNameVars( optname );
 		optpath = SubstituteNameVars( optpath );
 		if( l.flags.bTraceInterfaceLoading )
-			lprintf( WIDE( "Set Option [%s]/[%s]/[%s] = [%s}" ), key, optpath, optname, value );
+			lprintf( "Set Option [%s]/[%s]/[%s] = [%s}", key, optpath, optname, value );
 
 		SACK_WritePrivateProfileStringEx( optpath, optname, value, key, TRUE );
 		Release( optname );
@@ -2055,9 +2055,9 @@ static uintptr_t CPROC TestOption( uintptr_t psv, arg_list args )
 	PARAM( args, CTEXTSTR, key );
 	PARAM( args, CTEXTSTR, value );
 	TEXTCHAR buf[256];
-	SACK_GetProfileStringEx( GetProgramName(), key, WIDE( "" ), buf, sizeof( buf ), TRUE );
+	SACK_GetProfileStringEx( GetProgramName(), key, "", buf, sizeof( buf ), TRUE );
 	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE( " is [%s] == [%s]  buf = [%s]" ), key, value, buf );
+		lprintf( " is [%s] == [%s]  buf = [%s]", key, value, buf );
 	if( buf[0] == 0 )
 	{
 		l.flags.bFindEndif++;
@@ -2069,14 +2069,14 @@ static uintptr_t CPROC TestOption( uintptr_t psv, arg_list args )
 		l.flags.bFindElse = 1;
 	}
 	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE( "seek(findendif, findelse) = %d %d" ), l.flags.bFindEndif, l.flags.bFindElse );
+		lprintf( "seek(findendif, findelse) = %d %d", l.flags.bFindEndif, l.flags.bFindElse );
 #endif
 	return psv;
 }
 static uintptr_t CPROC EndTestOption( uintptr_t psv, arg_list args )
 {
 	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE( "found endif..." ) );
+		lprintf( "found endif..." );
 	if(l.flags.bFindEndif)
 	{
 		l.flags.bFindEndif--;
@@ -2088,7 +2088,7 @@ static uintptr_t CPROC EndTestOption( uintptr_t psv, arg_list args )
 static uintptr_t CPROC ElseTestOption( uintptr_t psv, arg_list args )
 {
 	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE( "found else..." ) );
+		lprintf( "found else..." );
 	if(l.flags.bFindElse)
 	{
 		l.flags.bFindElse = 0;
@@ -2111,7 +2111,7 @@ static uintptr_t CPROC IncludeAdditional( uintptr_t psv, arg_list args )
 	TEXTSTR old_configname = l.config_filename;
 	l.config_filename = ExpandPath( path );
 	if( l.flags.bTraceInterfaceLoading )
-		lprintf( WIDE( "include:%s from %s" ), l.config_filename, old_configname );
+		lprintf( "include:%s from %s", l.config_filename, old_configname );
 	if( !l.flags.bHeldDeadstart )
 	{
 		l.flags.bHeldDeadstart = 1;
@@ -2150,29 +2150,29 @@ void ReadConfiguration( void )
 	{
 		PCONFIG_HANDLER pch;
 		pch = CreateConfigurationHandler();
-		AddConfigurationMethod( pch, WIDE( "Producer=%m" ), SetProducerName );
-		AddConfigurationMethod( pch, WIDE( "Application=%m" ), SetApplicationName );
-		AddConfigurationMethod( pch, WIDE( "enable trace=%b" ), SetTrace );
-		AddConfigurationMethod( pch, WIDE( "option default %m=%m" ), SetOptionDefault );
-		AddConfigurationMethod( pch, WIDE( "option set %m=%m" ), SetOptionSet );
-		AddConfigurationMethod( pch, WIDE( "default option %m=%m" ), SetOptionDefault );
-		AddConfigurationMethod( pch, WIDE( "set option %m=%m" ), SetOptionSet );
+		AddConfigurationMethod( pch, "Producer=%m", SetProducerName );
+		AddConfigurationMethod( pch, "Application=%m", SetApplicationName );
+		AddConfigurationMethod( pch, "enable trace=%b", SetTrace );
+		AddConfigurationMethod( pch, "option default %m=%m", SetOptionDefault );
+		AddConfigurationMethod( pch, "option set %m=%m", SetOptionSet );
+		AddConfigurationMethod( pch, "default option %m=%m", SetOptionDefault );
+		AddConfigurationMethod( pch, "set option %m=%m", SetOptionSet );
 		AddConfigurationMethod( pch, WIDE( "start directory \"%m\"" ), SetDefaultDirectory );
 		AddConfigurationMethod( pch, WIDE( "include \"%m\"" ), IncludeAdditional );
-		AddConfigurationMethod( pch, WIDE( "if %m==%m" ), TestOption );
-		AddConfigurationMethod( pch, WIDE( "endif" ), EndTestOption );
-		AddConfigurationMethod( pch, WIDE( "else" ), ElseTestOption );
+		AddConfigurationMethod( pch, "if %m==%m", TestOption );
+		AddConfigurationMethod( pch, "endif", EndTestOption );
+		AddConfigurationMethod( pch, "else", ElseTestOption );
 
-		AddConfigurationMethod( pch, WIDE("service=%w library=%w load=%w unload=%w"), HandleLibrary );
-		AddConfigurationMethod( pch, WIDE("alias service %w %w"), HandleAlias );
-		AddConfigurationMethod( pch, WIDE("module %w"), HandleModule );
-		AddConfigurationMethod( pch, WIDE("pmodule %w"), HandlePrivateModule );
-		AddConfigurationMethod( pch, WIDE("modulepath %m"), HandleModulePath );
+		AddConfigurationMethod( pch, "service=%w library=%w load=%w unload=%w", HandleLibrary );
+		AddConfigurationMethod( pch, "alias service %w %w", HandleAlias );
+		AddConfigurationMethod( pch, "module %w", HandleModule );
+		AddConfigurationMethod( pch, "pmodule %w", HandlePrivateModule );
+		AddConfigurationMethod( pch, "modulepath %m", HandleModulePath );
 
 		{
 			CTEXTSTR filepath
 #ifdef __ANDROID__
-				= WIDE(".");
+				= ".";
 #else
 				= GetProgramPath();
 #endif
@@ -2180,20 +2180,20 @@ void ReadConfiguration( void )
 			size_t len;
 			int success = FALSE;
 			if( !filepath )
-				filepath = WIDE("@");
+				filepath = "@";
 
 			if( l.config_filename )
 			{
 				success = ProcessConfigurationFile( pch, l.config_filename, 0 );
 				if( !success )
-					lprintf( WIDE("Failed to open custom interface configuration file:%s"), l.config_filename );
+					lprintf( "Failed to open custom interface configuration file:%s", l.config_filename );
 				return;
 			}
 			if( !success )
 			{
 				CTEXTSTR dot;
-				loadname = NewArray( TEXTCHAR, (uint32_t)(len = StrLen( GetProgramName() ) + StrLen( WIDE("interface.conf") ) + 3) );
-				tnprintf( loadname, len, WIDE("%s.%s"), GetProgramName(), WIDE("interface.conf") );
+				loadname = NewArray( TEXTCHAR, (uint32_t)(len = StrLen( GetProgramName() ) + StrLen( "interface.conf" ) + 3) );
+				tnprintf( loadname, len, "%s.%s", GetProgramName(), "interface.conf" );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
 				if( !success )
 					dot = GetProgramName();
@@ -2202,7 +2202,7 @@ void ReadConfiguration( void )
 					dot = StrChr( dot + 1, '.' );
 					if( dot )
 					{
-						tnprintf( loadname, len, WIDE("%s.%s"), dot+1, WIDE("interface.conf") );
+						tnprintf( loadname, len, "%s.%s", dot+1, "interface.conf" );
 						success = ProcessConfigurationFile( pch, loadname, 0 );
 					}
 					else
@@ -2211,13 +2211,13 @@ void ReadConfiguration( void )
 			}
 			if( !success )
 			{
-				success = ProcessConfigurationFile( pch, WIDE( "interface.conf" ), 0 );
+				success = ProcessConfigurationFile( pch, "interface.conf", 0 );
 			}
 			if( !success )
 			{
 				CTEXTSTR dot;
-				loadname = NewArray( TEXTCHAR, (uint32_t)(len = StrLen( filepath ) + StrLen( GetProgramName() ) + StrLen( WIDE("interface.conf") ) + 3) );
-				tnprintf( loadname, len, WIDE("%s/%s.%s"), filepath, GetProgramName(), WIDE("interface.conf") );
+				loadname = NewArray( TEXTCHAR, (uint32_t)(len = StrLen( filepath ) + StrLen( GetProgramName() ) + StrLen( "interface.conf" ) + 3) );
+				tnprintf( loadname, len, "%s/%s.%s", filepath, GetProgramName(), "interface.conf" );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
 				if( !success )
 					dot = GetProgramName();
@@ -2226,7 +2226,7 @@ void ReadConfiguration( void )
 					dot = StrChr( dot + 1, '.' );
 					if( dot )
 					{
-						tnprintf( loadname, len, WIDE("%s/%s.%s"), filepath, dot+1, WIDE("interface.conf") );
+						tnprintf( loadname, len, "%s/%s.%s", filepath, dot+1, "interface.conf" );
 						success = ProcessConfigurationFile( pch, loadname, 0 );
 					}
 					else
@@ -2235,13 +2235,13 @@ void ReadConfiguration( void )
 			}
 			if( !success )
 			{
-				tnprintf( loadname, len, WIDE("%s/%s"), filepath, WIDE("interface.conf") );
+				tnprintf( loadname, len, "%s/%s", filepath, "interface.conf" );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
 			}
 			if( !success )
 			{
-				//lprintf( WIDE("Failed to open interface configuration file:%s - assuming it will never exist, and aborting trying this again")
-				//		 , l.config_filename?l.config_filename:WIDE("interface.conf") );
+				//lprintf( "Failed to open interface configuration file:%s - assuming it will never exist, and aborting trying this again"
+				//		 , l.config_filename?l.config_filename:"interface.conf" );
 			}
 			if( loadname )
 				Release( loadname );
@@ -2258,7 +2258,7 @@ void ReadConfiguration( void )
 		l.flags.bInterfacesLoaded = 1;
 	}
 	//else
-	//	lprintf( WIDE( "already loaded." ) );
+	//	lprintf( "already loaded." );
 
 	if( l.flags.bHeldDeadstart )
 	{
@@ -2296,13 +2296,13 @@ POINTER GetInterface_v4( CTEXTSTR pServiceName, LOGICAL ReadConfig, int quietFai
 	//lprintf( "Load interface [%s]", pServiceName );
 	if( pServiceName )
 	{
-		tnprintf( interface_name, sizeof( interface_name ), WIDE("system/interfaces/%s"), pServiceName );
+		tnprintf( interface_name, sizeof( interface_name ), "system/interfaces/%s", pServiceName );
 		load = GetRegisteredProcedure( (PCLASSROOT)interface_name, POINTER, load, (void) );
-		//lprintf( WIDE("GetInterface for %s is %p"), pServiceName, load );
+		//lprintf( "GetInterface for %s is %p", pServiceName, load );
 		if( load )
 		{
 			POINTER p = load();
-			//lprintf( WIDE("And the laod proc resulted %p"), p );
+			//lprintf( "And the laod proc resulted %p", p );
 			return p; //load();
 		}
 #ifdef _DEBUG
@@ -2310,11 +2310,11 @@ POINTER GetInterface_v4( CTEXTSTR pServiceName, LOGICAL ReadConfig, int quietFai
 		{
 			if( l.flags.bInterfacesLoaded )
 			{
-				if( !GetRegisteredValueExx( (PCLASSROOT)interface_name, NULL, WIDE( "Logged" ), 1 ) )
+				if( !GetRegisteredValueExx( (PCLASSROOT)interface_name, NULL, "Logged", 1 ) )
 				{
-					_lprintf(DBG_RELAY)( WIDE("Did not find load procedure for:[%s] (dumping names from /system/interface/* so you can see what might be available)"), interface_name );
-					DumpRegisteredNamesFrom(GetClassRoot(WIDE( "system/interfaces" )));
-					RegisterValueExx( (PCLASSROOT)interface_name, NULL, WIDE( "Logged" ), 1, (CTEXTSTR)1 );
+					_lprintf(DBG_RELAY)( "Did not find load procedure for:[%s] (dumping names from /system/interface/* so you can see what might be available)", interface_name );
+					DumpRegisteredNamesFrom(GetClassRoot("system/interfaces"));
+					RegisterValueExx( (PCLASSROOT)interface_name, NULL, "Logged", 1, (CTEXTSTR)1 );
 				}
 			}
 		}
@@ -2355,7 +2355,7 @@ PROCREG_PROC( void, DropInterface )( CTEXTSTR pServiceName, POINTER interface_dr
 {
 	TEXTCHAR interfacename[256];
 	void (CPROC *unload)( POINTER );
-	tnprintf( interfacename, sizeof(interfacename), WIDE("system/interfaces/%s"), pServiceName );
+	tnprintf( interfacename, sizeof(interfacename), "system/interfaces/%s", pServiceName );
 	unload = GetRegisteredProcedure( (PCLASSROOT)interfacename, void, unload, (POINTER) );
 	if( unload )
 		unload( interface_drop );
@@ -2407,18 +2407,18 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, uintptr_t global_size, 
 			return;
 		}
 #ifdef DEBUG_GLOBAL_REGISTRATION
-		lprintf( WIDE("Opening space...") );
+		lprintf( "Opening space..." );
 #endif
 #ifdef UNICODE
-#define _S WIDE("ls")
+#define _S "ls"
 #else
-#define _S WIDE("s")
+#define _S "s"
 #endif
 
 #ifdef WIN32
-		tnprintf( spacename, sizeof( spacename ), WIDE("%s:%08lX"), name, GetCurrentProcessId() );
+		tnprintf( spacename, sizeof( spacename ), "%s:%08lX", name, GetCurrentProcessId() );
 #else
-		tnprintf( spacename, sizeof( spacename ), WIDE("%")_S WIDE(":%08X"), name, getpid() );
+		tnprintf( spacename, sizeof( spacename ), "%"_S ":%08X", name, getpid() );
 #  ifdef DEBUG_FIRST_UNICODE_OPERATION
 		{
 			wchar_t buf[32];
@@ -2467,7 +2467,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, uintptr_t global_size, 
 		if( created )
 		{
 #ifdef DEBUG_GLOBAL_REGISTRATION
-			lprintf( WIDE("(specific procreg global)clearing memory:%s(%p)"), spacename, (*ppGlobal ) );
+			lprintf( "(specific procreg global)clearing memory:%s(%p)", spacename, (*ppGlobal ) );
 #endif
 			MemSet( (*ppGlobal), 0, global_size );
 			{
@@ -2478,12 +2478,12 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, uintptr_t global_size, 
 			}
 			if( Open )
 				Open( (*ppGlobal), global_size );
-			p = (POINTER)MakeRegisteredDataTypeEx( NULL, WIDE("system/global data"), name, name, (*ppGlobal), global_size );
+			p = (POINTER)MakeRegisteredDataTypeEx( NULL, "system/global data", name, name, (*ppGlobal), global_size );
 		}
 		else
 		{
 #ifdef DEBUG_GLOBAL_REGISTRATION
-			lprintf( WIDE("(specific procreg global)using memory untouched:%s(%p)"), spacename, (*ppGlobal ) );
+			lprintf( "(specific procreg global)using memory untouched:%s(%p)", spacename, (*ppGlobal ) );
 #endif
 			{
 				// pp global is a double pointer type, I want the pointer before
@@ -2500,17 +2500,17 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, uintptr_t global_size, 
 		Init();
 		// RTLD_DEFAULT
 		ppGlobalMain = &p;
-		p = (POINTER)CreateRegisteredDataTypeEx( (PCLASSROOT)l.Names, WIDE("system/global data"), name, name );
+		p = (POINTER)CreateRegisteredDataTypeEx( (PCLASSROOT)l.Names, "system/global data", name, name );
 		if( !p )
 		{
-			RegisterDataType( WIDE("system/global data"), name, global_size
+			RegisterDataType( "system/global data", name, global_size
 								 , Open
 								 , NULL );
-			p = (POINTER)CreateRegisteredDataTypeEx( (PCLASSROOT)l.Names, WIDE("system/global data"), name, name );
+			p = (POINTER)CreateRegisteredDataTypeEx( (PCLASSROOT)l.Names, "system/global data", name, name );
 			if( !p )
 				ppGlobalMain = NULL;
 #ifdef DEBUG_GLOBAL_REGISTRATION
-			lprintf( WIDE("Registered and created by registered type. %p"), p );
+			lprintf( "Registered and created by registered type. %p", p );
 #endif
 			{
 				// only need each space once in this list; when it's created.
@@ -2521,18 +2521,18 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, uintptr_t global_size, 
 		else
 		{
 #ifdef DEBUG_GLOBAL_REGISTRATION
-			lprintf( WIDE("Found our shared region by asking politely for it! *********************") );
+			lprintf( "Found our shared region by asking politely for it! *********************" );
 #endif
 		}
 		if( !ppGlobalMain )
 		{
-			lprintf( WIDE("None found in main... no way to mark for a peer...") );
+			lprintf( "None found in main... no way to mark for a peer..." );
 			exit(0);
 		}
 		if( ppGlobalMain && *ppGlobalMain )
 		{
 #ifdef DEBUG_GLOBAL_REGISTRATION
-			lprintf( WIDE("Resulting with a global space to use... %p"), (*ppGlobalMain) );
+			lprintf( "Resulting with a global space to use... %p", (*ppGlobalMain) );
 #endif
 			(*ppGlobal) = (*ppGlobalMain);
 			{
@@ -2543,7 +2543,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, uintptr_t global_size, 
 		}
 		else
 		{
-			lprintf( WIDE("Failure to get global_procreg_data block.") );
+			lprintf( "Failure to get global_procreg_data block." );
 			exit(0);
 		}
 	}
@@ -2594,9 +2594,9 @@ public ref class ProcReg
 			newname->data.stdproc.procname = SaveName( real_name );
 			//newname->data.proc.ret = SaveName( returntype );
 			//newname->data.proc.args = SaveName( StripName( strippedargs, args ) );
-			newname->data.proc.name = SaveNameConcatN( StripName( strippedargs, WIDE( "(*)" ) )
-																  , WIDE("") //returntype
-																  , WIDE("") // library 
+			newname->data.proc.name = SaveNameConcatN( StripName( strippedargs, "(*)" )
+																  , "" //returntype
+																  , "" // library 
 																  , real_name
 																  , NULL
 																  );
@@ -2608,11 +2608,11 @@ public ref class ProcReg
 				if( oldname )
 				{
 					if( oldname->data.stdproc.proc == Delegate )
-						Log( WIDE("And fortunatly it's the same address... all is well...") );
+						Log( "And fortunatly it's the same address... all is well..." );
 					else
 					{
-						xlprintf( 2 )( WIDE("proc %s/%s regisry by %s of %s(%s) conflicts with %s(%s)...")
-													  , (CTEXTSTR)__name_class?(CTEXTSTR)__name_class:WIDE("@")
+						xlprintf( 2 )( "proc %s/%s regisry by %s of %s(%s) conflicts with %s(%s)..."
+													  , (CTEXTSTR)__name_class?(CTEXTSTR)__name_class:"@"
 													  , real_name
 													  , newname->name
 													  , newname->data.proc.name
@@ -2622,7 +2622,7 @@ public ref class ProcReg
 													  //,library
 													  , oldname->data.proc.procname );
 						// perhaps it's same in a different library...
-						Log( WIDE("All is not well - found same function name in tree with different address. (ignoring second) ") );
+						Log( "All is not well - found same function name in tree with different address. (ignoring second) " );
 						//DebugBreak();
 						//DumpRegisteredNames();
 					}
@@ -2633,14 +2633,14 @@ public ref class ProcReg
 					newname->parent = class_root;
 					if( !AddBinaryNode( class_root->Tree, newname, (uintptr_t)newname->name ) )
 					{
-						Log( WIDE("For some reason could not add new name to tree!") );
+						Log( "For some reason could not add new name to tree!" );
 						DeleteFromSet( NAME, l.NameSet, newname );
 					}
 				}
 			}
 			else
 			{
-				lprintf( WIDE("I'm relasing this name!?") );
+				lprintf( "I'm relasing this name!?" );
 				DeleteFromSet( NAME, l.NameSet, newname );
 			}
 			return 1;

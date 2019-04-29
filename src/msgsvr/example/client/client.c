@@ -46,7 +46,7 @@ static int CPROC ConnectToServer( void )
 	{
 		if( InitMessageService() )
 		{
-			l.MsgBase = LoadService( WIDE("some_service_name"), DisplayEventProcessor );
+			l.MsgBase = LoadService( "some_service_name", DisplayEventProcessor );
 			if( l.MsgBase )
 			{
 				l.flags.connected = 1;
@@ -56,7 +56,7 @@ static int CPROC ConnectToServer( void )
 		}
 	}
 	if( !l.flags.connected )
-		Log( WIDE("Failed to connect") );
+		Log( "Failed to connect" );
    return l.flags.connected;
 }
 
@@ -64,7 +64,7 @@ static void DisconnectFromServer( void )
 {
 	if( l.flags.connected )
 	{
-      Log( WIDE("Disconnecting from server (display)") );
+      Log( "Disconnecting from server (display)" );
 		UnloadService( l.MsgBase );
 		l.flags.connected = 0;
       l.MsgBase = 0;

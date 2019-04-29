@@ -44,11 +44,11 @@ void ProcessEnum( void )
 	while( pLine )
 	{
 		text = GetText( pLine );
-		if( TextIs( pLine, WIDE("enum") ) )
+		if( TextIs( pLine, "enum" ) )
 		{
 			if( g.current_enum )
 			{
-				fprintf( stderr, WIDE("%s(%d): Syntax error enumeration within enum?\n")
+				fprintf( stderr, "%s(%d): Syntax error enumeration within enum?\n"
 						  , GetCurrentFileName(), GetCurrentLine() );
 			}
 			g.current_enum = Allocate( sizeof( ENUM_TABLE ) );
@@ -56,7 +56,7 @@ void ProcessEnum( void )
 			g.current_enum->name = NULL;
 			if( g.current_entry )
 			{
-				fprintf( stderr, WIDE("Coding error - uncommited enumeration value. Lost memory.\n") );
+				fprintf( stderr, "Coding error - uncommited enumeration value. Lost memory.\n" );
 				g.current_entry = NULL;
 			}
 			g.flags.get_identifier = 1;
@@ -69,7 +69,7 @@ void ProcessEnum( void )
 				{
 					if( g.current_enum->name )
 					{
-						fprintf( stderr, WIDE("%s(%d): Error multiple identifers for enum\n")
+						fprintf( stderr, "%s(%d): Error multiple identifers for enum\n"
 								 , GetCurrentFileName(), GetCurrentLine() );
 					}
 					else
@@ -119,11 +119,11 @@ void ProcessEnum( void )
 				{
 					if( text[0] == ',' )
 					{
-						fprintf( stderr, WIDE("Error - unexpected comma sepeartor enumeration.\n") );
+						fprintf( stderr, "Error - unexpected comma sepeartor enumeration.\n" );
 					}
 					if( text[0] == '=' )
 					{
-						fprintf( stderr, WIDE("Error - unexpected comma sepeartor enumeration.\n") );
+						fprintf( stderr, "Error - unexpected comma sepeartor enumeration.\n" );
 					}
 					g.current_entry = Allocate( sizeof( ENUM_ENTRY ) );
 					g.flags.current_value_set = 0;

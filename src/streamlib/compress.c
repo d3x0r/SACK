@@ -110,7 +110,7 @@ void InitCompress( PCOMPRESS pCompress, int width, int height )
 			pCompress->xinit.version = XVID_VERSION;
 			if( XVID_VERSION != (version = xvid_global( NULL, XVID_GBL_INIT, &pCompress->xinit, NULL ) ) )
 			{
-				lprintf( WIDE("warning: xvid api version(%d) and compiled version(%d) do not match.")
+				lprintf( "warning: xvid api version(%d) and compiled version(%d) do not match."
 						 , version, XVID_VERSION );
 			}
          pCompress->xinfo.version = XVID_VERSION;
@@ -227,7 +227,7 @@ void InitCompress( PCOMPRESS pCompress, int width, int height )
 
 	/* I use a small value here, since will not encode whole movies, but short clips */
 	xerr = xvid_encore(NULL, XVID_ENC_CREATE, &xvid_enc_create, NULL);
-			lprintf( WIDE("xerr of xvid_encore: %d handle:%d"), xerr, pCompress->xparam.handle );
+			lprintf( "xerr of xvid_encore: %d handle:%d", xerr, pCompress->xparam.handle );
 		}
       if(0)
 		{
@@ -249,7 +249,7 @@ void InitCompress( PCOMPRESS pCompress, int width, int height )
 			//pCompress->xparam.max_key_interfal = -1; // default 10sec (10*fps)
 
 			xerr = xvid_encore( NULL, XVID_ENC_CREATE, &pCompress->xparam, NULL );
-			lprintf( WIDE("xerr of xvid_encore: %d handle:%d"), xerr, pCompress->xparam.handle );
+			lprintf( "xerr of xvid_encore: %d handle:%d", xerr, pCompress->xparam.handle );
 		}
 		pCompress->xstats.version = XVID_VERSION;
       pCompress->flags.bInited = 1;
@@ -289,7 +289,7 @@ int CPROC CompressFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
    pCompress->xstats.version = XVID_VERSION;
 	xerr = xvid_encore( pCompress->xparam.handle, XVID_ENC_ENCODE, &pCompress->xframe, &pCompress->xstats );
    if(0)
-	lprintf( WIDE("stats! %d %d %d %d %d %d")
+	lprintf( "stats! %d %d %d %d %d %d"
           , xerr
 			 , pCompress->xstats.length
 			 , pCompress->xstats.hlength
@@ -298,7 +298,7 @@ int CPROC CompressFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 			 , pCompress->xstats.ublks );
 	if( xerr < 0 || xerr > 512000 )
 	{
-		lprintf( WIDE("Resulting %d data was %p(%d)")
+		lprintf( "Resulting %d data was %p(%d)"
 				 , xerr
 				 , pCompress->xframe.bitstream
 				 , pCompress->xframe.length );

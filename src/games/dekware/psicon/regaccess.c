@@ -214,7 +214,7 @@ BOOL DelConfigString( LPCSTR lpszSection, LPSTR lpszKey, LPTSTR lpszPath )
 }
 */
 
-#define KEY_PREFIX WIDE("Software\\Freedom Collective\\")
+#define KEY_PREFIX "Software\\Freedom Collective\\"
 
 int GetRegistryItem( HKEY hRoot, TEXTCHAR *pPrefix, 
                      TEXTCHAR *pProduct, TEXTCHAR *pKey, 
@@ -228,9 +228,9 @@ int GetRegistryItem( HKEY hRoot, TEXTCHAR *pPrefix,
    HKEY hTemp;
 
    if( pProduct )
-      snprintf( pszString, sizeof( szString ), WIDE("%s%s"), pPrefix, pProduct );
+      snprintf( pszString, sizeof( szString ), "%s%s", pPrefix, pProduct );
    else
-      snprintf( pszString, sizeof( szString ), WIDE("%s"), pPrefix );
+      snprintf( pszString, sizeof( szString ), "%s", pPrefix );
 
    dwStatus = RegOpenKeyEx( hRoot, 
                             pszString, 0, 
@@ -337,9 +337,9 @@ int SetRegistryItem( HKEY hRoot, TEXTCHAR *pPrefix,
    HKEY hTemp;
 
    if( pProduct )
-      wsprintf( pszString, WIDE("%s%s"), pPrefix, pProduct );
+      wsprintf( pszString, "%s%s", pPrefix, pProduct );
    else
-      wsprintf( pszString, WIDE("%s"), pPrefix );
+      wsprintf( pszString, "%s", pPrefix );
 
    dwStatus = RegOpenKeyEx( hRoot, 
                             pszString, 0, 
@@ -349,14 +349,14 @@ int SetRegistryItem( HKEY hRoot, TEXTCHAR *pPrefix,
       DWORD dwDisposition;
       dwStatus = RegCreateKeyEx( hRoot, 
                                  pszString, 0
-                             , WIDE("")
+                             , ""
                              , REG_OPTION_NON_VOLATILE
                              , KEY_WRITE
                              , NULL
                              , &hTemp
                              , &dwDisposition);
       if( dwDisposition == REG_OPENED_EXISTING_KEY )
-         OutputDebugString( WIDE("Failed to open, then could open???") );
+         OutputDebugString( "Failed to open, then could open???" );
       if( dwStatus )   // ERROR_SUCCESS == 0 
          return FALSE; 
    }

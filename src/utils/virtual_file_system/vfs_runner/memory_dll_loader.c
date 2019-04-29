@@ -122,7 +122,7 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 						, source_nt_header->OptionalHeader.FileAlignment
 						);
 
-			lprintf( WIDE("Program version was %d.%d (is now %d.%d)")
+			lprintf( "Program version was %d.%d (is now %d.%d)"
 						, source_nt_header->OptionalHeader.MajorOperatingSystemVersion
 						, source_nt_header->OptionalHeader.MinorOperatingSystemVersion
 						, 4, 0
@@ -152,15 +152,15 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 				newSize = (source_section[n].VirtualAddress) + source_section[n].SizeOfRawData;
 				if( newSize > dwSize )
 					dwSize = newSize;
-				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".text"), sizeof( source_section[n].Name ) ) == 0 )
+				if( StrCmpEx( (char*)source_section[n].Name, ".text", sizeof( source_section[n].Name ) ) == 0 )
 				{
 					source_text_section = source_section + n;
 				}
-				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".idata"), sizeof( source_section[n].Name ) ) == 0 )
+				if( StrCmpEx( (char*)source_section[n].Name, ".idata", sizeof( source_section[n].Name ) ) == 0 )
 				{
 					source_import_section = source_section + n;
 				}
-				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".rdata"), sizeof( source_section[n].Name ) ) == 0 )
+				if( StrCmpEx( (char*)source_section[n].Name, ".rdata", sizeof( source_section[n].Name ) ) == 0 )
 				{
 				}
 			}
@@ -304,7 +304,7 @@ maybe it returns the library base... */
 						, source_nt_header->OptionalHeader.FileAlignment
 						);
 
-			lprintf( WIDE("Program version was %d.%d (is now %d.%d)")
+			lprintf( "Program version was %d.%d (is now %d.%d)"
 						, source_nt_header->OptionalHeader.MajorOperatingSystemVersion
 						, source_nt_header->OptionalHeader.MinorOperatingSystemVersion
 						, 4, 0
@@ -331,17 +331,17 @@ maybe it returns the library base... */
 				newSize = (source_section[n].VirtualAddress) + source_section[n].SizeOfRawData;
 				if( newSize > dwSize )
 					dwSize = newSize;
-				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".text"), sizeof( source_section[n].Name ) ) == 0 )
+				if( StrCmpEx( (char*)source_section[n].Name, ".text", sizeof( source_section[n].Name ) ) == 0 )
 				{
 					//image_base = (POINTER)Seek( real_memory, source_section[n].VirtualAddress );
 					source_text_section = source_section + n;
 				}
-				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".idata"), sizeof( source_section[n].Name ) ) == 0 )
+				if( StrCmpEx( (char*)source_section[n].Name, ".idata", sizeof( source_section[n].Name ) ) == 0 )
 				{
 					//import_base = (PIMAGE_IMPORT_DESCRIPTOR)Seek( source_memory, source_section[n].PointerToRawData );
 					source_import_section = source_section + n;
 				}
-				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".rdata"), sizeof( source_section[n].Name ) ) == 0 )
+				if( StrCmpEx( (char*)source_section[n].Name, ".rdata", sizeof( source_section[n].Name ) ) == 0 )
 				{
 					//source_rdata_base = (POINTER)Seek( source_memory, source_section[n].PointerToRawData );
 					//real_rdata_base = (POINTER)Seek( real_memory, source_section[n].VirtualAddress );
@@ -439,7 +439,7 @@ maybe it returns the library base... */
 			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
 			{
 				source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections + n * sizeof( IMAGE_SECTION_HEADER ) );
-				if( StrCmpEx( (char*)source_section[0].Name, WIDE(".reloc"), sizeof( source_section[0].Name ) ) == 0 )
+				if( StrCmpEx( (char*)source_section[0].Name, ".reloc", sizeof( source_section[0].Name ) ) == 0 )
 				{
 					int num_reloc;
 					DWORD section_offset = 0;

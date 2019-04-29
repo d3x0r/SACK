@@ -180,14 +180,14 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, uint8_t* data )
    uint32_t *dwPalette;
    uint8_t* pColor;
 	int x, y, w, h;
-   lprintf( WIDE( "Untested code here..." ) );
+   lprintf( "Untested code here..." );
 	if( pbm->bV5Height < 0 )
 		pif = MakeImageFile( w = pbm->bV5Width,
 								  h = -pbm->bV5Height );
 	else
 		pif = MakeImageFile( w = pbm->bV5Width,
 								  h = pbm->bV5Height );
-	Log3( WIDE("Load bitmamp image: %d by %d %d bits"), w, h, pbm->bV5BitCount );
+	Log3( "Load bitmamp image: %d by %d %d bits", w, h, pbm->bV5BitCount );
    if( pif )
    {
       dwPalette = (uint32_t*)(((uint8_t*)pbm) + pbm->bV5Size);
@@ -279,7 +279,7 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, uint8_t* data )
          }
          break;
       default:
-         Log1( WIDE("Unknown BITMAP pixel format: %d\n"), pbm->bV5BitCount );
+         Log1( "Unknown BITMAP pixel format: %d\n", pbm->bV5BitCount );
       }
    }
    return pif;
@@ -299,7 +299,7 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, uint8_t* data )
    pif = MakeImageFile( w = pbm->biWidth,
                         h = pbm->biHeight );
    /*
-	lprintf( WIDE("Load bitmamp image: %d by %d %d bits (%s) (%08x=%08x)"), w, h, pbm->biBitCount
+	lprintf( "Load bitmamp image: %d by %d %d bits (%s) (%08x=%08x)", w, h, pbm->biBitCount
 			 , bGLColorMode?"GL Color":"Native Colors"
 			 , 0x12345678
            , GLColor( 0x12345678)
@@ -385,7 +385,7 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, uint8_t* data )
          }
          break;
       default:
-         Log1( WIDE("Unknown BITMAP pixel format: %d\n"), pbm->biBitCount );
+         Log1( "Unknown BITMAP pixel format: %d\n", pbm->biBitCount );
       }
 	}
 	if( !( pif->flags & IF_FLAG_INVERTED ) )

@@ -315,7 +315,7 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 					continue;
 				} else {
 					if( state->hex_char > 255 ) {
-						lprintf(WIDE("(escaped character, parsing octal escape val=%d) fault while parsing; )") WIDE(" (near %*.*s[%c]%s)")
+						lprintf("(escaped character, parsing octal escape val=%d) fault while parsing; )" " (near %*.*s[%c]%s)"
 							, state->hex_char
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
@@ -344,7 +344,7 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 				else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 				else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 				else {
-					lprintf(WIDE("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+					lprintf("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %"_size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n > 3 ) ? 3 : n ), (int)( ( n > 3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n > 3 ) ? 3 : n )
 						, c
@@ -366,7 +366,7 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 					else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 					else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 					else {
-						lprintf(WIDE("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+						lprintf("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %"_size_f " (near %*.*s[%c]%s)", c, n
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 							, c
@@ -447,7 +447,7 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 					state->escape = FALSE;
 					mOut += ConvertToUTF8(mOut, c);
 				} else {
-					lprintf(WIDE("(escaped character) fault while parsing; '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+					lprintf("(escaped character) fault while parsing; '%c' unexpected %"_size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 						, c
@@ -689,7 +689,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 					if( c == '*' ) { state->comment = 3; continue; }
 					if( c != '/' ) { 
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "Fault while parsing; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+						vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 						state->status = FALSE;
 					}
 					else state->comment = 2;
@@ -804,7 +804,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -818,7 +818,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -826,7 +826,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								if( !state->exponent ) {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 								else {
@@ -837,7 +837,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 									else {
 										state->status = FALSE;
 										if( !state->pvtError ) state->pvtError = VarTextCreate();
-										vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+										vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 										break;
 									}
 								}
@@ -851,7 +851,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -869,7 +869,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								//else {
 								//	state->status = FALSE;
 								//	if( !state->pvtError ) state->pvtError = VarTextCreate();
-								//	vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+								//	vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 								//	break;
 								//}
 							}

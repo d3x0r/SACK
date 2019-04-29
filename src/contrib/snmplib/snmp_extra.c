@@ -110,11 +110,11 @@ char *uptime_string(u_int timeticks, char *buf)
   seconds = timeticks % 60;
 
   if (days == 0) {
-    sprintf(buf, WIDE("%d:%02d:%02d"), hours, minutes, seconds);
+    sprintf(buf, "%d:%02d:%02d", hours, minutes, seconds);
   } else if (days == 1) {
-    sprintf(buf, WIDE("%d day, %d:%02d:%02d"), days, hours, minutes, seconds);
+    sprintf(buf, "%d day, %d:%02d:%02d", days, hours, minutes, seconds);
   } else {
-    sprintf(buf, WIDE("%d days, %d:%02d:%02d"), days, hours, minutes, seconds);
+    sprintf(buf, "%d days, %d:%02d:%02d", days, hours, minutes, seconds);
   }
 
   return(buf);
@@ -131,7 +131,7 @@ char *uptime_string(u_int timeticks, char *buf)
 char *winsock_startup(void)
 {
 #ifdef LOG_DEBUG
-   OutputDebugString( WIDE("Winsock Startup in SNMPLIB\n"));
+   OutputDebugString( "Winsock Startup in SNMPLIB\n");
 #endif
   if( NetworkWait(NULL,0, 8 ) )
      return NULL;
@@ -285,7 +285,7 @@ int mib_OidToTxt(oid *O, int OidLen, char *Buf, int BufLen)
 
   for (x=0; x<OidLen; x++) {
 
-    sprintf(bufp, WIDE(".%u"), O[x]);
+    sprintf(bufp, ".%u", O[x]);
     Len += strlen(bufp);
     bufp += strlen(bufp);
 

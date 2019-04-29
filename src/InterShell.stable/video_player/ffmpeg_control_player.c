@@ -32,7 +32,7 @@ typedef struct ffmpeg_surface {
 	LOGICAL playing; // is showing something.
 } *PFFMPEG;
 
-EasyRegisterControlWithBorder( WIDE("FFMPEG Surface"), sizeof( struct ffmpeg_surface ), BORDER_NONE );
+EasyRegisterControlWithBorder( "FFMPEG Surface", sizeof( struct ffmpeg_surface ), BORDER_NONE );
 
 void PlayOnPlayers( CTEXTSTR url_name )
 {
@@ -44,13 +44,13 @@ void PlayOnPlayers( CTEXTSTR url_name )
 	{
 		if( ffmpeg->playing )
 			//StopItemIn( ffmpeg->pc );
-		lprintf( WIDE("PC is %p"), ffmpeg->pc );
+		lprintf( "PC is %p", ffmpeg->pc );
 		//PlayItemInEx( ffmpeg->pc, url_name, NULL  );
 		ffmpeg->playing = TRUE;
 	}
 }
 
-static void OnKeyPressEvent( WIDE("FFMPEG/button") )( uintptr_t psv )
+static void OnKeyPressEvent( "FFMPEG/button" )( uintptr_t psv )
 {
 	static int n;
 	PMENU_BUTTON button = (PMENU_BUTTON)psv;
@@ -61,30 +61,30 @@ static void OnKeyPressEvent( WIDE("FFMPEG/button") )( uintptr_t psv )
 		n = 0;
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("FFMPEG/button") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "FFMPEG/button" )( PMENU_BUTTON button )
 {
 
 	return (uintptr_t)button;
 }
 
 
-static void OnKeyPressEvent( WIDE("FFMPEG/Player button") )( uintptr_t psv )
+static void OnKeyPressEvent( "FFMPEG/Player button" )( uintptr_t psv )
 {
 	struct player_button *play = (struct player_button *)psv;
 	PlayOnPlayers( play->url_name );
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("FFMPEG/Player button") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "FFMPEG/Player button" )( PMENU_BUTTON button )
 {
 	struct player_button *play = New( struct player_button );
 	play->button = button;
 	play->url_name = NULL;
-	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
-	InterShell_SetButtonText( button, WIDE("Play_Video") );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Play_Video" );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("FFMPEG/Stop Player button") )( uintptr_t psv )
+static void OnKeyPressEvent( "FFMPEG/Stop Player button" )( uintptr_t psv )
 {
 	struct player_button *play = (struct player_button *)psv;
 	PFFMPEG ffmpeg;
@@ -99,13 +99,13 @@ static void OnKeyPressEvent( WIDE("FFMPEG/Stop Player button") )( uintptr_t psv 
 
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("FFMPEG/Stop Player button") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "FFMPEG/Stop Player button" )( PMENU_BUTTON button )
 {
 	struct player_button *play = New( struct player_button );
 	play->button = button;
 	play->url_name = NULL;
-	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
-	InterShell_SetButtonText( button, WIDE("Stop_Player") );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Stop_Player" );
 	return (uintptr_t)button;
 }
 
@@ -119,44 +119,44 @@ static uintptr_t CPROC SetButtonMedia( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("FFMPEG/Player button") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "FFMPEG/Player button" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("Play Media:%m"), SetButtonMedia );
+	AddConfigurationMethod( pch, "Play Media:%m", SetButtonMedia );
 }
 
-static void OnSaveControl( WIDE("FFMPEG/Player button") )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "FFMPEG/Player button" )( FILE *file, uintptr_t psv )
 {
 	struct player_button *play = (struct player_button *)psv;
 	if( play->url_name )
-		sack_fprintf( file, WIDE("Play Media:%s\n"), play->url_name );
+		sack_fprintf( file, "Play Media:%s\n", play->url_name );
 }
 
 
 
-static uintptr_t OnCreateControl( WIDE("FFMPEG/Player") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "FFMPEG/Player" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 
-	PSI_CONTROL pc = MakeNamedControl( parent, WIDE("FFMPEG Surface"), x, y, w, h, -1 );
+	PSI_CONTROL pc = MakeNamedControl( parent, "FFMPEG Surface", x, y, w, h, -1 );
 	MyValidatedControlData( PFFMPEG, ffmpeg, pc );
 	ffmpeg->pc = pc;
 	AddLink( &l.players, ffmpeg );
 	return (uintptr_t)ffmpeg;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("FFMPEG/Player"))(uintptr_t psv )
+static PSI_CONTROL OnGetControl( "FFMPEG/Player")(uintptr_t psv )
 {
 	PFFMPEG ffmpeg = (PFFMPEG)psv;
 	return ffmpeg->pc;
 }
 
-static void OnShowControl( WIDE("FFMPEG/Player") )(uintptr_t psv )
+static void OnShowControl( "FFMPEG/Player" )(uintptr_t psv )
 {
 	PFFMPEG ffmpeg = (PFFMPEG)psv;
-	//ffmpeg->ffmpeg = PlayItemInEx( ffmpeg->pc, WIDE("dshow://"), NULL );
+	//ffmpeg->ffmpeg = PlayItemInEx( ffmpeg->pc, "dshow://", NULL );
 
 }
 
-static void OnHideControl( WIDE("FFMPEG/Player") )(uintptr_t psv )
+static void OnHideControl( "FFMPEG/Player" )(uintptr_t psv )
 {
 	PFFMPEG ffmpeg = (PFFMPEG)psv;
 	//StopItem(  ffmpeg->ffmpeg );

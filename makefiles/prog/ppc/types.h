@@ -4,7 +4,7 @@
 #include <ctype.h>
 
 #ifdef __LINUX__
-#  define DebugBreak() asm( WIDE("int $3\n") )
+#  define DebugBreak() asm( "int $3\n" )
 #else
 #  define DebugBreak()
 #endif

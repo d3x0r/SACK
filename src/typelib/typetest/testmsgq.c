@@ -18,8 +18,8 @@ int n;
 
 uintptr_t CPROC RunServer( PTHREAD thead )
 {
-	PMSGHANDLE pmq_in = CreateMsgQueue( WIDE("test in"), QUEUE_SIZE, NULL, 0 );
-	PMSGHANDLE pmq_out = CreateMsgQueue( WIDE("test out"), QUEUE_SIZE, NULL, 0 );
+	PMSGHANDLE pmq_in = CreateMsgQueue( "test in", QUEUE_SIZE, NULL, 0 );
+	PMSGHANDLE pmq_out = CreateMsgQueue( "test out", QUEUE_SIZE, NULL, 0 );
 	EnterCriticalSec( &cs );
    going = 1;
 	if( pmq_in && pmq_out )
@@ -32,11 +32,11 @@ uintptr_t CPROC RunServer( PTHREAD thead )
          for( step = 0; step < setsize; step++ )
 				msgsize = DequeMsg( pmq_in, 0, msg, sizeof( msg ), 0 );
 			if( msg[0] != n )
-				fprintf( stderr, WIDE("Sequence error: Got %ld expected %d\n"), msg[0], n );
+				fprintf( stderr, "Sequence error: Got %ld expected %d\n", msg[0], n );
 			if( dwNow + 1000 < GetTickCount() )
 			{
             dwNow = GetTickCount();
-				lprintf( WIDE("client Received %d Messages...%d"), n, msgsize );
+				lprintf( "client Received %d Messages...%d", n, msgsize );
 			}
          for( step = 0; step < setsize; step++ )
 				EnqueMsg( pmq_out, msg, msgsize, 0 );
@@ -48,8 +48,8 @@ uintptr_t CPROC RunServer( PTHREAD thead )
 
 uintptr_t CPROC RunClient( PTHREAD thead )
 {
-	PMSGHANDLE pmq_in = CreateMsgQueue( WIDE("test out"), QUEUE_SIZE, NULL, 0 );
-	PMSGHANDLE pmq_out = CreateMsgQueue( WIDE("test in"), QUEUE_SIZE, NULL, 0 );
+	PMSGHANDLE pmq_in = CreateMsgQueue( "test out", QUEUE_SIZE, NULL, 0 );
+	PMSGHANDLE pmq_out = CreateMsgQueue( "test in", QUEUE_SIZE, NULL, 0 );
    EnterCriticalSec( &cs );
    going = 1;
 	if( pmq_in && pmq_out )
@@ -67,7 +67,7 @@ uintptr_t CPROC RunClient( PTHREAD thead )
 			if( dwNow + 1000 < GetTickCount() )
 			{
             dwNow = GetTickCount();
-				lprintf( WIDE("server Received %d Messages... %d"), n, msgsize );
+				lprintf( "server Received %d Messages... %d", n, msgsize );
 			}
 		}
 	}
@@ -103,11 +103,11 @@ int main( int argc, char **argv )
 				count = 1;
 		}
       dwNow = dwStart = GetTickCount();
-		if( stricmp( argv[1], WIDE("server") ) == 0 )
+		if( stricmp( argv[1], "server" ) == 0 )
 		{
          ThreadTo( RunServer, 0 );
 		}
-		if( stricmp( argv[1], WIDE("client") ) == 0 )
+		if( stricmp( argv[1], "client" ) == 0 )
 		{
          ThreadTo( RunClient, 0 );
 		}
@@ -116,7 +116,7 @@ int main( int argc, char **argv )
       EnterCriticalSec( &cs );
 		{
          uint32_t dwTime = GetTickCount() - dwStart + 1;
-			lprintf( WIDE("Transacted %d messages in %dms = %d/sec, %d bytes/sec")
+			lprintf( "Transacted %d messages in %dms = %d/sec, %d bytes/sec"
 					 , n
                 , dwTime
 					 , (n * 1000)/dwTime

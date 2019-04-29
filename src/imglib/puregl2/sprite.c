@@ -134,7 +134,7 @@ static void PlotArbitrary( Image dest
 	verts[3].y = source->real_height << SCALE_SHIFT;
 #ifdef DEBUG_TIMING
 	{
-		//lprintf( WIDE("points : %d,%d %d,%d %d,%d %d,%d"), x1, y1, x2, y2, x3, y3, x4, y4 );
+		//lprintf( "points : %d,%d %d,%d %d,%d %d,%d", x1, y1, x2, y2, x3, y3, x4, y4 );
 	}
 #endif
 
@@ -159,7 +159,7 @@ static void PlotArbitrary( Image dest
 				}
 				else
 				{
-					lprintf( WIDE("Invalid configuration ( convex? )") );
+					lprintf( "Invalid configuration ( convex? )" );
 				}
 			}
 			else if( y4 < y1 )
@@ -187,7 +187,7 @@ static void PlotArbitrary( Image dest
 				}
 				else
 				{
-					lprintf( WIDE("Invalid configuration ( convex? )") );
+					lprintf( "Invalid configuration ( convex? )" );
 				}
 
 			}
@@ -250,7 +250,7 @@ static void PlotArbitrary( Image dest
             SET_POINTS( 2, 3, 4, 2, 1, 4 );
 			}
 			else
-				lprintf( WIDE("Invalid Configuration!") );
+				lprintf( "Invalid Configuration!" );
 		}
 	}
 	else if( y2 < y1 )
@@ -272,12 +272,12 @@ static void PlotArbitrary( Image dest
 					SET_POINTS( 2, 1, 4, 2, 3, 0 );
 				}
 				else
-					lprintf( WIDE("Invalid configuration!") );
+					lprintf( "Invalid configuration!" );
 				// y2 is the least
 			}
 			else if( y4 <= y2 )
 			{
-				lprintf( WIDE("Invalid configuration!") );
+				lprintf( "Invalid configuration!" );
 			}
 		}
 		else if( y3 < y2 )
@@ -299,7 +299,7 @@ static void PlotArbitrary( Image dest
 				SET_POINTS( 3, 2, 1, 3, 4, 0 );
 			}
 			else
-				lprintf( WIDE("Invalid configuration!") );
+				lprintf( "Invalid configuration!" );
 			// y3 is the least
 		}
 		else //if( y2 == y3 )
@@ -377,7 +377,7 @@ static void PlotArbitrary( Image dest
 
 		}
 		else
-         lprintf( WIDE("Invalid configuration.. y1, y2, and y3 all equal") );
+         lprintf( "Invalid configuration.. y1, y2, and y3 all equal" );
 	}
 
 #ifdef DEBUG_TIMING
@@ -920,17 +920,17 @@ static void PlotArbitrary( Image dest
 					right.idx++;
 				}
 			}
-         //lprintf( WIDE("end line.") );
+         //lprintf( "end line." );
 		}
 		while( left.idx < 3 && right.idx < 3 );
 #ifdef DEBUG_TIMING
-		lprintf( WIDE("lines : %") _32f WIDE(" cols: %") _32f WIDE(" output: %d"), lines, cols, output );
+		lprintf( "lines : %" _32f " cols: %" _32f " output: %d", lines, cols, output );
 		{
 			char buf[256];
 			int ofs = 0;
 			int n;
 			for( n = 0; n < 20; n++ )
-				ofs += snprintf( buf + ofs, sizeof( buf ) - ofs, WIDE("L(%d)=%d "), n, loops[n] );
+				ofs += snprintf( buf + ofs, sizeof( buf ) - ofs, "L(%d)=%d ", n, loops[n] );
 			lprintf( buf );
 		}
 #endif
@@ -957,7 +957,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 	static uint32_t lock;
 	static PTRANSFORM transform;
 	int32_t xd, yd;
-	//lprintf( WIDE("-- Begin Transform") );
+	//lprintf( "-- Begin Transform" );
 	while( LockedExchange( &lock, 1 ) ) Relinquish();
 	if( !transform )
 		transform = CreateNamedTransform( NULL );
@@ -969,10 +969,10 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				, (RCOORD)xd
 				, (RCOORD)yd
 				, (RCOORD)0 );
-	//lprintf( WIDE("angle = %ld"), sprite->angle );
+	//lprintf( "angle = %ld", sprite->angle );
 	Scale( transform, sprite->scalex / (RCOORD)0x10000, sprite->scaley / (RCOORD)0x10000, 0 );
 #ifdef DEBUG_TIMING
-	//lprintf( WIDE("angle = %ld"), sprite->angle );
+	//lprintf( "angle = %ld", sprite->angle );
 #endif
 	RotateAbs( transform, (RCOORD)0, (RCOORD)0, (RCOORD)sprite->angle );
 	//Scale( transform, 1, 1, 0 );
@@ -1031,23 +1031,23 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 			// save it, restore it, and restore the original clipping rectangle...
 			// wow what magic this is...
 #ifdef DEBUG_TIMING
-			//lprintf( WIDE("save portion? "));
+			//lprintf( "save portion? ");
 #endif
 			SavePortion( sprite->pSpriteMethod
 						  , sprite->minx, sprite->miny
 						  , (sprite->maxx - sprite->minx) + 1
 						  , (sprite->maxy - sprite->miny) + 1 );
 #ifdef DEBUG_TIMING
-			//lprintf( WIDE("saved..") );
+			//lprintf( "saved.." );
 #endif
 		}
 	}
 	if( !(dest->flags & IF_FLAG_FINAL_RENDER ) )
 	{
 #ifdef DEBUG_TIMING
-		lprintf( WIDE("Output arbitrary") );
+		lprintf( "Output arbitrary" );
 #endif
-		//lprintf( WIDE("plot arbitraty...") );
+		//lprintf( "plot arbitraty..." );
 		PlotArbitrary( dest, sprite->image
 						 , x1, y1
 						 , x2, y2
@@ -1056,9 +1056,9 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 						 , 0
 						 , BLOT_COPY
 						 , 0, 0, 0 );
-		//lprintf( WIDE("done plott...") );
+		//lprintf( "done plott..." );
 #ifdef DEBUG_TIMING
-		lprintf( WIDE("arbitrary out") );
+		lprintf( "arbitrary out" );
 #endif
 	}
 	else
@@ -1141,11 +1141,11 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				texture_v[3][1] = y_size2;
 
 				ReloadOpenGlTexture( topmost_parent, 0 );
-				//EnableShader( GetShader( WIDE("Simple Texture") ), v[vi], topmost_parent->glActiveSurface, texture_v );
-				//AppendShaderTristripQuad( GetShader( WIDE("Simple Texture") ), v[vi], topmost_parent->glActiveSurface, texture_v );
+				//EnableShader( GetShader( "Simple Texture" ), v[vi], topmost_parent->glActiveSurface, texture_v );
+				//AppendShaderTristripQuad( GetShader( "Simple Texture" ), v[vi], topmost_parent->glActiveSurface, texture_v );
 				{
 					struct image_shader_op *op;
-					op = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), dest,  topmost_parent->glActiveSurface );
+					op = BeginImageShaderOp( GetShader( "Simple Texture" ), dest,  topmost_parent->glActiveSurface );
 					AppendImageShaderOpTristrip( op, 2, v[vi] );
 				}
 			}

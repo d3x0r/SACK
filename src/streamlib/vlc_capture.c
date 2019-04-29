@@ -23,21 +23,21 @@ struct MyControl
 	} flags;
 };
 
-EasyRegisterControl( WIDE("Video Control"), sizeof( MY_CONTROL) );
+EasyRegisterControl( "Video Control", sizeof( MY_CONTROL) );
 
-static int OnDrawCommon( WIDE("Video Control") )( PSI_CONTROL pc )
+static int OnDrawCommon( "Video Control" )( PSI_CONTROL pc )
 {
 	return 1;
 }
 
-static int OnCreateCommon( WIDE("Video Control") )( PSI_CONTROL pc )
+static int OnCreateCommon( "Video Control" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	TEXTCHAR device[512];
-	SACK_GetPrivateProfileString( WIDE("Video Stream"), WIDE("VLC Device"), WIDE("dshow://")
-										 , device, sizeof( device ), WIDE("video.ini") );
+	SACK_GetPrivateProfileString( "Video Stream", "VLC Device", "dshow://"
+										 , device, sizeof( device ), "video.ini" );
    /*
-	SACK_GetPrivateProfileString( WIDE("Video Stream"), WIDE("VLC Device Opts"),
+	SACK_GetPrivateProfileString( "Video Stream", "VLC Device Opts",
 										" :dshow-vdev=\"Hauppauge WinTV Capture\""
 										" :dshow-adev=\"none\""
 										" :dshow-size=\"\""
@@ -77,29 +77,29 @@ PUBLIC( void, link_vlc_stream )( void )
 
 
 
-static void OnHideCommon( WIDE("Video Control") )( PSI_CONTROL pc )
+static void OnHideCommon( "Video Control" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
 	{
-		lprintf( WIDE("hiding render display") );
+		lprintf( "hiding render display" );
 		HideDisplay( control->surface );
 	}
 }
 
-static void OnRevealCommon( WIDE("Video Control") )( PSI_CONTROL pc )
+static void OnRevealCommon( "Video Control" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
 	{
 		if( control->flags.bShown )
 		{
-			lprintf( WIDE("restoring") );
+			lprintf( "restoring" );
 			RestoreDisplay( control->surface );
 		}
 		else
 		{
-			lprintf( WIDE("first-showing") );
+			lprintf( "first-showing" );
 			UpdateDisplay( control->surface );
 			control->flags.bShown = 1;
 		}

@@ -11,15 +11,15 @@ int main( void )
 //	while( 1 )
 	for( n=0;  n < 1000; n++ )
 	{
-		if( DoSQLQuery( WIDE("Select 1+1"), &result ) )
+		if( DoSQLQuery( "Select 1+1", &result ) )
 		{
-			lprintf( WIDE("%d : Result of query = %s\n"), n, result );
-			printf( WIDE("%d : Result of query = %s\n"), n, result );
+			lprintf( "%d : Result of query = %s\n", n, result );
+			printf( "%d : Result of query = %s\n", n, result );
 		}
 		else
 		{
          GetSQLError( &result );
-			printf( WIDE("%s\n"), result );
+			printf( "%s\n", result );
 		}
 	}
    return 0;

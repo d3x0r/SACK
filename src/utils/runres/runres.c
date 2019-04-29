@@ -144,13 +144,13 @@ static void SetWithFindMode( LPDEVMODE mode, int bRestoreOnCrash )
 								break;
 							}
 							//char msg[256];
-							lprintf( WIDE("Failed to change resolution to %d by %d (16,24 or 32 bit) %d %d")
+							lprintf( "Failed to change resolution to %d by %d (16,24 or 32 bit) %d %d"
 									 , mode->dmPelsWidth
 									 , mode->dmPelsHeight
 									 , result
 									 , GetLastError() );
 							//MessageBox( NULL, msg
-							//			 , WIDE("Resolution Failed"), MB_OK );
+							//			 , "Resolution Failed", MB_OK );
 						}
 						else
 						{
@@ -193,7 +193,7 @@ void GetDisplaySize(uint32_t * width, uint32_t * height)
 {
    RECT r;
    GetWindowRect (GetDesktopWindow (), &r);
-   //Log4( WIDE("Desktop rect is: %d, %d, %d, %d"), r.left, r.right, r.top, r.bottom );
+   //Log4( "Desktop rect is: %d, %d, %d, %d", r.left, r.right, r.top, r.bottom );
    if (width)
       *width = r.right - r.left;
    if (height)
@@ -221,8 +221,8 @@ int main( int argc, char const *const *argv )
 {
 	if( argc < 3 )
 	{
-		printf( WIDE("usage: %0 <width> <height> [<bits>] program [<arguments...>]\n"), argv[0] );
-		lprintf( WIDE("usage: %0 <width> <height> [<bits>] program [<arguments...>]"), argv[0] );
+		printf( "usage: %0 <width> <height> [<bits>] program [<arguments...>]\n", argv[0] );
+		lprintf( "usage: %0 <width> <height> [<bits>] program [<arguments...>]", argv[0] );
       return 1;
 	}
 	{
@@ -236,7 +236,7 @@ int main( int argc, char const *const *argv )
 		if( argv[arg][0] >= '0' && argv[arg][0] <= '9' )
 			bits = atol( argv[arg++] );
 		program = argv[arg];
-      printf( WIDE("Running %s at %d,%d (%d)\n"), program, width, height, bits );
+      printf( "Running %s at %d,%d (%d)\n", program, width, height, bits );
 		{
 #ifdef WIN32
 

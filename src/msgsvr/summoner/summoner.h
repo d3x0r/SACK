@@ -1,6 +1,6 @@
 
 
-#define SUMMONER_NAME WIDE("Master Summoner")
+#define SUMMONER_NAME "Master Summoner"
 
 enum {
 	MSG_RU_ALIVE = MSG_EventUser

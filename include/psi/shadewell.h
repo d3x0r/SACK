@@ -28,7 +28,7 @@ _COLORWELL_NAMESPACE
 	
 // common dialog to get a color... returns TRUE if *result is set
 // if result is NULL color is not returned, but still can set presets...
-#define  COLORWELL_NAME WIDE("Color Well")
+#define  COLORWELL_NAME "Color Well"
 
 /* <combine sack::psi::colorwell::PickColor@CDATA *@CDATA@PSI_CONTROL>
    

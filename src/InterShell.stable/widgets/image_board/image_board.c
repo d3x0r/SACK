@@ -21,7 +21,7 @@ static PSI_CONTROL OnQueryGetControl( "ImageBoard" )( uintptr_t psv )
    return (PSI_CONTROL)psv;
 }
 
-static void OnLoadControl(WIDE("ImageBoard"))( PCONFIG_HANDLER psv, uintptr_t psv )
+static void OnLoadControl("ImageBoard")( PCONFIG_HANDLER psv, uintptr_t psv )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	ValidatedControlData( struct image_board *, ImageBoardControl.TypeID, board, pc );
@@ -29,7 +29,7 @@ static void OnLoadControl(WIDE("ImageBoard"))( PCONFIG_HANDLER psv, uintptr_t ps
    AddConfigurationMethod(
 }
 
-static void OnSaveControl( WIDE("ImageBoard" ))( FILE *file, uintptr_t psv )
+static void OnSaveControl( "ImageBoard")( FILE *file, uintptr_t psv )
 {
 
 }

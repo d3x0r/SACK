@@ -125,7 +125,7 @@ static int COMPARE( RCOORD n1, RCOORD n2 )
 	int compare_result;
 	tmp1=n1-n2;
 
-	//lprintf( WIDE("exponents %ld %ld"), EXPON( n1 ), EXPON( n2 ) );
+	//lprintf( "exponents %ld %ld", EXPON( n1 ), EXPON( n2 ) );
  	//lprintf("%9.9g-%9.9g=%9.9g %s %s %ld %ld %ld"
 	//		 , (n1),(n2),(tmp1)
 	//		 ,!RCOORDBITS(n1)?"zero":"    ",!RCOORDBITS(n2)?"zero":"    "

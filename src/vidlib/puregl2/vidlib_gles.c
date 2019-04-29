@@ -32,7 +32,7 @@ int InitGL( struct display_camera *camera )										// All Setup For OpenGL Goe
       // this just fills l.fProjection
 		MygluPerspective(90.0f,camera->aspect,1.0f,30000.0f);
 
-		lprintf( WIDE("First GL Init Done.") );
+		lprintf( "First GL Init Done." );
 		camera->flags.init = 1;
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background

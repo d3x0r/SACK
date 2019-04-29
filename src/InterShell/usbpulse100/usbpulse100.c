@@ -66,7 +66,7 @@ PRELOAD( InitUSBPulse100 )
 	l.driver = USBpulse100Drvr_OpenDrvr();
 	if( !l.driver )
 	{
-		lprintf( WIDE("Failed to load lowlevel driver") );
+		lprintf( "Failed to load lowlevel driver" );
 		return;
 	}
 
@@ -75,8 +75,8 @@ PRELOAD( InitUSBPulse100 )
 
 	if( !devices )
 	{
-		lprintf( WIDE("No Devices Attached.") );
-		//BannerMessage( WIDE("No Devices Attached.") );
+		lprintf( "No Devices Attached." );
+		//BannerMessage( "No Devices Attached." );
 		return;
 	}
 	
@@ -89,15 +89,15 @@ PRELOAD( InitUSBPulse100 )
 		device->product = device->_product;
 		device->serial = device->_serial;
 		USBpulse100Drvr_GetProductName( d + 1, device->product, &len );
-		lprintf( WIDE("device %d = %s"), d, device->product );
+		lprintf( "device %d = %s", d, device->product );
 		USBpulse100Drvr_GetSerialNumber( d + 1, device->serial, &len );
-		lprintf( WIDE("device %d = %s"), d, device->serial );
+		lprintf( "device %d = %s", d, device->serial );
 		AddLink( &l.devices, device );
 		{
 			TEXTCHAR tmp[256];
-			snprintf( tmp, 256, WIDE("<PulseUSB %d/product>"), d + 1 );
+			snprintf( tmp, 256, "<PulseUSB %d/product>", d + 1 );
 			CreateLabelVariable( tmp, LABEL_TYPE_STRING, &device->product );
-			snprintf( tmp, 256, WIDE("<PulseUSB %d/serial>"), d + 1 );
+			snprintf( tmp, 256, "<PulseUSB %d/serial>", d + 1 );
 			CreateLabelVariable( tmp, LABEL_TYPE_STRING, &device->serial );
 		}
 	}
@@ -119,7 +119,7 @@ PRELOAD( InitUSBPulse100 )
 
 //---------------------------------------------------------------------------------
 
-static uintptr_t OnCreateMenuButton( WIDE("USB Pulse/Enable Output") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "USB Pulse/Enable Output" )( PMENU_BUTTON button )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->button = button;
@@ -127,7 +127,7 @@ static uintptr_t OnCreateMenuButton( WIDE("USB Pulse/Enable Output") )( PMENU_BU
 	return (uintptr_t)key_data;
 }
 
-static void OnKeyPressEvent( WIDE("USB Pulse/Enable Output") )( uintptr_t psv )
+static void OnKeyPressEvent( "USB Pulse/Enable Output" )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	key_data->device->flags.enabled = !key_data->device->flags.enabled;
@@ -135,7 +135,7 @@ static void OnKeyPressEvent( WIDE("USB Pulse/Enable Output") )( uintptr_t psv )
 	UpdateButton( key_data->button );
 }
 
-static void OnShowControl( WIDE("USB Pulse/Enable Output") )( uintptr_t psv )
+static void OnShowControl( "USB Pulse/Enable Output" )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	InterShell_SetButtonHighlight( key_data->button, key_data->device->flags.enabled );
@@ -143,7 +143,7 @@ static void OnShowControl( WIDE("USB Pulse/Enable Output") )( uintptr_t psv )
 
 //---------------------------------------------------------------------------------
 
-static uintptr_t OnCreateMenuButton( WIDE("USB Pulse/Invert Output") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "USB Pulse/Invert Output" )( PMENU_BUTTON button )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->button = button;
@@ -151,7 +151,7 @@ static uintptr_t OnCreateMenuButton( WIDE("USB Pulse/Invert Output") )( PMENU_BU
 	return (uintptr_t)key_data;
 }
 
-static void OnKeyPressEvent( WIDE("USB Pulse/Invert Output") )( uintptr_t psv )
+static void OnKeyPressEvent( "USB Pulse/Invert Output" )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	key_data->device->flags.inverted = !key_data->device->flags.inverted;
@@ -159,7 +159,7 @@ static void OnKeyPressEvent( WIDE("USB Pulse/Invert Output") )( uintptr_t psv )
 	UpdateButton( key_data->button );
 }
 
-static void OnShowControl( WIDE("USB Pulse/Invert Output") )( uintptr_t psv )
+static void OnShowControl( "USB Pulse/Invert Output" )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	InterShell_SetButtonHighlight( key_data->button, key_data->device->flags.inverted );
@@ -167,7 +167,7 @@ static void OnShowControl( WIDE("USB Pulse/Invert Output") )( uintptr_t psv )
 
 //---------------------------------------------------------------------------------
 
-static uintptr_t OnCreateMenuButton( WIDE("USB Pulse/Enable RNG Output") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "USB Pulse/Enable RNG Output" )( PMENU_BUTTON button )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->button = button;
@@ -175,7 +175,7 @@ static uintptr_t OnCreateMenuButton( WIDE("USB Pulse/Enable RNG Output") )( PMEN
 	return (uintptr_t)key_data;
 }
 
-static void OnKeyPressEvent( WIDE("USB Pulse/Enable RNG Output") )( uintptr_t psv )
+static void OnKeyPressEvent( "USB Pulse/Enable RNG Output" )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	key_data->device->flags.RNG = !key_data->device->flags.RNG;
@@ -183,7 +183,7 @@ static void OnKeyPressEvent( WIDE("USB Pulse/Enable RNG Output") )( uintptr_t ps
 	UpdateButton( key_data->button );
 }
 
-static void OnShowControl( WIDE("USB Pulse/Enable RNG Output") )( uintptr_t psv )
+static void OnShowControl( "USB Pulse/Enable RNG Output" )( uintptr_t psv )
 {
 	PKEY_DATA key_data = (PKEY_DATA)psv;
 	InterShell_SetButtonHighlight( key_data->button, key_data->device->flags.RNG );
@@ -199,7 +199,7 @@ static void CPROC OnSliderVoltageProc( uintptr_t psv, PSI_CONTROL pc, int val )
 	USBpulse100Drvr_SetAmplitude( key_data->device->com_port, ((float)key_data->device->level) / 100.0f );	
 }
 
-static uintptr_t OnCreateControl( WIDE("USB Pulse/Voltage Slider") )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "USB Pulse/Voltage Slider" )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->slider = MakeNamedControl( frame, SLIDER_CONTROL_NAME, x, y, w, h, -1);
@@ -209,7 +209,7 @@ static uintptr_t OnCreateControl( WIDE("USB Pulse/Voltage Slider") )( PSI_CONTRO
 	return (uintptr_t)key_data;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("USB Pulse/Voltage Slider") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "USB Pulse/Voltage Slider" )( uintptr_t psv )
 {
 	return ((PKEY_DATA)psv)->slider;
 }
@@ -224,7 +224,7 @@ static void CPROC OnSliderPLLProc( uintptr_t psv, PSI_CONTROL pc, int val )
 	//USBpulse100Drvr_SetPLL( key_data->device->com_port, m, n, u, dly );
 }
 
-static uintptr_t OnCreateControl( WIDE("USB Pulse/Phase Lock Loop") )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "USB Pulse/Phase Lock Loop" )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->slider = MakeNamedControl( frame, SLIDER_CONTROL_NAME, x, y, w, h, -1);
@@ -234,7 +234,7 @@ static uintptr_t OnCreateControl( WIDE("USB Pulse/Phase Lock Loop") )( PSI_CONTR
 	return (uintptr_t)key_data;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("USB Pulse/Phase Lock Loop") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "USB Pulse/Phase Lock Loop" )( uintptr_t psv )
 {
 	return ((PKEY_DATA)psv)->slider;
 }
@@ -247,18 +247,18 @@ static void CPROC OnFrequencyProc( uintptr_t psv, int change )
 	
 }
 
-static uintptr_t OnCreateControl( WIDE("USB Pulse/Frequency Knob") )( PSI_CONTROL frame,  int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "USB Pulse/Frequency Knob" )( PSI_CONTROL frame,  int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PKEY_DATA key_data = New( KEY_DATA );
 	key_data->knob = MakeNamedControl( frame, CONTROL_SCROLL_KNOB_NAME, x, y, w, h, -1);
 	SetScrollKnobEvent( key_data->knob, OnFrequencyProc, (uintptr_t)key_data );
-	SetScrollKnobImageName( key_data->knob, WIDE("images/knobarrow.png") );
+	SetScrollKnobImageName( key_data->knob, "images/knobarrow.png" );
 	SetScrollKnobImageZeroAngle( key_data->knob, (0x100000000LL / 2) + (0x100000000LL / 3) );
 	key_data->device = GetLink( &l.devices, l.buttons.knob++ );
 	return (uintptr_t)key_data;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("USB Pulse/Frequency Knob") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "USB Pulse/Frequency Knob" )( uintptr_t psv )
 {
 	return ((PKEY_DATA)psv)->knob;
 }

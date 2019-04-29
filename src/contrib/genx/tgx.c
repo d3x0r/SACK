@@ -19,7 +19,7 @@ static int errorcount = 0;
 
 static void ouch2(genxWriter w, char * message)
 {
-  fprintf(stderr, WIDE("*** stress test error '%s': %s\n"), message,
+  fprintf(stderr, "*** stress test error '%s': %s\n", message,
 	  genxLastErrorMessage(w));
   errorcount++;
 }
@@ -28,7 +28,7 @@ static void ouch2(genxWriter w, char * message)
 static void ouch(genxWriter  w, char * message, genxStatus code, genxStatus wanted)
 {
   if (code == -1)
-    fprintf(stderr, WIDE("*** %s\n"), message);
+    fprintf(stderr, "*** %s\n", message);
   else if (wanted == -1)
     fprintf(stderr,
 	    "*** %s: got %s\n", message, genxGetErrorMessage(w, code));
@@ -120,7 +120,7 @@ static void checkUTF8()
   tBadUtf8[5] = t8;
   tBadUtf8[6] = t9;
   tBadUtf8[7] = NULL;
-  fprintf(stderr, WIDE("Testing genxCheckText\n"));
+  fprintf(stderr, "Testing genxCheckText\n");
   w = genxNew(NULL, NULL, NULL);
   if (!w)
   {
@@ -129,15 +129,15 @@ static void checkUTF8()
   }
 
   if ((ret = genxCheckText(w, t1)) != GENX_SUCCESS)
-    ouch(w, WIDE("Error on string t1"), ret, GENX_SUCCESS);
+    ouch(w, "Error on string t1", ret, GENX_SUCCESS);
   if ((ret = genxCheckText(w, t2)) != GENX_NON_XML_CHARACTER)
-    ouch(w, WIDE("Error on string t2"), ret, GENX_NON_XML_CHARACTER);
+    ouch(w, "Error on string t2", ret, GENX_NON_XML_CHARACTER);
 
   for (i = 0; tBadUtf8[i]; i++)
     if ((ret = genxCheckText(w, tBadUtf8[i])) != GENX_BAD_UTF8)
     {
       char msg[1024];
-      sprintf(msg, WIDE("Error on BadUTF8 #%d"), i);
+      sprintf(msg, "Error on BadUTF8 #%d", i);
       ouch(w, msg, ret, GENX_BAD_UTF8);
     }
 
@@ -150,7 +150,7 @@ static void checkUTF8()
     if (c == charsInT1[i])
       continue;
 
-    sprintf(msg, WIDE("t1[%d] got %d wanted %d"), i, c, charsInT1[i]);
+    sprintf(msg, "t1[%d] got %d wanted %d", i, c, charsInT1[i]);
     ouch(w, msg, -1, -1);
   }
 }
@@ -191,7 +191,7 @@ static void checkScrub()
   unsigned char out[1024];
   int i;
 
-  fprintf(stderr, WIDE("Testing genxScrubText\n"));
+  fprintf(stderr, "Testing genxScrubText\n");
   w = genxNew(NULL, NULL, NULL);
   if (!w)
   {
@@ -201,10 +201,10 @@ static void checkScrub()
 
   if (genxScrubText(w, t1, out) != GENX_SUCCESS ||
       strcmp(t1, out) != 0)
-    ouch(w, WIDE("Error on string t1"), -1, -1);
+    ouch(w, "Error on string t1", -1, -1);
   if (genxScrubText(w, t2, out) == 0 ||
       strlen(out) >= strlen(t2))
-    ouch(w, WIDE("Error on string t2"), -1, -1);
+    ouch(w, "Error on string t2", -1, -1);
 
   for (i = 0; tBadUtf8[i]; i++)
     if (genxScrubText(w, tBadUtf8[i], out) == 0 ||
@@ -212,7 +212,7 @@ static void checkScrub()
 	genxCheckText(w, out) != GENX_SUCCESS)
     {
       char msg[1024];
-      sprintf(msg, WIDE("Error on BadUTF8 #%d"), i);
+      sprintf(msg, "Error on BadUTF8 #%d", i);
       ouch(w, msg, -1, -1);
     }
 }
@@ -239,40 +239,40 @@ void goodAttrVals(genxWriter w,
     ' ', '<', ' ', '>', ' ', 0xd, ' ', '"', ' ', 0
   };
 
-  fprintf(stderr, WIDE("Testing good Attribute values\n"));
+  fprintf(stderr, "Testing good Attribute values\n");
 
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(ela)) != GENX_SUCCESS)
-    ouch(w, WIDE("startEl 1"), status, GENX_SUCCESS);
+    ouch(w, "startEl 1", status, GENX_SUCCESS);
   if ((status = genxAddAttribute(a1, t1)) != GENX_SUCCESS)
-    ouch(w, WIDE("add a1/t1"), status, GENX_SUCCESS);
+    ouch(w, "add a1/t1", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("end el 1"), status, GENX_SUCCESS);
+    ouch(w, "end el 1", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("end doc 1"), status, GENX_SUCCESS);
+    ouch(w, "end doc 1", status, GENX_SUCCESS);
 
   iobuf.nowAt = iobuf.buf;
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
   if ((status = genxStartElement(ela)) != GENX_SUCCESS)
-    ouch(w, WIDE("startEl 3"), status, GENX_SUCCESS);
+    ouch(w, "startEl 3", status, GENX_SUCCESS);
   if ((status = genxAddAttribute(a1, t2)) != GENX_SUCCESS)
-    ouch(w, WIDE("add a1/t2"), status, GENX_SUCCESS);
+    ouch(w, "add a1/t2", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("end el 2"), status, GENX_SUCCESS);
+    ouch(w, "end el 2", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("end doc 2"), status, GENX_SUCCESS);
+    ouch(w, "end doc 2", status, GENX_SUCCESS);
 
-  if (strcmp(iobuf.buf, WIDE("<a a1=\") &lt; > &#xD; &quot; \"></a>"))
+  if (strcmp(iobuf.buf, "<a a1=\" &lt; > &#xD; &quot; \"></a>"))
   {
     char msg[1024];
-    sprintf(msg, WIDE("strcmp failed, got [%s]"), iobuf.buf);
+    sprintf(msg, "strcmp failed, got [%s]", iobuf.buf);
     ouch(w, msg, -1, -1);
   }
 
@@ -284,21 +284,21 @@ void checkDeclareNS()
   genxNamespace ns;
   genxWriter w;
 
-  fprintf(stderr, WIDE("Testing genxDeclareNamespace\n"));
+  fprintf(stderr, "Testing genxDeclareNamespace\n");
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
     perror("genxNew");
     exit(1);
   }
 
-  ns = genxDeclareNamespace(w, WIDE("http://www.textuality.com/ns/"), NULL, &status);
+  ns = genxDeclareNamespace(w, "http://www.textuality.com/ns/", NULL, &status);
   if (status != GENX_SUCCESS || ns == NULL)
-    ouch(w, WIDE("Declare namespace no prefix"), status, GENX_SUCCESS);
+    ouch(w, "Declare namespace no prefix", status, GENX_SUCCESS);
     
-  ns = genxDeclareNamespace(w, WIDE("http://www.textuality.com/ns/"), WIDE("foo"),
+  ns = genxDeclareNamespace(w, "http://www.textuality.com/ns/", "foo",
 			    &status);
   if (status != GENX_SUCCESS || ns == NULL)
-    ouch(w, WIDE("Declare dupe namespace"), status, GENX_SUCCESS);
+    ouch(w, "Declare dupe namespace", status, GENX_SUCCESS);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -308,7 +308,7 @@ void checkDeclareNS()
 
   ns = genxDeclareNamespace(w, NULL, NULL, &status);
   if (status != GENX_BAD_NAMESPACE_NAME || ns != NULL)
-    ouch(w, WIDE("Declare NULL ns uri"), status, GENX_BAD_NAMESPACE_NAME);
+    ouch(w, "Declare NULL ns uri", status, GENX_BAD_NAMESPACE_NAME);
     
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -316,9 +316,9 @@ void checkDeclareNS()
     exit(1);
   }
 
-  ns = genxDeclareNamespace(w, WIDE(""), NULL, &status);
+  ns = genxDeclareNamespace(w, "", NULL, &status);
   if (status != GENX_BAD_NAMESPACE_NAME || ns != NULL)
-    ouch(w, WIDE("Declare EMPTY ns uri"), status, GENX_BAD_NAMESPACE_NAME);
+    ouch(w, "Declare EMPTY ns uri", status, GENX_BAD_NAMESPACE_NAME);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -326,9 +326,9 @@ void checkDeclareNS()
     exit(1);
   }
 
-  ns = genxDeclareNamespace(w, WIDE(""), NULL, &status);
+  ns = genxDeclareNamespace(w, "", NULL, &status);
   if (status != GENX_BAD_NAMESPACE_NAME || ns != NULL)
-    ouch(w, WIDE("Declare EMPTY ns uri"), status, GENX_BAD_NAMESPACE_NAME);
+    ouch(w, "Declare EMPTY ns uri", status, GENX_BAD_NAMESPACE_NAME);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -336,15 +336,15 @@ void checkDeclareNS()
     exit(1);
   }
 
-  ns = genxDeclareNamespace(w, WIDE("http://tbray.org/"), WIDE("foo"), &status);
+  ns = genxDeclareNamespace(w, "http://tbray.org/", "foo", &status);
   if (status != GENX_SUCCESS || ns == NULL)
-    ouch(w, WIDE("Can't declare tbray.org=>foo"), status, GENX_SUCCESS);
-  ns = genxDeclareNamespace(w, WIDE("http://tbray.org/"), WIDE("foo"), &status);
+    ouch(w, "Can't declare tbray.org=>foo", status, GENX_SUCCESS);
+  ns = genxDeclareNamespace(w, "http://tbray.org/", "foo", &status);
   if (status != GENX_SUCCESS || ns == NULL)
-    ouch(w, WIDE("Can't declare tbray.org=>foo twice"), status, GENX_SUCCESS);
-  ns = genxDeclareNamespace(w, WIDE("http://textuality.com/"), WIDE("foo"), &status);
+    ouch(w, "Can't declare tbray.org=>foo twice", status, GENX_SUCCESS);
+  ns = genxDeclareNamespace(w, "http://textuality.com/", "foo", &status);
   if (status != GENX_DUPLICATE_PREFIX || ns != NULL)
-    ouch(w, WIDE("Accepted dupe prefix"), status, GENX_DUPLICATE_PREFIX);
+    ouch(w, "Accepted dupe prefix", status, GENX_DUPLICATE_PREFIX);
   
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -352,25 +352,25 @@ void checkDeclareNS()
     exit(1);
   }
 
-  ns = genxDeclareNamespace(w, WIDE("http://tbray.org/"), NULL, &status);
+  ns = genxDeclareNamespace(w, "http://tbray.org/", NULL, &status);
   if (status != GENX_SUCCESS || ns == NULL)
-    ouch(w, WIDE("Can't declare tbray.org=>NULL"), status, GENX_SUCCESS);
-  ns = genxDeclareNamespace(w, WIDE("http://foo.org/"), WIDE("g1"), &status);
+    ouch(w, "Can't declare tbray.org=>NULL", status, GENX_SUCCESS);
+  ns = genxDeclareNamespace(w, "http://foo.org/", "g1", &status);
   if (status != GENX_DUPLICATE_PREFIX || ns != NULL)
-    ouch(w, WIDE("Accepted g-1 collision"), status, GENX_DUPLICATE_PREFIX);
+    ouch(w, "Accepted g-1 collision", status, GENX_DUPLICATE_PREFIX);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
     perror("genxNew 6");
     exit(1);
   }
-  ns = genxDeclareNamespace(w, WIDE("http://tbray.org/"), WIDE(""), &status);
+  ns = genxDeclareNamespace(w, "http://tbray.org/", "", &status);
   if (status != GENX_SUCCESS || ns == NULL)
-    ouch(w, WIDE("Disallowed empty prefix"), status, GENX_SUCCESS);
+    ouch(w, "Disallowed empty prefix", status, GENX_SUCCESS);
 
-  ns = genxDeclareNamespace(w, WIDE("http://tbray2.org/xyz"), WIDE(""), &status);
+  ns = genxDeclareNamespace(w, "http://tbray2.org/xyz", "", &status);
   if (status != GENX_DUPLICATE_PREFIX || ns != NULL)
-    ouch(w, WIDE("Accepted dupe URI with empty prefix"), status,
+    ouch(w, "Accepted dupe URI with empty prefix", status,
 	 GENX_DUPLICATE_PREFIX);
 }
 
@@ -381,7 +381,7 @@ void checkDeclareEl()
   genxStatus status;
   genxNamespace ns1, ns2;
 
-  fprintf(stderr, WIDE("Testing genxDeclareElement\n"));
+  fprintf(stderr, "Testing genxDeclareElement\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -389,13 +389,13 @@ void checkDeclareEl()
     exit(1);
   }
 
-  el = genxDeclareElement(w, NULL, WIDE("a"), &status);
+  el = genxDeclareElement(w, NULL, "a", &status);
   if (status != GENX_SUCCESS || el == NULL)
-    ouch(w, WIDE("Ordinary declare el"), status, GENX_SUCCESS);
+    ouch(w, "Ordinary declare el", status, GENX_SUCCESS);
 
-  el = genxDeclareElement(w, NULL, WIDE("???"), &status);
+  el = genxDeclareElement(w, NULL, "???", &status);
   if (status != GENX_BAD_NAME || el != NULL)
-    ouch(w, WIDE("Should catch bad name"), status, GENX_BAD_NAME);
+    ouch(w, "Should catch bad name", status, GENX_BAD_NAME);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -403,28 +403,28 @@ void checkDeclareEl()
     exit(1);
   }
 
-  el = genxDeclareElement(w, NULL, WIDE("a"), &status);
+  el = genxDeclareElement(w, NULL, "a", &status);
   if (status != GENX_SUCCESS || el == NULL)
-    ouch(w, WIDE("Ordinary declare el (2)"), status, GENX_SUCCESS);
+    ouch(w, "Ordinary declare el (2)", status, GENX_SUCCESS);
 
-  el = genxDeclareElement(w, NULL, WIDE("a"), &status);
+  el = genxDeclareElement(w, NULL, "a", &status);
   if (status != GENX_SUCCESS || el == NULL)
-    ouch(w, WIDE("Dupe declare el"), status, GENX_SUCCESS);
+    ouch(w, "Dupe declare el", status, GENX_SUCCESS);
 
-  ns1 = genxDeclareNamespace(w, WIDE("http://tbray.org/"), NULL, &status);
-  ns2 = genxDeclareNamespace(w, WIDE("http://foo.org/"), WIDE("foo"), &status);
+  ns1 = genxDeclareNamespace(w, "http://tbray.org/", NULL, &status);
+  ns2 = genxDeclareNamespace(w, "http://foo.org/", "foo", &status);
 
-  el = genxDeclareElement(w, ns1, WIDE("x"), &status);
+  el = genxDeclareElement(w, ns1, "x", &status);
   if (status != GENX_SUCCESS || el == NULL)
-    ouch(w, WIDE("Basic with ns 1"), status, GENX_SUCCESS);
-  el2 = genxDeclareElement(w, ns2, WIDE("y"), &status);
+    ouch(w, "Basic with ns 1", status, GENX_SUCCESS);
+  el2 = genxDeclareElement(w, ns2, "y", &status);
   if (status != GENX_SUCCESS || el == NULL)
-    ouch(w, WIDE("Basic with ns 2"), status, GENX_SUCCESS);
-  el2 = genxDeclareElement(w, ns1, WIDE("x"), &status);
+    ouch(w, "Basic with ns 2", status, GENX_SUCCESS);
+  el2 = genxDeclareElement(w, ns1, "x", &status);
   if (status != GENX_SUCCESS || el == NULL)
-    ouch(w, WIDE("Dupe with ns"), status, GENX_SUCCESS);
+    ouch(w, "Dupe with ns", status, GENX_SUCCESS);
   if (el != el2)
-    ouch(w, WIDE("Dupe made new el object?!?"), -1, -1);
+    ouch(w, "Dupe made new el object?!?", -1, -1);
 }
 
 void checkDeclareAttr()
@@ -434,7 +434,7 @@ void checkDeclareAttr()
   genxStatus status;
   genxNamespace ns1, ns2;
 
-  fprintf(stderr, WIDE("Testing genxDeclareAttribute\n"));
+  fprintf(stderr, "Testing genxDeclareAttribute\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -442,13 +442,13 @@ void checkDeclareAttr()
     exit(1);
   }
 
-  a = genxDeclareAttribute(w, NULL, WIDE("a"), &status);
+  a = genxDeclareAttribute(w, NULL, "a", &status);
   if (status != GENX_SUCCESS || a == NULL)
-    ouch(w, WIDE("Ordinary declare attr"), status, GENX_SUCCESS);
+    ouch(w, "Ordinary declare attr", status, GENX_SUCCESS);
 
-  a = genxDeclareAttribute(w, NULL, WIDE("^^^"), &status);
+  a = genxDeclareAttribute(w, NULL, "^^^", &status);
   if (status != GENX_BAD_NAME || a != NULL)
-    ouch(w, WIDE("Should catch bad name"), status, GENX_BAD_NAME);
+    ouch(w, "Should catch bad name", status, GENX_BAD_NAME);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -456,28 +456,28 @@ void checkDeclareAttr()
     exit(1);
   }
 
-  a = genxDeclareAttribute(w, NULL, WIDE("a"), &status);
+  a = genxDeclareAttribute(w, NULL, "a", &status);
   if (status != GENX_SUCCESS || a == NULL)
-    ouch(w, WIDE("Ordinary declare attr (2)"), status, GENX_SUCCESS);
+    ouch(w, "Ordinary declare attr (2)", status, GENX_SUCCESS);
 
-  a = genxDeclareAttribute(w, NULL, WIDE("a"), &status);
+  a = genxDeclareAttribute(w, NULL, "a", &status);
   if (status != GENX_SUCCESS || a == NULL)
-    ouch(w, WIDE("Dupe declare attr"), status, GENX_SUCCESS);
+    ouch(w, "Dupe declare attr", status, GENX_SUCCESS);
 
-  ns1 = genxDeclareNamespace(w, WIDE("http://tbray.org/"), NULL, &status);
-  ns2 = genxDeclareNamespace(w, WIDE("http://foo.org/"), WIDE("foo"), &status);
+  ns1 = genxDeclareNamespace(w, "http://tbray.org/", NULL, &status);
+  ns2 = genxDeclareNamespace(w, "http://foo.org/", "foo", &status);
 
-  a = genxDeclareAttribute(w, ns1, WIDE("x"), &status);
+  a = genxDeclareAttribute(w, ns1, "x", &status);
   if (status != GENX_SUCCESS || a == NULL)
-    ouch(w, WIDE("Basic with ns 1"), status, GENX_SUCCESS);
-  a2 = genxDeclareAttribute(w, ns2, WIDE("y"), &status);
+    ouch(w, "Basic with ns 1", status, GENX_SUCCESS);
+  a2 = genxDeclareAttribute(w, ns2, "y", &status);
   if (status != GENX_SUCCESS || a == NULL)
-    ouch(w, WIDE("Basic with ns 2"), status, GENX_SUCCESS);
-  a2 = genxDeclareAttribute(w, ns1, WIDE("x"), &status);
+    ouch(w, "Basic with ns 2", status, GENX_SUCCESS);
+  a2 = genxDeclareAttribute(w, ns1, "x", &status);
   if (status != GENX_SUCCESS || a == NULL)
-    ouch(w, WIDE("Dupe with ns"), status, GENX_SUCCESS);
+    ouch(w, "Dupe with ns", status, GENX_SUCCESS);
   if (a != a2)
-    ouch(w, WIDE("Dupe made new attr object?!?"), -1, -1);
+    ouch(w, "Dupe made new attr object?!?", -1, -1);
 }
 
 void checkSeq1(genxWriter w,
@@ -485,14 +485,14 @@ void checkSeq1(genxWriter w,
 	       genxElement ela, genxElement elb, genxElement elc,
 	       genxAttribute a1, genxAttribute a2, genxAttribute a3)
 {
-  FILE * f = fopen(DEVNULL, WIDE("w"));
+  FILE * f = fopen(DEVNULL, "w");
   genxStatus status;
 
   /* 2 start-docs */
   if ((status = genxStartDocFile(w, f)) != GENX_SUCCESS)
-    ouch(w, WIDE("seq1 startDoc"), status, GENX_SUCCESS);
+    ouch(w, "seq1 startDoc", status, GENX_SUCCESS);
   if ((status = genxStartDocFile(w, f)) != GENX_SEQUENCE_ERROR)
-    ouch(w, WIDE("seq1 double startDoc"), status, GENX_SEQUENCE_ERROR);
+    ouch(w, "seq1 double startDoc", status, GENX_SEQUENCE_ERROR);
   fclose(f);
 }
 
@@ -501,12 +501,12 @@ void checkSeq2(genxWriter w,
 	       genxElement ela, genxElement elb, genxElement elc,
 	       genxAttribute a1, genxAttribute a2, genxAttribute a3)
 {
-  FILE * f = fopen(DEVNULL, WIDE("w"));
+  FILE * f = fopen(DEVNULL, "w");
   genxStatus status;
 
   /* missing startDoc */
   if ((status = genxStartElement(ela)) != GENX_SEQUENCE_ERROR)
-    ouch(w, WIDE("seq1 startel no startdoc"), status, GENX_SEQUENCE_ERROR);
+    ouch(w, "seq1 startel no startdoc", status, GENX_SEQUENCE_ERROR);
   fclose(f);
 }
 
@@ -515,14 +515,14 @@ void checkSeq3(genxWriter w,
 	       genxElement ela, genxElement elb, genxElement elc,
 	       genxAttribute a1, genxAttribute a2, genxAttribute a3)
 {
-  FILE * f = fopen(DEVNULL, WIDE("w"));
+  FILE * f = fopen(DEVNULL, "w");
   genxStatus status;
 
   /* endel without start */
   if ((status = genxStartDocFile(w, f)) != GENX_SUCCESS)
-    ouch(w, WIDE("seq1 startDoc"), status, GENX_SUCCESS);
+    ouch(w, "seq1 startDoc", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SEQUENCE_ERROR)
-    ouch(w, WIDE("seq1 bogus endel"), status, GENX_SEQUENCE_ERROR);
+    ouch(w, "seq1 bogus endel", status, GENX_SEQUENCE_ERROR);
   fclose(f);
 }
 
@@ -531,16 +531,16 @@ void checkSeq4(genxWriter w,
 	       genxElement ela, genxElement elb, genxElement elc,
 	       genxAttribute a1, genxAttribute a2, genxAttribute a3)
 {
-  FILE * f = fopen(DEVNULL, WIDE("w"));
+  FILE * f = fopen(DEVNULL, "w");
   genxStatus status;
 
   /* enddoc with stuff on stack */
   if ((status = genxStartDocFile(w, f)) != GENX_SUCCESS)
-    ouch(w, WIDE("seq4 startDoc"), status, GENX_SUCCESS);
+    ouch(w, "seq4 startDoc", status, GENX_SUCCESS);
   if ((status = genxStartElement(ela)) != GENX_SUCCESS)
-    ouch(w, WIDE("seq4 startEl"), status, GENX_SUCCESS);
+    ouch(w, "seq4 startEl", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SEQUENCE_ERROR)
-    ouch(w, WIDE("premature end"), status, GENX_SEQUENCE_ERROR);
+    ouch(w, "premature end", status, GENX_SEQUENCE_ERROR);
   fclose(f);
 }
 
@@ -549,20 +549,20 @@ void checkSeq5(genxWriter w,
 	       genxElement ela, genxElement elb, genxElement elc,
 	       genxAttribute a1, genxAttribute a2, genxAttribute a3)
 {
-  FILE * f = fopen(DEVNULL, WIDE("w"));
+  FILE * f = fopen(DEVNULL, "w");
   genxStatus status;
 
   /* premature end-doc */
   if ((status = genxStartDocFile(w, f)) != GENX_SUCCESS)
-    ouch(w, WIDE("seq5 startDoc"), status, GENX_SUCCESS);
+    ouch(w, "seq5 startDoc", status, GENX_SUCCESS);
   if ((status = genxStartElement(ela)) != GENX_SUCCESS)
-    ouch(w, WIDE("seq5 startEl a"), status, GENX_SUCCESS);
+    ouch(w, "seq5 startEl a", status, GENX_SUCCESS);
   if ((status = genxStartElement(elb)) != GENX_SUCCESS)
-    ouch(w, WIDE("seq5 startEl b"), status, GENX_SUCCESS);
+    ouch(w, "seq5 startEl b", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("seq5 end el"), status, GENX_SUCCESS);
+    ouch(w, "seq5 end el", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SEQUENCE_ERROR)
-    ouch(w, WIDE("premature end"), status, GENX_SEQUENCE_ERROR);
+    ouch(w, "premature end", status, GENX_SEQUENCE_ERROR);
   fclose(f);
 }
 
@@ -571,14 +571,14 @@ void checkSeq6(genxWriter w,
 	       genxElement ela, genxElement elb, genxElement elc,
 	       genxAttribute a1, genxAttribute a2, genxAttribute a3)
 {
-  FILE * f = fopen(DEVNULL, WIDE("w"));
+  FILE * f = fopen(DEVNULL, "w");
   genxStatus status;
 
   /* addAttr not after startEl */
   if ((status = genxStartDocFile(w, f)) != GENX_SUCCESS)
-    ouch(w, WIDE("seq5 startDoc"), status, GENX_SUCCESS);
-  if ((status = genxAddAttribute(a1, WIDE("x"))) != GENX_SEQUENCE_ERROR)
-    ouch(w, WIDE("bogus addattr"), status, GENX_SEQUENCE_ERROR);
+    ouch(w, "seq5 startDoc", status, GENX_SUCCESS);
+  if ((status = genxAddAttribute(a1, "x")) != GENX_SEQUENCE_ERROR)
+    ouch(w, "bogus addattr", status, GENX_SEQUENCE_ERROR);
   fclose(f);
 }
 
@@ -587,14 +587,14 @@ void checkSeq7(genxWriter w,
 	       genxElement ela, genxElement elb, genxElement elc,
 	       genxAttribute a1, genxAttribute a2, genxAttribute a3)
 {
-  FILE * f = fopen(DEVNULL, WIDE("w"));
+  FILE * f = fopen(DEVNULL, "w");
   genxStatus status;
 
   /* addText w/o startEl */
   if ((status = genxStartDocFile(w, f)) != GENX_SUCCESS)
-    ouch(w, WIDE("seq5 startDoc"), status, GENX_SUCCESS);
-  if ((status = genxAddText(w, WIDE("x"))) != GENX_SEQUENCE_ERROR)
-    ouch(w, WIDE("bogus addattr"), status, GENX_SEQUENCE_ERROR);
+    ouch(w, "seq5 startDoc", status, GENX_SUCCESS);
+  if ((status = genxAddText(w, "x")) != GENX_SEQUENCE_ERROR)
+    ouch(w, "bogus addattr", status, GENX_SEQUENCE_ERROR);
   fclose(f);
 }
 
@@ -603,12 +603,12 @@ void checkSeq8(genxWriter w,
 	       genxElement ela, genxElement elb, genxElement elc,
 	       genxAttribute a1, genxAttribute a2, genxAttribute a3)
 {
-  FILE * f = fopen(DEVNULL, WIDE("w"));
+  FILE * f = fopen(DEVNULL, "w");
   genxStatus status;
 
   /* start comment without startdoc */
-  if ((status = genxComment(w, WIDE("foo"))) != GENX_SEQUENCE_ERROR)
-    ouch(w, WIDE("comment pre startdoc"), status, GENX_SEQUENCE_ERROR);
+  if ((status = genxComment(w, "foo")) != GENX_SEQUENCE_ERROR)
+    ouch(w, "comment pre startdoc", status, GENX_SEQUENCE_ERROR);
   fclose(f);
 }
 
@@ -620,34 +620,34 @@ void checkNSDecls(genxWriter w,
   genxStatus status;
   char * wanted = "<a><g1:b xmlns:g1=\"http://example.com/1\"></g1:b><a xmlns:g1=\"http://example.com/1\" g1:a3=\"x\"></a></a>";
 
-  fprintf(stderr, WIDE("Testing namespace declarations\n"));
+  fprintf(stderr, "Testing namespace declarations\n");
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(ela)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartEl ela"), status, GENX_SUCCESS);
+    ouch(w, "StartEl ela", status, GENX_SUCCESS);
   if ((status = genxStartElement(elb)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartEl elb"), status, GENX_SUCCESS);
+    ouch(w, "StartEl elb", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("EndElb"), status, GENX_SUCCESS);
+    ouch(w, "EndElb", status, GENX_SUCCESS);
   if ((status = genxStartElement(ela)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartEl child ela"), status, GENX_SUCCESS);
-  if ((status = genxAddAttribute(a3, WIDE("x"))) != GENX_SUCCESS)
-    ouch(w, WIDE("AddAttr a3"), status, GENX_SUCCESS);
+    ouch(w, "StartEl child ela", status, GENX_SUCCESS);
+  if ((status = genxAddAttribute(a3, "x")) != GENX_SUCCESS)
+    ouch(w, "AddAttr a3", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("EndEla child"), status, GENX_SUCCESS);
+    ouch(w, "EndEla child", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("EndEla root"), status, GENX_SUCCESS);
+    ouch(w, "EndEla root", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("enddoc"), status, GENX_SUCCESS);
+    ouch(w, "enddoc", status, GENX_SUCCESS);
 
   if (strcmp(iobuf.buf, wanted))
   {
     char msg[1024];
-    sprintf(msg, WIDE("strcmp failed, got \n[%s], wanted \n[%s]\n"), iobuf.buf,
+    sprintf(msg, "strcmp failed, got \n[%s], wanted \n[%s]\n", iobuf.buf,
 	    wanted);
     ouch(w, msg, -1, -1);
   }
@@ -665,20 +665,20 @@ void checkDupeAttr(genxWriter w,
 {
   genxStatus status;
 
-  fprintf(stderr, WIDE("Testing duplicate attributes\n"));
+  fprintf(stderr, "Testing duplicate attributes\n");
 
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(ela)) != GENX_SUCCESS)
-    ouch(w, WIDE("AddEl ela"), status, GENX_SUCCESS);
-  if ((status = genxAddAttribute(a1, WIDE("1"))) != GENX_SUCCESS)
-    ouch(w, WIDE("AddAttr a1"), status, GENX_SUCCESS);
-  if ((status = genxAddAttribute(a1, WIDE("1"))) != GENX_DUPLICATE_ATTRIBUTE)
-    ouch(w, WIDE("Dupe attr"), status, GENX_DUPLICATE_ATTRIBUTE);
+    ouch(w, "AddEl ela", status, GENX_SUCCESS);
+  if ((status = genxAddAttribute(a1, "1")) != GENX_SUCCESS)
+    ouch(w, "AddAttr a1", status, GENX_SUCCESS);
+  if ((status = genxAddAttribute(a1, "1")) != GENX_DUPLICATE_ATTRIBUTE)
+    ouch(w, "Dupe attr", status, GENX_DUPLICATE_ATTRIBUTE);
 }
 
 void checkAttrOrder(genxWriter w,
@@ -689,33 +689,33 @@ void checkAttrOrder(genxWriter w,
   genxStatus status;
   utf8 wanted = "<a xmlns:a-ns2=\"http://example.com/2\" xmlns:g1=\"http://example.com/1\" a1=\"1\" g1:a3=\"3\" a-ns2:a2=\"2\"></a>";
 
-  fprintf(stderr, WIDE("Testing attribute sorting\n"));
+  fprintf(stderr, "Testing attribute sorting\n");
   
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(ela)) != GENX_SUCCESS)
-    ouch(w, WIDE("AddEl ela"), status, GENX_SUCCESS);
-  if ((status = genxAddAttribute(a1, WIDE("1"))) != GENX_SUCCESS)
-    ouch(w, WIDE("AddAttr a1"), status, GENX_SUCCESS);
-  if ((status = genxAddAttribute(a2, WIDE("2"))) != GENX_SUCCESS)
-    ouch(w, WIDE("AddAttr a2"), status, GENX_SUCCESS);
-  if ((status = genxAddAttribute(a3, WIDE("3"))) != GENX_SUCCESS)
-    ouch(w, WIDE("AddAttr a3"), status, GENX_SUCCESS);
+    ouch(w, "AddEl ela", status, GENX_SUCCESS);
+  if ((status = genxAddAttribute(a1, "1")) != GENX_SUCCESS)
+    ouch(w, "AddAttr a1", status, GENX_SUCCESS);
+  if ((status = genxAddAttribute(a2, "2")) != GENX_SUCCESS)
+    ouch(w, "AddAttr a2", status, GENX_SUCCESS);
+  if ((status = genxAddAttribute(a3, "3")) != GENX_SUCCESS)
+    ouch(w, "AddAttr a3", status, GENX_SUCCESS);
 
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("EndEl"), status, GENX_SUCCESS);
+    ouch(w, "EndEl", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("EndDoc"), status, GENX_SUCCESS);
+    ouch(w, "EndDoc", status, GENX_SUCCESS);
 
 
   if (strcmp(iobuf.buf, wanted))
   {
     char msg[1024];
-    sprintf(msg, WIDE("strcmp failed, got \n[%s], wanted\n[%s]"), iobuf.buf, wanted);
+    sprintf(msg, "strcmp failed, got \n[%s], wanted\n[%s]", iobuf.buf, wanted);
     ouch(w, msg, -1, -1);
   }
 }
@@ -738,32 +738,32 @@ void checkWriting(void (*t)(genxWriter w,
     perror("genxNew");
     exit(1);
   }
-  ns1 = genxDeclareNamespace(w, WIDE("http://example.com/1"), NULL, &status);
+  ns1 = genxDeclareNamespace(w, "http://example.com/1", NULL, &status);
   if (ns1 == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare ns1"), status, GENX_SUCCESS);
-  ns2 = genxDeclareNamespace(w, WIDE("http://example.com/2"), WIDE("a-ns2"), &status);
+    ouch(w, "declare ns1", status, GENX_SUCCESS);
+  ns2 = genxDeclareNamespace(w, "http://example.com/2", "a-ns2", &status);
   if (ns2 == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare ns2"), status, GENX_SUCCESS);
+    ouch(w, "declare ns2", status, GENX_SUCCESS);
 
-  ela = genxDeclareElement(w, NULL, WIDE("a"), &status);
+  ela = genxDeclareElement(w, NULL, "a", &status);
   if (ela == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare ela"), status, GENX_SUCCESS);
-  elb = genxDeclareElement(w, ns1, WIDE("b"), &status);
+    ouch(w, "declare ela", status, GENX_SUCCESS);
+  elb = genxDeclareElement(w, ns1, "b", &status);
   if (elb == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare elb"), status, GENX_SUCCESS);
-  elc = genxDeclareElement(w, ns2, WIDE("c"), &status);
+    ouch(w, "declare elb", status, GENX_SUCCESS);
+  elc = genxDeclareElement(w, ns2, "c", &status);
   if (elc == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare elc"), status, GENX_SUCCESS);
+    ouch(w, "declare elc", status, GENX_SUCCESS);
 
-  a1 = genxDeclareAttribute(w, NULL, WIDE("a1"), &status);
+  a1 = genxDeclareAttribute(w, NULL, "a1", &status);
   if (a1 == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare a1"), status, GENX_SUCCESS);
-  a2 = genxDeclareAttribute(w, ns2, WIDE("a2"), &status);
+    ouch(w, "declare a1", status, GENX_SUCCESS);
+  a2 = genxDeclareAttribute(w, ns2, "a2", &status);
   if (a2 == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare a1"), status, GENX_SUCCESS);
-  a3 = genxDeclareAttribute(w, ns1, WIDE("a3"), &status);
+    ouch(w, "declare a1", status, GENX_SUCCESS);
+  a3 = genxDeclareAttribute(w, ns1, "a3", &status);
   if (a3 == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare a3"), status, GENX_SUCCESS);
+    ouch(w, "declare a3", status, GENX_SUCCESS);
 
   (*t)(w, ns1, ns2, ela, elb, elc, a1, a2, a3);
 }
@@ -776,15 +776,15 @@ void checkBA(genxWriter w,
 	     genxElement ela, genxElement elb, genxElement elc,
 	     genxAttribute a1, genxAttribute a2, genxAttribute a3)
 {
-  FILE * f = fopen(DEVNULL, WIDE("w"));
+  FILE * f = fopen(DEVNULL, "w");
   genxStatus status;
 
   if ((status = genxStartDocFile(w, f)) != GENX_SUCCESS)
-    ouch(w, WIDE("ba startDoc"), status, GENX_SUCCESS);
+    ouch(w, "ba startDoc", status, GENX_SUCCESS);
   if ((status = genxStartElement(ela)) != GENX_SUCCESS)
-    ouch(w, WIDE("ba startEl"), status, GENX_SUCCESS);
+    ouch(w, "ba startEl", status, GENX_SUCCESS);
   if ((status = genxAddAttribute(a1, badVal)) != baWanted)
-    ouch(w, WIDE("ba addAttr"), status, baWanted);
+    ouch(w, "ba addAttr", status, baWanted);
   fclose(f);
 }
 
@@ -808,7 +808,7 @@ void checkBadAttrVals()
   };
   int i;
 
-  fprintf(stderr, WIDE("Testing bad attribute values\n"));
+  fprintf(stderr, "Testing bad attribute values\n");
   badVal = t2;
   baWanted = GENX_NON_XML_CHARACTER;
   checkWriting(&checkBA);
@@ -827,7 +827,7 @@ void checkHello()
   genxStatus status;
   genxWriter w;
 
-  fprintf(stderr, WIDE("Testing Hello world\n"));
+  fprintf(stderr, "Testing Hello world\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -835,29 +835,29 @@ void checkHello()
     exit(1);
   }
 
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
 
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
-  if ((status = genxAddText(w, WIDE("Hello world!"))) != GENX_SUCCESS)
-    ouch(w, WIDE("addText"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
+  if ((status = genxAddText(w, "Hello world!")) != GENX_SUCCESS)
+    ouch(w, "addText", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endElement"), status, GENX_SUCCESS);
+    ouch(w, "endElement", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endDoc"), status, GENX_SUCCESS);
+    ouch(w, "endDoc", status, GENX_SUCCESS);
 
-  if (strcmp(iobuf.buf, WIDE("<greeting>Hello world!</greeting>")))
+  if (strcmp(iobuf.buf, "<greeting>Hello world!</greeting>"))
   {
     char msg[1024];
-    sprintf(msg, WIDE("strcmp failed, got [%s]"), iobuf.buf);
+    sprintf(msg, "strcmp failed, got [%s]", iobuf.buf);
     ouch(w, msg, -1, -1);
   }
 }
@@ -873,7 +873,7 @@ void checkAllocator()
   genxStatus status;
   genxWriter w;
 
-  fprintf(stderr, WIDE("Testing allocator\n"));
+  fprintf(stderr, "Testing allocator\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -883,9 +883,9 @@ void checkAllocator()
 
   genxSetAlloc(w, &bustedAlloc);
 
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting != NULL || status != GENX_ALLOC_FAILED)
-    ouch(w, WIDE("expectd alloc_failed"), status, GENX_ALLOC_FAILED);
+    ouch(w, "expectd alloc_failed", status, GENX_ALLOC_FAILED);
 }
 
 void checkHelloNS()
@@ -895,7 +895,7 @@ void checkHelloNS()
   genxWriter w;
   genxNamespace ns;
 
-  fprintf(stderr, WIDE("Testing Namespaced Hello world\n"));
+  fprintf(stderr, "Testing Namespaced Hello world\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -903,32 +903,32 @@ void checkHelloNS()
     exit(1);
   }
 
-  ns = genxDeclareNamespace(w, WIDE("http://example.org/x"), WIDE("eg"), &status);
+  ns = genxDeclareNamespace(w, "http://example.org/x", "eg", &status);
   if (ns == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("DeclareNS"), status, GENX_SUCCESS);
-  greeting = genxDeclareElement(w, ns, WIDE("greeting"), &status);
+    ouch(w, "DeclareNS", status, GENX_SUCCESS);
+  greeting = genxDeclareElement(w, ns, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
 
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
-  if ((status = genxAddText(w, WIDE("Hello world!"))) != GENX_SUCCESS)
-    ouch(w, WIDE("addText"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
+  if ((status = genxAddText(w, "Hello world!")) != GENX_SUCCESS)
+    ouch(w, "addText", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endElement"), status, GENX_SUCCESS);
+    ouch(w, "endElement", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endDoc"), status, GENX_SUCCESS);
+    ouch(w, "endDoc", status, GENX_SUCCESS);
 
-  if (strcmp(iobuf.buf, WIDE("<eg:greeting xmlns:eg=\")http://example.org/x\">Hello world!</eg:greeting>"))
+  if (strcmp(iobuf.buf, "<eg:greeting xmlns:eg=\"http://example.org/x\">Hello world!</eg:greeting>"))
   {
     char msg[1024];
-    sprintf(msg, WIDE("strcmp failed, got [%s]"), iobuf.buf);
+    sprintf(msg, "strcmp failed, got [%s]", iobuf.buf);
     ouch(w, msg, -1, -1);
   }
 }
@@ -940,7 +940,7 @@ void checkIOError()
   genxWriter w;
   genxSender sender = { &brokenSends, &sendb, &sflush };
 
-  fprintf(stderr, WIDE("Testing IO error\n"));
+  fprintf(stderr, "Testing IO error\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -948,20 +948,20 @@ void checkIOError()
     exit(1);
   }
 
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
 
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("Start Element"), status, GENX_SUCCESS);
-  if ((status = genxAddText(w, WIDE("x"))) != GENX_IO_ERROR)
-    ouch(w, WIDE("AddText"), status, GENX_IO_ERROR);
+    ouch(w, "Start Element", status, GENX_SUCCESS);
+  if ((status = genxAddText(w, "x")) != GENX_IO_ERROR)
+    ouch(w, "AddText", status, GENX_IO_ERROR);
 }
 
 void checkAddText()
@@ -992,7 +992,7 @@ void checkAddText()
     ' ', '<', ' ', '>', ' ', 0xd, ' ', '"', ' ', 0
   };
 
-  fprintf(stderr, WIDE("Testing AddText\n"));
+  fprintf(stderr, "Testing AddText\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1000,26 +1000,26 @@ void checkAddText()
     exit(1);
   }
 
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
 
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
 
   if ((status = genxAddText(w, input)) != GENX_SUCCESS)
-    ouch(w, WIDE("addText"), status, GENX_SUCCESS);
+    ouch(w, "addText", status, GENX_SUCCESS);
 
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endEl"), status, GENX_SUCCESS);
+    ouch(w, "endEl", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endDoc"), status, GENX_SUCCESS);
+    ouch(w, "endDoc", status, GENX_SUCCESS);
 
   for (i = 1; iobuf.buf[i] != '<'; i++)
     ;
@@ -1028,7 +1028,7 @@ void checkAddText()
     ;
   i++;
   if (strcmp(iobuf.buf + i, expected))
-    ouch(w, WIDE("incorrect UTF8"), -1, -1);
+    ouch(w, "incorrect UTF8", -1, -1);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1039,22 +1039,22 @@ void checkAddText()
   iobuf.nowAt = iobuf.buf;
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
 
   if ((status = genxAddText(w, t2)) != GENX_SUCCESS)
-    ouch(w, WIDE("addText"), status, GENX_SUCCESS);
+    ouch(w, "addText", status, GENX_SUCCESS);
 
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endEl"), status, GENX_SUCCESS);
+    ouch(w, "endEl", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endDoc"), status, GENX_SUCCESS);
+    ouch(w, "endDoc", status, GENX_SUCCESS);
 
   for (i = 1; iobuf.buf[i] != '<'; i++)
     ;
@@ -1062,10 +1062,10 @@ void checkAddText()
   for (i = 0; iobuf.buf[i] != '>'; i++)
     ;
   i++;
-  if (strcmp(iobuf.buf + i, WIDE(" &lt; &gt; &#xD; \") "))
+  if (strcmp(iobuf.buf + i, " &lt; &gt; &#xD; \" "))
   {
     char msg[1024];
-    sprintf(msg, WIDE("strcmp failed, got [%s]"), iobuf.buf + i);
+    sprintf(msg, "strcmp failed, got [%s]", iobuf.buf + i);
     ouch(w, msg, -1, -1);
   }
 
@@ -1078,22 +1078,22 @@ void checkAddText()
   iobuf.nowAt = iobuf.buf;
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
 
   if ((status = genxAddBoundedText(w, input, input + 10)) != GENX_SUCCESS)
-    ouch(w, WIDE("addText"), status, GENX_SUCCESS);
+    ouch(w, "addText", status, GENX_SUCCESS);
 
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endEl"), status, GENX_SUCCESS);
+    ouch(w, "endEl", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endDoc"), status, GENX_SUCCESS);
+    ouch(w, "endDoc", status, GENX_SUCCESS);
 
   for (i = 1; iobuf.buf[i] != '<'; i++)
     ;
@@ -1102,7 +1102,7 @@ void checkAddText()
     ;
   i++;
   if (strcmp(iobuf.buf + i, expected))
-    ouch(w, WIDE("incorrect UTF8"), -1, -1);
+    ouch(w, "incorrect UTF8", -1, -1);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1113,22 +1113,22 @@ void checkAddText()
   iobuf.nowAt = iobuf.buf;
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
 
   if ((status = genxAddCountedText(w, input, 10)) != GENX_SUCCESS)
-    ouch(w, WIDE("addText"), status, GENX_SUCCESS);
+    ouch(w, "addText", status, GENX_SUCCESS);
 
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endEl"), status, GENX_SUCCESS);
+    ouch(w, "endEl", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endDoc"), status, GENX_SUCCESS);
+    ouch(w, "endDoc", status, GENX_SUCCESS);
 
   for (i = 1; iobuf.buf[i] != '<'; i++)
     ;
@@ -1137,7 +1137,7 @@ void checkAddText()
     ;
   i++;
   if (strcmp(iobuf.buf + i, expected))
-    ouch(w, WIDE("incorrect UTF8"), -1, -1);
+    ouch(w, "incorrect UTF8", -1, -1);
 
 
 }
@@ -1158,7 +1158,7 @@ void checkAddChar()
   };
   int input[] = { 0x26, 0x416, 0x4e2d, 0x10346, 0 };
 
-  fprintf(stderr, WIDE("Testing AddChar\n"));
+  fprintf(stderr, "Testing AddChar\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1166,27 +1166,27 @@ void checkAddChar()
     exit(1);
   }
 
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
 
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
 
   for (i = 0; input[i]; i++)
     if ((status = genxAddCharacter(w, input[i])) != GENX_SUCCESS)
-      ouch(w, WIDE("addchar"), status, GENX_SUCCESS);
+      ouch(w, "addchar", status, GENX_SUCCESS);
 
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endEl"), status, GENX_SUCCESS);
+    ouch(w, "endEl", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endDoc"), status, GENX_SUCCESS);
+    ouch(w, "endDoc", status, GENX_SUCCESS);
 
   /* find the string in the output */
   for (i = 1; iobuf.buf[i] != '<'; i++)
@@ -1196,7 +1196,7 @@ void checkAddChar()
     ;
   i++;
   if (strcmp(iobuf.buf + i, expected))
-    ouch(w, WIDE("incorrect UTF8"), -1, -1);
+    ouch(w, "incorrect UTF8", -1, -1);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1207,15 +1207,15 @@ void checkAddChar()
   iobuf.nowAt = iobuf.buf;
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
   if ((status = genxAddCharacter(w, -5)) != GENX_NON_XML_CHARACTER)
-    ouch(w, WIDE("Add -5"), status, GENX_NON_XML_CHARACTER);
+    ouch(w, "Add -5", status, GENX_NON_XML_CHARACTER);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1226,15 +1226,15 @@ void checkAddChar()
   iobuf.nowAt = iobuf.buf;
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
   if ((status = genxAddCharacter(w, 1)) != GENX_NON_XML_CHARACTER)
-    ouch(w, WIDE("Add -5"), status, GENX_NON_XML_CHARACTER);
+    ouch(w, "Add -5", status, GENX_NON_XML_CHARACTER);
 }
 
 void checkComment()
@@ -1249,40 +1249,40 @@ void checkComment()
     exit(1);
   }
 
-  fprintf(stderr, WIDE("Testing comments\n"));
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  fprintf(stderr, "Testing comments\n");
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
 
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
-  if ((status = genxComment(w, WIDE("1"))) != GENX_SUCCESS)
-    ouch(w, WIDE("Comment 1"), status, GENX_SUCCESS);
+  if ((status = genxComment(w, "1")) != GENX_SUCCESS)
+    ouch(w, "Comment 1", status, GENX_SUCCESS);
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
-  if ((status = genxComment(w, WIDE("2"))) != GENX_SUCCESS)
-    ouch(w, WIDE("Comment 2"), status, GENX_SUCCESS);
-  if ((status = genxAddText(w, WIDE("[1]"))) != GENX_SUCCESS)
-    ouch(w, WIDE("Addtext 1"), status, GENX_SUCCESS);
-  if ((status = genxComment(w, WIDE("3"))) != GENX_SUCCESS)
-    ouch(w, WIDE("Comment 3"), status, GENX_SUCCESS);
-  if ((status = genxAddText(w, WIDE("[2]"))) != GENX_SUCCESS)
-    ouch(w, WIDE("Addtext 2"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
+  if ((status = genxComment(w, "2")) != GENX_SUCCESS)
+    ouch(w, "Comment 2", status, GENX_SUCCESS);
+  if ((status = genxAddText(w, "[1]")) != GENX_SUCCESS)
+    ouch(w, "Addtext 1", status, GENX_SUCCESS);
+  if ((status = genxComment(w, "3")) != GENX_SUCCESS)
+    ouch(w, "Comment 3", status, GENX_SUCCESS);
+  if ((status = genxAddText(w, "[2]")) != GENX_SUCCESS)
+    ouch(w, "Addtext 2", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endel"), status, GENX_SUCCESS);
-  if ((status = genxComment(w, WIDE("4"))) != GENX_SUCCESS)
-    ouch(w, WIDE("Comment 3"), status, GENX_SUCCESS);
+    ouch(w, "endel", status, GENX_SUCCESS);
+  if ((status = genxComment(w, "4")) != GENX_SUCCESS)
+    ouch(w, "Comment 3", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endDoc"), status, GENX_SUCCESS);
+    ouch(w, "endDoc", status, GENX_SUCCESS);
 
-  if (strcmp(iobuf.buf, WIDE("<!--1-->\n<greeting><!--2-->[1]<!--3-->[2]</greeting>\n<!--4-->")))
+  if (strcmp(iobuf.buf, "<!--1-->\n<greeting><!--2-->[1]<!--3-->[2]</greeting>\n<!--4-->"))
   {
     char msg[1024];
-    sprintf(msg, WIDE("strcmp failed, got [%s]"), iobuf.buf);
+    sprintf(msg, "strcmp failed, got [%s]", iobuf.buf);
     ouch(w, msg, -1, -1);
   }
 
@@ -1296,25 +1296,10 @@ void checkComment()
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender 2"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender 2", status, GENX_SUCCESS);
 
-  if ((status = genxComment(w, WIDE("-foo"))) != GENX_MALFORMED_COMMENT)
-    ouch(w, WIDE("missed leading -"), status, GENX_MALFORMED_COMMENT);
-
-  if ((w = genxNew(NULL, NULL, NULL)) == NULL)
-  {
-    perror("genxNew");
-    exit(1);
-  }
-
-  iobuf.nowAt = iobuf.buf;
-  genxSetUserData(w, &iobuf);
-  status = genxStartDocSender(w, &sender);
-  if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender 3"), status, GENX_SUCCESS);
-
-  if ((status = genxComment(w, WIDE("foo-"))) != GENX_MALFORMED_COMMENT)
-    ouch(w, WIDE("missed trailing -"), status, GENX_MALFORMED_COMMENT);
+  if ((status = genxComment(w, "-foo")) != GENX_MALFORMED_COMMENT)
+    ouch(w, "missed leading -", status, GENX_MALFORMED_COMMENT);
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1326,10 +1311,25 @@ void checkComment()
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender 3"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender 3", status, GENX_SUCCESS);
 
-  if ((status = genxComment(w, WIDE("foo--bar"))) != GENX_MALFORMED_COMMENT)
-    ouch(w, WIDE("missed --"), status, GENX_MALFORMED_COMMENT);
+  if ((status = genxComment(w, "foo-")) != GENX_MALFORMED_COMMENT)
+    ouch(w, "missed trailing -", status, GENX_MALFORMED_COMMENT);
+
+  if ((w = genxNew(NULL, NULL, NULL)) == NULL)
+  {
+    perror("genxNew");
+    exit(1);
+  }
+
+  iobuf.nowAt = iobuf.buf;
+  genxSetUserData(w, &iobuf);
+  status = genxStartDocSender(w, &sender);
+  if (status != GENX_SUCCESS)
+    ouch(w, "startDocSender 3", status, GENX_SUCCESS);
+
+  if ((status = genxComment(w, "foo--bar")) != GENX_MALFORMED_COMMENT)
+    ouch(w, "missed --", status, GENX_MALFORMED_COMMENT);
 }
 
 void checkPI()
@@ -1344,41 +1344,41 @@ void checkPI()
     exit(1);
   }
 
-  fprintf(stderr, WIDE("Testing PIs\n"));
-  greeting = genxDeclareElement(w, NULL, WIDE("greeting"), &status);
+  fprintf(stderr, "Testing PIs\n");
+  greeting = genxDeclareElement(w, NULL, "greeting", &status);
   if (greeting == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare greeting"), status, GENX_SUCCESS);
+    ouch(w, "Declare greeting", status, GENX_SUCCESS);
 
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
-  if ((status = genxPI(w, WIDE("pi1"), WIDE("1"))) != GENX_SUCCESS)
-    ouch(w, WIDE("PI 1"), status, GENX_SUCCESS);
+  if ((status = genxPI(w, "pi1", "1")) != GENX_SUCCESS)
+    ouch(w, "PI 1", status, GENX_SUCCESS);
   if ((status = genxStartElement(greeting)) != GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
-  if ((status = genxPI(w, WIDE("pi2"), WIDE("2"))) != GENX_SUCCESS)
-    ouch(w, WIDE("PI 2"), status, GENX_SUCCESS);
-  if ((status = genxAddText(w, WIDE("[1]"))) != GENX_SUCCESS)
-    ouch(w, WIDE("Addtext 1"), status, GENX_SUCCESS);
-  if ((status = genxPI(w, WIDE("pi3"), WIDE("3"))) != GENX_SUCCESS)
-    ouch(w, WIDE("PI 3"), status, GENX_SUCCESS);
-  if ((status = genxAddText(w, WIDE("[2]"))) != GENX_SUCCESS)
-    ouch(w, WIDE("Addtext 2"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
+  if ((status = genxPI(w, "pi2", "2")) != GENX_SUCCESS)
+    ouch(w, "PI 2", status, GENX_SUCCESS);
+  if ((status = genxAddText(w, "[1]")) != GENX_SUCCESS)
+    ouch(w, "Addtext 1", status, GENX_SUCCESS);
+  if ((status = genxPI(w, "pi3", "3")) != GENX_SUCCESS)
+    ouch(w, "PI 3", status, GENX_SUCCESS);
+  if ((status = genxAddText(w, "[2]")) != GENX_SUCCESS)
+    ouch(w, "Addtext 2", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endel"), status, GENX_SUCCESS);
-  if ((status = genxPI(w, WIDE("pi4"), WIDE("4"))) != GENX_SUCCESS)
-    ouch(w, WIDE("PI 4"), status, GENX_SUCCESS);
+    ouch(w, "endel", status, GENX_SUCCESS);
+  if ((status = genxPI(w, "pi4", "4")) != GENX_SUCCESS)
+    ouch(w, "PI 4", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endDoc"), status, GENX_SUCCESS);
+    ouch(w, "endDoc", status, GENX_SUCCESS);
 
   /*
-  if (strcmp(iobuf.buf, WIDE("<!--1-->\n<greeting><!--2-->[1]<!--3-->[2]</greeting>\n<!--4-->")))
+  if (strcmp(iobuf.buf, "<!--1-->\n<greeting><!--2-->[1]<!--3-->[2]</greeting>\n<!--4-->"))
   {
     char msg[1024];
-    sprintf(msg, WIDE("strcmp failed, got [%s]"), iobuf.buf);
+    sprintf(msg, "strcmp failed, got [%s]", iobuf.buf);
     ouch(w, msg, -1, -1);
   }
   */
@@ -1393,10 +1393,10 @@ void checkPI()
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender 3"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender 3", status, GENX_SUCCESS);
 
-  if ((status = genxPI(w, WIDE("pi5"), WIDE("foo?>bar"))) != GENX_MALFORMED_PI)
-    ouch(w, WIDE("missed ?>"), status, GENX_MALFORMED_PI);
+  if ((status = genxPI(w, "pi5", "foo?>bar")) != GENX_MALFORMED_PI)
+    ouch(w, "missed ?>", status, GENX_MALFORMED_PI);
 }
 
 void checkHelloLiteral()
@@ -1406,7 +1406,7 @@ void checkHelloLiteral()
   genxNamespace ns;
 
 
-  fprintf(stderr, WIDE("Testing Hello world (Literal)\n"));
+  fprintf(stderr, "Testing Hello world (Literal)\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1414,30 +1414,30 @@ void checkHelloLiteral()
     exit(1);
   }
 
-  ns = genxDeclareNamespace(w, WIDE("foo:bar"), WIDE("baz"), &status);
+  ns = genxDeclareNamespace(w, "foo:bar", "baz", &status);
   if (ns == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("Declare namespace"), status, GENX_SUCCESS);
+    ouch(w, "Declare namespace", status, GENX_SUCCESS);
 
   iobuf.nowAt = iobuf.buf;
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
-  if ((status = genxStartElementLiteral(w, WIDE("foo:bar"), WIDE("greeting"))) !=
+  if ((status = genxStartElementLiteral(w, "foo:bar", "greeting")) !=
       GENX_SUCCESS)
-    ouch(w, WIDE("StartElement"), status, GENX_SUCCESS);
-  if ((status = genxAddText(w, WIDE("Hello world!"))) != GENX_SUCCESS)
-    ouch(w, WIDE("addText"), status, GENX_SUCCESS);
+    ouch(w, "StartElement", status, GENX_SUCCESS);
+  if ((status = genxAddText(w, "Hello world!")) != GENX_SUCCESS)
+    ouch(w, "addText", status, GENX_SUCCESS);
   if ((status = genxEndElement(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endElement"), status, GENX_SUCCESS);
+    ouch(w, "endElement", status, GENX_SUCCESS);
   if ((status = genxEndDocument(w)) != GENX_SUCCESS)
-    ouch(w, WIDE("endDoc"), status, GENX_SUCCESS);
+    ouch(w, "endDoc", status, GENX_SUCCESS);
 
-  if (strcmp(iobuf.buf, WIDE("<baz:greeting xmlns:baz=\")foo:bar\">Hello world!</baz:greeting>"))
+  if (strcmp(iobuf.buf, "<baz:greeting xmlns:baz=\"foo:bar\">Hello world!</baz:greeting>"))
   {
     char msg[1024];
-    sprintf(msg, WIDE("strcmp failed, got [%s]"), iobuf.buf);
+    sprintf(msg, "strcmp failed, got [%s]", iobuf.buf);
     ouch(w, msg, -1, -1);
   }
 }
@@ -1455,7 +1455,7 @@ void checkStress()
   genxStatus status;
   int i, j, k;
   
-  fprintf(stderr, WIDE("Testing memory management\n"));
+  fprintf(stderr, "Testing memory management\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1465,25 +1465,25 @@ void checkStress()
 
   status = genxStartDocFile(w, stdout);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocFile"), status, GENX_SUCCESS);
+    ouch(w, "startDocFile", status, GENX_SUCCESS);
 
-  if (genxStartElementLiteral(w, NULL, WIDE("root")))
-    ouch2(w, WIDE("root"));
+  if (genxStartElementLiteral(w, NULL, "root"))
+    ouch2(w, "root");
   SRANDOM(581213);
   for (i = 1; i < 100; i++)
   {
     if ((i % 3) == 0)
       if (genxEndElement(w))
-	ouch2(w, WIDE("end el"));
+	ouch2(w, "end el");
 
     /*
     if ((i % 200) == 0)
-      fprintf(stderr, WIDE("   %d elements\n"), i);
+      fprintf(stderr, "   %d elements\n", i);
     */
-    sprintf(nname, WIDE("n%d"), (int) (RANDOM() % 10000));
-    sprintf(ename, WIDE("e%d"), (int) (RANDOM() % 10000));
+    sprintf(nname, "n%d", (int) (RANDOM() % 10000));
+    sprintf(ename, "e%d", (int) (RANDOM() % 10000));
     if (genxStartElementLiteral(w, nname, ename))
-      ouch2(w, WIDE("start el"));
+      ouch2(w, "start el");
     acount = RANDOM() % 20;
     for (j = 0; j < acount; j++)
     {
@@ -1492,23 +1492,23 @@ void checkStress()
       for (k = 0; k < alength; k++)
 	aval[k] = avchar;
       aval[k] = 0;
-      sprintf(nname, WIDE("n%d"), (int) (RANDOM() % 10000));
-      sprintf(aname, WIDE("a%d"), (int) (RANDOM() % 10000));
+      sprintf(nname, "n%d", (int) (RANDOM() % 10000));
+      sprintf(aname, "a%d", (int) (RANDOM() % 10000));
       if ((status = genxAddAttributeLiteral(w, nname, aname, aval)))
       {
 	if (status != GENX_DUPLICATE_ATTRIBUTE)
-	  ouch2(w, WIDE("add attr"));
+	  ouch2(w, "add attr");
       }
     }
-    if (genxAddText(w, WIDE("\n")))
-      ouch2(w, WIDE("add text"));
+    if (genxAddText(w, "\n"))
+      ouch2(w, "add text");
   }
   while ((status = genxEndElement(w)) == GENX_SUCCESS)
     ;
   if (status != GENX_SEQUENCE_ERROR)
-    ouch2(w, WIDE("unwind"));
+    ouch2(w, "unwind");
   if (genxEndDocument(w))
-    ouch2(w, WIDE("end doc"));
+    ouch2(w, "end doc");
 }
 
 void checkNCNames()
@@ -1519,7 +1519,7 @@ void checkNCNames()
   genxNamespace n;
   genxWriter w;
 
-  fprintf(stderr, WIDE("Testing colon suppression\n"));
+  fprintf(stderr, "Testing colon suppression\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1528,17 +1528,17 @@ void checkNCNames()
   }
 
   if ((status = genxStartDocFile(w, stdout)))
-    ouch(w, WIDE("start doc"), status, GENX_SUCCESS);
+    ouch(w, "start doc", status, GENX_SUCCESS);
 
-  n = genxDeclareNamespace(w, WIDE("http://somewhere/"), WIDE("foo:bar"), &status);
+  n = genxDeclareNamespace(w, "http://somewhere/", "foo:bar", &status);
   if (n != NULL || status != GENX_BAD_NAME)
-    ouch(w, WIDE("declare ns with colon"), status, GENX_BAD_NAME);
-  e = genxDeclareElement(w, NULL, WIDE("foo:bar"), &status);
+    ouch(w, "declare ns with colon", status, GENX_BAD_NAME);
+  e = genxDeclareElement(w, NULL, "foo:bar", &status);
   if (e != NULL || status != GENX_BAD_NAME)
-    ouch(w, WIDE("declare e with colon"), status, GENX_BAD_NAME);
-  a = genxDeclareAttribute(w, NULL, WIDE("foo:bar"), &status);
+    ouch(w, "declare e with colon", status, GENX_BAD_NAME);
+  a = genxDeclareAttribute(w, NULL, "foo:bar", &status);
   if (a != NULL || status != GENX_BAD_NAME)
-    ouch(w, WIDE("declare e with colon"), status, GENX_BAD_NAME);
+    ouch(w, "declare e with colon", status, GENX_BAD_NAME);
 }
 
 void checkDefaultNS()
@@ -1550,7 +1550,7 @@ void checkDefaultNS()
   genxElement eNaked, eDefault, ePrefix;
   utf8 wanted;
 
-  fprintf(stderr, WIDE("Testing namespace defaulting\n"));
+  fprintf(stderr, "Testing namespace defaulting\n");
 
   if ((w = genxNew(NULL, NULL, NULL)) == NULL)
   {
@@ -1562,66 +1562,66 @@ void checkDefaultNS()
   genxSetUserData(w, &iobuf);
   status = genxStartDocSender(w, &sender);
   if (status != GENX_SUCCESS)
-    ouch(w, WIDE("startDocSender"), status, GENX_SUCCESS);
+    ouch(w, "startDocSender", status, GENX_SUCCESS);
 
-  nDefault = genxDeclareNamespace(w, WIDE("http://def"), WIDE(""), &status);
+  nDefault = genxDeclareNamespace(w, "http://def", "", &status);
   if (nDefault == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare nDefault"), status, GENX_SUCCESS);
-  nPrefix = genxDeclareNamespace(w, WIDE("http://pref"), WIDE("pref"), &status);
+    ouch(w, "declare nDefault", status, GENX_SUCCESS);
+  nPrefix = genxDeclareNamespace(w, "http://pref", "pref", &status);
   if (nPrefix == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare nPrefix"), status, GENX_SUCCESS);
+    ouch(w, "declare nPrefix", status, GENX_SUCCESS);
 
-  a = genxDeclareAttribute(w, nDefault, WIDE("foo"), &status);
+  a = genxDeclareAttribute(w, nDefault, "foo", &status);
   if (a != NULL || status != GENX_ATTRIBUTE_IN_DEFAULT_NAMESPACE)
-    ouch(w, WIDE("Allowed declaration of attr in default namespace"), status,
+    ouch(w, "Allowed declaration of attr in default namespace", status,
 	 GENX_ATTRIBUTE_IN_DEFAULT_NAMESPACE);
 
-  eNaked = genxDeclareElement(w, NULL, WIDE("e"), &status);
+  eNaked = genxDeclareElement(w, NULL, "e", &status);
   if (eNaked == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare eNaked"), status, GENX_SUCCESS);
-  eDefault = genxDeclareElement(w, nDefault, WIDE("eD"), &status);
+    ouch(w, "declare eNaked", status, GENX_SUCCESS);
+  eDefault = genxDeclareElement(w, nDefault, "eD", &status);
   if (eDefault == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare eDefault"), status, GENX_SUCCESS);
-  ePrefix = genxDeclareElement(w, nPrefix, WIDE("eP"), &status);
+    ouch(w, "declare eDefault", status, GENX_SUCCESS);
+  ePrefix = genxDeclareElement(w, nPrefix, "eP", &status);
   if (ePrefix == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("declare ePrefix"), status, GENX_SUCCESS);
+    ouch(w, "declare ePrefix", status, GENX_SUCCESS);
 
   if (genxStartElement(eDefault))
-    ouch2(w, WIDE("start eDefault"));
+    ouch2(w, "start eDefault");
   if (genxAddNamespace(nPrefix, NULL))
-    ouch2(w, WIDE("add nPrefix"));
+    ouch2(w, "add nPrefix");
   if (genxStartElement(eNaked))
-    ouch2(w, WIDE("start naked"));
+    ouch2(w, "start naked");
 
-  nBad = genxDeclareNamespace(w, WIDE("http://pref"), WIDE("foobar"), &status);
+  nBad = genxDeclareNamespace(w, "http://pref", "foobar", &status);
   if (nBad == NULL || status != GENX_SUCCESS)
-    ouch(w, WIDE("bogus redeclare"), status, GENX_SUCCESS);
+    ouch(w, "bogus redeclare", status, GENX_SUCCESS);
 
   if (genxEndElement(w))
-    ouch2(w, WIDE("end naked"));
+    ouch2(w, "end naked");
   if (genxStartElement(ePrefix))
-    ouch2(w, WIDE("inner prefix"));
+    ouch2(w, "inner prefix");
   if (genxUnsetDefaultNamespace(w))
-    ouch2(w, WIDE("unset default"));
+    ouch2(w, "unset default");
   if (genxStartElement(eNaked))
-    ouch2(w, WIDE("inner naked"));
+    ouch2(w, "inner naked");
   if (genxEndElement(w))
-    ouch2(w, WIDE("end inner naked"));
+    ouch2(w, "end inner naked");
   if (genxStartElement(eDefault))
-    ouch2(w, WIDE("inner default"));
+    ouch2(w, "inner default");
     
   while ((status = genxEndElement(w)) == GENX_SUCCESS)
     ;
   if (status != GENX_SEQUENCE_ERROR)
-    ouch2(w, WIDE("unwind"));
+    ouch2(w, "unwind");
   if (genxEndDocument(w))
-    ouch2(w, WIDE("end doc"));
+    ouch2(w, "end doc");
 
   wanted = "<eD xmlns=\"http://def\" xmlns:pref=\"http://pref\"><e xmlns=\"\"></e><foobar:eP xmlns=\"\" xmlns:foobar=\"http://pref\"><e></e><eD xmlns=\"http://def\"></eD></foobar:eP></eD>";
   if (strcmp(iobuf.buf, wanted))
   {
     char msg[1024];
-    sprintf(msg, WIDE("strcmp failed, got \n[%s] wanted \n[%s]"), iobuf.buf, wanted);
+    sprintf(msg, "strcmp failed, got \n[%s] wanted \n[%s]", iobuf.buf, wanted);
     ouch(w, msg, -1, -1);
   }
 }
@@ -1642,7 +1642,7 @@ int main(int argc, char * argv[])
 
   checkNCNames();
 
-  fprintf(stderr, WIDE("Testing Sequencing\n"));
+  fprintf(stderr, "Testing Sequencing\n");
   checkWriting(&checkSeq1);
   checkWriting(&checkSeq2);
   checkWriting(&checkSeq3);
@@ -1677,7 +1677,7 @@ int main(int argc, char * argv[])
   checkHelloLiteral();
   checkStress();
 
-  fprintf(stderr, WIDE("FAILED TESTS: %d\n"), errorcount);
+  fprintf(stderr, "FAILED TESTS: %d\n", errorcount);
   exit(errorcount);
 }
 

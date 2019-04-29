@@ -155,7 +155,7 @@ typedef struct odbc_handle_tag ODBC;
 /* <combine sack::sql::required_field_tag>
    
    <code lang="c++">
-     FIELD fields[] = { { "ID", WIDE("int") }, ... };
+     FIELD fields[] = { { "ID", "int" }, ... };
    </code>                                            */
 typedef struct required_field_tag
 {
@@ -491,7 +491,7 @@ PSSQL_PROC( void, SQLCommit )( PODBC odbc );
    odbc :  connection to database to start a transaction        */
 PSSQL_PROC( void, SQLBeginTransact )( PODBC odbc );
 
-// parameters to this are pairs of "name", type, WIDE("value")
+// parameters to this are pairs of "name", type, "value"
 //  type == 0 - value is text, do not quote
 //  type == 1 - value is text, add quotes appropriate for database
 //  type == 2 - value is an integer, do not quote
@@ -710,7 +710,7 @@ PSSQL_PROC( INDEX, ReadNameTableEx)( CTEXTSTR name, CTEXTSTR table, CTEXTSTR col
 /* <combine sack::sql::ReadNameTableExEx@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@int bCreate>
    
    \ \                                                                                    */
-#define ReadNameTable(n,t,c) ReadNameTableExEx( n,t,c, WIDE("name"),TRUE DBG_SRC )
+#define ReadNameTable(n,t,c) ReadNameTableExEx( n,t,c, "name",TRUE DBG_SRC )
 /* <combine sack::sql::ReadFromNameTableExEx@INDEX@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR *result>
    
    \ \                                                                                          */
@@ -732,7 +732,7 @@ PSSQL_PROC( int, ReadFromNameTableExEx )( INDEX id, CTEXTSTR table, CTEXTSTR id_
 /* <combine sack::sql::ReadFromNameTableEx@INDEX@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR *result>
    
    \ \                                                                                        */
-#define ReadFromNameTable(id,t,c,r) ReadFromNameTableEx(id,t,c,WIDE("name"),r DBG_SRC )
+#define ReadFromNameTable(id,t,c,r) ReadFromNameTableEx(id,t,c,"name",r DBG_SRC )
 
 /* This is a better name resolution function. It will also
    create a table that contains the required columns, but the
@@ -766,7 +766,7 @@ PSSQL_PROC( INDEX, SQLReadNameTableExEx)( PODBC odbc, CTEXTSTR name, CTEXTSTR ta
 /* <combine sack::sql::SQLReadNameTableExEx@PODBC@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@int bCreate>
    
    \ \                                                                                             */
-#define SQLReadNameTable(o,n,t,c) SQLReadNameTableExEx( o,n,t,c,WIDE( "name" ),TRUE DBG_SRC )
+#define SQLReadNameTable(o,n,t,c) SQLReadNameTableExEx( o,n,t,c,"name",TRUE DBG_SRC )
 
 /* Reads a table that's assumed to be a primary key ID and a
    name sort of dictionary table. This also maintains an
@@ -800,7 +800,7 @@ PSSQL_PROC( INDEX, GetNameIndexExx)( PODBC odbc, CTEXTSTR name, CTEXTSTR table, 
 /* <combine sack::sql::GetNameIndexExx@PODBC@CTEXTSTR@CTEXTSTR@CTEXTSTR@CTEXTSTR@int bCreate>
    
    \ \                                                                                        */
-#define GetNameIndex(o,n,t,c) GetNameIndexExx( o,n,t,c,WIDE( "name" ),TRUE DBG_SRC )
+#define GetNameIndex(o,n,t,c) GetNameIndexExx( o,n,t,c,"name",TRUE DBG_SRC )
 
 
 
@@ -1584,7 +1584,7 @@ struct guid_binary {
 
 // snprintf( buf, 256, guid_format, guid_param_pass(&guid_binary) )
 // snprintf( buf, 256, guid_format, guid_param_pass(binary_buffer_result) )
-#define guid_format WIDE("%08")_32fx WIDE("-%04")_16fx WIDE("-%04")_16fx WIDE("-%04")_16fx WIDE("-%012")_64fx
+#define guid_format "%08"_32fx "-%04"_16fx "-%04"_16fx "-%04"_16fx "-%012"_64fx
 #define guid_param_pass(n) ((struct guid_binary*)(n))->u.d.l1,((struct guid_binary*)(n))->u.d.w1,((struct guid_binary*)(n))->u.d.w2,((struct guid_binary*)(n))->u.d.w3,((struct guid_binary*)(n))->u.d.ll1
 
 

@@ -37,7 +37,7 @@ void DoReboot( char *mode )
 				//ExitWindowsEx( EWX_LOGOFF|EWX_FORCE, 0 );
 				{
 					// PTEXT temp;
-					// DECLTEXT( msg, WIDE("Initiating system shutdown...") );
+					// DECLTEXT( msg, "Initiating system shutdown..." );
 					// EnqueLink( &ps->Command->Output, &msg );
 					// if( !(temp = GetParam( ps, &param ) ) )
                if( stricmp( mode, "shutdown" ) == 0 )
@@ -48,19 +48,19 @@ void DoReboot( char *mode )
                   printf( "Mode specified invalid! (reboot/shutdown)\n" );
 				 //  else
 				   {
-						//if( TextLike( temp, WIDE("logoff") ) )
+						//if( TextLike( temp, "logoff" ) )
 						//	ExitWindowsEx( EWX_LOGOFF|EWX_FORCE, 0 );
-						//else if( TextLike( temp, WIDE("reboot") ) )
+						//else if( TextLike( temp, "reboot" ) )
 						//	ExitWindowsEx( EWX_REBOOT|EWX_FORCE, 0 );
-						//else if( TextLike( temp, WIDE("shutdown") ) )
+						//else if( TextLike( temp, "shutdown" ) )
 						//	ExitWindowsEx( EWX_SHUTDOWN|EWX_FORCE, 0 );
 					}
 				}
 			}
 			else
 			{
-				//DECLTEXT( msg, WIDE("Failed to get privledge lookup...#######") );
-				//msg.data.size = sprintf( msg.data.data, WIDE("Failed to get privledge lookup...%ld"), GetLastError() );
+				//DECLTEXT( msg, "Failed to get privledge lookup...#######" );
+				//msg.data.size = sprintf( msg.data.data, "Failed to get privledge lookup...%ld", GetLastError() );
 				//EnqueLink( &ps->Command->Output, &msg );
 				GetLastError();
 
@@ -68,8 +68,8 @@ void DoReboot( char *mode )
 		}
 		else
 		{
-			//DECLTEXT( msg, WIDE("Failed to open process token... ########") );
-			//msg.data.size = sprintf( msg.data.data, WIDE("Failed to open process token...%ld"), GetLastError() );
+			//DECLTEXT( msg, "Failed to open process token... ########" );
+			//msg.data.size = sprintf( msg.data.data, "Failed to open process token...%ld", GetLastError() );
 			//EnqueLink( &ps->Command->Output, &msg );
 			GetLastError();
 		}
@@ -88,7 +88,7 @@ void DoReboot( char *mode )
 void CPROC Connection( PCLIENT whatever, PCLIENT pNew )
 {
 	RemoveClient( pNew );
-	OpenTCPClientEx( WIDE("127.0.0.1"), 16662, NULL,NULL,NULL );
+	OpenTCPClientEx( "127.0.0.1", 16662, NULL,NULL,NULL );
 	Sleep(20);
    DoReboot( "reboot" );
 }

@@ -20,7 +20,7 @@ static PTEXT CPROC ParseCommand( PMYDATAPATH pdp, PTEXT buffer )
 	if( buffer )
 	{
 		PTEXT pCommand;
-     	//Log2( WIDE("buffer: %s(%d)"), GetText( buffer ), GetTextSize( buffer ) );
+     	//Log2( "buffer: %s(%d)", GetText( buffer ), GetTextSize( buffer ) );
      	//LogBinary( buffer );
       pCommand = burst( buffer );
       LineRelease( buffer );
@@ -31,7 +31,7 @@ static PTEXT CPROC ParseCommand( PMYDATAPATH pdp, PTEXT buffer )
          pStart = pTemp = pCommand;
          while( pTemp )
          {
-            if( TextIs( pTemp, WIDE("\\") ) )
+            if( TextIs( pTemp, "\\" ) )
             {
                if( !bEscaped )
                {
@@ -44,10 +44,10 @@ static PTEXT CPROC ParseCommand( PMYDATAPATH pdp, PTEXT buffer )
                   continue;
                }
             }
-            if( !bEscaped && TextIs( pTemp, WIDE(";") ) )
+            if( !bEscaped && TextIs( pTemp, ";" ) )
             {
                PTEXT pPrior;
-	           	//Log( WIDE("Splitting the line and enqueing it...") );
+	           	//Log( "Splitting the line and enqueing it..." );
                pPrior = pTemp;
                SegBreak( pTemp );
                if( pStart != pTemp )
@@ -69,7 +69,7 @@ static PTEXT CPROC ParseCommand( PMYDATAPATH pdp, PTEXT buffer )
          {
          	PTEXT line;
          	line = BuildLine( pStart );
-         	//Log1( WIDE("Enqueu: %s"), GetText( line ) );
+         	//Log1( "Enqueu: %s", GetText( line ) );
          	LineRelease( line );
             EnqueLink( &pdp->output, pStart );
          }
@@ -78,7 +78,7 @@ static PTEXT CPROC ParseCommand( PMYDATAPATH pdp, PTEXT buffer )
       {
          // well what now?  I guess pLine got put into Partial...
          // next pass through this all for command recall will blow...
-         Log( WIDE("No information from the burst!") );
+         Log( "No information from the burst!" );
       }
 	}
 	return (PTEXT)DequeLink( &pdp->output );
@@ -126,7 +126,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("command"), WIDE("Performs command processing burst, history..."), Open );
+   myTypeID = RegisterDevice( "command", "Performs command processing burst, history...", Open );
    return DekVersion;
 }
 
@@ -134,7 +134,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("command") );
+	UnregisterDevice( "command" );
 }
 // $Log: command.c,v $
 // Revision 1.9  2005/02/21 12:08:31  d3x0r

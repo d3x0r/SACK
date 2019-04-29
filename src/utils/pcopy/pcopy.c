@@ -250,7 +250,7 @@ void FixResourceDirEntry( char *resources, PMY_IMAGE_RESOURCE_DIRECTORY pird )
 	for( x = 0; x < pird->NumberOfNamedEntries + 
 	                pird->NumberOfIdEntries; x++ )
 	{
-		//printf( WIDE("DirectoryEntry: %08x %08x\n"), pird->entries[x].Name, pird->entries[x].OffsetToData );
+		//printf( "DirectoryEntry: %08x %08x\n", pird->entries[x].Name, pird->entries[x].OffsetToData );
 		if( pird->entries[x].DataIsDirectory )
 		{
 			FixResourceDirEntry( resources
@@ -523,14 +523,14 @@ int ScanFile( PFILESOURCE pfs )
 				return 0;
 			}
 		}
-		file = sack_fopen( 0, pfs->name, WIDE("rb") );
+		file = sack_fopen( 0, pfs->name, "rb" );
 		if( file )
 		{
 			pfs->flags.bScanned = 1;
 			sack_fread( &dos_header, 1, sizeof( dos_header ), file );
 			if( dos_header.e_magic != MY_IMAGE_DOS_SIGNATURE )
 			{
-				//fprintf( stderr, WIDE("warning: \'%s\' is not a program.\n"), pfs->name );
+				//fprintf( stderr, "warning: \'%s\' is not a program.\n", pfs->name );
 				// copy it anyway.
 				sack_fclose( file );
 				return 0;
@@ -606,7 +606,7 @@ int ScanFile( PFILESOURCE pfs )
 			}
 			else
 			{
-				TEXTSTR path = (TEXTSTR)OSALOT_GetEnvironmentVariable( WIDE("PATH") );
+				TEXTSTR path = (TEXTSTR)OSALOT_GetEnvironmentVariable( "PATH" );
 				TEXTSTR tmp;
 				static TEXTCHAR tmpfile[256 + 64];
 				while( tmp = (TEXTSTR)StrChr( path, ';' ) )
@@ -616,7 +616,7 @@ int ScanFile( PFILESOURCE pfs )
 #define snwprintf _snwprintf
 #endif
 #ifdef _UNICODE
-					snwprintf( tmpfile, sizeof( tmpfile ), WIDE("%s/%s"), path, pfs->name );
+					snwprintf( tmpfile, sizeof( tmpfile ), "%s/%s", path, pfs->name );
 #else
 					snprintf( tmpfile, sizeof( tmpfile ), "%s/%s", path, pfs->name );
 #endif
@@ -634,7 +634,7 @@ int ScanFile( PFILESOURCE pfs )
 					}
 					else
 					{
-						FILE *file = sack_fopen( 0, tmpfile, WIDE("rb") );
+						FILE *file = sack_fopen( 0, tmpfile, "rb" );
 						if( file )
 						{
 							AddDependCopy( pfs, tmpfile )->flags.bExternal = 1;
@@ -674,7 +674,7 @@ int main( int argc, CTEXTSTR *argv )
 		Usage( argv );
 		return 1;
 	}
-	StrCpyEx( g.SystemRoot, OSALOT_GetEnvironmentVariable( WIDE("SystemRoot") ), sizeof( g.SystemRoot )/sizeof( TEXTCHAR ) );
+	StrCpyEx( g.SystemRoot, OSALOT_GetEnvironmentVariable( "SystemRoot" ), sizeof( g.SystemRoot )/sizeof( TEXTCHAR ) );
 	{
 		int c;
 		for( c = 1;

@@ -165,7 +165,7 @@ void InitShader( void )
 				GLsizei final;
 				char *buffer;
 				//We failed to compile.
-				lprintf(WIDE("Vertex shader 'program A' failed compilation.\n"));
+				lprintf("Vertex shader 'program A' failed compilation.\n");
 				//Attempt to get the length of our error log.
 				glGetObjectParameterivARB(l.shader.simple_shader.vert_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 				buffer = NewArray( char, length );
@@ -174,13 +174,13 @@ void InitShader( void )
 				//Used to get the final length of the log.
 				glGetInfoLogARB(l.shader.simple_shader.vert_shader, length, &final, buffer);
 				//Convert our buffer into a string.
-				lprintf( WIDE("message: %s"), buffer );
+				lprintf( "message: %s", buffer );
 
 
 				if (final > length)
 				{
 					//The buffer does not contain all the shader log information.
-					lprintf(WIDE("Shader Log contained more information!\n"));
+					lprintf("Shader Log contained more information!\n");
 				}
 		
 			}
@@ -206,7 +206,7 @@ void InitShader( void )
 				GLsizei final;
 				char *buffer;
 				//We failed to compile.
-				lprintf(WIDE("Vertex shader 'program B' failed compilation.\n"));
+				lprintf("Vertex shader 'program B' failed compilation.\n");
 				//Attempt to get the length of our error log.
 				glGetObjectParameterivARB(l.shader.simple_shader.frag_shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 				buffer = NewArray( char, length );
@@ -215,13 +215,13 @@ void InitShader( void )
 				//Used to get the final length of the log.
 				glGetInfoLogARB(l.shader.simple_shader.frag_shader, length, &final, buffer);
 				//Convert our buffer into a string.
-				lprintf( WIDE("message: %s"), buffer );
+				lprintf( "message: %s", buffer );
 
 
 				if (final > length)
 				{
 					//The buffer does not contain all the shader log information.
-					lprintf(WIDE("Shader Log contained more information!\n"));
+					lprintf("Shader Log contained more information!\n");
 				}
 		
 			}
@@ -245,14 +245,14 @@ void InitShader( void )
 				GLsizei final;
 				char *buffer;
 				//We failed to compile.
-				lprintf(WIDE("something something") );
+				lprintf("something something" );
 				//Attempt to get the length of our error log.
 				glGetObjectParameterivARB(l.shader.simple_shader.shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 				buffer = NewArray( char, length );
 				glGetInfoLogARB(l.shader.simple_shader.frag_shader, length, &final, buffer);
 
 				//Convert our buffer into a string.
-				lprintf( WIDE("message: %s"), buffer );
+				lprintf( "message: %s", buffer );
 	}
 
 	glUseProgram( 0 );
@@ -262,8 +262,8 @@ void InitShader( void )
 }
 
 
-static void OnDraw3d( WIDE("Simple Shader Array") )( uintptr_t psvView )
-//static int OnDrawCommon( WIDE("Terrain View") )( PSI_CONTROL pc )
+static void OnDraw3d( "Simple Shader Array" )( uintptr_t psvView )
+//static int OnDrawCommon( "Terrain View" )( PSI_CONTROL pc )
 {
 	int result;
 	//if( 0 )
@@ -305,11 +305,11 @@ static void OnDraw3d( WIDE("Simple Shader Array") )( uintptr_t psvView )
 	}
 }
 
-static void OnBeginDraw3d( WIDE( "Simple Shader Array" ) )( uintptr_t psv,PTRANSFORM camera )
+static void OnBeginDraw3d( "Simple Shader Array" )( uintptr_t psv,PTRANSFORM camera )
 {
 }
 
-static void OnFirstDraw3d( WIDE( "Simple Shader Array" ) )( uintptr_t psvInit )
+static void OnFirstDraw3d( "Simple Shader Array" )( uintptr_t psvInit )
 {
 	// and really if initshader fails, it sets up in local flags and 
 	// states to make sure we just fall back to the old way.
@@ -380,7 +380,7 @@ static void OnFirstDraw3d( WIDE( "Simple Shader Array" ) )( uintptr_t psvInit )
 
 }
 
-static uintptr_t OnInit3d( WIDE( "Simple Shader Array" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( "Simple Shader Array" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	// keep the camera as a 
 	return (uintptr_t)camera;

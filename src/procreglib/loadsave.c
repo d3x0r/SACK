@@ -130,7 +130,7 @@ static int WriteName( POINTER user, uintptr_t key )
 PROCREG_PROC( int, SaveTreeEx )( int bDoOpen )
 {
 	if( bDoOpen )
-		g.file = fopen( WIDE("Registered.Tree"), WIDE("wb") );
+		g.file = fopen( "Registered.Tree", "wb" );
 	if( g.file )
 	{
 		DumpTree( g.Names, WriteName );
@@ -147,7 +147,7 @@ PROCREG_PROC( int, SaveTree )( void )
 {
 	while( g.file )
 		Relinquish();
-	g.file = fopen( WIDE("Names.Data"), WIDE("wb") );
+	g.file = fopen( "Names.Data", "wb" );
    if( g.file )
 	{
 		PNAMESPACE NameSpace;
@@ -173,11 +173,11 @@ PROCREG_PROC( PTREEDEF, LoadTreeEx )( PTREEDEF root
 {
 	if( !root )
 	{
-		lprintf( WIDE("Everything is bad - fell off the tree while adding values") );
+		lprintf( "Everything is bad - fell off the tree while adding values" );
       return NULL;
 	}
    if( bDoOpen )
-		g.file = fopen( WIDE("Registered.Tree"), WIDE("rb") );
+		g.file = fopen( "Registered.Tree", "rb" );
 
 	if( g.file )
 	{
@@ -218,7 +218,7 @@ PROCREG_PROC( PTREEDEF, LoadTreeEx )( PTREEDEF root
 						// now add name...
 						if( !AddBinaryNode( root->Tree, name, (uintptr_t)name->name ) )
 						{
-							Log( WIDE("Failed to add name to tree...") );
+							Log( "Failed to add name to tree..." );
 							Release( name );
 						}
 					}
@@ -247,7 +247,7 @@ PROCREG_PROC( int, LoadTree )( void )
 	PNAMESPACE NameSpace;
 	while( g.file )
 		Relinquish();
-	g.file = fopen( WIDE("Names.Data"), WIDE("rb") );
+	g.file = fopen( "Names.Data", "rb" );
 	{
       NameSpace = Allocate( sizeof( NAMESPACE ) );
 		while( fread( &NameSpace->nextname, 1, sizeof( NameSpace->nextname ), g.file ) )

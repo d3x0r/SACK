@@ -41,68 +41,68 @@ int setOptions( int argc )
 			// with subcanvas support, this cannot function, sorry
 			// we get confused about which menu belongs to which frame
 			// some thought will have to be done to figure this one out.
-			if( StrCaseCmp( l.wargv[n]+1, WIDE( "display" ) ) == 0 )
+			if( StrCaseCmp( l.wargv[n]+1, "display" ) == 0 )
 			{
 				l.display = atoi( l.wargv[n+1] );
 				n++;
 			}
-			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "nodisplay" ) ) == 0 )
+			else if( StrCaseCmp( l.wargv[n]+1, "nodisplay" ) == 0 )
 			{
 				l.flags.nodisplay = 1;
 				n++;
 			}
-			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "transparent" ) ) == 0 )
+			else if( StrCaseCmp( l.wargv[n]+1, "transparent" ) == 0 )
 			{
 				l.flags.is_transparent = 1;                                          
 			}
 
-			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "stream" ) ) == 0 )
+			else if( StrCaseCmp( l.wargv[n]+1, "stream" ) == 0 )
 			{
 				l.flags.is_stream = 1;
 			}
 
-			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "control" ) ) == 0 )
+			else if( StrCaseCmp( l.wargv[n]+1, "control" ) == 0 )
 			{
 				l.flags.in_control = 1;
 			}
 
-			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "log_stdout" ) ) == 0 )
+			else if( StrCaseCmp( l.wargv[n]+1, "log_stdout" ) == 0 )
 			{
 				SetSystemLog( SYSLOG_FILE, stdout );
 			}
 
-			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "top" ) ) == 0 )
+			else if( StrCaseCmp( l.wargv[n]+1, "top" ) == 0 )
 			{
 				l.flags.make_top = 1;
 			}
 
-			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "time" ) ) == 0 )
+			else if( StrCaseCmp( l.wargv[n]+1, "time" ) == 0 )
 			{
 				l.time = atoi( l.wargv[n+1] );
 				n++;;
 			}
 
-			else if( ( StrCaseCmp( l.wargv[n]+1, WIDE( "input" ) ) == 0 ) && ( !l.flags.rec_input_type )  )
+			else if( ( StrCaseCmp( l.wargv[n]+1, "input" ) == 0 ) && ( !l.flags.rec_input_type )  )
 			{
 				l.flags.rec_input_type = 1;
-				SACK_GetPrivateProfileString( WIDE( "vlc/config" ), WIDE( "vlc input" ), WIDE("dshow://"), tmp1, sizeof( tmp1 ), WIDE( "video.ini" ) );
-				ofs2 += snprintf( l.input + ofs2, sizeof( l.input ) - ofs2, WIDE( "%s" ), tmp1 );
+				SACK_GetPrivateProfileString( "vlc/config", "vlc input", "dshow://", tmp1, sizeof( tmp1 ), "video.ini" );
+				ofs2 += snprintf( l.input + ofs2, sizeof( l.input ) - ofs2, "%s", tmp1 );
 			}
-			else if( ( StrCaseCmp( l.wargv[n]+1, WIDE( "input" ) ) == 0 ) && ( l.flags.rec_input_type )  )
+			else if( ( StrCaseCmp( l.wargv[n]+1, "input" ) == 0 ) && ( l.flags.rec_input_type )  )
 			{
-				lprintf(WIDE(" An input has already been specified!!!") );
-				lprintf(WIDE(" Ignoring -input") );
+				lprintf(" An input has already been specified!!!" );
+				lprintf(" Ignoring -input" );
 			}
 
-			else if( StrCaseCmp( l.wargv[n]+1, WIDE( "options" ) ) == 0 )
+			else if( StrCaseCmp( l.wargv[n]+1, "options" ) == 0 )
 			{
-				SACK_GetPrivateProfileString( WIDE( "vlc/config" ), WIDE( "vlc options" ), WIDE("-vvv"), tmp2, sizeof( tmp2 ), WIDE( "video.ini" ) );
-				ofs += snprintf( l.extra_opts + ofs, sizeof( l.extra_opts ) - ofs, WIDE( "%s%s" ), ofs?" ":"", tmp2 );
+				SACK_GetPrivateProfileString( "vlc/config", "vlc options", "-vvv", tmp2, sizeof( tmp2 ), "video.ini" );
+				ofs += snprintf( l.extra_opts + ofs, sizeof( l.extra_opts ) - ofs, "%s%s", ofs?" ":"", tmp2 );
 			}			
 
 			else 
 			{
-				ofs += snprintf( l.extra_opts + ofs, sizeof( l.extra_opts ) - ofs, WIDE( "%s%s" ), ofs?" ":"", l.wargv[n] );
+				ofs += snprintf( l.extra_opts + ofs, sizeof( l.extra_opts ) - ofs, "%s%s", ofs?" ":"", l.wargv[n] );
 			}
 		}
 
@@ -114,29 +114,29 @@ int setOptions( int argc )
 				l.flags.rec_input_type = 1;
 
 				if( ofs2 == 0 )
-					ofs2 += snprintf( l.input + ofs2, sizeof( l.input ) - ofs2, WIDE( "%s" ), l.wargv[n] );								
+					ofs2 += snprintf( l.input + ofs2, sizeof( l.input ) - ofs2, "%s", l.wargv[n] );								
 			}
 
 			else if ( ( l.flags.rec_input_type ) && ( l.wargv[n][0] == ':' ) )
 			{
 				if( ofs2 != 0 )
-					ofs2 += snprintf( l.input + ofs2, sizeof( l.input ) - ofs2, WIDE( " %s" ), l.wargv[n] );
+					ofs2 += snprintf( l.input + ofs2, sizeof( l.input ) - ofs2, " %s", l.wargv[n] );
 			}
 
 			else if( ( !l.flags.rec_input_type ) && ( l.wargv[n][0] == ':' ) )
 			{
 				#ifdef _WIN32
-					MessageBox( NULL, WIDE( " Must specify input type before input options!!!\n" ), WIDE("Error"), MB_OK );
+					MessageBox( NULL, " Must specify input type before input options!!!\n", "Error", MB_OK );
 				#endif
 
-				lprintf( WIDE(" Must specify input type before input options\n") );
-				lprintf( WIDE( " Terminating Application..." ) );
+				lprintf( " Must specify input type before input options\n" );
+				lprintf( " Terminating Application..." );
 				return 0;
 			}
 			else
             */
 			{
-				ofs += snprintf( l.extra_opts + ofs, sizeof( l.extra_opts ) - ofs, WIDE( "%s%s" ), ofs?" ":"", l.wargv[n] );
+				ofs += snprintf( l.extra_opts + ofs, sizeof( l.extra_opts ) - ofs, "%s%s", ofs?" ":"", l.wargv[n] );
 			}			
 		}
 	}
@@ -166,21 +166,21 @@ int main( int argc, char ** argv )
 	if( argc == 1 )
 	{
 #ifdef _WIN32
-		MessageBox( NULL, WIDE( "Command Line Arguments for VLC Test:\n" )
-					  WIDE( " -display # : show on display number\n" )
-					  WIDE( " -time # : time for vlc to live\n" )
-					  WIDE( " -top : make topmost\n" )
-					  WIDE( " -control : use a control to host video\n" )
-					  WIDE( " -log_stdout : send logging to standard out instead of log file\n" )
-					  WIDE( " -transparent : use transparent display\n" )
-					  WIDE( " -stream : output is stream\n" )
-					  WIDE( " -input : Read input info from editoptions\n" )
-					  WIDE( " -nodisplay : probably VLC will create its own window; so don't create one\n" )
-					  WIDE( " -options : Read extra vlc options from editoptions\n" )
-					  WIDE( "\n All VLC Options Should Be Valid\n" )
-					 , WIDE( "Must Enter a Command Line Argument" ), MB_OK );
+		MessageBox( NULL, "Command Line Arguments for VLC Test:\n"
+					  " -display # : show on display number\n"
+					  " -time # : time for vlc to live\n"
+					  " -top : make topmost\n"
+					  " -control : use a control to host video\n"
+					  " -log_stdout : send logging to standard out instead of log file\n"
+					  " -transparent : use transparent display\n"
+					  " -stream : output is stream\n"
+					  " -input : Read input info from editoptions\n"
+					  " -nodisplay : probably VLC will create its own window; so don't create one\n"
+					  " -options : Read extra vlc options from editoptions\n"
+					  "\n All VLC Options Should Be Valid\n"
+					 , "Must Enter a Command Line Argument", MB_OK );
 #endif
-		lprintf( WIDE( " Terminating Application..." ) );
+		lprintf( " Terminating Application..." );
 		return 0;
 	}
 
@@ -188,8 +188,8 @@ int main( int argc, char ** argv )
 	if ( !( setOptions( argc ) ) )
 		return 0;			
 	
-	lprintf( WIDE(" Input = %s"), l.input );
-	lprintf( WIDE(" VLC Options = %s"), l.extra_opts );
+	lprintf( " Input = %s", l.input );
+	lprintf( " VLC Options = %s", l.extra_opts );
 
 	//if( l.input[0] )
 	{
@@ -201,7 +201,7 @@ int main( int argc, char ** argv )
 		if( !l.flags.is_stream && !l.flags.nodisplay)
 		{
 			transparent = OpenDisplaySizedAt( l.flags.is_transparent?DISPLAY_ATTRIBUTE_LAYERED:0, w, h, x, y );
-			surface = l.flags.in_control?CreateFrameFromRenderer( WIDE( "Video Display" )
+			surface = l.flags.in_control?CreateFrameFromRenderer( "Video Display"
 																		, BORDER_NONE|BORDER_NOCAPTION
 																		, transparent ):0;
 			DisableMouseOnIdle( transparent, TRUE );
@@ -227,22 +227,22 @@ int main( int argc, char ** argv )
 		else
 			pmyi = PlayItemOnExx( transparent, l.input, l.extra_opts, l.flags.is_transparent );
 
-		lprintf ( WIDE( " Playing..." ) );
+		lprintf ( " Playing..." );
 		PlayItem( pmyi );
 	}	
    /*
 	else
 	{
 		#ifdef _WIN32
-			MessageBox( NULL, WIDE( " No input to open was specified...\n" ), WIDE( "Error" ), MB_OK );
+			MessageBox( NULL, " No input to open was specified...\n", "Error", MB_OK );
 		#endif
 		
-		lprintf( WIDE( " No input to open was specified...\n" ) );
-		lprintf( WIDE( " Terminating Application..." ) );
+		lprintf( " No input to open was specified...\n" );
+		lprintf( " Terminating Application..." );
 		return 0;
 	}
    */
-	lprintf( WIDE( " Going to sleep..." ) );
+	lprintf( " Going to sleep..." );
 	
 
 	while( 1 )
@@ -257,17 +257,17 @@ int main( int argc, char ** argv )
 		else
 			IdleFor( 250000 );
 
-		lprintf( WIDE( " Woke up..." ) );
+		lprintf( " Woke up..." );
 
 
 		if( !l.flags.is_stream && transparent )
 			if( !DisplayIsValid( transparent ) )
 				break;
 
-		lprintf( WIDE( " Going back to sleep..." ) );
+		lprintf( " Going back to sleep..." );
 	}
 
-	lprintf( WIDE( " Terminating Application..." ) );
+	lprintf( " Terminating Application..." );
   	StopItem( pmyi );		
 
 	return 0;

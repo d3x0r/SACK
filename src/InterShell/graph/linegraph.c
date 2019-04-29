@@ -214,7 +214,7 @@ void PingResult( uintptr_t psv, uint32_t dwIP, CTEXTSTR name, int min, int max, 
 {
    static int dropped;
 	PPING_DATA_COLLECTOR ppdc = (PPING_DATA_COLLECTOR)psv;
-   //lprintf( WIDE("max result is %d"), max );
+   //lprintf( "max result is %d", max );
 	if( max )
 	{
 		PPING_RESULT result = GetFromSet( PING_RESULT, &ppdc->samples );
@@ -223,18 +223,18 @@ void PingResult( uintptr_t psv, uint32_t dwIP, CTEXTSTR name, int min, int max, 
 		result->min = min;
 		result->max = max;
 		result->avg = avg;
-		//lprintf( WIDE("setting sample drops to %d"), dropped );
+		//lprintf( "setting sample drops to %d", dropped );
 		result->drop = dropped;
 		dropped = 0;
 		result->hops = hops;
 		result->tick = timeGetTime();
-		//lprintf( WIDE("Added a result. at %ld %p %ld %ld %ld %ld %ld")
+		//lprintf( "Added a result. at %ld %p %ld %ld %ld %ld %ld"
 		//		 , result->tick, result
 		//		 , min, max, avg, drop, hops, dwIP, result->tick);
 	}
 	else
 	{
-      //lprintf( WIDE("Increasing drop count...") );
+      //lprintf( "Increasing drop count..." );
 		dropped++;
 	}
 }
@@ -245,7 +245,7 @@ void CPROC PingTimer( uintptr_t psv )
 	//static char pResult[4096];
 	// pass PLINKQUEUE* to pdc...
 	DoPingEx( pdc->address->name, 0, 150, 1, NULL/*pResult*/, FALSE, PingResult, (uintptr_t)pdc );
-	//lprintf( WIDE("result text: %s"), pResult );
+	//lprintf( "result text: %s", pResult );
 }
 
 GRAPH_LINE AddGraphLine( GRAPH graph, CTEXTSTR server, CTEXTSTR line_type, CTEXTSTR subtype )
@@ -416,7 +416,7 @@ void RenderPingMax( uintptr_t psv, PDATALIST *points, uint32_t from, uint32_t to
 		EmptyDataList( points );
 		//(*points)->Cnt = 0;
 	}
-	//lprintf( WIDE("emptied data list of points... checking samples") );
+	//lprintf( "emptied data list of points... checking samples" );
 	sample = GetUsedSetMember( PING_RESULT, &ppdc->samples, idx_sample = 0 );
 	if( sample )
 	{
@@ -448,7 +448,7 @@ void RenderPingMax( uintptr_t psv, PDATALIST *points, uint32_t from, uint32_t to
 		}
 		base_value = 1000;
 		max_value = 250000;
-		//lprintf( WIDE("Min %d max %d"), base_value, max_value );
+		//lprintf( "Min %d max %d", base_value, max_value );
 		if( !min_index_set )
 			return;
 		sample = GetUsedSetMember( PING_RESULT, &ppdc->samples, idx_sample = min_index );
@@ -461,7 +461,7 @@ void RenderPingMax( uintptr_t psv, PDATALIST *points, uint32_t from, uint32_t to
 			}
 			if( sample )
 			{
-				//lprintf( WIDE("tickofs %ld value %ld base %ld del %ld"), sample->tick - from, sample->max, base_value, max_value );
+				//lprintf( "tickofs %ld value %ld base %ld del %ld", sample->tick - from, sample->max, base_value, max_value );
 				// now we're on the graph... prior was...
 				point.offset =
 					(
@@ -474,10 +474,10 @@ void RenderPingMax( uintptr_t psv, PDATALIST *points, uint32_t from, uint32_t to
 					 * value_resolution
 					) / ( (max_value - base_value) +1 );
 				point.tick = sample->tick;
-				//lprintf( WIDE("Added point... %ld %ld"), point.offset, point.value );
+				//lprintf( "Added point... %ld %ld", point.offset, point.value );
 
 				AddDataItem( points, &point );
-            //lprintf( WIDE("End is %ld"), (*points)->Cnt );
+            //lprintf( "End is %ld", (*points)->Cnt );
 				tick = sample->tick + 1;  // find next sample
 			}
 			else
@@ -502,7 +502,7 @@ void RenderPingDropped( uintptr_t psv, PDATALIST *points, uint32_t from, uint32_
 		EmptyDataList( points );
 		//(*points)->Cnt = 0;
 	}
-	//lprintf( WIDE("emptied data list of points... checking samples") );
+	//lprintf( "emptied data list of points... checking samples" );
 	sample = GetUsedSetMember( PING_RESULT, &ppdc->samples, idx_sample = 0 );
 	if( sample )
 	{
@@ -535,7 +535,7 @@ void RenderPingDropped( uintptr_t psv, PDATALIST *points, uint32_t from, uint32_
 			}
 			if( sample )
 			{
-				//lprintf( WIDE("tickofs %ld value %ld base %ld del %ld"), sample->tick - from, sample->drop, base_value, drop_value );
+				//lprintf( "tickofs %ld value %ld base %ld del %ld", sample->tick - from, sample->drop, base_value, drop_value );
 				// now we're on the graph... prior was...
 				point.offset =
 					(
@@ -548,10 +548,10 @@ void RenderPingDropped( uintptr_t psv, PDATALIST *points, uint32_t from, uint32_
 					 * value_resolution
 					) / ( (max_value - base_value) +1 );
 				point.tick = sample->tick;
-				//lprintf( WIDE("Added point... %ld %ld"), point.offset, point.value );
+				//lprintf( "Added point... %ld %ld", point.offset, point.value );
 
 				AddDataItem( points, &point );
-				//lprintf( WIDE("End is %ld"), (*points)->Cnt );
+				//lprintf( "End is %ld", (*points)->Cnt );
 				tick = sample->tick + 1;  // find next sample
 			}
 			else
@@ -560,24 +560,24 @@ void RenderPingDropped( uintptr_t psv, PDATALIST *points, uint32_t from, uint32_
 	}
 }
 
-static void OnLoadCommon( WIDE("Ping Graph Registry") )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( "Ping Graph Registry" )( PCONFIG_HANDLER pch )
 {
 	// just use this to init our structures that we might want to use
-	//RegisterLineType( WIDE("Ping Min"), NULL );
+	//RegisterLineType( "Ping Min", NULL );
 	{
-		GRAPH_LINE_TYPE type = RegisterLineClassType( WIDE("Ping"), InstancePing, DestroyPing, PingTimer );
-		RegisterLineSubType( type, WIDE("Max"), RenderPingMax );
-		RegisterLineSubType( type, WIDE("Dropped"), RenderPingDropped );
+		GRAPH_LINE_TYPE type = RegisterLineClassType( "Ping", InstancePing, DestroyPing, PingTimer );
+		RegisterLineSubType( type, "Max", RenderPingMax );
+		RegisterLineSubType( type, "Dropped", RenderPingDropped );
 	}
-	RegisterLineType( WIDE("Ping Max"), InstancePing, DestroyPing, PingTimer, RenderPingMax );
-	//RegisterLineType( WIDE("Ping Avg"), NULL );
-	//RegisterLineType( WIDE("Ping Max Avg(short)"), NULL );
-	//RegisterLineType( WIDE("Ping Min Avg(short)"), NULL );
-	//RegisterLineType( WIDE("Ping Avg Avg(short)"), NULL );
+	RegisterLineType( "Ping Max", InstancePing, DestroyPing, PingTimer, RenderPingMax );
+	//RegisterLineType( "Ping Avg", NULL );
+	//RegisterLineType( "Ping Max Avg(short)", NULL );
+	//RegisterLineType( "Ping Min Avg(short)", NULL );
+	//RegisterLineType( "Ping Avg Avg(short)", NULL );
 	SimpleRegisterResource( LST_GRAPH_TYPE, LISTBOX_CONTROL_NAME );
 	SimpleRegisterResource( LST_TARGET_NAMES, LISTBOX_CONTROL_NAME );
 	SimpleRegisterResource( LST_LINES_ACTIVE, LISTBOX_CONTROL_NAME );
-	SimpleRegisterResource( CLR_LINE_COLOR, WIDE("Color Well") );
+	SimpleRegisterResource( CLR_LINE_COLOR, "Color Well" );
 	SimpleRegisterResource( BTN_NEW_TARGET, NORMAL_BUTTON_NAME );
 	SimpleRegisterResource( BTN_ADD_LINE, NORMAL_BUTTON_NAME );
 	SimpleRegisterResource( BTN_REMOVE_LINE, NORMAL_BUTTON_NAME );
@@ -585,14 +585,14 @@ static void OnLoadCommon( WIDE("Ping Graph Registry") )( PCONFIG_HANDLER pch )
 
 }
 
-static void OnLoadControl( WIDE("Ping Status Graph") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Ping Status Graph" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("graph line server:\'%m\' status:\'%m\'"), ReloadGraphTarget );
-	AddConfigurationMethod( pch, WIDE("graph line server:\'%m\' status:\'%m\' sub: \'%m\' color:%c"), NewReloadGraphSubTarget );
-	AddConfigurationMethod( pch, WIDE("graph line server:\'%m\' status:\'%m\' color:%c"), NewReloadGraphTarget );
-	AddConfigurationMethod( pch, WIDE("graph timespan:%i"), ReloadGraphTimespan );
+	AddConfigurationMethod( pch, "graph line server:\'%m\' status:\'%m\'", ReloadGraphTarget );
+	AddConfigurationMethod( pch, "graph line server:\'%m\' status:\'%m\' sub: \'%m\' color:%c", NewReloadGraphSubTarget );
+	AddConfigurationMethod( pch, "graph line server:\'%m\' status:\'%m\' color:%c", NewReloadGraphTarget );
+	AddConfigurationMethod( pch, "graph timespan:%i", ReloadGraphTimespan );
 }
-static void OnSaveControl( WIDE("Ping Status Graph") )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "Ping Status Graph" )( FILE *file, uintptr_t psv )
 {
 	INDEX idx;
 	GRAPH_LINE line;
@@ -601,25 +601,25 @@ static void OnSaveControl( WIDE("Ping Status Graph") )( FILE *file, uintptr_t ps
 	{
 		TARGET_ADDRESS target = (TARGET_ADDRESS)line->target;
 		if( line->type->parent )
-			fprintf( file, WIDE("graph line server:\'%s\' status:\'%s\' sub: \'%s\' color:$%")_32fX WIDE("\n"), target->name, line->type->parent->name, line->type->name, line->color );
+			fprintf( file, "graph line server:\'%s\' status:\'%s\' sub: \'%s\' color:$%"_32fX "\n", target->name, line->type->parent->name, line->type->name, line->color );
 		else
-			fprintf( file, WIDE("graph line server:\'%s\' status:\'%s\' color:$%")_32fX WIDE("\n"), target->name, line->type->name, line->color );
+			fprintf( file, "graph line server:\'%s\' status:\'%s\' color:$%"_32fX "\n", target->name, line->type->name, line->color );
 	}
-	fprintf( file, WIDE("graph timespan:%ld\n"), graph->timespan );
+	fprintf( file, "graph timespan:%ld\n", graph->timespan );
 }
 
-static void OnLoadCommon( WIDE("Ping Status Graph Targets") )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( "Ping Status Graph Targets" )( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, WIDE("ping target=%m"), ReloadTarget );
+	AddConfigurationMethod( pch, "ping target=%m", ReloadTarget );
 }
 
-static void OnSaveCommon( WIDE("Ping Status Graph Targets") )( FILE *file )
+static void OnSaveCommon( "Ping Status Graph Targets" )( FILE *file )
 {
 	INDEX idx;
 	TARGET_ADDRESS target;
 	LIST_FORALL( l.targets, idx, TARGET_ADDRESS, target )
 	{
-		fprintf( file, WIDE("ping target=%s\n"), target->name );
+		fprintf( file, "ping target=%s\n", target->name );
 	}
 }
 
@@ -627,7 +627,7 @@ static void CPROC CreateATarget( uintptr_t psv, PSI_CONTROL button )
 {
 	TEXTCHAR buffer[256];
 	TARGET_ADDRESS target;
-	if( SimpleUserQuery( buffer, 256, WIDE("Enter new target address"), NULL ) )
+	if( SimpleUserQuery( buffer, 256, "Enter new target address", NULL ) )
 	{
 		target = CreateTarget( buffer );
 		if( target )
@@ -655,7 +655,7 @@ static void CPROC ButtonAddGraphLine( uintptr_t psv, PSI_CONTROL button )
 		(TARGET_ADDRESS)GetItemData( GetSelectedItem( GetNearControl( button, LST_TARGET_NAMES ) ) );
 	if( !graph_line->target )
 	{
-		SimpleMessageBox( NULL, WIDE("Bad Selection"), WIDE("Must Select a target Server") );
+		SimpleMessageBox( NULL, "Bad Selection", "Must Select a target Server" );
 		Deallocate( struct graph_line_struct, graph_line );
 		return;
 	}
@@ -670,7 +670,7 @@ static void CPROC ButtonAddGraphLine( uintptr_t psv, PSI_CONTROL button )
 	{
 		PSI_CONTROL list = GetNearControl( button, LST_LINES_ACTIVE );
 		TEXTCHAR value[64];
-		snprintf( value, 64, WIDE("%s of %s"), graph_line->type->name, graph_line->target->name );
+		snprintf( value, 64, "%s of %s", graph_line->type->name, graph_line->target->name );
 		SetItemData( AddListItem( list, value ), (uintptr_t)graph_line );
 
 	}
@@ -740,10 +740,10 @@ void FillLineTypeList( PSI_CONTROL list, PLIST line_type_list, INDEX level )
 	}
 }
 
-static uintptr_t OnEditControl( WIDE("Ping Status Graph") )( uintptr_t psv, PSI_CONTROL parent )
+static uintptr_t OnEditControl( "Ping Status Graph" )( uintptr_t psv, PSI_CONTROL parent )
 {
 	GRAPH graph = (GRAPH)psv;
-	PSI_CONTROL frame = LoadXMLFrame( WIDE("ConfigurePingStatusGraph.isframe") );
+	PSI_CONTROL frame = LoadXMLFrame( "ConfigurePingStatusGraph.isframe" );
 	if( frame )
 	{
 		PSI_CONTROL list;
@@ -770,7 +770,7 @@ static uintptr_t OnEditControl( WIDE("Ping Status Graph") )( uintptr_t psv, PSI_
 			LIST_FORALL( graph->lines, idx, GRAPH_LINE, line )
 			{
 				TEXTCHAR value[64];
-				snprintf( value, 64, WIDE("%s of %s"), line->type->name, line->target->name );
+				snprintf( value, 64, "%s of %s", line->type->name, line->target->name );
 				SetItemData( AddListItem( list, value ), (uintptr_t)line );
 			}
 		}
@@ -783,7 +783,7 @@ static uintptr_t OnEditControl( WIDE("Ping Status Graph") )( uintptr_t psv, PSI_
                           , TRUE );
 		{
 			TEXTCHAR timespan[32];
-			snprintf( timespan, 32, WIDE("%ld.%03ld"), graph->timespan / 1000, graph->timespan % 1000 );
+			snprintf( timespan, 32, "%ld.%03ld", graph->timespan / 1000, graph->timespan % 1000 );
 			SetControlText( GetControl( frame, EDIT_GRAPH_TIMESPAN ), timespan );
 		}
 		{
@@ -805,8 +805,8 @@ static uintptr_t OnEditControl( WIDE("Ping Status Graph") )( uintptr_t psv, PSI_
 
 					// timee parse result...
 
-					lprintf( WIDE("WARNING CHEAP Time parse... incomplete, and failable") );
-					n = sscanf( buffer, WIDE("%")_32f WIDE(".%") _32f, &sec, &secpart );
+					lprintf( "WARNING CHEAP Time parse... incomplete, and failable" );
+					n = sscanf( buffer, "%"_32f ".%" _32f, &sec, &secpart );
 					if( n == 2 )
 						graph->timespan = sec*1000 + secpart;
 					else if( n == 1 )
@@ -821,7 +821,7 @@ static uintptr_t OnEditControl( WIDE("Ping Status Graph") )( uintptr_t psv, PSI_
 	return psv;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Ping Status Graph") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Ping Status Graph" )( uintptr_t psv )
 {
 	GRAPH graph = (GRAPH)psv;
 	return graph->pc;
@@ -833,11 +833,11 @@ void CPROC UpdateGraph( uintptr_t psv )
 	SmudgeCommon( graph->pc );
 }
 
-static uintptr_t OnCreateControl( WIDE("Ping Status Graph") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "Ping Status Graph" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	//NEW(struct graph_struct,graph);
    //DebugBreak();
-	PSI_CONTROL pc = MakeNamedControl( parent, WIDE("Graph Control"), x, y, w, h, 0 );
+	PSI_CONTROL pc = MakeNamedControl( parent, "Graph Control", x, y, w, h, 0 );
 	{
 		ValidatedControlData( GRAPH, graph_control_reg.TypeID, graph, pc );
 		graph->pc = pc;
@@ -850,7 +850,7 @@ static uintptr_t OnCreateControl( WIDE("Ping Status Graph") )( PSI_CONTROL paren
 	}
 }
 
-static void OnDestroyControl( WIDE("Ping Status Graph") )( uintptr_t psv )
+static void OnDestroyControl( "Ping Status Graph" )( uintptr_t psv )
 {
 	GRAPH graph = (GRAPH)psv;
 	SetControlData( GRAPH, graph->pc, NULL );
@@ -875,13 +875,13 @@ void DrawLine( Image image, GRAPH graph, GRAPH_LINE line )
 
 #define X_BORDER 10
 #define Y_BORDER 12
-	//lprintf( WIDE("Please consider the amount of work a function like this may do... (rendering line)") );
+	//lprintf( "Please consider the amount of work a function like this may do... (rendering line)" );
 	line->type->render( line->psvInstance, &line->points, max_tick - graph->timespan, max_tick, width - (2*X_BORDER), height - (2*Y_BORDER) );
 
 	// get first sample in queue
 	DATA_FORALL( line->points, idx_sample, GRAPH_LINE_SAMPLE*, sample )
 	{
-		//lprintf( WIDE("point at %ld %ld"), sample->offset, sample->value );
+		//lprintf( "point at %ld %ld", sample->offset, sample->value );
 		if( _sample )
 			do_line( image, _sample->offset + X_BORDER, height - Y_BORDER - _sample->value
 					 , sample->offset + X_BORDER, height - Y_BORDER - sample->value
@@ -901,14 +901,14 @@ void DrawLine( Image image, GRAPH graph, GRAPH_LINE line )
 
 // make sure to wait until the control data is set later
 // the creator of this control actually assigned the GRAPH pointer.
-static int CPROC OnDrawCommon( WIDE("Graph Control") )( PSI_CONTROL pc )
+static int CPROC OnDrawCommon( "Graph Control" )( PSI_CONTROL pc )
 //int CPROC DrawGraph( PSI_CONTROL pc )
 {
 	ValidatedControlData( GRAPH, graph_control_reg.TypeID, graph, pc );
 	if( graph )
 	{
 		Image image = GetControlSurface( pc );
-		//lprintf( WIDE("Begin Graph") );
+		//lprintf( "Begin Graph" );
 		ClearImageTo( image, SetAlpha( BASE_COLOR_DARKGREY, 128 ) );
 		{
 			int n;
@@ -924,16 +924,16 @@ static int CPROC OnDrawCommon( WIDE("Graph Control") )( PSI_CONTROL pc )
 			INDEX idx;
 			LIST_FORALL( graph->lines, idx, GRAPH_LINE, line )
 			{
-            //lprintf( WIDE("... %d"), idx );
+            //lprintf( "... %d", idx );
             DrawLine( image, graph, line );
-            //lprintf( WIDE("...") );
+            //lprintf( "..." );
 			}
 		}
 	}
    return 1;
 }
 
-CONTROL_REGISTRATION graph_control_reg = { WIDE("Graph Control"), {{256, 256}, sizeof( struct graph_struct ), BORDER_NORMAL|BORDER_INVERT|BORDER_FIXED}
+CONTROL_REGISTRATION graph_control_reg = { "Graph Control", {{256, 256}, sizeof( struct graph_struct ), BORDER_NORMAL|BORDER_INVERT|BORDER_FIXED}
 													  , NULL
 													  , NULL
 													  , //DrawGraph

@@ -4,13 +4,13 @@
 
 void CPROC GetAnyEvent( uintptr_t psv, char *extra )
 {
-	printf( WIDE("Received event with extra : %s\n"), extra );
+	printf( "Received event with extra : %s\n", extra );
 }
 
 char *name;
 void CPROC GetAnEvent( uintptr_t psv, char *extra )
 {
-	printf( WIDE("Received %s event with extra : %s\n"), name, extra );
+	printf( "Received %s event with extra : %s\n", name, extra );
 }
 
 

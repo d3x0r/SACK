@@ -2,7 +2,7 @@
 
 #include <psi/knob.h>
 
-#define MyName WIDE( "Media player control panel" )
+#define MyName "Media player control panel"
 
 struct media_control_panel
 {
@@ -97,13 +97,13 @@ static void CPROC pause_pushed( uintptr_t psvPanel, PSI_CONTROL pc )
 	{
 		panel->flags.playing = 0;
 		ffmpeg_PauseFile( panel->media->file );
-		SetControlText( panel->pause_button, WIDE( "Play" ) );
+		SetControlText( panel->pause_button, "Play" );
 	}
 	else
 	{
 		panel->flags.playing = 1;
 		ffmpeg_PlayFile( panel->media->file );
-		SetControlText( panel->pause_button, WIDE( "Pause" ) );
+		SetControlText( panel->pause_button, "Pause" );
 	}
 }
 
@@ -156,19 +156,19 @@ void ShowMediaPanel( struct my_button *media )
 		panel->media = media;
 		panel->flags.playing = 1; // is playing, otherwise media panel wouldn't be showing...
 		panel->knob = MakeNamedControl( newPanel, CONTROL_SCROLL_KNOB_NAME, 0, 0, 50, 50, -1 );
-		panel->knob_image = LoadImageFile( WIDE( "images/dial2a.png" ) );
+		panel->knob_image = LoadImageFile( "images/dial2a.png" );
 		SetScrollKnobImage( panel->knob, panel->knob_image );
 		SetScrollKnobEvent( panel->knob, KnobTick, (uintptr_t)panel );
-		panel->stop_button = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 0, 50, 25, -1, "Stop" );
+		panel->stop_button = MakeNamedCaptionedControl( newPanel, "Button", 50, 0, 50, 25, -1, "Stop" );
 		SetButtonPushMethod( panel->stop_button, stop_pushed, (uintptr_t)panel );
 #ifdef _DEBUG
-		panel->debug_mem_button = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 100, 55, 100, 25, -1, "Debug Memory" );
+		panel->debug_mem_button = MakeNamedCaptionedControl( newPanel, "Button", 100, 55, 100, 25, -1, "Debug Memory" );
 		SetButtonPushMethod( panel->debug_mem_button, debug_mem, (uintptr_t)panel );
 #endif
-		panel->pause_button = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 25, 50, 25, -1, "Pause" );
+		panel->pause_button = MakeNamedCaptionedControl( newPanel, "Button", 50, 25, 50, 25, -1, "Pause" );
 		SetButtonPushMethod( panel->pause_button, pause_pushed, (uintptr_t)panel );
-		panel->progress = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 50, 50, 25, -1, "???" );
-		//panel->progress = MakeNamedCaptionedControl( newPanel, WIDE( "Button" ), 50, 75, 50, 25, -1, "???" );
+		panel->progress = MakeNamedCaptionedControl( newPanel, "Button", 50, 50, 50, 25, -1, "???" );
+		//panel->progress = MakeNamedCaptionedControl( newPanel, "Button", 50, 75, 50, 25, -1, "???" );
 		panel->seek_slider = MakeNamedControl( newPanel, SLIDER_CONTROL_NAME,100, 0, 400, 50, -1 );
 		SetSliderOptions( panel->seek_slider, SLIDER_HORIZ );
 		SetSliderValues( panel->seek_slider, 0, 0, 10000 );  // 100.00%

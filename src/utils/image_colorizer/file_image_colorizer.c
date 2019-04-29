@@ -38,16 +38,16 @@ SaneWinMain( argc, argv )
 			if( image )
 			{
 				Image out = MakeImageFile( width, height );
-            lprintf(WIDE("%s %s %s"), GetText( red ), GetText( green) , GetText( blue ) );
+            lprintf("%s %s %s", GetText( red ), GetText( green) , GetText( blue ) );
 				if( !GetColorVar( &red, &cred ) )
-               lprintf( WIDE("FAIL RED") );
+               lprintf( "FAIL RED" );
 				if( !GetColorVar( &blue, &cblue ) )
-					lprintf( WIDE("FAIL BLUE") );
+					lprintf( "FAIL BLUE" );
 				if( !GetColorVar( &green, &cgreen ) )
-					lprintf( WIDE("FAIL gREEN") );
+					lprintf( "FAIL gREEN" );
 
 				ClearImage( out );
-				//lprintf( WIDE("uhmm... %08x %08x %08x"), cred, cgreen, cblue );
+				//lprintf( "uhmm... %08x %08x %08x", cred, cgreen, cblue );
 				BlotImageSizedEx( out, image, 0, 0, x, y, width, height, ALPHA_TRANSPARENT, BLOT_MULTISHADE, cred, cgreen, cblue );
 
 				{
@@ -55,7 +55,7 @@ SaneWinMain( argc, argv )
 					uint8_t *buf;
 					if( PngImageFile( out, &buf, &size ) )
 					{
-						FILE *output = sack_fopen( 0, argv[5], WIDE("wb") );
+						FILE *output = sack_fopen( 0, argv[5], "wb" );
 						sack_fwrite( buf, 1, size, output );
 						fclose( output );
 					}
@@ -65,9 +65,9 @@ SaneWinMain( argc, argv )
 	}
 	else
 	{
-		fprintf( stderr, WIDE("%s [input image] [red] [green] [blue] [out image] <x> <y> <width> <height>\n"), argv[0] );
-		fprintf( stderr, WIDE(" [...] arguments are not optional.\n") );
-      fprintf( stderr, WIDE(" <...> arguments must all be specified else all are ignored\n") );
+		fprintf( stderr, "%s [input image] [red] [green] [blue] [out image] <x> <y> <width> <height>\n", argv[0] );
+		fprintf( stderr, " [...] arguments are not optional.\n" );
+      fprintf( stderr, " <...> arguments must all be specified else all are ignored\n" );
 	}
 
 

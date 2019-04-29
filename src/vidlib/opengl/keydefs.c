@@ -24,7 +24,7 @@ enum{
 
 #ifdef __cplusplus
 #else
-//TEXT DELETE_STROKE = DEFTEXT( WIDE("\x7f") );
+//TEXT DELETE_STROKE = DEFTEXT( "\x7f" );
 #endif
 
 KEYDEFINE KeyDefs[256];
@@ -40,8 +40,8 @@ int KeystrokePaste( PRENDERER pRenderer )
         format = EnumClipboardFormats( 0 );
         while( format )
         {
-            //DECLTEXT( msg, WIDE("                                     ") );
-            //msg.data.size = sprintf( msg.data.data, WIDE("Format: %d"), format );
+            //DECLTEXT( msg, "                                     " );
+            //msg.data.size = sprintf( msg.data.data, "Format: %d", format );
             //EnqueLink( pdp->ps->Command->ppOutput, SegDuplicate( (PTEXT)&msg ) );
             if( format == CF_TEXT )
             {
@@ -76,7 +76,7 @@ int KeystrokePaste( PRENDERER pRenderer )
     }
     else
     {
-        //DECLTEXT( msg, WIDE("Clipboard was not available") );
+        //DECLTEXT( msg, "Clipboard was not available" );
         //EnqueLink( &pdp->ps->Command->Output, &msg );
     }
     return 0;
@@ -92,9 +92,9 @@ int KeystrokePaste( PRENDERER pRenderer )
 
 #define NUM_MODS ( sizeof( ModNames ) / sizeof( char * ) )
 #if 0
-char *ModNames[] = { "shift", WIDE("ctrl"), WIDE("alt")
-                   , NULL, WIDE("control"), NULL
-                   , WIDE("$"), WIDE("^"), WIDE("@") };
+char *ModNames[] = { "shift", "ctrl", "alt"
+                   , NULL, "control", NULL
+                   , "$", "^", "@" };
 
 int FindMod( PTEXT pMod )
 {
@@ -215,12 +215,12 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 	int keymod = KEY_MOD(key);
 #ifdef LOG_KEY_EVENTS
 
-	lprintf( WIDE("Key event for %08lx ... %d %s %s %s"), key, keycode, keymod&1?"SHIFT":"", keymod&2?"CTRL":"", keymod&4?"ALT":"" );
+	lprintf( "Key event for %08lx ... %d %s %s %s", key, keycode, keymod&1?"SHIFT":"", keymod&2?"CTRL":"", keymod&4?"ALT":"" );
 #endif
 	if( pKeyDefs[keycode].mod[keymod].flags.bFunction )
 	{
 #ifdef LOG_KEY_EVENTS
-		lprintf( WIDE("And there is a function... key is %s"), IsKeyPressed( key )?"Pressed":"Released" );
+		lprintf( "And there is a function... key is %s", IsKeyPressed( key )?"Pressed":"Released" );
 #endif
 		if( pKeyDefs[keycode].mod[keymod].flags.bAll ||
 			( IsKeyPressed( key ) && !pKeyDefs[keycode].mod[keymod].flags.bRelease) ||
@@ -228,7 +228,7 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 		{
          //DebugBreak();
 #ifdef LOG_KEY_EVENTS
-			lprintf( WIDE("Invoke!") );
+			lprintf( "Invoke!" );
 #endif
 			if( IsKeyExtended( key ) )
 			{

@@ -9,7 +9,7 @@
 void ODSEx( PBYTE s, LPSTR lpFile, int nLine )
 {
    BYTE byBuffer[256];
-   sprintf(byBuffer, WIDE("[%03X:%03X]%s(%d):%s"), 
+   sprintf(byBuffer, "[%03X:%03X]%s(%d):%s", 
             GetCurrentProcessId(),
             GetCurrentThreadId(),
             lpFile,nLine, s);
@@ -35,7 +35,7 @@ void IsDone( PBYTE *pMem, char *pFile, int nLine )
       if( pMem[i] ) 
       {
          DebugBreak();
-         ODSEx( WIDE("Memory Holder not Releaseed\n"), pFile, nLine );
+         ODSEx( "Memory Holder not Releaseed\n", pFile, nLine );
          pMem[i] = 0;
       }
 
@@ -59,7 +59,7 @@ PBYTE *A2( PBYTE *pMem )
 {
 int i;
    BYTE byBuffer[256];
-   sprintf( byBuffer, WIDE("allocate (n*32) 0..%d\n"), MAX_I);
+   sprintf( byBuffer, "allocate (n*32) 0..%d\n", MAX_I);
    ODS( byBuffer );
    IsDone();
    for( i = 0; i < MAX_I; i++ )
@@ -75,7 +75,7 @@ int i;
    BYTE byBuffer[256];
    int nSize;
    BOOL bFail = FALSE;
-   sprintf( byBuffer, WIDE("allocate ((%d-n)*32) 0..%d\n"), MAX_I,MAX_I);
+   sprintf( byBuffer, "allocate ((%d-n)*32) 0..%d\n", MAX_I,MAX_I);
    ODS( byBuffer );
    IsDone();
    for( i = 0; i < MAX_I; i++ )
@@ -91,7 +91,7 @@ PBYTE *A3( PBYTE *pMem )
 int i;
    int s = 8137;
    BYTE byBuffer[256];
-   sprintf( byBuffer, WIDE("allocate to fill memory\n"), MAX_I,MAX_I);
+   sprintf( byBuffer, "allocate to fill memory\n", MAX_I,MAX_I);
    ODS( byBuffer );
    IsDone();
    for( i = 0; i < MAX_I; i++ )
@@ -105,7 +105,7 @@ int i;
       if( !s )
       {
          BYTE byDebug[256];
-         sprintf( byDebug, WIDE("Failed at %d...\n"), i );
+         sprintf( byDebug, "Failed at %d...\n", i );
          break;
       }
    }
@@ -114,7 +114,7 @@ int i;
 
 PBYTE *T1( PBYTE *pMem )
 {
-      ODS( WIDE("Starting FALR\n"));
+      ODS( "Starting FALR\n");
       {
          int i;
          for( i = MAX_I-1; i >=0; i-- )
@@ -128,7 +128,7 @@ PBYTE *T1( PBYTE *pMem )
 
 PBYTE *T2( PBYTE *pMem )
 {
-      ODS( WIDE("Starting FirstAllocFirstRelease\n"));
+      ODS( "Starting FirstAllocFirstRelease\n");
       {
          int i;
            for( i = 0; i < MAX_I; i++ )
@@ -142,7 +142,7 @@ PBYTE *T2( PBYTE *pMem )
 
 PBYTE *T3( PBYTE *pMem )
 {
-      ODS( WIDE("Starting Stagger Deallocate\n"));
+      ODS( "Starting Stagger Deallocate\n");
       {
       
          int i, r;
@@ -161,7 +161,7 @@ PBYTE *T3( PBYTE *pMem )
 
 PBYTE *T3i( PBYTE *pMem )
 {
-      ODS( WIDE("Starting Inverted Stagger Deallocate\n"));
+      ODS( "Starting Inverted Stagger Deallocate\n");
       {
       
          int i, r;
@@ -173,7 +173,7 @@ PBYTE *T3i( PBYTE *pMem )
             if( 0 )
             {
                BYTE byDebug[256];
-               sprintf( byDebug, WIDE("Deallocate : %4d\n"), r );
+               sprintf( byDebug, "Deallocate : %4d\n", r );
                ODS( byDebug );
             }
             pMem[r] = Release( pMem[r] );
@@ -185,7 +185,7 @@ PBYTE *T3i( PBYTE *pMem )
 
 PBYTE *T3is( PBYTE *pMem )
 {
-      ODS( WIDE("Starting Inverted Sequential Stagger Deallocate\n"));
+      ODS( "Starting Inverted Sequential Stagger Deallocate\n");
       {
          int i, r;
          for( i = 0; i < MAX_I; i++ )
@@ -203,7 +203,7 @@ PBYTE *T3is( PBYTE *pMem )
 
 PBYTE *T4( PBYTE *pMem )
 {
-      ODS( WIDE("Starting 3-Stagger Deallocate\n"));
+      ODS( "Starting 3-Stagger Deallocate\n");
       {
          int i, r;
          for( i = 0; i < MAX_I; i++ )
@@ -225,7 +225,7 @@ void DumpStats( void )
             DWORD dwFree, dwUsed, dwChunks, dwFreeChunks;
             char msg[256];
             GetMemStats(&dwFree, &dwUsed, &dwChunks, &dwFreeChunks);
-            sprintf( msg, WIDE("MemStat: Used: %d(%d) Free: %d(%d)")
+            sprintf( msg, "MemStat: Used: %d(%d) Free: %d(%d)"
                         , dwUsed, dwChunks - dwFreeChunks
                         , dwFree, dwFreeChunks );
             ODS( msg );
@@ -234,7 +234,7 @@ void DumpStats( void )
 
 PBYTE *T5( PBYTE *pMem )
 {
-      ODS( WIDE("Starting Defrag test\n"));
+      ODS( "Starting Defrag test\n");
       DumpStats();
       {
 
@@ -350,7 +350,7 @@ BOOL CALLBACK DialogProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
    case WM_TIMER:
       {
          BYTE byMsg[256];
-         sprintf( byMsg, WIDE("Thread: %d"), nThreads );
+         sprintf( byMsg, "Thread: %d", nThreads );
          SetDlgItemText( hWnd, TXT_MESSAGE, byMsg );
          if( !nThreads )
          {
@@ -391,6 +391,6 @@ BOOL CALLBACK DialogProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR pCmdLine, int nCmdShow )
 {
 // InitCommonControls();
-   return DialogBox( hInst, WIDE("Test"), NULL, DialogProc );
+   return DialogBox( hInst, "Test", NULL, DialogProc );
 }
 // $Log: $

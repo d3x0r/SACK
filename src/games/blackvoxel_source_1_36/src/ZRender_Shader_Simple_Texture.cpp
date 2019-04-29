@@ -193,7 +193,7 @@ ZRender_Shader_Simple_Texture::ZRender_Shader_Simple_Texture( ZRender_Interface 
 {
 	this->render = render;
 	box_buffer = NULL;
-	shader = ImageGetShaderInit( WIDE("BV Simple Texture Shader")
+	shader = ImageGetShaderInit( "BV Simple Texture Shader"
 		, _SetupShader
 		, _InitShader, (PTRSZVAL)this );
 

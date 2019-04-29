@@ -605,13 +605,13 @@ struct rt_init // structure placed in XI/YI segment
 
 typedef void(*atexit_priority_proc)(void (*)(void),CTEXTSTR,int DBG_PASS);
 #define ATEXIT_PRIORITY(name,priority) static void name(void); static void atexit##name(void) __attribute__((constructor));  \
-	void atexit_failed##name(void(*f)(void),int i,CTEXTSTR s1,CTEXTSTR s2,int n) { lprintf( WIDE("Failed to load atexit_priority registerar from core program.") );} \
+	void atexit_failed##name(void(*f)(void),int i,CTEXTSTR s1,CTEXTSTR s2,int n) { lprintf( "Failed to load atexit_priority registerar from core program." );} \
 void atexit##name(void)                                                  \
 {                                                                        \
 	static char myname[256];HMODULE mod;if(myname[0])return;myname[0]='a';GetModuleFileName( NULL, myname, sizeof( myname ) );\
 	mod=LoadLibrary(myname);if(mod){\
    typedef void (*x)(void);void(*rsp)( x,const CTEXTSTR,int,const CTEXTSTR,int); \
-	if((rsp=((void(*)(void(*)(void),const CTEXTSTR,int,const CTEXTSTR,int))(GetProcAddress( mod, WIDE("RegisterPriorityShutdownProc"))))))\
+	if((rsp=((void(*)(void(*)(void),const CTEXTSTR,int,const CTEXTSTR,int))(GetProcAddress( mod, "RegisterPriorityShutdownProc")))))\
 	 {rsp( name,TOSTR(name),priority DBG_SRC);}\
 	 else atexit_failed##name(name,priority,TOSTR(name) DBG_SRC);        \
 	}\
@@ -719,7 +719,7 @@ typedef void(*atexit_priority_proc)(void (*)(void),int,CTEXTSTR DBG_PASS);
 	TEXTCHAR myname[256];HMODULE mod; \
 	mod=LoadLibrary("sack_bag.dll");if(mod){        \
    void(*rsp)(void); \
-	if((rsp=((void(*)(void))(GetProcAddress( mod, "RunDeadstart"))))){rsp();}else{lprintf( WIDE("Hey failed to get proc %d"), GetLastError() );}\
+	if((rsp=((void(*)(void))(GetProcAddress( mod, "RunDeadstart"))))){rsp();}else{lprintf( "Hey failed to get proc %d", GetLastError() );}\
 	FreeLibrary( mod); }} while(0)
 #else
 #endif

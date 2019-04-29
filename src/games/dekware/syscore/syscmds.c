@@ -61,19 +61,19 @@ int CPROC PRIORITY( PSENTIENT ps, PTEXT parameters )
 	pTemp = GetParam( ps, &parameters );
 	if( pTemp )
 	{
-		if( TextLike( pTemp, WIDE("idle") ) )
+		if( TextLike( pTemp, "idle" ) )
 		{
 	      dwPriority = IDLE_PRIORITY_CLASS;
 		}
-		else if( TextLike( pTemp, WIDE("normal") ) )
+		else if( TextLike( pTemp, "normal" ) )
 		{
 	      dwPriority = NORMAL_PRIORITY_CLASS;
 		}
-		else if( TextLike( pTemp, WIDE("high") ) )
+		else if( TextLike( pTemp, "high" ) )
 		{
 	      dwPriority = HIGH_PRIORITY_CLASS;
 		}
-		else if( TextLike( pTemp, WIDE("realtime") ) )
+		else if( TextLike( pTemp, "realtime" ) )
 		{
 	      dwPriority = REALTIME_PRIORITY_CLASS;
 		}
@@ -81,7 +81,7 @@ int CPROC PRIORITY( PSENTIENT ps, PTEXT parameters )
 		{
 			if( !ps->CurrentMacro )
 			{
-				DECLTEXT( msg, WIDE("Invalid process priority (not idle, normal, high, or realtime)") );
+				DECLTEXT( msg, "Invalid process priority (not idle, normal, high, or realtime)" );
 				EnqueLink( &ps->Command->Output, &msg );
 			}
 			else
@@ -94,7 +94,7 @@ int CPROC PRIORITY( PSENTIENT ps, PTEXT parameters )
 	{
 		if( !ps->CurrentMacro )
 		{
-			DECLTEXT( msg, WIDE("No process priority specified (idle,normal,high,realtime)") );
+			DECLTEXT( msg, "No process priority specified (idle,normal,high,realtime)" );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 		else
@@ -137,10 +137,10 @@ int CPROC MEMORY( PSENTIENT ps, PTEXT parameters )
    next = GetParam( ps, &parameters );
 	while( temp = next )
 	{
-		if( temp && TextLike( temp, WIDE("log") ) )
+		if( temp && TextLike( temp, "log" ) )
 		{
 			temp = GetParam( ps, &parameters );
-			if( temp && TextLike( temp, WIDE("off") ) )
+			if( temp && TextLike( temp, "off" ) )
 				SetAllocateLogging( FALSE );
 			else
 			{
@@ -152,10 +152,10 @@ int CPROC MEMORY( PSENTIENT ps, PTEXT parameters )
 				}
 			}
 		}
-		if( temp && TextLike( temp, WIDE("debug") ) )
+		if( temp && TextLike( temp, "debug" ) )
 		{
 			temp = GetParam( ps, &parameters );
-			if( temp && TextLike( temp, WIDE("off") ) )
+			if( temp && TextLike( temp, "off" ) )
 				SetAllocateDebug( TRUE );
 			else
 			{
@@ -173,7 +173,7 @@ int CPROC MEMORY( PSENTIENT ps, PTEXT parameters )
 	GetMemStats( &nFree, &nUsed, &nChunks, &nFreeChunks );
 
    vt = VarTextCreate( );
-   vtprintf( vt, WIDE("Memory : Free %ld(%ld), Used %ld(%ld)  (optional paramters \'log\',\'debug\' followed by off to disable."), nFree, nFreeChunks,
+   vtprintf( vt, "Memory : Free %ld(%ld), Used %ld(%ld)  (optional paramters \'log\',\'debug\' followed by off to disable.", nFree, nFreeChunks,
                          nUsed, nChunks - nFreeChunks );
    EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
    VarTextDestroy( &vt );
@@ -204,7 +204,7 @@ int CPROC CHANGEDIR( PSENTIENT ps, PTEXT parameters )
          ps->CurrentMacro->state.flags.bSuccess = TRUE;
       else
       {
-			DECLTEXT( msg, WIDE("Changed directory successfully.") );
+			DECLTEXT( msg, "Changed directory successfully." );
 			{
             TEXTCHAR buf[257];
 				GetCurrentPath( buf, sizeof( buf ) );
@@ -217,7 +217,7 @@ int CPROC CHANGEDIR( PSENTIENT ps, PTEXT parameters )
    {
       if( !ps->CurrentMacro )
       {
-         DECLTEXT( msg, WIDE("Failed to change directory.") );
+         DECLTEXT( msg, "Failed to change directory." );
          EnqueLink( &ps->Command->Output, &msg );
       }
    }
@@ -236,17 +236,17 @@ void StoreMacros( FILE *pFile, PSENTIENT ps )
       PLIST pVars;
       PTEXT pVar, pVal;
       pVars = ps->Current->pVars;
-      fprintf( pFile, WIDE("\n## Begin Variables\n") );
+      fprintf( pFile, "\n## Begin Variables\n" );
       LIST_FORALL( pVars, idx, PTEXT, pVar )
       {
-         fprintf( pFile, WIDE("/Declare %s "), GetText( pVar ) );
+         fprintf( pFile, "/Declare %s ", GetText( pVar ) );
          pVal = BuildLine( GetIndirect( NEXTLINE( pVar ) ) );
          if( pVal )
-            fprintf( pFile, WIDE("%s\n"), GetText( pVal ) );
+            fprintf( pFile, "%s\n", GetText( pVal ) );
          else
-            fprintf( pFile, WIDE("\n") );
+            fprintf( pFile, "\n" );
       }
-      fprintf( pFile, WIDE("\n## Begin Macros\n") );
+      fprintf( pFile, "\n## Begin Macros\n" );
    }
    {
       PMACRO pm;
@@ -258,23 +258,23 @@ void StoreMacros( FILE *pFile, PSENTIENT ps )
          INDEX idx;
          // destroy prefix is unneeded with today's technology
          // and any OLDer versions don't exist - or do in such small number... 
-         //fprintf( pFile, WIDE("/dest %s\n"), GetText( GetName( pm ) ) );
-         fprintf( pFile, WIDE("/macro %s "), GetText( GetName( pm ) ) );
+         //fprintf( pFile, "/dest %s\n", GetText( GetName( pm ) ) );
+         fprintf( pFile, "/macro %s ", GetText( GetName( pm ) ) );
          pParam = pm->pArgs;
          while( pParam )
          {
-            fprintf( pFile, WIDE("%s "), GetText( pParam ) );
+            fprintf( pFile, "%s ", GetText( pParam ) );
             pParam = NEXTLINE( pParam );
          }
-         fprintf( pFile, WIDE("\n") );
+         fprintf( pFile, "\n" );
          LIST_FORALL( pm->pCommands, idx, PTEXT, pCmd )
          {
             PTEXT pOut; // oh - maintain some sort of order
             pOut = BuildLine( pCmd );
-            fprintf( pFile, WIDE("%s\n"), GetText( pOut ) );
+            fprintf( pFile, "%s\n", GetText( pOut ) );
             LineRelease( pOut );
          }
-         fprintf( pFile, WIDE("\n") );
+         fprintf( pFile, "\n" );
       }
    }
 }
@@ -289,7 +289,7 @@ int CPROC SAVE( PSENTIENT ps, PTEXT parameters )
             if( pName )
             {
                FILE *pFile;
-               pFile = sack_fopen( 0, GetText( pName ), WIDE("wb") );
+               pFile = sack_fopen( 0, GetText( pName ), "wb" );
                if( pFile )
                {
                   StoreMacros( pFile, ps );
@@ -346,7 +346,7 @@ int CPROC UNLOAD( PSENTIENT ps, PTEXT parameters )
 
    while( ( temp = GetParam( ps, &parameters ) ) )
    {
-   	Log2( WIDE("Unload name part: %s(%d)")
+   	Log2( "Unload name part: %s(%d)"
    			, GetText( temp )
    			, temp->format.position.offset.spaces ) ;
    	if( temp->format.position.offset.spaces )
@@ -355,7 +355,7 @@ int CPROC UNLOAD( PSENTIENT ps, PTEXT parameters )
    		{
    			name->format.position.offset.spaces = 0;
    			collapsedname = BuildLine( name );
-   			Log1( WIDE("Unload: \'%s\'"), GetText( collapsedname ) );
+   			Log1( "Unload: \'%s\'", GetText( collapsedname ) );
 		      Unload( collapsedname );
    			LineRelease( name );
    			LineRelease( collapsedname );
@@ -372,7 +372,7 @@ int CPROC UNLOAD( PSENTIENT ps, PTEXT parameters )
    {
    	name->format.position.offset.spaces = 0;
    	collapsedname = BuildLine( name );
-   	Log1( WIDE("Unload: \'%s\'"), GetText( collapsedname ) );
+   	Log1( "Unload: \'%s\'", GetText( collapsedname ) );
 		Unload( collapsedname );
    	LineRelease( name );
    	LineRelease( collapsedname );
@@ -402,7 +402,7 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 		//if( temp == ps->Current->pName )
 		//{
 		//	pe = ps->Current;
-	   //   vtprintf( vt, WIDE("%s is you."), GetText(temp) );
+	   //   vtprintf( vt, "%s is you.", GetText(temp) );
 	   //}
 		//else
 		{
@@ -417,11 +417,11 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 				if( temp == ps->Current->pName )
 				{
 					pe = ps->Current;
-               vtprintf( vt, WIDE("%s is you."), GetText( temp ) );
+               vtprintf( vt, "%s is you.", GetText( temp ) );
 				}
 				else
 				{
-					vtprintf( vt, WIDE("Cannot find %s."), GetText(temp));
+					vtprintf( vt, "Cannot find %s.", GetText(temp));
 					EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 					return 0;
 				}
@@ -431,16 +431,16 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 				switch( foundat )
 				{
 				case FIND_ON:
-	            vtprintf(vt,WIDE("%s held by you."), GetText(GetName( pe )) );
+	            vtprintf(vt,"%s held by you.", GetText(GetName( pe )) );
 	            break;
 				case FIND_IN:
-	            vtprintf(vt,WIDE("%s carried by you."), GetText(GetName( pe )) );
+	            vtprintf(vt,"%s carried by you.", GetText(GetName( pe )) );
 					break;
 				case FIND_NEAR:
-	            vtprintf(vt,WIDE("%s is in this room."), GetText(GetName( pe )) );
+	            vtprintf(vt,"%s is in this room.", GetText(GetName( pe )) );
 					break;
 				case FIND_AROUND:
-	            vtprintf(vt,WIDE("%s is your room."), GetText(GetName( pe )) );
+	            vtprintf(vt,"%s is your room.", GetText(GetName( pe )) );
 					break;
 				}
 				// now what info would be useful to dump about this
@@ -452,15 +452,15 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
    		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 			if( ( peS = pe->pControlledBy ) )
 			{
-		      vtprintf( vt, WIDE("Entity is aware.") );
+		      vtprintf( vt, "Entity is aware." );
    		   EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
-				vtprintf( vt, WIDE("Flags:%s%s%s%s%s%s")
-						  , peS->ProcessLock?WIDE(" PLOCK"):WIDE("")
-						  , peS->StepLock?WIDE(" SLOCK"):WIDE("")
-						  , peS->pRecord?WIDE(" Recording"):WIDE("")
-						  , peS->flags.macro_input?WIDE(" input"):WIDE("")
-						  , peS->flags.destroy?WIDE(" destroy"):WIDE("")
-						  , peS->flags.bRelay?WIDE(" relay"):WIDE("")
+				vtprintf( vt, "Flags:%s%s%s%s%s%s"
+						  , peS->ProcessLock?" PLOCK":""
+						  , peS->StepLock?" SLOCK":""
+						  , peS->pRecord?" Recording":""
+						  , peS->flags.macro_input?" input":""
+						  , peS->flags.destroy?" destroy":""
+						  , peS->flags.bRelay?" relay":""
 						  );
    		   EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 			}
@@ -470,27 +470,27 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 				int n;
 				if( peS->pRecord )
 				{
-		  			vtprintf( vt, WIDE("Recording macro: %s"), GetText( GetName( peS->pRecord ) ) );
+		  			vtprintf( vt, "Recording macro: %s", GetText( GetName( peS->pRecord ) ) );
 	   		   		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		  		}
 		  		for( n = 0; (pms = (PMACROSTATE)PeekDataEx( &peS->MacroStack, n )); n++ )
 		  		{
 		  			if( !n )
 		  			{
-			  			vtprintf( vt, WIDE("Macro stack...") );
+			  			vtprintf( vt, "Macro stack..." );
 						EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		  			}
 					if( pms->peInvokedOn == ps->Current )
 					{
 	               if( pms->pMacro->pDescription )
 		            {
-			            vtprintf( vt, WIDE("[%s] - %s")
+			            vtprintf( vt, "[%s] - %s"
 							        , GetText( GetName( pms->pMacro ) )
 							        , GetText( pms->pMacro->pDescription ) );
 						}
 	               else
 		            {
-			            vtprintf( vt, WIDE("[%s] -")
+			            vtprintf( vt, "[%s] -"
 							        , GetText( GetName( pms->pMacro ) ) );
 					   }
 					}
@@ -498,7 +498,7 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 					{
 	               if( pms->pMacro->pDescription )
 		            {
-			            vtprintf( vt, WIDE("[%s](%s) - %s")
+			            vtprintf( vt, "[%s](%s) - %s"
 							        , GetText( GetName( pms->pMacro ) )
 									  , GetText( GetName( pms->peInvokedOn ) )
 							        , GetText( pms->pMacro->pDescription ) );
@@ -506,12 +506,12 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 	               else
 		            {
 						if( pms->peInvokedOn )
-							vtprintf( vt, WIDE("[%s](%s) -")
+							vtprintf( vt, "[%s](%s) -"
 							        , GetText( GetName( pms->pMacro ) ) 
 									  , GetText( GetName( pms->peInvokedOn ) )
 									  );
 						else
-							vtprintf( vt, WIDE("[%s] -")
+							vtprintf( vt, "[%s] -"
 							        , GetText( GetName( pms->pMacro ) ) 
 									  );
 
@@ -524,40 +524,40 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 		  	{
 	  			PDATAPATH pdp;
 	  			CTEXTSTR pName;
-	  			vtprintf( vt, WIDE("Command path: object") );
+	  			vtprintf( vt, "Command path: object" );
 	  			pdp = peS->Command;
 				while( pdp )
 				{
-				 	pName = GetRegisteredValue( (CTEXTSTR)pdp->pDeviceRoot, WIDE("Name") );//FindDeviceName( pdp->Type );
+				 	pName = GetRegisteredValue( (CTEXTSTR)pdp->pDeviceRoot, "Name" );//FindDeviceName( pdp->Type );
 				 	if( pName )
 				 	{
-						vtprintf( vt, WIDE("->%s%s"), GetText( pdp->pName )
-										 , pdp->flags.Closed?WIDE("(closed)"):WIDE("") );
+						vtprintf( vt, "->%s%s", GetText( pdp->pName )
+										 , pdp->flags.Closed?"(closed)":"" );
 					}
 					else
-						vtprintf( vt, WIDE("->UNKNOWN") );
+						vtprintf( vt, "->UNKNOWN" );
 					pdp = pdp->pPrior;
 				}
    			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 				if( peS->Data )
 				{
-			  		vtprintf( vt, WIDE("Data path: object") );
+			  		vtprintf( vt, "Data path: object" );
 			  		pdp = peS->Data;
 					while( pdp )
 					{
-				 		pName = GetRegisteredValue( (CTEXTSTR)pdp->pDeviceRoot, WIDE("Name") );//FindDeviceName( pdp->Type );
+				 		pName = GetRegisteredValue( (CTEXTSTR)pdp->pDeviceRoot, "Name" );//FindDeviceName( pdp->Type );
 					 	if( pName )
 					 	{
-							vtprintf( vt, WIDE("->%s[%s]%s"), GetText( pdp->pName ), pName
-												    , pdp->flags.Closed?WIDE("(closed)"):WIDE("") );
+							vtprintf( vt, "->%s[%s]%s", GetText( pdp->pName ), pName
+												    , pdp->flags.Closed?"(closed)":"" );
 						}
 						else
-							vtprintf( vt, WIDE("->UNKNOWN") );
+							vtprintf( vt, "->UNKNOWN" );
 						pdp = pdp->pPrior;
 					}
 				}
 				else
-		  			vtprintf( vt, WIDE("Data path: None") );
+		  			vtprintf( vt, "Data path: None" );
    			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		  	}
 	  	}
@@ -572,55 +572,55 @@ void WriteTextFlags( PSENTIENT ps, PTEXT pSeg )
 {
 	PVARTEXT vt;
 	vt = VarTextCreate( );
-	vtprintf( vt, WIDE("Text Flags: "));
+	vtprintf( vt, "Text Flags: ");
 	if( pSeg->flags & TF_STATIC )
-		vtprintf( vt, WIDE("static ") );
+		vtprintf( vt, "static " );
 	if( pSeg->flags & TF_QUOTE )
 		vtprintf( vt, WIDE("\"\" ") );
 	if( pSeg->flags & TF_SQUOTE )
-		vtprintf( vt, WIDE("\'\' ") );
+		vtprintf( vt, "\'\' " );
 	if( pSeg->flags & TF_BRACKET )
-		vtprintf( vt, WIDE("[] ") );
+		vtprintf( vt, "[] " );
 	if( pSeg->flags & TF_BRACE )
-		vtprintf( vt, WIDE("{} ") );
+		vtprintf( vt, "{} " );
 	if( pSeg->flags & TF_PAREN )
-		vtprintf( vt, WIDE("() ") );
+		vtprintf( vt, "() " );
 	if( pSeg->flags & TF_TAG )
-		vtprintf( vt, WIDE("<> ") );
+		vtprintf( vt, "<> " );
 	if( pSeg->flags & TF_INDIRECT )
-		vtprintf( vt, WIDE("Indirect ") );
+		vtprintf( vt, "Indirect " );
    /*
 	if( pSeg->flags & TF_SINGLE )
-	vtprintf( vt, WIDE("single ") );
+	vtprintf( vt, "single " );
    */
 	if( pSeg->flags & TF_FORMATABS )
-      vtprintf( vt, WIDE("format x,y ") );
+      vtprintf( vt, "format x,y " );
    else
-		vtprintf( vt, WIDE("format spaces(%d) "), pSeg->format.position.offset.spaces );
+		vtprintf( vt, "format spaces(%d) ", pSeg->format.position.offset.spaces );
 	if( pSeg->flags & TF_COMPLETE )
-		vtprintf( vt, WIDE("complete ") );
+		vtprintf( vt, "complete " );
 	if( pSeg->flags & TF_BINARY )
-		vtprintf( vt, WIDE("binary ") );
+		vtprintf( vt, "binary " );
 	if( pSeg->flags & TF_DEEP )
-		vtprintf( vt, WIDE("deep ") );
+		vtprintf( vt, "deep " );
 	if( pSeg->flags & TF_ENTITY )
-		vtprintf( vt, WIDE("entity ") );
+		vtprintf( vt, "entity " );
 	if( pSeg->flags & TF_SENTIENT )
-		vtprintf( vt, WIDE("sentient ") );
+		vtprintf( vt, "sentient " );
 	if( pSeg->flags & TF_NORETURN )
-		vtprintf( vt, WIDE("NoReturn ") );
+		vtprintf( vt, "NoReturn " );
 	if( pSeg->flags & TF_LOWER )
-		vtprintf( vt, WIDE("Lower ") );
+		vtprintf( vt, "Lower " );
 	if( pSeg->flags & TF_UPPER )
-		vtprintf( vt, WIDE("Upper ") );
+		vtprintf( vt, "Upper " );
 	if( pSeg->flags & TF_EQUAL )
-		vtprintf( vt, WIDE("Equal ") );
+		vtprintf( vt, "Equal " );
 	if( pSeg->flags & TF_TEMP )
-		vtprintf( vt, WIDE("Temp ") );
+		vtprintf( vt, "Temp " );
 	if( pSeg->flags & TF_PROMPT )
-		vtprintf( vt, WIDE("Prompt ") );
+		vtprintf( vt, "Prompt " );
 	if( pSeg->flags & TF_PLUGIN )
-		vtprintf( vt, WIDE("Plugin=%02x "), (uint8_t)(( pSeg->flags >> 24 ) & 0xff) );
+		vtprintf( vt, "Plugin=%02x ", (uint8_t)(( pSeg->flags >> 24 ) & 0xff) );
 	EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 	VarTextDestroy( &vt );
 }
@@ -634,7 +634,7 @@ void DumpSegment( PSENTIENT ps, PTEXT pSeg, int bSingle )
 		WriteTextFlags( ps, pSeg );
 		if( pSeg->flags & TF_INDIRECT )
 		{
-			DECLTEXT( msg, WIDE("------ Indirect Content ------"));
+			DECLTEXT( msg, "------ Indirect Content ------");
 			EnqueLink( &ps->Command->Output, &msg );
 
 			DumpSegment( ps, GetIndirect( pSeg ), FALSE /*&pSeg->flags & TF_SINGLE */);
@@ -643,7 +643,7 @@ void DumpSegment( PSENTIENT ps, PTEXT pSeg, int bSingle )
 		{
 			PVARTEXT vt;
 			vt = VarTextCreate( );
-			vtprintf( vt, WIDE("(%ld)%s")
+			vtprintf( vt, "(%ld)%s"
 							 , pSeg->data.size
 							 , pSeg->data.data 
 					  );
@@ -664,21 +664,21 @@ void DumpSegment( PSENTIENT ps, PTEXT pSeg, int bSingle )
 int CPROC DUMPVAR( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT temp, var;
-	DECLTEXT( msg3, WIDE("------- End Segment Dump --------") );
+	DECLTEXT( msg3, "------- End Segment Dump --------" );
 	while( temp = parameters, var = GetParam( ps, &parameters ) )
 	{
 		if( temp == var )
 		{
 			PVARTEXT vt;
 			vt = VarTextCreate( );
-			vtprintf( vt, WIDE("%s is a simple text element."), GetText( temp ) );
+			vtprintf( vt, "%s is a simple text element.", GetText( temp ) );
 			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 			VarTextDestroy( &vt );
 		}
 		else // pretty safe to assume that this will be a variable entity.
 		{
-			DECLTEXT( msg1, WIDE("----------- Segment ------------") );
-			DECLTEXT( msg2, WIDE("----------- Contains -----------") );
+			DECLTEXT( msg1, "----------- Segment ------------" );
+			DECLTEXT( msg2, "----------- Contains -----------" );
 			EnqueLink( &ps->Command->Output, &msg1 );
 			DumpSegment( ps, temp, TRUE );
 			EnqueLink( &ps->Command->Output, &msg2 );

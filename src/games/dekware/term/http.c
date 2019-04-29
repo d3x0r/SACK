@@ -5,14 +5,14 @@
 
 /* HTTP Methods possible....
 
-       Method         = WIDE("OPTIONS")                ; Section 9.2
-                      | WIDE("GET")                    ; Section 9.3
-                      | WIDE("HEAD")                   ; Section 9.4
-                      | WIDE("POST")                   ; Section 9.5
-                      | WIDE("PUT")                    ; Section 9.6
-                      | WIDE("DELETE")                 ; Section 9.7
-                      | WIDE("TRACE")                  ; Section 9.8
-                      | WIDE("CONNECT")                ; Section 9.9
+       Method         = "OPTIONS"                ; Section 9.2
+                      | "GET"                    ; Section 9.3
+                      | "HEAD"                   ; Section 9.4
+                      | "POST"                   ; Section 9.5
+                      | "PUT"                    ; Section 9.6
+                      | "DELETE"                 ; Section 9.7
+                      | "TRACE"                  ; Section 9.8
+                      | "CONNECT"                ; Section 9.9
 HTTP/1.1 MUST include
 host: hostname
 */
@@ -48,7 +48,7 @@ static PTEXT ParseURL( PTEXT pURL )
       len = strlen( text );
       text[len-1] = 0; // early terminate last quote...
    }
-   if( !StrCaseCmpEx( text, WIDE("http://"), 7 ) )
+   if( !StrCaseCmpEx( text, "http://", 7 ) )
    {
       text += 7;
    }
@@ -66,7 +66,7 @@ static PTEXT ParseURL( PTEXT pURL )
    else
    {
       pHost = SegCreateFromText( text );
-      SegAppend( pHost, SegCreateFromText( WIDE("/") ) );
+      SegAppend( pHost, SegCreateFromText( "/" ) );
    }
    return pHost;
 }
@@ -179,7 +179,7 @@ FinalCheck:
    return pHeader;
 }
 
-static int HandleCommand(WIDE("IO"), WIDE("HTTP"), WIDE("Perform http command operation..."))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand("IO", "HTTP", "Perform http command operation...")( PSENTIENT ps, PTEXT parameters )
 {
    // HTTP GET <varname> <URL>
    // HTTP <OTHER> <...>
@@ -200,7 +200,7 @@ static int HandleCommand(WIDE("IO"), WIDE("HTTP"), WIDE("Perform http command op
    operation = GetParam( ps, &parameters );
    if( operation )
    {
-      if( TextLike( operation, WIDE("get") ) )
+      if( TextLike( operation, "get" ) )
       {
          PTEXT varname;
          varname = GetParam( ps, &parameters );
@@ -219,7 +219,7 @@ static int HandleCommand(WIDE("IO"), WIDE("HTTP"), WIDE("Perform http command op
             {
                pURI = SegGrab( NEXTLINE( pHost ) );
             }
-            Log1( WIDE("Going to get from: %s(:80)"), GetText( pHost ) );
+            Log1( "Going to get from: %s(:80)", GetText( pHost ) );
 			   sa = CreateSockAddress( GetText( pHost ), 80 );
             if( sa )
             {
@@ -230,17 +230,17 @@ static int HandleCommand(WIDE("IO"), WIDE("HTTP"), WIDE("Perform http command op
                   SetNetworkLong( pc, 0, (uintptr_t)&pResult );
                   SetNetworkLong( pc, 1, (uintptr_t)&bClosed );
                   SendTCP( pc, Request,
-								  snprintf( Request, sizeof( Request ), WIDE("GET %s HTTP/1.1\r\n"), GetText( pURI ) ) );
-						Log1( WIDE("Sent: %s"), Request );
+								  snprintf( Request, sizeof( Request ), "GET %s HTTP/1.1\r\n", GetText( pURI ) ) );
+						Log1( "Sent: %s", Request );
                   SendTCP( pc, Request,
-                           snprintf( Request, sizeof( Request ), WIDE("Host: %s\r\n"), GetText( pHost ) ) );
-						Log1( WIDE("Sent: %s"), Request );
+                           snprintf( Request, sizeof( Request ), "Host: %s\r\n", GetText( pHost ) ) );
+						Log1( "Sent: %s", Request );
                   SendTCP( pc, Request,
-                           snprintf( Request, sizeof( Request ), WIDE("User-Agent: Dekware %s\r\n"), DekVersion ) );
-						Log1( WIDE("Sent: %s"), Request );
+                           snprintf( Request, sizeof( Request ), "User-Agent: Dekware %s\r\n", DekVersion ) );
+						Log1( "Sent: %s", Request );
                   SendTCP( pc, Request,
-                           snprintf( Request, sizeof( Request ), WIDE("Connection: close\r\n\r\n") ) );
-						Log1( WIDE("Sent: %s"), Request );
+                           snprintf( Request, sizeof( Request ), "Connection: close\r\n\r\n" ) );
+						Log1( "Sent: %s", Request );
                   while( !bClosed ) Sleep( 100 );
                   // should have pReuslt here that is a valid page resource...
                   {
@@ -256,8 +256,8 @@ static int HandleCommand(WIDE("IO"), WIDE("HTTP"), WIDE("Perform http command op
             }
             else
             {
-               DECLTEXT( msg, WIDE("Could not resolve host address.") );
-					Log( WIDE("Could not resolve host address.") );
+               DECLTEXT( msg, "Could not resolve host address." );
+					Log( "Could not resolve host address." );
                if( !ps->CurrentMacro )
                   EnqueLink( &ps->Command->Output, &msg );
             }
@@ -267,14 +267,14 @@ static int HandleCommand(WIDE("IO"), WIDE("HTTP"), WIDE("Perform http command op
       }
       else
       {
-         DECLTEXT( msg, WIDE("Only method of HTTP supported is GET.") );
+         DECLTEXT( msg, "Only method of HTTP supported is GET." );
          EnqueLink( &ps->Command->Output, &msg );
       }
 //      else if( TextLike( operation, "
    }
    else
    {
-      DECLTEXT( msg, WIDE("HTTP requires METHOD, VarName, and address") );
+      DECLTEXT( msg, "HTTP requires METHOD, VarName, and address" );
       EnqueLink( &ps->Command->Output, &msg );
    }
    return 0;
@@ -295,7 +295,7 @@ void SendBinaryWork( PLINKQUEUE *pplq, PTEXT segment )
 	}
 }
 
-static int HandleCommand(WIDE("IO"), WIDE("SendData"), WIDE("Send binary data to socket connection"))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand("IO", "SendData", "Send binary data to socket connection")( PSENTIENT ps, PTEXT parameters )
 {
 	PTEXT segment;
 	while( segment = GetParam( ps, &parameters ) )
@@ -306,7 +306,7 @@ static int HandleCommand(WIDE("IO"), WIDE("SendData"), WIDE("Send binary data to
    return 0;
 }
 
-static int HandleCommand(WIDE("IO"), WIDE("ReadData"), WIDE("Read binary data from socket connection"))( PSENTIENT ps, PTEXT parameters )
+static int HandleCommand("IO", "ReadData", "Read binary data from socket connection")( PSENTIENT ps, PTEXT parameters )
 {
    return 0;
 }

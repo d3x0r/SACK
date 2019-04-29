@@ -253,10 +253,10 @@ SACK_NAMESPACE
        uint32_t last_buttons; // used to track when a click happens
    };
    
-   EasyRegisterControl( WIDE( "simple" ), sizeof( struct ball_timer_data ) );
+   EasyRegisterControl( "simple", sizeof( struct ball_timer_data ) );
    
    // define the function called when a new 'simple' control is created.
-   static int OnCreateCommon( WIDE( "simple" ) )( PSI_CONTROL pc )
+   static int OnCreateCommon( "simple" )( PSI_CONTROL pc )
    {
        MyValidatedControlData( struct control_data*, my_data, pc );
        if( my_data )
@@ -269,7 +269,7 @@ SACK_NAMESPACE
    }
    
    // define a method to draw the control
-   static int OnDrawCommon( WIDE( "simple" ) )( PSI_CONTROL pc )
+   static int OnDrawCommon( "simple" )( PSI_CONTROL pc )
    {
        MyValidatedControlData( struct control_data*, my_data, pc );
        if( my_data )
@@ -282,7 +282,7 @@ SACK_NAMESPACE
    }
    
    // define a handler when the simple control is clicked.
-   static int OnMouseCommon( WIDE( "simple" ) )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
+   static int OnMouseCommon( "simple" )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
    {
    </code>
    <code>
@@ -570,37 +570,37 @@ namespace old_constants {
 // enumeration for control->nType                    
 //enum {
 #define	CONTROL_FRAME  0// master level control framing...
-#define	CONTROL_FRAME_NAME  WIDE("Frame")// master level control framing...
+#define	CONTROL_FRAME_NAME  "Frame"// master level control framing...
 #define  UNDEFINED_CONTROL  1// returns a default control to user - type 1
-#define  UNDEFINED_CONTROL_NAME  WIDE("Undefined")// returns a default control to user - type 1
+#define  UNDEFINED_CONTROL_NAME  "Undefined"// returns a default control to user - type 1
 #define  CONTROL_SUB_FRAME 2
-#define  CONTROL_SUB_FRAME_NAME WIDE("SubFrame")
+#define  CONTROL_SUB_FRAME_NAME "SubFrame"
 #define  STATIC_TEXT 3
-#define  STATIC_TEXT_NAME WIDE("TextControl")
+#define  STATIC_TEXT_NAME "TextControl"
 #define  NORMAL_BUTTON 4
-#define  NORMAL_BUTTON_NAME WIDE("Button")
+#define  NORMAL_BUTTON_NAME "Button"
 #define  CUSTOM_BUTTON 5
-#define  CUSTOM_BUTTON_NAME WIDE("CustomDrawnButton")
+#define  CUSTOM_BUTTON_NAME "CustomDrawnButton"
 #define  IMAGE_BUTTON 6
-#define  IMAGE_BUTTON_NAME WIDE("ImageButton")
+#define  IMAGE_BUTTON_NAME "ImageButton"
 #define  RADIO_BUTTON 7// also subtype radio button
-#define  RADIO_BUTTON_NAME WIDE("CheckButton")// also subtype radio button
+#define  RADIO_BUTTON_NAME "CheckButton"// also subtype radio button
 #define  EDIT_FIELD 8
-#define  EDIT_FIELD_NAME WIDE("EditControl")
+#define  EDIT_FIELD_NAME "EditControl"
 #define  SLIDER_CONTROL 9
-#define  SLIDER_CONTROL_NAME WIDE("Slider")
+#define  SLIDER_CONTROL_NAME "Slider"
 #define  LISTBOX_CONTROL 10
-#define  LISTBOX_CONTROL_NAME WIDE("ListBox")
+#define  LISTBOX_CONTROL_NAME "ListBox"
 #define  SCROLLBAR_CONTROL 11
-#define  SCROLLBAR_CONTROL_NAME WIDE("ScrollBar")
+#define  SCROLLBAR_CONTROL_NAME "ScrollBar"
 #define  GRIDBOX_CONTROL  12 // TBI (to be implemented)
-#define  GRIDBOX_CONTROL_NAME  WIDE("Gridbox") // TBI (to be implemented)
+#define  GRIDBOX_CONTROL_NAME  "Gridbox" // TBI (to be implemented)
 #define  CONSOLE_CONTROL  13 // TBI (to be implemented)
-#define  CONSOLE_CONTROL_NAME  WIDE("Console") // TBI (to be implemented)
+#define  CONSOLE_CONTROL_NAME  "Console" // TBI (to be implemented)
 #define  SHEET_CONTROL    14
-#define  SHEET_CONTROL_NAME    WIDE("SheetControl")
+#define  SHEET_CONTROL_NAME    "SheetControl"
 #define  COMBOBOX_CONTROL 15
-#define  COMBOBOX_CONTROL_NAME WIDE("Combo Box")
+#define  COMBOBOX_CONTROL_NAME "Combo Box"
 
 #define  BUILTIN_CONTROL_COUNT 16 // last known builtin control...
 #define  USER_CONTROL   128 // should be sufficiently high as to not conflict with common controls
@@ -2153,10 +2153,10 @@ PSI_PROC( int, SimpleUserQueryEx )( TEXTSTR result, int reslen, CTEXTSTR questio
 
 PSI_PROC( void, RegisterResource )( CTEXTSTR appname, CTEXTSTR resource_name, int ID, int resource_name_range, CTEXTSTR type_name );
 // assuming one uses a
-#define SimpleRegisterResource( name, typename ) RegisterResource( WIDE("application"), WIDE(#name), name, 1, typename );
+#define SimpleRegisterResource( name, typename ) RegisterResource( "application", WIDE(#name), name, 1, typename );
 #define EasyRegisterResource( domain, name, typename ) RegisterResource( domain, WIDE(#name), name, 1, typename );
 #define EasyRegisterResourceRange( domain, name, range, typename ) RegisterResource( domain, WIDE(#name), name, range, typename );
-#define SimpleRegisterAppResource( name, typename, class ) RegisterResource( WIDE("application/") class, WIDE(#name), name, 1, typename );
+#define SimpleRegisterAppResource( name, typename, class ) RegisterResource( "application/" class, WIDE(#name), name, 1, typename );
 
 PSI_PROC( size_t, _SQLPromptINIValue )(
 												CTEXTSTR lpszSection,
@@ -2169,17 +2169,17 @@ PSI_PROC( size_t, _SQLPromptINIValue )(
 
 //------------------------ Image Display -------------------------------------
 
-#define IMAGE_DISPLAY_CONTROL_NAME WIDE( "Image Display" )
+#define IMAGE_DISPLAY_CONTROL_NAME "Image Display"
 PSI_PROC( void, SetImageControlImage )( PSI_CONTROL pc, Image show_image );
 
 //------------------------ Tool Tip Hover-over -------------------------------------
 
-#define TOOL_TIP_CONTROL_NAME WIDE( "Tool Tip Display" )
+#define TOOL_TIP_CONTROL_NAME "Tool Tip Display"
 PSI_PROC( void, SetControlHoverTip )( PSI_CONTROL pc, CTEXTSTR text );
 
 
 //------------------------ Progress Bar --------------------------------------
-#define PROGRESS_BAR_CONTROL_NAME  WIDE( "Progress Bar" )
+#define PROGRESS_BAR_CONTROL_NAME  "Progress Bar"
 // Set Range of progress bar (maximum value)
 PSI_PROC( void, ProgressBar_SetRange )( PSI_CONTROL pc, int range );
 // Set progress of progress bar (maximum value)

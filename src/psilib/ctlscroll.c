@@ -71,7 +71,7 @@ static int CPROC RenderScrollBar( PSI_CONTROL pc )
 		top = psb->current - psb->min;
 		bottom = top + psb->range;
 
-		//Log3( WIDE("top: %d bottom: %d max: %d"), top, bottom, psb->max );
+		//Log3( "top: %d bottom: %d max: %d", top, bottom, psb->max );
 	
 	   if( psb->scrollflags.bHorizontal )
 	   {
@@ -105,7 +105,7 @@ static int CPROC RenderScrollBar( PSI_CONTROL pc )
 								, psb->width
 								, bottom-top, basecolor(pc)[NORMAL] );
 		}
-		//Log2( WIDE("top: %d bottom: %d"), top, bottom );
+		//Log2( "top: %d bottom: %d", top, bottom );
 		psb->top = top;
 		psb->bottom = bottom;
 
@@ -426,7 +426,7 @@ void SetScrollParams( PSI_CONTROL pc, int min, int cur, int range, int max )
 				diffs++;
 			psb->current = cur;
 		}
-		//Log( WIDE("Set scroll params - therefore render") );
+		//Log( "Set scroll params - therefore render" );
 		if( diffs )
 			SmudgeCommon(pc);
 	}
@@ -550,7 +550,7 @@ static void OnSizeCommon( SCROLLBAR_CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begi
 		//lprintf( "Resize called." );
 		ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
 		// resize the scrollbar accordingly...
-		//lprintf( WIDE( "Getting a resize on the scrollbar..." ) );
+		//lprintf( "Getting a resize on the scrollbar..." );
 		if( psb->attr & SCROLL_HORIZONTAL )
 		{
 			MoveImage( psb->surface, pc->rect.height, 0 );
@@ -588,9 +588,9 @@ scroll_bar = { SCROLLBAR_CONTROL_NAME
 PRIORITY_PRELOAD( RegisterScrollBar,PSI_PRELOAD_PRIORITY )
 {
    DoRegisterControl( &scroll_bar );
-	//SimpleRegisterMethod( PSI_ROOT_REGISTRY WIDE("/control/") SCROLLBAR_CONTROL_NAME WIDE("/rtti")
+	//SimpleRegisterMethod( PSI_ROOT_REGISTRY "/control/" SCROLLBAR_CONTROL_NAME "/rtti"
 	//						  , ResizeScrollbar
-	//						  , WIDE("void"), WIDE("resize"), WIDE("(PSI_CONTROL)") );
+	//						  , "void", "resize", "(PSI_CONTROL)" );
 }
 
 PSI_SCROLLBAR_NAMESPACE_END

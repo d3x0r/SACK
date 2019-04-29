@@ -97,7 +97,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 			tracker->Init( tracker );
 		if( !tracker->VertexProgram )
 		{
-			lprintf( WIDE("Shader initialization failed to produce a program; marking shader broken so we don't retry") );
+			lprintf( "Shader initialization failed to produce a program; marking shader broken so we don't retry" );
 			tracker->flags.failed = 1;
 			return;
 		}
@@ -173,7 +173,7 @@ int CompileShaderEx( PImageShaderTracker tracker
    frag_length = length;
 
 	// example of defines
-	//D3D_SHADER_MACRO Shader_Macros[1] = { WIDE("zero"), WIDE("0")  };
+	//D3D_SHADER_MACRO Shader_Macros[1] = { "zero", "0"  };
 	// required if shader uses #include
 	// #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 	ID3DBlob *vert_blob;
@@ -194,7 +194,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 							 );
 	if( result )
 	{
-		lprintf( WIDE("%s"), errors->GetBufferPointer() );
+		lprintf( "%s", errors->GetBufferPointer() );
 	}
 	else
 	{
@@ -224,14 +224,14 @@ int CompileShaderEx( PImageShaderTracker tracker
 		vert_blob->Release();
 	}
 	else
-		lprintf( WIDE("%s"), errors->GetBufferPointer() ); 
+		lprintf( "%s", errors->GetBufferPointer() ); 
 	
 
 	{
 		int n;
 		for( n = 0; n < nAttribs; n++ )
 		{
-			lprintf( WIDE("Bind Attrib Location: %d %s"), attrib_order[n].n, attrib_order[n].name );
+			lprintf( "Bind Attrib Location: %d %s", attrib_order[n].n, attrib_order[n].name );
 			//glBindAttribLocation(tracker->glProgramId, attrib_order[n].n, attrib_order[n].name );
 		}
 	}
@@ -252,10 +252,10 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 	if( tracker )
 	{
 		//glUseProgram(tracker->glProgramId);
-		//CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
+		//CheckErrf( "SetModelView for (%s)", tracker->name );
 
 		//glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, matrix );
-		//CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
+		//CheckErrf( "SetModelView for (%s)", tracker->name );
 
 		tracker->flags.set_modelview = 1;
 	}

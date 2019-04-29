@@ -50,10 +50,10 @@
 
 
 #define MakeAddFlag( string, bName ) \
-	AddConfigurationMethod( pch, string WIDE(#bName) WIDE("=%b"), SetDeck##bName );
+	AddConfigurationMethod( pch, string WIDE(#bName) "=%b", SetDeck##bName );
 
 #define SaveStackFlag( string, bName )    \
-	fprintf( file, string WIDE(#bName)  WIDE("=%s\n"), stack->flags.bName?WIDE("yes"):WIDE("no") );
+	fprintf( file, string WIDE(#bName)  "=%s\n", stack->flags.bName?"yes":"no" );
 
 
 //typedef struct deck_tag *PDECK;
@@ -87,7 +87,7 @@ struct card_stack_control {
 		BIT_FIELD bNoSelect : 1; // no draw/move from.
 
 
-		//MAKEFLAG( WIDE("select"), CHECKBOX_SELECT_TOP, bSelectOnlyTop );
+		//MAKEFLAG( "select", CHECKBOX_SELECT_TOP, bSelectOnlyTop );
 
 		BIT_FIELD bSelectSameSuit : 1;
 		BIT_FIELD bSelectAltSuit : 1;
@@ -142,7 +142,7 @@ struct card_stack_control {
 	uint32_t _b; // last known button state on this control
 };
 
-EasyRegisterControl( WIDE("Games/Cards/Card Stack"), sizeof( struct card_stack_control ) );
+EasyRegisterControl( "Games/Cards/Card Stack", sizeof( struct card_stack_control ) );
 // MyControlID is the result of this...
 // Or MyValidatedControlData( my_type, my_var_name, psi_control ) removes need for registration_struct.TypeID
 
@@ -201,43 +201,43 @@ enum { // edit control resource IDs
 PRELOAD( InitGame )
 {
 	l.pii = GetImageInterface();
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), LISTBOX_ALLOW_MOVE_TO, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), LISTBOX_ALLOW_IF_HAS_CARDS, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), LISTBOX_ACTIVE_GAMES, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), LISTBOX_POSSIBLE_GAMES, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), LISTBOX_DECK_STACKS, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), LISTBOX_HAND_STACKS, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), EDIT_DECK_STACK_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), BTN_ADD_DECK_STACK, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), EDIT_GAME_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), EDIT_MUST_PLAY, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), EDIT_DRAW_AT_START, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), EDIT_DRAW_AT_DEAL, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), EDIT_DRAW_DOWN_AT_START, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), BTN_ADD_GAME, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_STACKED, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_UNSTACKED_FACEDOWN, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_KING_ONLY, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_ACE_ONLY, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_KING_LAST, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_ACE_LAST, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_SAME_SUIT_ONLY, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_ALT_SUIT_ONLY, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_FACE_PLUS_ONE_ONLY, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_FACE_MINUS_ONE_ONLY, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_NO_SELECT, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_REVERSED_DRAW_ORDER, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_VERTICAL, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_COMPARE_TOP_ONLY                , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards"), CHECKBOX_FACE_ONLY                , RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", LISTBOX_ALLOW_MOVE_TO, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", LISTBOX_ALLOW_IF_HAS_CARDS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", LISTBOX_ACTIVE_GAMES, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", LISTBOX_POSSIBLE_GAMES, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", LISTBOX_DECK_STACKS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", LISTBOX_HAND_STACKS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", EDIT_DECK_STACK_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", BTN_ADD_DECK_STACK, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", EDIT_GAME_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", EDIT_MUST_PLAY, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", EDIT_DRAW_AT_START, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", EDIT_DRAW_AT_DEAL, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", EDIT_DRAW_DOWN_AT_START, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", BTN_ADD_GAME, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_STACKED, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_UNSTACKED_FACEDOWN, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_KING_ONLY, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_ACE_ONLY, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_KING_LAST, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_ACE_LAST, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_SAME_SUIT_ONLY, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_ALT_SUIT_ONLY, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_FACE_PLUS_ONE_ONLY, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_FACE_MINUS_ONE_ONLY, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_NO_SELECT, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_REVERSED_DRAW_ORDER, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_VERTICAL, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_COMPARE_TOP_ONLY                , RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards", CHECKBOX_FACE_ONLY                , RADIO_BUTTON_NAME );
 	
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards/select"), CHECKBOX_SELECT_ONLY_SUIT        , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards/select"), CHECKBOX_SELECT_ONLY_ALT_SUIT    , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards/select"), CHECKBOX_SELECT_ONLY_PLUS_ONE    , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards/select"), CHECKBOX_SELECT_ONLY_MINUS_ONE   , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards/select"), CHECKBOX_SELECT_TOP              , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards/select"), CHECKBOX_SELECT_ANY              , RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/dekware/games/cards/select"), CHECKBOX_SELECT_ALL              , RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards/select", CHECKBOX_SELECT_ONLY_SUIT        , RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards/select", CHECKBOX_SELECT_ONLY_ALT_SUIT    , RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards/select", CHECKBOX_SELECT_ONLY_PLUS_ONE    , RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards/select", CHECKBOX_SELECT_ONLY_MINUS_ONE   , RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards/select", CHECKBOX_SELECT_TOP              , RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards/select", CHECKBOX_SELECT_ANY              , RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/dekware/games/cards/select", CHECKBOX_SELECT_ALL              , RADIO_BUTTON_NAME );
 	{
 		int s, f;
 		int faces = 13;
@@ -245,16 +245,16 @@ PRELOAD( InitGame )
 		TEXTCHAR filename[96];
 		FILE *file;
 		l.card_image = NewArray( Image, faces*suits + 1 );
-		snprintf( filename, sizeof( filename ), WIDE("cardset1.config") );
-		file = sack_fopen( GetFileGroup( WIDE("playing cards"), WIDE("images/cards") ), filename, WIDE("rt") );
-		lprintf( WIDE("file is [%s]%p"), filename, file );
+		snprintf( filename, sizeof( filename ), "cardset1.config" );
+		file = sack_fopen( GetFileGroup( "playing cards", "images/cards" ), filename, "rt" );
+		lprintf( "file is [%s]%p", filename, file );
 		if( file )
 		{
 			fgets( filename, sizeof( filename ), file );
 			if( filename[strlen(filename)-1] == '\n' )
 				filename[strlen(filename)-1] = 0;
 			l.card_image[suits*faces] = LoadImageFile( filename );
-			lprintf( WIDE("%s is %p"), filename, l.card_image[suits*faces] );
+			lprintf( "%s is %p", filename, l.card_image[suits*faces] );
 			if( !l.card_image[suits*faces] )
 			{
 				l.card_image[suits*faces] = MakeImageFile( 100, 100 );
@@ -267,7 +267,7 @@ PRELOAD( InitGame )
 					if( filename[strlen(filename)-1] == '\n' )
 						filename[strlen(filename)-1] = 0;
 					/* read 2-14 instead of 1-13 */
-					//sprintf( filename, WIDE("images/cards/card%d-%02d.bmp"), s+1, ( 12 + f ) % 13 + 2 );
+					//sprintf( filename, "images/cards/card%d-%02d.bmp", s+1, ( 12 + f ) % 13 + 2 );
 					l.card_image[s*13+f] = LoadImageFile( filename );
 				}
 			fclose( file );
@@ -287,7 +287,7 @@ PRELOAD( InitGame )
 	//l.step_y = 40;
 
 
-	l.game.name = WIDE("Stud"); // this is the first deck that is create by dekware.
+	l.game.name = "Stud"; // this is the first deck that is create by dekware.
 	l.game.deck = CreateDeck( l.game.name, NULL );
 	l.game.controls = NULL;
 	AddLink( &l.games, &l.game );
@@ -384,7 +384,7 @@ static struct card_game *GetGame( CTEXTSTR name )
 {
 	struct card_game *game;
 	INDEX idx;
-	if( StrCmp( WIDE("Stud"), name ) == 0 )
+	if( StrCmp( "Stud", name ) == 0 )
 		return &l.game;
 	LIST_FORALL( l.games, idx, struct card_game *, game )
 	{
@@ -443,8 +443,8 @@ LOGICAL CanMoveCards( struct card_stack_control *from, struct card_stack_control
 		if( !from_stack->cards )
 			return FALSE;
 		{
-			PCARD_STACK draw = GetCardStack( from->game->deck, WIDE("Draw") );
-			PCARD_STACK table = GetCardStack( from->game->deck, WIDE("Table") );
+			PCARD_STACK draw = GetCardStack( from->game->deck, "Draw" );
+			PCARD_STACK table = GetCardStack( from->game->deck, "Table" );
 			if( to_stack == draw )
 				return FALSE;
 			if( to_stack == table && from_stack != draw )
@@ -634,7 +634,7 @@ void SelectCards( PSI_CONTROL pc, int card_index_picked )
 				}
 				if( card->flags.bFaceDown )
 				{
-					//lprintf( WIDE("Cannot select face down cards (yet) ") );
+					//lprintf( "Cannot select face down cards (yet) " );
 					count--;
 					break;
 				}
@@ -718,38 +718,38 @@ LOGICAL DoMoveCards( PSI_CONTROL pc_from, PSI_CONTROL pc_to )
 	return FALSE;
 }
 
-static void OnSaveControl( WIDE("Games/Cards/Card Stack") )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "Games/Cards/Card Stack" )( FILE *file, uintptr_t psv )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
-	fprintf( file, WIDE("Card stack game is \'%s\'\n"), stack->game->name );
-	fprintf( file, WIDE("Card stack deck stack is \'%s\'\n"), stack->deck_stack );
-	fprintf( file, WIDE("Card stack Stacked=%s\n"), stack->flags.bStacked?WIDE("yes"):WIDE("no") );
-	fprintf( file, WIDE("Card stack UnStacked Down=%s\n"), stack->flags.bNotStackedDown?WIDE("yes"):WIDE("no") );
-	fprintf( file, WIDE("Card stack No Select=%s\n"), stack->flags.bNoSelect?WIDE("yes"):WIDE("no") );
-	fprintf( file, WIDE("Card stack Only Ace=%s\n"), stack->flags.bOnlyAceWhenEmpty?WIDE("yes"):WIDE("no") );
-	fprintf( file, WIDE("Card stack Only King=%s\n"), stack->flags.bOnlyKingWhenEmpty?WIDE("yes"):WIDE("no") );
-	SaveStackFlag( WIDE("Card Stack "), bLastAce );
-	SaveStackFlag( WIDE("Card Stack "), bLastKing );
-	fprintf( file, WIDE("Card stack Only Same Suit=%s\n"), stack->flags.bSameSuit?WIDE("yes"):WIDE("no") );
-	fprintf( file, WIDE("Card stack Only Alternate Suit=%s\n"), stack->flags.bAlternateSuit?WIDE("yes"):WIDE("no") );
-	fprintf( file, WIDE("Card stack Only Minus One=%s\n"), stack->flags.bOnlyMinusOne?WIDE("yes"):WIDE("no") );
-	fprintf( file, WIDE("Card stack Only Plus One=%s\n"), stack->flags.bOnlyPlusOne?WIDE("yes"):WIDE("no") );
-	fprintf( file, WIDE("Card stack Draw %d at start\n"), stack->startup.nDrawAtStart );
-	fprintf( file, WIDE("Card stack Draw %d at deal\n"), stack->startup.nDrawAtDeal );
-	fprintf( file, WIDE("Card stack Draw %d Down at start\n"), stack->startup.nDrawDownAtStart );
-	fprintf( file, WIDE("Card stack must play %d first\n"), stack->active.nMustPlay );
-	fprintf( file, WIDE("Card stack background=$%08x\n"), stack->background );
-	fprintf( file, WIDE("Card stack empty background=$%08x\n"), stack->empty_background );
-	SaveStackFlag( WIDE("Card Stack "), bVertical );
-	SaveStackFlag( WIDE("Card Stack "), bOnlySame );
-	SaveStackFlag( WIDE("Card Stack "), bMustPlayWhenEmpty );
-	SaveStackFlag( WIDE("Card Stack "), bReversed );
-	SaveStackFlag( WIDE("Card Stack Select"), bSelectSameSuit );
-	SaveStackFlag( WIDE("Card Stack Select"), bSelectAltSuit );
-	SaveStackFlag( WIDE("Card Stack Select"), bSelectOnlyTop );
-	SaveStackFlag( WIDE("Card Stack Select"), bSelectAny );
-	SaveStackFlag( WIDE("Card Stack Select"), bSelectPlusOne );
-	SaveStackFlag( WIDE("Card Stack Select"), bSelectMinusOne );
+	fprintf( file, "Card stack game is \'%s\'\n", stack->game->name );
+	fprintf( file, "Card stack deck stack is \'%s\'\n", stack->deck_stack );
+	fprintf( file, "Card stack Stacked=%s\n", stack->flags.bStacked?"yes":"no" );
+	fprintf( file, "Card stack UnStacked Down=%s\n", stack->flags.bNotStackedDown?"yes":"no" );
+	fprintf( file, "Card stack No Select=%s\n", stack->flags.bNoSelect?"yes":"no" );
+	fprintf( file, "Card stack Only Ace=%s\n", stack->flags.bOnlyAceWhenEmpty?"yes":"no" );
+	fprintf( file, "Card stack Only King=%s\n", stack->flags.bOnlyKingWhenEmpty?"yes":"no" );
+	SaveStackFlag( "Card Stack ", bLastAce );
+	SaveStackFlag( "Card Stack ", bLastKing );
+	fprintf( file, "Card stack Only Same Suit=%s\n", stack->flags.bSameSuit?"yes":"no" );
+	fprintf( file, "Card stack Only Alternate Suit=%s\n", stack->flags.bAlternateSuit?"yes":"no" );
+	fprintf( file, "Card stack Only Minus One=%s\n", stack->flags.bOnlyMinusOne?"yes":"no" );
+	fprintf( file, "Card stack Only Plus One=%s\n", stack->flags.bOnlyPlusOne?"yes":"no" );
+	fprintf( file, "Card stack Draw %d at start\n", stack->startup.nDrawAtStart );
+	fprintf( file, "Card stack Draw %d at deal\n", stack->startup.nDrawAtDeal );
+	fprintf( file, "Card stack Draw %d Down at start\n", stack->startup.nDrawDownAtStart );
+	fprintf( file, "Card stack must play %d first\n", stack->active.nMustPlay );
+	fprintf( file, "Card stack background=$%08x\n", stack->background );
+	fprintf( file, "Card stack empty background=$%08x\n", stack->empty_background );
+	SaveStackFlag( "Card Stack ", bVertical );
+	SaveStackFlag( "Card Stack ", bOnlySame );
+	SaveStackFlag( "Card Stack ", bMustPlayWhenEmpty );
+	SaveStackFlag( "Card Stack ", bReversed );
+	SaveStackFlag( "Card Stack Select", bSelectSameSuit );
+	SaveStackFlag( "Card Stack Select", bSelectAltSuit );
+	SaveStackFlag( "Card Stack Select", bSelectOnlyTop );
+	SaveStackFlag( "Card Stack Select", bSelectAny );
+	SaveStackFlag( "Card Stack Select", bSelectPlusOne );
+	SaveStackFlag( "Card Stack Select", bSelectMinusOne );
 
 }
 
@@ -908,45 +908,45 @@ MakeSetFlag( bMustPlayWhenEmpty );
 MakeSetFlag( bOnlySame );
 
 
-static void OnLoadControl( WIDE("Games/Cards/Card Stack") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Games/Cards/Card Stack" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	//MyValidatedControlData( struct card_stack_control *, stack, psv );
-	MakeAddFlag( WIDE("Card Stack Select"), bSelectSameSuit );
-	MakeAddFlag( WIDE("Card Stack Select"), bSelectAltSuit );
-	MakeAddFlag( WIDE("Card Stack Select"), bSelectOnlyTop );
-	MakeAddFlag( WIDE("Card Stack Select"), bSelectAny );
-	MakeAddFlag( WIDE("Card Stack Select"), bSelectAll );
-	MakeAddFlag( WIDE("Card Stack Select"), bCompareTopOnly );
-	MakeAddFlag( WIDE("Card Stack Select"), bSelectPlusOne );
-	MakeAddFlag( WIDE("Card Stack Select"), bSelectMinusOne );
-	MakeAddFlag( WIDE("Card Stack "), bVertical );
-	MakeAddFlag( WIDE("Card Stack "), bReversed );
-	MakeAddFlag( WIDE("Card Stack "), bLastAce );
-	MakeAddFlag( WIDE("Card Stack "), bLastKing );
+	MakeAddFlag( "Card Stack Select", bSelectSameSuit );
+	MakeAddFlag( "Card Stack Select", bSelectAltSuit );
+	MakeAddFlag( "Card Stack Select", bSelectOnlyTop );
+	MakeAddFlag( "Card Stack Select", bSelectAny );
+	MakeAddFlag( "Card Stack Select", bSelectAll );
+	MakeAddFlag( "Card Stack Select", bCompareTopOnly );
+	MakeAddFlag( "Card Stack Select", bSelectPlusOne );
+	MakeAddFlag( "Card Stack Select", bSelectMinusOne );
+	MakeAddFlag( "Card Stack ", bVertical );
+	MakeAddFlag( "Card Stack ", bReversed );
+	MakeAddFlag( "Card Stack ", bLastAce );
+	MakeAddFlag( "Card Stack ", bLastKing );
 
-	AddConfigurationMethod( pch, WIDE("Card stack game is \'%m\'"), SetDeckGame );
-	AddConfigurationMethod( pch, WIDE("Card stack deck stack is \'%m\'"), SetDeckStack );
-	AddConfigurationMethod( pch, WIDE("Card stack Stacked=%b"), SetDeckStackStacked );
-	AddConfigurationMethod( pch, WIDE("Card stack UnStacked=%b"), SetDeckStackNotStackedDown );
-	//AddConfigurationMethod( pch, WIDE("Card stack card prefix is \'%m\'"), NULL );
-	AddConfigurationMethod( pch, WIDE("Card stack Only Ace=%b"), SetAceOnly );
-	AddConfigurationMethod( pch, WIDE("Card stack Only King=%b"), SetKingOnly );
-	AddConfigurationMethod( pch, WIDE("Card stack Only Same Suit=%b"), SetSameSuitOnly );
-	AddConfigurationMethod( pch, WIDE("Card stack Only Alternate Suit=%b"), SetAltSuitOnly );
-	AddConfigurationMethod( pch, WIDE("Card stack Only Minus One=%b"), SetMinusOneOnly );
-	AddConfigurationMethod( pch, WIDE("Card stack Only Plus One=%b"), SetPlusOneOnly );
-	AddConfigurationMethod( pch, WIDE("Card stack No Select=%b"), SetNoSelect );
-	AddConfigurationMethod( pch, WIDE("Card stack Draw %i at start"), SetDrawAtStart );
-	AddConfigurationMethod( pch, WIDE("Card stack Draw %i at deal"), SetDrawAtDeal );
-	AddConfigurationMethod( pch, WIDE("Card stack Draw %i Down at start"), SetDrawDownAtStart );
-	AddConfigurationMethod( pch, WIDE("Card stack must play %i first"), SetMustPlayEmpty );
-	AddConfigurationMethod( pch, WIDE("Card stack background=%c"), SetStackBackground );
-	AddConfigurationMethod( pch, WIDE("Card stack empty background=%c"), SetStackEmptyBackground );
+	AddConfigurationMethod( pch, "Card stack game is \'%m\'", SetDeckGame );
+	AddConfigurationMethod( pch, "Card stack deck stack is \'%m\'", SetDeckStack );
+	AddConfigurationMethod( pch, "Card stack Stacked=%b", SetDeckStackStacked );
+	AddConfigurationMethod( pch, "Card stack UnStacked=%b", SetDeckStackNotStackedDown );
+	//AddConfigurationMethod( pch, "Card stack card prefix is \'%m\'", NULL );
+	AddConfigurationMethod( pch, "Card stack Only Ace=%b", SetAceOnly );
+	AddConfigurationMethod( pch, "Card stack Only King=%b", SetKingOnly );
+	AddConfigurationMethod( pch, "Card stack Only Same Suit=%b", SetSameSuitOnly );
+	AddConfigurationMethod( pch, "Card stack Only Alternate Suit=%b", SetAltSuitOnly );
+	AddConfigurationMethod( pch, "Card stack Only Minus One=%b", SetMinusOneOnly );
+	AddConfigurationMethod( pch, "Card stack Only Plus One=%b", SetPlusOneOnly );
+	AddConfigurationMethod( pch, "Card stack No Select=%b", SetNoSelect );
+	AddConfigurationMethod( pch, "Card stack Draw %i at start", SetDrawAtStart );
+	AddConfigurationMethod( pch, "Card stack Draw %i at deal", SetDrawAtDeal );
+	AddConfigurationMethod( pch, "Card stack Draw %i Down at start", SetDrawDownAtStart );
+	AddConfigurationMethod( pch, "Card stack must play %i first", SetMustPlayEmpty );
+	AddConfigurationMethod( pch, "Card stack background=%c", SetStackBackground );
+	AddConfigurationMethod( pch, "Card stack empty background=%c", SetStackEmptyBackground );
 
 }
 
 
-static int OnDrawCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
+static int OnDrawCommon( "Games/Cards/Card Stack" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, pc );
 	Image surface = GetFrameSurface( pc );
@@ -1166,7 +1166,7 @@ static int OnDrawCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
 }
 
 
-static int OnMouseCommon( WIDE("Games/Cards/Card Stack") )(PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
+static int OnMouseCommon( "Games/Cards/Card Stack" )(PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)pc );
 	// what can I do with a mouse?
@@ -1196,7 +1196,7 @@ static int OnMouseCommon( WIDE("Games/Cards/Card Stack") )(PSI_CONTROL pc, int32
 					col = 0;
 				else
 				{
-					//lprintf( WIDE("%d %d %d"),( ( stack->image_width - stack->real_width ) - x )/ scaled_step_width);
+					//lprintf( "%d %d %d",( ( stack->image_width - stack->real_width ) - x )/ scaled_step_width);
 					col = 1 + (( (int32_t)( stack->image_width - stack->real_width ) - x ) / scaled_step_width);
 				}
 				card_pos = row * cols + col;
@@ -1360,10 +1360,10 @@ void FillCanMoveTo( PSI_CONTROL frame, struct card_stack_control *stack )
 	}
 }
 
-static uintptr_t OnEditControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psv, PSI_CONTROL parent )
+static uintptr_t OnEditControl( "Games/Cards/Card Stack" )( uintptr_t psv, PSI_CONTROL parent )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, (PSI_CONTROL)psv );
-	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("ConfigureGameCardStack.isFrame") );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent, "ConfigureGameCardStack.isFrame" );
 	TEXTCHAR buffer[256];
 	if( stack )
 	{
@@ -1375,13 +1375,13 @@ static uintptr_t OnEditControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psv,
 		SetButtonPushMethod( GetControl( frame, BTN_ADD_GAME ), ButtonAddGame, psv );
 		SetButtonPushMethod( GetControl( frame, BTN_ADD_DECK_STACK ), ButtonAddStack, psv );
 		SetSelChangeHandler( GetControl( frame, LISTBOX_POSSIBLE_GAMES ), GameSelected, psv );
-		snprintf( buffer, sizeof( buffer ), WIDE("%d"), stack->active.nMustPlay );
+		snprintf( buffer, sizeof( buffer ), "%d", stack->active.nMustPlay );
 		SetControlText( GetControl( frame, EDIT_MUST_PLAY ), buffer );
-		snprintf( buffer, sizeof( buffer ), WIDE("%d"), stack->startup.nDrawAtStart );
+		snprintf( buffer, sizeof( buffer ), "%d", stack->startup.nDrawAtStart );
 		SetControlText( GetControl( frame, EDIT_DRAW_AT_START ), buffer );
-		snprintf( buffer, sizeof( buffer ), WIDE("%d"), stack->startup.nDrawAtDeal );
+		snprintf( buffer, sizeof( buffer ), "%d", stack->startup.nDrawAtDeal );
 		SetControlText( GetControl( frame, EDIT_DRAW_AT_DEAL ), buffer );
-		snprintf( buffer, sizeof( buffer ), WIDE("%d"), stack->startup.nDrawDownAtStart );
+		snprintf( buffer, sizeof( buffer ), "%d", stack->startup.nDrawDownAtStart );
 		SetControlText( GetControl( frame, EDIT_DRAW_DOWN_AT_START ), buffer );
 #define SetStackFlagCheck( flag, id )  \
 		SetCheckState( GetControl( frame, id )			 , stack->flags.flag );
@@ -1431,7 +1431,7 @@ static uintptr_t OnEditControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psv,
 		list = GetControl( frame, LISTBOX_ACTIVE_GAMES );
 		if( list )
 		{
-			AddListItem( list, WIDE("Uhmm yeah what games?") );
+			AddListItem( list, "Uhmm yeah what games?" );
 		}
 		DisplayFrameOver( frame, parent );
 		CommonWait( frame );
@@ -1494,7 +1494,7 @@ static uintptr_t OnEditControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psv,
 	return psv;
 }
 
-static int OnCreateCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
+static int OnCreateCommon( "Games/Cards/Card Stack" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( struct card_stack_control *, stack, pc );
 	//stack->deck = l.game.deck; // use the default deck for starters....
@@ -1510,13 +1510,13 @@ static int OnCreateCommon( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL pc )
 	//stack->flags.bStacked = 1;
 
 	/* defaults... */
-	stack->deck_stack = StrDup( WIDE("Table") ); // I want this to change by release/redup
-	SetControlGame( pc, WIDE("Stud") );
+	stack->deck_stack = StrDup( "Table" ); // I want this to change by release/redup
+	SetControlGame( pc, "Stud" );
 
 	return TRUE;
 }
 
-static uintptr_t OnCreateControl( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "Games/Cards/Card Stack" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc = MakeControl( parent, MyControlID, x, y, w, h, -1 );
 	//MyValidatedControlData( struct card_stack_control *, stack, pc );
@@ -1524,14 +1524,14 @@ static uintptr_t OnCreateControl( WIDE("Games/Cards/Card Stack") )( PSI_CONTROL 
 	return (uintptr_t)pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Games/Cards/Card Stack" )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
-static void OnGlobalPropertyEdit( WIDE("Card Game") )( PSI_CONTROL parent_frame )
+static void OnGlobalPropertyEdit( "Card Game" )( PSI_CONTROL parent_frame )
 {
-	PSI_CONTROL frame = LoadXMLFrameOver( parent_frame, WIDE("ConfigureCardGame.isFrame") );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent_frame, "ConfigureCardGame.isFrame" );
 	if( frame )
 	{
 		int done = 0;
@@ -1545,7 +1545,7 @@ static void OnGlobalPropertyEdit( WIDE("Card Game") )( PSI_CONTROL parent_frame 
 	return;
 }
 
-static void OnCloneControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psvNew, uintptr_t psvOriginal )
+static void OnCloneControl( "Games/Cards/Card Stack" )( uintptr_t psvNew, uintptr_t psvOriginal )
 {
 	MyValidatedControlData( struct card_stack_control *, new_stack, (PSI_CONTROL)psvNew );
 	MyValidatedControlData( struct card_stack_control *, original_stack, (PSI_CONTROL)psvOriginal );
@@ -1561,7 +1561,7 @@ static void OnCloneControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psvNew, 
 		if( original_stack->deck_stack[lastchar] )
 		{
 			TEXTCHAR newbuf[256];
-			snprintf( newbuf, sizeof( newbuf ), WIDE("%*.*s%d"), lastchar, lastchar
+			snprintf( newbuf, sizeof( newbuf ), "%*.*s%d", lastchar, lastchar
 					  , original_stack->deck_stack
 					  , atoi( original_stack->deck_stack + lastchar ) + original_stack->clone_count );
 			new_stack->deck_stack = StrDup( newbuf );
@@ -1576,7 +1576,7 @@ static void OnCloneControl( WIDE("Games/Cards/Card Stack") )( uintptr_t psvNew, 
 	// other paramters are computed... (during draw time)
 }
 
-static void OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( uintptr_t psv )
+static void OnKeyPressEvent( "Games/Cards/Start Game" )( uintptr_t psv )
 {
 	struct card_game *game = (struct card_game *)psv;
 	Shuffle( game->deck );
@@ -1590,7 +1590,7 @@ static void OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( uintptr_t psv )
 			PCARD_STACK card_stack;
 			int n;
 			int moved = 0;
-			if( StrCmp( stack->deck_stack, WIDE("Draw") ) == 0 )
+			if( StrCmp( stack->deck_stack, "Draw" ) == 0 )
 				pc_draw = pc;
 			else
 			{
@@ -1599,7 +1599,7 @@ static void OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( uintptr_t psv )
 				for( n = 0; n < stack->startup.nDrawDownAtStart; n++ )
 				{
 					moved++;
-					TransferCards( GetCardStack( stack->game->deck, WIDE("Draw") )
+					TransferCards( GetCardStack( stack->game->deck, "Draw" )
 									 , card_stack =GetCardStack( stack->game->deck, stack->deck_stack )
 									 , 1 );
 
@@ -1607,7 +1607,7 @@ static void OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( uintptr_t psv )
 				for( n = 0; n < stack->startup.nDrawAtStart; n++ )
 				{
 					moved++;
-					TransferCards( GetCardStack( stack->game->deck, WIDE("Draw") )
+					TransferCards( GetCardStack( stack->game->deck, "Draw" )
 									 , card_stack =GetCardStack( stack->game->deck, stack->deck_stack )
 									 , 1 );
 					if( card_stack && card_stack->cards )
@@ -1623,15 +1623,15 @@ static void OnKeyPressEvent( WIDE("Games/Cards/Start Game") )( uintptr_t psv )
 }
 
 
-static uintptr_t OnCreateMenuButton( WIDE("Games/Cards/Start Game") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Games/Cards/Start Game" )( PMENU_BUTTON button )
 {
-	return (uintptr_t)GetGame( WIDE("Stud") ); // default button
+	return (uintptr_t)GetGame( "Stud" ); // default button
 }
 
-static uintptr_t OnEditControl( WIDE("Games/Cards/Start Game") )( uintptr_t psv, PSI_CONTROL parent )
+static uintptr_t OnEditControl( "Games/Cards/Start Game" )( uintptr_t psv, PSI_CONTROL parent )
 {
 	//TEXTCHAR buffer[256];
-	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("ConfigureCardGameStartGame.isFrame") );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent, "ConfigureCardGameStartGame.isFrame" );
 	if( frame )
 	{
 		int okay = 0;
@@ -1657,10 +1657,10 @@ static uintptr_t OnEditControl( WIDE("Games/Cards/Start Game") )( uintptr_t psv,
 }
 
 
-static void OnSaveControl( WIDE("Games/Cards/Start Game") )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "Games/Cards/Start Game" )( FILE *file, uintptr_t psv )
 {
 	struct card_game *game = (struct card_game *)psv;
-	fprintf( file, WIDE("Start card game button game=\'%s\'\n"), game->name );
+	fprintf( file, "Start card game button game=\'%s\'\n", game->name );
 }
 
 static uintptr_t CPROC SetStartButtonGame( uintptr_t psv, arg_list args )
@@ -1669,10 +1669,10 @@ static uintptr_t CPROC SetStartButtonGame( uintptr_t psv, arg_list args )
 	return (uintptr_t)GetGame( name ); // hrm I wonder if this actually gets set to the right place?
 }
 
-static void OnLoadControl( WIDE("Games/Cards/Start Game") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Games/Cards/Start Game" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	//struct card_game *game = (struct card_game *)psv;
-	AddConfigurationMethod( pch, WIDE("Start card game button game=\'%m\'"), SetStartButtonGame );
+	AddConfigurationMethod( pch, "Start card game button game=\'%m\'", SetStartButtonGame );
 }
 
 
@@ -1682,7 +1682,7 @@ static void OnLoadControl( WIDE("Games/Cards/Start Game") )( PCONFIG_HANDLER pch
 
 ////-------------------------------------------------------------------------
 
-static void OnKeyPressEvent( WIDE("Games/Cards/Deal Game") )( uintptr_t psv )
+static void OnKeyPressEvent( "Games/Cards/Deal Game" )( uintptr_t psv )
 {
 	struct card_game *game = (struct card_game *)psv;
 	//Shuffle( game->deck );
@@ -1696,14 +1696,14 @@ static void OnKeyPressEvent( WIDE("Games/Cards/Deal Game") )( uintptr_t psv )
 			PCARD_STACK card_stack;
 			int n;
 			int moved = 0;
-			if( StrCmp( stack->deck_stack, WIDE("Draw") ) == 0 )
+			if( StrCmp( stack->deck_stack, "Draw" ) == 0 )
 				pc_draw = pc;
 			else
 			{
 				for( n = 0; n < stack->startup.nDrawAtDeal; n++ )
 				{
 					moved++;
-					TransferCards( GetCardStack( stack->game->deck, WIDE("Draw") )
+					TransferCards( GetCardStack( stack->game->deck, "Draw" )
 									 , card_stack =GetCardStack( stack->game->deck, stack->deck_stack )
 									 , 1 );
 					if( card_stack && card_stack->cards )
@@ -1719,15 +1719,15 @@ static void OnKeyPressEvent( WIDE("Games/Cards/Deal Game") )( uintptr_t psv )
 }
 
 
-static uintptr_t OnCreateMenuButton( WIDE("Games/Cards/Deal Game") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Games/Cards/Deal Game" )( PMENU_BUTTON button )
 {
-	return (uintptr_t)GetGame( WIDE("Stud") ); // default button
+	return (uintptr_t)GetGame( "Stud" ); // default button
 }
 
-static uintptr_t OnEditControl( WIDE("Games/Cards/Deal Game") )( uintptr_t psv, PSI_CONTROL parent )
+static uintptr_t OnEditControl( "Games/Cards/Deal Game" )( uintptr_t psv, PSI_CONTROL parent )
 {
 	//TEXTCHAR buffer[256];
-	PSI_CONTROL frame = LoadXMLFrame( WIDE("ConfigureCardGameStartGame.isFrame") );
+	PSI_CONTROL frame = LoadXMLFrame( "ConfigureCardGameStartGame.isFrame" );
 	if( frame )
 	{
 		int okay = 0;
@@ -1753,16 +1753,16 @@ static uintptr_t OnEditControl( WIDE("Games/Cards/Deal Game") )( uintptr_t psv, 
 }
 
 
-static void OnSaveControl( WIDE("Games/Cards/Deal Game") )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "Games/Cards/Deal Game" )( FILE *file, uintptr_t psv )
 {
 	struct card_game *game = (struct card_game *)psv;
-	fprintf( file, WIDE("Start card game button game=\'%s\'\n"), game->name );
+	fprintf( file, "Start card game button game=\'%s\'\n", game->name );
 }
 
-static void OnLoadControl( WIDE("Games/Cards/Deal Game") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Games/Cards/Deal Game" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	//struct card_game *game = (struct card_game *)psv;
-	AddConfigurationMethod( pch, WIDE("Start card game button game=\'%m\'"), SetStartButtonGame );
+	AddConfigurationMethod( pch, "Start card game button game=\'%m\'", SetStartButtonGame );
 }
 
 

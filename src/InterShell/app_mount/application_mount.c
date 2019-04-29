@@ -58,19 +58,19 @@ enum {
 	EDIT_APP_ADDRESS,
 	EDIT_APP_SEND_FROM,
 };
-EasyRegisterControl( WIDE("Application Mount"), sizeof( MY_CONTROL) );
+EasyRegisterControl( "Application Mount", sizeof( MY_CONTROL) );
 
 PRELOAD( RegisterKeypadIDs )
 {
-	EasyRegisterResource( WIDE("InterShell/Application Mount") _WIDE(TARGETNAME), EDIT_APP_WINDOW_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/Application Mount") _WIDE(TARGETNAME), EDIT_APP_CLASS_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/Application Mount") _WIDE(TARGETNAME), EDIT_APP_ADDRESS, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/Application Mount") _WIDE(TARGETNAME), EDIT_APP_SEND_FROM, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Application Mount" _WIDE(TARGETNAME), EDIT_APP_WINDOW_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Application Mount" _WIDE(TARGETNAME), EDIT_APP_CLASS_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Application Mount" _WIDE(TARGETNAME), EDIT_APP_ADDRESS, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Application Mount" _WIDE(TARGETNAME), EDIT_APP_SEND_FROM, EDIT_FIELD_NAME );
 }
 
-static uintptr_t OnEditControl( WIDE( "Application Mount" ) )( uintptr_t psv, PSI_CONTROL pc_parent )
+static uintptr_t OnEditControl( "Application Mount" )( uintptr_t psv, PSI_CONTROL pc_parent )
 {
-	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, WIDE("ConfigureApplicationMount.isFrame") );
+	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, "ConfigureApplicationMount.isFrame" );
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( frame )
@@ -79,10 +79,10 @@ static uintptr_t OnEditControl( WIDE( "Application Mount" ) )( uintptr_t psv, PS
 		int done = 0;
 		SetCommonButtons( frame, &done, &okay );
 
-		SetControlText( GetControl( frame, EDIT_APP_WINDOW_NAME ), control->app_window_name?control->app_window_name:WIDE("") );
-		SetControlText( GetControl( frame, EDIT_APP_CLASS_NAME ), control->app_class_name?control->app_class_name:WIDE("") );
-		SetControlText( GetControl( frame, EDIT_APP_ADDRESS ), control->send_to?control->send_to:WIDE("") );
-		SetControlText( GetControl( frame, EDIT_APP_SEND_FROM ), control->send_from?control->send_from:WIDE("") );
+		SetControlText( GetControl( frame, EDIT_APP_WINDOW_NAME ), control->app_window_name?control->app_window_name:"" );
+		SetControlText( GetControl( frame, EDIT_APP_CLASS_NAME ), control->app_class_name?control->app_class_name:"" );
+		SetControlText( GetControl( frame, EDIT_APP_ADDRESS ), control->send_to?control->send_to:"" );
+		SetControlText( GetControl( frame, EDIT_APP_SEND_FROM ), control->send_from?control->send_from:"" );
 		DisplayFrameOver( frame, pc_parent );
 		CommonWait( frame );
 		if( okay )
@@ -387,13 +387,13 @@ static uintptr_t CPROC WaitForApplication( PTHREAD thread )
 				}
 				else
 				{
-					//xlprintf(2100)( WIDE("Want to be hidden...") );
+					//xlprintf(2100)( "Want to be hidden..." );
 					if( app && ( !app->flags.bFound || app->flags.bShown || app->flags.visible ) )
 					{
-						//xlprintf(2100)( WIDE("...") );
+						//xlprintf(2100)( "..." );
 						if( app->classname || app->title )
 						{
-							//xlprintf(2100)( WIDE("... %p"), app->hWnd  );
+							//xlprintf(2100)( "... %p", app->hWnd  );
 							if( app->hWnd )
 							{
 								ShowWindow( app->hWnd, SW_HIDE );
@@ -403,7 +403,7 @@ static uintptr_t CPROC WaitForApplication( PTHREAD thread )
 							}
 							else
 							{
-								//xlprintf(2100)( WIDE("no window...") );
+								//xlprintf(2100)( "no window..." );
 								/* haven't found the window, and if it needs to be shown, don't wait*/
 								/* if it's hidden, and doesn't exist, that's ok to wait on */
 								app->flags.bFound = 0;
@@ -422,7 +422,7 @@ static uintptr_t CPROC WaitForApplication( PTHREAD thread )
 					}
 					else
 					{
-						//lprintf( WIDE("no app?") );
+						//lprintf( "no app?" );
 					}
 				}
 			}
@@ -436,10 +436,10 @@ static uintptr_t CPROC WaitForApplication( PTHREAD thread )
 	return 0;
 }
 
-static uintptr_t OnCreateControl( WIDE("Application Mount") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "Application Mount" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
-	pc = MakeNamedControl( parent, WIDE("Application Mount"), x, y, w, h, -1 );
+	pc = MakeNamedControl( parent, "Application Mount", x, y, w, h, -1 );
 	{
 		MyValidatedControlData( PMY_CONTROL, control, pc );
 		control->app_class_name = NULL;
@@ -451,24 +451,24 @@ static uintptr_t OnCreateControl( WIDE("Application Mount") )( PSI_CONTROL paren
 	return (uintptr_t)pc;
 }
 
-static void OnFinishInit( WIDE("Application Mount") )( PCanvasData pc_canvas  )
+static void OnFinishInit( "Application Mount" )( PCanvasData pc_canvas  )
 {
 	if( !l.waiting )
 		l.waiting = ThreadTo( WaitForApplication, 0 );
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Application Mount") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Application Mount" )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
-static void OnSaveControl( WIDE("Application Mount") )( FILE* file, uintptr_t psv )
+static void OnSaveControl( "Application Mount" )( FILE* file, uintptr_t psv )
 {
 	MyValidatedControlData( PMY_CONTROL, control, (PSI_CONTROL)psv );
-	fprintf( file, WIDE("Application Title=%s\n"), control->app_window_name?control->app_window_name:WIDE("") );
-	fprintf( file, WIDE("Application Class=%s\n"), control->app_class_name?control->app_class_name:WIDE("") );
-	fprintf( file, WIDE("Application Server Address=%s\n"), control->send_to?control->send_to:WIDE("") );
-	fprintf( file, WIDE("Application Send From Address=%s\n"), control->send_from?control->send_from:WIDE("") );
+	fprintf( file, "Application Title=%s\n", control->app_window_name?control->app_window_name:"" );
+	fprintf( file, "Application Class=%s\n", control->app_class_name?control->app_class_name:"" );
+	fprintf( file, "Application Server Address=%s\n", control->send_to?control->send_to:"" );
+	fprintf( file, "Application Send From Address=%s\n", control->send_from?control->send_from:"" );
 }
 
 static uintptr_t CPROC SetApplicationName( uintptr_t psv, arg_list args )
@@ -508,21 +508,21 @@ static uintptr_t CPROC SetApplicationSendTo( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("Application Mount") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Application Mount" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("Application Title=%m"), SetApplicationName );
-	AddConfigurationMethod( pch, WIDE("Application Class=%m"), SetApplicationClass );
-	AddConfigurationMethod( pch, WIDE("Application Server Address=%m\n"), SetApplicationSendTo );
-	AddConfigurationMethod( pch, WIDE("Application Send From Address=%m\n"), SetApplicationSendFrom );
+	AddConfigurationMethod( pch, "Application Title=%m", SetApplicationName );
+	AddConfigurationMethod( pch, "Application Class=%m", SetApplicationClass );
+	AddConfigurationMethod( pch, "Application Server Address=%m\n", SetApplicationSendTo );
+	AddConfigurationMethod( pch, "Application Send From Address=%m\n", SetApplicationSendFrom );
 }
 
-static void OnHideCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
+static void OnHideCommon( "Application Mount" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
 	{
 		//lprintf( "Showing %p", control );
-		//lprintf( WIDE("begin hide...") );
+		//lprintf( "begin hide..." );
 		//lprintf( "Do hide on control %p", control );
 		control->app = FindAppWindow( control );
 		control->app->flags.bWantShow = 0;
@@ -530,11 +530,11 @@ static void OnHideCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
 			l.waiting = ThreadTo( WaitForApplication, 0 );
 		else
 			WakeThread( l.waiting );
-		//lprintf( WIDE("began hide...") );
+		//lprintf( "began hide..." );
 	}
 }
 
-static void OnRevealCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
+static void OnRevealCommon( "Application Mount" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
@@ -543,7 +543,7 @@ static void OnRevealCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
 		int32_t y = 0;
 		Image image = GetControlSurface( pc );
 		//lprintf( "Showing %p", control );
-		//lprintf( WIDE("begin show(move)...") );
+		//lprintf( "begin show(move)..." );
 		GetPhysicalCoordinate( pc, &x, &y, TRUE );
 		//lprintf( "Do Reveal on control %p", control );
 		control->app = FindAppWindow( control );
@@ -557,11 +557,11 @@ static void OnRevealCommon( WIDE("Application Mount") )( PSI_CONTROL pc )
 		else
 			WakeThread( l.waiting );
 
-		//lprintf( WIDE("begin show(move)...") );
+		//lprintf( "begin show(move)..." );
 	}
 }
 
-static void OnCloneControl( WIDE("Application Mount") )( uintptr_t copy,uintptr_t original)
+static void OnCloneControl( "Application Mount" )( uintptr_t copy,uintptr_t original)
 {
 	PSI_CONTROL pc_copy = (PSI_CONTROL)copy;
 	PSI_CONTROL pc_original = (PSI_CONTROL)original;

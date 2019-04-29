@@ -34,7 +34,7 @@ PTHREAD pMainThread;
 
 CORE_PROC( PTEXT, GetName )( void *p )
 {
-	DECLTEXT( other, WIDE("No name") );
+	DECLTEXT( other, "No name" );
 	PENTITY pe = (PENTITY)p;
 	if( pe )
 	{
@@ -53,7 +53,7 @@ CORE_PROC( PTEXT, GetName )( void *p )
 
 CORE_PROC( PTEXT, GetDescription )( void *p )
 {
-	DECLTEXT( other, WIDE("Nothing Special.") );
+	DECLTEXT( other, "Nothing Special." );
 	PENTITY pe = (PENTITY)p;
 	if( pe )
 	{
@@ -152,7 +152,7 @@ PLIST BuildAttachedListEx( PENTITY also_ignore, PLIST *ppList, PENTITY source, i
 
 //--------------------------------------------------------------------------
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("contents"), WIDE("Contents of the current object") )( PENTITY pe, PTEXT *last )
+static PTEXT ObjectVolatileVariableGet( "core object", "contents", "Contents of the current object" )( PENTITY pe, PTEXT *last )
 //PTEXT CPROC GetContents( uintptr_t psv, PENTITY pe, PTEXT *last )
 {
 	PTEXT pList = NULL;
@@ -167,13 +167,13 @@ static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("contents"), W
 
 //--------------------------------------------------------------------------
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("scriptpath"), WIDE("Contents of the current object") )( PENTITY pe, PTEXT *last )
+static PTEXT ObjectVolatileVariableGet( "core object", "scriptpath", "Contents of the current object" )( PENTITY pe, PTEXT *last )
 {
 	static PTEXT path;
 	if( !path )
 	{
 		PVARTEXT pvtTmp = VarTextCreate();
-		vtprintf( pvtTmp, WIDE("%s/scripts"), GetProgramPath() );
+		vtprintf( pvtTmp, "%s/scripts", GetProgramPath() );
 		path = VarTextGet( pvtTmp );
 		VarTextDestroy( &pvtTmp );
 	}
@@ -265,7 +265,7 @@ PENTITY findbynameEx( PLIST list, size_t *count, TEXTCHAR *name, PENTITY exclude
 	{
 		if( workobject == exclude_self )
 			continue;
-		//lprintf( WIDE("Is %s==%s?"), GetText( GetName( workobject ) ), name );
+		//lprintf( "Is %s==%s?", GetText( GetName( workobject ) ), name );
 		if( NameIs( workobject, name) )
 		{
 			if( cnt )
@@ -290,7 +290,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 	if( !foundtype )
 		foundtype = &junk;
 	p = NULL;
-	//lprintf( WIDE("Set found type to %d"), type );
+	//lprintf( "Set found type to %d", type );
 	*foundtype = type; // ugly, and confusing location for _this...
 							 // because of recursive nature, last test which
 	// succeeds leaves _this value set...
@@ -300,20 +300,20 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 		switch( type )
 		{
 		case FIND_VISIBLE:
-			//lprintf( WIDE("(%d)Find visible..."), level );
+			//lprintf( "(%d)Find visible...", level );
 			if( !p ) p = DoFindThing( Around, FIND_GRABBABLE, foundtype, count, t );
 			if( !p ) p = DoFindThing( Around, FIND_AROUND, foundtype, count, t );
 			if( !p ) p = DoFindThing( Around, FIND_ANYTHING_NEAR, foundtype, count, t );
 			break;
 		case FIND_GRABBABLE:
-			//lprintf( WIDE("(%d)Find grabbable..."), level );
+			//lprintf( "(%d)Find grabbable...", level );
 			if( !p ) p = DoFindThing( Around, FIND_NEAR, foundtype, count, t );
 			if( !p ) p = DoFindThing( Around, FIND_WITHIN, foundtype, count, t );
 			if( !p ) p = DoFindThing( Around, FIND_ON, foundtype, count, t );
 			break;
 		case FIND_IN:
 			{
-				//lprintf( WIDE("(%d)Find in..."), level );
+				//lprintf( "(%d)Find in...", level );
 				p = findbynameEx(Around->pContains,count,t, NULL);
 			}
 			break;
@@ -322,10 +322,10 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 				PLIST pList = NULL;
 				INDEX idx;
 				PENTITY pe;
-				//lprintf( WIDE("(%d)Find within..."), level );
+				//lprintf( "(%d)Find within...", level );
 				LIST_FORALL( Around->pContains, idx, PENTITY, pe )
 				{
-					//lprintf( WIDE("adding a link to the list...") );
+					//lprintf( "adding a link to the list..." );
 					AddLink( &pList, pe );
 					BuildAttachedListEx( NULL, &pList, pe, 0 );
 				}
@@ -338,7 +338,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 		case FIND_ON:
 			{
 				PLIST pList;
-				//lprintf( WIDE("(%d)Find on..."), level );
+				//lprintf( "(%d)Find on...", level );
 				p = findbynameEx(pList=BuildAttachedList(Around),count,t, NULL);
 				if( p == Around )
 					p = NULL;
@@ -346,7 +346,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 			}
 			break;
 		case FIND_NEAR:
-			//lprintf( WIDE("(%d)Find near..."), level );
+			//lprintf( "(%d)Find near...", level );
 			if( ( pContainer = FindContainer( Around ) ) )
 			{
 				p = findbynameEx( pContainer->pContains, count, t, Around );
@@ -355,7 +355,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 			}
 			break;
 		case FIND_ANYTHING_NEAR:
-			//lprintf( WIDE("(%d)Find anything near..."), level );
+			//lprintf( "(%d)Find anything near...", level );
 			if( ( pContainer = FindContainer( Around ) ) )
 			{
 				PLIST pList = NULL;
@@ -374,7 +374,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 			}
 			break;
 		case FIND_AROUND:
-			//lprintf( WIDE("(%d)Find around..."), level );
+			//lprintf( "(%d)Find around...", level );
 			if( ( pContainer = FindContainer( Around ) ) )
 			{
 				if( !p ) p = findbynameEx(pContainer->pAttached,count,t, Around);
@@ -384,7 +384,7 @@ POINTER DoFindThing( PENTITY Around, enum FindWhere type, enum FindWhere *foundt
 			}
 			break;
 		case FIND_MACRO:
-			//lprintf( WIDE("(%d)Find macro..."), level );
+			//lprintf( "(%d)Find macro...", level );
 			p = findbynameEx(Around->pMacros, count, t, NULL );
 			break;
 		case FIND_MACRO_INDEX:
@@ -425,7 +425,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 	int64_t long_cnt = 1; // by default find the first.
 	{
 		//PTEXT line = BuildLine( *tokens );
-		//lprintf( WIDE("finding [%s]"), GetText( line ) );
+		//lprintf( "finding [%s]", GetText( line ) );
 		//LineRelease( line );
 	}
 	// find one thing only.
@@ -434,7 +434,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 		pText = GetParam( ps, tokens );
 		if( pText && ((pText->flags & TF_ENTITY )== TF_ENTITY) )
 		{
-			//lprintf( WIDE("Segment itself is an entity... therefore no searching required.") );
+			//lprintf( "Segment itself is an entity... therefore no searching required." );
 			return GetApplicationPointer( pText );
 		}
 		if( pText && (pText->flags & TF_INDIRECT) )
@@ -445,7 +445,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 		}
 		{
 			//PTEXT line = BuildLine( *tokens );
-			//lprintf( WIDE("finding [%s] token [%s]"), GetText( line ), GetText( pText ) );
+			//lprintf( "finding [%s] token [%s]", GetText( line ), GetText( pText ) );
 			//LineRelease( line );
 		}
 		// test literal equality, might be the same value as some other object
@@ -462,7 +462,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 		{
 			if( !vt )
 				vt = VarTextCreate();
-			vtprintf( vt, WIDE("%s"), GetText( pText ) );
+			vtprintf( vt, "%s", GetText( pText ) );
 		}
 
 		if( type != FIND_MACRO )
@@ -483,31 +483,31 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 		{
 			if( ( sep = strchr( t, '.' ) ) )
 			{
-				lprintf( WIDE("Has or is a '.', and uhmm something.") );
+				lprintf( "Has or is a '.', and uhmm something." );
 				if( ( sep == t ) && ( GetTextSize( pText ) == 1 ) )
 				{
 					continue;
 				}
 				else if( t[0] >= '0' && t[0] <= '9' )
 				{
-					lprintf( WIDE("it's a count at the start....") );
+					lprintf( "it's a count at the start...." );
 					sep[0] = 0;
 					cnt = atoi( t );
 					t = sep + 1;
 					//p = DoFindThing( Around, type, foundtype, &cnt, t );
 					sep[0] = '.';
-					lprintf( WIDE("Object count is now %")_size_f WIDE(" . %s"), cnt, t );
+					lprintf( "Object count is now %"_size_f " . %s", cnt, t );
 				}
 			}
 			else if( IsIntNumber( pText, &long_cnt )  )
 			{
-				lprintf( WIDE("The token returned was a number, therefore it's not an entity?") );
+				lprintf( "The token returned was a number, therefore it's not an entity?" );
 				continue;
 			}
 			else
 				cnt = (int)long_cnt;
 			if( !p ) p = DoFindThing( Around, type, foundtype, &cnt, t );
-			//lprintf( WIDE("And we managed to find... %p"), p );
+			//lprintf( "And we managed to find... %p", p );
 		}
 #endif
 		break;
@@ -526,7 +526,7 @@ CORE_PROC( POINTER, FindThingEx )( PSENTIENT ps, PTEXT *tokens
 		*pResult = *tokens;
 	if( !p )
 		*tokens = _tokens;
-	//lprintf( WIDE("And we still have %p"), p );
+	//lprintf( "And we still have %p", p );
 	return p;
 }
 
@@ -560,12 +560,12 @@ PSHADOW_OBJECT CreateShadowIn( PENTITY pContainer, PENTITY pe )
 
 //--------------------------------------------------------------------------
 
-static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("scriptfile"), WIDE("next temp scriptfilename to use") )( PENTITY pe, PTEXT *last )
+static PTEXT ObjectVolatileVariableGet( "core object", "scriptfile", "next temp scriptfilename to use" )( PENTITY pe, PTEXT *last )
 //PTEXT CPROC GetScriptName( uintptr_t psv, PENTITY pe, PTEXT *last )
 {
 	static int nScript;
 	PVARTEXT pvt = VarTextCreate();
-	vtprintf( pvt, WIDE("script_%05d"), nScript++ );
+	vtprintf( pvt, "script_%05d", nScript++ );
 	if( *last )
 		LineRelease( *last );
 	*last = VarTextGet( pvt );
@@ -575,14 +575,14 @@ static PTEXT ObjectVolatileVariableGet( WIDE("core object"), WIDE("scriptfile"),
 
 //--------------------------------------------------------------------------
 
-//volatile_variable_entry pveContents = { DEFTEXT( WIDE("contents") ), GetContents, NULL, NULL };
-//volatile_variable_entry pveScript	= { DEFTEXT( WIDE("scriptfile") )
+//volatile_variable_entry pveContents = { DEFTEXT( "contents" ), GetContents, NULL, NULL };
+//volatile_variable_entry pveScript	= { DEFTEXT( "scriptfile" )
 //													, GetScriptName, NULL, NULL };
-//volatile_variable_entry pveContents = { DEFTEXT( WIDE("contents") ), GetContents, NULL, NULL };
+//volatile_variable_entry pveContents = { DEFTEXT( "contents" ), GetContents, NULL, NULL };
 
 //--------------------------------------------------------------------------
 
-static int OnCreateObject( WIDE("core object"), WIDE("Basic core object variables and methods.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int OnCreateObject( "core object", "Basic core object variables and methods." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
 	// nothing really special... just registering the object extension really...
 	return 0;
@@ -597,7 +597,7 @@ static PENTITY CreateEntity( PTEXT pName )
 	pName->flags &= ~(IS_DATA_FLAGS);
 	pName->format.position.offset.spaces = 0;
 	pe->pName = pName;
-	Assimilate( pe, NULL, WIDE("core object"), NULL );
+	Assimilate( pe, NULL, "core object", NULL );
 #if 0
 	AddVolatileVariable( pe, &pveContents, 0 );
 	AddVolatileVariable( pe, &pveScript, 0 );
@@ -718,14 +718,14 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 	PTEXT text;
 	TEXTSTR string;
 	//#ifdef _DEBUG
-	_xlprintf( 1 DBG_RELAY )( WIDE("Destroying an entity(%s)"), GetText( GetName( pe ) ) );
+	_xlprintf( 1 DBG_RELAY )( "Destroying an entity(%s)", GetText( GetName( pe ) ) );
 	//#endif
 	if( pe == global.THE_VOID )
 	{
 		if( !gbExitNow )
 		{
 			gbExitNow = TRUE;
-			Log( WIDE("Waking main thread to exit!") );
+			Log( "Waking main thread to exit!" );
 			WakeThreadID( GetThreadID( pMainThread ) );
 			return;
 		}
@@ -798,7 +798,7 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 		DeleteList( &pList );
 	}
 
-	lprintf( WIDE("within %p pe->pWithin %p"), pWithin, pe->pWithin );
+	lprintf( "within %p pe->pWithin %p", pWithin, pe->pWithin );
 	if( pe->pWithin )
 		pullout( pe->pWithin, pe );
 	pe->pWithin = pWithin;
@@ -821,13 +821,13 @@ CORE_PROC( void, DestroyEntityEx )( PENTITY pe DBG_PASS )
 		// since I grab the list, I have created nothing
 		// but am locked into destroying all things that were in that list.
 		// also saves me from having the list modify in case destrion somehow causes creation
-		_xlprintf(1 DBG_RELAY)( WIDE("Deleting (%s) from creator (%s)"),GetText( GetName( pe ) ), GetText( GetName( pe->pCreatedBy ) ) );
+		_xlprintf(1 DBG_RELAY)( "Deleting (%s) from creator (%s)",GetText( GetName( pe ) ), GetText( GetName( pe->pCreatedBy ) ) );
 		// if creator is being destroyed, allow him to not know I exist.
 		if( !pe->pCreatedBy->flags.bDestroy && !DeleteLink( &pe->pCreatedBy->pCreated, pe ) )
 		{
 
-			lprintf( WIDE("Thing I think created me, doesn't know it created me...") );
-			lprintf( WIDE("I am: %s and %s didn't create me?"), GetText( GetName( pe ) ), GetText( GetName( pe->pCreatedBy ) ) );
+			lprintf( "Thing I think created me, doesn't know it created me..." );
+			lprintf( "I am: %s and %s didn't create me?", GetText( GetName( pe ) ), GetText( GetName( pe->pCreatedBy ) ) );
 			DebugBreak();
 		}
 		pe->pCreatedBy = NULL;
@@ -925,11 +925,11 @@ PENTITY showall( PLINKQUEUE *ppOutput, PENTITY object)
 	pLine->data.size = 0;
 	for (idx=0;idx<level;idx++)
 	{
-		pLine->data.size += snprintf( pLine->data.data + pLine->data.size, (256-pLine->data.size)*sizeof(TEXTCHAR), WIDE("	") );
+		pLine->data.size += snprintf( pLine->data.data + pLine->data.size, (256-pLine->data.size)*sizeof(TEXTCHAR), "	" );
 	}
 
 	// bad should be enqued copies of these strings...
-	pLine->data.size += snprintf( pLine->data.data + pLine->data.size, (256-pLine->data.size)*sizeof(TEXTCHAR), WIDE("%s"), GetText( GetName(object) ) );
+	pLine->data.size += snprintf( pLine->data.data + pLine->data.size, (256-pLine->data.size)*sizeof(TEXTCHAR), "%s", GetText( GetName(object) ) );
 	EnqueLink( ppOutput, pLine );
 
 	LIST_FORALL( object->pContains, idx, PENTITY, next )
@@ -952,7 +952,7 @@ CORE_PROC( PDATAPATH, CreateDataPath )( PDATAPATH *ppChannel, int nExtra )
 	pdp = NewPlus( DATAPATH, nExtra );
 	MemSet( pdp, 0, sizeof( DATAPATH ) + nExtra );
 	pdp->ppMe	  = ppChannel;
-	//Log( WIDE("Linking in new path? ") );
+	//Log( "Linking in new path? " );
 	if( ppChannel )
 	{
 		pdp->pPrior	= *ppChannel;
@@ -980,27 +980,27 @@ CORE_PROC( PDATAPATH, DestroyDataPathEx )( PDATAPATH pdp DBG_PASS )
 	{
 		extern int gbTrace;
 		if( gbTrace )
-			Log1( WIDE("calling datapath close:%s"), GetText( pName ) );
+			Log1( "calling datapath close:%s", GetText( pName ) );
 	}
-	//_xlprintf(1 DBG_RELAY)( WIDE("Closing datapath %p(%d)"), pdp, pdp->Type );
+	//_xlprintf(1 DBG_RELAY)( "Closing datapath %p(%d)", pdp, pdp->Type );
 	if( !CloseDevice( pdp ) )
 	{
 		// device denied closing...
 		return 0;
 	}
-	//lprintf( WIDE("Removed from it's device....") );
-	//Log2( WIDE("%s(%d):Deleting datapath Input"), pFile, nLine );
+	//lprintf( "Removed from it's device...." );
+	//Log2( "%s(%d):Deleting datapath Input", pFile, nLine );
 	while( ( p = (PTEXT)DequeLink( &pdp->Input ) ) )
 		LineRelease( p );
 	DeleteLinkQueue( &pdp->Input );
 
-	//Log2( WIDE("%s(%d):Deleting datapath Output"), pFile, nLine );
+	//Log2( "%s(%d):Deleting datapath Output", pFile, nLine );
 	while( ( p = (PTEXT)DequeLink( &pdp->Output ) ) )
 	{
 #ifdef _DEBUG
 		{
 			PTEXT out = BuildLine( p );
-				Log1( WIDE("Trashing output line: %s"), GetText( out ) );
+				Log1( "Trashing output line: %s", GetText( out ) );
 				LineRelease( out );
 			}
 #endif
@@ -1028,7 +1028,7 @@ CORE_PROC( PDATAPATH, DestroyDataPathEx )( PDATAPATH pdp DBG_PASS )
 //--------------------------------------------------------------------------
 static int CPROC DefaultCommandOutput( PDATAPATH pdp )
 {
-	DECLTEXT( msg, WIDE(":") );
+	DECLTEXT( msg, ":" );
 	PENTITY Current = pdp->Owner->Current;
 	if( !IsQueueEmpty( &pdp->Output ) )
 	{
@@ -1084,7 +1084,7 @@ CORE_PROC( PSENTIENT, CreateAwareness )( PENTITY pEntity )
 
 	if( pEntity->pControlledBy )
 	{
-		//DECLTEXT( msg, WIDE("Attempt to reawaken you...\n") );
+		//DECLTEXT( msg, "Attempt to reawaken you...\n" );
 		//EnqueLink( pEntity->pControlledBy->Command->ppOutput, (PTEXT)&msg );
 		return NULL;
 	}
@@ -1100,7 +1100,7 @@ CORE_PROC( PSENTIENT, CreateAwareness )( PENTITY pEntity )
 	CreateDataPath( &ps->Command, 0 );
 	ps->Command->Owner = ps;
 	ps->Command->Write = DefaultCommandOutput;
-	ps->Command->pName = SegCreateFromText( WIDE("Default") );
+	ps->Command->pName = SegCreateFromText( "Default" );
 
 	ps->MacroStack = CreateDataStack( sizeof(MACROSTATE) );
 
@@ -1114,8 +1114,8 @@ CORE_PROC( PSENTIENT, CreateAwareness )( PENTITY pEntity )
 		AwareEntities->StepLock = 0;
 	}
 	{
-		DECLTEXT( prompt, WIDE("prompt") );
-		DECLTEXT( prompt_default, WIDE("[%%room/%%me]:") );
+		DECLTEXT( prompt, "prompt" );
+		DECLTEXT( prompt_default, "[%%room/%%me]:" );
 		PTEXT pDefault = burst( (PTEXT)&prompt_default );
 		AddVariable( ps, ps->Current, (PTEXT)&prompt, pDefault );
 		LineRelease( pDefault );
@@ -1295,8 +1295,8 @@ int InitSpace( const TEXTCHAR *command_line )
 {
 //	pg = Allocate( sizeof( GLOBAL ) );
 	//	MemSet( pg, 0, sizeof( GLOBAL ) );
-	global.flags.bLogAllCommands = SACK_GetProfileInt( WIDE("options"), WIDE("Log All Commands"), 0 );
-	global.THE_VOID = Big_Bang( SegCreateFromText( WIDE("The Void") ) );
+	global.flags.bLogAllCommands = SACK_GetProfileInt( "options", "Log All Commands", 0 );
+	global.THE_VOID = Big_Bang( SegCreateFromText( "The Void" ) );
 	{
 		PTEXT tmp = SegCreateFromText( command_line );
 		global_command_line = burst( tmp );
@@ -1309,97 +1309,97 @@ int InitSpace( const TEXTCHAR *command_line )
 		}
 		LineRelease( tmp );
 	}
-	global.THE_VOID->pDescription = SegCreateFromText( WIDE("Transparent black clouds swirl about.") );
+	global.THE_VOID->pDescription = SegCreateFromText( "Transparent black clouds swirl about." );
 	RegisterTextExtension( TF_SENTIENT_FLAG, GetSentientName, 0 );
 	RegisterTextExtension( TF_ENTITY_FLAG, GetEntityName, 0 );
-	AddCommonBehavior( WIDE("Enter"), WIDE("invoked on entity being entered by an entity") );
-	AddCommonBehavior( WIDE("Close"), WIDE("some device on datapath has closed") );
-	AddCommonBehavior( WIDE("Conceal"), WIDE("invoked on entity entering an entity") );
-	AddCommonBehavior( WIDE("Leave"), WIDE("invoked on entity leaving an entity") );
-	AddCommonBehavior( WIDE("Inject"), WIDE("invoked on entity being entered by an entity leaving a contained entity") );
-	AddCommonBehavior( WIDE("Grab"), WIDE("invoked on entity being grabbed") );
-	AddCommonBehavior( WIDE("Store"), WIDE("invoked on entity being stored") );
-	AddCommonBehavior( WIDE("Insert"), WIDE("invoked on entity being stored into") );
-	AddCommonBehavior( WIDE("Place"), WIDE("invoked on entity storing another entity") );
-	AddCommonBehavior( WIDE("Pull"), WIDE("...") );
-	AddCommonBehavior( WIDE("Receive"), WIDE("...") );
+	AddCommonBehavior( "Enter", "invoked on entity being entered by an entity" );
+	AddCommonBehavior( "Close", "some device on datapath has closed" );
+	AddCommonBehavior( "Conceal", "invoked on entity entering an entity" );
+	AddCommonBehavior( "Leave", "invoked on entity leaving an entity" );
+	AddCommonBehavior( "Inject", "invoked on entity being entered by an entity leaving a contained entity" );
+	AddCommonBehavior( "Grab", "invoked on entity being grabbed" );
+	AddCommonBehavior( "Store", "invoked on entity being stored" );
+	AddCommonBehavior( "Insert", "invoked on entity being stored into" );
+	AddCommonBehavior( "Place", "invoked on entity storing another entity" );
+	AddCommonBehavior( "Pull", "..." );
+	AddCommonBehavior( "Receive", "..." );
 	{
-		DECLTEXT( scriptname, WIDE("__do_script__") );
+		DECLTEXT( scriptname, "__do_script__" );
 		PVARTEXT pvt = VarTextCreate();
 		PTEXT temp, cmd;
 		global.script = CreateMacro( NULL, NULL, (PTEXT)&scriptname );
 
-		vtprintf( pvt, WIDE("/decl devname %%scriptfile") );
+		vtprintf( pvt, "/decl devname %%scriptfile" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/command %%devname file __input %%...") );
+		vtprintf( pvt, "/command %%devname file __input %%..." );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/if success") );
+		vtprintf( pvt, "/if success" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 		
-		vtprintf( pvt, WIDE("/option %%devname close") );
+		vtprintf( pvt, "/option %%devname close" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/command %%scriptfile bash noblank") );
+		vtprintf( pvt, "/command %%scriptfile bash noblank" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/else") );
+		vtprintf( pvt, "/else" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/command %%devname file __input %%scriptpath/%%...") );
+		vtprintf( pvt, "/command %%devname file __input %%scriptpath/%%..." );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/if success") );
+		vtprintf( pvt, "/if success" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 		
-		vtprintf( pvt, WIDE("/option %%devname close") );
+		vtprintf( pvt, "/option %%devname close" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/command %%scriptfile bash noblank") );
+		vtprintf( pvt, "/command %%scriptfile bash noblank" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/else") );
+		vtprintf( pvt, "/else" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/echo failed to open script: %%scriptpath/%%...") );
+		vtprintf( pvt, "/echo failed to open script: %%scriptpath/%%..." );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 
-		vtprintf( pvt, WIDE("/endif") );
+		vtprintf( pvt, "/endif" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 		
-		vtprintf( pvt, WIDE("/endif") );
+		vtprintf( pvt, "/endif" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
 		
-		vtprintf( pvt, WIDE("/endmac") );
+		vtprintf( pvt, "/endmac" );
 		cmd = burst( temp = VarTextGet( pvt ) );
 		LineRelease( temp );
 		AddMacroCommand( global.script, cmd);
@@ -1431,7 +1431,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 	while( ( ps = pNext ) )
 	{
 		int n = 0;
-		//SystemLog( WIDE("Process Sentient.") );
+		//SystemLog( "Process Sentient." );
 		pCommand = NULL;
 		if( ps->ProcessLock || LockedExchange( &ps->ProcessingLock, 1 ) )
 		{
@@ -1449,13 +1449,13 @@ int ProcessSentients( THREAD_ID ThreadID )
 		/*
 		if( ps->flags.waiting_for_someone )
 		{
-			lprintf( WIDE("sentience is waiting on a posted command to complete") );
+			lprintf( "sentience is waiting on a posted command to complete" );
 			StepNextSentient();
 			continue;
 			}
 			*/
 		if( gbTrace )
-			lprintf( WIDE("---- PROCESS %p(%s)"), ps, GetText( GetName( ps->Current ) ) );
+			lprintf( "---- PROCESS %p(%s)", ps, GetText( GetName( ps->Current ) ) );
 		do
 		{
 			if( !ps->flags.bRelay	// not relay
@@ -1464,7 +1464,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 			  )
 			{
 				PTEXT *ppCommand = &pCommand;
-				//lprintf( WIDE("Do free this command.") );
+				//lprintf( "Do free this command." );
 				bFree = TRUE;
 				ps->CurrentMacro = NULL; // gets restored next command....
 				{
@@ -1472,14 +1472,14 @@ int ProcessSentients( THREAD_ID ThreadID )
 						&& pms->state.flags.forced_run )
 					{
 						if( gbTrace )
-							SystemLog( WIDE("Processing macro stack (forced)...") );
+							SystemLog( "Processing macro stack (forced)..." );
 						goto do_macro_command;
 					}
 				}
 				if( ps->Command && !ps->flags.bHoldCommands && !ps->flags.bRelay )
 				{
 					//if( gbTrace )
-					//	SystemLog( WIDE("Reading from input device...") );
+					//	SystemLog( "Reading from input device..." );
 					if( ps->Command->Read )
 					{
 						// if command processor is the datapath filter
@@ -1493,7 +1493,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 					if( pCommand && ps->Data && ( ( pCommand->flags & TF_RELAY ) == TF_RELAY ) )
 					{
 						if( gbTrace )
-							SystemLog( WIDE("Data is relayed.") );
+							SystemLog( "Data is relayed." );
 						EnqueLink( &ps->Data->Output, pCommand );
 						continue;
 					}
@@ -1505,10 +1505,10 @@ int ProcessSentients( THREAD_ID ThreadID )
 							if( ps->Command->flags.Closed )
 							{
 								if( gbTrace )
-									SystemLog( WIDE("End of input, device is closed.") );
+									SystemLog( "End of input, device is closed." );
 								if( !DestroyDataPath( ps->Command ) )
 								{
-									SystemLog( WIDE("Device will not close, releasing sentience") );
+									SystemLog( "Device will not close, releasing sentience" );
 									break;
 								}
 								continue;
@@ -1517,7 +1517,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 					}
 					else
 					{
-						lprintf( WIDE("Okay got data to result to input.") );
+						lprintf( "Okay got data to result to input." );
 						if( pCommand )
 						{
 							SetIndirect( ps->MacroInputVar, pCommand );
@@ -1546,9 +1546,9 @@ int ProcessSentients( THREAD_ID ThreadID )
 					!ps->flags.macro_input /*&&  // /INPUT command has been issued...
 					!ps->flags.macro_suspend*/ ) // flag prevents any macro processing
 				{
-					//lprintf( WIDE("%s No input command - check for a macro command..."), GetText( GetName( ps->Current ) ) );
+					//lprintf( "%s No input command - check for a macro command...", GetText( GetName( ps->Current ) ) );
 					pms = ps->CurrentMacro = (PMACROSTATE)PeekData( &ps->MacroStack );
-					//SystemLog( WIDE("Checking for macro....") );
+					//SystemLog( "Checking for macro...." );
 					if( ps->flags.resume_run && pms && pms->state.flags.macro_suspend )
 					{
 						ps->flags.resume_run = 0;
@@ -1560,7 +1560,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 					{
 						PLIST pCommands;
 						uint32_t ticks;
-						//SystemLog( WIDE("Found a macro to run...") );
+						//SystemLog( "Found a macro to run..." );
 						//SystemLog( GetText( GetName( pms->pMacro ) ) );
 						if( !pms->state.flags.macro_delay
 							|| ( (ticks=GetTickCount()) >= pms->state.flags.data.delay_end ) )
@@ -1570,35 +1570,35 @@ int ProcessSentients( THREAD_ID ThreadID )
 								ps->CurrentMacro->state.flags.data.delay_end -= ticks;
 								pms->state.flags.macro_delay = FALSE;
 							}
-							//SystemLog( WIDE("Getting a normal command...") );
+							//SystemLog( "Getting a normal command..." );
 							if( ( pCommands = pms->pMacro->pCommands ) )
 							{
 								if( pms->nCommand < pms->pMacro->nCommands )
 								{
-									//SystemLog( WIDE("Macro has commands to do...") );
-									//_lprintf( 0, WIDE("pCommands->pNode[pms->nCommand=%d]=%p"), pms->nCommand, pCommands->pNode[pms->nCommand] );
+									//SystemLog( "Macro has commands to do..." );
+									//_lprintf( 0, "pCommands->pNode[pms->nCommand=%d]=%p", pms->nCommand, pCommands->pNode[pms->nCommand] );
  									pCommand = (PTEXT)pCommands->pNode[pms->nCommand];
 									ppCommand = (PTEXT*)(pCommands->pNode + pms->nCommand);
 									pms->nCommand++;
 								}
 								else
 								{
-									//SystemLog( WIDE("Macro has ended... getting the last command.") );
+									//SystemLog( "Macro has ended... getting the last command." );
 									// end macro most probably ?!
 									ppCommand = (PTEXT*)(pCommands->pNode + pms->pMacro->nCommands - 1);
 									pCommand = (*ppCommand);
 								}
 							}
 							//else
-							//	SystemLog( WIDE("Macro has no commands?") );
+							//	SystemLog( "Macro has no commands?" );
 							// _this pCommand is static and must remain.
-							//lprintf( WIDE("Do not free this...") );
+							//lprintf( "Do not free this..." );
 							bFree = FALSE;
 						}
 						else
 						{
 							// hmm woke up too soon, reschedule timer.
-							//SystemLog( WIDE("Woke up too soon?? huh?") );
+							//SystemLog( "Woke up too soon?? huh?" );
 							if( !ps->flags.scheduled )
 							{
 								AddTimerEx( pms->state.flags.data.delay_end - ticks, 0, TimerWake, (uintptr_t)ps );
@@ -1619,14 +1619,14 @@ int ProcessSentients( THREAD_ID ThreadID )
 						// if macro_suspend is set.
 						// /suspend can be used to wait for a /on close event to wake up and resume closing the data path
 
-						//SystemLog( WIDE("Uhmm No command...") );
+						//SystemLog( "Uhmm No command..." );
 						if( ps->Data ) // cannot wait if data channel is not open.
 						{
 							if( ps->Data->Read )
 								ps->Data->Read( ps->Data );
 							if( !IsQueueEmpty( &ps->Data->Input ) )
 							{
-								lprintf( WIDE("Queue is not empty now, we may proceed and get the data.") );
+								lprintf( "Queue is not empty now, we may proceed and get the data." );
 								pms->state.flags.bInputWait = FALSE;
 							}
 							else // queue is empty...
@@ -1635,7 +1635,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 									// go ahead and close it?
 									pms->state.flags.bInputWait = FALSE;
 									//DestroyDataPath( ps->Data );
-									//InvokeBehavior( WIDE("Close"), ps->Current, ps, NULL );
+									//InvokeBehavior( "Close", ps->Current, ps, NULL );
 								}
 						}
 						else // can't wait for input that's never going to come.
@@ -1654,7 +1654,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 				if( pCommand ) // got command from main queue or from a macro.
 				{
 					//if( gbTrace )
-					//	SystemLog( WIDE("Okay finally - we have a command...") );
+					//	SystemLog( "Okay finally - we have a command..." );
 					if( ps->flags.commanded )
 					{
 						ps->flags.prompt = FALSE; // prompt invalid...
@@ -1684,7 +1684,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 /*
 						if( ps->pToldBy && ps->pToldBy->flags.waiting_for_someone )
 						{
-							lprintf( WIDE("Completed a command, waking the waiter...") );
+							lprintf( "Completed a command, waking the waiter..." );
 							ps->pToldBy->flags.waiting_for_someone = 0;
 							WakeAThread( ps->pToldBy );
 						}
@@ -1700,7 +1700,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 							DebugBreak(); // hey starting ANOTHER recording.....
 						if( !ps->pRecord && pRecording )
 						{
-							lprintf( WIDE("---------RECORD ------------") );
+							lprintf( "---------RECORD ------------" );
 							ps->pRecord = pRecording; // restore...
 						}
 					}
@@ -1713,10 +1713,10 @@ int ProcessSentients( THREAD_ID ThreadID )
 							if( pms )
 							{
 								if( gbTrace )
-									SystemLog( WIDE("Macro has ended.") );
+									SystemLog( "Macro has ended." );
 								if( pms->state.flags.bFindLabel )
 								{
-									DECLTEXT( msg, WIDE("Label definition is missing...") );
+									DECLTEXT( msg, "Label definition is missing..." );
 									EnqueLink( &ps->Command->Output
 												, SegAppend( SegCreateIndirect((PTEXT)&msg)
 															  , SegDuplicate( pms->state.flags.data.pLabel ) ) );
@@ -1724,11 +1724,11 @@ int ProcessSentients( THREAD_ID ThreadID )
 
 								if( pms->state.flags.bFindEndIf )
 								{
-									S_MSG( ps, WIDE("Endif definition is missing...") );
+									S_MSG( ps, "Endif definition is missing..." );
 								}
 								if( pms->state.flags.bFindElse )
 								{
-									S_MSG( ps, WIDE("ELSE definition is missing...") );
+									S_MSG( ps, "ELSE definition is missing..." );
 								}
 								if( pms->StopEvent )
 									pms->StopEvent( pms->psv_StopEvent, pms );
@@ -1749,8 +1749,8 @@ int ProcessSentients( THREAD_ID ThreadID )
 							}
 							else
 							{
-								S_MSG( ps, WIDE("Macro dissappeared?") );
-								lprintf( WIDE("Macro dissappeared?") );
+								S_MSG( ps, "Macro dissappeared?" );
+								lprintf( "Macro dissappeared?" );
 							}
 						}
 						//else there's a macro, it's running, and all is cool.
@@ -1761,7 +1761,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 					}
 				}
 				//else
-				//	SystemLog( WIDE("No command from macro... or input.") );
+				//	SystemLog( "No command from macro... or input." );
 			}
 			else
 			{
@@ -1770,7 +1770,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 						ps->Data &&
 						( line = (PTEXT)DequeLink( &ps->Command->Input ) ) )
 				{
-					//lprintf( WIDE("Relayed output - add n...") );
+					//lprintf( "Relayed output - add n..." );
 					n++;
 					EnqueLink( &ps->Data->Output, line );
 				}
@@ -1783,10 +1783,10 @@ int ProcessSentients( THREAD_ID ThreadID )
 			  || pms->state.flags.macro_suspend) )// not running a macro
 		{
 			// automatic Data_input relay to Command_output
-			//lprintf( WIDE("Starting to read the datapath... %p"), pms );
+			//lprintf( "Starting to read the datapath... %p", pms );
 			if( ps->Data->Read )
 				ps->Data->Read( ps->Data );
-			//lprintf( WIDE("Done with read might have a macro now... %p"), PeekData( &ps->MacroStack ) );
+			//lprintf( "Done with read might have a macro now... %p", PeekData( &ps->MacroStack ) );
 			// if a new macro has started - mark N by 1 to indicate that
 			// something was processed.... but don't eat the data
 			// the macro may want it.
@@ -1804,7 +1804,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 			{
 				PTEXT pIn;
 				//if( gbTrace )
-				//	lprintf( WIDE("Read data, no macro running, auto relay mode...") );
+				//	lprintf( "Read data, no macro running, auto relay mode..." );
 				n++;
 				pIn = (PTEXT)DequeLink( &ps->Data->Input );
 				EnqueLink( &ps->Command->Output, pIn );
@@ -1816,16 +1816,16 @@ int ProcessSentients( THREAD_ID ThreadID )
 						&& _pdp->flags.Closed )
 				{
 					if( gbTrace )
-						lprintf( WIDE("datapath is closed... closing...") );
+						lprintf( "datapath is closed... closing..." );
 					DestroyDataPath( ps->Data );
 					if( _pdp == ps->Data )
 					{
-						lprintf( WIDE("Macro was busy, try getting a command, it's stuck from closing...") );
+						lprintf( "Macro was busy, try getting a command, it's stuck from closing..." );
 						break;
 					}
 				}
 				if( _pdp && !_pdp->flags.Closed )
-					InvokeBehavior( WIDE("Close"), ps->Current, ps, NULL );
+					InvokeBehavior( "Close", ps->Current, ps, NULL );
 			}
 		}
 
@@ -1847,21 +1847,21 @@ int ProcessSentients( THREAD_ID ThreadID )
 					if( gbTrace )
 					{
 						if( bEmpty )
-							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)command output empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
+							xlprintf(LOG_NOISE+1)( "%s(%s)command output empty, call write.", GetText(GetName( ps->Current )), GetText( pdp->pName ) );
 						//else
-						//	xlprintf(LOG_NOISE+1)( WIDE("%s(%s)command output not empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
+						//	xlprintf(LOG_NOISE+1)( "%s(%s)command output not empty, call write.", GetText(GetName( ps->Current )), GetText( pdp->pName ) );
 					}
 					if( pdp->Write )
 					{
 						// write has a result something like
 						// the number of messages written?
 						if( !pdp->Write( pdp ) )
-							//lprintf( WIDE("Will call write one more time? : %s"), pdp->flags.bWriteAgain?WIDE("Yes"):WIDE("No") );
+							//lprintf( "Will call write one more time? : %s", pdp->flags.bWriteAgain?"Yes":"No" );
 							break;
 					}
 					else
 					{
-						xlprintf(LOG_NOISE+1)( WIDE("Outbound command path has no write method.  Data will not move, releasing data.") );
+						xlprintf(LOG_NOISE+1)( "Outbound command path has no write method.  Data will not move, releasing data." );
 						LineRelease( (PTEXT)DequeLink( &pdp->Output ) );
 					}
 				}
@@ -1873,7 +1873,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 			while( pdp )
 			{
 				LOGICAL bEmpty;
-				//Log( WIDE("Moving data on data path out...") );
+				//Log( "Moving data on data path out..." );
 				while( (!(bEmpty=IsQueueEmpty( &pdp->Output )) || pdp->flags.bWriteAgain ) )
 				{
 					if( bEmpty && pdp->flags.bWriteAgain )
@@ -1883,9 +1883,9 @@ int ProcessSentients( THREAD_ID ThreadID )
 					n++;
 					if( gbTrace )
 						if( bEmpty )
-							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)Data output empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
+							xlprintf(LOG_NOISE+1)( "%s(%s)Data output empty, call write.", GetText(GetName( ps->Current )), GetText( pdp->pName ) );
 						else
-							xlprintf(LOG_NOISE+1)( WIDE("%s(%s)Data output not empty, call write."), GetText(GetName( ps->Current )), GetText( pdp->pName ) );
+							xlprintf(LOG_NOISE+1)( "%s(%s)Data output not empty, call write.", GetText(GetName( ps->Current )), GetText( pdp->pName ) );
 					if( pdp->Write )
 					{
 						if( !pdp->Write( pdp ) )
@@ -1895,7 +1895,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 					}
 					else
 					{
-						xlprintf(LOG_NOISE+1)( WIDE("Outbound data path has no write method.  Data will not move, releasing data.") );
+						xlprintf(LOG_NOISE+1)( "Outbound data path has no write method.  Data will not move, releasing data." );
 						LineRelease( (PTEXT)DequeLink( &pdp->Output ) );
 					}
 				}
@@ -1967,7 +1967,7 @@ uintptr_t CPROC ObjectProcessThread( PTHREAD thread )
 		}
 		else
 		{
-			//Log( WIDE("Sleeping forever... should be events laying around...") );
+			//Log( "Sleeping forever... should be events laying around..." );
 			while( LockedExchange( &updating_queues, 1 ) )
 				Relinquish();
 			RelinkThing( sleeping, pMyThread );
@@ -1975,7 +1975,7 @@ uintptr_t CPROC ObjectProcessThread( PTHREAD thread )
 			WakeableSleep(5000 /*SLEEP_FOREVER*/); // 20 cycles a second idle...
 		}
 	}
-	Log( WIDE("Found out we're to exit - so we do.") );
+	Log( "Found out we're to exit - so we do." );
 	Release( UnlinkThing( pMyThread ) );
 	return 0;
 }
@@ -1999,7 +1999,7 @@ CORE_PROC( void, WakeAThreadEx )( PSENTIENT ps DBG_PASS )
 	// well - _this should for the most part reduce executing threads, and
 	// threads go to sleep permanently now, so a thread's existance is
 // low impact.
-	//lprintf( WIDE("Waking a thread...")DBG_FORMAT DBG_RELAY );
+	//lprintf( "Waking a thread..."DBG_FORMAT DBG_RELAY );
 	if( ps )
 	{
 				ps->ProcessLock = 0; // someone woke this up.  Do something.
@@ -2124,7 +2124,7 @@ void UserInputThread( void )
 		p = burst( command );
 		if( p )
 		{
-//		 printf( WIDE("enquing command...\n"));
+//		 printf( "enquing command...\n");
 			EnqueLink( &global.PLAYER->Command->Input, p );
 		}
 		LineRelease( command );
@@ -2135,11 +2135,11 @@ void OutputText( PTEXT pText )
 {
 	if( pText && GetTextSize( pText ) )
 	{
-		fprintf( stderr, WIDE("%s"), GetText( pText ) );
+		fprintf( stderr, "%s", GetText( pText ) );
 	}
 	else
 	{
-		fprintf( stderr, WIDE("\n") );
+		fprintf( stderr, "\n" );
 	}
 }
 
@@ -2172,8 +2172,8 @@ int ConsoleWrite( PDATAPATH pdp )
 		lines++;
 		if( lines >= nLines )
 		{
-			DECLTEXT( msg95, WIDE("Press any key to continue") );
-			DECLTEXT( msg, WIDE("Press return to continue") );
+			DECLTEXT( msg95, "Press any key to continue" );
+			DECLTEXT( msg, "Press return to continue" );
 			// double spaces if prior input was NO_RETURN with return postfix
 			// although it might not have any return and.... BLAH
 			OutputText( NULL ); // newline prefix...
@@ -2302,17 +2302,17 @@ void Startup( TEXTCHAR *lpCmdLine )
 			SetPriorityClass( GetCurrentProcess(), dwPriority );
 		}
 		//if( b95 )
-		//	Log( WIDE("Running on a windows 9x type system...") );
+		//	Log( "Running on a windows 9x type system..." );
 		//else
-		//	Log( WIDE("Running on a windows NT type system...") );
+		//	Log( "Running on a windows NT type system..." );
 		{
 			TEXTCHAR pMyLoadPath[256];
 			TEXTCHAR *truncname;
 			HMODULE mylib = LoadLibrary( _WIDE(TARGETNAME) );
 			if( !GetModuleFileName( mylib, pMyLoadPath, sizeof( pMyLoadPath ) ) )
 			{
-				lprintf( WIDE("Not compiled correctly!  You didn't set targetname to my name, so I don't know where I'm running.") );
-				StrCpy( pMyLoadPath, WIDE(".") );
+				lprintf( "Not compiled correctly!  You didn't set targetname to my name, so I don't know where I'm running." );
+				StrCpy( pMyLoadPath, "." );
 			}
 			// this is a warning in C (?) ...
 			// in C++ there's two different functions with dfiferent results.
@@ -2326,25 +2326,25 @@ void Startup( TEXTCHAR *lpCmdLine )
 		}
 #else
 		nice(20);
-		Log( WIDE("Running on a unix like type system...") );
+		Log( "Running on a unix like type system..." );
 #endif
-		InitSpace( lpCmdLine?lpCmdLine:WIDE("") ); // no command line.
+		InitSpace( lpCmdLine?lpCmdLine:"" ); // no command line.
 #ifdef __ANDROID__
-		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), WIDE("%s"), GetProgramPath() );
+		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), "%s", GetProgramPath() );
 #else
-		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), WIDE("%s/%s"), GetProgramPath()
-					, WIDE("plugins") );
+		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), "%s/%s", GetProgramPath()
+					, "plugins" );
 #endif
-		Log1( WIDE("Loading plugins from: %s"), pMyPluginPath );
+		Log1( "Loading plugins from: %s", pMyPluginPath );
 		LoadPlugins( pMyPluginPath );
 		if( StrCmp( pMyPluginPath, core_load_path ) )
 		{
-			Log1( WIDE("Loading plugins from: %s"), core_load_path );
+			Log1( "Loading plugins from: %s", core_load_path );
 			LoadPlugins( core_load_path );
 		}
 
 		GetCurrentPath( pMyPath, sizeof( pMyPath) );
-		Log1( WIDE("Setting internal path to for scripts: %s"), pMyPath );
+		Log1( "Setting internal path to for scripts: %s", pMyPath );
 
 		RegisterCommands( NULL, NULL, 0 );
 
@@ -2356,13 +2356,13 @@ void Startup( TEXTCHAR *lpCmdLine )
 			global.PLAYER = CreateAwareness( global.THE_VOID );
 			UnlockAwareness( global.PLAYER );
 
-			//DoCommandf( global.PLAYER, WIDE("/debug") );
-			//DoCommandf( global.PLAYER, WIDE("/echo /script macros") );
-			DoCommandf( global.PLAYER, WIDE("/script macros") );
+			//DoCommandf( global.PLAYER, "/debug" );
+			//DoCommandf( global.PLAYER, "/echo /script macros" );
+			DoCommandf( global.PLAYER, "/script macros" );
 		}
-		//Log( WIDE("Start one sentience...") );
+		//Log( "Start one sentience..." );
 		WakeAThread( NULL );
-		//Log( WIDE("Who Am I?") );
+		//Log( "Who Am I?" );
 		pMainThread = MakeThread();
 		Began = TRUE;
 	}
@@ -2376,13 +2376,13 @@ void Cleanup( void )
 		cleaned = 1;
 		pMainThread = NULL;
 		UnmakeThread();
-		Log( WIDE("Allowing threads to exit gracefully - wake them up first.") );
+		Log( "Allowing threads to exit gracefully - wake them up first." );
 		while( sleeping )
 		{
 			WakeAThread( NULL );
 			Relinquish();
 		}
-		lprintf( WIDE("Woke all sleepers.") );
+		lprintf( "Woke all sleepers." );
 		// allow object processing threads to exit gracefully...
 		while( processing )
 			Relinquish();
@@ -2455,7 +2455,7 @@ static uintptr_t CPROC DekwareThread( PTHREAD thread )
 	// now wait forever.
 	while(!gbExitNow) // main program's idle loop - do nothing other than wait...
 	{
-		Log( WIDE("Goodnight!") );
+		Log( "Goodnight!" );
 		WakeableSleep( SLEEP_FOREVER );
 	}
 	//Cleanup();
@@ -2476,7 +2476,7 @@ ATEXIT( EndDekwareSpace )
 }
 
 #ifdef __cplusplus
-extern WIDE("C")
+extern "C"
 #endif
 #ifdef _WIN32
 __declspec(dllexport)
@@ -2489,12 +2489,12 @@ int CPROC Begin( TEXTCHAR *lpCmdLine, int bCommand )
 	// we may have command line arguments; call startup
 	Startup( strchr( lpCmdLine, ' ' ));
 
-	if( !StrStr( lpCmdLine, WIDE("-tsr" ) ) )
+	if( !StrStr( lpCmdLine, "-tsr" ) )
 	{
 		// now wait forever.
 		while(!gbExitNow) // main program's idle loop - do nothing other than wait...
 		{
-			Log( WIDE("Goodnight!") );
+			Log( "Goodnight!" );
 			WakeableSleep( SLEEP_FOREVER );
 		}
 		lprintf( "TODO: Work on Cleanup()..." );
@@ -2515,7 +2515,7 @@ namespace dekware
 			//SetSystemLog( SYSLOG_AUTO_FILE, 0 );
 			Startup( NULL );
 
-			//Begin( WIDE(""), FALSE );
+			//Begin( "", FALSE );
 		}
 	static TEXTCHAR *GetString( System::String ^str )
 {
@@ -2537,9 +2537,9 @@ namespace dekware
 						  ch, sizeInBytes,
 						  wch, sizeInBytes);
 	//if (err != 0)
-	//	printf_s(WIDE("wcstombs_s  failed!\n"));
+	//	printf_s("wcstombs_s  failed!\n");
 	return ch;
-	 //printf_s(WIDE("%s\n"), ch);
+	 //printf_s("%s\n", ch);
 }
 
 	};

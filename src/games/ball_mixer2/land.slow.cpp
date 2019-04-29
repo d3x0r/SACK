@@ -49,7 +49,7 @@ enum { UP
 #define TERRAIN_MAIN_SOURCE
 #include "local.h"
 
-EasyRegisterControlWithBorder( WIDE("Terrain View"), 0, BORDER_NONE );
+EasyRegisterControlWithBorder( "Terrain View", 0, BORDER_NONE );
 
 struct world_body_map bodymap;
 
@@ -162,7 +162,7 @@ struct band {
 												 , &bodymap.near_areas[s+3][c][r][3].x
 												 , &bodymap.near_areas[s+3][c][r][3].y
 												);
-						lprintf( WIDE("%d,%d,%d is near(3) %d,%d,%d")
+						lprintf( "%d,%d,%d is near(3) %d,%d,%d"
 								 , s+3, c, r
 								 , bodymap.near_areas[s+3][c][r][3].s
 								 , bodymap.near_areas[s+3][c][r][3].x
@@ -349,7 +349,7 @@ struct band {
 			for( r = 0; r < HEX_SIZE; r++ )
 				for( c = 0; c < HEX_SIZE; c++ )
 				{
-					fprintf( file, WIDE("%g,%g,%g,\n"), patches[s].grid[c][r][0], patches[s].grid[c][r][1], patches[s].grid[c][r][2] );
+					fprintf( file, "%g,%g,%g,\n", patches[s].grid[c][r][0], patches[s].grid[c][r][1], patches[s].grid[c][r][2] );
 
 				}
 
@@ -364,15 +364,15 @@ struct band {
 				for( c = 0; c < HEX_SIZE; c++ )
 				{
 					int p;
-               fprintf( file, WIDE("\t\t") );
+               fprintf( file, "\t\t" );
 					for( p = 0; p < 4; p++ )
 					{
 						// indexes of points for squares are...
 						int idx;
                   idx = s * HEX_SIZE * HEX_SIZE + c * HEX_SIZE + r;
-						fprintf( file, WIDE("%d,%d,%d,%d,-1,"), idx, idx + 1, idx + HEX_SIZE, idx + HEX_SIZE + 1 );
+						fprintf( file, "%d,%d,%d,%d,-1,", idx, idx + 1, idx + HEX_SIZE, idx + HEX_SIZE + 1 );
 					}
-               fprintf( file, WIDE("\n") );
+               fprintf( file, "\n" );
 				}
 	}
 } band;
@@ -521,20 +521,20 @@ struct pole{
 						// beyond the first square.
 
 						ConvertPolarToRect( level, col, &ax, &ay );
-						if(bLog)lprintf( WIDE("level %d,%d is base square %d,%d"), level, col, ax, ay );
+						if(bLog)lprintf( "level %d,%d is base square %d,%d", level, col, ax, ay );
 						if( level < (HEX_SIZE-1) )
 						{
 							ConvertPolarToRect( level, col, &x, &y );
 							patches[p].near_area[x][y][0].s = p;
 							patches[p].near_area[x][y][0].x = x;
 							patches[p].near_area[ax][ay][0].y = y;
-							if(bLog)lprintf( WIDE("level %d col %d is near (0) %d,%d,%d"), level, col, p, x, y );
+							if(bLog)lprintf( "level %d col %d is near (0) %d,%d,%d", level, col, p, x, y );
 
 							ConvertPolarToRect( level-1, col, &x, &y );
 							patches[p].near_area[ax][ay][1].s = p;
 							patches[p].near_area[ax][ay][1].x = x;
 							patches[p].near_area[ax][ay][1].y = y;
-							if(bLog)lprintf( WIDE("level %d col %d is near (1) %d,%d,%d"), level, col, p, x, y );
+							if(bLog)lprintf( "level %d col %d is near (1) %d,%d,%d", level, col, p, x, y );
 
 							if( col )
 							{
@@ -545,14 +545,14 @@ struct pole{
 								patches[p].near_area[ax][ay][2].s = p;
 								patches[p].near_area[ax][ay][2].x = x;
 								patches[p].near_area[ax][ay][2].y = y;
-								if(bLog)lprintf( WIDE("level %d col %d is near (2) %d,%d"), level, col, x, y );
+								if(bLog)lprintf( "level %d col %d is near (2) %d,%d", level, col, x, y );
 								if( col == (level*2) )
 								{	
 									ConvertPolarToRect( level-1, 0, &x, &y );
 									patches[p].near_area[ax][ay][3].s = (p+1)%3;
 									patches[p].near_area[ax][ay][3].x = y;
 									patches[p].near_area[ax][ay][3].y = x;
-									if(bLog)lprintf( WIDE("level %d col %d is near (3) %d,%d"), level, col, x, y );
+									if(bLog)lprintf( "level %d col %d is near (3) %d,%d", level, col, x, y );
 								}
 								else
 								{
@@ -562,7 +562,7 @@ struct pole{
 									patches[p].near_area[ax][ay][3].s = p;
 									patches[p].near_area[ax][ay][3].x = x;
 									patches[p].near_area[ax][ay][3].y = y;
-									if(bLog)lprintf( WIDE("level %d col %d is near (3) %d,%d"), level, col, x, y );
+									if(bLog)lprintf( "level %d col %d is near (3) %d,%d", level, col, x, y );
 								}
 							}
 							else
@@ -571,13 +571,13 @@ struct pole{
 								patches[p].near_area[ax][ay][2].s = (p+2)%3;
 								patches[p].near_area[ax][ay][2].x = x;
 								patches[p].near_area[ax][ay][2].y = y;
-								if(bLog)lprintf( WIDE("level %d col %d is near (2) %d,%d,%d"), level, col, (p+2)%3, x, y );
+								if(bLog)lprintf( "level %d col %d is near (2) %d,%d,%d", level, col, (p+2)%3, x, y );
 
 								ConvertPolarToRect( level, (level)*2, &x, &y );
 								patches[p].near_area[ax][ay][3].s = (p+2)%3;
 								patches[p].near_area[ax][ay][3].x = x;
 								patches[p].near_area[ax][ay][3].y = y;
-								if(bLog)lprintf( WIDE("level %d col %d is near (3) %d,%d,%d"), level, col, (p+2)%3, x, y );
+								if(bLog)lprintf( "level %d col %d is near (3) %d,%d,%d", level, col, (p+2)%3, x, y );
 							}
 
 							}
@@ -593,35 +593,35 @@ struct pole{
 						int ax, ay;
 						ConvertPolarToRect( level, col, &ax, &ay );
 #ifdef POLE_NEAR_AREA_DEBUG
-						lprintf( WIDE("level %d,%d is base square %d,%d"), level, col, ax, ay );
+						lprintf( "level %d,%d is base square %d,%d", level, col, ax, ay );
 #endif
 							ConvertPolarToRect( level, col, &x, &y );
 							patches[p].near_area[ax][ay][0].s = p;
 							patches[p].near_area[ax][ay][0].x = x;
 							patches[p].near_area[ax][ay][0].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (0) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (0) %d,%d", level, col, x, y );
 #endif
 							ConvertPolarToRect( level, col+1, &x, &y );
 							patches[p].near_area[ax][ay][1].s = p;
 							patches[p].near_area[ax][ay][1].x = x;
 							patches[p].near_area[ax][ay][1].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (1) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (1) %d,%d", level, col, x, y );
 #endif
 							ConvertPolarToRect( level-1, col-1, &x, &y );
 							patches[p].near_area[ax][ay][2].s = p;
 							patches[p].near_area[ax][ay][2].x = x;
 							patches[p].near_area[ax][ay][2].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (2) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (2) %d,%d", level, col, x, y );
 #endif
 							ConvertPolarToRect( level, col-1, &x, &y );
 							patches[p].near_area[ax][ay][3].s = p;
 							patches[p].near_area[ax][ay][3].x = x;
 							patches[p].near_area[ax][ay][3].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (3) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (3) %d,%d", level, col, x, y );
 #endif
 					}
 					for( col = level+1; col <= level*2; col++ )
@@ -630,7 +630,7 @@ struct pole{
 						int ax, ay;
 						ConvertPolarToRect( level, col, &ax, &ay );
 #ifdef POLE_NEAR_AREA_DEBUG
-						lprintf( WIDE("level %d,%d is base square %d,%d"), level, col, ax, ay );
+						lprintf( "level %d,%d is base square %d,%d", level, col, ax, ay );
 #endif
 						// square 1, upper left, considering that up and left are totally relative 
 						// beyond the first square.
@@ -642,7 +642,7 @@ struct pole{
 							patches[p].near_area[ax][ay][0].x = x;
 							patches[p].near_area[ax][ay][0].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (0) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (0) %d,%d", level, col, x, y );
 #endif
 
 							ConvertPolarToRect( level-1, col-2, &x, &y );
@@ -650,7 +650,7 @@ struct pole{
 							patches[p].near_area[ax][ay][3].x = x;
 							patches[p].near_area[ax][ay][3].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (3) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (3) %d,%d", level, col, x, y );
 #endif
 
 							if( col != level*2 )
@@ -663,7 +663,7 @@ struct pole{
 								patches[p].near_area[ax][ay][1].x = x;
 								patches[p].near_area[ax][ay][1].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (1) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (1) %d,%d", level, col, x, y );
 #endif
 								ConvertPolarToRect( level-1, col -1
 										, &x
@@ -672,7 +672,7 @@ struct pole{
 								patches[p].near_area[ax][ay][2].x = x;
 								patches[p].near_area[ax][ay][2].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (2) %d,%d"), level, col, x, y );
+							lprintf( "level %d col %d is near (2) %d,%d", level, col, x, y );
 #endif
 							}
 							else
@@ -685,7 +685,7 @@ struct pole{
 								patches[p].near_area[ax][ay][1].x = x;
 								patches[p].near_area[ax][ay][1].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-							lprintf( WIDE("level %d col %d is near (1) %d,%d,%d"), level, col, (p+1)%3, x, y );
+							lprintf( "level %d col %d is near (1) %d,%d,%d", level, col, (p+1)%3, x, y );
 #endif
 
 								ConvertPolarToRect( level-1, 0
@@ -695,7 +695,7 @@ struct pole{
 								patches[p].near_area[ax][ay][2].x = x;
 								patches[p].near_area[ax][ay][2].y = y;
 #ifdef POLE_NEAR_AREA_DEBUG
-								lprintf( WIDE("level %d col %d is near (2) %d,%d,%d"), level, col, (p+1)%3, x, y );
+								lprintf( "level %d col %d is near (2) %d,%d,%d", level, col, (p+1)%3, x, y );
 #endif
 							}
 							}
@@ -777,7 +777,7 @@ struct pole{
 					}
 				}
 			}
-			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") ); }
+			//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( "Pole Patch Excepted." ); }
 		}
 	}
 
@@ -837,7 +837,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 			for( level = 1; level <= HEX_SIZE; level++ )
 			{
 				VECTOR v1,v2;
-				//if( bLog )lprintf( WIDE("---------") );
+				//if( bLog )lprintf( "---------" );
 				//if( 0)  {
 
 				glBegin( GL_TRIANGLE_STRIP );
@@ -872,13 +872,13 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 				}
 				glEnd();
 				//}
-				if( bLog )lprintf( WIDE("---------") );
+				if( bLog )lprintf( "---------" );
 				//glFlush();
 				glBegin( GL_TRIANGLE_STRIP );
 				for( c = level; c <= level*2; c++ )
 				{
 					ConvertPolarToRect( level, c, &x, &y );
-					//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c,level);
+					//if( bLog )lprintf( "Render corner %d,%d", 2*level-c,level);
 					scale( v1, pole_patch.patches[s].grid[x][y], SPHERE_SIZE + patch[north].height[s][x][y] );
 					if( north )
 						v1[1] = -v1[1];
@@ -891,7 +891,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 					{
 
 						ConvertPolarToRect( level-1, c-1, &x, &y );
-						//if( bLog )lprintf( WIDE("Render corner %d,%d"), 2*level-c-1,level-1);
+						//if( bLog )lprintf( "Render corner %d,%d", 2*level-c-1,level-1);
 						scale( v1, pole_patch.patches[s].grid[x][y], SPHERE_SIZE + patch[north].height[s][x][y] );
 						if( north )
 							v1[1] = -v1[1];
@@ -907,7 +907,7 @@ int RenderPolePatch( PHEXPATCH patch, int north )
 		}
 			glPopMatrix();
 	}
-	//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( WIDE("Pole Patch Excepted.") );return 0; }
+	//__except(EXCEPTION_EXECUTE_HANDLER){ lprintf( "Pole Patch Excepted." );return 0; }
 	return 1;
 }
 
@@ -1131,7 +1131,7 @@ int DrawSphereThing( PHEXPATCH patch )
 void MateEdge( PHEXPATCH patch, int section1, int section2 )
 {
 	int n;
-	lprintf( WIDE("mating %d and %d"), section1, section2 );
+	lprintf( "mating %d and %d", section1, section2 );
 	switch( section1 )
 	{
 	case 0:
@@ -1192,7 +1192,7 @@ void MateEdge( PHEXPATCH patch, int section1, int section2 )
 void MateAnotherEdge( PHEXPATCH patch1, PHEXPATCH patch2, int section1, int section2 )
 {
 	int n;
-	lprintf( WIDE("mating %d and %d"), section1, section2 );
+	lprintf( "mating %d and %d", section1, section2 );
 	switch( section1 )
 	{
 	case 0:
@@ -1295,7 +1295,7 @@ void DistortPatch( PHEXPATCH patch
 	{
 		int p;
 		int near_points[6][3];
-		//lprintf( WIDE("Delta is %g"), delta );
+		//lprintf( "Delta is %g", delta );
 		for( p = 0; p < 6; p++ )
 		{
 			near_points[p][0] = x + delta_table[section][p][0];
@@ -1314,7 +1314,7 @@ void DistortPatch( PHEXPATCH patch
 				near_points[1][1] = 1;
 				if( x == (HEX_SIZE-1) )
 				{
-					lprintf( WIDE("this isn't right... might not be...") );
+					lprintf( "this isn't right... might not be..." );
 					near_points[2][2] = 2;
 					near_points[2][0] = 1;
 					near_points[2][1] = 1;
@@ -1439,10 +1439,10 @@ static int EvalExcept( int n )
 	switch( n )
 	{
 	case 		STATUS_ACCESS_VIOLATION:
-		lprintf( WIDE("Access violation - OpenGL layer at this moment..") );
+		lprintf( "Access violation - OpenGL layer at this moment.." );
 		return EXCEPTION_EXECUTE_HANDLER;
 	default:
-		lprintf( WIDE("Filter unknown : %08X"), n );
+		lprintf( "Filter unknown : %08X", n );
 
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
@@ -1518,7 +1518,7 @@ static void CPROC LoadColors( uintptr_t psv, PSI_CONTROL pc )
 	}
 }
 
-static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( "Terrain View" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
    int n;
 	l.frame = CreateFrame( "Light Slider Controls", 0, 0, 1024, 768, 0, NULL );
@@ -1534,7 +1534,7 @@ static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSF
 	l.numbers.image = LoadImageFile( "NewBallTextGrid.png" );
 	ParseImage( l.numbers.image, 10, 10 );
 	{
-		PTRANSFORM transform = CreateNamedTransform( WIDE("render.camera") );
+		PTRANSFORM transform = CreateNamedTransform( "render.camera" );
 		Translate( transform, 500, 800, 0 );
 		RotateAbs( transform, M_PI, 0, 0 );
 		RotateRel( transform, 0, -M_PI/2, 0 );
@@ -1552,15 +1552,15 @@ static uintptr_t OnInit3d( WIDE( "Terrain View" ) )( PMatrix projection, PTRANSF
 	return 1;
 }
 
-static void OnBeginDraw3d( WIDE( "Terrain View" ) )( uintptr_t psv )
+static void OnBeginDraw3d( "Terrain View" )( uintptr_t psv )
 {
    glShadeModel( GL_FLAT );
 	//l.numbers.texture = ReloadTexture( l.numbers.image, 0 );
 	l.numbers.texture = ReloadMultiShadedTexture( l.numbers.image, 0, AColor( 5, 5, 5, 32), Color( 12, 12, 83 ), Color( 0, 170, 170 ) );
 }
 
-static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvView )
-//static int OnDrawCommon( WIDE("Terrain View") )( PSI_CONTROL pc )
+static void OnDraw3d( "Terrain View" )( uintptr_t psvView )
+//static int OnDrawCommon( "Terrain View" )( PSI_CONTROL pc )
 {
 	//PRENDERER pRend = GetFrameRenderer( pc );
 	MATRIX m;
@@ -1622,7 +1622,7 @@ static void OnDraw3d( WIDE("Terrain View") )( uintptr_t psvView )
 	}
 						__except( EvalExcept( GetExceptionCode() ) )
 					{
-						lprintf( WIDE(" ...") );
+						lprintf( " ..." );
 						;
 					}
 #endif

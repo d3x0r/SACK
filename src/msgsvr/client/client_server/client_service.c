@@ -62,7 +62,7 @@ static int CPROC MessageHandler( PSERVICE_ROUTE source, uint32_t MsgID
 	case MSG_MateEnded:
 		return TRUE;
 	case MSG_MateStarted:
-		printf( WIDE("Client %p is connecting to %s\n"), source, params );
+		printf( "Client %p is connecting to %s\n", source, params );
 		result[0] = 256;
 		return TRUE;
 	case MSG_EventUser:
@@ -74,7 +74,7 @@ static int CPROC MessageHandler( PSERVICE_ROUTE source, uint32_t MsgID
 		MemCpy( result, params, param_length );
 		return TRUE;
 	default:
-		printf( WIDE("Received message %d from %p\n"), MsgID, source );
+		printf( "Received message %d from %p\n", MsgID, source );
 		break;
 	}
 	return FALSE;
@@ -93,20 +93,20 @@ SERVER_FUNCTION functions[] =
 
 SaneWinMain( argc, argv )
 {
-	printf( WIDE("Usage: %s <first service>\n"), GetProgramName() );
-	printf( WIDE("   <if no service, registers 'Test Service 1'  Service has two methods\n") );
-	printf( WIDE("     method 1 - reply with same data\n") );
-	printf( WIDE("     method 2 - reply with same data after wiating 333 milliseconds\n") );
-	printf( WIDE("      (uses function table registration)\n") );
-	printf( WIDE("   <if service, registers  Service has two methods\n") );
-	printf( WIDE("     method 1 - reply with same data\n") );
-	printf( WIDE("     method 2 - reply with same data after wiating 1000 milliseconds\n") );
-	printf( WIDE("      (uses handler function registration)\n") );
-	printf( WIDE("both attempt to dump current service log...\n") );
+	printf( "Usage: %s <first service>\n", GetProgramName() );
+	printf( "   <if no service, registers 'Test Service 1'  Service has two methods\n" );
+	printf( "     method 1 - reply with same data\n" );
+	printf( "     method 2 - reply with same data after wiating 333 milliseconds\n" );
+	printf( "      (uses function table registration)\n" );
+	printf( "   <if service, registers  Service has two methods\n" );
+	printf( "     method 1 - reply with same data\n" );
+	printf( "     method 2 - reply with same data after wiating 1000 milliseconds\n" );
+	printf( "      (uses handler function registration)\n" );
+	printf( "both attempt to dump current service log...\n" );
 
 	if( argc < 2 )
 	{
-		if( BaseID = RegisterService( WIDE("Test Service 1"), functions, NUM_FUNCTIONS ) )
+		if( BaseID = RegisterService( "Test Service 1", functions, NUM_FUNCTIONS ) )
 		{
 			// dumps to log.
 			DumpServiceList();
@@ -114,12 +114,12 @@ SaneWinMain( argc, argv )
 				WakeableSleep( SLEEP_FOREVER );
 		}
 		else
-			printf( WIDE("Sorry, could not register a service.") );
+			printf( "Sorry, could not register a service." );
 	}
 	else
 	{
 		TEXTCHAR logname[64];
-		snprintf( logname, 64, WIDE("client_service_%s.log"), argv[1] );
+		snprintf( logname, 64, "client_service_%s.log", argv[1] );
 		SetSystemLog( SYSLOG_FILENAME, logname );
 		if( BaseID = RegisterServiceHandler( argv[1], MessageHandler ) )
 		{
@@ -129,7 +129,7 @@ SaneWinMain( argc, argv )
 				WakeableSleep( SLEEP_FOREVER );
 		}
 		else
-			printf( WIDE("Sorry, could not register a service.") );
+			printf( "Sorry, could not register a service." );
 	}
 	return 1;
 }

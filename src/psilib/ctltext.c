@@ -52,7 +52,7 @@ void SetControlAlignment( PSI_CONTROL pc, int align )
 static int CPROC OnDrawCommon( STATIC_TEXT_NAME )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PTEXTCONTROL, STATIC_TEXT, ptc, pc );
-	//lprintf( WIDE("drawing a text control...") );
+	//lprintf( "drawing a text control..." );
 	if( ptc )
 	{
 		Image surface = GetControlSurface( pc );

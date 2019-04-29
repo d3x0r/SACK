@@ -29,8 +29,8 @@ static void CPROC RequestTimer( PRESPONCEHANDLER prh )
 {
   	if( prh && prh->saAsk )
   	{
-		Log1( WIDE("Sending request for WHERE RU service %d"), prh->port );
-      Log8( WIDE(" %03d,%03d,%03d,%03d,%03d,%03d,%03d,%03d"),
+		Log1( "Sending request for WHERE RU service %d", prh->port );
+      Log8( " %03d,%03d,%03d,%03d,%03d,%03d,%03d,%03d",
        				*(((unsigned char *)prh->saAsk)+0),
        				*(((unsigned char *)prh->saAsk)+1),
        				*(((unsigned char *)prh->saAsk)+2),
@@ -39,10 +39,10 @@ static void CPROC RequestTimer( PRESPONCEHANDLER prh )
        				*(((unsigned char *)prh->saAsk)+5),
        				*(((unsigned char *)prh->saAsk)+6),
        				*(((unsigned char *)prh->saAsk)+7) );
-		SendUDPEx( requestor, (void*)WIDE("WHERE RU"), 8, prh->saAsk );
+		SendUDPEx( requestor, (void*)"WHERE RU", 8, prh->saAsk );
 	}
 	else
-		Log( WIDE("Failed to find who to ask them...") );
+		Log( "Failed to find who to ask them..." );
 }
 
 struct handler_params {
@@ -63,7 +63,7 @@ static void CPROC UDPMessage( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 {
 	if( !buffer )
 	{
-		Log( WIDE("Allocate Buffer for UDP Discovery messages...") );
+		Log( "Allocate Buffer for UDP Discovery messages..." );
 		buffer = Allocate( 1024 );
 	}
 	else
@@ -73,7 +73,7 @@ static void CPROC UDPMessage( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 			PRESPONCEHANDLER prh = responders;
 			uint16_t port;// = GetNetworkLong( pc, GNL_PORT );
 			GetAddressParts( sa, NULL, &port );
-			//Log( WIDE("Received a responce from service!") );
+			//Log( "Received a responce from service!" );
 			while( prh && (prh->port != port ) )
 			{
 				prh = prh->next;
@@ -84,13 +84,13 @@ static void CPROC UDPMessage( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR 
 				param.sa = sa;
 				param.prh = prh;
 				param.received =0;
-				//Log( WIDE("Found a service handler, calling it...") );
+				//Log( "Found a service handler, calling it..." );
 				ThreadTo( InvokeHandler, (uintptr_t)&param );
 				while( !param.received )
 					Relinquish();
 			}
 			//else
-			//   Log( WIDE("Could not find service handler") );
+			//   Log( "Could not find service handler" );
 		}
 	}
 	ReadUDP( pc, buffer, 1024 );
@@ -111,7 +111,7 @@ NETSERVICE_PROC( int, DiscoverServiceEx )( int netwide
 
 	if( !requestor )
 	{
-		Log( WIDE("Failed to open service requestor port.") );
+		Log( "Failed to open service requestor port." );
 		return 0;
 	}
 	if( netwide )
@@ -144,7 +144,7 @@ NETSERVICE_PROC( void, EndDiscoverService )( int port )
 {
 	PRESPONCEHANDLER handler;
 	handler = responders;
-	Log1( WIDE("Ending discover %d"), port );
+	Log1( "Ending discover %d", port );
 	while( handler )
 	{
 		if( handler->port == port )

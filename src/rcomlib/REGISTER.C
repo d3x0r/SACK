@@ -26,7 +26,7 @@ BOOL OpenRegister( void )
    if( hr ) return FALSE;
 
    iRegister->put_PerUser(FALSE);
-   iRegister->raw_SetCompany_C( 1, WIDE("ADA Software Development") );
+   iRegister->raw_SetCompany_C( 1, "ADA Software Development" );
 
    return TRUE;
 }
@@ -48,13 +48,13 @@ BOOL IsRegistered( char *pProgramID, char *pProgramName )
       iRegister->get_Result( &i );
       if( i == 4 )
       {
-         if( SimpleQuery( WIDE("Please enter your E-Mail address to register this"), pMail, sizeof( pMail ) ) )
+         if( SimpleQuery( "Please enter your E-Mail address to register this", pMail, sizeof( pMail ) ) )
          {
             iRegister->raw_SetClientName_C( pMail );
          }
          else
          {
-            MessageBox( NULL, WIDE("You will not be able to use this product if you do not enter a name."), WIDE("Registration Incomplete"), MB_OK );
+            MessageBox( NULL, "You will not be able to use this product if you do not enter a name.", "Registration Incomplete", MB_OK );
             return FALSE;
          }
       }
@@ -91,7 +91,7 @@ int RegisterProduct( char *pResult, char *pProductID, char *pProductName )
    bOkay = TRUE;
    if( OpenRegister() )
    {
-      if( !IsRegistered( WIDE("ADA0001"), WIDE("Nettool\\Ping Control") ) )
+      if( !IsRegistered( "ADA0001", "Nettool\\Ping Control" ) )
       {
          //ShowRegister();  // set to show the dialog...
          if( !DoRegister() )
@@ -102,7 +102,7 @@ int RegisterProduct( char *pResult, char *pProductID, char *pProductName )
             {
             case -1:
                bOkay = FALSE;
-               MessageBox( NULL, WIDE("Registration server is apparently offline, or you are not connected to the internet.  Continuing in sub-evaluation mode"), WIDE("Registration"), MB_OK  );
+               MessageBox( NULL, "Registration server is apparently offline, or you are not connected to the internet.  Continuing in sub-evaluation mode", "Registration", MB_OK  );
                break;
             default:
                {
@@ -110,22 +110,22 @@ int RegisterProduct( char *pResult, char *pProductID, char *pProductName )
                   BYTE byError[256];
                   bOkay = FALSE;
                   GetRegisterError( (char *)byError );
-                  wsprintf( (char*)byMsg, WIDE("%d - %s"), i, byError );
-                  MessageBox( NULL, (char*)byMsg, WIDE("Registration Error"), MB_OK );
+                  wsprintf( (char*)byMsg, "%d - %s", i, byError );
+                  MessageBox( NULL, (char*)byMsg, "Registration Error", MB_OK );
                }
             }
          }
          else
-            if( !IsRegistered( WIDE("ADA0001"), WIDE("Nettool\\Ping Control") ) )
+            if( !IsRegistered( "ADA0001", "Nettool\\Ping Control" ) )
             {
-               strcpy( pResult, WIDE("Impossible to register Software.\n") );
+               strcpy( pResult, "Impossible to register Software.\n" );
                bOkay = FALSE;
             }
       }
    }
    else
    {
-      strcpy( pResult, WIDE("Could not register program.\n") );
+      strcpy( pResult, "Could not register program.\n" );
       bOkay = FALSE;
    }
    return bOkay;

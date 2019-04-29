@@ -68,62 +68,62 @@ void XMLCALL start_tags( void *UserData
 	p[0] = NULL;
 	p[1] = NULL;
 	//CTEXTSTR *p = atts;
-	//lprintf( WIDE("begin a tag %s with..."), name );
+	//lprintf( "begin a tag %s with...", name );
 	while( SetP( p, atts ) )
 	{
-		//lprintf( WIDE("begin a attrib %s=%s with..."), p[0], p[1] );
-		if( strcmp( p[0], WIDE("ID") ) == 0 )
+		//lprintf( "begin a attrib %s=%s with...", p[0], p[1] );
+		if( strcmp( p[0], "ID" ) == 0 )
 		{
 			ID = (int)IntCreateFromText( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("IDName") ) == 0 )
+		else if( strcmp( p[0], "IDName" ) == 0 )
 		{
 			IDName = StrDup( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("border") ) == 0 )
+		else if( strcmp( p[0], "border" ) == 0 )
 		{
 			border_set = TRUE;
 			//border = (int)IntCreateFromText( p[1] );
-			tscanf( p[1], WIDE("%") _32fx, &border );
+			tscanf( p[1], "%" _32fx, &border );
 		}
-		else if( strcmp( p[0], WIDE("size") ) == 0 )
+		else if( strcmp( p[0], "size" ) == 0 )
 		{
-			tscanf( p[1], WIDE("%") _32f WIDE(",") WIDE("%") _32f, &width, &height );
+			tscanf( p[1], "%" _32f "," "%" _32f, &width, &height );
 		}
-		else if( StrCmp( p[0], WIDE("position") ) == 0 )
+		else if( StrCmp( p[0], "position" ) == 0 )
 		{
-			tscanf( p[1], WIDE("%") _32f WIDE(",") WIDE("%") _32f, &x, &y );
+			tscanf( p[1], "%" _32f "," "%" _32f, &x, &y );
 		}
-		else if( strcmp( p[0], WIDE("caption") ) == 0 )
+		else if( strcmp( p[0], "caption" ) == 0 )
 		{
 			caption = StrDup( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("font") ) == 0 )
+		else if( strcmp( p[0], "font" ) == 0 )
 		{
 			font = StrDup( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("PrivateData") ) == 0 )
+		else if( strcmp( p[0], "PrivateData" ) == 0 )
 		{
 			control_data = StrDup( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("type") ) == 0 )
+		else if( strcmp( p[0], "type" ) == 0 )
 		{
 			type = StrDup( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("edit") ) == 0 )
+		else if( strcmp( p[0], "edit" ) == 0 )
 		{
 			edit_set = 1;
 			disable_edit = (int)IntCreateFromText( p[1] );
 		}
 		else
 		{
-			lprintf( WIDE("Unknown Att Pair = (%s=%s)"), p[0], p[1] );
+			lprintf( "Unknown Att Pair = (%s=%s)", p[0], p[1] );
 		}
 		atts += 2;
 	}
 	if( IDName )
 	{
-		//lprintf( WIDE( "Making a control... %s %s %s" ), type?type:WIDE("notype"), caption?caption:WIDE("nocatpion"), IDName );
+		//lprintf( "Making a control... %s %s %s", type?type:"notype", caption?caption:"nocatpion", IDName );
 		pc = MakeNamedCaptionedControlByName( userdata->pc
 														, type
 														, x, y
@@ -136,7 +136,7 @@ void XMLCALL start_tags( void *UserData
 	}
 	else
 	{
-		//lprintf( WIDE( "Making a control... %s %s" ), type?type:WIDE("notype"), caption?caption:WIDE("nocatpion") );
+		//lprintf( "Making a control... %s %s", type?type:"notype", caption?caption:"nocatpion" );
 		pc = MakeNamedCaptionedControl( userdata->pc
 														, type
 														, x, y
@@ -150,7 +150,7 @@ void XMLCALL start_tags( void *UserData
 		else
 			SetCommonBorder( pc, border );
 	}
-	//lprintf( WIDE( "control done..." ) );
+	//lprintf( "control done..." );
 	if( pc )
 	{
 		if( edit_set )
@@ -214,7 +214,7 @@ PSI_CONTROL ParseXMLFrameEx( POINTER buffer, size_t size DBG_PASS )
 	if( !g.MyImageInterface )
 		return NULL;
 #endif
-	//lprintf( WIDE("Beginning parse frame...") );
+	//lprintf( "Beginning parse frame..." );
 #if DBG_AVAILABLE
 	current_loading.pFile = pFile;
 	current_loading.nLine = nLine;
@@ -230,11 +230,11 @@ PSI_CONTROL ParseXMLFrameEx( POINTER buffer, size_t size DBG_PASS )
 	MemCpy( xml_buffer, buffer, size );
 	if( XML_ParseBuffer( userdata.xp, size, TRUE ) == XML_STATUS_ERROR )
 	{
-		lprintf( WIDE( "Error in XML parse %d  at line %")_size_f WIDE("(%")_size_f WIDE(")" ), XML_GetErrorCode( userdata.xp ),XML_GetCurrentLineNumber( userdata.xp ), XML_GetCurrentColumnNumber( userdata.xp ) );
+		lprintf( "Error in XML parse %d  at line %"_size_f "(%"_size_f ")", XML_GetErrorCode( userdata.xp ),XML_GetCurrentLineNumber( userdata.xp ), XML_GetCurrentColumnNumber( userdata.xp ) );
 	}
 	XML_ParserFree( userdata.xp );
 	userdata.xp = 0;
-	//lprintf( WIDE("Parse done...") );
+	//lprintf( "Parse done..." );
 	return l.frame;
 }
 
@@ -273,7 +273,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 			buffer = Allocate( size );
 			sack_fread( buffer, size, 1, file_read );
 			sack_fclose( file_read );
-			//lprintf( WIDE( "loaded frame blob %s %d %p" ), file, size, buffer );
+			//lprintf( "loaded frame blob %s %d %p", file, size, buffer );
 		}
 		else
 			buffer = NULL;
@@ -287,7 +287,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 		size = 0;
 		{
 			INDEX group;
-			FILE *file_read = sack_fopen( group = GetFileGroup( WIDE( "PSI Frames" ), WIDE( "./frames" ) ), file, "rb" );
+			FILE *file_read = sack_fopen( group = GetFileGroup( "PSI Frames", "./frames" ), file, "rb" );
 			if( file_read )
 			{
 				size = sack_fsize( file_read );

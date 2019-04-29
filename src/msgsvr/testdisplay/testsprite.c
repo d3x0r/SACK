@@ -19,7 +19,7 @@ void CPROC RedrawTwo( uintptr_t psvUser, PRENDERER renderer )
 {
 	Image image = GetDisplayImage( renderer );
    //ClearImage( image );
-	Log2( WIDE("Update image two (0,0)-(%d,%d)"), image->width, image->height );
+	Log2( "Update image two (0,0)-(%d,%d)", image->width, image->height );
 	rotate_scaled_sprite( image, sprite, 100, 0x10000, 0x10000 );
 	{
 		int n;

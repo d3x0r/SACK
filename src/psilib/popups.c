@@ -67,11 +67,11 @@ PSI_PROC( PMENU, CreatePopup )( void )
 #endif
 #ifndef __NO_OPTIONS__
 	local_popup_data.flags.bCustomMenuEnable = SACK_GetProfileIntEx( GetProgramName()
-																						, WIDE("SACK/PSI/menus/Use Custom Popups")
+																						, "SACK/PSI/menus/Use Custom Popups"
 																						, local_popup_data.flags.bCustomMenuEnable
 																						, TRUE );
 	local_popup_data.flags.bDisplayBoundless = SACK_GetProfileIntEx( GetProgramName()
-																						, WIDE("SACK/PSI/menus/Do not clip to display")
+																						, "SACK/PSI/menus/Do not clip to display"
 																						, local_popup_data.flags.bDisplayBoundless
 																						, TRUE );
 #endif
@@ -159,7 +159,7 @@ int CalculateMenuItems( PMENU pm )
         + CHECK_WIDTH
 							  + (hassubmenu?SUB_WIDTH:0));
 #ifdef DEBUG_MENUS
-	 lprintf( WIDE("Resize menu to %d,%d"), pm->width, pm->height );
+	 lprintf( "Resize menu to %d,%d", pm->width, pm->height );
 #endif
 	 SizeCommon( pm->image, pm->width //+ FrameBorderX( pm->image->BorderType )
 				  , pm->height //+ FrameBorderY( pm->image, pm->image->BorderType, NULL )
@@ -271,7 +271,7 @@ void RenderItem( PMENU pm, PMENUITEM pmi )
                                 , basecolor(pm->image)[SHADE] );
 		  }
 #ifdef DEBUG_DRAW_MENU
-		  lprintf( WIDE("Item is %s"),pmi->flags.bChecked?"checked":"unchecked" );
+		  lprintf( "Item is %s",pmi->flags.bChecked?"checked":"unchecked" );
 #endif
         if( pmi->flags.bChecked )
         {
@@ -310,7 +310,7 @@ void RenderUnselect( PMENU pm, PMENUITEM pmi )
 	do_hline( pm->surface, pmi->baseline, 0, pm->width, basecolor(pm->image)[NORMAL] );
 	do_hline( pm->surface, pmi->baseline+pmi->height+2, 0, pm->width, basecolor(pm->image)[NORMAL] );
 #ifdef DEBUG_DRAW_MENU
-	lprintf( WIDE("Render unselect") );
+	lprintf( "Render unselect" );
 #endif
 	//SmudgeCommon( pm->image );
 }
@@ -324,7 +324,7 @@ void RenderSelect( PMENU pm, PMENUITEM pmi )
 	do_vline( pm->surface, 0, pmi->baseline, pmi->baseline + pmi->height + 2, basecolor(pm->image)[SHADE] );
 	do_vline( pm->surface, pm->width-1, pmi->baseline, pmi->baseline + pmi->height + 2, basecolor(pm->image)[HIGHLIGHT] );
 #ifdef DEBUG_DRAW_MENU
-	lprintf( WIDE("Render select") );
+	lprintf( "Render select" );
 #endif
 	//SmudgeCommon( pm->image );
 }
@@ -340,7 +340,7 @@ static int CPROC RenderItems( PSI_CONTROL pc )
 	PMENUITEM pmi;
 	if( pm )
 	{
-		//lprintf( WIDE("rendering a menu popup control thing...") );
+		//lprintf( "rendering a menu popup control thing..." );
 		ClearImageTo( pc->Surface, basecolor(pm->image)[NORMAL] );
 		pm->surface = pc->Surface;
 		if( !pm->surface )
@@ -382,8 +382,8 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 {
 	PMENUITEM pmi;
 #ifdef DEBUG_DRAW_MENU
-	lprintf( WIDE("Mouse on menu... %d,%d %x"), x, y, b );
-	lprintf( WIDE("menu is %d by %d and has %p"), pm->width, pm->height, pm->child );
+	lprintf( "Mouse on menu... %d,%d %x", x, y, b );
+	lprintf( "menu is %d by %d and has %p", pm->width, pm->height, pm->child );
 #endif
 	pmi = pm->items;
 	if( x < 0 || y < 0 ||
@@ -392,7 +392,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 		PMENU parent = pm->parent;
 		if( parent )
 		{
-			//lprintf( WIDE("Menu has a parent... check to see if it's still there.") );
+			//lprintf( "Menu has a parent... check to see if it's still there." );
 			MenuMouse( parent
 						, pm->display.x - parent->display.x + x
 						, pm->display.y - parent->display.y + y
@@ -403,12 +403,12 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 		else
 		{
 #ifdef DEBUG_DRAW_MENU
-			lprintf( WIDE("%08lx %08lx"), b, last_buttons );
+			lprintf( "%08lx %08lx", b, last_buttons );
 #endif
 			if( MAKE_FIRSTBUTTON( b, last_buttons ) )
 			{
 #ifdef DEBUG_DRAW_MENU
-				lprintf( WIDE("Click outside menu- close menu.") );
+				lprintf( "Click outside menu- close menu." );
 #endif
 				UnshowMenu( pm );
 			}
@@ -424,7 +424,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 		if( y >= pmi->baseline &&
 			 y <= (pmi->baseline + (int)pmi->height) )
 		{
-			//lprintf( WIDE("Finding item which has %d in it... starts at %d?"), y, pmi->baseline );
+			//lprintf( "Finding item which has %d in it... starts at %d?", y, pmi->baseline );
 			if( pmi->flags.bSeparator )
 			{
 				if( pm->selected )
@@ -462,7 +462,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 				//RenderSelect( pm, pmi );
 				SmudgeCommon( pm->image );
 #ifdef DEBUG_DRAW_MENU
-				lprintf( WIDE("New selected %p"), pmi );
+				lprintf( "New selected %p", pmi );
 #endif
 				pmi->flags.bSelected = TRUE;
 				pm->selected = pmi;
@@ -489,7 +489,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 		if( x < 0 || x >= pm->width ||
 		    y < 0 || y >= pm->height )
 		{
-			Log2( WIDE("Aborting Menu %") _32fs WIDE(" %") _32fs WIDE(""), x, y );
+			Log2( "Aborting Menu %" _32fs " %" _32fs "", x, y );
 			pm->flags.abort = TRUE;
 			UnshowMenu( pm );
 		}
@@ -499,7 +499,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
     {
 		if( pmi && !pmi->flags.bSubMenu )
 		{
-			Log1( WIDE("Returning Selection: %08") _PTRSZVALfx WIDE(""), pmi->value.ID );
+			Log1( "Returning Selection: %08" _PTRSZVALfx "", pmi->value.ID );
 			pm->selection = pmi->value.ID;
 			UnshowMenu( pm );
 			last_buttons = b;
@@ -513,7 +513,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 	return TRUE;
 }
 
-static int OnMouseCommon( WIDE("Popup Menu") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
+static int OnMouseCommon( "Popup Menu" )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PMENU, menu.TypeID, pm, pc );
 	if( pm )
@@ -530,13 +530,13 @@ void UnshowMenu( PMENU pm )
 {
 	PMENU passed_result = NULL;
 #ifdef DEBUG_MENUS
-	Log1( WIDE("Menu to unshow=%p"), pm );
+	Log1( "Menu to unshow=%p", pm );
 #endif
 	if( !pm || !pm->flags.tracking )
 	{
 #ifdef DEBUG_MENUS
 		if( pm )
-			lprintf( WIDE("No pm or not tracking this menu why am I unshowing?") );
+			lprintf( "No pm or not tracking this menu why am I unshowing?" );
 #endif
 		return;
 	}
@@ -546,7 +546,7 @@ void UnshowMenu( PMENU pm )
 	if( pm->selected )
 		pm->selected->flags.bSelected = FALSE;
 #ifdef DEBUG_MENUS
-	lprintf( WIDE("Popup release capture") );
+	lprintf( "Popup release capture" );
 #endif
 	CaptureCommonMouse( pm->image, 0 ); // release ownership...
 	//pm->flags.abort = TRUE;
@@ -555,13 +555,13 @@ void UnshowMenu( PMENU pm )
 		if( pm->flags.abort )
 		{
 #ifdef DEBUG_MENUS
-			Log( WIDE("Aboring the parent.") );
+			Log( "Aboring the parent." );
 #endif
 			pm->parent->flags.abort = TRUE;
 		}	
 		//pm->flags.abort = TRUE; // if we weren't previously we still need this..
 #ifdef DEBUG_MENUS
-		Log1( WIDE("Telling parent that selection is: %08")_32fx WIDE(""), pm->selection );
+		Log1( "Telling parent that selection is: %08"_32fx "", pm->selection );
 #endif
 		if( ( ( pm->parent->selection = pm->selection ) != -1 )
 			|| pm->flags.abort)
@@ -570,7 +570,7 @@ void UnshowMenu( PMENU pm )
 		pm->parent->child = NULL;
 		// give ownership back to parent...
 #ifdef DEBUG_MENUS
-		lprintf( WIDE("Popup capture capture") );
+		lprintf( "Popup capture capture" );
 #endif
 
 		CaptureCommonMouse( pm->parent->image, 1 ); // grab ownership again...
@@ -578,7 +578,7 @@ void UnshowMenu( PMENU pm )
 #ifdef DEBUG_MENUS
 	else
 	{
-		Log1( WIDE("This menu doesn't have a parent? but this selection is %08")_PTRSZVALfx WIDE(""), pm->selection );
+		Log1( "This menu doesn't have a parent? but this selection is %08"_PTRSZVALfx "", pm->selection );
 	}
 #endif
 	HideControl( pm->image );
@@ -599,37 +599,37 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 {
 	ValidatedControlData( PMENU, menu.TypeID, pm, pc );
 #define LosingFocus  (!pc->flags.bFocused )
-	Log1( WIDE("Losing focus callback? %08") _32fx WIDE(""), bFocus );
+	Log1( "Losing focus callback? %08" _32fx "", bFocus );
 	if( !pm )
 	{
 		// if bFocus - refuse, if losefocus, accept.
 #ifdef DEBUG_MENUS
-		lprintf( WIDE("focus, but not on a menu?") );
+		lprintf( "focus, but not on a menu?" );
 #endif
 		return !bFocus;
 	}
 	if( !pm->flags.tracking )
 	{
 #ifdef DEBUG_MENUS
-		lprintf( WIDE("Not tracking this menu anymore - focus is irrelavant.") );
+		lprintf( "Not tracking this menu anymore - focus is irrelavant." );
 #endif
 		return !bFocus;
 	}
 	if( bFocus )
 	{
 		PSI_CONTROL child;
-		Log1( WIDE("Menu selection = %") _PTRSZVALfs WIDE(""), pm->selection );
+		Log1( "Menu selection = %" _PTRSZVALfs "", pm->selection );
 		if( pm->selection != -1 || pm->flags.abort )
 		{
 			if( pm->parent && pm->flags.abort )
 				pm->parent->flags.abort = TRUE;
-			Log1( WIDE("menu = %p Removing newly focused menu..."), pm );
+			Log1( "menu = %p Removing newly focused menu...", pm );
 			UnshowMenu( pm );
 			return TRUE;
 		}
 		//if( pm->image == LosingFocus )
 		//{
-		//	Log( WIDE("This menu is about ot get focus? but it lost it but...") );
+		//	Log( "This menu is about ot get focus? but it lost it but..." );
 		//	return;
 		//}
  		//if( pm->parent && ( pm->parent->image == LosingFocus )
@@ -643,7 +643,7 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 		child = pc;
 		while( child )
 		{
-			Log2( WIDE("Check  to see if child is gaining %p losing=%d "),
+			Log2( "Check  to see if child is gaining %p losing=%d ",
 			         child, LosingFocus );
          // actually LosingFocus is GainingFocus...
 			if( child )
@@ -652,7 +652,7 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 		}
 		if( !child )
 		{
-			Log( WIDE("Truly lost focus and children are not gaining.") );
+			Log( "Truly lost focus and children are not gaining." );
 			pm->flags.abort = TRUE;
 			UnshowMenu( pm );
 		}
@@ -661,7 +661,7 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 	{
 		if( pm && pm->selection != -1 )
 		{
-			Log( WIDE("Returning updated selection...") );
+			Log( "Returning updated selection..." );
 			UnshowMenu( pm );
 			return TRUE;
 		}
@@ -670,7 +670,7 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 			if( !pm->flags.bSubmenuOpen )
 			{
 #ifdef DEBUG_MENUS
-				lprintf( WIDE("Closing menu - lost focus, not to a child.") );
+				lprintf( "Closing menu - lost focus, not to a child." );
 #endif
 				pm->flags.abort = 1;
 				UnshowMenu( pm );
@@ -682,7 +682,7 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-CONTROL_REGISTRATION menu = { WIDE("Popup Menu")
+CONTROL_REGISTRATION menu = { "Popup Menu"
 									 , { { 94, 120 }, sizeof( MENU ), BORDER_NORMAL }
 									 , NULL // init menu... bare control - I guess attach a device
 									 , NULL
@@ -711,7 +711,7 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 	PSI_CONTROL display_parent;
 	if( pm->flags.showing )
 	{
-		lprintf( WIDE("Can only show one instance of a popup at a time.") );
+		lprintf( "Can only show one instance of a popup at a time." );
 		return;
 	}
 	pm->flags.tracking = TRUE;
@@ -719,12 +719,12 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 	pm->flags.abort = FALSE;
 	pm->selected = NULL; // nothing selected on initial draw...
 #ifdef DEBUG_MENUS
-	Log2( WIDE("ShowMenu %d,%d"), x, y );
+	Log2( "ShowMenu %d,%d", x, y );
 #endif
 	if( pm->flags.changed )
 	{
 #ifdef DEBUG_MENUS
-		lprintf( WIDE("Recalculate items") );
+		lprintf( "Recalculate items" );
 #endif
 		CalculateMenuItems( pm );
 	}
@@ -768,11 +768,11 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 
 	pm->surface = pm->image->Surface;
 #ifdef DEBUG_MENUS
-	lprintf( WIDE("do the reveal to compliemnt the hide?") );
+	lprintf( "do the reveal to compliemnt the hide?" );
 #endif
 	//RevealCommon( pm->image );
 	DisplayFrameOver( pm->image, display_parent );
-	lprintf( WIDE("Popup capture capture") );
+	lprintf( "Popup capture capture" );
 	CaptureCommonMouse( pm->image, 1 ); // grab ownership again...
 	pm->flags.showing = 1;
 
@@ -960,10 +960,10 @@ PSI_PROC( PMENUITEM, AppendPopupItem )( PMENU pm, int type, uintptr_t dwID, CPOI
 			last->next = pmi;
          pmi->me = &last->next;
 		}
-      //lprintf( WIDE("and mark changed...") );
+      //lprintf( "and mark changed..." );
 		pm->flags.changed = TRUE;
 	}
-   //lprintf( WIDE("Added new menu item...") );
+   //lprintf( "Added new menu item..." );
 	return pmi;
 	}
 #if !defined( DISABLE_NATIVE_POPUPS )
@@ -990,7 +990,7 @@ PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, uintptr_t dwID, uint32_t state 
 	if( !pm )
 		return NULL;
 #ifdef DEBUG_MENUS
-	lprintf( WIDE("updating an item %") _32f WIDE(" to %") _32fx, dwID, state );
+	lprintf( "updating an item %" _32f " to %" _32fx, dwID, state );
 #endif
 	if( state & MF_BYPOSITION )
 	{
@@ -1006,7 +1006,7 @@ PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, uintptr_t dwID, uint32_t state 
 				if( pmi->value.ID == dwID )
 				{
 #ifdef DEBUG_MENUS
-					lprintf( WIDE("Found item") );
+					lprintf( "Found item" );
 #endif
 					break;
 				}
@@ -1019,21 +1019,21 @@ PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, uintptr_t dwID, uint32_t state 
 		if( state & MF_CHECKED )
 		{
 #ifdef DEBUG_MENUS
-			lprintf( WIDE("checked") );
+			lprintf( "checked" );
 #endif
 			pmi->flags.bChecked = 1;
 		}
 		else
 		{
 #ifdef DEBUG_MENUS
-			lprintf( WIDE("unchecked") );
+			lprintf( "unchecked" );
 #endif
 			pmi->flags.bChecked = 0;
 		}
 				 if( pm->image )
 				 {
 #ifdef DEBUG_MENUS
-					 lprintf( WIDE("update item...") );
+					 lprintf( "update item..." );
 #endif
 					 RenderItem( pm, pmi );
 				 }
@@ -1058,21 +1058,21 @@ PSI_PROC( int, TrackPopup )( PMENU hMenuSub, PSI_CONTROL parent )
 		int selection;
 		if( !hMenuSub )
 		{
-			Log( WIDE("Invalid menu handle.") );
+			Log( "Invalid menu handle." );
 			return -1;
 		}
 		//GetMousePosition( &x, &y );
 		GetMouseState( &x, &y, &last_buttons );
 #ifdef DEBUG_MENUS
-		lprintf( WIDE("Mouse position: %")_32fs WIDE(", %")_32fs WIDE(" %p is the menu"), x, y, hMenuSub );
+		lprintf( "Mouse position: %"_32fs ", %"_32fs " %p is the menu", x, y, hMenuSub );
 #endif
 		if( hMenuSub->flags.showing || hMenuSub->flags.tracking )
 		{
 #ifdef DEBUG_MENUS
 			if( hMenuSub->flags.showing )
-				Log( WIDE("Already showing menu...") );
+				Log( "Already showing menu..." );
 			if( hMenuSub->flags.tracking )
-				Log( WIDE("Already tracking the menu...") );
+				Log( "Already tracking the menu..." );
 #endif
 			return -1;
 		}
@@ -1081,7 +1081,7 @@ PSI_PROC( int, TrackPopup )( PMENU hMenuSub, PSI_CONTROL parent )
 		ShowMenu( hMenuSub, x, y, TRUE, parent );
 		selection = (int)hMenuSub->selection;
 #ifdef DEBUG_MENUS
-		Log1( WIDE("Track popup return selection: %d"), selection );
+		Log1( "Track popup return selection: %d", selection );
 #endif
 		return selection;
 	}

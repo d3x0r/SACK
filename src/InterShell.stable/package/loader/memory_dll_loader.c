@@ -118,7 +118,7 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 						, source_nt_header->OptionalHeader.FileAlignment
 						);
 
-			lprintf( WIDE("Program version was %d.%d (is now %d.%d)")
+			lprintf( "Program version was %d.%d (is now %d.%d)"
 						, source_nt_header->OptionalHeader.MajorOperatingSystemVersion
 						, source_nt_header->OptionalHeader.MinorOperatingSystemVersion
 						, 4, 0
@@ -145,15 +145,15 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 				newSize = (source_section[n].VirtualAddress) + source_section[n].SizeOfRawData;
 				if( newSize > dwSize )
 					dwSize = newSize;
-				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".text"), sizeof( source_section[n].Name ) ) == 0 )
+				if( StrCmpEx( (char*)source_section[n].Name, ".text", sizeof( source_section[n].Name ) ) == 0 )
 				{
 					source_text_section = source_section + n;
 				}
-				if( StrCmpEx( (char*)source_section[n].Name, WIDE(".idata"), sizeof( source_section[n].Name ) ) == 0 )
+				if( StrCmpEx( (char*)source_section[n].Name, ".idata", sizeof( source_section[n].Name ) ) == 0 )
 				{
 					//source_import_section = source_section + n;
 				}
-				//if( StrCmpEx( (char*)source_section[n].Name, WIDE(".rdata"), sizeof( source_section[n].Name ) ) == 0 )
+				//if( StrCmpEx( (char*)source_section[n].Name, ".rdata", sizeof( source_section[n].Name ) ) == 0 )
 				//{
 				//}
 			}

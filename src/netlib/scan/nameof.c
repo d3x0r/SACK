@@ -14,7 +14,7 @@ int main( int argc, char **argv )
 {
 	if( argc < 1 )
 	{
-		printf( WIDE("Usage: %s <IP>\n"), argv[0] );
+		printf( "Usage: %s <IP>\n", argv[0] );
       return 1;
 	}
    if( NetworkWait(NULL,1,0) )
@@ -26,17 +26,17 @@ int main( int argc, char **argv )
 		if( phe )
 		{
          char **alias = phe->h_aliases;
-			printf( WIDE("%s %s"), argv[1], phe->h_name );
+			printf( "%s %s", argv[1], phe->h_name );
 			while( alias[0] )
 			{
-				printf( WIDE("or %s"), alias[0] );
+				printf( "or %s", alias[0] );
 				alias++;
 			}
-			printf( WIDE("\n") );
+			printf( "\n" );
          alias = phe->h_addr_list;
 			while( alias[0] )
 			{
-				printf( WIDE("%d.%d.%d.%d ")
+				printf( "%d.%d.%d.%d "
 						, alias[0][0]
 						, alias[0][1]
 						, alias[0][2]
@@ -46,10 +46,10 @@ int main( int argc, char **argv )
 			}
 		}
 		else
-         printf( WIDE("%s has no name\n"), argv[1] );
+         printf( "%s has no name\n", argv[1] );
 	}
 	else
-      printf( WIDE("Failed to enable network.") );
+      printf( "Failed to enable network." );
 	return 0;
 }
 

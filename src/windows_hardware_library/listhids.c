@@ -53,7 +53,7 @@ LOGICAL ListHids( ListHidsCallback lpCallback, uintptr_t psv )
 
 	GetVersionEx( &osvinfo );
 
-	lprintf( WIDE(" Platform ID: %d, Major Version: %d"), osvinfo.dwPlatformId, osvinfo.dwMajorVersion );
+	lprintf( " Platform ID: %d, Major Version: %d", osvinfo.dwPlatformId, osvinfo.dwMajorVersion );
 
 	switch( osvinfo.dwPlatformId )
 	{
@@ -110,7 +110,7 @@ LOGICAL ListHids( ListHidsCallback lpCallback, uintptr_t psv )
 /*
 static LOGICAL Win9xListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 {
-	return ScanEnumTree( WIDE( "ENUM" ), lpCallback, psv );
+	return ScanEnumTree( "ENUM", lpCallback, psv );
 }
 */
 
@@ -123,7 +123,7 @@ static LOGICAL WinNT40ListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 	TEXTSTR lpValueName = NULL;
 	TEXTSTR lpPortName = NULL;
 
-	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, WIDE( "HARDWARE\\DEVICEMAP\\SERIALCOMM" ), 0, KEY_READ,&hKey ) )
+	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM", 0, KEY_READ,&hKey ) )
 	{
 		// it is really strange that this key does not exist, but could happen in theory 
 		if( dwError == ERROR_FILE_NOT_FOUND ) dwError = 0;
@@ -173,7 +173,7 @@ static LOGICAL WinNT40ListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 
 		portinfo.lpPortName = lpPortName;
 		portinfo.lpFriendlyName = lpPortName; // no friendly name in NT 4.0 
-		portinfo.lpTechnology = WIDE(""); // this information is not available 
+		portinfo.lpTechnology = ""; // this information is not available 
 
 		if( !lpCallback( psv,&portinfo ) )
 		{
@@ -201,7 +201,7 @@ end:
 
 static LOGICAL Win2000ListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 {
-  return ScanEnumTree( WIDE( "SYSTEM\\CURRENTCONTROLSET\\ENUM" ), lpCallback, psv );
+  return ScanEnumTree( "SYSTEM\\CURRENTCONTROLSET\\ENUM", lpCallback, psv );
 }
 /*
 static LOGICAL WinCEListPorts( ListHidsCallback lpCallback, uintptr_t psv )
@@ -218,7 +218,7 @@ static LOGICAL WinCEListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 
 	portinfo.lpPortName = (TEXTSTR)malloc( 64 );
 
-	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, WIDE( "Drivers\\BuiltIn" ), 0, KEY_READ, &hKey ) )
+	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, "Drivers\\BuiltIn", 0, KEY_READ, &hKey ) )
 	{
 		// it is really strange that this key does not exist, but could happen in theory 
 		if( dwError == ERROR_FILE_NOT_FOUND )
@@ -237,7 +237,7 @@ static LOGICAL WinCEListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 			break;
 		}
 
-		if ( dwError = QueryStringValue( hkLevel1, WIDE( "PREFIX" ), &lpPortName ) ) 
+		if ( dwError = QueryStringValue( hkLevel1, "PREFIX", &lpPortName ) ) 
 		{
 			if( dwError == ERROR_FILE_NOT_FOUND )
 				continue; 
@@ -246,10 +246,10 @@ static LOGICAL WinCEListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 				break;
 		}
 
-		if ( StrCaseCmpEx( lpPortName, WIDE( "COM" ), 3 ) != 0 ) 
+		if ( StrCaseCmpEx( lpPortName, "COM", 3 ) != 0 ) 
 			continue; // We want only COM serial ports
 
-		if ( dwError = RegQueryValueEx( hkLevel1, WIDE( "INDEX" ), NULL, NULL, (LPBYTE)&index, &wordSize) ) 
+		if ( dwError = RegQueryValueEx( hkLevel1, "INDEX", NULL, NULL, (LPBYTE)&index, &wordSize) ) 
 		{
 			if( dwError == ERROR_FILE_NOT_FOUND ) 
 				continue; 
@@ -260,13 +260,13 @@ static LOGICAL WinCEListPorts( ListHidsCallback lpCallback, uintptr_t psv )
 
 		// Now "index" contains serial port number, we put it together with "COM"
 		// to format like "COM<index>"
-		snprintf( portinfo.lpPortName, sizeof( portinfo.lpPortName ), WIDE("COM%u"), index );		
+		snprintf( portinfo.lpPortName, sizeof( portinfo.lpPortName ), "COM%u", index );		
 
 		// Get friendly name
-		dwError = QueryStringValue( hkLevel1, WIDE( "FRIENDLYNAME" ), &lpFriendlyName );
-		portinfo.lpFriendlyName = dwError ? (TEXTSTR)WIDE( "" ) : lpFriendlyName;
+		dwError = QueryStringValue( hkLevel1, "FRIENDLYNAME", &lpFriendlyName );
+		portinfo.lpFriendlyName = dwError ? (TEXTSTR)"" : lpFriendlyName;
 
-		portinfo.lpTechnology = WIDE( "" ); // this information is not available 
+		portinfo.lpTechnology = ""; // this information is not available 
 
 		if( !lpCallback( psv, &portinfo ) )
 		{
@@ -378,7 +378,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 						goto end;
 				}
 
-				dwError = QueryStringValue( hkLevel3, WIDE( "HardwareID" ), &lpHid );
+				dwError = QueryStringValue( hkLevel3, "HardwareID", &lpHid );
 				if( dwError )
 				{
 					if( dwError == ERROR_FILE_NOT_FOUND )
@@ -393,7 +393,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 				}
 				
 				/*
-				dwError = QueryStringValue( hkLevel3, WIDE( "Class" ), &lpClass );
+				dwError = QueryStringValue( hkLevel3, "Class", &lpClass );
 				if( dwError )
 				{
 					if( dwError == ERROR_FILE_NOT_FOUND )
@@ -405,7 +405,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 						goto end;
 				}
 				*/
-				dwError = QueryStringValue( hkLevel3, WIDE( "ClassGUID" ), &lpClassGuid );
+				dwError = QueryStringValue( hkLevel3, "ClassGUID", &lpClassGuid );
 				if( dwError )
 				{
 					if( dwError == ERROR_FILE_NOT_FOUND )

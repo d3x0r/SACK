@@ -58,14 +58,14 @@ PSI_HTML5_CANVAS_PROC( void, AddResourceToCanvas )( HTML5Canvas, CTEXTSTR resour
  *       static int OnDrawToHTML("Control Name")(PSI_CONTROL, HTML5Canvas ){ }
  */
 #define OnDrawToHTML(name)  \
-	__DefineRegistryMethodP(PSI_PRELOAD_PRIORITY,PSI_ROOT_REGISTRY,_OnDrawCommon,WIDE("control"),name WIDE("/rtti"),WIDE("draw_to_canvas"),int,(PSI_CONTROL, HTML5Canvas ), __LINE__)
+	__DefineRegistryMethodP(PSI_PRELOAD_PRIORITY,PSI_ROOT_REGISTRY,_OnDrawCommon,"control",name "/rtti","draw_to_canvas",int,(PSI_CONTROL, HTML5Canvas ), __LINE__)
 
 /* define a callback which uses a HTML5Canvas collector to build javascipt to render the control.
  * example:
  *       static int OnMouseFromHTML("Control Name")(PSI_CONTROL, HTML5Canvas ){ }
  */
 #define OnMouseFromHTML(name)  \
-	__DefineRegistryMethodP(PSI_PRELOAD_PRIORITY,PSI_ROOT_REGISTRY,_OnDrawCommon,WIDE("control"),name WIDE("/rtti"),WIDE("draw"),int,(PSI_CONTROL, HTML5Canvas, int x, int y ), __LINE__)
+	__DefineRegistryMethodP(PSI_PRELOAD_PRIORITY,PSI_ROOT_REGISTRY,_OnDrawCommon,"control",name "/rtti","draw",int,(PSI_CONTROL, HTML5Canvas, int x, int y ), __LINE__)
 
 
 

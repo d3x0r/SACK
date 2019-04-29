@@ -26,7 +26,7 @@ extern "C" BOOL OpenRegister( void )
    if( hr ) return FALSE;
 
    iRegister->put_PerUser(FALSE);
-   iRegister->raw_SetCompany_C( 1, WIDE("ADA Software Development") );
+   iRegister->raw_SetCompany_C( 1, "ADA Software Development" );
 
    return TRUE;
 }
@@ -48,7 +48,7 @@ extern "C" int IsRegistered( char *pProgramID, char *pProgramName, BOOL bSilent 
       iRegister->get_Result( &i );
       if( i == 4 )
       {
-         if( !bSilent && SimpleQuery( WIDE("Please enter your E-Mail address to register this"), pMail, sizeof( pMail ) ) )
+         if( !bSilent && SimpleQuery( "Please enter your E-Mail address to register this", pMail, sizeof( pMail ) ) )
          {
             iRegister->raw_SetClientName_C( pMail );
             return 1;
@@ -56,14 +56,14 @@ extern "C" int IsRegistered( char *pProgramID, char *pProgramName, BOOL bSilent 
          else
          {
             if( !bSilent )
-               MessageBox( NULL, WIDE("You will not be able to use this product if you do not enter a name."), WIDE("Registration Incomplete"), MB_OK );
+               MessageBox( NULL, "You will not be able to use this product if you do not enter a name.", "Registration Incomplete", MB_OK );
             return 3;
          }
       }
       else if( i == 1 )
       {
          if( !bSilent )
-            MessageBox( NULL, WIDE("This product's evaluation period has expired.  ")
+            MessageBox( NULL, "This product's evaluation period has expired.  "
                            "Please contact it's manufacturers to find out how to get an unlimited version."
                            "Thank you for your continued use of this software", 
                            "Registration Expired", MB_OK );
@@ -72,7 +72,7 @@ extern "C" int IsRegistered( char *pProgramID, char *pProgramName, BOOL bSilent 
       else if( i == 2 )
       {
          if( !bSilent )
-            MessageBox( NULL, WIDE("This product has found an invalid Registration code."), WIDE("Registration Error"), MB_OK );
+            MessageBox( NULL, "This product has found an invalid Registration code.", "Registration Error", MB_OK );
          return 4;
       }
       else
@@ -126,7 +126,7 @@ extern "C" int RegisterProduct( char *pResult, char *pProductID, char *pProductN
                {
                case -1:
                   bOkay = FALSE;
-                  MessageBox( NULL, WIDE("Registration server is apparently offline, or you are not connected to the internet.  Continuing in sub-evaluation mode"), WIDE("Registration"), MB_OK  );
+                  MessageBox( NULL, "Registration server is apparently offline, or you are not connected to the internet.  Continuing in sub-evaluation mode", "Registration", MB_OK  );
                   break;
                case 0: // ERROR_SUCCESS (no error)
                case 1404: // result from LIC command 1400 - 'Lic - "
@@ -138,8 +138,8 @@ extern "C" int RegisterProduct( char *pResult, char *pProductID, char *pProductN
                      BYTE byError[256];
                      bOkay = FALSE;
                      GetRegisterError( (char *)byError );
-                     wsprintf( (char*)byMsg, WIDE("%d - %s"), i, byError );
-                     MessageBox( NULL, (char*)byMsg, WIDE("Registration Error"), MB_OK );
+                     wsprintf( (char*)byMsg, "%d - %s", i, byError );
+                     MessageBox( NULL, (char*)byMsg, "Registration Error", MB_OK );
                   }
                   break;
                }
@@ -147,7 +147,7 @@ extern "C" int RegisterProduct( char *pResult, char *pProductID, char *pProductN
             else
                if( !IsRegistered( pProductID, pProductName, FALSE ) )
                {
-                  strcpy( pResult, WIDE("Impossible to register Software.\n") );
+                  strcpy( pResult, "Impossible to register Software.\n" );
                   bOkay = FALSE;
                }
          }
@@ -157,7 +157,7 @@ extern "C" int RegisterProduct( char *pResult, char *pProductID, char *pProductN
    }
    else
    {
-      strcpy( pResult, WIDE("Could not register program.\n") );
+      strcpy( pResult, "Could not register program.\n" );
       bOkay = FALSE;
    }
    return bOkay;

@@ -37,22 +37,22 @@ void XMLCALL start_tags( void *UserData
 	TEXTSTR type = NULL;
 	PCOMMON pc;
 	CTEXTSTR *p = atts;
-	//lprintf( WIDE("begin a tag %s with..."), name );
+	//lprintf( "begin a tag %s with...", name );
 	while( p && *p )
 	{
-		if( strcmp( p[0], WIDE("ID") ) == 0 )
+		if( strcmp( p[0], "ID" ) == 0 )
 		{
 			ID = (int)IntCreateFromText( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("IDName") ) == 0 )
+		else if( strcmp( p[0], "IDName" ) == 0 )
 		{
 			IDName = StrDup( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("border") ) == 0 )
+		else if( strcmp( p[0], "border" ) == 0 )
 		{
 			border = (int)IntCreateFromText( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("size") ) == 0 )
+		else if( strcmp( p[0], "size" ) == 0 )
 		{
 #ifdef __cplusplus_cli
 			char *mybuf = CStrDup( p[1] );
@@ -60,12 +60,12 @@ void XMLCALL start_tags( void *UserData
 #else
 #define SCANBUF p[1]
 #endif
-			sscanf( SCANBUF, cWIDE("%") c_32f cWIDE(",") cWIDE("%") c_32f, &width, &height );
+			sscanf( SCANBUF, c"%" c_32f c"," c"%" c_32f, &width, &height );
 #ifdef __cplusplus_cli
 			Release( mybuf );
 #endif
 		}
-		else if( strcmp( p[0], WIDE("position") ) == 0 )
+		else if( strcmp( p[0], "position" ) == 0 )
 		{
 #ifdef __cplusplus_cli
 			char *mybuf = CStrDup( p[1] );
@@ -73,35 +73,35 @@ void XMLCALL start_tags( void *UserData
 #else
 #define SCANBUF p[1]
 #endif
-			sscanf( SCANBUF, cWIDE("%") c_32f cWIDE(",") cWIDE("%") c_32f, &x, &y );
+			sscanf( SCANBUF, c"%" c_32f c"," c"%" c_32f, &x, &y );
 #ifdef __cplusplus_cli
 			Release( mybuf );
 #endif
 		}
-		else if( strcmp( p[0], WIDE("caption") ) == 0 )
+		else if( strcmp( p[0], "caption" ) == 0 )
 		{
 			caption = p[1];
 		}
-		else if( strcmp( p[0], WIDE("font") ) == 0 )
+		else if( strcmp( p[0], "font" ) == 0 )
 		{
 			font = StrDup( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("PrivateData") ) == 0 )
+		else if( strcmp( p[0], "PrivateData" ) == 0 )
 		{
 			control_data = StrDup( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("type") ) == 0 )
+		else if( strcmp( p[0], "type" ) == 0 )
 		{
 			type = StrDup( p[1] );
 		}
-		else if( strcmp( p[0], WIDE("edit") ) == 0 )
+		else if( strcmp( p[0], "edit" ) == 0 )
 		{
 			edit_set = 1;
 			disable_edit = (int)IntCreateFromText( p[1] );
 		}
 		else
 		{
-			lprintf( WIDE("Unknown Att Pair = (%s=%s)"), p[0], p[1] );
+			lprintf( "Unknown Att Pair = (%s=%s)", p[0], p[1] );
 		}
 
       p += 2;
@@ -156,7 +156,7 @@ void XMLCALL end_tags( void *UserData
 							, const XML_Char *name )
 {
 	PCOMMON pc = (PCOMMON)UserData;
-	//lprintf( WIDE("Ended a tag %s.."), name );
+	//lprintf( "Ended a tag %s..", name );
 	if( pc )
 		XML_SetUserData( xp, pc->parent );
 }
@@ -219,12 +219,12 @@ PSI_CONTROL LoadXMLFrameOverEx( PSI_CONTROL parent, CTEXTSTR file DBG_PASS )
 		// attempt secondary open within frames/*
 		CTEXTSTR filename;
 		int len;
-		tmp = (TEXTSTR)Allocate( len = strlen( file ) + strlen( WIDE("frames/") ) + 1 );
+		tmp = (TEXTSTR)Allocate( len = strlen( file ) + strlen( "frames/" ) + 1 );
 		filename = pathrchr( file );
 		if( filename )
-			snprintf( tmp, len, WIDE("%*.*s/frames%s"), filename-file,filename-file,file,filename);
+			snprintf( tmp, len, "%*.*s/frames%s", filename-file,filename-file,file,filename);
       else
-			snprintf( tmp, len, WIDE("frames/%s"), file );
+			snprintf( tmp, len, "frames/%s", file );
       _file = file; // save filename to restore for later
       file = tmp;
 		size = 0;
@@ -275,7 +275,7 @@ PSI_CONTROL LoadXMLFrameEx( CTEXTSTR file DBG_PASS )
 
 int main( void )
 {
-	LoadXMLFrame( WIDE( "testframe.frame" ) );
+	LoadXMLFrame( "testframe.frame" );
 //   SaveRC( );
 
 }

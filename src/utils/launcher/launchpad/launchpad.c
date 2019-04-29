@@ -97,7 +97,7 @@ static void CPROC ExpireSequences( uintptr_t psv )
 static void CPROC GetTaskOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
 	if( bLogOutput )
-		lprintf( WIDE("%s"), buffer );
+		lprintf( "%s", buffer );
 	{
 		PCLIENT pc = (PCLIENT)psv;
 		if( pc )
@@ -116,7 +116,7 @@ static void CPROC RestartTask( uintptr_t psv, PTASK_INFO task )
 {
 	PRTASK restart = (PRTASK)psv;
 	uint32_t now = GetTickCount();
-	lprintf( WIDE("restarting.") );
+	lprintf( "restarting." );
 	if( ( now - restart->prior_tick ) < 3000 )
 	{
 		restart->fast_restart_count++;
@@ -176,7 +176,7 @@ static void CPROC RestartTask( uintptr_t psv, PTASK_INFO task )
 	}
 	else
 	{
-		lprintf( WIDE("Task restart was too fast ( 3 times within 3 seconds each ). Failing task.") );
+		lprintf( "Task restart was too fast ( 3 times within 3 seconds each ). Failing task." );
 		Release( (POINTER)restart->program );
 		DeleteLink( &restarts, restart );
 		Release( restart );
@@ -202,7 +202,7 @@ static void CPROC RemoteClosed( PCLIENT pc )
 	struct task_output_network_state *pns = (struct task_output_network_state*)GetNetworkLong( pc, 0 );
 	PTASK_INFO task;
 	if( bLogOutput )
-		lprintf( WIDE("remote closed, terminating associated client") );
+		lprintf( "remote closed, terminating associated client" );
 
 	if( pns )
 	{
@@ -217,9 +217,9 @@ static void CPROC RemoteClosed( PCLIENT pc )
 	if( task )
 	{
 		SetProgramUserData( task, 0 );
-		//lprintf( WIDE("terminating...") );
+		//lprintf( "terminating..." );
 		TerminateProgram( task );
-		//lprintf( WIDE("termated.") );
+		//lprintf( "termated." );
 	}
 }
 
@@ -260,8 +260,8 @@ static void CPROC RemoteSent( PCLIENT pc, POINTER p, size_t size )
 				{
 					PTASK_INFO task = (PTASK_INFO)GetNetworkLong( pc, 1 );
 					buf[size] = 0;
-					//lprintf( WIDE("Positing output to task:%s"), buf+1 );
-					pprintf( task, WIDE("%s"), buf+1 );
+					//lprintf( "Positing output to task:%s", buf+1 );
+					pprintf( task, "%s", buf+1 );
 				}
 				if( ( buf[0] == '\0' ) && ( size == 1 ) )
 				{
@@ -355,7 +355,7 @@ static uintptr_t CPROC RemoteBackConnect( PTHREAD thread )
 	}
 	if( !task )
 	{
-		lprintf( WIDE("Oops, task failed, close return socket.") );
+		lprintf( "Oops, task failed, close return socket." );
 		RemoveClient( pc_output );
 	}
 
@@ -390,7 +390,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 	start_path[0] = 0; // clear start path (default none)
 	while( inbuf[0] == '~' )
 	{
-		if( StrCaseCmpEx( inbuf+1, WIDE("capture"), 7 ) == 0 )
+		if( StrCaseCmpEx( inbuf+1, "capture", 7 ) == 0 )
 		{
 			int port = 0;
 			char c;
@@ -405,18 +405,18 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 			if( port )
 				capture_port = port;
 		}
-		if( StrCmpEx( inbuf+1, WIDE("hide"), 4 ) == 0 )
+		if( StrCmpEx( inbuf+1, "hide", 4 ) == 0 )
 		{
 			hide_process = 1;
 			inbuf += 5;
 		}
-		if( StrCmpEx( inbuf+1, WIDE("path"), 4 ) == 0 )
+		if( StrCmpEx( inbuf+1, "path", 4 ) == 0 )
 		{
 			// inbuf is not const, to recast.
 			TEXTCHAR *end = (TEXTCHAR*)StrChr( inbuf+5, '%' );
 			if( !end )
 			{
-				lprintf( WIDE("Failure to get end of path.") );
+				lprintf( "Failure to get end of path." );
 			}
 			else
 				end[0] = 0;
@@ -444,7 +444,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 				/* has a class name, do we? */
 				// message has class, we have a class, check if it matches
 				if( bLogPacketReceive )
-					lprintf(WIDE( "Does %s == %s" ), inbuf + 1, class_name );
+					lprintf("Does %s == %s", inbuf + 1, class_name );
 				if( CompareMask( inbuf + 1, class_name, 0 ) )
 				{
 					inbuf = tmp_sep;
@@ -456,14 +456,14 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 			if( !class_name )
 			{
 				if( bLogPacketReceive )
-					lprintf( WIDE("Command received, but not for my class" ) );
+					lprintf( "Command received, but not for my class" );
 				return;
 			}
 		}
 		else
 		{
 			if( bLogPacketReceive )
-				lprintf( WIDE("Class name passed in packet, but I'm not listening to any class, so it's not for me." ) );
+				lprintf( "Class name passed in packet, but I'm not listening to any class, so it's not for me." );
 			return;
 		}
 	}
@@ -471,7 +471,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 	{
 		if( bLogPacketReceive )
 		{
-			lprintf( WIDE("Malformed packet..." ) );
+			lprintf( "Malformed packet..." );
 			LogBinary( buffer, size );
 		}
 		return;
@@ -518,7 +518,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 				if( pSeq ) // bail out of do{}while(0)
 				{
 					if( bLogPacketReceive )
-						lprintf( WIDE("received duplicate, ignoring.") );
+						lprintf( "received duplicate, ignoring." );
 					return;
 				}
 				{
@@ -532,7 +532,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 					AddLink( &sequences, new_seq );
 					if( bLogPacketReceive )
 					{
-						lprintf( WIDE("Received...") );
+						lprintf( "Received..." );
 						LogBinary( (uint8_t*)buffer, size );
 					}
 				}
@@ -591,7 +591,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 							tmp_args->restart = restart;
 							tmp_args->pc_task_reply = pc_reply;
 #ifdef _DEBUG
-							lprintf( WIDE("Capturing task output to send back... begin back connect.") );
+							lprintf( "Capturing task output to send back... begin back connect." );
 #endif
 							ThreadTo( RemoteBackConnect, (uintptr_t)tmp_args );
 						}
@@ -639,7 +639,7 @@ static void ProcessPacket( PCLIENT pc_reply, POINTER buffer, size_t size, SOCKAD
 	}
 	else
 	{
-		lprintf( WIDE("Running [%s]"), inbuf );
+		lprintf( "Running [%s]", inbuf );
 #ifdef __cplusplus
 		::
 #endif
@@ -700,7 +700,7 @@ int BeginNetwork( void )
 		pcListen = ServeUDP( pInterfaceAddr, 3006, UDPRead, NULL );
 		if( !pcListen )
 		{
-			lprintf( WIDE("Failed to listen on 3006") );
+			lprintf( "Failed to listen on 3006" );
 			if( attempt > 10 )
             return 0;
 			WakeableSleep( 1000 );
@@ -709,7 +709,7 @@ int BeginNetwork( void )
 		}
 	} while( !pcListen );
 	UDPEnableBroadcast( pcListen, TRUE );
-	lprintf( WIDE("listening on %s[:3006]"), pInterfaceAddr?pInterfaceAddr:WIDE("0.0.0.0:3006") );
+	lprintf( "listening on %s[:3006]", pInterfaceAddr?pInterfaceAddr:"0.0.0.0:3006" );
 	{
 		SOCKADDR *host_tcp;
 		if( pInterfaceAddr ){
@@ -722,7 +722,7 @@ int BeginNetwork( void )
 		}
 		if( !pcListenTCP )
 		{
-			lprintf( WIDE("Failed to listen on 3006") );
+			lprintf( "Failed to listen on 3006" );
 			return 0;
 		}
 		return 1;
@@ -776,13 +776,13 @@ void ProcessConfig( void )
 {
 	PCONFIG_HANDLER pch;
 	pch = CreateConfigurationHandler();
-	AddConfigurationMethod( pch, WIDE("Begin Task"), TaskBegin );
-	AddConfigurationMethod( pch, WIDE("Task Done"), TaskComplete );
-	AddConfigurationMethod( pch, WIDE("Program Name=%m"), SetTaskProgramName );
-	AddConfigurationMethod( pch, WIDE("args=%m"), SetTaskArguments );
-	AddConfigurationMethod( pch, WIDE("path=%m"), SetTaskPath );
-	AddConfigurationMethod( pch, WIDE("restart=%b"), SetTaskRestart );
-	ProcessConfigurationFile( pch, WIDE("launchpad.config"), 0 );
+	AddConfigurationMethod( pch, "Begin Task", TaskBegin );
+	AddConfigurationMethod( pch, "Task Done", TaskComplete );
+	AddConfigurationMethod( pch, "Program Name=%m", SetTaskProgramName );
+	AddConfigurationMethod( pch, "args=%m", SetTaskArguments );
+	AddConfigurationMethod( pch, "path=%m", SetTaskPath );
+	AddConfigurationMethod( pch, "restart=%b", SetTaskRestart );
+	ProcessConfigurationFile( pch, "launchpad.config", 0 );
 	DestroyConfigurationHandler( pch );
 }
 
@@ -803,12 +803,12 @@ SaneWinMain( argc, argv )
 	int ofs = 0;
 	int did_arg = 0;
 	{
-		if( argc > (1) && StrCaseCmp( argv[1], WIDE("install") ) == 0 )
+		if( argc > (1) && StrCaseCmp( argv[1], "install" ) == 0 )
 		{
 			ServiceInstall( GetProgramName() );
 			return 0;
 		}
-		if( argc > (1) && StrCaseCmp( argv[1], WIDE("uninstall") ) == 0 )
+		if( argc > (1) && StrCaseCmp( argv[1], "uninstall" ) == 0 )
 		{
 			ServiceUninstall( GetProgramName() );
 			return 0;
@@ -819,7 +819,7 @@ SaneWinMain( argc, argv )
 			int arg_c;
 			TEXTCHAR **arg_v;
 #ifndef __NO_OPTIONS__
-			SACK_GetProfileString( GetProgramName(), WIDE("Command Line Arguments"), WIDE(""), option, sizeof( option ) );
+			SACK_GetProfileString( GetProgramName(), "Command Line Arguments", "", option, sizeof( option ) );
 #else
 			option[0] = 0;
 #endif
@@ -837,7 +837,7 @@ SaneWinMain( argc, argv )
 						{
 							arg_ofs++;
 #ifdef _DEBUG
-							lprintf( WIDE("Dup string %s"), arg_v[arg_ofs] );
+							lprintf( "Dup string %s", arg_v[arg_ofs] );
 #endif
 							AddLink( &class_names, StrDup( arg_v[arg_ofs] ) );
 						}
@@ -898,12 +898,12 @@ EndSaneWinMain()
 #	 include "../../../InterShell/intershell_registry.h"
 #  endif
 
-static void OnFinishInit( WIDE("Launchpad") )( PCanvasData pc_canvas )
+static void OnFinishInit( "Launchpad" )( PCanvasData pc_canvas )
 {
-	lprintf( WIDE("Begin launchpad init.") );
+	lprintf( "Begin launchpad init." );
 	if( !BeginNetwork() )
 	{
-		xlprintf(LOG_ALWAYS)( WIDE("Fatal error starting network portion of LaunchPad") );
+		xlprintf(LOG_ALWAYS)( "Fatal error starting network portion of LaunchPad" );
 		return;
 	}
 	AddTimer( 2500, ExpireSequences, 0 );
@@ -914,7 +914,7 @@ SaneWinMain( argc, argv )
 {
 #	 ifndef __NO_GUI__
 	TerminateIcon();
-	RegisterIcon( WIDE("PadIcon") );
+	RegisterIcon( "PadIcon" );
 #	 endif
 		{
 			int arg_ofs;
@@ -930,7 +930,7 @@ SaneWinMain( argc, argv )
 						else
 						{
 							arg_ofs++;
-							//lprintf( WIDE("Dup string %s"), argv[arg_ofs] );
+							//lprintf( "Dup string %s", argv[arg_ofs] );
 							AddLink( &class_names, StrDup( argv[arg_ofs] ) );
 						}
 						break;
@@ -985,17 +985,17 @@ SaneWinMain( argc, argv )
 				}
 			}
 		}
-		lprintf( WIDE("Usage: %s\n [-c <class_name>...]  [-l]\n")
-				  WIDE(" -l enables logging\n")
-				  WIDE(" -L enables network packet receive logging\n")
-				  WIDE(" -s socket listen address (resembles send on launchcmd, only one per instance supported)\n")
-				  WIDE(" as many class names as you want may be added.\n")
-				  WIDE("  If a class_name is specified commands for specified class will be executed.\n")
-				  WIDE("  If NO class_name is specified all received commands will be executed.\n")
-				  WIDE("  If no class is specified in the message, it is also launched."), argv[0] );
+		lprintf( "Usage: %s\n [-c <class_name>...]  [-l]\n"
+				  " -l enables logging\n"
+				  " -L enables network packet receive logging\n"
+				  " -s socket listen address (resembles send on launchcmd, only one per instance supported)\n"
+				  " as many class names as you want may be added.\n"
+				  "  If a class_name is specified commands for specified class will be executed.\n"
+				  "  If NO class_name is specified all received commands will be executed.\n"
+				  "  If no class is specified in the message, it is also launched.", argv[0] );
 		if( !BeginNetwork() )
 		{
-			lprintf( WIDE("Fatal error starting network portion of LaunchPad") );
+			lprintf( "Fatal error starting network portion of LaunchPad" );
 			return 0;
 		}
 #ifdef _DEBUG
@@ -1004,7 +1004,7 @@ SaneWinMain( argc, argv )
 			CTEXTSTR class_name;
 			LIST_FORALL( class_names, idx, CTEXTSTR, class_name )
 			{
-				lprintf( WIDE("Listening for class %s"), class_name );
+				lprintf( "Listening for class %s", class_name );
 			}
 		}
 #endif

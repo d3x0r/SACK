@@ -397,7 +397,7 @@ ImageFile *ImageGifFile (uint8_t* ptr, size_t filesize)
     {
     // trying to figure out multi-frame images...
     //   char byOutput[64];
-    //   wsprintf( byOutput, WIDE(" Extra image data passed: %d\n"), filesize - (ptr - sptr) );
+    //   wsprintf( byOutput, " Extra image data passed: %d\n", filesize - (ptr - sptr) );
     //   OutputDebugString( byOutput );
 //      goto TryAgain;
     }

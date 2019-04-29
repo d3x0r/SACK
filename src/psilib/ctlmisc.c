@@ -52,7 +52,7 @@ PSI_PROC( void, SimpleMessageBox )( PSI_CONTROL parent, CTEXTSTR title, CTEXTSTR
 	} while( end[0] );
 	//AddExitButton( msg, &done );
 	AddCommonButtons( msg, NULL, &okay );
-	lprintf( WIDE("show message box") );
+	lprintf( "show message box" );
 	DisplayFrame( msg );
 	CommonWait( msg );
 	DestroyFrame( &msg );
@@ -136,7 +136,7 @@ int SimpleUserQueryEx( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTRO
 	SetButtonPushMethod( GetControl( pf, IDCANCEL ), CancelClicked, (uintptr_t)query_state );
 	GetMousePosition( &mouse_x, &mouse_y );
 	MoveFrame( pf, mouse_x - 140, mouse_y - 30 );
-	//lprintf( WIDE("Show query....") );
+	//lprintf( "Show query...." );
 	DisplayFrame( pf );
 	SetCommonFocus( query_state->edit );
 
@@ -179,22 +179,22 @@ void RegisterResource( CTEXTSTR appname, CTEXTSTR resource_name, int resource_na
 		TEXTCHAR old_root[256];
 		//lprintf( "resource name = %s", resource_names[n].type_name );
 		//lprintf( "resource name = %s", resource_names[n].resource_name );
-		tnprintf( root, sizeof( root ), PSI_ROOT_REGISTRY WIDE( "/resources/") WIDE("%s/%s/%s" )
+		tnprintf( root, sizeof( root ), PSI_ROOT_REGISTRY "/resources/" "%s/%s/%s"
 				  , type_name
 				  , appname
 				  , resource_name 
 				  );
 			RegisterIntValue( root
-								 , WIDE("value")
+								 , "value"
 								 , resource_name_id );
 			RegisterIntValue( root
-								 , WIDE("range")
+								 , "range"
 								 , resource_name_range );
-			tnprintf( root, sizeof( root ), PSI_ROOT_REGISTRY WIDE("/resources/") WIDE("%s") WIDE("/%s")
+			tnprintf( root, sizeof( root ), PSI_ROOT_REGISTRY "/resources/" "%s" "/%s"
 					, type_name 
 					  , appname
 						);
-			tnprintf( old_root, sizeof( old_root ), PSI_ROOT_REGISTRY WIDE("/resources/") WIDE("%s") WIDE("/%s")
+			tnprintf( old_root, sizeof( old_root ), PSI_ROOT_REGISTRY "/resources/" "%s" "/%s"
 					  , appname
 					  , type_name
 						);

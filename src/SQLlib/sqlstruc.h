@@ -310,7 +310,7 @@ extern
 #  ifdef DEFINES_SQLITE_INTERFACE
 PRIORITY_PRELOAD( LoadSQLiteInterface, SQL_PRELOAD_PRIORITY-1 )
 {
-   sqlite_iface = (struct sqlite_interface*)GetInterface( WIDE("sqlite3") );
+   sqlite_iface = (struct sqlite_interface*)GetInterface( "sqlite3" );
 }
 #  endif
 

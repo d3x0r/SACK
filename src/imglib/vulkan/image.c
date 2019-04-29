@@ -40,22 +40,22 @@ ASM_IMAGE_NAMESPACE_END
 
 IMAGE_NAMESPACE
 
-static void OnFirstDraw3d( WIDE( "@00 Vulkan Image Library" ) )( uintptr_t psv )
+static void OnFirstDraw3d( "@00 Vulkan Image Library" )( uintptr_t psv )
 {
 	LOGICAL tmp;
 	const uint8_t * val;
 	l.vkActiveSurface = (struct vkSurfaceData *)psv;
 
 	{
-		l.simple_shader = GetShaderInit( WIDE("Simple Shader"), SetupSuperSimpleShader, InitSuperSimpleShader, 0 );
-		l.simple_texture_shader = GetShaderInit( WIDE("Simple Texture"), SetupSimpleTextureShader, InitSimpleTextureShader, 0 );
-		l.simple_shaded_texture_shader = GetShaderInit( WIDE("Simple Shaded Texture"), SetupSimpleShadedTextureShader, InitSimpleShadedTextureShader, 0 );
-		l.simple_multi_shaded_texture_shader = GetShaderInit( WIDE("Simple MultiShaded Texture"), SetupSimpleMultiShadedTextureShader, InitSimpleMultiShadedTextureShader, 0 );
-		//l.simple_inverse_texture_shader = GetShader( WIDE("Simple Inverse Texture"), InitSimpleShadedTextureShader );
+		l.simple_shader = GetShaderInit( "Simple Shader", SetupSuperSimpleShader, InitSuperSimpleShader, 0 );
+		l.simple_texture_shader = GetShaderInit( "Simple Texture", SetupSimpleTextureShader, InitSimpleTextureShader, 0 );
+		l.simple_shaded_texture_shader = GetShaderInit( "Simple Shaded Texture", SetupSimpleShadedTextureShader, InitSimpleShadedTextureShader, 0 );
+		l.simple_multi_shaded_texture_shader = GetShaderInit( "Simple MultiShaded Texture", SetupSimpleMultiShadedTextureShader, InitSimpleMultiShadedTextureShader, 0 );
+		//l.simple_inverse_texture_shader = GetShader( "Simple Inverse Texture", InitSimpleShadedTextureShader );
 	}
 }
 
-static uintptr_t OnInit3d( WIDE( "@00 Vulkan Image Library" ) )( VkDevice device,PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
+static uintptr_t OnInit3d( "@00 Vulkan Image Library" )( VkDevice device,PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
 	INDEX idx;
 	struct vkSurfaceData *vkSurface;
@@ -113,7 +113,7 @@ static uintptr_t CPROC ReleaseTexture( POINTER p, uintptr_t psv )
 			(struct vkSurfaceImageData *)GetLink( &image->vkSurface, vkSurface->index );
 		if( image_data && image_data->index )
 		{
-			//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
+			//lprintf( "Release Texture %d", image_data->glIndex );
 			//////glDeleteTextures( 1, &image_data->index );
 			image_data->index = 0;
 		}
@@ -125,7 +125,7 @@ static uintptr_t CPROC ReleaseTexture( POINTER p, uintptr_t psv )
 		//lprintf( "no surf..." );
 		LIST_FORALL( image->vkSurface, idx, struct vkSurfaceImageData *, image_data )
 		{
-			//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
+			//lprintf( "Release Texture %d", image_data->glIndex );
 			////glDeleteTextures( 1, &image_data->index );
 			image_data->index = 0;
 		}
@@ -138,16 +138,16 @@ static void ReleaseTextures( struct glSurfaceData *glSurface )
    ForAllInSet( ImageFile, image_common_local.Images, ReleaseTexture, (uintptr_t)glSurface );
 }
 
-static void OnClose3d( WIDE( "@00 Vulkan Image Library" ) )( uintptr_t psvInit )
+static void OnClose3d( "@00 Vulkan Image Library" )( uintptr_t psvInit )
 {
 	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
-	//lprintf( WIDE("cleaning up shaders here...") );
+	//lprintf( "cleaning up shaders here..." );
 	CloseShaders( glSurface );
-	//lprintf( WIDE("and we release textures; so they can be recreated") );
+	//lprintf( "and we release textures; so they can be recreated" );
 	ReleaseTextures( glSurface );
 }
 
-static void OnBeginDraw3d( WIDE( "@00 Vulkan Image Library" ) )( uintptr_t psvInit, PTRANSFORM camera )
+static void OnBeginDraw3d( "@00 Vulkan Image Library" )( uintptr_t psvInit, PTRANSFORM camera )
 {
 	l.vkActiveSurface = (struct vkSurfaceData *)psvInit;
 	l.vkImageIndex = l.vkActiveSurface->index;
@@ -159,7 +159,7 @@ static void OnBeginDraw3d( WIDE( "@00 Vulkan Image Library" ) )( uintptr_t psvIn
 	ClearShaders();
 }
 
-static void OnDraw3d( WIDE( "@00 Vulkan Image Library" ) )( uintptr_t psvInit )
+static void OnDraw3d( "@00 Vulkan Image Library" )( uintptr_t psvInit )
 {
 	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
 	FlushShaders( glSurface );
@@ -188,7 +188,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 		// might have no displays open, so no GL contexts...
 		if( image_data )
 		{
-			//lprintf( WIDE( "Reload %p %d" ), image, option );
+			//lprintf( "Reload %p %d", image, option );
 			// should be checked outside.
 			if( image_data->index == 0 )
 			{
@@ -197,17 +197,17 @@ int ReloadOpenGlTexture( Image child_image, int option )
 
 				if( glGetError() || !image_data->index)
 				{
-					lprintf( WIDE( "gen text %d or bad surafce" ), glGetError() );
+					lprintf( "gen text %d or bad surafce", glGetError() );
 					return 0;
 				}
 				*/
-				//lprintf( WIDE("texture is %p %p %d"), image, image_data, image_data->glIndex );
+				//lprintf( "texture is %p %p %d", image, image_data, image_data->glIndex );
 				image_data->flags.updated = 1;
 			}
 			if( image_data->flags.updated )
 			{
 				int err;
-				//lprintf( WIDE( "gen text %d" ), glGetError() );
+				//lprintf( "gen text %d", glGetError() );
 				// Create Linear Filtered Texture
 				///////glBindTexture(GL_TEXTURE_2D, image_data->index);
 #ifdef USE_GLES2
@@ -239,7 +239,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				/*
 				if( err = glGetError() )
 				{
-					lprintf( WIDE( "gen text error %d" ), err );
+					lprintf( "gen text error %d", err );
 				}
 				*/
 				if( 0)
@@ -250,8 +250,8 @@ int ReloadOpenGlTexture( Image child_image, int option )
 					TEXTCHAR buf[16];
 					FILE *file;
 					PngImageFile( image, &data, &datasize );
-					tnprintf( buf, 12, WIDE("%d.png"), n++ );
-					file = sack_fopen( 0, buf, WIDE("wb") );
+					tnprintf( buf, 12, "%d.png", n++ );
+					file = sack_fopen( 0, buf, "wb" );
 					if( file )
 					{
 						sack_fwrite( data, 1, datasize, file );
@@ -289,7 +289,7 @@ static void CloseGLTextures( Image image )
 	struct vkSurfaceImageData * image_data;
 	LIST_FORALL( image->vkSurface, idx, struct vkSurfaceImageData *, image_data )
 	{
-		//lprintf( WIDE("Release Texture %d"), image_data->glIndex );
+		//lprintf( "Release Texture %d", image_data->glIndex );
 		//glDeleteTextures( 1, &image_data->index );
 		image_data->index = 0;
 	}
@@ -346,7 +346,7 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 	int  oo;
 	if( !pifDest /*|| !pifDest->image*/ )
 	{
-		lprintf( WIDE( "No dest, or no dest image." ) );
+		lprintf( "No dest, or no dest image." );
 		return;
 	}
 
@@ -368,7 +368,7 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 		r2.height = pifDest->height;
 		if( !IntersectRectangle( &r, &r1, &r2 ) )
 		{
-			//lprintf( WIDE("blat color is out of bounds (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(") (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(")")
+			//lprintf( "blat color is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 			//	, x, y, w, h
 			//	, r2.x, r2.y, r2.width, r2.height );
 			return;
@@ -376,7 +376,7 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 #ifdef DEBUG_BLATCOLOR
 		// trying to figure out why there are stray lines for DISPLAY surfaces
       // apparently it's a logic in space node min/max to region conversion
-		lprintf( WIDE("Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d ofs %d,%d %d,%d")
+		lprintf( "Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d ofs %d,%d %d,%d"
 				 , r1.x, r1.y
 				 ,r1.width, r1.height
 				 , r2.x, r2.y
@@ -451,7 +451,7 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 	}
 	else
 	{
-		//lprintf( WIDE("Blotting %d,%d - %d,%d"), x, y, w, h );
+		//lprintf( "Blotting %d,%d - %d,%d", x, y, w, h );
 		// start at origin on destination....
 		if( pifDest->flags & IF_FLAG_INVERTED )
 			oo = 4*( (-(int32_t)w) - pifDest->pwidth);     // w is how much we can copy...
@@ -470,12 +470,12 @@ void  BlatColorAlpha ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t
 	int  oo;
 	if( !pifDest /*|| !pifDest->image */ )
 	{
-		lprintf( WIDE( "No dest, or no dest image." ) );
+		lprintf( "No dest, or no dest image." );
 		return;
 	}
 	if(  (int32_t)w <= 0 || (int32_t)h <= 0 )
 	{
-		//lprintf( WIDE("BlatColorAlpha; width or height less than 0 (%") _32fs WIDE("x%")_32fsWIDE(")"), w, h );
+		//lprintf( "BlatColorAlpha; width or height less than 0 (%" _32fs "x%"_32fs")", w, h );
 		return;
 	}
 	if( !w )
@@ -494,13 +494,13 @@ void  BlatColorAlpha ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t
 		r2.height = pifDest->height;
 		if( !IntersectRectangle( &r, &r1, &r2 ) )
 		{
-			//lprintf( WIDE("blat color alpha is out of bounds (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(") (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(")")
+			//lprintf( "blat color alpha is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 			//	, x, y, w, h
 			//	, r2.x, r2.y, r2.width, r2.height );
 			return;
 		}
 #ifdef DEBUG_BLATCOLOR
-		lprintf( WIDE("Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d")
+		lprintf( "Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d"
 				 , r1.x, r1.y
 				 ,r1.width, r1.height
 				 , r2.x, r2.y
@@ -611,7 +611,7 @@ void CPROC plotraw( Image pi, int32_t x, int32_t y, CDATA c )
 		v[0] = (float)(x/l.scale);
 		v[1] = (float)(y/l.scale);
 		v[2] = 0.0f;
-		EnableShader( GetShader( WIDE("Simple Shader") ), v, _color );
+		EnableShader( GetShader( "Simple Shader" ), v, _color );
 
 		//////glDrawArrays( GL_POINTS, 0, 1 );
 		CheckErr();
@@ -657,7 +657,7 @@ CDATA CPROC getpixel( Image pi, int32_t x, int32_t y )
 #endif
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-			lprintf( WIDE( "get pixel option on opengl surface" ) );
+			lprintf( "get pixel option on opengl surface" );
 		}
 		else
 		{
@@ -917,10 +917,10 @@ void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 	ReloadOpenGlTexture( pifSrc, 0 );
 	if( !pifSrc->vkActiveSurface )
 	{
-		lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+		lprintf( "gl texture hasn't downloaded or went away?" );
 		return;
 	}
-	//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
+	//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
 
 	{
 		tmp->vi = 0;
@@ -1002,7 +1002,7 @@ void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 		tmp->v_image[3][0] = tmp->x_size2;
 		tmp->v_image[3][1] = tmp->y_size2;
 
-		EnableShader( GetShader( WIDE("Simple Texture") ), tmp->v[tmp->vi], pifSrc->vkActiveSurface, tmp->v_image );
+		EnableShader( GetShader( "Simple Texture" ), tmp->v[tmp->vi], pifSrc->vkActiveSurface, tmp->v_image );
 		//////glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 
 		//Deallocate( struct workspace *, tmp );
@@ -1024,7 +1024,7 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 	}
 
 	// closed loop to get the top imgae size.
-	//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
+	//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
 	GetStringSizeFontEx( string, characters, (uint32_t*)&output.real_width, (uint32_t*)&output.real_height, font );
 	SetImageTransformRelation( &output, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 	ApplyRotationT( l.camera, output.transform, VectorConst_I );

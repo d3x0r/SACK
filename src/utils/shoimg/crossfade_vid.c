@@ -207,7 +207,7 @@ void LoadVideo( CTEXTSTR file )
 													, g.x //0
 													, g.y //0
 													);
-	player->vlc = PlayItemOnEx( player->surface, file, WIDE("--repeat --loop") );
+	player->vlc = PlayItemOnEx( player->surface, file, "--repeat --loop" );
 	SetStopEvent( player->vlc, OnStopFade, (uintptr_t)player );
 
    // only used if there is only 1 video - just show video.
@@ -270,7 +270,7 @@ SaneWinMain(argc, argv )
 			}
 			else if( argv[arg][0] == '@' )
 			{
-				FILE *file = sack_fopen( 0, argv[arg] + 1, WIDE("rt") );
+				FILE *file = sack_fopen( 0, argv[arg] + 1, "rt" );
 				TEXTCHAR filename[256];
 				while( fgets( filename, sizeof( filename ), file ) )
 				{
@@ -288,11 +288,11 @@ SaneWinMain(argc, argv )
 						filename[StrLen( filename )-1] = 0;
 
 					{
-						if( StrCaseStr( filename, WIDE(".jpg") ) ||
-							StrCaseStr( filename, WIDE(".jpeg") ) ||
-							StrCaseStr( filename, WIDE(".bmp") ) ||
-							StrCaseStr( filename, WIDE(".png") ) ||
-							StrCaseStr( filename, WIDE(".tga") ) )
+						if( StrCaseStr( filename, ".jpg" ) ||
+							StrCaseStr( filename, ".jpeg" ) ||
+							StrCaseStr( filename, ".bmp" ) ||
+							StrCaseStr( filename, ".png" ) ||
+							StrCaseStr( filename, ".tga" ) )
 						{
 							Image img = LoadImageFile( filename );
 							if( img )
@@ -312,11 +312,11 @@ SaneWinMain(argc, argv )
 			}
 			else
 			{
-				if( StrCaseStr( argv[arg], WIDE(".jpg") ) ||
-					StrCaseStr( argv[arg], WIDE(".jpeg") ) ||
-					StrCaseStr( argv[arg], WIDE(".bmp") ) ||
-					StrCaseStr( argv[arg], WIDE(".png") ) ||
-					StrCaseStr( argv[arg], WIDE(".tga") ) )
+				if( StrCaseStr( argv[arg], ".jpg" ) ||
+					StrCaseStr( argv[arg], ".jpeg" ) ||
+					StrCaseStr( argv[arg], ".bmp" ) ||
+					StrCaseStr( argv[arg], ".png" ) ||
+					StrCaseStr( argv[arg], ".tga" ) )
 				{
 					Image img = LoadImageFile( argv[arg] );
 					if( img )
@@ -359,7 +359,7 @@ SaneWinMain(argc, argv )
 		}
 		else
 		{
-			//lprintf( WIDE("Show the first and only the first image.") );
+			//lprintf( "Show the first and only the first image." );
 			if( GetLink( &g.image_type, 0 ) == (POINTER)1 )
 			{
 				g.is_up[0] = 1;
@@ -377,7 +377,7 @@ SaneWinMain(argc, argv )
 	}
 	else
 	{
-      printf( WIDE("No Images to display, exiting\n") );
+      printf( "No Images to display, exiting\n" );
 	}
    return 0;
 }

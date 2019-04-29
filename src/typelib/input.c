@@ -543,7 +543,7 @@ void RecallUserInput( PUSER_INPUT_BUFFER pci, int bUp )
 	}
 	else if( temp )
 	{
-		lprintf( WIDE("Losing data... there was \n in the command buffer, and data after it also!") );
+		lprintf( "Losing data... there was \n in the command buffer, and data after it also!" );
 	}
 }
 

@@ -461,9 +461,9 @@ FILESYS_PROC  uintptr_t FILESYS_API  sack_fs_ioctl( struct file_system_mounted_i
 #endif //NO_FILEOP_ALIAS
 
 #ifdef __LINUX__
-#define SYSPATHCHAR WIDE("/")
+#define SYSPATHCHAR "/"
 #else
-#define SYSPATHCHAR WIDE("\\")
+#define SYSPATHCHAR "\\"
 #endif
 
 FILESYS_NAMESPACE_END

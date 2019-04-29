@@ -17,11 +17,11 @@ void ParseIntoArgs( char *lpCmdLine, int *pArgc, char ***pArgv )
 	int count = 0;
 	int lastchar;
 	lastchar = ' '; // auto continue spaces...
-	//lprintf( WIDE("Got args: %s"), args );
+	//lprintf( "Got args: %s", args );
 	p = args;
 	while( p && p[0] )
 	{
-		//lprintf( WIDE("check character %c %c"), lastchar, p[0] );
+		//lprintf( "check character %c %c", lastchar, p[0] );
 		if( quote )
 		{
 			if( p[0] == quote )
@@ -69,7 +69,7 @@ void ParseIntoArgs( char *lpCmdLine, int *pArgc, char ***pArgv )
 		start = NULL;
 		while( p[0] )
 		{
-			//lprintf( WIDE("check character %c %c"), lastchar, p[0] );
+			//lprintf( "check character %c %c", lastchar, p[0] );
 			if( quote )
 			{
 				if( !start )
@@ -108,7 +108,7 @@ void ParseIntoArgs( char *lpCmdLine, int *pArgc, char ***pArgv )
 			}
 			p++;
 		}
-		//lprintf( WIDE("Setting arg %d to %s"), count, start );
+		//lprintf( "Setting arg %d to %s", count, start );
 		if( start )
 			pp[count++] = StrDup( start );
 		pp[count] = NULL;

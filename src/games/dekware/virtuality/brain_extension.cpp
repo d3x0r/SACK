@@ -8,19 +8,19 @@ void ExtendEntityWithBrain( PENTITY pe_created )
       UnlockAwareness( vobj->ps = CreateAwareness( pe_created ) );
 
 		vobj->brain = new BRAIN();
-		PBRAIN_STEM pbs = new BRAIN_STEM( WIDE("Object Motion") );
+		PBRAIN_STEM pbs = new BRAIN_STEM( "Object Motion" );
 		vobj->brain->AddBrainStem( pbs );
 
-		pbs->AddOutput( new value(&vobj->speed[vForward]), WIDE("Forward -Backwards") );
-		pbs->AddOutput( new value(&vobj->speed[vRight]), WIDE("Right -Left") );
-		pbs->AddOutput( new value(&vobj->speed[vUp]), WIDE("Up -Down") );
+		pbs->AddOutput( new value(&vobj->speed[vForward]), "Forward -Backwards" );
+		pbs->AddOutput( new value(&vobj->speed[vRight]), "Right -Left" );
+		pbs->AddOutput( new value(&vobj->speed[vUp]), "Up -Down" );
 
-		pbs = new BRAIN_STEM( WIDE("Object Rotation") );
+		pbs = new BRAIN_STEM( "Object Rotation" );
 		vobj->brain->AddBrainStem( pbs );
 
-		pbs->AddOutput( new value(&vobj->rotation_speed[vForward]), WIDE("around Forward axis") );
-		pbs->AddOutput( new value(&vobj->rotation_speed[vRight]), WIDE("around Right axis") );
-		pbs->AddOutput( new value(&vobj->rotation_speed[vUp]), WIDE("around Up axis") );
+		pbs->AddOutput( new value(&vobj->rotation_speed[vForward]), "around Forward axis" );
+		pbs->AddOutput( new value(&vobj->rotation_speed[vRight]), "around Right axis" );
+		pbs->AddOutput( new value(&vobj->rotation_speed[vUp]), "around Up axis" );
 
 		vobj->brain_board = CreateBrainBoard( vobj->brain );
 

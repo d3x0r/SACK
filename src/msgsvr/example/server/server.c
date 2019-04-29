@@ -81,7 +81,7 @@ static int CPROC GetDisplayFunctionTable( server_function_table *table, int *ent
 	*entries = NUM_FUNCTIONS;
 	// good as a on_entry procedure.
 	g.MsgBase = MsgBase;
-	Log( WIDE("Resulting load to server...") );
+	Log( "Resulting load to server..." );
 	// any custom service initialization for on_load
 	// should be done here, and the result
    // returned TRUE for good init, or FALSE for bad init.
@@ -91,8 +91,8 @@ static int CPROC GetDisplayFunctionTable( server_function_table *table, int *ent
 PRELOAD( RegisterService )
 {
 	// Register the service in the system interfaces...
-	RegisterFunction( WIDE("system/interfaces/msg_service"), GetDisplayFunctionTable
-						 , WIDE("int"), WIDE("display"), WIDE("(server_function_table*,int*,uint32_t)") );
+	RegisterFunction( "system/interfaces/msg_service", GetDisplayFunctionTable
+						 , "int", "display", "(server_function_table*,int*,uint32_t)" );
 }
 
 

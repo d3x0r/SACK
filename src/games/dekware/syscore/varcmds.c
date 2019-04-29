@@ -17,7 +17,7 @@ int DeclareVar( int nOp, PSENTIENT ps, PTEXT parameters )
 	PTEXT temp;
 	if( temp = GetParam( ps, &parameters ) )
 	{
-		if( TextLike( temp, WIDE("in") ) )
+		if( TextLike( temp, "in" ) )
 		{
 			PTEXT pWhat;
 			PENTITY pe;
@@ -50,13 +50,13 @@ int DeclareVar( int nOp, PSENTIENT ps, PTEXT parameters )
 						 }
 						 else
 						 {
-								DECLTEXT( msg, WIDE("Size specified is not a number") );
+								DECLTEXT( msg, "Size specified is not a number" );
 							EnqueLink( &ps->Command->Output, &msg );
 						 }
 						}
 						else
 						{
-							DECLTEXT( msg, WIDE("Must supply size of buffer to allocate...") );
+							DECLTEXT( msg, "Must supply size of buffer to allocate..." );
 							EnqueLink( &ps->Command->Output, &msg );
 						}
 					}
@@ -69,14 +69,14 @@ int DeclareVar( int nOp, PSENTIENT ps, PTEXT parameters )
 				}
 				else
 				{
-					S_MSG( ps, WIDE("Could not see %s to declare %s in...")
+					S_MSG( ps, "Could not see %s to declare %s in..."
 						 , GetText( pWhat )
 						 , GetText( temp ) );
 				}
 			}
 			else
 			{
-				DECLTEXT( msg, WIDE("Declare IN requires more parameters...") );
+				DECLTEXT( msg, "Declare IN requires more parameters..." );
 				EnqueLink( &ps->Command->Output, &msg );
 			}
 
@@ -98,13 +98,13 @@ int DeclareVar( int nOp, PSENTIENT ps, PTEXT parameters )
 						 }
 						 else
 					{
-					DECLTEXT( msg, WIDE("Size specified is not a number") );
+					DECLTEXT( msg, "Size specified is not a number" );
 					 EnqueLink( &ps->Command->Output, &msg );
 					}
 				}
 				else
 				{
-					DECLTEXT( msg, WIDE("Must supply size of buffer to allocate...") );
+					DECLTEXT( msg, "Must supply size of buffer to allocate..." );
 					EnqueLink( &ps->Command->Output, &msg );
 				}
 			}
@@ -139,7 +139,7 @@ int CPROC COLLAPSE( PSENTIENT ps, PTEXT parameters )
 	{
 		 if( !ps->pLastResult )
 		 {
-				DECLTEXT( msg, WIDE("Must provide variable reference to collapse, and no content in macro result") );
+				DECLTEXT( msg, "Must provide variable reference to collapse, and no content in macro result" );
 				EnqueLink( &ps->Command->Output, &msg );
 				return FALSE;
 		 }
@@ -155,7 +155,7 @@ int CPROC COLLAPSE( PSENTIENT ps, PTEXT parameters )
 	}
 	if( temp == pName )
 	{
-		DECLTEXT( msg, WIDE("Invalid variable reference.") );
+		DECLTEXT( msg, "Invalid variable reference." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -181,7 +181,7 @@ int CPROC UNDEFINE( PSENTIENT ps, PTEXT parameters )
 	pName = GetParam( ps, &parameters );
 	if( !pName )
 	{
-		DECLTEXT( msg, WIDE("Must specify the name of the variable to undefine.") );
+		DECLTEXT( msg, "Must specify the name of the variable to undefine." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -216,7 +216,7 @@ int CPROC UNDEFINE( PSENTIENT ps, PTEXT parameters )
 	}
 	if( !bFound )
 	{
-		DECLTEXT( msg, WIDE("Name specified did not match a variable...") );
+		DECLTEXT( msg, "Name specified did not match a variable..." );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	return FALSE;
@@ -230,39 +230,39 @@ int CPROC BOUND( PSENTIENT ps, PTEXT parameters )
 	temp = GetParam( ps, &parameters );
 	if( pSave == temp )
 	{
-		DECLTEXT( msg, WIDE("Invalid variable reference passed to BOUND.") );
+		DECLTEXT( msg, "Invalid variable reference passed to BOUND." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
 	if( !temp )
 	{
-		DECLTEXT( msg, WIDE("Must specify variable and boundry type to set.") );
+		DECLTEXT( msg, "Must specify variable and boundry type to set." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
 	while( ( pBoundType = GetParam( ps, &parameters ) ) )
 	{
 		one_bound = TRUE;
-		if( TextLike( pBoundType, WIDE("lower") ) )
+		if( TextLike( pBoundType, "lower" ) )
 		{
 			temp->flags |= TF_LOWER;
 		}
-		else if( TextLike( pBoundType, WIDE("upper") ) )
+		else if( TextLike( pBoundType, "upper" ) )
 		{
 			temp->flags |= TF_UPPER;
 		}
-		else if( TextLike( pBoundType, WIDE("equal") ) )
+		else if( TextLike( pBoundType, "equal" ) )
 		{
 			temp->flags |= TF_EQUAL;
 		}
-		else if( TextLike( pBoundType, WIDE("clear") ) )
+		else if( TextLike( pBoundType, "clear" ) )
 		{
 			temp->flags &= ~(TF_LOWER|TF_UPPER|TF_EQUAL);
 		}
 	}
 	if( !one_bound )
 	{
-		DECLTEXT( msg, WIDE("Must specify boundry type to set...clear, lower, upper, or equal") );
+		DECLTEXT( msg, "Must specify boundry type to set...clear, lower, upper, or equal" );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	return FALSE;
@@ -328,22 +328,22 @@ void ChangeCase( PTEXT pVar, int nMethod )
 TEXTCHAR * GetBound( PTEXT pText )
 {
 	if( !pText )
-		return WIDE("(Bad Variable)");
+		return "(Bad Variable)";
 	if( pText->flags & ( TF_LOWER | TF_UPPER | TF_EQUAL ) )
 	{
 		if( (pText->flags & ( TF_LOWER | TF_UPPER ) ) == ( TF_LOWER | TF_UPPER ) )
-			return WIDE("<>");
+			return "<>";
 		if( (pText->flags & ( TF_LOWER | TF_EQUAL ) ) == ( TF_LOWER | TF_EQUAL ) )
-			return WIDE(">=");
+			return ">=";
 		if( (pText->flags & ( TF_EQUAL | TF_UPPER ) ) == ( TF_EQUAL | TF_UPPER ) )
-			return WIDE("<=");
+			return "<=";
 		if( pText->flags & ( TF_LOWER ) )
-			return WIDE(">");
+			return ">";
 		if( pText->flags & ( TF_UPPER ) ) 
-			return WIDE("<");
+			return "<";
 	}
 
-	return WIDE("=");
+	return "=";
 }
 
 //--------------------------------------------------------------------------
@@ -362,7 +362,7 @@ int CPROC UCASE( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Attempt to change case of a non-variable") );
+			DECLTEXT( msg, "Attempt to change case of a non-variable" );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}
@@ -381,7 +381,7 @@ int CPROC LCASE( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Attempt to change case of a non-variable") );
+			DECLTEXT( msg, "Attempt to change case of a non-variable" );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}
@@ -400,7 +400,7 @@ int CPROC PCASE( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Attempt to change case of a non-variable") );
+			DECLTEXT( msg, "Attempt to change case of a non-variable" );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}
@@ -476,7 +476,7 @@ int CPROC NOALIGN( PSENTIENT ps, PTEXT parameters )
 			pAmount = GetParam( ps, &parameters );								 \
 			if( !pAmount || !IsSegAnyNumber( &pAmount, &fAmount, &iAmount, &bInt ) )								 \
 			{																					\
-				DECLTEXT( msg, WIDE("Second Value is not a number.") );				\
+				DECLTEXT( msg, "Second Value is not a number." );				\
 				EnqueLink( &ps->Command->Output, &msg );							\
 				return FALSE;																\
 			}																					\
@@ -488,7 +488,7 @@ int CPROC NOALIGN( PSENTIENT ps, PTEXT parameters )
 	else {\
 			if( !pAmount || !IsSegAnyNumber( &pAmount, &fAmount, &iAmount, &bInt ) )								 \
 			{																					\
-				DECLTEXT( msg, WIDE("Second Value is not a number.") );				\
+				DECLTEXT( msg, "Second Value is not a number." );				\
 				EnqueLink( &ps->Command->Output, &msg );							\
 				return FALSE;																\
 			}																					\
@@ -505,7 +505,7 @@ int CPROC NOALIGN( PSENTIENT ps, PTEXT parameters )
 		}																						\
 		else																					\
 		{																						\
-			DECLTEXT( msg, WIDE("Primary Operand is not a value.") );				\
+			DECLTEXT( msg, "Primary Operand is not a value." );				\
 			EnqueLink( &ps->Command->Output, &msg );								\
 			return FALSE;																	\
 		}
@@ -633,7 +633,7 @@ int HeadTail( int bHead, PSENTIENT ps, PTEXT parameters )
 		pFrom == pSave ||
 		!( pFrom->flags & TF_INDIRECT ) )
 	{
-		DECLTEXT( msg, WIDE("Invalid variable source reference.") );
+		DECLTEXT( msg, "Invalid variable source reference." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -643,7 +643,7 @@ int HeadTail( int bHead, PSENTIENT ps, PTEXT parameters )
 		pTo == pSave ||
 		!( pTo->flags & TF_INDIRECT ) )
 	{
-		DECLTEXT( msg, WIDE("Invalid variable destination reference.") );
+		DECLTEXT( msg, "Invalid variable destination reference." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -703,14 +703,14 @@ int HeadTail( int bHead, PSENTIENT ps, PTEXT parameters )
 		int Len;
 		if( !IsNumber( pCount ) )
 		{
-			DECLTEXT( msg, WIDE("Character count is not valid.") );
+			DECLTEXT( msg, "Character count is not valid." );
 			EnqueLink( &ps->Command->Output, &msg );
 			return FALSE;
 		}
 		Len = IntCreateFromSeg( pCount );
 		if( Len < 0 )
 		{
-			DECLTEXT( msg, WIDE("Character count cannot be negative.") );
+			DECLTEXT( msg, "Character count cannot be negative." );
 			EnqueLink( &ps->Command->Output, &msg );
 			return FALSE;
 		}
@@ -802,7 +802,7 @@ int CPROC CMD_BURST( PSENTIENT ps, PTEXT parameters )
 			PTEXT pInto;
 			if( !(pInto = GetParam( ps, &parameters )) )
 			{
-				DECLTEXT( msg, WIDE("No Data channel - must specify a second param varname to read into.") );
+				DECLTEXT( msg, "No Data channel - must specify a second param varname to read into." );
 				EnqueLink( &ps->Command->Output, &msg );
 			}
 			else
@@ -837,7 +837,7 @@ int CPROC VAR_PUSH( PSENTIENT ps, PTEXT parameters )
 	{
 		if( pTo == pSave )
 		{
-			DECLTEXT( msg, WIDE("Invalid variable reference to PUSH") );
+			DECLTEXT( msg, "Invalid variable reference to PUSH" );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 		else if( pFrom = GetParam( ps, &parameters ) )
@@ -847,7 +847,7 @@ int CPROC VAR_PUSH( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Nothing specified to push into variable...") );
+			DECLTEXT( msg, "Nothing specified to push into variable..." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}
@@ -866,7 +866,7 @@ int CPROC VAR_POP( PSENTIENT ps, PTEXT parameters )
 		pFrom == pSave ||
 		!( pFrom->flags & TF_INDIRECT ) )
 	{
-		DECLTEXT( msg, WIDE("Invalid variable source reference.") );
+		DECLTEXT( msg, "Invalid variable source reference." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -876,7 +876,7 @@ int CPROC VAR_POP( PSENTIENT ps, PTEXT parameters )
 		pTo == pSave ||
 		!( pTo->flags & TF_INDIRECT ) )
 	{
-		DECLTEXT( msg, WIDE("Invalid variable destination reference.") );
+		DECLTEXT( msg, "Invalid variable destination reference." );
 		EnqueLink( &ps->Command->Output, &msg );
 		return FALSE;
 	}
@@ -903,13 +903,13 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 		{
 			INDEX idx;
 			PTEXT var;
-			DECLTEXT( msg, WIDE("--- Object's Variables ---") );
+			DECLTEXT( msg, "--- Object's Variables ---" );
 			EnqueLink( &ps->Command->Output, &msg );
 			LIST_FORALL( pe->pVars, idx, PTEXT, var )
 			{
 				PTEXT pText, pNext;
 				pNext = NEXTLINE( var );
-				vtprintf( vt, WIDE("%s %s "),
+				vtprintf( vt, "%s %s ",
 							GetText( var ),
 							GetBound( pNext )
 						 );
@@ -925,7 +925,7 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 						pBuffer = NEXTLINE( pBuffer );
 					}
 					pText = NULL;
-					vtprintf( vt, WIDE("(%d) Cannot display data"), total );
+					vtprintf( vt, "(%d) Cannot display data", total );
 				}
 				else
 				{
@@ -937,7 +937,7 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 					}
 					else
 					{
-						DECLTEXT( msg, WIDE("Invalid variable.") );
+						DECLTEXT( msg, "Invalid variable." );
 						pText = SegDuplicate( (PTEXT)&msg );
 					}
 				}
@@ -950,7 +950,7 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 			if( !ps->CurrentMacro )
 			{
 				PTEXT pOut;
-				DECLTEXT( msg, WIDE(" is an unknown object.") );
+				DECLTEXT( msg, " is an unknown object." );
 				pOut = SegAppend( SegDuplicate( parameters )
 									, SegCreateIndirect( (PTEXT)&msg ) );
 				EnqueLink( &ps->Command->Output, pOut );
@@ -960,13 +960,13 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 	else
 	{
 		PTEXT var;
-		DECLTEXT( msg, WIDE("--- Common Variables ---") );
+		DECLTEXT( msg, "--- Common Variables ---" );
 		EnqueLink( &ps->Command->Output, &msg );
 		LIST_FORALL( ps->Current->pVars, idx, PTEXT, var )
 		{
 			PTEXT pText = NULL, pNext;
 			pNext = NEXTLINE( var );
-			vtprintf( vt, WIDE("%s %s"),
+			vtprintf( vt, "%s %s",
 						GetText( var ),
 						GetBound( pNext )
 					 );
@@ -984,28 +984,28 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 						total += GetTextSize( pBuffer );
 						pBuffer = NEXTLINE( pBuffer );
 					}
-					vtprintf( vt, WIDE("(%d) Cannot display data"), total );
+					vtprintf( vt, "(%d) Cannot display data", total );
 				}
 				else
 				{
-					vtprintf( vt, WIDE("%s"),
+					vtprintf( vt, "%s",
 								GetText( pText = BuildLine( NEXTLINE( var ) ) ) );
 					LineRelease( pText );
 				}
 			}
 			else
-				vtprintf( vt, WIDE("Value holder missing...") );
+				vtprintf( vt, "Value holder missing..." );
 			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		}
 		if( ps->CurrentMacro )
 		{
-			DECLTEXT( msg, WIDE("--- Local Variables ---") );
+			DECLTEXT( msg, "--- Local Variables ---" );
 			EnqueLink( &ps->Command->Output, &msg );
 			LIST_FORALL( ps->CurrentMacro->pVars, idx, PTEXT, var )
 			{
 				PTEXT pText, pNext;
 				pNext = NEXTLINE( var );
-				vtprintf( vt, WIDE("%s %s"),
+				vtprintf( vt, "%s %s",
 											GetText( var ),
 											GetBound( pNext )
 										);
@@ -1021,7 +1021,7 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 						total += GetTextSize( pBuffer );
 						pBuffer = NEXTLINE( pBuffer );
 					}
-					vtprintf( vt, WIDE("(%d) Cannot display data"), total );
+					vtprintf( vt, "(%d) Cannot display data", total );
 				}
 				else
 				{
@@ -1031,7 +1031,7 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 			}
 			{
 				PTEXT pVarName, pVarValue;
-				DECLTEXT( msg, WIDE("--- Macro Variables ---") );
+				DECLTEXT( msg, "--- Macro Variables ---" );
 				EnqueLink( &ps->Command->Output, &msg );
 				pVarName = ps->CurrentMacro->pMacro->pArgs;
 				pVarValue = ps->CurrentMacro->pArgs;
@@ -1046,13 +1046,13 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 						pValue = BuildLine( GetIndirect(pVarValue) );
 						if( !(pVarValue->flags & TF_DEEP ) )
 						{
-							DECLTEXT( msg, WIDE("Possible memory loss in macro parameter") );
+							DECLTEXT( msg, "Possible memory loss in macro parameter" );
 							EnqueLink( &ps->Command->Output, &msg );
 						}
 					}
 					else
 						pValue = pVarValue;
-					vtprintf( vt, WIDE("%s = %s"),
+					vtprintf( vt, "%s = %s",
 											GetText( pVarName )
 										 , GetText( pValue )
 											);
@@ -1064,11 +1064,11 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 				}
 				if( pVarName )
 				{
-					DECLTEXT( msg, WIDE("--- not enough arguments passed") );
+					DECLTEXT( msg, "--- not enough arguments passed" );
 					EnqueLink( &ps->Command->Output, &msg );
 					while( pVarName )
 					{
-						vtprintf( vt, WIDE("%s = ???"), 
+						vtprintf( vt, "%s = ???", 
 													GetText( pVarName )
 												);
 						EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
@@ -1077,7 +1077,7 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 				}
 				if( pVarValue )
 				{
-					DECLTEXT( msg, WIDE("--- too many arguments passed") );
+					DECLTEXT( msg, "--- too many arguments passed" );
 					EnqueLink( &ps->Command->Output, &msg );
 				}
 			}
@@ -1102,7 +1102,7 @@ int CPROC VVARS( PSENTIENT ps, PTEXT parameters )
 			if( !ps->CurrentMacro )
 			{
 				PTEXT pOut;
-				DECLTEXT( msg, WIDE(" is an unknown object.") );
+				DECLTEXT( msg, " is an unknown object." );
 				pOut = SegAppend( SegDuplicate( parameters )
 									, SegCreateIndirect( (PTEXT)&msg ) );
 				EnqueLink( &ps->Command->Output, pOut );
@@ -1112,12 +1112,12 @@ int CPROC VVARS( PSENTIENT ps, PTEXT parameters )
 	if( pe )
 	{
 		volatile_variable_entry *pvve;
-		DECLTEXT( msg, WIDE("--- Volatile Variables ---") );
+		DECLTEXT( msg, "--- Volatile Variables ---" );
 		EnqueLink( &ps->Command->Output, &msg );
 		LIST_FORALL( pe->pVariables, idx, volatile_variable_entry *, pvve )
 		{
 			 PTEXT result;
-			 DECLTEXT( blank, WIDE(" ") );
+			 DECLTEXT( blank, " " );
 			 if( pvve->get )
 			 {
 						result = pvve->get( pe, &pvve->pLastValue );
@@ -1128,7 +1128,7 @@ int CPROC VVARS( PSENTIENT ps, PTEXT parameters )
 			 }
 			 else
 					result = (PTEXT)&blank;
-			 vtprintf( vt, WIDE("%s = %s"), pvve->pName, GetText( result ) );
+			 vtprintf( vt, "%s = %s", pvve->pName, GetText( result ) );
 			 EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 			 LineRelease( result );
 		}

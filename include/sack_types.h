@@ -533,18 +533,18 @@ SACK_NAMESPACE
 #if defined( __WATCOMC__ )
 #define LIBMAIN()   static int __LibMain( HINSTANCE ); PRELOAD( LibraryInitializer ) { \
 	__LibMain( GetModuleHandle(_WIDE(TARGETNAME)) );   } \
-	static int __LibMain( HINSTANCE hInstance ) { /*Log( WIDE("Library Enter" ) );*/
-#define LIBEXIT() } static int LibExit( void ); ATEXIT( LiraryUninitializer ) { LibExit(); } int LibExit(void) { /*Log( WIDE("Library Exit" ) );*/
+	static int __LibMain( HINSTANCE hInstance ) { /*Log( "Library Enter" );*/
+#define LIBEXIT() } static int LibExit( void ); ATEXIT( LiraryUninitializer ) { LibExit(); } int LibExit(void) { /*Log( "Library Exit" );*/
 #define LIBMAIN_END() }
 #else
 #ifdef TARGETNAME
 #define LIBMAIN()   static int __LibMain( HINSTANCE ); PRELOAD( LibraryInitializer ) { \
 	__LibMain( GetModuleHandle(_WIDE(TARGETNAME)) );   } \
-	static int __LibMain( HINSTANCE hInstance ) { /*Log( WIDE("Library Enter" ) );*/
+	static int __LibMain( HINSTANCE hInstance ) { /*Log( "Library Enter" );*/
 #else
 #define LIBMAIN()   TARGETNAME_NOT_DEFINED
 #endif
-#define LIBEXIT() } static int LibExit( void ); ATEXIT( LiraryUninitializer ) { LibExit(); } int LibExit(void) { /*Log( WIDE("Library Exit" ) );*/
+#define LIBEXIT() } static int LibExit( void ); ATEXIT( LiraryUninitializer ) { LibExit(); } int LibExit(void) { /*Log( "Library Exit" );*/
 #define LIBMAIN_END() }
 #endif
 #define PACKED
@@ -572,8 +572,8 @@ SACK_NAMESPACE
 #  define PUBLIC(type,name) EXPORT_METHOD type CPROC name
 #  define LIBMAIN()   static int __LibMain( HINSTANCE ); PRELOAD( LibraryInitializer ) { \
 	__LibMain( GetModuleHandle(TARGETNAME) );   } \
-	static int __LibMain( HINSTANCE hInstance ) { /*Log( WIDE("Library Enter" ) );*/
-#  define LIBEXIT() } static int LibExit( void ); ATEXIT( LiraryUninitializer ) { LibExit(); } int LibExit(void) { /*Log( WIDE("Library Exit" ) );*/
+	static int __LibMain( HINSTANCE hInstance ) { /*Log( "Library Enter" );*/
+#  define LIBEXIT() } static int LibExit( void ); ATEXIT( LiraryUninitializer ) { LibExit(); } int LibExit(void) { /*Log( "Library Exit" );*/
 #  define LIBMAIN_END()  }
 /* Portability Macro for porting legacy code forward. */
 #  define FAR
@@ -608,16 +608,16 @@ SACK_NAMESPACE
 #ifdef __STATIC__
 #define LIBMAIN() static WINPROC(int, LibMain)(HINSTANCE hInstance, DWORD dwReason, void *unused ) \
 		{ if( dwReason == DLL_PROCESS_ATTACH ) {\
-			/*Log( WIDE("Library Enter" ) );*//* here would be if dwReason == process_attach */
+			/*Log( "Library Enter" );*//* here would be if dwReason == process_attach */
 #define LIBEXIT() } /* end if */ if( dwReason == DLL_PROCESS_DETACH ) {  \
-	  									 /*Log( WIDE("Library Exit" ) );*/
+	  									 /*Log( "Library Exit" );*/
 #define LIBMAIN_END()  } return 1; }
 #else
 #define LIBMAIN() WINPROC(int, LibMain)(HINSTANCE hInstance, DWORD dwReason, void *unused ) \
 		{ if( dwReason == DLL_PROCESS_ATTACH ) {\
-			/*Log( WIDE("Library Enter" ) );*//* here would be if dwReason == process_attach */
+			/*Log( "Library Enter" );*//* here would be if dwReason == process_attach */
 #define LIBEXIT() } /* end if */ if( dwReason == DLL_PROCESS_DETACH ) {  \
-	   									 /*Log( WIDE("Library Exit" ) );*/
+	   									 /*Log( "Library Exit" );*/
 #define LIBMAIN_END()  } return 1; }
 #endif
 
@@ -636,7 +636,7 @@ SACK_NAMESPACE
 
 /* a constant text string that represents the current source
    filename and line... fourmated as "source.c(11) :"        */
-#define FILELINE  TEXT(__FILE__) WIDE("(" ) TEXT(STRSYM(__LINE__))WIDE(" : " ))
+#define FILELINE  TEXT(__FILE__) "(" TEXT(STRSYM(__LINE__))" : ")
 #if defined( _MSC_VER ) || defined( __PPCCPP__ )
 /* try and define a way to emit comipler messages... but like no compilers support standard ways to do this accross the board.*/
 #define pragnote(msg) message( FILELINE msg )
@@ -666,8 +666,8 @@ SACK_NAMESPACE
 /* specify a consistant macro to forward file and line parameters, to functions which have void parameter lists without this information.  This are appended parameters, and common usage is to only use these with _DEBUG set. */
 #define FILELINE_VOIDRELAY   pFile, nLine
 /* specify a consistant macro to format file and line information for printf formated strings. */
-#define FILELINE_FILELINEFMT WIDE("%s(%") _32f WIDE("): ")
-#define FILELINE_FILELINEFMT_MIN WIDE("%s(%") _32f WIDE(")")
+#define FILELINE_FILELINEFMT "%s(%" _32f "): "
+#define FILELINE_FILELINEFMT_MIN "%s(%" _32f ")"
 #define FILELINE_NULL        , NULL, 0
 #define FILELINE_VOIDNULL    NULL, 0
 /* define static parameters which are the declaration's current file and line, for stubbing in where debugging is being stripped.
@@ -1110,29 +1110,29 @@ SACK_NAMESPACE
 
 /* 16 bit unsigned decimal output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
-#define _16f   WIDE("u" )
+#define _16f   "u"
 /* 16 bit hex output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
-#define _16fx   WIDE("x" )
+#define _16fx   "x"
 /* 16 bit HEX output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
-#define _16fX   WIDE("X" )
+#define _16fX   "X"
 /* 16 bit signed decimal output printf format specifier. This
    would otherwise be defined in \<inttypes.h\>               */
-#define _16fs   WIDE("d" )
+#define _16fs   "d"
 
 /* 8 bit unsigned decimal output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
-#define _8f   WIDE("u" )
+#define _8f   "u"
 /* 8 bit hex output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
-#define _8fx   WIDE("x" )
+#define _8fx   "x"
 /* 8 bit HEX output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
-#define _8fX   WIDE("X" )
+#define _8fX   "X"
 /* 8 bit signed decimal output printf format specifier. This
    would otherwise be defined in \<inttypes.h\>               */
-#define _8fs   WIDE("d" )
+#define _8fs   "d"
 
 #if defined( __STDC_FORMAT_MACROS )
 
@@ -1162,10 +1162,10 @@ SACK_NAMESPACE
 #  define c_64fs   PRId64
 
 #else
-#  define _32f   WIDE("u" )
-#  define _32fx   WIDE("x" )
-#  define _32fX   WIDE("X" )
-#  define _32fs   WIDE("d" )
+#  define _32f   "u"
+#  define _32fx   "x"
+#  define _32fX   "X"
+#  define _32fs   "d"
 
 #  define c_32f   "u"
 #  define c_32fx  "x"
@@ -1179,13 +1179,13 @@ SACK_NAMESPACE
 #endif
 
 #if defined( UNICODE )
-#  define _cstring_f WIDE("s")
-#  define _string_f WIDE("S")
-#  define _ustring_f WIDE("S")
+#  define _cstring_f "s"
+#  define _string_f "S"
+#  define _ustring_f "S"
 #else
-#  define _cstring_f WIDE("s")
-#  define _string_f WIDE("s")
-#  define _ustring_f WIDE("S")
+#  define _cstring_f "s"
+#  define _string_f "s"
+#  define _ustring_f "S"
 #endif
 
 #if defined( __64__ )
@@ -1202,10 +1202,10 @@ SACK_NAMESPACE
 #      define c_size_fX   PRIX64
 #      define c_size_fs   PRId64
 #    else
-#      define _size_f    WIDE( "zu" )
-#      define _size_fx   WIDE( "zx" )
-#      define _size_fX   WIDE( "zX" )
-#      define _size_fs   WIDE( "zd" )
+#      define _size_f    "zu"
+#      define _size_fx   "zx"
+#      define _size_fX   "zX"
+#      define _size_fs   "zd"
 #      define c_size_f    "zu"
 #      define c_size_fx   "zx"
 #      define c_size_fX   "zX"
@@ -1228,10 +1228,10 @@ SACK_NAMESPACE
 #      define c_size_fX  c_64fX
 #      define c_size_fs  c_64fs
 #    else
-#      define _size_f    WIDE( "zu" )
-#      define _size_fx   WIDE( "zx" )
-#      define _size_fX   WIDE( "zX" )
-#      define _size_fs   WIDE( "zd" )
+#      define _size_f    "zu"
+#      define _size_fx   "zx"
+#      define _size_fX   "zX"
+#      define _size_fs   "zd"
 #      define c_size_f    "zu"
 #      define c_size_fx   "zx"
 #      define c_size_fX   "zX"
@@ -1259,10 +1259,10 @@ SACK_NAMESPACE
 #      define c_size_fX   PRIX32
 #      define c_size_fs   PRId32
 #    else
-#      define _size_f    WIDE( "zu" )
-#      define _size_fx   WIDE( "zx" )
-#      define _size_fX   WIDE( "zX" )
-#      define _size_fs   WIDE( "zd" )
+#      define _size_f    "zu"
+#      define _size_fx   "zx"
+#      define _size_fX   "zX"
+#      define _size_fs   "zd"
 #      define c_size_f    "zu"
 #      define c_size_fx   "zx"
 #      define c_size_fX   "zX"
@@ -1286,10 +1286,10 @@ SACK_NAMESPACE
 #      define c_size_fX   c_32fX
 #      define c_size_fs   c_32fs
 #    else
-#      define _size_f    WIDE( "zu" )
-#      define _size_fx   WIDE( "zx" )
-#      define _size_fX   WIDE( "zX" )
-#      define _size_fs   WIDE( "zd" )
+#      define _size_f    "zu"
+#      define _size_fx   "zx"
+#      define _size_fX   "zX"
+#      define _size_fs   "zd"
 #      define c_size_f    "zu"
 #      define c_size_fx   "zx"
 #      define c_size_fX   "zX"
@@ -1303,22 +1303,22 @@ SACK_NAMESPACE
 #  endif
 #endif
 
-#define PTRSZVALf WIDE("p" )
-#define _PTRSZVALf WIDE("p" )
+#define PTRSZVALf "p"
+#define _PTRSZVALf "p"
 
 #if defined( _MSC_VER ) && ( _MSC_VER < 1900 )
 /* 64 bit unsigned decimal output printf format specifier. This would
    otherwise be defined in \<inttypes.h\> as PRIu64              */
-#define _64f    WIDE("llu")
+#define _64f    "llu"
 /* 64 bit hex output printf format specifier. This would
    otherwise be defined in \<inttypes.h\> as PRIxFAST64                */
-#define _64fx   WIDE("llx")
+#define _64fx   "llx"
 /* 64 bit HEX output printf format specifier. This would
    otherwise be defined in \<inttypes.h\> as PRIxFAST64                */
-#define _64fX   WIDE("llX")
+#define _64fX   "llX"
 /* 64 bit signed decimal output printf format specifier. This
    would otherwise be defined in \<inttypes.h\> as PRIdFAST64               */
-#define _64fs   WIDE("lld")
+#define _64fs   "lld"
 #endif
 
 

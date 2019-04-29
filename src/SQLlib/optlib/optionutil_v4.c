@@ -69,7 +69,7 @@ void New4EnumOptions( PODBC odbc
 	pending = odbc;
 
 	// first should check the exisiting loaded family tree....
-	//lprintf( WIDE("Enumerating for %p %p %s %s"), parent, parent->guid, parent->guid, parent->name_guid );
+	//lprintf( "Enumerating for %p %p %s %s", parent, parent->guid, parent->guid, parent->name_guid );
 
 	{
 		struct new4_enum_params params;
@@ -86,11 +86,11 @@ void New4EnumOptions( PODBC odbc
 		PushSQLQueryEx( odbc ); // any subqueries will of course clean themselves up.
 		tnprintf( query
 			  , sizeof( query )
-			  , WIDE( "select option_id,n.name,n.name_id " )
-				WIDE( "from " )OPTION4_MAP WIDE( " as m " )
-				WIDE( "join " )OPTION4_NAME WIDE( " as n on n.name_id=m.name_id " )
-				WIDE( "where parent_option_id='%s' " )
-				WIDE( "order by n.name" )
+			  , "select option_id,n.name,n.name_id "
+				"from "OPTION4_MAP " as m "
+				"join "OPTION4_NAME " as n on n.name_id=m.name_id "
+				"where parent_option_id='%s' "
+				"order by n.name"
 			  , parent->guid?parent->guid:GuidZero() );
 		for( SQLRecordQuery( odbc, query, NULL, &results, NULL );
 			 results;
@@ -113,8 +113,8 @@ void New4EnumOptions( PODBC odbc
 				tmp_node->node = FamilyTreeAddChild( &node->option_tree, parent->node, tmp_node, (uintptr_t)tmp_node->name );
 
 				// psv is a pointer to args in some cases...
-				//lprintf( WIDE( "Enum %s %ld" ), optname, node );
-				//ReadFromNameTable( name, WIDE(""OPTION_NAME""), WIDE("name_id"), &result);
+				//lprintf( "Enum %s %ld", optname, node );
+				//ReadFromNameTable( name, WIDE(""OPTION_NAME""), "name_id", &result);
 				if( !Process( psvUser, tmp_node->name, tmp_node
 								, ((tmp_node->flags.bHasValue )?1:0)
 								) )
@@ -122,7 +122,7 @@ void New4EnumOptions( PODBC odbc
 					break;
 				}
 			}
-			//lprintf( WIDE("reget: %s"), query );
+			//lprintf( "reget: %s", query );
 		}
 		PopODBCEx( odbc );
 	}
@@ -156,7 +156,7 @@ void New4DuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName
 {
 	CTEXTSTR result = NULL;
 	POPTION_TREE_NODE iNewName;
-	if( SQLQueryf( odbc, &result, WIDE( "select parent_option_id from " ) OPTION4_MAP WIDE( " where option_id=%ld" ), iRoot ) && result )
+	if( SQLQueryf( odbc, &result, "select parent_option_id from " OPTION4_MAP " where option_id=%ld", iRoot ) && result )
 	{
 		POPTION_TREE_NODE tmp_node = New( OPTION_TREE_NODE );
 		struct complex_args args;
@@ -173,7 +173,7 @@ void New4DuplicateOption( PODBC odbc, POPTION_TREE_NODE iRoot, CTEXTSTR pNewName
 
 void New4DeleteOption( PODBC odbc, POPTION_TREE_NODE iRoot )
 {
-	SQLCommandf( odbc, WIDE( "delete from " )OPTION4_MAP WIDE( " where option_id='%s'" ), iRoot->guid );
+	SQLCommandf( odbc, "delete from "OPTION4_MAP " where option_id='%s'", iRoot->guid );
 	//   foriegn keys should be cascade, so these will disappear without specifically removing.
 }
 

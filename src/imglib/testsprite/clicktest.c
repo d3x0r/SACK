@@ -47,11 +47,11 @@ void CPROC SpriteDrawProc( uintptr_t psv, PRENDERER renderer, int32_t x, int32_t
 	{
 		if( sprite[n].ttl )
 		{
-			//lprintf( WIDE("------------- (BEGIN SPRITE)") );
+			//lprintf( "------------- (BEGIN SPRITE)" );
 			rotate_scaled_sprite( GetDisplayImage( renderer ), sprite[n].sprite, rot, 0x10000, 0x10000 );
-			//lprintf( WIDE("------------- (BEGIN BLOT)") );
+			//lprintf( "------------- (BEGIN BLOT)" );
 			//BlotImage( GetDisplayImage( renderer ), sprite[n].sprite->image, sprite[n].sprite->curx, sprite[n].sprite->cury );
-			//lprintf( WIDE("------------- (DONE)") );
+			//lprintf( "------------- (DONE)" );
 		}
 	}
 
@@ -65,13 +65,13 @@ void CPROC DrawProc( uintptr_t psv, PRENDERER renderer )
    if( background )
    BlotScaledImage( GetDisplayImage( renderer ), background );
   // ProcessMotion();
-	//printf( WIDE("... %d\n"), rot >> 16 );
-	//lprintf( WIDE("image") );
+	//printf( "... %d\n", rot >> 16 );
+	//lprintf( "image" );
 	//for( n = 0; n < MAX_SPRITES; n++ )
 	{
 		//BlotImage( GetDisplayImage( renderer ), sprite[n]->image, sprite[n]->curx, sprite[n]->cury );
 	}
-	lprintf( WIDE("done") );
+	lprintf( "done" );
 }
 
 /*
@@ -79,19 +79,19 @@ void CPROC DrawProc( uintptr_t psv, PRENDERER renderer )
 {
    int n;
    ProcessMotion();
-	//printf( WIDE("... %d\n"), rot >> 16 );
-	//lprintf( WIDE("image") );
+	//printf( "... %d\n", rot >> 16 );
+	//lprintf( "image" );
 	//for( n = 0; n < MAX_SPRITES; n++ )
 	{
 		//BlotImage( GetDisplayImage( renderer ), sprite[n]->image, sprite[n]->curx, sprite[n]->cury );
 	}
-   lprintf( WIDE("sprite") );
+   lprintf( "sprite" );
 	for( n = 0; n < MAX_SPRITES; n++ )
 	{
       if( sprite[n].ttl )
 			rotate_scaled_sprite( GetDisplayImage( renderer ), sprite[n].sprite, rot, 0x10000 );
 	}
-	lprintf( WIDE("done") );
+	lprintf( "done" );
 }
 */
 
@@ -122,20 +122,20 @@ void CPROC Tick( uintptr_t psv )
 	//for( n = 0; n < 16; n++ )
 	{
 		rot = rot + 0x10000000;
-      Log( WIDE("BeginDraw (tick, this is idle time)") );
+      Log( "BeginDraw (tick, this is idle time)" );
 		ProcessMotion();
 		//DrawProc( 0, render );
-		//Log( WIDE("EndDraw") );
+		//Log( "EndDraw" );
 		UpdateDisplay( render );
-      Log( WIDE("EndUpdate") );
+      Log( "EndUpdate" );
 	}
 }
 
 
 SaneWinMain( argc, argv )
 {
-	Image image = LoadImageFile( WIDE("images/firestar2.png") );
-   background = LoadImageFile( WIDE("images/sky.jpg") );
+	Image image = LoadImageFile( "images/firestar2.png" );
+   background = LoadImageFile( "images/sky.jpg" );
 	SystemLogTime( SYSLOG_TIME_CPU| SYSLOG_TIME_DELTA );
 	SetBlotMethod( BLOT_MMX );
 	if( !image )
@@ -167,7 +167,7 @@ SaneWinMain( argc, argv )
 				sprite[n].sprite->hotx = image->width / 2;
 				sprite[n].sprite->hoty = image->height / 2;
 			}
-			lprintf( WIDE("%d, %d\n"), image->width, image->height );
+			lprintf( "%d, %d\n", image->width, image->height );
 			rot = rot + 0x10000 * 19;
 			if( rot == 0x1000000 )
 				rot = 0;

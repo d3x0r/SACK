@@ -85,7 +85,7 @@ enum FLATLAND_SERVICE_EVENTS{
 #include <world_proto.h>
 #endif
 
-#define WORLD_SCAPE_INTERFACE_NAME WIDE("World Scape")
+#define WORLD_SCAPE_INTERFACE_NAME "World Scape"
 #ifdef WORLDSCAPE_INTERFACE_USED
 #undef WORLD_PROC
 # define WORLD_PROC INTERFACE_METHOD

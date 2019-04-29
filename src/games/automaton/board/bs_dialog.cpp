@@ -79,9 +79,9 @@ void CPROC RefreshFrame( uintptr_t psv )
 		TEXTCHAR number[18];
 		NATIVE output;
 		output = pndd->neuron->get();// &base, &range, &level );
-		snprintf( number, sizeof( number ), WIDE("%g"), output );
+		snprintf( number, sizeof( number ), "%g", output );
 		SetControlText( GetControl( pndd->frame, TEXT_VALUE1 ), number );
-		snprintf( number, sizeof( number ), WIDE("%g"), pndd->neuron->threshold() );
+		snprintf( number, sizeof( number ), "%g", pndd->neuron->threshold() );
 		SetControlText( GetControl( pndd->frame, TEXT_VALUE2 ), number );
 	}
 	LIST_FORALL( l.synapses, idx, PDIALOG_DATA, pndd )
@@ -89,7 +89,7 @@ void CPROC RefreshFrame( uintptr_t psv )
 		TEXTCHAR number[18];
 		NATIVE gain;
 		pndd->synapse->get( &gain, NULL, NULL );// &base, &range, &level );
-		snprintf( number, sizeof( number ), WIDE("%g"), gain );
+		snprintf( number, sizeof( number ), "%g", gain );
 		SetControlText( GetControl( pndd->frame, TEXT_VALUE1 ), number );
 	}
 	LeaveCriticalSec( &l.cs );
@@ -143,11 +143,11 @@ static uintptr_t CPROC _ShowPropertyDialog( PTHREAD thread )
 			AddLink( &l.neurons, pndd );
 			pndd->neuron = neuron;
 			pndd->synapse = NULL;
-			snprintf( title, sizeof( title ), WIDE("%s Properties"), neuron->name() );
+			snprintf( title, sizeof( title ), "%s Properties", neuron->name() );
 			pndd->frame = CreateFrame( title, x, y, 256, 128, BORDER_NORMAL, NULL );
 			SetControlUserData( pndd->frame, (uintptr_t)pndd );
-			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 33, 73, 18, TEXT_VALUE1, WIDE("00") );
-			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 56, 73, 18, TEXT_VALUE2, WIDE("00") );
+			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 33, 73, 18, TEXT_VALUE1, "00" );
+			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 56, 73, 18, TEXT_VALUE2, "00" );
 			SetSliderValues( MakeSlider( pndd->frame, 5, 5, 246, 24, -1
 												, SLIDER_HORIZ
 												, SliderChanged, (uintptr_t)pndd
@@ -156,19 +156,19 @@ static uintptr_t CPROC _ShowPropertyDialog( PTHREAD thread )
 
 			{
 				PSI_CONTROL pc;
-				pc = MakeRadioButton( pndd->frame,  83, 33, 73, 18, -1, WIDE("Digital"), 1, 1, SetNeuronTypeButton, NT_DIGITAL );
+				pc = MakeRadioButton( pndd->frame,  83, 33, 73, 18, -1, "Digital", 1, 1, SetNeuronTypeButton, NT_DIGITAL );
 				if( pndd->neuron->type() == NT_DIGITAL )
 					SetCheckState( pc, TRUE );
-				pc = MakeRadioButton( pndd->frame,  83, 46, 73, 18, -1, WIDE("Analog"), 1, 1, SetNeuronTypeButton, NT_ANALOG );
+				pc = MakeRadioButton( pndd->frame,  83, 46, 73, 18, -1, "Analog", 1, 1, SetNeuronTypeButton, NT_ANALOG );
 				if( pndd->neuron->type() == NT_ANALOG )
 					SetCheckState( pc, TRUE );
-				pc = MakeRadioButton( pndd->frame,  83, 59, 73, 18, -1, WIDE("Sigmoid"), 1, 1, SetNeuronTypeButton, NT_SIGMOID );
+				pc = MakeRadioButton( pndd->frame,  83, 59, 73, 18, -1, "Sigmoid", 1, 1, SetNeuronTypeButton, NT_SIGMOID );
 				if( pndd->neuron->type() == NT_SIGMOID )
 					SetCheckState( pc, TRUE );
 			}
-			MakeButton( pndd->frame, 170, 46, 80, 20, IDOK, WIDE("Delete")
+			MakeButton( pndd->frame, 170, 46, 80, 20, IDOK, "Delete"
 									  , 0, NULL, 0 );
-			MakeButton( pndd->frame, 170, 71, 80, 20, IDOK, WIDE("Done")
+			MakeButton( pndd->frame, 170, 71, 80, 20, IDOK, "Done"
 						 , 0, DonePushed, (uintptr_t)pndd );
 			DisplayFrame( pndd->frame );
 		}
@@ -180,22 +180,22 @@ static uintptr_t CPROC _ShowPropertyDialog( PTHREAD thread )
 			AddLink( &l.synapses, pndd );
 			pndd->neuron = NULL;
 			pndd->synapse = synapse;
-			snprintf( title, sizeof( title ), WIDE("%s Properties"), synapse->name() );
+			snprintf( title, sizeof( title ), "%s Properties", synapse->name() );
 			pndd->frame = CreateFrame( title, x, y, 256, 128, BORDER_NORMAL, NULL );
-			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 33, 73, 18, TEXT_VALUE1, WIDE("00") );
+			MakeCaptionedControl( pndd->frame, STATIC_TEXT, 5, 33, 73, 18, TEXT_VALUE1, "00" );
 			SetSliderValues( MakeSlider( pndd->frame, 5, 5, 246, 24, -1
 												, SLIDER_HORIZ
 												, SliderChanged, (uintptr_t)pndd
 												)
 								, -256, (int)pndd->synapse->gain(), 256 );
 
-			//MakeCaptionedControl( pndd->frame, RADIO_BUTTON,  83, 33, 73, 18, -1, WIDE("Digital"), 0, 1, NULL, 0 );
-			//MakeCaptionedControl( pndd->frame, RADIO_BUTTON,  83, 46, 73, 18, -1, WIDE("Analog"), 0, 1, NULL, 0 );
-			//MakeCaptionedControl( pndd->frame, RADIO_BUTTON,  83, 59, 73, 18, -1, WIDE("Sigmoid"), 0, 1, NULL, 0 );
+			//MakeCaptionedControl( pndd->frame, RADIO_BUTTON,  83, 33, 73, 18, -1, "Digital", 0, 1, NULL, 0 );
+			//MakeCaptionedControl( pndd->frame, RADIO_BUTTON,  83, 46, 73, 18, -1, "Analog", 0, 1, NULL, 0 );
+			//MakeCaptionedControl( pndd->frame, RADIO_BUTTON,  83, 59, 73, 18, -1, "Sigmoid", 0, 1, NULL, 0 );
 
-			MakeButton( pndd->frame, 170, 46, 80, 20, IDOK, WIDE("Delete")
+			MakeButton( pndd->frame, 170, 46, 80, 20, IDOK, "Delete"
 						 , 0, NULL, 0 );
-			MakeButton( pndd->frame, 170, 71, 80, 20, IDOK, WIDE("Done")
+			MakeButton( pndd->frame, 170, 71, 80, 20, IDOK, "Done"
 						 ,0 , DonePushed, (uintptr_t)pndd );
 			//SetControlUserData( pndd->frame, pndd );
 

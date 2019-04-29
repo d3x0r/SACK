@@ -71,17 +71,17 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
    pdp = CreateDataPath( pChannel, MYDATAPATH );
    while( option = GetParam( ps, &parameters ) )
    {
-	   if( OptionLike( option, WIDE("inbound") ) )
+	   if( OptionLike( option, "inbound" ) )
 	   {
 	   	pdp->flags.outbound = 0;
 	   }
-	   else if( OptionLike( option, WIDE("outbound") ) )
+	   else if( OptionLike( option, "outbound" ) )
 	   {
 	   	pdp->flags.outbound = 1;
 	   }
 	   else
 	   {
-	   	//DECLTEXT( msg, WIDE("Unknown option for token filter. Allowed are 'inbound' and 'outbound'.") );
+	   	//DECLTEXT( msg, "Unknown option for token filter. Allowed are 'inbound' and 'outbound'." );
 	   }
 	}
    pdp->common.Type = myTypeID;
@@ -95,7 +95,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("splice"), WIDE("Splices Tokens into a line..."), Open );
+   myTypeID = RegisterDevice( "splice", "Splices Tokens into a line...", Open );
    return DekVersion;
 }
 
@@ -103,7 +103,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("splice") );
+	UnregisterDevice( "splice" );
 }
 // $Log: splicer.c,v $
 // Revision 1.7  2005/02/21 12:08:37  d3x0r

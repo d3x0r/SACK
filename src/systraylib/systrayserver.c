@@ -101,7 +101,7 @@ SERVER_FUNCTION functions[] =
 
 void OpenServer( void )
 {
-	l.MsgBaseServer = RegisterService( WIDE("systray"), functions, NUM_FUNCTIONS );
+	l.MsgBaseServer = RegisterService( "systray", functions, NUM_FUNCTIONS );
    xlprintf(LOG_ADVISORY)("l.MsgBaseServer is %lu", l.MsgBaseServer );
 }
 

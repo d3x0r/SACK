@@ -20,11 +20,11 @@ SYSTEM_PROC( void, ParseIntoArgs )( TEXTCHAR *lpCmdLine, int *pArgc, TEXTCHAR **
 	int lastchar;
 
 	lastchar = ' '; // auto continue spaces...
-	//lprintf( WIDE("Got args: %s"), args );
+	//lprintf( "Got args: %s", args );
 	p = args;
 	while( p && p[0] )
 	{
-		//lprintf( WIDE("check character %c %c"), lastchar, p[0] );
+		//lprintf( "check character %c %c", lastchar, p[0] );
 		if( escape ) {
 			if( p[0] == '\"' || p[0] == '\'' ) {
 				escape = 0;
@@ -84,7 +84,7 @@ SYSTEM_PROC( void, ParseIntoArgs )( TEXTCHAR *lpCmdLine, int *pArgc, TEXTCHAR **
 		start = NULL;
 		while( p[0] )
 		{
-			//lprintf( WIDE("check character %c %c"), lastchar, p[0] );
+			//lprintf( "check character %c %c", lastchar, p[0] );
 			if( escape ) {
 				escape = 0;
 			}
@@ -133,7 +133,7 @@ SYSTEM_PROC( void, ParseIntoArgs )( TEXTCHAR *lpCmdLine, int *pArgc, TEXTCHAR **
 			}
 			p++;
 		}
-		//lprintf( WIDE("Setting arg %d to %s"), count, start );
+		//lprintf( "Setting arg %d to %s", count, start );
 		if( start )
 			pp[count++] = StrDup( start );
 		pp[count] = NULL;

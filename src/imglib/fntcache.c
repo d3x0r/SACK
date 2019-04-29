@@ -91,7 +91,7 @@ PRIORITY_PRELOAD( CreateFontCacheGlobal, IMAGE_PRELOAD_PRIORITY + 1 )
 		error = FT_Init_FreeType( &fg.library );
 		if( error )
 		{
-			Log1( WIDE("Free type init failed: %d"), error );
+			Log1( "Free type init failed: %d", error );
 			return ;
 		}
 	}
@@ -114,9 +114,9 @@ void LogSHA1Ex( TEXTCHAR *leader, PSIZE_FILE file DBG_PASS)
 	TEXTCHAR msg[256];
 	int ofs;
 	int n;
-	ofs = tnprintf( msg, sizeof( msg ), WIDE("%s: "), leader );
+	ofs = tnprintf( msg, sizeof( msg ), "%s: ", leader );
 	//for( n = 0; n < SHA1HashSize; n++ )
-	//	ofs += tnprintf( msg + ofs, sizeof(msg)-ofs*sizeof(TEXTCHAR), WIDE("%02X "), ((uint8_t*)file->SHA1)[n] );
+	//	ofs += tnprintf( msg + ofs, sizeof(msg)-ofs*sizeof(TEXTCHAR), "%02X ", ((uint8_t*)file->SHA1)[n] );
 	SystemLogEx( msg DBG_RELAY );
 }
 
@@ -129,7 +129,7 @@ void DoSHA1( PSIZE_FILE file )
 	POINTER memmap;
 	if( file->path && file->file )
 	{
-		tnprintf( filename, sizeof( filename ), WIDE("%s/%s"), file->path->word, file->file->word );
+		tnprintf( filename, sizeof( filename ), "%s/%s", file->path->word, file->file->word );
 		memmap = OpenSpace( NULL, filename, (uintptr_t*)&size );
 		SHA1Reset( &Sha1Context );
 		SHA1Input( &Sha1Context, (uint8_t*)memmap, size );
@@ -197,11 +197,11 @@ int UniqueStrCmp( TEXTCHAR *s1, INDEX s1_length, TEXTCHAR *s2 )
 			numstart[0] = 0;
 			num = (int)IntCreateFromText( numstart+1 );
 			StrCpyEx( name, s1, 256 );
-			tnprintf( s1, sizeof( name ), WIDE("%s[%d]"), name, num+1 );
+			tnprintf( s1, sizeof( name ), "%s[%d]", name, num+1 );
 		}
 		else
 		{
-			tnprintf( s1, s1_length, WIDE("%s[1]"), s2 ); // s1 and s2 are equal, so this works...
+			tnprintf( s1, s1_length, "%s[1]", s2 ); // s1 and s2 are equal, so this works...
 		}
 		return 1;
 	}
@@ -359,14 +359,14 @@ PCACHE_SIZE_FILE AddSizeFileEx( PCACHE_FONT_STYLE pfs
 	if( bTest )
 		DoSHA1( psf );
 #endif
-	// Log( WIDE("Commpare sha1!") );
+	// Log( "Commpare sha1!" );
 	if( bTest )
 	{
 #if 0
 		LIST_FORALL( pfs->files, idx, PCACHE_SIZE_FILE, psfCheck )
 		{
-			//LogSHA1( WIDE("file: "), psf );
-			//LogSHA1( WIDE("vs  : "), psfCheck );
+			//LogSHA1( "file: ", psf );
+			//LogSHA1( "vs  : ", psfCheck );
 			if( MemCmp( psf->SHA1
 						 , psfCheck->SHA1
 						 , SHA1HashSize ) == 0 )
@@ -376,7 +376,7 @@ PCACHE_SIZE_FILE AddSizeFileEx( PCACHE_FONT_STYLE pfs
 				//	 , ((PSIZE_FILE)GetLink( &pfs->files, 0 ))->path->word
 				//	 , ((PSIZE_FILE)GetLink( &pfs->files, 0 ))->file );
 				//Log3( DBG_FILELINEFMT "File 2: (%d)%s/%s" DBG_RELAY , path->ID, path->word, file );
-				//Log( WIDE("Duplicate found - storing as alterate.") );
+				//Log( "Duplicate found - storing as alterate." );
 				Deallocate( PCACHE_SIZE_FILE, psf );
 				AddAlternateSizeFile( psfCheck, path, file );
 				return NULL;
@@ -420,7 +420,7 @@ void DumpFontCache( void )
 					for( sz = 0; sz < file->nSizes; sz++ )
 					{
 						PCACHE_SIZES size = ((PCACHE_SIZES)file->sizes) + sz;
-						lprintf( WIDE("%s[%s] = %s/%s (%dx%d)"), (TEXTCHAR*)pfe->name
+						lprintf( "%s[%s] = %s/%s (%dx%d)", (TEXTCHAR*)pfe->name
 							, (TEXTCHAR*)pfs->name
 							, (TEXTCHAR*)file->path
 							, (TEXTCHAR*)file->file, size->width, size->height );
@@ -457,10 +457,10 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 			end[0] = ']';
 		}
 		else
-			font_style = (TEXTCHAR*)WIDE("regular");
+			font_style = (TEXTCHAR*)"regular";
 	}
 	else
-		font_style = (TEXTCHAR*)WIDE("regular");
+		font_style = (TEXTCHAR*)"regular";
 
 	if( !(*font_memory) )
 	{
@@ -479,7 +479,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 #ifdef DEBUG_OPENFONTFILE
 			lprintf( "open by memory map failed for %s", name );
 #endif
-			file = sack_fopen( 0, name, WIDE("rb") );
+			file = sack_fopen( 0, name, "rb" );
 			if( file )				
 			{
 #ifdef DEBUG_OPENFONTFILE
@@ -540,7 +540,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 						//lprintf( "Found font file matchint %s", file->file );
 						temp_filename_len = (StrLen( (TEXTCHAR*)file->path ) + StrLen( (TEXTCHAR*)file->file ) + 2);
 						temp_filename = NewArray( TEXTCHAR, temp_filename_len );
-						tnprintf( temp_filename, temp_filename_len, WIDE("%s/%s"), (TEXTCHAR*)file->path, (TEXTCHAR*)file->file );
+						tnprintf( temp_filename, temp_filename_len, "%s/%s", (TEXTCHAR*)file->path, (TEXTCHAR*)file->file );
 #ifdef DEBUG_OPENFONTFILE
 						lprintf( "full path is %s", temp_filename );
 #endif
@@ -552,7 +552,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 						{
 							temp_filename_len = (StrLen( (TEXTCHAR*)file->path ) + StrLen( (TEXTCHAR*)file->file ) + 2);
 							temp_filename = NewArray( TEXTCHAR, temp_filename_len );
-							tnprintf( temp_filename, temp_filename_len, WIDE("%s/%s"), (TEXTCHAR*)file->path, (TEXTCHAR*)file->file );
+							tnprintf( temp_filename, temp_filename_len, "%s/%s", (TEXTCHAR*)file->path, (TEXTCHAR*)file->file );
 #ifdef DEBUG_OPENFONTFILE
 							lprintf( "full path is %s", temp_filename );
 #endif
@@ -580,7 +580,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 #ifdef DEBUG_OPENFONTFILE
 				lprintf( "open by memory map failed for %s", temp_filename );
 #endif
-				file = sack_fopen( 0, temp_filename, WIDE("rb") );
+				file = sack_fopen( 0, temp_filename, "rb" );
 				if( file )				
 				{
 #ifdef DEBUG_OPENFONTFILE
@@ -596,7 +596,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 		}
 	}
 #else
-	lprintf( WIDE("!!!!!!!! PSI SHOULD NOT BE USING OPENFONTFILE !!!!!!!!!!!!") );
+	lprintf( "!!!!!!!! PSI SHOULD NOT BE USING OPENFONTFILE !!!!!!!!!!!!" );
 #endif
 	if( *font_memory && size < 0xd000000 )
 	{
@@ -607,7 +607,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 #ifdef DEBUG_OPENFONTFILE
 		lprintf( "re-copied the font memory." );
 #endif
-		//lprintf( WIDE("Using memory mapped space...") );
+		//lprintf( "Using memory mapped space..." );
 		error = FT_New_Memory_Face( fg.library
 										  , (FT_Byte*)(*font_memory)
 										  , (FT_Long)size
@@ -617,7 +617,7 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 	else
 	{
 		char *file = DupTextToChar( name );
-		//lprintf( WIDE("Using file access font... for %s"), name );
+		//lprintf( "Using file access font... for %s", name );
 #ifdef DEBUG_OPENFONTFILE
 		lprintf( "using FT_New_Face direct file access... (should never happen now)" );
 #endif
@@ -640,9 +640,9 @@ int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_i
 		{
 			logged_error = 1;
 #ifdef DEBUG_OPENFONTFILE
-			lprintf( WIDE("Failed to open font %s or %s Result %d")
-					 , name?name:WIDE("<nofile>")
-					 , temp_filename?temp_filename:WIDE("<nofile>")
+			lprintf( "Failed to open font %s or %s Result %d"
+					 , name?name:"<nofile>"
+					 , temp_filename?temp_filename:"<nofile>"
 					 , error );
 #endif
 		}
@@ -698,7 +698,7 @@ void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags
 	//if( !InitFont() )
 	//	return;
 #ifdef DEBUG_OPENFONTFILE
-	lprintf( WIDE("Try font: %s"), name );
+	lprintf( "Try font: %s", name );
 #endif
 	//#ifdef IMAGE_LIBRARY_SOURCE
 	face_idx = 0;
@@ -709,12 +709,12 @@ void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags
 		Deallocate( POINTER, font_memory );
 		if( error == FT_Err_Unknown_File_Format )
 		{
-			//Log1( WIDE("Unsupported font: %s"), name );
+			//Log1( "Unsupported font: %s", name );
 			return;
 		}
 		else if( error )
 		{
-			Log2( WIDE("Error loading font: %s(%d)"), name, error );
+			Log2( "Error loading font: %s(%d)", name, error );
 			return;
 		}
 
@@ -750,19 +750,19 @@ void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags
 			TEXTSTR style_name = DupCharToText( face->style_name?face->style_name:"no-style-name");
 			TEXTCHAR buffer[256];
 			
-			tnprintf( buffer, sizeof( buffer ), WIDE("%s+Italic"), style_name );
+			tnprintf( buffer, sizeof( buffer ), "%s+Italic", style_name );
 			pStyle = AddDictEntry( &fg.build.pStyles, buffer );
 			pfs[1] = AddFontStyle( pfe, pStyle );
 			pfs[1]->flags.mono = ( ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH ) != 0 );
 			pfs[1]->flags.italic = 1;
 
-			tnprintf( buffer, sizeof( buffer ), WIDE("%s+Bold"), style_name );
+			tnprintf( buffer, sizeof( buffer ), "%s+Bold", style_name );
 			pStyle = AddDictEntry( &fg.build.pStyles, buffer );
 			pfs[2] = AddFontStyle( pfe, pStyle );
 			pfs[2]->flags.mono = ( ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH ) != 0 );
 			pfs[2]->flags.bold = 1;
 
-			tnprintf( buffer, sizeof( buffer ), WIDE("%s+Bold-Italic"), style_name );
+			tnprintf( buffer, sizeof( buffer ), "%s+Bold-Italic", style_name );
 			pStyle = AddDictEntry( &fg.build.pStyles, buffer );
 			pfs[3] = AddFontStyle( pfe, pStyle );
 			pfs[3]->flags.mono = ( ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH ) != 0 );
@@ -787,10 +787,10 @@ void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags
 						AddSizeToFile( psf, -1, -1 );
 					if( face->num_fixed_sizes )
 					{
-						//Log( WIDE("Adding fixed sizes") );
+						//Log( "Adding fixed sizes" );
 						for( n = 0; n < face->num_fixed_sizes; n++ )
 						{
-							//Log2( WIDE("Added size %d,%d")
+							//Log2( "Added size %d,%d"
 							//	 , face->available_sizes[n].width
 							//	 , face->available_sizes[n].height
 							//	 );
@@ -802,13 +802,13 @@ void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags
 					}
 					else
 					{
-						Log( WIDE("Error adding font - it's fixed with no fixed defined") );
+						Log( "Error adding font - it's fixed with no fixed defined" );
 						//AddSizeFile( pfe, -2, -2, ppe, filename, TRUE );
 					}
 				}
 				else
 				{
-					//Log1( WIDE("Alternate font of %s"), pfe->name->word );
+					//Log1( "Alternate font of %s", pfe->name->word );
 				}
 			}
 		}
@@ -822,7 +822,7 @@ void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags
 					AddSizeToFile( psf, -1, -1 );
 				else
 				{
-					//Log1( WIDE("(Scaalable only)Alternate font of %s"), pfe->name->word );
+					//Log1( "(Scaalable only)Alternate font of %s", pfe->name->word );
 				}
 			}
 		}
@@ -843,7 +843,7 @@ void OutputFontCache( void )
 	PCACHE_FONT_ENTRY pfe;
 	PCACHE_DICT_ENTRY pde;
 	size_t size;
-	out = sack_fopen( 0, fg.font_cache_path, WIDE("wt") );
+	out = sack_fopen( 0, fg.font_cache_path, "wt" );
 	if( !out )
 		return; // no point.
 //	for( pfe = (PFONT_ENTRY)GetLeastNode( fg.build.pFontCache );
@@ -984,9 +984,9 @@ void OutputFontCache( void )
 			INDEX idx;
 			newlen = snprintf( outbuf, sizeof( outbuf ), "!%" c_32f "*%s%s%s,%" c_32f 
 								 , pfs->name->ID
-								 , pfs->flags.mono?WIDE("m"):WIDE("")
-								 , pfs->flags.italic?WIDE("i"):WIDE("")
-								 , pfs->flags.bold?WIDE("b"):WIDE("")
+								 , pfs->flags.mono?"m":""
+								 , pfs->flags.italic?"i":""
+								 , pfs->flags.bold?"b":""
 								 , pfs->nFiles );
 			if( ( newlen + linelen ) >= 80 )
 			{
@@ -999,7 +999,7 @@ void OutputFontCache( void )
 			if( pfs->flags.mono )
 			{
 				if( !mono )
-					Log2( WIDE("Mono-spaced and var spaced together:%s %s")
+					Log2( "Mono-spaced and var spaced together:%s %s"
 						, pfe->name->word, pfs->name->word );
 				mono = 1;
 			}
@@ -1007,7 +1007,7 @@ void OutputFontCache( void )
 			{
 				if( mono == 1 )
 				{
-					Log2( WIDE("Mono-spaced and var spaced together:%s %s")
+					Log2( "Mono-spaced and var spaced together:%s %s"
 						, pfe->name->word, pfs->name->word );
 				}
 			}
@@ -1098,7 +1098,7 @@ void DumpLoadedFontCache( void )
 	FILE *out;
 	PFONT_ENTRY pfe;
 	uint32_t fontidx, idx;
-	out = sack_fopen( 0, fg.font_cache_path, WIDE("wt") );
+	out = sack_fopen( 0, fg.font_cache_path, "wt" );
 	if( !out )
 		return;
 	sack_fprintf( out,"%%@%" c_32f ",%" c_size_f "\n", fg.build.nPaths, SizeOfMemBlock( fg.build.pPathNames ) );
@@ -1152,21 +1152,21 @@ void DumpLoadedFontCache( void )
 		if( pfe->flags.unusable )
 			continue;
 		// should dump name also...
-		linelen = sack_fprintf( out, WIDE("%") _size_f WIDE(",%") _32f WIDE("")
+		linelen = sack_fprintf( out, "%" _size_f ",%" _32f ""
 						, IndexOf( fg.build.pFamilyList, fg.build.nFamilies, pfe->name )
                         , pfe->nStyles
 							  );
 		for( styleidx = 0; styleidx < pfe->nStyles; styleidx++ )
 		{
 			pfs = (PFONT_STYLE)pfe->styles + styleidx;
-			newlen = tnprintf( outbuf, sizeof( outbuf ), WIDE("!%") _size_f WIDE("*%s,%") _32f WIDE("")
+			newlen = tnprintf( outbuf, sizeof( outbuf ), "!%" _size_f "*%s,%" _32f ""
 								 , IndexOf( fg.build.pStyleList, fg.build.nStyles, pfs->name )
 								 , pfs->flags.mono?"m":""
 								 , pfs->nFiles
 								 );
 			if( ( linelen + newlen ) >= 80 )
 			{
-				sack_fprintf( out, WIDE("\n") );
+				sack_fprintf( out, "\n" );
 				linelen = 0;
 			}
 			linelen += newlen;
@@ -1175,7 +1175,7 @@ void DumpLoadedFontCache( void )
 			{
 				INDEX idx;
 				PSIZES size;
-				newlen = tnprintf( outbuf, sizeof( outbuf ), WIDE("@%") _32f WIDE(",%") _32f WIDE(",%") _size_f WIDE(":%") _size_f
+				newlen = tnprintf( outbuf, sizeof( outbuf ), "@%" _32f ",%" _32f ",%" _size_f ":%" _size_f
                             , psf->nAlternate
                             , psf->nSizes
 									 , IndexOf( fg.build.pPathList, fg.build.nPaths, psf->path )
@@ -1183,7 +1183,7 @@ void DumpLoadedFontCache( void )
 									 );
 				if( linelen + newlen >= 80 )
 				{
-					sack_fprintf( out, WIDE("\n\\") );
+					sack_fprintf( out, "\n\\" );
 					linelen = newlen + 1;
 				}
 				else
@@ -1192,15 +1192,15 @@ void DumpLoadedFontCache( void )
 				for( idx = 0; size = ((PSIZES)psf->sizes) + idx, idx < psf->nSizes; idx++ )
 				{
 					if( size->width < 0 )
-						newlen = tnprintf( outbuf, sizeof( outbuf ), WIDE("#%d")
+						newlen = tnprintf( outbuf, sizeof( outbuf ), "#%d"
 											 , size->width );
 					else
-						newlen = tnprintf( outbuf, sizeof( outbuf ), WIDE("#%d,%d")
+						newlen = tnprintf( outbuf, sizeof( outbuf ), "#%d,%d"
 											 , size->width
 											 , size->height );
 					if( linelen + newlen >= 80 )
 					{
-						sack_fprintf( out, WIDE("\n") );
+						sack_fprintf( out, "\n" );
 						linelen = newlen;
 					}
 					else
@@ -1213,13 +1213,13 @@ void DumpLoadedFontCache( void )
 					INDEX idx;
 					for( idx = 0; pasf = ((PALT_SIZE_FILE)psf->pAlternate) + idx, idx < psf->nAlternate; idx++ )
 					{
-						newlen = tnprintf( outbuf, sizeof( outbuf ), WIDE("^%") _size_f WIDE(":%") _size_f 
+						newlen = tnprintf( outbuf, sizeof( outbuf ), "^%" _size_f ":%" _size_f 
 											 , IndexOf( fg.build.pPathList, fg.build.nPaths, pasf->path )
 											 , IndexOf( fg.build.pFileList, fg.build.nFiles, pasf->file )
 											 );
 						if( linelen + newlen >= 80 )
 						{
-							sack_fprintf( out, WIDE("\n|") );
+							sack_fprintf( out, "\n|" );
 							linelen = newlen + 1;
 						}
 						else
@@ -1227,10 +1227,10 @@ void DumpLoadedFontCache( void )
 						sack_fputs( outbuf, out );
 					}
 				}
-				linelen += sack_fprintf( out, WIDE("^:") );
+				linelen += sack_fprintf( out, "^:" );
 			}
 		}
-		sack_fprintf( out, WIDE("\n") );
+		sack_fprintf( out, "\n" );
 		linelen = 0;
 	}
 	sack_fclose( out );
@@ -1286,7 +1286,7 @@ void CPROC UpdateStatus( uintptr_t psvFrame )
 		StartTime = GetTickCount();
 	}
 	TimeElapsed = GetTickCount() - StartTime;
-	tnprintf( msg, sizeof( msg ), WIDE("Elapsed time: %d:%02d")
+	tnprintf( msg, sizeof( msg ), "Elapsed time: %d:%02d"
 			 , (TimeElapsed/1000) / 60
 			 , (TimeElapsed/1000) % 60
 			 );
@@ -1295,7 +1295,7 @@ void CPROC UpdateStatus( uintptr_t psvFrame )
    // in the positiion of image library, there is no controls to do...
 	SetControlText( GetControl( (PCOMMON)psvFrame, TXT_TIME_STATUS ), msg );
 #endif
-	tnprintf( msg, sizeof( msg ), WIDE("Checked Fonts: %d")
+	tnprintf( msg, sizeof( msg ), "Checked Fonts: %d"
 			 , fonts_checked
 			 );
 	SystemLog( msg );
@@ -1310,11 +1310,11 @@ void CPROC ScanDrive( uintptr_t user, TEXTCHAR *letter, int flags )
 {
 	TEXTCHAR base[5];
 	void *data = NULL;
-	tnprintf( base, sizeof( base ), WIDE("%c:"), letter[0] );
+	tnprintf( base, sizeof( base ), "%c:", letter[0] );
 	if( letter[0] != 'c' && letter[0] != 'C' )
 		return;
 	while( ScanFiles( base
-						 , WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz")
+						 , "*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"
 						 , &data
 						 , ListFontFile
 						 , SFF_SUBCURSE, 0 ) );
@@ -1327,17 +1327,17 @@ void BuildFontCache( void )
 	uint32_t timer;
 #ifdef __CAN_USE_CACHE_DIALOG__
 	PCOMMON status;
-	status = CreateFrame( WIDE("Font Cache Status")
+	status = CreateFrame( "Font Cache Status"
 							  , 0, 0
 							  , 250, 60
 							  , 0, 0 );
-	MakeTextControl( status, 5, 5, 240, 19, TXT_STATUS, WIDE("Building font cache..."), 0 );
-	MakeTextControl( status, 5, 25, 240, 19, TXT_TIME_STATUS, WIDE(""), 0 );
-	MakeTextControl( status, 5, 45, 240, 19, TXT_COUNT_STATUS, WIDE(""), 0 );
+	MakeTextControl( status, 5, 5, 240, 19, TXT_STATUS, "Building font cache...", 0 );
+	MakeTextControl( status, 5, 25, 240, 19, TXT_TIME_STATUS, "", 0 );
+	MakeTextControl( status, 5, 45, 240, 19, TXT_COUNT_STATUS, "", 0 );
 
 #endif
 #ifdef DEBUG_OPENFONTFILE
-	lprintf( WIDE("Building cache...") );
+	lprintf( "Building cache..." );
 #endif
 	StartTime = 0;
 #ifdef __CAN_USE_CACHE_DIALOG__
@@ -1364,39 +1364,39 @@ void BuildFontCache( void )
 #endif
 
 	// .psf.gz doesn't load directly.... 
-	while( ScanFiles( WIDE("."), WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
+	while( ScanFiles( ".", "*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz", &data
 						 , ListFontFile, SFF_SUBCURSE, 0 ) );
 #ifndef __ANDROID__
 
-	while( ScanFiles( WIDE("%resources%"), WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
+	while( ScanFiles( "%resources%", "*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz", &data
 						 , ListFontFile, SFF_SUBCURSE, 0 ) );
 #endif
 
 	// scan windows/fonts directory
 #ifndef __NO_OPTIONS__
-   if( SACK_GetPrivateProfileIntEx( WIDE("SACK/Image Library"), WIDE("Scan Windows Fonts" ), 1, NULL, TRUE ) )
+   if( SACK_GetPrivateProfileIntEx( "SACK/Image Library", "Scan Windows Fonts", 1, NULL, TRUE ) )
 #endif
 	{
 #ifdef HAVE_ENVIRONMENT
 		CTEXTSTR name
 #ifdef WIN32
-			= OSALOT_GetEnvironmentVariable( WIDE( "windir" ) );
+			= OSALOT_GetEnvironmentVariable( "windir" );
 #else
 #  ifdef __ANDROID__
-		   = WIDE("/system/fonts");
+		   = "/system/fonts";
 #  else
-		   = WIDE("/usr/share/fonts");
+		   = "/usr/share/fonts";
 #  endif
 #endif
 			{
 				size_t len;
 #ifdef WIN32
 				TEXTSTR tmp = NewArray( TEXTCHAR, len = StrLen( name ) + 10 );
-				tnprintf( tmp, len * sizeof( TEXTCHAR ), WIDE( "%s\\fonts" ), name );
+				tnprintf( tmp, len * sizeof( TEXTCHAR ), "%s\\fonts", name );
 #else
 				CTEXTSTR tmp = name;
 #endif
-				while( ScanFiles( tmp, WIDE("*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz"), &data
+				while( ScanFiles( tmp, "*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz", &data
 									 , ListFontFile, SFF_SUBCURSE, 0 ) );
 #ifdef WIN32
 				Deallocate( TEXTSTR, tmp );
@@ -1412,7 +1412,7 @@ void BuildFontCache( void )
 	OutputFontCache();
 	// delete all memory associated with building the cache.
 	UnloadFontBuilder();
-	//DebugDumpMemFile( WIDE("cache.built") );
+	//DebugDumpMemFile( "cache.built" );
    // it might be dispatched...
 	RemoveTimer( timer );
 #ifdef __CAN_USE_CACHE_DIALOG__
@@ -1445,13 +1445,13 @@ void LoadAllFonts( void )
       // if it was loaded, don't re-load it.
 		return;
 	}
-	in = sack_fopen( 0, fg.font_cache_path, WIDE("rt") );
+	in = sack_fopen( 0, fg.font_cache_path, "rt" );
 	if( !in )
 	{
 		fg.flags.bScanningFonts = 1;
 		BuildFontCache(); // destroys the trees used to create the cache...
 		fg.flags.bScanningFonts = 0;
-		in = sack_fopen( 0, fg.font_cache_path, WIDE("rt") );
+		in = sack_fopen( 0, fg.font_cache_path, "rt" );
 	}
 	if( in )
 	{
@@ -1506,7 +1506,7 @@ void LoadAllFonts( void )
 				buf = fgets_buf;
 				len = StrLen( buf );
 				buf[len-1] = 0; // kill \n on line.
-				//lprintf( WIDE("Process: (%d)%s"), ++line, buf );
+				//lprintf( "Process: (%d)%s", ++line, buf );
 				switch( buf[0] )
 				{
 					size_t len;
@@ -1557,7 +1557,7 @@ void LoadAllFonts( void )
 #else
 #define SCANBUF buf+2
 #endif
-							if( tscanf( buf + 2, WIDE("%d,%d,%d,%d"), &nStyles, &nSizeFiles, &nSizes, &nAltFiles ) == 4 )
+							if( tscanf( buf + 2, "%d,%d,%d,%d", &nStyles, &nSizeFiles, &nSizes, &nAltFiles ) == 4 )
 							{
 								fg.build.nStyle = 0;
 								fg.build.pStyleSlab = NewArray( FONT_STYLE, nStyles );
@@ -1574,7 +1574,7 @@ void LoadAllFonts( void )
 							}
 							else
 							{
-								Log( WIDE("Error loading slab sizes!") );
+								Log( "Error loading slab sizes!" );
 							}
 #ifdef __cplusplus_cli
 							Deallocate( POINTER, mybuf );
@@ -1740,7 +1740,7 @@ void LoadAllFonts( void )
 										height = strchr( width, ',' );
 										if( !height )
 										{
-											Log( WIDE("Fatality - Cache loses!") );
+											Log( "Fatality - Cache loses!" );
 										}
 										height++;
 										nHeight = (int16_t)IntCreateFromText( height );
@@ -1750,7 +1750,7 @@ void LoadAllFonts( void )
 										nHeight = -1;
 										height = width + 1;
 									}
-									//Log2( WIDE("Add size to file: %d,%d"), nWidth, nHeight );
+									//Log2( "Add size to file: %d,%d", nWidth, nHeight );
 									newsize->width = nWidth;
 									newsize->height = nHeight;
 								}
@@ -1802,7 +1802,7 @@ void LoadAllFonts( void )
 		//DumpLoadedFontCache();
 #endif
 		Defragment( (POINTER*)&fg.pFontCache );
-		//DebugDumpMemFile( WIDE("cache.loaded") );
+		//DebugDumpMemFile( "cache.loaded" );
 	}
 }
 

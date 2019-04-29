@@ -10,7 +10,7 @@ int main( int argc, TEXTCHAR **argv )
 	TEXTCHAR *app = argc>3?argv[3]:NULL;
 	if( !app || argc < 2 )
 	{
-		printf( WIDE("Usage: %s <config filename> [optional - set as config filename]\n" ), argv[0] );
+		printf( "Usage: %s <config filename> [optional - set as config filename]\n", argv[0] );
       return 1;
 
 	}

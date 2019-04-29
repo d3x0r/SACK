@@ -30,7 +30,7 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 				if(!wglMakeCurrent( (HDC)hDisplay->pFractures[nFracture].hDCBitmap
 									, hDisplay->pFractures[nFracture].hRC))               // Try To Activate The Rendering Context
 				{
-					Log1( WIDE("GetLastERror == %d"), GetLastError() );
+					Log1( "GetLastERror == %d", GetLastError() );
 					//MessageBox(NULL,"Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 					return FALSE;                       // Return FALSE
 				}
@@ -43,14 +43,14 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 					,hDisplay->pFractures[nFracture].pImage->real_width
 					,hDisplay->pFractures[nFracture].pImage->real_height);                // Reset The Current Viewport
 				hDisplay->_prior_fracture = nFracture;
-				//lprintf( WIDE("lock+1") );
+				//lprintf( "lock+1" );
 				_hDisplay = hDisplay;
 				//if( hDisplay->_prior_fracture == -1 )
 				//	EnterCriticalSec( &cs );
 			}
 			else
 			{
-				lprintf( WIDE( "Last fracture is the same as current." ) );
+				lprintf( "Last fracture is the same as current." );
 			}
 		}
 		else
@@ -68,7 +68,7 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 				{
 					DebugBreak();
 
-					Log1( WIDE("GetLastERror == %d"), GetLastError() );
+					Log1( "GetLastERror == %d", GetLastError() );
 					//MessageBox(NULL,"Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 					return FALSE;                       // Return FALSE
 				}
@@ -87,12 +87,12 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 			{
 				if( hDisplay == _hDisplay )
 				{
-					lprintf( WIDE("Active GL Context already on this renderer...") );
+					lprintf( "Active GL Context already on this renderer..." );
 				}
 				else
 				{
 					DebugBreak();
-					lprintf( WIDE("Active GL context is on another Display... please wait?!") );
+					lprintf( "Active GL context is on another Display... please wait?!" );
 				}
 			}
 		}
@@ -111,7 +111,7 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 			if(!wglMakeCurrent( NULL, NULL) )               // Try To Deactivate The Rendering Context
 			{
 				DebugBreak();
-				Log1( WIDE("GetLastERror == %d"), glGetError() );
+				Log1( "GetLastERror == %d", glGetError() );
 				//MessageBox(NULL,"Can't Deactivate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 				return FALSE;                       // Return FALSE
 			}
@@ -182,7 +182,7 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
  
 		MygluPerspective( 90.0f, camera->aspect, 1.0f, camera->depth );
-		lprintf( WIDE("First GL Init Done.") );
+		lprintf( "First GL Init Done." );
 		camera->flags.init = 1;
 		camera->hVidCore->flags.bReady = TRUE;
 	}
@@ -246,12 +246,12 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 			} msg;
 			msg.hVideo = hVideo;
 			msg.nFracture = nFracture;
-			//lprintf( WIDE("Sending redraw for fracture %d on vid %p"), nFracture, hVideo );
+			//lprintf( "Sending redraw for fracture %d on vid %p", nFracture, hVideo );
 			//SendServiceEvent( local_vidlib.dwMsgBase + MSG_RedrawFractureMethod, &msg, sizeof( msg ) );
 		}
 	}
 	hVideo->nFractures++;
-	//lprintf( WIDE("And here I might want to update the video, hope someone else does for me.") );
+	//lprintf( "And here I might want to update the video, hope someone else does for me." );
 	return nFracture + 1;
 #else
 	return 0;
@@ -312,7 +312,7 @@ int EnableOpenGL( struct display_camera *camera )
 		DebugBreak();
 		LeaveCriticalSec( &hVideo->cs );
 		//KillGLWindow();                        // Reset The Display
-		//MessageBox(NULL,WIDE("Can't Find A Suitable PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+		//MessageBox(NULL,"Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;                       // Return FALSE
 	}
 
@@ -322,7 +322,7 @@ int EnableOpenGL( struct display_camera *camera )
 		LeaveCriticalSec( &hVideo->cs );
 
 		//KillGLWindow();                        // Reset The Display
-		MessageBox(NULL,WIDE("Can't Set The PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Can't Set The PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;                       // Return FALSE
 	}
 
@@ -332,13 +332,13 @@ int EnableOpenGL( struct display_camera *camera )
 
 		LeaveCriticalSec( &hVideo->cs );
 		//KillGLWindow();                        // Reset The Display
-		MessageBox(NULL,WIDE("Can't Create A GL Rendering Context."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;                       // Return FALSE
 	}
 
 	if(!wglMakeCurrent(hdcEnable,hVideo->hRC))               // Try To Activate The Rendering Context
 	{
-		lprintf( WIDE("Error: %d"), GetLastError() );
+		lprintf( "Error: %d", GetLastError() );
 	}
 
 	if(!wglMakeCurrent( NULL, NULL) )               // Try To Deactivate The Rendering Context
@@ -399,7 +399,7 @@ int EnableOpenGLView( struct display_camera *camera, int x, int y, int w, int h 
 			{
 				DebugBreak();
 				//KillGLWindow();                        // Reset The Display
-				MessageBox(NULL,WIDE("Can't Find A Suitable PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+				MessageBox(NULL,"Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 				return nFracture + 1;                       // Return FALSE
 			}
 		}
@@ -408,7 +408,7 @@ int EnableOpenGLView( struct display_camera *camera, int x, int y, int w, int h 
 			DebugBreak();
 				
 			//KillGLWindow();                        // Reset The Display
-			MessageBox(NULL,WIDE("Can't Set The PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+			MessageBox(NULL,"Can't Set The PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 			return FALSE;                       // Return FALSE
 		}
 
@@ -417,7 +417,7 @@ int EnableOpenGLView( struct display_camera *camera, int x, int y, int w, int h 
 			DebugBreak();
 				
 			//KillGLWindow();                        // Reset The Display
-			MessageBox(NULL,WIDE("Can't Create A GL Rendering Context."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+			MessageBox(NULL,"Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 			return FALSE;                       // Return FALSE
 		}
 		return nFracture + 1;

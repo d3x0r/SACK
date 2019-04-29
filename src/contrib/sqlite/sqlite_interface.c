@@ -294,7 +294,7 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 {
 #ifdef LOG_OPERATIONS
 	struct my_file_data *my_file = (struct my_file_data*)file;
-	lprintf( WIDE("file %s control op: %d %p"), my_file->filename, op, pArg );
+	lprintf( "file %s control op: %d %p", my_file->filename, op, pArg );
 #endif
 	switch( op )
 	{
@@ -448,12 +448,12 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 	{
 		//lprintf( "try on mount..%s .%p", my_file->filename, my_vfs->mount );
 		if( (flags & (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) == (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE) ) {
-			if( !(my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO, my_vfs->mount ) ) )
-				my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE("wb+"), _SH_DENYNO, my_vfs->mount );
+			if( !(my_file->file = sack_fsopenEx( 0, my_file->filename, "rb+", _SH_DENYNO, my_vfs->mount ) ) )
+				my_file->file = sack_fsopenEx( 0, my_file->filename, "wb+", _SH_DENYNO, my_vfs->mount );
 		} else if( flags & (SQLITE_OPEN_READWRITE) )
-			my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE( "rb+" ), _SH_DENYNO, my_vfs->mount );
+			my_file->file = sack_fsopenEx( 0, my_file->filename, "rb+", _SH_DENYNO, my_vfs->mount );
 		else if( flags & SQLITE_OPEN_CREATE )
-			my_file->file = sack_fsopenEx( 0, my_file->filename, WIDE( "wb" ), _SH_DENYNO, my_vfs->mount );
+			my_file->file = sack_fsopenEx( 0, my_file->filename, "wb", _SH_DENYNO, my_vfs->mount );
 		if( my_file->file )
 		{
 #ifdef LOG_OPERATIONS
@@ -466,9 +466,9 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 	}
 	else
 	{
-		my_file->file = sack_fsopen( 0, my_file->filename, WIDE("rb+"), _SH_DENYNO );
+		my_file->file = sack_fsopen( 0, my_file->filename, "rb+", _SH_DENYNO );
 		if( !my_file->file )
-			my_file->file = sack_fsopen( 0, my_file->filename, WIDE("wb+"), _SH_DENYNO );
+			my_file->file = sack_fsopen( 0, my_file->filename, "wb+", _SH_DENYNO );
 		if( my_file->file )
 		{
 #ifdef LOG_OPERATIONS
@@ -612,7 +612,7 @@ void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 			return;
 #endif
 	}
-	//lprintf( WIDE("getting interface...") );
+	//lprintf( "getting interface..." );
 	{
 		sqlite3_vfs *default_vfs = sqlite3_vfs_find(NULL);
 		struct my_sqlite3_vfs *new_vfs;
@@ -630,7 +630,7 @@ void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 		if( sqlite3_vfs_register( &new_vfs->vfs, 0 ) )
 		{
 
-			//lprintf( WIDE("error registering my interface") );
+			//lprintf( "error registering my interface" );
 		}
 		AddLink( &l.registered_vfs, new_vfs );
 		//int sqlite3_vfs_unregister(sqlite3_vfs*);
@@ -726,7 +726,7 @@ static void DoInitVFS( void )
 	}
 
 
-	InitVFS( WIDE("sack"), NULL );
+	InitVFS( "sack", NULL );
 }
 
 
@@ -747,7 +747,7 @@ PRIORITY_PRELOAD( RegisterSQLiteInterface, SQL_PRELOAD_PRIORITY-2 )
 	SimpleRegisterAndCreateGlobal( local_sqlite_interface );
 #endif
 	if( !GetInterface( "sqlite3" ) )
-		RegisterInterface( WIDE("sqlite3"), GetSQLiteInterface, DropSQLiteInterface );
+		RegisterInterface( "sqlite3", GetSQLiteInterface, DropSQLiteInterface );
 
 }
 

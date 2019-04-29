@@ -21,7 +21,7 @@ PTEXT SetPriorLineEx( PTEXT seg, PTEXT newprior DBG_PASS )
 {
 	if( seg == newprior )
 	{
-		fprintf( stderr, WIDE("ERROR! Segment is same as new prior ") DBG_FILELINEFMT "\n" DBG_RELAY );
+		fprintf( stderr, "ERROR! Segment is same as new prior " DBG_FILELINEFMT "\n" DBG_RELAY );
 		DebugBreak();
 	}
 	if( seg )
@@ -36,7 +36,7 @@ PTEXT SetPriorLineEx( PTEXT seg, PTEXT newprior DBG_PASS )
 		}
 		if( test )
 		{
-			fprintf( stderr, WIDE("ERROR! Resulting link causes circularity!") DBG_FILELINEFMT "\n" DBG_RELAY );
+			fprintf( stderr, "ERROR! Resulting link causes circularity!" DBG_FILELINEFMT "\n" DBG_RELAY );
 			DebugBreak();
 		}
 		test = NEXTLINE( start );
@@ -46,14 +46,14 @@ PTEXT SetPriorLineEx( PTEXT seg, PTEXT newprior DBG_PASS )
 		}
 		if( test )
 		{
-			fprintf( stderr, WIDE("ERROR! Resulting link causes circularity!") DBG_FILELINEFMT "\n" DBG_RELAY );
+			fprintf( stderr, "ERROR! Resulting link causes circularity!" DBG_FILELINEFMT "\n" DBG_RELAY );
 			DebugBreak();
 		}
 		return newprior;
 	}
 	else
 	{
-		fprintf( stderr, WIDE("ERROR! Attempt to link prior to NULL ") DBG_FILELINEFMT "\n" DBG_RELAY );
+		fprintf( stderr, "ERROR! Attempt to link prior to NULL " DBG_FILELINEFMT "\n" DBG_RELAY );
 		DebugBreak();
 	}
 	return NULL;
@@ -78,7 +78,7 @@ PTEXT SetNextLineEx( PTEXT seg, PTEXT newnext DBG_PASS )
 {
 	if( seg == newnext )
 	{
-		fprintf( stderr, WIDE("ERROR! Segment is same as new next ") DBG_FILELINEFMT "\n" DBG_RELAY );
+		fprintf( stderr, "ERROR! Segment is same as new next " DBG_FILELINEFMT "\n" DBG_RELAY );
 	}
 	if( seg )
 	{
@@ -92,7 +92,7 @@ PTEXT SetNextLineEx( PTEXT seg, PTEXT newnext DBG_PASS )
 		}
 		if( test )
 		{
-			fprintf( stderr, WIDE("ERROR! Resulting link causes circularity!") DBG_FILELINEFMT "\n" DBG_RELAY );
+			fprintf( stderr, "ERROR! Resulting link causes circularity!" DBG_FILELINEFMT "\n" DBG_RELAY );
 			DebugBreak();
 		}
 		test = PRIORLINE( start );
@@ -102,13 +102,13 @@ PTEXT SetNextLineEx( PTEXT seg, PTEXT newnext DBG_PASS )
 		}
 		if( test )
 		{
-			fprintf( stderr, WIDE("ERROR! Resulting link causes circularity!") DBG_FILELINEFMT "\n" DBG_RELAY );
+			fprintf( stderr, "ERROR! Resulting link causes circularity!" DBG_FILELINEFMT "\n" DBG_RELAY );
 			DebugBreak();
 		}
 		return newnext;
 	}
 	else
-		fprintf( stderr, WIDE("ERROR! Attempt to link prior to NULL ") DBG_FILELINEFMT "\n" DBG_RELAY );
+		fprintf( stderr, "ERROR! Attempt to link prior to NULL " DBG_FILELINEFMT "\n" DBG_RELAY );
 	return NULL;
 }
 #else
@@ -263,7 +263,7 @@ PTEXT SegCreateFromIntEx( int value DBG_PASS )
 {
 	PTEXT pResult;
 	pResult = SegCreateEx( 12 DBG_RELAY);
-	pResult->data.size = sprintf( pResult->data.data, WIDE("%d"), value );
+	pResult->data.size = sprintf( pResult->data.data, "%d", value );
 	return pResult;
 }
 
@@ -273,7 +273,7 @@ PTEXT SegCreateFromFloatEx( float value DBG_PASS )
 {
 	PTEXT pResult;
 	pResult = SegCreateEx( 32 DBG_RELAY);
-	pResult->data.size = sprintf( pResult->data.data, WIDE("%g"), value );
+	pResult->data.size = sprintf( pResult->data.data, "%g", value );
 	return pResult;
 }
 
@@ -390,7 +390,7 @@ void LineReleaseEx(PTEXT *ppLine DBG_PASS )
 		return;
 #ifdef RELEASE_LOG
 	levels++;
-	printf( WIDE("Release...%d\n "), levels);
+	printf( "Release...%d\n ", levels);
 #endif
 	SetStart(line);
 	temp = line;
@@ -409,7 +409,7 @@ void LineReleaseEx(PTEXT *ppLine DBG_PASS )
 		}
 		else
 		{
-			//Log( WIDE("Attempt to free static text...\n") );
+			//Log( "Attempt to free static text...\n" );
 		}
 	}
 #ifdef RELEASE_LOG
@@ -525,7 +525,7 @@ PTEXT SegSubstRangeEx( PTEXT *pp_this, PTEXT end, PTEXT that DBG_PASS )
 	PTEXT after_end = NEXTLINE( end );
 	if( !_this || !end )
 	{
-		fprintf( stderr, WIDE("%s(%d): returned early from segsubstrange:%p %p %p\n")
+		fprintf( stderr, "%s(%d): returned early from segsubstrange:%p %p %p\n"
 				, GetCurrentFileName()
 				, GetCurrentLine()
 				, _this, end, that );
@@ -589,7 +589,7 @@ PTEXT SegSplitEx( PTEXT *pLine, size_t nPos  DBG_PASS)
 	there->format.tabs = 0; // pretty safe...
 	if( here == there )
 	{
-		fprintf( stderr, WIDE("Hmm - error in segpslit\n") );
+		fprintf( stderr, "Hmm - error in segpslit\n" );
 #ifdef __LINUX__
 		DebugBreak();
 #endif
@@ -874,11 +874,11 @@ void VarTextAddCharacterEx( PVARTEXT pvt, char c DBG_PASS )
 {
 	if( !pvt->collect )
 		VarTextInitEx( pvt DBG_RELAY );
-	//fprintf( stderr, WIDE("Adding character %c\n"), c );
+	//fprintf( stderr, "Adding character %c\n", c );
 	pvt->collect_text[pvt->collect_used++] = c;
 	if( pvt->collect_used == GetTextSize( pvt->collect ) )
 	{
-		//fprintf( stderr, WIDE("Expanding segment to make sure we have room to extend...\n") );
+		//fprintf( stderr, "Expanding segment to make sure we have room to extend...\n" );
 		pvt->collect = SegExpandEx( pvt->collect, COLLECT_LEN DBG_RELAY );
 		pvt->collect_text = GetText( pvt->collect );
 	}
@@ -892,7 +892,7 @@ PTEXT VarTextEndEx( PVARTEXT pvt DBG_PASS )
 	{
 		PTEXT segs;
 		segs = SegSplitEx( &pvt->collect, pvt->collect_used DBG_RELAY );
-		//fprintf( stderr, WIDE("Breaking collection adding... %s\n"), GetText( segs ) );
+		//fprintf( stderr, "Breaking collection adding... %s\n", GetText( segs ) );
 		// so now the remaining buffer( if any ) 
 		// is assigned to collect into.
 		// This results in...
@@ -901,28 +901,28 @@ PTEXT VarTextEndEx( PVARTEXT pvt DBG_PASS )
 
 		if( !pvt->collect ) // used all of the line...
 		{
-			//fprintf( stderr, WIDE("Starting with new buffers\n") );
+			//fprintf( stderr, "Starting with new buffers\n" );
 			pvt->collect = SegCreateEx( COLLECT_LEN DBG_RELAY );
 			pvt->collect_text = GetText( pvt->collect );
 			pvt->collect_used = 0;
 		}
 		else
 		{
-			//Log1( WIDE("Remaining buffer is %d"), GetTextSize( pvt->collect ) );
+			//Log1( "Remaining buffer is %d", GetTextSize( pvt->collect ) );
 			SegBreak( pvt->collect );
 			pvt->collect_text = GetText( pvt->collect );
 			pvt->collect_used = 0;
 		}
 		pvt->commit = SegAppend( pvt->commit, segs );
-		//fprintf( stderr, WIDE("Resulting string: \'%s\' newly added vartextend\n"), GetText( segs ) );
+		//fprintf( stderr, "Resulting string: \'%s\' newly added vartextend\n", GetText( segs ) );
 		return segs;
 	}
 	if( pvt->commit )
 	{
-		//fprintf( stderr, WIDE("Resulting exsiting commit output...\n") );
+		//fprintf( stderr, "Resulting exsiting commit output...\n" );
 		return pvt->commit;
 	}
-	//fprintf( stderr, WIDE("Resulting no output... var text end\n") );
+	//fprintf( stderr, "Resulting no output... var text end\n" );
 	return NULL;
 }
 
@@ -938,7 +938,7 @@ PTEXT VarTextGetEx( PVARTEXT pvt DBG_PASS )
 		{
 #ifdef __LINUX__
 			if( last_vartext_result == result )
-				asm( WIDE("int $3;\n") );
+				asm( "int $3;\n" );
 #endif
 		}
 		last_vartext_result = result;
@@ -959,7 +959,7 @@ void VarTextExpandEx( PVARTEXT pvt, int size DBG_PASS)
 
 size_t VarTextLength( PVARTEXT pvt )
 {
-	//Log1( WIDE("Length is : %d"), pvt->collect_used );
+	//Log1( "Length is : %d", pvt->collect_used );
 	return pvt->collect_used;
 }
 
@@ -970,7 +970,7 @@ int vtprintfEx( PVARTEXT pvt , char *format, ... )
 {
 	//char valid_char;
 	va_list args;
-	//Log1( WIDE("vtprintf...%s"), format );
+	//Log1( "vtprintf...%s", format );
 	va_start( args, format );
 	{
 #if defined( __LINUX__ )
@@ -979,7 +979,7 @@ int vtprintfEx( PVARTEXT pvt , char *format, ... )
 		// allocate +1 for length with NUL
 //		VarTextExpandEx( pvt, len+1 DBG_RELAY );
 		VarTextExpand( pvt, len+1  );
-		//Log3( WIDE("Print Length: %d into %d after %s"), len, pvt->collect_used, pvt->collect_text );
+		//Log3( "Print Length: %d into %d after %s", len, pvt->collect_used, pvt->collect_text );
 		// include NUL in the limit of characters able to print...
 		  vsnprintf( pvt->collect_text + pvt->collect_used, len+1, format, args );
 #elif defined( __WATCOMC__ )
@@ -1005,7 +1005,7 @@ int vtprintfEx( PVARTEXT pvt , char *format, ... )
 				VarTextExpand( pvt, 32 );
 //				VarTextExpandEx( pvt, 32 DBG_SRC );
 		} while( len < 0 );
-		//Log1( WIDE("Print Length: %d"), len );
+		//Log1( "Print Length: %d", len );
 #endif
 		pvt->collect_used += len;
 		return len;

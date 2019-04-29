@@ -146,7 +146,7 @@ void FixResourceDirEntry( char *resources, PIMAGE_RESOURCE_DIRECTORY pird )
 	for( x = 0; x < pird->NumberOfNamedEntries + 
 	                pird->NumberOfIdEntries; x++ )
 	{
-		//printf( WIDE("DirectoryEntry: %08x %08x\n"), pird->entries[x].Name, pird->entries[x].OffsetToData );
+		//printf( "DirectoryEntry: %08x %08x\n", pird->entries[x].Name, pird->entries[x].OffsetToData );
 		if( pird->entries[x].DataIsDirectory )
 		{
 			FixResourceDirEntry( resources
@@ -165,14 +165,14 @@ int main( int argc, char **argv )
 	IMAGE_NT_HEADERS nt_header;
 	for( n = 1; n < argc; n++ )
 	{
-		file = fopen( argv[n], WIDE("rb+") );
+		file = fopen( argv[n], "rb+" );
 		if( file )
 		{
 			unsigned long optional_header_pos;
 			fread( &dos_header, 1, sizeof( dos_header ), file );
 			if( dos_header.e_magic != IMAGE_DOS_SIGNATURE )
 			{
-				fprintf( stderr, WIDE("File is not a program.\n") );
+				fprintf( stderr, "File is not a program.\n" );
 				fclose( file );
 				return 1;
 				continue;
@@ -183,7 +183,7 @@ int main( int argc, char **argv )
 			optional_header_pos = ftell( file );
 			if( nt_header.Signature != IMAGE_NT_SIGNATURE )
 			{
-				fprintf( stderr, WIDE("File is not a 32 bit windows program.\n") );
+				fprintf( stderr, "File is not a 32 bit windows program.\n" );
 				fclose( file );
 				return 1;
 				continue;
@@ -195,14 +195,14 @@ int main( int argc, char **argv )
 				fwrite( &nt_header, sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER ), 1, file );
 			}
 			else
-				fprintf( stderr, WIDE("Time stamp already reset.\n") );
+				fprintf( stderr, "Time stamp already reset.\n" );
 
-			//printf( WIDE("Optional Header : %d\n"), nt_header.FileHeader.SizeOfOptionalHeader );
+			//printf( "Optional Header : %d\n", nt_header.FileHeader.SizeOfOptionalHeader );
          if( nt_header.FileHeader.SizeOfOptionalHeader )
 			{
             fseek( file, optional_header_pos, SEEK_SET );
 				fread( &nt_header.OptionalHeader, nt_header.FileHeader.SizeOfOptionalHeader, 1, file );
-				printf( WIDE("Program version was %d.%d (is now %d.%d)\n")
+				printf( "Program version was %d.%d (is now %d.%d)\n"
 						, nt_header.OptionalHeader.MajorOperatingSystemVersion
 						, nt_header.OptionalHeader.MinorOperatingSystemVersion
 						, 4, 0
@@ -223,7 +223,7 @@ int main( int argc, char **argv )
 				for( n = 0; n < nt_header.FileHeader.NumberOfSections; n++ )
 				{
 					fread( &section, 1, sizeof( section ), file );
-					if( strcmp( section.Name, WIDE(".rsrc") ) == 0 )
+					if( strcmp( section.Name, ".rsrc" ) == 0 )
 					{
 						IMAGE_RESOURCE_DIRECTORY *ird;
 						// Resources begin here....
@@ -237,7 +237,7 @@ int main( int argc, char **argv )
 						free( data );
 					}
 					/*
-					printf( WIDE("%*.*s\n")
+					printf( "%*.*s\n"
 								, IMAGE_SIZEOF_SHORT_NAME
 								, IMAGE_SIZEOF_SHORT_NAME
 								, section.Name );
@@ -250,7 +250,7 @@ int main( int argc, char **argv )
 		}
 		else
 		{
-			fprintf( stderr, WIDE("Failed to open %s"), argv[n] );
+			fprintf( stderr, "Failed to open %s", argv[n] );
 			return 1;
 		}	
 	}

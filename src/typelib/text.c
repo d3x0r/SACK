@@ -59,14 +59,14 @@ static PTEXT newline;
 static PTEXT blank;
 PRELOAD( AllocateDefaults )
 {
-	newline = (PTEXT)SegCreateFromText( WIDE("") );
-	blank = (PTEXT)SegCreateFromText( WIDE(" ") );
+	newline = (PTEXT)SegCreateFromText( "" );
+	blank = (PTEXT)SegCreateFromText( " " );
 }
 //#define newline (*newline)
 //#define blank	(*blank)
 //#else
-//__declspec( dllexport ) TEXT newline = { TF_STATIC, NULL, NULL, {1,1},{0,WIDE("")}};
-//__declspec( dllexport ) TEXT blank = { TF_STATIC, NULL, NULL, {1,1},{1,WIDE(" ")}};
+//__declspec( dllexport ) TEXT newline = { TF_STATIC, NULL, NULL, {1,1},{0,""}};
+//__declspec( dllexport ) TEXT blank = { TF_STATIC, NULL, NULL, {1,1},{1," "}};
 //#endif
 static PLIST pTextExtensions;
 //---------------------------------------------------------------------------
@@ -355,9 +355,9 @@ PTEXT SegCreateFromIntEx( int value DBG_PASS )
 	PTEXT pResult;
 	pResult = SegCreateEx( 12 DBG_RELAY);
 #ifdef _UNICODE
-	pResult->data.size = swprintf( pResult->data.data, 12, WIDE("%d"), value );
+	pResult->data.size = swprintf( pResult->data.data, 12, "%d", value );
 #else
-	pResult->data.size = snprintf( pResult->data.data, 12, WIDE("%d"), value ); //-V512
+	pResult->data.size = snprintf( pResult->data.data, 12, "%d", value ); //-V512
 #endif
 	pResult->data.data[11] = 0;
 	return pResult;
@@ -370,9 +370,9 @@ PTEXT SegCreateFrom_64Ex( int64_t value DBG_PASS )
 	PTEXT pResult;
 	pResult = SegCreateEx( 32 DBG_RELAY);
 #ifdef _UNICODE
-	pResult->data.size = swprintf( pResult->data.data, 32, WIDE("%")_64f, value );
+	pResult->data.size = swprintf( pResult->data.data, 32, "%"_64f, value );
 #else
-	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%")_64f, value ); //-V512
+	pResult->data.size = snprintf( pResult->data.data, 32, "%"_64f, value ); //-V512
 #endif
 pResult->data.data[31] = 0;
 	return pResult;
@@ -385,9 +385,9 @@ PTEXT SegCreateFromFloatEx( float value DBG_PASS )
 	PTEXT pResult;
 	pResult = SegCreateEx( 32 DBG_RELAY);
 #ifdef _UNICODE
-	pResult->data.size = swprintf( pResult->data.data, 32, WIDE("%f"), value );
+	pResult->data.size = swprintf( pResult->data.data, 32, "%f", value );
 #else
-	pResult->data.size = snprintf( pResult->data.data, 32, WIDE("%f"), value ); //-V512
+	pResult->data.size = snprintf( pResult->data.data, 32, "%f", value ); //-V512
 #endif
 	pResult->data.data[31] = 0;
 	return pResult;
@@ -433,7 +433,7 @@ INDEX  GetSegmentSpaceEx ( PTEXT segment, size_t position, int nTabs, INDEX *tab
 					total += tabs[n]-position;
 					position = tabs[n];
 				}
-			lprintf( WIDE("Adding %d spaces"), segment->format.position.offset.spaces );
+			lprintf( "Adding %d spaces", segment->format.position.offset.spaces );
 			total += segment->format.position.offset.spaces;
 		}
 	}
@@ -512,7 +512,7 @@ void SegReleaseEx( PTEXT seg DBG_PASS)
 PTEXT SegExpandEx(PTEXT source, INDEX nSize DBG_PASS)
 {
 	PTEXT temp;
-	//Log1( WIDE("SegExpand...%d"), nSize );
+	//Log1( "SegExpand...%d", nSize );
 	temp = SegCreateEx( GetTextSize( source ) + nSize  DBG_RELAY );
 	if( source )
 	{
@@ -786,7 +786,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 		}
 		spaces += input->format.position.offset.spaces;
 		tabs += input->format.position.offset.tabs;
-		//Log1( WIDE("Assuming %d spaces... "), spaces );
+		//Log1( "Assuming %d spaces... ", spaces );
 		for (index=0;(character = tempText[index]),
                    (index < size); index++) // while not at the
                                          // end of the line.
@@ -802,7 +802,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 						outdata = SegAppend( outdata, word );
 					}
 					//else
-					//	Log( WIDE("VarTextGet Failed to result.") );
+					//	Log( "VarTextGet Failed to result." );
 				}
 				elipses = FALSE;
 			}
@@ -866,7 +866,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 						}
 						if( spaces )
 						{
-						//lprintf( WIDE("Input stream has mangled spaces and tabs.") );
+						//lprintf( "Input stream has mangled spaces and tabs." );
 							spaces = 0; // assume that the tab takes care of appropriate spacing
 						}
 						tabs++;
@@ -1048,7 +1048,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 		}
 		spaces += input->format.position.offset.spaces;
 		tabs += input->format.position.offset.tabs;
-		//Log1( WIDE("Assuming %d spaces... "), spaces );
+		//Log1( "Assuming %d spaces... ", spaces );
 		for (index=0;(character = tempText[index]),
 		             (index < size); index++) // while not at the
 		                                      // end of the line.
@@ -1064,7 +1064,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 						outdata = SegAppend( outdata, word );
 					}
 					//else
-					//	Log( WIDE("VarTextGet Failed to result.") );
+					//	Log( "VarTextGet Failed to result." );
 				}
 				elipses = FALSE;
 			}
@@ -1100,7 +1100,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 				}
 				if( spaces )
 				{
-				//lprintf( WIDE("Input stream has mangled spaces and tabs.") );
+				//lprintf( "Input stream has mangled spaces and tabs." );
 					spaces = 0;
 				}
 				tabs++;
@@ -1395,19 +1395,19 @@ PTEXT BuildLineExEx( PTEXT pt, LOGICAL bSingle, int nTabsize, PTEXT pEOL DBG_PAS
 			{
 				PTEXT pSplit;
 				// ofs is the next valid character position....
-				//Log( WIDE("Changing segment's color...") );
+				//Log( "Changing segment's color..." );
 				if( ofs )
 				{
 					pSplit = SegSplitEx( &pOut, ofs DBG_RELAY );
 					if( !pSplit )
 					{
-						lprintf( WIDE("Line was shorter than offset: %") _size_f WIDE(" vs %") _PTRSZVALfs WIDE(""), GetTextSize( pOut ), ofs );
+						lprintf( "Line was shorter than offset: %" _size_f " vs %" _PTRSZVALfs "", GetTextSize( pOut ), ofs );
 					}
 					pOut = NEXTLINE( pSplit );
 					// new segments takes on the new attributes...
 					pOut->format.flags.foreground = pt->format.flags.foreground;
 					pOut->format.flags.background = pt->format.flags.background;
-						//Log2( WIDE("Split at %d result %d"), ofs, GetTextSize( pOut ) );
+						//Log2( "Split at %d result %d", ofs, GetTextSize( pOut ) );
 						buf = GetText( pOut );
 					ofs = 0;
 				}
@@ -1957,7 +1957,7 @@ int IsSegAnyNumberEx( PTEXT *ppText, double *fNumber, int64_t *iNumber, int *bIn
 		// at this point... is this really valid?
 		if( pText->flags & TF_INDIRECT )
 		{
-			lprintf( WIDE("Encountered indirect segment gathering number, stopping.") );
+			lprintf( "Encountered indirect segment gathering number, stopping." );
 			break;
 		}
 
@@ -2050,7 +2050,7 @@ void VarTextInitEx( PVARTEXT pvt DBG_PASS )
 	pvt->collect = SegCreateEx( COLLECT_LEN DBG_RELAY );
 	pvt->collect_text = GetText( pvt->collect );
 #ifdef VERBOSE_DEBUG_VARTEXT
-	Log( WIDE("Resetting collect_used (init)") );
+	Log( "Resetting collect_used (init)" );
 #endif
 	pvt->collect_used = 0;
 	pvt->collect_avail = COLLECT_LEN;
@@ -2112,7 +2112,7 @@ void VarTextAddCharacterEx( PVARTEXT pvt, TEXTCHAR c DBG_PASS )
 	if( !pvt->collect )
 		VarTextInitEx( pvt DBG_RELAY );
 #ifdef VERBOSE_DEBUG_VARTEXT
-	Log1( WIDE("Adding character %c"), c );
+	Log1( "Adding character %c", c );
 #endif
 	if( c == '\b' )
 	{
@@ -2127,7 +2127,7 @@ void VarTextAddCharacterEx( PVARTEXT pvt, TEXTCHAR c DBG_PASS )
 		pvt->collect_text[pvt->collect_used++] = c;
 		if( pvt->collect_used >= pvt->collect_avail )
 		{
-			//lprintf( WIDE("Expanding segment to make sure we have room to extend...(old %d)"), pvt->collect->data.size );
+			//lprintf( "Expanding segment to make sure we have room to extend...(old %d)", pvt->collect->data.size );
 			pvt->collect = SegExpandEx( pvt->collect, pvt->collect_avail * 2 DBG_RELAY );
 			pvt->collect_avail = pvt->collect->data.size;
 			pvt->collect_text = GetText( pvt->collect );
@@ -2157,7 +2157,7 @@ void VarTextAddDataEx( PVARTEXT pvt, CTEXTSTR block, size_t length DBG_PASS )
 	if( !pvt->collect )
 		VarTextInitEx( pvt DBG_RELAY );
 #ifdef VERBOSE_DEBUG_VARTEXT
-	Log1( WIDE("Adding character %c"), c );
+	Log1( "Adding character %c", c );
 #endif
 	{
 		uint32_t n;
@@ -2168,7 +2168,7 @@ void VarTextAddDataEx( PVARTEXT pvt, CTEXTSTR block, size_t length DBG_PASS )
 			pvt->collect_text[pvt->collect_used++] = block[n];
 			if( pvt->collect_used >= pvt->collect_avail )
 			{
-				//lprintf( WIDE("Expanding segment to make sure we have room to extend...(old %d)"), pvt->collect->data.size );
+				//lprintf( "Expanding segment to make sure we have room to extend...(old %d)", pvt->collect->data.size );
 				pvt->collect = SegExpandEx( pvt->collect, pvt->collect_avail * 2 + COLLECT_LEN DBG_RELAY );
 				pvt->collect_avail = pvt->collect->data.size;
 				pvt->collect_text = GetText( pvt->collect );
@@ -2184,13 +2184,13 @@ LOGICAL VarTextEndEx( PVARTEXT pvt DBG_PASS )
 	if( pvt && pvt->collect_used ) // otherwise ofs will be 0...
 	{
 		PTEXT segs= SegSplitEx( &pvt->collect, pvt->collect_used DBG_RELAY );
-		//lprintf( WIDE("End collect at %d %d"), pvt->collect_used, segs?segs->data.size:pvt->collect->data.size );
+		//lprintf( "End collect at %d %d", pvt->collect_used, segs?segs->data.size:pvt->collect->data.size );
 		if( !segs )
 		{
 			segs = pvt->collect;
 		}
 
-		//Log1( WIDE("Breaking collection adding... %s"), GetText( segs ) );
+		//Log1( "Breaking collection adding... %s", GetText( segs ) );
 		// so now the remaining buffer( if any )
 		// is assigned to collect into.
 		// This results in...
@@ -2199,17 +2199,17 @@ LOGICAL VarTextEndEx( PVARTEXT pvt DBG_PASS )
 		if( !pvt->collect ) // used all of the line...
 		{
 #ifdef VERBOSE_DEBUG_VARTEXT
-			Log( WIDE("Starting with new buffers ") );
+			Log( "Starting with new buffers " );
 #endif
 			VarTextInitEx( pvt DBG_RELAY );
 		}
 		else
 		{
- 			//Log1( WIDE("Remaining buffer is %d"), GetTextSize( pvt->collect ) );
+ 			//Log1( "Remaining buffer is %d", GetTextSize( pvt->collect ) );
 			SegBreak( pvt->collect );
 			pvt->collect_text = GetText( pvt->collect );
 #ifdef VERBOSE_DEBUG_VARTEXT
-			Log( WIDE("resetting collect_used after split") );
+			Log( "resetting collect_used after split" );
 #endif
 			pvt->collect_avail -= pvt->collect_used;
 			pvt->collect_used = 0;
@@ -2273,7 +2273,7 @@ void VarTextExpandEx( PVARTEXT pvt, INDEX size DBG_PASS)
 
 INDEX VarTextLength( PVARTEXT pvt )
 {
-	//Log1( WIDE("Length is : %d"), pvt->collect_used );
+	//Log1( "Length is : %d", pvt->collect_used );
 	if( pvt )
 		return pvt->collect_used;
 	return 0;
@@ -2307,7 +2307,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 			VarTextExpand( pvt, ((len+1)<pvt->expand_by)?pvt->expand_by:(len+1+pvt->expand_by)  );
 		}
 #ifdef VERBOSE_DEBUG_VARTEXT
-		Log3( WIDE("Print Length: %d into %d after %s"), len, pvt->collect_used, pvt->collect_text );
+		Log3( "Print Length: %d into %d after %s", len, pvt->collect_used, pvt->collect_text );
 #endif
 		// include NUL in the limit of characters able to print...
 		vsnprintf( pvt->collect_text + pvt->collect_used, len+1, format, args );
@@ -2330,7 +2330,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 			tries++;
 			if( tries == 100 )
 			{
-				lprintf( WIDE( "Single buffer expanded more then %d" ), tries * ( (pvt->expand_by)?pvt->expand_by:(16384+pvt->expand_by) ) );
+				lprintf( "Single buffer expanded more then %d", tries * ( (pvt->expand_by)?pvt->expand_by:(16384+pvt->expand_by) ) );
 				return 0; // didn't add any
 			}
 			VarTextExpand( pvt, (pvt->expand_by)?pvt->expand_by:(16384)  );
@@ -2369,7 +2369,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 			VarTextExpand( pvt, ((len+1)<pvt->expand_by)?pvt->expand_by:(len+1+pvt->expand_by)  );
 		}
 #  ifdef VERBOSE_DEBUG_VARTEXT
-		Log3( WIDE("Print Length: %d into %d after %s"), len, pvt->collect_used, pvt->collect_text );
+		Log3( "Print Length: %d into %d after %s", len, pvt->collect_used, pvt->collect_text );
 #  endif
 		// include NUL in the limit of characters able to print...
 		vsnprintf( pvt->collect_text + pvt->collect_used, len+1, format, args );
@@ -2381,7 +2381,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 		_args[0] = args[0];
 		do {
 #  ifdef VERBOSE_DEBUG_VARTEXT
-			Log2( WIDE("Print Length: ofs %d after %s")
+			Log2( "Print Length: ofs %d after %s"
 				 , pvt->collect_used
 				 , pvt->collect_text );
 #  endif
@@ -2396,7 +2396,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 			if( !len ) // nothign to add... we'll get stuck looping if this is not checked.
 				return 0;
 #  ifdef VERBOSE_DEBUG_VARTEXT
-			lprintf( WIDE("result of vsnprintf: %d(%d) \'%s\' (%s)")
+			lprintf( "result of vsnprintf: %d(%d) \'%s\' (%s)"
 					 , len, destlen
 					 , pvt->collect_text
 					 , format );
@@ -2422,11 +2422,11 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 				VarTextExpand( pvt, pvt->expand_by?pvt->expand_by:4096 );
 			//					 VarTextExpandEx( pvt, 32 DBG_SRC );
 		} while( len < 0 );
-		//Log1( WIDE("Print Length: %d"), len );
+		//Log1( "Print Length: %d", len );
 	}
 #endif
 #ifdef VERBOSE_DEBUG_VARTEXT
-	Log2( WIDE("used: %d plus %d"), pvt->collect_used , len );
+	Log2( "used: %d plus %d", pvt->collect_used , len );
 #endif
 	pvt->collect_used += len;
 	return len;
@@ -2450,104 +2450,104 @@ INDEX vtprintfEx( PVARTEXT pvt , CTEXTSTR format, ... )
 //---------------------------------------------------------------------------
 
 static CTEXTSTR Ops[] = {
-	WIDE("FORMAT_OP_CLEAR_END_OF_LINE"),
-	WIDE("FORMAT_OP_CLEAR_START_OF_LINE"),
-	WIDE("FORMAT_OP_CLEAR_LINE "),
-	WIDE("FORMAT_OP_CLEAR_END_OF_PAGE"),
-	WIDE("FORMAT_OP_CLEAR_START_OF_PAGE"),
-	WIDE("FORMAT_OP_CLEAR_PAGE"),
-	WIDE("FORMAT_OP_CONCEAL")
-	  , WIDE("FORMAT_OP_DELETE_CHARS") // background is how many to delete.
-	  , WIDE("FORMAT_OP_SET_SCROLL_REGION") // format.x, y are start/end of region -1,-1 clears.
-	  , WIDE("FORMAT_OP_GET_CURSOR") // this works as a transaction...
-	  , WIDE("FORMAT_OP_SET_CURSOR") // responce to getcursor...
+	"FORMAT_OP_CLEAR_END_OF_LINE",
+	"FORMAT_OP_CLEAR_START_OF_LINE",
+	"FORMAT_OP_CLEAR_LINE ",
+	"FORMAT_OP_CLEAR_END_OF_PAGE",
+	"FORMAT_OP_CLEAR_START_OF_PAGE",
+	"FORMAT_OP_CLEAR_PAGE",
+	"FORMAT_OP_CONCEAL"
+	  , "FORMAT_OP_DELETE_CHARS" // background is how many to delete.
+	  , "FORMAT_OP_SET_SCROLL_REGION" // format.x, y are start/end of region -1,-1 clears.
+	  , "FORMAT_OP_GET_CURSOR" // this works as a transaction...
+	  , "FORMAT_OP_SET_CURSOR" // responce to getcursor...
 
-	  , WIDE("FORMAT_OP_PAGE_BREAK") // clear page, home page... result in page break...
-	  , WIDE("FORMAT_OP_PARAGRAPH_BREAK") // break between paragraphs - kinda same as lines...
+	  , "FORMAT_OP_PAGE_BREAK" // clear page, home page... result in page break...
+	  , "FORMAT_OP_PARAGRAPH_BREAK" // break between paragraphs - kinda same as lines...
 };
 
 //---------------------------------------------------------------------------
 
 static void BuildTextFlags( PVARTEXT vt, PTEXT pSeg )
 {
-	vtprintf( vt, WIDE( "Text Flags: " ));
+	vtprintf( vt, "Text Flags: ");
 	if( pSeg->flags & TF_STATIC )
-		vtprintf( vt, WIDE( "static " ) );
+		vtprintf( vt, "static " );
 	if( pSeg->flags & TF_QUOTE )
 		vtprintf( vt, WIDE( "\"\" " ) );
 	if( pSeg->flags & TF_SQUOTE )
-		vtprintf( vt, WIDE( "\'\' " ) );
+		vtprintf( vt, "\'\' " );
 	if( pSeg->flags & TF_BRACKET )
-		vtprintf( vt, WIDE( "[] " ) );
+		vtprintf( vt, "[] " );
 	if( pSeg->flags & TF_BRACE )
-		vtprintf( vt, WIDE( "{} " ) );
+		vtprintf( vt, "{} " );
 	if( pSeg->flags & TF_PAREN )
-		vtprintf( vt, WIDE( "() " ) );
+		vtprintf( vt, "() " );
 	if( pSeg->flags & TF_TAG )
-		vtprintf( vt, WIDE( "<> " ) );
+		vtprintf( vt, "<> " );
 	if( pSeg->flags & TF_INDIRECT )
-		vtprintf( vt, WIDE( "Indirect " ) );
+		vtprintf( vt, "Indirect " );
 	/*
 	if( pSeg->flags & TF_SINGLE )
-	vtprintf( vt, WIDE( "single " ) );
+	vtprintf( vt, "single " );
 	*/
 	if( pSeg->flags & TF_FORMATREL )
-		vtprintf( vt, WIDE( "format x,y(REL) " ) );
+		vtprintf( vt, "format x,y(REL) " );
 	if( pSeg->flags & TF_FORMATABS )
-		vtprintf( vt, WIDE( "format x,y " ) );
+		vtprintf( vt, "format x,y " );
 	else
-		vtprintf( vt, WIDE( "format spaces " ) );
+		vtprintf( vt, "format spaces " );
 
 	if( pSeg->flags & TF_COMPLETE )
-		vtprintf( vt, WIDE( "complete " ) );
+		vtprintf( vt, "complete " );
 	if( pSeg->flags & TF_BINARY )
-		vtprintf( vt, WIDE( "binary " ) );
+		vtprintf( vt, "binary " );
 	if( pSeg->flags & TF_DEEP )
-		vtprintf( vt, WIDE( "deep " ) );
+		vtprintf( vt, "deep " );
 #ifdef DEKWARE_APP_FLAGS
 	if( pSeg->flags & TF_ENTITY )
-		vtprintf( vt, WIDE( "entity " ) );
+		vtprintf( vt, "entity " );
 	if( pSeg->flags & TF_SENTIENT )
-		vtprintf( vt, WIDE( "sentient " ) );
+		vtprintf( vt, "sentient " );
 #endif
 	if( pSeg->flags & TF_NORETURN )
-		vtprintf( vt, WIDE( "NoReturn " ) );
+		vtprintf( vt, "NoReturn " );
 	if( pSeg->flags & TF_LOWER )
-		vtprintf( vt, WIDE( "Lower " ) );
+		vtprintf( vt, "Lower " );
 	if( pSeg->flags & TF_UPPER )
-		vtprintf( vt, WIDE( "Upper " ) );
+		vtprintf( vt, "Upper " );
 	if( pSeg->flags & TF_EQUAL )
-		vtprintf( vt, WIDE( "Equal " ) );
+		vtprintf( vt, "Equal " );
 	if( pSeg->flags & TF_TEMP )
-		vtprintf( vt, WIDE( "Temp " ) );
+		vtprintf( vt, "Temp " );
 #ifdef DEKWARE_APP_FLAGS
 	if( pSeg->flags & TF_PROMPT )
-		vtprintf( vt, WIDE( "Prompt " ) );
+		vtprintf( vt, "Prompt " );
 	if( pSeg->flags & TF_PLUGIN )
-		vtprintf( vt, WIDE( "Plugin=%02x " ), (uint8_t)(( pSeg->flags >> 26 ) & 0x3f ) );
+		vtprintf( vt, "Plugin=%02x ", (uint8_t)(( pSeg->flags >> 26 ) & 0x3f ) );
 #endif
 
 	if( (pSeg->flags & TF_FORMATABS ) )
-		vtprintf( vt, WIDE( "Pos:%d,%d " )
+		vtprintf( vt, "Pos:%d,%d "
 				, pSeg->format.position.coords.x
 				, pSeg->format.position.coords.y  );
 	else if( (pSeg->flags & TF_FORMATREL ) )
-		vtprintf( vt, WIDE( "Rel:%d,%d " )
+		vtprintf( vt, "Rel:%d,%d "
 				, pSeg->format.position.coords.x
 				, pSeg->format.position.coords.y  );
 	else
-		vtprintf( vt, WIDE( "%d tabs %d spaces" )
+		vtprintf( vt, "%d tabs %d spaces"
 				  , pSeg->format.position.offset.tabs
 				  , pSeg->format.position.offset.spaces
 				  );
 
 	if( pSeg->flags & TF_FORMATEX )
-		vtprintf( vt, WIDE( "format extended(%s) length:%d" )
+		vtprintf( vt, "format extended(%s) length:%d"
 					  , Ops[ pSeg->format.flags.format_op
 							 - FORMAT_OP_CLEAR_END_OF_LINE ]
 					  , GetTextSize( pSeg ) );
 	else
-		vtprintf( vt, WIDE( "Fore:%d Back:%d length:%d" )
+		vtprintf( vt, "Fore:%d Back:%d length:%d"
 					, pSeg->format.flags.foreground
 					, pSeg->format.flags.background
 					, GetTextSize( pSeg ) );
@@ -2563,7 +2563,7 @@ PTEXT DumpText( PTEXT text )
 		while( text )
 		{
 			BuildTextFlags( pvt, text );
-			vtprintf( pvt, WIDE( "\n->%s\n" ), GetText( text ) );
+			vtprintf( pvt, "\n->%s\n", GetText( text ) );
 			text = NEXTLINE( text );
 		}
 		textsave = VarTextGet( pvt );
@@ -2650,10 +2650,10 @@ TEXTSTR ConvertEbcdicAscii( TEXTSTR text, INDEX length )
 static TEXTCHAR reserved_uri[] = {'!','*','\'','(',')',';',':','@','&','=','+','$',',','/','?','#','[',']'
 												  ,'<','>','~','.','"','{','}','|','\\','-','`','_','^','%',' '
 												  , 0 };
-static const TEXTCHAR *translated[] = { WIDE( "%21" ),WIDE( "%2A" ),WIDE( "%27" ),WIDE( "%28" ),WIDE( "%29" ),WIDE( "%3B" ),WIDE( "%3A" )
-												,WIDE( "%40" ),WIDE( "%26" ),WIDE( "%3D" ),WIDE( "%2B" ),WIDE( "%24" ),WIDE( "%2C" ),WIDE( "%2F" )
-												 ,WIDE( "%3F" ),WIDE( "%23" ),WIDE( "%5B" ),WIDE( "%5D" )
-												 ,WIDE( "%3C" ),WIDE( "%3E" ),WIDE( "%7E" ),WIDE( "%2E" ),WIDE( "%22" ),WIDE( "%7B" ),WIDE( "%7D" ),WIDE( "%7C" ),WIDE( "%5C" ),WIDE( "%2D" ),WIDE( "%60" ),WIDE( "%5F" ),WIDE( "%5E" ),WIDE( "%25" ),WIDE( "%20" )
+static const TEXTCHAR *translated[] = { "%21","%2A","%27","%28","%29","%3B","%3A"
+												,"%40","%26","%3D","%2B","%24","%2C","%2F"
+												 ,"%3F","%23","%5B","%5D"
+												 ,"%3C","%3E","%7E","%2E","%22","%7B","%7D","%7C","%5C","%2D","%60","%5F","%5E","%25","%20"
 };
 
 static int MeasureTextURI( CTEXTSTR text, INDEX length, int skip_slash )
@@ -3583,7 +3583,7 @@ LOGICAL ParseIntVector( CTEXTSTR data, int **pData, int *nData )
 #endif
 #endif
 			start = end;
-			sscanf( start, WIDE("%d"), (*pData) + count );
+			sscanf( start, "%d", (*pData) + count );
 			count++;
 			end = StrChr( start, ',' );
 			if( end )

@@ -176,7 +176,7 @@ void FillQuadSet( BASIC_PLANE *set, int base, int levels, P_POINT i1, P_POINT i2
 	}
 	else
 	{
-		//Log1( WIDE("Base facet is : %d"), base );
+		//Log1( "Base facet is : %d", base );
 		sub( v1, p3, p2 );
 		sub( v2, p2, p1 );
 		crossproduct( set[base].n, v1, v2 );
@@ -240,17 +240,17 @@ PRELOAD( Real_Main )
 		}
 		for( n = 0; n < 20; n++ )
 		{
-			Log( WIDE("Fill 80 sides...") );
+			Log( "Fill 80 sides..." );
 			FillQuadSet( _80sides, n*4, 1
 						  , icosa_points[icosa_index[n][0]]
 						  , icosa_points[icosa_index[n][1]]
 						  , icosa_points[icosa_index[n][2]] );
-			Log( WIDE("Fill 320 sides...") );
+			Log( "Fill 320 sides..." );
 			FillQuadSet( _320sides, n*16, 2
 						  , icosa_points[icosa_index[n][0]]
 						  , icosa_points[icosa_index[n][1]]
 						  , icosa_points[icosa_index[n][2]] );
-			Log( WIDE("Fill 1280 sides...") );
+			Log( "Fill 1280 sides..." );
 			FillQuadSet( _1280sides, n*64, 3
 						  , icosa_points[icosa_index[n][0]]
 						  , icosa_points[icosa_index[n][1]]
@@ -331,7 +331,7 @@ PRELOAD( Real_Main )
 				for( n = 0; n < CUBES; n++ )
 				{
 					POBJECT po;
-					lprintf( WIDE("Create %d,%d,%d"), z, m, n );
+					lprintf( "Create %d,%d,%d", z, m, n );
 					add( v, scale( tmp, VectorConst_Z, z*100 ), add( v, scale( tmp, VectorConst_Y, m*100 ),scale( v, VectorConst_X, n*100 ) ) );
 					//po = CreateScaledInstance( CubeNormals, CUBE_SIDES, 30.0f, v, (PVECTOR)VectorConst_Z, (PVECTOR)VectorConst_X, (PVECTOR)VectorConst_Y );
 					po = MakeScaledInstance( pWorld, 3.0, v, VectorConst_Z, VectorConst_X, VectorConst_Y );
@@ -381,13 +381,13 @@ PRELOAD( Real_Main )
 
 			{
 				PVIEW pView;
-				//pView = CreateView( NULL, WIDE("World View") );
-				//CreateViewEx( V_FORWARD, NULL, WIDE("Forward"), 1, 1 );
-				//CreateViewEx( V_UP, NULL, WIDE("Forward"), 1, 0 );
-				//CreateViewEx( V_DOWN, NULL, WIDE("Forward"), 1, 2 );
-				//CreateViewEx( V_LEFT, NULL, WIDE("Forward"), 0, 1 );
-				//CreateViewEx( V_RIGHT, NULL, WIDE("Forward"), 2, 1 );
-				//CreateViewEx( V_BACK, NULL, WIDE("Forward"), 3, 1 );
+				//pView = CreateView( NULL, "World View" );
+				//CreateViewEx( V_FORWARD, NULL, "Forward", 1, 1 );
+				//CreateViewEx( V_UP, NULL, "Forward", 1, 0 );
+				//CreateViewEx( V_DOWN, NULL, "Forward", 1, 2 );
+				//CreateViewEx( V_LEFT, NULL, "Forward", 0, 1 );
+				//CreateViewEx( V_RIGHT, NULL, "Forward", 2, 1 );
+				//CreateViewEx( V_BACK, NULL, "Forward", 3, 1 );
 			}
 		//	DestroyEditor( pe );
 		}	

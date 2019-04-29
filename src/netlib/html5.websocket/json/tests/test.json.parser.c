@@ -49,8 +49,8 @@ int main( void )
 	msg1->object_names = NULL;
 
 	output = json_build_message( object1, msg1 );
-	printf( WIDE("result:\n") );
-	printf( WIDE("%s\n"), output );
+	printf( "result:\n" );
+	printf( "%s\n", output );
 	MemSet( &msg1, 0, sizeof( msg1 ) );
 	{
 		json_parse_message( output, StrLen( output ), &msg_parse );

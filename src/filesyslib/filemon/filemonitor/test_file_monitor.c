@@ -5,15 +5,15 @@
 
 static int CPROC ShowChange( uintptr_t psv, CTEXTSTR filepath, int deleted )
 {
-	printf( WIDE("%9ld %s changed%s\n"), timeGetTime(), filepath, deleted?WIDE("(deleted)"):WIDE("") );
-	lprintf( WIDE("%s changed%s\n"), filepath, deleted?WIDE("(deleted)"):WIDE("") );
+	printf( "%9ld %s changed%s\n", timeGetTime(), filepath, deleted?"(deleted)":"" );
+	lprintf( "%s changed%s\n", filepath, deleted?"(deleted)":"" );
    return 1;
 }
 
 
 int main( int argc, char **argv )
 {
-	CTEXTSTR root = WIDE(".");
+	CTEXTSTR root = ".";
    POINTER data = NULL;
 	if( argc >= 2 )
 		root = DupCharToText( argv[1] );
@@ -22,7 +22,7 @@ int main( int argc, char **argv )
    // this monitors every subdirectory for changes from a point
 	{
 		PMONITOR monitor = MonitorFilesEx( root, 500, SFF_NAMEONLY|SFF_SUBCURSE );
-		AddFileChangeCallback( monitor, WIDE("*"), ShowChange, 0 );
+		AddFileChangeCallback( monitor, "*", ShowChange, 0 );
 	}
 
    // stupid wait loop.  hit (EOF) to end program

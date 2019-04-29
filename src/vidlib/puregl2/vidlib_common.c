@@ -105,7 +105,7 @@ UnlinkVideo (PVIDEO hVideo)
 	// and to say what I am above means I nkow what IS below me
 //#ifdef LOG_ORDERING_REFOCUS
 	if( l.flags.bLogFocus )
-		lprintf( WIDE( " -- UNLINK Video %p from which is below %p and above %p" ), hVideo, hVideo->pAbove, hVideo->pBelow );
+		lprintf( " -- UNLINK Video %p from which is below %p and above %p", hVideo, hVideo->pAbove, hVideo->pBelow );
 //#endif
 	//if( hVideo->pBelow || hVideo->pAbove )
 	//   DebugBreak();
@@ -134,7 +134,7 @@ UnlinkVideo (PVIDEO hVideo)
 void
 FocusInLevel (PVIDEO hVideo)
 {
-	lprintf( WIDE( "Focus IN level" ) );
+	lprintf( "Focus IN level" );
 	if (hVideo->pPrior)
 	{
 		hVideo->pPrior->pNext = hVideo->pNext;
@@ -178,7 +178,7 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 	if( !l.bottom )
 	{
 		if( hAbove )
-			lprintf( WIDE( "Failure, no bottom, but somehow a second display is already known?" ) );
+			lprintf( "Failure, no bottom, but somehow a second display is already known?" );
 		l.bottom = hVideo;
 		l.top = hVideo;
 		//lprintf( "set l.top to %p", l.top );
@@ -187,7 +187,7 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 
 #ifdef LOG_ORDERING_REFOCUS
 	if( l.flags.bLogFocus )
-		lprintf( WIDE( "Begin Put Display Above..." ) );
+		lprintf( "Begin Put Display Above..." );
 #endif
 	if( hVideo->pAbove == hAbove )
 		return;
@@ -220,7 +220,7 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 
 		if( hVideo->pAbove )
 		{
-			lprintf( WIDE( "Window was over somethign else and now we die." ) );
+			lprintf( "Window was over somethign else and now we die." );
 			DebugBreak();
 		}
 
@@ -249,13 +249,13 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 	}
 #ifdef LOG_ORDERING_REFOCUS
 	if( l.flags.bLogFocus )
-		lprintf( WIDE( "End Put Display Above..." ) );
+		lprintf( "End Put Display Above..." );
 #endif
 }
 
 void  PutDisplayIn (PVIDEO hVideo, PVIDEO hIn)
 {
-	lprintf( WIDE( "Relate hVideo as a child of hIn..." ) );
+	lprintf( "Relate hVideo as a child of hIn..." );
 }
 
 //----------------------------------------------------------------------------
@@ -271,12 +271,12 @@ LOGICAL CreateDrawingSurface (PVIDEO hVideo)
 	if( !hVideo->transform )
 	{
 		TEXTCHAR name[64];
-		tnprintf( name, sizeof( name ), WIDE( "render.display.%p" ), hVideo );
-		//lprintf( WIDE( "making initial transform" ) );
+		tnprintf( name, sizeof( name ), "render.display.%p", hVideo );
+		//lprintf( "making initial transform" );
 		hVideo->transform = hVideo->pImage->transform = CreateTransformMotion( CreateNamedTransform( name ) );
 	}
 
-	//lprintf( WIDE( "Set transform at %d,%d" ), hVideo->pWindowPos.x, hVideo->pWindowPos.y );
+	//lprintf( "Set transform at %d,%d", hVideo->pWindowPos.x, hVideo->pWindowPos.y );
 	Translate( hVideo->transform, (RCOORD)hVideo->pWindowPos.x, (RCOORD)hVideo->pWindowPos.y, 0 );
 
 	// additionally indicate that this is a GL render point
@@ -304,7 +304,7 @@ void DoDestroy (PVIDEO hVideo)
 		UnmakeImageFile (hVideo->pImage);
 
 #ifdef LOG_DESTRUCTION
-		lprintf( WIDE( "In DoDestroy, destroyed a good bit already..." ) );
+		lprintf( "In DoDestroy, destroyed a good bit already..." );
 #endif
 
 		// this will be cleared at the next statement....
@@ -324,7 +324,7 @@ void DoDestroy (PVIDEO hVideo)
 			l.hCameraCapturedPrior = NULL; // make sure to clear this so it doesn't get reset to invalid
 			l.flags.bCameraManuallyCapturedMouse = 0;
 		}
-		//Log (WIDE( "Cleared hVideo - is NOW !bReady" ));
+		//Log ("Cleared hVideo - is NOW !bReady");
 		if( !hVideo->flags.event_dispatched )
 		{
 			int bInDestroy = hVideo->flags.bInDestroy;
@@ -355,13 +355,13 @@ void LoadOptions( void )
 #endif
 
 #ifndef __NO_OPTIONS__
-	l.flags.bLogRenderTiming = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Log Render Timing"), 0, TRUE );
-	l.flags.bView360 = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/360 view"), 0, TRUE );
+	l.flags.bLogRenderTiming = SACK_GetProfileIntEx( GetProgramName(), "SACK/Video Render/Log Render Timing", 0, TRUE );
+	l.flags.bView360 = SACK_GetProfileIntEx( GetProgramName(), "SACK/Video Render/360 view", 0, TRUE );
 
-	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Scale"), 10 );
+	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
 	if( l.scale == 0.0 )
 	{
-		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Inverse Scale"), 2 );
+		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Inverse Scale", 2 );
 		if( l.scale == 0.0 )
 			l.scale = 1;
 	}
@@ -372,10 +372,10 @@ void LoadOptions( void )
 	{
 		struct display_camera *default_camera = NULL;
 		uint32_t screen_w, screen_h;
-		int nDisplays = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Number of Displays"), l.flags.bView360?6:1, TRUE );
+		int nDisplays = SACK_GetProfileIntEx( GetProgramName(), "SACK/Video Render/Number of Displays", l.flags.bView360?6:1, TRUE );
 		int n;
-		lprintf( WIDE("Loading %d displays"), nDisplays );
-		l.flags.bForceUnaryAspect = SACK_GetProfileIntEx( GetProgramName(), WIDE("SACK/Video Render/Force Aspect 1.0"), (nDisplays==1)?0:1, TRUE );
+		lprintf( "Loading %d displays", nDisplays );
+		l.flags.bForceUnaryAspect = SACK_GetProfileIntEx( GetProgramName(), "SACK/Video Render/Force Aspect 1.0", (nDisplays==1)?0:1, TRUE );
 		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		switch( nDisplays )
 		{
@@ -401,19 +401,19 @@ void LoadOptions( void )
 			camera->depth = 30000.0f;
 			camera->origin_camera = CreateTransform();
 
-			tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Display is topmost"), n+1 );
+			tnprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Display is topmost", n+1 );
 			camera->flags.topmost = SACK_GetProfileIntEx( GetProgramName(), tmp, 0, TRUE );
 
 #if defined( __QNX__ ) || defined( __ANDROID__ )
 			custom_pos = 0;
 #else
-			tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Custom Position"), n+1 );
+			tnprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Use Custom Position", n+1 );
 			custom_pos = SACK_GetProfileIntEx( GetProgramName(), tmp, l.flags.bView360?1:0, TRUE );
 #endif
 			if( custom_pos )
 			{
 				camera->display = -1;
-				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/x"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Position/x", n+1 );
 				camera->x = SACK_GetProfileIntEx( GetProgramName(), tmp, (
 					nDisplays==4
 						?n==0?0:n==1?400:n==2?0:n==3?400:0
@@ -422,7 +422,7 @@ void LoadOptions( void )
 					:nDisplays==1
 						?0
 					:0), TRUE );
-				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/y"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Position/y", n+1 );
 				camera->y = SACK_GetProfileIntEx( GetProgramName(), tmp, (
 					nDisplays==4
 						?n==0?0:n==1?0:n==2?300:n==3?300:0
@@ -431,7 +431,7 @@ void LoadOptions( void )
 					:nDisplays==1
 						?0
 					:0), TRUE );
-				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/width"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Position/width", n+1 );
 				camera->w = SACK_GetProfileIntEx( GetProgramName(), tmp, (
 					nDisplays==4
 						?400
@@ -440,7 +440,7 @@ void LoadOptions( void )
 					:nDisplays==1
 						?800
 					:0), TRUE );
-				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Position/height"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Position/height", n+1 );
 				camera->h = SACK_GetProfileIntEx( GetProgramName(), tmp, (
 					nDisplays==4
 						?300
@@ -463,7 +463,7 @@ void LoadOptions( void )
 			}
 			else
 			{
-				tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Use Display"), n+1 );
+				tnprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Use Display", n+1 );
 				camera->display = SACK_GetProfileIntEx( GetProgramName(), tmp, nDisplays>1?n+1:0, TRUE );
 				GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
 			}
@@ -476,7 +476,7 @@ void LoadOptions( void )
 				camera->aspect = ((float)camera->w/(float)camera->h);
 			}
 
-			tnprintf( tmp, sizeof( tmp ), WIDE("SACK/Video Render/Display %d/Camera Type"), n+1 );
+			tnprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Camera Type", n+1 );
 			camera->type = SACK_GetProfileIntEx( GetProgramName(), tmp, (nDisplays==6)?n:2, TRUE );
 			if( camera->type == 2 && !default_camera )
 			{
@@ -484,22 +484,22 @@ void LoadOptions( void )
 			}
 			//lprintf( "Add camera to list" );
 			AddLink( &l.cameras, camera );
-			lprintf( WIDE(" camera is %d,%d" ), camera->w, camera->h );
+			lprintf( " camera is %d,%d", camera->w, camera->h );
 		}
 		if( !default_camera )
 		{
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
 			//lprintf( "Retrieve default as %p", default_camera );
 		}
-		lprintf( WIDE("Set default to %p"), default_camera );
+		lprintf( "Set default to %p", default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	{
 		PODBC option = GetOptionODBC( NULL );
-		l.flags.bLogMessageDispatch = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log message dispatch"), 0, TRUE );
-		l.flags.bLogFocus = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log focus event"), 0, TRUE );
-		l.flags.bLogKeyEvent = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log key event"), 0, TRUE );
-		l.flags.bLogMouseEvent = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/log mouse event"), 0, TRUE );
+		l.flags.bLogMessageDispatch = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/log message dispatch", 0, TRUE );
+		l.flags.bLogFocus = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/log focus event", 0, TRUE );
+		l.flags.bLogKeyEvent = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/log key event", 0, TRUE );
+		l.flags.bLogMouseEvent = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/log mouse event", 0, TRUE );
 #ifdef _D3D_DRIVER
 #  define LAYERED_DEFAULT 0
 #else
@@ -507,8 +507,8 @@ void LoadOptions( void )
 		// conventional memroy and then a push to video memory;  tiny surfaces may work (those things... toolbar widgets)
 #  define LAYERED_DEFAULT 0
 #endif
-		l.flags.bLayeredWindowDefault = SACK_GetOptionIntEx( option, GetProgramName(), WIDE( "SACK/Video Render/Default windows are layered" ), LAYERED_DEFAULT, TRUE )?TRUE:FALSE;
-		l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), WIDE("SACK/Video Render/Log Video Output"), 0, TRUE );
+		l.flags.bLayeredWindowDefault = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Default windows are layered", LAYERED_DEFAULT, TRUE )?TRUE:FALSE;
+		l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Log Video Output", 0, TRUE );
 	}
 #else
 	l.flags.bLogRenderTiming = 0;
@@ -522,7 +522,7 @@ void LoadOptions( void )
 		uint32_t screen_w, screen_h;
 		int nDisplays = 1;
 		int n;
-		lprintf( WIDE("Loading %d displays"), nDisplays );
+		lprintf( "Loading %d displays", nDisplays );
 		l.flags.bForceUnaryAspect = 0;
 		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		//lprintf( "Set camera 0 to 1" );
@@ -562,14 +562,14 @@ void LoadOptions( void )
 			}
 			//lprintf( "Add camera to list" );
 			AddLink( &l.cameras, camera );
-			lprintf( WIDE(" camera is %d,%d" ), camera->w, camera->h );
+			lprintf( " camera is %d,%d", camera->w, camera->h );
 		}
 		if( !default_camera )
 		{
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
 			//lprintf( "Retrieve default as %p", default_camera );
 		}
-		lprintf( WIDE("Set default to %p"), default_camera );
+		lprintf( "Set default to %p", default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	l.flags.bLogMessageDispatch = 0;
@@ -583,8 +583,8 @@ void LoadOptions( void )
 	if( !l.origin )
 	{
 		static MATRIX m;
-		lprintf( WIDE("Init camera") );
-		l.origin = CreateNamedTransform( WIDE("render.camera") );
+		lprintf( "Init camera" );
+		l.origin = CreateNamedTransform( "render.camera" );
 
 		Translate( l.origin, l.scale * average_width/2, l.scale * average_height/2, l.scale * average_height/2 );
 		RotateAbs( l.origin, M_PI, 0, 0 );
@@ -605,17 +605,17 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
 	TEXTCHAR optname[64];
-	for( name = GetFirstRegisteredName( WIDE("sack/render/puregl/init3d"), &data );
+	for( name = GetFirstRegisteredName( "sack/render/puregl/init3d", &data );
 		  name;
 		  name = GetNextRegisteredName( &data ) )
 	{
 		LOGICAL already_inited;
-		tnprintf( optname, 64, WIDE("%s/%d"), name, camera->nCamera );
-		already_inited = GetRegisteredIntValueEx( data, optname, WIDE("Executed") );
+		tnprintf( optname, 64, "%s/%d", name, camera->nCamera );
+		already_inited = GetRegisteredIntValueEx( data, optname, "Executed" );
 		if( already_inited )
 			continue;
-		RegisterIntValueEx( data, optname, WIDE("Executed"), 1 );
-		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,uintptr_t,WIDE("ExtraInit3d"),(PMatrix,PTRANSFORM,RCOORD*,RCOORD*));
+		RegisterIntValueEx( data, optname, "Executed", 1 );
+		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,uintptr_t,"ExtraInit3d",(PMatrix,PTRANSFORM,RCOORD*,RCOORD*));
 
 		if( Init3d )
 		{
@@ -637,18 +637,18 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 					{
 						static PCLASSROOT draw3d;
 						if( !draw3d )
-							draw3d = GetClassRoot( WIDE("sack/render/puregl/draw3d") );
-						reference->Update3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("Update3d"),(PTRANSFORM));
-						reference->Resume3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("Resume3d"),(void));
+							draw3d = GetClassRoot( "sack/render/puregl/draw3d" );
+						reference->Update3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,"Update3d",(PTRANSFORM));
+						reference->Resume3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"Resume3d",(void));
 						// add one copy of each update proc to update list.
 						if( FindLink( &l.update, reference->Update3d ) == INVALID_INDEX )
 							AddLink( &l.update, reference->Update3d );
-						reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraDraw3d"),(uintptr_t));
-						reference->FirstDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("FirstDraw3d"),(uintptr_t));
-						reference->ExtraDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraBeginDraw3d"),(uintptr_t,PTRANSFORM));
-						reference->ExtraClose3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,WIDE("ExtraClose3d"),(uintptr_t));
-						reference->Mouse3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("ExtraMouse3d"),(uintptr_t,PRAY,int32_t,int32_t,uint32_t));
-						reference->Key3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,WIDE("ExtraKey3d"),(uintptr_t,uint32_t));
+						reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraDraw3d",(uintptr_t));
+						reference->FirstDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"FirstDraw3d",(uintptr_t));
+						reference->ExtraDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraBeginDraw3d",(uintptr_t,PTRANSFORM));
+						reference->ExtraClose3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraClose3d",(uintptr_t));
+						reference->Mouse3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,"ExtraMouse3d",(uintptr_t,PRAY,int32_t,int32_t,uint32_t));
+						reference->Key3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,"ExtraKey3d",(uintptr_t,uint32_t));
 					}
 					if( reference->Draw3d )
 						 camera->flags.bDrawablePlugin = 1;
@@ -744,7 +744,7 @@ void OpenCamera( struct display_camera *camera )
 			camera->hVidCore->flags.bReady = 1;
 #endif
 #ifdef LOG_OPEN_TIMING
-		lprintf( WIDE( "Created Real window...Stuff.. %d,%d %dx%d" ),camera->x,camera->y,camera->w,camera->h );
+		lprintf( "Created Real window...Stuff.. %d,%d %dx%d",camera->x,camera->y,camera->w,camera->h );
 #endif
 		// trigger first draw logic for camera
 		camera->flags.first_draw = 1;
@@ -752,7 +752,7 @@ void OpenCamera( struct display_camera *camera )
 		// extra init iterates through registered plugins and
 		// loads their initial callbacks; the actual OnIni3d() has many more params
 		camera->flags.init= 0; // make sure we do first setup on context...
-		lprintf( WIDE("Invoke init on camera (should be a valid device by here?") );
+		lprintf( "Invoke init on camera (should be a valid device by here?" );
 		InvokeExtraInit( camera, camera->origin_camera );
 
 		// first draw allows loading textures and shaders; so reset that we did a first draw.
@@ -780,7 +780,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 
 #ifndef __ANDROID__
 // when a library is loaded later, invoke it's Init3d with existing cameras
-static void OnLibraryLoad( WIDE("Video Render PureGL 2") )( void )
+static void OnLibraryLoad( "Video Render PureGL 2" )( void )
 {
 #  if defined( WIN32 )
 	if( l.bThreadRunning )
@@ -809,7 +809,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 			{
 				// hWndOutput is set within the create window proc...
 		#ifdef LOG_OPEN_TIMING
-				lprintf( WIDE( "Create Real Window (In CreateWindowStuff).." ) );
+				lprintf( "Create Real Window (In CreateWindowStuff).." );
 		#endif
 
 				//hVideo->hWndOutput = (HWND)1;
@@ -817,7 +817,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 				hVideo->pWindowPos.y = y;
 				hVideo->pWindowPos.cx = wx;
 				hVideo->pWindowPos.cy = wy;
-				//lprintf( WIDE("%d %d"), x, y );
+				//lprintf( "%d %d", x, y );
 				{
 					hVideo->pImage =
 						RemakeImage( hVideo->pImage, NULL, hVideo->pWindowPos.cx,
@@ -825,12 +825,12 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 					if( !hVideo->transform )
 					{
 						TEXTCHAR name[64];
-						tnprintf( name, sizeof( name ), WIDE( "render.display.%p" ), hVideo );
-						//lprintf( WIDE( "making initial transform" ) );
+						tnprintf( name, sizeof( name ), "render.display.%p", hVideo );
+						//lprintf( "making initial transform" );
 						hVideo->transform = hVideo->pImage->transform = CreateTransformMotion( CreateNamedTransform( name ) );
 					}
 
-					//lprintf( WIDE( "Set transform at %d,%d" ), hVideo->pWindowPos.x, hVideo->pWindowPos.y );
+					//lprintf( "Set transform at %d,%d", hVideo->pWindowPos.x, hVideo->pWindowPos.y );
 					Translate( hVideo->transform, (RCOORD)hVideo->pWindowPos.x, (RCOORD)hVideo->pWindowPos.y, 0 );
 
 					// additionally indicate that this is a GL render point
@@ -841,7 +841,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 
 
 		#ifdef LOG_OPEN_TIMING
-			lprintf( WIDE( "Created window stuff..." ) );
+			lprintf( "Created window stuff..." );
 		#endif
 			// generate an event to dispatch pending...
 			// there is a good chance that a window event caused a window
@@ -849,7 +849,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 		#ifdef USE_IPC_MESSAGE_QUEUE_TO_GATHER_MOUSE_EVENTS
 			SendServiceEvent( 0, l.dwMsgBase + MSG_DispatchPending, NULL, 0 );
 		#endif
-			//Log (WIDE( "Created window in module..." ));
+			//Log ("Created window in module...");
 
 		}
 
@@ -869,12 +869,12 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 	AddLink( &l.pActiveList, hNextVideo );
 	hNextVideo->KeyDefs = CreateKeyBinder();
 #ifdef LOG_OPEN_TIMING
-	lprintf( WIDE( "Doing open of a display... %p" ) , hNextVideo);
+	lprintf( "Doing open of a display... %p" , hNextVideo);
 #endif
 	//if( ( GetCurrentThreadId () == l.dwThreadID )  )
 	{
 #ifdef LOG_OPEN_TIMING
-		lprintf( WIDE( "About to create my own stuff..." ) );
+		lprintf( "About to create my own stuff..." );
 #endif
 		CreateWindowStuffSizedAt( hNextVideo
 										 , hNextVideo->pWindowPos.x
@@ -883,7 +883,7 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 										, hNextVideo->pWindowPos.cy);
 	}
 #ifdef LOG_STARTUP
-	lprintf( WIDE("Resulting new window %p %p"), hNextVideo, GetNativeHandle( hNextVideo ) );
+	lprintf( "Resulting new window %p %p", hNextVideo, GetNativeHandle( hNextVideo ) );
 #endif
 	return TRUE;
 }
@@ -897,7 +897,7 @@ PVIDEO  OpenDisplaySizedAt (uint32_t attr, uint32_t wx, uint32_t wy, int32_t x, 
 	MemSet (hNextVideo, 0, sizeof (VIDEO));
 	InitializeCriticalSec( &hNextVideo->cs );
 
-	lprintf( WIDE("(don't know from where)CreateWindow at %d,%d %dx%d"), x, y, wx, wy );
+	lprintf( "(don't know from where)CreateWindow at %d,%d %dx%d", x, y, wx, wy );
 #ifdef _OPENGL_ENABLED
 	hNextVideo->_prior_fracture = -1;
 #endif
@@ -918,7 +918,7 @@ PVIDEO  OpenDisplaySizedAt (uint32_t attr, uint32_t wx, uint32_t wy, int32_t x, 
 	  // + GetSystemMetrics (SM_CYCAPTION) + GetSystemMetrics (SM_CYBORDER);
 #endif
 	// NOT MULTI-THREAD SAFE ANYMORE!
-	//lprintf( WIDE("Hardcoded right here for FULL window surfaces, no native borders.") );
+	//lprintf( "Hardcoded right here for FULL window surfaces, no native borders." );
 	hNextVideo->flags.bFull = TRUE;
 	hNextVideo->flags.bLayeredWindow = 0;
 	hNextVideo->flags.bNoAutoFocus = (attr & DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS)?TRUE:FALSE;
@@ -931,7 +931,7 @@ PVIDEO  OpenDisplaySizedAt (uint32_t attr, uint32_t wx, uint32_t wy, int32_t x, 
 
 	if( DoOpenDisplay( hNextVideo ) )
 	{
-		lprintf( WIDE("New bottom is %p"), l.bottom );
+		lprintf( "New bottom is %p", l.bottom );
 		return hNextVideo;
 	}
 	Deallocate( PRENDERER, hNextVideo );
@@ -966,7 +966,7 @@ PVIDEO  OpenDisplayAboveSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
 	PVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
 	if (parent)
 	{
-		lprintf( WIDE("Want to reposition; had a parent to put this window above") );
+		lprintf( "Want to reposition; had a parent to put this window above" );
 		PutDisplayAbove (newvid, parent);
 	}
 	return newvid;
@@ -1003,7 +1003,7 @@ PVIDEO  OpenDisplayAboveUnderSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
 	}
 	if (parent)
 	{
-		lprintf( WIDE("Want to reposition; had a parent to put this window above") );
+		lprintf( "Want to reposition; had a parent to put this window above" );
 		PutDisplayAbove (newvid, parent);
 	}
 	return newvid;
@@ -1013,12 +1013,12 @@ PVIDEO  OpenDisplayAboveUnderSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
 
 void  CloseDisplay (PVIDEO hVideo)
 {
-	lprintf( WIDE("close display %p"), hVideo );
+	lprintf( "close display %p", hVideo );
 	// just kills this video handle....
 	if (!hVideo)         // must already be destroyed, eh?
 		return;
 #ifdef LOG_DESTRUCTION
-	Log (WIDE( "Unlinking destroyed window..." ));
+	Log ("Unlinking destroyed window...");
 #endif
 	// take this out of the list of active windows...
 	if( l.hVidVirtualFocused == hVideo )
@@ -1027,7 +1027,7 @@ void  CloseDisplay (PVIDEO hVideo)
 	}
 	DeleteLink( &l.pActiveList, hVideo );
 	UnlinkVideo( hVideo );
-	lprintf( WIDE("and we should be ok?") );
+	lprintf( "and we should be ok?" );
 	hVideo->flags.bDestroy = 1;
 	while( hVideo->flags.bRendering )
 		Relinquish();
@@ -1047,7 +1047,7 @@ void  CloseDisplay (PVIDEO hVideo)
 void  SizeDisplay (PVIDEO hVideo, uint32_t w, uint32_t h)
 {
 #ifdef LOG_ORDERING_REFOCUS
-	lprintf( WIDE( "Size Display..." ) );
+	lprintf( "Size Display..." );
 #endif
 	if( w == hVideo->pWindowPos.cx && h == hVideo->pWindowPos.cy )
 		return;
@@ -1080,11 +1080,11 @@ void  SizeDisplayRel (PVIDEO hVideo, int32_t delw, int32_t delh)
 		hVideo->pWindowPos.cy = cy;
 
 #ifdef LOG_RESIZE
-		Log2 (WIDE( "Resized display to %d,%d" ), hVideo->pWindowPos.cx,
+		Log2 ("Resized display to %d,%d", hVideo->pWindowPos.cx,
 		hVideo->pWindowPos.cy);
 #endif
 #ifdef LOG_ORDERING_REFOCUS
-		lprintf( WIDE( "size display relative" ) );
+		lprintf( "size display relative" );
 #endif
 		CreateDrawingSurface( hVideo );
 	}
@@ -1095,7 +1095,7 @@ void  SizeDisplayRel (PVIDEO hVideo, int32_t delw, int32_t delh)
 void  MoveDisplay (PVIDEO hVideo, int32_t x, int32_t y)
 {
 #ifdef LOG_ORDERING_REFOCUS
-	//lprintf( WIDE( "Move display %d,%d" ), x, y );
+	//lprintf( "Move display %d,%d", x, y );
 #endif
 	if( hVideo )
 	{
@@ -1142,7 +1142,7 @@ void  MoveSizeDisplay (PVIDEO hVideo, int32_t x, int32_t y, int32_t w,
 	hVideo->pWindowPos.cx = cx;
 	hVideo->pWindowPos.cy = cy;
 #ifdef LOG_DISPLAY_RESIZE
-	lprintf( WIDE( "move and size display." ) );
+	lprintf( "move and size display." );
 #endif
 	// updates window translation
 	CreateDrawingSurface( hVideo );
@@ -1165,7 +1165,7 @@ void  MoveSizeDisplayRel (PVIDEO hVideo, int32_t delx, int32_t dely,
 	hVideo->pWindowPos.cx = cx;
 	hVideo->pWindowPos.cy = cy;
 //fdef LOG_DISPLAY_RESIZE
-	lprintf( WIDE( "move and size relative %d,%d %d,%d" ), delx, dely, delw, delh );
+	lprintf( "move and size relative %d,%d %d,%d", delx, dely, delw, delh );
 //ndif
 	CreateDrawingSurface( hVideo );
 }
@@ -1191,7 +1191,7 @@ void  SetMousePosition (PVIDEO hVid, int32_t x, int32_t y)
 		int newx, newy;
 		hVid = l.mouse_last_vid;
 			
-		//lprintf( WIDE("TAGHERE") );
+		//lprintf( "TAGHERE" );
 		if( hVid )
 		{
 			//InverseOpenGLMouse( hVid->camera, hVid, (RCOORD)x, (RCOORD)y, &newx, &newy );
@@ -1203,7 +1203,7 @@ void  SetMousePosition (PVIDEO hVid, int32_t x, int32_t y)
 			newx = x;
 			newy = y;
 		}
-		//lprintf( WIDE("%d,%d became %d,%d"), x, y, newx, newy );
+		//lprintf( "%d,%d became %d,%d", x, y, newx, newy );
 #if defined( WIN32 )
 		SetCursorPos( newx, newy );
 #endif
@@ -1214,7 +1214,7 @@ void  SetMousePosition (PVIDEO hVid, int32_t x, int32_t y)
 		{
 			int newx, newy;
 			//lprintf( "TAGHERE" );
-			lprintf( WIDE("Moving Mouse Not Implemented") );
+			lprintf( "Moving Mouse Not Implemented" );
 			InverseOpenGLMouse( hVid->camera, hVid, (RCOORD)x+ hVid->cursor_bias.x, (RCOORD)y, &newx, &newy );
 			//lprintf( "%d,%d became %d,%d", x, y, newx, newy );
 			//SetCursorPos (newx,newy);
@@ -1225,7 +1225,7 @@ void  SetMousePosition (PVIDEO hVid, int32_t x, int32_t y)
 			{
 				int newx, newy;
 				//lprintf( "TAGHERE" );
-				lprintf( WIDE("Moving Mouse Not Implemented") );
+				lprintf( "Moving Mouse Not Implemented" );
 				InverseOpenGLMouse( l.current_mouse_event_camera, hVid, (RCOORD)x, (RCOORD)y, &newx, &newy );
 				//lprintf( "%d,%d became %d,%d", x, y, newx, newy );
 				//SetCursorPos (newx + l.WindowBorder_X + hVid->cursor_bias.x + l.current_mouse_event_camera->x ,
@@ -1239,7 +1239,7 @@ void  SetMousePosition (PVIDEO hVid, int32_t x, int32_t y)
 
 void  GetMousePosition (int32_t * x, int32_t * y)
 {
-	lprintf( WIDE("This is really relative to what is looking at it ") );
+	lprintf( "This is really relative to what is looking at it " );
 	//DebugBreak();
 	if (x)
 		(*x) = l.real_mouse_x;
@@ -1316,7 +1316,7 @@ void  SetRedrawHandler (PVIDEO hVideo,
 	hVideo->dwRedrawData = dwUser;
 	if( (hVideo->pRedrawCallback = pRedrawCallback ) )
 	{
-		//lprintf( WIDE("Sending redraw for %p"), hVideo );
+		//lprintf( "Sending redraw for %p", hVideo );
 		if( hVideo->flags.bShown )
 		{
 			l.flags.bUpdateWanted = 1;
@@ -1392,7 +1392,7 @@ void  MakeTopmost (PVIDEO hVideo)
 		hVideo->flags.bTopmost = 1;
 		if( hVideo->flags.bShown )
 		{
-			//lprintf( WIDE( "Forcing topmost" ) );
+			//lprintf( "Forcing topmost" );
 		}
 		else
 		{
@@ -1425,7 +1425,7 @@ void  MakeAbsoluteTopmost (PVIDEO hVideo)
 void  HideDisplay (PVIDEO hVideo)
 {
 //#ifdef LOG_SHOW_HIDE
-	lprintf(WIDE( "Hiding the window! %p %p %p" ), hVideo, hVideo?hVideo->pAbove:0, hVideo?hVideo->pBelow:0 );
+	lprintf("Hiding the window! %p %p %p", hVideo, hVideo?hVideo->pAbove:0, hVideo?hVideo->pBelow:0 );
 //#endif
 	if( hVideo )
 	{
@@ -1472,7 +1472,7 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 
 void  GetDisplaySize (uint32_t * width, uint32_t * height)
 {
-   lprintf( WIDE("GetDisplaySize (this will pause for a display to be given to us...)") );
+   lprintf( "GetDisplaySize (this will pause for a display to be given to us...)" );
    GetDisplaySizeEx( 0, NULL, NULL, width, height );
 }
 
@@ -1551,7 +1551,7 @@ void  OwnMouseEx (PVIDEO hVideo, uint32_t own DBG_PASS)
 {
 	if (own)
 	{
-		//lprintf( WIDE("Capture is set on %p %p"),l.hVirtualCaptured, hVideo );
+		//lprintf( "Capture is set on %p %p",l.hVirtualCaptured, hVideo );
 		if( !hVideo )
 		{
 			hVideo = l.mouse_last_vid;
@@ -1564,7 +1564,7 @@ void  OwnMouseEx (PVIDEO hVideo, uint32_t own DBG_PASS)
 		else
 		if( hVideo->camera )
 		{
-			lprintf( WIDE("set physical capture here") );
+			lprintf( "set physical capture here" );
 		}
 		else
 		{
@@ -1580,7 +1580,7 @@ void  OwnMouseEx (PVIDEO hVideo, uint32_t own DBG_PASS)
 			{
 				if( l.hVirtualCaptured != hVideo )
 				{
-					//lprintf( WIDE("Another window now wants to capture the mouse... the prior window will ahve the capture stolen.") );
+					//lprintf( "Another window now wants to capture the mouse... the prior window will ahve the capture stolen." );
 					l.hVirtualCaptured = hVideo;
 					l.hVirtualCapturedPrior = hVideo; // make sure to set this so it doesn't get reset to invalid
 					hVideo->flags.bCaptured = 1;
@@ -1592,7 +1592,7 @@ void  OwnMouseEx (PVIDEO hVideo, uint32_t own DBG_PASS)
 					{
 						// mgiht be auto captured from display but not 
 						// captured by application....
-						//lprintf( WIDE("This should NEVER happen!") );
+						//lprintf( "This should NEVER happen!" );
 						//*(int*)0 = 0;
 					}
 					// should already have the capture...
@@ -1615,7 +1615,7 @@ void  OwnMouseEx (PVIDEO hVideo, uint32_t own DBG_PASS)
 			{
 				if( hVideo->flags.bCaptured )
 				{
-					//lprintf( WIDE("No more capture.") );
+					//lprintf( "No more capture." );
 					//ReleaseCapture ();
 					hVideo->flags.bCaptured = 0;
 					l.hVirtualCaptured = NULL;
@@ -1686,7 +1686,7 @@ void  ForceDisplayFocus ( PRENDERER pRender )
  void  ForceDisplayBack ( PRENDERER pRender )
 {
 	// uhmm...
-	lprintf( WIDE( "Force display backward." ) );
+	lprintf( "Force display backward." );
 
 }
 //----------------------------------------------------------------------------
@@ -1715,7 +1715,7 @@ void  DisableMouseOnIdle (PVIDEO hVideo, LOGICAL bEnable )
 			if( !l.flags.mouse_on )
 			{
 #ifdef LOG_MOUSE_HIDE_IDLE
-				lprintf( WIDE( "Mouse was off... want it on..." ) );
+				lprintf( "Mouse was off... want it on..." );
 #endif
 				//SendMessage( hVideo->hWndOutput, WM_USER_MOUSE_CHANGE, 0, 0 );
 			}
@@ -1740,7 +1740,7 @@ void  DisableMouseOnIdle (PVIDEO hVideo, LOGICAL bEnable )
 		hVideo->fade_alpha = 255 - level;
 
 		if( l.flags.bLogWrites )
-			lprintf( WIDE( "Output fade %d" ), hVideo->fade_alpha );
+			lprintf( "Output fade %d", hVideo->fade_alpha );
 	}
 }
 
@@ -1766,14 +1766,14 @@ void MarkDisplayUpdated( PRENDERER r )
 
 static LOGICAL CPROC DefaultExit( uintptr_t psv, uint32_t keycode )
 {
-	lprintf( WIDE( "Default Exit..." ) );
+	lprintf( "Default Exit..." );
 	BAG_Exit(0);
 	return 1;
 }
 
 static LOGICAL CPROC EnableRotation( uintptr_t psv, uint32_t keycode )
 {
-	lprintf( WIDE("Enable Rotation...") );
+	lprintf( "Enable Rotation..." );
 	if( IsKeyPressed( keycode ) )
 	{
 		l.flags.bRotateLock = 1 - l.flags.bRotateLock;
@@ -1782,7 +1782,7 @@ static LOGICAL CPROC EnableRotation( uintptr_t psv, uint32_t keycode )
 			struct display_camera *default_camera = (struct display_camera *)GetLink( &l.cameras, 0 );
 			l.mouse_x = default_camera->hVidCore->pWindowPos.cx/2;
 			l.mouse_y = default_camera->hVidCore->pWindowPos.cy/2;
-			lprintf( WIDE("Moving Mouse Not Implemented") );
+			lprintf( "Moving Mouse Not Implemented" );
 #ifdef _WIN32
 			SetCursorPos( default_camera->hVidCore->pWindowPos.x
 				+ default_camera->hVidCore->pWindowPos.cx/2
@@ -1790,14 +1790,14 @@ static LOGICAL CPROC EnableRotation( uintptr_t psv, uint32_t keycode )
 				+ default_camera->hVidCore->pWindowPos.cy / 2 );
 #endif
 		}
-		lprintf( WIDE("ALLOW ROTATE") );
+		lprintf( "ALLOW ROTATE" );
 	}
 	else
-		lprintf( WIDE("DISABLE ROTATE") );
+		lprintf( "DISABLE ROTATE" );
 	if( l.flags.bRotateLock )
-		lprintf( WIDE("lock rotate") );
+		lprintf( "lock rotate" );
 	else
-		lprintf(WIDE("unlock rotate") );
+		lprintf("unlock rotate" );
 	return 1;
 }
 
@@ -1931,7 +1931,7 @@ LOGICAL IsDisplayHidden( PVIDEO video )
 	return 0;
 }
 
-static LOGICAL OnKey3d( WIDE("Video Render Common") )( uintptr_t psv, uint32_t key )
+static LOGICAL OnKey3d( "Video Render Common" )( uintptr_t psv, uint32_t key )
 {
 	if( IsKeyPressed( key ) )
 	{
@@ -1977,7 +1977,7 @@ static LOGICAL OnKey3d( WIDE("Video Render Common") )( uintptr_t psv, uint32_t k
 	return 0;
 }
 
-static uintptr_t OnInit3d( WIDE("Video Render Common") )(PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
+static uintptr_t OnInit3d( "Video Render Common" )(PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
 {
 	// provide one of these so key can get called.
 	return 1;
@@ -1991,47 +1991,47 @@ static uintptr_t OnInit3d( WIDE("Video Render Common") )(PMatrix m,PTRANSFORM c,
 PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 {
 	if( l.flags.bLogRegister )
-		lprintf( WIDE("Regstering video interface...") );
+		lprintf( "Regstering video interface..." );
 #ifdef _OPENGL_DRIVER
 	RegisterInterface( 
-		WIDE("puregl2.render")
+		"puregl2.render"
 		, GetDisplayInterface, DropDisplayInterface );
 	RegisterInterface( 
-		WIDE("puregl2.render.3d")
+		"puregl2.render.3d"
 		, GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
 #ifdef _D3D_DRIVER
 	RegisterInterface( 
-		WIDE("d3d2.render")
+		"d3d2.render"
 		, GetDisplayInterface, DropDisplayInterface );
 	RegisterInterface( 
-		WIDE("d3d2.render.3d")
+		"d3d2.render.3d"
 		, GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
 #ifdef _D3D10_DRIVER
 	RegisterInterface( 
-		WIDE("d3d10.render")
+		"d3d10.render"
 		, GetDisplayInterface, DropDisplayInterface );
 	RegisterInterface( 
-		WIDE("d3d10.render.3d")
+		"d3d10.render.3d"
 		, GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
 #ifdef _D3D11_DRIVER
 	RegisterInterface( 
-		WIDE("d3d11.render")
+		"d3d11.render"
 		, GetDisplayInterface, DropDisplayInterface );
 	RegisterInterface( 
-		WIDE("d3d11.render.3d")
+		"d3d11.render.3d"
 		, GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
-	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( WIDE("image") );
+	l.gl_image_interface = (PIMAGE_INTERFACE)GetInterface( "image" );
 
 #ifndef __ANDROID__
 #ifndef UNDER_CE
 #ifndef NO_TOUCH
-	l.GetTouchInputInfo = (BOOL (WINAPI *)( HTOUCHINPUT, UINT, PTOUCHINPUT, int) )LoadFunction( WIDE("user32.dll"), WIDE("GetTouchInputInfo") );
-	l.CloseTouchInputHandle =(BOOL (WINAPI *)( HTOUCHINPUT ))LoadFunction( WIDE("user32.dll"), WIDE("CloseTouchInputHandle") );
-	l.RegisterTouchWindow = (BOOL (WINAPI *)( HWND, ULONG  ))LoadFunction( WIDE("user32.dll"), WIDE("RegisterTouchWindow") );
+	l.GetTouchInputInfo = (BOOL (WINAPI *)( HTOUCHINPUT, UINT, PTOUCHINPUT, int) )LoadFunction( "user32.dll", "GetTouchInputInfo" );
+	l.CloseTouchInputHandle =(BOOL (WINAPI *)( HTOUCHINPUT ))LoadFunction( "user32.dll", "CloseTouchInputHandle" );
+	l.RegisterTouchWindow = (BOOL (WINAPI *)( HWND, ULONG  ))LoadFunction( "user32.dll", "RegisterTouchWindow" );
 #endif
 #endif
 #endif

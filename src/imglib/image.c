@@ -93,7 +93,7 @@ void CPROC MarkImageUpdated( Image child_image )
 	int  oo;
 	if( !pifDest || !pifDest->image )
 	{
-		lprintf( WIDE( "No dest, or no dest image." ) );
+		lprintf( "No dest, or no dest image." );
 		return;
 	}
 
@@ -115,7 +115,7 @@ void CPROC MarkImageUpdated( Image child_image )
 		r2.height = pifDest->height;
 		if( !IntersectRectangle( &r, &r1, &r2 ) )
 		{
-			//lprintf( WIDE("blat color is out of bounds (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(") (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(")")
+			//lprintf( "blat color is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 			//	, x, y, w, h
 			//	, r2.x, r2.y, r2.width, r2.height );
 			return;
@@ -123,7 +123,7 @@ void CPROC MarkImageUpdated( Image child_image )
 #ifdef DEBUG_BLATCOLOR
 		// trying to figure out why there are stray lines for DISPLAY surfaces
 		// apparently it's a logic in space node min/max to region conversion
-		lprintf( WIDE("Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d ofs %d,%d %d,%d")
+		lprintf( "Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d ofs %d,%d %d,%d"
 				 , r1.x, r1.y
 
 				 ,r1.width, r1.height
@@ -140,7 +140,7 @@ void CPROC MarkImageUpdated( Image child_image )
 		y = r.y;
 		h = r.height;
 	}
-	//lprintf( WIDE("Blotting %d,%d - %d,%d"), x, y, w, h );
+	//lprintf( "Blotting %d,%d - %d,%d", x, y, w, h );
 	// start at origin on destination....
 	if( pifDest->flags & IF_FLAG_INVERTED )
 		oo = 4*( (-(int32_t)w) - pifDest->pwidth);     // w is how much we can copy...
@@ -157,7 +157,7 @@ void CPROC MarkImageUpdated( Image child_image )
 
 	if( !pifDest || !pifDest->image )
 	{
-		lprintf( WIDE( "No dest, or no dest image." ) );
+		lprintf( "No dest, or no dest image." );
 
 		return;
 	}
@@ -177,13 +177,13 @@ void CPROC MarkImageUpdated( Image child_image )
 		r2.height = pifDest->height;
 		if( !IntersectRectangle( &r, &r1, &r2 ) )
 		{
-			//lprintf( WIDE("blat color alpha is out of bounds (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(") (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(")")
+			//lprintf( "blat color alpha is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 			//	, x, y, w, h
 			//	, r2.x, r2.y, r2.width, r2.height );
 			return;
 		}
 #ifdef DEBUG_BLATCOLOR
-		lprintf( WIDE("Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d")
+		lprintf( "Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d"
 				 , r1.x, r1.y
 				 ,r1.width, r1.height
 				 , r2.x, r2.y

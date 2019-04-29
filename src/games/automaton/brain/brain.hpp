@@ -39,7 +39,7 @@ public:
 	IMPORT connector()
 #ifdef BRAIN_SOURCE
 	:value()
-	{ strcpy( c_name, WIDE("unnamed") ); }
+	{ strcpy( c_name, "unnamed" ); }
 #else
 	;
 #endif
@@ -52,18 +52,18 @@ public:
 #ifdef BRAIN_SOURCE
 	{
 		TEXTCHAR name[MAX_NAME_LEN + 256];
-		snprintf( name, sizeof( name ), WIDE("%s/%s"), name_prefix, c_name );
+		snprintf( name, sizeof( name ), "%s/%s", name_prefix, c_name );
 		SQLInsert( odbc
-						, WIDE("brain_connectors") 
-						, WIDE("connector_name"),1,name
-						, WIDE("parent_id"),2,iParent
-						, WIDE("input"),2,bInput
+						, "brain_connectors" 
+						, "connector_name",1,name
+						, "parent_id",2,iParent
+						, "input",2,bInput
 						, NULL, 0, NULL);
 						return FetchLastInsertID(odbc,NULL,NULL); }
 	//IMPORT INDEX Load( PODBC odbc, INDEX iParent ) { 
 		//CTEXTSTR *results;
 		//DoSQLRecordQueryf( NULL, &results, NULL
-		//	, WIDE("select connector_name,input from brain_connectors where parent_id=%d"), iParent );
+		//	, "select connector_name,input from brain_connectors where parent_id=%d", iParent );
 		// uhmm how do I recreate myself from here?
 		// it's like all the save/load code is skewed... I vaguely remember something like that...
 	//};

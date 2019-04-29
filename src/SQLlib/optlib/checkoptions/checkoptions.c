@@ -19,7 +19,7 @@ void FixOptionNames( void )
    PLIST names = CreateList();
 	CTEXTSTR result = NULL;
    PNAME name;
-	for( DoSQLQuery( WIDE("select name_id,name from option_name"), &result )
+	for( DoSQLQuery( "select name_id,name from option_name", &result )
 		 ; result
 		  ; GetSQLResult( &result ) )
 	{
@@ -33,15 +33,15 @@ void FixOptionNames( void )
 		{
 			if( stricmp( name->name, p ) == 0 )
 			{
-				DoSQLCommandf( WIDE("update option_map set name_id=%ld where name_id=%ld")
+				DoSQLCommandf( "update option_map set name_id=%ld where name_id=%ld"
 							  , name->id
 								 , idx );
 			if( !do_fix )
 			{
-				lprintf( WIDE("Delete option name (unused in option map") );
+				lprintf( "Delete option name (unused in option map" );
 			}
                          else
-            DoSQLCommandf( WIDE("delete from option_name where name_id=%ld"), idx );
+            DoSQLCommandf( "delete from option_name where name_id=%ld", idx );
             break;
 			}
 		}
@@ -74,7 +74,7 @@ void FixDuplicateOptionNodes( void )
 	do
 	{
       graphted = 0;
-		for( DoSQLQuery( WIDE("SELECT a.node_id,b.parent_node_id ")
+		for( DoSQLQuery( "SELECT a.node_id,b.parent_node_id "
 							 "FROM `option_map` as a "
 							 "join option_map as b on "
 							 "a.name_id=b.name_id "
@@ -86,7 +86,7 @@ void FixDuplicateOptionNodes( void )
 		{
 			INDEX id_parent;
 			INDEX id = atol( result );
-			sscanf( result, WIDE("%ld,%ld"), &id, &id_parent );
+			sscanf( result, "%ld,%ld", &id, &id_parent );
 			if( !original_parent )
 			{
 				original_parent = id_parent;
@@ -103,22 +103,22 @@ void FixDuplicateOptionNodes( void )
 				graphted = 1;
 			if( !do_fix )
 			{
-            lprintf( WIDE("....") );
+            lprintf( "...." );
 			}
 			else
 
 			{
-				DoSQLCommandf( WIDE("update option_map set parent_node_id=%ld where parent_node_id=%ld")
+				DoSQLCommandf( "update option_map set parent_node_id=%ld where parent_node_id=%ld"
 								 , new_root_node_id
 								 , id );
 
-				DoSQLCommandf( WIDE("delete from option_map where node_id=%ld"), id );
+				DoSQLCommandf( "delete from option_map where node_id=%ld", id );
 			}
 
-									  //lprintf( WIDE("update option_map set parent_node_id=%ld where parent_node_id=%ld")
+									  //lprintf( "update option_map set parent_node_id=%ld where parent_node_id=%ld"
 									  //			  , new_root_node_id
 									  //			  , id );
-									  //lprintf( WIDE("delete from option_map where node_id=%ld"), id );
+									  //lprintf( "delete from option_map where node_id=%ld", id );
 		}
 	} while( graphted );
 
@@ -131,17 +131,17 @@ void FixOrphanedBranches( void )
 	PLIST options = CreateList();
 CTEXTSTR *result = NULL;
    CTEXTSTR singleresult;
-	DoSQLQuery( WIDE("select count(*) from option_map"), &singleresult );
+	DoSQLQuery( "select count(*) from option_map", &singleresult );
    // expand the options list to max extent real quickk....
 	SetLink( &options, atoi( singleresult ) + 1, 0 );
-	for( DoSQLRecordQuery( WIDE("select node_id,parent_node_id from option_map"), NULL,&result,NULL );
+	for( DoSQLRecordQuery( "select node_id,parent_node_id from option_map", NULL,&result,NULL );
 		  result;
 		  GetSQLRecord( &result ) )
 	{
 		INDEX node_id, parent_node_id;
 	   node_id=atol( result[0] );
       parent_node_id=atol(result[1]);
-		//sscanf( result, WIDE("%ld,%ld"), &node_id, &parent_node_id );
+		//sscanf( result, "%ld,%ld", &node_id, &parent_node_id );
       SetLink( &options, node_id, (POINTER)(parent_node_id+1) );
 	}
 	{
@@ -156,10 +156,10 @@ CTEXTSTR *result = NULL;
 				if( (parent > 1) && !GetLink( &options, parent-1 ) )
 				{
 					deleted = 1;
-					lprintf( WIDE("node %ld has parent id %ld which does not exist."), idx, parent-1 );
+					lprintf( "node %ld has parent id %ld which does not exist.", idx, parent-1 );
 					SetLink( &options, idx, NULL );
                if( do_fix )
-						DoSQLCommandf( WIDE("delete from option_map where node_id=%ld"), idx );
+						DoSQLCommandf( "delete from option_map where node_id=%ld", idx );
 				}
 			}
 		}while( deleted );

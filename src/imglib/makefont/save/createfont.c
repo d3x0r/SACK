@@ -24,15 +24,15 @@ int PrintChar( char *charid, char *data, int szx, int szy
 	int b, x, y, newline = 0;
 	int yofs;
 
-	fprintf( output, WIDE("// Character: %d,%d .%d.. (%d,%d) to %d x %d\n")
+	fprintf( output, "// Character: %d,%d .%d.. (%d,%d) to %d x %d\n"
 			         , szx, szy 
 			         , baseline
 						, xorg, yorg
 						, width, height );
 	
-	fprintf( output, WIDE("static struct{ char s, w, o, j; unsigned char data[%d]; } %s =\n"), 
+	fprintf( output, "static struct{ char s, w, o, j; unsigned char data[%d]; } %s =\n", 
 					(((width-1)/8)+1)*szy, charid );
-	fprintf( output, WIDE("{ %2d, %2d, %2d, 0, {"), width, szx, xorg);
+	fprintf( output, "{ %2d, %2d, %2d, 0, {", width, szx, xorg);
 
 	#define LINEPAD "                  "
 	if( width > szx )
@@ -45,16 +45,16 @@ int PrintChar( char *charid, char *data, int szx, int szy
 	{
 		b = 0;
 		if( y == baseline )
-			fprintf( output, WIDE(", // <---- baseline\n") LINEPAD );
+			fprintf( output, ", // <---- baseline\n" LINEPAD );
 		else
 			if( newline )
-				fprintf( output, WIDE(",\n") LINEPAD );
+				fprintf( output, ",\n" LINEPAD );
 		for( x = 0; x < szx; x++ )
 		{
-			fprintf( output, WIDE("_") );
+			fprintf( output, "_" );
 			if( b < (szx-1) )
    			if( ( b & 7 ) == 7 )
-	   			fprintf( output, WIDE(",") );
+	   			fprintf( output, "," );
 			b++;
 		}
 		newline=1;
@@ -66,29 +66,29 @@ int PrintChar( char *charid, char *data, int szx, int szy
 	{
 		b = 0;
 		if( (yofs  + y) == baseline )
-			fprintf( output, WIDE(", // <---- baseline\n") LINEPAD );
+			fprintf( output, ", // <---- baseline\n" LINEPAD );
 		else
 			if( newline )
-				fprintf( output, WIDE(",\n") LINEPAD );
+				fprintf( output, ",\n" LINEPAD );
 
 		for( x = 0; x < width; x++ )
 		{
 			if( (*(data + (x/8)) ) & ( 0x80U >> (x & 0x7) ) )
-				fprintf( output, WIDE("X") );
+				fprintf( output, "X" );
 			else
-				fprintf( output, WIDE("_") );
+				fprintf( output, "_" );
 			if( b < (szx-1) )
    			if( ( b & 7 ) == 7 )
-	   			fprintf( output, WIDE(",") );
+	   			fprintf( output, "," );
 			b++;
 		}
 
 		for( x = width; x < szx; x++ )
 		{
-			fprintf( output, WIDE("_") );
+			fprintf( output, "_" );
 			if( b < (szx-1) )
    			if( ( b & 7 ) == 7 )
-	   			fprintf( output, WIDE(",") );
+	   			fprintf( output, "," );
 			b++;
 		}
 		data += (((width)/32)+1)*4;
@@ -98,21 +98,21 @@ int PrintChar( char *charid, char *data, int szx, int szy
 	{
 		b = 0;
 		if( (y) == baseline )
-			fprintf( output, WIDE(", // <---- baseline\n") LINEPAD );
+			fprintf( output, ", // <---- baseline\n" LINEPAD );
 		else
 			if( newline )
-				fprintf( output, WIDE(",\n") LINEPAD );
+				fprintf( output, ",\n" LINEPAD );
 		for( x = 0; x < szx; x++ )
 		{
-			fprintf( output, WIDE("_") );
+			fprintf( output, "_" );
 			if( b < (szx-1) )
 				if( ( b & 7 ) == 7 )
-					fprintf( output, WIDE(",") );
+					fprintf( output, "," );
 			b++;
 		}
 		newline=1;
 	}
-   fprintf( output, WIDE("} };\n") );
+   fprintf( output, "} };\n" );
 	return 0;
 }
 
@@ -148,13 +148,13 @@ int FixData( char *data_in, char *out_in
 	}
 	if( min == 0 )
 	{
-		fprintf( output, WIDE("\nFont may be corrupt left overflow\n") );
-		printf( WIDE("\nFont may be corrupt left overflow\n") );
+		fprintf( output, "\nFont may be corrupt left overflow\n" );
+		printf( "\nFont may be corrupt left overflow\n" );
 	}
 	if( max == width-1 )
 	{
-		fprintf( output, WIDE("\nFont may be corrupt right overflow\n") );
-		printf( WIDE("\nFont may be corrupt right overflow\n") );
+		fprintf( output, "\nFont may be corrupt right overflow\n" );
+		printf( "\nFont may be corrupt right overflow\n" );
 	}
 	out = out_in;
 	data = data_in;
@@ -175,7 +175,7 @@ int FixData( char *data_in, char *out_in
 		{
 			if( out[x/8] & ( 0x80 >> (x&7) ) )
 			{
-				//printf( WIDE("X") );
+				//printf( "X" );
 			}
 			else
 			{
@@ -187,11 +187,11 @@ int FixData( char *data_in, char *out_in
 					mindata = x;
 				if( x > maxdata )
 					maxdata = x;
-				//printf( WIDE("_") );
+				//printf( "_" );
 			}
 		}
 		out += bywidth;
- 		//printf( WIDE("\n") );
+ 		//printf( "\n" );
 	}	
 	gm->gmptGlyphOrigin.x = mindata - 5;
    gm->gmBlackBoxX = (maxdata-mindata)+1;
@@ -219,18 +219,18 @@ int FixData( char *data_in, char *out_in
  	 		{
 				if( out[x/8] & ( 0x80 >> (x&7) ) )
 				{
-					//printf( WIDE("X") );
+					//printf( "X" );
 				}
 				else
 				{
 					data[setbit/8] |= (0x80 >> (setbit&7));
-					//printf( WIDE("_") );
+					//printf( "_" );
 				}
  	 			setbit++;
  	 		}
 			out += bywidth;
 			data += (bywidth+3) & 0xFFFFFC;
- 	 		//printf( WIDE("\n") );
+ 	 		//printf( "\n" );
  	 	}
  	   
       gm->gmBlackBoxY = (maxline-gm->gmptGlyphOrigin.y)+1;
@@ -277,7 +277,7 @@ int main( void )
 	logfont.lfClipPrecision = 0;
 	logfont.lfQuality = 0;
 	logfont.lfPitchAndFamily = FIXED_PITCH;
-	strcpy(logfont.lfFaceName, WIDE("Courier New"));
+	strcpy(logfont.lfFaceName, "Courier New");
 #elif (FONT==2)	
 
   	logfont.lfHeight = 16;
@@ -293,7 +293,7 @@ int main( void )
 	logfont.lfClipPrecision = 0;
 	logfont.lfQuality = 0;
 	logfont.lfPitchAndFamily = 0;
-	strcpy(logfont.lfFaceName, WIDE("MS Serif"));
+	strcpy(logfont.lfFaceName, "MS Serif");
 #elif (FONT==3)
 	 // bold title font 1
 	logfont.lfHeight = 80;
@@ -309,7 +309,7 @@ int main( void )
 	logfont.lfClipPrecision = 0;
 	logfont.lfQuality = 0;
 	logfont.lfPitchAndFamily = FIXED_PITCH;
-	strcpy(logfont.lfFaceName, WIDE("Courier New"));
+	strcpy(logfont.lfFaceName, "Courier New");
 #endif
 	//if(0)
 	{
@@ -332,7 +332,7 @@ int main( void )
 			if( logfont.lfItalic )
 				attribs[idx++] = 'I';
 			attribs[idx] = 0;
-			sprintf( fontname, WIDE("%s%dby%d%s")
+			sprintf( fontname, "%s%dby%d%s"
 					  , data
 					  , (logfont.lfHeight<0)?(-logfont.lfHeight):(logfont.lfHeight)
 					  , logfont.lfWidth
@@ -341,21 +341,21 @@ int main( void )
 	}
 	{
 		char filename[256];
-		sprintf( filename, WIDE("%s.c"), fontname );
-		output = fopen( filename, WIDE("wt") );
+		sprintf( filename, "%s.c", fontname );
+		output = fopen( filename, "wt" );
 		if( !output )
 		{
-			printf( WIDE("Failed to open file to write: %s\n"), filename );
+			printf( "Failed to open file to write: %s\n", filename );
 			exit(0);
 		}
 	}
 	hfont = CreateFontIndirect(&logfont);
 
-	hdc = CreateDC( WIDE("DISPLAY"), NULL, NULL, NULL );
+	hdc = CreateDC( "DISPLAY", NULL, NULL, NULL );
 
 	if( !hdc )
 	{
-		printf( WIDE("Sorry no DC :(\n") );
+		printf( "Sorry no DC :(\n" );
 		exit(0);
 	}
 	SelectObject( hdc, hfont );
@@ -386,7 +386,7 @@ int main( void )
 		mat.eM22.fract = 0;
 		if( !GetTextMetrics( hdc, &tm ) )
 		{
-			printf( WIDE("Sorry we don't like something... bad dc, bad font? %d\n"), GetLastError() );
+			printf( "Sorry we don't like something... bad dc, bad font? %d\n", GetLastError() );
 			return 0;
 		}
 
@@ -404,13 +404,13 @@ int main( void )
 		holdbitmap = SelectObject( hdcmem, holdbitmap );
 		if( !GetDIBits( hdcmem, hbitmapmem, 0, 0, NULL, bmInfo, DIB_PAL_COLORS ) )
 		{
-			printf( WIDE("GetDIBits failed: %d\n"), GetLastError() );
+			printf( "GetDIBits failed: %d\n", GetLastError() );
 		}
 		holdbitmap = SelectObject( hdcmem, holdbitmap );
 
 		if( bmInfo->bmiHeader.biBitCount != 1 )
 		{
-			printf( WIDE("We'll have problems if our bitmap is not 1 bpp %d\n")
+			printf( "We'll have problems if our bitmap is not 1 bpp %d\n"
 							, bmInfo->bmiHeader.biBitCount );
 			return 0;
 		}
@@ -418,7 +418,7 @@ int main( void )
 		rcmem.top = 0;
 		rcmem.right = bmInfo->bmiHeader.biWidth;
 		rcmem.bottom = bmInfo->bmiHeader.biHeight;
-		printf( WIDE("Bitmap is: %d by %d\n"), bmInfo->bmiHeader.biWidth
+		printf( "Bitmap is: %d by %d\n", bmInfo->bmiHeader.biWidth
 												 , bmInfo->bmiHeader.biHeight );
 		//bmInfo->bmiHeader.biHeight *= -1;
 		{
@@ -436,16 +436,16 @@ int main( void )
 		//otmsize = GetOutlineTextMetrics( hdc, 0, NULL );
 		//if( !otmsize )
 		//{
-		//	printf( WIDE("Sorry we don't like something... bad dc, bad font? %d\n"), GetLastError() );
+		//	printf( "Sorry we don't like something... bad dc, bad font? %d\n", GetLastError() );
 		//	return 0;
 		//}	
 		//otm = (OUTLINETEXTMETRIC*)malloc( otmsize );
 		//otm->otmSize = sizeof( OUTLINETEXTMETRIC );
 		//GetOutlineTextMetrics( hdc, otmsize, otm );
 
-		fprintf( output, WIDE("#include \")symbits.h\"\n" );
-		fprintf( output, WIDE("typedef char CHARACTER, *PCHARACTER;\n") );
-		//printf( WIDE("#include \")fontstruct.h\"\n\n" );
+		fprintf( output, "#include \"symbits.h\"\n" );
+		fprintf( output, "typedef char CHARACTER, *PCHARACTER;\n" );
+		//printf( "#include \"fontstruct.h\"\n\n" );
 		SetTextColor( hdcmem, *(long*)&bmInfo->bmiColors[1] );
 		for( i = 0; i < 256; i++ )
 		{
@@ -454,7 +454,7 @@ int main( void )
 			SIZE sz;
 			char charid[25];
 			int bufsize;
-			sprintf( charid, WIDE("_char_%d"), i );
+			sprintf( charid, "_char_%d", i );
 			GetTextExtentPoint( hdc, (char*)&i, 1, &sz );
 			//bufsize = GetGlyphOutline( hdc, i, GGO_BITMAP, &gm, 0, NULL, &mat );
 			bufsize = -1;
@@ -475,11 +475,11 @@ int main( void )
 			}
 			else
 			{
-				//printf( WIDE("GetGlyphOutline failed: %d\n"), GetLastError() );
+				//printf( "GetGlyphOutline failed: %d\n", GetLastError() );
 				FillRect( hdcmem, &rcmem, hBrush0 );
 				if( !TextOut( hdcmem, 5, 0, (char*)&i, 1 ) )
 				{
-					printf( WIDE("TextOut Failed: %d\n"), GetLastError() );
+					printf( "TextOut Failed: %d\n", GetLastError() );
 					continue;
 				}
 				{
@@ -489,7 +489,7 @@ int main( void )
 											, bmInfo->bmiHeader.biHeight
 											, chardata, bmInfo, DIB_PAL_COLORS ) != bmInfo->bmiHeader.biHeight )
 						{
-							printf( WIDE("Got short bits?\n") );
+							printf( "Got short bits?\n" );
 						}
                   FixData( chardata, fixedbuffer, tm.tmAscent, &gm 
 	 					  , bmInfo->bmiHeader.biSizeImage / bmInfo->bmiHeader.biHeight
@@ -505,7 +505,7 @@ int main( void )
 										,gm.gmBlackBoxX, gm.gmBlackBoxY );
 						
 					}
-					fprintf( output, WIDE("\n\n"));
+					fprintf( output, "\n\n");
 					holdbitmap = SelectObject( hdcmem, holdbitmap );
 
 				}
@@ -524,7 +524,7 @@ int main( void )
 			if( logfont.lfItalic )
 				attribs[idx++] = 'I';
 			attribs[idx] = 0;
-			fprintf( output, WIDE("struct { int height, chars;\n")
+			fprintf( output, "struct { int height, chars;\n"
 					  "         PCHARACTER character[256]; } %s%dby%d%s = { %d, 256, {"
 					  , data
 					  , (logfont.lfHeight<0)?(-logfont.lfHeight):(logfont.lfHeight)
@@ -534,10 +534,10 @@ int main( void )
 
 			for( i = 0; i < 256; i++ )
 			{	
-				fprintf( output, WIDE(" %c(PCHARACTER)&_char_%d\n"), (i)?',':' ', i );
+				fprintf( output, " %c(PCHARACTER)&_char_%d\n", (i)?',':' ', i );
 
 			}			
-			fprintf( output, WIDE("\n} };") );
+			fprintf( output, "\n} };" );
 		}
 		//free( otm );
 		fclose( output );

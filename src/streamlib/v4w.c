@@ -346,11 +346,11 @@ LRESULT CALLBACK handle_frame( HWND hWndCap, LPVIDEOHDR lpVhdr )
 			for( callback = pDevice->callbacks; callback; callback = NextLink( callback ) )
 			{
 				pDevice->data = l.image;
-				//lprintf( WIDE("Process callback: %p"), callback );
-				//lprintf( WIDE("Process callback: %p (%p)"), callback, callback->callback );
+				//lprintf( "Process callback: %p", callback );
+				//lprintf( "Process callback: %p (%p)", callback, callback->callback );
 				if( !callback->callback( callback->psv, pDevice ) )
 					break;
-				//lprintf( WIDE("Processed callback: %p (%p)"), callback, callback->callback );
+				//lprintf( "Processed callback: %p (%p)", callback, callback->callback );
 			}
 		}
 	}

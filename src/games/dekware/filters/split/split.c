@@ -89,28 +89,28 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
    //    object name
    //    both/inbound/outbound - which channel to split off
 	//
-	lprintf( WIDE("Creating split datapath...") );
+	lprintf( "Creating split datapath..." );
    while( ( option = GetParam( ps, &parameters ) ) )
    {
-       if( OptionLike( option, WIDE("both") ) )
+       if( OptionLike( option, "both" ) )
        {
            pdp->flags.outbound = 1;
            pdp->flags.inbound = 1;
        }
-       else if( OptionLike( option, WIDE("inbound") ) )
+       else if( OptionLike( option, "inbound" ) )
        {
-			 lprintf( WIDE("Creating inbound splitter...") );
+			 lprintf( "Creating inbound splitter..." );
            pdp->flags.inbound = 1;
        }
-       else if( OptionLike( option, WIDE("outbound") ) )
+       else if( OptionLike( option, "outbound" ) )
        {
            pdp->flags.outbound = 1;
        }
-       else if( OptionLike( option, WIDE("outtoin") ) )
+       else if( OptionLike( option, "outtoin" ) )
        {
            pdp->flags.outtoin = 1;
        }
-       else if( OptionLike( option, WIDE("intoin") ) )
+       else if( OptionLike( option, "intoin" ) )
        {
            pdp->flags.intoin = 1;
        }
@@ -119,38 +119,38 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
            PENTITY pe = NULL;
 			  if( option == ps->Current->pName )
 			  {
-				  lprintf( WIDE("(pe = me)...") );
+				  lprintf( "(pe = me)..." );
 				  pe = ps->Current;
 			  }
 			  if( !pe )
 			  {
-              lprintf( WIDE("looking for entity %s"), GetText( option ) );
+              lprintf( "looking for entity %s", GetText( option ) );
 				  pe = (PENTITY)FindThing( ps, &option, ps->Current, FIND_VISIBLE, NULL );
-              if( pe ) lprintf( WIDE("found.") ); else lprintf( WIDE("not found.") );
+              if( pe ) lprintf( "found." ); else lprintf( "not found." );
 			  }
            if( !pe )
            {
-               DECLTEXT( msg, WIDE("Unknown parameter or entity to split filter") );
+               DECLTEXT( msg, "Unknown parameter or entity to split filter" );
 					EnqueLink( &ps->Command->Output, &msg );
-               lprintf( WIDE("should have logged output...") );
+               lprintf( "should have logged output..." );
                pdp->flags.inbound = pdp->flags.outbound = 0;
            }
            else
            {
-               DECLTEXT( merge, WIDE("merge") );
+               DECLTEXT( merge, "merge" );
 					pdp->pMerger = (PMERGEDATAPATH)FindOpenDevice( ps, (PTEXT)&merge );
                //if( merger )
 					{
-                  //lprintf( WIDE("foudn datapth type ID...") );
+                  //lprintf( "foudn datapth type ID..." );
                    //pdp->pMerger = (PMERGEDATAPATH)FindDatapath( pe->pControlledBy, TypeID );
                    if( pdp->pMerger )
 						 {
-                      lprintf( WIDE("COnnecting splitter to merger...") );
+                      lprintf( "COnnecting splitter to merger..." );
                        pdp->pMerger->AddSplitter( pdp->pMerger, (PDATAPATH)pdp );
                    }
                    else
                    {
-                       DECLTEXT( msg, WIDE("Entity does not have a merge filter available.") );
+                       DECLTEXT( msg, "Entity does not have a merge filter available." );
                        EnqueLink( &ps->Command->Output, &msg );
                        pdp->flags.inbound = pdp->flags.outbound = 0;
                    }
@@ -158,7 +158,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
                /*
                else
                {
-                   DECLTEXT( msg, WIDE("No device called 'merge' available in system.") );
+                   DECLTEXT( msg, "No device called 'merge' available in system." );
                    EnqueLink( &ps->Command->Output, &msg );
                    pdp->flags.inbound = pdp->flags.outbound = 0;
                }
@@ -168,7 +168,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
    }
    if( !pdp->flags.outbound && !pdp->flags.inbound )
 	{
-      lprintf( WIDE("splitter is not doing in or out - destroying it.") );
+      lprintf( "splitter is not doing in or out - destroying it." );
        DestroyDataPath( (PDATAPATH)pdp );
        return NULL;
    }
@@ -181,13 +181,13 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("split"), WIDE("Splits datapath to another object..."), Open );
+   myTypeID = RegisterDevice( "split", "Splits datapath to another object...", Open );
    return DekVersion;
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("split") );
+	UnregisterDevice( "split" );
 }
 //------------------------------------------------------
 // $Log: split.c,v $

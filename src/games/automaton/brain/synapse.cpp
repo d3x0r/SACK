@@ -96,7 +96,7 @@ void SYNAPSE::operator delete( void *ptr )
 #ifdef _MSC_VER
 void SYNAPSE::operator delete( void *ptr, struct SYNAPSEset_tag *set )
 {
-	lprintf( WIDE("DO SOMETHING HERE!") );
+	lprintf( "DO SOMETHING HERE!" );
 //	(((PSYNAPSE)(ptr))->pool)->drop( (PSYNAPSE)ptr );
 }
 #endif
@@ -112,7 +112,7 @@ void SYNAPSE::Init( CTEXTSTR name, NATIVE Gain )
 	{
 		static int nDefault = 1;
 		TEXTCHAR tmpname[32];
-		Name = (TEXTSTR)Allocate( snprintf( tmpname, sizeof( tmpname ), WIDE("Synapse %d"), nDefault ) + 1 );
+		Name = (TEXTSTR)Allocate( snprintf( tmpname, sizeof( tmpname ), "Synapse %d", nDefault ) + 1 );
 		strcpy( Name, tmpname );
 	}
 	// set the type...
@@ -199,7 +199,7 @@ void SYNAPSE::SaveBegin( PODBC odbc )
 {
 	if( iSynapse && iSynapse != INVALID_INDEX  )
 	{
-		SQLCommandf( odbc, WIDE("delete from brain_synapse where brain_synapse_id=%lu"), iSynapse );
+		SQLCommandf( odbc, "delete from brain_synapse where brain_synapse_id=%lu", iSynapse );
 	}
 	iSynapse = 0;
 }
@@ -213,11 +213,11 @@ INDEX SYNAPSE::Save( PODBC odbc, INDEX iParent )
 	if( !iSynapse )
 	{
 		TEXTCHAR szGain[32];
-		snprintf( szGain, sizeof( szGain ), WIDE("%g"), Gain.get() );
-		if( SQLInsert( odbc, WIDE("brain_synapse")
-						 , WIDE("synapse_gain"), 0, szGain
-						 , WIDE("brain_neuron_id_from"), 2, iSource
-						 , WIDE("brain_neuron_id_to"), 2, iDestination
+		snprintf( szGain, sizeof( szGain ), "%g", Gain.get() );
+		if( SQLInsert( odbc, "brain_synapse"
+						 , "synapse_gain", 0, szGain
+						 , "brain_neuron_id_from", 2, iSource
+						 , "brain_neuron_id_to", 2, iDestination
 						 , NULL, 0, NULL ) )
 		{
 			iSynapse = FetchLastInsertID(odbc, NULL, NULL);
@@ -225,7 +225,7 @@ INDEX SYNAPSE::Save( PODBC odbc, INDEX iParent )
 	}
 	else
 	{
-		SQLCommandf( odbc, WIDE("update brain_neuron set synapse_gain=%g,brain_neuron_id_to=%lu,brain_neuron_id_from=%lu where brain_synapse_id=%lu")
+		SQLCommandf( odbc, "update brain_neuron set synapse_gain=%g,brain_neuron_id_to=%lu,brain_neuron_id_from=%lu where brain_synapse_id=%lu"
 					  , Gain.get()
 					  , iDestination
 					  , iSource
@@ -243,7 +243,7 @@ uintptr_t SYNAPSE::Load( PODBC odbc, INDEX iParent, INDEX iLoad )
 	{
 		if( iSynapse != iLoad )
 		{
-			lprintf( WIDE("We're fatally confused.") );
+			lprintf( "We're fatally confused." );
 			DebugBreak();
 		}
 	}
@@ -253,7 +253,7 @@ uintptr_t SYNAPSE::Load( PODBC odbc, INDEX iParent, INDEX iLoad )
 	{
 		CTEXTSTR *result;
 		PushSQLQueryEx( odbc );
-		if( SQLRecordQueryf( odbc, NULL, &result, NULL, WIDE("select synapse_gain,brain_neuron_id_from,brain_neuron_id_to from brain_synapse where brain_synapse_id=%lu")
+		if( SQLRecordQueryf( odbc, NULL, &result, NULL, "select synapse_gain,brain_neuron_id_from,brain_neuron_id_to from brain_synapse where brain_synapse_id=%lu"
 								, iSynapse )
 			&& result )
 		{

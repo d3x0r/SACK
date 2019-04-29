@@ -34,7 +34,7 @@ typedef struct combobox COMBOBOX, *PCOMBOBOX;
 static void CPROC HandleLoseFocus( uintptr_t dwUser, PRENDERER pGain )
 {
 	PCOMBOBOX pcbx = (PCOMBOBOX)dwUser;
-	lprintf( WIDE("combobox - HandleLoseFocus %p is gaining (we're losing) else we're gaining") , pGain );
+	lprintf( "combobox - HandleLoseFocus %p is gaining (we're losing) else we're gaining" , pGain );
 	if( pGain && pGain != pcbx->popup_renderer )
 	{
 		HideControl( pcbx->popup_frame );
@@ -96,7 +96,7 @@ static void ExpandButtonDraw( uintptr_t psv, PSI_CONTROL pc)
 	}
 }
 
-static int OnCreateCommon( WIDE("Combo Box") )( PSI_CONTROL pc )
+static int OnCreateCommon( "Combo Box" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCOMBOBOX, COMBOBOX_CONTROL, pcbx, pc );
 	Image surface = GetControlSurface( pc );
@@ -117,7 +117,7 @@ static int OnCreateCommon( WIDE("Combo Box") )( PSI_CONTROL pc )
 	return TRUE;
 }
 
-static void OnSizeCommon( WIDE( "Combo Box" ) )( PSI_CONTROL pc, LOGICAL start )
+static void OnSizeCommon( "Combo Box" )( PSI_CONTROL pc, LOGICAL start )
 {
 	ValidatedControlData( PCOMBOBOX, COMBOBOX_CONTROL, pcbx, pc );
 	if( !start && pcbx )
@@ -151,7 +151,7 @@ void ResetComboBox( PSI_CONTROL pc )
 }
 
 
-static int OnDrawCommon( WIDE("Combo Box") )( PSI_CONTROL pc )
+static int OnDrawCommon( "Combo Box" )( PSI_CONTROL pc )
 {
 	//ValidatedControlData( PCOMBOBOX, COMBOBOX_CONTROL, pcbx, pc );
 	return TRUE;
@@ -166,7 +166,7 @@ combobox_control = { COMBOBOX_CONTROL_NAME
 PRIORITY_PRELOAD( RegisterComboBox, PSI_PRELOAD_PRIORITY )
 {
 	DoRegisterControl( &combobox_control );
-	//RegisterAlias( PSI_ROOT_REGISTRY WIDE("/control/") EDIT_FIELD_NAME "/rtti", WIDE("psi/control/combobox/rtti") );
+	//RegisterAlias( PSI_ROOT_REGISTRY "/control/" EDIT_FIELD_NAME "/rtti", "psi/control/combobox/rtti" );
 }
 
 

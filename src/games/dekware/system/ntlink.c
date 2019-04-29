@@ -17,24 +17,24 @@ int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters );
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
 #ifndef __LINUX__
-   RegisterRoutine( WIDE("System"), WIDE("Shutdown"), WIDE("Windows System Shutdown..."), SystemShutdown );
-   RegisterRoutine( WIDE("System"), WIDE("sound"), WIDE("Play a sound using windows multimedia..."), Sound );
+   RegisterRoutine( "System", "Shutdown", "Windows System Shutdown...", SystemShutdown );
+   RegisterRoutine( "System", "sound", "Play a sound using windows multimedia...", Sound );
    srand( GetTickCount() );
 #endif
-	nSystemID = RegisterDevice( WIDE("system"), WIDE("Launch a system command for use with IO commands"), SysCommand );
-	iProcess = RegisterExtension( WIDE("process") );
-	RegisterObject( WIDE("process"), WIDE("Process monitor/launch/control"), MakeProcess );
+	nSystemID = RegisterDevice( "system", "Launch a system command for use with IO commands", SysCommand );
+	iProcess = RegisterExtension( "process" );
+	RegisterObject( "process", "Process monitor/launch/control", MakeProcess );
 	return DekVersion;
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
 #ifndef __LINUX__
-   UnregisterRoutine( WIDE("Shutdown") );
-   UnregisterRoutine( WIDE("sound") );
+   UnregisterRoutine( "Shutdown" );
+   UnregisterRoutine( "sound" );
 #endif
-	UnregisterObject( WIDE("process") );
-	UnregisterDevice( WIDE("system") );
+	UnregisterObject( "process" );
+	UnregisterDevice( "system" );
 }
 // $Log: ntlink.c,v $
 // Revision 1.6  2005/02/21 12:08:59  d3x0r

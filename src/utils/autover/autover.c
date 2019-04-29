@@ -11,20 +11,20 @@ char buf[256];
 
 int DoVersionFile( void )
 {
-	FILE *file = fopen( WIDE("autovers.h"), WIDE("rb+") );
+	FILE *file = fopen( "autovers.h", "rb+" );
 	if( !file )
-		file = fopen( WIDE("autovers.h"), WIDE("wb") );
+		file = fopen( "autovers.h", "wb" );
 	if( !file )
 	{
-		printf( WIDE("AutoVersion program Failed to open version.h!") );
+		printf( "AutoVersion program Failed to open version.h!" );
 		return -1;
 	}
 	if( fgets( buf, 255, file ) )
 	{
 		buf[255] = 0;
-		if( sscanf( buf, WIDE("//%d"), &Version ) != 1 )
+		if( sscanf( buf, "//%d", &Version ) != 1 )
 		{
-			printf( WIDE("AutoVersion's version.h was corrupt! (//###) first line.") );
+			printf( "AutoVersion's version.h was corrupt! (//###) first line." );
 			return -1;
 		}
 	}
@@ -32,8 +32,8 @@ int DoVersionFile( void )
 		Version = 0;
    rewind( file );
 	Version++;
-   fprintf( file, WIDE("//%d\n"), Version );
-	fprintf( file, WIDE("#define LOCALVERSION \")%d\"\n", Version );
+   fprintf( file, "//%d\n", Version );
+	fprintf( file, "#define LOCALVERSION \"%d\"\n", Version );
    fclose( file );
    return 0;
 }
@@ -51,17 +51,17 @@ int LaunchCmd( char *command, LPDWORD lpdwExit )
 									, NULL, NULL
 									, &si, &pi ) )
 		{
-      	printf( WIDE("CreateProcess failed:%d\n"), GetLastError() );
+      	printf( "CreateProcess failed:%d\n", GetLastError() );
 			return -1;
 		}
 		if( WaitForSingleObject( pi.hProcess, INFINITE ) != WAIT_OBJECT_0 )
 		{
-			printf( WIDE("WaitForObject failed: %d\n"), GetLastError() ) ;
+			printf( "WaitForObject failed: %d\n", GetLastError() ) ;
 			return -1;
 		}
       if( !GetExitCodeProcess( pi.hProcess, lpdwExit ) )
       {
-      	printf( WIDE("GetExitCode failed:%d\n"), GetLastError() );
+      	printf( "GetExitCode failed:%d\n", GetLastError() );
       	return -1;
       }
       CloseHandle( pi.hProcess );
@@ -80,48 +80,48 @@ int main( char argc, char **argv )
 	}
 	else
 	{
-		if( strcmp( argv[1], WIDE("get") ) == 0 )
+		if( strcmp( argv[1], "get" ) == 0 )
 		{
 			int r;
-        	if( LaunchCmd( WIDE("cvs update autovers.h"), &dwCode )  )
+        	if( LaunchCmd( "cvs update autovers.h", &dwCode )  )
         		return -1;
 
         	if( dwCode )
         	{
         		if( dwCode == 1 )
-       			printf( WIDE("autover: Login error... any others??\n") );
+       			printf( "autover: Login error... any others??\n" );
        		else
-        			printf( WIDE("autover: dwCode: %d"), dwCode );
+        			printf( "autover: dwCode: %d", dwCode );
            	return dwCode;
 			}
 			else
-				printf( WIDE("Success?") );
+				printf( "Success?" );
 			if( DoVersionFile() )
 				return -1;
 		}
-		else if( strcmp( argv[1], WIDE("put") ) == 0 )
+		else if( strcmp( argv[1], "put" ) == 0 )
 		{
 			struct stat statbuf;
-			if( stat( WIDE("autovers.h"), &statbuf ) < 0 )
+			if( stat( "autovers.h", &statbuf ) < 0 )
 			{
-				printf( WIDE("Cannout put autovers.h, it does not exist!\n") );
+				printf( "Cannout put autovers.h, it does not exist!\n" );
 				return -1;
 			}
-			if( LaunchCmd( WIDE("cvs commit -m\")Auto increment\" autovers.h", &dwCode ) || dwCode )
+			if( LaunchCmd( "cvs commit -m\"Auto increment\" autovers.h", &dwCode ) || dwCode )
 			{
-				printf( WIDE("autover: Attempting to add...") );
-				if( LaunchCmd( WIDE("cvs add autovers.h"), &dwCode ) || dwCode )
+				printf( "autover: Attempting to add..." );
+				if( LaunchCmd( "cvs add autovers.h", &dwCode ) || dwCode )
 				{
-					printf( WIDE("autover: Failed to add, failed to commit, some other error?\n") );
+					printf( "autover: Failed to add, failed to commit, some other error?\n" );
 					return -1;
 				}
-				if( LaunchCmd( WIDE("cvs commit -m\")Auto increment\" autovers.h", &dwCode ) || dwCode )
+				if( LaunchCmd( "cvs commit -m\"Auto increment\" autovers.h", &dwCode ) || dwCode )
 				{
-					printf( WIDE("autover: Added okay, failed to commit?\n") );
+					printf( "autover: Added okay, failed to commit?\n" );
 					return -1;
 				}
 			}
-			remove( WIDE("autovers.h") );
+			remove( "autovers.h" );
 		}
 	}
 	return 0;

@@ -21,7 +21,7 @@ PHISTORYBLOCK DestroyRawHistoryBlock( PHISTORYBLOCK pHistory )
 	{
 		if( pHistory->pLines[i].pLine == (PTEXT)0xFeeefeee )
 		{
-			lprintf( WIDE("a deleted line is in history %d"), i );
+			lprintf( "a deleted line is in history %d", i );
 		}
 		LineRelease( pHistory->pLines[i].pLine );
 	}
@@ -96,7 +96,7 @@ void CreatePriorHistoryBlock( PHISTORY_BLOCK_LINK phbl )
    PHISTORYBLOCK pHistory;
 	if( !phbl->me ) // in most cases it's 'last'
 	{
-		lprintf( WIDE("FATAL ERROR, NODE in list is not initialized correctly.") );
+		lprintf( "FATAL ERROR, NODE in list is not initialized correctly." );
       DebugBreak();
 	}
    pHistory = CreateRawHistoryBlock();
@@ -134,7 +134,7 @@ PHISTORYBLOCK CreateHistoryBlock( PHISTORY_BLOCK_LINK phbl )
 	// phbl needs to be valid node link thingy...
 	if( !phbl->me )
 	{
-		lprintf( WIDE("FATAL ERROR, NODE in list is not initialized correctly.") );
+		lprintf( "FATAL ERROR, NODE in list is not initialized correctly." );
       DebugBreak();
 	}
 	pHistory = CreateRawHistoryBlock();
@@ -181,16 +181,16 @@ PHISTORY_LINE_CURSOR CreateHistoryCursor( PHISTORY_REGION phr )
 		{
 			int nValue;
 			PTEXT name = NULL;
-			if( GetRegistryInt( WIDE("Dekware\\Wincon\\Background")
-									, name?GetText( name ):WIDE("default")
+			if( GetRegistryInt( "Dekware\\Wincon\\Background"
+									, name?GetText( name ):"default"
 									, &nValue ) )
 				phlc->output.DefaultColor.background = nValue;
 			else
 #endif
 				phlc->output.DefaultColor.flags.background = 0;
 #if 0 && defined( _WIN32 ) && !defined( PSICON )
-			if( GetRegistryInt( WIDE("Dekware\\Wincon\\Foreground")
-									, name?GetText( name ):WIDE("default")
+			if( GetRegistryInt( "Dekware\\Wincon\\Foreground"
+									, name?GetText( name ):"default"
 									, &nValue ) )
 				phlc->output.DefaultColor.flags.foreground = nValue;
 			else
@@ -276,7 +276,7 @@ PTEXTLINE GetSomeHistoryLineEx( PHISTORY_REGION region
 #define GetSomeHistoryLine(r,s,n) GetSomeHistoryLineEx(r,s,n DBG_SRC )
 {
 	// if history has never had anything...
-	//_xlprintf( 0 DBG_RELAY )(WIDE("Getting some history line: %d"), line );
+	//_xlprintf( 0 DBG_RELAY )("Getting some history line: %d", line );
 	if( !region->pHistory.next )
 		return NULL;
 	if( ( line > 0 ) && start )
@@ -287,7 +287,7 @@ PTEXTLINE GetSomeHistoryLineEx( PHISTORY_REGION region
 	{
 		start = region->pHistory.last;
 		line += start->nLinesUsed;
-		//lprintf( WIDE("overriding start, using line as rel index back... now is %d"), line );
+		//lprintf( "overriding start, using line as rel index back... now is %d", line );
 	}
 	// if start, and line < 0 then we'll naturally
 	// step back one at a time...
@@ -323,7 +323,7 @@ PTEXTLINE GetSomeHistoryLineEx( PHISTORY_REGION region
 				}
 			if( ( pBlock = pBlock->prior ) && *(pBlock->me) )
 			{
-				//lprintf( WIDE("Adjusting line as we step backward...") );
+				//lprintf( "Adjusting line as we step backward..." );
 				line += pBlock->nLinesUsed;
 			}
 		}
@@ -331,7 +331,7 @@ PTEXTLINE GetSomeHistoryLineEx( PHISTORY_REGION region
 		{
 			if( line < MAX_HISTORY_LINES )
 			{
-				//lprintf( WIDE("Setting used lines in history block...") );
+				//lprintf( "Setting used lines in history block..." );
 				//pBlock->nLinesUsed = line;
 			}
 			return pBlock->pLines + (line - 1);
@@ -356,7 +356,7 @@ PTEXTLINE GetNewHistoryLine( PHISTORY_REGION region )
 	{
 		pBlock = CreateHistoryBlock( &region->pHistory.root );
 	}
-	//lprintf( WIDE("INcrementint lines used... returning this line at %d"), pBlock->nLinesUsed );
+	//lprintf( "INcrementint lines used... returning this line at %d", pBlock->nLinesUsed );
 	return pBlock->pLines + pBlock->nLinesUsed++;
 }
 
@@ -371,7 +371,7 @@ PTEXTLINE GetAHistoryLine( PHISTORY_LINE_CURSOR phc, PHISTORY_BROWSER phbr, int 
 	{
 		size_t tmp;
 		PHISTORYBLOCK phb;
-		//lprintf( WIDE("Get line %d after %d"), nLine, phc->output.top_of_form.line );
+		//lprintf( "Get line %d after %d", nLine, phc->output.top_of_form.line );
 
 		tmp = nLine + phc->output.top_of_form.line;
 		phb = phc->output.top_of_form.block;
@@ -388,7 +388,7 @@ PTEXTLINE GetAHistoryLine( PHISTORY_LINE_CURSOR phc, PHISTORY_BROWSER phbr, int 
 			tmp -= phb->nLinesUsed;
 			phb = phb->next;
 		}
-		//lprintf( WIDE("tmp is now %d"), tmp );
+		//lprintf( "tmp is now %d", tmp );
 		{
 			PTEXTLINE ptl;
 			while( tmp >= (phb?phb->nLinesUsed:0) )
@@ -416,7 +416,7 @@ PTEXTLINE GetAHistoryLine( PHISTORY_LINE_CURSOR phc, PHISTORY_BROWSER phbr, int 
 	{
 		size_t tmp;
 		PHISTORYBLOCK phb;
-		//lprintf( WIDE("Get line %d after %d"), nLine, phbr->nLine );
+		//lprintf( "Get line %d after %d", nLine, phbr->nLine );
 
 		tmp = nLine + phbr->nLine;
 		phb = phbr->pBlock;
@@ -433,7 +433,7 @@ PTEXTLINE GetAHistoryLine( PHISTORY_LINE_CURSOR phc, PHISTORY_BROWSER phbr, int 
 			tmp -= phb->nLinesUsed;
 			phb = phb->next;
 		}
-		//lprintf( WIDE("tmp is now %d"), tmp );
+		//lprintf( "tmp is now %d", tmp );
 		{
 			PTEXTLINE ptl;
 			while( tmp >= (phb?phb->nLinesUsed:0) )
@@ -484,15 +484,15 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
 		CreateHistoryBlock( &phc->region->pHistory.root );
 
 	if( GetTextSize( segment ) & 0x80000000)
-		lprintf( WIDE("(original input)Inverted Segment : %d"), GetTextSize( segment ) );
+		lprintf( "(original input)Inverted Segment : %d", GetTextSize( segment ) );
 
-	//lprintf( WIDE("Okay after much layering... need to fix some....") );
-   //lprintf( WIDE("Put a segment out!") );
+	//lprintf( "Okay after much layering... need to fix some...." );
+   //lprintf( "Put a segment out!" );
    // get line at nCursorY
 	pCurrentLine = GetHistoryLine( phc );
 	if( !pCurrentLine )
 	{
-      lprintf( WIDE("No line result from history...") );
+      lprintf( "No line result from history..." );
 	}
 
    if( (phc->output.nCursorX) > pCurrentLine->nLineLength )
@@ -501,10 +501,10 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
       PTEXT filler = SegCreate( (phc->output.nCursorX) - pCurrentLine->nLineLength );
       TEXTCHAR *data = GetText( filler );
       int n;
-      lprintf( WIDE("Cursor beyond line, creating filler segment up to X") );
+      lprintf( "Cursor beyond line, creating filler segment up to X" );
       filler->format.flags.foreground = segment->format.flags.foreground;
       filler->format.flags.background = segment->format.flags.background;
-      //Log1( WIDE("Make a filler segment %d charactes"), phc->region->(phc->output.nCursorX) - pCurrentLine->nLineLength );
+      //Log1( "Make a filler segment %d charactes", phc->region->(phc->output.nCursorX) - pCurrentLine->nLineLength );
       for( n = 0; n < (phc->output.nCursorX) - pCurrentLine->nLineLength; n++ )
       {
          data[n] = ' ';
@@ -525,12 +525,12 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
 
       // so - split the line, result with current segment.
 		int32_t pos = 0;
-      //lprintf( WIDE("Okay insert/overwrite this segment on the display...") );
+      //lprintf( "Okay insert/overwrite this segment on the display..." );
       text = pCurrentLine->pLine;
       while( pos < (phc->output.nCursorX) && text )
       {
          len = GetTextSize( text );
-         //Log3( WIDE("Skipping over ... pos:%d len:%d curs:%d"), pos, len, phc->region->(phc->output.nCursorX) );
+         //Log3( "Skipping over ... pos:%d len:%d curs:%d", pos, len, phc->region->(phc->output.nCursorX) );
          if( (len + pos) > (phc->output.nCursorX) )
          {
             // 'text' is OVER pos...
@@ -551,22 +551,22 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
    }
    else // cursor is exactly linelength...
    {
-      //Log( WIDE("Cursor is at end or after end.") );
+      //Log( "Cursor is at end or after end." );
       text = NULL;
       len = 0;
    }
 
 			if( GetTextSize( text ) & 0x80000000)
-				lprintf( WIDE("(After processing) Inverted Segment : %d"), GetTextSize( text ) );
+				lprintf( "(After processing) Inverted Segment : %d", GetTextSize( text ) );
    // expects 'text' to be the start of the correct segment.
    if( segment->flags & TF_FORMATEX )
 	{
-      Log( WIDE("Extended info carried on this segment.") );
+      Log( "Extended info carried on this segment." );
       segment->flags &= ~TF_FORMATEX;
       switch( segment->format.flags.format_op )
       {
       case FORMAT_OP_CLEAR_END_OF_LINE: // these are difficult....
-         //Log( WIDE("Clear end of line...") );
+         //Log( "Clear end of line..." );
          if( text == pCurrentLine->pLine )
          {
             pCurrentLine->pLine = NULL;
@@ -578,37 +578,37 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
          len = 0;
          break;
       case FORMAT_OP_DELETE_CHARS:
-         Log1( WIDE("Delete %d characters"), segment->format.flags.background );
+         Log1( "Delete %d characters", segment->format.flags.background );
          if( text ) // otherwise there's no characters to delete?  or does it mean next line?
          {
             PTEXT split;
-            Log1( WIDE("Has a current segment... %d"), GetTextSize( text ) );
+            Log1( "Has a current segment... %d", GetTextSize( text ) );
             if( text == pCurrentLine->pLine )
             {
-               Log( WIDE("is the first segment... "));
+               Log( "is the first segment... ");
                split = SegSplit( &pCurrentLine->pLine, segment->format.flags.background );
                text = pCurrentLine->pLine;
             }
             else
             {
-               Log( WIDE("Is not first - splitting segment... "));
+               Log( "Is not first - splitting segment... ");
                split = SegSplit( &text, segment->format.flags.background );
             }
             if( split )
             {
-               Log( WIDE("Resulting split...") );
+               Log( "Resulting split..." );
                text = NEXTLINE( split );
                LineRelease( SegGrab( split ) );
             }
             else
             {
-               Log( WIDE("Didn't split the line - deleting the next segment.") );
+               Log( "Didn't split the line - deleting the next segment." );
                LineRelease( SegGrab( text ) );
             }
          }
          else
          {
-            Log( WIDE("Didn't find a next semgnet( text)") );
+            Log( "Didn't find a next semgnet( text)" );
          }
          break;
       case FORMAT_OP_CLEAR_START_OF_LINE:
@@ -618,12 +618,12 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
             int n;
             filler->format.flags.foreground = phc->output.PriorColor.flags.foreground;
             filler->format.flags.background = phc->output.PriorColor.flags.background;
-            //Log1( WIDE("Make a filler segment %d charactes"), (phc->output.nCursorX) - pCurrentLine->nLineLength );
+            //Log1( "Make a filler segment %d charactes", (phc->output.nCursorX) - pCurrentLine->nLineLength );
             for( n = 0; n < (phc->output.nCursorX) - pCurrentLine->nLineLength; n++ )
             {
                data[n] = ' ';
             }
-            Log( WIDE("This is all so terribly bad - clear start of line is horrid idea.") );
+            Log( "This is all so terribly bad - clear start of line is horrid idea." );
             if( text ) // insert before text... else append to line.
             {
                PTEXT fill_here = SegCreate( 1 );
@@ -636,7 +636,7 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
                   text = pCurrentLine->pLine;
                   SegSubst( pCurrentLine->pLine, fill_here );
                   if( GetTextSize( filler ) )
-                     Log( WIDE("Size expected, zero size filler computed") );
+                     Log( "Size expected, zero size filler computed" );
                   LineRelease( filler ); // should be zero sized...
                }
                else
@@ -668,7 +668,7 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
 			SetTopOfForm( phc );
          break;
       default:
-         Log( WIDE("Invalid extended format segment. ") );
+         Log( "Invalid extended format segment. " );
          break;
 		}
 		if( !(segment->flags & TF_FORMATEX ) )
@@ -684,21 +684,21 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
 		}
    }
    //else
-   //   Log( WIDE("No extended info carried on this segment.") );
+   //   Log( "No extended info carried on this segment." );
 
 
    if( GetTextSize( segment ) )
    {
       if( text )
       {
-         //Log( WIDE("Inserting new segment...") );
+         //Log( "Inserting new segment..." );
          SegInsert( segment, text );
          if( text == pCurrentLine->pLine )
             pCurrentLine->pLine = segment;
       }
       else
       {
-         //Log( WIDE("Appending segment.") );
+         //Log( "Appending segment." );
          pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
       }
 
@@ -710,7 +710,7 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
          // len characters from 'text' need to be removed.
          // okay that should be fun...
          uint32_t deletelen = len;
-         //Log1( WIDE("Remove %d characters!"), len );
+         //Log1( "Remove %d characters!", len );
          while( deletelen && text )
          {
             uint32_t thislen = GetTextSize( text );
@@ -739,7 +739,7 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
       SetTopOfForm( phc );
 	}
    else
-      Log( WIDE("no data in segment.") );
+      Log( "no data in segment." );
    return pCurrentLine;
 }
 
@@ -749,7 +749,7 @@ void SetTopOfForm( PHISTORY_LINE_CURSOR phlc )
 {
 	if( phlc )
 	{
-      lprintf( WIDE("Set the top of form here...") );
+      lprintf( "Set the top of form here..." );
 		while( phlc->output.top_of_form.block &&
 				phlc->output.top_of_form.block->next )
 			phlc->output.top_of_form.block = phlc->output.top_of_form.block->next;
@@ -855,14 +855,14 @@ void EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLine )
 	if( !(pLine->flags & TF_NORETURN) )
 	{
 		// auto return/newline if not noreturn
-      //lprintf( WIDE("Not NORETURN - therefore skipping to next line...") );
+      //lprintf( "Not NORETURN - therefore skipping to next line..." );
 		phc->output.nCursorX = 0;
       phc->output.nCursorY++;
 	}
 
 	{
 		PTEXTLINE pCurrentLine = NULL;
-		//lprintf( WIDE("Flattening line...") );
+		//lprintf( "Flattening line..." );
 		pLine = FlattenLine( pLine );
 		ResolveLineColor( phc, pLine );
 
@@ -894,11 +894,11 @@ void EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLine )
 void DumpBlock( PHISTORYBLOCK pBlock DBG_PASS )
 {
    INDEX idx;
-	_xlprintf( 0 DBG_RELAY )(WIDE("History block used lines: %d of %d"), pBlock->nLinesUsed, MAX_HISTORY_LINES );
+	_xlprintf( 0 DBG_RELAY )("History block used lines: %d of %d", pBlock->nLinesUsed, MAX_HISTORY_LINES );
 	for( idx = 0; idx < pBlock->nLinesUsed; idx++ )
 	{
       PTEXTLINE ptl = pBlock->pLines + idx;
-		_xlprintf( 0 DBG_RELAY )(WIDE("line: %d = (%d,%d,%s)"), idx, ptl->nLineLength, GetTextSize( ptl->pLine ), GetText( ptl->pLine ) );
+		_xlprintf( 0 DBG_RELAY )("line: %d = (%d,%d,%s)", idx, ptl->nLineLength, GetTextSize( ptl->pLine ), GetText( ptl->pLine ) );
 	}
 }
 
@@ -907,7 +907,7 @@ void DumpBlock( PHISTORYBLOCK pBlock DBG_PASS )
 void DumpRegion( PHISTORY_REGION region DBG_PASS )
 {
 	PHISTORYBLOCK blocks = region->pHistory.root.next;
-	_xlprintf( 0 DBG_RELAY )(WIDE("History blocks: %d history block size: %d"), region->nHistoryBlocks
+	_xlprintf( 0 DBG_RELAY )("History blocks: %d history block size: %d", region->nHistoryBlocks
 			 , region->nHistoryBlockSize
 			 );
 	while( blocks )
@@ -928,10 +928,10 @@ PTEXT EnumHistoryLineEx( PHISTORY_BROWSER phbr
    int line = -(*offset);
 	if( !offset )
 	{
-		Log( WIDE("No start...") );
+		Log( "No start..." );
 		return NULL;
 	}
-	//lprintf(WIDE("Getting line: %d "), line );
+	//lprintf("Getting line: %d ", line );
    //DumpRegion( phlc->region DBG_RELAY );
    // uhmm... yeah.
 	ptl = GetSomeHistoryLine( phbr->region
@@ -946,21 +946,21 @@ PTEXT EnumHistoryLineEx( PHISTORY_BROWSER phbr
 		{
 			if( length )
 				*length = ptl->nLineLength;
-			//lprintf( WIDE("Resulting: (%d)%s"), ptl->nLineLength, GetText( ptl->pLine ) );
+			//lprintf( "Resulting: (%d)%s", ptl->nLineLength, GetText( ptl->pLine ) );
 			return ptl->pLine;
 		}
 		else
 		{
-			DECLTEXT( nothing, WIDE("") );
+			DECLTEXT( nothing, "" );
 			nothing.format.flags.foreground = 0;
 			nothing.format.flags.background = 0;
 			if( length )
 				*length = 0;
-         //lprintf( WIDE("resulting nothing. %d"), line );
+         //lprintf( "resulting nothing. %d", line );
 			return (PTEXT)&nothing;
 		}
 	}
-	//Log( WIDE("No result") );
+	//Log( "No result" );
 	return NULL;
 }
 
@@ -968,7 +968,7 @@ PTEXT EnumHistoryLineEx( PHISTORY_BROWSER phbr
 
 void SetHistoryLength( PHISTORY_REGION phr, INDEX length )
 {
-	Log1( WIDE("Set Length to %d blocks"), length/MAX_HISTORY_LINES );
+	Log1( "Set Length to %d blocks", length/MAX_HISTORY_LINES );
 	phr->nMaxHistoryBlocks = length/MAX_HISTORY_LINES;
 }
 
@@ -1000,18 +1000,18 @@ void WriteHistoryToFile( FILE *file, PHISTORY_REGION phr )
 	INDEX idx;
 	while( pHistory )
 	{
-      lprintf( WIDE("Have a history block with %d lines"), pHistory->nLinesUsed );
+      lprintf( "Have a history block with %d lines", pHistory->nLinesUsed );
 		for( idx = 0; idx < pHistory->nLinesUsed; idx++ )
 		{
 			PTEXTLINE pLine = pHistory->pLines + idx;
 			PTEXT pText = pLine->pLine;
 			while( pText )
 			{
-            lprintf( WIDE("%s"), GetText(pText) );
+            lprintf( "%s", GetText(pText) );
 				fwrite( GetText( pText ), 1, GetTextSize( pText ), file );
 				pText = NEXTLINE( pText );
 			}
-			fprintf( file, WIDE("\n") );
+			fprintf( file, "\n" );
 		}
 		pHistory = pHistory->next;
 	}
@@ -1025,7 +1025,7 @@ int SetHistory( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 	pmdp = (PCONSOLE_INFO)pdp;
 	if( !pmdp )
 	{
-		DECLTEXT( msg, WIDE("Datapath lacks history") );
+		DECLTEXT( msg, "Datapath lacks history" );
 		EnqueLink( &ps->Command->Output, &msg );
 		//RemoveMethod( ps->Current, methods+SET_HISTORY_METHOD );
 		return 0;
@@ -1033,7 +1033,7 @@ int SetHistory( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 	temp = GetParam( ps, &parameters );
 	if( !temp )
 	{
-		DECLTEXT( msg, WIDE("Need to specify the length of history to be kept") );
+		DECLTEXT( msg, "Need to specify the length of history to be kept" );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	else
@@ -1041,20 +1041,20 @@ int SetHistory( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 		if( IsNumber( temp ) )
 		{
 			int length = IntNumber( temp );
-			Log1( WIDE("Length is: %d"), length );
+			Log1( "Length is: %d", length );
 			if( length > 2*MAX_HISTORY_LINES )
 			{
 				SetHistoryLength( pmdp->pHistory, length );
 			}
 			else
 			{
-				DECLTEXT( msg, WIDE("History length must be at least 2 * ")STRSYM(MAX_HISTORY_LINES)WIDE(".") );
+				DECLTEXT( msg, "History length must be at least 2 * "STRSYM(MAX_HISTORY_LINES)"." );
 				EnqueLink( &ps->Command->Output, &msg );
 			}
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Parameter to set history must be a number.") );
+			DECLTEXT( msg, "Parameter to set history must be a number." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}
@@ -1072,11 +1072,11 @@ int HistoryStat( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 
    if( !pmdp )
    {
-      DECLTEXT( msg, WIDE("Datapath lacks history") );
+      DECLTEXT( msg, "Datapath lacks history" );
       EnqueLink( &ps->Command->Output, &msg );
       return 0;
    }
-	SetTextSize( stat, snprintf( GetText( stat ), 256*sizeof(TEXTCHAR), WIDE("History Length: %ld")
+	SetTextSize( stat, snprintf( GetText( stat ), 256*sizeof(TEXTCHAR), "History Length: %ld"
 									  , GetHistoryLength( pmdp->pHistory ) ) );
 	EnqueLink( &ps->Command->Output, stat );
    return 1;
@@ -1116,7 +1116,7 @@ int ComputeToShow( uint32_t cols, PTEXT segment, uint32_t nLen, int nOfs, int nS
     int nShow = cols - nOfs;
 	 // if space left to show here is less than
 	 // then length to show, compute wrapping point.
-	 //lprintf( WIDE("Compute to show: %d (%d)%s %d %d"), cols, GetTextSize( segment ), GetText( segment ), nOfs, nShown );
+	 //lprintf( "Compute to show: %d (%d)%s %d %d", cols, GetTextSize( segment ), GetText( segment ), nOfs, nShown );
     if( nShow < (nLen-nShown) )
     {
 		int nSpace = nShow + nShown;
@@ -1136,7 +1136,7 @@ int ComputeToShow( uint32_t cols, PTEXT segment, uint32_t nLen, int nOfs, int nS
     }
     else
 		 nShow = nLen - nShown;
-    //lprintf( WIDE("Show %d"), nShow );
+    //lprintf( "Show %d", nShow );
     return nShow;
 }
 
@@ -1156,7 +1156,7 @@ int CountLinesSpanned( uint32_t cols, PTEXT countseg )
 			// part of this segment has already been skipped.
 			// ComputeNextOffset can do this.
 			if( nLen & 0x80000000)
-				lprintf( WIDE("Inverted Segment : %d"), nLen );
+				lprintf( "Inverted Segment : %d", nLen );
 			else
 			{
 				if( nShown > nLen )
@@ -1195,7 +1195,7 @@ int CountLinesSpanned( uint32_t cols, PTEXT countseg )
 int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset )
 {
 	int result = UPDATE_NOTHING;
-   //lprintf( WIDE("--------------- ALIGN HISTORY -------------") );
+   //lprintf( "--------------- ALIGN HISTORY -------------" );
 	// sets the current line pointer to the current position plus/minus nOffset.
 
 	// this routine will fix the nHistoryDisplay to be
@@ -1213,13 +1213,13 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset )
 	}
 	while( ( nOffset < 0 ) && phbr->pBlock )
 	{
-      //lprintf( WIDE("Offset is %d and is < 0"), nOffset );
+      //lprintf( "Offset is %d and is < 0", nOffset );
       nOffset++;
 		if( phbr->nLine > 1 )
 		{
 			if( phbr->nOffset )
 			{
-            lprintf( WIDE("Previously had an offset... %d"), phbr->nOffset );
+            lprintf( "Previously had an offset... %d", phbr->nOffset );
 				phbr->nOffset--;
 			}
 			else
@@ -1228,7 +1228,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset )
 				phbr->nLine--;
 				n = CountLinesSpanned( phbr->nColumns
 											, phbr->pBlock->pLines[phbr->nLine-1].pLine );
-				//lprintf( WIDE("total span is what ? %d"), n );
+				//lprintf( "total span is what ? %d", n );
 				if( n )
 					phbr->nOffset = n-1;
 			}
@@ -1237,7 +1237,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset )
 		{
 			if( (*phbr->pBlock->prior->me) )
 			{
-            lprintf( WIDE("jumping back naturally.") );
+            lprintf( "jumping back naturally." );
 				phbr->pBlock = phbr->pBlock->prior;
 				phbr->nLine = phbr->pBlock->nLinesUsed;
 			}
@@ -1246,7 +1246,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset )
 				// fell off the beginning of history.
 				// and nline is already 0....
 				// phlc->nLine = 0;
-				lprintf( WIDE("Fell off of history ... need to lock down at first line.") );
+				lprintf( "Fell off of history ... need to lock down at first line." );
 				phbr->pBlock = phbr->region->pHistory.next;
             phbr->nLine = 1; // minimum.
 				nOffset = 0;
@@ -1259,7 +1259,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset )
 			if( phbr->pBlock->pLines[phbr->nLine-1].nLineLength )
 			{
 				int tmp = ( phbr->pBlock->pLines[phbr->nLine-1].nLineLength - 1 ) / phbr->nColumns;
-				lprintf( WIDE("Offset plus uhmm... %d"), tmp );
+				lprintf( "Offset plus uhmm... %d", tmp );
 				nOffset += tmp;
 			}
 		}
@@ -1275,7 +1275,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset )
 		{
 			n = CountLinesSpanned( phbr->nColumns
 										, phbr->pBlock->pLines[phbr->nLine-1].pLine );
-			//lprintf( WIDE("fixing forward motion offset: %d this spans %d"), nOffset, n );
+			//lprintf( "fixing forward motion offset: %d this spans %d", nOffset, n );
 			if( n - phbr->nOffset > nOffset )
 			{
 				// okay then how do we find the offset of this line?
@@ -1353,7 +1353,7 @@ uint32_t GetBrowserDistance( PHISTORY_BROWSER phbr )
 										  , pHistory->pLines[n].pLine );
 		}
 	}
-	lprintf( WIDE("Browser is %d lines from end..."), nLines );
+	lprintf( "Browser is %d lines from end...", nLines );
    return nLines;
 }
 
@@ -1369,23 +1369,23 @@ int HistoryNearEnd( PHISTORY_BROWSER phbr, int nLinesAway )
    INDEX nLines = 0; // count of lines...
 	PHISTORYBLOCK pHistory;
 	int n;
-	lprintf( WIDE("History near end? (within %d lines)"), nLinesAway );
-   lprintf( WIDE("hmm %p is block at %d"), phbr->pBlock, phbr->nLine );
+	lprintf( "History near end? (within %d lines)", nLinesAway );
+   lprintf( "hmm %p is block at %d", phbr->pBlock, phbr->nLine );
 	for( n = phbr->nLine, pHistory = phbr->pBlock;
 		 pHistory && nLines < nLinesAway;
 		  pHistory = pHistory->next )
 	{
-		lprintf( WIDE("checking %d lines in block...next:%p"), pHistory->nLinesUsed, pHistory->next );
+		lprintf( "checking %d lines in block...next:%p", pHistory->nLinesUsed, pHistory->next );
 		for( ; nLines < nLinesAway && n < pHistory->nLinesUsed; n++ )
 		{
 			int tmp;
 			tmp = CountLinesSpanned( phbr->nColumns
 										  , pHistory->pLines[n].pLine );
-			lprintf( WIDE("Adding %d lines..."), tmp );
+			lprintf( "Adding %d lines...", tmp );
 			nLines += tmp;
 		}
       n = 0;
-      lprintf( WIDE("total history lines = %d < %d ? (is end)"), nLines, nLinesAway );
+      lprintf( "total history lines = %d < %d ? (is end)", nLines, nLinesAway );
 	}
 	return nLines < phbr->nLines; //( nLines < nLinesAway );
 	}
@@ -1421,7 +1421,7 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 	if( !CommandInfo )
       return 0;
 	// else there is no history...
-	//lprintf( WIDE("bendofstream = %d"), bEndOfStream );
+	//lprintf( "bendofstream = %d", bEndOfStream );
    pdl = (PDISPLAYED_LINE)GetDataItem( &phbr->DisplayLineInfo, 0 );
 	if( bEndOfStream && pdl )
 	{
@@ -1429,7 +1429,7 @@ int GetCommandCursor( PHISTORY_BROWSER phbr
 
 		if( tmpx > phbr->nColumns - 10 )
 		{
-			lprintf( WIDE("Drawing direct command prompt is confusing... and I don't like it.") );
+			lprintf( "Drawing direct command prompt is confusing... and I don't like it." );
 			// I have to put the command here, so I have to adjust the visible line...
 			// or go down to the next line, and if I'm on the next line, I have to result that also...
 			// but then I have to know this before I even start drawing so the last line is not
@@ -1516,7 +1516,7 @@ int HistoryLineDown( PHISTORY_BROWSER pb )
 
 int HistoryPageUp( PHISTORY_BROWSER pb )
 {
-   //lprintf( WIDE("Moving history up %d"), pb->nPageLines );
+   //lprintf( "Moving history up %d", pb->nPageLines );
    return MoveHistoryCursor( pb, -pb->nPageLines );
 }
 
@@ -1524,7 +1524,7 @@ int HistoryPageUp( PHISTORY_BROWSER pb )
 
 int HistoryPageDown( PHISTORY_BROWSER pb )
 {
-   //lprintf( WIDE("Moving history down %d"), pb->nPageLines );
+   //lprintf( "Moving history down %d", pb->nPageLines );
 	if( pb->pBlock )
 		return MoveHistoryCursor( pb, pb->nPageLines );
    return 0;
@@ -1554,8 +1554,8 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 		(*CurrentLineInfo)->Cnt = 0;
 	start = 0;
 	EnterCriticalSec( &phbr->cs );
-	//lprintf( WIDE("------------- Building Display Info Lines %d"), nLineCount );
-	//lprintf( WIDE("nShown starts at %d"), nShown );
+	//lprintf( "------------- Building Display Info Lines %d", nLineCount );
+	//lprintf( "nShown starts at %d", nShown );
 	if( phbr->nColumns )
 		while( ( nLinesShown < nLineCount ) &&
              ( pText = EnumHistoryLine( phbr
@@ -1563,7 +1563,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 												  , NULL ) ) )
 		{
 			DISPLAYED_LINE dl;
-			//lprintf( WIDE(" Lines %d of %d"), nLinesShown, nLineCount );
+			//lprintf( " Lines %d of %d", nLinesShown, nLineCount );
 			// can't show past the top of form.
 			// while bhilding display info lines...
 			// this is history info lines also?!
@@ -1579,7 +1579,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 			}
 			if( pLastLine && pText == pLastLine->pLine )
 			{
-				lprintf( WIDE("top of form reached, bailing early on available history.") );
+				lprintf( "top of form reached, bailing early on available history." );
 				break;
 			}
 			if( phbr->flags.bWrapText )
@@ -1601,12 +1601,12 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
             //
 				if( firstline )
 				{
-					//lprintf( WIDE("Fixup of first line by offset... %d %d")
+					//lprintf( "Fixup of first line by offset... %d %d"
                //        , phbr->nOffset, nLines );
 					nLinesShown = phbr->nOffset - (nLines-1);
 					firstline = 0;
 				}
-				//lprintf( WIDE("Wraping text, current line is at most %d"), nLines );
+				//lprintf( "Wraping text, current line is at most %d", nLines );
 				nChar = 0;
 				pLastSetLine = NULL;
 				while( pText )
@@ -1616,7 +1616,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 						&& ( pText->flags & TF_PROMPT )
 					  )
 					{
-					  // lprintf( WIDE("skipping prompt segment...") );
+					  // lprintf( "skipping prompt segment..." );
 						pText = NEXTLINE( pText );
 						continue;
 					}
@@ -1626,10 +1626,10 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 						dl.nLine = start; // just has to be different
 						dl.nOfs = 0; // start of a new line here...
 						dl.start = pText; // text in history that started this...
-						//lprintf( WIDE("Adding line to display: %p (%d) %d"), dl.start, dl.nOfs, dl.nLine );
+						//lprintf( "Adding line to display: %p (%d) %d", dl.start, dl.nOfs, dl.nLine );
 						if( nLinesShown + nLines > 0 )
 						{
-							//lprintf( WIDE("Set line %d %s"), nLinesShown + nLines, GetText( dl.start ) );
+							//lprintf( "Set line %d %s", nLinesShown + nLines, GetText( dl.start ) );
 							pLastSetLine = (PDISPLAYED_LINE)SetDataItem( CurrentLineInfo
 																					 , nLinesShown + nLines -1
 																					 , &dl );
@@ -1639,32 +1639,32 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 					nLen = GetTextSize( pText );
 
 					if( nLen & 0x80000000)
-						lprintf( WIDE("Inverted Segment : %d %p %p"), nLen, NEXTLINE( pText ), PRIORLINE( pText ) );
+						lprintf( "Inverted Segment : %d %p %p", nLen, NEXTLINE( pText ), PRIORLINE( pText ) );
 					else
 					{
 						// shown - show part of this segment... but not the whole segment...
 						while( nShown < nLen )
 						{
 							// nShow is now the number of characters we can show.
-							//lprintf( WIDE("Segment is %d"), GetTextSize( pText ) );
+							//lprintf( "Segment is %d", GetTextSize( pText ) );
 							if( ( nShow = ComputeToShow( phbr->nColumns, pText, nLen, nChar, nShown ) ) )
 							{
-								//lprintf( WIDE("Will show %d chars..."), nShow );
+								//lprintf( "Will show %d chars...", nShow );
 								nShown += nShow;
 								nChar += nShow;
 							}
 							else
 							{
-								//lprintf( WIDE("Wrapped line... reset nChar cause it's a new line of characters.") );
+								//lprintf( "Wrapped line... reset nChar cause it's a new line of characters." );
 								nWrapped++;
 								if( pLastSetLine )
 								{
-									//lprintf( WIDE("Setting prior toshow to nChar...%d"), nChar );
+									//lprintf( "Setting prior toshow to nChar...%d", nChar );
 									pLastSetLine->nToShow = nChar;
 								}
 								else
 								{
-									//lprintf( WIDE("Setting this toshow to nChar...%d"), nChar );
+									//lprintf( "Setting this toshow to nChar...%d", nChar );
 									dl.nToShow = nChar;
 								}
 
@@ -1677,10 +1677,10 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 									dl.nLine = start; // just has to be different
 									dl.nOfs = nShown; // start of a new line here...
 									dl.start = pText; // text in history that started this...
-									//lprintf( WIDE("Adding line to display: %p (%d) %d"), dl.start, dl.nOfs, dl.nLine );
+									//lprintf( "Adding line to display: %p (%d) %d", dl.start, dl.nOfs, dl.nLine );
 									if( ( nLinesShown + nLines - nWrapped ) > 0 )
 									{
-										//lprintf( WIDE("Set line %d"), nLinesShown + nLines - nWrapped );
+										//lprintf( "Set line %d", nLinesShown + nLines - nWrapped );
 										pLastSetLine = (PDISPLAYED_LINE)SetDataItem( CurrentLineInfo
 																		  , nLinesShown + nLines - nWrapped -1
 																		  , &dl );
@@ -1694,7 +1694,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 				}
 				if( pLastSetLine )
 				{
-					//lprintf( WIDE("Fixing up last line set for number of chars to show. %d"), nChar );
+					//lprintf( "Fixing up last line set for number of chars to show. %d", nChar );
 					pLastSetLine->nToShow = nChar;
 					nLinesShown += nLines;
 				}
@@ -1711,7 +1711,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 				nLines = 1;
 
 				nChar = 0;
-				lprintf( WIDE("Clearing last set line...") );
+				lprintf( "Clearing last set line..." );
 				pLastSetLine = NULL;
 				while( ( dl.start = pText ) )
 				{
@@ -1727,23 +1727,23 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 						nLen = GetTextSize( pText );
 						if( (dl.nOfs + nLen) < phbr->nOffset )
 						{
-							lprintf( WIDE("Skipping segement, it's before the offset...") );
+							lprintf( "Skipping segement, it's before the offset..." );
 							dl.nOfs += nLen;
 						}
 						else
 						{
 							dl.nLine = start; // just has to be different
 							//dl.start = pText; // text in history that started this...
-							lprintf( WIDE("Adding line to display: %p (%d) %d %d")
+							lprintf( "Adding line to display: %p (%d) %d %d"
 									 , dl.start, dl.nOfs, dl.nLine, nLinesShown+nLines );
 							if( nLinesShown + nLines > 0 )
 							{
-								lprintf( WIDE("Set line %d"), nLinesShown + nLines );
+								lprintf( "Set line %d", nLinesShown + nLines );
 								pLastSetLine = (PDISPLAYED_LINE)SetDataItem( CurrentLineInfo
 																						 , nLinesShown + nLines -1
 																						 , &dl );
 							}
-							lprintf( WIDE("After set last set line is %p"), pLastSetLine );
+							lprintf( "After set last set line is %p", pLastSetLine );
 						}
 					}
 					pText = NEXTLINE( pText );
@@ -1751,10 +1751,10 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 				if( !pLastSetLine )
 				{
 					// dl will be initialized as a blank line...
-					lprintf( WIDE("Adding line to display: %p (%d) %d"), dl.start, dl.nOfs, dl.nLine );
+					lprintf( "Adding line to display: %p (%d) %d", dl.start, dl.nOfs, dl.nLine );
 					if( nLinesShown + nLines > 0 )
 					{
-						lprintf( WIDE("Set line %d"), nLinesShown + nLines );
+						lprintf( "Set line %d", nLinesShown + nLines );
 						pLastSetLine = (PDISPLAYED_LINE)SetDataItem( CurrentLineInfo
 																				 , nLinesShown + nLines -1
 																				 , &dl );
@@ -1764,9 +1764,9 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 			}
 		}
 	else
-		lprintf( WIDE("No column defined for browser! please Fix me!") );
+		lprintf( "No column defined for browser! please Fix me!" );
 	//clear_remaining_lines:
-	//lprintf( WIDE("Clearning lines %d to %d"), nLinesShown, nLineCount );
+	//lprintf( "Clearning lines %d to %d", nLinesShown, nLineCount );
 	if( nLinesShown < nLineCount )
 	{
 		DISPLAYED_LINE dl;
@@ -1778,8 +1778,8 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 		{
          // going to begin a new line...
          // setup the line info for the new line...
-			//lprintf( WIDE("Adding line to display: %p (%d) %d"), dl.start, dl.nOfs, dl.nLine );
-         //lprintf( WIDE("Set line %d"), nLinesShown  );
+			//lprintf( "Adding line to display: %p (%d) %d", dl.start, dl.nOfs, dl.nLine );
+         //lprintf( "Set line %d", nLinesShown  );
          SetDataItem( CurrentLineInfo
                     , nLinesShown
                     , &dl );
@@ -1801,7 +1801,7 @@ int DumpHistory( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
     name = GetFileName( ps, &parameters );
     if( name )
     {
-        file = sack_fopen( 0, GetText( name ), WIDE("wt") );      
+        file = sack_fopen( 0, GetText( name ), "wt" );      
         if( file )
         {
            // the whole region...
@@ -1909,7 +1909,7 @@ void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t x, int32_t y )
 
 void SetHistoryPageLines( PHISTORY_BROWSER phbr, uint32_t nLines )
 {
-   //lprintf( WIDE("Set histpry lines at %d"), nLines );
+   //lprintf( "Set histpry lines at %d", nLines );
    phbr->nPageLines = nLines;
 }
 

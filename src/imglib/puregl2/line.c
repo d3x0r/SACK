@@ -126,7 +126,7 @@ void CPROC do_line( ImageFile *pImage, int32_t x1, int32_t y1
 
 		{
 			struct image_shader_op *op;
-			op = BeginImageShaderOp( GetShader( WIDE("Simple Shader") ), pImage, _color  );
+			op = BeginImageShaderOp( GetShader( "Simple Shader" ), pImage, _color  );
 			AppendImageShaderOpTristrip( op, 2, v[vi] );
 		}
 		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
@@ -287,10 +287,10 @@ void CPROC do_lineAlpha( ImageFile *pImage, int32_t x1, int32_t y1
 
 		{
 			struct image_shader_op *op;
-			op = BeginImageShaderOp( GetShader( WIDE("Simple Shader") ), pImage, _color  );
+			op = BeginImageShaderOp( GetShader( "Simple Shader" ), pImage, _color  );
 			AppendImageShaderOpTristrip( op, 2, v[vi] );
 		}
-		//EnableShader( GetShader( WIDE("Simple Shader"), NULL ), v[vi], _color );
+		//EnableShader( GetShader( "Simple Shader", NULL ), v[vi], _color );
 		//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		//CheckErr();
 

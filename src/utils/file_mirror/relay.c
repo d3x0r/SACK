@@ -68,10 +68,10 @@ static void CPROC TCPClose( PCLIENT pc ) /*FOLD00*/
 	PNETWORK_STATE pns = (PNETWORK_STATE)GetNetworkLong( pc, 0 );
 	if( !pns )
 	{
-		lprintf( WIDE("partially connected client disconnected %p"), pc );
+		lprintf( "partially connected client disconnected %p", pc );
 		return;
 	}
-	lprintf( WIDE("Client Disconnected... %p"), pc );
+	lprintf( "Client Disconnected... %p", pc );
 	//if( pc == TCPClient )
 	pns->flags.bWantClose = 1;
 	while( pns->flags.bInUse )
@@ -101,7 +101,7 @@ static void CPROC TCPClose( PCLIENT pc ) /*FOLD00*/
 				}
 				else
 				{
-					lprintf( WIDE("Fatal: Closing socket on a connection that wasn't this one...") );
+					lprintf( "Fatal: Closing socket on a connection that wasn't this one..." );
 				}
 			}
 		}
@@ -109,7 +109,7 @@ static void CPROC TCPClose( PCLIENT pc ) /*FOLD00*/
 		SetNetworkLong( pc, 0, (uintptr_t)NULL );
 		Release( pns );
 	}
-	lprintf( WIDE("Client Disconnect DONE...") );
+	lprintf( "Client Disconnect DONE..." );
 }
 
 //---------------------------------------------------------------------------
@@ -237,13 +237,13 @@ void SetTime( char *buffer ) /*FOLD00*/
 		  */
 		  if( CompareTime( &stNow, &st, 5 ) )
 		  {
-			  lprintf( WIDE(" --- Time was quite near already") );
+			  lprintf( " --- Time was quite near already" );
 			  return;
 		  }
 
         if( !SetLocalTime( &st ) )
         {
-            MessageBox( NULL, WIDE("Failed to set the clock!"), WIDE("Obnoxious box!"), MB_OK );
+            MessageBox( NULL, "Failed to set the clock!", "Obnoxious box!", MB_OK );
         }
     }
 #else
@@ -273,7 +273,7 @@ void SetTime( char *buffer ) /*FOLD00*/
 
 void CPROC LogOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-   lprintf( WIDE("%s"), buffer );
+   lprintf( "%s", buffer );
 }
 
 //---------------------------------------------------------------------------
@@ -288,7 +288,7 @@ static void DoVerifyCommands( PNETWORK_STATE pns, PACCOUNT account )
 	LIST_FORALL( account->verify_commands, idx, CTEXTSTR, update_cmd )
 	{
 		TEXTCHAR cmd[4096];
-		snprintf( cmd, sizeof( cmd ), WIDE("launchcmd -l -s %s -- %s")
+		snprintf( cmd, sizeof( cmd ), "launchcmd -l -s %s -- %s"
 				  , (char*)inet_ntoa( *(struct in_addr*)&dwIP )
 				  , update_cmd );
 		System( cmd, LogOutput, 0 );
@@ -307,7 +307,7 @@ static void DoUpdateCommands( PNETWORK_STATE pns, PACCOUNT account )
 	LIST_FORALL( account->update_commands, idx, CTEXTSTR, update_cmd )
 	{
 		TEXTCHAR cmd[4096];
-		snprintf( cmd, sizeof( cmd ), WIDE("launchcmd -l -s %s -- %s")
+		snprintf( cmd, sizeof( cmd ), "launchcmd -l -s %s -- %s"
 				  , (char*)inet_ntoa( *(struct in_addr*)&dwIP )
 				  , update_cmd );
 		System( cmd, LogOutput, 0 );
@@ -330,11 +330,11 @@ static uintptr_t CPROC UpdateCommandThread( PTHREAD thread )
 			if( !pns->flags.bWantClose )
 			{
 				PCLIENT pc = pns->client_connection->pc;
-				lprintf( WIDE("result done after update commands. to %p"), pc );
+				lprintf( "result done after update commands. to %p", pc );
 				SendTCP( pc, "DONE", 4 ); // tell him we're done so he can close files
 			}
 			else
-				lprintf( WIDE("connection closed as a result of commands issued.") );
+				lprintf( "connection closed as a result of commands issued." );
 			pns->flags.bInUse = 0;
 		}
 		else
@@ -359,10 +359,10 @@ static uintptr_t CPROC DoProcessManifest( PTHREAD thread )
 	// set that we got a copy of the args.
 	thread_args->pns = NULL;
 	args.pns->flags.bInUse = 1;
-	lprintf( WIDE("Begin Process manifest") );
+	lprintf( "Begin Process manifest" );
 	if( ProcessManifest( args.pns, args.pns->account, (uint32_t*)args.buffer, args.size ) )
 	{
-		lprintf( WIDE("Manifest resulted in changes") );
+		lprintf( "Manifest resulted in changes" );
 		if( !args.pns->flags.bWantClose )
 		{
 			if( g.flags.bServeClean || args.pns->account->flags.bClean )
@@ -372,7 +372,7 @@ static uintptr_t CPROC DoProcessManifest( PTHREAD thread )
 			ProcessFileChanges( args.pns->account, args.pns->client_connection );
 	}
 	args.pns->flags.bInUse = 0;
-	lprintf( WIDE("Finished with process manifest") );
+	lprintf( "Finished with process manifest" );
 	return 0;
 }
 
@@ -384,9 +384,9 @@ static void UpdateFailureStatus( TEXTCHAR *msg )
    if( account && account->client.frame )
 	{
 		SetControlText( GetControl( account->client.frame, 1 ), msg );
-		SetControlText( GetControl( account->client.frame, 2 ), WIDE("") );
-		SetControlText( GetControl( account->client.frame, 3 ), WIDE("") );
-		SetControlText( GetControl( account->client.frame, 4 ), WIDE("") );
+		SetControlText( GetControl( account->client.frame, 2 ), "" );
+		SetControlText( GetControl( account->client.frame, 3 ), "" );
+		SetControlText( GetControl( account->client.frame, 4 ), "" );
 	}
 }
 
@@ -397,7 +397,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 	int toread = 4;
 	if( g.flags.log_network_read )
 	{
-		lprintf( WIDE("Received on %p into %p %d"), pc, buffer, size );
+		lprintf( "Received on %p into %p %d", pc, buffer, size );
 		LogBinary( buffer, (size<1024)?size:1024 );
 	}
 
@@ -429,7 +429,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 			{
 				// should really option verbose logging or not...
 				if( g.flags.log_network_read )
-					lprintf( WIDE("Got Msg: %d %4.4s"), size, buffer );
+					lprintf( "Got Msg: %d %4.4s", size, buffer );
 				((uint8_t*)buffer)[4] = 0;
 
 				if( *(uint32_t*)buffer == *(uint32_t*)"OPTS" )
@@ -474,7 +474,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 				{
 					// message sent when there may be a file change...
 					// responce to this is SEND(from, length), NEXT, WHAT
-					// lprintf( WIDE("Remote has a file to send..."));
+					// lprintf( "Remote has a file to send...");
 					SetLastMsg( *(uint32_t*)buffer );
 					if( pns->version >= VER_CODE(3,2) )
 					{
@@ -487,7 +487,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 				else if( *(uint32_t*)buffer == *(uint32_t*)"FDAT" ||
 						  *(uint32_t*)buffer == *(uint32_t*)"CDAT" )
 				{
-					//lprintf( WIDE("Receiving file data..."));
+					//lprintf( "Receiving file data...");
 					LogKnown = FALSE;
 					SetLastMsg( *(uint32_t*)buffer );
 					if( pns->client_connection->version >= VER_CODE( 3, 2 ) )
@@ -528,7 +528,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 						int changes = 0;
 						{
 							if( *(uint32_t*)buffer == *(uint32_t*)"WHAT")
-								lprintf( WIDE("The server has no idea what to do with specified file.") );
+								lprintf( "The server has no idea what to do with specified file." );
 						}
 
 						LIST_FORALL( pns->client_connection->Monitors, idx, PMONDIR, pDir )
@@ -546,7 +546,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 						}
 						if( !changes )
 						{
-							//lprintf( WIDE("Accouncing DONE...") );
+							//lprintf( "Accouncing DONE..." );
 							if( pns->client_connection->flags.bUpdated )
 							{
 								pns->flags.bInUse = 1;
@@ -557,14 +557,14 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 							}
 							else
 							{
-								lprintf( WIDE("No changes left; send done on %p"), pc );
+								lprintf( "No changes left; send done on %p", pc );
 								SendTCP( pc, "DONE", 4 ); // tell him we're done so he can close files
 							}
 						}
 					}
 					else
 					{
-						lprintf( WIDE("Client finished manifest (and all data), send next manifest? %p"), pc );
+						lprintf( "Client finished manifest (and all data), send next manifest? %p", pc );
 						if( pns->client_connection->flags.bUpdated )
 						{
 							pns->flags.bInUse = 1;
@@ -575,7 +575,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 						}
 						else
 						{
-							lprintf( WIDE("no updates, send done on %p"), pc );
+							lprintf( "no updates, send done on %p", pc );
 							SendTCP( pc, "DONE", 4 ); // tell him we're done so he can close files
 						}
 					}
@@ -583,12 +583,12 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 				}
 				else if( *(uint32_t*)buffer == *(uint32_t*)"DONE" )
 				{
-					//lprintf( WIDE("Client has no further changes to report.") );
+					//lprintf( "Client has no further changes to report." );
 					CloseCurrentFile( pns->account, pns );
 					LogKnown = FALSE;
 					if( g.flags.exit_when_done )
 					{
-						lprintf( WIDE("Done, and exiting...") );
+						lprintf( "Done, and exiting..." );
 						bDone = TRUE;
 						WakeThread( g.main_thread );
 						return;
@@ -631,32 +631,32 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					 }
 					 else
 					 {
-					 lprintf( WIDE("datamirror account is not configured!") );
-					 SendTCP( pc, WIDE("QUIT"), 4 );
+					 lprintf( "datamirror account is not configured!" );
+					 SendTCP( pc, "QUIT", 4 );
 					 RemoveClient( pc );
 					 return;
 					 }
 					 */
 					if( g.flags.bServeWindows )
 					{
-						lprintf( WIDE("Sending options") );
+						lprintf( "Sending options" );
 						// format of options ...
 						// 4 characters (a colon followed by 3 is a good format)
 						// the last option must be ':end'.
 						// SO - tell the other side we're a windows system and are going to
 						// give badly cased files - set forcelower, and this side will do only
 						// case-insensitive comparisons on directories and names given.
-						len = snprintf( msg, sizeof( msg ), WIDE("OPTS%s%s:end")
-										  , (g.flags.bServeClean || login->flags.bClean)?WIDE(":cln"):WIDE("")
-										  , g.flags.bServeWindows?WIDE(":win"):WIDE("") );
-						lprintf( WIDE("Sending message: %s(%d)"), msg, len );
+						len = snprintf( msg, sizeof( msg ), "OPTS%s%s:end"
+										  , (g.flags.bServeClean || login->flags.bClean)?":cln":""
+										  , g.flags.bServeWindows?":win":"" );
+						lprintf( "Sending message: %s(%d)", msg, len );
 						SendTCP( pc, msg, len );
 					}
 				}
 				else if( *(uint32_t*)buffer == *(uint32_t*)"EXIT" )
 				{
 					// Bad logins can cause this message...
-					lprintf( WIDE("Login failure... instructed to exit...") );
+					lprintf( "Login failure... instructed to exit..." );
 					bDone = 1;
 					WakeThread( g.main_thread );
 					return;
@@ -667,8 +667,8 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					TEXTCHAR msg[64];
 					bad_login_count++;
 					// Bad logins can cause this message...
-					lprintf( WIDE("Login failure... instructed to exit... %d"), bad_login_count );
-					snprintf( msg, 64, WIDE("Login Failure:%d"), bad_login_count );
+					lprintf( "Login failure... instructed to exit... %d", bad_login_count );
+					snprintf( msg, 64, "Login Failure:%d", bad_login_count );
 					UpdateFailureStatus( msg );
 					RemoveClient( pc ); // close this connect and retry.
 					return;
@@ -676,7 +676,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 				else
 				{
 					// complain unknown message or something....
-					lprintf( WIDE("%s Unknown message received size 4 %08lx %s")
+					lprintf( "%s Unknown message received size 4 %08lx %s"
 						 , pns->account->unique_name
 						 , *(uint32_t*)buffer
 						 , (TEXTSTR)buffer);
@@ -685,7 +685,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 				if( LogKnown )
 				{
 					if( g.flags.log_network_read )
-						lprintf(  WIDE("Known message received size 4 %08lx %s")
+						lprintf(  "Known message received size 4 %08lx %s"
 								 , *(uint32_t*)buffer
 								 , (TEXTSTR)buffer);
 				}
@@ -696,7 +696,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 				//static uint32_t filesize, filestart, filetime, filepath;
 				if( !GetLastMsg )
 				{
-					lprintf( WIDE("Invalid Message recieved: %d no last message buffer:%s"), size, (char*)buffer );
+					lprintf( "Invalid Message recieved: %d no last message buffer:%s", size, (char*)buffer );
 				}
 				else if( GetLastMsg == *(uint32_t*)"OVRL" )
 				{
@@ -711,25 +711,25 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					// indicates more data.....
 					if( *(uint32_t*)buffer == *(uint32_t*)":win" )
 					{
-						//lprintf( WIDE("Windows remote - setting force lower case..."));
+						//lprintf( "Windows remote - setting force lower case...");
 						// and well - there's not much else to do about a windows thing on the other side.
 						bForceLowerCase = TRUE;
 					}
 					else if( *(uint32_t*)buffer == *(uint32_t*)":end" )
 					{
-						//lprintf( WIDE("Received last option - clear last msg"));
+						//lprintf( "Received last option - clear last msg");
 						// last option - clear last message...
 						SetLastMsg( 0 );
 					}
 					else if( *(uint32_t*)buffer == *(uint32_t*)":cln" )
 					{
-						// lprintf( WIDE("other side indicates we want to serve clean (option from server to client)"));
+						// lprintf( "other side indicates we want to serve clean (option from server to client)");
 						// this options may be set on the client without the server knowing, and it will also clean itself.
 						g.flags.bServeClean = 1;
 					}
 					else
 					{
-						lprintf( WIDE("Unknown option: %4.4s - continuing to read options"), buffer );
+						lprintf( "Unknown option: %4.4s - continuing to read options", buffer );
 					}
 					break;
 				}
@@ -744,7 +744,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 							:NULL;
 						PFILE_INFO pFileInfo = pDir?((PFILE_INFO)GetLink( &pDir->files, buf[3] )):NULL;
                   if( !pFileInfo )
-							lprintf( WIDE("pDir %p, index %d:%d (%d"), pDir, buf[2], buf[3], pDir?pDir->files->Cnt:(-1234) );
+							lprintf( "pDir %p, index %d:%d (%d", pDir, buf[2], buf[3], pDir?pDir->files->Cnt:(-1234) );
 						if(  buf[1] & 0xFF000000 )
 						{
 							RemoveClient( pc );
@@ -752,18 +752,18 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 						}
 						if( account )
 						{
-							xlprintf(2100)( WIDE("%s: Send Change[%s]( %ld, %ld )"), account->unique_name, pFileInfo?pFileInfo->name:WIDE("<NULL>"), buf[0], buf[1] );
+							xlprintf(2100)( "%s: Send Change[%s]( %ld, %ld )", account->unique_name, pFileInfo?pFileInfo->name:"<NULL>", buf[0], buf[1] );
 						}
 						else
 						{
-							lprintf( WIDE("<no account>: Send Change[%s]( %ld, %ld )"), pFileInfo?pFileInfo->name:WIDE("<NULL>"), buf[0], buf[1] );
+							lprintf( "<no account>: Send Change[%s]( %ld, %ld )", pFileInfo?pFileInfo->name:"<NULL>", buf[0], buf[1] );
 						}
-						//lprintf( WIDE("pns %p client %p last %p"), pns, pns->client_connection, pns->client_connection->LastFile );
+						//lprintf( "pns %p client %p last %p", pns, pns->client_connection, pns->client_connection->LastFile );
 						if( pns->client_connection->version >= VER_CODE( 3, 2 ) )
 						{
 							if( !SendFileChange( account, pc, buf[2], buf[3], NULL, buf[0], buf[1] ) )
 							{
-								lprintf( WIDE("Fatality - current monitor was lost on %s"), account->unique_name );
+								lprintf( "Fatality - current monitor was lost on %s", account->unique_name );
 								RemoveClient( pc );
 								return;
 							}
@@ -772,7 +772,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 						{
 							if( !SendFileChange( account, pc, 0, 0, pns->client_connection->LastFile, buf[0], buf[1] ) )
 							{
-								lprintf( WIDE("Fatality - current monitor was lost on %s"), account->unique_name );
+								lprintf( "Fatality - current monitor was lost on %s", account->unique_name );
 								RemoveClient( pc );
 								return;
 							}
@@ -793,21 +793,21 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					SetLastMsg( GetLastMsg + 1 );
 					if( pns->file_block_size )
 					{
-						//lprintf( WIDE("Starting read into buffer %d"), pns->file_block_size );
+						//lprintf( "Starting read into buffer %d", pns->file_block_size );
 						ReadTCPMsg( pc
 									 , GetAccountBuffer( pns->client_connection, pns->file_block_size )
 									 , pns->file_block_size );
 					}
 					else
 					{
-						lprintf( WIDE("zero byte read into buffer... (zero size file, just create it)"));
+						lprintf( "zero byte read into buffer... (zero size file, just create it)");
 						TCPRead( pc, buffer, 0 );
 					}
 					return;
 				}
 				else if( GetLastMsg == (*(uint32_t*)"FDAT")+1 )
 				{
-					//lprintf( WIDE("Writing data received into file... FPI:%ld filesize:%ld"), pns->filestart, pns->filesize );
+					//lprintf( "Writing data received into file... FPI:%ld filesize:%ld", pns->filestart, pns->filesize );
 					UpdateAccountFile( pns->account
 										  , pns->filestart
 										  , pns->file_block_size
@@ -874,7 +874,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					{
 						uint32_t* crc = (uint32_t*)Allocate( toread = ( sizeof( uint32_t ) *
 																 (( pns->filesize + 4095 ) / 4096 )) );
-						//lprintf( WIDE("check file on account [%p %p %s] %d"), pns->buffer, buffer, buffer, size );
+						//lprintf( "check file on account [%p %p %s] %d", pns->buffer, buffer, buffer, size );
 						SetLastMsg( GetLastMsg + 1 );
 						buffer = crc;
 						size = toread;
@@ -882,9 +882,9 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					}
 					else
 					{
-						//lprintf( WIDE("Read CRCs(0)!!!!!!"));
+						//lprintf( "Read CRCs(0)!!!!!!");
 					}
-					//lprintf( WIDE("CHANGE BUFFER FOR CRC to %p"), crc );
+					//lprintf( "CHANGE BUFFER FOR CRC to %p", crc );
 					bReleaseCrc = FALSE;
 					goto do_account;
 				}
@@ -895,7 +895,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 				do_account:
 					{
 						uint8_t* realbuffer = (uint8_t*)pns->buffer;
-						//lprintf( WIDE("check file on account [%p %s]"), realbuffer, realbuffer );
+						//lprintf( "check file on account [%p %s]", realbuffer, realbuffer );
 						OpenFileOnAccount( pns
 											  , pns->filepath
 											  , (char*)realbuffer // network buffer
@@ -926,7 +926,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					// of pending changes....
 					PACCOUNT account = pns->account;
 					((char*)buffer)[size] = 0; // nul terminate string...
-					Log5( WIDE("%s Stat file: %s/%s size: %d time: %lld")
+					Log5( "%s Stat file: %s/%s size: %d time: %lld"
 						 , account->unique_name
 						 , ((PDIRECTORY)GetLink( &account->Directories, pns->filepath ))->path
 						 , buffer, pns->filesize
@@ -937,7 +937,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 						AddMonitoredFile( pDir->pHandler, (CTEXTSTR)buffer );
 						// set next scantime to 500 milliseconds - will allow
 						// these guys to get all their changes...
-						//lprintf( WIDE("Okay and - added that file to the monitor..."));
+						//lprintf( "Okay and - added that file to the monitor...");
 						// ask for the next file.
 						SendTCP( pc, "NEXT", 4 );
 					}
@@ -953,7 +953,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					}
 					else
 					{
-						lprintf( WIDE("No filename associated with KILL"));
+						lprintf( "No filename associated with KILL");
 						SendTCP( pc, "WHAT", 4 );
 					}
 				}
@@ -972,7 +972,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					version_code = MakeVersionCode( version );
 					if( version_code < VER_CODE(3,0) )
 					{
-						lprintf( WIDE("Version is below acceptable number. Telling client to exit..."));
+						lprintf( "Version is below acceptable number. Telling client to exit...");
 						SendTCP( pc, "EXIT", 4 );
 						return;
 					}
@@ -985,11 +985,11 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					pns->account = Login( pc, (char*)buffer, (uint32_t)GetNetworkLong( pc, GNL_IP ), pns->version ); // 0 is dwIP .. get that..
 					if( !pns->account )
 					{
-						lprintf( WIDE("Login failed? Told client to exit..."));
+						lprintf( "Login failed? Told client to exit...");
 					}
 					else
 					{
-						//lprintf( WIDE("We accepted that client..."));
+						//lprintf( "We accepted that client...");
 						// for all incoming directories - scan them, and report
 						// for 'stat' of files.
 					}
@@ -1013,9 +1013,9 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					snprintf( filename, 256, "%s/%s"
 							 , ((PDIRECTORY)GetLink( &account->Directories, pns->filepath ))->path
 							 , (char*)buffer );
-					lprintf( WIDE("%s is deleting %s"), account->unique_name, filename );
+					lprintf( "%s is deleting %s", account->unique_name, filename );
 					if( remove( filename ) < 0 )
-						lprintf( WIDE("Failed while deleting file %s"), filename );
+						lprintf( "Failed while deleting file %s", filename );
 					SendTCP( pc, "NEXT", 4 );
 				}
 				else if( GetLastMsg == (*(uint32_t*)"TIME") )
@@ -1024,17 +1024,17 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 				}
 				else if( GetLastMsg == (*(uint32_t*)"QUIT") )
 				{
-					lprintf( WIDE("Connection gave up and quit on me!"));
+					lprintf( "Connection gave up and quit on me!");
 				}
 				else
 				{
 					int tmp = GetLastMsg;
-					Log4( WIDE("Unknown message %4.4s: %d bytes %08lx %s")
+					Log4( "Unknown message %4.4s: %d bytes %08lx %s"
 						 , &tmp
 						 , size
 						 , *(uint32_t*)buffer
 						 , (TEXTSTR)buffer );
-					lprintf( WIDE("Unknown message closing..."));
+					lprintf( "Unknown message closing...");
 					RemoveClient( pc ); // bad state
 				}
 				toread = 4;
@@ -1044,7 +1044,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 	}
 	// normally this would be a VERY bad thing to do...
 	if( g.flags.log_network_read )
-		lprintf( WIDE("read next %d into %p"), toread, buffer );
+		lprintf( "read next %d into %p", toread, buffer );
 	if( !toread )
 		TCPRead( pc, buffer, 0 );
 	ReadTCPMsg( pc, buffer, toread );
@@ -1054,7 +1054,7 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 
 void CPROC TCPControlClose( PCLIENT pc ) /*FOLD00*/
 {
-    lprintf( WIDE("Remote Control closed connection..."));
+    lprintf( "Remote Control closed connection...");
 }
 
 //---------------------------------------------------------------------------
@@ -1077,12 +1077,12 @@ void CPROC TCPControlRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 	}
 	else
 	{
-		lprintf( WIDE("Control Message: %8.8s (%d)"), buffer, size );
+		lprintf( "Control Message: %8.8s (%d)", buffer, size );
 		((char*)buffer)[size] = 0;
 		if( *(uint64_t*)buffer == *(uint64_t*)"DIE NOW!" )
 		{
 			int i;
-			lprintf( WIDE("Instructed to die, and I shall do so.\n"));
+			lprintf( "Instructed to die, and I shall do so.\n");
 			//if( TCPClient )
 			//    RemoveClient( TCPClient );
 			for( i = 0; i < maxconnections; i++ )
@@ -1101,19 +1101,19 @@ void CPROC TCPControlRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 			//int len;
 			//char msg[512];
 			//int i;
-			lprintf( WIDE("Instructed to update for %s"), user[0]?user:"everyone" );
-			lprintf( WIDE("Common updates are not done at the moment..."));
+			lprintf( "Instructed to update for %s", user[0]?user:"everyone" );
+			lprintf( "Common updates are not done at the moment...");
 			SendTCP( pc, "ALL DONE", 8 );
 			toread = 1;
 		}
 		else if( *(uint64_t*)buffer == *(uint64_t*)"GET TIME" )
 		{
-			lprintf( WIDE("Someone's asking for time... "));
+			lprintf( "Someone's asking for time... ");
 			SendTimeEx( pc, TRUE );
 		}
 		else if( *(uint64_t*)buffer == *(uint64_t*)"MASTER??" )
 		{
-			lprintf( WIDE("Responding with Game master status... "));
+			lprintf( "Responding with Game master status... ");
 			SendTCP( pc, "MESSAGE!\x1aWhich Master status?? N/A ", 35 );
 			SendTCP( pc, "ALL DONE", 8 );
 		}
@@ -1123,7 +1123,7 @@ void CPROC TCPControlRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 			PACCOUNT account;
 			int i;
 			int ofs = 0;
-			//lprintf( WIDE("Listing users... %d"), maxconnections );
+			//lprintf( "Listing users... %d", maxconnections );
 			SendTCP( pc, "USERLIST", 8 );
 			ofs = 0;
 			for( i = 0; i < maxconnections; i++ )
@@ -1143,7 +1143,7 @@ void CPROC TCPControlRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 					if( account )
 					{
 						uint32_t IP = (uint32_t)GetNetworkLong( Connection[i].pc, GNL_IP );
-						//lprintf( WIDE("User %s connected..."), account->unique_name );
+						//lprintf( "User %s connected...", account->unique_name );
                         ofs += sprintf( result+ofs, "%s (%d) %s %s %s\n"
                                        , account->unique_name
                                        , account->logincount
@@ -1153,7 +1153,7 @@ void CPROC TCPControlRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
                     }
                     else
                     {
-                        lprintf( WIDE("No account on connection!?!?!"));
+                        lprintf( "No account on connection!?!?!");
                     }
                 }
             }
@@ -1198,7 +1198,7 @@ void CPROC TCPControlRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
                  else
                      user = NULL;
                  if( user )
-                     lprintf( WIDE("Instructed to do scan for %s"), user );
+                     lprintf( "Instructed to do scan for %s", user );
                  for( i = 0; i < maxconnections; i++ )
                  {
                      if( Connection[i].pc )
@@ -1214,7 +1214,7 @@ void CPROC TCPControlRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
                                  PMONDIR pDir;
                                  INDEX idx;
                                  int len;
-                                 lprintf( WIDE("Account for %s found..."), account->unique_name );
+                                 lprintf( "Account for %s found...", account->unique_name );
                                  SendTCP( Connection[i].pc, "SCAN", 4 );
                                  len = sprintf( msg + 9, "Client %s found, issued scan.", account->unique_name );
                                  len += sprintf( msg, "MESSAGE!%c", len );
@@ -1240,7 +1240,7 @@ void CPROC TCPControlRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
             {
 				TEXTCHAR *user = (TEXTCHAR*)buffer+8;
                 int i;
-                lprintf( WIDE("Instructed to do reboot for %s"), user );
+                lprintf( "Instructed to do reboot for %s", user );
             for( i = 0; i < maxconnections; i++ )
             {
                if( Connection[i].pc )
@@ -1254,7 +1254,7 @@ void CPROC TCPControlRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
                         {
                             char msg[256];
                             int len;
-                            lprintf( WIDE("Account for %s found..."), account->unique_name );
+                            lprintf( "Account for %s found...", account->unique_name );
                             SendTCP( Connection[i].pc, "REBT", 4 );
                             len = sprintf( msg+9, "Client found, issued reboot." );
                             len += sprintf( msg, "MESSAGE!%c", len );
@@ -1271,13 +1271,13 @@ void CPROC TCPControlRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
         }
 		else
 		{
-            lprintf( WIDE("Unknown message from controller: %8.8s"), buffer );
+            lprintf( "Unknown message from controller: %8.8s", buffer );
 			RemoveClient( pc );
 			//exit(0);
 		}
     }
     ReadTCP( pc, buffer, 128 ); // should be okay...
-    //lprintf( WIDE("Read enabled on Control Connection!"));
+    //lprintf( "Read enabled on Control Connection!");
 }
 
 //---------------------------------------------------------------------------
@@ -1287,7 +1287,7 @@ void CPROC TCPControlConnect( PCLIENT pServer, PCLIENT pNew ) /*FOLD00*/
    // should wait for a command here...
    // since this control port could be useful for things like 'update common'
    // update self...
-   lprintf( WIDE("Control program attached!"));
+   lprintf( "Control program attached!");
    SetTCPNoDelay( pNew, TRUE );
    SetReadCallback( pNew, TCPControlRead );
 }
@@ -1298,11 +1298,11 @@ void CPROC TCPControlConnect( PCLIENT pServer, PCLIENT pNew ) /*FOLD00*/
 void CPROC TCPConnection( PCLIENT pServer, PCLIENT pNew ) /*FOLD00*/
 {
 	int i;
-	lprintf( WIDE("New connection at %p"), pNew );
+	lprintf( "New connection at %p", pNew );
 	for( i = 0; i < maxconnections; i++ )
 	{
 		if( pNew == Connection[i].pc )
-			lprintf( WIDE("We got a second instance of a client we KNEW about!\n"));
+			lprintf( "We got a second instance of a client we KNEW about!\n");
 	}
 	for( i = 0; i < maxconnections; i++ )
 	{
@@ -1313,22 +1313,22 @@ void CPROC TCPConnection( PCLIENT pServer, PCLIENT pNew ) /*FOLD00*/
 			pns = New( NETWORK_STATE );
 			MemSet( pns, 0, sizeof( NETWORK_STATE ) );
 			SetNetworkLong( pNew, 0, (uintptr_t)pns );
-			lprintf( WIDE("New client %d %s"), i, inet_ntoa( *(struct in_addr*)&dwIP ) );
+			lprintf( "New client %d %s", i, inet_ntoa( *(struct in_addr*)&dwIP ) );
 			pns->connection = Connection+i;
 			Connection[i].LastCommunication = timeGetTime();
 			Connection[i].pc = pNew;
 			SetCloseCallback( pNew, TCPClose );
 			SetReadCallback( pNew, TCPRead );
-			//lprintf( WIDE("Okay... set up everything and going to continue... "));
+			//lprintf( "Okay... set up everything and going to continue... ");
 			break;
 		}
 	}
 	if( i == maxconnections )
 	{
-		lprintf( WIDE("Too many connections!"));
+		lprintf( "Too many connections!");
 		RemoveClient( pNew );
 	}
-	lprintf( WIDE("Finished accepting new connection..."));
+	lprintf( "Finished accepting new connection...");
 }
 
 //---------------------------------------------------------------------------
@@ -1367,7 +1367,7 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 				if( pns->account )
 				{
 					uint32_t IP = (uint32_t)GetNetworkLong( pcping, GNL_IP );
-					//lprintf( WIDE("User %s connected..."), account->unique_name );
+					//lprintf( "User %s connected...", account->unique_name );
 
 					lprintf( "%p Checking connection %d %ld.%ld %s(%d) %s"
 						, pcping 
@@ -1384,14 +1384,14 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 					{
 						if( pns->pings_sent > 4 )
 						{
-							lprintf( WIDE("Connection[%d] %s is not responding... closing"), i,
+							lprintf( "Connection[%d] %s is not responding... closing", i,
 									  ((PACCOUNT)pns->account)->unique_name );
 							pns->pings_sent = 0;
 							RemoveClient( pcping );
 						}
 						else
 						{
-							lprintf( WIDE("Connection is quiet, sending ping."));
+							lprintf( "Connection is quiet, sending ping.");
 							pns->last_message_time = timeGetTime();
 							pns->pings_sent++;
 							SendTCP( pcping, "PING", 4 );
@@ -1414,7 +1414,7 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 			else
 			{
 				bRetry = 1;
-				lprintf( WIDE("Failed to get lock... %d"), i );
+				lprintf( "Failed to get lock... %d", i );
 			}
 		}
 		if( !did_one )
@@ -1432,7 +1432,7 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 
 static void CPROC ExitButton( uintptr_t psv, PSI_CONTROL pc )
 {
-   lprintf( WIDE("Exit button clicked, indicating done and waking main."));
+   lprintf( "Exit button clicked, indicating done and waking main.");
 	bDone = 1;
 	WakeThread( g.main_thread );
 }
@@ -1553,8 +1553,8 @@ uintptr_t CPROC ClientTimerProc( PTHREAD thread )
 							{
 								char msg[256];
 								int len;
-								lprintf( WIDE("need login - try lock?"));
-								lprintf( WIDE("Connected, and logging in as %s"), account->unique_name );
+								lprintf( "need login - try lock?");
+								lprintf( "Connected, and logging in as %s", account->unique_name );
 								len = sprintf( msg, "VERS%c%sUSER%c%s"
 												 , (int)strlen( RELAY_VERSION ), RELAY_VERSION
 												 , (int)strlen( account->unique_name ), account->unique_name );
@@ -1572,7 +1572,7 @@ uintptr_t CPROC ClientTimerProc( PTHREAD thread )
 							{
 								if( pns->pings_sent > 10 )
 								{
-									lprintf( WIDE("Connection is not responding... closing"));
+									lprintf( "Connection is not responding... closing");
 									pns->pings_sent = 0;
 									RemoveClient( account->client.TCPClient );
 									// this removes TCPClient which causes an error in the network unlock.
@@ -1582,7 +1582,7 @@ uintptr_t CPROC ClientTimerProc( PTHREAD thread )
 									pns->last_message_time = timeGetTime();
 									pns->pings_sent++;
 									SendTCP( account->client.TCPClient, "PING", 4 );
-									//lprintf( WIDE("Sending a ping...."));
+									//lprintf( "Sending a ping....");
 								}
 							}
 						}
@@ -1590,7 +1590,7 @@ uintptr_t CPROC ClientTimerProc( PTHREAD thread )
 				}
 				else
 				{
-					lprintf( WIDE("Failed to open the socket?"));
+					lprintf( "Failed to open the socket?");
 				}
 			}
 		}
@@ -1604,17 +1604,17 @@ uintptr_t CPROC ClientTimerProc( PTHREAD thread )
 
 ATEXIT( FileMirrorMain )
 {
-   lprintf( WIDE("AtExit fired; might not be the main thread, so trigger done and wake main."));
+   lprintf( "AtExit fired; might not be the main thread, so trigger done and wake main.");
 	bDone = 1;
 	WakeThread( g.main_thread );
 }
 
 static void usage( void )
 {
-	lprintf( WIDE("relay [-cC <configname] [-xX] [-kK]"));
-	lprintf( WIDE("   -k klean other files that are not part of this"));
-	lprintf( WIDE("   -x exit when scan from server is done"));
-	lprintf( WIDE("   -c specify the config file name"));
+	lprintf( "relay [-cC <configname] [-xX] [-kK]");
+	lprintf( "   -k klean other files that are not part of this");
+	lprintf( "   -x exit when scan from server is done");
+	lprintf( "   -c specify the config file name");
 	printf( "relay [-cC <configname] [-xX] [-kK]\n" );
 	printf( "   -k klean other files that are not part of this\n" );
 	printf( "   -x exit when scan from server is done\n" );
@@ -1696,10 +1696,10 @@ int main( char argc, char **argv ) /*FOLD00*/
 			INDEX idx_file;
 			PDIRECTORY directory;
 			PFILE_INFO pFileInfo;
-			lprintf( WIDE("Verifying directories on %s"), account );
+			lprintf( "Verifying directories on %s", account );
 			LIST_FORALL( account->Directories, idx_dir, PDIRECTORY, directory )
 			{
-				lprintf( WIDE("directory is %s"), directory->path );
+				lprintf( "directory is %s", directory->path );
 				LIST_FORALL( directory->files, idx_file, PFILE_INFO, pFileInfo )
 				{
 					if( pFileInfo->dwSize == 0xFFFFFFFF )
@@ -1712,23 +1712,23 @@ int main( char argc, char **argv ) /*FOLD00*/
 						int result;
 						snprintf( full_name, MAX_PATH, "%s/%s", directory->path, pFileInfo->name );
 						result = ReadValidateCRCs( NULL, pFileInfo->crc, pFileInfo->crclen, full_name, pFileInfo->dwSize, pFileInfo );
-						//lprintf( WIDE("Read validate of %s %d"), full_name, result );
+						//lprintf( "Read validate of %s %d", full_name, result );
 						switch( result )
 						{
 						case 0:
-							lprintf( WIDE("Read validate of %s %d"), full_name, result );
-							lprintf( WIDE("Failure to open file which is in the manifest.  Mismatch."));
+							lprintf( "Read validate of %s %d", full_name, result );
+							lprintf( "Failure to open file which is in the manifest.  Mismatch.");
 							// file did not exist.
 							break;
 						case 1:
 							// file exists, and matches?
 							break;
 						case 2:
-							lprintf( WIDE("Length error : %s"), pFileInfo->full_name );
+							lprintf( "Length error : %s", pFileInfo->full_name );
 							// too much data on one side or other...
 							break;
 						case 3:
-							lprintf( WIDE("CRC mismatch : %s"), pFileInfo->full_name );
+							lprintf( "CRC mismatch : %s", pFileInfo->full_name );
 							// file CRCs mismatched
 							break;
 						}
@@ -1748,7 +1748,7 @@ int main( char argc, char **argv ) /*FOLD00*/
 	// servers should have lots...
 	if( !maxconnections )
 	{
-		lprintf( WIDE("You may want to specify 'max connections=#' in the %s file"), g.configname );
+		lprintf( "You may want to specify 'max connections=#' in the %s file", g.configname );
 		maxconnections = 256;
 	}
 
@@ -1756,7 +1756,7 @@ int main( char argc, char **argv ) /*FOLD00*/
 	MemSet( Connection, 0, sizeof( CONNECTION ) * maxconnections );
 	if( !NetworkWait( 0, maxconnections+3, 1 ) )
 	{
-		lprintf( WIDE("Network did not initialize. Bye."));
+		lprintf( "Network did not initialize. Bye.");
 		return 0;
 	}
 	pdq_update_commands = CreateLinkQueue();
@@ -1764,7 +1764,7 @@ int main( char argc, char **argv ) /*FOLD00*/
 
 	{
 		PNETBUFFER pNetBuffer = g.NetworkBuffers;
-		lprintf( WIDE("First net buffer: %p"), g.NetworkBuffers );
+		lprintf( "First net buffer: %p", g.NetworkBuffers );
 		while( pNetBuffer )
 		{
 			DumpAddr( "Opening server: ", pNetBuffer->sa );
@@ -1786,7 +1786,7 @@ int main( char argc, char **argv ) /*FOLD00*/
 					altport++;
 				if( altport > 10030 )
 				{
-					lprintf( WIDE("Failed to open control socket server"));
+					lprintf( "Failed to open control socket server");
 					break;
 				}
 				//Sleep( 2000 );
@@ -1796,32 +1796,32 @@ int main( char argc, char **argv ) /*FOLD00*/
 
 	if( !g.NetworkBuffers && !g.AccountList )
 	{
-		lprintf( WIDE("No server or client mode defined. Exiting."));
+		lprintf( "No server or client mode defined. Exiting.");
 		return 0;
 	}
 
 	ChangeIcon( (char*)ICO_RELAY );
 	if( g.NetworkBuffers ) // had someone to listen to...
 	{
-		lprintf( WIDE("Starting server...."));
+		lprintf( "Starting server....");
 		pServer = ThreadTo( ServerTimerProc, 0 );
 	}
 
 	if( g.AccountList ) // had someone to login as...
 	{
-		lprintf( WIDE("Starting client...."));
+		lprintf( "Starting client....");
 		pClient = ThreadTo( ClientTimerProc, 0 );
 	}
 
-	g.flags.log_network_read = SACK_GetProfileInt( GetProgramName(), WIDE("Log network reads"), 0 );
-	g.flags.log_file_ops = SACK_GetProfileInt( GetProgramName(), WIDE("Log file operations"), 0 );
+	g.flags.log_network_read = SACK_GetProfileInt( GetProgramName(), "Log network reads", 0 );
+	g.flags.log_file_ops = SACK_GetProfileInt( GetProgramName(), "Log file operations", 0 );
 
 #ifdef _WIN32
 	g.main_thread = MakeThread();
-   lprintf( WIDE("In main thread; waiting forever"));
+   lprintf( "In main thread; waiting forever");
 	while( !bDone )
 		WakeableSleep( 100000 );
-	lprintf( WIDE("Done was set, and now we exit...."));
+	lprintf( "Done was set, and now we exit....");
 
    // set done again, just in case, to allow other threads to end gracefully.
 	bDone = 1;

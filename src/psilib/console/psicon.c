@@ -120,7 +120,7 @@ static int CPROC InitPSIConsole( PSI_CONTROL pc );
 static int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b );
 static int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key );
 
-CONTROL_REGISTRATION ConsoleClass = { WIDE("PSI Console"), { { 640, 480 }, sizeof( CONSOLE_INFO ), BORDER_NORMAL|BORDER_RESIZABLE|BORDER_FIXED }
+CONTROL_REGISTRATION ConsoleClass = { "PSI Console", { { 640, 480 }, sizeof( CONSOLE_INFO ), BORDER_NORMAL|BORDER_RESIZABLE|BORDER_FIXED }
 												, InitPSIConsole
 												, NULL
 												, NULL//RenderChildWindow
@@ -131,7 +131,7 @@ CONTROL_REGISTRATION ConsoleClass = { WIDE("PSI Console"), { { 640, 480 }, sizeo
 
 int CPROC RenderSeparator( PCONSOLE_INFO console, int nStart )
 {
-	//lprintf( WIDE("Render separator %d-%d %d"), 0, console->nWidth, nStart );
+	//lprintf( "Render separator %d-%d %d", 0, console->nWidth, nStart );
 	if( nStart > 0 && (int64_t)nStart < console->nHeight )
 	{
 		// Render Command Line Separator
@@ -192,7 +192,7 @@ void CPROC PSI_Console_KeystrokePaste( PCONSOLE_INFO console )
 	 else
 	{
 #ifdef __DEKWARE_PLUGIN__
-		  DECLTEXT( msg, WIDE( "Clipboard was not available" ) );
+		  DECLTEXT( msg, "Clipboard was not available" );
 		  EnqueLink( &console->common.Output, (PTEXT)&msg );
 #endif
 	 }
@@ -203,14 +203,14 @@ void CPROC PSI_Console_KeystrokePaste( PCONSOLE_INFO console )
 
 //----------------------------------------------------------------------------
 
-static int OnDrawCommon( WIDE("PSI Console") )( PSI_CONTROL pc )
+static int OnDrawCommon( "PSI Console" )( PSI_CONTROL pc )
 {
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	//PCONSOLE_INFO console = (PCONSOLE_INFO)GetCommonUserData(pc);
-	//lprintf( WIDE("Rendering window.") );
+	//lprintf( "Rendering window." );
 	if( !console )
 	{
-		Log( WIDE("How could we have gotten here without a console??") );
+		Log( "How could we have gotten here without a console??" );
 		return 0;
 	}
 	console->psicon.image = GetFrameSurface( pc );
@@ -227,14 +227,14 @@ static int OnDrawCommon( WIDE("PSI Console") )( PSI_CONTROL pc )
 		console->rArea.right = console->psicon.image->width;
 		console->rArea.top = 0;
 		console->rArea.bottom = console->psicon.image->height;
-		//lprintf( WIDE("Updating child propportions...") );
+		//lprintf( "Updating child propportions..." );
 		
 		PSI_ConsoleCalculate( console, GetCommonFont( pc ) ); // this includes doing a render.
 	}
 	else {
 		PSI_RenderConsole( console, GetCommonFont( pc ) );
 	}
-	//lprintf( WIDE( "Done rendering child." ) );
+	//lprintf( "Done rendering child." );
 	return TRUE;
 }
 
@@ -253,7 +253,7 @@ int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 	if( console )
 	{
 		const TEXTCHAR *character = GetKeyText( key );
-		DECLTEXT( stroke, WIDE("                                       ") ); // single character ...
+		DECLTEXT( stroke, "                                       " ); // single character ...
 		if( !console ) // not a valid window handle/device path
 			return 0;
 		EnterCriticalSec( &console->Lock );
@@ -287,7 +287,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int32_t _x, _y;
 	static uint32_t _b;
-	//lprintf( WIDE("Mouse thing...%ld,%ld %08lx"), x, y, b );
+	//lprintf( "Mouse thing...%ld,%ld %08lx", x, y, b );
 	{
 		int xPos, yPos, row, col;
 		//PCONSOLE_INFO console;
@@ -398,7 +398,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 #endif
 #endif
 						}
-						//Log( WIDE( "Ending mark." ) );
+						//Log( "Ending mark." );
 						console->flags.bMarking = 0;
 						console->flags.bUpdatingEnd = 0;
 					}
@@ -407,7 +407,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 			}
 			if( !(b & MK_LBUTTON) && (_b & MK_LBUTTON) )
 			{
-				//Log( WIDE( "Ending mark(2)." ) );
+				//Log( "Ending mark(2)." );
 				console->flags.bMarking = 0;
 				console->flags.bUpdatingEnd = 0;
 				SmudgeCommon( console->psicon.frame );
@@ -488,7 +488,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 					//console->psicon.hFont = (SFTFont)font;
 					SetCommonFont( console->psicon.frame, (SFTFont)font );
 					//GetDefaultFont();
-					//GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
+					//GetStringSizeFont( " ", &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
 					PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
 				}
 			}
@@ -499,7 +499,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 					 if( PickColor( &color, console->psicon.crCommand, console->psicon.frame ) )
 						  console->psicon.crCommand = color;
 					 else
-						  Log2( WIDE("Colors %08x %08x"), color, console->psicon.crCommand );
+						  Log2( "Colors %08x %08x", color, console->psicon.crCommand );
 				}
 			break;
 		  case MNU_COMMAND_BACK:
@@ -508,7 +508,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 					 if( PickColor( &color, console->psicon.crCommandBackground, console->psicon.frame ) )
 						  console->psicon.crCommandBackground = color;
 					 else
-						  Log2( WIDE("Colors %08x %08x"), color, console->psicon.crCommandBackground );
+						  Log2( "Colors %08x %08x", color, console->psicon.crCommandBackground );
 				}
 			break;
 		}
@@ -556,16 +556,16 @@ int RegisterWindows( void )
 		return TRUE;
 	//Log( "Done with psi interfaces.." );
 	hChildMenu = CreatePopup();
-	//Log( WIDE( "Created menu..." ) );
-	AppendPopupItem( hChildMenu, MF_STRING, MNU_FONT, WIDE( "Set Font" ) );
-	//Log( WIDE( "Added an ittem..." ) );
+	//Log( "Created menu..." );
+	AppendPopupItem( hChildMenu, MF_STRING, MNU_FONT, "Set Font" );
+	//Log( "Added an ittem..." );
 	{
 		hHistoryMenu = CreatePopup();
-		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, WIDE( "25%" ) );
-		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, WIDE( "50%" ) );
-		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, WIDE( "75%" ) );
-		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, WIDE( "100%" ) );
-		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hHistoryMenu, WIDE( "History Display Size" ) );
+		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, "25%" );
+		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, "50%" );
+		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, "75%" );
+		AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, "100%" );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hHistoryMenu, "History Display Size" );
 	}
 	{
 		PMENU hColorMenu, hColorMenu2;
@@ -586,7 +586,7 @@ int RegisterWindows( void )
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTMAG, (POINTER)DrawMenuItem );
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_YELLOW, (POINTER)DrawMenuItem );
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_WHITE, (POINTER)DrawMenuItem );
-		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu, WIDE( "Text Color" ) );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu, "Text Color" );
 		hColorMenu2 = CreatePopup();
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLACK, (POINTER)DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLUE, (POINTER)DrawMenuItem );
@@ -604,12 +604,12 @@ int RegisterWindows( void )
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTMAG, (POINTER)DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKYELLOW, (POINTER)DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKWHITE, (POINTER)DrawMenuItem );
-		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu2, WIDE( "Background Color" ) );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu2, "Background Color" );
 	}
-	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_COLOR, WIDE( "Command Color" ) );
-	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_BACK, WIDE( "Command Background Color" ) );
-	AppendPopupItem( hChildMenu, MF_STRING, MNU_DIRECT, WIDE( "Direct Mode" ) );
-	//Log( WIDE( "Menus created..." ) );
+	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_COLOR, "Command Color" );
+	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_BACK, "Command Background Color" );
+	AppendPopupItem( hChildMenu, MF_STRING, MNU_DIRECT, "Direct Mode" );
+	//Log( "Menus created..." );
 	cPenNormal = GetBaseColor( NORMAL );
 	cPenHighlight = GetBaseColor( HIGHLIGHT );
 	cPenShadow = GetBaseColor( SHADE );
@@ -712,8 +712,8 @@ PRELOAD(RegisterConsole)
 	//ImageInterface = GetImageInterface();
 	//RenderInterface = GetDisplayInterface();
 	DoRegisterControl( &ConsoleClass );
-	//SimpleRegisterMethod( WIDE( "psi/control/" ) WIDE( "Dekware PSI Console" ) WIDE( "/rtti/extra init" )
-	//						  , InitDekwareConsole, WIDE( "int" ), WIDE( "extra init" ), WIDE( "(PSI_CONTROL)" ) );
+	//SimpleRegisterMethod( "psi/control/" "Dekware PSI Console" "/rtti/extra init"
+	//						  , InitDekwareConsole, "int", "extra init", "(PSI_CONTROL)" );
 
 }
 
@@ -731,7 +731,7 @@ void CPROC PSIMeasureString( uintptr_t psvConsole, CTEXTSTR s, int nShow, uint32
 static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, RECT *r, CTEXTSTR s, int nShown, int nShow )
 {
 	//uint32_t width;
-	//lprintf( WIDE( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX" ), console, s, nShown, nShow,x,y,r->left,r->top
+	//lprintf( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX", console, s, nShown, nShow,x,y,r->left,r->top
 	//		 , console->psicon.crText, console->psicon.crBack );
 
 	if(0)  // strings are measured way before drawstring happens now...
@@ -742,7 +742,7 @@ static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, RECT *r, CTEX
 		r->bottom = r->top + h;
 	}
 #ifdef DEBUG_OUTPUT
-	lprintf( WIDE("Output string  xy(%d,%d)   lr(%d-%d)  tb(%d-%d) %*.*s  %08x %08x")
+	lprintf( "Output string  xy(%d,%d)   lr(%d-%d)  tb(%d-%d) %*.*s  %08x %08x"
 		, x, y
 		, (*r).left, (*r).right, (*r).top, (*r).bottom
 		, nShow, nShow, s + nShown, console->psicon.crText, console->psicon.crBack );
@@ -780,7 +780,7 @@ static void CPROC SetCurrentColor( PCONSOLE_INFO console, enum current_color_typ
 		}
 		break;
 	}
-	//lprintf( WIDE( "Set Color :%p %d #%08lX #%08lX" ), console, type
+	//lprintf( "Set Color :%p %d #%08lX #%08lX", console, type
 	//		 , console->psicon.crText, console->psicon.crBack );
 }
 
@@ -871,15 +871,15 @@ static void CPROC ConsoleUpdate( PCONSOLE_INFO pmdp, RECT *upd )
 {
 	// passed region is the region which was updated by drawing
 	// code.
-	//lprintf( WIDE( "------------------------------------" ) );
-	//lprintf( WIDE("update some controls... %d,%d - %d,%d"), upd->left, upd->right, upd->top, upd->bottom );
+	//lprintf( "------------------------------------" );
+	//lprintf( "update some controls... %d,%d - %d,%d", upd->left, upd->right, upd->top, upd->bottom );
 	upd->right -= upd->left;
 	upd->bottom -= upd->top;
 	// this causes the parent to update? shoudl be smart and recall the parent's
 	// saved original picture here...
 
 	UpdateSomeControls( pmdp->psicon.frame, (IMAGE_RECTANGLE*)upd );
-	//lprintf( WIDE("------------------------------------") );
+	//lprintf( "------------------------------------" );
 }
 
 //----------------------------------------------------------------------------
@@ -900,7 +900,7 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	if( !RegisterWindows() )
 	{
-		//Log( WIDE("Register windows failed...") );
+		//Log( "Register windows failed..." );
 		return FALSE; // cancel load, unload library...
 	}
 	FillDefaultColors();
@@ -909,8 +909,8 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 
 	if( console )
 	{
-		//console->common.pName = SegCreateFromText( WIDE("Auto Console") );
-		//Log( WIDE("Create frame!!") );
+		//console->common.pName = SegCreateFromText( "Auto Console" );
+		//Log( "Create frame!!" );
 		console->psicon.frame = pc;
 
 		InitializeCriticalSec( &console->Lock );

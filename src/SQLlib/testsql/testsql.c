@@ -108,10 +108,10 @@ int main( int argc, char **argv )
 						for( n = 0; n < fields; n++ )
 						{
 
-							fprintf( stdout, WIDE("%s%s"), first?"":",",result[n]?result[n]:"NULL" );
+							fprintf( stdout, "%s%s", first?"":",",result[n]?result[n]:"NULL" );
 							first = 0;
 						}
-						fprintf( stdout, WIDE("\n") );
+						fprintf( stdout, "\n" );
 					}
 					first = 0;
 					count++;
@@ -151,7 +151,7 @@ int main( int argc, char **argv )
 				CTEXTSTR result;
 				GetSQLError( &result );
 				if( result )
-					fprintf( stderr, WIDE("%s"), result );
+					fprintf( stderr, "%s", result );
 				else
                fprintf( stderr, "Failed, no error result.\n" );
 			}
@@ -209,7 +209,7 @@ int main( int argc, char **argv )
 					{
 						CTEXTSTR result;
 						GetSQLError( &result );
-						fprintf( stderr, WIDE("%s\n"), result );
+						fprintf( stderr, "%s\n", result );
 					}
 				}
 				if( output )
@@ -225,7 +225,7 @@ int main( int argc, char **argv )
 					DeleteList( &outputs );
 					DeleteList( &output );
 				}
-				printf( WIDE("Ok.\n") );
+				printf( "Ok.\n" );
 			}
 			else
 			{
@@ -233,10 +233,10 @@ int main( int argc, char **argv )
 				{
 					CTEXTSTR result;
 					GetSQLError( &result );
-					fprintf( stderr, WIDE("%s\n"), result );
+					fprintf( stderr, "%s\n", result );
 				}
 				else
-					fprintf( stderr, WIDE("Ok.\n") );
+					fprintf( stderr, "Ok.\n" );
 			}
 		}
 		else if( buf[0] == '=' )
@@ -278,11 +278,11 @@ int main( int argc, char **argv )
 		}
 		else
 		{
-			fprintf( stderr, WIDE("%s"), buf );
-			fprintf( stderr, WIDE("Command must start with '?' or '!' or '='.\n") );
-			fprintf( stderr, WIDE("?<query> results go to the current output, or the screen if non specified before\n") );
-			fprintf( stderr, WIDE("!<command> - issues command to \n") );
-			fprintf( stderr, WIDE("=<table>@<DSN><,DSN>,...> setup output to these DSN's for next command or query result\n") );
+			fprintf( stderr, "%s", buf );
+			fprintf( stderr, "Command must start with '?' or '!' or '='.\n" );
+			fprintf( stderr, "?<query> results go to the current output, or the screen if non specified before\n" );
+			fprintf( stderr, "!<command> - issues command to \n" );
+			fprintf( stderr, "=<table>@<DSN><,DSN>,...> setup output to these DSN's for next command or query result\n" );
 		}
 	}
 	{

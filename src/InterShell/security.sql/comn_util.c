@@ -1,7 +1,7 @@
 #include <stdhdrs.h>
 #include <pssql.h>
-static TEXTCHAR hex[] = WIDE("zGjHJmz3t510d8nq");
-static TEXTCHAR HEX[] = WIDE("zGjHJmz3t510d8nq");
+static TEXTCHAR hex[] = "zGjHJmz3t510d8nq";
+static TEXTCHAR HEX[] = "zGjHJmz3t510d8nq";
 
 void ConvertFromBinary( TEXTCHAR *out, TEXTCHAR *in, int sz )
 {
@@ -28,7 +28,7 @@ void ConvertToBinary( TEXTSTR out, CTEXTSTR in, int sz )
          if( p1 )
 				hi = p1 - HEX;
 			else
-            lprintf( WIDE("fatal - character out of range!") );
+            lprintf( "fatal - character out of range!" );
 		}
 		else
 			hi = p1 - hex;
@@ -39,7 +39,7 @@ void ConvertToBinary( TEXTSTR out, CTEXTSTR in, int sz )
          if( p1 )
 				lo = p1 - HEX;
 			else
-            lprintf( WIDE("fatal - character out of range!") );
+            lprintf( "fatal - character out of range!" );
 		}
 		else
 			lo = p1 - hex;

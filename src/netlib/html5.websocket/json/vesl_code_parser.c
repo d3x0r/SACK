@@ -234,25 +234,25 @@ enum { OP_HANG = VALUE_OP_BASE + 20 /*-1*/  // used to indicate prior value_type
      //, OP_
 };
 
-const char *fullopname[] = { "noop", WIDE("sub-expr")
+const char *fullopname[] = { "noop", "sub-expr"
                            ,  "uint8_t",  "uint16_t",  "uint32_t",  "uint64_t" // unsigned int
-                           , WIDE("int8_t"), WIDE("int16_t"), WIDE("int32_t"), WIDE("int64_t") // signed int
-                           , WIDE("float"), WIDE("double") // float ops
-                           , WIDE("string"), WIDE("character")
-                           , WIDE("="), WIDE("==")
-                           , WIDE("+"), WIDE("++"), WIDE("+=")
-                           , WIDE("-"), WIDE("--"), WIDE("-=")
-                           , WIDE("*"), WIDE("*=")
-                           , WIDE("%"), WIDE("%=")
-                           , WIDE("/"), WIDE("/=")
-                           , WIDE("^"), WIDE("^=")
-                           , WIDE("~")
-                           , WIDE("!"), WIDE("!=")
-                           , WIDE(">"), WIDE(">>"), WIDE(">="), WIDE(">>=")
-                           , WIDE("<"), WIDE("<<"), WIDE("<="), WIDE("<<=")
-                           , WIDE("&"), WIDE("&&"), WIDE("&=")
-                           , WIDE("|"), WIDE("||"), WIDE("|=")
-                           , WIDE("?"), WIDE(":"), WIDE(",")
+                           , "int8_t", "int16_t", "int32_t", "int64_t" // signed int
+                           , "float", "double" // float ops
+                           , "string", "character"
+                           , "=", "=="
+                           , "+", "++", "+="
+                           , "-", "--", "-="
+                           , "*", "*="
+                           , "%", "%="
+                           , "/", "/="
+                           , "^", "^="
+                           , "~"
+                           , "!", "!="
+                           , ">", ">>", ">=", ">>="
+                           , "<", "<<", "<=", "<<="
+                           , "&", "&&", "&="
+                           , "|", "||", "|="
+                           , "?", ":", ","
                      };
 
 
@@ -471,12 +471,12 @@ static int RelateOpNode( struct vesl_code_parser_state *l, OPNODE root, OPNODE c
 {
 	if( !node )
 	{
-		lprintf( WIDE("Fatal Error: cannot relate a NULL node\n") );
+		lprintf( "Fatal Error: cannot relate a NULL node\n" );
 		return 0;
 	}
 	if( !root )
 	{
-		lprintf( WIDE("Fatal error: Cannot build expression tree with NULL root.\n") );
+		lprintf( "Fatal error: Cannot build expression tree with NULL root.\n" );
 		return 0;
 	}
 #ifdef C_PRE_PROCESSOR
@@ -495,7 +495,7 @@ static int RelateOpNode( struct vesl_code_parser_state *l, OPNODE root, OPNODE c
 	case OP_SHLEQUAL:
 	case OP_ANDEQUAL:
 	case OP_OREQUAL:
-		lprintf( WIDE("%s(%d) Error: preprocessor expression may not use operand %s\n")
+		lprintf( "%s(%d) Error: preprocessor expression may not use operand %s\n"
 		       , GetCurrentFileName( l ), GetCurrentLine(l), fullopname[ node->O_O value_type ] );
 		//DestroyOpNode( node );
 		return 0;
@@ -550,7 +550,7 @@ static int GetInteger( struct vesl_code_parser_state *l, LONGEST_INT *result, in
   					okay = 0;
   					if( *p == '.' )
   					{
-  						lprintf( WIDE("%s(%d) Error: Hexadecimal may not be used to define a float.\n"), GetCurrentFileName( l ), GetCurrentLine( l ) );
+  						lprintf( "%s(%d) Error: Hexadecimal may not be used to define a float.\n", GetCurrentFileName( l ), GetCurrentLine( l ) );
   						return 2; // invalid number.
   					}
   				}
@@ -573,9 +573,9 @@ static int GetInteger( struct vesl_code_parser_state *l, LONGEST_INT *result, in
 		 	else if( p[0] )
 		 	{
 		 		if( p[0] < 32 )
-			 		lprintf( WIDE("%s(%d) Error: Octal constant has invalid character 0x%02x\n"), GetCurrentFileName( l ), GetCurrentLine( l ) , p[0] );
+			 		lprintf( "%s(%d) Error: Octal constant has invalid character 0x%02x\n", GetCurrentFileName( l ), GetCurrentLine( l ) , p[0] );
 				else
-			 		lprintf( WIDE("%s(%d) Error: Octal constant has invalid character '%c'\n"), GetCurrentFileName( l ), GetCurrentLine( l ) , p[0] );
+			 		lprintf( "%s(%d) Error: Octal constant has invalid character '%c'\n", GetCurrentFileName( l ), GetCurrentLine( l ) , p[0] );
 		 		return 2;
 		 	}
 	  	}
@@ -596,7 +596,7 @@ static int GetInteger( struct vesl_code_parser_state *l, LONGEST_INT *result, in
 			{
 				if( unsigned_value )
 				{
-					lprintf( WIDE("%s(%d) Error: U or u qualifiers specifed more than once on a constant.\n"), GetCurrentFileName( l ), GetCurrentLine( l )  );
+					lprintf( "%s(%d) Error: U or u qualifiers specifed more than once on a constant.\n", GetCurrentFileName( l ), GetCurrentLine( l )  );
 					return 2;
 				}
 				unsigned_value = 1;
@@ -606,7 +606,7 @@ static int GetInteger( struct vesl_code_parser_state *l, LONGEST_INT *result, in
 			{
 				if( long_value )
 				{
-					lprintf( WIDE("%s(%d) Error: too many L or l qualifiers specifed on a constant.\n"), GetCurrentFileName( l ), GetCurrentLine( l )  );
+					lprintf( "%s(%d) Error: too many L or l qualifiers specifed on a constant.\n", GetCurrentFileName( l ), GetCurrentLine( l )  );
 					return 2;
 				}
 				if( p[1] && ( p[1] == 'l' || p[1] == 'L' ) )
@@ -621,10 +621,10 @@ static int GetInteger( struct vesl_code_parser_state *l, LONGEST_INT *result, in
 			else
 			{
 				if( p[0] < 32 )
-					lprintf( WIDE("%s(%d) Error: Invalid type specification 0x%02x.\n")
+					lprintf( "%s(%d) Error: Invalid type specification 0x%02x.\n"
 					       , GetCurrentFileName( l ), GetCurrentLine( l ), p[1] );
 				else
-					lprintf( WIDE("%s(%d) Error: Invalid type specification '%c'.\n")
+					lprintf( "%s(%d) Error: Invalid type specification '%c'.\n"
 					       , GetCurrentFileName(l), GetCurrentLine( l ), p[1] );
 				return 2;
 
@@ -646,7 +646,7 @@ static int GetInteger( struct vesl_code_parser_state *l, LONGEST_INT *result, in
 static int GetFloat( LONGEST_FLT *result, int *length )
 {
 	LONGEST_FLT accum = 0;
-	//lprintf( WIDE("At this time 'expr.c' does not do float conversion...\n") );
+	//lprintf( "At this time 'expr.c' does not do float conversion...\n" );
 	return 0;
 }
 
@@ -660,24 +660,24 @@ void LogExpression( OPNODE root )
 	{
 		if( root->O_O value_type == OP_SUBEXPRESSION )
 		{
-			lprintf( WIDE("( ") );
+			lprintf( "( " );
 			LogExpression( root );
-			lprintf( WIDE(" )") );
+			lprintf( " )" );
 		}
 		else
 		{
-			lprintf( WIDE("(%s = %lld)"), fullopname[root->O_O value_type],root->O_O result_n );
+			lprintf( "(%s = %lld)", fullopname[root->O_O value_type],root->O_O result_n );
 		}
 #ifdef __LINUX__
 //		if( right(root) )
 //			if( left(root)(right) != root )
-//				asm( WIDE("int $3\n") );
+//				asm( "int $3\n" );
 #endif
 		root = right(root);
 	}
 	level--;
 	if( !level )
-		lprintf( WIDE("\n") );
+		lprintf( "\n" );
 }
 
 //--------------------------------------------------------------------------
@@ -704,7 +704,7 @@ OPNODE BuildExpression(  struct vesl_code_parser_state *l, PDATALIST *container 
 
 	//if( g.bDebugLog )
 	//{
-	//	fprintf( stddbg, WIDE("Build expression for: ") );
+	//	fprintf( stddbg, "Build expression for: " );
 	//	DumpSegs( GetCurrentWord() );
 	//}
 
@@ -712,7 +712,7 @@ OPNODE BuildExpression(  struct vesl_code_parser_state *l, PDATALIST *container 
 	{
 		int n;
 		pExp = GetText( thisword );
-		//printf( WIDE("word: %s\n"), pExp );
+		//printf( "word: %s\n", pExp );
 		if( pExp[0] == '\'' || pExp[0] == '\"' || pExp[0] == '`' )
 		{
 			if( quote )
@@ -757,7 +757,7 @@ OPNODE BuildExpression(  struct vesl_code_parser_state *l, PDATALIST *container 
 			{
 				//if( g.bDebugLog )
 				//{
-				//	fprintf( stddbg, WIDE("Adding operation: ") );
+				//	fprintf( stddbg, "Adding operation: " );
 				//	LogExpression( ThisOp );
 				//}
 				RelateOpNode( l, branch, &ThisOp );
@@ -769,7 +769,7 @@ OPNODE BuildExpression(  struct vesl_code_parser_state *l, PDATALIST *container 
 			pExp = GetText( GetCurrentWord(l) );
 			if( pExp && pExp[0] != ')' )
 			{
-				lprintf( WIDE("(%s)%d Error: Invalid expression\n"), GetCurrentFileName(l), GetCurrentLine(l) );
+				lprintf( "(%s)%d Error: Invalid expression\n", GetCurrentFileName(l), GetCurrentLine(l) );
 				DestroyExpression( l, branch );
 				//DestroyOpNode( ThisOp );
 				return NULL;
@@ -793,7 +793,7 @@ OPNODE BuildExpression(  struct vesl_code_parser_state *l, PDATALIST *container 
 				;// DestroyOpNode( ThisOp );
 			//if( g.bDebugLog )
 			//{
-			//	fprintf( stddbg, WIDE("Built Expression: ")) ;
+			//	fprintf( stddbg, "Built Expression: ") ;
 			//	LogExpression( branch );
 			//}
 			return branch;
@@ -827,7 +827,7 @@ OPNODE BuildExpression(  struct vesl_code_parser_state *l, PDATALIST *container 
 					/////DestroyOpNode( l, ThisOp );
 					//if( g.bDebugLog )
 					//{
-					//	fprintf( stddbg, WIDE("Built Expression 2: ")) ;
+					//	fprintf( stddbg, "Built Expression 2: ") ;
 					//	LogExpression( branch );
 					//}
 					return branch;
@@ -881,7 +881,7 @@ OPNODE BuildExpression(  struct vesl_code_parser_state *l, PDATALIST *container 
 							{
 								//if( g.bDebugLog )
 								//{
-								//	fprintf( stddbg, WIDE("%s becomes %s\n"),
+								//	fprintf( stddbg, "%s becomes %s\n",
 								//			  ThisOp.O_O value_type<0?"???":fullopname[ThisOp.O_O value_type], fullopname[Relations[n].trans[o].becomes] );
 								//}
 		 						ThisOp.O_O value_type = (enum json_value_types)(int)Relations[n].trans[o].becomes;
@@ -890,8 +890,8 @@ OPNODE BuildExpression(  struct vesl_code_parser_state *l, PDATALIST *container 
 				 		}
 				 		if( !Relations[n].trans[o].ch )
 			 			{
-			 				//fprintf( stddbg, WIDE("Invalid expression addition\n") );
-							lprintf( WIDE("%s(%d): Error invalid operator: %s\n")
+			 				//fprintf( stddbg, "Invalid expression addition\n" );
+							lprintf( "%s(%d): Error invalid operator: %s\n"
 							       , GetCurrentFileName(l)
 							       , GetCurrentLine(l)
 							       , pExp );
@@ -923,13 +923,13 @@ OPNODE BuildExpression(  struct vesl_code_parser_state *l, PDATALIST *container 
 
 	//if( g.bDebugLog )
 	//{
-	//	fprintf( stddbg, WIDE("Deleting: ") );
+	//	fprintf( stddbg, "Deleting: " );
 	//	LogExpression( ThisOp );
 	//}
 	/////DestroyOpNode( l, ThisOp );
 	//if( g.bDebugLog )
 	//{
-	//	fprintf( stddbg, WIDE("Built Expression: ")) ;
+	//	fprintf( stddbg, "Built Expression: ") ;
 	//	LogExpression( branch );
 	//}
 	return branch;
@@ -1021,7 +1021,7 @@ void ApplyLogicalNot( ACCUMULATOR result, OPNODE node )
 			node->O_O result_d = !node->O_O result_d;
 		break;
 	default:
-		lprintf( WIDE("Dunno how we got here...\n") );
+		lprintf( "Dunno how we got here...\n" );
 	}
 }
 
@@ -1043,7 +1043,7 @@ void ApplyNegative( ACCUMULATOR result, OPNODE node )
 			node->O_O result_d = !node->O_O result_d;
 		break;
 	default:
-		lprintf( WIDE("Dunno how we got here...\n") );
+		lprintf( "Dunno how we got here...\n" );
 	}
 }
 
@@ -1091,7 +1091,7 @@ ACCUMULATOR ApplyDivide( struct vesl_code_parser_state *l, ACCUMULATOR result, O
 		result->O_O result_n = node1->O_O result_n * node2->O_O result_n;
 	else
 	{
-		lprintf( WIDE("Right hand operator of divide is 0! - returning MAXINT\n") );
+		lprintf( "Right hand operator of divide is 0! - returning MAXINT\n" );
 #if defined( _MSC_VER ) || defined( __WATCOMC__ )
 		result->O_O result_n = 0xFFFFFFFFFFFFFFFFU;
 #else
@@ -1258,7 +1258,7 @@ ACCUMULATOR ApplyLogicalAnd( struct vesl_code_parser_state *l, ACCUMULATOR resul
 	result->O_O result_n = node1->O_O result_n && node2->O_O result_n;
 	//if( g.bDebugLog )
 	//{
-	//	fprintf( stddbg, WIDE("%Ld && %Ld == %Ld\n"), node1->O_O result_n, node2->O_O result_n, result->O_O result_n );
+	//	fprintf( stddbg, "%Ld && %Ld == %Ld\n", node1->O_O result_n, node2->O_O result_n, result->O_O result_n );
 	//}
 	return result;
 }
@@ -1383,7 +1383,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 				continue;
 			} else if( node->O_O value_type == OP_BINARYNOT ) {
 				if( !right( node ) ) {
-					lprintf( WIDE( "%s(%d): Error binary not operator(~) with no right hand operand\n" )
+					lprintf( "%s(%d): Error binary not operator(~) with no right hand operand\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1394,7 +1394,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					if( IsValue( l, right, var, TRUE ) ) {
 						ApplyBinaryNot( var );
 					} else {
-						lprintf( WIDE( "%s(%d): Error binary not(~) is not followed by an integer...\n" )
+						lprintf( "%s(%d): Error binary not(~) is not followed by an integer...\n"
 							, GetCurrentFileName( l )
 							, GetCurrentLine( l ) );
 						//g.ErrorCount++;
@@ -1403,7 +1403,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 				continue;
 			} else if( node->O_O value_type == OP_LOGICALNOT ) {
 				if( !right( node ) ) {
-					lprintf( WIDE( "%s(%d): Error logical not operator with no right hand operand\n" )
+					lprintf( "%s(%d): Error logical not operator with no right hand operand\n"
 						, GetCurrentFileName( l ), GetCurrentLine( l ) );
 					//g.ErrorCount++;
 					return NULL;
@@ -1413,7 +1413,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					if( IsValue( l, right, var, TRUE ) ) {
 						ApplyLogicalNot( var, right );
 					} else {
-						lprintf( WIDE( "%s(%d): Logical not is not followed by an integer...\n" )
+						lprintf( "%s(%d): Logical not is not followed by an integer...\n"
 							, GetCurrentFileName( l )
 							, GetCurrentLine( l ) );
 						//g.ErrorCount++;
@@ -1433,7 +1433,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					ApplyNegative( var, right );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Negative operator is not followed by a value\n" )
+					lprintf( "%s(%d): Negative operator is not followed by a value\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1447,7 +1447,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 
 
 		//if( g.bDebugLog )
-		//	fprintf( stddbg, WIDE("Done with unary +,-,!,~,()") );
+		//	fprintf( stddbg, "Done with unary +,-,!,~,()" );
 		//if( g.bDebugLog )
 		//	LogExpression(node);
 		node = expr;
@@ -1461,7 +1461,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					ApplyMultiply( l, var, right );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to multiply?\n" )
+					lprintf( "%s(%d): Error invalid operands to multiply?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1476,7 +1476,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					result = ApplyDivide( l, var, left, right );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to divide?\n" )
+					lprintf( "%s(%d): Error invalid operands to divide?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1490,7 +1490,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					ApplyModulus( l, lvar, right );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to mod?\n" )
+					lprintf( "%s(%d): Error invalid operands to mod?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1513,7 +1513,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to shift right?\n" )
+					lprintf( "%s(%d): Error invalid operands to shift right?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1529,7 +1529,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to shift left?\n" )
+					lprintf( "%s(%d): Error invalid operands to shift left?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1550,7 +1550,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to greater?\n" )
+					lprintf( "%s(%d): Error invalid operands to greater?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1566,7 +1566,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to lesser?\n" )
+					lprintf( "%s(%d): Error invalid operands to lesser?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1582,7 +1582,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to greater equal?\n" )
+					lprintf( "%s(%d): Error invalid operands to greater equal?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					LogExpression( expr );
@@ -1599,7 +1599,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Invalid operands to lesser equal?\n" )
+					lprintf( "%s(%d): Invalid operands to lesser equal?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1622,7 +1622,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to equal?\n" )
+					lprintf( "%s(%d): Error invalid operands to equal?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1638,7 +1638,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to not equal?\n" )
+					lprintf( "%s(%d): Error invalid operands to not equal?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					LogExpression( expr );
@@ -1662,7 +1662,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to not equal?\n" )
+					lprintf( "%s(%d): Error invalid operands to not equal?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1684,7 +1684,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to not equal?\n" )
+					lprintf( "%s(%d): Error invalid operands to not equal?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1707,7 +1707,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to not equal?\n" )
+					lprintf( "%s(%d): Error invalid operands to not equal?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1728,7 +1728,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to not equal?\n" )
+					lprintf( "%s(%d): Error invalid operands to not equal?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1751,7 +1751,7 @@ OPNODE ResolveExpression( struct vesl_code_parser_state *l, PDATALIST subExpr, A
 					node = right( right ); lvar = var; var = right( var );
 					continue;
 				} else {
-					lprintf( WIDE( "%s(%d): Error invalid operands to not equal?\n" )
+					lprintf( "%s(%d): Error invalid operands to not equal?\n"
 						, GetCurrentFileName( l )
 						, GetCurrentLine( l ) );
 					//g.ErrorCount++;
@@ -1821,7 +1821,7 @@ int IsValidExpression( struct vesl_code_parser_state*l, PDATALIST terms )
 			if( prior_operand )
 			{
 				LogExpression( *ppexpr );
-				lprintf( WIDE("%s(%d): Multiple operands with no operator!\n")
+				lprintf( "%s(%d): Multiple operands with no operator!\n"
 				       , GetCurrentFileName(l), GetCurrentLine(l) );
 				return FALSE;
 			}

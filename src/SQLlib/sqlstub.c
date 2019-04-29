@@ -89,12 +89,12 @@ PRELOAD( test1 )
 //void f( void )
 {
 CORE::Database::SingleService^ ss = gcnew CORE::Database::SingleService();
-DECLTEXT( cmd, WIDE("Select 1+1") );
+DECLTEXT( cmd, "Select 1+1" );
 System::Data::Common::DbDataReader^ db = ss->RunQuery( gcnew System::String( GetText( (PTEXT)&cmd ) ) );
 for( int n = db->FieldCount; n; n-- )
 {
 
-	lprintf( WIDE("field %d is %s"), n, db->GetString(n-1) );
+	lprintf( "field %d is %s", n, db->GetString(n-1) );
 }
 delete db;
 delete ss;
@@ -105,13 +105,13 @@ delete ss;
 #endif
 
 
-#define PROXY_FULL     WIDE( "PROXY_FULL" )
-#define PROXY_PRIMARY  WIDE( "PROXY_PRIMARY" )
-#define PROXY_BACKUP   WIDE( "PROXY_BACKUP" )
-#define PROXY_DOWN     WIDE( "PROXY_DOWN" )
+#define PROXY_FULL     "PROXY_FULL"
+#define PROXY_PRIMARY  "PROXY_PRIMARY"
+#define PROXY_BACKUP   "PROXY_BACKUP"
+#define PROXY_DOWN     "PROXY_DOWN"
 
 
-#define SQL_INI WIDE( "SQLPROXY.INI" )
+#define SQL_INI "SQLPROXY.INI"
 
 static uintptr_t CPROC AutoCloseThread( PTHREAD thread );
 static uintptr_t CPROC AutoCheckpointThread( PTHREAD thread );
@@ -242,9 +242,9 @@ static void GetNowFunc(sqlite3_context*onwhat,int n,sqlite3_value**something)
 }
 static void GetCurUser(sqlite3_context*onwhat,int n,sqlite3_value**something)
 {
-	CTEXTSTR str = OSALOT_GetEnvironmentVariable( WIDE("USERNAME") );
+	CTEXTSTR str = OSALOT_GetEnvironmentVariable( "USERNAME" );
 	static TEXTCHAR tmp[256];
-	tnprintf( tmp, 256, WIDE("%s@127.0.0.1"), str );
+	tnprintf( tmp, 256, "%s@127.0.0.1", str );
 #ifdef _UNICODE
 	{
 		char *tmp_str = WcharConvert( tmp );
@@ -278,7 +278,7 @@ static void SQLiteGetLastInsertID(sqlite3_context*onwhat,int n,sqlite3_value**so
 {
 	static TEXTCHAR str[20];
 	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
-	tnprintf( str, sizeof( str ), WIDE( "%") _64fs, sqlite3_last_insert_rowid( odbc->db ) );
+	tnprintf( str, sizeof( str ), "%" _64fs, sqlite3_last_insert_rowid( odbc->db ) );
 #ifdef _UNICODE
 	{
 		char *tmp_str = WcharConvert( str );
@@ -622,7 +622,7 @@ void ExtendConnection( PODBC odbc )
 
 	if( !sqlite3_get_autocommit(odbc->db) )
 	{
-		lprintf( WIDE( "auto commit off?" ) );
+		lprintf( "auto commit off?" );
 		//DebugBreak();
 	}
 
@@ -639,24 +639,24 @@ void ExtendConnection( PODBC odbc )
 			LIST_FORALL( g.database_init, idx, CTEXTSTR, cmd ) {
 				SQLQueryf( odbc, &result, cmd );
 				//if( result )
-				//	lprintf( WIDE( " %s" ), result );
+				//	lprintf( " %s", result );
 				SQLEndQuery( odbc );
 			}
 		}
-		//SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode=WAL;" ) );
+		//SQLQueryf( odbc, &result, "PRAGMA journal_mode=WAL;" );
 		//if( result )
-		//	lprintf( WIDE( "Journal is now %s" ), result );
+		//	lprintf( "Journal is now %s", result );
 		//SQLEndQuery( odbc );
 
 		if( g.flags.bAutoCheckpointRecover ) {
-			SQLQueryf( odbc, &result, WIDE( "PRAGMA wal_checkpoint;" ) );
+			SQLQueryf( odbc, &result, "PRAGMA wal_checkpoint;" );
 			SQLEndQuery( odbc );
 			g.flags.bAutoCheckpointRecover = 0;
 		}
 		odbc->flags.bNoLogging = n;
 		odbc->flags.bAutoCheckpoint = m;
-		//SQLQueryf( odbc, &result, WIDE( "PRAGMA journal_mode" ) );
-		//lprintf( WIDE( "Journal is now %s" ), result );
+		//SQLQueryf( odbc, &result, "PRAGMA journal_mode" );
+		//lprintf( "Journal is now %s", result );
 	}
 }
 
@@ -667,58 +667,58 @@ static void DumpODBCInfo( PODBC odbc )
 {
 	if( g.odbc && odbc == g.odbc )
 	{
-		lprintf( WIDE( "GLOBAL ODBC:" ) );
+		lprintf( "GLOBAL ODBC:" );
 	}
 	if( !odbc )
 		return;
-	lprintf( WIDE( "odbc = %p" ), odbc );
+	lprintf( "odbc = %p", odbc );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
-	lprintf( WIDE( "odbc->db = %p" ), odbc->db );
+	lprintf( "odbc->db = %p", odbc->db );
 #endif
 #ifdef USE_ODBC
-	lprintf( WIDE( "odbc->env = %p" ), odbc->env );
-	lprintf( WIDE( "odbc->hdbc = %p" ), odbc->hdbc );
+	lprintf( "odbc->env = %p", odbc->env );
+	lprintf( "odbc->hdbc = %p", odbc->hdbc );
 #endif
-	lprintf( WIDE( "Last native error code: %d" ), odbc->native );
+	lprintf( "Last native error code: %d", odbc->native );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
-#  define NativeOption odbc->flags.bSQLite_native?WIDE("[Native SQLite]"):WIDE("[Not Native SQLite]")
+#  define NativeOption odbc->flags.bSQLite_native?"[Native SQLite]":"[Not Native SQLite]"
 #else
-#  define NativeOption WIDE("[]")
+#  define NativeOption "[]"
 #endif
 #ifdef USE_ODBC
-#  define ODBCOption odbc->flags.bODBC?WIDE("[ODBC]"):WIDE("[Not ODBC]")
+#  define ODBCOption odbc->flags.bODBC?"[ODBC]":"[Not ODBC]"
 #else
-#  define ODBCOption WIDE("[]")
+#  define ODBCOption "[]"
 #endif
 
-	lprintf( WIDE( "odbc flags = %s %s %s %s %s %s" )
-		, odbc->flags.bConnected?WIDE("[Connected]"):WIDE("[Not Connected]")
-		, odbc->flags.bAccess ?WIDE("[MS Access]"):WIDE("[]")
-		, odbc->flags.bSQLite?WIDE("[SQLite]"):WIDE("[]")
-			 , odbc->flags.bPushed?WIDE("[PendingPush]"):WIDE("[]")
+	lprintf( "odbc flags = %s %s %s %s %s %s"
+		, odbc->flags.bConnected?"[Connected]":"[Not Connected]"
+		, odbc->flags.bAccess ?"[MS Access]":"[]"
+		, odbc->flags.bSQLite?"[SQLite]":"[]"
+			 , odbc->flags.bPushed?"[PendingPush]":"[]"
 			 , NativeOption
 			 , ODBCOption
 		);
-	lprintf( WIDE("Collection(s)...") );
+	lprintf( "Collection(s)..." );
 	{
 		PCOLLECT c;
 		for( c = odbc->collection; c; c = c->next )
 		{
-			lprintf( WIDE( "----------" ) );
-			lprintf( WIDE( "\tflags: %s %s %s %s %s" )
-					 , c->flags.bBuildResultArray?WIDE( "Result Array" ):WIDE( "Result String" )
-					 , c->flags.bDynamic?WIDE( "Dynamic" ):WIDE( "Static" )
-					 , c->flags.bTemporary?WIDE( "Temporary" ):WIDE( "QueryResult" )
-					 , c->flags.bPushed?WIDE( "Pushed" ):WIDE( "Auto" )
-					 , c->flags.bEndOfFile?WIDE( "EOF" ):WIDE( "more" )
+			lprintf( "----------" );
+			lprintf( "\tflags: %s %s %s %s %s"
+					 , c->flags.bBuildResultArray?"Result Array":"Result String"
+					 , c->flags.bDynamic?"Dynamic":"Static"
+					 , c->flags.bTemporary?"Temporary":"QueryResult"
+					 , c->flags.bPushed?"Pushed":"Auto"
+					 , c->flags.bEndOfFile?"EOF":"more"
 					 );
-			lprintf( WIDE( "\tCommand: %s" )
+			lprintf( "\tCommand: %s"
 					 , GetText( VarTextPeek( c->pvt_out ) )
 					 );
-			lprintf( WIDE( "\tResult: %s" )
+			lprintf( "\tResult: %s"
 					 , GetText( VarTextPeek( c->pvt_result ) )
 					 );
-			lprintf( WIDE( "\tErr Info: %s" )
+			lprintf( "\tErr Info: %s"
 					 , GetText( VarTextPeek( c->pvt_errorinfo ) )
 					 );
 		}
@@ -782,19 +782,19 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 		odbc = g.odbc;
 	if( !odbc )
 	{
-		lprintf( WIDE("No certain odbc to create collector ON...") );
+		lprintf( "No certain odbc to create collector ON..." );
 		DebugBreak();
 		return NULL;
 	}
 	pushed = odbc->collection?odbc->collection->flags.bPushed:odbc->flags.bPushed;
 #ifdef LOG_COLLECTOR_STATES
-	lprintf( WIDE( "Creating [%s][%s] collector" ), bTemporary?WIDE( "temp" ):WIDE( "" ), odbc->collection?odbc->collection->flags.bPushed?WIDE( "pushed" ):WIDE( "" ):WIDE( "" ) );
+	lprintf( "Creating [%s][%s] collector", bTemporary?"temp":"", odbc->collection?odbc->collection->flags.bPushed?"pushed":"":"" );
 #endif
 	pCollect = odbc->collection;
 	if( pushed && pCollect && pCollect->flags.bPushed )
 	{
 #ifdef LOG_COLLECTOR_STATES
-		lprintf( WIDE( "New collector should be 'pushed', and prior is pushed (might be end of file query temp)" ) );
+		lprintf( "New collector should be 'pushed', and prior is pushed (might be end of file query temp)" );
 #endif
 		// don't do anything, but definatly don't do temproary promotions.
 	}
@@ -816,7 +816,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 		else if( pCollect && pCollect->flags.bTemporary && !bTemporary )
 		{
 #ifdef LOG_COLLECTOR_STATES
-			lprintf( WIDE( "Promoting temporary %p to non temp (query)" ), pCollect );
+			lprintf( "Promoting temporary %p to non temp (query)", pCollect );
 #endif
 			VarTextEmpty( pCollect->pvt_out );
 			VarTextEmpty( pCollect->pvt_errorinfo );
@@ -832,7 +832,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 	}
 	pCollect = (PCOLLECT)AllocateEx( sizeof( COLLECT ) DBG_RELAY );
 #ifdef LOG_COLLECTOR_STATES
-	lprintf( WIDE( "New collector is %p" ), pCollect );
+	lprintf( "New collector is %p", pCollect );
 #endif
 	MemSet( pCollect, 0, sizeof( COLLECT ) );
 	// there are a couple uninitialized values in thiws...
@@ -852,7 +852,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 #endif
 	pCollect->flags.bTemporary = bTemporary;
 	pCollect->flags.bDynamic = TRUE;
-	//lprintf( WIDE("Adding %p to %p at %p"), pCollect, odbc, &odbc->collection );
+	//lprintf( "Adding %p to %p at %p", pCollect, odbc, &odbc->collection );
 	if( odbc )
 	{
 		LinkThing( odbc->collection, pCollect );
@@ -862,7 +862,7 @@ static PCOLLECT CreateCollectorEx( PSERVICE_ROUTE SourceID, PODBC odbc, LOGICAL 
 #ifdef LOG_COLLECTOR_STATES
 	{
 		collectors++;
-		lprintf( WIDE( "Collectors: %d" ), collectors );
+		lprintf( "Collectors: %d", collectors );
 	}
 #endif
 	if( odbc->flags.bPushed )
@@ -1022,7 +1022,7 @@ static uintptr_t CPROC SetLogOptions( uintptr_t psv, arg_list args )
 
 void SetSQLLoggingDisable( PODBC odbc, LOGICAL bDisable )
 {
-	//lprintf( WIDE( "%s SQL logging on %p" ), bDisable?WIDE( "disabling" ):WIDE( "enabling" ), odbc );
+	//lprintf( "%s SQL logging on %p", bDisable?"disabling":"enabling", odbc );
 	if( odbc )
 	{
 		odbc->flags.bNoLogging = bDisable;
@@ -1125,15 +1125,15 @@ LOGICAL EnsureLogOpen( PODBC odbc )
 			{
 				// this should be an option...
 				if( attempt )
-					tnprintf( logname, sizeof( logname ), WIDE( "sql%d.log" ), attempt );
+					tnprintf( logname, sizeof( logname ), "sql%d.log", attempt );
 				else
-					StrCpyEx( logname, WIDE("sql.log"), sizeof( logname ) );
+					StrCpyEx( logname, "sql.log", sizeof( logname ) );
 				attempt++;
 				// this is going to be more hassle to conserve
 				// than benefit merits.
-				g.pSQLLog = sack_fopen( 0, logname, WIDE("at+") );
+				g.pSQLLog = sack_fopen( 0, logname, "at+" );
 				if( !g.pSQLLog )
-					g.pSQLLog = sack_fopen( 0, logname, WIDE("wt") );
+					g.pSQLLog = sack_fopen( 0, logname, "wt" );
 			}
 			while( !g.pSQLLog );
 		}
@@ -1155,16 +1155,16 @@ void SqlStubInitLibrary( void )
 		// since they will never have priors, they will
 		// never get deleted....as only those with priors
 		// deleted when popped.
-		if( g.feedback_handler ) g.feedback_handler( WIDE("Loading ODBC") );
+		if( g.feedback_handler ) g.feedback_handler( "Loading ODBC" );
 		//CreateCollector( 0, &g.Primary, FALSE );
 		//CreateCollector( 0, &g.Backup, FALSE );
 #ifdef __ANDROID__
-		g.OptionDb.info.pDSN = StrDup( WIDE( "./option.db" ) );
+		g.OptionDb.info.pDSN = StrDup( "./option.db" );
 #else
 #   ifdef __LINUX__
-		g.OptionDb.info.pDSN = StrDup( WIDE( "~/.option.db" ) );
+		g.OptionDb.info.pDSN = StrDup( "~/.option.db" );
 #   else
-		g.OptionDb.info.pDSN = StrDup( WIDE( "*/../option.db" ) );
+		g.OptionDb.info.pDSN = StrDup( "*/../option.db" );
 #   endif
 #endif
 		// default to new option database.
@@ -1175,41 +1175,41 @@ void SqlStubInitLibrary( void )
 		{
 			LOGICAL success = FALSE;
 			PCONFIG_HANDLER pch = CreateConfigurationHandler();
-			AddConfigurationMethod( pch, WIDE("Auto Checkpoint=%b"), SetAutoCheckpoint );
-			AddConfigurationMethod( pch, WIDE("Option DSN=%m"), SetOptionDSN );
-			AddConfigurationMethod( pch, WIDE("Primary DSN=%m"), SetPrimaryDSN );
-			AddConfigurationMethod( pch, WIDE("Primary User=%m"), SetUser );
-			AddConfigurationMethod( pch, WIDE("Primary Connection String=%m"), SetConnString );
-			AddConfigurationMethod( pch, WIDE("Primary Password=%m"), SetPassword );
-			AddConfigurationMethod( pch, WIDE("Backup DSN=%m"), SetBackupDSN );
-			AddConfigurationMethod( pch, WIDE("Backup User=%m"), SetBackupUser );
-			AddConfigurationMethod( pch, WIDE("Backup Password=%m"), SetBackupPassword );
-			AddConfigurationMethod( pch, WIDE("Log enable=%b"), SetLoggingEnabled );
-			AddConfigurationMethod( pch, WIDE("LogFile enable=%b"), SetLoggingEnabled2 );
-			AddConfigurationMethod( pch, WIDE("LogFile enable dump data=%b"), SetLoggingEnabled3 );
-			AddConfigurationMethod( pch, WIDE("Log Option Connection=%b"), SetLogOptions );
-			AddConfigurationMethod( pch, WIDE("Fallback on failure=%b"), SetFallback );
-			AddConfigurationMethod( pch, WIDE("Require Connection=%b"), SetRequireConnection );
-			AddConfigurationMethod( pch, WIDE("Require Primary Connection=%b"), SetRequirePrimaryConnection );
-			AddConfigurationMethod( pch, WIDE("Require Backup Connection=%b"), SetRequireBackupConnection );
-			AddConfigurationMethod( pch, WIDE("Database Init SQL=%m"), AddDatabaseInit );
-			AddConfigurationMethod( pch, WIDE("Option Database Init SQL=%m"), AddOptionDatabaseInit );
+			AddConfigurationMethod( pch, "Auto Checkpoint=%b", SetAutoCheckpoint );
+			AddConfigurationMethod( pch, "Option DSN=%m", SetOptionDSN );
+			AddConfigurationMethod( pch, "Primary DSN=%m", SetPrimaryDSN );
+			AddConfigurationMethod( pch, "Primary User=%m", SetUser );
+			AddConfigurationMethod( pch, "Primary Connection String=%m", SetConnString );
+			AddConfigurationMethod( pch, "Primary Password=%m", SetPassword );
+			AddConfigurationMethod( pch, "Backup DSN=%m", SetBackupDSN );
+			AddConfigurationMethod( pch, "Backup User=%m", SetBackupUser );
+			AddConfigurationMethod( pch, "Backup Password=%m", SetBackupPassword );
+			AddConfigurationMethod( pch, "Log enable=%b", SetLoggingEnabled );
+			AddConfigurationMethod( pch, "LogFile enable=%b", SetLoggingEnabled2 );
+			AddConfigurationMethod( pch, "LogFile enable dump data=%b", SetLoggingEnabled3 );
+			AddConfigurationMethod( pch, "Log Option Connection=%b", SetLogOptions );
+			AddConfigurationMethod( pch, "Fallback on failure=%b", SetFallback );
+			AddConfigurationMethod( pch, "Require Connection=%b", SetRequireConnection );
+			AddConfigurationMethod( pch, "Require Primary Connection=%b", SetRequirePrimaryConnection );
+			AddConfigurationMethod( pch, "Require Backup Connection=%b", SetRequireBackupConnection );
+			AddConfigurationMethod( pch, "Database Init SQL=%m", AddDatabaseInit );
+			AddConfigurationMethod( pch, "Option Database Init SQL=%m", AddOptionDatabaseInit );
 			// If source is encrypted enable tranlation
 			//AddConfigurationFilter( pch, TranslateCrypt );
 			{
 				TEXTCHAR tmp[256];
-				tnprintf( tmp, 256, WIDE("%s.sql.config"), GetProgramName() );
+				tnprintf( tmp, 256, "%s.sql.config", GetProgramName() );
 				success = ProcessConfigurationFile( pch, tmp, 0 );
 			}
 
-			if( !success && !ProcessConfigurationFile( pch, WIDE("sql.config"), 0 ) )
+			if( !success && !ProcessConfigurationFile( pch, "sql.config", 0 ) )
 			{
 				FILE *file;
 				file = sack_fopen( 1
-					, WIDE("*/sql.config")
-					, WIDE("wt")
+					, "*/sql.config"
+					, "wt"
 #ifdef _UNICODE
-					WIDE(", ccs=UNICODE")
+					", ccs=UNICODE"
 #endif
 					);
 				if( file )
@@ -1234,7 +1234,7 @@ void SqlStubInitLibrary( void )
 					sack_fprintf( file, "Option Database Init SQL=\n" );
 					sack_fclose( file );
 				}
-				ProcessConfigurationFile( pch, WIDE("sql.config"), 0 );
+				ProcessConfigurationFile( pch, "sql.config", 0 );
 			}
 			DestroyConfigurationEvaluator( pch );
 		}
@@ -1247,7 +1247,7 @@ void SqlStubInitLibrary( void )
 		g.TimerCollect.pvt_result = VarTextCreate();
 		g.TimerCollect.pvt_errorinfo = VarTextCreate();
 		g.flags.bInited = TRUE;
-		if( g.feedback_handler ) g.feedback_handler( WIDE("SQL Connecting...") );
+		if( g.feedback_handler ) g.feedback_handler( "SQL Connecting..." );
 	}
 	LeaveCriticalSec( &g.Init );
 }
@@ -1358,7 +1358,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 
 	bOpening = TRUE;
 
-	if( StrStr( odbc->info.pDSN, WIDE(".db") ) || ( StrCmp( odbc->info.pDSN, ":memory:" ) == 0 ) )
+	if( StrStr( odbc->info.pDSN, ".db" ) || ( StrCmp( odbc->info.pDSN, ":memory:" ) == 0 ) )
 		odbc->flags.bSkipODBC = 1;
 	else
 		odbc->flags.bSkipODBC = 0; // make sure it's set to something...
@@ -1373,11 +1373,11 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 		if( g.flags.bDeadstartCompleted )
 		{
 			TEXTCHAR msg[80];
-			tnprintf( msg, sizeof( msg )/sizeof(TEXTCHAR), WIDE( "Connecting to [%s]%*.*s" ), odbc->info.pDSN, 3+state, 3+state,WIDE( "........." ) );
+			tnprintf( msg, sizeof( msg )/sizeof(TEXTCHAR), "Connecting to [%s]%*.*s", odbc->info.pDSN, 3+state, 3+state,"........." );
 			msg[79] = 0; // stupid tnprintf, this is going to SUCK.  What the hell microsoft?!
 			if( g.feedback_handler )
 			{
-				//_lprintf(DBG_VOIDRELAY)( WIDE( "%s" ), msg );
+				//_lprintf(DBG_VOIDRELAY)( "%s", msg );
 				g.feedback_handler( msg );
 			}
 
@@ -1390,86 +1390,86 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 		if( !odbc->env && !odbc->flags.bSkipODBC )
 		{
 #ifdef LOG_EVERYTHING
-			lprintf( WIDE("get env") );
+			lprintf( "get env" );
 #endif
 			rc = SQLAllocEnv( &odbc->env );
 			if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 			{
 				bOpening = FALSE;
-				lprintf( WIDE("Fatal error, Could not allocate SQL resource.") );
+				lprintf( "Fatal error, Could not allocate SQL resource." );
 				exit(1);
 				return FALSE;
 			}
 #ifdef LOG_EVERYTHING
-			lprintf( WIDE( "%p new ENV rc %d = %p" ), odbc, rc, odbc->env );
+			lprintf( "%p new ENV rc %d = %p", odbc, rc, odbc->env );
 #endif
 		}
 
 		if( !odbc->hdbc && !odbc->flags.bSkipODBC )
 		{
 #ifdef LOG_EVERYTHING
-			lprintf( WIDE("get hdbc") );
+			lprintf( "get hdbc" );
 #endif
 			if( rc = SQLAllocConnect( odbc->env,
 									  &odbc->hdbc ) )
 			{
-				lprintf( WIDE("Fatal error, Could not allocate SQL resource.") );
+				lprintf( "Fatal error, Could not allocate SQL resource." );
 				SQLFreeEnv( odbc->env );
 				odbc->env = 0;
 				bOpening = FALSE;
 				return FALSE;
 			}
 #ifdef LOG_EVERYTHING
-			lprintf( WIDE( "%p new HDBC rc %d = %p" ), odbc, rc, odbc->hdbc );
+			lprintf( "%p new HDBC rc %d = %p", odbc, rc, odbc->hdbc );
 #endif
 		}
-		//lprintf( WIDE("connect...%d"), odbc->flags.bConnected );
+		//lprintf( "connect...%d", odbc->flags.bConnected );
 
 		if( !odbc->flags.bConnected && !odbc->flags.bSkipODBC )
 		{
 			int variation;
 			PVARTEXT pvt = VarTextCreate();
 #ifdef LOG_EVERYTHING
-			lprintf( WIDE("Begin ODBC Driver Connect... (may take a LONG time.)") );
+			lprintf( "Begin ODBC Driver Connect... (may take a LONG time.)" );
 #endif
 			for( variation = 0; variation < 3; variation++ )
 			{
 				VarTextEmpty( pvt );
 				if( variation == 0 && odbc->info.pConnString[0] == 0 )
 					vtprintf( pvt
-							  , WIDE("DSN=%s%s%s%s%s")
+							  , "DSN=%s%s%s%s%s"
 							  , odbc->info.pDSN
-							  , odbc->info.pID[0]?WIDE(";UID="):WIDE("")
-							  , odbc->info.pID[0]?odbc->info.pID:WIDE("")
-							  , odbc->info.pPASSWORD[0]?WIDE(";PWD="):WIDE("")
-							  , odbc->info.pPASSWORD[0]?odbc->info.pPASSWORD:WIDE("")
+							  , odbc->info.pID[0]?";UID=":""
+							  , odbc->info.pID[0]?odbc->info.pID:""
+							  , odbc->info.pPASSWORD[0]?";PWD=":""
+							  , odbc->info.pPASSWORD[0]?odbc->info.pPASSWORD:""
 							  );
 				else if( variation == 1 )
 					vtprintf( pvt
-							  , WIDE("DSN=%s%s%s%s%s%s%s")
+							  , "DSN=%s%s%s%s%s%s%s"
 							  , odbc->info.pDSN
-							  , odbc->info.pConnString[0]?WIDE(";DBQ="):WIDE("")
-							  , odbc->info.pConnString[0]?odbc->info.pConnString:WIDE("")
-							  , odbc->info.pID[0]?WIDE(";UID="):WIDE("")
-							  , odbc->info.pID[0]?odbc->info.pID:WIDE("")
-							  , odbc->info.pPASSWORD[0]?WIDE(";PWD="):WIDE("")
-							  , odbc->info.pPASSWORD[0]?odbc->info.pPASSWORD:WIDE("")
+							  , odbc->info.pConnString[0]?";DBQ=":""
+							  , odbc->info.pConnString[0]?odbc->info.pConnString:""
+							  , odbc->info.pID[0]?";UID=":""
+							  , odbc->info.pID[0]?odbc->info.pID:""
+							  , odbc->info.pPASSWORD[0]?";PWD=":""
+							  , odbc->info.pPASSWORD[0]?odbc->info.pPASSWORD:""
 							  );
 				else if( variation == 2 )
 					vtprintf( pvt
-							  , WIDE("DRIVER=Microsoft Access Driver (*.mdb); UID=admin; UserCommitSync=Yes; Threads=30; SafeTransactions=0; PageTimeout=5; MaxScanRows=8; MaxBufferSize=2048; FIL=MS Access; DriverId=25; DefaultDir=.; DBQ=%s; ")
+							  , "DRIVER=Microsoft Access Driver (*.mdb); UID=admin; UserCommitSync=Yes; Threads=30; SafeTransactions=0; PageTimeout=5; MaxScanRows=8; MaxBufferSize=2048; FIL=MS Access; DriverId=25; DefaultDir=.; DBQ=%s; "
 							  , odbc->info.pDSN
-								//, odbc->info.pID[0]?WIDE(";UID="):WIDE("")
-								//, odbc->info.pID[0]?odbc->info.pID:WIDE("")
-								//, odbc->info.pPASSWORD[0]?WIDE(";PWD="):WIDE("")
-								//, odbc->info.pPASSWORD[0]?odbc->info.pPASSWORD:WIDE("")
+								//, odbc->info.pID[0]?";UID=":""
+								//, odbc->info.pID[0]?odbc->info.pID:""
+								//, odbc->info.pPASSWORD[0]?";PWD=":""
+								//, odbc->info.pPASSWORD[0]?odbc->info.pPASSWORD:""
 							  );
 				else
 					continue;
 
 				pConnect = VarTextGet( pvt );
 				if( g.flags.bDeadstartCompleted && (!g.flags.bNoLog) && (~odbc->flags.bNoLogging) )
-					_lprintf(DBG_RELAY)( WIDE("Begin ODBC Driver Connect to [%s]"), GetText(pConnect) );
+					_lprintf(DBG_RELAY)( "Begin ODBC Driver Connect to [%s]", GetText(pConnect) );
 
 				rc = SQLDriverConnect( odbc->hdbc
 											, NULL // window handle - do not show dialogs
@@ -1486,10 +1486,10 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 											, SQL_DRIVER_NOPROMPT );
 
 #ifdef LOG_EVERYTHING
-				lprintf( WIDE("How long was that?") );
+				lprintf( "How long was that?" );
 #endif
 				LineRelease( pConnect );
-				lprintf( WIDE("rc == %d"), rc );
+				lprintf( "rc == %d", rc );
 				if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 				{
 					//PTEXT result;
@@ -1526,23 +1526,23 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 						SQLSMALLINT reslen;
 						SQLGetInfo( odbc->hdbc, SQL_DRIVER_NAME, buffer, (SQLSMALLINT)sizeof( buffer ), &reslen );
 						if( g.flags.bDeadstartCompleted && (!g.flags.bNoLog) && (~odbc->flags.bNoLogging) )
-							lprintf( WIDE("Driver name = %s"), buffer );
-						if( strcmp( buffer, WIDE("odbcjt32.dll") ) == 0 )
+							lprintf( "Driver name = %s", buffer );
+						if( strcmp( buffer, "odbcjt32.dll" ) == 0 )
 							odbc->flags.bAccess = 1;
-						if( strcmp( buffer, WIDE("sqlite3odbc.dll") ) == 0 || strcmp( buffer, WIDE("sqliteodbc.dll") ) == 0 ) {
+						if( strcmp( buffer, "sqlite3odbc.dll" ) == 0 || strcmp( buffer, "sqliteodbc.dll" ) == 0 ) {
 							odbc->flags.bSQLite = 1;
 						}
 						if( !odbc->flags.bSQLite )
 							odbc->flags.bAutoCheckpoint = 0;
 						SQLGetInfo( odbc->hdbc, SQL_DRIVER_ODBC_VER, buffer, (SQLSMALLINT)sizeof( buffer ), &reslen );
 #ifdef LOG_EVERYTHING
-						lprintf( WIDE("Driver name = %s"), buffer );
+						lprintf( "Driver name = %s", buffer );
 #endif
 						SQLGetInfo( odbc->hdbc, SQL_DRIVER_VER, buffer, (SQLSMALLINT)sizeof( buffer ), &reslen );
 #ifdef LOG_EVERYTHING
-						lprintf( WIDE("Driver name = %s"), buffer );
+						lprintf( "Driver name = %s", buffer );
 #endif
-						if( StrCaseCmp( buffer, WIDE("05.01.0005") ) == 0 )
+						if( StrCaseCmp( buffer, "05.01.0005" ) == 0 )
 						{
 							odbc->flags.bFailEnvOnDbcFail = 1;
 						}
@@ -1561,14 +1561,14 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 						{
 							if( task->CheckTables )
 							{
-								Log( WIDE("invoking plugin to check tables...") );
+								Log( "invoking plugin to check tables..." );
 								task->CheckTables( odbc );
 							}
 						}
 					}
 					g.odbc = SaveOdbc;
 					bOpening = FALSE;
-					if( g.feedback_handler ) g.feedback_handler( WIDE("SQL Connect OK") );
+					if( g.feedback_handler ) g.feedback_handler( "SQL Connect OK" );
 					VarTextDestroy( &pvt );
 					return TRUE;
 				}
@@ -1627,7 +1627,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 				}
 				if( rc3 )
 				{
-					lprintf( WIDE("Failed to connect[%s]: %s")
+					lprintf( "Failed to connect[%s]: %s"
 							 , odbc->info.pDSN
 							 , sqlite3_errmsg(odbc->db) );
 				}
@@ -1696,12 +1696,12 @@ void SQLCommit( PODBC odbc )
 				WakeThread( odbc->auto_commit_thread );
 				while( odbc->auto_commit_thread && ( ( start + 500 )> timeGetTime() ) )
 					Relinquish();
-  				lprintf( WIDE( "Auto commit thread stalled." ) );
+  				lprintf( "Auto commit thread stalled." );
 			}
 			// need to end the thread here too....
 			odbc->flags.bAutoTransact = 0;
 			// the commit command itself will cause SQLCommit to be called - so we turn off autotransact and would create a transaction thread etc...
-			SQLCommand( odbc, WIDE( "COMMIT" ) );
+			SQLCommand( odbc, "COMMIT" );
 			odbc->flags.bAutoTransact = n;
 			if( odbc->auto_commit_callback )
 				odbc->auto_commit_callback( odbc->auto_commit_callback_psv, odbc );
@@ -1796,7 +1796,7 @@ uintptr_t CPROC AutoCheckpointThread( PTHREAD thread )
 		odbc->flags.bAutoTransact = 0;
 		odbc->flags.bAutoCheckpoint = 0;
 		// this will checkpoint any in progress result sets... still need a check
-		SQLCommand( odbc, WIDE( "PRAGMA wal_checkpoint" ) );
+		SQLCommand( odbc, "PRAGMA wal_checkpoint" );
 		odbc->flags.bAutoTransact = oldCommit;
 		odbc->flags.bAutoCheckpoint = oldCheckpoint;
 		// release our lock allowing any statement that started JUST as this ticked to resume.
@@ -1818,10 +1818,10 @@ static uintptr_t CPROC CommitThread( PTHREAD thread )
 	uintptr_t psv = GetThreadParam( thread );
 	PODBC odbc = (PODBC)psv;
 	int tick = 0;
-	//lprintf( WIDE( "begin..." ) );
+	//lprintf( "begin..." );
 	while( odbc->last_command_tick )
 	{
-		//lprintf( WIDE( "waiting..." ) );
+		//lprintf( "waiting..." );
 		// if it expires, set tick and get out of loop
 		// clearing last_command_tick will also end the thread (a manual sqlcommit on the connection)
 		if( odbc->last_command_tick < ( timeGetTime() - 500 ) )
@@ -1829,7 +1829,7 @@ static uintptr_t CPROC CommitThread( PTHREAD thread )
 			if( ( !odbc->flags.bThreadProtect )
 				|| EnterCriticalSecNoWait( &odbc->cs, NULL ) )
 			{
-				//lprintf( WIDE( "tick and out " ));
+				//lprintf( "tick and out ");
 				tick = 1;
 				break;
 			}
@@ -1858,7 +1858,7 @@ static void BeginTransactEx( PODBC odbc, int force )
 {
 	// I Only test this for SQLITE, specifically the optiondb.
 	// this transaction phrase is not really as important on server based systems.
-	//lprintf( WIDE( "BeginTransact." ) );
+	//lprintf( "BeginTransact." );
 	if( !odbc )
 		odbc = g.odbc;
 	if( !odbc )
@@ -1866,7 +1866,7 @@ static void BeginTransactEx( PODBC odbc, int force )
 	if( odbc->flags.bAutoTransact || force )
 	{
 		uint32_t newtick = timeGetTime();
-		//lprintf( WIDE( "Allowed. %lu" ), odbc->last_command_tick );
+		//lprintf( "Allowed. %lu", odbc->last_command_tick );
 
 		// again with the tricky expressions....
 		// if there is a last tick, then we don't do anything, and fail the expression
@@ -1887,7 +1887,7 @@ static void BeginTransactEx( PODBC odbc, int force )
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 			if( odbc->flags.bSQLite_native )
 			{
-				SQLCommand( odbc, WIDE( "BEGIN TRANSACTION" ) );
+				SQLCommand( odbc, "BEGIN TRANSACTION" );
 			}
 			else
 #endif
@@ -1897,16 +1897,16 @@ static void BeginTransactEx( PODBC odbc, int force )
 			}
 			else
 			{
-				SQLCommand( odbc, WIDE( "START TRANSACTION" ) );
+				SQLCommand( odbc, "START TRANSACTION" );
 			}
 			odbc->flags.bAutoTransact = prior;
 		}
 		else // update the tick.
 			odbc->last_command_tick = newtick;
-		//lprintf( WIDE( "%p gets %lu" ), odbc, odbc->last_command_tick );
+		//lprintf( "%p gets %lu", odbc, odbc->last_command_tick );
 	}
 	//else
-	//   lprintf( WIDE( "No auto transact here." ) );
+	//   lprintf( "No auto transact here." );
 }
 
 //----------------------------------------------------------------------
@@ -1939,7 +1939,7 @@ void DispatchPriorRequests( PODBC odbc )
 			{
 				collection->odbc = g.odbc;
 				UnlinkThing( collection );
-				lprintf( WIDE("Adding %p to %p at %p"), collection, odbc, &odbc->collection );
+				lprintf( "Adding %p to %p at %p", collection, odbc, &odbc->collection );
 				LinkThing( odbc->collection, collection );
 			}
 			else
@@ -1949,16 +1949,16 @@ void DispatchPriorRequests( PODBC odbc )
 			}
 		}
 		{
-			Log( WIDE("Dispach prior reqeust...") );
+			Log( "Dispach prior reqeust..." );
 			next = collection->next;
 			switch( collection->lastop )
 			{
 			case LAST_COMMAND:
-				Log( WIDE("Dispach prior COMMAND") );
+				Log( "Dispach prior COMMAND" );
 				__DoSQLCommand( g.odbc, collection );
 				break;
 			case LAST_QUERY:
-				Log( WIDE("Dispach prior QUERY") );
+				Log( "Dispach prior QUERY" );
 				{
 					PTEXT tmp = VarTextPeek( collection->pvt_out );
 					__DoSQLQuery( g.odbc, collection, GetText( tmp ) );
@@ -1970,7 +1970,7 @@ void DispatchPriorRequests( PODBC odbc )
 				}
 				break;
 			case LAST_RESULT:
-				Log( WIDE("Dispach prior RESULT") );
+				Log( "Dispach prior RESULT" );
 				__GetSQLResult( g.odbc, collection, TRUE );
 				break;
 			}
@@ -1985,7 +1985,7 @@ void GenerateResponce( PCOLLECT collection, int responce )
 {
 	collection->responce = responce;
 #ifdef SQL_PROXY_SERVER
-	//lprintf( WIDE("Generate responce.... %d"), collection->SourceID );
+	//lprintf( "Generate responce.... %d", collection->SourceID );
 	// otherwise it's locally created...
 	if( collection && collection->SourceID )
 	{
@@ -2034,7 +2034,7 @@ void GenerateResponce( PCOLLECT collection, int responce )
 			// lie for now... so we don't have to change 16 bit client yet.
 			if( responce == WM_SQL_RESULT_NO_DATA )
 				responce = WM_SQL_RESULT_DATA;
-			lprintf( WIDE("Responce: %d %s"), responce, outdata );
+			lprintf( "Responce: %d %s", responce, outdata );
 			while( len > 4096 )
 			{
 				//MemCpy( collection->result, strlen( ofs ) );
@@ -2065,8 +2065,8 @@ int OpenSQL( DBG_VOIDPASS )
 	int bBackupComingUp = FALSE;
 	while( LockedExchange( &_bOpening, 1 ) )
 	{
-		lprintf( WIDE("Stacked waits here will be very very bad...") );
-		lprintf( WIDE("Already attepting to open... hold on... we're trying ...") );
+		lprintf( "Stacked waits here will be very very bad..." );
+		lprintf( "Already attepting to open... hold on... we're trying ..." );
 		IdleFor( 250 );
 		//return -1; // better to continue (cause test is if !OpenSQL()) than return false false
 	}
@@ -2111,9 +2111,9 @@ int OpenSQL( DBG_VOIDPASS )
 			else
 			{
 				if( g.feedback_handler )
-					g.feedback_handler( WIDE("Disabling backup - stop retrying.") );
+					g.feedback_handler( "Disabling backup - stop retrying." );
 				else
-					lprintf( WIDE("Disabling backup - stop retrying.") );
+					lprintf( "Disabling backup - stop retrying." );
 				g.flags.bNoBackup = 1;
 			}
 #ifdef LOG_ACTUAL_CONNECTION
@@ -2156,7 +2156,7 @@ int OpenSQL( DBG_VOIDPASS )
 			{
 				//PUPDATE_TASK task = g.UpdateTasks;
 #ifdef LOG_ACTUAL_CONNECTION
-				Log( WIDE("Primary is coming up - invoke primary recovered") );
+				Log( "Primary is coming up - invoke primary recovered" );
 #endif
 				g.odbc = &g.Primary;
 				g.flags.bPrimaryUp = 1;
@@ -2191,7 +2191,7 @@ int OpenSQL( DBG_VOIDPASS )
 			ChangeIcon( PROXY_DOWN );
 		else
 			if( g.flags.bBackupUp )
-				ChangeIcon( WIDE("bck.bmp") );
+				ChangeIcon( "bck.bmp" );
 			else
 				ChangeIcon( PROXY_DOWN );
 	}
@@ -2203,7 +2203,7 @@ int OpenSQL( DBG_VOIDPASS )
 		// dispatch pending requests for primary/backup default connections
 		if( bPrimaryComingUp || bBackupComingUp )
 		{
-			if( g.feedback_handler ) g.feedback_handler( WIDE("SQL Connected OK") );
+			if( g.feedback_handler ) g.feedback_handler( "SQL Connected OK" );
 		}
 		_bOpening = FALSE;
 		/* oh - I guess we can end up attempting to open here.. */
@@ -2233,7 +2233,7 @@ void FailConnection( PODBC odbc )
 #ifdef USE_ODBC
 		if( odbc->flags.bODBC )
 		{
-			lprintf( WIDE("logging HDBC... (and closing)") );
+			lprintf( "logging HDBC... (and closing)" );
 			DumpInfo( odbc, pvt, SQL_HANDLE_DBC, &odbc->hdbc, odbc->flags.bNoLogging );
 			if( odbc->flags.bFailEnvOnDbcFail )
 				DumpInfo( odbc, pvt, SQL_HANDLE_ENV, &odbc->env, odbc->flags.bNoLogging );
@@ -2241,7 +2241,7 @@ void FailConnection( PODBC odbc )
 		}
 #endif
 		text = VarTextPeek( pvt );
-		Log1( WIDE("Status of DBC==%s"), text?GetText( text ):WIDE("NO ERROR RESULT") );
+		Log1( "Status of DBC==%s", text?GetText( text ):"NO ERROR RESULT" );
 		VarTextDestroy( &pvt );
 		odbc->flags.bConnected = 0;
 	}
@@ -2250,10 +2250,10 @@ void FailConnection( PODBC odbc )
 		PVARTEXT pvt = VarTextCreate();
 		PTEXT text;
 		is_default = 1;
-		Log( WIDE("Failed the primary connection!") );
+		Log( "Failed the primary connection!" );
 		// DumpInfo results in the hdbc being closed...
 		text = VarTextPeek( pvt );
-		Log1( WIDE("Status of DBC==%s"), text?GetText( text ):WIDE("NO ERROR RESULT") );
+		Log1( "Status of DBC==%s", text?GetText( text ):"NO ERROR RESULT" );
 		VarTextDestroy( &pvt );
 		g.Primary.flags.bConnected = 0;
 		g.flags.bPrimaryUp = FALSE;
@@ -2264,10 +2264,10 @@ void FailConnection( PODBC odbc )
 		PVARTEXT pvt = VarTextCreate();
 		PTEXT text;
 		is_default = 1;
-		Log( WIDE("Failed the BACKUP connection! this is VERY bad") );
+		Log( "Failed the BACKUP connection! this is VERY bad" );
 		// DumpInfo results in the hdbc being closed...
 		text = VarTextPeek( pvt );
-		Log1( WIDE("Status of DBC==%s"), text?GetText( text ):WIDE("NO ERROR RESULT") );
+		Log1( "Status of DBC==%s", text?GetText( text ):"NO ERROR RESULT" );
 		VarTextDestroy( &pvt );
 		g.flags.bBackupUp = FALSE;
 		g.odbc = NULL;
@@ -2297,7 +2297,7 @@ void FailConnection( PODBC odbc )
 		}
 	}
 #endif
-	//Log( WIDE("Attempting to recover a connection") );
+	//Log( "Attempting to recover a connection" );
 	if( is_default )
 	{
 		//lprintf( "Default connectionf ailed... open general (backup/primary)" );
@@ -2403,7 +2403,7 @@ void DestroyCollectorEx( PCOLLECT pCollect DBG_PASS )
 	VarTextDestroy( &pCollect->pvt_result );
 	VarTextDestroy( &pCollect->pvt_errorinfo );
 #ifdef LOG_COLLECTOR_STATES
-	lprintf( WIDE("pcollect %p is %p and %p"), pCollect, pCollect->next, pCollect->me );
+	lprintf( "pcollect %p is %p and %p", pCollect, pCollect->next, pCollect->me );
 #endif
 	UnlinkThing( pCollect );
 	Release( pCollect );
@@ -2484,13 +2484,13 @@ int DumpInfo2( PVARTEXT pvt, SQLSMALLINT type, PODBC odbc, LOGICAL bNoLog )
 #else
 	tmp = sqlite3_errmsg(odbc->db);
 #endif
-	if( StrCaseCmpEx( tmp, WIDE( "no such table" ), 13 ) == 0 )
-		vtprintf( pvt, WIDE( "(S0002)" ) );
-	vtprintf( pvt, WIDE( "%s" ), tmp );
-	//lprintf( WIDE( "Result of prepare failed? %s at [%s]" ), tmp, tail );
+	if( StrCaseCmpEx( tmp, "no such table", 13 ) == 0 )
+		vtprintf( pvt, "(S0002)" );
+	vtprintf( pvt, "%s", tmp );
+	//lprintf( "Result of prepare failed? %s at [%s]", tmp, tail );
 	if( !bNoLog && EnsureLogOpen( odbc ) )
 	{
-		sack_fprintf( g.pSQLLog, WIDE("#SQLITE ERROR:%s\n"), tmp );
+		sack_fprintf( g.pSQLLog, "#SQLITE ERROR:%s\n", tmp );
 		sack_fflush( g.pSQLLog );
 	}
 	//vtprintf( pvt, "%s", sqlite3_errmsg(odbc->db) );
@@ -2511,7 +2511,7 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 	SQLSMALLINT  n;
 	n = 1;
 #ifdef LOG_EVERYTHING
-	_lprintf( DBG_RELAY )( WIDE( "Dumping Connection error Info..." ) );
+	_lprintf( DBG_RELAY )( "Dumping Connection error Info..." );
 #endif
 	VarTextEmpty( pvt );
 	do
@@ -2537,25 +2537,25 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 								, &msglen );
 		if( rc == SQL_INVALID_HANDLE )
 		{
-			vtprintf( pvt, WIDE("Invalid handle") );
+			vtprintf( pvt, "Invalid handle" );
 			if( !bNoLog && EnsureLogOpen( odbc ) )
-				sack_fprintf( g.pSQLLog, WIDE("#%s\n"), WIDE("Invalid Handle") );
+				sack_fprintf( g.pSQLLog, "#%s\n", "Invalid Handle" );
 			break;
 		}
 		else if( rc != SQL_NO_DATA )
 		{
 #ifdef LOG_EVERYTHING
-			lprintf( WIDE( "Quick info is rc:%d  %d [%s]{%s}" ), rc, native, statecode, message );
+			lprintf( "Quick info is rc:%d  %d [%s]{%s}", rc, native, statecode, message );
 #endif
 			//DebugBreak();
-			if( ( strcmp( statecode, WIDE( "IM002" ) ) == 0 ) && ( handle == &(g.Backup.hdbc) ) )
+			if( ( strcmp( statecode, "IM002" ) == 0 ) && ( handle == &(g.Backup.hdbc) ) )
 			{
 				/* quiet error... */
 				if( g.feedback_handler )
-					g.feedback_handler( WIDE("Secondary DSN....") );
+					g.feedback_handler( "Secondary DSN...." );
 				else
-					lprintf( WIDE( "Secondary DSN...." ) );
-				vtprintf( pvt, WIDE("(%5s)[%") _32f WIDE("]:%s"), statecode, native, message );
+					lprintf( "Secondary DSN...." );
+				vtprintf( pvt, "(%5s)[%" _32f "]:%s", statecode, native, message );
 				break;
 				//
 				//return 0;
@@ -2563,38 +2563,38 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 
 			// native 2003 == could not connect... (do not retry)
 			// native 2013 == lost connection during query.
-			if( ( ( strcmp( statecode, WIDE( "S1T00" ) ) == 0 ) ||
-				 ( strcmp( statecode, WIDE( "08S01" ) ) == 0 ) )
+			if( ( ( strcmp( statecode, "S1T00" ) == 0 ) ||
+				 ( strcmp( statecode, "08S01" ) == 0 ) )
 				&& ( native == 2013 ) )
 			{
-				if( g.feedback_handler ) g.feedback_handler( WIDE("SQL Connection Lost...\nWaiting for reconnect...") );
-				_lprintf(DBG_RELAY)( WIDE( "Connection was lost, closing, and attempting to reopen.  Resulting with a Retry." ) );
-				vtprintf( pvt, WIDE("(%5s)[%") _32f WIDE("]:%s"), statecode, native, message );
+				if( g.feedback_handler ) g.feedback_handler( "SQL Connection Lost...\nWaiting for reconnect..." );
+				_lprintf(DBG_RELAY)( "Connection was lost, closing, and attempting to reopen.  Resulting with a Retry." );
+				vtprintf( pvt, "(%5s)[%" _32f "]:%s", statecode, native, message );
 				if( !bNoLog && EnsureLogOpen( odbc ) )
 				{
-					sack_fprintf( g.pSQLLog, WIDE("#(%5s)[%") _32f WIDE("]:%s\n"), statecode, native, message );
+					sack_fprintf( g.pSQLLog, "#(%5s)[%" _32f "]:%s\n", statecode, native, message );
 				}
 				if( !bOpening )
 				{
-					lprintf( WIDE( "not opening, fail connection..." ) );
+					lprintf( "not opening, fail connection..." );
 					FailConnection( odbc );
 					if( IsSQLOpen( odbc ) )
 					{
-						lprintf( WIDE( "Connection closed, and re-open worked." ) );
+						lprintf( "Connection closed, and re-open worked." );
 						retry = 1;
 					}
 				}
 				else
 				{
 					retry = 1;
-					lprintf( WIDE( "Alsready opening?!" ) );
+					lprintf( "Alsready opening?!" );
 				}
 			}
 			else if( native == 2006 || native == 2003 )
 			{
 				if( odbc->flags.bConnected )
-					if( g.feedback_handler ) g.feedback_handler( WIDE("SQL Connection Lost...\nWaiting for reconnect...") );
-				_lprintf(DBG_RELAY)( WIDE( "[%s] This is 'connection lost' (not tempoary)" ), odbc->info.pDSN );
+					if( g.feedback_handler ) g.feedback_handler( "SQL Connection Lost...\nWaiting for reconnect..." );
+				_lprintf(DBG_RELAY)( "[%s] This is 'connection lost' (not tempoary)", odbc->info.pDSN );
 
 				if( !bOpening )
 				{
@@ -2602,11 +2602,11 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 					{
 						RETCODE rc2 = SQLFreeHandle( type, *handle );
 						(*handle) = 0;
-						lprintf( WIDE( "Result of free (Stmt) : %d" ), rc2 );
+						lprintf( "Result of free (Stmt) : %d", rc2 );
 					}
 					FailConnection( odbc );
 					while( !IsSQLOpen( odbc ) );
-					lprintf( WIDE( "Connection closed, and re-open worked." ) );
+					lprintf( "Connection closed, and re-open worked." );
 					retry = 1;
 				}
 				else
@@ -2615,27 +2615,27 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 			}
 			else
 			{
-				lprintf( WIDE( "This is some other error (%5s)[%d]:%s" ), statecode, native, message );
-				if( StrCmp( statecode, WIDE( "IM002" ) ) == 0 )
-					vtprintf( pvt, WIDE("(%5s)[%") _32f WIDE("]:%s<%s>"), statecode, native, message, odbc->info.pDSN?odbc->info.pDSN:WIDE("") );
+				lprintf( "This is some other error (%5s)[%d]:%s", statecode, native, message );
+				if( StrCmp( statecode, "IM002" ) == 0 )
+					vtprintf( pvt, "(%5s)[%" _32f "]:%s<%s>", statecode, native, message, odbc->info.pDSN?odbc->info.pDSN:"" );
 				else
-					vtprintf( pvt, WIDE("(%5s)[%") _32f WIDE("]:%s"), statecode, native, message );
+					vtprintf( pvt, "(%5s)[%" _32f "]:%s", statecode, native, message );
 				if( !bNoLog && EnsureLogOpen( odbc ) )
-					sack_fprintf( g.pSQLLog, WIDE("#%s\n"), GetText( VarTextPeek( pvt ) ) );
+					sack_fprintf( g.pSQLLog, "#%s\n", GetText( VarTextPeek( pvt ) ) );
 			}
 		}
 		else
 		{
-			//vtprintf( pvt, WIDE("(E0000)No Data on error!") );
+			//vtprintf( pvt, "(E0000)No Data on error!" );
 			//if( g.pSQLLog )
-			//	 fprintf( g.pSQLLog, WIDE("#No data for error!  This may be caused by the sql server disappearing." ) );
+			//	 fprintf( g.pSQLLog, "#No data for error!  This may be caused by the sql server disappearing." );
 		}
 	} while( ( rc != SQL_NO_DATA ) && (*handle) );
 	if( !bNoLog && EnsureLogOpen( odbc ) )
 		sack_fflush( g.pSQLLog );
 
 #ifdef LOG_EVERYTHING
-	lprintf( WIDE("Drop handle %p"), (*handle) );
+	lprintf( "Drop handle %p", (*handle) );
 #endif
 	SQLFreeHandle( type, *handle );
 	(*handle) = 0;
@@ -2650,7 +2650,7 @@ PCOLLECT FindCollection( PODBC odbc, PSERVICE_ROUTE SourceID )
 	// they are more like a queue of pending requests against
 	// either their own, specified ODBC or the primary/backup path.
 #ifdef LOG_COLLECTOR_STATES
-	lprintf( WIDE("Find collection for %") _32f , SourceID );
+	lprintf( "Find collection for %" _32f , SourceID );
 #endif
 	if( odbc )
 		for( pCollect = odbc->collection;
@@ -2665,7 +2665,7 @@ PCOLLECT FindCollection( PODBC odbc, PSERVICE_ROUTE SourceID )
 			return pCollect;
 	// didn't find one, create one, and return it.
 #ifdef LOG_COLLECTOR_STATES
-	lprintf( WIDE("Creating new collector on an odbc connection") );
+	lprintf( "Creating new collector on an odbc connection" );
 #endif
 	return CreateCollector( SourceID, odbc, FALSE );;
 }
@@ -2679,7 +2679,7 @@ static PCOLLECT Collect( PCOLLECT collection, uint32_t *params, size_t paramlen 
 	// make sure we have enough room.
 	VarTextExpand( collection->pvt_out, paramlen );
 	VarTextAddData( collection->pvt_out, buffer, paramlen );
-	//lprintf( WIDE("Collected: %s"), buf );
+	//lprintf( "Collected: %s", buf );
 	return collection;
 }
 
@@ -2719,7 +2719,7 @@ void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 		int err = sqlite3_close( odbc->db );
 		if( err )
 		{
-			lprintf( WIDE("sqlite3 returned %d on close..."), err );
+			lprintf( "sqlite3 returned %d on close...", err );
 		}
 	}
 	else
@@ -2758,7 +2758,7 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 	PTEXT cmd;
 	if( !odbc )
 	{
-		Log( WIDE("Delayed COMMAND") );
+		Log( "Delayed COMMAND" );
 		collection->lastop = LAST_COMMAND;
 		//collection->hLastWnd = hWnd;
 		return FALSE;
@@ -2772,7 +2772,7 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 corruptRetry:
 	if( !OpenSQLConnectionEx( odbc DBG_SRC ) )
 	{
-		lprintf( WIDE("Fail connect odbc... should already be open?!") );
+		lprintf( "Fail connect odbc... should already be open?!" );
 		GenerateResponce( collection, WM_SQL_RESULT_ERROR );
 		if( odbc->flags.bThreadProtect )
 		{
@@ -2784,7 +2784,7 @@ corruptRetry:
 	cmd = VarTextPeek( collection->pvt_out );
 	if( EnsureLogOpen(odbc ) )
 	{
-		sack_fprintf( g.pSQLLog, WIDE("%s[%p]:%s\n"), odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), odbc, GetText( cmd ) );
+		sack_fprintf( g.pSQLLog, "%s[%p]:%s\n", odbc->info.pDSN?odbc->info.pDSN:"NoDSN?", odbc, GetText( cmd ) );
 		sack_fflush( g.pSQLLog );
 	}
 	VarTextEmpty( collection->pvt_result );
@@ -2817,11 +2817,11 @@ corruptRetry:
 			//odbc->hidden_messages++
 			;
 		else
-			_lprintf(DBG_RELAY)( WIDE( "Do Command[%p:%s]: %s" ), odbc, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), GetText( cmd ) );
+			_lprintf(DBG_RELAY)( "Do Command[%p:%s]: %s", odbc, odbc->info.pDSN?odbc->info.pDSN:"NoDSN?", GetText( cmd ) );
 	}
 
 #ifdef LOG_EVERYTHING
-	lprintf( WIDE( "sql command on %p [%s]" ), collection->hstmt, GetText( cmd ) );
+	lprintf( "sql command on %p [%s]", collection->hstmt, GetText( cmd ) );
 #endif
 
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
@@ -2847,7 +2847,7 @@ retry:
 			       , sqlite3_errmsg(odbc->db), tail - GetText(cmd), tail, realSql );
 			if( EnsureLogOpen(odbc ) )
 			{
-				sack_fprintf( g.pSQLLog, WIDE("#SQLITE ERROR:%") _string_f WIDE("\n"), GetText( VarTextPeek( collection->pvt_errorinfo ) ) );
+				sack_fprintf( g.pSQLLog, "#SQLITE ERROR:%" _string_f "\n", GetText( VarTextPeek( collection->pvt_errorinfo ) ) );
 				sack_fflush( g.pSQLLog );
 			}
  			GenerateResponce( collection, WM_SQL_RESULT_ERROR );
@@ -2887,7 +2887,7 @@ retry:
 				sqlite3_finalize( collection->stmt );
 				if( !odbc->flags.bNoLogging )
 				{
-					_lprintf(DBG_RELAY)( WIDE( "Database Busy, waiting on[%p:%s]: %s" ), odbc, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), GetText( cmd ) );
+					_lprintf(DBG_RELAY)( "Database Busy, waiting on[%p:%s]: %s", odbc, odbc->info.pDSN?odbc->info.pDSN:"NoDSN?", GetText( cmd ) );
 					//DumpAllODBCInfo();
 				}
 				WakeableSleep( 25 );
@@ -2895,9 +2895,9 @@ retry:
 			default:
 				//  SQLITE_CONSTRAINT - statement like an insert with a key that already exists.
 				if( !odbc->flags.bNoLogging )
-					_lprintf(DBG_RELAY)( WIDE( "[%s] Unknown, unhandled SQLITE error: %s" ), odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), sqlite3_errmsg(odbc->db ) );
+					_lprintf(DBG_RELAY)( "[%s] Unknown, unhandled SQLITE error: %s", odbc->info.pDSN?odbc->info.pDSN:"NoDSN?", sqlite3_errmsg(odbc->db ) );
 				else 
-					vtprintf( collection->pvt_errorinfo, "[%s] Unknown, unhandled SQLITE error: %s", odbc->info.pDSN ? odbc->info.pDSN : WIDE( "NoDSN?" ), sqlite3_errmsg( odbc->db ) );
+					vtprintf( collection->pvt_errorinfo, "[%s] Unknown, unhandled SQLITE error: %s", odbc->info.pDSN ? odbc->info.pDSN : "NoDSN?", sqlite3_errmsg( odbc->db ) );
 				//DebugBreak();
 				result_code = WM_SQL_RESULT_ERROR;
 				break;
@@ -2925,7 +2925,7 @@ retry:
 									 , &collection->hstmt );
 			if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 			{
-				lprintf( WIDE("Failed to open ODBC statement handle....") );
+				lprintf( "Failed to open ODBC statement handle...." );
 				GenerateResponce( collection, WM_SQL_RESULT_ERROR );
 				if( odbc->flags.bThreadProtect )
 				{
@@ -2950,13 +2950,13 @@ retry:
 				retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
 				//cmd = VarTextPeek( collection->pvt_errorinfo );
 				//DebugBreak();
-				//lprintf( WIDE("ODBC Command excecution failed(1)....%s"), cmd?GetText( cmd ):WIDE("NO ERROR RESULT") );
+				//lprintf( "ODBC Command excecution failed(1)....%s", cmd?GetText( cmd ):"NO ERROR RESULT" );
 				if( EnsureLogOpen( odbc ) )
 				{
-					sack_fprintf( g.pSQLLog, WIDE("#%s\n"), GetText( cmd ) );
+					sack_fprintf( g.pSQLLog, "#%s\n", GetText( cmd ) );
 					sack_fflush( g.pSQLLog );
 				}
-				//lprintf( WIDE("result err...") );
+				//lprintf( "result err..." );
 				GenerateResponce( collection, WM_SQL_RESULT_ERROR );
 			}
 			else
@@ -2967,7 +2967,7 @@ retry:
 					collection->hstmt = 0;
 				}
 #ifdef LOG_EVERYTHING
-				lprintf( WIDE("Resulting okay.") );
+				lprintf( "Resulting okay." );
 #endif
 				GenerateResponce( collection, WM_SQL_RESULT_SUCCESS );
 			}
@@ -2980,7 +2980,7 @@ retry:
 		LeaveCriticalSec( &odbc->cs );
 	}
 	//  actually we keep collections around while there's a client...
-	//lprintf( WIDE("Command destroy collection...") );
+	//lprintf( "Command destroy collection..." );
 	//DestroyCollector( collection );
 	return retry;
 }
@@ -3014,7 +3014,7 @@ SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 		return WM_SQL_RESULT_ERROR;
 	}
 	else
-		_xlprintf(1 DBG_RELAY )( WIDE("ODBC connection has not been opened") );
+		_xlprintf(1 DBG_RELAY )( "ODBC connection has not been opened" );
 	return FALSE;
 }
 
@@ -3048,7 +3048,7 @@ SQLPROXY_PROC( int, SQLCommandExx )(PODBC odbc, CTEXTSTR command, size_t command
 		return WM_SQL_RESULT_ERROR;
 	}
 	else
-		_xlprintf( 1 DBG_RELAY )(WIDE( "ODBC connection has not been opened" ));
+		_xlprintf( 1 DBG_RELAY )("ODBC connection has not been opened");
 	return FALSE;
 }
 
@@ -3068,7 +3068,7 @@ void __GetSQLTypes( PODBC odbc, PCOLLECT collection )
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
 	{
-		lprintf( WIDE("Someone's getting types - haven't figured this one out yet...") );
+		lprintf( "Someone's getting types - haven't figured this one out yet..." );
 		/*
 		if( collection->stmt )
 		{
@@ -3093,14 +3093,14 @@ void __GetSQLTypes( PODBC odbc, PCOLLECT collection )
 								 , &collection->hstmt );
 		if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 		{
-			lprintf( WIDE("Failed to open ODBC statement handle....") );
+			lprintf( "Failed to open ODBC statement handle...." );
 			GenerateResponce( collection, WM_SQL_RESULT_ERROR );
 			return;
 		}
 		rc = SQLGetTypeInfo( collection->hstmt, SQL_ALL_TYPES );
 		if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 		{
-			lprintf( WIDE("Failed to get SQL types...") );
+			lprintf( "Failed to get SQL types..." );
 			GenerateResponce( collection, WM_SQL_RESULT_ERROR );
 			return;
 		}
@@ -3141,7 +3141,7 @@ SQLPROXY_PROC( int, FetchSQLTypes )( PODBC odbc )
 			default_msg = StrDup(string);\
 		if( default_msg[0] != string[0] )  \
 		{                            \
-			xlprintf(LOG_ALWAYS)( WIDE("Someone deallocated our message!") ); \
+			xlprintf(LOG_ALWAYS)( "Someone deallocated our message!" ); \
 	      exit(0);                                                     \
     	}\
 		(*(result)) = default_msg; \
@@ -3156,7 +3156,7 @@ SQLPROXY_PROC( int, FetchSQLError )( PODBC odbc, CTEXTSTR *result )
 		odbc = g.odbc;
 		if( !odbc )
 		{
-			SET_RESULT_STRING( result, WIDE("Application has failed to inialize it's ODBC connection") );
+			SET_RESULT_STRING( result, "Application has failed to inialize it's ODBC connection" );
 			return 1;
 		}
 	}
@@ -3170,11 +3170,11 @@ SQLPROXY_PROC( int, FetchSQLError )( PODBC odbc, CTEXTSTR *result )
 		}
 		else
 		{
-		  SET_RESULT_STRING( result, WIDE("No data on error...") );
+		  SET_RESULT_STRING( result, "No data on error..." );
 		}
 	}
 	else
-		SET_RESULT_STRING( result, WIDE("Collection disappeared...") );
+		SET_RESULT_STRING( result, "Collection disappeared..." );
 	return 1;
 }
 //-----------------------------------------------------------------------
@@ -3297,7 +3297,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		else
 			pvtData = NULL;
 
-		//lprintf( WIDE("Attempting to fetch data...") );
+		//lprintf( "Attempting to fetch data..." );
 		//VarTextEmpty( collection->pvt_result );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		if( odbc->flags.bSQLite_native )
@@ -3307,11 +3307,11 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			switch( rc3 )
 			{
 			case SQLITE_BUSY:
-				lprintf( WIDE("Database busy, waiting...") );
+				lprintf( "Database busy, waiting..." );
 				WakeableSleep( 25 );
 				goto retry;
 			case SQLITE_LOCKED:
-				lprintf( WIDE("Database locked, waiting...") );
+				lprintf( "Database locked, waiting..." );
 				WakeableSleep( 100 );
 				goto retry;
 				break;
@@ -3322,11 +3322,11 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				if( odbc->pCorruptionHandler ) {
 					odbc->pCorruptionHandler( odbc->psvCorruptionHandler, odbc );
 				}
-				vtprintf( collection->pvt_errorinfo, WIDE("Database is corrupt (should retry): %s\n"), sqlite3_errmsg(odbc->db ) );
+				vtprintf( collection->pvt_errorinfo, "Database is corrupt (should retry): %s\n", sqlite3_errmsg(odbc->db ) );
 				result_cmd = WM_SQL_RESULT_ERROR;
 				break;
 			default:
-				vtprintf( collection->pvt_errorinfo, WIDE("Step status %d:%s %08x"), rc3, sqlite3_errmsg(odbc->db ), sqlite3_extended_errcode(odbc->db) );
+				vtprintf( collection->pvt_errorinfo, "Step status %d:%s %08x", rc3, sqlite3_errmsg(odbc->db ), sqlite3_extended_errcode(odbc->db) );
 				result_cmd = WM_SQL_RESULT_ERROR;
 				break;
 			}
@@ -3396,11 +3396,11 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								, NULL // nullable ptr ?
 							);
 
-							//lprintf( WIDE("column %s is type %d(%d)"), colname, coltypes[idx-1], colsizes[idx-1] );
+							//lprintf( "column %s is type %d(%d)", colname, coltypes[idx-1], colsizes[idx-1] );
 							if( rc != SQL_SUCCESS_WITH_INFO &&
 								rc != SQL_SUCCESS ) {
 								retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
-								lprintf( WIDE( "GetData failed..." ) );
+								lprintf( "GetData failed..." );
 								result_cmd = WM_SQL_RESULT_ERROR;
 								break;
 							}
@@ -3488,12 +3488,12 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 													 , NULL // decimal digits short int
 													 , NULL // nullable ptr ?
 													 );
-							//lprintf( WIDE("column %s is type %d(%d)"), colname, coltypes[idx-1], colsizes[idx-1] );
+							//lprintf( "column %s is type %d(%d)", colname, coltypes[idx-1], colsizes[idx-1] );
 							if( rc != SQL_SUCCESS_WITH_INFO &&
 								rc != SQL_SUCCESS )
 							{
 								retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
-								lprintf( WIDE("GetData failed...") );
+								lprintf( "GetData failed..." );
 								result_cmd = WM_SQL_RESULT_ERROR;
 								break;
 							}
@@ -3513,7 +3513,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		{
 			if( pvtData )
 			{
-				lprintf( WIDE("no data") );
+				lprintf( "no data" );
 				VarTextDestroy( &pvtData );
 			}
 
@@ -3555,7 +3555,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 			idx = 1;
 			lines++;
-			//lprintf( WIDE("Yes, so lets' get the data to result with..") );
+			//lprintf( "Yes, so lets' get the data to result with.." );
 			do
 			{
 				//SQLULEN colsize;
@@ -3577,7 +3577,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							if( val->string )
 								Release( val->string );
 							real_text = DupCStrLen( text, colsize );
-							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), real_text );
+							if( pvtData )vtprintf( pvtData, "%s%s", idx > 1 ? "," : "", real_text );
 							val->string = real_text;
 							val->value_type = JSOX_VALUE_STRING;
 							break;
@@ -3590,20 +3590,20 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						case SQLITE_FLOAT:
 							val->float_result = 1;
 							val->result_d = sqlite3_column_double( collection->stmt, idx - 1 );
-							if( pvtData )vtprintf( pvtData, WIDE( "%s%g" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), val->result_d );
+							if( pvtData )vtprintf( pvtData, "%s%g", idx > 1 ? "," : "", val->result_d );
 							val->value_type = JSOX_VALUE_NUMBER;
 							break;
 						case SQLITE_INTEGER:
 							val->float_result = 0;
 							val->result_n = sqlite3_column_int64( collection->stmt, idx - 1 );
-							if( pvtData )vtprintf( pvtData, WIDE( "%s%d" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), (int)val->result_n );
+							if( pvtData )vtprintf( pvtData, "%s%d", idx > 1 ? "," : "", (int)val->result_n );
 							val->value_type = JSOX_VALUE_NUMBER;
 							break;
 						case SQLITE_BLOB:
 							text = (char*)sqlite3_column_blob( collection->stmt, idx - 1 );
 							val->stringLen = sqlite3_column_bytes( collection->stmt, idx - 1 );
 							//lprintf( "Got a blob..." );
-							if( pvtData )vtprintf( pvtData, WIDE( "%s<binary>" ), idx > 1 ? WIDE( "," ) : WIDE( "" ) );
+							if( pvtData )vtprintf( pvtData, "%s<binary>", idx > 1 ? "," : "" );
 							if( val->string )
 								Release( val->string );
 							if( text ) {
@@ -3623,7 +3623,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							if( val->string )
 								Release( val->string );
 							real_text = DupCStrLen( text, colsize );
-							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), real_text );
+							if( pvtData )vtprintf( pvtData, "%s%s", idx > 1 ? "," : "", real_text );
 							val->string = real_text;
 							val->value_type = JSOX_VALUE_STRING;
 							break;
@@ -3639,7 +3639,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							//lprintf( "Got a blob..." );
 							text = (char*)sqlite3_column_blob( collection->stmt, idx - 1 );
 							collection->result_len[idx - 1] = sqlite3_column_bytes( collection->stmt, idx - 1 );
-							if( pvtData )vtprintf( pvtData, WIDE( "%s<binary>" ), idx>1?WIDE( "," ):WIDE( "" ) );
+							if( pvtData )vtprintf( pvtData, "%s<binary>", idx>1?",":"" );
 							collection->results[idx-1] = NewArray( TEXTCHAR, collection->result_len[idx - 1] );
 							MemCpy( collection->results[idx-1], text, collection->result_len[idx - 1] );
 							break;
@@ -3649,7 +3649,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							if( collection->results[idx - 1] )
 								Release( collection->results[idx - 1] );
 							real_text = DupCStrLen( text, collection->result_len[idx - 1] );
-							if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx>1?WIDE( "," ):WIDE( "" ), real_text );
+							if( pvtData )vtprintf( pvtData, "%s%s", idx>1?",":"", real_text );
 							collection->results[idx-1] = real_text;
 							break;
 						}
@@ -3659,8 +3659,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						text = (char*)sqlite3_column_text( collection->stmt, idx - 1 );
 						colsize = sqlite3_column_bytes( collection->stmt, idx - 1 );
 						if( pvtData )VarTextAddData( pvtData, text?text:"<NULL>", text?colsize:6 );
-						//lprintf( WIDE( "... %p" ), text );
-						vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), text );
+						//lprintf( "... %p", text );
+						vtprintf( collection->pvt_result, "%s%s", first?"":",", text );
 						first=0;
 					}
 				}
@@ -3840,7 +3840,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 												, &ResultLen );
 							if( SUS_GT( ResultLen,SQLINTEGER,collection->colsizes[idx-1],SQLUINTEGER) )
 							{
-								lprintf( WIDE( "SQL Result returned more data than the column described! (returned %d expected %d)" ), (int)ResultLen, (int)(collection->colsizes[idx-1]) );
+								lprintf( "SQL Result returned more data than the column described! (returned %d expected %d)", (int)ResultLen, (int)(collection->colsizes[idx-1]) );
 							}
 						}
 						else
@@ -3869,13 +3869,13 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							}
 							else
 							{
-								lprintf( WIDE( "SQL overflow (no room for nul character) %d of %d" ), (int)ResultLen, (int)colsize );
+								lprintf( "SQL overflow (no room for nul character) %d of %d", (int)ResultLen, (int)colsize );
 							}
 						}
-						//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, collection->coltypes[idx-1], idx );
+						//lprintf( "Column %s colsize %d coltype %d coltype %d idx %d", collection->fields[idx-1], colsize, coltype, collection->coltypes[idx-1], idx );
 						if( collection->coltypes && coltype != collection->coltypes[idx-1] )
 						{
-							lprintf( WIDE( "Col type mismatch?" ) );
+							lprintf( "Col type mismatch?" );
 							DebugBreak();
 						}
 						if( rc == SQL_SUCCESS ||
@@ -3883,7 +3883,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							if( ResultLen == SQL_NO_TOTAL ||  // -4
 								ResultLen == SQL_NULL_DATA )  // -1
 							{
-								//lprintf( WIDE("result data failed...") );
+								//lprintf( "result data failed..." );
 							}
 
 							if( ResultLen > 0 ) {
@@ -3893,29 +3893,29 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 										// I won't modify this anyhow, and it results
 										// to users as a CTEXSTR, preventing them from changing it also...
 										//lprintf( "Got a blob..." );
-										//lprintf( WIDE( "size is %d" ), collection->colsizes[idx-1] );
+										//lprintf( "size is %d", collection->colsizes[idx-1] );
 										if( pvtData ) {
 											SQLUINTEGER n;
-											vtprintf( pvtData, WIDE( "%s<" ), idx > 1 ? WIDE( "," ) : WIDE( "" ) );
+											vtprintf( pvtData, "%s<", idx > 1 ? "," : "" );
 											for( n = 0; n < collection->colsizes[idx - 1]; n++ )
-												vtprintf( pvtData, WIDE( "%02x " ), byResult[n] );
-											vtprintf( pvtData, WIDE( ">" ) );
+												vtprintf( pvtData, "%02x ", byResult[n] );
+											vtprintf( pvtData, ">" );
 										}
 										collection->results[idx - 1] = NewArray( TEXTCHAR, collection->colsizes[idx - 1] );
-										//lprintf( WIDE( "dest is %p and src is %p" ), collection->results[idx-1], byResult );
+										//lprintf( "dest is %p and src is %p", collection->results[idx-1], byResult );
 										MemCpy( collection->results[idx - 1], byResult, collection->colsizes[idx - 1] );
-										//lprintf( WIDE( "Column %s colsize %d coltype %d coltype %d idx %d" ), collection->fields[idx-1], colsize, coltype, coltypes[idx-1], idx );
+										//lprintf( "Column %s colsize %d coltype %d coltype %d idx %d", collection->fields[idx-1], colsize, coltype, coltypes[idx-1], idx );
 										//collection->results[idx-1] = (TEXTSTR)Deblobify( byResult, colsizes[idx-1] );
 									}
 									else {
 										if( collection->results[idx - 1] )
 											Release( (char*)collection->results[idx - 1] );
-										if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), byResult );
+										if( pvtData )vtprintf( pvtData, "%s%s", idx > 1 ? "," : "", byResult );
 										collection->results[idx - 1] = StrDup( byResult );
 									}
 								}
 								else {
-									//lprintf( WIDE("Got a result: \'%s\'"), byResult );
+									//lprintf( "Got a result: \'%s\'", byResult );
 
 									/*
 									* if this is auto processed for the application, there is no
@@ -3927,25 +3927,25 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 									if( coltypes[idx-1] == SQL_LONGVARBINARY )
 									{
 									POINTER tmp;
-									vtprintf( collection->pvt_result, WIDE("%s%s"), first?WIDE( "" ):WIDE( "," ), tmp = Deblobify( byResult, collection->colsizes[idx-1] ) );
+									vtprintf( collection->pvt_result, "%s%s", first?"":",", tmp = Deblobify( byResult, collection->colsizes[idx-1] ) );
 									Release( tmp );
 									}
 									else
 									*/
-									vtprintf( collection->pvt_result, WIDE( "%s%s" ), first ? WIDE( "" ) : WIDE( "," ), byResult );
-									if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), byResult );
+									vtprintf( collection->pvt_result, "%s%s", first ? "" : ",", byResult );
+									if( pvtData )vtprintf( pvtData, "%s%s", idx > 1 ? "," : "", byResult );
 									first = 0;
 								}
 							}
 							else {
 								if( !collection->flags.bBuildResultArray ) {
-									//lprintf( WIDE("Didn't get a result... null field?") );
-									vtprintf( collection->pvt_result, WIDE( "%s" ), first ? WIDE( "" ) : WIDE( "," ) );
-									if( pvtData )vtprintf( pvtData, WIDE( "%s%s" ), idx > 1 ? WIDE( "," ) : WIDE( "" ), byResult );
+									//lprintf( "Didn't get a result... null field?" );
+									vtprintf( collection->pvt_result, "%s", first ? "" : "," );
+									if( pvtData )vtprintf( pvtData, "%s%s", idx > 1 ? "," : "", byResult );
 									first = 0;
 								}
 								else {
-									if( pvtData )vtprintf( pvtData, WIDE( "%s<NULL>" ), idx > 1 ? WIDE( "," ) : WIDE( "" ) );
+									if( pvtData )vtprintf( pvtData, "%s<NULL>", idx > 1 ? "," : "" );
 								}
 								// otherwise the entry will be NULL
 							}
@@ -3953,7 +3953,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						else
 						{
 							retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
-							lprintf( WIDE("GetData failed...") );
+							lprintf( "GetData failed..." );
 							result_cmd = WM_SQL_RESULT_ERROR;
 						}
 					}
@@ -3967,7 +3967,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 					  && rc == SQL_SUCCESS
 #endif
 					 );
-			//lprintf( WIDE("done...") );
+			//lprintf( "done..." );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 #else
 			rc = SQL_SUCCESS;
@@ -3984,7 +3984,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			collection->stmt = NULL;
 #endif
 
-			//lprintf( WIDE("What about the remainging results?") );
+			//lprintf( "What about the remainging results?" );
 			//ReleaseCollectionResults( collection );
 		}
 		if( pvtData )
@@ -3992,7 +3992,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			PTEXT data = VarTextGet( pvtData );
 			lprintf( "%s", GetText( data ) );
 			LineRelease( data );
-			//lprintf( WIDE( "%s" ), GetText( VarTextPeek( pvtData ) ) );
+			//lprintf( "%s", GetText( VarTextPeek( pvtData ) ) );
 			VarTextDestroy( &pvtData );
 		}
 
@@ -4006,7 +4006,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		{
 			// might want a different result here...
 			// is am empty row result.
-			//lprintf( WIDE("Result with no lines...") );
+			//lprintf( "Result with no lines..." );
 			result_cmd = WM_SQL_RESULT_NO_DATA;
 			GenerateResponce( collection, result_cmd );
 			//DestroyCollection( collection );
@@ -4030,7 +4030,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #ifdef USE_ODBC
 			retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
 #endif
-		lprintf( WIDE("result error") );
+		lprintf( "result error" );
 		result_cmd = WM_SQL_RESULT_ERROR;
 	}
 #endif
@@ -4056,7 +4056,7 @@ int FetchSQLRecordJS( PODBC odbc, PDATALIST *ppdlRecord ) {
 				DestroyCollector( odbc->collection );
 			}
 			if( !odbc->collection ) {
-				lprintf( WIDE( "Lost ODBC result collection..." ) );
+				lprintf( "Lost ODBC result collection..." );
 				return 0;
 			}
 			odbc->collection->flags.bBuildResultArray = 1;
@@ -4095,7 +4095,7 @@ int FetchSQLRecord( PODBC odbc, CTEXTSTR **result )
 			}
 			if( !odbc->collection )
 			{
-				lprintf( WIDE("Lost ODBC result collection...") );
+				lprintf( "Lost ODBC result collection..." );
 				return 0;
 			}
 			odbc->collection->flags.bBuildResultArray = 1;
@@ -4309,24 +4309,24 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 #endif
 	int in_error = 0;
 #ifdef LOG_EVERYTHING
-	_lprintf(DBG_RELAY)( WIDE( ".... begin query.... " ));
+	_lprintf(DBG_RELAY)( ".... begin query.... ");
 #endif
 	if( !query )
 	{
-		xlprintf(LOG_ALWAYS)( WIDE("REally should pass a query if you expect a query (was passed NULL).") );
+		xlprintf(LOG_ALWAYS)( "REally should pass a query if you expect a query (was passed NULL)." );
 		return FALSE;
 	}
 	if( !odbc )
 	{
-		Log( WIDE("Delayed QUERY") );
+		Log( "Delayed QUERY" );
 		if( collection->lastop != LAST_QUERY )
 		{
 			collection->lastop = LAST_QUERY;
-			vtprintf( collection->pvt_out, WIDE("%s"), query );
+			vtprintf( collection->pvt_out, "%s", query );
 		}
 		else
 		{
-			lprintf( WIDE("Should not be a new query...") );
+			lprintf( "Should not be a new query..." );
 		}
 		//collection->hLastWnd = hWnd;
 		return FALSE;
@@ -4348,7 +4348,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 		odbc->nProtect++;
 	}
 
-	//lprintf( WIDE("Query: %s"), GetText( cmd ) );
+	//lprintf( "Query: %s", GetText( cmd ) );
 	ReleaseCollectionResults( collection, TRUE );
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
@@ -4368,7 +4368,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 		if( collection->hstmt )
 		{
 #ifdef LOG_EVERYTHING
-			lprintf( WIDE( "Releasing old handle... %p" ), collection->hstmt );
+			lprintf( "Releasing old handle... %p", collection->hstmt );
 #endif
 			SQLFreeHandle( SQL_HANDLE_STMT, collection->hstmt );
 			collection->hstmt = 0;
@@ -4381,7 +4381,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 	{
 		VarTextEmpty( collection->pvt_out );
 		VarTextAddData( collection->pvt_out, query, queryLength );
-		//vtprintf( collection->pvt_out, WIDE( "%s" ), query );
+		//vtprintf( collection->pvt_out, "%s", query );
 	}
 
 	{
@@ -4391,7 +4391,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 	}
 	if( EnsureLogOpen(odbc ) )
 	{
-		sack_fprintf( g.pSQLLog, WIDE("%s[%p]:%s\n"), odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" ), odbc, query );
+		sack_fprintf( g.pSQLLog, "%s[%p]:%s\n", odbc->info.pDSN?odbc->info.pDSN:"NoDSN?", odbc, query );
 		sack_fflush( g.pSQLLog );
 	}
 	if( !g.flags.bNoLog )
@@ -4400,14 +4400,14 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			//odbc->hidden_messages++
 			;
 		else
-			_lprintf(DBG_RELAY)( WIDE( "Do Command[%p:%s]: %s" ), odbc
-					, odbc->info.pDSN?odbc->info.pDSN:WIDE( "NoDSN?" )
+			_lprintf(DBG_RELAY)( "Do Command[%p:%s]: %s", odbc
+					, odbc->info.pDSN?odbc->info.pDSN:"NoDSN?"
 					, query );
 	}
 
-	//lprintf( DBG_FILELINEFMT WIDE( "Query: %s" ) DBG_RELAY, GetText( query ) );
+	//lprintf( DBG_FILELINEFMT "Query: %s" DBG_RELAY, GetText( query ) );
 #ifdef LOG_EVERYTHING
-	lprintf( WIDE( "sql command on %p [%s]" ), collection, query );
+	lprintf( "sql command on %p [%s]", collection, query );
 #endif
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
@@ -4436,7 +4436,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			}
 			if( rc3 == SQLITE_BUSY )
 			{
-				lprintf( WIDE("wait for lock...") );
+				lprintf( "wait for lock..." );
 				DumpAllODBCInfo();
 				WakeableSleep( 200 );
 				goto retry;
@@ -4445,11 +4445,11 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			tmp = sqlite3_errmsg(odbc->db);
 			// this will have to have a Char based version
 			if( strnicmp( tmp, "no such table", 13 ) == 0 )
-				vtprintf( collection->pvt_errorinfo, WIDE( "(S0002)" ) );
-			vtprintf( collection->pvt_errorinfo, WIDE( "Result of prepare failed? (%d) %s at-or near char %")_size_f WIDE("[%") _cstring_f WIDE("] in [%") _string_f WIDE("]" ), rc3, tmp, tail - query, tail, query );
+				vtprintf( collection->pvt_errorinfo, "(S0002)" );
+			vtprintf( collection->pvt_errorinfo, "Result of prepare failed? (%d) %s at-or near char %"_size_f "[%" _cstring_f "] in [%" _string_f "]", rc3, tmp, tail - query, tail, query );
 			if( EnsureLogOpen(odbc ) )
 			{
-				sack_fprintf( g.pSQLLog, WIDE( "#SQLITE ERROR:%s\n" ), GetText( VarTextPeek( collection->pvt_errorinfo ) ) );
+				sack_fprintf( g.pSQLLog, "#SQLITE ERROR:%s\n", GetText( VarTextPeek( collection->pvt_errorinfo ) ) );
 				sack_fflush( g.pSQLLog );
 			}
 			in_error = 1;
@@ -4469,14 +4469,14 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 #ifdef USE_ODBC
 	{
 #ifdef LOG_EVERYTHING
-		lprintf( WIDE( "getting a new handle....against %p on %p" ), odbc->hdbc, odbc );
+		lprintf( "getting a new handle....against %p on %p", odbc->hdbc, odbc );
 #endif
 		rc = SQLAllocHandle( SQL_HANDLE_STMT
 								 , odbc->hdbc
 								 , &collection->hstmt );
 		if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 		{
-			xlprintf(LOG_ALWAYS)( WIDE("Failed to open ODBC statement handle....") );
+			xlprintf(LOG_ALWAYS)( "Failed to open ODBC statement handle...." );
 			if( odbc->flags.bThreadProtect )
 			{
 				odbc->nProtect--;
@@ -4485,9 +4485,9 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			return FALSE;
 		}
 #ifdef LOG_EVERYTHING
-		lprintf( WIDE( "new handle... %p" ), collection->hstmt );
+		lprintf( "new handle... %p", collection->hstmt );
 #endif
-		if( StrCmp( query, WIDE("show tables") ) == 0 )
+		if( StrCmp( query, "show tables" ) == 0 )
 		{
 			rc = SQLTables( collection->hstmt, NULL, 0, NULL, 0, NULL, 0, NULL, 0 );
 		}
@@ -4509,7 +4509,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 		if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 		{
 #ifdef LOG_EVERYTHING
-			lprintf( WIDE( "rc is %d [not success]" ),rc );
+			lprintf( "rc is %d [not success]",rc );
 #endif
 			in_error = 1;
 		}
@@ -4552,7 +4552,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 	  {
 		  if( SQLNumResultCols(collection->hstmt, &collection->columns ) != SQL_SUCCESS )
 		  {
-			  lprintf( WIDE("Failed to get result cols...") );
+			  lprintf( "Failed to get result cols..." );
 			  retry = DumpInfo( odbc, collection->pvt_errorinfo
 									, SQL_HANDLE_STMT
 									, &collection->hstmt
@@ -4569,7 +4569,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 	}
 #endif
 
-	//lprintf( WIDE("Get result ...") );
+	//lprintf( "Get result ..." );
 	retry = __GetSQLResult( odbc, collection, FALSE );
 	if( odbc->flags.bThreadProtect )
 	{
@@ -4589,7 +4589,7 @@ int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS ) {
 
 void PopODBCExx( PODBC odbc, LOGICAL bAllowNonPush DBG_PASS )
 {
-	//lprintf( WIDE( "pop sql %p" ), odbc );
+	//lprintf( "pop sql %p", odbc );
 	if( !odbc )
 		odbc = g.odbc;
 	if( odbc )
@@ -4601,11 +4601,11 @@ void PopODBCExx( PODBC odbc, LOGICAL bAllowNonPush DBG_PASS )
 				&& !odbc->collection->flags.bPushed
 			  )
 			DestroyCollector( odbc->collection );
-		//lprintf( WIDE( "Pop ODBC %p %d %p %d" ), odbc, bAllowNonPush, odbc->collection, odbc->collection?odbc->collection->flags.bPushed:-1 );
+		//lprintf( "Pop ODBC %p %d %p %d", odbc, bAllowNonPush, odbc->collection, odbc->collection?odbc->collection->flags.bPushed:-1 );
 		if( odbc->collection && !odbc->collection->flags.bPushed && !bAllowNonPush )
 		{
 			//DebugBreak();
-			_lprintf(DBG_RELAY)( WIDE( "Warning! Popping a state which was not pushed! (should be a breakpoint here)" ) );
+			_lprintf(DBG_RELAY)( "Warning! Popping a state which was not pushed! (should be a breakpoint here)" );
 		}
 		DestroyCollector( odbc->collection );
 	}
@@ -4631,7 +4631,7 @@ void SQLEndQuery( PODBC odbc )
 			if( odbc->collection->flags.bEndOfFile )
 			{
 #ifdef LOG_COLLECTOR_STATES
-				lprintf( WIDE( "Okay, top temporary found, but it was also a query at end of file... set end of file OK. return." ) );
+				lprintf( "Okay, top temporary found, but it was also a query at end of file... set end of file OK. return." );
 #endif
 				//return;
 			}
@@ -4639,10 +4639,10 @@ void SQLEndQuery( PODBC odbc )
 		}
 		if( odbc->collection )//&& odbc->collection->flags.bPushed )
 		{
-			//lprintf( WIDE( "Should have ended with a pop not a EndQuery DebugBreak()" ) );
+			//lprintf( "Should have ended with a pop not a EndQuery DebugBreak()" );
 			//DebugBreak();
 #ifdef LOG_COLLECTOR_STATES
-			lprintf( WIDE( "End Query forces temporary and end of recordset. (more like a seek(end)" ) );
+			lprintf( "End Query forces temporary and end of recordset. (more like a seek(end)" );
 #endif
 			odbc->collection->flags.bTemporary = 1;
 			odbc->collection->flags.bEndOfFile = 1;
@@ -4689,14 +4689,14 @@ int SQLRecordQuery_js( PODBC odbc
 			if( use_odbc->collection && use_odbc->collection->flags.bTemporary )
 			{
 #ifdef LOG_COLLECTOR_STATES
-				lprintf( WIDE( "using existing collector..." ) );
+				lprintf( "using existing collector..." );
 #endif
 				use_odbc->collection->flags.bTemporary = 0;
 			}
 			else
 			{
 #ifdef LOG_COLLECTOR_STATES
-				lprintf( WIDE( "creating collector..." ) );
+				lprintf( "creating collector..." );
 #endif
 				use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
 			}
@@ -4760,13 +4760,13 @@ int SQLRecordQuery_v4( PODBC odbc
 		if( !use_odbc->collection || !use_odbc->collection->flags.bTemporary ) {
 			if( use_odbc->collection && use_odbc->collection->flags.bTemporary ) {
 #ifdef LOG_COLLECTOR_STATES
-				lprintf( WIDE( "using existing collector..." ) );
+				lprintf( "using existing collector..." );
 #endif
 				use_odbc->collection->flags.bTemporary = 0;
 			}
 			else {
 #ifdef LOG_COLLECTOR_STATES
-				lprintf( WIDE( "creating collector..." ) );
+				lprintf( "creating collector..." );
 #endif
 				use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
 			}
@@ -4781,7 +4781,7 @@ int SQLRecordQuery_v4( PODBC odbc
 	} while( __DoSQLQueryExx( use_odbc, use_odbc->collection, query, queryLen, pdlParams DBG_RELAY ) );
 
 	if( use_odbc->collection->responce == WM_SQL_RESULT_DATA ) {
-		//lprintf( WIDE("Result with data...") );
+		//lprintf( "Result with data..." );
 		if( nResults )
 			(*nResults) = use_odbc->collection->columns;
 		if( result )
@@ -4849,14 +4849,14 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 			if( use_odbc->collection && use_odbc->collection->flags.bTemporary )
 			{
 #ifdef LOG_COLLECTOR_STATES
-				lprintf( WIDE( "using existing collector..." ) );
+				lprintf( "using existing collector..." );
 #endif
 				use_odbc->collection->flags.bTemporary = 0;
 			}
 			else
 			{
 #ifdef LOG_COLLECTOR_STATES
-				lprintf( WIDE( "creating collector...: %s" ), query );
+				lprintf( "creating collector...: %s", query );
 #endif
 				use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
 			}
@@ -4876,13 +4876,13 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 		use_odbc->collection->result_text= VarTextPeek( use_odbc->collection->pvt_result );
 		if( use_odbc->collection->result_text )
 		{
-			//lprintf( WIDE("Result with data...") );
+			//lprintf( "Result with data..." );
 			(*result) = GetText( use_odbc->collection->result_text );
 		}
 		else
 		{
 			// ahh here's the key - need to result in an empty string...
-			SET_RESULT_STRING( result, WIDE("") );
+			SET_RESULT_STRING( result, "" );
 		}
 		//return use_odbc->collection->responce == WM_SQL_RESULT_DATA?TRUE:0;
 		return TRUE;
@@ -4960,15 +4960,15 @@ int PushSQLQueryExEx( PODBC odbc DBG_PASS )
 	if( odbc && odbc->collection )
 	{
 #ifdef LOG_COLLECTOR_STATES
-		lprintf( WIDE( "creating collector..." ) );
+		lprintf( "creating collector..." );
 #endif
 		CreateCollectorEx( 0, odbc, FALSE DBG_RELAY );
 		odbc->collection->flags.bPushed = 1;
 		odbc->collection->flags.bTemporary = 1;
 #ifdef LOG_COLLECTOR_STATES
-		_lprintf(DBG_RELAY)( WIDE("pushing the query onto stack... creating new state.") );
+		_lprintf(DBG_RELAY)( "pushing the query onto stack... creating new state." );
 #endif
-		//lprintf( WIDE("Adding %p to %p at %p"), collection, odbc, &odbc->collection );
+		//lprintf( "Adding %p to %p at %p", collection, odbc, &odbc->collection );
 		//LinkThing( odbc->collection, collection );
 		return 1;
 	}
@@ -5000,7 +5000,7 @@ int PushSQLQueryEx( PODBC odbc )
 // insert commands of these varieties are not used by
 // the proxy, so we reall need not host them...
 
-// parameters to this are pairs of "name", bQuote, WIDE("value")
+// parameters to this are pairs of "name", bQuote, "value"
 // the last pair's name is NULL, and value does not matter.
 // insert values into said table.
 
@@ -5027,14 +5027,14 @@ static struct {
 	}
 	tmp = VarTextGet( sql_insert.pvt_insert );
 	tmp2 = VarTextGet( sql_insert.pvt_columns );
-	vtprintf( pvt, WIDE( "%s (%s) values " ), GetText( tmp ), GetText(  tmp2 ) );
+	vtprintf( pvt, "%s (%s) values ", GetText( tmp ), GetText(  tmp2 ) );
 	{
 		int first = 1;
 		PTEXT value;
 		INDEX idx;
 		LIST_FORALL( sql_insert.values, idx, PTEXT, value )
 		{
-			vtprintf( pvt, WIDE( "%s(%s)" ), first?WIDE( "" ):WIDE( "," ), GetText( value ) );
+			vtprintf( pvt, "%s(%s)", first?"":",", GetText( value ) );
 			first = 0;
 			LineRelease( value );
 			SetLink( &sql_insert.values, idx, NULL );
@@ -5080,10 +5080,10 @@ static struct {
 		first = 1;
 		// once I thought values for access were [ ] enclosed...
 		// so now this is a silly variable...
-		open_quote_string = WIDE( "\'" );
-		close_quote_string = WIDE( "\'" );
+		open_quote_string = "\'";
+		close_quote_string = "\'";
 
-		//Log2( WIDE("Command = %p (%d)"), command, 12 + strlen( table ) + nVarLen + 7 + nValLen );
+		//Log2( "Command = %p (%d)", command, 12 + strlen( table ) + nVarLen + 7 + nValLen );
 		if( !sql_insert.pvt_insert )
 		{
 			sql_insert.pvt_insert = VarTextCreate();
@@ -5094,9 +5094,9 @@ static struct {
 		if( !sql_insert.flags.batch || !VarTextPeek( sql_insert.pvt_insert ) )
 		{
 			if( odbc && odbc->flags.bAccess )
-				vtprintf( sql_insert.pvt_insert, WIDE("Insert into [%s]"), table );
+				vtprintf( sql_insert.pvt_insert, "Insert into [%s]", table );
 			else
-				vtprintf( sql_insert.pvt_insert, WIDE("Insert into `%s`"), table );
+				vtprintf( sql_insert.pvt_insert, "Insert into `%s`", table );
 		}
 		first = 1;
 		making_columns = 0;
@@ -5107,24 +5107,24 @@ static struct {
 			if( making_columns || !sql_insert.flags.batch || !VarTextPeek( sql_insert.pvt_columns ) )
 			{
 				making_columns = 1;
-				vtprintf( sql_insert.pvt_columns, WIDE( "%s%s" ), first?WIDE( "" ):WIDE( "," ), varname );
+				vtprintf( sql_insert.pvt_columns, "%s%s", first?"":",", varname );
 			}
 
 			quote = va_arg( args, int );
 			varval = va_arg( args, char *);
 			if( quote == 2)
 			{
-				vtprintf( sql_insert.pvt_values, WIDE("%s%d")
-					, first?WIDE( "" ):WIDE( "," )
+				vtprintf( sql_insert.pvt_values, "%s%d"
+					, first?"":","
 					, (int)(uintptr_t)varval // this generates an error - typecast to different size.  This is probably okay... but that means we needed to have it push a 8 byte value here ...
 					);
 			}
 			else
-				vtprintf( sql_insert.pvt_values, WIDE("%s%s%s%s")
-				, first?WIDE( "" ):WIDE( "," )
-				, quote?open_quote_string:WIDE( "" )
+				vtprintf( sql_insert.pvt_values, "%s%s%s%s"
+				, first?"":","
+				, quote?open_quote_string:""
 				, varval
-				, quote?close_quote_string:WIDE( "" )
+				, quote?close_quote_string:""
 				);
 			first = 0;
 		}
@@ -5154,7 +5154,7 @@ static struct {
 }
 
 //------------------------------------------------------------------
-// parameters to this are pairs of "name", bQuote, WIDE("value")
+// parameters to this are pairs of "name", bQuote, "value"
 // the last pair's name is NULL, and value does not matter.
 // insert values into said table.
  int  SQLInsert ( PODBC odbc, CTEXTSTR table, ... )
@@ -5253,19 +5253,19 @@ void CPROC Timer( uintptr_t psv )
 	// this attempts to re-open backup and/or primary
 	// and within this is dispatched the backup/restore/init
 	// tasks.
-	//Log( WIDE("Tick...") );
+	//Log( "Tick..." );
 	OpenSQL( DBG_VOIDSRC );
 	if( g.odbc )
 	{
 		//VarTextEmpty( g.TimerCollect.pvt_out );
 		g.flags.bNoLog = 1;
 		// this is a command... this is only a command...
-		__DoSQLQuery( g.odbc, &g.TimerCollect, WIDE("select 0") );
+		__DoSQLQuery( g.odbc, &g.TimerCollect, "select 0" );
 
 		if( g.TimerCollect.responce != WM_SQL_RESULT_DATA )
 		{
 			FailConnection( g.odbc );
-			Log( WIDE("Connection FAILED!") );
+			Log( "Connection FAILED!" );
 		}
 		else
 		{
@@ -5285,36 +5285,36 @@ static void LoadTasks( void )
 		TEXTCHAR taskid[32];
 		TEXTCHAR updatetask[256];
 
-		tnprintf( taskid, sizeof( taskid ), WIDE("Task%d"), n );
+		tnprintf( taskid, sizeof( taskid ), "Task%d", n );
 		updatetask[0] = 0;
-		//OptGetPrivateProfileString( WIDE("Recovery Update"), taskid, WIDE(""), updatetask, sizeof( updatetask ), SQL_INI );
+		//OptGetPrivateProfileString( "Recovery Update", taskid, "", updatetask, sizeof( updatetask ), SQL_INI );
 		if( updatetask[0] )
 		{
 			PUPDATE_TASK task = (PUPDATE_TASK)Allocate( sizeof( UPDATE_TASK ) );
-			lprintf( WIDE("Task: \'%s\'"), updatetask );
+			lprintf( "Task: \'%s\'", updatetask );
 			StrCpyEx( task->name, updatetask, sizeof( task->name ) );
-			task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, WIDE("_PrimaryRecovered") );
+			task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, "_PrimaryRecovered" );
 			// it better never be  a post _ which implies register convention
 			//if( !task->PrimaryRecovered )
-			// task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, WIDE("PrimaryRecovered_") );
+			// task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, "PrimaryRecovered_" );
 			if( !task->PrimaryRecovered )
-				task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, WIDE("PrimaryRecovered") );
+				task->PrimaryRecovered = (void(CPROC *)(PODBC,PODBC))LoadFunction( task->name, "PrimaryRecovered" );
 			if( !task->PrimaryRecovered )
 			{
-				lprintf( WIDE("Failure to get task from plugin: %s"), updatetask );
-				//MessageBox( NULL, WIDE("Failure to load plugin!"), WIDE("Update Task Error"), MB_OK );
+				lprintf( "Failure to get task from plugin: %s", updatetask );
+				//MessageBox( NULL, "Failure to load plugin!", "Update Task Error", MB_OK );
 				//Release( task );
 			}
-			task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, WIDE("_CheckTables") );
+			task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, "_CheckTables" );
 			// it better never be  a post _ which implies register convention
 			//if( !task->CheckTables )
-			// task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, WIDE("CheckTables_") );
+			// task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, "CheckTables_" );
 			if( !task->CheckTables )
-				task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, WIDE("CheckTables") );
+				task->CheckTables = (void(CPROC *)(PODBC))LoadFunction( task->name, "CheckTables" );
 			if( !task->CheckTables )
 			{
-				lprintf( WIDE("Failure to get task from plugin: %s"), updatetask );
-				//MessageBox( NULL, WIDE("Failure to load plugin!"), WIDE("Update Task Error"), MB_OK );
+				lprintf( "Failure to get task from plugin: %s", updatetask );
+				//MessageBox( NULL, "Failure to load plugin!", "Update Task Error", MB_OK );
 				//Release( task );
 			}
 
@@ -5322,7 +5322,7 @@ static void LoadTasks( void )
 		}
 		else
 		{
-			lprintf( WIDE("Task: %s"), updatetask );
+			lprintf( "Task: %s", updatetask );
 			break;
 		}
 	}
@@ -5349,14 +5349,14 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 		{
 			// result timeout to client. forget this message.
 			//(*result_length) = INVALID_INDEX; // by default
-			lprintf( WIDE("SQL is not ready...") );
+			lprintf( "SQL is not ready..." );
 			if( pCollector && pCollector->lastop )
 			{
 				PTEXT prior;
 				// return unexpected ERROR results!
-				lprintf( WIDE("SQL command pending already! FAILURE!") );
+				lprintf( "SQL command pending already! FAILURE!" );
 				prior = VarTextPeek( pCollector->pvt_out );
-				lprintf( WIDE("prior command: %s"), GetText( prior ) );
+				lprintf( "prior command: %s", GetText( prior ) );
 				return FALSE;
 			}
 			//return TRUE;
@@ -5372,7 +5372,7 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 		switch( MsgID )
 		{
 		case MSG_ServiceLoad:
-			lprintf( WIDE("Service load request... respond with correct startup!") );
+			lprintf( "Service load request... respond with correct startup!" );
 			result[0] = WM_SQL_NUM_MESSAGES;
 			result[1] = WM_SQL_NUM_MESSAGES;
 			(*result_length) = (uint32_t)((result+2) - result);
@@ -5390,7 +5390,7 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 				{
 					if( pCollect->SourceID == SourceRouteID )
 					{
-						lprintf( WIDE("Destrying collector for client which is gone.") );
+						lprintf( "Destrying collector for client which is gone." );
 						DestroyCollector( pCollector );
 					}
 				}
@@ -5400,20 +5400,20 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 			} //while( ( pCollector = FindCollection( NULL, SourceRouteID ) ) );
 			return TRUE;
 		case WM_SQL_COMMAND:
-			lprintf( WIDE("Do SQL Command...") );
+			lprintf( "Do SQL Command..." );
 			// application will get a timeout on this message.
 			//
 			// who I am and who they are is implied with this message stream...
 			__DoSQLCommand( g.odbc, Collect( pCollector, params, param_length  )/*, g.message_id */ );
 			return TRUE;
 		case WM_SQL_QUERY:
-			lprintf( WIDE("Do SQL Query...") );
+			lprintf( "Do SQL Query..." );
 			// query will be already on the collector...
 			pCollector->flags.bBuildResultArray = 0;
 			__DoSQLQuery( g.odbc, Collect( pCollector, params, param_length ), NULL );
 			return TRUE;
 		case WM_SQL_QUERY_RECORD:
-			lprintf( WIDE("Do SQL Query...") );
+			lprintf( "Do SQL Query..." );
 			// query will be already on the collector...
 			pCollector->flags.bBuildResultArray = 1;
 			__DoSQLQuery( g.odbc, Collect( pCollector, params, param_length ), NULL );
@@ -5422,33 +5422,33 @@ int CPROC SQLServiceHandler( PSERVICE_ROUTE SourceRouteID
 			__GetSQLError( g.odbc, pCollector );
 			return TRUE;
 		case WM_SQL_MORE:
-			lprintf( WIDE("Do SQL More...") );
+			lprintf( "Do SQL More..." );
 			__GetSQLResult( g.odbc, pCollector, TRUE );
 			return TRUE;
 		case WM_SQL_RESULT_SUCCESS:
-			lprintf( WIDE("Unexpected result success to SQL Proxy server!") );
+			lprintf( "Unexpected result success to SQL Proxy server!" );
 			return TRUE;
 		case WM_SQL_RESULT_ERROR:
-			lprintf( WIDE("Unexpected result error to SQL Proxy server!") );
+			lprintf( "Unexpected result error to SQL Proxy server!" );
 			return TRUE;
 		case WM_SQL_RESULT_DATA:
-			lprintf( WIDE("Unexpected result data to SQL Proxy server!") );
+			lprintf( "Unexpected result data to SQL Proxy server!" );
 			return TRUE;
 		case WM_SQL_DATA_START:
 			// should validate that we're not already
 			// collecting...
 			{
-				lprintf( WIDE("Start collect data") );
+				lprintf( "Start collect data" );
 				if( VarTextLength( pCollector->pvt_out ) )
 				{
-					lprintf( WIDE("Was already having data collected at start... dropping it.") );
+					lprintf( "Was already having data collected at start... dropping it." );
 					LineRelease( VarTextGet( pCollector->pvt_out ) );
 				}
 				Collect( pCollector, params, param_length );
 			}
 			return TRUE;
 		case WM_SQL_DATA_MORE:
-			lprintf( WIDE("Add more data...") );
+			lprintf( "Add more data..." );
 			Collect( pCollector, params, param_length );
 			return TRUE;
 		}
@@ -5465,7 +5465,7 @@ void SQLBeginService( void )
 	SqlStubInitLibrary();
 	// provide task interface
 #ifndef __NO_MSGSVR__
-	RegisterServiceHandler( WIDE("SQL"), SQLServiceHandler );
+	RegisterServiceHandler( "SQL", SQLServiceHandler );
 #endif
 	// load local schedulable tasks...
 	LoadTasks();
@@ -5531,25 +5531,25 @@ CTEXTSTR GetSQLOffsetDate( PODBC odbc, CTEXTSTR BeginOfDayType, int default_begi
 		dto = New( struct day_type_offset );
 		dto->type = StrDup( BeginOfDayType );
 		if( default_begin > 100 )
-			tnprintf( default_val, sizeof( default_val ), WIDE( "%d:%02d" ), default_begin / 100, default_begin % 100 );
+			tnprintf( default_val, sizeof( default_val ), "%d:%02d", default_begin / 100, default_begin % 100 );
 		else
-			tnprintf( default_val, sizeof( default_val ), WIDE( "%d" ), default_begin );
+			tnprintf( default_val, sizeof( default_val ), "%d", default_begin );
 #ifndef __NO_OPTIONS__
-		SACK_GetProfileString( WIDE( "SACK/SQL/Day Offset" ), BeginOfDayType, default_val, offset, sizeof( offset ) );
+		SACK_GetProfileString( "SACK/SQL/Day Offset", BeginOfDayType, default_val, offset, sizeof( offset ) );
 #else
 		StrCpyEx( offset, default_val, sizeof( offset ) );
 #endif
 		if( StrChr( offset, ':' ) )
 		{
-			tscanf( offset, WIDE( "%d:%d" ), &hours, &minutes );
+			tscanf( offset, "%d:%d", &hours, &minutes );
 		}
 		else
 		{
 			minutes = 0;
-			tscanf( offset, WIDE( "%d" ), &hours );
+			tscanf( offset, "%d", &hours );
 		}
 
-		tnprintf( result, sizeof( result ), WIDE( "cast(date_add(now(),interval -%d minute) as date)" ), hours*60+minutes );
+		tnprintf( result, sizeof( result ), "cast(date_add(now(),interval -%d minute) as date)", hours*60+minutes );
 		dto->result = StrDup( result );
 		AddLink( &g.date_offsets, dto );
 	}

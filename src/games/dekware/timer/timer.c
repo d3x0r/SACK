@@ -9,8 +9,8 @@ int CPROC StopTime( PSENTIENT ps, PTEXT parameters );
 
 // declare these with spaces so that they are
 // not easily referenced from within the terminal...
-DECLTEXT( mark, WIDE("mark time") );
-DECLTEXT( stopmark, WIDE("stop time") );
+DECLTEXT( mark, "mark time" );
+DECLTEXT( stopmark, "stop time" );
 
 #ifndef _WIN32
 typedef struct my_sytemtime_struct {
@@ -36,10 +36,10 @@ typedef struct my_time_struct {
 
 //-----------------------------------------------------------------------------
 
-TEXTCHAR *months[13] = { NULL, WIDE("january"), WIDE("february"),WIDE("march")    
-                     ,WIDE("april"),WIDE("may"),WIDE("june"),WIDE("july")
-                     ,WIDE("august"),WIDE("september"), WIDE("october"), WIDE("november")
-                     ,WIDE("december") };
+TEXTCHAR *months[13] = { NULL, "january", "february","march"    
+                     ,"april","may","june","july"
+                     ,"august","september", "october", "november"
+                     ,"december" };
 
 void MakeMyTime( PMYTIME result
 #ifdef _WIN32
@@ -194,7 +194,7 @@ void ShowTime( PSENTIENT ps, SYSTEMTIME *st )
 	PVARTEXT vt;
 	PTEXT time;
 	vt = VarTextCreate();
-	vtprintf( vt, WIDE("Clock:%d/%d/%d %d:%d:%d.%d")
+	vtprintf( vt, "Clock:%d/%d/%d %d:%d:%d.%d"
 					, st->wMonth, st->wDay, st->wYear
 					, st->wHour, st->wMinute, st->wSecond, st->wMilliseconds );
 	EnqueLink( &ps->Command->Output, VarTextGet( vt ) );	
@@ -203,7 +203,7 @@ void ShowTime( PSENTIENT ps, SYSTEMTIME *st )
 #endif
 //-----------------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Timer"), WIDE("StopTimer"), WIDE("Show current time from last mark.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Timer", "StopTimer", "Show current time from last mark." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int CPROC StopTime( PSENTIENT ps, PTEXT parameters )
 {
    DECLTEXTSZ( systime, sizeof( SYSTEMTIME ) );
@@ -220,7 +220,7 @@ static int ObjectMethod( WIDE("Timer"), WIDE("StopTimer"), WIDE("Show current ti
 
 //-----------------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Timer"), WIDE("Mark"), WIDE("Mark current time as start of elapse.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Timer", "Mark", "Mark current time as start of elapse." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int CPROC MarkTime( PSENTIENT ps, PTEXT parameters )
 {
    DECLTEXTSZ( systime, sizeof( SYSTEMTIME ) );
@@ -318,7 +318,7 @@ int MonthDayofYear( int year, int doy, uint16_t* Month, uint16_t* Day )
 
 //-----------------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("Timer"), WIDE("Elapse"), WIDE("Show current time from last mark.") )( PSENTIENT ps, PENTITY pe, PTEXT params )
+static int ObjectMethod( "Timer", "Elapse", "Show current time from last mark." )( PSENTIENT ps, PENTITY pe, PTEXT params )
 //int CPROC ReportTime( PSENTIENT ps, PTEXT parameters )
 {
    SYSTEMTIME stHolder, *stNow, *stThen, stDel;
@@ -327,7 +327,7 @@ static int ObjectMethod( WIDE("Timer"), WIDE("Elapse"), WIDE("Show current time 
    pIndTime = GetVariable( ps, mark.data.data );
    if( !pIndTime )
    {
-      DECLTEXT( msg, WIDE("Previous time 'mark' was not done.") );
+      DECLTEXT( msg, "Previous time 'mark' was not done." );
       EnqueLink( &ps->Command->Output, &msg );
       return 0;
    }
@@ -389,7 +389,7 @@ static int ObjectMethod( WIDE("Timer"), WIDE("Elapse"), WIDE("Show current time 
    MonthDayofYear( stNow->wYear, doyDel, &stDel.wMonth, &stDel.wDay );
    if( stDel.wYear > 65000 )
    {
-      DECLTEXT( msg, WIDE("Fatal error computing dates...") );
+      DECLTEXT( msg, "Fatal error computing dates..." );
       EnqueLink( &ps->Command->Output, &msg );
       return 0;
    }
@@ -399,52 +399,52 @@ static int ObjectMethod( WIDE("Timer"), WIDE("Elapse"), WIDE("Show current time 
 		vt = VarTextCreate();
       if( stDel.wYear )
       {
-         vtprintf( vt, WIDE("%d year%s%d month%s%d day%s%d hour%s%d minute%s and %d second%s")
+         vtprintf( vt, "%d year%s%d month%s%d day%s%d hour%s%d minute%s and %d second%s"
                                     , stDel.wYear
-                                    , ((stDel.wYear == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wYear == 1)?" ":"s ")
                                     , stDel.wMonth
-                                    , ((stDel.wMonth == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wMonth == 1)?" ":"s ")
                                     , stDel.wDay
-                                    , ((stDel.wDay == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wDay == 1)?" ":"s ")
                                     , stDel.wHour
-                                    , ((stDel.wHour == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wHour == 1)?" ":"s ")
                                     , stDel.wMinute
-                                    , ((stDel.wMinute == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wMinute == 1)?" ":"s ")
                                     , stDel.wSecond
-                                    , ((stDel.wSecond == 1)?WIDE(""):WIDE("s"))
+                                    , ((stDel.wSecond == 1)?"":"s")
                                      );
       }
       else if( stDel.wMonth )
       {
-         vtprintf( vt, WIDE("%d month%s%d day%s%d hour%s%d minute%sand %d second%s")
+         vtprintf( vt, "%d month%s%d day%s%d hour%s%d minute%sand %d second%s"
                                     , stDel.wMonth
-                                    , ((stDel.wMonth == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wMonth == 1)?" ":"s ")
                                     , stDel.wDay
-                                    , ((stDel.wDay == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wDay == 1)?" ":"s ")
                                     , stDel.wHour
-                                    , ((stDel.wHour == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wHour == 1)?" ":"s ")
                                     , stDel.wMinute
-                                    , ((stDel.wMinute == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wMinute == 1)?" ":"s ")
                                     , stDel.wSecond
-                                    , ((stDel.wSecond == 1)?WIDE(""):WIDE("s"))
+                                    , ((stDel.wSecond == 1)?"":"s")
                                      );
       }
       else if( stDel.wDay )
       {
-         vtprintf( vt, WIDE("%d day%s%d hour%s%d minute%sand %d second%s")
+         vtprintf( vt, "%d day%s%d hour%s%d minute%sand %d second%s"
                                     , stDel.wDay
-                                    , ((stDel.wDay == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wDay == 1)?" ":"s ")
                                     , stDel.wHour
-                                    , ((stDel.wHour == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wHour == 1)?" ":"s ")
                                     , stDel.wMinute
-                                    , ((stDel.wMinute == 1)?WIDE(" "):WIDE("s "))
+                                    , ((stDel.wMinute == 1)?" ":"s ")
                                     , stDel.wSecond
-                                    , ((stDel.wSecond == 1)?WIDE(""):WIDE("s"))
+                                    , ((stDel.wSecond == 1)?"":"s")
                                      );
       }
       else if( stDel.wHour )
       {
-         vtprintf( vt, WIDE("%d:%d:%d.%03d")
+         vtprintf( vt, "%d:%d:%d.%03d"
                                     , stDel.wHour
                                     , stDel.wMinute
                                     , stDel.wSecond
@@ -453,7 +453,7 @@ static int ObjectMethod( WIDE("Timer"), WIDE("Elapse"), WIDE("Show current time 
       }
       else if( stDel.wMinute )
       {
-         vtprintf( vt, WIDE("%d:%d.%03d")
+         vtprintf( vt, "%d:%d.%03d"
                                     , stDel.wMinute
                                     , stDel.wSecond
                                     , stDel.wMilliseconds
@@ -461,13 +461,13 @@ static int ObjectMethod( WIDE("Timer"), WIDE("Elapse"), WIDE("Show current time 
       }
       else if( stDel.wSecond )
       {
-         vtprintf( vt, WIDE("%d.%03d")
+         vtprintf( vt, "%d.%03d"
                                     , stDel.wSecond
                                     , stDel.wMilliseconds
                                      );
       }
       else
-         vtprintf( vt, WIDE("%d milliseconds")
+         vtprintf( vt, "%d milliseconds"
                                     , stDel.wMilliseconds
                                      );
 
@@ -483,7 +483,7 @@ static int ObjectMethod( WIDE("Timer"), WIDE("Elapse"), WIDE("Show current time 
 //-----------------------------------------------------------------------------
 
 
-static int OnCreateObject( WIDE("clock"), WIDE("Your basic chronometer") )( PSENTIENT ps, PENTITY pe, PTEXT parameters )
+static int OnCreateObject( "clock", "Your basic chronometer" )( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 //int CPROC InitClock( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 {
 	// this routine is passed an object already named, with the default 
@@ -498,13 +498,13 @@ static int OnCreateObject( WIDE("clock"), WIDE("Your basic chronometer") )( PSEN
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-   //RegisterObject( WIDE("Clock"), WIDE("Your basic chronometer..."), InitClock );
+   //RegisterObject( "Clock", "Your basic chronometer...", InitClock );
    return DekVersion;
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterObject( WIDE("Clock") );
+	UnregisterObject( "Clock" );
 }
 
 

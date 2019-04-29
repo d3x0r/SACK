@@ -1941,11 +1941,11 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #if defined( FORCE_NO_INTERFACE ) && !defined( ALLOW_IMAGE_INTERFACES )
 #  undef USE_IMAGE_INTERFACE
 #else
-#  define GetImageInterface() (PIMAGE_INTERFACE)GetInterface( WIDE("image") )
+#  define GetImageInterface() (PIMAGE_INTERFACE)GetInterface( "image" )
 /* <combine sack::image::DropImageInterface@PIMAGE_INTERFACE>
    
    \ \                                                        */
-#  define DropImageInterface(x) DropInterface( WIDE("image"), NULL )
+#  define DropImageInterface(x) DropInterface( "image", NULL )
 
 #endif
 

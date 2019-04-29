@@ -81,7 +81,7 @@ void UpdateSpace( int nsectors, PSECTOR *sectors )
 	{
 		if( !RemoveSpaceNode( sectors[n]->spacenode ) )
 		{
-			Log( WIDE("Think we double removed this sector - removing from list") );
+			Log( "Think we double removed this sector - removing from list" );
 			sectors[n] = NULL;
 		}
 	}
@@ -109,7 +109,7 @@ void DumpWall( INDEX iWorld, INDEX iWall )
 		, wall->iLine );
 	DumpLine( pLine );
 
-	Log5( WIDE("Wall(%08x): startend: %d (%08x) EndEnd: %d (%08x)")
+	Log5( "Wall(%08x): startend: %d (%08x) EndEnd: %d (%08x)"
 		, wall
 		, wall->flags.wall_start_end
 		, wall->iWallStart
@@ -229,7 +229,7 @@ int CountWalls( INDEX iWorld, INDEX iWall )
 	do
 	{
 		walls++;
-		Log1( WIDE("Walls: %d"), walls );
+		Log1( "Walls: %d", walls );
 		if( priorend )
 		{
 			priorend = pCur->flags.wall_start_end;
@@ -314,7 +314,7 @@ void SendLineChanged( INDEX iWorld, INDEX iWall, INDEX iLine, LINESEG *lineseg, 
 		//uint32_t result;
 		// expect to wait until the server
 		// accepts the change.
-		lprintf( WIDE("Send.") );
+		lprintf( "Send." );
 		TransactServerMultiMessage( MSG_ID( SendLineChanged ), 6
 			, NULL /*&result*/, NULL, NULL
 			, &iWorld, sizeof( INDEX )
@@ -324,14 +324,14 @@ void SendLineChanged( INDEX iWorld, INDEX iWall, INDEX iLine, LINESEG *lineseg, 
 			, &lock_mating_slopes, sizeof( uint32_t )
 			, lineseg, sizeof( LINESEG ) 
 										  );
-		lprintf( WIDE("Sent.") );
+		lprintf( "Sent." );
 
 }
 
 //----------------------------------------------------------------------------
 
 #define UpdateResult(r) {				 \
-	if( !r ) Log1( WIDE("Failing update at : %d"), __LINE__ ); \
+	if( !r ) Log1( "Failing update at : %d", __LINE__ ); \
 	pWall->flags.bUpdating = FALSE;  \
 	/*UpdateLevels--;*/				  \
 	/*if( !UpdateLevels ) UpdateSpace( UpdateCount, UpdateList );*/\
@@ -374,18 +374,18 @@ int UpdateMatingLines( INDEX iWorld, INDEX iWall
 		return TRUE; // this is okay - we're just looping backwards.
 
 	pWall->flags.bUpdating = TRUE;
-	Log( WIDE("UpdateMating(")STRSYM(__LINE__)WIDE(")") );
+	Log( "UpdateMating("STRSYM(__LINE__)")" );
 	if( pWall->iWallInto != INVALID_INDEX )
 	{
 		if( !UpdateMatingLines( iWorld, pWall->iWallInto, bLockSlope, bErrorOK ) )
 			UpdateResult( FALSE );
 	}
-	Log( WIDE("UpdateMating(")STRSYM(__LINE__)WIDE(")") );
+	Log( "UpdateMating("STRSYM(__LINE__)")" );
 
 	if( CountWalls( iWorld, iWall ) < 4 )
 		bErrorOK = TRUE;
 
-	Log( WIDE("UpdateMating(")STRSYM(__LINE__)WIDE(")") );
+	Log( "UpdateMating("STRSYM(__LINE__)")" );
 
 	if( !bLockSlope )
 	{
@@ -438,7 +438,7 @@ Readjust:
 			}while( pCur != pWall );
 		}
 
-		Log( WIDE("UpdateMating(")STRSYM(__LINE__)WIDE(")") );
+		Log( "UpdateMating("STRSYM(__LINE__)")" );
 		if( pWall->flags.wall_start_end )
 		{
 			_POINT ptOther;
@@ -456,7 +456,7 @@ Readjust:
 					PWALL pOtherWall = GetSetMember( WALL, &world->walls, iOtherWall );
 					PFLATLAND_MYLINESEG plsOther = GetSetMember( FLATLAND_MYLINESEG, &world->lines, pOtherWall->iLine );
 					/*
-					Log7( WIDE("Line Different %d: <%g,%g,%g> <%g,%g,%g> ")
+					Log7( "Line Different %d: <%g,%g,%g> <%g,%g,%g> "
 					, __LINE__
 					, ptOther[0]
 					, ptOther[1]
@@ -464,7 +464,7 @@ Readjust:
 					, ptStart[0]
 					, ptStart[1]
 					, ptStart[2] );
-					Log7( WIDE("Line Different %d: <%08x,%08x,%08x> <%08x,%08x,%08x> ")
+					Log7( "Line Different %d: <%08x,%08x,%08x> <%08x,%08x,%08x> "
 					, __LINE__
 					, RCOORDBITS(ptOther[0])
 					, RCOORDBITS(ptOther[1])
@@ -518,7 +518,7 @@ Readjust:
 					PWALL pOtherWall = GetSetMember( WALL, &world->walls, pStart->iWallEnd );
 					PFLATLAND_MYLINESEG plsOther = GetSetMember( FLATLAND_MYLINESEG, &world->lines, pOtherWall->iLine );
 					/*
-					Log7( WIDE("Line Different %d: <%g,%g,%g> <%g,%g,%g> ")
+					Log7( "Line Different %d: <%g,%g,%g> <%g,%g,%g> "
 					, __LINE__
 					, ptOther[0]
 					, ptOther[1]
@@ -526,7 +526,7 @@ Readjust:
 					, ptStart[0]
 					, ptStart[1]
 					, ptStart[2] );
-					Log7( WIDE("Line Different %d: <%08x,%08x,%08x> <%08x,%08x,%08x> ")
+					Log7( "Line Different %d: <%08x,%08x,%08x> <%08x,%08x,%08x> "
 					, __LINE__
 					, RCOORDBITS(ptOther[0])
 					, RCOORDBITS(ptOther[1])
@@ -564,11 +564,11 @@ Readjust:
 				}
 				else
 				{
-					//Log( WIDE("Points were the same?!") );
+					//Log( "Points were the same?!" );
 				}
 			}
 		}
-		Log( WIDE("UpdateMating(")STRSYM(__LINE__)WIDE(")") );
+		Log( "UpdateMating("STRSYM(__LINE__)")" );
 		if( pWall->flags.wall_end_end )
 		{
 			_POINT ptOther;
@@ -584,7 +584,7 @@ Readjust:
 					PWALL pOtherWall = GetSetMember( WALL, &world->walls, pEnd->iWallStart );
 					PFLATLAND_MYLINESEG plsOther = GetSetMember( FLATLAND_MYLINESEG, &world->lines, pOtherWall->iLine );
 					/*
-					Log7( WIDE("Line Different %d: <%g,%g,%g> <%g,%g,%g> ")
+					Log7( "Line Different %d: <%g,%g,%g> <%g,%g,%g> "
 					, __LINE__
 					, ptOther[0]
 					, ptOther[1]
@@ -592,7 +592,7 @@ Readjust:
 					, ptEnd[0]
 					, ptEnd[1]
 					, ptEnd[2] );
-					Log7( WIDE("Line Different %d: <%08x,%08x,%08x> <%08x,%08x,%08x> ")
+					Log7( "Line Different %d: <%08x,%08x,%08x> <%08x,%08x,%08x> "
 					, __LINE__
 					, RCOORDBITS(ptOther[0])
 					, RCOORDBITS(ptOther[1])
@@ -648,7 +648,7 @@ Readjust:
 					PWALL pOtherWall = GetSetMember( WALL, &world->walls, pEnd->iWallEnd );
 					PFLATLAND_MYLINESEG plsOther = GetSetMember( FLATLAND_MYLINESEG, &world->lines, pOtherWall->iLine );
 					/*
-					Log7( WIDE("Line Different %d: <%g,%g,%g> <%g,%g,%g> ")
+					Log7( "Line Different %d: <%g,%g,%g> <%g,%g,%g> "
 					, __LINE__
 					, ptOther[0]
 					, ptOther[1]
@@ -656,7 +656,7 @@ Readjust:
 					, ptEnd[0]
 					, ptEnd[1]
 					, ptEnd[2] );
-					Log7( WIDE("Line Different %d: <%08x,%08x,%08x> <%08x,%08x,%08x> ")
+					Log7( "Line Different %d: <%08x,%08x,%08x> <%08x,%08x,%08x> "
 					, __LINE__
 					, RCOORDBITS(ptOther[0])
 					, RCOORDBITS(ptOther[1])
@@ -697,7 +697,7 @@ Readjust:
 		}
 		// check to see if we crossed the mating lines...
 		// if so - uncross them.
-		Log( WIDE("UpdateMating(")STRSYM(__LINE__)WIDE(")") );
+		Log( "UpdateMating("STRSYM(__LINE__)")" );
 		if( !bErrorOK )
 		{
 			RCOORD t1, t2;
@@ -709,7 +709,7 @@ Readjust:
 				int tmp;
 				if( AdjustPass++ )
 				{
-					Log( WIDE("We're dying!") );
+					Log( "We're dying!" );
 					UpdateResult( FALSE );
 				}
 				tmp = pWall->flags.wall_start_end;
@@ -750,7 +750,7 @@ Readjust:
 			// this is still insufficient... and should continue to check
 			// remaining segments...
 		}
-		Log( WIDE("UpdateMating(")STRSYM(__LINE__)WIDE(")") );
+		Log( "UpdateMating("STRSYM(__LINE__)")" );
 #ifndef WORLD_SERVICE
 		ComputeSectorPointList( iWorld, pWall->iSector, NULL );
 #endif
@@ -815,7 +815,7 @@ Readjust:
 			}
 			else
 			{
-				Log2( WIDE("Failed to intersect wall with iWallStart %s(%d)"), __FILE__, __LINE__ );
+				Log2( "Failed to intersect wall with iWallStart %s(%d)", __FILE__, __LINE__ );
 				UpdateResult( FALSE );
 			}
 
@@ -831,7 +831,7 @@ Readjust:
 			}
 			else
 			{
-				Log2( WIDE("Failed to intersect wall with iWallStart %s(%d)"), __FILE__, __LINE__ );
+				Log2( "Failed to intersect wall with iWallStart %s(%d)", __FILE__, __LINE__ );
 				UpdateResult( FALSE );
 			}
 
@@ -906,9 +906,9 @@ int DestroySector( INDEX iWorld, INDEX iSector )
 	PWALL pCur, pNext;
 	INDEX iCur, iNext;
 	int priorend = TRUE;
-	//Log( WIDE("Destroy Sector(")STRSYM(__LINE__)WIDE(")"));
+	//Log( "Destroy Sector("STRSYM(__LINE__)")");
 	//DeleteSpaceNode( RemoveSpaceNode( ps->spacenode ) );
-	//Log( WIDE("Destroy Sector(")STRSYM(__LINE__)WIDE(")"));
+	//Log( "Destroy Sector("STRSYM(__LINE__)")");
 	//ValidateSpaceTree( world.spacetree );
 	//ps->spacenode = NULL;
 	pCur = GetSetMember( WALL, &world->walls, iCur = ps->iWall );
@@ -942,10 +942,10 @@ void DeleteSectors( INDEX iWorld )
 {
 	PWORLD world = GetSetMember( WORLD, &g.worlds, iWorld );
 	//PSPACENODE node;
-	//Log( WIDE("Deleting Sectors...") );
+	//Log( "Deleting Sectors..." );
 	//while( node = FindDeepestNode( world.spacetree, 0 ) )
 	//{
-	//Log1( WIDE("%08x arg!"), node );
+	//Log1( "%08x arg!", node );
 	//  DestroySector( (PSECTOR)GetNodeData( node ) );
 	//}
 	//ForAllSectors( *ppsectors, DestroySector, 0 );
@@ -1062,7 +1062,7 @@ void SplitNearWalls( INDEX iWorld, INDEX iWall )
 		if( wall->flags.wall_start_end )
 		{
 			if( start->iWallEnd != iWall )
-				Log1( WIDE("We're confused about linkings... %d"), __LINE__ );
+				Log1( "We're confused about linkings... %d", __LINE__ );
 			else
 			{
 				PWALL into;
@@ -1075,7 +1075,7 @@ void SplitNearWalls( INDEX iWorld, INDEX iWall )
 		else
 		{
 			if( start->iWallStart != iWall )
-				Log1( WIDE("We're confused about linkings... %d"), __LINE__ );
+				Log1( "We're confused about linkings... %d", __LINE__ );
 			else
 			{
 				PWALL into;
@@ -1093,7 +1093,7 @@ void SplitNearWalls( INDEX iWorld, INDEX iWall )
 		if( wall->flags.wall_end_end )
 		{
 			if( start->iWallEnd != iWall )
-				Log1( WIDE("We're confused about linkings... %d"), __LINE__ );
+				Log1( "We're confused about linkings... %d", __LINE__ );
 			else
 			{
 				PWALL into;
@@ -1106,7 +1106,7 @@ void SplitNearWalls( INDEX iWorld, INDEX iWall )
 		else
 		{
 			if( start->iWallStart != iWall )
-				Log1( WIDE("We're confused about linkings... %d"), __LINE__ );
+				Log1( "We're confused about linkings... %d", __LINE__ );
 			else
 			{
 				PWALL into;
@@ -1179,10 +1179,10 @@ INDEX FlatlandPointWithin( INDEX iWorld, int nSectors, INDEX *pSectors, P_POINT 
 		INDEX iSector = pSectors[n];
 		PSECTOR pSector = GetSetMember( SECTOR, &world->sectors, iSector );
 		pCur = pStart = GetSetMember( WALL, &world->walls, pSector->iWall );
-		//lprintf( WIDE("------ SECTOR %d --------------"), n );
+		//lprintf( "------ SECTOR %d --------------", n );
 		if( Near( p, pSector->r.o ) )
 		{
-			//lprintf( WIDE("...") );
+			//lprintf( "..." );
 			return iSector;
 		}
 		sub( norm, p, pSector->r.o );
@@ -1197,7 +1197,7 @@ INDEX FlatlandPointWithin( INDEX iWorld, int nSectors, INDEX *pSectors, P_POINT 
 				// beyond the end of this line...  which I guess if the origin is skewed
 				// then one end or another may require success at more than the distance
 				// from the origin to the line...
-				//Log4( WIDE("Intersected at %g %g %g -> %g"), T1, T2,
+				//Log4( "Intersected at %g %g %g -> %g", T1, T2,
 				//	  plsCur->dFrom, plsCur->dTo );
 				if( ( T2 >= plsCur->dFrom && T2 <= plsCur->dTo ) )
 				{
@@ -1208,14 +1208,14 @@ INDEX FlatlandPointWithin( INDEX iWorld, int nSectors, INDEX *pSectors, P_POINT 
 						odd = 1;
 					if( even && odd )
 					{
-						//Log( WIDE("Two successes is truth...") );
+						//Log( "Two successes is truth..." );
 						return iSector;
 					}
-					//Log( WIDE("continuing truth (sector in list)") );
+					//Log( "continuing truth (sector in list)" );
 					//return iSector;
 				}
 			}
-			//lprintf( WIDE("cur is %p start %p"), pCur, pStart );
+			//lprintf( "cur is %p start %p", pCur, pStart );
 			if( priorend )
 			{
 				priorend = pCur->flags.wall_start_end;
@@ -1226,7 +1226,7 @@ INDEX FlatlandPointWithin( INDEX iWorld, int nSectors, INDEX *pSectors, P_POINT 
 				priorend = pCur->flags.wall_end_end;
 				pCur = GetSetMember( WALL, &world->walls, pCur->iWallEnd );
 			}
-			//lprintf( WIDE("new cur is %p"), pCur );
+			//lprintf( "new cur is %p", pCur );
 		}while( pCur != pStart );
 	}
 	return INVALID_INDEX;
@@ -1403,24 +1403,24 @@ _POINT* ComputeSectorPointList( INDEX iWorld, INDEX iSector, int *pnpoints )
 	pCur = pStart = GetSetMember( WALL, &world->walls, sector->iWall );
 	if( pCur ) do
 	{
-		//lprintf( WIDE("first wall %p %d %d"), pCur, pCur->iWallStart, pCur->iWallEnd );
+		//lprintf( "first wall %p %d %d", pCur, pCur->iWallStart, pCur->iWallEnd );
 		plsCur = GetSetMember( FLATLAND_MYLINESEG, &world->lines, pCur->iLine );
 		npoints++;
 		if( priorend )
 		{
 			priorend = pCur->flags.wall_start_end;
 			pCur = GetSetMember( WALL, &world->walls, pCur->iWallStart );
-			//lprintf( WIDE("next wall %p"), pCur );
+			//lprintf( "next wall %p", pCur );
 		}
 		else
 		{
 			priorend = pCur->flags.wall_end_end;
 			pCur = GetSetMember( WALL, &world->walls, pCur->iWallEnd );
-			//lprintf( WIDE("next wall %p"), pCur );
+			//lprintf( "next wall %p", pCur );
 		}
 		if( !pCur )
 		{
-			lprintf( WIDE("Fell off the side of the list no more current...") );
+			lprintf( "Fell off the side of the list no more current..." );
 			return NULL;
 		}
 	}while( pCur != pStart );
@@ -1691,20 +1691,20 @@ INDEX FindIntersectingWall( INDEX iWorld, INDEX iSector, P_POINT n, P_POINT o )
 	if( !sector )
 		return INVALID_INDEX;
 	pCur = pStart = GetUsedSetMember( WALL, &world->walls, sector->iWall );
-	//Log( WIDE("------- FindIntersectingWall ------------ ") );
+	//Log( "------- FindIntersectingWall ------------ " );
 	do
 	{
 		RCOORD T1, T2;
 		PFLATLAND_MYLINESEG plsCur = GetUsedSetMember( FLATLAND_MYLINESEG, &world->lines, pCur->iLine );
-		//Log1( WIDE("FIW Testing %08x"), pCur );
+		//Log1( "FIW Testing %08x", pCur );
 		if( FindIntersectionTime( &T1, n, o
 			, &T2, plsCur->r.n, plsCur->r.o ) )
 		{
-			//Log6( WIDE("Intersects somewhere.... %g<%g<%g %g<%g<%g"), 0.0, T1, 1.0, plsCur->dFrom, T2, plsCur->dTo );
+			//Log6( "Intersects somewhere.... %g<%g<%g %g<%g<%g", 0.0, T1, 1.0, plsCur->dFrom, T2, plsCur->dTo );
 			if( (0 <= T1) && (T1 <= 1.0) &&
 				(plsCur->dFrom <= T2) && (T2 <= plsCur->dTo) )
 			{
-				//Log( WIDE("Intersects within both segments...") );
+				//Log( "Intersects within both segments..." );
 				return GetMemberIndex( WALL, &world->walls, pCur );
 			}
 		}
@@ -1746,18 +1746,18 @@ WORLD_PROC( INDEX, GetNextWall )( INDEX iWorld, INDEX iWall, int *priorend )
 	{
 		if( *priorend )
 		{
-			//lprintf( WIDE("start_end"), iWall );
+			//lprintf( "start_end", iWall );
 			*priorend = wall->flags.wall_start_end;
 			wall = GetUsedSetMember( WALL, &world->walls, iLast = wall->iWallStart );
 		}
 		else
 		{
-			//lprintf( WIDE("end_end"), iWall );
+			//lprintf( "end_end", iWall );
 			*priorend = wall->flags.wall_end_end;
 			wall = GetUsedSetMember( WALL, &world->walls, iLast = wall->iWallEnd );
 		}
 	}
-	//lprintf( WIDE("This wall is %d, next is %d"), iWall, iLast );
+	//lprintf( "This wall is %d, next is %d", iWall, iLast );
 	return iLast;
 }
 

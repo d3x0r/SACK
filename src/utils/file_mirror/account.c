@@ -441,7 +441,7 @@ int OpenFileOnAccount( PNETWORK_STATE pns //PACCOUNT account
 		}
 
 		snprintf( pcc->LastFile, sizeof( pcc->LastFile ) * sizeof( TEXTCHAR ), "%s/%s", pDir->path, filename );
-		xlprintf(2100)( WIDE("File: %s size: %d time: %") _64fs
+		xlprintf(2100)( "File: %s size: %d time: %" _64fs
 			 , pcc->LastFile, size, time );
 
 		if( pcc->version < VER_CODE( 3, 2 ) )
@@ -2552,7 +2552,7 @@ ATEXIT( WaitForTasks )
 {
 	while( g.threads )
 	{
-		//lprintf( WIDE( "Waiting for %d task threads to finish" ), g.threads );
+		//lprintf( "Waiting for %d task threads to finish", g.threads );
 		IdleFor( 100 );
 	}
 }

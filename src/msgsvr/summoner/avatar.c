@@ -95,7 +95,7 @@ static void GetTaskDepends( PCLIENT pSummoner, PTASKINFO task )
 		} msg;
 		msg.op = LIST_TASK_DEPENDS;
 		msg.task_id = task->id;
-		lprintf( WIDE("Requesting dependancies for %")_32f WIDE(""), task->id );
+		lprintf( "Requesting dependancies for %"_32f "", task->id );
 		SendTCP( pSummoner, &msg, sizeof( msg ) );
 	}
 }
@@ -129,7 +129,7 @@ char **MakeTaskArguments( char * *pArgs, char * progname, char * args )
 		int count = 0;
 		int lastchar;
 		lastchar = ' '; // auto continue spaces...
-		//lprintf( WIDE("Got args: %s"), args );
+		//lprintf( "Got args: %s", args );
 		p = args;
 		while( p && p[0] )
 		{
@@ -152,7 +152,7 @@ char **MakeTaskArguments( char * *pArgs, char * progname, char * args )
 			start = p;
 			while( p[0] )
 			{
-				//lprintf( WIDE("check character %c %c"), lastchar, p[0] );
+				//lprintf( "check character %c %c", lastchar, p[0] );
 				lastchar = p[0];
 				if( lastchar != ' ' && p[0] == ' ' ) // and there's a space
 				{
@@ -168,7 +168,7 @@ char **MakeTaskArguments( char * *pArgs, char * progname, char * args )
 				}
 				p++;
 			}
-			//lprintf( WIDE("Setting arg %d to %s"), count, start );
+			//lprintf( "Setting arg %d to %s", count, start );
 			if( start )
 				pp[count++] = StrDup( start );
 			pp[count] = NULL;
@@ -199,7 +199,7 @@ static void taskSelected( uintptr_t psv, PSI_CONTROL pcList, PLISTITEM pli ) {
 
 void EditTask( PSI_CONTROL parent_frame, PTASKINFO pTask )
 {
-	PSI_CONTROL frame = LoadXMLFrame( WIDE("frames/CreateTask.frame") );
+	PSI_CONTROL frame = LoadXMLFrame( "frames/CreateTask.frame" );
 //cpg27dec2006 c:\work\sack\src\msgsvr\summoner\avatar.c(188): Warning! W202: Symbol 'created' has been defined, but not referenced
 //cpg27dec2006    int created = 0;
 	int okay = 0;
@@ -240,7 +240,7 @@ void EditTask( PSI_CONTROL parent_frame, PTASKINFO pTask )
 	DisplayFrameOver( frame, parent_frame );
 	EditFrame( frame, TRUE );
 	CommonWait( frame );
-	lprintf( WIDE("Wait complete... %d %d"), okay, done );
+	lprintf( "Wait complete... %d %d", okay, done );
 	if( okay )
 	{
 		char args[256];
@@ -279,7 +279,7 @@ void CPROC SummonerReadComplete( PCLIENT pc, CPOINTER buffer, size_t nLen )
 			pnd->pc = pc;
 			pnd->list = GetControl( l.pFrame, LST_TASKS );
 			pnd->pliSystem = AddListItem( pnd->list
-												 , WIDE("System ....\t???") );
+												 , "System ....\t???" );
 			{
 				PITEMDATA pid = (PITEMDATA)Allocate( sizeof( ITEMDATA ) );
 				pid->flags.bTask = 0;
@@ -316,7 +316,7 @@ void CPROC SummonerReadComplete( PCLIENT pc, CPOINTER buffer, size_t nLen )
 				switch( pnd->command )
 				{
 				case SYSTEM_STATUS:
-					lprintf( WIDE("Get sytem status..") );
+					lprintf( "Get sytem status.." );
 					pnd->state = NET_STATE_GET_SYSTEM_STATUS;
 					pnd->toread = 8; // system_id, status
 					break;
@@ -346,7 +346,7 @@ void CPROC SummonerReadComplete( PCLIENT pc, CPOINTER buffer, size_t nLen )
 			{
 				char line[80];
 				pnd->system_id = pnd->msg[0];
-				snprintf( line, sizeof( line ), WIDE("System %")_32f WIDE("\t%s")
+				snprintf( line, sizeof( line ), "System %"_32f "\t%s"
 						  , pnd->system_id // system_id
 						  , (pnd->msg[1] & 1)?"Suspended":"Active"); // status
 				SetItemText( pnd->pliSystem, line );
@@ -359,7 +359,7 @@ void CPROC SummonerReadComplete( PCLIENT pc, CPOINTER buffer, size_t nLen )
 		case NET_STATE_GET_DEPEND_COUNT:
 			pnd->task_id = pnd->msg[0];
 			pnd->toread = 4 * pnd->msg[1];
-			lprintf( WIDE("Depends for %")_32f WIDE(" == %")_32f WIDE(":%")_32f WIDE(""), pnd->task_id, pnd->msg[1], pnd->toread / 4);
+			lprintf( "Depends for %"_32f " == %"_32f ":%"_32f "", pnd->task_id, pnd->msg[1], pnd->toread / 4);
 			pnd->state = NET_STATE_GET_DEPEND_DATA;
 			break;
 		case NET_STATE_GET_DEPEND_DATA:
@@ -368,14 +368,14 @@ void CPROC SummonerReadComplete( PCLIENT pc, CPOINTER buffer, size_t nLen )
 				PTASKINFO pti = (PTASKINFO)GetLink( &pnd->tasks, pnd->task_id );
 				INDEX *deps = (INDEX*)buffer;
 								// toready will still ahve been set from GET_DEPEND_COUNT
-				lprintf( WIDE("Got depends for task..") );
+				lprintf( "Got depends for task.." );
 				for( idx = 0; idx < pnd->toread / 4; idx++ )
 				{
 					char line[80];
 					PTASKINFO ptiDepend = (PTASKINFO)GetLink( &pnd->tasks, deps[idx] );
 					AddLink( &pti->depends, ptiDepend );
-					snprintf( line, sizeof( line ), WIDE("%s"), ptiDepend->name );
-					lprintf( WIDE("Taskname %s"), ptiDepend->name );
+					snprintf( line, sizeof( line ), "%s", ptiDepend->name );
+					lprintf( "Taskname %s", ptiDepend->name );
 					InsertListItemEx( pnd->list, pti->pli, 2, line );
 				}
 			}
@@ -386,7 +386,7 @@ void CPROC SummonerReadComplete( PCLIENT pc, CPOINTER buffer, size_t nLen )
 			{
 				pnd->task_id = pnd->msg[0];
 				pnd->toread = pnd->msg[1];
-				lprintf( WIDE("Got lengths %")_32f WIDE(",%")_32f WIDE(""), pnd->task_id, pnd->toread );
+				lprintf( "Got lengths %"_32f ",%"_32f "", pnd->task_id, pnd->toread );
 				pnd->state = NET_STATE_GET_TASKNAME_DATA;
 				break;
 			}
@@ -606,7 +606,7 @@ SaneWinMain( argc, argv )
 	NetworkWait(NULL,16,32);
 	if( !OpenDialog() )
 	{
-		fprintf( stderr, WIDE("Failed to open the interface dialog?!\n") );
+		fprintf( stderr, "Failed to open the interface dialog?!\n" );
 		return 1;
 	}
 	for( nArg = 1; nArg < argc; nArg++ )
@@ -621,7 +621,7 @@ SaneWinMain( argc, argv )
 	}
 	//if( !OpenSummoner() )
 	//{
-	//	fprintf( stderr, WIDE("Failed to connect to summoner at %s\n"), l.addr );
+	//	fprintf( stderr, "Failed to connect to summoner at %s\n", l.addr );
 	//   return 1;
 	//}
 	{

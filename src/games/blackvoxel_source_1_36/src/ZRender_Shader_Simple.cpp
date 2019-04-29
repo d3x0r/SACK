@@ -164,7 +164,7 @@ ZRender_Shader_Simple::ZRender_Shader_Simple( ZRender_Interface *render )
 {
 	this->render = render;
 	box_buffer = NULL;
-	shader = ImageGetShaderInit( WIDE("BV Simple Shader")
+	shader = ImageGetShaderInit( "BV Simple Shader"
 		, _SetupShader
 		, _InitShader, (uintptr_t)this );
 

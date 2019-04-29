@@ -50,18 +50,18 @@ int LoadD3DImage( Image image, int *result )
 	return 0;//nTextures++;
 }
 
-static void OnFirstDraw3d( WIDE( "@00 DirectX Image Library" ) )( PTRSZVAL psv )
+static void OnFirstDraw3d( "@00 DirectX Image Library" )( PTRSZVAL psv )
 {
 	l.d3dActiveSurface = (struct d3dSurfaceData *)psv;
 	{
-		l.simple_shader = GetShader( WIDE("Simple Shader"), InitSuperSimpleShader );
-		l.simple_texture_shader = GetShader( WIDE("Simple Texture"), InitSimpleTextureShader );
-		l.simple_shaded_texture_shader = GetShader( WIDE("Simple Shaded Texture"), InitSimpleShadedTextureShader );
-		l.simple_multi_shaded_texture_shader = GetShader( WIDE("Simple MultiShaded Texture"), InitSimpleMultiShadedTextureShader );
+		l.simple_shader = GetShader( "Simple Shader", InitSuperSimpleShader );
+		l.simple_texture_shader = GetShader( "Simple Texture", InitSimpleTextureShader );
+		l.simple_shaded_texture_shader = GetShader( "Simple Shaded Texture", InitSimpleShadedTextureShader );
+		l.simple_multi_shaded_texture_shader = GetShader( "Simple MultiShaded Texture", InitSimpleMultiShadedTextureShader );
 	}
 }
 
-static PTRSZVAL OnInit3d( WIDE( "@00 DirectX Image Library" ) )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static PTRSZVAL OnInit3d( "@00 DirectX Image Library" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	struct d3dSurfaceData *Surfaces;
 	INDEX idx;
@@ -98,7 +98,7 @@ static PTRSZVAL OnInit3d( WIDE( "@00 DirectX Image Library" ) )( PMatrix project
 	return (PTRSZVAL)Surfaces;
 }
 
-static void OnBeginDraw3d( WIDE( "@00 DirectX Image Library" ) )( PTRSZVAL psvInit, PTRANSFORM camera )
+static void OnBeginDraw3d( "@00 DirectX Image Library" )( PTRSZVAL psvInit, PTRANSFORM camera )
 {
 	l.d3dActiveSurface = (struct d3dSurfaceData *)psvInit;
 	l.glImageIndex = l.d3dActiveSurface->index;
@@ -124,7 +124,7 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 			image_data = (d3dSurfaceImageData *)GetLink( &image->Surfaces
 																	 , l.glImageIndex );
 		}
-		//lprintf( WIDE( "Reload %p %d" ), image, option );
+		//lprintf( "Reload %p %d", image, option );
 		// should be checked outside.
 		if( !image_data->d3dTexture )
 		{
@@ -145,8 +145,8 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 				TEXTCHAR filename[64];
 				FILE *file;
 				PngImageFile( image, &buf, &size );
-				snprintf( filename, 64, WIDE("update-%04d.png"), n++ );
-				file = fopen( filename, WIDE("wb") );
+				snprintf( filename, 64, "update-%04d.png", n++ );
+				file = fopen( filename, "wb" );
 				if( file )
 				{
 					fwrite( buf, 1, size, file );
@@ -165,7 +165,7 @@ IDirect3DBaseTexture9 *ReloadD3DTexture( Image child_image, int option )
 				}
 			}
 			image_data->d3tex->UnlockRect(0);
-			//lprintf( WIDE("Remade texture %p for image %p"), image_data->d3tex, image );
+			//lprintf( "Remade texture %p for image %p", image_data->d3tex, image );
 		}
 		image->pActiveSurface = image_data->d3dTexture;
 		child_image->pActiveSurface = image->pActiveSurface;
@@ -197,7 +197,7 @@ void MarkImageUpdated( Image child_image )
 			}
 			if( image_data->d3dTexture )
 			{
-				//lprintf( WIDE("releasing texture %p for image %p"), image_data->d3dTexture, image );
+				//lprintf( "releasing texture %p for image %p", image_data->d3dTexture, image );
 				image_data->d3dTexture->Release();
 				//textureToDelete->Release
 				//glDeleteTextures( 1, &image_data->d3dTexture );
@@ -227,7 +227,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 	int  oo;
 	if( !pifDest /*|| !pifDest->image*/ )
 	{
-		lprintf( WIDE( "No dest, or no dest image." ) );
+		lprintf( "No dest, or no dest image." );
 		return;
 	}
 
@@ -249,7 +249,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 		r2.height = pifDest->height;
 		if( !IntersectRectangle( &r, &r1, &r2 ) )
 		{
-			lprintf( WIDE("blat color is out of bounds (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(") (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(")")
+			lprintf( "blat color is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 					 , x, y, w, h
 					 , r2.x, r2.y, r2.width, r2.height );
 			return;
@@ -257,7 +257,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 #ifdef DEBUG_BLATCOLOR
 		// trying to figure out why there are stray lines for DISPLAY surfaces
 		// apparently it's a logic in space node min/max to region conversion
-		lprintf( WIDE("Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d ofs %d,%d %d,%d")
+		lprintf( "Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d ofs %d,%d %d,%d"
 				 , r1.x, r1.y
 				 ,r1.width, r1.height
 				 , r2.x, r2.y
@@ -361,7 +361,7 @@ void  BlatColor ( Image pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA color )
 	}
 	else
 	{
-		//lprintf( WIDE("Blotting %d,%d - %d,%d"), x, y, w, h );
+		//lprintf( "Blotting %d,%d - %d,%d", x, y, w, h );
 		// start at origin on destination....
 		if( pifDest->flags & IF_FLAG_INVERTED )
 			oo = 4*( (-(S_32)w) - pifDest->pwidth);     // w is how much we can copy...
@@ -380,7 +380,7 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 	int  oo;
 	if( !pifDest /*|| !pifDest->image */ )
 	{
-		lprintf( WIDE( "No dest, or no dest image." ) );
+		lprintf( "No dest, or no dest image." );
 		return;
 	}
 	if( !w )
@@ -399,13 +399,13 @@ void  BlatColorAlpha ( ImageFile *pifDest, S_32 x, S_32 y, _32 w, _32 h, CDATA c
 		r2.height = pifDest->height;
 		if( !IntersectRectangle( &r, &r1, &r2 ) )
 		{
-			lprintf( WIDE("blat color is out of bounds (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(") (%")_32fs WIDE(",%")_32fs WIDE(")x(%")_32f WIDE(",%")_32f WIDE(")")
+			lprintf( "blat color is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 				, x, y, w, h
 				, r2.x, r2.y, r2.width, r2.height );
 			return;
 		}
 #ifdef DEBUG_BLATCOLOR
-		lprintf( WIDE("Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d")
+		lprintf( "Rects %d,%d %d,%d/%d,%d %d,%d/ %d,%d %d,%d"
 				 , r1.x, r1.y
 				 ,r1.width, r1.height
 				 , r2.x, r2.y
@@ -521,7 +521,7 @@ void CPROC plotraw( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 {
 	if( pi->flags & IF_FLAG_FINAL_RENDER )
 	{
-		lprintf( WIDE("plot not implemented in d3d yet...") );
+		lprintf( "plot not implemented in d3d yet..." );
 	}
 	else
 	{
@@ -538,7 +538,7 @@ void CPROC plot( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 	{
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-         lprintf( WIDE("plot not implemented in d3d yet...") );
+         lprintf( "plot not implemented in d3d yet..." );
 		}
 		else if( pi->image )
 		{
@@ -558,7 +558,7 @@ CDATA CPROC getpixel( ImageFile *pi, S_32 x, S_32 y )
 	{
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-			lprintf( WIDE( "get pixel not implemented on d3d surface" ) );
+			lprintf( "get pixel not implemented on d3d surface" );
 		}
 		else
 		{
@@ -579,7 +579,7 @@ void CPROC plotalpha( ImageFile *pi, S_32 x, S_32 y, CDATA c )
 	{
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-         lprintf( WIDE("plot not implemented in d3d yet...") );
+         lprintf( "plot not implemented in d3d yet..." );
 		}
 		else if( pi->image )
 		{

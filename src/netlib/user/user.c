@@ -38,7 +38,7 @@ void CPROC Closed( PCLIENT pc )
 static void CPROC Connected( PCLIENT pc, int err ) {
 	if( secure )
 		if( !ssl_BeginClientSession( pc, NULL, 0, NULL, 0, NULL, 0 ) ) {
-			SystemLog( WIDE( "Failed to create client ssl session" ) );
+			SystemLog( "Failed to create client ssl session" );
 			RemoveClient( pc );
 			return;
 		}
@@ -81,7 +81,7 @@ SaneWinMain( argc, argv )
 					// there's a buffer leak of sorts, that we'll get a NULL
 					// read callback twice this way...
 					if( !ssl_BeginClientSession( pc_user, NULL, 0, NULL, 0, NULL, 0 ) ) {
-						SystemLog( WIDE( "Failed to create client ssl session" ) );
+						SystemLog( "Failed to create client ssl session" );
 						return FALSE;
 					}
 					{
@@ -101,7 +101,7 @@ SaneWinMain( argc, argv )
 
 	if( !pc_user )
 	{
-		SystemLog( WIDE("Failed to open some port as telnet") );
+		SystemLog( "Failed to open some port as telnet" );
 		printf( "failed to open %s%s\n", argv[1], strchr(argv[1],':')?"":":telnet[23]" );
 		return 0;
 	}

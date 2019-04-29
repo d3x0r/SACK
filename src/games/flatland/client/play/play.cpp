@@ -32,7 +32,7 @@ uintptr_t CPROC DrawSectorLines( INDEX pSector, uintptr_t unused )
 		Invert( o );
 		AddPlane( object, o, n, 0 );
 		//DrawSpaceLines( display->pImage, pSector->spacenode );
-		lprintf( WIDE("Adding Sector %d"), pSector );
+		lprintf( "Adding Sector %d", pSector );
 	pCur = pStart = GetFirstWall( iWorld, pSector, &priorend );
 	do
 	{
@@ -50,7 +50,7 @@ uintptr_t CPROC DrawSectorLines( INDEX pSector, uintptr_t unused )
 		count++;
 		if( count > 20 )
 		{
-         xlprintf(LOG_ALWAYS)( WIDE("Conservative limit of 20 lines on a wall has been reached!") );
+         xlprintf(LOG_ALWAYS)( "Conservative limit of 20 lines on a wall has been reached!" );
          DebugBreak();
 			break;
 		}
@@ -65,12 +65,12 @@ uintptr_t CPROC DrawSectorLines( INDEX pSector, uintptr_t unused )
          tmp[2] = Line->r.n[1];
 			if( priorend )
 			{
-            lprintf( WIDE("prior end causes reversal...") );
+            lprintf( "prior end causes reversal..." );
 				Invert( tmp );
 			}
 			if( d )
 			{
-            lprintf( WIDE("Sector clockwise..>") );
+            lprintf( "Sector clockwise..>" );
 				Invert( tmp );
 			}
 			//SetPoint( o, Line->r.o );
@@ -86,7 +86,7 @@ uintptr_t CPROC DrawSectorLines( INDEX pSector, uintptr_t unused )
 				d = 1;
 				}
             */
-			lprintf( WIDE("Adding plane to object... ") );
+			lprintf( "Adding plane to object... " );
 			PrintVector( o );
 			PrintVector( n );
 			AddPlane( DrawThis.object, o, n, (GetMatedWall( iWorld, pCur )==INVALID_INDEX)?0:2 );
@@ -136,7 +136,7 @@ PBODY EnterWorld( INDEX iWorld )
 
 int main( int argc, char **argv )
 {
-	l.world = OpenWorld( WIDE("") );
+	l.world = OpenWorld( "" );
 	LoadWorldFromFile( l.world );
 	WakeableSleep( 500 ); // give the world time to load.
 	
@@ -145,12 +145,12 @@ int main( int argc, char **argv )
 		PBODY body = EnterWorld( l.world );
 		PVIEW view ;
 		GetDisplaySizeEx( 0, NULL,NULL,&w, &h );
-		//view = CreateViewEx( V_FORWARD, NULL, WIDE("blah"), h/3, h/3 );
-		//view = CreateViewEx( V_DOWN, NULL, WIDE("blah"), h/3, 0 );
-		//view = CreateViewEx( V_UP, NULL, WIDE("blah"), h/3, 2*h/2 );
-		//view = CreateViewEx( V_RIGHT, NULL, WIDE("blah"), 0, h/3 );
-		//view = CreateViewEx( V_LEFT, NULL, WIDE("blah"), 2*h/3, h/3 );
-		//view = CreateViewEx( V_BEHIND, NULL, WIDE("blah"), 3*h/3, h/3 );
+		//view = CreateViewEx( V_FORWARD, NULL, "blah", h/3, h/3 );
+		//view = CreateViewEx( V_DOWN, NULL, "blah", h/3, 0 );
+		//view = CreateViewEx( V_UP, NULL, "blah", h/3, 2*h/2 );
+		//view = CreateViewEx( V_RIGHT, NULL, "blah", 0, h/3 );
+		//view = CreateViewEx( V_LEFT, NULL, "blah", 2*h/3, h/3 );
+		//view = CreateViewEx( V_BEHIND, NULL, "blah", 3*h/3, h/3 );
 		//Equip( body );
 		//PlayWorld( world, body );
 		while( 1 )

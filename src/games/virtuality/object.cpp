@@ -50,13 +50,13 @@ POBJECT CreateObject( void )
 	if( !cluster )
 	{
 #ifdef USE_DATA_STORE
-		iCluster         = DataStore_RegisterNamedDataType( WIDE("Object Cluster"), sizeof( CLUSTER ) );
+		iCluster         = DataStore_RegisterNamedDataType( "Object Cluster", sizeof( CLUSTER ) );
 		iClusterObjects  = DataStore_CreateDataSet( iCluster, OBJECT, objects );
 		iClusterFacets   = DataStore_CreateDataSet( iCluster, FACET, FacetPool );
 		iClusterLines    = DataStore_CreateDataSet( iCluster, LINE, LinePool );
 		iClusterLineSegs = DataStore_CreateDataSet( iCluster, LINESEGP, LineSegPPool );
 
-		iObject    = DataStore_RegisterNamedDataType( WIDE("Object (Shell)"), sizeof( OBJECT ) );
+		iObject    = DataStore_RegisterNamedDataType( "Object (Shell)", sizeof( OBJECT ) );
 		iObjectT   = DataStore_CreateLink( iObject, offsetof( OBJECT, T ), iTransform );
 		iObjectTi  = DataStore_CreateLink( iObject, offsetof( OBJECT, Ti ), iTransform );
 
@@ -65,7 +65,7 @@ POBJECT CreateObject( void )
 		iObjectOn     = DataStore_CreateLink( iObject, offsetof( OBJECT, pOn ), iObject );
 		iObjectHas    = DataStore_CreateLink( iObject, offsetof( OBJECT, pHas ), iObject );
 
-		iObjectInfo        = DataStore_RegisterNamedDataType( WIDE("Object Shape Info"), sizeof( OBJECT_INFO ) );
+		iObjectInfo        = DataStore_RegisterNamedDataType( "Object Shape Info", sizeof( OBJECT_INFO ) );
 		iObjectInfoCluster = DataStore_CreateLink( iObjectInfo, offsetof( OBJECT_INFO, cluster ), iCluster );
 
 		cluster = DataStore_CreateDataType( iCluster ); // result will be 0 initialized.
@@ -76,7 +76,7 @@ POBJECT CreateObject( void )
 	}
 
 #ifdef LOG_ALLOC
-   printf(WIDE("Allocate(OBJECT)\n"));
+   printf("Allocate(OBJECT)\n");
 #endif
 
 #ifdef USE_DATA_STORE
@@ -151,7 +151,7 @@ void FreeObject( POBJECT *po )
    //EmptySet( &_po->objinfo->FacetPool, Facets );
    //EmptySet( &_po->objinfo->FacetSetPool, FacetSets );
 #ifdef LOG_ALLOC
-   printf(WIDE("Release(OBJECT)\n"));
+   printf("Release(OBJECT)\n");
 #endif
    Release( _po );
 
@@ -217,7 +217,7 @@ POBJECT CreateScaledInstance( BASIC_PLANE *pDefs, int nDefs, RCOORD fSize,
    MarkTick( ticks[tick++] );
    MarkTick( ticks[tick++] );
    MarkTick( ticks[tick++] );
-   //printf(WIDE(" Creating Scaled Instance...\n"));
+   //printf(" Creating Scaled Instance...\n");
 	po = CreateObject( );  // create origin basis
    MarkTick( ticks[tick++] );
    //nfs = GetFacetSet( po->objinfo );
@@ -261,7 +261,7 @@ POBJECT CreateScaledInstance( BASIC_PLANE *pDefs, int nDefs, RCOORD fSize,
 			 , ticks[11]-ticks[10]
 			 , ticks[12]-ticks[11]
 			 );
-   //printf(WIDE(" object has been created\n"));
+   //printf(" object has been created\n");
    return po;
 }
 

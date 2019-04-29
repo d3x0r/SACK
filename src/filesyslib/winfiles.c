@@ -110,11 +110,11 @@ static void UpdateLocalDataPath( void )
 #endif
 	SHGetFolderPath( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
 	realpath = NewArray( TEXTCHAR, len = StrLen( path )
-							  + StrLen( (*winfile_local).producer?(*winfile_local).producer:WIDE("") )
-							  + StrLen( (*winfile_local).application?(*winfile_local).application:WIDE("") ) + 3 ); // worse case +3
-	tnprintf( realpath, len, WIDE("%s%s%s%s%s"), path
-			  , (*winfile_local).producer?WIDE("/"):WIDE(""), (*winfile_local).producer?(*winfile_local).producer:WIDE("")
-			  , (*winfile_local).application?WIDE("/"):WIDE(""), (*winfile_local).application?(*winfile_local).application:WIDE("")
+							  + StrLen( (*winfile_local).producer?(*winfile_local).producer:"" )
+							  + StrLen( (*winfile_local).application?(*winfile_local).application:"" ) + 3 ); // worse case +3
+	tnprintf( realpath, len, "%s%s%s%s%s", path
+			  , (*winfile_local).producer?"/":"", (*winfile_local).producer?(*winfile_local).producer:""
+			  , (*winfile_local).application?"/":"", (*winfile_local).application?(*winfile_local).application:""
 			  );
 	if( (*winfile_local).data_file_root )
 		Deallocate( TEXTSTR, (*winfile_local).data_file_root );
@@ -124,11 +124,11 @@ static void UpdateLocalDataPath( void )
 
 	SHGetFolderPath( NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
 	realpath = NewArray( TEXTCHAR, len = StrLen( path )
-							  + StrLen( (*winfile_local).producer?(*winfile_local).producer:WIDE("") )
-							  + StrLen( (*winfile_local).application?(*winfile_local).application:WIDE("") ) + 3 ); // worse case +3
-	tnprintf( realpath, len, WIDE("%s%s%s%s%s"), path
-			  , (*winfile_local).producer?WIDE("/"):WIDE(""), (*winfile_local).producer?(*winfile_local).producer:WIDE("")
-			  , (*winfile_local).application?WIDE("/"):WIDE(""), (*winfile_local).application?(*winfile_local).application:WIDE("")
+							  + StrLen( (*winfile_local).producer?(*winfile_local).producer:"" )
+							  + StrLen( (*winfile_local).application?(*winfile_local).application:"" ) + 3 ); // worse case +3
+	tnprintf( realpath, len, "%s%s%s%s%s", path
+			  , (*winfile_local).producer?"/":"", (*winfile_local).producer?(*winfile_local).producer:""
+			  , (*winfile_local).application?"/":"", (*winfile_local).application?(*winfile_local).application:""
 			  );
 	if( (*winfile_local).local_data_file_root )
 		Deallocate( TEXTSTR, (*winfile_local).local_data_file_root );
@@ -136,8 +136,8 @@ static void UpdateLocalDataPath( void )
 	MakePath( (*winfile_local).local_data_file_root );
 
 #else
-	(*winfile_local).data_file_root = StrDup( WIDE(".") );
-	(*winfile_local).local_data_file_root = StrDup( WIDE(".") );
+	(*winfile_local).data_file_root = StrDup( "." );
+	(*winfile_local).local_data_file_root = StrDup( "." );
 
 #endif
 }
@@ -171,11 +171,11 @@ static void LocalInit( void )
 #endif
 			{
 #ifdef _WIN32
-				sack_set_common_data_producer( WIDE( "Freedom Collective" ) );
+				sack_set_common_data_producer( "Freedom Collective" );
 				sack_set_common_data_application( GetProgramName() );
 
 #else
-				(*winfile_local).data_file_root = StrDup( WIDE( "~" ) );
+				(*winfile_local).data_file_root = StrDup( "~" );
 #endif
 			}
 		}
@@ -189,7 +189,7 @@ static void InitGroups( void )
 	// known handle '0' is 'default' which is CurrentWorkingDirectory at load.
 	group = New( struct Group );
 	group->base_path = StrDup( GetCurrentPath( tmp, sizeof( tmp ) ) );
-	group->name = StrDup( WIDE( "Default" ) );
+	group->name = StrDup( "Default" );
 	AddLink( &(*winfile_local).groups, group );
 
 	// known handle '1' is the program's load path.
@@ -200,13 +200,13 @@ static void InitGroups( void )
 #else
 	group->base_path = StrDup( GetProgramPath() );
 #endif
-	group->name = StrDup( WIDE( "Program Path" ) );
+	group->name = StrDup( "Program Path" );
 	AddLink( &(*winfile_local).groups, group );
 
 	// known handle '1' is the program's start path.
 	group = New( struct Group );
 	group->base_path = StrDup( GetStartupPath() );
-	group->name = StrDup( WIDE( "Startup Path" ) );
+	group->name = StrDup( "Startup Path" );
 	AddLink( &(*winfile_local).groups, group );
 	(*winfile_local).have_default = TRUE;
 }
@@ -237,13 +237,13 @@ INDEX  GetFileGroup ( CTEXTSTR groupname, CTEXTSTR default_path )
 		{
 			TEXTCHAR tmp_ent[256];
 			TEXTCHAR tmp[256];
-			tnprintf( tmp_ent, sizeof( tmp_ent ), WIDE( "file group/%s" ), groupname );
-			//lprintf( WIDE( "option to save is %s" ), tmp );
+			tnprintf( tmp_ent, sizeof( tmp_ent ), "file group/%s", groupname );
+			//lprintf( "option to save is %s", tmp );
 #ifdef __NO_OPTIONS__
 			tmp[0] = 0;
 #else
 			if( (*winfile_local).have_default )
-				SACK_GetProfileString( GetProgramName(), tmp_ent, default_path?default_path:WIDE( "" ), tmp, sizeof( tmp ) );
+				SACK_GetProfileString( GetProgramName(), tmp_ent, default_path?default_path:"", tmp, sizeof( tmp ) );
 #endif
 			if( tmp[0] )
 				default_path = tmp;
@@ -259,7 +259,7 @@ INDEX  GetFileGroup ( CTEXTSTR groupname, CTEXTSTR default_path )
 		if( default_path )
 			filegroup->base_path = StrDup( default_path );
 		else
-			filegroup->base_path = StrDup( WIDE( "." ) );
+			filegroup->base_path = StrDup( "." );
 		AddLink( &(*winfile_local).groups, filegroup );
 	}
 	return FindLink( &(*winfile_local).groups, filegroup );
@@ -294,14 +294,14 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 		while( ( subst_path = (TEXTSTR)StrChr( tmp_path, '%' ) ) )
 		{
 			end = (TEXTSTR)StrChr( ++subst_path, '%' );
-			//lprintf( WIDE( "Found magic subst in string" ) );
+			//lprintf( "Found magic subst in string" );
 			if( end )
 			{
 				this_length = StrLen( tmp_path );
 
 				tmp = NewArray( TEXTCHAR, len = ( end - subst_path ) + 1 );
 
-				tnprintf( tmp, len * sizeof( TEXTCHAR ), WIDE( "%*.*s" ), (int)(end-subst_path), (int)(end-subst_path), subst_path );
+				tnprintf( tmp, len * sizeof( TEXTCHAR ), "%*.*s", (int)(end-subst_path), (int)(end-subst_path), subst_path );
 				
 				group = GetFileGroup( tmp, NULL );
 				if( group != INVALID_INDEX ) {
@@ -313,7 +313,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 					//=======================================================================
 					// Get rid of the ending '%' AND any '/' or '\' that might come after it
 					//=======================================================================
-					tnprintf( newest_path, len, WIDE( "%*.*s%s/%s" ), (int)((subst_path - tmp_path) - 1), (int)((subst_path - tmp_path) - 1), tmp_path, filegroup->base_path,
+					tnprintf( newest_path, len, "%*.*s%s/%s", (int)((subst_path - tmp_path) - 1), (int)((subst_path - tmp_path) - 1), tmp_path, filegroup->base_path,
 						((end + 1)[0] == '/' || (end + 1)[0] == '\\') ? (end + 2) : (end + 1) );
 
 					Deallocate( TEXTCHAR*, tmp_path );
@@ -331,7 +331,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 						//=======================================================================
 						// Get rid of the ending '%' AND any '/' or '\' that might come after it
 						//=======================================================================
-						tnprintf( newest_path, len, WIDE( "%*.*s%s/%s" ), (int)((subst_path - tmp_path) - 1), (int)((subst_path - tmp_path) - 1), tmp_path, external_var,
+						tnprintf( newest_path, len, "%*.*s%s/%s", (int)((subst_path - tmp_path) - 1), (int)((subst_path - tmp_path) - 1), tmp_path, external_var,
 							((end + 1)[0] == '/' || (end + 1)[0] == '\\') ? (end + 2) : (end + 1) );
 
 						tmp_path = ExpandPathVariable( newest_path );
@@ -343,7 +343,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 				if( (*winfile_local).flags.bLogOpenClose )
-					lprintf( WIDE( "transform subst [%s]" ), tmp_path );
+					lprintf( "transform subst [%s]", tmp_path );
 #endif
 			}
 		}
@@ -356,7 +356,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 	TEXTSTR tmp_path = NULL;
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "input path is [%s]" ), path );
+		lprintf( "input path is [%s]", path );
 #endif
 	LocalInit();
 	if( path )
@@ -369,10 +369,10 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 				size_t len;
 				GetCurrentPath( here, sizeof( here ) );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, WIDE( "%s%s%s" )
+				tnprintf( tmp_path, len, "%s%s%s"
 						 , here
-						 , path[1]?WIDE("/"):WIDE("")
-						 , path[1]?(path + 2):WIDE("") );
+						 , path[1]?"/":""
+						 , path[1]?(path + 2):"" );
 			}
 			else if( ( path[0] == '@' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
 			{
@@ -380,7 +380,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 				size_t len;
 				here = GetLibraryPath();
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
+				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
 			}
 			else if( ( path[0] == '#' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
 			{
@@ -388,15 +388,15 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 				size_t len;
 				here = GetProgramPath();
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
+				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
 			}
 			else if( ( path[0] == '~' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
 			{
 				CTEXTSTR here;
 				size_t len;
-				here = OSALOT_GetEnvironmentVariable(WIDE("HOME"));
+				here = OSALOT_GetEnvironmentVariable("HOME");
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
+				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
 			}
 			else if( ( path[0] == '*' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
 			{
@@ -404,7 +404,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 				size_t len;
 				here = (*winfile_local).data_file_root;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
+				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
 			}
 			else if( ( path[0] == ';' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
 			{
@@ -412,7 +412,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 				size_t len;
 				here = (*winfile_local).data_file_root;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
+				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
 			}
 			else if( path[0] == '^' && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) )
 			{
@@ -420,7 +420,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 				size_t len;
 				here = GetStartupPath();
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, WIDE( "%s/%s" ), here, path + 2 );
+				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
 			}
 			else if( path[0] == '%' )
 			{
@@ -470,7 +470,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "output path is [%s]" ), tmp_path );
+		lprintf( "output path is [%s]", tmp_path );
 #endif
 	return tmp_path;
 }
@@ -489,12 +489,12 @@ INDEX  SetGroupFilePath ( CTEXTSTR group, CTEXTSTR path )
 		filegroup = New( struct Group );
 		filegroup->name = StrDup( group );
 		filegroup->base_path = StrDup( path );
-		tnprintf( tmp, sizeof( tmp ), WIDE( "file group/%s" ), group );
+		tnprintf( tmp, sizeof( tmp ), "file group/%s", group );
 #ifndef __NO_OPTIONS__
 		if( (*winfile_local).have_default )
 		{
 			TEXTCHAR tmp2[256];
-			SACK_GetProfileString( GetProgramName(), tmp, WIDE( "" ), tmp2, sizeof( tmp2 ) );
+			SACK_GetProfileString( GetProgramName(), tmp, "", tmp2, sizeof( tmp2 ) );
 		if( StrCaseCmp( path, tmp2 ) )
 				SACK_WriteProfileString( GetProgramName(), tmp, path );
 		}
@@ -525,7 +525,7 @@ void SetDefaultFilePath( CTEXTSTR path )
 	}
 	else
 	{
-		SetGroupFilePath( WIDE( "Default" ), tmp_path?tmp_path:path );
+		SetGroupFilePath( "Default", tmp_path?tmp_path:path );
 	}
 	if( tmp_path )
 		Deallocate( TEXTCHAR*, tmp_path );
@@ -538,7 +538,7 @@ static TEXTSTR PrependBasePathEx( INDEX groupid, struct Group *group, CTEXTSTR f
 
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE("Prepend to {%s} %p %") _size_f, real_filename, group, groupid );
+		lprintf( "Prepend to {%s} %p %" _size_f, real_filename, group, groupid );
 #endif
 	if( (*winfile_local).groups )
 	{
@@ -553,7 +553,7 @@ static TEXTSTR PrependBasePathEx( INDEX groupid, struct Group *group, CTEXTSTR f
 	{
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE("already an absolute path.  [%s]"), real_filename );
+			lprintf( "already an absolute path.  [%s]", real_filename );
 #endif
 		return real_filename;
 	}
@@ -568,9 +568,9 @@ static TEXTSTR PrependBasePathEx( INDEX groupid, struct Group *group, CTEXTSTR f
 		fullname = NewArray( TEXTCHAR, len = StrLen( filename ) + StrLen(tmp_path) + 2 );
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf(WIDE("prepend %s[%s] with %s"), group->base_path, tmp_path, filename );
+			lprintf("prepend %s[%s] with %s", group->base_path, tmp_path, filename );
 #endif
-		tnprintf( fullname, len, WIDE("%s/%s"), tmp_path, real_filename );
+		tnprintf( fullname, len, "%s/%s", tmp_path, real_filename );
 		{
 			// resolve recusive % paths...
 			TEXTSTR tmp2 = ExpandPath( fullname );
@@ -594,7 +594,7 @@ static TEXTSTR PrependBasePathEx( INDEX groupid, struct Group *group, CTEXTSTR f
 
 		/*
 			if( (*winfile_local).flags.bLogOpenClose )
-				lprintf( WIDE("Fix dots in [%s]"), fullname );
+				lprintf( "Fix dots in [%s]", fullname );
 			for( ofs = len+1; fullname[ofs]; ofs++ )
 			{
 				if( fullname[ofs] == '/' )
@@ -607,7 +607,7 @@ static TEXTSTR PrependBasePathEx( INDEX groupid, struct Group *group, CTEXTSTR f
 #endif
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE("result %s"), fullname );
+			lprintf( "result %s", fullname );
 #endif
 		if( expand_path )
 			Deallocate( TEXTCHAR*, tmp_path );
@@ -789,7 +789,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 	}
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
+		lprintf( "Open File: [%s]", file->fullname );
 #endif
 #ifdef __LINUX__
 #  undef open
@@ -804,7 +804,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 	}
 #  if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "open %s %d %d" ), file->fullname, handle, opts );
+		lprintf( "open %s %d %d", file->fullname, handle, opts );
 #  endif
 #else
 	switch( opts & 3 )
@@ -841,14 +841,14 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 	}
 #  if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "open %s %p %08x" ), file->fullname, (POINTER)handle, opts );
+		lprintf( "open %s %p %08x", file->fullname, (POINTER)handle, opts );
 #  endif
 #endif
 	if( handle == INVALID_HANDLE_VALUE )
 	{
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE( "Failed to open file [%s]=[%s]" ), file->name, file->fullname );
+			lprintf( "Failed to open file [%s]=[%s]", file->name, file->fullname );
 #endif
 		return INVALID_HANDLE_VALUE;
 	}
@@ -945,7 +945,7 @@ LOGICAL sack_set_eof ( HANDLE file_handle )
 		if( file->mount )
 		{
 			file->mount->fsi->truncate( (void*)(uintptr_t)file_handle );
-			//lprintf( WIDE("result is %d"), file->mount->fsi->size( (void*)file_handle ) );
+			//lprintf( "result is %d", file->mount->fsi->size( (void*)file_handle ) );
 		}
 		else
 		{
@@ -980,7 +980,7 @@ int sack_ftruncate( FILE *file_file )
 		if( file->mount && file->mount->fsi )
 		{
 			file->mount->fsi->truncate( (void*)file_file );
-			//lprintf( WIDE("result is %d"), file->mount->fsi->size( (void*)file_file ) );
+			//lprintf( "result is %d", file->mount->fsi->size( (void*)file_file ) );
 		}
 		else
 		{
@@ -1036,7 +1036,7 @@ int sack_read( HANDLE file_handle, POINTER buffer, int size )
 {
 #ifdef _WIN32
 	DWORD dwLastReadResult;
-	//lprintf( WIDE( "..." ) );
+	//lprintf( "..." );
 	return (ReadFile( (HANDLE)file_handle, buffer, size, &dwLastReadResult, NULL )?dwLastReadResult:-1 );
 #else
 	return read( file_handle, buffer, size );
@@ -1072,7 +1072,7 @@ int sack_close( HANDLE file_handle )
 		SetLink( &file->handles, (INDEX)file_handle, NULL );
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE("Close %s"), file->fullname );
+			lprintf( "Close %s", file->fullname );
 #endif
 		/*
 		Deallocate( TEXTCHAR*, file->name );
@@ -1101,7 +1101,7 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 	{
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE( "Failed to open %s" ), filename );
+			lprintf( "Failed to open %s", filename );
 #endif
 		return INVALID_INDEX;
 	}
@@ -1115,7 +1115,7 @@ INDEX sack_iopen( INDEX group, CTEXTSTR filename, int opts, ... )
 	LeaveCriticalSec( &(*winfile_local).cs_files );
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "return iopen of [%s]=%p(%")_size_f WIDE(")?" ), filename, (void*)(uintptr_t)h, (size_t)result );
+		lprintf( "return iopen of [%s]=%p(%"_size_f ")?", filename, (void*)(uintptr_t)h, (size_t)result );
 #endif
 	return result;
 }
@@ -1166,7 +1166,7 @@ int sack_iread( INDEX file_handle, POINTER buffer, int size )
 		 HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
 		DWORD dwLastReadResult;
-		//lprintf( WIDE( "... %p %p" ), file_handle, h );
+		//lprintf( "... %p %p", file_handle, h );
 		LeaveCriticalSec( &(*winfile_local).cs_files );
 		return (ReadFile( handle, (POINTER)buffer, size, &dwLastReadResult, NULL )?dwLastReadResult:-1 );
 #else
@@ -1302,7 +1302,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE("open %s %p(%s) %s (%d)"), filename, mount, mount->name, opts, mount?mount->writeable:1 );
+		lprintf( "open %s %p(%s) %s (%d)", filename, mount, mount->name, opts, mount?mount->writeable:1 );
 #endif
 
 	LIST_FORALL( (*winfile_local).files, idx, struct file *, file )
@@ -1352,7 +1352,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 				file->fullname = StrDup( file->name );
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 				if( (*winfile_local).flags.bLogOpenClose )
-					lprintf( WIDE("full is %s"), file->fullname );
+					lprintf( "full is %s", file->fullname );
 #endif
 			}
 			else
@@ -1362,7 +1362,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 				file->fullname = ExpandPath( tmp );
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 				if( (*winfile_local).flags.bLogOpenClose )
-					lprintf( WIDE("full is %s %d"), file->fullname, (int)group );
+					lprintf( "full is %s %d", file->fullname, (int)group );
 #endif
 				Deallocate( TEXTSTR, tmp );
 			}
@@ -1394,7 +1394,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	}
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "Open File: [%s]" ), file->fullname );
+		lprintf( "Open File: [%s]", file->fullname );
 #endif
 
 	if( mount && mount->fsi )
@@ -1414,7 +1414,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 					file->mount = test_mount;
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 					if( (*winfile_local).flags.bLogOpenClose )
-						lprintf( WIDE("Call mount %s to check if file exists %s"), test_mount->name, file->fullname );
+						lprintf( "Call mount %s to check if file exists %s", test_mount->name, file->fullname );
 #endif
 					if( test_mount->fsi->exists( test_mount->psvInstance, _fullname ) )
 					{
@@ -1454,7 +1454,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 #endif
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 					if( (*winfile_local).flags.bLogOpenClose )
-						lprintf( WIDE("Call mount %s to open file %s"), test_mount->name, file->fullname );
+						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname );
 #endif
 					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, _fullname, opts );
 #ifdef UNICODE
@@ -1508,14 +1508,14 @@ default_fopen:
 #endif
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE("native opened %s"), file->fullname );
+			lprintf( "native opened %s", file->fullname );
 #endif
 	}
 	if( !handle )
 	{
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE( "Failed to open file [%s]=[%s]" ), file->name, file->fullname );
+			lprintf( "Failed to open file [%s]=[%s]", file->name, file->fullname );
 #endif
 		DeleteLink( &(*winfile_local).files, file );
 		Deallocate( TEXTCHAR*, file->name );
@@ -1526,12 +1526,12 @@ default_fopen:
 	}
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "sack_open %s (%s)" ), file->fullname, opts );
+		lprintf( "sack_open %s (%s)", file->fullname, opts );
 #endif
 	AddLink( &file->files, handle );
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "Added FILE* %p and list is %p" ), handle, file->files );
+		lprintf( "Added FILE* %p and list is %p", handle, file->files );
 #endif
 	return handle;
 }
@@ -1612,7 +1612,7 @@ FILE*  sack_fsopenEx( INDEX group
 				file->mount = test_mount;
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 				if( (*winfile_local).flags.bLogOpenClose )
-					lprintf( WIDE("Call mount %s to check if file exists %s"), test_mount->name, file->fullname );
+					lprintf( "Call mount %s to check if file exists %s", test_mount->name, file->fullname );
 #endif
 				if( test_mount->fsi->exists( test_mount->psvInstance, _fullname ) )
 				{
@@ -1646,7 +1646,7 @@ FILE*  sack_fsopenEx( INDEX group
 #endif
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 					if( (*winfile_local).flags.bLogOpenClose )
-						lprintf( WIDE("Call mount %s to open file %s"), test_mount->name, file->fullname );
+						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname );
 #endif
 					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, _fullname, opts );
 #ifdef UNICODE
@@ -1689,20 +1689,20 @@ default_fopen:
 	{
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE( "Failed to open file [%s]=[%s]" ), file->name, file->fullname );
+			lprintf( "Failed to open file [%s]=[%s]", file->name, file->fullname );
 #endif
 		return NULL;
 	}
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "sack_open %s (%s)" ), file->fullname, opts );
+		lprintf( "sack_open %s (%s)", file->fullname, opts );
 #endif
 	EnterCriticalSec( &(*winfile_local).cs_files );
 	AddLink( &file->files, handle );
 	LeaveCriticalSec( &(*winfile_local).cs_files );
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
-		lprintf( WIDE( "Added FILE* %p and list is %p" ), handle, file->files );
+		lprintf( "Added FILE* %p and list is %p", handle, file->files );
 #endif
 	return handle;
 }
@@ -1813,7 +1813,7 @@ int  sack_fclose ( FILE *file_file )
 		int status;
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE("Closing %s"), file->fullname );
+			lprintf( "Closing %s", file->fullname );
 #endif
 		if( file->mount && file->mount->fsi )
 			status = file->mount->fsi->_close( file_file );
@@ -1821,7 +1821,7 @@ int  sack_fclose ( FILE *file_file )
 			status = fclose( file_file );
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
-			lprintf( WIDE( "deleted FILE* %p and list is %p" ), file_file, file->files );
+			lprintf( "deleted FILE* %p and list is %p", file_file, file->files );
 #endif
 		DeleteLink( &file->files, file_file );
 		if( !GetLinkCount( file->files ) ) {
@@ -2368,7 +2368,7 @@ static	LOGICAL CPROC sack_filesys_find_is_directory( struct find_cursor *_cursor
 #  endif
 #else
 	char buffer[MAX_PATH_NAME];
-	snprintf( buffer, MAX_PATH_NAME, WIDE("%s%s%s"), cursor->root, cursor->root[0]?"/":"", cursor->de->d_name );
+	snprintf( buffer, MAX_PATH_NAME, "%s%s%s", cursor->root, cursor->root[0]?"/":"", cursor->de->d_name );
 	return IsPath( buffer );
 #endif
 
@@ -2409,8 +2409,8 @@ static struct file_system_interface native_fsi = {
 PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 {
 	LocalInit();
-	if( !sack_get_filesystem_interface( WIDE("native") ) )
-		sack_register_filesystem_interface( WIDE("native" ), &native_fsi );
+	if( !sack_get_filesystem_interface( "native" ) )
+		sack_register_filesystem_interface( "native", &native_fsi );
 	if( !(*winfile_local).default_mount )
 		(*winfile_local).default_mount = sack_mount_filesystem( "native", &native_fsi, 1000, (uintptr_t)NULL, TRUE );
 }
@@ -2419,7 +2419,7 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 PRELOAD( InitWinFileSys )
 {
 #  if !defined( __FILESYS_NO_FILE_LOGGING__ )
-	(*winfile_local).flags.bLogOpenClose = SACK_GetProfileIntEx( WIDE( "SACK/filesys" ), WIDE( "Log open and close" ), (*winfile_local).flags.bLogOpenClose, TRUE );
+	(*winfile_local).flags.bLogOpenClose = SACK_GetProfileIntEx( "SACK/filesys", "Log open and close", (*winfile_local).flags.bLogOpenClose, TRUE );
 #  endif
 }
 #endif

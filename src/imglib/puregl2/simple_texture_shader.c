@@ -201,7 +201,7 @@ static void CPROC SimpleTextureOutput( PImageShaderTracker tracker, uintptr_t ps
 		CheckErr();
 		glUniform1i( data->texture_uniform, 0 );
 		CheckErr();
-		//lprintf( WIDE("Set data %p %p %d,%d"), texture->vert_pos->data, texture->vert_texture_uv->data, from,to );
+		//lprintf( "Set data %p %p %d,%d", texture->vert_pos->data, texture->vert_texture_uv->data, from,to );
 		glDrawArrays( GL_TRIANGLES, from, to - from );
 
 		//texture->vert_pos->used = 0;
@@ -327,7 +327,7 @@ static void CPROC SimpleTextureOutput2( PImageShaderTracker tracker, uintptr_t p
 	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
 	glEnableVertexAttribArray(data->color_attrib);	CheckErr();
 	EnableShader( tracker );
-	//lprintf( WIDE("Specific is %p"), psvKey );
+	//lprintf( "Specific is %p", psvKey );
 	texture = (struct private_shader_texture_data *)psvKey;
 	//LIST_FORALL( data->vert_data, idx, struct private_shader_texture_data *, texture )
 	{
@@ -345,7 +345,7 @@ static void CPROC SimpleTextureOutput2( PImageShaderTracker tracker, uintptr_t p
 		CheckErr();
 		glUniform1i( data->texture_uniform, 0 );
 		CheckErr();
-		//lprintf( WIDE("Set data %p %p %p %d,%d"), texture->vert_pos->data, texture->vert_color->data,  texture->vert_texture_uv->data, from,to );
+		//lprintf( "Set data %p %p %p %d,%d", texture->vert_pos->data, texture->vert_color->data,  texture->vert_texture_uv->data, from,to );
 		glDrawArrays( GL_TRIANGLES, from, to - from );
 	}
 }
@@ -354,7 +354,7 @@ static void CPROC SimpleTextureReset2( PImageShaderTracker tracker, uintptr_t ps
 {
 	struct private_shader_data *data = (struct private_shader_data *)psv;
 	struct private_shader_texture_data *texture;
-	//lprintf( WIDE("Specific is %p"), psvKey );
+	//lprintf( "Specific is %p", psvKey );
 	texture = (struct private_shader_texture_data *)psvKey;
 	//LIST_FORALL( data->vert_data, idx, struct private_shader_texture_data *, texture )
 	texture->vert_pos->used = 0;

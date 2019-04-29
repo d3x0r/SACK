@@ -52,98 +52,98 @@ typedef struct AndroidKeymapKeyDefine {
 
 
 PSIKEYDEFINE AndroidKeyDefs[256] =
-                     { [0]={WIDE("wide key"),WIDE("wide key"),0,KEYDATA("","") }
-                      ,[AKEYCODE_DEL]={WIDE("back"),WIDE("backspace"),0,KEYDATA("\b","\b") }
-                      , [KEY_TAB]={WIDE("tab"),0,0,KEYDATA("\t","\t") }
-                      , [AKEYCODE_ENTER]={WIDE("return"), WIDE("enter"),0,KEYDATA8("\n") }
-                      //, [AKEYCODE_PAUSE]={WIDE("pause"),0,KDF_NODEFINE }
-                      , [AKEYCODE_ESCAPE]={WIDE("esc"), WIDE("escape"), 0, {{KEYDATA}}} // 0x1b
-                      , [AKEYCODE_SPACE]={WIDE("space"), WIDE("blank"), 0, KEYDATA8(" ") } //0x20
-                      , [AKEYCODE_PAGE_UP]={WIDE("prior"), WIDE("pgup"), 0 }
-                      , [AKEYCODE_PAGE_DOWN]={WIDE("next"), WIDE("pgdn"), 0 }
-                      //, [AKEYCODE_END]={WIDE("end"), 0, 0, {{COMMANDKEY, (PTEXT)KeyEndCmd}}}
-							, [AKEYCODE_MOVE_HOME]={WIDE("home"), 0, 0 }
-							, [AKEYCODE_MOVE_END]={WIDE("end"), 0, 0 }
+                     { [0]={"wide key","wide key",0,KEYDATA("","") }
+                      ,[AKEYCODE_DEL]={"back","backspace",0,KEYDATA("\b","\b") }
+                      , [KEY_TAB]={"tab",0,0,KEYDATA("\t","\t") }
+                      , [AKEYCODE_ENTER]={"return", "enter",0,KEYDATA8("\n") }
+                      //, [AKEYCODE_PAUSE]={"pause",0,KDF_NODEFINE }
+                      , [AKEYCODE_ESCAPE]={"esc", "escape", 0, {{KEYDATA}}} // 0x1b
+                      , [AKEYCODE_SPACE]={"space", "blank", 0, KEYDATA8(" ") } //0x20
+                      , [AKEYCODE_PAGE_UP]={"prior", "pgup", 0 }
+                      , [AKEYCODE_PAGE_DOWN]={"next", "pgdn", 0 }
+                      //, [AKEYCODE_END]={"end", 0, 0, {{COMMANDKEY, (PTEXT)KeyEndCmd}}}
+							, [AKEYCODE_MOVE_HOME]={"home", 0, 0 }
+							, [AKEYCODE_MOVE_END]={"end", 0, 0 }
 
-                      , [AKEYCODE_DPAD_LEFT]={WIDE("left"), 0, 0 }
+                      , [AKEYCODE_DPAD_LEFT]={"left", 0, 0 }
 
                       , [AKEYCODE_DPAD_UP]={"up" , 0, 0 }
-                      , [AKEYCODE_DPAD_RIGHT]={WIDE("right"), 0, 0 }
-                      , [AKEYCODE_DPAD_DOWN]={WIDE("down"), 0, 0 }
-                      , [AKEYCODE_DPAD_CENTER]={WIDE("center"), 0, 0 }
+                      , [AKEYCODE_DPAD_RIGHT]={"right", 0, 0 }
+                      , [AKEYCODE_DPAD_DOWN]={"down", 0, 0 }
+                      , [AKEYCODE_DPAD_CENTER]={"center", 0, 0 }
                       //, {"select"}
                       //, [AKEYCODE_PRINT]={"print"}
                       //, {"execute"}
                       //, {"snapshot"}
-                      , [AKEYCODE_0]={WIDE("0"), 0, 0, KEYDATA("0",")")}//0x30
-                      , [AKEYCODE_1]={WIDE("1"), 0, 0, KEYDATA("1","!")}
-							, [AKEYCODE_2]={WIDE("2"), 0, 0, KEYDATA("2","@")}
-							, [AKEYCODE_3]={WIDE("3"), 0, 0, KEYDATA("3","#")}
-                      , [AKEYCODE_4]={WIDE("4"), 0, 0, KEYDATA("4","$")}
-                      , [AKEYCODE_5]={WIDE("5"), 0, 0, KEYDATA("5","%")}
-                      , [AKEYCODE_6]={WIDE("6"), 0, 0, KEYDATA("6","^")}
-                      , [AKEYCODE_7]={WIDE("7"), 0, 0, KEYDATA("7","&")}
-                      , [AKEYCODE_8]={WIDE("8"), 0, 0, KEYDATA("8","*")}
-                      , [AKEYCODE_9]={WIDE("9"), 0, 0, KEYDATA("9","(")}
+                      , [AKEYCODE_0]={"0", 0, 0, KEYDATA("0",")")}//0x30
+                      , [AKEYCODE_1]={"1", 0, 0, KEYDATA("1","!")}
+							, [AKEYCODE_2]={"2", 0, 0, KEYDATA("2","@")}
+							, [AKEYCODE_3]={"3", 0, 0, KEYDATA("3","#")}
+                      , [AKEYCODE_4]={"4", 0, 0, KEYDATA("4","$")}
+                      , [AKEYCODE_5]={"5", 0, 0, KEYDATA("5","%")}
+                      , [AKEYCODE_6]={"6", 0, 0, KEYDATA("6","^")}
+                      , [AKEYCODE_7]={"7", 0, 0, KEYDATA("7","&")}
+                      , [AKEYCODE_8]={"8", 0, 0, KEYDATA("8","*")}
+                      , [AKEYCODE_9]={"9", 0, 0, KEYDATA("9","(")}
 
 /* VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39) */
 /* VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A) */
                       //..... to hmm 39
-                      , [AKEYCODE_A] = {WIDE("a"),0,KDF_NODEFINE,KEYDATA("a","A")}// 0x41 'A'
-                      , [AKEYCODE_B] = {WIDE("b"),0,KDF_NODEFINE,KEYDATA("b","B")}
-                      , [AKEYCODE_C] = {WIDE("c"),0,KDF_NODEFINE,KEYDATA("c","C")}
-                      , [AKEYCODE_D] = {WIDE("d"),0,KDF_NODEFINE,KEYDATA("d","D")}
-                      , [AKEYCODE_E] = {WIDE("e"),0,KDF_NODEFINE,KEYDATA("e","E")}
-                      , [AKEYCODE_F] = {WIDE("f"),0,KDF_NODEFINE,KEYDATA("f","F")}
-                      , [AKEYCODE_G] = {WIDE("g"),0,KDF_NODEFINE,KEYDATA("g","G")}
-                      , [AKEYCODE_H] = {WIDE("h"),0,KDF_NODEFINE,KEYDATA("h","H")}
-                      , [AKEYCODE_I] = {WIDE("i"),0,KDF_NODEFINE,KEYDATA("i","I")}
-                      , [AKEYCODE_J] = {WIDE("j"),0,KDF_NODEFINE,KEYDATA("j","J")}
-                      , [AKEYCODE_K] = {WIDE("k"),0,KDF_NODEFINE,KEYDATA("k","K")}
-                      , [AKEYCODE_L] = {WIDE("l"),0,KDF_NODEFINE,KEYDATA("l","L")}
-                      , [AKEYCODE_M] = {WIDE("m"),0,KDF_NODEFINE,KEYDATA("m","M")}
-                      , [AKEYCODE_N] = {WIDE("n"),0,KDF_NODEFINE,KEYDATA("n","N")}
-                      , [AKEYCODE_O] = {WIDE("o"),0,KDF_NODEFINE,KEYDATA("o","O")}
-                      , [AKEYCODE_P] = {WIDE("p"),0,KDF_NODEFINE,KEYDATA("p","P")}
-                      , [AKEYCODE_Q] = {WIDE("q"),0,KDF_NODEFINE,KEYDATA("q","Q")}
-                      , [AKEYCODE_R] = {WIDE("r"),0,KDF_NODEFINE,KEYDATA("r","R")}
-                      , [AKEYCODE_S] = {WIDE("s"),0,KDF_NODEFINE,KEYDATA("s","S")}
-                      , [AKEYCODE_T] = {WIDE("t"),0,KDF_NODEFINE,KEYDATA("t","T")}
-                      , [AKEYCODE_U] = {WIDE("u"),0,KDF_NODEFINE,KEYDATA("u","U")}
-                      , [AKEYCODE_V] = {WIDE("v"),0,KDF_NODEFINE,KEYDATA("v","V")}
-                      , [AKEYCODE_W] = {WIDE("w"),0,KDF_NODEFINE,KEYDATA("w","W")}
-                      , [AKEYCODE_X] = {WIDE("x"),0,KDF_NODEFINE,KEYDATA("x","X")}
-                      , [AKEYCODE_Y] = {WIDE("y"),0,KDF_NODEFINE,KEYDATA("y","Y")}
-                      , [AKEYCODE_Z] = {WIDE("z"),0,KDF_NODEFINE,KEYDATA("z","Z")}
+                      , [AKEYCODE_A] = {"a",0,KDF_NODEFINE,KEYDATA("a","A")}// 0x41 'A'
+                      , [AKEYCODE_B] = {"b",0,KDF_NODEFINE,KEYDATA("b","B")}
+                      , [AKEYCODE_C] = {"c",0,KDF_NODEFINE,KEYDATA("c","C")}
+                      , [AKEYCODE_D] = {"d",0,KDF_NODEFINE,KEYDATA("d","D")}
+                      , [AKEYCODE_E] = {"e",0,KDF_NODEFINE,KEYDATA("e","E")}
+                      , [AKEYCODE_F] = {"f",0,KDF_NODEFINE,KEYDATA("f","F")}
+                      , [AKEYCODE_G] = {"g",0,KDF_NODEFINE,KEYDATA("g","G")}
+                      , [AKEYCODE_H] = {"h",0,KDF_NODEFINE,KEYDATA("h","H")}
+                      , [AKEYCODE_I] = {"i",0,KDF_NODEFINE,KEYDATA("i","I")}
+                      , [AKEYCODE_J] = {"j",0,KDF_NODEFINE,KEYDATA("j","J")}
+                      , [AKEYCODE_K] = {"k",0,KDF_NODEFINE,KEYDATA("k","K")}
+                      , [AKEYCODE_L] = {"l",0,KDF_NODEFINE,KEYDATA("l","L")}
+                      , [AKEYCODE_M] = {"m",0,KDF_NODEFINE,KEYDATA("m","M")}
+                      , [AKEYCODE_N] = {"n",0,KDF_NODEFINE,KEYDATA("n","N")}
+                      , [AKEYCODE_O] = {"o",0,KDF_NODEFINE,KEYDATA("o","O")}
+                      , [AKEYCODE_P] = {"p",0,KDF_NODEFINE,KEYDATA("p","P")}
+                      , [AKEYCODE_Q] = {"q",0,KDF_NODEFINE,KEYDATA("q","Q")}
+                      , [AKEYCODE_R] = {"r",0,KDF_NODEFINE,KEYDATA("r","R")}
+                      , [AKEYCODE_S] = {"s",0,KDF_NODEFINE,KEYDATA("s","S")}
+                      , [AKEYCODE_T] = {"t",0,KDF_NODEFINE,KEYDATA("t","T")}
+                      , [AKEYCODE_U] = {"u",0,KDF_NODEFINE,KEYDATA("u","U")}
+                      , [AKEYCODE_V] = {"v",0,KDF_NODEFINE,KEYDATA("v","V")}
+                      , [AKEYCODE_W] = {"w",0,KDF_NODEFINE,KEYDATA("w","W")}
+                      , [AKEYCODE_X] = {"x",0,KDF_NODEFINE,KEYDATA("x","X")}
+                      , [AKEYCODE_Y] = {"y",0,KDF_NODEFINE,KEYDATA("y","Y")}
+                      , [AKEYCODE_Z] = {"z",0,KDF_NODEFINE,KEYDATA("z","Z")}
 
-                      //, {WIDE("numlock"),0,KDF_NODEFINE} // 0x90
-                      //, {WIDE("scroll"),0,KDF_NODEFINE}
+                      //, {"numlock",0,KDF_NODEFINE} // 0x90
+                      //, {"scroll",0,KDF_NODEFINE}
 
 /*
  * VK_L* & VK_R* - left and right Alt, Ctrl and Shift virtual keys.
  * Used only as parameters to GetAsyncKeyState() and GetKeyState().
  * No other API or message will distinguish left and right keys in this way.
  */
-                      , [AKEYCODE_SHIFT_LEFT] = {WIDE("lshift"),0,KDF_NODEFINE,KEYSHIFT}  // 0xa0
-                      , [AKEYCODE_SHIFT_RIGHT] ={WIDE("rshift"),0,KDF_NODEFINE,KEYSHIFT}
-                      //, NONAMES // {WIDE("lctrl"), WIDE("lcontrol"),0,KDF_NODEFINE}
-                      //, NONAMES // {WIDE("rctrl"), WIDE("rcontrol"),0,KDF_NODEFINE}
-                      //, NONAMES // {WIDE("lmenu"), WIDE("lalt"),0,KDF_NODEFINE }
-                      //, NONAMES // {WIDE("rmenu"), WIDE("ralt"),0,KDF_NODEFINE }
-							, [AKEYCODE_SEMICOLON]={WIDE(";"), WIDE("semicolon"),0,KEYDATA(";",":")}
-                      , [AKEYCODE_EQUALS]={WIDE("="), WIDE("equal"),0    ,KEYDATA("=","+")}
-                      , [AKEYCODE_COMMA]={WIDE(","), WIDE("comma"),0    ,KEYDATA(",","<")}
-                      , [AKEYCODE_MINUS]={WIDE("-"), WIDE("dash"),0     ,KEYDATA("-","_")}
-                      , [AKEYCODE_PERIOD]={WIDE("."), WIDE("period"),0   ,KEYDATA(".",">")}
-                      , [AKEYCODE_SLASH]={WIDE("/"),WIDE("slash"),0     ,KEYDATA("/","?")}
-                      , [AKEYCODE_GRAVE]={WIDE("`"), WIDE("accent"),0   ,KEYDATA("`","~")}
-							, [AKEYCODE_LEFT_BRACKET]={ WIDE("["), WIDE("lbracket"),0  ,KEYDATA("[","{")}
-							, [AKEYCODE_BACKSLASH]={ WIDE("\\"), WIDE("backslash"),0,KEYDATA("\\","|")}
-							, [AKEYCODE_RIGHT_BRACKET]={ WIDE("]"), WIDE("rbracket"),0  ,KEYDATA("]","}")}
-                      , [AKEYCODE_APOSTROPHE]={ WIDE("'"), WIDE("apostrophe"),0     ,KEYDATA("`","~")}
+                      , [AKEYCODE_SHIFT_LEFT] = {"lshift",0,KDF_NODEFINE,KEYSHIFT}  // 0xa0
+                      , [AKEYCODE_SHIFT_RIGHT] ={"rshift",0,KDF_NODEFINE,KEYSHIFT}
+                      //, NONAMES // {"lctrl", "lcontrol",0,KDF_NODEFINE}
+                      //, NONAMES // {"rctrl", "rcontrol",0,KDF_NODEFINE}
+                      //, NONAMES // {"lmenu", "lalt",0,KDF_NODEFINE }
+                      //, NONAMES // {"rmenu", "ralt",0,KDF_NODEFINE }
+							, [AKEYCODE_SEMICOLON]={";", "semicolon",0,KEYDATA(";",":")}
+                      , [AKEYCODE_EQUALS]={"=", "equal",0    ,KEYDATA("=","+")}
+                      , [AKEYCODE_COMMA]={",", "comma",0    ,KEYDATA(",","<")}
+                      , [AKEYCODE_MINUS]={"-", "dash",0     ,KEYDATA("-","_")}
+                      , [AKEYCODE_PERIOD]={".", "period",0   ,KEYDATA(".",">")}
+                      , [AKEYCODE_SLASH]={"/","slash",0     ,KEYDATA("/","?")}
+                      , [AKEYCODE_GRAVE]={"`", "accent",0   ,KEYDATA("`","~")}
+							, [AKEYCODE_LEFT_BRACKET]={ "[", "lbracket",0  ,KEYDATA("[","{")}
+							, [AKEYCODE_BACKSLASH]={ "\\", "backslash",0,KEYDATA("\\","|")}
+							, [AKEYCODE_RIGHT_BRACKET]={ "]", "rbracket",0  ,KEYDATA("]","}")}
+                      , [AKEYCODE_APOSTROPHE]={ "'", "apostrophe",0     ,KEYDATA("`","~")}
 
                      // I get AKEYCODE_SHIFT_LEFT (mod 65), AKEYCODE_APOSTROPHE( 65) (up?), left_hisft(up) mod (0)
-                      //, [AKEYCODE_APOSTROPHE]={ WIDE("'"), WIDE("quote"),0     ,{{KEYDATA}
+                      //, [AKEYCODE_APOSTROPHE]={ "'", "quote",0     ,{{KEYDATA}
                       //                        ,{KEYDATA}} }
 };
 
@@ -182,7 +182,7 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 	int mod = keymap_local.flags.bShifted?1:0;
 	{
 		int result = 0;
-		Log1( WIDE("Keyfunc = %d"), AndroidKeyDefs[key_index].op[mod].bFunction );
+		Log1( "Keyfunc = %d", AndroidKeyDefs[key_index].op[mod].bFunction );
 		switch( AndroidKeyDefs[key_index].op[mod].bFunction )
 		{
 #undef KEYSHIFT

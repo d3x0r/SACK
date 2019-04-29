@@ -245,7 +245,7 @@ void CPROC selection( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM user_list_ite
 	//l.selected_user = user_list_item;
 	//l.user = (PUSER)GetItemData( user_list_item );
 
-	snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter your password and press enter.") );
+	snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "Please enter your password and press enter." );
 	LabelVariableChanged( l.lvPassPop );
 
 	return;
@@ -253,13 +253,13 @@ void CPROC selection( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM user_list_ite
 
 //--------------------------------------------------------------------------------
 // User List Box
-static uintptr_t OnCreateListbox( WIDE("SQL Users/User Selection Control List") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( "SQL Users/User Selection Control List" )( PSI_CONTROL listbox )
 {
 	int tmp[5] = { 0, 100, 200, 250, 320 };
 	l.user_list = listbox;
 	SetSelChangeHandler( l.user_list, selection, 0 );
 	SetListBoxTabStops( l.user_list, 5, tmp );
-	SetCommonFont( l.user_list, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( l.user_list, *( UseACanvasFont( GetCanvas( listbox ), "User Select List Font" ) ) );
 	return (uintptr_t)listbox;
 }
 
@@ -269,15 +269,15 @@ void CreateToken( CTEXTSTR token, CTEXTSTR description )
 	INDEX token_id;
 
 	if( description == NULL )
-		description = WIDE("<auto token create>");
-	if( DoSQLCommandf( WIDE("insert into permission_tokens (name,log,description) values ('%s',%d,'%s')"), token, 0, description ) )
+		description = "<auto token create>";
+	if( DoSQLCommandf( "insert into permission_tokens (name,log,description) values ('%s',%d,'%s')", token, 0, description ) )
 	{
-		token_id = GetLastInsertID( WIDE("permission_tokens"), WIDE("permission_id") );
+		token_id = GetLastInsertID( "permission_tokens", "permission_id" );
 	}
 	else
 	{
 		CTEXTSTR result;
-		if( DoSQLQueryf( &result, WIDE("select permission_id from permission_tokens where name='%s'"), EscapeString( token ) ) && result )
+		if( DoSQLQueryf( &result, "select permission_id from permission_tokens where name='%s'", EscapeString( token ) ) && result )
 		{
 			token_id = IntCreateFromText( result );
 			FindToken( token_id, token );
@@ -287,13 +287,13 @@ void CreateToken( CTEXTSTR token, CTEXTSTR description )
 	}
 	if( token_id == INVALID_INDEX )
 	{
-		lprintf( WIDE("Failed to create token.") );
-		SimpleMessageBox( NULL, WIDE("Create Token Failed"), WIDE("Failed to create token.") );
+		lprintf( "Failed to create token." );
+		SimpleMessageBox( NULL, "Create Token Failed", "Failed to create token." );
 	}
 	else
 	{
-		snprintf( buf, 256, WIDE(" Token: %s was created by User: %d Name: %s"), token, l.logee_id, l.logee_name );
-		DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, EscapeString( buf ) );
+		snprintf( buf, 256, " Token: %s was created by User: %d Name: %s", token, l.logee_id, l.logee_name );
+		DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())", l.logee_id, g.system_id, l.program_id, EscapeString( buf ) );
 		FindToken( token_id, token );
 	}
 }
@@ -307,7 +307,7 @@ static LOGICAL HasPermission( PUSER user, CTEXTSTR *tokens, int nTokens )
 	uint8_t user_terminated = 0;
 	CTEXTSTR *result;
 	PushSQLQuery();
-	DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select terminate from permission_user_info where user_id=%d"), user->id );
+	DoSQLRecordQueryf( NULL, &result, NULL, "select terminate from permission_user_info where user_id=%d", user->id );
 	if( result && atoi( result[0] ) )
 	{
 		PopODBC();
@@ -395,10 +395,10 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 	{
 		PVARTEXT pvt_query = VarTextCreate();
 		CTEXTSTR *results;
-		vtprintf( pvt_query, WIDE("select user_id,login_id,shift,fiscalday from login_history ")
-					WIDE("join program_identifiers using (program_id) ")
-					WIDE("where logout_whenstamp=11111111111111 ")
-					WIDE("and program_name='%s'"),
+		vtprintf( pvt_query, "select user_id,login_id,shift,fiscalday from login_history "
+					"join program_identifiers using (program_id) "
+					"where logout_whenstamp=11111111111111 "
+					"and program_name='%s'",
 					pls->required_token
 				  );
 
@@ -424,7 +424,7 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 						user_entry->required_login_shift = StrDup( results[2] );
 						{
 							TEXTCHAR tmp[128];
-							snprintf( tmp, 128, WIDE("%s\t%s\tS:%s"), user->full_name, results[3], results[2] );
+							snprintf( tmp, 128, "%s\t%s\tS:%s", user->full_name, results[3], results[2] );
 							SetItemData( AddListItem( l.user_list, tmp ), (uintptr_t)user_entry );
 						}
 						break;
@@ -435,10 +435,10 @@ void FillList( CTEXTSTR *tokens, int nTokens, PSQL_PASSWORD pls )
 		VarTextEmpty( pvt_query );
 		if( pls->override_required_token_token )
 		{
-			vtprintf( pvt_query, WIDE("select distinct user_id from permission_user_info ")
-						WIDE("join permission_user using(user_id) ")
-						WIDE("join permission_set using(permission_group_id) ")
-						WIDE("where permission_id in (%d)"),
+			vtprintf( pvt_query, "select distinct user_id from permission_user_info "
+						"join permission_user using(user_id) "
+						"join permission_set using(permission_group_id) "
+						"where permission_id in (%d)",
 						pls->override_required_token_token->id
 				  );
 			for( DoSQLRecordQueryf( NULL, &results, NULL, GetText( VarTextPeek( pvt_query ) ) );
@@ -540,13 +540,13 @@ void CPROC selection2( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM user_list2_i
 }
 //--------------------------------------------------------------------------------
 // User List Box 2
-static uintptr_t OnCreateListbox( WIDE("SQL Users/User Selection Control List 2") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( "SQL Users/User Selection Control List 2" )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };
 	AddLink( &l.user_list2_controls, listbox );
 	SetSelChangeHandler( listbox, selection2, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
-	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), "User Select List Font" ) ) );
 	return (uintptr_t)listbox;
 }
 
@@ -571,7 +571,7 @@ void FillList2( PSI_CONTROL listbox )
 
 //--------------------------------------------------------------------------------
 // Fill List Box 2 on show control
-static void OnShowControl( WIDE("SQL Users/User Selection Control List 2") )( uintptr_t psv )
+static void OnShowControl( "SQL Users/User Selection Control List 2" )( uintptr_t psv )
 {	
 	INDEX idx;
 	PSI_CONTROL listbox;
@@ -594,13 +594,13 @@ void CPROC unlock_selection( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM unlock
 }
 //--------------------------------------------------------------------------------
 // Unlock User List Box
-static uintptr_t OnCreateListbox( WIDE("SQL Users/Unlock User Selection Control List") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( "SQL Users/Unlock User Selection Control List" )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };
 	AddLink( &l.unlock_user_list_controls, listbox );
 	SetSelChangeHandler( listbox, unlock_selection, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
-	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), "User Select List Font" ) ) );
 	return (uintptr_t)listbox;
 }
 
@@ -621,10 +621,10 @@ void FillUnlockList( PSI_CONTROL listbox )
 			if( *l.bad_login_interval != '0' )
 			{
 				CTEXTSTR *result;
-				DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from system_exceptions where user_id=%d and system_exception_type_id=4 and log_whenstamp >= now() - interval %s"), user->id, l.bad_login_interval );
+				DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from system_exceptions where user_id=%d and system_exception_type_id=4 and log_whenstamp >= now() - interval %s", user->id, l.bad_login_interval );
 				if( result && atoi( result[0] ) > 0 )
 				{
-					DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select system_exception_type_id,log_whenstamp from system_exceptions where user_id=%d and system_exception_type_id in ( 4, 6 ) and log_whenstamp >= now() - interval %s order by system_exception_id desc limit 1"), user->id, l.bad_login_interval );				
+					DoSQLRecordQueryf( NULL, &result, NULL, "select system_exception_type_id,log_whenstamp from system_exceptions where user_id=%d and system_exception_type_id in ( 4, 6 ) and log_whenstamp >= now() - interval %s order by system_exception_id desc limit 1", user->id, l.bad_login_interval );				
 					if( result && ( atoi( result[0] ) != 6 )  )	
 						SetItemData( AddListItem( listbox, user->full_name ), (uintptr_t)user );	
 				}
@@ -635,7 +635,7 @@ void FillUnlockList( PSI_CONTROL listbox )
 
 //--------------------------------------------------------------------------------
 // Fill Unlock List Box on show control
-static void OnShowControl( WIDE("SQL Users/Unlock User Selection Control List") )( uintptr_t psv )
+static void OnShowControl( "SQL Users/Unlock User Selection Control List" )( uintptr_t psv )
 {	
 	INDEX idx;
 	PSI_CONTROL listbox;
@@ -664,13 +664,13 @@ void CPROC group_selection( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM group_l
 
 //--------------------------------------------------------------------------------
 // Permission Group List Box 
-static uintptr_t OnCreateListbox( WIDE("SQL Users/Permission Group Selection Control List") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( "SQL Users/Permission Group Selection Control List" )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };	
 	AddLink( &l.group_list_controls, listbox );	
 	SetSelChangeHandler( listbox, group_selection, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
-	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), "User Select List Font" ) ) );
 	return (uintptr_t)listbox;
 }
 
@@ -694,7 +694,7 @@ void FillGroupList( PSI_CONTROL listbox )
 
 //--------------------------------------------------------------------------------
 // 
-static void OnShowControl( WIDE("SQL Users/Permission Group Selection Control List") )( uintptr_t psv )
+static void OnShowControl( "SQL Users/Permission Group Selection Control List" )( uintptr_t psv )
 {
 	INDEX idx;
 	PSI_CONTROL listbox;
@@ -708,12 +708,12 @@ static void OnShowControl( WIDE("SQL Users/Permission Group Selection Control Li
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 // Permission Group List Box 2
-static uintptr_t OnCreateListbox( WIDE("SQL Users/Permission Group Selection Control List2") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( "SQL Users/Permission Group Selection Control List2" )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };
 	l.perm_group_list2 = listbox;
 	SetListBoxTabStops( l.perm_group_list2, 3, tmp );
-	SetCommonFont( l.perm_group_list2, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( l.perm_group_list2, *( UseACanvasFont( GetCanvas( listbox ), "User Select List Font" ) ) );
 	return (uintptr_t)listbox;
 }
 
@@ -752,13 +752,13 @@ void CPROC token_selection( uintptr_t psvUser, PSI_CONTROL pc, PLISTITEM token_l
 
 //--------------------------------------------------------------------------------
 // Token List Box 
-static uintptr_t OnCreateListbox( WIDE("SQL Users/Token Selection Control List") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( "SQL Users/Token Selection Control List" )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };	
 	AddLink( &l.token_list_controls, listbox );	
 	SetSelChangeHandler( listbox, token_selection, 0 );
 	SetListBoxTabStops( listbox, 3, tmp );
-	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( listbox, *( UseACanvasFont( GetCanvas( listbox ), "User Select List Font" ) ) );
 	return (uintptr_t)listbox;
 }
 
@@ -775,7 +775,7 @@ void FillTokenList( PSI_CONTROL listbox )
 		PTOKEN group_token;
 		LIST_FORALL( g.tokens, idx, PTOKEN, group_token )
 		{
-			lprintf( WIDE("Added token %s"), group_token->name );
+			lprintf( "Added token %s", group_token->name );
 			SetItemData( AddListItem( listbox, group_token->name ), (uintptr_t)group_token );
 		}
 	}
@@ -783,7 +783,7 @@ void FillTokenList( PSI_CONTROL listbox )
 
 //--------------------------------------------------------------------------------
 // 
-static void OnShowControl( WIDE("SQL Users/Token Selection Control List") )( uintptr_t psv )
+static void OnShowControl( "SQL Users/Token Selection Control List" )( uintptr_t psv )
 {
 	INDEX idx;
 	PSI_CONTROL listbox;
@@ -798,12 +798,12 @@ static void OnShowControl( WIDE("SQL Users/Token Selection Control List") )( uin
 // Token List Box 2
 //--------------------------------------------------------------------------------
 // 
-static uintptr_t OnCreateListbox( WIDE("SQL Users/Token Selection Control List2") )( PSI_CONTROL listbox )
+static uintptr_t OnCreateListbox( "SQL Users/Token Selection Control List2" )( PSI_CONTROL listbox )
 {	
 	int tmp[3] = { 0, 100, 200 };
 	l.token_list2 = listbox;
 	SetListBoxTabStops( l.token_list2, 3, tmp );
-	SetCommonFont( l.token_list2, *( UseACanvasFont( GetCanvas( listbox ), WIDE("User Select List Font") ) ) );
+	SetCommonFont( l.token_list2, *( UseACanvasFont( GetCanvas( listbox ), "User Select List Font" ) ) );
 	return (uintptr_t)listbox;
 }
 
@@ -839,10 +839,10 @@ void UpdatePasswordFrame( void )
 	uint32_t w, h;
 	int32_t x, y;
 	GetDisplaySizeEx( 0, &x, &y, &w, &h );
-	lprintf( WIDE("Control is a new size old %d,%d new %d,%d"), l.width, l.height, w, h );
+	lprintf( "Control is a new size old %d,%d new %d,%d", l.width, l.height, w, h );
 	if( w != l.width || h != l.height )
 	{
-		lprintf( WIDE("Control is a new size old %d,%d new %d,%d"), l.width, l.height, w, h );
+		lprintf( "Control is a new size old %d,%d new %d,%d", l.width, l.height, w, h );
 		l.width = w;
 		l.height = h;
 		l.x = x;
@@ -870,7 +870,7 @@ void CreatePasswordFrame( void )
 		l.renderer = OpenDisplaySizedAt( 0, l.width * (l.flags.cover_entire_canvas?l.displays_wide:1)
 												 , l.height * (l.flags.cover_entire_canvas?l.displays_high:1)
 												 , l.x, l.y );
-		SetRendererTitle( l.renderer, WIDE( "User Login Frame" ) );
+		SetRendererTitle( l.renderer, "User Login Frame" );
 		MakeTopmost( l.renderer );
 	}
 
@@ -878,35 +878,35 @@ void CreatePasswordFrame( void )
 	{
 		PMENU_BUTTON button;
 		// Default Password Page
-		l.frame = MakeNamedControl( NULL, WIDE("Menu Canvas"), 0, 0
+		l.frame = MakeNamedControl( NULL, "Menu Canvas", 0, 0
 										  , l.width * (l.flags.cover_entire_canvas?l.displays_wide:1)
 										  , l.height * (l.flags.cover_entire_canvas?l.displays_high:1)
 										  , 0 );
 		InterShell_SetPageLayout( l.frame, 40, 40 );
 		AttachFrameToRenderer( l.frame, l.renderer ); // need renderer built so we can attach key events to it.
-		ShellSetCurrentPage( l.frame, WIDE("first"), PAGE_TRANSITION_NONE, 0 );
-		InterShell_SetPageColor( ShellGetNamedPage( l.frame, WIDE("first") ), BASE_COLOR_BLACK );
-		InterShell_CreateSomeControl( l.frame, 3, 2, 34, 20, WIDE("SQL Users/User Selection Control List") );
-		l.keyboard = InterShell_GetButtonControl( l.keyboard_button = InterShell_CreateSomeControl( l.frame, 2, 23, 36, 16, WIDE("keyboard 2") ) );
-		SetKeypadType( l.keyboard, WIDE("Enter Password Keypad") );
+		ShellSetCurrentPage( l.frame, "first", PAGE_TRANSITION_NONE, 0 );
+		InterShell_SetPageColor( ShellGetNamedPage( l.frame, "first" ), BASE_COLOR_BLACK );
+		InterShell_CreateSomeControl( l.frame, 3, 2, 34, 20, "SQL Users/User Selection Control List" );
+		l.keyboard = InterShell_GetButtonControl( l.keyboard_button = InterShell_CreateSomeControl( l.frame, 2, 23, 36, 16, "keyboard 2" ) );
+		SetKeypadType( l.keyboard, "Enter Password Keypad" );
 		SetKeypadStyle( l.keyboard, KEYPAD_STYLE_PASSWORD|KEYPAD_DISPLAY_ALIGN_CENTER );
-		//InterShell_CreateSomeControl( l.frame, 30, 26, 5, 5, WIDE("SQL Users/Accept Password") );		
-		//InterShell_CreateSomeControl( l.frame, 30, 32, 5, 5, WIDE("SQL Users/Cancel Generic") );
-		button = InterShell_CreateSomeControl( l.frame, 2, 22, 36, 1, WIDE("Text Label") );
-		InterShell_SetButtonText( button, WIDE("%<Pop Pass Message>") );
+		//InterShell_CreateSomeControl( l.frame, 30, 26, 5, 5, "SQL Users/Accept Password" );		
+		//InterShell_CreateSomeControl( l.frame, 30, 32, 5, 5, "SQL Users/Cancel Generic" );
+		button = InterShell_CreateSomeControl( l.frame, 2, 22, 36, 1, "Text Label" );
+		InterShell_SetButtonText( button, "%<Pop Pass Message>" );
 		InterShell_SetTextLabelOptions( button, TRUE, FALSE, FALSE, FALSE );
-		//InterShell_SetButtonFont( button, WIDE("Small Txt Status") );		
+		//InterShell_SetButtonFont( button, "Small Txt Status" );		
 
 		// Create Expired Password Page ( Used when a password is expired )
-		InterShell_CreateNamedPage( l.frame, WIDE("Expired Password") );
-		InterShell_SetPageColor( ShellGetNamedPage( l.frame, WIDE("Expired Password") ), BASE_COLOR_BLACK );
-		l.keyboard2 = InterShell_GetButtonControl( l.keyboard_button2 = InterShell_CreateSomeControl( l.frame, 2, 23, 36, 16, WIDE("keyboard 2") ) );
-		SetKeypadType( l.keyboard2, WIDE("Expire Password Keypad") );
+		InterShell_CreateNamedPage( l.frame, "Expired Password" );
+		InterShell_SetPageColor( ShellGetNamedPage( l.frame, "Expired Password" ), BASE_COLOR_BLACK );
+		l.keyboard2 = InterShell_GetButtonControl( l.keyboard_button2 = InterShell_CreateSomeControl( l.frame, 2, 23, 36, 16, "keyboard 2" ) );
+		SetKeypadType( l.keyboard2, "Expire Password Keypad" );
 		SetKeypadStyle( l.keyboard2, KEYPAD_STYLE_PASSWORD|KEYPAD_DISPLAY_ALIGN_CENTER );
-		//InterShell_CreateSomeControl( l.frame, 30, 20, 5, 5, WIDE("SQL Users/Accept Expired Password") );
-		//InterShell_CreateSomeControl( l.frame, 30, 26, 5, 5, WIDE("SQL Users/Cancel Generic") );
-		button = InterShell_CreateSomeControl( l.frame, 2, 22, 36, 1, WIDE("Text Label") );
-		InterShell_SetButtonText( button, WIDE("%<Pop Pass2 Message>") );
+		//InterShell_CreateSomeControl( l.frame, 30, 20, 5, 5, "SQL Users/Accept Expired Password" );
+		//InterShell_CreateSomeControl( l.frame, 30, 26, 5, 5, "SQL Users/Cancel Generic" );
+		button = InterShell_CreateSomeControl( l.frame, 2, 22, 36, 1, "Text Label" );
+		InterShell_SetButtonText( button, "%<Pop Pass2 Message>" );
 		InterShell_SetTextLabelOptions( button, TRUE, FALSE, FALSE, FALSE );
 	}
 }
@@ -951,10 +951,10 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 		if( l.okay )
 		{	
 			//Check if terminated
-			DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select terminate from permission_user_info where user_id=%d"), l.user->id );
+			DoSQLRecordQueryf( NULL, &result, NULL, "select terminate from permission_user_info where user_id=%d", l.user->id );
 			if( result && atoi( result[0] ) > 0 )
 			{			
-				snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("This user has been terminated.") );
+				snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "This user has been terminated." );
 				LabelVariableChanged( l.lvPassPop );
 			}
 
@@ -963,10 +963,10 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 				//Check if locked, if locked, check unlock, if not unlocked pop up banner message and return invalid index
 				if( *l.bad_login_interval != '0' )
 				{
-					DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from system_exceptions where user_id=%d and system_exception_type_id=4 and log_whenstamp >= now() - interval %s"), l.user->id, l.bad_login_interval );
+					DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from system_exceptions where user_id=%d and system_exception_type_id=4 and log_whenstamp >= now() - interval %s", l.user->id, l.bad_login_interval );
 					if( result && atoi( result[0] ) > 0 )
 					{
-						DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select system_exception_type_id,log_whenstamp from system_exceptions where user_id=%d and system_exception_type_id in ( 4, 6 ) and log_whenstamp >= now() - interval %s order by system_exception_id desc limit 1"), l.user->id, l.bad_login_interval );				
+						DoSQLRecordQueryf( NULL, &result, NULL, "select system_exception_type_id,log_whenstamp from system_exceptions where user_id=%d and system_exception_type_id in ( 4, 6 ) and log_whenstamp >= now() - interval %s order by system_exception_id desc limit 1", l.user->id, l.bad_login_interval );				
 						if( result && result[0] && atoi( result[0] ) == 6  )	
 						{
 							unlocked = unlock = 1;	
@@ -974,7 +974,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 						}
 						else
 						{
-							snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("The selected account has exceeded the maximum number of failed login attempts.") );
+							snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "The selected account has exceeded the maximum number of failed login attempts." );
 							LabelVariableChanged( l.lvPassPop );
 						}
 					}
@@ -990,7 +990,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 			if( unlocked )
 			{
 				// Check Password
-				DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select 1 from permission_user_info where user_id=%d and password='%s'")
+				DoSQLRecordQueryf( NULL, &result, NULL, "select 1 from permission_user_info where user_id=%d and password='%s'"
 									  , l.user->id, l.out );
 				if( result )
 				{
@@ -998,10 +998,10 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 					if( l.selected_user_item->flags.bHasLogin )
 					{
 						password_info->actual_login_id = atoi( l.selected_user_item->required_login_id );
-						DoSQLCommandf( WIDE("insert into login_history (actual_login_id,shift,fiscalday,system_id,program_id,user_id,login_whenstamp) values (%s,%s,%s,%d,%d,%d,now())")
+						DoSQLCommandf( "insert into login_history (actual_login_id,shift,fiscalday,system_id,program_id,user_id,login_whenstamp) values (%s,%s,%s,%d,%d,%d,now())"
 							, l.selected_user_item->required_login_id
 							, l.selected_user_item->required_login_shift
-							, GetSQLOffsetDate( NULL, WIDE("Fiscal"), 5 )
+							, GetSQLOffsetDate( NULL, "Fiscal", 5 )
 							, g.system_id
 							, program?GetProgramID( program ):l.program_id
 							, l.user->id );
@@ -1010,8 +1010,8 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 					else
 					{
 						// override, and normal login, use this, not a chain login
-						DoSQLCommandf( WIDE("insert into login_history (fiscalday,system_id,program_id,user_id,login_whenstamp) values (%s,%d,%d,%d,now())")
-										 , GetSQLOffsetDate( NULL, WIDE("Fiscal"), 5 ), g.system_id, program?GetProgramID( program ):l.program_id, l.user->id );
+						DoSQLCommandf( "insert into login_history (fiscalday,system_id,program_id,user_id,login_whenstamp) values (%s,%d,%d,%d,now())"
+										 , GetSQLOffsetDate( NULL, "Fiscal", 5 ), g.system_id, program?GetProgramID( program ):l.program_id, l.user->id );
 					}
 					// Get Login ID
 					password_info->login_id = GetLastInsertID( NULL, NULL );
@@ -1021,16 +1021,16 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 					if( result_login_id )
 						(*result_login_id) = password_info->login_id;
 
-					lprintf( WIDE("Doing login... %p %p %s %d"), g.current_user, g.temp_user, l.user->name, password_info->login_id );
+					lprintf( "Doing login... %p %p %s %d", g.current_user, g.temp_user, l.user->name, password_info->login_id );
 					// Check if already current user if so
 
-					snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("Success.") );
+					snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "Success." );
 					LabelVariableChanged( l.lvPassPop );
 
 					// Check expiration
 					if( l.flags.does_pass_expr && g.pass_expr_interval )
 					{
-						DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from permission_user_info where user_id=%d and password_creation_datestamp <= now() - interval %d day"), l.user->id, g.pass_expr_interval );
+						DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from permission_user_info where user_id=%d and password_creation_datestamp <= now() - interval %d day", l.user->id, g.pass_expr_interval );
 						if( result && atoi( result[0] ) > 0 )
 							expired = 1;
 					}
@@ -1041,54 +1041,54 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 				// Log Bad Password Entry	
 				if( password_info->login_id == INVALID_INDEX )
 				{					
-					DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,1,%d,%d,%d,'%s',now())"), l.user->id, g.system_id, l.program_id, WIDE("failed login") );	
+					DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,1,%d,%d,%d,'%s',now())", l.user->id, g.system_id, l.program_id, "failed login" );	
 				
 					if( *l.bad_login_interval != '0' )
 					{
 						//Check to see if successful login in the last 30 min						
-						DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select login_whenstamp from login_history where user_id=%d and login_whenstamp >= now() - interval %s order by login_id desc limit 1"), l.user->id, l.bad_login_interval );
+						DoSQLRecordQueryf( NULL, &result, NULL, "select login_whenstamp from login_history where user_id=%d and login_whenstamp >= now() - interval %s order by login_id desc limit 1", l.user->id, l.bad_login_interval );
 						if( result && result[0] )
 							time2 = StrDup( result[0] );
 
 						// Check if I should set lock ( if unlock has been performed
 						if( unlock )
 						{
-							DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from system_exceptions where user_id=%d and system_exception_type_id=1 and log_whenstamp >= IF(cast('%s', as datetime) < cast('%s', as datetime), '%s', '%s' )"), l.user->id, time, time2, time2, time );  
+							DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from system_exceptions where user_id=%d and system_exception_type_id=1 and log_whenstamp >= IF(cast('%s', as datetime) < cast('%s', as datetime), '%s', '%s' )", l.user->id, time, time2, time2, time );  
 							//if( time2 && ( time2 > time ) )
-								//DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from system_exceptions where user_id=%d and system_exception_type_id=1 and log_whenstamp >= '%s'"), l.user->id, time2 );
+								//DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from system_exceptions where user_id=%d and system_exception_type_id=1 and log_whenstamp >= '%s'", l.user->id, time2 );
 
 							//else
-								//DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from system_exceptions where user_id=%d and system_exception_type_id=1 and log_whenstamp >= '%s'"), l.user->id, time );
+								//DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from system_exceptions where user_id=%d and system_exception_type_id=1 and log_whenstamp >= '%s'", l.user->id, time );
 						}
 				
 						else
 						{							
 							if( time2 )
-								DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from system_exceptions where user_id=%d and system_exception_type_id=1 and log_whenstamp >= '%s'"), l.user->id, time2 );
+								DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from system_exceptions where user_id=%d and system_exception_type_id=1 and log_whenstamp >= '%s'", l.user->id, time2 );
 
 							else
-								DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from system_exceptions where user_id=%d and system_exception_type_id=1 and log_whenstamp >= now() - interval %s"), l.user->id, l.bad_login_interval );		
+								DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from system_exceptions where user_id=%d and system_exception_type_id=1 and log_whenstamp >= now() - interval %s", l.user->id, l.bad_login_interval );		
 						}
 
 						if( result && ( atoi( result[0] ) >= l.bad_login_limit ) )				
-								DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,4,%d,%d,%d,'%s',now())"), l.user->id, g.system_id, l.program_id, WIDE("user locked out") );	
+								DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,4,%d,%d,%d,'%s',now())", l.user->id, g.system_id, l.program_id, "user locked out" );	
 
 						if( atoi( result[0] ) > 0 )
 						{
-							snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("Invalid Password. %d attempts left."), ( l.bad_login_limit - atoi( result[0] ) ) );
+							snprintf( l.cPassPop, MESSAGE_SIZE, "Invalid Password. %d attempts left.", ( l.bad_login_limit - atoi( result[0] ) ) );
 							LabelVariableChanged( l.lvPassPop );
 						}
 
 						else
 						{
-							snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("Invalid Password.") );
+							snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "Invalid Password." );
 							LabelVariableChanged( l.lvPassPop );
 						}
 					}
 
 					else
 					{
-						snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("Invalid Password.") );
+						snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "Invalid Password." );
 						LabelVariableChanged( l.lvPassPop );
 					}
 				}				
@@ -1118,14 +1118,14 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 	l.flags.matched = 0;
 
 	//Reset Message
-	snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter your password and press enter.") );
+	snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "Please enter your password and press enter." );
 	LabelVariableChanged( l.lvPassPop );
 
 	// If reset password call necessary page
 	if( expired )
 	{	
 		// Set and display page to be shown
-		ShellSetCurrentPage( l.frame, WIDE("Expired Password"), PAGE_TRANSITION_FROM_TOP, 250 );
+		ShellSetCurrentPage( l.frame, "Expired Password", PAGE_TRANSITION_FROM_TOP, 250 );
 		RevealCommon( l.frame );		
 		SetCommonFocus( l.frame );
 	
@@ -1145,7 +1145,7 @@ struct password_info *PromptForPassword( PUSER *result_user, INDEX *result_login
 		HideCommon( l.frame );
 
 		//Reset Message
-		snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("Your password has expired! Please enter a new password and press enter.") );
+		snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "Your password has expired! Please enter a new password and press enter." );
 		LabelVariableChanged( l.lvPassPop2 );
 
 		// If cancel issued
@@ -1172,32 +1172,32 @@ void LogOutPassword( INDEX login_id, INDEX actual_login_id, LOGICAL skip_logout 
 	PushSQLQuery();
 	for( DoSQLRecordQueryf( NULL, &results, NULL
 								 , (actual_login_id != INVALID_INDEX)
-								  ?WIDE("select login_id,logout_whenstamp from login_history where actual_login_id=%ld or actual_login_id=%ld")
-								  :WIDE("select login_id,logout_whenstamp from login_history where actual_login_id=%ld")
+								  ?"select login_id,logout_whenstamp from login_history where actual_login_id=%ld or actual_login_id=%ld"
+								  :"select login_id,logout_whenstamp from login_history where actual_login_id=%ld"
 								 , login_id, actual_login_id );
 		 results;
 		  GetSQLRecord( &results ) )
 	{
-		if( StrCmp( results[1], WIDE("1111-11-11 11:11:11") ) == 0 )
+		if( StrCmp( results[1], "1111-11-11 11:11:11" ) == 0 )
 			LogOutPassword( atoi( results[0] ), INVALID_INDEX, FALSE );
 		else
 			LogOutPassword( atoi( results[0] ), INVALID_INDEX, TRUE );
 	}
 	PopODBC();
 	if( !skip_logout )
-		DoSQLCommandf( WIDE("update login_history set logout_whenstamp=now() where login_id=%d"), login_id );
+		DoSQLCommandf( "update login_history set logout_whenstamp=now() where login_id=%d", login_id );
 }
 //--------------------------------------------------------------------------------
 // Accept Generic
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Accept Generic" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Accept Generic" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Okay" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Okay" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE( "SQL Users/Accept Generic" ) )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Accept Generic" )( uintptr_t psv )
 {	
 	l.okay = TRUE;
 	l.done = TRUE;
@@ -1205,30 +1205,30 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Accept Generic" ) )( uintptr_t psv
 
 //--------------------------------------------------------------------------------
 // Cancel Generic
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Cancel Generic" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Cancel Generic" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Cancel" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Cancel" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Cancel Generic") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Cancel Generic" )( uintptr_t psv )
 {	
 	l.done = TRUE;
 }
 
 //--------------------------------------------------------------------------------
 // Test Password Dialog
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Test Password Dialog" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Test Password Dialog" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Test" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Test" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Test Password Dialog") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Test Password Dialog" )( uintptr_t psv )
 {	
 	PromptForPassword( &l.test_user, &l.test_login_id, NULL, NULL, 0, NULL );
 }
@@ -1264,42 +1264,42 @@ void promptOkay( void )
 
 	else if( !l.selected_user && !l.password_len )
 	{
-		snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("No User Selected or Password Entered. Please try again.") );
+		snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "No User Selected or Password Entered. Please try again." );
 		LabelVariableChanged( l.lvPassPop );
 	}
 
 	else if( !l.selected_user )
 	{		
-		snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("No User Selected. Please try again.") );
+		snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "No User Selected. Please try again." );
 		LabelVariableChanged( l.lvPassPop );
 	}
 
 	else
 	{
-		snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("No Password Entered. Please try again.") );
+		snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "No Password Entered. Please try again." );
 		LabelVariableChanged( l.lvPassPop );
 	}
 }
 
-static void OnKeypadEnterType( WIDE("Password Entry"), WIDE("Enter Password Keypad") )( PSI_CONTROL pc_keypad )
+static void OnKeypadEnterType( "Password Entry", "Enter Password Keypad" )( PSI_CONTROL pc_keypad )
 {
 	promptOkay();
 }
 
-static void OnKeypadCancelType( WIDE("Password Entry"), WIDE("Enter Password Keypad") )( PSI_CONTROL pc_keypad )
+static void OnKeypadCancelType( "Password Entry", "Enter Password Keypad" )( PSI_CONTROL pc_keypad )
 {
 	l.done = TRUE;
 }
 
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Accept Password" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Accept Password" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Okay" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Okay" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Accept Password") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Accept Password" )( uintptr_t psv )
 {	
 	promptOkay();
 }
@@ -1335,7 +1335,7 @@ void expirePromptOkay( void )
 					if( !uppercase_used )
 					{
 						bad = 1;					
-						snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("An upper case character is required! Please try again.") );
+						snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "An upper case character is required! Please try again." );
 						LabelVariableChanged( l.lvPassPop2 );
 					}
 				}
@@ -1348,7 +1348,7 @@ void expirePromptOkay( void )
 					if( !lowercase_used )
 					{
 						bad = 1;					
-						snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("A lower case character is required! Please try again.") );
+						snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "A lower case character is required! Please try again." );
 						LabelVariableChanged( l.lvPassPop2 );
 					}
 				}
@@ -1361,7 +1361,7 @@ void expirePromptOkay( void )
 					if( !num_used )
 					{
 						bad = 1;					
-						snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("A numeric character is required! Please try again.") );
+						snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "A numeric character is required! Please try again." );
 						LabelVariableChanged( l.lvPassPop2 );
 					}
 				}
@@ -1374,7 +1374,7 @@ void expirePromptOkay( void )
 					if( !spec_used )
 					{
 						bad = 1;					
-						snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("A special character is required! Please try again.") );
+						snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "A special character is required! Please try again." );
 						LabelVariableChanged( l.lvPassPop2 );
 					}
 				}
@@ -1382,7 +1382,7 @@ void expirePromptOkay( void )
 				if( !bad )
 				{
 					l.flags.first_loop = 1;
-					snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("Please repeat password and press enter again.") );
+					snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "Please repeat password and press enter again." );
 					LabelVariableChanged( l.lvPassPop2 );
 				}
 			
@@ -1390,14 +1390,14 @@ void expirePromptOkay( void )
 
 			else
 			{			
-				snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("Passwords must be at least %d characters in length."), l.pass_min_length );
+				snprintf( l.cPassPop2, MESSAGE_SIZE, "Passwords must be at least %d characters in length.", l.pass_min_length );
 				LabelVariableChanged( l.lvPassPop2 );
 			}
 		}
 
 		else
 		{
-			snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("No Password Entered. Please try again.") );
+			snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "No Password Entered. Please try again." );
 			LabelVariableChanged( l.lvPassPop2 );
 		}
 	}
@@ -1429,7 +1429,7 @@ void expirePromptOkay( void )
 				// Check password hasn't been used
 				if( l.pass_check_num )
 				{
-					for( DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select password from permission_user_password where user_id=%d order by creation_datestamp desc limit %d"), l.user->id, l.pass_check_num )
+					for( DoSQLRecordQueryf( NULL, &result, NULL, "select password from permission_user_password where user_id=%d order by creation_datestamp desc limit %d", l.user->id, l.pass_check_num )
 						; result
 						; FetchSQLRecord( NULL, &result ) )
 					{
@@ -1440,7 +1440,7 @@ void expirePromptOkay( void )
 
 				if( l.pass_check_days )
 				{
-					for( DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select password from permission_user_password where user_id=%d and creation_datestamp >= now() - interval %d day order by creation_datestamp desc"), l.user->id, l.pass_check_days )
+					for( DoSQLRecordQueryf( NULL, &result, NULL, "select password from permission_user_password where user_id=%d and creation_datestamp >= now() - interval %d day order by creation_datestamp desc", l.user->id, l.pass_check_days )
 						; result
 						; FetchSQLRecord( NULL, &result ) )
 					{
@@ -1453,10 +1453,10 @@ void expirePromptOkay( void )
 				if( !password_used )
 				{
 					l.flags.matched = 1;				
-					snprintf( buf, 256, WIDE(" User: %d Name: %s had expired"),  l.user->id, l.user->name );
-					DoSQLCommandf( WIDE("insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())"), l.user->id, l.out, buf );
-					DoSQLCommandf( WIDE("update permission_user_info set password='%s',password_creation_datestamp=now() where user_id=%d"), l.out, l.user->id );	
-					snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("The password has been succesfully updated.") );
+					snprintf( buf, 256, " User: %d Name: %s had expired",  l.user->id, l.user->name );
+					DoSQLCommandf( "insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())", l.user->id, l.out, buf );
+					DoSQLCommandf( "update permission_user_info set password='%s',password_creation_datestamp=now() where user_id=%d", l.out, l.user->id );	
+					snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "The password has been succesfully updated." );
 					LabelVariableChanged( l.lvPassPop2 );
 					l.okay = TRUE;
 				}
@@ -1465,19 +1465,19 @@ void expirePromptOkay( void )
 				{	
 					if( l.pass_check_num && l.pass_check_days )
 					{
-						snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("The password entered matches one of the previously used passwords! Please try again.") );
+						snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "The password entered matches one of the previously used passwords! Please try again." );
 						LabelVariableChanged( l.lvPassPop2 );
 					}
 
 					else if( l.pass_check_num )
 					{
-						snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("The password entered matches one of the %d previously used passwords! Please try again."), l.pass_check_num );
+						snprintf( l.cPassPop2, MESSAGE_SIZE, "The password entered matches one of the %d previously used passwords! Please try again.", l.pass_check_num );
 						LabelVariableChanged( l.lvPassPop2 );
 					}
 
 					else if( l.pass_check_days )
 					{
-						snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("The password entered matches one of the passwords used in the last %d days! Please try again."), l.pass_check_days );
+						snprintf( l.cPassPop2, MESSAGE_SIZE, "The password entered matches one of the passwords used in the last %d days! Please try again.", l.pass_check_days );
 						LabelVariableChanged( l.lvPassPop2 );
 					}
 				}
@@ -1485,14 +1485,14 @@ void expirePromptOkay( void )
 		
 			else
 			{			
-				snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("The passwords entered do not match! Please try again.") );
+				snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "The passwords entered do not match! Please try again." );
 				LabelVariableChanged( l.lvPassPop2 );
 			}
 		}
 
 		else
 		{
-			snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("No Password Entered. Please try again.") );
+			snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "No Password Entered. Please try again." );
 			LabelVariableChanged( l.lvPassPop2 );
 		}
 	}		
@@ -1501,25 +1501,25 @@ void expirePromptOkay( void )
 	//l.done = TRUE;
 }
 
-static void OnKeypadEnterType( WIDE("Password Update"), WIDE("Expire Password Keypad") )( PSI_CONTROL pc_keypad )
+static void OnKeypadEnterType( "Password Update", "Expire Password Keypad" )( PSI_CONTROL pc_keypad )
 {
 	expirePromptOkay();
 }
 
-static void OnKeypadCancelType( WIDE("Password Update"), WIDE("Expire Password Keypad") )( PSI_CONTROL pc_keypad )
+static void OnKeypadCancelType( "Password Update", "Expire Password Keypad" )( PSI_CONTROL pc_keypad )
 {
 	l.done = TRUE;
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("SQL Users/Accept Expired Password") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Accept Expired Password" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Okay" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Okay" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Accept Expired Password") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Accept Expired Password" )( uintptr_t psv )
 {	
 	expirePromptOkay();	
 }
@@ -1529,13 +1529,13 @@ static void OnKeyPressEvent( WIDE("SQL Users/Accept Expired Password") )( uintpt
 //--------------------------------------------------------------------------------
 // Change Password Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Change Password" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Change Password" )( PCanvasData pc_canvas )
 {
 	 l.flags.first_loop = 0;
 
 	if( l.lvChangePassword )
 	{		
-		snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a new password and press enter.") );
+		snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "Please enter a new password and press enter." );
 		l.sChangePassword = l.cChangePassword;	
 		LabelVariableChanged( l.lvChangePassword );
 	}
@@ -1551,11 +1551,11 @@ static int OnChangePage( WIDE( "Change Password" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Change Password Keypad
-static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Keypad") )( PSI_CONTROL pc_keypad )
+static void OnKeypadEnterType( "change password", "Change Password Keypad" )( PSI_CONTROL pc_keypad )
 {
 	if( !l.selected_user2 )
 	{		
-		snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("No User Selected. Please try again.") );
+		snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "No User Selected. Please try again." );
 		l.sChangePassword = l.cChangePassword;	
 		LabelVariableChanged( l.lvChangePassword );
 	}
@@ -1590,7 +1590,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 						if( !uppercase_used )
 						{
 							bad = 1;						
-							snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("An upper case character is required. Please try again.") );
+							snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "An upper case character is required. Please try again." );
 							l.sChangePassword = l.cChangePassword;	
 							LabelVariableChanged( l.lvChangePassword );
 						}
@@ -1604,7 +1604,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 						if( !lowercase_used )
 						{
 							bad = 1;						
-							snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("A lower case character is required. Please try again.") );
+							snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "A lower case character is required. Please try again." );
 							l.sChangePassword = l.cChangePassword;	
 							LabelVariableChanged( l.lvChangePassword );
 						}
@@ -1618,7 +1618,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 						if( !num_used )
 						{
 							bad = 1;						
-							snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("A numeric character is required. Please try again.") );
+							snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "A numeric character is required. Please try again." );
 							l.sChangePassword = l.cChangePassword;	
 							LabelVariableChanged( l.lvChangePassword );
 						}
@@ -1632,7 +1632,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 						if( !spec_used )
 						{
 							bad = 1;						
-							snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("A special character is required. Please try again.") );
+							snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "A special character is required. Please try again." );
 							l.sChangePassword = l.cChangePassword;	
 							LabelVariableChanged( l.lvChangePassword );
 						}
@@ -1641,7 +1641,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 					if( !bad )
 					{
 						l.flags.first_loop = 1;
-						snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("Please repeat password and press enter again.") );
+						snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "Please repeat password and press enter again." );
 						l.sChangePassword = l.cChangePassword;	
 						LabelVariableChanged( l.lvChangePassword );
 					}
@@ -1650,7 +1650,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 
 				else
 				{									
-					snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("Passwords must be at least %d characters in length."), l.pass_min_length );
+					snprintf( l.cChangePassword, MESSAGE_SIZE, "Passwords must be at least %d characters in length.", l.pass_min_length );
 					l.sChangePassword = l.cChangePassword;	
 					LabelVariableChanged( l.lvChangePassword );
 				}				
@@ -1658,7 +1658,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 
 			else
 			{
-				snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("No Password Entered. Please try again.") );
+				snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "No Password Entered. Please try again." );
 				l.sChangePassword = l.cChangePassword;	
 				LabelVariableChanged( l.lvChangePassword );
 			}
@@ -1690,7 +1690,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 					// Check password hasn't been used
 					if( l.pass_check_num )
 					{
-						for( DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select password from permission_user_password where user_id=%d order by creation_datestamp desc limit %d"), l.user2->id, l.pass_check_num )
+						for( DoSQLRecordQueryf( NULL, &result, NULL, "select password from permission_user_password where user_id=%d order by creation_datestamp desc limit %d", l.user2->id, l.pass_check_num )
 							; result
 							; FetchSQLRecord( NULL, &result ) )
 						{
@@ -1701,7 +1701,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 
 					if( l.pass_check_days )
 					{
-						for( DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select password from permission_user_password where user_id=%d and creation_datestamp >= now() - interval %d day order by creation_datestamp desc"), l.user2->id, l.pass_check_days )
+						for( DoSQLRecordQueryf( NULL, &result, NULL, "select password from permission_user_password where user_id=%d and creation_datestamp >= now() - interval %d day order by creation_datestamp desc", l.user2->id, l.pass_check_days )
 							; result
 							; FetchSQLRecord( NULL, &result ) )
 						{
@@ -1714,10 +1714,10 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 					//If password hasn't been used update database else pop up banner message
 					if( !password_used )
 					{				
-						snprintf( buf, 256, WIDE(" User: %d Name: %s password was changed by User: %d Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name );
-						DoSQLCommandf( WIDE("insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())"), l.user2->id, l.out, buf );
-						DoSQLCommandf( WIDE("update permission_user_info set password='%s',password_creation_datestamp=now() where user_id=%d"), l.out, l.user2->id );	
-						snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("The password has been succesfully updated.") );
+						snprintf( buf, 256, " User: %d Name: %s password was changed by User: %d Name: %s",  l.user2->id, l.user2->name, l.logee_id, l.logee_name );
+						DoSQLCommandf( "insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())", l.user2->id, l.out, buf );
+						DoSQLCommandf( "update permission_user_info set password='%s',password_creation_datestamp=now() where user_id=%d", l.out, l.user2->id );	
+						snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "The password has been succesfully updated." );
 						l.sChangePassword = l.cChangePassword;	
 						LabelVariableChanged( l.lvChangePassword );
 						ReloadUserCache( NULL );
@@ -1727,21 +1727,21 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 					{	
 						if( l.pass_check_num && l.pass_check_days )
 						{
-							snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("The password entered matches one of the previously used passwords! Please try again.") );
+							snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "The password entered matches one of the previously used passwords! Please try again." );
 							l.sChangePassword = l.cChangePassword;	
 							LabelVariableChanged( l.lvChangePassword );
 						}
 
 						else if( l.pass_check_num )
 						{
-							snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("The password entered matches one of the %d previously used passwords! Please try again."), l.pass_check_num );
+							snprintf( l.cChangePassword, MESSAGE_SIZE, "The password entered matches one of the %d previously used passwords! Please try again.", l.pass_check_num );
 							l.sChangePassword = l.cChangePassword;	
 							LabelVariableChanged( l.lvChangePassword );
 						}
 
 						else if( l.pass_check_days )
 						{
-							snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("The password entered matches one of the passwords used in the last %d days! Please try again."), l.pass_check_days );
+							snprintf( l.cChangePassword, MESSAGE_SIZE, "The password entered matches one of the passwords used in the last %d days! Please try again.", l.pass_check_days );
 							l.sChangePassword = l.cChangePassword;	
 							LabelVariableChanged( l.lvChangePassword );
 						}						
@@ -1750,7 +1750,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 		
 				else
 				{				
-					snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("The passwords entered do not match! Please try again.") );
+					snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "The passwords entered do not match! Please try again." );
 					l.sChangePassword = l.cChangePassword;	
 					LabelVariableChanged( l.lvChangePassword );
 				}
@@ -1758,7 +1758,7 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 
 			else
 			{
-				snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("No Password Entered. Please try again.") );
+				snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "No Password Entered. Please try again." );
 				l.sChangePassword = l.cChangePassword;	
 				LabelVariableChanged( l.lvChangePassword );
 			}
@@ -1769,11 +1769,11 @@ static void OnKeypadEnterType( WIDE("change password"), WIDE("Change Password Ke
 //--------------------------------------------------------------------------------
 //Unlock Account Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Unlock Account" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Unlock Account" )( PCanvasData pc_canvas )
 { 
 	if( l.lvUnlockAccount )
 	{
-		snprintf( l.cUnlockAccount, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a user to unlock and press unlock user account.") );
+		snprintf( l.cUnlockAccount, MESSAGE_SIZE, "%s", "Please select a user to unlock and press unlock user account." );
 		l.sUnlockAccount = l.cUnlockAccount;	
 		LabelVariableChanged( l.lvUnlockAccount );
 	}
@@ -1789,31 +1789,31 @@ static int OnChangePage( WIDE( "Unlock Account" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Unlock Account
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Unlock Account" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Unlock Account" )( PMENU_BUTTON button )
 {
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Unlock User Account" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Unlock User Account" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Unlock Account") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Unlock Account" )( uintptr_t psv )
 { 	
 	TEXTCHAR buf[256];		
 
 	if( l.unlock_selected_user )
 	{
 		l.unlock_user = (PUSER)GetItemData( l.unlock_selected_user );		
-		snprintf( buf, 256, WIDE(" User: %d Name: %s was unlocked by User: %d Name: %s"),  l.unlock_user->id, l.unlock_user->name, l.logee_id, l.logee_name ); 		
-		DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,6,%d,%d,%d,'%s',now())"), l.unlock_user->id, g.system_id, l.program_id, buf );	
-		snprintf( l.cUnlockAccount, MESSAGE_SIZE, WIDE("%s's user account is now unlocked."), l.unlock_user->name  );
+		snprintf( buf, 256, " User: %d Name: %s was unlocked by User: %d Name: %s",  l.unlock_user->id, l.unlock_user->name, l.logee_id, l.logee_name ); 		
+		DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,6,%d,%d,%d,'%s',now())", l.unlock_user->id, g.system_id, l.program_id, buf );	
+		snprintf( l.cUnlockAccount, MESSAGE_SIZE, "%s's user account is now unlocked.", l.unlock_user->name  );
 		l.sUnlockAccount = l.cUnlockAccount;	
 		LabelVariableChanged( l.lvUnlockAccount );
 	}
 
 	else
 	{
-		snprintf( l.cUnlockAccount, MESSAGE_SIZE, WIDE("%s"), WIDE("No User Selected. Please try again.") );
+		snprintf( l.cUnlockAccount, MESSAGE_SIZE, "%s", "No User Selected. Please try again." );
 		l.sUnlockAccount = l.cUnlockAccount;	
 		LabelVariableChanged( l.lvUnlockAccount );
 	}
@@ -1822,11 +1822,11 @@ static void OnKeyPressEvent( WIDE("SQL Users/Unlock Account") )( uintptr_t psv )
 //--------------------------------------------------------------------------------
 //Terminate Account Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Terminate Account" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Terminate Account" )( PCanvasData pc_canvas )
 { 
 	if( l.lvTermAccount )
 	{
-		snprintf( l.cTermAccount, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a user to terminate and press terminate user account.") );
+		snprintf( l.cTermAccount, MESSAGE_SIZE, "%s", "Please select a user to terminate and press terminate user account." );
 		l.sTermAccount = l.cTermAccount;	
 		LabelVariableChanged( l.lvTermAccount );
 	}
@@ -1841,15 +1841,15 @@ static int OnChangePage( WIDE( "Terminate Account" ) )( PCanvasData pc_canvas )
 }
 //--------------------------------------------------------------------------------
 // Terminate Account
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Terminate Account" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Terminate Account" )( PMENU_BUTTON button )
 {
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Terminate User Account" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Terminate User Account" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Terminate Account") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Terminate Account" )( uintptr_t psv )
 { 	
 	int terminate;
 	TEXTCHAR buf[256];
@@ -1859,27 +1859,27 @@ static void OnKeyPressEvent( WIDE("SQL Users/Terminate Account") )( uintptr_t ps
 	{
 		l.user2 = (PUSER)GetItemData( l.selected_user2 );	
 
-		if( DoSQLQueryf( &result, WIDE("select terminate from permission_user_info where user_id=%d"), l.user2->id ) && result )
+		if( DoSQLQueryf( &result, "select terminate from permission_user_info where user_id=%d", l.user2->id ) && result )
 		terminate = atoi( result );		
 
 		if( terminate )
 		{
-			snprintf( buf, 256, WIDE(" User: %d Name: %s was unterminated by User: %d Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name ); 			  
-			DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,9,%d,%d,%d,'%s',now())"), l.user2->id, g.system_id, l.program_id, buf );
-			DoSQLCommandf( WIDE("update permission_user_info set terminate=0 where user_id=%d"), l.user2->id  );
+			snprintf( buf, 256, " User: %d Name: %s was unterminated by User: %d Name: %s",  l.user2->id, l.user2->name, l.logee_id, l.logee_name ); 			  
+			DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,9,%d,%d,%d,'%s',now())", l.user2->id, g.system_id, l.program_id, buf );
+			DoSQLCommandf( "update permission_user_info set terminate=0 where user_id=%d", l.user2->id  );
 
-			snprintf( l.cTermAccount, MESSAGE_SIZE, WIDE("%d's user account is now renewed."), l.user2->name  );
+			snprintf( l.cTermAccount, MESSAGE_SIZE, "%d's user account is now renewed.", l.user2->name  );
 			l.sTermAccount = l.cTermAccount;	
 			LabelVariableChanged( l.lvTermAccount );
 		}
 
 		else
 		{		
-			snprintf( buf, 256, WIDE(" User: %d Name: %s was terminated by User: %d Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name ); 			  
-			DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,9,%d,%d,%d,'%s',now())"), l.user2->id, g.system_id, l.program_id, buf );
-			DoSQLCommandf( WIDE("update permission_user_info set terminate=1 where user_id=%d"), l.user2->id  );
+			snprintf( buf, 256, " User: %d Name: %s was terminated by User: %d Name: %s",  l.user2->id, l.user2->name, l.logee_id, l.logee_name ); 			  
+			DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,9,%d,%d,%d,'%s',now())", l.user2->id, g.system_id, l.program_id, buf );
+			DoSQLCommandf( "update permission_user_info set terminate=1 where user_id=%d", l.user2->id  );
 
-			snprintf( l.cTermAccount, MESSAGE_SIZE, WIDE("%d's user account is now terminated."), l.user2->name  );
+			snprintf( l.cTermAccount, MESSAGE_SIZE, "%d's user account is now terminated.", l.user2->name  );
 			l.sTermAccount = l.cTermAccount;	
 			LabelVariableChanged( l.lvTermAccount );		
 		}		
@@ -1887,7 +1887,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Terminate Account") )( uintptr_t ps
 
 	else
 	{
-		snprintf( l.cTermAccount, MESSAGE_SIZE, WIDE("%s"), WIDE("No User Selected. Please try again.") );
+		snprintf( l.cTermAccount, MESSAGE_SIZE, "%s", "No User Selected. Please try again." );
 		l.sTermAccount = l.cTermAccount;	
 		LabelVariableChanged( l.lvTermAccount );
 	}
@@ -1897,11 +1897,11 @@ static void OnKeyPressEvent( WIDE("SQL Users/Terminate Account") )( uintptr_t ps
 //--------------------------------------------------------------------------------
 //Expire Password Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Expire Password" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Expire Password" )( PCanvasData pc_canvas )
 { 
 	if( l.lvTermAccount )
 	{
-		snprintf( l.cExpPassword, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select the user whose password is to be expired and press expire user password.") );
+		snprintf( l.cExpPassword, MESSAGE_SIZE, "%s", "Please select the user whose password is to be expired and press expire user password." );
 		l.sExpPassword = l.cExpPassword;	
 		LabelVariableChanged( l.lvExpPassword );
 	}
@@ -1917,15 +1917,15 @@ static int OnChangePage( WIDE( "Expire Password" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Expire Account
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Expire Password" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Expire Password" )( PMENU_BUTTON button )
 {
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Expire User Password" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Expire User Password" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Expire Password") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Expire Password" )( uintptr_t psv )
 { 	
 	TEXTCHAR buf[256];	
 
@@ -1933,18 +1933,18 @@ static void OnKeyPressEvent( WIDE("SQL Users/Expire Password") )( uintptr_t psv 
 	{
 		l.user2 = (PUSER)GetItemData( l.selected_user2 );	
 
-		snprintf( buf, 256, WIDE(" User: %d Name: %s was expired by User: %d Name: %s"),  l.user2->id, l.user2->name, l.logee_id, l.logee_name );			  
-		DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,17,%d,%d,%d,'%s',now())"), l.user2->id, g.system_id, l.program_id, buf );
-		DoSQLCommandf( WIDE("update permission_user_info set password_creation_datestamp = now() - interval %d day where user_id=%d"), g.pass_expr_interval, l.user2->id );
+		snprintf( buf, 256, " User: %d Name: %s was expired by User: %d Name: %s",  l.user2->id, l.user2->name, l.logee_id, l.logee_name );			  
+		DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (1,17,%d,%d,%d,'%s',now())", l.user2->id, g.system_id, l.program_id, buf );
+		DoSQLCommandf( "update permission_user_info set password_creation_datestamp = now() - interval %d day where user_id=%d", g.pass_expr_interval, l.user2->id );
 		
-		snprintf( l.cExpPassword, MESSAGE_SIZE, WIDE("%d's password is now expired."), l.user2->name  );
+		snprintf( l.cExpPassword, MESSAGE_SIZE, "%d's password is now expired.", l.user2->name  );
 		l.sExpPassword = l.cExpPassword;	
 		LabelVariableChanged( l.lvExpPassword );
 	}
 
 	else
 	{
-		snprintf( l.cExpPassword, MESSAGE_SIZE, WIDE("%s"), WIDE("No User Selected. Please try again.") );
+		snprintf( l.cExpPassword, MESSAGE_SIZE, "%s", "No User Selected. Please try again." );
 		l.sExpPassword = l.cExpPassword;	
 		LabelVariableChanged( l.lvExpPassword );
 	}	
@@ -1953,11 +1953,11 @@ static void OnKeyPressEvent( WIDE("SQL Users/Expire Password") )( uintptr_t psv 
 //--------------------------------------------------------------------------------
 // Add User Group Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Add User Group" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Add User Group" )( PCanvasData pc_canvas )
 { 
 	if( l.lvAddPermGroup )
 	{
-		snprintf( l.cAddPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a user and a group to add the user to and press add user group.") );
+		snprintf( l.cAddPermGroup, MESSAGE_SIZE, "%s", "Please select a user and a group to add the user to and press add user group." );
 		l.sAddPermGroup = l.cAddPermGroup;	
 		LabelVariableChanged( l.lvAddPermGroup );
 	}	
@@ -1980,15 +1980,15 @@ static int OnChangePage( WIDE( "Add User Group" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Add User Permission Group
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Add User Permission Group" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Add User Permission Group" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Add User Group" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Add User Group" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Add User Permission Group") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Add User Permission Group" )( uintptr_t psv )
 {
 	TEXTCHAR buf[256];
 	int group_id;
@@ -1999,27 +1999,27 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add User Permission Group") )( uint
 		l.user2 = (PUSER)GetItemData( l.selected_user2 );	
 		l.group = (PGROUP)GetItemData( l.selected_perm_group );
 
-		DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select permission_group_id from permission_group where name='%s'"), l.group->name );
+		DoSQLRecordQueryf( NULL, &result, NULL, "select permission_group_id from permission_group where name='%s'", l.group->name );
 		if( result && atoi( result[0] ) > 0 )
 		{
 			group_id = atoi( result[0] );
 
-			DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from permission_user where permission_group_id=%d and user_id=%d"), group_id, l.user2->id );
+			DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from permission_user where permission_group_id=%d and user_id=%d", group_id, l.user2->id );
 			if( result && atoi( result[0] ) > 0 )
 			{
-				snprintf( l.cAddPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The user is already part of this group.") );
+				snprintf( l.cAddPermGroup, MESSAGE_SIZE, "%s", "The user is already part of this group." );
 				l.sAddPermGroup = l.cAddPermGroup;	
 				LabelVariableChanged( l.lvAddPermGroup );
 			}
 
 			else
 			{
-				DoSQLCommandf( WIDE("insert into permission_user (permission_group_id,user_id) values (%d,%d)"), group_id, l.user2->id );
+				DoSQLCommandf( "insert into permission_user (permission_group_id,user_id) values (%d,%d)", group_id, l.user2->id );
 				
-				snprintf( buf, 256, WIDE(" User: %d Name: %s was added to Group: %s by User: %d Name: %s"),  l.user2->id, l.user2->name, l.group->name, l.logee_id, l.logee_name ); 		
-				DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.user2->id, g.system_id, l.program_id, buf );
+				snprintf( buf, 256, " User: %d Name: %s was added to Group: %s by User: %d Name: %s",  l.user2->id, l.user2->name, l.group->name, l.logee_id, l.logee_name ); 		
+				DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())", l.user2->id, g.system_id, l.program_id, buf );
 
-				snprintf( l.cAddPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The user was successfully added to the group.") );
+				snprintf( l.cAddPermGroup, MESSAGE_SIZE, "%s", "The user was successfully added to the group." );
 				l.sAddPermGroup = l.cAddPermGroup;	
 				LabelVariableChanged( l.lvAddPermGroup );
 
@@ -2029,7 +2029,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add User Permission Group") )( uint
 
 		else
 		{
-			snprintf( l.cAddPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Could not find permission group id.") );
+			snprintf( l.cAddPermGroup, MESSAGE_SIZE, "%s", "Could not find permission group id." );
 			l.sAddPermGroup = l.cAddPermGroup;	
 			LabelVariableChanged( l.lvAddPermGroup );
 		}
@@ -2037,20 +2037,20 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add User Permission Group") )( uint
 
 	else if( l.selected_perm_group )
 	{
-		snprintf( l.cAddPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("No User Selected. Please try again.") );
+		snprintf( l.cAddPermGroup, MESSAGE_SIZE, "%s", "No User Selected. Please try again." );
 		l.sAddPermGroup = l.cAddPermGroup;	
 		LabelVariableChanged( l.lvAddPermGroup );
 	}
 
 	else if( l.selected_user2 )
 	{
-		snprintf( l.cAddPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("No Group Selected. Please try again.") );
+		snprintf( l.cAddPermGroup, MESSAGE_SIZE, "%s", "No Group Selected. Please try again." );
 		l.sAddPermGroup = l.cAddPermGroup;	
 		LabelVariableChanged( l.lvAddPermGroup );
 	}
 	else
 	{
-		snprintf( l.cAddPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("No User or Group Selected. Please try again.") );
+		snprintf( l.cAddPermGroup, MESSAGE_SIZE, "%s", "No User or Group Selected. Please try again." );
 		l.sAddPermGroup = l.cAddPermGroup;	
 		LabelVariableChanged( l.lvAddPermGroup );
 	}
@@ -2059,13 +2059,13 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add User Permission Group") )( uint
 //--------------------------------------------------------------------------------
 // Remove User Group Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Remove User Group" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Remove User Group" )( PCanvasData pc_canvas )
 { 
 	l.stage = 0;
 
 	if( l.lvRemPermGroup )
 	{
-		snprintf( l.cRemPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a user who is to be removed from a permission group and press remove user group.") );
+		snprintf( l.cRemPermGroup, MESSAGE_SIZE, "%s", "Please select a user who is to be removed from a permission group and press remove user group." );
 		l.sRemPermGroup = l.cRemPermGroup;	
 		LabelVariableChanged( l.lvRemPermGroup );
 	}
@@ -2091,15 +2091,15 @@ static int OnChangePage( WIDE( "Remove User Group" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Remove User Permission Group
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Remove User Permission Group" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Remove User Permission Group" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Remove User Group" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Remove User Group" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Remove User Permission Group" )( uintptr_t psv )
 {
 	TEXTCHAR buf[256];
 	int group_id;
@@ -2112,7 +2112,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( u
 			l.user2 = (PUSER)GetItemData( l.selected_user2 );
 			FillGroupList2();
 
-			snprintf( l.cRemPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a group to be removed and press remove user group again.") );
+			snprintf( l.cRemPermGroup, MESSAGE_SIZE, "%s", "Please select a group to be removed and press remove user group again." );
 			l.sRemPermGroup = l.cRemPermGroup;	
 			LabelVariableChanged( l.lvRemPermGroup );
 			l.stage++;
@@ -2120,7 +2120,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( u
 
 		else
 		{
-			snprintf( l.cRemPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("No User Selected. Please try again.") );
+			snprintf( l.cRemPermGroup, MESSAGE_SIZE, "%s", "No User Selected. Please try again." );
 			l.sRemPermGroup = l.cRemPermGroup;	
 			LabelVariableChanged( l.lvRemPermGroup );
 		}
@@ -2135,16 +2135,16 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( u
 		{				
 			l.group2 = (PGROUP)GetItemData( l.selected_perm_group2 );
 
-			DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select permission_group_id from permission_group where name='%s'"), l.group2->name );
+			DoSQLRecordQueryf( NULL, &result, NULL, "select permission_group_id from permission_group where name='%s'", l.group2->name );
 			if( result && atoi( result[0] ) > 0 )
 			{
 				group_id = atoi( result[0] );
-				DoSQLCommandf( WIDE("delete from permission_user where user_id=%d and permission_group_id=%d"), l.user2->id, group_id );
+				DoSQLCommandf( "delete from permission_user where user_id=%d and permission_group_id=%d", l.user2->id, group_id );
 
-				snprintf( buf, 256, WIDE(" User: %d Name: %s was removed from Group: %s by User: %d Name: %s"),  l.user2->id, l.user2->name, l.group2->name, l.logee_id, l.logee_name ); 		
-				DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.user2->id, g.system_id, l.program_id, buf );
+				snprintf( buf, 256, " User: %d Name: %s was removed from Group: %s by User: %d Name: %s",  l.user2->id, l.user2->name, l.group2->name, l.logee_id, l.logee_name ); 		
+				DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())", l.user2->id, g.system_id, l.program_id, buf );
 
-				snprintf( l.cRemPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The user was successfully removed from the group.") );
+				snprintf( l.cRemPermGroup, MESSAGE_SIZE, "%s", "The user was successfully removed from the group." );
 				l.sRemPermGroup = l.cRemPermGroup;	
 				LabelVariableChanged( l.lvRemPermGroup );
 
@@ -2153,7 +2153,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( u
 
 			else
 			{
-				snprintf( l.cRemPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Could not find permission group id.") );
+				snprintf( l.cRemPermGroup, MESSAGE_SIZE, "%s", "Could not find permission group id." );
 				l.sRemPermGroup = l.cRemPermGroup;	
 				LabelVariableChanged( l.lvRemPermGroup );
 			}
@@ -2163,7 +2163,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( u
 
 		else
 		{
-			snprintf( l.cRemPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("No Group Selected. Please try again.") );
+			snprintf( l.cRemPermGroup, MESSAGE_SIZE, "%s", "No Group Selected. Please try again." );
 			l.sRemPermGroup = l.cRemPermGroup;	
 			LabelVariableChanged( l.lvRemPermGroup );
 		}
@@ -2173,11 +2173,11 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove User Permission Group") )( u
 //--------------------------------------------------------------------------------
 // Add Group Token Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Add Group Token" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Add Group Token" )( PCanvasData pc_canvas )
 { 
 	if( l.lvAddToken )
 	{
-		snprintf( l.cAddToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a token and a permission group to give the token to and press add group token.") );
+		snprintf( l.cAddToken, MESSAGE_SIZE, "%s", "Please select a token and a permission group to give the token to and press add group token." );
 		l.sAddToken = l.cAddToken;	
 		LabelVariableChanged( l.lvAddToken );
 	}
@@ -2200,15 +2200,15 @@ static int OnChangePage( WIDE( "Add Group Token" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Add Group Token
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Add Group Token" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Add Group Token" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Add Group Token" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Add Group Token" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Add Group Token") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Add Group Token" )( uintptr_t psv )
 {
 	TEXTCHAR buf[256];
 	int token_id;
@@ -2220,32 +2220,32 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add Group Token") )( uintptr_t psv 
 		l.token = (PTOKEN)GetItemData( l.selected_token );	
 		l.group = (PGROUP)GetItemData( l.selected_perm_group );
 
-		DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select permission_id from permission_tokens where name='%s'"), l.token->name );		
+		DoSQLRecordQueryf( NULL, &result, NULL, "select permission_id from permission_tokens where name='%s'", l.token->name );		
 		if( result && atoi( result[0] ) > 0 )
 		{
 			token_id = atoi( result[0] );
 
-			DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select permission_group_id from permission_group where name='%s'"), l.group->name );
+			DoSQLRecordQueryf( NULL, &result, NULL, "select permission_group_id from permission_group where name='%s'", l.group->name );
 			if( result && atoi( result[0] ) > 0 )
 			{
 				group_id = atoi( result[0] );
 
-				DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from permission_set where permission_group_id=%d and permission_id=%d"), group_id, token_id );
+				DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from permission_set where permission_group_id=%d and permission_id=%d", group_id, token_id );
 				if( result && atoi( result[0] ) > 0 )
 				{
-					snprintf( l.cAddToken, MESSAGE_SIZE, WIDE("%s"), WIDE("The token has already been given to this group.") );
+					snprintf( l.cAddToken, MESSAGE_SIZE, "%s", "The token has already been given to this group." );
 					l.sAddToken = l.cAddToken;	
 					LabelVariableChanged( l.lvAddToken );
 				}
 
 				else
 				{
-					DoSQLCommandf( WIDE("insert into permission_set (permission_group_id,permission_id) values (%d,%d)"), group_id, token_id );
+					DoSQLCommandf( "insert into permission_set (permission_group_id,permission_id) values (%d,%d)", group_id, token_id );
 
-					snprintf( buf, 256, WIDE(" Token: %s was added to Group: %s by User: %d Name: %s"), l.token->name, l.group->name, l.logee_id, l.logee_name ); 		
-					DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, buf );
+					snprintf( buf, 256, " Token: %s was added to Group: %s by User: %d Name: %s", l.token->name, l.group->name, l.logee_id, l.logee_name ); 		
+					DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())", l.logee_id, g.system_id, l.program_id, buf );
 
-					snprintf( l.cAddToken, MESSAGE_SIZE, WIDE("%s"), WIDE("The token was successfully given to the group.") );
+					snprintf( l.cAddToken, MESSAGE_SIZE, "%s", "The token was successfully given to the group." );
 					l.sAddToken = l.cAddToken;	
 					LabelVariableChanged( l.lvAddToken );
 
@@ -2255,7 +2255,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add Group Token") )( uintptr_t psv 
 
 			else
 			{
-				snprintf( l.cAddToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Could not find permission group id.") );
+				snprintf( l.cAddToken, MESSAGE_SIZE, "%s", "Could not find permission group id." );
 				l.sAddToken = l.cAddToken;	
 				LabelVariableChanged( l.lvAddToken );
 			}
@@ -2263,7 +2263,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add Group Token") )( uintptr_t psv 
 
 		else
 		{
-			snprintf( l.cAddToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Could not find permission id.") );
+			snprintf( l.cAddToken, MESSAGE_SIZE, "%s", "Could not find permission id." );
 			l.sAddToken = l.cAddToken;	
 			LabelVariableChanged( l.lvAddToken );
 		}
@@ -2271,20 +2271,20 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add Group Token") )( uintptr_t psv 
 
 	else if( l.selected_perm_group )
 	{
-		snprintf( l.cAddToken, MESSAGE_SIZE, WIDE("%s"), WIDE("No Token Selected. Please try again.") );
+		snprintf( l.cAddToken, MESSAGE_SIZE, "%s", "No Token Selected. Please try again." );
 		l.sAddToken = l.cAddToken;	
 		LabelVariableChanged( l.lvAddToken );
 	}
 
 	else if( l.selected_token )
 	{
-		snprintf( l.cAddToken, MESSAGE_SIZE, WIDE("%s"), WIDE("No Group Selected. Please try again.") );
+		snprintf( l.cAddToken, MESSAGE_SIZE, "%s", "No Group Selected. Please try again." );
 		l.sAddToken = l.cAddToken;	
 		LabelVariableChanged( l.lvAddToken );
 	}
 	else
 	{
-		snprintf( l.cAddToken, MESSAGE_SIZE, WIDE("%s"), WIDE("No Token or Group Selected. Please try again.") );
+		snprintf( l.cAddToken, MESSAGE_SIZE, "%s", "No Token or Group Selected. Please try again." );
 		l.sAddToken = l.cAddToken;	
 		LabelVariableChanged( l.lvAddToken );
 	}
@@ -2293,13 +2293,13 @@ static void OnKeyPressEvent( WIDE("SQL Users/Add Group Token") )( uintptr_t psv 
 //--------------------------------------------------------------------------------
 // Remove Group Token Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Remove Group Token" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Remove Group Token" )( PCanvasData pc_canvas )
 { 
 	l.stage = 0;
 
 	if( l.lvRemToken )
 	{
-		snprintf( l.cRemToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a permission group and press remove group token.") );
+		snprintf( l.cRemToken, MESSAGE_SIZE, "%s", "Please select a permission group and press remove group token." );
 		l.sRemToken = l.cRemToken;	
 		LabelVariableChanged( l.lvRemToken );
 	}
@@ -2325,15 +2325,15 @@ static int OnChangePage( WIDE( "Remove Group Token" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Remove Group Token
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Remove Group Token" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Remove Group Token" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Remove Group Token" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Remove Group Token" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Remove Group Token" )( uintptr_t psv )
 {
 	TEXTCHAR buf[256];
 	int token_id;
@@ -2347,7 +2347,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( uintptr_t p
 			l.group = (PGROUP)GetItemData( l.selected_perm_group );
 			FillTokenList2();
 
-			snprintf( l.cRemToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a token to be removed and press remove group token again.") );
+			snprintf( l.cRemToken, MESSAGE_SIZE, "%s", "Please select a token to be removed and press remove group token again." );
 			l.sRemToken = l.cRemToken;	
 			LabelVariableChanged( l.lvRemToken );
 			l.stage++;
@@ -2355,7 +2355,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( uintptr_t p
 
 		else
 		{
-			snprintf( l.cRemToken, MESSAGE_SIZE, WIDE("%s"), WIDE("No Group Selected. Please try again.") );
+			snprintf( l.cRemToken, MESSAGE_SIZE, "%s", "No Group Selected. Please try again." );
 			l.sRemToken = l.cRemToken;	
 			LabelVariableChanged( l.lvRemToken );
 		}
@@ -2370,21 +2370,21 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( uintptr_t p
 		{				
 			l.token2 = (PTOKEN)GetItemData( l.selected_token2 );
 
-			DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select permission_id from permission_tokens where name='%s'"), l.token2->name );		
+			DoSQLRecordQueryf( NULL, &result, NULL, "select permission_id from permission_tokens where name='%s'", l.token2->name );		
 			if( result && atoi( result[0] ) > 0 )
 			{
 				token_id = atoi( result[0] );
 
-				DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select permission_group_id from permission_group where name='%s'"), l.group->name );
+				DoSQLRecordQueryf( NULL, &result, NULL, "select permission_group_id from permission_group where name='%s'", l.group->name );
 				if( result && atoi( result[0] ) > 0 )
 				{
 					group_id = atoi( result[0] );
-					DoSQLCommandf( WIDE("delete from permission_set where permission_group_id=%d and permission_id=%d"), group_id, token_id );
+					DoSQLCommandf( "delete from permission_set where permission_group_id=%d and permission_id=%d", group_id, token_id );
 
-					snprintf( buf, 256, WIDE(" Token: %s was removed from Group: %s by User: %d Name: %s"), l.token2->name, l.group->name, l.logee_id, l.logee_name ); 		
-					DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, buf );
+					snprintf( buf, 256, " Token: %s was removed from Group: %s by User: %d Name: %s", l.token2->name, l.group->name, l.logee_id, l.logee_name ); 		
+					DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())", l.logee_id, g.system_id, l.program_id, buf );
 
-					snprintf( l.cRemToken, MESSAGE_SIZE, WIDE("%s"), WIDE("The token was successfully removed from the group.") );
+					snprintf( l.cRemToken, MESSAGE_SIZE, "%s", "The token was successfully removed from the group." );
 					l.sRemToken = l.cRemToken;	
 					LabelVariableChanged( l.lvRemToken );
 
@@ -2393,7 +2393,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( uintptr_t p
 
 				else
 				{
-					snprintf( l.cRemToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Could not find permission group id.") );
+					snprintf( l.cRemToken, MESSAGE_SIZE, "%s", "Could not find permission group id." );
 					l.sRemToken = l.cRemToken;	
 					LabelVariableChanged( l.lvRemToken );
 
@@ -2402,7 +2402,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( uintptr_t p
 
 			else
 			{
-				snprintf( l.cRemToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Could not find permission id.") );
+				snprintf( l.cRemToken, MESSAGE_SIZE, "%s", "Could not find permission id." );
 				l.sRemToken = l.cRemToken;	
 				LabelVariableChanged( l.lvRemToken );
 			}			
@@ -2412,7 +2412,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( uintptr_t p
 
 		else
 		{
-			snprintf( l.cRemToken, MESSAGE_SIZE, WIDE("%s"), WIDE("No Token Selected. Please try again.") );
+			snprintf( l.cRemToken, MESSAGE_SIZE, "%s", "No Token Selected. Please try again." );
 			l.sRemToken = l.cRemToken;	
 			LabelVariableChanged( l.lvRemToken );
 		}
@@ -2422,13 +2422,13 @@ static void OnKeyPressEvent( WIDE("SQL Users/Remove Group Token") )( uintptr_t p
 //--------------------------------------------------------------------------------
 // Create Group Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Create Group" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Create Group" )( PCanvasData pc_canvas )
 {
 	l.stage = 0;	
 
 	if( l.lvCreateGroup )
 	{		
-		snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a group name and press enter.") );
+		snprintf( l.cCreateGroup, MESSAGE_SIZE, "%s", "Please enter a group name and press enter." );
 		l.sCreateGroup = l.cCreateGroup;	
 		LabelVariableChanged( l.lvCreateGroup );	
 	}	
@@ -2438,7 +2438,7 @@ static int OnChangePage( WIDE( "Create Group" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Create Group Keypad
-static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad") )( PSI_CONTROL pc_keypad )
+static void OnKeypadEnterType( "create group", "Create Group Keypad" )( PSI_CONTROL pc_keypad )
 {	
 	TEXTCHAR buf[256];
 	CTEXTSTR *result;		  // Used for queries	
@@ -2451,7 +2451,7 @@ static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad")
 
 		if( l.password_len )
 		{
-			snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter the group name again and press enter.") );
+			snprintf( l.cCreateGroup, MESSAGE_SIZE, "%s", "Please enter the group name again and press enter." );
 			l.sCreateGroup = l.cCreateGroup;	
 			LabelVariableChanged( l.lvCreateGroup );
 			l.stage++;
@@ -2459,7 +2459,7 @@ static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad")
 
 		else
 		{							
-			snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("No group name was entered. Please try again.") );
+			snprintf( l.cCreateGroup, MESSAGE_SIZE, "%s", "No group name was entered. Please try again." );
 			l.sCreateGroup = l.cCreateGroup;	
 			LabelVariableChanged( l.lvCreateGroup );
 		}
@@ -2475,7 +2475,7 @@ static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad")
 		{
 			if( StrCmp( l.group_name, l.group_name2 ) == 0 )
 			{
-				snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a short description for the group and press enter.") );
+				snprintf( l.cCreateGroup, MESSAGE_SIZE, "%s", "Please enter a short description for the group and press enter." );
 				l.sCreateGroup = l.cCreateGroup;	
 				LabelVariableChanged( l.lvCreateGroup );	
 				l.stage++;						
@@ -2483,7 +2483,7 @@ static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad")
 
 			else
 			{			
-				snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The group names entered do not match. Please try again.") );
+				snprintf( l.cCreateGroup, MESSAGE_SIZE, "%s", "The group names entered do not match. Please try again." );
 				l.sCreateGroup = l.cCreateGroup;	
 				LabelVariableChanged( l.lvCreateGroup );	
 				l.stage--;
@@ -2492,7 +2492,7 @@ static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad")
 
 		else
 		{			
-			snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("No group name was entered. Please try again.") );
+			snprintf( l.cCreateGroup, MESSAGE_SIZE, "%s", "No group name was entered. Please try again." );
 			l.sCreateGroup = l.cCreateGroup;	
 			LabelVariableChanged( l.lvCreateGroup );	
 		}
@@ -2509,24 +2509,24 @@ static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad")
 		
 		if( l.password_len )
 		{
-			DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from permission_group where name='%s'"), tmp1 );
+			DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from permission_group where name='%s'", tmp1 );
 			if( result && atoi( result[0] ) > 0 )
 			{					
-				snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The group name is already in use. Please try again.") );
+				snprintf( l.cCreateGroup, MESSAGE_SIZE, "%s", "The group name is already in use. Please try again." );
 				l.sCreateGroup = l.cCreateGroup;	
 				LabelVariableChanged( l.lvCreateGroup );				
 			}
 
 			else
 			{
-				DoSQLCommandf( WIDE("insert into permission_group (name,hall_id,dummy_timestamp,charity_id,description) values ('%s',%d,now(),%d,'%s')")
+				DoSQLCommandf( "insert into permission_group (name,hall_id,dummy_timestamp,charity_id,description) values ('%s',%d,now(),%d,'%s')"
 					, tmp1
 					, l.hall_id, l.charity_id
 					, tmp2 );
-				snprintf( buf, 256, WIDE(" Group: %s was created by User: %d Name: %s"), l.group_name, l.logee_id, l.logee_name ); 		
-				DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, EscapeString( buf ) );
+				snprintf( buf, 256, " Group: %s was created by User: %d Name: %s", l.group_name, l.logee_id, l.logee_name ); 		
+				DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())", l.logee_id, g.system_id, l.program_id, EscapeString( buf ) );
 
-				snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The group was successfully created.") );
+				snprintf( l.cCreateGroup, MESSAGE_SIZE, "%s", "The group was successfully created." );
 				l.sCreateGroup = l.cCreateGroup;	
 				LabelVariableChanged( l.lvCreateGroup );
 
@@ -2538,7 +2538,7 @@ static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad")
 
 		else
 		{
-			snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("No description was entered. Please try again.") );
+			snprintf( l.cCreateGroup, MESSAGE_SIZE, "%s", "No description was entered. Please try again." );
 			l.sCreateGroup = l.cCreateGroup;	
 			LabelVariableChanged( l.lvCreateGroup );
 		}
@@ -2550,12 +2550,12 @@ static void OnKeypadEnterType( WIDE("create group"), WIDE("Create Group Keypad")
 //--------------------------------------------------------------------------------
 // Delete Group Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Delete Group" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Delete Group" )( PCanvasData pc_canvas )
 {	
 
 	if( l.lvDeleteGroup )
 	{		
-		snprintf( l.cDeleteGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a group and press delete group.") );
+		snprintf( l.cDeleteGroup, MESSAGE_SIZE, "%s", "Please select a group and press delete group." );
 		l.sDeleteGroup = l.cDeleteGroup;	
 		LabelVariableChanged( l.lvDeleteGroup );	
 	}	
@@ -2571,15 +2571,15 @@ static int OnChangePage( WIDE( "Delete Group" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Delete Group Button
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Delete Group" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Delete Group" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Delete Group" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Delete Group" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Delete Group") )( uintptr_t psv ){
+static void OnKeyPressEvent( "SQL Users/Delete Group" )( uintptr_t psv ){
 		
 	TEXTCHAR buf[256];
 
@@ -2587,13 +2587,13 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Group") )( uintptr_t psv ){
 	{
 		l.group = (PGROUP)GetItemData( l.selected_perm_group );
 		{
-			DoSQLCommandf( WIDE("delete from permission_group where permission_group_id=%d"), l.group->id );
-			DoSQLCommandf( WIDE("delete from permission_user where permission_group_id=%d"), l.group->id );
+			DoSQLCommandf( "delete from permission_group where permission_group_id=%d", l.group->id );
+			DoSQLCommandf( "delete from permission_user where permission_group_id=%d", l.group->id );
 
-			snprintf( buf, 256, WIDE(" Group: %s was deleted by User: %d Name: %s"), l.group->name, l.logee_id, l.logee_name ); 		
-			DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, buf );
+			snprintf( buf, 256, " Group: %s was deleted by User: %d Name: %s", l.group->name, l.logee_id, l.logee_name ); 		
+			DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())", l.logee_id, g.system_id, l.program_id, buf );
 
-			snprintf( l.cDeleteGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("The selected group was deleted successfully.") );
+			snprintf( l.cDeleteGroup, MESSAGE_SIZE, "%s", "The selected group was deleted successfully." );
 			l.sDeleteGroup = l.cDeleteGroup;	
 			LabelVariableChanged( l.lvDeleteGroup );
 
@@ -2603,7 +2603,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Group") )( uintptr_t psv ){
 
 	else
 	{		
-		snprintf( l.cDeleteGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("No Group Selected. Please try again.") );
+		snprintf( l.cDeleteGroup, MESSAGE_SIZE, "%s", "No Group Selected. Please try again." );
 		l.sDeleteGroup = l.cDeleteGroup;	
 		LabelVariableChanged( l.lvDeleteGroup );
 	}	
@@ -2612,13 +2612,13 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Group") )( uintptr_t psv ){
 //--------------------------------------------------------------------------------
 // Create Token Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Create Token" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Create Token" )( PCanvasData pc_canvas )
 {
 	l.stage = 0;	
 
 	if( l.lvCreateToken )
 	{		
-		snprintf( l.cCreateToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a token name and press enter.") );
+		snprintf( l.cCreateToken, MESSAGE_SIZE, "%s", "Please enter a token name and press enter." );
 		l.sCreateToken = l.cCreateToken;	
 		LabelVariableChanged( l.lvCreateToken );	
 	}	
@@ -2628,7 +2628,7 @@ static int OnChangePage( WIDE( "Create Token" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Create Token Keypad
-static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad") )( PSI_CONTROL pc_keypad )
+static void OnKeypadEnterType( "create token", "Create Token Keypad" )( PSI_CONTROL pc_keypad )
 {
 	CTEXTSTR *result;		  // Used for queries								  		
 	
@@ -2640,7 +2640,7 @@ static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad")
 
 		if( l.password_len )
 		{
-			snprintf( l.cCreateToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter the token name again and press enter.") );
+			snprintf( l.cCreateToken, MESSAGE_SIZE, "%s", "Please enter the token name again and press enter." );
 			l.sCreateToken = l.cCreateToken;	
 			LabelVariableChanged( l.lvCreateToken );
 			l.stage++;
@@ -2648,7 +2648,7 @@ static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad")
 
 		else
 		{							
-			snprintf( l.cCreateToken, MESSAGE_SIZE, WIDE("%s"), WIDE("No token name was entered. Please try again.") );
+			snprintf( l.cCreateToken, MESSAGE_SIZE, "%s", "No token name was entered. Please try again." );
 			l.sCreateToken = l.cCreateToken;	
 			LabelVariableChanged( l.lvCreateToken );
 		}
@@ -2664,7 +2664,7 @@ static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad")
 		{
 			if( StrCmp( l.token_name, l.token_name2 ) == 0 )
 			{
-				snprintf( l.cCreateToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a short description for the token and press enter.") );
+				snprintf( l.cCreateToken, MESSAGE_SIZE, "%s", "Please enter a short description for the token and press enter." );
 				l.sCreateToken = l.cCreateToken;	
 				LabelVariableChanged( l.lvCreateToken );	
 				l.stage++;							
@@ -2672,7 +2672,7 @@ static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad")
 
 			else
 			{			
-				snprintf( l.cCreateToken, MESSAGE_SIZE, WIDE("%s"), WIDE("The token names entered do not match. Please try again.") );
+				snprintf( l.cCreateToken, MESSAGE_SIZE, "%s", "The token names entered do not match. Please try again." );
 				l.sCreateToken = l.cCreateToken;	
 				LabelVariableChanged( l.lvCreateToken );	
 				l.stage--;
@@ -2681,7 +2681,7 @@ static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad")
 
 		else
 		{			
-			snprintf( l.cCreateToken, MESSAGE_SIZE, WIDE("%s"), WIDE("No token name was entered. Please try again.") );
+			snprintf( l.cCreateToken, MESSAGE_SIZE, "%s", "No token name was entered. Please try again." );
 			l.sCreateToken = l.cCreateToken;	
 			LabelVariableChanged( l.lvCreateToken );	
 		}
@@ -2695,10 +2695,10 @@ static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad")
 		
 		if( l.password_len )
 		{
-			DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from permission_tokens where name='%s'"), l.token_name );
+			DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from permission_tokens where name='%s'", l.token_name );
 			if( result && atoi( result[0] ) > 0 )
 			{					
-				snprintf( l.cCreateToken, MESSAGE_SIZE, WIDE("%s"), WIDE("The token name is already in use. Please try again.") );
+				snprintf( l.cCreateToken, MESSAGE_SIZE, "%s", "The token name is already in use. Please try again." );
 				l.sCreateToken = l.cCreateToken;	
 				LabelVariableChanged( l.lvCreateToken );
 				l.stage = 0;
@@ -2708,7 +2708,7 @@ static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad")
 			{
 				CreateToken( l.token_name, l.token_description );
 
-				snprintf( l.cCreateToken, MESSAGE_SIZE, WIDE("%s"), WIDE("The token was successfully created.") );
+				snprintf( l.cCreateToken, MESSAGE_SIZE, "%s", "The token was successfully created." );
 				l.sCreateToken = l.cCreateToken;	
 				LabelVariableChanged( l.lvCreateToken );
 
@@ -2719,7 +2719,7 @@ static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad")
 		
 		else
 		{			
-			snprintf( l.cCreateToken, MESSAGE_SIZE, WIDE("%s"), WIDE("No description was entered. Please try again.") );
+			snprintf( l.cCreateToken, MESSAGE_SIZE, "%s", "No description was entered. Please try again." );
 			l.sCreateToken = l.cCreateToken;	
 			LabelVariableChanged( l.lvCreateToken );	
 		}
@@ -2729,13 +2729,13 @@ static void OnKeypadEnterType( WIDE("create token"), WIDE("Create Token Keypad")
 //--------------------------------------------------------------------------------
 // Delete Token Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Delete Token" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Delete Token" )( PCanvasData pc_canvas )
 {
 	l.stage = 0;	
 
 	if( l.lvDeleteToken )
 	{		
-		snprintf( l.cDeleteToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a token and press delete token.") );
+		snprintf( l.cDeleteToken, MESSAGE_SIZE, "%s", "Please select a token and press delete token." );
 		l.sDeleteToken = l.cDeleteToken;	
 		LabelVariableChanged( l.lvDeleteToken );	
 	}
@@ -2751,15 +2751,15 @@ static int OnChangePage( WIDE( "Delete Token" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Delete Token Button
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Delete Token" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Delete Token" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Delete Token" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Delete Token" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Delete Token") )( uintptr_t psv ){
+static void OnKeyPressEvent( "SQL Users/Delete Token" )( uintptr_t psv ){
 	
 	TEXTCHAR buf[256];
 	int token_id;
@@ -2769,17 +2769,17 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Token") )( uintptr_t psv ){
 	{
 		l.token = (PTOKEN)GetItemData( l.selected_token );
 
-		DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select permission_id from permission_tokens where name='%s'"), l.token->name );
+		DoSQLRecordQueryf( NULL, &result, NULL, "select permission_id from permission_tokens where name='%s'", l.token->name );
 		if( result && atoi( result[0] ) > 0 )
 		{
 			token_id = atoi( result[0] );
-			DoSQLCommandf( WIDE("delete from permission_tokens where name='%s'"), l.token->name );
-			DoSQLCommandf( WIDE("delete from permission_set where permission_id=%d"), token_id );
+			DoSQLCommandf( "delete from permission_tokens where name='%s'", l.token->name );
+			DoSQLCommandf( "delete from permission_set where permission_id=%d", token_id );
 
-			snprintf( buf, 256, WIDE(" Token: %s was deleted by User: %d Name: %s"), l.token->name, l.logee_id, l.logee_name ); 		
-			DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), l.logee_id, g.system_id, l.program_id, buf );
+			snprintf( buf, 256, " Token: %s was deleted by User: %d Name: %s", l.token->name, l.logee_id, l.logee_name ); 		
+			DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())", l.logee_id, g.system_id, l.program_id, buf );
 
-			snprintf( l.cDeleteToken, MESSAGE_SIZE, WIDE("%s"), WIDE("The selected token was deleted successfully.") );
+			snprintf( l.cDeleteToken, MESSAGE_SIZE, "%s", "The selected token was deleted successfully." );
 			l.sDeleteToken = l.cDeleteToken;	
 			LabelVariableChanged( l.lvDeleteToken );
 
@@ -2788,7 +2788,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Token") )( uintptr_t psv ){
 
 		else
 		{
-			snprintf( l.cDeleteToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Could not find permission id.") );
+			snprintf( l.cDeleteToken, MESSAGE_SIZE, "%s", "Could not find permission id." );
 			l.sDeleteToken = l.cDeleteToken;	
 			LabelVariableChanged( l.lvDeleteToken );
 		}		
@@ -2796,7 +2796,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Token") )( uintptr_t psv ){
 
 	else
 	{		
-		snprintf( l.cDeleteToken, MESSAGE_SIZE, WIDE("%s"), WIDE("No Token Selected. Please try again.") );
+		snprintf( l.cDeleteToken, MESSAGE_SIZE, "%s", "No Token Selected. Please try again." );
 		l.sDeleteToken = l.cDeleteToken;	
 		LabelVariableChanged( l.lvDeleteToken );
 	}	
@@ -2805,13 +2805,13 @@ static void OnKeyPressEvent( WIDE("SQL Users/Delete Token") )( uintptr_t psv ){
 //--------------------------------------------------------------------------------
 // Create User Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE("Create User") )( PCanvasData pc_canvas )
+static int OnChangePage( "Create User" )( PCanvasData pc_canvas )
 {
 	l.stage = 0;	
 
 	if( l.lvCreateUser )
 	{		
-		snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a staff id and press enter.") );
+		snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please enter a staff id and press enter." );
 		l.sCreateUser = l.cCreateUser;	
 		LabelVariableChanged( l.lvCreateUser );	
 	}
@@ -2827,7 +2827,7 @@ static int OnChangePage( WIDE("Create User") )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Create User Keypad
-static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )( PSI_CONTROL pc_keypad )
+static void OnKeypadEnterType( "create user", "Create User Keypad" )( PSI_CONTROL pc_keypad )
 {		
 	TEXTCHAR buf[256];			  // Used for making descriptions	
 	CTEXTSTR *result;		  // Used for queries
@@ -2842,7 +2842,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		if( l.password_len )
 		{
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a staff id again and press enter.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please enter a staff id again and press enter." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 			l.stage++;
@@ -2850,7 +2850,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		else
 		{							
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No staff id was entered. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No staff id was entered. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -2866,10 +2866,10 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 		{
 			if( StrCmp( l.staff_id, l.staff_id2 ) == 0 )
 			{
-				DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from permission_user_info where staff_id='%s'"), l.staff_id );
+				DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from permission_user_info where staff_id='%s'", l.staff_id );
 				if( result && atoi( result[0] ) > 0 )
 				{
-					snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("The staff id is already in use. Please try again.") );
+					snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "The staff id is already in use. Please try again." );
 					l.sCreateUser = l.cCreateUser;	
 					LabelVariableChanged( l.lvCreateUser );	
 					l.stage--;
@@ -2877,7 +2877,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 				else
 				{
-					snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter the user's first name and press enter.") );
+					snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please enter the user's first name and press enter." );
 					l.sCreateUser = l.cCreateUser;	
 					LabelVariableChanged( l.lvCreateUser );
 					l.stage++;
@@ -2886,7 +2886,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 			else
 			{			
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("The staff ids entered do not match. Please try again.") );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "The staff ids entered do not match. Please try again." );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );	
 				l.stage--;
@@ -2895,7 +2895,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		else
 		{							
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No staff id was entered. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No staff id was entered. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -2909,7 +2909,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		if( l.password_len )
 		{
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter the user's first name again and press enter.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please enter the user's first name again and press enter." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 			l.stage++;
@@ -2917,7 +2917,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		else
 		{							
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No first name was entered. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No first name was entered. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -2933,7 +2933,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 		{
 			if( StrCmp( l.first_name, l.first_name2 ) == 0 )
 			{			
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter the user's last name and press enter.") );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please enter the user's last name and press enter." );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );
 				l.stage++;			
@@ -2941,7 +2941,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 			else
 			{			
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("The first names entered do not match. Please try again.") );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "The first names entered do not match. Please try again." );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );	
 				l.stage--;
@@ -2950,7 +2950,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		else
 		{							
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No first name was entered. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No first name was entered. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -2964,7 +2964,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		if( l.password_len )
 		{
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter the user's last name again and press enter.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please enter the user's last name again and press enter." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 			l.stage++;
@@ -2972,7 +2972,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		else
 		{							
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No last name was entered. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No last name was entered. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -2988,7 +2988,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 		{
 			if( StrCmp( l.last_name, l.last_name2 ) == 0 )
 			{			
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a user name and press enter.") );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please enter a user name and press enter." );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );
 				l.stage++;			
@@ -2996,7 +2996,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 			else
 			{			
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("The last names entered do not match. Please try again.") );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "The last names entered do not match. Please try again." );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );	
 				l.stage--;
@@ -3005,7 +3005,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		else
 		{							
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No last name was entered. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No last name was entered. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -3019,7 +3019,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		if( l.password_len )
 		{
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter the user name again and press enter.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please enter the user name again and press enter." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 			l.stage++;
@@ -3027,7 +3027,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		else
 		{							
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No user name was entered. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No user name was entered. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -3043,10 +3043,10 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 		{
 			if( StrCmp( l.user_name, l.user_name2 ) == 0 )
 			{
-				DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from permission_user_info where name='%s'"), l.user_name );
+				DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from permission_user_info where name='%s'", l.user_name );
 				if( result && atoi( result[0] ) > 0 )
 				{
-					snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("The user name is already in use. Please try again.") );
+					snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "The user name is already in use. Please try again." );
 					l.sCreateUser = l.cCreateUser;	
 					LabelVariableChanged( l.lvCreateUser );	
 					l.stage--;
@@ -3054,7 +3054,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 				else
 				{
-					snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a user group and press enter.") );
+					snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please select a user group and press enter." );
 					l.sCreateUser = l.cCreateUser;	
 					LabelVariableChanged( l.lvCreateUser );
 					l.stage++;
@@ -3063,7 +3063,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 			else
 			{			
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("The user names entered do not match. Please try again.") );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "The user names entered do not match. Please try again." );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );	
 				l.stage--;
@@ -3072,7 +3072,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		else
 		{							
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No user name was entered. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No user name was entered. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -3084,11 +3084,11 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 		{				
 			l.group = (PGROUP)GetItemData( l.selected_perm_group );
 
-			DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select permission_group_id from permission_group where name='%s'"), l.group->name );
+			DoSQLRecordQueryf( NULL, &result, NULL, "select permission_group_id from permission_group where name='%s'", l.group->name );
 			if( result && atoi( result[0] ) > 0 )
 			{
 				group_id = atoi( result[0] );
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a password and press enter.") );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please enter a password and press enter." );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );
 				l.stage++;
@@ -3096,7 +3096,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 			else
 			{
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Permission group id could not be found. Please try again.") );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Permission group id could not be found. Please try again." );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );
 			}			
@@ -3104,7 +3104,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 		
 		else
 		{
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No Group Selected. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No Group Selected. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -3134,7 +3134,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 					if( !uppercase_used )
 					{
 						bad = 1;						
-						snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("An upper case character is required. Please try again.") );
+						snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "An upper case character is required. Please try again." );
 						l.sCreateUser = l.cCreateUser;	
 						LabelVariableChanged( l.lvCreateUser );
 					}
@@ -3148,7 +3148,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 					if( !lowercase_used )
 					{
 						bad = 1;						
-						snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("A lower case character is required. Please try again.") );
+						snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "A lower case character is required. Please try again." );
 						l.sCreateUser = l.cCreateUser;	
 						LabelVariableChanged( l.lvCreateUser );
 					}
@@ -3162,7 +3162,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 					if( !num_used )
 					{
 						bad = 1;						
-						snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("A numeric character is required. Please try again.") );
+						snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "A numeric character is required. Please try again." );
 						l.sCreateUser = l.cCreateUser;	
 						LabelVariableChanged( l.lvCreateUser );
 					}
@@ -3176,7 +3176,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 					if( !spec_used )
 					{
 						bad = 1;						
-						snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("A special character is required. Please try again.") );
+						snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "A special character is required. Please try again." );
 						l.sCreateUser = l.cCreateUser;	
 						LabelVariableChanged( l.lvCreateUser );
 					}
@@ -3184,7 +3184,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 				if( !bad )
 				{			
-					snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please repeat password and press okay again.") );
+					snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please repeat password and press okay again." );
 					l.sCreateUser = l.cCreateUser;	
 					LabelVariableChanged( l.lvCreateUser );
 					l.stage++;
@@ -3194,7 +3194,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 			else
 			{							
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("Passwords must be at least %d characters in length."), l.pass_min_length );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "Passwords must be at least %d characters in length.", l.pass_min_length );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );
 			}
@@ -3202,7 +3202,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		else
 		{							
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No Password Entered. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No Password Entered. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -3226,7 +3226,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 				SHA1Result( &sc, (uint8_t*)sha1 );
 				ConvertFromBinary( l.out, (uint8_t*)sha1, SHA1HashSize );
 
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("The user was successfully created.") );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "The user was successfully created." );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );
 				l.stage++;			
@@ -3234,7 +3234,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 			else
 			{			
-				snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("The passwords entered do not match. Please try again.") );
+				snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "The passwords entered do not match. Please try again." );
 				l.sCreateUser = l.cCreateUser;	
 				LabelVariableChanged( l.lvCreateUser );	
 				l.stage--;
@@ -3243,7 +3243,7 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 
 		else
 		{
-			snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("No Password Entered. Please try again.") );
+			snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "No Password Entered. Please try again." );
 			l.sCreateUser = l.cCreateUser;	
 			LabelVariableChanged( l.lvCreateUser );
 		}
@@ -3252,21 +3252,21 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 	if( l.stage == 11 )
 	{
 		//Insert collected info into permission_user_info
-		DoSQLCommandf( WIDE("insert into permission_user_info (hall_id,charity_id,default_room_id,first_name,last_name,name,staff_id,password,password_creation_datestamp) values (%d,%d,%d,'%s','%s','%s','%s','%s',now())")
+		DoSQLCommandf( "insert into permission_user_info (hall_id,charity_id,default_room_id,first_name,last_name,name,staff_id,password,password_creation_datestamp) values (%d,%d,%d,'%s','%s','%s','%s','%s',now())"
 			, l.hall_id, l.charity_id, l.default_room_id, l.first_name, l.last_name, l.user_name, l.staff_id, l.out );
 
 		//Get user id for insertion into 
-		DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select user_id from permission_user_info where staff_id='%s'"), l.staff_id );
+		DoSQLRecordQueryf( NULL, &result, NULL, "select user_id from permission_user_info where staff_id='%s'", l.staff_id );
 		if( result && atoi( result[0] ) > 0 )
 			user_id = atoi( result[0] );
 
 		//Insert collected info into permission_user
-		DoSQLCommandf( WIDE("insert into permission_user (permission_group_id,user_id) values (%d,%d)"), group_id, user_id );
+		DoSQLCommandf( "insert into permission_user (permission_group_id,user_id) values (%d,%d)", group_id, user_id );
 				
 		//Insert collected info into permission_user_password
-		snprintf( buf, 256, WIDE(" User: %d Name: %s was created by User: %d Name: %s"),  user_id, l.user_name, l.logee_id, l.logee_name ); 
-		DoSQLCommandf( WIDE("insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())"), user_id, l.out, buf );			
-		DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), user_id, g.system_id, l.program_id, buf );
+		snprintf( buf, 256, " User: %d Name: %s was created by User: %d Name: %s",  user_id, l.user_name, l.logee_id, l.logee_name ); 
+		DoSQLCommandf( "insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())", user_id, l.out, buf );			
+		DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())", user_id, g.system_id, l.program_id, buf );
 
 		ReloadUserCache( NULL );
 	}			
@@ -3275,9 +3275,9 @@ static void OnKeypadEnterType( WIDE("create user"), WIDE("Create User Keypad") )
 //--------------------------------------------------------------------------------
 // Create User 2 Page
 //--------------------------------------------------------------------------------
-static int OnChangePage( WIDE( "Create User 2" ) )( PCanvasData pc_canvas )
+static int OnChangePage( "Create User 2" )( PCanvasData pc_canvas )
 {
-	snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter all fields, select a permission group and press create user.") );
+	snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "Please enter all fields, select a permission group and press create user." );
 	LabelVariableChanged( l.lvCreateUser2 );	
 
 	if( l.perm_group_list )
@@ -3299,7 +3299,7 @@ static int OnChangePage( WIDE( "Create User 2" ) )( PCanvasData pc_canvas )
 
 //--------------------------------------------------------------------------------
 // Staff ID
-static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Staff ID" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "SQL Users/Create User Form/Staff ID" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
@@ -3308,14 +3308,14 @@ static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Staff ID" ) 
 	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Staff ID" ) )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "SQL Users/Create User Form/Staff ID" )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // First Name
-static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/First Name" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "SQL Users/Create User Form/First Name" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
@@ -3324,14 +3324,14 @@ static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/First Name" 
 	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/First Name" ) )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "SQL Users/Create User Form/First Name" )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // Last Name
-static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Last Name" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "SQL Users/Create User Form/Last Name" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
@@ -3340,14 +3340,14 @@ static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Last Name" )
 	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Last Name" ) )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "SQL Users/Create User Form/Last Name" )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // User Name
-static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/User Name" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "SQL Users/Create User Form/User Name" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
@@ -3356,14 +3356,14 @@ static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/User Name" )
 	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/User Name" ) )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "SQL Users/Create User Form/User Name" )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // Password1
-static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Password 1" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "SQL Users/Create User Form/Password 1" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
@@ -3373,14 +3373,14 @@ static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Password 1" 
 	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Password 1" ) )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "SQL Users/Create User Form/Password 1" )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // Password2
-static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Password 2" ) )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "SQL Users/Create User Form/Password 2" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( parent, EDIT_FIELD_NAME, x, y, w, h, -1 );
@@ -3390,22 +3390,22 @@ static uintptr_t OnCreateControl( WIDE( "SQL Users/Create User Form/Password 2" 
 	return (uintptr_t) pc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE( "SQL Users/Create User Form/Password 2" ) )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "SQL Users/Create User Form/Password 2" )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
 
 //--------------------------------------------------------------------------------
 // Accept Generic
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/Create User Form/Create User" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Create User Form/Create User" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Create User" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Create User" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Create User Form/Create User" )( uintptr_t psv )
 {
 	TEXTCHAR buf[256];			  // Used for making descriptions	
 	CTEXTSTR *result;		  // Used for queries
@@ -3419,7 +3419,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 		l.group = (PGROUP)GetItemData( l.selected_perm_group );
 
 		/* l.group->id
-		DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select permission_group_id from permission_group where name='%s'"), l.group->name );
+		DoSQLRecordQueryf( NULL, &result, NULL, "select permission_group_id from permission_group where name='%s'", l.group->name );
 		if( result && atoi( result[0] ) > 0 )
 		{
 			group_id = atoi( result[0] );						
@@ -3427,7 +3427,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 		else
 		{
-			snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("Permission group id could not be found. Please try again.") );
+			snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "Permission group id could not be found. Please try again." );
 			LabelVariableChanged( l.lvCreateUser2 );
 			bad_entry = 1;
 		}	
@@ -3436,7 +3436,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 		
 	else
 	{
-		snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("No Group Selected. Please try again.") );
+		snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "No Group Selected. Please try again." );
 		LabelVariableChanged( l.lvCreateUser2 );
 		bad_entry = 1;
 	}	
@@ -3448,10 +3448,10 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 		if( strlen( l.staff_id ) )
 		{
-			DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from permission_user_info where staff_id='%s'"), l.staff_id );
+			DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from permission_user_info where staff_id='%s'", l.staff_id );
 			if( result && atoi( result[0] ) > 0 )
 			{
-				snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("The staff id is already in use. Please try again.") );
+				snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "The staff id is already in use. Please try again." );
 				LabelVariableChanged( l.lvCreateUser2 );	
 				bad_entry = 1;
 			}			
@@ -3459,7 +3459,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 		else
 		{							
-			snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("No staff id was entered. Please try again.") );
+			snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "No staff id was entered. Please try again." );
 			LabelVariableChanged( l.lvCreateUser2 );
 			bad_entry = 1;
 		}
@@ -3472,7 +3472,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 		if( !strlen( l.first_name ) )		
 		{							
-			snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("No first name was entered. Please try again.") );
+			snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "No first name was entered. Please try again." );
 			LabelVariableChanged( l.lvCreateUser2 );
 			bad_entry = 1;
 		}
@@ -3485,7 +3485,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 		if( !strlen( l.last_name ) )		
 		{							
-			snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("No last name was entered. Please try again.") );
+			snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "No last name was entered. Please try again." );
 			LabelVariableChanged( l.lvCreateUser2 );
 			bad_entry = 1;
 		}
@@ -3498,10 +3498,10 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 		if( strlen( l.user_name ) )
 		{			
-			DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select count(*) from permission_user_info where name='%s'"), l.user_name );
+			DoSQLRecordQueryf( NULL, &result, NULL, "select count(*) from permission_user_info where name='%s'", l.user_name );
 			if( result && atoi( result[0] ) > 0 )
 			{
-				snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("The user name is already in use. Please try again.") );
+				snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "The user name is already in use. Please try again." );
 				LabelVariableChanged( l.lvCreateUser2 );	
 				bad_entry = 1;
 			}			
@@ -3509,7 +3509,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 		else
 		{							
-			snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("No user name was entered. Please try again.") );
+			snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "No user name was entered. Please try again." );
 			LabelVariableChanged( l.lvCreateUser2 );
 			bad_entry = 1;
 		}
@@ -3538,7 +3538,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 					if( !uppercase_used )
 					{												
-						snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("An upper case character is required. Please try again.") );
+						snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "An upper case character is required. Please try again." );
 						LabelVariableChanged( l.lvCreateUser2 );
 						bad_entry = 1;
 					}
@@ -3552,7 +3552,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 					if( !lowercase_used )
 					{												
-						snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("A lower case character is required. Please try again.") );
+						snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "A lower case character is required. Please try again." );
 						LabelVariableChanged( l.lvCreateUser2 );
 						bad_entry = 1;
 					}
@@ -3566,7 +3566,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 					if( !num_used )
 					{												
-						snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("A numeric character is required. Please try again.") );
+						snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "A numeric character is required. Please try again." );
 						LabelVariableChanged( l.lvCreateUser2 );
 						bad_entry = 1;
 					}
@@ -3580,7 +3580,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 					if( !spec_used )
 					{												
-						snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("A special character is required. Please try again.") );
+						snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "A special character is required. Please try again." );
 						LabelVariableChanged( l.lvCreateUser2 );
 						bad_entry = 1;
 					}
@@ -3589,7 +3589,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 			else
 			{							
-				snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("Passwords must be at least %d characters in length."), l.pass_min_length );
+				snprintf( l.cCreateUser2, MESSAGE_SIZE, "Passwords must be at least %d characters in length.", l.pass_min_length );
 				LabelVariableChanged( l.lvCreateUser2 );
 				bad_entry = 1;
 			}
@@ -3597,7 +3597,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 		
 		else
 		{							
-			snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("A password was not entered. Please try again.") );
+			snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "A password was not entered. Please try again." );
 			LabelVariableChanged( l.lvCreateUser2 );
 			bad_entry = 1;
 		}
@@ -3619,13 +3619,13 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 				SHA1Result( &sc, (uint8_t*)sha1 );
 				ConvertFromBinary( l.out, (uint8_t*)sha1, SHA1HashSize );
 
-				snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("The user was successfully created.") );
+				snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "The user was successfully created." );
 				LabelVariableChanged( l.lvCreateUser2 );							
 			}		
 
 			else
 			{			
-				snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("The passwords entered do not match. Please try again.") );
+				snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "The passwords entered do not match. Please try again." );
 				LabelVariableChanged( l.lvCreateUser2 );	
 				bad_entry = 1;
 			}
@@ -3633,7 +3633,7 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 
 		else
 		{							
-			snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("A password was not entered. Please try again.") );
+			snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "A password was not entered. Please try again." );
 			LabelVariableChanged( l.lvCreateUser2 );
 			bad_entry = 1;
 		}
@@ -3642,23 +3642,23 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 	if( !bad_entry )
 	{
 		//Insert collected info into permission_user_info
-		DoSQLCommandf( WIDE("insert into permission_user_info (hall_id,charity_id,default_room_id,first_name,last_name,name,staff_id,password,password_creation_datestamp) values (%d,%d,%d,'%s','%s','%s','%s','%s',now())")
+		DoSQLCommandf( "insert into permission_user_info (hall_id,charity_id,default_room_id,first_name,last_name,name,staff_id,password,password_creation_datestamp) values (%d,%d,%d,'%s','%s','%s','%s','%s',now())"
 			, l.hall_id, l.charity_id, l.default_room_id, l.first_name, l.last_name, l.user_name, l.staff_id, l.out );
 
 		//Get user id for insertion into 
-		DoSQLRecordQueryf( NULL, &result, NULL, WIDE("select user_id from permission_user_info where staff_id='%s'"), l.staff_id );
+		DoSQLRecordQueryf( NULL, &result, NULL, "select user_id from permission_user_info where staff_id='%s'", l.staff_id );
 		if( result && atoi( result[0] ) > 0 )
 			user_id = atoi( result[0] );
 
-		//user_id = GetLastInsertID( WIDE("permission_user_info"), WIDE("system_id") );
+		//user_id = GetLastInsertID( "permission_user_info", "system_id" );
 
 		//Insert collected info into permission_user
-		DoSQLCommandf( WIDE("insert into permission_user (permission_group_id,user_id) values (%d,%d)"), l.group->id, user_id );
+		DoSQLCommandf( "insert into permission_user (permission_group_id,user_id) values (%d,%d)", l.group->id, user_id );
 				
 		//Insert collected info into permission_user_password
-		snprintf( buf, 256, WIDE(" User: %d Name: %s was created by User: %d Name: %s"),  user_id, l.user_name, l.logee_id, l.logee_name ); 
-		DoSQLCommandf( WIDE("insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())"), user_id, l.out, buf );			
-		DoSQLCommandf( WIDE("insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())"), user_id, g.system_id, l.program_id, buf );
+		snprintf( buf, 256, " User: %d Name: %s was created by User: %d Name: %s",  user_id, l.user_name, l.logee_id, l.logee_name ); 
+		DoSQLCommandf( "insert into permission_user_password (user_id,password,description,creation_datestamp) values (%d,'%s','%s',now())", user_id, l.out, buf );			
+		DoSQLCommandf( "insert into system_exceptions (system_exception_category_id,system_exception_type_id,user_id,system_id,program_id,description,log_whenstamp) values (2,0,%d,%d,%d,'%s',now())", user_id, g.system_id, l.program_id, buf );
 
 		ReloadUserCache( NULL );
 	}	
@@ -3668,15 +3668,15 @@ static void OnKeyPressEvent( WIDE( "SQL Users/Create User Form/Create User" ) )(
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 // User Report
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/User Report" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/User Report" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "User Report" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "User Report" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/User Report" )( uintptr_t psv )
 {
 #if 0
 	HDC printer = GetPrinterDC(1);
@@ -3689,7 +3689,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( uintptr_t psv )
 	uint32_t now = CAL_GET_FDATETIME();
 
 	// Get User
-	ShellSetCurrentPageEx( l.frame, WIDE("Select User") );
+	ShellSetCurrentPageEx( l.frame, "Select User" );
 	RevealCommon( l.frame );
 	SetCommonFocus( l.frame );
 
@@ -3701,18 +3701,18 @@ static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( uintptr_t psv )
 	//ReadPasswordFile();
 	ClearReportHeaders();
 	CAL_P_YMDHMS_OF_FDATETIME( now, &g.wYr, &g.wMo, &g.wDy, &g.wHr, &g.wMn, &g.wSc );
-	snprintf( szString, sizeof( szString ), WIDE("Active User Report")
+	snprintf( szString, sizeof( szString ), "Active User Report"
 			  , g.wMo, g.wDy, g.wYr);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Printed at %d:%02d:%02d on %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Printed at %d:%02d:%02d on %02d/%02d/%02d"
 			  , g.wHr, g.wMn, g.wSc
 			  , g.wMo, g.wDy, g.wYr%100);
 	AddReportHeader( szString );
-	AddReportHeader( WIDE("") );
+	AddReportHeader( "" );
 	
-	AddReportHeader( WIDE("User Name				Group				 Updated	  Expires	  Created") );
+	AddReportHeader( "User Name				Group				 Updated	  Expires	  Created" );
 	//					"20characternamegoesh Supervisor Group  03/03/1009  02/01/1008
-	AddReportHeader( WIDE("____________________ _________________ ___________ ___________ ___________\n") );	
+	AddReportHeader( "____________________ _________________ ___________ ___________ ___________\n" );	
 	
 	PrintReportHeader( printer, -1, -1 ); // current position, write haeder...
 	for( n = 0; n < PASSCODE_BUFFER_SIZE; n++ )
@@ -3742,39 +3742,39 @@ static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( uintptr_t psv )
 			if( l.user2->dwFutTime > now )
 			{
 				//CAL_P_YMDHMS_OF_FDATETIME( l.user2->dwFutTime, &expire.wYr, &expire.wMo, &expire.wDy, &expire.wHr, &expire.wMn, &expire.wSc );
-				//snprintf( exp_datebuf, sizeof( exp_datebuf ), WIDE("%02d/%02d/%04d") 
+				//snprintf( exp_datebuf, sizeof( exp_datebuf ), "%02d/%02d/%04d" 
 				//		, expire.wMo, expire.wDy, expire.wYr );
-				DoSQLQueryf( &result, WIDE("select now()") );
-				snprintf( exp_datebuf, sizeof( exp_datebuf ), WIDE("%s") 
+				DoSQLQueryf( &result, "select now()" );
+				snprintf( exp_datebuf, sizeof( exp_datebuf ), "%s" 
 						, result );
 				exp_date = exp_datebuf;
 			}
 			else
-				exp_date = WIDE("Expired	");
+				exp_date = "Expired	";
 			if( l.user2->dwFutTime_Created )
 			{
 				//CAL_P_YMDHMS_OF_FDATETIME( l.user2->dwFutTime_Created, &created.wYr, &created.wMo, &created.wDy, &created.wHr, &created.wMn, &created.wSc );
-				//snprintf( datebuf, sizeof( datebuf ), WIDE("%02d/%02d/%04d") 
+				//snprintf( datebuf, sizeof( datebuf ), "%02d/%02d/%04d" 
 				//		, created.wMo, created.wDy, created.wYr );
-				DoSQLQueryf( &result, WIDE("select now()") );
-				snprintf( exp_datebuf, sizeof( exp_datebuf ), WIDE("%s") 
+				DoSQLQueryf( &result, "select now()" );
+				snprintf( exp_datebuf, sizeof( exp_datebuf ), "%s" 
 						, result );
 				date = datebuf;
 			}
 			else
-				date = WIDE("Before Now");
+				date = "Before Now";
 			if( l.user2->dwFutTime_Updated_Password )
 			{
 				//CAL_P_YMDHMS_OF_FDATETIME( l.user2->dwFutTime_Updated_Password, &password_updated.wYr, &password_updated.wMo, &password_updated.wDy, &password_updated.wHr, &password_updated.wMn, &password_updated.wSc );
-				//snprintf( upd_datebuf, sizeof( upd_datebuf ), WIDE("%02d/%02d/%04d")
+				//snprintf( upd_datebuf, sizeof( upd_datebuf ), "%02d/%02d/%04d"
 				//		, password_updated.wMo, password_updated.wDy, password_updated.wYr );
-				DoSQLQueryf( &result, WIDE("select now()") );
-				snprintf( exp_datebuf, sizeof( exp_datebuf ), WIDE("%s") 
+				DoSQLQueryf( &result, "select now()" );
+				snprintf( exp_datebuf, sizeof( exp_datebuf ), "%s" 
 						, result );
 				upd_date = upd_datebuf;
 			}
 			else
-				upd_date = WIDE("Before Now");			
+				upd_date = "Before Now";			
 			
 			LIST_FORALL( l.user2->groups, idx, PGROUP, group )
 			{
@@ -3784,7 +3784,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( uintptr_t psv )
 				{					
 					if( group_token->name )
 					{
-						snprintf( buf, sizeof( buf ), WIDE("%-20.20s %-16.16s  %s  %s  %s\n")
+						snprintf( buf, sizeof( buf ), "%-20.20s %-16.16s  %s  %s  %s\n"
 								  , l.user2->name
 								  , group_token->name
 								  , upd_date
@@ -3809,15 +3809,15 @@ static void OnKeyPressEvent( WIDE("SQL Users/User Report") )( uintptr_t psv )
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 // User History
-static uintptr_t OnCreateMenuButton( WIDE( "SQL Users/User History" ) )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/User History" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "User History" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "User History" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/User History") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/User History" )( uintptr_t psv )
 {
 #if 0
 	HDC printer = GetPrinterDC(0);
@@ -3839,38 +3839,38 @@ static void OnKeyPressEvent( WIDE("SQL Users/User History") )( uintptr_t psv )
 	CAL_P_YMDHMS_OF_FDATETIME( now, &g.wYr, &g.wMo, &g.wDy, &g.wHr, &g.wMn, &g.wSc );
 	CAL_P_YMDHMS_OF_FDATETIME( now - (100*(24*60*60))
 									 , &report_from.wYr, &report_from.wMo, &report_from.wDy, NULL, NULL, NULL );
-	snprintf( szString, sizeof( szString ), WIDE("User History Report")
+	snprintf( szString, sizeof( szString ), "User History Report"
 			  , g.wMo, g.wDy, g.wYr);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Printed at %d:%02d:%02d on %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Printed at %d:%02d:%02d on %02d/%02d/%02d"
 			  , g.wHr, g.wMn, g.wSc
 			  , g.wMo, g.wDy, g.wYr%100);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Report from %02d/%02d/%02d to %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Report from %02d/%02d/%02d to %02d/%02d/%02d"
 			  , report_from.wMo, report_from.wDy, report_from.wYr%100
 			  , g.wMo, g.wDy, g.wYr%100
 			  );
 	AddReportHeader( szString );
-	AddReportHeader( WIDE("") );
+	AddReportHeader( "" );
 
-	AddReportHeader( WIDE("Time					 UserName				 Event				  Message") );
+	AddReportHeader( "Time					 UserName				 Event				  Message" );
 	//					"00/00/0000 00:00:00 
 	//					"20characternamegoesh Supervisor Group  03/03/1009  02/01/1008
-	AddReportHeader( WIDE("___________________ ____________________ __________________ ______________________________________\n") );
+	AddReportHeader( "___________________ ____________________ __________________ ______________________________________\n" );
 	PrintReportHeader( printer, -1, -1 ); // current position, write haeder...
 	
 	{
 		static TEXTCHAR query[512];
 		CTEXTSTR *result;
 		snprintf( query, sizeof( query )
-				 , WIDE("select user_event_log_timestamp,description,event_type,user_name")
-				  WIDE(" from user_event_log")
-				  WIDE(" where user_event_log_timestamp>=%04d%02d%02d and user_event_log_timestamp<=%04d%02d%02d235959")
-				WIDE(" and ( event_type='Password Update'")
-				WIDE(" or event_type='Delete User'")
-				WIDE(" or event_type='Create User'")
-				WIDE(" or event_type='Expire Password'")
-				  WIDE(" or event_type='') order by user_event_log_timestamp")
+				 , "select user_event_log_timestamp,description,event_type,user_name"
+				  " from user_event_log"
+				  " where user_event_log_timestamp>=%04d%02d%02d and user_event_log_timestamp<=%04d%02d%02d235959"
+				" and ( event_type='Password Update'"
+				" or event_type='Delete User'"
+				" or event_type='Create User'"
+				" or event_type='Expire Password'"
+				  " or event_type='') order by user_event_log_timestamp"
 				  , report_from.wYr
 				  , report_from.wMo
 				  , report_from.wDy
@@ -3882,7 +3882,7 @@ static void OnKeyPressEvent( WIDE("SQL Users/User History") )( uintptr_t psv )
 			; GetSQLRecord( &result ) )
 		{
 			TEXTCHAR buf[120];
-			sprintf( buf, WIDE("%s %-20.20s %-18.18s %s\n"), result[0], result[3], result[2], result[1] );
+			sprintf( buf, "%s %-20.20s %-18.18s %s\n", result[0], result[3], result[2], result[1] );
 			PrintString( buf );
 		}
 	}	
@@ -3895,15 +3895,15 @@ static void OnKeyPressEvent( WIDE("SQL Users/User History") )( uintptr_t psv )
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
 // Permission Report
-static uintptr_t OnCreateMenuButton( WIDE("SQL Users/Permission Report") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "SQL Users/Permission Report" )( PMENU_BUTTON button )
 {	
-	InterShell_SetButtonStyle( button, WIDE( "bicolor square" ) );
-	InterShell_SetButtonText( button, WIDE( "Permission Report" ) );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Permission Report" );
 	InterShell_SetButtonColors( button, BASE_COLOR_WHITE, BASE_COLOR_GREEN, BASE_COLOR_BLACK, COLOR_IGNORE );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("SQL Users/Permission Report") )( uintptr_t psv )
+static void OnKeyPressEvent( "SQL Users/Permission Report" )( uintptr_t psv )
 {	
 	/*
 	HDC printer = GetPrinterDC(1);
@@ -3925,19 +3925,19 @@ static void OnKeyPressEvent( WIDE("SQL Users/Permission Report") )( uintptr_t ps
 	CAL_P_YMDHMS_OF_FDATETIME( now, &g.wYr, &g.wMo, &g.wDy, &g.wHr, &g.wMn, &g.wSc );
 	CAL_P_YMDHMS_OF_FDATETIME( now - (60*(24*60*60))
 									 , &report_from.wYr, &report_from.wMo, &report_from.wDy, NULL, NULL, NULL );
-	snprintf( szString, sizeof( szString ), WIDE("User Permission Report")
+	snprintf( szString, sizeof( szString ), "User Permission Report"
 			  , g.wMo, g.wDy, g.wYr);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Printed at %d:%02d:%02d on %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Printed at %d:%02d:%02d on %02d/%02d/%02d"
 			  , g.wHr, g.wMn, g.wSc
 			  , g.wMo, g.wDy, g.wYr%100);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Report from %02d/%02d/%02d to %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Report from %02d/%02d/%02d to %02d/%02d/%02d"
 			  , report_from.wMo, report_from.wDy, report_from.wYr%100
 			  , g.wMo, g.wDy, g.wYr%100
 			  );
 	AddReportHeader( szString );
-	AddReportHeader( WIDE("") );
+	AddReportHeader( "" );
 
 
 	ClearReportHeaders();
@@ -3945,14 +3945,14 @@ static void OnKeyPressEvent( WIDE("SQL Users/Permission Report") )( uintptr_t ps
 	CAL_P_YMDHMS_OF_FDATETIME( now, &g.wYr, &g.wMo, &g.wDy, &g.wHr, &g.wMn, &g.wSc );
 	CAL_P_YMDHMS_OF_FDATETIME( now - (60*(24*60*60))
 									 , &report_from.wYr, &report_from.wMo, &report_from.wDy, NULL, NULL, NULL );
-	snprintf( szString, sizeof( szString ), WIDE("User Permission Report")
+	snprintf( szString, sizeof( szString ), "User Permission Report"
 			  , g.wMo, g.wDy, g.wYr);
 	AddReportHeader( szString );
-	snprintf(szString, sizeof( szString ), WIDE("Printed at %d:%02d:%02d on %02d/%02d/%02d")
+	snprintf(szString, sizeof( szString ), "Printed at %d:%02d:%02d on %02d/%02d/%02d"
 			  , g.wHr, g.wMn, g.wSc
 			  , g.wMo, g.wDy, g.wYr%100);
 	AddReportHeader( szString );
-	AddReportHeader( WIDE("") );
+	AddReportHeader( "" );
 
 	AddReportHeader( "Group					 Permission		" );
 	//					"00/00/0000 00:00:00 
@@ -4051,22 +4051,22 @@ void CreateLabels( void )
 	l.sDeleteToken = l.cDeleteToken;	
 	l.sCreateUser = l.cCreateUser;	
 	l.sCreateUser2 = l.cCreateUser2;	
-	l.lvPassPop  = CreateLabelVariable( WIDE( "<Pop Pass Message>" ), LABEL_TYPE_STRING, &l.sPassPop  );
-	l.lvPassPop2  = CreateLabelVariable( WIDE( "<Pop Pass2 Message>" ), LABEL_TYPE_STRING, &l.sPassPop2 );
-	l.lvChangePassword  = CreateLabelVariable( WIDE( "<Change Password Message>" ), LABEL_TYPE_STRING, &l.sChangePassword );
-	l.lvUnlockAccount = CreateLabelVariable( WIDE( "<Unlock Account Message>" ), LABEL_TYPE_STRING, &l.sUnlockAccount );
-	l.lvTermAccount = CreateLabelVariable( WIDE( "<Terminate Account Message>" ), LABEL_TYPE_STRING, &l.sTermAccount );
-	l.lvExpPassword = CreateLabelVariable( WIDE( "<Expire Password Message>" ), LABEL_TYPE_STRING, &l.sExpPassword );
-	l.lvAddPermGroup = CreateLabelVariable( WIDE( "<Add User Group Message>" ), LABEL_TYPE_STRING, &l.sAddPermGroup );
-	l.lvRemPermGroup = CreateLabelVariable( WIDE( "<Remove User Group Message>" ), LABEL_TYPE_STRING, &l.sRemPermGroup );
-	l.lvAddToken = CreateLabelVariable( WIDE( "<Add Group Token Message>" ), LABEL_TYPE_STRING, &l.sAddToken );
-	l.lvRemToken = CreateLabelVariable( WIDE( "<Remove Group Token Message>" ), LABEL_TYPE_STRING, &l.sRemToken );	
-	l.lvCreateGroup = CreateLabelVariable( WIDE( "<Create Group Message>" ), LABEL_TYPE_STRING, &l.sCreateGroup );
-	l.lvDeleteGroup = CreateLabelVariable( WIDE( "<Delete Group Message>" ), LABEL_TYPE_STRING, &l.sDeleteGroup );
-	l.lvCreateToken = CreateLabelVariable( WIDE( "<Create Token Message>" ), LABEL_TYPE_STRING, &l.sCreateToken );
-	l.lvDeleteToken = CreateLabelVariable( WIDE( "<Delete Token Message>" ), LABEL_TYPE_STRING, &l.sDeleteToken );
-	l.lvCreateUser = CreateLabelVariable( WIDE( "<Create User Message>" ), LABEL_TYPE_STRING, &l.sCreateUser );
-	l.lvCreateUser2 = CreateLabelVariable( WIDE( "<Create User2 Message>" ), LABEL_TYPE_STRING, &l.sCreateUser2 );
+	l.lvPassPop  = CreateLabelVariable( "<Pop Pass Message>", LABEL_TYPE_STRING, &l.sPassPop  );
+	l.lvPassPop2  = CreateLabelVariable( "<Pop Pass2 Message>", LABEL_TYPE_STRING, &l.sPassPop2 );
+	l.lvChangePassword  = CreateLabelVariable( "<Change Password Message>", LABEL_TYPE_STRING, &l.sChangePassword );
+	l.lvUnlockAccount = CreateLabelVariable( "<Unlock Account Message>", LABEL_TYPE_STRING, &l.sUnlockAccount );
+	l.lvTermAccount = CreateLabelVariable( "<Terminate Account Message>", LABEL_TYPE_STRING, &l.sTermAccount );
+	l.lvExpPassword = CreateLabelVariable( "<Expire Password Message>", LABEL_TYPE_STRING, &l.sExpPassword );
+	l.lvAddPermGroup = CreateLabelVariable( "<Add User Group Message>", LABEL_TYPE_STRING, &l.sAddPermGroup );
+	l.lvRemPermGroup = CreateLabelVariable( "<Remove User Group Message>", LABEL_TYPE_STRING, &l.sRemPermGroup );
+	l.lvAddToken = CreateLabelVariable( "<Add Group Token Message>", LABEL_TYPE_STRING, &l.sAddToken );
+	l.lvRemToken = CreateLabelVariable( "<Remove Group Token Message>", LABEL_TYPE_STRING, &l.sRemToken );	
+	l.lvCreateGroup = CreateLabelVariable( "<Create Group Message>", LABEL_TYPE_STRING, &l.sCreateGroup );
+	l.lvDeleteGroup = CreateLabelVariable( "<Delete Group Message>", LABEL_TYPE_STRING, &l.sDeleteGroup );
+	l.lvCreateToken = CreateLabelVariable( "<Create Token Message>", LABEL_TYPE_STRING, &l.sCreateToken );
+	l.lvDeleteToken = CreateLabelVariable( "<Delete Token Message>", LABEL_TYPE_STRING, &l.sDeleteToken );
+	l.lvCreateUser = CreateLabelVariable( "<Create User Message>", LABEL_TYPE_STRING, &l.sCreateUser );
+	l.lvCreateUser2 = CreateLabelVariable( "<Create User2 Message>", LABEL_TYPE_STRING, &l.sCreateUser2 );
 
 	return;
 }
@@ -4102,137 +4102,137 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 	// Create & Initialize Label Variables
 	CreateLabels();	
 
-	snprintf( l.cPassPop, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter your password and press enter.") );
+	snprintf( l.cPassPop, MESSAGE_SIZE, "%s", "Please enter your password and press enter." );
 
-	snprintf( l.cPassPop2, MESSAGE_SIZE, WIDE("%s"), WIDE("Your password has expired! Please enter a new password and press okay.") );
+	snprintf( l.cPassPop2, MESSAGE_SIZE, "%s", "Your password has expired! Please enter a new password and press okay." );
 
-	snprintf( l.cChangePassword, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a new password and press enter.") );
+	snprintf( l.cChangePassword, MESSAGE_SIZE, "%s", "Please enter a new password and press enter." );
 
-	snprintf( l.cUnlockAccount, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a user to unlock and press unlock user account.") );
+	snprintf( l.cUnlockAccount, MESSAGE_SIZE, "%s", "Please select a user to unlock and press unlock user account." );
 
-	snprintf( l.cTermAccount, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a user to terminate and press terminate user account.") );
+	snprintf( l.cTermAccount, MESSAGE_SIZE, "%s", "Please select a user to terminate and press terminate user account." );
 	
-	snprintf( l.cExpPassword, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select the user whose password is to be expired and press expire user password.") );
+	snprintf( l.cExpPassword, MESSAGE_SIZE, "%s", "Please select the user whose password is to be expired and press expire user password." );
 
-	snprintf( l.cAddPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a user and a group to add the user to and press add user group.") );
+	snprintf( l.cAddPermGroup, MESSAGE_SIZE, "%s", "Please select a user and a group to add the user to and press add user group." );
 
-	snprintf( l.cRemPermGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a user who is to be removed from a permission group and press remove user group.") );
+	snprintf( l.cRemPermGroup, MESSAGE_SIZE, "%s", "Please select a user who is to be removed from a permission group and press remove user group." );
 
-	snprintf( l.cAddToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a token and a permission group to give the token to and press add group token.") );
+	snprintf( l.cAddToken, MESSAGE_SIZE, "%s", "Please select a token and a permission group to give the token to and press add group token." );
 
-	snprintf( l.cRemToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a permission group and press remove group token.") );
+	snprintf( l.cRemToken, MESSAGE_SIZE, "%s", "Please select a permission group and press remove group token." );
 
-	snprintf( l.cCreateGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a group name and press enter.") );
+	snprintf( l.cCreateGroup, MESSAGE_SIZE, "%s", "Please enter a group name and press enter." );
 
-	snprintf( l.cDeleteGroup, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a group and press delete group.") );
+	snprintf( l.cDeleteGroup, MESSAGE_SIZE, "%s", "Please select a group and press delete group." );
 
-	snprintf( l.cCreateToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a token name and press enter.") );
+	snprintf( l.cCreateToken, MESSAGE_SIZE, "%s", "Please enter a token name and press enter." );
 
-	snprintf( l.cDeleteToken, MESSAGE_SIZE, WIDE("%s"), WIDE("Please select a token and press delete token.") );
+	snprintf( l.cDeleteToken, MESSAGE_SIZE, "%s", "Please select a token and press delete token." );
 
-	snprintf( l.cCreateUser, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter a staff id and press enter.") );
+	snprintf( l.cCreateUser, MESSAGE_SIZE, "%s", "Please enter a staff id and press enter." );
 
-	snprintf( l.cCreateUser2, MESSAGE_SIZE, WIDE("%s"), WIDE("Please enter all fields, select a permission group and press create user.") );
+	snprintf( l.cCreateUser2, MESSAGE_SIZE, "%s", "Please enter all fields, select a permission group and press create user." );
 
 	//Create Extra Keypads
-	CreateKeypadType( WIDE("Enter Password Keypad") );
-	CreateKeypadType( WIDE("Expire Password Keypad") );
-	CreateKeypadType( WIDE("Change Password Keypad") );
-	CreateKeypadType( WIDE("Create Group Keypad") );
-	CreateKeypadType( WIDE("Create Token Keypad") );
-	CreateKeypadType( WIDE("Create User Keypad") );	
+	CreateKeypadType( "Enter Password Keypad" );
+	CreateKeypadType( "Expire Password Keypad" );
+	CreateKeypadType( "Change Password Keypad" );
+	CreateKeypadType( "Create Group Keypad" );
+	CreateKeypadType( "Create Token Keypad" );
+	CreateKeypadType( "Create User Keypad" );	
 
 #ifdef _DEBUG
 #define DEFAULT_LOGIN_INIT 0
 #else
 #define DEFAULT_LOGIN_INIT 1
 #endif
-	g.flags.bInitializeLogins = SACK_GetProfileInt( GetProgramName(), WIDE("SECURITY/Initialize Logins"), DEFAULT_LOGIN_INIT );
-	l.flags.bCreateSystemLogin = SACK_GetProfileInt( GetProgramName(), WIDE("SECURITY/Create System Login"), 0 );
+	g.flags.bInitializeLogins = SACK_GetProfileInt( GetProgramName(), "SECURITY/Initialize Logins", DEFAULT_LOGIN_INIT );
+	l.flags.bCreateSystemLogin = SACK_GetProfileInt( GetProgramName(), "SECURITY/Create System Login", 0 );
 
-	l.displays_wide = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Expected displays wide"), 1, TRUE );
-	l.displays_high = SACK_GetProfileIntEx( GetProgramName(), WIDE("Intershell Layout/Expected displays high"), 1, TRUE );
-	l.flags.cover_entire_canvas = SACK_GetProfileIntEx( GetProgramName(), WIDE("SQL Password/Cover Entire Canvas"), 0, TRUE );
+	l.displays_wide = SACK_GetProfileIntEx( GetProgramName(), "Intershell Layout/Expected displays wide", 1, TRUE );
+	l.displays_high = SACK_GetProfileIntEx( GetProgramName(), "Intershell Layout/Expected displays high", 1, TRUE );
+	l.flags.cover_entire_canvas = SACK_GetProfileIntEx( GetProgramName(), "SQL Password/Cover Entire Canvas", 0, TRUE );
 	{
 		// Set Up for pulling options
 		TEXTCHAR option_dsn[64];
-		SACK_GetProfileString( WIDE("SECURITY/SQL Passwords"), WIDE("password DSN"), GetDefaultOptionDatabaseDSN(), option_dsn, sizeof( option_dsn ) );
+		SACK_GetProfileString( "SECURITY/SQL Passwords", "password DSN", GetDefaultOptionDatabaseDSN(), option_dsn, sizeof( option_dsn ) );
 		odbc = GetOptionODBC( option_dsn, 0 );
 	}
 	 	
-	l.bad_login_limit = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/SYSTEM/Login Failure"), WIDE("Limit"), 5, NULL );
+	l.bad_login_limit = SACK_GetPrivateOptionInt( odbc, "SECURITY/SYSTEM/Login Failure", "Limit", 5, NULL );
 
-	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password"), WIDE("Lock Interval"), WIDE("30 MINUTE"), buf2, 20, NULL );
+	SACK_GetPrivateOptionString( odbc, "SECURITY/Login/Password", "Lock Interval", "30 MINUTE", buf2, 20, NULL );
 	l.bad_login_interval = StrDup(buf2);
 
-	l.flags.does_pass_expr = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Expires"), WIDE("Enabled"), 1, NULL );
+	l.flags.does_pass_expr = SACK_GetPrivateOptionInt( odbc, "SECURITY/Login/Password Expires", "Enabled", 1, NULL );
 
-	g.pass_expr_interval = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Expires"), WIDE("Days"), 30, NULL );
+	g.pass_expr_interval = SACK_GetPrivateOptionInt( odbc, "SECURITY/Login/Password Expires", "Days", 30, NULL );
 	  
-	l.pass_check_num = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Reusable"), WIDE("Number"), 8, NULL );	
+	l.pass_check_num = SACK_GetPrivateOptionInt( odbc, "SECURITY/Login/Password Reusable", "Number", 8, NULL );	
 	
-	l.pass_check_days = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password Reusable"), WIDE("Days"), 90, NULL );	
+	l.pass_check_days = SACK_GetPrivateOptionInt( odbc, "SECURITY/Login/Password Reusable", "Days", 90, NULL );	
 
-	l.pass_min_length = SACK_GetPrivateOptionInt( odbc, WIDE("SECURITY/Login/Password"), WIDE("MinLength"), 8, NULL );		
+	l.pass_min_length = SACK_GetPrivateOptionInt( odbc, "SECURITY/Login/Password", "MinLength", 8, NULL );		
 
-	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Upper Case"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );
+	SACK_GetPrivateOptionString( odbc, "SECURITY/Login/Password/Upper Case", "Required", "TRUE", buf, 10, NULL );
 	l.flags.does_pass_req_upper = ( buf[0]=='t' || buf[0] =='T' || buf[0] == '1' || buf[0] == 'Y' || buf[0] == 'y' ) ? 1 : 0;		
 
-	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Lower Case"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );	
+	SACK_GetPrivateOptionString( odbc, "SECURITY/Login/Password/Lower Case", "Required", "TRUE", buf, 10, NULL );	
 	l.flags.does_pass_req_lower = ( buf[0]=='t' || buf[0] =='T' || buf[0] == '1' || buf[0] == 'Y' || buf[0] == 'y' ) ? 1 : 0;
 
-	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Special Characters"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );	
+	SACK_GetPrivateOptionString( odbc, "SECURITY/Login/Password/Special Characters", "Required", "TRUE", buf, 10, NULL );	
 	l.flags.does_pass_req_spec = ( buf[0]=='t' || buf[0] =='T' || buf[0] == '1' || buf[0] == 'Y' || buf[0] == 'y' ) ? 1 : 0;
 
-	SACK_GetPrivateOptionString( odbc, WIDE("SECURITY/Login/Password/Numeric Characters"), WIDE("Required"), WIDE("TRUE"), buf, 10, NULL );	
+	SACK_GetPrivateOptionString( odbc, "SECURITY/Login/Password/Numeric Characters", "Required", "TRUE", buf, 10, NULL );	
 	l.flags.does_pass_req_num = ( buf[0]=='t' || buf[0] =='T' || buf[0] == '1' || buf[0] == 'Y' || buf[0] == 'y' ) ? 1 : 0;
 
 	DropOptionODBC( odbc );
 
 	// Get system name and system id
-	if( DoSQLQueryf( &result, WIDE("select user()") ) )
+	if( DoSQLQueryf( &result, "select user()" ) )
 	{
 		if( !result )
 		{
 			GetSQLError( &result );
-			lprintf( WIDE("Connected to a database, but select user() failed! : %s"), result );
+			lprintf( "Connected to a database, but select user() failed! : %s", result );
 			return;
 		}	
 		l.sys_name = StrDup( result );				
 	}
 	else
 	{		
-		  lprintf( WIDE("database connection is invalid.") );
+		  lprintf( "database connection is invalid." );
 		return;
 	}	
 	SQLEndQuery( NULL );
 	
-	if( DoSQLQueryf( &result, WIDE("select system_id from systems where address=user()") ) && result )
+	if( DoSQLQueryf( &result, "select system_id from systems where address=user()" ) && result )
 	{
 		g.system_id = IntCreateFromText(result);
 	}
 	else
 	{
-		if( DoSQLQueryf( &result, WIDE("select system_id from systems where name=\'%s\'"),GetSystemName() ) && result )
+		if( DoSQLQueryf( &result, "select system_id from systems where name=\'%s\'",GetSystemName() ) && result )
 		{
-			DoSQLCommandf( WIDE("update systems set address=\'%s\' where system_id=%s"), l.sys_name, result );
+			DoSQLCommandf( "update systems set address=\'%s\' where system_id=%s", l.sys_name, result );
 			g.system_id = IntCreateFromText(result);
 		}
 		else
 		{
-			DoSQLCommandf( WIDE("insert into systems (name,address) values ('%s','%s')"), GetSystemName(), l.sys_name );
-			g.system_id = GetLastInsertID( WIDE("systems"), WIDE("system_id") );
+			DoSQLCommandf( "insert into systems (name,address) values ('%s','%s')", GetSystemName(), l.sys_name );
+			g.system_id = GetLastInsertID( "systems", "system_id" );
 		}
 		SQLEndQuery( NULL );
 	}
 
-	//lprintf( WIDE(" System ID: %d, System Name: %s"), g.system_id, l.sys_name );
+	//lprintf( " System ID: %d, System Name: %s", g.system_id, l.sys_name );
 	
 	// Get program name and program id	
 	l.prog_name = GetProgramName();
 	l.program_id = GetProgramID( l.prog_name );
  
-	//lprintf( WIDE(" Program ID: %d, Program Name: %s"), l.program_id, l.prog_name );
+	//lprintf( " Program ID: %d, Program Name: %s", l.program_id, l.prog_name );
 
 	// Get User Info 
 	l.logee_id = 0;
@@ -4240,19 +4240,19 @@ PRIORITY_PRELOAD( Init_password_frame, DEFAULT_PRELOAD_PRIORITY-1 )
 
 	if( g.flags.bInitializeLogins )
 	{
-		DoSQLCommandf( WIDE("update login_history set logout_whenstamp=now() where logout_whenstamp=11111111111111 and system_id=%d")
+		DoSQLCommandf( "update login_history set logout_whenstamp=now() where logout_whenstamp=11111111111111 and system_id=%d"
 						, g.system_id );
 	}
 
-	if( DoSQLQueryf( &result, WIDE("select user_id from login_history where system_id=%d and logout_whenstamp='11111111111111' order by login_whenstamp desc limit 1" ), g.system_id ) && result )
+	if( DoSQLQueryf( &result, "select user_id from login_history where system_id=%d and logout_whenstamp='11111111111111' order by login_whenstamp desc limit 1", g.system_id ) && result )
 	{
 		l.logee_id = atoi( result );
 
-		if( DoSQLQueryf( &result, WIDE("select name from permission_user_info where user_id=%d" ), l.logee_id ) && result )
+		if( DoSQLQueryf( &result, "select name from permission_user_info where user_id=%d", l.logee_id ) && result )
 			l.logee_name = StrDup( result );
 		SQLEndQuery( NULL );
 
-		//lprintf( WIDE(" User ID: %d, User Name: %s"), l.logee_id, l.logee_name );
+		//lprintf( " User ID: %d, User Name: %s", l.logee_id, l.logee_name );
 	}
 	SQLEndQuery( NULL );
 

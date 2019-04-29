@@ -66,7 +66,7 @@ void ComputePlaneRay( PRAY out )
 	ApplyR( (PCTRANSFORM)g.EditInfo.TEdit, out, &in );
 }
 
-static LOGICAL OnKey3d( WIDE("Virtuality") )( uintptr_t psvView, uint32_t key )
+static LOGICAL OnKey3d( "Virtuality" )( uintptr_t psvView, uint32_t key )
 {
 	VIEW *v = (VIEW*)psvView;
 	int used = 0;
@@ -225,7 +225,7 @@ POBJECT TestMouseObject( POBJECT po, PRAY mouse, PFACET *face, PVECTOR vmin, RCO
 }
 
 
-static LOGICAL OnMouse3d( WIDE("Virtuality") )( uintptr_t psvView, PRAY mouse, int32_t x, int32_t y, uint32_t b )
+static LOGICAL OnMouse3d( "Virtuality" )( uintptr_t psvView, PRAY mouse, int32_t x, int32_t y, uint32_t b )
 //int CPROC ViewMouse( uintptr_t dwView, int32_t x, int32_t y, uint32_t b )
 {
    VIEW *v = (VIEW*)psvView;
@@ -284,12 +284,12 @@ static void UpdateObject( POBJECT po )
 		Move( pCurObj->Ti );
 		if( pCurObj->pHolds )
 		{
-			//lprintf( WIDE("Show holds"));
+			//lprintf( "Show holds");
 			UpdateObject( pCurObj->pHolds );
 		}
 		if( pCurObj->pHas )
 		{
-			//lprintf( WIDE("Show has") );
+			//lprintf( "Show has" );
 			UpdateObject( pCurObj->pHas );
 		}
    }
@@ -311,7 +311,7 @@ static void UpdateObjects( void )
 	}
 }
 
-static LOGICAL OnUpdate3d( WIDE( "Virtuality" ) )( PTRANSFORM origin )
+static LOGICAL OnUpdate3d( "Virtuality" )( PTRANSFORM origin )
 {
 	{
 		static VECTOR KeySpeed, KeyRotation;
@@ -329,7 +329,7 @@ static LOGICAL OnUpdate3d( WIDE( "Virtuality" ) )( PTRANSFORM origin )
 			SetRotation( origin, KeyRotation );
 			Move(origin);  // relative rotation...
 
-			//lprintf( WIDE("Updated main view transform.") );
+			//lprintf( "Updated main view transform." );
 			//ShowTransform(pMainView->Tglobal );
 		}
 		else if( g.EditInfo.bEditing ) // editing without control key pressed
@@ -354,7 +354,7 @@ static LOGICAL OnUpdate3d( WIDE( "Virtuality" ) )( PTRANSFORM origin )
 	return TRUE;
 }
 
-static void OnDraw3d( WIDE("Virtuality") )( uintptr_t psvUnusedOne )
+static void OnDraw3d( "Virtuality" )( uintptr_t psvUnusedOne )
 {
 	// cannot count that the camera state is relative for how we want to show?
 
@@ -365,7 +365,7 @@ static void OnDraw3d( WIDE("Virtuality") )( uintptr_t psvUnusedOne )
 			//TranslateV( GetImageTransformation( g.EditInfo.pEditObject->hud_icon ), g.EditInfo.vmin );
 			Render3dImage( g.EditInfo.pEditObject->hud_icon, g.EditInfo.vmin, FALSE );
 			TEXTCHAR buf[256];
-			snprintf( buf, 256, WIDE("Editing: O: %p FS:%d F:%d")
+			snprintf( buf, 256, "Editing: O: %p FS:%d F:%d"
 			        , g.EditInfo.pEditObject
 			        , g.EditInfo.nFacetSet
 			        , g.EditInfo.nFacet );
@@ -396,10 +396,10 @@ static void OnDraw3d( WIDE("Virtuality") )( uintptr_t psvUnusedOne )
 			//Image pImage = GetDisplayImage( v->hVideo );
 #if 0
 			TEXTCHAR buf[256];
-			snprintf( buf, 256, WIDE("fps : %d  (x10)")
+			snprintf( buf, 256, "fps : %d  (x10)"
 			        , frames * 10000 /( timeGetTime() - frame_time )
 			        );
-			lprintf( WIDE("%s"), buf );
+			lprintf( "%s", buf );
 			/*
 			PutString( pImage
 						, 4, 4
@@ -421,7 +421,7 @@ static void OnDraw3d( WIDE("Virtuality") )( uintptr_t psvUnusedOne )
 
 
 
-static uintptr_t OnInit3d( WIDE("Virtuality") )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
+static uintptr_t OnInit3d( "Virtuality" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
 {
 	g.camera = camera;
 	return (uintptr_t)1;
@@ -518,7 +518,7 @@ uintptr_t CPROC RenderFacet(  POBJECT po
 		}
 	}
 
-	//Log( WIDE("Begin facet...") );
+	//Log( "Begin facet..." );
 	// now we know we can show this facet...
 	if( !pf->flags.bShared )
 	{
@@ -538,7 +538,7 @@ uintptr_t CPROC RenderFacet(  POBJECT po
 		{
 				float *image_v;
 			//glBegin( GL_POLYGON );
-			//lprintf( WIDE("glpolygon..") );
+			//lprintf( "glpolygon.." );
 			//glColor3f(1.0f,1.0f,0.0f);
 			// Set The Color To Yellow
 			if( pf->color )
@@ -604,7 +604,7 @@ uintptr_t CPROC RenderFacet(  POBJECT po
 			v = NewArray( VECTOR, points+1 );
 			for( l = 0; l < points; l++ )
 			{
-				//lprintf( WIDE("Vertex..") );
+				//lprintf( "Vertex.." );
 				//PrintVector(pvPoints[l] );
 				Apply( (PCTRANSFORM)po->Ti, v[l], pvPoints[l] );
 				//glVertex3fv( v[l] );
@@ -679,10 +679,10 @@ static int EvalExcept( int n )
 	switch( n )
 	{
 	case 		STATUS_ACCESS_VIOLATION:
-		lprintf( WIDE("Access violation - OpenGL layer at this moment..") );
+		lprintf( "Access violation - OpenGL layer at this moment.." );
 		return EXCEPTION_EXECUTE_HANDLER;
 	default:
-		lprintf( WIDE("Filter unknown : %d"), n );
+		lprintf( "Filter unknown : %d", n );
 
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
@@ -702,7 +702,7 @@ void ShowObjectChildren( POBJECT po )
 			PLIST list = pCurObj->objinfo->facets;
 			LIST_FORALL( list, idx, PFACET, facet )
 			{
-				//lprintf( WIDE("Render facet %d(%p)"), idx, facet );
+				//lprintf( "Render facet %d(%p)", idx, facet );
 #ifndef __cplusplus
 #ifdef MSC_VER
 				__try 
@@ -715,7 +715,7 @@ void ShowObjectChildren( POBJECT po )
 				}
 				__except( EvalExcept( GetExceptionCode() ) )
 				{
-					lprintf( WIDE(" ...") );
+					lprintf( " ..." );
 				}
 #endif
 #endif
@@ -723,12 +723,12 @@ void ShowObjectChildren( POBJECT po )
 		}
 		if( pCurObj->pHolds )
 		{
-			//lprintf( WIDE("Show holds"));
+			//lprintf( "Show holds");
 			ShowObjectChildren( pCurObj->pHolds );
 		}
 		if( pCurObj->pHas )
 		{
-			//lprintf( WIDE("Show has") );
+			//lprintf( "Show has" );
 			ShowObjectChildren( pCurObj->pHas );
 		}
 	}
@@ -758,7 +758,7 @@ void ShowObjects( )
 	}
 	  					__except( EvalExcept( GetExceptionCode() ) )
 					{
-						lprintf( WIDE(" ...") );
+						lprintf( " ..." );
 						;
 					}
 #endif

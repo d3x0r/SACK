@@ -18,7 +18,7 @@
 // started using this symbol more in the later days of disabling logging...
 //#define VERBOSE_DEBUG
 //#define LOG_STARTUP_SHUTDOWN
-// Define this symbol to use Log( ghLog, WIDE("") ) to log pending
+// Define this symbol to use Log( ghLog, "" ) to log pending
 // write status...
 //#define LOG_PENDING
 // for windows - this will log all FD_XXXX notifications processed...
@@ -198,9 +198,9 @@ struct NetworkClient
 	SOCKADDR *saLastClient; // use this for UDP recvfrom
 	uint8_t     hwClient[6];
 	uint8_t     hwSource[6];
-	//  ServeUDP( WIDE("SourceIP"), SourcePort );
+	//  ServeUDP( "SourceIP", SourcePort );
 	// 		saSource w/ no Dest - read is a connect...
-	//  ConnectUDP( WIDE("DestIP"), DestPort );
+	//  ConnectUDP( "DestIP", DestPort );
 	//     saClient is DestIP
 	//		saSource and implied source...
 	//     USE TCP to locate MY Address?

@@ -58,7 +58,7 @@ static void CPROC RenderCursor( PCONSOLE_INFO pmdp, RECT *r, int column )
 {
 	// render the cursor....
 	// render cursor ... \_/ or /\ type shape....
-	//lprintf( WIDE("Rendering the cursor... at ") );
+	//lprintf( "Rendering the cursor... at " );
 	{
 		extern HPEN hPenCursor;
 		if( pmdp->
@@ -115,7 +115,7 @@ static void CPROC RenderCursor( PCONSOLE_INFO pmdp, RECT *r, int column )
 
 static void CPROC RenderSeparator( PCONSOLE_INFO pdp, int nStart )
 {
-	//lprintf( WIDE("Rendering separator at %d"), nStart );
+	//lprintf( "Rendering separator at %d", nStart );
 	// Render Command Line Separator
 	SelectObject( pdp->wincon.hDC, hPenHighlight );
 	MoveToEx( pdp->wincon.hDC, 0, nStart, NULL );
@@ -145,8 +145,8 @@ void CPROC KeystrokePaste( PCONSOLE_INFO pdp )
 		  format = EnumClipboardFormats( 0 );
 		  while( format )
 		  {
-				//DECLTEXT( msg, WIDE("												 ") );
-				//msg.data.size = sprintf( msg.data.data, WIDE("Format: %d"), format );
+				//DECLTEXT( msg, "												 " );
+				//msg.data.size = sprintf( msg.data.data, "Format: %d", format );
 				//EnqueLink( pdp->ps->Command->ppOutput, SegDuplicate( (PTEXT)&msg ) );
 				if( format == CF_TEXT )
 				{
@@ -183,7 +183,7 @@ void CPROC KeystrokePaste( PCONSOLE_INFO pdp )
 	 }
 	 else
 	 {
-		  DECLTEXT( msg, WIDE("Clipboard was not available") );
+		  DECLTEXT( msg, "Clipboard was not available" );
 #ifdef __DEKWARE_PLUGIN__
 		  EnqueLink( &pdp->common.Owner->Command->Output, &msg );
 #endif
@@ -203,11 +203,11 @@ VOID KeyEventProc(PCONSOLE_INFO pdp, KEY_EVENT_RECORD event)
 	int mod = KEYMOD_NORMAL;
 	if( !pdp ) // not a valid window handle/device path
 		  return;
-	//Log( WIDE("Entering keyproc...") );
+	//Log( "Entering keyproc..." );
 	EnterCriticalSec( &pdp->Lock );
 	//while( LockedExchange( &pdp->common.CommandInfo->CollectionBufferLock, 1 ) )
 	//	Sleep(0);
-	//Log1( WIDE("mod = %x"), pdp->dwControlKeyState );
+	//Log1( "mod = %x", pdp->dwControlKeyState );
 	mod = pdp->dwControlKeyState;
 
 	if( event.bKeyDown )
@@ -239,7 +239,7 @@ VOID KeyEventProc(PCONSOLE_INFO pdp, KEY_EVENT_RECORD event)
 		}
 	}
 	LeaveCriticalSec( &pdp->Lock );
-	//lprintf( WIDE("Left critical section on wincon.") );
+	//lprintf( "Left critical section on wincon." );
 }
 
 //----------------------------------------------------------------------------
@@ -335,11 +335,11 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			 ( LOWORD( wParam ) <= MNU_BKWHITE ) )
 		{
 			pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
-			lprintf( WIDE("Set Default COlor background") );
+			lprintf( "Set Default COlor background" );
 			SetHistoryDefaultBackground( pdp->pCursor, LOWORD( wParam ) - MNU_BKBLACK );
 			{
 #ifdef __DEKWARE_PLUGIN__
-				SetRegistryInt( WIDE("Dekware\\Wincon\\Background")
+				SetRegistryInt( "Dekware\\Wincon\\Background"
 								  , GetText( GetName( pdp->common.Owner->Current ) )
 								  , LOWORD( wParam ) - MNU_BKBLACK );
 #endif
@@ -349,11 +349,11 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 					( LOWORD( wParam ) <= MNU_WHITE ) )
 		{
 			pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
-			lprintf( WIDE("Set Default COlor Foreground") );
+			lprintf( "Set Default COlor Foreground" );
 			SetHistoryDefaultForeground( pdp->pCursor, LOWORD( wParam ) - MNU_BKBLACK );
 			{
 #ifdef __DEKWARE_PLUGIN__
-				SetRegistryInt( WIDE("Dekware\\Wincon\\Foreground")
+				SetRegistryInt( "Dekware\\Wincon\\Foreground"
 								  , GetText( GetName( pdp->common.Owner->Current ) )
 								  , LOWORD( wParam ) - MNU_BKBLACK );
 #endif
@@ -367,7 +367,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				pdp->flags.bDirect ^= 1;
 				{
 #ifdef __DEKWARE_PLUGIN__
-					SetRegistryInt( WIDE("Dekware\\Wincon\\Direct")
+					SetRegistryInt( "Dekware\\Wincon\\Direct"
 									  , GetText( GetName( pdp->common.Owner->Current ) )
 									  , pdp->flags.bDirect );
 #endif
@@ -389,7 +389,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				LeaveCriticalSec( &pdp->Lock );
 				{
 #ifdef __DEKWARE_PLUGIN__
-					SetRegistryInt( WIDE("Dekware\\Wincon\\History")
+					SetRegistryInt( "Dekware\\Wincon\\History"
 									  , GetText( GetName( pdp->common.Owner->Current ) )
 									  , pdp->nHistoryPercent );
 #endif
@@ -403,7 +403,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				if( ChooseFont( &pdp->wincon.cfFont ) )
 				{
 #ifdef __DEKWARE_PLUGIN__
-					SetRegistryBinary( WIDE("Dekware\\Wincon\\Font")
+					SetRegistryBinary( "Dekware\\Wincon\\Font"
 										  , GetText( GetName( pdp->common.Owner->Current ) )
 										  , &pdp->wincon.lfFont, sizeof( LOGFONT ) );
 #endif
@@ -426,13 +426,13 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				TEXTCHAR *Result;
 				//PENTITY pe;
 				//PSENTIENT ps;
-				Result = (TEXTCHAR*)DialogBox( hInstMe, WIDE("NameDialog"), hWnd, NameDialog );
+				Result = (TEXTCHAR*)DialogBox( hInstMe, "NameDialog", hWnd, NameDialog );
 #ifdef __DEKWARE_PLUGIN__
 				if( Result )
 				{
 					PVARTEXT vt;
 					vt = VarTextCreate();
-					vtprintf( vt, WIDE("/NewWindow NewWindow"), Result );
+					vtprintf( vt, "/NewWindow NewWindow", Result );
 					EnqueLink( &(GetTheVoid()->pControlledBy->Command->Input), burst( VarTextGet( vt ) ) );
 					VarTextEmpty( vt );
 					WakeAThread( GetTheVoid()->pControlledBy );
@@ -597,7 +597,7 @@ do_mark_copy:
 				xPos = ( LOWORD(lParam) - r.left ) - ( GetSystemMetrics( SM_CXSIZE ) +
 															 GetSystemMetrics( SM_CXBORDER ) +
 																  GetSystemMetrics( SM_CXFRAME ) );
-				//lprintf( WIDE("Adjusting size by %d %d %d %d %d")
+				//lprintf( "Adjusting size by %d %d %d %d %d"
 				//									, GetSystemMetrics( SM_CYSIZEFRAME )
 				//									, GetSystemMetrics( SM_CYCAPTION )
 				//									, GetSystemMetrics( SM_CYMENU )
@@ -699,11 +699,11 @@ do_mark_copy:
 			pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
 			if( pdp )
 			{
-				//Log( WIDE("Attempt enter painting...") );
+				//Log( "Attempt enter painting..." );
 				EnterCriticalSec( &pdp->Lock );
 				RenderConsole( pdp );
 				LeaveCriticalSec( &pdp->Lock );
-				//Log( WIDE("Left critical section pdp") );
+				//Log( "Left critical section pdp" );
 			}
 		}
 		break;
@@ -726,7 +726,7 @@ do_mark_copy:
 				pdp->wincon.hDC = GetDC( hWnd );
 				pdp->wincon.cfFont = cfDefaultFont;
 #ifdef __DEKWARE_PLUGIN__
-				if( !GetRegistryBinary( WIDE("Dekware\\Wincon\\Font")
+				if( !GetRegistryBinary( "Dekware\\Wincon\\Font"
 											 , GetText( GetName( pdp->common.Owner->Current ) )
 											 , &pdp->wincon.lfFont, sizeof( LOGFONT ) ) )
 					pdp->wincon.lfFont = lfDefaultFont;
@@ -800,7 +800,7 @@ int CALLBACK FrameWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				cfDefaultFont.hwndOwner = hWnd;
 				if( ChooseFont( &cfDefaultFont ) )
 				{
-					SetRegistryBinary( WIDE("Dekware\\Wincon"), WIDE("DefaultFont"), &lfDefaultFont, sizeof( LOGFONT ) );
+					SetRegistryBinary( "Dekware\\Wincon", "DefaultFont", &lfDefaultFont, sizeof( LOGFONT ) );
 					DeleteObject( hFontDefault );
 					hFontDefault = CreateFontIndirect( cfDefaultFont.lpLogFont );
 				}
@@ -811,13 +811,13 @@ int CALLBACK FrameWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				TEXTCHAR *Result;
 				//PENTITY pe;
 				//PSENTIENT ps;
-				Result = (TEXTCHAR*)DialogBox( hInstMe, WIDE("NameDialog"), hWnd, NameDialog );
+				Result = (TEXTCHAR*)DialogBox( hInstMe, "NameDialog", hWnd, NameDialog );
 				if( Result )
 				{
 #ifdef __DEKWARE_PLUGIN__
 					PVARTEXT vt;
 					vt = VarTextCreate();
-					vtprintf( vt, WIDE("/NewWindow Window"), Result );
+					vtprintf( vt, "/NewWindow Window", Result );
 					EnqueLink( &(GetTheVoid()->pControlledBy->Command->Input), burst( VarTextGet( vt ) ) );
 					VarTextEmpty( vt );
 					WakeAThread( GetTheVoid()->pControlledBy );
@@ -831,8 +831,8 @@ int CALLBACK FrameWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		{
 			PCONSOLE_INFO pmdp = (PCONSOLE_INFO) lParam;
 			MDICREATESTRUCT mcs;
-			mcs.szClass = WIDE("DekwareChildClass");
-			mcs.szTitle = WIDE("Object Command Console");
+			mcs.szClass = "DekwareChildClass";
+			mcs.szTitle = "Object Command Console";
 			mcs.hOwner = hInstMe;
 			mcs.cy =
 			mcs.cx =
@@ -851,7 +851,7 @@ int CALLBACK FrameWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			HDC hDC;
 			hDC = GetDC( hWnd );
 			// check registry to see if prior font setting exists....
-			if( !GetRegistryBinary( WIDE("Dekware\\Wincon"), WIDE("DefaultFont"), &lfDefaultFont, sizeof( LOGFONT ) ) )
+			if( !GetRegistryBinary( "Dekware\\Wincon", "DefaultFont", &lfDefaultFont, sizeof( LOGFONT ) ) )
 			{
 				static const LOGFONT lfDefaultFontVals= { -13
 									  , 0, 0, 0
@@ -862,7 +862,7 @@ int CALLBACK FrameWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 									  , CLIP_DEFAULT_PRECIS
 									  , DEFAULT_QUALITY
 									  , DEFAULT_PITCH | FF_DONTCARE
-									  , WIDE("Lucida Console") }; // information about the font...
+									  , "Lucida Console" }; // information about the font...
 				MemCpy( &lfDefaultFont, (POINTER)&lfDefaultFontVals, sizeof( LOGFONT ) );
 			}
 			hFontDefault = CreateFontIndirect( &lfDefaultFont );
@@ -877,7 +877,7 @@ int CALLBACK FrameWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				 /* Find window menu where children will be listed */
 				 ccs.hWindowMenu = GetSubMenu( GetMenu(hWnd),2);
 				 ccs.idFirstChild = 4100;//IDM_WINDOWCHILD;
-				 hWndMDI = CreateWindow( WIDE("MDICLIENT"), NULL
+				 hWndMDI = CreateWindow( "MDICLIENT", NULL
 							, WS_VISIBLE|WS_CHILD|WS_CLIPCHILDREN|WS_VSCROLL|WS_HSCROLL
 							, 0, 0, 0, 0, hWnd, (HMENU)0xcac/* ????*/
 							, hInstMe, (void*)&ccs );
@@ -898,8 +898,8 @@ uintptr_t CPROC FrameWindowThread( PTHREAD thread )
 	MSG msg;
 	// create message queue - make sure we're able to handle incoming messages...
 	PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE );
-	hWndFrame = CreateWindow( WIDE("DekwareFrameClass"),
-					  WIDE("Dekware Interface"),
+	hWndFrame = CreateWindow( "DekwareFrameClass",
+					  "Dekware Interface",
 					  (WS_VISIBLE|WS_OVERLAPPEDWINDOW),
 					  CW_USEDEFAULT,
 					  CW_USEDEFAULT,
@@ -977,12 +977,12 @@ void CreateFrameWindow( void )
 		 */
 		while( !hWndFrame || !hWndMDI )
 		{
-			Log( WIDE("Waiting for windows to be made.") );
+			Log( "Waiting for windows to be made." );
 			Sleep( 10 );
 		}
 		hKeyHook = SetWindowsHookEx( WH_KEYBOARD, (HOOKPROC)KeyHook
 											, NULL, GetThreadID( thread ) & 0xFFFFFFFF );
-		//Log1( WIDE("Done creating window... %d"), hKeyHook );
+		//Log1( "Done creating window... %d", hKeyHook );
 		GetLastError();
 	}
 }
@@ -1005,8 +1005,8 @@ int RegisterWindows( void )
 		wc.hInstance = hInstMe; // GetModuleHandle(NULL);
 		wc.hbrBackground = (HBRUSH)( COLOR_WINDOW + 1);
 		wc.hCursor = LoadCursor( NULL, IDC_ARROW );
-		wc.lpszClassName = WIDE("DekwareFrameClass");
-		wc.lpszMenuName = WIDE("FRAME_MENU");
+		wc.lpszClassName = "DekwareFrameClass";
+		wc.lpszMenuName = "FRAME_MENU";
 		wc.cbWndExtra = sizeof( uintptr_t );  // one extra POINTER
 
 		aClassFrame = RegisterClass( &wc );
@@ -1029,7 +1029,7 @@ int RegisterWindows( void )
 			wc.hbrBackground = (HBRUSH)CreateBrushIndirect( &lbr );
 			//wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE+1);
 		}
-		wc.lpszClassName = WIDE("DekwareChildClass");
+		wc.lpszClassName = "DekwareChildClass";
 		wc.cbWndExtra = sizeof( uintptr_t );  // one extra POINTER
 
 		aClassChild = RegisterClass( &wc );
@@ -1037,15 +1037,15 @@ int RegisterWindows( void )
 			return FALSE;
 	}
 	hChildMenu = CreatePopupMenu();
-	AppendMenu( hChildMenu, MF_STRING, MNU_NEW, WIDE("New Window") );
-	AppendMenu( hChildMenu, MF_STRING, MNU_FONT, WIDE("Set Font") );
+	AppendMenu( hChildMenu, MF_STRING, MNU_NEW, "New Window" );
+	AppendMenu( hChildMenu, MF_STRING, MNU_FONT, "Set Font" );
 	{
 		hHistoryMenu = CreatePopupMenu();
-		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, WIDE("25%") );
-		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, WIDE("50%") );
-		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, WIDE("75%") );
-		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, WIDE("100%") );
-		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hHistoryMenu, WIDE("History Display Size") );
+		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, "25%" );
+		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, "50%" );
+		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, "75%" );
+		AppendMenu( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, "100%" );
+		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hHistoryMenu, "History Display Size" );
 	}
 	{
 		HMENU hColorMenu, hColorMenu2;
@@ -1066,7 +1066,7 @@ int RegisterWindows( void )
 		AppendMenu( hColorMenu, MF_OWNERDRAW, MNU_LTMAG, (LPCTSTR)13 );
 		AppendMenu( hColorMenu, MF_OWNERDRAW, MNU_YELLOW, (LPCTSTR)14 );
 		AppendMenu( hColorMenu, MF_OWNERDRAW, MNU_WHITE, (LPCTSTR)15 );
-		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu, WIDE("Text Color") );
+		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu, "Text Color" );
 		hColorMenu2 = CreatePopupMenu();
 		AppendMenu( hColorMenu2, MF_OWNERDRAW, MNU_BKBLACK, (LPCTSTR)0 );
 		AppendMenu( hColorMenu2, MF_OWNERDRAW, MNU_BKBLUE, (LPCTSTR)1 );
@@ -1084,11 +1084,11 @@ int RegisterWindows( void )
 		AppendMenu( hColorMenu2, MF_OWNERDRAW, MNU_BKLTMAG, (LPCTSTR)13 );
 		AppendMenu( hColorMenu2, MF_OWNERDRAW, MNU_BKYELLOW, (LPCTSTR)14 );
 		AppendMenu( hColorMenu2, MF_OWNERDRAW, MNU_BKWHITE, (LPCTSTR)15 );
-		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu2, WIDE("Background Color") );
+		AppendMenu( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu2, "Background Color" );
 	}
-	AppendMenu( hChildMenu, MF_STRING, 0, WIDE("Command Color") );
-	AppendMenu( hChildMenu, MF_STRING, 0, WIDE("Command Background Color") );
-	AppendMenu( hChildMenu, MF_STRING, MNU_DIRECT, WIDE("Direct Mode") );
+	AppendMenu( hChildMenu, MF_STRING, 0, "Command Color" );
+	AppendMenu( hChildMenu, MF_STRING, 0, "Command Background Color" );
+	AppendMenu( hChildMenu, MF_STRING, MNU_DIRECT, "Direct Mode" );
 	{
 		  int n;
 		for( n = 0; n < 16; n++ )
@@ -1178,7 +1178,7 @@ int UpdateStatusBar( PSENTIENT ps, PTEXT parameters )
 //void CPROC WinconPrompt( PCONSOLE_INFO pdp )
 void CPROC WinconPrompt( PDATAPATH pdp )
 {
-	//lprintf( WIDE("rendering command line - had a prompt issued...") );
+	//lprintf( "rendering command line - had a prompt issued..." );
 	 //RenderCommandLine( (PCONSOLE_INFO)pdp );
 #ifdef __DEKWARE_PLUGIN__
 	prompt( ((PCONSOLE_INFO)pdp)->common.Owner ); // will need to call this since it's bypassed
@@ -1240,7 +1240,7 @@ int CPROC SetFlash( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 static void CPROC DrawString( PCONSOLE_INFO pmdp, int x, int y, RECT *r, TEXTCHAR *s, size_t nShown, size_t nShow )
 {
 	SIZE size;
-	//lprintf( WIDE("Adding string out : %s %d %d at %d,%d or (%d,%d)  (%d,%d)"), s, nShown, nShow,x,y,r->left,r->top, r->right, r->bottom );
+	//lprintf( "Adding string out : %s %d %d at %d,%d or (%d,%d)  (%d,%d)", s, nShown, nShow,x,y,r->left,r->top, r->right, r->bottom );
 	//InvalidateRect( pmdp->wincon.hDC, r, NULL );
 	GetTextExtentPoint32( pmdp->wincon.hDC, s, nShow, &size );
 	r->right = x + size.cx; // leading pad is in the rect.
@@ -1280,7 +1280,7 @@ static void CPROC SetCurrentColor( PCONSOLE_INFO pdp, enum current_color_type ty
 		}
 		break;
 	}
-	//lprintf( WIDE("Set text color to %08lX %08lX")
+	//lprintf( "Set text color to %08lX %08lX"
 	//		 , pdp->wincon.crText
 	//		 , pdp->wincon.crBack );
 }
@@ -1306,7 +1306,7 @@ static void CPROC Update( PCONSOLE_INFO pmdp, RECT *update )
 {
 	// passed region is the region which was updated by drawing
 	// code.
-	//lprintf( WIDE("... update (should have drawn?)"));
+	//lprintf( "... update (should have drawn?)");
 	// there is no action required to flush updates
 	// to the display for this interface.
 	//ValidateRect( pmdp->wincon.hWnd, update );
@@ -1315,27 +1315,27 @@ static void CPROC Update( PCONSOLE_INFO pmdp, RECT *update )
 	//GDIFlush();
 }
 
-DECLTEXT( WinConName, WIDE("wincon") );
+DECLTEXT( WinConName, "wincon" );
 
-static PTEXT DeviceVolatileVariableGet( WIDE("wincon"), WIDE("rows"), WIDE("console row count") )(PENTITY pe,PTEXT *ppLastValue)
+static PTEXT DeviceVolatileVariableGet( "wincon", "rows", "console row count" )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&WinConName );
 	return GetRows( (uintptr_t)pdp, pe, ppLastValue );
 }
-static PTEXT DeviceVolatileVariableGet( WIDE("wincon"), WIDE("cols"), WIDE("console col count") )(PENTITY pe,PTEXT *ppLastValue)
+static PTEXT DeviceVolatileVariableGet( "wincon", "cols", "console col count" )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&WinConName );
 	return GetCols( (uintptr_t)pdp, pe, ppLastValue );
 }
-static PTEXT DeviceVolatileVariableGet( WIDE("wincon"), WIDE("cursor_x"), WIDE("console cursor x(col) position") )(PENTITY pe,PTEXT *ppLastValue)
+static PTEXT DeviceVolatileVariableGet( "wincon", "cursor_x", "console cursor x(col) position" )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&WinConName );
 	return GetCursorX( (uintptr_t)pdp, pe, ppLastValue );
 }
-static PTEXT DeviceVolatileVariableGet( WIDE("wincon"), WIDE("cursor_y"), WIDE("console cursor y(row) position") )(PENTITY pe,PTEXT*ppLastValue)
+static PTEXT DeviceVolatileVariableGet( "wincon", "cursor_y", "console cursor y(row) position" )(PENTITY pe,PTEXT*ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&WinConName );
@@ -1346,7 +1346,7 @@ static PTEXT DeviceVolatileVariableGet( WIDE("wincon"), WIDE("cursor_y"), WIDE("
 #ifdef __DEKWARE_PLUGIN__
 bool short_create;
 
-static PDATAPATH OnInitDevice( WIDE("wincon"), WIDE("Windows MDI interactive interface") )( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
+static PDATAPATH OnInitDevice( "wincon", "Windows MDI interactive interface" )( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 //PDATAPATH CPROC CreateConsole( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
 	PCONSOLE_INFO pdp;
@@ -1366,7 +1366,7 @@ static PDATAPATH OnInitDevice( WIDE("wincon"), WIDE("Windows MDI interactive int
 	SetHistoryBrowserNoPageBreak( pdp->pHistoryDisplay );
 
 	InitializeCriticalSec( &pdp->Lock );
-	//Log( WIDE("Initialized section...") );
+	//Log( "Initialized section..." );
 
 #if 0
 	AddVolatileVariable( ps->Current, &vve_rows, (uintptr_t)pdp );
@@ -1386,11 +1386,11 @@ static PDATAPATH OnInitDevice( WIDE("wincon"), WIDE("Windows MDI interactive int
 
 	 {
 		  int nValue;
-		  if( GetRegistryInt( WIDE("Dekware\\Wincon\\Direct")
+		  if( GetRegistryInt( "Dekware\\Wincon\\Direct"
 								, GetText( GetName( pdp->common.Owner->Current ) )
 								, &nValue ) )
 			  pdp->flags.bDirect = nValue;
-		  if( GetRegistryInt( WIDE("Dekware\\Wincon\\History")
+		  if( GetRegistryInt( "Dekware\\Wincon\\History"
 								  , GetText( GetName( pdp->common.Owner->Current ) )
 								  , &nValue ) )
 			  pdp->nHistoryPercent = nValue;
@@ -1471,7 +1471,7 @@ public:
 	//int nCommandLineStart;
 	WinconDataPath( )//dotnetcon::netcon ^con )
 	{
-		pe = CreateEntityIn( THE_VOID, SegCreateFromText( WIDE("Console") ) );
+		pe = CreateEntityIn( THE_VOID, SegCreateFromText( "Console" ) );
 		ps = CreateAwareness( pe );
 	//Sentience ^sent;
 	//ps = sent->ps;
@@ -1482,7 +1482,7 @@ public:
 		pmdp = (PCONSOLE_INFO)CreateConsole( &ps->Command, ps, NULL );
 		short_create = false;
 		pdp = &pmdp->common;
-		pdp->pName = SegCreateFromText( WIDE("interface") );
+		pdp->pName = SegCreateFromText( "interface" );
 
 	//pmdp->FillConsoleRect = FillConsoleRect;
 	//pmdp->RenderSeparator = RenderSeparator;

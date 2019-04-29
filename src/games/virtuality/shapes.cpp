@@ -232,17 +232,17 @@ PRELOAD( InitShapes )
    n = 0;
 	//for( n = 0; n < 20; n++ )
 	{
-		//Log( WIDE("Fill 80 sides...") );
+		//Log( "Fill 80 sides..." );
 		FillQuadSet( _80sides, n*4, 1
 					  , icosa_points[icosa_index[n][0]]
 					  , icosa_points[icosa_index[n][1]]
 					  , icosa_points[icosa_index[n][2]] );
-		//Log( WIDE("Fill 320 sides...") );
+		//Log( "Fill 320 sides..." );
 		FillQuadSet( _320sides, n*16, 2
 					  , icosa_points[icosa_index[n][0]]
 					  , icosa_points[icosa_index[n][1]]
 					  , icosa_points[icosa_index[n][2]] );
-		//Log( WIDE("Fill 1280 sides...") );
+		//Log( "Fill 1280 sides..." );
 		FillQuadSet( _1280sides, n*64, 3
 					  , icosa_points[icosa_index[n][0]]
 					  , icosa_points[icosa_index[n][1]]

@@ -37,20 +37,20 @@ const TEXTCHAR*  GetKeyText (int key)
 	if (!c)
 	{
 		// check prior key bindings...
-		//printf( WIDE("no translation\n") );
+		//printf( "no translation\n" );
 		return 0;
 	}
 	else if (c == 2)
 	{
-		//printf( WIDE("Key Translated: %d %d\n"), ch[0], ch[1] );
+		//printf( "Key Translated: %d %d\n", ch[0], ch[1] );
 		return 0;
 	}
 	else if (c < 0)
 	{
-		//printf( WIDE("Key Translation less than 0\n") );
+		//printf( "Key Translation less than 0\n" );
 		return 0;
 	}
-	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+	//printf( "Key Translated: %d(%c)\n", ch[0], ch[0] );
 #ifdef UNICODE
 	{
 		static wchar_t *out;
@@ -72,7 +72,7 @@ LRESULT CALLBACK
 			  )
 {
 	if( l.flags.bLogKeyEvent )
-		lprintf( WIDE( "KeyHook %d %08lx %08lx" ), code, wParam, lParam );
+		lprintf( "KeyHook %d %08lx %08lx", code, wParam, lParam );
 	{
 		int dispatch_handled = 0;
 		PVIDEO hVid;
@@ -97,7 +97,7 @@ LRESULT CALLBACK
 					else
 						if( l.flags.bLogKeyEvent )
 						{
-							lprintf( WIDE( "skipping thread %p" ), check_thread );
+							lprintf( "skipping thread %p", check_thread );
 						}
 				}
 			}
@@ -105,8 +105,8 @@ LRESULT CALLBACK
 		}
 		if( l.flags.bLogKeyEvent )
 		{
-			lprintf( WIDE( "%x Received key to %p %p" ), GetCurrentThreadId(), hWndFocus, hWndFore );
-			lprintf( WIDE( "Received key %d %08x %08x" ), code, wParam, lParam );
+			lprintf( "%x Received key to %p %p", GetCurrentThreadId(), hWndFocus, hWndFore );
+			lprintf( "Received key %d %08x %08x", code, wParam, lParam );
 		}
 		aThisClass = (ATOM) GetClassLong (hWndFocus, GCW_ATOM);
 		if (aThisClass != l.aClass && hWndFocus != ((struct display_camera *)GetLink( &l.cameras, 0 ))->hWndInstance )
@@ -123,7 +123,7 @@ LRESULT CALLBACK
 					{
 						if( l.flags.bLogKeyEvent )
 						{
-							lprintf( WIDE( "Chained to next hook..." ) );
+							lprintf( "Chained to next hook..." );
 						}
 						return CallNextHookEx ( (HHOOK)GetLink( &l.keyhooks, idx ), code, wParam, lParam);
 					}
@@ -131,8 +131,8 @@ LRESULT CALLBACK
 			}
 		}
 		if( l.flags.bLogKeyEvent )
-			lprintf( WIDE("Keyhook mesasage... %08x %08x"), wParam, lParam );
-		//lprintf( WIDE("hWndFocus is %p"), hWndFocus );
+			lprintf( "Keyhook mesasage... %08x %08x", wParam, lParam );
+		//lprintf( "hWndFocus is %p", hWndFocus );
 		{
 			INDEX idx;
 			struct display_camera *camera;
@@ -145,7 +145,7 @@ LRESULT CALLBACK
 			{
 	#ifdef LOG_FOCUSEVENTS
 				if( l.flags.bLogKeyEvent )
-					lprintf( WIDE("hwndfocus is something...") );
+					lprintf( "hwndfocus is something..." );
 	#endif
 				hVid = camera->hVidCore;
 			}
@@ -171,7 +171,7 @@ LRESULT CALLBACK
 			}
 		}
 		if( l.flags.bLogKeyEvent )
-			lprintf( WIDE("hvid is %p"), hVid );
+			lprintf( "hvid is %p", hVid );
 		if(hVid)
 		{
          /*
@@ -199,7 +199,7 @@ LRESULT CALLBACK
 		}
 		// do we REALLY have to call the next hook?!
 		// I mean windows will just fuck us in the next layer....
-		//lprintf( WIDE( "%d %d" ), code, dispatch_handled );
+		//lprintf( "%d %d", code, dispatch_handled );
 		if( ( code < 0 )|| !dispatch_handled )
 		{
 			PTHREAD thread = MakeThread();
@@ -211,18 +211,18 @@ LRESULT CALLBACK
 				{
 					LRESULT result;
 					if( l.flags.bLogKeyEvent )
-						lprintf( WIDE( "Chained to next hook...(2)" ) );
+						lprintf( "Chained to next hook...(2)" );
 					result = CallNextHookEx ( (HHOOK)GetLink( &l.keyhooks, idx ), code, wParam, lParam);
 					if( l.flags.bLogKeyEvent )
-						lprintf( WIDE( "and result is %d" ), result );
+						lprintf( "and result is %d", result );
 					return result;
 				}
 				//else
-				//   lprintf( WIDE( "skipping thread %p" ), check_thread );
+				//   lprintf( "skipping thread %p", check_thread );
 			}
 		}
 	}
-	//lprintf( WIDE( "Finished keyhook..." ) );
+	//lprintf( "Finished keyhook..." );
 	return 1; // stop handling - zero allows continuation...
 }
 
@@ -242,12 +242,12 @@ LRESULT CALLBACK
 		//HWND hWndFore = GetForegroundWindow();
 		ATOM aThisClass;
 		//LogBinary( kbhook, sizeof( *kbhook ) );
-		//lprintf( WIDE( "Received key to %p %p" ), hWndFocus, hWndFore );
-		//lprintf( WIDE( "Received key %08x %08x" ), wParam, lParam );
+		//lprintf( "Received key to %p %p", hWndFocus, hWndFore );
+		//lprintf( "Received key %08x %08x", wParam, lParam );
 		aThisClass = (ATOM) GetClassLong (hWndFocus, GCW_ATOM);
 
 		if( l.flags.bLogKeyEvent )
-			lprintf( WIDE( "KeyHook2 %d %08lx %d %d %d %d %p" )
+			lprintf( "KeyHook2 %d %08lx %d %d %d %d %p"
 					 , code, wParam
 					 , kbhook->vkCode, kbhook->scanCode, kbhook->flags, kbhook->time, kbhook->dwExtraInfo );
 
@@ -264,26 +264,26 @@ LRESULT CALLBACK
 				{
 					if( check_thread == thread )
 					{
-						//lprintf( WIDE( "Chained to next hook..." ) );
+						//lprintf( "Chained to next hook..." );
 						return CallNextHookEx ( (HHOOK)GetLink( &l.ll_keyhooks, idx ), code, wParam, lParam);
 					}
 				}
 			}
 		}
       */
-		//lprintf( WIDE("Keyhook mesasage... %08x %08x"), wParam, lParam );
-		//lprintf( WIDE("hWndFocus is %p"), hWndFocus );
+		//lprintf( "Keyhook mesasage... %08x %08x", wParam, lParam );
+		//lprintf( "hWndFocus is %p", hWndFocus );
 		//if( hWndFocus == l.hWndInstance )
 		{
 #ifdef LOG_FOCUSEVENTS
-			lprintf( WIDE("hwndfocus is something...") );
+			lprintf( "hwndfocus is something..." );
 #endif
 			//hVid = l.hVidFocused;
 		}
 		//else
 		{
 #ifdef LOG_FOCUSEVENTS
-			lprintf( WIDE("hVid from focus") );
+			lprintf( "hVid from focus" );
 #endif
 			hVid = (PVIDEO) GetWindowLongPtr (hWndFocus, WD_HVIDEO);
 			if( hVid )
@@ -332,7 +332,7 @@ LRESULT CALLBACK
 			dispatch_handled = DispatchKeyEvent( hVid, key );
 		}
 
-		//lprintf( WIDE( "code:%d handled:%d" ), code, dispatch_handled );
+		//lprintf( "code:%d handled:%d", code, dispatch_handled );
 		// do we REALLY have to call the next hook?!
 		// I mean windows will just fuck us in the next layer....
 		if( ( code < 0 )|| !dispatch_handled )
@@ -345,7 +345,7 @@ LRESULT CALLBACK
 				if( check_thread == thread )
 				{
 					if( l.flags.bLogKeyEvent )
-						lprintf( WIDE( "Chained to next hook... %08x %08x" ), wParam, lParam );
+						lprintf( "Chained to next hook... %08x %08x", wParam, lParam );
 					return CallNextHookEx ( (HHOOK)GetLink( &l.ll_keyhooks, idx ), code, wParam, lParam);
 				}
 			}

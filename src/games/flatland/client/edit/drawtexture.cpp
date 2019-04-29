@@ -106,7 +106,7 @@ int DrawTextureSolidColor( PCOMMON pc, INDEX iSector, CDATA color )
 	//npoints = sector->npoints;
 	//glBegin();
 
-	//lprintf( WIDE("points %p count %d"), pointlist, npoints );
+	//lprintf( "points %p count %d", pointlist, npoints );
 
 	for( n = 0; n < npoints; n++ )
 	{
@@ -240,22 +240,22 @@ uintptr_t CPROC DrawSectorTexture( INDEX iSector, uintptr_t psv)
 	PDISPLAY display = ControlData( PDISPLAY, pc );
 	INDEX iTexture = GetSectorTexture( display->pWorld, iSector );
 	PFLATLAND_TEXTURE texture;
-	//lprintf( WIDE("Drawing a sector...") );
+	//lprintf( "Drawing a sector..." );
 	GetTextureData( display->pWorld, iTexture, &texture );
 	if( !texture )
 	{
-		//lprintf( WIDE("no texture to draw.") );
+		//lprintf( "no texture to draw." );
 		return 0;
 	}
 	if( texture->flags.bColor )
 	{
-		//lprintf( WIDE("Draw color...") );
+		//lprintf( "Draw color..." );
 		if( DrawTextureSolidColor( pc, iSector, texture->data.color ) )
 			sectorsdrawn++;
 		else
 			sectorsskipped++;
 	}
 	else
-		lprintf (WIDE("missing data?") );
+		lprintf ("missing data?" );
 	return 0;
 }

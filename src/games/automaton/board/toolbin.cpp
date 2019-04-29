@@ -91,7 +91,7 @@ int CPROC InitToolbinControl( PSI_CONTROL pc )
    return TRUE;
 }
 
-CONTROL_REGISTRATION toolbin_control = { WIDE("Board Toolbin")
+CONTROL_REGISTRATION toolbin_control = { "Board Toolbin"
 										 , { { 64, 256 }, sizeof( TOOLBIN ), BORDER_NORMAL }
 										 , InitToolbinControl // Init
 										 , NULL // Load

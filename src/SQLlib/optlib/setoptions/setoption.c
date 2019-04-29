@@ -6,7 +6,7 @@ SaneWinMain( argc, argv )
 {
 	if( argc < 5 )
 	{
-		printf( WIDE("Usage: %s [root_name] [path] [option] [value]\n"), argv[0] );
+		printf( "Usage: %s [root_name] [path] [option] [value]\n", argv[0] );
 		printf( WIDE("   root_name = \"flashdrive.ini\" (if \"\" then option will go under DEFAULT \n") );
 		printf( WIDE("   path = \"some/path/long quoted path name\"\n") );
 		printf( WIDE("   option = \"option name to set\"\n") );

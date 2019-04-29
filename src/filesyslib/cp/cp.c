@@ -30,10 +30,10 @@ int MyCopyFile( char *src, char *dest, int unused )
 	POINTER pDest;
 	pSrc  = OpenSpace( NULL, src, &src_size );
 	if( !pSrc )
-	 	fprintf( stderr, WIDE("Failed to  map %s\n"), src );
+	 	fprintf( stderr, "Failed to  map %s\n", src );
 	pDest = OpenSpace( NULL, dest, &src_size );
 	if( !pDest )
-	 	fprintf( stderr, WIDE("Failed to  map %s(%d)\n"), dest, src_size );
+	 	fprintf( stderr, "Failed to  map %s(%d)\n", dest, src_size );
 	if( pSrc && pDest && src_size )
 		MemCpy( pDest, pSrc, src_size );
 	if( pSrc )
@@ -47,20 +47,20 @@ int MyCopyFile( char *src, char *dest, int unused )
 int MyCopyFile2( char *src, char *dest, int unused )
 {
 	FILE *in, *out;
-	in = fopen( src, WIDE("rb") );
-	out = fopen( dest, WIDE("wb") );
+	in = fopen( src, "rb" );
+	out = fopen( dest, "wb" );
 	if( !in )
-		printf( WIDE("Failed in") );
+		printf( "Failed in" );
 	if( !out )
-		printf( WIDE("Failed out") );
+		printf( "Failed out" );
    return 1;
 }
 
 void CPROC DoCopy( uintptr_t skip, char *src, int flags )
 {
 	char tmp[256];
-	sprintf( tmp, WIDE("%s/%s"), g.dest, src + skip );
-	//printf( WIDE("Copy %s to %s"), src, tmp );
+	sprintf( tmp, "%s/%s", g.dest, src + skip );
+	//printf( "Copy %s to %s", src, tmp );
 	if( flags & SFF_DIRECTORY )
 	{
 		char filepath1[256];
@@ -69,29 +69,29 @@ void CPROC DoCopy( uintptr_t skip, char *src, int flags )
 		char *file2;
 		GetFullPathName( src, 256, filepath1, &file1 );
 		GetFullPathName( g.original_destbuffer, 256, filepath2, &file2 );
-		Log1( WIDE("Filepath1: %s"), filepath1);
-		Log1( WIDE("Filepath2: %s"), filepath2);
+		Log1( "Filepath1: %s", filepath1);
+		Log1( "Filepath2: %s", filepath2);
 		if( !strcmp( filepath1, filepath2 ) )
 		{
-			fprintf( stderr, WIDE("Omitting destination %s from copy."), g.dest );
+			fprintf( stderr, "Omitting destination %s from copy.", g.dest );
 			return;
 		}
 	}
 	if( flags & SFF_DIRECTORY )
 	{
-		//printf( WIDE("(path)\n") );
+		//printf( "(path)\n" );
 		MakePath( tmp );
 	}
 	else
 	{
-		//printf( WIDE("(file)\n") );
+		//printf( "(file)\n" );
 		//if( g.flags.fast )
 		//	MyCopyFile( src, tmp, FALSE );
 		//else
 		// my copyfile doesn't copy the attributes/time..... so we go a little slower...
-      //fprintf( stderr, WIDE("COpy %s to %s\n"), src, tmp );
+      //fprintf( stderr, "COpy %s to %s\n", src, tmp );
 		if( !MyCopyFile2( src, tmp, FALSE ) )
-         fprintf( stderr, WIDE("copy %s to %s failed\n"), src, tmp );
+         fprintf( stderr, "copy %s to %s failed\n", src, tmp );
 	}
 }
 
@@ -107,7 +107,7 @@ int main( int argc, char **argv )
 {
 	int arg;
 	//uint32_t start = GetTickCount();
-	//SetSystemLog( SYSLOG_FILENAME, WIDE("cp.log") );
+	//SetSystemLog( SYSLOG_FILENAME, "cp.log" );
 	for( arg = 1; arg < argc; arg++ )
 	{
 		if( argv[arg][0] == '-' )
@@ -161,7 +161,7 @@ int main( int argc, char **argv )
 	}
 	if( HasWild( g.dest ) )
 	{
-		fprintf( stderr, WIDE("Wildcard in destination is not supported.\n") );
+		fprintf( stderr, "Wildcard in destination is not supported.\n" );
 		return 1;
 	}
 	if( IsPath( g.dest ) )
@@ -185,7 +185,7 @@ int main( int argc, char **argv )
 										 , strlen( src ) +1) );
 				}
 				else
-					while( ScanFiles( WIDE("."), src, &info, DoCopy
+					while( ScanFiles( ".", src, &info, DoCopy
 										 , SFF_DIRECTORIES 
 										 //| SFF_NAMEONLY
 										 | (g.flags.recurse?SFF_SUBCURSE:0)
@@ -201,17 +201,17 @@ int main( int argc, char **argv )
 					if( mask )
 					{
 						mask++;
-						sprintf( tmp, WIDE("%s/%s"), g.dest, mask );
+						sprintf( tmp, "%s/%s", g.dest, mask );
 					}
 					else
 					{
-						sprintf( tmp, WIDE("%s/%s"), g.dest, src );
+						sprintf( tmp, "%s/%s", g.dest, src );
 					}
 					if( g.flags.directories )
 					{
 						MakePath( tmp );
 						strcpy( g.dest, tmp );
-						while( ScanFiles( src, WIDE("*"), &info, DoCopy 
+						while( ScanFiles( src, "*", &info, DoCopy 
 						                , SFF_DIRECTORIES 
 											 | SFF_SUBCURSE
 											 , strlen( src ) +1) );
@@ -220,7 +220,7 @@ int main( int argc, char **argv )
 					else
 					{
 						if( g.flags.recurse )
-							while( ScanFiles( src, WIDE("*"), &info, DoCopy 
+							while( ScanFiles( src, "*", &info, DoCopy 
 							                , SFF_DIRECTORIES 
 												 | SFF_SUBCURSE
 												 , strlen( src ) +1) );
@@ -228,7 +228,7 @@ int main( int argc, char **argv )
 				} 
 			}
 		}
-		//printf( WIDE("Took %dms\n"), GetTickCount() - start );
+		//printf( "Took %dms\n", GetTickCount() - start );
 	}
 	else
 	{
@@ -239,7 +239,7 @@ int main( int argc, char **argv )
 		   || HasWild( src ) )
 		{
 			fprintf( stderr
-			       , WIDE("%s is not a directory - and multiple source files listed.\n")
+			       , "%s is not a directory - and multiple source files listed.\n"
 			       , g.dest );
 			return 1;
 		}

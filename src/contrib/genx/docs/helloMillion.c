@@ -2,7 +2,7 @@
 
 void oops(genxWriter w)
 {
-  fprintf(stderr, WIDE("oops %s\n"), genxLastErrorMessage(w));
+  fprintf(stderr, "oops %s\n", genxLastErrorMessage(w));
   exit(1);
 }
 
@@ -16,30 +16,30 @@ int main(int argc, char * argv[])
   int i;
   char year[100], month[100];
 
-  if (!(ns = genxDeclareNamespace(w, WIDE("http://example.org/dd"), WIDE("dd"), &status)))
+  if (!(ns = genxDeclareNamespace(w, "http://example.org/dd", "dd", &status)))
     oops(w);
-  if (!(dates = genxDeclareElement(w, ns, WIDE("dates"), &status)))
+  if (!(dates = genxDeclareElement(w, ns, "dates", &status)))
     oops(w);
-  if (!(date = genxDeclareElement(w, NULL, WIDE("date"), &status)))
+  if (!(date = genxDeclareElement(w, NULL, "date", &status)))
     oops(w);
-  if (!(yyyy = genxDeclareAttribute(w, NULL, WIDE("yyyy"), &status)))
+  if (!(yyyy = genxDeclareAttribute(w, NULL, "yyyy", &status)))
     oops(w);
-  if (!(mm = genxDeclareAttribute(w, NULL, WIDE("mm"), &status)))
+  if (!(mm = genxDeclareAttribute(w, NULL, "mm", &status)))
     oops(w);
 
   if (genxStartDocFile(w, stdout) ||
       genxStartElement(dates) ||
-      genxAddText(w, WIDE("\n")))
+      genxAddText(w, "\n"))
     oops(w);
   for (i = 0; i < 1000000; i++)
   {
-    sprintf(year, WIDE("%d"), 1900 + (random() % 100));
-    sprintf(month, WIDE("%02d"), 1 + (random() % 12));
+    sprintf(year, "%d", 1900 + (random() % 100));
+    sprintf(month, "%02d", 1 + (random() % 12));
     if (genxStartElement(date) ||
 	genxAddAttribute(yyyy, year) ||
 	genxAddAttribute(mm, month) ||
 	genxEndElement(w) ||
-	genxAddText(w, WIDE("\n ")))
+	genxAddText(w, "\n "))
       oops(w);
   }
   if (genxEndElement(w))

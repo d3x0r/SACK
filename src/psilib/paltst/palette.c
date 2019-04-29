@@ -11,17 +11,17 @@ int main( void )
 	result = Color(127,127,127);
 	while( PickColorEx( &result, result, 0, 256, 150 ) )
 	{
-		printf( WIDE("Guess what! We got a color: %08") _32fX WIDE("\n"), result );
+		printf( "Guess what! We got a color: %08" _32fX "\n", result );
 		{
 			uint32_t free,used,chunks,freechunks;
 			Sleep( 1000 );// wait a moment for the dialog to really go away.
 			GetMemStats( &free, &used, &chunks, &freechunks );
-			printf( WIDE("Debug: used:%") _32f WIDE(" free:%") _32f WIDE(" chunks:%") _32f WIDE(" freechunks:%") _32f WIDE("\n")
+			printf( "Debug: used:%" _32f " free:%" _32f " chunks:%" _32f " freechunks:%" _32f "\n"
 					, used,free,chunks,freechunks );
 			DebugDumpMem();
 		}
 	}
-	printf( WIDE("Color Dialog was canceled.\n") );
+	printf( "Color Dialog was canceled.\n" );
 	return 0;
 }
 

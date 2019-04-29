@@ -30,14 +30,14 @@ namespace sack {
 				CTEXTSTR __dsn = DupWideToText( _dsn );
 				odbc = ConnectToDatabase( __dsn );
 				opens++;
-				lprintf( WIDE("Opening database %d"), opens );
+				lprintf( "Opening database %d", opens );
 			}
 
 			~SQL()
 			{
 				CloseDatabase( odbc );
 				opens--;
-				lprintf( WIDE("Closing database %d remain"), opens );
+				lprintf( "Closing database %d remain", opens );
 			}
 
 			SQLMode Mode()

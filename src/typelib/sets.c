@@ -43,7 +43,7 @@ namespace sack {
 #ifndef __NO_OPTIONS__
 PRELOAD( InitSetLogging )
 {
-	bLog = SACK_GetProfileIntEx( WIDE( "SACK" ), WIDE( "type library/sets/Enable Logging" ), 0, TRUE );
+	bLog = SACK_GetProfileIntEx( "SACK", "type library/sets/Enable Logging", 0, TRUE );
 }
 #endif
 
@@ -53,7 +53,7 @@ void DeleteSet( GENERICSET **ppSet )
  	if( !ppSet )
  		return;
  	pSet = *ppSet;
-	if( bLog ) lprintf( WIDE( "Deleted set %p" ), pSet );
+	if( bLog ) lprintf( "Deleted set %p", pSet );
 	while( pSet )
 	{
 		GENERICSET *next;
@@ -88,7 +88,7 @@ PGENERICSET GetFromSetPoolEx( GENERICSET **pSetSet, int setsetsizea, int setunit
 		{
 			set = (PGENERICSET)AllocateEx( setsizea DBG_RELAY );
 			set->nBias = 0;
-			//Log4( WIDE("Allocating a Set for %d elements sized %d total %d %08x"), maxcnt, unitsize, setsize, set );
+			//Log4( "Allocating a Set for %d elements sized %d total %d %08x", maxcnt, unitsize, setsize, set );
 			MemSet( set, 0, setsizea );
 		}
 		*pSet = set;
@@ -112,7 +112,7 @@ ExtendSet:
 				else
 				{
 					newset = (PGENERICSET)AllocateEx( setsizea DBG_RELAY );
-					//Log4( WIDE("Allocating a Set for %d elements sized %d total %d %08x"), maxcnt, unitsize, setsize, set );
+					//Log4( "Allocating a Set for %d elements sized %d total %d %08x", maxcnt, unitsize, setsize, set );
 					MemSet( newset, 0, setsizea );
 					if( set->nBias > maxbias )
 						maxbias = set->nBias;
@@ -176,7 +176,7 @@ ExtendSet:
 			}
 		}
 #ifdef Z_DEBUG
-		if( bLog ) _lprintf( DBG_RELAY )( WIDE( "Unit result: %p from %p %d %d %d %d" ), unit, set, unitsize, maxcnt, n, ( ( (maxcnt +31) / 32 ) * 4 )  );
+		if( bLog ) _lprintf( DBG_RELAY )( "Unit result: %p from %p %d %d %d %d", unit, set, unitsize, maxcnt, n, ( ( (maxcnt +31) / 32 ) * 4 )  );
 #endif
 	}
 	return (PGENERICSET)unit;
@@ -202,7 +202,7 @@ static POINTER GetSetMemberExx( GENERICSET **pSet, INDEX nMember, int setsize, i
 	if( !(*pSet) )
 	{
 		set = (PGENERICSET)AllocateEx( setsize DBG_RELAY );
-		//Log4( WIDE("Allocating a Set for %d elements sized %d total %d %08x"), maxcnt, unitsize, setsize, set );
+		//Log4( "Allocating a Set for %d elements sized %d total %d %08x", maxcnt, unitsize, setsize, set );
 		MemSet( set, 0, setsize );
 		set->nBias = 0;
 		*pSet = set;
@@ -220,7 +220,7 @@ static POINTER GetSetMemberExx( GENERICSET **pSet, INDEX nMember, int setsize, i
 		if( !set->next )
 		{
 			PGENERICSET newset = (PGENERICSET)AllocateEx( setsize DBG_RELAY );
-			//Log4( WIDE("Allocating a Set for %d elements sized %d total %d %08x"), maxcnt, unitsize, setsize, set );
+			//Log4( "Allocating a Set for %d elements sized %d total %d %08x", maxcnt, unitsize, setsize, set );
 			MemSet( newset, 0, setsize );
 			if( set->nBias > maxbias )
 				maxbias = set->nBias;
@@ -240,7 +240,7 @@ static POINTER GetSetMemberExx( GENERICSET **pSet, INDEX nMember, int setsize, i
 		(*bUsed) = 0;
 	else
 		(*bUsed) = 1;
-	if( bLog ) _lprintf(DBG_RELAY)( WIDE( "Resulting unit %" ) _PTRSZVALfs,  ((uintptr_t)(set->bUsed))
+	if( bLog ) _lprintf(DBG_RELAY)( "Resulting unit %" _PTRSZVALfs,  ((uintptr_t)(set->bUsed))
 						+ ( ( (maxcnt +31) / 32 ) * 4 ) // skip over the bUsed bitbuffer
 						+ nMember * unitsize );
 	return (void*)( ((uintptr_t)(set->bUsed))
@@ -293,7 +293,7 @@ INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 			uintptr_t n = nUnit - ( ((uintptr_t)(pSet->bUsed)) + ofs );
 			if( n % unitsize )
 			{
-				lprintf( WIDE("Error in set member alignment! %") _PTRSZVALfs WIDE(" of %d"), n % unitsize, unitsize );
+				lprintf( "Error in set member alignment! %" _PTRSZVALfs " of %d", n % unitsize, unitsize );
 				DebugBreak();
 				return INVALID_INDEX;
 			}
@@ -320,7 +320,7 @@ int MemberValidInSet( GENERICSET *pSet, void *unit, int unitsize, int max )
 			uintptr_t n = nUnit - ( ((uintptr_t)(pSet->bUsed)) + ofs );
 			if( n % unitsize )
 			{
-				lprintf( WIDE("Error in set member alignment! %") _PTRSZVALfs WIDE(" of %d"), n % unitsize, unitsize );
+				lprintf( "Error in set member alignment! %" _PTRSZVALfs " of %d", n % unitsize, unitsize );
 				DebugBreak();
 				return FALSE;
 			}
@@ -341,7 +341,7 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 	uintptr_t base;
 	//if( bLog ) 
 	//if( pSet && ((pSet)->nBias > 1000) )
-	//	_lprintf(DBG_RELAY)( WIDE("Deleting from  %p of %p "), pSet, unit );
+	//	_lprintf(DBG_RELAY)( "Deleting from  %p of %p ", pSet, unit );
 	while( pSet )
 	{
 		base = ( (uintptr_t)( pSet->bUsed ) + ofs );
@@ -352,7 +352,7 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 #ifdef Z_DEBUG
 			if( n % unitsize )
 			{
-				lprintf( WIDE("Error in set member alignment! %p %p %p  %d %")_PTRSZVALfs WIDE(" %")_PTRSZVALfs WIDE(" of %d")
+				lprintf( "Error in set member alignment! %p %p %p  %d %"_PTRSZVALfs " %"_PTRSZVALfs " of %d"
 						 , unit
 						 , pSet
 						 , &pSet->bUsed
@@ -370,7 +370,7 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 	}
 #ifdef Z_DEBUG
 	if( !pSet )
-		Log( WIDE("Failed to find node in set!") );
+		Log( "Failed to find node in set!" );
 #endif
 }
 
@@ -379,7 +379,7 @@ void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_P
 
 void DeleteSetMemberEx( GENERICSET *pSet, INDEX iMember, uintptr_t unitsize, INDEX max )
 {
-	//Log2( WIDE("Deleting from  %08x of %08x "), pSet, iMember );
+	//Log2( "Deleting from  %08x of %08x ", pSet, iMember );
 	while( pSet )
 	{
 		if( iMember >= max )
@@ -395,7 +395,7 @@ void DeleteSetMemberEx( GENERICSET *pSet, INDEX iMember, uintptr_t unitsize, IND
 		if( !IsUsed( pSet, iMember ) )
 		{
 			DebugBreak();
-			lprintf( WIDE("Deleting set member which is already released? not decrementing used counter") );
+			lprintf( "Deleting set member which is already released? not decrementing used counter" );
 		}
 		else
 		{
@@ -404,7 +404,7 @@ void DeleteSetMemberEx( GENERICSET *pSet, INDEX iMember, uintptr_t unitsize, IND
 		}
 	}
 	else
-		Log( WIDE("Failed to find node in set!") );
+		Log( "Failed to find node in set!" );
 }
 
 #undef DeleteSetMember
@@ -437,7 +437,7 @@ void **GetLinearSetArrayEx( GENERICSET *pSet, int *pCount, int unitsize, int max
 	GENERICSET *pCur;
 	GENERICSET *pNewMin = NULL; // useless initialization.  nNewMin will be set if this is valid; and there was no error generated for using THAT uninitialized.
 
-	//Log2( WIDE("Building Array unit size: %d(%08x)"), unitsize, unitsize );
+	//Log2( "Building Array unit size: %d(%08x)", unitsize, unitsize );
 	items = CountUsedInSetEx( pSet, max );
 	if( pCount )
 		*pCount = items;
@@ -514,7 +514,7 @@ int FindInArray( void **pArray, int nArraySize, void *unit )
 
 uintptr_t _ForAllInSet( GENERICSET *pSet, int unitsize, int max, FAISCallback f, uintptr_t psv )
 {
-	//Log2( WIDE("Doing all in set - size: %d setsize: %d"), unitsize, max );
+	//Log2( "Doing all in set - size: %d setsize: %d", unitsize, max );
 	if( f )
 	{
 		int ofs, n;
@@ -530,7 +530,7 @@ uintptr_t _ForAllInSet( GENERICSET *pSet, int unitsize, int max, FAISCallback f,
 											  + n * unitsize ), psv );
 					if( psvReturn )
 					{
-						//Log( WIDE("Return short? "));
+						//Log( "Return short? ");
 						return psvReturn;
 					}
 				}
@@ -544,7 +544,7 @@ uintptr_t _ForAllInSet( GENERICSET *pSet, int unitsize, int max, FAISCallback f,
 #undef ForEachSetMember
 uintptr_t ForEachSetMember( GENERICSET *pSet, int unitsize, int max, FESMCallback f, uintptr_t psv )
 {
-	//Log2( WIDE("Doing all in set - size: %d setsize: %d"), unitsize, max );
+	//Log2( "Doing all in set - size: %d setsize: %d", unitsize, max );
 	if( f )
 	{
 		int total = 0;
@@ -560,7 +560,7 @@ uintptr_t ForEachSetMember( GENERICSET *pSet, int unitsize, int max, FESMCallbac
 					psvReturn = f( total+n, psv );
 					if( psvReturn )
 					{
-						//Log( WIDE("Return short? "));
+						//Log( "Return short? ");
 						return psvReturn;
 					}
 				}

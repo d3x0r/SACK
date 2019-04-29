@@ -46,22 +46,22 @@ static struct {
 
 PRELOAD( RegisterResources )
 {
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_TOPMOST				, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_CONTINUE				, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_YESNO				, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_OKAYCANCEL				, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_NOCLICK			, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_EXPLORER			, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_SKIP_IF_LIT			, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), CHECKBOX_SKIP_IF_UNLIT		 , RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/banner", CHECKBOX_TOPMOST				, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/banner", CHECKBOX_CONTINUE				, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/banner", CHECKBOX_YESNO				, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/banner", CHECKBOX_OKAYCANCEL				, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/banner", CHECKBOX_NOCLICK			, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/banner", CHECKBOX_EXPLORER			, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/banner", CHECKBOX_SKIP_IF_LIT			, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/banner", CHECKBOX_SKIP_IF_UNLIT		 , RADIO_BUTTON_NAME );
 
-	EasyRegisterResource( WIDE( "InterShell/banner" ), EDIT_BANNER_DELAY			  , EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE( "InterShell/banner" ), EDIT_BANNER_TEXT			  , EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/banner", EDIT_BANNER_DELAY			  , EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/banner", EDIT_BANNER_TEXT			  , EDIT_FIELD_NAME );
 
-	EasyRegisterResource( WIDE( "InterShell/banner" ), EDIT_CONTROL_TEXT			  , EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/banner", EDIT_CONTROL_TEXT			  , EDIT_FIELD_NAME );
 }
 
-#define MAKE_BANNER_MESSAGE WIDE("Banner Message")
+#define MAKE_BANNER_MESSAGE "Banner Message"
 static uintptr_t OnCreateMenuButton( MAKE_BANNER_MESSAGE )( PMENU_BUTTON button )
 {
 	PBANNER_BUTTON banner = New( BANNER_BUTTON );
@@ -134,7 +134,7 @@ static void OnKeyPressEvent( MAKE_BANNER_MESSAGE )( uintptr_t psvBanner )
 	//BannerMessage( "Yo, whatcha want!?" );
 }
 
-#define REMOVE_BANNER_MESSAGE WIDE( "Banner Message Remove" )
+#define REMOVE_BANNER_MESSAGE "Banner Message Remove"
 static uintptr_t OnCreateMenuButton( REMOVE_BANNER_MESSAGE )( PMENU_BUTTON button )
 {
 	// this button should only exist as an invisible/macro button....
@@ -159,7 +159,7 @@ static void OnKeyPressEvent( REMOVE_BANNER_MESSAGE )( uintptr_t psvBanner )
 static uintptr_t OnConfigureControl( MAKE_BANNER_MESSAGE )( uintptr_t psvBanner, PSI_CONTROL parent )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
-	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "EditBannerMessage.isFrame" ) );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent, "EditBannerMessage.isFrame" );
 	if( frame )
 	{
 		TEXTCHAR buffer[256];
@@ -171,7 +171,7 @@ static uintptr_t OnConfigureControl( MAKE_BANNER_MESSAGE )( uintptr_t psvBanner,
 		// color?
 		// image name?
 		// if delay is set, make sure that the banner is unclickable.
-		snprintf( buffer, sizeof( buffer ), WIDE( "%d" ), banner->delay );
+		snprintf( buffer, sizeof( buffer ), "%d", banner->delay );
 		SetControlText( GetControl( frame, EDIT_BANNER_DELAY ), buffer );
 		ExpandConfigString( buffer, banner->text );
 		SetCheckState( GetControl( frame, CHECKBOX_NOCLICK ), banner->flags.forced_delay );
@@ -229,16 +229,16 @@ static void OnSaveControl( MAKE_BANNER_MESSAGE )( FILE *file, uintptr_t psvBanne
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	ExpandConfigString( buffer, banner->text );
 	ExpandConfigString( buffer2, buffer );
-	sack_fprintf( file, WIDE( "%sbanner text=%s\n" ), InterShell_GetSaveIndent(), buffer2 );
-	sack_fprintf( file, WIDE( "%sbanner timeout=%d\n" ), InterShell_GetSaveIndent(), banner->delay );
-	sack_fprintf( file, WIDE( "%sbanner continue=%s\n" ), InterShell_GetSaveIndent(), banner->flags.allow_continue?WIDE( "yes" ):WIDE( "no" ) );
-	sack_fprintf( file, WIDE( "%sbanner force delay=%s\n" ), InterShell_GetSaveIndent(), banner->flags.forced_delay?WIDE( "yes" ):WIDE( "no" ) );
-	sack_fprintf( file, WIDE( "%sbanner topmost=%s\n" ), InterShell_GetSaveIndent(), banner->flags.bTopmost?WIDE( "yes" ):WIDE( "no" ) );
-	sack_fprintf( file, WIDE( "%sbanner yes or no=%s\n" ), InterShell_GetSaveIndent(), banner->flags.yes_no?WIDE( "yes" ):WIDE( "no" ) );
-	sack_fprintf( file, WIDE( "%sbanner explorer=%s\n" ), InterShell_GetSaveIndent(), banner->flags.explorer?WIDE( "yes" ):WIDE( "no" ) );
-	sack_fprintf( file, WIDE( "%sbanner okay or cancel=%s\n" ), InterShell_GetSaveIndent(), banner->flags.okay_cancel?WIDE( "yes" ):WIDE( "no" ) );
-	sack_fprintf( file, WIDE( "%sbanner skip if button highlight=%s\n" ), InterShell_GetSaveIndent(), banner->flags.skip_if_lit?WIDE( "yes" ):WIDE( "no" ) );
-	sack_fprintf( file, WIDE( "%sbanner skip if button normal=%s\n" ), InterShell_GetSaveIndent(), banner->flags.skip_if_unlit?WIDE( "yes" ):WIDE( "no" ) );
+	sack_fprintf( file, "%sbanner text=%s\n", InterShell_GetSaveIndent(), buffer2 );
+	sack_fprintf( file, "%sbanner timeout=%d\n", InterShell_GetSaveIndent(), banner->delay );
+	sack_fprintf( file, "%sbanner continue=%s\n", InterShell_GetSaveIndent(), banner->flags.allow_continue?"yes":"no" );
+	sack_fprintf( file, "%sbanner force delay=%s\n", InterShell_GetSaveIndent(), banner->flags.forced_delay?"yes":"no" );
+	sack_fprintf( file, "%sbanner topmost=%s\n", InterShell_GetSaveIndent(), banner->flags.bTopmost?"yes":"no" );
+	sack_fprintf( file, "%sbanner yes or no=%s\n", InterShell_GetSaveIndent(), banner->flags.yes_no?"yes":"no" );
+	sack_fprintf( file, "%sbanner explorer=%s\n", InterShell_GetSaveIndent(), banner->flags.explorer?"yes":"no" );
+	sack_fprintf( file, "%sbanner okay or cancel=%s\n", InterShell_GetSaveIndent(), banner->flags.okay_cancel?"yes":"no" );
+	sack_fprintf( file, "%sbanner skip if button highlight=%s\n", InterShell_GetSaveIndent(), banner->flags.skip_if_lit?"yes":"no" );
+	sack_fprintf( file, "%sbanner skip if button normal=%s\n", InterShell_GetSaveIndent(), banner->flags.skip_if_unlit?"yes":"no" );
 }
 
 
@@ -332,16 +332,16 @@ static uintptr_t CPROC ConfigSetBannerOkayCancel( uintptr_t psvBanner, arg_list 
 
 static void OnLoadControl( MAKE_BANNER_MESSAGE )( PCONFIG_HANDLER pch, uintptr_t psvBanner )
 {
-	AddConfigurationMethod( pch, WIDE( "banner text=%m" ), ConfigSetBannerText );
-	AddConfigurationMethod( pch, WIDE( "banner timeout=%i" ), ConfigSetBannerTimeout );
-	AddConfigurationMethod( pch, WIDE( "banner continue=%b" ), ConfigSetBannerContinue );
-	AddConfigurationMethod( pch, WIDE( "banner force delay=%b" ), ConfigSetBannerForced );
-	AddConfigurationMethod( pch, WIDE( "banner topmost=%b" ), ConfigSetBannerTopmost );
-	AddConfigurationMethod( pch, WIDE( "banner yes or no=%b" ), ConfigSetBannerYesNo );
-	AddConfigurationMethod( pch, WIDE( "banner explorer=%b" ), ConfigSetBannerExplorer );
-	AddConfigurationMethod( pch, WIDE( "banner okay or cancel=%b" ), ConfigSetBannerOkayCancel );
-	AddConfigurationMethod( pch, WIDE( "banner skip if button highlight=%b" ), ConfigSetBannerSkipLit );
-	AddConfigurationMethod( pch, WIDE( "banner skip if button normal=%b" ), ConfigSetBannerSkipUnlit );
+	AddConfigurationMethod( pch, "banner text=%m", ConfigSetBannerText );
+	AddConfigurationMethod( pch, "banner timeout=%i", ConfigSetBannerTimeout );
+	AddConfigurationMethod( pch, "banner continue=%b", ConfigSetBannerContinue );
+	AddConfigurationMethod( pch, "banner force delay=%b", ConfigSetBannerForced );
+	AddConfigurationMethod( pch, "banner topmost=%b", ConfigSetBannerTopmost );
+	AddConfigurationMethod( pch, "banner yes or no=%b", ConfigSetBannerYesNo );
+	AddConfigurationMethod( pch, "banner explorer=%b", ConfigSetBannerExplorer );
+	AddConfigurationMethod( pch, "banner okay or cancel=%b", ConfigSetBannerOkayCancel );
+	AddConfigurationMethod( pch, "banner skip if button highlight=%b", ConfigSetBannerSkipLit );
+	AddConfigurationMethod( pch, "banner skip if button normal=%b", ConfigSetBannerSkipUnlit );
 }
 
 INTERSHELL_NAMESPACE_END

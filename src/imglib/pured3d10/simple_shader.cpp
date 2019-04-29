@@ -91,7 +91,7 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
                                             &tracker->effect,
                                             NULL, NULL  ) ) ) 
 	{
-		lprintf( WIDE("Could not load effect file!")); 
+		lprintf( "Could not load effect file!"); 
 		return;// fatalError("Could not load effect file!");
 	}
  
@@ -117,7 +117,7 @@ void InitSuperSimpleShader( PImageShaderTracker tracker )
 												PassDesc.IAInputSignatureSize,
 												&pVertexLayout ) ) ) 
 	{
-		lprintf( WIDE("Could not create Input Layout!"));
+		lprintf( "Could not create Input Layout!");
 		return;
 	}
  

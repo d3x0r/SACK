@@ -19,12 +19,12 @@ static PTHREAD pThreadInput;
 
 void SetInputFile( TEXTCHAR *file )
 {
-   script = sack_fopen( 0, file, WIDE("rt") );
+   script = sack_fopen( 0, file, "rt" );
 }
 
 void SetOutputFile( TEXTCHAR *file )
 {
-   save = sack_fopen( 0, file, WIDE("wt") );
+   save = sack_fopen( 0, file, "wt" );
 }
 
 uintptr_t CPROC InputThread( PTHREAD pThread )
@@ -59,11 +59,11 @@ int GetCh( void )
 		pThreadInput = MakeThread();
 	if( !inputpipe )
 	{
-		inputpipe = open( WIDE("stockmarket.pipe"), O_RDWR|O_CREAT|O_TRUNC, 0600 );
+		inputpipe = open( "stockmarket.pipe", O_RDWR|O_CREAT|O_TRUNC, 0600 );
 		ThreadTo( InputThread, 0 );
 	}
 	if( !save )
-		save = sack_fopen( 0, WIDE("stockmarket.save"), WIDE("wt") );
+		save = sack_fopen( 0, "stockmarket.save", "wt" );
 	if( script )
 	{
 		ch = fgetc( script );
@@ -76,14 +76,14 @@ int GetCh( void )
 	if( !script )
 	{
 		ch = 0; // clear upper bits.
-		lprintf( WIDE("will read 1 TEXTCHAR") );
+		lprintf( "will read 1 TEXTCHAR" );
 		while( bEnque || ( read( inputpipe, &ch, 1 ) < 1 ) )
 		{
-			lprintf( WIDE("Waiting for input event.") );
+			lprintf( "Waiting for input event." );
 			WakeableSleep( SLEEP_FOREVER );
-			lprintf( WIDE("Input event received.") );
+			lprintf( "Input event received." );
 		}
-		lprintf( WIDE("Read input.") );
+		lprintf( "Read input." );
 	}
 	if( ch == '\r' )
 		fputc( '\n', save );
@@ -106,12 +106,12 @@ void EnqueStrokes( const TEXTCHAR *strokes )
 	int len = strlen( strokes );
 	bEnque = 1;
 	savepos = tell( inputpipe );
-	lprintf( WIDE("write to input event pipe") );
+	lprintf( "write to input event pipe" );
 	lseek( inputpipe, 0, SEEK_END);
 	write( inputpipe, strokes, len );
 	lseek( inputpipe, savepos, SEEK_SET );
 	bEnque = 0;
-	lprintf( WIDE("wake input thread") );
+	lprintf( "wake input thread" );
 	WakeThread( pThreadInput );
 }
 
@@ -140,13 +140,13 @@ int GetANumber( void )
 			accum += ch - '0';
 		}
 		while( len-- )
-			printf( WIDE("\b \b") );
-		len = printf( WIDE("%d"), accum );
+			printf( "\b \b" );
+		len = printf( "%d", accum );
 		fflush( stdout );
 		if( !accum && ch == '0' )
          break;
 	}
-	printf( WIDE("\n") );
+	printf( "\n" );
 	g.flags.bChoiceNeedsEnter = 0;
    return accum;
 }
@@ -158,7 +158,7 @@ int GetYesNo( void )
    fflush( stdout );
 	g.flags.bChoiceNeedsEnter = 0;
 	ch = GetCh();
-   printf( WIDE("\n") );
+   printf( "\n" );
 	if( ch == 'y' || ch == 'Y' )
 	{
 		return TRUE;
@@ -190,15 +190,15 @@ int GetAString( TEXTCHAR *buffer, int bufsiz )
 		else
          buffer[++ofs] = 0;
 		while( len-- )
-			printf( WIDE("\b \b") );
-		len = printf( WIDE("%s"), buffer );
+			printf( "\b \b" );
+		len = printf( "%s", buffer );
 		fflush( stdout );
 	}
   // if( g.flags.bRemote )
   // {
   //    SendRemote( buffer, ofs );
   // }
-   printf( WIDE("\n") );
+   printf( "\n" );
 	g.flags.bChoiceNeedsEnter = 0;
    buffer[ofs] = 0;
    return ofs;

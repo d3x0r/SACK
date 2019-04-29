@@ -315,10 +315,10 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 	  )
 	{
 		// this will happen when mixing modes...
-		lprintf( WIDE( "sanity check failed %p %p %p" ), pifSrc, pifDest, pifSrc?pifSrc->image:NULL );
+		lprintf( "sanity check failed %p %p %p", pifSrc, pifDest, pifSrc?pifSrc->image:NULL );
 		return;
 	}
-	//lprintf( WIDE( "BlotImageSized %d,%d to %d,%d by %d,%d" ), xs, ys, xd, yd, ws, hs );
+	//lprintf( "BlotImageSized %d,%d to %d,%d by %d,%d", xs, ys, xd, yd, ws, hs );
 
 	{
 		IMAGE_RECTANGLE r1;
@@ -345,12 +345,12 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 			r2.height = (IMAGE_SIZE_COORDINATE)tmp;
 		if( !IntersectRectangle( &rd, &r1, &r2 ) )
 		{
-			//lprintf( WIDE( "Images do not overlap. %d,%d %d,%d vs %d,%d %d,%d" ), r1.x,r1.y,r1.width,r1.height
+			//lprintf( "Images do not overlap. %d,%d %d,%d vs %d,%d %d,%d", r1.x,r1.y,r1.width,r1.height
 			//		 , r2.x,r2.y,r2.width,r2.height);
 			return;
 		}
 
-		//lprintf( WIDE( "Correcting coordinates by %d,%d" )
+		//lprintf( "Correcting coordinates by %d,%d"
 		//		 , rd.x - xd
 		//		 , rd.y - yd
 		//		 );
@@ -377,7 +377,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 			else
 				hs -= (unsigned)tmp;
 		}
-		//lprintf( WIDE( "Resulting dest is %d,%d %d,%d" ), rd.x,rd.y,rd.width,rd.height );
+		//lprintf( "Resulting dest is %d,%d %d,%d", rd.x,rd.y,rd.width,rd.height );
 		xd = rd.x;
 		yd = rd.y;
 		r1.x = xs;
@@ -398,24 +398,24 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 			r2.height = (IMAGE_SIZE_COORDINATE)tmp;
 		if( !IntersectRectangle( &rs, &r1, &r2 ) )
 		{
-			lprintf( WIDE( "Desired Output does not overlap..." ) );
+			lprintf( "Desired Output does not overlap..." );
 			return;
 		}
-		//lprintf( WIDE( "Resulting dest is %d,%d %d,%d" ), rs.x,rs.y,rs.width,rs.height );
+		//lprintf( "Resulting dest is %d,%d %d,%d", rs.x,rs.y,rs.width,rs.height );
 		ws = rs.width<rd.width?rs.width:rd.width;
 		hs = rs.height<rd.height?rs.height:rd.height;
 		xs = rs.x;
 		ys = rs.y;
-		//lprintf( WIDE( "Resulting rect is %d,%d to %d,%d dim: %d,%d" ), rs.x, rs.y, rd.x, rd.y, rs.width, rs.height );
-		//lprintf( WIDE( "Resulting rect is %d,%d to %d,%d dim: %d,%d" ), xs, ys, xd, yd, ws, hs );
+		//lprintf( "Resulting rect is %d,%d to %d,%d dim: %d,%d", rs.x, rs.y, rd.x, rd.y, rs.width, rs.height );
+		//lprintf( "Resulting rect is %d,%d to %d,%d dim: %d,%d", xs, ys, xd, yd, ws, hs );
 	}
-		//lprintf( WIDE(WIDE( "Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)" )), xs, ys, ws, hs, xd, yd, wd, hd );
+		//lprintf( WIDE("Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)"), xs, ys, ws, hs, xd, yd, wd, hd );
 	if( (int32_t)ws <= 0 ||
         (int32_t)hs <= 0 /*||
         (int32_t)wd <= 0 ||
 		(int32_t)hd <= 0 */ )
 	{
-		lprintf( WIDE( "out of bounds" ) );
+		lprintf( "out of bounds" );
 		return;
 	}
 #ifdef _INVERT_IMAGE
@@ -449,11 +449,11 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 		ReloadOpenGlTexture( pifSrc, 0 );
 		if( !pifSrc->vkActiveSurface )
 		{
-			//lprintf( WIDE( "gl texture hasn't updated or went away?" ) );
+			//lprintf( "gl texture hasn't updated or went away?" );
 			lock = 0;
 			return;
 		}
-		//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
+		//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
 		//DebugBreak();        g
 
 		// closed loop to get the top imgae size.
@@ -466,7 +466,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 		TranslateCoord( pifDest, &xd, &yd );
 		TranslateCoord( pifSrc, &xs, &ys );
 		{
-			struct image_shader_op *op;// = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), pifDest, pifSrc->glActiveSurface  );
+			struct image_shader_op *op;// = BeginImageShaderOp( GetShader( "Simple Texture" ), pifDest, pifSrc->glActiveSurface  );
 			int glDepth = 1;
 			float x_size, x_size2, y_size, y_size2;
 			float texture_v[4][2];
@@ -495,7 +495,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 			y_size2 = (float) (ys+hs)/ (float)topmost_parent->height;
 			// Front Face
 			//glColor4ub( 255,120,32,192 );
-			//lprintf( WIDE( "Texture size is %g,%g to %g,%g" ), x_size, y_size, x_size2, y_size2 );
+			//lprintf( "Texture size is %g,%g to %g,%g", x_size, y_size, x_size2, y_size2 );
 			while( pifDest && pifDest->pParent )
 			{
 				glDepth = 0;
@@ -535,7 +535,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 			/**///glBindTexture(GL_TEXTURE_2D, pifSrc->glActiveSurface);				// Select Our Texture
 			if( method == BLOT_COPY )
 			{
-				op = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), pifDest, pifSrc->vkActiveSurface  );
+				op = BeginImageShaderOp( GetShader( "Simple Texture" ), pifDest, pifSrc->vkActiveSurface  );
 				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_SHADED )
@@ -547,7 +547,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 				_color[2] = BlueVal( tmp ) / 255.0f;
 				_color[3] = AlphaVal( tmp ) / 255.0f;
 
-				op = BeginImageShaderOp( GetShader( WIDE("Simple Shaded Texture") ), pifDest, pifSrc->vkActiveSurface, _color  );
+				op = BeginImageShaderOp( GetShader( "Simple Shaded Texture" ), pifDest, pifSrc->vkActiveSurface, _color  );
 				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_MULTISHADE )
@@ -571,7 +571,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 				b_color[2] = BlueVal( b ) / 255.0f;
 				b_color[3] = AlphaVal( b ) / 255.0f;
 
-				op = BeginImageShaderOp( GetShader( WIDE("Simple MultiShaded Texture") ), pifDest, pifSrc->vkActiveSurface, r_color, g_color, b_color );
+				op = BeginImageShaderOp( GetShader( "Simple MultiShaded Texture" ), pifDest, pifSrc->vkActiveSurface, r_color, g_color, b_color );
 				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_INVERTED )
@@ -648,7 +648,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 				bd.r = va_arg( colors, CDATA );
 				bd.g = va_arg( colors, CDATA );
 				bd.b = va_arg( colors, CDATA );
-				//lprintf( WIDE( "r g b %08x %08x %08x" ), r,g, b );
+				//lprintf( "r g b %08x %08x %08x", r,g, b );
 				if( !nTransparent )
 					CopyPixelsMultiT0( &bd );
 				else if( nTransparent == 1 )
@@ -671,7 +671,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 		MarkImageUpdated( pifDest );
 	}
 	lock = 0;
-	//lprintf( WIDE( "Image done.." ) );
+	//lprintf( "Image done.." );
 }
 // copy all of pifSrc to the destination - placing the upper left
 // corner of pifSrc on the point specified.

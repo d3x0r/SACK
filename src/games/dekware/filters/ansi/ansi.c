@@ -169,7 +169,7 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 		}
 		if( pmdp->flags.bPosition )
 		{
-			//Log2( WIDE("Set abs position %d %d")
+			//Log2( "Set abs position %d %d"
 			//	 , pNew->format.position.coords.x
 			//	 , pNew->format.position.coords.y
 			//	 );
@@ -177,12 +177,12 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 		}
 		if( pmdp->flags.bPositionRel )
 		{
-         //Log( WIDE("Set rel position") );
+         //Log( "Set rel position" );
 			pNew->flags |= TF_FORMATREL|TF_NORETURN;
 		}
 		if( pmdp->flags.bExtended )
 			pNew->flags |= TF_FORMATEX|TF_NORETURN;
-		//Log1( DBG_FILELINEFMT WIDE("Enquing segments %s") DBG_RELAY , GetText( pNew ) );
+		//Log1( DBG_FILELINEFMT "Enquing segments %s" DBG_RELAY , GetText( pNew ) );
 		pmdp->flags.bPosition = 0;
 		pmdp->flags.bPositionRel = 0;
 		pmdp->flags.bExtended = 0;
@@ -191,24 +191,24 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
       // cannot be part of an existing line.
 		if( pNew->flags & (TF_FORMATEX|TF_FORMATREL|TF_FORMATABS) )
 		{
-        // Log( WIDE("making a new return... enquing return") );
+        // Log( "making a new return... enquing return" );
 			EnqueLink( &pmdp->Pending, pReturn );
 			pReturn = pNew;
 		}
 		else // otherwise attach it to any prior input....
 		{
-         //Log( WIDE("appending pReturn with pNew") );
+         //Log( "appending pReturn with pNew" );
 			pReturn = SegAppend( pReturn, pNew );
 		}
       // must now terminate any data if was a return.
 		if( bReturn )
 		{
-         //Log( WIDE("Enquing previous data... ") );
+         //Log( "Enquing previous data... " );
          EnqueLink( &pmdp->Pending, pReturn );
 			pReturn = NULL;
 		}
 		//EnqueLink( &pmdp->Pending, pReturn );
-      //Log1( WIDE("Returning %p"), pReturn );
+      //Log1( "Returning %p", pReturn );
 		return pReturn;
 	}
 	// didn't have any data collected... see if there
@@ -226,7 +226,7 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 	}
 	if( pmdp->flags.bExtended )
 	{
-      //   Log( WIDE("Set abs position") );
+      //   Log( "Set abs position" );
 		if( !pTemp )
 			pTemp = SegCreate(0);
 		pTemp->flags |= TF_FORMATEX|TF_NORETURN;
@@ -234,7 +234,7 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 	}
 	if( pmdp->flags.bPositionRel )
 	{
-      //   Log( WIDE("Set rel position") );
+      //   Log( "Set rel position" );
 		if( !pTemp )
 			pTemp = SegCreate(0);
 		pTemp->flags |= TF_FORMATREL|TF_NORETURN;
@@ -243,14 +243,14 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 	if( pTemp )
 	{  // any attribute which was collected must be issued (all alone)
 		// as there was no more input to attach it to...
-		//Log1( DBG_FILELINEFMT WIDE("Enquing format only segment") DBG_RELAY , 0 );
+		//Log1( DBG_FILELINEFMT "Enquing format only segment" DBG_RELAY , 0 );
 		pTemp->format = pmdp->attribute;
       // and reset the prior attributes
 		pmdp->attribute.flags.prior_background = 1;
 		pmdp->attribute.flags.prior_foreground = 1;
 		pmdp->attribute.position.offset.spaces = 0;
 		pmdp->flags.bNewLine = 0;
-		//Log1( WIDE("Enque a blank temp thing %p "), pReturn );
+		//Log1( "Enque a blank temp thing %p ", pReturn );
       EnqueLink( &pmdp->Pending, pReturn );
 		EnqueLink( &pmdp->Pending, pTemp );
 		return NULL;
@@ -258,23 +258,23 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 	// no new data... no attributed data...
 	// must return - and already was a newline
 	// force a total blank newline.
-   //Log( WIDE("Test for return...") );
+   //Log( "Test for return..." );
 	if( bReturn && pmdp->flags.bNewLine )
 	{  // but - we have a newline...
 		PTEXT blank = SegCreate(0);
       //blank->data.data[0] = ' ';
 		//blank->data.data[1] = 0;
-      Log( WIDE("enquing a blank.") );
+      Log( "enquing a blank." );
 		EnqueLink( &pmdp->Pending, blank );
       // there will be a newline (pReturn) so don't bother clearing it.
 		//pmdp->flags.bNewLine = 0;
 	}
 	else
 	{
-     // Log( WIDE("Enquing pReturn") );
+     // Log( "Enquing pReturn" );
 		EnqueLink( &pmdp->Pending, pReturn );
 	}
-	//Log( WIDE("Returning NULL") );
+	//Log( "Returning NULL" );
 	return NULL;
 }
 
@@ -309,7 +309,7 @@ static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
             case 0:
             	// ignore nulls?
 					//ptext[idx] = ' '; // space fill nulls...
-               lprintf( WIDE("Ignoring nulls...") );
+               lprintf( "Ignoring nulls..." );
                break;
             case '\r':
 					pReturn = EnqueSegments( pmdp, pReturn, FALSE );
@@ -326,7 +326,7 @@ static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
             case '\n':
                {
 						// try getting any data we've already collected...
-						//Log( WIDE("Newline character - flush exisiting") );
+						//Log( "Newline character - flush exisiting" );
 					// flushes any segments also...
 						if( pmdp->flags.newline_only_in )
 						{
@@ -354,14 +354,14 @@ static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
             case 27:
 					if( !pmdp->nState )
 					{
-                  //Log( WIDE("Escape - gather prior to attach attributes to next.") );
+                  //Log( "Escape - gather prior to attach attributes to next." );
 						pReturn = EnqueSegments( pmdp, pReturn, FALSE );
                	pmdp->nState = 1;
                }
                else
                {
 	            	VarTextAddCharacter( pmdp->vt, ptext[idx] );
-                  Log( WIDE("Incomplete sequence detected...\n") );
+                  Log( "Incomplete sequence detected...\n" );
                }
                break;
             }
@@ -371,7 +371,7 @@ static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
             if( ptext[idx] == '[' )
             {
 					if( pmdp->nParams )
-						Log( WIDE("Invalid states... nparams beginning sequence.") );
+						Log( "Invalid states... nparams beginning sequence." );
                pmdp->nState = 2;
 					continue;
             }
@@ -387,9 +387,9 @@ static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 					pmdp->flags.bExtended = 1;
 					pmdp->flags.wait_for_cursor = 1;
 					//pmdp->savex = GetVolatileVariable( pmdp->common.Owner->Current
-					//												, WIDE("cursorx") );
+					//												, "cursorx" );
 					//pmdp->savey = GetVolatileVariable( pmdp->common.Owner->Current
-					//												, WIDE("cursory") );
+					//												, "cursory" );
 
 					// save cursor position
 					pmdp->nState = 0; // reset state.
@@ -425,7 +425,7 @@ static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
                switch( ptext[idx] )
                {
 					default:
-						Log6( WIDE("Unknown escape code : (%d) [%d;%d;%d;%d%c")
+						Log6( "Unknown escape code : (%d) [%d;%d;%d;%d%c"
 										, pmdp->nParams
  											, pmdp->ParamSet[0], pmdp->ParamSet[1] 
  											, pmdp->ParamSet[2], pmdp->ParamSet[3] 
@@ -473,12 +473,12 @@ static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 									DECLTEXTSZ( out, 32 );
 									PTEXT x, y;
 									x = GetVolatileVariable( pmdp->common.Owner->Current
-																	, WIDE("cursorx") );
+																	, "cursorx" );
 									y = GetVolatileVariable( pmdp->common.Owner->Current
-																	, WIDE("cursory") );
-									out.data.size = snprintf( out.data.data, 32, WIDE("\x1b[%s;%sR")
-											, x?GetText( y ):WIDE("0")
-											, y?GetText( y ):WIDE("0") );
+																	, "cursory" );
+									out.data.size = snprintf( out.data.data, 32, "\x1b[%s;%sR"
+											, x?GetText( y ):"0"
+											, y?GetText( y ):"0" );
 									EnqueLink( &pmdp->common.Output, SegDuplicate( (PTEXT)&out ) );
 								}
 								break;
@@ -503,7 +503,7 @@ static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 								pmdp->attribute.position.coords.y = 0;
 							}
 							else
-								Log( WIDE("Invalid escape[*H - only one parameter?") );
+								Log( "Invalid escape[*H - only one parameter?" );
 							pmdp->flags.bPosition = 1;
 						}
 						break;
@@ -665,7 +665,7 @@ static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
       }
       pBuffer = NEXTLINE( pBuffer );
 	}
-   //Log1( WIDE("Finished with buffer... %p"), pReturn );
+   //Log1( "Finished with buffer... %p", pReturn );
 	pReturn = EnqueSegments( pmdp, pReturn, FALSE );
    if( pReturn )
       EnqueLink( &pmdp->Pending, pReturn );
@@ -743,24 +743,24 @@ static PDATAPATH CPROC OpenAnsi( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parame
 
 	while( ( option = GetParam( ps, &parameters ) ) )
 	{
-		if( OptionLike( option, WIDE("inbound") ) )
+		if( OptionLike( option, "inbound" ) )
 		{
 			pdp->flags.inbound = 1;
 			lastin = 1;
 		}
-		else if( OptionLike( option, WIDE("outbound") ) )
+		else if( OptionLike( option, "outbound" ) )
 		{
 			pdp->flags.outbound = 1;
 			lastin = 0;
 		}
-		else if( OptionLike( option, WIDE("newline") ) )
+		else if( OptionLike( option, "newline" ) )
 		{
 			if( lastin )
 				pdp->flags.newline_only_in = 1;
 			else
 				pdp->flags.newline_only_out = 1;
 		}
-		else if( OptionLike( option, WIDE("encode") ) )
+		else if( OptionLike( option, "encode" ) )
 		{
 			// if not encode - is decode.
 			if( lastin )
@@ -768,14 +768,14 @@ static PDATAPATH CPROC OpenAnsi( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parame
 			else
 				pdp->flags.encode_out = 1;
 		}
-		else if( OptionLike( option, WIDE("__keepnewline") ) )
+		else if( OptionLike( option, "__keepnewline" ) )
 		{
          pdp->flags.keep_newline = 1;
 		}
       else
 		{
-			DECLTEXT( msg1, WIDE("Ansi filter options include: Inbound/Outbound, Encode/Decode") );
-			DECLTEXT( msg2, WIDE("Least character match is allowed (I/O) (E/D)") );
+			DECLTEXT( msg1, "Ansi filter options include: Inbound/Outbound, Encode/Decode" );
+			DECLTEXT( msg2, "Least character match is allowed (I/O) (E/D)" );
 			EnqueLink( &ps->Command->Output, &msg1 );
 			EnqueLink( &ps->Command->Output, &msg2 );
 			DestroyDataPath( (PDATAPATH)pdp );
@@ -795,13 +795,13 @@ static PDATAPATH CPROC OpenAnsi( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parame
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("ansi"), WIDE("Filter for handling ansi color code streams..."), OpenAnsi );
+   myTypeID = RegisterDevice( "ansi", "Filter for handling ansi color code streams...", OpenAnsi );
    return DekVersion;
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("ansi") );
+	UnregisterDevice( "ansi" );
 }
 // $Log: ansi.c,v $
 // Revision 1.33  2005/02/21 12:08:26  d3x0r

@@ -28,7 +28,7 @@ PSI_Console_Phrase PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 	// break lines?
 
 	if( !eol )
-		eol = SegCreateFromText( WIDE("\n") );
+		eol = SegCreateFromText( "\n" );
 	if( console )
 	{
 		PTEXT parsed;
@@ -232,7 +232,7 @@ void PSIConsoleSetHistory( PSI_CONTROL pc, struct history_tracking_info *history
 			PSI_SetHistoryBrowserNoPageBreak( console->pHistoryDisplay );
 
 		}
-		//GetStringSizeFont( WIDE(" "), &console->nFontWidth, &console->nFontHeight, GetCommonFont( pc ) );
+		//GetStringSizeFont( " ", &console->nFontWidth, &console->nFontHeight, GetCommonFont( pc ) );
 		PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
 	}
 }

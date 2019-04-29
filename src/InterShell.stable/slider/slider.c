@@ -59,17 +59,17 @@ static void CPROC OnSliderUpdateProc(uintptr_t, PSI_CONTROL, int val);
 //---------------------------------------------------------------------------
 PRELOAD( RegisterExtraSliderConfig )
 {
-	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), CHECKBOX_HORIZONTAL, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), CHECKBOX_DRAGGING, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_MIN, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_MAX, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/") _WIDE(TARGETNAME), EDIT_CURRENT, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), CHECKBOX_HORIZONTAL, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), CHECKBOX_DRAGGING, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), EDIT_MIN, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), EDIT_MAX, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/" _WIDE(TARGETNAME), EDIT_CURRENT, EDIT_FIELD_NAME );
 
 }
 
 
-static uintptr_t OnCreateControl(WIDE("Slider"))
+static uintptr_t OnCreateControl("Slider")
 /*uintptr_t CPROC CreateSlider*/( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 
@@ -122,7 +122,7 @@ static uintptr_t OnCreateControl(WIDE("Slider"))
 
 
 
-static uintptr_t OnConfigureControl( WIDE("Slider") )( uintptr_t psv, PSI_CONTROL parent_frame )
+static uintptr_t OnConfigureControl( "Slider" )( uintptr_t psv, PSI_CONTROL parent_frame )
 //uintptr_t CPROC ConfigureClock( uintptr_t psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
@@ -132,8 +132,8 @@ static uintptr_t OnConfigureControl( WIDE("Slider") )( uintptr_t psv, PSI_CONTRO
 		int done = 0;
 		if( !frame )
 		{
-			frame = LoadXMLFrame( WIDE("Slider_Properties.Frame") );
-			//frame = CreateFrame( WIDE("Clock Properties"), 0, 0, 420, 250, 0, NULL );
+			frame = LoadXMLFrame( "Slider_Properties.Frame" );
+			//frame = CreateFrame( "Clock Properties", 0, 0, 420, 250, 0, NULL );
 			if( frame )
 			{
 					 TEXTCHAR buffer[256];
@@ -144,13 +144,13 @@ static uintptr_t OnConfigureControl( WIDE("Slider") )( uintptr_t psv, PSI_CONTRO
 				SetCheckState( GetControl( frame, CHECKBOX_DRAGGING ), info->flags.bDragging );
 				SetControlText( GetControl( frame, EDIT_BACKGROUND_IMAGE ), info->image_name );
 
-					 snprintf(buffer, sizeof(buffer), WIDE("%d"), info->min);
+					 snprintf(buffer, sizeof(buffer), "%d", info->min);
 				SetControlText( GetControl( frame, EDIT_MIN ), buffer );
 
-					 snprintf(buffer, sizeof(buffer), WIDE("%d"), info->max);
+					 snprintf(buffer, sizeof(buffer), "%d", info->max);
 				SetControlText( GetControl( frame, EDIT_MAX ), buffer );
 				
-					 snprintf(buffer, sizeof(buffer), WIDE("%d"), info->current);
+					 snprintf(buffer, sizeof(buffer), "%d", info->current);
 				SetControlText( GetControl( frame, EDIT_CURRENT ), buffer );
 				
 				SetCommonButtons( frame, &done, &okay );
@@ -201,27 +201,27 @@ static uintptr_t OnConfigureControl( WIDE("Slider") )( uintptr_t psv, PSI_CONTRO
 }
 
 
-static void OnSaveControl( WIDE( "Slider" ) )( FILE *file,uintptr_t psv )
+static void OnSaveControl( "Slider" )( FILE *file,uintptr_t psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
-	sack_fprintf( file, WIDE("Slider color=$%02X%02X%02X%02X\n")
+	sack_fprintf( file, "Slider color=$%02X%02X%02X%02X\n"
 			 , AlphaVal( info->color )
 			 , RedVal( info->color )
 			 , GreenVal( info->color )
 			 , BlueVal( info->color )
 			 );
-	sack_fprintf( file, WIDE("Slider back color=$%02X%02X%02X%02X\n")
+	sack_fprintf( file, "Slider back color=$%02X%02X%02X%02X\n"
 			 , AlphaVal( info->backcolor )
 			 , RedVal( info->backcolor )
 			 , GreenVal( info->backcolor )
 			 , BlueVal( info->backcolor )
 			 );
-	sack_fprintf( file, WIDE("Slider background image=%s\n" ), info->image_name?info->image_name:WIDE("") );
-	sack_fprintf( file, WIDE("Slider is horizontal?%s\n"), info->flags.bHorizontal?WIDE("Yes"):WIDE("No") );
-	sack_fprintf( file, WIDE("Slider is draggable?%s\n"), info->flags.bDragging?WIDE("Yes"):WIDE("No") );
-	sack_fprintf( file, WIDE("Slider min value=%d\n"), info->min);
-	sack_fprintf( file, WIDE("Slider max value=%d\n"), info->max);
-	sack_fprintf( file, WIDE("Slider current value=%d\n"), info->current);
+	sack_fprintf( file, "Slider background image=%s\n", info->image_name?info->image_name:"" );
+	sack_fprintf( file, "Slider is horizontal?%s\n", info->flags.bHorizontal?"Yes":"No" );
+	sack_fprintf( file, "Slider is draggable?%s\n", info->flags.bDragging?"Yes":"No" );
+	sack_fprintf( file, "Slider min value=%d\n", info->min);
+	sack_fprintf( file, "Slider max value=%d\n", info->max);
+	sack_fprintf( file, "Slider current value=%d\n", info->current);
 
 
 	InterShell_SaveCommonButtonParameters( file );
@@ -294,20 +294,20 @@ static uintptr_t CPROC SetSliderCurrentValue( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE( "Slider" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Slider" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("Slider color=%c"), ReloadSliderColor );
-	AddConfigurationMethod( pch, WIDE("Slider back color=%c"), ReloadSliderBackColor );
-	AddConfigurationMethod( pch, WIDE("Slider is horizontal?%b"), SetSliderHorizontal );
-	AddConfigurationMethod( pch, WIDE("Slider is draggable?%b"), SetSliderDragging );
-	AddConfigurationMethod( pch, WIDE("Slider background image=%m" ), SetSliderBackgroundImage );
-	AddConfigurationMethod( pch, WIDE("Slider min value=%i"), SetSliderMinValue );
-	AddConfigurationMethod( pch, WIDE("Slider max value=%i"), SetSliderMaxValue );
-	AddConfigurationMethod( pch, WIDE("Slider current value=%i"), SetSliderCurrentValue );
+	AddConfigurationMethod( pch, "Slider color=%c", ReloadSliderColor );
+	AddConfigurationMethod( pch, "Slider back color=%c", ReloadSliderBackColor );
+	AddConfigurationMethod( pch, "Slider is horizontal?%b", SetSliderHorizontal );
+	AddConfigurationMethod( pch, "Slider is draggable?%b", SetSliderDragging );
+	AddConfigurationMethod( pch, "Slider background image=%m", SetSliderBackgroundImage );
+	AddConfigurationMethod( pch, "Slider min value=%i", SetSliderMinValue );
+	AddConfigurationMethod( pch, "Slider max value=%i", SetSliderMaxValue );
+	AddConfigurationMethod( pch, "Slider current value=%i", SetSliderCurrentValue );
 
 }
 
-static void OnFixupControl( WIDE("Slider") )(  uintptr_t psv )
+static void OnFixupControl( "Slider" )(  uintptr_t psv )
 {
 	uint32_t opt;
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
@@ -323,14 +323,14 @@ static void OnFixupControl( WIDE("Slider") )(  uintptr_t psv )
 	}
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Slider") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Slider" )( uintptr_t psv )
 {
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;
 	return info->control;
 }
 
 
-static LOGICAL OnQueryShowControl( WIDE("Slider") )( uintptr_t psv )
+static LOGICAL OnQueryShowControl( "Slider" )( uintptr_t psv )
 {
 	uint32_t opt;
 	PSLIDER_INFO info = (PSLIDER_INFO)psv;

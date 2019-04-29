@@ -24,7 +24,7 @@ typedef struct vlc_surface {
 	LOGICAL playing; // is showing something.
 } *PVLC;
 
-EasyRegisterControlWithBorder( WIDE("VLC Surface"), sizeof( struct vlc_surface ), BORDER_NONE );
+EasyRegisterControlWithBorder( "VLC Surface", sizeof( struct vlc_surface ), BORDER_NONE );
 
 void PlayOnPlayers( CTEXTSTR url_name )
 {
@@ -36,13 +36,13 @@ void PlayOnPlayers( CTEXTSTR url_name )
 	{
 		if( vlc->playing )
 			StopItemIn( vlc->pc );
-		lprintf( WIDE("PC is %p"), vlc->pc );
+		lprintf( "PC is %p", vlc->pc );
 		PlayItemInEx( vlc->pc, url_name, NULL  );
 		vlc->playing = TRUE;
 	}
 }
 
-static void OnKeyPressEvent( WIDE("VLC/button") )( uintptr_t psv )
+static void OnKeyPressEvent( "VLC/button" )( uintptr_t psv )
 {
 	static int n;
 	PMENU_BUTTON button = (PMENU_BUTTON)psv;
@@ -53,30 +53,30 @@ static void OnKeyPressEvent( WIDE("VLC/button") )( uintptr_t psv )
 		n = 0;
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("VLC/button") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "VLC/button" )( PMENU_BUTTON button )
 {
 
 	return (uintptr_t)button;
 }
 
 
-static void OnKeyPressEvent( WIDE("VLC/Player button") )( uintptr_t psv )
+static void OnKeyPressEvent( "VLC/Player button" )( uintptr_t psv )
 {
 	struct player_button *play = (struct player_button *)psv;
 	PlayOnPlayers( play->url_name );
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("VLC/Player button") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "VLC/Player button" )( PMENU_BUTTON button )
 {
 	struct player_button *play = New( struct player_button );
 	play->button = button;
 	play->url_name = NULL;
-	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
-	InterShell_SetButtonText( button, WIDE("Play_Video") );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Play_Video" );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("VLC/Stop Player button") )( uintptr_t psv )
+static void OnKeyPressEvent( "VLC/Stop Player button" )( uintptr_t psv )
 {
 	struct player_button *play = (struct player_button *)psv;
 	PVLC vlc;
@@ -91,13 +91,13 @@ static void OnKeyPressEvent( WIDE("VLC/Stop Player button") )( uintptr_t psv )
 
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("VLC/Stop Player button") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "VLC/Stop Player button" )( PMENU_BUTTON button )
 {
 	struct player_button *play = New( struct player_button );
 	play->button = button;
 	play->url_name = NULL;
-	InterShell_SetButtonStyle( button, WIDE("bicolor square") );
-	InterShell_SetButtonText( button, WIDE("Stop_Player") );
+	InterShell_SetButtonStyle( button, "bicolor square" );
+	InterShell_SetButtonText( button, "Stop_Player" );
 	return (uintptr_t)button;
 }
 
@@ -111,44 +111,44 @@ static uintptr_t CPROC SetButtonMedia( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadControl( WIDE("VLC/Player button") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "VLC/Player button" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("Play Media:%m"), SetButtonMedia );
+	AddConfigurationMethod( pch, "Play Media:%m", SetButtonMedia );
 }
 
-static void OnSaveControl( WIDE("VLC/Player button") )( FILE *file, uintptr_t psv )
+static void OnSaveControl( "VLC/Player button" )( FILE *file, uintptr_t psv )
 {
 	struct player_button *play = (struct player_button *)psv;
 	if( play->url_name )
-		sack_fprintf( file, WIDE("Play Media:%s\n"), play->url_name );
+		sack_fprintf( file, "Play Media:%s\n", play->url_name );
 }
 
 
 
-static uintptr_t OnCreateControl( WIDE("VLC/Player") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "VLC/Player" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 
-	PSI_CONTROL pc = MakeNamedControl( parent, WIDE("VLC Surface"), x, y, w, h, -1 );
+	PSI_CONTROL pc = MakeNamedControl( parent, "VLC Surface", x, y, w, h, -1 );
 	MyValidatedControlData( PVLC, vlc, pc );
 	vlc->pc = pc;
 	AddLink( &l.players, vlc );
 	return (uintptr_t)vlc;
 }
 
-static PSI_CONTROL OnGetControl( WIDE("VLC/Player"))(uintptr_t psv )
+static PSI_CONTROL OnGetControl( "VLC/Player")(uintptr_t psv )
 {
 	PVLC vlc = (PVLC)psv;
 	return vlc->pc;
 }
 
-static void OnShowControl( WIDE("VLC/Player") )(uintptr_t psv )
+static void OnShowControl( "VLC/Player" )(uintptr_t psv )
 {
 	PVLC vlc = (PVLC)psv;
-	//vlc->vlc = PlayItemInEx( vlc->pc, WIDE("dshow://"), NULL );
+	//vlc->vlc = PlayItemInEx( vlc->pc, "dshow://", NULL );
 
 }
 
-static void OnHideControl( WIDE("VLC/Player") )(uintptr_t psv )
+static void OnHideControl( "VLC/Player" )(uintptr_t psv )
 {
 	PVLC vlc = (PVLC)psv;
 	//StopItem(  vlc->vlc );
@@ -157,7 +157,7 @@ static void OnHideControl( WIDE("VLC/Player") )(uintptr_t psv )
 
 //------------------------------------------------------------------------------------
 
-static uintptr_t OnCreateControl( WIDE("VLC/Video Link") )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "VLC/Video Link" )( PSI_CONTROL parent, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	return 1;
 }
@@ -165,13 +165,13 @@ static uintptr_t OnCreateControl( WIDE("VLC/Video Link") )( PSI_CONTROL parent, 
 
 //------------------------------------------------------------------------------------
 /*
-static void VideoLinkCommandServeMaster( WIDE("VLC_Video Link") )( void )
+static void VideoLinkCommandServeMaster( "VLC_Video Link" )( void )
 {
 	// enable reading dshow:// and writing a stream out, Need the service vlc_interface.
 	if( !l.vlc_serve )
 	{
 		Image image = MakeImageFile( 320, 240 );
-		l.vlc_serve = PlayItemAgainst( image, WIDE("dshow:// --sout '#transcode{vcodec=mp4v,acodec=mpga,vb=3072,height=480,width=720,ab=192,channels=2}:duplicate{dst=display,dst=standard{access=http,mux=ts,dst=0.0.0.0:1234,height=480,width=720}}' >/tmp/vlc.log 2>&1") );
+		l.vlc_serve = PlayItemAgainst( image, "dshow:// --sout '#transcode{vcodec=mp4v,acodec=mpga,vb=3072,height=480,width=720,ab=192,channels=2}:duplicate{dst=display,dst=standard{access=http,mux=ts,dst=0.0.0.0:1234,height=480,width=720}}' >/tmp/vlc.log 2>&1" );
 	}
 }
 */

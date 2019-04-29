@@ -32,7 +32,7 @@ void CPROC ProcessAFile( uintptr_t psv, CTEXTSTR name, int flags )
 	args[2] = NULL;
 	done = 0;
    printf( "Scanning %s\n", name );
-	LaunchPeerProgram( WIDE("cmd /ctdump"), NULL, args, HandleTaskOutput, HandleTaskDone, 0 );
+	LaunchPeerProgram( "cmd /ctdump", NULL, args, HandleTaskOutput, HandleTaskDone, 0 );
 	while( !done )
 	{
 		Relinquish();
@@ -43,17 +43,17 @@ int main( void )
 {
 	void *info = NULL;
 
-   out = fopen( WIDE("xx"), WIDE("wb") );
-	while( ScanFiles( WIDE("."), WIDE("*.dll\t*.exe"), &info, ProcessAFile, 0, 0 ) );
+   out = fopen( "xx", "wb" );
+	while( ScanFiles( ".", "*.dll\t*.exe", &info, ProcessAFile, 0, 0 ) );
 	fclose( out );
 #ifdef __cplusplus
 	::
 #endif
-	system( WIDE("scan_tdump <xx >yy") );
+	system( "scan_tdump <xx >yy" );
 #ifdef __cplusplus
 	::
 #endif
-	system( WIDE("edit yy") );
+	system( "edit yy" );
 }
 
 

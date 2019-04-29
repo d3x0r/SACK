@@ -27,10 +27,10 @@ uintptr_t CPROC HandleLocalEventMessages( PTHREAD thread )
 			else
 				pBuffer = (uint32_t*)Allocate( sizeof( MessageEvent ) );
 			levels++;
-			//lprintf( WIDE("---- GET A LOCAL EVENT!") );
+			//lprintf( "---- GET A LOCAL EVENT!" );
 			if( ( r = HandleEvents( g.msgq_local, (PQMSG)pBuffer, 0 ) ) < 0 )
 			{
-				Log( WIDE("EventHandler has reported a fatal error condition.") );
+				Log( "EventHandler has reported a fatal error condition." );
 				break;
 			}
 			levels--;
@@ -39,7 +39,7 @@ uintptr_t CPROC HandleLocalEventMessages( PTHREAD thread )
 		}
 		else if( r == 2 )
 		{
-			Log( WIDE("Thread has been restarted.") );
+			Log( "Thread has been restarted." );
 			// don't clear ready or main event flag
 			// things.
 			return 0;

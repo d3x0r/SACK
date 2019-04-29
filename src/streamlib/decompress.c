@@ -35,7 +35,7 @@ void InitDecompress( PDECOMPRESS pDecompress, int width, int height )
 
 			if( XVID_VERSION != (version = xvid_global( NULL, XVID_GBL_INIT, &pDecompress->xinit, NULL ) ) )
 			{
-				lprintf( WIDE("warning: xvid api version(%d) and compiled version(%d) do not match.")
+				lprintf( "warning: xvid api version(%d) and compiled version(%d) do not match."
 						 , version, XVID_VERSION );
 			}
          pDecompress->xinfo.version = XVID_VERSION;
@@ -52,7 +52,7 @@ void InitDecompress( PDECOMPRESS pDecompress, int width, int height )
 			pDecompress->xparam.height = 0;
 
 			xerr = xvid_decore( NULL, XVID_DEC_CREATE, &pDecompress->xparam, NULL );
-			lprintf( WIDE("xerr of xvid_decore: %d handle:%d"), xerr, pDecompress->xparam.handle );
+			lprintf( "xerr of xvid_decore: %d handle:%d", xerr, pDecompress->xparam.handle );
 		}
 		pDecompress->xstats.version = XVID_VERSION;
       pDecompress->flags.bInited = 1;
@@ -93,10 +93,10 @@ int CPROC DecompressFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 			break;
 		len -= xerr;
       data += xerr;
-		//lprintf( WIDE("xvid_decore type = %d"), pDecompress->xstats.type );
+		//lprintf( "xvid_decore type = %d", pDecompress->xstats.type );
 		if(pDecompress->xstats.type == XVID_TYPE_VOL)
 		{
-			lprintf( WIDE("XVID_TYPE_VOL! %d,%d")
+			lprintf( "XVID_TYPE_VOL! %d,%d"
 					 , pDecompress->xstats.data.vol.width
 					  , pDecompress->xstats.data.vol.height);
 		/* Check if old buffer is smaller */
@@ -106,7 +106,7 @@ int CPROC DecompressFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
             int XDIM,YDIM;
 				XDIM = pDecompress->xparam.width = pDecompress->xstats.data.vol.width;
 				YDIM = pDecompress->xparam.height = pDecompress->xstats.data.vol.height;
-            lprintf( WIDE("resizing image... very bad idea...") );
+            lprintf( "resizing image... very bad idea..." );
 				ResizeImage( frame, pDecompress->xparam.width, pDecompress->xparam.height );
 													/* Free old output buffer*/
 													//if(out_buffer) free(out_buffer);
@@ -121,11 +121,11 @@ int CPROC DecompressFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 		}
 	}
 	if( xerr < 0 )
-		lprintf( WIDE("error decompressing image...") );
+		lprintf( "error decompressing image..." );
 	SetDeviceData( pDevice
 					 , frame
 					 , ( pDecompress->xparam.width * pDecompress->xparam.height ) );
-  // lprintf( WIDE("stats! %d %d %d %d %d")
+  // lprintf( "stats! %d %d %d %d %d"
   // 		 , pDecompress->xstats.length
   // 		 , pDecompress->xstats.hlength
   // 		 , pDecompress->xstats.kblks

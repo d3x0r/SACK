@@ -30,8 +30,8 @@ enum {
 
 PRELOAD( RegisterUserPasswordControls )
 {
-	EasyRegisterResource( WIDE("InterShell/Security/SQL"), PERMISSIONS, LISTBOX_CONTROL_NAME );
-	EasyRegisterResource( WIDE("InterShell/Security/SQL"), REQUIRED_PERMISSIONS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/Security/SQL", PERMISSIONS, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/Security/SQL", REQUIRED_PERMISSIONS, LISTBOX_CONTROL_NAME );
 }
 
 PNULL_PASSWORD GetButtonSecurity( uintptr_t button, int bCreate )
@@ -62,7 +62,7 @@ static uintptr_t CPROC AddButtonSecurity( uintptr_t psv, arg_list args )
 	PARAM( args, CTEXTSTR, permission );
 	uintptr_t last_loading = psv;
 	PNULL_PASSWORD pls = GetButtonSecurity( last_loading, TRUE );
-	//lprintf( WIDE("load context %p(%p)"), pls, last_loading );
+	//lprintf( "load context %p(%p)", pls, last_loading );
 	if( pls )
 	{
 		int n;
@@ -81,15 +81,15 @@ static uintptr_t CPROC AddButtonSecurity( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadSecurityContext( WIDE("NULL Password") )( PCONFIG_HANDLER pch )
+static void OnLoadSecurityContext( "NULL Password" )( PCONFIG_HANDLER pch )
 {
-   AddConfigurationMethod( pch, WIDE("SQL password security=%m"), AddButtonSecurity );
+   AddConfigurationMethod( pch, "SQL password security=%m", AddButtonSecurity );
 }
 
-static void OnSaveSecurityContext( WIDE("NULL Password") )( FILE *file, uintptr_t button )
+static void OnSaveSecurityContext( "NULL Password" )( FILE *file, uintptr_t button )
 {
 	PNULL_PASSWORD pls = GetButtonSecurity( button, FALSE );
-   //lprintf( WIDE("save context %p"), pls );
+   //lprintf( "save context %p", pls );
 	if( pls )
 	{
 		int n;
@@ -97,31 +97,31 @@ static void OnSaveSecurityContext( WIDE("NULL Password") )( FILE *file, uintptr_
 		LIST_FORALL( g.permissions, n, struct sql_token *, token )
 		{
 			if( TESTFLAG( pls->permissions, n ) )
-            sack_fprintf( file, WIDE("%sSQL password security=%s\n"), InterShell_GetSaveIndent(), token->name );
+            sack_fprintf( file, "%sSQL password security=%s\n", InterShell_GetSaveIndent(), token->name );
 		}
 	}
 }
 
 //--------------------------------------------------------------------------------
 
-static uintptr_t TestSecurityContext( WIDE("NULL Password") )( uintptr_t button )
+static uintptr_t TestSecurityContext( "NULL Password" )( uintptr_t button )
 {	
 	TEXTSTR current_user;
 	INDEX result;	
 	PNULL_PASSWORD pls = GetButtonSecurity( button, FALSE );
-   //lprintf( WIDE("load context %p(%p)"), pls, button );
+   //lprintf( "load context %p(%p)", pls, button );
 
 	g.current_user = NULL;
 	if( current_user = NULL /*getCurrentUser() */)
 	{
 		PUSER user;
 		INDEX idx;	
-		lprintf( WIDE("Have a current user?!") );
+		lprintf( "Have a current user?!" );
 		LIST_FORALL( g.users, idx, PUSER, user )
 		{
 			if( StrCmp( user->name, current_user ) == 0 )
 			{
-				lprintf( WIDE("Setting current user to ....?") );
+				lprintf( "Setting current user to ....?" );
 				g.current_user = user;
 			}
 		}
@@ -136,7 +136,7 @@ static uintptr_t TestSecurityContext( WIDE("NULL Password") )( uintptr_t button 
 	return 0; /* no security... */
 }
 
-static void  EndSecurityContext( WIDE("NULL Password") ) ( uintptr_t button, uintptr_t psv )
+static void  EndSecurityContext( "NULL Password" ) ( uintptr_t button, uintptr_t psv )
 {
 	//LogOutPassword( psv );
 	return;	
@@ -179,13 +179,13 @@ void CPROC OnItemDoubleClickRequired( uintptr_t psv, PSI_CONTROL pc, PLISTITEM p
 
 //--------------------------------------------------------------------------------
 
-static void OnEditSecurityContext( WIDE("NULL Password") )( uintptr_t button )
+static void OnEditSecurityContext( "NULL Password" )( uintptr_t button )
 {
 	PNULL_PASSWORD pls = GetButtonSecurity( button, TRUE );
 	if( pls )
 	{
 		PSI_CONTROL frame = LoadXMLFrameOver( NULL
-														, WIDE("EditSQLButtonSecurity.Frame") );
+														, "EditSQLButtonSecurity.Frame" );
 		if( frame )
 		{
 			int okay = 0;

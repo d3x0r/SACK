@@ -971,7 +971,7 @@ MEM_PROC  int MEM_API  StrCmpEx ( CTEXTSTR s1, CTEXTSTR s2, INDEX maxlen );
    
    Example
    <code lang="c++">
-   TEXTCHAR const *found = StrStr( WIDE( "look in this string" ), WIDE( "in" ) );
+   TEXTCHAR const *found = StrStr( "look in this string", "in" );
                                                ^returns a pointer to here.
    </code>                                                                        */
 MEM_PROC  CTEXTSTR MEM_API  StrStr ( CTEXTSTR s1, CTEXTSTR s2 );
@@ -994,8 +994,8 @@ MEM_PROC  CTEXTSTR MEM_API  StrStr ( CTEXTSTR s1, CTEXTSTR s2 );
    
    Example
    <code>
-   TEXTCHAR *writable_string = StrDup( WIDE( "look in this string" ) );
-   TEXTCHAR *found = StrStr( writable_string, WIDE( "in" ) );
+   TEXTCHAR *writable_string = StrDup( "look in this string" );
+   TEXTCHAR *found = StrStr( writable_string, "in" );
    // returns a pointer to 'in' in the writable string, which can then be modified.
    </code>                                                                          */
 MEM_PROC  TEXTSTR MEM_API  StrStr ( TEXTSTR s1, CTEXTSTR s2 );

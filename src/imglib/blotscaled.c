@@ -492,7 +492,7 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 	//uint32_t dhd, dwd, dhs, dws;
 	va_list colors;
 	va_start( colors, method );
-	//lprintf( WIDE("Blot enter %p %p (%d,%d)"), pifDest, pifSrc, wd, hd );
+	//lprintf( "Blot enter %p %p (%d,%d)", pifDest, pifSrc, wd, hd );
 	if( nTransparent > ALPHA_TRANSPARENT_MAX )
 	{
 		return;
@@ -538,7 +538,7 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 			xd++;
 		}
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//		 xs, ys, ws, hs, xd, yd, wd, hd );
 	if( yd < pifDest->y )
 	{
@@ -558,7 +558,7 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 
 	params.errx = (params.dws>params.dwd) ? params.errx / 2 : params.errx;				\
 
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//		 xs, ys, ws, hs, xd, yd, wd, hd );
 	if( ( xd + (signed)wd ) > ( pifDest->x + pifDest->width) )
 	{
@@ -566,7 +566,7 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 		//ws -= ((int64_t)( (int)wd - newwd)* (int64_t)ws )/(int)wd;
 		wd = ( pifDest->x + pifDest->width ) - xd;
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//		 xs, ys, ws, hs, xd, yd, wd, hd );
 	if( ( yd + (signed)hd ) > (pifDest->y + pifDest->height) )
 	{
@@ -574,7 +574,7 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 		//hs -= ((int64_t)( hd - newhd)* hs )/hd;
 		hd = (pifDest->y + pifDest->height) - yd;
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//		 xs, ys, ws, hs, xd, yd, wd, hd );
 	if( (int32_t)wd <= 0 ||
 		 (int32_t)hd <= 0 ||
@@ -584,7 +584,7 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 		return;
 	}
 	
-	//Log9( WIDE("Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)")
+	//Log9( "Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)"
 	//			 , xs, FROMFIXED(xs), FIXEDPART(xs)
 	//			 , ys, FROMFIXED(ys)
 	//			 , xd, FROMFIXED(xd)
@@ -623,7 +623,7 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 		params.oo = 4*(pifDest->pwidth - (wd));;	  // w is how much we can copy...
 	}
 
-	//lprintf( WIDE("Do blot work... %p %p  %d  %d  %d,%d %d,%d")
+	//lprintf( "Do blot work... %p %p  %d  %d  %d,%d %d,%d"
 	//		 , pi, po, srcwidth, oo
 	//		 , ws, hs
 	//		 , wd, hd );
@@ -688,7 +688,7 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 		}
 		break;
 	}
-	//lprintf( WIDE("Blot done") );
+	//lprintf( "Blot done" );
 }
 
 

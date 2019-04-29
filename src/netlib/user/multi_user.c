@@ -59,9 +59,9 @@ int main( int argc, char** argv )
 		printf( "usage: %s <Telnet IP[:port]>\n", argv[0] );
 		return 0;
 	}
-	SystemLog( WIDE("Starting the network") );
+	SystemLog( "Starting the network" );
 	NetworkWait( NULL, 3000, 5 );
-	SystemLog( WIDE("Started the network") );
+	SystemLog( "Started the network" );
 	sa = CreateSockAddress( DupCharToText( argv[1] ), 23 );
 	main_thread = MakeThread();
 	//if( argc >= 3 ) port = atoi( argv[2] ); else port = 23;

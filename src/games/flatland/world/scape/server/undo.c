@@ -97,7 +97,7 @@ void AddUndo( INDEX iWorld, int type, ... )
 		}
 		break;
 	default: 
-		Log1( WIDE("Cannot handle specified undo type...%s"), UndoNames[type] );
+		Log1( "Cannot handle specified undo type...%s", UndoNames[type] );
 	}
 }
 
@@ -106,7 +106,7 @@ void EndUndo( INDEX iWorld, int type, ... )
    GETWORLD( iWorld );
 	if( world->firstundo->type != type )
 	{
-		Log( WIDE("Undo that was started is not the type we're ending...") );
+		Log( "Undo that was started is not the type we're ending..." );
 		return;
 	}
 	else
@@ -123,7 +123,7 @@ void EndUndo( INDEX iWorld, int type, ... )
 			}
 			break;
 		default:
-			Log( WIDE("Undo type does not need a continue?") );
+			Log( "Undo type does not need a continue?" );
 			break;
 		}
 	}
@@ -152,7 +152,7 @@ void DoUndo( INDEX iWorld )
 			}
 			else
 			{
-				Log( WIDE("Sector move was never completed?!") );
+				Log( "Sector move was never completed?!" );
 			}
 			break;
 		case UNDO_WALLMOVE:
@@ -186,12 +186,12 @@ void DoUndo( INDEX iWorld )
 			}
 			break;
 		default:
-			Log1( WIDE("Unknown undo operation %s"),UndoNames[world->firstundo->type] );
+			Log1( "Unknown undo operation %s",UndoNames[world->firstundo->type] );
 			break;
 		}
 		Release( world->firstundo );
 		world->firstundo = next;
 	}
 	else
-		Log( WIDE("Nothing to undo...") );
+		Log( "Nothing to undo..." );
 }

@@ -14,21 +14,21 @@ void DeleteAFile( uintptr_t psv, char *name, int flags )
       return;
    if( flags & SFF_DRIVE )
    {
-      fprintf( stdout, WIDE("Not allowed to delete drives! aborting!\n") );
+      fprintf( stdout, "Not allowed to delete drives! aborting!\n" );
       abort_remove = 1;
       return;
    }
 	delete_level++;
    if( verbose || !force )
-      fprintf( stdout, WIDE("Going to delete %s %s")
+      fprintf( stdout, "Going to delete %s %s"
                , (flags & SFF_DIRECTORY)?"path":"file"
                , name );
    if( !force )
    {
-      fprintf( stdout, WIDE("[n]?\n") );
+      fprintf( stdout, "[n]?\n" );
    }
    else if( verbose )
-	      fprintf( stdout, WIDE("\n") );
+	      fprintf( stdout, "\n" );
 
    if( flags & SFF_DIRECTORY )
    {
@@ -41,14 +41,14 @@ void DeleteAFile( uintptr_t psv, char *name, int flags )
    				         , recurse?(SFF_SUBCURSE|SFF_DIRECTORIES):0
                         , 0 ) );
 	      if( !RemoveDirectory( name ) )
-   	      fprintf( stderr, WIDE("Failed to remove directory: %s %d\n")
+   	      fprintf( stderr, "Failed to remove directory: %s %d\n"
    	      			, name, GetLastError() );
 	   }
    }
    else
    {
       if( !DeleteFile( name ) )
-         fprintf( stderr, WIDE("Failed to delete file: %s\n"), name );
+         fprintf( stderr, "Failed to delete file: %s\n", name );
    }
 	delete_level--;
 }

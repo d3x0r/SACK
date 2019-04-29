@@ -36,7 +36,7 @@ static struct {
 	PLIST icons;
 } l;
 
-CONTROL_REGISTRATION launchpad = { WIDE("Launcher Launchpad"), {{ 32, 32 }, 0, BORDER_NONE|BORDER_FIXED }
+CONTROL_REGISTRATION launchpad = { "Launcher Launchpad", {{ 32, 32 }, 0, BORDER_NONE|BORDER_FIXED }
 };
 
 enum {
@@ -52,18 +52,18 @@ enum {
 PRELOAD(RegisterMyControl)
 {
 	l.pii = GetImageInterface();
-	EasyRegisterResource( WIDE("InterShell/Launchpad"), TXT_RESPOND_TO, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/Launchpad"), TXT_SYSTEM_NAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/Launchpad"), BTN_DELETE_PAIR, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/Launchpad"), BTN_ADD_PAIR, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/Launchpad"), BTN_DELETE_NOT_PAIR, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/Launchpad"), BTN_ADD_NOT_PAIR, NORMAL_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/Launchpad"), LISTBOX_SYSTEM_CLASS_NAMES, LISTBOX_CONTROL_NAME );
+	EasyRegisterResource( "InterShell/Launchpad", TXT_RESPOND_TO, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Launchpad", TXT_SYSTEM_NAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/Launchpad", BTN_DELETE_PAIR, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Launchpad", BTN_ADD_PAIR, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Launchpad", BTN_DELETE_NOT_PAIR, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Launchpad", BTN_ADD_NOT_PAIR, NORMAL_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/Launchpad", LISTBOX_SYSTEM_CLASS_NAMES, LISTBOX_CONTROL_NAME );
 	l.system = InterShell_GetSystemName();
 	l.image = DecodeMemoryToImage( icon_image, sizeof( icon_image ) );
 	SetTaskLogOutput();
 	DoRegisterControl( &launchpad );
-   if( SACK_GetProfileIntEx( GetProgramName(), WIDE("Launchpad/Log Packet Receive"), 0, TRUE ) )
+   if( SACK_GetProfileIntEx( GetProgramName(), "Launchpad/Log Packet Receive", 0, TRUE ) )
 	{
 		extern int bLogPacketReceive;
 		bLogPacketReceive = 1;
@@ -72,7 +72,7 @@ PRELOAD(RegisterMyControl)
 
 //-------------------------------------------------------------------------
 
-static int OnDrawCommon( WIDE("Launcher Launchpad") )( PSI_CONTROL pc )
+static int OnDrawCommon( "Launcher Launchpad" )( PSI_CONTROL pc )
 {
 	BlotScaledImageAlpha( GetControlSurface( pc ), l.image, ALPHA_TRANSPARENT );
 	return 1;
@@ -81,18 +81,18 @@ static int OnDrawCommon( WIDE("Launcher Launchpad") )( PSI_CONTROL pc )
 
 //-------------------------------------------------------------------------
 
-static int OnMouseCommon( WIDE("Launcher Launchpad") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
+static int OnMouseCommon( "Launcher Launchpad" )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	return 1;
 }
 
 //-------------------------------------------------------------------------
 
-static uintptr_t OnCreateControl( WIDE("Launcher Launchpad") )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
+static uintptr_t OnCreateControl( "Launcher Launchpad" )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PSI_CONTROL pc;
 	pc = MakeNamedControl( frame
-								, WIDE("Launcher Launchpad")
+								, "Launcher Launchpad"
 								, x
 								, y
 								, w
@@ -103,14 +103,14 @@ static uintptr_t OnCreateControl( WIDE("Launcher Launchpad") )( PSI_CONTROL fram
    return (uintptr_t) pc;
 }
 
-static void OnDestroyControl( WIDE("Launcher Launchpad") )( uintptr_t psv )
+static void OnDestroyControl( "Launcher Launchpad" )( uintptr_t psv )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	DeleteLink( &l.icons, pc );
 	DestroyCommon( &pc );
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Launcher Launchpad") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Launcher Launchpad" )( uintptr_t psv )
 {
 	return (PSI_CONTROL)psv;
 }
@@ -168,10 +168,10 @@ static void CPROC AddPair( uintptr_t psv, PSI_CONTROL button )
 	newsystemclass = GetSystemClass( classbuf );
 	newsystemclasssystem = GetSystemClassSystem( newsystemclass, sysbuf );
 	newsystemclasssystem->flags.bNot = 0;
-	snprintf( sysbuf, sizeof( sysbuf ), WIDE("%s\t%s\t%s")
+	snprintf( sysbuf, sizeof( sysbuf ), "%s\t%s\t%s"
 			, newsystemclass->classname
 			, newsystemclasssystem->system
-			, newsystemclasssystem->flags.bNot?WIDE("NOT"):WIDE("")
+			, newsystemclasssystem->flags.bNot?"NOT":""
 			);
 	AddListItem( GetNearControl( button, LISTBOX_SYSTEM_CLASS_NAMES ), sysbuf );
 }
@@ -190,10 +190,10 @@ static void CPROC AddNotPair( uintptr_t psv, PSI_CONTROL button )
 	newsystemclass = GetSystemClass( classbuf );
 	newsystemclasssystem = GetSystemClassSystem( newsystemclass, sysbuf );
 	newsystemclasssystem->flags.bNot = 1;
-	snprintf( sysbuf, sizeof( sysbuf ), WIDE("%s\t%s\t%s")
+	snprintf( sysbuf, sizeof( sysbuf ), "%s\t%s\t%s"
 			, newsystemclass->classname
 			, newsystemclasssystem->system
-			, newsystemclasssystem->flags.bNot?WIDE("NOT"):WIDE("")
+			, newsystemclasssystem->flags.bNot?"NOT":""
 			);
 	AddListItem( GetNearControl( button, LISTBOX_SYSTEM_CLASS_NAMES ), sysbuf );
 }
@@ -292,7 +292,7 @@ static void CPROC DeleteNotPair( uintptr_t psv, PSI_CONTROL button )
 {
 }
 
-static void OnFinishInit( WIDE("@Launchpad") )( PCanvasData canvas )
+static void OnFinishInit( "@Launchpad" )( PCanvasData canvas )
 {
 	INDEX idx;
 	struct system_class_tag *system_class_name;
@@ -326,7 +326,7 @@ static void OnFinishInit( WIDE("@Launchpad") )( PCanvasData canvas )
 		{
 			TEXTCHAR translated_class[256];
 			InterShell_TranslateLabelText( NULL, translated_class, sizeof( translated_class ), system_class_name->classname );
-			lprintf( WIDE("This will respond to class [%s]"), system_class_name->classname );
+			lprintf( "This will respond to class [%s]", system_class_name->classname );
 
 			AddLink( &class_names, StrDup( translated_class ) );
 		}
@@ -334,9 +334,9 @@ static void OnFinishInit( WIDE("@Launchpad") )( PCanvasData canvas )
 
 }
 
-static void OnGlobalPropertyEdit( WIDE("Launcher Launchpad") )( PSI_CONTROL parent )
+static void OnGlobalPropertyEdit( "Launcher Launchpad" )( PSI_CONTROL parent )
 {
-	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE("ConfigureLaunchpad.Frame") );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent, "ConfigureLaunchpad.Frame" );
 	if( frame )
 	{
 		int okay = 0;
@@ -358,10 +358,10 @@ static void OnGlobalPropertyEdit( WIDE("Launcher Launchpad") )( PSI_CONTROL pare
 					TEXTCHAR buffer[256];
 					LIST_FORALL( system_class_name->systems, idx2, struct system_class_system_tag *, system_class_system_name )
 					{
-						snprintf( buffer, sizeof( buffer ), WIDE("%s\t%s\t%s")
+						snprintf( buffer, sizeof( buffer ), "%s\t%s\t%s"
 							, system_class_name->classname
 							, system_class_system_name->system
-							, system_class_system_name->flags.bNot?WIDE("NOT"):WIDE("") );
+							, system_class_system_name->flags.bNot?"NOT":"" );
 						AddListItem( list, buffer );
 					}
 				}
@@ -402,7 +402,7 @@ static void OnGlobalPropertyEdit( WIDE("Launcher Launchpad") )( PSI_CONTROL pare
 	}
 }
 
-static void OnSaveCommon( WIDE("Launcher Launchpad") )( FILE *file )
+static void OnSaveCommon( "Launcher Launchpad" )( FILE *file )
 {
 	struct system_class_tag *system_class_name;
 	INDEX idx;
@@ -414,9 +414,9 @@ static void OnSaveCommon( WIDE("Launcher Launchpad") )( FILE *file )
 		LIST_FORALL( system_class_name->systems, idx2, struct system_class_system_tag*, system_class_system_name )
 		{
 			if( system_class_system_name->flags.bNot )
-				fprintf( file, WIDE("Launchpad no class=%s@%s\n"), system_class_name->classname, system_class_system_name->system );
+				fprintf( file, "Launchpad no class=%s@%s\n", system_class_name->classname, system_class_system_name->system );
 			else
-				fprintf( file, WIDE("Launchpad class=%s@%s\n"), system_class_name->classname, system_class_system_name->system );
+				fprintf( file, "Launchpad class=%s@%s\n", system_class_name->classname, system_class_system_name->system );
 		}
 	}
 }
@@ -425,7 +425,7 @@ static uintptr_t CPROC SetLaunchpadClass( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, new_class_name );
 	PARAM( args, CTEXTSTR, new_system_name );
-	lprintf( WIDE("Add '%s'@'%s'"), new_class_name, new_system_name );
+	lprintf( "Add '%s'@'%s'", new_class_name, new_system_name );
 	AddSystemClassEx( new_class_name, new_system_name, FALSE );
 	return psv;
 }
@@ -434,7 +434,7 @@ static uintptr_t CPROC SetLaunchpadNotClass( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, new_class_name );
 	PARAM( args, CTEXTSTR, new_system_name );
-	lprintf( WIDE("Add '%s'^'%s'"), new_class_name, new_system_name );
+	lprintf( "Add '%s'^'%s'", new_class_name, new_system_name );
 	AddSystemClassEx( new_class_name, new_system_name, TRUE );
 	return psv;
 }
@@ -447,16 +447,16 @@ static uintptr_t CPROC SetLaunchpadInterface( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static void OnLoadCommon( WIDE("Launcher Launchpad") )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( "Launcher Launchpad" )( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, WIDE("Launchpad class=%m@%m"), SetLaunchpadClass );
-	AddConfigurationMethod( pch, WIDE("Launchpad no class=%m@%m"), SetLaunchpadNotClass );
-	AddConfigurationMethod( pch, WIDE("Launchpad Interface=%m"), SetLaunchpadInterface );
+	AddConfigurationMethod( pch, "Launchpad class=%m@%m", SetLaunchpadClass );
+	AddConfigurationMethod( pch, "Launchpad no class=%m@%m", SetLaunchpadNotClass );
+	AddConfigurationMethod( pch, "Launchpad Interface=%m", SetLaunchpadInterface );
 }
 
-static void OnLoadControl( WIDE("Launcher Launchpad") )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Launcher Launchpad" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch, WIDE("Launchpad class=%m@%m"), SetLaunchpadClass );
+	AddConfigurationMethod( pch, "Launchpad class=%m@%m", SetLaunchpadClass );
 }
 
 //-------------------------------------------------------------------------

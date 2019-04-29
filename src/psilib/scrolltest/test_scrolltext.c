@@ -26,7 +26,7 @@ void CPROC DoScroll( uintptr_t psv )
 	GetControlTextOffsetMinMax( t2, &mmin, &mmax );
 	GetControlTextOffsetMinMax( t3, &omin, &omax );
 	GetControlTextOffsetMinMax( t4, &pmin, &pmax );
-   //lprintf( WIDE("setting offsets %d %d %d %d"), n, m, o, p );
+   //lprintf( "setting offsets %d %d %d %d", n, m, o, p );
 	if( !SetControlTextOffset( t1, n ) )
 		n = nmin;
 	if( !SetControlTextOffset( t2, m ) )
@@ -41,14 +41,14 @@ void CPROC DoScroll( uintptr_t psv )
 
 int main( void )
 {
-	PSI_CONTROL frame = CreateFrame( WIDE("test scrolling texts"), 0, 0, 1024, 768, 0, NULL );
+	PSI_CONTROL frame = CreateFrame( "test scrolling texts", 0, 0, 1024, 768, 0, NULL );
 	if( frame )
 	{
-		t1 = MakeNamedCaptionedControl( frame, STATIC_TEXT_NAME, 5, 5, 300, 15, -1, WIDE("Scroll This Text...") );
-		t2 = MakeNamedCaptionedControl( frame, STATIC_TEXT_NAME, 5, 25, 300, 15, -1, WIDE("Scroll This Text...") );
-		t3 = MakeNamedCaptionedControl( frame, STATIC_TEXT_NAME, 5, 45, 300, 15, -1, WIDE("Scroll This Text...") );
+		t1 = MakeNamedCaptionedControl( frame, STATIC_TEXT_NAME, 5, 5, 300, 15, -1, "Scroll This Text..." );
+		t2 = MakeNamedCaptionedControl( frame, STATIC_TEXT_NAME, 5, 25, 300, 15, -1, "Scroll This Text..." );
+		t3 = MakeNamedCaptionedControl( frame, STATIC_TEXT_NAME, 5, 45, 300, 15, -1, "Scroll This Text..." );
 		SetControlAlignment( t3, TEXT_CENTER );
-		t4 = MakeNamedCaptionedControl( frame, STATIC_TEXT_NAME, 5, 65, 300, 15, -1, WIDE("Scroll This Text...") );
+		t4 = MakeNamedCaptionedControl( frame, STATIC_TEXT_NAME, 5, 65, 300, 15, -1, "Scroll This Text..." );
 		SetControlAlignment( t4, TEXT_CENTER );
 		DisplayFrame( frame );
 		AddTimer( 50, DoScroll, 0 );

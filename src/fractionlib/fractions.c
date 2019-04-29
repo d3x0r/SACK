@@ -17,20 +17,20 @@
 	if( x->denominator < 0 )
 	{
 		if( x->numerator > -x->denominator )
-			return tnprintf( string, 31, WIDE("-%d %d/%d")
+			return tnprintf( string, 31, "-%d %d/%d"
 						, x->numerator / (-x->denominator)
 						, x->numerator % (-x->denominator), -x->denominator );
 		else
-			return tnprintf( string, 31, WIDE("-%d/%d"), x->numerator, -x->denominator );
+			return tnprintf( string, 31, "-%d/%d", x->numerator, -x->denominator );
 	}
 	else
 	{
 		if( x->numerator > x->denominator )
-			return tnprintf( string, 31, WIDE("%d %d/%d")
+			return tnprintf( string, 31, "%d %d/%d"
 						, x->numerator / x->denominator
 						, x->numerator % x->denominator, x->denominator );
 		else
-			return tnprintf( string, 31, WIDE("%d/%d"), x->numerator, x->denominator );
+			return tnprintf( string, 31, "%d/%d", x->numerator, x->denominator );
 	}
 }
 
@@ -39,11 +39,11 @@
  int  sLogCoords ( TEXTCHAR *string, PCOORDPAIR pcp )
 {
 	TEXTCHAR *start = string;
-	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE("(") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), "(" );
 	string += sLogFraction( string, &pcp->x );
-	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE(",") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), "," );
 	string += sLogFraction( string, &pcp->y );
-	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE(")") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), ")" );
 	return (int)(string - start);
 }
 
@@ -51,11 +51,11 @@
 {
 	TEXTCHAR buffer[256];
 	TEXTCHAR *string = buffer;
-	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE("(") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), "(" );
 	string += sLogFraction( string, &pcp->x );
-	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE(",") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), "," );
 	string += sLogFraction( string, &pcp->y );
-	string += tnprintf( string, 2*sizeof(TEXTCHAR), WIDE(")") );
+	string += tnprintf( string, 2*sizeof(TEXTCHAR), ")" );
 	Log( buffer );
 }
 
@@ -86,9 +86,9 @@ static void NormalizeFraction( PFRACTION f )
 	if( !offset->numerator ) // 0 addition either way is same.
 		return base;
 	//LogFraction( base );
-	//fprintf( log, WIDE(" + ") );
+	//fprintf( log, " + " );
 	//LogFraction( offset );
-	//fprintf( log, WIDE(" = ") );
+	//fprintf( log, " = " );
 	if( base->denominator < 0 )
 	{
 		if( offset->denominator < 0 )
@@ -164,7 +164,7 @@ static void NormalizeFraction( PFRACTION f )
 	NormalizeFraction( base );
 	return base;
 	//LogFraction( base );
-	//fprintf( log, WIDE("\n") );
+	//fprintf( log, "\n" );
 }
 
 //---------------------------------------------------------------------------
@@ -174,9 +174,9 @@ static void NormalizeFraction( PFRACTION f )
 	if( !offset->numerator ) // 0 addition either way is same.
 		return base;
 	//LogFraction( base );
-	//fprintf( log, WIDE(" + ") );
+	//fprintf( log, " + " );
 	//LogFraction( offset );
-	//fprintf( log, WIDE(" = ") );
+	//fprintf( log, " = " );
 	if( base->denominator < 0 )
 	{
 		if( offset->denominator < 0 )
@@ -252,7 +252,7 @@ static void NormalizeFraction( PFRACTION f )
 	NormalizeFraction( base );
 	return base;
 	//LogFraction( base );
-	//fprintf( log, WIDE("\n") );
+	//fprintf( log, "\n" );
 }
 
 //---------------------------------------------------------------------------

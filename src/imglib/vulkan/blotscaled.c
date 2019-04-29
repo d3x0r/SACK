@@ -393,7 +393,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 	uint32_t dhd, dwd, dhs, dws;
 	va_list colors;
 	va_start( colors, method );
-	//lprintf( WIDE("Blot enter (%d,%d)"), _wd, _hd );
+	//lprintf( "Blot enter (%d,%d)", _wd, _hd );
 	if( nTransparent > ALPHA_TRANSPARENT_MAX )
 	{
 		return;
@@ -439,7 +439,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			xd++;
 		}
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//       xs, ys, ws, hs, xd, yd, wd, hd );
 	if( yd < pifDest->y )
 	{
@@ -456,7 +456,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			yd++;
 		}
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//       xs, ys, ws, hs, xd, yd, wd, hd );
 	if( ( xd + (signed)wd ) > ( pifDest->x + pifDest->width) )
 	{
@@ -464,7 +464,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		//ws -= ((int64_t)( (int)wd - newwd)* (int64_t)ws )/(int)wd;
 		wd = ( pifDest->x + pifDest->width ) - xd;
 	}
-	//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+	//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 	//       xs, ys, ws, hs, xd, yd, wd, hd );
 	if( ( yd + (signed)hd ) > (pifDest->y + pifDest->height) )
 	{
@@ -480,7 +480,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		return;
 	}
    
-	//Log9( WIDE("Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)")
+	//Log9( "Image locations: %d(%d %d) %d(%d) %d(%d) %d(%d)"
 	//          , xs, FROMFIXED(xs), FIXEDPART(xs)
 	//          , ys, FROMFIXED(ys)
 	//          , xd, FROMFIXED(xd)
@@ -504,7 +504,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 #endif
 	while( LockedExchange( &lock, 1 ) )
 		Relinquish();
-   //Log8( WIDE("Do blot work...%d(%d),%d(%d) %d(%d) %d(%d)")
+   //Log8( "Do blot work...%d(%d),%d(%d) %d(%d) %d(%d)"
    //    , ws, FROMFIXED(ws), hs, FROMFIXED(hs) 
 	//    , wd, FROMFIXED(wd), hd, FROMFIXED(hd) );
 
@@ -520,14 +520,14 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		ReloadOpenGlTexture( pifSrc, 0 );
 		if( !pifSrc->vkActiveSurface )
 		{
-			lprintf( WIDE( "gl texture hasn't downloaded or went away?" ) );
+			lprintf( "gl texture hasn't downloaded or went away?" );
 			lock = 0;
 			return;
 		}
-		//lprintf( WIDE( "use regular texture %p (%d,%d)" ), pifSrc, pifSrc->width, pifSrc->height );
+		//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
 
 		{
-			struct image_shader_op *op;// = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), pifDest, pifSrc->glActiveSurface  );
+			struct image_shader_op *op;// = BeginImageShaderOp( GetShader( "Simple Texture" ), pifDest, pifSrc->glActiveSurface  );
 			int glDepth = 1;
 			VECTOR v[2][4];
 			float texture_v[4][2];
@@ -601,7 +601,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 
 			if( method == BLOT_COPY )
 			{
-				op = BeginImageShaderOp( GetShader( WIDE("Simple Texture") ), pifDest, pifSrc->vkActiveSurface );
+				op = BeginImageShaderOp( GetShader( "Simple Texture" ), pifDest, pifSrc->vkActiveSurface );
 				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_SHADED )
@@ -613,7 +613,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				_color[2] = BlueVal( tmp ) / 255.0f;
 				_color[3] = AlphaVal( tmp ) / 255.0f;
 
-				op = BeginImageShaderOp( GetShader( WIDE("Simple Shaded Texture") ), pifDest, pifSrc->vkActiveSurface, _color  );
+				op = BeginImageShaderOp( GetShader( "Simple Shaded Texture" ), pifDest, pifSrc->vkActiveSurface, _color  );
 				AppendImageShaderOpTristrip( op, 2, v[vi], texture_v );
 			}
 			else if( method == BLOT_MULTISHADE )
@@ -637,7 +637,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				b_color[2] = BlueVal( b ) / 255.0f;
 				b_color[3] = AlphaVal( b ) / 255.0f;
 
-				op = BeginImageShaderOp( GetShader( WIDE("Simple MultiShaded Texture") ), pifDest, pifSrc->vkActiveSurface );
+				op = BeginImageShaderOp( GetShader( "Simple MultiShaded Texture" ), pifDest, pifSrc->vkActiveSurface );
 				AppendShaderTristripQuad( op, v[vi], pifSrc->vkActiveSurface, texture_v, r_color, g_color, b_color );
 			}
 			else if( method == BLOT_INVERTED )
@@ -646,7 +646,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				if( l.vkActiveSurface->shader.inverse_shader )
 				{
 					int err;
-					//lprintf( WIDE( "HAVE SHADER %d" ), l.glActiveSurface->shader.inverse_shader );
+					//lprintf( "HAVE SHADER %d", l.glActiveSurface->shader.inverse_shader );
 					//////glEnable(GL_FRAGMENT_PROGRAM_ARB);
 					//////glUseProgram( l.vkActiveSurface->shader.inverse_shader );
 					//err = glGetError();
@@ -655,7 +655,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 #endif
 				{
 					Image output_image;
-					//lprintf( WIDE( "DID NOT HAVE SHADER" ) );
+					//lprintf( "DID NOT HAVE SHADER" );
 					output_image = GetInvertedImage( pifSrc );
 					/**///glBindTexture( GL_TEXTURE_2D, output_image->glActiveSurface );
 					;/**///glColor4ub( 255,255,255,255 );
@@ -722,7 +722,7 @@ static void BlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		}
 	}
 	lock = 0;
-	//   Log( WIDE("Blot done") );
+	//   Log( "Blot done" );
 }
 
 IMAGE_NAMESPACE_END

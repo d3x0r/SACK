@@ -1,4 +1,4 @@
-#define mac(a,b,c,d,e,f) printf( WIDE("Hmm got some things..."), a, b, c, d, e, f )
+#define mac(a,b,c,d,e,f) printf( "Hmm got some things...", a, b, c, d, e, f )
 
 mac(1,2,,,5,6)
 
@@ -36,7 +36,7 @@ __MATHCALL (atan2,, (_Mdouble_ __y, _Mdouble_ __x));
 
 LIBMAIN()
 {
-   printf( WIDE("Entrered") );
+   printf( "Entrered" );
 }
 
 

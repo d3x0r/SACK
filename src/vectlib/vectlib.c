@@ -265,7 +265,7 @@ RCOORD EXTERNAL_NAME(DirectedDistance)( PC_POINT pvOn, PC_POINT pvOf )
  static void LogVector( char *lpName, VECTOR v )
 #define LogVector(v) LogVector( #v, v )
 {
-   Log4( WIDE("Vector %s = <%lg, %lg, %lg>"),
+   Log4( "Vector %s = <%lg, %lg, %lg>",
             lpName, v[0], v[1], v[2] );
 }
 
@@ -321,9 +321,9 @@ PTRANSFORM EXTERNAL_NAME(CreateNamedTransform)( CTEXTSTR name  )
 #else
 #  define TYPENAME "transformd"
 #endif
-			RegisterDataType( WIDE( "SACK/vectlib" ), TYPENAME, sizeof( TRANSFORM ), transform_created, NULL );
+			RegisterDataType( "SACK/vectlib", TYPENAME, sizeof( TRANSFORM ), transform_created, NULL );
 		}
-		pt = (PTRANSFORM)CreateRegisteredDataType( WIDE( "SACK/vectlib" ), TYPENAME, name );
+		pt = (PTRANSFORM)CreateRegisteredDataType( "SACK/vectlib", TYPENAME, name );
 	}
 	else
 	{
@@ -388,12 +388,12 @@ void EXTERNAL_NAME(DestroyTransform)( PTRANSFORM pt )
 {
 #ifdef _MSC_VER
 	if( _isnan( pt->m[0][0] ) )
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 #endif
 	SetPoint( pt->m[3], t );
 #ifdef _MSC_VER
 	if( _isnan( pt->m[0][0] ) )
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 #endif
 }
 
@@ -613,14 +613,14 @@ void EXTERNAL_NAME(RotateAroundMast)( PTRANSFORM pt, RCOORD amount )
 #ifdef _MSC_VER
 	if( _isnan( pt->m[0][0] ) )
 	{
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 	}
 #endif
 	RotateYaw( pt->m, amount );
 #ifdef _MSC_VER
 	if( _isnan( pt->m[0][0] ) )
 	{
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 	}
 #endif
 
@@ -752,7 +752,7 @@ void EXTERNAL_NAME(ApplyT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 	}
 #ifdef _MSC_VER
 	if( _isnan( t.m[0][0] ) )
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 #endif
 	MemCpy( ptd->m, t.m, sizeof( t.m ) );
 }
@@ -775,7 +775,7 @@ void EXTERNAL_NAME(ApplyCameraT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pt
 	}
 #ifdef _MSC_VER
 	if( _isnan( t.m[0][0] ) )
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 #endif
 	MemCpy( ptd->m, t.m, sizeof( t.m ) );
 }
@@ -942,7 +942,7 @@ static void InvokeCallbacks( PTRANSFORM pt )
 			callback( (uintptr_t)GetLink( &pt->motions->userdata, idx ), pt );
 #ifdef _MSC_VER
 			if( _isnan( pt->m[0][0] ) )
-				lprintf( WIDE( "blah" ) );
+				lprintf( "blah" );
 #endif
 		}
 	}
@@ -972,7 +972,7 @@ LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 		if( _isnan( pt->m[0][0] ) )
 		{
 			return FALSE;
-			lprintf( WIDE( "blah" ) );
+			lprintf( "blah" );
 		}
 #endif
 	{
@@ -1028,7 +1028,7 @@ LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 	}
 #ifdef _MSC_VER
 	if( _isnan( pt->m[0][0] ) )
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 #endif
 	{
 		VECTOR v;
@@ -1095,7 +1095,7 @@ LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 		}
 #ifdef _MSC_VER
 		if( _isnan( pt->m[0][0] ) )
-			lprintf( WIDE( "blah" ) );
+			lprintf( "blah" );
 #endif
 		// include time scale for rotation also...
 		if( motion->rotation[0] || motion->rotation[1] || motion->rotation[2]
@@ -1103,7 +1103,7 @@ LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 			)
 		{
 			VECTOR  r;
-			//lprintf( WIDE(WIDE( "Time scale is not applied" )) );
+			//lprintf( WIDE("Time scale is not applied") );
 			moved = TRUE;
 			DOFUNC(addscaled)( motion->rotation, motion->rotation, motion->rot_accel, rotation_step );
 			DOFUNC(scale)( r, motion->rotation, rotation_step );
@@ -1111,17 +1111,17 @@ LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 			EXTERNAL_NAME(RotateRelV)( pt, r );
 #ifdef _MSC_VER
 			if( _isnan( pt->m[0][0] ) )
-				lprintf( WIDE( "blah" ) );
+				lprintf( "blah" );
 #endif
 		}
 #ifdef _MSC_VER
 		if( _isnan( pt->m[0][0] ) )
-			lprintf( WIDE( "blah" ) );
+			lprintf( "blah" );
 #endif
 		InvokeCallbacks( pt );
 #ifdef _MSC_VER
 		if( _isnan( pt->m[0][0] ) )
-			lprintf( WIDE( "blah" ) );
+			lprintf( "blah" );
 #endif
 	}
 	}
@@ -1157,7 +1157,7 @@ LOGICAL EXTERNAL_NAME( Move )(PTRANSFORM pt)
 	if( _isnan( pt->m[0][0] ) )
 	{
 		return;
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 	}
 #endif
 	{
@@ -1215,7 +1215,7 @@ LOGICAL EXTERNAL_NAME( Move )(PTRANSFORM pt)
 	}
 #ifdef _MSC_VER
 	if( _isnan( pt->m[0][0] ) )
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 #endif
 	//add( v, pt->speed, pt->accel );
 	DOFUNC(addscaled)( pt->speed, pt->speed, pt->accel, -speed_step );
@@ -1232,30 +1232,30 @@ LOGICAL EXTERNAL_NAME( Move )(PTRANSFORM pt)
 		+ v[2] * pt->m[2][2];
 #ifdef _MSC_VER
    	if( _isnan( pt->m[0][0] ) )
-			lprintf( WIDE( "blah" ) );
+			lprintf( "blah" );
 #endif
    // include time scale for rotation also...
 	if( pt->rotation[0] || pt->rotation[1] || pt->rotation[2] )
 	{
 		VECTOR  r;
-		//lprintf( WIDE(WIDE( "Time scale is not applied" )) );
+		//lprintf( WIDE("Time scale is not applied") );
 		DOFUNC(addscaled)( pt->motion->rotation, pt->motion->rotation, pt->motion->rot_accel, -rotation_step );
 		scale( r, pt->motion->rotation, -rotation_step );
 
 		EXTERNAL_NAME(RotateRelV)( pt, r );
 #ifdef _MSC_VER
    	if( _isnan( pt->m[0][0] ) )
-			lprintf( WIDE( "blah" ) );
+			lprintf( "blah" );
 #endif
 	}
 #ifdef _MSC_VER
 	if( _isnan( pt->m[0][0] ) )
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 #endif
 	InvokeCallbacks( pt );
 #ifdef _MSC_VER
 	if( _isnan( pt->m[0][0] ) )
-		lprintf( WIDE( "blah" ) );
+		lprintf( "blah" );
 #endif
 }
 #endif
@@ -1685,11 +1685,11 @@ z = (Qyx-Qxy)*s
 #define SPRINTF(a,b,...) tnprintf(a,sizeof(a),b,##__VA_ARGS__)
 #endif
 
-#define DOUBLE_FORMAT  WIDE("%g")
+#define DOUBLE_FORMAT  "%g"
 
 void EXTERNAL_NAME(PrintVectorEx)( CTEXTSTR lpName, PCVECTOR v DBG_PASS )
 {
-   _xlprintf( 1 DBG_RELAY )( WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT,
+   _xlprintf( 1 DBG_RELAY )( "Vector  %s = <" DOUBLE_FORMAT ", " DOUBLE_FORMAT ", " DOUBLE_FORMAT "> " DOUBLE_FORMAT,
             lpName, v[0], v[1], v[2], EXTERNAL_NAME(Length)( v ) );
 }
 #undef PrintVector
@@ -1701,9 +1701,9 @@ void EXTERNAL_NAME(PrintVector)( CTEXTSTR lpName, PCVECTOR v )
  void EXTERNAL_NAME(PrintVectorStdEx)( CTEXTSTR lpName, VECTOR v DBG_PASS )
 {
    TEXTCHAR byBuffer[256];
-   tnprintf( byBuffer, sizeof( byBuffer ), WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT WIDE("\n"),
+   tnprintf( byBuffer, sizeof( byBuffer ), "Vector  %s = <" DOUBLE_FORMAT ", " DOUBLE_FORMAT ", " DOUBLE_FORMAT "> " DOUBLE_FORMAT "\n",
             lpName, v[0], v[1], v[2], EXTERNAL_NAME(Length)(v) );
-   PRINTF( WIDE("%s"), byBuffer );
+   PRINTF( "%s", byBuffer );
 }
 
 #undef PrintVectorStd
@@ -1722,22 +1722,22 @@ void EXTERNAL_NAME(PrintMatrix)( CTEXTSTR lpName, MATRIX m )
 
 void EXTERNAL_NAME(PrintMatrixEx)( CTEXTSTR lpName, MATRIX m DBG_PASS )
 {
-   _xlprintf( 1 DBG_RELAY )( WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT,
+   _xlprintf( 1 DBG_RELAY )( "Vector  %s = <" DOUBLE_FORMAT ", " DOUBLE_FORMAT ", " DOUBLE_FORMAT ", " DOUBLE_FORMAT "> " DOUBLE_FORMAT,
             lpName, m[0][0], m[0][1], m[0][2], m[0][3], EXTERNAL_NAME(Length)( m[0] ) );
-   _xlprintf( 1 DBG_RELAY )( WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT,
+   _xlprintf( 1 DBG_RELAY )( "Vector  %s = <" DOUBLE_FORMAT ", " DOUBLE_FORMAT ", " DOUBLE_FORMAT ", " DOUBLE_FORMAT "> " DOUBLE_FORMAT,
             lpName, m[1][0], m[1][1], m[1][2], m[1][3], EXTERNAL_NAME(Length)( m[1] ) );
-   _xlprintf( 1 DBG_RELAY )( WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT,
+   _xlprintf( 1 DBG_RELAY )( "Vector  %s = <" DOUBLE_FORMAT ", " DOUBLE_FORMAT ", " DOUBLE_FORMAT ", " DOUBLE_FORMAT "> " DOUBLE_FORMAT,
             lpName, m[2][0], m[2][1], m[2][2], m[2][3], EXTERNAL_NAME(Length)( m[2] ) );
-   _xlprintf( 1 DBG_RELAY )( WIDE("Vector  %s = <") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE(", ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT,
+   _xlprintf( 1 DBG_RELAY )( "Vector  %s = <" DOUBLE_FORMAT ", " DOUBLE_FORMAT ", " DOUBLE_FORMAT ", " DOUBLE_FORMAT "> " DOUBLE_FORMAT,
             lpName, m[3][0], m[3][1], m[3][2], m[3][3], EXTERNAL_NAME(Length)( m[3] ) );
    {
 	   VECTOR v;
 	   DOFUNC(crossproduct)( v, m[1], m[2] );
-	   EXTERNAL_NAME(PrintVector)( WIDE( "cross1" ), v );
+	   EXTERNAL_NAME(PrintVector)( "cross1", v );
 	   DOFUNC(crossproduct)( v, m[2], m[0] );
-	   EXTERNAL_NAME(PrintVector)( WIDE( "cross2" ), v );
+	   EXTERNAL_NAME(PrintVector)( "cross2", v );
 	   DOFUNC(crossproduct)( v, m[0], m[1] );
-	   EXTERNAL_NAME(PrintVector)( WIDE( "cross3" ), v );
+	   EXTERNAL_NAME(PrintVector)( "cross3", v );
    }
 }
 
@@ -1745,10 +1745,10 @@ void EXTERNAL_NAME(PrintMatrixEx)( CTEXTSTR lpName, MATRIX m DBG_PASS )
 #undef ShowTransform
 void EXTERNAL_NAME(ShowTransformEx)( PTRANSFORM pt, char *header DBG_PASS )
 {
-   _xlprintf( 1 DBG_RELAY )( WIDE("transform %s"), header );
-	_xlprintf( 1 DBG_RELAY )( WIDE("     -----------------"));
-#define F4(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], pt->name[3], EXTERNAL_NAME(Length)( pt->name ) )
-#define F(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE("> ") DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], EXTERNAL_NAME(Length)( pt->name ) )
+   _xlprintf( 1 DBG_RELAY )( "transform %s", header );
+	_xlprintf( 1 DBG_RELAY )( "     -----------------");
+#define F4(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT "> " DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], pt->name[3], EXTERNAL_NAME(Length)( pt->name ) )
+#define F(name) _xlprintf( 1 DBG_RELAY )( _WIDE(#name) " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT "> " DOUBLE_FORMAT, pt->name[0], pt->name[1], pt->name[2], EXTERNAL_NAME(Length)( pt->name ) )
 	if( pt->motions )
 	{
 		F(motions->speed);
@@ -1772,26 +1772,26 @@ void EXTERNAL_NAME(showstd)( PTRANSFORM pt, char *header )
 	TEXTCHAR byMsg[256];
 #undef F4
 #undef F
-#define F4(name) SPRINTF( byMsg, _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(">"), pt->name[0], pt->name[1], pt->name[2], pt->name[3] )
-#define F(name) SPRINTF( byMsg, _WIDE(#name) WIDE(" <") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(" ") DOUBLE_FORMAT WIDE(">"), pt->name[0], pt->name[1], pt->name[2] )
-   PRINTF( WIDE("%s"), header );
-   PRINTF( WIDE("%s"), WIDE("     -----------------\n"));
+#define F4(name) SPRINTF( byMsg, _WIDE(#name) " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT ">", pt->name[0], pt->name[1], pt->name[2], pt->name[3] )
+#define F(name) SPRINTF( byMsg, _WIDE(#name) " <" DOUBLE_FORMAT " " DOUBLE_FORMAT " " DOUBLE_FORMAT ">", pt->name[0], pt->name[1], pt->name[2] )
+   PRINTF( "%s", header );
+   PRINTF( "%s", "     -----------------\n");
    F(motions->speed);
-   PRINTF( WIDE("%s"), byMsg );
+   PRINTF( "%s", byMsg );
    F(motions->rotation);
-   PRINTF( WIDE("%s"), byMsg );
+   PRINTF( "%s", byMsg );
    F(m[0]);
-   PRINTF( WIDE("%s"), byMsg );
+   PRINTF( "%s", byMsg );
    F(m[1]);
-   PRINTF( WIDE("%s"), byMsg );
+   PRINTF( "%s", byMsg );
    F(m[2]);
-   PRINTF( WIDE("%s"), byMsg );
+   PRINTF( "%s", byMsg );
    F(m[3]);
-   PRINTF( WIDE("%s"), byMsg );
+   PRINTF( "%s", byMsg );
 //   F(rcosf);
-//   PRINTF( WIDE("%s"), byMsg );
+//   PRINTF( "%s", byMsg );
    F(s);
-   PRINTF( WIDE("%s"), byMsg );
+   PRINTF( "%s", byMsg );
 }
 
 #undef F4
@@ -1801,7 +1801,7 @@ void EXTERNAL_NAME(showstd)( PTRANSFORM pt, char *header )
 void EXTERNAL_NAME(SaveTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
-	file = sack_fopen( 0, filename, WIDE("wb") );
+	file = sack_fopen( 0, filename, "wb" );
 	if( file )
 	{
 		sack_fwrite( pt, 1, sizeof( *pt ), file );
@@ -1812,7 +1812,7 @@ void EXTERNAL_NAME(SaveTransform)( PTRANSFORM pt, CTEXTSTR filename )
 void EXTERNAL_NAME(LoadTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
-	file = sack_fopen( 0, filename, WIDE("rb" ) );
+	file = sack_fopen( 0, filename, "rb" );
 	if( file )
 	{
 		sack_fread( pt, 1, sizeof( *pt ), file );
@@ -1867,7 +1867,7 @@ RCOORD EXTERNAL_NAME(IntersectLineWithPlane)( PCVECTOR Slope, PCVECTOR Origin,  
 	c = EXTERNAL_NAME(Length)( n );
 	if( !b || !c )
 	{
-		Log( WIDE("Slope and or n are near 0") );
+		Log( "Slope and or n are near 0" );
 		return 0; // bad vector choice - if near zero length...
 	}
 
@@ -1877,7 +1877,7 @@ RCOORD EXTERNAL_NAME(IntersectLineWithPlane)( PCVECTOR Slope, PCVECTOR Origin,  
 			n[1] * ( o[1] - Origin[1] ) +
 			n[2] * ( o[2] - Origin[2] ) ) / a;
 
-//   lprintf( WIDE(" a: %g b: %g c: %g t: %g cos: %g pldF: %g pldT: %g \n"), a, b, c, t, cosTheta,
+//   lprintf( " a: %g b: %g c: %g t: %g cos: %g pldF: %g pldT: %g \n", a, b, c, t, cosTheta,
 //                  pl->dFrom, pl->dTo );
 
 //   if( cosTheta > e1 ) //global epsilon... probably something custom
@@ -1892,11 +1892,11 @@ RCOORD EXTERNAL_NAME(IntersectLineWithPlane)( PCVECTOR Slope, PCVECTOR Origin,  
 	}
 	else
 	{
-		Log1( WIDE("Parallel... %g\n"), cosPhi );
+		Log1( "Parallel... %g\n", cosPhi );
 		EXTERNAL_NAME(PrintVector)( "Slope", Slope );
 		EXTERNAL_NAME(PrintVector)( "n", n );
 		// plane and line are parallel if slope and normal are perpendicular
-		//lprintf(WIDE("Parallel...\n"));
+		//lprintf("Parallel...\n");
 		return 0;
 	}
 }

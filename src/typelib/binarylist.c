@@ -184,7 +184,7 @@ static int BalanceBinaryBranch( PTREENODE root )
 			{
 				//if( left > 2+((left+rightDepth)*55)/100 )
 				{
-		 			//Log2( WIDE("rotateing to left (%d/%d)"), left, rightDepth );
+		 			//Log2( "rotateing to left (%d/%d)", left, rightDepth );
 					root = RotateToLeft( check );
 					balances++;
 				}
@@ -195,7 +195,7 @@ static int BalanceBinaryBranch( PTREENODE root )
 			{
 				//if( rightDepth  > 2+((left+rightDepth)*55)/100 )
 				{
-		 			//Log2( WIDE("rotateing to rightDepth (%d/%d)"), rightDepth, left );
+		 			//Log2( "rotateing to rightDepth (%d/%d)", rightDepth, left );
 					root = RotateToRight( check );
 					balances++;
 				}
@@ -206,13 +206,13 @@ static int BalanceBinaryBranch( PTREENODE root )
  		}
  		else if( check->lesser && ( check->children >= 2 ) )
  		{
- 			//Log1( WIDE("rotateing to left (%d)"), check->children );
+ 			//Log1( "rotateing to left (%d)", check->children );
  			root = RotateToLeft( check );
 			balances++;
  		}
  		else if( check->greater && ( check->children >= 2 )  )
  		{
- 			//Log1( WIDE("rotateing to rightDepth (%d)"), check->children );
+ 			//Log1( "rotateing to rightDepth (%d)", check->children );
  			root = RotateToRight( check );
 			balances++;
  		}
@@ -239,7 +239,7 @@ void BalanceBinaryTree( PTREEROOT root )
 	while( BalanceBinaryBranch( root->tree ) > 1 && 0);
 	root->lock = 0;
 #endif
-	//Log( WIDE("=========") );;
+	//Log( "=========" );;
 }
 
 //---------------------------------------------------------------------------
@@ -654,7 +654,7 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 		//Release( node );
 		return;
 	}
-	lprintf( WIDE("Fatal RemoveBinaryNode could not find the root!") );
+	lprintf( "Fatal RemoveBinaryNode could not find the root!" );
 }
 
 //---------------------------------------------------------------------------
@@ -763,7 +763,7 @@ void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, uint
 	//else
 	if( print ) {
 #ifdef SACK_BINARYLIST_USE_PRIMITIVE_LOGGING
-		snprintf( buf, 256, WIDE( "[%3d] %p Node has %3d depth  %3" )_32f WIDE( " children (%p %3" )_32f WIDE( ",%p %3" )_32f WIDE( "). %10" ) _PTRSZVALfs
+		snprintf( buf, 256, "[%3d] %p Node has %3d depth  %3"_32f " children (%p %3"_32f ",%p %3"_32f "). %10" _PTRSZVALfs
 			, level, node, node->depth, node->children
 			, node->lesser
 			, (node->lesser) ? (node->lesser->children + 1) : 0
@@ -773,7 +773,7 @@ void DumpNode( PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, uint
 		);
 		puts( buf );
 #else
-		lprintf( WIDE( "[%3d] %p Node has %3d depth  %3" )_32f WIDE( " children (%p %3" )_32f WIDE( ",%p %3" )_32f WIDE( "). %10" ) _PTRSZVALfs
+		lprintf( "[%3d] %p Node has %3d depth  %3"_32f " children (%p %3"_32f ",%p %3"_32f "). %10" _PTRSZVALfs
 			, level, node, node->depth, node->children
 			, node->lesser
 			, (node->lesser) ? (node->lesser->children + 1) : 0
@@ -805,23 +805,23 @@ void DumpTree( PTREEROOT root
 	static char buf[256];
 	maxlevel = 0;
 	if( !Dump ) {
-		snprintf( buf, 256, WIDE( "Tree %p has %" )_32f WIDE( " nodes. %p is root" ), root, root->children, root->tree );
+		snprintf( buf, 256, "Tree %p has %"_32f " nodes. %p is root", root, root->children, root->tree );
 		puts( buf );
 	}
 	DumpNode( root->tree, 1, Dump );
 	if( !Dump ) {
-		snprintf( buf, 256, WIDE("Tree had %d levels."), maxlevel );
+		snprintf( buf, 256, "Tree had %d levels.", maxlevel );
 		puts( buf );
 	}
 	fflush( stdout );
 #else
 	maxlevel = 0;
 	if( !Dump ) {
-		lprintf(  WIDE( "Tree %p has %" )_32f WIDE( " nodes. %p is root" ), root, root->children, root->tree );
+		lprintf(  "Tree %p has %"_32f " nodes. %p is root", root, root->children, root->tree );
 	}
 	DumpNode( root->tree, 1, Dump );
 	if( !Dump ) {
-		lprintf( WIDE("Tree had %d levels."), maxlevel );
+		lprintf( "Tree had %d levels.", maxlevel );
 	}
 #endif
 }
@@ -1291,7 +1291,7 @@ int GetNodeCount( PTREEROOT root )
 PTREEROOT ShadowBinaryTree( PTREEROOT Original )
 {
 	PTREEROOT root;
-	Log( WIDE("Use of binary tree shadows is fraught with danger!") );
+	Log( "Use of binary tree shadows is fraught with danger!" );
 	root = (PTREEROOT)Allocate( sizeof( TREEROOT ) );
 	MemSet( root, 0, sizeof( TREEROOT ) );
 	root->flags.bRoot = 1;

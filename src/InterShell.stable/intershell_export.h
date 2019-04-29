@@ -798,7 +798,7 @@ extern
 // somehow this ended up as 69 and 69 was also PRELOAD() priority... bad.
 PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 {
-	InterShell = (struct intershell_interface*)GetInterfaceV4( WIDE("intershell"), TRUE );
+	InterShell = (struct intershell_interface*)GetInterfaceV4( "intershell", TRUE );
 }
 
 #  endif
@@ -834,7 +834,7 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  InterShell_GetCurrentButtonFont							   ( !InterShell )?NULL:InterShell->InterShell_GetCurrentButtonFont
 #define  InterShell_SetButtonStyle								   if( InterShell )InterShell->InterShell_SetButtonStyle 
 #define  InterShell_SaveCommonButtonParameters					   if( InterShell )InterShell->InterShell_SaveCommonButtonParameters 
-#define  InterShell_GetSystemName									   ( !InterShell )?WIDE("NoInterShell"):InterShell->InterShell_GetSystemName
+#define  InterShell_GetSystemName									   ( !InterShell )?"NoInterShell":InterShell->InterShell_GetSystemName
 #define  UpdateButtonExx									   if( InterShell )InterShell->UpdateButtonExx 
 #define  ShellGetCurrentPage(x)								   (( !InterShell )?NULL:InterShell->ShellGetCurrentPage(x))
 #define  ShellGetNamedPage									   ( !InterShell )?NULL:InterShell->ShellGetNamedPage
@@ -886,7 +886,7 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define InterShell_GetButtonFontName  ( !InterShell )?NULL:InterShell->InterShell_GetButtonFontName
 #define InterShell_SetButtonFontName  if( InterShell )InterShell->InterShell_SetButtonFontName
 #define InterShell_GetCurrentButton  ( !InterShell )?NULL:InterShell->InterShell_GetCurrentButton
-#define InterShell_GetSaveIndent     ( !InterShell )?WIDE("\t"):InterShell->InterShell_GetSaveIndent
+#define InterShell_GetSaveIndent     ( !InterShell )?"\t":InterShell->InterShell_GetSaveIndent
 #define InterShell_SetTheme          if( InterShell ) InterShell->InterShell_SetTheme
 #define DisplayMenuCanvas            if( InterShell ) (InterShell)->DisplayMenuCanvas
 #define InterShell_SetPageColor        if( InterShell ) (InterShell)->InterShell_SetPageColor
@@ -904,7 +904,7 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  InterShell_SaveSecurityInformation        if( InterShell ) (InterShell)->InterShell_SaveSecurityInformation
 
 #define InterShell_SetCloneButton								if( InterShell) (InterShell)->InterShell_SetCloneButton
-#define InterShell_GetCurrentPageName                    ( !InterShell)?WIDE("first"):(InterShell)->InterShell_GetCurrentPageName
+#define InterShell_GetCurrentPageName                    ( !InterShell)?"first":(InterShell)->InterShell_GetCurrentPageName
 
 
 #endif

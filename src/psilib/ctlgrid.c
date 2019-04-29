@@ -640,7 +640,7 @@ static void KeyGridControl( PSI_CONTROL pc, int key )
 	if( pc->common.nType == GRIDBOX_CONTROL )
 	{
 		PGRIDBOX pgb = (PGRIDBOX)pc;
-		//printf( WIDE("%08x\n"), key );
+		//printf( "%08x\n", key );
 		if( key & 0x80000000 )
 		{
 			switch( key & 0xFF )

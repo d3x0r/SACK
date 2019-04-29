@@ -26,11 +26,11 @@ void CPROC UDPMessage( PCLIENT pc, POINTER buffer, size_t size, SOCKADDR *sa )
    }
    else
    {
-   	//Log( WIDE("UDP Message received!") );
+   	//Log( "UDP Message received!" );
       if( *(uint64_t*)buffer == *(uint64_t*)"WHERE RU" )
       {
-      	Log( WIDE("Informing I'm here...") );
-         SendUDPEx( pc, (void*)WIDE("IM HERE!"), 8, sa );
+      	Log( "Informing I'm here..." );
+         SendUDPEx( pc, (void*)"IM HERE!", 8, sa );
       }
    }
    ReadUDP( pc, buffer, 16 );

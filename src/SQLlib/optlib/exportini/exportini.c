@@ -41,11 +41,11 @@ int CPROC FillList( uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flag
 {
 	PLISTFILL plf = (PLISTFILL)psv;
 	LISTFILL lf = *plf;
-	if( StrCmp( name, WIDE(".") ) == 0 )
+	if( StrCmp( name, "." ) == 0 )
 		return TRUE;
 	lf.nLevel++;
 	lf.flags.bSecondLevel = 1;
-	lprintf( WIDE("%d - %s (%p)"), plf->nLevel, name, ID );
+	lprintf( "%d - %s (%p)", plf->nLevel, name, ID );
 	{
 		if( lf.nLevel == 1 )
 		{
@@ -63,15 +63,15 @@ int CPROC FillList( uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flag
 				VarTextDestroy( &pvtIni );
 			}
 			// if it's this branch, then don't auto export it.
-			if( StrCmp( name, WIDE("INI Store") ) == 0 )
+			if( StrCmp( name, "INI Store" ) == 0 )
 				return TRUE;
 			pvtIni = VarTextCreate();
-			output = sack_fopen( 0, name, WIDE("wt") );
+			output = sack_fopen( 0, name, "wt" );
 		}
 		else if( lf.nLevel == 2 )
 		{
-			lprintf( WIDE("Section %s"), name );
-			vtprintf( pvtSection, WIDE("%s"), name );
+			lprintf( "Section %s", name );
+			vtprintf( pvtSection, "%s", name );
 		}
 		else if( lf.nLevel >= 3 )
 		{
@@ -85,24 +85,24 @@ int CPROC FillList( uintptr_t psv, CTEXTSTR name, POPTION_TREE_NODE ID, int flag
 					if( VarTextPeek( pvtSection ) )
 					{
 						PTEXT section =VarTextGet( pvtSection );
-						vtprintf( pvtIni, WIDE("[%s]\n"), GetText( section ) );
+						vtprintf( pvtIni, "[%s]\n", GetText( section ) );
 						LineRelease( section );
 					}
-					vtprintf( pvtIni, WIDE("%s=%s\n"), name, buffer );
+					vtprintf( pvtIni, "%s=%s\n", name, buffer );
 				}
 				else
 				{
-					vtprintf( pvtSection, WIDE("/%s"), name );
+					vtprintf( pvtSection, "/%s", name );
 				}
 			}
 			else
 			{
-				vtprintf( pvtSection, WIDE("/%s"), name );
+				vtprintf( pvtSection, "/%s", name );
 			}
 		}
 	}
   	EnumOptions( ID, FillList, (uintptr_t)&lf );
-   //lprintf( WIDE("done with all children under this node.") );
+   //lprintf( "done with all children under this node." );
    return TRUE;
 }
 
@@ -112,7 +112,7 @@ int main( int argc, TEXTCHAR **argv )
 	pvtSection = VarTextCreate();
 	if( argc > 1 )
 	{
-		if( strcmp( argv[1], WIDE("-s") ) == 0 )
+		if( strcmp( argv[1], "-s" ) == 0 )
 		{
 			static TEXTCHAR tmp[256];
 			if( argc > 2 )
@@ -122,13 +122,13 @@ int main( int argc, TEXTCHAR **argv )
 			else
 			{
 #ifdef __NO_NETWORK__
-				snprintf( tmp, sizeof( tmp ), WIDE("/INI Store/localhost") );
+				snprintf( tmp, sizeof( tmp ), "/INI Store/localhost" );
 #else
-				snprintf( tmp, sizeof( tmp ), WIDE("/INI Store/%s"), GetSystemName() );
+				snprintf( tmp, sizeof( tmp ), "/INI Store/%s", GetSystemName() );
 #endif
 				SystemPrefix = tmp;
 			}
-			id_root = GetOptionIndex( id_root, WIDE("DEFAULT"), SystemPrefix, NULL );
+			id_root = GetOptionIndex( id_root, "DEFAULT", SystemPrefix, NULL );
 			if( !id_root )
 				return 0;
 		}

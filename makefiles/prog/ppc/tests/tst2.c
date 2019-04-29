@@ -1,6 +1,6 @@
 
-#define macro(a,b,c,d,e) printf( WIDE("Macro called with:") #a #b #c #d #e )
-#define macro2(...) printf( WIDE("Macro called with: %d"), __SZ_ARGS__, __VA_ARGS__ )
+#define macro(a,b,c,d,e) printf( "Macro called with:" #a #b #c #d #e )
+#define macro2(...) printf( "Macro called with: %d", __SZ_ARGS__, __VA_ARGS__ )
 
 macro2( 1>2?56:"hi", 3.0, 1>2?56:"hi" );
 

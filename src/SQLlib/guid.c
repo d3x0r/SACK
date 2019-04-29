@@ -49,7 +49,7 @@ CTEXTSTR GetGUID( void )
 	//CoCreateGuid( &guid );
 	//UuidCreate( &guid );
 	UuidCreate( &guid );
-	tnprintf( text_guid, 37, WIDE("%08lx-%04x-%04x-")
+	tnprintf( text_guid, 37, "%08lx-%04x-%04x-"
 			  , guid.Data1
 			  , guid.Data2
 			  , guid.Data3
@@ -62,7 +62,7 @@ CTEXTSTR GetGUID( void )
 			text_guid[18 + (n*2) + x] = '-';
 			x++;
 		}
-		tnprintf( text_guid + 18 + (n*2) + x, 3, WIDE("%02x"), guid.Data4[n] );
+		tnprintf( text_guid + 18 + (n*2) + x, 3, "%02x", guid.Data4[n] );
 	}
 	//lprintf( "Created GUid {%s}", text_guid );
 	//lprintf( "My Conversion: %s", text_guid );
@@ -84,7 +84,7 @@ CTEXTSTR GetSeqGUID( void )
 	//CoCreateGuid( &guid );
 	//UuidCreate( &guid );
 	UuidCreateSequential( &guid );
-	tnprintf( text_guid, 37, WIDE("%08lx-%04x-%04x-")
+	tnprintf( text_guid, 37, "%08lx-%04x-%04x-"
 			  , guid.Data1
 			  , guid.Data2
 			  , guid.Data3
@@ -97,7 +97,7 @@ CTEXTSTR GetSeqGUID( void )
 			text_guid[18 + (n*2) + x] = '-';
 			x++;
 		}
-		tnprintf( text_guid + 18 + (n*2) + x, 3, WIDE("%02x"), guid.Data4[n] );
+		tnprintf( text_guid + 18 + (n*2) + x, 3, "%02x", guid.Data4[n] );
 	}
 	//lprintf( "Created GUid {%s}", text_guid );
 	//lprintf( "My Conversion: %s", text_guid );
@@ -262,7 +262,7 @@ uint8_t* GetGUIDBinaryEx( CTEXTSTR guid, LOGICAL little_endian )
 
 CTEXTSTR GuidZero( void )
 {
-	return WIDE("00000000-0000-0000-0000-000000000000");
+	return "00000000-0000-0000-0000-000000000000";
 }
 
 SQL_NAMESPACE_END

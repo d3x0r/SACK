@@ -22,7 +22,7 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, uint32_t nData )
 	if( SystemPrefix )
 	{
 		static TEXTCHAR tmpbuf[256];
-		snprintf( tmpbuf, sizeof( tmpbuf ), WIDE("%s/%s"), SystemPrefix, filename );
+		snprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", SystemPrefix, filename );
 		filename = tmpbuf;
 	}
 
@@ -92,7 +92,7 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, uint32_t nData )
 					if( optend[0] )
 					{
 						optend[0] = 0;
-						lprintf( WIDE("SQLWrite: (%s)[%s] %s=%s"), filename, section,entry,optval );
+						lprintf( "SQLWrite: (%s)[%s] %s=%s", filename, section,entry,optval );
 						SACK_WritePrivateProfileString( section, entry, optval, filename );
 						//DebugDumpMem();
 					}
@@ -110,8 +110,8 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, uint32_t nData )
 void CPROC ReadINIFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 {
 	FILE *handle;
-	handle = sack_fopen( 0, filename, WIDE("rb") );
-	printf( WIDE("Process file: %s\n"), filename );
+	handle = sack_fopen( 0, filename, "rb" );
+	printf( "Process file: %s\n", filename );
 	if( handle )
 	{
 		uint32_t nsize;
@@ -144,21 +144,21 @@ int main( int argc, char **argv )
 	int n;
 	if( argc > 1 )
 	{
-		if( StrCmp( DupCharToText( argv[1] ), WIDE("-s") ) == 0 )
+		if( StrCmp( DupCharToText( argv[1] ), "-s" ) == 0 )
 		{
 			static TEXTCHAR tmp[256];
 			if( argc > 2 )
 			{
-				snprintf( tmp, sizeof( tmp ), WIDE("/System Settings/%s"), argv[2] );
+				snprintf( tmp, sizeof( tmp ), "/System Settings/%s", argv[2] );
 				argc--;
 				argv++;
 			}
 			else
 			{
 #ifdef __NO_NETWORK__
-				snprintf( tmp, sizeof( tmp ), WIDE("/System Settings/localhost") );
+				snprintf( tmp, sizeof( tmp ), "/System Settings/localhost" );
 #else
-				snprintf( tmp, sizeof( tmp ), WIDE("/System Settings/%s"), GetSystemName() );
+				snprintf( tmp, sizeof( tmp ), "/System Settings/%s", GetSystemName() );
 #endif
 			}
 			SystemPrefix = tmp;
@@ -174,7 +174,7 @@ int main( int argc, char **argv )
 		mask = (TEXTSTR)pathrchr( path );
 		rootpath = path;
 		if( mask ) { mask[0] = 0; mask++; }
-		else { rootpath = WIDE("."); mask = path; }
+		else { rootpath = "."; mask = path; }
 		while( ScanFiles((CTEXTSTR)  rootpath, (CTEXTSTR) mask, &info, ReadINIFile, 0, 0 ) )
 		{
 			//uint32_t a,b,c,d;

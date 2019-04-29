@@ -8,7 +8,7 @@ int failed;
 void MakeDirectory( char *name )
 {
 	char *path;
-	printf( WIDE("Checking %s\n"), name );
+	printf( "Checking %s\n", name );
 	path = pathrchr( name );
 	if( path )
 	{
@@ -20,7 +20,7 @@ void MakeDirectory( char *name )
 	{
 		if( GetLastError() != ERROR_ALREADY_EXISTS ) // 183
 		{
-			fprintf( stderr, WIDE("Create Directory failed on :%s %d\n"), name, GetLastError() );
+			fprintf( stderr, "Create Directory failed on :%s %d\n", name, GetLastError() );
 			failed = 1;
 		}
 	}
@@ -53,7 +53,7 @@ int main( int argc, char **argv )
 				if( !CreateDirectory( argv[n], NULL ) )
 					if( GetLastError() != ERROR_ALREADY_EXISTS ) // 183
 					{
-						fprintf( stderr, WIDE("Create Directory failed on :%s %d\n"), tmp, GetLastError() );
+						fprintf( stderr, "Create Directory failed on :%s %d\n", tmp, GetLastError() );
 						failed = 1;
 					}
 			}

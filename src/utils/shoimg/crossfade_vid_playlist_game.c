@@ -111,7 +111,7 @@ void CPROC Output( uintptr_t psv, PRENDERER display )
 		Image surface = GetDisplayImage( display );
 		Image imgGraphic;
 		struct video_element *element = (struct video_element*)GetLink( &g.current_list[psv]->images, g.currents[psv] );
-		//lprintf( WIDE("Current on %d is %d"), psv, g.currents[psv] );
+		//lprintf( "Current on %d is %d", psv, g.currents[psv] );
 		imgGraphic = element->image;
 		BlotScaledImage( surface, imgGraphic );
 	}
@@ -181,7 +181,7 @@ void BeginFadeIn( uint32_t tick_start, uint32_t tick )
 	play_and_hold = ( current_seq->current_image == 0 ) 
 		&& (current_seq->sequence ) 
 		&& (current_seq->sequence < ( g.nPlayerLists - 1 ) );
-	//lprintf( WIDE("Begin fading in the new image... %d  %d  %d"), current_seq->sequence, current_seq->current_image, play_and_hold );
+	//lprintf( "Begin fading in the new image... %d  %d  %d", current_seq->sequence, current_seq->current_image, play_and_hold );
 	if( current_seq->sequence == 0 )
 		g.attract_mode = 1;
 
@@ -207,8 +207,8 @@ void BeginFadeIn( uint32_t tick_start, uint32_t tick )
 		}
 	}
 
-	//lprintf( WIDE("Begin Showing %p"), r );
-	//lprintf( WIDE("(!)Setting fade to..> %d"), 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
+	//lprintf( "Begin Showing %p", r );
+	//lprintf( "(!)Setting fade to..> %d", 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
 	SetDisplayFade( r, 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
 	RestoreDisplay( r );
 
@@ -241,7 +241,7 @@ void ContinueFadeIn( uint32_t tick )
 			// wait until stop event to set when next fadin starts.
 			g.target_in_start = current_element->display_time ? (tick+current_element->display_time) : 0;
 		}
-		//lprintf( WIDE("Fade is is complete, set alpha to 0 (opaque), and hide old display...%d"), current_seq->sequence );
+		//lprintf( "Fade is is complete, set alpha to 0 (opaque), and hide old display...%d", current_seq->sequence );
 		if( g.prior_video && ( g.prior_video->type == 2 ) )
 		{
 			if( g.prior_video->player->playing )
@@ -261,7 +261,7 @@ void ContinueFadeIn( uint32_t tick )
 		g.prior_video = current_element;
 
 		current_seq->current_image++;
-		//lprintf( WIDE("Image fully up - setup to show next image... %d,%d"), current_seq->current_image, current_seq->nImages );
+		//lprintf( "Image fully up - setup to show next image... %d,%d", current_seq->current_image, current_seq->nImages );
 		if( current_seq->current_image >= current_seq->nImages )
 		{
 			//lprintf( "out of images on this list... reset to attract" );
@@ -305,8 +305,8 @@ void ContinueFadeIn( uint32_t tick )
 			struct video_player *player = current_element->player;
 			r = player->surface;
 		}
-		//lprintf( WIDE("Setting fade to..> %d"), 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
-		//lprintf( WIDE("Increasing %p"), r );
+		//lprintf( "Setting fade to..> %d", 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
+		//lprintf( "Increasing %p", r );
 		SetDisplayFade( r, 255 - (255*(tick-g.target_in_start))/(g.target_in-g.target_in_start) );
 		if( upd )
 			UpdateDisplay( r );
@@ -380,7 +380,7 @@ static struct video_element *LoadVideo( struct video_sequence *seq, CTEXTSTR fil
 													, g.y //0
 													);
 	SetMouseHandler( player->surface, MouseMethod, (uintptr_t)player );
-	player->vlc = PlayItemOnEx( player->surface, file, WIDE("--repeat --loop") );
+	player->vlc = PlayItemOnEx( player->surface, file, "--repeat --loop" );
 	SetStopEvent( player->vlc, OnStopFade, (uintptr_t)player );
 
 	// only used if there is only 1 video - just show video.
@@ -407,14 +407,14 @@ static uintptr_t CPROC AddVideo( uintptr_t psv, arg_list args )
 	PARAM( args, int64_t, play_length );
 	PARAM( args, CTEXTSTR, filename );
 	struct video_sequence *seq = GetSequence( (int)list_id );
-	//lprintf( WIDE( "adding video %s" ), filename );
+	//lprintf( "adding video %s", filename );
 	g.next_fade_in = (uint32_t)play_length;
 
-	if( StrCaseStr( filename, WIDE(".jpg") ) ||
-		StrCaseStr( filename, WIDE(".jpeg") ) ||
-		StrCaseStr( filename, WIDE(".bmp") ) ||
-		StrCaseStr( filename, WIDE(".png") ) ||
-		StrCaseStr( filename, WIDE(".tga") ) )
+	if( StrCaseStr( filename, ".jpg" ) ||
+		StrCaseStr( filename, ".jpeg" ) ||
+		StrCaseStr( filename, ".bmp" ) ||
+		StrCaseStr( filename, ".png" ) ||
+		StrCaseStr( filename, ".tga" ) )
 	{
 		Image img = LoadImageFile( filename );
 		if( img )
@@ -517,15 +517,15 @@ static uintptr_t CPROC SetSwipeEnable( uintptr_t psv, arg_list args )
 
 static void AddRules( PCONFIG_HANDLER pch )
 {
-	AddConfigurationMethod( pch, WIDE("config=%B"), ProcessConfig );
-	AddConfigurationMethod( pch, WIDE("%i,%i,%i,%m"), AddVideo );
-	AddConfigurationMethod( pch, WIDE("card swipe enable=%i"), SetSwipeEnable );
-	AddConfigurationMethod( pch, WIDE("card start character=%w"), SetStartCharacter );
-	AddConfigurationMethod( pch, WIDE("card end character=%w"), SetEndCharacter );
-	AddConfigurationMethod( pch, WIDE("default show time=%i"), SetDefaultShowTime );
-	AddConfigurationMethod( pch, WIDE("default fade in time=%i"), SetDefaultFadeInTime );
-	AddConfigurationMethod( pch, WIDE("default prize count %i=%i"), SetDefaultPrizeCount );
-	AddConfigurationMethod( pch, WIDE("prize name %i=%m"), SetPrizeName );
+	AddConfigurationMethod( pch, "config=%B", ProcessConfig );
+	AddConfigurationMethod( pch, "%i,%i,%i,%m", AddVideo );
+	AddConfigurationMethod( pch, "card swipe enable=%i", SetSwipeEnable );
+	AddConfigurationMethod( pch, "card start character=%w", SetStartCharacter );
+	AddConfigurationMethod( pch, "card end character=%w", SetEndCharacter );
+	AddConfigurationMethod( pch, "default show time=%i", SetDefaultShowTime );
+	AddConfigurationMethod( pch, "default fade in time=%i", SetDefaultFadeInTime );
+	AddConfigurationMethod( pch, "default prize count %i=%i", SetDefaultPrizeCount );
+	AddConfigurationMethod( pch, "prize name %i=%m", SetPrizeName );
 }
 
 static void ReadConfigFile( CTEXTSTR filename )
@@ -700,7 +700,7 @@ SaneWinMain(argc, argv )
 				ReadConfigFile( argv[arg] + 1 );
 			}
 			else
-				lprintf( WIDE("Unhandled argument: %s"), argv[arg] );
+				lprintf( "Unhandled argument: %s", argv[arg] );
 		}
 	}
 
@@ -773,8 +773,8 @@ SaneWinMain(argc, argv )
 		}
 		else
 		{
-			lprintf( WIDE("No Images to display, exiting") );
-			printf( WIDE("No Images to display, exiting\n") );
+			lprintf( "No Images to display, exiting" );
+			printf( "No Images to display, exiting\n" );
 		}
 	}
 	return 0;

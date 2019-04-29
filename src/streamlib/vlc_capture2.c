@@ -64,13 +64,13 @@ struct MyControl
 ATEXIT( CloseVlcWindows )
 {
 #if defined( DEBUG_MESSAGES )
-	lprintf( WIDE("Terminating task...") );
+	lprintf( "Terminating task..." );
 #endif
 	l.flags.shutdown = 1;
 	TerminateProgram( l.task );
 }
 
-static void OnBeginShutdown( WIDE("VLC Stream Host") )( void )
+static void OnBeginShutdown( "VLC Stream Host" )( void )
 {
 	l.flags.shutdown = 1;
 	TerminateProgram( l.task );
@@ -79,11 +79,11 @@ static void OnBeginShutdown( WIDE("VLC Stream Host") )( void )
 PRELOAD( InitVlcWindows )
 {
 	l.flags.tv_last_play = 1;
-	SACK_GetProfileString( GetProgramName(), WIDE("Video Player/application path"), WIDE("@/vlc_window.exe"), l.video_application, sizeof( l.video_application ) );
-	SACK_GetProfileString( GetProgramName(), WIDE("Video Player/application args"), WIDE("dshow://"), l.video_application_args, sizeof( l.video_application_args ) );
+	SACK_GetProfileString( GetProgramName(), "Video Player/application path", "@/vlc_window.exe", l.video_application, sizeof( l.video_application ) );
+	SACK_GetProfileString( GetProgramName(), "Video Player/application args", "dshow://", l.video_application_args, sizeof( l.video_application_args ) );
 }
 
-EasyRegisterControl( WIDE("Video Control"), sizeof( MY_CONTROL) );
+EasyRegisterControl( "Video Control", sizeof( MY_CONTROL) );
 
 #if defined( DEBUG_MESSAGES )
 #define SendUDPEx(a,b,c,d) if( l.flags.bReceived ){ LogBinary( b, c ); SendUDPEx( a,b,c,d ); }
@@ -92,16 +92,16 @@ EasyRegisterControl( WIDE("Video Control"), sizeof( MY_CONTROL) );
 #endif
 
 #define QueryAllowTV(name) \
-	  DefineRegistryMethod(WIDE("SACK"),AllowTV,WIDE( "Stream Control" ),WIDE( "Allow Turn On" ), name WIDE( "_allow_turn_on" ),LOGICAL,(void),__LINE__)
+	  DefineRegistryMethod("SACK",AllowTV,"Stream Control","Allow Turn On", name "_allow_turn_on",LOGICAL,(void),__LINE__)
 
 #define EventAllowTV(name) \
-	  DefineRegistryMethod(WIDE("SACK"),AllowTV,WIDE( "Stream Control" ),WIDE( "Allow Turn On Changed" ), name WIDE( "_allow_turn_on_changed" ),void,(LOGICAL),__LINE__)
+	  DefineRegistryMethod("SACK",AllowTV,"Stream Control","Allow Turn On Changed", name "_allow_turn_on_changed",void,(LOGICAL),__LINE__)
 
 static void AllowOn( LOGICAL yes_no )
 {
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
-	for( name = GetFirstRegisteredName( WIDE("SACK/Stream Control/Allow Turn On Changed"), &data );
+	for( name = GetFirstRegisteredName( "SACK/Stream Control/Allow Turn On Changed", &data );
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
@@ -116,22 +116,22 @@ static LOGICAL RequestAllowOn( void )
 {
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
-	for( name = GetFirstRegisteredName( WIDE("SACK/Stream Control/Allow Turn On"), &data );
+	for( name = GetFirstRegisteredName( "SACK/Stream Control/Allow Turn On", &data );
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
 		LOGICAL (CPROC *f)(void);
-		//lprintf( WIDE("Send tv query to %s"), name );
-		//snprintf( rootname, sizeof( rootname ), TASK_PREFIX WIDE("/common/save common/%s"), name );
+		//lprintf( "Send tv query to %s", name );
+		//snprintf( rootname, sizeof( rootname ), TASK_PREFIX "/common/save common/%s", name );
 		f = GetRegisteredProcedure2( (CTEXTSTR)data, LOGICAL, name, (void) );
 		if( f )
 			if( !f() )
 			{
-				//lprintf( WIDE("Something disallowed TV") );
+				//lprintf( "Something disallowed TV" );
 				return FALSE;
 			}
 	}
-	//lprintf( WIDE("nothing disallowed TV") );
+	//lprintf( "nothing disallowed TV" );
 	return TRUE;
 }
 
@@ -140,7 +140,7 @@ void SendUpdate( uint32_t x, uint32_t y, uint32_t w, uint32_t h )
 	uint32_t buffer[7];
 	if( !l.pc )
 	{
-		lprintf( WIDE("Socket isn't setup yet.") );
+		lprintf( "Socket isn't setup yet." );
 		return;
 	}
 	buffer[0] = GetTickCount();
@@ -151,7 +151,7 @@ void SendUpdate( uint32_t x, uint32_t y, uint32_t w, uint32_t h )
 	l.last_height = buffer[5] = h;
 #if defined( DEBUG_MESSAGES )
 	LogBinary( buffer, sizeof( buffer ) );
-	DumpAddr( WIDE("vlc_sendto"), l.sendto );
+	DumpAddr( "vlc_sendto", l.sendto );
 #endif
 	SendUDPEx( l.pc, buffer, sizeof( buffer ), l.sendto );
 	WakeableSleep( 10 );
@@ -293,14 +293,14 @@ void SendVolume( int volume )
 	SendUDPEx( l.pc, buffer, sizeof( buffer ), l.sendto );
 }
 
-static int OnDrawCommon( WIDE("Video Control") )( PSI_CONTROL pc )
+static int OnDrawCommon( "Video Control" )( PSI_CONTROL pc )
 {
 	return 1;
 }
 
 void CPROC KilTaskOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-	lprintf( WIDE("%s"), buffer );
+	lprintf( "%s", buffer );
 	// pskill output; don't really care
 }
 
@@ -322,7 +322,7 @@ void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 
 	if( IsSystemShuttingDown() )
 	{
-		lprintf( WIDE("Do not re-start tasks, system is shutting down.") );
+		lprintf( "Do not re-start tasks, system is shutting down." );
 		return;
 	}
 
@@ -332,7 +332,7 @@ void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 		CTEXTSTR *args;
 		CTEXTSTR executable_name;
 		args = NewArray( CTEXTSTR, 3 );
-		args[0] = WIDE("pskill.exe");
+		args[0] = "pskill.exe";
 		executable_name = pathrchr( l.video_application );
 		if( executable_name )
 			executable_name++;
@@ -341,7 +341,7 @@ void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 		args[1] = executable_name;
 		args[2] = NULL;
 		l.kill_complete = FALSE;
-		tmp_task = LaunchPeerProgramExx( WIDE("pskill.exe"), NULL, args
+		tmp_task = LaunchPeerProgramExx( "pskill.exe", NULL, args
 												 , 0  // flags
 												 , KilTaskOutput, KillTaskEnded, 0 DBG_SRC );
 		if( tmp_task )
@@ -383,7 +383,7 @@ static void CPROC ReadTvStatus( PCLIENT pc, POINTER buffer, size_t len, SOCKADDR
 		if( tick != l.last_receive )
 		{
 #if defined( DEBUG_MESSAGES )
-			lprintf( WIDE("Receive...") );
+			lprintf( "Receive..." );
 			LogBinary( buffer, len );
 #endif
 			l.flags.bReceived = 1;
@@ -410,7 +410,7 @@ static void CPROC ReadTvStatus( PCLIENT pc, POINTER buffer, size_t len, SOCKADDR
 								control->flags.bShown = TRUE;
 								GetPhysicalCoordinate( pc, &x, &y, TRUE );
 #if defined( DEBUG_MESSAGES )
-								lprintf( WIDE("Posting VLC Update.") );
+								lprintf( "Posting VLC Update." );
 #endif
 								SendUpdate( x, y, image->width, image->height );
 								break;
@@ -427,10 +427,10 @@ static void CPROC ReadTvStatus( PCLIENT pc, POINTER buffer, size_t len, SOCKADDR
 				{
 					int tmp;
 					tmp = ((uint32_t*)buffer)[2];
-					snprintf( l.channel, sizeof( TEXTCHAR ) * 5, WIDE("%d"), tmp );
+					snprintf( l.channel, sizeof( TEXTCHAR ) * 5, "%d", tmp );
 					LabelVariableChanged( l.channel_var );
 					tmp = ((uint32_t*)buffer)[3];
-					snprintf( l.volume, sizeof( TEXTCHAR ) * 5, WIDE("%d"), tmp );
+					snprintf( l.volume, sizeof( TEXTCHAR ) * 5, "%d", tmp );
 					LabelVariableChanged( l.volume_var );
 					tmp = ((uint8_t*)buffer)[16];
 					l.flags.tv_playing = (tmp!=0);
@@ -452,23 +452,23 @@ static void CPROC ReadTvStatus( PCLIENT pc, POINTER buffer, size_t len, SOCKADDR
 	ReadUDP( pc, buffer, 1000 );
 }
 
-static int OnCreateCommon( WIDE("Video Control") )( PSI_CONTROL pc )
+static int OnCreateCommon( "Video Control" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	control->flags.bShown = FALSE;
 	AddLink( &l.video_players, pc );
 	if( !l.pc )
 	{
-		CreateKeypadType( WIDE("Video/Channel") );
-		l.pc = ConnectUDP( WIDE("127.0.0.1"), 2998, WIDE("127.0.0.1"), 2999, ReadTvStatus, NULL );
-		l.sendto = CreateSockAddress( WIDE("127.0.0.1"), 2999 );
+		CreateKeypadType( "Video/Channel" );
+		l.pc = ConnectUDP( "127.0.0.1", 2998, "127.0.0.1", 2999, ReadTvStatus, NULL );
+		l.sendto = CreateSockAddress( "127.0.0.1", 2999 );
 		l.last_receive = 1; // first receive is from 0.
 		l.channel = NewArray( TEXTCHAR, 8 );
-		StrCpy( l.channel, WIDE("No TV") );
+		StrCpy( l.channel, "No TV" );
 		l.volume = NewArray( TEXTCHAR, 8 );
-		StrCpy( l.volume, WIDE("No TV") );
-		l.channel_var = CreateLabelVariable( WIDE("<video/channel>"), LABEL_TYPE_STRING, &l.channel );
-		l.volume_var = CreateLabelVariable( WIDE("<video/volume>"), LABEL_TYPE_STRING, &l.volume );
+		StrCpy( l.volume, "No TV" );
+		l.channel_var = CreateLabelVariable( "<video/channel>", LABEL_TYPE_STRING, &l.channel );
+		l.volume_var = CreateLabelVariable( "<video/volume>", LABEL_TYPE_STRING, &l.volume );
 		// just call it once when we startup the socket... (bad form)
 		TaskEnded( 0, NULL );
 	}
@@ -479,30 +479,30 @@ PUBLIC( void, link_vlc_stream )( void )
 {
 }
 
-static int OnChangePage(WIDE("Video Control") )( PSI_CONTROL pc_canvas )
+static int OnChangePage("Video Control" )( PSI_CONTROL pc_canvas )
 {
 #if defined( DEBUG_MESSAGES )
-	lprintf( WIDE("Change page - default control to off?") );
+	lprintf( "Change page - default control to off?" );
 #endif
 	SendUpdate( 0, 0, 0, 0 );
 	return TRUE;
 }
 
-static void OnHideCommon( WIDE("Video Control") )( PSI_CONTROL pc )
+static void OnHideCommon( "Video Control" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
 	{
 #if defined( DEBUG_MESSAGES )
-		lprintf( WIDE("Posting VLC Update.") );
-		DumpAddr( WIDE("vlc_sendto"), l.sendto );
+		lprintf( "Posting VLC Update." );
+		DumpAddr( "vlc_sendto", l.sendto );
 #endif
 		control->flags.bShown = FALSE;
 		SendUpdate( 0, 0, 0, 0 );
 	}
 }
 
-static void OnRevealCommon( WIDE("Video Control") )( PSI_CONTROL pc )
+static void OnRevealCommon( "Video Control" )( PSI_CONTROL pc )
 {
 	MyValidatedControlData( PMY_CONTROL, control, pc );
 	if( control )
@@ -513,95 +513,95 @@ static void OnRevealCommon( WIDE("Video Control") )( PSI_CONTROL pc )
 		control->flags.bShown = TRUE;
 		GetPhysicalCoordinate( pc, &x, &y, TRUE );
 #if defined( DEBUG_MESSAGES )
-		lprintf( WIDE("Posting VLC Update.") );
+		lprintf( "Posting VLC Update." );
 #endif
 		SendUpdate( x, y, image->width, image->height );
 	}
 }
 
 
-static uintptr_t OnCreateMenuButton( WIDE("Video/Channel Up") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Video/Channel Up" )( PMENU_BUTTON button )
 {
-	SetButtonText( button, WIDE("Channel_Up") );
+	SetButtonText( button, "Channel_Up" );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Channel Up") )( uintptr_t psv )
+static void OnKeyPressEvent( "Video/Channel Up" )( uintptr_t psv )
 {
 	SendChannelUp();
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("Video/Channel Down") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Video/Channel Down" )( PMENU_BUTTON button )
 {
-	SetButtonText( button, WIDE("Channel_Down") );
+	SetButtonText( button, "Channel_Down" );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Channel Down") )( uintptr_t psv )
+static void OnKeyPressEvent( "Video/Channel Down" )( uintptr_t psv )
 {
 	SendChannelDown();
 }
 
 
-static uintptr_t OnCreateMenuButton( WIDE("Video/Channel Set") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Video/Channel Set" )( PMENU_BUTTON button )
 {
-	SetButtonText( button, WIDE("3") );
+	SetButtonText( button, "3" );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Channel Set") )( uintptr_t psv )
+static void OnKeyPressEvent( "Video/Channel Set" )( uintptr_t psv )
 {
 	SendChannel( 3 );
 }
 
 
-static uintptr_t OnCreateMenuButton( WIDE("Video/Volume Up") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Video/Volume Up" )( PMENU_BUTTON button )
 {
-	SetButtonText( button, WIDE("Volume_Up") );
+	SetButtonText( button, "Volume_Up" );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Volume Up") )( uintptr_t psv )
+static void OnKeyPressEvent( "Video/Volume Up" )( uintptr_t psv )
 {
 	SendVolumeUp();
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("Video/Volume Down") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Video/Volume Down" )( PMENU_BUTTON button )
 {
-	SetButtonText( button, WIDE("Volume_Down") );
+	SetButtonText( button, "Volume_Down" );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Volume Down") )( uintptr_t psv )
+static void OnKeyPressEvent( "Video/Volume Down" )( uintptr_t psv )
 {
 	SendVolumeDown();
 }
 
 
-static uintptr_t OnCreateMenuButton( WIDE("Video/Volume Set") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Video/Volume Set" )( PMENU_BUTTON button )
 {
-	SetButtonText( button, WIDE("1000") );
+	SetButtonText( button, "1000" );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Volume Set") )( uintptr_t psv )
+static void OnKeyPressEvent( "Video/Volume Set" )( uintptr_t psv )
 {
 	SendVolume( 1000 );
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("Video/Turn On") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Video/Turn On" )( PMENU_BUTTON button )
 {
-	SetButtonText( button, WIDE("On") );
+	SetButtonText( button, "On" );
 	AddLink( &l.on_off_buttons, button );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Turn On") )( uintptr_t psv )
+static void OnKeyPressEvent( "Video/Turn On" )( uintptr_t psv )
 {
 	SendTurnOn();
 }
 
-static void OnShowControl( WIDE("Video/Turn On") )( uintptr_t psv )
+static void OnShowControl( "Video/Turn On" )( uintptr_t psv )
 {
 #ifdef MILK_PLUGIN
 	MILK_SetButtonHighlight( (PMENU_BUTTON)psv, l.flags.tv_playing );
@@ -610,19 +610,19 @@ static void OnShowControl( WIDE("Video/Turn On") )( uintptr_t psv )
 #endif
 }
 
-static uintptr_t OnCreateMenuButton( WIDE("Video/Turn Off") )( PMENU_BUTTON button )
+static uintptr_t OnCreateMenuButton( "Video/Turn Off" )( PMENU_BUTTON button )
 {
-	SetButtonText( button, WIDE("Off") );
+	SetButtonText( button, "Off" );
 	AddLink( &l.on_off_buttons, button );
 	return (uintptr_t)button;
 }
 
-static void OnKeyPressEvent( WIDE("Video/Turn Off") )( uintptr_t psv )
+static void OnKeyPressEvent( "Video/Turn Off" )( uintptr_t psv )
 {
 	SendTurnOff();
 }
 
-static void OnShowControl( WIDE("Video/Turn Off") )( uintptr_t psv )
+static void OnShowControl( "Video/Turn Off" )( uintptr_t psv )
 {
 #ifdef MILK_PLUGIN
 	MILK_SetButtonHighlight( (PMENU_BUTTON)psv, !l.flags.tv_playing );
@@ -631,14 +631,14 @@ static void OnShowControl( WIDE("Video/Turn Off") )( uintptr_t psv )
 #endif
 }
 
-static void OnKeypadEnterType( WIDE("video"), WIDE("Video/Channel") )( PSI_CONTROL pc )
+static void OnKeypadEnterType( "video", "Video/Channel" )( PSI_CONTROL pc )
 {
 	uint64_t value = GetKeyedValue( pc );
 	ClearKeyedEntryOnNextKey( pc );
 	SendChannel( (int)value );
 }
 
-static void EventAllowTV( WIDE("Stream Plugin 2") )( LOGICAL allow_on )
+static void EventAllowTV( "Stream Plugin 2" )( LOGICAL allow_on )
 {
 	if( !allow_on )
 	{

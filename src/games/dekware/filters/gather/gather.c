@@ -68,7 +68,7 @@ PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("gather"), WIDE("Gathers lines command collection w/history..."), Open );
+   myTypeID = RegisterDevice( "gather", "Gathers lines command collection w/history...", Open );
    return DekVersion;
 }
 
@@ -76,7 +76,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("gather") );
+	UnregisterDevice( "gather" );
 }
 // $Log: gather.c,v $
 // Revision 1.1  2005/04/15 17:08:28  d3x0r

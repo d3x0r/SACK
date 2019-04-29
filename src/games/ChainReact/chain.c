@@ -169,7 +169,7 @@ void ClearBoard( void )
 	PeiceSize = PeiceBase / zoom;
 	PeiceDist = ((PeiceSize*11)/16 );
 #ifdef _WIN32
-	SetApplicationTitle( WIDE("Application Title doesn't work!") );
+	SetApplicationTitle( "Application Title doesn't work!" );
 #endif
 
 	hDisplay = OpenDisplaySizedAt( 0, 200 + BOARD_X * BoardSizeX, 30 + BOARD_Y * BoardSizeY, 0, 0 );
@@ -188,7 +188,7 @@ void DrawSquare( int x, int y, int bWrite )
 	// consider shading this to the player color...
 	dx = x * BoardSizeX;
 	dy = y * BoardSizeY;
-   //lprintf( WIDE("Rendering blank square %d,%d"), x, y );
+   //lprintf( "Rendering blank square %d,%d", x, y );
 	if( x == CursorX && y == CursorY )
 	{
 		BlotScaledImageSizedEx( pGameBoard, pCursor
@@ -339,7 +339,7 @@ void EnqueCell( int x, int y )
 {
 	int n;
 	// see if we enqueued this beast already!
-	//printf( WIDE("Head: %d Tail: %d\n"), ExplodeHead, ExplodeTail );
+	//printf( "Head: %d Tail: %d\n", ExplodeHead, ExplodeTail );
 	for( n = ExplodeTail; n != ExplodeHead; n++ )
 	{
 		if( n == (QUEUESIZE-1) )
@@ -349,11 +349,11 @@ void EnqueCell( int x, int y )
 		if( Explode[n].x == x && 
 			 Explode[n].y == y )
 		{
-			//printf( WIDE("Already Enqueued?\n") );
+			//printf( "Already Enqueued?\n" );
 		   return;
 		}
 	}
-	//printf( WIDE("Head: %d\n"), ExplodeHead );
+	//printf( "Head: %d\n", ExplodeHead );
 	Explode[ExplodeHead].x = x;
 	Explode[ExplodeHead].y = y;
 	ExplodeHead++;
@@ -365,7 +365,7 @@ int DequeCell( int *x, int *y )
 {
 	if( ExplodeTail == ExplodeHead )
 		return FALSE;
-	//printf( WIDE("Tail: %d\n"), ExplodeTail );
+	//printf( "Tail: %d\n", ExplodeTail );
 	*x = Explode[ExplodeTail].x;
 	*y = Explode[ExplodeTail].y;
 	ExplodeTail++;
@@ -425,7 +425,7 @@ void ShowPlayer( int bWrite )
    										, BLOT_MULTISHADE
    										, 0, Color( 255,255,255)
    										, Colors[players[i].color] );
-			snprintf( buf, 32, WIDE(" : %d (%d)      "), players[i].wins, players[i].count );
+			snprintf( buf, 32, " : %d (%d)      ", players[i].wins, players[i].count );
 			PutString( GetDisplayImage( hDisplay )
 				, BoardSizeX * BOARD_X + 35, 11 + (26 * i)
 				, Color( 255,255,255 ), Color(0,0,1)
@@ -446,7 +446,7 @@ void ShowPlayer( int bWrite )
 		PutString( GetDisplayImage( hDisplay )
 					, BoardSizeX * BOARD_X + 35, 11
 					, Color( 255,255,255 ), Color(0,0,1)
-					, WIDE("To move next") );
+					, "To move next" );
 	}
 	//if( bWrite )
 	//	UpdateDisplayPortion( hDisplay, BoardSizeX * BOARD_X, 5, 130, 26 + 26*i );
@@ -545,7 +545,7 @@ int UpdateBoard( void )
 			exploded = TRUE;
 #ifdef _WIN32
 			if( first )
-				PlaySound( WIDE("44magnum.wav"), NULL, 0x00020003L );
+				PlaySound( "44magnum.wav", NULL, 0x00020003L );
 #endif
 			first = FALSE;
 			if( sphere || ( x > 0 ) )
@@ -733,16 +733,16 @@ void CPROC AnimateAtoms( uintptr_t unused )
             //float
 				//double dist;
 				//float x,y, xd, yd;
-				//printf( WIDE("Drawing %d, %d\n"), xy[n].x, xy[n].y );
+				//printf( "Drawing %d, %d\n", xy[n].x, xy[n].y );
             // move towards center...
-				//lprintf( WIDE("Checking %g %g"), xy[n]._x, xy[n].x );
+				//lprintf( "Checking %g %g", xy[n]._x, xy[n].x );
 
 				//v1x = 20/(xy[n].x * xy[n].x);
 				//v1y = 20/(xy[n].y * xy[n].y);
 
 				xy[n].x += -xy[n].x /20.0f;
 				xy[n].y += -xy[n].y /20.0f;
-            //lprintf( WIDE("Checking %g %g"), xy[n]._x, xy[n].x );
+            //lprintf( "Checking %g %g", xy[n]._x, xy[n].x );
 				// move away from others near...
             {
             	int no;
@@ -776,13 +776,13 @@ void CPROC AnimateAtoms( uintptr_t unused )
 					   	xy[no].y += yd;
 					   }
 					} 
-					//lprintf( WIDE("Checking %g %g"), xy[n]._x, xy[n].x );
+					//lprintf( "Checking %g %g", xy[n]._x, xy[n].x );
 				}
 			}
 			for( n = 0; n < Board[bx][by].count; n++ )
 			{
 				float x,y;
-            //lprintf( WIDE("Checking %g %g"), xy[n]._x, xy[n].x );
+            //lprintf( "Checking %g %g", xy[n]._x, xy[n].x );
 				x = xy[n]._x - xy[n].x;
 				y = xy[n]._y - xy[n].y;
             /* need to update these all at once so that the above calcualtion with [no] works */
@@ -791,7 +791,7 @@ void CPROC AnimateAtoms( uintptr_t unused )
 				#define STABLEDEL (2.0/zoom)
 				if( x < -STABLEDEL || x > STABLEDEL || y < -STABLEDEL || y > STABLEDEL )
 				{
-					//lprintf( WIDE("UNSTABLE!-------------") );
+					//lprintf( "UNSTABLE!-------------" );
 					// also update this so we get a 0 delta.
 					Board[bx][by].stable = FALSE;
 					//unstable = TRUE;
@@ -805,7 +805,7 @@ void CPROC AnimateAtoms( uintptr_t unused )
 					// also update this so we get a 0 delta.
  					xy[n]._x = xy[n].x;
 					xy[n]._y = xy[n].y;
-					//lprintf( WIDE("FINAL - MATCH Checking %g %g"), xy[n]._x, xy[n].x );
+					//lprintf( "FINAL - MATCH Checking %g %g", xy[n]._x, xy[n].x );
 				}
 				}
 				*/
@@ -868,11 +868,11 @@ void CPROC DrawBoard( uintptr_t unused )
 		first_draw = 0;
 		if( animate )
 		{
-			//lprintf( WIDE(" -- draw atoms...") );
+			//lprintf( " -- draw atoms..." );
 			RenderCurrentAtoms();
 		}
 		ShowPlayer( TRUE );
-		//lprintf( WIDE("--------------") );
+		//lprintf( "--------------" );
 		UpdateDisplay( hDisplay );
 	}
 	drawing = FALSE;
@@ -926,7 +926,7 @@ void AddPeice( int x, int y, int posx, int posy )
 	if( animate && ( unstable || drawing ) )
 	{
 #ifndef BUILD_FLOWTEST
-		//lprintf( WIDE("not adding a peice cause it's unstable...") );
+		//lprintf( "not adding a peice cause it's unstable..." );
       Idle();
 		return;
 #endif
@@ -954,19 +954,19 @@ void AddPeice( int x, int y, int posx, int posy )
 		players[playerturn].y = y;
 		if( !animate )
 		{
-			//MessageBox( NULL, WIDE("Not animated?"), WIDE("debug"), MB_OK );
+			//MessageBox( NULL, "Not animated?", "debug", MB_OK );
 			DrawSquare( x, y, TRUE );
 			CheckSquare( x, y );
 			if( UpdateBoard() ) // returns true if in a win state...
 			{
-				lprintf( WIDE("Returning early becuase of update board...") );
+				lprintf( "Returning early becuase of update board..." );
 				return;
 			}
 		}
-      //lprintf( WIDE("Here we go to the next player... this is about the only place...") );
+      //lprintf( "Here we go to the next player... this is about the only place..." );
 		do
 		{
-         //lprintf( WIDE("idling wiating for an active player...") );
+         //lprintf( "idling wiating for an active player..." );
 			playerturn++;
 			if( playerturn > maxplayers )
 			{
@@ -1029,8 +1029,8 @@ void AddPeice( int x, int y, int posx, int posy )
 	else
 	{
 #ifdef _WIN32
-//		PlaySound( WIDE("slwhist.Wav"), NULL, 0x00020003L | SND_NOWAIT);
-            PlaySound( WIDE("slwhist.Wav"), NULL, 0x00020003L );
+//		PlaySound( "slwhist.Wav", NULL, 0x00020003L | SND_NOWAIT);
+            PlaySound( "slwhist.Wav", NULL, 0x00020003L );
 #endif
 	}
 }
@@ -1048,7 +1048,7 @@ int CPROC Mouse( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
 	if( players[playerturn].computer )
 	{
 #ifndef BUILD_FLOWTEST
-      lprintf( WIDE("%d Computer's turn..."), playerturn );
+      lprintf( "%d Computer's turn...", playerturn );
 		return 1; // don't allow user updates for computer players
 #endif
 	}
@@ -1179,19 +1179,19 @@ void CPROC MyRedraw( uintptr_t dwUser, PRENDERER pRenderer )
 }
 SaneWinMain( argc, argv )
 {
-	//SetSystemLog( SYSLOG_FILENAME, WIDE("chainr.log") );
+	//SetSystemLog( SYSLOG_FILENAME, "chainr.log" );
 	g.pii = GetImageInterface();
 	g.pri = GetDisplayInterface();
 	AlignBaseToWindows();
 	//hCursor = LoadCursor( IDC_ARROW);
 
 
-	pAtom = LoadImageFile( WIDE("atom2.gif") );
-	pGrid = LoadImageFile( WIDE("grid1.jpg") );
-	pCursor = LoadImageFile( WIDE("cursor.jpg") );
+	pAtom = LoadImageFile( "atom2.gif" );
+	pGrid = LoadImageFile( "grid1.jpg" );
+	pCursor = LoadImageFile( "cursor.jpg" );
 	if( !pAtom || !pGrid || !pCursor )
 	{
-		printf( WIDE("Failed to load images...") );
+		printf( "Failed to load images..." );
 		return 1;
 	}
 	{
@@ -1214,7 +1214,7 @@ SaneWinMain( argc, argv )
 #ifdef BUILD_FLOWTEST
 			players[n].computer = 1;
 #endif
-			snprintf( players[n].name, 64, WIDE("Player %d"), n );
+			snprintf( players[n].name, 64, "Player %d", n );
 			players[n].color = n;
 		}
 	}
@@ -1250,7 +1250,7 @@ SaneWinMain( argc, argv )
 			int n;
 			for( n = 0; n < 50; n++ )
 			{
-				lprintf( WIDE("can we cheat?") );
+				lprintf( "can we cheat?" );
 #endif
 				ComputeMove( playerturn );
 #ifdef BUILD_FLOWTEST
@@ -1259,7 +1259,7 @@ SaneWinMain( argc, argv )
 		}
 		else if( winstate )
 		{
-			SimpleMessageBox( NULL, WIDE("Someone Won!!!"), WIDE("WINNER") );
+			SimpleMessageBox( NULL, "Someone Won!!!", "WINNER" );
 			NewGame = TRUE;
 		}
 		else

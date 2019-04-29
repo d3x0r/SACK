@@ -129,7 +129,7 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					continue;
 				} else {
 					if( state->hex_char > 255 ) {
-						lprintf(WIDE("(escaped character, parsing octal escape val=%d) fault while parsing; )") WIDE(" (near %*.*s[%c]%s)")
+						lprintf("(escaped character, parsing octal escape val=%d) fault while parsing; )" " (near %*.*s[%c]%s)"
 							, state->hex_char
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
@@ -158,7 +158,7 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 				else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 				else {
-					lprintf(WIDE("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+					lprintf("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %"_size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n > 3 ) ? 3 : n ), (int)( ( n > 3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n > 3 ) ? 3 : n )
 						, c
@@ -180,7 +180,7 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 					else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 					else {
-						lprintf(WIDE("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+						lprintf("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %"_size_f " (near %*.*s[%c]%s)", c, n
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 							, c
@@ -261,7 +261,7 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					state->escape = FALSE;
 					mOut += ConvertToUTF8(mOut, c);
 				} else {
-					lprintf(WIDE("(escaped character) fault while parsing; '%c' unexpected %")_size_f WIDE(" (near %*.*s[%c]%s)"), c, n
+					lprintf("(escaped character) fault while parsing; '%c' unexpected %"_size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 						, c
@@ -415,7 +415,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					if( c == '*' ) { state->comment = 3; continue; }
 					if( c != '/' ) { 
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "Fault while parsing; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+						vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 						state->status = FALSE;
 					}
 					else state->comment = 2;
@@ -467,7 +467,7 @@ int json6_parse_add_data( struct json_parse_state *state
 			case '[':
 				if( state->parse_context == CONTEXT_OBJECT_FIELD ) {
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, WIDE( "Fault while parsing; while getting field name unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+					vtprintf( state->pvtError, "Fault while parsing; while getting field name unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 					state->status = FALSE;
 					break;
 				}
@@ -499,7 +499,7 @@ int json6_parse_add_data( struct json_parse_state *state
 						// allow starting a new word
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "unquoted keyword used as object field name:parsing fault; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+						vtprintf( state->pvtError, "unquoted keyword used as object field name:parsing fault; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 						break;
 					}
 					else if( state->word == WORD_POS_FIELD ) {
@@ -524,9 +524,9 @@ int json6_parse_add_data( struct json_parse_state *state
 				{
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
 					if( state->parse_context == CONTEXT_IN_ARRAY )
-						vtprintf( state->pvtError, WIDE( "(in array, got colon out of string):parsing fault; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+						vtprintf( state->pvtError, "(in array, got colon out of string):parsing fault; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 					else
-						vtprintf( state->pvtError, WIDE( "(outside any object, got colon out of string):parsing fault; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+						vtprintf( state->pvtError, "(outside any object, got colon out of string):parsing fault; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 					state->status = FALSE;
 				}
 				break;
@@ -566,7 +566,7 @@ int json6_parse_add_data( struct json_parse_state *state
 				else
 				{
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, WIDE( "Fault while parsing; unexpected %c at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+					vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 					state->status = FALSE;
 				}
 				break;
@@ -606,7 +606,7 @@ int json6_parse_add_data( struct json_parse_state *state
 				else
 				{
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, WIDE( "bad context %d; fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->parse_context, c, state->n, state->line, state->col );// fault
+					vtprintf( state->pvtError, "bad context %d; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->parse_context, c, state->n, state->line, state->col );// fault
 					state->status = FALSE;
 				}
 				break;
@@ -643,7 +643,7 @@ int json6_parse_add_data( struct json_parse_state *state
 				{
 					state->status = FALSE;
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, WIDE( "bad context; fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );// fault
+					vtprintf( state->pvtError, "bad context; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
 				}
 				break;
 
@@ -655,7 +655,7 @@ int json6_parse_add_data( struct json_parse_state *state
 							// invalid start/continue
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, WIDE( "fault while parsing object field name; \\u00%02X unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );	// fault
+							vtprintf( state->pvtError, "fault while parsing object field name; \\u00%02X unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );	// fault
 							break;
 						}
 					}
@@ -667,7 +667,7 @@ int json6_parse_add_data( struct json_parse_state *state
 									& (1 << ((c - nonIdentifierBits[n].firstChar) % 24))) ) {
 								state->status = FALSE;
 								if( !state->pvtError ) state->pvtError = VarTextCreate();
-								vtprintf( state->pvtError, WIDE( "fault while parsing object field name; \\u00%02X unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );	// fault
+								vtprintf( state->pvtError, "fault while parsing object field name; \\u00%02X unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );	// fault
 								break;
 							}
 						}
@@ -718,7 +718,7 @@ int json6_parse_add_data( struct json_parse_state *state
 						}
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; whitespace unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->n, state->line, state->col );	// fault
+						vtprintf( state->pvtError, "fault while parsing; whitespace unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->n, state->line, state->col );	// fault
 						// skip whitespace
 						//n++;
 						//lprintf( "whitespace skip..." );
@@ -727,7 +727,7 @@ int json6_parse_add_data( struct json_parse_state *state
 						if( state->word == WORD_POS_AFTER_FIELD ) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, WIDE( "fault while parsing; unquoted space in field name at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->n, state->line, state->col );	// fault
+							vtprintf( state->pvtError, "fault while parsing; unquoted space in field name at %" _size_f "  %" _size_f ":%" _size_f, state->n, state->line, state->col );	// fault
 							break;
 						} else if( state->word == WORD_POS_RESET ) {
 							state->word = WORD_POS_FIELD;
@@ -797,7 +797,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; whitespace unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, state->n );	// fault
+						vtprintf( state->pvtError, "fault while parsing; whitespace unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->n );	// fault
 					}
 					// skip whitespace
 					//n++;
@@ -812,7 +812,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else { 
 						state->status = FALSE; 
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 								, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -821,7 +821,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -832,7 +832,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -850,7 +850,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -863,7 +863,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -873,7 +873,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -884,7 +884,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -898,7 +898,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -909,7 +909,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -919,7 +919,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -928,7 +928,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -937,7 +937,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -947,7 +947,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -956,7 +956,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault while parsing; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
 							, c, state->n, state->line, state->col );
 					}// fault
 					break;
@@ -1027,7 +1027,7 @@ int json6_parse_add_data( struct json_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -1041,7 +1041,7 @@ int json6_parse_add_data( struct json_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -1049,7 +1049,7 @@ int json6_parse_add_data( struct json_parse_state *state
 								if( !state->exponent ) {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 								else {
@@ -1060,7 +1060,7 @@ int json6_parse_add_data( struct json_parse_state *state
 									else {
 										state->status = FALSE;
 										if( !state->pvtError ) state->pvtError = VarTextCreate();
-										vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+										vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 										break;
 									}
 								}
@@ -1074,7 +1074,7 @@ int json6_parse_add_data( struct json_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -1095,7 +1095,7 @@ int json6_parse_add_data( struct json_parse_state *state
 									else {
 										state->status = FALSE;
 										if( !state->pvtError ) state->pvtError = VarTextCreate();
-										vtprintf( state->pvtError, WIDE( "fault white parsing number; '%c' unexpected at %" ) _size_f WIDE( "  %" ) _size_f WIDE( ":%" ) _size_f, c, state->n, state->line, state->col );
+										vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 										break;
 									}
 								}
@@ -1142,7 +1142,7 @@ int json6_parse_add_data( struct json_parse_state *state
 						// fault, illegal characer
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, WIDE( "fault parsing '%c' unexpected %" )_size_f WIDE( " (near %*.*s[%c]%s)" ), c, state->n
+						vtprintf( state->pvtError, "fault parsing '%c' unexpected %"_size_f " (near %*.*s[%c]%s)", c, state->n
 							, (int)((state->n > 4) ? 3 : (state->n-1)), (int)((state->n > 4) ? 3 : (state->n-1))
 							, input->buf + state->n - ((state->n > 3) ? 3 : state->n)
 							, c
@@ -1405,7 +1405,7 @@ static void FillDataToElement6( struct json_context_object_element *element
 				((CTEXTSTR*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = StrDup( val->string );
 				break;
 			default:
-				lprintf( WIDE("Expected a string, but parsed result was a %d"), val->value_type );
+				lprintf( "Expected a string, but parsed result was a %d", val->value_type );
 				break;
 			}
 		}
@@ -1505,7 +1505,7 @@ static void FillDataToElement6( struct json_context_object_element *element
 			case VALUE_NUMBER:
 				if( val->float_result )
 				{
-					lprintf( WIDE("warning received float, converting to int") );
+					lprintf( "warning received float, converting to int" );
 					((int64_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (int64_t)val->result_d;
 				}
 				else
@@ -1514,7 +1514,7 @@ static void FillDataToElement6( struct json_context_object_element *element
 				}
 				break;
 			default:
-				lprintf( WIDE("Expected a string, but parsed result was a %d"), val->value_type );
+				lprintf( "Expected a string, but parsed result was a %d", val->value_type );
 				break;
 			}
 		}
@@ -1544,7 +1544,7 @@ static void FillDataToElement6( struct json_context_object_element *element
 				else
 				{
 					// this is probably common (0 for instance)
-					lprintf( WIDE("warning received int, converting to float") );
+					lprintf( "warning received int, converting to float" );
 					if( element->type == JSON_Element_Float )
 						((float*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (float)val->result_n;
 					else
@@ -1553,7 +1553,7 @@ static void FillDataToElement6( struct json_context_object_element *element
 				}
 				break;
 			default:
-				lprintf( WIDE("Expected a float, but parsed result was a %d"), val->value_type );
+				lprintf( "Expected a float, but parsed result was a %d", val->value_type );
 				break;
 			}
 
@@ -1578,7 +1578,7 @@ static void FillDataToElement6( struct json_context_object_element *element
 			case VALUE_NUMBER:
 				if( val->float_result )
 				{
-					lprintf( WIDE("warning received float, converting to int (uintptr_t)") );
+					lprintf( "warning received float, converting to int (uintptr_t)" );
 					((uintptr_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (uintptr_t)val->result_d;
 				}
 				else

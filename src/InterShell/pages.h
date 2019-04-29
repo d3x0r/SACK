@@ -85,7 +85,7 @@ struct page_data
 };
 typedef struct page_data PAGE_DATA;
 
-#define PAGE_CHANGER_NAME WIDE("page/Page Changer")
+#define PAGE_CHANGER_NAME "page/Page Changer"
 
 // pages have multiple lists of controls depending on layouts
 // so this returns the appropriate one.

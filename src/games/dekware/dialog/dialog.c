@@ -17,14 +17,14 @@ FunctionProto AddControl
 	;
 
 /*
-command_entry dialog_commands[] = { { DEFTEXT( WIDE("display") ), 4, 7, DEFTEXT( WIDE("Show the frame") ), DoShowCommon }
-											 , { DEFTEXT( WIDE("hide") ), 4, 4, DEFTEXT( WIDE("Hide the frame") ), DoHideCommon }
-											 , { DEFTEXT( WIDE("edit") ), 4, 4, DEFTEXT( WIDE("Edit the frame") ), DoEditCommon }
-											 , { DEFTEXT( WIDE("save") ), 4, 4, DEFTEXT( WIDE("save the frame as a file") ), DoSaveCommon }
+command_entry dialog_commands[] = { { DEFTEXT( "display" ), 4, 7, DEFTEXT( "Show the frame" ), DoShowCommon }
+											 , { DEFTEXT( "hide" ), 4, 4, DEFTEXT( "Hide the frame" ), DoHideCommon }
+											 , { DEFTEXT( "edit" ), 4, 4, DEFTEXT( "Edit the frame" ), DoEditCommon }
+											 , { DEFTEXT( "save" ), 4, 4, DEFTEXT( "save the frame as a file" ), DoSaveCommon }
 };
 */
 
-static int ObjectMethod( WIDE("psi_control"), WIDE("save"), WIDE("Save Control (frame)") )
+static int ObjectMethod( "psi_control", "save", "Save Control (frame)" )
 //int DoSaveCommon
 ( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
@@ -43,7 +43,7 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("save"), WIDE("Save Control (
 			else
 				if( !ps->CurrentMacro )
 				{
-					S_MSG( ps, WIDE("Failed to save control.") );
+					S_MSG( ps, "Failed to save control." );
 				}
 		}
 	}
@@ -51,14 +51,14 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("save"), WIDE("Save Control (
 	{
 		if( !ps->CurrentMacro )
 		{
-			S_MSG( ps, WIDE("Must supply a filename to write control to.") );
+			S_MSG( ps, "Must supply a filename to write control to." );
 		}
 	}
 	return 0;
 }
 //--------------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("psi_control"), WIDE("edit"), WIDE("Edit Control (frame)") )
+static int ObjectMethod( "psi_control", "edit", "Edit Control (frame)" )
 //int DoEditCommon
 ( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
@@ -68,14 +68,14 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("edit"), WIDE("Edit Control (
 	{
 		TEXTCHAR *option = GetText( GetParam( ps, &params ) );
 		if( !option )
-			option = WIDE("0");
+			option = "0";
 		EditFrame( GetFrame( pc ), atoi( option ) );
 	}
 	return 1;
 }
 
 //--------------------------------------------------------------------------
-static int ObjectMethod( WIDE("psi_control"), WIDE("hide"), WIDE("Hide Control (frame)") )
+static int ObjectMethod( "psi_control", "hide", "Hide Control (frame)" )
 //int DoHideCommon
 	( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
@@ -90,7 +90,7 @@ static int ObjectMethod( WIDE("psi_control"), WIDE("hide"), WIDE("Hide Control (
 
 //--------------------------------------------------------------------------
 
-static int ObjectMethod( WIDE("psi_control"), WIDE("show"), WIDE("Show Control (frame)") )
+static int ObjectMethod( "psi_control", "show", "Show Control (frame)" )
 //int DoShowCommon
 ( PSENTIENT ps, PENTITY pe, PTEXT params )
 {
@@ -184,16 +184,16 @@ static void DumpMacro( PVARTEXT vt, PMACRO pm, TEXTCHAR *type )
 		param = pm->pArgs;
 		while( param )
 		{
-			vtprintf( vt, WIDE(" %s"), GetText( param ) );
+			vtprintf( vt, " %s", GetText( param ) );
 			param = NEXTLINE( param );
 		}
 	}
-   vtprintf( vt, WIDE(";") );
+   vtprintf( vt, ";" );
 	LIST_FORALL( pm->pCommands, idx, PTEXT, pt )
 	{
 		PTEXT x;
 		x = BuildLine( pt );
-		vtprintf( vt, WIDE("%s;"), GetText( x ) );
+		vtprintf( vt, "%s;", GetText( x ) );
 		LineRelease( x );
 	}
 }
@@ -207,14 +207,14 @@ static void DumpMacros( PVARTEXT vt, PENTITY pe )
 	PMACRO behavior;
 	LIST_FORALL( pe->pGlobalBehaviors, idx, PMACRO, behavior )
 	{
-		DumpMacro( vt, behavior, WIDE("on") );
+		DumpMacro( vt, behavior, "on" );
 	}
 	LIST_FORALL( pe->pBehaviors, idx, PMACRO, behavior )
 	{
-		DumpMacro( vt, behavior, WIDE("on") );
+		DumpMacro( vt, behavior, "on" );
 	}
 	LIST_FORALL( pe->pMacros, idx, PMACRO, pm )
-		DumpMacro( vt, pm, WIDE("macro") );
+		DumpMacro( vt, pm, "macro" );
 }
 
 //--------------------------------------------------------------------------
@@ -230,7 +230,7 @@ static void DumpMacros( PVARTEXT vt, PENTITY pe )
 		{
 			PSI_CONTROL_TRACKER pctCheck = (PSI_CONTROL_TRACKER)GetLink( &peCheck->pPlugin, g.iCommon );
 			// and 099.99% of the time it won't be... fuhk
-			//lprintf( WIDE("this list may be orphaned... %p"), pctCheck );
+			//lprintf( "this list may be orphaned... %p", pctCheck );
 			if( pctCheck )
 			{
 				PSI_CONTROL pcCheck = pctCheck->control.pc;
@@ -241,7 +241,7 @@ static void DumpMacros( PVARTEXT vt, PENTITY pe )
 			}
 		}
 	}
-   lprintf( WIDE("Failed to find control... entity this time...") );
+   lprintf( "Failed to find control... entity this time..." );
    return NULL;
 }
 
@@ -261,16 +261,16 @@ int CPROC SaveCommonMacroData( PSI_CONTROL pc, PVARTEXT pvt )
 }
 
 #if 0
-static volatile_variable_entry common_vars[] = { { DEFTEXT(WIDE("caption"))
+static volatile_variable_entry common_vars[] = { { DEFTEXT("caption")
 																 , NULL
 																 , SetCaption }
-															  , { DEFTEXT( WIDE("x") )
+															  , { DEFTEXT( "x" )
 																 , NULL, NULL }
-															  , { DEFTEXT( WIDE("y") )
+															  , { DEFTEXT( "y" )
 																 , NULL, NULL }
-															  , { DEFTEXT( WIDE("width") )
+															  , { DEFTEXT( "width" )
 																 , NULL, NULL }
-															  , { DEFTEXT( WIDE("height") )
+															  , { DEFTEXT( "height" )
 																 , NULL, NULL }
 };
 #endif
@@ -319,9 +319,9 @@ PENTITY CommonInitControl( PSI_CONTROL pc )
 					AddLink( &g.pMyFrames, peNew );
 				}
 				else
-               lprintf( WIDE("Failed to create entity for control...") );
+               lprintf( "Failed to create entity for control..." );
 			}
-			ScanRegisteredObjects( peNew, WIDE("psi_control") );
+			ScanRegisteredObjects( peNew, "psi_control" );
 			// this needs to be done so that buttons may perform 'on' commands.
 			//UnlockAwareness( CreateAwareness( peNew ) );
 			LeaveCriticalSec( &g.csCreating );
@@ -333,7 +333,7 @@ PENTITY CommonInitControl( PSI_CONTROL pc )
 }
 
 
-static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
+static int OnCreateObject( "psi_control", "generic control..." )
 //static int CPROC AddAControl
 ( PSENTIENT ps, PENTITY peNew, PTEXT params )
 {
@@ -349,7 +349,7 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 		pc = NULL;
 	//if( pc )
 	//{
-		//lprintf( WIDE("hmm... create a child of the frame... but within or without?") );
+		//lprintf( "hmm... create a child of the frame... but within or without?" );
       // abort!
    //   return 0;
 	//}
@@ -363,8 +363,8 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 			CTEXTSTR name;
 			PCLASSROOT data = NULL;
 			PVARTEXT pvt = VarTextCreate();
-			vtprintf( pvt, WIDE("Must specify type of control to make: ") );
-			for( name = GetFirstRegisteredName( WIDE("psi/control"), &data );
+			vtprintf( pvt, "Must specify type of control to make: " );
+			for( name = GetFirstRegisteredName( "psi/control", &data );
 				 name;
 				  name = GetNextRegisteredName( &data ) )
 			{
@@ -374,7 +374,7 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 						break;
 				if( name[n] )
 				{
-					vtprintf( pvt, WIDE("%s%s"), first?WIDE(""):WIDE(", "), name );
+					vtprintf( pvt, "%s%s", first?"":", ", name );
                first = 0;
 				}
 			}
@@ -393,10 +393,10 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 		, *py = GetText( GetParam( ps, &params ) )
 		, *pw = GetText( GetParam( ps, &params ) )
 		, *ph = GetText( GetParam( ps, &params ) );
-			if( !px ) px = WIDE("120");
-			if( !py ) py = WIDE("50");
-			if( !pw ) pw = WIDE("320");
-			if( !ph ) ph = WIDE("250");
+			if( !px ) px = "120";
+			if( !py ) py = "50";
+			if( !pw ) pw = "320";
+			if( !ph ) ph = "250";
 			{
 				PSI_CONTROL pNewControl;
 				EnterCriticalSec( &g.csCreating );
@@ -407,13 +407,13 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 																 , 0
 																 , caption
 																	);
-				// named control have invoked WIDE("extra init") method, which
+				// named control have invoked "extra init" method, which
 				// if all goes well we should be able to discover our parent
 				//SetCommonUserData( pNewControl, (uintptr_t)peNew );
 				AddLink( &g.pMyFrames, peNew );
 				if( g.peCreating )
 				{
-					lprintf( WIDE("An extra init function did not clear g.peCreating.!") );
+					lprintf( "An extra init function did not clear g.peCreating.!" );
 					DebugBreak();
 					g.peCreating = NULL;
 				}
@@ -446,7 +446,7 @@ static int OnCreateObject( WIDE("psi_control"), WIDE("generic control...") )
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Must supply a caption for the frame.") );
+			DECLTEXT( msg, "Must supply a caption for the frame." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}
@@ -493,19 +493,19 @@ PRELOAD( RegisterExtraInits )
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-	g.iCommon = RegisterExtension( WIDE("PSI Control") );
-	////RegisterObject( WIDE("Frame"), WIDE("Allows interface to Panther's Slick Interface dialogs"), InitFrame );
-	//RegisterObject( WIDE("Control"), WIDE("Allows interface to Panther's Slick Interface dialogs"), AddAControl );
-	RegisterObject( WIDE("Menu"), WIDE("A popup menu selector"), CreatePopupThing );
+	g.iCommon = RegisterExtension( "PSI Control" );
+	////RegisterObject( "Frame", "Allows interface to Panther's Slick Interface dialogs", InitFrame );
+	//RegisterObject( "Control", "Allows interface to Panther's Slick Interface dialogs", AddAControl );
+	RegisterObject( "Menu", "A popup menu selector", CreatePopupThing );
 
 	// this registers a default, if the control itself does not specify...
-	SimpleRegisterMethod( WIDE("psi/control/rtti/extra init")
-							  , CustomDefaultInit, WIDE("int"), WIDE("dekware common init"), WIDE("(PSI_CONTROL)") );
-	SimpleRegisterMethod( WIDE("psi/control/rtti/extra destroy")
-							  , CustomDefaultDestroy, WIDE("int"), WIDE("dekware common destroy"), WIDE("(PSI_CONTROL)") );
+	SimpleRegisterMethod( "psi/control/rtti/extra init"
+							  , CustomDefaultInit, "int", "dekware common init", "(PSI_CONTROL)" );
+	SimpleRegisterMethod( "psi/control/rtti/extra destroy"
+							  , CustomDefaultDestroy, "int", "dekware common destroy", "(PSI_CONTROL)" );
 
-	SimpleRegisterMethod( WIDE("psi/control/") CONTROL_FRAME_NAME  WIDE("/rtti/extra init")
-							  , CustomFrameInit, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
+	SimpleRegisterMethod( "psi/control/" CONTROL_FRAME_NAME  "/rtti/extra init"
+							  , CustomFrameInit, "int", "extra init", "(PSI_CONTROL)" );
 	return DekVersion;
 }
 
@@ -520,7 +520,7 @@ PUBLIC( void, EditControlBehaviors)( PSI_CONTROL pc )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterObject( WIDE("Control") );
+	UnregisterObject( "Control" );
 }
 
 //--------------------------------------------------------------------------

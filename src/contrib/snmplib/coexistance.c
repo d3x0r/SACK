@@ -105,7 +105,7 @@ int snmp_coexist_V2toV1(struct snmp_pdu *PDU)
 
   default:
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Unable to translate PDU %d to SNMPv1!\n"), PDU->command);
+    fprintf(stderr, "Unable to translate PDU %d to SNMPv1!\n", PDU->command);
 #endif
     snmp_set_api_error(SNMPERR_PDU_TRANSLATION);
     return(0);
@@ -190,7 +190,7 @@ int snmp_coexist_V1toV2(struct snmp_pdu *PDU)
 	  break;
 	default:
 #ifdef STDERR_OUTPUT
-	  fprintf(stderr, WIDE("Unable to translate v1 trap type %d!\n"),
+	  fprintf(stderr, "Unable to translate v1 trap type %d!\n",
 		  PDU->trap_type);
 #endif
 	  snmp_set_api_error(SNMPERR_PDU_TRANSLATION);
@@ -234,7 +234,7 @@ int snmp_coexist_V1toV2(struct snmp_pdu *PDU)
     break;
   default:
 #ifdef STDERR_OUTPUT
-    fprintf(stderr, WIDE("Unable to translate PDU %d to SNMPv2!\n"), PDU->command);
+    fprintf(stderr, "Unable to translate PDU %d to SNMPv2!\n", PDU->command);
 #endif
     snmp_set_api_error(SNMPERR_PDU_TRANSLATION);
     return(0);

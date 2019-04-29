@@ -37,42 +37,42 @@ void DisplayProperties( PCOMMON pc, int x, int y )
 	DisplayOkay = FALSE;
 #define FRAME_WIDTH 180
 #define FRAME_HEIGHT 208
-	pf = CreateFrame( WIDE("Display Properties"), 0, 0, FRAME_WIDTH, FRAME_HEIGHT, 0, pc );
+	pf = CreateFrame( "Display Properties", 0, 0, FRAME_WIDTH, FRAME_HEIGHT, 0, pc );
   	MoveFrame( pf, x, y );
 
-	pc_tmp = MakeCheckButton( pf, 5, 5, 150, 14, CHK_SHOWLINES, WIDE("Show Lines"), 0, NULL, 0 );
+	pc_tmp = MakeCheckButton( pf, 5, 5, 150, 14, CHK_SHOWLINES, "Show Lines", 0, NULL, 0 );
 	SetCheckState( pc_tmp, display->flags.bShowLines );
 
-	pc_tmp = MakeCheckButton( pf, 5, 22, 150, 14, CHK_SHOWTEXTURES, WIDE("Show Textures"), 0, NULL, 0 );
+	pc_tmp = MakeCheckButton( pf, 5, 22, 150, 14, CHK_SHOWTEXTURES, "Show Textures", 0, NULL, 0 );
 	SetCheckState( pc_tmp, display->flags.bShowSectorTexture );
 
-	pc_tmp = MakeCheckButton( pf, 5, 39, 150, 14, CHK_SHOWTEXT, WIDE("Show Sector Names"), 0, NULL, 0 );
+	pc_tmp = MakeCheckButton( pf, 5, 39, 150, 14, CHK_SHOWTEXT, "Show Sector Names", 0, NULL, 0 );
 	SetCheckState( pc_tmp, display->flags.bShowSectorText );
 
-	pc_tmp = MakeCheckButton( pf, 5, 56, 150, 14, CHK_SHOWGRID, WIDE("Show Grid"), 0, NULL, 0 );
+	pc_tmp = MakeCheckButton( pf, 5, 56, 150, 14, CHK_SHOWGRID, "Show Grid", 0, NULL, 0 );
 	SetCheckState( pc_tmp, display->flags.bShowGrid );
 
-	pc_tmp = MakeCheckButton( pf, 5, 73, 150, 14, CHK_GRID, WIDE("Use Grid"), 0, NULL, 0 );
+	pc_tmp = MakeCheckButton( pf, 5, 73, 150, 14, CHK_GRID, "Use Grid", 0, NULL, 0 );
 	SetCheckState( pc_tmp, display->flags.bUseGrid );
 
-	pc_tmp = MakeCheckButton( pf, 5, 90, 150, 14, CHK_GRIDTOP, WIDE("Grid on Top"), 0, NULL, 0 );
+	pc_tmp = MakeCheckButton( pf, 5, 90, 150, 14, CHK_GRIDTOP, "Grid on Top", 0, NULL, 0 );
 	SetCheckState( pc_tmp, display->flags.bGridTop );
 
 #define LASTCHECK 90+17
 
-	MakeTextControl( pf, 5, LASTCHECK+2, 45, 12, TXT_STATIC, WIDE("Grid X:"), TEXT_NORMAL );
-	snprintf( val, 256, WIDE("%d"), display->GridXUnits );
+	MakeTextControl( pf, 5, LASTCHECK+2, 45, 12, TXT_STATIC, "Grid X:", TEXT_NORMAL );
+	snprintf( val, 256, "%d", display->GridXUnits );
 	pc_tmp = MakeEditControl( pf, 55, LASTCHECK, 36, 16, EDT_GRIDX, val, 0 );
 
-	MakeTextControl( pf, 5, LASTCHECK+20, 45, 12, TXT_STATIC, WIDE("Grid Y:"), TEXT_NORMAL );
-	snprintf( val, 256, WIDE("%d"), display->GridYUnits );
+	MakeTextControl( pf, 5, LASTCHECK+20, 45, 12, TXT_STATIC, "Grid Y:", TEXT_NORMAL );
+	snprintf( val, 256, "%d", display->GridYUnits );
 	pc_tmp = MakeEditControl( pf, 55, LASTCHECK+18, 36, 16, EDT_GRIDY, val, 0 );
 
 	EnableColorWellPick( MakeColorWell( pf, 5, LASTCHECK+36, 80, 16, CLR_GRID, display->GridColor ), TRUE );
 	EnableColorWellPick( MakeColorWell( pf, 90, LASTCHECK+36, 80, 16, CLR_BACKGROUND, display->Background ), TRUE );
 
-	MakeTextControl( pf, 5, LASTCHECK+36+21, 45, 12, TXT_STATIC, WIDE("Scale:"), TEXT_NORMAL );
-	snprintf( val, 256, WIDE("%g"), display->scale );
+	MakeTextControl( pf, 5, LASTCHECK+36+21, 45, 12, TXT_STATIC, "Scale:", TEXT_NORMAL );
+	snprintf( val, 256, "%g", display->scale );
 	pc_tmp = MakeEditControl( pf,55, LASTCHECK+36+19, 72, 16, EDT_SCALE, val, 0 );
 
 	AddCommonButtons( pf, &DisplayDone, &DisplayOkay );
@@ -101,7 +101,7 @@ void DisplayProperties( PCOMMON pc, int x, int y )
 	      	display->GridYUnits = 4;
 
 		GetControlText( GetControl( pf, EDT_SCALE ), val, 256 );
-		sscanf( val, WIDE("%g"), &display->scale );
+		sscanf( val, "%g", &display->scale );
 		//display->scale = atof( val );
 	}
 

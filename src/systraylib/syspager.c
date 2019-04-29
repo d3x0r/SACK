@@ -26,7 +26,7 @@ WINPROC( int, PagerWindowProc )( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		{
 			PCOPYDATASTRUCT pcds = (PCOPYDATASTRUCT)lParam;
          PSYSTRAY_DATA psd = pcds->lpData;
-			lprintf( WIDE("Something is trying to copy data to me... %08x, %08x  %ld"), wParam, pcds
+			lprintf( "Something is trying to copy data to me... %08x, %08x  %ld", wParam, pcds
 					 , pcds->dwData );
 			switch( psd->NIM_msg )
 			{
@@ -49,7 +49,7 @@ WINPROC( int, PagerWindowProc )( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		}
       break;
 	default:
-		lprintf( WIDE("Received Message: %08x %08x %08x %08x"), hWnd, uMsg, wParam, lParam );
+		lprintf( "Received Message: %08x %08x %08x %08x", hWnd, uMsg, wParam, lParam );
 	}
    return DefWindowProc( hWnd, uMsg, wParam, lParam );
 }
@@ -69,7 +69,7 @@ void RegisterSystemClass( void )
 	l.aClass[0] = RegisterClass (&wc);
 	if (!l.aClass[0])
 	{
-		lprintf( WIDE("Failed to register class %s %d"), wc.lpszClassName, GetLastError() );
+		lprintf( "Failed to register class %s %d", wc.lpszClassName, GetLastError() );
 		return;
 	}
 /*
@@ -77,7 +77,7 @@ void RegisterSystemClass( void )
 	l.aClass[1] = RegisterClass (&wc);
 	if (!l.aClass[1])
 	{
-		lprintf( WIDE("Failed to register class %s %d"), wc.lpszClassName, GetLastError() );
+		lprintf( "Failed to register class %s %d", wc.lpszClassName, GetLastError() );
 		return;
 	}
 
@@ -85,7 +85,7 @@ void RegisterSystemClass( void )
 	l.aClass[2] = RegisterClass (&wc);
 	if (!l.aClass[2])
 	{
-		lprintf( WIDE("Failed to register class %s %d"), wc.lpszClassName, GetLastError() );
+		lprintf( "Failed to register class %s %d", wc.lpszClassName, GetLastError() );
 		return;
 	}
 */
@@ -98,7 +98,7 @@ void RegisterSystemClass( void )
 									, NULL // Menu
 									, GetModuleHandle (NULL)
 									, (void *) 1);
-	lprintf( WIDE("Created %08x"), l.hWnd );
+	lprintf( "Created %08x", l.hWnd );
    /*
 	l.hWnd = CreateWindowEx (0
 									, (char *) l.aClass[1]
@@ -109,27 +109,27 @@ void RegisterSystemClass( void )
 									, NULL // Menu
 									, GetModuleHandle (NULL)
 									, (void *) 1);
-   lprintf( WIDE("Created %08x"), l.hWnd );
+   lprintf( "Created %08x", l.hWnd );
 	l.hWnd = CreateWindowEx (0
 									, (char *) l.aClass[2]
-									, WIDE("") //"System Tray Replacement"
+									, "" //"System Tray Replacement"
 									, WS_CHILD|WS_VISIBLE
 									, 0, 0, 150, 150
 									, l.hWnd
 									, NULL // Menu
 									, GetModuleHandle (NULL)
 									, (void *) 1);
-   lprintf( WIDE("Created %08x"), l.hWnd );
+   lprintf( "Created %08x", l.hWnd );
 	l.hWnd = CreateWindowEx (0
-									, WIDE("ToolbaWindow32")
-									, WIDE("Notification Area") //"System Tray Replacement"
+									, "ToolbaWindow32"
+									, "Notification Area" //"System Tray Replacement"
 									, WS_CHILD|WS_VISIBLE
 									, 0, 0, 150, 150
 									, l.hWnd
 									, NULL // Menu
 									, GetModuleHandle (NULL)
 									, (void *) 1);
-   lprintf( WIDE("Created %08x"), l.hWnd );
+   lprintf( "Created %08x", l.hWnd );
    */
 }
 

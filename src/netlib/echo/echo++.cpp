@@ -29,7 +29,7 @@ int main( char argc, char **argv )
     int port;
     if( argc < 2 )
     {
-		printf( WIDE("usage: %s <listen port> (defaulting to telnet)\n"), argv[0] );
+		printf( "usage: %s <listen port> (defaulting to telnet)\n", argv[0] );
 		port=23;
     }
     else 
@@ -43,7 +43,7 @@ int main( char argc, char **argv )
        while( 1 ) Sleep( 1000 );
   	 }	
     else
-		printf( WIDE("Failed to listen on port %s\n"), argv[1] );
+		printf( "Failed to listen on port %s\n", argv[1] );
     return 0;
 }
 
@@ -51,6 +51,6 @@ int main( char argc, char **argv )
 #include <stdio.h>
 int main( void )
 {
-	return printf( WIDE("Compiled without a C++ compiler, program cannot function.") );
+	return printf( "Compiled without a C++ compiler, program cannot function." );
 }
 #endif

@@ -90,17 +90,17 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
    pdp = CreateDataPath( pChannel, MYDATAPATH );
    while( option = GetParam( ps, &parameters ) )
    {
-	   if( OptionLike( option, WIDE("inbound") ) )
+	   if( OptionLike( option, "inbound" ) )
 	   {
 	   	pdp->flags.outbound = 0;
 	   }
-	   else if( OptionLike( option, WIDE("outbound") ) )
+	   else if( OptionLike( option, "outbound" ) )
 	   {
 	   	pdp->flags.outbound = 1;
 	   }
 	   else
 	   {
-	   	//DECLTEXT( msg, WIDE("Unknown option for token filter. Allowed are 'inbound' and 'outbound'.") );
+	   	//DECLTEXT( msg, "Unknown option for token filter. Allowed are 'inbound' and 'outbound'." );
 	   }
 	}
    pdp->tokens = NULL;
@@ -115,7 +115,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {                           
-   myTypeID = RegisterDevice( WIDE("token"), WIDE("Tokenizes the stream going through it..."), Open );
+   myTypeID = RegisterDevice( "token", "Tokenizes the stream going through it...", Open );
    return DekVersion;
 }
 
@@ -123,5 +123,5 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("token") );
+	UnregisterDevice( "token" );
 }

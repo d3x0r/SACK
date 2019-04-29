@@ -91,7 +91,7 @@ void DrawButtonCaption( PSI_CONTROL pc, PBUTTON pb, int xofs, int yofs, CDATA co
 	uint32_t y = 0;
 	uint32_t w, h, maxw = 0;
 	TEXTCHAR *start = GetText( pc->caption.text ), *end;
-	//lprintf( WIDE("Drawing button caption: %s"), start );
+	//lprintf( "Drawing button caption: %s", start );
 	if( !start )
 		return;
 	GetStringSizeFontEx( start, 1, NULL, &h, font );
@@ -144,23 +144,23 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
-		//lprintf( WIDE("Is not a NORMAL_BUTTON") );
+		//lprintf( "Is not a NORMAL_BUTTON" );
 		if( pb2 )
 			pb = pb2;
 		else
 		{
 			ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb2, pc );
-			//lprintf( WIDE("Is not a CUSTOM_BUTTON") );
+			//lprintf( "Is not a CUSTOM_BUTTON" );
 			if( pb2 )
 				pb = pb2;
 			else
 			{
-				//lprintf( WIDE("Is not a IMAGE_BUTTON") );
+				//lprintf( "Is not a IMAGE_BUTTON" );
 				return 0;
 			}
 		}
 	}
-	//lprintf( WIDE("Button drawing...") );
+	//lprintf( "Button drawing..." );
 	if( pb->buttonflags.pressed )
 		pc->BorderType |= BORDER_INVERT;
 	else
@@ -174,7 +174,7 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 		BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, pb->color?pb->color: basecolor( pc )[NORMAL] );
 		//ClearImageTo( pc->Surface, pb->color );
 
-		//lprintf( WIDE("drawing an image %p"), pb->pImage );
+		//lprintf( "drawing an image %p", pb->pImage );
 		if( pb->buttonflags.pressed )
 		{
 			if( pb->pSlicedImage_pressed )
@@ -375,7 +375,7 @@ static int CPROC ButtonDraw( PSI_CONTROL pc )
 	}
 	else  //( pb->DrawMethod )
 	{
-		//lprintf( WIDE("Calling application's custom draw routine for a button! ------------------") );
+		//lprintf( "Calling application's custom draw routine for a button! ------------------" );
 		pb->DrawMethod( pb->DrawData, pc );
 	}
 	return 1;
@@ -426,7 +426,7 @@ void InvokeButton( PSI_CONTROL pc )
 			TEXTCHAR mydef[256];
 			CTEXTSTR name;
 			PCLASSROOT data = NULL;
-			tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY WIDE("/control/rtti/%d/extra click"), pc->nType );
+			tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY "/control/rtti/%d/extra click", pc->nType );
 			for( name = GetFirstRegisteredName( mydef, &data );
 				 name;
 				  name = GetNextRegisteredName( &data ) )
@@ -445,30 +445,30 @@ static int CPROC ButtonMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
-		//lprintf( WIDE("Is not a NORMAL_BUTTON") );
+		//lprintf( "Is not a NORMAL_BUTTON" );
 		if( pb2 )
 			pb = pb2;
 		else
 		{
 			ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb2, pc );
-			//lprintf( WIDE("Is not a CUSTOM_BUTTON") );
+			//lprintf( "Is not a CUSTOM_BUTTON" );
 			if( pb2 )
 				pb = pb2;
 			else
 			{
-				//lprintf( WIDE("Is not a IMAGE_BUTTON") );
+				//lprintf( "Is not a IMAGE_BUTTON" );
 				return 0;
 			}
 		}
 	}
-	//lprintf( WIDE("mouse on a button...") );
+	//lprintf( "mouse on a button..." );
 	if( pc->flags.bDisable ) // ignore mouse on these...
 		return 0;
 	if( b == -1 )
 	{
 		if( pb->buttonflags.pressed )
 		{
-			lprintf( WIDE("releaseing press state sorta...") );
+			lprintf( "releaseing press state sorta..." );
 			pb->buttonflags.pressed = FALSE;
 			SmudgeCommon( pc );
 		}
@@ -482,7 +482,7 @@ static int CPROC ButtonMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 	{
 		if( pb->buttonflags.pressed )
 		{
-			//lprintf( WIDE("Releasing button.") );
+			//lprintf( "Releasing button." );
 			pb->buttonflags.pressed = FALSE;
 			SmudgeCommon( pc );
 		}
@@ -528,18 +528,18 @@ static void HandleRollover( PSI_CONTROL pc, LOGICAL enter )
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
-		//lprintf( WIDE("Is not a NORMAL_BUTTON") );
+		//lprintf( "Is not a NORMAL_BUTTON" );
 		if( pb2 )
 			pb = pb2;
 		else
 		{
 			ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb2, pc );
-			//lprintf( WIDE("Is not a CUSTOM_BUTTON") );
+			//lprintf( "Is not a CUSTOM_BUTTON" );
 			if( pb2 )
 				pb = pb2;
 			else
 			{
-				//lprintf( WIDE("Is not a IMAGE_BUTTON") );
+				//lprintf( "Is not a IMAGE_BUTTON" );
 				return;
 			}
 		}
@@ -622,7 +622,7 @@ static void ToggleButtonCheck( PSI_CONTROL pCom )
 
 static int CPROC ButtonKeyProc( PSI_CONTROL pc, uint32_t key )
 {
-	//printf( WIDE("Key: %08x\n"), key );
+	//printf( "Key: %08x\n", key );
 	if( key & 0x80000000 )
 	{
 		int keymod = KEY_MOD( key );
@@ -643,7 +643,7 @@ static int CPROC ButtonKeyProc( PSI_CONTROL pc, uint32_t key )
 
 static PSI_CONTROL CONTROL_PROPERTIES( Button )( PSI_CONTROL pc )
 {
-	PSI_CONTROL page = CreateFrame( WIDE("Button")
+	PSI_CONTROL page = CreateFrame( "Button"
 									 , 0, 0
 									 , PROP_WIDTH, PROP_HEIGHT
 									 , BORDER_NONE|BORDER_WITHIN
@@ -653,16 +653,16 @@ static PSI_CONTROL CONTROL_PROPERTIES( Button )( PSI_CONTROL pc )
 		PCLASSROOT data = NULL;
 		PSI_CONTROL pList;
 		CTEXTSTR name;
-		//PCLASSROOT pcr = GetClassRoot( PSI_ROOT_REGISTRY WIDE("/control/Button/Click") );
-		MakeTextControl( page, PROP_PAD, PROP_PAD, 116, 12, TXT_STATIC, WIDE("Click Method"), 0 );
-		//MakeTextControl( page, 0, PROP_PAD, PROP_PAD, 116, 12, TXT_STATIC, WIDE("Click Method") );
+		//PCLASSROOT pcr = GetClassRoot( PSI_ROOT_REGISTRY "/control/Button/Click" );
+		MakeTextControl( page, PROP_PAD, PROP_PAD, 116, 12, TXT_STATIC, "Click Method", 0 );
+		//MakeTextControl( page, 0, PROP_PAD, PROP_PAD, 116, 12, TXT_STATIC, "Click Method" );
 		pList = MakeListBox( page, PROP_PAD, PROP_PAD + 16, PROP_WIDTH - 2*PROP_PAD, 120, BTN_PROPERTY_LISTBOX, 0 );
 		//pList = MakeListBox( page, 0, PROP_PAD, PROP_PAD + 16, PROP_WIDTH - 2*PROP_PAD, 120, LISTBOX );
 
-		for( name = GetFirstRegisteredName( PSI_ROOT_REGISTRY WIDE("/control/Button/Click"), &data ); name; name = GetNextRegisteredName( &data ) )
+		for( name = GetFirstRegisteredName( PSI_ROOT_REGISTRY "/control/Button/Click", &data ); name; name = GetNextRegisteredName( &data ) )
 		{
 			PLISTITEM pli = AddListItem( pList, name );
-			SetItemData( pli, (uintptr_t)GetRegisteredProcedure( PSI_ROOT_REGISTRY WIDE("/control/Button/Click"), int, name, (uintptr_t, PSI_CONTROL) ) );
+			SetItemData( pli, (uintptr_t)GetRegisteredProcedure( PSI_ROOT_REGISTRY "/control/Button/Click", int, name, (uintptr_t, PSI_CONTROL) ) );
 		}
 		// maybe a list box or some junk like that....
 	}
@@ -672,7 +672,7 @@ static PSI_CONTROL CONTROL_PROPERTIES( Button )( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-static void OnPropertyEditOkay( WIDE( "Button" ) )( PSI_CONTROL pControl, PSI_CONTROL page )
+static void OnPropertyEditOkay( "Button" )( PSI_CONTROL pControl, PSI_CONTROL page )
 {
 	// read the dialog...
 	// destruction will happen shortly after this
@@ -689,21 +689,21 @@ CTEXTSTR GetMethodName( POINTER Method, CTEXTSTR type, CTEXTSTR method )
 	TEXTCHAR buffer[256];
 	if( !Method )
 		return NULL;
-	tnprintf( buffer, sizeof( buffer ), PSI_ROOT_REGISTRY WIDE("/methods/%s/%s"), type, method );
+	tnprintf( buffer, sizeof( buffer ), PSI_ROOT_REGISTRY "/methods/%s/%s", type, method );
 	for( name = GetFirstRegisteredName( buffer, &data );
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
 		POINTER p;
-		//lprintf( WIDE("Checking method name %s %s"), buffer, name );
+		//lprintf( "Checking method name %s %s", buffer, name );
 		p = (POINTER)GetRegisteredProcedureExxx( (PCLASSROOT)NULL, buffer
-											  , WIDE("void")
+											  , "void"
 											  , name
-											  , WIDE("(uintptr_t, PSI_CONTROL)") );
+											  , "(uintptr_t, PSI_CONTROL)" );
 		//if( !p )
-		//	lprintf( WIDE("Failed to get procedure ... %s"), name );
+		//	lprintf( "Failed to get procedure ... %s", name );
 		//else
-		//	lprintf( WIDE("is %s p(%p) == check(%p)"), name, p, Method );
+		//	lprintf( "is %s p(%p) == check(%p)", name, p, Method );
 		if( p == Method )
 			break;
 	}
@@ -712,17 +712,17 @@ CTEXTSTR GetMethodName( POINTER Method, CTEXTSTR type, CTEXTSTR method )
 
 CTEXTSTR GetClickMethodName( void (CPROC*ClickMethod)(uintptr_t psv, PSI_CONTROL pc) )
 {
-	return (CTEXTSTR)GetMethodName( (POINTER)ClickMethod, WIDE("Button"), WIDE("Click") );
+	return (CTEXTSTR)GetMethodName( (POINTER)ClickMethod, "Button", "Click" );
 }
 
 CTEXTSTR GetDrawMethodName( void (CPROC*DrawMethod)(uintptr_t psv, PSI_CONTROL pc) )
 {
-	return GetMethodName( (POINTER)DrawMethod, WIDE("Button"), WIDE("Draw") );
+	return GetMethodName( (POINTER)DrawMethod, "Button", "Draw" );
 }
 
 CTEXTSTR GetCheckMethodName( void (CPROC*CheckMethod)(uintptr_t psv, PSI_CONTROL pc) )
 {
-	return GetMethodName( (POINTER)CheckMethod, WIDE("Button"), WIDE("Check") );
+	return GetMethodName( (POINTER)CheckMethod, "Button", "Check" );
 }
 
 //---------------------------------------------------------------------------
@@ -739,15 +739,15 @@ void CPROC ButtonText( PSI_CONTROL pc, PVARTEXT pvt )
 		ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb2, pc );
 		pb = pb2;
 	}
-	vtprintf( pvt ,WIDE("#%08x"), pb->color );
+	vtprintf( pvt ,"#%08x", pb->color );
 	{
 		CTEXTSTR name;
 		name = pb->ClickMethodName;
 		if( name )
-			vtprintf( pvt, WIDE(" C\'%s\'"), name );
+			vtprintf( pvt, " C\'%s\'", name );
 		name = pb->DrawMethodName;
 		if( name )
-			vtprintf( pvt, WIDE(" D\'%s\'"), name );
+			vtprintf( pvt, " D\'%s\'", name );
 	}
 
 }
@@ -758,7 +758,7 @@ void CPROC ButtonLoad( PSI_CONTROL pc, CTEXTSTR line )
 	//ValidatedControlData( PBUTTON, NORMAL_BUTTON, pb, pc );
 	//PBUTTON pb = (PBUTTON)pc;
 	DebugBreak();
-	//sscanf( line ,WIDE("#%")_32fs WIDE("" ), &pb->color );
+	//sscanf( line ,"#%"_32fs "", &pb->color );
 }
 
 //---------------------------------------------------------------------------
@@ -798,13 +798,13 @@ int CPROC ConfigureCustomDrawnButton( PSI_CONTROL pc )
 		pb->ClickMethodName = GetClickMethodName( PushMethod );
 		if( !pb->ClickMethodName )
 		{
-			//lprintf( WIDE("!!! Click method is not registered, loading this frame will not result in a link for this method...") );
+			//lprintf( "!!! Click method is not registered, loading this frame will not result in a link for this method..." );
 		}
 		pb->DrawMethod = DrawMethod;
 		pb->DrawMethodName = GetDrawMethodName( DrawMethod );
 		if( !pb->DrawMethodName )
 		{
-			//lprintf( WIDE("!!! Draw method is not registered, loading this frame will not result in a link for this method...") );
+			//lprintf( "!!! Draw method is not registered, loading this frame will not result in a link for this method..." );
 		}
 		if( attr & BUTTON_NO_BORDER )
 			SetCommonBorder( pc, BORDER_NONE );
@@ -1040,7 +1040,7 @@ void CPROC RadioButtonText( PSI_CONTROL pc, PVARTEXT pvt )
 		CTEXTSTR name;
 		name = pb->ClickMethodName;
 		if( name )
-			vtprintf( pvt, WIDE(" C\'%s\'"), name );
+			vtprintf( pvt, " C\'%s\'", name );
 	}
 
 }
@@ -1116,7 +1116,7 @@ static int CPROC CheckKeyProc( PSI_CONTROL pc, uint32_t key )
 {
 	ValidatedControlData( PCHECK, RADIO_BUTTON, pchk, pc );
 	PCHECK pb = pchk;
-	//printf( WIDE("Key: %08x\n"), key );
+	//printf( "Key: %08x\n", key );
 	if( key & 0x80000000 )
 	{
 		if( ( ( key & 0xFF ) == KEY_SPACE ) ||
@@ -1279,18 +1279,18 @@ void GetButtonPushMethod( PSI_CONTROL pc, ButtonPushMethod *method, uintptr_t *p
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
-		//lprintf( WIDE("Is not a NORMAL_BUTTON") );
+		//lprintf( "Is not a NORMAL_BUTTON" );
 		if( pb2 )
 			pb = pb2;
 		else
 		{
 			ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb2, pc );
-			//lprintf( WIDE("Is not a CUSTOM_BUTTON") );
+			//lprintf( "Is not a CUSTOM_BUTTON" );
 			if( pb2 )
 				pb = pb2;
 			else
 			{
-				//lprintf( WIDE("Is not a IMAGE_BUTTON") );
+				//lprintf( "Is not a IMAGE_BUTTON" );
 				return;
 			}
 		}
@@ -1354,19 +1354,19 @@ PSI_CONTROL SetButtonPushMethod( PSI_CONTROL pc, ButtonPushMethod method, uintpt
 	if( !pb )
 	{
 		ValidatedControlData( PBUTTON, CUSTOM_BUTTON, pb2, pc );
-		//lprintf( WIDE("Is not a NORMAL_BUTTON") );
+		//lprintf( "Is not a NORMAL_BUTTON" );
 		if( pb2 )
 			pb = pb2;
 		else
 		{
 			ValidatedControlData( PBUTTON, IMAGE_BUTTON, pb2, pc );
-			//lprintf( WIDE("Is not a CUSTOM_BUTTON") );
+			//lprintf( "Is not a CUSTOM_BUTTON" );
 			if( pb2 )
 				pb = pb2;
 			else
 			{
 				ValidatedControlData( PCHECK, RADIO_BUTTON, pb2, pc );
-				//lprintf( WIDE("Is not a CUSTOM_BUTTON") );
+				//lprintf( "Is not a CUSTOM_BUTTON" );
 				if( pb2 )
 				{
 					pb2->ClickMethod = method;
@@ -1375,7 +1375,7 @@ PSI_CONTROL SetButtonPushMethod( PSI_CONTROL pc, ButtonPushMethod method, uintpt
 				}
 				else
 				{
-					//lprintf( WIDE("Is not a IMAGE_BUTTON") );
+					//lprintf( "Is not a IMAGE_BUTTON" );
 					return pc;
 				}
 			}

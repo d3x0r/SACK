@@ -294,7 +294,7 @@ reevaluate_character:
 						// is okay - just ignore this and all will be well...
 						break;
 					default:
-						Log1( WIDE("Unknown escape passed! \\%c"), character );
+						Log1( "Unknown escape passed! \\%c", character );
 						VarTextAddCharacter( pdp->vartext, '\\' );
 						VarTextAddCharacter( pdp->vartext, character );
 						pdp->flags.escape = 0;
@@ -366,7 +366,7 @@ reevaluate_character:
 					case '$':
 						if( !pdp->flags.comment )
 						{
-							Log( WIDE("Beginning variable... "));
+							Log( "Beginning variable... ");
 							BreakCollection( pdp );
 							pdp->flags.var = 1;
 						}
@@ -475,7 +475,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 	pdp = CreateDataPath( pChannel, MYDATAPATH );
 	while( ( pText = GetParam( ps, &parameters ) ) )
 	{
-		if( OptionLike( pText, WIDE("noblank") ) )
+		if( OptionLike( pText, "noblank" ) )
 			pdp->flags.no_blank_lines = 1;
 	}
 	pdp->common.Type = myTypeID;
@@ -491,7 +491,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-	myTypeID = RegisterDevice( WIDE("bash"), WIDE("Parse commands bashlike"), Open );
+	myTypeID = RegisterDevice( "bash", "Parse commands bashlike", Open );
 	return DekVersion;
 }
 
@@ -499,7 +499,7 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
 {
-	UnregisterDevice( WIDE("bash") );
+	UnregisterDevice( "bash" );
 }
 
 //---------------------------------------------------------------------------

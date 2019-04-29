@@ -1,7 +1,7 @@
 #include <stdhdrs.h>
 #include <filesys.h>
 
-TEXTCHAR *curdir=WIDE(".");
+TEXTCHAR *curdir=".";
 
 typedef struct path_mask_tag
 {
@@ -71,7 +71,7 @@ void CPROC process( uintptr_t psv, CTEXTSTR file, int flags )
 					if( pMask->flags.ignore )
 					{
 						if( bDoLog )
-							printf( WIDE("Ignoring file: %s\n"), file );
+							printf( "Ignoring file: %s\n", file );
 						return;
 					}
 					matched = TRUE;
@@ -80,21 +80,21 @@ void CPROC process( uintptr_t psv, CTEXTSTR file, int flags )
 		}
 		if( !matched )
 		{
-			printf( WIDE("Skipping file: %s\n"), file );
+			printf( "Skipping file: %s\n", file );
 			return;
 		}
 	}
 	if( bDoLog )
-		printf( WIDE("Processing file: %s\n"), file );
-	in = sack_fopen( 0, file, WIDE("rb") );
+		printf( "Processing file: %s\n", file );
+	in = sack_fopen( 0, file, "rb" );
 	if( in )
 	{
 		int c;
-		snprintf( outfile, sizeof( outfile ), WIDE("%s.new"), file );
-		out = sack_fopen( 0, outfile, WIDE("wb") );
+		snprintf( outfile, sizeof( outfile ), "%s.new", file );
+		out = sack_fopen( 0, outfile, "wb" );
 		if( !out )
 		{
-			fprintf( stderr, WIDE("Could not create %s\n"), outfile );
+			fprintf( stderr, "Could not create %s\n", outfile );
 			return;
 		}
 		if( type )
@@ -107,23 +107,23 @@ void CPROC process( uintptr_t psv, CTEXTSTR file, int flags )
 			{
 			case TYPE_C:
 			case TYPE_H:
-				fprintf( out, WIDE("/* Expanding tabs %d tabbing to %d %s '\r's */%s")
+				fprintf( out, "/* Expanding tabs %d tabbing to %d %s '\r's */%s"
 								, detab, tab
-								, (carriage)?WIDE("with"):WIDE("without")
-								, (carriage)?WIDE("\r\n"):WIDE("\n") );
+								, (carriage)?"with":"without"
+								, (carriage)?"\r\n":"\n" );
 				break;
 			case TYPE_CPP:
 			case TYPE_HPP:
-				fprintf( out, WIDE("// Expanding tabs %d tabbing to %d %s '\r's%s")
+				fprintf( out, "// Expanding tabs %d tabbing to %d %s '\r's%s"
 								, detab, tab
-								, (carriage)?WIDE("with"):WIDE("without")
-								, (carriage)?WIDE("\r\n"):WIDE("\n") );
+								, (carriage)?"with":"without"
+								, (carriage)?"\r\n":"\n" );
 				break;
 			case TYPE_MAKEFILE:
-				fprintf( out, WIDE("# Expanding tabs %d tabbing to %d %s '\r's%s")
+				fprintf( out, "# Expanding tabs %d tabbing to %d %s '\r's%s"
 								, detab, tab
-								, (carriage)?WIDE("with"):WIDE("without")
-								, (carriage)?WIDE("\r\n"):WIDE("\n") );
+								, (carriage)?"with":"without"
+								, (carriage)?"\r\n":"\n" );
 				break;
 			case TYPE_UNKNOWN:
 			default:
@@ -252,7 +252,7 @@ void CPROC process( uintptr_t psv, CTEXTSTR file, int flags )
 		sack_rename( outfile, file );
 	}
 	else
-		fprintf( stderr, WIDE("%s is not a file.\n"), file );
+		fprintf( stderr, "%s is not a file.\n", file );
 }
 
 
@@ -263,22 +263,22 @@ SaneWinMain( argc, argv )
 	masks = CreateDataList( sizeof( MASK ) );
 	if( argc == 1 )
 	{
-		fprintf( stderr, WIDE("usage: %s [-T#D#RSV] <path> <files...>\n"), argv[0] );
-		fprintf( stderr, WIDE(" all parameter options are case-insensative\n") );
-		fprintf( stderr, WIDE(" -[Tt]# - specifies the # of spaces to make a tab\n") );
-		fprintf( stderr, WIDE(" -[Dd]# - specifies the # of spaces to make from a tab\n") );
-		fprintf( stderr, WIDE(" -[Nn] - convert \\r to \\n(if -R also make \\r\\n\n") );
-		fprintf( stderr, WIDE(" -[Aa] - Strip \\r and \\n into a single ' '\n") );
-		fprintf( stderr, WIDE(" -[Ff] - Strip double \\r\\r into a single '\\n'\n") );
-		fprintf( stderr, WIDE(" -[Ss] - subcurse (recurse) through all sub-directories\n") );
-		fprintf( stderr, WIDE(" -[Rr] - add carriage returns (\\r) to output\n") );
-		fprintf( stderr, WIDE(" -[Vv] - verbose operation - list files processed\n") );
-		fprintf( stderr, WIDE(" -D, -T specified together the file is first de-tabbed and then tabbed\n") );
-		fprintf( stderr, WIDE(" <path> is the starting path...\n") );
-		fprintf( stderr, WIDE(" !<file> specifies NOT that mask...\n") );
-		fprintf( stderr, WIDE(" no options - Remove \\r, check current directory only\n") );
-		fprintf( stderr, WIDE("Minor effect - adds a line terminator to ALL lines\n") );
-		fprintf( stderr, WIDE("GNUish compilers often complain 'no end of line at end of file'.\n") );
+		fprintf( stderr, "usage: %s [-T#D#RSV] <path> <files...>\n", argv[0] );
+		fprintf( stderr, " all parameter options are case-insensative\n" );
+		fprintf( stderr, " -[Tt]# - specifies the # of spaces to make a tab\n" );
+		fprintf( stderr, " -[Dd]# - specifies the # of spaces to make from a tab\n" );
+		fprintf( stderr, " -[Nn] - convert \\r to \\n(if -R also make \\r\\n\n" );
+		fprintf( stderr, " -[Aa] - Strip \\r and \\n into a single ' '\n" );
+		fprintf( stderr, " -[Ff] - Strip double \\r\\r into a single '\\n'\n" );
+		fprintf( stderr, " -[Ss] - subcurse (recurse) through all sub-directories\n" );
+		fprintf( stderr, " -[Rr] - add carriage returns (\\r) to output\n" );
+		fprintf( stderr, " -[Vv] - verbose operation - list files processed\n" );
+		fprintf( stderr, " -D, -T specified together the file is first de-tabbed and then tabbed\n" );
+		fprintf( stderr, " <path> is the starting path...\n" );
+		fprintf( stderr, " !<file> specifies NOT that mask...\n" );
+		fprintf( stderr, " no options - Remove \\r, check current directory only\n" );
+		fprintf( stderr, "Minor effect - adds a line terminator to ALL lines\n" );
+		fprintf( stderr, "GNUish compilers often complain 'no end of line at end of file'.\n" );
 		return -1;
 	}
 	for( ;argv[argstart]; argstart++ )
@@ -300,7 +300,7 @@ SaneWinMain( argc, argv )
 					 argv[argstart][2] <= '9' )
 					tab = argv[argstart][2] - '0';
 				else
-					fprintf( stderr, WIDE("invalid length to Tab option\n") );
+					fprintf( stderr, "invalid length to Tab option\n" );
 				break;
 			case 'D':
 			case 'd':
@@ -308,7 +308,7 @@ SaneWinMain( argc, argv )
 					 argv[argstart][2] <= '9' )
 					detab = argv[argstart][2] - '0';
 				else
-					fprintf( stderr, WIDE("invalid length to Tab option\n") );
+					fprintf( stderr, "invalid length to Tab option\n" );
 				break;
 			case 'R':
 			case 'r':
@@ -339,7 +339,7 @@ SaneWinMain( argc, argv )
 				if( strchr( argv[argstart], '*' )
 				  ||strchr( argv[argstart], '?' ) )
 				{
-					base = WIDE(".");
+					base = ".";
 				}
 				else
 				{
@@ -367,7 +367,7 @@ SaneWinMain( argc, argv )
 	if( !masks->Cnt || all_ignored )
 	{
 		MASK mask;
-		mask.mask = WIDE("*");
+		mask.mask = "*";
 		mask.flags.ignore = 0;
 		AddDataItem( &masks, &mask );
 	}
@@ -375,7 +375,7 @@ SaneWinMain( argc, argv )
 	{
 		void *data = NULL;
 		while( ScanFiles( base
-							 , WIDE("*")
+							 , "*"
 							 , &data
 							 , process
 							 , subcurse?SFF_SUBCURSE:0

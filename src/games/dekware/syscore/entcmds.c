@@ -17,7 +17,7 @@ void Unknown(PLINKQUEUE *Output, PTEXT Text)
 {
 	PVARTEXT vt;
 	vt = VarTextCreate( );
-	vtprintf( vt, WIDE("%s is an unknown object"), GetText( Text ) );
+	vtprintf( vt, "%s is an unknown object", GetText( Text ) );
 	EnqueLink( Output, VarTextGet( vt ) );
 	VarTextDestroy( &vt );
 }
@@ -61,7 +61,7 @@ PTEXT WriteListNot( PLIST pSource
 		if( !name )
 		{
 			new_unique_name newname;
-		//lprintf( WIDE("Adding name %s"), GetText( GetName( pe ) ) );
+		//lprintf( "Adding name %s", GetText( GetName( pe ) ) );
 			newname.name = GetName( pe );
 			newname.count = 1;
 			AddDataItem( &unique, &newname );
@@ -73,7 +73,7 @@ PTEXT WriteListNot( PLIST pSource
 		length += GetTextSize( name->name );
 		if( name->count > 1 )
 		{
-			length += 2 + snprintf( tmp, sizeof(tmp), WIDE("%")_32f, name->count );
+			length += 2 + snprintf( tmp, sizeof(tmp), "%"_32f, name->count );
 		}
 		if( didone )
 			length += 2;
@@ -89,18 +89,18 @@ PTEXT WriteListNot( PLIST pSource
 		didone = FALSE;
 		DATA_FORALL( unique, idx, unique_name, name )
 		{
-			out->data.size += snprintf( out->data.data + out->data.size, length*sizeof(TEXTCHAR), name->count>1?WIDE("%s%s[%d]"):WIDE("%s%s")
-									, (didone)?WIDE(", "): WIDE("")
+			out->data.size += snprintf( out->data.data + out->data.size, length*sizeof(TEXTCHAR), name->count>1?"%s%s[%d]":"%s%s"
+									, (didone)?", ": ""
 											, GetText( name->name )
 											, name->count );
 			didone = TRUE;
 		}
 		if( didone )
-			out->data.size += snprintf( out->data.data + out->data.size, length*sizeof(TEXTCHAR), WIDE(".") );
+			out->data.size += snprintf( out->data.data + out->data.size, length*sizeof(TEXTCHAR), "." );
 		DeleteDataList( &unique );
 	}
 	else
-		out = SegCreateFromText( WIDE("Nothing.") );
+		out = SegCreateFromText( "Nothing." );
 	pLeader = SegAppend( pLeader, out );
 	if( Output )
 	{
@@ -116,7 +116,7 @@ PTEXT WriteListNot( PLIST pSource
 void RoomsNear(PENTITY pe, PLINKQUEUE *Output )
 {
 	WriteList( FindContainer( pe )->pAttached
-				, SegCreateFromText( WIDE("Rooms: ") ), Output );
+				, SegCreateFromText( "Rooms: " ), Output );
 }
 
 //--------------------------------------------------------------------------
@@ -124,7 +124,7 @@ void RoomsNear(PENTITY pe, PLINKQUEUE *Output )
 void ItemsNear(PENTITY pe, PLINKQUEUE *Output )
 {
 	WriteListNot( FindContainer( pe )->pContains, pe
-					, SegCreateFromText( WIDE("Items: ") ), Output );
+					, SegCreateFromText( "Items: " ), Output );
 }
 
 //--------------------------------------------------------------------------
@@ -135,7 +135,7 @@ void Possesses(PENTITY pe, PLINKQUEUE *Output )
 	PTEXT out;
 	size_t len;
 	out = SegCreate( len = GetTextSize( GetName(pe) ) + 13 );
-	snprintf( out->data.data, len*sizeof(TEXTCHAR), WIDE("%s is holding: "), GetText( GetName(pe) ) );
+	snprintf( out->data.data, len*sizeof(TEXTCHAR), "%s is holding: ", GetText( GetName(pe) ) );
 	pAttached = BuildAttachedList( pe );
 	WriteList( pAttached, out, Output );
 	DeleteList( &pAttached );
@@ -148,7 +148,7 @@ void Contents(PENTITY pe, PLINKQUEUE *Output )
 	PTEXT out;
 	size_t len;
 	out = SegCreate( len = GetTextSize( GetName(pe) ) + 11 );
-	snprintf( out->data.data, len*sizeof(TEXTCHAR), WIDE("%s contains: "), GetText( GetName(pe) )) ;
+	snprintf( out->data.data, len*sizeof(TEXTCHAR), "%s contains: ", GetText( GetName(pe) )) ;
 	WriteList( pe->pContains, out, Output );
 }
 
@@ -168,7 +168,7 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 	PTEXT param;
 	if( param = GetParam( ps, &pObj ) )
 	{
-		if( TextLike( param, WIDE("in") ) )
+		if( TextLike( param, "in" ) )
 		{
 			// pobject is now the next token... sorta
 		param = GetParam( ps, &pObj );
@@ -183,11 +183,11 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 			}
 			else
 			{
-				Q_MSG( Output, WIDE("Cannot see %s around here."), GetText( param ) );
+				Q_MSG( Output, "Cannot see %s around here.", GetText( param ) );
 			}
 		}
 	}
-	else if( TextLike( param, WIDE("on") ) )
+	else if( TextLike( param, "on" ) )
 	{
 		// pobject is now the next token... sorta
 		param = GetParam( ps, &pObj );
@@ -202,7 +202,7 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 			}
 			else
 			{
-				Q_MSG( Output, WIDE("Cannot see %s around here."), GetText( param ) );
+				Q_MSG( Output, "Cannot see %s around here.", GetText( param ) );
 			}
 		}
 	}
@@ -223,7 +223,7 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 			{
 				if( !ps->CurrentMacro )
 				{
-					DECLTEXT( msg, WIDE("Cannot see that around here.") );
+					DECLTEXT( msg, "Cannot see that around here." );
 					EnqueLink( Output, &msg );
 				}
 			}
@@ -232,7 +232,7 @@ void Look( PLINKQUEUE *Output, PSENTIENT ps, PTEXT pObj )
 	else
 	{
 		PTEXT room, desc;
-		xlprintf(LOG_NOISE)( WIDE("doing look command...") );
+		xlprintf(LOG_NOISE)( "doing look command..." );
 		room = GetName( FindContainer( ps->Current ) );
 		if( room )
 			EnqueLink( Output, SegDuplicate( room ) );
@@ -288,7 +288,7 @@ int Grab(PENTITY pEntity, PTEXT info
 		pe = (PENTITY)FindThing( NULL, &info, pEntity, FIND_GRABBABLE, &FoundAt );
 			if( pe )
 		{
-			//lprintf( WIDE("Result found at %d"), FoundAt );
+			//lprintf( "Result found at %d", FoundAt );
 			switch ( FoundAt )
 			{
 			case FIND_ON:
@@ -303,7 +303,7 @@ int Grab(PENTITY pEntity, PTEXT info
 				{
 					PENTITY mount_point; // the place the related attached objects are.
 					*pOldRoom = FindContainerEx( pe, &mount_point );
-					lprintf( WIDE("Finding container of %s is %s and mount point is %s")
+					lprintf( "Finding container of %s is %s and mount point is %s"
 							, GetText( GetName( pe ) )
 							, GetText( GetName( *pOldRoom ) )
 							, GetText( GetName( mount_point ) ) );
@@ -341,11 +341,11 @@ int Store( PENTITY pEntity, PTEXT what, PTEXT into )
 		detach( pEntity, pe );
 		putin( pInto, pe );
 		if( pe->pControlledBy )
-			InvokeBehavior( WIDE("store"), pe, pe->pControlledBy, NULL );
+			InvokeBehavior( "store", pe, pe->pControlledBy, NULL );
 		if( pInto->pControlledBy )
-			InvokeBehavior( WIDE("insert"), pe, pInto->pControlledBy, NULL );
+			InvokeBehavior( "insert", pe, pInto->pControlledBy, NULL );
 		if( pEntity->pControlledBy )
-			InvokeBehavior( WIDE("place"), pe, pEntity->pControlledBy, NULL );
+			InvokeBehavior( "place", pe, pEntity->pControlledBy, NULL );
 
 		return 1;
 	}
@@ -363,7 +363,7 @@ PENTITY Attach( PSENTIENT ps, PTEXT info1, PTEXT info2)
 	pe = (PENTITY)FindThing( ps, &info1, ps->Current, FIND_ON, NULL );
 	if( !pe )
 	{
-		vtprintf( vt, WIDE("%s is not holding %s."),
+		vtprintf( vt, "%s is not holding %s.",
 					GetText( GetName( ps->Current ) ), GetText(info1) );
 		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		VarTextDestroy( &vt );
@@ -372,7 +372,7 @@ PENTITY Attach( PSENTIENT ps, PTEXT info1, PTEXT info2)
 	pe2 = (PENTITY)FindThing( ps, &info2, ps->Current, FIND_ON, NULL );
 	if( !pe2 )
 	{
-		vtprintf( vt, WIDE("%s is not holding %s."),
+		vtprintf( vt, "%s is not holding %s.",
 					GetText( GetName( ps->Current ) ), GetText(info2) );
 		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		VarTextDestroy( &vt );
@@ -393,7 +393,7 @@ PENTITY Detach( PSENTIENT ps, PTEXT info1, PTEXT info2)
 	pe = (PENTITY)FindThing( ps, &info1, ps->Current, FIND_VISIBLE, NULL );
 	if( !pe )
 	{
-		vtprintf( vt, WIDE("%s cannot see %s."),
+		vtprintf( vt, "%s cannot see %s.",
 				GetText( GetName( ps->Current ) ), GetText(info1) );
 		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		VarTextDestroy( &vt );
@@ -402,7 +402,7 @@ PENTITY Detach( PSENTIENT ps, PTEXT info1, PTEXT info2)
 	pe2 = (PENTITY)FindThing( ps, &info2, pe, FIND_ON, NULL );
 	if( !pe2 )
 	{
-		vtprintf( vt, WIDE("%s was not attached to %s."),
+		vtprintf( vt, "%s was not attached to %s.",
 				GetText( info2 ), GetText(info1) );
 		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		VarTextDestroy( &vt );
@@ -423,7 +423,7 @@ PENTITY Join( PLINKQUEUE *Output, PSENTIENT ps, PTEXT info1)
 	pe = (PENTITY)FindThing( ps, &info1, ps->Current, FIND_VISIBLE, NULL );
 	if( !pe )
 	{
-		vtprintf( vt, WIDE("%s cannot see %s."),
+		vtprintf( vt, "%s cannot see %s.",
 				GetText( GetName( ps->Current ) ), GetText(info1) );
 		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		VarTextDestroy( &vt );
@@ -455,7 +455,7 @@ PENTITY Enter( PLINKQUEUE *Output, PSENTIENT ps, PTEXT info)
 		PENTITY pRoom;
 		if( !ps->Current->pWithin )
 		{
-			DECLTEXT( msg, WIDE("Sorry, don't know how to detach myself") );
+			DECLTEXT( msg, "Sorry, don't know how to detach myself" );
 			EnqueLink( Output, (PTEXT)&msg );
 			return NULL;
 		}
@@ -465,9 +465,9 @@ PENTITY Enter( PLINKQUEUE *Output, PSENTIENT ps, PTEXT info)
 		if( bFoundNear )
 		{
 		if( pe->pControlledBy )
-				InvokeBehavior( WIDE("enter"), ps->Current, pe->pControlledBy, NULL );
+				InvokeBehavior( "enter", ps->Current, pe->pControlledBy, NULL );
 		if( pRoom->pControlledBy )
-				InvokeBehavior( WIDE("conceal"), ps->Current, pRoom->pControlledBy, NULL );
+				InvokeBehavior( "conceal", ps->Current, pRoom->pControlledBy, NULL );
 		/*
 			if( pe->pControlledBy &&
 				pe->pBehaviors &&
@@ -501,7 +501,7 @@ PENTITY Enter( PLINKQUEUE *Output, PSENTIENT ps, PTEXT info)
 
 		if( !ps->CurrentMacro && !pNewMS )
 		{
-			vtprintf( vt , WIDE("Now in %s."), GetText( GetName(pe)));
+			vtprintf( vt , "Now in %s.", GetText( GetName(pe)));
 			EnqueLink( Output, VarTextGet( vt ) );
 		}
 		else if( ps->CurrentMacro )
@@ -511,7 +511,7 @@ PENTITY Enter( PLINKQUEUE *Output, PSENTIENT ps, PTEXT info)
 	{
 		if( !ps->CurrentMacro )
 		{
-			vtprintf( vt ,WIDE("Nothing by that name resides in this location.") );
+			vtprintf( vt ,"Nothing by that name resides in this location." );
 			EnqueLink( Output, VarTextGet( vt ) );
 		}
 	}
@@ -529,13 +529,13 @@ PENTITY Leave( PLINKQUEUE *Output, PSENTIENT ps )
 	putin( pe2, pullout( pe, thing ) );
 
 
-	InvokeBehavior( WIDE("Inject"), pe, pe2->pControlledBy, SegDuplicate( GetName( pe ) ) );
-	InvokeBehavior( WIDE("Leave"), pe, pe2->pControlledBy, SegDuplicate( GetName( pe ) ) );
+	InvokeBehavior( "Inject", pe, pe2->pControlledBy, SegDuplicate( GetName( pe ) ) );
+	InvokeBehavior( "Leave", pe, pe2->pControlledBy, SegDuplicate( GetName( pe ) ) );
  	if( !ps->CurrentMacro )
 	{
 		PVARTEXT vt;
 		vt = VarTextCreate( );
-		vtprintf( vt, WIDE("Now in %s."), GetText( GetName( pe2 ) ));
+		vtprintf( vt, "Now in %s.", GetText( GetName( pe2 ) ));
 		EnqueLink( Output, VarTextGet( vt ) );
 		VarTextDestroy( &vt );
 	}
@@ -552,8 +552,8 @@ int CPROC VERSION( PSENTIENT ps, PTEXT parameters )
 	temp = GetParam( ps, &parameters );
 	if( !temp )
 	{
-		DECLTEXT( msg, WIDE("Version: 1.0b13xxxxxxxx") );
-		msg.data.size = snprintf( msg.data.data, sizeof( msg.data.data ), WIDE("Version: %s"), DekVersion );
+		DECLTEXT( msg, "Version: 1.0b13xxxxxxxx" );
+		msg.data.size = snprintf( msg.data.data, sizeof( msg.data.data ), "Version: %s", DekVersion );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	else
@@ -585,7 +585,7 @@ int CPROC CREATE( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 		{
-			DECLTEXT( msg,WIDE("Invalid object name. Must not start with a digit.") );
+			DECLTEXT( msg,"Invalid object name. Must not start with a digit." );
 			EnqueLink( &ps->Command->Output, &msg );
 		}
 	}
@@ -684,7 +684,7 @@ int CPROC DESTROY( PSENTIENT ps, PTEXT parameters )
 			if( !ps->CurrentMacro )
 			{
 				if( !vt ) vt = VarTextCreate( );
-				vtprintf( vt, WIDE("Destroyed Entity: %s."), GetText( GetName( pe ) ) );
+				vtprintf( vt, "Destroyed Entity: %s.", GetText( GetName( pe ) ) );
 				EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 			}
 			else
@@ -694,7 +694,7 @@ int CPROC DESTROY( PSENTIENT ps, PTEXT parameters )
 		else
 		{
 			PMACRO pm;
-			//lprintf( WIDE("Find macro..") );
+			//lprintf( "Find macro.." );
 			// this is like the only place that uses FindThing to get the macro...
 			// maybe should get a new thing for this... since this is a different
 			// section of code anyhow...
@@ -702,7 +702,7 @@ int CPROC DESTROY( PSENTIENT ps, PTEXT parameters )
 								, &pName, &pNewParams DBG_SRC );
 			if( !pm )
 			{
-				//lprintf( WIDE("Not found, eat param.") );
+				//lprintf( "Not found, eat param." );
 				temp = GetParam( ps, &parameters );
 				if( temp == ps->Current->pName )
 				{
@@ -719,7 +719,7 @@ int CPROC DESTROY( PSENTIENT ps, PTEXT parameters )
 				if( !ps->CurrentMacro )
 				{
 					if( !vt ) vt = VarTextCreate( );
-					vtprintf( vt, WIDE("Destroyed Macro: %s."), GetText( GetName( pm ) ) );
+					vtprintf( vt, "Destroyed Macro: %s.", GetText( GetName( pm ) ) );
 					EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 				}
 				else
@@ -763,16 +763,16 @@ int CPROC GRAB( PSENTIENT ps, PTEXT parameters )
 				 , &pOwner
 				 , &pThing
 				 , from = GetParam( ps, &parameters ) );
-	 //lprintf( WIDE("Result of grab is %d"), x );
+	 //lprintf( "Result of grab is %d", x );
 		switch( x )
 		{
 		//case GRAB_RESULT_FOUND_ON:
 		case GRAB_RESULT_FOUND_IN:
 		case GRAB_RESULT_FOUND_NEAR:
 		case GRAB_RESULT_FOUND_IN_BAG:
-			InvokeBehavior( WIDE("Grab"), ps->Current, pThing->pControlledBy, NULL );
-			InvokeBehavior( WIDE("Pull"), ps->Current, pRoom->pControlledBy, NULL );
-			InvokeBehavior( WIDE("Receive"), ps->Current, pOwner->pControlledBy, NULL );
+			InvokeBehavior( "Grab", ps->Current, pThing->pControlledBy, NULL );
+			InvokeBehavior( "Pull", ps->Current, pRoom->pControlledBy, NULL );
+			InvokeBehavior( "Receive", ps->Current, pOwner->pControlledBy, NULL );
 		/*
 			if( pThing->pControlledBy &&
 				pThing->pBehaviors &&
@@ -813,25 +813,25 @@ int CPROC GRAB( PSENTIENT ps, PTEXT parameters )
 		 switch( x )
 			{
 	 	case GRAB_RESULT_NO_OBJECT:
-			vtprintf( vt ,WIDE("No such object %s."),GetText(temp));
+			vtprintf( vt ,"No such object %s.",GetText(temp));
 			break;
 			case GRAB_RESULT_FOUND_ON:
-	 		vtprintf( vt ,WIDE("%s was in your hand already."), GetText( temp ));
+	 		vtprintf( vt ,"%s was in your hand already.", GetText( temp ));
 			break;
 		 case GRAB_RESULT_FOUND_IN:
-			 vtprintf( vt ,WIDE("%s found in pocket."), GetText( temp ));
+			 vtprintf( vt ,"%s found in pocket.", GetText( temp ));
 	 		break;
 		 case GRAB_RESULT_FOUND_NEAR:
-			 vtprintf( vt ,WIDE("%s found in location."), GetText( temp ));
+			 vtprintf( vt ,"%s found in location.", GetText( temp ));
 	 		break;
 		 case GRAB_RESULT_FAILED_BAG:
-			 vtprintf( vt ,WIDE("No such object %s."),GetText(from));
+			 vtprintf( vt ,"No such object %s.",GetText(from));
 	 		break;
 		 case GRAB_RESULT_FAILED_IN_BAG:
-			 vtprintf( vt ,WIDE("%s did not contain %s."),GetText(from), GetText(temp));
+			 vtprintf( vt ,"%s did not contain %s.",GetText(from), GetText(temp));
 				break;			
 		 case GRAB_RESULT_FOUND_IN_BAG:
-			 vtprintf( vt ,WIDE("Grabbed %s from %s."),GetText(temp), GetText(from));
+			 vtprintf( vt ,"Grabbed %s from %s.",GetText(temp), GetText(from));
 				break;
 		 }
 		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
@@ -863,7 +863,7 @@ int CPROC DROP( PSENTIENT ps, PTEXT parameters )
 					ps->CurrentMacro->state.flags.bSuccess = TRUE;
 				else
 				{
-					vtprintf( vt, WIDE("Dropped %s."), GetText( GetName( pe ) ) );
+					vtprintf( vt, "Dropped %s.", GetText( GetName( pe ) ) );
 					EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 				}
 			}
@@ -890,14 +890,14 @@ int CPROC STORE( PSENTIENT ps, PTEXT parameters )
 		{
 			if( result == -2 )
 			{
-				vtprintf( vt, WIDE("You are not allowed to store %s in itself."), GetText( temp ) );
+				vtprintf( vt, "You are not allowed to store %s in itself.", GetText( temp ) );
 			}
 			else
 			{
 					if( result < 0 )
-					vtprintf( vt, WIDE("Could not see %s."), GetText( into ) );
+					vtprintf( vt, "Could not see %s.", GetText( into ) );
 					else
-		 		 vtprintf( vt, WIDE("Not holding %s."), GetText( temp ) );
+		 		 vtprintf( vt, "Not holding %s.", GetText( temp ) );
 				}
 			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		}
@@ -909,9 +909,9 @@ int CPROC STORE( PSENTIENT ps, PTEXT parameters )
 		else
 		{
 			if( into )
-				vtprintf( vt, WIDE("Stored %s in %s."), GetText( temp ), GetText( into ) );
+				vtprintf( vt, "Stored %s in %s.", GetText( temp ), GetText( into ) );
 			else
-				vtprintf( vt, WIDE("Stored %s."), GetText( temp ) );
+				vtprintf( vt, "Stored %s.", GetText( temp ) );
 			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		}
 		}
@@ -932,7 +932,7 @@ int CPROC ATTACH( PSENTIENT ps, PTEXT parameters )
 	}
 	else
 	{
-	 DECLTEXT( msg, WIDE("Must supply 2 object names to Attach to each other") );
+	 DECLTEXT( msg, "Must supply 2 object names to Attach to each other" );
 	 EnqueLink( &ps->Command->Output, &msg );
 	}
 	return FALSE;
@@ -951,7 +951,7 @@ int CPROC DETACH( PSENTIENT ps, PTEXT parameters )
 	}
 	else
 	{
-		DECLTEXT( msg, WIDE("Must supply 2 object names to Attach to each other") );
+		DECLTEXT( msg, "Must supply 2 object names to Attach to each other" );
 		EnqueLink( &ps->Command->Output, &msg );
 	}
 	return FALSE;
@@ -1000,7 +1000,7 @@ int CPROC MAP( PSENTIENT ps, PTEXT parameters )
 	if( !( temp = GetParam( ps, &parameters ) ) )
 	{
 		vt = VarTextCreate( );
-		vtprintf( vt, WIDE("All Objects from -The Void-") );
+		vtprintf( vt, "All Objects from -The Void-" );
 		EnqueLink( &ps->Command->Output, VarTextGet(vt) );
 		showall( &ps->Command->Output, global.THE_VOID);
 	}

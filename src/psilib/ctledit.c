@@ -87,7 +87,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		if( pe->flags.bPassword )
 		{
 			uint32_t w, h;
-			GetStringSizeFontEx( WIDE("*"), 1, &w, &h, font );
+			GetStringSizeFontEx( "*", 1, &w, &h, font );
 			for( n= 0; n <= pe->nCaptionUsed; n++ )
 			{
 				stringsize[n] = w * n;
@@ -102,7 +102,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 				stringsize[n] = GetStringSizeFontEx(caption_text
 					, GetDisplayableCharacterBytes( caption_text, n)
 					, &w, &h, font );
-				//lprintf( WIDE("size at %d = %d"), n, stringsize[n] );
+				//lprintf( "size at %d = %d", n, stringsize[n] );
 			}
 			height = h;
 		}	
@@ -116,19 +116,19 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 			if( ( stringsize[ pe->cursor_pos - 1 ] 
 			     - start_pos ) < 0 )
 			{
-				//lprintf( WIDE( "cursor is off the left..." ) );
+				//lprintf( "cursor is off the left..." );
 				pe->Start = pe->cursor_pos - 1;
 			}
 			if( ( stringsize[ pe->cursor_pos ] 
 			     - start_pos ) 
 					 >= (int)( ( pc->surface_rect.width * 4 ) / 5 )  )
 			{
-				//lprintf( WIDE( "cursor is off the right..." ) );
+				//lprintf( "cursor is off the right..." );
 				for( n = (int)pe->cursor_pos; n; n-- )
 				{
 					if( ( stringsize[pe->cursor_pos] - stringsize[n] ) > (int)((pc->surface_rect.width *4)/ 5) )
 					{
-						//lprintf( WIDE( "New start : %d" ), pe->Start );
+						//lprintf( "New start : %d", pe->Start );
 						pe->Start = n+1;
 						break;
 					}
@@ -149,11 +149,11 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 				break;
 			}
 		}
-		//lprintf( WIDE("Max is %d %d"), pe->MaxShowLen, pe->Start );
+		//lprintf( "Max is %d %d", pe->MaxShowLen, pe->Start );
 	}
 	//pe->MaxShowLen = GetMaxStringLengthFont( pc->surface_rect.width, font );
 	
-	//lprintf( WIDE("drawing %d,%d,%d,%d"), pe->Start, pe->cursor_pos, pe->MaxShowLen );
+	//lprintf( "drawing %d,%d,%d,%d", pe->Start, pe->cursor_pos, pe->MaxShowLen );
 	output_string = GetString( pe, caption_text + pe->Start, pe->cursor_pos-pe->Start );
 	CursX = (pe->cursor_pos?stringsize[pe->cursor_pos]:0) - (pe->Start?stringsize[pe->Start]:0);
 	Release( stringsize );
@@ -161,7 +161,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		pe->top_side_pad = (pc->Surface->height - height) / 2;
 	else
 		pe->top_side_pad = 0;
-	//lprintf( WIDE("------- CURSX = %d --- "), CursX );
+	//lprintf( "------- CURSX = %d --- ", CursX );
 	CursX += LEFT_SIDE_PAD;
 	ofs = 0;
 	x = LEFT_SIDE_PAD;
@@ -173,7 +173,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		CTEXTSTR tmp;
 		CTEXTSTR string;
 		string = GetString( pe, GetText( pc->caption.text), pe->nCaptionUsed );
-		//lprintf( WIDE("Caption used... %d %d %d")
+		//lprintf( "Caption used... %d %d %d"
 		//		 , pc->flags.bFocused
 		//		 , pe->select_start
 		//		 , pe->select_end);
@@ -186,7 +186,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 			{
 				size_t nLen;
 				// translate characters into *'s if password
-				//lprintf( WIDE("%d %d %d"), Start, pe->select_start, pe->select_end );
+				//lprintf( "%d %d %d", Start, pe->select_start, pe->select_end );
 				if( !pe->flags.bSelectSet || ( Start < pe->select_start ) )
 				{
 					if( pe->flags.bSelectSet && ( pe->select_start - Start < pe->MaxShowLen ) )
@@ -195,7 +195,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 						nLen = pe->MaxShowLen - ofs;
 					tmp = GetDisplayableCharactersAtCount( string, Start );
 					nBytes = GetDisplayableCharacterBytes( tmp, nLen );
-					//lprintf( WIDE("Showing %d of string in normal color before select..."), nLen );
+					//lprintf( "Showing %d of string in normal color before select...", nLen );
 					PutStringFontEx( pc->Surface, x, pe->top_side_pad
 											 , basecolor(pc)[EDIT_TEXT], basecolor(pc)[EDIT_BACKGROUND]
 									, tmp, nBytes, font );
@@ -205,7 +205,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 				{
 					tmp = GetDisplayableCharactersAtCount( string, Start );
 					nLen = pe->MaxShowLen - ofs;
-					//lprintf( WIDE("Showing %d of string in normal color after select..."), nLen );
+					//lprintf( "Showing %d of string in normal color after select...", nLen );
 					nBytes = GetDisplayableCharacterBytes( tmp, nLen );
 					PutStringFontEx( pc->Surface, x, pe->top_side_pad
 											 , basecolor(pc)[EDIT_TEXT], basecolor(pc)[EDIT_BACKGROUND]
@@ -220,7 +220,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 					}
 					else
 						nLen = pe->MaxShowLen - ofs;
-					//lprintf( WIDE("Showing %d of string in selected color..."), nLen );
+					//lprintf( "Showing %d of string in selected color...", nLen );
 					tmp = GetDisplayableCharactersAtCount( string, Start );
 					nBytes = GetDisplayableCharacterBytes( tmp, nLen );
 					PutStringFontEx( pc->Surface, x, pe->top_side_pad
@@ -246,10 +246,10 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		}
 	}
 	//else
-	//   lprintf( WIDE("NO caption used.")) ;
+	//   lprintf( "NO caption used.") ;
 	if( pc->flags.bFocused )
 	{
-		//lprintf( WIDE("Have focus in edit control - drawing cursor thingy at %d"), CursX );
+		//lprintf( "Have focus in edit control - drawing cursor thingy at %d", CursX );
 		do_line( pc->Surface, CursX
 				 , 1
 				 , CursX
@@ -267,7 +267,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 				 , Color( 0,0,0 ) );
 	}
 	//else
-	//   lprintf( WIDE("have NO focus in edit control, not drawing anything...") );
+	//   lprintf( "have NO focus in edit control, not drawing anything..." );
 	return TRUE;
 }
 
@@ -283,7 +283,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, int32_t x, int32_t 
 	uint32_t width, _width = 0, height;
 	LOGICAL moving_left, moving_right;
 	SFTFont font = GetCommonFont( pc );
-	//lprintf( WIDE("Edit mosue: %d %d %X"), x, y, b );
+	//lprintf( "Edit mosue: %d %d %X", x, y, b );
 	GetStringSizeFont( GetText(pc->caption.text), &width, &height, font );
 	// how to find the line/character we're interested in....
 	if( height )
@@ -309,7 +309,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, int32_t x, int32_t 
 				if( GetStringSizeFontEx( tmp_offset_caption_text
 								, GetDisplayableCharacterBytes( tmp_offset_caption_text, cx ), &width, NULL, font ) )
 				{
-					//lprintf( WIDE("is %*.*s(%d) more than %d?")
+					//lprintf( "is %*.*s(%d) more than %d?"
 					//		 , cx,cx,GetText(pc->caption.text)
 					//		 , width
 					//		 , x );
@@ -322,7 +322,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, int32_t x, int32_t 
 						// very erratic cursor behavior..
 						if( ((width+LEFT_SIDE_PAD)-x) > (width - _width)/3 )
 							cx = cx-1;
-						//lprintf( WIDE("Why yes, yes it is.") );
+						//lprintf( "Why yes, yes it is." );
 						found = 1;
 						break;
 					}
@@ -337,7 +337,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, int32_t x, int32_t 
 	{
 		cx = (int)len - (int)pe->Start;
 		// cx max...
-		//lprintf( WIDE("Past end of string...") );
+		//lprintf( "Past end of string..." );
 	}
 	moving_left = 0;
 	moving_right = 0;
@@ -357,7 +357,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, int32_t x, int32_t 
 			}
 	}
 	{
-		//lprintf( WIDE("current character: %d %d"), cx, cy );
+		//lprintf( "current character: %d %d", cx, cy );
 	}
 	//lprintf( "alright we have %d,%d,%d,%d", pe->select_anchor, pe->Start, pe->select_start, cx );
 	if( b & MK_LBUTTON )
@@ -371,20 +371,20 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, int32_t x, int32_t 
 			if( (cx+(int)pe->Start) >= 0 )
 				if( (cx + pe->Start) < len )
 				{
-					//lprintf( WIDE("Setting select start, end at %d,%d,%d"), cx + pe->Start, cx, pe->Start );
+					//lprintf( "Setting select start, end at %d,%d,%d", cx + pe->Start, cx, pe->Start );
 					pe->select_anchor = cx + pe->Start;
 				}
 				else
 				{
-					//lprintf( WIDE("Setting select start, end at %d,%d"), len-1, len-1 );
+					//lprintf( "Setting select start, end at %d,%d", len-1, len-1 );
 					pe->select_anchor = len;
 				}
-			//lprintf( WIDE("--- Setting begin and end... hmm first button I guess Select...") );
+			//lprintf( "--- Setting begin and end... hmm first button I guess Select..." );
 			SmudgeCommon( pc );
 		}
 		else
 		{
-			//lprintf( WIDE("still have that mouse button down.... %d,%d,%d"), moving_left, moving_right, cx );
+			//lprintf( "still have that mouse button down.... %d,%d,%d", moving_left, moving_right, cx );
 			if( moving_left || moving_right )
 			{
 				if( (cx+(int)pe->Start) >= 0 )
@@ -585,7 +585,7 @@ static void Paste( PEDIT pe, PTEXT *caption )
 	}
 	else
 	{
-		//DECLTEXT( msg, WIDE("Clipboard was not available") );
+		//DECLTEXT( msg, "Clipboard was not available" );
 		//EnqueLink( &pdp->ps->Command->Output, &msg );
 	}
 }
@@ -859,7 +859,7 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, uint32_t key )
 			break;
 #endif
 		case KEY_BACKSPACE:
-			//Log( WIDE("Backspace?!") );
+			//Log( "Backspace?!" );
 			if( pe->flags.bSelectSet )
 			{
 				updated = 1;
@@ -904,7 +904,7 @@ static int OnKeyCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, uint32_t key )
 				TypeIntoEditControl( pc, ch );
 				pe->cursor_pos = GetDisplayableCharacterCount( GetText( pc->caption.text ), pe->cursor_pos_byte );
 				SmudgeCommon( pc );
-				//printf( WIDE("Key: %d(%c)\n"), ch,ch );
+				//printf( "Key: %d(%c)\n", ch,ch );
 				used_key = 1;
 			}
 			break;
@@ -920,7 +920,7 @@ PSI_CONTROL SetEditControlReadOnly( PSI_CONTROL pc, LOGICAL bEnable )
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	if( pe )
 	{
-		//lprintf( WIDE("Setting readonly attribut of control to %d"), bEnable );
+		//lprintf( "Setting readonly attribut of control to %d", bEnable );
 		pe->flags.bReadOnly = bEnable;
 	}
 	return pc;
@@ -933,7 +933,7 @@ PSI_CONTROL SetEditControlPassword( PSI_CONTROL pc, LOGICAL bEnable )
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	if( pe )
 	{
-		//lprintf( WIDE("Setting readonly attribut of control to %d"), bEnable );
+		//lprintf( "Setting readonly attribut of control to %d", bEnable );
 		pe->flags.bPassword = bEnable;
 	}
 	return pc;
@@ -989,7 +989,7 @@ static int OnCommonFocus( EDIT_FIELD_NAME )( PSI_CONTROL pc, LOGICAL bFocused )
 	ValidatedControlData( PEDIT, EDIT_FIELD, pe, pc );
 	if( pe )
 	{
-		//lprintf( WIDE("Setting active focus here!") );
+		//lprintf( "Setting active focus here!" );
 #ifdef __ANDROID__
 		if( bFocused )
 			SACK_Vidlib_ShowInputDevice();

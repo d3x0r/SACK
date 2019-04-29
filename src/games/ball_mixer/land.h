@@ -374,7 +374,7 @@ struct world_body_map
 												 , &near_areas[s+3][c][r][3].x
 												 , &near_areas[s+3][c][r][3].y
 												);
-						lprintf( WIDE("%d,%d,%d is near(3) %d,%d,%d")
+						lprintf( "%d,%d,%d is near(3) %d,%d,%d"
 								 , s+3, c, r
 								 , near_areas[s+3][c][r][3].s
 								 , near_areas[s+3][c][r][3].x

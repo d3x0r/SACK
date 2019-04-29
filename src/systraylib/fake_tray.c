@@ -89,7 +89,7 @@ int RegisterIconEx( char *icon DBG_PASS )
 //icon = Allocate( sizeof( *icon ) ); //?? why use a pointer??
 	if( !g.flags.bInited)
 	{
-		g.icon.pFrame = CreateFrame( WIDE("icon")
+		g.icon.pFrame = CreateFrame( "icon"
 											, 10, 10 //ok, this is still hard coded, for really no good reason right now.
 											, g.win.max.width,	g.win.max.height
 											, BORDER_NOMOVE | BORDER_INVERT | BORDER_NOCAPTION|BORDER_BUMP, NULL
@@ -140,7 +140,7 @@ int RegisterIconEx( char *icon DBG_PASS )
 				 xlprintf(LOG_NOISE)("\n the display buffer is now \n\n%s\n", displaybuffer );
 			 }
  
-			 xlprintf(LOG_NOISE)( WIDE("\nMy display buffer is now\n\n%s\n\n"), displaybuffer);
+			 xlprintf(LOG_NOISE)( "\nMy display buffer is now\n\n%s\n\n", displaybuffer);
  
 			 x++;
 		 }// if( ( len = strlen( icon_name) ) > 6 )
@@ -268,7 +268,7 @@ void UnregisterIconEx( char *a DBG_PASS )
 
 void ChangeIconEx( char *icon DBG_PASS )
 {
-   lprintf( WIDE("Okay, update the image here...") );
+   lprintf( "Okay, update the image here..." );
    return;
 }
 

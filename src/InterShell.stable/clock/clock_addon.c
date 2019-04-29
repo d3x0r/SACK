@@ -48,16 +48,16 @@ typedef struct clock_info_tag
 
 PRELOAD( RegisterExtraClockConfig )
 {
-	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_DATE, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_DAY_OF_WEEK, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_ANALOG, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_DATE, RADIO_BUTTON_NAME );
-	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), EDIT_ANALOG_IMAGE, EDIT_FIELD_NAME );
-	EasyRegisterResource( WIDE("InterShell/") WIDE("Clock"), CHECKBOX_AM_PM, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/" "Clock", CHECKBOX_DATE, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/" "Clock", CHECKBOX_DAY_OF_WEEK, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/" "Clock", CHECKBOX_ANALOG, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/" "Clock", CHECKBOX_DATE, RADIO_BUTTON_NAME );
+	EasyRegisterResource( "InterShell/" "Clock", EDIT_BACKGROUND_IMAGE, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/" "Clock", EDIT_ANALOG_IMAGE, EDIT_FIELD_NAME );
+	EasyRegisterResource( "InterShell/" "Clock", CHECKBOX_AM_PM, RADIO_BUTTON_NAME );
 }
 
-static uintptr_t OnCreateControl(WIDE("Clock"))
+static uintptr_t OnCreateControl("Clock")
 /*uintptr_t CPROC CreateClock*/( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 {
 	PCLOCK_INFO info = New( CLOCK_INFO );
@@ -65,7 +65,7 @@ static uintptr_t OnCreateControl(WIDE("Clock"))
 	info->color = BASE_COLOR_WHITE;
 
 	info->control = MakeNamedControl( frame
-											  , WIDE("Basic Clock Widget")
+											  , "Basic Clock Widget"
 											  , x
 											  , y
 											  , w
@@ -87,7 +87,7 @@ static uintptr_t OnCreateControl(WIDE("Clock"))
 	return (uintptr_t)info;
 }
 
-static void OnShowControl( WIDE("Clock") )( uintptr_t psv )
+static void OnShowControl( "Clock" )( uintptr_t psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	SetClockAmPm( info->control, info->flags.bAmPm );
@@ -97,7 +97,7 @@ static void OnShowControl( WIDE("Clock") )( uintptr_t psv )
 	StartClock( info->control );
 }
 
-static uintptr_t OnConfigureControl( WIDE("Clock") )( uintptr_t psv, PSI_CONTROL parent_frame )
+static uintptr_t OnConfigureControl( "Clock" )( uintptr_t psv, PSI_CONTROL parent_frame )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	{
@@ -106,11 +106,11 @@ static uintptr_t OnConfigureControl( WIDE("Clock") )( uintptr_t psv, PSI_CONTROL
 		int done = 0;
 		if( !frame )
 		{
-			frame = LoadXMLFrameOver( parent_frame, WIDE("Clock_Properties.isFrame") );
-			//frame = CreateFrame( WIDE("Clock Properties"), 0, 0, 420, 250, 0, NULL );
+			frame = LoadXMLFrameOver( parent_frame, "Clock_Properties.isFrame" );
+			//frame = CreateFrame( "Clock Properties", 0, 0, 420, 250, 0, NULL );
 			if( frame )
 			{
-				//MakeTextControl( frame, 5, 15, 120, 18, TXT_STATIC, WIDE("Text Color"), 0 );
+				//MakeTextControl( frame, 5, 15, 120, 18, TXT_STATIC, "Text Color", 0 );
 				//EnableColorWellPick( MakeColorWell( frame, 130, 15, 18, 18, CLR_TEXT_COLOR, info->color ), TRUE );
 				SetCommonButtonControls( frame );
 				SetCheckState( GetControl( frame, CHECKBOX_DATE ), info->flags.bDate );
@@ -164,29 +164,29 @@ static uintptr_t OnConfigureControl( WIDE("Clock") )( uintptr_t psv, PSI_CONTROL
 }
 
 
-static void OnSaveControl( WIDE( "Clock" ) )( FILE *file,uintptr_t psv )
+static void OnSaveControl( "Clock" )( FILE *file,uintptr_t psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
-	sack_fprintf( file, WIDE("%sClock color=%s\n")
+	sack_fprintf( file, "%sClock color=%s\n"
 			 , InterShell_GetSaveIndent()
 	       , FormatColor( info->color )
 			 );
-	sack_fprintf( file, WIDE("%sClock back color=%s\n")
+	sack_fprintf( file, "%sClock back color=%s\n"
 			 , InterShell_GetSaveIndent()
 	       , FormatColor( info->backcolor )
 			 );
-	sack_fprintf( file, WIDE("%sClock background image=%s\n" ), InterShell_GetSaveIndent(), info->image_name?info->image_name:WIDE("") );
-	sack_fprintf( file, WIDE("%sClock is analog?%s\n"), InterShell_GetSaveIndent(), info->flags.bAnalog?WIDE("Yes"):WIDE("No") );
-	sack_fprintf( file, WIDE("%sClock is military time?%s\n"), InterShell_GetSaveIndent(), (!info->flags.bAmPm)?WIDE("Yes"):WIDE("No") );
-	sack_fprintf( file, WIDE("%sClock show date?%s\n"), InterShell_GetSaveIndent(), info->flags.bDate?WIDE("Yes"):WIDE("No") );
-	sack_fprintf( file, WIDE("%sClock is single line?%s\n"), InterShell_GetSaveIndent(), info->flags.bSingleLine?WIDE("Yes"):WIDE("No") );
-	sack_fprintf( file, WIDE("%sClock show day of week?%s\n"), InterShell_GetSaveIndent(), info->flags.bDayOfWeek?WIDE("Yes"):WIDE("No") );
+	sack_fprintf( file, "%sClock background image=%s\n", InterShell_GetSaveIndent(), info->image_name?info->image_name:"" );
+	sack_fprintf( file, "%sClock is analog?%s\n", InterShell_GetSaveIndent(), info->flags.bAnalog?"Yes":"No" );
+	sack_fprintf( file, "%sClock is military time?%s\n", InterShell_GetSaveIndent(), (!info->flags.bAmPm)?"Yes":"No" );
+	sack_fprintf( file, "%sClock show date?%s\n", InterShell_GetSaveIndent(), info->flags.bDate?"Yes":"No" );
+	sack_fprintf( file, "%sClock is single line?%s\n", InterShell_GetSaveIndent(), info->flags.bSingleLine?"Yes":"No" );
+	sack_fprintf( file, "%sClock show day of week?%s\n", InterShell_GetSaveIndent(), info->flags.bDayOfWeek?"Yes":"No" );
 
-	sack_fprintf( file, WIDE("%sClock analog image=%s\n" ), InterShell_GetSaveIndent(), info->analog_image_name?info->analog_image_name:WIDE("images/Clock.png") );
+	sack_fprintf( file, "%sClock analog image=%s\n", InterShell_GetSaveIndent(), info->analog_image_name?info->analog_image_name:"images/Clock.png" );
 	{
 		TEXTSTR out;
 		EncodeBinaryConfig( &out, &info->image_desc, sizeof( info->image_desc ) );
-		sack_fprintf( file, WIDE("%sClock analog description=%s\n" ), InterShell_GetSaveIndent(), out );
+		sack_fprintf( file, "%sClock analog description=%s\n", InterShell_GetSaveIndent(), out );
 		Release( out );
 	}
 
@@ -274,28 +274,28 @@ static uintptr_t CPROC SetClockAnalogImageDesc( uintptr_t psv, arg_list args )
 	}
 	else
 	{
-				lprintf( WIDE("size of struct was %d not %d"), size, sizeof( struct clock_image_thing ) );
+				lprintf( "size of struct was %d not %d", size, sizeof( struct clock_image_thing ) );
 	}
 	return psv;
 }
 
-static void OnLoadControl( WIDE( "Clock" ) )( PCONFIG_HANDLER pch, uintptr_t psv )
+static void OnLoadControl( "Clock" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	InterShell_AddCommonButtonConfig( pch );
 
-	AddConfigurationMethod( pch, WIDE("Clock color=%c"), ReloadClockColor );
-	AddConfigurationMethod( pch, WIDE("Clock back color=%c"), ReloadClockBackColor );
-	AddConfigurationMethod( pch, WIDE("Clock is analog?%b"), SetClockAnalog );
-	AddConfigurationMethod( pch, WIDE("Clock is military time?%b"), ConfigSetClockAmPm );
-	AddConfigurationMethod( pch, WIDE("Clock show day of week?%b"), ConfigSetClockDayOfWeek );
-	AddConfigurationMethod( pch, WIDE("Clock show date?%b"), ConfigSetClockDate );
-	AddConfigurationMethod( pch, WIDE("Clock is single line?%b"), ConfigSetClockSingleLine );
-	AddConfigurationMethod( pch, WIDE("Clock analog image=%m" ), SetClockAnalogImage );
-	AddConfigurationMethod( pch, WIDE("Clock background image=%m" ), SetClockBackgroundImage );
-	AddConfigurationMethod( pch, WIDE("Clock analog description=%B" ), SetClockAnalogImageDesc );
+	AddConfigurationMethod( pch, "Clock color=%c", ReloadClockColor );
+	AddConfigurationMethod( pch, "Clock back color=%c", ReloadClockBackColor );
+	AddConfigurationMethod( pch, "Clock is analog?%b", SetClockAnalog );
+	AddConfigurationMethod( pch, "Clock is military time?%b", ConfigSetClockAmPm );
+	AddConfigurationMethod( pch, "Clock show day of week?%b", ConfigSetClockDayOfWeek );
+	AddConfigurationMethod( pch, "Clock show date?%b", ConfigSetClockDate );
+	AddConfigurationMethod( pch, "Clock is single line?%b", ConfigSetClockSingleLine );
+	AddConfigurationMethod( pch, "Clock analog image=%m", SetClockAnalogImage );
+	AddConfigurationMethod( pch, "Clock background image=%m", SetClockBackgroundImage );
+	AddConfigurationMethod( pch, "Clock analog description=%B", SetClockAnalogImageDesc );
 }
 
-static void OnFixupControl( WIDE("Clock") )(  uintptr_t psv )
+static void OnFixupControl( "Clock" )(  uintptr_t psv )
 //void CPROC FixupClock(  uintptr_t psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
@@ -307,22 +307,22 @@ static void OnFixupControl( WIDE("Clock") )(  uintptr_t psv )
 	}
 }
 
-static PSI_CONTROL OnGetControl( WIDE("Clock") )( uintptr_t psv )
+static PSI_CONTROL OnGetControl( "Clock" )( uintptr_t psv )
 //PSI_CONTROL CPROC GetClockControl( uintptr_t psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	return info->control;
 }
 
-static void OnEditEnd( WIDE("Clock") )(uintptr_t psv )
+static void OnEditEnd( "Clock" )(uintptr_t psv )
 //void CPROC ResumeClock( uintptr_t psv)
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
-	lprintf( WIDE("Break.") );
+	lprintf( "Break." );
 	StartClock( info->control );
 }
 
-static void OnEditBegin( WIDE("Clock") )( uintptr_t psv )
+static void OnEditBegin( "Clock" )( uintptr_t psv )
 //void CPROC PauseClock( uintptr_t psv)
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
@@ -330,7 +330,7 @@ static void OnEditBegin( WIDE("Clock") )( uintptr_t psv )
 	StopClock( info->control );
 }
 
-static LOGICAL OnQueryShowControl( WIDE("Clock") )( uintptr_t psv )
+static LOGICAL OnQueryShowControl( "Clock" )( uintptr_t psv )
 {
 	PCLOCK_INFO info = (PCLOCK_INFO)psv;
 	if( info->flags.bAnalog )

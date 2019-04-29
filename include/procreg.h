@@ -112,7 +112,7 @@ SACK_NAMESPACE
       
       psi/control/## might contain procs Init Destroy Move
       
-      RegAlias( WIDE("psi/control/3"), WIDE("psi/control/button")
+      RegAlias( "psi/control/3", "psi/control/button"
       ); psi/control/button and psi/control/3 might reference the
       same routines
       
@@ -215,7 +215,7 @@ PROCREG_PROC( int, GetClassPath )( TEXTSTR out, size_t len, PCLASSROOT root );
 PROCREG_PROC( void, SetInterfaceConfigFile )( TEXTCHAR *filename );
 
 
-/* Get[First/Next]RegisteredName( WIDE("classname"), &amp;data );
+/* Get[First/Next]RegisteredName( "classname", &amp;data );
    these operations are not threadsafe and multiple thread
    accesses will cause mis-stepping
    
@@ -323,7 +323,7 @@ PROCREG_PROC( int, RegisterProcedureExx )( PCLASSROOT root // root name or PCLAS
  * Branches on the tree may be aliased together to form a single branch
  * 
  */
-				// RegisterClassAlias( WIDE("psi/control/button"), WIDE("psi/control/3") );
+				// RegisterClassAlias( "psi/control/button", "psi/control/3" );
 				// then the same set of values can be referenced both ways with
 				// really only a single modified value.
 /* parameters to RegisterClassAliasEx are the original name, and the new alias name for the origianl branch*/
@@ -498,18 +498,18 @@ PROCREG_PROC( int, GetRegisteredIntValue )( PCLASSROOT name_class, CTEXTSTR name
 typedef void (CPROC*OpenCloseNotification)( POINTER, uintptr_t );
 #define PUBLIC_DATA( public, struct, open, close )    \
 	PRELOAD( Data_##open##_##close ) { \
-	RegisterDataType( WIDE("system/data/structs")  \
+	RegisterDataType( "system/data/structs"  \
       	, public, sizeof(struct)    \
 	, (OpenCloseNotification)open, (OpenCloseNotification)close ); }
 
 #define PUBLIC_DATA_EX( public, struct, open, update, close )    \
 	PRELOAD( Data_##open##_##close ) { \
-	RegisterDataTypeEx( WIDE("system/data/structs")  \
+	RegisterDataTypeEx( "system/data/structs"  \
       	, public, sizeof(struct)    \
 	, (OpenCloseNotification)open, (OpenCloseNotification)update, (OpenCloseNotification)close ); }
 
 #define GET_PUBLIC_DATA( public, type, instname ) \
-   (type*)CreateRegisteredDataType( WIDE("system/data/structs"), public, instname )
+   (type*)CreateRegisteredDataType( "system/data/structs", public, instname )
 PROCREG_PROC( uintptr_t, RegisterDataType )( CTEXTSTR classname
 												 , CTEXTSTR name
 												 , uintptr_t size
@@ -624,9 +624,9 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 #define DefineRegistryMethod2_i(task,name,classtype,methodname,desc,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRIORITY_PRELOAD( paste(paste(paste(paste(Register,name),Method),EXTRA_PRELOAD_SYMBOL),line), SQL_PRELOAD_PRIORITY ) {  \
-	SimpleRegisterMethod( task WIDE("/") classtype, paste(name,line)  \
+	SimpleRegisterMethod( task "/" classtype, paste(name,line)  \
 	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
-   RegisterValue( task WIDE("/") classtype WIDE("/") methodname, WIDE("Description"), desc ); \
+   RegisterValue( task "/" classtype "/" methodname, "Description", desc ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
 
@@ -640,13 +640,13 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 #define DefineRegistryMethod2P_i(priority,task,name,classtype,methodname,desc,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRIORITY_PRELOAD( paste(paste(paste(paste(Register,name),Method),EXTRA_PRELOAD_SYMBOL),line), priority ) {  \
-	SimpleRegisterMethod( task WIDE("/") classtype, paste(name,line)  \
+	SimpleRegisterMethod( task "/" classtype, paste(name,line)  \
 	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
-   RegisterValue( task WIDE("/") classtype WIDE("/") methodname, WIDE("Description"), desc ); \
+   RegisterValue( task "/" classtype "/" methodname, "Description", desc ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
 
-/* This macro indirection is to resolve inner macros like WIDE("") around text.  */
+/* This macro indirection is to resolve inner macros like "" around text.  */
 #define DefineRegistryMethod2P(priority,task,name,classtype,methodname,desc,returntype,argtypes,line)   \
 	DefineRegistryMethod2P_i(priority,task,name,classtype,methodname,desc,returntype,argtypes,line)
 
@@ -658,7 +658,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 #define DefineRegistryMethod_i(task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line) ) {  \
-	SimpleRegisterMethod( task WIDE("/") classtype WIDE("/") classbase, paste(name,line)  \
+	SimpleRegisterMethod( task "/" classtype "/" classbase, paste(name,line)  \
 	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
@@ -680,7 +680,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 #define DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRIOR_PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line), priority ) {  \
-	SimpleRegisterMethod( task WIDE("/") classtype WIDE("/") classbase, paste(name,line)  \
+	SimpleRegisterMethod( task "/" classtype "/" classbase, paste(name,line)  \
 	, _WIDE(#returntype), methodname, _WIDE(#argtypes) ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)
@@ -740,7 +740,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 #define DefineRegistrySubMethod_i(task,name,classtype,classbase,methodname,subname,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
 	PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line) ) {  \
-	SimpleRegisterMethod( task WIDE("/") classtype WIDE("/") classbase WIDE("/") methodname, paste(name,line)  \
+	SimpleRegisterMethod( task "/" classtype "/" classbase "/" methodname, paste(name,line)  \
 	, _WIDE(#returntype), subname, _WIDE(#argtypes) ); \
 }                                                                          \
 	static returntype CPROC paste(name,line)

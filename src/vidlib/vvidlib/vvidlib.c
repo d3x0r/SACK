@@ -138,7 +138,7 @@ void _BuildSpaceTree( PSPACENODE *tree, int level, uint32_t x_origin, uint32_t y
 			// this will provide auto clipping for image functions done through
 						 // thirs.
 //#ifdef DEBUG_DIRTY_RECT
-			lprintf( WIDE("Node is %p (%") _32fs WIDE(",%") _32fs WIDE(")-(%") _32f WIDE(",%") _32f WIDE(")"), pc, min[0], min[1], max[0], max[1] );
+			lprintf( "Node is %p (%" _32fs ",%" _32fs ")-(%" _32f ",%" _32f ")", pc, min[0], min[1], max[0], max[1] );
 //#endif
 	   	AddSpaceNode( tree, pc, min, max );
 		}
@@ -679,9 +679,9 @@ PRELOAD( InitMe )
 
    RegisterInterface( 
 //#ifdef SACK_BAG_EXPORTS  // symbol defined by visual studio sack_bag.vcproj
-	   WIDE("virtual_http_render")
+	   "virtual_http_render"
 //#else
-//	   WIDE("video")
+//	   "video"
 //#endif
 	   , GetDisplayInterface, DropDisplayInterface );
 

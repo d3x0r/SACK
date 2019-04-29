@@ -5,14 +5,38 @@ SET( SPIRV_SKIP_EXECUTABLES ON )
 SET( SKIP_GLSLANG_INSTALL ON )
 SET( ENABLE_GLSLANG_BINARIES OFF )
 
+#git clone --recursive https://github.com/google/shaderc && mkdir build && cd build && cmake .. -DSHADERC_SKIP_TESTS=ON && make
+#include( ExternalProject )
+
+
 
 if( WIN32 )
+	if( OFF )
+		ExternalProject_Add( google_shaderc
+				PREFIX shaderc
+			GIT_REPOSITORY https://github.com/google/shaderc
+			GIT_SHALLOW 1
+			INSTALL_DIR ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+			CMAKE_ARGS -DSHADERC_SKIP_TESTS=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DPYTHONPATH=C:/tools/python34 -DPYTHON_EXECUTABLE=c:/tools/python34/python34.exe
+		)
+		link_directories(${CMAKE_CURRENT_BINARY_DIR}/shaderc/libshaderc/$(CMAKE_BUILD_TYPE))
+		link_directories(${CMAKE_CURRENT_BINARY_DIR}/shaderc/libshaderc_util/$(CMAKE_BUILD_TYPE))
+		link_directories(${CMAKE_CURRENT_BINARY_DIR}/shaderc/third_party/glslang/SPIRV/$(CMAKE_BUILD_TYPE))
+		link_directories(${CMAKE_CURRENT_BINARY_DIR}/shaderc/third_party/glslang/glslang/$(CMAKE_BUILD_TYPE))
+		link_directories(${CMAKE_CURRENT_BINARY_DIR}/shaderc/third_party/glslang/glslang/OSDependent/windows/$(CMAKE_BUILD_TYPE))
+		link_directories(${CMAKE_CURRENT_BINARY_DIR}/shaderc/third_party/glslang/OGLCompilersDLL/$(CMAKE_BUILD_TYPE))
+		link_directories(${CMAKE_CURRENT_BINARY_DIR}/shaderc/third_party/glslang/hlsl/$(CMAKE_BUILD_TYPE))
+		link_directories(${CMAKE_CURRENT_BINARY_DIR}/shaderc/third_party/spirv-tools/source/$(CMAKE_BUILD_TYPE))
+		link_directories(${CMAKE_CURRENT_BINARY_DIR}/shaderc/third_party/spirv-tools/source/opt/$(CMAKE_BUILD_TYPE))
+	endif( OFF )	
 	#GET_FILENAME_COMPONENT(VULKAN_API "[HKEY_LOCAL_MACHINE\\SOFTWARE\\LunarG\\VulkanSDK;VK_SDK_PATHs]" ABSOLUTE CACHE)
 	set( SHADERC_ENABLE_SHARED_CRT ON )
 	set( VULKAN_API $ENV{VULKAN_SDK} )
+	set( PYTHON_EXECUTABLE c:/tools/python34/python.exe )
+	set( PYTHON_EXE c:/tools/python27/python.exe )
 	message( "IMGLIB VULKAN FROM ENVIRONMENT:" ${VULKAN_API} )
 	if( NOT VULKAN_API )
-		set( VULKAN_API c:/tools/vulkansdk/1.0.61.1 )
+		set( VULKAN_API c:/tools/vulkansdk/1.1.106.0 )
 	endif( NOT VULKAN_API )
 	STRING( REPLACE ";" "" VULKAN_API ${VULKAN_API})
 	if( NOT VULKAN_API )
@@ -67,7 +91,7 @@ endif()
 if( WIN32 )
 	my_target_link_libraries( ${project} vulkan-1.lib shaderc )
 else()
-	my_target_link_libraries( ${project} vulkan shaderc )
+	my_target_link_libraries( ${project} vulkan google_shadercshaderc )
 endif()
 
 #my_target_link_libraries( ${project} bag.psi )

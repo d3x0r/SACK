@@ -30,37 +30,37 @@ static void CPROC change( uintptr_t psv )
 {
 	if( l.flags.allow_cycle )
 		if( !l.flags.bDisableChange )
-			ShellSetCurrentPage( GetCanvas( (PSI_CONTROL)psv ), WIDE("next"), PAGE_TRANSITION_NONE, 0 );
+			ShellSetCurrentPage( GetCanvas( (PSI_CONTROL)psv ), "next", PAGE_TRANSITION_NONE, 0 );
 }
 
-static void OnFinishInit( WIDE("Page Cycler") )( PCanvasData pc_canvas )
+static void OnFinishInit( "Page Cycler" )( PCanvasData pc_canvas )
 {
    l.timer = AddTimer( l.delay, change, (uintptr_t)pc_canvas );
 }
 
-static void OnEditModeBegin( WIDE("Page Cycler") )( void )
+static void OnEditModeBegin( "Page Cycler" )( void )
 {
    l.flags.bDisableChange = 1;
 }
 
-static void OnEditModeEnd( WIDE("Page Cycler") )( void )
+static void OnEditModeEnd( "Page Cycler" )( void )
 {
    l.flags.bDisableChange = 0;
 }
 
-static int OnChangePage( WIDE("Page Cycler") )( PCanvasData pc_canvas )
+static int OnChangePage( "Page Cycler" )( PCanvasData pc_canvas )
 {
 	PPAGE_DATA page = ShellGetCurrentPage( pc_canvas );
 	INDEX idx;
 	struct page_delay *delay;
-   //lprintf( WIDE("new page = %s"), page->title );
+   //lprintf( "new page = %s", page->title );
 	LIST_FORALL( l.delays, idx, struct page_delay *, delay )
 	{
 		if( page->title )
 		{
 			if( StrCaseCmp( page->title, delay->page_name ) == 0 )
 			{
-            //lprintf( WIDE("Compare ok - schedule %d"), delay->delay );
+            //lprintf( "Compare ok - schedule %d", delay->delay );
 				RescheduleTimerEx( l.timer, delay->delay );
 				break;
 			}
@@ -68,7 +68,7 @@ static int OnChangePage( WIDE("Page Cycler") )( PCanvasData pc_canvas )
 		else
 			if( !delay->page_name )
 			{
-            //lprintf( WIDE("Compare ok - schedule %d"), delay->delay );
+            //lprintf( "Compare ok - schedule %d", delay->delay );
 				RescheduleTimerEx( l.timer, delay->delay );
 				break;
 			}
@@ -82,19 +82,19 @@ static int OnChangePage( WIDE("Page Cycler") )( PCanvasData pc_canvas )
 		else
 			delay->page_name = NULL;
       AddLink( &l.delays, delay );
-		//lprintf( WIDE("Compare ok - schedule %d"), l.delay );
+		//lprintf( "Compare ok - schedule %d", l.delay );
 		RescheduleTimerEx( l.timer, l.delay );
 	}
    return 1;
 }
 
-static void OnGlobalPropertyEdit( WIDE( "Page Cycle" ) )( PSI_CONTROL parent )
+static void OnGlobalPropertyEdit( "Page Cycle" )( PSI_CONTROL parent )
 {
-	PSI_CONTROL frame = LoadXMLFrameOver( parent, WIDE( "PageCycle.isFrame" ) );
+	PSI_CONTROL frame = LoadXMLFrameOver( parent, "PageCycle.isFrame" );
 	if( l.flags.resources_registered )
 	{
       l.flags.resources_registered = 1;
-		EasyRegisterResource( WIDE("InterShell/Page Cycle"), CHECKBOX_ENABLE          , RADIO_BUTTON_NAME );
+		EasyRegisterResource( "InterShell/Page Cycle", CHECKBOX_ENABLE          , RADIO_BUTTON_NAME );
 	}
 
 	if( frame )
@@ -103,9 +103,9 @@ static void OnGlobalPropertyEdit( WIDE( "Page Cycle" ) )( PSI_CONTROL parent )
 		int done = 0;
 		SetCommonButtons( frame, &done, &okay );
       SetCheckState( GetControl( frame, CHECKBOX_ENABLE ), l.flags.allow_cycle );
-		//lprintf( WIDE( "show frame over parent." ) );
+		//lprintf( "show frame over parent." );
 		DisplayFrameOver( frame, parent );
-		//lprintf( WIDE( "Begin waiting..." ) );
+		//lprintf( "Begin waiting..." );
 		CommonWait( frame );
 		if( okay )
 		{
@@ -118,15 +118,15 @@ static void OnGlobalPropertyEdit( WIDE( "Page Cycle" ) )( PSI_CONTROL parent )
 }
 
 
-static void OnSaveCommon( WIDE("Page Cycler") )( FILE *file )
+static void OnSaveCommon( "Page Cycler" )( FILE *file )
 {
 	INDEX idx;
 	struct page_delay *delay;
-	fprintf( file, WIDE( "Page Cycling is enabled=%s\n" ), l.flags.allow_cycle?"yes":"no" );
+	fprintf( file, "Page Cycling is enabled=%s\n", l.flags.allow_cycle?"yes":"no" );
 	LIST_FORALL( l.delays, idx, struct page_delay *, delay )
 	{
 		if( delay->page_name )
-			fprintf( file, WIDE("page delay for '%s'=%d\n"), delay->page_name, delay->delay );
+			fprintf( file, "page delay for '%s'=%d\n", delay->page_name, delay->delay );
 	}
 }
 
@@ -161,11 +161,11 @@ static uintptr_t CPROC LoadDelay( uintptr_t psv, arg_list args )
    return psv;
 }
 
-static void OnLoadCommon( WIDE("Page Cycler") )( PCONFIG_HANDLER pch )
+static void OnLoadCommon( "Page Cycler" )( PCONFIG_HANDLER pch )
 {
-	l.delay = SACK_GetPrivateProfileInt( WIDE("Page Cycler"), WIDE("default delay between pages"), 15000, WIDE("page_changer.ini") );
-	AddConfigurationMethod( pch, WIDE( "Page Cycling is enabled=%b" ), LoadAllowCycle );
-	AddConfigurationMethod( pch, WIDE("page delay for '%m'=%i"), LoadDelay );
+	l.delay = SACK_GetPrivateProfileInt( "Page Cycler", "default delay between pages", 15000, "page_changer.ini" );
+	AddConfigurationMethod( pch, "Page Cycling is enabled=%b", LoadAllowCycle );
+	AddConfigurationMethod( pch, "page delay for '%m'=%i", LoadDelay );
 }
 
 #if defined( __CMAKE_VERSION__ ) && ( __CMAKE_VERSION__ < 2081003 )

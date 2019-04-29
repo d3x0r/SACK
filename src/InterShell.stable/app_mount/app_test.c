@@ -65,9 +65,9 @@ void SendPosition( int x, int y, int w, int h )
 PRELOAD( InitAppMount )
 {
    NetworkStart();
-	l.udp_socket = ServeUDP( WIDE("127.0.0.1:2996"), 2996, read_complete, NULL );
+	l.udp_socket = ServeUDP( "127.0.0.1:2996", 2996, read_complete, NULL );
 	UDPEnableBroadcast( l.udp_socket, TRUE );
-	l.sendto = CreateSockAddress( WIDE("127.0.0.1:2997"), 2997 );
+	l.sendto = CreateSockAddress( "127.0.0.1:2997", 2997 );
 }
 
 
@@ -76,10 +76,10 @@ int main( int argc, char **argv )
 #undef atoi
 	if( argc < 2 )
 	{
-		printf( WIDE("%s {S|H|M} \n" )
-				WIDE( " S - show\n" )
-				WIDE( " H - hide\n" )
-             WIDE(" M - requires 4 additional parameters < x y width height >\n" ), argv[0] );
+		printf( "%s {S|H|M} \n"
+				" S - show\n"
+				" H - hide\n"
+             " M - requires 4 additional parameters < x y width height >\n", argv[0] );
       return 0;
 	}
 	else if( argv[1][0] == 'S' || argv[1][0] == 's' )

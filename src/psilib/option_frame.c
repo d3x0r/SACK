@@ -46,15 +46,15 @@ size_t _SQLPromptINIValue(			 CTEXTSTR lpszSection,
 	done.me = MakeThread();
 	done.done = 0;
 	//if( blog )
-	//	lprintf( WIDE("Dialog prompt for [%s] %s=%s in %s"), lpszSection, lpszEntry, lpszDefault, filename );
-	frame = CreateFrame( WIDE("INI Entry Error"), DIA_X(59), DIA_Y(34), DIA_W(256) + 36, DIA_H(78), BORDER_NORMAL, NULL );
+	//	lprintf( "Dialog prompt for [%s] %s=%s in %s", lpszSection, lpszEntry, lpszDefault, filename );
+	frame = CreateFrame( "INI Entry Error", DIA_X(59), DIA_Y(34), DIA_W(256) + 36, DIA_H(78), BORDER_NORMAL, NULL );
 	if( frame )
 	{
-	MakeTextControl( frame, DIA_X(1), DIA_Y(2), DIA_W(254), DIA_H(16), -1, WIDE("The value below has not been found.  Please enter the correct value."), 0 );
-	tnprintf( text, sizeof( text ), WIDE("%s\n   [%s]\n      %s ="), filename, lpszSection, lpszEntry );
+	MakeTextControl( frame, DIA_X(1), DIA_Y(2), DIA_W(254), DIA_H(16), -1, "The value below has not been found.  Please enter the correct value.", 0 );
+	tnprintf( text, sizeof( text ), "%s\n   [%s]\n      %s =", filename, lpszSection, lpszEntry );
 	MakeTextControl( frame, DIA_X(4), DIA_Y(18), DIA_W(248), DIA_H(28), 123, text, EDIT_READONLY );
 	MakeEditControl( frame, DIA_X(4), DIA_Y(46), DIA_W(248), DIA_H(12), 124, lpszDefault, 0 );
-	MakeButton( frame, DIA_X(4), DIA_Y(63), DIA_W(248), DIA_H(14), IDOK, WIDE("Ok"), 0, SetIntTRUE, (uintptr_t)&done );
+	MakeButton( frame, DIA_X(4), DIA_Y(63), DIA_W(248), DIA_H(14), IDOK, "Ok", 0, SetIntTRUE, (uintptr_t)&done );
 	DisplayFrame( frame );
 	MakeTopmost( GetFrameRenderer( frame ) );
 	while( !done.done )

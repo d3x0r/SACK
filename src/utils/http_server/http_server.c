@@ -8,11 +8,11 @@ LOGICAL CPROC FallbackHandler( uintptr_t psv, struct HttpState *state )
 	PTEXT resource = GetHttpResource( state );
 	PTEXT result;
 	size_t result_size = GetSizeofFile( GetText( resource ) + 1, NULL );
-	//lprintf( WIDE("Serve resource: %s"), GetText( resource ) );
+	//lprintf( "Serve resource: %s", GetText( resource ) );
 
 	if( result_size != (size_t)-1 )
 	{
-		FILE *input = sack_fopen( 0, GetText( resource ) + 1, WIDE("rb") );
+		FILE *input = sack_fopen( 0, GetText( resource ) + 1, "rb" );
 		if( input )
 		{
 			size_t x;
@@ -20,7 +20,7 @@ LOGICAL CPROC FallbackHandler( uintptr_t psv, struct HttpState *state )
 			x = fread( GetText( result ), 1, result_size, input );
 			SetTextSize( result, result_size );
 			//SendHttpMessage( state, NULL, result );
-			SendHttpResponse( state, NULL, 200, WIDE("OK"), WIDE("text/html"), result );
+			SendHttpResponse( state, NULL, 200, "OK", "text/html", result );
 			LineRelease( result );
 			fclose( input );
 			return TRUE;
@@ -31,7 +31,7 @@ LOGICAL CPROC FallbackHandler( uintptr_t psv, struct HttpState *state )
 
 static void LoadPlugins( CTEXTSTR listfile )
 {
-	FILE *input = sack_fopen( 0, listfile, WIDE("rt") );
+	FILE *input = sack_fopen( 0, listfile, "rt" );
 	if( input )
 	{
 		TEXTCHAR buf[256];
@@ -48,8 +48,8 @@ static void LoadPlugins( CTEXTSTR listfile )
 // is main or winmain as required by compiler and target
 SaneWinMain( argc, argv )
 {
-	CTEXTSTR site = WIDE("d3x0r.org");
-	CTEXTSTR serve_interface = WIDE("0.0.0.0:6180");
+	CTEXTSTR site = "d3x0r.org";
+	CTEXTSTR serve_interface = "0.0.0.0:6180";
 	{
 		while( argv++,(--argc > 0) )
 		{

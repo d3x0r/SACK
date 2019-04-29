@@ -271,10 +271,10 @@ PRELOAD( InitGlobalConfig2 )
 	DoInit();
 #if !defined( __NO_OPTIONS__ )
 	// later, set options - core startup configs like sql.config cannot read options.
-	g.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Disable Memory Logging" ), g.flags.bDisableMemoryLogging, TRUE );
-	g.flags.bLogUnhandled = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log Unhandled if no application handler" ), g.flags.bLogUnhandled, TRUE );
-	g.flags.bLogTrace = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log configuration processing(trace)" ), g.flags.bLogTrace, TRUE );
-	g.flags.bLogLines = SACK_GetProfileIntEx( WIDE( "SACK/Config Script" ), WIDE( "Log configuration line input" ), g.flags.bLogLines, TRUE );
+	g.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( "SACK/Config Script", "Disable Memory Logging", g.flags.bDisableMemoryLogging, TRUE );
+	g.flags.bLogUnhandled = SACK_GetProfileIntEx( "SACK/Config Script", "Log Unhandled if no application handler", g.flags.bLogUnhandled, TRUE );
+	g.flags.bLogTrace = SACK_GetProfileIntEx( "SACK/Config Script", "Log configuration processing(trace)", g.flags.bLogTrace, TRUE );
+	g.flags.bLogLines = SACK_GetProfileIntEx( "SACK/Config Script", "Log configuration line input", g.flags.bLogLines, TRUE );
 #endif
 }
 
@@ -295,64 +295,64 @@ void LogElementEx( CTEXTSTR leader, PCONFIG_ELEMENT pce DBG_PASS)
 {
 	if( !pce )
 	{
-		_lprintf(DBG_RELAY)( WIDE("Nothing.") );
+		_lprintf(DBG_RELAY)( "Nothing." );
 		return;
 	}
 	switch( pce->type )
 	{
 	case CONFIG_UNKNOWN:
-		_lprintf(DBG_RELAY)( WIDE("This thing was never configured?") );
+		_lprintf(DBG_RELAY)( "This thing was never configured?" );
 		break;
 	case CONFIG_TEXT:
-		_lprintf(DBG_RELAY)( WIDE("%s text constant: %s"), leader, GetText( pce->data[0].pText ) );
+		_lprintf(DBG_RELAY)( "%s text constant: %s", leader, GetText( pce->data[0].pText ) );
 		break;
 	case CONFIG_BOOLEAN:
-		_lprintf(DBG_RELAY)( WIDE("%s a boolean"), leader );
+		_lprintf(DBG_RELAY)( "%s a boolean", leader );
 		break;
 	case CONFIG_INTEGER:
-		_lprintf(DBG_RELAY)( WIDE("%s integer"), leader );
+		_lprintf(DBG_RELAY)( "%s integer", leader );
 		break;
 	case CONFIG_COLOR:
-		_lprintf(DBG_RELAY)( WIDE("%s color"), leader );
+		_lprintf(DBG_RELAY)( "%s color", leader );
 		break;
 	case CONFIG_BINARY:
-		_lprintf(DBG_RELAY)( WIDE("%s binary"), leader );
+		_lprintf(DBG_RELAY)( "%s binary", leader );
 		break;
 	case CONFIG_FLOAT:
-		_lprintf(DBG_RELAY)( WIDE("%s Floating"), leader );
+		_lprintf(DBG_RELAY)( "%s Floating", leader );
 		break;
 	case CONFIG_FRACTION:
-		_lprintf(DBG_RELAY)( WIDE("%s fraction"), leader );
+		_lprintf(DBG_RELAY)( "%s fraction", leader );
 		break;
 	case CONFIG_SINGLE_WORD:
-		_lprintf(DBG_RELAY)( WIDE("%s a single word:%p"), leader, pce->data[0].pWord );
+		_lprintf(DBG_RELAY)( "%s a single word:%p", leader, pce->data[0].pWord );
 		break;
 	case CONFIG_MULTI_WORD:
-		_lprintf(DBG_RELAY)( WIDE("%s a multi word"), leader );
+		_lprintf(DBG_RELAY)( "%s a multi word", leader );
 		break;
 	case CONFIG_PROCEDURE:
-		_lprintf(DBG_RELAY)( WIDE("%s a procedure to call."), leader );
+		_lprintf(DBG_RELAY)( "%s a procedure to call.", leader );
 		break;
 	case CONFIG_PROCEDURE_EX:
-		_lprintf( DBG_RELAY )(WIDE( "%s a procedure to call." ), leader);
+		_lprintf( DBG_RELAY )("%s a procedure to call.", leader);
 		break;
 	case CONFIG_URL:
-	_lprintf(DBG_RELAY)( WIDE("%s a url?"), leader );
+	_lprintf(DBG_RELAY)( "%s a url?", leader );
 	break;
 	case CONFIG_FILE:
-	_lprintf(DBG_RELAY)( WIDE("%s a filename"), leader );
+	_lprintf(DBG_RELAY)( "%s a filename", leader );
 	break;
 	case CONFIG_PATH:
-	_lprintf(DBG_RELAY)( WIDE("%s a path name"), leader );
+	_lprintf(DBG_RELAY)( "%s a path name", leader );
 	break;
 	case CONFIG_FILEPATH:
-	_lprintf(DBG_RELAY)( WIDE("%s a full path and file name"), leader );
+	_lprintf(DBG_RELAY)( "%s a full path and file name", leader );
 	break;
 	case CONFIG_ADDRESS:
-	_lprintf(DBG_RELAY)( WIDE("%s an address"), leader );
+	_lprintf(DBG_RELAY)( "%s an address", leader );
 	break;
 	default:
-		_lprintf(DBG_RELAY)( WIDE("Do not know what this is.") );
+		_lprintf(DBG_RELAY)( "Do not know what this is." );
 		break;
 	}
 }
@@ -365,11 +365,11 @@ void DumpConfigurationEvaluator( PCONFIG_HANDLER pch )
 	PCONFIG_ELEMENT pce;
 	LIST_FORALL( pch->ConfigTestRoot.pConstElementList, idx, PCONFIG_ELEMENT, pce )
 	{
-		LogElement( WIDE("const"), pce );
+		LogElement( "const", pce );
 	}
 	LIST_FORALL( pch->ConfigTestRoot.pVarElementList, idx, PCONFIG_ELEMENT, pce )
 	{
-		LogElement( WIDE( "var" ), pce );
+		LogElement( "var", pce );
 	}
 }
 
@@ -419,12 +419,12 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 		if( text )
 		{
 			LineRelease( buffer );
-			lprintf( WIDE( "Returning buffer [%s]" ), GetText( text ) );
+			lprintf( "Returning buffer [%s]", GetText( text ) );
 			return text;
 		}
 		else
 		{
-			lprintf( WIDE( "Returning buffer [%s]" ), GetText( buffer ) );
+			lprintf( "Returning buffer [%s]", GetText( buffer ) );
 			return buffer; // pass it on to others - end of stream..
 		}
 	}
@@ -440,7 +440,7 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 			Release( scratch[0] );
 			scratch[0] = NULL;
 			if( g.flags.bLogLines )
-				lprintf( WIDE( "Returning buffer [%s]" ), GetText( final ) );
+				lprintf( "Returning buffer [%s]", GetText( final ) );
 			return final;
 		}
 	}
@@ -452,7 +452,7 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 		int end = 0;
 		size_t length = GetTextSize( buffer );
 		CTEXTSTR chardata = GetText( buffer );
-		//lprintf( WIDE( "Considering buffer %s" ), GetText( buffer ) + data->skip );
+		//lprintf( "Considering buffer %s", GetText( buffer ) + data->skip );
 		if( !length )
 			LineRelease( SegGrab( buffer ) );
 		for( n = thisskip; n < length; n++ )
@@ -464,7 +464,7 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 				{
 					end = 1;
 					n++; // include this character.
-					//lprintf( WIDE("BLANK LINE - CONSUMED") );
+					//lprintf( "BLANK LINE - CONSUMED" );
 					break;
 				}
 				if( end ) // \r\r is two lines too
@@ -519,12 +519,12 @@ static PTEXT CPROC FilterLines( POINTER *scratch, PTEXT buffer )
 			GetText(result)[total_length] = 0;
 			//lprintf( "Considering buffer %s", GetText( result ) );
 			if( g.flags.bLogLines )
-				lprintf( WIDE( "Returning buffer [%s]" ), GetText( result ) );
+				lprintf( "Returning buffer [%s]", GetText( result ) );
 			return result;
 		}
 		else
 		{
-			//lprintf( WIDE("Had no end within the buffer, waiting for another...") );
+			//lprintf( "Had no end within the buffer, waiting for another..." );
 		}
 		thisskip = 0; // no more skips.
 		buffer = NEXTLINE( buffer );
@@ -573,14 +573,14 @@ static PTEXT CPROC FilterTerminators( POINTER *scratch, PTEXT buffer )
 				modified = 0;
 				if( length && chardata[length-1] == '\n' )
 				{
-					//Log( WIDE("Removing newline...") );
+					//Log( "Removing newline..." );
 					end = TRUE;
 					length--;
 					modified = 1;
 				}
 				if( length && chardata[length-1] == '\r' )
 				{
-					//lprintf( WIDE("Removing cr...") );
+					//lprintf( "Removing cr..." );
 					end = TRUE;
 					length--;
 					modified = 1;
@@ -589,7 +589,7 @@ static PTEXT CPROC FilterTerminators( POINTER *scratch, PTEXT buffer )
 				{
 					if( ( length > 1 ) && ( chardata[length-2] != '\\' ) )
 					{
-						//lprintf( WIDE("Removing continue slash...") );
+						//lprintf( "Removing continue slash..." );
 						end = FALSE;
 						length--;
 						modified = 1;
@@ -603,7 +603,7 @@ static PTEXT CPROC FilterTerminators( POINTER *scratch, PTEXT buffer )
 				return NULL;
 			}
 			chardata[length] = 0;
-			//lprintf( WIDE("Resulting line: %s"), chardata );
+			//lprintf( "Resulting line: %s", chardata );
 			SetTextSize( buffer, length );
 			buffer = NEXTLINE( buffer );
 		}
@@ -642,7 +642,7 @@ static PTEXT CPROC FilterEscapesAndComments( POINTER *scratch, PTEXT pText )
 					switch( text[src] )
 					{
 					case 0:
-						lprintf( WIDE( "Continuation at end of line... save this and append next line please." ) );
+						lprintf( "Continuation at end of line... save this and append next line please." );
 						break;
 					default:
 						text[dest++] = text[src];
@@ -701,8 +701,8 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 				{
 					// request any existing data without adding more...
 					newline = filter( GetLinkAddress( filter_data, idx ), newline );
-					//lprintf( WIDE( "Process line: %s" ), GetText( newline ) );
-					//lprintf( WIDE("after filter %d line = %s"), idx, GetText( newline ) );
+					//lprintf( "Process line: %s", GetText( newline ) );
+					//lprintf( "after filter %d line = %s", idx, GetText( newline ) );
 					if( newline )
 					{
 						one_more_read = 0;
@@ -710,7 +710,7 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 					}
 					else
 					{
-						//lprintf( WIDE("no more newline... it's been deleted...") );
+						//lprintf( "no more newline... it's been deleted..." );
 						if( didone ) // had one, lost it, try for another from the top of blank...
 						{
 							if( bReturnBlank )
@@ -786,7 +786,7 @@ static PTEXT get_line(PCONFIG_HANDLER pch /*FOLD00*/
 				LIST_FORALL( filters[0], idx, PTEXT (CPROC *)(POINTER*,PTEXT), filter )
 				{
 					newline = filter( GetLinkAddress( filter_data, idx ), newline );
-					//lprintf( WIDE( "Process line: %s" ), GetText( newline ) );
+					//lprintf( "Process line: %s", GetText( newline ) );
 					if( !newline )
 						break; // get next bit of data ....
 				}
@@ -807,7 +807,7 @@ static PTEXT GetConfigurationLine( PCONFIG_HANDLER pConfigHandler )
 									, pConfigHandler->Unhandled?TRUE:FALSE ) ) )
 	{
 		if( g.flags.bLogLines )
-			lprintf( WIDE( "Process line: %s" ), GetText( line ) );
+			lprintf( "Process line: %s", GetText( line ) );
 
 		p = burst( line );
 		LineRelease( line );
@@ -817,13 +817,13 @@ static PTEXT GetConfigurationLine( PCONFIG_HANDLER pConfigHandler )
 				PTEXT x = p;
 				while( x )
 				{
-					lprintf( WIDE("Word is: %s (%")_size_f WIDE(",%d)"), GetText( x ), GetTextSize( x ), x->format.position.offset.spaces );
+					lprintf( "Word is: %s (%"_size_f ",%d)", GetText( x ), GetTextSize( x ), x->format.position.offset.spaces );
 					x = NEXTLINE( x );
 				}
 			}
 			{
 				PTEXT tmp = BuildLine( p );
-				lprintf( WIDE("input: %s"), GetText( tmp ) );
+				lprintf( "input: %s", GetText( tmp ) );
 				LineRelease( tmp );
 			}
 		}
@@ -834,7 +834,7 @@ static PTEXT GetConfigurationLine( PCONFIG_HANDLER pConfigHandler )
 		}
 		else // drop and consume blank lines.
 		{
-			//lprintf( WIDE("Okay got a blank line... might handle it with 'unhandled'") );
+			//lprintf( "Okay got a blank line... might handle it with 'unhandled'" );
 			if( pConfigHandler->Unhandled )
 				pConfigHandler->Unhandled( pConfigHandler->psvUser, NULL );
 			LineRelease(p);
@@ -869,22 +869,22 @@ int IsConstTextEx( PCONFIG_ELEMENT pce, PTEXT *start DBG_PASS )
 		return FALSE;
 	}
 	if( g.flags.bLogTrace )
-		_lprintf(DBG_RELAY)( WIDE("Testing %s vs %s"), GetText( *start ), GetText( pce->data[0].pText ) );
+		_lprintf(DBG_RELAY)( "Testing %s vs %s", GetText( *start ), GetText( pce->data[0].pText ) );
 	if( CompareText( *start, pce->data[0].pText ) == 0 )
 	{
 		if( g.flags.bLogTrace )
-			lprintf( WIDE("%s matched %s"), GetText( *start ), GetText( pce->data[0].pText ) );
+			lprintf( "%s matched %s", GetText( *start ), GetText( pce->data[0].pText ) );
 		*start = NEXTLINE( *start );
 		return TRUE;
 	}
 	if( g.flags.bLogTrace )
-		lprintf( WIDE("isn't constant...") );
+		lprintf( "isn't constant..." );
 	return FALSE;
 }
 
 //---------------------------------------------------------------------
-static CTEXTSTR charset1 = WIDE("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-+");
-static CTEXTSTR charset2 = WIDE("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY.-Z+");
+static CTEXTSTR charset1 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-+";
+static CTEXTSTR charset2 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY.-Z+";
 typedef union bintobase{
 	struct {
 		uint8_t bytes[3];
@@ -1137,39 +1137,39 @@ int IsBooleanVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	int bOkay = FALSE;
 	if( pce && pce->type != CONFIG_BOOLEAN )
 		return FALSE;
-	//lprintf( WIDE("Is %s boolean?"), GetText( *start ) );
+	//lprintf( "Is %s boolean?", GetText( *start ) );
 #define CmpMin(constlen)  ((len <= (constlen))?(len):0)
 #define NearText(text,const)	( CmpMin( sizeof( const ) - 1 ) &&		\
 					( StrCaseCmpEx( GetText( text ), const, len ) == 0 ) )
-	if( NearText( *start, WIDE("yes") ) ||
-		NearText( *start, WIDE("1") ) ||
-		NearText( *start, WIDE("on") ) ||
-		NearText( *start, WIDE("true") ) ||
-		NearText( *start, WIDE("open") )
+	if( NearText( *start, "yes" ) ||
+		NearText( *start, "1" ) ||
+		NearText( *start, "on" ) ||
+		NearText( *start, "true" ) ||
+		NearText( *start, "open" )
 		)
 	{
 		if(pce)pce->data[0].truefalse.bTrue = 1;
 		bOkay = TRUE;
 	}
-	else if( NearText( *start, WIDE("no") ) ||
-			NearText( *start, WIDE("0") ) ||
-			NearText( *start, WIDE("off") ) ||
-		NearText( *start, WIDE("false") ) ||
-		NearText( *start, WIDE("close") )
+	else if( NearText( *start, "no" ) ||
+			NearText( *start, "0" ) ||
+			NearText( *start, "off" ) ||
+		NearText( *start, "false" ) ||
+		NearText( *start, "close" )
 		)
 	{
 		if(pce)pce->data[0].truefalse.bTrue = 0;
 		bOkay = TRUE;
 	}
-	else if( NearText( *start, WIDE("are") ) ||
-			NearText( *start, WIDE("is") ) )
+	else if( NearText( *start, "are" ) ||
+			NearText( *start, "is" ) )
 	{
 		PTEXT word;
 		bOkay = TRUE;
 		if(pce)pce->data[0].truefalse.bTrue = 1;
 		if( ( word = NEXTLINE( *start ) ) )
 		{
-		if( NearText( *start, WIDE("not") ) )
+		if( NearText( *start, "not" ) )
 		{
 				if(pce)pce->data[0].truefalse.bTrue = 0;
 				*start = word;
@@ -1198,8 +1198,8 @@ int GetBooleanVar( PTEXT *start, LOGICAL *data )
 
 //---------------------------------------------------------------------
 
-static TEXTCHAR maxbase1[] = WIDE("0123456789abcdefghijklmnopqrstuvwxyz");
-static TEXTCHAR maxbase2[] = WIDE("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+static TEXTCHAR maxbase1[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+static TEXTCHAR maxbase2[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 int TextToInt( CTEXTSTR text, int64_t* out )
 {
@@ -1258,7 +1258,7 @@ int TextToInt( CTEXTSTR text, int64_t* out )
 			// another rule that took launchat %w by %w could also work... in case
 			// there is some variadric thing .. but a different config proc will probably be
 			// called for such a case.
-				//Log3( WIDE("Base Error : [%c]%s is not within base %d"), text[0], text+1, base );
+				//Log3( "Base Error : [%c]%s is not within base %d", text[0], text+1, base );
 				flags.success = 0;
 				break;
 		}
@@ -1303,7 +1303,7 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	// might consider color names also, (of course that table
 	// would have to be configurable)
 
-	//lprintf( WIDE("COlor testing: %s"), GetText( *start ) );
+	//lprintf( "COlor testing: %s", GetText( *start ) );
 	if( GetText( *start )[0] == '$' )
 	{
 		int ofs = 0;
@@ -1322,7 +1322,7 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 			uint32_t accum = 0;
 			CTEXTSTR digit;
 			digit = GetText( val ) + ofs;
-			//lprintf( WIDE("COlor testing: %s"), digit );
+			//lprintf( "COlor testing: %s", digit );
 			while( digit && digit[0] )
 			{
 				int n;
@@ -1348,7 +1348,7 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 			}
 			if( ( digit - GetText( val ) ) < 6 )
 			{
-				lprintf( WIDE("Perhaps an error in color variable...") );
+				lprintf( "Perhaps an error in color variable..." );
 				pce->data[0].Color = accum | 0xFF000000;	
 			}
 			else
@@ -1367,7 +1367,7 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 				COLOR_CHANNEL b = (COLOR_CHANNEL)( file_color >> 0 ) & 0xFF;
 				pce->data[0].Color = AColor( r,grn,b,a );
 			}
-			//Log4( WIDE("Color is: $%08X/(%d,%d,%d)")
+			//Log4( "Color is: $%08X/(%d,%d,%d)"
 			//		, pce->data[0].Color
 			//		, RedVal( pce->data[0].Color ), GreenVal(pce->data[0].Color), BlueVal(pce->data[0].Color) );
 			*start = NEXTLINE( val );
@@ -1385,7 +1385,7 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 			val = NEXTLINE( val ) )
 		{
 			int64_t accum = 0;
-			//lprintf( WIDE("Test : %s"), GetText( val ) );
+			//lprintf( "Test : %s", GetText( val ) );
 			if( GetText(val)[0] == ',' )
 				continue;
 			if( TextToInt( GetText( val ), &accum ) )
@@ -1400,7 +1400,7 @@ int IsColorVar( PCONFIG_ELEMENT pce, PTEXT *start )
 			pce->data[0].Color = color;
 			if( components < 4 )
 				pce->data[0].Color |= 0xFF000000;	
-			//Log4( WIDE("Color is: $%08X/(%d,%d,%d)")
+			//Log4( "Color is: $%08X/(%d,%d,%d)"
 			//		, pce->data[0].Color
 			//		, RedVal( pce->data[0].Color ), GreenVal(pce->data[0].Color), BlueVal(pce->data[0].Color) );
 			*start = NEXTLINE( val );
@@ -1431,7 +1431,7 @@ int IsFloatVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		return FALSE;
 
 	//text = GetText( *start );
-	lprintf( WIDE("Floating values are not processed yet.") );
+	lprintf( "Floating values are not processed yet." );
 
 	return FALSE;
 }
@@ -1469,7 +1469,7 @@ int IsFractionVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	}
 	if( text[0] )
 	{
-		lprintf( WIDE("Error in first argument of format of fraction.") );
+		lprintf( "Error in first argument of format of fraction." );
 		return FALSE;
 	}
 // collect numerator after whole number.
@@ -1481,7 +1481,7 @@ int IsFractionVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		neg2 = 1;
 	if( text[0] == '/' )
 	{
-		//lprintf( WIDE("Promoting whole to numerator, getting denominaotr") );
+		//lprintf( "Promoting whole to numerator, getting denominaotr" );
 		neg2	= neg1;
 		accum2 = accum1;
 		neg1	= 1;
@@ -1505,11 +1505,11 @@ int IsFractionVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		text++;
 		}
 		if( text[0] )
-		lprintf( WIDE("Error in format of numerator") );
+		lprintf( "Error in format of numerator" );
 	}
 	else
 	{
-	//lprintf( WIDE("End of line before numerator") );
+	//lprintf( "End of line before numerator" );
 		pce->data[0].fraction.numerator = accum1;
 		pce->data[0].fraction.denominator = neg1;
 		*start = NEXTLINE( current );
@@ -1521,13 +1521,13 @@ int IsFractionVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	text = GetText( current );
 	if( text[0] != '/' )
 	{
-		lprintf( WIDE("No denominator specified - error in fraction.") );
+		lprintf( "No denominator specified - error in fraction." );
 		return FALSE;
 	}
 	}
 	else
 	{
-	lprintf( WIDE("End of line before '/'") );
+	lprintf( "End of line before '/'" );
 	}
 collect_denominator:
 	current = NEXTLINE( current );
@@ -1553,17 +1553,17 @@ collect_denominator:
 		}
 		if( text[0] )
 		{
-		lprintf( WIDE("Error in format of denominator.") );
+		lprintf( "Error in format of denominator." );
 		return FALSE;
 		}
-		//Log7( WIDE("%d*%d+%d / %d*%d*%d*%d"), accum1, accum3, accum2, neg1, neg2, neg3, accum3 );
+		//Log7( "%d*%d+%d / %d*%d*%d*%d", accum1, accum3, accum2, neg1, neg2, neg3, accum3 );
 		pce->data[0].fraction.numerator = accum1 * accum3 + accum2;
 		pce->data[0].fraction.denominator = neg1 * neg2 * neg3 * accum3;
 		*start = NEXTLINE( current );
 	}
 	else
 	{
-		lprintf( WIDE("End of line before denominator.") );
+		lprintf( "End of line before denominator." );
 		return FALSE;
 	}
 	return TRUE;
@@ -1596,7 +1596,7 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 				//	LineRelease( pWords );
 				// so at a space, stop appending.
 				if( g.flags.bLogTrace )
-					lprintf( WIDE( "next word has spaces... [%s](%d)" ), GetText( *start ), (*start)->format.position.offset.spaces );
+					lprintf( "next word has spaces... [%s](%d)", GetText( *start ), (*start)->format.position.offset.spaces );
 				break;
 			}
 
@@ -1607,7 +1607,7 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 					pce->data[0].singleword.pWhichEnd = pEnd;
 					pce->next = pEnd->next;
 					if( g.flags.bLogTrace )
-						lprintf( WIDE("Failed check for var check..") );
+						lprintf( "Failed check for var check.." );
 					*start = _start; // restore start..
 					break;
 				}
@@ -1627,7 +1627,7 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		}
 		pWords = SegAppend( pWords, SegDuplicate( *start ) );
 		if( g.flags.bLogTrace )
-			lprintf( WIDE("Appending more to single word...[%s]"), GetText( (*start) ) );
+			lprintf( "Appending more to single word...[%s]", GetText( (*start) ) );
 		*start = NEXTLINE( *start );
 	}
 	if( (!*start) )
@@ -1640,7 +1640,7 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 			return FALSE;
 		}
 		else if( g.flags.bLogTrace )
-			lprintf( WIDE( "is alright - gathered to end of line ok." ) );
+			lprintf( "is alright - gathered to end of line ok." );
 	}
 	if( pWords )
 	{
@@ -1650,7 +1650,7 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		LineRelease( pWords );
 
 		if( g.flags.bLogTrace )
-			lprintf( WIDE("Setting text word...") );
+			lprintf( "Setting text word..." );
 		pce->data[0].singleword.pWord = StrDup( GetText( pText ) );
 		LineRelease( pText );
 		return TRUE;
@@ -1707,7 +1707,7 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 			if( default_EOL )
 				pce->next = default_EOL->next;
 			if( g.flags.bLogTrace )
-				lprintf( WIDE( "is alright - gathered to end of line ok. (or matched)" ) );
+				lprintf( "is alright - gathered to end of line ok. (or matched)" );
 		}
 	}
 	//if( !pWords )
@@ -1924,11 +1924,11 @@ int IsAnyVarEx( PCONFIG_ELEMENT pce, PTEXT *start DBG_PASS )
 {
 	if( !pce || !start )
 	{
-		//lprintf( WIDE("No pce or no start") );
+		//lprintf( "No pce or no start" );
 		return FALSE;
 	}
 	if( g.flags.bLogTrace )
-		_lprintf(DBG_RELAY)( WIDE("IsAnyVar") );
+		_lprintf(DBG_RELAY)( "IsAnyVar" );
 
 	if( pce->type == CONFIG_NOTHING && !(*start) )
 		return TRUE;
@@ -1973,11 +1973,11 @@ void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 #else
 				PCONFIG_ELEMENT pcePush = pce->prior;
 				// push arguments in reverse order...
-				//lprintf( WIDE("Calling process... ") );
+				//lprintf( "Calling process... " );
 				while( pcePush )
 				{
 					if( g.flags.bLogTrace )
-						LogElement( WIDE("pushing"), pcePush );
+						LogElement( "pushing", pcePush );
 					switch( pcePush->type )
 					{
 					case CONFIG_TEXT:
@@ -2014,7 +2014,7 @@ void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 					default:
 						break;
 					}
-					//lprintf( WIDE("Total args are now: %d"), argsize );
+					//lprintf( "Total args are now: %d", argsize );
 					pcePush = pcePush->prior;
 				}
 				if( pce->type == CONFIG_PROCEDURE_EX )
@@ -2037,7 +2037,7 @@ void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 			default:
 				// actually this probably means that there was no content to complete
 				// the match, and NULL is not a valid responce to data...
-				lprintf( WIDE("Multiple options here for what to do at end of line?") );
+				lprintf( "Multiple options here for what to do at end of line?" );
 			}
 		}
 	}
@@ -2052,11 +2052,11 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					INDEX idx;
 					PCONFIG_ELEMENT pce = NULL;
 					if( g.flags.bLogTrace )
-						lprintf( WIDE("Test word (%s) vs constant elements"), GetText( word ) );
+						lprintf( "Test word (%s) vs constant elements", GetText( word ) );
 					LIST_FORALL( Check->pConstElementList, idx, PCONFIG_ELEMENT, pce )
 					{
 						if( g.flags.bLogTrace )
-							lprintf( WIDE("Is %s == %s?"), GetText( word ), GetText( pce->data[0].pText ) );
+							lprintf( "Is %s == %s?", GetText( word ), GetText( pce->data[0].pText ) );
 						if( IsConstText( pce, &word ) )
 						{
 							Check = pce->next;
@@ -2064,7 +2064,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 						}
 					}
 					if( g.flags.bLogTrace )
-						lprintf( WIDE("Test word (%s) vs variable elements"), GetText( word ) );
+						lprintf( "Test word (%s) vs variable elements", GetText( word ) );
 					{
 						if( !pce )
 						{
@@ -2074,13 +2074,13 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 								// end of the line, match should be the process...
 								if( g.flags.bLogTrace )
 								{
-									lprintf( WIDE("Is %s a Thing"), GetText( word ) );
-									LogElement( WIDE("Thing is"), pce );
+									lprintf( "Is %s a Thing", GetText( word ) );
+									LogElement( "Thing is", pce );
 								}
 								if( IsAnyVar( pce, &word ) )
 								{
 									if( g.flags.bLogTrace )
-										lprintf( WIDE("Yes, it is any var.") );
+										lprintf( "Yes, it is any var." );
 
 									found = 1;
 									if( g.flags.bLogTrace )
@@ -2090,22 +2090,22 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 								}
 								else if( g.flags.bLogTrace )
 								{
-									lprintf( WIDE("But it's not anything I know.") );
+									lprintf( "But it's not anything I know." );
 								}
 							}
 							if( g.flags.bLogTrace )
-								lprintf( WIDE("is %s"), found?WIDE("found"):WIDE("Not found") );
+								lprintf( "is %s", found?"found":"Not found" );
 							if( !found )
 							{
 								PTEXT pLine = BuildLine( line );
 								if( g.flags.bLogTrace )
-									lprintf( WIDE("Line not matched[%s]"), GetText( pLine ) );
+									lprintf( "Line not matched[%s]", GetText( pLine ) );
 								if( pch->Unhandled )
 									pch->Unhandled( pch->psvUser, GetText( pLine ) );
 								else
 								{
 									if( g.flags.bLogUnhandled )
-										xlprintf(LOG_NOISE)( WIDE("Unknown Configuration Line(No unhandled proc): %s"), GetText( pLine ) );
+										xlprintf(LOG_NOISE)( "Unknown Configuration Line(No unhandled proc): %s", GetText( pLine ) );
 								}
 
 								break;
@@ -2115,7 +2115,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 			}
 			if( !Check )
 			{
-				lprintf( WIDE("Fell off the end the line processor, still have data...") );
+				lprintf( "Fell off the end the line processor, still have data..." );
 				{
 					PTEXT pLine = BuildLine( line );
 					if( pch->Unhandled )
@@ -2124,7 +2124,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					{
 						// I didn't want to get rid of this...
 						// but ahh well, it's noisy and it works.
-						//lprintf( WIDE("Unknown Configuration Line: %s"), GetText( pLine ) );
+						//lprintf( "Unknown Configuration Line: %s", GetText( pLine ) );
 					}
 				}
 			}
@@ -2137,7 +2137,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 			else
 			{
 				if( g.flags.bLogTrace )
-					lprintf( WIDE("line partially matched... need to recover and re-evaluate..") );
+					lprintf( "line partially matched... need to recover and re-evaluate.." );
 				{
 					PTEXT pLine = BuildLine( line );
 					if( pch->Unhandled )
@@ -2146,7 +2146,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					{
 						// I didn't want to get rid of this...
 						// but ahh well, it's noisy and it works.
-						//lprintf( WIDE("Unknown Configuration Line: %s"), GetText( pLine ) );
+						//lprintf( "Unknown Configuration Line: %s", GetText( pLine ) );
 					}
 				}
 			}
@@ -2217,54 +2217,54 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 #ifndef __ANDROID__
 	int absolute_path = IsAbsolutePath( name ); // don't prefix with anything.
 #endif
-	pch->file = sack_fopen( 0, name, WIDE("rb") );
+	pch->file = sack_fopen( 0, name, "rb" );
 #ifndef __ANDROID__
 #  ifndef UNDER_CE
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
-		tnprintf( pathname, sizeof( pathname ), WIDE("./%s"), name );
+		tnprintf( pathname, sizeof( pathname ), "./%s", name );
 #	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #	endif
-		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
+		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
-		tnprintf( pathname, sizeof( pathname ), WIDE("@/%s"), name );
+		tnprintf( pathname, sizeof( pathname ), "@/%s", name );
 #	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #	endif
-		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
+		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 #  endif
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
-		tnprintf( pathname, sizeof( pathname ), WIDE("*/%s"), name );
+		tnprintf( pathname, sizeof( pathname ), "*/%s", name );
 #	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #	endif
-		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
+		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
-		tnprintf( pathname, sizeof( pathname ), WIDE("#/%s"), name );
+		tnprintf( pathname, sizeof( pathname ), "#/%s", name );
 #	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #	endif
-		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
+		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
-		tnprintf( pathname, sizeof( pathname ), WIDE("/etc/%s"), name );
+		tnprintf( pathname, sizeof( pathname ), "/etc/%s", name );
 #  ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #  endif
-		pch->file = sack_fopen( 0, pathname, WIDE("rb") );
+		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 #endif
 	pch->psvUser = psv;
@@ -2284,7 +2284,7 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	}
 	else
 	{
-		//lprintf( WIDE("Failed to open config file: %s"), name );
+		//lprintf( "Failed to open config file: %s", name );
 		return FALSE;
 	}
 }
@@ -2452,7 +2452,7 @@ void EndConfiguration( PCONFIG_HANDLER pch )
 		}
 		else
 		{
-			//lprintf( WIDE("Config was not saved, destroying.") );
+			//lprintf( "Config was not saved, destroying." );
 			DestroyConfigTest( pch, &pch->ConfigTestRoot, FALSE );
 		}
 		// didn't recover from states list.
@@ -2486,7 +2486,7 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 
 //#if defined( FULL_TRACE ) || defined( DEBUG_SLOWNESS )
 	if( g.flags.bLogTrace )
-		lprintf( WIDE( "Burst..." ) );
+		lprintf( "Burst..." );
 //#endif
 	pLine = burst( pTemp );
 	LineRelease( pTemp );
@@ -2498,7 +2498,7 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 	while( pWord )
 	{
 		if( g.flags.bLogTrace )
-			lprintf( WIDE("Evaluating %s ... "), GetText( pWord ) );
+			lprintf( "Evaluating %s ... ", GetText( pWord ) );
 		if( flags.vartag )
 		{
 			CTEXTSTR pWordText = GetText( pWord );
@@ -2508,28 +2508,28 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 				pWordText++;
 				if( !pWordText[0] )
 				{
-					lprintf( WIDE("Format: %s"), format );
-					lprintf( WIDE("Configuration error %%v[no type]") );
+					lprintf( "Format: %s", format );
+					lprintf( "Configuration error %%v[no type]" );
 				}
 				LineRelease( pLine );
-				lprintf( WIDE( "Destroy config element %p" ), pceNew );
+				lprintf( "Destroy config element %p", pceNew );
 				DestroyConfigElement( pch, pceNew );
 				return NULL;
 			}
 			switch( pWordText[0] )
 			{
 			case 'b':
-				//lprintf( WIDE("is a boolean...") );
+				//lprintf( "is a boolean..." );
 				pceNew->type = CONFIG_BOOLEAN;
 				pceNew->flags.vector = flags.vector;
 				break;
 			case 'B':
-				//lprintf( WIDE("is a binary...") );
+				//lprintf( "is a binary..." );
 				pceNew->type = CONFIG_BINARY;
 				pceNew->flags.vector = flags.vector;
 				break;
 			case 'i':
-				//lprintf( WIDE("Is an integer... ")) ;
+				//lprintf( "Is an integer... ") ;
 				pceNew->type = CONFIG_INTEGER;
 				pceNew->flags.vector = flags.vector;
 				break;
@@ -2547,14 +2547,14 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 				break;
 			case 'w':
 				if( g.flags.bLogTrace )
-					lprintf( WIDE("Setting new as type SINGLE_WORD") );
+					lprintf( "Setting new as type SINGLE_WORD" );
 				pceNew->type = CONFIG_SINGLE_WORD;
 				pceNew->flags.vector = flags.vector;
 				flags.also_store_next_as_end = 1;
 				break;
 			case 'm':
 				if( g.flags.bLogTrace )
-					lprintf( WIDE("Setting new as type MULTI_WORD") );
+					lprintf( "Setting new as type MULTI_WORD" );
 				pceNew->type = CONFIG_MULTI_WORD;
 				pceNew->flags.vector = flags.vector;
 				flags.store_next_as_end = 1;
@@ -2583,19 +2583,19 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 				pceNew->flags.vector = flags.vector;
 				break;
 			default:
-				lprintf( WIDE("Format: %s"), format );
-				lprintf( WIDE("Unknown format character: %c"), pWordText[0] );
+				lprintf( "Format: %s", format );
+				lprintf( "Unknown format character: %c", pWordText[0] );
 				flags.ignore_new = 1;
 				break;
 			}
 			if( !flags.ignore_new )
 			{
 				if( g.flags.bLogTrace )
-					lprintf( WIDE("Not ignoring the new thing...") );
+					lprintf( "Not ignoring the new thing..." );
 				if( flags.store_as_end )
 				{
 					if( g.flags.bLogTrace )
-						lprintf( WIDE("Storing as end...") );
+						lprintf( "Storing as end..." );
 					{
 						INDEX idx;
 						struct config_element_tag *pEnd;
@@ -2636,7 +2636,7 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 					if( flags.also_store_as_end )
 					{
 						if( g.flags.bLogTrace )
-							lprintf( WIDE("Also Storing as end...") );
+							lprintf( "Also Storing as end..." );
 						AddLink( &pcePrior->data[0].singleword.pEnds, pceNew );
 						pceNew->flags.singleword_terminator = 1;
 						flags.also_store_as_end = 0;
@@ -2658,7 +2658,7 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 								// uhmm should probably update to new links.
 								if( !pceCheck->next )
 								{
-									lprintf( WIDE("Something fishy here... second instance of same type...") );
+									lprintf( "Something fishy here... second instance of same type..." );
 								}
 								pcePrior = pceCheck;
 								pct = pceCheck->next;
@@ -2669,7 +2669,7 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 						{
 //#if defined( FULL_TRACE ) || defined( DEBUG_SLOWNESS )
 							if( g.flags.bLogTrace )
-								lprintf( WIDE("Adding into a new config test") );
+								lprintf( "Adding into a new config test" );
 //#endif
 							AddLink( &pct->pVarElementList, pceNew );
 							pct = pceNew->next = NewConfigTest( pch );
@@ -2678,7 +2678,7 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 							pceNew = NewConfigTestElement( pch );
 //#if defined( FULL_TRACE ) || defined( DEBUG_SLOWNESS )
 							if( g.flags.bLogTrace )
-								lprintf( WIDE( "Added." ) );
+								lprintf( "Added." );
 //#endif
 						}
 					}
@@ -2686,7 +2686,7 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 			}
 			else
 			{
-				lprintf( WIDE("ignoreing NEW!?") );
+				lprintf( "ignoreing NEW!?" );
 			}
 
 			flags.vartag = 0;
@@ -2695,10 +2695,10 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 		}
 		else
 		{
-			if( TextIs( pWord, WIDE("%") ) )
+			if( TextIs( pWord, "%" ) )
 			{
 				if( g.flags.bLogTrace )
-					lprintf( WIDE("next thing is a format character") );
+					lprintf( "next thing is a format character" );
 				flags.vartag = 1;
 			}
 			else // is static text - literal match.
@@ -2706,12 +2706,12 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 				INDEX idx;
 				PCONFIG_ELEMENT pConst = NULL;
 				if( g.flags.bLogTrace )
-					lprintf( WIDE("Storing %s as a constant text"), GetText( pWord ) );
+					lprintf( "Storing %s as a constant text", GetText( pWord ) );
 				if( flags.store_as_end )
 				{
 					pceNew->type = CONFIG_TEXT;
 					if( g.flags.bLogTrace )
-						lprintf( WIDE("Adding %s as the terminator"), GetText( pWord ) );
+						lprintf( "Adding %s as the terminator", GetText( pWord ) );
 					pceNew->data[0].pText = SegDuplicate( pWord );
 					{
 						INDEX idx;
@@ -2758,11 +2758,11 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 					if( pConst ) // continue outer loop (while word)
 					{
 						if( g.flags.bLogTrace )
-							lprintf( WIDE("Found constant already in tree") );
+							lprintf( "Found constant already in tree" );
 						if( flags.also_store_as_end )
 						{
 							if( g.flags.bLogTrace )
-								lprintf( WIDE("Also Storing as end... %s"), GetText( pceNew->data[0].pText ) );
+								lprintf( "Also Storing as end... %s", GetText( pceNew->data[0].pText ) );
 							AddLink( &pcePrior->data[0].singleword.pEnds, pceNew );
 							pceNew->flags.singleword_terminator = 1;
 							flags.also_store_as_end = 0;
@@ -2773,11 +2773,11 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 					else
 					{
 						if( g.flags.bLogTrace )
-							lprintf( WIDE("Adding new constant to tree:%s"), GetText( pWord ) );
+							lprintf( "Adding new constant to tree:%s", GetText( pWord ) );
 						if( flags.also_store_as_end )
 						{
 							if( g.flags.bLogTrace )
-								lprintf( WIDE("Also Storing as end... %s"), GetText( pceNew->data[0].pText ) );
+								lprintf( "Also Storing as end... %s", GetText( pceNew->data[0].pText ) );
 							AddLink( &pcePrior->data[0].singleword.pEnds, pceNew );
 							pceNew->flags.singleword_terminator = 1;
 							flags.also_store_as_end = 0;
@@ -3034,7 +3034,7 @@ CONFIGSCR_PROC( void, DestroyConfigurationEvaluator )( PCONFIG_HANDLER pch )
 	}
 	if( pch->save_config_as && !pch->flags.bConfigSaveNameUsed )
 		Release( (POINTER)pch->save_config_as );
-	//lprintf( WIDE("Setting memory logging to %d"), _last_allocate_logging );
+	//lprintf( "Setting memory logging to %d", _last_allocate_logging );
 	if( g.flags.bDisableMemoryLogging )
 		if( g._disabled_allocate_logging )
 		{
@@ -3120,7 +3120,7 @@ void ExpandConfigString( TEXTSTR out, CTEXTSTR in )
 CTEXTSTR FormatColor( CDATA color )
 {
 	static TEXTCHAR color_buf[14];
-	tnprintf( color_buf, sizeof( color_buf ), WIDE("$%02X%02X%02X%02X")
+	tnprintf( color_buf, sizeof( color_buf ), "$%02X%02X%02X%02X"
 			, (int)AlphaVal( color )
 			, (int)RedVal( color )
 			, (int)GreenVal( color )

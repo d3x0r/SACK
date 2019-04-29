@@ -75,37 +75,37 @@ int main( int argc, char **argv )
 	}
 	{
 
-		Main = (MainFunction)LoadFunction( libname, WIDE( "_Main" ) );
+		Main = (MainFunction)LoadFunction( libname, "_Main" );
 		if( !Main )
-			Main = (MainFunction)LoadFunction( libname, WIDE( "Main" ) );
+			Main = (MainFunction)LoadFunction( libname, "Main" );
 		if( !Main )
-			Main = (MainFunction)LoadFunction( libname, WIDE( "Main_" ) );
+			Main = (MainFunction)LoadFunction( libname, "Main_" );
 		if( Main )
 			Main( argc-arg_offset, argv+arg_offset, MODE );
 		else
 		{
-			Begin = (BeginFunction)LoadFunction( libname, WIDE( "_Begin" ) );
+			Begin = (BeginFunction)LoadFunction( libname, "_Begin" );
 			if( !Begin )
-				Begin = (BeginFunction)LoadFunction( libname, WIDE( "Begin" ) );
+				Begin = (BeginFunction)LoadFunction( libname, "Begin" );
 			if( !Begin )
-				Begin = (BeginFunction)LoadFunction( libname, WIDE( "Begin_" ) );
+				Begin = (BeginFunction)LoadFunction( libname, "Begin_" );
 			if( Begin )
 			{
 				int xlen, ofs, arg;
 				char *x;
-				for( arg = arg_offset, xlen = 0; arg < argc; arg++, xlen += snprintf( NULL, 0, WIDE( "%s%s" ), arg?WIDE( " " ):WIDE( "" ), argv[arg] ) );
+				for( arg = arg_offset, xlen = 0; arg < argc; arg++, xlen += snprintf( NULL, 0, "%s%s", arg?" ":"", argv[arg] ) );
 				x = (char*)malloc( ++xlen );
-				for( arg = arg_offset, ofs = 0; arg < argc; arg++, ofs += snprintf( x + ofs, xlen - ofs, WIDE( "%s%s" ), arg?WIDE( " " ):WIDE( "" ), argv[arg] ) );
+				for( arg = arg_offset, ofs = 0; arg < argc; arg++, ofs += snprintf( x + ofs, xlen - ofs, "%s%s", arg?" ":"", argv[arg] ) );
 				Begin( x, MODE ); // pass console defined in Makefile
 				free( x );
 			}
 			else
 			{
-				Start = (StartFunction)LoadFunction( libname, WIDE( "_Start" ) );
+				Start = (StartFunction)LoadFunction( libname, "_Start" );
 				if( !Start )
-					Start = (StartFunction)LoadFunction( libname, WIDE( "Start" ) );
+					Start = (StartFunction)LoadFunction( libname, "Start" );
 				if( !Start )
-					Start = (StartFunction)LoadFunction( libname, WIDE( "Start_" ) );
+					Start = (StartFunction)LoadFunction( libname, "Start_" );
 				if( Start )
 					Start( );
 			}

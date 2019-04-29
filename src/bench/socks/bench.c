@@ -32,7 +32,7 @@ extern uint64_t CPROC GetCPUTicks();
 
 #define SetTick(var)   ((var) = GetCPUTicks())
 #else
-#define SetTick(var) 	asm( WIDE("rdtsc\n") : "=A"(var) );
+#define SetTick(var) 	asm( "rdtsc\n" : "=A"(var) );
 #endif
 
 void CPROC UDPClientRead( PCLIENT pc, POINTER buffer, int len, PSOCKADDR sa )
@@ -84,15 +84,15 @@ void OpenClient( void )
 	PSOCKADDR pAddr;
 	if( l.flags.bUDP )
 	{
-		pAddr = CreateSockAddress( WIDE("127.0.0.1:10005"), 10005 );
+		pAddr = CreateSockAddress( "127.0.0.1:10005", 10005 );
 		l.pClient = ConnectUDPAddr( pAddr, l.pAddr, UDPClientRead, NULL );
 	}
 	else
 	{
 		if( l.flags.bUnix )
-			pAddr = CreateRemote( WIDE("./TestSocket"), 0 );
+			pAddr = CreateRemote( "./TestSocket", 0 );
 		else
-			pAddr = CreateSockAddress( WIDE("127.0.0.1:10000"), 10000 );
+			pAddr = CreateSockAddress( "127.0.0.1:10000", 10000 );
 		l.pClient = OpenTCPClientAddrEx( pAddr, ClientReadComplete, NULL, NULL );
 		SetTCPNoDelay( l.pClient, 1 );
 	}
@@ -134,15 +134,15 @@ void OpenServer( void )
 	PSOCKADDR pAddr;
 	if( l.flags.bUDP )
 	{
-		l.pAddr = CreateSockAddress( WIDE("127.0.0.1:10001"), 10001 );
+		l.pAddr = CreateSockAddress( "127.0.0.1:10001", 10001 );
 		pServer = ServeUDPAddr( l.pAddr, UDPServerRead, NULL );
 	}
 	else
 	{
 		if( l.flags.bUnix )
-			pAddr = CreateRemote( WIDE("./TestSocket"), 0 );
+			pAddr = CreateRemote( "./TestSocket", 0 );
 		else
-			pAddr = CreateSockAddress( WIDE("127.0.0.1:10000"), 10000 );
+			pAddr = CreateSockAddress( "127.0.0.1:10000", 10000 );
 		pServer = OpenTCPListenerAddrEx( pAddr, Connected );
 		SetTCPNoDelay( pServer, 1 );
 	}
@@ -150,12 +150,12 @@ void OpenServer( void )
 
 void DumpStats( void )
 {
-	printf( WIDE("Accumulated ticks: %Ld\n"), l.accum );
-	printf( WIDE("Packets          : %Ld\n"), l.passes );
-	printf( WIDE("Bytes            : %Ld\n"), l.bytes );
-	printf( WIDE("Min ticks        : %Ld\n"), l.min );
-	printf( WIDE("Max ticks        : %Ld\n"), l.max );
-	printf( WIDE("Avg ticks        : %Ld\n"), l.passes?(l.accum / l.passes):0);
+	printf( "Accumulated ticks: %Ld\n", l.accum );
+	printf( "Packets          : %Ld\n", l.passes );
+	printf( "Bytes            : %Ld\n", l.bytes );
+	printf( "Min ticks        : %Ld\n", l.min );
+	printf( "Max ticks        : %Ld\n", l.max );
+	printf( "Avg ticks        : %Ld\n", l.passes?(l.accum / l.passes):0);
 	l.min = 0;
 	l.max = 0;
 	l.accum = 0;
@@ -177,7 +177,7 @@ void TCPTest1Byte( void )
 	// have to wait here until the responce is received.
 		while( l.waiting )
 			Relinquish();
-		//lprintf( WIDE("Got back 1 byte.") );
+		//lprintf( "Got back 1 byte." );
 	}
 	DumpStats();
 }
@@ -243,12 +243,12 @@ int main( int argc, char **argv )
 	NetworkStart();
 	if( argc < 2 )
 	{
-		printf( WIDE("Usage: %s [scUu]\n"), argv[0] );
-		printf( WIDE("  s - server\n") );
-		printf( WIDE("  c - client\n") );
-		printf( WIDE("  U - use a unix socket instead of tcp\n") );
-		printf( WIDE("  u - use a UDP socket instead of tcp\n") );
-		printf( WIDE(" s and c may be specified together to test single-process\n") );
+		printf( "Usage: %s [scUu]\n", argv[0] );
+		printf( "  s - server\n" );
+		printf( "  c - client\n" );
+		printf( "  U - use a unix socket instead of tcp\n" );
+		printf( "  u - use a UDP socket instead of tcp\n" );
+		printf( " s and c may be specified together to test single-process\n" );
 		return 0;
 	}
 	while( argc > 1 )

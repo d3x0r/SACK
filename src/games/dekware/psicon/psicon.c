@@ -33,8 +33,8 @@ static CDATA crColorTable[16];
 									 , Color( 255, 255, 0 ), Color( 255, 255, 255 ) };
 #endif
 
-//#define PutStringEx(i,x,y,f,b,s,l) { Log6( WIDE("Putting string: %ld,%ld %ld %*.*s"), x,y,l,l,l,s); PutStringFontEx( i,x,y,f,b,s,l,NULL); }
-//#define BlatColor(i,x,y,w,h,c)	  { Log5( WIDE("BlatColor: %ld,%ld %ld,%ld %08lx"), x, y, w, h, c ); BlatColor( i,x,y,w,h,c ); }
+//#define PutStringEx(i,x,y,f,b,s,l) { Log6( "Putting string: %ld,%ld %ld %*.*s", x,y,l,l,l,s); PutStringFontEx( i,x,y,f,b,s,l,NULL); }
+//#define BlatColor(i,x,y,w,h,c)	  { Log5( "BlatColor: %ld,%ld %ld,%ld %08lx", x, y, w, h, c ); BlatColor( i,x,y,w,h,c ); }
 
 #include "consolestruc.h"
 #include "interface.h"
@@ -111,7 +111,7 @@ static int bCreatingControl; // set when this is creating a control as opposed t
 
 void CPROC RenderSeparator( PCONSOLE_INFO pdp, int nStart )
 {
-	//lprintf( WIDE("Render separator %d-%d %d"), 0, pdp->nWidth, nStart );
+	//lprintf( "Render separator %d-%d %d", 0, pdp->nWidth, nStart );
 	if( nStart > 0 && nStart < pdp->nHeight )
 	{
 	// Render Command Line Separator
@@ -171,7 +171,7 @@ void CPROC KeystrokePaste( PCONSOLE_INFO pdp )
 	 else
 	 {
 #ifdef __DEKWARE_PLUGIN__
-		  DECLTEXT( msg, WIDE("Clipboard was not available") );
+		  DECLTEXT( msg, "Clipboard was not available" );
 		  EnqueLink( &pdp->common.Output, (PTEXT)&msg );
 #endif
 	 }
@@ -185,10 +185,10 @@ void CPROC KeystrokePaste( PCONSOLE_INFO pdp )
 int CPROC RenderChildWindow( PSI_CONTROL pc )
 {
 	PCONSOLE_INFO pdp = (PCONSOLE_INFO)GetControlUserData(pc);
-	//lprintf( WIDE("Rendering window.") );
+	//lprintf( "Rendering window." );
 	if( !pdp )
 	{
-		Log( WIDE("How could we have gotten here without a pdp??") );
+		Log( "How could we have gotten here without a pdp??" );
 		return 0;
 	}
 	pdp->psicon.image = GetFrameSurface( pc );
@@ -225,7 +225,7 @@ int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 		CTEXTSTR character = GetKeyText( key );
 		DECLTEXTSZ( stroke, 17 ); // single character ...
 		int bOutput = FALSE;
-		//Log1( WIDE("Key: %08x"), key );
+		//Log1( "Key: %08x", key );
 		int mod = KEYMOD_NORMAL;
 		if( !pdp ) // not a valid window handle/device path
 			return 0;
@@ -259,7 +259,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int32_t _x, _y;
 	static uint32_t _b;
-	//Log3( WIDE("Mouse thing...%ld,%ld %08lx"), x, y, b );
+	//Log3( "Mouse thing...%ld,%ld %08lx", x, y, b );
 	{
 		int xPos, yPos, row, col;
 		PCONSOLE_INFO pdp;
@@ -364,7 +364,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 							}
 #endif
 						}
-						Log( WIDE("Ending mark.") );
+						Log( "Ending mark." );
 						pdp->flags.bMarking = 0;
 						pdp->flags.bUpdatingEnd = 0;
 					}
@@ -373,7 +373,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 			}
 			if( !(b & MK_LBUTTON) && (_b & MK_LBUTTON) )
 			{
-				Log( WIDE("Ending mark(2).") );
+				Log( "Ending mark(2)." );
 				pdp->flags.bMarking = 0;
 				pdp->flags.bUpdatingEnd = 0;
 			}
@@ -411,7 +411,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 				pdp->flags.bDirect ^= 1;
 				/*
 				 {
-				 SetRegistryInt( WIDE("Dekware\\Wincon\\Direct")
+				 SetRegistryInt( "Dekware\\Wincon\\Direct"
 				 , GetText( GetName( pdp->common.Owner->Current ) )
 				 , pdp->flags.bDirect );
 														}
@@ -445,7 +445,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 				{
 					pdp->psicon.hFont = font;
 					//GetDefaultFont();
-					GetStringSizeFont( WIDE(" "), &pdp->nFontWidth, &pdp->nFontHeight, pdp->psicon.hFont );
+					GetStringSizeFont( " ", &pdp->nFontWidth, &pdp->nFontHeight, pdp->psicon.hFont );
 					ChildCalculate( pdp );
 				}
 			}
@@ -456,7 +456,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 					if( PickColor( &color, pdp->psicon.crCommand, pdp->psicon.frame ) )
 						pdp->psicon.crCommand = color;
 					else
-						Log2( WIDE("Colors %08x %08x"), color, pdp->psicon.crCommand );
+						Log2( "Colors %08x %08x", color, pdp->psicon.crCommand );
 				}
 			break;
 		  case MNU_COMMAND_BACK:
@@ -465,7 +465,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 					if( PickColor( &color, pdp->psicon.crCommandBackground, pdp->psicon.frame ) )
 						pdp->psicon.crCommandBackground = color;
 					else
-						Log2( WIDE("Colors %08x %08x"), color, pdp->psicon.crCommandBackground );
+						Log2( "Colors %08x %08x", color, pdp->psicon.crCommandBackground );
 				}
 			break;
 		}
@@ -511,24 +511,24 @@ int RegisterWindows( void )
 {
 	if( WindowRegistered )
 		  return TRUE;
-	 //Log( WIDE("Setting up PSI render interface...") );
+	 //Log( "Setting up PSI render interface..." );
 //	 SetControlInterface( RenderInterface = GetDisplayInterface() );
 //	 if( !RenderInterface )
 //		 return 0;
-	//Log( WIDE("Setting up PSI image interface...") );
+	//Log( "Setting up PSI image interface..." );
 //	SetControlImageInterface( ImageInterface = GetImageInterface() );
 //	if( !ImageInterface )
 //		return 0;
-	//Log( WIDE("Done with psi interfaces..") );
+	//Log( "Done with psi interfaces.." );
 	 hChildMenu = CreatePopup();
-	 AppendPopupItem( hChildMenu, MF_STRING, MNU_FONT, WIDE("Set Font") );
+	 AppendPopupItem( hChildMenu, MF_STRING, MNU_FONT, "Set Font" );
 	 {
 		 hHistoryMenu = CreatePopup();
-		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, WIDE("25%") );
-		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, WIDE("50%") );
-		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, WIDE("75%") );
-		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, WIDE("100%") );
-		 AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hHistoryMenu, WIDE("History Display Size") );
+		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE25, "25%" );
+		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE50, "50%" );
+		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE75, "75%" );
+		 AppendPopupItem( hHistoryMenu, MF_STRING, MNU_HISTORYSIZE100, "100%" );
+		 AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hHistoryMenu, "History Display Size" );
 	 }
 	{
 		PMENU hColorMenu, hColorMenu2;
@@ -549,7 +549,7 @@ int RegisterWindows( void )
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_LTMAG, DrawMenuItem );
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_YELLOW, DrawMenuItem );
 		AppendPopupItem( hColorMenu, MF_OWNERDRAW, MNU_WHITE, DrawMenuItem );
-		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu, WIDE("Text Color") );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu, "Text Color" );
 		hColorMenu2 = CreatePopup();
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLACK, DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKBLUE, DrawMenuItem );
@@ -567,12 +567,12 @@ int RegisterWindows( void )
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKLTMAG, DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKYELLOW, DrawMenuItem );
 		AppendPopupItem( hColorMenu2, MF_OWNERDRAW, MNU_BKWHITE, DrawMenuItem );
-		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu2, WIDE("Background Color") );
+		AppendPopupItem( hChildMenu, MF_STRING|MF_POPUP, (uintptr_t)hColorMenu2, "Background Color" );
 	}
-	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_COLOR, WIDE("Command Color") );
-	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_BACK, WIDE("Command Background Color") );
-	 AppendPopupItem( hChildMenu, MF_STRING, MNU_DIRECT, WIDE("Direct Mode") );
-	Log( WIDE("Menus created...") );
+	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_COLOR, "Command Color" );
+	AppendPopupItem( hChildMenu, MF_STRING, MNU_COMMAND_BACK, "Command Background Color" );
+	 AppendPopupItem( hChildMenu, MF_STRING, MNU_DIRECT, "Direct Mode" );
+	Log( "Menus created..." );
 	cPenNormal = GetBaseColor( NORMAL );
 	cPenHighlight = GetBaseColor( HIGHLIGHT );
 	cPenShadow = GetBaseColor( SHADE );
@@ -642,7 +642,7 @@ static void CPROC FillLineLeader( PCONSOLE_INFO pdp, RECT *r, CDATA c )
 
 #include <psi.h>
 
-static int OnCommonFocus( WIDE("Dekware PSI Console") )( PSI_CONTROL pc, LOGICAL bFocused )
+static int OnCommonFocus( "Dekware PSI Console" )( PSI_CONTROL pc, LOGICAL bFocused )
 {
 #ifdef __ANDROID__
 	if( bFocused )
@@ -653,7 +653,7 @@ static int OnCommonFocus( WIDE("Dekware PSI Console") )( PSI_CONTROL pc, LOGICAL
 	return 1;
 }
 
-CONTROL_REGISTRATION ConsoleClass = { WIDE("Dekware PSI Console"), { { -1, -1 }, 0, BORDER_NORMAL|BORDER_RESIZABLE|BORDER_FIXED }
+CONTROL_REGISTRATION ConsoleClass = { "Dekware PSI Console", { { -1, -1 }, 0, BORDER_NORMAL|BORDER_RESIZABLE|BORDER_FIXED }
 												, NULL
 												, NULL
 												, RenderChildWindow
@@ -667,8 +667,8 @@ PRELOAD(RegisterConsole)
 	l.pdi = GetDisplayInterface();
 	l.pii = GetImageInterface();
 	DoRegisterControl( &ConsoleClass );
-	SimpleRegisterMethod( WIDE("psi/control/") WIDE("Dekware PSI Console") WIDE("/rtti/extra init")
-							  , InitDekwareConsole, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
+	SimpleRegisterMethod( "psi/control/" "Dekware PSI Console" "/rtti/extra init"
+							  , InitDekwareConsole, "int", "extra init", "(PSI_CONTROL)" );
 
 	crColorTable[0] = Color( 0,0,1 ); 
 	crColorTable[1] =Color( 0, 0, 128 ); 
@@ -696,7 +696,7 @@ PRELOAD(RegisterConsole)
 static void CPROC DrawString( PCONSOLE_INFO pdp, int x, int y, RECT *r, TEXTCHAR *s, size_t nShown, size_t nShow )
 {
 	uint32_t w, h;
-	//lprintf( WIDE("Adding string out : %p %s %d %d at %d,%d #%08lX #%08lX"), pdp, s, nShown, nShow,x,y,r->left,r->top
+	//lprintf( "Adding string out : %p %s %d %d at %d,%d #%08lX #%08lX", pdp, s, nShown, nShow,x,y,r->left,r->top
 	//		 , pdp->psicon.crText, pdp->psicon.crBack );
 	GetStringRenderSizeFontEx( s, nShow, &w, &h, NULL, pdp->psicon.hFont );
 	r->right = r->left + w;
@@ -733,7 +733,7 @@ static void CPROC SetCurrentColor( PCONSOLE_INFO pdp, enum current_color_type ty
 		}
 		break;
 	}
-	//lprintf( WIDE("Set Color :%p %d #%08lX #%08lX"), pdp, type
+	//lprintf( "Set Color :%p %d #%08lX #%08lX", pdp, type
 	//		 , pdp->psicon.crText, pdp->psicon.crBack );
 }
 
@@ -814,7 +814,7 @@ static void CPROC Update( PCONSOLE_INFO pmdp, RECT *upd )
 {
 	// passed region is the region which was updated by drawing
 // code.
-	//lprintf( WIDE("update some controls... %d,%d - %d,%d"), upd->left, upd->right, upd->top, upd->bottom );
+	//lprintf( "update some controls... %d,%d - %d,%d", upd->left, upd->right, upd->top, upd->bottom );
 	upd->right -= upd->left;
 	upd->bottom -= upd->top;
 	 UpdateSomeControls( pmdp->psicon.frame, (IMAGE_RECTANGLE*)upd );
@@ -829,25 +829,25 @@ int CPROC InitDekwareConsole( PSI_CONTROL pc )
 {
 	if( !RegisterWindows() )
 	{
-		//Log( WIDE("Register windows failed...") );
+		//Log( "Register windows failed..." );
 		return 0; // cancel load, unload library...
 	}
 	if( !bCreatingControl )
 	{
 #ifdef __DEKWARE_PLUGIN__
-		PTEXT name = SegCreateFromText( WIDE("Auto Console") );
+		PTEXT name = SegCreateFromText( "Auto Console" );
 		PENTITY pe = CreateEntityIn( NULL, name );
 		PSENTIENT ps = CreateAwareness( pe );
 		PCONSOLE_INFO pdp = (PCONSOLE_INFO)CreateDataPath( &ps->Command, CONSOLE_INFO );
-		pdp->common.pName = SegCreateFromText( WIDE("Auto Console") );
+		pdp->common.pName = SegCreateFromText( "Auto Console" );
 
 		pdp->common.Owner = ps;
-		//Log( WIDE("Create frame!!") );
+		//Log( "Create frame!!" );
 		pdp->psicon.frame = pc;
 		SetControlUserData( pc, (uintptr_t)pdp );
 
 		pdp->psicon.image = GetFrameSurface( pdp->psicon.frame );
-		GetStringSize( WIDE(" "), &pdp->nFontWidth, &pdp->nFontHeight );
+		GetStringSize( " ", &pdp->nFontWidth, &pdp->nFontHeight );
 #if 0
 		AddVolatileVariable( pe, &vve_rows, (uintptr_t)pdp );
 		AddVolatileVariable( pe, &vve_cols, (uintptr_t)pdp );
@@ -917,13 +917,13 @@ int CPROC InitDekwareConsole( PSI_CONTROL pc )
 	{
 		PTEXT data;
 		PVARTEXT first = VarTextCreate();
-		vtprintf( first, WIDE("/script psicon.startup") );
+		vtprintf( first, "/script psicon.startup" );
 		data = VarTextGet( first );
 		VarTextDestroy( &first );
 
-		//EnqueLink( &PLAYER->Command->Input, burst( SegCreateFromText( WIDE("/debug") ) ) );
+		//EnqueLink( &PLAYER->Command->Input, burst( SegCreateFromText( "/debug" ) ) );
 		//LineRelease( data );
-		//Log1( WIDE("Running : %s"), GetText( data) );
+		//Log1( "Running : %s", GetText( data) );
 				EnqueLink( &ps->Command->Input, burst( data ) );
 		LineRelease( data );
 		UnlockAwareness( ps);
@@ -934,29 +934,29 @@ int CPROC InitDekwareConsole( PSI_CONTROL pc )
 	return 1;
 }
 
-DECLTEXT( PSIConName, WIDE("psicon") );
+DECLTEXT( PSIConName, "psicon" );
 
 //----------------------------------------------------------------------------
 
-static PTEXT DeviceVolatileVariableGet( WIDE("psicon"), WIDE("rows"), WIDE("console row count") )(PENTITY pe,PTEXT *ppLastValue)
+static PTEXT DeviceVolatileVariableGet( "psicon", "rows", "console row count" )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&PSIConName );
 	return GetRows( (uintptr_t)pdp, pe, ppLastValue );
 }
-static PTEXT DeviceVolatileVariableGet( WIDE("psicon"), WIDE("cols"), WIDE("console col count") )(PENTITY pe,PTEXT *ppLastValue)
+static PTEXT DeviceVolatileVariableGet( "psicon", "cols", "console col count" )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&PSIConName );
 	return GetCols( (uintptr_t)pdp, pe, ppLastValue );
 }
-static PTEXT DeviceVolatileVariableGet( WIDE("psicon"), WIDE("cursor_x"), WIDE("console cursor x(col) position") )(PENTITY pe,PTEXT *ppLastValue)
+static PTEXT DeviceVolatileVariableGet( "psicon", "cursor_x", "console cursor x(col) position" )(PENTITY pe,PTEXT *ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&PSIConName );
 	return GetCursorX( (uintptr_t)pdp, pe, ppLastValue );
 }
-static PTEXT DeviceVolatileVariableGet( WIDE("psicon"), WIDE("cursor_y"), WIDE("console cursor y(row) position") )(PENTITY pe,PTEXT*ppLastValue)
+static PTEXT DeviceVolatileVariableGet( "psicon", "cursor_y", "console cursor y(row) position" )(PENTITY pe,PTEXT*ppLastValue)
 {
 	PSENTIENT ps = pe->pControlledBy;
 	PDATAPATH pdp = FindOpenDevice( ps, (PTEXT)&PSIConName );
@@ -966,25 +966,25 @@ static PTEXT DeviceVolatileVariableGet( WIDE("psicon"), WIDE("cursor_y"), WIDE("
 //----------------------------------------------------------------------------
 
 #ifdef __DEKWARE_PLUGIN__
-static PDATAPATH OnInitDevice( WIDE("psicon"), WIDE("Windows MDI interactive interface") )( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
+static PDATAPATH OnInitDevice( "psicon", "Windows MDI interactive interface" )( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 //PDATAPATH CPROC CreateConsole( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
 	PCONSOLE_INFO pdp;
-	//Log( WIDE("Create console!") );
+	//Log( "Create console!" );
 	// get result from send message.... this will be useful data
 	if( !RegisterWindows() )
 	{
-		//Log( WIDE("Register windows failed...") );
+		//Log( "Register windows failed..." );
 		return NULL; // cancel load, unload library...
 	}
-	//Log( WIDE("--------------------------------------------") );
+	//Log( "--------------------------------------------" );
 	pdp = (PCONSOLE_INFO)CreateDataPath( pChannel, CONSOLE_INFO );
 	pdp->common.Owner = ps;
-	//Log( WIDE("Create frame!!") );
+	//Log( "Create frame!!" );
 	pdp->psicon.renderer = OpenDisplaySizedAt( 0, -1, -1, -1, -1 );
 	if( !pdp->psicon.renderer )
 	{
-		Log( WIDE("FAILED WINDOW!") );
+		Log( "FAILED WINDOW!" );
 		DestroyDataPath( (PDATAPATH)pdp );
 		return NULL;
 	}
@@ -1003,7 +1003,7 @@ static PDATAPATH OnInitDevice( WIDE("psicon"), WIDE("Windows MDI interactive int
 	}
 	if( !pdp->psicon.frame )
 	{
-		Log( WIDE("FAILED FRAME!") );
+		Log( "FAILED FRAME!" );
 		DestroyDataPath((PDATAPATH)pdp);
 		return NULL;
 	}
@@ -1015,11 +1015,11 @@ static PDATAPATH OnInitDevice( WIDE("psicon"), WIDE("Windows MDI interactive int
 	pdp->psicon.image = GetFrameSurface( pdp->psicon.frame );
 	if( !pdp->psicon.image )
 	{
-		Log( WIDE("Failed to get frame image") );
+		Log( "Failed to get frame image" );
 		DestroyDataPath( (PDATAPATH)pdp );
 		return NULL;
 	}
-	GetStringSize( WIDE(" "), &pdp->nFontWidth, &pdp->nFontHeight );
+	GetStringSize( " ", &pdp->nFontWidth, &pdp->nFontHeight );
 
 	if( pChannel == &ps->Command )
 	{

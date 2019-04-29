@@ -97,7 +97,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 			tracker->Init( tracker );
 		if( !tracker->VertexProgram )
 		{
-			lprintf( WIDE("Shader initialization failed to produce a program; marking shader broken so we don't retry") );
+			lprintf( "Shader initialization failed to produce a program; marking shader broken so we don't retry" );
 			tracker->flags.failed = 1;
 			return;
 		}
@@ -165,7 +165,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	frag_length = length;
 
 	// example of defines
-	//D3D_SHADER_MACRO Shader_Macros[1] = { WIDE("zero"), WIDE("0")  };
+	//D3D_SHADER_MACRO Shader_Macros[1] = { "zero", "0"  };
 	// required if shader uses #include
 	// #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 	ID3DBlob *vert_blob;
@@ -190,7 +190,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 								 );
 		if( result )
 		{
-			lprintf( WIDE("Vertex Shader Error with mode %S : %S"), vs_trylist[n], errors->GetBufferPointer() );
+			lprintf( "Vertex Shader Error with mode %S : %S", vs_trylist[n], errors->GetBufferPointer() );
 		}
 		else
 		{
@@ -200,7 +200,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 													  , &tracker->VertexProgram);
 			if( result )
 			{
-				lprintf( WIDE("failed to create vertex shader from compled shader blob mode %S:%08x"), vs_trylist[n], result );
+				lprintf( "failed to create vertex shader from compled shader blob mode %S:%08x", vs_trylist[n], result );
 				vert_blob->Release();
 				vert_blob = NULL;
 			}
@@ -232,13 +232,13 @@ int CompileShaderEx( PImageShaderTracker tracker
 												  , &tracker->FragProgram);
 			if( result )
 			{
-				lprintf( WIDE("failed to create fragment shader from compled shader blob mode %S : %08x"), ps_trylist[n], result );
+				lprintf( "failed to create fragment shader from compled shader blob mode %S : %08x", ps_trylist[n], result );
 				frag_blob->Release();
 				frag_blob = NULL;
 			}
 		}
 		else
-			lprintf( WIDE("Fragment Shader error mode %S : %S"), ps_trylist[n], errors->GetBufferPointer() ); 
+			lprintf( "Fragment Shader error mode %S : %S", ps_trylist[n], errors->GetBufferPointer() ); 
 	
 	}
 	if( !tracker->FragProgram )
@@ -261,7 +261,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 		result = g_d3d_device->CreateInputLayout(ied, 2, vert_blob->GetBufferPointer(), vert_blob->GetBufferSize(), &tracker->input_layout);
 		if( result )
 		{
-			lprintf( WIDE( "layout failed to match vertex shader..." ) );
+			lprintf( "layout failed to match vertex shader..." );
 		}
 
 	}
@@ -294,10 +294,10 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 	if( tracker )
 	{
 		//glUseProgram(tracker->glProgramId);
-		//CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
+		//CheckErrf( "SetModelView for (%s)", tracker->name );
 
 		//glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, matrix );
-		//CheckErrf( WIDE("SetModelView for (%s)"), tracker->name );
+		//CheckErrf( "SetModelView for (%s)", tracker->name );
 
 		tracker->flags.set_modelview = 1;
 	}

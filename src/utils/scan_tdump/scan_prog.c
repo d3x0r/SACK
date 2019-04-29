@@ -27,7 +27,7 @@ void CPROC ProcessAFile( CTEXTSTR progname, uintptr_t psv, CTEXTSTR name, int fl
 		p++;
 	else
 		p = name;
-	sprintf( cmd, WIDE("cmd /c%s"), progname );
+	sprintf( cmd, "cmd /c%s", progname );
 	args[0] = cmd;
 	args[1] = p;
 	args[2] = NULL;
@@ -44,12 +44,12 @@ int main( int argc, char **argv )
 {
 	void *info = NULL;
 
-	out = fopen( WIDE("xx"), WIDE("wb") );
+	out = fopen( "xx", "wb" );
    ProcessAFile( argv[1], 0, argv[2], 0 );
-	//while( ScanFiles( WIDE("."), WIDE("*.dll\t*.exe"), &info, ProcessAFile, 0, 0 ) );
+	//while( ScanFiles( ".", "*.dll\t*.exe", &info, ProcessAFile, 0, 0 ) );
    fclose( out );
-	//system( WIDE("scan_tdump <xx >yy") );
-	//system( WIDE("edit yy") );
+	//system( "scan_tdump <xx >yy" );
+	//system( "edit yy" );
 }
 
 

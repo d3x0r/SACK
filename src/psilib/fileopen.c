@@ -37,7 +37,7 @@ void CPROC AddFile( uintptr_t user, CTEXTSTR pathname, enum ScanFileProcessFlags
    if( flags & SFF_DRIVE )
    {
       TEXTCHAR buffer[10];
-      tnprintf( buffer, sizeof( buffer ), WIDE("-%c-"), pathname[0] );
+      tnprintf( buffer, sizeof( buffer ), "-%c-", pathname[0] );
       newitem = AddListItem( pLoading, buffer );
       SetItemData( newitem, (uintptr_t)flags );
    }
@@ -51,7 +51,7 @@ void CPROC AddFile( uintptr_t user, CTEXTSTR pathname, enum ScanFileProcessFlags
 		if( flags & SFF_DIRECTORY )
 		{
 			TEXTCHAR buffer[256];
-			tnprintf( buffer, sizeof( buffer ), WIDE("%s/"), name );
+			tnprintf( buffer, sizeof( buffer ), "%s/", name );
 			newitem = AddListItem( pLoading, buffer );
 			SetItemData( newitem, (uintptr_t)flags );
 
@@ -78,7 +78,7 @@ void LoadList( PSI_CONTROL list, FILEOPENDATA *pfod )
 	}
 	else
 	{
-      AddFile( (uintptr_t)pfod, WIDE(".."), SFF_DIRECTORY );
+      AddFile( (uintptr_t)pfod, "..", SFF_DIRECTORY );
 		while( ScanFiles( pfod->basepath
 								, pfod->currentmask
 								, &stuff, AddFile, SFF_DIRECTORIES, (uintptr_t)pfod ) );
@@ -107,7 +107,7 @@ void CPROC FileDouble( uintptr_t psv, PSI_CONTROL pc, PLISTITEM hli )
          FILEOPENDATA *pfod = (FILEOPENDATA *)psv;
          GetListItemText( hli, name, 256 );
          ResetList( pc );
-         if( strcmp( name, WIDE("../") ) == 0 )
+         if( strcmp( name, "../" ) == 0 )
          {
             TEXTSTR trim = (TEXTSTR)pathrchr( pfod->basepath );
             if( trim )
@@ -128,14 +128,14 @@ void CPROC FileDouble( uintptr_t psv, PSI_CONTROL pc, PLISTITEM hli )
          else
 			{
             name[strlen(name)-1] = 0;
-            tnprintf( pfod->basepath, sizeof(pfod->basepath), WIDE("%s/%s"), pfod->basepath, name );
+            tnprintf( pfod->basepath, sizeof(pfod->basepath), "%s/%s", pfod->basepath, name );
          }
          LoadList( pc, pfod );
       }
       else
 		{
 			FILEOPENDATA *pfod = (FILEOPENDATA *)psv;
-			//printf( WIDE("setting done?") );
+			//printf( "setting done?" );
 			pfod->okay = TRUE;
       }
    }
@@ -161,9 +161,9 @@ int PSI_PickFile( PSI_CONTROL parent, CTEXTSTR basepath, CTEXTSTR types, TEXTSTR
 	FILEOPENDATA fod;
 
 	GetMousePosition( &x, &y );
-	frame = CreateFrame( WIDE("Open File"), x, y, 320, 200, BORDER_NORMAL, 0 );
+	frame = CreateFrame( "Open File", x, y, 320, 200, BORDER_NORMAL, 0 );
 	//char path[280];
-	if( !basepath || (strcmp( basepath, WIDE(".") )== 0) )
+	if( !basepath || (strcmp( basepath, "." )== 0) )
 		GetCurrentPath(fod.basepath, sizeof( fod.basepath ) );
 	else
 		StrCpyEx( fod.basepath, basepath, sizeof( fod.basepath ) / sizeof(TEXTCHAR) );
@@ -176,7 +176,7 @@ int PSI_PickFile( PSI_CONTROL parent, CTEXTSTR basepath, CTEXTSTR types, TEXTSTR
 
 	SetDoubleClickHandler( pcList, FileDouble, (uintptr_t)&fod );
 	SetSelChangeHandler( pcList, FileSingle, (uintptr_t)&fod );
-	StrCpyEx( fod.currentmask, WIDE("*"), sizeof( fod.currentmask ) / sizeof(TEXTCHAR) );
+	StrCpyEx( fod.currentmask, "*", sizeof( fod.currentmask ) / sizeof(TEXTCHAR) );
 	LoadList( pcList, &fod );
 
 	AddCommonButtons( frame, &fod.done, &fod.okay );
@@ -191,14 +191,14 @@ ReLoop:
 		if( !(flags & (SFF_DRIVE|SFF_DIRECTORY) ) )
 		{
 			GetControlText( GetControl( frame, TXT_PATHNAME ), fod.currentname, 280 );
-			tnprintf( result, result_len, WIDE("%s/%s"), fod.basepath, fod.currentname );
+			tnprintf( result, result_len, "%s/%s", fod.basepath, fod.currentname );
 			DestroyCommon( &frame );
 			return 1;
 		}
 		else
 		{
 			// show - invalid selection - no filename - is a directory...
-			//printf( WIDE("Clearing done?") );
+			//printf( "Clearing done?" );
 			fod.okay = 0;
 			FileDouble( (uintptr_t)&fod, pcList, hli );
 			goto ReLoop;

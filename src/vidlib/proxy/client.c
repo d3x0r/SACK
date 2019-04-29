@@ -168,7 +168,7 @@ static LOGICAL PrestoreMessage( struct common_message *msg, size_t size )
 // server...
 void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 {
-	lprintf( WIDE("handle message %d on %d"), msg->message_id, msg->data.unmake_image.server_image_id  );
+	lprintf( "handle message %d on %d", msg->message_id, msg->data.unmake_image.server_image_id  );
 	if( !pc || !PrestoreMessage( msg, size ) )
 	switch( msg->message_id )
 	{
@@ -319,7 +319,7 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 				UnmakeImageFile( image->image );
 			if( image->in_buflen )
 			{
-				lprintf( WIDE( "already had some data collected... %d %d"), image->in_buflen, image->in_buf_avail );
+				lprintf( "already had some data collected... %d %d", image->in_buflen, image->in_buf_avail );
 				if( ( image->in_buflen + size ) > image->in_buf_avail )
 				{
 					uint8_t *newbuf = NewArray( uint8_t, image->in_buflen + size );
@@ -331,7 +331,7 @@ void HandleMessage( PCLIENT pc, struct common_message*msg, size_t size )
 				}
 				else
 				{
-					lprintf( WIDE( "buffer is already big enough to hold this...") );
+					lprintf( "buffer is already big enough to hold this..." );
 				}
 				image->in_buflen += size - ( sizeof( struct image_data_data ) );
 				image->image = DecodeMemoryToImage( image->in_buffer, image->in_buflen );
@@ -516,9 +516,9 @@ static void CPROC SocketClose( PCLIENT pc )
 SaneWinMain( argc, argv )
 {
 #ifdef UNICODE
-	TEXTCHAR *addr = argv[1]?argv[1]:WIDE("127.0.0.1");
+	TEXTCHAR *addr = argv[1]?argv[1]:"127.0.0.1";
 #else
-   char *addr = argv[1]?argv[1]:WIDE("127.0.0.1");
+   char *addr = argv[1]?argv[1]:"127.0.0.1";
 #endif
 	NetworkStart();
 	l.event_thread = ThreadTo( EventThread, 0 );

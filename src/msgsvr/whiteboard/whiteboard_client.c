@@ -58,7 +58,7 @@ static int CPROC HandleBoardEvents( uint32_t MsgID, uint32_t *params, uint32_t p
 	case WB_ADD_SEGMENT:
       break;
 	default:
-		lprintf( WIDE("Received unknown event from whiteboard %ld ... params follow"), MsgID );
+		lprintf( "Received unknown event from whiteboard %ld ... params follow", MsgID );
 		LogBinary( (POINTER)params, paramlen );
       break;
 	}
@@ -68,7 +68,7 @@ static int CPROC HandleBoardEvents( uint32_t MsgID, uint32_t *params, uint32_t p
 static int Init( void )
 {
 	if( !l.ServerBaseMsgID )
-		l.ServerBaseMsgID = LoadService( WIDE("Whiteboard Service"), HandleBoardEvents );
+		l.ServerBaseMsgID = LoadService( "Whiteboard Service", HandleBoardEvents );
 	if( !l.ServerBaseMsgID )
 		return FALSE;
    l.pii = GetImageInterface();
@@ -254,7 +254,7 @@ static int OnCreateCommon( "Whiteboard Client Surface" )( PSI_CONTROL pc )
 	{
 		// need a way to specify this....
       // maybe display a user choice box?
-      pcw->BoardID = OpenBoard( WIDE("A Board") );
+      pcw->BoardID = OpenBoard( "A Board" );
 		if( pcw->BoardID == INVALID_INDEX )
          return FALSE;
 		return TRUE;

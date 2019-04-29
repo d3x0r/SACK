@@ -112,7 +112,7 @@ SaneWinMain( argc, argv )
 	FILE *output;
 	if( argc > 2 )
 	{
-		input = sack_fopen( 0, argv[2], WIDE("rb+") );
+		input = sack_fopen( 0, argv[2], "rb+" );
 		if( argc > 3 )
 			output = sack_fopen( 0, argv[3], "wb" );
 		else
@@ -151,18 +151,18 @@ SaneWinMain( argc, argv )
 				sack_fclose( output );
 		}
 		else
-			printf( WIDE( "Failed to open %s" ), argv[2] );
+			printf( "Failed to open %s", argv[2] );
 	}
 	else
 	{
-		printf( WIDE("Usage: %s [u/a] [filename]\n"), argv[0] );
-		printf( WIDE( "  u or U read utf16 write utf8\n" ) );
-		printf( WIDE( "  a read utf8 write utf16\n" ) );
-		printf( WIDE( "  A read utf8 write utf8\n" ) );
-		printf( WIDE("  o read ascii, output overlong utf8\n") );
-		printf( WIDE("  O read unicode, output overlong utf8\n") );
-		printf( WIDE("  ascii translates from unicode to ascii\n") );
-		printf( WIDE("  file will be written back in-place\n") );
+		printf( "Usage: %s [u/a] [filename]\n", argv[0] );
+		printf( "  u or U read utf16 write utf8\n" );
+		printf( "  a read utf8 write utf16\n" );
+		printf( "  A read utf8 write utf8\n" );
+		printf( "  o read ascii, output overlong utf8\n" );
+		printf( "  O read unicode, output overlong utf8\n" );
+		printf( "  ascii translates from unicode to ascii\n" );
+		printf( "  file will be written back in-place\n" );
 	}
 	return 0;
 }

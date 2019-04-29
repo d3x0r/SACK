@@ -6,7 +6,7 @@
 int main( void )
 {
    int okay = 0, done = 0;
-	PCOMMON frame = CreateFrame( WIDE("Test Keypads..."), 0, 0, 1024, 768, BORDER_NORMAL, NULL );
+	PCOMMON frame = CreateFrame( "Test Keypads...", 0, 0, 1024, 768, BORDER_NORMAL, NULL );
    MakeKeypad( frame, 10, 10, 90, 120, 0, 0 );
    MakeKeypad( frame, 115, 10, 90, 120, 0, KEYPAD_FLAG_DISPLAY );
    MakeKeypad( frame, 215, 10, 90, 120, 0, KEYPAD_FLAG_ENTRY );

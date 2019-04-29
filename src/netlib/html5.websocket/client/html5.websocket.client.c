@@ -7,7 +7,7 @@
 
 #include "local.h"
 
-static const TEXTCHAR *wscbase64 = WIDE( "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=" );
+static const TEXTCHAR *wscbase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 static void wscencodeblock( unsigned char in[3], TEXTCHAR out[4], int len )
 {
@@ -21,22 +21,22 @@ static void wscencodeblock( unsigned char in[3], TEXTCHAR out[4], int len )
 static void SendRequestHeader( WebSocketClient websock )
 {
 	PVARTEXT pvtHeader = VarTextCreate();
-	vtprintf( pvtHeader, WIDE("GET /%s%s%s%s%s HTTP/1.1\r\n")
-			  , websock->url->resource_path?websock->url->resource_path:WIDE("")
-			  , websock->url->resource_path?WIDE("/"):WIDE("")
-			  , websock->url->resource_file?websock->url->resource_file:WIDE("")
-			  , websock->url->resource_extension?WIDE("."):WIDE("")
-			  , websock->url->resource_extension?websock->url->resource_extension:WIDE("")
+	vtprintf( pvtHeader, "GET /%s%s%s%s%s HTTP/1.1\r\n"
+			  , websock->url->resource_path?websock->url->resource_path:""
+			  , websock->url->resource_path?"/":""
+			  , websock->url->resource_file?websock->url->resource_file:""
+			  , websock->url->resource_extension?".":""
+			  , websock->url->resource_extension?websock->url->resource_extension:""
 
 			  );
-	vtprintf( pvtHeader, WIDE("Host: %s:%d\r\n")
+	vtprintf( pvtHeader, "Host: %s:%d\r\n"
 			  , websock->url->host
 			  , websock->url->port?websock->url->port:websock->url->default_port );
-	vtprintf( pvtHeader, WIDE("Upgrade: websocket\r\n"));
-	vtprintf( pvtHeader, WIDE("Connection: Upgrade\r\n"));
+	vtprintf( pvtHeader, "Upgrade: websocket\r\n");
+	vtprintf( pvtHeader, "Connection: Upgrade\r\n");
 	if( websock->protocols )
-		vtprintf( pvtHeader, WIDE("Sec-WebSocket-Protocol: %s\r\n"), websock->protocols );
-	vtprintf( pvtHeader, WIDE( "Sec-WebSocket-Key:" ) );
+		vtprintf( pvtHeader, "Sec-WebSocket-Protocol: %s\r\n", websock->protocols );
+	vtprintf( pvtHeader, "Sec-WebSocket-Key:" );
 	{
 		uint8_t buf[16];
 		TEXTCHAR output[32];
@@ -54,11 +54,11 @@ static void SendRequestHeader( WebSocketClient websock )
 		vtprintf( pvtHeader, "%s\r\n", output );
 	}
 	//x3JJHMbDL1EzLkh9GBhXDw == \r\n") );
-	vtprintf( pvtHeader, WIDE("Sec-WebSocket-Version: 13\r\n") );
+	vtprintf( pvtHeader, "Sec-WebSocket-Version: 13\r\n" );
 	if( websock->input_state.flags.deflate ) {
-		vtprintf( pvtHeader, WIDE( "Sec-WebSocket-Extensions: permessage-deflate\r\n" ) );
+		vtprintf( pvtHeader, "Sec-WebSocket-Extensions: permessage-deflate\r\n" );
 	}
-	vtprintf( pvtHeader, WIDE("\r\n") );
+	vtprintf( pvtHeader, "\r\n" );
 	{
 		PTEXT text = VarTextPeek( pvtHeader ); // just leave the buffer in-place
 		if( websock->input_state.flags.use_ssl )
@@ -131,7 +131,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 			}
 			else
 			{
-				lprintf( WIDE("Fatality; didn't have a related structure, and no client opening") );
+				lprintf( "Fatality; didn't have a related structure, and no client opening" );
 			}
 		}
 		else
@@ -147,7 +147,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 			// this is HTTP state...
 			AddHttpData( websock->pHttpState, buffer, len );
 			result = ProcessHttp( pc, websock->pHttpState );
-			//lprintf( WIDE("reply is %d"), result );
+			//lprintf( "reply is %d", result );
 			if( (int)result == 101 )
 			{
 				websock->flags.connected = 1;
@@ -161,12 +161,12 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 			}
 			else if( (int)result >= 300 && (int)result < 400 )
 			{
-				lprintf( WIDE("Redirection of some sort") );
+				lprintf( "Redirection of some sort" );
 				// redirect, disconnect, reconnect to new address offered.
 			}
 			else if( (int)result )
 			{
-				lprintf( WIDE("Some other error: %d"), result );
+				lprintf( "Some other error: %d", result );
 			}
 			else
 			{

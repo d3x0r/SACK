@@ -239,7 +239,7 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 
 	//if( result = glGetError() )
 	//{
-//		lprintf( WIDE("unhandled error before shader") );
+//		lprintf( "unhandled error before shader" );
 	//}
 
 	v_codeblocks[0] = gles_simple_v_multi_shader_1_30;

@@ -25,20 +25,20 @@ static int CPROC DrawFont( PSI_CONTROL renderer )
 	SFTFont font = (SFTFont)psvFont;
 	Image image = GetFrameSurface( renderer );
 	uint32_t w, h;
-	GetStringSizeFont( WIDE(" "), &w, &h, font );
+	GetStringSizeFont( " ", &w, &h, font );
 	ClearImageTo( image, BASE_COLOR_WHITE );
-	PutStringFont( image, 5, 5, BASE_COLOR_BLACK, 0, WIDE("ABCDEFGHIJKLM"), font );
-	PutStringFont( image, 5, 5+h, BASE_COLOR_BLACK, 0, WIDE("NOPQRSTUVWXYZ"), font );
-	PutStringFont( image, 5, 5+2*h, BASE_COLOR_BLACK, 0, WIDE("abcdefghijklm"), font );
-	PutStringFont( image, 5, 5+3*h, BASE_COLOR_BLACK, 0, WIDE("nopqrstuvwxyz"), font );
-	PutStringFont( image, 5, 5+4*h, BASE_COLOR_BLACK, 0, WIDE("01234567890()"), font );
-	PutStringFont( image, 5, 5+5*h, BASE_COLOR_BLACK, 0, WIDE("!@#$%^&*,.`{}"), font );
+	PutStringFont( image, 5, 5, BASE_COLOR_BLACK, 0, "ABCDEFGHIJKLM", font );
+	PutStringFont( image, 5, 5+h, BASE_COLOR_BLACK, 0, "NOPQRSTUVWXYZ", font );
+	PutStringFont( image, 5, 5+2*h, BASE_COLOR_BLACK, 0, "abcdefghijklm", font );
+	PutStringFont( image, 5, 5+3*h, BASE_COLOR_BLACK, 0, "nopqrstuvwxyz", font );
+	PutStringFont( image, 5, 5+4*h, BASE_COLOR_BLACK, 0, "01234567890()", font );
+	PutStringFont( image, 5, 5+5*h, BASE_COLOR_BLACK, 0, "!@#$%^&*,.`{}", font );
 
 	GetImageSize( image, &w, &h );
-	PutStringFont( image, w/2, h/2, BASE_COLOR_BLACK, 0, WIDE("ABCDEFGHIJKLM"), font );
-	PutStringInvertFont( image, w/2, h/2, BASE_COLOR_RED, 0, WIDE("ABCDEFGHIJKLM"), font );
-	PutStringVerticalFont( image, w/2, h/2, BASE_COLOR_BLUE, 0, WIDE("ABCDEFGHIJKLM"), font );
-	PutStringInvertVerticalFont( image, w/2, h/2, BASE_COLOR_GREEN, 0, WIDE("ABCDEFGHIJKLM"), font );
+	PutStringFont( image, w/2, h/2, BASE_COLOR_BLACK, 0, "ABCDEFGHIJKLM", font );
+	PutStringInvertFont( image, w/2, h/2, BASE_COLOR_RED, 0, "ABCDEFGHIJKLM", font );
+	PutStringVerticalFont( image, w/2, h/2, BASE_COLOR_BLUE, 0, "ABCDEFGHIJKLM", font );
+	PutStringInvertVerticalFont( image, w/2, h/2, BASE_COLOR_GREEN, 0, "ABCDEFGHIJKLM", font );
    return 1;
    //UpdateDisplay( renderer );
 }
@@ -52,10 +52,10 @@ SaneWinMain( argc, argv )
 	size_t fontsize = 0;
 	if( argc < 6 )
 	{
-		if( (argc > 1) && (strcmp( DupCharToText( argv[1] ), WIDE("pick") ) == 0) )
+		if( (argc > 1) && (strcmp( DupCharToText( argv[1] ), "pick" ) == 0) )
 		{
 			FILE *in;
-			in = fopen( WIDE("fonttst.dat"), WIDE("rb") );
+			in = fopen( "fonttst.dat", "rb" );
 			if( in )
 			{
 				fseek( in, 0, SEEK_END );
@@ -68,7 +68,7 @@ SaneWinMain( argc, argv )
 			font = PickFont( 0, 0, &fontsize, &fontdata, NULL/*pAbove*/ );
 			{
 				FILE *out;
-				out = fopen( WIDE("fonttst.dat"), WIDE("wb") );
+				out = fopen( "fonttst.dat", "wb" );
 				if( out )
 				{
 					fwrite( fontdata, 1, fontsize, out );
@@ -80,11 +80,11 @@ SaneWinMain( argc, argv )
 		}
 		else
 		{
-			printf( WIDE("Usage: %s (outname) (fontfile) (width) (height) (bits)\n"), DupCharToText( argv[0] ) );
-			printf( WIDE("rendering lucon.ttf 14x14 into lucidaconsole.h") );
+			printf( "Usage: %s (outname) (fontfile) (width) (height) (bits)\n", DupCharToText( argv[0] ) );
+			printf( "rendering lucon.ttf 14x14 into lucidaconsole.h" );
 			{
 				FILE *in;
-				in = fopen( WIDE("fonttst.dat"), WIDE("rb") );
+				in = fopen( "fonttst.dat", "rb" );
 				if( in )
 				{
 					fseek( in, 0, SEEK_END );
@@ -101,17 +101,17 @@ SaneWinMain( argc, argv )
 				font = NULL;
 			if( !font )
 			{
-				printf( WIDE("Wow nothing defaulted ever, defaulting to lucon.ttf 14x14") );
-				font = RenderFontFile( WIDE("lucon.ttf"), 14, 14, 2 );
+				printf( "Wow nothing defaulted ever, defaulting to lucon.ttf 14x14" );
+				font = RenderFontFile( "lucon.ttf", 14, 14, 2 );
 			}
          // yeah - you can use dumpfontfile to produce a header which is a font...
-			DumpFontFile( WIDE("lucidaconsole.h"), font );
+			DumpFontFile( "lucidaconsole.h", font );
 		}
 	}
 	else 
 	{
 		int bits = atoi( DupCharToText( argv[5] ) );
-		printf( WIDE("Using parameters specified from command line ... %s %sx%s %s bits"), DupCharToText( argv[2] ), DupCharToText( argv[3] ), DupCharToText( argv[4] ), DupCharToText( argv[5] ) );
+		printf( "Using parameters specified from command line ... %s %sx%s %s bits", DupCharToText( argv[2] ), DupCharToText( argv[3] ), DupCharToText( argv[4] ), DupCharToText( argv[5] ) );
 		if( bits == 8 )
 			bits = 2;
 		else if( bits == 2 )
@@ -121,7 +121,7 @@ SaneWinMain( argc, argv )
 		font = RenderFontFileEx( argv[2], atoi( argv[3] ), atoi( argv[4] ), bits, &fontsize, &fontdata );
 		{
 			FILE *out;
-			out = fopen( WIDE("fonttst.dat"), WIDE("wb") );
+			out = fopen( "fonttst.dat", "wb" );
 			if( out )
 			{
 				fwrite( fontdata, 1, fontsize, out );
@@ -134,7 +134,7 @@ SaneWinMain( argc, argv )
 	}
 	psvFont = (uintptr_t)font;
 	{
-		PSI_CONTROL pRend = CreateFrame( WIDE("Demo Font"), 10, 10, 300, 300, BORDER_NORMAL, NULL );
+		PSI_CONTROL pRend = CreateFrame( "Demo Font", 10, 10, 300, 300, BORDER_NORMAL, NULL );
 		AddCommonDraw( pRend, DrawFont );
 		//DrawFont( (uintptr_t)font, pRend );
 		DisplayFrame( pRend );
@@ -145,7 +145,7 @@ SaneWinMain( argc, argv )
 
 	PickFont( 0, 0, 0, NULL, NULL );
 	
-	//DebugDumpMemFile( WIDE("memory.dump") );
+	//DebugDumpMemFile( "memory.dump" );
 	return 0;
 }
 EndSaneWinMain(  )

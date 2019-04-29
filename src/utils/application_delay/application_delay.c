@@ -3,7 +3,7 @@
 
 PRELOAD( loginfo )
 {
-   MessageBox( NULL, WIDE("Press OK to continue"), WIDE("Pause..."), MB_OK );
+   MessageBox( NULL, "Press OK to continue", "Pause...", MB_OK );
 }
 
 #if defined( __CMAKE_VERSION__ ) && ( __CMAKE_VERSION__ < 2081003 ) || defined( __WATCOMC__ )

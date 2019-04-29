@@ -125,7 +125,7 @@ int SetRegistryItem( HKEY hRoot, char *pPrefix,
       DWORD dwDisposition;
       dwStatus = RegCreateKeyEx( hRoot, 
                                  optional_wide, 0
-                             , WIDE("")
+                             , ""
                              , REG_OPTION_NON_VOLATILE
                              , KEY_WRITE
                              , NULL
@@ -189,7 +189,7 @@ char *GetKey( void )
 	if( dwStatus == ERROR_SUCCESS )
 	{
 		dwStatus = RegQueryValueEx( hTemp,
-											WIDE("Install_Dir"),
+											"Install_Dir",
 											NULL,
 											&dwType,
 											(LPBYTE)old_path,
@@ -211,12 +211,12 @@ int CheckUAC( void )
 	DWORD dwStatus;
 	DWORD data_size = sizeof( data );
 	dwStatus = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
-									WIDE("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"), 0,
+									"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", 0,
                             KEY_READ, &hTemp );
 	if( dwStatus == ERROR_SUCCESS )
 	{
 		RegQueryValueEx( hTemp,
-						WIDE("EnableLUA"),
+						"EnableLUA",
 						NULL,
 						&dwType,
 						(LPBYTE)&data,

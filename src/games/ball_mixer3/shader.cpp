@@ -33,23 +33,23 @@
 
 //const char *gles_
 const CTEXTSTR gles_simple_v_shader =
-    WIDE( "attribute vec4 vPosition;" )
-	WIDE( "attribute vec4 in_Color;" )
-	WIDE( "uniform mat4 modelView;\n" )
-	WIDE( "uniform mat4 worldView;\n" )
-	WIDE( "uniform mat4 Projection;\n" )
-	WIDE( " varying vec4 vColor;" )
-    WIDE("void main() {" )
-    WIDE("  gl_Position = Projection * worldView * modelView * vPosition;" )
-	WIDE( " vColor = in_Color;" )
-    WIDE("}"); 
+    "attribute vec4 vPosition;"
+	"attribute vec4 in_Color;"
+	"uniform mat4 modelView;\n"
+	"uniform mat4 worldView;\n"
+	"uniform mat4 Projection;\n"
+	" varying vec4 vColor;"
+    "void main() {"
+    "  gl_Position = Projection * worldView * modelView * vPosition;"
+	" vColor = in_Color;"
+    "}"; 
 
 const CTEXTSTR gles_simple_p_shader =
-    WIDE( "precision mediump float;" )
-	WIDE( " varying vec4 vColor;" )
-    WIDE( "void main() {" )
-    WIDE( "  gl_FragColor = vColor;" )
-    WIDE( "}" );
+    "precision mediump float;"
+	" varying vec4 vColor;"
+    "void main() {"
+    "  gl_FragColor = vColor;"
+    "}";
 
 void CPROC EnableSuperSimpleShader( PImageShaderTracker tracker, uintptr_t psv, va_list args )
 {

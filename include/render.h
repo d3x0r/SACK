@@ -314,7 +314,7 @@ enum {
 
 // static void OnBeginShutdown( "Unique Name" )( void ) { /* run shutdown code */ }
 #define OnBeginShutdown(name) \
-	DefineRegistryMethod(WIDE("SACK"),BeginShutdown,WIDE("System"),WIDE("Begin Shutdown"),name WIDE("_begin_shutdown"),void,(void),__LINE__)
+	DefineRegistryMethod("SACK",BeginShutdown,"System","Begin Shutdown",name "_begin_shutdown",void,(void),__LINE__)
 
 
 /* function signature for the close callback  which can be specified to handle events to close the display.  see SetCloseHandler. */
@@ -1134,7 +1134,7 @@ RENDER_PROC( int, IsTouchDisplay )( void );
 
 // static void OnInputTouch( "Touch Handler" )(
 #define OnSurfaceInput(name) \
-	DefineRegistryMethod(WIDE("sack/render"),SurfaceInput,WIDE("surface input"),WIDE("SurfaceInput"),name,void,( int nInputs, PINPUT_POINT pInputs ),__LINE__)
+	DefineRegistryMethod("sack/render",SurfaceInput,"surface input","SurfaceInput",name,void,( int nInputs, PINPUT_POINT pInputs ),__LINE__)
 
 
 #ifndef PSPRITE_METHOD
@@ -1646,14 +1646,14 @@ struct render_interface_tag
    Returns
    Pointer to the render interface.                            */
 
-#  define GetDisplayInterface() (PRENDER_INTERFACE)GetInterface( WIDE("render") )
+#  define GetDisplayInterface() (PRENDER_INTERFACE)GetInterface( "render" )
 /* RENDER_PROC( void, DropDisplayInterface )( PRENDER_INTERFACE interface );
    
    release the interface (could be cleanup, most are donothing....
    parameters
    interface   - Pointer to the render interface.                            */
 
-#  define DropDisplayInterface(x) DropInterface( WIDE("render"), x )
+#  define DropDisplayInterface(x) DropInterface( "render", x )
 #endif
 
 #ifdef USE_RENDER_INTERFACE
@@ -1843,35 +1843,35 @@ typedef int check_this_variable;
 #endif
 #endif
 
-// static void OnDisplayChangedSize( WIDE("") )( PRENDERER, int nDisplay, uint32_t x, uint32_t y, uint32_t width, uint32_t height )
+// static void OnDisplayChangedSize( "" )( PRENDERER, int nDisplay, uint32_t x, uint32_t y, uint32_t width, uint32_t height )
 	// OnDisplayPause is called on systems that allow the application to suspend its display.
 	// Sleep mode may also trigger such an event, allows application to save state
    // a media player, for instance, may recover unplayed buffers to prepare for resume
 #define OnDisplaySizeChange(name) \
-	DefineRegistryMethod(WIDE("sack/render"),OnDisplaySizeChange,WIDE("display"),name,WIDE("on_display_size_change"),void,( uintptr_t psv_redraw, int nDisplay, int32_t x, int32_t y, uint32_t width, uint32_t height ),__LINE__)
+	DefineRegistryMethod("sack/render",OnDisplaySizeChange,"display",name,"on_display_size_change",void,( uintptr_t psv_redraw, int nDisplay, int32_t x, int32_t y, uint32_t width, uint32_t height ),__LINE__)
 
-// static void OnDisplayPause( WIDE("") )( void )
+// static void OnDisplayPause( "" )( void )
 	// OnDisplayPause is called on systems that allow the application to suspend its display.
 	// Sleep mode may also trigger such an event, allows application to save state
    // a media player, for instance, may recover unplayed buffers to prepare for resume
 #define OnDisplayPause(name) \
-	DefineRegistryMethod(WIDE("sack/render/android"),OnDisplayPause,WIDE("display"),name,WIDE("on_display_pause"),void,(void),__LINE__)
+	DefineRegistryMethod("sack/render/android",OnDisplayPause,"display",name,"on_display_pause",void,(void),__LINE__)
 
-// static void OnDisplayResume( WIDE("") )( void )
+// static void OnDisplayResume( "" )( void )
 	// OnDisplayResume is called on systems that allow the application to suspend its display.
 	// Wake from sleep mode may also trigger such an event, allows application to restore saved state
    // a media player, for instance, may continue playing ( it might be good to wait just a little longer than 'now')
 #define OnDisplayResume(name) \
-	DefineRegistryMethod(WIDE("sack/render/android"),OnDisplayResume,WIDE("display"),name,WIDE("on_display_resume"),void,(void),__LINE__)
+	DefineRegistryMethod("sack/render/android",OnDisplayResume,"display",name,"on_display_resume",void,(void),__LINE__)
 
 	struct display_app;
 	struct display_app_local;
 
-	// static void OnDisplayConnect( WIDE("") )( struct display_app*app, struct display_app_local ***pppLocal )
+	// static void OnDisplayConnect( "" )( struct display_app*app, struct display_app_local ***pppLocal )
 	//  app is a unique handle to the display instance.  Can be used as a key to locate resources for the display 
 	//  pppLocal is ... ugly.  
 	//  ThreadLocal struct instance_local *_thread_local;
-	//  static void OnDisplayConnect( WIDE("") )( struct display_app*app, struct display_app_local ***pppLocal )
+	//  static void OnDisplayConnect( "" )( struct display_app*app, struct display_app_local ***pppLocal )
 	//  {
 	//    	_thread_local = New( struct instance_local );
 	//      MemSet( option_thread, 0, sizeof( option_thread ) );
@@ -1880,11 +1880,11 @@ typedef int check_this_variable;
 	//  }
 	//
 #define OnDisplayConnect(name) \
-	DefineRegistryMethod(WIDE("/sack/render/remote display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connect"),void,(struct display_app*app, struct display_app_local ***),__LINE__)
+	DefineRegistryMethod("/sack/render/remote display",OnDisplayConnect,"connect",name,"new_display_connect",void,(struct display_app*app, struct display_app_local ***),__LINE__)
 
 	// unimplemented.
 #define OnDisplayConnected(name) \
-	DefineRegistryMethod(WIDE("/sack/render/remote display"),OnDisplayConnect,WIDE("connect"),name,WIDE("new_display_connected"),void,(struct display_app*app),__LINE__)
+	DefineRegistryMethod("/sack/render/remote display",OnDisplayConnect,"connect",name,"new_display_connected",void,(struct display_app*app),__LINE__)
 
 
 RENDER_NAMESPACE_END

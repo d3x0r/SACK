@@ -43,7 +43,7 @@ int EnqueFrameEx( SIMPLE_QUEUE *que, uintptr_t frame, char *qname, int line )
 #define EnqueFrame(q,f) EnqueFrameEx(q,f,#q, __LINE__ )
 {
 	INDEX next_head = (que->head + 1)%que->size;
-   //lprintf( WIDE("Enque %d into %s (%d)"), frame, qname, line );
+   //lprintf( "Enque %d into %s (%d)", frame, qname, line );
 	if( next_head != que->tail )
 	{
       que->frames[que->head] = frame;
@@ -59,7 +59,7 @@ uintptr_t DequeFrameEx( SIMPLE_QUEUE *que, char *quename, int line )
 	if( que->head != que->tail )
 	{
 		INDEX r = que->frames[que->tail];
-      //lprintf( WIDE("%s(%d) results as %d"), quename, line, r );
+      //lprintf( "%s(%d) results as %d", quename, line, r );
 		que->tail++;
 		que->tail %= que->size;
       return r;
@@ -159,7 +159,7 @@ void CycleReadV4L( PDEVICE_DATA pDevice )
 			while( ( n = DequeFrame( &pDevice->done ) ) != INVALID_INDEX )
 			{
 			// preserve the order of frames queued for capture...
-				lprintf( WIDE("initial start queuing %d which is %d,%d")
+				lprintf( "initial start queuing %d which is %d,%d"
 						 , n
 						 , pDevice->caps.maxwidth
 						 , pDevice->caps.maxheight
@@ -172,11 +172,11 @@ void CycleReadV4L( PDEVICE_DATA pDevice )
 												// therefore none are ready.
 				if( ioctl( pDevice->handle, VIDIOCMCAPTURE, pDevice->vmap + n) == -1 )
 				{
-					lprintf( WIDE("Failed to start capture first read.") );
+					lprintf( "Failed to start capture first read." );
 				}
 				else
 				{
-					lprintf( WIDE("Mark %d as to capture..."), n );
+					lprintf( "Mark %d as to capture...", n );
 					EnqueFrame( &pDevice->capture, n );
 				}
 				pDevice->flags.bFirstRead = 0;
@@ -194,19 +194,19 @@ void CycleReadV4L( PDEVICE_DATA pDevice )
 
 				if( nFrame == INVALID_INDEX && ( FramesQueued( &pDevice->capture ) < 3 ) )
 				{
-					lprintf( WIDE("Dropping a frame...") );
-					lprintf( WIDE("done %d %d"), pDevice->done.head, pDevice->done.tail );
-					lprintf( WIDE("capture %d %d"), pDevice->capture.head, pDevice->capture.tail );
-					lprintf( WIDE("ready %d %d"), pDevice->ready.head, pDevice->ready.tail );
+					lprintf( "Dropping a frame..." );
+					lprintf( "done %d %d", pDevice->done.head, pDevice->done.tail );
+					lprintf( "capture %d %d", pDevice->capture.head, pDevice->capture.tail );
+					lprintf( "ready %d %d", pDevice->ready.head, pDevice->ready.tail );
 				// dropping a frame...
 				// no done frames, snag the next ready and grab it.
 					nFrame = DequeFrame( &pDevice->ready );
 					if( nFrame == INVALID_INDEX )
 					{
-						lprintf( WIDE("Fatal error - all frames are outstanding in process...") );
-						lprintf( WIDE("done %d %d"), pDevice->done.head, pDevice->done.tail );
-						lprintf( WIDE("capture %d %d"), pDevice->capture.head, pDevice->capture.tail );
-						lprintf( WIDE("ready %d %d"), pDevice->ready.head, pDevice->ready.tail );
+						lprintf( "Fatal error - all frames are outstanding in process..." );
+						lprintf( "done %d %d", pDevice->done.head, pDevice->done.tail );
+						lprintf( "capture %d %d", pDevice->capture.head, pDevice->capture.tail );
+						lprintf( "ready %d %d", pDevice->ready.head, pDevice->ready.tail );
 					}
 				}
 				if( nFrame != INVALID_INDEX )
@@ -218,13 +218,13 @@ void CycleReadV4L( PDEVICE_DATA pDevice )
 				// the next frame will ahve already been queued...
 				// and we will fall out and wait for ti - because
 				// the very next one is the oldest one queued to wait.
-				//lprintf( WIDE("queue wait on frame %d"), nFrame );
+				//lprintf( "queue wait on frame %d", nFrame );
 					if( ioctl(pDevice->handle
 								, VIDIOCMCAPTURE
 								, &pDevice->vmap[nFrame]) == -1 )
 					{
 					// already pending...
-						lprintf( WIDE("Failed to capture next frame pending...") );
+						lprintf( "Failed to capture next frame pending..." );
 					}
 					EnqueFrame( &pDevice->capture, nFrame );
 				}
@@ -235,7 +235,7 @@ void CycleReadV4L( PDEVICE_DATA pDevice )
 			int retry = 1;
 			int nFrame = DequeFrame( &pDevice->capture );
 			while (retry ){
-							  //lprintf( WIDE("Monitor frame %d wait."), nFrame );
+							  //lprintf( "Monitor frame %d wait.", nFrame );
 				if( ioctl(pDevice->handle, VIDIOCSYNC, &nFrame ) == -1 )
 				{
 					switch( errno )
@@ -244,11 +244,11 @@ void CycleReadV4L( PDEVICE_DATA pDevice )
 					// the read is lost? or what?
 
 					case EINTR:
-						lprintf( WIDE("interrupt woke ioctl...") );
+						lprintf( "interrupt woke ioctl..." );
 						retry = 1;
 						break;
 					default:
-						lprintf( WIDE("Fatal error... didn't wait for capture.") );
+						lprintf( "Fatal error... didn't wait for capture." );
 						retry = 0;
 						return;
 								//return NULL;
@@ -258,9 +258,9 @@ void CycleReadV4L( PDEVICE_DATA pDevice )
 					retry = 0;
 			}
 			EnqueFrame( &pDevice->ready, nFrame );
-							//lprintf( WIDE("issuing wake to thread...") );
+							//lprintf( "issuing wake to thread..." );
 							//WakeThread( pDevice->pThread );
-							//lprintf( WIDE("Monitor frame %d ready."), nFrame );
+							//lprintf( "Monitor frame %d ready.", nFrame );
 		}
 	}
 }
@@ -273,10 +273,10 @@ int CPROC GetCapturedFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
    pDevData->nFrame = DequeFrame( &pDevData->ready );
 	if( pDevData->nFrame != INVALID_INDEX )
 	{
-	//lprintf( WIDE("Process frame %d to compress..."), nFrame );
-	//lprintf( WIDE("done %d %d"), pDeviceData->done.head, pDeviceData->done.tail );
-	//lprintf( WIDE("capture %d %d"), pDeviceData->capture.head, pDeviceData->capture.tail );
-	//lprintf( WIDE("ready %d %d"), pDeviceData->ready.head, pDeviceData->ready.tail );
+	//lprintf( "Process frame %d to compress...", nFrame );
+	//lprintf( "done %d %d", pDeviceData->done.head, pDeviceData->done.tail );
+	//lprintf( "capture %d %d", pDeviceData->capture.head, pDeviceData->capture.tail );
+	//lprintf( "ready %d %d", pDeviceData->ready.head, pDeviceData->ready.tail );
 		SetDeviceData( pDevice
 						 , pDevData->pFrames[pDevData->nFrame]
 						 , 768*480 );
@@ -296,11 +296,11 @@ uintptr_t CPROC CycleCallbacks( PTHREAD pThread )
 		PCAPTURE_CALLBACK callback;
 		for( callback = pDevice->callbacks; callback; callback = NextLink( callback ) )
 		{
-			//lprintf( WIDE("Process callback: %p"), callback );
-			//lprintf( WIDE("Process callback: %p (%p)"), callback, callback->callback );
+			//lprintf( "Process callback: %p", callback );
+			//lprintf( "Process callback: %p (%p)", callback, callback->callback );
 			if( !callback->callback( callback->psv, pDevice ) )
             break;
-			//lprintf( WIDE("Processed callback: %p (%p)"), callback, callback->callback );
+			//lprintf( "Processed callback: %p (%p)", callback, callback->callback );
 		}
 		Relinquish();
 	}
@@ -406,18 +406,18 @@ uintptr_t OpenV4L( char *name )
 		for( n = 0; n < 16; n++ )
 		{
 		// woo fun with recursion!
-			sprintf( default_device, WIDE("/devices/video%d"), n );
+			sprintf( default_device, "/devices/video%d", n );
 			pDevice = (PDEVICE_DATA)OpenV4L( default_device );
 			if( !pDevice )
 			{
-				sprintf( default_device, WIDE("/dev/video%d"), n );
+				sprintf( default_device, "/dev/video%d", n );
 				pDevice = (PDEVICE_DATA)OpenV4L( default_device );
 			}
 			if( pDevice )
             break;
 		}
 		if( !pDevice )
-			lprintf( WIDE("Failed to open default devices enumerated from 0 to 16") );
+			lprintf( "Failed to open default devices enumerated from 0 to 16" );
 		return (uintptr_t)pDevice;
 	}
 
@@ -425,17 +425,17 @@ uintptr_t OpenV4L( char *name )
 		int handle = open( name, O_RDONLY );
 		if( handle == -1 )
 		{
-         lprintf( WIDE("attempted open of %s failed"), name );
+         lprintf( "attempted open of %s failed", name );
 			return (uintptr_t)NULL;
 		}
-		lprintf( WIDE("attempted open of %s success!"), name );
+		lprintf( "attempted open of %s success!", name );
 		pDevice = Allocate( sizeof( *pDevice ) );
 		MemSet( pDevice, 0, sizeof( *pDevice ) );
 		pDevice->flags.bFirstRead = 1;
 		pDevice->handle = handle;
 
 		ioctl(handle, VIDIOCGCAP, &pDevice->caps );
-		lprintf( WIDE("Some interesting ranges: (%d,%d) (%d,%d)")
+		lprintf( "Some interesting ranges: (%d,%d) (%d,%d)"
 				 , pDevice->caps.minwidth
 				 , pDevice->caps.minheight
 				 , pDevice->caps.maxwidth
@@ -462,7 +462,7 @@ uintptr_t OpenV4L( char *name )
 		ioctl(pDevice->handle, VIDIOCSAUDIO, &pDevice->audio);
 
 		ioctl( pDevice->handle, VIDIOCGUNIT, &pDevice->unit );
-		lprintf( WIDE("related units: %d %d %d %d %d")
+		lprintf( "related units: %d %d %d %d %d"
 				 , pDevice->unit.video
 				 , pDevice->unit.vbi
 				 , pDevice->unit.radio
@@ -484,7 +484,7 @@ uintptr_t OpenV4L( char *name )
 			CloseV4L( &pDevice );
 			return (uintptr_t)NULL;
 		}
-      lprintf( WIDE("Driver claims it has %d frames"), pDevice->mbuf.frames );
+      lprintf( "Driver claims it has %d frames", pDevice->mbuf.frames );
 		MemSet( ( pDevice->pFrames = Allocate( sizeof( pDevice->pFrames[0] ) * pDevice->mbuf.frames ) )
   				, 0
  				, sizeof( pDevice->pFrames[0] ) * pDevice->mbuf.frames );
@@ -499,7 +499,7 @@ uintptr_t OpenV4L( char *name )
 
     	 //pDevice->mbuf.frames = 2;
 		ioctl( pDevice->handle, VIDIOCGPICT, &pDevice->picture );
-		lprintf( WIDE("picture stats: b: %d h: %d col: %d con: %d wht: %d dep: %d pal: %d")
+		lprintf( "picture stats: b: %d h: %d col: %d con: %d wht: %d dep: %d pal: %d"
 				 , pDevice->picture.brightness
 				 , pDevice->picture.hue
 				 , pDevice->picture.colour
@@ -514,7 +514,7 @@ uintptr_t OpenV4L( char *name )
 
 		{
 			int n;
-			lprintf( WIDE(" about to mmap with %u handle of %d" )
+			lprintf( " about to mmap with %u handle of %d"
 							 , pDevice->mbuf.size
 							 , pDevice->handle
 
@@ -531,7 +531,7 @@ uintptr_t OpenV4L( char *name )
 			{
             pDevice->flags.bNotMemMapped = TRUE;
             //lprintf( "Failed to mmap... %d %d %d(%d)", pDevice->mbuf.size, pDevice->handle, getpagesize(), pDevice->mbuf.size%getpagesize() );
-				//perror( WIDE("Failed to mmap...") );
+				//perror( "Failed to mmap..." );
 				//CloseV4L( &pDevice );
 				//return (uintptr_t)NULL;
 				for( n = 0; n < pDevice->mbuf.frames; n++ )
@@ -577,7 +577,7 @@ void AddCaptureCallback( PCAPTURE_DEVICE pDevice, int (CPROC *callback)(uintptr_
 	pcc->psv = psv;
 	pcc->next = NULL;
    pcc->me = NULL;
-   lprintf( WIDE("Added callback... %p (%p)"), pcc, callback );
+   lprintf( "Added callback... %p (%p)", pcc, callback );
    LinkLast( pDevice->callbacks, PCAPTURE_CALLBACK, pcc );
 }
 
@@ -593,7 +593,7 @@ int CPROC DisplayAFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 	{
 		if( newtick - tick > 50 )
 		{
-			//lprintf( WIDE("Lost something? %d (%d?) %d %d"), newtick - tick, (newtick-tick)/33, frames, frames-lastloss );
+			//lprintf( "Lost something? %d (%d?) %d %d", newtick - tick, (newtick-tick)/33, frames, frames-lastloss );
 			lastloss = frames;
 		}
 	}
@@ -605,7 +605,7 @@ int CPROC DisplayAFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
       		//GetDeviceData( pDevice, (POINTER*)&image, NULL );
 		//if( image )
 		//	BlotImage( GetDisplayImage( pRender ), image, 0, 0 );
-		//lprintf( WIDE("Displayed frame...") );
+		//lprintf( "Displayed frame..." );
 								// if I blotcolor over the region of the overlay, then I can draw it
 								// zero alpha and zero color auto full transparent under overlay.
 								//BlotImage( GetDisplayImage( pRender ), pDevice->pResultFrame, 0, 0 );
@@ -648,7 +648,7 @@ int CPROC DisplayASmallFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 	{
 		if( newtick - tick > 50 )
 		{
-			//lprintf( WIDE("Lost something? %d (%d?) %d %d"), newtick - tick, (newtick-tick)/33, frames, frames-lastloss );
+			//lprintf( "Lost something? %d (%d?) %d %d", newtick - tick, (newtick-tick)/33, frames, frames-lastloss );
 			lastloss = frames;
 		}
 	}
@@ -657,7 +657,7 @@ int CPROC DisplayASmallFrame( uintptr_t psv, PCAPTURE_DEVICE pDevice )
 	{
 		//PRENDERER pRender = (PRENDERER)psv;
 		//BlotImage( GetFrameSurface( pFrame ), pDevice->pCurrentFrame, 0, 0 );
-		//lprintf( WIDE("Display frame...") );
+		//lprintf( "Display frame..." );
 		//BlotScaledImageSizedTo( GetDisplayImage( pRender )
 //									 , (Image)pDevice->data
 //									 , 0, 0
@@ -702,7 +702,7 @@ void SetDeviceDataEx( PCAPTURE_DEVICE pDevice, POINTER data, INDEX length
 uintptr_t CPROC SetNetworkBroadcast( uintptr_t psv, arg_list args )
 {
 	PARAM( args, char*, addr );
-   lprintf( WIDE("~~~~~~~") );
+   lprintf( "~~~~~~~" );
    g.saBroadcast = CreateSockAddress( addr, 0 );
    return psv;
 }
@@ -724,8 +724,8 @@ uintptr_t CPROC SetDisplayFilterSize( uintptr_t psv, arg_list args )
 void ReadConfig( char *name )
 {
 	PCONFIG_HANDLER pch = CreateConfigurationEvaluator();
-	AddConfigurationMethod( pch, WIDE("display at (%i,%i) %i by %i"), SetDisplayFilterSize );
-	AddConfigurationMethod( pch, WIDE("broadcast %m"), SetNetworkBroadcast );
+	AddConfigurationMethod( pch, "display at (%i,%i) %i by %i", SetDisplayFilterSize );
+	AddConfigurationMethod( pch, "broadcast %m", SetNetworkBroadcast );
    ProcessConfigurationFile( pch, name, 0 );
 
 }
@@ -765,7 +765,7 @@ uintptr_t CPROC ThreadThing( PTHREAD thread )
 		//g.pDev[1] = OpenV4L( NULL );
 		if( !g.pDev[1] )
 		{
-         lprintf( WIDE("Failed to open second capture device") );
+         lprintf( "Failed to open second capture device" );
 		}
 		else
 		{
@@ -823,7 +823,7 @@ uintptr_t CPROC ThreadThing( PTHREAD thread )
 			{
 				do{
 
-					lprintf( WIDE("Entering wait...") );
+					lprintf( "Entering wait..." );
 					fgets( whatever, 2, stdin );
 				} while( whatever[0] != 'q' );
 			}

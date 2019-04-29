@@ -61,7 +61,7 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 				if(!wglMakeCurrent( (HDC)hDisplay->pFractures[nFracture].hDCBitmap
 									, hDisplay->pFractures[nFracture].hRC))               // Try To Activate The Rendering Context
 				{
-					Log1( WIDE("GetLastERror == %d"), GetLastError() );
+					Log1( "GetLastERror == %d", GetLastError() );
 					//MessageBox(NULL,"Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 					return FALSE;                       // Return FALSE
 				}
@@ -74,14 +74,14 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 					,hDisplay->pFractures[nFracture].pImage->real_width
 					,hDisplay->pFractures[nFracture].pImage->real_height);                // Reset The Current Viewport
 				hDisplay->_prior_fracture = nFracture;
-				//lprintf( WIDE("lock+1") );
+				//lprintf( "lock+1" );
 				_hDisplay = hDisplay;
 				//if( hDisplay->_prior_fracture == -1 )
 				//	EnterCriticalSec( &cs );
 			}
 			else
 			{
-				lprintf( WIDE( "Last fracture is the same as current." ) );
+				lprintf( "Last fracture is the same as current." );
 			}
 		}
 		else
@@ -99,7 +99,7 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 				{
 					DebugBreak();
 
-					Log1( WIDE("GetLastERror == %d"), GetLastError() );
+					Log1( "GetLastERror == %d", GetLastError() );
 					//MessageBox(NULL,"Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 					return FALSE;                       // Return FALSE
 				}
@@ -118,12 +118,12 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 			{
 				if( hDisplay == _hDisplay )
 				{
-					lprintf( WIDE("Active GL Context already on this renderer...") );
+					lprintf( "Active GL Context already on this renderer..." );
 				}
 				else
 				{
 					DebugBreak();
-					lprintf( WIDE("Active GL context is on another Display... please wait?!") );
+					lprintf( "Active GL context is on another Display... please wait?!" );
 				}
 			}
 		}
@@ -148,7 +148,7 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 			if(!wglMakeCurrent( NULL, NULL) )               // Try To Deactivate The Rendering Context
 			{
 				DebugBreak();
-				Log1( WIDE("GetLastERror == %d"), glGetError() );
+				Log1( "GetLastERror == %d", glGetError() );
 				//MessageBox(NULL,"Can't Deactivate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 				return FALSE;                       // Return FALSE
 			}
@@ -211,12 +211,12 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 			} msg;
 			msg.hVideo = hVideo;
 			msg.nFracture = nFracture;
-			//lprintf( WIDE("Sending redraw for fracture %d on vid %p"), nFracture, hVideo );
+			//lprintf( "Sending redraw for fracture %d on vid %p", nFracture, hVideo );
 			//SendServiceEvent( local_vidlib.dwMsgBase + MSG_RedrawFractureMethod, &msg, sizeof( msg ) );
 		}
 	}
 	hVideo->nFractures++;
-	//lprintf( WIDE("And here I might want to update the video, hope someone else does for me.") );
+	//lprintf( "And here I might want to update the video, hope someone else does for me." );
 	return nFracture + 1;
 #else
 	return 0;
@@ -235,13 +235,13 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 
 	PFNWGLEXTENSIONSSTRINGARBPROC
 		wglGetExtensionsStringARB =(PFNWGLEXTENSIONSSTRINGARBPROC)
-		wglGetProcAddress( WIDE("wglGetExtensionsStringARB") );
+		wglGetProcAddress( "wglGetExtensionsStringARB" );
 	if( wglGetExtensionsStringARB )
 	{
 		const Glubyte *extensions = (const Glubyte *)
 			wglGetExtensionsStringARB( wglGetCurrentDC() );
-		if( strstr( extensions, WIDE("WGL_ARB_pixel_format") ) &&
-			strstr( extension, WIDE("WGL_ARB_pbuffer") ) )
+		if( strstr( extensions, "WGL_ARB_pixel_format" ) &&
+			strstr( extension, "WGL_ARB_pbuffer" ) )
 		{
 #define INIT_ENTRY_POINT( funcname, type ) \
 	{ type funcname = (type) wglGetProcAddress(#funcname); \
@@ -405,7 +405,7 @@ int EnableOpenGL( PVIDEO hVideo )
 		DebugBreak();
 		LeaveCriticalSec( &hVideo->cs );
 		//KillGLWindow();                        // Reset The Display
-		//MessageBox(NULL,WIDE("Can't Find A Suitable PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+		//MessageBox(NULL,"Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;                       // Return FALSE
 	}
 
@@ -415,7 +415,7 @@ int EnableOpenGL( PVIDEO hVideo )
 		LeaveCriticalSec( &hVideo->cs );
 
 		KillGLWindow();                        // Reset The Display
-		MessageBox(NULL,WIDE("Can't Set The PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Can't Set The PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;                       // Return FALSE
 	}
 
@@ -425,13 +425,13 @@ int EnableOpenGL( PVIDEO hVideo )
 
 		LeaveCriticalSec( &hVideo->cs );
 		KillGLWindow();                        // Reset The Display
-		MessageBox(NULL,WIDE("Can't Create A GL Rendering Context."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,"Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 		return FALSE;                       // Return FALSE
 	}
 
 	if(!wglMakeCurrent(hdcEnable,hVideo->hRC))               // Try To Activate The Rendering Context
 	{
-		lprintf( WIDE("Error: %d"), GetLastError() );
+		lprintf( "Error: %d", GetLastError() );
 	}
 
 	if(!wglMakeCurrent( NULL, NULL) )               // Try To Deactivate The Rendering Context
@@ -490,7 +490,7 @@ RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h 
 			{
 				DebugBreak();
 				KillGLWindow();                        // Reset The Display
-				MessageBox(NULL,WIDE("Can't Find A Suitable PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+				MessageBox(NULL,"Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 				return nFracture + 1;                       // Return FALSE
 			}
 		}
@@ -499,7 +499,7 @@ RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h 
 			DebugBreak();
 				
 			KillGLWindow();                        // Reset The Display
-			MessageBox(NULL,WIDE("Can't Set The PixelFormat."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+			MessageBox(NULL,"Can't Set The PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 			return FALSE;                       // Return FALSE
 		}
 
@@ -508,7 +508,7 @@ RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h 
 			DebugBreak();
 				
 			KillGLWindow();                        // Reset The Display
-			MessageBox(NULL,WIDE("Can't Create A GL Rendering Context."),WIDE("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+			MessageBox(NULL,"Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
 			return FALSE;                       // Return FALSE
 		}
 		return nFracture + 1;

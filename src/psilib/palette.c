@@ -60,7 +60,7 @@ typedef struct PickColor_tag
 void CPROC InitColorDataDefault( POINTER );
 void SetShaderControls( PPICK_COLOR_DATA ppcd, PSI_CONTROL source );
 
-PUBLIC_DATA( WIDE("Color Choice Data"), PICK_COLOR_DATA, InitColorDataDefault, NULL );
+PUBLIC_DATA( "Color Choice Data", PICK_COLOR_DATA, InitColorDataDefault, NULL );
 
 #define nScale 4
 
@@ -153,7 +153,7 @@ static CDATA ScaleColor( CDATA original, CDATA new_color, int max, int cur )
 }
 //----------------------------------------------------------------------------
 
-static int OnDrawCommon(WIDE("Shade Well")) ( PSI_CONTROL pcShade )
+static int OnDrawCommon("Shade Well") ( PSI_CONTROL pcShade )
 {
 	ValidatedControlData( PSHADE_WELL, shade_well.TypeID, psw, pcShade );
 	uint32_t black;
@@ -165,7 +165,7 @@ static int OnDrawCommon(WIDE("Shade Well")) ( PSI_CONTROL pcShade )
 		pSurface = GetControlSurface( pcShade );
 		width = pSurface->width;
 		height = pSurface->height;
-		//lprintf( WIDE("----------- DRAW SHADE CONTORL ------------------- %08x %08x %08x")
+		//lprintf( "----------- DRAW SHADE CONTORL ------------------- %08x %08x %08x"
 		//		 , psw->color_min
 		//		 , psw->color_mid
 		//		 , psw->color_max );
@@ -190,7 +190,7 @@ static int OnDrawCommon(WIDE("Shade Well")) ( PSI_CONTROL pcShade )
 
 //----------------------------------------------------------------------------
 
-static int OnMouseCommon( WIDE("Color Matrix") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t buttons )
+static int OnMouseCommon( "Color Matrix" )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t buttons )
 {
 	PPICK_COLOR_DATA ppcd = PPCD(pc);
 	if( buttons == -1 )
@@ -199,7 +199,7 @@ static int OnMouseCommon( WIDE("Color Matrix") )( PSI_CONTROL pc, int32_t x, int
 	{
 		if( ppcd->psw )
 		{
-			//lprintf( WIDE("Setting new mid color... update... ------------------------- ") );
+			//lprintf( "Setting new mid color... update... ------------------------- " );
 			ppcd->CurrentColor = SetAlpha( getpixel( ppcd->pColorMatrix, x, y )
 												  , ppcd->Alpha );
 			SetShaderControls( ppcd, pc );
@@ -265,7 +265,7 @@ SLIDER_UPDATE( SetGreenLevel, (uintptr_t psv, PSI_CONTROL pc, int val) )
 static void LoadPresets( PPICK_COLOR_DATA ppcd )
 {
 	FILE *file;
-	file = sack_fopen( 0, WIDE("Palette.Presets"), WIDE("rt") );
+	file = sack_fopen( 0, "Palette.Presets", "rt" );
 	if( file )
 	{
 		int i;
@@ -273,7 +273,7 @@ static void LoadPresets( PPICK_COLOR_DATA ppcd )
 		for( i = 0; i < 36 && sack_fgets( buf, 64, file ); i++ )
 		{
 			int red, green, blue, alpha;
-			if( tscanf( buf, WIDE("%d,%d,%d,%d\n"), &red, &green, &blue, &alpha ) == 4 )
+			if( tscanf( buf, "%d,%d,%d,%d\n", &red, &green, &blue, &alpha ) == 4 )
 			{
 				ppcd->Presets[i] = AColor( red, green, blue, alpha );
 			}
@@ -299,7 +299,7 @@ static void LoadPresets( PPICK_COLOR_DATA ppcd )
 static void SavePresets( PPICK_COLOR_DATA ppcd )
 {
 	FILE *file;
-	file = sack_fopen( 0, WIDE("Palette.Presets"), WIDE("wt") );
+	file = sack_fopen( 0, "Palette.Presets", "wt" );
 	if( file )
 	{
 		int i;
@@ -467,7 +467,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 	// don't parse the NUL at the end.
 	pf = ParseXMLFrame( palette_frame_xml, sizeof( palette_frame_xml ) - 1 );
 	if( !pf )
-		pf = LoadXMLFrame( WIDE("palette.frame") /*, NULL, PaletteLoad, (uintptr_t)&pcd*/ );;
+		pf = LoadXMLFrame( "palette.frame" /*, NULL, PaletteLoad, (uintptr_t)&pcd*/ );;
 	if( pf )
 	{
 		int i;
@@ -504,7 +504,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 	if( !pf )
 	{
 		PSI_CONTROL pc;
-		pf = CreateFrame( WIDE("Color Select")
+		pf = CreateFrame( "Color Select"
 							 , x - FRAME_WIDTH/2, y - FRAME_HEIGHT/2
 							 , FRAME_WIDTH, FRAME_HEIGHT, BORDER_NORMAL, NULL );
 		if( !pf )
@@ -515,7 +515,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 		pcd.frame = pf;
 		SetFrameUserData( pf, (uintptr_t)&pcd );
 		//MoveFrame( pf, x - FRAME_WIDTH/2, y - FRAME_HEIGHT/2 );
-		pc = MakeNamedControl( pf, WIDE("Color Matrix")
+		pc = MakeNamedControl( pf, "Color Matrix"
 									, 5, 5, xsize, ysize
 									, PAL_COLORS );
 
@@ -524,29 +524,29 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 					 , 18, ysize + 6
 					 , SLD_GREENBAR, SLIDER_VERT, SetGreenLevel, (uintptr_t)&pcd );
 
-		//	MakeTextControl( pf, TEXT_VERTICAL, 8 + xsize + 15, 20, 88, 12, TXT_STATIC, WIDE("Green Level") );
-		pcd.psw = MakeNamedControl( pf, WIDE("Shade Well"), 8 + xsize + 18 + 12, 5
+		//	MakeTextControl( pf, TEXT_VERTICAL, 8 + xsize + 15, 20, 88, 12, TXT_STATIC, "Green Level" );
+		pcd.psw = MakeNamedControl( pf, "Shade Well", 8 + xsize + 18 + 12, 5
 												 , SHADER_WIDTH, ysize
 												 , CST_SHADE );
 
-		pcd.pShadeRed = MakeNamedControl( pf, WIDE("Shade Well"), 8 + xsize + 18 + 12 + (SHADER_WIDTH + SHADER_PAD), 5
+		pcd.pShadeRed = MakeNamedControl( pf, "Shade Well", 8 + xsize + 18 + 12 + (SHADER_WIDTH + SHADER_PAD), 5
 												  , SHADER_WIDTH, ysize
 												  , CST_SHADE_RED );
 
-		pcd.pShadeBlue = MakeNamedControl( pf, WIDE("Shade Well"), 8 + xsize + 18 + 12 + (SHADER_WIDTH + SHADER_PAD)*2, 5
+		pcd.pShadeBlue = MakeNamedControl( pf, "Shade Well", 8 + xsize + 18 + 12 + (SHADER_WIDTH + SHADER_PAD)*2, 5
 													, SHADER_WIDTH, ysize
 													, CST_SHADE_BLUE );
-		pcd.pShadeGreen = MakeNamedControl( pf, WIDE("Shade Well"), 8 + xsize + 18 + 12 + (SHADER_WIDTH + SHADER_PAD)*3, 5
+		pcd.pShadeGreen = MakeNamedControl( pf, "Shade Well", 8 + xsize + 18 + 12 + (SHADER_WIDTH + SHADER_PAD)*3, 5
 													 , SHADER_WIDTH, ysize
 													 , CST_SHADE_GREEN );
 
-		pcd.pcZoom = MakeNamedControl( pf, WIDE("Color Well")
+		pcd.pcZoom = MakeNamedControl( pf, "Color Well"
 											  , 8 + xsize + 18 + 12 + (SHADER_WIDTH+SHADER_PAD)*4, 5
 											  , 2 * SHADER_WIDTH, ysize
 											  , CST_ZOOM
 											  );
 
-		MakeTextControl( pf, 5, ysize + 14, 150, 12, TXT_STATIC, WIDE("User-Defined Colors"), 0 );
+		MakeTextControl( pf, 5, ysize + 14, 150, 12, TXT_STATIC, "User-Defined Colors", 0 );
 		{
 			int i;
 			PSI_CONTROL pc;
@@ -571,16 +571,16 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 		}
 		// button style normal button
 		MakeCheckButton( pf, 5, 235, 95, 19
-							, BTN_PRESET, WIDE("Set Preset")
+							, BTN_PRESET, "Set Preset"
 							, 0, DefinePreset, (uintptr_t)&pcd );
 		MakeCheckButton( pf, 5, 218, 95, 14
-							, CHK_ALPHA, WIDE("Set Alpha")
+							, CHK_ALPHA, "Set Alpha"
 							, 0, AlphaPressed, (uintptr_t)&pcd );
 
 		AddCommonButtons( pf, &pcd.ColorDialogDone, &pcd.ColorDialogOkay );
 		SetShaderControls( &pcd, NULL );
 		SetSliderValues( GetControl( pf, SLD_GREENBAR ), 0, 255-GreenVal( pcd.CurrentColor ), 255 );
-		SaveXMLFrame( pf, WIDE("palette.frame") );
+		SaveXMLFrame( pf, "palette.frame" );
 	}
 	DisplayFrameOver( pf, hAbove );
 	EditFrame( pf, TRUE );
@@ -588,16 +588,16 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 	UnmakeImageFile( pcd.pColorMatrix );
 	if( pcd.ColorDialogOkay )
 	{
-		//SaveFrame( pf, WIDE("palette.frame") );
+		//SaveFrame( pf, "palette.frame" );
 		if( result )
 			*result = pcd.CurrentColor;
-		//lprintf( WIDE("------- Destroy common.") );
+		//lprintf( "------- Destroy common." );
 		DestroyCommon( &pf );
 	  	return TRUE;
 	}
-	//lprintf( WIDE("------- Destroy common.") );
+	//lprintf( "------- Destroy common." );
 	DestroyCommon( &pf );
-	//lprintf( WIDE("Result to application.") );
+	//lprintf( "Result to application." );
 	return FALSE;
 }
 
@@ -622,7 +622,7 @@ static int CPROC ColorWellDraw( PSI_CONTROL pc )
 		CDATA color = pcw->color;
 		if( !AlphaVal( color ) )
 			color = SetAlpha( color, 1 );
-		//lprintf( WIDE("Clear color well surface to %lX"), pcw->color );
+		//lprintf( "Clear color well surface to %lX", pcw->color );
 		ClearImageTo( surface, color );
 	}
 	return TRUE;
@@ -645,11 +645,11 @@ static int CPROC ColorWellMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t 
 			if( !pcw->flags.bPicking )
 			{
 				pcw->flags.bPicking = 1;
-				lprintf( WIDE("PICK_COLOR") );
+				lprintf( "PICK_COLOR" );
 				if( PickColorEx( &result, pcw->color, GetFrame( pc ), x + FRAME_WIDTH, y + FRAME_WIDTH ) )
 				{
-					lprintf( WIDE("PICK_COLOR_DONE") );
-				   lprintf( WIDE("Updating my color to %08")_32fx WIDE(""), result );
+					lprintf( "PICK_COLOR_DONE" );
+				   lprintf( "Updating my color to %08"_32fx "", result );
 					pcw->color = result;
 					if( pcw->UpdateProc )
 				      pcw->UpdateProc( pcw->psvUpdate, result );
@@ -657,8 +657,8 @@ static int CPROC ColorWellMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t 
 				}
 				else
 				{
-					lprintf( WIDE("Failing to set the color..") );
-					lprintf( WIDE("PICK_COLOR_DONE2") );
+					lprintf( "Failing to set the color.." );
+					lprintf( "PICK_COLOR_DONE2" );
 				}
 				//DebugBreak();
 				pcw->flags.bPicking = 0;
@@ -703,7 +703,7 @@ static int CPROC ShadeWellMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t 
 		uint32_t height;
 		Image pSurface = GetControlSurface( pc );
 		height = pSurface->height;
-		//lprintf( WIDE("Setting new mid color... update... ------------------------- ") );
+		//lprintf( "Setting new mid color... update... ------------------------- " );
 		if( SUS_LT( y, int32_t, height/2, uint32_t ) )
 		{
 			c = ScaleColor( psw->color_min, psw->color_mid, height/2, y );
@@ -830,7 +830,7 @@ void CPROC ColorWellDestroy( PSI_CONTROL pc )
 	{
 		if( pcw->flags.bPicking )
 		{
-			lprintf( WIDE("Uhmm need to kill the parent color picking dialog!") );
+			lprintf( "Uhmm need to kill the parent color picking dialog!" );
 		}
 
 	}
@@ -838,7 +838,7 @@ void CPROC ColorWellDestroy( PSI_CONTROL pc )
 
 //----------------------------------------------------------------------------
 
-CONTROL_REGISTRATION color_well = { WIDE("Color Well")
+CONTROL_REGISTRATION color_well = { "Color Well"
 											 , { {32, 32}, sizeof( COLOR_WELL ), BORDER_INVERT|BORDER_THIN }
 											 , InitColorWell
 											 , NULL
@@ -847,7 +847,7 @@ CONTROL_REGISTRATION color_well = { WIDE("Color Well")
 											 , NULL // key
 				                      , ColorWellDestroy // if picking a color, destroy dialog
 },
-shade_well = { WIDE("Shade Well")
+shade_well = { "Shade Well"
 				 , { {32, 32}, sizeof( SHADE_WELL ), BORDER_INVERT|BORDER_THIN }
 											 , InitShadeWell
 											 , NULL
@@ -855,7 +855,7 @@ shade_well = { WIDE("Shade Well")
 											 , ShadeWellMouse
 											 , NULL
 },
-color_matrix_well = { WIDE("Color Matrix")
+color_matrix_well = { "Color Matrix"
 						  , { {xsize, ysize}, 0, BORDER_INVERT|BORDER_THIN }
 											 , InitPalette
 											 , NULL

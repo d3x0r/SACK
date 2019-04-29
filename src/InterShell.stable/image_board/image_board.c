@@ -154,7 +154,7 @@ int KeystrokePaste( PMY_IMAGE image )
                      Image tmpimage;
 							HBITMAP tmphBm = CreateDIBSection (NULL, &bmInfo, DIB_RGB_COLORS, (void **) &pBuffer, NULL,   // hVideo (hMemView)
 																	  0); // offset DWORD multiple
-							//lprintf( WIDE("New drawing surface, remaking the image, dispatch draw event...") );
+							//lprintf( "New drawing surface, remaking the image, dispatch draw event..." );
 							if( !image->image )
 								image->image = MakeImageFile( bmInfo.bmiHeader.biWidth,
 												 bmInfo.bmiHeader.biHeight );

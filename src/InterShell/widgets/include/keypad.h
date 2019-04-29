@@ -39,7 +39,7 @@ typedef struct keypad_struct *PKEYPAD;
 
 KEYPAD_PROC( void, SetNewKeypadFlags )( int newflags );
 // if you call SetNewKeypadFlags with the desired flags, and
-// then invoke a normal MakeNamedControl( WIDE("Keypad Control") ) you will
+// then invoke a normal MakeNamedControl( "Keypad Control" ) you will
 // get the desired results - though not thread safe...
 KEYPAD_PROC(PSI_CONTROL, MakeKeypad )( PSI_CONTROL parent
 												 , int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t ID, uint32_t flags

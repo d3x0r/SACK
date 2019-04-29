@@ -18,7 +18,7 @@ struct grid_reader *GridReader_Open( CTEXTSTR filename_base )
 	struct grid_reader *reader = New( struct grid_reader );
 	reader->filename = StrDup( filename_base );
 
-	tnprintf( filename, 256, WIDE( "%s.gri" ), reader->filename );
+	tnprintf( filename, 256, "%s.gri", reader->filename );
 	reader->file_size = 0;
 	reader->file_data = OpenSpace( NULL, filename, &reader->file_size );
 

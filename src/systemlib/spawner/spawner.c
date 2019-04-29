@@ -65,7 +65,7 @@ void StartTasks( void )
 			task->info = LaunchProgramEx( task->program, task->path, task->args, TaskEnded, (uintptr_t)task );
 		if( !task->info )
 		{
-			lprintf( WIDE("Failed to load task %s (%s in %s)"), task->fluffyname, task->program, task->path );
+			lprintf( "Failed to load task %s (%s in %s)", task->fluffyname, task->program, task->path );
 			UnlinkThing( task );
          if( task->fluffyname )
 				Release( task->fluffyname );
@@ -147,7 +147,7 @@ void SetTaskArguments( PMY_TASK_INFO task, char *args )
 		int count = 0;
 		int lastchar;
 		lastchar = ' '; // auto continue spaces...
-		lprintf( WIDE("Got args: %s"), args );
+		lprintf( "Got args: %s", args );
 		p = args;
 		while( p && p[0] )
 		{
@@ -170,20 +170,20 @@ void SetTaskArguments( PMY_TASK_INFO task, char *args )
 			pp[0] = NULL;
 			while( p[0] )
 			{
-				lprintf( WIDE("check character %c %c"), lastchar, p[0] );
+				lprintf( "check character %c %c", lastchar, p[0] );
 				if( lastchar != ' ' && p[0] == ' ' ) // and there's a space
 				{
 					p[0] = 0;
 					pp[0] = Allocate( strlen( start ) + 1 );
 					pp[0] = StrDup( start );
-					lprintf( WIDE("Copied argument %d %s"), pp - task->args, pp[0] );
+					lprintf( "Copied argument %d %s", pp - task->args, pp[0] );
 					lastchar = ' ';
 					pp++;
 					start = p;
 				}
 				else if( lastchar == ' ' && p[0] != ' ' )
 				{
-					lprintf( WIDE("first char of argument?") );
+					lprintf( "first char of argument?" );
 					lastchar = p[0];
 					start = p;
 				}
@@ -193,7 +193,7 @@ void SetTaskArguments( PMY_TASK_INFO task, char *args )
 				}
 				p++;
 			}
-			lprintf( WIDE("Setting arg %d to %s"), pp - task->args, start );
+			lprintf( "Setting arg %d to %s", pp - task->args, start );
 			if( start )
 			{
 				pp[0] = StrDup( start );
@@ -260,14 +260,14 @@ uintptr_t CPROC TasksLoaded( uintptr_t psv )
 void LoadTasks( void )
 {
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
-	AddConfigurationMethod( pch, WIDE("[%m]"), NewTask );
-	AddConfigurationMethod( pch, WIDE("program=%m"), SetProgramName );
-	AddConfigurationMethod( pch, WIDE("path=%m"), SetProgramPath );
-	AddConfigurationMethod( pch, WIDE("args=%m"), SetProgramArgs );
-	AddConfigurationMethod( pch, WIDE("require=%m"), SetProgramRequirements );
-	AddConfigurationMethod( pch, WIDE("restart=%b"), SetProgramRespawn );
+	AddConfigurationMethod( pch, "[%m]", NewTask );
+	AddConfigurationMethod( pch, "program=%m", SetProgramName );
+	AddConfigurationMethod( pch, "path=%m", SetProgramPath );
+	AddConfigurationMethod( pch, "args=%m", SetProgramArgs );
+	AddConfigurationMethod( pch, "require=%m", SetProgramRequirements );
+	AddConfigurationMethod( pch, "restart=%b", SetProgramRespawn );
 	SetConfigurationEndProc( pch, TasksLoaded );
-	ProcessConfigurationFile( pch, WIDE("startup.ini"), 0 );
+	ProcessConfigurationFile( pch, "startup.ini", 0 );
    DestroyConfigurationHandler( pch );
 }
 
@@ -379,6 +379,6 @@ int main( void )
    if( g.tasks )
 		Sleep( SLEEP_FOREVER );
 	else
-      lprintf( WIDE("Sorry, no tasks defined, nothing loaded, nothing done.") );
+      lprintf( "Sorry, no tasks defined, nothing loaded, nothing done." );
    return 0;
 }

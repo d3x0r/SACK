@@ -67,28 +67,28 @@ void AddFileCopy( CTEXTSTR name )
 		//lprintf( "..." );
 		x[0] = 0;
 		//printf( "Old path: %s\n%s\n", OSALOT_GetEnvironmentVariable( "PATH" ), tmp );
-		if( !StrStr( OSALOT_GetEnvironmentVariable( WIDE("PATH") ), tmp ) )
+		if( !StrStr( OSALOT_GetEnvironmentVariable( "PATH" ), tmp ) )
 		{
 			if( !( pathrchr( tmp ) == tmp || tmp[1] == ':' ) )
 			{
-				TEXTSTR path = (TEXTSTR)OSALOT_GetEnvironmentVariable( WIDE("MY_WORK_PATH") );
+				TEXTSTR path = (TEXTSTR)OSALOT_GetEnvironmentVariable( "MY_WORK_PATH" );
 				size_t len;
 #ifdef WIN32
-#define PATHCHAR WIDE("\\")
+#define PATHCHAR "\\"
 #else
-#define PATHCHAR WIDE("/")
+#define PATHCHAR "/"
 #endif
 				TEXTSTR real_tmp = NewArray( TEXTCHAR, len = StrLen(path) + StrLen( tmp ) + 2 );
 #ifdef _MSC_VER
 #define snwprintf _snwprintf
 #endif
 #ifdef _UNICODE
-				snwprintf( real_tmp, len, WIDE("%s") PATHCHAR WIDE("%s"), path, tmp );
+				snwprintf( real_tmp, len, "%s" PATHCHAR "%s", path, tmp );
 #else
-				snprintf( real_tmp, len, WIDE("%s") PATHCHAR WIDE("%s"), path, tmp );
+				snprintf( real_tmp, len, "%s" PATHCHAR "%s", path, tmp );
 #endif
 				Release( tmp );
-				while( path = (TEXTSTR)StrStr( real_tmp, WIDE("..") ) )
+				while( path = (TEXTSTR)StrStr( real_tmp, ".." ) )
 				{
 					TEXTSTR prior;
 					path[-1] = 0;
@@ -101,7 +101,7 @@ void AddFileCopy( CTEXTSTR name )
 					StrCpyEx( prior, path+2, StrLen( path ) - 1 );
 				}
 				tmp = real_tmp;
-				if( StrStr( OSALOT_GetEnvironmentVariable( WIDE("PATH") ), tmp ) )
+				if( StrStr( OSALOT_GetEnvironmentVariable( "PATH" ), tmp ) )
 				{
 					goto skip_path;
 				}
@@ -112,7 +112,7 @@ void AddFileCopy( CTEXTSTR name )
 			x[0] = ':';
 #endif
 			x[1] = 0;
-			OSALOT_PrependEnvironmentVariable( WIDE("PATH"), tmp );
+			OSALOT_PrependEnvironmentVariable( "PATH", tmp );
 			Release( tmp );
 			//printf( "New path: %s\n", OSALOT_GetEnvironmentVariable( "PATH" ) );
 			fflush( stdout );
@@ -132,9 +132,9 @@ void DoScanFileCopyTree( PFILESOURCE pfs )
 		{
 			ScanFile( pfs );
 			if( pfs->flags.bSystem )
-            ; //fprintf( stderr, WIDE("Skipped system library %s\n"), pfs->name );
+            ; //fprintf( stderr, "Skipped system library %s\n", pfs->name );
 			else if( pfs->flags.bExternal )
-            ; //fprintf( stderr, WIDE("Scanned extern library %s\n"), pfs->name );
+            ; //fprintf( stderr, "Scanned extern library %s\n", pfs->name );
 
 		}
 		DoScanFileCopyTree( pfs->children );
@@ -165,9 +165,9 @@ void copy( TEXTCHAR *src, TEXTCHAR *dst )
 
 		if( filetime <= filetime_dest )
 			return;
-		in = sack_fopen( 0, src, WIDE("rb") );
+		in = sack_fopen( 0, src, "rb" );
 		if( in )
-			out = sack_fopen( 0, dst, WIDE("wb") );
+			out = sack_fopen( 0, dst, "wb" );
 		else
 			out = NULL;
 		if( in && out )
@@ -197,9 +197,9 @@ void DoCopyFileCopyTree( PFILESOURCE pfs, CTEXTSTR dest )
 		if( dest )
 		{
 #ifdef _UNICODE
-			snwprintf( fname, sizeof( fname ), WIDE("%s/%s"), dest, name );
+			snwprintf( fname, sizeof( fname ), "%s/%s", dest, name );
 #else
-			snprintf( fname, sizeof( fname ), WIDE("%s/%s"), dest, name );
+			snprintf( fname, sizeof( fname ), "%s/%s", dest, name );
 #endif
 		}
 		//if( !IsFile( fname ) )

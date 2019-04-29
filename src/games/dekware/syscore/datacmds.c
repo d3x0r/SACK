@@ -80,7 +80,7 @@ int CPROC PARSE( PSENTIENT ps, PTEXT parameters )
 			{
 				PVARTEXT pvt;
 				pvt = VarTextCreate();
-				vtprintf( pvt, WIDE("Device named %s is already open."), GetText( devname ) );
+				vtprintf( pvt, "Device named %s is already open.", GetText( devname ) );
 				EnqueLink( &ps->Command->Output, (POINTER)VarTextGet( pvt ) );
 				VarTextDestroy( &pvt );
 			}
@@ -89,7 +89,7 @@ int CPROC PARSE( PSENTIENT ps, PTEXT parameters )
 		if( ( temp = GetParam( ps, &parameters ) ) )
 		{
 			PDATAPATH pdp;
-			lprintf( WIDE("Opening device handle named: %s"), GetText( devname ) );
+			lprintf( "Opening device handle named: %s", GetText( devname ) );
 			if( ( pdp = OpenDevice( &ps->Data, ps, temp, parameters ) ) )
 			{
 				while( devname->flags & TF_INDIRECT )
@@ -110,7 +110,7 @@ int CPROC PARSE( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 		{
-			DECLTEXT( msg, WIDE("Parse must specify a name (/(parse/open) <name> <device> <options...)") );
+			DECLTEXT( msg, "Parse must specify a name (/(parse/open) <name> <device> <options...)" );
 			EnqueLink( &ps->Command->Output, (PTEXT)&msg );
 		}
 	}
@@ -144,7 +144,7 @@ int CPROC COMMAND( PSENTIENT ps, PTEXT parameters )
 			{
 					 PVARTEXT pvt;
 					 pvt = VarTextCreate();
-					 vtprintf( pvt, WIDE("Device named %s is already open."), GetText( devname ) );
+					 vtprintf( pvt, "Device named %s is already open.", GetText( devname ) );
 					 EnqueLink( &ps->Command->Output, (POINTER)VarTextGet( pvt ) );
 					 VarTextDestroy( &pvt );
 				}
@@ -154,7 +154,7 @@ int CPROC COMMAND( PSENTIENT ps, PTEXT parameters )
 		  {
 			  PDATAPATH pdp;
 
-			  //lprintf( WIDE("Opening device handle named: %s"), GetText( devname ) );
+			  //lprintf( "Opening device handle named: %s", GetText( devname ) );
 			  if( ( pdp = OpenDevice( &ps->Command, ps, temp, parameters ) ) )
 			  {
 				  PTEXT pCommand;
@@ -195,7 +195,7 @@ int CPROC COMMAND( PSENTIENT ps, PTEXT parameters )
 		  }
 		  else
 		  {
-				DECLTEXT( msg, WIDE("Command must specify a name (/command <name> <device> <options...)") );
+				DECLTEXT( msg, "Command must specify a name (/command <name> <device> <options...)" );
 				EnqueLink( &ps->Command->Output, (PTEXT)&msg );
 		  }
 	}
@@ -236,7 +236,7 @@ int CPROC CMD_GETPARTIAL( PSENTIENT ps, PTEXT parameters )
 		{
 			if( temp == pSave )
 			{
-				DECLTEXT( msg, WIDE("Parameter to GetPartial was not a variable reference.") );
+				DECLTEXT( msg, "Parameter to GetPartial was not a variable reference." );
 				EnqueLink( &ps->Command->Output, &msg );
 				return FALSE;
 			}
@@ -267,10 +267,10 @@ int GetInputData( int bWord, PSENTIENT ps, PTEXT parameters )
 		PTEXT pSave, temp;
 		PTEXT *pInd = NULL;
 		pSave = parameters;
-		lprintf( WIDE("Get data from datapath...") );
+		lprintf( "Get data from datapath..." );
 		if( !( ( temp = GetParam( ps, &parameters ) ) ) )
 		{
-			lprintf( WIDE("No parameters specified to get line") );
+			lprintf( "No parameters specified to get line" );
 			LineRelease( ps->pLastResult );
 			ps->pLastResult = NULL;
 			pInd = &ps->pLastResult;
@@ -279,7 +279,7 @@ int GetInputData( int bWord, PSENTIENT ps, PTEXT parameters )
 		{
 			if( temp == pSave )
 			{
-				DECLTEXT( msg, WIDE("is not a valid variable reference.") );
+				DECLTEXT( msg, "is not a valid variable reference." );
 				EnqueLink( &ps->Command->Output, SegAppend( SegDuplicate( temp ), (PTEXT)&msg ) );
 				return FALSE;
 			}
@@ -291,7 +291,7 @@ int GetInputData( int bWord, PSENTIENT ps, PTEXT parameters )
 			}
 			else
 			{
-				DECLTEXT( msg, WIDE("is not a valid variable reference(not indirect).") );
+				DECLTEXT( msg, "is not a valid variable reference(not indirect)." );
 				EnqueLink( &ps->Command->Output, SegAppend( SegDuplicate( temp ), (PTEXT)&msg ) );
 				return FALSE;
 			}
@@ -299,7 +299,7 @@ int GetInputData( int bWord, PSENTIENT ps, PTEXT parameters )
 
 		if( !pInd )
 		{
-			DECLTEXT( msg, WIDE("FATAL ERROR: Did not set pInd (GetLine)") );
+			DECLTEXT( msg, "FATAL ERROR: Did not set pInd (GetLine)" );
 			EnqueLink( &ps->Command->Output, (PTEXT)&msg );
 				return FALSE;
 		  }
@@ -422,7 +422,7 @@ CORE_PROC(int, RelayInput)( PDATAPATH pdp
 		int moved = 0;
 
 		if( gbTrace )
-			xlprintf(LOG_NOISE+1)( WIDE("Relay input from %s to %s..........")
+			xlprintf(LOG_NOISE+1)( "Relay input from %s to %s.........."
 										, GetText( pdp->pPrior->pName )
 										, GetText( pdp->pName ) );
 		do
@@ -433,27 +433,27 @@ CORE_PROC(int, RelayInput)( PDATAPATH pdp
 			}
 			if( IsQueueEmpty( &pdp->pPrior->Input ) )
 				break;
-			//Log( WIDE("Has some input to handle...") );
+			//Log( "Has some input to handle..." );
 			while( ( p = (PTEXT)DequeLink( &pdp->pPrior->Input ) ) )
 			{
 				if( gbTrace )
-					lprintf( WIDE("Data is: %s"), GetText( p ) );
+					lprintf( "Data is: %s", GetText( p ) );
 				if( Datacallback && !( ( p->flags & TF_RELAY ) == TF_RELAY ) )
 				{
-					//lprintf( WIDE("Data callback...") );
+					//lprintf( "Data callback..." );
 					for( p = Datacallback( pdp, p ); p; p = Datacallback( pdp, NULL ) )
 					{
 						moved++;
 						if( p != (POINTER)1 )
 							EnqueLink( &pdp->Input, p );
 						else
-							lprintf( WIDE("Data was consumed by datapath.") );
+							lprintf( "Data was consumed by datapath." );
 					}
 				}
 				else
 				{
 					 PTEXT out = BuildLine( p );
-					 Log1( WIDE("Relay In: %s"), GetText( out ) );
+					 Log1( "Relay In: %s", GetText( out ) );
 					 LineRelease( out );
 					moved++;
 					EnqueLink( &pdp->Input, p );
@@ -461,7 +461,7 @@ CORE_PROC(int, RelayInput)( PDATAPATH pdp
 			}
 			if( gbTrace && !moved && !pdp->pPrior->flags.Closed )
 			{
-				lprintf( WIDE("Did not result in data, try reading source again, rerelay. %s %s"), GetText( pdp->pName ), GetText( pdp->pPrior->pName ) );
+				lprintf( "Did not result in data, try reading source again, rerelay. %s %s", GetText( pdp->pName ), GetText( pdp->pPrior->pName ) );
 			}
 		  } while( !moved &&
 					 !pdp->pPrior->flags.Closed );
@@ -484,14 +484,14 @@ CORE_PROC(int, RelayOutput)( PDATAPATH pdp
 		int moved = 0;
 		PTEXT p;
 		//if( gbTrace )
-		//	lprintf( WIDE("Relay output from %s to %s..........")
+		//	lprintf( "Relay output from %s to %s.........."
 		//			 , GetText( pdp->pName )
 		//			 , GetText( pdp->pPrior->pName )
 		//			 );
 		while( ( p = (PTEXT)DequeLink( &pdp->Output ) ) )
 		{
 			//if( gbTrace )
-			//	lprintf( WIDE("Data is: %s"), GetText( p ) );
+			//	lprintf( "Data is: %s", GetText( p ) );
 			if( Datacallback && !( ( p->flags & TF_RELAY ) == TF_RELAY ) )
 			{
 				for( p = Datacallback( pdp, p ); p; p = Datacallback( pdp, NULL ) )
@@ -503,7 +503,7 @@ CORE_PROC(int, RelayOutput)( PDATAPATH pdp
 			{
 #ifdef _DEBUG
 				//PTEXT out = BuildLine( p );
-				//Log1( WIDE("Relay Out: %s"), GetText( out ) );
+				//Log1( "Relay Out: %s", GetText( out ) );
 				//LineRelease( out );
 #endif
 				EnqueLink( &pdp->pPrior->Output, p );
@@ -524,7 +524,7 @@ CORE_PROC(int, RelayOutput)( PDATAPATH pdp
 			if( gbTrace )
 			{
 				PTEXT pLine = BuildLine( p );
-				lprintf( WIDE("Relay to dev NULL... Data is: %s"), GetText( pLine ) );
+				lprintf( "Relay to dev NULL... Data is: %s", GetText( pLine ) );
 				LineRelease( pLine );
 			}
 			LineRelease( p );

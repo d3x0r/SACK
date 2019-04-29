@@ -260,8 +260,8 @@ int Widget_DoStroke( PCHAT_LIST list, PTEXT stroke )
 {
 	INDEX i;
 	int bOutput = FALSE;
-	DECLTEXT( key, WIDE(" ") );
-	//Log1( WIDE("Do Stroke with %c"), stroke->data.data[0] );
+	DECLTEXT( key, " " );
+	//Log1( "Do Stroke with %c", stroke->data.data[0] );
 	if( list->input.command_mark_start != list->input.command_mark_end )
 	{
 		int n;

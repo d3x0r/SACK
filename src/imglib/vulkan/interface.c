@@ -205,12 +205,12 @@ static void  CPROC DropImageInterface ( PIMAGE_INTERFACE p )
 
 PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
-	RegisterInterface( WIDE("vulkan.image"), (void*(CPROC*)(void))GetImageInterface, (void(CPROC*)(void*))DropImageInterface );
-	RegisterInterface( WIDE("vulkan.image.3d"), GetImage3dInterface, DropImage3dInterface );
-	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Scale"), 10 );
+	RegisterInterface( "vulkan.image", (void*(CPROC*)(void))GetImageInterface, (void(CPROC*)(void*))DropImageInterface );
+	RegisterInterface( "vulkan.image.3d", GetImage3dInterface, DropImage3dInterface );
+	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
 	if( l.scale == 0.0 )
 	{
-		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), WIDE("SACK/Image Library/Inverse Scale"), 2 );
+		l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Inverse Scale", 2 );
 		if( l.scale == 0.0 )
 			l.scale = 1;
 	}

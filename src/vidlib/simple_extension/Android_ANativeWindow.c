@@ -362,20 +362,20 @@ static TEXTCHAR CPROC AndroidANW_GetKeyText		 ( int key )
 	if (!c)
 	{
 		// check prior key bindings...
-		//printf( WIDE("no translation\n") );
+		//printf( "no translation\n" );
 		return 0;
 	}
 	else if (c == 2)
 	{
-		//printf( WIDE("Key Translated: %d %d\n"), ch[0], ch[1] );
+		//printf( "Key Translated: %d %d\n", ch[0], ch[1] );
 		return 0;
 	}
 	else if (c < 0)
 	{
-		//printf( WIDE("Key Translation less than 0\n") );
+		//printf( "Key Translation less than 0\n" );
 		return 0;
 	}
-	//printf( WIDE("Key Translated: %d(%c)\n"), ch[0], ch[0] );
+	//printf( "Key Translated: %d(%c)\n", ch[0], ch[0] );
 	return ch[0];
 #endif
 }
@@ -757,7 +757,7 @@ static Image CPROC AndroidANW_LoadImageFileFromGroupEx( INDEX group, CTEXTSTR fi
 
 static Image CPROC AndroidANW_LoadImageFileEx( CTEXTSTR filename DBG_PASS )
 {
-	return AndroidANW_LoadImageFileFromGroupEx( GetFileGroup( WIDE("Images"), WIDE("./images") ), filename DBG_RELAY );
+	return AndroidANW_LoadImageFileFromGroupEx( GetFileGroup( "Images", "./images" ), filename DBG_RELAY );
 }
 
 
@@ -1126,7 +1126,7 @@ static void CPROC AndroidANW_BlotScaledImageSizedEx( Image pifDest, Image pifSrc
 			}
 			wd = w;
 		}
-		//Log8( WIDE("Blot scaled params: %d %d %d %d / %d %d %d %d "), 
+		//Log8( "Blot scaled params: %d %d %d %d / %d %d %d %d ", 
 		//		 xs, ys, ws, hs, xd, yd, wd, hd );
 		if( ( yd < 0 ) || ( yd +(int32_t)(hd&0x7FFFFFFF) ) > pifDest->height )
 		{
@@ -1913,14 +1913,14 @@ static void CPROC Drop3dProxyImageInterface( POINTER i )
 PRIORITY_PRELOAD( RegisterProxyInterface, VIDLIB_PRELOAD_PRIORITY )
 {
 	InitializeCriticalSec( &l.message_formatter );
-	RegisterInterface( WIDE( "sack.image.proxy.server" ), GetProxyImageInterface, DropProxyImageInterface );
-	RegisterInterface( WIDE( "sack.image.3d.proxy.server" ), Get3dProxyImageInterface, Drop3dProxyImageInterface );
-	RegisterInterface( WIDE( "sack.render.proxy.server" ), GetProxyDisplayInterface, DropProxyDisplayInterface );
-	RegisterInterface( WIDE( "sack.render.3d.proxy.server" ), Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
+	RegisterInterface( "sack.image.proxy.server", GetProxyImageInterface, DropProxyImageInterface );
+	RegisterInterface( "sack.image.3d.proxy.server", Get3dProxyImageInterface, Drop3dProxyImageInterface );
+	RegisterInterface( "sack.render.proxy.server", GetProxyDisplayInterface, DropProxyDisplayInterface );
+	RegisterInterface( "sack.render.3d.proxy.server", Get3dProxyDisplayInterface, Drop3dProxyDisplayInterface );
 #ifdef _WIN32
 	LoadFunction( "bag.image.dll", NULL );
 #endif
-	l.real_interface = (PIMAGE_INTERFACE)GetInterface( WIDE( "sack.image" ) );
+	l.real_interface = (PIMAGE_INTERFACE)GetInterface( "sack.image" );
 
 	InitProxyInterface();
 	// needs sack.image loaded before; fonts are passed to this

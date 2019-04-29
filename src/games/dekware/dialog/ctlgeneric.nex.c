@@ -25,7 +25,7 @@ static int CPROC CustomEditButton( PSI_CONTROL pc )
 
 PRELOAD( RegisterExtraInits )
 {
-	SimpleRegisterMethod( WIDE("psi/control/") WIDE("generic control name") WIDE("/rtti")
-							  , CustomEditButton, WIDE("int"), WIDE("extra init"), WIDE("(PSI_CONTROL)") );
+	SimpleRegisterMethod( "psi/control/" "generic control name" "/rtti"
+							  , CustomEditButton, "int", "extra init", "(PSI_CONTROL)" );
 }
 

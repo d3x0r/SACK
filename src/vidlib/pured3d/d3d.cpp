@@ -132,13 +132,13 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 			} msg;
 			msg.hVideo = hVideo;
 			msg.nFracture = nFracture;
-			//lprintf( WIDE("Sending redraw for fracture %d on vid %p"), nFracture, hVideo );
+			//lprintf( "Sending redraw for fracture %d on vid %p", nFracture, hVideo );
 			//SendServiceEvent( local_vidlib.dwMsgBase + MSG_RedrawFractureMethod, &msg, sizeof( msg ) );
 		}
 	}
 	hVideo->nFractures++;
 #endif
-	//lprintf( WIDE("And here I might want to update the video, hope someone else does for me.") );
+	//lprintf( "And here I might want to update the video, hope someone else does for me." );
 	return nFracture + 1;
 }
 
@@ -172,7 +172,7 @@ int InitD3D( struct display_camera *camera )										// All Setup For OpenGL Go
 	if( !camera->flags.init )
 	{
 		BeginVisPersp( camera );
-		lprintf( WIDE("First GL Init Done.") );
+		lprintf( "First GL Init Done." );
 		camera->flags.init = 1;
 		camera->hVidCore->flags.bReady = TRUE;
 	}

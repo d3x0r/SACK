@@ -48,7 +48,7 @@ void DrawHotSpotsEx( PSI_CONTROL pf, PEDIT_STATE pEditState, PSI_CONTROL pcChild
 	if( !pEditState->flags.bHotSpotsActive )
 		return;
 #ifdef HOTSPOT_DEBUG
-	lprintf( WIDE("Drawing hotspots. %d,%d"), pEditState->bias[0], pEditState->bias[1] );
+	lprintf( "Drawing hotspots. %d,%d", pEditState->bias[0], pEditState->bias[1] );
 #endif
 	if( !pcChild || pcChild == pEditState->pCurrent ) {
 		for( n = 0; n < 9; n++ ) {
@@ -82,14 +82,14 @@ void SetupHotSpots( PEDIT_STATE pEditState )
 			bias_x += pCom->surface_rect.x;
 			bias_y += pCom->surface_rect.y;
 #ifdef HOTSPOT_DEBUG
-			lprintf( WIDE("Bias is %d,%d"), bias_x, bias_y );
+			lprintf( "Bias is %d,%d", bias_x, bias_y );
 #endif
 			if( pCom && pCom->parent )
 			{
 				bias_x += pCom->rect.x;
 				bias_y += pCom->rect.y;
 #ifdef HOTSPOT_DEBUG
-				lprintf( WIDE("Bias IS %d,%d"), bias_x, bias_y );
+				lprintf( "Bias IS %d,%d", bias_x, bias_y );
 #endif
 			}
 			pCom = pCom->parent;
@@ -98,7 +98,7 @@ void SetupHotSpots( PEDIT_STATE pEditState )
 		pEditState->bias[0] = bias_x - (SPOT_SIZE);
 		pEditState->bias[1] = bias_y - (SPOT_SIZE);
 #ifdef HOTSPOT_DEBUG
-		lprintf( WIDE("Setup hotspots for control %p (%d,%d)")
+		lprintf( "Setup hotspots for control %p (%d,%d)"
 				, pEditState->pCurrent
 				, pEditState->bias[0], pEditState->bias[1] );
 #endif
@@ -128,7 +128,7 @@ void SetupHotSpots( PEDIT_STATE pEditState )
 			for( n = 0; n < 9; n++ )
 			{
 #ifdef HOTSPOT_DEBUG
-				lprintf( WIDE("Hotspot %d is %d,%d")
+				lprintf( "Hotspot %d is %d,%d"
 						, n
 						, pEditState->hotspot[n][0]
 						, pEditState->hotspot[n][1] );
@@ -152,17 +152,17 @@ static int MouseInHotSpot( PEDIT_STATE pEditState, int x, int y DBG_PASS )
 	if( !pEditState->flags.bActive || !pEditState->flags.bHotSpotsActive )
 		return 0;
 #ifdef HOTSPOT_DEBUG
-	_xlprintf( 1 DBG_RELAY )( WIDE("Detecting mouse at %d,%d in spot..."), x, y );
-	lprintf( WIDE("			mouse at %d,%d in spot..."), x, y );
+	_xlprintf( 1 DBG_RELAY )( "Detecting mouse at %d,%d in spot...", x, y );
+	lprintf( "			mouse at %d,%d in spot...", x, y );
 #endif
 	if( pEditState->flags.fLocked )
 	{
 		int delx = x - pEditState->_x;
 		int dely = y - pEditState->_y;
 #ifdef HOTSPOT_DEBUG
-		lprintf( WIDE("x %d y %d"), x, y );
-		lprintf( WIDE("pesx %d pesy %d"), pEditState->_x, pEditState->_y);
-		lprintf( WIDE("delx %d dely %d"), delx, dely );
+		lprintf( "x %d y %d", x, y );
+		lprintf( "pesx %d pesy %d", pEditState->_x, pEditState->_y);
+		lprintf( "delx %d dely %d", delx, dely );
 #endif
 		if( delx > 0 )
 			pEditState->delxaccum ++;
@@ -173,7 +173,7 @@ static int MouseInHotSpot( PEDIT_STATE pEditState, int x, int y DBG_PASS )
 		else if( dely < 0 )
 			pEditState->delyaccum--;
 #ifdef HOTSPOT_DEBUG
-		lprintf( WIDE("delxacc %d delyacc %d")
+		lprintf( "delxacc %d delyacc %d"
 				, pEditState->delxaccum
 				, pEditState->delyaccum );
 #endif
@@ -184,14 +184,14 @@ static int MouseInHotSpot( PEDIT_STATE pEditState, int x, int y DBG_PASS )
 			|| pEditState->delyaccum >= LOCK_THRESHOLD )
 		{
 #ifdef HOTSPOT_DEBUG
-			lprintf( WIDE("excessive threshold, unlock.") );
+			lprintf( "excessive threshold, unlock." );
 #endif
 			//return 0;// pEditState->flags.fLocked = FALSE;
 		}
 		else
 		{
 #ifdef HOTSPOT_DEBUG
-			lprintf( WIDE("remain in same spot") );
+			lprintf( "remain in same spot" );
 #endif
 			return pEditState->flags.fLocked;
 		}
@@ -204,7 +204,7 @@ static int MouseInHotSpot( PEDIT_STATE pEditState, int x, int y DBG_PASS )
 			( pEditState->hotspot[n][1] + SPOT_SIZE ) >= y )
 		{
 #ifdef HOTSPOT_DEBUG
-			_xlprintf( 1 DBG_RELAY )( WIDE("Detected mouse at %d,%d in spot %d"), x, y, n );
+			_xlprintf( 1 DBG_RELAY )( "Detected mouse at %d,%d in spot %d", x, y, n );
 #endif
 			{
 				pEditState->_x = pEditState->hotspot[n][0];
@@ -215,7 +215,7 @@ static int MouseInHotSpot( PEDIT_STATE pEditState, int x, int y DBG_PASS )
 			return n + 1;
 		}
 	}
-	//_xlprintf( 1 DBG_RELAY )( WIDE("No spot at %d,%d..."), x, y );
+	//_xlprintf( 1 DBG_RELAY )( "No spot at %d,%d...", x, y );
 
 	return 0;
 }
@@ -225,7 +225,7 @@ static int CPROC EditControlKeyProc( PSI_CONTROL pc, uint32_t key )
 {
 	PPHYSICAL_DEVICE pf = GetFrame(pc)->device;
 #ifdef HOTSPOT_DEBUG
-	lprintf( WIDE("Edit control key proc...") );
+	lprintf( "Edit control key proc..." );
 #endif
 	//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, pc );
 	if( pf )
@@ -294,7 +294,7 @@ void SetCommonFocus( PSI_CONTROL pc )
 		if( pf )
 			ForceDisplayFocus( pf->pActImg );
 #ifdef DEBUG_FOCUS
-		lprintf( WIDE("Set common focus... to control %p (%d)"), pc, pc->nType );
+		lprintf( "Set common focus... to control %p (%d)", pc, pc->nType );
 #endif
 		if( pc && pf &&
 			( pf->pFocus != pc ) ) // already is focus...
@@ -317,12 +317,12 @@ void SetCommonFocus( PSI_CONTROL pc )
 				if( test )
 				{
 #ifdef DEBUG_FOCUS
-					lprintf( WIDE("Prior focused thing is the parent of control being focused.") );
+					lprintf( "Prior focused thing is the parent of control being focused." );
 #endif
 				}
 #ifdef DEBUG_FOCUS
 				else
-					lprintf( WIDE("Prior is not parent of control being focused...") );
+					lprintf( "Prior is not parent of control being focused..." );
 #endif
 				if( !test && pf->pFocus )
 				{
@@ -330,7 +330,7 @@ void SetCommonFocus( PSI_CONTROL pc )
 					InvokeSingleMethod( pf->pFocus, ChangeFocus, (pf->pFocus, FALSE) );
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("Clearing prior focus, telling control to draw itself...") );
+						lprintf( "Clearing prior focus, telling control to draw itself..." );
 #endif
 #ifdef DEBUG_MOUSE_SMUDGE
 					lprintf( "------------- SMUDGE OLD CONTROL THAT WAS FOCUSED...." );
@@ -346,8 +346,8 @@ void SetCommonFocus( PSI_CONTROL pc )
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
 				{
-					lprintf( WIDE("Instruct control to draw itself...") );
-					lprintf( WIDE("This should probably just refresh the border... well focus causes display phenomenoon...") );
+					lprintf( "Instruct control to draw itself..." );
+					lprintf( "This should probably just refresh the border... well focus causes display phenomenoon..." );
 				}
 #endif
 				InvokeSingleMethod( pf->pFocus, ChangeFocus, (pf->pFocus, TRUE) );
@@ -356,14 +356,14 @@ void SetCommonFocus( PSI_CONTROL pc )
 #ifdef DETAILED_MOUSE_DEBUG
 			else if( g.flags.bLogDetailedMouse )
 			{
-				lprintf( WIDE("Control is disabled or has no focus?") );
+				lprintf( "Control is disabled or has no focus?" );
 			}
 #endif
 		}
 #ifdef DETAILED_MOUSE_DEBUG
 		else if( g.flags.bLogDetailedMouse )
 		{
-			lprintf( WIDE("%p or %p is null or %p == %p"), pf, pc, pf, pc );
+			lprintf( "%p or %p is null or %p == %p", pf, pc, pf, pc );
 		}
 #endif
 	}
@@ -383,7 +383,7 @@ void AddUseEx( PSI_CONTROL pc DBG_PASS )
 {
 	pc->InUse++;
 #ifdef DEBUG_ADD_DELETEUSE
-	_xlprintf( 2 DBG_RELAY )( WIDE("(A)Use count is %d %p"), pc->InUse, pc );
+	_xlprintf( 2 DBG_RELAY )( "(A)Use count is %d %p", pc->InUse, pc );
 	if( pc->flags.bDirty )
 	{
 		lprintf( "----==-=-=-=-=--==  was already dirt at add use!" );
@@ -398,7 +398,7 @@ void DeleteUseEx( PSI_CONTROL *pc DBG_PASS )
 	if( pc && *pc )
 	{
 #ifdef DEBUG_ADD_DELETEUSE
-		_xlprintf( 2 DBG_RELAY )( WIDE("(D)Use count is %d %p"), (*pc)->InUse, (*pc) );
+		_xlprintf( 2 DBG_RELAY )( "(D)Use count is %d %p", (*pc)->InUse, (*pc) );
 #endif
 		if( ((*pc)->InUse - (*pc)->NotInUse )== 1 )
 		{
@@ -412,13 +412,13 @@ void DeleteUseEx( PSI_CONTROL *pc DBG_PASS )
 				{
 					if( parent->flags.bDirty )
 						parent->parent->flags.children_cleaned = 0;
-					//lprintf( WIDE("Final use check - is %p dirty?!"), parent );
+					//lprintf( "Final use check - is %p dirty?!", parent );
 					//if( parent->flags.bDirty )
 					//	update = parent;
 					parent = parent->parent;
 				}
 #ifdef DEBUG_ADD_DELETEUSE
-				lprintf( WIDE("Begin Update topmost parent from deleteUse: %p"), (parent) );
+				lprintf( "Begin Update topmost parent from deleteUse: %p", (parent) );
 				//#endif
 #endif
 				//if( update )
@@ -442,7 +442,7 @@ void DeleteUseEx( PSI_CONTROL *pc DBG_PASS )
 	}
 	else
 	{
-		_xlprintf( 2 DBG_RELAY )( WIDE("Use delete for invalid control!") );
+		_xlprintf( 2 DBG_RELAY )( "Use delete for invalid control!" );
 	}
 }
 
@@ -489,14 +489,14 @@ static void OwnCommonMouse( PSI_CONTROL pc, int bOwn )
 	PPHYSICAL_DEVICE pf = pfc->device;
 //#ifdef DETAILED_MOUSE_DEBUG
 //	if( g.flags.bLogDetailedMouse )
-		//lprintf( WIDE( "Own Common Mouse called on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
+		//lprintf( "Own Common Mouse called on %p %s", pc, bOwn?"OWN":"release" );
 //#endif
 	if( pf )
 	{
 		if( ( !bOwn && ( pf->flags.bCurrentOwns ) )
 			|| ( bOwn && !( pf->flags.bCurrentOwns ) ) )
 		{
-			//_lprintf(DBG_VOIDRELAY)( WIDE( "Own Common Mouse performed on %p %s" ), pc, bOwn?WIDE( "OWN" ):WIDE( "release" ) );
+			//_lprintf(DBG_VOIDRELAY)( "Own Common Mouse performed on %p %s", pc, bOwn?"OWN":"release" );
 			if( bOwn )
 			{
 				//pf->pCurrent = pc;
@@ -524,7 +524,7 @@ void AddWaitEx( PSI_CONTROL pc DBG_PASS )
 {
 	pc->InWait++;
 #ifdef DEBUG_ADD_DELETEUSE
-	_xlprintf( 2 DBG_RELAY )( WIDE("Use count is %d %p"), pc->InWait, pc );
+	_xlprintf( 2 DBG_RELAY )( "Use count is %d %p", pc->InWait, pc );
 #endif
 }
 
@@ -535,7 +535,7 @@ void DeleteWaitEx( PSI_CONTROL *pc DBG_PASS )
 	if( pc && *pc )
 	{
 #ifdef DEBUG_ADD_DELETEUSE
-		_xlprintf( 2 DBG_RELAY )( WIDE("Use count is %d %p"), (*pc)->InWait, (*pc) );
+		_xlprintf( 2 DBG_RELAY )( "Use count is %d %p", (*pc)->InWait, (*pc) );
 #endif
 		if( !(--(*pc)->InWait) && !(*pc)->InUse )
 		{
@@ -545,7 +545,7 @@ void DeleteWaitEx( PSI_CONTROL *pc DBG_PASS )
 	}
 	else
 	{
-		_xlprintf( 2 DBG_RELAY )( WIDE("Use delete for invalid control!") );
+		_xlprintf( 2 DBG_RELAY )( "Use delete for invalid control!" );
 	}
 }
 
@@ -569,13 +569,13 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 	_bias[0] = pf->CurrentBias.x;
 	_bias[1] = pf->CurrentBias.y;
 	//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, pfc );
-//	lprintf( WIDE("So the input to FindControl x, y look like they are biased to THIS control? %d,%d"), x, y );
+//	lprintf( "So the input to FindControl x, y look like they are biased to THIS control? %d,%d", x, y );
 
 	if( !pc )
 	{
 #ifdef SUPER_DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogSuperDetailedMouse )
-			lprintf( WIDE("No child control start found.") );
+			lprintf( "No child control start found." );
 #endif
 		return NULL;
 	}
@@ -585,7 +585,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 		{
 #ifdef SUPER_DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogSuperDetailedMouse )
-				lprintf( WIDE("Skipping hidden control...") );
+				lprintf( "Skipping hidden control..." );
 #endif
 			continue;
 		}
@@ -593,7 +593,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 		y = _y - pc->rect.y;
 #ifdef SUPER_DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogSuperDetailedMouse )
-			lprintf( WIDE("%d,%d (%d,%d) Control %p rect = (%d,%d)  (%d,%d)")
+			lprintf( "%d,%d (%d,%d) Control %p rect = (%d,%d)  (%d,%d)"
 					, x, y
 					, _x, _y
 					, pc,pc->rect.x, pc->rect.y
@@ -607,7 +607,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("Setting bias to input %d,%d  ... plus %d,%d")
+				lprintf( "Setting bias to input %d,%d  ... plus %d,%d"
 						, _bias[0], _bias[1]
 						, pc->rect.x, pc->rect.y );
 #endif
@@ -618,7 +618,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 			__y = y;
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("Okay coordinate within a control...") );
+				lprintf( "Okay coordinate within a control..." );
 #endif
 			x -= pc->surface_rect.x;
 			y -= pc->surface_rect.y;
@@ -629,7 +629,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("Adding the surface of the thing to the bias... %d,%d"), pc->surface_rect.x, pc->surface_rect.y );
+					lprintf( "Adding the surface of the thing to the bias... %d,%d", pc->surface_rect.x, pc->surface_rect.y );
 #endif
 				pf->CurrentBias.flags.bias_is_surface = 1;
 				pf->CurrentBias.x += pc->surface_rect.x;
@@ -638,14 +638,14 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 				// this control which actually gets mouse....
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("Coordinate within surface of control even...") );
+					lprintf( "Coordinate within surface of control even..." );
 #endif
 				if( pc->child )
 				{
 					PSI_CONTROL child;
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("To find a child control... at %d,%d "), x, y );
+						lprintf( "To find a child control... at %d,%d ", x, y );
 #endif
 					child = FindControl( pfc, pc->child
 											, x, y
@@ -654,13 +654,13 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
-							lprintf( WIDE("Returning a child control...") );
+							lprintf( "Returning a child control..." );
 #endif
 						return child;
 					}
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("So this control is THE control, no child.") );
+						lprintf( "So this control is THE control, no child." );
 #endif
 				}
 				// otherwise, this control is now the primary owner...
@@ -670,7 +670,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("Coordinate NOT within the surface...but definatly in control") );
+					lprintf( "Coordinate NOT within the surface...but definatly in control" );
 #endif
 				//continue;
 			}
@@ -682,7 +682,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 			// pfc may be equal to pf...
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				Log( WIDE("Now setting pCurrent on frame...") );
+				Log( "Now setting pCurrent on frame..." );
 #endif
 			//bias[0] = _bias[0];
 			//bias[1] = _bias[1];
@@ -691,7 +691,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("Setting focus...") );
+					lprintf( "Setting focus..." );
 #endif
 				SetCommonFocus( pc );
 				OwnCommonMouse( pc, TRUE );
@@ -717,7 +717,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 				// to use 'parent_non_private' instead of 'pc' but I was lazy and clever tonight.
 				PSI_CONTROL pc = parent_non_private;
 #ifdef HOTSPOT_DEBUG
-				lprintf( WIDE("edit state active... do some stuff... "));
+				lprintf( "edit state active... do some stuff... ");
 #endif
 				if( pc->nType &&  // don't set focus to the frame...
 					(PSI_CONTROL)pc != pf->EditState.pCurrent )
@@ -726,13 +726,13 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 					SetupHotSpots( &pf->EditState );
 					// setup which spot we're in now.
 #ifdef HOTSPOT_DEBUG
-					lprintf( WIDE("New hot spot check... %d,%d"), _x, _y );
+					lprintf( "New hot spot check... %d,%d", _x, _y );
 #endif
 					pf->EditState.flags.fLocked = MouseInHotSpot( &pf->EditState
 																			 , _x
 																			 , _y );
 #ifdef EDIT_MOUSE_DEBUG
-					Log( WIDE("And now we draw new spots...") );
+					Log( "And now we draw new spots..." );
 #endif
 					// hotspots have to be drawn on the frame, so they have to be refreshed on the frame
 					SmudgeCommon( pf->common );
@@ -740,7 +740,7 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 					{
 						// override the current key proc so arrows work...
 #ifdef HOTSPOT_DEBUG
-						lprintf( WIDE("overriding key method.") );
+						lprintf( "overriding key method." );
 #endif
 						pf->EditState.n_KeyProc = pf->EditState.pCurrent->n_KeyProc;
 						pf->EditState._KeyProc = pf->EditState.pCurrent->_KeyProc;
@@ -853,7 +853,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					Log( WIDE("Setting size frame on bottom edge") );
+					Log( "Setting size frame on bottom edge" );
 #endif
 				if( do_drag )
 				{
@@ -956,7 +956,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 
 #if defined DETAILED_MOUSE_DEBUG //|| defined EDIT_MOUSE_DEBUG
 	if( g.flags.bLogDetailedMouse )
-		lprintf( WIDE("Mouse Event: %p %d %d %d"), pf, x, y, b );
+		lprintf( "Mouse Event: %p %d %d %d", pf, x, y, b );
 #endif
 
 
@@ -965,9 +965,9 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 	{
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
-			lprintf( WIDE("Continued down on left button") );
+			lprintf( "Continued down on left button" );
 #endif
-		//lprintf( WIDE("continued mouse down...") );
+		//lprintf( "continued mouse down..." );
 		if( pc->pressed_caption_button )
 		{
 			if( ( x < pc->pressed_caption_button->offset )
@@ -977,7 +977,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 				)
 			{
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("outside of button...") );
+					lprintf( "outside of button..." );
 				if( pc->pressed_caption_button->is_pressed )
 				{
 					int y = FrameCaptionYOfs( pc, pc->BorderType );
@@ -992,7 +992,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 			else
 			{
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("inside of button...") );
+					lprintf( "inside of button..." );
 				if( !pc->pressed_caption_button->is_pressed )
 				{
 					int y = FrameCaptionYOfs( pc, pc->BorderType );
@@ -1016,8 +1016,8 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
 			{
-				lprintf( WIDE("Still dragging frame at %d,%d"), winx, winy );
-				lprintf( WIDE("moving to %d,%d(%d,%d)"), dx, dy, x - pf->drag_x, y - pf->drag_y );
+				lprintf( "Still dragging frame at %d,%d", winx, winy );
+				lprintf( "moving to %d,%d(%d,%d)", dx, dy, x - pf->drag_x, y - pf->drag_y );
 			}
 #endif
 			MoveDisplay( pf->pActImg, dx, dy );
@@ -1031,7 +1031,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 			int dy = y - pf->_y;
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("sizing by %d,%d"), dx, dy );
+				lprintf( "sizing by %d,%d", dx, dy );
 #endif
 			pc->flags.bResizedDirty = 1;
 			if( pf->flags.bSizing_left )
@@ -1082,7 +1082,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 				{
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						Log( WIDE("Sizing without a border!") );
+						Log( "Sizing without a border!" );
 #endif
 					pf->flags.bSizing = 0;
 				}
@@ -1095,7 +1095,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("Not moving, not sizing, pass mouse through...") );
+				lprintf( "Not moving, not sizing, pass mouse through..." );
 #endif
 			InvokeResultingMethod( result, pc, _MouseMethod, (pc
 														, x - pc->surface_rect.x
@@ -1107,7 +1107,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 	{
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
-			lprintf( WIDE("left is not down...") );
+			lprintf( "left is not down..." );
 #endif
 		OwnCommonMouse( pc, 0 );
 		if( ( x > pc->surface_rect.x && x < (int)( pc->surface_rect.x + pc->surface_rect.width ) )
@@ -1206,11 +1206,11 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 		int caption_height = CaptionHeight( pc, GetText( pc->caption.text ) );
 		int frame_height = FrameBorderYOfs( pc, pc->BorderType, NULL );
 
-		 //Log( WIDE("No control, and last state was not pressed.") );
+		 //Log( "No control, and last state was not pressed." );
 		OwnCommonMouse( pc, 1 );
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
-			lprintf( WIDE("First left down (%d,%d) %08x"), x, y , b );
+			lprintf( "First left down (%d,%d) %08x", x, y , b );
 #endif
 		if( pc->BorderType & BORDER_RESIZABLE )
 		{
@@ -1227,7 +1227,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 						 {
 #ifdef DETAILED_MOUSE_DEBUG
 							 if( g.flags.bLogDetailedMouse )
-								 Log( WIDE("Setting size frame on top/left edge") );
+								 Log( "Setting size frame on top/left edge" );
 #endif
 								pf->flags.bSizing_top = 1;
 								pf->flags.bSizing_left = 1;
@@ -1239,7 +1239,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 						{
 #ifdef DETAILED_MOUSE_DEBUG
 							 if( g.flags.bLogDetailedMouse )
-								 Log( WIDE("Setting size frame on top/right edge") );
+								 Log( "Setting size frame on top/right edge" );
 #endif
 								pf->flags.bSizing_top = 1;
 								pf->flags.bSizing_right = 1;
@@ -1250,7 +1250,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 						{
 #ifdef DETAILED_MOUSE_DEBUG
 							 if( g.flags.bLogDetailedMouse )
-								 Log( WIDE("Setting size frame on top edge") );
+								 Log( "Setting size frame on top edge" );
 #endif
 							if( do_drag )
 							{
@@ -1272,7 +1272,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 						 {
 #ifdef DETAILED_MOUSE_DEBUG
 							 if( g.flags.bLogDetailedMouse )
-								 Log( WIDE("Setting size frame on left edge(caption)") );
+								 Log( "Setting size frame on left edge(caption)" );
 #endif
 								pf->flags.bSizing_left = 1;
 								pf->flags.bSizing_top = 1;
@@ -1284,7 +1284,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 							{
 #ifdef DETAILED_MOUSE_DEBUG
 								if( g.flags.bLogDetailedMouse )
-									Log( WIDE("Setting size frame on right edge(caption)") );
+									Log( "Setting size frame on right edge(caption)" );
 #endif
 								pf->flags.bSizing_right = 1;
 								pf->flags.bSizing_top = 1;
@@ -1296,7 +1296,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 								int on_button = 0;
 #ifdef DETAILED_MOUSE_DEBUG
 								if( g.flags.bLogDetailedMouse )
-									Log( WIDE("Setting drag frame on caption") );
+									Log( "Setting drag frame on caption" );
 #endif
 								if( !on_button && pc->caption_buttons )
 								{
@@ -1346,7 +1346,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
-							Log( WIDE("Setting size frame on left/bottom edge") );
+							Log( "Setting size frame on left/bottom edge" );
 #endif
 						 pf->flags.bSizing_left = 1;
 						 pf->flags.bSizing_bottom = 1;
@@ -1358,7 +1358,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
-							Log( WIDE("Setting size frame on right/bottom edge") );
+							Log( "Setting size frame on right/bottom edge" );
 #endif
 						 pf->flags.bSizing_right = 1;
 						 pf->flags.bSizing_bottom = 1;
@@ -1369,7 +1369,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
-							Log( WIDE("Setting size frame on bottom edge") );
+							Log( "Setting size frame on bottom edge" );
 #endif
 						if( do_drag )
 						{
@@ -1404,7 +1404,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
-							Log( WIDE("Setting size frame on left edge") );
+							Log( "Setting size frame on left edge" );
 #endif
 						if( do_drag )
 						{
@@ -1424,7 +1424,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
-							Log( WIDE("Setting size frame on right edge") );
+							Log( "Setting size frame on right edge" );
 #endif
 						if( do_drag )
 						{
@@ -1461,7 +1461,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 				// if within the surface, then forward to the real mouse proc...
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("dispatching mouse to frame mouse method %d,%d biased %d,%d"), x, y
+					lprintf( "dispatching mouse to frame mouse method %d,%d biased %d,%d", x, y
 							, pc->surface_rect.x
 							, pc->surface_rect.y );
 #endif
@@ -1511,7 +1511,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 					// otherwise set dragging... hmm
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("Set drag on frame to %d,%d"), x, y );
+						lprintf( "Set drag on frame to %d,%d", x, y );
 #endif
 					pf->_x = x;
 					pf->_y = y;
@@ -1532,7 +1532,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 		}
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
-			Log( WIDE("release button drag frame on caption") );
+			Log( "release button drag frame on caption" );
 #endif
 		if( !on_button && pc->caption_buttons )
 		{
@@ -1564,7 +1564,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 		}
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
-			lprintf( WIDE("unhandled mouse state... see if there's a method") );
+			lprintf( "unhandled mouse state... see if there's a method" );
 #endif
 		if( pc->BorderType & BORDER_WANTMOUSE )
 			InvokeResultingMethod( result, pc, _MouseMethod, (pc
@@ -1612,7 +1612,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 	int spot;
 	if( !pf )
 		return 0;
-	//lprintf( WIDE("handle edit mouse state at %d,%d"), x, y );
+	//lprintf( "handle edit mouse state at %d,%d", x, y );
 	if( pEditState->flags.bActive )
 	{
 		int dx = (x-(pEditState->bias[0]/*+pfc->surface_rect.x*/)) - pEditState->_x
@@ -1621,7 +1621,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				Log( WIDE("Having dragging set...") );
+				Log( "Having dragging set..." );
 #endif
 			if( BREAK_LASTBUTTON( b, pf->_b ) )
 			{
@@ -1632,9 +1632,9 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					Log( WIDE("Moving control..") );
+					Log( "Moving control.." );
 #endif
-				//lprintf( WIDE("moving control by %d,%d  (%d,%d)"), dx, dy, x, y );
+				//lprintf( "moving control by %d,%d  (%d,%d)", dx, dy, x, y );
 				MoveControlRel( pEditState->pCurrent
 								 , dx, dy );
 				spot = pEditState->flags.fLocked;
@@ -1653,7 +1653,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 			}
 			else
 			{
-				//lprintf( WIDE("sizing control by %d,%d %d,%d %d,%d  (%d,%d)")
+				//lprintf( "sizing control by %d,%d %d,%d %d,%d  (%d,%d)"
 				//		, x, y
 				//		 , pEditState->_x, pEditState->_y
 				//		, dx, dy
@@ -1705,7 +1705,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 					}
 				}
 #ifdef HOTSPOT_DEBUG
-				lprintf( WIDE("Set edit mouse to %d,%d"), x, y );
+				lprintf( "Set edit mouse to %d,%d", x, y );
 #endif
 				SetupHotSpots( pEditState );
 				pEditState->_x = pEditState->hotspot[pEditState->flags.fLocked-1][0];
@@ -1733,7 +1733,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 			{
 				// spot has changed.
 #ifdef HOTSPOT_DEBUG
-				Log( WIDE("Mark changed spots...") );
+				Log( "Mark changed spots..." );
 #endif
 				pEditState->flags.fLocked = spot;
 				DrawHotSpotsEx( pfc, pEditState, NULL DBG_SRC );
@@ -1742,7 +1742,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					Log( WIDE("Checking edit state op based on current spot...") );
+					Log( "Checking edit state op based on current spot..." );
 #endif
 				if( pEditState->flags.bActive )
 				{
@@ -1758,11 +1758,11 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 					else if( spot )
 					{
 #ifdef HOTSPOT_DEBUG
-						lprintf( WIDE("Set edit mouse to %d,%d"), x, y );
+						lprintf( "Set edit mouse to %d,%d", x, y );
 #endif
 						pEditState->_x = pEditState->hotspot[pEditState->flags.fLocked-1][0];
 						pEditState->_y = pEditState->hotspot[pEditState->flags.fLocked-1][1];
-						//Log( WIDE("Setting spot operation...") );
+						//Log( "Setting spot operation..." );
 						pEditState->flags.bSizing_left = 0;
 						pEditState->flags.bSizing_right = 0;
 						pEditState->flags.bSizing_top = 0;
@@ -1790,7 +1790,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 						case 5:
 #ifdef DETAILED_MOUSE_DEBUG
 							if( g.flags.bLogDetailedMouse )
-								Log( WIDE("Setting dragging...") );
+								Log( "Setting dragging..." );
 #endif
 							pEditState->flags.bDragging = 1;
 							break;
@@ -1831,7 +1831,7 @@ int HandleEditStateMouse( PEDIT_STATE pEditState
 #ifdef HOTSPOT_DEBUG
  		else
 		{
-			lprintf( WIDE("not locked.") );
+			lprintf( "not locked." );
 		}
 #endif
 	}
@@ -1851,7 +1851,7 @@ int InvokeMouseMethod( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t b )
 		return 0;
 #ifdef DETAILED_MOUSE_DEBUG
 	if( g.flags.bLogDetailedMouse )
-		lprintf( WIDE("mouse method received on %p"), pfc );
+		lprintf( "mouse method received on %p", pfc );
 #endif
 
 	pCurrent = pf->pCurrent;
@@ -1863,7 +1863,7 @@ int InvokeMouseMethod( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t b )
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("**** Calling frame's mouse... (%d,%d,%08x)"), x, y, b );
+				lprintf( "**** Calling frame's mouse... (%d,%d,%08x)", x, y, b );
 #endif
 			AddUse( pfc );
 			result = FirstFrameMouse( pf, x, y, b, TRUE );
@@ -1876,7 +1876,7 @@ int InvokeMouseMethod( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t b )
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("calling current, perhaps owned, mouseproc %p"), pCurrent );
+					lprintf( "calling current, perhaps owned, mouseproc %p", pCurrent );
 #endif
 				AddUse( pCurrent );
 				pfc->NotInUse = pfc->InUse;
@@ -1886,7 +1886,7 @@ int InvokeMouseMethod( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t b )
 																						, b ) );
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE( "Result of resulting method is %d" ), result );
+					lprintf( "Result of resulting method is %d", result );
 #endif
 				pfc->NotInUse = 0;
 				DeleteUse( pCurrent );
@@ -1896,7 +1896,7 @@ int InvokeMouseMethod( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t b )
 #ifdef DETAILED_MOUSE_DEBUG
 		else if( g.flags.bLogDetailedMouse )
 		{
-			lprintf( WIDE("No current!") );
+			lprintf( "No current!" );
 		}
 #endif
 	}
@@ -1914,7 +1914,7 @@ int IsMouseInCurrent( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t is_surface
 	{
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
-			lprintf( WIDE("no current...") );
+			lprintf( "no current..." );
 #endif
 		return FALSE;
 	}
@@ -1946,7 +1946,7 @@ int IsMouseInCurrent( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t is_surface
 				PSI_CONTROL pc;
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("Mouse (%d,%d) %08x is still in current control (%d,%d)-(%d,%d)... bias(%d,%d) let's see - does it have children? %p")
+					lprintf( "Mouse (%d,%d) %08x is still in current control (%d,%d)-(%d,%d)... bias(%d,%d) let's see - does it have children? %p"
 							, x, y, b
 							, tolerance[0]
 							, tolerance[0]
@@ -1965,14 +1965,14 @@ int IsMouseInCurrent( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t is_surface
 				{
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("Found a control %p"), pc );
+						lprintf( "Found a control %p", pc );
 #endif
 				}
 #ifdef DETAILED_MOUSE_DEBUG
 				else
 				{
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("no sub-control found...") );
+						lprintf( "no sub-control found..." );
 				}
 #endif
 			}
@@ -2009,7 +2009,7 @@ int IsMouseInCurrent( PSI_CONTROL pfc, int32_t x, int32_t y, uint32_t is_surface
 				{
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("Outside of control bounds... not in current.") );
+						lprintf( "Outside of control bounds... not in current." );
 #endif
 					if( pf->common->BorderType & BORDER_RESIZABLE )
 						return FALSE;
@@ -2085,11 +2085,11 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 #ifdef DETAILED_MOUSE_DEBUG
 	if( g.flags.bLogDetailedMouse )
 	{
-		lprintf( WIDE("-------------------------------------------------") );
-		lprintf( WIDE("Mouse event: (%d,%d) %08x bias is(%d,%d) %s")
+		lprintf( "-------------------------------------------------" );
+		lprintf( "Mouse event: (%d,%d) %08x bias is(%d,%d) %s"
 				, x, y, b
 				, pf->CurrentBias.x, pf->CurrentBias.y
-				, pf->CurrentBias.flags.bias_is_surface?WIDE( "surface" ):WIDE( "frame" )
+				, pf->CurrentBias.flags.bias_is_surface?"surface":"frame"
 				);
 	}
 #endif
@@ -2103,7 +2103,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 	{
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
-			lprintf( WIDE("Caputred mouse dispatch!") );
+			lprintf( "Caputred mouse dispatch!" );
 #endif
 		if( !pc->flags.bDestroy )
 		{
@@ -2117,7 +2117,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 	{
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
-			lprintf( WIDE( "Current owns flag is set?" ) );
+			lprintf( "Current owns flag is set?" );
 #endif
 		result = InvokeMouseMethod( pc, x, y, b );
 		if( pf = pc->device )
@@ -2126,7 +2126,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("Well current no longer owns mouse..") );
+					lprintf( "Well current no longer owns mouse.." );
 #endif
  				OwnCommonMouse( pc, FALSE );
 			}
@@ -2134,7 +2134,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("Returning early... still owned...") );
+					lprintf( "Returning early... still owned..." );
 #endif
 			}
 			pf->_b = b;
@@ -2144,7 +2144,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 		return result;
 	}
 	if( g.flags.bLogDetailedMouse )
-		lprintf( WIDE("to test %d,%d  %d,%d"), x, y, pf->CurrentBias.x, pf->CurrentBias.y );
+		lprintf( "to test %d,%d  %d,%d", x, y, pf->CurrentBias.x, pf->CurrentBias.y );
 	if( !pf->flags.bSizing 
 		&& !pf->flags.bDragging
 		&& !pc->pressed_caption_button
@@ -2156,7 +2156,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 	{
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
-			lprintf( WIDE("Mouse is still in current (%d,%d)")
+			lprintf( "Mouse is still in current (%d,%d)"
 					, x - pf->CurrentBias.x
 					, y - pf->CurrentBias.y );
 #endif
@@ -2167,8 +2167,8 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
 			{
-				lprintf( WIDE("First left down %p (%d,%d) %08x"), pf->pCurrent, x, y , b );
-				lprintf( WIDE("Setting current owns...") );
+				lprintf( "First left down %p (%d,%d) %08x", pf->pCurrent, x, y , b );
+				lprintf( "Setting current owns..." );
 			}
 #endif
 			OwnCommonMouse( pf->pCurrent, TRUE );
@@ -2184,7 +2184,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE( "!! Mouse was not used by control - try and find it's parent." ) );
+				lprintf( "!! Mouse was not used by control - try and find it's parent." );
 #endif
 			if( pf->CurrentBias.flags.bias_is_surface )
 			{
@@ -2203,7 +2203,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 	{
 #ifdef DETAILED_MOUSE_DEBUG
 		if( g.flags.bLogDetailedMouse )
-			lprintf( WIDE("Mouse is no longer in current (%d,%d) Setting new current control...")
+			lprintf( "Mouse is no longer in current (%d,%d) Setting new current control..."
 					, x - pf->CurrentBias.x
 					, y - pf->CurrentBias.y );
 #endif
@@ -2216,7 +2216,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 			pf->flags.bSizing || pf->flags.bDragging || pc->pressed_caption_button )
 		{
 			// it's on the frame of this frame (redunant eh?)
-			//lprintf( WIDE("Outside the surface, on border or frame... invoke frame handler.") );
+			//lprintf( "Outside the surface, on border or frame... invoke frame handler." );
 			result = FirstFrameMouse( pf, x, y, b, TRUE );
 			pf->CurrentBias.x = 0;
 			pf->CurrentBias.y = 0;
@@ -2226,7 +2226,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 		{
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("Mouse on surface of frame, find a control.") );
+				lprintf( "Mouse on surface of frame, find a control." );
 #endif
 			pf->CurrentBias.x = pc->surface_rect.x;
 			pf->CurrentBias.y = pc->surface_rect.y;
@@ -2236,7 +2236,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 									, y - pf->CurrentBias.y, b );
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("Found control %p %p in %p with bias %d,%d"), pcIn, pcIn?pcIn->parent:NULL, pc
+				lprintf( "Found control %p %p in %p with bias %d,%d", pcIn, pcIn?pcIn->parent:NULL, pc
 						, pf->CurrentBias.x, pf->CurrentBias.y );
 #endif
 			//ComputeFrameBias( pf, pcIn );
@@ -2248,7 +2248,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 				{
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("Setting current owns...") );
+						lprintf( "Setting current owns..." );
 #endif
 					OwnCommonMouse( pc, TRUE );
 					//pf->flags.bCurrentOwns = TRUE;
@@ -2259,13 +2259,13 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 				{
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE( "!! Again - did not want the mouse... go back to parent." ) );
+						lprintf( "!! Again - did not want the mouse... go back to parent." );
 #endif
 					if( pf->CurrentBias.flags.bias_is_surface )
 					{
 #ifdef DETAILED_MOUSE_DEBUG
 						if( g.flags.bLogDetailedMouse )
-							lprintf( WIDE( "was on surface... so remove that." ) );
+							lprintf( "was on surface... so remove that." );
 #endif
 						if( pf->pCurrent )
 						{
@@ -2275,7 +2275,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 					}
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE( "was on a control remove (%d,%d)" ), pf->pCurrent->rect.x, pf->pCurrent->rect.y );
+						lprintf( "was on a control remove (%d,%d)", pf->pCurrent->rect.x, pf->pCurrent->rect.y );
 #endif
 					if( pf->pCurrent )
 					{
@@ -2291,9 +2291,9 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 				// which handles resize and drag, then to the actual surface.
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("Resulting bias to (%d,%d) %s")
+					lprintf( "Resulting bias to (%d,%d) %s"
 							, pf->CurrentBias.x, pf->CurrentBias.y
-							, pf->CurrentBias.flags.bias_is_surface?WIDE( "surface" ):WIDE( "frame" )
+							, pf->CurrentBias.flags.bias_is_surface?"surface":"frame"
 							);
 #endif
  			}
@@ -2301,7 +2301,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 			{
 #ifdef DETAILED_MOUSE_DEBUG
 				if( g.flags.bLogDetailedMouse )
-					lprintf( WIDE("no control found... see if there's a method....") );
+					lprintf( "no control found... see if there's a method...." );
 #endif
 				// although this should be part of InvokeMouseMethod
 				// InvokeMethod doesn't have the pf to compare first button.
@@ -2309,7 +2309,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 				{
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE("Setting current owns...") );
+						lprintf( "Setting current owns..." );
 #endif
 					OwnCommonMouse( pc, TRUE );
 					//pf->flags.bCurrentOwns = TRUE;
@@ -2320,7 +2320,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 				{
 #ifdef DETAILED_MOUSE_DEBUG
 					if( g.flags.bLogDetailedMouse )
-						lprintf( WIDE( "!! Again - did not want the mouse... go back to parent." ) );
+						lprintf( "!! Again - did not want the mouse... go back to parent." );
 #endif
 					if( pf->CurrentBias.flags.bias_is_surface )
 					{
@@ -2350,7 +2350,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 
 //---------------------------------------------------------------------------
 
-static int OnMouseCommon( WIDE("Frame") )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
+static int OnMouseCommon( "Frame" )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	// okay really frame mouse proc is JUST like every other
 	// control proc- mouse coordinates are relative to the surface.
@@ -2368,13 +2368,13 @@ static int OnMouseCommon( WIDE("Frame") )( PSI_CONTROL pc, int32_t x, int32_t y,
 		{
 #ifdef SUPER_DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogSuperDetailedMouse )
-				lprintf( WIDE("Default frame mouse recieved mouse biased to surface: %d,%d"), x, y );
+				lprintf( "Default frame mouse recieved mouse biased to surface: %d,%d", x, y );
 #endif
 			pf->_x = x + pf->CurrentBias.x;
 			pf->_y = y + pf->CurrentBias.y;
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
-				lprintf( WIDE("Setting drag at %d,%d + (%d,%d)==(%d,%d)?")
+				lprintf( "Setting drag at %d,%d + (%d,%d)==(%d,%d)?"
 						, pf->_x
 						, pf->_y
 						, pc->surface_rect.x
