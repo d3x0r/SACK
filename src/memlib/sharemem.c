@@ -444,8 +444,8 @@ static void DumpSection( PCRITICALSECTION pcs )
 	ll_lprintf( "Critical Section....." );
 	ll_lprintf( "------------------------------" );
 	ll_lprintf( "Update: %08x", pcs->dwUpdating );
-	ll_lprintf( "Current Process: %16"_64fx, pcs->dwThreadID );
-	ll_lprintf( "Next Process:    %16"_64fx, pcs->dwThreadWaiting );
+	ll_lprintf( "Current Process: %16" _64fx, pcs->dwThreadID );
+	ll_lprintf( "Next Process:    %16" _64fx, pcs->dwThreadWaiting );
 	ll_lprintf( "Last update: %s(%d)", pcs->pFile ? pcs->pFile : "unknown", pcs->nLine );
 }
 #endif
@@ -614,13 +614,13 @@ static void DumpSection( PCRITICALSECTION pcs )
 #  ifndef NO_LOGGING
 #    ifdef LOG_DEBUG_CRITICAL_SECTIONS
 				if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-					ll_lprintf( "Locks are %08"_32fx, pcs->dwLocks );
+					ll_lprintf( "Locks are %08" _32fx, pcs->dwLocks );
 #    endif
 				if( (pcs->dwLocks & 0xFFFFF) > 1 )
 				{
 #    ifdef LOG_DEBUG_CRITICAL_SECTIONS
 					if( g.bLogCritical > 0 && g.bLogCritical < 2 )
-						_xlprintf( 1 DBG_RELAY )("!!!!  %p  Multiple Double entry! %"_32fx, pcs, pcs->dwLocks);
+						_xlprintf( 1 DBG_RELAY )("!!!!  %p  Multiple Double entry! %" _32fx, pcs, pcs->dwLocks);
 #    endif
 				}
 #  endif
@@ -655,20 +655,20 @@ static void DumpSection( PCRITICALSECTION pcs )
 					if( pcs->dwThreadWaiting != dwCurProc )
 					{
 						if( !pcs->dwThreadWaiting ) {
-							ll_lprintf( "@@@ Someone stole the critical section that we were wiating on before we reentered. fail. %"_64fx " %" _64fx " %" _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
+							ll_lprintf( "@@@ Someone stole the critical section that we were wiating on before we reentered. fail. %" _64fx " %" _64fx " %" _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
 							DebugBreak();
 							// go back to sleep again.
 							pcs->dwThreadWaiting = dwCurProc;
 						}
 						else {
 							if( (*prior) == pcs->dwThreadWaiting ) {
-								ll_lprintf( "prior is thread wiaiting (normal?!) %"_64fx " %" _64fx, pcs->dwThreadWaiting, *prior );
+								ll_lprintf( "prior is thread wiaiting (normal?!) %" _64fx " %" _64fx, pcs->dwThreadWaiting, *prior );
 								DebugBreak();
 								(*prior) = 0;
 							}
 							else {
 #ifdef LOG_DEBUG_CRITICAL_SECTIONS
-								ll_lprintf( "Someone stole the critical section that we were wiating on before we reentered. fail. %"_64fx " %" _64fx " %" _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
+								ll_lprintf( "Someone stole the critical section that we were wiating on before we reentered. fail. %" _64fx " %" _64fx " %" _64fx, pcs->dwThreadWaiting, dwCurProc, *prior );
 #endif
 							}
 						}
@@ -744,7 +744,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 			}
 #ifdef DEBUG_CRITICAL_SECTIONS
 			//if( g.bLogCritical > 1 )
-			// ll_lprintf( DBG_FILELINEFMT ( "Leaving %"_64fx"x %"_64fx"x %p" ) DBG_RELAY ,pcs->dwThreadID, dwCurProc, pcs );
+			// ll_lprintf( DBG_FILELINEFMT ( "Leaving %" _64fx"x %" _64fx"x %p" ) DBG_RELAY ,pcs->dwThreadID, dwCurProc, pcs );
 #endif
 			if( pcs->dwThreadID == dwCurProc )
 			{
@@ -1464,7 +1464,7 @@ uintptr_t GetFileSize( int fd )
 		*dwSize = ( ( (*dwSize) + ( FILE_GRAN - 1 ) ) / FILE_GRAN ) * FILE_GRAN;
 		if( !pWhat && !pWhere )
 		{
-			//ll_lprintf( "ALLOCATE %"_64fx"d", (*dwSize)>>32, 0 );
+			//ll_lprintf( "ALLOCATE %" _64fx"d", (*dwSize)>>32, 0 );
 			hMem = CreateFileMapping( INVALID_HANDLE_VALUE, NULL
 											, PAGE_READWRITE
 											|SEC_COMMIT
@@ -2844,7 +2844,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				}
 			}
 		}
-		xlprintf(LOG_ALWAYS)( "Total Free: %"_PTRSZVALfs "  TotalUsed: %"_PTRSZVALfs "  TotalChunks: %"_PTRSZVALfs " TotalMemory:%" _PTRSZVALfs,
+		xlprintf(LOG_ALWAYS)( "Total Free: %" _PTRSZVALfs "  TotalUsed: %" _PTRSZVALfs "  TotalChunks: %" _PTRSZVALfs " TotalMemory:%" _PTRSZVALfs,
 									nTotalFree, nTotalUsed, nChunks,
 									(nTotalFree + nTotalUsed + nChunks * CHUNK_SIZE) );
 		DropMem( pMem );
@@ -3301,7 +3301,7 @@ lineNumber)
 			);
 		break;
 	case _HOOK_FREE:
-		ll_lprintf( ( "CRT Free: %p[%"_PTRSZVALfs"](%d) %s(%d)" )
+		ll_lprintf( ( "CRT Free: %p[%" _PTRSZVALfs "](%d) %s(%d)" )
 			, userData
 			, (uintptr_t)userData
 			, size
