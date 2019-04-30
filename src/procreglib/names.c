@@ -1706,7 +1706,7 @@ PROCREG_PROC( uintptr_t, CreateRegisteredDataTypeEx)( PCLASSROOT root
 					if( !( p = (POINTER)FindInBinaryTree( pDataDef->instances.Tree, (uintptr_t)instancename ) ) )
 					{
 #ifdef DEBUG_GLOBAL_REGISTRATION
-						lprintf( "Allocating new struct data :%"_32f, pDataDef->size );
+						lprintf( "Allocating new struct data :%" _32f, pDataDef->size );
 #endif
 						p = Allocate( pDataDef->size + sizeof( PLIST ) );
 						((PLIST*)p)[0] = NULL;
@@ -2418,7 +2418,7 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, uintptr_t global_size, 
 #ifdef WIN32
 		tnprintf( spacename, sizeof( spacename ), "%s:%08lX", name, GetCurrentProcessId() );
 #else
-		tnprintf( spacename, sizeof( spacename ), "%"_S ":%08X", name, getpid() );
+		tnprintf( spacename, sizeof( spacename ), "%" _S ":%08X", name, getpid() );
 #  ifdef DEBUG_FIRST_UNICODE_OPERATION
 		{
 			wchar_t buf[32];

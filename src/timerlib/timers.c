@@ -357,7 +357,7 @@ PRIORITY_ATEXIT( CloseAllWakeups, ATEXIT_PRIORITY_THREAD_SEMS )
 	uint32_t start = GetTickCount() + 50;
 	//pid_t mypid = getppid();
 	// not sure if mypid is needed...
-	while( ( start > GetTIckCount() ) && ForAllInSet( THREAD, globalTimerData.threadset, threadrunning, 0 ) )
+	while( ( start > GetTickCount() ) && ForAllInSet( THREAD, globalTimerData.threadset, threadrunning, 0 ) )
 		Relinquish();
 
 	//lprintf( "Destroy thread semaphores..." );
