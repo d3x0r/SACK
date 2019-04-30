@@ -914,7 +914,11 @@ LOGICAL OpenRootMemory()
 #endif
 	// hmm application only shared space?
 	// how do I get that to happen?
+#ifdef __STATIC_GLOBALS__
+	 g.pSpacePool = (PSPACEPOOL)OpenSpaceExx( NULL, NULL, 0, &size, &created );
+#else
 	 g.pSpacePool = (PSPACEPOOL)OpenSpaceExx( spacename, NULL, 0, &size, &created );
+#endif
 	// I myself must have a global space, which is kept sepearte from named spaces
 	// but then... blah
 	return created;
