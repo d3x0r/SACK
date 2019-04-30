@@ -3,11 +3,10 @@
 
 #include <sack_types.h>
 #include <procreg.h>
+#include <filesys.h>
 //#include "links.h"  // PDATA
 #include "text.h"
 
-//#define byOutput Buffer.data.data
-//#define nOutput &Buffer.data.size
 #define DECLOUTBUF(size) DECLTEXTSZ( Buffer, (size) )
 
 #include "space.h"
@@ -69,28 +68,28 @@ typedef struct command_entry
 
 // static int ObjectMethod( "object_type", "command", "Friendly command description" )(PSENTIENT ps, PENTITY pe_object, PTEXT parameters)
 #define ObjectMethod( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMethod,"objects/"object "/methods",name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMethod,"objects/" object "/methods",name,desc,int,(PSENTIENT,PENTITY,PTEXT),__LINE__)
 
 #define ObjectMacroCreated( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMacroCreate,"objects/"object "/macro/create",name,desc,void,(PENTITY,PMACRO),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMacroCreate,"objects/" object "/macro/create",name,desc,void,(PENTITY,PMACRO),__LINE__)
 
 #define ObjectMacroDestroyed( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMacroDestroy,"objects/"object "/macro/destroy",name,desc,void,(PENTITY,PMACRO),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMacroDestroy,"objects/" object "/macro/destroy",name,desc,void,(PENTITY,PMACRO),__LINE__)
 
 #define DeviceMethod( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMethod,"devices/"object "/methods",name,desc,int,(PSENTIENT,PTEXT),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMethod,"devices/" object "/methods",name,desc,int,(PSENTIENT,PTEXT),__LINE__)
 
 #define ObjectVolatileVariableGet( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",ObjectVolatileVariableGet,"objects/"object "/variables/"name,"get",desc,PTEXT,(PENTITY,PTEXT*),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",ObjectVolatileVariableGet,"objects/" object "/variables/" name,"get",desc,PTEXT,(PENTITY,PTEXT*),__LINE__)
 
 #define DeviceVolatileVariableGet( device, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",DeviceVolatileVariableGet,"devices/"device "/variables/"name,"get",desc,PTEXT,(PENTITY,PTEXT*),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",DeviceVolatileVariableGet,"devices/" device "/variables/" name,"get",desc,PTEXT,(PENTITY,PTEXT*),__LINE__)
 
 #define ObjectVolatileVariableSet( object, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",ObjectVolatileVariableSet,"objects/"object "/variables/"name,"set",desc,PTEXT,(PENTITY,PTEXT),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",ObjectVolatileVariableSet,"objects/" object "/variables/" name,"set",desc,PTEXT,(PENTITY,PTEXT),__LINE__)
 
 #define DeviceVolatileVariableSet( device, name, desc )   \
-	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",DeviceVolatileVariableSet,"devices/"devic "/variables/"name,"set",desc,PTEXT,(PENTITY,PTEXT),__LINE__)
+	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",DeviceVolatileVariableSet,"devices/" devic "/variables/" name,"set",desc,PTEXT,(PENTITY,PTEXT),__LINE__)
 
 #define OnInitDevice( device, desc ) \
 	DefineRegistryMethod2P(DEFAULT_PRELOAD_PRIORITY-5, "Dekware",HandleObjectMethod,"devices",device,desc,PDATAPATH,(PDATAPATH*,PSENTIENT,PTEXT),__LINE__)

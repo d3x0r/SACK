@@ -181,16 +181,15 @@ int main( int argc, char **argv )
 			{
 				ProcessConfigurationInput( lbs.pch_scanner, buf, strlen(buf), 0 );
 			}
-			lprintf( "got null from file.." );
 		}
 	} else
 		while( fgets( buf, 4096, stdin ) )
 		{
-		  lprintf( "Processing buffer:%s", buf );
+			//lprintf( "Processing buffer:%s", buf );
 			ProcessConfigurationInput( lbs.pch_scanner, buf, strlen(buf), 0 );
-			lprintf( "done with that buffer");
+			//lprintf( "done with that buffer");
 		}
-			lprintf( "got null from file.." );
+	//lprintf( "got null from file.." );
 	return 0;
 }
 

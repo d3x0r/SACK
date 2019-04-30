@@ -238,7 +238,7 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 	CommitPlugin();
 }
 
-void CPROC LoadAPlugin( uintptr_t psv, CTEXTSTR name, int flags )
+void CPROC LoadAPlugin( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	LoadPlugin( name, NULL, NULL );
 }

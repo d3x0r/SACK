@@ -41,7 +41,7 @@ CORE_CPROC( void, SetDatapathType )( PDATAPATH pdp, int nType );
 void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters );
 // callback for ScanFiles; calls LoadPlugin with ps=NULL and parameters=NULL
 // called from scanfiles in syscmds too right now...
-void CPROC LoadAPlugin( uintptr_t psv, CTEXTSTR name, int flags );
+void CPROC LoadAPlugin( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags );
 void Unload    ( PTEXT pCommandName );
 void DumpLoadedPluginList( PSENTIENT ps );
 
