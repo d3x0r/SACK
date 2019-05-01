@@ -859,7 +859,7 @@ LOGICAL OpenRootMemory()
 {
 	uintptr_t size = sizeof( SPACEPOOL );
 	uint32_t created;
-	TEXTCHAR spacename[32];
+	char spacename[32];
 	if( g.pSpacePool != NULL )
 	{
 		// if local already has something, just return.
@@ -870,47 +870,9 @@ LOGICAL OpenRootMemory()
 #endif
 
 #ifdef WIN32
-	tnprintf( spacename, sizeof( spacename ), "memory:%" _32fx, GetCurrentProcessId() );
+	snprintf( spacename, sizeof( spacename ), "memory:%" _32fx, GetCurrentProcessId() );
 #else
-	tnprintf( spacename, sizeof( spacename ), "memory:%08X", getpid() );
-#  ifdef DEBUG_FIRST_UNICODE_OPERATION
-	{
-		wchar_t buf[32];
-		strcpy( (char*)buf, "abcdefghijklmn" );
-		swprintf( buf, 32, L"%s", L"some_name" );
-		{
-			char tmpmsg[256];
-			int chars;
-			int ofs = 0;
-			ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
-			for( chars = 0; chars < 32; chars++ )
-				ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%02x ", ((char*)buf)[chars] );
-
-			__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
-
-			ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
-			for( chars = 0; chars < 32; chars++ )
-				ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%c", (buf)[chars] );
-
-			__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
-
-
-			ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
-			for( chars = 0; chars < 32; chars++ )
-				ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%c", (name)[chars] );
-
-			__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
-
-			ofs = snprintf( tmpmsg, 256, "in the beginning(w):" );
-			for( chars = 0; chars < 32; chars++ )
-				ofs += snprintf( tmpmsg + ofs, 256 - ofs, "%c", (spacename)[chars] );
-
-			__android_log_print( ANDROID_LOG_INFO, "org.d3x0r.sack.xxxx", tmpmsg );
-
-		}
-
-	}
-#  endif
+	snprintf( spacename, sizeof( spacename ), "memory:%08X", getpid() );
 #endif
 	// hmm application only shared space?
 	// how do I get that to happen?
