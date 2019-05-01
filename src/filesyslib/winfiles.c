@@ -157,34 +157,32 @@ void sack_set_common_data_application( CTEXTSTR name )
 
 static void LocalInit( void )
 {
-	if( !winfile_local )
-	{
 #ifndef __STATIC_GLOBAL__
+	if( !winfile_local )
 		SimpleRegisterAndCreateGlobal( winfile_local );
 #endif
-		if( !(*winfile_local).flags.bInitialized )
-		{
-			InitializeCriticalSec( &(*winfile_local).cs_files );
-			(*winfile_local).flags.bInitialized = 1;
+	if( !(*winfile_local).flags.bInitialized )
+	{
+		InitializeCriticalSec( &(*winfile_local).cs_files );
+		(*winfile_local).flags.bInitialized = 1;
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
-			(*winfile_local).flags.bLogOpenClose = 0;
+		(*winfile_local).flags.bLogOpenClose = 0;
 #endif
-			{
+		{
 #ifdef _WIN32
-				sack_set_common_data_producer( "Freedom Collective" );
-				sack_set_common_data_application( GetProgramName() );
-
+			sack_set_common_data_producer( "Freedom Collective" );
+			sack_set_common_data_application( GetProgramName() );
 #else
-				{
-					char tmpPath[256];
-					snprintf( tmpPath, 256, "%s/%s", getenv("HOME"), ".Freedom Collective" );
-					(*winfile_local).data_file_root = StrDup( tmpPath );
-				}	
-#endif
+			{
+				char tmpPath[256];
+				snprintf( tmpPath, 256, "%s/%s", getenv("HOME"), ".Freedom Collective" );
+				(*winfile_local).data_file_root = StrDup( tmpPath );
 			}
+#endif
 		}
 	}
 }
+
 
 static void InitGroups( void )
 {
