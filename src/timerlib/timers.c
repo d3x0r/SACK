@@ -137,6 +137,7 @@ struct threads_tag
 		BIT_FIELD bLocal : 1;
 		BIT_FIELD bReady : 1;
 		BIT_FIELD bStarted : 1;
+		BIT_FIELD bInitedSignal : 1;
 	} flags;
 	//struct threads_tag *next, **me;
 	CTEXTSTR pFile;
@@ -1079,13 +1080,15 @@ static void TimerWakeableSleep( uint32_t n )
 	if( globalTimerData.pTimerThread )
 	{
 #ifndef USE_PIPE_SEMS
-		if( !globalTimerData.flags.set_timer_signal )
+		PTHREAD me = MakeThread();
+		if( !globalTimerData.flags.set_timer_signal || !me->flags.bInitedSignal )
 		{
 #  if defined __ANDROID_OLD_PLATFORM_SUPPORT__
 			bsd_signal( SIGALRM, AlarmSignal );
 #  else
 			signal( SIGALRM, AlarmSignal );
 #  endif
+			me->flags.bInitedSignal = TRUE;
 			globalTimerData.flags.set_timer_signal = 1;
 		}
 		if( n != SLEEP_FOREVER )
