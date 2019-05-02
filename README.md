@@ -22,7 +22,71 @@ Exposed through interop to V8 through Node.js...
 
 - As a Node addon/V8 extension with [FS,Networking,Sqlite,ODBC,more](https://github.com/d3x0r/sack.vfs), or as a [NPM package](npmjs.org/package/sack.vfs).
 
----------------
+## How To Build
+
+```
+   # git clone git://github.com/d3x0r/sack
+   # mkdir build   # could be mkdir sack/build  instead
+   # cd build
+   # cmake ../sack/cmake_all -DCMAKE_BUILD_TYPE=Debug   
+```
+
+### What this builds.
+
+The CMAKE_BUILD_TYPE (Release/Debug/RelWithDebInfo/MinRel) name is used to generate _solution and _out directories.
+if you use 'debug' then the directories will be 'debug_solution' etc.
+Each project installs into its related <BUILD_TYPE>_out folder.
+
+  - build
+     - global cmake project options (make-all options)
+     - Debug_solution - Each of the directories in this directory have the CMAKE_BINARY_DIR of each build.
+         - core
+         - binary
+         - dekware
+         - intershell
+         - Others, if BUILD_EXTRAS is enabled in the cmake configuration
+     - Debug_out
+         - core
+            - bin
+            - lib[64]
+            - include
+            - src
+                - sack
+                    - sources to support deadstart.
+            - share (openAL)
+            - resources
+            - CMakePackage  - This file has all the defines of this directory setup in it.
+            - DefaultInstall.cmake - extra utility functions used to aid PRELOAD/Deadstart functionality.
+         - binary
+            - bin
+            - include/lib/resources - overflow from intershell plugin used in binary projects
+         - dekwakre
+            - bin
+            - include
+               - headers to link dekware plugins
+            - lib
+               - (export libraries that shouldn't be generated)
+         - intershell
+            - bin
+            - include
+                - headers to link plugins
+            - lib
+                - (export libraries that shouldn't be generated)
+
+`ccmake` or `cmake-gui` can be used to configure options for compilation.  It does a fair job of guessing
+based on the system, but sometimes there are things you'd like to change.
+
+The configuration settings for global has `BUILD_EXTRAS` option which will build more of the applications
+in SACK that are lesser supported or for testing or deeply in development.
+
+Configuration of SACK ..._solution/core project has many options like whether to use included PNG/JPEG/ZLIB etc, or system versions.  Same with SQLITE.  Can enable __NO_ODBC__ 
+to disable the dependancy of the odbc libraries... many more.
+
+###Dependencies
+
+unixodbc (cmake options using ccmake in core can disable this dependancy);
+
+----
 
 # System Abstraction Component Kit
 
