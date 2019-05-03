@@ -16,6 +16,7 @@ struct local_ban_scanner
 void CPROC ExecFirewall( uintptr_t psv )
 {
 	system( lbs.command );
+	//System( lbs.command, NULL, 0 );
 	lbs.exec_timer = 0;
 }
 
@@ -178,12 +179,15 @@ int main( int argc, char **argv )
 	int follow = 0;
 	ReadConfig();
 	InitBanScan();
-	if( argc > 1 ) {
-		if( argv[arg][0] == '-' ) {
+	if( argc > 1 )
+		while( ( arg < argc ) && argv[arg][0] == '-' ) {
+			if( argv[arg][1] == 'w' ) 
+				usleep( 10 * 1000 * 1000 );
 			if( argv[arg][1] == 'f' )
 				follow = 1;
 			arg++;
 		}
+	if( arg < argc )
 		for( ; follow; WakeableSleep( 5000 ) ) {
 			FILE *in = fopen( argv[arg], "rt" );
 			if( in ) {
@@ -196,7 +200,7 @@ int main( int argc, char **argv )
 				fclose( in );
 			}
 		}
-	} else
+	else
 		while( fgets( buf, 4096, stdin ) )
 		{
 			//lprintf( "Processing buffer:%s", buf );
