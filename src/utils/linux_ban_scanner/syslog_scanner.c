@@ -1,5 +1,6 @@
 #include <stdhdrs.h>
 #include <configscript.h>
+#include <signal.h>
 
 struct local_ban_scanner
 {
@@ -172,14 +173,26 @@ static uint8_t buf[4096];
 int main( int argc, char **argv )
 {
 	int size;
+	int arg = 1;
+	int lastpos = 0;
 	ReadConfig();
 	InitBanScan();
 	if( argc > 1 ) {
-		FILE *in = fopen( argv[1], "rt" );
-		if( in ) {
-			while( fgets( buf, 4096, in ) )
-			{
-				ProcessConfigurationInput( lbs.pch_scanner, buf, strlen(buf), 0 );
+		if( argv[arg][0] == '-' ) {
+			if( argv[arg][1] == 'f' )
+				follow = 1;
+			arg++;
+		}
+		for( ; follow; WakeableSleep( 5000 ) ) {
+			FILE *in = fopen( argv[arg], "rt" );
+			if( in ) {
+				fseek( in, lastpos, SEEK_SET );
+				while( fgets( buf, 4096, in ) )
+				{
+					lastpos = ftell( in );
+					ProcessConfigurationInput( lbs.pch_scanner, buf, strlen(buf), 0 );
+				}
+				fclose( in );
 			}
 		}
 	} else
