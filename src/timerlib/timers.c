@@ -332,7 +332,7 @@ uintptr_t closesem( POINTER p, uintptr_t psv )
 {
 	PTHREAD thread = (PTHREAD)p;
 #ifdef USE_PIPE_SEMS
-	//lprintf( "CLOSE PIPES %s %" _64fx, thread->thread_event_name, thread->thread_ident );
+	//lprintf( "CLOSE PIPES %s %" _64fx " %d %d", thread->thread_event_name, thread->thread_ident, thread->pipe_ends[0], thread->pipe_ends[1] );
 	close( thread->pipe_ends[0] );
 	close( thread->pipe_ends[1] );
 	thread->pipe_ends[0] = -1;
@@ -425,8 +425,8 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 #  ifdef DEBUG_PIPE_USAGE
 	lprintf( "Init wakeup %p %s", thread, event_name );
 #  endif
-
-	if( ( thread->semaphore = pipe( thread->pipe_ends ) )  == -1 )
+	lprintf( "OPENING A PIPE END SEMAPHRE:%d", thread->semaphore );
+	if( pipe( thread->pipe_ends ) == -1 )
 	{
 		lprintf( "Failed to get pipe! %d:%s", errno, strerror( errno ) );
 	}
@@ -475,18 +475,9 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	}
 
 #else
-	thread->semaphore = pthread_mutex_init( &thread->mutex, NULL );
+	pthread_mutex_init( &thread->mutex, NULL );
 	pthread_mutex_lock( &thread->mutex );
-	//thread->semaphore = semget( IPC_PRIVATE
-	//                          , 1, IPC_CREAT | 0600 );
-	if( thread->semaphore == -1 )
-	{
-		// basically this can't really happen....
-		lprintf( "Failed to get semaphore! %d", errno );
-	}
-	if( thread->semaphore != -1 )
-	{
-	}
+	thread->semaphore = -1;
 #endif
 #endif
 #ifdef _DEBUG
@@ -720,12 +711,12 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		}
 	}
 #else
-#ifdef USE_PIPE_SEMS
+#  ifdef USE_PIPE_SEMS
 	if( thread->semaphore != -1 )
 	{
-#  ifdef DEBUG_PIPE_USAGE
+#    ifdef DEBUG_PIPE_USAGE
 		_lprintf(DBG_RELAY)( "(wakethread)wil write pipe... %p", thread );
-#  endif
+#    endif
 		
 		if( write( thread->pipe_ends[1], "G", 1 ) != 1 ) {
 			int e = errno;
@@ -734,18 +725,8 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		//lprintf( "did write pipe..." );
 		Relinquish();
 	}
-#else
-	if( thread->semaphore != -1 )
-	{
-		pthread_mutex_unlock( &thread->mutex );
-		Relinquish(); // may or may not execute other thread before this...
-	}
-#endif
-#  if 0
-	if( thread->thread ) // thread creation might not be complete yet...
-	{
-		pthread_kill( thread->thread, SIGUSR1 );
-	}
+#  else
+  	pthread_mutex_unlock( &thread->mutex );
 #  endif
 #endif
 }
@@ -764,11 +745,6 @@ void  WakeNamedSleeperEx( CTEXTSTR name DBG_PASS )
 	if( sleeper )
 		WakeThreadEx( sleeper DBG_RELAY );
 }
-//#undef WakeThread
-//void  WakeThread( PTHREAD thread )
-//{
-//	WakeThreadEx( thread DBG_SRC );
-//}
 
 //--------------------------------------------------------------------------
 
@@ -863,15 +839,8 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 				//lprintf( "Invalid semaphore...fixing?" );
 				InitWakeup( pThread, name );
 			}
-			if( pThread->semaphore != -1 )
+			//if( pThread->semaphore != -1 )
 			{
-#ifdef USE_PIPE_SEMS
-#else
-				struct sembuf semdo[2];
-				semdo[0].sem_num = 0;
-				semdo[0].sem_op = -1;
-				semdo[0].sem_flg = 0;
-#endif
 				while(1)
 				{
 					int stat;
@@ -1005,12 +974,12 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 					}
 				}
 			}
-			else
-			{
-				lprintf( "Still an invalid semaphore? Dang." );
-				fprintf( stderr, "Out of semaphores." );
-				BAG_Exit(0);
-			}
+			//else
+			//{
+			//	lprintf( "Still an invalid semaphore? Dang." );
+			//	fprintf( stderr, "Out of semaphores." );
+			//	BAG_Exit(0);
+			//}
 		}
 #endif
 		//pThread->flags.bSleeping = 0;
@@ -1071,7 +1040,7 @@ PRIORITY_PRELOAD( IgnoreSignalContinue, GLOBAL_INIT_PRELOAD_PRIORITY-1 )
 
 static void AlarmSignal( int sig )
 {
-	//lprintf( "Received alarm" );
+	lprintf( "Received alarm" );
 	WakeThread( globalTimerData.pTimerThread );
 }
 
@@ -1083,6 +1052,7 @@ static void TimerWakeableSleep( uint32_t n )
 		PTHREAD me = MakeThread();
 		if( !globalTimerData.flags.set_timer_signal || !me->flags.bInitedSignal )
 		{
+			lprintf( "Set sigalrm timer to ignore." );
 #  if defined __ANDROID_OLD_PLATFORM_SUPPORT__
 			bsd_signal( SIGALRM, AlarmSignal );
 #  else
@@ -1093,52 +1063,28 @@ static void TimerWakeableSleep( uint32_t n )
 		}
 		if( n != SLEEP_FOREVER )
 		{
-			struct itimerval val;
-			//lprintf( "Wakeable sleep in %" _32f "", n );
-			val.it_value.tv_sec = n / 1000;
-			val.it_value.tv_usec = (n % 1000) * 1000;
-			val.it_interval.tv_sec = 0;
-			val.it_interval.tv_usec = 0;
-			//lprintf( "setitimer %d %d", val.it_value.tv_sec, val.it_value.tv_usec );
-			setitimer( ITIMER_REAL, &val, NULL );
+ 			struct timespec timeout;
+ 			clock_gettime(CLOCK_REALTIME, &timeout);
+ 			timeout.tv_nsec += ( n % 1000 ) * 1000000L;
+  			timeout.tv_sec += n / 1000;
+  			timeout.tv_sec += timeout.tv_nsec / 1000000000L;
+  			timeout.tv_nsec %= 1000000000L;
+
+			lprintf( "setitimer %d %d", timeout.tv_sec, timeout.tv_nsec );
+
+			int stat = pthread_mutex_timedlock( &globalTimerData.pTimerThread->mutex, &timeout );
+			lprintf( "Stat of lock:%d", stat );
+
+			//setitimer( ITIMER_REAL, &val, NULL );
 		}
 #endif
-		if( globalTimerData.pTimerThread && globalTimerData.pTimerThread->semaphore != -1 )
+		if(0)
+		if( globalTimerData.pTimerThread )
 		{
 #ifdef USE_PIPE_SEMS
 			InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_SRC );
 #else
-			pthread_mutex_lock( &globalTimerData.pTimerThread->mutex );
-#   if asdfasdfasdfasdf
-			struct sembuf semdo;
-			semdo.sem_num = 0;
-			semdo.sem_op = -1;
-			semdo.sem_flg = 0;
-			//lprintf( "Before semval = %d %08lx"
-			//		 , semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL )
-			//		 , globalTimerData.pTimerThread->semaphore );
-			while( semop( globalTimerData.pTimerThread->semaphore, &semdo, 1 ) < 0 )
-			{
-				if( !globalTimerData.pTimerThread )
-					return;
-				if( errno == EIDRM )
-				{
-					globalTimerData.pTimerThread->semaphore = -1; // closed.
-					return;
-				}
-				//lprintf( "Before semval = %d", semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL ) );
-				if( errno == EINTR )
-				{
-					//lprintf( "Before semval = %d", semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL ) );
-					continue;
-				}
-				else
-				{
-					lprintf( "Semop failed: %d %08x", errno, globalTimerData.pTimerThread->semaphore );
-					break;
-				}
-			}
-#   endif
+			//pthread_mutex_lock( &globalTimerData.pTimerThread->mutex );
 #endif
 			//lprintf( "After semval = %d %08lx"
 			//	      , semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL )
@@ -1448,9 +1394,9 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 	Log( "Begin Create Thread" );
 #endif
 #ifdef _WIN32
-#if defined( __WATCOMC__ ) || defined( __WATCOM_CPLUSPLUS__ )
+#  if defined( __WATCOMC__ ) || defined( __WATCOM_CPLUSPLUS__ )
 	pThread->hThread = (HANDLE)_beginthread( (void(*)(void*))ThreadWrapper, 8192, pThread );
-#else
+#  else
 	{
 		DWORD dwJunk;
 		pThread->hThread = CreateThread( NULL, 1024
@@ -1459,7 +1405,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 		                               , 0
 		                               , &dwJunk );
 	}
-#endif
+#  endif
 	success = (int)(pThread->hThread!=NULL);
 #else
 	//lprintf( "Create thread..." );
@@ -1480,11 +1426,14 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 		//pThread->me = &globalTimerData.threads;
 		//globalTimerData.threads = pThread;
 		pThread->flags.bReady = 1;
+#ifdef _WIN32
 		{
 			uint32_t now = GetTickCount();
-			while( !pThread->thread_event && ( now + 250 ) > GetTickCount()  )
+			while( !pThread->thread_event && ( now + 250 ) > GetTickCount()  ) {
 				Relinquish();
+			}
 		}
+#endif
 #ifdef LOG_THREAD
 		Log3( "Created thread address: %p %016" _64fx" at %p"
 		    , pThread->proc, pThread->thread_ident, pThread );
