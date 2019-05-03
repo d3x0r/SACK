@@ -175,6 +175,7 @@ int main( int argc, char **argv )
 	int size;
 	int arg = 1;
 	int lastpos = 0;
+	int follow = 0;
 	ReadConfig();
 	InitBanScan();
 	if( argc > 1 ) {
