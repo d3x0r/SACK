@@ -9,7 +9,8 @@
 
 ## VFS General
 
-Sectors are generally 4k blocks (intel page-sized blocks).
+Sectors are generally 4k blocks (intel page-sized blocks).  Blocks that are linked together form a chain;
+and you'll forgive the use of 'block chain'.
 
 ## vfs.c (simplest)
 
@@ -29,5 +30,24 @@ The next allocated block are the names of entries in the directory.
 
 All other blocks get allocated for files.
 
+The directory entry has an offset of the name in the name block chain, the size of the file, and the first
+block of that file.  There are no date/times stored with the file information.
+
+## vfs_fs.c - Same as the old
+
+vfs_fs.c is the same disk layout as vfs.c, but instead uses file system methods to read/write the data into
+the file (open/read/seek/write/close).  Ths filesystem could be mounted in the above file syste, but 
+not the other way around.
+
+## vfs_os.c - Revised Object Storage
+
+This looks at files more like arbitrary blobs of data.  This tracks data blobs that have unique identifiers
+using a combination hash-table/short binary search to find the file information.  
+
+This tracks creation and write time of the file in addition to name, size and starting data.  THe creation
+and update times of files are indexed, so you can find files after a certain time.
+
+It also has the ability to perform a light Proof-of-Work algorithm storing the nonce with the file data and
+resulting with a hash of the file that fits the PoW result criteria.
 
 
