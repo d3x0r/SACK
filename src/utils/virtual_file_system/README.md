@@ -50,4 +50,78 @@ and update times of files are indexed, so you can find files after a certain tim
 It also has the ability to perform a light Proof-of-Work algorithm storing the nonce with the file data and
 resulting with a hash of the file that fits the PoW result criteria.
 
+## Encryption
+
+These all support a light encryption that is essentially a computed one-time-pad overlay.  A block-sized block
+is created an dfilled with random data, each block in the file creates a 64 byte random sequence which is 
+xor'ed with the original block, giving the encryption on the file as a whole non-repetitive random mask.
+
+### Weakness
+
+If the encryption generating keys are leaked; of course the disk is readable; however, failing that, if
+one is able to get muliple copies of the VFS file at various times, the files can be xor-diffed to find
+data that has changed; it may or may not reveal the whole value of a changed byte (depending on what the
+previous value stored there was).
+
+Statistical attacks; given enough '0' filled blocks, which betrays the original key, it may be possible
+to identify sub-patterns within the blocks; because of the repeated merge of sector key over the disk block
+key.  Given a sufficiently large amount of data like this, it may be possible to discover the common 4096
+byte disk block key by discarding the 'noise' caused by the overlayers.  However, this is only possible
+given known data in a file stored behind the encryption.  The attack will reveal a key for a single disk
+image, but not help with any other disk.
+
+vfs_os uses [XSWS](https://github.com/d3x0r/SACK/blob/master/src/salty_random_generator/SRG_XSWS_Encryption.md) which
+does not have the above mentioned weaknesses.  Any single bit change in the data should result in 50% of the bits
+of the whole data block changing.
+
+## VFS Data structures
+
+each 'sector' is preceeded by a single block that tracks the allocated blocks in that 'sector'.  All together
+there are N blocks tracked together, using N+1 blocks.
+
+| header  |  data |
+|--|--|
+|BAT| ................................................ BLOCKS TRACKED BY BAT ......................................... |
+|BAT| ................................................ BLOCKS TRACKED BY BAT ......................................... |
+|BAT| ................................................ BLOCKS TRACKED BY BAT ......................................... |
+
+There are two types used in VFS; BLOCKINDEX - a 32/64 index by block number (typically), and FPI - a 32/64 index that
+gives a literal byte offset.  The size of blocks are controlled with a few defines.
+
+
+| Symbol | default | meaning |
+|---|----|----|
+| BLOCK_SIZE_BITS | 12  | size is computed from 1 << BLOCK_SIZE_BITS |
+| BLOCK_SIZE | 1 << BLOCK_SIZE_BITS | the byte size of a block |
+| BLOCK_SHIFT | BLOCK_SIZE_BITS - (2 or 3 ) | shift by number of BLOCKINDEX in a block;  2 or 3 bits is relative to size of BLOCKINDEX |
+| BLOCKS_PER_BAT | (1<<BLOCK_SHIFT) |  How many blocks a single BAT block tracks |
+| BLOCKS_PER_SECTOR | (1 + BLOCKS_PER_BAT) | How many blocks totoal in a sector |
+
+
+
+The above sector definition might look like
+
+```
+struct disk
+{
+	BLOCKINDEX BAT[BLOCKS_PER_BAT];
+	uint8_t  block_data[BLOCKS_PER_BAT][BLOCK_SIZE];
+};
+```
+
+
+```
+struct directory_entry
+{
+	FPI name_offset;  // name offset from beginning of disk
+	BLOCKINDEX first_block;  // first block of data of the file
+	VFS_DISK_DATATYPE filesize;  // how big the file is
+#ifdef VIRTUAL_OBJECT_STORE
+	uint64_t timelineEntry;  // when the file was created/last written
+#endif
+};
+```
+
+`vfs_os.c` uses several more structures for tracking it's data... this is just meant to be a high level overview of the
+basic principles.
 
