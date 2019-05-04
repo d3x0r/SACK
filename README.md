@@ -26,9 +26,20 @@ Exposed through interop to V8 through Node.js...
 
 ```
    # git clone git://github.com/d3x0r/sack
+   # cd sack
    # mkdir build   # could be mkdir sack/build  instead
    # cd build
-   # cmake ../sack/cmake_all -DCMAKE_BUILD_TYPE=Debug   
+   # cmake ../cmake_all -DCMAKE_BUILD_TYPE=Debug 
+
+### alternatively, you can just build the sack core
+   # cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=output
+
+### and later build binary specifically
+   # cd ..
+   # mkdir sack-binary-build
+   # cd sack-binary-build
+   # cmake ../binary -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=output -DSACK_SDK_ROOT_PATH=../build/output
+
 ```
 
 ### What this builds.
