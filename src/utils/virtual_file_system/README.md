@@ -6,6 +6,21 @@
 | vfs_fs.c | The same system as above, but based on C file IO sort of IO; might be mounted in above VFS |
 | vfs_os.c | Object storage file system.  This has an optmized hash/name lookup mechanism for directory |
 
+## Where/What this builds
+
+This is part of the SACK core CMakeLists.txt.  It builds
+
+|What| What is it|
+|----|----|
+| sack_vfs.module | dynamic link library that can be loaded dynamically to extend the file system interfaces of SACK. Dynamic link library/Shared object. |
+| sack_vfs_pp.module | same as above, but is linked to bag++ instead of bag.  Dynamic link library/Shared object.  |
+| \*.portable | same as the non-portable version of the program, but builds against static sources instead of SACK's bag\* dynamic libraries.  Will also favor a static C runtime. |
+| \*.64/32 | specifies the size of the BLOCKINDEX used in the virtual file systems.  Default was mashine size; this allows 64/32 bit programs to work conversely on 32/64 bit filesystems. |
+| sack_vfs_command | A command line utility interface for virtual file systems.  Links dynamically to SACK |
+| sack_vfs_extract | It takes files out of a filesystem.  A specifal '.app.config' file can be included in the VFS to specify install/uninstall scripts to run and a default location to install to.  Used to attach a VFS to, and distribute as an installer. |
+| sack_vfs_runner | Similar to extract, but instead of taking the files out, runs an application within a specified or attached VFS. |
+
+These are built into `<build>/<build_type>_out/core/bin`  or `<install path>bin` if just the sack core project is built.
 
 ## VFS General
 
