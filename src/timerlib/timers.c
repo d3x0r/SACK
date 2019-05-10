@@ -137,7 +137,6 @@ struct threads_tag
 		BIT_FIELD bLocal : 1;
 		BIT_FIELD bReady : 1;
 		BIT_FIELD bStarted : 1;
-		BIT_FIELD bInitedSignal : 1;
 	} flags;
 	//struct threads_tag *next, **me;
 	CTEXTSTR pFile;
@@ -166,7 +165,6 @@ struct timer_local_data {
 	struct {
 		BIT_FIELD away_in_timer : 1;
 		BIT_FIELD insert_while_away : 1;
-		BIT_FIELD set_timer_signal : 1;
 		BIT_FIELD bExited : 1;
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		BIT_FIELD bLogCriticalSections : 1;
@@ -242,7 +240,6 @@ struct my_thread_info {
 #else
 #include <sys/sem.h>
 #endif
-#include <signal.h>
 
 #endif
 
@@ -640,20 +637,6 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 		//_lprintf(DBG_RELAY)( "Failed to find thread to wake..." );
 		return;
 	}
-	//_xlprintf( 0 DBG_RELAY )( "Waking a thread: %p", thread );
-	//while( thread->flags.bLock )
-	//{
-	//	Log( "Waiting for thread to go to sleep" );
-	//	Relinquish();
-	//}
-	//if( thread->flags.bLocal && !thread->flags.bSleeping )
-	//{
-	//	//Log( "Waking thread which is already awake" );
-	//  thread->flags.bWakeWhileRunning = 1;
-	//  Relinquish(); // wake implies that we want the other thing to run.
-	//  lprintf( DBG_FILELINEFMT "Thread is not sleeping... woke it before it slept" );
-	//  return;
-	//}
 #ifdef _WIN32
 	//	lprintf( "setting event." );
 	{
@@ -783,17 +766,11 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 #ifdef HAS_TLS
 		struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 		pThread = MyThreadInfo.pThread;
-		//lprintf( "thread will be %p %p", pThread, &MyThreadInfo );
-		//lprintf( "pthread is %p", pThread );
 		if( !pThread )
 		{
-			//lprintf( "had to init thread..." );
 			MakeThread();
 			pThread = MyThreadInfo.pThread;
 		}
-#  ifdef DEBUG_PIPE_USAGE
-		lprintf( "Sleeping on threadsignal... %p", pThread );
-#  endif
 #else
 		pThread = FindThread( GetMyThreadID() );
 #endif
@@ -1022,27 +999,6 @@ void  WakeableSleep( uint32_t n )
 //--------------------------------------------------------------------------
 
 #ifdef __LINUX__
-static void ContinueSignal( int sig )
-{
-	lprintf( "Sigusr1" );
-}
-
-// network is at GLOBAL_INIT_PRIORITY
-PRIORITY_PRELOAD( IgnoreSignalContinue, GLOBAL_INIT_PRELOAD_PRIORITY-1 )
-{
-	//lprintf( "register handler for sigusr1" );
-#if defined __ANDROID_OLD_PLATFORM_SUPPORT__
-	bsd_signal( SIGUSR1, ContinueSignal );
-#else
-	signal( SIGUSR1, ContinueSignal );
-#endif
-}
-
-static void AlarmSignal( int sig )
-{
-	lprintf( "Received alarm" );
-	WakeThread( globalTimerData.pTimerThread );
-}
 
 static void TimerWakeableSleep( uint32_t n )
 {
@@ -1050,17 +1006,6 @@ static void TimerWakeableSleep( uint32_t n )
 	{
 #ifndef USE_PIPE_SEMS
 		PTHREAD me = MakeThread();
-		if( !globalTimerData.flags.set_timer_signal || !me->flags.bInitedSignal )
-		{
-			lprintf( "Set sigalrm timer to ignore." );
-#  if defined __ANDROID_OLD_PLATFORM_SUPPORT__
-			bsd_signal( SIGALRM, AlarmSignal );
-#  else
-			signal( SIGALRM, AlarmSignal );
-#  endif
-			me->flags.bInitedSignal = TRUE;
-			globalTimerData.flags.set_timer_signal = 1;
-		}
 		if( n != SLEEP_FOREVER )
 		{
  			struct timespec timeout;
@@ -1185,14 +1130,6 @@ static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 {
 	uintptr_t result = 0;
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
-#ifdef __LINUX__
-	//lprintf( "register handler for sigusr1 (for thread)" );
-#  if defined __ANDROID_OLD_PLATFORM_SUPPORT__
-	bsd_signal( SIGUSR1, ContinueSignal );
-#  else
-	signal( SIGUSR1, ContinueSignal );
-#  endif
-#endif
 #ifdef _WIN32
 	while( !pThread->hThread )
 		Relinquish();
