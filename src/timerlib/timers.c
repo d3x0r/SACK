@@ -1070,10 +1070,10 @@ static void TimerWakeableSleep( uint32_t n )
   			timeout.tv_sec += timeout.tv_nsec / 1000000000L;
   			timeout.tv_nsec %= 1000000000L;
 
-			lprintf( "setitimer %d %d", timeout.tv_sec, timeout.tv_nsec );
+			//lprintf( "setitimer %d %d", timeout.tv_sec, timeout.tv_nsec );
 
 			int stat = pthread_mutex_timedlock( &globalTimerData.pTimerThread->mutex, &timeout );
-			lprintf( "Stat of lock:%d", stat );
+			//lprintf( "Stat of lock:%d", stat );
 
 			//setitimer( ITIMER_REAL, &val, NULL );
 		}
