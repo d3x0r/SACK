@@ -785,7 +785,7 @@ SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 			if( !Idle( ) )
 				WakeableSleep( 10000 );
 			else
-				Relinquish();
+				WakeableSleep( 10 );
 #else
 			WakeableSleep( 25 );
 #endif
