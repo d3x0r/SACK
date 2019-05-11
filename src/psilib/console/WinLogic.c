@@ -114,6 +114,9 @@ static void RenderTextLine(
 			return;
 		}
 		y = (*r).top;
+#ifdef DEBUG_HISTORY_RENDER
+		lprintf( "Y STARTS AT %d", y );
+#endif
 
 		if( !pCurrentLine->nPixelStart ) {
 			r->left = 0;
@@ -320,7 +323,9 @@ static void RenderTextLine(
 					lprintf( "And finally we can show some text... %s %d", text, y );
 #endif
 					(*r).left = x;
-					//lprintf( "putting string %s at %d,%d (left-right) %d,%d", text, x, y, (*r).left, (*r).right );
+#ifdef DEBUG_HISTORY_RENDER
+					lprintf( "putting string %s at %d,%d (left-right) %d,%d", text, x, y, (*r).left, (*r).right );
+#endif
 					if( pdp->pHistoryDisplay->measureString )
 						pdp->pHistoryDisplay->measureString( pdp->pHistoryDisplay->psvMeasure, GetText( pText ) + nShown
 							, nShow, &nSegSize, &nSegHeight, GetCommonFont( pdp->psicon.frame ) );
@@ -405,7 +410,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		// region->bHasContent = 0?
 		return;
 	}
+#ifdef DEBUG_HISTORY_RENDER
 	lprintf( "Begin render command line" );
+#endif
 	if( !region )
 	{
 		region = &myrect;
@@ -431,7 +438,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 
 	// also line starts are considered from the bottom up...
 	// nXPad,n__LineStart
-	r.top = y = pdp->nCommandLineStart; //****** THIS PROBABLY NEEDS AN OFFSET ********/
+	r.top = y = pdp->nCommandLineStart - pdp->nFontHeight; //****** THIS PROBABLY NEEDS AN OFFSET ********/
 	r.bottom = pdp->nHeight;
 	if( !pdp->flags.bDirect )
 		toppad = pdp->nCmdLinePad;
@@ -522,11 +529,12 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		else
 		{
 			pdlCommand = (PDISPLAYED_LINE)GetDataItem( GetDisplayInfo( pdp->pCommandDisplay ), lines-1 );
-			pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart
-				- (pdlCommand->nLineTop
+			//lprintf( "Input parameters to setting line %d %d %d %d", pdp->nCommandLineStart, pdlCommand->nLineTop, pdp->nYPad, pdp->nCmdLinePad );
+			pdp->nDisplayLineStartDynamic = pdlCommand->nLineTop - (
 					+ ( pdp->nYPad ) // one at bottom, one above separator
-					+ ( pdp->nCmdLinePad )  // extraa width around command line
-					);
+					+ ( pdp->nCmdLinePad / 2)  // extraa width around command line
+					 ) ;
+			//lprintf( "(direct write command line)Setting display line to %d", pdp->nDisplayLineStartDynamic );
 		}
 
 		AddUpdateRegion( region, upd.left, upd.top, upd.right-upd.left,upd.bottom-upd.top );
@@ -546,6 +554,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		#endif
 					break;
 				}
+#ifdef DEBUG_HISTORY_RENDER
+				lprintf( "Something else %d %d", pdp->nCommandLineStart, pCurrentLine->nLineTop );
+#endif
 				if( pCurrentLine->start )
 					RenderTextLine( pdp, pCurrentLine, &upd
 						, nLine, TRUE, y, pdp->nCommandLineStart - pCurrentLine->nLineTop
@@ -581,6 +592,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 
 			if( pdp->DrawString ) {
 				uint32_t width, height;
+#ifdef DEBUG_HISTORY_RENDER
+				lprintf( "(2)putting string %s at %d,%d (left-right) %d,%d", GetText( pStart ), x, y, (r).left, (r).right );
+#endif
 				pdp->DrawString( pdp, x, y, &r, GetText( pStart ), nShown, nShow );
 				pdp->pCommandDisplay->measureString( pdp->pCommandDisplay->psvMeasure
 					, GetText( pStart ) + nShown, nShow
@@ -601,7 +615,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		if( r.right > r.left )
 		{
 			// clear the remainder of the line...
+#ifdef DEBUG_HISTORY_RENDER
 			lprintf( "Clearing end of line... %d-%d   %d-%d", r.left, r.right, r.top, r.bottom );
+#endif
 			if( pdp->FillConsoleRect )
 				pdp->FillConsoleRect( pdp, &r, FILL_DISPLAY_BACK );
 		}
@@ -615,7 +631,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		AddUpdateRegion( region, upd.left, upd.top, upd.right-upd.left,upd.bottom-upd.top );
 
 	}
+#ifdef DEBUG_HISTORY_RENDER
 	lprintf( "done render command line" );
+#endif
 }
 
 
@@ -711,6 +729,9 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 	pdp->pCurrentDisplay->flags.bUpdated = 1;
 	BuildDisplayInfoLines( pdp->pCurrentDisplay, NULL, font );
 	if( pdp->pCommandDisplay ) {
+#ifdef DEBUG_HISTORY_RENDER
+		lprintf( "ncommand line start: %d", pdp->nCommandLineStart );
+#endif
 		SetBrowserFirstLine( pdp->pCommandDisplay, pdp->nCommandLineStart );
 		pdp->pCommandDisplay->flags.bUpdated = 1;
 		BuildDisplayInfoLines( pdp->pCommandDisplay, pdp->flags.bDirect ? pdp->pCurrentDisplay : NULL, font );
@@ -733,7 +754,9 @@ void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 			, pdp->nDisplayLineStartDynamic, pdp->nCommandLineStart
 		, pdp->nHistoryLineStart, pdp->nHeight );
 	*/
-	//lprintf( "Render Console... %d %d", pdp->nDisplayLineStart, pdp->nHistoryLineStart );
+#ifdef DEBUG_HISTORY_RENDER
+	lprintf( "Render Console... %d %d", pdp->nDisplayLineStartDynamic, pdp->nHistoryLineStart );
+#endif
 
 	if( pdp->RenderSeparator )
 	{
@@ -810,7 +833,9 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 		pdp->nWidth = 0;
 		pdp->nHeight = 0;
 	}
-
+#ifdef DEBUG_HISTORY_RENDER
+	lprintf( "-------- set command line to area : %d", pdp->rArea.bottom );
+#endif
 	pdp->nCommandLineStart = pdp->rArea.bottom;
 
 	//lprintf( "Okay font height existsts... that's good" );
@@ -820,6 +845,9 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 		if( pdp->pHistoryDisplay )
 			SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
 		pdp->nCommandLineStart -= pdp->nYPad;
+#ifdef DEBUG_HISTORY_RENDER
+		lprintf( "(direct)Setting display line to %d", pdp->nCommandLineStart );
+#endif
 		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart;
 	}
 	else
@@ -827,8 +855,11 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 		SetCursorNoPrompt( pdp->pCurrentDisplay, TRUE );
 		if( pdp->pHistoryDisplay )
 			SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
-		pdp->nCommandLineStart -= pdp->nFontHeight + pdp->nYPad + pdp->nCmdLinePad / 2;
-		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart - pdp->nYPad - ( pdp->nCmdLinePad / 2 ) - pdp->nSeparatorHeight;
+		pdp->nCommandLineStart -= pdp->nYPad + pdp->nCmdLinePad / 2;
+		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart - (pdp->nYPad + ( pdp->nCmdLinePad / 2 ) + pdp->nSeparatorHeight );
+#ifdef DEBUG_HISTORY_RENDER
+		lprintf( "(linemode)Setting display line to %d", pdp->nDisplayLineStartDynamic );
+#endif
 	}
 
 	WinLogicCalculateHistory( pdp, font );
@@ -1245,6 +1276,9 @@ void PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 			else {
 				pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart;
 			}
+//#ifdef DEBUG_HISTORY_RENDER
+			lprintf( "(direct stroke)Setting display line to %d", pdp->nDisplayLineStartDynamic );
+//#endif
 		}
 	}
 
