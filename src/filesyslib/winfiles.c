@@ -1285,6 +1285,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	FILE *handle = NULL;
 	struct file *file;
 	INDEX idx;
+	INDEX allocedIndex = INVALID_INDEX;
 	LOGICAL memalloc = FALSE;
 	LOGICAL single_mount = (mount != NULL );
 	LocalInit();
@@ -1313,6 +1314,8 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			&& ( StrCmp( file->name, filename ) == 0 ) 
 			&& ( file->mount == mount ) )
 		{
+			AddLink( &file->files, &allocedIndex );
+			allocedIndex = FindLink( &file->files, &allocedIndex );
 			break;
 		}
 	}
@@ -1380,6 +1383,8 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		}
 		if( StrChr( file->fullname, '%' ) )
 		{
+			if( allocedIndex != INVALID_INDEX )
+				SetLink( &file->files, allocedIndex, NULL );
 			if( memalloc )
 			{
 				DeleteLink( &(*winfile_local).files, file );
@@ -1391,7 +1396,10 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			return NULL;
 		}
 		EnterCriticalSec( &(*winfile_local).cs_files );
-		AddLink( &(*winfile_local).files,file );
+		if( allocedIndex != INVALID_INDEX )
+			SetLink( &(*winfile_local).files,allocedIndex, file );
+		else
+			AddLink( &(*winfile_local).files, file );
 		LeaveCriticalSec( &(*winfile_local).cs_files );
 	}
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
@@ -1429,6 +1437,8 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 #else
 #  undef _fullname 
 #endif
+						if( allocedIndex != NULL )
+							SetLink( &file->files, allocedIndex, NULL );
 						return NULL;
 					}
 #if UNICODE
@@ -1524,6 +1534,7 @@ default_fopen:
 		Deallocate( TEXTCHAR*, file->fullname );
 		Deallocate( struct file*, file );
 
+		SetLink( &file->files, allocedIndex, NULL );
 		return NULL;
 	}
 #if !defined( __NO_OPTIONS__ ) && !defined( __FILESYS_NO_FILE_LOGGING__ )
