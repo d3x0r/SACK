@@ -131,7 +131,6 @@ CONTROL_REGISTRATION ConsoleClass = { "PSI Console", { { 640, 480 }, sizeof( CON
 
 int CPROC RenderSeparator( PCONSOLE_INFO console, int nStart )
 {
-	//lprintf( "Render separator %d-%d %d", 0, console->nWidth, nStart );
 	if( nStart > 0 && (int64_t)nStart < console->nHeight )
 	{
 		// Render Command Line Separator
@@ -227,6 +226,7 @@ static int OnDrawCommon( "PSI Console" )( PSI_CONTROL pc )
 		console->rArea.right = console->psicon.image->width;
 		console->rArea.top = 0;
 		console->rArea.bottom = console->psicon.image->height;
+		//lprintf( " ----------------- BOTTOM OF AREA %d ", console->psicon.image->height );
 		//lprintf( "Updating child propportions..." );
 		
 		PSI_ConsoleCalculate( console, GetCommonFont( pc ) ); // this includes doing a render.
@@ -809,11 +809,7 @@ static void CPROC FillConsoleRect( PCONSOLE_INFO console, RECT *r, enum fill_col
 
 static void CPROC RenderCursor( PCONSOLE_INFO console, RECT *r, int column )
 {
-	if( console->
-#ifdef __DEKWARE
-		common.
-#endif
-		CommandInfo->CollectionInsert )
+	if( console->CommandInfo->CollectionInsert )
 	{
 		int y, x;
 
