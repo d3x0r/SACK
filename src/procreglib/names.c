@@ -2017,14 +2017,17 @@ static uintptr_t CPROC SetOptionSet( uintptr_t psv, arg_list args )
 #ifndef __NO_OPTIONS__
 	PARAM( args, TEXTSTR, key );
 	PARAM( args, CTEXTSTR, value );
+	size_t valueLen = strlen( value );
+	TEXTCHAR *buf = (TEXTCHAR*)malloc( valueLen + 2 );
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
-	if( key[0] != '/' && key[0] != '\\' )
-	{
+	if( key[0] != '/' && key[0] != '\\' ) {
 		if( l.flags.bTraceInterfaceLoading )
 			lprintf( "Set Option %s / [%s] = [%s}", GetProgramName(), key, value );
 		key = SubstituteNameVars( key );
-		SACK_WriteProfileStringEx( GetProgramName(), key, value, key, TRUE );
+		SACK_GetProfileStringEx( GetProgramName(), key, value, buf, valueLen+2, TRUE );
+		if( memcmp( buf, value, valueLen ) )
+			SACK_WriteProfileStringEx( GetProgramName(), key, value, NULL, TRUE );
 		Release( key );
 	}
 	else
@@ -2041,10 +2044,13 @@ static uintptr_t CPROC SetOptionSet( uintptr_t psv, arg_list args )
 		if( l.flags.bTraceInterfaceLoading )
 			lprintf( "Set Option [%s]/[%s]/[%s] = [%s}", key, optpath, optname, value );
 
-		SACK_WritePrivateProfileStringEx( optpath, optname, value, key, TRUE );
+		SACK_GetProfileStringEx( optpath, key, value, buf, valueLen + 2, TRUE );
+		if( memcmp( buf, value, valueLen ) )
+			SACK_WritePrivateProfileStringEx( optpath, optname, value, NULL, TRUE );
 		Release( optname );
 		Release( optpath );
 	}
+	free( buf );
 #endif
 	return psv;
 }
