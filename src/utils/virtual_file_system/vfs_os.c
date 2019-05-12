@@ -2834,12 +2834,13 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 				}
 #endif
 				//if( filename && !name_ofs )	return FALSE; // done.
-				if(0)
+				if( 0 ) {
 					LoG( "%d name_ofs = %" _size_f "(%" _size_f ") block = %d  vs %s"
-					   , n, name_ofs
-					   , next_entries[n].name_offset ^ entkey->name_offset
-					   , next_entries[n].first_block ^ entkey->first_block
-					   , filename+ofs );
+						, n, name_ofs
+						, next_entries[n].name_offset ^ entkey->name_offset
+						, next_entries[n].first_block ^ entkey->first_block
+						, filename + ofs );
+				}
 				if( USS_LT( n, size_t, usedNames, int ) ) {
 					bi = next_entries[n].first_block ^ entkey->first_block;
 					// if file is deleted; don't check it's name.
