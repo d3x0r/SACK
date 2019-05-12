@@ -1279,13 +1279,13 @@ PTEXT json_parse_get_error( struct json_parse_state *state ) {
 }
 
 const char *json_get_parse_buffer( struct json_parse_state *pState, const char *buf ) {
-	int idx;
+	INDEX idx;
 	PPARSE_BUFFER buffer;
 	//lprintf( "Getting buffer from %p", pState );
 	for( idx = 0; buffer = (PPARSE_BUFFER)PeekLinkEx( pState->outBuffers, idx ); idx++ )
 		if( ((uintptr_t)buf) >= ((uintptr_t)buffer->buf) && ((uintptr_t)buf) < ((uintptr_t)buffer->pos) )
 			return buffer->buf;
-	for( idx = 0; buffer = (PPARSE_BUFFER)PeekQueueEx( *pState->outQueue, idx ); idx++ )
+	for( idx = 0; buffer = (PPARSE_BUFFER)PeekQueueEx( *pState->outQueue, (int)idx ); idx++ )
 		if( ((uintptr_t)buf) >= ((uintptr_t)buffer->buf) && ((uintptr_t)buf) < ((uintptr_t)buffer->pos) )
 			return buffer->buf;
 	LIST_FORALL( pState->outValBuffers[0], idx, PPARSE_BUFFER, buffer ) {

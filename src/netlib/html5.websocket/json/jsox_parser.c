@@ -2154,13 +2154,12 @@ static void stepPath( const char **path ) {
 struct jsox_value_container *jsox_get_parsed_array_value( struct jsox_value_container *val, const char *path
 	, void( *callback )(uintptr_t psv, struct jsox_value_container *val), uintptr_t psv
 ) {
-	INDEX idx;
 	if( path[0] == '[' )
 		path++;
 	int64_t index = IntCreateFromTextRef( &path );
 	if( path[0] == ']' )
 		path++;
-	struct jsox_value_container * member = (struct jsox_value_container*)GetDataItem( &val->contains, index );
+	struct jsox_value_container * member = (struct jsox_value_container*)GetDataItem( &val->contains, (int)index );
 	stepPath( &path );
 	if( !path[0] ) {
 		callback( psv, member );
