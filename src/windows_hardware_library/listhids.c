@@ -31,13 +31,8 @@ PRELOAD( testhids ) {
 #endif
 LOGICAL ListHids( ListHidsCallback lpCallback, uintptr_t psv )
 {
-
 #ifdef WIN32
-
-	OSVERSIONINFO osvinfo;
-
 	// check parameters 
-
 	if( !lpCallback )
 	{
 		SetLastError( ERROR_INVALID_PARAMETER );
@@ -46,62 +41,7 @@ LOGICAL ListHids( ListHidsCallback lpCallback, uintptr_t psv )
 
 	// determine which platform we're running on and forward
 	// to the appropriate routine
-	
-
-	ZeroMemory( &osvinfo, sizeof( osvinfo ) );
-	osvinfo.dwOSVersionInfoSize = sizeof( osvinfo );
-
-	GetVersionEx( &osvinfo );
-
-	lprintf( " Platform ID: %d, Major Version: %d", osvinfo.dwPlatformId, osvinfo.dwMajorVersion );
-
-	switch( osvinfo.dwPlatformId )
-	{
-
-		case VER_PLATFORM_WIN32_WINDOWS:
-			
-			//return Win9xListPorts( lpCallback, psv );
-			SetLastError( ERROR_OLD_WIN_VERSION );
-			return FALSE;
-			//break;
-
-		case VER_PLATFORM_WIN32_NT:
-
-			if( osvinfo.dwMajorVersion < 4 )
-			{
-				SetLastError( ERROR_OLD_WIN_VERSION );
-				return FALSE;
-			}
-
-			else if( osvinfo.dwMajorVersion == 4 )
-			{
-				//return WinNT40ListPorts( lpCallback, psv );
-				SetLastError( ERROR_OLD_WIN_VERSION );
-				return FALSE;
-			}
-
-			else
-			{
-				return Win2000ListPorts( lpCallback, psv ); // hopefully it'll also work for XP 
-			}
-
-			break;
-#ifdef _WIN32_WCE
-
-		case VER_PLATFORM_WIN32_CE:
-			//return WinCEListPorts( lpCallback, lpCallbackValue );
-			SetLastError( ERROR_OLD_WIN_VERSION );
-			return FALSE;
-
-#endif
-
-		default:
-
-			SetLastError( ERROR_OLD_WIN_VERSION );
-			return FALSE;
-			break;
-	}
-
+	return Win2000ListPorts( lpCallback, psv ); // hopefully it'll also work for XP 
 #else
 
 #endif
