@@ -199,7 +199,7 @@ size_t SRG_AES_encrypt( uint8_t *plaintext, size_t plaintext_len, uint8_t *key, 
 	/* Provide the message to be encrypted, and obtain the encrypted output.
 	 * EVP_EncryptUpdate can be called multiple times if necessary
 	 */
-	if( 1 != EVP_EncryptUpdate( ctx, ciphertext[0], &len, (const unsigned char*)block, remaining ) )
+	if( 1 != EVP_EncryptUpdate( ctx, ciphertext[0], &len, (const unsigned char*)block, (int)remaining ) )
 		handleErrors();
 	ciphertext_len = len;
 	Release( block );
