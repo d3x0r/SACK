@@ -202,7 +202,7 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 	}
 }
 
-static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, int flags )
+static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileFlags flags )
 {
 	if( flags & SFF_DIRECTORY ) {// don't need to do anything with directories... already
       // doing subcurse option.
@@ -229,7 +229,7 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, int flags )
 	}
 }
 
-static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, int flags )
+static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileFlags flags )
 {
 	if( flags & SFF_DIRECTORY ) {
 		// don't need to do anything with directories... already
@@ -328,7 +328,7 @@ static void ExtractFile( CTEXTSTR filename )
 }
 */
 
-static void CPROC _ExtractFile( uintptr_t psv, CTEXTSTR filename, int flags )
+static void CPROC _ExtractFile( uintptr_t psv, CTEXTSTR filename, enum ScanFileFlags flags )
 {
 	if( flags & SFF_DIRECTORY ) {
 		// don't need to do anything with directories... already
@@ -555,7 +555,7 @@ struct scanFileInfo {
 	POINTER *ppInfo;
 };
 
-static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, int flags )
+static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileFlags flags )
 {
 	struct scanFileInfo *pInfo = (struct scanFileInfo*)psv;
 	uint64_t ctime;
@@ -563,13 +563,13 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, int flags )
 	size_t ofs = 0;
 	SACK_TIME ct, wt;
 	struct find_cursor * cursor = GetScanFileCursor( pInfo->ppInfo[0] );
-	ctime = l.fsi->find_get_ctime?l.fsi->find_get_ctime( (uintptr_t)cursor):0;
-	wtime = l.fsi->find_get_wtime?l.fsi->find_get_wtime( (uintptr_t)cursor ):0;
+	ctime = l.fsi->find_get_ctime?l.fsi->find_get_ctime( cursor):0;
+	wtime = l.fsi->find_get_wtime?l.fsi->find_get_wtime( cursor ):0;
 	if( !ctime )DebugBreak();
 	ConvertTickToTime( ctime, &ct );
 	ConvertTickToTime( wtime, &wt );
 	if( file[0] == '.' && file[1] == '/' ) ofs = 2;
-	size_t size = l.fsi->find_get_size( (uintptr_t)cursor );
+	size_t size = l.fsi->find_get_size( cursor );
 	//printf( "%9zd %s %" PRId64 "  %" PRId64 "\n", l.fsi->size( f ), file, ctime, wtime );
 	if( !size ) DebugBreak();
 	printf( "%9zd %s " "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "\n"

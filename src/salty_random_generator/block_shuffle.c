@@ -4,6 +4,10 @@
 #include <salty_generator.h>
 #include "srg_internal.h"
 
+// disable warnings about integer partial expressions being used
+// to sum to larger integers.
+#pragma warning( disable: 26451 ) 
+
 struct block_shuffle_key
 {
 	size_t width;
@@ -280,6 +284,7 @@ struct byte_shuffle_key *BlockShuffle_ByteShufflerSE( struct random_context *ctx
 	}
 
 	int t[2] = { 0, 0 };
+		
 	SRG_GetBit_( lrStart, ctx );
 	for( n = 0; (t[0] < 43 || t[1] < 43) && n < 86; n++ ) {
 		int bit;

@@ -245,7 +245,9 @@ INDEX  GetFileGroup ( CTEXTSTR groupname, CTEXTSTR default_path )
 			tmp[0] = 0;
 #else
 			if( (*winfile_local).have_default )
-				SACK_GetProfileString( GetProgramName(), tmp_ent, default_path?default_path:"", tmp, sizeof( tmp ) );
+				SACK_GetProfileString( GetProgramName(), tmp_ent, default_path ? default_path : "", tmp, sizeof( tmp ) );
+			else
+				tmp[0] = 0;
 #endif
 			if( tmp[0] )
 				default_path = tmp;
@@ -987,9 +989,9 @@ int sack_ftruncate( FILE *file_file )
 		else
 		{
 #ifdef _WIN32
-			_chsize( _fileno( file_file ), ftell( file_file ) );
+			return _chsize( _fileno( file_file ), ftell( file_file ) ) == 0;
 #else
-			truncate( file->fullname, sack_ftell( (FILE*)file_file ) );
+			return truncate( file->fullname, sack_ftell( (FILE*)file_file ) ) == 0;
 #endif
 		}
 		return TRUE;
@@ -1437,7 +1439,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 #else
 #  undef _fullname 
 #endif
-						if( allocedIndex != NULL )
+						if( allocedIndex != INVALID_INDEX )
 							SetLink( &file->files, allocedIndex, NULL );
 						return NULL;
 					}
@@ -1890,6 +1892,7 @@ size_t  sack_fwrite ( CPOINTER buffer, size_t size, int count,FILE *file_file )
 		if( file->mount->fsi->copy_write_buffer && file->mount->fsi->copy_write_buffer() )
 		{
 			POINTER dupbuf = malloc( size*count + 3 );
+#pragma warning( disable: 6387 )
 			memcpy( dupbuf, buffer, size*count );
 			result = file->mount->fsi->_write( file_file, (const char*)dupbuf, size * count );
 			free( dupbuf );
@@ -2176,8 +2179,8 @@ void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_inter
 
 static void * CPROC sack_filesys_open( uintptr_t psv, const char *filename, const char *opts );
 static int CPROC sack_filesys_close( void*file ) { return fclose(  (FILE*)file ); }
-static size_t CPROC sack_filesys_read( void*file, char*buf, size_t len ) { return fread( buf, 1, len, (FILE*)file ); }
-static size_t CPROC sack_filesys_write( void*file, const char*buf, size_t len ) { return fwrite( buf, 1, len, (FILE*)file ); }
+static size_t CPROC sack_filesys_read( void*file, void*buf, size_t len ) { return fread( buf, 1, len, (FILE*)file ); }
+static size_t CPROC sack_filesys_write( void*file, const void*buf, size_t len ) { return fwrite( buf, 1, len, (FILE*)file ); }
 static size_t CPROC sack_filesys_seek( void*file, size_t pos, int whence ) { return fseek( (FILE*)file, (long)pos, whence ), ftell( (FILE*)file ); }
 static int CPROC sack_filesys_unlink( uintptr_t psv, const char*filename ) {
 	int okay = 0;
@@ -2206,6 +2209,7 @@ static size_t CPROC sack_filesys_size( void*file ) {
 }
 static size_t CPROC sack_filesys_tell( void*file ) { return ftell( (FILE*)file ); }
 static void CPROC sack_filesys_truncate( void*file ) {
+#pragma warning( disable:  6031 ) // disable ignoring return value of chsize; nothing to do if it fails.
 #if _WIN32
 	_chsize
 #else
@@ -2493,7 +2497,8 @@ struct file_system_mounted_interface *sack_get_mounted_filesystem( const char *n
 
 void sack_unmount_filesystem( struct file_system_mounted_interface *mount )
 {
-	UnlinkThing( mount );
+	if( mount )
+		UnlinkThing( mount );
 }
 
 LOGICAL CPROC sack_filesys_rename( uintptr_t psvInstance, const char *original_name, const char *new_name ){

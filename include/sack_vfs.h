@@ -88,9 +88,9 @@ SACK_VFS_PROC size_t CPROC sack_vfs_size( struct sack_vfs_file *file );
 // set the current File Position Index (FPI).
 SACK_VFS_PROC size_t CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence );
 // write starting at the current FPI.
-SACK_VFS_PROC size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const char * data, size_t length );
+SACK_VFS_PROC size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const void * data, size_t length );
 // read starting at the current FPI.
-SACK_VFS_PROC size_t CPROC sack_vfs_read( struct sack_vfs_file *file, char * data, size_t length );
+SACK_VFS_PROC size_t CPROC sack_vfs_read( struct sack_vfs_file *file, void * data, size_t length );
 // sets the file length to the current FPI.
 SACK_VFS_PROC size_t CPROC sack_vfs_truncate( struct sack_vfs_file *file );
 // psv should be struct volume *vol;
@@ -171,9 +171,9 @@ namespace fs {
 	// set the current File Position Index (FPI).
 	SACK_VFS_PROC size_t CPROC sack_vfs_fs_seek( struct sack_vfs_file *file, size_t pos, int whence );
 	// write starting at the current FPI.
-	SACK_VFS_PROC size_t CPROC sack_vfs_fs_write( struct sack_vfs_file *file, const char * data, size_t length );
+	SACK_VFS_PROC size_t CPROC sack_vfs_fs_write( struct sack_vfs_file *file, const void * data, size_t length );
 	// read starting at the current FPI.
-	SACK_VFS_PROC size_t CPROC sack_vfs_fs_read( struct sack_vfs_file *file, char * data, size_t length );
+	SACK_VFS_PROC size_t CPROC sack_vfs_fs_read( struct sack_vfs_file *file, void * data, size_t length );
 	// sets the file length to the current FPI.
 	SACK_VFS_PROC size_t CPROC sack_vfs_fs_truncate( struct sack_vfs_file *file );
 	// psv should be struct volume *vol;
@@ -391,9 +391,9 @@ SACK_VFS_PROC size_t CPROC sack_vfs_os_size( struct sack_vfs_file *file );
 // set the current File Position Index (FPI).
 SACK_VFS_PROC size_t CPROC sack_vfs_os_seek( struct sack_vfs_file *file, size_t pos, int whence );
 // write starting at the current FPI.
-SACK_VFS_PROC size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, size_t length );
+SACK_VFS_PROC size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const void * data, size_t length );
 // read starting at the current FPI.
-SACK_VFS_PROC size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t length );
+SACK_VFS_PROC size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, void * data, size_t length );
 // sets the file length to the current FPI.
 SACK_VFS_PROC size_t CPROC sack_vfs_os_truncate( struct sack_vfs_file *file );
 // psv should be struct volume *vol;

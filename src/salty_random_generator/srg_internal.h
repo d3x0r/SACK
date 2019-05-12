@@ -48,10 +48,10 @@ struct byte_shuffle_key {
 	uint8_t dmap[256];
 };
 
-#define MY_MASK_MASK(n,length)	(MASK_TOP_MASK(length) << ((n)&0x7) )
+#define MY_MASK_MASK(n,length)	(MASK_TOP_MASK(length) << ((n)&(sizeof(MASKSET_READTYPE)-1)) )
 #define MY_GET_MASK(v,n,mask_size)  ( ( ((MASKSET_READTYPE*)((((uint8_t*)v))+(n)/CHAR_BIT))[0]											\
  & MY_MASK_MASK(n,mask_size) )																									\
-	>> (((n))&0x7))
+	>> (((n))&(sizeof(MASKSET_READTYPE)-1)))
 
 
 

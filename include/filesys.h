@@ -107,8 +107,8 @@ struct file_system_mounted_interface;
 struct file_system_interface {
 	void* (CPROC *open)(uintptr_t psvInstance, const char *, const char *);                                                  //filename
 	int (CPROC *_close)(void *);                                                 //file *
-	size_t (CPROC *_read)(void *,char *, size_t);                    //file *, buffer, length (to read)
-	size_t (CPROC *_write)(void*,const char *, size_t);                    //file *, buffer, length (to write)
+	size_t (CPROC *_read)(void *,void *, size_t);                    //file *, buffer, length (to read)
+	size_t (CPROC *_write)(void*,const void *, size_t);                    //file *, buffer, length (to write)
 	size_t (CPROC *seek)( void *, size_t, int whence);
 	void  (CPROC *truncate)( void *);
 	int (CPROC *_unlink)( uintptr_t psvInstance, const char *);

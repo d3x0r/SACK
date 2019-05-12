@@ -30,6 +30,9 @@
 //#include <sqlgetoption.h>
 #endif
 
+// integer partial expresions summed into 64 bit.
+#pragma warning( disable: 26451 )
+
 #ifdef USE_STDIO
 #define sack_fopen(a,b,c)     fopen(b,c)
 #define sack_fseek(a,b,c)     fseek(a,(long)b,c)
@@ -1172,7 +1175,8 @@ static void _fs_MaskBlock( struct volume *vol, uint8_t* usekey, uint8_t* block, 
 		memcpy( block, data, length );
 }
 
-size_t CPROC sack_vfs_fs_write( struct sack_vfs_file *file, const char * data, size_t length ) {
+size_t CPROC sack_vfs_fs_write( struct sack_vfs_file *file, const void * data_, size_t length ) {
+	const char* data = (const char*)data_;
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
 	LOGICAL updated = FALSE;
@@ -1246,7 +1250,8 @@ size_t CPROC sack_vfs_fs_write( struct sack_vfs_file *file, const char * data, s
 	return written;
 }
 
-size_t CPROC sack_vfs_fs_read( struct sack_vfs_file *file, char * data, size_t length ) {
+size_t CPROC sack_vfs_fs_read( struct sack_vfs_file *file, void * data_, size_t length ) {
+	char* data = (char*)data_;
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
@@ -1550,8 +1555,8 @@ LOGICAL CPROC sack_vfs_fs_rename( uintptr_t psvInstance, const char *original, c
 static struct file_system_interface sack_vfs_fs_fsi = {
                                                      (void*(CPROC*)(uintptr_t,const char *, const char*))sack_vfs_fs_open
                                                    , (int(CPROC*)(void*))sack_vfs_fs_close
-                                                   , (size_t(CPROC*)(void*,char*,size_t))sack_vfs_fs_read
-                                                   , (size_t(CPROC*)(void*,const char*,size_t))sack_vfs_fs_write
+                                                   , (size_t(CPROC*)(void*,void*,size_t))sack_vfs_fs_read
+                                                   , (size_t(CPROC*)(void*,const void*,size_t))sack_vfs_fs_write
                                                    , (size_t(CPROC*)(void*,size_t,int))sack_vfs_fs_seek
                                                    , (void(CPROC*)(void*))sack_vfs_fs_truncate
                                                    , (int(CPROC*)(uintptr_t,const char*))sack_vfs_fs_unlink_file

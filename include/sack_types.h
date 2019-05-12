@@ -1543,11 +1543,11 @@ node->me = &thing->next;     \
 #define MASKSETSIZE(t,n) (MASKTYPE_INDEX(t,(n+1)))
 // declare a set of flags...
 
-#define MASK_TOP_MASK_VAL(length,val) ((val)&( (0xFFFFFFFFUL) >> (32-(length)) ))
+#define MASK_TOP_MASK_VAL(length,val) ((val)&( ((MASKSET_READTYPE)-1) >> ((sizeof(MASKSET_READTYPE) * CHAR_BIT)-(length)) ))
 /* the mask in the dword resulting from shift-right.   (gets a mask of X bits in length) */
-#define MASK_TOP_MASK(length) ( (0xFFFFFFFFUL) >> (32-(length)) )
+#define MASK_TOP_MASK(length) ( ((MASKSET_READTYPE)-1) >> ((sizeof(MASKSET_READTYPE) * CHAR_BIT)-(length)) )
 /* the mast in the dword shifted to the left to overlap the field in the word */
-#define MASK_MASK(n,length)   (MASK_TOP_MASK(length) << (((n)*(length))&0x7) )
+#define MASK_MASK(n,length)   (MASK_TOP_MASK(length) << (((n)*(length)) & (sizeof(MASKSET_READTYPE) - 1) ) )
 // masks value with the mask size, then applies that mask back to the correct word indexing
 #define MASK_MASK_VAL(n,length,val)   (MASK_TOP_MASK_VAL(length,val) << (((n)*(length))&0x7) )
 

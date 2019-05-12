@@ -760,7 +760,7 @@ Image DecodeMemoryToImage( uint8_t* buf, size_t size )
 
 #ifdef DO_BMP
 	if( !file )
-		file = ImageBMPFile( buf, size );
+		file = ImageBMPFile( buf, (uint32_t)size );
 #endif
 
 	// PLEASE NOTE: JPEG IS DUMB! and aborted our application

@@ -124,7 +124,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 	return FALSE;
 }
 
-static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, int flags )
+static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileFlags flags )
 {
 	ExtractFile( file );
 }

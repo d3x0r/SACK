@@ -49,6 +49,9 @@
 //#include <sqlgetoption.h>
 #endif
 
+// integer partial expresions summed into 64 bit.
+#pragma warning( disable: 26451 )
+
 #ifdef USE_STDIO
 #define sack_fopen(a,b,c)     fopen(b,c)
 #define sack_fseek(a,b,c)     fseek(a,(long)b,c)
@@ -477,10 +480,8 @@ static int _os_MaskStrCmp( struct volume *vol, const char * filename, BLOCKINDEX
 	if( vol->key ) {
 		int c;
 		do {
-			while(
-				((((uintptr_t)prior_dirname) & BLOCK_MASK) == (((uintptr_t)dirname) & BLOCK_MASK))
-				&& (((unsigned char)(c = (dirname[0] ^ dirkey[0])) != UTF8_EOT)
-					)
+			while( ((unsigned char)(c = (dirname[0] ^ dirkey[0])) != UTF8_EOT)
+				&& ((((uintptr_t)prior_dirname) & BLOCK_MASK) == (((uintptr_t)dirname) & BLOCK_MASK))
 				&& filename[0] ) {
 				int del = tolower_( filename[0] ) - tolower_( c );
 				if( del ) return del;
@@ -1908,13 +1909,11 @@ void reloadDirectoryEntry( struct volume *vol, struct memoryTimelineNode *time, 
 		const char *dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset, &cache );
 		const char *dirname_ = dirname;
 		const char *dirkey = (const char*)(vol->usekey[cache]) + (name_offset & BLOCK_MASK);
-		const char *prior_dirname;
+		const char *prior_dirname = dirname;
 		int c;
 		do {
-			while(
-				((((uintptr_t)prior_dirname) & ~BLOCK_MASK) == (((uintptr_t)dirname) & ~BLOCK_MASK))
-				&& (((unsigned char)(c = (dirname[0] ^ dirkey[0])) != UTF8_EOT)
-					)
+			while( (((unsigned char)(c = (dirname[0] ^ dirkey[0])) != UTF8_EOT))
+				&& ((((uintptr_t)prior_dirname) & ~BLOCK_MASK) == (((uintptr_t)dirname) & ~BLOCK_MASK))
 				) {
 				decoded_dirent->filename[n++] = c;
 				dirname++;
@@ -1938,8 +1937,6 @@ void reloadDirectoryEntry( struct volume *vol, struct memoryTimelineNode *time, 
 	//time->dirent_fpi
 
 }
-//---------------------------------------------------------------------------
-
 
 //---------------------------------------------------------------------------
 
@@ -2774,7 +2771,6 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 	size_t n;
 	int ofs = 0;
 	BLOCKINDEX this_dir_block = dirBlockSeg;
-	BLOCKINDEX next_dir_block;
 	int usedNames;
 	int minName;
 	int curName;
@@ -2885,6 +2881,7 @@ LOGICAL _os_ScanDirectory_( struct volume *vol, const char * filename
 		}
 		// unreachable, and broken code.
 #if 0
+		BLOCKINDEX next_dir_block;
 		next_dir_block = vfs_os_GetNextBlock( vol, this_dir_block, GFB_INIT_TIMELINE_MORE, TRUE );
 #ifdef _DEBUG
 		if( this_dir_block == next_dir_block ) DebugBreak();
@@ -3532,7 +3529,8 @@ static void _os_MaskBlock( struct volume *vol, uint8_t* usekey, uint8_t* block, 
 
 #define IS_OWNED(file)  ( (file->entry->name_offset^file->dirent_key.name_offset) & DIRENT_NAME_OFFSET_FLAG_OWNED )
 
-size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const char * data, size_t length ) {
+size_t CPROC sack_vfs_os_write( struct sack_vfs_file *file, const void * data_, size_t length ) {
+	const char* data = (const char*)data_;
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
 	LOGICAL updated = FALSE;
@@ -3676,7 +3674,8 @@ static enum sack_vfs_os_seal_states ValidateSeal( struct sack_vfs_file *file, ch
 	}
 }
 
-size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, char * data, size_t length ) {
+size_t CPROC sack_vfs_os_read( struct sack_vfs_file *file, void * data_, size_t length ) {
+	char* data = (char*)data_;
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
 	if( (file->entry->name_offset ^ file->dirent_key.name_offset) & DIRENT_NAME_OFFSET_FLAG_READ_KEYED ) {
@@ -4383,8 +4382,8 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 static struct file_system_interface sack_vfs_os_fsi = {
                                                      (void*(CPROC*)(uintptr_t,const char *, const char*))sack_vfs_os_open
                                                    , (int(CPROC*)(void*))sack_vfs_os_close
-                                                   , (size_t(CPROC*)(void*,char*,size_t))sack_vfs_os_read
-                                                   , (size_t(CPROC*)(void*,const char*,size_t))sack_vfs_os_write
+                                                   , (size_t(CPROC*)(void*,void*,size_t))sack_vfs_os_read
+                                                   , (size_t(CPROC*)(void*,const void*,size_t))sack_vfs_os_write
                                                    , (size_t(CPROC*)(void*,size_t,int))sack_vfs_os_seek
                                                    , (void(CPROC*)(void*))sack_vfs_os_truncate
                                                    , (int(CPROC*)(uintptr_t,const char*))sack_vfs_os_unlink_file
