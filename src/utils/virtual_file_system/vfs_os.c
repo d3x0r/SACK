@@ -1920,7 +1920,7 @@ void reloadDirectoryEntry( struct volume *vol, struct memoryTimelineNode *time, 
 				dirkey++;
 			}
 			if( ((((uintptr_t)prior_dirname) & ~BLOCK_MASK) != (((uintptr_t)dirname) & ~BLOCK_MASK)) ) {
-				int partial = (dirname - dirname_);
+				int partial = (int)(dirname - dirname_);
 				cache = BC( NAMES );
 				dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset + partial, &cache );
 				dirkey = (const char*)(vol->usekey[cache]) + ((name_offset+partial) & BLOCK_MASK);
@@ -2912,7 +2912,7 @@ static FPI _os_SaveFileName( struct volume *vol, BLOCKINDEX firstNameBlock, cons
 				(UTF8_EOT != (name[0] ^ vol->usekey[cache][name - (unsigned char*)names]))
 				&& (name - names < BLOCK_SIZE)
 				) name++;
-			if( (name - names < BLOCK_SIZE) == BLOCK_SIZE ) {
+			if( ( name - names ) >= BLOCK_SIZE ) {
 				// wow, that is a really LONG name.
 				this_name_block = vfs_os_GetNextBlock( vol, this_name_block, GFB_INIT_NAMES, TRUE );
 				blocks++;
