@@ -49,7 +49,6 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #    define WIN32
 #  endif
 
-
 #endif
 
 #if !defined( __NO_THREAD_LOCAL__ ) && ( defined( _MSC_VER ) || defined( __WATCOMC__ ) )
@@ -1017,22 +1016,6 @@ typedef size_t         INDEX;
 /* An index which is not valid; equates to 0xFFFFFFFFUL or negative one cast as an INDEX... ((INDEX)-1). */
 #define INVALID_INDEX ((INDEX)-1)
 
-#ifdef __CYGWIN__
-typedef unsigned short wchar_t;
-#endif
-// may consider changing this to uint16_t* for unicode...
-typedef wchar_t X_16;
-/* This is a pointer to wchar_t. A 16 bit value that is
-   character data, and is not signed or unsigned.       */
-typedef wchar_t *PX_16;
-
-//#define WIDE(s)   s
-//#define _WIDE(s)  s
-//#define cWIDE(s)   s
-/* Modified WIDE wrapper that actually forces non-unicode
-   string.                                                */
-//#define _cWIDE(s)  s
-
 // constant text string content
 typedef const char     *CTEXTSTR;
 /* A non constant array of TEXTCHAR. A pointer to TEXTCHAR. A
@@ -1383,7 +1366,7 @@ typedef uint64_t THREAD_ID;
 
 
 // For Declaring the link structure members for lists
-#define DeclareLink( type )  type *next;type **me
+#define DeclareLink( type )  type *next; type **me
 
 /* Link a new node into the list.
 
@@ -1602,7 +1585,7 @@ node->me = &thing->next;     \
 _CONTAINER_NAMESPACE
 
 
-/* This is a slab array of pointers, each pointer may be
+/* LIST is a slab array of pointers, each pointer may be
    assigned to point to any user data.
    Remarks
    When the list is filled to the capacity of Cnt elements, the
