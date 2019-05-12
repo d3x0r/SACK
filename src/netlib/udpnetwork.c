@@ -411,13 +411,14 @@ NETWORK_PROC( LOGICAL, SendUDPEx )( PCLIENT pc, CPOINTER pBuf, size_t nSize, SOC
 	if( !sa)
 		sa = pc->saClient;
 	if( !sa )
-      return FALSE;
+		return FALSE;
 	if( !pc )
 		return FALSE;
 #ifdef __LINUX__
-	if( IsBroadcastAddressForInterface( pc->interfaceAddress, sa ) ) {
-		sendSocket = pc->SocketBroadcast;
-	}
+	if( pc->interfaceAddress )
+		if( IsBroadcastAddressForInterface( pc->interfaceAddress, sa ) ) {
+			sendSocket = pc->SocketBroadcast;
+		}
 #endif
 	//LogBinary( (uint8_t*)pBuf, nSize );
 	nSent = sendto( sendSocket
