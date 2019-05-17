@@ -9,6 +9,9 @@
 
 #include "../vfs_internal.h"  // for BLOCK_SIZE
 
+// derefecing NULL pointers; the function wouldn't be called with a NULL.
+#pragma warning( disable:26451) 
+
 static struct vfs_command_local
 {
 	struct file_system_interface *fsi;

@@ -177,7 +177,7 @@ PREFIX_PACKED struct volume {
 	//BLOCKINDEX timelineStart; // constant 2
 	struct storageTimeline *timeline; // timeline root
 	struct storageTimeline *timelineKey; // timeline root key
-	struct sack_vfs_file *timeline_file;
+	struct sack_vfs_os_file *timeline_file;
 	struct storageTimelineCursor *timeline_cache;
 	FLAGSET( seglock, BC( COUNT ) );  // segment is locked into cache.
 #  endif

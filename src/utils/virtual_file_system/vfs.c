@@ -354,7 +354,13 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 									BAT[-1] = EOFBLOCK ^ blockKey[-1];
 									//return FALSE;
 
+#pragma warning( disable: 6001 ) 
+									// this was something.
+									// the warning _nextblock will have always been set in this state, it's
+									// not uninitialized.
 									lprintf( "THIS IS BAD - cross-linked files; or otherwise %d  %d", (int)nextBlock, (int)nextBlock_ );
+#pragma warning( default: 6001 ) 
+
 									LogBinary( usedSectors, size * sizeof( FLAGSETTYPE ) );
 									DebugBreak();
 								}

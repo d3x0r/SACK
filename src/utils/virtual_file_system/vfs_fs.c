@@ -178,7 +178,9 @@ static void MaskStrCpy( char *output, size_t outlen, struct volume *vol, FPI nam
 	}
 }
 #endif
-
+// this is about nLeast being uninitialized.  If nLeast is used
+// its value will have been set; otherwise it will not be used.
+#pragma warning( disable: 6001 ) 
 static int _fs_updateCacheAge( struct volume *vol, enum block_cache_entries *cache_idx, BLOCKINDEX segment, uint8_t *age, int ageLength ) {
 	int n, m;
 	int nLeast;
@@ -215,6 +217,7 @@ static int _fs_updateCacheAge( struct volume *vol, enum block_cache_entries *cac
 	}
 	return (enum block_cache_entries)(n);
 }
+#pragma warning( default: 6001 )
 
 static enum block_cache_entries _fs_UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache_idx, BLOCKINDEX segment )
 {
