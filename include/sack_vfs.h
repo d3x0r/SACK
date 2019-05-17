@@ -348,6 +348,12 @@ namespace objStore {
 // same as load_cyrypt_volume with userkey and devkey NULL.
 SACK_VFS_PROC struct volume * CPROC sack_vfs_os_load_volume( CTEXTSTR filepath );
 
+/*
+    polish volume cleans up some of the dirty sectors.  It starts a background thread that
+	waits a short time of no dirty updates.
+ */
+SACK_VFS_PROC void CPROC sack_vfs_os_polish_volume( struct volume* vol );
+
 // open a volume at the specified pathname.  Use the specified keys to encrypt it.
 // if the volume does not exist, will create it.
 // if the volume does exist, a quick validity check is made on it, and then the result is opened

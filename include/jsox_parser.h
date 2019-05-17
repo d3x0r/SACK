@@ -65,7 +65,6 @@ parse_message
 
 #ifndef JSOX_PARSER_HEADER_INCLUDED
 #define JSOX_PARSER_HEADER_INCLUDED
-#define JSON_EMITTER_HEADER_INCLUDED
 
 // include types to get namespace, and, well PDATALIST types
 #include <stdhdrs.h>
