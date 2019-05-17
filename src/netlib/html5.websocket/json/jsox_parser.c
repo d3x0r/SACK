@@ -487,6 +487,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 		old_context->current_class = state->current_class;
 		old_context->current_class_item = state->current_class_item;
 		old_context->arrayType = state->arrayType;
+		state->arrayType = -1;
 		state->current_class = cls;
 		state->current_class_item = 0;
 		state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
@@ -498,6 +499,12 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 	}
 	return TRUE;
 }
+
+
+// this is about nLeast being uninitialized.  
+// LIST_FORALL initilaizes typeIndex.
+// knownArrayTypeNames is always NOT NULL.
+#pragma warning( disable: 6001 ) 
 
 static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buffer* output, int c ) {
 	PJSOX_CLASS cls = NULL;
@@ -571,6 +578,7 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 	}
 	return TRUE;
 }
+#pragma warning( default: 6001 ) 
 
 int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* output, int cInt ) {
 	if( state->word != JSOX_WORD_POS_RESET ) {
