@@ -15,6 +15,8 @@
 #include <stdhdrs.h>
 #include <sharemem.h>
 
+#pragma warning( disable : 28182)
+
 #define PARSE_DEEP 0 // make true to recurse parse expressions
 
 #define Collapse(towhere) SegConcat(towhere,begin,beginoffset,total)

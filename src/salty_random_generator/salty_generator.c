@@ -189,7 +189,6 @@ void SRG_DestroyEntropy( struct random_context **ppEntropy )
 uint32_t SRG_GetBit( struct random_context *ctx )
 {
 	uint32_t tmp;
-	if( !ctx ) DebugBreak();
 	ctx->total_bits_used += 1;
 	//if( ctx->bits_used > 512 ) DebugBreak();
 	if( (ctx->bits_used) >= ctx->bits_avail ) {
@@ -357,7 +356,7 @@ static void salt_generator(uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	} tick;
 	(void)psv;
 	tick.cputick = GetCPUTick();
-	tick.tick = GetTickCount();
+	tick.tick = timeGetTime();
 	salt[0] = &tick;
 	salt_size[0] = sizeof( tick );
 }

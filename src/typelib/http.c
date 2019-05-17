@@ -2,8 +2,12 @@
 #include <network.h>
 #include <procreg.h>
 #include <sqlgetoption.h>
+#include <signed_unsigned_comparisons.h>
 #include "http.h"
 
+// derefecing NULL pointers; the function wouldn't be called with a NULL.
+// and partial expressions in lower precision
+#pragma warning( disable:6011 26451) 
 
 HTTP_NAMESPACE
 
@@ -302,7 +306,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 								PTEXT field_name;
 								PTEXT value;
 								pLine = SegCreate( pos - start - pHttpState->bLine );
-								if( (pos-start) < pHttpState->bLine )
+								if( USS_LT( (pos-start), INDEX, pHttpState->bLine, int ) )
 								{
 									lprintf( "Failure." );
 								}
@@ -426,7 +430,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 													pHttpState->flags.close = 0;
 													pHttpState->flags.keep_alive = 1;
 												}
-												else if( pHttpState->response_version = 100 ) {
+												else if( pHttpState->response_version == 100 ) {
 													pHttpState->flags.close = 1;
 													pHttpState->flags.keep_alive = 0;
 												}
@@ -597,7 +601,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 {
 	lockHttp( pHttpState );
-	pHttpState->last_read_tick = GetTickCount();
+	pHttpState->last_read_tick = timeGetTime();
 	if( pHttpState->read_chunks )
 	{
 		const uint8_t* buf = (const uint8_t*)buffer;
@@ -1198,7 +1202,7 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 		ReleaseAddress( addr );
 		if( pc )
 		{
-			state->last_read_tick = GetTickCount();
+			state->last_read_tick = timeGetTime();
 			state->waiter = MakeThread();
 			state->request_socket = connect->pc;
 			state->pc = &state->request_socket;
@@ -1223,7 +1227,7 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 				}
 				state->waiter = MakeThread();
 				// wait for response.
-				while( state->request_socket && ( state->last_read_tick > ( GetTickCount() - 3000 ) ) )
+				while( state->request_socket && ( state->last_read_tick > (timeGetTime() - 3000 ) ) )
 				{
 					WakeableSleep( 1000 );
 				}

@@ -9,6 +9,9 @@
 #endif
 // intrinsics
 #endif
+// derefecing NULL pointers; the function wouldn't be called with a NULL.
+// and partial expressions in lower precision
+#pragma warning( disable:6011 26451) 
 
 #include <stdhdrs.h>
 #include <stdarg.h>

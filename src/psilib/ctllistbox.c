@@ -15,6 +15,9 @@
 
 PSI_LISTBOX_NAMESPACE
 
+// derefecing NULL pointers; the function wouldn't be called with a NULL.
+// and partial expressions in lower precision
+#pragma warning( disable:6011 26451) 
 
 typedef struct listcolumn_tag LISTCOL, *PLISTCOL;
 struct listcolumn_tag
@@ -1009,14 +1012,14 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int
 							DispatchSelectionChanged( plb, pc, pli );
 					}
 
-					if( ( GetTickCount() - plb->TimeLastClick ) < 250 )
+					if( ( timeGetTime() - plb->TimeLastClick ) < 250 )
 					{
 						if( plb->DoubleClickHandler )
 							plb->DoubleClickHandler( plb->psvDoubleClick, pc, (PLISTITEM)plb->current );
 						// what if double click handler changes the selection again?
 						// then selchangehnadler will get called with both?
 					}
-					plb->TimeLastClick = GetTickCount();
+					plb->TimeLastClick = timeGetTime();
 					SmudgeCommon( pc );
 				}
 			}

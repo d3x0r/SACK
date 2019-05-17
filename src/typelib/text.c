@@ -23,6 +23,11 @@
 #include <stdio.h>
 #include <wchar.h>
 
+ // derefecing NULL pointers; the function wouldn't be called with a NULL.
+ // and partial expressions in lower precision
+// and NULL math because never NULL.
+#pragma warning( disable:6011 26451 28182) 
+
 #ifdef __cplusplus
 namespace sack {
 namespace containers {
@@ -31,7 +36,7 @@ namespace text {
 	using namespace sack::logging;
 	using namespace sack::containers::queue;
 #endif
-
+#pragma warning( disable:26451 )
 
 typedef PTEXT (CPROC*GetTextOfProc)( uintptr_t, POINTER );
 
@@ -404,11 +409,11 @@ INDEX  GetSegmentSpaceEx ( PTEXT segment, size_t position, int nTabs, INDEX *tab
 					total += tabs[n]-position;
 					position = tabs[n];
 				}
-			lprintf( "Adding %d spaces", segment->format.position.offset.spaces );
+			//lprintf( "Adding %d spaces", segment->format.position.offset.spaces );
 			total += segment->format.position.offset.spaces;
 		}
 	}
-	while( (segment->flags & TF_INDIRECT) && ( segment = GetIndirect( segment ) ) );
+	while( segment && (segment->flags & TF_INDIRECT) && ( segment = GetIndirect( segment ) ) );
 	return total;
 }
 //---------------------------------------------------------------------------
@@ -3530,7 +3535,7 @@ LOGICAL ParseIntVector( CTEXTSTR data, int **pData, int *nData )
 		do
 		{
 			start = end;
-			sscanf( start, "%d", (*pData) + count );
+			(void)sscanf( start, "%d", (*pData) + count );
 			count++;
 			end = StrChr( start, ',' );
 			if( end )
@@ -3663,7 +3668,7 @@ TEXTCHAR *EncodeBase64Ex( const uint8_t* buf, size_t length, size_t *outsize, co
 				blocklen = 3;
 			encodeblock( ((uint8_t*)buf) + n * 3, real_output + n*4, blocklen, base64 );
 		}
-		(*outsize) = n*4 + 1;
+		(*outsize) = n*4; // don't include the NUL.
 		real_output[n*4] = 0;
 	}
 	return real_output;

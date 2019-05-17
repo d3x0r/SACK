@@ -8,6 +8,9 @@
 #include <salty_generator.h>
 #include "srg_internal.h"
 
+// partial lower bit expressions
+#pragma warning( disable: 26451 )
+
 static struct crypt_local
 {
 	char * use_salt;
