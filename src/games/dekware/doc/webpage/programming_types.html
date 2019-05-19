@@ -4,67 +4,73 @@
 <hr>
 <font size=+2><center><U>Types</U></center></font>
 <hr>
+
+The following are basic types are used; in addtion to stdbool/stdint types.
+
+This is just a 'pointer'.  In many cases wold recommend 'uintptr_t' instead.
+
+<pre>
+typedef void * POINTER; // can just use void *.
+</pre>
+
+Pointer to data that you won't modify (that won't be modified)
+
+<pre>
+typedef void const * CPOINTER; 
+</pre>
+
+
+When this project began it had but a custom types INDEX.
+POINTER is of course a POINTER to anything, and INDEX is an unsigned
+count designed to index an array.
+
+<pre>
+typedef size_t            INDEX;
+</pre>
+
+
+
+Text types have gone from char to wchar_t, and back (utf-8).  Most of
+the cross-unicode support stuff has been removed in favor of internally
+always working with utf-8.  (Really buffers of chars with a length, in 
+a PTEXT segment, which may include NUL characters)
+
+
+This is a unicode codepoint.  UTF-8 text can be iterated by TEXTRUNE
+elements.
+
+<pre>
+typedef uint32_t TEXTRUNE;   
+</pre>
+
+This is a character; many cases testing in ASCII (0-127) range can just 
+be done with characters; this used to transform into wchar_t when _UNICODE
+was specified.  Recommend 'char' instead.
+
+<pre>
+typedef char     TEXTCHAR; // character in a string; should prefer TEXTRUNE 
+</pre>
+
+This is a character array; it should contain valid utf-8 encoding; again
+being based on TEXTCHAR in reality, it would transform into wchar_t.
+Recommend 'char*' instead.
+
+<pre>
+typedef char *   TEXTSTR; // string poitner
+</pre>
+
+This is a character array; it should contain valid utf-8 encoding; again
+being based on TEXTCHAR in reality, it would transform into wchar_t.
+Recommend 'char const*' instead.
+
+<pre>
+typedef char const *   CTEXTSTR; // constant string pointer
+</pre>
+
+
+
 <pre>
 
-The following are basic types aliased to definitive sizes accoring to
-their names. _## where ## is the number of bits of the type.  Most 
-compilers do not understand/allow _0 size definitions, so this type
-only exists as a pointer type.  A 'P' prefix indicates pointer, and 
-'S' indicates a signed value.  64 bit types are not used at this point;
-this type also seems to lack a standard definition method, some use
-'long long', some use '__int64', probably some other forms of definiton
-do exist; at this point, none of my code uses 64 bit data.
-
-typedef void              *P_0;
-typedef unsigned char       _8;
-typedef _8                *P_8;
-typedef unsigned short     _16;
-typedef _16              *P_16;
-typedef unsigned long      uint32_t;
-typedef uint32_t              *uint32_t*;
-typedef signed   char      S_8;
-typedef S_8              *PS_8;
-typedef signed   short 	  S_16;
-typedef S_16            *PS_16;
-typedef signed   long  	  int32_t;
-typedef int32_t            *int32_t*;
-
-#if defined( __CYGWIN__ ) || defined( __LINUX__ )
-typedef unsigned long long  _64;
-typedef signed   long long int64_t;
-#elif defined( __BORLAND__ )
-typedef unsigned  __int64   _64;
-typedef signed    __int64  int64_t;
-#endif
-//typedef _64             *P_64;
-//typedef int64_t           *PS_64;
-
-<HR>
-
-Sometimes, one wishes to store a pointer or integer value in the 
-same place, this could be done with a union, and would be a more
-correct solution, however I have defined a pointer sized value, to
-store a pointer as an integer.  Mostly this is used to pass user
-data to callback functions.  Under Win32 these would be like DWORD dwUser.
-At some future point not far from now, this value will have to be 
-modified to be 64 bits to hold the pointer value... and hopefully
-a standard for declaring a 64 bit value will be made.
-
-#pragma message "Setting PTRSIZEVAL to 32 bits... pointers are this size?" 
-typedef uint32_t             PTRSIZEVAL;
-typedef uint32_t             uintptr_t;
-
-<HR>
-
-Some common types definitions which may change from time to time
-but still represent the same data.. text strings, for now a pointer
-to unsigned 8 bit values; text characters, for now an unsigned 8 bit
-value.  Since this program often deals with the internet or other
-networks, this probably will not change for quite some time.
-
-// may consider changing this to P_16 for unicode...
-typedef P_8            TEXTSTR;
-typedef _8             TEXTCHAR;
 
 <HR>
 
@@ -77,14 +83,9 @@ smallest register size on an Intel platform.
 
 typedef _8             LOGICAL; // smallest information 
 
+I use this because it's TRUE/FALSE out of habit; true/false and bool can also be used.
+
 <HR>
-
-When this project began it had but two custom types, POINTER, and INDEX.
-POINTER is of course a POINTER to anything, and INDEX is an unsigned
-count designed to index an array.
-
-typedef P_0            POINTER;
-typedef uint32_t            INDEX;
 
 <HR>
 
@@ -145,12 +146,12 @@ Occasionally a block of data will have to be statically declared
 to a certain size, this is done with the DECLDATA macro.  However,
 it's reference will often have to be typecast to a PDATA type.
 
-#define DECLDATA(name,sz) struct {uint32_t size; _8 data[sz];} name
+#define DECLDATA(name,sz) struct {uint32_t size; uint8_t data[sz];} name
 
 typedef struct DataBlock {
    uint32_t size;     // size is sometimes a pointer value...
                  // this means bad thing when we change platforms...
-   _8  data[1]; // beginning of var data - this is created size+sizeof(VPA)
+   uint8_t  data[1]; // beginning of var data - this is created size+sizeof(VPA)
 } DATA, *PDATA;
 
 <HR>
@@ -197,7 +198,7 @@ typedef struct DataListStack
    uint32_t     Top; // next avail...
    uint32_t     Cnt;
    uint32_t     Size;
-   _8      data[1];
+   uint8_t      data[1];
 } DATASTACK, *PDATASTACK;
 
 <HR>
@@ -214,7 +215,7 @@ typedef struct LinkQueue
    uint32_t     Bottom;
    uint32_t     Cnt;
    uint32_t     Lock;  // thread interlock using InterlockedExchange semaphore
-   POINTER pNode[2]; // need two to have distinct empty/full conditions
+   POINTER      pNode[2]; // need two to have distinct empty/full conditions
 } LINKQUEUE, *PLINKQUEUE;
 
 <hr>
