@@ -633,24 +633,107 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 {
 	if( root )
 	{
+		CPOINTER userdata;
+		uintptr_t userkey;
+		LOGICAL no_children = FALSE;
 		// lprintf( "Removing node from tree.. %p under %p", node, node->parent );
 		if( !node->parent->flags.bRoot
 			&& node->parent->lesser != node
 			&& node->parent->greater != node ) {
 			*(int*)0=0;
 		}
-		// lprintf( "%p should be removed!", node );
-		(*node->me) = NULL; // pull me out of the tree.
-		DecrementParentCounts( node->parent, node->children+1 );
-		// hang my right...
-		RehangBranch( root, node->greater );
-		// hang my left...
-		RehangBranch( root, node->lesser );
-		if( root->Destroy )
-			root->Destroy( node->userdata, node->key );
+		PTREENODE least = NULL;
+		PTREENODE backtrack;
+		PTREENODE bottom;  // deepest node a change was made on.
+		if( !node->lesser ) {
+			if( node->greater ) {
+				bottom = (*node->me) = node->greater;
+				bottom->parent = node->parent;
+			} else {
+				(*node->me) = NULL;
+				bottom = node;
+				no_children = TRUE;
+			}
+		} else if( !node->greater ) {
+			bottom = (*node->me) = node->lesser;
+			bottom->parent = node->parent;
+		} else {
+			// have a lesser and a greater.
+			if( node->lesser->depth > node->greater->depth ) {
+				least = node->lesser;
+				while( least->greater ) least = least->greater;
+				if( least->lesser ) {
+					(*(least->lesser->me =least->me)) = least->lesser;
+					least->lesser->parent  = least->parent;
+					bottom = least->lesser;
+					//least->parent->children--;
+					//least->parent->depth = (east->parent->greater->depth
+				} else {
+					(*(least->me)) = NULL;
+					bottom = least->parent;
+				}
 
-		MemSet( node, 0, sizeof( *node ) );
-		DeleteFromSet( TREENODE, TreeNodeSet, node );
+			} else {
+
+				least = node->greater;
+				while( least->lesser ) least = least->lesser;
+				if( least->greater ) {
+					(*(least->greater->me = least->me)) = least->greater;
+					least->greater->parent  = least->parent;
+					bottom = least->greater;
+					//least->parent->depth = (east->parent->greater->depth
+				} else {
+					(*(least->me)) = NULL;
+					bottom = least->parent;
+				}
+			}
+		}
+			{
+				int tmp1, tmp2;
+				backtrack = bottom;
+				lprintf( "Least: %p", least );
+				do {
+					while( backtrack->parent && ( no_children || backtrack != node ) ) {
+						backtrack = backtrack->parent;
+lprintf( "reduce parent's children from %d", backtrack->children );
+						backtrack->children--;
+						if( backtrack->lesser )
+							if( backtrack->greater )
+								if( (tmp1=backtrack->lesser->depth) > (tmp2=backtrack->greater->depth) )
+									backtrack->depth = tmp1 + 1;
+								else
+									backtrack->depth = tmp2 + 1;
+							else
+								backtrack->depth = backtrack->lesser->depth + 1;
+						else
+							if( backtrack->greater )
+								backtrack->depth = backtrack->greater->depth + 1;
+							else
+								backtrack->depth = 0; /* can't happen.*/
+					}
+					if( least ) {
+						userdata = node->userdata;
+						userkey = node->key;
+
+						node->userdata = least->userdata;
+						node->key = least->key;
+						DeleteFromSet( TREENODE, TreeNodeSet, least );
+						node = NULL;
+						least = NULL;
+					}
+					if( backtrack )
+						backtrack = backtrack->parent;
+				} while( backtrack );
+			}
+		
+		AVLbalancer( root, bottom );
+
+		if( root->Destroy )
+			root->Destroy( userdata, userkey );
+
+		//MemSet( node, 0, sizeof( *node ) );
+		if( node )
+			DeleteFromSet( TREENODE, TreeNodeSet, node );
 		//Release( node );
 		return;
 	}
@@ -676,6 +759,7 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 		{
 			if( node->userdata == data )
 			{
+lprintf( "REMOVE NODE %p", node );
 				NativeRemoveBinaryNode( root, node );
 				break;
 			}
@@ -823,6 +907,76 @@ void DumpTree( PTREEROOT root
 	if( !Dump ) {
 		lprintf( "Tree had %d levels.", maxlevel );
 	}
+#endif
+}
+
+//---------------------------------------------------------------------------
+
+void DumpNodeInOrder( PLINKQUEUE *queue, PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, uintptr_t key ) )
+{
+	while( node = DequeLink( queue ) )
+	{
+#ifdef SACK_BINARYLIST_USE_PRIMITIVE_LOGGING
+	static char buf[256];
+#endif
+	int print;
+	if( !node )
+		return;
+	if( node->lesser )
+		EnqueLink( queue, node->lesser );
+	if( node->greater )
+		EnqueLink( queue, node->greater );
+	if( DumpMethod )
+		print = DumpMethod( node->userdata, node->key );
+	else
+		print = TRUE;
+	//else
+	if( print ) {
+#ifdef SACK_BINARYLIST_USE_PRIMITIVE_LOGGING
+		snprintf( buf, 256, "[%3d] %p Node has %3d depth  %3" _32f " children (%p %3" _32f ",%p %3" _32f "). %10" _PTRSZVALfs
+			, level, node, node->depth, node->children
+			, node->lesser
+			, (node->lesser) ? (node->lesser->children + 1) : 0
+			, node->greater
+			, (node->greater) ? (node->greater->children + 1) : 0
+			, node->key
+		);
+		puts( buf );
+#else
+		lprintf( "[%3d] %p Node has %3d depth  %3" _32f " children (%p %3" _32f ",%p %3" _32f "). %10" _PTRSZVALfs
+			, level, node, node->depth, node->children
+			, node->lesser
+			, (node->lesser) ? (node->lesser->children + 1) : 0
+			, node->greater
+			, (node->greater) ? (node->greater->children + 1) : 0
+			, node->key
+		);
+#endif
+	}
+	}
+}
+
+//---------------------------------------------------------------------------
+
+void DumpInOrder( PTREEROOT root
+				 , int (*Dump)( CPOINTER user, uintptr_t key ) )
+{
+	PLINKQUEUE plq = CreateLinkQueue();
+	EnqueLink( &plq, root->tree );
+#ifdef SACK_BINARYLIST_USE_PRIMITIVE_LOGGING
+	static char buf[256];
+	if( !Dump ) {
+		snprintf( buf, 256, "Tree %p has %" _32f " nodes. %p is root", root, root->children, root->tree );
+		puts( buf );
+	}
+	DumpNodeInOrder( &plq, root->tree, 1, Dump );
+	fflush( stdout );
+#else
+	maxlevel = 0;
+	if( !Dump ) {
+		lprintf(  "Tree %p has %" _32f " nodes. %p is root", root, root->children, root->tree );
+	}
+	DumpNodeInOrder( &plq, root->tree, 1, Dump );
 #endif
 }
 
