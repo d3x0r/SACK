@@ -211,6 +211,14 @@ namespace objStore {
 		SOSFSFIO_STORE_OBJECT, // get the resulting storage ID.  (Move ID creation into low level driver)
 		SOSFSFIO_PROVIDE_READKEY, // set key required to read this record.
 		//SFSIO_GET_OBJECT_ID, // get the resulting storage ID.  (Move ID creation into low level driver)
+		SOSFSFIO_CREATE_INDEX, // creates an index for this record.
+		SOSFSFIO_DESTROY_INDEX, // remove an index (by name)
+		SOSFSFIO_ADD_INDEX_ITEM,
+		SOSFSFIO_REMOVE_INDEX_ITEM,
+		SOSFSFIO_ADD_REFERENCE,
+		SOSFSFIO_REMOVE_REFERENCE,
+		SOSFSFIO_ADD_REFERENCE_BY,
+		SOSFSFIO_REMOVE_REFERENCE_BY,
 	};
 
 	enum sack_object_store_file_system_system_ioctl_ops {
@@ -338,6 +346,9 @@ namespace objStore {
 // }
 #define sack_vfs_os_ioctl_patch_sealed_object( vol, objId,objIdLen, obj,objlen, seal,seallen, result, resultlen ) sack_fs_ioctl( vol, SOSFSSIO_PATCH_OBJECT, FALSE, FALSE, objId, objIdLen, authId, authIdLen, obj, objlen, seal, seallen, result, resultlen )
 
+
+#define sack_vfs_os_ioctl_create_index( file, indexName ) sack_vfs_os_fs_ioctl( file, SOSFSFIO_CREATE_INDEX, indexName )
+
 	struct volume;
 	struct sack_vfs_file;
 	struct find_info;
@@ -382,12 +393,16 @@ SACK_VFS_PROC const char *    CPROC sack_vfs_os_get_signature( struct volume *vo
 // returns BLOCK_SIZE length signature; recommend using at least 128 bits of it.
 SACK_VFS_PROC const uint8_t * CPROC sack_vfs_os_get_signature2( POINTER disk, POINTER diskReal );
 
+// extra file system operations, not in the normal API definition set.
+SACK_VFS_PROC uintptr_t CPROC sack_vfs_os_system_ioctl( struct volume* psvInstance, uintptr_t opCode, ... );
 // ---------- Operations on files in volumes ------------------
 
 // open a file, creates if does not exist.
 SACK_VFS_PROC struct sack_vfs_file * CPROC sack_vfs_os_openfile( struct volume *vol, CTEXTSTR filename );
 // check if a file exists (if it does not exist, and you don't want it created, can use this and not openfile)
 SACK_VFS_PROC int CPROC sack_vfs_os_exists( struct volume *vol, const char * file );
+// extra operations, not in the normal API definition set.
+SACK_VFS_PROC uintptr_t CPROC sack_vfs_os_file_ioctl( struct sack_vfs_file *file, uintptr_t opCode, ... );
 // close a file.
 SACK_VFS_PROC int CPROC sack_vfs_os_close( struct sack_vfs_file *file );
 // get the current File Position Index (FPI).
