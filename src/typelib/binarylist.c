@@ -110,126 +110,6 @@ int CPROC BinaryCompareInt( uintptr_t old, uintptr_t new_key )
 }
 
 //---------------------------------------------------------------------------
-#if 0
-PTREENODE RotateToRight( PTREENODE node )
-{
-	PTREENODE greater = node->greater;
-	*node->me = node->greater;
-	// my parent's nodes do NOT change....
-	// node->parent->children += node->greater->children - node->children;
-	greater->me       = node->me;
-	greater->parent   = node->parent;
-	node->children   -= (greater->children+1);
-
-	if( ( node->greater = greater->lesser ) )
-	{
-		greater->lesser->me     = &node->greater;
-		greater->lesser->parent = node;
-		node->children    += (greater->lesser->children + 1);
-		greater->children -= (greater->lesser->children + 1);
-	}
-	greater->lesser = node;
-	node->me        = &greater->lesser;
-	node->parent    = greater;
-
-	greater->children += (node->children + 1);
-	return greater;
-}
-
-//---------------------------------------------------------------------------
-
-PTREENODE RotateToLeft( PTREENODE node )
-{
-	PTREENODE lesser = node->lesser;
-	*node->me = node->lesser;
-	// my parent's nodes do NOT change....
-	// node->parent->children += node->lesser->children - node->children;
-	lesser->me       = node->me;
-	lesser->parent   = node->parent;
-	node->children  -= (lesser->children+1);
-
-	if( ( node->lesser = lesser->greater ) )
-	{
-		lesser->greater->me     = &node->lesser;
-		lesser->greater->parent = node;
-		node->children   += (lesser->greater->children + 1);
-		lesser->children -= (lesser->greater->children + 1);
-	}
-	lesser->greater = node;
-	node->me        = &lesser->greater;
-	node->parent    = lesser;
-
-	lesser->children += (node->children + 1);
-	return lesser;
-}
-
-//---------------------------------------------------------------------------
-// RotateToLeft - make left node root/current.
-// RotateToRight - make rightDepth node root/current
-
-static int BalanceBinaryBranch( PTREENODE root )
-{
-	PTREENODE check;
-	int balances = 0;
-	//while( balances )
-	{
-		balances = 0;
-   	if( ( check = root ) )
-   	{
- 	   	if( check->lesser && check->greater)
- 		{
-			int left = check->lesser->children
-			 , rightDepth = check->greater->children;
-			if( left && rightDepth && ( left > ( rightDepth * 2 ) ) )
-			{
-				//if( left > 2+((left+rightDepth)*55)/100 )
-				{
-		 			//Log2( "rotateing to left (%d/%d)", left, rightDepth );
-					root = RotateToLeft( check );
-					balances++;
-				}
-				//else
-				//	root = NULL;
-			}
-			else if( rightDepth > ( left * 2 ) )
-			{
-				//if( rightDepth  > 2+((left+rightDepth)*55)/100 )
-				{
-		 			//Log2( "rotateing to rightDepth (%d/%d)", rightDepth, left );
-					root = RotateToRight( check );
-					balances++;
-				}
-				//else
-				//	root = NULL;
-			}
-
- 		}
- 		else if( check->lesser && ( check->children >= 2 ) )
- 		{
- 			//Log1( "rotateing to left (%d)", check->children );
- 			root = RotateToLeft( check );
-			balances++;
- 		}
- 		else if( check->greater && ( check->children >= 2 )  )
- 		{
- 			//Log1( "rotateing to rightDepth (%d)", check->children );
- 			root = RotateToRight( check );
-			balances++;
- 		}
- 		//else
- 		//	root = NULL;
- 		if( root )
- 		{
-			balances += BalanceBinaryBranch( root->lesser );
-			balances += BalanceBinaryBranch( root->greater );
-  		}
- 	   }
- 	}
- 	return balances;
-}
-#endif
-
-//---------------------------------------------------------------------------
 
 void BalanceBinaryTree( PTREEROOT root )
 {
@@ -247,95 +127,95 @@ void BalanceBinaryTree( PTREEROOT root )
 //---------------------------------------------------------------------------
 
 //static PTREENODE AVL_RotateToRight( PTREENODE node )
-#define AVL_RotateToRight(node)                                         \
-{                                            \
-	PTREENODE left = node->lesser;           \
-	PTREENODE T2 = left->greater;            \
-                                             \
-	node->children -= (left->children + 1);  \
-                                             \
-	node->me[0] = left;\
-	left->me = node->me;\
-	left->parent = node->parent;         \
-                                         \
-	/* Perform rotation*/ \
-	left->greater = node;  \
-	node->me = &left->greater;  \
-	node->parent = left;       \
-              \
-	node->lesser = T2;              \
-	if( T2 ) {              \
-		T2->me = &node->lesser;              \
-		T2->parent = node;              \
-		node->children += (left->greater->children + 1);              \
-		left->children -= (left->greater->children + 1);              \
-	}              \
-	left->children += (node->children + 1);              \
-              \
-	/* Update heights */                 \
-	{              \
-		int leftDepth, rightDepth;              \
-		leftDepth = node->lesser ? node->lesser->depth : 0;              \
-		rightDepth = node->greater ? node->greater->depth : 0;              \
-		if( leftDepth > rightDepth )              \
-			node->depth = leftDepth + 1;              \
-		else              \
-			node->depth = rightDepth + 1;              \
-              \
-		leftDepth = left->lesser ? left->lesser->depth : 0;              \
-		rightDepth = left->greater ? left->greater->depth : 0;              \
-		if( leftDepth > rightDepth ) {              \
-			left->depth = leftDepth + 1;              \
-		}              \
-		else              \
-			left->depth = rightDepth + 1;              \
-	}              \
+#define AVL_RotateToRight(node)                                          \
+{                                                                        \
+	PTREENODE left = node->lesser;                                   \
+	PTREENODE T2 = left->greater;                                    \
+                                                                         \
+	node->children -= (left->children + 1);                          \
+                                                                         \
+	node->me[0] = left;                                              \
+	left->me = node->me;                                             \
+	left->parent = node->parent;                                     \
+                                                                         \
+	/* Perform rotation*/                                            \
+	left->greater = node;                                            \
+	node->me = &left->greater;                                       \
+	node->parent = left;                                             \
+                                                                         \
+	node->lesser = T2;                                               \
+	if( T2 ) {                                                       \
+		T2->me = &node->lesser;                                  \
+		T2->parent = node;                                       \
+		node->children += (left->greater->children + 1);         \
+		left->children -= (left->greater->children + 1);         \
+	}                                                                \
+	left->children += (node->children + 1);                          \
+                                                                         \
+	/* Update heights */                                             \
+	{                                                                \
+		int leftDepth, rightDepth;                               \
+		leftDepth = node->lesser ? node->lesser->depth : 0;      \
+		rightDepth = node->greater ? node->greater->depth : 0;   \
+		if( leftDepth > rightDepth )                             \
+			node->depth = leftDepth + 1;                     \
+		else                                                     \
+			node->depth = rightDepth + 1;                    \
+                                                                         \
+		leftDepth = left->lesser ? left->lesser->depth : 0;      \
+		rightDepth = left->greater ? left->greater->depth : 0;   \
+		if( leftDepth > rightDepth ) {                           \
+			left->depth = leftDepth + 1;                     \
+		}                                                        \
+		else                                                     \
+			left->depth = rightDepth + 1;                    \
+	}                                                                \
 }
 
 //---------------------------------------------------------------------------
 
 //static PTREENODE AVL_RotateToLeft( PTREENODE node )
-#define AVL_RotateToLeft(node)                                         \
-{                                         \
-	PTREENODE right = node->greater;                                         \
-	PTREENODE T2 = right->lesser;                                         \
-                                         \
-	node->children -= (right->children + 1);                                         \
-                                         \
-	node->me[0] = right;                                         \
-	right->me = node->me;                                         \
-	right->parent = node->parent;         \
-                                         \
-	/* Perform rotation  */                                       \
-	right->lesser = node;                                         \
-	node->me = &right->lesser;                                         \
-	node->parent = right;                                         \
-	node->greater = T2;                                         \
-	if( T2 ) {                                         \
-		T2->me = &node->greater;                                         \
-		T2->parent = node;                                         \
-		node->children += (right->lesser->children + 1);                                         \
-		right->children -= (right->lesser->children + 1);                                         \
-	}                                         \
-	right->children += (node->children + 1);                                         \
-	/*  Update heights */                                         \
-	{                                         \
-		int left, rightDepth;                                         \
-		left = node->lesser ? node->lesser->depth : 0;                                         \
-		rightDepth = node->greater ? node->greater->depth : 0;                                         \
-		if( left > rightDepth )                                         \
-			node->depth = left + 1;                                         \
-		else                                         \
-			node->depth = rightDepth + 1;                                         \
-                                         \
-		left = right->lesser ? right->lesser->depth : 0;                                         \
-		rightDepth = right->greater ? right->greater->depth : 0;                                         \
-		if( left > rightDepth )                                         \
-			right->depth = left + 1;                                               \
-		else                                                                       \
-			right->depth = rightDepth + 1;                                         \
-	}                                                                              \
-}                                                                                  \
+#define AVL_RotateToLeft(node)                                           \
+{                                                                        \
+	PTREENODE right = node->greater;                                 \
+	PTREENODE T2 = right->lesser;                                    \
+                                                                         \
+	node->children -= (right->children + 1);                         \
+                                                                         \
+	node->me[0] = right;                                             \
+	right->me = node->me;                                            \
+	right->parent = node->parent;                                    \
+                                                                         \
+	/* Perform rotation  */                                          \
+	right->lesser = node;                                            \
+	node->me = &right->lesser;                                       \
+	node->parent = right;                                            \
+	node->greater = T2;                                              \
+	if( T2 ) {                                                       \
+		T2->me = &node->greater;                                 \
+		T2->parent = node;                                       \
+		node->children += (right->lesser->children + 1);         \
+		right->children -= (right->lesser->children + 1);        \
+	}                                                                \
+	right->children += (node->children + 1);                         \
+	/*  Update heights */                                            \
+	{                                                                \
+		int left, rightDepth;                                    \
+		left = node->lesser ? node->lesser->depth : 0;           \
+		rightDepth = node->greater ? node->greater->depth : 0;   \
+		if( left > rightDepth )                                  \
+			node->depth = left + 1;                          \
+		else                                                     \
+			node->depth = rightDepth + 1;                    \
+                                                                         \
+		left = right->lesser ? right->lesser->depth : 0;         \
+		rightDepth = right->greater ? right->greater->depth : 0; \
+		if( left > rightDepth )                                  \
+			right->depth = left + 1;                         \
+		else                                                     \
+			right->depth = rightDepth + 1;                   \
+	}                                                                \
+}                                                                        \
 
 //---------------------------------------------------------------------------
 
@@ -593,48 +473,18 @@ int AddBinaryNodeEx( PTREEROOT root
 
 #undef AddBinaryNode
 int AddBinaryNode( PTREEROOT root
-						, CPOINTER userdata
-					  , uintptr_t key )
+                 , CPOINTER userdata
+                 , uintptr_t key )
 {
 	return AddBinaryNodeEx( root, userdata, key DBG_SRC );
 }
 //---------------------------------------------------------------------------
 
-static void RehangBranch( PTREEROOT root, PTREENODE node )
-{
-	if( node )
-	{
-		(*node->me) = NULL; // make sure I'm out of the tree...
-		if( node->greater )
-		{
-			RehangBranch( root, node->greater );
-		}
-		if( node->lesser )
-		{
-			RehangBranch( root, node->lesser );
-		}
-		node->children = 0;
-		node->depth = 0;
-		//lprintf( "putting self node back in tree %p", node );
-		HangBinaryNode( root, node );
-	}
-}
-
-static void DecrementParentCounts( PTREENODE node, int count )
-{
-	PTREENODE parent;
-	for( parent = node; parent && !parent->flags.bRoot; parent = parent->parent )
-	{
-		parent->children -= count;
-	}
-}
 
 static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 {
 	if( root )
 	{
-		CPOINTER userdata;
-		uintptr_t userkey;
 		LOGICAL no_children = FALSE;
 		// lprintf( "Removing node from tree.. %p under %p", node, node->parent );
 		if( !node->parent->flags.bRoot
@@ -666,75 +516,69 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 					(*(least->lesser->me =least->me)) = least->lesser;
 					least->lesser->parent  = least->parent;
 					bottom = least->lesser;
-					//least->parent->children--;
-					//least->parent->depth = (east->parent->greater->depth
 				} else {
 					(*(least->me)) = NULL;
 					bottom = least->parent;
 				}
-
 			} else {
-
 				least = node->greater;
 				while( least->lesser ) least = least->lesser;
 				if( least->greater ) {
 					(*(least->greater->me = least->me)) = least->greater;
 					least->greater->parent  = least->parent;
 					bottom = least->greater;
-					//least->parent->depth = (east->parent->greater->depth
 				} else {
 					(*(least->me)) = NULL;
 					bottom = least->parent;
 				}
 			}
 		}
-			{
-				int tmp1, tmp2;
-				backtrack = bottom;
-				lprintf( "Least: %p", least );
-				do {
-					while( backtrack->parent && ( no_children || backtrack != node ) ) {
-						backtrack = backtrack->parent;
-lprintf( "reduce parent's children from %d", backtrack->children );
-						backtrack->children--;
-						if( backtrack->lesser )
-							if( backtrack->greater )
-								if( (tmp1=backtrack->lesser->depth) > (tmp2=backtrack->greater->depth) )
-									backtrack->depth = tmp1 + 1;
-								else
-									backtrack->depth = tmp2 + 1;
+		{
+			backtrack = bottom;
+			do {
+				while( backtrack->parent && ( no_children || backtrack != node ) ) {
+					backtrack = backtrack->parent;
+					backtrack->children--;
+					if( backtrack->lesser )
+						if( backtrack->greater ) {
+							int tmp1, tmp2;
+							if( (tmp1=backtrack->lesser->depth) > (tmp2=backtrack->greater->depth) )
+								backtrack->depth = tmp1 + 1;
 							else
-								backtrack->depth = backtrack->lesser->depth + 1;
+								backtrack->depth = tmp2 + 1;
+						} else
+							backtrack->depth = backtrack->lesser->depth + 1;
+					else
+						if( backtrack->greater )
+							backtrack->depth = backtrack->greater->depth + 1;
 						else
-							if( backtrack->greater )
-								backtrack->depth = backtrack->greater->depth + 1;
-							else
-								backtrack->depth = 0; /* can't happen.*/
-					}
-					if( least ) {
-						userdata = node->userdata;
-						userkey = node->key;
+							backtrack->depth = 0;
+				}
+				if( least ) {
+					CPOINTER userdata;
+					uintptr_t userkey;
 
-						node->userdata = least->userdata;
-						node->key = least->key;
-						DeleteFromSet( TREENODE, TreeNodeSet, least );
-						node = NULL;
-						least = NULL;
-					}
-					if( backtrack )
-						backtrack = backtrack->parent;
-				} while( backtrack );
-			}
+					userdata = node->userdata;
+					userkey = node->key;
+
+					node->userdata = least->userdata;
+					node->key = least->key;
+					DeleteFromSet( TREENODE, TreeNodeSet, least );
+					node = NULL;
+					least = NULL;
+				}
+				if( backtrack )
+					backtrack = backtrack->parent;
+			} while( backtrack );
+		}
 		
 		AVLbalancer( root, bottom );
 
 		if( root->Destroy )
 			root->Destroy( userdata, userkey );
 
-		//MemSet( node, 0, sizeof( *node ) );
 		if( node )
 			DeleteFromSet( TREENODE, TreeNodeSet, node );
-		//Release( node );
 		return;
 	}
 	lprintf( "Fatal RemoveBinaryNode could not find the root!" );
@@ -759,7 +603,6 @@ lprintf( "reduce parent's children from %d", backtrack->children );
 		{
 			if( node->userdata == data )
 			{
-lprintf( "REMOVE NODE %p", node );
 				NativeRemoveBinaryNode( root, node );
 				break;
 			}
@@ -1056,9 +899,8 @@ int CPROC TextMatchLocate( uintptr_t key1, uintptr_t key2 )
 // -1 = no match, actual may be lesser
 // 100 = inexact match- checks nodes near for better match.
 CPOINTER LocateInBinaryTree( PTREEROOT root, uintptr_t key
-								  , int (CPROC*fuzzy)( uintptr_t psv, uintptr_t node_key )
-
-								  )
+                           , int (CPROC*fuzzy)( uintptr_t psv, uintptr_t node_key )
+                           )
 {
 	PTREENODE node;
 	node = root->tree;
