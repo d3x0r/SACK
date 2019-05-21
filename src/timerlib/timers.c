@@ -249,8 +249,10 @@ static struct my_thread_info* GetThreadTLS( void )
 {
 	struct my_thread_info* _MyThreadInfo;
 #if defined( WIN32 )
+#  ifndef __STATIC_GLOBALS__
 	if( !global_timer_structure )
 		SimpleRegisterAndCreateGlobal( global_timer_structure );
+#  endif
 	if( !( _MyThreadInfo = (struct my_thread_info*)TlsGetValue( global_timer_structure->my_thread_info_tls ) ) )
 	{
 		int old = SetAllocateLogging( FALSE );
@@ -275,8 +277,10 @@ static struct my_thread_info* GetThreadTLS( void )
 PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
 {
 	// there is a small chance the local is already initialized.
+#  ifndef __STATIC_GLOBALS__
 	if( !global_timer_structure )
 		SimpleRegisterAndCreateGlobal( global_timer_structure );
+#  endif
 	if( !globalTimerData.timerID )
 	{
 #if defined( WIN32 )
@@ -508,8 +512,10 @@ static PTHREAD FindWakeup( CTEXTSTR name )
 	}
 	else
 	{
+#ifndef __STATIC_GLOBALS__
 		if( IsRootDeadstartStarted() )
 			SimpleRegisterAndCreateGlobal( global_timer_structure );
+#endif
 	}
 
 	check = (PTHREAD)ForAllInSet( THREAD, globalTimerData.threadset, check_thread_name, (uintptr_t)name );
@@ -562,8 +568,10 @@ static PTHREAD FindThreadWakeup( CTEXTSTR name, THREAD_ID thread )
 	}
 	else
 	{
+#ifndef __STATIC_GLOBALS__
 		if( IsRootDeadstartStarted() )
 			SimpleRegisterAndCreateGlobal( global_timer_structure );
+#endif
 	}
 
 	check = (PTHREAD)ForAllInSet( THREAD, globalTimerData.threadset, check_thread_name_and_id, (uintptr_t)&params );
@@ -609,8 +617,10 @@ static PTHREAD FindThread( THREAD_ID thread )
 	}
 	else
 	{
+#ifndef __STATIC_GLOBALS__
 		if( IsRootDeadstartStarted() )
 			SimpleRegisterAndCreateGlobal( global_timer_structure );
+#endif
 	}
 	check = (PTHREAD)ForAllInSet( THREAD, globalTimerData.threadset, check_thread, (uintptr_t)&thread );
 	if( !check )
@@ -2220,9 +2230,10 @@ void  RescheduleTimer( uint32_t ID )
 }
 
 //--------------------------------------------------------------------------
-#ifndef TARGETNAME
-#  define TARGETNAME ""
-#endif
+#ifndef __NO_INTERFACE_SUPPORT__
+#  ifndef TARGETNAME
+#    define TARGETNAME ""
+#  endif
 static void OnDisplayPause( "@Internal Timers" TARGETNAME )( void )
 {
 	globalTimerData.flags.bHaltTimers = 1;
@@ -2235,7 +2246,7 @@ static void OnDisplayResume( "@Internal Timers" TARGETNAME)( void )
 	if( globalTimerData.pTimerThread )
 		WakeThread( globalTimerData.pTimerThread );
 }
-
+#endif
 //--------------------------------------------------------------------------
 
 void  ChangeTimerEx( uint32_t ID, uint32_t initial, uint32_t frequency )
