@@ -53,12 +53,12 @@ printf( "----------------added 10\n" );
 
 
 // remove a node that has leaves with full branches
-   RemoveBinaryNode( tree, p[10], 7 );
-printf( "----------------removed 10\n" );
+   RemoveBinaryNode( tree, p[7], 7 );
+printf( "----------------removed 7\n" );
    DumpInOrder( tree, dumpCallback );
 
-   AddBinaryNode( tree, p[10], 7 );
-printf( "----------------added 10\n" );
+   AddBinaryNode( tree, p[7], 7 );
+printf( "----------------added 7\n" );
    DumpInOrder( tree, dumpCallback );
 
 

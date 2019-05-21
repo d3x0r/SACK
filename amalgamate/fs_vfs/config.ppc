@@ -1,4 +1,5 @@
 #define JSON_PARSER_MAIN_SOURCE
+#define JSOX_PARSER_MAIN_SOURCE
 #define NO_OPEN_MACRO
 #define __NO_MMAP__
 #define __STATIC__
@@ -10,9 +11,16 @@
 #define __STATIC_GLOBALS__
 //#define TYPELIB_SOURCE
 #define __NO_INTERFACE_SUPPORT__
+#define NO_SSL
+#define USE_STDIO
+#define FORCE_COLOR_MACROS
+#define __NO_IDLE__
+#define __WASM__
 
 #include <stdio.h>
 #include <stdarg.h> 
+#include <time.h>
+#include <sys/time.h>
 #include <stdhdrs.h>
 
 #ifdef __cplusplus
@@ -23,6 +31,7 @@ namespace sack {
       INDEX null_lprintf( char const* f,... ) { return 0; }
       RealLogFunction _xlprintf(uint32_t level DBG_PASS) { return real_lprintf; };
       void SystemLog( char const* f ) { puts( f ); puts( "ZZZZ\n" ); }
+#if 0
       uint32_t  getTickCount( void )
       {
             struct timeval time;
@@ -34,6 +43,8 @@ namespace sack {
 
 #define GetTickCount getTickCount
 #define timeGetTime tmGetTime
+#endif
+
 #undef LogBinary
       void LogBinary( const uint8_t *_inbuf, size_t len ) {
             const uint8_t *inbuf = (const uint8_t*)_inbuf;
@@ -61,6 +72,187 @@ namespace sack {
                   if( (i * LINELEN + j) >= len ) break;
             }
       }
+
+int64_t GetTimeOfDay( void )
+{
+	//struct timezone tzp;
+	int tz = GetTimeZone();
+	if( tz < 0 )
+		tz = -(((-tz / 100) * 60) + (-tz % 100)) / 15; // -840/15 = -56  
+	else
+		tz = (((tz / 100) * 60) + (tz % 100)) / 15; // -840/15 = -56  720/15 = 48
+#ifdef _WIN32
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970 
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime( &system_time );
+	SystemTimeToFileTime( &system_time, &file_time );
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	return (((uint64_t)((time - EPOCH) / 10000L)) << 8) | (tz & 0xFF);
+#else
+	{
+		struct timeval tp;
+		gettimeofday( &tp, NULL );
+		return  (((uint64_t)(tp.tv_sec * 1000L) + (uint64_t)(tp.tv_usec)) << 8) | (tz & 0xFF);
+	}
+#endif
+}
+
+
+
+int64_t ConvertTimeToTick( PSACK_TIME st ) {
+	int tz;
+	int sign = st->zhr < 0 ? -1 : 1;
+	tz = sign * (((sign*st->zhr * 60) + st->zmn) / 15);
+#ifdef _WIN32
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+	system_time.wYear = st->yr;
+	system_time.wMonth = st->mo;
+	system_time.wDay = st->dy;
+	system_time.wHour = st->hr;
+	system_time.wMinute = st->mn;
+	system_time.wSecond = st->sc;
+	system_time.wMilliseconds = st->ms;
+	SystemTimeToFileTime( &system_time, &file_time );
+
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	return (((uint64_t)((time - EPOCH) / 10000L)) << 8) | (tz & 0xFF);
+#else
+	struct tm t;
+	time_t t_of_day;
+
+	t.tm_year = st->yr - 1900;
+	t.tm_mon = st->mo-1;           // Month, 0 - jan
+	t.tm_mday = st->dy;          // Day of the month
+	t.tm_hour = st->hr;
+	t.tm_min = st->mn;
+	t.tm_sec = st->sc;
+	t.tm_isdst = 0;        // Is DST on? 1 = yes, 0 = no, -1 = unknown
+	t_of_day = timegm( &t );
+
+	return ((((int64_t)t_of_day) * 1000ULL + st->ms) << 8) | (tz&0xFF);
+#endif
+}
+
+int GetTimeZone( void ){
+    time_t gmt, rawtime = time(NULL);
+    struct tm *ptm;
+
+#if !defined(WIN32)
+    struct tm gbuf;
+    ptm = gmtime_r(&rawtime, &gbuf);
+#else
+    ptm = gmtime(&rawtime);
+#endif
+    // Request that mktime() looksup dst in timezone database
+    ptm->tm_isdst = -1;
+    gmt = mktime(ptm);
+	{
+		int seconds = (int)difftime( rawtime, gmt );
+		int sign = 1;
+		if( seconds < 0 ) {
+			sign = -1;
+			seconds = -seconds;
+		}
+		return sign * (((seconds / 60 / 60) * 100) + ((seconds / 60) % 60));
+	}
+}
+
+uint64_t GetCPUTick(void )
+{
+static uint64_t lasttick;
+static int64_t tick_bias;
+static LOGICAL bCPUTickWorks = TRUE;
+/*
+ * being the core of CPU tick layer type stuff
+ * this should result in ticks, and fail ticks
+ * to return reasonable defaults...
+ * I guess there should be a tick_base to result
+ * the same type of number when it does go backwards
+ */
+	if( bCPUTickWorks )
+	{
+#if defined( __LCC__ )
+		return _rdtsc();
+#elif defined( __WATCOMC__ )
+		uint64_t tick = rdtsc();
+		if( !lasttick )
+			lasttick = tick;
+		else if( tick < lasttick )
+		{
+			//bCPUTickWorks = 0;
+			//cpu_tick_freq = 1;
+			tick_bias = lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
+			tick = lasttick + 1; // more than prior, but no longer valid.
+		}
+		lasttick = tick;
+		return tick;
+#elif defined( _MSC_VER )
+#  ifdef _M_CEE_PURE
+		//return System::DateTime::now;
+		return 0;
+#  else
+#   if defined( _WIN64 )
+		uint64_t tick = __rdtsc();
+#   else
+		static uint64_t tick;
+#     if _ARM_
+		tick = tick+1;
+#     else
+		_asm rdtsc;
+		_asm mov dword ptr [tick], eax;
+		_asm mov dword ptr [tick + 4], edx;
+#     endif
+#   endif
+		if( !lasttick )
+			lasttick = tick;
+		else if( tick < lasttick )
+		{
+			//bCPUTickWorks = 0;
+			//cpu_tick_freq = 1;
+			tick_bias = lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
+			tick = lasttick + 1; // more than prior, but no longer valid.
+		}
+		lasttick = tick;
+		return tick;
+#  endif
+#elif defined( __GNUC__ ) && !defined( __arm__ ) && !defined( __aarch64__ ) && !defined( __asmjs__ )
+		union {
+			uint64_t tick;
+			PREFIX_PACKED struct { uint32_t low, high; } PACKED parts;
+		}tick;
+#ifndef PEDANTIC_TEST
+		asm( "rdtsc\n" : "=a"(tick.parts.low), "=d"(tick.parts.high) );
+#endif
+		if( !lasttick )
+			lasttick = tick.tick;
+		else if( tick.tick < lasttick )
+		{
+			//bCPUTickWorks = 0;
+			//cpu_tick_freq = 1;
+			tick_bias = lasttick - ( timeGetTime()/*GetTickCount()*/ * 1000 );
+			tick.tick = lasttick + 1; // more than prior, but no longer valid.
+		}
+		lasttick = tick.tick;
+		return tick.tick;
+#else
+		DebugBreak();
+#endif
+	}
+	return tick_bias + (timeGetTime()/*GetTickCount()*/ * 1000);
+}
 
 
 #ifdef __cplusplus

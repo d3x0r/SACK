@@ -8,8 +8,8 @@
 
 set EXPORTS=
 set EXPORTS='_sack_vfs_os_load_volume'
-set EXPORTS='_sack_vfs_os_load_crypt_volume'
-set EXPORTS='_sack_vfs_os_unload_volume'
+set EXPORTS=%EXPORTS%,'_sack_vfs_os_load_crypt_volume'
+set EXPORTS=%EXPORTS%,'_sack_vfs_os_unload_volume'
 set EXPORTS=%EXPORTS%,'_sack_vfs_os_open'
 set EXPORTS=%EXPORTS%,'_sack_vfs_system_ioctl'
 set EXPORTS=%EXPORTS%,'_sack_vfs_file_ioct'
@@ -17,6 +17,7 @@ set EXPORTS=%EXPORTS%,'_sack_vfs_file_ioct'
 
 :call emcc --memory-init-file 0 -s EXTRA_EXPORTED_RUNTIME_METHODS=["stringToUTF8"] -s EXPORTED_FUNCTIONS="[%EXPORTS%]" -O2 -o ./vfs-fs-w.js  -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference -DUSE_STDIO=1 -DNO_SSL=1 -D__LINUX__ -s RESERVED_FUNCTION_POINTERS=20  vfs_fs.c emscripten_bindings.c
 call emcc --memory-init-file 0 -s EXTRA_EXPORTED_RUNTIME_METHODS=["stringToUTF8"] -s EXPORTED_FUNCTIONS="[%EXPORTS%]" -g -o ./vfs-fs-w.js  -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference -DUSE_STDIO=1 -DNO_SSL=1 -D__LINUX__ -s RESERVED_FUNCTION_POINTERS=20  vfs_fs.c
+call emcc -s WASM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=["stringToUTF8"] -s EXPORTED_FUNCTIONS="[%EXPORTS%]" -g -o ./vfs-fs-wasm.js  -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference -DUSE_STDIO=1 -DNO_SSL=1 -D__LINUX__ -s RESERVED_FUNCTION_POINTERS=20  vfs_fs.c
 
 call emcc --memory-init-file 0 -o ./vfs-fs-w0.js   -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference -DUSE_STDIO=1 -DNO_SSL=1 -D__LINUX__ -s RESERVED_FUNCTION_POINTERS=20  vfs_fs.c
 
