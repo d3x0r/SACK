@@ -753,9 +753,10 @@ void DumpTree( PTREEROOT root
 
 //---------------------------------------------------------------------------
 
-void DumpNodeInOrder( PLINKQUEUE *queue, PTREENODE node, int level, int (*DumpMethod)( CPOINTER user, uintptr_t key ) )
+void DumpNodeInOrder( PLINKQUEUE *queue, int (*DumpMethod)( CPOINTER user, uintptr_t key ) )
 {
-	while( node = DequeLink( queue ) )
+	PTREENODE node;
+	while( node = (PTREENODE)DequeLink( queue ) )
 	{
 #ifdef SACK_BINARYLIST_USE_PRIMITIVE_LOGGING
 	static char buf[256];
@@ -784,8 +785,8 @@ void DumpNodeInOrder( PLINKQUEUE *queue, PTREENODE node, int level, int (*DumpMe
 		);
 		puts( buf );
 #else
-		lprintf( "[%3d] %p Node has %3d depth  %3" _32f " children (%p %3" _32f ",%p %3" _32f "). %10" _PTRSZVALfs
-			, level, node, node->depth, node->children
+		lprintf( "%p Node has %3d depth  %3" _32f " children (%p %3" _32f ",%p %3" _32f "). %10" _PTRSZVALfs
+			, node, node->depth, node->children
 			, node->lesser
 			, (node->lesser) ? (node->lesser->children + 1) : 0
 			, node->greater
@@ -817,7 +818,7 @@ void DumpInOrder( PTREEROOT root
 	if( !Dump ) {
 		lprintf(  "Tree %p has %" _32f " nodes. %p is root", root, root->children, root->tree );
 	}
-	DumpNodeInOrder( &plq, root->tree, 1, Dump );
+	DumpNodeInOrder( &plq, Dump );
 #endif
 }
 
