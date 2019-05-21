@@ -1301,7 +1301,11 @@ typedef uint64_t THREAD_ID;
 #      ifdef __ANDROID__
 #        define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(gettid()) ) )
 #      else
-#        define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(syscall(SYS_gettid)) ) )
+#        if defined( __WASM__ )
+#          define GetMyThreadID()  ( (uint64_t)(pthread_self()) )
+#        else
+#          define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(syscall(SYS_gettid)) ) )
+#        endif
 #      endif
 #    else
 #      define GetMyThreadID()  (( ((uint64_t)getppid()) << 32 ) | ( (uint64_t)(getpid()|0x40000000)) )
