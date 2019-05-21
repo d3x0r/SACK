@@ -63,6 +63,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PXPANEL pPanel
 			XCopyArea(display, bitmap, win, gc,
 						 0, 0,
 						 bitmap_width, bitmap_height,
+				);
                    /*
 						 void glDrawPixels( GLsizei width,
 												 GLsizei height,
@@ -72,7 +73,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PXPANEL pPanel
                    */
 		 }
 	}
-
+}
 
 int errorHandler( Display *dpy, XErrorEvent *e )
 {
