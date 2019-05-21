@@ -97,10 +97,10 @@ namespace objStore {
 //#define DEBUG_DISK_IO
 //#define DEBUG_DIRECTORIESa
 //#define DEBUG_BLOCK_INIT
-#define DEBUG_TIMELINE_AVL
-#define DEBUG_TIMELINE_DIR_TRACKING
-// #define DEBUG_FILE_SCAN
-// #define DEBUG_FILE_OPEN
+//#define DEBUG_TIMELINE_AVL
+//#define DEBUG_TIMELINE_DIR_TRACKING
+//#define DEBUG_FILE_SCAN
+//#define DEBUG_FILE_OPEN
 
 #ifdef DEBUG_TRACE_LOG
 #define LoG( a,... ) lprintf( a,##__VA_ARGS__ )
@@ -282,45 +282,30 @@ enum sack_vfs_os_seal_states {
 	SACK_VFS_OS_SEAL_STORE_PATCH,  // stored patch new sealant (after read valid, new write)
 };
 
-struct file_suffix_memory {
-	BLOCKINDEX firstPatchBlock;
-	BLOCKINDEX patchRefBlock; // first patch block
-
-	PDATALIST references;
-	PDATALIST referencedBy;
-	char* nonce; // first patch block
+struct file_block_definition {
+	uint32_t avail;
+	uint32_t used;
+};
+struct file_block_small_definition {
+	uint16_t avail;
+	uint16_t used;
+};
+struct file_block_large_definition {
+	uint64_t avail;
+	uint64_t used;
 };
 
-PREFIX_PACKED struct sealant_suffix_storage {
-	BLOCKINDEX firstPatchBlock;
-	BLOCKINDEX patchRefBlock; // first patch block
-	uint16_t patchRefIndex; // patch entry that this is a patch to.
-
-	uint8_t sealNonceLength; // 
-	uint8_t sealNoncePad; // pad so remaining is at least 32 bit aligned.
-#define sealantSuffix_nonceLength(s)    ((s)->sealNonceLength)
-	//  char nonce[nsealNonceLength];
-#define sealantSuffix_nonce(s)          ((char*)( (((uintptr_t)s)+ ( sizeof( struct sealant_suffix_storage ) )) )
-
-	//  uint32_t referenceCount;
-#define sealantSuffix_referenceCount(s)  ((uint32_t*)( (((uintptr_t)s)+ ( sizeof( struct sealant_suffix_storage ) + s->sealNonceLength + s->sealNoncePad )) )[0]
-	// BLOCKINDEX references[];
-#define sealantSuffix_references(s)      ((BLOCKINDEX*)( (((uintptr_t)s)+ ( sizeof( struct sealant_suffix_storage ) + s->sealNonceLength + s->sealNoncePad + sizeof( uint32_t ) )) )
-
-	//  uint32_t referencedByCount;
-#define sealantSuffix_referencedByCount(s)  ((uint32_t*)( (((uintptr_t)s)+ ( sizeof( struct sealant_suffix_storage ) + s->sealNonceLength + s->sealNoncePad + sizeof( uint32_t ) + sealantSuffix_references(s) * sizeof( BLOCKINDEX ) )) )[0]
-	// BLOCKINDEX referencedBy[];
-#define sealantSuffix_referencedBy(s)       ((BLOCKINDEX*)( (((uintptr_t)s)+ ( sizeof( struct sealant_suffix_storage ) + s->sealNonceLength + s->sealNoncePad + sizeof( uint32_t ) + sealantSuffix_references(s) * sizeof( BLOCKINDEX ) + sizeof( uint32_t ) )) )
-
-	//  uint32_t indexCount;
-#define sealantSuffix_indexCount(s)  ((uint32_t*)( (((uintptr_t)s)+ ( sizeof( struct sealant_suffix_storage ) + s->sealNonceLength + s->sealNoncePad + sizeof( uint32_t ) + sealantSuffix_references(s) * sizeof( BLOCKINDEX ) + sizeof( uint32_t ) + sealantSuffix_referencedByCount(s) * sizeof(BLOCKINDEX) )) )[0]
-	// BLOCKINDEX indexes[];
-#define sealantSuffix_indexes(s)     ((BLOCKINDEX*)( (((uintptr_t)s)+ ( sizeof( struct sealant_suffix_storage ) + s->sealNonceLength + s->sealNoncePad + sizeof( uint32_t ) + sealantSuffix_references(s) * sizeof( BLOCKINDEX ) + sizeof( uint32_t ) + sealantSuffix_referencedByCount(s) * sizeof(BLOCKINDEX) + sizeof( uint32_t ) )) )
-
-}PACKED;
-
+struct file_header {
+	struct file_block_small_definition sealant;
+	struct file_block_definition references;
+	struct file_block_large_definition fileData;
+	struct file_block_small_definition indexes;
+	struct file_block_definition referencedBy;
+};
 
 static void flushFileSuffix( struct sack_vfs_os_file* file );
+static void WriteIntoBlock( struct sack_vfs_os_file* file, int blockType, FPI pos, CPOINTER data, FPI length );
+
 
 #include "vfs_os_timeline.c"
 
@@ -340,29 +325,153 @@ struct sack_vfs_os_file
 #  ifdef FILE_BASED_VFS
 	FPI entry_fpi;  // where to write the directory entry update to
 #    ifdef VIRTUAL_OBJECT_STORE
-	struct file_suffix_memory sufixInfo;
-	enum block_cache_entries cache;
-	struct memoryTimelineNode* timeline;
+	struct file_header diskHeader; 
+	struct file_header header;  // in-memory size, so we can just do generic move op
+
+	struct memoryTimelineNode timeline;
 	uint8_t* seal;
 	uint8_t* sealant;
 	uint8_t* readKey;
 	uint16_t readKeyLen;
-	uint8_t sealantLen;
+	//uint8_t sealantLen;
 	uint8_t sealed; // boolean, on read, validates seal.  Defaults to FALSE.
 	char* filename;
 #    endif
 	struct directory_entry _entry;  // has file size within
 	struct directory_entry* entry;  // has file size within
+	enum block_cache_entries cache; 
 #  else
 	struct directory_entry* entry;  // has file size within
 #  endif
 
 };
 
+static void _os_UpdateFileBlocks( struct sack_vfs_os_file* file );
+
+static uint32_t _os_AddSmallBlockUsage( struct file_block_small_definition* block, uint32_t more );
+
 
 #include "vfs_os_index.c"
 
+static void _os_SetSmallBlockUsage( struct file_block_small_definition* block, int more ) {
+	block->used = more;
+	while( block->avail < block->used )
+		block->avail += 128;
+}
 
+ uint32_t _os_AddSmallBlockUsage( struct file_block_small_definition* block, uint32_t more ) {
+	uint32_t oldval = block->used;
+	_os_SetSmallBlockUsage( block, block->used + more );
+	return oldval;
+}
+
+static void _os_SetFileBlockUsage( struct file_block_small_definition* block, uint32_t more ) {
+	block->used = more;
+	while( block->avail < block->used )
+		block->avail += 256;
+}
+
+#define FILE_BLOCK_SEALANT 0
+#define FILE_BLOCK_REFERENCES 1
+#define FILE_BLOCK_DATA 2
+#define FILE_BLOCK_INDEXES 3
+#define FILE_BLOCK_REFERENCED_BY 4
+
+static FPI GetBlockStart( struct sack_vfs_os_file* file, int blockType ) {
+	FPI blockStart = sizeof( struct file_header );
+
+	switch( blockType ) {
+		//case 5:
+		//	blockStart += file->header.fileData.avail; // end of file.
+	case FILE_BLOCK_REFERENCED_BY:
+		blockStart += file->header.indexes.avail;
+	case FILE_BLOCK_INDEXES:
+		blockStart += file->header.fileData.avail;
+	case FILE_BLOCK_DATA:
+		blockStart += file->header.references.avail;
+	case FILE_BLOCK_REFERENCES:
+		blockStart += file->header.sealant.avail;
+	case FILE_BLOCK_SEALANT:
+		// starts at position 0.
+		break;
+	}
+	return blockStart;
+}
+void WriteIntoBlock( struct sack_vfs_os_file* file, int blockType, FPI pos, CPOINTER data, FPI length ) {
+	FPI blockStart = GetBlockStart( file, blockType );
+
+	sack_vfs_os_seek_internal( file, blockStart, SEEK_SET );
+	sack_vfs_os_write_internal( file, data, length, NULL );
+}
+
+
+static void _os_SetLargeBlockUsage( struct file_block_large_definition* block, uint64_t more ) {
+	block->used = more;
+	while( block->avail < block->used )
+		block->avail = ( block->used + BLOCK_SIZE ) & BLOCK_MASK;
+}
+
+static void _os_UpdateFileBlocks( struct sack_vfs_os_file* file ) {
+	FPI deltas[5]; // num header fields
+	FPI oldStarts[6]; // num header fields
+	FPI starts[6]; // num header fields
+	oldStarts[0] = 0;
+	starts[0] = 0;
+	deltas[0] = ( file->header.sealant.avail ) - file->diskHeader.sealant.avail;
+	starts[1] = starts[0] + file->header.sealant.avail;
+	oldStarts[1] = oldStarts[0] + file->diskHeader.sealant.avail;
+
+	deltas[1] = ( deltas[0] + file->header.references.avail ) - file->diskHeader.references.avail;
+	starts[2] = starts[1] + file->header.references.avail;
+	oldStarts[2] = oldStarts[1] + file->diskHeader.references.avail;
+
+	deltas[2] = ( deltas[1] + file->header.fileData.avail) - file->diskHeader.fileData.avail;
+	starts[3] = starts[2] + file->header.fileData.avail;
+	oldStarts[3] = oldStarts[2] + file->diskHeader.fileData.avail;
+
+	deltas[3] = ( deltas[2] + file->header.indexes.avail) - file->diskHeader.indexes.avail;
+	starts[4] = starts[3] + file->header.indexes.avail;
+	oldStarts[4] = oldStarts[3] + file->diskHeader.indexes.avail;
+
+	deltas[4] = ( deltas[3] + file->header.referencedBy.avail ) - file->diskHeader.referencedBy.avail;
+	starts[5] = starts[4] + file->header.referencedBy.avail;
+	oldStarts[5] = oldStarts[4] + file->diskHeader.referencedBy.avail;
+
+	if( deltas[4] ) {
+		static uint8_t block[BLOCK_SIZE];
+		int n;
+		for( n = 5; n > 0; n-- ) {
+			size_t tailOffset = starts[n];
+			size_t oldTailOffset = oldStarts[n];
+			size_t dataLength = oldTailOffset - oldStarts[n-1];
+
+			// only going to copy for old length, so back up the difference
+			// between new length and old length
+			tailOffset -= (starts[n] - starts[n-1] ) - dataLength;
+			while( dataLength > 0 ) {
+				if( dataLength > BLOCK_SIZE ) {
+					oldTailOffset -= BLOCK_SIZE;
+					tailOffset -= BLOCK_SIZE;
+					sack_vfs_os_seek_internal( file, oldTailOffset, SEEK_SET );
+					sack_vfs_os_read_internal( file, block, BLOCK_SIZE );
+					sack_vfs_os_seek_internal( file, tailOffset, SEEK_SET );
+					sack_vfs_os_write_internal( file, block, BLOCK_SIZE, NULL );
+					dataLength -= BLOCK_SIZE;
+					continue;
+				}
+				oldTailOffset -= dataLength;
+				tailOffset -= dataLength;
+				sack_vfs_os_seek_internal( file, oldTailOffset, SEEK_SET );
+				sack_vfs_os_read_internal( file, block, dataLength );
+				sack_vfs_os_seek_internal( file, tailOffset, SEEK_SET );
+				sack_vfs_os_write_internal( file, block, dataLength, NULL );
+				dataLength -= dataLength;
+			}
+		}
+	}
+
+	file->diskHeader = file->header;
+}
 
 static void _os_ExtendBlockChain( struct sack_vfs_os_file *file ) {
 	int newSize = (file->blockChainAvail) * 2 + 1;
@@ -1032,6 +1141,7 @@ LOGICAL _os_ExpandVolume( struct volume *vol ) {
 			free( tmp );
 			//Deallocate( char*, tmp );
 		}
+#ifndef USE_STDIO
 		if( tmp =(char*)StrChr( vol->volname, '@' ) ) {
 			tmp[0] = 0;
 			iface = (char*)vol->volname;
@@ -1055,6 +1165,13 @@ LOGICAL _os_ExpandVolume( struct volume *vol ) {
 				vol->file = sack_fopenEx( 0, vol->volname, "wb+", sack_get_default_mount() );
 			}
 		}
+#else
+		vol->file = sack_fopen( 0, vol->volname, "rb+" );
+		if( !vol->file ) {
+			created = TRUE;
+			vol->file = sack_fopen( 0, vol->volname, "wb+" );
+		}
+#endif
 		sack_fseek( vol->file, 0, SEEK_END );
 		vol->dwSize = sack_ftell( vol->file );
 		if( vol->dwSize == 0 )
@@ -2312,7 +2429,7 @@ static struct directory_entry * _os_GetNewDirectory( struct volume *vol,
 				struct memoryTimelineNode time_;
 				struct memoryTimelineNode *time = &time_;
 				if( file )
-					time = file->timeline;
+					time = &file->timeline;
 				else
 					time_.ctime.raw = GetTimeOfDay();
 				time->dirent_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[n] );;
@@ -2332,7 +2449,6 @@ static struct directory_entry * _os_GetNewDirectory( struct volume *vol,
 				file->entry_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[n] );;
 				file->entry = ent;
 				file->dirent_key = entkey[n];
-				file->cache = cache;
 			}
 			SETFLAG( vol->dirty, cache );
 			return ent;
@@ -2343,12 +2459,15 @@ static struct directory_entry * _os_GetNewDirectory( struct volume *vol,
 }
 
 struct sack_vfs_file * CPROC sack_vfs_os_openfile( struct volume *vol, const char * filename ) {
-	struct sack_vfs_os_file *file = NewPlus( struct sack_vfs_os_file, sizeof( struct memoryTimelineNode ) );
+	struct sack_vfs_os_file *file = New( struct sack_vfs_os_file );
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
+	MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
+	file->vol = vol;
 	file->entry = &file->_entry;
 	file->sealant = NULL;
-	file->timeline = ( struct memoryTimelineNode *)(file+1);
-	if( filename[0] == '.' && filename[1] == '/' ) filename += 2;
+
+	if( filename[0] == '.' && ( filename[1] == '\\' || filename[1] == '/' ) ) filename += 2;
+
 #ifdef DEBUG_FILE_OPEN
 	LoG( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
 #endif
@@ -2356,27 +2475,27 @@ struct sack_vfs_file * CPROC sack_vfs_os_openfile( struct volume *vol, const cha
 		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Deallocate( struct sack_vfs_os_file*, file ); return NULL; }
 		else _os_GetNewDirectory( vol, filename, file );
 	}
+	file->_first_block = file->block = file->entry->first_block;
+	
+	sack_vfs_os_read_internal( file, &file->diskHeader, sizeof( file->diskHeader ) );
+	file->header = file->diskHeader;
+	file->fpi = file->header.sealant.avail + file->header.references.avail;
+
 	{
 		BLOCKINDEX offset = (file->entry->name_offset ^ file->dirent_key.name_offset);
 		uint32_t sealLen = (offset & DIRENT_NAME_OFFSET_FLAG_SEALANT) >> DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT;
 		if( sealLen ) {
 			file->seal = NewArray( uint8_t, sealLen );
-			file->sealantLen = sealLen;
+			//file->sealantLen = sealLen;
 			file->sealed = SACK_VFS_OS_SEAL_LOAD;
 		}
 		else {
 			file->seal = NULL;
-			file->sealantLen = 0;
+			//file->sealantLen = 0;
 			file->sealed = SACK_VFS_OS_SEAL_NONE;
 		}
 		file->filename = StrDup( filename );
 	}
-	file->readKey = NULL;
-	file->readKeyLen = 0;
-	file->vol = vol;
-	file->fpi = 0;
-	file->delete_on_close = 0;
-	file->_first_block = file->block = file->entry->first_block ^ file->dirent_key.first_block;
 	AddLink( &vol->files, file );
 	vol->lock = 0;
 	return (struct sack_vfs_file*)file;
@@ -2508,7 +2627,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 	uint8_t* cdata;
 	size_t cdataLen;
 	if( file->readKey && !file->fpi ) {
-		SRG_XSWS_encryptData( (uint8_t*)data, length, file->timeline->ctime.raw
+		SRG_XSWS_encryptData( (uint8_t*)data, length, file->timeline.ctime.raw
 			, (const uint8_t*)file->readKey, file->readKeyLen
 			, &cdata, &cdataLen );
 		data = (const char*)cdata;
@@ -2517,18 +2636,16 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 	else {
 		cdata = NULL;
 	}
-	if( !writeState )
-		while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
+	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 	if( (file->entry->name_offset ^ file->dirent_key.name_offset) & DIRENT_NAME_OFFSET_FLAG_SEALANT ) {
 		char* filename;
 		size_t filenameLen = 64;
 		// read-only data block.
 		lprintf( "INCOMPLETE - TODO WRITE PATCH" );
-		char* sealer = getFilename( data, length, (char*)file->sealant, file->sealantLen, IS_OWNED( file ), &filename, &filenameLen );
+		char* sealer = getFilename( data, length, (char*)file->sealant, file->header.sealant.used, IS_OWNED( file ), &filename, &filenameLen );
 
 		struct sack_vfs_os_file* pFile = (struct sack_vfs_os_file*)sack_vfs_os_openfile( file->vol, filename );
 		pFile->sealant = (uint8_t*)sealer;
-		pFile->sealantLen = 32;
 		if( cdata ) Release( cdata );
 		return sack_vfs_os_write_internal( pFile, data, length, (POINTER)1 );
 	}
@@ -2598,21 +2715,24 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 			length = 0;
 		}
 	}
+
+#if 0
 	if( !writeState && file->sealant && (void*)file->sealant != (void*)data ) {
 		flushFileSuffix( file );
 
 		BLOCKINDEX saveSize = file->entry->filesize;
 		BLOCKINDEX saveFpi = file->fpi;
-		sack_vfs_os_write_internal( file, (char*)file->sealant, file->sealantLen, (POINTER)1 );
+		sack_vfs_os_write_internal( file, (char*)file->sealant, file->header.sealant.used, (POINTER)1 );
 		file->entry->filesize = saveSize;
 		file->fpi = saveFpi;
 	}
+#endif
 	if( updated ) {
 		SETFLAG( file->vol->dirty, file->cache ); // directory cache block (locked)
 	}
 	if( cdata ) Release( cdata );
-	if( !writeState )
-		file->vol->lock = 0;
+	//if( !writeState )
+	file->vol->lock = 0;
 	return written;
 }
 
@@ -2629,16 +2749,16 @@ static enum sack_vfs_os_seal_states ValidateSeal( struct sack_vfs_os_file *file,
 	signEntropy = SRG_CreateEntropy4( NULL, (uintptr_t)0 );
 
 	SRG_ResetEntropy( signEntropy );
-	SRG_FeedEntropy( signEntropy, (const uint8_t*)file->sealant, file->sealantLen );
+	SRG_FeedEntropy( signEntropy, (const uint8_t*)file->sealant, file->header.sealant.used );
 	SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
-	if( (file->sealantLen != 32) || MemCmp( outbuf, file->sealant, 32 ) )
+	if( (file->header.sealant.used != 32) || MemCmp( outbuf, file->sealant, 32 ) )
 		return SACK_VFS_OS_SEAL_INVALID;
 
 	SRG_ResetEntropy( signEntropy );
 	SRG_FeedEntropy( signEntropy, (const uint8_t*)data, length );
 
 	// DO NOT DOUBLE_PROCESS THIS DATA
-	SRG_FeedEntropy( signEntropy, (const uint8_t*)file->sealant, file->sealantLen );
+	SRG_FeedEntropy( signEntropy, (const uint8_t*)file->sealant, file->header.sealant.used );
 
 	SRG_GetEntropyBuffer( signEntropy, (uint32_t*)outbuf, 256 );
 
@@ -2713,7 +2833,7 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, void * da
 	{
 		uint8_t *outbuf;
 		size_t outlen;
-		SRG_XSWS_decryptData( (uint8_t*)data, written, file->timeline->ctime.raw
+		SRG_XSWS_decryptData( (uint8_t*)data, written, file->timeline.ctime.raw
 		                    , (const uint8_t*)file->readKey, file->readKeyLen
 		                    , &outbuf, &outlen );
 		memcpy( data, outbuf, outlen );
@@ -2727,9 +2847,9 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, void * da
 		BLOCKINDEX saveSize = file->entry->filesize;
 		BLOCKINDEX saveFpi = file->fpi;
 		file->entry->filesize = ((file->entry->filesize
-			^ file->dirent_key.filesize) + file->sealantLen + sizeof( BLOCKINDEX ))
+			^ file->dirent_key.filesize) + file->header.sealant.used + sizeof( BLOCKINDEX ))
 			^ file->dirent_key.filesize;
-		sack_vfs_os_read_internal( file, (char*)file->sealant, file->sealantLen );
+		sack_vfs_os_read_internal( file, (char*)file->sealant, file->header.sealant.used );
 		file->entry->filesize = saveSize;
 		file->fpi = saveFpi;
 		file->sealed = ValidateSeal( file, data, length );
@@ -2742,36 +2862,7 @@ size_t CPROC sack_vfs_os_read( struct sack_vfs_file* file, void* data_, size_t l
 	return sack_vfs_os_read_internal( (struct sack_vfs_os_file*)file, data_, length );
 }
 
-
-
-static struct file_suffix_memory* loadSuffix( void ) {
-	struct file_suffix_memory* suffix;
-	suffix = New( struct file_suffix_memory );
-	suffix->references = CreateDataList( sizeof( BLOCKINDEX ) );
-	suffix->referencedBy = CreateDataList( sizeof( BLOCKINDEX ) );
-	suffix->nonce = NULL;
-	suffix->firstPatchBlock = 0;
-	suffix->patchRefBlock = 0;
-	return suffix;
-}
-
-/*static*/ void flushFileSuffix( struct sack_vfs_os_file* file ) {
-	// 
-}
-
-static void unloadSuffix( struct file_suffix_memory* suffix ) {
-
-	DeleteDataList( &suffix->references );
-	DeleteDataList( &suffix->referencedBy );
-	if( suffix->nonce )
-		Deallocate( char*, suffix->nonce );
-
-	Deallocate( struct file_suffix_memory*, suffix );
-
-}
-
-
-static BLOCKINDEX sack_vfs_os_read_patches( struct sack_vfs_file *file ) {
+static BLOCKINDEX sack_vfs_os_read_patches( struct sack_vfs_os_file *file ) {
 	size_t written = 0;
 	BLOCKINDEX saveFpi = file->fpi;
 	size_t length;
@@ -2781,26 +2872,26 @@ static BLOCKINDEX sack_vfs_os_read_patches( struct sack_vfs_file *file ) {
 
 	if( !length ) { file->vol->lock = 0; return 0; }
 
-	sack_vfs_os_seek( file, length, SEEK_SET );
+	sack_vfs_os_seek_internal( file, length, SEEK_SET );
 
+#if 0
 	if( file->sealant ) {
 		BLOCKINDEX saveSize = file->entry->filesize;
 		BLOCKINDEX patches;
-		file->entry->filesize = ((file->entry->filesize
-			^ file->dirent_key.filesize) + file->sealantLen + sizeof( BLOCKINDEX ))
-			^ file->dirent_key.filesize;
-		sack_vfs_os_read( file, (char*)file->sealant, file->sealantLen );
-		sack_vfs_os_read( file, (char*)&patches, sizeof( BLOCKINDEX ) );
+
+		//WriteIntoBlock( file, 0, 0, file->sealant, file->header.sealant.used );
+
 		file->entry->filesize = saveSize;
 		file->fpi = saveFpi;
 		file->sealed = SACK_VFS_OS_SEAL_LOAD;
 		return patches;
 	}
+#endif
 	file->vol->lock = 0;
 	return written;
 }
 
-static size_t sack_vfs_os_set_patch_block( struct sack_vfs_file *file, BLOCKINDEX patchBlock ) {
+static size_t sack_vfs_os_set_patch_block( struct sack_vfs_os_file *file, BLOCKINDEX patchBlock ) {
 	size_t written = 0;
 	size_t length;
 	BLOCKINDEX saveFpi = file->fpi;
@@ -2809,32 +2900,23 @@ static size_t sack_vfs_os_set_patch_block( struct sack_vfs_file *file, BLOCKINDE
 
 	if( !length ) { file->vol->lock = 0; return 0; }
 
-	sack_vfs_os_seek( file, length, SEEK_SET );
+	sack_vfs_os_seek_internal( file, length, SEEK_SET );
 
-	if( file->sealant ) {
-		BLOCKINDEX saveSize = file->entry->filesize;
-		file->entry->filesize = ((file->entry->filesize
-			^ file->dirent_key.filesize) + file->sealantLen + sizeof( BLOCKINDEX ))
-			^ file->dirent_key.filesize;
-		sack_vfs_os_seek( file, file->sealantLen, SEEK_CUR );
-		sack_vfs_os_write( file, (char*)&patchBlock, sizeof( BLOCKINDEX ) );
-		file->entry->filesize = saveSize;
+	if( file->header.sealant.avail ) {
+		sack_vfs_os_seek_internal( file, file->header.sealant.used, SEEK_CUR );
+		sack_vfs_os_write_internal( file, (char*)&patchBlock, sizeof( BLOCKINDEX ), NULL );
 		file->fpi = saveFpi;
 	} else {
 		BLOCKINDEX saveSize = file->entry->filesize;
-		file->entry->filesize = ((file->entry->filesize
-			^ file->dirent_key.filesize) + sizeof( BLOCKINDEX ))
-			^ file->dirent_key.filesize;
-		sack_vfs_os_seek( file, file->sealantLen, SEEK_CUR );
-		sack_vfs_os_write( file, (char*)&patchBlock, sizeof( BLOCKINDEX ) );
-		file->entry->filesize = saveSize;
+		sack_vfs_os_seek_internal( file, file->header.sealant.used, SEEK_CUR );
+		sack_vfs_os_write_internal( file, (char*)&patchBlock, sizeof( BLOCKINDEX ), NULL );
 		file->fpi = saveFpi;
 	}
 	file->vol->lock = 0;
 	return written;
 }
 
-static size_t sack_vfs_os_set_reference_block( struct sack_vfs_file *file, BLOCKINDEX patchBlock ) {
+static size_t sack_vfs_os_set_reference_block( struct sack_vfs_os_file *file, BLOCKINDEX patchBlock ) {
 	size_t written = 0;
 	size_t length;
 	BLOCKINDEX saveFpi = file->fpi;
@@ -2843,26 +2925,16 @@ static size_t sack_vfs_os_set_reference_block( struct sack_vfs_file *file, BLOCK
 
 	if( !length ) { file->vol->lock = 0; return 0; }
 
-	sack_vfs_os_seek( file, length, SEEK_SET );
+	sack_vfs_os_seek_internal( file, length, SEEK_SET );
 
 	if( file->sealant ) {
-		BLOCKINDEX saveSize = file->entry->filesize;
-		file->entry->filesize = ((file->entry->filesize
-			^ file->dirent_key.filesize) + file->sealantLen + sizeof( BLOCKINDEX ) + sizeof( BLOCKINDEX ))
-			^ file->dirent_key.filesize;
-		sack_vfs_os_seek( file, file->sealantLen, SEEK_CUR );
-		sack_vfs_os_write( file, (char*)&patchBlock, sizeof( BLOCKINDEX ) );
-		file->entry->filesize = saveSize;
+		sack_vfs_os_seek_internal( file, file->header.sealant.used, SEEK_CUR );
+		sack_vfs_os_write_internal( file, (char*)&patchBlock, sizeof( BLOCKINDEX ), NULL );
 		file->fpi = saveFpi;
 	}
 	else {
-		BLOCKINDEX saveSize = file->entry->filesize;
-		file->entry->filesize = ((file->entry->filesize
-			^ file->dirent_key.filesize) + sizeof( BLOCKINDEX ) + sizeof( BLOCKINDEX ))
-			^ file->dirent_key.filesize;
-		sack_vfs_os_seek( file, file->sealantLen, SEEK_CUR );
-		sack_vfs_os_write( file, (char*)&patchBlock, sizeof( BLOCKINDEX ) );
-		file->entry->filesize = saveSize;
+		sack_vfs_os_seek_internal( file, file->header.sealant.used, SEEK_CUR );
+		sack_vfs_os_write_internal( file, (char*)&patchBlock, sizeof( BLOCKINDEX ), NULL );
 		file->fpi = saveFpi;
 	}
 	file->vol->lock = 0;
@@ -3191,7 +3263,7 @@ LOGICAL CPROC sack_vfs_os_rename( uintptr_t psvInstance, const char *original, c
 }
 
 
-uintptr_t CPROC sack_vfs_file_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
+uintptr_t CPROC sack_vfs_os_file_ioctl_internal( struct sack_vfs_os_file* file, uintptr_t opCode, va_list args ) {
 	//va_list args;
 	//va_start( args, opCode );
 	switch( opCode ) {
@@ -3199,9 +3271,65 @@ uintptr_t CPROC sack_vfs_file_ioctl( uintptr_t psvInstance, uintptr_t opCode, va
 		// unhandled/ignored opcode
 		return FALSE;
 		break;
+	case SOSFSFIO_DESTROY_INDEX:
+	{
+		const char* indexname = va_arg( args, const char* );
+
+		break;
+	}
+	case SOSFSFIO_CREATE_INDEX:
+	{
+		const char* indexname = va_arg( args, const char* );
+		size_t indexnameLen = va_arg( args, size_t );
+		//enum jsox_value_types type = va_arg( args, enum jsox_value_types );
+		//int typeExtra = va_arg( args, int );
+		struct memoryStorageIndex* index = allocateIndex( file, indexname, indexnameLen );
+		//file->
+		return (uintptr_t)index;
+		break;
+	}
+	case SOSFSFIO_ADD_INDEX_ITEM:
+	{
+		struct memoryStorageIndex* index = (struct memoryStorageIndex*)va_arg( args, uintptr_t );
+		struct sack_vfs_os_file *reference = va_arg( args, struct sack_vfs_os_file* );		
+		struct jsox_value_container * value = va_arg( args, struct jsox_value_container* );
+
+		//file->
+		break;
+	}
+	case SOSFSFIO_REMOVE_INDEX_ITEM:
+	{
+		const char* indexname = va_arg( args, const char* );
+		//file->
+		break;
+	}
+	case SOSFSFIO_ADD_REFERENCE:
+	{
+		const char* indexname = va_arg( args, const char* );
+		//file->
+		break;
+	}
+	case SOSFSFIO_REMOVE_REFERENCE:
+	{
+		const char* indexname = va_arg( args, const char* );
+		//file->
+		break;
+	}
+	case SOSFSFIO_ADD_REFERENCE_BY:
+	{
+		const char* indexname = va_arg( args, const char* );
+		//file->
+		break;
+	}
+	case SOSFSFIO_REMOVE_REFERENCE_BY:
+	{
+		const char* indexname = va_arg( args, const char* );
+		//file->
+		break;
+	}
 	case SOSFSFIO_TAMPERED:
 	{
-		struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
+		//struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
 		int *result = va_arg( args, int* );
 
 		if( file->sealant ) {
@@ -3222,13 +3350,14 @@ uintptr_t CPROC sack_vfs_file_ioctl( uintptr_t psvInstance, uintptr_t opCode, va
 	{
 		const char *sealant = va_arg( args, const char * );
 		size_t sealantLen = va_arg( args, size_t );
-		struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
+		//struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
 		{
 			size_t len;
 			if( file->sealant )
 				Release( file->sealant );
 			file->sealant = (uint8_t*)DecodeBase64Ex( sealant, sealantLen, &len, (const char*)1 );
-			file->sealantLen = (uint8_t)len;
+			_os_SetSmallBlockUsage( &file->header.sealant, (uint8_t)len );
+			_os_UpdateFileBlocks( file );
 			if( file->sealed == SACK_VFS_OS_SEAL_NONE )
 				file->sealed = SACK_VFS_OS_SEAL_STORE;
 			else if( file->sealed == SACK_VFS_OS_SEAL_VALID || file->sealed == SACK_VFS_OS_SEAL_LOAD )
@@ -3248,7 +3377,7 @@ uintptr_t CPROC sack_vfs_file_ioctl( uintptr_t psvInstance, uintptr_t opCode, va
 	{
 		const char *sealant = va_arg( args, const char * );
 		size_t sealantLen = va_arg( args, size_t );
-		struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
+		//struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
 		{
 			size_t len;
 			if( file->readKey )
@@ -3266,9 +3395,17 @@ uintptr_t CPROC sack_vfs_file_ioctl( uintptr_t psvInstance, uintptr_t opCode, va
 	return TRUE;
 }
 
+uintptr_t CPROC sack_vfs_os_file_ioctl_interface( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
+	return sack_vfs_os_file_ioctl_internal( (struct sack_vfs_os_file*)psvInstance, opCode, args );
+}
+uintptr_t CPROC sack_vfs_os_file_ioctl( struct sack_vfs_file *psvInstance, uintptr_t opCode, ... ) {
+	va_list args;
+	va_start( args, opCode );
+	return sack_vfs_os_file_ioctl_internal( (struct sack_vfs_os_file*)psvInstance, opCode, args );
+}
 
-uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
-	struct volume *vol = (struct volume *)psvInstance;
+
+uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct volume *vol, uintptr_t opCode, va_list args ) {
 	//va_list args;
 	//va_start( args, opCode );
 	switch( opCode ) {
@@ -3302,7 +3439,7 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 		size_t idBufLen = va_arg( args, size_t );
 
 		if( sack_vfs_os_exists( vol, objIdBuf ) ) {
-			struct sack_vfs_file* file = sack_vfs_os_openfile( vol, objIdBuf );
+			struct sack_vfs_os_file* file = (struct sack_vfs_os_file*)sack_vfs_os_openfile( vol, objIdBuf );
 			BLOCKINDEX patchBlock = sack_vfs_os_read_patches( file );
 			if( !patchBlock ) {
 				patchBlock = _os_GetFreeBlock( vol, GFB_INIT_PATCHBLOCK );
@@ -3332,7 +3469,7 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 						}
 					}
 					else {
-						struct sack_vfs_file* file = sack_vfs_os_openfile( vol, idBuf );
+						struct sack_vfs_os_file* file = (struct sack_vfs_os_file*)sack_vfs_os_openfile( vol, idBuf );
 
 						//  file->entry_fpi
 						newPatchblock->entries[newPatchblock->usedEntries].raw
@@ -3341,9 +3478,11 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 						SETFLAG( vol->dirty, cache );
 
 						file->sealant = (uint8_t*)seal;
-						file->sealantLen = (uint8_t)strlen( seal );
-						sack_vfs_os_write( file, objBuf, objBufLen );
-						sack_vfs_os_close( file );
+						_os_SetSmallBlockUsage( &file->header.sealant, (uint8_t)strlen( seal ) );
+						_os_UpdateFileBlocks( file );
+						sack_vfs_os_seek_internal( file, GetBlockStart( file, FILE_BLOCK_DATA ), SEEK_SET );
+						sack_vfs_os_write_internal( file, objBuf, objBufLen, 0 );
+						sack_vfs_os_close_internal( file );
 					}
 					return TRUE;
 				}
@@ -3377,16 +3516,19 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 				}
 			}
 			else {
-				struct sack_vfs_file* file = sack_vfs_os_openfile( vol, idBuf[0] );
+				struct sack_vfs_os_file* file = (struct sack_vfs_os_file*)sack_vfs_os_openfile( vol, idBuf[0] );
 				if( sealBuf ) {
 					file->sealant = (uint8_t*)seal;
-					file->sealantLen = (uint8_t)strlen( seal );
+					_os_SetSmallBlockUsage( &file->header.sealant, (uint8_t)strlen( seal ) );
+					WriteIntoBlock( file, 0, 0, seal, strlen( seal ) );
+					//file->sealantLen = (uint8_t)strlen( seal );
 				} else {
 					file->sealant = NULL;
-					file->sealantLen = 0;
+					_os_SetSmallBlockUsage( &file->header.sealant, 0 );
+					//file->sealantLen = 0;
 				}
-				sack_vfs_os_write( file, objBuf, objBufLen );
-				sack_vfs_os_close( file );
+				sack_vfs_os_write_internal( file, objBuf, objBufLen, NULL );
+				sack_vfs_os_close_internal( file );
 			}
 			return TRUE;
 		}
@@ -3394,6 +3536,16 @@ uintptr_t CPROC sack_vfs_system_ioctl( uintptr_t psvInstance, uintptr_t opCode, 
 	}
 	break;
 	}
+}
+
+
+uintptr_t CPROC sack_vfs_os_system_ioctl_interface( uintptr_t psvInstance, uintptr_t opCode, va_list args ) {
+	return sack_vfs_os_system_ioctl_internal( (struct volume*)psvInstance, opCode, args );
+}
+uintptr_t CPROC sack_vfs_os_system_ioctl( struct volume* vol, uintptr_t opCode, ... ) {
+	va_list args;
+	va_start( args, opCode );
+	return sack_vfs_os_system_ioctl_internal( vol, opCode, args );
 }
 
 #ifndef USE_STDIO
@@ -3419,8 +3571,8 @@ static struct file_system_interface sack_vfs_os_fsi = {
                                                    , sack_vfs_os_find_is_directory
                                                    , sack_vfs_os_is_directory
                                                    , sack_vfs_os_rename
-                                                   , sack_vfs_file_ioctl
-												   , sack_vfs_system_ioctl
+                                                   , sack_vfs_os_file_ioctl_interface
+												   , sack_vfs_os_system_ioctl_interface
 	, sack_vfs_os_find_get_ctime
 	, sack_vfs_os_find_get_wtime
 };
@@ -3456,7 +3608,7 @@ PRIORITY_PRELOAD( Sack_VFS_OS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 
 }
 #endif
 
-#ifdef USE_STDIO
+#ifndef USE_STDIO
 #  undef sack_fopen
 #  undef sack_fseek
 #  undef sack_fclose

@@ -291,7 +291,7 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 				BAT++; blockKey++;
 				if( block == EOBBLOCK ) {
 					LoGB( "Bat Length was %d is now: %d (really %d)", vol->lastBatBlock, n+m, (sector*BLOCKS_PER_BAT)+m );
-					vol->lastBatBlock = (sector*BLOCKS_PER_BAT) + m;
+					vol->lastBatBlock = (BLOCKINDEX)((sector*BLOCKS_PER_BAT) + m);
 					break;
 				}
 				if( block )
@@ -375,7 +375,7 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 				if( block >= last_block ) return FALSE;
 				//if( initial )
 					if( block == 0 ) {
-						vol->lastBatBlock = (sector*BLOCKS_PER_BAT) + m; // use as a temp variable....
+						vol->lastBatBlock = (BLOCKINDEX)(sector*BLOCKS_PER_BAT) + m; // use as a temp variable....
 						LoGB( "SET LAST BLOCK AVAIL: %d", (int)vol->lastBatBlock );
 						AddDataItem( &vol->pdlFreeBlocks, &vol->lastBatBlock );
 					}

@@ -102,9 +102,11 @@ struct memoryStorageIndex {
 	// name/identifer
 	// data type
 	//struct volume* vol;
+	char* name;
 	PMEMORY_INDEX_ENTRYSET* entries;
 	struct sack_vfs_os_file* file;
 	struct index_header* diskData;
+	struct storageIndexEntry* firstEntry;
 	//size_t storageIndexEntry_length; // diskData->indexType.keyLength
 	FLAGSETTYPE* diskDataLoadedSectors;
 };
@@ -119,7 +121,6 @@ static int hangIndexNode( struct memoryStorageIndex* index
 static void storageIndexEntry_update() {
 
 }
-
 
 static int storageIndexEntry_length( struct index_header* leader ) {
 	switch( leader->indexType.keyType ) {
@@ -186,7 +187,7 @@ struct memoryStorageIndex* openIndexFile( struct volume* vol, BLOCKINDEX startBl
 }
 
 
-struct memoryStorageIndex* createIndexFile( struct volume* vol, enum jsox_value_types type, int typeExtra ) {
+struct memoryStorageIndex* createIndexFile( struct volume* vol, const char *name, size_t nameLen  ) {
 	struct memoryStorageIndex* file = New( struct memoryStorageIndex );
 	BLOCKINDEX startBlock = _os_GetFreeBlock( vol, GFB_INIT_NONE );
 	file->file = _os_createFile( vol, startBlock );
@@ -194,9 +195,13 @@ struct memoryStorageIndex* createIndexFile( struct volume* vol, enum jsox_value_
 
 	file->diskDataLoadedSectors = NewArray( FLAGSETTYPE, (file->file->entry->filesize >> BLOCK_SIZE_BITS) / FLAGTYPEBITS( FLAGSETTYPE ) );
 	file->diskData = (struct index_header*)NewArray( uint8_t, file->file->entry->filesize );
+	file->diskData->indexNameLength = ( ( nameLen + 1 ) + 7 ) & ~7;
+	file->firstEntry = (struct storageIndexEntry*)( ((uintptr_t)file->diskData) + offsetof( struct index_header, indexName[nameLen] ) ) ;
 
-	file->diskData->indexType.keyType = type;
-	file->diskData->indexType.flags = typeExtra;
+	memcpy( file->diskData->indexName, name, nameLen );
+
+	file->diskData->indexType.keyType = JSOX_VALUE_UNSET;
+	file->diskData->indexType.flags = 0;
 	file->diskData->indexType.keyLength = storageIndexEntry_length( file->diskData );
 
 	file->diskData->first_free_entry.raw = 0;
@@ -211,8 +216,20 @@ struct memoryStorageIndex* createIndexFile( struct volume* vol, enum jsox_value_
 
 }
 
+struct memoryStorageIndex* allocateIndex( struct sack_vfs_os_file* file
+                  , const char* filename, size_t filenameLen 
+) {
+	uint32_t indexOffset = (uint32_t)_os_AddSmallBlockUsage( &file->header.indexes, filenameLen + sizeof( BLOCKINDEX ) );
+	struct memoryStorageIndex* newIndex = createIndexFile( file->vol, filename, filenameLen );
+	//newIndex->name = DupCStrLen( filename, filenameLen );
+	WriteIntoBlock( file, 3, indexOffset, &newIndex, sizeof( BLOCKINDEX ) );
+	WriteIntoBlock( file, 3, indexOffset + sizeof( BLOCKINDEX ), filename, filenameLen );
+	return newIndex;
+}
+
+
 struct storageIndexEntry* indexFileFind( struct memoryStorageIndex* index, void* data, size_t dataLen ) {
-	struct memoryStorageIndex* file;
+//	struct memoryStorageIndex* file;
 	struct storageIndexEntry* entry;
 
 	return entry;
@@ -285,6 +302,47 @@ void updateIndexEntry( struct memoryIndexEntry* entry, struct memoryStorageIndex
 
 	sack_vfs_os_seek_internal( index->file, entry->this_fpi, SEEK_SET );
 	sack_vfs_os_write_internal( index->file, node, sane_offsetof( struct storageIndexEntry, data ), NULL );
+
+}
+
+LOGICAL addIndexEntry( struct memoryStorageIndex* index // entry to fill
+	, struct sack_vfs_os_file* refereceTo
+	, struct jsox_value_container *value
+	) {
+	if( index->diskData->indexType.keyType == JSOX_VALUE_UNSET ) {
+		index->diskData->indexType.keyType = value->value_type;
+		// update data... 
+	}
+	else if( index->diskData->indexType.keyType != value->value_type ) {
+		lprintf( "Data stored is not the proper type..." );
+		return FALSE;
+	}
+	switch( value->value_type ) {
+	case JSOX_VALUE_STRING: //= 4 string
+
+		return TRUE;
+		break;
+	case JSOX_VALUE_NUMBER: //= 5 string + result_d | result_n
+		// this will end up having to adjust to float or int based on type.
+		// unless pre-specified.
+		return TRUE;
+		break;
+		// up to here is supported in JSON
+	case JSOX_VALUE_DATE:  // = 12 comes in as a number, string is data.
+		return TRUE;
+		break;
+	case JSOX_VALUE_BIGINT: // = 13 string data, needs bigint library to process...
+		lprintf( "Probably need a bigint library for this." );
+		break;
+	case JSOX_VALUE_TYPED_ARRAY:  // = 15 string is base64 encoding of bytes.
+		lprintf( "Blob indexint?" );
+		break;
+		//, JSOX_VALUE_TYPED_ARRAY_MAX = JSOX_VALUE_TYPED_ARRAY + 12  // = 14 string is base64 encoding of bytes.
+	default:
+		lprintf( "Unsupported data type for index. %d", value->value_type );
+		break;
+	}
+	return FALSE;
 }
 
 void getIndexEntry( struct memoryIndexEntry* entry // entry to fill
@@ -692,9 +750,9 @@ void _os_index_deleteEntry( struct memoryStorageIndex* index, struct memoryIndex
 
 	}
 	else {
-		for( replacement = entry; replacement; replacement = nextCandidate ) {
+		//for( replacement = entry; replacement; replacement = nextCandidate ) {
 			//nextCandidate =
-		}
+		//}
 	}
 }
 

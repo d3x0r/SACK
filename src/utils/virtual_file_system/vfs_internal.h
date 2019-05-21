@@ -144,14 +144,9 @@ struct disk
 
 
 #ifdef SACK_VFS_FS_SOURCE
-
 #  define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
 #  define BTSEEK(type,v,o,c) ((type)vfs_fs_BSEEK(v,o,&c))
-
-
 #else
-
-
 PREFIX_PACKED struct volume {
 	const char * volname;
 #  ifdef FILE_BASED_VFS
