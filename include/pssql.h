@@ -1584,7 +1584,7 @@ struct guid_binary {
 
 // snprintf( buf, 256, guid_format, guid_param_pass(&guid_binary) )
 // snprintf( buf, 256, guid_format, guid_param_pass(binary_buffer_result) )
-#define guid_format "%08"_32fx "-%04"_16fx "-%04"_16fx "-%04"_16fx "-%012"_64fx
+#define guid_format "%08" _32fx "-%04" _16fx "-%04" _16fx "-%04" _16fx "-%012" _64fx
 #define guid_param_pass(n) ((struct guid_binary*)(n))->u.d.l1,((struct guid_binary*)(n))->u.d.w1,((struct guid_binary*)(n))->u.d.w2,((struct guid_binary*)(n))->u.d.w3,((struct guid_binary*)(n))->u.d.ll1
 
 
@@ -1604,9 +1604,9 @@ typedef struct responce_tag
 		BIT_FIELD bFields : 1;
 	} flags;
 	PVARTEXT result_single_line;
-   int nLines;
+	int nLines;
 	CTEXTSTR *pLines;
-   CTEXTSTR *pFields;
+	CTEXTSTR *pFields;
 } SQL_RESPONCE, *PSQL_RESPONCE;
 
 /* *WORK IN PROGRESS* function call signature for callback method passed to
