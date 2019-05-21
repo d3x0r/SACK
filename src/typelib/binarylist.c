@@ -485,6 +485,9 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 {
 	if( root )
 	{
+		CPOINTER userdata = node->userdata;
+		uintptr_t userkey = node->key;
+
 		LOGICAL no_children = FALSE;
 		// lprintf( "Removing node from tree.. %p under %p", node, node->parent );
 		if( !node->parent->flags.bRoot
@@ -555,17 +558,11 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 							backtrack->depth = 0;
 				}
 				if( least ) {
-					CPOINTER userdata;
-					uintptr_t userkey;
-
-					userdata = node->userdata;
-					userkey = node->key;
-
 					node->userdata = least->userdata;
-					node->key = least->key;
+					node->key      = least->key;
 					DeleteFromSet( TREENODE, TreeNodeSet, least );
-					node = NULL;
-					least = NULL;
+					node   = NULL;
+					least  = NULL;
 				}
 				if( backtrack )
 					backtrack = backtrack->parent;
