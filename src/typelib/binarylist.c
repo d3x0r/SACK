@@ -511,6 +511,8 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 			bottom = (*node->me) = node->lesser;
 			bottom->parent = node->parent;
 		} else {
+			node->children--;
+
 			// have a lesser and a greater.
 			if( node->lesser->depth > node->greater->depth ) {
 				least = node->lesser;
@@ -539,8 +541,8 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 		{
 			backtrack = bottom;
 			do {
-				while( backtrack->parent && ( no_children || backtrack != node ) ) {
-					backtrack = backtrack->parent;
+				backtrack = backtrack->parent;
+				while( backtrack && ( no_children || backtrack != node ) ) {
 					backtrack->children--;
 					if( backtrack->lesser )
 						if( backtrack->greater ) {
@@ -556,6 +558,7 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 							backtrack->depth = backtrack->greater->depth + 1;
 						else
 							backtrack->depth = 0;
+					backtrack = backtrack->parent;
 				}
 				if( least ) {
 					node->userdata = least->userdata;
@@ -564,8 +567,6 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 					node   = NULL;
 					least  = NULL;
 				}
-				if( backtrack )
-					backtrack = backtrack->parent;
 			} while( backtrack );
 		}
 		
