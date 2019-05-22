@@ -178,7 +178,7 @@ int ProcessSystemIncludeFile( char *name, int bAllowAbsolute, int bNext )
 	INDEX idx;
 
 	if( bAllowAbsolute &&
-		 OpenNewInputFile( name, name, GetCurrentFileName(), GetCurrentLine(), g.bAutoDepend, bNext ) )
+		 OpenNewInputFile( name, name, GetCurrentFileName(), GetCurrentLine(), g.bAutoDepend || g.flags.load_once, bNext ) )
 		return TRUE;
 	{
 		FORALL( g.pUserIncludePath, idx, PTEXT, pPath )
@@ -271,7 +271,7 @@ int ProcessInclude( int bNext )
 					return TRUE;
 				}
 			}
-			if( !OpenNewInputFile( basename, Workname, GetCurrentFileName(), GetCurrentLine(), g.bAutoDepend, bNext ) )
+			if( !OpenNewInputFile( basename, Workname, GetCurrentFileName(), GetCurrentLine(), g.bAutoDepend  || g.flags.load_once, bNext ) )
 			{
 				PTEXT pPath;
 				INDEX idx;
