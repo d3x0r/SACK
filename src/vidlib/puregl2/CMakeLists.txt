@@ -26,6 +26,10 @@ set( COMMON_SOURCES
         vidlib_render_loop.c  # dispach draw to all windows in a camera
    )     
 
+if( EMSCRIPTEN )
+      set( SOURCES ${COMMON_SOURCES} vidlib_wasm.c keymap_wasm.c )
+
+else( EMSCRIPTEN )
 if( __LINUX__ )
    # something more like IF USE_EGL
    if( __ANDROID__ OR __QNX__ )
@@ -37,7 +41,10 @@ else( __LINUX__ )
     set( SOURCES ${COMMON_SOURCES} keymap_win32.c vidlib_win32.c win32_opengl.c )
 endif( __LINUX__ )
 
-add_library_force_source( bag.video.puregl2 SHARED
+endif( EMSCRIPTEN )
+
+
+add_library_force_source( bag.video.puregl2 ${CORE_LINKMODE}
 ${FIRST_GCC_LIBRARY_SOURCE}
      ${SOURCES}
 ${LAST_GCC_LIBRARY_SOURCE}

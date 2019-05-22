@@ -511,7 +511,7 @@ void LoadOptions( void )
 		l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Log Video Output", 0, TRUE );
 	}
 #else
-	l.flags.bLogRenderTiming = 0;
+	l.flags.bLogRenderTiming = 1;
 	l.flags.bView360 = 0;
 
 	l.scale = 1.0 / 10;

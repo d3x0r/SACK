@@ -1,3 +1,6 @@
+#ifndef VIDLIB_COMMON_INCLUDED
+#define VIDLIB_COMMON_INCLUDED
+
 #ifndef l
 #  define l local_opengl_video_common
 #endif
@@ -5,6 +8,9 @@
 #  define USE_IMAGE_INTERFACE l.gl_image_interface
 #endif
 
+#if defined( __EMSCRIPTEN__ )
+#  include <emscripten/html5.h>
+#endif
 
 #if defined( __QNX__ )
 #include <gf/gf.h>
@@ -14,6 +20,7 @@
 #if defined( __ANDROID__ ) || defined( __QNX__ )
 #include <GLES2/gl2.h>
 #else
+#define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #include <GL/glext.h>
 #endif
@@ -91,23 +98,6 @@ struct plugin_reference
 	LOGICAL (CPROC *Key3d)(uintptr_t,uint32_t);
 };
 
-#if defined( _D3D11_DRIVER )
-struct dxgi_adapter_output
-{
-	unsigned int ID;
-	IDXGIOutput* adapterOutput;
-	DXGI_OUTPUT_DESC adapterOutputDesc;
-	unsigned int numModes;
-	DXGI_MODE_DESC* displayModeList;
-};
-struct dxgi_adapter
-{
-	unsigned int ID;
-	IDXGIAdapter *adapter;
-	DXGI_ADAPTER_DESC adapterDesc;
-	PLIST adapter_outputs; // list of struct dxgi_adapter_output
-};
-#endif
 
 struct display_camera
 {
@@ -140,6 +130,11 @@ struct display_camera
 #if defined( USE_EGL )
 	NativeWindowType displayWindow;
 #endif
+
+#if defined( __EMSCRIPTEN__ )
+   EMSCRIPTEN_WEBGL_CONTEXT_HANDLE displayWindow;
+#endif
+
 	RAY mouse_ray;
 	struct {
 		BIT_FIELD extra_init : 1;
@@ -210,6 +205,9 @@ extern
 #endif
 #if defined( USE_EGL )
 	NativeWindowType displayWindow;
+#endif
+#if defined( __EMSCRIPTEN__ )
+	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE displayWindow;
 #endif
 	int bCreatedhWndInstance;
 
@@ -366,10 +364,9 @@ void EndActive3D( struct display_camera *camera ); // does appropriate EndActive
 void SetupPositionMatrix( struct display_camera *camera );
 #endif
 
-#if defined( _OPENGL_DRIVER )
 int EnableOpenGL( struct display_camera *camera );
 int SetActiveGLDisplayView( struct display_camera *camera, int nFracture );
-#endif
+int SetActiveGLDisplay( struct display_camera *camera );
 #if defined( USE_EGL )
 void EnableEGLContext( struct display_camera *camera );
 #endif
@@ -393,3 +390,4 @@ LRESULT CALLBACK
 #endif
 
 RENDER_NAMESPACE_END
+#endif
