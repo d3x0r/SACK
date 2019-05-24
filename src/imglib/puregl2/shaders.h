@@ -4,11 +4,12 @@
 #define __need___va_list
 #include <stdarg.h>
 
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 #include <GLES2/gl2.h>
 #endif
 
 #ifdef _MSC_VER
+#include <GL/glew.h>
 #include <GL/GLU.h>
 #define CheckErr()  				{    \
 					GLenum err = glGetError();  \

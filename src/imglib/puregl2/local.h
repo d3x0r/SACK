@@ -5,13 +5,16 @@
 #if defined( USE_GLES )
 #include <GLES/gl.h>
 #endif
-#if defined( USE_GLES2 )
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 //#include <GLES/gl.h>
 #include <GLES2/gl2.h>
 #else
 #define USE_OPENGL
-//#include <GL/glew.h>
+#if defined( _WIN32 )
+#  include <GL/glew.h>
+#endif
 #include <GL/gl.h>         // Header File For The OpenGL32 Library
+//#include <../src/vidlib/glext.h>
 #endif
 
 IMAGE_NAMESPACE

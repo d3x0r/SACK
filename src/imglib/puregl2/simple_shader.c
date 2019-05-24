@@ -1,16 +1,5 @@
 #include <stdhdrs.h>
 
-#ifdef USE_GLES2
-//#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#define GLEW_NO_GLU
-#ifndef __LINUX__
-#  include <GL/glew.h>
-#endif
-#include <GL/gl.h>
-//#include <GL/glu.h>
-#endif
 
 #include "local.h"
 

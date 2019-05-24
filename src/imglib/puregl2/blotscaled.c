@@ -25,16 +25,6 @@
 #endif
 #include <stdhdrs.h>
 
-#if defined( USE_GLES2 )
-//#include <GLES/gl.h>         // Header File For The OpenGL32 Library
-#include <GLES2/gl2.h>         // Header File For The OpenGL32 Library
-#else
-#ifndef __LINUX__
-#  include <GL/glew.h>
-#endif
-#include <GL/gl.h>         // Header File For The OpenGL32 Library
-//#include <gl\glu.h>        // Header File For The GLu32 Library
-#endif
 
 #include <sharemem.h>
 #include <imglib/imagestruct.h>
@@ -658,7 +648,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 				{
 					int err;
 					//lprintf( "HAVE SHADER %d", l.glActiveSurface->shader.inverse_shader );
-					glEnable(GL_FRAGMENT_PROGRAM_ARB);
+					//glEnable(GL_FRAGMENT_PROGRAM_ARB);
 					glUseProgram( l.glActiveSurface->shader.inverse_shader );
 					err = glGetError();
 				}

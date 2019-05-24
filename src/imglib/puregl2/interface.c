@@ -3,10 +3,10 @@
 #endif
 #define STRUCT_ONLY
 #include <stdhdrs.h>
-#include <imglib/imagestruct.h>
 #include <procreg.h>
 #include <sqlgetoption.h>
 #undef IMAGE_SOURCE
+#include <imglib/imagestruct.h>
 #include <image.h>
 #include <image3d.h>
 #include "../fntglobal.h"

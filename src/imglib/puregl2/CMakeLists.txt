@@ -18,7 +18,15 @@ set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole2.c )
 set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )
 set( sprite_sources ../sprite_common.c )
 
-add_library_force_source( ${PROJECT_NAME} SHARED
+if( EMSCRIPTEN )
+   set( ALPHA_TABLES   )
+else( EMSCRIPTEN )
+    set( ALPHA_TABLES   ../alphatab.c 
+      ../alphastab.c )
+endif( EMSCRIPTEN )
+
+
+add_library( ${PROJECT_NAME} ${CORE_LINKMODE}
 ${FIRST_GCC_LIBRARY_SOURCE}
   ../alphatab.c 
   ../alphastab.c

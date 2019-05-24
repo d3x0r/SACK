@@ -334,7 +334,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 	glCompileShader(tracker->glVertexProgramId);
 	{
 		//Error checking.
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 		glGetShaderiv(tracker->glVertexProgramId, GL_COMPILE_STATUS, &result);
 #else
 		glGetObjectParameterivARB(tracker->glVertexProgramId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
@@ -348,7 +348,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 			lprintf("Vertex shader %s:'program A' failed compilation.\n"
 					 , tracker->name );
 			//Attempt to get the length of our error log.
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 			lprintf( "length starts at %d", length );
 			glGetShaderiv(tracker->glVertexProgramId, GL_INFO_LOG_LENGTH, &length);
 
@@ -360,7 +360,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 			buffer[0] = 0;
 					
 			//Used to get the final length of the log.
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 			glGetShaderInfoLog( tracker->glVertexProgramId, length, &final, buffer);
 #else
 			glGetInfoLogARB(tracker->glVertexProgramId, length, &final, buffer);
@@ -393,7 +393,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 
 	{
 		//Error checking.
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 		glGetShaderiv(tracker->glFragProgramId, GL_COMPILE_STATUS, &result);
 #else
 		glGetObjectParameterivARB(tracker->glFragProgramId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
@@ -407,7 +407,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 			lprintf("Vertex shader %s:'program B' failed compilation.\n"
 					 , tracker->name );
 			//Attempt to get the length of our error log.
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 			glGetShaderiv(tracker->glFragProgramId, GL_INFO_LOG_LENGTH, &length);
 #else
 			glGetObjectParameterivARB(tracker->glFragProgramId, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
@@ -417,7 +417,7 @@ int CompileShaderEx( PImageShaderTracker tracker
 			//Create a buffer.
 					
 			//Used to get the final length of the log.
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 			glGetShaderInfoLog( tracker->glFragProgramId, length, &final, buffer);
 #else
 			glGetInfoLogARB(tracker->glFragProgramId, length, &final, buffer);
@@ -437,13 +437,13 @@ int CompileShaderEx( PImageShaderTracker tracker
 	}
 	tracker->glProgramId = glCreateProgram();
 	CheckErrf("create fail %d", tracker->glProgramId);
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 	glAttachShader(tracker->glProgramId, tracker->glVertexProgramId );
 #else
 	glAttachObjectARB(tracker->glProgramId, tracker->glVertexProgramId );
 #endif
 	CheckErrf("attach fail");
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 	glAttachShader(tracker->glProgramId, tracker->glFragProgramId );
 #else
 	glAttachObjectARB(tracker->glProgramId, tracker->glFragProgramId );

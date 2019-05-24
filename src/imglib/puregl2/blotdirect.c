@@ -17,15 +17,6 @@
 #include <stdhdrs.h>
 #include <sharemem.h>
 
-#if defined( USE_GLES2 )
-//#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#ifndef __LINUX__
-#  include <GL/glew.h>
-#endif
-#include <GL/gl.h>         // Header File For The OpenGL32 Library
-#endif
 
 #include <imglib/imagestruct.h>
 #include <image.h>
@@ -635,7 +626,7 @@ IMAGE_NAMESPACE
 				if( l.glActiveSurface->shader.inverse_shader )
 				{
 					int err;
-		 			glEnable(GL_FRAGMENT_PROGRAM_ARB);
+		 			//glEnable(GL_FRAGMENT_PROGRAM_ARB);
 					glUseProgram( l.glActiveSurface->shader.inverse_shader );
 					err = glGetError();
 				}

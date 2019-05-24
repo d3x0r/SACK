@@ -11,15 +11,7 @@
 #endif
 
 #include <stdhdrs.h>
-#if defined( USE_GLES2 )
-//#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-//#ifndef __LINUX__
-#  include <GL/glew.h>
-//#endif
-#include <GL/gl.h>         // Header File For The OpenGL32 Library
-#endif
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,14 +47,14 @@ static void OnFirstDraw3d( "@00 PUREGL Image Library" )( uintptr_t psv )
 	const GLubyte * val;
 	l.glActiveSurface = (struct glSurfaceData *)psv;
 
-#if !defined( USE_GLES2 )
+#if !defined( USE_GLES2 ) && !defined( __EMSCRIPTEN__ )
 	if (GLEW_OK != glewInit() )
 	{
-		return;
+	///	return;
 	}
 #endif
 	tmp = 123;
-	glGetBooleanv( GL_SHADER_COMPILER, &tmp );
+	glGetBooleanv( 0x8DFA/*GL_SHADER_COMPILER*/, &tmp );
 	lprintf( "Shader Compiler = %d", tmp );
 	{
 		int high, low;
@@ -237,7 +229,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 				//lprintf( "gen text %d", glGetError() );
 				// Create Linear Filtered Texture
 				glBindTexture(GL_TEXTURE_2D, image_data->glIndex);
-#ifdef USE_GLES2
+#if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->real_width, image->real_height
 								, 0, GL_RGBA, GL_UNSIGNED_BYTE
 								, image->image );
@@ -248,14 +240,14 @@ int ReloadOpenGlTexture( Image child_image, int option )
 #endif
 				if( option & 2 )
 				{
-#ifndef USE_GLES2
+#if !defined( USE_GLES2 ) && !defined( __EMSCRIPTEN__ )
 					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);  // No Wrapping, Please!
 					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
 #endif
 				}
 				if( option & 4 )
 				{
-#ifndef USE_GLES2
+#if !defined( USE_GLES2 ) && !defined( __EMSCRIPTEN__ )
 					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);  // No Wrapping, Please!
 					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 #endif

@@ -16,14 +16,6 @@
 // pragma warning 367
 #include <stdhdrs.h>
 
-#if defined( USE_GLES2 )
-//#include <GLES/gl.h>         // Header File For The OpenGL32 Library
-#include <GLES2/gl2.h>         // Header File For The OpenGL32 Library
-#else
-//#include <GL/glew.h>
-#include <GL/gl.h>         // Header File For The OpenGL32 Library
-//#include <gl\glu.h>        // Header File For The GLu32 Library
-#endif
 #include <stdio.h>
 #include <string.h>
 #define LIBRARY_DEF
