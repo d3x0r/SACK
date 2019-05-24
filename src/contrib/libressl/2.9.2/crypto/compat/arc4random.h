@@ -12,7 +12,7 @@
 #elif defined(__hpux)
 #include "arc4random_hpux.h"
 
-#elif defined(__linux__)
+#elif defined(__linux__) || defined( __EMSCRIPTEN__ )
 #include "arc4random_linux.h"
 
 #elif defined(__NetBSD__)
