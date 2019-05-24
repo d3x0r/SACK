@@ -824,7 +824,7 @@ void* BeginNormalProcess( void*param )
 	{
 		if( BagVidlibPureglResumeDisplay )
 			BagVidlibPureglResumeDisplay();
-      engine.state.animating = 1;
+		engine.state.animating = 1;
 		android_app_write_cmd( engine.app, APP_CMD_WAKE);
 	}
 	SACK_Main( 0, NULL );

@@ -69,7 +69,7 @@ struct elf_loader_lib*LoadMemoryLibrary( char *libname, char * real_memory, size
 	if( !real_memory )
 	{
 		//lprintf( "Failed to load library:%s", name );
-		return;
+		return NULL;
 	}
 
 	lib = New( struct elf_loader_lib );
@@ -117,7 +117,7 @@ struct elf_loader_lib*LoadMemoryLibrary( char *libname, char * real_memory, size
       if( real_dos_header->e_ident[EI_CLASS] == ELFCLASS64 )
 		{
 			lprintf( "64 bit file on 32 bit system; ignoreing." );
-         return;
+         return NULL;
 		}
 #endif
 

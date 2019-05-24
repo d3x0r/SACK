@@ -190,11 +190,8 @@ PEICE_DATA::PEICE_DATA( PIBOARD board
 		if( scaled )
 			Release( scaled );
 		scaled = (Image*)Allocate( sizeof( Image ) * (1 + rows * cols)* 3 );
-		lprintf( "Begin scaling.." );
 		scaled[0] = MakeImageFile( cell_width * cols, cell_height * rows );
-		lprintf( "scale %d scaling.. to %d %d", scale, cell_width * cols, cell_height * rows );
 		BlotScaledImage( scaled[0], original );
-		lprintf( "Begin scaling.." );
 
 		for( scale = 0; scale < 3; scale++ )
 		{
@@ -207,7 +204,6 @@ PEICE_DATA::PEICE_DATA( PIBOARD board
 				BlotScaledImage( scaled[scale * ( (rows*cols) + 1 ) ]
 									, original );
 			}
-			lprintf( "scale %d scaling..", scale );
 			// if anything - because of blocking and clipping
 			// then ANY thing may need to be cut into cells
 
