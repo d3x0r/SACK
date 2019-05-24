@@ -1,21 +1,25 @@
 #ifndef VIDEO_STRUCTURE_DEFINED
 #define VIDEO_STRUCTURE_DEFINED
 
-#if defined( __LINUX__ )
+#if defined( __EMSCRIPTEN__ )
+
+#include <GL/glfw.h>
+
+#elif defined( __LINUX__ )
 #  include <stdio.h>
 #  if defined( USE_GLES2 )
 #    ifndef USE_EGL
 #      define USE_EGL
 #    endif
-#      include <EGL/egl.h>
-#      ifdef _egl_h
-#        define _GLES_EGL_H_INCLUDED
-#      elif defined( _GLES_EGL_H_INCLUDED )
-#        define _egl_h
-#        endif
+#    include <EGL/egl.h>
+#    ifdef _egl_h
+#      define _GLES_EGL_H_INCLUDED
+#    elif defined( _GLES_EGL_H_INCLUDED )
+#      define _egl_h
+#    endif
 //#include <GLES/gl.h>
-#      include <GLES2/gl2.h>
-#    else
+#    include <GLES2/gl2.h>
+#  else
 #      if defined( __MAC__ )
 //#        include <glx.h>
 #        include <gl.h>
@@ -118,7 +122,7 @@ typedef struct PBOInfo
 #ifdef __LINUX__
 /* stuff about our window grouped together */
 typedef struct {
-#if !defined( __ANDROID__ ) && !defined( __QNX__ )
+#if !defined( __ANDROID__ ) && !defined( __QNX__ ) && !defined( __EMSCRIPTEN__ )
 	Display *dpy;
 	Window win;
 	GLXContext ctx;
