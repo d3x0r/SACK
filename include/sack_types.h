@@ -418,7 +418,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #    define LITERAL_LIB_IMPORT_METHOD __declspec(dllimport)
 #  else
 // MRT:  This is needed.  Need to see what may be defined wrong and fix it.
-#    if defined( __LINUX__ ) || defined( __STATIC__ ) /*&& !defined( __cplusplus_cli ) */
+#    if defined( __LINUX__ ) || defined( __STATIC__ ) || defined( __ANDROID__ )/*&& !defined( __cplusplus_cli ) */
 #      define EXPORT_METHOD
 #      define IMPORT_METHOD extern
 #      define LITERAL_LIB_EXPORT_METHOD
@@ -1301,7 +1301,7 @@ typedef uint64_t THREAD_ID;
 #      ifdef __ANDROID__
 #        define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(gettid()) ) )
 #      else
-#        if defined( __WASM__ )
+#        if defined( __EMSCRIPTEN__ )
 #          define GetMyThreadID()  ( (uint64_t)(pthread_self()) )
 #        else
 #          define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)(syscall(SYS_gettid)) ) )
