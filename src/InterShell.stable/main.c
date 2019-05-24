@@ -4375,7 +4375,7 @@ static LOGICAL CPROC AcceptFiles( PSI_CONTROL pc, CTEXTSTR file, int32_t x, int3
 	CTEXTSTR name;
 	PCLASSROOT data = NULL;
 	if( bInvoked )
-		return;
+		return FALSE;
 	bInvoked = TRUE;
 
 //#define PARTOFX(xc) ( ( xc ) * canvas->current_page->grid.nPartsX ) / canvas->width

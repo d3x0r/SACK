@@ -9,6 +9,7 @@
 
 //GetImageInterface()
 #include <stdhdrs.h>
+#include <filesys.h>
 #include <controls.h>
 #include <psi.h>
 #include <sqlgetoption.h>

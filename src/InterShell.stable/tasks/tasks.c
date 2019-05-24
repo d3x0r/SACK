@@ -1551,7 +1551,7 @@ uintptr_t CPROC WaitForNetworkThread( PTHREAD thread )
 	return 0;
 }
 #else
-uintptr_t CPROC WaitForNetworkDriveThread( PTHREAD thread )
+uintptr_t CPROC WaitForNetworkThread( PTHREAD thread )
 {
 	// shrug - in a linux world, how do we know?
 	return 0;

@@ -1,6 +1,7 @@
 
 set( project sack_widgets ) 
 INCLUDE_DIRECTORIES( include )
+
 set(SOURCES 
    chat/scrollable_chat_list.c
    chat/scroll_chat_input_prompt.c
@@ -25,8 +26,8 @@ add_library_force_source( ${project} SHARED
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER InterShell
 )
-target_link_libraries( ${project} ${SACK_LIBRARIES} )
 
+target_link_libraries( ${project} ${SACK_LIBRARIES} )
 install_default_dest( ${project} )
 
 if( INSTALL_TO_SACK_SDK )

@@ -33,7 +33,7 @@
 #endif
 #endif
 #ifdef SACK_CORE_BUILD
-#include <../src/genx/genx.h>
+#include <../src/contrib/genx/genx.h>
 #else
 #include <genx/genx.h>
 #endif
@@ -83,16 +83,16 @@ namespace sack {
 	   <code lang="c++">
 	   
 	   
-	   OnCreateMenuButton( “basic/Hello World” )( PMENU_BUTTON button )
+	   OnCreateMenuButton( "basic/Hello World" )( PMENU_BUTTON button )
 	   {
 	       return 1; // result OK to create.
 	   }
 	   
-	   OnKeyPressEvent( “basic/Hello World” )( uintptr_t psvUnused )
+	   OnKeyPressEvent( "basic/Hello World" )( uintptr_t psvUnused )
 	   {
 	       SimpleMessageBox( NULL  // the parent frame, NULL is okay
-	                       , “Hello World!”   // the message within the message box
-	                       , “Button Clicked” );  // the title of the message box.
+	                       , "Hello World!"   // the message within the message box
+	                       , "Button Clicked" );  // the title of the message box.
 	       // SimpleMessageBox displays a simple frame with a message
 	       // and a title, and an OK button. The function waits
 	       // until the OK button is clicked before returning.
@@ -104,7 +104,7 @@ namespace sack {
 	   A Simple Listbox
 	   
 	   <code lang="c++">
-	   OnCreateListbox( “basic/List Test” )( PSI_CONTROL pc_list )
+	   OnCreateListbox( "basic/List Test" )( PSI_CONTROL pc_list )
 	   {
 	         return pc_list; // result non-zero OK to create.
 	         // this result can also be used in subsequent events
@@ -129,12 +129,12 @@ namespace sack {
 	   
 	   <code lang="c++">
 	   
-	   OnShowControl( “basic/List Test” )( uintptr_t psvList )
+	   OnShowControl( "basic/List Test" )( uintptr_t psvList )
 	   {
 	         PSI_CONTROL pc_list = (PSI_CONTROL)psvList;
 	         ResetList( pc_list );
-	         AddListItem( pc_list, “One List Item” );
-	         AddListItem( pc_list, “Another List Item” );
+	         AddListItem( pc_list, "One List Item" );
+	         AddListItem( pc_list, "Another List Item" );
 	   }
 	   
 	   
@@ -149,11 +149,11 @@ namespace sack {
 	   
 	   
 	   
-	   There is no such thing as a ‘simple’ control.
+	   There is no such thing as a "simple" control.
 	   
 	   
 	   
-	   OnCreateControl( “basic/Other Control” )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
+	   OnCreateControl( "basic/Other Control" )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
 	   
 	   {
 	         // this code results with a create PSI control.
@@ -165,7 +165,7 @@ namespace sack {
 	   // fails creation of the InterShell control.
 	   
 	         return (uintptr_t)MakeNamedControl( frame
-	                 , “Some PSI Control type-name”
+	                 , "Some PSI Control type-name"
 	                 , x, y  // control position passed to event
 	   </code>
 	   <code>

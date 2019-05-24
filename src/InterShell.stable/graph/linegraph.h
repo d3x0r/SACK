@@ -3,6 +3,7 @@
 
 #include <stdhdrs.h>
 #include <configscript.h>
+#include <filesys.h>
 #include <intershell_registry.h>
 #include <sharemem.h>
 #include <timers.h>

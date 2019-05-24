@@ -1,7 +1,6 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
 cmake_minimum_required(VERSION 2.8)
-
 PROJECT( InterShell )
 
 if( NOT MAKING_SACK_CORE )
@@ -15,10 +14,6 @@ if( NOT MAKING_SACK_CORE )
   include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
 
 include( GNUInstallDirs )
-
-if( NOT BINDIR )
-  set( BINDIR bin )
-endif( NOT BINDIR )
 
 if( NOT BUILD_INTO_SACK_INSTALL )
   if( __ANDROID__ )
@@ -36,18 +31,23 @@ endif( NOT BUILD_INTO_SACK_INSTALL )
 
   include_directories( ${SACK_INCLUDE_DIR} )
   LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
+
 else( NOT MAKING_SACK_CORE )
   ADD_DEFINITIONS( -DSACK_CORE_BUILD )
+  set( CMAKE_MODULE_PATH ../../makefiles/cmake )
+  include( ../../makefiles/cmake/DefaultInstall.cmake )
+  set( SACK_INCLUDE_DIR ../../include )
+  include_directories( ${SACK_INCLUDE_DIR} )
+  include_directories( ../contrib )
+  set( SACK_LIBRARIES bag bag.psi bag.externals )
 
 endif( NOT MAKING_SACK_CORE )
-
 if( WIN32 AND WATCOM )
 add_definitions( -DWIN32 )
 endif( WIN32 AND WATCOM )
 add_definitions( -DINTERSHELL_CORE_BUILD )
 
 set( BUILD_INTERSHELL 1 )
-
 add_subdirectory( ../../data __/__/data )
 add_subdirectory( widgets )
 INSTALL( DIRECTORY config/ DESTINATION resources )
@@ -143,7 +143,7 @@ set( INSTALLED_TARGETS "" CACHE STRING "" FORCE )
 add_subdirectory( ../utils/launcher/launchpad launchpad )
 add_subdirectory( calendar )
 
-if( NOT __ARM__ )
+if( NOT __ARM__ AND NOT __ANDROID__)
 add_subdirectory( vlc_hook )
 add_subdirectory( ../streamlib/InterShell __/streamlib )
   if( NOT __64__ AND NOT __CLR__ AND NOT BUILD_UNICODE )
@@ -166,14 +166,17 @@ add_subdirectory( widgets/keypad/keypad )
 add_subdirectory( graph )
 add_subdirectory( filevar )
 add_subdirectory( slider )
-add_subdirectory( video_player )
+if( NOT EMSCRIPTEN )
+   # emscripten didn't port ffmpeg yet (output is only opengl)
+   add_subdirectory( video_player )
+endif( NOT EMSCRIPTEN )
 add_subdirectory( security.null )
 add_subdirectory( security.sql )
 #add_subdirectory( rpi.gpio )
-if( NOT __ANDROID__ )
+if( NOT __ANDROID__ AND NOT EMSCRIPTEN )
 add_subdirectory( games/Slots)
 add_subdirectory( games/fantasy_football)
-endif( NOT __ANDROID__ )
+endif( NOT __ANDROID__ AND NOT EMSCRIPTEN )
 if( NOT __CLR__ )
 add_subdirectory( deploy )
 endif( NOT __CLR__ )
@@ -184,7 +187,6 @@ add_subdirectory( app_mount )
 add_subdirectory( windows_shell )
 add_subdirectory( crossfade_support )
 endif( WIN32 )
-
 # this has to be set before the cmakelists.txt ends... but not before other cmakelists are loaded
 
 if( NOT __ARM__ AND NOT __ANDROID__ )
