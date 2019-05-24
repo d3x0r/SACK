@@ -234,7 +234,7 @@ static struct Group *GetGroupFilePath( CTEXTSTR group )
 INDEX  GetFileGroup ( CTEXTSTR groupname, CTEXTSTR default_path )
 {
 	struct Group *filegroup = GetGroupFilePath( groupname );
-	if( !filegroup && default_path )
+	if( !filegroup )
 	{
 		{
 			TEXTCHAR tmp_ent[256];
@@ -244,8 +244,9 @@ INDEX  GetFileGroup ( CTEXTSTR groupname, CTEXTSTR default_path )
 #ifdef __NO_OPTIONS__
 			tmp[0] = 0;
 #else
-			if( (*winfile_local).have_default )
-				SACK_GetProfileString( GetProgramName(), tmp_ent, default_path ? default_path : "", tmp, sizeof( tmp ) );
+			if( (*winfile_local).have_default ) {
+				SACK_GetProfileString( GetProgramName(), tmp_ent, default_path ? default_path : NULL, tmp, sizeof( tmp ) );
+			}
 			else
 				tmp[0] = 0;
 #endif
@@ -1932,14 +1933,14 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 				if( output[0] == '\n' )
 				{
 					output[1] = 0;
-					break;
+					return buffer;
 				}
 				output++;
 			}
 			else
 			{
 				output[0] = 0;
-				break;
+				return NULL;
 			}
 		}
 		if( n )
