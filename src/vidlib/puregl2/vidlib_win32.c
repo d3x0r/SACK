@@ -1064,7 +1064,7 @@ WM_DROPFILES
 				RCOORD delta_x = l.mouse_x - (hVideo->pWindowPos.cx/2);
 				RCOORD delta_y = l.mouse_y - (hVideo->pWindowPos.cy/2);
 				//lprintf( "mouse came in we're at %d,%d %g,%g", l.mouse_x, l.mouse_y, delta_x, delta_y );
-				if( delta_y && delta_y )
+				if( delta_y || delta_x )
 				{
 					static int toggle;
 					delta_x /= hVideo->pWindowPos.cx;
