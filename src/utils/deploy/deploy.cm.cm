@@ -229,6 +229,12 @@ if( MSVC )
 		FILE( APPEND ${FILEOUT} "      add_definitions( -D_X86_ )\n" )
 		FILE( APPEND ${FILEOUT} "    endif( CMAKE_CL_64 )\n" )
 endif( MSVC )
+
+if( EMSCRIPTEN )
+		FILE( APPEND ${FILEOUT} "#  use constructor on all registrations, and then call InvokeDeadstart() in main;" )
+		FILE( APPEND ${FILEOUT} "add_definitions( -D__MANUAL_PRELOAD__ ) " )
+endif( EMSCRIPTEN )
+
 if( __UNICODE__ )
 		FILE( APPEND ${FILEOUT} "add_definitions( -DUNICODE )\n" )
 endif()

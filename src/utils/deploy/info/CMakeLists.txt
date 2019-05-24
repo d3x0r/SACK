@@ -1,6 +1,8 @@
 # Get current source repository Revision:
 # output build info to files
 
+if( NOT __ANDROID__ )
+
 file(WRITE ${CMAKE_BINARY_DIR}/info_out.tmp/ver.txt "${CURRENT_REPO_REVISION}" )
 file(WRITE ${CMAKE_BINARY_DIR}/info_out.tmp/type.txt "${CMAKE_BUILD_TYPE}" )
 file(WRITE ${CMAKE_BINARY_DIR}/info_out.tmp/generator.txt "${CMAKE_GENERATOR}" )
@@ -18,3 +20,6 @@ install (
 	#FILES_MATCHING REGEX "^.*\\.txt$" )
 
 #set ( CURRENT_REPO_REVISION ${CURRENT_REPO_REVISION} PARENT_SCOPE )
+
+endif( NOT __ANDROID__ )
+

@@ -41,14 +41,11 @@ endif( NEED_JPEG )
 
 if( NEED_PNG )
 
- if( NEED_ZLIB )
-  SET( ZBASEDIR ${SOURCES_ROOT}src/contrib/zlib-1.2.11 )
-  include( ${ZBASEDIR}/CMakeLists.part )
-if( FORCE_CXX )
-#set_source_files_properties(${ZLIB_SOURCE} PROPERTIES LANGUAGE CXX )
-endif( FORCE_CXX )
-source_group("Source Files\\zlib-1.2.11 Library" FILES ${ZLIB_SOURCE})
- endif( NEED_ZLIB )
+  if( NEED_ZLIB )
+    SET( ZBASEDIR ${SOURCES_ROOT}src/contrib/zlib-1.2.11 )
+    include( ${ZBASEDIR}/CMakeLists.part )
+    source_group("Source Files\\zlib-1.2.11 Library" FILES ${ZLIB_SOURCE})
+  endif( NEED_ZLIB )
 
 
  SET( PBASEDIR ${SOURCES_ROOT}src/contrib/libpng-1.6.34 )

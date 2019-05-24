@@ -1,4 +1,4 @@
-cmake_policy( SET CMP0077 NEW )
+#cmake_policy( SET CMP0077 NEW )
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
 cmake_minimum_required(VERSION 3.1)
@@ -42,7 +42,7 @@ set( SACK_BASE ${PROJECT_SOURCE_DIR} )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
-set( LIBRESSL_VERSION 2.9.0 )
+set( LIBRESSL_VERSION 2.9.2 )
 
 
 include( DefaultInstall )
@@ -106,12 +106,21 @@ set(WIN32_VERSION "0x0601" CACHE STRING
 add_definitions( -D_WIN32_WINNT=${WIN32_VERSION} -DWINVER=${WIN32_VERSION})
 endif( NOT __LINUX__  )
 
+if( EMSCRIPTEN )
+	SET( __NO_ODBC__ ON )
+	set( __NO_MSGSVR__ ON )
+        #  use constructor on all registrations, and then call InvokeDeadstart() in main;
+	add_definitions( -D__MANUAL_PRELOAD__ ) 
+endif( EMSCRIPTEN )
+
 DEFINE_DEFAULT( ALLOW_IMAGE_INTERFACES OFF )
 DEFINE_DEFAULT( __ANDROID__ OFF )
 OPTION( __ANDROID__ "Enable Android Behvaviors" ${__ANDROID__} )
 if( __ANDROID__ )
 	message( "if you're using a latest NDK you might want to set __ANDROID_OLD_PLATFORM_SUPPORT__" )
+	if( ANDROID_NDK_TARGET_PLATFORM )
 	ADD_DEFINITIONS( -DANDROID_NDK_TARGET_PLATFORM=${ANDROID_NDK_TARGET_PLATFORM} )
+	endif( ANDROID_NDK_TARGET_PLATFORM )
 	if( __ANDROID_OLD_PLATFORM_SUPPORT__ )
         	ADD_DEFINITIONS( -D__ANDROID_OLD_PLATFORM_SUPPORT__ )
 	endif( __ANDROID_OLD_PLATFORM_SUPPORT__ )
@@ -202,9 +211,8 @@ else( __ANDROID__ )
             #set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} ${OPENGL_LIBRARIES} )
             #########
             if( NOT __NO_GUI__ AND NOT PNACL_BUILD )
-               find_package( GLEW )
+               #find_package( GLEW )
                if( NOT ${GLEW_FOUND} )
-                message( "USE LOCAL GLEW" )
                	set( NEED_GLEW ON )
                	##set( PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} glew )
                else( NOT ${GLEW_FOUND} )
@@ -228,7 +236,7 @@ else( __ANDROID__ )
         if( NOT ${SQLITE3_FOUND} )
         	set( NEED_SQLITE ON )
         endif( NOT ${SQLITE3_FOUND} )
-	find_package( Threads REQUIRED )
+	#find_package( Threads REQUIRED )
      else()
         Message( "Not WIN32, not UNIX" )
      endif()
@@ -345,7 +353,11 @@ endif( __NO_MSGSVR__ )
 #set( ExtraFlags "${ExtraFlags} -Wno-parentheses" )
 #set( ExtraFlags "${ExtraFlags} -Wno-format" )
 
-
+if( EMSCRIPTEN )
+   set( CORE_LINKMODE STATIC )
+else( EMSCRIPTEN )
+   set( CORE_LINKMODE SHARED )
+endif( EMSCRIPTEN )
 
 if( USE_SACK_CUSTOM_MEMORY_ALLOCATION )
 add_definitions( -DUSE_SACK_CUSTOM_MEMORY_ALLOCATION )
@@ -365,21 +377,12 @@ endif( WIN32 )
 
 
 if( __QNX__ )
-ADD_DEFINITIONS( -D__QNX__ )
+   ADD_DEFINITIONS( -D__QNX__ )
 endif( __QNX__ )
 
-#if( BUILD_UNICODE )
-#	add_definitions( -D_UNICODE -DUNICODE )
-#endif( BUILD_UNICODE )
-
 if( ALLOW_IMAGE_INTERFACES )
-	add_definitions( -DALLOW_IMAGE_INTERFACES )
+  	add_definitions( -DALLOW_IMAGE_INTERFACES )
 endif( ALLOW_IMAGE_INTERFACES )
-
-if( __ARM__ )
-	#set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__ARM__ )
-	#add_definitions( -D__ARM__)
-endif( __ARM__ )
 
 if( EXTREME_CODE_DEBUG )
 	if(CMAKE_COMPILER_IS_GNUCC )
@@ -537,7 +540,7 @@ endif( USE_SYSLOG_STDOUT_DEFAULT )
             endif( ${FREETYPE_FOUND} )
 
             if( NOT __NO_GUI__ AND NOT PNACL_BUILD )
-               find_package( GLEW )
+               #find_package( GLEW )
                if( NOT ${GLEW_FOUND} )
                 #message( "USE LOCAL GLEW" )
                	set( NEED_GLEW ON )
@@ -650,7 +653,7 @@ if( CMAKE_HOST_APPLE )
 	setupDefines( HOST_PLATFORM_DEFINES "HOST_PLATFORM_CMAKE_DEFINES" "HOST_PLATFORM_LIBRARIES" 1 0 1 0 0 ${__ARM__} ${__NO_ODBC__} )
 endif( CMAKE_HOST_APPLE )
 if( CMAKE_HOST_WIN32 )
-	setupDefines( "HOST_PLATFORM_DEFINES" "HOST_PLATFORM_CMAKE_DEFINES" "HOST_PLATFORM_LIBRARIES" OFF OFF OFF ON ${MSVC} OFF OFF )
+	setupDefines( "HOST_PLATFORM_DEFINES" "HOST_PLATFORM_CMAKE_DEFINES" "HOST_PLATFORM_LIBRARIES" OFF OFF OFF ${WIN32} ${MSVC} OFF OFF )
 else( CMAKE_HOST_WIN32 )
 	setupDefines( "HOST_PLATFORM_DEFINES" "HOST_PLATFORM_CMAKE_DEFINES" "HOST_PLATFORM_LIBRARIES" ${APPLE} ${__ANDROID__} 1 0 ${MSVC} ${__ARM__} ${__NO_ODBC__} )
 endif( CMAKE_HOST_WIN32 )
@@ -679,6 +682,8 @@ SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 
 	set( LIBRESSL_SKIP_INSTALL ON )
+	set( LIBRESSL_APPS OFF )
+	set( LIBRESSL_TESTS OFF )
 	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
         include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
         set( SSL_LIBS ssl tls crypto )
@@ -884,7 +889,7 @@ endmacro( COPY_CPLUSPLUS )
 #------------
 if( NOT NO_C )
 
-add_library( bag SHARED
+add_library( bag ${CORE_LINKMODE}
   ${FIRST_GCC_LIBRARY_SOURCE}
     ${BASE_SOURCES}
     ${VECTLIB_SOURCES}
@@ -906,6 +911,8 @@ SET_TARGET_PROPERTIES(bag PROPERTIES
                   COMPILE_DEFINITIONS "${ExtraDefinitions};TARGET_LABEL=bag;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
+
+
 endif( NOT NO_C )
 
 if( __WINDOWS_ARM_CE__ )
@@ -924,15 +931,14 @@ set( SACK_PLUSPLUS_SOURCES
 )
 
 if( NOT __NO_CPLUSPLUS )
-if( NOT FORCE_CXX )
    set( cplusplus_sources )
    COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} include/sha1.h include/md5.h )
    if( NEED_SQLITE )
       COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.h )
    endif( NEED_SQLITE )
-if( NEED_UUID )
-   COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/contrib/uuid-1.6.2/uuid.h )
-endif( NEED_UUID )
+  if( NEED_UUID )
+     COPY_CPLUSPLUS( cplusplus_sources ${SACK_PLUSPLUS_SOURCES} src/contrib/uuid-1.6.2/uuid.h )
+  endif( NEED_UUID )
 
 set( cplusplus_sources
     ${plusplus_header_dup}
@@ -944,7 +950,7 @@ set( cplusplus_sources
 set( psi_cplusplus_sources )
 COPY_CPLUSPLUS( psi_cplusplus_sources ${PSI_SOURCES} )
 
-add_library( ${BAG_PLUSPLUS} SHARED ${cplusplus_sources} )
+add_library( ${BAG_PLUSPLUS} ${CORE_LINKMODE} ${cplusplus_sources} )
 target_link_libraries( ${BAG_PLUSPLUS} gsm-1.0-pl13 )
 	#target_link_libraries( ${BAG_PLUSPLUS} MatrixSSL )
 	target_link_libraries( ${BAG_PLUSPLUS} ${SSL_LIBS} )
@@ -956,7 +962,6 @@ SET_TARGET_PROPERTIES(${BAG_PLUSPLUS} PROPERTIES
                   LINK_FLAGS "${extra_link_flags}"
 )
 
-endif( NOT FORCE_CXX )
 endif( NOT __NO_CPLUSPLUS )
 
 if( __ARM__ )
@@ -964,9 +969,7 @@ if( __ARM__ )
     if( WIN32 )
       my_target_link_libraries( bag ws2 mmtimer iphlpapi coredll corelibc.lib )
       if( NOT __NO_CPLUSPLUS )
-      if( NOT FORCE_CXX )
         my_target_link_libraries( ${BAG_PLUSPLUS} ws2 mmtimer iphlpapi coredll corelibc.lib )
-      endif( NOT FORCE_CXX )
       endif( NOT __NO_CPLUSPLUS )
     endif( WIN32 )
   else( NOT __ANDROID__ )
@@ -1011,7 +1014,7 @@ if( NEED_UUID )
   set( BAG_EXTERNAL_MORE_SOURCES ${UUID_SOURCES} )
 endif( NEED_UUID )
 
-add_library( bag.externals SHARED
+add_library( bag.externals ${CORE_LINKMODE}
     ${JPEG_SOURCE}
     ${ZLIB_SOURCE}
     ${PNG_SOURCE}
@@ -1044,7 +1047,7 @@ endif()
 
 if( NOT NO_C )
 
-add_library( bag.psi SHARED
+add_library( bag.psi ${CORE_LINKMODE}
   ${FIRST_GCC_LIBRARY_SOURCE}
   ${PSI_SOURCES}
   ${LAST_GCC_LIBRARY_SOURCE}
@@ -1064,7 +1067,7 @@ endif( NOT NO_C )
 
 if( NOT __NO_CPLUSPLUS )
   if( NOT FORCE_CXX )
-    add_library( ${BAG_PSI_PLUSPLUS} SHARED
+    add_library( ${BAG_PSI_PLUSPLUS} ${CORE_LINKMODE}
        ${FIRST_GCC_LIBRARY_SOURCE}
        ${psi_cplusplus_sources}
        ${LAST_GCC_LIBRARY_SOURCE}
@@ -1127,9 +1130,16 @@ endif( NOT NO_C )
 ###########
 
 
-add_subdirectory( src/imglib )
 
 ###########
+
+if( EMSCRIPTEN )
+     add_subdirectory( src/vidlib/puregl2 )
+    add_subdirectory( src/imglib/puregl2 )
+    add_subdirectory( src/imglib )
+
+else( EMSCRIPTEN )
+add_subdirectory( src/imglib )
 
 if( NOT __NO_GUI__ )
   if( NOT __ANDROID__ AND NOT APPLE )
@@ -1139,6 +1149,8 @@ if( NOT __NO_GUI__ )
 else( NOT __NO_GUI__ )
      add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_GUI__ )
+
+endif( EMSCRIPTEN )
 
 ###########
 
@@ -1247,6 +1259,9 @@ else()
 endIF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
 
 #alternative video system
+
+if( NOT EMSCRIPTEN )
+
 if( NOT __NO_GUI__ )
 	#include vidlib first incase glew is used, then imglib
 	add_subdirectory( src/imglib/puregl2 )
@@ -1254,19 +1269,19 @@ if( NOT __NO_GUI__ )
 		  add_subdirectory( src/imglib/vulkan )
      endif( INCLUDE_VULKAN )
 
-if( NOT __QNX__ AND NOT __ANDROID__ )
+   if( NOT __QNX__ AND NOT __ANDROID__ )
 	#standard OpenGL; mostly windows-centric
 	add_subdirectory( src/imglib/puregl )
-endif( NOT __QNX__ AND NOT __ANDROID__ )
+   endif( NOT __QNX__ AND NOT __ANDROID__ )
 
   #GET_FILENAME_COMPONENT(WIN8_SDK "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v8.0;InstallationFolder]" ABSOLUTE )
   #if( NOT WIN8_SDK OR ( WIN8_SDK STREQUAL "/registry" ) )
   #  GET_FILENAME_COMPONENT(WIN8_SDK "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\v8.0;InstallationFolder]" ABSOLUTE )
   #endif( NOT WIN8_SDK OR ( WIN8_SDK STREQUAL "/registry" ) )
 
-if( NOT __NO_NETWORK__ )
+   if( NOT __NO_NETWORK__ )
 	add_subdirectory( src/vidlib/proxy )
-endif( NOT __NO_NETWORK__ )
+   endif( NOT __NO_NETWORK__ )
 	add_subdirectory( src/vidlib/puregl2 )
         if( INCLUDE_VULKAN )
 		add_subdirectory( src/vidlib/vulkan )
@@ -1345,14 +1360,20 @@ endif( NOT __ANDROID__ )
 
 
 
-endif( NOT __NO_GUI__ )
+  endif( NOT __NO_GUI__ )
+
+
+add_subdirectory( src/utils/runner )
+add_subdirectory( src/utils/virtual_file_system )
+
+endif( NOT EMSCRIPTEN )
 
 # parts of SDK ...
 set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}/images CACHE STRING "Option to install default images actually" )
 add_subdirectory( data )
 add_subdirectory( include )
-add_subdirectory( src/utils/runner )
-add_subdirectory( src/utils/virtual_file_system )
+
+
 
 if( WIN32 )
 	add_subdirectory( src/utils/service )
@@ -1437,6 +1458,7 @@ endif( WIN32 )
   #   This doesn't build under watcom either...
   #   it needs to be modified to understand functional syntax so it can do formatting...
 
+if( NOT EMSCRIPTEN )
   string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${HOST_PLATFORM_LIBRARIES}" )
   string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${HOST_PLATFORM_DEFINES}" )
   string( REPLACE ";" "," PLATFORM_CMAKE_DEFINES_ARG "${HOST_PLATFORM_CMAKE_DEFINES}" )
@@ -1452,6 +1474,8 @@ endif( WIN32 )
 		-DPLATFORM_CMAKE_DEFINES=${PLATFORM_CMAKE_DEFINES_ARG}
       
   )
+endif( NOT EMSCRIPTEN)
+
 #endif( NOT UNIX )
 add_subdirectory( src/utils/seed_random )
 add_subdirectory( src/deadstart )
@@ -1491,6 +1515,24 @@ endif( __LINUX__ OR ( MSVC10 AND __64__ ) )
 if( __INCLUDE_INTERSHELL__ )
 	add_subdirectory( src/InterShell )
 endif( __INCLUDE_INTERSHELL__ )
+
+if( EMSCRIPTEN )
+set( COMMON_EM_FLAGS " -s WASM=1" )
+SET_PROPERTY(TARGET bag APPEND_STRING PROPERTY COMPILE_FLAGS "${COMMON_EM_FLAGS} -s MAIN_MODULE=1" )
+SET_PROPERTY(TARGET bag APPEND_STRING PROPERTY LINK_FLAGS "${COMMON_EM_FLAGS} -s MAIN_MODULE=1" )
+SET_PROPERTY(TARGET bag.externals APPEND_STRING PROPERTY COMPILE_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
+SET_PROPERTY(TARGET bag.externals APPEND_STRING PROPERTY LINK_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
+SET_PROPERTY(TARGET bag.image APPEND_STRING PROPERTY COMPILE_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
+SET_PROPERTY(TARGET bag.image APPEND_STRING PROPERTY LINK_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
+SET_PROPERTY(TARGET bag.image.puregl2 APPEND_STRING PROPERTY COMPILE_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
+SET_PROPERTY(TARGET bag.image.puregl2 APPEND_STRING PROPERTY LINK_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
+SET_PROPERTY(TARGET bag.video.puregl2 APPEND_STRING PROPERTY COMPILE_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
+SET_PROPERTY(TARGET bag.video.puregl2 APPEND_STRING PROPERTY LINK_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
+SET_PROPERTY(TARGET bag.psi APPEND_STRING PROPERTY COMPILE_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
+SET_PROPERTY(TARGET bag.psi APPEND_STRING PROPERTY LINK_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
+endif( EMSCRIPTEN )
+
+
 
 # get the libraries..
 SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )

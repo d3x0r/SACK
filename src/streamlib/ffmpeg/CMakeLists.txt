@@ -10,7 +10,9 @@ set( FFMPEG_SOURCES ${FFMPEG_SOURCES_ROOT}ffmpeg_interface.c )
 set( FFMPEG_CPP_SOURCES ${CMAKE_BINARY_DIR}/src/streamlib/ffmpeg/ffmpeg_interface.cpp )
 set( INCLUDEDIRS "-I${FFMPEG_SOURCES_ROOT}../../contrib/gsm-1.0-pl13/inc -I${FFMPEG_SOURCES_ROOT}prebuilt/ffmpeg/2.1.3/include -I${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1/include " )
 
-if( CMAKE_C_COMPILER_ID STREQUAL "GNU" )
+#message( "OH THIS IS NEW: ${CMAKE_C_COMPILER_ID} ")
+
+if( ( CMAKE_C_COMPILER_ID STREQUAL "GNU" ) OR ( CMAKE_C_COMPILER_ID STREQUAL "Clang" ) )
   set_source_files_properties( ${FFMPEG_CPP_SOURCES} PROPERTIES COMPILE_FLAGS ${INCLUDEDIRS} )
   set_source_files_properties( ${FFMPEG_SOURCES} PROPERTIES COMPILE_FLAGS ${INCLUDEDIRS} )
 endif()
@@ -56,7 +58,7 @@ if( __ANDROID__ )
 
   # portable projects won't need this anyway.
   if( MAKING_SACK_CORE )
-  #  add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
+    add_subdirectory( ${FFMPEG_SOURCES_ROOT}openal-soft-1.15.1 openal )
   endif( MAKING_SACK_CORE )
 
 endif( __ANDROID__ )

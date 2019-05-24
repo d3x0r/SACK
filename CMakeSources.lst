@@ -87,12 +87,12 @@ if( WIN32 )
 	  ${SOURCES_ROOT}src/printer_lib/printer.c )
 endif( WIN32 )
 
-if( NOT __ANDROID__ )
+if( NOT __ANDROID__ AND NOT EMSCRIPTEN )
   set( COMM_SOURCES ${SOURCES_ROOT}src/commlib/sackcomm.c )
   if( USE_HARDWARE_INFO AND NOT __LINUX__ )
     set( COMM_SOURCES ${COMM_SOURCES} ${SOURCES_ROOT}src/windows_hardware_library/listports.c )
   endif( USE_HARDWARE_INFO AND NOT __LINUX__ )
-endif( NOT __ANDROID__ )
+endif( NOT __ANDROID__ AND NOT EMSCRIPTEN )
 if( USE_HARDWARE_INFO AND NOT __LINUX__ )
   set( BASE_SOURCES  ${BASE_SOURCES} ${SOURCES_ROOT}src/windows_hardware_library/listhids.c )
 endif( USE_HARDWARE_INFO AND NOT __LINUX__ )
@@ -129,7 +129,7 @@ set( NETWORK_SOURCES
 )
 
 if( __ANDROID__ )
-   set( NETWORK_SOURCES ${SOURCES_ROOT}src/netlib/android_ifaddrs.c ${SOURCES_ROOT}src/netlib/android_ifaddrs.h )
+   set( NETWORK_SOURCES ${NETWORK_SOURCES} ${SOURCES_ROOT}src/netlib/android_ifaddrs.c ${SOURCES_ROOT}src/netlib/android_ifaddrs.h )
 endif( __ANDROID__ )
 
 
@@ -163,9 +163,6 @@ set ( EXPAT_SOURCES
   ${SOURCES_ROOT}src/contrib/sexpat/xmltok.c
 )
 set( EXPAT_SOURCES_FLAGS XML_MIN_SIZE;SEXPAT_SOURCE )
-if( FORCE_CXX )
-set_source_files_properties(${EXPAT_SOURCES} PROPERTIES LANGUAGE CXX )
-endif( FORCE_CXX )
 
 SOURCE_GROUP( "Source Files\\XML\\expat" FILES ${EXPAT_SOURCES} )
 
@@ -225,9 +222,7 @@ if( UNIX )
 	endif( NOT __ARM__ )
 
 endif( UNIX )
-	if( FORCE_CXX )
-		set_source_files_properties(${VIDLIB_SOURCES} PROPERTIES LANGUAGE CXX )
-	endif( FORCE_CXX )
+
 	SET_SOURCE_FILES_PROPERTIES( ${VIDLIB_SOURCES} PROPERTIES
 					FOLDER "Source Files\\Image Output Library" )
 
@@ -693,22 +688,7 @@ if( USE_ASSEMBLY )
   set( MEM_ASSEMBLY_SOURCES src/memlib/memoryasm.asm )
 endif()
 
+if( NOT EMSCRIPTEN )
 include( ${SOURCES_ROOT}src/streamlib/ffmpeg/CMakeLists.txt )
 set( BASE_SOURCES ${BASE_SOURCES} ${FFMPEG_SOURCES} )
-
-if( FORCE_CXX )
-set_source_files_properties(${BAG_SQLITE_INTERFACE} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${GENX_SOURCES} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${IMAGE_SOURCES} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${PSI_SOURCES} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${PSI_MORE_SOURCES} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${SACK_MSG_SERVICES} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${TYPE_LIBRARY_SOURCES} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${ADVANCED_TYPE_LIBRARY_SOURCES} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${NETWORK_SOURCES} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${VECTLIB_SOURCES} PROPERTIES LANGUAGE CXX)
-set_source_files_properties(${VECTLIB_MORE_SOURCES} PROPERTIES LANGUAGE CXX)
-set_source_files_properties(${OPTION_SOURCE} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${ODBC_SOURCES} PROPERTIES LANGUAGE CXX )
-set_source_files_properties(${BASE_SOURCES} PROPERTIES LANGUAGE CXX )
-endif( FORCE_CXX )
+endif( NOT EMSCRIPTEN )
