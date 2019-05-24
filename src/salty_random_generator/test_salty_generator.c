@@ -88,7 +88,7 @@ void ShowSome( struct distribution *d ) {
 		for( m = 0; m < d->units; m++ )
 			lprintf( "%d,%d = %d ", n, m, d->follow_counters[n * d->units + m] );
 	}
-	return d;
+	//return d;
 }
 
 void mapData( struct distribution *d ) {
