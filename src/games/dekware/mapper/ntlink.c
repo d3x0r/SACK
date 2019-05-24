@@ -17,15 +17,17 @@ int myTypeID; // supplied to tag the device as mine
 extern int InitMapObject( PSENTIENT ps, PENTITY pe, PTEXT parameters );
 extern PDATAPATH OpenMapMon( PSENTIENT ps, PTEXT parameters );
 
-char *RegisterRoutines( PEXPORTTABLE pExportTable )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
    pExportedFunctions = pExportTable;
    myTypeID = RegisterDevice( "MapMon", "Device to monitor information for mappper", OpenMapMon );
    RegisterObject( "Map", "Object for MUDs to monitor data and provide mapping", InitMapObject );
 //   RegisterRoutine( "LoadFile", "Load file as a binary variable", LoadFile );
 //   RegisterRoutine( "StoreFile", "Save File from binary variable", StoreFile );
 //   RegisterRoutine( "SaveFile", "Save File from binary variable", StoreFile );
-   return DekVersion;
+   //return DekVersion;	
+	}
 }
 
 void UnloadPlugin( void ) // this routine is called when /unload is invoked

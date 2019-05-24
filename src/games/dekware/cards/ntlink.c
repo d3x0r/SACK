@@ -682,8 +682,10 @@ static int OnCreateObject( "Hand", "A player hand of cards" )(PSENTIENT ps, PENT
 	return 1;
 }
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 	srand( (int)time( NULL ) );
 	//RegisterObject( "Cards", "Generic Card Deck... parameters determine type", Create );
 	//RegisterObject( "Table",GetText( (PTEXT)&TableDesc), CreateTable );
@@ -691,7 +693,8 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
    iCardDeck = RegisterExtension( "card deck" );
    iHand = RegisterExtension( "card hand" );
 
-	return DekVersion;
+	//return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

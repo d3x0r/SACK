@@ -173,10 +173,12 @@ static PDATAPATH CPROC CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT para
 
 //--------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
-   myTypeID = RegisterDevice( "binary", "Performs binary formatting...", Open );
-   return DekVersion;
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
+		myTypeID = RegisterDevice( "binary", "Performs binary formatting...", Open );
+		//return DekVersion;
+	}
 }
 
 //--------------------------------------------------------------------------

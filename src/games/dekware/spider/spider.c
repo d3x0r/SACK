@@ -741,10 +741,12 @@ int APIENTRY DllMain( HINSTANCE hDLL, DWORD dwReason, void *pReserved )
    return TRUE;
 }
 
-PUBLIC( char *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-   RegisterRoutine( "spider", "HTML spider dialog...", Spider );
-	return DekVersion;
+	if( DekwareGetCoreInterface( DekVersion ) ) {
+		RegisterRoutine( "spider", "HTML spider dialog...", Spider );
+		//return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

@@ -75,8 +75,9 @@ static option_entry methods[] = { { DEFTEXT( "keybind" ), 4, 7, DEFTEXT( "Redefi
 };
 #endif
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 #if defined( CURSECON )
 #define NAME "cursecon"
 #elif defined( PSICON )
@@ -99,7 +100,8 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 	}
 #endif
    //myTypeID = RegisterDeviceOpts( NAME, "interface device....", CreateConsole, methods, NUM_METHODS  );
-   return DekVersion;
+	//   return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

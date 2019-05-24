@@ -4,7 +4,8 @@
 
 // include standard headers...
 #include <stdhdrs.h>
-#include "sharemem.h"
+#include <deadstart.h>
+#include <sharemem.h>
 
 // include nexus core header
 #include "space.h" // space.h, and all private headers...
@@ -77,6 +78,8 @@ CORE_CPROC( void,  RegisterObjectEx       )( CTEXTSTR pName, CTEXTSTR pDescripti
 CORE_CPROC( void,  UnregisterObject     )( CTEXTSTR pName );
 CORE_CPROC( int, CreateRegisteredObject )( PSENTIENT ps, PTEXT parameters );
 CORE_CPROC( int, IsObjectTypeOf        )( PSENTIENT ps, PTEXT entity, PTEXT form );
+
+CORE_CPROC( struct dekware_interface *, DekwareGetCoreInterface) ( const char *version );
 
 
 CORE_CPROC( PDATAPATH, FindOpenDevice )( PSENTIENT ps, PTEXT pName );

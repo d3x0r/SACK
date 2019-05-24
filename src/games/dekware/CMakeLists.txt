@@ -4,6 +4,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
 cmake_minimum_required(VERSION 2.8)
 
+if( NOT MAKING_SACK_CORE )
 if( NOT SACK_SDK_ROOT_PATH )
 GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\SACK;Install_Dir]" ABSOLUTE CACHE)
 else( NOT SACK_SDK_ROOT_PATH )
@@ -16,16 +17,24 @@ else( NOT INTERSHELL_SDK_ROOT_PATH )
 set(INTERSHELL_SDK_ROOT_PATH ${INTERSHELL_SDK_ROOT_PATH} CACHE STRING "SACK InterShell SDK Root" )
 endif( NOT INTERSHELL_SDK_ROOT_PATH )
 
+else( NOT MAKING_SACK_CORE )
+  include( ../../../makefiles/cmake/DefaultInstall.cmake )
+  set( SACK_INCLUDE_DIR ../../../include )
+  set( INTERSHELL_INCLUDE_DIR ../../InterShell.stable )
+  set( SACK_LIBRARIES bag bag.psi bag.externals )
+endif( NOT MAKING_SACK_CORE )
 
 
 
 project( Dekware )
 
+if( NOT MAKING_SACK_CORE )
 include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
 include( ${INTERSHELL_SDK_ROOT_PATH}/CMakePackage )
 
 INSTALL_SACK( bin )
 INSTALL_INTERSHELL( . ) # includes a bin and resources at ./
+endif( NOT MAKING_SACK_CORE )
 
 if( NOT DATA_INSTALL_PREFIX )
 	SET( DATA_INSTALL_PREFIX resources )

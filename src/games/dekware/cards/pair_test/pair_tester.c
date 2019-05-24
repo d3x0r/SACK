@@ -186,9 +186,11 @@ uintptr_t CPROC PlayHands( PTHREAD thread )
 	}
 }
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 	ThreadTo( PlayHands, 0 );
-	return DekVersion;
+	//return DekVersion;
+	}
 }
 

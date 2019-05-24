@@ -22,60 +22,60 @@ int CPROC PRIORITY( PSENTIENT ps, PTEXT parameters )
 	// process priority applies...
 #if defined( WIN32 ) || defined( _WIN32 )
 	PTEXT pTemp;
-   HANDLE hToken, hProcess;
-   TOKEN_PRIVILEGES tp;
-   OSVERSIONINFO osvi;
-   DWORD dwPriority = 0xA5A5A5A5;
+	HANDLE hToken, hProcess;
+	TOKEN_PRIVILEGES tp;
+	OSVERSIONINFO osvi;
+	DWORD dwPriority = 0xA5A5A5A5;
 
-   osvi.dwOSVersionInfoSize = sizeof( osvi );
-   GetVersionEx( &osvi );
-   if( osvi.dwPlatformId  == VER_PLATFORM_WIN32_NT )
-   {
-      // allow shutdown priviledges....
-      // wonder if /shutdown will work wihtout this?
-      if( DuplicateHandle( GetCurrentProcess(), GetCurrentProcess()
-                        , GetCurrentProcess(), &hProcess, 0
-                        , FALSE, DUPLICATE_SAME_ACCESS  ) )
-         if( OpenProcessToken( hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken ) )
-         {
-            tp.PrivilegeCount = 1;
-            if( LookupPrivilegeValue( NULL
-                                    , SE_SHUTDOWN_NAME
-                                    , &tp.Privileges[0].Luid ) )
-            {
-               tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-               AdjustTokenPrivileges( hToken, FALSE, &tp, 0, NULL, NULL );
-            }
-            else
-               GetLastError();
-         }
-         else
-            GetLastError();
-      else
-         GetLastError();
-   }
+	osvi.dwOSVersionInfoSize = sizeof( osvi );
+	GetVersionEx( &osvi );
+	if( osvi.dwPlatformId  == VER_PLATFORM_WIN32_NT )
+	{
+		// allow shutdown priviledges....
+		// wonder if /shutdown will work wihtout this?
+		if( DuplicateHandle( GetCurrentProcess(), GetCurrentProcess()
+							   , GetCurrentProcess(), &hProcess, 0
+							   , FALSE, DUPLICATE_SAME_ACCESS  ) )
+			if( OpenProcessToken( hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken ) )
+			{
+				tp.PrivilegeCount = 1;
+				if( LookupPrivilegeValue( NULL
+							               , SE_SHUTDOWN_NAME
+							               , &tp.Privileges[0].Luid ) )
+				{
+					tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+					AdjustTokenPrivileges( hToken, FALSE, &tp, 0, NULL, NULL );
+				}
+				else
+					GetLastError();
+			}
+			else
+				GetLastError();
+		else
+			GetLastError();
+	}
 
 	if( ps->CurrentMacro )
-      ps->CurrentMacro->state.flags.bSuccess = TRUE;
+		ps->CurrentMacro->state.flags.bSuccess = TRUE;
 
 	pTemp = GetParam( ps, &parameters );
 	if( pTemp )
 	{
 		if( TextLike( pTemp, "idle" ) )
 		{
-	      dwPriority = IDLE_PRIORITY_CLASS;
+			dwPriority = IDLE_PRIORITY_CLASS;
 		}
 		else if( TextLike( pTemp, "normal" ) )
 		{
-	      dwPriority = NORMAL_PRIORITY_CLASS;
+			dwPriority = NORMAL_PRIORITY_CLASS;
 		}
 		else if( TextLike( pTemp, "high" ) )
 		{
-	      dwPriority = HIGH_PRIORITY_CLASS;
+			dwPriority = HIGH_PRIORITY_CLASS;
 		}
 		else if( TextLike( pTemp, "realtime" ) )
 		{
-	      dwPriority = REALTIME_PRIORITY_CLASS;
+			dwPriority = REALTIME_PRIORITY_CLASS;
 		}
 		else
 		{
@@ -86,7 +86,7 @@ int CPROC PRIORITY( PSENTIENT ps, PTEXT parameters )
 			}
 			else
 			{
-		      ps->CurrentMacro->state.flags.bSuccess = FALSE;
+				ps->CurrentMacro->state.flags.bSuccess = FALSE;
 			}
 		}
 	}
@@ -99,7 +99,7 @@ int CPROC PRIORITY( PSENTIENT ps, PTEXT parameters )
 		}
 		else
 		{
-		   ps->CurrentMacro->state.flags.bSuccess = FALSE;
+			ps->CurrentMacro->state.flags.bSuccess = FALSE;
 		}
 	}
 
@@ -125,16 +125,16 @@ int CPROC MEMDUMP( PSENTIENT ps, PTEXT parameters )
 		DebugDumpMemFile( GetText( pName ) );
 	}
 	else
-	   DebugDumpMem();
+		DebugDumpMem();
 	return FALSE;
 }
 //--------------------------------------
 int CPROC MEMORY( PSENTIENT ps, PTEXT parameters )
 {
-   uint32_t nFree, nUsed, nChunks, nFreeChunks;
+	uint32_t nFree, nUsed, nChunks, nFreeChunks;
 	PVARTEXT vt;
 	PTEXT temp, next;
-   next = GetParam( ps, &parameters );
+	next = GetParam( ps, &parameters );
 	while( temp = next )
 	{
 		if( temp && TextLike( temp, "log" ) )
@@ -167,63 +167,63 @@ int CPROC MEMORY( PSENTIENT ps, PTEXT parameters )
 				}
 			}
 		}
-      next = GetParam( ps, &parameters );
+		next = GetParam( ps, &parameters );
 	}
 
 	GetMemStats( &nFree, &nUsed, &nChunks, &nFreeChunks );
 
-   vt = VarTextCreate( );
-   vtprintf( vt, "Memory : Free %ld(%ld), Used %ld(%ld)  (optional paramters \'log\',\'debug\' followed by off to disable.", nFree, nFreeChunks,
-                         nUsed, nChunks - nFreeChunks );
-   EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
-   VarTextDestroy( &vt );
-   return FALSE;
+	vt = VarTextCreate( );
+	vtprintf( vt, "Memory : Free %ld(%ld), Used %ld(%ld)  (optional paramters \'log\',\'debug\' followed by off to disable.", nFree, nFreeChunks,
+							    nUsed, nChunks - nFreeChunks );
+	EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+	VarTextDestroy( &vt );
+	return FALSE;
 }
 int CPROC CMD_BREAK( PSENTIENT ps, PTEXT parameters )
 {
 #ifdef _WIN32
-   DebugBreak();
+	DebugBreak();
 #endif
-//         _asm int 3;
-   return FALSE;
+	//_asm int 3;
+	return FALSE;
 }
 //--------------------------------------
 
 int CPROC CHANGEDIR( PSENTIENT ps, PTEXT parameters )
 {
-   PTEXT pDir, pDir1;
-   pDir1 = MacroDuplicateEx( ps, parameters, TRUE, TRUE );
-   if( pDir1 )
-      pDir = BuildLine( pDir1 );
-   else
-      return FALSE;
-   LineRelease( pDir1 );
-   if( SetCurrentPath( GetText( pDir ) ) )
-   {
-      if( ps->CurrentMacro )
-         ps->CurrentMacro->state.flags.bSuccess = TRUE;
-      else
-      {
+	PTEXT pDir, pDir1;
+	pDir1 = MacroDuplicateEx( ps, parameters, TRUE, TRUE );
+	if( pDir1 )
+		pDir = BuildLine( pDir1 );
+	else
+		return FALSE;
+	LineRelease( pDir1 );
+	if( SetCurrentPath( GetText( pDir ) ) )
+	{
+		if( ps->CurrentMacro )
+			ps->CurrentMacro->state.flags.bSuccess = TRUE;
+		else
+		{
 			DECLTEXT( msg, "Changed directory successfully." );
 			{
-            TEXTCHAR buf[257];
+				TEXTCHAR buf[257];
 				GetCurrentPath( buf, sizeof( buf ) );
 				SetDefaultFilePath( buf );
 			}
-         EnqueLink( &ps->Command->Output, &msg );
-      }
-   }
-   else
-   {
-      if( !ps->CurrentMacro )
-      {
-         DECLTEXT( msg, "Failed to change directory." );
-         EnqueLink( &ps->Command->Output, &msg );
-      }
-   }
-   LineRelease( pDir );
+			EnqueLink( &ps->Command->Output, &msg );
+		}
+	}
+	else
+	{
+		if( !ps->CurrentMacro )
+		{
+			DECLTEXT( msg, "Failed to change directory." );
+			EnqueLink( &ps->Command->Output, &msg );
+		}
+	}
+	LineRelease( pDir );
 
-   return FALSE;
+	return FALSE;
 }
 
 //---------------------------------------------------------------------------
@@ -231,75 +231,73 @@ int CPROC CHANGEDIR( PSENTIENT ps, PTEXT parameters )
 void StoreMacros( FILE *pFile, PSENTIENT ps )
 {
 
-   {
-      INDEX idx;
-      PLIST pVars;
-      PTEXT pVar, pVal;
-      pVars = ps->Current->pVars;
-      fprintf( pFile, "\n## Begin Variables\n" );
-      LIST_FORALL( pVars, idx, PTEXT, pVar )
-      {
-         fprintf( pFile, "/Declare %s ", GetText( pVar ) );
-         pVal = BuildLine( GetIndirect( NEXTLINE( pVar ) ) );
-         if( pVal )
-            fprintf( pFile, "%s\n", GetText( pVal ) );
-         else
-            fprintf( pFile, "\n" );
-      }
-      fprintf( pFile, "\n## Begin Macros\n" );
-   }
-   {
-      PMACRO pm;
-      PLIST pMacros = ps->Current->pMacros;
-      INDEX idx;
-      LIST_FORALL( pMacros, idx, PMACRO, pm )
-      {
-         PTEXT pParam, pCmd;
-         INDEX idx;
-         // destroy prefix is unneeded with today's technology
-         // and any OLDer versions don't exist - or do in such small number... 
-         //fprintf( pFile, "/dest %s\n", GetText( GetName( pm ) ) );
-         fprintf( pFile, "/macro %s ", GetText( GetName( pm ) ) );
-         pParam = pm->pArgs;
-         while( pParam )
-         {
-            fprintf( pFile, "%s ", GetText( pParam ) );
-            pParam = NEXTLINE( pParam );
-         }
-         fprintf( pFile, "\n" );
-         LIST_FORALL( pm->pCommands, idx, PTEXT, pCmd )
-         {
-            PTEXT pOut; // oh - maintain some sort of order
-            pOut = BuildLine( pCmd );
-            fprintf( pFile, "%s\n", GetText( pOut ) );
-            LineRelease( pOut );
-         }
-         fprintf( pFile, "\n" );
-      }
-   }
+	{
+		INDEX idx;
+		PLIST pVars;
+		PTEXT pVar, pVal;
+		pVars = ps->Current->pVars;
+		fprintf( pFile, "\n## Begin Variables\n" );
+		LIST_FORALL( pVars, idx, PTEXT, pVar )
+		{
+			fprintf( pFile, "/Declare %s ", GetText( pVar ) );
+			pVal = BuildLine( GetIndirect( NEXTLINE( pVar ) ) );
+			if( pVal )
+				fprintf( pFile, "%s\n", GetText( pVal ) );
+			else
+				fprintf( pFile, "\n" );
+		}
+		fprintf( pFile, "\n## Begin Macros\n" );
+	}
+	{
+		PMACRO pm;
+		PLIST pMacros = ps->Current->pMacros;
+		INDEX idx;
+		LIST_FORALL( pMacros, idx, PMACRO, pm )
+		{
+			PTEXT pParam, pCmd;
+			INDEX idx;
+			// destroy prefix is unneeded with today's technology
+			// and any OLDer versions don't exist - or do in such small number... 
+			//fprintf( pFile, "/dest %s\n", GetText( GetName( pm ) ) );
+			fprintf( pFile, "/macro %s ", GetText( GetName( pm ) ) );
+			pParam = pm->pArgs;
+			while( pParam )
+			{
+				fprintf( pFile, "%s ", GetText( pParam ) );
+				pParam = NEXTLINE( pParam );
+			}
+			fprintf( pFile, "\n" );
+			LIST_FORALL( pm->pCommands, idx, PTEXT, pCmd )
+			{
+				PTEXT pOut; // oh - maintain some sort of order
+				pOut = BuildLine( pCmd );
+				fprintf( pFile, "%s\n", GetText( pOut ) );
+				LineRelease( pOut );
+			}
+			fprintf( pFile, "\n" );
+		}
+	}
 }
 
 //---------------------------------------------------------------------------
 
 int CPROC SAVE( PSENTIENT ps, PTEXT parameters )
 {
-         {
-            PTEXT pName;
-            pName = GetFileName( ps, &parameters );
-            if( pName )
-            {
-               FILE *pFile;
-               pFile = sack_fopen( 0, GetText( pName ), "wb" );
-               if( pFile )
-               {
-                  StoreMacros( pFile, ps );
-                  fclose( pFile );
-                  if( ps->CurrentMacro )
-                     ps->CurrentMacro->state.flags.bSuccess = TRUE;
-               }
-            }
-         }
-   return FALSE;
+	PTEXT pName;
+	pName = GetFileName( ps, &parameters );
+	if( pName )
+	{
+		FILE *pFile;
+		pFile = sack_fopen( 0, GetText( pName ), "wb" );
+		if( pFile )
+		{
+			StoreMacros( pFile, ps );
+			fclose( pFile );
+			if( ps->CurrentMacro )
+				ps->CurrentMacro->state.flags.bSuccess = TRUE;
+		}
+	}
+	return FALSE;
 }
 
 //-----------------------------------------------------------------------------
@@ -344,47 +342,47 @@ int CPROC UNLOAD( PSENTIENT ps, PTEXT parameters )
 		return 0;
 	}
 
-   while( ( temp = GetParam( ps, &parameters ) ) )
-   {
-   	Log2( "Unload name part: %s(%d)"
-   			, GetText( temp )
-   			, temp->format.position.offset.spaces ) ;
-   	if( temp->format.position.offset.spaces )
-   	{
-   		if( name )
-   		{
-   			name->format.position.offset.spaces = 0;
-   			collapsedname = BuildLine( name );
-   			Log1( "Unload: \'%s\'", GetText( collapsedname ) );
-		      Unload( collapsedname );
-   			LineRelease( name );
-   			LineRelease( collapsedname );
-   		}
-   		else
-	   		name=SegAppend( name, SegDuplicate( temp ) );
-   	}	
-   	else
-   	{
-   		name=SegAppend( name, SegDuplicate( temp ) );
-   	}
-   }
-   if( name )
-   {
-   	name->format.position.offset.spaces = 0;
-   	collapsedname = BuildLine( name );
-   	Log1( "Unload: \'%s\'", GetText( collapsedname ) );
+	while( ( temp = GetParam( ps, &parameters ) ) )
+	{
+		Log2( "Unload name part: %s(%d)"
+				, GetText( temp )
+				, temp->format.position.offset.spaces ) ;
+		if( temp->format.position.offset.spaces )
+		{
+			if( name )
+			{
+				name->format.position.offset.spaces = 0;
+				collapsedname = BuildLine( name );
+				Log1( "Unload: \'%s\'", GetText( collapsedname ) );
+				Unload( collapsedname );
+				LineRelease( name );
+				LineRelease( collapsedname );
+			}
+			else
+				name=SegAppend( name, SegDuplicate( temp ) );
+		}	
+		else
+		{
+			name=SegAppend( name, SegDuplicate( temp ) );
+		}
+	}
+	if( name )
+	{
+		name->format.position.offset.spaces = 0;
+		collapsedname = BuildLine( name );
+		Log1( "Unload: \'%s\'", GetText( collapsedname ) );
 		Unload( collapsedname );
-   	LineRelease( name );
-   	LineRelease( collapsedname );
-   }
-   return FALSE;
+		LineRelease( name );
+		LineRelease( collapsedname );
+	}
+	return FALSE;
 }
 
 //-----------------------------------------------------------------------------
 
 int CPROC STORY( PSENTIENT ps, PTEXT parameters )
 {
-   Story( &ps->Command->Output );
+	Story( &ps->Command->Output );
 	return FALSE;
 }
 
@@ -402,14 +400,14 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 		//if( temp == ps->Current->pName )
 		//{
 		//	pe = ps->Current;
-	   //   vtprintf( vt, "%s is you.", GetText(temp) );
-	   //}
+		//   vtprintf( vt, "%s is you.", GetText(temp) );
+		//}
 		//else
 		{
 			enum FindWhere foundat;
 
 			PTEXT pName = NULL;
-         //PTEXT pParam;
+			//PTEXT pParam;
 			if( !(pe = (PENTITY)FindThingEx( ps, &parameters, ps->Current, FIND_GRABBABLE, &foundat, &pName, NULL DBG_SRC ) )
 			  &&!(pe = (PENTITY)FindThingEx( ps, &parameters, ps->Current, FIND_AROUND, &foundat, &pName, NULL DBG_SRC)) )
 			{
@@ -417,7 +415,7 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 				if( temp == ps->Current->pName )
 				{
 					pe = ps->Current;
-               vtprintf( vt, "%s is you.", GetText( temp ) );
+					vtprintf( vt, "%s is you.", GetText( temp ) );
 				}
 				else
 				{
@@ -431,16 +429,16 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 				switch( foundat )
 				{
 				case FIND_ON:
-	            vtprintf(vt,"%s held by you.", GetText(GetName( pe )) );
-	            break;
+					vtprintf(vt,"%s held by you.", GetText(GetName( pe )) );
+					break;
 				case FIND_IN:
-	            vtprintf(vt,"%s carried by you.", GetText(GetName( pe )) );
+					vtprintf(vt,"%s carried by you.", GetText(GetName( pe )) );
 					break;
 				case FIND_NEAR:
-	            vtprintf(vt,"%s is in this room.", GetText(GetName( pe )) );
+					vtprintf(vt,"%s is in this room.", GetText(GetName( pe )) );
 					break;
 				case FIND_AROUND:
-	            vtprintf(vt,"%s is your room.", GetText(GetName( pe )) );
+					vtprintf(vt,"%s is your room.", GetText(GetName( pe )) );
 					break;
 				}
 				// now what info would be useful to dump about this
@@ -449,11 +447,11 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 	  	}
 	  	if( pe )
 	  	{
-   		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 			if( ( peS = pe->pControlledBy ) )
 			{
-		      vtprintf( vt, "Entity is aware." );
-   		   EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+				vtprintf( vt, "Entity is aware." );
+				EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 				vtprintf( vt, "Flags:%s%s%s%s%s%s"
 						  , peS->ProcessLock?" PLOCK":""
 						  , peS->StepLock?" SLOCK":""
@@ -462,7 +460,7 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 						  , peS->flags.destroy?" destroy":""
 						  , peS->flags.bRelay?" relay":""
 						  );
-   		   EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+				EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 			}
 			if( peS )
 			{
@@ -471,7 +469,7 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 				if( peS->pRecord )
 				{
 		  			vtprintf( vt, "Recording macro: %s", GetText( GetName( peS->pRecord ) ) );
-	   		   		EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+							EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		  		}
 		  		for( n = 0; (pms = (PMACROSTATE)PeekDataEx( &peS->MacroStack, n )); n++ )
 		  		{
@@ -482,42 +480,42 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 		  			}
 					if( pms->peInvokedOn == ps->Current )
 					{
-	               if( pms->pMacro->pDescription )
-		            {
-			            vtprintf( vt, "[%s] - %s"
-							        , GetText( GetName( pms->pMacro ) )
-							        , GetText( pms->pMacro->pDescription ) );
+						if( pms->pMacro->pDescription )
+						{
+							vtprintf( vt, "[%s] - %s"
+									  , GetText( GetName( pms->pMacro ) )
+									  , GetText( pms->pMacro->pDescription ) );
 						}
-	               else
-		            {
-			            vtprintf( vt, "[%s] -"
-							        , GetText( GetName( pms->pMacro ) ) );
-					   }
+						else
+						{
+							vtprintf( vt, "[%s] -"
+									  , GetText( GetName( pms->pMacro ) ) );
+						}
 					}
 					else
 					{
-	               if( pms->pMacro->pDescription )
-		            {
-			            vtprintf( vt, "[%s](%s) - %s"
-							        , GetText( GetName( pms->pMacro ) )
+						if( pms->pMacro->pDescription )
+						{
+							vtprintf( vt, "[%s](%s) - %s"
+									  , GetText( GetName( pms->pMacro ) )
 									  , GetText( GetName( pms->peInvokedOn ) )
-							        , GetText( pms->pMacro->pDescription ) );
+									  , GetText( pms->pMacro->pDescription ) );
 						}
-	               else
-		            {
+						else
+						{
 						if( pms->peInvokedOn )
 							vtprintf( vt, "[%s](%s) -"
-							        , GetText( GetName( pms->pMacro ) ) 
+									  , GetText( GetName( pms->pMacro ) ) 
 									  , GetText( GetName( pms->peInvokedOn ) )
 									  );
 						else
 							vtprintf( vt, "[%s] -"
-							        , GetText( GetName( pms->pMacro ) ) 
+									  , GetText( GetName( pms->pMacro ) ) 
 									  );
 
 						}
 					}
-	   		   EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+					EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		  		}
 			}
 		  	if( peS )
@@ -538,7 +536,7 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 						vtprintf( vt, "->UNKNOWN" );
 					pdp = pdp->pPrior;
 				}
-   			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+				EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 				if( peS->Data )
 				{
 			  		vtprintf( vt, "Data path: object" );
@@ -549,7 +547,7 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 					 	if( pName )
 					 	{
 							vtprintf( vt, "->%s[%s]%s", GetText( pdp->pName ), pName
-												    , pdp->flags.Closed?"(closed)":"" );
+													 , pdp->flags.Closed?"(closed)":"" );
 						}
 						else
 							vtprintf( vt, "->UNKNOWN" );
@@ -558,7 +556,7 @@ int CPROC DUMP( PSENTIENT ps, PTEXT parameters )
 				}
 				else
 		  			vtprintf( vt, "Data path: None" );
-   			EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
+				EnqueLink( &ps->Command->Output, VarTextGet( vt ) );
 		  	}
 	  	}
 	  	VarTextDestroy( &vt );
@@ -589,13 +587,13 @@ void WriteTextFlags( PSENTIENT ps, PTEXT pSeg )
 		vtprintf( vt, "<> " );
 	if( pSeg->flags & TF_INDIRECT )
 		vtprintf( vt, "Indirect " );
-   /*
+	/*
 	if( pSeg->flags & TF_SINGLE )
 	vtprintf( vt, "single " );
-   */
+	*/
 	if( pSeg->flags & TF_FORMATABS )
-      vtprintf( vt, "format x,y " );
-   else
+		vtprintf( vt, "format x,y " );
+	else
 		vtprintf( vt, "format spaces(%d) ", pSeg->format.position.offset.spaces );
 	if( pSeg->flags & TF_COMPLETE )
 		vtprintf( vt, "complete " );

@@ -4,8 +4,6 @@
 #include <plugin.h>
 #include <math.h>
 
-
-
 static int DoFunction(PSENTIENT  ps, PTEXT parameters, double (*f)(double) )
 {
    PTEXT pAmount, temp, varname;

@@ -496,10 +496,11 @@ static int OnCreateObject( "clock", "Your basic chronometer" )( PSENTIENT ps, PE
 	return 0;
 }
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-   //RegisterObject( "Clock", "Your basic chronometer...", InitClock );
-   return DekVersion;
+	if( DekwareGetCoreInterface( DekVersion ) ) {
+		//return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

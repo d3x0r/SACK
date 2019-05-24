@@ -1137,15 +1137,17 @@ int CPROC Create( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 }
 
 
-PUBLIC( char *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
    RegisterObject( "sql", "Generic ODBC Object... parameters determine database", Create );
    // not a real device type... but need the ID...
    //myTypeID = RegisterDevice( "odbc", "ODBC Database stuff", NULL );
 	iODBC = RegisterExtension( "SQL" );
    // result data type...
    iResult = RegisterExtension( "SQL Result" );
-	return DekVersion;
+	//return DekVersion;
+	}
 }
 
 

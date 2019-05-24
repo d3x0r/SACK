@@ -491,8 +491,9 @@ PRELOAD( RegisterExtraInits )
 }
 
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 	g.iCommon = RegisterExtension( "PSI Control" );
 	////RegisterObject( "Frame", "Allows interface to Panther's Slick Interface dialogs", InitFrame );
 	//RegisterObject( "Control", "Allows interface to Panther's Slick Interface dialogs", AddAControl );
@@ -506,7 +507,8 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 
 	SimpleRegisterMethod( "psi/control/" CONTROL_FRAME_NAME  "/rtti/extra init"
 							  , CustomFrameInit, "int", "extra init", "(PSI_CONTROL)" );
-	return DekVersion;
+	//return DekVersion;
+	}
 }
 
 //--------------------------------------------------------------------------

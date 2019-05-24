@@ -221,10 +221,12 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 //---------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
    myTypeID = RegisterDevice( "debug", "Shows per-segment information (inbound only)...", Open );
-   return DekVersion;
+	//   return DekVersion;
+	}
 }
 
 //---------------------------------------------------------------------------

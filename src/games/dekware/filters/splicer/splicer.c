@@ -93,10 +93,12 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 //--------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
-   myTypeID = RegisterDevice( "splice", "Splices Tokens into a line...", Open );
-   return DekVersion;
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
+		   myTypeID = RegisterDevice( "splice", "Splices Tokens into a line...", Open );
+		//return DekVersion;
+	}
 }
 
 //--------------------------------------------------------------------------

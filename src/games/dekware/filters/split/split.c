@@ -179,10 +179,12 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
    return (PDATAPATH)pdp;
 }
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
-   myTypeID = RegisterDevice( "split", "Splits datapath to another object...", Open );
-   return DekVersion;
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
+		   myTypeID = RegisterDevice( "split", "Splits datapath to another object...", Open );
+		//   return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

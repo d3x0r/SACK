@@ -124,10 +124,12 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 //---------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
-   myTypeID = RegisterDevice( "command", "Performs command processing burst, history...", Open );
-   return DekVersion;
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
+		   myTypeID = RegisterDevice( "command", "Performs command processing burst, history...", Open );
+		//   return DekVersion;
+	}
 }
 
 //---------------------------------------------------------------------------

@@ -8,12 +8,26 @@ else( __ANDROID__ )
 endif( __ANDROID__ )
 
 
+if( MAKING_SACK_CORE )
+
+ADD_PROGRAM( ${PROJECT} WIN32 
+${FIRST_GCC_PROGRAM_SOURCE}
+   ../../../utils/runner/runwin.c 
+${LAST_GCC_PROGRAM_SOURCE}
+   
+)
+
+else( MAKING_SACK_CORE )
+
 ADD_PROGRAM( ${PROJECT} WIN32 
 ${FIRST_GCC_PROGRAM_SOURCE}
    ${SACK_BASE}/src/sack/runwin.c 
 ${LAST_GCC_PROGRAM_SOURCE}
    
 )
+
+endif( MAKING_SACK_CORE )
+
 SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES PROJECT_LABEL "Dekware.launcher" )
 
 

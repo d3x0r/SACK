@@ -8,8 +8,9 @@
 // common DLL plugin interface.....
 //-----------------------------------------------------------------------------
 
-PUBLIC( char *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 	// RegisterRoutine
 	// RegisterDevice
 	// RegisterObject
@@ -18,6 +19,7 @@ PUBLIC( char *, RegisterRoutines )( void )
 
    // This defined value needs to be returned...
 	return DekVersion;
+	}
 }
 
 //-----------------------------------------------------------------------------

@@ -393,8 +393,9 @@ void BuildAlt( void )
 
 //--------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 	DECLTEXT( name, "table" );
 	//return NULL;
 	l.pe = CreateEntityIn( NULL, (PTEXT)&name );
@@ -437,7 +438,8 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 	}
 
    DisplayFrame( l.frame );
-   return DekVersion;
+	}
+   //return DekVersion;
 }
 
 //--------------------------------------------------------------------------

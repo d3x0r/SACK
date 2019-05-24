@@ -22,7 +22,7 @@
 #include <sharemem.h>
 
 #define PLUGIN_LOADER
-
+#include "local.h"
 #include "input.h"
 #include "commands.h"
 
@@ -30,22 +30,12 @@
 
 CORE_PROC( void, AddVolatileVariables )( PENTITY pe, CTEXTSTR root );
 //CORE_PROC( int, RegisterDevice )( TEXTCHAR *pName, TEXTCHAR *pDescription, PDATAPATH (CPROC *Open)( PDATAPATH *ppChannel, PSENTIENT ps, PTEXT params ) );
-typedef TEXTCHAR * (CPROC *RegisterRoutinesProc)( void );
-typedef void (CPROC *UnloadPluginProc)( void );
 typedef void (CPROC *MainFunction )( int argc, TEXTCHAR **argv, int bConsole );
 
 //--------------------------------------------------------------------------
 
-typedef struct plugin_tag {
-	//	HANDLE hModule;
-	RegisterRoutinesProc RegisterRoutines;
-	UnloadPluginProc Unload;
-// maybe track all device_tags and routine_tags registered...
-	struct plugin_tag *pNext, *pPrior;
-	TEXTCHAR pName[];
-} PLUGIN, *PPLUGIN;
-
-static PPLUGIN pPlugins, pPluginLoading; // list of modules we loaded....
+static PPLUGIN pPlugins;
+PPLUGIN pPluginLoading; // list of modules we loaded....
 
 //static PDEVICE pDeviceRoot;
 
@@ -67,14 +57,13 @@ void DumpLoadedPluginList( PSENTIENT ps )
 
 //--------------------------------------------------------------------------
 
-PPLUGIN AddPlugin( CTEXTSTR pName, RegisterRoutinesProc RegisterRoutines, void (CPROC *Unload)(void) )
+PPLUGIN AddPlugin( CTEXTSTR pName )
 {
 	PPLUGIN pPlugin;
 	pPlugin = NewPlus( PLUGIN, StrLen( pName ) + 1 );
 	MemSet( pPlugin, 0, sizeof( PLUGIN ) );
 	StrCpy( pPlugin->pName, pName );
-	pPlugin->RegisterRoutines = RegisterRoutines;
-	pPlugin->Unload = Unload;
+
 	pPluginLoading = pPlugin;
 	return pPlugin;
 }
@@ -97,7 +86,7 @@ void CommitPlugin( void )
 void AbortPlugin( void )
 {
 	UnloadFunction( (generic_function*)&pPluginLoading->RegisterRoutines );
-	UnloadFunction( &pPluginLoading->Unload );
+	//UnloadFunction( &pPluginLoading->Unload );
 	Release( pPluginLoading );
 	pPluginLoading = NULL;
 }
@@ -106,10 +95,10 @@ void AbortPlugin( void )
 void UnloadPlugin( PPLUGIN pPlugin )
 {
 	PPLUGIN pFind;
-	if( pPlugin->Unload )
-		pPlugin->Unload();
+	//if( pPlugin->Unload )
+	//	pPlugin->Unload();
 	UnloadFunction( (generic_function*)&pPlugin->RegisterRoutines );
-	UnloadFunction( &pPlugin->Unload );
+	//UnloadFunction( &pPlugin->Unload );
 
 	pFind = pPlugins;
 	while( pFind )
@@ -138,28 +127,29 @@ void UnloadPlugin( PPLUGIN pPlugin )
 
 static CTEXTSTR gpFile;
 
+
 void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 {
-	UnloadPluginProc Unload;
 	RegisterRoutinesProc RegisterRoutines;
-	TEXTCHAR *pVersion;
 	gpFile = pFile;
 
 	//Log1( "Loading Plugin %s", pFile );
 	if( pFile )
 	{
-
-		RegisterRoutines = (RegisterRoutinesProc)LoadPrivateFunctionEx( pFile, "RegisterRoutines" DBG_SRC );
-		Unload = (UnloadPluginProc)LoadPrivateFunctionEx( pFile, "UnloadPlugin" DBG_SRC );
-		if( RegisterRoutines )
+		PPLUGIN pPlugin = AddPlugin( pFile );
+		pPlugin->RegisterRoutines = (RegisterRoutinesProc)LoadPrivateFunctionEx( pFile, NULL DBG_SRC );
+		//Unload = (UnloadPluginProc)LoadPrivateFunctionEx( pFile, "UnloadPlugin" DBG_SRC );
+		if( pPlugin->RegisterRoutines )
 		{
-			AddPlugin( pFile, RegisterRoutines, Unload );
-			pVersion = RegisterRoutines( );
-			Log2( "Loaded a plugin: %s(%s)", pFile, pVersion );
-			if( pVersion )
+			if( !pPlugin->pVersion ) {
+
+				pPlugin->pVersion = StrDup( DekVersion ); // benefit of the doubt...
+			}
+			Log2( "Loaded a plugin: %s(%s)", pFile, pPlugin->pVersion );
+			if( pPlugin->pVersion )
 			{  
 				int dots = 0;
-				TEXTCHAR *chkVersion = pVersion, *chkDekVersion = DekVersion;
+				TEXTCHAR *chkVersion = pPlugin->pVersion, *chkDekVersion = DekVersion;
 				while( chkVersion[0] && chkDekVersion[0] )
 				{
 					// version must match X.X only
@@ -176,7 +166,7 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 					{
 						TEXTCHAR byMsg[256];
 						snprintf( byMsg, sizeof( byMsg ), "Plugin %s is version %s not version %s."
-										, pFile, pVersion, DekVersion  );
+										, pFile, pPlugin->pVersion, DekVersion  );
 #ifdef _WIN32
 						MessageBox( NULL, byMsg, "Plugin Failure", MB_OK );
 #else
@@ -214,7 +204,7 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 					int argc;
 					TEXTCHAR **argv;
 					ParseIntoArgs( GetText( flat ), &argc, &argv );
-					AddPlugin( pFile, NULL, NULL );
+					AddPlugin( pFile );
 					LineRelease( flat );
 					LineRelease( line );
 					Main( argc, argv, 0 );

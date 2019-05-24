@@ -23,8 +23,9 @@ int SNMP( PSENTIENT ps, PTEXT parameters );
 extern command_entry commands[];
 extern int nCommands;
 
-PUBLIC( char *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 	if( ReadMib() ) 
 	{
 	   UpdateMinSignficants( commands, nCommands );
@@ -32,7 +33,8 @@ PUBLIC( char *, RegisterRoutines )( void )
 	}
 //	else
 //		UnloadSelf....
-	return DekVersion;
+	//return DekVersion;
+	}
 
 
 //   myTypeID = RegisterDevice( "console", "Windows based console....", Open );

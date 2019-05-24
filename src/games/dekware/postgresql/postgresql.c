@@ -467,14 +467,16 @@ int Create( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 
 //---------------------------------------------------------------------------
 
-PUBLIC( char *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
    //pExportedFunctions = pExportTable;
 
    //UpdateMinSignficants( commands, nCommands, NULL );
    RegisterObject( "database", "Generic Postgres Object... parameters determine database", Create );
    iPSQL = RegisterExtension();
-	return DekVersion;
+	//return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

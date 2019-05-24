@@ -3,11 +3,16 @@
 #include <space.h>
 #include <interface.h>
 
+#include "local.h"
+
 extern int b95;
 
 #define f(...)
 #undef CORE_PROC_PTR
 #define CORE_PROC_PTR(a,b)  b f
+
+#undef DekwareGetCoreInterface
+static struct dekware_interface* DekwareGetCoreInterface( const char* version );
 
 struct dekware_interface RealDekwareInterface =
 {
@@ -112,7 +117,21 @@ struct dekware_interface RealDekwareInterface =
 	ScanRegisteredObjects,
 	InvokeMacroEx,
 	TerminateMacro,
+	DekwareGetCoreInterface,
 };
+
+struct dekware_interface* DekwareGetCoreInterface( const char* version ) {
+	// 
+	// pPluginLoading
+	extern PPLUGIN pPluginLoading; // list of modules we loaded....
+	if( pPluginLoading )
+		pPluginLoading->pVersion = StrDup( version );
+
+	if( StrCmp( DekVersion, version ) ) {
+		return NULL;
+	}
+	return &RealDekwareInterface;
+}
 
 
 POINTER CPROC LoadDekwareInterface( void )

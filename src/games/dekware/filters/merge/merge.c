@@ -72,10 +72,13 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 }
 
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
    myTypeID = RegisterDevice( "merge", "Performs no translation...", Open );
-   return DekVersion;
+   //return DekVersion;	
+	}
+
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

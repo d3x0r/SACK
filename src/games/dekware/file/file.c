@@ -35,8 +35,10 @@ static PTEXT get_line(PMYDATAPATH pdp, FILE *source)
 	TEXTCHAR *text;
 	PTEXT workline=(PTEXT)NULL,pNew;
 	size_t length = 0;
-	if( !source )
+	if( !source ) {
+		lprintf( "no file source to read from" );
 		return NULL;
+	}
 	if( pdp->flags.bUnicode )
 		wfilebuffer = NewArray( wchar_t, WORKSPACE );
 	else
@@ -57,7 +59,8 @@ static PTEXT get_line(PMYDATAPATH pdp, FILE *source)
 		}
 		else
 		{
-			result = fgets( filebuffer, WORKSPACE, source );
+			result = sack_fgets( filebuffer, WORKSPACE, source );
+			//lprintf( "File Read Line:%p (%s) %s", result, GetText(pdp->common.pName), filebuffer );
 			if( result )
 			{
 				pNew = SegCreateFromChar( filebuffer );
@@ -81,12 +84,12 @@ static PTEXT get_line(PMYDATAPATH pdp, FILE *source)
 				PTEXT t;
 				workline=PRIORLINE(workline); // go back one.
 				SegBreak(t = NEXTLINE(workline));
-					LineRelease(t);  // destroy the current segment.
+				LineRelease(t);  // destroy the current segment.
 			}
 			else
 			{
 				LineRelease(workline);				// destory only segment.
-					workline = NULL;
+				workline = NULL;
 			}
 			break;  // get out of the loop- there is no more to read.
 		}
@@ -125,26 +128,24 @@ static int CPROC Read( PDATAPATH pdpX )
 	{
 		return RelayInput( (PDATAPATH)pdp, NULL );
 	}
-	if( pdp->flags.bRead )
+	if( pdp->flags.bRead && !pdp->common.flags.Closed )
 	{
-		//lprintf( "Try for one line from the file." );
 		if( ( pLine = get_line( pdp, (FILE*)pdp->handle ) ) )
 		{	
-			 if( !pdp->flags.bFirst && !pdp->flags.bPriorEndLine )
-				  pLine->flags |= TF_NORETURN;
+			if( !pdp->flags.bFirst && !pdp->flags.bPriorEndLine )
+				pLine->flags |= TF_NORETURN;
 			//{
-	//			PTEXT tmp;
-	//			tmp = BuildLine( pLine );
-	//			Log1( "Read is: %s", GetText( tmp ) );
-	//			LineRelease( tmp );
-	//		}
-			 EnqueLink( &pdp->common.Input, pLine );
-			 pdp->flags.bFirst = 0;
-			 return 1; // one block read.
+			//	PTEXT tmp;
+			//	tmp = BuildLine( pLine );
+			//	Log1( "Read is: %s", GetText( tmp ) );
+			//	LineRelease( tmp );
+			//}
+			EnqueLink( &pdp->common.Input, pLine );
+			pdp->flags.bFirst = 0;
+			return 1; // one block read.
 		}
 		else
 		{
-			//Log( "-----------------------File ended!" );
 			if( pdp->flags.bCloseAtEnd )
 				pdp->common.flags.Closed = 1;
 		}
@@ -175,9 +176,9 @@ static int CPROC Write( PDATAPATH pdpX )
 		  {
 				wrote++;
 				if( GetTextSize( pOut ) == 0 )
-					fwrite( "\n", 1, 1, pdp->handle );
+					sack_fwrite( "\n", 1, 1, pdp->handle );
 				else
-					fwrite( GetText( pOut ), 1, GetTextSize( pOut ), pdp->handle );
+					sack_fwrite( GetText( pOut ), 1, GetTextSize( pOut ), pdp->handle );
 				pOut = NEXTLINE( pOut );
 		  }
 		  LineRelease( pSaveOut );
@@ -214,7 +215,7 @@ static int CPROC Close( PDATAPATH pdpX )
 		RelayInput( (PDATAPATH)pdp, NULL );
 	}
 	if( pdp->handle )
-		fclose( pdp->handle );
+		sack_fclose( pdp->handle );
 	pdp->common.Type = 0;
 	return 0;
 }
@@ -228,26 +229,26 @@ static int CPROC Seek( PDATAPATH pDataPath, PSENTIENT ps, PTEXT parameters )
 	{
 		if( TextLike( op, "start" ) )
 		{
-			fseek( pdp->handle, 0, SEEK_SET );
+			sack_fseek( pdp->handle, 0, SEEK_SET );
 		}
 		else if( TextLike( op, "end" ) )
 		{
-			fseek( pdp->handle, 0, SEEK_END );
+			sack_fseek( pdp->handle, 0, SEEK_END );
 		}
 		else if( GetText( op )[0] == '+' )
 		{
 			uint32_t pos = (uint32_t)IntNumber( op );
-			fseek( pdp->handle, pos, SEEK_CUR );
+			sack_fseek( pdp->handle, pos, SEEK_CUR );
 		}
 		else if( GetText( op )[0] == '-' )
 		{
 			uint32_t pos = (uint32_t)IntNumber( op );
-			fseek( pdp->handle, pos, SEEK_CUR );
+			sack_fseek( pdp->handle, pos, SEEK_CUR );
 		}
 		else if( IsNumber( op ) )
 		{
 			uint32_t pos = (uint32_t)IntNumber( op );
-			fseek( pdp->handle, pos, SEEK_SET );
+			sack_fseek( pdp->handle, pos, SEEK_SET );
 		}
 		else
 		{
@@ -367,7 +368,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 				0
 #endif
 				;
-			len_read = fread( charbuf, 1, 64, pdp->handle );
+			len_read = sack_fread( charbuf, 1, 64, pdp->handle );
 			if( len_read )
 			{
 				if( ( ((uint16_t*)charbuf)[0] == 0xFEFF )
@@ -410,17 +411,17 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 			{
 #if UNICODE
 				wchar_t typechar = 0xFEFF;
-				fseek( pdp->handle, 0, SEEK_SET );
-				fwrite( &typechar, 1, 2, pdp->handle );
-				fseek( pdp->handle, 0, SEEK_CUR );
+				sack_fseek( pdp->handle, 0, SEEK_SET );
+				sack_fwrite( &typechar, 1, 2, pdp->handle );
+				sack_fseek( pdp->handle, 0, SEEK_CUR );
 #else
-				fseek( pdp->handle, 0, SEEK_SET );
+				sack_fseek( pdp->handle, 0, SEEK_SET );
 #endif
 			}
 		}
 		if( !flags.write )
 		{
-			fseek( pdp->handle, 0, SEEK_SET );
+			sack_fseek( pdp->handle, 0, SEEK_SET );
 		}
 		//Log2( "Result: %p %d", pdp->handle, errno );
 		LineRelease( pFile );
@@ -490,12 +491,12 @@ static int CPROC LoadFile( PSENTIENT ps, PTEXT parameters )
 			EnqueLink( &ps->Command->Output, &msg );
 		return 0;
 	}
-	fseek( file, 0, SEEK_END );
-	size = ftell( file );
-	fseek( file, 0, SEEK_SET );
+	sack_fseek( file, 0, SEEK_END );
+	size = sack_ftell( file );
+	sack_fseek( file, 0, SEEK_SET );
 	pVarValue = SegCreate( size );
 	pVarValue->flags |= TF_BINARY;
-	if( (int)fread( GetText( pVarValue ), 1, size, file ) != size)
+	if( (int)sack_fread( GetText( pVarValue ), 1, size, file ) != size)
 	{
 		DECLTEXT( msg, "Failed to read full file..." );
 		if( !ps->CurrentMacro )
@@ -503,7 +504,7 @@ static int CPROC LoadFile( PSENTIENT ps, PTEXT parameters )
 	}
 	if( ps->CurrentMacro )
 		ps->CurrentMacro->state.flags.bSuccess = 1;
-	fclose( file );
+	sack_fclose( file );
 	// storing binary variables overwrites what is there, and does NOT
 	// reallocate space for variable.
 	AddBinary( ps, ps->Current, pVarName, pVarValue );
@@ -548,9 +549,9 @@ static int CPROC StoreFile( PSENTIENT ps, PTEXT parameters )
 		return 0;
 	}
 
-	fwrite( GetText( pVarName ), 1, GetTextSize( pVarName ), file );
+	sack_fwrite( GetText( pVarName ), 1, GetTextSize( pVarName ), file );
 
-	fclose( file );
+	sack_fclose( file );
 	return 1;
 }
 
@@ -565,17 +566,17 @@ static PTEXT CPROC WriteLineInput( PDATAPATH pdp, PTEXT pLine )
 		p = pWrite = BuildLine( pLine );
 		if( !(pLine->flags & TF_NORETURN ) )
 		{  	
-			fwrite( "\r\n", 1, 2, f );
+			sack_fwrite( "\r\n", 1, 2, f );
 		}
 		while( p )
 		{
-			fwrite( GetText( p )
+			sack_fwrite( GetText( p )
 					, GetTextSize( p )
 					, 1
 					, f );
 			p = NEXTLINE( p );
 		}
-		fflush( f );
+		sack_fflush( f );
 		LineRelease( pWrite );
 	}
 	return pLine;
@@ -592,18 +593,18 @@ static PTEXT CPROC WriteLineOutput( PDATAPATH pdp, PTEXT pLine )
 		p = pWrite = BuildLine( pLine );
 		if( !(pLine->flags & TF_NORETURN ) )
 		{
-			fwrite( "\r\n", 1, 2, f );
+			sack_fwrite( "\r\n", 1, 2, f );
 		}
 		while( p )
 		{
 			//if( !(p->flags & TF_FORMAT ) )
-			fwrite( GetText( p )
+			sack_fwrite( GetText( p )
 					, GetTextSize( p )
 					, 1
 					, f );
 			p = NEXTLINE( p );
 		}
-		fflush( f );
+		sack_fflush( f );
 		LineRelease( pWrite );
 	}
 	return pLine;
@@ -631,7 +632,7 @@ static int CPROC CloseLogPath( PDATAPATH pdp )
 {
 	FILE *f = ((PMYDATAPATH)pdp)->handle;
 	if( f )
-		fclose( f );
+		sack_fclose( f );
 	((PMYDATAPATH)pdp)->handle = NULL;
 	return 0;
 }
@@ -643,7 +644,7 @@ static int CPROC CloseLogDefault( PDATAPATH pdp )
 	FILE *f = ((PMYDATAPATH)pdp)->handle;
 	DestroyDataPath( pdp->pPrior );
 	if( f )
-		fclose( f );
+		sack_fclose( f );
 	((PMYDATAPATH)pdp)->handle = NULL;
 	return 0;
 }
@@ -785,8 +786,9 @@ extern _OptionHandler SetClose, SetFollow, SetRelay, Seek;
 
 	};
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 	myTypeID = RegisterDeviceOpts( "file", "File based operations...", Open, FileOptions, NUM_OPTIONS );
 	myTypeID2 = RegisterDevice( "log", "datapath logging device", NULL );
 	RegisterRoutine( "IO/File", "LoadFile", "Load file as a binary variable", LoadFile );
@@ -795,7 +797,8 @@ PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 	RegisterRoutine( "IO/File", "Log", "Begin logging the data datapath to a file", OpenLog );
 	RegisterRoutine( "IO/File", "EndLog", "End Logging the data datapath to a file", CloseLog );
 	RegisterObject( "file monitor", "File monitor object... provides on new, modify, deleted", CreateFileMonitor );
-	return DekVersion;
+	//return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

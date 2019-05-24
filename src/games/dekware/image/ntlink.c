@@ -18,15 +18,17 @@ int InitDisplayObject( PSENTIENT ps, PENTITY pe, PTEXT parameters );
 int InitRegion( PSENTIENT ps, PENTITY pe, PTEXT parameters );
 
 
-PUBLIC( char *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 	pActImage = GetDisplayInterface();
    pImageInterface = GetImageInterface();
 	RegisterObject( "Image", "Image object, position determines role", InitImage );
 	RegisterObject( "Render", "Image data Display manager", InitDisplayObject );
 	iImage = RegisterExtension( "image" );
 	iRender = RegisterExtension( "render" );
-	return DekVersion;
+	//return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

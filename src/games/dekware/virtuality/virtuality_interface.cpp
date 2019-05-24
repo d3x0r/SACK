@@ -18,7 +18,8 @@ static uintptr_t OnInit3d( "Virtuality interface" )( PMatrix projection, PTRANSF
 	{
 		//Image 
 		tmp = LoadImageFile( "%resources%/images/AN00236511_001_l.jpg" );
-		SetImageTransformRelation( tmp, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
+		if( tmp )
+			SetImageTransformRelation( tmp, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 		SetObjectColor( l.root_object, BASE_COLOR_BLUE );
 		InvertObject( l.root_object );
 		SetRootObject( l.root_object );

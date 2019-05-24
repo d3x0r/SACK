@@ -10,13 +10,13 @@
 static int myTypeID;
 
 typedef struct mydatapath_tag {
-   DATAPATH common;
+	DATAPATH common;
 
 	struct {
 		uint32_t newline : 1;
-   	uint32_t outbound : 1;
-   } flags;
-   PTEXT tokens;
+		uint32_t outbound : 1;
+	} flags;
+	PTEXT tokens;
 } MYDATAPATH, *PMYDATAPATH;
 
 //--------------------------------------------------------------------------
@@ -66,15 +66,15 @@ static int CPROC Write( PMYDATAPATH pdp )
 {
 	if( pdp->flags.outbound )
 		return RelayOutput( (PDATAPATH)pdp, (PTEXT(CPROC *)(PDATAPATH,PTEXT))Tokenize );
-   return RelayOutput( (PDATAPATH)pdp, NULL );
+	return RelayOutput( (PDATAPATH)pdp, NULL );
 }
 
 //--------------------------------------------------------------------------
 
 static int CPROC Close( PMYDATAPATH pdp )
 {
-   pdp->common.Type = 0;
-   return 0;
+	pdp->common.Type = 0;
+	return 0;
 }
 
 //--------------------------------------------------------------------------
@@ -83,13 +83,13 @@ static int CPROC Close( PMYDATAPATH pdp )
 
 static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )
 {
-   PMYDATAPATH pdp = NULL;
-   PTEXT option;
-   // parameters
-   //    none
-   pdp = CreateDataPath( pChannel, MYDATAPATH );
-   while( option = GetParam( ps, &parameters ) )
-   {
+	PMYDATAPATH pdp = NULL;
+	PTEXT option;
+	// parameters
+	//    none
+	pdp = CreateDataPath( pChannel, MYDATAPATH );
+	while( option = GetParam( ps, &parameters ) )
+	{
 	   if( OptionLike( option, "inbound" ) )
 	   {
 	   	pdp->flags.outbound = 0;
@@ -103,20 +103,22 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 	   	//DECLTEXT( msg, "Unknown option for token filter. Allowed are 'inbound' and 'outbound'." );
 	   }
 	}
-   pdp->tokens = NULL;
-   pdp->common.Type = myTypeID;
-   pdp->common.Read = (int(CPROC *)(PDATAPATH))Read;
-   pdp->common.Write = (int(CPROC *)(PDATAPATH))Write;
-   pdp->common.Close = (int(CPROC *)(PDATAPATH))Close;
-   return (PDATAPATH)pdp;
+	pdp->tokens = NULL;
+	pdp->common.Type = myTypeID;
+	pdp->common.Read = (int(CPROC *)(PDATAPATH))Read;
+	pdp->common.Write = (int(CPROC *)(PDATAPATH))Write;
+	pdp->common.Close = (int(CPROC *)(PDATAPATH))Close;
+	return (PDATAPATH)pdp;
 }
 
 //--------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
-   myTypeID = RegisterDevice( "token", "Tokenizes the stream going through it...", Open );
-   return DekVersion;
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
+	myTypeID = RegisterDevice( "token", "Tokenizes the stream going through it...", Open );
+	//   return DekVersion;
+	}
 }
 
 //--------------------------------------------------------------------------

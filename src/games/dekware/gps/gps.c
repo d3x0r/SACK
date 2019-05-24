@@ -44,10 +44,12 @@ static int OnCreateObject( "GPS", "Positioning Data for objects, maybe some meth
    return 0;
 }
 
-PUBLIC( char *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
    l.iGPS = RegisterExtension( "GPS" );
-	return DekVersion;
+	//return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

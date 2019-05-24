@@ -1596,8 +1596,9 @@ int CPROC Create( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 
 INDEX iODBC;
 
-PUBLIC( char *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
    //pExportedFunctions = pExportTable;
 
    //UpdateMinSignficants( commands, nCommands, NULL );
@@ -1606,7 +1607,8 @@ PUBLIC( char *, RegisterRoutines )( void )
    // not a real device type... but need the ID...
    //myTypeID = RegisterDevice( "odbc", "ODBC Database stuff", NULL );
    iODBC = RegisterExtension( "odbc" );
-	return DekVersion;
+	//return DekVersion;
+	}
 }
 
 

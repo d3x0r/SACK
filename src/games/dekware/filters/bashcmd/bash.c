@@ -489,10 +489,12 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 //---------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
-	myTypeID = RegisterDevice( "bash", "Parse commands bashlike", Open );
-	return DekVersion;
+	if( DekwareGetCoreInterface( DekVersion ) ) {
+		myTypeID = RegisterDevice( "bash", "Parse commands bashlike", Open );
+		return DekVersion;
+	}
 }
 
 //---------------------------------------------------------------------------

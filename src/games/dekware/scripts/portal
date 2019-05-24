@@ -25,9 +25,9 @@
 /make_portal Aetolia %desc aetolia.com
 
 
-
-/dest build_portal_room
 /dest make_portal
+
+#/dest build_portal_room
 /endmac
 
 

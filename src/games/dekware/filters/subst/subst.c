@@ -85,10 +85,12 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 //---------------------------------------------------------------------------
 
-PUBLIC( char *, RegisterRoutines )( void )
-{                           
-   myTypeID = RegisterDevice( "subst", "Performs standard param subst(uses current macro, if any for args) translation...", Open );
-   return DekVersion;
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
+	   myTypeID = RegisterDevice( "subst", "Performs standard param subst(uses current macro, if any for args) translation...", Open );
+	   //return DekVersion;
+	}
 }
 
 //---------------------------------------------------------------------------

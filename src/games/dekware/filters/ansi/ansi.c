@@ -793,10 +793,12 @@ static PDATAPATH CPROC OpenAnsi( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parame
 }
 
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
-   myTypeID = RegisterDevice( "ansi", "Filter for handling ansi color code streams...", OpenAnsi );
-   return DekVersion;
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
+		myTypeID = RegisterDevice( "ansi", "Filter for handling ansi color code streams...", OpenAnsi );
+		//return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

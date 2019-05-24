@@ -14,17 +14,19 @@ PDATAPATH CPROC SysCommand( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters 
 INDEX iProcess;
 int CPROC MakeProcess( PSENTIENT ps, PENTITY peInit, PTEXT parameters );
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 #ifndef __LINUX__
-   RegisterRoutine( "System", "Shutdown", "Windows System Shutdown...", SystemShutdown );
-   RegisterRoutine( "System", "sound", "Play a sound using windows multimedia...", Sound );
-   srand( GetTickCount() );
+		RegisterRoutine( "System", "Shutdown", "Windows System Shutdown...", SystemShutdown );
+		RegisterRoutine( "System", "sound", "Play a sound using windows multimedia...", Sound );
+		srand( GetTickCount() );
 #endif
-	nSystemID = RegisterDevice( "system", "Launch a system command for use with IO commands", SysCommand );
-	iProcess = RegisterExtension( "process" );
-	RegisterObject( "process", "Process monitor/launch/control", MakeProcess );
-	return DekVersion;
+		nSystemID = RegisterDevice( "system", "Launch a system command for use with IO commands", SysCommand );
+		iProcess = RegisterExtension( "process" );
+		RegisterObject( "process", "Process monitor/launch/control", MakeProcess );
+		//return DekVersion;
+	}
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

@@ -2,11 +2,13 @@
 #include "plugin.h"
 #include <time.h>
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
    srand( (unsigned int)time( NULL ) );
    //RegisterRoutine( "Roll", "Roll dice stored in macro result", Roll );
-	return DekVersion;
+	}
+	//return DekVersion;
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked

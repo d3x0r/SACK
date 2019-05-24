@@ -567,10 +567,12 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 //---------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
    myTypeID = RegisterDevice( "http", "Handles HTTP request parsing...", Open );
-   return DekVersion;
+   //return DekVersion;
+	}
 }
 
 //---------------------------------------------------------------------------

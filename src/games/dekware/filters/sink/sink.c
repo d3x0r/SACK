@@ -59,10 +59,12 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 //---------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{                           
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+{
+	if( DekwareGetCoreInterface( DekVersion ) ) {
    myTypeID = RegisterDevice( "sink", "Sink eats all output, and passes any input", Open );
-   return DekVersion;
+   //return DekVersion;
+	}
 }
 
 //---------------------------------------------------------------------------

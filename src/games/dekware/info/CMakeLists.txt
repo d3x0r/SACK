@@ -1,4 +1,8 @@
 # Get current source repository Revision:
+
+if( NOT __ANDROID__ )
+
+
 execute_process( COMMAND hg id -i WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE CURRENT_REPO_REVISION )
 message( "Source revision: " ${CURRENT_REPO_REVISION} )
 # output build info to files
@@ -17,4 +21,7 @@ install (
 	DESTINATION ./info
 	PATTERN "CMakeLists.txt" EXCLUDE)
 	#FILES_MATCHING REGEX "^.*\\.txt$" )
+
+
+endif( NOT __ANDROID__ )
 

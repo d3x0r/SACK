@@ -496,10 +496,12 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 
 //---------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	if( DekwareGetCoreInterface( DekVersion ) ) {
 	iTelnet = RegisterDevice( "telnet", "Processes telnet IAC sequences", Open );
-   return DekVersion;
+	   //return DekVersion;
+	}
 }
 
 //---------------------------------------------------------------------------
