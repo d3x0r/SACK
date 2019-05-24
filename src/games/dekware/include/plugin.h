@@ -79,9 +79,6 @@ CORE_CPROC( void,  UnregisterObject     )( CTEXTSTR pName );
 CORE_CPROC( int, CreateRegisteredObject )( PSENTIENT ps, PTEXT parameters );
 CORE_CPROC( int, IsObjectTypeOf        )( PSENTIENT ps, PTEXT entity, PTEXT form );
 
-CORE_CPROC( struct dekware_interface *, DekwareGetCoreInterface) ( const char *version );
-
-
 CORE_CPROC( PDATAPATH, FindOpenDevice )( PSENTIENT ps, PTEXT pName );
 CORE_CPROC( PDATAPATH, FindDataDatapath )( PSENTIENT ps, int type );
 CORE_CPROC( PDATAPATH, FindCommandDatapath)( PSENTIENT ps, int type );
