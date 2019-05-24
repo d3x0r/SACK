@@ -168,8 +168,9 @@ RENDER_PROC( int, SetActiveGLDisplayView )( PVIDEO hDisplay, int nFracture )
 #endif
 }
 
-int SetActiveGLDisplay( PVIDEO hDisplay )
+int SetActiveGLDisplay( struct display_camera *camera )
 {
+   PVIDEO hDisplay = camera->hVidCore;
    return SetActiveGLDisplayView( hDisplay, 0 );
 }
 
