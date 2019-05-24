@@ -16,6 +16,7 @@
 
 //#define SUPPORT_LOG_ALLOCATE
 //#define DEFAULT_OUTPUT_STDERR
+//#define DEFAULT_OUTPUT_STDOUT
 
 #define COMPUTE_CPU_FREQUENCY
 #define NO_UNICODE_C
@@ -486,8 +487,8 @@ void InitSyslog( int ignore_options )
 	}
 	SimpleRegisterAndCreateGlobal( syslog_local );
  	
-	if( !(*syslog_local).flags.bInitialized )
 #endif
+	if( !(*syslog_local).flags.bInitialized )
 	{
 		//logtype = SYSLOG_FILE;
 		//(*syslog_local).file = stderr;
@@ -527,7 +528,7 @@ void InitSyslog( int ignore_options )
 			logtype = SYSLOG_AUTO_FILE;
 #      else
 			logtype = SYSLOG_FILE;
-			(*syslog_local).file = stderr;
+			(*syslog_local).file = stdout;
 #      endif
 			(*syslog_local).flags.bLogOpenBackup = 1;
 			(*syslog_local).flags.bUseDeltaTime = 1;
@@ -1854,6 +1855,9 @@ RealLogFunction _xlprintf( uint32_t level DBG_PASS )
 		//return _null_lprintf;
 		openLock = 0;
 	}
+#else
+	if( !(*syslog_local).flags.bInitialized )
+		InitSyslog(1);
 #endif
 	_next_lprintf = GetNextInfo();
 #if _DEBUG

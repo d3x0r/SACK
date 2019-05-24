@@ -52,8 +52,9 @@ return 0;
 #ifdef __LINUX__
 #include <unistd.h>
 #ifdef __LINUX__
-
-#  undef s_addr
+#  if !defined( __EMSCRIPTEN__ )
+#    undef s_addr
+#  endif
 #  include <netinet/in.h> // IPPROTO_TCP
 //#include <linux/in.h>  // IPPROTO_TCP
 #  include <netinet/tcp.h> // TCP_NODELAY

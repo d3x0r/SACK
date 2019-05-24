@@ -1562,8 +1562,10 @@ void RemoveThreadEvent( PCLIENT pc ) {
 		return;
 	}
 	{
-#  ifdef __MAC__
-#    ifdef __64__
+#  ifdef __EMSCRIPTEN__
+#  else
+#    ifdef __MAC__
+#      ifdef __64__
 		struct kevent64_s ev;
 		if( pc->dwFlags & CF_LISTEN ) {
 			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
@@ -1578,7 +1580,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 			EV_SET64( &ev, pc->SocketBroadcast, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
 			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
-#    else
+#      else
 		struct kevent ev;
 		if( pc->dwFlags & CF_LISTEN ) {
 			EV_SET( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc );
@@ -1593,12 +1595,12 @@ void RemoveThreadEvent( PCLIENT pc ) {
 			EV_SET( &ev, pc->SocketBroadcsat, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc );
 			kevent( thread->kqueue, &ev, 1, 0, 0, 0 );
 		}
-#    endif
-#  else
+#      endif
+#    else
 		int r;
-#ifdef LOG_NETWORK_EVENT_THREAD
+#      ifdef LOG_NETWORK_EVENT_THREAD
 		lprintf( "Removing event %p   %d from poll %d", pc, pc->Socket, thread->epoll_fd );
-#endif
+#      endif
 		//r = epoll_ctl( thread->epoll_fd, EPOLL_CTL_DISABLE, pc->Socket, NULL );
 		//if( r < 0 ) lprintf( "Error removing:%d", errno );
 		
@@ -1610,18 +1612,19 @@ void RemoveThreadEvent( PCLIENT pc ) {
 		}
 		pc->flags.bAddedToEvents = 0;
 		pc->this_thread = NULL;
-#  endif
+#    endif
+#  endif // __EMSCRIPTEN__
 	}
 	LockedDecrement( &thread->nEvents );
-#ifdef LOG_NETWORK_EVENT_THREAD
+#    ifdef LOG_NETWORK_EVENT_THREAD
 	lprintf( "peer %p now has %d events", thread, thread->nEvents );
-#endif
+#    endif
 	// don't bubble sort root thread
 	if( thread->parent_peer )
 		while( (thread->nEvents < thread->parent_peer->nEvents) && thread->parent_peer->parent_peer ) {
-#ifdef LOG_NETWORK_EVENT_THREAD
+#    ifdef LOG_NETWORK_EVENT_THREAD
 			//lprintf( "swapping this with parent peer ... this events %d  parent %d", thread->nEvents, thread->parent_peer->nEvents );
-#endif
+#    endif
 			if( thread->child_peer )
 				thread->child_peer->parent_peer = thread->parent_peer;
 			thread->parent_peer->child_peer = thread->child_peer;
@@ -1717,6 +1720,9 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 	}
 	// make sure to only add this handle when the first peer will also be added.
 	// this means the list can be 61 and at this time no more.
+#ifdef __EMSCRIPTEN__
+#else
+
 	{
 #  ifdef __MAC__
 		struct event_data *data = New( struct event_data );
@@ -1759,13 +1765,14 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 
 			ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
 		}
-#ifdef LOG_NETWORK_EVENT_THREAD
+#    ifdef LOG_NETWORK_EVENT_THREAD
 		lprintf( "peer add socket %d to %d now has 0x%x events", pc->Socket, peer->epoll_fd, ev.events );
-#endif
+#    endif
 		r = epoll_ctl( peer->epoll_fd, EPOLL_CTL_ADD, broadcast?pc->SocketBroadcast:pc->Socket, &ev );
 		if( r < 0 ) lprintf( "Error adding:%d %d", errno, broadcast?pc->SocketBroadcast:pc->Socket );
 #  endif
 	}
+#endif // __EMSCRIPTEN__
 #ifdef LOG_NETWORK_EVENT_THREAD
 	lprintf( "added thread: %p  %p  %p  ", pc, pc->this_thread, peer );
 #endif
@@ -1787,7 +1794,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 	struct timeval time;
 	if( globalNetworkData.bQuit )
 		return -1;
-
+#ifdef __EMSCRIPTEN__
+		lprintf( "Need Old Select Code Here" );
+		return 1;
+#else
 	{
 #  ifdef __MAC__
 #    ifdef __64__
@@ -2135,6 +2145,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 		}
 		return 1;
 	}
+#endif
 	//lprintf( "Attempting to wake thread (send sighup!)" );
 	//WakeThread( globalNetworkData.pThread );
 	//lprintf( "Only reason should get here is if it's not this thread..." );
@@ -2183,40 +2194,44 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 #else
 	// have to fall back to poll() for __MAC__ builds. (probably client only)
 	//this_thread.event_list = CreateDataList( sizeof( struct pollfd ) );
-#ifdef __LINUX__
-#ifdef __MAC__
+
+#ifdef __EMSCRIPTEN__
+#else
+#  ifdef __LINUX__
+#    ifdef __MAC__
 	this_thread.kqueue = kqueue();
-#else
-#ifdef __ANDROID__
+#    else
+#      ifdef __ANDROID__
 	this_thread.epoll_fd = epoll_create( 128 ); // close on exec (no inherit)
-#else
+#      else
 	this_thread.epoll_fd = epoll_create1( EPOLL_CLOEXEC ); // close on exec (no inherit)
-#endif
-#endif
+#      endif
+#    endif
 	{
-#  ifdef __MAC__
-#    ifdef __64__
+#    ifdef __MAC__
+#      ifdef __64__
 		struct kevent64_s ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
-#      ifdef USE_PIPE_SEMS
+#        ifdef USE_PIPE_SEMS
 		EV_SET64( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uint64_t)1, NULL, NULL );
-#      endif
+#        endif
 		kevent64( this_thread.kqueue, &ev, 1, 0, 0, 0, 0 );
-#    else
+#      else
 		struct kevent ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
-#      ifdef USE_PIPE_SEMS
+#        ifdef USE_PIPE_SEMS
 		EV_SET( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)1 );
-#      endif
+#        endif
 		kevent( this_thread.kqueue, &ev, 1, 0, 0, 0 );
-#    endif
-#  else
+#      endif
+#    else
 		//struct epoll_event ev;
 		//ev.data.ptr = (void*)1;
 		//ev.events = EPOLLIN;
 		//epoll_ctl( this_thread.epoll_fd, EPOLL_CTL_ADD, GetThreadSleeper( thread ), &ev );
-#  endif
+#    endif
 	}
+#  endif
 #endif
 
 #endif
@@ -2251,12 +2266,12 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 #  endif
 	if( !this_thread.parent_peer )
 	{
-		if( globalNetworkData.root_thread = this_thread.child_peer )
+		if( ( globalNetworkData.root_thread = this_thread.child_peer ) )
 			this_thread.child_peer->parent_peer = NULL;
 	}
 	else
 	{
-		if( this_thread.parent_peer->child_peer = this_thread.child_peer )
+		if( ( this_thread.parent_peer->child_peer = this_thread.child_peer ) )
 			this_thread.child_peer->parent_peer = this_thread.parent_peer;
 	}
 	// this used to be done in the WM_DESTROY
@@ -2875,11 +2890,19 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 #else //WIN32
 
 			char *tmp = CStrDup( lpName );
-			if( 1 )//!(phe=gethostbyname(tmp)))
+#ifdef __EMSCRIPTEN__
+			if(!(phe=gethostbyname(tmp) ) )
+#else
+         if(1)
+#endif
 			{
+#if !defined( __EMSCRIPTEN__ )
 				if( !(phe=gethostbyname2(tmp,AF_INET6) ) )
+#endif
 				{
+#if !defined( __EMSCRIPTEN__ )
 					if( !(phe=gethostbyname2(tmp,AF_INET) ) )
+#endif
 					{
  						// could not find the name in the host file.
 						Log1( "Could not Resolve to %s", lpName );
@@ -2888,6 +2911,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 						if( tmpName ) Deallocate( char*, tmpName );
 						return(NULL);
 					}
+#if !defined( __EMSCRIPTEN__ )
 					else
 					{
 						lprintf( "Strange, gethostbyname failed, but AF_INET worked..." );
@@ -2897,25 +2921,28 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 							    phe->h_addr,
 						       phe->h_length);
 					}
+#endif
 				}
+#if !defined( __EMSCRIPTEN__ )
 				else
 				{
 					SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
 					lpsaAddr->sin_family = AF_INET6;         // InetAddress Type.
-#if note
-	{
-		__SOCKADDR_COMMON (sin6_);
-		n_port_t sin6_port;        /* Transport layer port # */
-		uint32_t sin6_flowinfo;     /* IPv6 flow information */
-		struct in6_addr sin6_addr;  /* IPv6 address */
-		uint32_t sin6_scope_id;     /* IPv6 scope-id */
-	};
-#endif
+#  if inline_note_never_included
+					{
+						__SOCKADDR_COMMON (sin6_);
+						n_port_t sin6_port;        /* Transport layer port # */
+						uint32_t sin6_flowinfo;     /* IPv6 flow information */
+						struct in6_addr sin6_addr;  /* IPv6 address */
+						uint32_t sin6_scope_id;     /* IPv6 scope-id */
+					};
+#  endif
 
 					memcpy( ((struct sockaddr_in6*)lpsaAddr)->sin6_addr.s6_addr,           // save IP address from host entry.
 							 phe->h_addr,
 							 phe->h_length);
 				}
+#endif
 			}
 			else
 			{
