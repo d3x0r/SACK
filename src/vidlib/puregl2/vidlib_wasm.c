@@ -261,6 +261,151 @@ void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveX
 }
 
 
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <emscripten/html5.h>
+#include <emscripten.h>
+
+#define NULL ((void*)0)
+
+static EM_BOOL em_touch_callback_handler(int eventType, const EmscriptenTouchEvent *touchEvent, void *userData){
+   return false; // or true consumed
+}
+
+static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEvent *mouseEvent, void *userData) {
+   return false; // or true consumed
+}
+
+static EM_BOOL em_key_callback_handler(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData){
+   return false;
+}
+
+static EM_BOOL em_webgl_context_handler(int eventType, const void *reserved, void *userData){
+}
+
+int lifetime = 0;
+
+static void renderLoop( void ) {
+	extern int SACK_Vidlib_DoRenderPass( void );
+
+	printf( "do render pass.\n " );
+	if( SACK_Vidlib_DoRenderPass() ) {
+		// do swap?
+		// don't reschedule?
+	}
+	lifetime++;
+	if( lifetime > 100 ) {
+      emscripten_pause_main_loop();
+			//exit(0);
+	}
+
+}
+
+PRELOAD( do_init_display ) {
+//void initDisplay() {
+	EMSCRIPTEN_RESULT r;
+	void *myState = NULL;
+   const char *display = "SACK Display 1";
+	r = emscripten_set_touchstart_callback( display, myState, true, em_touch_callback_handler);
+	r = emscripten_set_touchend_callback(display, myState, true, em_touch_callback_handler);
+	r = emscripten_set_touchmove_callback(display, myState, true, em_touch_callback_handler);
+	r = emscripten_set_touchcancel_callback(display, myState, true, em_touch_callback_handler);
+
+	r = emscripten_set_click_callback(display, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_mousedown_callback(display, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_mouseup_callback(display, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_dblclick_callback(display, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_mousemove_callback(display, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_mouseenter_callback(display, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_mouseleave_callback(display, myState, true, em_mouse_callback_handler);
+
+
+	r = emscripten_set_keypress_callback(display, myState, true, em_key_callback_handler);
+	r = emscripten_set_keydown_callback(display, myState, true, em_key_callback_handler);
+	r = emscripten_set_keyup_callback(display, myState, true, em_key_callback_handler);
+
+	r = emscripten_set_webglcontextlost_callback(display, myState, true, em_webgl_context_handler);
+	r = emscripten_set_webglcontextrestored_callback(display, myState, true, em_webgl_context_handler);
+
+	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE hGL;
+	EmscriptenWebGLContextAttributes attribs = {};
+   emscripten_webgl_init_context_attributes( & attribs );
+//	attribs.alpha = true; // default
+//	attribs.depth = true; // default
+//	attribs.stencil = false; // default
+	attribs.antialias = false; // not default
+//	attribs.premultipliedAlpha = true; // defalt
+//	attribs.preserveDrawingBuffer = false; // default
+//	attribs.powerPreference = EM_WEBGL_POWER_PREFERENCE_DEFAULT; //  EM_WEBGL_POWER_PREFERENCE_DEFAULT, EM_WEBGL_POWER_PREFERENCE_LOW_POWER, EM_WEBGL_POWER_PREFERENCE_HIGH_PERFORMANCE.
+	attribs.failIfMajorPerformanceCaveat = false; // allow slow fallback paths
+	attribs.majorVersion = 1;
+	attribs.minorVersion = 0; // 1.0 webgl.; ther eis 2.0 but ....
+
+//	attribs.enableExtensionsByDefault = true;
+//	attribs.explicitSwapControl = false; // requires other compiler options to enable this.
+//	attribs.renderViaOffscreenBackBuffer = false;  //
+	//   attribs.proxyContextToMainThread =
+
+   hGL = emscripten_webgl_create_context(display, &attribs );
+
+	{
+		extern void SACK_Vidlib_SetNativeWindowHandle( EMSCRIPTEN_WEBGL_CONTEXT_HANDLE    displayWindow );
+		SACK_Vidlib_SetNativeWindowHandle( hGL );
+	}
+
+
+	emscripten_set_main_loop( renderLoop, 0, 1 );
+
+	/* Other usefule things
+    *
+    * emscripten_webgl_get_drawing_buffer_size(EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context, int *width, int *height)
+
+    EM_BOOL emscripten_webgl_enable_extension(EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context, const char *extension)
+   EM_BOOL emscripten_webgl_enable_extension(EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context, const char *extension)
+	EMSCRIPTEN_RESULT emscripten_get_canvas_element_size(const char *target, int *width, int *height)
+
+   dictionary WebGLContextAttributes {
+    boolean alpha = true;
+    boolean depth = true;
+    boolean stencil = false;
+    boolean antialias = true;
+    boolean premultipliedAlpha = true;
+    boolean preserveDrawingBuffer = false;
+    WebGLPowerPreference powerPreference = "default";
+    boolean failIfMajorPerformanceCaveat = false;
+    boolean desynchronized = false;
+};
+
+
+
+
+
+
+    */
+
+	/* focus */
+  //typedef EM_BOOL (*em_webgl_context_callback)(int eventType, const void *reserved, void *userData);
+//   r = emscripten_webgl_make_context_current( EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context );
+
+}
+
+#if 0
+int notmain( void ) {
+	extern void InvokeDeadstart();
+	InvokeDeadstart();
+
+	fputs( "TEST", stdout );
+	initDisplay();
+
+   printf( "Hahaha\n" );
+}
+
+#endif
+
+
 RENDER_NAMESPACE_END
 
 

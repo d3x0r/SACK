@@ -147,7 +147,7 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 #endif
 }
 
-RENDER_PROC( int, SetActiveGLDisplay )( struct display_camera *hDisplay )
+int SetActiveGLDisplay( struct display_camera *hDisplay )
 {
    return SetActiveGLDisplayView( hDisplay, 0 );
 }

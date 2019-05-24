@@ -215,7 +215,8 @@ extern
 void SACK_Vidlib_HideInputDevice( void );
 void SACK_Vidlib_ShowInputDevice( void );
 
-int SetActiveGLDisplay( PVIDEO hDisplay );
+RENDER_PROC( int, SetActiveGLDisplay )(struct display_camera* hDisplay);
+//int SetActiveGLDisplay( PVIDEO hDisplay );
 
 
 RENDER_NAMESPACE_END
