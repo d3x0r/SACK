@@ -1,16 +1,5 @@
 #include <stdhdrs.h>
 
-#ifdef USE_GLES2
-//#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#else
-#define GLEW_NO_GLU
-#ifndef __LINUX__
-#  include <GL/glew.h>
-#endif
-#include <GL/gl.h>
-//#include <GL/glu.h>
-#endif
 
 #include "local.h"
 
@@ -68,7 +57,12 @@ static const char *gles_simple_v_multi_shader_1_30 =
 	 "attribute vec2 in_texCoord;\n" 
      "attribute vec4 vPosition;" 
 	 " varying vec2 out_texCoord;\n" 
-	// "in  vec4 in_Color;\n"
+	 " varying vec4 multishade_r;\n" 
+	" varying vec4 multishade_g;\n"
+	" varying vec4 multishade_b;\n"
+	"attribute  vec4 multishade_r_a;\n"
+	"attribute  vec4 multishade_g_a;\n"
+	"attribute  vec4 multishade_b_a;\n"
 	// "out vec4 ex_Color;\n"
      "void main(void) {"
      "  gl_Position = Projection * worldView * modelView * vPosition;"
@@ -82,9 +76,9 @@ static const char *gles_simple_p_multi_shader_1_30 =
 	//"precision mediump int;\n"
 	     " varying vec2 out_texCoord;\n" 
         "uniform sampler2D tex;\n" 
-        "uniform vec4 multishade_r;\n" 
-        "uniform vec4 multishade_g;\n" 
-        "uniform vec4 multishade_b;\n" 
+        "varying vec4 multishade_r;\n" 
+        "varying vec4 multishade_g;\n" 
+        "varying vec4 multishade_b;\n" 
         "\n" 
         "void main(void)\n"
         "{\n" 
@@ -117,6 +111,9 @@ struct private_mst_shader_data
 {
 	int texture_attrib;
 	int texture_uniform;
+	int r_color_attrib;
+	int g_color_attrib;
+	int b_color_attrib;
 	int r_color_uniform;
 	int g_color_uniform;
 	int b_color_uniform;
@@ -135,27 +132,37 @@ static void CPROC SimpleMultiShadedTextureOutput( PImageShaderTracker tracker, u
 	CheckErr();
 	
 	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
-	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_pos->data );  
+	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_texture_uv->data );  
 	CheckErr();
 
-	glUniform1i(data->texture_uniform, 0); //Texture unit 0 is for base images.
- 
 	//When rendering an objectwith this program.
 	glActiveTexture(GL_TEXTURE0 + 0);
 	CheckErr();
 	glBindTexture(GL_TEXTURE_2D, texture->texture);
 	CheckErr();
-	//glBindSampler(0, linearFiltering);
+	glUniform1i( data->texture_uniform, 0 ); //Texture unit 0 is for base images.
 	CheckErr();
 
-	glUniform4fv( data->r_color_uniform, 1, texture->vert_color_r->data );
-	CheckErr();
-	glUniform4fv( data->g_color_uniform, 1, texture->vert_color_g->data );
-	CheckErr();
-	glUniform4fv( data->b_color_uniform, 1, texture->vert_color_b->data );
-	CheckErr();
+	glEnableVertexAttribArray( data->r_color_attrib );	CheckErr();
+	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_color_r->data );	CheckErr();
+	glEnableVertexAttribArray( data->g_color_attrib );	CheckErr();
+	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_color_g->data );	CheckErr();
+	glEnableVertexAttribArray( data->b_color_attrib );	CheckErr();
+	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_color_b->data );	CheckErr();
+
+	//glUniform4fv( data->r_color_uniform, 1, texture->vert_color_r->data );
+	//CheckErr();
+	//glUniform4fv( data->g_color_uniform, 1, texture->vert_color_g->data );
+	//CheckErr();
+	//glUniform4fv( data->b_color_uniform, 1, texture->vert_color_b->data );
+	//CheckErr();
 
 		glDrawArrays( GL_TRIANGLES, from, to - from );
+
+
+		glDisableVertexAttribArray( data->r_color_attrib );	CheckErr();
+		glDisableVertexAttribArray( data->g_color_attrib );	CheckErr();
+		glDisableVertexAttribArray( data->b_color_attrib );	CheckErr();
 
 }
 
@@ -278,7 +285,9 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
 	struct private_mst_shader_data *data = (struct private_mst_shader_data*)psvInst;
-	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" } };
+	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }
+		, { 1, "in_TexCoord" } 
+		};
 
 	//SetShaderEnable( tracker, SimpleMultiShadedTextureEnable, (uintptr_t)data );
 	SetShaderAppendTristrip( tracker, SimpleMultiShadedTexture_AppendTristrip );
@@ -291,7 +300,7 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 		lprintf( "unhandled error before shader" );
 	}
 
-	if( l.glslVersion < 150 )
+	if( 1 || l.glslVersion < 150 )
 	{
 		v_codeblocks[0] = gles_simple_v_multi_shader_1_30;
 		v_codeblocks[1] = NULL;
@@ -320,6 +329,12 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 		data->texture_uniform = glGetUniformLocation(tracker->glProgramId, "tex");
 		CheckErr();
 		data->texture_attrib =  glGetAttribLocation(tracker->glProgramId, "in_texCoord" );
+		CheckErr();
+		data->r_color_attrib = glGetAttribLocation( tracker->glProgramId, "multishade_r" );
+		CheckErr();
+		data->g_color_attrib = glGetAttribLocation( tracker->glProgramId, "multishade_g" );
+		CheckErr();
+		data->b_color_attrib = glGetAttribLocation( tracker->glProgramId, "multishade_b" );
 		CheckErr();
 		//return (uintptr_t)data;
 	}
