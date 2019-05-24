@@ -3,7 +3,7 @@
 # they are already defined in a variable calld VIDLIB_SOURCES (defined in CMakeSources.lst)
 
 
-add_library( bag.image SHARED
+add_library( bag.image ${CORE_LINKMODE}
   ${FIRST_GCC_LIBRARY_SOURCE}
   ${IMAGE_SOURCES}
   ${LAST_GCC_LIBRARY_SOURCE}

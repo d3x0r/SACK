@@ -20,6 +20,7 @@
 #include <imglib/imagestruct.h>
 #include <image.h>
 
+#define REQUIRE_GLUINT
 #include "blotproto.h"
 #include "image_common.h"
 

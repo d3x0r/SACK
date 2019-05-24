@@ -17,16 +17,6 @@
 #include <image.h>
 
 #ifdef __3D__
-#ifdef _OPENGL_DRIVER
-#  if defined( USE_GLES )
-#    include <GLES/gl.h>
-#  elif defined( USE_GLES2 )
-#    include <GLES2/gl2.h>
-#  else
-//#   include <GL/glew.h>
-#   include <GL/gl.h>         // Header File For The OpenGL32 Library
-#  endif
-#endif
 #ifdef PURE_OPENGL2_ENABLED
 #include "puregl2/local.h"
 #elif defined( _VULKAN_DRIVER )

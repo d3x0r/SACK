@@ -6,6 +6,7 @@
 #undef IMAGE_SOURCE
 #include <image.h>
 #include "fntglobal.h"
+#define REQUIRE_GLUINT
 #include "image_common.h"
 #include "pngimage.h"
 #include "jpgimage.h"

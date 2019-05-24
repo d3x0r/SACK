@@ -81,7 +81,10 @@ PRIORITY_PRELOAD( CreateFontCacheGlobal, IMAGE_PRELOAD_PRIORITY + 1 )
 									, "Fonts.Cache"
 #endif
 #ifndef __NO_OPTIONS__
-				               , fg.font_cache_path, 256 );
+                           , fg.font_cache_path, 256 );
+#else
+									 );
+
 #endif
 	}
 	if( !fg.library )

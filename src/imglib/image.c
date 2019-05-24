@@ -24,6 +24,8 @@
 
 // alpha macro is here
 #include "blotproto.h"
+
+#define REQUIRE_GLUINT
 #include "image_common.h"
 
 ASM_IMAGE_NAMESPACE
