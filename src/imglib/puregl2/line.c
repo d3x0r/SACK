@@ -21,11 +21,10 @@
 #include <stdhdrs.h>
 
 
-#include <imglib/imagestruct.h>
 #include <image.h>
 
-#include "shaders.h"
 #include "local.h"
+#include "shaders.h"
 
 #include "blotproto.h"
 

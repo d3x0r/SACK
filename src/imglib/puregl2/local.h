@@ -10,7 +10,7 @@
 #include <GLES2/gl2.h>
 #else
 #define USE_OPENGL
-#if defined( _WIN32 )
+#if defined( _WIN32 ) || defined( __LINUX__ )
 #  include <GL/glew.h>
 #endif
 #include <GL/gl.h>         // Header File For The OpenGL32 Library

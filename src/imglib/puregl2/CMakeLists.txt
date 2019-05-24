@@ -46,8 +46,11 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES
 
 my_target_link_libraries( ${PROJECT_NAME} ${SACK_CORE_LIBRARY} ${SACK_PLATFORM_LIBRARIES} )
 if( WIN32 )
-my_target_link_libraries( ${PROJECT_NAME} glew glu32 )  # private GLEW library
+my_target_link_libraries( ${PROJECT_NAME} glu32 )  # private GLEW library
 endif( WIN32 )
+
+my_target_link_libraries( ${PROJECT_NAME} GLEW )  # private GLEW library
+
 if( __ANDROID__ OR __QNX__ )
   my_target_link_libraries( ${PROJECT_NAME} GLESv2 )
 endif( __ANDROID__ OR __QNX__ )
