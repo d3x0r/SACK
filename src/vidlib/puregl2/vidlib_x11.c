@@ -299,18 +299,38 @@ void  GetDisplaySizeEx ( int nDisplay
 
 //----------------------------------------------------------------------------
 
-void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
+void InvokeMouseEvent( struct display_camera *camera, GLWindow *x11_gl_window  )
 {
+   static uint32_t tick;
+	PRENDERER hVideo = camera->hVidCore;
+   uint32_t delta_;
+   RCOORD delta;
+	if( !tick ) {
+		tick = timeGetTime() - 33;
+		delta = delta_= 33.0f;
+      x11_gl_window->mouse_x = camera->w / 2;
+      x11_gl_window->mouse_y = camera->h / 2;
+	} else {
+		delta = ( delta_ = timeGetTime() - tick ) / 100;
+			//lprintf( "Tick delta: %d %g", (int)tick, delta );
+	}
     if( l.flags.bRotateLock  )
     {
-        RCOORD delta_x = x11_gl_window->mouse_x - (hVideo->WindowPos.cx/2);
-        RCOORD delta_y = x11_gl_window->mouse_y - (hVideo->WindowPos.cy/2);
-        //lprintf( "mouse came in we're at %d,%d %g,%g", x11_gl_window->mouse_x, x11_gl_window->mouse_y, delta_x, delta_y );
-        if( delta_y && delta_y )
+		if( !delta_ ) {
+			return;
+		}
+        RCOORD delta_x = (int)x11_gl_window->mouse_x - (int)(camera->w/2);
+		RCOORD delta_y = x11_gl_window->mouse_y - (int)(camera->h/2);
+		//lprintf( "Mouse Center View: %g %g", delta_x, delta_y );
+		  delta_x /= 40;  // 0-1.0 scaling.  could use camera->w; but then aspect is different
+		  delta_y /= 40;
+		  //lprintf( "Mouse Center View (-1 -> 1 ): %g %g   time : %g  %g", delta_x, delta_y, delta );
+        delta_x = delta_x * delta; // apply time.
+        delta_y = delta_y * delta;
+        //lprintf( "mouse came in we're at %d,%d %g,%g %g", x11_gl_window->mouse_x, x11_gl_window->mouse_y, delta_x, delta_y, delta );
+        //if( delta_x != 0.0f || delta_y  )
         {
             static int toggle;
-            delta_x /= hVideo->WindowPos.cx;
-            delta_y /= hVideo->WindowPos.cy;
             if( toggle )
             {
                 RotateRel( l.origin, delta_y, 0, 0 );
@@ -322,17 +342,15 @@ void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
                 RotateRel( l.origin, delta_y, 0, 0 );
             }
             toggle = 1-toggle;
-            x11_gl_window->mouse_x = hVideo->WindowPos.cx/2;
-            x11_gl_window->mouse_y = hVideo->WindowPos.cy/2;
-				lprintf( "Set curorpos.. %d,%d"
-						 , x11_gl_window->mouse_x, x11_gl_window->mouse_y
-						 );
+            x11_gl_window->mouse_x = camera->w/2;
+            x11_gl_window->mouse_y = camera->h/2;
+				//lprintf( "Set curorpos.. %d,%d"
+				//		 , x11_gl_window->mouse_x, x11_gl_window->mouse_y
+				//		 );
             XWarpPointer( x11_gl_window->dpy, None
-                         , XRootWindow( x11_gl_window->dpy, 0)
+                         , x11_gl_window->win
                          , 0, 0, 0, 0
                          , x11_gl_window->mouse_x, x11_gl_window->mouse_y);
-            //SetCursorPos( hVideo->pWindowPos.cx/2, hVideo->pWindowPos.cy / 2 );
-            //lprintf( "Set curorpos Done.." );
         }
     }
     else if (hVideo->pMouseCallback)
@@ -341,7 +359,8 @@ void InvokeMouseEvent( PRENDERER hVideo, GLWindow *x11_gl_window  )
                                 , x11_gl_window->mouse_x
                                 , x11_gl_window->mouse_y
                                 , x11_gl_window->mouse_b);
-    }
+	 }
+   tick += delta_;
 }
 
 //----------------------------------------------------------------------------
@@ -356,8 +375,9 @@ void resizeGLScene(unsigned int width, unsigned int height)
 
 //----------------------------------------------------------------------------
 
-static void HandleMessage( PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent *event)
+static void HandleMessage( struct display_camera *camera, GLWindow *x11_gl_window, XEvent *event)
 {
+	PRENDERER gl_camera = camera->hVidCore;
     switch( event->type )
     {
     case ButtonPress:
@@ -378,7 +398,7 @@ static void HandleMessage( PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
             }
 		  }
         //lprintf( "Mouse down... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
-        InvokeMouseEvent( gl_camera, x11_gl_window );
+        InvokeMouseEvent( camera, x11_gl_window );
         break;
     case ButtonRelease:
         {
@@ -398,13 +418,13 @@ static void HandleMessage( PRENDERER gl_camera, GLWindow *x11_gl_window, XEvent 
             }
         }
         //lprintf( "Mouse up... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
-        InvokeMouseEvent( gl_camera, x11_gl_window );
+        InvokeMouseEvent( camera, x11_gl_window );
         break;
 	case MotionNotify:
 		x11_gl_window->mouse_x = event->xmotion.x;
 		x11_gl_window->mouse_y = event->xmotion.y;
 		//lprintf( "Mouse move... %d %d %d", x11_gl_window->mouse_x,x11_gl_window->mouse_y,x11_gl_window->mouse_b );
-		InvokeMouseEvent( gl_camera, x11_gl_window );
+		InvokeMouseEvent( camera, x11_gl_window );
 		break;
     case Expose:
         if (event->xexpose.count != 0)
@@ -507,7 +527,7 @@ uintptr_t CPROC ProcessDisplayMessages( PTHREAD thread )
 					XNextEvent(x11_gl_window->dpy, &event);
 					//if( l.flags.bLogMessageDispatch )
 					//	lprintf( "(E)Got message:%d", event.type );
-					HandleMessage( camera->hVidCore, x11_gl_window, &event );
+					HandleMessage( camera, x11_gl_window, &event );
 					//if( l.flags.bLogMessageDispatch )
 					//	lprintf( "(X)Got message:%d", event.type );
 				}
