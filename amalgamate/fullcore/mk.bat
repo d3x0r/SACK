@@ -13,6 +13,7 @@
 @set SRCS=
 @set SRCS= %SRCS%   ../../src/typelib/typecode.c 
 @set SRCS= %SRCS%   ../../src/typelib/text.c 
+@set SRCS= %SRCS%   ../../src/typelib/input.c 
 @set SRCS= %SRCS%   ../../src/typelib/sets.c
 @set SRCS= %SRCS%   ../../src/typelib/binarylist.c 
 @set SRCS= %SRCS%   ../../src/typelib/http.c
