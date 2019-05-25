@@ -37,22 +37,25 @@ RENDER_NAMESPACE
 
 HWND  GetNativeHandle (PVIDEO hVideo);
 
+	static EMSCRIPTEN_WEBGL_CONTEXT_HANDLE last_active;
 
 int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 {
-	static EMSCRIPTEN_WEBGL_CONTEXT_HANDLE last_active;
 	if( last_active )
 	{
+		lprintf( "This commits the prior frame %d", last_active );
 		emscripten_webgl_commit_frame( last_active );
-		last_active = NULL;
+		last_active = 0;
 	}
 	if( camera )
 	{
 		if( camera->hVidCore )
 		{
+			lprintf( "Setting camera display HRC: %p", camera->displayWindow );
 			emscripten_webgl_make_context_current( last_active = camera->displayWindow );
 		}
 	}
+   return 1;
 }
 
 RENDER_PROC( int, SetActiveGLDisplay )( struct display_camera *hDisplay )
@@ -134,13 +137,14 @@ void  GetDisplaySizeEx ( int nDisplay
 
 void SetCameraNativeHandle( struct display_camera *camera )
 {
+	lprintf( "SET CAMERA HRC: %p", l.displayWindow );
    camera->displayWindow = l.displayWindow;
 }
 
 // this is dynamically linked from the loader code to get the window
 void SACK_Vidlib_SetNativeWindowHandle( EMSCRIPTEN_WEBGL_CONTEXT_HANDLE    displayWindow )
 {
-   lprintf( "Setting native window handle... (shouldn't this do something else?)" );
+   lprintf( "Setting native window handle... (shouldn't this do something else?) %p", displayWindow );
 	l.displayWindow = displayWindow;
    // Standard init (was looking more like a common call thing)
 	HostSystem_InitDisplayInfo();
@@ -174,7 +178,6 @@ void HostSystem_InitDisplayInfo(void )
 // this is linked to external native activiety shell...
 int SACK_Vidlib_DoRenderPass( void )
 {
-lprintf( "DoRenderPass..." );
 	return ProcessGLDraw(TRUE);
 }
 
@@ -225,7 +228,6 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 
 		MygluPerspective(90.0f,camera->aspect,1.0f,camera->depth);
 		CheckErr();
-		//lprintf( "First GL Init Done." );
 		camera->flags.init = 1;
 	}
 
@@ -233,6 +235,7 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 	CheckErr();
 	glClearDepthf(1.0f);									// Depth Buffer Setup
 	CheckErr();
+	lprintf( "glClear" );
 	glClear(GL_COLOR_BUFFER_BIT
 			  | GL_DEPTH_BUFFER_BIT
 			 );	// Clear Screen And Depth Buffer
@@ -254,6 +257,9 @@ void SetupPositionMatrix( struct display_camera *camera )
 
 void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveXXDisplay
 {
+	lprintf( "End of rendering... all done." );
+	emscripten_webgl_commit_frame( camera->displayWindow );
+	last_active = 0;
 #ifdef USE_EGL
 	//lprintf( "doing swap buffer..." );
 	eglSwapBuffers( camera->egl_display, camera->surface );
@@ -272,43 +278,31 @@ void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveX
 #define NULL ((void*)0)
 
 static EM_BOOL em_touch_callback_handler(int eventType, const EmscriptenTouchEvent *touchEvent, void *userData){
+lprintf( "Touch callback..." );
    return false; // or true consumed
 }
 
 static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEvent *mouseEvent, void *userData) {
+lprintf( "Mouse callback..." );
    return false; // or true consumed
 }
 
 static EM_BOOL em_key_callback_handler(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData){
+lprintf( "Key callback..." );
    return false;
 }
 
 static EM_BOOL em_webgl_context_handler(int eventType, const void *reserved, void *userData){
+
+   return false;
 }
 
-int lifetime = 0;
-
-static void renderLoop( void ) {
-	extern int SACK_Vidlib_DoRenderPass( void );
-
-	printf( "do render pass.\n " );
-	if( SACK_Vidlib_DoRenderPass() ) {
-		// do swap?
-		// don't reschedule?
-	}
-	lifetime++;
-	if( lifetime > 100 ) {
-      emscripten_pause_main_loop();
-			//exit(0);
-	}
-
-}
 
 PRELOAD( do_init_display ) {
 //void initDisplay() {
 	EMSCRIPTEN_RESULT r;
 	void *myState = NULL;
-   const char *display = "SACK Display 1";
+	const char *display = "SACK Display 1";
 	r = emscripten_set_touchstart_callback( display, myState, true, em_touch_callback_handler);
 	r = emscripten_set_touchend_callback(display, myState, true, em_touch_callback_handler);
 	r = emscripten_set_touchmove_callback(display, myState, true, em_touch_callback_handler);
@@ -330,9 +324,10 @@ PRELOAD( do_init_display ) {
 	r = emscripten_set_webglcontextlost_callback(display, myState, true, em_webgl_context_handler);
 	r = emscripten_set_webglcontextrestored_callback(display, myState, true, em_webgl_context_handler);
 
+        {
 	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE hGL;
 	EmscriptenWebGLContextAttributes attribs = {};
-   emscripten_webgl_init_context_attributes( & attribs );
+	emscripten_webgl_init_context_attributes( & attribs );
 //	attribs.alpha = true; // default
 //	attribs.depth = true; // default
 //	attribs.stencil = false; // default
@@ -341,7 +336,7 @@ PRELOAD( do_init_display ) {
 //	attribs.preserveDrawingBuffer = false; // default
 //	attribs.powerPreference = EM_WEBGL_POWER_PREFERENCE_DEFAULT; //  EM_WEBGL_POWER_PREFERENCE_DEFAULT, EM_WEBGL_POWER_PREFERENCE_LOW_POWER, EM_WEBGL_POWER_PREFERENCE_HIGH_PERFORMANCE.
 	attribs.failIfMajorPerformanceCaveat = false; // allow slow fallback paths
-	attribs.majorVersion = 1;
+	attribs.majorVersion = 2;
 	attribs.minorVersion = 0; // 1.0 webgl.; ther eis 2.0 but ....
 
 //	attribs.enableExtensionsByDefault = true;
@@ -349,15 +344,14 @@ PRELOAD( do_init_display ) {
 //	attribs.renderViaOffscreenBackBuffer = false;  //
 	//   attribs.proxyContextToMainThread =
 
-   hGL = emscripten_webgl_create_context(display, &attribs );
-
+	hGL = emscripten_webgl_create_context(display, &attribs );
 	{
 		extern void SACK_Vidlib_SetNativeWindowHandle( EMSCRIPTEN_WEBGL_CONTEXT_HANDLE    displayWindow );
+		lprintf( "specify HRC %d", hGL );
 		SACK_Vidlib_SetNativeWindowHandle( hGL );
 	}
-
-
-	emscripten_set_main_loop( renderLoop, 0, 1 );
+	}
+//	emscripten_set_main_loop( renderLoop, 0, 1 );
 
 	/* Other usefule things
     *
@@ -379,11 +373,6 @@ PRELOAD( do_init_display ) {
     boolean desynchronized = false;
 };
 
-
-
-
-
-
     */
 
 	/* focus */
@@ -391,19 +380,6 @@ PRELOAD( do_init_display ) {
 //   r = emscripten_webgl_make_context_current( EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context );
 
 }
-
-#if 0
-int notmain( void ) {
-	extern void InvokeDeadstart();
-	InvokeDeadstart();
-
-	fputs( "TEST", stdout );
-	initDisplay();
-
-   printf( "Hahaha\n" );
-}
-
-#endif
 
 
 RENDER_NAMESPACE_END

@@ -511,7 +511,7 @@ void LoadOptions( void )
 		l.flags.bLogWrites = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Log Video Output", 0, TRUE );
 	}
 #else
-	l.flags.bLogRenderTiming = 1;
+	l.flags.bLogRenderTiming = 0;
 	l.flags.bView360 = 0;
 
 	l.scale = 1.0 / 10;
@@ -728,6 +728,11 @@ void OpenCamera( struct display_camera *camera )
 #ifdef __QNX__
 		CreateQNXOutputForCamera( camera );
 #endif
+
+#ifdef __EMSCRIPTEN__
+		camera->displayWindow = l.displayWindow;
+#endif
+
 #ifdef USE_EGL
 		camera->displayWindow = l.displayWindow;
 		OpenEGL( camera, camera->displayWindow );
@@ -1990,6 +1995,7 @@ static uintptr_t OnInit3d( "Video Render Common" )(PMatrix m,PTRANSFORM c,RCOORD
 #endif
 PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 {
+	lprintf( "Registering vidlib..." );
 	if( l.flags.bLogRegister )
 		lprintf( "Regstering video interface..." );
 #ifdef _OPENGL_DRIVER
@@ -2000,6 +2006,12 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 		"puregl2.render.3d"
 		, GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
+#ifdef __EMSCRIPTEN__
+	lprintf( "Registering aliases..." );
+	RegisterClassAlias( "system/interfaces/puregl2.render", "system/interfaces/render" );
+	RegisterClassAlias( "system/interfaces/puregl2.render.3d", "system/interfaces/render.3d" );
+#endif
+
 #ifdef _D3D_DRIVER
 	RegisterInterface( 
 		"d3d2.render"

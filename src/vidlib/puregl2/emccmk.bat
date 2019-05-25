@@ -1,6 +1,6 @@
 
 
-@set CFLAGS=-I ../puregl/glew-1.9.0/include
+@set CFLAGS=%COMMON_CFLAGS% -D__MANUAL_PRELOAD__ -I ../puregl/glew-1.9.0/include
 
 @set CFLAGS=%CFLAGS% -I../../../include
 
