@@ -307,11 +307,11 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 					return (CTEXTSTR)p+1;
 				}
 				p +=
-#if defined( __ARM__ ) || defined( UNDER_CE )
+#if defined( __ARM__ ) || defined( UNDER_CE ) || defined( __EMSCRIPTEN__ )
 					(
 #endif
 					 p[0]
-#if defined( __ARM__ ) || defined( UNDER_CE )
+#if defined( __ARM__ ) || defined( UNDER_CE ) || defined( __EMSCRIPTEN__ )
 					 +3 ) & 0xFC;
 #endif
 				;
@@ -344,7 +344,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 		space->buffer[space->nextname] = (TEXTCHAR)(alloclen);
 		space->nextname += (uint32_t)alloclen;
 		space->buffer[space->nextname] = 0;
-#if defined( __ARM__ ) || defined( UNDER_CE )
+#if defined( __ARM__ ) || defined( UNDER_CE ) || defined( __EMSCRIPTEN__ )
 		space->nextname = ( space->nextname + 3 ) & 0xFFFFC;
 		// +3&0xFC rounds to next full dword segment
 		// arm requires this name be aligned on a dword boundry
@@ -639,7 +639,7 @@ PTREEDEF GetClassTreeEx( PCTREEDEF root, PCTREEDEF _name_class, PTREEDEF alias, 
 	class_root = root;
 
 	if(
-#if defined( __ARM__ ) || defined( UNDER_CE )
+#if defined( __ARM__ ) || defined( UNDER_CE ) || defined( __EMSCRIPTEN__ )
 		// if its odd, it comes from the name space
 		// (savename)
 		(((uintptr_t)class_root)&0x3) ||
@@ -654,7 +654,7 @@ PTREEDEF GetClassTreeEx( PCTREEDEF root, PCTREEDEF _name_class, PTREEDEF alias, 
 	if( _name_class )
 	{
 		if(
-#if defined( __ARM__ ) || defined( UNDER_CE )
+#if defined( __ARM__ ) || defined( UNDER_CE ) || defined( __EMSCRIPTEN__ )
 	  // if its odd, it comes from the name space
 		// (savename)
 			 !(((uintptr_t)_name_class)&0x3) &&
