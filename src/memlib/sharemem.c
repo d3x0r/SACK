@@ -1228,8 +1228,10 @@ uintptr_t GetFileSize( int fd )
 				ll_lprintf( "Something bad about this region sized %" _PTRSZVALfs "(%d)", *dwSize, errno );
 				DebugBreak();
 			}
-			//ll_lprintf( "Clearing anonymous mmap %p %" _size_f "", pMem, *dwSize );
-			MemSet( pMem, 0, *dwSize );
+			else {
+				//ll_lprintf( "Clearing anonymous mmap %p %" _size_f "", pMem, *dwSize );
+				MemSet( pMem, 0, *dwSize );
+			}
 		}
 		else if( pWhere ) // name doesn't matter, same file cannot be called another name
 		{
