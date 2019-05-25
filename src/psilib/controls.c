@@ -4080,7 +4080,6 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 {
 	PSI_CONTROL pResult;
 	PROCEDURE proc;
-
 	proc = RealCreateCommonExx( &pResult, pContainer, pTypeName, nType, x, y, w, h, nID, pIDName, text
 									  , ExtraBorderType
 										// uhmm need to retain this ... as it also means 'private' as in contained
@@ -4089,7 +4088,7 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 									  , TRUE DBG_RELAY );
 	if( proc )
 	{
-		if( !((int(CPROC *)(PSI_CONTROL,POINTER))proc)( pResult, extra_param ) )
+		if( !((int(CPROC *)(PSI_CONTROL))proc)( pResult ) )
 		{
 			_xlprintf(1 DBG_RELAY )( "Failed to init the control - destroying it." );
 			DestroyCommon( &pResult );

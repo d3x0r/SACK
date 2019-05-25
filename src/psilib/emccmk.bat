@@ -1,7 +1,7 @@
-@set CFLAGS=-I../../include
+@set CFLAGS=%COMMON_CFLAGS% -I../../include
 @set CFLAGS=%CFLAGS% -I../contrib/freetype-2.8/include
 
-@set CFLAGS=%CFLAGS% -D__NO_OPTIONS__ -D__STATIC__
+@set CFLAGS=%CFLAGS%  -D__NO_OPTIONS__ -D__STATIC__ -D__MANUAL_PRELOAD__
 
 @set PSI_MORE_CONTROLS= ^
   console/history.c ^
@@ -11,7 +11,8 @@
   console/psicon_interface.c ^
   console/regaccess.c ^
   console/WinLogic.c ^
-  console/console_block_writer.c 
+  console/console_block_writer.c ^
+  ../SQLlib/optlib/editoption/editopt.c
 
 
 
@@ -51,7 +52,7 @@
 
 @set CFLAGS=%CFLAGS% -DTARGET_LABEL=imglib_puregl2 -D__3D__ -D_OPENGL_DRIVER -DMAKE_RCOORD_SINGLE 
 @set CFLAGS=%CFLAGS% -DTARGETNAME=\"sack.wasm\"
-
+@set CFLAGS=%CFLAGS% -DEDITOPTION_PLUGIN
 
 call emcc -g -o ./psi.lo -D_DEBUG -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference %CFLAGS% %SRCS%
 call emcc -O3 -o ./psio.lo  -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference %CFLAGS% %SRCS%
