@@ -1,7 +1,7 @@
 
 
 
-@set CFLAGS=-I../../../include
+@set CFLAGS=%COMMON_CFLAGS% -I../../../include
 
 @set CFLAGS=%CFLAGS% -D__STATIC__
 

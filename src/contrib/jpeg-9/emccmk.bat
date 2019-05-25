@@ -23,9 +23,10 @@
 
 @set SRCS=%COMSRCS% %CLIBSRCS% %DLIBSRCS%
 
+@SET CFLAGS=%COMMON_CFLAGS% -I../../../include -D__LINUX__
 
 
-call emcc -g -D_DEBUG -o ./jpeg9.lo  -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference %SRCS%
+call emcc -g -D_DEBUG -o ./jpeg9.lo %CFLAGS%  -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference %SRCS%
 @echo on
-call emcc -O3 -o ./jpeg9o.lo  -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference %SRCS%
+call emcc -O3 -o ./jpeg9o.lo %CFLAGS% -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference %SRCS%
 @echo on

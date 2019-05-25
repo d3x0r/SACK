@@ -10,7 +10,7 @@
 # under arm we don't really NEED direct FILEIO stuffs.
 :SET( ZLIB_SRCS ${ZLIB_SRCS}   gzclose.c gzlib.c gzread.c gzwrite.c )
 
-set CFLAGS=
+set CFLAGS=%COMMON_CFLAGS% 
 
 @set SRCS=%ZLIB_SRCS%
 

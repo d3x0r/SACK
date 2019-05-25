@@ -1,5 +1,7 @@
 @echo This script builds all source libraries for amalgamate/wasmgui
 
+set COMMON_CFLAGS=-D__MANUAL_PRELOAD__
+
 cd src\contrib\genx
 call emccmk.bat
 copy *.lo ..\..\..\amalgamate\wasmgui\libs
@@ -38,7 +40,7 @@ copy *.lo ..\..\..\amalgamate\wasmgui\libs
 
 cd ..\..\psilib
 call emccmk.bat
-copy *.lo ..\..\..\amalgamate\wasmgui\libs
+copy *.lo ..\..\amalgamate\wasmgui\libs
 @echo on
 : reset to home
 cd %~dp0

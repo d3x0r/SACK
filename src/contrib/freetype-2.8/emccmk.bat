@@ -48,7 +48,7 @@
 
 
 
-@set CFLAGS=-Iinclude -I../../../include -D__STATIC__ -DFT2_BUILD_LIBRARY
+@set CFLAGS=%COMMON_CFLAGS%  -Iinclude -I../../../include -D__STATIC__ -DFT2_BUILD_LIBRARY
 
 @set SRCS=%BASE_SRCS%
 
