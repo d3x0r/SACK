@@ -6,7 +6,7 @@
 	  pngrtran.c  pngwtran.c  pngrio.c  pngwio.c 
 
 
-@set CFLAGS=-I../zlib-1.2.11
+@set CFLAGS=%COMMON_CFLAGS% -I../zlib-1.2.11
 @set SRCS=%PNG_SOURCE%
 
 
