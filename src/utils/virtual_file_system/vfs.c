@@ -255,7 +255,7 @@ static enum block_cache_entries UpdateSegmentKey( struct volume *vol, enum block
 
 static LOGICAL ValidateBAT( struct volume *vol ) {
 	BLOCKINDEX first_slab = 0;
-	BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
+	BLOCKINDEX slab = (BLOCKINDEX)(vol->dwSize / ( BLOCK_SIZE ));
 	BLOCKINDEX last_block = ( slab * BLOCKS_PER_BAT ) / BLOCKS_PER_SECTOR;
 	BLOCKINDEX n;
 	int sector;
@@ -375,7 +375,7 @@ static LOGICAL ValidateBAT( struct volume *vol ) {
 				if( block >= last_block ) return FALSE;
 				//if( initial )
 					if( block == 0 ) {
-						vol->lastBatBlock = (BLOCKINDEX)(sector*BLOCKS_PER_BAT) + m; // use as a temp variable....
+						vol->lastBatBlock = (BLOCKINDEX)(sector*BLOCKS_PER_BAT + m); // use as a temp variable....
 						LoGB( "SET LAST BLOCK AVAIL: %d", (int)vol->lastBatBlock );
 						AddDataItem( &vol->pdlFreeBlocks, &vol->lastBatBlock );
 					}
