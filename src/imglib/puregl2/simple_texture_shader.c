@@ -125,14 +125,18 @@ struct private_shader_texture_data
 	struct shader_buffer *vert_pos;
 	struct shader_buffer *vert_color;
 	struct shader_buffer *vert_texture_uv;
+
 };
 
 struct private_shader_data
 {
+	GLuint vao;
+	GLuint vertexBuffer[3];
 	int color_attrib;
 	int texture_attrib;
 	int texture_uniform;
 	PLIST vert_data;
+	PLINKQUEUE availOps;
 };
 
 static struct private_shader_texture_data *GetImageBuffer( struct private_shader_data *data, int image )
@@ -144,13 +148,20 @@ static struct private_shader_texture_data *GetImageBuffer( struct private_shader
 		if( texture->texture == image )
 			break;
 	}
+	texture = (struct private_shader_texture_data*)DequeLink( &data->availOps );
+	if( texture ) {
+		//lprintf( "Recovered from %p", data );
+		texture->texture = image;
+		AddLink( &data->vert_data, texture );
+	}
 	if( !texture )
 	{
+		//lprintf( "New Texture Op on %p", data );
 		texture = New( struct private_shader_texture_data );
 		texture->texture = image;
-		texture->vert_pos = CreateShaderBuffer( 3, 8, 16 );
-		texture->vert_color = CreateShaderBuffer( 4, 8, 16 );
-		texture->vert_texture_uv = CreateShaderBuffer( 2, 8, 16 );
+		texture->vert_pos = CreateShaderBuffer( 3, 24, 54 );
+		texture->vert_color = CreateShaderBuffer( 4, 24, 54 );
+		texture->vert_texture_uv = CreateShaderBuffer( 2, 24, 54 );
 		AddLink( &data->vert_data, texture );
 	}
 	return texture;
@@ -170,20 +181,35 @@ static void CPROC SimpleTextureOutput( PImageShaderTracker tracker, uintptr_t ps
 	struct private_shader_data *data	= (struct private_shader_data *)psv_userdata;
 	struct private_shader_texture_data *texture;
 
-	//glUniform4fv( tracker->color_attrib, 1, GL_FALSE, color );
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(data->texture_attrib);
-	glDisableVertexAttribArray(2);
-
 	EnableShader( tracker );
-	texture = (struct private_shader_texture_data *)psvKey;
+
+	texture = (struct private_shader_texture_data*)psvKey;
+
+	glBindVertexArray( data->vao );
+	glBindBuffer( GL_ARRAY_BUFFER, data->vertexBuffer[0] );
+	//glBufferData(GL_ARRAY_BUFFER, 32 * sizeof(float), vertexData, GL_STATIC_DRAW);
+	glBufferData( GL_ARRAY_BUFFER, texture->vert_pos->dimensions * texture->vert_pos->used * sizeof( float )
+		, texture->vert_pos->data, GL_DYNAMIC_DRAW );
+
+	//glUniform4fv( tracker->color_attrib, 1, GL_FALSE, color );
+	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, 0 );
+	CheckErr();
+	glEnableVertexAttribArray(0);
+	CheckErr();
+
+	glBindBuffer( GL_ARRAY_BUFFER, data->vertexBuffer[1] );
+	glBufferData( GL_ARRAY_BUFFER, texture->vert_texture_uv->dimensions * texture->vert_texture_uv->used * sizeof( float )
+		, texture->vert_texture_uv->data, GL_DYNAMIC_DRAW );
+
+	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, 0 );
+	CheckErr();
+	glEnableVertexAttribArray(data->texture_attrib);
+	CheckErr();
+	//glDisableVertexAttribArray(2);
+
 	//LIST_FORALL( data->vert_data, idx, struct private_shader_texture_data *, texture )
 	{
 
-		glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_pos->data );
-		CheckErr();
-		glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_texture_uv->data );            
-		CheckErr();
 		glActiveTexture(GL_TEXTURE0 + 0);
 		CheckErr();
 		glBindTexture(GL_TEXTURE_2D+0, texture->texture);
@@ -207,8 +233,11 @@ static void CPROC SimpleTextureReset( PImageShaderTracker tracker, uintptr_t psv
 	//LIST_FORALL( data->vert_data, idx, struct private_shader_texture_data *, texture )
 	{
 		texture->vert_pos->used = 0;
+		texture->vert_color->used = 0;
 		texture->vert_texture_uv->used = 0;
 	}
+	EnqueLink( &data->availOps, texture );
+	DeleteLink( &data->vert_data, texture );
 }
 
 void CPROC SimpleTexture_AppendTristrip( struct image_shader_op *op, int triangles, uintptr_t psv, va_list args )
@@ -250,6 +279,7 @@ void CPROC SimpleTexture_AppendTristrip( struct image_shader_op *op, int triangl
 uintptr_t SetupSimpleTextureShader( uintptr_t psv )
 {
 	struct private_shader_data *data = New(struct private_shader_data );
+	data->availOps = NULL;
 	data->vert_data = NULL;
 	return (uintptr_t)data;
 }
@@ -261,9 +291,12 @@ void InitSimpleTextureShader( uintptr_t psv_data, PImageShaderTracker tracker )
 	struct private_shader_data *data = (struct private_shader_data *)psv_data;
 	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" } };
 
+	glGenVertexArrays( 1, &data->vao );
+	glGenBuffers( 3, data->vertexBuffer );
+
 	//SetShaderEnable( tracker, SimpleTextureEnable );
 	SetShaderOutput( tracker, SimpleTextureOutput );
-	SetShaderReset( tracker, SimpleTextureReset );
+	SetShaderResetOp( tracker, SimpleTextureReset );
 	SetShaderOpInit( tracker, SimpleTextureShader_OpInit );
 	SetShaderAppendTristrip( tracker, SimpleTexture_AppendTristrip );
 
@@ -312,21 +345,48 @@ static void CPROC SimpleTextureOutput2( PImageShaderTracker tracker, uintptr_t p
 {
 	struct private_shader_data *data = (struct private_shader_data *)psv;
 	struct private_shader_texture_data *texture;
-	glEnableVertexAttribArray(0);	CheckErr();
-	glEnableVertexAttribArray(data->texture_attrib);	CheckErr();
-	glEnableVertexAttribArray(data->color_attrib);	CheckErr();
+	
 	EnableShader( tracker );
-	//lprintf( "Specific is %p", psvKey );
-	texture = (struct private_shader_texture_data *)psvKey;
-	//LIST_FORALL( data->vert_data, idx, struct private_shader_texture_data *, texture )
-	{
-		glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, texture->vert_pos->data );  
-		CheckErr();
-		glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, texture->vert_texture_uv->data );  
-		CheckErr();
-		glVertexAttribPointer( data->color_attrib, 4, GL_FLOAT, FALSE, 0, texture->vert_color->data );  
-		CheckErr();
+	CheckErr();
 
+	//lprintf( "Specific is %p", psvKey );
+	texture = (struct private_shader_texture_data*)psvKey;
+
+	glBindVertexArray( data->vao );
+	CheckErr();
+
+	glBindBuffer( GL_ARRAY_BUFFER, data->vertexBuffer[0] );
+	CheckErr();
+	//glBufferData(GL_ARRAY_BUFFER, 32 * sizeof(float), vertexData, GL_STATIC_DRAW);
+	glBufferData( GL_ARRAY_BUFFER, texture->vert_pos->dimensions * texture->vert_pos->used * sizeof( float )
+		, texture->vert_pos->data, GL_DYNAMIC_DRAW );
+	CheckErr();
+
+	//glUniform4fv( tracker->color_attrib, 1, GL_FALSE, color );
+	glVertexAttribPointer( 0, texture->vert_pos->dimensions, GL_FLOAT, FALSE, 0, 0 );
+	CheckErr();
+	glEnableVertexAttribArray( 0 );
+	CheckErr();
+
+	glBindBuffer( GL_ARRAY_BUFFER, data->vertexBuffer[1] );
+	glBufferData( GL_ARRAY_BUFFER, texture->vert_texture_uv->dimensions * texture->vert_texture_uv->used * sizeof( float )
+		, texture->vert_texture_uv->data, GL_DYNAMIC_DRAW );
+
+	glVertexAttribPointer( data->texture_attrib, 2, GL_FLOAT, FALSE, 0, 0 );
+	CheckErr();
+	glEnableVertexAttribArray( data->texture_attrib );
+	CheckErr();
+
+	glBindBuffer( GL_ARRAY_BUFFER, data->vertexBuffer[2] );
+	glBufferData( GL_ARRAY_BUFFER, texture->vert_color->dimensions * texture->vert_color->used * sizeof( float )
+		, texture->vert_color->data, GL_DYNAMIC_DRAW );
+
+	glVertexAttribPointer( data->color_attrib, texture->vert_color->dimensions, GL_FLOAT, FALSE, 0, 0 );
+	CheckErr();
+	glEnableVertexAttribArray( data->color_attrib );
+	CheckErr();
+
+	{
 		//When rendering an objectwith this program.
 		glActiveTexture(GL_TEXTURE0 + 0);
 		CheckErr();
@@ -349,6 +409,9 @@ static void CPROC SimpleTextureReset2( PImageShaderTracker tracker, uintptr_t ps
 	texture->vert_pos->used = 0;
 	texture->vert_color->used = 0;
 	texture->vert_texture_uv->used = 0;
+	//lprintf( "Save old op on %p", data );
+	EnqueLink( &data->availOps, texture );
+	DeleteLink( &data->vert_data, texture );
 }
 
 void CPROC SimpleTexture_AppendTristrip2( struct image_shader_op *op, int triangles, uintptr_t psv, va_list args )
@@ -397,6 +460,7 @@ uintptr_t SetupSimpleShadedTextureShader( uintptr_t psv )
 {
 	struct private_shader_data *data = New(struct private_shader_data );
 	data->vert_data = NULL;
+	data->availOps = NULL;
 	return (uintptr_t)data;
 }
 
@@ -408,10 +472,13 @@ void InitSimpleShadedTextureShader( uintptr_t psv, PImageShaderTracker tracker )
 	struct private_shader_data *data = (struct private_shader_data *)psv;
 	struct image_shader_attribute_order attribs[] = { { 0, "vPosition" }, { 1, "in_TexCoord" }, { 2, "in_Color" } };
 
+	glGenVertexArrays( 1, &data->vao );
+	glGenBuffers( 3, data->vertexBuffer );
+
 	//SetShaderEnable( tracker, SimpleTextureEnable2 );
 	SetShaderAppendTristrip( tracker, SimpleTexture_AppendTristrip2 );
 	SetShaderOutput( tracker, SimpleTextureOutput2 );
-	SetShaderReset( tracker, SimpleTextureReset2 );
+	SetShaderResetOp( tracker, SimpleTextureReset2 );
 	SetShaderOpInit( tracker, SimpleTextureShader_OpInit2 );
 
 	if( l.glslVersion < 150 )

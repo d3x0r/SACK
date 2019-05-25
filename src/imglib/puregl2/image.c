@@ -55,12 +55,20 @@ static void OnFirstDraw3d( "@00 PUREGL Image Library" )( uintptr_t psv )
 #endif
 	tmp = 123;
 	glGetBooleanv( 0x8DFA/*GL_SHADER_COMPILER*/, &tmp );
+	const unsigned char *x = glGetString(GL_SHADING_LANGUAGE_VERSION);
 	lprintf( "Shader Compiler = %d", tmp );
+	if( strstr( (char const*)x, "WebGL") ) {
+		l.glslVersion = 150;
+	} else
 	{
+		int parts;
 		int high, low;
 		val = glGetString(GL_SHADING_LANGUAGE_VERSION);
-		sscanf( (const char*)val, "%d.%d", &high, &low );
-		l.glslVersion = high * 100 + low;
+		parts = sscanf( (const char*)val, "%d.%d", &high, &low );
+		if( parts == 2 )
+			l.glslVersion = high * 100 + low;
+		else if( parts == 1 )
+			l.glslVersion = high * 100;
 	}
 	lprintf( "Shader Version:%s", glGetString(GL_SHADING_LANGUAGE_VERSION) );
 	if( !tmp )
@@ -191,7 +199,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 	Image image;
 	if( !child_image)
 		return 0;
-	for( image = child_image; image && image->pParent; image = image->pParent );
+	for( image = child_image; image && image->pParent; image = image->pParent ){}
 
 	{
 		struct glSurfaceImageData *image_data = 

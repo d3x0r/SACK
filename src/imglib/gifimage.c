@@ -38,7 +38,7 @@
 #include <sharemem.h>
 #ifndef IMAGE_LIBRARY_SOURCE
 #  define IMAGE_LIBRARY_SOURCE
-#endif IMAGE_LIBRARY_SOURCE
+#endif //IMAGE_LIBRARY_SOURCE
 
 #include <imglib/imagestruct.h>
 #include "image.h"   // interface to internal IMAGE.C functions...

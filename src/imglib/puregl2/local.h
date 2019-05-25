@@ -7,7 +7,7 @@
 #endif
 #if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
 //#include <GLES/gl.h>
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
 #else
 #define USE_OPENGL
 #if defined( _WIN32 ) || defined( __LINUX__ )

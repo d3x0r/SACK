@@ -862,28 +862,29 @@ void OutputFontCache( void )
 	{
 		for( size = 0, pde = (PCACHE_DICT_ENTRY)GetLeastNode( fg.build.pPaths );
 	        pde;
-			  (size += StrLen( pde->word ) + 1), pde = (PCACHE_DICT_ENTRY)GetGreaterNode( fg.build.pPaths ) );
+			  (size += StrLen( pde->word ) + 1), pde = (PCACHE_DICT_ENTRY)GetGreaterNode( fg.build.pPaths ) ){}
 		sack_fprintf( out, "%%@%" c_32f ",%" c_size_f "\n", GetNodeCount( fg.build.pPaths ), size );
 	}
 	if( fg.build.pFamilies )
 	{
 		for( size = 0, pde = (PCACHE_DICT_ENTRY)GetLeastNode( fg.build.pFamilies );
    	     pde;
-			  (size += StrLen( pde->word ) + 1),pde = (PCACHE_DICT_ENTRY)GetGreaterNode( fg.build.pFamilies ) );
+			  (size += StrLen( pde->word ) + 1),pde = (PCACHE_DICT_ENTRY)GetGreaterNode( fg.build.pFamilies ) ){}
 		sack_fprintf( out, "%%$%" c_32f ",%" c_size_f "\n", GetNodeCount( fg.build.pFamilies ), size );
 	}
 	if( fg.build.pStyles )
 	{
 		for( size = 0,pde = (PCACHE_DICT_ENTRY)GetLeastNode( fg.build.pStyles );
    	     pde;
-			  (size += StrLen( pde->word ) + 1),pde = (PCACHE_DICT_ENTRY)GetGreaterNode( fg.build.pStyles ) );
+			  (size += StrLen( pde->word ) + 1),pde = (PCACHE_DICT_ENTRY)GetGreaterNode( fg.build.pStyles ) ){}
 	   sack_fprintf( out, "%%*%" c_32f ",%" c_size_f "\n", GetNodeCount( fg.build.pStyles ), size );
 	}
 	if( fg.build.pFiles )
 	{
 		for( size = 0,pde = (PCACHE_DICT_ENTRY)GetLeastNode( fg.build.pFiles );
    	     pde;
-			  (size += StrLen( pde->word ) + 1),pde = (PCACHE_DICT_ENTRY)GetGreaterNode( fg.build.pFiles ) );
+			  (size += StrLen( pde->word ) + 1),pde = (PCACHE_DICT_ENTRY)GetGreaterNode( fg.build.pFiles ) )
+		{}
 	   sack_fprintf( out, "%%&%" c_32f ",%" c_size_f "\n", GetNodeCount( fg.build.pFiles ), size );
 	}
 
@@ -1368,11 +1369,11 @@ void BuildFontCache( void )
 
 	// .psf.gz doesn't load directly.... 
 	while( ScanFiles( ".", "*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz", &data
-						 , ListFontFile, SFF_SUBCURSE, 0 ) );
+						 , ListFontFile, SFF_SUBCURSE, 0 ) ){}
 #ifndef __ANDROID__
 
 	while( ScanFiles( "%resources%", "*.ttf\t*.ttc\t*.fon\t*.TTF\t*.pcf.gz\t*.pf?\t*.fnt\t*.psf.gz", &data
-						 , ListFontFile, SFF_SUBCURSE, 0 ) );
+						 , ListFontFile, SFF_SUBCURSE, 0 ) ){}
 #endif
 
 	// scan windows/fonts directory

@@ -18,7 +18,7 @@
 #include <string.h>
 #ifndef IMAGE_LIBRARY_SOURCE
 #  define IMAGE_LIBRARY_SOURCE
-#endif IMAGE_LIBRARY_SOURCE
+#endif //IMAGE_LIBRARY_SOURCE
 
 #include <imglib/imagestruct.h>
 #include "jpgimage.h"
@@ -409,7 +409,7 @@ LOGICAL JpgImageFile( Image image, uint8_t **buf, size_t *size, int Q )
 			  out[1] = (*in++);
 			  out[0] = (*in++);
 			}
-			(*in++);
+			(in++);
 			out += 3;
 	  }
   }

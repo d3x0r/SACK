@@ -66,6 +66,8 @@ struct simple_shader_data
 	int color_attrib;
 	float *next_color;
 	struct simple_shader_op_data data;
+	GLuint vao;
+	GLuint vertexBuffer[2];
 	//struct shader_buffer *vert_pos;
 	//struct shader_buffer *vert_color;
 };
@@ -91,24 +93,40 @@ void CPROC SimpleShader_Output( PImageShaderTracker tracker, uintptr_t psv, uint
 	//struct simple_shader_op_data *shaderOp = (struct simple_shader_op_data *)psvKey;
 ;
 	EnableShader( tracker );
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glDisableVertexAttribArray(2);
 
-	glVertexAttribPointer( 0, 3, GL_FLOAT, FALSE, 0, data->data.vert_pos->data );
-	glVertexAttribPointer( 1, 4, GL_FLOAT, FALSE, 0, data->data.vert_color->data );
+	glBindVertexArray( data->vao );
+	glBindBuffer(GL_ARRAY_BUFFER, data->vertexBuffer[0]);
+	//glBufferData(GL_ARRAY_BUFFER, 32 * sizeof(float), vertexData, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, data->data.vert_pos->dimensions * data->data.vert_pos->used * sizeof(float)
+		, data->data.vert_pos->data, GL_DYNAMIC_DRAW);
+
+	CheckErr();
+
+	glVertexAttribPointer( 0, data->data.vert_pos->dimensions, GL_FLOAT, FALSE, 0, 0 );
+	CheckErr();
+	glEnableVertexAttribArray(0);
+	CheckErr();
+	glBindBuffer(GL_ARRAY_BUFFER, data->vertexBuffer[1]);
+	//glBufferData(GL_ARRAY_BUFFER, 32 * sizeof(float), vertexData, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, data->data.vert_color->dimensions * data->data.vert_color->used * sizeof(float)
+		, data->data.vert_color->data, GL_STATIC_DRAW);
+
+	glVertexAttribPointer( 1, data->data.vert_color->dimensions, GL_FLOAT, FALSE, 0, 0 );
+	CheckErr();
+	glEnableVertexAttribArray(1);
+	CheckErr();
 	//lprintf( "Set data %p %p  %d,%d", data->vert_pos->data, data->vert_color->data, from,to );
 	//CheckErr();
 	//glUniform4fv( psv, 1, color );
 	//CheckErr();
 	glDrawArrays( GL_TRIANGLES, from, to- from);
 	CheckErr();
+	glBindVertexArray( 0 );
 }
 
-void CPROC SimpleShader_Reset( PImageShaderTracker tracker, uintptr_t psv, uintptr_t psvKey )
+void CPROC SimpleShader_Reset( PImageShaderTracker tracker, uintptr_t psv )
 {
 	struct simple_shader_data *data = (struct simple_shader_data *)psv;
-	//struct simple_shader_op_data *shaderOp = (struct simple_shader_op_data *)psvKey;
 
 	data->data.vert_pos->used = 0;
 	data->data.vert_color->used = 0;
@@ -166,6 +184,9 @@ void InitSuperSimpleShader( uintptr_t psv, PImageShaderTracker tracker )
 	const char *v_codeblocks[2];
 	const char *p_codeblocks[2];
 
+	glGenVertexArrays( 1, &data->vao );
+	glGenBuffers( 2, data->vertexBuffer );
+
 	if( l.glslVersion < 150 )
 	{
 		v_codeblocks[0] = gles_simple_v_shader_1_30;
@@ -185,6 +206,7 @@ void InitSuperSimpleShader( uintptr_t psv, PImageShaderTracker tracker )
 		data->color_attrib = glGetAttribLocation(tracker->glProgramId, "in_Color" );
 		SetShaderOpInit( tracker, SimpleShader_OpInit );
 		SetShaderOutput( tracker, SimpleShader_Output );
+		//SetShaderResetOp( tracker, SimpleShader_Reset );
 		SetShaderReset( tracker, SimpleShader_Reset );
 		SetShaderAppendTristrip( tracker, SimpleShader_AppendTristrip );
 	}

@@ -16,6 +16,11 @@
 #include "../jpgimage.h"
 IMAGE_NAMESPACE
 
+#undef CreateShaderBuffer
+static struct shader_buffer* CPROC CreateShaderBuffer( int dimensions, int start_size, int expand_by ) {
+	return CreateShaderBuffer_( dimensions, start_size, expand_by DBG_SRC );
+}
+
 IMAGE_INTERFACE RealImageInterface = {
   SetStringBehavior
 , NULL //SetBlotMethod
@@ -162,7 +167,7 @@ IMAGE_3D_INTERFACE Image3dInterface = {
 		AppendShaderTristripQuad,
 		SetShaderAppendTristrip,
 		SetShaderOutput,
-		SetShaderReset,
+		SetShaderResetOp,
 		AppendShaderTristrip,
 		//BeginShaderOp,
 		//ClearShaderOp,
@@ -214,6 +219,12 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 {
 	RegisterInterface( "puregl2.image", (void*(CPROC*)(void))GetImageInterface, (void(CPROC*)(void*))DropImageInterface );
 	RegisterInterface( "puregl2.image.3d", GetImage3dInterface, DropImage3dInterface );
+
+#ifdef __EMSCRIPTEN__
+	RegisterClassAlias( "system/interfaces/puregl2.image", "system/interfaces/image" );
+	RegisterClassAlias( "system/interfaces/puregl2.image.3d", "system/interfaces/image.3d" );
+#endif
+
 	l.scale = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Image Library/Scale", 10 );
 	if( l.scale == 0.0 )
 	{

@@ -703,9 +703,7 @@ void RenderMonoChar( PFONT font
 	Log2( "Metrics: advance %d %d", metrics->horiAdvance, metrics->vertAdvance );
 	*/
 	if( bitmap->width > 1000 ||
-	    bitmap->width < 0 ||
-	    bitmap->rows > 1000 ||
-	    bitmap->rows < 0 )
+	    bitmap->rows > 1000 )
 	{
 		Log3( "Failing character %" _size_f " rows: %" _32f "  width: %" _32f, idx, bitmap->width, bitmap->rows );
 		font->character[idx] = NULL;
@@ -940,10 +938,8 @@ void RenderGreyChar( PFONT font
 	Log2( "Metrics: width %d bearing X %d", metrics->width, metrics->horiBearingX );
 	Log2( "Metrics: advance %d %d", metrics->horiAdvance, metrics->vertAdvance );
 	*/
-	if( bitmap->width > 2000 ||
-	    bitmap->width < 0 ||
-	    bitmap->rows > 2000 ||
-	    bitmap->rows < 0 )
+	if( bitmap->width > 2000  ||
+	    bitmap->rows > 2000 )
 	{
 		Log3( "Failing character %" _size_f " rows: %d  width: %d", idx, bitmap->width, bitmap->rows );
 		font->character[idx] = NULL;
@@ -1175,9 +1171,7 @@ void RenderColorChar( PFONT font
 	Log2( "Metrics: advance %d %d", metrics->horiAdvance, metrics->vertAdvance );
 	*/
 	if( bitmap->width > 1000 ||
-	    bitmap->width < 0 ||
-	    bitmap->rows > 1000 ||
-	    bitmap->rows < 0 )
+	    bitmap->rows > 1000 )
 	{
 		Log3( "Failing character %" _size_f " rows: %d  width: %d", idx, bitmap->width, bitmap->rows );
 		font->character[idx] = NULL;

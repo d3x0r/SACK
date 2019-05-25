@@ -8,7 +8,7 @@
 IMAGE_NAMESPACE
 
 //const char *gles_
-#if 0
+
 static const char *gles_simple_v_multi_shader =
    "precision mediump float;\n"
 	"precision mediump int;\n"
@@ -17,13 +17,22 @@ static const char *gles_simple_v_multi_shader =
 	 "uniform mat4 Projection;\n" 
 	 "attribute vec2 in_texCoord;\n" 
      "attribute vec4 vPosition;" 
-	 " varying vec2 out_texCoord;\n" 
+	"attribute  vec4 multishade_r_a;\n"
+	"attribute  vec4 multishade_g_a;\n"
+	"attribute  vec4 multishade_b_a;\n"
+	"\n"
+	" varying vec2 out_texCoord;\n"
+	" varying vec4 multishade_r;\n" 
+	" varying vec4 multishade_g;\n"
+	" varying vec4 multishade_b;\n"
 	// "in  vec4 in_Color;\n"
 	// "out vec4 ex_Color;\n"
      "void main(void) {"
      "  gl_Position = Projection * worldView * modelView * vPosition;"
 	 "out_texCoord = in_texCoord;\n" 
-	// "  ex_Color = in_Color;" 
+	"multishade_r = multishade_r_a;\n"
+	"multishade_g = multishade_g_a;\n"
+	"multishade_b = multishade_b_a;\n"
      "}"; 
 
 
@@ -32,9 +41,9 @@ static const char *gles_simple_p_multi_shader =
 	"precision mediump int;\n"
 	     " varying vec2 out_texCoord;\n" 
         "uniform sampler2D tex;\n" 
-        "uniform vec4 multishade_r;\n" 
-        "uniform vec4 multishade_g;\n" 
-        "uniform vec4 multishade_b;\n" 
+        "varying vec4 multishade_r;\n" 
+        "varying vec4 multishade_g;\n" 
+        "varying vec4 multishade_b;\n" 
         "\n" 
         "void main(void)\n"
         "{\n" 
@@ -48,7 +57,7 @@ static const char *gles_simple_p_multi_shader =
         "                )\n"
         "		;\n" 
 				 "}\n" ;
-#endif
+
 static const char *gles_simple_v_multi_shader_1_30 =
    //"precision mediump float;\n"
 	//"precision mediump int;\n"
@@ -303,7 +312,7 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 	//SetShaderEnable( tracker, SimpleMultiShadedTextureEnable, (uintptr_t)data );
 	SetShaderAppendTristrip( tracker, SimpleMultiShadedTexture_AppendTristrip );
 	SetShaderOutput( tracker, SimpleMultiShadedTextureOutput );
-	SetShaderReset( tracker, SimpleMultiShadedTextureReset );
+	SetShaderResetOp( tracker, SimpleMultiShadedTextureReset );
 	SetShaderOpInit( tracker, SimpleMultiShadedTextureShader_OpInit );
 
 	if( result = glGetError() )
@@ -311,14 +320,13 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 		lprintf( "unhandled error before shader" );
 	}
 
-	//if( 1 || l.glslVersion < 150 )
+	if( l.glslVersion < 150 )
 	{
 		v_codeblocks[0] = gles_simple_v_multi_shader_1_30;
 		v_codeblocks[1] = NULL;
 		p_codeblocks[0] = gles_simple_p_multi_shader_1_30;
 		p_codeblocks[1] = NULL;
 	}
-	/*
 	else
 	{
 		v_codeblocks[0] = gles_simple_v_multi_shader;
@@ -326,7 +334,7 @@ void InitSimpleMultiShadedTextureShader( uintptr_t psvInst, PImageShaderTracker 
 		p_codeblocks[0] = gles_simple_p_multi_shader;
 		p_codeblocks[1] = NULL;
 	}
-	*/
+
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 5 ) )
 	{
 		if( !data )

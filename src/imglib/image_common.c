@@ -1303,7 +1303,7 @@ Image GetInvertedImage( Image child_image )
    if( !image_common_local.shade_cache )
 		image_common_local.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
 
-	for( image = child_image; image && image->pParent; image = image->pParent );
+	for( image = child_image; image && image->pParent; image = image->pParent ){}
 
 	{
 		CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (uintptr_t)image );
@@ -1372,7 +1372,7 @@ Image GetShadedImage( Image child_image, CDATA red, CDATA green, CDATA blue )
 		image_common_local.shade_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
 
    // go to topmost parent image.
-	for( image = child_image; image && image->pParent; image = image->pParent );
+	for( image = child_image; image && image->pParent; image = image->pParent ){}
 
 	{
 		CPOINTER node = FindInBinaryTree( image_common_local.shade_cache, (uintptr_t)image );
@@ -1442,7 +1442,7 @@ Image GetTintedImage( Image child_image, CDATA color )
 		image_common_local.tint_cache = CreateBinaryTreeExtended( 0, ComparePointer, NULL DBG_SRC );
 
    // go to topmost parent image.
-	for( image = child_image; image && image->pParent; image = image->pParent );
+	for( image = child_image; image && image->pParent; image = image->pParent ){}
 
 	{
 		CPOINTER node = FindInBinaryTree( image_common_local.tint_cache, (uintptr_t)image );
