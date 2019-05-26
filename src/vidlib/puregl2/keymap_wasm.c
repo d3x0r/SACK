@@ -63,23 +63,19 @@ static struct keymap_state
 
 const TEXTCHAR * GetKeyText (int key)
 {
-   if( l.current_key_text )
+	if( l.current_key_text )
 		return l.current_key_text;
-   return 0;
+	return 0;
 }
 
 
 int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 {
-   int used = 0;
-	int bOutput = 0;
+	int used = 0;
 	// check current keyboard override...
 	int mod = keymap_local.flags.bShifted?1:0;
 	{
 		int result = 0;
-		l.current_key_text = "KEY TEXT";
-		used = 1;
-		bOutput = 1;
 	}
 	{
 		if( l.hVidVirtualFocused )
@@ -95,7 +91,7 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 			}
 		}
 	}
-   return used;
+	return used;
 }
 
 

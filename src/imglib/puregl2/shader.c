@@ -94,7 +94,9 @@ void FlushShaders( struct glSurfaceData *glSurface )
 	INDEX idx2;
 	GLboolean depth_enabled;
 	PLIST trackers = NULL;
-	glGetBooleanv( GL_DEPTH_TEST, &depth_enabled );
+	//glGetBooleanv( GL_DEPTH_TEST, &depth_enabled );
+	depth_enabled = 1;
+	glEnable( GL_DEPTH_TEST ); CheckErr();
 	LIST_FORALL( glSurface->shader_local.image_shader_operations, idx, struct image_shader_image_buffer *, image_shader_op )
 	{
 		// target image has a translation....
@@ -192,8 +194,9 @@ void EnableShader( PImageShaderTracker tracker, ... )
 
 	//xlprintf( LOG_WARNING+1 )( "Enable shader %s", tracker->name );
 	glUseProgram( tracker->glProgramId );
+#ifdef _DEBUG
 	CheckErrf( "Failed glUseProgram (%s)", tracker->name );
-
+#endif
 	if( tracker->flags.set_modelview && tracker->modelview >= 0 )
 	{
 		//glUseProgram( tracker->glProgramId );
@@ -218,7 +221,9 @@ void EnableShader( PImageShaderTracker tracker, ... )
 		{
 			//lprintf( "Set worldview" );	
 			glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
+#ifdef _DEBUG
 			CheckErrf( " (%s)", tracker->name );
+#endif
 		}
 		//else
 		//	lprintf( "no worldview to set..." );
@@ -531,10 +536,10 @@ void SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix )
 	if( tracker )
 	{
 		glUseProgram(tracker->glProgramId);
-		CheckErrf( "SetModelView for (%s)", tracker->name );
+		//CheckErrf( "SetModelView for (%s)", tracker->name );
 
 		glUniformMatrix4fv( tracker->modelview, 1, GL_FALSE, matrix );
-		CheckErrf( "SetModelView for (%s)", tracker->name );
+		//CheckErrf( "SetModelView for (%s)", tracker->name );
 
 		// modelview already set for shader... so do not set it on enable?
 		tracker->flags.set_modelview = 0;
@@ -655,10 +660,11 @@ struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image t
 {
 	struct image_shader_op *isibo;
 	struct image_shader_image_buffer *image_shader_op;
-	GLboolean depth;
+	GLboolean depth = l.depth_enabled;
 	if( !tracker )
 		return NULL;
-	glGetBooleanv(GL_DEPTH_TEST, &depth ); 
+
+	//glGetBooleanv(GL_DEPTH_TEST, &depth ); 
 
 	if( l.glActiveSurface->shader_local.last_operation 
 		&& l.glActiveSurface->shader_local.last_operation->tracker == tracker
@@ -775,6 +781,10 @@ void SetUniformMatrix4fv( int uniformId, int n, int sign, RCOORD *v1 ) {
 	glUniformMatrix4fv( uniformId, n, sign, v1 );
 	CheckErr();
 
+}
+
+void EnableDepthTest( LOGICAL yesno ) {
+	l.depth_enabled = yesno;
 }
 
 IMAGE_NAMESPACE_END

@@ -104,13 +104,13 @@ void  GetDisplaySizeEx ( int nDisplay
 		//lprintf( "Didn't have a display yet.. .wait..." );
 		Relinquish();
 	}
-	  if( x )
-         (*x) = 0;
-		if( y )
-			(*y) = 0;
-
-		{
-         int set = 0;
+	if( x )
+		(*x) = 0;
+	if( y )
+		(*y) = 0;
+        
+	{
+			int set = 0;
 			if( l.cameras )
 			{
 				struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
@@ -124,7 +124,7 @@ void  GetDisplaySizeEx ( int nDisplay
 						(*height) = camera->h;
 				}
 			}
-         if( !set )
+			if( !set )
 			{
 				if( width )
 					(*width) = l.default_display_x;
@@ -236,14 +236,14 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 	}
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);				// Black Background
-	CheckErr();
+	//CheckErr();
 	glClearDepthf(1.0f);									// Depth Buffer Setup
-	CheckErr();
+	//CheckErr();
 	//lprintf( "glClear" );
 	glClear(GL_COLOR_BUFFER_BIT
 			  | GL_DEPTH_BUFFER_BIT
 			 );	// Clear Screen And Depth Buffer
-	CheckErr();
+	//CheckErr();
 
 	return TRUE;										// Initialization Went OK
 }
@@ -417,9 +417,42 @@ static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEve
 
 }
 
-static EM_BOOL em_key_callback_handler(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData){
-	lprintf( "Key callback..." );
+static EM_BOOL em_key_callback_handler(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData, int pressed, const char *key ){
+	if( keyEvent->keyCode == KEY_BACKSPACE ) {
+		key = "\b";
+	}
+	if( l.current_key_text )
+		free( (char*)l.current_key_text );
+	l.current_key_text = strdup( key );
+
+	if( pressed < 2 ) {
+		int mod = (keyEvent->ctrlKey?KEY_MOD_CTRL:0)
+			+(keyEvent->shiftKey?KEY_MOD_SHIFT:0)
+			+(keyEvent->altKey?KEY_MOD_ALT:0)
+			+(keyEvent->metaKey?KEY_MOD_META:0);
+
+		return SACK_Vidlib_SendKeyEvents( pressed, keyEvent->keyCode, mod );
+	}
 	return false;
+	//EM_BOOL ctrlKey EM_BOOL shiftKey EM_BOOL altKey EM_BOOL metaKey
+	// 
+}
+
+
+static EM_BOOL em_key_callback_handler_dn(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData){
+	//lprintf( "Key dn callback... %s %s", keyEvent->key, keyEvent->code  );
+	//lprintf( "Key dn callback... %d %d %d", keyEvent->charCode, keyEvent->keyCode , keyEvent->which );
+	return em_key_callback_handler( eventType, keyEvent, userData, 1, keyEvent->key );
+}
+static EM_BOOL em_key_callback_handler_up(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData){
+	//lprintf( "Key up callback... %s %s", keyEvent->key, keyEvent->code  );
+	//lprintf( "Key up callback... %d %d %d", keyEvent->charCode, keyEvent->keyCode , keyEvent->which );
+	return em_key_callback_handler( eventType, keyEvent, userData, 0, keyEvent->key );
+}
+static EM_BOOL em_key_callback_handler_pr(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData){
+	//lprintf( "Key pr callback... %s %s", keyEvent->key, keyEvent->code  );
+	//lprintf( "Key pr callback... %d %d %d", keyEvent->charCode, keyEvent->keyCode , keyEvent->which );
+	return em_key_callback_handler( eventType, keyEvent, userData, 2, keyEvent->key );
 }
 
 static EM_BOOL em_webgl_context_handler(int eventType, const void *reserved, void *userData){
@@ -450,9 +483,9 @@ PRELOAD( do_init_display ) {
 	r = emscripten_set_mouseleave_callback(display, myState, true, em_mouse_callback_handler);
 
 
-	r = emscripten_set_keypress_callback(display, myState, true, em_key_callback_handler);
-	r = emscripten_set_keydown_callback(display, myState, true, em_key_callback_handler);
-	r = emscripten_set_keyup_callback(display, myState, true, em_key_callback_handler);
+	//r = emscripten_set_keypress_callback(display, myState, true, em_key_callback_handler_pr);
+	r = emscripten_set_keydown_callback(display, myState, true, em_key_callback_handler_dn);
+	r = emscripten_set_keyup_callback(display, myState, true, em_key_callback_handler_up);
 
 	r = emscripten_set_webglcontextlost_callback(display, myState, true, em_webgl_context_handler);
 	r = emscripten_set_webglcontextrestored_callback(display, myState, true, em_webgl_context_handler);

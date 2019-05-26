@@ -65,11 +65,15 @@ RENDER_NAMESPACE
 
 #define WM_USER_OPEN_CAMERAS    WM_USER+518
 
-#define CheckErr()  				{    \
+#ifdef _DEBUG
+#  define CheckErr()  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
 						lprintf( "err=%d ",err ); \
 				}                               
+#else
+#  define CheckErr()
+#endif
 #define CheckErrf(f,...)  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
@@ -365,6 +369,7 @@ void SetupPositionMatrix( struct display_camera *camera );
 void SetCameraNativeHandle( struct display_camera *camera );
 #endif
 
+int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods );
 int EnableOpenGL( struct display_camera *camera );
 int SetActiveGLDisplayView( struct display_camera *camera, int nFracture );
 int SetActiveGLDisplay( struct display_camera *camera );

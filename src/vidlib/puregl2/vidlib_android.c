@@ -74,35 +74,35 @@ void  GetDisplaySizeEx ( int nDisplay
 		//lprintf( "Didn't have a display yet.. .wait..." );
 		Relinquish();
 	}
-	  if( x )
-         (*x) = 0;
-		if( y )
-			(*y) = 0;
+	if( x )
+		(*x) = 0;
+	if( y )
+		(*y) = 0;
 
+	{
+		int set = 0;
+		if( l.cameras )
 		{
-         int set = 0;
-			if( l.cameras )
+			struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
+			if( camera && ( camera != (struct display_camera*)1 ) )
 			{
-				struct display_camera *camera = (struct display_camera *)GetLink( &l.cameras, 0 );
-				if( camera && ( camera != (struct display_camera*)1 ) )
-				{
-					set = 1;
-               lprintf( "was able to get size from camera..." );
-					if( width )
-						(*width) = camera->w;
-					if( height )
-						(*height) = camera->h;
-				}
-			}
-         if( !set )
-			{
+				set = 1;
+				lprintf( "was able to get size from camera..." );
 				if( width )
-					(*width) = l.default_display_x;
+					(*width) = camera->w;
 				if( height )
-					(*height) = l.default_display_y;
+					(*height) = camera->h;
 			}
 		}
-		//lprintf( "Asked for size... %d,%d", (*width), (*height) );
+		if( !set )
+		{
+			if( width )
+				(*width) = l.default_display_x;
+			if( height )
+				(*height) = l.default_display_y;
+		}
+	}
+	//lprintf( "Asked for size... %d,%d", (*width), (*height) );
 }
 
 
@@ -114,9 +114,9 @@ void SetCameraNativeHandle( struct display_camera *camera )
 // this is dynamically linked from the loader code to get the window
 void SACK_Vidlib_SetNativeWindowHandle( NativeWindowType displayWindow )
 {
-   lprintf( "Setting native window handle... (shouldn't this do something else?)" );
+	lprintf( "Setting native window handle... (shouldn't this do something else?)" );
 	l.displayWindow = displayWindow;
-   // Standard init (was looking more like a common call thing)
+	// Standard init (was looking more like a common call thing)
 	HostSystem_InitDisplayInfo();
 	// creates the cameras.
 
@@ -132,7 +132,7 @@ void SACK_Vidlib_SetNativeWindowHandle( NativeWindowType displayWindow )
 
 void SACK_Vidlib_SetAnimationWake( void (*wake_callback)(void))
 {
-   l.wake_callback = wake_callback;
+	l.wake_callback = wake_callback;
 }
 
 void HostSystem_InitDisplayInfo(void )

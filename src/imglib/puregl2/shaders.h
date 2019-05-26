@@ -22,11 +22,15 @@
 					lprintf( "err=%d " f,err,##__VA_ARGS__ ); \
 				}                               
 #else
-#define CheckErr()  				{    \
-					GLenum err = glGetError();  \
-					if( err )                   \
-						lprintf( "err=%d ",err ); \
-				}                               
+#if _DEBUG
+#  define CheckErr()  				{    \
+						GLenum err = glGetError();  \
+						if( err )                   \
+							lprintf( "err=%d ",err ); \
+					}                               
+#else
+#  define CheckErr()
+#endif	
 #define CheckErrf(f,...)  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
