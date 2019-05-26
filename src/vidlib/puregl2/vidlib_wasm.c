@@ -281,12 +281,15 @@ void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveX
 #define NULL ((void*)0)
 
 static EM_BOOL em_touch_callback_handler(int eventType, const EmscriptenTouchEvent *touchEvent, void *userData){
+	struct display_camera *camera = ((struct display_camera**)userData)[0];
+   if( !camera ) return false;
 	lprintf( "Touch callback..." );
 	return false; // or true consumed
 }
 
 static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEvent *mouseEvent, void *userData) {
 	struct display_camera *camera = ((struct display_camera**)userData)[0];
+   if( !camera ) return false;
 	double mTick = mouseEvent->timestamp;
 	EM_BOOL retval = FALSE;
 	// mouseEvent->screenX, mouseEvent->screenY
@@ -418,6 +421,8 @@ static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEve
 }
 
 static EM_BOOL em_key_callback_handler(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData, int pressed, const char *key ){
+	struct display_camera *camera = ((struct display_camera**)userData)[0];
+   if( !camera ) return false;
 	if( keyEvent->keyCode == KEY_BACKSPACE ) {
 		key = "\b";
 	}
@@ -457,6 +462,8 @@ static EM_BOOL em_key_callback_handler_pr(int eventType, const EmscriptenKeyboar
 
 static EM_BOOL em_webgl_context_handler(int eventType, const void *reserved, void *userData){
 
+	struct display_camera *camera = ((struct display_camera**)userData)[0];
+   if( !camera ) return false;
 	return false;
 }
 
