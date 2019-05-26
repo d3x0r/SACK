@@ -44,7 +44,7 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 	if( last_active )
 	{
 		lprintf( "This commits the prior frame %d", last_active );
-		emscripten_webgl_commit_frame( last_active );
+		//emscripten_webgl_commit_frame( last_active );
 		last_active = 0;
 	}
 	if( camera )
@@ -137,42 +137,40 @@ void  GetDisplaySizeEx ( int nDisplay
 
 void SetCameraNativeHandle( struct display_camera *camera )
 {
-	lprintf( "SET CAMERA HRC: %p", l.displayWindow );
-   camera->displayWindow = l.displayWindow;
+	//lprintf( "SET CAMERA HRC: %p", l.displayWindow );
+	camera->displayWindow = l.displayWindow;
 }
 
-// this is dynamically linked from the loader code to get the window
-void SACK_Vidlib_SetNativeWindowHandle( EMSCRIPTEN_WEBGL_CONTEXT_HANDLE    displayWindow )
-{
-   lprintf( "Setting native window handle... (shouldn't this do something else?) %p", displayWindow );
-	l.displayWindow = displayWindow;
-   // Standard init (was looking more like a common call thing)
-	HostSystem_InitDisplayInfo();
-	// creates the cameras.
-
-	LoadOptions();
-
-	if( !l.bThreadRunning )
-	{
-		l.bThreadRunning = TRUE;
-		//SACK_Vidlib_OpenCameras();
-	}
-	//l.flags.disallow_3d = (RCOORD)SACK_GetProfileInt( GetProgramName(), "SACK/Video Render/Disallow 3D", 1 );
-}
-
-void SACK_Vidlib_SetAnimationWake( void (*wake_callback)(void))
-{
-   l.wake_callback = wake_callback;
-}
 
 void HostSystem_InitDisplayInfo(void )
 {
 	// this is passed in from the external world; do nothing, but provide the hook.
 	// have to wait for this ....
 	//lprintf( "SET size here..." );
-   emscripten_webgl_get_drawing_buffer_size( l.displayWindow, &l.default_display_x, &l.default_display_y );
+	emscripten_webgl_get_drawing_buffer_size( l.displayWindow, &l.default_display_x, &l.default_display_y );
 	//default_display_x	ANativeWindow_getFormat( camera->displayWindow)
+}
 
+// this is dynamically linked from the loader code to get the window
+void SACK_Vidlib_SetNativeWindowHandle( EMSCRIPTEN_WEBGL_CONTEXT_HANDLE    displayWindow )
+{
+	//lprintf( "Setting native window handle... (shouldn't this do something else?) %p", displayWindow );
+
+	l.displayWindow = displayWindow;
+	// Standard init (was looking more like a common call thing)
+	HostSystem_InitDisplayInfo();
+	// creates the cameras.
+
+	LoadOptions();
+
+	l.bThreadRunning = TRUE; // it is.
+}
+
+void SACK_Vidlib_SetAnimationWake( void (*wake_callback)(void))
+{
+	// this is called when the  display wants a update
+	// but it's not continuous update.
+	l.wake_callback = wake_callback;
 }
 
 // this is linked to external native activiety shell...
@@ -216,7 +214,7 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 //		return FALSE;
 	if( !camera->flags.init )
 	{
-		lprintf( "First setup" );
+		//lprintf( "First setup" );
 		glEnable( GL_BLEND );
 		CheckErr();
 		glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
@@ -258,8 +256,8 @@ void SetupPositionMatrix( struct display_camera *camera )
 void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveXXDisplay
 {
 	lprintf( "End of rendering... all done." );
-	emscripten_webgl_commit_frame( camera->displayWindow );
-	last_active = 0;
+	//emscripten_webgl_commit_frame( camera->displayWindow );
+	//last_active = 0;
 #ifdef USE_EGL
 	//lprintf( "doing swap buffer..." );
 	eglSwapBuffers( camera->egl_display, camera->surface );
