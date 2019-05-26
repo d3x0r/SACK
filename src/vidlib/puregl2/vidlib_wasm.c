@@ -37,13 +37,14 @@ RENDER_NAMESPACE
 
 HWND  GetNativeHandle (PVIDEO hVideo);
 
-	static EMSCRIPTEN_WEBGL_CONTEXT_HANDLE last_active;
+static struct display_camera *defaultCamera;
+static EMSCRIPTEN_WEBGL_CONTEXT_HANDLE last_active;
 
 int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 {
 	if( last_active )
 	{
-		lprintf( "This commits the prior frame %d", last_active );
+		//lprintf( "This commits the prior frame %d", last_active );
 		//emscripten_webgl_commit_frame( last_active );
 		last_active = 0;
 	}
@@ -51,16 +52,16 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 	{
 		if( camera->hVidCore )
 		{
-			lprintf( "Setting camera display HRC: %p", camera->displayWindow );
+			//lprintf( "Setting camera display HRC: %p", camera->displayWindow );
 			emscripten_webgl_make_context_current( last_active = camera->displayWindow );
 		}
 	}
-   return 1;
+	return 1;
 }
 
 RENDER_PROC( int, SetActiveGLDisplay )( struct display_camera *hDisplay )
 {
-   return SetActiveGLDisplayView( hDisplay, 0 );
+	return SetActiveGLDisplayView( hDisplay, 0 );
 }
 
 
@@ -116,7 +117,7 @@ void  GetDisplaySizeEx ( int nDisplay
 				if( camera && ( camera != (struct display_camera*)1 ) )
 				{
 					set = 1;
-               lprintf( "was able to get size from camera..." );
+               				//lprintf( "was able to get size from camera..." );
 					if( width )
 						(*width) = camera->w;
 					if( height )
@@ -134,9 +135,13 @@ void  GetDisplaySizeEx ( int nDisplay
 		//lprintf( "Asked for size... %d,%d", (*width), (*height) );
 }
 
+struct display_camera **initializingCamera;
 
 void SetCameraNativeHandle( struct display_camera *camera )
 {
+	//lprintf( "SetCameraNativeHandle; called to set ahndle: %d", initializingCamera );
+	if( initializingCamera )
+		initializingCamera[0] = camera;
 	//lprintf( "SET CAMERA HRC: %p", l.displayWindow );
 	camera->displayWindow = l.displayWindow;
 }
@@ -148,6 +153,7 @@ void HostSystem_InitDisplayInfo(void )
 	// have to wait for this ....
 	//lprintf( "SET size here..." );
 	emscripten_webgl_get_drawing_buffer_size( l.displayWindow, &l.default_display_x, &l.default_display_y );
+	//lprintf( "SET WINDOW SIZE FROM CONTROL: %d %d", l.default_display_x, l.default_display_y );
 	//default_display_x	ANativeWindow_getFormat( camera->displayWindow)
 }
 
@@ -229,11 +235,11 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 		camera->flags.init = 1;
 	}
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.1f);				// Black Background
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);				// Black Background
 	CheckErr();
 	glClearDepthf(1.0f);									// Depth Buffer Setup
 	CheckErr();
-	lprintf( "glClear" );
+	//lprintf( "glClear" );
 	glClear(GL_COLOR_BUFFER_BIT
 			  | GL_DEPTH_BUFFER_BIT
 			 );	// Clear Screen And Depth Buffer
@@ -247,17 +253,16 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 void SetupPositionMatrix( struct display_camera *camera )
 {
 	// camera->origin_camera is valid eye position matrix
-#ifdef ALLOW_SETTING_GL1_MATRIX
 	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
-	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
+#ifdef ALLOW_SETTING_GL1_MATRIX
+	lprintf( "IS THIS SET?" );
+//	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 #endif
 }
 
 void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveXXDisplay
 {
-	lprintf( "End of rendering... all done." );
-	//emscripten_webgl_commit_frame( camera->displayWindow );
-	//last_active = 0;
+	//lprintf( "End of rendering... all done." );
 #ifdef USE_EGL
 	//lprintf( "doing swap buffer..." );
 	eglSwapBuffers( camera->egl_display, camera->surface );
@@ -276,30 +281,160 @@ void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveX
 #define NULL ((void*)0)
 
 static EM_BOOL em_touch_callback_handler(int eventType, const EmscriptenTouchEvent *touchEvent, void *userData){
-lprintf( "Touch callback..." );
-   return false; // or true consumed
+	lprintf( "Touch callback..." );
+	return false; // or true consumed
 }
 
 static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEvent *mouseEvent, void *userData) {
-lprintf( "Mouse callback..." );
-   return false; // or true consumed
+	struct display_camera *camera = ((struct display_camera**)userData)[0];
+	double mTick = mouseEvent->timestamp;
+	EM_BOOL retval = FALSE;
+	// mouseEvent->screenX, mouseEvent->screenY
+	// mouseEvent->clientX, mouseEvent->clientY
+	// EM_BOOL ctrlKey EM_BOOL shiftKey EM_BOOL altKey EM_BOOL metaKey
+	
+	//  canvasX long canvasY
+	//mouseEvent->button // which one changed.
+	//mouseEvent->buttons
+	// movementX long movementY;
+
+	l.mouse_b = mouseEvent->buttons;
+#if 0
+ // click-and drag capture...
+		//hWndLastFocus = hWnd;
+		if( l.hCameraCaptured )
+		{
+#ifdef LOG_MOUSE_EVENTS
+			lprintf( "Captured mouse already - don't do anything?" );
+#endif
+		}
+		else
+		{
+			if( ( ( _mouse_b ^ l.mouse_b ) & l.mouse_b & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON) ) )
+			{
+#ifdef LOG_MOUSE_EVENTS
+				lprintf( "Auto owning mouse to surface which had the mouse clicked DOWN." );
+#endif
+				if( !l.hCameraCaptured )
+					SetCapture( hWnd );
+			}
+			else if( ( (l.mouse_b & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON)) == 0 ) )
+			{
+				//lprintf( "Auto release mouse from surface which had the mouse unclicked." );
+				if( !l.hCameraCaptured )
+					ReleaseCapture();
+			}
+		}
+#endif
+		{
+			l.mouse_x = mouseEvent->targetX;
+			l.mouse_y = mouseEvent->targetY;
+		}
+#if 0
+		if( l.last_mouse_update )
+		{
+			if( ( l.last_mouse_update + 1000 ) < timeGetTime() )
+			{
+				if( !l.flags.mouse_on ) // mouse is off...
+					l.last_mouse_update = 0;
+			}
+		}
+		if( l.mouse_x != l._mouse_x ||
+			l.mouse_y != l._mouse_y ||
+			l.mouse_b != l._mouse_b ||
+			l.mouse_last_vid != hVideo ) // this hvideo!= last hvideo?
+		{
+			if( (!hVideo->flags.mouse_on || !l.flags.mouse_on ) && !hVideo->flags.bNoMouse)
+			{
+				int x;
+				if (!hCursor)
+					hCursor = LoadCursor (NULL, IDC_ARROW);
+#ifdef LOG_MOUSE_HIDE_IDLE
+				lprintf( "cursor on." );
+#endif
+				x = ShowCursor( TRUE );
+#ifdef LOG_MOUSE_HIDE_IDLE
+				lprintf( "cursor count %d %d", x, hCursor );
+#endif
+				SetCursor (hCursor);
+				l.flags.mouse_on = 1;
+				hVideo->flags.mouse_on = 1;
+			}
+			if( hVideo->flags.bIdleMouse )
+			{
+				l.last_mouse_update = timeGetTime();
+#ifdef LOG_MOUSE_HIDE_IDLE
+			lprintf( "Tick ... %d", l.last_mouse_update );
+#endif
+		}
+		l.mouse_last_vid = hVideo;
+#endif
+
+		if( l.flags.bRotateLock  )
+		{
+			lprintf( "rotate lock..." );
+			RCOORD delta_x = l.mouse_x - (camera->w/2);
+			RCOORD delta_y = l.mouse_y - (camera->h/2);
+			//lprintf( "mouse came in we're at %d,%d %g,%g", l.mouse_x, l.mouse_y, delta_x, delta_y );
+			if( delta_y || delta_x )
+			{
+				static int toggle;
+				delta_x /= camera->w;
+				delta_y /= camera->h;
+				if( toggle )
+				{
+					RotateRel( l.origin, delta_y, 0, 0 );
+					RotateRel( l.origin, 0, delta_x, 0 );
+				}
+				else
+				{
+					RotateRel( l.origin, 0, delta_x, 0 );
+					RotateRel( l.origin, delta_y, 0, 0 );
+				}
+				toggle = 1-toggle;
+				l.mouse_x = camera->w/2;
+				l.mouse_y = camera->h/2;
+				//lprintf( "Set curorpos.." );
+
+				//SetCursorPos( hVideo->pWindowPos.x + hVideo->pWindowPos.cx/2, hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2 );
+				//lprintf( "Set curorpos Done.." );
+			}
+		}
+		else if (camera->hVidCore->pMouseCallback)
+		{
+			retval = (EM_BOOL)camera->hVidCore->pMouseCallback (camera->hVidCore->dwMouseData,
+											l.mouse_x, l.mouse_y, l.mouse_b);
+		}
+		l._mouse_x = l.mouse_x;
+		l._mouse_y = l.mouse_y;
+		// clear scroll buttons...
+		// otherwise circumstances of mouse wheel followed by any other event
+		// continues to generate scroll clicks.
+		l.mouse_b &= ~( MK_SCROLL_UP|MK_SCROLL_DOWN);
+		l._mouse_b = l.mouse_b;
+	
+	return retval;			// don't allow windows to think about this...
+
 }
 
 static EM_BOOL em_key_callback_handler(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData){
-lprintf( "Key callback..." );
-   return false;
+	lprintf( "Key callback..." );
+	return false;
 }
 
 static EM_BOOL em_webgl_context_handler(int eventType, const void *reserved, void *userData){
 
-   return false;
+	return false;
 }
 
 
 PRELOAD( do_init_display ) {
 //void initDisplay() {
 	EMSCRIPTEN_RESULT r;
-	void *myState = NULL;
+	struct display_camera ** defaultCamera = New( struct display_camera * );
+	void *myState = (void*)defaultCamera;
+	defaultCamera[0] = NULL;
+	initializingCamera = defaultCamera;
 	const char *display = "SACK Display 1";
 	r = emscripten_set_touchstart_callback( display, myState, true, em_touch_callback_handler);
 	r = emscripten_set_touchend_callback(display, myState, true, em_touch_callback_handler);
@@ -345,7 +480,7 @@ PRELOAD( do_init_display ) {
 	hGL = emscripten_webgl_create_context(display, &attribs );
 	{
 		extern void SACK_Vidlib_SetNativeWindowHandle( EMSCRIPTEN_WEBGL_CONTEXT_HANDLE    displayWindow );
-		lprintf( "specify HRC %d", hGL );
+		//lprintf( "specify HRC %d", hGL );
 		SACK_Vidlib_SetNativeWindowHandle( hGL );
 	}
 	}

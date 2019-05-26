@@ -322,7 +322,7 @@ void OpenCamera( struct display_camera *camera );
 // --------------- Mouse 3d ------------
 void ComputeMouseRay( struct display_camera *camera, LOGICAL bUniverseSpace, PRAY mouse_ray, int32_t x, int32_t y );
 int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD x, RCOORD y, int *result_x, int *result_y );
-uintptr_t/*PRENDERER*/ CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b );
+uintptr_t CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b );
 int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 								, RCOORD *pT2, PVECTOR s2, PVECTOR o2 );
 // this uses coordiantes in l.mouse_x and l.mouse_y and computes the current mouse ray in all displays
@@ -362,6 +362,7 @@ void SACK_Vidlib_ToggleInputDevice( void );
 int Init3D( struct display_camera *camera ); // begin drawing (setup projection); also does SetActiveXXXDIsplay
 void EndActive3D( struct display_camera *camera ); // does appropriate EndActiveXXDisplay
 void SetupPositionMatrix( struct display_camera *camera );
+void SetCameraNativeHandle( struct display_camera *camera );
 #endif
 
 int EnableOpenGL( struct display_camera *camera );

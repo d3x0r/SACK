@@ -201,6 +201,7 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 void SetupPositionMatrix( struct display_camera *camera )
 {
 	// camera->origin_camera is valid eye position matrix
+	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
 #ifdef ALLOW_SETTING_GL1_MATRIX
 	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
 	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );

@@ -348,7 +348,7 @@ void LoadOptions( void )
 	//int some_width;
 	//int some_height;
 	//HostSystem_InitDisplayInfo();
-#ifndef __ANDROID__
+#if !defined( __ANDROID__ ) && !defined( __EMSCRIPTEN__ )
 	// these come in courtesy of the android system...
 	l.default_display_x = 1024;
 	l.default_display_y = 768;
@@ -491,7 +491,7 @@ void LoadOptions( void )
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
 			//lprintf( "Retrieve default as %p", default_camera );
 		}
-		lprintf( "Set default to %p", default_camera );
+		//lprintf( "Set default to %p", default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	{
@@ -526,6 +526,8 @@ void LoadOptions( void )
 		l.flags.bForceUnaryAspect = 0;
 		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		//lprintf( "Set camera 0 to 1" );
+		average_width = screen_w;
+		average_height = screen_h;
 		SetLink( &l.cameras, 0, (POINTER)1 ); // set default here 
 		for( n = 0; n < nDisplays; n++ )
 		{
@@ -730,7 +732,7 @@ void OpenCamera( struct display_camera *camera )
 #endif
 
 #ifdef __EMSCRIPTEN__
-		camera->displayWindow = l.displayWindow;
+		SetCameraNativeHandle( camera );
 #endif
 
 #ifdef USE_EGL
@@ -902,7 +904,7 @@ PVIDEO  OpenDisplaySizedAt (uint32_t attr, uint32_t wx, uint32_t wy, int32_t x, 
 	MemSet (hNextVideo, 0, sizeof (VIDEO));
 	InitializeCriticalSec( &hNextVideo->cs );
 
-	lprintf( "(don't know from where)CreateWindow at %d,%d %dx%d", x, y, wx, wy );
+	//lprintf( "(don't know from where)CreateWindow at %d,%d %dx%d", x, y, wx, wy );
 #ifdef _OPENGL_ENABLED
 	hNextVideo->_prior_fracture = -1;
 #endif
@@ -1995,7 +1997,6 @@ static uintptr_t OnInit3d( "Video Render Common" )(PMatrix m,PTRANSFORM c,RCOORD
 #endif
 PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 {
-	lprintf( "Registering vidlib..." );
 	if( l.flags.bLogRegister )
 		lprintf( "Regstering video interface..." );
 #ifdef _OPENGL_DRIVER
@@ -2007,7 +2008,6 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 		, GetDisplay3dInterface, DropDisplay3dInterface );
 #endif
 #ifdef __EMSCRIPTEN__
-	lprintf( "Registering aliases..." );
 	RegisterClassAlias( "system/interfaces/puregl2.render", "system/interfaces/render" );
 	RegisterClassAlias( "system/interfaces/puregl2.render.3d", "system/interfaces/render.3d" );
 #endif
