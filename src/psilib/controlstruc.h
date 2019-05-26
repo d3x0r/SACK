@@ -136,7 +136,7 @@ typedef void (CPROC*_Destroy)           ( struct common_control_frame * );
 typedef void (CPROC*_AddedControl)      ( struct common_control_frame *, struct common_control_frame *pcAdding );
 /* \Internal event callback definition. The focus of a control
 	is changing.                                                */
-typedef void (CPROC*_ChangeFocus)       ( struct common_control_frame *, LOGICAL bFocused );
+typedef int (CPROC*_ChangeFocus)       ( struct common_control_frame *, LOGICAL bFocused );
 /* \Internal event callback definition. Called when a control is
 		being resized. Width or height changing.                      */
 typedef void (CPROC*_Resize)            ( struct common_control_frame *, LOGICAL bSizing );

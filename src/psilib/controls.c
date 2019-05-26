@@ -2738,7 +2738,7 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	SetCommonKey( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,"key",(PSI_CONTROL,uint32_t)));
 	pc->Destroy        = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,"destroy",(PSI_CONTROL));
 	pc->CaptionChanged = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,"caption_changed",(PSI_CONTROL));
-	pc->ChangeFocus    = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,"focus_changed",(PSI_CONTROL,LOGICAL));
+	pc->ChangeFocus    = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,int,"focus_changed",(PSI_CONTROL,LOGICAL));
 	pc->AddedControl   = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,"add_control",(PSI_CONTROL,PSI_CONTROL));
 	AddCommonAcceptDroppedFiles( pc, GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,LOGICAL,"drop_accept",(PSI_CONTROL,CTEXTSTR,int32_t,int32_t)) );
 	pc->Resize         = GetRegisteredProcedureExx(root,(CTEXTSTR)NULL,void,"resize",(PSI_CONTROL,LOGICAL));
