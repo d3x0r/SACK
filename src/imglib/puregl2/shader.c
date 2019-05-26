@@ -7,6 +7,8 @@
 #include "local.h"
 #include "shaders.h"
 
+#define DEBUG_PROGRAMS
+
 IMAGE_NAMESPACE
 
 PImageShaderTracker GetShaderInit( CTEXTSTR name, uintptr_t (CPROC*Setup)(uintptr_t), void (CPROC*Init)(uintptr_t,PImageShaderTracker), uintptr_t psvSetup )
@@ -207,19 +209,24 @@ void EnableShader( PImageShaderTracker tracker, ... )
 		if( !l.flags.worldview_read )
 		{
 			// T_Camera is the same as l.camera  (camera matrixes are really static)
+			//lprintf( "Read camera" );
 			GetGLCameraMatrix( l.glActiveSurface->T_Camera, l.worldview );
 			l.flags.worldview_read = 1;
 		}
 		//PrintMatrix( l.worldview );
 		if( tracker->worldview >=0 )
 		{
+			//lprintf( "Set worldview" );	
 			glUniformMatrix4fv( tracker->worldview, 1, GL_FALSE, (RCOORD*)l.worldview );
 			CheckErrf( " (%s)", tracker->name );
 		}
+		//else
+		//	lprintf( "no worldview to set..." );
 				
 		//PrintMatrix( l.glActiveSurface->M_Projection );
 		if( tracker->projection >=0 )
 		{
+			//lprintf( "And set projection" );
 			glUniformMatrix4fv( tracker->projection, 1, GL_FALSE, (RCOORD*)l.glActiveSurface->M_Projection );
 			CheckErr();
 		}
@@ -489,10 +496,12 @@ int CompileShaderEx( PImageShaderTracker tracker
 		int n;
 		for( n = 0; n < nAttribs; n++ )
 		{
+#ifdef DEBUG_PROGRAMS
 #ifdef UNICODE
 			lprintf( "Bind Attrib Location: %d %S", attrib_order[n].n, attrib_order[n].name );
 #else
 			lprintf( "Bind Attrib Location: %d %s", attrib_order[n].n, attrib_order[n].name );
+#endif
 #endif
 			glBindAttribLocation(tracker->glProgramId, attrib_order[n].n, attrib_order[n].name );
 			CheckErrf( "bind attrib location" );
@@ -505,8 +514,9 @@ int CompileShaderEx( PImageShaderTracker tracker
 	glUseProgram(tracker->glProgramId);
 	CheckErr();
 	SetupCommon( tracker );
-
+#ifdef DEBUG_PROGRAMS
 	DumpAttribs( tracker, tracker->glProgramId );
+#endif
 	return tracker->glProgramId;
 }
 
