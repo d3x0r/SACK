@@ -184,7 +184,7 @@ static void OnBeginDraw3d( "@00 PUREGL Image Library" )( uintptr_t psvInit, PTRA
 	//PrintMatrixEx( "camera", (POINTER)camera DBG_SRC );
 	l.flags.projection_read = 0;
 	l.flags.worldview_read = 0;
-   // reset matrix settings
+	// reset matrix settings
 	ClearShaders();
 }
 
