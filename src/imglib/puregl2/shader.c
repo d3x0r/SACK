@@ -7,7 +7,7 @@
 #include "local.h"
 #include "shaders.h"
 
-#define DEBUG_PROGRAMS
+//#define DEBUG_PROGRAMS
 
 IMAGE_NAMESPACE
 
