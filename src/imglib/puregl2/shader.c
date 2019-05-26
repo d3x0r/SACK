@@ -696,7 +696,7 @@ struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image t
 			INDEX oldOp;
 			LIST_FORALL( image_shader_op->output, oldOp, struct image_shader_op *, isibo ) {
 				if( isibo->psvKey == psvKey ) {
-					lprintf( "using deeper isibo is still this one...," );
+					//lprintf( "using deeper isibo is still this one...," );
 					image_shader_op->last_op = isibo;
 					break;
 				}

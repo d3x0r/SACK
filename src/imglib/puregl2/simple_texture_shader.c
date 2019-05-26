@@ -148,11 +148,13 @@ static struct private_shader_texture_data *GetImageBuffer( struct private_shader
 		if( texture->texture == image )
 			break;
 	}
-	texture = (struct private_shader_texture_data*)DequeLink( &data->availOps );
-	if( texture ) {
-		//lprintf( "Recovered from %p", data );
-		texture->texture = image;
-		AddLink( &data->vert_data, texture );
+	if( !texture ) {
+		texture = (struct private_shader_texture_data*)DequeLink( &data->availOps );
+		if( texture ) {
+			//lprintf( "Recovered from %p", data );
+			texture->texture = image;
+			AddLink( &data->vert_data, texture );
+		}
 	}
 	if( !texture )
 	{
