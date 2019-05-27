@@ -1,0 +1,37 @@
+<HTML>
+<HEAD>
+<TITLE>My First OpenGL Test</TITLE>
+<STYLE>
+.text-glow {/*Definig font could be useful!*/
+   font-size:4em;
+   color: #00000;
+   font-family:Arial;
+   }
+.text-glow:hover {
+text-shadow: 1px 0px 20px #ffd200;
+-webkit-transition: 1s linear 0s;
+-moz-transition: 1s linear 0s;
+-o-transition: 1s linear 0s;
+transition: 1s linear 0s;
+outline: 0 none;
+   }
+</STYLE>
+<BODY style="margin:0">
+<DIV style="position:relative">
+<DIV style="position:absolute;top:0;left:0;width:100vh;height:100vh; pointer-events: none;">
+	<DIV class="text-glow" style="font-size:200%">  Extra controls - use 'Scroll Lock' to enter free look mode.
+	<UL>
+        	<LI>A/D - MOve Left/right
+                <LI>W/S - move forward/backward (Shift, move backward/forward)
+                <LI>Q/E - rotate left/right
+                <LI>Space/C - Move Up/Down
+                <LI>Mouse Move - changes look direction
+        </UL>
+        </DIV>
+                
+</DIV>
+<CANVAS ID="SACK Display 1" width="1440" height="768" tabindex="3" style="width:100vw;height:100vh"></CANVAS>
+</DIV>
+</BODY>
+<SCRIPT src="xo.js"></SCRIPT>
+</HTML>
