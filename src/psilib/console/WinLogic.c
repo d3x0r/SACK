@@ -1020,7 +1020,7 @@ TEXTCHAR *PSI_GetDataFromBlock( PCONSOLE_INFO pdp )
 	//lprintf( "allocated something crazy like %d,%d  %d %p",line_start - line_end, pdp->nColumns,  ( ( line_start - line_end ) + 1 ) * (pdp->nColumns + 2) ,  result );
 	for( col = col_start, line = line_start
 		; line >= line_end
-		 ; line--, (col = bBlock)?col_start:0 )
+		 ; line--, (col = bBlock) )
 	{
 		PDISPLAYED_LINE pdl;
 		if( ( pdl = (PDISPLAYED_LINE)GetDataItem( pdp->CurrentMarkInfo, line ) ) )

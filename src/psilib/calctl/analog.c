@@ -250,6 +250,7 @@ void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_t
 				TEXTCHAR tmp[256];
 				tnprintf( tmp, sizeof( tmp ), "Analog Clock/%s", imagename );
 #ifdef __NO_OPTIONS__
+#undef SACK_GetProfileInt
 #define SACK_GetProfileInt(a,b,c) (c)
 #endif
 

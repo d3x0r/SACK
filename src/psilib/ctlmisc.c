@@ -121,7 +121,7 @@ int SimpleUserQueryEx( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTRO
 	int32_t mouse_x, mouse_y;
 
 	//int Done = FALSE, Okay = FALSE;
-	pf = CreateFrame( NULL, 0, 0, 280, 65, 0, pAbove );
+	pf = CreateFrame( NULL, 0, 0, 280, 70, 0, pAbove );
 	SetControlUserData( pf, (uintptr_t)query_state );
 	query_state->pf = pf;
 	query_state->Done = FALSE;
@@ -130,7 +130,7 @@ int SimpleUserQueryEx( TEXTSTR result, int reslen, CTEXTSTR question, PSI_CONTRO
 	query_state->reslen = reslen;
 	pc = MakeTextControl( pf, 5, 2, 320, 18, TXT_STATIC, question, TEXT_NORMAL );
 
-	query_state->edit = MakeEditControl( pf, 5, 23, 270, 14, TXT_STATIC, NULL, 0 );
+	query_state->edit = MakeEditControl( pf, 5, 23, 270, 20, TXT_STATIC, NULL, 0 );
 	AddCommonButtons( pf, &query_state->Done, &query_state->Okay );
 	SetButtonPushMethod( GetControl( pf, IDOK ), OkayClicked, (uintptr_t)query_state );
 	SetButtonPushMethod( GetControl( pf, IDCANCEL ), CancelClicked, (uintptr_t)query_state );

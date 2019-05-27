@@ -2571,14 +2571,6 @@ static int OnCreateCommon( "Frame" )( PSI_CONTROL pc )
 	return 1;
 }
 
-void CPROC DeinitFrame( PSI_CONTROL pc )
-{
-   PPHYSICAL_DEVICE pf = pc->device;
-	if( pf )
-	{
-	}
-}
-
 
 CONTROL_REGISTRATION frame_controls = { "Frame", { { 320, 240 }, 0, BORDER_NORMAL }
 };

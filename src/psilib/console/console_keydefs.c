@@ -1,3 +1,4 @@
+#define CORECON_SOURCE
 #define NO_LOGGING
 #define KEYS_DEFINED
 #include <stdhdrs.h>
@@ -114,16 +115,16 @@ CORECON_EXPORT( PSIKEYDEFINE, ConsoleKeyDefs[256] ) =
 , {"num7","pad7",KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
 , {"num8","pad8",KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
 , {"num9","pad9",KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
-, {"subtract",0,KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
+, {"subtract" ,0,KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
 , {"num4","pad4",KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
 , {"num5","pad5",KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
 , {"num6","pad6",KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
-, {"add",0,KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
+, {"add" ,     0,KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
 , {"separator",0,KDF_NODEFINE|0|0|0|0|0,{}}
 , {"num2","pad2",KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
 , {"num3","pad3",KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
 , {"num0","pad0",KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
-, {"decimal",0,KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
+, {"decimal"  ,0,KDF_NODEFINE|0|0|0|0|0,{{KEYDATA}}}
 ,{0}
 ,{0}
 ,{0}
@@ -444,7 +445,7 @@ CORECON_EXPORT( PSIKEYDEFINE, ConsoleKeyDefs[256] ) =
                       , [KEY_PAD_9] = {"num9", "pad9",KDF_NODEFINE,{{KEYDATA}} }
                       , [KEY_PAD_MULT] = {"mult", "mulitply",KDF_NODEFINE,{{KEYDATA}} }
                       , [KEY_PAD_PLUS] = {"add",0,KDF_NODEFINE,{{KEYDATA} }}
-                      , {"separator", 0, KDF_NODEFINE }
+					//, [KEY_PA{ "separator" , 0, KDF_NODEFINE,{} }
                       , [KEY_PAD_MINUS] = {"subtract",0,KDF_NODEFINE,{{KEYDATA}} }
                       , [KEY_PAD_DOT] = {"decimal",0,KDF_NODEFINE,{{KEYDATA}} }
                       , [KEY_PAD_DIV] = {"divide",0,KDF_NODEFINE,{{KEYDATA}} }

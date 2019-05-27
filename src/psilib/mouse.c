@@ -21,7 +21,7 @@ PSI_MOUSE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
-	static void DrawHotSpotEx( PSI_CONTROL pc, P_IMAGE_POINT bias, P_IMAGE_POINT point, int hot DBG_PASS )
+static void DrawHotSpotEx( PSI_CONTROL pc, P_IMAGE_POINT bias, P_IMAGE_POINT point, int hot DBG_PASS )
 #define DrawHotSpot(pc,bias,point,hot) DrawHotSpotEx(pc,bias,point,hot DBG_SRC)
 {
 	Image surface = pc->Window;
@@ -42,7 +42,7 @@ PSI_MOUSE_NAMESPACE
 //---------------------------------------------------------------------------
 
 void DrawHotSpotsEx( PSI_CONTROL pf, PEDIT_STATE pEditState, PSI_CONTROL pcChild DBG_PASS )
-#define DrawHotSpots(pf,pe) DrawHotSpotsEx(pf,pe DBG_SRC)
+//#define DrawHotSpots(pf,pe) DrawHotSpotsEx(pf,pe DBG_SRC)
 {
 	int n;
 	if( !pEditState->flags.bHotSpotsActive )
@@ -326,6 +326,7 @@ void SetCommonFocus( PSI_CONTROL pc )
 #endif
 				if( !test && pf->pFocus )
 				{
+					//lprintf( "forcing focused to false (does that next anyway)" );
 					pf->pFocus->flags.bFocused = FALSE;
 					InvokeSingleMethod( pf->pFocus, ChangeFocus, (pf->pFocus, FALSE) );
 #ifdef DETAILED_MOUSE_DEBUG
@@ -339,8 +340,10 @@ void SetCommonFocus( PSI_CONTROL pc )
 				}
 				// but we can transfer focus to an internal thingy...
 				// might revisit uhmm something.
-				if( pf->pFocus )
+				if( pf->pFocus != pf->common )
 					pf->pFocus->flags.bFocused = FALSE;
+
+				//lprintf( "Set frame focused control to: %p (from)%p (to)%p", pf, pf->pFocus, pc );
 				pf->pFocus = pc;
 				pc->flags.bFocused = TRUE;
 #ifdef DETAILED_MOUSE_DEBUG
@@ -359,6 +362,11 @@ void SetCommonFocus( PSI_CONTROL pc )
 				lprintf( "Control is disabled or has no focus?" );
 			}
 #endif
+			if( !pf->common->flags.bFocused ) {
+            // the rame should be focused if a control in it is...
+				pf->common->flags.bFocused = TRUE;
+				//InvokeSingleMethod( pf->common, ChangeFocus, (pf->pFocus, TRUE) );
+			}
 		}
 #ifdef DETAILED_MOUSE_DEBUG
 		else if( g.flags.bLogDetailedMouse )
