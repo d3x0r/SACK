@@ -90,4 +90,6 @@ int ReloadOpenGlTexture( Image image, int option );
 void TranslateCoord( Image image, int32_t *x, int32_t *y );
 void CPROC MarkImageUpdated( Image image );
 
+void 	CleanupFontSurfaces( void );
+
 IMAGE_NAMESPACE_END

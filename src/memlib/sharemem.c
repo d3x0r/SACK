@@ -1225,10 +1225,15 @@ uintptr_t GetFileSize( int fd )
 						  , 0 );
 			if( pMem == (POINTER)-1 )
 			{
+				if( errno == ENODEV ) {
+					pMem = malloc( &dwSize );
+				} else {
 				ll_lprintf( "Something bad about this region sized %" _PTRSZVALfs "(%d)", *dwSize, errno );
 				DebugBreak();
+				}
 			}
-			else {
+			if( pMem != (POINTER)-1 )
+			{
 				//ll_lprintf( "Clearing anonymous mmap %p %" _size_f "", pMem, *dwSize );
 				MemSet( pMem, 0, *dwSize );
 			}

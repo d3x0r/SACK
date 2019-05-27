@@ -194,7 +194,8 @@ extern
 	int real_mouse_x, real_mouse_y;
 
 	int WindowBorder_X, WindowBorder_Y;
-	int default_display_x, default_display_y;
+	int default_display_x, default_display_y; // how big 'drawing surface' is
+	double real_display_x, real_display_y; // how big that drawing surface really is (mouse translates from this)
 
 #if defined( _WIN32 )
 	ATOM aClass;      // keep reference of window class....

@@ -211,13 +211,7 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 {
    // this is called every render pass
 	//lprintf( "Init3d" );
-#ifdef USE_EGL
-	EnableEGLContext( camera );
-#else
 	SetActiveGLDisplay( camera );
-#endif
-//	if( !SetActiveGLDisplay( camera ) )
-//		return FALSE;
 	if( !camera->flags.init )
 	{
 		//lprintf( "First setup" );
@@ -235,7 +229,7 @@ int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goe
 		camera->flags.init = 1;
 	}
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);				// Black Background
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
 	//CheckErr();
 	glClearDepthf(1.0f);									// Depth Buffer Setup
 	//CheckErr();
@@ -254,19 +248,10 @@ void SetupPositionMatrix( struct display_camera *camera )
 {
 	// camera->origin_camera is valid eye position matrix
 	GetGLCameraMatrix( camera->origin_camera, camera->hVidCore->fModelView );
-#ifdef ALLOW_SETTING_GL1_MATRIX
-	lprintf( "IS THIS SET?" );
-//	glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
-#endif
 }
 
 void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveXXDisplay
 {
-	//lprintf( "End of rendering... all done." );
-#ifdef USE_EGL
-	//lprintf( "doing swap buffer..." );
-	eglSwapBuffers( camera->egl_display, camera->surface );
-#endif
 }
 
 
@@ -330,8 +315,15 @@ static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEve
 		}
 #endif
 		{
-			l.mouse_x = mouseEvent->targetX;
-			l.mouse_y = mouseEvent->targetY;
+			//emscripten_get_canvas_element_size( "SACK Display 1", &l.real_display_x, &l.real_display_y );
+	if( !l.real_display_x ) {
+		//lprintf( "Bad Paramters..." );
+		l.real_display_x = l.default_display_x;
+		l.real_display_y = l.default_display_y;
+	}
+			l.mouse_x = mouseEvent->targetX *l.default_display_x/ l.real_display_x;
+			l.mouse_y = mouseEvent->targetY *l.default_display_y/ l.real_display_y;
+			//lprintf( "mouse is %d %d  %d %d  %g %d", l.mouse_x, l.mouse_y, mouseEvent->targetX, mouseEvent->targetY, l.real_display_x, l.default_display_x );
 		}
 #if 0
 		if( l.last_mouse_update )
@@ -375,9 +367,9 @@ static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEve
 
 		if( l.flags.bRotateLock  )
 		{
-			lprintf( "rotate lock..." );
-			RCOORD delta_x = l.mouse_x - (camera->w/2);
-			RCOORD delta_y = l.mouse_y - (camera->h/2);
+			//lprintf( "rotate lock..." );
+			RCOORD delta_x = l.mouse_x - l._mouse_x;//(camera->w/2);
+			RCOORD delta_y = l.mouse_y - l._mouse_y;//(camera->h/2);
 			//lprintf( "mouse came in we're at %d,%d %g,%g", l.mouse_x, l.mouse_y, delta_x, delta_y );
 			if( delta_y || delta_x )
 			{
@@ -395,8 +387,10 @@ static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEve
 					RotateRel( l.origin, delta_y, 0, 0 );
 				}
 				toggle = 1-toggle;
-				l.mouse_x = camera->w/2;
-				l.mouse_y = camera->h/2;
+            // TEMPORARY DON'T WARP MOUSEl
+				//l.mouse_x = camera->w/2;
+				//l.mouse_y = camera->h/2;
+
 				//lprintf( "Set curorpos.." );
 
 				//SetCursorPos( hVideo->pWindowPos.x + hVideo->pWindowPos.cx/2, hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2 );
@@ -422,21 +416,49 @@ static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEve
 
 static EM_BOOL em_key_callback_handler(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData, int pressed, const char *key ){
 	struct display_camera *camera = ((struct display_camera**)userData)[0];
-   if( !camera ) return false;
-	if( keyEvent->keyCode == KEY_BACKSPACE ) {
+	if( !camera ) return false;
+	switch( keyEvent->keyCode )
+	{
+	case KEY_F1: // shift
+	case KEY_F2: // shift
+	case KEY_F3: // shift
+	case KEY_F4: // shift
+	case KEY_F12: // shift
+	case KEY_SCROLL_LOCK: // shift
+	case KEY_ALT: // shift
+	case KEY_CONTROL: // shift
+	case KEY_SHIFT: // shift
+	case 1: // shift
+		key = NULL;
+		break;
+	case KEY_ENTER: //backspace // Windows VK_BACKSPACE
+		//lprintf( "we like to send newline?" );
+		key = "\n";
+		break;
+	case KEY_BACKSPACE: //backspace // Windows VK_BACKSPACE
+		lprintf( "is a backspace... swapping key to \\b");
 		key = "\b";
+		break;
 	}
 	if( l.current_key_text )
 		free( (char*)l.current_key_text );
-	l.current_key_text = strdup( key );
-
+	if( key )
+		l.current_key_text = strdup( key );
+	else
+		l.current_key_text = NULL;
 	if( pressed < 2 ) {
-		int mod = (keyEvent->ctrlKey?KEY_MOD_CTRL:0)
+		int key_mods = (keyEvent->ctrlKey?KEY_MOD_CTRL:0)
 			+(keyEvent->shiftKey?KEY_MOD_SHIFT:0)
 			+(keyEvent->altKey?KEY_MOD_ALT:0)
 			+(keyEvent->metaKey?KEY_MOD_META:0);
-
-		return SACK_Vidlib_SendKeyEvents( pressed, keyEvent->keyCode, mod );
+		int key_index = keyEvent->keyCode;
+		uint32_t normal_key = (pressed?KEY_PRESSED:0)
+			| ( key_mods & 7 ) << 28
+			| ( key_index & 0xFF ) << 16
+			| ( key_index )
+			;
+		//lprintf( "CODE: %08x  %d %d", normal_key, key_mods, key_index );
+		return DispatchKeyEvent( camera->hVidCore, normal_key );
 	}
 	return false;
 	//EM_BOOL ctrlKey EM_BOOL shiftKey EM_BOOL altKey EM_BOOL metaKey
@@ -468,6 +490,15 @@ static EM_BOOL em_webgl_context_handler(int eventType, const void *reserved, voi
 }
 
 
+static EM_BOOL em_resize_callback_handler( int eventType, const EmscriptenUiEvent *uiEvent, void *userData) {
+	lprintf( "some sort of event: %d", eventType );
+	switch( eventType ) {
+	default:
+		 emscripten_get_element_css_size( "SACK Display 1", &l.real_display_x, &l.real_display_y );
+	}
+   return true;
+}
+
 PRELOAD( do_init_display ) {
 //void initDisplay() {
 	EMSCRIPTEN_RESULT r;
@@ -476,6 +507,10 @@ PRELOAD( do_init_display ) {
 	defaultCamera[0] = NULL;
 	initializingCamera = defaultCamera;
 	const char *display = "SACK Display 1";
+
+	emscripten_get_element_css_size( "SACK Display 1", &l.real_display_x, &l.real_display_y );
+
+	r = emscripten_set_resize_callback( "SACK Display 1", myState, true, em_resize_callback_handler );
 	r = emscripten_set_touchstart_callback( display, myState, true, em_touch_callback_handler);
 	r = emscripten_set_touchend_callback(display, myState, true, em_touch_callback_handler);
 	r = emscripten_set_touchmove_callback(display, myState, true, em_touch_callback_handler);

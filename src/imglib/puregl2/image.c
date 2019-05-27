@@ -142,7 +142,7 @@ static uintptr_t CPROC ReleaseTexture( POINTER p, uintptr_t psv )
 			(struct glSurfaceImageData *)GetLink( &image->glSurface, glSurface->index );
 		if( image_data && image_data->glIndex )
 		{
-			//lprintf( "Release Texture %d", image_data->glIndex );
+			lprintf( "Release Texture %d", image_data->glIndex );
 			glDeleteTextures( 1, &image_data->glIndex );
 			image_data->glIndex = 0;
 		}
@@ -154,7 +154,7 @@ static uintptr_t CPROC ReleaseTexture( POINTER p, uintptr_t psv )
       //lprintf( "no surf..." );
 		LIST_FORALL( image->glSurface, idx, struct glSurfaceImageData *, image_data )
 		{
-			//lprintf( "Release Texture %d", image_data->glIndex );
+			lprintf( "Release Texture %d", image_data->glIndex );
 			glDeleteTextures( 1, &image_data->glIndex );
 			image_data->glIndex = 0;
 		}
@@ -191,6 +191,7 @@ static void OnBeginDraw3d( "@00 PUREGL Image Library" )( uintptr_t psvInit, PTRA
 static void OnDraw3d( "@00 PUREGL Image Library" )( uintptr_t psvInit )
 {
 	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
+	CleanupFontSurfaces();
 	FlushShaders( glSurface );
 }
 
@@ -234,7 +235,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 			if( image_data->flags.updated )
 			{
 				int err;
-				//lprintf( "gen text %d", glGetError() );
+				lprintf( "Update texture %d", image_data->glIndex );
 				// Create Linear Filtered Texture
 				glBindTexture(GL_TEXTURE_2D, image_data->glIndex);
 #if defined( USE_GLES2 ) || defined( __EMSCRIPTEN__ )
@@ -314,7 +315,7 @@ static void CloseGLTextures( Image image )
 	struct glSurfaceImageData * image_data;
 	LIST_FORALL( image->glSurface, idx, struct glSurfaceImageData *, image_data )
 	{
-		//lprintf( "Release Texture %d", image_data->glIndex );
+		lprintf( "Release Texture %d", image_data->glIndex );
 		glDeleteTextures( 1, &image_data->glIndex );
 		image_data->glIndex = 0;
 	}

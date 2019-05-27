@@ -32,10 +32,10 @@
 #include <timers.h>
 //#include "global.h"
 #include <imglib/fontstruct.h>
-
 #include <image.h>
 #include "fntglobal.h"
 #include <controls.h>
+#include <render3d.h>
 #define REQUIRE_GLUINT
 
 #include "image_common.h"
@@ -454,6 +454,7 @@ struct font_renderer_tag {
 	// full surface, contains all characters.  Starts as 3 times the first character (9x vertical and horizontal)
 	// after that it is expanded 2x (4x total, 2x horizontal 2x rows )
 	Image surface;
+	PLIST priorSurfaces;
 	int nLinesUsed;
 	int nLinesAvail;
 	int *pLineStarts; // counts highest character in a line, each line walks across
@@ -463,6 +464,7 @@ struct font_renderer_tag {
 typedef struct font_renderer_tag FONT_RENDERER;
 
 static PLIST fonts;
+static LOGICAL cleanFonts;
 
 static void OnDisplayConnect( "@00 Image Core" )( struct display_app*app, struct display_app_local ***pppLocal )
 {
@@ -501,6 +503,26 @@ static void OnDisplayConnect( "@00 Image Core" )( struct display_app*app, struct
 	}
 }
 
+//-------------------------------------------------------------------------
+
+void CleanupFontSurfaces( void ) {
+	INDEX idx;
+	PFONT_RENDERER renderer;
+	if( !cleanFonts ) return;
+	LIST_FORALL( fonts, idx, PFONT_RENDERER, renderer )
+	{
+		INDEX idx;
+		Image oldImage;
+		LIST_FORALL( renderer->priorSurfaces, idx, Image, oldImage ) {
+			if( oldImage->reverse_interface )
+				oldImage->reverse_interface->_UnmakeImageFileEx( oldImage DBG_SRC );
+			else
+				UnmakeImageFile( oldImage );
+		}
+		DeleteListEx( &renderer->priorSurfaces DBG_SRC ); // this doesn't have THAT often...
+	}
+	cleanFonts = FALSE;
+}
 
 //-------------------------------------------------------------------------
 
@@ -529,7 +551,12 @@ void UpdateRendererImage( Image image, PFONT_RENDERER renderer, int char_width, 
 			image->reverse_interface->_BlatColor( new_surface,0,0,new_surface->width,new_surface->height, 0 );
 			image->reverse_interface->_BlotImageEx( new_surface, renderer->surface, 0, 0, 1, BLOT_COPY );
 			image->reverse_interface->_TransferSubImages( new_surface, renderer->surface );
+#if defined( __3D__ ) 
+			cleanFonts = TRUE;
+			AddLink( &renderer->priorSurfaces, renderer->surface );
+#else
 			image->reverse_interface->_UnmakeImageFileEx( renderer->surface DBG_SRC );
+#endif
 		}
 		else
 		{
@@ -537,7 +564,12 @@ void UpdateRendererImage( Image image, PFONT_RENDERER renderer, int char_width, 
 			ClearImage( new_surface );
 			BlotImage( new_surface, renderer->surface, 0, 0 );
 			TransferSubImages( new_surface, renderer->surface );
+#if defined( __3D__ ) 
+			cleanFonts = TRUE;
+			AddLink( &renderer->priorSurfaces, renderer->surface );
+#else
 			UnmakeImageFile( renderer->surface );
+#endif
 		}
 		renderer->surface = new_surface;
 		// need to recompute character floating point values for existing characters.

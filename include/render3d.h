@@ -105,8 +105,7 @@ typedef struct render_3d_interface_tag
 
 // static void OnDraw3d( "Virtuality" )( uintptr_t psvInit )
 // this is called once for each display that is opened, and for each OnInit3d that did not return 0.
-// the psvInit is the init value returned, the mouse is the mouse as it is; it will be NULL if the mouse
-// is not in the current display and we are just drawing.
+// the psvInit is the init value returned.
 #define OnDraw3d(name) \
 	DefineRegistryMethod("sack/render/puregl",Draw3d,"draw3d",name,"ExtraDraw3d",void,(uintptr_t psvUser),__LINE__)
 

@@ -181,11 +181,13 @@ uintptr_t CPROC SimpleTextureShader_OpInit( PImageShaderTracker tracker, uintptr
 static void CPROC SimpleTextureOutput( PImageShaderTracker tracker, uintptr_t psv_userdata, uintptr_t psvKey, int from, int to )
 {
 	struct private_shader_data *data	= (struct private_shader_data *)psv_userdata;
-	struct private_shader_texture_data *texture;
+	struct private_shader_texture_data *texture = (struct private_shader_texture_data*)psvKey;
 
+	if( texture->vert_pos->used < (to - from) ) {
+		lprintf( "Lost data buffer... Reset early?" );
+		return;
+	}
 	EnableShader( tracker );
-
-	texture = (struct private_shader_texture_data*)psvKey;
 
 	glBindVertexArray( data->vao );
 	glBindBuffer( GL_ARRAY_BUFFER, data->vertexBuffer[0] );
@@ -220,6 +222,7 @@ static void CPROC SimpleTextureOutput( PImageShaderTracker tracker, uintptr_t ps
 		CheckErr();
 		//lprintf( "Set data %p %p %d,%d", texture->vert_pos->data, texture->vert_texture_uv->data, from,to );
 		glDrawArrays( GL_TRIANGLES, from, to - from );
+		CheckErr();
 
 		//texture->vert_pos->used = 0;
 		//texture->vert_texture_uv->used = 0;
@@ -346,13 +349,13 @@ uintptr_t CPROC SimpleTextureShader_OpInit2( PImageShaderTracker tracker, uintpt
 static void CPROC SimpleTextureOutput2( PImageShaderTracker tracker, uintptr_t psv, uintptr_t psvKey, int from, int to )
 {
 	struct private_shader_data *data = (struct private_shader_data *)psv;
-	struct private_shader_texture_data *texture;
-	
+	struct private_shader_texture_data *texture = (struct private_shader_texture_data*)psvKey;
+	if( texture->vert_pos->used < (to - from) ) {
+		lprintf( "Lost data buffer... Reset early?" );
+			return;
+	}
 	EnableShader( tracker );
 	CheckErr();
-
-	//lprintf( "Specific is %p", psvKey );
-	texture = (struct private_shader_texture_data*)psvKey;
 
 	glBindVertexArray( data->vao );
 	CheckErr();
@@ -398,6 +401,7 @@ static void CPROC SimpleTextureOutput2( PImageShaderTracker tracker, uintptr_t p
 		CheckErr();
 		//lprintf( "Set data %p %p %p %d,%d", texture->vert_pos->data, texture->vert_color->data,  texture->vert_texture_uv->data, from,to );
 		glDrawArrays( GL_TRIANGLES, from, to - from );
+		CheckErr();
 	}
 }
 

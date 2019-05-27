@@ -238,17 +238,22 @@ static void CPROC DeleteBranch( uintptr_t psv, PSI_CONTROL pc )
 static void CPROC CopyBranchQueryResult( uintptr_t psv, LOGICAL success )
 {
 	struct query_params  *params = (struct query_params  *)psv;
-	if( success )
+	if( !option_thread )
+		option_thread = default_local;
+	if( success ) {
 		DuplicateOption( l.last_option, params->result );
-	ResetList( GetNearControl( params->pc, LST_OPTIONMAP ) );
-	ResetOptionMap( (PODBC)psv );
-	l.last_option = NULL;
-	InitOptionList( (PODBC)psv, GetNearControl( params->pc, LST_OPTIONMAP ), LST_OPTIONMAP );
+		ResetList( GetNearControl( params->pc, LST_OPTIONMAP ) );
+		ResetOptionMap( (PODBC)psv );
+		l.last_option = NULL;
+		InitOptionList( (PODBC)psv, GetNearControl( params->pc, LST_OPTIONMAP ), LST_OPTIONMAP );
+	}
 }
 
 static void CPROC CopyBranch( uintptr_t psv, PSI_CONTROL pc )
 {
 	struct query_params  *params = New( struct query_params );
+	if( !option_thread )
+		option_thread = default_local;
 	params->pc = pc;
 	params->result = NewArray( TEXTCHAR, 256 );
 

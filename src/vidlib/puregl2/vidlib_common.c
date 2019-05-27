@@ -1780,9 +1780,12 @@ static LOGICAL CPROC DefaultExit( uintptr_t psv, uint32_t keycode )
 
 static LOGICAL CPROC EnableRotation( uintptr_t psv, uint32_t keycode )
 {
-	lprintf( "Enable Rotation..." );
+	//lprintf( "Enable Rotation..." );
 	if( IsKeyPressed( keycode ) )
 	{
+		if( l.wake_callback )
+			l.wake_callback();
+
 		l.flags.bRotateLock = 1 - l.flags.bRotateLock;
 		if( l.flags.bRotateLock )
 		{
@@ -1797,14 +1800,16 @@ static LOGICAL CPROC EnableRotation( uintptr_t psv, uint32_t keycode )
 				+ default_camera->hVidCore->pWindowPos.cy / 2 );
 #endif
 		}
-		lprintf( "ALLOW ROTATE" );
+		//lprintf( "ALLOW ROTATE" );
 	}
-	else
-		lprintf( "DISABLE ROTATE" );
+	//else
+	//	lprintf( "DISABLE ROTATE" );
+#if 0
 	if( l.flags.bRotateLock )
 		lprintf( "lock rotate" );
 	else
 		lprintf("unlock rotate" );
+#endif
 	return 1;
 }
 
@@ -1812,13 +1817,33 @@ static LOGICAL CPROC CameraForward( uintptr_t psv, uint32_t keycode )
 {
 	if( l.flags.bRotateLock )
 	{
-#define SPEED_CONSTANT 250
+#define SPEED_CONSTANT 75
 		if( IsKeyPressed( keycode ) )
 		{
 			if( keycode & KEY_SHIFT_DOWN )
 				Forward( l.origin, -SPEED_CONSTANT );
 			else
 				Forward( l.origin, SPEED_CONSTANT );
+		}
+		else
+			Forward( l.origin, 0.0 );
+		UpdateMouseRays( l.mouse_x, l.mouse_y );
+//      return 1;
+	}
+//   return 0;
+	return 1;
+}
+
+static LOGICAL CPROC CameraBackward( uintptr_t psv, uint32_t keycode )
+{
+	if( l.flags.bRotateLock )
+	{
+		if( IsKeyPressed( keycode ) )
+		{
+			if( keycode & KEY_SHIFT_DOWN )
+				Forward( l.origin, SPEED_CONSTANT );
+			else
+				Forward( l.origin, -SPEED_CONSTANT );
 		}
 		else
 			Forward( l.origin, 0.0 );
@@ -1926,6 +1951,27 @@ static LOGICAL CPROC CameraDown( uintptr_t psv, uint32_t keycode )
 	return 1;
 }
 
+static LOGICAL CPROC CameraUp( uintptr_t psv, uint32_t keycode )
+{
+	if( l.flags.bRotateLock )
+	{
+		if( IsKeyPressed( keycode ) )
+		{
+ 			if( keycode & KEY_SHIFT_DOWN )
+				Up( l.origin, -SPEED_CONSTANT );
+			else
+				Up( l.origin, SPEED_CONSTANT );
+		}
+		else
+			Up( l.origin, 0.0 );
+		UpdateMouseRays( l.mouse_x, l.mouse_y );
+//		return 1;
+	}
+//	return 0;
+	return 1;
+}
+
+
 int IsTouchDisplay( void )
 {
 	return 0;
@@ -1940,6 +1986,7 @@ LOGICAL IsDisplayHidden( PVIDEO video )
 
 static LOGICAL OnKey3d( "Video Render Common" )( uintptr_t psv, uint32_t key )
 {
+	//lprintf( "Key 3D Received..." );
 	if( IsKeyPressed( key ) )
 	{
 		if( ( KEY_CODE( key ) == KEY_SCROLL_LOCK ) || ( KEY_CODE( key ) == KEY_F12 ) )
@@ -1967,7 +2014,17 @@ static LOGICAL OnKey3d( "Video Render Common" )( uintptr_t psv, uint32_t key )
 		}
 		else if( KEY_CODE( key ) == KEY_S )
 		{
+			CameraBackward( 0, key );
+			return 1;
+		}
+		else if( KEY_CODE( key ) == KEY_C )
+		{
 			CameraDown( 0, key );
+			return 1;
+		}
+		else if( KEY_CODE( key ) == KEY_SPACE )
+		{
+			CameraUp( 0, key );
 			return 1;
 		}
 		else if( KEY_CODE( key ) == KEY_Q )

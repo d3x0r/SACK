@@ -1234,7 +1234,7 @@ void SqlStubInitLibrary( void )
 					sack_fprintf( file, "Option Database Init SQL=\n" );
 					sack_fclose( file );
 				}
-				ProcessConfigurationFile( pch, "sql.config", 0 );
+				ProcessConfigurationFile( pch, "*/sql.config", 0 );
 			}
 			DestroyConfigurationEvaluator( pch );
 		}

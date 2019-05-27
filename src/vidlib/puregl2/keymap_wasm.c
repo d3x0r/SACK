@@ -10,17 +10,6 @@
 RENDER_NAMESPACE
 
 
-enum {
-    KEY_FUNCTION_NOT_DEFINED = 0
-	  , KEYDATA
-     , KEYSHIFT
- , KEYDATA_DEFINED // do this stroke?  
- , COMMANDKEY
- , HISTORYKEY
- , CONTROLKEY
- , SPECIALKEY
-};  
-
 typedef struct AndroidKeymapKeyDefine {
    CTEXTSTR name1;
    CTEXTSTR name2;
@@ -68,7 +57,7 @@ const TEXTCHAR * GetKeyText (int key)
 	return 0;
 }
 
-
+#if 0
 int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 {
 	int used = 0;
@@ -87,13 +76,15 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 					| ( key_index & 0xFF ) << 16
 					| ( key_index )
 					;
+					lprintf( "Send key to")
+				used = DispatchKeyEvent(  )
 				used |= l.hVidVirtualFocused->pKeyProc( l.hVidVirtualFocused->dwKeyData, normal_key );
 			}
 		}
 	}
 	return used;
 }
-
+#endif
 
 void SACK_Vidlib_SetTriggerKeyboard( void (*show)(void), void(*hide)(void))
 {

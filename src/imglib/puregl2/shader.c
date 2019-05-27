@@ -123,17 +123,24 @@ void FlushShaders( struct glSurfaceData *glSurface )
 		{
 			if( op->tracker->Output )
 				op->tracker->Output( op->tracker, op->tracker->psvInit, op->psvKey, op->from, op->to );
+		}
+	}
+
+
+	LIST_FORALL( glSurface->shader_local.image_shader_operations, idx, struct image_shader_image_buffer*, image_shader_op )
+	{
+		LIST_FORALL( image_shader_op->output, idx2, struct image_shader_op*, op )
+		{
 			if( image_shader_op->tracker->ResetOp )
 				image_shader_op->tracker->ResetOp( op->tracker, op->tracker->psvInit, op->psvKey );
 			Release( op );
 		}
-
 		if( image_shader_op->output )
 			DeleteList( &image_shader_op->output );
 		Release( image_shader_op );
 		SetLink( &glSurface->shader_local.image_shader_operations, idx, 0 );
 	}
-	
+
 	LIST_FORALL( glSurface->shader_local.shader_operations, idx, struct image_shader_op *, op )
 	{
 		lprintf( "Shader %" _string_f " %d -> %d  %d", op->tracker->name, op->from, op->to, op->to - op->from );
@@ -192,7 +199,7 @@ void EnableShader( PImageShaderTracker tracker, ... )
 		}
 	}
 
-	//xlprintf( LOG_WARNING+1 )( "Enable shader %s", tracker->name );
+	//xlprintf( LOG_WARNING+1 )( "Enable shader %d %s", tracker->glProgramId, tracker->name );
 	glUseProgram( tracker->glProgramId );
 #ifdef _DEBUG
 	CheckErrf( "Failed glUseProgram (%s)", tracker->name );

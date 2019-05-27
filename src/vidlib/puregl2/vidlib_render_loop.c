@@ -363,7 +363,7 @@ LOGICAL ProcessGLDraw( LOGICAL draw_all )
 		}
 		l.flags.bUpdateWanted = 0;
 	}
-	return l.flags.bUpdateWanted;
+	return l.flags.bUpdateWanted || l.flags.bRotateLock;
 }
 
 

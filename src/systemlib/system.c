@@ -614,7 +614,7 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 						path[0] = 0;
 					(*init_l).library_path = dupname;
 				}
-            else
+				else
 					(*init_l).library_path = ".";
 			}
 			setenv( "MY_LOAD_PATH", (*init_l).load_path, TRUE );

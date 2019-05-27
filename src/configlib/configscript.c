@@ -2214,11 +2214,13 @@ static void TestUnicode( PCONFIG_HANDLER pch )
 CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR name, uintptr_t psv )
 {
 	PTEXT line;
-#ifndef __ANDROID__
+
+#if !defined( __ANDROID__ ) && !defined( __EMSCRIPTEN__ )
 	int absolute_path = IsAbsolutePath( name ); // don't prefix with anything.
 #endif
 	pch->file = sack_fopen( 0, name, "rb" );
-#ifndef __ANDROID__
+
+#if !defined( __ANDROID__ ) && !defined( __EMSCRIPTEN__ )
 #  ifndef UNDER_CE
 	if( !pch->file && !absolute_path )
 	{
