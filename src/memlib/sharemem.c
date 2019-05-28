@@ -1226,7 +1226,7 @@ uintptr_t GetFileSize( int fd )
 			if( pMem == (POINTER)-1 )
 			{
 				if( errno == ENODEV ) {
-					pMem = malloc( &dwSize );
+					pMem = malloc( *dwSize );
 				} else {
 				ll_lprintf( "Something bad about this region sized %" _PTRSZVALfs "(%d)", *dwSize, errno );
 				DebugBreak();
