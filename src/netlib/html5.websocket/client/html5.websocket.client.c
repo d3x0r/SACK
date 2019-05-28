@@ -255,8 +255,6 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	websock->Magic = 0x20130911;
 	//va_arg args;
 	//va_start( args, psv );
-	if( !wsc_local.timer )
-		wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
 
 	websock->buffer = Allocate( 4096 );
 	websock->pHttpState = CreateHttpState( &websock->pc );
@@ -368,8 +366,10 @@ void WebSocketClose( PCLIENT pc, int code, const char *reason )
 void WebSocketEnableAutoPing( PCLIENT pc, uint32_t delay )
 {
 	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
-	if( websock->Magic == 0x20130911 )
+	if( websock->Magic == 0x20130911 ) // only allow auto ping on clients.... 
 	{
+		if( !wsc_local.timer )
+			wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
 		websock->ping_delay = delay;
 	}
 }
