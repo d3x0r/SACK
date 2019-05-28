@@ -18,7 +18,7 @@ outline: 0 none;
 </STYLE>
 <BODY style="margin:0">
 <DIV style="position:relative">
-<DIV style="position:absolute;top:0;left:0;width:100vh;height:100vh; pointer-events: none;">
+<DIV style="position:absolute;top:0;left:0;width:100vh;height:100vh; ">
 	<DIV class="text-glow" style="font-size:200%">  Extra controls - use 'Scroll Lock' to enter free look mode.
 	<UL>
         	<LI>A/D - MOve Left/right
@@ -28,10 +28,18 @@ outline: 0 none;
                 <LI>Mouse Move - changes look direction
         </UL>
         </DIV>
+	<FORM>Maybe A Form Input?
+	<BUTTON >A Button</BUTTON>
+	<INPUT>Type Something Here?</INPUT>
+	</FORM>
                 
 </DIV>
-<CANVAS ID="SACK Display 1" width="1440" height="768" tabindex="3" style="width:100vw;height:100vh"></CANVAS>
+</DIV>
+<CANVAS  ID="SACK Display 1" width="1440" height="768" tabindex="3" style="width:100vw;height:100vh;position:absolute;left:0;top:0"></CANVAS>
 </DIV>
 </BODY>
 <SCRIPT src="xo.js"></SCRIPT>
+<SCRIPT>
+document.querySelector( "[id='SACK Display 1']" ).focus();
+</SCRIPT>
 </HTML>

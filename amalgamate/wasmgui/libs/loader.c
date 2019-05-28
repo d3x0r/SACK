@@ -9,7 +9,10 @@
 #define NULL ((void*)0)
 
 void initFileSystem( void ) {
-EM_ASM((
+	EM_ASM((
+			  const myCanvas = document.querySelector( "[ID='SACK Display 1']" );
+
+
     //FS.mkdir('/IDBFS');
     FS.mount(IDBFS, {}, '/home/web_user');
 if(0)
@@ -21,16 +24,25 @@ console.log( "Sync happened?", err );
 
 }
 
-#define USE_MAIN_LOOP
+
+//void allowClick
 
 
-static void renderLoop( void* userData ) {
+//#define USE_MAIN_LOOP
+
+#ifdef USE_MAIN_LOOP
+static void renderLoop( void )
+#else
+static EM_BOOL renderLoop( double time, void* userData )
+#endif
+{
 
 	extern int SACK_Vidlib_DoRenderPass( void );
 
 	//printf( "do render pass.\n " );
 	if( SACK_Vidlib_DoRenderPass() ) {
-#ifndef USE_MAIN_LOOP 
+#ifndef USE_MAIN_LOOP
+	      //printf( "Want immediate\n" );
 		emscripten_request_animation_frame( renderLoop, NULL );
 #endif
 		//printf( "rechedule immediate.\n " );
@@ -47,6 +59,7 @@ static void renderLoop( void* userData ) {
 
 static void wakeMain( void ) {
 #ifndef USE_MAIN_LOOP
+	//printf( "Wake called...\n" );
   	emscripten_request_animation_frame( renderLoop, NULL );
 #else
 	emscripten_resume_main_loop();
@@ -65,7 +78,7 @@ void initDisplay() {
 		SACK_Vidlib_SetAnimationWake( wakeMain );
 	}
 #ifndef USE_MAIN_LOOP
-	renderLoop( NULL );
+  	emscripten_request_animation_frame( renderLoop, NULL );
 #else
 	emscripten_set_main_loop( renderLoop, 0, 0 );
 #endif
@@ -85,7 +98,7 @@ int main( void ) {
 		//FS.mkdir('/IDBFS');
 
 		FS.syncfs(true, function (err) {
-		console.log( "Sync happened?", err );
+		   //console.log( "Sync happened?", err );
 			assert(!err);
 		}); // sync FROM backing store
 	));

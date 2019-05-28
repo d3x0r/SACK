@@ -1988,6 +1988,12 @@ PSI_PROC( PMENUITEM, DeletePopupItem)( PMENU pm, uintptr_t dwID, uint32_t state 
    parent :    parent menu that has started tracking a
                submenu.                                         */
 PSI_PROC( int, TrackPopup)( PMENU hMenuSub, PSI_CONTROL parent );
+
+/* Shows a popup to get input from the usr;
+ this shows the popup in the background, and does not wait for the rsult.
+ the result is instead dispatched through the callback. */
+PSI_PROC( void, TrackPopup_v2 )( PMENU hMenuSub, PSI_CONTROL parent, void (*callback)( uintptr_t psv, int menuStatus ), uintptr_t psvParam );
+
 _MENU_NAMESPACE_END
 USE_MENU_NAMESPACE
 

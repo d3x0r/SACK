@@ -434,7 +434,7 @@ int EditOptionsEx
 		MemSet( option_thread, 0, sizeof( option_thread[0] ) );
 		frame = CreateOptionFrame( odbc, TRUE, wait?&done:NULL );
 		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
-
+		EditFrame( frame, TRUE );
 		DisplayFrameOver( frame, parent );
 lprintf( "Display fame... and then exit..." );
 		if( wait ) {

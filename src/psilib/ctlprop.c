@@ -44,6 +44,8 @@ typedef struct edit_property_data_tag {
 	PSI_CONTROL pPropertySheet;
 	int32_t x,y;
 	int bDone, bOkay;
+	PSI_CONTROL control, pSheet;
+   PSI_CONTROL frame;
 } EDIT_PROP_DATA, *PEDIT_PROP_DATA;
 
 //---------------------------------------------------------------------------
@@ -247,25 +249,19 @@ TEXTCHAR control_property_frame_xml[] = {
  };
 
 
-PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
-{
-	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)Allocate( sizeof( EDIT_PROP_DATA ) );
-	PSI_CONTROL pf, pSheet = NULL;
-	int32_t x, y;
-	int32_t select;
-	GetMousePosition( &pEditProps->x, &pEditProps->y );
-	select = TrackPopup( pControlEditMenu, GetFrame( control ) );
+static void popupCallback( uintptr_t psv, int select ) {
+	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)psv;
+
 	if( select < 0 )
-		return 1;
+		return;
 
 	switch( select )
 	{
 	case MNU_DONE:
-		EditFrame( GetFrame( control ), FALSE );
+		EditFrame( GetFrame( pEditProps->control ), FALSE );
 		break;
 	case MNU_DELETETHING:
-		DestroyCommon( &control );
-		return 0;
+		DestroyCommon( &pEditProps->control );
 		break;
 	case MNU_EDITTHING:
 
@@ -273,13 +269,13 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 		{
 			pEditProps->bDone = FALSE;
 			pEditProps->bOkay = FALSE;
-			pEditProps->pEditCurrent = control;
+			pEditProps->pEditCurrent = pEditProps->control;
 		}
-		GetMousePosition( &x, &y );
-		pf = CreateFrame( "Control Properties"
-							 , (x - PROP_WIDTH/2)>0?(x - PROP_WIDTH/2):0, y
+		//GetMousePosition( &pEditProps->x, &y );
+		PSI_CONTROL pf = CreateFrame( "Control Properties"
+							 , (pEditProps->x - PROP_WIDTH/2)>0?(pEditProps->x - PROP_WIDTH/2):0, pEditProps->y
 							 , PROP_WIDTH + 20
-							 , PROP_HEIGHT + 20 + 25, BORDER_NORMAL, GetFrame( control ) );
+							 , PROP_HEIGHT + 20 + 25, BORDER_NORMAL, GetFrame( pEditProps->control ) );
 		{
 			static int bAnotherLayer;
 			PSI_CONTROL pcSheet = MakeSheetControl( pf
@@ -289,69 +285,68 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 			if( !bAnotherLayer )
 			{
 				bAnotherLayer++;
-				pSheet = ParseXMLFrame( control_property_frame_xml, sizeof( control_property_frame_xml ) );
-				if( !pSheet )
-					pSheet = LoadXMLFrame( "Common Edit.Frame" );
-				//DumpFrameContents( pSheet );
+				pEditProps->pSheet = ParseXMLFrame( control_property_frame_xml, sizeof( control_property_frame_xml ) );
+				if( !pEditProps->pSheet )
+					pEditProps->pSheet = LoadXMLFrame( "Common Edit.Frame" );
+				//DumpFrameContents( pEditProps->pSheet );
 				bAnotherLayer--;
 			}
-			if( pSheet )
+			if( pEditProps->pSheet )
 			{
 				//lprintf( "****************" );
-				InitFrameControls( pSheet, control );
+				InitFrameControls( pEditProps->pSheet, pEditProps->control );
 			}
 			else
 			{
-				pSheet = CreateFrame( "Common"
+				pEditProps->pSheet = CreateFrame( "Common"
 										  , 0, 0, PROP_WIDTH
 										  , PROP_HEIGHT, BORDER_NONE|BORDER_WITHIN, NULL );
-				if( pSheet )
+				if( pEditProps->pSheet )
 				{
 					TEXTCHAR buffer[256];
-					MakeTextControl( pSheet, PROP_PAD, 05, 58, 14, TXT_STATIC, "Caption", 0 );
-					MakeTextControl( pSheet, PROP_PAD, 21, 58, 14, TXT_STATIC, "X", 0 );
-					MakeTextControl( pSheet, PROP_PAD, 37, 58, 14, TXT_STATIC, "Y", 0 );
-					MakeTextControl( pSheet, PROP_PAD, 53, 58, 14, TXT_STATIC, "Width", 0 );
-					MakeTextControl( pSheet, PROP_PAD, 69, 58, 14, TXT_STATIC, "Height", 0 );
-					MakeTextControl( pSheet, PROP_PAD, 85, 58, 14, TXT_STATIC, "ID", 0 );
-					MakeTextControl( pSheet, PROP_PAD, 101, 58, 14, TXT_STATIC, "ID Name", 0 );
-					tnprintf( buffer, sizeof( buffer ), "%s", GetText( control->caption.text ) );
-					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 04, PROP_WIDTH-10-(58+5), 14, EDT_CAPTION, buffer, 0 );
-					tnprintf( buffer, sizeof( buffer ), "%" _32fs, control->rect.x );
-					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 20, 56, 14, EDT_X, buffer, 0 );
-					tnprintf( buffer, sizeof( buffer ), "%" _32fs, control->rect.y );
-					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 36, 56, 14, EDT_Y, buffer, 0 );
-					tnprintf( buffer, sizeof( buffer ), "%" _32f, control->rect.width );
-					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 52, 56, 14, EDT_WIDTH, buffer, 0 );
-					tnprintf( buffer, sizeof( buffer ), "%" _32f, control->rect.height );
-					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 68, 56, 14, EDT_HEIGHT, buffer, 0 );
-					tnprintf( buffer, sizeof( buffer ), "%d", control->nID );
-					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 84, 56, 14, EDT_ID, buffer, 0 );
-					tnprintf( buffer, sizeof( buffer ), "%s", control->pIDName );
-					MakeEditControl( pSheet, PROP_PAD + PROP_PAD + 58, 84, 56, 14, EDT_IDNAME, buffer, 0 );
-					MakeListBox( pSheet, PROP_PAD, 117, 400, 200, LISTBOX_IDS, 0 );
+					MakeTextControl( pEditProps->pSheet, PROP_PAD, 05, 58, 14, TXT_STATIC, "Caption", 0 );
+					MakeTextControl( pEditProps->pSheet, PROP_PAD, 21, 58, 14, TXT_STATIC, "X", 0 );
+					MakeTextControl( pEditProps->pSheet, PROP_PAD, 37, 58, 14, TXT_STATIC, "Y", 0 );
+					MakeTextControl( pEditProps->pSheet, PROP_PAD, 53, 58, 14, TXT_STATIC, "Width", 0 );
+					MakeTextControl( pEditProps->pSheet, PROP_PAD, 69, 58, 14, TXT_STATIC, "Height", 0 );
+					MakeTextControl( pEditProps->pSheet, PROP_PAD, 85, 58, 14, TXT_STATIC, "ID", 0 );
+					MakeTextControl( pEditProps->pSheet, PROP_PAD, 101, 58, 14, TXT_STATIC, "ID Name", 0 );
+					tnprintf( buffer, sizeof( buffer ), "%s", GetText( pEditProps->control->caption.text ) );
+					MakeEditControl( pEditProps->pSheet, PROP_PAD + PROP_PAD + 58, 04, PROP_WIDTH-10-(58+5), 14, EDT_CAPTION, buffer, 0 );
+					tnprintf( buffer, sizeof( buffer ), "%" _32fs, pEditProps->control->rect.x );
+					MakeEditControl( pEditProps->pSheet, PROP_PAD + PROP_PAD + 58, 20, 56, 14, EDT_X, buffer, 0 );
+					tnprintf( buffer, sizeof( buffer ), "%" _32fs, pEditProps->control->rect.y );
+					MakeEditControl( pEditProps->pSheet, PROP_PAD + PROP_PAD + 58, 36, 56, 14, EDT_Y, buffer, 0 );
+					tnprintf( buffer, sizeof( buffer ), "%" _32f, pEditProps->control->rect.width );
+					MakeEditControl( pEditProps->pSheet, PROP_PAD + PROP_PAD + 58, 52, 56, 14, EDT_WIDTH, buffer, 0 );
+					tnprintf( buffer, sizeof( buffer ), "%" _32f, pEditProps->control->rect.height );
+					MakeEditControl( pEditProps->pSheet, PROP_PAD + PROP_PAD + 58, 68, 56, 14, EDT_HEIGHT, buffer, 0 );
+					tnprintf( buffer, sizeof( buffer ), "%d", pEditProps->control->nID );
+					MakeEditControl( pEditProps->pSheet, PROP_PAD + PROP_PAD + 58, 84, 56, 14, EDT_ID, buffer, 0 );
+					tnprintf( buffer, sizeof( buffer ), "%s", pEditProps->control->pIDName );
+					MakeEditControl( pEditProps->pSheet, PROP_PAD + PROP_PAD + 58, 84, 56, 14, EDT_IDNAME, buffer, 0 );
+					MakeListBox( pEditProps->pSheet, PROP_PAD, 117, 400, 200, LISTBOX_IDS, 0 );
 					//SaveXMLFrame( pSheet, "Common Edit.Frame" );
-					InitFrameControls( pSheet, control );
+					InitFrameControls( pEditProps->pSheet, pEditProps->control );
 					//DumpFrameContents( pSheet );
 				}
  			}
 			//DebugBreak();
-			if( !pSheet )
+			if( !pEditProps->pSheet )
 			{
-				DebugBreak(); // there's more to cleanup here.
-				return 0; // failed, no properties avaialable for some reason.
+				//DebugBreak(); // there's more to cleanup here.
 			}
-			AddSheet( pcSheet,pSheet );
+			AddSheet( pcSheet, pEditProps->pSheet );
 			{
 				TEXTCHAR classname[32];
 				GetControlPropSheet gcps;
-				tnprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY "/control/%d/rtti", control->nType );
+				tnprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY "/control/%d/rtti", pEditProps->control->nType );
 				gcps = GetRegisteredProcedure( classname, PSI_CONTROL, get_property_page, (PSI_CONTROL) );
 
 				if( gcps )
 				{
 					PSI_CONTROL pCustomSheet;
-					pCustomSheet = gcps( (PSI_CONTROL)control );
+					pCustomSheet = gcps( (PSI_CONTROL)pEditProps->control );
 					lprintf( "Got the page..." );
 					AddSheet( pcSheet
 							  , (PSI_CONTROL)(pEditProps->pPropertySheet = pCustomSheet) );
@@ -367,48 +362,49 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 			if( pEditProps->bOkay )
 			{
 				PSI_CONTROL pc;
+            int32_t x, y;
 				uint32_t w, h, id;
 				static TEXTCHAR buffer[32000];
-				GetControlText( GetControl(pSheet, EDT_CAPTION ), buffer, sizeof( buffer ) );
-				SetControlText( control, buffer );
-				GetControlText( pc = GetControl(pSheet, EDT_X ), buffer, sizeof( buffer ) );
+				GetControlText( GetControl(pEditProps->pSheet, EDT_CAPTION ), buffer, sizeof( buffer ) );
+				SetControlText( pEditProps->control, buffer );
+				GetControlText( pc = GetControl(pEditProps->pSheet, EDT_X ), buffer, sizeof( buffer ) );
 				if( pc )
 					x = (int32_t)IntCreateFromText( buffer );
 				if( pc )
 				{
-					GetControlText( pc = GetControl( pSheet, EDT_Y), buffer, sizeof( buffer ) );
+					GetControlText( pc = GetControl( pEditProps->pSheet, EDT_Y), buffer, sizeof( buffer ) );
 					if( pc )
 					{
 						y = (int32_t)IntCreateFromText( buffer );
-						MoveControl( control, x, y );
+						MoveControl( pEditProps->control, x, y );
 					}
 				}
-				GetControlText( pc = GetControl(pSheet, EDT_WIDTH ), buffer, sizeof( buffer ) );
+				GetControlText( pc = GetControl(pEditProps->pSheet, EDT_WIDTH ), buffer, sizeof( buffer ) );
 				if( pc )
 				{
 					w = (uint32_t)IntCreateFromText( buffer );
-					GetControlText( pc = GetControl(pSheet, EDT_HEIGHT ), buffer, sizeof( buffer ) );
+					GetControlText( pc = GetControl(pEditProps->pSheet, EDT_HEIGHT ), buffer, sizeof( buffer ) );
 					if( pc )
 					{
 						h = (uint32_t)IntCreateFromText( buffer );
-						SizeControl( control, w, h );
+						SizeControl( pEditProps->control, w, h );
 					}
 				}
-				GetControlText( GetControl(pSheet, EDT_ID ), buffer, sizeof( buffer ) );
+				GetControlText( GetControl(pEditProps->pSheet, EDT_ID ), buffer, sizeof( buffer ) );
 				id = (uint32_t)IntCreateFromText( buffer );
-				SetControlID( (PSI_CONTROL)control, id );
-				GetControlText( GetControl( pSheet, EDT_IDNAME ), buffer, sizeof( buffer ) );
+				SetControlID( (PSI_CONTROL)pEditProps->control, id );
+				GetControlText( GetControl( pEditProps->pSheet, EDT_IDNAME ), buffer, sizeof( buffer ) );
 				if( buffer[0] )
 				{
-					if( control->pIDName )
-						Release( (POINTER)control->pIDName );
-					control->pIDName = StrDup( buffer );
+					if( pEditProps->control->pIDName )
+						Release( (POINTER)pEditProps->control->pIDName );
+					pEditProps->control->pIDName = StrDup( buffer );
 				}
 				if( pEditProps->pPropertySheet )
 				{
 					TEXTCHAR classname[32];
 					ApplyControlPropSheet Apply;
-					tnprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY "/control/%d/rtti", control->nType );
+					tnprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY "/control/%d/rtti", pEditProps->control->nType );
 					Apply = GetRegisteredProcedure( classname, void, read_property_page, (PSI_CONTROL, PSI_CONTROL) );
 					if( Apply )
 					{
@@ -417,12 +413,12 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 				}
 			}
 			// not sure if this gets killed...
-			//DestroyFrame( pSheet );
+			//DestroyFrame( pEditProps->pSheet );
 			DestroyCommon( &pf );
 				{
 					TEXTCHAR classname[32];
 					DoneControlPropSheet Done;
-					tnprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY "/control/%d/rtti", control->nType );
+					tnprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY "/control/%d/rtti", pEditProps->control->nType );
 					Done = GetRegisteredProcedure( classname, void, done_property_page, (PSI_CONTROL) );
 					if( Done )
 					{
@@ -436,39 +432,43 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 			break;
 	}
 	Release( pEditProps );
+}
+
+
+PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
+{
+	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)Allocate( sizeof( EDIT_PROP_DATA ) );
+	PSI_CONTROL pf = NULL;
+	pEditProps->control = control;
+	GetMousePosition( &pEditProps->x, &pEditProps->y );
+	TrackPopup_v2( pControlEditMenu, GetFrame( control ), popupCallback, (uintptr_t)pEditProps );
 	return 1;
 }
 
-	//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
-PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
-{
-	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)Allocate( sizeof( EDIT_PROP_DATA ) );
-	PSI_CONTROL pf;
-	uint32_t select;
-	pEditProps->x = x - frame->surface_rect.x;
-	pEditProps->y = y - frame->surface_rect.y;
-	select = TrackPopup( pFrameEditMenu, frame );
+static void frameCallback( uintptr_t psv, int select ) {
+	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)psv;
 	if( select >= MNU_ADDCONTROL &&
 		select < ( MNU_ADDCONTROL + 1000 ) )
 	{
-		CreateAControl( frame, select - MNU_ADDCONTROL, pEditProps );
+		CreateAControl( pEditProps->frame, select - MNU_ADDCONTROL, pEditProps );
 	}
 	else switch( select )
 	{
 	case MNU_DONE:
-		EditFrame( frame, FALSE );
+		EditFrame( pEditProps->frame, FALSE );
 		break;
 	case MNU_DELETETHING:
 		{
-			PTHREAD thread = frame->pCommonButtonData.thread;
-			DestroyFrame( &frame );
+			PTHREAD thread = pEditProps->frame->pCommonButtonData.thread;
+			DestroyFrame( &pEditProps->frame );
 			WakeThread( thread );
 		}
 		break;
 	case MNU_SAVEFRAME:
 		// should pick a file here...
-		SaveXMLFrame( frame, NULL );
+		SaveXMLFrame( pEditProps->frame, NULL );
 		break;
 	case MNU_EDITTHING:
 
@@ -476,12 +476,12 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 		{
 			pEditProps->bDone = FALSE;
 			pEditProps->bOkay = FALSE;
-			pEditProps->pEditCurrent = (PSI_CONTROL)frame;
+			pEditProps->pEditCurrent = (PSI_CONTROL)pEditProps->frame;
 		}
-		GetMousePosition( &x, &y );
-		pf = CreateFrame( "Frame Properties"
-							 , (x - PROP_WIDTH/2)>0?(x - PROP_WIDTH/2):0, y, PROP_WIDTH
-							 , 120, BORDER_NORMAL, GetFrame( frame ) );
+		//GetMousePosition( &x, &y );
+		PSI_CONTROL pf = CreateFrame( "Frame Properties"
+							 , (pEditProps->x - PROP_WIDTH/2)>0?(pEditProps->x - PROP_WIDTH/2):0, pEditProps->y, PROP_WIDTH
+							 , 120, BORDER_NORMAL, GetFrame( pEditProps->frame ) );
 		if( pf )
 		{
 			TEXTCHAR buffer[128];
@@ -491,28 +491,28 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 			MakeTextControl( pf, PROP_PAD, 53, 58, 12, TXT_STATIC, "Width", 0 );
 			MakeTextControl( pf, PROP_PAD, 69, 58, 12, TXT_STATIC, "Height", 0 );
 			MakeTextControl( pf, PROP_PAD, 85, 58, 12, TXT_STATIC, "ID", 0 );
-			tnprintf( buffer, sizeof( buffer ), "%s", GetText( frame->caption.text ) );
+			tnprintf( buffer, sizeof( buffer ), "%s", GetText( pEditProps->frame->caption.text ) );
 			MakeEditControl( pf
 								, PROP_PAD + PROP_PAD + 58, 04
 								, PROP_WIDTH-10-(58+5), 14
 								, EDT_CAPTION, buffer, 0 );
-			tnprintf( buffer, sizeof( buffer ), "%" _32fs, frame->rect.x );
+			tnprintf( buffer, sizeof( buffer ), "%" _32fs, pEditProps->frame->rect.x );
 			MakeEditControl( pf
 								, PROP_PAD + PROP_PAD + 58, 20
 								, 56, 14, EDT_X, buffer, 0 );
-			tnprintf( buffer, sizeof( buffer ), "%" _32fs, frame->rect.y );
+			tnprintf( buffer, sizeof( buffer ), "%" _32fs, pEditProps->frame->rect.y );
 			MakeEditControl( pf
 								, PROP_PAD + PROP_PAD + 58, 36
 								, 56, 14, EDT_Y, buffer, 0 );
-			tnprintf( buffer, sizeof( buffer ), "%" _32f, frame->rect.width );
+			tnprintf( buffer, sizeof( buffer ), "%" _32f, pEditProps->frame->rect.width );
 			MakeEditControl( pf
 								, PROP_PAD + PROP_PAD + 58, 52
 								, 56, 14, EDT_WIDTH, buffer, 0 );
-			tnprintf( buffer, sizeof( buffer ), "%" _32f, frame->rect.height );
+			tnprintf( buffer, sizeof( buffer ), "%" _32f, pEditProps->frame->rect.height );
 			MakeEditControl( pf
 								, PROP_PAD + PROP_PAD + 58, 68
 								, 56, 14, EDT_HEIGHT, buffer, 0 );
-			tnprintf( buffer, sizeof( buffer ), "%d", frame->nID );
+			tnprintf( buffer, sizeof( buffer ), "%d", pEditProps->frame->nID );
 			MakeEditControl( pf
 								, PROP_PAD + PROP_PAD + 58, 84
 								, 56, 14, EDT_ID, buffer, 0 );
@@ -525,26 +525,36 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 				int32_t x2, y2;
 				uint32_t w, h, id;
 				GetControlText( GetControl(pf, EDT_CAPTION ), buffer, sizeof( buffer ) );
-				SetControlText( frame, buffer );
+				SetControlText( pEditProps->frame, buffer );
 				GetControlText( GetControl(pf, EDT_X ), buffer, sizeof( buffer ) );
 				x2 = (int32_t)IntCreateFromText( buffer );
 				GetControlText( GetControl(pf, EDT_Y), buffer, sizeof( buffer ) );
 				y2 = (int32_t)IntCreateFromText( buffer );
-				MoveFrame( frame, x2, y2 );
+				MoveFrame( pEditProps->frame, x2, y2 );
 				GetControlText( GetControl(pf, EDT_WIDTH ), buffer, sizeof( buffer ) );
 				w = (uint32_t)IntCreateFromText( buffer );
 				GetControlText( GetControl(pf, EDT_HEIGHT ), buffer, sizeof( buffer ) );
 				h = (uint32_t)IntCreateFromText( buffer );
-				SizeFrame( frame, w, h );
+				SizeFrame( pEditProps->frame, w, h );
 				GetControlText( GetControl(pf, EDT_ID ), buffer, sizeof( buffer ) );
 				id = (uint32_t)IntCreateFromText( buffer );
-				SetControlID( frame, id );
+				SetControlID( pEditProps->frame, id );
 			}
 			DestroyCommon( &pf );
 		}
 		break;
 	}
 	Release( pEditProps );
+
+}
+
+PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
+{
+	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)Allocate( sizeof( EDIT_PROP_DATA ) );
+	pEditProps->x = x - frame->surface_rect.x;
+	pEditProps->y = y - frame->surface_rect.y;
+   pEditProps->frame = frame;
+	TrackPopup_v2( pFrameEditMenu, frame, frameCallback, (uintptr_t)pEditProps );
 	return 1;
 }
 

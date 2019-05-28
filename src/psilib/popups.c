@@ -489,7 +489,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 		if( x < 0 || x >= pm->width ||
 		    y < 0 || y >= pm->height )
 		{
-			Log2( "Aborting Menu %" _32fs " %" _32fs "", x, y );
+			//Log2( "Aborting Menu %" _32fs " %" _32fs "", x, y );
 			pm->flags.abort = TRUE;
 			UnshowMenu( pm );
 		}
@@ -499,7 +499,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
     {
 		if( pmi && !pmi->flags.bSubMenu )
 		{
-			Log1( "Returning Selection: %08" _PTRSZVALfx "", pmi->value.ID );
+			//Log1( "Returning Selection: %08" _PTRSZVALfx "", pmi->value.ID );
 			pm->selection = pmi->value.ID;
 			UnshowMenu( pm );
 			last_buttons = b;
@@ -589,6 +589,11 @@ void UnshowMenu( PMENU pm )
 	//pm->window = NULL;
 	pm->surface = NULL;
 	pm->parent = NULL;
+
+	if( pm->callback ) {
+		pm->callback( pm->psvParam, pm->selection );
+	}
+
 	if( passed_result && passed_result->parent )
 		UnshowMenu( passed_result );
 }
@@ -1049,6 +1054,45 @@ PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, uintptr_t dwID, uint32_t state 
 }
 
 //----------------------------------------------------------------------
+
+
+PSI_PROC( void, TrackPopup_v2 )( PMENU hMenuSub, PSI_CONTROL parent, void (*callback)( uintptr_t psv, int menuStatus ), uintptr_t psvParam ) {
+
+	int32_t x, y;
+	int selection;
+	if( !hMenuSub )
+	{
+		//Log( "Invalid menu handle." );
+      callback( psvParam, -1 );
+		return;
+	}
+	hMenuSub->callback = callback;
+	hMenuSub->psvParam = psvParam;
+	//GetMousePosition( &x, &y );
+	GetMouseState( &x, &y, &last_buttons );
+#ifdef DEBUG_MENUS
+	lprintf( "Mouse position: %"_32fs ", %"_32fs " %p is the menu", x, y, hMenuSub );
+#endif
+	if( hMenuSub->flags.showing || hMenuSub->flags.tracking )
+	{
+#ifdef DEBUG_MENUS
+		if( hMenuSub->flags.showing )
+			Log( "Already showing menu..." );
+		if( hMenuSub->flags.tracking )
+			Log( "Already tracking the menu..." );
+#endif
+      callback( psvParam, -1 );
+		return;
+	}
+	hMenuSub->parent = NULL;
+	hMenuSub->child = NULL;
+	ShowMenu( hMenuSub, x, y, FALSE, parent );
+	//selection = (int)hMenuSub->selection;
+#ifdef DEBUG_MENUS
+	Log1( "Track popup return selection: %d", selection );
+#endif
+}
+
 
 PSI_PROC( int, TrackPopup )( PMENU hMenuSub, PSI_CONTROL parent )
 {

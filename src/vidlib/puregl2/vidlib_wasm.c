@@ -71,33 +71,6 @@ RENDER_PROC( int, SetActiveGLDisplay )( struct display_camera *hDisplay )
 
 
 
-extern KEYDEFINE KeyDefs[];
-
-	static struct touch_event_state
-	{
-		struct touch_event_flags
-		{
-			BIT_FIELD owned_by_surface : 1;
-		}flags;
-		PRENDERER owning_surface;
-
-		struct touch_event_one{
-			struct touch_event_one_flags {
-				BIT_FIELD bDrag : 1;
-			} flags;
-			int x;
-         int y;
-		} one;
-		struct touch_event_two{
-			int x;
-         int y;
-		} two;
-		struct touch_event_three{
-			int x;
-         int y;
-		} three;
-	} touch_info;
-
 
 
 void  GetDisplaySizeEx ( int nDisplay
@@ -187,30 +160,15 @@ void SACK_Vidlib_SetAnimationWake( void (*wake_callback)(void))
 
 // this is linked to external native activiety shell...
 int SACK_Vidlib_DoRenderPass( void )
-{
-	return ProcessGLDraw(TRUE);
+{	int wantDraw;
+	void (*wake_callback)(void);
+	wake_callback = l.wake_callback;
+	l.wake_callback= NULL;
+	wantDraw = ProcessGLDraw(TRUE);
+	l.wake_callback = wake_callback;
+	return wantDraw;
 }
 
-int SACK_Vidlib_SendTouchEvents( int nPoints, PINPUT_POINT points )
-{
-	{
-		//if( hVideo )
-		{
-			int handled = 0;
-			//if( hVideo->pTouchCallback )
-			{
-			//	handled = hVideo->pTouchCallback( hVideo->dwTouchData, inputs, count );
-			}
-
-			if( !handled )
-			{
-				// this will be like a hvid core
-				handled = Handle3DTouches( ((struct display_camera *)GetLink( &l.cameras, 0 )), points, nPoints );
-			}
-			return handled;
-		}
-	}
-}
 
 
 int Init3D( struct display_camera *camera )										// All Setup For OpenGL Goes Here
@@ -346,8 +304,9 @@ static EM_BOOL em_touch_callback_handler(int eventType, const EmscriptenTouchEve
 			touch_points[point].y = touchEvent->touches[n].targetY *l.default_display_y/ l.real_display_y;
 		}
 	}
-	if( l.wake_callback )
+	if( l.wake_callback ) {
 		l.wake_callback();
+	}
 	//lprintf( "Send events:%d", used_touch_points );
 	return Handle3DTouches( camera, touch_points, used_touch_points );
 	//lprintf( "")
@@ -470,8 +429,9 @@ static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEve
 		// continues to generate scroll clicks.
 		l.mouse_b &= ~( MK_SCROLL_UP|MK_SCROLL_DOWN);
 		l._mouse_b = l.mouse_b;
-	
-	return retval;			// don't allow windows to think about this...
+
+      //lprintf( "Mouse Event used? %d", retval );
+		return (retval!=0 );			// don't allow windows to think about this...
 
 }
 
@@ -523,7 +483,11 @@ static EM_BOOL em_key_callback_handler(int eventType, const EmscriptenKeyboardEv
 			| ( key_index )
 			;
 		//lprintf( "CODE: %08x  %d %d", normal_key, key_mods, key_index );
-		return DispatchKeyEvent( camera->hVidCore, normal_key );
+		{
+			int used = DispatchKeyEvent( camera->hVidCore, normal_key );
+			//lprintf( "USED? %d", used );
+			return ( used != 0 );
+		}
 	}
 	return false;
 	//EM_BOOL ctrlKey EM_BOOL shiftKey EM_BOOL altKey EM_BOOL metaKey

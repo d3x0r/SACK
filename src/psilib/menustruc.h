@@ -38,6 +38,9 @@ typedef struct menu_tag {
     int _x, _y, _b;
     struct menu_tag *child, *parent; // currently shown child if any...
     Image surface;
+
+	void (*callback)( uintptr_t psv, int menuStatus );
+        uintptr_t psvParam;
 } MENU;
 
 typedef struct menuitemflags_tag {
