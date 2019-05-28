@@ -272,11 +272,11 @@ static void popupCallback( uintptr_t psv, int select ) {
 			pEditProps->pEditCurrent = pEditProps->control;
 		}
 		//GetMousePosition( &pEditProps->x, &y );
-		PSI_CONTROL pf = CreateFrame( "Control Properties"
+		{
+			PSI_CONTROL pf = CreateFrame( "Control Properties"
 							 , (pEditProps->x - PROP_WIDTH/2)>0?(pEditProps->x - PROP_WIDTH/2):0, pEditProps->y
 							 , PROP_WIDTH + 20
 							 , PROP_HEIGHT + 20 + 25, BORDER_NORMAL, GetFrame( pEditProps->control ) );
-		{
 			static int bAnotherLayer;
 			PSI_CONTROL pcSheet = MakeSheetControl( pf
 													, 5, 5
