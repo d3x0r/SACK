@@ -793,16 +793,16 @@ PSI_PROC( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE Display
 
 	if( !DefaultColors[0] ) {
 		DefaultColors[0] = Color( 192, 192, 192 ); // highlight
-		DefaultColors[1] = AColor( 53, 96, 89, 150 ); // normal
+		DefaultColors[1] = AColor( 53, 96, 89, 225 ); // normal
 		DefaultColors[2] = Color( 35, 63, 57 ); // shade
 		DefaultColors[3] = Color( 0, 0, 1 ); // shadow
-		DefaultColors[4] = AColor( 0, 40, 40, 250 ); // text
+		DefaultColors[4] = AColor( 0, 240, 240, 255 ); // text
 		DefaultColors[5] = Color( 88, 124, 200 ); // caption background
 		DefaultColors[6] = Color( 240, 240, 240 ); // cannot be black(0). caption text
 		DefaultColors[7] = Color( 89, 120, 120 ); // inactive caption background
 		DefaultColors[8] = Color( 0, 0, 1 );     // inactive caption text (not black)
 		DefaultColors[9] = Color( 0, 0, 128 );  // text select background
-		DefaultColors[10] = Color( 220, 220, 220 ); // text select foreground
+		DefaultColors[10] = Color( 220, 220, 255 ); // text select foreground
 		DefaultColors[11] = AColor( 192, 192, 192, 225 ); // edit background
 		DefaultColors[12] = Color( 0, 0, 1 );  // edit text
 		DefaultColors[13] = Color( 120, 120, 180 ); // scroll bar...

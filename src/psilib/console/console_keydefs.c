@@ -327,7 +327,7 @@ CORECON_EXPORT( PSIKEYDEFINE, ConsoleKeyDefs[256] ) =
                       //, {"snapshot"}
                       , [KEY_GREY_INSERT]={"insert", 0, 0, {{COMMANDKEY, (PTEXT)KeyInsert}}}
                       , [KEY_GREY_DELETE]={"delete", 0, 0, {{KEYDATA_DEFINED, (PTEXT)&KeyStroke}}}
-                      , {"help"}
+                      //, {"help"}
                       , [KEY_0]={"0", 0, 0, {{KEYDATA}
                                     ,{KEYDATA}}}      //0x30
                       , [KEY_1]={"1", 0, 0, {{KEYDATA}
