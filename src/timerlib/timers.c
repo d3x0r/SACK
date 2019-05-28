@@ -1028,13 +1028,13 @@ static void TimerWakeableSleep( uint32_t n )
 			//lprintf( "Stat of lock:%d", stat );
 		}
 #endif
-		if(0)
+		//if(0)
 		if( globalTimerData.pTimerThread )
 		{
 #ifdef USE_PIPE_SEMS
 			InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_SRC );
 #else
-			//pthread_mutex_lock( &globalTimerData.pTimerThread->mutex );
+			pthread_mutex_lock( &globalTimerData.pTimerThread->mutex );
 #endif
 			//lprintf( "After semval = %d %08lx"
 			//	      , semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL )
