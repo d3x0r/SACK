@@ -315,11 +315,11 @@ static void CloseGLTextures( Image image )
 	struct glSurfaceImageData * image_data;
 	LIST_FORALL( image->glSurface, idx, struct glSurfaceImageData *, image_data )
 	{
-		lprintf( "Release Texture %d", image_data->glIndex );
+		//lprintf( "Release Texture %d", image_data->glIndex );
 		glDeleteTextures( 1, &image_data->glIndex );
 		image_data->glIndex = 0;
 	}
-   DeleteList( &image->glSurface );
+	DeleteList( &image->glSurface );
 }
 
 //------------------------------------------
