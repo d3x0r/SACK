@@ -42,7 +42,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 	//lprintf( "Touches on camera %p", camera );
 	if( !camera )
 		return 0;
-#ifndef __ANDROID__
+#if !defined( __ANDROID__ ) && !defined( __EMSCRIPTEN__ )
 	if( l.flags.bRotateLock )
 #endif
 	{
@@ -272,14 +272,14 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 						}
 #endif
 					}
-               else
+					else
 						RotateRel( l.origin, 0, 0, angle_one );
 				}
-            MarkDisplayUpdated( NULL ); // trigger redraw
-            touch_info.one.x = touches[0].x;
-            touch_info.one.y = touches[0].y;
-            touch_info.two.x = touches[1].x;
-            touch_info.two.y = touches[1].y;
+				MarkDisplayUpdated( NULL ); // trigger redraw
+				touch_info.one.x = touches[0].x;
+				touch_info.one.y = touches[0].y;
+				touch_info.two.x = touches[1].x;
+				touch_info.two.y = touches[1].y;
 			}
 		}
 		else if( nTouches == 1 )
@@ -323,7 +323,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 					l.mouse_y = touches[0].y;
 					if( !OpenGLMouse( (uintptr_t)camera, l.mouse_x, l.mouse_y, MK_LBUTTON ) )
 					{
-                  touch_info.flags.owned_by_surface = 0;
+						touch_info.flags.owned_by_surface = 0;
 					}
 				}
 				else
@@ -358,6 +358,7 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 				touch_info.one.y = touches[0].y;
 			}
 		}
+
 		return 1;
 	}
 	return 0;

@@ -134,7 +134,7 @@ UnlinkVideo (PVIDEO hVideo)
 void
 FocusInLevel (PVIDEO hVideo)
 {
-	lprintf( "Focus IN level" );
+	//lprintf( "Focus IN level" );
 	if (hVideo->pPrior)
 	{
 		hVideo->pPrior->pNext = hVideo->pNext;
@@ -374,7 +374,7 @@ void LoadOptions( void )
 		uint32_t screen_w, screen_h;
 		int nDisplays = SACK_GetProfileIntEx( GetProgramName(), "SACK/Video Render/Number of Displays", l.flags.bView360?6:1, TRUE );
 		int n;
-		lprintf( "Loading %d displays", nDisplays );
+		//lprintf( "Loading %d displays", nDisplays );
 		l.flags.bForceUnaryAspect = SACK_GetProfileIntEx( GetProgramName(), "SACK/Video Render/Force Aspect 1.0", (nDisplays==1)?0:1, TRUE );
 		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		switch( nDisplays )
@@ -522,7 +522,7 @@ void LoadOptions( void )
 		uint32_t screen_w, screen_h;
 		int nDisplays = 1;
 		int n;
-		lprintf( "Loading %d displays", nDisplays );
+		//lprintf( "Loading %d displays", nDisplays );
 		l.flags.bForceUnaryAspect = 0;
 		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		//lprintf( "Set camera 0 to 1" );
@@ -571,7 +571,7 @@ void LoadOptions( void )
 			default_camera = (struct display_camera *)GetLink( &l.cameras, 1 );
 			//lprintf( "Retrieve default as %p", default_camera );
 		}
-		lprintf( "Set default to %p", default_camera );
+		//lprintf( "Set default to %p", default_camera );
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	l.flags.bLogMessageDispatch = 0;
@@ -585,7 +585,7 @@ void LoadOptions( void )
 	if( !l.origin )
 	{
 		static MATRIX m;
-		lprintf( "Init camera" );
+		//lprintf( "Init camera" );
 		l.origin = CreateNamedTransform( "render.camera" );
 
 		Translate( l.origin, l.scale * average_width/2, l.scale * average_height/2, l.scale * average_height/2 );

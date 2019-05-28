@@ -13,7 +13,7 @@
 
 @set CFLAGS=%CFLAGS% -D__NO_OPTIONS__ -D__STATIC__ -D__WASM__
 
-
+set CFLAGS=%CFLAGS% -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR 
 
 @set  SRCS= ^
         keydefs.c    ^
@@ -39,5 +39,7 @@
 
 ppc.exe -c -K -once -f -ssio -sd %OPTS% -L -I../../../include -p -o sack_vidlib_puregl.c %SRCS%
 
-call emcc -s USE_WEBGL2=1 -g -D_DEBUG -o ./vidlib_puregl2.lo  -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference %CFLAGS% %SRCS%
-call emcc -s USE_WEBGL2=1 -O3 -o ./vidlib_puregl2o.lo  -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference %CFLAGS% %SRCS%
+: -Wno-address-of-packed-member
+:  -Wno-address-of-packed-member
+call emcc -s USE_WEBGL2=1 -g -D_DEBUG -o ./vidlib_puregl2.lo  -Wno-parentheses -Wno-comment -Wno-null-dereference %CFLAGS% %SRCS%
+call emcc -s USE_WEBGL2=1 -O3 -o ./vidlib_puregl2o.lo  -Wno-parentheses -Wno-comment -Wno-null-dereference %CFLAGS% %SRCS%

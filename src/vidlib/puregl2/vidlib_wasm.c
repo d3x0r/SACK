@@ -27,13 +27,18 @@
 #define USE_IMAGE_INTERFACE l.gl_image_interface
 
 #include <stdhdrs.h>
-
+#include <stdbool.h>
 #include <emscripten/html5.h>
 
 #include "local.h"
 
+#include <emscripten/html5.h>
+#include <emscripten.h>
+
+
 RENDER_NAMESPACE
 // move local into render namespace.
+	const char *displayName = "[id='SACK Display 1']";
 
 HWND  GetNativeHandle (PVIDEO hVideo);
 
@@ -52,7 +57,7 @@ int SetActiveGLDisplayView( struct display_camera *camera, int nFracture )
 	{
 		if( camera->hVidCore )
 		{
-			//lprintf( "Setting camera display HRC: %p", camera->displayWindow );
+			//lprintf( "Setting camera displayName HRC: %p", camera->displayWindow );
 			emscripten_webgl_make_context_current( last_active = camera->displayWindow );
 		}
 	}
@@ -101,7 +106,7 @@ void  GetDisplaySizeEx ( int nDisplay
 {
 	while( !l.default_display_x || !l.default_display_y )
 	{
-		//lprintf( "Didn't have a display yet.. .wait..." );
+		//lprintf( "Didn't have a displayName yet.. .wait..." );
 		Relinquish();
 	}
 	if( x )
@@ -152,7 +157,8 @@ void HostSystem_InitDisplayInfo(void )
 	// this is passed in from the external world; do nothing, but provide the hook.
 	// have to wait for this ....
 	//lprintf( "SET size here..." );
-	emscripten_webgl_get_drawing_buffer_size( l.displayWindow, &l.default_display_x, &l.default_display_y );
+	//emscripten_webgl_get_drawing_buffer_size( l.displayWindow, &l.default_display_x, &l.default_display_y );
+   emscripten_get_canvas_element_size( displayName, &l.default_display_x, &l.default_display_y );
 	//lprintf( "SET WINDOW SIZE FROM CONTROL: %d %d", l.default_display_x, l.default_display_y );
 	//default_display_x	ANativeWindow_getFormat( camera->displayWindow)
 }
@@ -174,7 +180,7 @@ void SACK_Vidlib_SetNativeWindowHandle( EMSCRIPTEN_WEBGL_CONTEXT_HANDLE    displ
 
 void SACK_Vidlib_SetAnimationWake( void (*wake_callback)(void))
 {
-	// this is called when the  display wants a update
+	// this is called when the  displayName wants a update
 	// but it's not continuous update.
 	l.wake_callback = wake_callback;
 }
@@ -254,23 +260,104 @@ void EndActive3D( struct display_camera *camera ) // does appropriate EndActiveX
 {
 }
 
-
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <emscripten/html5.h>
-#include <emscripten.h>
-
-#define NULL ((void*)0)
+static struct input_point touch_points[32];
+static struct {
+	int id;
+	int deleted;
+} touch_point_state[32];
+static int used_touch_points;
 
 static EM_BOOL em_touch_callback_handler(int eventType, const EmscriptenTouchEvent *touchEvent, void *userData){
 	struct display_camera *camera = ((struct display_camera**)userData)[0];
-   if( !camera ) return false;
-	lprintf( "Touch callback..." );
-	return false; // or true consumed
+	int n, m;
+	int point;
+	if( !camera ) return false;
+	
+#if 0
+	lprintf( "Touch callback... %d %d",eventType,  touchEvent->numTouches );
+	for( point = 0; point < touchEvent->numTouches; point++ ) {
+		lprintf( "touches: %d  %d %d", point, touchEvent->touches[point].targetX, touchEvent->touches[point].targetY );
+	}
+#endif
+	for( n = 0; n < used_touch_points; n++ )  {
+		// any old event is not new.
+		touch_points[n].flags.new_event = 0;
+		// end events would have been sent, remove them now.
+		if( touch_points[n].flags.end_event ) 
+			while( n < used_touch_points && touch_point_state[n].deleted ) {
+				for( m = n+1; m < used_touch_points; m++ ) {
+					touch_points[m-1] = touch_points[m];
+					touch_point_state[m-1] = touch_point_state[m];
+				}
+				used_touch_points--;
+			}		
+		touch_points[used_touch_points].flags.end_event = 0;
+	}
+
+	if( eventType == 23 ){ // end
+		for( point = 0; point < used_touch_points; point++ ) {
+			touch_point_state[point].deleted = 1;
+		}
+			
+		for( n = 0; n < touchEvent->numTouches; n++ ) {
+			int tid;
+			if( touchEvent->touches[n].isChanged ) continue; // this is the one to delete, definatly don't undetlete
+			tid = touchEvent->touches[n].identifier;
+			for( point = 0; point < used_touch_points; point++ ) {
+				if( touch_point_state[point].id == tid ) {
+					break;
+				}
+			}
+			if( point < used_touch_points )
+				touch_point_state[point].deleted = 0;
+		}
+		for( n = 0; n < used_touch_points; n++ ) {
+			if( touch_point_state[n].deleted )
+				if( !touch_points[n].flags.end_event )
+					touch_points[n].flags.end_event = 1;
+		}
+	}
+	//lprintf( "..." );
+	if( eventType == 22 || eventType == 24 ) {
+		 // start
+		for( n = 0; n < touchEvent->numTouches; n++ ) {
+			int tid = touchEvent->touches[n].identifier;
+			int point;
+			for( point = 0; point < used_touch_points; point++ ) {
+				if( touch_point_state[point].id == tid ) {
+					break;
+				}
+			}
+			if(  point == used_touch_points ) {
+				//lprintf( "Add a new point." );
+				used_touch_points++;
+				touch_point_state[point].id = tid;
+				touch_points[point].flags.new_event = 1;
+				touch_points[point].flags.end_event = 0;
+				touch_point_state[point].deleted = 0;
+			} 
+
+			if( !l.real_display_x ) {
+				//lprintf( "Bad Paramters..." );
+				l.real_display_x = l.default_display_x;
+				l.real_display_y = l.default_display_y;
+			}
+			touch_points[point].x = touchEvent->touches[n].targetX *l.default_display_x/ l.real_display_x;
+			touch_points[point].y = touchEvent->touches[n].targetY *l.default_display_y/ l.real_display_y;
+		}
+	}
+	if( l.wake_callback )
+		l.wake_callback();
+	//lprintf( "Send events:%d", used_touch_points );
+	return Handle3DTouches( camera, touch_points, used_touch_points );
+	//lprintf( "")
+	
+	//return true; // or true consumed
 }
+
+
+
+
 
 static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEvent *mouseEvent, void *userData) {
 	struct display_camera *camera = ((struct display_camera**)userData)[0];
@@ -287,44 +374,18 @@ static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEve
 	// movementX long movementY;
 
 	l.mouse_b = mouseEvent->buttons;
-#if 0
- // click-and drag capture...
-		//hWndLastFocus = hWnd;
-		if( l.hCameraCaptured )
-		{
-#ifdef LOG_MOUSE_EVENTS
-			lprintf( "Captured mouse already - don't do anything?" );
-#endif
+	/* do we need to do mouse capture fo out of window events? didn't seem to.*/
+
+	{
+		if( !l.real_display_x ) {
+			//lprintf( "Bad Paramters..." );
+			l.real_display_x = l.default_display_x;
+			l.real_display_y = l.default_display_y;
 		}
-		else
-		{
-			if( ( ( _mouse_b ^ l.mouse_b ) & l.mouse_b & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON) ) )
-			{
-#ifdef LOG_MOUSE_EVENTS
-				lprintf( "Auto owning mouse to surface which had the mouse clicked DOWN." );
-#endif
-				if( !l.hCameraCaptured )
-					SetCapture( hWnd );
-			}
-			else if( ( (l.mouse_b & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON)) == 0 ) )
-			{
-				//lprintf( "Auto release mouse from surface which had the mouse unclicked." );
-				if( !l.hCameraCaptured )
-					ReleaseCapture();
-			}
-		}
-#endif
-		{
-			//emscripten_get_canvas_element_size( "SACK Display 1", &l.real_display_x, &l.real_display_y );
-	if( !l.real_display_x ) {
-		//lprintf( "Bad Paramters..." );
-		l.real_display_x = l.default_display_x;
-		l.real_display_y = l.default_display_y;
+		l.mouse_x = mouseEvent->targetX *l.default_display_x/ l.real_display_x;
+		l.mouse_y = mouseEvent->targetY *l.default_display_y/ l.real_display_y;
+		//lprintf( "mouse is %d %d  %d %d  %g %d", l.mouse_x, l.mouse_y, mouseEvent->targetX, mouseEvent->targetY, l.real_display_x, l.default_display_x );
 	}
-			l.mouse_x = mouseEvent->targetX *l.default_display_x/ l.real_display_x;
-			l.mouse_y = mouseEvent->targetY *l.default_display_y/ l.real_display_y;
-			//lprintf( "mouse is %d %d  %d %d  %g %d", l.mouse_x, l.mouse_y, mouseEvent->targetX, mouseEvent->targetY, l.real_display_x, l.default_display_x );
-		}
 #if 0
 		if( l.last_mouse_update )
 		{
@@ -365,7 +426,7 @@ static EM_BOOL em_mouse_callback_handler(int eventType, const EmscriptenMouseEve
 		l.mouse_last_vid = hVideo;
 #endif
 
-		if( l.flags.bRotateLock  )
+		if( l.flags.bRotateLock && !l.mouse_b )
 		{
 			//lprintf( "rotate lock..." );
 			RCOORD delta_x = l.mouse_x - l._mouse_x;//(camera->w/2);
@@ -428,6 +489,10 @@ static EM_BOOL em_key_callback_handler(int eventType, const EmscriptenKeyboardEv
 	case KEY_ALT: // shift
 	case KEY_CONTROL: // shift
 	case KEY_SHIFT: // shift
+	case KEY_LEFT: // shift
+	case KEY_RIGHT: // shift
+	case KEY_UP: // shift
+	case KEY_DOWN: // shift
 	case 1: // shift
 		key = NULL;
 		break;
@@ -485,16 +550,17 @@ static EM_BOOL em_key_callback_handler_pr(int eventType, const EmscriptenKeyboar
 static EM_BOOL em_webgl_context_handler(int eventType, const void *reserved, void *userData){
 
 	struct display_camera *camera = ((struct display_camera**)userData)[0];
+	lprintf( "webgl context event");
    if( !camera ) return false;
 	return false;
 }
 
 
 static EM_BOOL em_resize_callback_handler( int eventType, const EmscriptenUiEvent *uiEvent, void *userData) {
-	lprintf( "some sort of event: %d", eventType );
+	lprintf( "some sort of resize event: %d", eventType );
 	switch( eventType ) {
 	default:
-		 emscripten_get_element_css_size( "SACK Display 1", &l.real_display_x, &l.real_display_y );
+		 emscripten_get_element_css_size( displayName, &l.real_display_x, &l.real_display_y );
 	}
    return true;
 }
@@ -506,31 +572,31 @@ PRELOAD( do_init_display ) {
 	void *myState = (void*)defaultCamera;
 	defaultCamera[0] = NULL;
 	initializingCamera = defaultCamera;
-	const char *display = "SACK Display 1";
 
-	emscripten_get_element_css_size( "SACK Display 1", &l.real_display_x, &l.real_display_y );
+	emscripten_get_element_css_size( displayName, &l.real_display_x, &l.real_display_y );
 
-	r = emscripten_set_resize_callback( "SACK Display 1", myState, true, em_resize_callback_handler );
-	r = emscripten_set_touchstart_callback( display, myState, true, em_touch_callback_handler);
-	r = emscripten_set_touchend_callback(display, myState, true, em_touch_callback_handler);
-	r = emscripten_set_touchmove_callback(display, myState, true, em_touch_callback_handler);
-	r = emscripten_set_touchcancel_callback(display, myState, true, em_touch_callback_handler);
+	r = emscripten_set_resize_callback( displayName, myState, true, em_resize_callback_handler );
 
-	r = emscripten_set_click_callback(display, myState, true, em_mouse_callback_handler);
-	r = emscripten_set_mousedown_callback(display, myState, true, em_mouse_callback_handler);
-	r = emscripten_set_mouseup_callback(display, myState, true, em_mouse_callback_handler);
-	r = emscripten_set_dblclick_callback(display, myState, true, em_mouse_callback_handler);
-	r = emscripten_set_mousemove_callback(display, myState, true, em_mouse_callback_handler);
-	r = emscripten_set_mouseenter_callback(display, myState, true, em_mouse_callback_handler);
-	r = emscripten_set_mouseleave_callback(display, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_touchstart_callback( displayName, myState, true, em_touch_callback_handler);
+	r = emscripten_set_touchend_callback(displayName, myState, true, em_touch_callback_handler);
+	r = emscripten_set_touchmove_callback(displayName, myState, true, em_touch_callback_handler);
+	r = emscripten_set_touchcancel_callback(displayName, myState, true, em_touch_callback_handler);
+
+	r = emscripten_set_click_callback(displayName, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_mousedown_callback(displayName, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_mouseup_callback(displayName, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_dblclick_callback(displayName, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_mousemove_callback(displayName, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_mouseenter_callback(displayName, myState, true, em_mouse_callback_handler);
+	r = emscripten_set_mouseleave_callback(displayName, myState, true, em_mouse_callback_handler);
 
 
-	//r = emscripten_set_keypress_callback(display, myState, true, em_key_callback_handler_pr);
-	r = emscripten_set_keydown_callback(display, myState, true, em_key_callback_handler_dn);
-	r = emscripten_set_keyup_callback(display, myState, true, em_key_callback_handler_up);
+	//r = emscripten_set_keypress_callback(displayName, myState, true, em_key_callback_handler_pr);
+	r = emscripten_set_keydown_callback(displayName, myState, true, em_key_callback_handler_dn);
+	r = emscripten_set_keyup_callback(displayName, myState, true, em_key_callback_handler_up);
 
-	r = emscripten_set_webglcontextlost_callback(display, myState, true, em_webgl_context_handler);
-	r = emscripten_set_webglcontextrestored_callback(display, myState, true, em_webgl_context_handler);
+	r = emscripten_set_webglcontextlost_callback(displayName, myState, true, em_webgl_context_handler);
+	r = emscripten_set_webglcontextrestored_callback(displayName, myState, true, em_webgl_context_handler);
 
         {
 	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE hGL;
@@ -552,7 +618,7 @@ PRELOAD( do_init_display ) {
 //	attribs.renderViaOffscreenBackBuffer = false;  //
 	//   attribs.proxyContextToMainThread =
 
-	hGL = emscripten_webgl_create_context(display, &attribs );
+	hGL = emscripten_webgl_create_context(displayName, &attribs );
 	{
 		extern void SACK_Vidlib_SetNativeWindowHandle( EMSCRIPTEN_WEBGL_CONTEXT_HANDLE    displayWindow );
 		//lprintf( "specify HRC %d", hGL );
