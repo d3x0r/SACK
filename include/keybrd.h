@@ -301,6 +301,215 @@ RENDER_NAMESPACE_END
 
 #endif
 
+#if defined( __EMSCRIPTEN__ ) || defined( __EMSCRIPTEN__ )
+
+	  /*   https://w3c.github.io/uievents/#fixed-virtual-key-codes
+      // for keyCode
+      */
+#define KEY_BACKSPACE 8
+#define KEY_TAB 9
+#define KEY_ENTER 13
+#define KEY_SHIFT 16
+#define KEY_LEFT_SHIFT 16
+#define KEY_RIGHT_SHIFT 16
+
+#define KEY_CTRL 17
+#define KEY_CONTROL 17
+#define KEY_LEFT_CONTROL 17
+#define KEY_RIGHT_CONTROL 17
+
+#define KEY_ALT 18
+#define KEY_LEFT_ALT 18
+#define KEY_RIGHT_ALT 18
+
+#define KEY_F1  112
+#define KEY_F2  113
+#define KEY_F3  114
+#define KEY_F4  115
+#define KEY_F5  116
+#define KEY_F6  117
+#define KEY_F7  118
+#define KEY_F8  119
+#define KEY_F9  120
+#define KEY_F10  121
+#define KEY_F11  122
+#define KEY_F12  123
+
+#  undef KEY_SPACE
+#  define KEY_SPACE        ' '
+
+#  define KEY_A         'A'
+#  define KEY_B         'B'
+#  define KEY_C         'C'
+#  define KEY_D         'D'
+#  define KEY_E         'E'
+#  define KEY_F         'F'
+#  define KEY_G         'G'
+#  define KEY_H         'H'
+#  define KEY_I         'I'
+#  define KEY_J         'J'
+#  define KEY_K         'K'
+#  define KEY_L         'L'
+#  define KEY_M        77
+#  define KEY_N         78
+#  define KEY_O         79
+#  define KEY_P        80
+#  define KEY_Q         'Q'
+#  define KEY_R         'R'
+#  define KEY_S         'S'
+#  define KEY_T         'T'
+#  define KEY_U         'U'
+#  define KEY_V         'V'
+#  define KEY_W         'W'
+#  define KEY_X         'X'
+#  define KEY_Y         'Y'
+#  define KEY_Z         'Z'
+
+
+#  define KEY_1         '1'
+#  define KEY_2         '2'
+#  define KEY_3         '3'
+#  define KEY_4         '4'
+#  define KEY_5         '5'
+#  define KEY_6         '6'
+#  define KEY_7         '7'
+#  define KEY_8         '8'
+#  define KEY_9         '9'
+#  define KEY_0         '0'
+
+
+#define KEY_SEMICOLON	186   //';'
+#define KEY_COLON    	186   //':'
+#define KEY_EQUAL        187  //'='	//187
+#define KEY_PLUS	     187  //'+'	//187
+#define KEY_COMMA      	188   //','	//188
+#define KEY_LESS_THAN	188     //'<'		//188
+#define KEY_MINUS     	189     //'-'		//189
+#define KEY_DASH         189    //'-'       //189
+#define KEY_Underscore	189  //'_'		//189
+#define KEY_STOP	     190   //'.'		//190
+#define KEY_PERIOD	     190   //'.'		//190
+#define KEY_GREATER_THAN	190   //'>'		//190
+#define KEY_SLASH   	191    //'/'		//191
+#define KEY_QUESTION	191   //'?'		//191
+#define KEY_ACCENT	     192 //'`'		//192
+#define KEY_TILDE    	192 //'~'		//192
+#define KEY_LEFT_BRACKET	219  //'['		//219
+#define KEY_OPEN_BRACE	219  //'{'		//219
+#define KEY_BACKSLASH	220  //'\\'		//220
+#define KEY_PIPE	     220 //'|'		//220
+#define KEY_RIGHT_BRACKET	221//']'		//221
+#define KEY_CLOSE_BRACE     221//	'}'		//221
+#define KEY_QUOTE	222   //'\''		//222
+//Double quote	'\"'		//222
+
+#  define KEY_ESCAPE       27
+#  define KEY_PGUP         33
+#  define KEY_PAGE_UP      33
+#  define KEY_PGDN         34
+#  define KEY_PAGE_DOWN    34
+#  define KEY_END          35
+#  define KEY_HOME         36
+#  define KEY_LEFT         37
+#  define KEY_UP           38
+#  define KEY_RIGHT        39
+#  define KEY_DOWN         40
+#  define KEY_GRAY_UP  38
+#  define KEY_GRAY_LEFT   37
+#  define KEY_GRAY_RIGHT  39
+#  define KEY_GRAY_DOWN    40
+//#  define KEY_GRAY_UP      0x48
+#  define KEY_GRAY_PGUP     33
+#  define KEY_GRAY_MINUS    109
+//#  define KEY_GRAY_LEFT 0x4B
+//#  define KEY_GRAY_RIGHT   0x4D
+#  define KEY_GRAY_PLUS   107
+#  define KEY_GRAY_END    0x4F
+#  define KEY_PAD_PLUS   107
+//#  define KEY_GRAY_DOWN 0x50
+#  define KEY_GRAY_PGDN   34
+#  define KEY_GRAY_INS    45
+#  define KEY_GRAY_INSERT    45
+#  define KEY_GREY_INSERT   45
+#  define KEY_GRAY_DEL       46
+#  define KEY_GRAY_DELETE    46
+#  define KEY_GREY_DELETE    47
+
+#  define KEY_INSERT       45
+#  define KEY_DEL          46
+#  define KEY_DELETE       KEY_DEL
+
+#  define KEY_PAD_MULT 106
+#  define KEY_PAD_DOT  110
+#  define KEY_PAD_DELETE 110
+#  define KEY_PAD_DIV 111
+#  define KEY_PAD_0 96
+#  define KEY_PAD_1 97
+#  define KEY_PAD_2 98
+#  define KEY_PAD_3 99
+#  define KEY_PAD_4 100
+#  define KEY_PAD_5 101
+#  define KEY_PAD_6 102
+#  define KEY_PAD_7 103
+#  define KEY_PAD_8 104
+#  define KEY_PAD_9 105
+#  define KEY_PAD_ENTER KEY_ENTER
+#  define KEY_PAD_MINUS 109
+
+
+#define KEY_NUM_LOCK 144
+
+#undef KEY_SCROLL_LOCK
+#define KEY_SCROLL_LOCK 145
+
+     /*   https://w3c.github.io/uievents/#fixed-virtual-key-codes
+     Backspace	8	
+Tab	9	
+Enter	13	
+Shift	16	
+Control	17	
+Alt	18	
+CapsLock	20	
+Escape	27	Esc
+Space	32	
+PageUp	33	
+PageDown	34	
+End	35	
+Home	36	
+ArrowLeft	37	
+ArrowUp	38	
+ArrowRight	39	
+ArrowDown	40	
+Delete	46	Del
+
+Semicolon	";"	186
+Colon	":"	186
+Equals sign	"="	187
+Plus	"+"	187
+Comma	","	188
+Less than sign	"<"	188
+Minus	"-"	189
+Underscore	"_"	189
+Period	"."	190
+Greater than sign	">"	190
+Forward slash	"/"	191
+Question mark	"?"	191
+Backtick	"`"	192
+Tilde	"~"	192
+Opening squace bracket	"["	219
+Opening curly brace	"{"	219
+Backslash	"\"	220
+Pipe	"|"	220
+Closing square bracket	"]"	221
+Closing curly brace	"}"	221
+Single quote	"'"	222
+Double quote	"""	222
+
+     */
+#  endif
+
+
+
 // if any key...
 #if !defined( KEY_1 )
 
@@ -1140,165 +1349,6 @@ RENDER_NAMESPACE_END
 #  endif
 
 #endif
-
-#if defined( __EMSCRIPTEN__ ) || defined( __EMSCRIPTEN__ )
-
-	  /*   https://w3c.github.io/uievents/#fixed-virtual-key-codes
-      // for keyCode
-      */
-#undef KEY_BACKSPACE
-#define KEY_BACKSPACE 8
-#undef KEY_TAB
-#define KEY_TAB 9
-#undef KEY_ENTER
-#define KEY_ENTER 13
-#undef KEY_SHIFT
-#define KEY_SHIFT 16
-
-#undef KEY_CTRL
-#undef KEY_CONTROL
-#undef KEY_LEFT_CONTROL
-#undef KEY_RIGHT_CONTROL
-#define KEY_CTRL 17
-#define KEY_CONTROL 17
-#define KEY_LEFT_CONTROL 17
-#define KEY_RIGHT_CONTROL 17
-
-#undef KEY_F1
-#define KEY_F1  112
-#undef KEY_F2
-#define KEY_F2  113
-#undef KEY_F3
-#define KEY_F3  114
-#undef KEY_F4
-#define KEY_F4  115
-#undef KEY_F5
-#define KEY_F5  116
-#undef KEY_F6
-#define KEY_F6  117
-#undef KEY_F7
-#define KEY_F7  118
-#undef KEY_F8
-#define KEY_F8  119
-#undef KEY_F9
-#define KEY_F9  120
-#undef KEY_F10
-#define KEY_F10  121
-#undef KEY_F11
-#define KEY_F11  122
-#undef KEY_F12
-#define KEY_F12  123
-
-#  undef KEY_SPACE
-#  define KEY_SPACE        ' '
-
-#  undef KEY_A 
-#  undef KEY_B 
-#  undef KEY_C 
-#  undef KEY_D 
-#  undef KEY_E 
-#  undef KEY_F 
-#  undef KEY_G 
-#  undef KEY_H 
-#  undef KEY_I 
-#  undef KEY_J 
-#  undef KEY_K 
-#  undef KEY_L 
-#  undef KEY_M 
-#  undef KEY_N 
-#  undef KEY_O 
-#  undef KEY_P 
-#  undef KEY_Q 
-#  undef KEY_R 
-#  undef KEY_S 
-#  undef KEY_T 
-#  undef KEY_U 
-#  undef KEY_V 
-#  undef KEY_W 
-#  undef KEY_X 
-#  undef KEY_Y 
-#  undef KEY_Z 
-
-
-#  undef KEY_1 
-#  undef KEY_2 
-#  undef KEY_3 
-#  undef KEY_4 
-#  undef KEY_5 
-#  undef KEY_6 
-#  undef KEY_7 
-#  undef KEY_8 
-#  undef KEY_9 
-#  undef KEY_0 
-
-
-
-#  define KEY_A         'A'
-#  define KEY_B         'B'
-#  define KEY_C         'C'
-#  define KEY_D         'D'
-#  define KEY_E         'E'
-#  define KEY_F         'F'
-#  define KEY_G         'G'
-#  define KEY_H         'H'
-#  define KEY_I         'I'
-#  define KEY_J         'J'
-#  define KEY_K         'K'
-#  define KEY_L         'L'
-#  define KEY_M        77
-#  define KEY_N         78
-#  define KEY_O         79
-#  define KEY_P        80
-#  define KEY_Q         'Q'
-#  define KEY_R         'R'
-#  define KEY_S         'S'
-#  define KEY_T         'T'
-#  define KEY_U         'U'
-#  define KEY_V         'V'
-#  define KEY_W         'W'
-#  define KEY_X         'X'
-#  define KEY_Y         'Y'
-#  define KEY_Z         'Z'
-
-
-#  define KEY_1         '1'
-#  define KEY_2         '2'
-#  define KEY_3         '3'
-#  define KEY_4         '4'
-#  define KEY_5         '5'
-#  define KEY_6         '6'
-#  define KEY_7         '7'
-#  define KEY_8         '8'
-#  define KEY_9         '9'
-#  define KEY_0         '0'
-
-
-
-
-#undef KEY_SCROLL_LOCK
-#define KEY_SCROLL_LOCK 145
-
-     /*   https://w3c.github.io/uievents/#fixed-virtual-key-codes
-     Backspace	8	
-Tab	9	
-Enter	13	
-Shift	16	
-Control	17	
-Alt	18	
-CapsLock	20	
-Escape	27	Esc
-Space	32	
-PageUp	33	
-PageDown	34	
-End	35	
-Home	36	
-ArrowLeft	37	
-ArrowUp	38	
-ArrowRight	39	
-ArrowDown	40	
-Delete	46	Del
-     */
-#  endif
 
 
 
