@@ -4156,7 +4156,7 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 			UpdateCommon( pResult );
 		}
 	}
-   return pResult;
+	return pResult;
 
 }
 
@@ -4179,7 +4179,7 @@ PSI_CONTROL MakeControlParam( PSI_CONTROL pFrame
 								, POINTER parameter
 								)
 {
-   return CreateCommonExx( pFrame, NULL, nType, x, y, w, h, nID, NULL, 0, NULL, parameter DBG_SRC );
+	return CreateCommonExx( pFrame, NULL, nType, x, y, w, h, nID, NULL, 0, NULL, parameter DBG_SRC );
 }
 
 PSI_CONTROL MakePrivateControl( PSI_CONTROL pFrame
@@ -4468,10 +4468,13 @@ void DestroyCommonExx( PSI_CONTROL *ppc, int level DBG_PASS )
 			}
 			if( pc->device ) // only thing which may have a commonwait
 			{
-				PCOMMON_BUTTON_DATA pcbd = &pc->parent->pCommonButtonData;
+				PPSI_COMMON_BUTTON_DATA pcbd = &pc->parent->pCommonButtonData;
 				if( pcbd )
 				{
-					WakeThread( pcbd->thread );
+					if( pcbd->event )
+						pcbd->event( pcbd->psv, pc, *pcbd->done_value, *pcbd->okay_value );
+					else
+						WakeThread( pcbd->thread );
 				}
 			}
 			Release( pc->_DrawThySelf );
@@ -4536,7 +4539,7 @@ PSI_PROC( void, SetControlIDName )( PSI_CONTROL pc, TEXTCHAR *IDName )
 
 static void CPROC ButtonOkay( uintptr_t psv, PSI_CONTROL pc )
 {
-	PCOMMON_BUTTON_DATA pcbd = pc->parent?&pc->parent->pCommonButtonData:NULL;
+	PPSI_COMMON_BUTTON_DATA pcbd = pc->parent?&pc->parent->pCommonButtonData:NULL;
 	if( pcbd ) {
 		{
 			int *val = (int*)psv;
@@ -4546,8 +4549,11 @@ static void CPROC ButtonOkay( uintptr_t psv, PSI_CONTROL pc )
 				if( pcbd->done_value )
 					( *pcbd->done_value ) = TRUE;
 		}
-		if( pcbd->thread )
-			WakeThread( pcbd->thread );
+		if( pcbd->event )
+			pcbd->event( pcbd->psv, pc, *pcbd->done_value, *pcbd->okay_value );
+		else
+			if( pcbd->thread )
+				WakeThread( pcbd->thread );
 	}
 }
 
@@ -4567,7 +4573,7 @@ void SetCommonButtons( PSI_CONTROL pf
 {
 	if( pf )
 	{
-		PCOMMON_BUTTON_DATA pcbd;
+		PPSI_COMMON_BUTTON_DATA pcbd;
 		SetButtonPushMethod( GetControl( pf, BTN_ABORT ), ButtonOkay, (uintptr_t)NULL );
 		pcbd = &pf->pCommonButtonData;
 		if( !pcbd->okay_value ) {
@@ -4596,7 +4602,7 @@ void AddCommonButtonsEx( PSI_CONTROL pf
 		// scaled!
 		int w = pf->rect.width;//FrameBorderX( pf->BorderType );
 		int h = pf->rect.height;//FrameBorderY( pf, pf->BorderType, NULL );
-		PCOMMON_BUTTON_DATA pcbd;
+		PPSI_COMMON_BUTTON_DATA pcbd;
 		PSI_CONTROL pc;
 		int x, x2;
 		int y;
@@ -4760,9 +4766,10 @@ PSI_PROC( void, ProcessControlMessages )( void )
 #undef CommonLoop
 PSI_PROC( void, CommonLoop )( int *done, int *okay )
 {
-	PCOMMON_BUTTON_DATA pcbd;
+	lprintf( "COMMON LOOP IS DEPRECATED, PLEASE UPDATE TO ASYNC METHODS" );
+	PPSI_COMMON_BUTTON_DATA pcbd;
 	//AddWait( pc );
-	pcbd = New( COMMON_BUTTON_DATA );
+	pcbd = New( PSI_COMMON_BUTTON_DATA );
 	pcbd->okay_value = okay;
 	pcbd->done_value = done;
 	pcbd->thread = MakeThread();
@@ -4783,7 +4790,8 @@ PSI_PROC( void, CommonLoop )( int *done, int *okay )
 //---------------------------------------------------------------------------
 PSI_PROC( void, CommonWaitEndEdit)( PSI_CONTROL *pf ) // a frame in edit mode, once edit mode done, continue
 {
-	PCOMMON_BUTTON_DATA pcbd;
+	lprintf( "COMMON LOOP IS DEPRECATED, PLEASE UPDATE TO ASYNC METHODS" );
+	PPSI_COMMON_BUTTON_DATA pcbd;
 	AddWait( (*pf) );
 	pcbd = &(*pf)->pCommonButtonData;
 	pcbd->thread = MakeThread();
@@ -4800,11 +4808,25 @@ PSI_PROC( void, CommonWaitEndEdit)( PSI_CONTROL *pf ) // a frame in edit mode, o
 	DeleteWaitEx( pf DBG_SRC );
 }
 
+
+PSI_PROC( void, PSI_HandleStatusEvent )( PSI_CONTROL pc, void (*f)( uintptr_t psv, PSI_CONTROL pc, int done, int okay ), uintptr_t psv ) { // perhaps give a callback for within the loop?
+
+	PPSI_COMMON_BUTTON_DATA pcbd;
+	AddWait( pc );
+	pcbd = &pc->pCommonButtonData;
+	pcbd->thread = MakeThread();
+	pcbd->flags.bWaitOnEdit = 0;
+	pcbd->event = f;
+   pcbd->psv = psv;
+	pcbd->thread = NULL;
+}
+
 PSI_PROC( void, CommonWait)( PSI_CONTROL pc ) // perhaps give a callback for within the loop?
 {
+	lprintf( "COMMON LOOP IS DEPRECATED, PLEASE UPDATE TO ASYNC METHODS" );
 	if( pc )
 	{
-		PCOMMON_BUTTON_DATA pcbd;
+		PPSI_COMMON_BUTTON_DATA pcbd;
 		AddWait( pc );
 		pcbd = &pc->pCommonButtonData;
 		pcbd->thread = MakeThread();
@@ -5245,18 +5267,18 @@ void EndUpdate( PSI_CONTROL pc )
 		pc->flags.bDirectUpdating = 0;
 }
 
-void SetCaptionChangedMethod( PSI_CONTROL frame, void (CPROC*_CaptionChanged)    (struct common_control_frame *) )
+void SetCaptionChangedMethod( PSI_CONTROL frame, void (CPROC*_CaptionChanged)    (struct psi_common_control_frame *) )
 {
 	frame->CaptionChanged = _CaptionChanged;
 }
 
-void SetFrameDetachHandler( PSI_CONTROL pc, void ( CPROC*frameDetached )( struct common_control_frame * pc ) ) {
+void SetFrameDetachHandler( PSI_CONTROL pc, void ( CPROC*frameDetached )( struct psi_common_control_frame * pc ) ) {
 	if( pc && pc->device ) {
 		pc->device->EditState.frameDetached = frameDetached;
 	}
 }
 
-void SetFrameEditDoneHandler( PSI_CONTROL pc, void ( CPROC*editDone )( struct common_control_frame * pc ) ) {
+void SetFrameEditDoneHandler( PSI_CONTROL pc, void ( CPROC*editDone )( struct psi_common_control_frame * pc ) ) {
 	if( pc && pc->device ) {
 		pc->device->EditState.frameEditDone = editDone;
 	}

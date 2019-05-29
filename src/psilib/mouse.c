@@ -261,11 +261,13 @@ static int CPROC EditControlKeyProc( PSI_CONTROL pc, uint32_t key )
 				break;
 			default:
 //#define InvokeMethod(pc,name,args)
+				lprintf( "Passing keys default causes infinite loops..." );
+				if(0 )
 				if( (pEditState) && pEditState->_KeyProc )
 				{
 					int n;
 					for( n = 0; n < pEditState->n_KeyProc; n++ )
-						if( pEditState->_KeyProc[n] )
+						if( pEditState->_KeyProc[n] && (EditControlKeyProc != pEditState->_KeyProc[n] ))
 							if( pEditState->_KeyProc[n](pc,key) )
 							{
 								/*break*/;

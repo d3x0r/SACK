@@ -104,56 +104,56 @@ enum HotspotLocations {
 /* \Internal event callback definition. Draw border, this
 	usually pointing to an internal function, but may be used for
 	a control to draw a custom border.                            */
-typedef void (CPROC*_DrawBorder)        ( struct common_control_frame * );
+typedef void (CPROC*_DrawBorder)        ( struct psi_common_control_frame * );
 /* \Event callback definition. Draw caption, set with OnCaptionDraw().
     Use SetCaptionHeight() when creating the frame to set the height of the
 	custom caption.
 */
-typedef void (CPROC*_DrawCaption)        ( struct common_control_frame *, Image );
+typedef void (CPROC*_DrawCaption)        ( struct psi_common_control_frame *, Image );
 /* \Internal event callback definition. This is called when the
 	control needs to draw itself. This happens when SmudgeCommon
 	is called on the control or on a parent of the control.      */
-typedef int (CPROC*__DrawThySelf)       ( struct common_control_frame * );
+typedef int (CPROC*__DrawThySelf)       ( struct psi_common_control_frame * );
 /* \Internal event callback definition. This is called when the
 	control needs to draw itself. This happens when SmudgeCommon
 	is called on the control or on a parent of the control.      */
-typedef void (CPROC*__DrawDecorations)       ( struct common_control_frame *frame, struct common_control_frame *child );
+typedef void (CPROC*__DrawDecorations)       ( struct psi_common_control_frame *frame, struct psi_common_control_frame *child );
 /* \Internal event callback definition. A mouse event is
 	happening over the control.                           */
-typedef int (CPROC*__MouseMethod)       ( struct common_control_frame *, int32_t x, int32_t y, uint32_t b );
+typedef int (CPROC*__MouseMethod)       ( struct psi_common_control_frame *, int32_t x, int32_t y, uint32_t b );
 /* \Internal event callback definition. A key has been pressed. */
-typedef int (CPROC*__KeyProc)           ( struct common_control_frame *, uint32_t );
+typedef int (CPROC*__KeyProc)           ( struct psi_common_control_frame *, uint32_t );
 /* \Internal event callback definition. The caption of a control
 	is changing (Edit control uses this).                         */
-typedef void (CPROC*_CaptionChanged)    ( struct common_control_frame * );
+typedef void (CPROC*_CaptionChanged)    ( struct psi_common_control_frame * );
 /* \Internal event callback definition. Destruction of the
 	control is in progress. Allow control to free internal
 	resources.                                              */
-typedef void (CPROC*_Destroy)           ( struct common_control_frame * );
+typedef void (CPROC*_Destroy)           ( struct psi_common_control_frame * );
 /* \Internal event callback definition.
 	
 	A control has been added to this control. */
-typedef void (CPROC*_AddedControl)      ( struct common_control_frame *, struct common_control_frame *pcAdding );
+typedef void (CPROC*_AddedControl)      ( struct psi_common_control_frame *, struct psi_common_control_frame *pcAdding );
 /* \Internal event callback definition. The focus of a control
 	is changing.                                                */
-typedef int (CPROC*_ChangeFocus)       ( struct common_control_frame *, LOGICAL bFocused );
+typedef int (CPROC*_ChangeFocus)       ( struct psi_common_control_frame *, LOGICAL bFocused );
 /* \Internal event callback definition. Called when a control is
 		being resized. Width or height changing.                      */
-typedef void (CPROC*_Resize)            ( struct common_control_frame *, LOGICAL bSizing );
-typedef void (CPROC*_Move)            ( struct common_control_frame *, LOGICAL bSizing );
-typedef void (CPROC*_Rescale)            ( struct common_control_frame * );
+typedef void (CPROC*_Resize)            ( struct psi_common_control_frame *, LOGICAL bSizing );
+typedef void (CPROC*_Move)            ( struct psi_common_control_frame *, LOGICAL bSizing );
+typedef void (CPROC*_Rescale)            ( struct psi_common_control_frame * );
 /* \Internal event callback definition. Called when the
 	control's position (x,y) is changing.                */
-typedef void (CPROC*_PosChanging)       ( struct common_control_frame *, LOGICAL bMoving );	
+typedef void (CPROC*_PosChanging)       ( struct psi_common_control_frame *, LOGICAL bMoving );	
 /* \Internal event callback definition. Triggered when edit on a
 	frame is started.                                             */
-typedef void (CPROC*_BeginEdit)         ( struct common_control_frame * );
+typedef void (CPROC*_BeginEdit)         ( struct psi_common_control_frame * );
 /* \Internal event callback definition. Ending control editing. */
-typedef void (CPROC*_EndEdit)           ( struct common_control_frame * );
+typedef void (CPROC*_EndEdit)           ( struct psi_common_control_frame * );
 /* \Internal event callback definition. A file has been dropped
 	on the control.                                              */
-typedef LOGICAL (CPROC*_AcceptDroppedFiles)( struct common_control_frame *, CTEXTSTR filename, int32_t x, int32_t y );
-typedef void (CPROC*_HoverEventCallback)           ( struct common_control_frame * );
+typedef LOGICAL (CPROC*_AcceptDroppedFiles)( struct psi_common_control_frame *, CTEXTSTR filename, int32_t x, int32_t y );
+typedef void (CPROC*_HoverEventCallback)           ( struct psi_common_control_frame * );
 
 
 #define DeclMethod( name ) int n##name; _##name *name
@@ -209,8 +209,8 @@ struct edit_state_tag {
 	} flags;
 	uint32_t BorderType;
 
-	void ( CPROC*frameDetached )( struct common_control_frame * pc );
-	void ( CPROC*frameEditDone )( struct common_control_frame * pc );
+	void ( CPROC*frameDetached )( struct psi_common_control_frame * pc );
+	void ( CPROC*frameEditDone )( struct psi_common_control_frame * pc );
 
 //DOM-IGNORE-END
 };
@@ -257,7 +257,7 @@ struct physical_device_interface
 {
 //DOM-IGNORE-BEGIN
 	PRENDERER pActImg; // any control can have a physical renderer...
-	struct common_control_frame * common; // need this to easily back track...
+	struct psi_common_control_frame * common; // need this to easily back track...
 	struct device_flags {
 		BIT_FIELD bDragging : 1; // frame is being moved
 		BIT_FIELD bSizing       : 1; // flags for when frame is sizable
@@ -291,14 +291,14 @@ struct physical_device_interface
 		int32_t x, y;
 	} CurrentBias;
 	//Image original_surface;
-	struct common_control_frame * pCurrent; // Current control which has the mouse within it...(or owns mouse)
-	struct common_control_frame * pFocus;   // keyboard goes here...
+	struct psi_common_control_frame * pCurrent; // Current control which has the mouse within it...(or owns mouse)
+	struct psi_common_control_frame * pFocus;   // keyboard goes here...
 	// this is now added as a draw callback method
-	//void (CPROC*OwnerDraw)(struct common_control_frame * pc);
+	//void (CPROC*OwnerDraw)(struct psi_common_control_frame * pc);
 	// this is now added as a mouse callback method
-	//void (CPROC*OwnerMouse)(struct common_control_frame * pc, int32_t x, int32_t y, uint32_t b);
+	//void (CPROC*OwnerMouse)(struct psi_common_control_frame * pc, int32_t x, int32_t y, uint32_t b);
 	// this is unused yet...
-	//int (CPROC*InitControl)(uintptr_t, struct common_control_frame *, uint32_t);// match ControlInitProc(controls.h)
+	//int (CPROC*InitControl)(uintptr_t, struct psi_common_control_frame *, uint32_t);// match ControlInitProc(controls.h)
 	uintptr_t psvInit;
 	PLIST pending_dirty_controls; // optimized search list for (allow_threaded_draw == FALSE)
 
@@ -310,7 +310,7 @@ typedef struct physical_device_interface*PPHYSICAL_DEVICE;
 
 
 
-typedef struct common_button_data {
+typedef struct psi_common_button_data {
 //DOM-IGNORE-BEGIN
 	PTHREAD thread;
 	int *okay_value;
@@ -318,13 +318,15 @@ typedef struct common_button_data {
 	struct button_flags {
 		uint32_t bWaitOnEdit : 1;
 	} flags;
+	void (*event)( uintptr_t, PSI_CONTROL pc, int done, int okay ); // replace commonLoopWait
+   uintptr_t psv; // event user data (pointer size val)
 //DOM-IGNORE-END
-} COMMON_BUTTON_DATA, *PCOMMON_BUTTON_DATA;
+} PSI_COMMON_BUTTON_DATA, *PPSI_COMMON_BUTTON_DATA;
 
 
 //DOM-IGNORE-BEGIN
 
-typedef struct common_control_frame
+typedef struct psi_common_control_frame
 {
 	// this is the one place allowed for
 	// an application to store data.
@@ -360,7 +362,7 @@ typedef struct common_control_frame
 
 	/* flags that affect a control's behavior or state.
 		                                                 */
-	/* <combine sack::psi::common_control_frame::flags@1>
+	/* <combine sack::psi::psi_common_control_frame::flags@1>
 		
 		\ \                                                */
 	struct {
@@ -453,7 +455,7 @@ typedef struct common_control_frame
 
 
 	/* Information about the caption of a control. */
-	/* <combine sack::psi::common_control_frame::caption@1>
+	/* <combine sack::psi::psi_common_control_frame::caption@1>
 		
 		\ \                                                  */
 	struct {
@@ -507,7 +509,7 @@ typedef struct common_control_frame
 	/* pointer to the first child control in this one. */
 	/* pointer to the next control within this control's parent. */
 	/* pointer to the control that contains this control. */
-	struct common_control_frame *child, *parent, *next, *prior, *stack_parent, *stack_child;
+	struct psi_common_control_frame *child, *parent, *next, *prior, *stack_parent, *stack_child;
 	// maybe I can get pointers to this....
 
 	uint32_t BorderType;
@@ -546,7 +548,7 @@ typedef struct common_control_frame
 	DeclMethod( AcceptDroppedFiles );
 	/* Pointer to common button data. Common buttons are the Okay
 		and Cancel buttons that are commonly on dialogs.           */
-	COMMON_BUTTON_DATA pCommonButtonData;
+	PSI_COMMON_BUTTON_DATA pCommonButtonData;
 		// invalidating an arbitrary rect, this is the intersection of the parent's dirty rect on this
 	IMAGE_RECTANGLE dirty_rect;   
 		// during update this may be set, and should be used for the update region insted of control surface

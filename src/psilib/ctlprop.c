@@ -249,6 +249,79 @@ TEXTCHAR control_property_frame_xml[] = {
  };
 
 
+static void  doneEvent( uintptr_t psv, PSI_CONTROL pf, int done, int okay ) {
+	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)psv;
+
+			if( pEditProps->bOkay )
+			{
+				PSI_CONTROL pc;
+				int32_t x, y;
+				uint32_t w, h, id;
+				static TEXTCHAR buffer[32000];
+				GetControlText( GetControl(pEditProps->pSheet, EDT_CAPTION ), buffer, sizeof( buffer ) );
+				SetControlText( pEditProps->control, buffer );
+				GetControlText( pc = GetControl(pEditProps->pSheet, EDT_X ), buffer, sizeof( buffer ) );
+				if( pc )
+					x = (int32_t)IntCreateFromText( buffer );
+				if( pc )
+				{
+					GetControlText( pc = GetControl( pEditProps->pSheet, EDT_Y), buffer, sizeof( buffer ) );
+					if( pc )
+					{
+						y = (int32_t)IntCreateFromText( buffer );
+						MoveControl( pEditProps->control, x, y );
+					}
+				}
+				GetControlText( pc = GetControl(pEditProps->pSheet, EDT_WIDTH ), buffer, sizeof( buffer ) );
+				if( pc )
+				{
+					w = (uint32_t)IntCreateFromText( buffer );
+					GetControlText( pc = GetControl(pEditProps->pSheet, EDT_HEIGHT ), buffer, sizeof( buffer ) );
+					if( pc )
+					{
+						h = (uint32_t)IntCreateFromText( buffer );
+						SizeControl( pEditProps->control, w, h );
+					}
+				}
+				GetControlText( GetControl(pEditProps->pSheet, EDT_ID ), buffer, sizeof( buffer ) );
+				id = (uint32_t)IntCreateFromText( buffer );
+				SetControlID( (PSI_CONTROL)pEditProps->control, id );
+				GetControlText( GetControl( pEditProps->pSheet, EDT_IDNAME ), buffer, sizeof( buffer ) );
+				if( buffer[0] )
+				{
+					if( pEditProps->control->pIDName )
+						Release( (POINTER)pEditProps->control->pIDName );
+					pEditProps->control->pIDName = StrDup( buffer );
+				}
+				if( pEditProps->pPropertySheet )
+				{
+					TEXTCHAR classname[32];
+					ApplyControlPropSheet Apply;
+					tnprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY "/control/%d/rtti", pEditProps->control->nType );
+					Apply = GetRegisteredProcedure( classname, void, read_property_page, (PSI_CONTROL, PSI_CONTROL) );
+					if( Apply )
+					{
+						Apply( (PSI_CONTROL)pEditProps->pPropertySheet, (PSI_CONTROL)pc );
+					}
+				}
+			}
+			// not sure if this gets killed...
+			//DestroyFrame( pEditProps->pSheet );
+			DestroyCommon( &pEditProps->frame );
+				{
+					TEXTCHAR classname[32];
+					DoneControlPropSheet Done;
+					tnprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY "/control/%d/rtti", pEditProps->control->nType );
+					Done = GetRegisteredProcedure( classname, void, done_property_page, (PSI_CONTROL) );
+					if( Done )
+					{
+						Done( (PSI_CONTROL)pEditProps->pPropertySheet );
+					}
+				}
+
+				Release( pEditProps );
+}
+
 static void popupCallback( uintptr_t psv, int select ) {
 	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)psv;
 
@@ -356,76 +429,11 @@ static void popupCallback( uintptr_t psv, int select ) {
 			}
 			AddCommonButtons( pf, &pEditProps->bDone, &pEditProps->bOkay );
 			DisplayFrame( pf );
+			pEditProps->frame = pf;
 			//EditFrame( pf, TRUE );
 			//DumpFrameContents( pf );
-			CommonWait( pf );
-			if( pEditProps->bOkay )
-			{
-				PSI_CONTROL pc;
-            int32_t x, y;
-				uint32_t w, h, id;
-				static TEXTCHAR buffer[32000];
-				GetControlText( GetControl(pEditProps->pSheet, EDT_CAPTION ), buffer, sizeof( buffer ) );
-				SetControlText( pEditProps->control, buffer );
-				GetControlText( pc = GetControl(pEditProps->pSheet, EDT_X ), buffer, sizeof( buffer ) );
-				if( pc )
-					x = (int32_t)IntCreateFromText( buffer );
-				if( pc )
-				{
-					GetControlText( pc = GetControl( pEditProps->pSheet, EDT_Y), buffer, sizeof( buffer ) );
-					if( pc )
-					{
-						y = (int32_t)IntCreateFromText( buffer );
-						MoveControl( pEditProps->control, x, y );
-					}
-				}
-				GetControlText( pc = GetControl(pEditProps->pSheet, EDT_WIDTH ), buffer, sizeof( buffer ) );
-				if( pc )
-				{
-					w = (uint32_t)IntCreateFromText( buffer );
-					GetControlText( pc = GetControl(pEditProps->pSheet, EDT_HEIGHT ), buffer, sizeof( buffer ) );
-					if( pc )
-					{
-						h = (uint32_t)IntCreateFromText( buffer );
-						SizeControl( pEditProps->control, w, h );
-					}
-				}
-				GetControlText( GetControl(pEditProps->pSheet, EDT_ID ), buffer, sizeof( buffer ) );
-				id = (uint32_t)IntCreateFromText( buffer );
-				SetControlID( (PSI_CONTROL)pEditProps->control, id );
-				GetControlText( GetControl( pEditProps->pSheet, EDT_IDNAME ), buffer, sizeof( buffer ) );
-				if( buffer[0] )
-				{
-					if( pEditProps->control->pIDName )
-						Release( (POINTER)pEditProps->control->pIDName );
-					pEditProps->control->pIDName = StrDup( buffer );
-				}
-				if( pEditProps->pPropertySheet )
-				{
-					TEXTCHAR classname[32];
-					ApplyControlPropSheet Apply;
-					tnprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY "/control/%d/rtti", pEditProps->control->nType );
-					Apply = GetRegisteredProcedure( classname, void, read_property_page, (PSI_CONTROL, PSI_CONTROL) );
-					if( Apply )
-					{
-						Apply( (PSI_CONTROL)pEditProps->pPropertySheet, (PSI_CONTROL)pc );
-					}
-				}
-			}
-			// not sure if this gets killed...
-			//DestroyFrame( pEditProps->pSheet );
-			DestroyCommon( &pf );
-				{
-					TEXTCHAR classname[32];
-					DoneControlPropSheet Done;
-					tnprintf( classname, sizeof( classname ), PSI_ROOT_REGISTRY "/control/%d/rtti", pEditProps->control->nType );
-					Done = GetRegisteredProcedure( classname, void, done_property_page, (PSI_CONTROL) );
-					if( Done )
-					{
-						Done( (PSI_CONTROL)pEditProps->pPropertySheet );
-					}
-				}
-			break;
+			PSI_HandleStatusEvent( pf, doneEvent, (uintptr_t)pEditProps );
+			return; // this returns instead of break, because it shouldn't release editprops
 		}
 		default:
 			lprintf( "Unknown menu option chosen.  Custom control?" );
@@ -446,6 +454,33 @@ PSI_PROC( int, EditControlProperties )( PSI_CONTROL control )
 }
 
 //---------------------------------------------------------------------------
+
+static void framePropertyCallback( uintptr_t psv, PSI_CONTROL pf, int done, int okay ) {
+	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)psv;
+			TEXTCHAR buffer[128];
+			if( pEditProps->bOkay )
+			{
+				int32_t x2, y2;
+				uint32_t w, h, id;
+				GetControlText( GetControl(pf, EDT_CAPTION ), buffer, sizeof( buffer ) );
+				SetControlText( pEditProps->frame, buffer );
+				GetControlText( GetControl(pf, EDT_X ), buffer, sizeof( buffer ) );
+				x2 = (int32_t)IntCreateFromText( buffer );
+				GetControlText( GetControl(pf, EDT_Y), buffer, sizeof( buffer ) );
+				y2 = (int32_t)IntCreateFromText( buffer );
+				MoveFrame( pEditProps->frame, x2, y2 );
+				GetControlText( GetControl(pf, EDT_WIDTH ), buffer, sizeof( buffer ) );
+				w = (uint32_t)IntCreateFromText( buffer );
+				GetControlText( GetControl(pf, EDT_HEIGHT ), buffer, sizeof( buffer ) );
+				h = (uint32_t)IntCreateFromText( buffer );
+				SizeFrame( pEditProps->frame, w, h );
+				GetControlText( GetControl(pf, EDT_ID ), buffer, sizeof( buffer ) );
+				id = (uint32_t)IntCreateFromText( buffer );
+				SetControlID( pEditProps->frame, id );
+			}
+			DestroyCommon( &pEditProps->frame );
+			Release( pEditProps );
+}
 
 static void frameCallback( uintptr_t psv, int select ) {
 	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)psv;
@@ -519,30 +554,10 @@ static void frameCallback( uintptr_t psv, int select ) {
 
 			AddCommonButtons( pf, &pEditProps->bDone, &pEditProps->bOkay );
 			DisplayFrame( pf );
-			CommonWait( pf );
-			if( pEditProps->bOkay )
-			{
-				int32_t x2, y2;
-				uint32_t w, h, id;
-				GetControlText( GetControl(pf, EDT_CAPTION ), buffer, sizeof( buffer ) );
-				SetControlText( pEditProps->frame, buffer );
-				GetControlText( GetControl(pf, EDT_X ), buffer, sizeof( buffer ) );
-				x2 = (int32_t)IntCreateFromText( buffer );
-				GetControlText( GetControl(pf, EDT_Y), buffer, sizeof( buffer ) );
-				y2 = (int32_t)IntCreateFromText( buffer );
-				MoveFrame( pEditProps->frame, x2, y2 );
-				GetControlText( GetControl(pf, EDT_WIDTH ), buffer, sizeof( buffer ) );
-				w = (uint32_t)IntCreateFromText( buffer );
-				GetControlText( GetControl(pf, EDT_HEIGHT ), buffer, sizeof( buffer ) );
-				h = (uint32_t)IntCreateFromText( buffer );
-				SizeFrame( pEditProps->frame, w, h );
-				GetControlText( GetControl(pf, EDT_ID ), buffer, sizeof( buffer ) );
-				id = (uint32_t)IntCreateFromText( buffer );
-				SetControlID( pEditProps->frame, id );
-			}
-			DestroyCommon( &pf );
+			pEditProps->frame = pf;
+            PSI_HandleStatusEvent( pf, framePropertyCallback, psv );
 		}
-		break;
+		return; // this isn't a brak, because it should not release edit props...
 	}
 	Release( pEditProps );
 
@@ -553,7 +568,7 @@ PSI_PROC( int, EditFrameProperties )( PSI_CONTROL frame, int32_t x, int32_t y )
 	PEDIT_PROP_DATA pEditProps = (PEDIT_PROP_DATA)Allocate( sizeof( EDIT_PROP_DATA ) );
 	pEditProps->x = x - frame->surface_rect.x;
 	pEditProps->y = y - frame->surface_rect.y;
-   pEditProps->frame = frame;
+	pEditProps->frame = frame;
 	TrackPopup_v2( pFrameEditMenu, frame, frameCallback, (uintptr_t)pEditProps );
 	return 1;
 }

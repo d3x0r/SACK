@@ -439,7 +439,7 @@ typedef struct frame_border *PFrameBorder;
    POINTER user_data;
    user_data = *(POINTER*)control;
    </code>                                                       */
-typedef struct common_control_frame *PSI_CONTROL;
+typedef struct psi_common_control_frame *PSI_CONTROL;
 
 #define COMMON_BUTTON_WIDTH 55
 #define COMMON_BUTTON_HEIGHT 19
@@ -867,8 +867,8 @@ _PROP_NAMESPACE
 PSI_PROC( void, EditFrame )( PSI_CONTROL pf, int bEnable );
 _PROP_NAMESPACE_END
 
-PSI_PROC( void, SetFrameEditDoneHandler )( PSI_CONTROL pc, void ( CPROC*editDone )( struct common_control_frame * pc ) );
-PSI_PROC( void, SetFrameDetachHandler )( PSI_CONTROL pc, void ( CPROC*frameDetached )( struct common_control_frame * pc ) );
+PSI_PROC( void, SetFrameEditDoneHandler )( PSI_CONTROL pc, void ( CPROC*editDone )( PSI_CONTROL pc ) );
+PSI_PROC( void, SetFrameDetachHandler )( PSI_CONTROL pc, void ( CPROC*frameDetached )( PSI_CONTROL pc ) );
 
 PSI_PROC( void, GetFramePosition )( PSI_CONTROL pf, int32_t *x, int32_t *y );
 PSI_PROC( void, GetFrameSize )( PSI_CONTROL pf, uint32_t *w, uint32_t *h );
@@ -1057,7 +1057,7 @@ PSI_PROC( void, SetCaptionButtonImages )( struct physical_device_caption_button 
 PSI_PROC( void, HideCaptionButton )( struct physical_device_caption_button * );
 PSI_PROC( void, ShowCaptionButton )( struct physical_device_caption_button * );
 PSI_PROC( void, SetCaptionButtonOffset )( PSI_CONTROL frame, int32_t x, int32_t y );
-PSI_PROC( void, SetCaptionChangedMethod )(PSI_CONTROL frame, void (CPROC*_CaptionChanged)    (struct common_control_frame *));
+PSI_PROC( void, SetCaptionChangedMethod )(PSI_CONTROL frame, void (CPROC*_CaptionChanged)    (PSI_CONTROL));
 /*
 
 
@@ -1293,10 +1293,22 @@ PSI_PROC( void, AddCommonButtons)( PSI_CONTROL pf, int *done, int *okay );
 PSI_PROC( void, SetCommonButtons)( PSI_CONTROL pf, int *pdone, int *pokay );
 PSI_PROC( void, InitCommonButton )( PSI_CONTROL pc, int *value );
 
+/*
+ * set callback which is invoked when a dialog's done/okay button is invoked or the dialog is closed.
+ * This allows the application to wait asynchrously.
+ *
+ */
+
+PSI_PROC( void, PSI_HandleStatusEvent )( PSI_CONTROL pc, void (*f)( uintptr_t psv, PSI_CONTROL pc, int done, int okay ), uintptr_t userData ); // perhaps give a callback for within the loop?
+
+/* DEPRECTATED - DO NOT USE */
 PSI_PROC( void, CommonLoop)( int *done, int *okay ); // perhaps give a callback for within the loop?
+/* DEPRECTATED - DO NOT USE */
 PSI_PROC( void, CommonWait)( PSI_CONTROL pf ); // perhaps give a callback for within the loop?
+/* DEPRECTATED - DO NOT USE */
 PSI_PROC( void, CommonWaitEndEdit)( PSI_CONTROL *pf ); // a frame in edit mode, once edit mode done, continue
-PSI_PROC( void, ProcessControlMessages)(void);
+/* DEPRECTATED - DO NOT USE */
+PSI_PROC( void, ProcessControlMessages)(void);  // internal function; posted to AddIdleProc Later...
 /* Buttons. Clickable buttons, Radio buttons and checkboxes. */
 _BUTTON_NAMESPACE
 /* Symbol which can be used as an attribute of a button to not
