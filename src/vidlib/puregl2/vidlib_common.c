@@ -279,6 +279,9 @@ LOGICAL CreateDrawingSurface (PVIDEO hVideo)
 	//lprintf( "Set transform at %d,%d", hVideo->pWindowPos.x, hVideo->pWindowPos.y );
 	Translate( hVideo->transform, (RCOORD)hVideo->pWindowPos.x, (RCOORD)hVideo->pWindowPos.y, 0 );
 
+	if( l.wake_callback )
+		l.wake_callback();
+
 	// additionally indicate that this is a GL render point
 	hVideo->pImage->flags |= IF_FLAG_FINAL_RENDER;
 	return TRUE;

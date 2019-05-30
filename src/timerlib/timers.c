@@ -329,6 +329,7 @@ void  Sleep( uint32_t ms )
 	(usleep((ms)*1000));
 }
 #endif
+
 uintptr_t closesem( POINTER p, uintptr_t psv )
 {
 	PTHREAD thread = (PTHREAD)p;

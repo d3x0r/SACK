@@ -164,7 +164,22 @@ int SACK_Vidlib_DoRenderPass( void )
 	void (*wake_callback)(void);
 	wake_callback = l.wake_callback;
 	l.wake_callback= NULL;
+
+#if 0
+	{
+		EmscriptenDeviceOrientationEvent state;
+		EmscriptenDeviceOrientationEvent *deviceOrientationEvent = &state;
+		emscripten_get_deviceorientation_status(&state);
+		RCOORD a = deviceOrientationEvent->alpha;  // z is up (0 is long along y)
+		RCOORD b = deviceOrientationEvent->beta;  // x is the narrow side
+		RCOORD c = deviceOrientationEvent->gamma;  // y is the long forward along base?
+		lprintf( "Orientation.  %g %g %g", a, b, c  );
+	}
+#endif
 	wantDraw = ProcessGLDraw(TRUE);
+
+
+
 	l.wake_callback = wake_callback;
 	return wantDraw;
 }
@@ -526,7 +541,23 @@ static EM_BOOL em_resize_callback_handler( int eventType, const EmscriptenUiEven
 	default:
 		 emscripten_get_element_css_size( displayName, &l.real_display_x, &l.real_display_y );
 	}
-   return true;
+	return true;
+}
+
+
+static EM_BOOL em_deviceorientation_callback_handler(int eventType, const EmscriptenDeviceOrientationEvent *deviceOrientationEvent, void *userData){
+	// EMSCRIPTEN_EVENT_DEVICEORIENTATION
+	RCOORD a = deviceOrientationEvent->alpha;  // z is up (0 is long along y)
+	RCOORD b = deviceOrientationEvent->beta;  // x is the narrow side
+	RCOORD c = deviceOrientationEvent->gamma;  // y is the long forward along base?
+	lprintf( "%d   Orientation.  %g %g %g", eventType, a, b, c  );
+	if( deviceOrientationEvent->absolute ) {
+		RotateAbs( l.origin, b, c, a );
+      if( l.wake_callback ) l.wake_callback();
+	} else {
+		lprintf( "Ignore orientation" );
+	}
+	
 }
 
 PRELOAD( do_init_display ) {
@@ -537,7 +568,7 @@ PRELOAD( do_init_display ) {
 	defaultCamera[0] = NULL;
 	initializingCamera = defaultCamera;
 
-	emscripten_get_element_css_size( displayName, &l.real_display_x, &l.real_display_y );
+	r = emscripten_get_element_css_size( displayName, &l.real_display_x, &l.real_display_y );
 
 	r = emscripten_set_resize_callback( displayName, myState, true, em_resize_callback_handler );
 
@@ -561,6 +592,8 @@ PRELOAD( do_init_display ) {
 
 	r = emscripten_set_webglcontextlost_callback(displayName, myState, true, em_webgl_context_handler);
 	r = emscripten_set_webglcontextrestored_callback(displayName, myState, true, em_webgl_context_handler);
+
+	r = emscripten_set_deviceorientation_callback( myState, true, em_deviceorientation_callback_handler );
 
         {
 	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE hGL;

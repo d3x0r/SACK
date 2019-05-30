@@ -275,6 +275,16 @@ void OSALOT_PrependEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 }
 #endif
 
+
+#if __EMSCRIPTEN__
+
+// NoOp For all.
+#define SystemInit()
+
+
+#else
+
+
 #ifdef __MAC__
 static bool is_64bit;
 static mach_port_t task;
@@ -659,10 +669,10 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 #endif
 }
 
+
 static void SystemInit( void )
 {
-	if( !
-		local_systemlib )
+	if( !local_systemlib )
 	{
 #ifdef __STATIC_GLOBALS__
 		local_systemlib = &local_systemlib__;
@@ -699,6 +709,8 @@ PRIORITY_PRELOAD( SetupPath, OSALOT_PRELOAD_PRIORITY )
 {
 	SystemInit();
 }
+
+#endif // if __EMSCRIPTEN__
 
 #ifndef __NO_OPTIONS__
 PRELOAD( SetupSystemOptions )
@@ -2162,7 +2174,9 @@ TEXTSTR GetArgsString( PCTEXTSTR pArgs )
 
 CTEXTSTR GetProgramName( void )
 {
-#ifdef __ANDROID__
+#if defined( __EMSCRIPTEN__ )
+	return "WASM Application"; // needs GetModuleName(NULL)
+#elif defined( __ANDROID__ )
 	return program_name;
 #else
 	if( !local_systemlib || !l.filename )
@@ -2180,7 +2194,9 @@ CTEXTSTR GetProgramName( void )
 
 CTEXTSTR GetProgramPath( void )
 {
-#ifdef __ANDROID__
+#if defined( __EMSCRIPTEN__ )
+	return "/";
+#elif defined( __ANDROID__ )
 	return program_path;
 #else
 	if( !local_systemlib || l.load_path )
@@ -2198,7 +2214,9 @@ CTEXTSTR GetProgramPath( void )
 
 CTEXTSTR GetLibraryPath( void )
 {
-#ifdef __ANDROID__
+#if defined( __EMSCRIPTEN__ )
+	return "/";
+#elif defined( __ANDROID__ )
 	return library_path;
 #else
 	if( !local_systemlib || l.library_path )
@@ -2216,7 +2234,9 @@ CTEXTSTR GetLibraryPath( void )
 
 CTEXTSTR GetStartupPath( void )
 {
-#ifdef __ANDROID__
+#if defined( __EMSCRIPTEN__ )
+	return "/";
+#elif defined( __ANDROID__ )
 	return working_path;
 #else
 	if( !local_systemlib || l.work_path )

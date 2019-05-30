@@ -40,6 +40,17 @@ outline: 0 none;
 </BODY>
 <SCRIPT src="x.js"></SCRIPT>
 <SCRIPT>
-document.querySelector( "[id='SACK Display 1']" ).focus();
+
+var display = document.querySelector( "[id='SACK Display 1']" );
+display.focus();
+
+display.addEventListener('contextmenu', function(e) {
+    if (e.button == 2) {
+      // Block right-click menu thru preventing default action.
+      e.preventDefault();
+    }
+  });
+
+
 </SCRIPT>
 </HTML>

@@ -3,23 +3,43 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+//#include <unistd.h>
 #include <emscripten/html5.h>
 #include <emscripten.h>
 
 #define NULL ((void*)0)
 
+EM_JS(void*, call_alert, (), {
+  alert('hello world!');
+  throw 'all done';
+});
+
 void initFileSystem( void ) {
+
+
+
+	int x = EM_ASM_INT({
+	console.log('I received: ' + $0);
+	return $0 + 1;
+}, 100);
+printf("%d\n", x);
+
 	EM_ASM((
 			  const myCanvas = document.querySelector( "[ID='SACK Display 1']" );
 
 
     //FS.mkdir('/IDBFS');
-    FS.mount(IDBFS, {}, '/home/web_user');
+			  r = FS.mount(IDBFS, {}, '/home/web_user');
+			  console.log( "Log:", r );
 if(0)
     FS.syncfs(true, function (err) {
 console.log( "Sync happened?", err );
         assert(!err);
     }); // sync FROM backing store
+
+	//FS.mkdir('/working');
+	//FS.mount(WORKERFS, { packages: [{ metadata: meta, blob: blob }] }, '/working');
+
 ));
 
 }
@@ -88,11 +108,13 @@ void initDisplay() {
 
 int main( void ) {
 	extern void InvokeDeadstart();
+	//char buf[256];
+	//getcwd( buf, 256 );
+	//printf( "Current Directory: %s\n", buf );
+	// default path is = '/'
    	initFileSystem();
 	InvokeDeadstart();
 	initDisplay();
-
-   	printf( "Hahaha\n" );
 
 	EM_ASM((
 		//FS.mkdir('/IDBFS');
