@@ -514,7 +514,7 @@ void InitSyslog( int ignore_options )
 			SystemLogTime( SYSLOG_TIME_HIGH );
 		}
 #else
-#  if defined( _DEBUG ) || 1
+#  if defined( _DEBUG ) || defined( DEFAULT_OUTPUT_STDERR ) || defined( DEFAULT_OUTPUT_STDOUT )
 		{
 #    if defined( __LINUX__ ) && 0
 			logtype = SYSLOG_SOCKET_SYSLOGD;
@@ -524,13 +524,19 @@ void InitSyslog( int ignore_options )
 			/* using SYSLOG_AUTO_FILE option does not require this to be open.
 			* it is opened on demand.
 			*/
-#      if !defined( DEFAULT_OUTPUT_STDERR )
+#      if !defined( DEFAULT_OUTPUT_STDERR ) &&  !defined( DEFAULT_OUTPUT_STDOUT )
 			logtype = SYSLOG_AUTO_FILE;
+			(*syslog_local).flags.bLogOpenBackup = 1;
 #      else
 			logtype = SYSLOG_FILE;
+#        if defined( DEFAULT_OUTPUT_STDERR )
+			(*syslog_local).file = stderr;
+#        else
 			(*syslog_local).file = stdout;
+#        endif
+
+			(*syslog_local).flags.bLogOpenBackup = 0;
 #      endif
-			(*syslog_local).flags.bLogOpenBackup = 1;
 			(*syslog_local).flags.bUseDeltaTime = 1;
 			(*syslog_local).flags.bLogCPUTime = 1;
 			(*syslog_local).flags.bUseDeltaTime = 1;
@@ -736,8 +742,6 @@ int GetTimeZone( void ){
 			return tz;
 		}
 	}
-#else
-
 #endif
 }
 #endif
