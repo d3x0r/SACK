@@ -9,14 +9,11 @@
 #include "run.h"
 
 #ifndef LOAD_LIBNAME
-#ifdef MILK_PROGRAM
-#define MODE 0
-#define LOAD_LIBNAME "milk.core"
-#endif
-#ifdef INTERSHELL_PROGRAM
-#define MODE 0
-#define LOAD_LIBNAME "InterShell.core"
-#endif
+
+#  ifdef INTERSHELL_PROGRAM
+#    define MODE 0
+#    define LOAD_LIBNAME "InterShell.core"
+#  endif
 #endif
 
 static MainFunction Main;
