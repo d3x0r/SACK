@@ -4550,7 +4550,7 @@ static void CPROC ButtonOkay( uintptr_t psv, PSI_CONTROL pc )
 					( *pcbd->done_value ) = TRUE;
 		}
 		if( pcbd->event )
-			pcbd->event( pcbd->psv, pc, *pcbd->done_value, *pcbd->okay_value );
+			pcbd->event( pcbd->psv, pc, pcbd->done_value?*pcbd->done_value:0, pcbd->okay_value?*pcbd->okay_value:0 );
 		else
 			if( pcbd->thread )
 				WakeThread( pcbd->thread );
