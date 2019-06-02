@@ -196,7 +196,7 @@ struct memoryStorageIndex* createIndexFile( struct volume* vol, const char *name
 	file->diskDataLoadedSectors = NewArray( FLAGSETTYPE, (file->file->entry->filesize >> BLOCK_SIZE_BITS) / FLAGTYPEBITS( FLAGSETTYPE ) );
 	file->diskData = (struct index_header*)NewArray( uint8_t, file->file->entry->filesize );
 	file->diskData->indexNameLength = ( ( nameLen + 1 ) + 7 ) & ~7;
-	file->firstEntry = (struct storageIndexEntry*)( ((uintptr_t)file->diskData) + offsetof( struct index_header, indexName[nameLen] ) ) ;
+	file->firstEntry = (struct storageIndexEntry*)( ((uintptr_t)file->diskData) + sane_offsetof( struct index_header, indexName[nameLen] ) ) ;
 
 	memcpy( file->diskData->indexName, name, nameLen );
 
