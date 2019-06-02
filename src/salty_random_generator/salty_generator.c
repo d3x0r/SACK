@@ -126,6 +126,11 @@ void NeedBits( struct random_context *ctx )
 	ctx->bits_used = 0;
 }
 
+void SRG_StepEntropy( struct random_context* ctx ) {
+	NeedBits( ctx );
+}
+
+
 struct random_context *SRG_CreateEntropyInternal( void (*getsalt)( uintptr_t, POINTER *salt, size_t *salt_size ), uintptr_t psv_user
                                                 , LOGICAL version2 
                                                 , LOGICAL version2_256
