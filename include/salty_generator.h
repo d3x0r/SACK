@@ -64,6 +64,14 @@ SRG_EXPORT void SRG_StreamEntropy( struct random_context *ctx );
 // sets up to add the next salt into the buffer.
 SRG_EXPORT void SRG_FeedEntropy( struct random_context *ctx, const uint8_t *salt, size_t salt_size );
 
+// Flush the current entropy feed to internal entropy feed
+// and initialize with previous feed.
+SRG_EXPORT void SRG_StepEntropy( struct random_context* ctx );
+
+// reset the state of the random context entirely. (?)
+SRG_EXPORT void SRG_Reset( struct random_context* ctx );
+
+
 // restore the random contxt from the external holder specified
 // { 
 //    POINTER save_context;
