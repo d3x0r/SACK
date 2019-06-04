@@ -515,15 +515,21 @@ struct rt_init // structure placed in XI/YI segment
 
 #else
 
+#if defined( _WIN32 ) && defined( GCC )
+#  define HIDDEN_VISILBITY
+#else
+#  define HIDDEN_VISILBITY  __attribute__((visiblity("hidden")))
+#endif
+
 #define PRIORITY_PRELOAD(name,pr) static void name(void); \
 	RTINIT_STATIC struct rt_init pastejunk(name,_ctor_label) \
-	  __attribute__((section(DEADSTART_SECTION))) __attribute__((used)) \
+	  __attribute__((section(DEADSTART_SECTION))) __attribute__((used)) HIDDEN_VISILBITY \
 	={0,0,pr INIT_PADDING    \
 	 ,__LINE__,name         \
 	 PASS_FILENAME        \
 	,TOSTR(name)        \
 	JUNKINIT(name)}; \
-	void name(void) __attribute__((used));  \
+	static void name(void) __attribute__((used)); HIDDEN_VISILBITY \
 	void name(void)
 
 #endif
