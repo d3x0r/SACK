@@ -29,6 +29,7 @@ endif()
 
 add_definitions( ${PLATFORM_DEFINES} )
 
+# force static library C runtime 
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
         CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO

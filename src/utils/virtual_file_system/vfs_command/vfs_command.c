@@ -3,6 +3,7 @@
 #endif
 
 #include <stdhdrs.h>
+#include <pssql.h>
 #include <filesys.h>
 #include <sack_vfs.h>
 #include <filesys.h>
@@ -184,6 +185,33 @@ static void testVolume_slow( void ) {
 	
 	l.current_vol;
 }
+
+static void testVolume_db( void ) {
+#if !defined( __NO_OPTIONS__ )
+	FILE* db;
+	FILE* dbj;
+	uint16_t buffer[2048];
+	int n;
+	int nj;
+	PODBC odbc = ConnectToDatabase( "$sack@vfs$testsql.db" );
+	SQLCommandf( odbc, "delete * from sqlite_master" );
+	CheckODBCTable( odbc, GetFieldsInSQL( "create table test1 (a,b,c)", FALSE ), CTO_MERGE );
+	CheckODBCTable( odbc, GetFieldsInSQL("create table test2 (a,b,c)", FALSE ), CTO_MERGE );
+	
+	for( n = 0; n < 100000; n++ ) {
+		int b;
+		SQLCommandf( odbc, "insert into test1 (a,b,c) values(%d,%d,%d)", n, n * 2, n * 3 );
+		SQLCommandf( odbc, "insert into test2 (a,b,c) values(%d,%d,%d)", n, n * 2, n * 3 );
+		if( n % 3 )
+			SQLCommandf( odbc, "delete from test2 " );
+
+	}
+
+	l.current_vol;
+#endif
+}
+
+
 
 static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 {
@@ -717,6 +745,9 @@ SaneWinMain( argc, argv )
 				testVolume_os();
 				break;
 #endif
+			case '5':
+				testVolume_db();
+				break;
 			}
 			arg++;
 		}
