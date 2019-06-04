@@ -1302,6 +1302,8 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 		}
 	}
 	execinfo.nShow = SW_SHOWNORMAL;
+	if( task->flags.runas_root )
+		execinfo.lpVerb = "runas";
 	if( ShellExecuteEx( &execinfo ) )
 	{
 		if( (uintptr_t)execinfo.hInstApp > 32)

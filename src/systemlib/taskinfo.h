@@ -22,6 +22,7 @@ struct task_info_tag {
 		BIT_FIELD process_ended : 1;
 		BIT_FIELD bSentIoTerminator : 1;
 		BIT_FIELD log_input : 1;
+		BIT_FIELD runas_root : 1;
 	} flags;
 	TaskEnd EndNotice;
 	TaskOutput OutputEvent;

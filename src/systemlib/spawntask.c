@@ -348,6 +348,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		task = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
 		MemSet( task, 0, sizeof( TASK_INFO ) );
 		task->psvEnd = psv;
+		task->flags.runas_root = (flags & LPP_OPTION_ELEVATE) != 0;
 		task->EndNotice = EndNotice;
 		if( l.ExternalFindProgram ) {
 			new_path = l.ExternalFindProgram( expanded_path );
@@ -499,7 +500,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			else
 #endif
 			{
-				if( ( CreateProcess( program
+				if( ( (!task->flags.runas_root) && CreateProcess( program
 										, GetText( cmdline )
 										, NULL, NULL, TRUE
 										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
@@ -507,7 +508,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 										, expanded_working_path
 										, &task->si
 										, &task->pi ) || FixHandles(task) || DumpError() ) ||
-					( CreateProcess( NULL //program
+					((!task->flags.runas_root) && CreateProcess( NULL //program
 										 , GetText( cmdline )
 										 , NULL, NULL, TRUE
 										 , launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
@@ -515,7 +516,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 										 , expanded_working_path
 										 , &task->si
 										 , &task->pi ) || FixHandles(task) || DumpError() ) ||
-					( CreateProcess( program
+					((!task->flags.runas_root) && CreateProcess( program
 										, NULL // GetText( cmdline )
 										, NULL, NULL, TRUE
 										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
