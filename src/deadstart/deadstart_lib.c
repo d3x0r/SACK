@@ -44,7 +44,7 @@ void paste2( TARGET_LABEL,_RegisterStartups)( void )
 	Registered=1;
 	//cygwin_dll_init();
 	if( begin[0].scheduled )
-      return;
+		return;
 	if( (begin+1) < end )
 	{
 		for( current = begin + 1; current < end; current++ )
