@@ -17,6 +17,8 @@ typedef struct chat_time_tag
 	int8_t zhr, zmn;
 } CHAT_TIME;
 typedef struct chat_time_tag *PCHAT_TIME;
+struct chat_widget_message;
+
 
 CHAT_CONTROL_PROC( void, Chat_SetMessageInputHandler )( PSI_CONTROL pc, void (CPROC *Handler)( uintptr_t psv, PTEXT input ), uintptr_t psv );
 CHAT_CONTROL_PROC( void, Chat_SetPasteInputHandler )( PSI_CONTROL pc, void (CPROC *Handler)( uintptr_t psv ), uintptr_t psv ); // app read clipboard
