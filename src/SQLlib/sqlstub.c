@@ -1695,8 +1695,7 @@ void SQLCommit( PODBC odbc )
 				uint32_t start = timeGetTime();
 				WakeThread( odbc->auto_commit_thread );
 				while( odbc->auto_commit_thread && ((start + 500) > timeGetTime()) ) {
-					Relinquish();
-					lprintf( "Auto commit thread stalled." );
+					WakeableSleep( 1 );
 				}
 				if( ((start + 500) < timeGetTime()) )
 					lprintf( "Auto commit thread stalled." );
