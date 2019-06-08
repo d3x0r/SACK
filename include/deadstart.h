@@ -515,32 +515,32 @@ struct rt_init // structure placed in XI/YI segment
 
 #else
 
-#if defined( _WIN32 ) && defined( GCC )
+#if defined( _WIN32 ) && defined( __GNUC__ )
 #  define HIDDEN_VISILBITY
 #else
-#  define HIDDEN_VISILBITY  __attribute__((visiblity("hidden")))
+#  define HIDDEN_VISILBITY  __attribute__((visibility("hidden")))
 #endif
 
-#define PRIORITY_PRELOAD(name,pr) static void name(void); \
-	RTINIT_STATIC struct rt_init pastejunk(name,_ctor_label) \
+#define PRIORITY_PRELOAD(name,pr) static void name(void);         \
+	RTINIT_STATIC struct rt_init pastejunk(name,_ctor_label)       \
 	  __attribute__((section(DEADSTART_SECTION))) __attribute__((used)) HIDDEN_VISILBITY \
-	={0,0,pr INIT_PADDING    \
-	 ,__LINE__,name         \
-	 PASS_FILENAME        \
-	,TOSTR(name)        \
-	JUNKINIT(name)}; \
+	={0,0,pr INIT_PADDING                                          \
+	 ,__LINE__,name                                                \
+	 PASS_FILENAME                                                 \
+	,TOSTR(name)                                                   \
+	JUNKINIT(name)};                                               \
 	static void name(void) __attribute__((used)); HIDDEN_VISILBITY \
 	void name(void)
 
 #endif
 
 typedef void(*atexit_priority_proc)(void (*)(void),CTEXTSTR,int DBG_PASS);
-#define PRIORITY_ATEXIT(name,priority) static void name(void); \
-static void pastejunk(atexit,name)(void) __attribute__((constructor));  \
-void pastejunk(atexit,name)(void)                                                  \
+#define PRIORITY_ATEXIT(name,priority) static void name(void);           \
+static void pastejunk(atexit,name)(void) __attribute__((constructor));   \
+void pastejunk(atexit,name)(void)                                        \
 {                                                                        \
-	RegisterPriorityShutdownProc(name,TOSTR(name),priority,NULL DBG_SRC);                          \
-}                                                                          \
+	RegisterPriorityShutdownProc(name,TOSTR(name),priority,NULL DBG_SRC); \
+}                                                                        \
 void name(void)
 
 #define ATEXIT(name) PRIORITY_ATEXIT( name,ATEXIT_PRIORITY_DEFAULT )
