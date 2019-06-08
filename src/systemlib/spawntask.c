@@ -500,30 +500,30 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			else
 #endif
 			{
-				if( ( (!task->flags.runas_root) && CreateProcess( program
+				if( ( (!task->flags.runas_root) && ( CreateProcess( program
 										, GetText( cmdline )
 										, NULL, NULL, TRUE
 										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
 										, NULL
 										, expanded_working_path
 										, &task->si
-										, &task->pi ) || FixHandles(task) || DumpError() ) ||
-					((!task->flags.runas_root) && CreateProcess( NULL //program
+										, &task->pi ) || FixHandles(task) || DumpError()) ) ||
+					((!task->flags.runas_root) && (CreateProcess( NULL //program
 										 , GetText( cmdline )
 										 , NULL, NULL, TRUE
 										 , launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
 										 , NULL
 										 , expanded_working_path
 										 , &task->si
-										 , &task->pi ) || FixHandles(task) || DumpError() ) ||
-					((!task->flags.runas_root) && CreateProcess( program
+										 , &task->pi ) || FixHandles(task) || DumpError()) ) ||
+					((!task->flags.runas_root) && (CreateProcess( program
 										, NULL // GetText( cmdline )
 										, NULL, NULL, TRUE
 										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
 										, NULL
 										, expanded_working_path
 										, &task->si
-										, &task->pi ) || FixHandles(task) || DumpError() ) ||
+										, &task->pi ) || FixHandles(task) || DumpError()) ) ||
 					( TryShellExecute( task, expanded_working_path, program, cmdline ) ) ||
 					( CreateProcess( NULL//"cmd.exe"
 										, GetText( final_cmdline )
