@@ -436,7 +436,6 @@ int EditOptionsEx
 		InitOptionList( odbc, GetControl( frame, LST_OPTIONMAP ), LST_OPTIONMAP );
 		EditFrame( frame, TRUE );
 		DisplayFrameOver( frame, parent );
-lprintf( "Display fame... and then exit..." );
 		if( wait ) {
 			CommonWait( frame );
 			DestroyFrame( &frame );
