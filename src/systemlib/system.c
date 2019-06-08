@@ -1294,7 +1294,14 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 	execinfo.lpDirectory = path;
 	{
 		TEXTCHAR *params;
-		for( params = GetText( cmdline ); params[0] && params[0] != ' '; params++ );
+		int quote;
+		params = GetText( cmdline );
+		if( params[0] == '\"' ) {
+			params++;
+			for( ; params[0] && params[0] != '\"'; params++ );
+		}
+		for( ; params[0] && params[0] != ' '; params++ );
+		for( ; params[0] && params[0] == ' '; params++ );
 		if( params[0] )
 		{
 			//lprintf( "adding extra parames [%s]", params );
@@ -1302,6 +1309,8 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 		}
 	}
 	execinfo.nShow = SW_SHOWNORMAL;
+	if( task->flags.runas_root )
+		execinfo.lpVerb = "runas";
 	if( ShellExecuteEx( &execinfo ) )
 	{
 		if( (uintptr_t)execinfo.hInstApp > 32)

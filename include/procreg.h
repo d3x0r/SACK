@@ -614,7 +614,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 /* This is a macro used to paste two symbols together. */
 #define paste_(a,b) a##b
 #define paste(a,b) paste_(a,b)
-
+#define preproc_symbol(a)  a
 #ifdef __cplusplus
 #define EXTRA_PRELOAD_SYMBOL _
 #else
@@ -623,7 +623,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 
 #define DefineRegistryMethod2_i(task,name,classtype,methodname,desc,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
-	PRIORITY_PRELOAD( paste(paste(paste(paste(Register,name),Method),EXTRA_PRELOAD_SYMBOL),line), SQL_PRELOAD_PRIORITY ) {  \
+	PRIORITY_PRELOAD( paste(paste(paste(paste(Register,name),Method),preproc_symbol(EXTRA_PRELOAD_SYMBOL)),line), SQL_PRELOAD_PRIORITY ) {  \
 	SimpleRegisterMethod( task "/" classtype, paste(name,line)  \
 	, #returntype, methodname, #argtypes ); \
    RegisterValue( task "/" classtype "/" methodname, "Description", desc ); \
@@ -639,7 +639,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 */
 #define DefineRegistryMethod2P_i(priority,task,name,classtype,methodname,desc,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
-	PRIORITY_PRELOAD( paste(paste(paste(paste(Register,name),Method),EXTRA_PRELOAD_SYMBOL),line), priority ) {  \
+	PRIORITY_PRELOAD( paste(paste(paste(paste(Register,name),Method),preproc_symbol(EXTRA_PRELOAD_SYMBOL)),line), priority ) {  \
 	SimpleRegisterMethod( task "/" classtype, paste(name,line)  \
 	, #returntype, methodname, #argtypes ); \
    RegisterValue( task "/" classtype "/" methodname, "Description", desc ); \
@@ -657,7 +657,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 */
 #define DefineRegistryMethod_i(task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
-	PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line) ) {  \
+	PRELOAD( paste(paste(Register##name##Button,preproc_symbol(EXTRA_PRELOAD_SYMBOL)),line) ) {  \
 	SimpleRegisterMethod( task "/" classtype "/" classbase, paste(name,line)  \
 	, #returntype, methodname, #argtypes ); \
 }                                                                          \
@@ -679,7 +679,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 /*
 #define DefineRegistryMethodP(priority,task,name,classtype,classbase,methodname,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
-	PRIOR_PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line), priority ) {  \
+	PRIOR_PRELOAD( paste(paset(Register##name##Button,preproc_symbol(EXTRA_PRELOAD_SYMBOL),line), priority ) {  \
 	SimpleRegisterMethod( task "/" classtype "/" classbase, paste(name,line)  \
 	, #returntype, methodname, #argtypes ); \
 }                                                                          \
@@ -739,7 +739,7 @@ PROCREG_PROC( int, ReleaseRegisteredFunctionEx )( PCLASSROOT root
 
 #define DefineRegistrySubMethod_i(task,name,classtype,classbase,methodname,subname,returntype,argtypes,line)   \
 	CPROC paste(name,line)argtypes;       \
-	PRELOAD( paste(Register##name##Button##EXTRA_PRELOAD_SYMBOL,line) ) {  \
+	PRELOAD( paste(paste(Register##name##Button,preproc_symbol(EXTRA_PRELOAD_SYMBOL)),line) ) {  \
 	SimpleRegisterMethod( task "/" classtype "/" classbase "/" methodname, paste(name,line)  \
 	, #returntype, subname, #argtypes ); \
 }                                                                          \

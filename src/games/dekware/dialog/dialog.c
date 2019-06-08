@@ -484,15 +484,10 @@ static int CPROC CustomDefaultDestroy( PSI_CONTROL pc )
 
 //--------------------------------------------------------------------------
 
-PRELOAD( RegisterExtraInits )
-{
-	TEXTCHAR rootname[128];
-	InitializeCriticalSec( &g.csCreating );
-}
-
 
 PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
+	InitializeCriticalSec( &g.csCreating );
 	if( DekwareGetCoreInterface( DekVersion ) ) {
 	g.iCommon = RegisterExtension( "PSI Control" );
 	////RegisterObject( "Frame", "Allows interface to Panther's Slick Interface dialogs", InitFrame );

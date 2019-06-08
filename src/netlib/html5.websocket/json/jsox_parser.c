@@ -1223,11 +1223,13 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					if( state->val.value_type != JSOX_VALUE_UNSET ) {
 						if( state->val.string ) {
 							if( state->val.value_type != JSOX_VALUE_STRING ) {
-								state->val.stringLen = output->pos - state->val.string;
+								lprintf( "PReviously set string length: %d %d", state->val.stringLen, output->pos - state->val.string );
+								//lprintf( "Of course:%s %d", state->val.string, output->pos - state->val.string );
+								//state->val.stringLen = output->pos - state->val.string;
 #ifdef DEBUG_PARSING
 								lprintf( "STRING2: %s %d", state->val.string, state->val.stringLen );
 #endif
-								(*output->pos++) = 0;
+								//(*output->pos++) = 0;
 							}
 						}
 						pushValue( state, state->elements, &state->val );

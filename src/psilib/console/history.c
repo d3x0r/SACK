@@ -1885,7 +1885,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 									// or had a newline at the end which causes a wrap...
 									// log the line and get a new one.
 									pLastSetLine->nPixelEnd = col_offset;
-									pLastSetLine->nToShow = nChar - trim_char;
+									pLastSetLine->nToShow = nShow - trim_char;
 
 									if( ( nSegShown < nLen ) || ( trim_char ) )
 									{

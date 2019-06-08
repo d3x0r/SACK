@@ -19,6 +19,26 @@
  * Once definitions.
  */
 struct pthread_once {
+	HANDLE event;
+	volatile LONG inited;
+};
+typedef struct pthread_once pthread_once_t;
+
+static inline int
+pthread_once(pthread_once_t *once, void (*cb) (void) ) {
+	if( !InterlockedExchange( &once->inited, 1 ) ) {
+		once->event = CreateEvent( NULL, TRUE, FALSE, NULL );
+		cb();
+		SetEvent( once->event );
+	}
+	while( !once->event ) Sleep( 0 );
+	DWORD rc = WaitForSingleObject( once->event, INFINITE );
+	if( rc == WAIT_OBJECT_0 )
+		return 0;
+	return 1;
+}
+#if 0
+struct pthread_once {
 	INIT_ONCE once;
 };
 typedef struct pthread_once pthread_once_t;
@@ -40,6 +60,7 @@ pthread_once(pthread_once_t *once, void (*cb) (void))
 	else
 		return 0;
 }
+#endif
 
 typedef DWORD pthread_t;
 
