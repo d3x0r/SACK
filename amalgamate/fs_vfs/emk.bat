@@ -18,11 +18,13 @@ set EXPORTS='_initFS'
 
 @set CFLAGS=%CFLAGS% -D_DEBUG
 
+: -s EXPORTED_FUNCTIONS="[%EXPORTS%]"
+: -s EXTRA_EXPORTED_RUNTIME_METHODS=["stringToUTF8"] -s EXPORTED_FUNCTIONS="[%EXPORTS%]"
+
+
 :-s RESERVED_FUNCTION_POINTERS=20
 
-:call emcc --memory-init-file 0 -s EXTRA_EXPORTED_RUNTIME_METHODS=["stringToUTF8"] -s EXPORTED_FUNCTIONS="[%EXPORTS%]" -O2 -o ./vfs-fs-w.js %CFLAGS%  vfs_fs.c emscripten_bindings.c
-call emcc -s EXPORTED_FUNCTIONS="[%EXPORTS%]" -g -o ./vfs-fs-w.js  %CFLAGS%  vfs_fs.c
-call emcc -s WASM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=["stringToUTF8"] -s EXPORTED_FUNCTIONS="[%EXPORTS%]" -g -o ./vfs-fs-wasm.js %CFLAGS% vfs_fs.c objStore.c
+call emcc  -g -o ./vfs-fs-wasm.js %CFLAGS% sack.c sqlite3.c objStore.c
 
 :call emcc --memory-init-file 0 -o ./vfs-fs-w0.js   -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference -DUSE_STDIO=1 -DNO_SSL=1 -D__LINUX__ -s RESERVED_FUNCTION_POINTERS=20  vfs_fs.c
 
