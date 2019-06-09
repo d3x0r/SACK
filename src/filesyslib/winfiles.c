@@ -99,16 +99,24 @@ struct Group {
 
 #include "filesys_local.h"
 
+#ifdef _WIN32
+#  ifndef SHGFP_TYPE_CURRENT
+#    define SHGFP_TYPE_CURRENT 0
+#    define CSIDL_COMMON_APPDATA            0x0023        // All Users\Application Data
+#    define CSIDL_LOCAL_APPDATA             0x001c        // <user name>\Local Settings\Applicaiton Data (non roaming)
+EXTERN_C DECLSPEC_IMPORT HRESULT STDAPICALLTYPE SHGetFolderPathA( HWND hwnd, int csidl, HANDLE hToken, DWORD dwFlags, LPSTR pszPath );
+
+#  endif
+#endif
+
 static void UpdateLocalDataPath( void )
 {
 #ifdef _WIN32
 	TEXTCHAR path[MAX_PATH];
 	TEXTCHAR *realpath;
 	size_t len;
-#ifndef SHGFP_TYPE_CURRENT
-#define SHGFP_TYPE_CURRENT 0
-#endif
-	SHGetFolderPath( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
+
+	SHGetFolderPathA( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
 	realpath = NewArray( TEXTCHAR, len = StrLen( path )
 							  + StrLen( (*winfile_local).producer?(*winfile_local).producer:"" )
 							  + StrLen( (*winfile_local).application?(*winfile_local).application:"" ) + 3 ); // worse case +3
@@ -122,7 +130,7 @@ static void UpdateLocalDataPath( void )
 	MakePath( (*winfile_local).data_file_root );
 
 
-	SHGetFolderPath( NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
+	SHGetFolderPathA( NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
 	realpath = NewArray( TEXTCHAR, len = StrLen( path )
 							  + StrLen( (*winfile_local).producer?(*winfile_local).producer:"" )
 							  + StrLen( (*winfile_local).application?(*winfile_local).application:"" ) + 3 ); // worse case +3
