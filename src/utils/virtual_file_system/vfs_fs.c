@@ -8,7 +8,6 @@
  BAT[1] = name space; directory offsets land in a block referenced by this chain
  */
 #define SACK_VFS_SOURCE
-//#define SACK_VFS_FS_SOURCE
 //#define USE_STDIO
 #if 1
 #  include <stdhdrs.h>
@@ -60,6 +59,11 @@ using namespace sack::filesys;
 
 
 SACK_VFS_NAMESPACE
+
+#define FILE_BASED_VFS
+#include "vfs_internal.h"
+
+
 #ifdef __cplusplus
 namespace fs {
 #endif
@@ -73,8 +77,6 @@ namespace fs {
 #define LoG( a,... )
 #endif
 
-#define FILE_BASED_VFS
-#include "vfs_internal.h"
 
 #undef TSEEK
 #define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
@@ -93,8 +95,8 @@ static struct {
 #define GFB_INIT_NONE   0
 #define GFB_INIT_DIRENT 1
 #define GFB_INIT_NAMES  2
-static BLOCKINDEX _fs_GetFreeBlock( struct volume *vol, int init );
-static LOGICAL _fs_ScanDirectory( struct volume *vol, const char * filename, FPI *dirFPI, struct directory_entry *dirent, struct directory_entry *dirkey, int path_match );
+static BLOCKINDEX _fs_GetFreeBlock( struct sack_vfs_fs_volume *vol, int init );
+static LOGICAL _fs_ScanDirectory( struct sack_vfs_fs_volume *vol, const char * filename, FPI *dirFPI, struct directory_entry *dirent, struct directory_entry *dirkey, int path_match );
 
 static char _fs_mytolower( int c ) {	if( c == '\\' ) return '/'; return tolower( c ); }
 
@@ -122,7 +124,7 @@ static int  _fs_PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
 
 // read the byte from namespace at offset; decrypt byte in-register
 // compare against the filename bytes.
-static int _fs_MaskStrCmp( struct volume *vol, const char * filename, FPI name_offset, int path_match ) {
+static int _fs_MaskStrCmp( struct sack_vfs_fs_volume *vol, const char * filename, FPI name_offset, int path_match ) {
 	const char *dirname = (const char*)(vol->usekey_buffer[BC(NAMES)] + (name_offset&BLOCK_MASK));
 
 	if( vol->key ) {
@@ -159,7 +161,7 @@ static int _fs_MaskStrCmp( struct volume *vol, const char * filename, FPI name_o
 }
 
 #ifdef DEBUG_TRACE_LOG
-static void MaskStrCpy( char *output, size_t outlen, struct volume *vol, FPI name_offset ) {
+static void MaskStrCpy( char *output, size_t outlen, struct sack_vfs_fs_volume *vol, FPI name_offset ) {
 	if( vol->key ) {
 		int c;
 		FPI name_start = name_offset;
@@ -181,7 +183,7 @@ static void MaskStrCpy( char *output, size_t outlen, struct volume *vol, FPI nam
 // this is about nLeast being uninitialized.  If nLeast is used
 // its value will have been set; otherwise it will not be used.
 #pragma warning( disable: 6001 ) 
-static int _fs_updateCacheAge( struct volume *vol, enum block_cache_entries *cache_idx, BLOCKINDEX segment, uint8_t *age, int ageLength ) {
+static int _fs_updateCacheAge( struct sack_vfs_fs_volume *vol, enum block_cache_entries *cache_idx, BLOCKINDEX segment, uint8_t *age, int ageLength ) {
 	int n, m;
 	int nLeast;
 	for( n = 0; n < (ageLength); n++ ) {
@@ -219,7 +221,7 @@ static int _fs_updateCacheAge( struct volume *vol, enum block_cache_entries *cac
 }
 #pragma warning( default: 6001 )
 
-static enum block_cache_entries _fs_UpdateSegmentKey( struct volume *vol, enum block_cache_entries cache_idx, BLOCKINDEX segment )
+static enum block_cache_entries _fs_UpdateSegmentKey( struct sack_vfs_fs_volume *vol, enum block_cache_entries cache_idx, BLOCKINDEX segment )
 {
 	if( !vol->key ) {
 		vol->segment[cache_idx] = segment;
@@ -268,7 +270,7 @@ static enum block_cache_entries _fs_UpdateSegmentKey( struct volume *vol, enum b
 	return cache_idx;
 }
 
-static LOGICAL _fs_ValidateBAT( struct volume *vol ) {
+static LOGICAL _fs_ValidateBAT( struct sack_vfs_fs_volume *vol ) {
 	BLOCKINDEX first_slab = 0;
 	BLOCKINDEX slab = (BLOCKINDEX)(vol->dwSize / ( BLOCK_SIZE ));
 	BLOCKINDEX last_block = ( slab * BLOCKS_PER_BAT ) / BLOCKS_PER_SECTOR;
@@ -396,7 +398,7 @@ const uint8_t *sack_vfs_fs_get_signature2( POINTER disk, POINTER diskReal ) {
 
 
 // add some space to the volume....
-static LOGICAL _fs_ExpandVolume( struct volume *vol ) {
+static LOGICAL _fs_ExpandVolume( struct sack_vfs_fs_volume *vol ) {
 	LOGICAL created = FALSE;
 	LOGICAL path_checked = FALSE;
 	size_t oldsize = vol->dwSize;
@@ -447,7 +449,7 @@ static LOGICAL _fs_ExpandVolume( struct volume *vol ) {
 }
 
 // shared with fuse module
-uintptr_t vfs_fs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries *cache_index ) {
+uintptr_t vfs_fs_SEEK( struct sack_vfs_fs_volume *vol, FPI offset, enum block_cache_entries *cache_index ) {
 	while( offset >= vol->dwSize ) if( !_fs_ExpandVolume( vol ) ) return 0;
 	{
 		BLOCKINDEX seg = (offset / BLOCK_SIZE) + 1;
@@ -470,7 +472,7 @@ uintptr_t vfs_fs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries 
 }
 
 // shared with fuse module
-uintptr_t vfs_fs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) {
+uintptr_t vfs_fs_BSEEK( struct sack_vfs_fs_volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) {
 	BLOCKINDEX b = BLOCK_SIZE + (block >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + ( block & (BLOCKS_PER_BAT-1) ) * BLOCK_SIZE;
 	while( b >= vol->dwSize ) if( !_fs_ExpandVolume( vol ) ) return 0;
 	{
@@ -493,7 +495,7 @@ uintptr_t vfs_fs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_e
 	}
 }
 
-static BLOCKINDEX _fs_GetFreeBlock( struct volume *vol, int init )
+static BLOCKINDEX _fs_GetFreeBlock( struct sack_vfs_fs_volume *vol, int init )
 {
 	size_t n;
 	int b = 0;
@@ -562,7 +564,7 @@ static BLOCKINDEX _fs_GetFreeBlock( struct volume *vol, int init )
 	}while( 1 );
 }
 
-static BLOCKINDEX vfs_fs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int init, LOGICAL expand ) {
+static BLOCKINDEX vfs_fs_GetNextBlock( struct sack_vfs_fs_volume *vol, BLOCKINDEX block, int init, LOGICAL expand ) {
 	BLOCKINDEX sector = block >> BLOCK_SHIFT;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX *, vol, sector * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
@@ -590,7 +592,7 @@ static BLOCKINDEX vfs_fs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int
 }
 
 static void _fs_AddSalt( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
-	struct volume *vol = (struct volume *)psv;
+	struct sack_vfs_fs_volume *vol = (struct sack_vfs_fs_volume *)psv;
 	if( vol->sigsalt ) {
 		(*salt_size) = vol->sigkeyLength;
 		(*salt) = (POINTER)vol->sigsalt;
@@ -636,7 +638,7 @@ static void _fs_AddSalt( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 		(*salt_size) = 0;
 }
 
-static void _fs_AssignKey( struct volume *vol, const char *key1, const char *key2 )
+static void _fs_AssignKey( struct sack_vfs_fs_volume *vol, const char *key1, const char *key2 )
 {
 	uintptr_t size = BLOCK_SIZE + BLOCK_SIZE * BC(COUNT) + BLOCK_SIZE + SHORTKEY_LENGTH;
 	if( !vol->key_buffer ) {
@@ -680,19 +682,19 @@ static void _fs_AssignKey( struct volume *vol, const char *key1, const char *key
 	}
 }
 
-struct volume *sack_vfs_fs_load_volume( const char * filepath )
+struct sack_vfs_fs_volume *sack_vfs_fs_load_volume( const char * filepath )
 {
-	struct volume *vol = New( struct volume );
-	memset( vol, 0, sizeof( struct volume ) );
+	struct sack_vfs_fs_volume *vol = New( struct sack_vfs_fs_volume );
+	memset( vol, 0, sizeof( struct sack_vfs_fs_volume ) );
 	vol->volname = strdup( filepath );
 	_fs_AssignKey( vol, NULL, NULL );
-	if( !_fs_ExpandVolume( vol ) || !_fs_ValidateBAT( vol ) ) { Deallocate( struct volume*, vol ); return NULL; }
+	if( !_fs_ExpandVolume( vol ) || !_fs_ValidateBAT( vol ) ) { Deallocate( struct sack_vfs_fs_volume*, vol ); return NULL; }
 	return vol;
 }
 
-struct volume *sack_vfs_fs_load_crypt_volume( const char * filepath, uintptr_t version, const char * userkey, const char * devkey ) {
-	struct volume *vol = New( struct volume );
-	MemSet( vol, 0, sizeof( struct volume ) );
+struct sack_vfs_fs_volume *sack_vfs_fs_load_crypt_volume( const char * filepath, uintptr_t version, const char * userkey, const char * devkey ) {
+	struct sack_vfs_fs_volume *vol = New( struct sack_vfs_fs_volume );
+	MemSet( vol, 0, sizeof( struct sack_vfs_fs_volume ) );
 	if( !version ) version = 2;
 	vol->clusterKeyVersion = version - 1;
 	vol->volname = strdup( filepath );
@@ -703,9 +705,9 @@ struct volume *sack_vfs_fs_load_crypt_volume( const char * filepath, uintptr_t v
 	return vol;
 }
 #if 0
-struct volume *sack_vfs_fs_use_crypt_volume( POINTER memory, size_t sz, uintptr_t version, const char * userkey, const char * devkey ) {
-	struct volume *vol = New( struct volume );
-	MemSet( vol, 0, sizeof( struct volume ) );
+struct sack_vfs_fs_volume *sack_vfs_fs_use_crypt_volume( POINTER memory, size_t sz, uintptr_t version, const char * userkey, const char * devkey ) {
+	struct sack_vfs_fs_volume *vol = New( struct sack_vfs_fs_volume );
+	MemSet( vol, 0, sizeof( struct sack_vfs_fs_volume ) );
 	vol->read_only = 1;
 	_fs_AssignKey( vol, userkey, devkey );
 	if( !version ) version = 2;
@@ -747,10 +749,10 @@ struct volume *sack_vfs_fs_use_crypt_volume( POINTER memory, size_t sz, uintptr_
 	return vol;
 }
 #endif
-void sack_vfs_fs_unload_volume( struct volume * vol ) {
+void sack_vfs_fs_unload_volume( struct sack_vfs_fs_volume * vol ) {
 	INDEX idx;
-	struct sack_vfs_file *file;
-	LIST_FORALL( vol->files, idx, struct sack_vfs_file *, file )
+	struct sack_vfs_fs_file *file;
+	LIST_FORALL( vol->files, idx, struct sack_vfs_fs_file *, file )
 		break;
 	if( file ) {
 		vol->closed = TRUE;
@@ -765,10 +767,10 @@ void sack_vfs_fs_unload_volume( struct volume * vol ) {
 		SRG_DestroyEntropy( &vol->entropy );
 	}
 	Deallocate( uint8_t*, vol->key_buffer );
-	Deallocate( struct volume*, vol );
+	Deallocate( struct sack_vfs_fs_volume*, vol );
 }
 
-void sack_vfs_fs_shrink_volume( struct volume * vol ) {
+void sack_vfs_fs_shrink_volume( struct sack_vfs_fs_volume * vol ) {
 	size_t n;
 	unsigned int b = 0;
 	//int found_free; // this block has free data; should be last BAT?
@@ -805,7 +807,7 @@ void sack_vfs_fs_shrink_volume( struct volume * vol ) {
 	vol->dwSize = 0;
 }
 
-static void _fs_mask_block( struct volume *vol, size_t n ) {
+static void _fs_mask_block( struct sack_vfs_fs_volume *vol, size_t n ) {
 	BLOCKINDEX b = ( 1 + (n >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR) + (n & (BLOCKS_PER_BAT - 1)));
 	_fs_UpdateSegmentKey( vol, BC(DATAKEY), b + 1 );
 	{
@@ -831,7 +833,7 @@ static void _fs_mask_block( struct volume *vol, size_t n ) {
 	}
 }
 
-LOGICAL sack_vfs_fs_decrypt_volume( struct volume *vol )
+LOGICAL sack_vfs_fs_decrypt_volume( struct sack_vfs_fs_volume *vol )
 {
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( !vol->key ) { vol->lock = 0; return FALSE; } // volume is already decrypted, cannot remove key
@@ -860,7 +862,7 @@ LOGICAL sack_vfs_fs_decrypt_volume( struct volume *vol )
 	return TRUE;
 }
 
-LOGICAL sack_vfs_fs_encrypt_volume( struct volume *vol, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 ) {
+LOGICAL sack_vfs_fs_encrypt_volume( struct sack_vfs_fs_volume *vol, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 ) {
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( vol->key ) { vol->lock = 0; return FALSE; } // volume already has a key, cannot apply new key
 	if( !version ) version = 2;
@@ -895,7 +897,7 @@ LOGICAL sack_vfs_fs_encrypt_volume( struct volume *vol, uintptr_t version, CTEXT
 	return TRUE;
 }
 
-const char *sack_vfs_fs_get_signature( struct volume *vol ) {
+const char *sack_vfs_fs_get_signature( struct sack_vfs_fs_volume *vol ) {
 	static char signature[257];
 	static const char *output = "0123456789ABCDEF";
 	if( !vol )
@@ -947,7 +949,7 @@ const char *sack_vfs_fs_get_signature( struct volume *vol ) {
 	return signature;
 }
 
-LOGICAL _fs_ScanDirectory( struct volume *vol, const char * filename, FPI *dirFPI, struct directory_entry *dirent, struct directory_entry *dirkey, int path_match ) {
+LOGICAL _fs_ScanDirectory( struct sack_vfs_fs_volume *vol, const char * filename, FPI *dirFPI, struct directory_entry *dirent, struct directory_entry *dirkey, int path_match ) {
 	size_t n;
 	BLOCKINDEX this_dir_block = 0;
 	BLOCKINDEX next_dir_block;
@@ -1008,7 +1010,7 @@ LOGICAL _fs_ScanDirectory( struct volume *vol, const char * filename, FPI *dirFP
 }
 
 // this results in an absolute disk position
-static FPI _fs_SaveFileName( struct volume *vol, const char * filename ) {
+static FPI _fs_SaveFileName( struct sack_vfs_fs_volume *vol, const char * filename ) {
 	size_t n;
 	BLOCKINDEX this_name_block = 1;
 	while( 1 ) {
@@ -1052,7 +1054,7 @@ static FPI _fs_SaveFileName( struct volume *vol, const char * filename ) {
 }
 
 
-static struct directory_entry * _fs_GetNewDirectory( struct volume *vol, const char * filename, FPI *entFPI, struct directory_entry *dirent, struct directory_entry *_entkey ) {
+static struct directory_entry * _fs_GetNewDirectory( struct sack_vfs_fs_volume *vol, const char * filename, FPI *entFPI, struct directory_entry *dirent, struct directory_entry *_entkey ) {
 	size_t n;
 	BLOCKINDEX this_dir_block = 0;
 	struct directory_entry *next_entries;
@@ -1100,13 +1102,13 @@ static struct directory_entry * _fs_GetNewDirectory( struct volume *vol, const c
 
 }
 
-struct sack_vfs_file * CPROC sack_vfs_fs_openfile( struct volume *vol, const char * filename ) {
-	struct sack_vfs_file *file = New( struct sack_vfs_file );
+struct sack_vfs_fs_file * CPROC sack_vfs_fs_openfile( struct sack_vfs_fs_volume *vol, const char * filename ) {
+	struct sack_vfs_fs_file *file = New( struct sack_vfs_fs_file );
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( filename[0] == '.' && filename[1] == '/' ) filename += 2;
 	LoG( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
 	if( !_fs_ScanDirectory( vol, filename, &file->entry_fpi, &file->_entry, &file->dirent_key, 0 ) ) {
-		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Deallocate( struct sack_vfs_file *, file ); return NULL; }
+		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Deallocate( struct sack_vfs_fs_file *, file ); return NULL; }
 		else _fs_GetNewDirectory( vol, filename, &file->entry_fpi, file->entry, &file->dirent_key );
 	}
 	file->vol = vol;
@@ -1118,11 +1120,11 @@ struct sack_vfs_file * CPROC sack_vfs_fs_openfile( struct volume *vol, const cha
 	return file;
 }
 
-static struct sack_vfs_file * CPROC sack_vfs_fs_open( uintptr_t psvInstance, const char * filename, const char *opts ) {
-	return sack_vfs_fs_openfile( (struct volume*)psvInstance, filename );
+static struct sack_vfs_fs_file * CPROC sack_vfs_fs_open( uintptr_t psvInstance, const char * filename, const char *opts ) {
+	return sack_vfs_fs_openfile( (struct sack_vfs_fs_volume*)psvInstance, filename );
 }
 
-int CPROC sack_vfs_fs_exists( struct volume *vol, const char * file ) {
+int CPROC sack_vfs_fs_exists( struct sack_vfs_fs_volume *vol, const char * file ) {
 	LOGICAL result;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( file[0] == '.' && file[1] == '/' ) file += 2;
@@ -1131,11 +1133,11 @@ int CPROC sack_vfs_fs_exists( struct volume *vol, const char * file ) {
 	return result;
 }
 
-size_t CPROC sack_vfs_fs_tell( struct sack_vfs_file *file ) { return (size_t)file->fpi; }
+size_t CPROC sack_vfs_fs_tell( struct sack_vfs_fs_file *file ) { return (size_t)file->fpi; }
 
-size_t CPROC sack_vfs_fs_size( struct sack_vfs_file *file ) { return (size_t)(file->entry->filesize ^ file->dirent_key.filesize); }
+size_t CPROC sack_vfs_fs_size( struct sack_vfs_fs_file *file ) { return (size_t)(file->entry->filesize ^ file->dirent_key.filesize); }
 
-size_t CPROC sack_vfs_fs_seek( struct sack_vfs_file *file, size_t pos, int whence )
+size_t CPROC sack_vfs_fs_seek( struct sack_vfs_fs_file *file, size_t pos, int whence )
 {
 	FPI old_fpi = file->fpi;
 	if( whence == SEEK_SET ) file->fpi = pos;
@@ -1168,7 +1170,7 @@ size_t CPROC sack_vfs_fs_seek( struct sack_vfs_file *file, size_t pos, int whenc
 	return (size_t)file->fpi;
 }
 
-static void _fs_MaskBlock( struct volume *vol, uint8_t* usekey, uint8_t* block, BLOCKINDEX block_ofs, size_t ofs, const char *data, size_t length ) {
+static void _fs_MaskBlock( struct sack_vfs_fs_volume *vol, uint8_t* usekey, uint8_t* block, BLOCKINDEX block_ofs, size_t ofs, const char *data, size_t length ) {
 	size_t n;
 	block += block_ofs;
 	usekey += ofs;
@@ -1178,7 +1180,7 @@ static void _fs_MaskBlock( struct volume *vol, uint8_t* usekey, uint8_t* block, 
 		memcpy( block, data, length );
 }
 
-size_t CPROC sack_vfs_fs_write( struct sack_vfs_file *file, const void * data_, size_t length ) {
+size_t CPROC sack_vfs_fs_write( struct sack_vfs_fs_file *file, const void * data_, size_t length ) {
 	const char* data = (const char*)data_;
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
@@ -1253,7 +1255,7 @@ size_t CPROC sack_vfs_fs_write( struct sack_vfs_file *file, const void * data_, 
 	return written;
 }
 
-size_t CPROC sack_vfs_fs_read( struct sack_vfs_file *file, void * data_, size_t length ) {
+size_t CPROC sack_vfs_fs_read( struct sack_vfs_fs_file *file, void * data_, size_t length ) {
 	char* data = (char*)data_;
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
@@ -1305,12 +1307,12 @@ size_t CPROC sack_vfs_fs_read( struct sack_vfs_file *file, void * data_, size_t 
 	return written;
 }
 
-static void sack_vfs_fs_unlink_file_entry( struct volume *vol, FPI entFPI, struct directory_entry *entry, struct directory_entry *entkey, BLOCKINDEX first_block, LOGICAL deleted ) {
+static void sack_vfs_fs_unlink_file_entry( struct sack_vfs_fs_volume *vol, FPI entFPI, struct directory_entry *entry, struct directory_entry *entkey, BLOCKINDEX first_block, LOGICAL deleted ) {
 	BLOCKINDEX block, _block;
-	struct sack_vfs_file *file_found = NULL;
-	struct sack_vfs_file *file;
+	struct sack_vfs_fs_file *file_found = NULL;
+	struct sack_vfs_fs_file *file;
 	INDEX idx;
-	LIST_FORALL( vol->files, idx, struct sack_vfs_file *, file ) {
+	LIST_FORALL( vol->files, idx, struct sack_vfs_fs_file *, file ) {
 		if( file->_first_block == first_block ) {
 			file_found = file;
 			file->delete_on_close = TRUE;
@@ -1348,8 +1350,8 @@ static void sack_vfs_fs_unlink_file_entry( struct volume *vol, FPI entFPI, struc
 	}
 }
 
-static void _fs_shrinkBAT( struct sack_vfs_file *file ) {
-	struct volume *vol = file->vol;
+static void _fs_shrinkBAT( struct sack_vfs_fs_file *file ) {
+	struct sack_vfs_fs_volume *vol = file->vol;
 	BLOCKINDEX block, _block;
 	size_t bsize = 0;
 
@@ -1379,9 +1381,9 @@ static void _fs_shrinkBAT( struct sack_vfs_file *file ) {
 	} while( block != EOFBLOCK );	
 }
 
-size_t CPROC sack_vfs_fs_truncate( struct sack_vfs_file *file ) { file->entry->filesize = file->fpi ^ file->dirent_key.filesize; _fs_shrinkBAT( file ); return (size_t)file->fpi; }
+size_t CPROC sack_vfs_fs_truncate( struct sack_vfs_fs_file *file ) { file->entry->filesize = file->fpi ^ file->dirent_key.filesize; _fs_shrinkBAT( file ); return (size_t)file->fpi; }
 
-int CPROC sack_vfs_fs_close( struct sack_vfs_file *file ) {
+int CPROC sack_vfs_fs_close( struct sack_vfs_fs_file *file ) {
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 #ifdef DEBUG_TRACE_LOG
 	{
@@ -1397,11 +1399,11 @@ int CPROC sack_vfs_fs_close( struct sack_vfs_file *file ) {
 	if( file->delete_on_close ) sack_vfs_fs_unlink_file_entry( file->vol, file->entry_fpi, file->entry, &file->dirent_key, file->_first_block, TRUE );
 	file->vol->lock = 0;
 	if( file->vol->closed ) sack_vfs_fs_unload_volume( file->vol );
-	Deallocate( struct sack_vfs_file *, file );
+	Deallocate( struct sack_vfs_fs_file *, file );
 	return 0;
 }
 
-int CPROC sack_vfs_fs_unlink_file( struct volume *vol, const char * filename ) {
+int CPROC sack_vfs_fs_unlink_file( struct sack_vfs_fs_volume *vol, const char * filename ) {
 	int result = 0;
 	struct directory_entry entkey;
 	struct directory_entry entry;
@@ -1417,14 +1419,14 @@ int CPROC sack_vfs_fs_unlink_file( struct volume *vol, const char * filename ) {
 	return result;
 }
 
-int CPROC sack_vfs_fs_flush( struct sack_vfs_file *file ) {	/* noop */	return 0; }
+int CPROC sack_vfs_fs_flush( struct sack_vfs_fs_file *file ) {	/* noop */	return 0; }
 
 static LOGICAL CPROC sack_vfs_fs_need_copy_write( void ) {	return FALSE; }
 
-struct find_info {
+struct sack_vfs_fs_find_info {
 	BLOCKINDEX this_dir_block;
 	char filename[BLOCK_SIZE];
-	struct volume *vol;
+	struct sack_vfs_fs_volume *vol;
 	CTEXTSTR base;
 	size_t base_len;
 	size_t filenamelen;
@@ -1433,18 +1435,18 @@ struct find_info {
 	size_t thisent;
 };
 
-struct find_cursor * CPROC sack_vfs_fs_find_create_cursor(uintptr_t psvInst,const char *base,const char *mask )
+struct sack_vfs_fs_find_info * CPROC sack_vfs_fs_find_create_cursor(uintptr_t psvInst,const char *base,const char *mask )
 {
-	struct find_info *info = New( struct find_info );
+	struct sack_vfs_fs_find_info *info = New( struct sack_vfs_fs_find_info );
 	info->base = base;
 	info->base_len = StrLen( base );
 	info->mask = mask;
-	info->vol = (struct volume *)psvInst;
-	return (struct find_cursor*)info;
+	info->vol = (struct sack_vfs_fs_volume *)psvInst;
+	return (struct sack_vfs_fs_find_info*)info;
 }
 
-static int _fs_iterate_find( struct find_info* cinfo ) {
-	struct find_info *info = (struct find_info*)cinfo;
+static int _fs_iterate_find( struct sack_vfs_fs_find_info* cinfo ) {
+	struct sack_vfs_fs_find_info *info = (struct sack_vfs_fs_find_info*)cinfo;
 	struct directory_entry *next_entries;
 	size_t n;
 	do {
@@ -1500,33 +1502,33 @@ static int _fs_iterate_find( struct find_info* cinfo ) {
 	return 0;
 }
 
-int CPROC sack_vfs_fs_find_first( struct find_cursor *cinfo ) {
-	struct find_info *info = (struct find_info*)cinfo;
+int CPROC sack_vfs_fs_find_first( struct sack_vfs_fs_find_info *cinfo ) {
+	struct sack_vfs_fs_find_info *info = (struct sack_vfs_fs_find_info*)cinfo;
 	info->this_dir_block = 0;
 	info->thisent = 0;
 	return _fs_iterate_find( info );
 }
 
-int CPROC sack_vfs_fs_find_close( struct find_cursor *info ) { Deallocate( struct find_cursor*, info ); return 0; }
-int CPROC sack_vfs_fs_find_next( struct find_cursor *info ) { return _fs_iterate_find( (struct find_info*)info ); }
-char * CPROC sack_vfs_fs_find_get_name( struct find_cursor *info ) { return ((struct find_info*)info)->filename; }
-size_t CPROC sack_vfs_fs_find_get_size( struct find_cursor *info ) { return ((struct find_info*)info)->filesize; }
-LOGICAL CPROC sack_vfs_fs_find_is_directory( struct find_cursor *cursor ) { return FALSE; }
+int CPROC sack_vfs_fs_find_close( struct sack_vfs_fs_find_info *info ) { Deallocate( struct sack_vfs_fs_find_info*, info ); return 0; }
+int CPROC sack_vfs_fs_find_next( struct sack_vfs_fs_find_info *info ) { return _fs_iterate_find( (struct sack_vfs_fs_find_info*)info ); }
+char * CPROC sack_vfs_fs_find_get_name( struct sack_vfs_fs_find_info *info ) { return ((struct sack_vfs_fs_find_info*)info)->filename; }
+size_t CPROC sack_vfs_fs_find_get_size( struct sack_vfs_fs_find_info *info ) { return ((struct sack_vfs_fs_find_info*)info)->filesize; }
+LOGICAL CPROC sack_vfs_fs_find_is_directory( struct sack_vfs_fs_find_info *cursor ) { return FALSE; }
 LOGICAL CPROC sack_vfs_fs_is_directory( uintptr_t psvInstance, const char *path ) {
 	if( path[0] == '.' && path[1] == 0 ) return TRUE;
 	{
-		struct volume *vol = (struct volume *)psvInstance;
+		struct sack_vfs_fs_volume *vol = (struct sack_vfs_fs_volume *)psvInstance;
 		if( _fs_ScanDirectory( vol, path, NULL, NULL, NULL, 1 ) ) {
 			return TRUE;
 		}
 	}
 	return FALSE;
 }
-uint64_t  CPROC sack_vfs_fs_find_get_ctime( struct find_cursor *info ) { return (size_t)0; }
-uint64_t  CPROC sack_vfs_fs_find_get_wtime( struct find_cursor *info ) { return (size_t)0; }
+uint64_t  CPROC sack_vfs_fs_find_get_ctime( struct sack_vfs_fs_find_info *info ) { return (size_t)0; }
+uint64_t  CPROC sack_vfs_fs_find_get_wtime( struct sack_vfs_fs_find_info *info ) { return (size_t)0; }
 
 LOGICAL CPROC sack_vfs_fs_rename( uintptr_t psvInstance, const char *original, const char *newname ) {
-	struct volume *vol = (struct volume *)psvInstance;
+	struct sack_vfs_fs_volume *vol = (struct sack_vfs_fs_volume *)psvInstance;
 	// fail if the names are the same.
 	if( strcmp( original, newname ) == 0 )
 		return FALSE;
@@ -1574,13 +1576,13 @@ static struct file_system_interface sack_vfs_fs_fsi = {
                                                    , (int(CPROC*)(struct find_cursor*))             sack_vfs_fs_find_next
                                                    , (char*(CPROC*)(struct find_cursor*))           sack_vfs_fs_find_get_name
                                                    , (size_t(CPROC*)(struct find_cursor*))          sack_vfs_fs_find_get_size
-                                                   , sack_vfs_fs_find_is_directory
+                                                   , (LOGICAL(CPROC*)(struct find_cursor*))         sack_vfs_fs_find_is_directory
                                                    , sack_vfs_fs_is_directory
                                                    , sack_vfs_fs_rename
-	, NULL
-	, NULL
-	, sack_vfs_fs_find_get_ctime
-	, sack_vfs_fs_find_get_wtime
+	, (uintptr_t( CPROC* )(uintptr_t, uintptr_t, va_list))NULL
+	, (uintptr_t( CPROC* )(uintptr_t, uintptr_t, va_list))NULL
+	, (uint64_t( CPROC* )(struct find_cursor* cursor))sack_vfs_fs_find_get_ctime
+	, (uint64_t( CPROC* )(struct find_cursor* cursor))sack_vfs_fs_find_get_wtime
 };
 
 PRIORITY_PRELOAD( Sack_VFS_FS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )
@@ -1596,7 +1598,7 @@ PRIORITY_PRELOAD( Sack_VFS_FS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )
 
 PRIORITY_PRELOAD( Sack_VFS_FS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 1 ) {
 	if( SACK_GetProfileInt( GetProgramName(), "SACK/VFS/Mount FS VFS", 0 ) ) {
-		struct volume *vol;
+		struct sack_vfs_fs_volume *vol;
 		TEXTCHAR volfile[256];
 		TEXTSTR tmp;
 		SACK_GetProfileString( GetProgramName(), "SACK/VFS/FS File", "*/../assets.sfs", volfile, 256 );
@@ -1629,3 +1631,5 @@ SACK_VFS_NAMESPACE_END
 #undef l
 
 #endif
+
+#undef FILE_BASED_VFS

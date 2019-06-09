@@ -101,7 +101,7 @@ PREFIX_PACKED struct index_header {
 struct memoryStorageIndex {
 	// name/identifer
 	// data type
-	//struct volume* vol;
+	//struct sack_vfs_os_volume* vol;
 	char* name;
 	PMEMORY_INDEX_ENTRYSET* entries;
 	struct sack_vfs_os_file* file;
@@ -171,7 +171,7 @@ static int storageIndexEntry_length( struct index_header* leader ) {
 	return 1;
 }
 
-struct memoryStorageIndex* openIndexFile( struct volume* vol, BLOCKINDEX startBlock ) {
+struct memoryStorageIndex* openIndexFile( struct sack_vfs_os_volume* vol, BLOCKINDEX startBlock ) {
 	struct memoryStorageIndex* file = New( struct memoryStorageIndex );
 	file->file = _os_createFile( vol, startBlock );
 
@@ -187,7 +187,7 @@ struct memoryStorageIndex* openIndexFile( struct volume* vol, BLOCKINDEX startBl
 }
 
 
-struct memoryStorageIndex* createIndexFile( struct volume* vol, const char *name, size_t nameLen  ) {
+struct memoryStorageIndex* createIndexFile( struct sack_vfs_os_volume* vol, const char *name, size_t nameLen  ) {
 	struct memoryStorageIndex* file = New( struct memoryStorageIndex );
 	BLOCKINDEX startBlock = _os_GetFreeBlock( vol, GFB_INIT_NONE );
 	file->file = _os_createFile( vol, startBlock );
@@ -230,7 +230,7 @@ struct memoryStorageIndex* allocateIndex( struct sack_vfs_os_file* file
 
 struct storageIndexEntry* indexFileFind( struct memoryStorageIndex* index, void* data, size_t dataLen ) {
 //	struct memoryStorageIndex* file;
-	struct storageIndexEntry* entry;
+	struct storageIndexEntry* entry = NULL;
 
 	return entry;
 }

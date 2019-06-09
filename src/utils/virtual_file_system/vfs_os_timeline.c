@@ -101,9 +101,9 @@ PREFIX_PACKED struct storageTimelineBlock {
 
 
 
-void reloadTimeEntry( struct memoryTimelineNode* time, struct volume* vol, uint64_t timeEntry ) {
+void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, uint64_t timeEntry ) {
 	enum block_cache_entries cache = BC( TIMELINE );
-	//uintptr_t vfs_os_FSEEK( struct volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
+	//uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
 	//if( timeEntry > 62 )DebugBreak();
 	FPI pos = sane_offsetof( struct storageTimeline, entries[timeEntry - 1] );
 	struct storageTimelineNode* node = (struct storageTimelineNode*)vfs_os_FSEEK( vol, vol->timeline_file, FIRST_TIMELINE_BLOCK, pos, &cache );
@@ -126,7 +126,7 @@ void reloadTimeEntry( struct memoryTimelineNode* time, struct volume* vol, uint6
 
 
 
-static void DumpTimelineTreeWork( struct volume* vol, int level, struct memoryTimelineNode* parent, LOGICAL bSortCreation ) {
+static void DumpTimelineTreeWork( struct sack_vfs_os_volume* vol, int level, struct memoryTimelineNode* parent, LOGICAL bSortCreation ) {
 	struct memoryTimelineNode curNode;
 	static char indent[256];
 	int i;
@@ -165,7 +165,7 @@ static void DumpTimelineTreeWork( struct volume* vol, int level, struct memoryTi
 
 //---------------------------------------------------------------------------
 
-static void DumpTimelineTree( struct volume* vol, LOGICAL bSortCreation ) {
+static void DumpTimelineTree( struct sack_vfs_os_volume* vol, LOGICAL bSortCreation ) {
 	enum block_cache_entries cache = BC( TIMELINE );
 
 	struct storageTimeline* timeline = vol->timeline;// (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, &cache );
@@ -200,7 +200,7 @@ static void DumpTimelineTree( struct volume* vol, LOGICAL bSortCreation ) {
 //-----------------------------------------------------------------------------------
 // Timeline Support Functions
 //-----------------------------------------------------------------------------------
-void updateTimeEntry( struct memoryTimelineNode* time, struct volume* vol ) {
+void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol ) {
 	FPI timeEntry = time->this_fpi;
 
 	enum block_cache_entries cache = BC( TIMELINE );
@@ -245,7 +245,7 @@ void updateTimeEntry( struct memoryTimelineNode* time, struct volume* vol ) {
 
 //---------------------------------------------------------------------------
 
-void reloadDirectoryEntry( struct volume* vol, struct memoryTimelineNode* time, struct _os_find_info* decoded_dirent ) {
+void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimelineNode* time, struct sack_vfs_os_find_info* decoded_dirent ) {
 	enum block_cache_entries cache = BC( DIRECTORY );
 	struct directory_entry* dirent, * entkey;
 	struct directory_hash_lookup_block* dirblock;
@@ -342,7 +342,7 @@ void reloadDirectoryEntry( struct volume* vol, struct memoryTimelineNode* time, 
 //---------------------------------------------------------------------------
 
 static void _os_AVL_RotateToRight(
-	struct volume* vol,
+	struct sack_vfs_os_volume* vol,
 	LOGICAL bSortCreation,
 	PDATASTACK * pdsStack,
 	struct memoryTimelineNode* node,
@@ -510,7 +510,7 @@ static void _os_AVL_RotateToRight(
 //---------------------------------------------------------------------------
 
 static void _os_AVL_RotateToLeft(
-	struct volume* vol,
+	struct sack_vfs_os_volume* vol,
 	LOGICAL bSortCreation,
 	PDATASTACK * pdsStack,
 	struct memoryTimelineNode* node,
@@ -664,7 +664,7 @@ static void _os_AVL_RotateToLeft(
 //---------------------------------------------------------------------------
 
 
-static void _os_AVLbalancer( struct volume* vol, LOGICAL bSortCreation, PDATASTACK * pdsStack
+static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, LOGICAL bSortCreation, PDATASTACK * pdsStack
 	, struct memoryTimelineNode* node ) {
 	struct memoryTimelineNode* _x = NULL;
 	struct memoryTimelineNode* _y = NULL;
@@ -891,7 +891,7 @@ static void _os_AVLbalancer( struct volume* vol, LOGICAL bSortCreation, PDATASTA
 //---------------------------------------------------------------------------
 
 
-static int hangTimelineNode( struct volume* vol
+static int hangTimelineNode( struct sack_vfs_os_volume* vol
 	, TIMELINE_BLOCK_TYPE index
 	, LOGICAL bSortCreation
 	, struct storageTimeline* timeline
@@ -1095,7 +1095,7 @@ static int hangTimelineNode( struct volume* vol
 }
 
 
-void getTimeEntry( struct memoryTimelineNode* time, struct volume* vol, LOGICAL keepDirent, void(*init)(uintptr_t, struct memoryTimelineNode*), uintptr_t psv ) {
+void getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, LOGICAL keepDirent, void(*init)(uintptr_t, struct memoryTimelineNode*), uintptr_t psv ) {
 	enum block_cache_entries cache = BC( TIMELINE );
 	enum block_cache_entries cache_last = BC( TIMELINE );
 	enum block_cache_entries cache_free = BC( TIMELINE );

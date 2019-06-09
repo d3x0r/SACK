@@ -16,11 +16,11 @@
 static struct vfs_command_local
 {
 	struct file_system_interface *fsi;
-	struct volume *current_vol;
+	struct sack_vfs_volume *current_vol;
 	struct file_system_mounted_interface *current_mount;
 	LOGICAL verbose;
 
-	struct volume *current_vol_source;
+	struct sack_vfs_volume *current_vol_source;
 	struct file_system_mounted_interface *current_mount_source;
 } l;
 
@@ -189,10 +189,8 @@ static void testVolume_slow( void ) {
 static void testVolume_db( void ) {
 #if !defined( __NO_OPTIONS__ )
 	FILE* db;
-	FILE* dbj;
 	uint16_t buffer[2048];
 	int n;
-	int nj;
 	PODBC odbc = ConnectToDatabase( "$sack@vfs$testsql.db" );
 	SQLCommandf( odbc, "delete * from sqlite_master" );
 	CheckODBCTable( odbc, GetFieldsInSQL( "create table test1 (a,b,c)", FALSE ), CTO_MERGE );
@@ -582,7 +580,7 @@ static void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 }
 
 struct scanFileInfo {
-	struct volume * vol;
+	struct sack_vfs_volume * vol;
 	POINTER *ppInfo;
 };
 

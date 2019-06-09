@@ -72,7 +72,7 @@ sack_add_library( ${PROJECT} SHARED ${VFSPP} ${VFSFSPP} ${VFSOSPP} ${VFSPPH} )
 
 add_custom_target(
     generate-foo
-    DEPENDS ${VFSOSIPP} ${VFSOSTPP}
+    DEPENDS ${VFSOSIPP} ${VFSOSTPP} ${VFSPPH}
     )
 add_dependencies( ${PROJECT} generate-foo )
 

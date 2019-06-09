@@ -28,47 +28,59 @@
 typedef VFS_DISK_DATATYPE BLOCKINDEX; // BLOCK_SIZE blocks...
 typedef VFS_DISK_DATATYPE FPI; // file position type
 
+/* BEFORE DEF */
+
 #undef BC
 #ifdef VIRTUAL_OBJECT_STORE
+/* THIS DEFINES SACK_VFS_OS_VOLUME */
 #  define BC(n) BLOCK_CACHE_VOS_##n
-#  ifndef __cplusplus
 #    ifdef block_cache_entries
-#      undef block_cache_entires
+#      undef block_cache_entries
 #      undef directory_entry
 #      undef disk
 #      undef directory_hash_lookup_block
-#      undef volume
+#      undef sack_vfs_volume
 #      undef sack_vfs_file
 #    endif
 #    define block_cache_entries block_cache_entries_os
 #    define directory_entry directory_entry_os
 #    define disk disk_os
 #    define directory_hash_lookup_block directory_hash_lookup_block_os
-//#    define volume volume_os
-//#    define sack_vfs_file sack_vfs_file_os
-#  endif
+#    define sack_vfs_volume sack_vfs_os_volume
+#    define sack_vfs_file sack_vfs_os_file
+#   ifdef __cplusplus
+namespace objStore {
+#   endif
+
 #elif defined FILE_BASED_VFS
 #  define BC(n) BLOCK_CACHE_FS_##n
-#  ifndef __cplusplus
 #    ifdef block_cache_entries
-#      undef block_cache_entires
+#      undef block_cache_entries
 #      undef directory_entry
 #      undef disk
 #      undef directory_hash_lookup_block
-#      undef volume
+#      undef sack_vfs_volume
 #      undef sack_vfs_file
 #    endif
 #    define block_cache_entries block_cache_entries_fs
 #    define directory_entry directory_entry_fs
 #    define disk disk_fs
 #    define directory_hash_lookup_block directory_hash_lookup_block_fs
-//#    define volume volume_fs
-//#    define sack_vfs_file sack_vfs_file_fs
-#  endif
+/* THIS DEFINES SACK_VS_VOLUME */
+#    define sack_vfs_volume sack_vfs_fs_volume
+#    define sack_vfs_file sack_vfs_fs_file
+
+#   ifdef __cplusplus
+namespace fs {
+#   endif
+
 #else
 #  define BC(n) BLOCK_CACHE_##n
 #endif
 
+/* AFTER DEF */
+
+int sack_vfs_volume;
 
 enum block_cache_entries
 {
@@ -126,8 +138,6 @@ PREFIX_PACKED struct directory_entry
 #  define VFS_PATCH_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
 #endif
 
-
-
 struct disk
 {
 	// BAT is at 0 of every BLOCK_SIZE blocks (4097 total)
@@ -142,12 +152,7 @@ struct disk
 	uint8_t  block_data[BLOCKS_PER_BAT][BLOCK_SIZE];
 };
 
-
-#ifdef SACK_VFS_FS_SOURCE
-#  define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
-#  define BTSEEK(type,v,o,c) ((type)vfs_fs_BSEEK(v,o,&c))
-#else
-PREFIX_PACKED struct volume {
+PREFIX_PACKED struct sack_vfs_volume {
 	const char * volname;
 #  ifdef FILE_BASED_VFS
 	FILE *file;
@@ -212,12 +217,10 @@ PREFIX_PACKED struct volume {
 } PACKED;
 
 
-#  ifdef VIRTUAL_OBJECT_STORE
-#  endif
-
+#if !defined( VIRTUAL_OBJECT_STORE )
 struct sack_vfs_file
 {
-	struct volume *vol; // which volume this is in
+	struct sack_vfs_volume *vol; // which volume this is in
 	struct directory_entry dirent_key;
 	FPI fpi;
 	BLOCKINDEX _first_block;
@@ -248,6 +251,8 @@ struct sack_vfs_file
 
 };
 
+#endif
+
 #  undef TSEEK
 #  undef BTSEEK
 #  ifdef VIRTUAL_OBJECT_STORE
@@ -261,26 +266,29 @@ struct sack_vfs_file
 #    define BTSEEK(type,v,o,c) ((type)vfs_BSEEK(v,o,&c))
 #  endif
 
-#endif
 
-#ifdef __GNUC__
+#if defined( __GNUC__ ) && !defined( _WIN32 )
 #define HIDDEN __attribute__ ((visibility ("hidden")))
 #else
 #define HIDDEN
 #endif
 
 #if !defined( VIRTUAL_OBJECT_STORE ) && !defined( FILE_BASED_VFS )
-uintptr_t vfs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries *cache_index ) HIDDEN;
-uintptr_t vfs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
+uintptr_t vfs_SEEK( struct sack_vfs_volume* vol, FPI offset, enum block_cache_entries* cache_index ) HIDDEN;
+uintptr_t vfs_BSEEK( struct sack_vfs_volume* vol, BLOCKINDEX block, enum block_cache_entries* cache_index ) HIDDEN;
 #endif
 //BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int init, LOGICAL expand );
 
-#if defined( FILE_BASED_VFS )
-uintptr_t vfs_fs_SEEK( struct volume *vol, FPI offset, enum block_cache_entries *cache_index ) HIDDEN;
-uintptr_t vfs_fs_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
-#endif
-
 #if defined( VIRTUAL_OBJECT_STORE ) 
-uintptr_t vfs_os_SEEK( struct volume *vol, FPI offset, enum block_cache_entries *cache_index ) HIDDEN;
-uintptr_t vfs_os_BSEEK( struct volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) HIDDEN;
-#endif
+  uintptr_t vfs_os_SEEK( struct sack_vfs_os_volume* vol, FPI offset, enum block_cache_entries* cache_index ) HIDDEN;
+  uintptr_t vfs_os_BSEEK( struct sack_vfs_os_volume* vol, BLOCKINDEX block, enum block_cache_entries* cache_index ) HIDDEN;
+#elif defined( FILE_BASED_VFS )
+  uintptr_t vfs_fs_SEEK( struct sack_vfs_fs_volume* vol, FPI offset, enum block_cache_entries* cache_index ) HIDDEN;
+  uintptr_t vfs_fs_BSEEK( struct sack_vfs_fs_volume* vol, BLOCKINDEX block, enum block_cache_entries* cache_index ) HIDDEN;
+#elif defined( VIRTUAL_OBJECT_STORE ) || defined( FILE_BASED_VFS )
+#   ifdef __cplusplus
+}
+using namespace sack::SACK_VFS;
+#   endif
+#  endif
+
