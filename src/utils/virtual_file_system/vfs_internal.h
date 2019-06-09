@@ -274,21 +274,21 @@ struct sack_vfs_file
 #endif
 
 #if !defined( VIRTUAL_OBJECT_STORE ) && !defined( FILE_BASED_VFS )
-uintptr_t vfs_SEEK( struct sack_vfs_volume* vol, FPI offset, enum block_cache_entries* cache_index ) HIDDEN;
-uintptr_t vfs_BSEEK( struct sack_vfs_volume* vol, BLOCKINDEX block, enum block_cache_entries* cache_index ) HIDDEN;
-#endif
-//BLOCKINDEX vfs_GetNextBlock( struct volume *vol, BLOCKINDEX block, int init, LOGICAL expand );
-
-#if defined( VIRTUAL_OBJECT_STORE ) 
+  uintptr_t vfs_SEEK( struct sack_vfs_volume* vol, FPI offset, enum block_cache_entries* cache_index ) HIDDEN;
+  uintptr_t vfs_BSEEK( struct sack_vfs_volume* vol, BLOCKINDEX block, enum block_cache_entries* cache_index ) HIDDEN;
+#elif defined( VIRTUAL_OBJECT_STORE ) 
   uintptr_t vfs_os_SEEK( struct sack_vfs_os_volume* vol, FPI offset, enum block_cache_entries* cache_index ) HIDDEN;
   uintptr_t vfs_os_BSEEK( struct sack_vfs_os_volume* vol, BLOCKINDEX block, enum block_cache_entries* cache_index ) HIDDEN;
 #elif defined( FILE_BASED_VFS )
   uintptr_t vfs_fs_SEEK( struct sack_vfs_fs_volume* vol, FPI offset, enum block_cache_entries* cache_index ) HIDDEN;
   uintptr_t vfs_fs_BSEEK( struct sack_vfs_fs_volume* vol, BLOCKINDEX block, enum block_cache_entries* cache_index ) HIDDEN;
-#elif defined( VIRTUAL_OBJECT_STORE ) || defined( FILE_BASED_VFS )
+#endif
+
+#if defined( VIRTUAL_OBJECT_STORE ) || defined( FILE_BASED_VFS )
 #   ifdef __cplusplus
 }
 using namespace sack::SACK_VFS;
 #   endif
 #  endif
+
 
