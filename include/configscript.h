@@ -68,15 +68,20 @@ struct va_args_tag {
 //#define va_args struct { int argsize; arg_list *args; arg_list *tmp_args; }
 #define init_args(name) name.argCount = 0; name.argsize = 0; name.args = NULL;
 #define ARG_STACK_SIZE 4  // 32 bits.
-#define PushArgument( argset, argType, type, arg ) \
-	((argset.args = (arg_list*)Preallocate( argset.args  \
-		, argset.argsize += ((sizeof( enum configArgType ) \
-				+ sizeof( type )  \
-				+ (ARG_STACK_SIZE-1) )&-ARG_STACK_SIZE) ) ) \
-	?(argset.argCount++),((*(enum configArgType*)(argset.args))=(argType)),(*(type*)(((uintptr_t)argset.args)+sizeof(enum configArgType)) = (arg)),0   \
+#define PushArgument( argset, argType, type, arg )                                \
+	((argset.args = (arg_list*)Preallocate( argset.args                            \
+		, argset.argsize += ((sizeof( enum configArgType )                          \
+				+ sizeof( type )                                                      \
+				+ (ARG_STACK_SIZE-1) )&-ARG_STACK_SIZE) ) )                           \
+	?(argset.argCount++)                                                           \
+	 ,((*(enum configArgType*)(argset.args))=(argType))                        \
+    ,(*(type*)(((uintptr_t)argset.args)+sizeof(enum configArgType)) = (arg))  \
+	 ,0                                                                        \
 	:0)
+
 #define PopArguments( argset ) { Release( argset.args ); argset.args=NULL; }
-#define pass_args(argset) (( (argset).tmp_args = (argset).args ),(*(arg_list*)(&argset.tmp_args)))
+#define pass_args(argset) (( (argset).tmp_args = (argset).args ) \
+	                       ,(*(arg_list*)(&argset.tmp_args)))
 
 /*
  * Config methods are passed an arg_list
