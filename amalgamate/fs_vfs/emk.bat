@@ -26,10 +26,20 @@ set EXPORTS='_initFS'
 : -s EXPORTED_FUNCTIONS="[%EXPORTS%]"
 : -s EXTRA_EXPORTED_RUNTIME_METHODS=["stringToUTF8"] -s EXPORTED_FUNCTIONS="[%EXPORTS%]"
 
+@set SRCS=
+@set SRCS=%SRCS% sack.c
+@set SRCS=%SRCS% sqlite3.c
+
+
+@set SRCS=%SRCS% common.c
+@set SRCS=%SRCS% objStore.c
+@set SRCS=%SRCS% sql_module.c
+@set SRCS=%SRCS% srg_module.c
+
 
 :-s RESERVED_FUNCTION_POINTERS=20
 
-call emcc  -g -o ./sack.vfs.wasm.js %CFLAGS% sack.c sqlite3.c objStore.c --post-js exportTail.js
+call emcc  -g -o ./sack.vfs.wasm.js %CFLAGS% %SRCS% --post-js exportTail.js
 
 :call emcc --memory-init-file 0 -o ./vfs-fs-w0.js   -Wno-address-of-packed-member -Wno-parentheses -Wno-comment -Wno-null-dereference -DUSE_STDIO=1 -DNO_SSL=1 -D__LINUX__ -s RESERVED_FUNCTION_POINTERS=20  vfs_fs.c
 
