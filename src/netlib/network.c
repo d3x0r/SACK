@@ -151,7 +151,7 @@ _TCP_NAMESPACE_END
 
 //----------------------------------------------------------------------------
 
-#ifndef __MAC__
+#if !defined( __MAC__ ) && !defined( __EMSCRIPTEN__ )
 #  define INCLUDE_MAC_SUPPORT
 #endif
 

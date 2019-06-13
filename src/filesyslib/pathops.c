@@ -14,6 +14,12 @@
 
 FILESYS_NAMESPACE
 
+	static char *currentPath
+#ifdef __EMSCRIPTEN__
+       = "/home/web_user"
+#endif
+	;
+
 #ifndef __NO_SACK_FILESYS__
 extern TEXTSTR ExpandPath( CTEXTSTR path );
 #endif
@@ -66,11 +72,14 @@ TEXTSTR GetCurrentPath( TEXTSTR path, int len )
 {
 	if( !path )
 		return 0;
-#ifndef UNDER_CE
-#  ifdef _WIN32
+#ifdef __EMSCRIPTEN__
+   strncpy( path, currentPath, len );
+#else
+#  ifndef UNDER_CE
+#    ifdef _WIN32
 	GetCurrentDirectory( len, path );
-#  else
-#	  ifdef UNICODE
+#    else
+#	    ifdef UNICODE
 	{
 		char _path[256];
 		//TEXTCHAR *tmppath;
@@ -80,9 +89,10 @@ TEXTSTR GetCurrentPath( TEXTSTR path, int len )
 		path[0] = '.';
 		path[1] = 0;
 	}
-#	  else
+#  	  else
 	getcwd( path, len );
-#	  endif
+#      endif
+#    endif
 #  endif
 #endif
 	return path;

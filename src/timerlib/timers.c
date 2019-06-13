@@ -48,9 +48,10 @@
 #define DO_LOGGING
 #include <logging.h>
 
+#ifndef __NO_INTERFACE_SUPPORT__
 // display pause/resume support.
 #include <render.h>
-
+#endif
 #include <timers.h>
 
 #ifndef _SHARED_MEMORY_LIBRARY

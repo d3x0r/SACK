@@ -2466,7 +2466,12 @@ void RegisterAndCreateGlobalWithInit( POINTER *ppGlobal, uintptr_t global_size, 
 #endif
 		// hmm application only shared space?
 		// how do I get that to happen?
+#if defined( __NO_MMAP__ )
+		(*ppGlobal) = malloc( size );
+		created = 1;
+#else
 		(*ppGlobal) = OpenSpaceExx( spacename, NULL, 0, &size, &created );
+#endif
 		(*ppGlobal) = (POINTER*)( (uintptr_t)(*ppGlobal) + sizeof( PLIST ) );
 		// I myself must have a global space, which is kept sepearte from named spaces
 		// but then... blah
