@@ -67,8 +67,8 @@ void InitSQL( void )
 		//-------------------------------------------------------------------
 
 		function Sqlite( db ) {
-			if( !this instanceof Sqlite ) return new Sqlite(db);
-			
+			if( !(this instanceof Sqlite) ) return new Sqlite(db);
+						
 		};
 		Sqlite.eo = function(cb) {
 			console.log( "enum option not implemented" );
@@ -86,16 +86,16 @@ void InitSQL( void )
 		Sqlite.options = {};
 		Sqlite.optionTreeNode = function( real ) {
 			this.this_ = real;			
-		}
+		};
 		Sqlite.optionTreeNode.prototype.eo = function(cb) {
 			
-		}
+		};
 		Sqlite.optionTreeNode.prototype.go = function(cb) {
 			
-		}
+		};
 		Sqlite.optionTreeNode.prototype.so = function(cb) {
 			
-		}
+		};
 		Sqlite.optionEditor = function() {
 			console.log( "editor not implemented" );
 		};
@@ -149,19 +149,19 @@ void InitSQL( void )
 						|| s.include( '$' ) ) {
 						if( typeof args[1] === "object" ) {
 							arg = 2;
-							pdlParams = CreateDataList( sizeof( struct jsox_value_container ) );
+							pdlParams = Module._getValueList();
 							var params =  args[1] ;
 							var paramNames = Object.keys( params );
-							for( var p = 0; p < paramNames->length; p++ ) {
+							for( var p = 0; p < paramNames.length; p++ ) {
 								var valName = paramNames[p];
 								var value = params[valName];
-								var na
+								var na;
 								var ni = valName?allocate(na=intArrayFromString(valName), 'i8', ALLOC_NORMAL):0;
 								switch( typeof value ) {
 								default:
 									throw new Error( "Unsupported value type:" + typeof value );
 								case "string":
-									var vala
+									var vala;
 									var vali = value?allocate(na=intArrayFromString(value), 'i8', ALLOC_NORMAL):0;
 									Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_NUMBER, 0, 0, 0, vala, vala.length );
 									break;
@@ -228,25 +228,27 @@ void InitSQL( void )
 								}
 								switch( Object.getPrototypeOf(args[arg]).constructor.name ){
 								case "ArrayBuffer": {
-										Local<ArrayBuffer> myarr = arg.As<ArrayBuffer>();
-										val.string = (char*)myarr->GetContents().Data();
-										val.stringLen = myarr->ByteLength();
-										val.value_type = JSOX_VALUE_TYPED_ARRAY;
-										AddDataItem( pdlParams, &val );
+									var tmpBuf = Uint8Array( args[arg] );
+									var len = args[arg].length;
+										var tmpArr = Module._Allocate( len );
+										for( var n = 0; n < len; n++ )
+											Module.U8HEAP[n+tmpArr] = tmpBuf[n];
+
+										Module._PushValue( pdlParams, 0, 0, JSOX_VALUE_TYPED_ARRAY, 0, 0, 0, tmpArr, len );
 									}
 									break;
 								case "Uint8Array":  {
-										Local<Uint8Array> _myarr = arg.As<Uint8Array>();
-										Local<ArrayBuffer> buffer = _myarr->Buffer();
-										val.string = (char*)buffer->GetContents().Data();
-										val.stringLen = buffer->ByteLength();
-										val.value_type = JSOX_VALUE_TYPED_ARRAY;
-										AddDataItem( pdlParams, &val );
+									var len = args[arg].length;
+									var tmpArr = Module._Allocate( len );
+										for( var n = 0; n < len; n++ )
+											Module.U8HEAP[n+tmpArr] = tmpBuf[n];
+
+										Module._PushValue( pdlParams, 0, 0, JSOX_VALUE_TYPED_ARRAY, 0, 0, 0, tmpArr, len );
 									}
 									break;
 								}
 								break;
-							case "number"
+							case "number":
 								if( value|0 === value )
 									Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_NUMBER, 0, 0, value, 0, 0 );
 								else
@@ -263,7 +265,7 @@ void InitSQL( void )
 								break;
 
 							default: {
-								throw new Error( "Unsupported object conversion:" + value )	lprintf( "Unsupported TYPE" );
+								throw new Error( "Unsupported object conversion:" + value );
 								}
 							}
 							pvtStmt += '?';
@@ -278,7 +280,7 @@ void InitSQL( void )
 							default:
 								throw new Error( "Unsupported value type:" + typeof value );
 							case "string":
-								var vala
+								var vala;
 								var vali = value?allocate(na=intArrayFromString(value), 'i8', ALLOC_NORMAL):0;
 								Module._PushValue( pdlParams, 0, 0, JSOX_VALUE_NUMBER, 0, 0, 0, vala, vala.length );
 								break;
@@ -311,11 +313,10 @@ void InitSQL( void )
 
 				if( statement ) {
 					//String::Utf8Value sqlStmt( USE_ISOLATE( isolate ) args[0] );
-					PDATALIST pdlRecord = NULL;
-					INDEX idx = 0;
-					int items;
-					struct jsox_value_container * jsval;
-
+					var pdlRecord = null;
+					var idx = 0;
+					var items;
+/*
 					if( !SQLRecordQuery_js( sql->odbc, statement, statementlen, &pdlRecord, pdlParams DBG_SRC ) ) {
 						const char *error;
 						FetchSQLError( sql->odbc, &error );
@@ -325,6 +326,7 @@ void InitSQL( void )
 						return;
 					}
 
+					struct jsox_value_container * jsval;
 					DATA_FORALL( pdlRecord, idx, struct jsox_value_container *, jsval ) {
 						if( jsval->value_type == JSOX_VALUE_UNDEFINED ) break;
 					}
@@ -536,8 +538,8 @@ void InitSQL( void )
 						args.GetReturnValue().Set( Array::New( isolate ) );
 					}
 					dropValueList( pdlParams );
+*/				
 				}
-				
 			},
 			autoTransact(s, yesno) {
 				Module._sqlAutoTransact( this.sql, yesno?1:0 );
@@ -658,7 +660,7 @@ void InitSQL( void )
 		sqliteMethods.getOption = sqliteMethods.go;
 		sqliteMethods.setOption = sqliteMethods.so;
 	        
-		Object.defineProperties( Object.getPrototypeOf( Sqlite ), Object.getOwnPropertyDescriptors( sqliteMethods ));
+		Object.defineProperties( Sqlite.prototype, Object.getOwnPropertyDescriptors( sqliteMethods ));
 
 
 		Module.defineFunction = function(cb) {
@@ -1350,31 +1352,13 @@ static void releaseBuffer( void *buffer ) {
 
 void callUserFunction( struct sqlite3_context*onwhat, int argc, struct sqlite3_value**argv ) {
 	struct SqlObjectUserFunction *userData = (struct SqlObjectUserFunction*)PSSQL_GetSqliteFunctionData( onwhat );
-#if 0
-	if( userData->sql->thread != MakeThread() ) {
-		struct userMessage msg;
-		msg.mode = 1;
-		msg.onwhat = onwhat;
-		msg.argc = argc;
-		msg.argv = argv;
-		msg.done = 0;
-		msg.waiter = MakeThread();
-		EnqueLink( &userData->sql->messages, &msg );
-		uv_async_send( &userData->sql->async );
-
-		while( !msg.done ) {
-			WakeableSleep( SLEEP_FOREVER );
-		}
-		return;
-	}
-#endif
+	int args;
 	//Local<Value> *args;
 	if( argc > 0 ) {
 		int n;
-		int *args;
 		char *text;
 		int textLen;
-		args = NewArray( int, argc );//new Local<Value>[argc];
+		args = makeArray();
 		for( n = 0; n < argc; n++ ) {
 			int type = PSSQL_GetSqliteValueType( argv[n] );
 			switch( type ) {
@@ -1383,16 +1367,16 @@ void callUserFunction( struct sqlite3_context*onwhat, int argc, struct sqlite3_v
 				int64_t val;
 				PSSQL_GetSqliteValueInt64( argv[n], &val );
 				if( val & 0xFFFFFFFF00000000ULL )
-					args[n] = makeNumberf( (double)val );
+					SETN( args, n, makeNumberf( (double)val ) );
 				else
-					args[n] = makeNumber( (int32_t)val );
+					SETN( args, n, makeNumber( (int32_t)val ) );
 				break;
 			}
 			case 2:
 			{
 				double val;
 				PSSQL_GetSqliteValueDouble( argv[n], &val );
-				args[n] = makeNumber( val );
+				SETN( args, n, makeNumber( val ) );
 				break;
 			}
 			case 4:
@@ -1407,28 +1391,26 @@ void callUserFunction( struct sqlite3_context*onwhat, int argc, struct sqlite3_v
 				break;
 			}
 			case 5:
-				args[n] = JS_VALUE_NULL;
+				SETN( args, n, JS_VALUE_NULL );
 				break;
 			case 3:
 			default:
 				PSSQL_GetSqliteValueText( argv[n], (const char**)&text, &textLen );
-				args[n] = makeString( text, textLen );
+				SETN( args, n, makeString( text, textLen ) );
 			}
 		}
 	} else {
 		//args = JS_VALUE_NULL;
 	}
-	//Local<Function> cb = Local<Function>::New( userData->isolate, userData->cb );
-	int str = callFunction( userData->cb, argv[0], argv[1] );
-#if 0	
-	Local<Value> str = cb->Call( userData->isolate->GetCurrentContext(), userData->sql->handle(), argc, args ).ToLocalChecked();
-#endif
-	//String::Utf8Value result( USE_ISOLATE( userData->isolate ) str->ToString( userData->isolate->GetCurrentContext() ).ToLocalChecked() );
-	#if 0
-	int type;
+
+	int r = EM_ASM_INT( (
+		var result = Module.this_.callbacks[$0].call( $1, Module.this_.objects[$2] );
+
+/*
+	var type;
 	if( ( ( type = 1 ), str->IsArrayBuffer() ) || ( ( type = 2 ), str->IsUint8Array() ) ) {
-		uint8_t *buf = NULL;
-		size_t length;
+		var buf = null;
+		var length;
 		if( type == 1 ) {
 			Local<ArrayBuffer> myarr = str.As<ArrayBuffer>();
 			buf = (uint8_t*)myarr->GetContents().Data();
@@ -1453,6 +1435,16 @@ void callUserFunction( struct sqlite3_context*onwhat, int argc, struct sqlite3_v
 	if( argc > 0 ) {
 		delete[] args;
 	}
+*/
+
+	), userData->cb, userData->sql->_this, args );
+	//Local<Function> cb = Local<Function>::New( userData->isolate, userData->cb );
+	int str = callFunction( userData->cb, argv[0], argv[1] );
+#if 0	
+	Local<Value> str = cb->Call( userData->isolate->GetCurrentContext(), userData->sql->handle(), argc, args ).ToLocalChecked();
+#endif
+	//String::Utf8Value result( USE_ISOLATE( userData->isolate ) str->ToString( userData->isolate->GetCurrentContext() ).ToLocalChecked() );
+	#if 0
 	#endif
 }
 
@@ -1556,76 +1548,34 @@ void callAggStep( struct sqlite3_context*onwhat, int argc, struct sqlite3_value*
 }
 
 
-static int callSomeFunction( int cb, int sql ) {
-	return EM_ASM_INT( { 
-		var r= Module.this_.objects[$0].call(Module.this_.objects[$1]); 
-		var si = s?allocate(sa=intArrayFromString(s), 'i8', ALLOC_NORMAL):0;
-
-/*
-		if( ( ( type = 1 ), r.IsArrayBuffer() ) || ( ( type = 2 ), r.IsUint8Array() ) ) {
-			uint8_t *buf = NULL;
-			size_t length;
-			if( type == 1 ) {
-				Local<ArrayBuffer> myarr = str.As<ArrayBuffer>();
-				buf = (uint8_t*)myarr->GetContents().Data();
-				length = myarr->ByteLength();
-			} else if( type == 2 ) {
-				Local<Uint8Array> _myarr = str.As<Uint8Array>();
-				Local<ArrayBuffer> buffer = _myarr->Buffer();
-				buf = (uint8_t*)buffer->GetContents().Data();
-				length = buffer->ByteLength();
-			}
-			if( buf )
-				PSSQL_ResultSqliteBlob( onwhat, (const char *)buf, (int)length, releaseBuffer );
-		} else if( str->IsNumber() ) {
-			if( str->IsInt32() )
-				PSSQL_ResultSqliteInt( onwhat, (int)str->IntegerValue( userData->isolate->GetCurrentContext() ).FromMaybe( 0 ) );
-			else
-				PSSQL_ResultSqliteDouble( onwhat, str->NumberValue( userData->isolate->GetCurrentContext() ).FromMaybe(0) );
-		} else if( typeof r === "string" ) {
-			String::Utf8Value result( USE_ISOLATE( userData->isolate) str->ToString( userData->isolate->GetCurrentContext() ).ToLocalChecked() );
-			PSSQL_ResultSqliteText( onwhat, DupCStrLen( *result, result.length() ), result.length(), releaseBuffer );
-		}
-		else
-			lprintf( "unhandled result type (object? array? function?)" );
-*/
-
-		return si;
-	 }, cb, sql );
-}
-
 void callAggFinal( struct sqlite3_context*onwhat ) {
 	struct SqlObjectUserFunction *userData = ( struct SqlObjectUserFunction* )PSSQL_GetSqliteFunctionData( onwhat );
-	#if 0
-	{
-		struct userMessage msg;
-		msg.mode = 3;
-		msg.onwhat = onwhat;
-		msg.done = 0;
-		msg.waiter = MakeThread();
-		EnqueLink( &userData->sql->messages, &msg );
-		uv_async_send( &userData->sql->async );
-
-		while( !msg.done ) {
-			WakeableSleep( SLEEP_FOREVER );
+	int result = EM_ASM_INT( (
+		var r= Module.this_.objects[$0].call(Module.this_.objects[$1]); 
+		var type;
+		if( ((type=1),( r instanceof Uint8Array ))
+		   || ((type=2),( r instanceof ArrayBuffer )) ){
+			var len;
+			var realbuf = Module._Allocate( len = r.length );
+			var u8 = (type==1)?new Uint8Array( r ): r;
+			for( var n = 0; n < len; n++ ){
+				Module.U8HEAP[realbuf+n] = u8[n];
+			}
+			Module._PSSQL_ResultSqliteBlob( $2, realbuf, len, 0 );
+		} else if( typeof r === "number" ) {
+			if( (r|0)===r )
+				Module._PSSQL_ResultSqliteInt( $2, r );
+			else
+				Module._PSSQL_ResultSqliteDouble( $2, r );
+		} else if( typeof r === "string" ) {
+			var sa;
+			var si = s?allocate(sa=intArrayFromString(r), 'i8', ALLOC_NORMAL):0;
+			Module._PSSQL_ResultSqliteText( $2, si, sa.length, 0 );
 		}
+		else
+			console.log( "unhandled result type (object? array? function?)" );
 
-		return;
-	} 
-	#endif
-	#if 0
-	else {
-	if( userData->sql->thread != MakeThread() ) 
-		struct userMessage msg;
-		msg.mode = 3;
-		msg.onwhat = NULL;
-		msg.done = 0;
-		msg.waiter = MakeThread();
-		EnqueLink( &userData->sql->messages, &msg );
-		uv_async_send( &userData->sql->async );
-	}
-#endif
-	char *str = callSomeFunction( userData->cb2, userData->sql->_this );
+	),userData->cb2, userData->sql->_this, onwhat );
 }
 
 int sqlgetLogging(struct  SqlObject *sql  ) {
@@ -1648,8 +1598,9 @@ const char * sqlerror( struct SqlObject *sql ) {
 
 static void handleCorruption( uintptr_t psv, PODBC odbc ) {
 	struct SqlObject *sql = (struct SqlObject*)psv;
-	//Local<Function> cb = Local<Function>::New( isolate, sql->onCorruption.Get( isolate ) );
-	//cb->Call( isolate->GetCurrentContext(), sql->_this.Get( isolate ), 0, 0 );
+	EM_ASM({
+		Module.this_.callbacks[$0]( Module.this_.objects[$1]);
+	}, sql->onCorruption, sql->_this );
 }
 
 
@@ -1663,13 +1614,6 @@ void sqlaggregateFunction( struct SqlObject *sql, char *name, int cb1, int cb2 )
 	userData->cb = cb1;
 	userData->cb2 = cb2;
 	userData->sql = sql;
-	PSSQL_AddSqliteAggregate( sql->odbc, *name, callAggStep, callAggFinal, destroyUserData, -1, userData );
-#if 0
-	if( !sql->thread ) {
-		//sql->thread = MakeThread();
-		//uv_async_init( uv_default_loop(), &sql->async, sqlUserAsyncMsg );
-		sql->async.data = sql;
-	}
-#endif
+	PSSQL_AddSqliteAggregate( sql->odbc, name, callAggStep, callAggFinal, destroyUserData, -1, userData );
 }
 

@@ -94,7 +94,7 @@
 @set OPTS=
 @set OPTS=%OPTS%	-I../../src/contrib/sqlite/3.27.1-TableAlias
 
-c:\tools\ppc.exe -c -K -once -ssio -sd %OPTS% -I../../include -p -osack.c %SRCS%
+c:\tools\ppc.exe -z7 -c -K -once -ssio -sd %OPTS% -I../../include -p -osack.c %SRCS%
 @copy ..\..\src\contrib\sqlite\3.27.1-TableAlias\sqlite3.c .
 
 mkdir h

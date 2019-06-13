@@ -14,31 +14,3 @@
 //#define TYPELIB_SOURCE
 #define __NO_INTERFACE_SUPPORT__
 
-#include <stdio.h>
-#include <stdarg.h> 
-#include <stdhdrs.h>
-
-#if 0
-#ifdef __cplusplus
-namespace sack {
-   namespace logging {
-#endif
-#ifdef _DEBUG
-      static const char *nextFile;
-      static int nextLine;
-      INDEX real_lprintf( char const* f,... ) { va_list va; int n; va_start(va,f); printf( "%s(%d)", nextFile, nextLine ); n = vprintf(f ,va); puts(""); return n; }
-      RealLogFunction _xlprintf(uint32_t level DBG_PASS) { nextFile = pFile; nextLine = nLine; return real_lprintf; };
-#else
-      INDEX real_lprintf( char const* f,... ) { va_list va; int n; va_start(va,f); n = vprintf(f ,va); puts(""); return n; }
-      RealLogFunction _xlprintf(uint32_t level DBG_PASS) { return real_lprintf; };
-#endif
-      INDEX null_lprintf( char const* f,... ) { return 0; }
-      #ifndef SystemLog
-      void SystemLog( char const* f ) { puts( f ); puts( "ZZZZ\n" ); }
-      #endif
-      //void CPROC SystemLogFL( CTEXTSTR f FILELINE_PASS ) { printf( "%s(%d):%s\n", pFile, nLine, f );  }
-#ifdef __cplusplus
-   }
-}
-#endif
-     #endif

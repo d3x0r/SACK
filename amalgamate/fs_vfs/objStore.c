@@ -10,7 +10,7 @@ void initFS( void )  EMSCRIPTEN_KEEPALIVE;
 void initFS( void ) 
 {
 	EM_ASM( (
-		
+
 		var r = FS.mount(IDBFS, {}, '/home/web_user');
 		  
         //persist changes
@@ -200,7 +200,7 @@ void initFS( void )
 					}
 		};
 
-		Object.defineProperties( Object.getPrototypeOf( ObjectStore ), Object.getOwnPropertyDescriptors( objectMethods ));
+		Object.defineProperties( ObjectStore.prototype, Object.getOwnPropertyDescriptors( objectMethods ));
 
 
 		Module.defineFunction = function(cb) {
@@ -220,6 +220,7 @@ void initFS( void )
 	) );
 	InitSQL();
 	InitSRG();
+	InitJSOX();
 }
 
 

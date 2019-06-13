@@ -23,6 +23,9 @@ struct SqlObject* createSqlObject( const char *dsn );
 // --------- SRG Module
 void InitSRG( void );
 
+// -------- JSOX Module
+void InitJSOX( void );
+
 // -------------  Common Utilities
 
 void throwError( const char *error );
