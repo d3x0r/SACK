@@ -624,7 +624,7 @@ static int _os_MaskStrCmp( struct sack_vfs_os_volume *vol, const char * filename
 }
 
 #ifdef DEBUG_TRACE_LOG
-static void MaskStrCpy( char *output, size_t outlen, struct sack_vfs_os_volume *vol, FPI name_offset ) {
+static void _os_MaskStrCpy( char *output, size_t outlen, struct sack_vfs_os_volume *vol, FPI name_offset ) {
 	if( vol->key ) {
 		int c;
 		FPI name_start = name_offset;
@@ -1583,6 +1583,7 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 		WakeableSleep( SLEEP_FOREVER );
 
 	}
+	return 0;
 }
 
 void sack_vfs_os_polish_volume( struct sack_vfs_os_volume* vol ) {
@@ -3028,7 +3029,7 @@ int CPROC sack_vfs_os_close_internal( struct sack_vfs_os_file *file ) {
 		static char fname[256];
 		FPI name_ofs = file->entry->name_offset ^ file->dirent_key.name_offset;
 		TSEEK( const char *, file->vol, name_ofs, cache ); // have to do the seek to the name block otherwise it might not be loaded.
-		MaskStrCpy( fname, sizeof( fname ), file->vol, name_ofs );
+		_os_MaskStrCpy( fname, sizeof( fname ), file->vol, name_ofs );
 #ifdef DEBUG_FILE_OPS
 		LoG( "close file:%s(%p)", fname, file );
 #endif

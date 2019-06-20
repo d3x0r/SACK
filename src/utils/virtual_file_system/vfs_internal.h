@@ -37,14 +37,16 @@ typedef VFS_DISK_DATATYPE FPI; // file position type
 #    ifdef block_cache_entries
 #      undef block_cache_entries
 #      undef directory_entry
-#      undef disk
+#      undef sack_vfs_disk
+#      undef sack_vfs_diskSection
 #      undef directory_hash_lookup_block
 #      undef sack_vfs_volume
 #      undef sack_vfs_file
 #    endif
 #    define block_cache_entries block_cache_entries_os
 #    define directory_entry directory_entry_os
-#    define disk disk_os
+#    define sack_vfs_disk sack_vfs_disk_os
+#    define sack_vfs_diskSection sack_vfs_diskSection_os
 #    define directory_hash_lookup_block directory_hash_lookup_block_os
 #    define sack_vfs_volume sack_vfs_os_volume
 #    define sack_vfs_file sack_vfs_os_file
@@ -57,14 +59,16 @@ namespace objStore {
 #    ifdef block_cache_entries
 #      undef block_cache_entries
 #      undef directory_entry
-#      undef disk
+#      undef sack_vfs_disk
+#      undef sack_vfs_diskSection
 #      undef directory_hash_lookup_block
 #      undef sack_vfs_volume
 #      undef sack_vfs_file
 #    endif
 #    define block_cache_entries block_cache_entries_fs
 #    define directory_entry directory_entry_fs
-#    define disk disk_fs
+#    define sack_vfs_disk sack_vfs_disk_fs
+#    define sack_vfs_diskSection sack_vfs_diskSection_fs
 #    define directory_hash_lookup_block directory_hash_lookup_block_fs
 /* THIS DEFINES SACK_VS_VOLUME */
 #    define sack_vfs_volume sack_vfs_fs_volume
@@ -138,7 +142,7 @@ PREFIX_PACKED struct directory_entry
 #  define VFS_PATCH_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
 #endif
 
-struct disk
+struct sack_vfs_diskSection
 {
 	// BAT is at 0 of every BLOCK_SIZE blocks (4097 total)
 	// &BAT[0] == itself....
@@ -152,14 +156,20 @@ struct disk
 	uint8_t  block_data[BLOCKS_PER_BAT][BLOCK_SIZE];
 };
 
+struct sack_vfs_disk {
+	struct sack_vfs_diskSection firstBlock;
+	struct sack_vfs_diskSection blocks[];
+};
+
+
 PREFIX_PACKED struct sack_vfs_volume {
 	const char * volname;
 #  ifdef FILE_BASED_VFS
 	FILE *file;
 	struct file_system_mounted_interface *mount;
 #  else
-	struct disk *disk;
-	struct disk *diskReal; // disk might be offset from diskReal because it's a .exe attached.
+	struct sack_vfs_disk *disk;
+	struct sack_vfs_disk *diskReal; // disk might be offset from diskReal because it's a .exe attached.
 #  endif
 	//uint32_t dirents;  // constant 0
 	//uint32_t nameents; // constant 1

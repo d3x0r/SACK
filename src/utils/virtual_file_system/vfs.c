@@ -477,7 +477,7 @@ const uint8_t *sack_vfs_get_signature2( POINTER disk, POINTER diskReal ) {
 static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 	LOGICAL created;
 	LOGICAL path_checked = FALSE;
-	struct disk* new_disk;
+	struct sack_vfs_disk* new_disk;
 	BLOCKINDEX oldsize = (BLOCKINDEX)vol->dwSize;
 	if( vol->read_only ) return TRUE;
 	if( !vol->dwSize ) {
@@ -490,14 +490,14 @@ static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 			}
 			Deallocate( char*, tmp );
 		}
-		new_disk = (struct disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
+		new_disk = (struct sack_vfs_disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
 		if( new_disk && vol->dwSize ) {
 			if( vol->dwSize & BLOCK_MASK ) {
 				size_t oldSize = vol->dwSize;
 				lprintf( "DISK IS A BAD SIZE... trying to fix!" );
 				Release( new_disk );
 				vol->dwSize = (vol->dwSize + BLOCK_SIZE) & ~BLOCK_MASK;
-				new_disk = (struct disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
+				new_disk = (struct sack_vfs_disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
 				if( !(vol->dwSize & BLOCK_MASK) ) {
 					MemSet( ((uint8_t*)new_disk) + oldSize, 0, vol->dwSize - oldSize );
 					lprintf( "DISK SHOULD BE OK now" );
@@ -510,9 +510,9 @@ static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 			vol->diskReal = new_disk;
 #ifdef WIN32
 			// elf has a different signature to check for .so extended data...
-			struct disk *actual_disk;
+			struct sack_vfs_disk *actual_disk;
 			if( ((char*)new_disk)[0] == 'M' && ((char*)new_disk)[1] == 'Z' ) {
-				actual_disk = (struct disk*)GetExtraData( new_disk );
+				actual_disk = (struct sack_vfs_disk*)GetExtraData( new_disk );
 				if( actual_disk ) {
 					if( ( ( (uintptr_t)actual_disk - (uintptr_t)new_disk ) < vol->dwSize ) ) {
 						const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)actual_disk-BLOCK_SIZE), new_disk );
@@ -539,7 +539,7 @@ static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 			if( created && vol->disk == vol->diskReal ) {
 				enum block_cache_entries cache = BC(DIRECTORY);
 				struct directory_entry *next_entries = BTSEEK( struct directory_entry *, vol, 0, cache );
-				struct directory_entry *entkey = (vol->key) ? ((struct directory_entry *)vol->usekey[BC(DIRECTORY)]) : &l.zero_entkey;
+				struct directory_entry *entkey = (vol->key) ? ((struct directory_entry *)vol->usekey[cache]) : &l.zero_entkey;
 				// initialize directory list.
 				((struct directory_entry*)(((uintptr_t)vol->disk) + BLOCK_SIZE))->first_block = EODMARK ^ entkey->first_block;
 
@@ -564,7 +564,7 @@ static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 	vol->dwSize += ((uintptr_t)vol->disk - (uintptr_t)vol->diskReal);
 	// a BAT plus the sectors it references... ( BLOCKS_PER_BAT + 1 ) * BLOCK_SIZE
 	vol->dwSize += BLOCKS_PER_SECTOR*BLOCK_SIZE;
-	new_disk = (struct disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
+	new_disk = (struct sack_vfs_disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
 	LoG( "created expanded volume: %p from %p size:%" _size_f, new_disk, vol->disk, vol->dwSize );
 	if( new_disk && new_disk != vol->disk ) {
 		INDEX idx;
@@ -574,9 +574,9 @@ static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 #ifdef WIN32
 		// elf has a different signature to check for .so extended data...
 		{
-			struct disk *actual_disk;
+			struct sack_vfs_disk *actual_disk;
 			if( ((char*)new_disk)[0] == 'M' && ((char*)new_disk)[1] == 'Z' ) {
-				actual_disk = (struct disk*)GetExtraData( new_disk );
+				actual_disk = (struct sack_vfs_disk*)GetExtraData( new_disk );
 				if( actual_disk ) {
 					const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)actual_disk-BLOCK_SIZE), new_disk );
 					if( memcmp( sig, (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), BLOCK_SIZE ) ) {
@@ -890,13 +890,13 @@ struct sack_vfs_volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, ui
 	vol->pdlFreeBlocks = CreateDataList( sizeof( BLOCKINDEX ) );
 	vol->clusterKeyVersion = version - 1;
 	vol->external_memory = TRUE;
-	vol->diskReal = (struct disk*)memory;
+	vol->diskReal = (struct sack_vfs_disk*)memory;
 	vol->dwSize = sz;
 #ifdef WIN32
 	// elf has a different signature to check for .so extended data...
-	struct disk *actual_disk;
+	struct sack_vfs_disk *actual_disk;
 	if( ((char*)memory)[0] == 'M' && ((char*)memory)[1] == 'Z' ) {
-		actual_disk = (struct disk*)GetExtraData( memory );
+		actual_disk = (struct sack_vfs_disk*)GetExtraData( memory );
 		if( actual_disk ) {
 			if( ( ( (uintptr_t)actual_disk - (uintptr_t)memory ) < vol->dwSize ) ) {
 				const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)actual_disk-BLOCK_SIZE), memory );
@@ -920,7 +920,7 @@ struct sack_vfs_volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, ui
 		}
 	}
 #endif
-	vol->disk = (struct disk*)memory;
+	vol->disk = (struct sack_vfs_disk*)memory;
 
 	if( !ValidateBAT( vol ) ) { sack_vfs_unload_volume( vol );  return NULL; }
 	return vol;
@@ -973,7 +973,7 @@ void sack_vfs_shrink_volume( struct sack_vfs_volume * vol ) {
 			break;
 	}while( 1 );
 
-	Deallocate( struct disk *, vol->diskReal );
+	Deallocate( struct sack_vfs_disk *, vol->diskReal );
 	SetFileLength( vol->volname,
 			((uintptr_t)vol->disk - (uintptr_t)vol->diskReal) +
 			(size_t)(last_bat * BLOCKS_PER_SECTOR * BLOCK_SIZE + ( last_block + 1 + 1 )* BLOCK_SIZE) );
@@ -1136,7 +1136,7 @@ struct directory_entry * ScanDirectory( struct sack_vfs_volume *vol, const char 
 		for( n = 0; n < VFS_DIRECTORY_ENTRIES; n++ ) {
 			BLOCKINDEX bi;
 			enum block_cache_entries name_cache = BC(NAMES);
-			struct directory_entry *entkey = ( vol->key)?((struct directory_entry *)vol->usekey[BC(DIRECTORY)])+n:&l.zero_entkey;
+			struct directory_entry *entkey = ( vol->key)?((struct directory_entry *)vol->usekey[cache])+n:&l.zero_entkey;
 			//const char * testname;
 			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
 
