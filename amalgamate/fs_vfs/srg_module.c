@@ -31,7 +31,21 @@ struct SRGObject {
 	SRGObject();
 #endif
 
-	static int idGenerator( const char *val, size_t valLength, int version ) {
+static int vfs_u8xor(char const *xor1, size_t xorlen, char const *keystr, size_t keylen, int step, int key ) EMSCRIPTEN_KEEPALIVE;
+int vfs_u8xor( char const *xor1, size_t xorlen, char const *keystr, size_t keylen, int step, int key ){
+	char *out = u8xor( xor1, (size_t)xorlen, keystr, keylen, &step );
+	//lprintf( "-------- INPUT STRING: %d %d", xorlen, keylen );
+	//LogBinary( (uint8_t*)xor1, xorlen );
+	//lprintf( "-------- OUTPUT STRING:");
+	//LogBinary( (uint8_t*)out, xorlen );
+	SET( key, "step", step );
+	int result = makeString( out, xorlen );
+	Deallocate( char*, out );
+	return result;	
+}
+
+	static int idGenerator( const char *val, size_t valLength, int version ) EMSCRIPTEN_KEEPALIVE;
+	int idGenerator( const char *val, size_t valLength, int version ) {
             if( val ) {
 				char *r;
 				struct random_context *ctx;
@@ -63,11 +77,14 @@ struct SRGObject {
 				size_t outlen;
 				r = EncodeBase64Ex( (uint8_t*)buf, (16 + 16), &outlen, (const char*)1 );
 				SRG_DestroyEntropy( &ctx );
-                return makeString( r, outlen );
+                int s = makeString( r, outlen );
+				Release( r );
+				return s;
 			}
 			else
 			{
 				char *r;
+				// these are random, and don't specifically need to behave in any way.
 				switch( version ) {
 				case 0:
 					r = SRG_ID_Generator();
@@ -83,7 +100,9 @@ struct SRGObject {
 					r = SRG_ID_Generator4();
 					break;
 				}
-                return makeString( r, strlen(r) );
+                int s = makeString( r, strlen(r) );
+				Release( r );
+				return s;
 			}
 	}
 
@@ -105,7 +124,7 @@ struct SRGObject {
     				    arr[n] = intArrayFromString(arr[n]);
                     else if( !("length" in arr[n]) )
     				    arr[n] = intArrayFromString(arr[n].toString());
-                    maxlen += arr[n].length;
+                    maxlen += arr[n].length-1;
                 }
                 var buf = Module._Allocate( maxlen );
                 maxlen = 0;
@@ -784,9 +803,9 @@ void InitSRG( void ) {
                 var ba;
    				var si = allocate( ba= intArrayFromString(buf), 'i8', ALLOC_NORMAL);
                 if( this instanceof SaltyRNG )
-                    Module._srg_sign( this.this_, si, ba.length );
+                    Module._srg_sign( this.this_, si, ba.length-1 );
                 else
-                    Module._srg_sign( 0, si, ba.length );
+                    Module._srg_sign( 0, si, ba.length-1 );
             },
             setSigningThreads(n) {
                 if( this instanceof SaltyRNG )
@@ -801,9 +820,9 @@ void InitSRG( void ) {
                     var hi = allocate( intArrayFromString(hash), 'i8', ALLOC_NORMAL);
                     var r;
                     if( this instanceof SaltyRNG )
-                        r = Module._srg_verify( this.this_, si, sa.length, hi, pad1||0, pad2||0 );
+                        r = Module._srg_verify( this.this_, si, sa.length-1, hi, pad1||0, pad2||0 );
                     else
-                        r = Module._srg_verify( 0, si, sa.length, hi, pad1||0, pad2||0 );
+                        r = Module._srg_verify( 0, si, sa.length-1, hi, pad1||0, pad2||0 );
                     Module._free( si );
                     Module._free( hi );
                     return r?true:false;
@@ -816,11 +835,9 @@ void InitSRG( void ) {
 		Object.defineProperties( SaltyRNG.prototype, Object.getOwnPropertyDescriptors( saltyRngMethods ));
 
         SaltyRNG.id = function( string,vers ) {
-            console.log( "Convert string to pointer!" );
             if( !arguments.length ) {
-    			var r = SRG_ID_Generator();
-				const string = UTF8ToString( r );
-                Module._free( r );
+    			var r = Module._idGenerator( 0, 0, 0 );
+				const string = Module.this_.objects[r];
                 return string;
             }
         	var version = -1;
@@ -829,14 +846,34 @@ void InitSRG( void ) {
             var sbuf;
 			var si = allocate( sbuf = intArrayFromString(string), 'i8', ALLOC_NORMAL);
 
-            var r = Module._idGenerator( si, sbuf.length, version );
+            var r = Module._idGenerator( si, sbuf.length-1, version );
             Module._free( si );
             return Module.this_.objects[r-1];
         };
+
+		function vfs_u8xor(s,key) {
+			var sa;
+			var si = allocate( sa = intArrayFromString(s), 'i8', ALLOC_NORMAL);
+			var ka;
+			var ki = allocate( ka = intArrayFromString(key.key), 'i8', ALLOC_NORMAL);
+			var step = key.step;;
+			var refKey = Module.this_.objects.push(key)-1;
+			//console.log( "s: ", s, sa.length-1, " key : ", key, ka.length-1, step );
+			var res = Module._vfs_u8xor( si, sa.length-1, ki, ka.length-1, step, refKey );
+			res = Module.this_.objects[res];
+			Module._free( si );
+			Module._free( ki );
+			//console.log( "RESULT IWTH : ", res );
+			// throw out all these references
+			Module.this_.objects.length = refKey;
+			return res;
+		}
+
         SaltyRNG.sign = saltyRngMethods.sign;
         SaltyRNG.setSigningThreads = saltyRngMethods.setSigningThreads;
         SaltyRNG.verify = saltyRngMethods.verify;
-
+		Module.SACK.id = SaltyRNG.id;
+		Module.SACK.u8xor = vfs_u8xor;
         Module.SACK.SaltyRNG = SaltyRNG;
     ) );
 }

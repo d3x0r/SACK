@@ -30,20 +30,14 @@ struct objectStates {
 
 void InitJSOX(void ) {
 	EM_ASM( (
-		Module.this_ = {
-			types : new Map(),
-			objects : [undefined,false,true,null,-Infinity,Infinity,NaN],
-			reset() {
-				this.objects.length = 7;
-			}
-		};
+
 		Module.arrayTypeFunc = [
 			Uint8Array, Uint8ClampedArray, Int8Array,
 			Uint16Array, Int16Array,
 			Uint32Array, Int32Array,
 			null, null,
 			Float32Array, Float64Array,
-									  ];
+		];
 
 
 		// static buffer state; removing this reallocation saved 10%
@@ -53,24 +47,38 @@ void InitJSOX(void ) {
 
 		var JSOX = {
 			begin (cb) {
-			return {
-				this_ : {
-					objects : [],
-					parser : Module._jsox_begin_parse(),
-					prototypes : null
-				},
-				write(data){
-					var s;
-					var i = allocate(s = intArrayFromString(str), 'i8', ALLOC_NORMAL);
-					Module._jsox_write( i, s.length );
-					//console.log( "Got strg:", str, cb, s );
-				},
-				registerFromJSOX(typeName,fromCb) {
+				return {
+					this_ : {
+						objects : [],
+						parser : Module._jsox_begin_parse(),
+						prototypes : null,
+						readCallback : JSOX.makeFunction(cb )
+					},
+					write(data){
+						var s;
+						var i = allocate(s = intArrayFromString(data), 'i8', ALLOC_NORMAL);
+						Module._jsox_write( this.this_.parser,this.this_.readCallback, i, s.length-1 );
+						Module._free(i);
+						//console.log( "Got strg:", str, cb, s );
+					},
+					registerFromJSOX(typeName,fromCb) {
 
+					}
 				}
-			}
 			},
 		escape () {
+			if( !s ) {
+				throw new Error( "Missing parameter, string to escape" );
+				return;
+			}
+			var msg;
+			var sa;
+			var i = allocate(sa = intArrayFromString(s), 'i8', ALLOC_NORMAL);
+			var msg = Module._jsox_do_escape( i, sa.length-1 );
+			var result = Module.this_.objects[msg];
+			Module.this_.objects.length = msg;
+			Module._free( i );
+			return result;
 
 		},
 		registerToJSOX (typeName,prototype,cb)  {
@@ -131,127 +139,9 @@ void InitJSOX(void ) {
 	        return result;
 		}
 		};
-      Module.JSOX = JSOX;
-		console.log( "Module should have gotten methods?");
+      Module.SACK.JSOX = JSOX;
 	), 0 );
 }
-
-
-/*
-static inline int makeArrayBuffer(int len) {
-	return EM_ASM_INT( {
-		return Module.this_.objects .push( new ArrayBuffer($0) )-1;
-	},len);
-}
-
-static inline int makeBigInt( char *s, int n ) {
-	return EM_ASM_INT( {
-		const string = UTF8ToString( $0, $1-1 );
-		return Module.this_.objects .push( BigInt(string) )-1;
-	},n);
-}
-
-static inline int makeDate( char *s, int n ) {
-	return EM_ASM_INT( {
-		const string = UTF8ToString( $0, $1 );
-		return Module.this_.objects .push( new Date(string) )-1;
-	},n);
-}
-
-
-static inline int makeNumber( int n ) {
-	return EM_ASM_INT( {
-		return Module.this_.objects .push( $0 )-1;
-	},n);
-}
-
-static inline int makeNumberf( double n ) {
-	return EM_ASM_INT( {
-		return Module.this_.objects .push( $0 )-1;
-	},n);
-}
-
-static inline int makeTypedArray(int ab, int type ) {
-	return EM_ASM_INT( {
-		var ab = Module.this_.objects[$0];
-		//console.log( "This:", Module.this_, Object.getPrototypeOf( Module.this_ ) );
-			switch( $1 ) {
-			case 0:
-				result = $0;
-				break;
-			case 1: // "u8"
-				Module.this_.objects .push( new Uint8Array(ab) );
-				result = Module.this_.objects.length-1;
-				break;
-			case 2:// "cu8"
-				Module.this_.objects .push( new Uint8ClampedArray(ab) );
-				result = Module.this_.objects.length-1;
-				break;
-			case 3:// "s8"
-				Module.this_.objects .push( new Int8Array(ab) );
-				result = Module.this_.objects.length-1;
-				break;
-			case 4:// "u16"
-				Module.this_.objects .push( new Uint16Array(ab) );
-				result = Module.this_.objects.length-1;
-				break;
-			case 5:// "s16"
-				Module.this_.objects .push( new Int16Array(ab) );
-				result = Module.this_.objects.length-1;
-				break;
-			case 6:// "u32"
-				Module.this_.objects .push( new Uint32Array(ab) );
-				result = Module.this_.objects.length-1;
-				break;
-			case 7:// "s32"
-				Module.this_.objects .push( new Int32Array(ab) );
-				result = Module.this_.objects.length-1;
-				break;
-			//case 8:// "u64"
-			//	result = Uint64Array::New( ab, 0, val->stringLen );
-			//	break;
-			//case 9:// "s64"
-			//	result = Int64Array::New( ab, 0, val->stringLen );
-			//	break;
-			case 10:// "f32"
-				Module.this_.objects .push( new Float32Array(ab) );
-				result = Module.this_.objects.length-1;
-				break;
-			case 11:// "f64"
-				Module.this_.objects .push( new Float64Array(ab) );
-				result = Module.this_.objects.length-1;
-				break;
-			default:
-				result = 0; // undefined constant
-			}
-		return result;
-	}, ab, type );
-}
-
-
-static inline void setObject( int object, int field, int value ) {
-	EM_ASM_( {
-		const fieldName = Module.this_.objects[$1];
-		Module.this_.objects[$0][fieldName] = Module.this_.objects[$2]; 
-		//console.log( "We Good?", Module.this_.objects )
-	}, object, field, value);
-}
-
-static void setObjectByIndex( int object, int index, int value ) {
-	EM_ASM_( {
-		Module.this_.objects[$0][$1] = Module.this_.objects[$2]; 
-	}, object, index, value);
-}
-
-static void setObjectByName( int object, char*field, int value ) {
-	EM_ASM_( {
-		const fieldName = Pointer_stringify( $1 );
-		Module.this_.objects[$0][fieldName] = Module.this_.objects[$2]; 
-		//console.log( "We Good?", Module.this_.objects )
-	}, object, field, value);
-}
-*/
-
 
 static int composeJSObject( struct reviver_data *revive, LOGICAL firstObject ) {
 	return EM_ASM_INT( (
@@ -777,10 +667,41 @@ int jsox_parse( char * string, size_t stringLen, int reviver )
 
 } 
 
-int jsox_write( struct jsox_parse_state *state, char *string, size_t stringLen ) {
-	lprintf( "write string, invoke callback on results..." );
-	//struct jsox_parse_state *state
-	return 0;	
+static void jsox_write( struct jsox_parse_state *state, int readCallback, char *string, size_t stringLen ) EMSCRIPTEN_KEEPALIVE;
+void jsox_write( struct jsox_parse_state *state, int readCallback, char *data, size_t stringLen ) {
+	int result;
+	for( result = jsox_parse_add_data( state, data, stringLen );
+		result > 0;
+		result = jsox_parse_add_data( state, NULL, 0 )
+		) {
+		struct jsox_value_container * val;
+		PDATALIST elements = jsox_parse_get_data( state );
+		val = (struct jsox_value_container *)GetDataItem( &elements, 0 );
+		if( val ) {
+			int object;
+
+			struct reviver_data r;
+			r.revive = FALSE;
+			object = convertMessageToJS2( elements, &r );
+			jsox_dispose_message( &elements );
+			EM_ASM( (
+				Module.this_.objects[$0](Module.this_.objects[$1]);
+			));
+		}
+		if( result < 2 )
+			break;
+	}
+	if( result < 0 ) {
+		PTEXT error = jsox_parse_get_error( state );
+		if( error ) {
+			throwError( GetText( error ) );
+			LineRelease( error );
+		} else
+			throwError( "No Error Text" );
+		jsox_parse_clear_state( state );
+		return;
+	}
+	return;	
 }
 
 

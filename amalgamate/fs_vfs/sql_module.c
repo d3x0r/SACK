@@ -68,7 +68,10 @@ void InitSQL( void )
 
 		function Sqlite( db ) {
 			if( !(this instanceof Sqlite) ) return new Sqlite(db);
-						
+
+			var si = db?allocate(sa=intArrayFromString(db), 'i8', ALLOC_NORMAL):0;
+			this.sql = Module._createSqlObject( si );
+			Module._free( si );
 		};
 		Sqlite.eo = function(cb) {
 			console.log( "enum option not implemented" );
@@ -133,13 +136,15 @@ void InitSQL( void )
 				
 			},
 			do(s,...args) {
-				if( argguments.length == 0 ) {
+				if( arguments.length == 0 ) {
 					throw new Error( TranslateText( "Required parameter, SQL query, is missing.") );
 					return;
 				}
 				var statement = null;
-				var si = s?allocate(intArrayFromString(s), 'i8', ALLOC_NORMAL):0;
+				var si = 0;
+				var sa;
 				if( args.length ) {
+					console.log( "HAS extra arguments... check what sort of format we got...");
 					var arg = 1;
 					var isFormatString;
 					var pvtStmt = '';
@@ -162,27 +167,27 @@ void InitSQL( void )
 									throw new Error( "Unsupported value type:" + typeof value );
 								case "string":
 									var vala;
-									var vali = value?allocate(na=intArrayFromString(value), 'i8', ALLOC_NORMAL):0;
-									Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_NUMBER, 0, 0, 0, vala, vala.length );
+									var vali = value?allocate(vala=intArrayFromString(value), 'i8', ALLOC_NORMAL):0;
+									Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_NUMBER, 0, 0, 0, vala, vala.length-1 );
 									break;
 								case "number":
 									if( value|0 === value )
-										Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_NUMBER, 0, 0, value, 0, 0 );
+										Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_NUMBER, 0, 0, value, 0, 0 );
 									else
-										Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_NUMBER, 1, value, 0, 0, 0 );
+										Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_NUMBER, 1, value, 0, 0, 0 );
 									break;
 								case "boolean":
 									if( value )
-										Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_TRUE, 0, 0, 0, 0, 0 );
+										Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_TRUE, 0, 0, 0, 0, 0 );
 									else
-										Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_TRUE, 0, 0, 0, 0, 0 );
+										Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_TRUE, 0, 0, 0, 0, 0 );
 									break;
 							 	case "undefined":
-									Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_UNDEFINED, 0, 0, 0, 0, 0 );
+									Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_UNDEFINED, 0, 0, 0, 0, 0 );
 									break;
 							 	case "object":
 								 	if( value === null ){
-									 	Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_NULL, 0, 0, 0, 0, 0 );
+									 	Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_NULL, 0, 0, 0, 0, 0 );
 										break;
 									} 
 								}
@@ -211,8 +216,8 @@ void InitSQL( void )
 							case  "string": {
 								//String::Utf8Value text( USE_ISOLATE(isolate) args[arg]->ToString( isolate->GetCurrentContext() ).ToLocalChecked() );
 								if( arg & 1 ) { // every odd parameter is inserted
-									var si = s?allocate(sa=intArrayFromString(s), 'i8', ALLOC_NORMAL):0;
-									Module._PushValue( pdlParams, 0, 0, JSOX_VALUE_STRING, 0, 0, 0, args[arg], args[arg].length );
+									si = s?allocate(sa=intArrayFromString(s), 'i8', ALLOC_NORMAL):0;
+									Module._PushValue( pdlParams, 0, 0, JSOX_VALUE_STRING, 0, 0, 0, args[arg], args[arg].length - 1 );
 									
 									pvtStmt += '?';
 								}
@@ -250,18 +255,18 @@ void InitSQL( void )
 								break;
 							case "number":
 								if( value|0 === value )
-									Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_NUMBER, 0, 0, value, 0, 0 );
+									Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_NUMBER, 0, 0, value, 0, 0 );
 								else
-									Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_NUMBER, 1, value, 0, 0, 0 );
+									Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_NUMBER, 1, value, 0, 0, 0 );
 								break;
 							case "boolean":
 								if( value )
-									Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_TRUE, 0, 0, 0, 0, 0 );
+									Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_TRUE, 0, 0, 0, 0, 0 );
 								else
-									Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_TRUE, 0, 0, 0, 0, 0 );
+									Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_TRUE, 0, 0, 0, 0, 0 );
 								break;
 							case "undefined":
-								Module._PushValue( pdlParams, valName, valName.length, JSOX_VALUE_UNDEFINED, 0, 0, 0, 0, 0 );
+								Module._PushValue( pdlParams, valName, valName.length-1, JSOX_VALUE_UNDEFINED, 0, 0, 0, 0, 0 );
 								break;
 
 							default: {
@@ -271,10 +276,12 @@ void InitSQL( void )
 							pvtStmt += '?';
 						}
 						statement = pvtStmt;
+						si = allocate(sa = intArrayFromString(statement), 'i8', ALLOC_NORMAL);
+
 					}
 					else {
 						statement = s;
-						for( ; arg < args.Length(); arg++ ) {
+						for( ; arg < args.Length; arg++ ) {
 							var value = args[arg];
 							switch( typeof value ) {
 							default:
@@ -282,7 +289,7 @@ void InitSQL( void )
 							case "string":
 								var vala;
 								var vali = value?allocate(na=intArrayFromString(value), 'i8', ALLOC_NORMAL):0;
-								Module._PushValue( pdlParams, 0, 0, JSOX_VALUE_NUMBER, 0, 0, 0, vala, vala.length );
+								Module._PushValue( pdlParams, 0, 0, JSOX_VALUE_NUMBER, 0, 0, 0, vala, vala.length - 1 );
 								break;
 							case "number":
 								if( value|0 === value )
@@ -306,10 +313,16 @@ void InitSQL( void )
 								} 
 							}
 						}
+						si = allocate(sa = intArrayFromString(statement), 'i8', ALLOC_NORMAL);
 					}
 				}
-				else
-					Module._sqlDo( this.sql, si  );
+				else {
+					si = allocate(sa = intArrayFromString(s), 'i8', ALLOC_NORMAL);
+					console.log( "Should be doing:%s", s );
+					var r = Module._sqlDo( this.sql, si, sa.length-1, 0  );
+					console.log( "Do returns an array?", r );
+					return Module.this_.objects[r];
+				}
 
 				if( statement ) {
 					//String::Utf8Value sqlStmt( USE_ISOLATE( isolate ) args[0] );
@@ -661,6 +674,10 @@ void InitSQL( void )
 		sqliteMethods.setOption = sqliteMethods.so;
 	        
 		Object.defineProperties( Sqlite.prototype, Object.getOwnPropertyDescriptors( sqliteMethods ));
+		//console.log( "VOL:Module.SACK.Volume.prototype", Module.SACK.Volume.prototype );
+		//console.log( "VOL:Module.SACK.Volume.prototype", Module.SACK.Volume.prototype.Sqlite.prototype );
+		//console.log( "VOL:Module.SACK.Volume.prototype", Object.getPrototypeOf( Module.SACK.Volume.prototype.Sqlite ) );
+		Object.defineProperties( Module.SACK.Volume.prototype.Sqlite.prototype, Object.getOwnPropertyDescriptors( sqliteMethods ));
 
 
 		Module.defineFunction = function(cb) {
@@ -672,14 +689,13 @@ void InitSQL( void )
 }
 
 
+struct SqlObject* createSqlObject( const char *dsn ) EMSCRIPTEN_KEEPALIVE;
 
 struct SqlObject* createSqlObject( const char *dsn )
 {
 	struct SqlObject *sql = New( struct SqlObject);
 	sql->messages = NULL;
 	sql->userFunctions = NULL;
-	//sql->thread = NULL;
-	//memset( &async, 0, sizeof( async ) );
 	sql->odbc = ConnectToDatabase( dsn );
 	SetSQLThreadProtect( sql->odbc, FALSE );
 	//SetSQLAutoClose( odbc, TRUE );
@@ -869,21 +885,22 @@ static void PushValue( PDATALIST *pdlParams, char *name, size_t nameLen, int val
 	}
 }
 
-int sqlquery( struct SqlObject *sql, char *statement, size_t statementlen, PDATALIST *pdlParams ) {
+int sqlDo( struct SqlObject *sql, char *statement, size_t statementlen, PDATALIST *pdlParams ) EMSCRIPTEN_KEEPALIVE;
+int sqlDo( struct SqlObject *sql, char *statement, size_t statementlen, PDATALIST *pdlParams ) {
 
 		PDATALIST pdlRecord = NULL;
 		INDEX idx = 0;
 		int items;
 		struct jsox_value_container * jsval;
-
-		if( !SQLRecordQuery_js( sql->odbc, statement, statementlen, &pdlRecord, pdlParams[0] DBG_SRC ) ) {
+		//lprintf( "Okay what do we get? %p %s %d", sql, statement, statementlen );
+		if( !SQLRecordQuery_js( sql->odbc, statement, statementlen, &pdlRecord, pdlParams?pdlParams[0]:0 DBG_SRC ) ) {
 			const char *error;
 			FetchSQLError( sql->odbc, &error );
 			throwError( error );
 			dropValueList( pdlParams );
 			return JS_VALUE_UNDEFINED;
 		}
-
+		//lprintf( "Success and we got back a thing?%p", pdlRecord );
 		DATA_FORALL( pdlRecord, idx, struct jsox_value_container *, jsval ) {
 			if( jsval->value_type == JSOX_VALUE_UNDEFINED ) break;
 		}
@@ -917,7 +934,7 @@ int sqlquery( struct SqlObject *sql, char *statement, size_t statementlen, PDATA
 			tables[usedTables].table = NULL;
 			tables[usedTables].alias = NULL;
 			usedTables++;
-
+			
 			DATA_FORALL( pdlRecord, idx, struct jsox_value_container *, jsval ) {
 				int m;
 				if( jsval->value_type == JSOX_VALUE_UNDEFINED ) break;
@@ -986,6 +1003,8 @@ int sqlquery( struct SqlObject *sql, char *statement, size_t statementlen, PDATA
 						}
 					}
 				}
+
+
 			int records = makeArray();
 			int record;
 			if( pdlRecord ) {
@@ -1330,6 +1349,7 @@ static void sqlsetOption( struct SqlObject *sql, char *sect, char *optname, char
 
 //-----------------------------------------------------------
 
+LOGICAL sqlmakeTable( struct SqlObject *sql, const char *tableCommand ) EMSCRIPTEN_KEEPALIVE;
 LOGICAL sqlmakeTable( struct SqlObject *sql, const char *tableCommand ) {
 	if( tableCommand ) {
 		PTABLE table = GetFieldsInSQLEx( tableCommand, FALSE DBG_SRC );
@@ -1439,7 +1459,6 @@ void callUserFunction( struct sqlite3_context*onwhat, int argc, struct sqlite3_v
 
 	), userData->cb, userData->sql->_this, args );
 	//Local<Function> cb = Local<Function>::New( userData->isolate, userData->cb );
-	int str = callFunction( userData->cb, argv[0], argv[1] );
 #if 0	
 	Local<Value> str = cb->Call( userData->isolate->GetCurrentContext(), userData->sql->handle(), argc, args ).ToLocalChecked();
 #endif
@@ -1570,7 +1589,7 @@ void callAggFinal( struct sqlite3_context*onwhat ) {
 		} else if( typeof r === "string" ) {
 			var sa;
 			var si = s?allocate(sa=intArrayFromString(r), 'i8', ALLOC_NORMAL):0;
-			Module._PSSQL_ResultSqliteText( $2, si, sa.length, 0 );
+			Module._PSSQL_ResultSqliteText( $2, si, sa.length-1, 0 );
 		}
 		else
 			console.log( "unhandled result type (object? array? function?)" );
