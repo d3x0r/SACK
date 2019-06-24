@@ -261,6 +261,7 @@ void LoadTranslationDataEx( const char *filename )
 {
 	size_t size = 0;
 	char *tmp = ExpandPath( filename );
+#if !defined( __EMSCRIPTEN__ )
 	POINTER file = OpenSpace( NULL, tmp, &size );
 	Deallocate( char *, tmp );
 	//lprintf( "load file:%p", file );
@@ -269,6 +270,7 @@ void LoadTranslationDataEx( const char *filename )
 		LoadTranslationDataFromMemory( file, size );
 		CloseSpace( file );
 	}
+#endif
 }
 
 void LoadTranslationDataFromFile( FILE *file ) {
