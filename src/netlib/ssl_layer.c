@@ -731,6 +731,17 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 			unsigned char const * buf;
 			size_t buflen;
 			switch( type[n] ) {
+			case TLSEXT_TYPE_ec_point_formats:
+			case TLSEXT_TYPE_supported_groups:
+			case TLSEXT_TYPE_session_ticket: // empty value?
+			case 22:  // ?? empty value
+			case 23:  //  ?? empty value
+			case TLSEXT_TYPE_signature_algorithms:
+			case TLSEXT_TYPE_supported_versions:
+			case TLSEXT_TYPE_psk_key_exchange_modes:
+			case TLSEXT_TYPE_key_share:
+				// ignore.
+				break;
 			case TLSEXT_NAMETYPE_host_name:
 				if( SSL_client_hello_get0_ext( ssl, type[n], &buf, &buflen ) ) {
 					int len = ( buf[0] << 8 ) | buf[1];
@@ -756,7 +767,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 										//lprintf( "Check:%.*s", )
 										if( StrCaseCmpEx( checkName, (CTEXTSTR)host, strlen ) == 0 ) {
 											SSL_set_SSL_CTX( ssl, hostctx->ctx );
-											lprintf( "SET CTX, and RETRY?" );
+											//lprintf( "SET CTX, and RETRY?" );
 											return SSL_CLIENT_HELLO_SUCCESS;
 										}
 									}
@@ -774,7 +785,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 			}
 		}
 	/*SSL_set_tlsext_host_name(SSL, nultermName );*/
-	lprintf( "dod NOT SET CTX, and RETRY?" );
+	//lprintf( "dod NOT SET CTX, continue with default." );
 	return SSL_CLIENT_HELLO_SUCCESS;
 	return 1; // success.
 	return 0; // fail this .  set al[0]
