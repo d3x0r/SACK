@@ -51,6 +51,10 @@ LOGICAL ssl_IsClientSecure( PCLIENT pc ) {
 	return FALSE;
 }
 
+CTEXTSTR ssl_GetRequestedHostName( PCLIENT pc ) {
+	return NULL;
+}
+
 SACK_NETWORK_NAMESPACE_END
 
 #else
@@ -112,17 +116,24 @@ EVP_PKEY *genKey() {
 
 #ifndef UNICODE
 
+struct ssl_hostContext {
+	SSL_CTX* ctx;
+	struct internalCert* cert;
+	char* host;
+};
 
 struct ssl_session {
+	PLIST hosts;
 	SSL_CTX        *ctx;
+	struct internalCert* cert;
 	LOGICAL ignoreVerification;
 	LOGICAL firstPacket;
 	BIO *rbio;
 	BIO *wbio;
 	//EVP_PKEY *privkey;
-	struct internalCert *cert;
-
-	SSL            *ssl;
+	PLIST          accepting; // sockets being accepted so we can find the proper SSL*
+	TEXTSTR	       hostname;  // accepted client's hostname request (NULL if none)
+	SSL*           ssl;
 	uint32_t       dwOriginalFlags; // CF_CPPREAD
 	cReadComplete  user_read;
 	cppReadComplete  cpp_user_read;
@@ -661,7 +672,7 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	ssl_InitSession( ses );
 
 	SSL_set_accept_state( ses->ssl );
-
+	AddLink( &pcServer->ssl_session->accepting, pcNew );
 	pcNew->ssl_session = ses;
 #ifdef DEBUG_SSL_IO_VERBOSE
 	SSL_set_info_callback( pcNew->ssl_session->ssl, infoCallback );
@@ -689,6 +700,147 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 
 }
 
+#if !defined( LIBRESSL_VERSION_NUMBER )
+
+static int handleServerName( SSL* ssl, int* al, void* param ) {
+	PCLIENT pcListener = (PCLIENT)param;
+	PCLIENT pcAccept;
+	INDEX idx;
+	LIST_FORALL( pcListener->ssl_session->accepting, idx, PCLIENT, pcAccept ) {
+		if( pcAccept->ssl_session && (pcAccept->ssl_session->ssl == ssl) )
+			break;
+	}
+	if( !pcAccept ) {
+		lprintf( "FATAL, NO SUCH ACCEPTING SOCKET" );
+		return 0;
+	}
+	if( SSL_client_hello_isv2(ssl) ) {
+		lprintf( "Unsupported version?" );
+		// wrong version?
+		al[0] = 0;
+		return 0;
+	}
+	PLIST* ctxList = &pcListener->ssl_session->hosts;
+
+	
+	int* type;
+	size_t typelen;
+	int n;
+	if( SSL_client_hello_get1_extensions_present( ssl, &type, &typelen ) )
+		for( n = 0; n < typelen; n++ ) {
+			unsigned char const * buf;
+			size_t buflen;
+			switch( type[n] ) {
+			case TLSEXT_NAMETYPE_host_name:
+				if( SSL_client_hello_get0_ext( ssl, type[n], &buf, &buflen ) ) {
+					int len = ( buf[0] << 8 ) | buf[1];
+					if( len == (buflen - 2) ) {
+						int thistype = (buf[2] == TLSEXT_NAMETYPE_host_name);
+						if( thistype ) {
+							int strlen = (buf[3] << 8) | buf[4];
+							if( strlen == buflen - 5 ) {
+								INDEX idx;
+								struct ssl_hostContext* hostctx;
+								unsigned char const* host = buf + 5;
+								pcAccept->ssl_session->hostname = DupCStrLen( (CTEXTSTR)host, strlen );
+								lprintf( "Have hostchange: %.*s", strlen, host );
+								LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
+									char* checkName;
+									char* nextName;
+									for( checkName = hostctx->host; checkName? (nextName = StrChr( checkName, '~' )),1:0; checkName = nextName ) {
+										int namelen = nextName ? (nextName - checkName) : strlen;
+										if( namelen != strlen ) {
+											lprintf( "%.*s is not %.*s", namelen, checkName, strlen, host );
+											continue;
+										}
+										//lprintf( "Check:%.*s", )
+										if( StrCaseCmpEx( checkName, (CTEXTSTR)host, strlen ) == 0 ) {
+											SSL_set_SSL_CTX( ssl, hostctx->ctx );
+											lprintf( "SET CTX, and RETRY?" );
+											return SSL_CLIENT_HELLO_SUCCESS;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				break;
+			default:
+				if( SSL_client_hello_get0_ext( ssl, type[n], &buf, &buflen ) ) {
+					lprintf( "extension : %04x(%d)", type[n], type[n] );
+					LogBinary( buf, buflen );
+				}
+			}
+		}
+	/*SSL_set_tlsext_host_name(SSL, nultermName );*/
+	lprintf( "dod NOT SET CTX, and RETRY?" );
+	return SSL_CLIENT_HELLO_SUCCESS;
+	return 1; // success.
+	return 0; // fail this .  set al[0]
+	return -1; // pause, resume later, handshake result SSL_ERROR_WANT_CLIENT_HELLO_CB 
+}
+#else
+static int handleServerName( SSL* ssl, int* al, void* param ) {
+	PCLIENT pcListener = (PCLIENT)param;
+	PLIST list = pcListener->ssl_session->accepting;
+	PCLIENT pcAccept;
+	INDEX idx;
+	LIST_FORALL( list, idx, PCLIENT, pcAccept ) {
+		if( pcAccept->ssl_session && (pcAccept->ssl_session->ssl == ssl) )
+			break;
+	}
+	if( !pcAccept ) {
+		lprintf( "FATAL, NO SUCH ACCEPTING SOCKET" );
+		return 0;
+	}
+	SetLink( &pcListener->ssl_session->accepting, idx, NULL );
+	PLIST* ctxList = &pcListener->ssl_session->hosts;
+	// if no hosts to check.
+	if( !ctxList[0] ) return SSL_TLSEXT_ERR_OK;
+	int t;
+	if( TLSEXT_NAMETYPE_host_name != (t =SSL_get_servername_type( ssl ) ) ) {
+		lprintf( "Handshake sent bad hostname type... %d", t );
+		return 0;
+	}
+	const char* host = SSL_get_servername( ssl, t );
+	int strlen = StrLen( host );
+	lprintf( "ServerName;%s", host );
+	struct ssl_hostContext* hostctx;
+	struct ssl_hostContext* defaultHostctx;
+	lprintf( "Have hostchange: %.*s", strlen, host );
+	pcAccept->ssl_session->hostname = DupCStrLen( host, strlen );
+	LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
+		char* checkName;
+		char* nextName;
+		if( !hostctx->host ) {
+			defaultHostctx = hostctx;
+		}
+		for( checkName = hostctx->host; checkName ? (nextName = StrChr( checkName, '~' )), 1 : 0; checkName = nextName ) {
+			int namelen = nextName ? (nextName - checkName) : strlen;
+			if( namelen != strlen ) {
+				lprintf( "%.*s is not %.*s", namelen, checkName, strlen, host );
+				continue;
+			}
+			//lprintf( "Check:%.*s", )
+			if( StrCaseCmpEx( checkName, (CTEXTSTR)host, strlen ) == 0 ) {
+				SSL_set_SSL_CTX( ssl, hostctx->ctx );
+				return SSL_TLSEXT_ERR_OK;
+			}
+		}
+	}
+	if( defaultHostctx ) {
+		SSL_set_SSL_CTX( ssl, defaultHostctx->ctx );
+		return SSL_TLSEXT_ERR_OK;
+	}
+
+	//SSL_TLSEXT_ERR_NOACK
+	//SSL_TLSEXT_ERR_ALERT_FATAL
+	//SSL_TLSEXT_ERR_ALERT_WARNING
+	return SSL_TLSEXT_ERR_NOACK;
+}
+#endif
+
 struct info_params {
 	char *password;
 	int passlen;
@@ -705,19 +857,31 @@ static int pem_password( char *buf, int size, int rwflag, void *u )
 	return len;
 }
 
-LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER keypair, size_t keylen, CPOINTER keypass, size_t keypasslen ) {
+LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
+                          , CPOINTER keypair, size_t keylen
+                          , CPOINTER keypass, size_t keypasslen
+                          , char *hosts ) {
 	struct ssl_session * ses;
-	ses = New( struct ssl_session );
-	MemSet( ses, 0, sizeof( struct ssl_session ) );
+	struct internalCert* certStruc;
+	struct ssl_hostContext* ctx;
+	ses = pc->ssl_session;
+	if( !ses ) {
+		ses = New( struct ssl_session );
+		MemSet( ses, 0, sizeof( struct ssl_session ) );
+	}
 	ssl_InitLibrary();
 	pc->flags.bSecure = 1;
 
 	if( !cert ) {
-		ses->cert = MakeRequest();
+		if( hosts ) {
+			lprintf( "Ignoring hostname for anonymous, quickshot server certificate" );
+		}
+		certStruc = ses->cert = MakeRequest();
 	} else {
-		struct internalCert *certStruc = New( struct internalCert );
+		certStruc = New( struct internalCert );
 		BIO *keybuf = BIO_new( BIO_s_mem() );
 		X509 *x509, *result;
+
 		certStruc->chain = NULL;
 		certStruc->chain = sk_X509_new_null();
 		//PKCS12_parse( )
@@ -735,21 +899,30 @@ LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER key
 			}
 		} while( result );
 		BIO_free( keybuf );
-		ses->cert = certStruc;
+
+		{
+			ctx = New( struct ssl_hostContext );
+			ctx->host = StrDup( hosts );
+			ctx->ctx = NULL;
+			ctx->cert = certStruc;
+		}
+		AddLink( &ses->hosts, ctx );
+		if( !ses->cert )
+			ses->cert = certStruc;
 	}
 
 	if( !keypair ) {
-		if( !ses->cert->pkey )
-			ses->cert->pkey = genKey();
+		if( !certStruc->pkey )
+			certStruc->pkey = genKey();
 	} else {
 		BIO *keybuf = BIO_new( BIO_s_mem() );
 		struct info_params params;
 		EVP_PKEY *result;
-		ses->cert->pkey = EVP_PKEY_new();
+		certStruc->pkey = EVP_PKEY_new();
 		BIO_write( keybuf, keypair, (int)keylen );
 		params.password = (char*)keypass;
 		params.passlen = (int)keypasslen;
-		result = PEM_read_bio_PrivateKey( keybuf, &ses->cert->pkey, pem_password, &params );
+		result = PEM_read_bio_PrivateKey( keybuf, &certStruc->pkey, pem_password, &params );
 		if( !result ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
@@ -757,65 +930,81 @@ LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER key
 	}
 
 #if NODE_MAJOR_VERSION < 10
-	ses->ctx = SSL_CTX_new( TLSv1_2_server_method() );
+	ctx->ctx = SSL_CTX_new( TLSv1_2_server_method() );
 #else
-	ses->ctx = SSL_CTX_new( TLS_server_method() );
+	ctx->ctx = SSL_CTX_new( TLS_server_method() );
 	SSL_CTX_set_min_proto_version( ses->ctx, TLS1_2_VERSION );
 #endif
 	{
 		int r;
-		SSL_CTX_set_cipher_list( ses->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
+		SSL_CTX_set_cipher_list( ctx->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
 
 		/*
-		r = SSL_CTX_set0_chain( ses->ctx, ses->cert->chain );
+		r = SSL_CTX_set0_chain( ctx->ctx, ses->cert->chain );
 		if( r <= 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
 		*/
-		r = SSL_CTX_use_certificate( ses->ctx, sk_X509_value( ses->cert->chain, 0 ) );
+		r = SSL_CTX_use_certificate( ctx->ctx, sk_X509_value( certStruc->chain, 0 ) );
 		if( r <= 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
-		r = SSL_CTX_use_PrivateKey( ses->ctx, ses->cert->pkey );
+		r = SSL_CTX_use_PrivateKey( ctx->ctx, certStruc->pkey );
 		if( r <= 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
 		{
 			int n;
-			for( n = 1; n < sk_X509_num( ses->cert->chain ); n++ ) {
-				r = SSL_CTX_add_extra_chain_cert( ses->ctx, sk_X509_value( ses->cert->chain, n ) );
+			for( n = 1; n < sk_X509_num( certStruc->chain ); n++ ) {
+				r = SSL_CTX_add_extra_chain_cert( ctx->ctx, sk_X509_value( certStruc->chain, n ) );
 				if( r <= 0 ) {
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
 				}
 			}
 		}
-		r = SSL_CTX_check_private_key( ses->ctx );
+		r = SSL_CTX_check_private_key( ctx->ctx );
 		if( r <= 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
-		r = SSL_CTX_set_session_id_context( ses->ctx, (const unsigned char*)"12345678", 8 );//sizeof( ses->ctx ) );
+		r = SSL_CTX_set_session_id_context( ctx->ctx, (const unsigned char*)"12345678", 8 );//sizeof( ctx->ctx ) );
 		if( r <= 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
-		//r = SSL_CTX_get_session_cache_mode( ses->ctx );
-		//r = SSL_CTX_set_session_cache_mode( ses->ctx, SSL_SESS_CACHE_SERVER );
-		r = SSL_CTX_set_session_cache_mode( ses->ctx, SSL_SESS_CACHE_OFF );
+		//r = SSL_CTX_get_session_cache_mode( ctx->ctx );
+		//r = SSL_CTX_set_session_cache_mode( ctx->ctx, SSL_SESS_CACHE_SERVER );
+		r = SSL_CTX_set_session_cache_mode( ctx->ctx, SSL_SESS_CACHE_OFF );
 		if( r <= 0 )
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 	}
 
-	ses->dwOriginalFlags = pc->dwFlags;
+	// these are set per-context... but only the first context is actually used?
+	
+#if !defined( LIBRESSL_VERSION_NUMBER )
+	SSL_CTX_set_client_hello_cb( ctx->ctx, handleServerName, pc );// &ses->hosts );
+#else
+	SSL_CTX_set_tlsext_servername_callback( ctx->ctx, handleServerName );
+	SSL_CTX_set_tlsext_servername_arg( ctx->ctx, pc );//&ses->hosts );
+#endif
 
-	ses->user_connected = pc->connect.ClientConnected;
-	ses->cpp_user_connected = pc->connect.CPPClientConnected;
-	pc->connect.ClientConnected = ssl_ClientConnected;
-	pc->dwFlags &= ~CF_CPPCONNECT;
+	if( !pc->ssl_session ) {
+		ses->ctx = ctx->ctx;
+		ses->dwOriginalFlags = pc->dwFlags;
 
-	pc->ssl_session = ses;
+		ses->user_connected = pc->connect.ClientConnected;
+		ses->cpp_user_connected = pc->connect.CPPClientConnected;
+		pc->connect.ClientConnected = ssl_ClientConnected;
+		pc->dwFlags &= ~CF_CPPCONNECT;
+
+		pc->ssl_session = ses;
+	}
 	// at this point pretty much have to assume
 	// that it will be OK.
 	return TRUE;
+}
 
+
+LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER keypair, size_t keylen, CPOINTER keypass, size_t keypasslen ) {
+	return ssl_BeginServer_v2( pc, cert, certlen, keypair, keylen, keypass, keypasslen, NULL );
 }
 
 
@@ -938,6 +1127,16 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		Release( tmp );
 	}
 }
+
+
+CTEXTSTR ssl_GetRequestedHostName( PCLIENT pc ) {
+	if( pc->ssl_session ) {
+		return pc->ssl_session->hostname;
+	}
+	return NULL;
+}
+
+
 
 void ssl_SetIgnoreVerification( PCLIENT pc ) {
 	if( pc->ssl_session )
