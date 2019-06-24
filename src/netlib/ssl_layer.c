@@ -734,11 +734,13 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 			case TLSEXT_TYPE_ec_point_formats:
 			case TLSEXT_TYPE_supported_groups:
 			case TLSEXT_TYPE_session_ticket: // empty value?
-			case 22:  // ?? empty value
-			case 23:  //  ?? empty value
+			case TLSEXT_TYPE_encrypt_then_mac:  // ?? empty value
+			case TLSEXT_TYPE_extended_master_secret:  //  ?? empty value
 			case TLSEXT_TYPE_signature_algorithms:
 			case TLSEXT_TYPE_supported_versions:
-			case TLSEXT_TYPE_psk_key_exchange_modes:
+
+			case TLSEXT_TYPE_psk_kex_modes:
+				//case TLSEXT_TYPE_psk_key_exchange_modes:
 			case TLSEXT_TYPE_key_share:
 				// ignore.
 				break;
