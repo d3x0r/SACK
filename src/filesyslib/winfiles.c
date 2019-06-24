@@ -174,7 +174,7 @@ static void LocalInit( void )
 		InitializeCriticalSec( &(*winfile_local).cs_files );
 		(*winfile_local).flags.bInitialized = 1;
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
-		(*winfile_local).flags.bLogOpenClose = 1;
+		(*winfile_local).flags.bLogOpenClose = 0;
 #endif
 		{
 #ifdef _WIN32
