@@ -1223,7 +1223,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					if( state->val.value_type != JSOX_VALUE_UNSET ) {
 						if( state->val.string ) {
 							if( state->val.value_type != JSOX_VALUE_STRING ) {
+#ifdef DEBUG_PARSING
 								lprintf( "PReviously set string length: %d %d", state->val.stringLen, output->pos - state->val.string );
+#endif
 								//lprintf( "Of course:%s %d", state->val.string, output->pos - state->val.string );
 								//state->val.stringLen = output->pos - state->val.string;
 #ifdef DEBUG_PARSING
