@@ -187,6 +187,7 @@ static void LocalInit( void )
 				(*winfile_local).data_file_root = StrDup( tmpPath );
 				MakePath( tmpPath );
 			}
+			UpdateLocalDataPath();
 #endif
 		}
 	}
