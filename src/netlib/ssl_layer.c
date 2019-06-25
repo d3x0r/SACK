@@ -742,7 +742,12 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 			case TLSEXT_TYPE_psk_kex_modes:
 				//case TLSEXT_TYPE_psk_key_exchange_modes:
 			case TLSEXT_TYPE_key_share:
+			case TLSEXT_TYPE_padding:  // 21 /* ExtensionType value from RFC 7685. */
 				// ignore.
+				break;
+			case TLSEXT_TYPE_status_request : // 5 HTTPS 
+			case TLSEXT_TYPE_renegotiate: // ff01 HTTP Header does this.  00
+			case TLSEXT_TYPE_signed_certificate_timestamp : // 18 empty value.
 				break;
 			case TLSEXT_NAMETYPE_host_name:
 				if( SSL_client_hello_get0_ext( ssl, type[n], &buf, &buflen ) ) {
@@ -762,6 +767,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 									char* nextName;
 									for( checkName = hostctx->host; checkName? (nextName = StrChr( checkName, '~' )),1:0; checkName = nextName ) {
 										int namelen = nextName ? (nextName - checkName) : strlen;
+										if( nextName ) nextName++;
 										if( namelen != strlen ) {
 											lprintf( "%.*s is not %.*s", namelen, checkName, strlen, host );
 											continue;
@@ -831,6 +837,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		}
 		for( checkName = hostctx->host; checkName ? (nextName = StrChr( checkName, '~' )), 1 : 0; checkName = nextName ) {
 			int namelen = nextName ? (nextName - checkName) : strlen;
+			if( nextName ) nextName++;
 			if( namelen != strlen ) {
 				lprintf( "%.*s is not %.*s", namelen, checkName, strlen, host );
 				continue;
@@ -895,8 +902,9 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 		BIO *keybuf = BIO_new( BIO_s_mem() );
 		X509 *x509, *result;
 
-		certStruc->chain = NULL;
 		certStruc->chain = sk_X509_new_null();
+		certStruc->pkey = NULL;
+		certStruc->x509 = NULL;
 		//PKCS12_parse( )
 		BIO_write( keybuf, cert, (int)certlen );
 		do {
