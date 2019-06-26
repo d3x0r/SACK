@@ -48,6 +48,27 @@ set(
 	tls13_record_layer.c
 )
 
+if( EXISTS ${PPCTOOL} )
+  set( INCLUDES -I../ssl/. -I../include/compat -I../include )
+  SET( ALL_INCLUDES ${ALL_INCLUDES} ${INCLUDES} PARENT_SCOPE )
+  set( SSL_SRCS )
+  foreach( SRC ${SSL_SRC} )
+     LIST( APPEND SSL_SRCS ../ssl/${SRC})
+  endforeach()
+  set( ALL_SOURCES ${ALL_SOURCES} ${SSL_SRCS} PARENT_SCOPE)
+
+  set( AMALG_COMMAND ${PPCTOOL} -c -K -once -ssio -sd ${INCLUDES} -p -o${CMAKE_CURRENT_SOURCE_DIR}/ssl.c ${SSL_SRC} )
+
+  add_custom_command( OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ssl.c
+   			COMMAND ${AMALG_COMMAND}
+   			COMMAND echo ${AMALG_COMMAND}
+                   DEPENDS ${CRYPTO_SRC} always_rebuild
+				   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+  add_custom_target( doitssl DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/ssl.c )
+
+endif( EXISTS ${PPCTOOL} )
+
 add_library(ssl ${SSL_SRC})
 target_include_directories(ssl
 	PRIVATE

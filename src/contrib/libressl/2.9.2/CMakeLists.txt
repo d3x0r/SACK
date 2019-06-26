@@ -54,6 +54,7 @@ option(ENABLE_EXTRATESTS "Enable extra tests that may be unreliable on some plat
 option(ENABLE_NC "Enable installing TLS-enabled nc(1)" OFF)
 set(OPENSSLDIR ${OPENSSLDIR} CACHE PATH "Set the default openssl directory" FORCE)
 
+
 if(NOT LIBRESSL_SKIP_INSTALL)
 	set( ENABLE_LIBRESSL_INSTALL ON )
 endif(NOT LIBRESSL_SKIP_INSTALL)
@@ -112,6 +113,13 @@ add_definitions(-DLIBRESSL_INTERNAL)
 add_definitions(-DOPENSSL_NO_HW_PADLOCK)
 add_definitions(-D__BEGIN_HIDDEN_DECLS=)
 add_definitions(-D__END_HIDDEN_DECLS=)
+
+set( ALL_FLAGS )
+
+SET( ALL_FLAGS ${ALL_FLAGS} -DLIBRESSL_INTERNAL )
+SET( ALL_FLAGS ${ALL_FLAGS} -DOPENSSL_NO_HW_PADLOCK )
+SET( ALL_FLAGS ${ALL_FLAGS} -D__BEGIN_HIDDEN_DECLS= )
+SET( ALL_FLAGS ${ALL_FLAGS} -D__END_HIDDEN_DECLS= )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE true)
 
@@ -341,6 +349,16 @@ if(SIZEOF_TIME_T STREQUAL "4")
 endif()
 add_definitions(-DSIZEOF_TIME_T=${SIZEOF_TIME_T})
 
+if( EXISTS c:/tools/ppc.exe )
+	set( PPCTOOL c:/tools/ppc.exe )
+elseif( EXISTS /usr/local/bin/ppc )
+	set( PPCTOOL /usr/local/bin/ppc )
+elseif( EXISTS /usr/bin/ppc )
+	set( PPCTOOL /usr/bin/ppc )
+endif( EXISTS c:/tools/ppc.exe )
+
+set( ALL_SOURCES )
+set( ALL_INCLUDES )
 set(OPENSSL_LIBS tls ssl crypto ${PLATFORM_LIBS})
 
 add_subdirectory(crypto)
@@ -357,6 +375,39 @@ endif()
 if(LIBRESSL_APPS AND LIBRESSL_TESTS)
 	add_subdirectory(tests)
 endif()
+
+
+
+if( EXISTS ${PPCTOOL} )
+	set( _ALL_INCLUDES )
+	foreach( INC ${ALL_INCLUDES})
+		string(REPLACE "../" "" INC ${INC})
+		LIST( APPEND _ALL_INCLUDES ${INC} )
+	endforeach( INC )
+	set( ALL_INCLUDES ${_ALL_INCLUDES})
+
+	set( _ALL_SOURCES )
+	foreach( INC ${ALL_SOURCES})
+		string(REPLACE "../" "" INC ${INC})
+		LIST( APPEND _ALL_SOURCES ${INC} )
+	endforeach( INC )
+	LIST(JOIN _ALL_SOURCES " " ALL_SOURCES )
+	#set( ALL_SOURCES ${_ALL_SOURCES})
+
+   FILE( WRITE "${CMAKE_BINARY_DIR}/libressl.manifest" ${ALL_SOURCES} )
+  set( AMALG_COMMAND ${PPCTOOL} -c -K -once -ssio -sd ${ALL_INCLUDES} -p -o${CMAKE_CURRENT_SOURCE_DIR}/libressl.c ${ALL_FLAGS} @${CMAKE_BINARY_DIR}/libressl.manifest )
+
+  add_custom_command( OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/libressl.c
+   			COMMAND echo ${AMALG_COMMAND}
+   			COMMAND ${AMALG_COMMAND}
+                   DEPENDS ${CRYPTO_SRC} always_rebuild
+				   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  add_custom_target( doitlibressl DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/libressl.c )
+
+endif( EXISTS ${PPCTOOL} )
+
+
 
 if(NOT MSVC)
 	# Create pkgconfig files.

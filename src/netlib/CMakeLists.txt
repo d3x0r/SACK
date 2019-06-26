@@ -50,6 +50,7 @@ set( SSL_LIBS ssl tls crypto )
 set( NETLIB_SOURCES    
     ${FIRST_GCC_SOURCES}
     network.c
+    network_addresses.c
     tcpnetwork.c
     udpnetwork.c
     ssl_layer.c

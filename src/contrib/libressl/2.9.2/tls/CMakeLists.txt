@@ -29,6 +29,28 @@ else()
 	add_definitions(-D_PATH_SSL_CA_FILE=\"${CMAKE_INSTALL_PREFIX}/etc/ssl/cert.pem\")
 endif()
 
+
+if( EXISTS ${PPCTOOL} )
+  set( INCLUDES -I../ssl/. -I ../include/compat -I ../include )
+  set( TLS_SRCS )
+  foreach( SRC ${TLS_SRC} )
+     set( TLS_SRCS ${TLS_SRCS} ../tls/${SRC})
+  endforeach()
+  set( ALL_SOURCES ${ALL_SOURCES} ${TLS_SRCS} PARENT_SCOPE)
+  set( ALL_INCLUDES ${ALL_INCLUDES} ${INCLUDES} PARENT_SCOPE)
+
+  set( AMALG_COMMAND ${PPCTOOL} -c -K -once -ssio -sd ${INCLUDES} -p -o${CMAKE_CURRENT_SOURCE_DIR}/tls_amalg.c ${TLS_SRC} )
+
+  add_custom_command( OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/tls_amalg.c
+   			COMMAND ${AMALG_COMMAND}
+                   DEPENDS ${CRYPTO_SRC} always_rebuild
+				   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+  add_custom_target( doittls DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tls_amalg.c )
+
+endif( EXISTS ${PPCTOOL} )
+
+
 add_library(tls ${TLS_SRC})
 target_include_directories(tls
 	PRIVATE

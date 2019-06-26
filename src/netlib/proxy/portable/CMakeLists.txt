@@ -59,6 +59,7 @@ endif( MSVC )
 sack_add_executable( ${project} ${FIRST_GCC_PROGRAM_SOURCE} 
     ../proxy.c 
     ${SOURCES_ROOT}/src/netlib/network.c 
+    ${SOURCES_ROOT}/src/netlib/network_addresses.c 
     ${SOURCES_ROOT}/src/netlib/udpnetwork.c 
     ${SOURCES_ROOT}/src/netlib/tcpnetwork.c 
     ${NET_SOURCES}

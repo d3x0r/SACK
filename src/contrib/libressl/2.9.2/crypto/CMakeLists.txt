@@ -919,9 +919,13 @@ endif()
 
 if(NOT ENABLE_ASM)
 	add_definitions(-DOPENSSL_NO_ASM)
+	set( ALL_FLAGS ${ALL_FLAGS} -DOPENSSL_NO_ASM PARENT_SCOPE )
+	set( ALL_FLAGS ${ALL_FLAGS} PARENT_SCOPE )
 else()
 	if(WIN32)
 		add_definitions(-DOPENSSL_NO_ASM)
+		set( ALL_FLAGS ${ALL_FLAGS} -DOPENSSL_NO_ASM PARENT_SCOPE )
+		set( ALL_FLAGS ${ALL_FLAGS} PARENT_SCOPE )
 	endif()
 endif()
 
@@ -943,7 +947,32 @@ if(EXTRA_EXPORT)
 	endforeach()
 endif()
 
+set( INCLUDES -I../crypto/. -I../crypto/asn1 -I../crypto/bn -I../crypto/dsa -I../crypto/ec -I../crypto/ecdsa -I../crypto/evp -I../crypto/modes -I../include/compat -I../include )
+
+if( EXISTS ${PPCTOOL} )
+  set( ALL_INCLUDES ${ALL_INCLUDES} ${INCLUDES} PARENT_SCOPE )
+
+  set( CRYPTO_SRCS )
+  foreach( SRC ${CRYPTO_SRC} )
+     LIST( APPEND CRYPTO_SRCS ../crypto/${SRC})
+  endforeach()
+
+  set( ALL_SOURCES ${ALL_SOURCES} ${CRYPTO_SRCS} PARENT_SCOPE)
+
+  set( AMALG_COMMAND ${PPCTOOL} -c -K -once -ssio -sd ${INCLUDES} -p -o${CMAKE_CURRENT_SOURCE_DIR}/crypto.c ${CRYPTO_SRC} )
+
+  add_custom_command( OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/crypto.c
+   			COMMAND ${AMALG_COMMAND}
+                   DEPENDS ${CRYPTO_SRC} always_rebuild
+				   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+  add_custom_target( doitcrypto DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/crypto.c )
+
+endif( EXISTS ${PPCTOOL} )
+
+
 add_library(crypto ${CRYPTO_SRC})
+
 target_include_directories(crypto
 	PRIVATE
 		.

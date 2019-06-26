@@ -23,6 +23,7 @@ include( "../../../../../CMakeSources.lst")
 
 if( WIN32 )
   set( NET_SOURCES    ${SOURCES_ROOT}src/netlib/network.c 
+	${SOURCES_ROOT}src/netlib/network_addresses.c
                 ${SOURCES_ROOT}src/netlib/tcpnetwork.c 
 				${SOURCES_ROOT}src/netlib/udpnetwork.c 
 				${SOURCES_ROOT}src/netlib/net_winsock2.c 

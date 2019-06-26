@@ -86,11 +86,6 @@ include_directories( ${SOURCES_ROOT}contrib/sqlite/${SQLITE_VERSION} )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
-#    ${SOURCES_ROOT}netlib/network.c 
-#    ${SOURCES_ROOT}netlib/udpnetwork.c 
-#    ${SOURCES_ROOT}netlib/tcpnetwork.c 
-#    ${NET_SOURCES} 
-#    ${SOURCES_ROOT}msgsvr/client/client.c
     ${SOURCES_ROOT}SQLlib/sqlstub.c
     ${SOURCES_ROOT}SQLlib/sqlutil.c
     ${SOURCES_ROOT}SQLlib/sqlwrap.c

@@ -80,11 +80,6 @@ endif( WIN32 )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
-#    ${SOURCES_ROOT}/netlib/network.c 
-#    ${SOURCES_ROOT}/netlib/udpnetwork.c 
-#    ${SOURCES_ROOT}/netlib/tcpnetwork.c 
-#    ${NET_SOURCES} 
-#    ${SOURCES_ROOT}/msgsvr/client/client.c
 
     ${SOURCES_ROOT}/memlib/sharemem.c
     ${SOURCES_ROOT}/memlib/memory_operations.c
@@ -152,16 +147,6 @@ install( TARGETS ${project} DESTINATION bin )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
-#    ${SOURCES_ROOT}/netlib/network.c 
-#    ${SOURCES_ROOT}/netlib/udpnetwork.c 
-#    ${SOURCES_ROOT}/netlib/tcpnetwork.c 
-#    ${NET_SOURCES} 
-#    ${SOURCES_ROOT}/msgsvr/client/client.c
-#    ${SOURCES_ROOT}/SQLlib/sqlstub.c
-#    ${SOURCES_ROOT}/SQLlib/sqlutil.c
-#    ${SOURCES_ROOT}/SQLlib/sqlwrap.c
-#    ${SOURCES_ROOT}/SQLlib/sqlparse3.c
-#    ${SQLITE_SOURCES}
     ${SOURCES_ROOT}/memlib/sharemem.c
     ${SOURCES_ROOT}/memlib/memory_operations.c
     ${SOURCES_ROOT}/timerlib/timers.c

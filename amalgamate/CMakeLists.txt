@@ -126,6 +126,7 @@ SET( EXTRA_SOURCES
 	${SACK_BASE}/src/netlib/html5.websocket/json/json6_parser.c
 	${SACK_BASE}/src/netlib/html5.websocket/json/json_emitter.c
 	${SACK_BASE}/src/netlib/network.c
+	${SACK_BASE}/src/netlib/network_addresses.c
 	${SACK_BASE}/src/netlib/tcpnetwork.c
 	${SACK_BASE}/src/netlib/udpnetwork.c
         ${SACK_BASE}/src/netlib/net_winsock2.c

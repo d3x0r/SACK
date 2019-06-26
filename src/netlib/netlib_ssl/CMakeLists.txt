@@ -69,6 +69,7 @@ include_directories( ${SOURCES_ROOT}/src/contrib/sqlite/${SQLITE_VERSION} )
 set( NETLIB_SOURCES    
     ${FIRST_GCC_SOURCES}
     ${SOURCES_ROOT}/src/netlib/network.c
+    ${SOURCES_ROOT}/src/netlib/network_addresses.c
     ${SOURCES_ROOT}/src/netlib/tcpnetwork.c
     ${SOURCES_ROOT}/src/netlib/udpnetwork.c
     ${NETLIB_SSL_SOURCES}
