@@ -64,11 +64,25 @@ SET( SQLITE_VERSION 3.23.0-MySqlite )
 SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}/src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
 include_directories( ${SOURCES_ROOT}/src/contrib/sqlite/${SQLITE_VERSION} )
 
+if( WIN32 )
+  # WSAWaitMultipleObject network handling
+  SET( NETWORK_OS _win32 )
+elseif( UNIX )
+  if( MAC )
+    #kevent event handling (BSD)
+	SET( NETWORK_OS _mac )
+  else( MAC )
+	# epoll event handling
+	SET( NETWORK_OS _linux )
+   endif( MAC )
+endif( UNIX )
+
 
 
 set( NETLIB_SOURCES    
     ${FIRST_GCC_SOURCES}
     ${SOURCES_ROOT}/src/netlib/network.c
+    ${SOURCES_ROOT}/src/netlib/network${NETWORK_OS}.c
     ${SOURCES_ROOT}/src/netlib/network_addresses.c
     ${SOURCES_ROOT}/src/netlib/tcpnetwork.c
     ${SOURCES_ROOT}/src/netlib/udpnetwork.c

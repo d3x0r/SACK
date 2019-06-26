@@ -830,8 +830,8 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	lprintf( "Have hostchange: %.*s", strlen, host );
 	pcAccept->ssl_session->hostname = DupCStrLen( host, strlen );
 	LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
-		char* checkName;
-		char* nextName;
+		char const* checkName;
+		char const* nextName;
 		if( !hostctx->host ) {
 			defaultHostctx = hostctx;
 		}

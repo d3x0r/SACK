@@ -21,8 +21,24 @@ endif( WATCOM )
 set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../ )
 include( "../../../../../CMakeSources.lst")
 
+
+if( WIN32 )
+  # WSAWaitMultipleObject network handling
+  SET( NETWORK_OS _win32 )
+elseif( UNIX )
+  if( MAC )
+    #kevent event handling (BSD)
+	SET( NETWORK_OS _mac )
+  else( MAC )
+	# epoll event handling
+	SET( NETWORK_OS _linux )
+   endif( MAC )
+endif( UNIX )
+
+
 if( WIN32 )
   set( NET_SOURCES    ${SOURCES_ROOT}src/netlib/network.c 
+	${SOURCES_ROOT}src/netlib/network${NETWORK_OS}.c
 	${SOURCES_ROOT}src/netlib/network_addresses.c
                 ${SOURCES_ROOT}src/netlib/tcpnetwork.c 
 				${SOURCES_ROOT}src/netlib/udpnetwork.c 

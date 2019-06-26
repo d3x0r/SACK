@@ -1,13 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////
 //
-// Filename    -  Network.C
+// Filename    -  network_address.C
 //
-// Description -  Network services for Communications Client
+// Description -  Network address support
 //
 // Author      -  James Buckeyne
 //
-// Create Date -  Before now.
-// Conversion update for Linux GLIBC 2.1 9/26/2000
+// Create Date -  2019-06-26
 //
 ///////////////////////////////////////////////////////////////////////////
 
@@ -29,7 +28,7 @@
 #include <sack_types.h>
 #include <deadstart.h>
 #include <sqlgetoption.h>
-#define MAIN_PROGRAM
+
 #include "netstruc.h"
 #include <network.h>
 

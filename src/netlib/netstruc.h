@@ -395,6 +395,33 @@ PCLIENT AddActive( PCLIENT pClient );
 void RemoveThreadEvent( PCLIENT pc );
 void AddThreadEvent( PCLIENT pc, int broadcast );
 
+//------------- 
+// TCP Interface 
+
+_TCP_NAMESPACE
+void AcceptClient( PCLIENT pc );
+int TCPWriteEx( PCLIENT pc DBG_PASS );
+#define TCPWrite(pc) TCPWriteEx(pc DBG_SRC)
+
+int FinishPendingRead( PCLIENT lpClient DBG_PASS );
+LOGICAL TCPDrainRead( PCLIENT pClient );
+
+_TCP_NAMESPACE_END
+
+//----------------------------
+// System Handling Event Interface
+
+#ifdef _WIN32
+void CPROC NetworkPauseTimer( uintptr_t psv );
+#endif
+
+int CPROC ProcessNetworkMessages( struct peer_thread_info* thread, uintptr_t unused );
+uintptr_t CPROC NetworkThreadProc( PTHREAD thread );
+int CPROC IdleProcessNetworkMessages( uintptr_t quick_check );
+
+
+//---------------------------
+// some utility macros
 
 #define IsValid(S)   ((S)!=INVALID_SOCKET)
 #define IsInvalid(S) ((S)==INVALID_SOCKET)

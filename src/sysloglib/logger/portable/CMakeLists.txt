@@ -39,6 +39,21 @@ if( SNPRINTF_SOURCES )
 set( SNPRINTF_SOURCES    ${SOURCES_ROOT}/src/../${SNPRINTF_SOURCES} )
 endif(SNPRINTF_SOURCES)
 
+if( WIN32 )
+  # WSAWaitMultipleObject network handling
+  SET( NETWORK_OS _win32 )
+elseif( UNIX )
+  if( MAC )
+    #kevent event handling (BSD)
+	SET( NETWORK_OS _mac )
+  else( MAC )
+	# epoll event handling
+	SET( NETWORK_OS _linux )
+   endif( MAC )
+endif( UNIX )
+
+
+
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
     ../logger.c
@@ -53,6 +68,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/systemlib/spawntask.c
     ${SOURCES_ROOT}/src/systemlib/args.c
     ${SOURCES_ROOT}/src/netlib/network.c
+    ${SOURCES_ROOT}/src/netlib/network${NETWORK_OS}.c
     ${SOURCES_ROOT}/src/netlib/network_addresses.c
     ${SOURCES_ROOT}/src/netlib/udpnetwork.c
     ${SOURCES_ROOT}/src/netlib/tcpnetwork.c

@@ -47,9 +47,24 @@ add_subdirectory( ../../src/contrib/libressl/${LIBRESSL_VERSION} libressl )
 include_directories( ../../src/contrib/libressl/${LIBRESSL_VERSION}/include )
 set( SSL_LIBS ssl tls crypto )
 
+if( WIN32 )
+  # WSAWaitMultipleObject network handling
+  SET( NETWORK_OS _win32 )
+elseif( UNIX )
+  if( MAC )
+    #kevent event handling (BSD)
+	SET( NETWORK_OS _mac )
+  else( MAC )
+	# epoll event handling
+	SET( NETWORK_OS _linux )
+   endif( MAC )
+endif( UNIX )
+
+
 set( NETLIB_SOURCES    
     ${FIRST_GCC_SOURCES}
     network.c
+    network${NETWORK_OS}.c
     network_addresses.c
     tcpnetwork.c
     udpnetwork.c
