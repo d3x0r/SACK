@@ -352,6 +352,7 @@ endif( __NO_MSGSVR__ )
 #set( ExtraFlags "${ExtraFlags} -Wno-shadow" )
 #set( ExtraFlags "${ExtraFlags} -Wno-parentheses" )
 #set( ExtraFlags "${ExtraFlags} -Wno-format" )
+SET( ExtraFlags "${ExtraFlags} -Wno-attributes")
 
 if( EMSCRIPTEN )
    set( CORE_LINKMODE STATIC )

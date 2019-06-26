@@ -215,7 +215,6 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 #else
 
 	{
-#  else
 		int r;
 		struct epoll_event ev;
 		ev.data.ptr = New( struct event_data );
@@ -232,7 +231,6 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 #    endif
 		r = epoll_ctl( peer->epoll_fd, EPOLL_CTL_ADD, broadcast?pc->SocketBroadcast:pc->Socket, &ev );
 		if( r < 0 ) lprintf( "Error adding:%d %d", errno, broadcast?pc->SocketBroadcast:pc->Socket );
-#  endif
 	}
 #endif // __EMSCRIPTEN__
 #ifdef LOG_NETWORK_EVENT_THREAD
@@ -587,7 +585,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 }
 
 //----------------------------------------------------------------------------
-static int CPROC IdleProcessNetworkMessages( uintptr_t quick_check )
+int CPROC IdleProcessNetworkMessages( uintptr_t quick_check )
 {
 	struct peer_thread_info *this_thread = IsNetworkThread();
 	if( this_thread )
