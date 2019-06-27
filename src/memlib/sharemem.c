@@ -1946,7 +1946,7 @@ static void DropMemEx( PMEM pMem DBG_PASS )
 
 //------------------------------------------------------------------------------------------------------
 
-POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment DBG_PASS )
+POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG_PASS )
 {
    // if a heap is passed, it's a private heap, and allocation is as normal...
 	uint32_t dwAlignPad = 0;
@@ -1974,7 +1974,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, uintptr_t dwSize, uint16_t alignment 
 #  ifdef _DEBUG
 		if( g.bLogAllocate )
 		{
-			ll__lprintf(DBG_RELAY)( "alloc %p(%p) %" _PTRSZVALfs, pc, pc->byData, dwSize );
+			ll__lprintf(DBG_RELAY)( "alloc %p(%p) %zd", pc, pc->byData, dwSize );
 		}
 #  endif
 #endif
