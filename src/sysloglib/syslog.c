@@ -1219,7 +1219,12 @@ static void SyslogdSystemLog( const TEXTCHAR *message )
 
 #ifdef __LINUX__
 //---------------------------------------------------------------------------
-
+#  ifdef __EMSCRIPTEN_
+LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
+{
+   return FALSE;
+}
+#  else
 //---------------------------------------------------------------------------
 
 LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
@@ -1239,8 +1244,8 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
 		char line[256];
 		while( fgets( line, sizeof(line)-1, maps ) )
 		{
-			uintptr_t low, high;
-			sscanf( line, "%" cPTRSZVALfx "-%" cPTRSZVALfx, &low, &high );
+			size_t low, high;
+			sscanf( line, "%zd-%zd" cPTRSZVALfx, &low, &high );
 			//fprintf( stderr, "%s" "Find: %08" PTRSZVALfx " Low: %08" PTRSZVALfx " High: %08" PTRSZVALfx "\n"
 			//		 , line, pointer, low, high );
 			if( ptr >= low && ptr <= high )
@@ -1254,6 +1259,7 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
 }
 
 //---------------------------------------------------------------------------
+#endif // emscripten
 #endif
 
 static void FileSystemLog( CTEXTSTR message )
