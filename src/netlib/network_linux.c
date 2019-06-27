@@ -370,6 +370,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						//lprintf( "UDP READ" );
 						FinishUDPRead( event_data->pc, event_data->broadcast );
 					}
+#if 0 && !DrainSupportDeprecated
 					else if( event_data->pc->bDraining )
 					{
 #ifdef LOG_NOTICES
@@ -378,6 +379,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #endif
 						TCPDrainRead( event_data->pc );
 					}
+#endif
 					else if( event_data->pc->dwFlags & CF_READPENDING )
 					{
 						size_t read;
