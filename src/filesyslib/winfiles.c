@@ -146,7 +146,6 @@ static void UpdateLocalDataPath( void )
 #else
 	(*winfile_local).data_file_root = StrDup( "." );
 	(*winfile_local).local_data_file_root = StrDup( "." );
-
 #endif
 }
 
@@ -190,6 +189,7 @@ static void LocalInit( void )
 			UpdateLocalDataPath();
 #endif
 		}
+		UpdateLocalDataPath();
 	}
 }
 
@@ -1422,7 +1422,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 
 	if( mount && mount->fsi )
 	{
-		if( StrChr( opts, 'r' ) && !StrChr( opts, '+' ) )
+		if( StrChr( opts, 'r' ) && !StrChr( opts, '+' ) || !StrChr( opts, 'w' ) )
 		{
 			struct file_system_mounted_interface *test_mount = mount;
 			while( !handle && test_mount )
@@ -1625,7 +1625,7 @@ FILE*  sack_fsopenEx( INDEX group
 	}
 	if( mount && mount->fsi )
 	{
-		if( StrChr( opts, 'r' ) && !StrChr( opts, '+' ) )
+		if( StrChr( opts, 'r' ) && !StrChr( opts, '+' ) || !StrChr( opts, 'w' ) )
 		{
 			struct file_system_mounted_interface *test_mount = mount;
 			while( !handle && test_mount && test_mount->fsi )
