@@ -86,7 +86,9 @@ SACK_NETWORK_NAMESPACE
 _TCP_NAMESPACE
 
 //----------------------------------------------------------------------------
+#if 0 && !DrainSupportDeprecated
 LOGICAL TCPDrainRead( PCLIENT pClient );
+#endif
 //----------------------------------------------------------------------------
 
 void SetNetworkListenerReady( PCLIENT pListen ) {
@@ -921,11 +923,13 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 
 	do
 	{
+#if 0 && !DrainSupportDeprecated
 		if( lpClient->bDraining )
 		{
 			lprintf("LOG:ERROR trying to read during a drain state..." );
 			return -1; // why error on draining with pending finish??
 		}
+#endif
 
 		if( !(lpClient->dwFlags & CF_CONNECTED)  )
 		{
@@ -1066,7 +1070,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 															 lpClient->RecvPending.buffer.p,
 															 length );
 					}
-					if( !IsValid( lpClient ) ) // closed
+					if( !IsValid( lpClient->Socket ) ) // closed
 						return -1;
 #ifdef LOG_PENDING
 					lprintf( "back from applciation... (loop to next)" ); // new read probably pending ehre...
@@ -1113,12 +1117,14 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 	if( !(lpClient->dwFlags & CF_ACTIVE ) )
 		return 0;
 
+#if 0 && !DrainSupportDeprecated
 	if( TCPDrainRead( lpClient ) &&  //draining....
 		lpClient->RecvPending.dwAvail ) // and already queued next read.
 	{
 		lprintf("LOG:ERROR is draining, and NEXT pending queued ALSO...");
 		return -1;  // read not queued... (ERROR)
 	}
+#endif
 
 	if( !lpClient->RecvPending.s.bStream && // existing read was not a stream...
 		lpClient->RecvPending.dwAvail )   // AND is not at completion...

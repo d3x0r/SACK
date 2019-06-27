@@ -311,11 +311,13 @@ static void HandleEvent( PCLIENT pClient )
 					//	lprintf( "FD_READ" );
 #endif
   					if( ( pClient->dwFlags & CF_ACTIVE ) ) {
+#if 0 && !DrainSupportDeprecated
 						if( pClient->bDraining )
 						{
 							TCPDrainRead( pClient );
 						}
 						else
+#endif
 						{
 							// got a network event, and won't get another until recv is called.
 							// mark that the socket has data, then the pend_read code will trigger the finishpendingread.
@@ -369,7 +371,9 @@ static void HandleEvent( PCLIENT pClient )
 				if( networkEvents.lNetworkEvents & FD_CLOSE )
 				{
 					//lprintf( "FD_CLOSE %p", pClient );
+#if 0 && !DrainSupportDeprecated
 					if( !pClient->bDraining )
+#endif
 					{
 						size_t bytes_read;
 						// act of reading can result in a close...
