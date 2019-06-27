@@ -666,8 +666,10 @@ int ProcessDefine( int type )
 		}
 
 		pCurrentDefine->pName = SegDuplicate( pWord );
-		if( ( NEXTLINE( pWord ) &&
-			 ( NEXTLINE( pWord )->format.spaces == 0 ) ) )
+		if( ( NEXTLINE( pWord )
+		  && ( NEXTLINE( pWord )->format.spaces == 0 ) 
+		  && ( NEXTLINE( pWord )->format.tabs == 0 ) 
+		    ) )
 		{
 			pWord = StepCurrentWord();
 			if( GetText( pWord )[0] == '(' )
@@ -684,7 +686,7 @@ int ProcessDefine( int type )
 						if( TextIs( pWord, "..." ) )
 						{
 							if( g.bDebugLog & DEBUG_DEFINES )
-								fprintf( stderr, "Adding var args...\n" );
+								fprintf( stddbg, "Adding var args...\n" );
 							if( pCurrentDefine->bVarParams )
 							{
 								fprintf( stderr, "%s(%d): Duplicate \'...\' used in define definition.\n"
@@ -706,9 +708,10 @@ int ProcessDefine( int type )
 								{
 									if( SameText( param, pWord ) == 0 )
 									{
-										fprintf( stderr, "%s(%d): Error same parameter name defined twice.\n"
+										fprintf( stderr, "%s(%d): Error same parameter name defined twice: %s\n"
 												 , GetCurrentFileName()
-												 , GetCurrentLine() );
+												 , GetCurrentLine()
+										                 , GetText( param ) );
 										g.ErrorCount++;
 									}
 									param = NULL; // have to manual reset this...

@@ -188,7 +188,7 @@ int ProcessSystemIncludeFile( char *name, int bAllowAbsolute, int bNext )
 			sprintf( Workname, "%s/%s", GetText( pPath ), name );
 			if( g.bDebugLog )
 			{
-				fprintf( stddbg, "attempting <%s>\n" , Workname );
+				fprintf( stddbg, "attempting \"%s\"\n" , Workname );
 			}
 			if( OpenNewInputFile( name, Workname, GetCurrentFileName(), GetCurrentLine(), TRUE, bNext ) )
 			{
