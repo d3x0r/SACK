@@ -168,31 +168,16 @@ void AcceptClient(PCLIENT pListen)
 	if( IsValid(pNewClient->Socket) )
 	{ // and we get one from the accept...
 #ifdef _WIN32
-#  ifdef USE_WSA_EVENTS
 		pNewClient->event = WSACreateEvent();
 #ifdef LOG_NETWORK_EVENT_THREAD
 		lprintf( "New event on accepted %p", pNewClient->event );
 #endif
 		WSAEventSelect( pNewClient->Socket, pNewClient->event, /*FD_ACCEPT| FD_OOB| FD_CONNECT| FD_QOS| FD_GROUP_QOS| FD_ROUTING_INTERFACE_CHANGE| FD_ADDRESS_LIST_CHANGE|*/
 			FD_READ|FD_WRITE|FD_CLOSE );
-#  else
-		if( WSAAsyncSelect( pNewClient->Socket,globalNetworkData.ghWndNetwork, SOCKMSG_TCP
-		                  , FD_READ | FD_WRITE | FD_CLOSE))
-		{ // if there was a select error...
-			lprintf(" Accept select Error");
-			EnterCriticalSec( &globalNetworkData.csNetwork );
-			InternalRemoveClientEx( pNewClient, TRUE, FALSE );
-			LeaveCriticalSec( &globalNetworkData.csNetwork );
-			NetworkUnlockEx( pNewClient, 0 DBG_SRC );
-			NetworkUnlockEx( pNewClient, 1 DBG_SRC );
-			pNewClient = NULL;
-		}
-		else
-#  endif
 #else
 		// yes this is an ugly transition from the above dangling
 		// else...
-			fcntl( pNewClient->Socket, F_SETFL, O_NONBLOCK );
+		fcntl( pNewClient->Socket, F_SETFL, O_NONBLOCK );
 #endif
 		AddActive( pNewClient );
 		{
@@ -1003,7 +988,6 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 							  lpClient->RecvPending.dwUsed );
 						lprintf("LOG:ERROR FinishPending discovered unhandled error (closing connection) %" _32f "", dwError );
 					}
-					//InternalRemoveClient( lpClient );  // invalid channel now.
 					lpClient->dwFlags |= CF_TOCLOSE;
 					return -1;   // return pending finished...
 				}
@@ -1013,7 +997,6 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 #ifdef DEBUG_SOCK_IO
 				lprintf( "Received (0) %d", nRecv );
 #endif
-				WakeableSleep( 100 );
 				//_lprintf( DBG_RELAY )( "Closing closed socket... Hope there's also an event... ");
 				lpClient->dwFlags |= CF_TOCLOSE;
 				break; // while dwAvail... try read...
@@ -1083,7 +1066,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 															 lpClient->RecvPending.buffer.p,
 															 length );
 					}
-					if( !lpClient->Socket )
+					if( !IsValid( lpClient ) ) // closed
 						return -1;
 #ifdef LOG_PENDING
 					lprintf( "back from applciation... (loop to next)" ); // new read probably pending ehre...
@@ -1373,13 +1356,13 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 #endif
 					  )
 					{
-						InternalRemoveClient( pc );
+						pc->dwFlags |= CF_TOCLOSE;
 					}
 					return FALSE; // get out of here!
 				}
 			} else if (!nSent) { // other side closed.
 				lprintf( "sent zero bytes - assume it was closed - and HOPE there's an event..." );
-				InternalRemoveClient( pc );
+				pc->dwFlags |= CF_TOCLOSE;
 				// if this happened - don't return TRUE result which would
 				// result in queuing a pending buffer...
 				return FALSE;  // no sence processing the rest of this.
@@ -1566,6 +1549,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 
 //----------------------------------------------------------------------------
 
+#if 0 && !DrainSupportDeprecated
 #define DRAIN_MAX_READ 2048
 // used internally to read directly to drain buffer.
 LOGICAL TCPDrainRead( PCLIENT pClient )
@@ -1658,6 +1642,7 @@ NETWORK_PROC( LOGICAL, TCPDrainEx)( PCLIENT pClient, size_t nLength, int bExact 
 	}
 	return 0;
 }
+#endif
 
 //----------------------------------------------------------------------------
 

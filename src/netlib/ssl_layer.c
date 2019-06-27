@@ -761,7 +761,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 								struct ssl_hostContext* hostctx;
 								unsigned char const* host = buf + 5;
 								pcAccept->ssl_session->hostname = DupCStrLen( (CTEXTSTR)host, strlen );
-								lprintf( "Have hostchange: %.*s", strlen, host );
+								//lprintf( "Have hostchange: %.*s", strlen, host );
 								LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
 									char* checkName;
 									char* nextName;
@@ -769,7 +769,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 										int namelen = nextName ? (nextName - checkName) : strlen;
 										if( nextName ) nextName++;
 										if( namelen != strlen ) {
-											lprintf( "%.*s is not %.*s", namelen, checkName, strlen, host );
+											//lprintf( "%.*s is not %.*s", namelen, checkName, strlen, host );
 											continue;
 										}
 										//lprintf( "Check:%.*s", )

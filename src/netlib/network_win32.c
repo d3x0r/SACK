@@ -25,60 +25,15 @@
 #include <stdhdrs.h>
 #include <stddef.h>
 #include <ctype.h>
-#include <sack_types.h>
-#include <deadstart.h>
-#include <sqlgetoption.h>
 
 #include "netstruc.h"
 #include <network.h>
 
-//#define DO_LOGGING // override no _DEBUG def to do loggings...
-//#define NO_LOGGING // force neverlog....
-
 #include <logging.h>
 #include <procreg.h>
-#ifdef __LINUX__
-#include <unistd.h>
-#include <ctype.h>
-#include <signal.h>
-#include <pthread.h>
-#endif
 
-#include <sharemem.h>
-#include <timers.h>
 #include <idle.h>
 
-//for GetMacAddress
-#ifdef __LINUX__
-#include <net/if.h>
-//#include <sys/timeb.h>
-
-//*******************8
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <net/if.h>
-#include <net/if_arp.h>
-#include <sys/un.h>
-#include <arpa/inet.h>
-#ifndef __ANDROID__
-#include <ifaddrs.h>
-#else
-#include "android_ifaddrs.h"
-#define EPOLLRDHUP EPOLLHUP
-#define EPOLL_CLOEXEC 0
-#endif
-#ifdef __MAC__
-#include <sys/event.h>
-#include <sys/time.h>
-#else
-#include <sys/epoll.h>
-#endif
-//*******************8
-
-#endif
 #ifdef WIN32
 #include <windows.h>
 #include <stdio.h>
@@ -756,23 +711,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 			if( result > WSA_WAIT_EVENT_0 )
 			{
 				PCLIENT pc = (PCLIENT)GetLink( &thread->monitor_list, result - (WSA_WAIT_EVENT_0) );
-				//if( pcLock ) {
-					if( !pc || ( pc->dwFlags & CF_AVAILABLE ) ) {
-						//lprintf( "thread event happened on a now available client." );
-					}
-					else
-						HandleEvent( pc );
-				//}
-				/*
-				if( thread->parent_peer )
-				{
-					// if this is a child worker, wait for main to rebuild events.
-					// if this was the main thread, it would wake us anyway...
-					WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-					while( thread->nEvents != 1 )
-						Relinquish();
+				if( !pc || ( pc->dwFlags & CF_AVAILABLE ) ) {
+					//lprintf( "thread event happened on a now available client." );
 				}
-				*/
+				else
+					HandleEvent( pc );
 				if( !quick_check )
 					continue;
 			}
@@ -800,8 +743,5 @@ int CPROC IdleProcessNetworkMessages( uintptr_t quick_check )
 		return ProcessNetworkMessages( this_thread, quick_check );
 	return -1;
 }
-
-
-
 
 SACK_NETWORK_NAMESPACE_END

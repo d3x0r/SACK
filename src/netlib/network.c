@@ -352,6 +352,27 @@ static void NetworkGlobalLock( DBG_VOIDPASS ) {
 	} while( !locked );
 }
 
+LOGICAL TryNetworkGlobalLock( DBG_VOIDPASS ) {
+	LOGICAL locked = FALSE;
+#ifdef USE_NATIVE_CRITICAL_SECTION
+	if( TryEnterCriticalSection( &globalNetworkData.csNetwork ) < 1 )
+#else
+	if( EnterCriticalSecNoWaitEx( &globalNetworkData.csNetwork, NULL DBG_RELAY ) < 1 )
+#endif
+	{
+#ifdef LOG_NETWORK_LOCKING
+		_lprintf( DBG_RELAY )("Failed enter global? %lld", globalNetworkData.csNetwork.dwThreadID);
+#endif
+		return FALSE;
+	}
+	else
+		locked = TRUE;
+#ifdef LOG_NETWORK_LOCKING
+	_lprintf( DBG_RELAY )("Got global lock");
+#endif
+	return TRUE;
+}
+
 
 void NetworkGloalUnlock( DBG_VOIDPASS ) {
 #ifdef USE_NATIVE_CRITICAL_SECTION
@@ -1126,6 +1147,20 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 
 //----------------------------------------------------------------------------
 
+#undef NetworkLock
+#undef NetworkUnlock
+NETWORK_PROC( PCLIENT, NetworkLock )(PCLIENT lpClient, int readWrite)
+{
+	return NetworkLockEx( lpClient, readWrite DBG_SRC );
+}
+
+NETWORK_PROC( void, NetworkUnlock )(PCLIENT lpClient, int readWrite)
+{
+	NetworkUnlockEx( lpClient, readWrite DBG_SRC );
+}
+
+//----------------------------------------------------------------------------
+
 void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG_PASS )
 {
 #ifdef LOG_SOCKET_CREATION
@@ -1191,8 +1226,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 		{
 			if( lpClient->dwFlags & CF_AVAILABLE )
 			{
-				lprintf( "Client was inactive?!?!?! removing from list and putting in available" );
-				AddAvailable( GrabClient( lpClient ) );
+				// already available somehow.
 			}
 			// this is probably true, we've definatly already moved it from
 			// active list to clsoed list.
@@ -1345,18 +1379,6 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		}
 		LeaveCriticalSec( &globalNetworkData.csNetwork );
 	}
-}
-
-#undef NetworkLock
-#undef NetworkUnlock
-NETWORK_PROC( PCLIENT, NetworkLock)( PCLIENT lpClient, int readWrite )
-{
-	return NetworkLockEx( lpClient, readWrite DBG_SRC );
-}
-
-NETWORK_PROC( void, NetworkUnlock)( PCLIENT lpClient, int readWrite )
-{
-	NetworkUnlockEx( lpClient, readWrite DBG_SRC );
 }
 
 SACK_NETWORK_NAMESPACE_END

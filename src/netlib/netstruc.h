@@ -394,6 +394,7 @@ PCLIENT AddActive( PCLIENT pClient );
 
 void RemoveThreadEvent( PCLIENT pc );
 void AddThreadEvent( PCLIENT pc, int broadcast );
+LOGICAL TryNetworkGlobalLock( DBG_VOIDPASS );
 
 //------------- 
 // TCP Interface 

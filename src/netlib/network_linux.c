@@ -341,34 +341,13 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						PCLIENT pClient = event_data->pc;
 						// close notice went to application; all resources for application are gone.
 						// any pending reads are no longre valid.
-
 						//lprintf( "socket is already closed... what do we need to do?");
-						//WakeableSleep( 100 );
-						if( 0 && !pClient->bDraining )
-						{
-							size_t bytes_read;
-							// act of reading can result in a close...
-							// there are things like IE which close and send
-							// adn we might get the close notice at application level indicating there might still be data...
-							while( ( bytes_read = FinishPendingRead( pClient DBG_SRC) ) > 0
-								&& bytes_read != (size_t)-1 ); // try and read...
-							//if( pClient->dwFlags & CF_TOCLOSE )
-							{
-								//lprintf( "Pending read failed - reset connection. (well this is FD_CLOSE so yeah...???)" );
-								//InternalRemoveClientEx( pc, TRUE, FALSE );
-							}
-						}
 #  ifdef LOG_NOTICES
-						//if( globalNetworkData.flags.bLogNotices )
-							lprintf("FD_CLOSE... %p  %08x", pClient, pClient->dwFlags );
+						lprintf("FD_CLOSE... %p  %08x", pClient, pClient->dwFlags );
 #  endif
-						//if( pClient->dwFlags & CF_ACTIVE )
-						{
-							// might already be cleared and gone..
-							//InternalRemoveClientEx( pClient, FALSE, TRUE );
-							TerminateClosedClient( pClient );
-							closed = 1;
-						}
+						TerminateClosedClient( pClient );
+						closed = 1;
+
 						// section will be blank after termination...(correction, we keep the section state now)
 						pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
 					} else if( !(event_data->pc->dwFlags & (CF_ACTIVE) ) ) {
@@ -409,18 +388,57 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						// packet oriented things may probably be reading only
 						// partial messages at a time...
 						read = FinishPendingRead( event_data->pc DBG_SRC );
-						//lprintf( "Read %d", read );
+						//lprintf( "Read %d", read );						
 						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) )
 						{
+							int locked;
+							locked = 1;
 #ifdef LOG_NOTICES
 							//if( globalNetworkData.flags.bLogNotices )
 							lprintf( "Pending read failed - reset connection." );
 #endif
 							EnterCriticalSec( &globalNetworkData.csNetwork );
-							InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
-							TerminateClosedClient( event_data->pc );
-							LeaveCriticalSec( &globalNetworkData.csNetwork );
-							closed = 1;
+							while( !TryNetworkGlobalLock() ) {
+								NetworkUnlock( event_data->pc, 1 );
+								Relinquish();
+								while( !NetworkLock( event_data->pc, 1 ) ) {
+									if( !(event_data->pc->dwFlags & CF_ACTIVE) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+										lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+										locked = 0;
+										break;
+									}
+									if( event_data->pc->dwFlags & CF_AVAILABLE ) {
+										locked = 0;
+										break;
+									}
+									Relinquish();
+								}
+								if( !locked ) break;
+								while( !NetworkLock( event_data->pc, 0 ) ) {
+									if( !(event_data->pc->dwFlags & CF_ACTIVE) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+										lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+										locked = 0;
+										break;
+									}
+									if( event_data->pc->dwFlags & CF_AVAILABLE ) {
+										locked = 0;
+										break;
+									}
+									Relinquish();
+								}
+								if( !locked ) break;
+							}
+							if( locked ) {
+								InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
+								NetworkUnlock( event_data->pc, 0 );
+								TerminateClosedClient( event_data->pc );
+								LeaveCriticalSec( &globalNetworkData.csNetwork );
+								closed = 1;
+							}
 						}
 						else if( !event_data->pc->RecvPending.s.bStream )
 							event_data->pc->dwFlags |= CF_READREADY;
