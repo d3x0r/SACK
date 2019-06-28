@@ -433,9 +433,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 											locked = 0;
 											break;
 										}
-										NetworkUnlock( event_data->pc, 1 );
 										Relinquish();
-										NetworkLock( event_data->pc, 1 );
 									}
 									if( !locked ) break;
 									while( !NetworkLock( event_data->pc, 1 ) ) {
