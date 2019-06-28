@@ -734,7 +734,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	
 	int* type;
 	size_t typelen;
-	int n;
+	size_t n;
 	if( SSL_client_hello_get1_extensions_present( ssl, &type, &typelen ) ) {
 		for( n = 0; n < typelen; n++ ) {
 			unsigned char const* buf;
@@ -752,16 +752,17 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 				//case TLSEXT_TYPE_psk_key_exchange_modes:
 			case TLSEXT_TYPE_key_share:
 			case TLSEXT_TYPE_padding:  // 21 /* ExtensionType value from RFC 7685. */
-			case TLSEXT_TYPE_pre_shared_key:
+			case TLSEXT_TYPE_psk:
+			//case TLSEXT_TYPE_pre_shared_key: // LibreSSL symbol
 				// ignore.
 				break;
 			case TLSEXT_TYPE_application_layer_protocol_negotiation: // 00 0C   02 68 32    08   68 74 74 70 2F 31 2E 31       ...h2.http/1.1
 				{
-					int len = (buf[0] << 8) | buf[1];
+					int len = (int)((buf[0] << 8) | buf[1]);
 					int ofs = 0;
 					while( ofs < len ) {
 						int plen = buf[2 + ofs];
-						int p = buf + 3 + ofs;
+						char const* p = (char const*)buf + 3 + ofs;
 						AddLink( &pcAccept->ssl_session->protocols, SegCreateFromCharLen( p, plen ) );
 						ofs += plen + 1;
 					}
@@ -773,7 +774,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 				break;
 			case TLSEXT_TYPE_server_name: 
 				if( SSL_client_hello_get0_ext( ssl, type[n], &buf, &buflen ) ) {
-					int len = (buf[0] << 8) | buf[1];
+					int len = (int)((buf[0] << 8) | buf[1]);
 					if( len == (buflen - 2) ) {
 						int thistype = (buf[2] == TLSEXT_NAMETYPE_host_name);
 						if( thistype ) {
