@@ -399,47 +399,84 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							//if( globalNetworkData.flags.bLogNotices )
 							lprintf( "Pending read failed - reset connection." );
 #endif
-							EnterCriticalSec( &globalNetworkData.csNetwork );
-							while( !TryNetworkGlobalLock( DBG_VOIDSRC ) ) {
+							// lock other read channel.
+							while( !NetworkLock( event_data->pc, 0 ) ) {
+								if( !(event_data->pc->dwFlags & CF_ACTIVE) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+									lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+									locked = 0;
+									break;
+								}
+								if( event_data->pc->dwFlags & CF_AVAILABLE ) {
+									locked = 0;
+									break;
+								}
 								NetworkUnlock( event_data->pc, 1 );
 								Relinquish();
-								while( !NetworkLock( event_data->pc, 1 ) ) {
-									if( !(event_data->pc->dwFlags & CF_ACTIVE) ) {
-#  ifdef LOG_NETWORK_EVENT_THREAD
-										lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
-#  endif
-										locked = 0;
-										break;
-									}
-									if( event_data->pc->dwFlags & CF_AVAILABLE ) {
-										locked = 0;
-										break;
-									}
-									Relinquish();
-								}
-								if( !locked ) break;
-								while( !NetworkLock( event_data->pc, 0 ) ) {
-									if( !(event_data->pc->dwFlags & CF_ACTIVE) ) {
-#  ifdef LOG_NETWORK_EVENT_THREAD
-										lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
-#  endif
-										locked = 0;
-										break;
-									}
-									if( event_data->pc->dwFlags & CF_AVAILABLE ) {
-										locked = 0;
-										break;
-									}
-									Relinquish();
-								}
-								if( !locked ) break;
+								NetworkLock( event_data->pc, 1 );
 							}
 							if( locked ) {
-								InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
-								NetworkUnlock( event_data->pc, 0 );
-								TerminateClosedClient( event_data->pc );
-								LeaveCriticalSec( &globalNetworkData.csNetwork );
-								closed = 1;
+								while( !TryNetworkGlobalLock( DBG_VOIDSRC ) ) {
+									NetworkUnlock( event_data->pc, 1 );
+									NetworkUnlock( event_data->pc, 0 );
+									Relinquish();
+									while( !NetworkLock( event_data->pc, 0 ) ) {
+										if( !(event_data->pc->dwFlags & CF_ACTIVE) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+											lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+											locked = 0;
+											break;
+										}
+										if( event_data->pc->dwFlags & CF_AVAILABLE ) {
+											locked = 0;
+											break;
+										}
+										NetworkUnlock( event_data->pc, 1 );
+										Relinquish();
+										NetworkLock( event_data->pc, 1 );
+									}
+									if( !locked ) break;
+									while( !NetworkLock( event_data->pc, 1 ) ) {
+										if( !(event_data->pc->dwFlags & CF_ACTIVE) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+											lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+											locked = 0;
+											break;
+										}
+										if( event_data->pc->dwFlags & CF_AVAILABLE ) {
+											locked = 0;
+											break;
+										}
+										NetworkUnlock( event_data->pc, 0 );
+										Relinquish();
+										while( !NetworkLock( event_data->pc, 0 ) ) {
+											if( !(event_data->pc->dwFlags & CF_ACTIVE) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+												lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+												locked = 0;
+												break;
+											}
+											if( event_data->pc->dwFlags & CF_AVAILABLE ) {
+												locked = 0;
+												break;
+											}
+											Relinquish();
+										}
+										if( !locked ) break;
+									}
+									if( !locked ) break;
+								}
+								if( locked ) {
+									InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
+									NetworkUnlock( event_data->pc, 0 );
+									TerminateClosedClient( event_data->pc );
+									LeaveCriticalSec( &globalNetworkData.csNetwork );
+									closed = 1;
+								}
 							}
 						}
 						else if( !event_data->pc->RecvPending.s.bStream )
