@@ -412,9 +412,25 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 									locked = 0;
 									break;
 								}
+								//lprintf( "Have to unlock..." );
 								NetworkUnlock( event_data->pc, 1 );
 								Relinquish();
-								NetworkLock( event_data->pc, 1 );
+								//lprintf( "Need to relock..." );
+								while( !NetworkLock( event_data->pc, 1 ) ) {
+									if( !( event_data->pc->dwFlags & CF_ACTIVE ) ) {
+#  ifdef LOG_NETWORK_EVENT_THREAD
+										lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
+#  endif
+										locked = 0;
+										break;
+									}
+									if( event_data->pc->dwFlags & CF_AVAILABLE ) {
+										locked = 0;
+										break;
+									}
+									Relinquish();
+								}
+								if( !locked ) break;
 							}
 							if( locked ) {
 								while( !TryNetworkGlobalLock( DBG_VOIDSRC ) ) {
