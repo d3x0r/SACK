@@ -400,7 +400,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							lprintf( "Pending read failed - reset connection." );
 #endif
 							EnterCriticalSec( &globalNetworkData.csNetwork );
-							while( !TryNetworkGlobalLock() ) {
+							while( !TryNetworkGlobalLock( DBG_VOIDSRC ) ) {
 								NetworkUnlock( event_data->pc, 1 );
 								Relinquish();
 								while( !NetworkLock( event_data->pc, 1 ) ) {
