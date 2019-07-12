@@ -1212,12 +1212,15 @@ int sack_iwrite( INDEX file_handle, CPOINTER buffer, int size )
 
 int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface *mount )
 {
+	int noMount = 0;
 	if( !mount )
 		mount = (*winfile_local).default_mount;
-	if( mount )
+	if( !mount )
+		noMount = 1;
+	while( mount || noMount )
 	{
 		int okay = 1;
-		if( mount->fsi )
+		if( !noMount && mount->fsi )
 		{
 			if( mount->fsi->exists( mount->psvInstance, filename ) )
 			{
@@ -1237,7 +1240,10 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 		}
 		if( !okay )
 			return !okay;
-		mount = mount->next;
+		if( !noMount )
+			mount = mount->next;
+		else
+			break;
 	}
 	return 0;
 }
