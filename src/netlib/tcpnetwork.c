@@ -1437,6 +1437,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					if( !(pc->dwFlags & CF_WRITEPENDING) )
 					{
 						pc->dwFlags |= CF_WRITEPENDING;
+#if 0
 #ifdef USE_WSA_EVENTS
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( "SET GLOBAL EVENT (write pending)" );
@@ -1445,6 +1446,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 #endif
 #ifdef __LINUX__
 						AddThreadEvent( pc, 0 );
+#endif
 #endif
 					}
 					return TRUE;
