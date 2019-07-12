@@ -1213,41 +1213,25 @@ int sack_iwrite( INDEX file_handle, CPOINTER buffer, int size )
 int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface *mount )
 {
 	if( !mount )
-		mount = (*winfile_local).mounted_file_systems;
-	while( mount )
+		mount = (*winfile_local).default_mount;
+	if( mount )
 	{
 		int okay = 1;
 		if( mount->fsi )
 		{
-#ifdef UNICODE
-			char *_filename = CStrDup( filename );
-#  define filename _filename
-#endif
 			if( mount->fsi->exists( mount->psvInstance, filename ) )
 			{
 				mount->fsi->_unlink( mount->psvInstance, filename );
 				okay = 0;
 			}
-#ifdef UNICODE
-			Deallocate( char *, _filename );
-#  undef filename
-#endif
 		}
 		else
 		{
 			TEXTSTR tmp = PrependBasePath( group, NULL, filename );
-#ifdef WIN32
+#ifdef _WIN32
 			okay = DeleteFile(tmp);
 #else
-#  ifdef UNICODE
-			char *_filename = CStrDup( filename );
-#    define filename _filename
-#  endif
 			okay = unlink( filename );
-#  ifdef UNICODE
-			Deallocate( char *, _filename );
-#    undef filename
-#  endif
 #endif
 			Deallocate( TEXTCHAR*, tmp );
 		}
