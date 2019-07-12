@@ -212,8 +212,13 @@ static int CPROC inflateBackOutput( void* state, unsigned char *output, unsigned
 void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length )
 {
 	size_t n;
+	//int oldstate = websock->input_msg_state;
 	for( n = 0; n < length; n++ )
 	{
+		//if( oldstate != websock->input_msg_state ) {
+		//	lprintf( "Process state: %d %d %d %d", websock->input_msg_state, n, length, websock->frame_length );
+		//	oldstate = websock->input_msg_state;
+		//}
 		switch( websock->input_msg_state )
 		{
 		case 0: // opcode/final
@@ -466,10 +471,11 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				// after processing any opcode (this is IN final, and length match) we're done, start next message
 				ResetInputState( websock );
 			} else if( websock->fragment_collection_length == websock->fragment_collection_avail ) {
-				//lprintf( "Completed packet; still not final fragment though.... %d", websock->fragment_collection_avail );
+				//lprintf( "Completed packet; still not final fragment though.... %d  %d", websock->fragment_collection_avail );
 				websock->input_msg_state = 0;
 				if( websock->on_fragment_done )
 					websock->on_fragment_done( pc, websock->psv_open, websock->input_type, (int)websock->fragment_collection_length );
+				//lprintf( "came back" );
 			}
 			break;
 		}
@@ -497,6 +503,7 @@ void WebSocketSendText( PCLIENT pc, const char *buffer, size_t length ) // UTF8 
 {
 	if( pc ) {
 		struct web_socket_input_state *input = (struct web_socket_input_state *)GetNetworkLong( pc, 1 );
+		if( !input ) return;
 		if( length > 8100 ) {
 			size_t sentLen;
 			size_t maxLen = length - 8100;
