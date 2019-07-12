@@ -1212,6 +1212,8 @@ int sack_iwrite( INDEX file_handle, CPOINTER buffer, int size )
 
 int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface *mount )
 {
+	if( !mount )
+		mount = (*winfile_local).mounted_file_systems;
 	while( mount )
 	{
 		int okay = 1;
