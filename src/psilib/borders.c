@@ -350,7 +350,7 @@ PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, uint32_t BorderType, CTEXTSTR 
 {
 	int result = 0;
 	if( !(BorderType & BORDER_NOCAPTION ) && 
-		( (pc && pc->DrawBorder) || caption ) )
+		( (pc && pc->DrawBorder) || caption || pc->DrawCaption ) )
 		result += CaptionHeight( pc, caption );
 
 	//if( !pf )
@@ -358,7 +358,7 @@ PSI_PROC( int, FrameBorderYOfs )( PSI_CONTROL pc, uint32_t BorderType, CTEXTSTR 
 	switch( BorderType & BORDER_TYPE )
 	{
 	case BORDER_NONE:
-		return 0;
+		return result;
 	case BORDER_NORMAL:
 		if( pc && pc->DrawBorder == DrawFancyFrame )
 		{
@@ -427,14 +427,14 @@ PSI_PROC( int, FrameBorderY )( PSI_CONTROL pc, uint32_t BorderType, CTEXTSTR cap
 {
 	int result = 0;
 	if( !(BorderType & BORDER_NOCAPTION ) && 
-		( ( pc && pc->DrawBorder ) || caption ) )
+		( ( pc && pc->DrawBorder ) || caption || pc->DrawCaption ) )
 		result += CaptionHeight( pc, caption );
 	//if( !pf )
 	//  return CaptionHeight( pf, NULL ) + 8;
 	switch( BorderType & BORDER_TYPE )
 	{
 	case BORDER_NONE:
-		return 0;
+		return result + 0;
 	case BORDER_NORMAL:
 		if( pc && pc->DrawBorder == DrawFancyFrame )
 		{
@@ -766,7 +766,10 @@ void DrawFrameCaption( PSI_CONTROL pc )
 	if( !pc ) return;
 	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) return;
 	if( pc->BorderType & BORDER_NOCAPTION ) return;
-	if( ( pc->BorderType & BORDER_TYPE ) == BORDER_NONE ) return;
+	if( (pc->BorderType & BORDER_TYPE) == BORDER_NONE ) {
+		if( !(pc->BorderType & BORDER_CAPTION ) )
+			return;
+	}
 	{
 		int h, w;
 		uint32_t button_left;
@@ -1147,13 +1150,14 @@ void CPROC SetDrawBorder( PSI_CONTROL pc )
 	//lprintf( "Oka so the caption will be draw..." );
 	if( !g.flags.always_draw )
 	{
-		if( pc->DrawBorder && pc->Window )
+		if( ( pc->DrawBorder || pc->DrawCaption ) && pc->Window )
 		{
 #ifdef DEBUG_BORDER_DRAWING
 			lprintf( "Calling drawing of the border" );
 #endif
 			ResetImageBuffers( pc->Window, TRUE );	
-			pc->DrawBorder( pc );
+			if( pc->DrawBorder )
+				pc->DrawBorder( pc );
 		}
 		if( pc->device )
 			DrawFrameCaption( pc );

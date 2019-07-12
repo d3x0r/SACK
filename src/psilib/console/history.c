@@ -456,7 +456,9 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 		PTEXT filler = SegCreate( (phc->output.nCursorX) - pCurrentLine->flags.nLineLength );
 		TEXTCHAR *data = GetText( filler );
 		int n;
+#ifdef DEBUG_OUTPUT
 		lprintf( "Cursor beyond line, creating filler segment up to X" );
+#endif
 		filler->format.flags.foreground = segment->format.flags.foreground;
 		filler->format.flags.background = segment->format.flags.background;
 		//Log1( "Make a filler segment %d charactes", phc->region->(phc->output.nCursorX) - pCurrentLine->nLineLength );
@@ -480,7 +482,9 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 
 		// so - split the line, result with current segment.
 		int32_t pos = 0;
+#ifdef DEBUG_OUTPUT
 		lprintf( "Okay insert/overwrite this segment on the display..." );
+#endif
 		text = pCurrentLine->pLine;
 		while( pos < (phc->output.nCursorX) && text )
 		{
@@ -1502,7 +1506,9 @@ int32_t GetBrowserDistance( PHISTORY_BROWSER phbr, SFTFont font )
 				, pHistory->pLines[n].pLine, font, FALSE );
 		}
 	}
+#ifdef DEBUG_OUTPUT
 	lprintf( "Browser is %" _size_f " lines from end...", nLines );
+#endif
 	return nLines;
 }
 
@@ -1742,8 +1748,9 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 			(*CurrentLineInfo)->Cnt = 0;
 		start = 0;
 		EnterCriticalSec( &phbr->cs );
-		//lprintf( "------------- Building Display Info Lines %d", nLineCount );
-		//lprintf( "nShown starts at %d", nShown );
+#ifdef DEBUG_OUTPUT
+			lprintf( "nShown starts at %d %d", nShown, pdlLeadin?pdlLeadin->nToShow:0 );
+#endif
 			while( ( nLineTop > 0 ) &&
 					 ( pText = EnumHistoryLine( phbr
 											  , &start
@@ -1775,6 +1782,9 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 					int nWrapped = 0;
 
 					nLines = CountLinesSpannedEx( phbr, pText, font, FALSE, pdlLeadin?pdlLeadin->nPixelEnd:0 );
+#ifdef DEBUG_OUTPUT
+					lprintf( "------------- Building Display Info Lines %d  offset %d", nLines, pdlLeadin ? pdlLeadin->nPixelEnd : 0 );
+#endif
 					if( pdlLeadin )
 						col_offset = pdlLeadin->nPixelEnd;  // if there's a leadin (command prompt) then use that to start.
 					else
@@ -1869,7 +1879,9 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 							{
 								trim_char = 0;
 								// nShow is now the number of characters we can show.
-								//lprintf( "Segment is %d", GetTextSize( pText ) );
+#ifdef DEBUG_OUTPUT
+								lprintf( "Segment is %d", GetTextSize( pText ) );
+#endif
 
 								nShow = ComputeToShow( phbr->nWidth, &col_offset, pText, nLen, nChar, nSegShown, phbr, font );
 								// in case we wrap 0 characters for columns less than a width of a character...
@@ -1885,7 +1897,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 									// or had a newline at the end which causes a wrap...
 									// log the line and get a new one.
 									pLastSetLine->nPixelEnd = col_offset;
-									pLastSetLine->nToShow = nShow - trim_char;
+									pLastSetLine->nToShow = nChar - trim_char;
 
 									if( ( nSegShown < nLen ) || ( trim_char ) )
 									{

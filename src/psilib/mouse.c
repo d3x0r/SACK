@@ -9,8 +9,8 @@
 //#define HOTSPOT_DEBUG
 //#define DEBUG_ADD_DELETEUSE
 //#define EDIT_MOUSE_DEBUG
-#define DETAILED_MOUSE_DEBUG
-#define SUPER_DETAILED_MOUSE_DEBUG
+//#define DETAILED_MOUSE_DEBUG
+//#define SUPER_DETAILED_MOUSE_DEBUG
 //#define DEBUG_MOUSE_SMUDGE
 //---------------------------------------------------------------------------
 PSI_NAMESPACE
@@ -949,10 +949,16 @@ static void UpdateCaption( PPHYSICAL_DEVICE pf, PSI_CONTROL pc )
 {
 	int y = FrameCaptionYOfs( pc, pc->BorderType );
 	DrawFrameCaption( pc );
-	UpdateDisplayPortion( pf->pActImg
-								, pc->surface_rect.x - 1, y
-								, pc->surface_rect.width + 2
-								, pc->surface_rect.y - y );
+	if( pc->surface_rect.x > 0 )
+		UpdateDisplayPortion( pf->pActImg
+									, pc->surface_rect.x - 1, y
+									, pc->surface_rect.width + 2
+									, pc->surface_rect.y - y );
+	else
+		UpdateDisplayPortion( pf->pActImg
+			, pc->surface_rect.x, y
+			, pc->surface_rect.width + 1
+			, pc->surface_rect.y - y );
 }
 
 
@@ -1030,6 +1036,8 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 				lprintf( "moving to %d,%d(%d,%d)", dx, dy, x - pf->drag_x, y - pf->drag_y );
 			}
 #endif
+			if( pc->Move )
+				pc->Move( pc, TRUE );
 			MoveDisplay( pf->pActImg, dx, dy );
 			if( pc->Move )
 				pc->Move( pc, FALSE );
