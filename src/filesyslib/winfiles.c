@@ -732,11 +732,11 @@ static void DecodeFopenOpts( struct file *file, CTEXTSTR opts ) {
 		if( op[0] == ' ' ) continue;
 
 		if( op[0] == 't' ) {
-         file->textmode = TM_UNKNOWN;
+			file->textmode = TM_UNKNOWN;
 		} else if( op[0] == 'b' ) {
-         file->textmode = TM_BINARY; // also the default.
+			file->textmode = TM_BINARY; // also the default.
 		} else if( op[0] == ',' ) {
-         const char *restore = op;
+			const char *restore = op;
 			op++;
 			while( op[0] == ' ' ) op++;
 			if( op[0] == 'c' ) op++; else { op = restore; continue; }
@@ -747,27 +747,27 @@ static void DecodeFopenOpts( struct file *file, CTEXTSTR opts ) {
 			while( op[0] == ' ' ) op++;
 			if( StrCaseCmpEx( op, "unicode", 7 ) == 0 ) {
 				file->textmode = TM_UTF16LE;
-            op += 6; // minus 1, becuase for loop will increment.
+				op += 6; // minus 1, becuase for loop will increment.
 			}
 			else if( StrCaseCmpEx( op, "utf-16le", 8 ) == 0 ) {
 				file->textmode = TM_UTF16LE;
-            op += 7; // minus 1, becuase for loop will increment.
+				op += 7; // minus 1, becuase for loop will increment.
 			}
 			else if( ( StrCaseCmpEx( op, "utf-8", 5 ) == 0 ) ) {
 				file->textmode = TM_UTF8;
-            op += 4; // minus 1, becuase for loop will increment.
+				op += 4; // minus 1, becuase for loop will increment.
 			}
 			else if( ( StrCaseCmpEx( op, "utf-16be", 8 ) == 0 ) ) {
 				file->textmode = TM_UTF16BE;
-            op += 7; // minus 1, becuase for loop will increment.
+				op += 7; // minus 1, becuase for loop will increment.
 			}
 			else if( ( StrCaseCmpEx( op, "utf-32le", 8 ) == 0 ) ) {
 				file->textmode = TM_UTF32LE;
-            op += 7; // minus 1, becuase for loop will increment.
+				op += 7; // minus 1, becuase for loop will increment.
 			}
 			else if( ( StrCaseCmpEx( op, "utf-32be", 8 ) == 0 ) ) {
 				file->textmode = TM_UTF32BE;
-            op += 7; // minus 1, becuase for loop will increment.
+				op += 7; // minus 1, becuase for loop will increment.
 			}
 		}
 	}
@@ -1601,7 +1601,7 @@ FILE*  sack_fsopenEx( INDEX group
 	{
 		struct Group *filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 		file = New( struct file );
-      DecodeFopenOpts( file, opts );
+		DecodeFopenOpts( file, opts );
 		file->handles = NULL;
 		file->files = NULL;
 		file->name = StrDup( filename );
@@ -2124,6 +2124,12 @@ uint32_t GetFileTimeAndSize( CTEXTSTR name
 #  endif
 	if( hFile >= 0 )
 	{
+		struct stat statbuf;
+		fstat( hFile, &statbuf );
+		lpCreationTime[0] = statbuf.st_time;
+		lpLastAccessTime[0] =  statbuf.st_atime;
+		lpLastWriteTime[0] = statbuf.st_mtime;
+		//convert( &realtime, (time_t*)&statbuf.st_mtime );
 		size = lseek( hFile, 0, SEEK_END );
 		close( hFile );
 		return size;
