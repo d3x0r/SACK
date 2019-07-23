@@ -6,9 +6,7 @@
 #include <logging.h>
 #include <time.h>
 #ifdef __LINUX__
-#include <sys/time.h>
 #include <sys/stat.h>
-//#include <linux/time.h> // struct tz
 #endif
 //-----------------------------------------------------------------------
 
@@ -156,8 +154,8 @@ uint64_t GetTimeAsFileTime ( void )
 	}
 	return 0;
 #else
-	struct stat statbuf;
-	 uint64_t realtime;
+		struct stat statbuf;
+		uint64_t realtime;
 #ifdef UNICODE
 	{
 		char *tmpname = CStrDup( tmppath );

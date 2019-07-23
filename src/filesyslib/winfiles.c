@@ -35,6 +35,7 @@
 
 #else
 #  include <dirent.h> // opendir etc..
+#  include <sys/types.h>
 #  include <sys/stat.h>
 #  ifndef MAX_PATH_NAME
 #    define MAX_PATH_NAME PATH_MAX
@@ -2126,7 +2127,7 @@ uint32_t GetFileTimeAndSize( CTEXTSTR name
 	{
 		struct stat statbuf;
 		fstat( hFile, &statbuf );
-		lpCreationTime[0] = statbuf.st_time;
+		lpCreationTime[0] = statbuf.st_ctime;
 		lpLastAccessTime[0] =  statbuf.st_atime;
 		lpLastWriteTime[0] = statbuf.st_mtime;
 		//convert( &realtime, (time_t*)&statbuf.st_mtime );
