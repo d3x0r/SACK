@@ -1,8 +1,9 @@
+
+
 #define _POSIX_C_SOURCE  199309L
 //#include <windows.h>
 #include <stdhdrs.h>
 
-#ifdef __LINUX__
 // fcntl, open
 //#include <unistd.h>
 //#define _ASM_GENERIC_FCNTL_H
@@ -10,10 +11,6 @@
 //#undef __USE_GNU
 //#include <linux/fcntl.h>
 #include <fcntl.h>
-#ifndef __QNX__
-#include <sys/inotify.h>
-#endif
-#endif
 
 #include <time.h>
 #include <sys/stat.h>
@@ -37,6 +34,11 @@
 #define DO_LOGGING
 #include <logging.h>
 
+#ifdef __LINUX__
+
+#ifndef __QNX__
+#include <sys/inotify.h>
+#endif
 
 #define INVALID_HANDLE_VALUE -1
 #define SCAN_DELAY 1500
@@ -260,3 +262,4 @@ FILEMONITOR_PROC( PMONITOR, MonitorFiles )( CTEXTSTR dirname, int scan_delay )
 
 FILEMON_NAMESPACE_END
 
+#endif

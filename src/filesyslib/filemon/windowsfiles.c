@@ -1,3 +1,5 @@
+#ifdef _WIN32
+
 #include <stdhdrs.h>
 #include <time.h> // gmtime
 // --- unix like files --
@@ -261,8 +263,8 @@ static void ReadChanges( PMONITOR monitor )
 					dwOffset += pni->NextEntryOffset;
 				if( l.flags.bLog )
 				{
-					LogBinary( pni, sizeof( (*pni ) ) );
-					LogBinary( pni->FileName, 64 );
+					LogBinary( (const uint8_t*)pni, sizeof( (*pni ) ) );
+					LogBinary( (const uint8_t*)pni->FileName, 64 );
 				}
 				a_name = DupWideToText( dupname );
 
@@ -518,14 +520,14 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 				rebuild_events = TRUE;
 				if( l.flags.bLog )
 				{
-					LogBinary( this_thread.event_list->data, this_thread.nEvents * sizeof( HANDLE ));
+					LogBinary( (const uint8_t*)this_thread.event_list->data, this_thread.nEvents * sizeof( HANDLE ));
 					lprintf( "Wait failed on %d... %d", this_thread.nEvents, GetLastError() );
 				}
 				continue;
 			}
 			if( l.flags.bLog )
 			{
-				LogBinary( this_thread.event_list->data, this_thread.nEvents * sizeof( HANDLE ));
+				LogBinary( (const uint8_t*)this_thread.event_list->data, this_thread.nEvents * sizeof( HANDLE ));
 				lprintf( "Wait failed on %d... %d", this_thread.nEvents, GetLastError() );
 			}
 			break;
@@ -676,3 +678,4 @@ FILEMONITOR_PROC( PMONITOR, MonitorFiles )( CTEXTSTR directory, int scan_delay )
 
 FILEMON_NAMESPACE_END
 
+#endif
