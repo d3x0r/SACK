@@ -55,9 +55,9 @@ static void Init( void )
 	if( !l.flags.bInit )
 	{
 #ifndef __NO_OPTIONS__
-      l.flags.bLog = SACK_GetProfileIntEx( "SACK/File Monitor", "Enable Logging", 0, TRUE );
+		l.flags.bLog = SACK_GetProfileIntEx( "SACK/File Monitor", "Enable Logging", 0, TRUE );
 #endif
-      l.flags.bInit = 1;
+		l.flags.bInit = 1;
 	}
 }
 
@@ -70,17 +70,17 @@ int CPROC CompareName( uintptr_t psv1, uintptr_t psv2 )
 {
 	CTEXTSTR s1 = (CTEXTSTR)psv1;
 	CTEXTSTR s2 = (CTEXTSTR)psv2;
-   return StrCmp( s1, s2 );
+	return StrCmp( s1, s2 );
 }
 
 //-------------------------------------------------------------------------
 
 void CloseFileMonitor( PCHANGEHANDLER Change, PFILEMON filemon )
 {
-    if( !Change || !filemon )
-        return;
+	if( !Change || !filemon )
+		return;
 	//Log1( "Closing %p", filemon );
-    RemoveBinaryNode( Change->filelist, (POINTER)filemon, (uintptr_t)filemon->filename );
+	RemoveBinaryNode( Change->filelist, (POINTER)filemon, (uintptr_t)filemon->filename );
 	//DeleteLink( &Change->filelist, filemon );
 	if( Change->currentchange == filemon )
 		Change->currentchange = NULL;
@@ -105,8 +105,8 @@ void CloseFileMonitors( PMONITOR monitor )
 		Change->currentchange = NULL;
 		DeleteLinkQueue( &Change->PendingChanges );
 		DestroyBinaryTree( Change->filelist );
-      Change->filelist = NULL;
-      //DeleteList( &Change->filelist );
+		Change->filelist = NULL;
+		//DeleteList( &Change->filelist );
 	}
 	if( l.flags.bLog ) Log( "Closed all" );
 }
@@ -157,7 +157,7 @@ PFILEMON WatchingFile( PCHANGEHANDLER monitor, CTEXTSTR name )
 	if( name[0] == '.' && ( strcmp( name, "." ) == 0 ||
 		strcmp( name, ".." ) == 0 ) )
 	{
-      if( l.flags.bLog ) Log1( "%s is a root file path", name );
+		if( l.flags.bLog ) Log1( "%s is a root file path", name );
 		return (PFILEMON)2; // claim we already know about these  - stops actual updates
 	}
 	filemon = (PFILEMON)FindInBinaryTree( monitor->filelist, (uintptr_t)name );
@@ -261,7 +261,7 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 	// losing the very last change announcement... but
 	// even then ... blah it'll all be good... the clock
 	// mechanism may get extra wait states, but the notice will
-   // be moved forward...
+	// be moved forward...
 	if( filemon->flags.bPending )
 	{
 		if( l.flags.bLog ) lprintf( "%s Already pending.... do not scan yet.", filemon->name );
@@ -352,7 +352,7 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 	{
 		//Log(" File didn't change - but it did before..." );
 		if( l.flags.bLog ) Log1( "Enque (pend) filemon for a change...%s", filemon->name );
-      filemon->flags.bPending = 1;
+		filemon->flags.bPending = 1;
 		EnqueLink( &Change->PendingChanges, filemon );
 	}
 	return 0;
@@ -366,7 +366,7 @@ static void ScanMonitorFiles( PMONITOR monitor )
 	PCHANGEHANDLER Change;
 	for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 	{
-      PFILEMON filemon;
+		PFILEMON filemon;
 		for( filemon = (PFILEMON)GetLeastNode( Change->filelist )
 			 ; filemon
 			  ; filemon = (PFILEMON)GetGreaterNode( Change->filelist ) )
@@ -411,7 +411,7 @@ FILEMONITOR_PROC( void, MonitorForgetAll )( PMONITOR monitor )
 	for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 	{
 		DoForgetAll( Change );
-      // okay also if there are sub_monitors make sure they forget everything too.
+		// okay also if there are sub_monitors make sure they forget everything too.
 		if( monitor->monitors )
 		{
 			INDEX idx;
@@ -472,7 +472,7 @@ static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 {
 	if( IsThisThread( l.timer_thread ) )
 	{
-      uint32_t now = timeGetTime();
+		uint32_t now = timeGetTime();
 		int changed = 0;
 		PCHANGEHANDLER Change;
 		if( monitor->flags.bClosing )
@@ -487,8 +487,8 @@ static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 				if( Change->currentchange->ScannedAt > now )
 				{
 					PrequeLink( &Change->PendingChanges, Change->currentchange );
-               Change->currentchange = NULL;
-               break;
+					Change->currentchange = NULL;
+					break;
 				}
 				changed++;
 				Change->currentchange->ScannedAt = 0;
@@ -652,7 +652,7 @@ void DoScan( PMONITOR monitor )
 			}
 			// there are sub-monitors which might actually be the ones scanning.
 		}
-   }
+	}
 }
 
 //-------------------------------------------------------------------------
@@ -728,9 +728,9 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddExtendedFileChangeCallback )( PMONITOR moni
 //-------------------------------------------------------------------------
 
 FILEMONITOR_PROC( PCHANGEHANDLER, AddFileChangeCallback )( PMONITOR monitor
-															, CTEXTSTR mask
-															 , CHANGEHANDLER HandleChange
-															 , uintptr_t psv )
+                                                         , CTEXTSTR mask
+                                              , CHANGEHANDLER HandleChange
+                                              , uintptr_t psv )
 {
 	if( l.flags.bLog )
 		lprintf("add change handler is %p %p", monitor, mask );
@@ -744,8 +744,8 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddFileChangeCallback )( PMONITOR monitor
 		Change->currentchange  = NULL;
 		Change->PendingChanges = NULL;
 		Change->filelist       = CreateBinaryTreeExtended( BT_OPT_NODUPLICATES
-																		 , CompareName
-																		 , NULL
+		                                                 , CompareName
+		                                                 , NULL
                                                        DBG_SRC
                                                        );
 		Change->psv            = psv;

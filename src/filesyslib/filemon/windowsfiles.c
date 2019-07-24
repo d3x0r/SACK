@@ -151,11 +151,11 @@ static void ClearThreadEvents( struct peer_thread_info *info )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
 	{
-      EmptyList( &peer->monitor_list );
+		EmptyList( &peer->monitor_list );
 		EmptyDataList( &peer->event_list );
 		SetLink( &peer->monitor_list, 0, (POINTER)1 ); // has to be a non zero value.  monitor is not referenced for wait event 0
 		SetDataItem( &peer->event_list, 0, peer->phMyThread );
-      peer->nEvents = 1;
+		peer->nEvents = 1;
 	}
 	{
 		PMONITOR monitor;
@@ -175,8 +175,8 @@ static void ClearThreadEvents( struct peer_thread_info *info )
 
 static void AddThreadEvent( PMONITOR monitor, struct peer_thread_info *info )
 {
-   struct peer_thread_info *first_peer;
-   struct peer_thread_info *last_peer;
+	struct peer_thread_info *first_peer;
+	struct peer_thread_info *last_peer;
 	struct peer_thread_info *peer;
 
 	if( monitor->flags.bRemoveFromEvents )
@@ -195,7 +195,7 @@ static void AddThreadEvent( PMONITOR monitor, struct peer_thread_info *info )
 		while( !last_peer->child_peer )
 			Relinquish();
 		last_peer = last_peer->child_peer;
-      peer = last_peer; // since we needed to create some more monitor space; this is where we should add this monitor;
+		peer = last_peer; // since we needed to create some more monitor space; this is where we should add this monitor;
 	}
 
 
@@ -222,25 +222,25 @@ static void ReadChanges( PMONITOR monitor )
 	static uint8_t buffer[4096];
 	DWORD dwResultSize;
 
-   if( l.flags.bLog )
+	if( l.flags.bLog )
 		lprintf( "Begin getting changes on %p (%d)", monitor, monitor->hChange );
 
 	if( ReadDirectoryChangesW( monitor->hChange
-									, buffer
-									, sizeof( buffer )
-									, monitor->flags.bRecurseSubdirs
-									, FILE_NOTIFY_CHANGE_FILE_NAME
-									 | FILE_NOTIFY_CHANGE_DIR_NAME
-									 | FILE_NOTIFY_CHANGE_ATTRIBUTES
-									 | FILE_NOTIFY_CHANGE_SIZE
-									 | FILE_NOTIFY_CHANGE_LAST_WRITE
-									 | FILE_NOTIFY_CHANGE_LAST_ACCESS
-									 | FILE_NOTIFY_CHANGE_CREATION
-									 | FILE_NOTIFY_CHANGE_SECURITY
-									, &dwResultSize
-									, NULL
-									, NULL ) 
-									)
+	                        , buffer
+	                        , sizeof( buffer )
+	                        , monitor->flags.bRecurseSubdirs
+	                        , FILE_NOTIFY_CHANGE_FILE_NAME
+	                         | FILE_NOTIFY_CHANGE_DIR_NAME
+	                         | FILE_NOTIFY_CHANGE_ATTRIBUTES
+	                         | FILE_NOTIFY_CHANGE_SIZE
+	                         | FILE_NOTIFY_CHANGE_LAST_WRITE
+	                         | FILE_NOTIFY_CHANGE_LAST_ACCESS
+	                         | FILE_NOTIFY_CHANGE_CREATION
+	                         | FILE_NOTIFY_CHANGE_SECURITY
+	                        , &dwResultSize
+	                        , NULL
+	                        , NULL ) 
+	                        )
 	{
 		if( dwResultSize )
 		{
@@ -249,11 +249,11 @@ static void ReadChanges( PMONITOR monitor )
 			DWORD dwOffset = 0;
 			do
 			{
-            wchar_t *dupname;
+				wchar_t *dupname;
 				CTEXTSTR a_name;
 				pni = (PFILE_NOTIFY_INFORMATION)(buffer + dwOffset );
 				dupname = NewArray( wchar_t, ( pni->FileNameLength + sizeof( wchar_t ) ) / sizeof( wchar_t ) );
-            MemCpy( dupname, pni->FileName, pni->FileNameLength );
+				MemCpy( dupname, pni->FileName, pni->FileNameLength );
 				dupname[pni->FileNameLength/2] = '\0';
 				if( l.flags.bLog )
 					lprintf( "offset %d, next %d", dwOffset, pni->NextEntryOffset );
@@ -314,7 +314,7 @@ static void ReadChanges( PMONITOR monitor )
 											  , FALSE ) )
 							{
 								PFILEMON filemon = WatchingFile( Change, a_name );
-                        // deleted file that we're not watching already?
+								// deleted file that we're not watching already?
 								if( filemon )
 								{
 									filemon->flags.bToDelete = 1;
@@ -369,9 +369,9 @@ static void ReadChanges( PMONITOR monitor )
 					break;
 				}
 #ifndef _UNICODE
-            Deallocate( CTEXTSTR, a_name );
+				Deallocate( CTEXTSTR, a_name );
 #endif
-            Deallocate( wchar_t *, dupname );
+				Deallocate( wchar_t *, dupname );
 			}
 			while( dwOffset != (DWORD)INVALID_INDEX );
 		}
@@ -414,7 +414,7 @@ static void WakePeers( struct peer_thread_info *info )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
 	{
-      if( peer->hNextThread != INVALID_HANDLE_VALUE )
+		if( peer->hNextThread != INVALID_HANDLE_VALUE )
 			SetEvent( peer->hNextThread );
 	}
 }
@@ -467,13 +467,13 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 
 			ClearThreadEvents( &this_thread );
 
-         // this is the routine 'buildthreadevents'
+			// this is the routine 'buildthreadevents'
 			//lprintf( "...%p %p %p", peer_thread, peer_thread?peer_thread->resume_from:NULL, next_monitor );
 			//lprintf( "first monitor is %p", next_monitor );
 			for( monitor = Monitors; monitor; monitor = NextThing( monitor ) )
 			{
-            PMONITOR sub_monitor;
-            INDEX idx;
+				PMONITOR sub_monitor;
+				INDEX idx;
 				AddThreadEvent( monitor, &this_thread );
 
 				LIST_FORALL( monitor->monitors, idx, PMONITOR, sub_monitor )
@@ -507,7 +507,7 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 		{
 			if( l.flags.bLog )
 				lprintf( "Work on %ld but peer is building my lists, so I can't use them", dwResult );
-         continue;
+			continue;
 		}
 
 		if( l.flags.bLog )
@@ -552,7 +552,7 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 				rebuild_events = TRUE;
 			}
 			else
-            lprintf( "Nevermind, we're nto the root thread." );
+				lprintf( "Nevermind, we're nto the root thread." );
 		}
 		else if( dwResult >= (WAIT_OBJECT_0+1) && dwResult <= (WAIT_OBJECT_0+this_thread.nEvents ) )
 		{
@@ -628,12 +628,17 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 	monitor->flags.bPendingScan = 1;
 	monitor->flags.bRecurseSubdirs = (flags&SFF_SUBCURSE)?TRUE:FALSE;
 	monitor->hChange = FindFirstChangeNotification( monitor->directory
-																 , monitor->flags.bRecurseSubdirs
-																 , FILE_NOTIFY_CHANGE_FILE_NAME
-																  | FILE_NOTIFY_CHANGE_DIR_NAME
-																  | FILE_NOTIFY_CHANGE_SIZE
-																  | FILE_NOTIFY_CHANGE_LAST_WRITE
-																 );
+	                                              , monitor->flags.bRecurseSubdirs
+	                                              , FILE_NOTIFY_CHANGE_FILE_NAME
+	                                               | FILE_NOTIFY_CHANGE_DIR_NAME
+	                                               | FILE_NOTIFY_CHANGE_SIZE
+	                                               | FILE_NOTIFY_CHANGE_LAST_WRITE
+	                                               | FILE_NOTIFY_CHANGE_ATTRIBUTES
+	                                               | FILE_NOTIFY_CHANGE_SIZE
+	                                               | FILE_NOTIFY_CHANGE_LAST_WRITE
+	                                               | FILE_NOTIFY_CHANGE_CREATION
+	                                               | FILE_NOTIFY_CHANGE_SECURITY
+	                                              );
 
 	if( l.flags.bLog ) lprintf( "Opened handle %d on %s", monitor->hChange, monitor->directory );
 	if( monitor->hChange == INVALID_HANDLE_VALUE )
@@ -652,11 +657,11 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 		l.directory_monitor_thread = ThreadTo( MonitorFileThread, (uintptr_t)0 );
 	}
 
-   // wait for thread to finish initialization
+	// wait for thread to finish initialization
 	while( !l.hMonitorThreadControlEvent )
 		Relinquish();
 
-   // This could be added boefre the thread is ready; but then we're not guaranteed that this will be in the list of objects to wait on
+	// This could be added boefre the thread is ready; but then we're not guaranteed that this will be in the list of objects to wait on
 	LinkLast( Monitors, PMONITOR, monitor );
 
 	if( l.flags.bLog )
@@ -672,7 +677,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 
 FILEMONITOR_PROC( PMONITOR, MonitorFiles )( CTEXTSTR directory, int scan_delay )
 {
-   return MonitorFilesEx( directory, scan_delay, 0 );
+	return MonitorFilesEx( directory, scan_delay, 0 );
 }
 
 
