@@ -2127,9 +2127,12 @@ uint32_t GetFileTimeAndSize( CTEXTSTR name
 	{
 		struct stat statbuf;
 		fstat( hFile, &statbuf );
-		lpCreationTime[0] = statbuf.st_ctime;
-		lpLastAccessTime[0] =  statbuf.st_atime;
-		lpLastWriteTime[0] = statbuf.st_mtime;
+		if( lpCreationTime )
+			lpCreationTime[0] = statbuf.st_ctime;
+		if( lpLastAccessTime )
+			lpLastAccessTime[0] =  statbuf.st_atime;
+		if( lpLastWriteTime )
+			lpLastWriteTime[0] = statbuf.st_mtime;
 		//convert( &realtime, (time_t*)&statbuf.st_mtime );
 		size = lseek( hFile, 0, SEEK_END );
 		close( hFile );
