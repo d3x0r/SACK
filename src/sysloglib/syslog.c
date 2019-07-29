@@ -1669,7 +1669,7 @@ static struct next_lprint_info *GetNextInfo( void )
 		TlsSetValue( (*syslog_local).next_lprintf_tls, next = (struct next_lprint_info*)malloc( sizeof( struct next_lprint_info ) ) );
 #  elif defined( __LINUX__ )
 	if( !( next = (struct next_lprint_info*)pthread_getspecific( (*syslog_local).next_lprintf_tls ) ) )
-		pthread_setspecific( (*syslog_local).next_lprintf_tls, next = New( struct next_lprint_info ) );
+		pthread_setspecific( (*syslog_local).next_lprintf_tls, next = (struct next_lprint_info*)malloc( sizeof( struct next_lprint_info ) ) );
 #  endif
 #else
 #  if defined( WIN32 )
