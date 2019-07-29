@@ -49,19 +49,21 @@ FILEMON_NAMESPACE
 
 //-------------------------------------------------------------------------
 
-void ScanDirectory( PMONITOR monitor )
+void ScanDirectory( PMONITOR monitor, PCHANGECALLBACK Change )
 {
     DIR *dir;
     dir = opendir( monitor->directory );
     if( dir )
     {
-        struct dirent *dirent;
-        while( ( dirent = readdir( dir ) ) )
-        {
-				PCHANGECALLBACK Change;
+		 struct dirent *dirent;
+		 if( monitor->flags.bLogFilesFound )
+			 lprintf( "DIR OPEN" );
+		 while( ( dirent = readdir( dir ) ) )
+		 {
+				//PCHANGECALLBACK Change;
 				if( monitor->flags.bLogFilesFound )
 					Log1( "Found file %s", dirent->d_name );
-				for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
+				//for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 				{
 					if( !Change->mask ||
                    CompareMask( Change->mask
@@ -73,7 +75,8 @@ void ScanDirectory( PMONITOR monitor )
 				}
         }
         closedir( dir );
-    }
+	 } else
+		 lprintf( "Fatality; failed to open directory %d %s", errno, monitor->directory );
     return;
 }
 
@@ -94,12 +97,14 @@ PMONITOR CreateMonitor( int fdMon, char *directory )
     MemSet( monitor, 0, sizeof( MONITOR ) );
     monitor->fdMon = fdMon;
 	 strcpy( monitor->directory, directory );
+    monitor->flags.bLogFilesFound  = 0;
+    monitor->flags.bIntelligentUpdates = 1;
  //   strcpy( monitor->mask, mask );
     monitor->next = Monitors;
     if( Monitors )
         Monitors->me = &monitor->next;
     monitor->me = &Monitors;
-    Monitors = monitor;
+	 Monitors = monitor;
     return monitor;
 }
 
@@ -177,24 +182,90 @@ static void handler( int sig, siginfo_t *si, void *data )
 
 void CPROC NewScanTimer( uintptr_t unused )
 {
-	
-        PMONITOR cur = Monitors;
-        for( cur = Monitors; cur; cur = cur->next )
-        {
+
+	PMONITOR monitor = (PMONITOR)unused;//  Monitors;
+					 //for( cur = Monitors; cur; cur = cur->next )
+   while( 1 )
+	{
 		static uint8_t buf[4096];
 		struct inotify_event *event;
-		int len;	
-
-		while( ( len = read( cur->fdMon, &buf, sizeof( buf ) ) ) > 0 )
+		int len;
+      int used;
+      //lprintf( "new scan timer." );
+		while( ( len = read( monitor->fdMon, &buf, sizeof( buf ) ) ) > 0 )
 		{
-			event = (struct inotify_event*)buf;
+			PFILEMON filemon;
+			for( used = 0; used < len; used += sizeof( struct inotify_event ) + event->len ) {
+				PCHANGEHANDLER Change;
+				event = (struct inotify_event*)buf;
+				//lprintf( "Events: %d %d %08x (%d)%s", len, used, event->mask, event->len, event->name );
 
-                        //event->wd;
-			//event->name;
-			 if( !cur->DoScanTime )
-				 cur->DoScanTime = GetTickCount() - 1;
+				if( event->len ) {
+
+
+					for( Change = monitor->ChangeHandlers; Change; Change = Change->next ) {
+						filemon = (PFILEMON)FindInBinaryTree( Change->filelist, (uintptr_t)event->name );
+						if( filemon )
+							break;
+					}
+
+
+				}
+				if( filemon ) {
+               int updated = 1;
+					if( event->mask & IN_CREATE ) {
+                  //lprintf( "Creating event, adding file" );
+						AddMonitoredFile( Change, event->name );
+                  continue;
+					}
+					if( event->mask & IN_ACCESS )
+						updated = 0;;
+					if( event->mask & IN_ATTRIB ){
+                  updated = 1;
+					}
+					if( event->mask & IN_CLOSE_WRITE );
+					if( event->mask & IN_CLOSE_NOWRITE )
+						updated = 0;
+					if( event->mask & IN_DELETE ) {
+						//lprintf( "Deletion event" );
+						filemon->flags.bToDelete = 1;
+					}
+					if( event->mask & IN_DELETE_SELF );
+					if( event->mask & IN_MODIFY );
+					if( event->mask & IN_MOVE_SELF );
+					if( event->mask & IN_MOVED_FROM );
+					if( event->mask & IN_MOVED_TO );
+					if( event->mask & IN_OPEN ) {
+						updated = 0;
+					}
+
+														 //event->wd;
+														 //event->name;
+					if( updated ) {
+						if( !filemon->flags.bPending ) {
+                     filemon->flags.bPending = TRUE;
+							EnqueLink( &Change->PendingChanges, filemon );
+						}
+						if( !monitor->DoScanTime ) {
+							monitor->DoScanTime =
+								filemon->ScannedAt = timeGetTime() + monitor->scan_delay;
+						}
+						if( monitor->parent_monitor )
+							monitor->parent_monitor->DoScanTime = monitor->DoScanTime;
+                  //lprintf( "Set pending scan %p", monitor );
+						monitor->flags.bPendingScan = 1;
+					}
+					filemon->flags.bScanned = 0;
+				}
+			}
 		}
-        }
+	}
+}
+
+
+uintptr_t threadScanTimer( PTHREAD thread ) {
+	NewScanTimer( GetThreadParam( thread ) );
+   return 0;
 }
 
 //-------------------------------------------------------------------------
@@ -218,7 +289,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 
 	{
 		int fdMon;
-		Log2( "Attempting to monitor:(%d) %s", getpid(), dirname );
+		//Log2( "Attempting to monitor:(%d) %s", getpid(), dirname );
 	// if I include <fcntl.h> then <linux/fcntl.h> is broken
 	// or vice-versa.  Please suffer with no definition on these lines.
 #if 0
@@ -227,7 +298,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 #ifndef __QNX__
 		fdMon = inotify_init();
 #endif
-		fcntl(fdMon, F_SETFL, O_NONBLOCK); 
+		//fcntl(fdMon, F_SETFL, O_NONBLOCK);
 #endif
 		if( fdMon >= 0 )
 		{
@@ -238,15 +309,16 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 #else
 #ifndef __QNX__
          // this should work for QNX (qnx car?)
-			inotify_add_watch( fdMon, dirname, IN_ALL_EVENTS );
+			inotify_add_watch( fdMon, dirname, IN_ALL_EVENTS & ~(IN_OPEN|IN_CLOSE_NOWRITE) );
 #endif
 #endif
 			monitor = CreateMonitor( fdMon, (char*)dirname );
 			Monitoring = 1;
 			//monitor->Client = Client;
 			monitor->DoScanTime = GetTickCount() - 1; // do first scan NOW
+         ThreadTo( threadScanTimer, (uintptr_t)monitor );
 			monitor->timer = AddTimerEx( 0, SCAN_DELAY/2, (void(*)(uintptr_t))ScanTimer, (uintptr_t)monitor );
-			Log2( "Created timer: %" _32f " Monitor handle: %d", monitor->timer, monitor->fdMon );
+			//Log2( "Created timer: %" _32f " Monitor handle: %d", monitor->timer, monitor->fdMon );
 			return monitor;
 		}
 		else

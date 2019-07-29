@@ -134,7 +134,7 @@ void CPROC ScanTimer( uintptr_t monitor );
 
 PFILEMON NewFile( PCHANGEHANDLER, CTEXTSTR name );
 void CloseFileMonitors( PMONITOR monitor );
-void ScanDirectory( PMONITOR monitor );
+void ScanDirectory( PMONITOR monitor, PCHANGECALLBACK Change );
 PFILEMON WatchingFile( PCHANGEHANDLER monitor, CTEXTSTR name );
 
 FILEMON_NAMESPACE_END

@@ -2114,15 +2114,8 @@ uint32_t GetFileTimeAndSize( CTEXTSTR name
 {
 	uint32_t size;
 #ifdef __LINUX__
-#  ifdef UNICODE
-	char *tmpname = CStrDup( name );
-	int hFile = open( tmpname,		  // open MYFILE.TXT
-						  O_RDONLY );			 // open for reading
-	Deallocate( char*, tmpname );
-#  else
 	int hFile = open( name,		  // open MYFILE.TXT
 						  O_RDONLY );			 // open for reading
-#  endif
 	if( hFile >= 0 )
 	{
 		struct stat statbuf;

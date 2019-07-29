@@ -57,6 +57,7 @@ static void Init( void )
 #ifndef __NO_OPTIONS__
 		l.flags.bLog = SACK_GetProfileIntEx( "SACK/File Monitor", "Enable Logging", 0, TRUE );
 #endif
+		//l.flags.bLog = 1;
 		l.flags.bInit = 1;
 	}
 }
@@ -157,13 +158,13 @@ PFILEMON WatchingFile( PCHANGEHANDLER monitor, CTEXTSTR name )
 	if( name[0] == '.' && ( strcmp( name, "." ) == 0 ||
 		strcmp( name, ".." ) == 0 ) )
 	{
-		if( l.flags.bLog ) Log1( "%s is a root file path", name );
+		//if( l.flags.bLog ) Log1( "%s is a root file path", name );
 		return (PFILEMON)2; // claim we already know about these  - stops actual updates
 	}
 	filemon = (PFILEMON)FindInBinaryTree( monitor->filelist, (uintptr_t)name );
 	if( !filemon && IsDirectory( name ) )
 	{
-		if( l.flags.bLog ) Log1( "%s is a directory - probably skipping..", name );
+		//if( l.flags.bLog ) Log1( "%s is a directory - probably skipping..", name );
 		return (PFILEMON)1;
 	}
 	return filemon;
@@ -177,7 +178,8 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 	{
 		PFILEMON newfile;
 		PMONITOR monitor = Change->monitor;
-		//uint64_t tick = GetCPUTick();
+							  //uint64_t tick = GetCPUTick();
+		if( l.flags.bLog ) lprintf( "Watch file: %s", name );
 		if( !(newfile=WatchingFile( Change, name ) ) )
 		{
 			size_t pos;
@@ -221,6 +223,7 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 		if( newfile != (PFILEMON)1 && // iS NOT a directory name
 			newfile != (PFILEMON)2 )  // iS NOT . or .. directories
 		{
+         if( l.flags.bLog ) lprintf( "SET MONITOR SCAN" );
 			monitor->DoScanTime =
 				newfile->ScannedAt = timeGetTime() + monitor->scan_delay;
 			if( monitor->parent_monitor )
@@ -242,14 +245,10 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 {
 	PCHANGEHANDLER Change = (PCHANGEHANDLER)psv;
 	PFILEMON filemon = (PFILEMON)(*item);
-#ifdef __cplusplus_cli
-	uint64_t dwSize, dwBigSize;
-#else
 	uint32_t dwSize;
 #ifdef WIN32
 #else
 	struct stat statbuf;
-#endif
 #endif
 	// if this file is already pending a change
 	// do not re-enque... if it's changing THIS often
@@ -269,50 +268,31 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 	}
 	if( !filemon->flags.bScanned )
 	{
-#ifdef __cplusplus_cli
-		System::DateTime lastmodified;
-		System::String ^filemonname = gcnew System::String( filemon->name );
-		System::IO::FileInfo ^info= gcnew System::IO::FileInfo( filemonname );
-		//dwSize == System::IO::FileInfo::Length::get();
-#else
 		FILETIME lastmodified;
-#endif
 		filemon->flags.bScanned = TRUE;
 		if( filemon->flags.bDirectory )
 			dwSize = 0xFFFFFFFF;
 		else
 		{
-#ifdef __cplusplus_cli
-			dwSize = info->Length;
-#else
 			dwSize = GetFileTimeAndSize( filemon->name, NULL, NULL, &lastmodified, NULL );
-#endif
 		}
-		//lprintf( "File change stats: %s(%s) %lu %lu, %lu %lu, %s"
-		//		 , filemon->name
-		//		 , filemon->filename
-		//		 , dwSize
-		//		 , filemon->lastknownsize
-		 //  	 , statbuf.st_mtime, filemon->lastmodifiedtime
-		 //  	 , filemon->flags.bToDelete?"delete":"" );
+		lprintf( "File change stats: %s(%s) %lu %lu, %lu %lu, %s"
+				 , filemon->name
+				 , filemon->filename
+				 , dwSize
+				 , filemon->lastknownsize
+		  	 , statbuf.st_mtime, filemon->lastmodifiedtime
+		  	 , filemon->flags.bToDelete?"delete":"" );
 		if( dwSize != filemon->lastknownsize
-#ifdef __cplusplus_cli
-			|| filemon->lastmodifiedtime->CompareTo( (lastmodified = info->LastWriteTime ) )
-#else
 			|| (*(uint64_t*)&lastmodified) != (*(uint64_t*)&filemon->lastmodifiedtime)
-#endif
 			|| filemon->flags.bToDelete
 		  )
 		{
 			filemon->lastknownsize = dwSize;
-#ifdef __cplusplus_cli
-			filemon->lastmodifiedtime = lastmodified;
-#else
 #ifdef WIN32
 			(*(uint64_t*)&filemon->lastmodifiedtime) = (*(uint64_t*)&lastmodified);
 #else
-			filemon->lastmodifiedtime = statbuf.st_mtime;
-#endif
+			filemon->lastmodifiedtime = lastmodified;
 #endif
 			if( !filemon->flags.bToDelete && !filemon->flags.bCreated )
 			{
@@ -325,8 +305,8 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 					//Log1( "File %s changed", filemon->name );
 				}
 				filemon->ScannedAt = timeGetTime() + Change->monitor->scan_delay;
-				//if( l.flags.bLog )
-				//	lprintf( "file changed Setting monitor do scan time - new file monitor" );
+				if( l.flags.bLog )
+					lprintf( "file changed Setting monitor do scan time - new file monitor" );
 				Change->monitor->DoScanTime = filemon->ScannedAt;
 				Change->monitor->flags.bPendingScan = 1;
 				//Log( "A file changed... setting file's change time at now plus delay" );
@@ -367,6 +347,7 @@ static void ScanMonitorFiles( PMONITOR monitor )
 	for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 	{
 		PFILEMON filemon;
+		lprintf( "Scanning mask: %s in %s", Change->mask, Change->monitor->directory );
 		for( filemon = (PFILEMON)GetLeastNode( Change->filelist )
 			 ; filemon
 			  ; filemon = (PFILEMON)GetGreaterNode( Change->filelist ) )
@@ -546,7 +527,7 @@ static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 				else
 					Change->HandleChange( Change->psv, NULL, 0 );
 			}
-			//lprintf( "----------- NOW Files can be mared with CREATE ---------------" );
+			if( l.flags.bLog ) lprintf( "----------- NOW Files can be mared with CREATE ---------------" );
 			Change->flags.bInitial = 0;
 		}
 		monitor->flags.bDispatched = 0;
@@ -594,7 +575,7 @@ void EndMonitorFiles( void )
 
 static void InvokeScan( PMONITOR monitor )
 {
-	//Log( "Doing a scan..." );
+	if( l.flags.bLog ) lprintf( "Doing a scan... %d", monitor->DoScanTime );
 	monitor->DoScanTime = 0;
 	monitor->flags.bPendingScan = 0;
 	monitor->flags.bUserInterruptedChanges = 0;
@@ -602,11 +583,18 @@ static void InvokeScan( PMONITOR monitor )
 	if( !monitor->flags.bIntelligentUpdates )
 	{
 		DeleteAll( monitor ); // mark everything deleted
-		//Log( "Scan directory..." );
-		ScanDirectory( monitor ); // look for all files which match mask(s)
+	//Log( "Scan directory..." );
+		{
+			PCHANGECALLBACK Change;
+
+			for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
+				ScanDirectory( monitor, Change ); // look for all files which match mask(s)
+		}
 		//Log( "Scan files for status changes..." );
 	}
+#ifndef __LINUX__
 	ScanMonitorFiles( monitor ); // check for changed size/time
+#endif
 	//Log( "Dispatch Changes... " );
 	if( !monitor->flags.bUserInterruptedChanges )
 	{
@@ -617,23 +605,32 @@ static void InvokeScan( PMONITOR monitor )
 		if( l.flags.bLog ) 
 			Log( "Can't report auto update - user interuppted..." );
 	}
+	if( l.flags.bLog )
+		lprintf( "Did a scan... %d", monitor->DoScanTime );
 }
 
 void DoScan( PMONITOR monitor )
 {
 	uint32_t now = timeGetTime();
 	// in critical section...
-	//lprintf( "Tick...%s %d %d", monitor->directory, timeGetTime(), monitor->DoScanTime );
+	if( l.flags.bLog )
+		lprintf( "Tick...%s %p %d %d", monitor->directory, monitor, timeGetTime(), monitor->DoScanTime );
 	if( monitor->DoScanTime && ( now > monitor->DoScanTime ) )
 	{
-		if( monitor->flags.bPendingScan )
+		if( l.flags.bLog )
+			lprintf( "... %p", monitor->monitors, monitor->flags.bPendingScan );
+		if( monitor->flags.bPendingScan ) {
+			if( l.flags.bLog )
+				lprintf( "pending scan on monitor" );
 			InvokeScan( monitor );
+		}
 		if( monitor->monitors )
 		{
 			PMONITOR sub_monitor;
 			INDEX idx;
 			LIST_FORALL( monitor->monitors, idx, PMONITOR, sub_monitor )
 			{
+				lprintf( "Scan:%d %d", sub_monitor->DoScanTime );
 				if( sub_monitor->DoScanTime )
 				{
 					if( now > sub_monitor->DoScanTime )
@@ -644,7 +641,8 @@ void DoScan( PMONITOR monitor )
 					{
 						if( monitor->DoScanTime < sub_monitor->DoScanTime )
 						{
-							// setting the do scan time here should not also set bPendingScan
+						// setting the do scan time here should not also set bPendingScan
+                     lprintf( "updating monitor scantime to sub scan time" );
 							monitor->DoScanTime = sub_monitor->DoScanTime;
 						}
 					}
@@ -719,6 +717,7 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddExtendedFileChangeCallback )( PMONITOR moni
 			LIST_FORALL( monitor->monitors, idx, PMONITOR, sub_monitor )
 				AddExtendedFileChangeCallback( sub_monitor, mask, HandleChange, psv );
 		}
+      ScanDirectory( monitor, Change ); // initial scan.
 		LeaveCriticalSec( &monitor->cs );
 		return Change;
 	}
@@ -762,6 +761,7 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddFileChangeCallback )( PMONITOR monitor
 			LIST_FORALL( monitor->monitors, idx, PMONITOR, sub_monitor )
 				AddFileChangeCallback( sub_monitor, mask, HandleChange, psv );
 		}
+      ScanDirectory( monitor, Change ); // initial scan.
 		LeaveCriticalSec( &monitor->cs );
 		return Change;
 	}
