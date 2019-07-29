@@ -1014,32 +1014,25 @@ static void TimerWakeableSleep( uint32_t n )
 {
 	if( globalTimerData.pTimerThread )
 	{
-#ifndef USE_PIPE_SEMS
+#ifdef USE_PIPE_SEMS
+		InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_SRC );
+#else
 		PTHREAD me = MakeThread();
 		if( n != SLEEP_FOREVER )
 		{
- 			struct timespec timeout;
- 			clock_gettime(CLOCK_REALTIME, &timeout);
- 			timeout.tv_nsec += ( n % 1000 ) * 1000000L;
-  			timeout.tv_sec += n / 1000;
+			struct timespec timeout;
+			int stat;
+
+			clock_gettime(CLOCK_REALTIME, &timeout);
+			timeout.tv_nsec += ( n % 1000 ) * 1000000L;
+			timeout.tv_sec += n / 1000;
   			timeout.tv_sec += timeout.tv_nsec / 1000000000L;
   			timeout.tv_nsec %= 1000000000L;
 			pthread_mutex_timedlock( &globalTimerData.pTimerThread->mutex, &timeout );
-			//lprintf( "Stat of lock:%d", stat );
 		}
+      else // wait forever for the lock.
+			pthread_mutex_lock( &globalTimerData.pTimerThread->mutex ); // otherwise was a normal timeout, not a wakeup, timeout does not unlock.
 #endif
-		//if(0)
-		if( globalTimerData.pTimerThread )
-		{
-#ifdef USE_PIPE_SEMS
-			InternalWakeableNamedSleepEx( NULL, n, FALSE DBG_SRC );
-#else
-			pthread_mutex_lock( &globalTimerData.pTimerThread->mutex );
-#endif
-			//lprintf( "After semval = %d %08lx"
-			//	      , semctl( globalTimerData.pTimerThread->semaphore, 0, GETVAL )
-			//       , globalTimerData.pTimerThread->semaphore );
-		}
 	}
 }
 
