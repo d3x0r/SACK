@@ -66,7 +66,7 @@ void ScanDirectory( PMONITOR monitor, PCHANGECALLBACK Change )
 				//for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 				{
 					if( !Change->mask ||
-                   CompareMask( Change->mask
+					    CompareMask( Change->mask
 										, dirent->d_name
 										, FALSE ) )
 						if( monitor->flags.bLogFilesFound )
@@ -171,7 +171,7 @@ static void handler( int sig, siginfo_t *si, void *data )
            Log1( "Signal on handle which did not exist?! %d Invoking failure scanall!", si->si_fd );
 			  close( si->si_fd );
 #endif
-	        for( cur = Monitors; cur; cur = cur->next )
+		for( cur = Monitors; cur; cur = cur->next )
    	     {
 				  if( !cur->DoScanTime )
 					  cur->DoScanTime = GetTickCount() - 1;
@@ -207,21 +207,31 @@ void CPROC NewScanTimer( uintptr_t unused )
 						filemon = (PFILEMON)FindInBinaryTree( Change->filelist, (uintptr_t)event->name );
 						if( filemon )
 							break;
+						if( event->mask & IN_CREATE ) {
+							if( !Change->mask ||
+							    CompareMask( Change->mask
+										, event->name
+										, FALSE ) ) {
+								filemon = AddMonitoredFile( Change, event->name );
+								break;
+							}
+						} else {
+						}
 					}
 
 
 				}
 				if( filemon ) {
-               int updated = 1;
+					int updated = 1;
 					if( event->mask & IN_CREATE ) {
-                  //lprintf( "Creating event, adding file" );
-						AddMonitoredFile( Change, event->name );
-                  continue;
+						//lprintf( "Creating event, adding file" );
+						//AddMonitoredFile( Change, event->name );
+						//continue;
 					}
 					if( event->mask & IN_ACCESS )
 						updated = 0;;
 					if( event->mask & IN_ATTRIB ){
-                  updated = 1;
+					        updated = 1;
 					}
 					if( event->mask & IN_CLOSE_WRITE );
 					if( event->mask & IN_CLOSE_NOWRITE )
