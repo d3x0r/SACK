@@ -633,7 +633,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 					{
  						// could not find the name in the host file.
 						Log1( "Could not Resolve to %s", lpName );
-						Deallocate(SOCKADDR_IN*, lpsaAddr);
+						ReleaseAddress((SOCKADDR*)lpsaAddr);
 						Deallocate( char*, tmp );
 						if( tmpName ) Deallocate( char*, tmpName );
 						return(NULL);
