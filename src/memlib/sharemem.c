@@ -311,7 +311,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 		ll_lprintf( "Memory allocate logging enabled." );
 	g.bLogAllocateWithHold = SACK_GetProfileIntEx( GetProgramName(), "SACK/Memory Library/Enable Logging Holds", g.bLogAllocateWithHold, TRUE );
 	//USE_CUSTOM_ALLOCER = SACK_GetProfileIntEx( GetProgramName(), "SACK/Memory Library/Custom Allocator", USE_CUSTOM_ALLOCER, TRUE );
-	g.bDisableDebug = SACK_GetProfileIntEx( GetProgramName(), "SACK/Memory Library/Disable Debug", !USE_DEBUG_LOGGING, TRUE );
+	g.bDisableDebug = g.bDisableDebug || SACK_GetProfileIntEx( GetProgramName(), "SACK/Memory Library/Disable Debug", !USE_DEBUG_LOGGING, TRUE );
 #else
 	//g.bLogAllocate = 1;
 #endif
