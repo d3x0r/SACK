@@ -29,6 +29,8 @@ ID_Continue    XID_Continue     All of the above, plus nonspacing marks, spacing
 SACK_NAMESPACE namespace network { namespace json {
 #endif
 
+//#define DEBUG_LOG_TIMING
+
 #ifdef DEBUG_LOG_TIMING
 uint32_t ticks[10];
 uint32_t lastTick;
@@ -1382,10 +1384,12 @@ LOGICAL json6_parse_message( const char * msg
 
 void getJson6Ticks( int *tickBuf ) {
     int n;
+# ifdef DEBUG_LOG_TIMING
     for( n = 0; n < sizeof( ticks ) / sizeof(ticks[0] ); n++ ) {
 	tickBuf[n] = ticks[n];
     }
     memset( ticks, 0, sizeof( ticks ) );
+# endif
 }
 
 
