@@ -37,7 +37,7 @@ uint32_t lastTick;
 uint32_t thisDel;
 #define logTick(n)  ( ( thisDel=(timeGetTime()-lastTick) ), lastTick += thisDel, ticks[n] += thisDel )
 #else
-#define logTIck(n)
+#define logTick(n)
 #endif
 
 char *json6_escape_string_length( const char *string, size_t len, size_t *outlen ) {
