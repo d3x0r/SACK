@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#ifdef __LINUX__
+#if defined( GCC) && !defined( __ARM__ ) && !defined( __EMSCRIPTEN__ )
 #  define DebugBreak() asm( "int $3\n" )
 #else
 #  define DebugBreak()
