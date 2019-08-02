@@ -2142,8 +2142,8 @@ SYSTEM_PROC( int, UnloadFunctionEx )( generic_function *f DBG_PASS )
 
 //-------------------------------------------------------------------------
 
-#if !defined( __ANDROID__ )
-SYSTEM_PROC( PTHREAD, SpawnProcess )( CTEXTSTR filename, va_list args )
+#if !defined( __ANDROID__ ) && !defined( __ARM__ )
+SYSTEM_PROC( PTHREAD, SpawnProcess )( CTEXTSTR filename, POINTER args )
 {
 	uintptr_t (CPROC *newmain)( PTHREAD pThread );
 	newmain = (uintptr_t(CPROC*)(PTHREAD))LoadFunction( filename, "main" );
