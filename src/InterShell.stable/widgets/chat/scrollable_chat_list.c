@@ -2651,6 +2651,7 @@ static void OnSizeCommon( CONTROL_NAME )( PSI_CONTROL pc, LOGICAL begin_sizing )
 						- ( 2 * l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + l.sent.BorderSegment[SEGMENT_RIGHT]->width 
 						+ ( list->alt_send_button_width + (list->send_button_width?list->send_button_width:55) + l.side_pad ) );
 			}
+			list->input.phb_Input->flags.bUpdated = 1;
 			BuildDisplayInfoLines( list->input.phb_Input, NULL, list->input_font );
 			ReformatMessages( list );
 		}
