@@ -281,7 +281,7 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 				 , filemon->filename
 				 , dwSize
 				 , filemon->lastknownsize
-		  	 , statbuf.st_mtime, filemon->lastmodifiedtime
+		  	 , lastmodified, filemon->lastmodifiedtime
 		  	 , filemon->flags.bToDelete?"delete":"" );
 		if( dwSize != filemon->lastknownsize
 			|| (*(uint64_t*)&lastmodified) != (*(uint64_t*)&filemon->lastmodifiedtime)

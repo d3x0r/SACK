@@ -22,7 +22,7 @@ FILEMON_NAMESPACE
 
 //-------------------------------------------------------------------------
 
-void ScanDirectory( PMONITOR monitor )
+void ScanDirectory( PMONITOR monitor, PCHANGECALLBACK Change )
 {
 	HANDLE hFile;
 	TEXTCHAR match[256];
