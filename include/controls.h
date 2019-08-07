@@ -1886,7 +1886,11 @@ PSI_PROC( PLISTITEM, AddListItem)( PSI_CONTROL pc, CTEXTSTR text );
 PSI_PROC( PLISTITEM, AddListItemEx)( PSI_CONTROL pc, int nLevel, CTEXTSTR text );
 // put an item after a known item... NULL to add at head of list.
 PSI_PROC( PLISTITEM, InsertListItem)( PSI_CONTROL pc, PLISTITEM pAfter, CTEXTSTR text );
+// put an item after a known item... NULL to add at head of list, and specify level if in a tree list
 PSI_PROC( PLISTITEM, InsertListItemEx)( PSI_CONTROL pc, PLISTITEM pAfter, int nLevel, CTEXTSTR text );
+// put an item at the end of a sub-group of the same level.
+PSI_PROC( PLISTITEM, AddAfterListItemEx )(PSI_CONTROL pc, PLISTITEM pAfter, int nLevel, CTEXTSTR text);
+PSI_PROC( PLISTITEM, AddAfterListItem )(PSI_CONTROL pc, PLISTITEM pAfter, CTEXTSTR text);
 PSI_PROC( void, DeleteListItem)( PSI_CONTROL pc, PLISTITEM hli );
 PSI_PROC( PLISTITEM, SetItemData)( PLISTITEM hli, uintptr_t psv );
 PSI_PROC( uintptr_t, GetItemData)( PLISTITEM hli );

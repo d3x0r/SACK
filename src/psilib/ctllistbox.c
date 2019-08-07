@@ -1427,6 +1427,86 @@ PLISTITEM InsertListItemEx( PSI_CONTROL pc, PLISTITEM pPrior, int nLevel, CTEXTS
 
 //---------------------------------------------------------------------------
 
+PLISTITEM AddAfterListItemEx( PSI_CONTROL pc, PLISTITEM pPrior, int nLevel, CTEXTSTR text )
+{
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	if( plb ) {
+		PLISTITEM pli = (PLISTITEM)Allocate( sizeof( LISTITEM ) );
+		pli->text = StrDup( text );
+		pli->pPopup = NULL;
+		pli->flags.bSelected = FALSE;
+		pli->flags.bFocused = FALSE;
+		pli->flags.bOpen = FALSE;
+		pli->nLevel = nLevel;
+		pli->data = 0;
+		pli->within_list = pc;
+
+		{
+			PLISTITEM pliEnd;
+			PLISTITEM pliFound = pPrior;
+			for( pliEnd = pPrior->next; pliEnd; pliEnd = pliEnd->next ) {
+				if( pliEnd->nLevel >= nLevel ) {
+					pliFound = pliEnd;
+					continue;
+				}
+				break;
+			}
+			pPrior = pliFound;
+		}
+
+		if( !pPrior ) {
+			if( (pli->next = plb->items) )
+				plb->items->prior = pli;
+			pli->prior = NULL;
+			plb->items = pli;
+			if( !plb->last ) {
+				plb->firstshown =
+					plb->current =
+					plb->last = plb->items;
+				//pli->flags.bSelected = TRUE;
+				//pli->flags.bFocused = TRUE;
+			}
+			else {
+				plb->firstshown = NULL;
+				plb->lastshown = NULL;
+			}
+		}
+		else {
+			if( !plb->last ) {
+				Log( "Hmm adding after an item in a list which has none?!" );
+				DebugBreak();
+			}
+
+			if( (pli->next = pPrior->next) )
+				pPrior->next->prior = pli;
+			else
+				plb->last = pli;
+			pli->prior = pPrior;
+			pPrior->next = pli;
+		}
+		if( !plb->flags.bNoUpdate ) {
+			//Log( "Added an item, therefore update this list?!" );
+			// should only auto adjust when adding items...
+			AdjustItemsIntoBox( pc );
+			plb->flags.bInitial = TRUE;
+			SmudgeCommon( pc );
+		}
+		return (PLISTITEM)pli;
+	}
+	return 0;
+}
+
+//---------------------------------------------------------------------------
+
+PLISTITEM AddAfterListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
+{
+	PLISTITEM pli = AddAfterListItemEx( pc, pPrior, 0, text );
+	pli->nLevel = 0;
+	return pli;
+}
+
+//---------------------------------------------------------------------------
+
 PLISTITEM SetListboxHeader( PSI_CONTROL pc, const TEXTCHAR *text )
 {
 	PLISTITEM pli = NULL;
