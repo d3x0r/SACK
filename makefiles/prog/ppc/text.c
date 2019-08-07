@@ -937,8 +937,8 @@ PTEXT VarTextGetEx( PVARTEXT pvt DBG_PASS )
 		if( last_vartext_result )
 		{
 #ifdef __LINUX__
-			if( last_vartext_result == result )
-				asm( "int $3;\n" );
+			//if( last_vartext_result == result )
+			//	asm( "int $3;\n" );
 #endif
 		}
 		last_vartext_result = result;

@@ -29,7 +29,7 @@ FILESYS_NAMESPACE
 // DEBUG_COMPARE 1 == full debug
 // DEBUG_COMPARE 2 == quieter debug
 #ifdef _DEBUG
-#define DEBUG_COMPARE 5
+#define DEBUG_COMPARE 4
 #else
 #define DEBUG_COMPARE 999
 #endif

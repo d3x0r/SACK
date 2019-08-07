@@ -2114,22 +2114,18 @@ uint32_t GetFileTimeAndSize( CTEXTSTR name
 {
 	uint32_t size;
 #ifdef __LINUX__
-#  ifdef UNICODE
-	char *tmpname = CStrDup( name );
-	int hFile = open( tmpname,		  // open MYFILE.TXT
-						  O_RDONLY );			 // open for reading
-	Deallocate( char*, tmpname );
-#  else
 	int hFile = open( name,		  // open MYFILE.TXT
 						  O_RDONLY );			 // open for reading
-#  endif
 	if( hFile >= 0 )
 	{
 		struct stat statbuf;
 		fstat( hFile, &statbuf );
-		lpCreationTime[0] = statbuf.st_ctime;
-		lpLastAccessTime[0] =  statbuf.st_atime;
-		lpLastWriteTime[0] = statbuf.st_mtime;
+		if( lpCreationTime )
+			lpCreationTime[0] = statbuf.st_ctime;
+		if( lpLastAccessTime )
+			lpLastAccessTime[0] =  statbuf.st_atime;
+		if( lpLastWriteTime )
+			lpLastWriteTime[0] = statbuf.st_mtime;
 		//convert( &realtime, (time_t*)&statbuf.st_mtime );
 		size = lseek( hFile, 0, SEEK_END );
 		close( hFile );

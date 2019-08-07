@@ -545,7 +545,10 @@ void LogExpression( POPNODE root )
 #ifdef __LINUX__
 		if( root->right )
 			if( root->right->left != root )
-				asm( "int $3\n" );
+#  if !defined( __ARM__ )
+				asm( "int $3\n" )
+#  endif
+				;
 #endif
 		root = root->right;
 	}

@@ -29,6 +29,16 @@ ID_Continue    XID_Continue     All of the above, plus nonspacing marks, spacing
 SACK_NAMESPACE namespace network { namespace json {
 #endif
 
+//#define DEBUG_LOG_TIMING
+
+#ifdef DEBUG_LOG_TIMING
+uint32_t ticks[10];
+uint32_t lastTick;
+uint32_t thisDel;
+#define logTick(n)  ( ( thisDel=(timeGetTime()-lastTick) ), lastTick += thisDel, ticks[n] += thisDel )
+#else
+#define logTick(n)
+#endif
 
 char *json6_escape_string_length( const char *string, size_t len, size_t *outlen ) {
 	size_t m = 0;
@@ -66,11 +76,11 @@ char *json6_escape_string( const char *string ) {
 						| ( ( result & 0x3f0000 ) >> 10 )    \
 						| ( ( result & 0x3f000000 ) >> 24 ) ) )
 
-#define get4Chars(p) ((((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[0]  \
-				>> (CHAR_BIT*((uintptr_t)(p) & 0x3)))             \
-			| (( ((uintptr_t)(p)) & 0x3 )                          \
-				? (((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[1]      \
-					<< (CHAR_BIT*(4-((uintptr_t)(p) & 0x3))))     \
+#define get4Chars(p) ((((TEXTRUNE*) ((uint32_t)(p) & ~(sizeof(uint32_t)-1)) )[0]  \
+				>> (CHAR_BIT*((uint32_t)(p) & (sizeof(uint32_t)-1))))             \
+			| (( ((uint32_t)(p)) & sizeof(uint32_t)-1 )                          \
+				? (((TEXTRUNE*) ((uint32_t)(p) & ~(sizeof(uint32_t)-1)) )[1]      \
+					<< (CHAR_BIT*(4-((uint32_t)(p) & (sizeof(uint32_t)-1))))     \
 				:(TEXTRUNE)0 ))
 
 #define __GetUtfChar( result, from )           ((result = get4Chars(*from)),     \
@@ -90,7 +100,7 @@ char *json6_escape_string( const char *string ) {
 					: ( (*from)++, (result & 0x7F) ) ) ) )                                                                                       \
 		: ( (*from)++, (result & 0x7F) ) ) ) )
 
-#define GetUtfChar(x) __GetUtfChar(c,x)
+//#define GetUtfChar(x) __GetUtfChar(c,x)
 
 static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTSTR *pmOut, TEXTRUNE start_c
 		//, int literalString 
@@ -374,7 +384,7 @@ int json6_parse_add_data( struct json_parse_state *state
 			retval = 1;
 		}
 	}
-
+	logTick(2);
 	while( state->status && ( input = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) ) {
 		output = (struct json_output_buffer*)DequeLinkNL( state->outQueue );
 		//lprintf( "output is %p", output );
@@ -402,10 +412,11 @@ int json6_parse_add_data( struct json_parse_state *state
 			//lprintf( "continue gathering a string" );
 			goto continueNumber;
 		}
-
+		logTick(6);
 		//lprintf( "Completed at start?%d", state->completed );
 		while( state->status && (state->n < input->size) && (c = GetUtfChar( &input->pos )) )
 		{
+			logTick(7);
 			state->col++;
 			state->n = input->pos - input->buf;
 			if( state->n > input->size ) DebugBreak();
@@ -1160,6 +1171,7 @@ int json6_parse_add_data( struct json_parse_state *state
 				}
 				break;
 			}
+			logTick(8);
 		}
 		//lprintf( "at end... %d %d comp:%d", state->n, input->size, state->completed );
 		if( input ) {
@@ -1208,6 +1220,7 @@ int json6_parse_add_data( struct json_parse_state *state
 		}
 		state->completed = FALSE;
 	}
+	logTick(9);
 	return retval;
 }
 
@@ -1346,13 +1359,19 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 LOGICAL json6_parse_message( const char * msg
 	, size_t msglen
 	, PDATALIST *_msg_output ) {
+	logTick(0);
 	struct json_parse_state *state = json_begin_parse();
+	//logTick(1);
 	//static struct json_parse_state *_state;
 	state->complete_at_end = TRUE;
+	logTick(1);
 	int result = json6_parse_add_data( state, msg, msglen );
+	//logTick(3);
 	if( jpsd.json6_state ) json_parse_dispose_state( &jpsd.json6_state );
 	if( result > 0 ) {
+		logTick(4);
 		(*_msg_output) = json_parse_get_data( state );
+		logTick(5);
 		jpsd.json6_state = state;
 		//json6_parse_dispose_state( &state );
 		return TRUE;
@@ -1362,6 +1381,17 @@ LOGICAL json6_parse_message( const char * msg
 	jpsd.json6_state = state;
 	return FALSE;
 }
+
+void getJson6Ticks( int *tickBuf ) {
+    int n;
+# ifdef DEBUG_LOG_TIMING
+    for( n = 0; n < sizeof( ticks ) / sizeof(ticks[0] ); n++ ) {
+	tickBuf[n] = ticks[n];
+    }
+    memset( ticks, 0, sizeof( ticks ) );
+# endif
+}
+
 
 struct json_parse_state *json6_get_message_parser( void ) {
 	//lprintf( "Return simple json6 parser:%p", jpsd.json6_state );
@@ -1373,226 +1403,6 @@ void json6_dispose_message( PDATALIST *msg_data )
 	json_dispose_message( msg_data );
 	return;
 }
-
-// puts the current collected value into the element; assumes conversion was correct
-static void FillDataToElement6( struct json_context_object_element *element
-							    , size_t object_offset
-								, struct json_value_container *val
-								, POINTER msg_output )
-{
-	if( !val->name )
-		return;
-	// remove name; indicate that the value has been used.
-	Release( val->name );
-	val->name = NULL;
-	switch( element->type )
-	{
-	case JSON_Element_String:
-		if( element->count )
-		{
-		}
-		else if( element->count_offset != JSON_NO_OFFSET )
-		{
-		}
-		else
-		{
-			switch( val->value_type )
-			{
-			case VALUE_NULL:
-				((CTEXTSTR*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = NULL;
-				break;
-			case VALUE_STRING:
-				((CTEXTSTR*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = StrDup( val->string );
-				break;
-			default:
-				lprintf( "Expected a string, but parsed result was a %d", val->value_type );
-				break;
-			}
-		}
-		break;
-	case JSON_Element_Integer_64:
-	case JSON_Element_Integer_32:
-	case JSON_Element_Integer_16:
-	case JSON_Element_Integer_8:
-	case JSON_Element_Unsigned_Integer_64:
-	case JSON_Element_Unsigned_Integer_32:
-	case JSON_Element_Unsigned_Integer_16:
-	case JSON_Element_Unsigned_Integer_8:
-		if( element->count )
-		{
-		}
-		else if( element->count_offset != JSON_NO_OFFSET )
-		{
-		}
-		else
-		{
-			switch( val->value_type )
-			{
-			case VALUE_TRUE:
-				switch( element->type )
-				{
-				case JSON_Element_String:
-				case JSON_Element_CharArray:
-				case JSON_Element_Float:
-				case JSON_Element_Double:
-				case JSON_Element_Array:
-				case JSON_Element_Object:
-				case JSON_Element_ObjectPointer:
-				case JSON_Element_List:
-				case JSON_Element_Text:
-				case JSON_Element_PTRSZVAL:
-				case JSON_Element_PTRSZVAL_BLANK_0:
-				case JSON_Element_UserRoutine:
-				case JSON_Element_Raw_Object:
-					lprintf( "Uhandled element conversion." );
-					break;
-
-				case JSON_Element_Integer_64:
-				case JSON_Element_Unsigned_Integer_64:
-					((int8_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 1;
-					break;
-				case JSON_Element_Integer_32:
-				case JSON_Element_Unsigned_Integer_32:
-					((int16_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 1;
-					break;
-				case JSON_Element_Integer_16:
-				case JSON_Element_Unsigned_Integer_16:
-					((int32_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 1;
-					break;
-				case JSON_Element_Integer_8:
-				case JSON_Element_Unsigned_Integer_8:
-					((int64_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 1;
-					break;
-				}
-				break;
-			case VALUE_FALSE:
-				switch( element->type )
-				{
-				case JSON_Element_String:
-				case JSON_Element_CharArray:
-				case JSON_Element_Float:
-				case JSON_Element_Double:
-				case JSON_Element_Array:
-				case JSON_Element_Object:
-				case JSON_Element_ObjectPointer:
-				case JSON_Element_List:
-				case JSON_Element_Text:
-				case JSON_Element_PTRSZVAL:
-				case JSON_Element_PTRSZVAL_BLANK_0:
-				case JSON_Element_UserRoutine:
-				case JSON_Element_Raw_Object:
-					lprintf( "Uhandled element conversion." );
-					break;
-
-				case JSON_Element_Integer_64:
-				case JSON_Element_Unsigned_Integer_64:
-					((int8_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 0;
-					break;
-				case JSON_Element_Integer_32:
-				case JSON_Element_Unsigned_Integer_32:
-					((int16_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 0;
-					break;
-				case JSON_Element_Integer_16:
-				case JSON_Element_Unsigned_Integer_16:
-					((int32_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 0;
-					break;
-				case JSON_Element_Integer_8:
-				case JSON_Element_Unsigned_Integer_8:
-					((int64_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = 0;
-					break;
-				}
-				break;
-			case VALUE_NUMBER:
-				if( val->float_result )
-				{
-					lprintf( "warning received float, converting to int" );
-					((int64_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (int64_t)val->result_d;
-				}
-				else
-				{
-					((int64_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = val->result_n;
-				}
-				break;
-			default:
-				lprintf( "Expected a string, but parsed result was a %d", val->value_type );
-				break;
-			}
-		}
-		break;
-
-	case JSON_Element_Float:
-	case JSON_Element_Double:
-		if( element->count )
-		{
-		}
-		else if( element->count_offset != JSON_NO_OFFSET )
-		{
-		}
-		else
-		{
-			switch( val->value_type )
-			{
-			case VALUE_NUMBER:
-				if( val->float_result )
-				{
-					if( element->type == JSON_Element_Float )
-						((float*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (float)val->result_d;
-					else
-						((double*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = val->result_d;
-
-				}
-				else
-				{
-					// this is probably common (0 for instance)
-					lprintf( "warning received int, converting to float" );
-					if( element->type == JSON_Element_Float )
-						((float*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (float)val->result_n;
-					else
-						((double*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (double)val->result_n;
-
-				}
-				break;
-			default:
-				lprintf( "Expected a float, but parsed result was a %d", val->value_type );
-				break;
-			}
-
-		}
-
-		break;
-	case JSON_Element_PTRSZVAL_BLANK_0:
-	case JSON_Element_PTRSZVAL:
-		if( element->count )
-		{
-		}
-		else if( element->count_offset != JSON_NO_OFFSET )
-		{
-		}
-		else
-		{
-			switch( val->value_type )
-			{
-			default:
-				lprintf( "FAULT: UNEXPECTED VALUE TYPE RECOVERINT IDENT:%d", val->value_type );
-				break;
-			case VALUE_NUMBER:
-				if( val->float_result )
-				{
-					lprintf( "warning received float, converting to int (uintptr_t)" );
-					((uintptr_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (uintptr_t)val->result_d;
-				}
-				else
-				{
-					// this is probably common (0 for instance)
-					((uintptr_t*)( ((uintptr_t)msg_output) + element->offset + object_offset ))[0] = (uintptr_t)val->result_n;
-				}
-				break;
-			}
-		}
-		break;
-	}
-}
-
 
 
 #undef GetUtfChar

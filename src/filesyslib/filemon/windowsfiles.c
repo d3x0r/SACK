@@ -37,12 +37,12 @@ void ScanDirectory( PMONITOR monitor )
 		{
 			if(!( FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ))
 			{
-				PCHANGECALLBACK Change;
+				//PCHANGECALLBACK Change;
 				if( monitor->flags.bLogFilesFound )
 					if( l.flags.bLog )
 						Log1( "Found file %s", FindFileData.cFileName );
 				// invoke change on this and it's parent (if there was a parent)
-				for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
+				//for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 				{
 					if( !Change->mask ||
 						CompareMask( Change->mask
