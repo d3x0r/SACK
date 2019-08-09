@@ -716,7 +716,7 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 						column = -column;
 				}
 			}
-			lprintf( "tab stop was %d", column );
+			//lprintf( "tab stop was %d", column );
 			ScaleCoords( pc, &column, NULL );
 			//lprintf( "tab stop is %d", column );
 			end = strchr( start, '\t' );
