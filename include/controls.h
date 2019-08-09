@@ -1879,7 +1879,11 @@ PSI_PROC( PSI_CONTROL, SetListboxMultiSelectEx )( PSI_CONTROL, int bEnable, int 
 PSI_PROC( int, GetListboxMultiSelectEx )( PSI_CONTROL, int *multi, int *lazy );
 PSI_PROC( int, GetListboxMultiSelect )( PSI_CONTROL ); // returns only multiselect option, not lazy with multselect
 PSI_PROC( void, ResetList)( PSI_CONTROL pc );
+// tree lists might have mulptiple headers...
+PSI_PROC( PLISTITEM, SetListboxHeaderEx )( PSI_CONTROL pc, const TEXTCHAR* text, int level );
 PSI_PROC( PLISTITEM, SetListboxHeader )( PSI_CONTROL pc, const TEXTCHAR *text );
+
+PSI_PROC( int, MeasureListboxItemEx )(PSI_CONTROL pc, CTEXTSTR item, int asLevel);
 PSI_PROC( int, MeasureListboxItem )( PSI_CONTROL pc, CTEXTSTR item );
 	// put an item at end of list.
 PSI_PROC( PLISTITEM, AddListItem)( PSI_CONTROL pc, CTEXTSTR text );
@@ -1919,6 +1923,7 @@ PSI_PROC( int, DisableUpdateListBox )( PSI_CONTROL pc, LOGICAL bDisable );
 // on right click down,up this proc is triggered...
 PSI_PROC( void, SetItemContextMenu )( PLISTITEM pli, PMENU pMenu, void (CPROC*MenuProc)(uintptr_t, PLISTITEM, uint32_t menuopt ), uintptr_t psv );
 PSI_PROC( int, OpenListItem )( PLISTITEM pli, int bOpen );
+PSI_PROC( void, SetListBoxTabStopsEx )(PSI_CONTROL pc, int nLevel, int nStops, int* pStops);
 PSI_PROC( void, SetListBoxTabStops )( PSI_CONTROL pc, int nStops, int *pStops );
 PSI_PROC( void, EnumListItems )( PSI_CONTROL pc
 										 , PLISTITEM pliStart

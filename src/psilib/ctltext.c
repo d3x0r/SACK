@@ -324,7 +324,7 @@ LOGICAL SetControlTextOffset( PSI_CONTROL pc, int offset )
 #include <psi.h>
 CONTROL_REGISTRATION
 text_control = { STATIC_TEXT_NAME
-               , { {73, 21}, sizeof( TEXTCONTROL ), BORDER_NONE}
+               , { {73, 21}, sizeof( TEXTCONTROL ), BORDER_NOCAPTION | BORDER_NONE}
                , InitTextControl// init
                , NULL
                , NULL //_DrawTextControl

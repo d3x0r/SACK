@@ -31,6 +31,12 @@ struct listcolumn_tag
 
 };
 
+
+struct listboxTabStops {
+	int nTabstops;
+	int* pTabstops;
+};
+
 typedef struct listbox_tag
 {
 	//uint32_t attr;
@@ -63,8 +69,10 @@ typedef struct listbox_tag
 	int TimeLastClick;
 	int x, y, b; // old mouse info;
 
-	int nTabstops;
-	int nTabstop[30];
+	struct listboxTabStopLevels {
+		int count;
+		struct listboxTabStops *tabStops;
+	} tabStops;
 	int nXOffset;  // horizontal scroll affect
 
 	SelectionChanged SelChangeHandler;
@@ -77,17 +85,28 @@ typedef struct listbox_tag
 
 //---------------------------------------------------------------------------
 
-void CPROC SetListBoxTabStops( PSI_CONTROL pc, int nStops, int *pStops )
+void CPROC SetListBoxTabStopsEx( PSI_CONTROL pc, int nLevel, int nStops, int *pStops )
 {
 	int n;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-	if( nStops > 30 )
-	{
-		lprintf( "Only setting first 30 stops" );
-		nStops = 30;
+	if( nLevel >= plb->tabStops.count ) {
+		plb->tabStops.tabStops = (struct listboxTabStops*) Reallocate( plb->tabStops.tabStops, (nLevel+1) * sizeof( plb->tabStops.tabStops[0] ) );
+		MemSet( plb->tabStops.tabStops + plb->tabStops.count
+				, 0, ((nLevel+1) - plb->tabStops.count) * sizeof( plb->tabStops.tabStops[0] ) );
+		plb->tabStops.count = nLevel+1;
 	}
-	for( n = 0; ( plb->nTabstop[n] = pStops[n]),(n < nStops); n++ );
-	plb->nTabstops = nStops;
+	if( plb->tabStops.tabStops[nLevel].pTabstops )
+		Release( plb->tabStops.tabStops[nLevel].pTabstops );
+	plb->tabStops.tabStops[nLevel].pTabstops = NewArray( int, nStops );
+	for( n = 0; ( plb->tabStops.tabStops[nLevel].pTabstops[n] = pStops[n]),(n < nStops); n++ );
+	plb->tabStops.tabStops[nLevel].nTabstops = nStops;
+}
+
+//---------------------------------------------------------------------------
+
+void CPROC SetListBoxTabStops( PSI_CONTROL pc, int nStops, int* pStops )
+{
+	SetListBoxTabStopsEx( pc, 0, nStops, pStops );
 }
 
 //---------------------------------------------------------------------------
@@ -143,6 +162,7 @@ void DeleteListItem( PSI_CONTROL pc, PLISTITEM hli )
 			Release( pli->text );
 			Release( pli );
 		}
+		// if prior is closed don't refresh?
 		if( !plb->flags.bDestroying )
 			SmudgeCommon(pc);
 	}
@@ -171,10 +191,31 @@ static void CPROC DestroyListBox( PSI_CONTROL pc )
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
 	{
+		PLISTITEM pli, next;
+		if( plb->header ) {
+			// relesae headers
+			next = plb->header;
+			while( pli = next ) {
+				next = pli->next;
+				Release( pli->text );
+				Release( pli );
+			}
+		}
+		if( plb->tabStops.count ) {
+			int n;
+			for( n = 0; n < plb->tabStops.count; n++ )
+				Release( plb->tabStops.tabStops[n].pTabstops );
+			Release( plb->tabStops.tabStops );
+		}
+
 		plb->flags.bDestroying = TRUE;
 		UnmakeImageFile( plb->ListSurface );
-		while( plb->items )
-			DeleteListItem( pc, (PLISTITEM)plb->items );
+		while( plb->items ) {
+			pli = plb->items;
+			plb->items = pli->next;
+			Release( pli->text );
+			Release( pli );
+		}
 	}
 }
 
@@ -234,7 +275,7 @@ static void AdjustItemsIntoBox( PSI_CONTROL pc )
 
 //---------------------------------------------------------------------------
 
-static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, int drawthis )
+static int MeasureRelationLines( PSI_CONTROL pc, PLISTITEM pli, int drawthis )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	PLISTITEM pliNextUpLevel;
@@ -264,16 +305,6 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 	{
 		while( pliNextUpLevel && pliNextUpLevel->nLevel > pli->nLevel )
 			pliNextUpLevel = pliNextUpLevel->prior;
-		if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
-		{
-			do_hline( surface, y, x, (int)(x + ((pli->height*1.75)/2)-1), basecolor(pc)[SHADE] );
-			do_vline( surface, x, ymin, ymax, basecolor(pc)[SHADE] );
-		}
-		else
-		{
-			do_hline( surface, y, x, (int)(x + ((pli->height*1.75)/2)-1), basecolor(pc)[SHADE] );
-			do_vline( surface, x, ymin, y, basecolor(pc)[SHADE] );
-		}	
 	}
 	pliNextUpLevel = pli;
 
@@ -284,16 +315,92 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 	{
 		while( pliNextUpLevel && pliNextUpLevel->nLevel >= pli->nLevel )
 			pliNextUpLevel = pliNextUpLevel->prior;
-		if( pliNextUpLevel )
-		{
+		pli = pliNextUpLevel;
+	}
+	return x;
+}
+
+//---------------------------------------------------------------------------
+
+static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, int drawthis )
+{
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	PLISTITEM pliNextUpLevel;
+	int x, y, ymin, ymax;
+	pliNextUpLevel = pli->next;
+	x = (int)(pli->nLevel * (1.75 * pli->height) + (pli->height * 1.75) / 2);
+	x -= plb->nXOffset;
+	y = pli->top + (pli->height / 2);
+	ymin = pli->top;
+	ymax = pli->top + pli->height;
+	if( pli->nLevel ) {
+		PLISTITEM pliParent = pli->prior;
+		while( pliParent && pliParent->nLevel >= pli->nLevel ) {
+			pliParent = pliParent->prior;
+		}
+		if( pliParent && !pliParent->flags.bOpen ) {
+			// parent is not open, therefore do not draw lines...
+			// also - x offset is irrelavent return..
+			return 0;
+		}
+
+	}
+	if( drawthis ) {
+		while( pliNextUpLevel && pliNextUpLevel->nLevel > pli->nLevel )
+			pliNextUpLevel = pliNextUpLevel->prior;
+		if( pliNextUpLevel && (pliNextUpLevel->nLevel == pli->nLevel) ) {
+			do_hline( surface, y, x, (int)(x + ((pli->height * 1.75) / 2) - 1), basecolor( pc )[SHADE] );
+			do_vline( surface, x, ymin, ymax, basecolor( pc )[SHADE] );
+		}
+		else {
+			do_hline( surface, y, x, (int)(x + ((pli->height * 1.75) / 2) - 1), basecolor( pc )[SHADE] );
+			do_vline( surface, x, ymin, y, basecolor( pc )[SHADE] );
+		}
+	}
+	pliNextUpLevel = pli;
+
+	x = (int)(x + ((pli->height) * 1.75 * 2) / 3);
+	x -= plb->nXOffset;
+
+	while( pliNextUpLevel ) {
+		while( pliNextUpLevel && pliNextUpLevel->nLevel >= pli->nLevel )
+			pliNextUpLevel = pliNextUpLevel->prior;
+		if( pliNextUpLevel ) {
 			do_vline( surface
-			        , (int)((pliNextUpLevel->nLevel) * (pli->height*1.75) + ((pli->height*1.75)/2))
-			        , ymin, ymax
-			        , basecolor(pc)[SHADE] );
+				, (int)((pliNextUpLevel->nLevel) * (pli->height * 1.75) + ((pli->height * 1.75) / 2))
+				, ymin, ymax
+				, basecolor( pc )[SHADE] );
 		}
 		pli = pliNextUpLevel;
 	}
 	return x;
+}
+
+//---------------------------------------------------------------------------
+
+static int MeasureItemKnob( PSI_CONTROL pc, PLISTITEM pli )
+{
+	PLISTITEM pliNextUpLevel;
+	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	int x, y; // x, y of center...
+	int line_length = pli->height * 5 / 12;
+	int line_length_inner = pli->height * 3 / 12;
+	if( !pli->next || (pli->next->nLevel <= pli->nLevel) ) {
+		// this is not an openable item, therefore
+		// just draw some lines...
+		return MeasureRelationLines( pc, pli, TRUE );
+	}
+	else {
+		// render lines to the left of here but not including here...
+		x = MeasureRelationLines( pc, pli, FALSE );
+	}
+	pliNextUpLevel = pli->next;
+	while( pliNextUpLevel && (pliNextUpLevel->nLevel > pli->nLevel) )
+		pliNextUpLevel = pliNextUpLevel->prior;
+	x = (int)(pli->nLevel * (pli->height * 1.75) + ((pli->height * 1.75) / 2));
+	x -= plb->nXOffset;
+
+	return (int)(x + (pli->height * 1.75 * 2) / 3);
 }
 
 //---------------------------------------------------------------------------
@@ -395,32 +502,40 @@ static void UpdateScrollForList//Ex
 //---------------------------------------------------------------------------
 
 static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h ) {
-	TEXTCHAR *start = pli->text;
-	TEXTCHAR *end;
+	TEXTCHAR* start = pli->text;
+	TEXTCHAR* end;
 	CDATA lineColor = GetControlColor( pc, SHADE );
 	SFTFont font = GetFrameFont( pc );
 	int32_t right = 0;
 	int tab = 0;
-	int x;
+	int knob = 0;
+	int x = 0;
 	Image pSurface = plb->ListSurface;
 	pli->top = y;
 	pli->height = h;
 
 	while( start ) {
 		uint32_t width = 0;
-		int32_t column;
-		int32_t nextColumn;
+		int32_t column = 0;
+		int32_t nextColumn = pSurface->width;
 		int bRight = 0;
-		if( tab < plb->nTabstops ) {
-			column = plb->nTabstop[tab];
-			nextColumn = plb->nTabstop[tab+1];
-			if( plb->nTabstop[tab] < 0 ) {
-				bRight = 1;
-				column = plb->nTabstop[tab + 1];
-				if( column < 0 )
-					column = -column;
+		if( plb->tabStops.count > pli->nLevel )
+			if( tab < plb->tabStops.tabStops[pli->nLevel].nTabstops ) {
+				column = plb->tabStops.tabStops[pli->nLevel].pTabstops[tab];
+				nextColumn = plb->tabStops.tabStops[pli->nLevel].pTabstops[tab + 1];
+				if( plb->tabStops.tabStops[pli->nLevel].pTabstops[tab] < 0 ) {
+					bRight = 1;
+					column = plb->tabStops.tabStops[pli->nLevel].pTabstops[tab + 1];
+					if( column < 0 )
+						column = -column;
+				}
 			}
+
+		if( plb->flags.bTree ) {
+			knob = MeasureItemKnob( pc, pli );
+			ScaleCoords( pc, &knob, NULL );
 		}
+
 		//lprintf( "tab stop was %d", column );
 		ScaleCoords( pc, &column, NULL );
 		ScaleCoords( pc, &nextColumn, NULL );
@@ -435,31 +550,33 @@ static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h 
 		}
 
 		// results as max of either next tabstop or start plus stringlength
-		if( ( nextColumn ) > (width + column) ) {
+		if( (nextColumn) > (width + column) ) {
 			if( nextColumn > right )
 				right = nextColumn;
-			x = ( ( nextColumn - column ) - width ) / 2;
-		} else {
+			x = ((nextColumn - column) - width) / 2;
+		}
+		else {
 			x = 0;
-			if( ( x + width + column ) > right )
-				right = ( x + width + column );
+			if( (x + width + column) > right )
+				right = (x + width + column);
 		}
 		//xlprintf( 1 )( "show: %d %d %d %d %s %s", x, column, nextColumn, width, start, end);
-		PutStringFontEx( pSurface, x + column - plb->nXOffset, y, basecolor( pc )[EDIT_TEXT], 0, start, end - start, font );
-		do_vline( pSurface, nextColumn - plb->nXOffset, 0, h, lineColor );
-
-		tab++;
-		if( tab >= plb->nTabstops )
-			tab = plb->nTabstops - 1;
+		PutStringFontEx( pSurface, knob + x + column - plb->nXOffset, y, basecolor( pc )[EDIT_TEXT], 0, start, end - start, font );
+		do_vline( pSurface, knob + nextColumn - plb->nXOffset, y, y + h, lineColor );
+		if( plb->tabStops.count > pli->nLevel ) {
+			tab++;
+			if( tab >= plb->tabStops.tabStops[pli->nLevel].nTabstops )
+				tab = plb->tabStops.tabStops[pli->nLevel].nTabstops - 1;
+		}
 		if( end[0] )
 			start = end + 1;
 		else
 			start = NULL;
 	}
-	do_hline( pSurface, h+1, 0 - plb->nXOffset, right - plb->nXOffset, lineColor );
+	do_hlineAlpha( pSurface, y + h + 1, knob + 0 - plb->nXOffset, knob + right - plb->nXOffset, lineColor );
 }
 
-int MeasureListboxItem( PSI_CONTROL pc, CTEXTSTR item ) {
+int MeasureListboxItemEx( PSI_CONTROL pc, CTEXTSTR item, int asLevel ) {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	CTEXTSTR start = item;
 	CTEXTSTR end;
@@ -474,12 +591,12 @@ int MeasureListboxItem( PSI_CONTROL pc, CTEXTSTR item ) {
 		int32_t column;
 		int32_t nextColumn;
 		int bRight = 0;
-		if( tab < plb->nTabstops ) {
-			column = plb->nTabstop[tab];
-			nextColumn = plb->nTabstop[tab + 1];
-			if( plb->nTabstop[tab] < 0 ) {
+		if( tab < plb->tabStops.tabStops[asLevel].nTabstops ) {
+			column = plb->tabStops.tabStops[asLevel].pTabstops[tab];
+			nextColumn = plb->tabStops.tabStops[asLevel].pTabstops[tab + 1];
+			if( plb->tabStops.tabStops[asLevel].pTabstops[tab] < 0 ) {
 				bRight = 1;
-				column = plb->nTabstop[tab + 1];
+				column = plb->tabStops.tabStops[asLevel].pTabstops[tab + 1];
 				if( column < 0 )
 					column = -column;
 			}
@@ -491,8 +608,8 @@ int MeasureListboxItem( PSI_CONTROL pc, CTEXTSTR item ) {
 		end = strchr( start, '\t' );
 
 		tab++;
-		if( tab >= plb->nTabstops )
-			tab = plb->nTabstops - 1;
+		if( tab >= plb->tabStops.tabStops[asLevel].nTabstops )
+			tab = plb->tabStops.tabStops[asLevel].nTabstops - 1;
 
 		if( !end ) { // one single column, or no more columns...
 			end = start + strlen( start );
@@ -519,6 +636,9 @@ int MeasureListboxItem( PSI_CONTROL pc, CTEXTSTR item ) {
 	return right;
 }
 
+int MeasureListboxItem( PSI_CONTROL pc, CTEXTSTR item ) {
+	return MeasureListboxItemEx( pc, item, 0 );
+}
 
 static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 {
@@ -560,9 +680,14 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 	}
 	//pli = plb->firstshown;
 	if( plb->header ) {
-		DrawLine( pc, plb, plb->header, 0, h );
-		y += h + 1;
+		PLISTITEM pliHeader = plb->header;
+		while( pliHeader ) {
+			DrawLine( pc, plb, pliHeader, y, h );
+			y += h;
+			pliHeader = pliHeader->next;
+		}
 	}
+	y += 2;
 	while( pli && SUS_LT( y, int, pc->surface_rect.height, IMAGE_SIZE_COORDINATE ) )
 	{
 		TEXTCHAR *start = pli->text;
@@ -578,19 +703,20 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 		{
 			BlatColorAlpha( pSurface, x-2, y, w-4, h, basecolor(pc)[SELECT_BACK] );
 		}
-		while( start )
-		{
+		while( start ) {
 			uint32_t width = 0;
 			int bRight = 0;
-			int32_t column = plb->nTabstop[tab];
-			if( plb->nTabstop[tab] < 0 )
-			{
-				bRight = 1;
-				column = plb->nTabstop[tab+1];
-				if( column < 0 )
-					column = -column;
+			int32_t column = 0;
+			if( plb->tabStops.count > pli->nLevel ) {
+				column = plb->tabStops.tabStops[pli->nLevel].pTabstops[tab];
+				if( plb->tabStops.tabStops[pli->nLevel].pTabstops[tab] < 0 ) {
+					bRight = 1;
+					column = plb->tabStops.tabStops[pli->nLevel].pTabstops[tab + 1];
+					if( column < 0 )
+						column = -column;
+				}
 			}
-			//lprintf( "tab stop was %d", column );
+			lprintf( "tab stop was %d", column );
 			ScaleCoords( pc, &column, NULL );
 			//lprintf( "tab stop is %d", column );
 			end = strchr( start, '\t' );
@@ -611,8 +737,10 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 				PutStringFontEx( pSurface, x + column - plb->nXOffset, y, basecolor(pc)[EDIT_TEXT], 0, start, end-start, font );
 			}
 			tab++;
-			if( tab >= plb->nTabstops )
-				tab = plb->nTabstops-1;
+			if( pli->nLevel < plb->tabStops.count ) {
+				if( tab >= plb->tabStops.tabStops[pli->nLevel].nTabstops )
+					tab = plb->tabStops.tabStops[pli->nLevel].nTabstops - 1;
+			}
 			if( end[0] )
 				start = end+1;
 			else
@@ -1259,7 +1387,7 @@ int CPROC InitListBox( PSI_CONTROL pc )
 	{
 		int32_t width = GetFontHeight( GetCommonFont( pc ) ) * 1.2;
 		//ScaleCoords( (PSI_CONTROL)pc, &width, NULL );
-
+		SetCommonTransparent( pc, TRUE );
 		plb->ListSurface = MakeSubImage( pc->Surface
 												 , 0, 0
 												 , pc->surface_rect.width - width
@@ -1507,7 +1635,7 @@ PLISTITEM AddAfterListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
 
 //---------------------------------------------------------------------------
 
-PLISTITEM SetListboxHeader( PSI_CONTROL pc, const TEXTCHAR *text )
+PLISTITEM SetListboxHeaderEx( PSI_CONTROL pc, const TEXTCHAR *text, int level )
 {
 	PLISTITEM pli = NULL;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
@@ -1519,14 +1647,36 @@ PLISTITEM SetListboxHeader( PSI_CONTROL pc, const TEXTCHAR *text )
 		pli->pPopup = NULL;
 		pli->flags.bSelected = FALSE;
 		pli->flags.bFocused = FALSE;
-		pli->flags.bOpen = FALSE;
+		pli->flags.bOpen = TRUE; // header items are always open(?)
 		pli->nLevel = plb->nLastLevel;
 		pli->data = 0;
+		pli->nLevel = level;
+		pli->next = NULL;
+		pli->prior = NULL;
 		pli->within_list = pc;
-		plb->header = pli;
+		if( !level ) {
+			if( plb->header ) {
+				// remove list itme plb->header
+			}
+			plb->header = pli;
+		}
+		else {
+			PLISTITEM pliHeader = plb->header;
+			while( pliHeader->next && pliHeader->next->nLevel < level )
+				pliHeader = pliHeader->next;
+			if( pli->next = pliHeader->next ) {
+				pli->next->prior = pli;
+			}
+			pli->prior = pliHeader;
+			pliHeader->next = pli;
+		}
 		return pli;
 	}
 	return 0;
+}
+
+PLISTITEM SetListboxHeader( PSI_CONTROL pc, const TEXTCHAR* text ) {
+	return SetListboxHeaderEx( pc, text, 0 );
 }
 
 //---------------------------------------------------------------------------
