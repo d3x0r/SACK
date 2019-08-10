@@ -1333,9 +1333,9 @@ void ParseDSN( CTEXTSTR dsn, char **vfs, char **vfsInfo, char **dbFile ) {
 			tmp_name = NULL;
 		}
 	}
-
-
 }
+
+
 
 int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 {
@@ -4290,8 +4290,13 @@ static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
 			rc = sqlite3_bind_text( db, useIndex, val->string, (int)val->stringLen, NULL );
 			break;
 		}
-		if( rc )
-			lprintf( "Error binding:%d %d", useIndex, rc );
+		if( rc ) {
+			if( rc == SQLITE_RANGE ){
+				// kinda just a warning... should feed it back somehow.
+			} else {
+				lprintf( "Error binding:%d %d", useIndex, rc );
+			}
+		}
 	}
 }
 #endif
