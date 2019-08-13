@@ -382,7 +382,7 @@ static int MeasureItemKnob( PSI_CONTROL pc, PLISTITEM pli )
 {
 	PLISTITEM pliNextUpLevel;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-	int x, y; // x, y of center...
+	int x; // x, y of center...
 	int line_length = pli->height * 5 / 12;
 	int line_length_inner = pli->height * 3 / 12;
 	if( !pli->next || (pli->next->nLevel <= pli->nLevel) ) {
@@ -533,7 +533,6 @@ static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h 
 
 		if( plb->flags.bTree ) {
 			knob = MeasureItemKnob( pc, pli );
-			ScaleCoords( pc, &knob, NULL );
 		}
 
 		//lprintf( "tab stop was %d", column );
@@ -550,14 +549,14 @@ static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h 
 		}
 
 		// results as max of either next tabstop or start plus stringlength
-		if( (nextColumn) > (width + column) ) {
+		if( SUS_GT( (nextColumn), int32_t, (width + column), uint32_t ) ) {
 			if( nextColumn > right )
 				right = nextColumn;
 			x = ((nextColumn - column) - width) / 2;
 		}
 		else {
 			x = 0;
-			if( (x + width + column) > right )
+			if( USS_GT( (x + width + column), uint32_t, right, int32_t ) )
 				right = (x + width + column);
 		}
 		//xlprintf( 1 )( "show: %d %d %d %d %s %s", x, column, nextColumn, width, start, end);
@@ -618,12 +617,12 @@ int MeasureListboxItemEx( PSI_CONTROL pc, CTEXTSTR item, int asLevel ) {
 			if( bRight ) {
 				column -= width;
 			}
-			if( ( nextColumn - column ) > width )
+			if( USS_GT( ( nextColumn - column ), uint32_t, width, int32_t) )
 				x = ( ( nextColumn - column ) - width ) / 2;
 			else
 				x = 0;
 
-			if( ( x + width + column ) > right )
+			if( USS_GT( ( x + width + column ),uint32_t, right, int32_t ) )
 				right = ( x + width + column );
 
 		}
@@ -645,8 +644,8 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 	int bFirstDraw;
 	uint32_t w, h;
 	int x, y, maxchars;
-	PLISTITEM pli;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
+	PLISTITEM pli, pliLastShown = plb->lastshown;
 	SFTFont font;
 	Image pSurface = plb->ListSurface;
 	//lprintf( "Drawing listbox using font %p", GetFrameFont( pc ) );
@@ -751,13 +750,9 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 			do_line( pSurface, x + 1 - plb->nXOffset, y + h-2, w - 6, y + h - 2, basecolor(pc)[SHADE] );
 		y += h;
 		//xlprintf(LOG_ALWAYS)( "y is %ld and height is %ld", y , pSurface->height );
-		if( SUS_LT( y, int, pSurface->height, IMAGE_SIZE_COORDINATE )  ) // probably is only partially shown...
+		if( y < pSurface->height  ) // probably is only partially shown...
 		{
-			if( plb->lastshown != pli )
-			{
-				plb->lastshown = pli;
-				UpdateScrollForList( pc );
-			}
+			plb->lastshown = pli;
 		}
 		if( plb->flags.bTree && pli->flags.bOpen )
 			pli = pli->next;
@@ -778,7 +773,7 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 		pli->top = -1;
 		pli = pli->next;
 	}
-	if( bFirstDraw )
+	if( bFirstDraw || ( plb->lastshown != pliLastShown ) )
 	{
 		UpdateScrollForList( pc );
 	}
@@ -856,7 +851,7 @@ void MoveListItemEx( PSI_CONTROL pc, PLISTITEM pli, int level_direction, int dir
 			pli->prior = NULL;
 			pliLast->next = NULL;
 		}
-		if( ( direction < 0 ) && SUS_GTE( -direction, int, pliIndex, INDEX ) )
+		if( ( direction < 0 ) && (-direction >= pliIndex ) )
 		{
 			if( plb->items )
 				plb->items->prior = pliLast;
@@ -1100,6 +1095,8 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int
 						&& ( x < ( ( pli->nLevel + 1) * (pli->height*1.75) ) ) )
 					{
 						pli->flags.bOpen = !pli->flags.bOpen;
+						plb->current = pli;
+
 						if( plb->ListItemOpenHandler )
 						{
 							int bDisable = DisableUpdateListBox( pc, TRUE );
@@ -1483,7 +1480,7 @@ PSI_PROC( PSI_CONTROL, SetListboxIsTree )( PSI_CONTROL pc, int bTree )
 
 //---------------------------------------------------------------------------
 
-PLISTITEM InsertListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
+PLISTITEM InsertListItemEx( PSI_CONTROL pc, PLISTITEM pPrior, int nLevel, CTEXTSTR text )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	if( plb )
@@ -1494,7 +1491,7 @@ PLISTITEM InsertListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
 		pli->flags.bSelected = FALSE;
 		pli->flags.bFocused = FALSE;
 		pli->flags.bOpen = FALSE;
-		pli->nLevel = plb->nLastLevel;
+		pli->nLevel = nLevel;
 		pli->data = 0;
 		pli->within_list = pc;
 		if( !pPrior )
@@ -1531,7 +1528,7 @@ PLISTITEM InsertListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
 			pli->prior = pPrior;
 			pPrior->next = pli;
 		}
-		if( !plb->flags.bNoUpdate )
+		if( !plb->flags.bNoUpdate && pPrior->flags.bOpen )
 		{
 			//Log( "Added an item, therefore update this list?!" );
 			// should only auto adjust when adding items...
@@ -1546,11 +1543,9 @@ PLISTITEM InsertListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
 
 //---------------------------------------------------------------------------
 
-PLISTITEM InsertListItemEx( PSI_CONTROL pc, PLISTITEM pPrior, int nLevel, CTEXTSTR text )
+PLISTITEM InsertListItem( PSI_CONTROL pc, PLISTITEM pPrior, CTEXTSTR text )
 {
-	PLISTITEM pli = InsertListItem( pc, pPrior, text );
-	pli->nLevel = nLevel;
-	return pli;
+	return InsertListItemEx( pc, pPrior, 0, text );
 }
 
 //---------------------------------------------------------------------------
