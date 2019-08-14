@@ -507,7 +507,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 					if( locked )
 						LeaveCriticalSec( &event_data->pc->csLockRead );
 				}
-
+				// many times a read event can cause the socket to close before write can complete.
 				if( !closed && ( event_data->pc->dwFlags & CF_ACTIVE ) ) {
 					int locked;
 					locked = 1;
@@ -518,23 +518,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							: ( !( event_data->pc->dwFlags & CF_ACTIVE ) ) ? "closed" : "writing" );
 #  endif
 
-						while( !NetworkLock( event_data->pc, 0 ) ) {
-							if( !( event_data->pc->dwFlags & CF_WRITEISPENDED ) ) {
-								locked = 0;
-								break;
-							}
-							if( !( event_data->pc->dwFlags & CF_ACTIVE ) ) {
-#  ifdef LOG_NETWORK_EVENT_THREAD
-								lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
-#  endif
-								locked = 0;
-								break;
-							}
-							if( event_data->pc->dwFlags & CF_AVAILABLE ) {
-								locked = 0;
-								break;
-							}
-							Relinquish();
+						if( !NetworkLock( event_data->pc, 0 ) ) {
+							locked = 0;
 						}
 						if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {
 #  ifdef LOG_NETWORK_EVENT_THREAD
@@ -633,8 +618,12 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							// wait until it finished there?
 							// did this wake up because that wrote?
 							if( locked ) {
-								event_data->pc->dwFlags &= ~CF_WRITEISPENDED;
 								TCPWrite( event_data->pc );
+							} else {
+								// although this is only a few instructions down, this can still be a lost event that the other 
+								// lock has already ended, so this will get lost still...
+								event_data->pc->flags.bWriteOnUnlock = 1;
+								//lprintf( "Write event didn't get the lock... and maybe we won't get to write more?" );
 							}
 						}
 						if( locked )

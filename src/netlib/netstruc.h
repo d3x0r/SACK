@@ -93,7 +93,7 @@ enum NetworkConnectionFlags {
 	, CF_CONNECT_WAITING = 0x00008000
 	, CF_CONNECT_CLOSED  = 0x00100000
 	, CF_TOCLOSE         = 0x00000100
-	, CF_WRITEISPENDED   = 0x00000200
+	, UNUSED_CF_WRITEISPENDED   = 0x00000200  // this flag is unused at this time
 	, CF_CLOSING         = 0x00000400
 	, CF_DRAINING        = 0x00000800
 	// closed, handled everything except releasing the socket.
@@ -264,6 +264,7 @@ struct NetworkClient
 		BIT_FIELD bSecure : 1;
 		BIT_FIELD bAllowDowngrade : 1;
 		BIT_FIELD bWaiting : 1; // waiting is a accept() flag to prevent accepting sockets before really setup.
+		BIT_FIELD bWriteOnUnlock : 1; // write event failed to get lock, so if the locked holder would please write...
 	} flags;
 	// this is set to what the thread that's waiting for this event is.
 	struct peer_thread_info * volatile this_thread;

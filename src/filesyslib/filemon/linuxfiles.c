@@ -60,18 +60,17 @@ void ScanDirectory( PMONITOR monitor, PCHANGECALLBACK Change )
 			 lprintf( "DIR OPEN" );
 		 while( ( dirent = readdir( dir ) ) )
 		 {
-				//PCHANGECALLBACK Change;
 				if( monitor->flags.bLogFilesFound )
 					Log1( "Found file %s", dirent->d_name );
-				//for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 				{
 					if( !Change->mask ||
 					    CompareMask( Change->mask
 										, dirent->d_name
-										, FALSE ) )
+										, FALSE ) ) {
 						if( monitor->flags.bLogFilesFound )
-                     Log( "And the mask matched." );
-                  AddMonitoredFile( Change, dirent->d_name );
+							lprintf( "And the mask matched.", Change->mask );
+						AddMonitoredFile( Change, dirent->d_name );
+					}
 				}
         }
         closedir( dir );

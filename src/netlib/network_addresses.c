@@ -323,7 +323,7 @@ const char * GetAddrString( SOCKADDR *addr )
 					ofs += snprintf( buf + ofs, 256 - ofs, "%x", ntohs( piece ) );
 				}
 				else {
-					//console.log( last0, n );
+					//lprintf( last0, n );
 					if( last0 == 4 && first0 == 0 )
 						if( piece == 0xFFFF ) {
 							snprintf( buf, 256, "::ffff:%d.%d.%d.%d",
@@ -349,7 +349,7 @@ const char * GetAddrString( SOCKADDR *addr )
 					ofs += snprintf( buf + ofs, 256 - ofs, ":%x", ntohs( piece ) );
 			}
 		}
-		if( !after0 )
+		if( !after0 && first0 < 8 )
 			ofs += snprintf( buf + ofs, 256 - ofs, ":" );
 	}
 	else
@@ -541,23 +541,12 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 		( lpName[0] >= '0' && lpName[0] <= '9' )
 	  && StrChr( lpName, '.' ) )
 	{
-#ifdef UNICODE
-		char *tmp = CStrDup( lpName );
-		if( inet_pton( AF_INET, tmp, (struct in_addr*)&lpsaAddr->sin_addr ) > 0 )
+		if( inet_pton( AF_INET, lpName, &lpsaAddr->sin_addr ) > 0 )
 		{
 			SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 			lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
 			conversion_success = TRUE;
 		}
-		Deallocate( char *, tmp );
-#else
-		if( inet_pton( AF_INET, lpName, (struct in6_addr*)&lpsaAddr->sin_addr ) > 0 )
-		{
-			SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
-			lpsaAddr->sin_family       = AF_INET;         // InetAddress Type.
-			conversion_success = TRUE;
-		}
-#endif
 	}
 	else if( lpName
 		   && ( ( lpName[0] >= '0' && lpName[0] <= '9' )
@@ -567,23 +556,15 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 		      || ( lpName[0] == '[' && lpName[StrLen( lpName ) - 1] == ']' ) )
 		   && StrChr( lpName, ':' )!=StrRChr( lpName, ':' ) )
 	{
-#ifdef UNICODE
-		char *tmp = CStrDup( lpName );
-		if( inet_pton( AF_INET6, tmp, (struct in_addr*)&lpsaAddr->sin_addr ) > 0 )
+		//lprintf( "Converting name:", lpName );
+		if( inet_pton( AF_INET6, lpName, (struct in6_addr*)(&lpsaAddr->sin_addr+1) ) > 0 )
 		{
+			//lprintf( "This iset in the wrong place?" );
+			((struct sockaddr_in6*)lpsaAddr)->sin6_scope_id = 0;
 			SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
 			lpsaAddr->sin_family       = AF_INET6;         // InetAddress Type.
 			conversion_success = TRUE;
 		}
-		Deallocate( char *, tmp );
-#else
-		if( inet_pton( AF_INET6, lpName, (struct in6_addr*)&lpsaAddr->sin_addr ) > 0 )
-		{
-			SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
-			lpsaAddr->sin_family       = AF_INET6;         // InetAddress Type.
-			conversion_success = TRUE;
-		}
-#endif
 	}
 #endif
 	if( !conversion_success )
@@ -599,6 +580,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 				struct addrinfo *result;
 				struct addrinfo *test;
 				int error;
+				//lprintf( "Or we do getaddrinfo... %s", lpName );
 				error = getaddrinfo( lpName, NULL, NULL, (struct addrinfo**)&result );
 				if( error == 0 )
 				{
@@ -606,6 +588,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 					{
 						//SOCKADDR *tmp;
 						//AddLink( &globalNetworkData.addresses, tmp = AllocAddr() );
+						//lprintf( "Copy addr: %d", test->ai_addrlen );
 						MemCpy( lpsaAddr, test->ai_addr, test->ai_addrlen );
 						SET_SOCKADDR_LENGTH( lpsaAddr, test->ai_addrlen );
 						break;
@@ -632,7 +615,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 #endif
 					{
  						// could not find the name in the host file.
-						Log1( "Could not Resolve to %s", lpName );
+						lprintf( "Could not Resolve to %s  %s", tmp, lpName );
 						ReleaseAddress((SOCKADDR*)lpsaAddr);
 						Deallocate( char*, tmp );
 						if( tmpName ) Deallocate( char*, tmpName );
@@ -641,7 +624,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 #if !defined( __EMSCRIPTEN__ )
 					else
 					{
-						lprintf( "Strange, gethostbyname failed, but AF_INET worked..." );
+						lprintf( "Strange, gethostbyname failed, but AF_INET worked... %s", tmp );
 						SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 						lpsaAddr->sin_family = AF_INET;
 						memcpy( &lpsaAddr->sin_addr.S_un.S_addr,           // save IP address from host entry.
@@ -655,6 +638,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 				{
 					SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
 					lpsaAddr->sin_family = AF_INET6;         // InetAddress Type.
+					//lprintf( "This copy:%d", phe->h_length );
 #  if inline_note_never_included
 					{
 						__SOCKADDR_COMMON (sin6_);
@@ -676,6 +660,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 				Deallocate( char *, tmp );
 				SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 				lpsaAddr->sin_family = AF_INET;         // InetAddress Type.
+				//lprintf( "gethostbyname2:...." );
 				memcpy( &lpsaAddr->sin_addr.S_un.S_addr,           // save IP address from host entry.
 					 phe->h_addr,
 					 phe->h_length);
@@ -697,6 +682,8 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 	Deallocate( char *, _lpName );
 #  undef lpName
 #endif
+	//lprintf( "Resulting thing" );
+	//DumpAddr( "RESULT ADDRESS", (SOCKADDR*)lpsaAddr );
 	// put in his(destination) port number...
 	if( tmpName ) Deallocate( char*, tmpName );
 	lpsaAddr->sin_port         = htons(nHisPort);
