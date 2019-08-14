@@ -1060,6 +1060,10 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 {
 	if( lpClient )
 	{
+		//if( lpClient->flags.bWriteOnUnlock ) {
+		//	lprintf( "Still need to do that write..." );
+		//
+}
 		//lpClient->dwFlags |= CF_WANTS_GLOBAL_LOCK;
 		//_lprintf(DBG_RELAY)( "Lock %p", lpClient );
 #ifdef USE_NATIVE_CRITICAL_SECTION
@@ -1134,6 +1138,15 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 	// simple unlock.
 	if( lpClient )
 	{
+		if( !readWrite ) // is write and not read
+		{
+			if( lpClient->flags.bWriteOnUnlock ) {
+				lpClient->flags.bWriteOnUnlock = 0;
+				//lprintf( "Caught unlock..." );
+				lpClient->dwFlags &= ~CF_WRITEISPENDED;  // this is was missing too..
+				TCPWrite( lpClient );
+			}
+		}
 #ifdef LOG_NETWORK_LOCKING
 		_lprintf( DBG_RELAY )( "Leave private lock %p %d", lpClient, readWrite );
 #endif
