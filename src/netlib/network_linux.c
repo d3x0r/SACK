@@ -518,23 +518,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							: ( !( event_data->pc->dwFlags & CF_ACTIVE ) ) ? "closed" : "writing" );
 #  endif
 
-						while( !NetworkLock( event_data->pc, 0 ) ) {
-							if( !( event_data->pc->dwFlags & CF_WRITEISPENDED ) ) { // if there's nothing to write anyway, don't care about the lock.
-								locked = 0;
-								break;
-							}
-							if( !( event_data->pc->dwFlags & CF_ACTIVE ) ) { // no longer open
-#  ifdef LOG_NETWORK_EVENT_THREAD
-								lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
-#  endif
-								locked = 0;
-								break;
-							}
-							if( event_data->pc->dwFlags & CF_AVAILABLE ) { // in fact, it's now available, and really closed
-								locked = 0;
-								break;
-							}
-							Relinquish(); // wait to get the lock.
+						if( !NetworkLock( event_data->pc, 0 ) ) {
+							locked = 0;
 						}
 						if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {
 #  ifdef LOG_NETWORK_EVENT_THREAD
@@ -633,7 +618,6 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							// wait until it finished there?
 							// did this wake up because that wrote?
 							if( locked ) {
-								event_data->pc->dwFlags &= ~CF_WRITEISPENDED;
 								TCPWrite( event_data->pc );
 							} else {
 								// although this is only a few instructions down, this can still be a lost event that the other 

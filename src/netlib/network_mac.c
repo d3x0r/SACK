@@ -499,22 +499,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  endif
 
 						while( !NetworkLock( event_data->pc, 0 ) ) {
-							if( !( event_data->pc->dwFlags & CF_WRITEISPENDED ) ) {
-								locked = 0;
-								break;
-							}
-							if( !( event_data->pc->dwFlags & CF_ACTIVE ) ) {
-#  ifdef LOG_NETWORK_EVENT_THREAD
-								lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
-#  endif
-								locked = 0;
-								break;
-							}
-							if( event_data->pc->dwFlags & CF_AVAILABLE ) {
-								locked = 0;
-								break;
-							}
-							Relinquish();
+							locked = 0;
+							break;
 						}
 						if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {
 #  ifdef LOG_NETWORK_EVENT_THREAD
@@ -613,9 +599,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							// wait until it finished there?
 							// did this wake up because that wrote?
 							if( locked ) {
-								event_data->pc->dwFlags &= ~CF_WRITEISPENDED;
 								TCPWrite( event_data->pc );
 							}
+							else
+								event_data->pc->flags.bWriteOnUnlock = true;
 						}
 						if( locked )
 							NetworkUnlock( event_data->pc, 0 );

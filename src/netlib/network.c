@@ -1142,7 +1142,6 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 			if( lpClient->flags.bWriteOnUnlock ) {
 				lpClient->flags.bWriteOnUnlock = 0;
 				//lprintf( "Caught unlock..." );
-				lpClient->dwFlags &= ~CF_WRITEISPENDED;  // this is was missing too..
 				TCPWrite( lpClient );
 			}
 		}
