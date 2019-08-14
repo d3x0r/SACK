@@ -757,7 +757,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 				// ignore.
 				break;
 			case TLSEXT_TYPE_application_layer_protocol_negotiation: // 00 0C   02 68 32    08   68 74 74 70 2F 31 2E 31       ...h2.http/1.1
-				{
+				if( SSL_client_hello_get0_ext( ssl, type[n], &buf, &buflen ) ) {
 					int len = (int)((buf[0] << 8) | buf[1]);
 					int ofs = 0;
 					while( ofs < len ) {
@@ -849,7 +849,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	}
 	const char* host = SSL_get_servername( ssl, t );
 	int strlen = StrLen( host );
-	lprintf( "ServerName;%s", host );
+	//lprintf( "ServerName;%s", host );
 	struct ssl_hostContext* hostctx;
 	struct ssl_hostContext* defaultHostctx;
 	lprintf( "Have hostchange: %.*s", strlen, host );
