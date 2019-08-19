@@ -1110,7 +1110,7 @@ PSI_PROC( void, TrackPopup_v2 )( PMENU hMenuSub, PSI_CONTROL parent, void (*call
 
 PSI_PROC( int, TrackPopup )( PMENU hMenuSub, PSI_CONTROL parent )
 {
-	lprintf( "TRACK POPUP IS DEPRECAED, USE CALLBACK VERSION INSTAEAD" );
+	//lprintf( "TRACK POPUP IS DEPRECAED, USE CALLBACK VERSION INSTAEAD" );
 	if( local_popup_data.flags.bCustomMenuEnable )
 	{
 		int32_t x, y;
