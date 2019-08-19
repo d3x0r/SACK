@@ -1,4 +1,3 @@
-
 //-----------------------------------------------------------------------
 // SQLSTUB.C - core sql abstractin library
 //   Provides, essentially, 2 functions...
@@ -3474,6 +3473,21 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 #ifdef USE_ODBC
 						{
+#if 0
+							SQLCHAR* cat[256];
+							SQLCHAR* table[256];
+							SQLCHAR col[256];
+							SQLCHAR* schema[256];
+							SQLSMALLINT len;
+							SQLLEN len2 = 0;
+							SQLColAttribute( collection->hstmt, idx, SQL_DESC_TABLE_NAME, col, 256, &len, &len2 );
+							printf( "TN1: %d   %s\n", idx, col );
+							SQLColAttribute( collection->hstmt, idx, SQL_DESC_BASE_TABLE_NAME, col, 256, &len, &len2 );
+							printf( "TN2: %d   %s\n", idx, col );
+							SQLColAttribute( collection->hstmt, idx, SQL_DESC_NAME, col, 256, &len, &len2 );
+							printf( "CN2: %d   %s\n", idx, col );
+#endif
+							//SQLColumns( collection->hstmt, cat, 256, schema, 256, table, 256, col, 256 );
 							rc = SQLDescribeCol( collection->hstmt
 													 , idx
 													 ,
@@ -4206,6 +4220,14 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 			lprintf( "Failed to handline binding for type: %d", val->value_type );
 			DebugBreak();
 			break;
+		case JSOX_VALUE_TRUE:
+			val->result_n = 1;
+			val->float_result = 0;
+			if(0) {
+		case JSOX_VALUE_FALSE:
+				val->result_n = 0;
+				val->float_result = 0;
+			}
 		case JSOX_VALUE_NUMBER:
 			if( val->float_result ) {
 				rc = SQLBindParamter( hstmt
@@ -4276,6 +4298,14 @@ static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
 		case JSOX_VALUE_NULL:
 			rc = sqlite3_bind_null( db, useIndex );
 			break;
+		case JSOX_VALUE_TRUE:
+			val->result_n = 1;
+			val->float_result = 0;
+			if(0) {
+		case JSOX_VALUE_FALSE:
+				val->result_n = 0;
+				val->float_result = 0;
+			}
 		case JSOX_VALUE_NUMBER:
 			if( val->float_result ) {
 				rc = sqlite3_bind_double( db, useIndex, val->result_d );
