@@ -323,3 +323,8 @@ CRYPTO_hchacha_20(unsigned char subkey[32], const unsigned char key[32],
 	U32TO8_LITTLE(subkey + 24, x[14]);
 	U32TO8_LITTLE(subkey + 28, x[15]);
 }
+
+#undef ROTATE
+#undef XOR
+#undef PLUS
+#undef PLUSONE

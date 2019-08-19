@@ -627,3 +627,4 @@ void whirlpool_block(WHIRLPOOL_CTX *ctx,const void *inp,size_t n)
 							p += 64;
 							} while(--n);
 	}
+#undef N

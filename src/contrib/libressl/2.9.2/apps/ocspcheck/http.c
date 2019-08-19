@@ -20,7 +20,10 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
-
+#ifdef __EMSCRIPTEN__
+#  define _GNU_SOURCE
+#  include <string.h>
+#endif
 #include <ctype.h>
 #include <err.h>
 #include <limits.h>

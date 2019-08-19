@@ -14,7 +14,10 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
+#ifdef __EMSCRIPTEN__
+#  define _GNU_SOURCE
+#  include <string.h>
+#endif
 #include <assert.h>
 #include <errno.h>
 #include <signal.h>

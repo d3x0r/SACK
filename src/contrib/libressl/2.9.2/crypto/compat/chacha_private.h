@@ -220,3 +220,8 @@ chacha_encrypt_bytes(chacha_ctx *x,const u8 *m,u8 *c,u32 bytes)
 #endif
   }
 }
+
+#undef ROTATE
+#undef XOR
+#undef PLUS
+#undef PLUSONE

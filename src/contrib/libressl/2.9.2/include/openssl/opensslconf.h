@@ -14,20 +14,20 @@
 
 #undef OPENSSL_EXPORT_VAR_AS_FUNCTION
 
-#if defined(HEADER_IDEA_H) && !defined(IDEA_INT)
+//#if defined(HEADER_IDEA_H) && !defined(IDEA_INT)
 #define IDEA_INT unsigned int
-#endif
+//#endif
 
-#if defined(HEADER_MD2_H) && !defined(MD2_INT)
+//#if defined(HEADER_MD2_H) && !defined(MD2_INT)
 #define MD2_INT unsigned int
-#endif
+//#endif
 
-#if defined(HEADER_RC2_H) && !defined(RC2_INT)
+//#if defined(HEADER_RC2_H) && !defined(RC2_INT)
 /* I need to put in a mod for the alpha - eay */
 #define RC2_INT unsigned int
-#endif
+//#endif
 
-#if defined(HEADER_RC4_H)
+//#if defined(HEADER_RC4_H)
 #if !defined(RC4_INT)
 /* using int types make the structure larger but make the code faster
  * on most boxes I have tested - up to %20 faster. */
@@ -37,7 +37,7 @@
  * - elder Alpha because it lacks byte load/store instructions;
  */
 #define RC4_INT unsigned int
-#endif
+//#endif
 #if !defined(RC4_CHUNK)
 /*
  * This enables code handling data aligned at natural CPU word
@@ -47,13 +47,13 @@
 #endif
 #endif
 
-#if (defined(HEADER_NEW_DES_H) || defined(HEADER_DES_H)) && !defined(DES_LONG)
+//#if (defined(HEADER_NEW_DES_H) || defined(HEADER_DES_H)) && !defined(DES_LONG)
 /* If this is set to 'unsigned int' on a DEC Alpha, this gives about a
  * %20 speed up (longs are 8 bytes, int's are 4). */
 #ifndef DES_LONG
 #define DES_LONG unsigned int
 #endif
-#endif
+//#endif
 
 #if defined(HEADER_BN_H) && !defined(CONFIG_HEADER_BN_H)
 #define CONFIG_HEADER_BN_H

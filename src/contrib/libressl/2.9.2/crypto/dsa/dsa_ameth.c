@@ -363,7 +363,7 @@ int_dsa_free(EVP_PKEY *pkey)
 }
 
 static void
-update_buflen(const BIGNUM *b, size_t *pbuflen)
+dsa_update_buflen(const BIGNUM *b, size_t *pbuflen)
 {
 	size_t i;
 
@@ -399,11 +399,11 @@ do_dsa_print(BIO *bp, const DSA *x, int off, int ptype)
 	else
 		ktype = "DSA-Parameters";
 
-	update_buflen(x->p, &buf_len);
-	update_buflen(x->q, &buf_len);
-	update_buflen(x->g, &buf_len);
-	update_buflen(priv_key, &buf_len);
-	update_buflen(pub_key, &buf_len);
+	dsa_update_buflen(x->p, &buf_len);
+	dsa_update_buflen(x->q, &buf_len);
+	dsa_update_buflen(x->g, &buf_len);
+	dsa_update_buflen(priv_key, &buf_len);
+	dsa_update_buflen(pub_key, &buf_len);
 
 	m = malloc(buf_len + 10);
 	if (m == NULL) {
@@ -557,8 +557,8 @@ dsa_sig_print(BIO *bp, const X509_ALGOR *sigalg, const ASN1_STRING *sig,
 		size_t buf_len = 0;
 		unsigned char *m = NULL;
 
-		update_buflen(dsa_sig->r, &buf_len);
-		update_buflen(dsa_sig->s, &buf_len);
+		dsa_update_buflen(dsa_sig->r, &buf_len);
+		dsa_update_buflen(dsa_sig->s, &buf_len);
 		m = malloc(buf_len + 10);
 		if (m == NULL) {
 			DSAerror(ERR_R_MALLOC_FAILURE);

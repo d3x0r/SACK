@@ -278,7 +278,7 @@ err:
 }
 
 static void
-update_buflen(const BIGNUM *b, size_t *pbuflen)
+dh_update_buflen(const BIGNUM *b, size_t *pbuflen)
 {
 	size_t i;
 
@@ -326,16 +326,16 @@ do_dh_print(BIO *bp, const DH *x, int indent, ASN1_PCTX *ctx, int ptype)
 	else
 		pub_key = NULL;
 
-	update_buflen(x->p, &buf_len);
+	dh_update_buflen(x->p, &buf_len);
 
 	if (buf_len == 0) {
 		reason = ERR_R_PASSED_NULL_PARAMETER;
 		goto err;
 	}
 
-	update_buflen(x->g, &buf_len);
-	update_buflen(pub_key, &buf_len);
-	update_buflen(priv_key, &buf_len);
+	dh_update_buflen(x->g, &buf_len);
+	dh_update_buflen(pub_key, &buf_len);
+	dh_update_buflen(priv_key, &buf_len);
 
 	if (ptype == 2)
 		ktype = "PKCS#3 DH Private-Key";
