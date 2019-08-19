@@ -39,7 +39,6 @@ void InitJSOX(void ) {
 			Float32Array, Float64Array,
 		];
 
-
 		// static buffer state; removing this reallocation saved 10%
 		var buf_heap;
 		var buf;
@@ -91,10 +90,10 @@ void InitJSOX(void ) {
 
 		},
 		makeFunction (cb){
-			return Module.this_.objects.push(cb) -1
+			return Module.this_.getIndex(cb) 
 		},
 		makeString (str){
-			return Module.this_.objects.push(str)-1
+			return Module.this_.getIndex(str)
 		},
 
 		parse ( str, cb ) {
@@ -140,7 +139,49 @@ void InitJSOX(void ) {
 		}
 		};
       Module.SACK.JSOX = JSOX;
-	), 0 );
+			  ), 0 );
+
+	EM_ASM_INT( (
+ 		 Module.constants = Module.constants||{};
+       Module.constants[UTF8ToString( $1 )]  = ( $0 );
+       Module.constants[UTF8ToString( $3 )]  = ( $2 );
+       Module.constants[UTF8ToString( $5 )]  = ( $4 );
+       Module.constants[UTF8ToString( $7 )]  = ( $6 );
+       Module.constants[UTF8ToString( $9 )]  = ( $8 );
+       Module.constants[UTF8ToString( $11 )]  = ( $10 );
+       Module.constants[UTF8ToString( $13 )]  = ( $12 );
+       Module.constants[UTF8ToString( $15 )]  = ( $14 );
+       Module.constants[UTF8ToString( $17 )]  = ( $16 );
+       Module.constants[UTF8ToString( $19 )]  = ( $18 );
+       Module.constants[UTF8ToString( $21 )]  = ( $20 );
+       Module.constants[UTF8ToString( $23 )]  = ( $22 );
+       Module.constants[UTF8ToString( $23 )]  = ( $24 );
+       Module.constants[UTF8ToString( $27 )]  = ( $26 );
+       Module.constants[UTF8ToString( $29 )]  = ( $28 );
+       Module.constants[UTF8ToString( $31 )]  = ( $30 );
+       Module.constants[UTF8ToString( $33 )]  = ( $32 );
+       Module.constants[UTF8ToString( $35 )]  = ( $34 );
+					),
+     JSOX_VALUE_UNDEFINED         , "JSOX_VALUE_UNDEFINED"
+	, JSOX_VALUE_UNSET             , "JSOX_VALUE_UNSET"
+	, JSOX_VALUE_NULL              , "JSOX_VALUE_NULL"
+	, JSOX_VALUE_TRUE              , "JSOX_VALUE_TRUE"
+	, JSOX_VALUE_FALSE             , "JSOX_VALUE_FALSE"
+	, JSOX_VALUE_STRING            , "JSOX_VALUE_STRING"
+	, JSOX_VALUE_NUMBER            , "JSOX_VALUE_NUMBER"
+	, JSOX_VALUE_OBJECT            , "JSOX_VALUE_OBJECT"
+	, JSOX_VALUE_ARRAY             , "JSOX_VALUE_ARRAY"
+
+	, JSOX_VALUE_NEG_NAN           , "JSOX_VALUE_NEG_NAN"
+	, JSOX_VALUE_NAN               , "JSOX_VALUE_NAN"
+	, JSOX_VALUE_NEG_INFINITY      , "JSOX_VALUE_NEG_INFINITY"
+	, JSOX_VALUE_INFINITY          , "JSOX_VALUE_INFINITY"
+	, JSOX_VALUE_DATE              , "JSOX_VALUE_DATE"
+	, JSOX_VALUE_BIGINT            , "JSOX_VALUE_BIGINT"
+	, JSOX_VALUE_EMPTY             , "JSOX_VALUE_EMPTY"
+	, JSOX_VALUE_TYPED_ARRAY       , "JSOX_VALUE_TYPED_ARRAY"
+	, JSOX_VALUE_TYPED_ARRAY_MAX   , "JSOX_VALUE_TYPED_ARRAY_MAX"
+				 );
 }
 
 static int composeJSObject( struct reviver_data *revive, LOGICAL firstObject ) {
@@ -271,7 +312,7 @@ static int composeJSObject( struct reviver_data *revive, LOGICAL firstObject ) {
 				break;
 			}
 		}
-		return Module.this_.objects.push( o ) - 1;
+		return Module.this_.getIndex( o );
 	), revive->map, revive->stringMap, revive->floatMap, revive->intMap 
 	, revive->mapIndex, revive->stringIndex, revive->floatIndex, revive->intIndex
 	, firstObject

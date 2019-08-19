@@ -38,6 +38,7 @@ set EXPORTS='_initFS'
 : -s EXTRA_EXPORTED_RUNTIME_METHODS=["stringToUTF8"] -s EXPORTED_FUNCTIONS="[%EXPORTS%]"
 
 @set CFLAGS=%CFLAGS%  -s EXPORT_ALL=1
+:@set CFLAGS=%CFLAGS%  -s BINARYEN_ASYNC_COMPILATION=0
 
 @set SRCS=
 @set SRCS=%SRCS% sack.c
@@ -50,6 +51,9 @@ set EXPORTS='_initFS'
 @set SRCS=%SRCS% srg_module.c
 @set SRCS=%SRCS% json6_parser.c
 @set SRCS=%SRCS% jsox_parser.c
+
+@set SRCS=%SRCS% tls_module.c
+@set CFLAGS=%CFLAGS% -I../../src/contrib/libressl/2.9.2/include
 
 @set LIBS=-lcrypto -lssl -ltls
 @set LIBPATH=-Llibs

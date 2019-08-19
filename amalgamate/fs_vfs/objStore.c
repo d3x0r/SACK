@@ -14,14 +14,15 @@ void initFS( void )
 	InitCommon();
 	EM_ASM( (
 
-	   if( typeof indexedDB !== "undefined" ) {
-         var r = FS.mount(IDBFS, {}, '/home/web_user');
+	 //if( typeof indexedDB !== "undefined" ) {
+         //var r = FS.mount(IDBFS, {}, '/home/web_user');
 		  
         //persist changes
-         FS.syncfs(false,function (err) {
-                          assert(!err);
-          });
-		}
+
+         //FS.syncfs(false,function (err) {
+         //                 assert(!err);
+         // });
+		//}
 		//console.log( "Log:", r );
 
 		function TranslateText(s){ return s; }

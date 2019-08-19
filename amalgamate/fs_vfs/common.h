@@ -49,10 +49,10 @@ void dropValueList( PDATALIST *ppdl );
 int makeStringConst( char const *string, int stringlen );
 
 
-#define  makeObject() EM_ASM_INT( { var slot = Module.this_.freeObjects.pop(); if( slot ) return ((Module.this_.objects[slot]={}),slot);return Module.this_.objects .push( {} )-1; })
+#define  makeObject() EM_ASM_INT( { return Module.this_.getIndex( {} ) })
 #define  makeLocalObject(pool) EM_ASM_INT( { return Module.this_.objects[$0].push( {} )-1; }, pool )
 
-#define  makeArray() EM_ASM_INT( { return Module.this_.objects .push( [] )-1; })
+#define  makeArray() EM_ASM_INT( { return Module.this_.getIndex( [] ) })
 #define  makeLocalArray(pool) EM_ASM_INT( { return Module.this_.objects[$0].push( [] )-1; }, pool )
 
 int makeString( char const *string, int stringlen );
@@ -60,6 +60,7 @@ int fillArrayBuffer(char const *data, int len);
 int makeArrayBuffer(int len) ;
 int makeBigInt( char const *s, int n );
 int makeDate( char const *s, int n ) ;
+int makeDateFromDouble( double d );
 int makeNumber( int n );
 int makeNumberf( double n );
 int makeTypedArray(int ab, int type );

@@ -9,7 +9,20 @@ void InitCommon( void )
 		Module.this_ = {
             callbacks : [],
             consts : [], // strings referenced by C code that are const reference... 
-            objects : [undefined,false,true,null,-Infinity,Infinity,NaN],
+				objects : [undefined,false,true,null,-Infinity,Infinity,NaN],
+				getIndex(v){ if( Module.this_.freeObjects.length ) { var next = Module.this_.freeObjects.pop(); 
+							Module.this_.objects[next] = v; return next; 
+						}
+						return Module.this_.objects.push(v)-1; },
+				getAndDropValue(i) {
+						var o = Module.this_.objects[i];
+						if( i > 7 ) {
+							Module.this_.freeObjects.push( i );
+							Module.this_.objects[i] = null;
+						}
+						return o;
+						
+				} ,
             freeObjects : [],
 			types : new Map(), // used by jsox
 			reset() { this.objects.length = 7 },
@@ -31,7 +44,9 @@ void throwError( char const*error ){
 //-------------------------------------------------------------------------------
 
 static PLINKQUEUE plqLists;
-uintptr_t getValueList( void ) {
+uintptr_t getValueList( void ) EMSCRIPTEN_KEEPALIVE;
+uintptr_t getValueList( void )
+{
 	PDATALIST *ppdl;
 	if( !(ppdl = (PDATALIST*)DequeLink( &plqLists ) ) ){
 		ppdl = New( PDATALIST );
@@ -63,7 +78,7 @@ int makeStringConst( char const*string, int stringlen ) {
 int makeString( char const*string, int stringlen ) {
 	int x = EM_ASM_INT( {
 		const string = UTF8ToString( $0, $1 );
-		return Module.this_.objects.push( string )-1;
+		return Module.this_.getIndex(string);
 	},string, stringlen);
 	return x;
 }
@@ -74,40 +89,47 @@ int fillArrayBuffer(char const*data, int len) {
 		var u8 = new Uint8Array(ab);
 		for( var i = 0; i < $1; i++ )
 			u8[i] = Module.U8HEAP[data+i];
-		return Module.this_.objects .push( ab )-1;
+		return Module.this_.getIndex( ab );
 	},data, len);
 }
 
 int makeArrayBuffer(int len) {
 	return EM_ASM_INT( {
-		return Module.this_.objects .push( new ArrayBuffer($0) )-1;
+		return Module.this_.getIndex( new ArrayBuffer($0) );
 	},len);
 }
 
 int makeBigInt( char const*s, int n ) {
 	return EM_ASM_INT( {
 		const string = UTF8ToString( $0, $1-1 );
-		return Module.this_.objects .push( BigInt(string) )-1;
+		return Module.this_.getIndex( BigInt(string) );
 	},s,n);
 }
+
 
 int makeDate( char const*s, int n ) {
 	return EM_ASM_INT( {
 		const string = UTF8ToString( $0, $1 );
-		return Module.this_.objects .push( new Date(string) )-1;
+		return Module.this_.getIndex( new Date(string) );
 	},n);
+}
+
+int makeDateFromDouble( double d) {
+	return EM_ASM_INT( {
+		return Module.this_.getIndex( new Date($0) );
+	},d);
 }
 
 
 int makeNumber( int n ) {
 	return EM_ASM_INT( {
-		return Module.this_.objects .push( $0 )-1;
+		return Module.this_.getIndex( $0 );
 	},n);
 }
 
 int makeNumberf( double n ) {
 	return EM_ASM_INT( {
-		return Module.this_.objects .push( $0 )-1;
+		return Module.this_.getIndex( $0 );
 	},n);
 }
 
@@ -120,32 +142,25 @@ int makeTypedArray(int ab, int type ) {
 				result = $0;
 				break;
 			case 1: // "u8"
-				Module.this_.objects .push( new Uint8Array(ab) );
-				result = Module.this_.objects.length-1;
+				result = Module.this_.getIndex( new Uint8Array(ab) );
 				break;
 			case 2:// "cu8"
-				Module.this_.objects .push( new Uint8ClampedArray(ab) );
-				result = Module.this_.objects.length-1;
+				result = Module.this_.getIndex( new Uint8ClampedArray(ab) );
 				break;
 			case 3:// "s8"
-				Module.this_.objects .push( new Int8Array(ab) );
-				result = Module.this_.objects.length-1;
+				result = Module.this_.getIndex( new Int8Array(ab) );
 				break;
 			case 4:// "u16"
-				Module.this_.objects .push( new Uint16Array(ab) );
-				result = Module.this_.objects.length-1;
+				result = Module.this_.getIndex( new Uint16Array(ab) );
 				break;
 			case 5:// "s16"
-				Module.this_.objects .push( new Int16Array(ab) );
-				result = Module.this_.objects.length-1;
+				result = Module.this_.getIndex( new Int16Array(ab) );
 				break;
 			case 6:// "u32"
-				Module.this_.objects .push( new Uint32Array(ab) );
-				result = Module.this_.objects.length-1;
+				result = Module.this_.getIndex( new Uint32Array(ab) );
 				break;
 			case 7:// "s32"
-				Module.this_.objects .push( new Int32Array(ab) );
-				result = Module.this_.objects.length-1;
+				result = Module.this_.getIndex( new Int32Array(ab) );
 				break;
 			//case 8:// "u64"
 			//	result = Uint64Array::New( ab, 0, val->stringLen );
@@ -154,12 +169,10 @@ int makeTypedArray(int ab, int type ) {
 			//	result = Int64Array::New( ab, 0, val->stringLen );
 			//	break;
 			case 10:// "f32"
-				Module.this_.objects .push( new Float32Array(ab) );
-				result = Module.this_.objects.length-1;
+				result = Module.this_.getIndex( new Float32Array(ab) );
 				break;
 			case 11:// "f64"
-				Module.this_.objects .push( new Float64Array(ab) );
-				result = Module.this_.objects.length-1;
+				result = Module.this_.getIndex( new Float64Array(ab) );
 				break;
 			default:
 				result = 0; // undefined constant
@@ -174,12 +187,16 @@ void setObject( int object, int field, int value ) {
 		const fieldName = Module.this_.objects[$1];
 		Module.this_.objects[$0][fieldName] = Module.this_.objects[$2]; 
 		//console.log( "We Good?", Module.this_.objects )
+		Module.this_.freeObjects.push($2);
+		Module.this_.objects[$2] = null;
 	}, object, field, value);
 }
 
 void setObjectByIndex( int object, int index, int value ) {
 	EM_ASM_( {
 		Module.this_.objects[$0][$1] = Module.this_.objects[$2]; 
+		Module.this_.freeObjects.push($2);
+		Module.this_.objects[$2] = null;
 	}, object, index, value);
 }
 
@@ -188,6 +205,9 @@ void setObjectByName( int object, char const*field, int value ) {
 		const fieldName = UTF8ToString( $1 );
 		Module.this_.objects[$0][fieldName] = Module.this_.objects[$2]; 
 		//console.log( "We Good?", Module.this_.objects )
+		// value moved from floading storage to a value, no longer needs global reference.
+		Module.this_.freeObjects.push($2);
+		Module.this_.objects[$2] = null;
 	}, object, field, value);
 }
 
@@ -208,8 +228,8 @@ void dropLocal( int pool ) {
 
 void dropLocalAndSave( int pool, int object ) {
     EM_ASM( { 
+		// replace pool with a single object from that pool.
 		Module.this_.objects[$0] = Module.this_.objects[$0][$1];
-		Module.this_.freeObjects.push( $0 ) 
 	}, pool, object );
 }
 
