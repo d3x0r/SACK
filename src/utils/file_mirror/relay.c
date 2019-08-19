@@ -680,7 +680,9 @@ static void CPROC TCPRead( PCLIENT pc, POINTER buffer, size_t size ) /*FOLD00*/
 						 , pns->account->unique_name
 						 , *(uint32_t*)buffer
 						 , (TEXTSTR)buffer);
-					TCPDrainEx( pc, 0, FALSE ); // drain any present data...
+					// drain is no longer supported.
+					// this is a very bad way to handle network errors.
+					//TCPDrainEx( pc, 0, FALSE ); // drain any present data...
 				}
 				if( LogKnown )
 				{
