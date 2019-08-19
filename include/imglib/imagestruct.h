@@ -185,6 +185,7 @@ struct ImageFile_tag
 	PLIST vkSurface;
 	int vkActiveSurface; // most things will still use this, since reload image is called first, reload will set active
 	VECTOR coords[4];  // updated with SetTransformRelation, otherwise defaults to image size.
+	VkCommandBuffer* commandBuffers;
 #endif
 #ifdef __cplusplus
 #ifndef __WATCOMC__ // watcom limits protections in structs to protected and public
@@ -193,6 +194,8 @@ private:
 #endif
 //DOM-IGNORE-END
 };
+
+
 
 enum SlicedImageSection {
 	SLICED_IMAGE_TOP_LEFT,

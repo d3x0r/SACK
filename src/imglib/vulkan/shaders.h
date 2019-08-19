@@ -78,6 +78,10 @@ struct image_shader_tracker
 	uintptr_t (CPROC*InitShaderOp)( PImageShaderTracker tracker, uintptr_t psvShader, int *existing_verts, va_list args );
 };
 
+struct image_command_buffer {
+
+};
+
 struct image_shader_op
 {
 	struct image_shader_tracker *tracker;
@@ -132,8 +136,8 @@ void CPROC InitSimpleMultiShadedTextureShader( uintptr_t psv, PImageShaderTracke
 
 void DumpAttribs( PImageShaderTracker tracker, int program );
 
-void CloseShaders( struct vkSurfaceData *glSurface );
-void FlushShaders( struct vkSurfaceData *glSurface );
+void CloseShaders( struct sack_vkSurfaceData *glSurface );
+void FlushShaders( struct sack_vkSurfaceData *glSurface );
 
 struct shader_buffer *CPROC CreateShaderBuffer( int dimensions, int start_size, int expand_by );
 void CPROC AppendShaderData( struct image_shader_op *op, struct shader_buffer *buffer, float *data );

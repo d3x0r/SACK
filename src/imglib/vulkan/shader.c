@@ -8,6 +8,53 @@
 
 IMAGE_NAMESPACE
 
+
+void SetupImageCommandBuffer( Image image ) {
+	image->commandBuffers = NewArray( VkCommandBuffer, 2 );
+	if( !image->pParent )
+		createCommandBuffer( l.vkActiveSurface, image->commandBuffers, 1, TRUE );
+	else
+		createCommandBuffer( l.vkActiveSurface, image->commandBuffers, 1, FALSE );
+
+}
+
+void beginRecording(Image image) {
+	// this will reset already pending command buffers.
+
+	for( size_t i = 0; i < 1/*commandBuffers.size()*/; i++ ) {
+		VkCommandBufferBeginInfo beginInfo = {};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		//VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+		//VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT  // secondary buffer, within a primary
+		//VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT
+		beginInfo.flags = 0; // Optional
+		beginInfo.pInheritanceInfo = NULL; // Optional  - for secondary buffers to reference primary inheritance
+
+		if( vkBeginCommandBuffer( image->commandBuffers[i], &beginInfo ) != VK_SUCCESS ) {
+			lprintf( "Failed to begin buffer recording" );
+			//throw std::runtime_error( "failed to begin recording command buffer!" );
+		}
+	}
+}
+
+void invokeBuffers( Image image ) {
+	VkRenderPassBeginInfo renderPassInfo = {};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassInfo.renderPass = renderPass;
+	renderPassInfo.framebuffer = swapChainFramebuffers[i];
+
+	renderPassInfo.renderArea.offset = { 0, 0 };
+	renderPassInfo.renderArea.extent = swapChainExtent;
+
+	VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+	renderPassInfo.clearValueCount = 1;
+	renderPassInfo.pClearValues = &clearColor;
+
+	vkCmdBeginRenderPass( commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
+}
+
+
+
 PImageShaderTracker GetShaderInit( CTEXTSTR name, uintptr_t (CPROC*Setup)(uintptr_t), void (CPROC*Init)(uintptr_t,PImageShaderTracker), uintptr_t psvSetup )
 {
 	PImageShaderTracker tracker;
@@ -23,6 +70,7 @@ PImageShaderTracker GetShaderInit( CTEXTSTR name, uintptr_t (CPROC*Setup)(uintpt
 	{
 		tracker = New( ImageShaderTracker );
 		MemSet( tracker, 0, sizeof( ImageShaderTracker ));
+		//tracker.
 		{
 			VkCommandPoolCreateInfo cpci;
 			cpci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -70,7 +118,7 @@ void CPROC  SetShaderOpInit( PImageShaderTracker tracker, uintptr_t (CPROC*InitO
 	tracker->InitShaderOp = InitOp;
 }
 
-void CloseShaders( struct vkSurfaceData *vkSurface )
+void CloseShaders( struct sack_vkSurfaceData *vkSurface )
 {
 	PImageShaderTracker tracker;
 	INDEX idx;
@@ -88,7 +136,7 @@ void CloseShaders( struct vkSurfaceData *vkSurface )
 	}
 }
 
-void FlushShaders( struct vkSurfaceData *vkSurface )
+void FlushShaders( struct sack_vkSurfaceData *vkSurface )
 {
 	struct image_shader_image_buffer *image_shader_op;
 	struct image_shader_op *op;

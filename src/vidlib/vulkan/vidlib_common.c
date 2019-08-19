@@ -600,7 +600,7 @@ void LoadOptions( void )
 
 static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_camera )
 {
-	uintptr_t (CPROC *Init3d)(PMatrix,PTRANSFORM,RCOORD*,RCOORD*);
+	uintptr_t (CPROC *Init3d)(EXTRA_INIT_ARG_TYPE PMatrix,PTRANSFORM,RCOORD*,RCOORD*);
 	PCLASSROOT data = NULL;
 	CTEXTSTR name;
 	TEXTCHAR optname[64];
@@ -614,12 +614,12 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 		if( already_inited )
 			continue;
 		RegisterIntValueEx( data, optname, "Executed", 1 );
-		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,uintptr_t,"ExtraInit3d",(PMatrix,PTRANSFORM,RCOORD*,RCOORD*));
+		Init3d = GetRegisteredProcedureExx( data,(CTEXTSTR)name,uintptr_t,"ExtraInit3d",(EXTRA_INIT_ARG_TYPE PMatrix,PTRANSFORM,RCOORD*,RCOORD*));
 
 		if( Init3d )
 		{
 			struct plugin_reference *reference;
-			uintptr_t psvInit = Init3d( &l.fProjection, view_camera, &camera->identity_depth, &camera->aspect );
+			uintptr_t psvInit = Init3d( &camera->chain, &l.fProjection, view_camera, &camera->identity_depth, &camera->aspect );
 			if( psvInit )
 			{
 				INDEX idx;
@@ -834,6 +834,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 
 					// additionally indicate that this is a GL render point
 					hVideo->pImage->flags |= IF_FLAG_FINAL_RENDER;
+
 				}
 				hVideo->flags.bReady = 1;
 			}

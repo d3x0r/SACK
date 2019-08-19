@@ -44,7 +44,7 @@ static void OnFirstDraw3d( "@00 Vulkan Image Library" )( uintptr_t psv )
 {
 	LOGICAL tmp;
 	const uint8_t * val;
-	l.vkActiveSurface = (struct vkSurfaceData *)psv;
+	l.vkActiveSurface = (struct sack_vkSurfaceData *)psv;
 
 	{
 		l.simple_shader = GetShaderInit( "Simple Shader", SetupSuperSimpleShader, InitSuperSimpleShader, 0 );
@@ -55,10 +55,10 @@ static void OnFirstDraw3d( "@00 Vulkan Image Library" )( uintptr_t psv )
 	}
 }
 
-static uintptr_t OnInit3d( "@00 Vulkan Image Library" )( VkDevice device,PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
+static uintptr_t OnInit3d( "@00 Vulkan Image Library" )( struct SwapChain *device,PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
 {
 	INDEX idx;
-	struct vkSurfaceData *vkSurface;
+	struct sack_vkSurfaceData *vkSurface;
 	LIST_FORALL( l.vkSurface, idx, struct vkSurfaceData *, vkSurface )
 	{
 		if( (vkSurface->T_Camera == camera )
@@ -71,7 +71,8 @@ static uintptr_t OnInit3d( "@00 Vulkan Image Library" )( VkDevice device,PMatrix
 	}
 	if( !vkSurface )
 	{
-		vkSurface = New( struct vkSurfaceData );
+		vkSurface = New( struct sack_vkSurfaceData );
+		vkSurface->device = device;
 		MemSet( vkSurface, 0, sizeof( *vkSurface ) );
 		vkSurface->M_Projection = projection;
 		vkSurface->T_Camera = camera;
@@ -98,7 +99,7 @@ static uintptr_t OnInit3d( "@00 Vulkan Image Library" )( VkDevice device,PMatrix
 static uintptr_t CPROC ReleaseTexture( POINTER p, uintptr_t psv )
 {
 	Image image = (Image)p;
-	struct vkSurfaceData *vkSurface = ((struct vkSurfaceData *)psv);
+	struct sack_vkSurfaceData *vkSurface = ((struct sack_vkSurfaceData *)psv);
 	// if this image has no gl surfaces don't check it (it might make some)
 	//lprintf( "Release Texture %p", p );
 	if( !image->vkSurface )
@@ -149,7 +150,7 @@ static void OnClose3d( "@00 Vulkan Image Library" )( uintptr_t psvInit )
 
 static void OnBeginDraw3d( "@00 Vulkan Image Library" )( uintptr_t psvInit, PTRANSFORM camera )
 {
-	l.vkActiveSurface = (struct vkSurfaceData *)psvInit;
+	l.vkActiveSurface = (struct sack_vkSurfaceData *)psvInit;
 	l.vkImageIndex = l.vkActiveSurface->index;
 	l.camera = camera;
 	//PrintMatrixEx( "camera", (POINTER)camera DBG_SRC );
@@ -308,7 +309,7 @@ void MarkImageUpdated( Image child_image )
 
 	{
 		INDEX idx;
-		struct vkSurfaceData *data;
+		struct sack_vkSurfaceData *data;
 		struct vkSurfaceImageData *current_image_data = NULL;
 		LIST_FORALL( l.vkSurface, idx, struct vkSurfaceData *, data )
 		{

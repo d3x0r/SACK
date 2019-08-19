@@ -26,9 +26,20 @@ struct SwapChain {
 	VkColorSpaceKHR colorSpace;
 	VkSwapchainKHR swapChain;
 	VkImage *images; // VkImage list
+	VkCommandPool commandPool;
+
+	// these should probably be available for application instancing.
+	VkRenderPass renderPass;
+	VkPipelineLayout pipelineLayout;
+
 	int nImages;
 	struct SwapChainBuffer *buffers;//SwapChainBuffer List
 	size_t nodeIndex;
+
+	VkQueue graphicsQueue;
+	VkSemaphore imageAvailableSemaphore;
+	VkSemaphore renderFinishedSemaphore;
+
 	PFN_vkGetPhysicalDeviceSurfaceSupportKHR fpGetPhysicalDeviceSurfaceSupportKHR;
 	PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
 	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR fpGetPhysicalDeviceSurfaceFormatsKHR;

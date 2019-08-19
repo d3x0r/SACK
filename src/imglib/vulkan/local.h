@@ -10,7 +10,7 @@
 #include <vulkan/vulkan.h>
 
 IMAGE_NAMESPACE
-struct vkSurfaceData;
+struct sack_vkSurfaceData;
 IMAGE_NAMESPACE_END
 
 #include "../image_common.h"
@@ -19,8 +19,9 @@ IMAGE_NAMESPACE_END
 
 IMAGE_NAMESPACE
 
-struct vkSurfaceData 
+struct sack_vkSurfaceData 
 {
+	struct SwapChain* device; // the chain associated with this camera context
 	PMatrix M_Projection;
 	PTRANSFORM T_Camera;
 	RCOORD *identity_depth;
@@ -60,7 +61,7 @@ struct local_puregl_image_data_tag {
 	} flags;
 	uint32_t vkImageIndex;
 	PLIST vkSurface; // list of struct vkSurfaceData *
-	struct vkSurfaceData *vkActiveSurface;
+	struct sack_vkSurfaceData *vkActiveSurface;
 	RCOORD scale;
 	PTRANSFORM camera; // active camera at begindraw
 

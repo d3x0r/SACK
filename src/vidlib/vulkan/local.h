@@ -127,6 +127,7 @@ struct display_camera
 #elif defined( _WIN32 )
 	HWND hWndInstance;
 #endif
+
 	struct SwapChain chain; // chain owns the device.
 
 	RAY mouse_ray;

@@ -37,6 +37,160 @@ void SetupPositionMatrix( struct display_camera *camera ) {
 
 }
 
+
+void createSemaphores( struct display_camera *camera ) {
+	VkSemaphoreCreateInfo semaphoreInfo = {0};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	if( vkCreateSemaphore( camera->chain.device, &semaphoreInfo, NULL, &camera->chain.imageAvailableSemaphore ) != VK_SUCCESS ||
+		vkCreateSemaphore( camera->chain.device, &semaphoreInfo, NULL, &camera->chain.renderFinishedSemaphore ) != VK_SUCCESS ) {
+		return FALSE;
+		//throw std::runtime_error( "failed to create semaphores!" );
+	}
+}
+
+
+void drawFrame( struct display_camera* camera ) {
+
+	uint32_t imageIndex;
+	vkAcquireNextImageKHR( camera->chain.device, camera->chain.swapChain, UINT64_MAX, camera->chain.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex );
+
+
+	VkSubmitInfo submitInfo = {0};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkSemaphore waitSemaphores[] = { camera->chain.imageAvailableSemaphore };
+	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &camera->chain.buffers[imageIndex];
+
+	VkSemaphore signalSemaphores[] = { camera->chain.renderFinishedSemaphore };
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	if( vkQueueSubmit( camera->chain.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE ) != VK_SUCCESS ) {
+		//throw std::runtime_error( "failed to submit draw command buffer!" );
+		lprintf( "Failed to submit frame" );
+	}
+
+	// --------- Present Frame -------------
+	VkPresentInfoKHR presentInfo = {0};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+
+	VkSwapchainKHR swapChains[] = { camera->chain.swapChain };
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+	presentInfo.pImageIndices = &imageIndex;
+
+	// array of results for each swap chain passed...
+	presentInfo.pResults = NULL; // Optional
+
+	vkQueuePresentKHR( camera->chain.graphicsQueue, &presentInfo );
+
+	vkQueueWaitIdle( camera->chain.graphicsQueue );
+}
+
+void presentFrame( struct display_camera* camera ) {
+}
+
+
+void createRenderPass( struct display_camera* camera ) {
+	VkAttachmentDescription colorAttachment = {0};
+	colorAttachment.format = camera->chain.colorFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // may not preserve
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttachmentRef = {0};
+	colorAttachmentRef.attachment = 0; // index of above attachments
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass = {0};
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttachmentRef;
+
+
+	VkSubpassDependency dependency = { 0 };
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass = 0;
+
+	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.srcAccessMask = 0;
+
+	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+	VkRenderPassCreateInfo renderPassInfo = {0};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.attachmentCount = 1;
+	renderPassInfo.pAttachments = &colorAttachment;
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpass;
+
+	renderPassInfo.dependencyCount = 1;
+	renderPassInfo.pDependencies = &dependency;
+
+	if( vkCreateRenderPass( camera->chain.device, &renderPassInfo, NULL, &camera->chain.renderPass ) != VK_SUCCESS ) {
+		lprintf( "Failed to create render pass" );
+		//throw std::runtime_error( "failed to create render pass!" );
+	}
+
+
+
+}
+
+void createGraphicsPipeline() {
+
+}
+
+void createCommandPool( struct SwapChain *chain ) {
+	QueueFamilyIndices queueFamilyIndices = findQueueFamilies( chain->device );
+
+	VkCommandPoolCreateInfo poolInfo = {0};
+	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+	// VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,   // get recreated often.
+	// VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT  // individual commands can be reset
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Optional
+
+	if( vkCreateCommandPool( chain->device, &poolInfo, NULL, &chain->commandPool ) != VK_SUCCESS ) {
+		lprintf( "Failed to create command pool." );
+		//throw std::runtime_error( "failed to create command pool!" );
+	}
+
+}
+
+void createCommandBuffers( struct SwapChain* chain,  VkCommandBuffer *buffers, uint32_t count, LOGICAL primary ) {
+
+	VkCommandBufferAllocateInfo allocInfo = {0};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.commandPool = chain->commandPool;
+	allocInfo.level = primary?VK_COMMAND_BUFFER_LEVEL_PRIMARY: VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+	allocInfo.commandBufferCount = (uint32_t)count;
+
+	if( vkAllocateCommandBuffers( chain->device, &allocInfo, buffers ) != VK_SUCCESS ) {
+		lprintf( "Failed to create a command buffer" );
+		//throw std::runtime_error( "failed to allocate command buffers!" );
+	}
+
+}
+
+
+
+
 void SetupInstance()
 {
 	int n = 5;
@@ -102,6 +256,7 @@ void SetupInstance()
 
 void Shutdown()
 {
+
 	// Never forget to free resources
 	vkDestroyInstance(vl.instance, NULL);
 }
@@ -537,7 +692,7 @@ LOGICAL swapChainCreate( struct SwapChain *swapChain,
 	// sizes for them.
 	uint32_t presentModeCount;
 	VkSurfaceCapabilitiesKHR surfaceCapabilities;
-	VkExtent2D swapChainExtent = { 0 };// = {};
+	VkExtent2D swapChainExtent = { 0 };// = {0};
 	VkPresentModeKHR *presentModes;
 	if( swapChain->fpGetPhysicalDeviceSurfaceCapabilitiesKHR( swapChain->physicalDevice,
 		swapChain->surface,
@@ -679,7 +834,7 @@ LOGICAL swapChainCreate( struct SwapChain *swapChain,
 	{
 		uint32_t i;
 		for( i = 0; i < imageCount; i++ ) {
-			VkImageViewCreateInfo colorAttachmentView;// = {};
+			VkImageViewCreateInfo colorAttachmentView;// = {0};
 			colorAttachmentView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			colorAttachmentView.pNext = NULL;
 			colorAttachmentView.format = swapChain->colorFormat;
@@ -736,7 +891,7 @@ VkResult swapChainQueuePresent( struct SwapChain *swapChain,
 	VkQueue queue,
 	uint32_t currentBuffer )
 {
-	VkPresentInfoKHR presentInfo;// = {};
+	VkPresentInfoKHR presentInfo;// = {0};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.pNext = NULL;
 	presentInfo.swapchainCount = 1;
@@ -757,6 +912,10 @@ void swapChainCleanup( struct SwapChain *swapChain ) {
 	vkDestroySurfaceKHR( swapChain->instance,
 		swapChain->surface,
 		NULL );
+
+
+	vkDestroyPipelineLayout( swapChain->device, swapChain->pipelineLayout, NULL );
+	vkDestroyRenderPass( swapChain->device, swapChain->renderPass, NULL );
 }
 
 
@@ -777,6 +936,12 @@ void EnableVulkan( xcb_connection_t *connection,
 	CreateDevice( camera, useDevice );
 
 	swapChainConnect( &camera->chain );
+
+	// maybe not here... 
+	createRenderPass( camera );
+
+	createCommandPool( &camera->chain );
+
 	#if WIN32
 		swapChainPlatformConnect( &camera->chain, hInstance, camera->hWndInstance );
 	#elif defined( __LINUX__ )
