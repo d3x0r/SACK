@@ -278,45 +278,11 @@ static void AdjustItemsIntoBox( PSI_CONTROL pc )
 static int MeasureRelationLines( PSI_CONTROL pc, PLISTITEM pli, int drawthis )
 {
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
-	PLISTITEM pliNextUpLevel;
-	int x, y, ymin, ymax;
-	pliNextUpLevel = pli->next;
+	int x;
 	x = (int)(pli->nLevel * (1.75*pli->height) + (pli->height*1.75)/2);
 	x -= plb->nXOffset;
-	y = pli->top + ( pli->height / 2 );
-	ymin = pli->top;
-	ymax = pli->top + pli->height;
-	if( pli->nLevel )
-	{
-		PLISTITEM pliParent = pli->prior;
-		while( pliParent && pliParent->nLevel >= pli->nLevel )
-		{
-			pliParent = pliParent->prior;
-		}
-		if( pliParent && !pliParent->flags.bOpen )
-		{
-			// parent is not open, therefore do not draw lines...
-			// also - x offset is irrelavent return..
-			return 0;
-		}
+	x = (int)(x + ((pli->height)*1.75 * 2) / 3);
 
-	}
-	if( drawthis )
-	{
-		while( pliNextUpLevel && pliNextUpLevel->nLevel > pli->nLevel )
-			pliNextUpLevel = pliNextUpLevel->prior;
-	}
-	pliNextUpLevel = pli;
-
-	x = (int)(x + ((pli->height)*1.75*2)/3);
-	x -= plb->nXOffset;
-
-	while( pliNextUpLevel )
-	{
-		while( pliNextUpLevel && pliNextUpLevel->nLevel >= pli->nLevel )
-			pliNextUpLevel = pliNextUpLevel->prior;
-		pli = pliNextUpLevel;
-	}
 	return x;
 }
 
@@ -328,7 +294,8 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 	PLISTITEM pliNextUpLevel;
 	int x, y, ymin, ymax;
 	pliNextUpLevel = pli->next;
-	x = (int)(pli->nLevel * (1.75 * pli->height) + (pli->height * 1.75) / 2);
+	x = (int)(pli->nLevel * (1.75 * pli->height) 
+		+ (pli->height * 1.75) / 2);
 	x -= plb->nXOffset;
 	y = pli->top + (pli->height / 2);
 	ymin = pli->top;
@@ -350,24 +317,25 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 			pliNextUpLevel = pliNextUpLevel->prior;
 		if( pliNextUpLevel && (pliNextUpLevel->nLevel == pli->nLevel) ) {
 			do_hline( surface, y, x, (int)(x + ((pli->height * 1.75) / 2) - 1), basecolor( pc )[SHADE] );
-			do_vline( surface, x, ymin, ymax, basecolor( pc )[SHADE] );
+			do_vline( surface, x, ymin, ymax, BASE_COLOR_RED );// basecolor( pc )[SHADE] );
 		}
 		else {
 			do_hline( surface, y, x, (int)(x + ((pli->height * 1.75) / 2) - 1), basecolor( pc )[SHADE] );
-			do_vline( surface, x, ymin, y, basecolor( pc )[SHADE] );
+			do_vline( surface, x, ymin, y, BASE_COLOR_GREEN );//basecolor( pc )[SHADE] );
 		}
 	}
+	//x += ((pli->height * 1.75) / 2);
 	pliNextUpLevel = pli;
 
-	x = (int)(x + ((pli->height) * 1.75 * 2) / 3);
-	x -= plb->nXOffset;
+	//x = (int)(x + ((pli->height) * 1.75 * 2) / 3);
+	//x -= plb->nXOffset;
 
 	while( pliNextUpLevel ) {
 		while( pliNextUpLevel && pliNextUpLevel->nLevel >= pli->nLevel )
 			pliNextUpLevel = pliNextUpLevel->prior;
 		if( pliNextUpLevel ) {
 			do_vline( surface
-				, (int)((pliNextUpLevel->nLevel) * (pli->height * 1.75) + ((pli->height * 1.75) / 2))
+				, (int)((pliNextUpLevel->nLevel) * (pli->height * 1.75) + ((pli->height * 1.75) / 2)) - plb->nXOffset
 				, ymin, ymax
 				, basecolor( pc )[SHADE] );
 		}
@@ -388,7 +356,7 @@ static int MeasureItemKnob( PSI_CONTROL pc, PLISTITEM pli )
 	if( !pli->next || (pli->next->nLevel <= pli->nLevel) ) {
 		// this is not an openable item, therefore
 		// just draw some lines...
-		return MeasureRelationLines( pc, pli, TRUE );
+		x = MeasureRelationLines( pc, pli, TRUE );
 	}
 	else {
 		// render lines to the left of here but not including here...
@@ -397,10 +365,11 @@ static int MeasureItemKnob( PSI_CONTROL pc, PLISTITEM pli )
 	pliNextUpLevel = pli->next;
 	while( pliNextUpLevel && (pliNextUpLevel->nLevel > pli->nLevel) )
 		pliNextUpLevel = pliNextUpLevel->prior;
-	x = (int)(pli->nLevel * (pli->height * 1.75) + ((pli->height * 1.75) / 2));
-	x -= plb->nXOffset;
 
-	return (int)(x + (pli->height * 1.75 * 2) / 3);
+	//x = (int)(pli->nLevel * (pli->height * 1.75) + ((pli->height * 1.75) / 2));
+	//x -= plb->nXOffset;
+
+	return x;// (int)(x + (pli->height * 1.75 * 2) / 3);
 }
 
 //---------------------------------------------------------------------------
@@ -416,7 +385,8 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	{
 		// this is not an openable item, therefore
 		// just draw some lines...
-		return RenderRelationLines( pc, surface, pli, TRUE );
+		return RenderRelationLines( pc, surface, pli, TRUE ) 
+			+ ((pli->height * 1.75) / 2);
 	}
 	else
 	{
@@ -426,8 +396,10 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	pliNextUpLevel = pli->next;
 	while( pliNextUpLevel && ( pliNextUpLevel->nLevel > pli->nLevel ) )
 		pliNextUpLevel = pliNextUpLevel->prior;
-	x = (int)(pli->nLevel * (pli->height*1.75) + ((pli->height*1.75)/2));
-	x -= plb->nXOffset;
+
+	//x = (int)(pli->nLevel * (pli->height*1.75) 
+	//	+ ((pli->height*1.75)/2));
+	//x -= plb->nXOffset;
 	y = pli->top + ( pli->height / 2 );
 
 	// this draws the box with a + in it...
@@ -455,7 +427,7 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	if( pliNextUpLevel && ( pliNextUpLevel->nLevel == pli->nLevel ) )
 	{
 		// next item is on this level, extend branch line down.
-		do_vlineAlpha( surface, (pli->nLevel-1) * (pli->height*1.75) + (pli->height*1.75)/2, y - (pli->height+1)/2, pli->top + pli->height, basecolor(pc)[SHADE] );
+		do_vlineAlpha( surface, (pli->nLevel-1) * (pli->height*1.75) + (pli->height*1.75)/2 - plb->nXOffset, y - (pli->height+1)/2, pli->top + pli->height, basecolor(pc)[SHADE] );
 	}
 	return (int)(x + (pli->height*1.75*2)/3);
 }
@@ -511,6 +483,9 @@ static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h 
 	int knob = 0;
 	int x = 0;
 	Image pSurface = plb->ListSurface;
+	if( plb->flags.bTree ) {
+		knob = MeasureItemKnob( pc, pli );
+	}
 	pli->top = y;
 	pli->height = h;
 
@@ -531,9 +506,6 @@ static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h 
 				}
 			}
 
-		if( plb->flags.bTree ) {
-			knob = MeasureItemKnob( pc, pli );
-		}
 
 		//lprintf( "tab stop was %d", column );
 		ScaleCoords( pc, &column, NULL );
@@ -559,9 +531,9 @@ static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h 
 			if( USS_GT( (x + width + column), uint32_t, right, int32_t ) )
 				right = (x + width + column);
 		}
-		//xlprintf( 1 )( "show: %d %d %d %d %s %s", x, column, nextColumn, width, start, end);
-		PutStringFontEx( pSurface, knob + x + column - plb->nXOffset, y, basecolor( pc )[EDIT_TEXT], 0, start, end - start, font );
-		do_vline( pSurface, knob + nextColumn - plb->nXOffset, y, y + h, lineColor );
+		//xlprintf( 1 )( "show: %d %d %d %d %d %s %s", knob, x, column, nextColumn, width, start, end);
+		PutStringFontEx( pSurface, knob + x + column, y, basecolor( pc )[EDIT_TEXT], 0, start, end - start, font );
+		do_vline( pSurface, knob + nextColumn, y, y + h, lineColor );
 		if( plb->tabStops.count > pli->nLevel ) {
 			tab++;
 			if( tab >= plb->tabStops.tabStops[pli->nLevel].nTabstops )
@@ -572,7 +544,7 @@ static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h 
 		else
 			start = NULL;
 	}
-	do_hlineAlpha( pSurface, y + h + 1, knob + 0 - plb->nXOffset, knob + right - plb->nXOffset, lineColor );
+	do_hlineAlpha( pSurface, y + h + 1, knob, knob + right, lineColor );
 }
 
 int MeasureListboxItemEx( PSI_CONTROL pc, CTEXTSTR item, int asLevel ) {
@@ -694,10 +666,11 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 		int tab = 0;
 		pli->top = y;
 		pli->height = h;
-		if( plb->flags.bTree )
-		{
+		if( plb->flags.bTree ) {
 			x = RenderItemKnob( pc, plb->ListSurface, pli );
 		}
+		else
+			x -= plb->nXOffset;
 		if( pli->flags.bSelected )
 		{
 			BlatColorAlpha( pSurface, x-2, y, w-4, h, basecolor(pc)[SELECT_BACK] );
@@ -729,11 +702,11 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 			}
 			if( pli->flags.bSelected )
 			{
-				PutStringFontEx( pSurface, x + column - plb->nXOffset, y, basecolor(pc)[SELECT_TEXT], 0, start, end-start, font );
+				PutStringFontEx( pSurface, x + column, y, basecolor(pc)[SELECT_TEXT], 0, start, end-start, font );
 			}
 			else
 			{
-				PutStringFontEx( pSurface, x + column - plb->nXOffset, y, basecolor(pc)[EDIT_TEXT], 0, start, end-start, font );
+				PutStringFontEx( pSurface, x + column, y, basecolor(pc)[EDIT_TEXT], 0, start, end-start, font );
 			}
 			tab++;
 			if( pli->nLevel < plb->tabStops.count ) {
@@ -747,7 +720,7 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 		}
 		if( pc->flags.bFocused &&
 			 plb->current == pli )
-			do_line( pSurface, x + 1 - plb->nXOffset, y + h-2, w - 6, y + h - 2, basecolor(pc)[SHADE] );
+			do_line( pSurface, x + 1, y + h-2, w - 6, y + h - 2, basecolor(pc)[SHADE] );
 		y += h;
 		//xlprintf(LOG_ALWAYS)( "y is %ld and height is %ld", y , pSurface->height );
 		if( y < pSurface->height  ) // probably is only partially shown...
@@ -1528,7 +1501,7 @@ PLISTITEM InsertListItemEx( PSI_CONTROL pc, PLISTITEM pPrior, int nLevel, CTEXTS
 			pli->prior = pPrior;
 			pPrior->next = pli;
 		}
-		if( !plb->flags.bNoUpdate && pPrior->flags.bOpen )
+		if( !plb->flags.bNoUpdate && ( pPrior && pPrior->flags.bOpen ) )
 		{
 			//Log( "Added an item, therefore update this list?!" );
 			// should only auto adjust when adding items...
