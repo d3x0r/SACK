@@ -1488,7 +1488,9 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 				lprintf( "How long was that?" );
 #endif
 				LineRelease( pConnect );
+#ifdef _DEBUG
 				lprintf( "rc == %d", rc );
+#endif
 				if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 				{
 					//PTEXT result;
