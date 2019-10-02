@@ -2856,7 +2856,7 @@ plus1:
 }
 
 
-char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
+char * WcharConvert_v2 ( const wchar_t *wch, size_t len, size_t *outlen DBG_PASS )
 {
 	// Conversion to char* :
 	// Can just convert wchar_t* to char* using one of the
@@ -2999,8 +2999,15 @@ char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 		}
 	}
 	(*ch) = 0;
+	if( outlen ) outlen[0] = ch - _ch;
 	ch = _ch;
 	return ch;
+}
+
+char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
+{
+	size_t outlen;
+	return WcharConvert_v2( wch, len, &outlen );
 }
 
 char * WcharConvertEx ( const wchar_t *wch DBG_PASS )
