@@ -3739,9 +3739,27 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						default:
 							lprintf( "Unhandled coltype:%d", coltype );
 							break;
+						case SQL_BINARY:
+							val->value_type = JSOX_VALUE_TYPED_ARRAY;
+							rc = SQLGetData( collection->hstmt
+								, (short)(idx)
+								, SQL_C_BINARY
+								, byResult
+								, colsize
+								, &ResultLen );
+							if( ResultLen == SQL_NULL_DATA ) {
+								val->value_type = JSOX_VALUE_NULL;
+								val->string = NULL;
+								val->stringLen = 0;
+							}
+							else {
+								val->string = NewArray( char, ResultLen );//DupCStrLen( byResult, ResultLen );
+								MemCpy( val->string, byResult, ResultLen );
+								val->stringLen = ResultLen;
+							}
+							break;
 						case SQL_CHAR:
 						case SQL_VARCHAR:
-						case SQL_WCHAR:
 						case SQL_LONGVARCHAR:
 							val->value_type = JSOX_VALUE_STRING;
 							rc = SQLGetData( collection->hstmt
@@ -3757,6 +3775,25 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							}
 							else {
 								val->string = DupCStrLen( byResult, ResultLen );
+								val->stringLen = ResultLen;
+							}
+							break;
+						case SQL_WCHAR:
+						case SQL_WVARCHAR:
+							val->value_type = JSOX_VALUE_STRING;
+							rc = SQLGetData( collection->hstmt
+								, (short)(idx)
+								, SQL_WCHAR
+								, byResult
+								, colsize
+								, &ResultLen );
+							if( ResultLen == SQL_NULL_DATA ) {
+								val->value_type = JSOX_VALUE_NULL;
+								val->string = NULL;
+								val->stringLen = 0;
+							}
+							else {
+								val->string = WcharConvertLen( (wchar*)byResult, ResultLen/2 );
 								val->stringLen = ResultLen;
 							}
 							break;
