@@ -447,7 +447,11 @@ static void CPROC name(void);
 	static int CPROC schedule_name(void);   
 	__declspec(allocate(_STARTSEG_)) int (CPROC*x_name)(void) = schedule_name; 
 	int CPROC schedule_name(void) {
-		RegisterPriorityStartupProc( name,TOSTR(name),100,x_name,"dl.c",__LINE__ );
+		RegisterPriorityStartupProc( name,TOSTR(name),100,x_name
+#if DBG_AVAILABLE
+											,"dl.c",__LINE__
+#endif
+											);
 		return 0;
 	}
 #endif
@@ -455,12 +459,16 @@ static void CPROC name(void);
    static void schedule_name(void);
 	static struct rt_init __based(__segname("XI")) name_ctor_label={0,(DEADSTART_PRELOAD_PRIORITY-32),schedule_name};
 	void schedule_name(void) {
-		RegisterPriorityStartupProc( name,TOSTR(name),100,&name_ctor_label,"dl.c",__LINE__ );
+		RegisterPriorityStartupProc( name,TOSTR(name),100,&name_ctor_label
+#if DBG_AVAILABLE
+											,"dl.c",__LINE__
+#endif
+											);
 	}
 #endif
 #ifdef __GNUC__
 	static void schedule_name(void) __attribute__((constructor)) __attribute__((used));
-#  ifdef _DEBUG
+#  if DBG_AVAILABLE
 #     define EXTRA ,"dl.c",__LINE__
 #  else
 #     define EXTRA
