@@ -79,7 +79,7 @@ struct image_shader_tracker
 };
 
 struct image_command_buffer {
-
+	int data;
 };
 
 struct image_shader_op
