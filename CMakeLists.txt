@@ -1,9 +1,13 @@
-#cmake_policy( SET CMP0077 NEW )
+cmake_minimum_required(VERSION 3.1)
+
+if( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
+	cmake_policy( SET CMP0077 NEW )
+	MESSAGE( "POLICY IS SET!" )
+endif( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
 
 enable_language( ASM )
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
-cmake_minimum_required(VERSION 3.1)
 
 project( SACK )
 
