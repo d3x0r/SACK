@@ -2159,7 +2159,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 		}
 		if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 		{
-			if( pc->dwPad << 2*sizeof( uintptr_t) )
+			if( pc->dwPad < 2*sizeof( uintptr_t) )
 				DebugBreak();
 			BLOCK_FILE(pc) = pFile;
 			BLOCK_LINE(pc) = nLine;
