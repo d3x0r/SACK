@@ -3007,7 +3007,7 @@ char * WcharConvert_v2 ( const wchar_t *wch, size_t len, size_t *outlen DBG_PASS
 char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 {
 	size_t outlen;
-	return WcharConvert_v2( wch, len, &outlen );
+	return WcharConvert_v2( wch, len, &outlen DBG_RELAY );
 }
 
 char * WcharConvertEx ( const wchar_t *wch DBG_PASS )
