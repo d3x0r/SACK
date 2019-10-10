@@ -1,5 +1,6 @@
 
 #include <stdhdrs.h>
+#include <render3d.h>
 
 #include "local.h"
 
@@ -12,9 +13,9 @@ IMAGE_NAMESPACE
 void SetupImageCommandBuffer( Image image ) {
 	image->commandBuffers = NewArray( VkCommandBuffer, 2 );
 	if( !image->pParent )
-		createCommandBuffer( l.vkActiveSurface, image->commandBuffers, 1, TRUE );
+		createCommandBuffers( l.vkActiveSurface, image->commandBuffers, 1, TRUE );
 	else
-		createCommandBuffer( l.vkActiveSurface, image->commandBuffers, 1, FALSE );
+		createCommandBuffers( l.vkActiveSurface, image->commandBuffers, 1, FALSE );
 
 }
 
@@ -22,7 +23,7 @@ void beginRecording(Image image) {
 	// this will reset already pending command buffers.
 
 	for( size_t i = 0; i < 1/*commandBuffers.size()*/; i++ ) {
-		VkCommandBufferBeginInfo beginInfo = {};
+		VkCommandBufferBeginInfo beginInfo = {0};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		//VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
 		//VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT  // secondary buffer, within a primary
@@ -38,19 +39,20 @@ void beginRecording(Image image) {
 }
 
 void invokeBuffers( Image image ) {
-	VkRenderPassBeginInfo renderPassInfo = {};
+	VkRenderPassBeginInfo renderPassInfo = {0};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassInfo.renderPass = renderPass;
-	renderPassInfo.framebuffer = swapChainFramebuffers[i];
+	//renderPassInfo.renderPass = renderPassInfo;
+	//renderPassInfo.framebuffer = swapChainFramebuffers[i];
 
-	renderPassInfo.renderArea.offset = { 0, 0 };
-	renderPassInfo.renderArea.extent = swapChainExtent;
+	renderPassInfo.renderArea.offset.x = 0;
+	renderPassInfo.renderArea.offset.y = 0;
+	//renderPassInfo.renderArea.extent = swapChainExtent;
 
 	VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 	renderPassInfo.clearValueCount = 1;
 	renderPassInfo.pClearValues = &clearColor;
 
-	vkCmdBeginRenderPass( commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
+	//vkCmdBeginRenderPass( commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
 }
 
 

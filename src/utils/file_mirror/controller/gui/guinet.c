@@ -207,7 +207,11 @@ void CPROC ReadComplete( PCLIENT pc, POINTER buffer, size_t size )
 							endname++;
 						endname[0] = 0;
 						realname = NewArray( TEXTCHAR, ( endname - userlist ) + 1 );
+#ifndef max
+#  define max(a,b) (((a)>(b))?(a):(b))
+#endif
 						StrCpyEx( realname, userlist, max( (size_t)( endname - userlist ), size ) );
+#undef max
 						SetItemData( hli, (uintptr_t)realname );
 			   		endline++;
 				   	userlist = endline;

@@ -304,10 +304,11 @@ static int parse64( FILE *file, PFILESOURCE pfs
 				int m;
 				INDEX i;
 				LIST_FORALL( sections, i, PMY_IMAGE_SECTION_HEADER, section ) {
-					if( section->VirtualAddress < dir[1].VirtualAddress &&
+					if( section->VirtualAddress <= dir[1].VirtualAddress &&
 						(section->VirtualAddress + section->SizeOfRawData) > dir[1].VirtualAddress )
 						break;
 				}
+				
 				v = section->PointerToRawData;
 				{
 
