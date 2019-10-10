@@ -3793,7 +3793,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								val->stringLen = 0;
 							}
 							else {
-								val->string = WcharConvertLen( (wchar*)byResult, ResultLen/2 );
+								val->string = WcharConvertLen( (wchar_t*)byResult, ResultLen/2 );
 								val->stringLen = ResultLen;
 							}
 							break;
