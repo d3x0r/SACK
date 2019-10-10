@@ -323,7 +323,7 @@ else( APPLE )
         SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
         SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
 
-        SET( ExtraFlags ${ExtraFlags} -Wno-multichar)
+        SET( ExtraFlags "${ExtraFlags} -Wno-attributes -Wno-multichar")
     endif( CMAKE_COMPILER_IS_GNUCC )
 endif( APPLE )
 
