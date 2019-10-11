@@ -170,11 +170,11 @@ char *jsox_escape_string( const char *string ) {
                         | ( ( result & 0x3f000000 ) >> 24 ) ) )
 
 // load 4 bytes in a little endian way; might result in a 8 byte variable, but only 4 are valid.
-#define get4Chars(p) ((((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[0]  \
-                >> (CHAR_BIT*((uintptr_t)(p) & 0x3)))             \
-            | (( ((uintptr_t)(p)) & 0x3 )                          \
-                ? (((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[1]      \
-                    << (CHAR_BIT*(4-((uintptr_t)(p) & 0x3))))     \
+#define get4Chars(p) ((((TEXTRUNE*) ((uintptr_t)(p) & ~(sizeof(uint32_t)-1)) )[0]  \
+                >> (CHAR_BIT*((uintptr_t)(p) & (sizeof(uint32_t)-1))))             \
+            | (( ((uintptr_t)(p)) & (sizeof(uint32_t)-1) )                          \
+                ? (((TEXTRUNE*) ((uintptr_t)(p) & ~(sizeof(uint32_t)-1)) )[1]      \
+                    << (CHAR_BIT*(4-((uintptr_t)(p) & (sizeof(uint32_t)-1)))))     \
                 :(TEXTRUNE)0 ))
 
 #define __GetUtfChar( result, from )           ((result = get4Chars(*from)),     \

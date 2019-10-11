@@ -76,11 +76,11 @@ char *json6_escape_string( const char *string ) {
 						| ( ( result & 0x3f0000 ) >> 10 )    \
 						| ( ( result & 0x3f000000 ) >> 24 ) ) )
 
-#define get4Chars(p) ((((TEXTRUNE*) ((uint32_t)(p) & ~(sizeof(uint32_t)-1)) )[0]  \
-				>> (CHAR_BIT*((uint32_t)(p) & (sizeof(uint32_t)-1))))             \
-			| (( ((uint32_t)(p)) & sizeof(uint32_t)-1 )                          \
-				? (((TEXTRUNE*) ((uint32_t)(p) & ~(sizeof(uint32_t)-1)) )[1]      \
-					<< (CHAR_BIT*(4-((uint32_t)(p) & (sizeof(uint32_t)-1))))     \
+#define get4Chars(p) ((((TEXTRUNE*) ((uintptr_t)(p) & ~(sizeof(uint32_t)-1)) )[0]  \
+				>> (CHAR_BIT*((uintptr_t)(p) & (sizeof(uint32_t)-1))))             \
+			| (( ((uintptr_t)(p)) & (sizeof(uint32_t)-1) )                          \
+				? (((TEXTRUNE*) ((uintptr_t)(p) & ~(sizeof(uint32_t)-1)) )[1]      \
+					<< (CHAR_BIT*(4-((uintptr_t)(p) & (sizeof(uint32_t)-1)))))     \
 				:(TEXTRUNE)0 ))
 
 #define __GetUtfChar( result, from )           ((result = get4Chars(*from)),     \
