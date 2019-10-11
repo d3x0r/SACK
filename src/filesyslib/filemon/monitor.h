@@ -127,7 +127,6 @@ struct local_filemon {
 	PCHANGECALLBACKSET change_callback_set;
 	PFILEMONSET filemon_set;
 } local_filemon;
-#define l local_filemon
 
 
 void CPROC ScanTimer( uintptr_t monitor );

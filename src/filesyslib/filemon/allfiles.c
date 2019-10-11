@@ -52,13 +52,13 @@ using namespace sack::containers::queue;
 
 static void Init( void )
 {
-	if( !l.flags.bInit )
+	if( !local_filemon.flags.bInit )
 	{
 #ifndef __NO_OPTIONS__
-		l.flags.bLog = SACK_GetProfileIntEx( "SACK/File Monitor", "Enable Logging", 0, TRUE );
+		local_filemon.flags.bLog = SACK_GetProfileIntEx( "SACK/File Monitor", "Enable Logging", 0, TRUE );
 #endif
-		//l.flags.bLog = 1;
-		l.flags.bInit = 1;
+		//local_filemon.flags.bLog = 1;
+		local_filemon.flags.bInit = 1;
 	}
 }
 
@@ -85,7 +85,7 @@ void CloseFileMonitor( PCHANGEHANDLER Change, PFILEMON filemon )
 	//DeleteLink( &Change->filelist, filemon );
 	if( Change->currentchange == filemon )
 		Change->currentchange = NULL;
-	DeleteFromSet( FILEMON, l.filemon_set, filemon );
+	DeleteFromSet( FILEMON, local_filemon.filemon_set, filemon );
 }
 
 //-------------------------------------------------------------------------
@@ -109,7 +109,7 @@ void CloseFileMonitors( PMONITOR monitor )
 		Change->filelist = NULL;
 		//DeleteList( &Change->filelist );
 	}
-	if( l.flags.bLog ) Log( "Closed all" );
+	if( local_filemon.flags.bLog ) Log( "Closed all" );
 }
 
 
@@ -158,13 +158,13 @@ PFILEMON WatchingFile( PCHANGEHANDLER monitor, CTEXTSTR name )
 	if( name[0] == '.' && ( strcmp( name, "." ) == 0 ||
 		strcmp( name, ".." ) == 0 ) )
 	{
-		//if( l.flags.bLog ) Log1( "%s is a root file path", name );
+		//if( local_filemon.flags.bLog ) Log1( "%s is a root file path", name );
 		return (PFILEMON)2; // claim we already know about these  - stops actual updates
 	}
 	filemon = (PFILEMON)FindInBinaryTree( monitor->filelist, (uintptr_t)name );
 	if( !filemon && IsDirectory( name ) )
 	{
-		//if( l.flags.bLog ) Log1( "%s is a directory - probably skipping..", name );
+		//if( local_filemon.flags.bLog ) Log1( "%s is a directory - probably skipping..", name );
 		return (PFILEMON)1;
 	}
 	return filemon;
@@ -179,13 +179,13 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 		PFILEMON newfile;
 		PMONITOR monitor = Change->monitor;
 							  //uint64_t tick = GetCPUTick();
-		if( l.flags.bLog ) lprintf( "Watch file: %s", name );
+		if( local_filemon.flags.bLog ) lprintf( "Watch file: %s", name );
 		if( !(newfile=WatchingFile( Change, name ) ) )
 		{
 			size_t pos;
 			CTEXTSTR base;
 			base = monitor->directory;
-			newfile = GetFromSet( FILEMON, &l.filemon_set );
+			newfile = GetFromSet( FILEMON, &local_filemon.filemon_set );
 			//Log2( "Making a new file (not watched): %s/%s", base, name );
 			tnprintf( newfile->name, sizeof(newfile->name), "%s/", base );
 			pos = strlen( newfile->name );
@@ -223,7 +223,7 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 		if( newfile != (PFILEMON)1 && // iS NOT a directory name
 			newfile != (PFILEMON)2 )  // iS NOT . or .. directories
 		{
-         if( l.flags.bLog ) lprintf( "SET MONITOR SCAN" );
+         if( local_filemon.flags.bLog ) lprintf( "SET MONITOR SCAN" );
 			monitor->DoScanTime =
 				newfile->ScannedAt = timeGetTime() + monitor->scan_delay;
 			if( monitor->parent_monitor )
@@ -263,7 +263,7 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 	// be moved forward...
 	if( filemon->flags.bPending )
 	{
-		if( l.flags.bLog ) lprintf( "%s Already pending.... do not scan yet.", filemon->name );
+		if( local_filemon.flags.bLog ) lprintf( "%s Already pending.... do not scan yet.", filemon->name );
 		return 0;
 	}
 	if( !filemon->flags.bScanned )
@@ -305,7 +305,7 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 					//Log1( "File %s changed", filemon->name );
 				}
 				filemon->ScannedAt = timeGetTime() + Change->monitor->scan_delay;
-				if( l.flags.bLog )
+				if( local_filemon.flags.bLog )
 					lprintf( "file changed Setting monitor do scan time - new file monitor" );
 				Change->monitor->DoScanTime = filemon->ScannedAt;
 				Change->monitor->flags.bPendingScan = 1;
@@ -317,7 +317,7 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 			else
 			{
 				// if created or deleted, immediatly pend the change.
-				if( l.flags.bLog ) Log1( "Enque (pend) filemon for a change...%s", filemon->name );
+				if( local_filemon.flags.bLog ) Log1( "Enque (pend) filemon for a change...%s", filemon->name );
 				filemon->flags.bPending = 1;
 				EnqueLink( &Change->PendingChanges, filemon );
 			}
@@ -331,7 +331,7 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 		 filemon->ScannedAt < timeGetTime() )
 	{
 		//Log(" File didn't change - but it did before..." );
-		if( l.flags.bLog ) Log1( "Enque (pend) filemon for a change...%s", filemon->name );
+		if( local_filemon.flags.bLog ) Log1( "Enque (pend) filemon for a change...%s", filemon->name );
 		filemon->flags.bPending = 1;
 		EnqueLink( &Change->PendingChanges, filemon );
 	}
@@ -406,7 +406,7 @@ FILEMONITOR_PROC( void, MonitorForgetAll )( PMONITOR monitor )
 			}
 		}
 	}
-	if( l.flags.bLog ) lprintf( "Setting monitor do scan time - forget all files" );
+	if( local_filemon.flags.bLog ) lprintf( "Setting monitor do scan time - forget all files" );
 
 	monitor->DoScanTime = timeGetTime() - 1;
 	monitor->flags.bPendingScan = 1;
@@ -451,7 +451,7 @@ static void DeleteAll( PMONITOR monitor )
 
 static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 {
-	if( IsThisThread( l.timer_thread ) )
+	if( IsThisThread( local_filemon.timer_thread ) )
 	{
 		uint32_t now = timeGetTime();
 		int changed = 0;
@@ -474,7 +474,7 @@ static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 				changed++;
 				Change->currentchange->ScannedAt = 0;
 				tnprintf( fullname, sizeof( fullname ), "%s" SYSPATHCHAR "%s", monitor->directory, Change->currentchange->filename );
-				if( l.flags.bLog ) lprintf( "Report %s for a change (%s,%s)"
+				if( local_filemon.flags.bLog ) lprintf( "Report %s for a change (%s,%s)"
 												  , fullname
 												  , Change->currentchange->flags.bToDelete?"deleted":""
 												  , Change->currentchange->flags.bCreated?"created":""
@@ -515,7 +515,7 @@ static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 				else
 				{
 					Change->currentchange->flags.bScanned = FALSE;
-					if( l.flags.bLog ) lprintf( "Done dispatching that change... no longer pending." );
+					if( local_filemon.flags.bLog ) lprintf( "Done dispatching that change... no longer pending." );
 					Change->currentchange->flags.bPending = 0;
 				}
 			}
@@ -527,7 +527,7 @@ static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 				else
 					Change->HandleChange( Change->psv, NULL, 0 );
 			}
-			if( l.flags.bLog ) lprintf( "----------- NOW Files can be mared with CREATE ---------------" );
+			if( local_filemon.flags.bLog ) lprintf( "----------- NOW Files can be mared with CREATE ---------------" );
 			Change->flags.bInitial = 0;
 		}
 		monitor->flags.bDispatched = 0;
@@ -575,7 +575,7 @@ void EndMonitorFiles( void )
 
 static void InvokeScan( PMONITOR monitor )
 {
-	if( l.flags.bLog ) lprintf( "Doing a scan... %d", monitor->DoScanTime );
+	if( local_filemon.flags.bLog ) lprintf( "Doing a scan... %d", monitor->DoScanTime );
 	monitor->DoScanTime = 0;
 	monitor->flags.bPendingScan = 0;
 	monitor->flags.bUserInterruptedChanges = 0;
@@ -602,10 +602,10 @@ static void InvokeScan( PMONITOR monitor )
 	}
 	else
 	{
-		if( l.flags.bLog ) 
+		if( local_filemon.flags.bLog ) 
 			Log( "Can't report auto update - user interuppted..." );
 	}
-	if( l.flags.bLog )
+	if( local_filemon.flags.bLog )
 		lprintf( "Did a scan... %d", monitor->DoScanTime );
 }
 
@@ -613,14 +613,14 @@ void DoScan( PMONITOR monitor )
 {
 	uint32_t now = timeGetTime();
 	// in critical section...
-	if( l.flags.bLog )
+	if( local_filemon.flags.bLog )
 		lprintf( "Tick...%s %p %d %d", monitor->directory, monitor, timeGetTime(), monitor->DoScanTime );
 	if( monitor->DoScanTime && ( now > monitor->DoScanTime ) )
 	{
-		if( l.flags.bLog )
+		if( local_filemon.flags.bLog )
 			lprintf( "... %p", monitor->monitors, monitor->flags.bPendingScan );
 		if( monitor->flags.bPendingScan ) {
-			if( l.flags.bLog )
+			if( local_filemon.flags.bLog )
 				lprintf( "pending scan on monitor" );
 			InvokeScan( monitor );
 		}
@@ -657,8 +657,8 @@ void DoScan( PMONITOR monitor )
 
 void CPROC ScanTimer( uintptr_t monitor )
 {
-	if( !l.timer_thread )
-		l.timer_thread = MakeThread();
+	if( !local_filemon.timer_thread )
+		local_filemon.timer_thread = MakeThread();
 	if( EnterCriticalSecNoWait( &((PMONITOR)monitor)->cs, NULL ) == 1 )
 	{
 		((PMONITOR)monitor)->flags.bScanning = 1;
@@ -692,7 +692,7 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddExtendedFileChangeCallback )( PMONITOR moni
 {
 	if( monitor && HandleChange )
 	{
-		PCHANGECALLBACK Change = GetFromSet( CHANGECALLBACK, &l.change_callback_set );
+		PCHANGECALLBACK Change = GetFromSet( CHANGECALLBACK, &local_filemon.change_callback_set );
 		EnterCriticalSec( &monitor->cs );
 		Change->mask           = StrDup( mask );
 		Change->currentchange  = NULL;
@@ -707,7 +707,7 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddExtendedFileChangeCallback )( PMONITOR moni
 		Change->HandleChangeEx = HandleChange;
 		Change->monitor        = monitor;
 		LinkThing( monitor->ChangeHandlers, Change );
-		if( l.flags.bLog )
+		if( local_filemon.flags.bLog )
 			lprintf( "Setting scan time to %" _32fs, timeGetTime() - 1 );
 		monitor->DoScanTime = timeGetTime() + monitor->scan_delay;
 		monitor->flags.bPendingScan = 1;
@@ -731,13 +731,13 @@ FILEMONITOR_PROC( PCHANGEHANDLER, AddFileChangeCallback )( PMONITOR monitor
                                               , CHANGEHANDLER HandleChange
                                               , uintptr_t psv )
 {
-	if( l.flags.bLog )
+	if( local_filemon.flags.bLog )
 		lprintf("add change handler is %p %p", monitor, mask );
 	if( monitor && HandleChange )
 	{
-		PCHANGECALLBACK Change = GetFromSet( CHANGECALLBACK, &l.change_callback_set );
+		PCHANGECALLBACK Change = GetFromSet( CHANGECALLBACK, &local_filemon.change_callback_set );
 		EnterCriticalSec( &monitor->cs );
-		if( l.flags.bLog )
+		if( local_filemon.flags.bLog )
 			lprintf( "adding change handler %s", mask?mask: "(null-mask)" );
 		Change->mask           = StrDup( mask );
 		Change->currentchange  = NULL;
