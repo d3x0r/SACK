@@ -425,7 +425,13 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											if( TextSimilar( tmp, "HTTP/" ) )
 											{
 												TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( tmp ), '.' );
-												pHttpState->response_version = (int)(( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 ));
+												if( tmp2 )
+													pHttpState->response_version = (int)(( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 ));
+												else if( GetTextSize( tmp ) > 5 )
+													pHttpState->response_version = (int)( IntCreateFromText( GetText( tmp ) + 5 ) * 100 );
+												else
+													pHttpState->response_version = 0;
+
 												if( pHttpState->response_version >= 101 ) {
 													pHttpState->flags.close = 0;
 													pHttpState->flags.keep_alive = 1;
