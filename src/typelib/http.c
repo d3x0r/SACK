@@ -1474,16 +1474,27 @@ PTEXT GetHTTPField( struct HttpState *pHttpState, CTEXTSTR name )
 
 PLIST GetHttpHeaderFields( HTTPState pHttpState )
 {
-	return pHttpState->fields;
+	if( pHttpState )
+		return pHttpState->fields;
+	return NULL;
 }
 
 int GetHttpVersion( HTTPState pHttpState ) {
-	return pHttpState->response_version;
+	if( pHttpState )
+		return pHttpState->response_version;
+	return -1;
 }
 
 int GetHttpResponseCode( HTTPState pHttpState ) {
-	return pHttpState->numeric_code;
+	if( pHttpState )
+		return pHttpState->numeric_code;
+	return -1;
 }
+
+HTTPState GetHttpState( PCLIENT pc ) {
+	return (struct HttpState *)GetNetworkLong( pc, 1 );
+}
+
 
 HTTP_NAMESPACE_END
 #undef l

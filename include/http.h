@@ -64,12 +64,16 @@ enum ProcessHttpResult{
    HTTP_STATE_BAD_REQUEST=400,
 };
 
-HTTP_EXPORT /* Creates an empty http state, the next operation should be
+/* Creates an empty http state, the next operation should be
    AddHttpData.                                              */
-HTTPState  HTTPAPI CreateHttpState( PCLIENT *pc );
-HTTP_EXPORT /* Destroys a http state, releasing all resources associated
+HTTP_EXPORT HTTPState  HTTPAPI CreateHttpState( PCLIENT *pc );
+
+/*Get the http state associated with a network client */
+HTTP_EXPORT HTTPState HTTPAPI GetHttpState( PCLIENT pc );
+
+/* Destroys a http state, releasing all resources associated
    with it.                                                  */
-void HTTPAPI DestroyHttpState( HTTPState pHttpState );
+HTTP_EXPORT void HTTPAPI DestroyHttpState( HTTPState pHttpState );
 HTTP_EXPORT /* Add another bit of data to the block. After adding data,
    ProcessHttp should be called to see if the data has completed
    a packet.
