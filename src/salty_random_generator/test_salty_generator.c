@@ -73,8 +73,6 @@ int AddSomeDistribution( struct distribution *d, struct random_context *ctx )
 }
 
 void ShowSome( struct distribution *d ) {
-	int totUnit;
-	int maxUnit;
 	int n;
 
 	for( n = 0; n < d->units; n ++ )
@@ -141,7 +139,6 @@ void mapData( struct distribution *d ) {
 	if( d->units < 20 )
 	for( i = 0; i < d->units; i++ ) {
 		int n;
-		int m;
 		n = i;
 		n = orderedDeltas[i];
 		lprintf( "number %3d  : %d %4.3g   %6.3g  %d   %d", n
@@ -190,7 +187,7 @@ void f2(void)
 
 		BlockShuffle_SetData( key, output, 0, sizeof( message ), message, 0 );
 		LogBinary( output, sizeof( output ) );
-		printf( "SD Fun:%s %d\n", output );
+		printf( "SD Fun:%s %d\n", output, sizeof(message) );
 		BlockShuffle_GetData( key, output2, 0, sizeof( message ), output, 0 );
 		printf( "Fun:%s\n", output2 );
 	}
@@ -218,7 +215,7 @@ SaneWinMain( argc, argv )
 		lprintf( "Disable external seed." );
 		useSeed = 0;
 	}
-	uint32_t opts = 0;
+	uintmax_t opts = 0;
 	int i;
 	int start = timeGetTime();
 	int end = 0;
@@ -258,31 +255,31 @@ SaneWinMain( argc, argv )
 
 	start = timeGetTime();
 	for( i = 0; i < 250000000; i++ )
-		SRG_GetEntropyBuffer( entropy, buffer, 1 );
+		SRG_GetEntropyBuffer( entropy, (uint32_t*)buffer, 1 );
 	end = timeGetTime();
 	lprintf( "1 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
 
 	start = timeGetTime();
 	for( i = 0; i < 250000000; i++ )
-		SRG_GetEntropyBuffer( entropy, buffer, 2 );
+		SRG_GetEntropyBuffer( entropy, (uint32_t*)buffer, 2 );
 	end = timeGetTime();
 	lprintf( "2 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
 
 	start = timeGetTime();
 	for( i = 0; i < 250000000; i++ )
-		SRG_GetEntropyBuffer( entropy, buffer, 4 );
+		SRG_GetEntropyBuffer( entropy, (uint32_t*)buffer, 4 );
 	end = timeGetTime();
 	lprintf( "4 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
 
 	start = timeGetTime();
 	for( i = 0; i < 250000000; i++ )
-		SRG_GetEntropyBuffer( entropy, buffer, 16 );
+		SRG_GetEntropyBuffer( entropy, (uint32_t*)buffer, 16 );
 	end = timeGetTime();
 	lprintf( "16 bits 250,000,000 in %d   %d", end - start, (250000000) / (end - start) );
 
 	start = timeGetTime();
 	for( i = 0; i < 100000000; i++ )
-		SRG_GetEntropyBuffer( entropy, buffer, 256 );
+		SRG_GetEntropyBuffer( entropy, (uint32_t*)buffer, 256 );
 	end = timeGetTime();
 	lprintf( "256 bits 100,000,000 in %d   %d", end - start, (100000000) / (end - start) );
 
