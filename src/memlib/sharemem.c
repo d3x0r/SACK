@@ -1617,7 +1617,7 @@ uintptr_t GetFileSize( int fd )
 					ll_lprintf( "Expanding file to size requested." );
 #endif
 					didCreate = 1;
-					SetFilePointer( hFile, (LONG)*dwSize, NULL, FILE_BEGIN );
+					SetFilePointer( hFile, (LONG) * (int32_t*)dwSize, (sizeof(dwSize[0])>4)?(PLONG)(((int32_t*)dwSize) + 1):NULL, FILE_BEGIN );
 					SetEndOfFile( hFile );
 				}
 				else
@@ -1633,7 +1633,7 @@ uintptr_t GetFileSize( int fd )
 #ifdef DEBUG_OPEN_SPACE
 				ll_lprintf( "New file, setting size to requested %d", *dwSize );
 #endif
-				SetFilePointer( hFile, (LONG)*dwSize, NULL, FILE_BEGIN );
+				SetFilePointer( hFile, (LONG)*(int32_t*)dwSize, (sizeof( dwSize[0] ) > 4) ? (PLONG)(((int32_t*)dwSize)+1) : NULL, FILE_BEGIN );
 				SetEndOfFile( hFile );
 				didCreate = 1;
 			}
