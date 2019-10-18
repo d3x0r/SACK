@@ -1,3 +1,6 @@
+// #define _FILE_OFFSET_BTIS	64
+//[02:03 : 43] <significant> #define _LARGEFILE64_SOURCE
+
 #define FILESYSTEM_LIBRARY_SOURCE
 #define NO_UNICODE_C
 #define WINFILE_COMMON_SOURCE
@@ -311,17 +314,16 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 		{
 			end = (TEXTSTR)StrChr( ++subst_path, '%' );
 			//lprintf( "Found magic subst in string" );
-			if( end )
-			{
+			if( end ) {
 				this_length = StrLen( tmp_path );
 
-				tmp = NewArray( TEXTCHAR, len = ( end - subst_path ) + 1 );
+				tmp = NewArray( TEXTCHAR, len = (end - subst_path) + 1 );
 
-				tnprintf( tmp, len * sizeof( TEXTCHAR ), "%*.*s", (int)(end-subst_path), (int)(end-subst_path), subst_path );
-				
+				tnprintf( tmp, len * sizeof( TEXTCHAR ), "%*.*s", (int)(end - subst_path), (int)(end - subst_path), subst_path );
+
 				group = GetFileGroup( tmp, NULL );
 				if( group != INVALID_INDEX ) {
-					filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
+					filegroup = (struct Group*)GetLink( &(*winfile_local).groups, group );
 					Deallocate( TEXTCHAR*, tmp );  // must deallocate tmp
 
 					newest_path = NewArray( TEXTCHAR, len = (subst_path - tmp_path) + StrLen( filegroup->base_path ) + (this_length - (end - tmp_path)) + 1 );
@@ -353,7 +355,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 						tmp_path = ExpandPathVariable( newest_path );
 						Deallocate( TEXTCHAR*, newest_path );
 					}
-					else 
+					else
 						tmp_path = tmp;
 				}
 
@@ -362,6 +364,8 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 					lprintf( "transform subst [%s]", tmp_path );
 #endif
 			}
+			else  // was only one %... 
+				break;
 		}
 	}
 	return tmp_path;
@@ -1336,12 +1340,12 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		memalloc = TRUE;
 
 		DecodeFopenOpts( file, opts );
-		if( StrChr( filename, '%' ) )
+		if( !StrChr( opts, 'n' ) && StrChr( filename, '%' ) )
 		{
 			tmpname = ExpandPathVariable( filename );
 			filename = tmpname;
 		}
-		if( (filename[0] == '@') || (filename[0] == '*') || (filename[0] == '~') )
+		if( !StrChr( opts, 'n' ) && (filename[0] == '@') || (filename[0] == '*') || (filename[0] == '~') )
 		{
 			tmpname = ExpandPathEx( filename, NULL );
 			filename = tmpname;
@@ -1387,7 +1391,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 			Deallocate( TEXTSTR, file->fullname );
 			file->fullname = tmpname;
 		}
-		if( StrChr( file->fullname, '%' ) )
+		if( !StrChr( opts, 'n' ) && StrChr( file->fullname, '%' ) )
 		{
 			if( allocedIndex != INVALID_INDEX )
 				SetLink( &file->files, allocedIndex, NULL );
@@ -2210,18 +2214,34 @@ static size_t CPROC sack_filesys_size( void*file ) {
 	size_t length;
 	fseek( (FILE*)file, 0, SEEK_END );
 	length = ftell( (FILE*)file );
-	fseek( (FILE*)file, (long)here, SEEK_SET );
+	if( length == (size_t)-1 ) {
+#ifdef WIN32
+		int e = errno;
+		length = _ftelli64( (FILE*)file );
+		if( length == (size_t)-1 ) {
+#endif
+			lprintf( "ftell error %d", e );
+#ifdef WIN32
+		}
+#endif
+	}
+#ifdef WIN32
+	_fseeki64( (FILE*)file, here, SEEK_SET );
+#else
+	fseek( (FILE*)file, here, SEEK_SET );
+#endif
 	return length;
 }
 static size_t CPROC sack_filesys_tell( void*file ) { return ftell( (FILE*)file ); }
 static void CPROC sack_filesys_truncate( void*file ) {
 #pragma warning( disable:  6031 ) // disable ignoring return value of chsize; nothing to do if it fails.
 #if _WIN32
-	_chsize
+	_chsize_s( fileno( (FILE*)file ), _ftelli64( (FILE*)file ) );
 #else
-		ftruncate
+	ftruncate( fileno( (FILE*)file ), ftell( (FILE*)file ) );
 #endif
-		( fileno( (FILE*)file), ftell((FILE*)file) ); }
+}
+
 static int CPROC sack_filesys_flush( void*file ) { return fflush( (FILE*)file ); }
 static int CPROC sack_filesys_exists( uintptr_t psv, const char*file );
 static LOGICAL CPROC sack_filesys_rename( uintptr_t psvInstance, const char *original_name, const char *new_name );
