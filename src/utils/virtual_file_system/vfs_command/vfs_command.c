@@ -213,11 +213,11 @@ static void testVolume_db( void ) {
 
 static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 {
-	FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
+	FILE *in = sack_fopenEx( 0, filename, "rbn", sack_get_default_mount() );
 	if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
 	if( in )
 	{
-		FILE *out = sack_fopenEx( 0, asfile, "wb", l.current_mount );
+		FILE *out = sack_fopenEx( 0, asfile, "wbn", l.current_mount );
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( uint8_t, size );
 		if( l.verbose ) printf( " Opened file %s = %p\n", asfile, out );
@@ -236,14 +236,19 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileFl
 	if( flags & SFF_DIRECTORY ) {// don't need to do anything with directories... already
       // doing subcurse option.
 	} else {
-		FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
+		FILE *in = sack_fopenEx( 0, filename, "rbn", sack_get_default_mount() );
 		if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
 		if( in )
 		{
 			size_t size = sack_fsize( in );
+			if( size == (size_t)-1 ) {
+				sack_fclose( in );
+				printf( "Failed to open file:%s\n", filename );
+				return;
+			}
 			if( l.verbose ) printf( " file size (%zd)\n", size );
 			{
-				FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
+				FILE *out = sack_fopenEx( 0, filename, "wbn", l.current_mount );
 				POINTER data = NewArray( uint8_t, size );
 				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
 				sack_fread( data, size, 1, in );
@@ -364,14 +369,14 @@ static void CPROC _ExtractFile( uintptr_t psv, CTEXTSTR filename, enum ScanFileF
 		// doing subcurse option.
 	}
 	else {
-		FILE *in = sack_fopenEx( 0, filename, "rb", l.current_mount );
+		FILE *in = sack_fopenEx( 0, filename, "rbn", l.current_mount );
 		if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
 		if( in )
 		{
 			size_t size = sack_fsize( in );
 			if( l.verbose ) printf( " file size (%zd)\n", size );
 			{
-				FILE *out = sack_fopenEx( 0, filename, "wb", sack_get_default_mount() );
+				FILE *out = sack_fopenEx( 0, filename, "wbn", sack_get_default_mount() );
 				POINTER data = NewArray( uint8_t, size );
 				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
 				sack_fread( data, size, 1, in );

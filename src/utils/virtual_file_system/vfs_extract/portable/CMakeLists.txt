@@ -230,4 +230,118 @@ add_custom_command(TARGET
                   )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
+
 endif( WIN32 )
+
+set( project sack_vfs_extracter_sfx.64 )
+
+sack_add_executable(${project} ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;${FLAGS};-DVFS_DISK_DATATYPE=uint64_t" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
+      FOLDER utils/vfs
+)
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
+
+if( NOT CMAKE_COMPILER_IS_GNUCC )
+	set( CMAKE_COMPILER_IS_GNUCC OFF )
+endif( NOT CMAKE_COMPILER_IS_GNUCC )
+
+STRING ( REPLACE "/" "\\" THISDIR ${CMAKE_CURRENT_BINARY_DIR} )
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+
+SET( EXTRACTER_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/extracter.manifest )
+STRING( REPLACE "/" "\\" MT_EXTRACTER_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/extracter.manifest )
+STRING( REPLACE "\\portable" "" MT_EXTRACTER_MORE_SOURCES ${MT_EXTRACTER_MORE_SOURCES} )
+#message( "MT_EXTRACTER_MORE_SOURCES ${MT_EXTRACTER_MORE_SOURCES}" )
+#SET( EXTRACTER_LINK_FLAGS "/MANIFEST:NO" )
+
+add_custom_command(TARGET
+                     ${project}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${project}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+
+
+
+
+set( project sack_vfs_extracter_sfx_win.64 )
+
+sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;${FLAGS};-DVFS_DISK_DATATYPE=uint64_t" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+		COMPILE_FLAGS "-DVFS_DISK_DATATYPE=uint64_t"
+		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
+      FOLDER utils/vfs
+)
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
+
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+add_custom_command(TARGET
+                     ${project}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${project}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+
+
+# MIN is for portable console extracter(not standalong header)
+set( project sack_vfs_extracter_min.64 )
+
+sack_add_executable(${project} ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "${FLAGS};-DVFS_DISK_DATATYPE=uint64_t" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+		COMPILE_FLAGS "-DVFS_DISK_DATATYPE=uint64_t"
+		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
+      FOLDER utils/vfs
+)
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
+
+
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+add_custom_command(TARGET
+                     ${project}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${project}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+
+if( WIN32 )
+# MIN_WIN is for portable window-mode extracter (not standalong header)
+set( project sack_vfs_extracter_min_win.64 )
+
+sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "${FLAGS};-DVFS_DISK_DATATYPE=uint64_t" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+		COMPILE_FLAGS "-DVFS_DISK_DATATYPE=uint64_t"
+		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
+      FOLDER utils/vfs
+)
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
+
+
+if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+   add_custom_command(TARGET
+                     ${project}
+                   POST_BUILD
+                   COMMAND
+                     "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${project}.exe\"\;\#1
+                   COMMENT
+                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                  )
+   endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+endif(WIN32)

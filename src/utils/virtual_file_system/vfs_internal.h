@@ -237,8 +237,8 @@ struct sack_vfs_file
 	BLOCKINDEX block; // this should be in-sync with current FPI always; plz
 	LOGICAL delete_on_close;  // someone already deleted this...
 	BLOCKINDEX *blockChain;
-	unsigned int blockChainAvail;
-	unsigned int blockChainLength;
+	BLOCKINDEX blockChainAvail;
+	BLOCKINDEX blockChainLength;
 
 #  ifdef FILE_BASED_VFS
 	FPI entry_fpi;  // where to write the directory entry update to

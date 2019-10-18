@@ -72,8 +72,8 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		size_t sz = 0;
 		POINTER memory = OpenSpace( NULL, argv[0], &sz );
 		POINTER vfs_memory;
-		struct volume *vol;
-		struct volume *vol2;
+		struct sack_vfs_volume *vol;
+		struct sack_vfs_volume *vol2;
 		SetSystemLog( SYSLOG_FILE, stderr ); 
 		vfs_memory = memory;
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );

@@ -38,6 +38,8 @@ SACK_VFS_NAMESPACE
 #define LoG( a,... )
 #endif
 
+//#define DEBUG_NAME_POSITION_SEEK
+
 //#define DEBUG_BAT_UPDATES
 #ifdef DEBUG_BAT_UPDATES
 #define LoGB( a,... ) lprintf( a,##__VA_ARGS__ )
@@ -145,7 +147,7 @@ static void MaskStrCpy( char *output, size_t outlen, struct sack_vfs_volume *vol
 #endif
 
 static void ExtendBlockChain( struct sack_vfs_file *file ) {
-	int newSize = ( file->blockChainAvail ) * 2 + 1;
+	FPI newSize = ( file->blockChainAvail ) * 2 + 1;
 	file->blockChain = (BLOCKINDEX*)Reallocate( file->blockChain, newSize * sizeof( BLOCKINDEX ) );
 #ifdef _DEBUG
 	// debug
@@ -164,7 +166,7 @@ static void SetBlockChain( struct sack_vfs_file *file, FPI fpi, BLOCKINDEX newBl
 		ExtendBlockChain( file );
 	}
 	if( fileBlock >= file->blockChainLength )
-		file->blockChainLength = (unsigned int)(fileBlock + 1);
+		file->blockChainLength = (fileBlock + 1);
 	//_lprintf(DBG_RELAY)( "setting %d to %d", (int)fileBlock, (int)newBlock );
 	if( file->blockChain[fileBlock] ) {
 		if( file->blockChain[fileBlock] == newBlock ) {
@@ -258,7 +260,7 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 	BLOCKINDEX slab = (BLOCKINDEX)(vol->dwSize / ( BLOCK_SIZE ));
 	BLOCKINDEX last_block = ( slab * BLOCKS_PER_BAT ) / BLOCKS_PER_SECTOR;
 	BLOCKINDEX n;
-	int sector;
+	BLOCKINDEX sector;
 	BLOCKINDEX sector_b = (BLOCKINDEX)-1;
 	FLAGSETTYPE *usedSectors;
 	if( vol->dwSize & 0xfFF ) {
@@ -299,7 +301,7 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 						if( block == EOFBLOCK )
 							SETFLAG( usedSectors, blockIndex );
 						else {
-							int chainLen = 0;
+							BLOCKINDEX chainLen = 0;
 							enum block_cache_entries cache = BC( FILE );
 							BLOCKINDEX nextBlock = block;
 							BLOCKINDEX nextBlock_;
@@ -565,6 +567,9 @@ static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 	// a BAT plus the sectors it references... ( BLOCKS_PER_BAT + 1 ) * BLOCK_SIZE
 	vol->dwSize += BLOCKS_PER_SECTOR*BLOCK_SIZE;
 	new_disk = (struct sack_vfs_disk*)OpenSpaceExx( NULL, vol->volname, 0, &vol->dwSize, &created );
+	if( !new_disk ) {
+		DebugBreak();
+	}
 	LoG( "created expanded volume: %p from %p size:%" _size_f, new_disk, vol->disk, vol->dwSize );
 	if( new_disk && new_disk != vol->disk ) {
 		INDEX idx;
@@ -670,7 +675,7 @@ uintptr_t vfs_BSEEK( struct sack_vfs_volume *vol, BLOCKINDEX block, enum block_c
 static BLOCKINDEX GetFreeBlock( struct sack_vfs_volume *vol, int init )
 {
 	size_t n;
-	unsigned int b = 0;
+	BLOCKINDEX b = 0;
 	enum block_cache_entries cache = BC(BAT);
 	// don't need to init to 0 anymore.
 	BLOCKINDEX *current_BAT;// = TSEEK( BLOCKINDEX*, vol, 0, cache );
@@ -681,13 +686,13 @@ static BLOCKINDEX GetFreeBlock( struct sack_vfs_volume *vol, int init )
 		BLOCKINDEX newblock = ((BLOCKINDEX*)GetDataItem( &vol->pdlFreeBlocks, vol->pdlFreeBlocks->Cnt - 1 ))[0];
 		LoGB( "Got free block from existin tracked blocks:%d", newblock );
 		check_val = 0;
-		b = (unsigned int)(newblock / BLOCKS_PER_BAT);
+		b = newblock / BLOCKS_PER_BAT;
 		n = newblock % BLOCKS_PER_BAT;
 		vol->pdlFreeBlocks->Cnt--;
 	}
 	else {
 		check_val = EOBBLOCK;
-		b = (unsigned int)(vol->lastBatBlock / BLOCKS_PER_BAT);
+		b = vol->lastBatBlock / BLOCKS_PER_BAT;
 		n = vol->lastBatBlock % BLOCKS_PER_BAT;
 	}
 	LoG( "(should be 0) check, start, b, n %d %d %d %d", (int)check_val, (int) vol->lastBatBlock, (int)b, (int)n );
@@ -766,7 +771,7 @@ static BLOCKINDEX vfs_GetNextBlock( struct sack_vfs_volume *vol, BLOCKINDEX bloc
 			key = ((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT - 1)];
 			if( !this_BAT ) return 0;
 #ifdef _DEBUG
-			if( !block ) DebugBreak();
+			if( !block && init != GFB_INIT_DIRENT ) DebugBreak();
 #endif
 			// segment could already be set from the GetFreeBlock...
 			this_BAT[block & (BLOCKS_PER_BAT-1)] = check_val ^ key;
@@ -947,7 +952,7 @@ void sack_vfs_unload_volume( struct sack_vfs_volume * vol ) {
 
 void sack_vfs_shrink_volume( struct sack_vfs_volume * vol ) {
 	size_t n;
-	unsigned int b = 0;
+	BLOCKINDEX b = 0;
 	//int found_free; // this block has free data; should be last BAT?
 	BLOCKINDEX last_block = 0;
 	unsigned int last_bat = 0;
@@ -1207,10 +1212,12 @@ static FPI SaveFileName( struct sack_vfs_volume *vol, const char * filename ) {
 				name++;
 			} else
 				name = name + StrLen( (const char*)name ) + 1;
+#ifdef DEBUG_NAME_POSITION_SEEK
 			LoG( "new position is %" _size_f "  %" _size_f, this_name_block, (uintptr_t)name - (uintptr_t)names );
+#endif
 		}
 		this_name_block = vfs_GetNextBlock( vol, this_name_block, GFB_INIT_DIRENT, TRUE );
-		LoG( "Need a new directory block....", this_name_block );
+		LoG( "Need a new(next) directory name block.... %zd" , this_name_block );
 	}
 }
 
@@ -1395,6 +1402,8 @@ size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const void * data_, siz
 			file->fpi += BLOCK_SIZE - ofs;
 			if( file->fpi > ( file->entry->filesize ^ file->dirent_key.filesize ) )
 				file->entry->filesize = file->fpi ^ file->dirent_key.filesize;
+			if( !file->block )
+				DebugBreak();
 			file->block = vfs_GetNextBlock( file->vol, file->block, FALSE, TRUE );
 			if( !file->block ) {
 				lprintf( "File is corrupt");
@@ -1425,6 +1434,8 @@ size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const void * data_, siz
 			data += BLOCK_SIZE;
 			written += BLOCK_SIZE;
 			file->fpi += BLOCK_SIZE;
+			if( !file->block )
+				DebugBreak();
 			file->block = vfs_GetNextBlock( file->vol, file->block, FALSE, TRUE );
 			if( !file->block ) {
 				lprintf( "File is corrupt");
