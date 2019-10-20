@@ -971,7 +971,7 @@ void sack_vfs_shrink_volume( struct sack_vfs_volume * vol ) {
 	BLOCKINDEX b = 0;
 	//int found_free; // this block has free data; should be last BAT?
 	BLOCKINDEX last_block = 0;
-	unsigned int last_bat = 0;
+	BLOCKINDEX last_bat = 0;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *current_BAT = TSEEK( BLOCKINDEX*, vol, 0, cache );
 	if( !current_BAT ) return; // expand failed, tseek failed in response, so don't do anything
