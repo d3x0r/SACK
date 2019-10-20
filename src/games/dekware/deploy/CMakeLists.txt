@@ -8,7 +8,7 @@ if( NOT __ANDROID__ )
   configure_file( deploy.cm.c ${CMAKE_BINARY_DIR}/deploy.c.tmp )
   EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_BINARY_DIR}/deploy.c.tmp ${CMAKE_BINARY_DIR}/deploy.c )
   ADD_EXECUTABLE( ${PROJECT_NAME} ${CMAKE_BINARY_DIR}/deploy.c )
-  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER install )
+  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER "Install and Deploy" )
 
 
   install( TARGETS ${PROJECT_NAME} RUNTIME DESTINATION . )
