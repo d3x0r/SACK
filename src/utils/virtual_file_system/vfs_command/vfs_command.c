@@ -259,7 +259,8 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileFl
 				sack_fclose( out );
 				Release( data );
 			}
-		}
+		}else
+			printf( " Failed to opened file %s\n", filename );
 	}
 }
 
@@ -374,18 +375,26 @@ static void CPROC _ExtractFile( uintptr_t psv, CTEXTSTR filename, enum ScanFileF
 		if( in )
 		{
 			size_t size = sack_fsize( in );
+			CTEXTSTR filepart;
 			if( l.verbose ) printf( " file size (%zd)\n", size );
+			if( filepart = pathrchr( filename ) ) {
+				TEXTSTR tmp = DupCStrLen( filename, filepart - filename );
+				MakePath( tmp );
+				Release( tmp );
+			}
 			{
 				FILE *out = sack_fopenEx( 0, filename, "wbn", sack_get_default_mount() );
-				POINTER data = NewArray( uint8_t, size );
-				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
-				sack_fread( data, size, 1, in );
-				if( l.verbose ) printf( " read %zd\n", size );
-				sack_fwrite( data, size, 1, out );
+				if( out ) {
+					POINTER data = NewArray( uint8_t, size );
+					if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
+					sack_fread( data, size, 1, in );
+					if( l.verbose ) printf( " read %zd\n", size );
+					sack_fwrite( data, size, 1, out );
+					sack_ftruncate( out );
+					sack_fclose( out );
+					Release( data );
+				}
 				sack_fclose( in );
-				sack_ftruncate( out );
-				sack_fclose( out );
-				Release( data );
 			}
 		}
 	}

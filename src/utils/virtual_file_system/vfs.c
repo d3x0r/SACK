@@ -39,6 +39,7 @@ SACK_VFS_NAMESPACE
 #endif
 
 //#define DEBUG_NAME_POSITION_SEEK
+//#define DEBUG_VERBOSE_CHAIN_FOLLOW
 
 //#define DEBUG_BAT_UPDATES
 #ifdef DEBUG_BAT_UPDATES
@@ -346,7 +347,9 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 										DebugBreak();
 										break;
 									} 
+#ifdef DEBUG_VERBOSE_CHAIN_FOLLOW
 									LoG( "Next block in chain to follow: %d %p", nextBlock, checkBAT );
+#endif
 								}
 								else {
 									if( nextBlock < ((sector*BLOCKS_PER_BAT) + m) ) {
@@ -723,15 +726,28 @@ static BLOCKINDEX GetFreeBlock( struct sack_vfs_volume *vol, int init )
 
 	if( init ) {
 		enum block_cache_entries cache;
-		cache = UpdateSegmentKey( vol, BC( FILE ), result + 1 + 1 );
-		while( ((vol->segment[cache] - 1)*BLOCK_SIZE) > vol->dwSize ) {
+		if( init == GFB_INIT_DIRENT )
+			cache = BC( DIRECTORY );
+		else if( init == GFB_INIT_NAMES )
+			cache = BC( NAMES );
+		else
+			cache = BC( FILE );
+
+		while( ((b * BLOCKS_PER_SECTOR +n) * BLOCK_SIZE) > vol->dwSize ) {
 			LoG( "looping to get a size %d", ((vol->segment[cache] - 1)*BLOCK_SIZE) );
 			if( !ExpandVolume( vol ) ) return 0;
 		}
-		if( init == GFB_INIT_DIRENT )
-			((struct directory_entry*)(((uint8_t*)vol->disk) + (vol->segment[cache] - 1) * BLOCK_SIZE))[0].first_block = EODMARK ^ ((struct directory_entry*)vol->usekey[cache])->first_block;
-		else if( init == GFB_INIT_NAMES )
-			((char*)(((uint8_t*)vol->disk) + (vol->segment[cache] - 1) * BLOCK_SIZE))[0] = ((char*)vol->usekey[cache])[0];
+
+		if( init == GFB_INIT_DIRENT ) {
+			uint8_t* dirsec = (uint8_t*)vfs_BSEEK( vol, result, &cache );
+			((struct directory_entry*)dirsec)->first_block = EODMARK ^ ((struct directory_entry*)vol->usekey[cache])->first_block;
+			//((struct directory_entry*)(((uint8_t*)vol->disk) + (vol->segment[cache] - 1) * BLOCK_SIZE))[0].first_block = EODMARK ^ ((struct directory_entry*)vol->usekey[cache])->first_block;
+		} 
+		else if( init == GFB_INIT_NAMES ) {
+			uint8_t* namesec = (uint8_t*)vfs_BSEEK( vol, result, &cache );
+			((char*)namesec)[0] = ((char*)vol->usekey[cache])[0];
+			//((char*)(((uint8_t*)vol->disk) + (vol->segment[cache] - 1) * BLOCK_SIZE))[0] = ((char*)vol->usekey[cache])[0];
+		}
 		//else
 		//	memcpy( ((uint8_t*)vol->disk) + (vol->segment[cache]-1) * BLOCK_SIZE, vol->usekey[cache], BLOCK_SIZE );
 	}
@@ -1168,6 +1184,7 @@ struct directory_entry * ScanDirectory( struct sack_vfs_volume *vol, const char 
 			}
 		}
 		next_dir_block = vfs_GetNextBlock( vol, this_dir_block, GFB_INIT_DIRENT, TRUE );
+		LoG( "this_dir_block was and will be:%d %d", this_dir_block, next_dir_block );
 #ifdef _DEBUG
 		if( this_dir_block == next_dir_block ) DebugBreak();
 		if( next_dir_block == 0 ) { DebugBreak(); return NULL; }  // should have a last-entry before no more blocks....
@@ -1216,8 +1233,8 @@ static FPI SaveFileName( struct sack_vfs_volume *vol, const char * filename ) {
 			LoG( "new position is %" _size_f "  %" _size_f, this_name_block, (uintptr_t)name - (uintptr_t)names );
 #endif
 		}
-		this_name_block = vfs_GetNextBlock( vol, this_name_block, GFB_INIT_DIRENT, TRUE );
-		LoG( "Need a new(next) directory name block.... %zd" , this_name_block );
+		this_name_block = vfs_GetNextBlock( vol, this_name_block, GFB_INIT_NAMES, TRUE );
+		LoG( "Need a new(next) name block.... %zd" , this_name_block );
 	}
 }
 
@@ -1620,6 +1637,7 @@ int CPROC sack_vfs_close( struct sack_vfs_file *file ) {
 	DeleteLink( &file->vol->files, file );
 	if( file->delete_on_close ) sack_vfs_unlink_file_entry( file->vol, file->entry, &file->dirent_key, file->_first_block, TRUE );
 	file->vol->lock = 0;
+	//ValidateBAT( file->vol );
 	if( file->vol->closed ) sack_vfs_unload_volume( file->vol );
 	Deallocate( struct sack_vfs_file *, file );
 	return 0;
