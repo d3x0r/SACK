@@ -1294,7 +1294,6 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 	execinfo.lpDirectory = path;
 	{
 		TEXTCHAR *params;
-		int quote;
 		params = GetText( cmdline );
 		if( params[0] == '\"' ) {
 			params++;
