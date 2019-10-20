@@ -2229,8 +2229,8 @@ static size_t CPROC sack_filesys_size( void*file ) {
 	fseek( (FILE*)file, 0, SEEK_END );
 	length = ftell( (FILE*)file );
 	if( length == (size_t)-1 ) {
-#ifdef WIN32
 		int e = errno;
+#ifdef WIN32
 		length = _ftelli64( (FILE*)file );
 		if( length == (size_t)-1 ) {
 #endif
