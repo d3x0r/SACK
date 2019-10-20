@@ -994,11 +994,13 @@ void sack_vfs_shrink_volume( struct sack_vfs_volume * vol ) {
 			break;
 	}while( 1 );
 
-	Deallocate( struct sack_vfs_disk *, vol->diskReal );
+	CloseSpace( vol->diskReal );
+
 	SetFileLength( vol->volname,
 			((uintptr_t)vol->disk - (uintptr_t)vol->diskReal) +
 			(size_t)(last_bat * BLOCKS_PER_SECTOR * BLOCK_SIZE + ( last_block + 1 + 1 )* BLOCK_SIZE) );
 	// setting 0 size will cause expand to do an initial open instead of expanding
+	vol->diskReal = NULL;
 	vol->dwSize = 0;
 }
 
