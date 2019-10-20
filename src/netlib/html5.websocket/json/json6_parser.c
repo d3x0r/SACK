@@ -1383,8 +1383,8 @@ LOGICAL json6_parse_message( const char * msg
 }
 
 void getJson6Ticks( int *tickBuf ) {
-    int n;
 # ifdef DEBUG_LOG_TIMING
+    int n;
     for( n = 0; n < sizeof( ticks ) / sizeof(ticks[0] ); n++ ) {
 	tickBuf[n] = ticks[n];
     }
