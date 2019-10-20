@@ -80,6 +80,7 @@ enum textModes {
 struct file{
 	TEXTSTR name;
 	TEXTSTR fullname;
+	wchar_t* wfullname;
 	int fullname_size;
 
 	PLIST handles; // HANDLE 's
@@ -800,6 +801,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 		file = New( struct file );
 		file->name = StrDup( filename );
 		file->fullname = PrependBasePath( group, filegroup, filename );
+		file->wfullname = CharWConvert( file->fullname );
 		file->handles = NULL;
 		file->files = NULL;
 		file->group = group;
@@ -831,7 +833,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 	{
 	case 0:
 	default:
-	handle = CreateFile( file->fullname
+	handle = CreateFileW( file->wfullname
 							, GENERIC_READ
 							, FILE_SHARE_READ
 							, NULL
@@ -840,7 +842,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 							, NULL );
 	break;
 	case 1:
-	handle = CreateFile( file->fullname
+	handle = CreateFileW( file->wfullname
 							, GENERIC_WRITE
 							, FILE_SHARE_READ|FILE_SHARE_WRITE
 							, NULL
@@ -850,7 +852,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 		break;
 	case 2:
 	case 3:
-	handle = CreateFile( file->fullname
+	handle = CreateFileW( file->wfullname
 							,(GENERIC_READ|GENERIC_WRITE)
 							, FILE_SHARE_READ|FILE_SHARE_WRITE
 							, NULL
@@ -1094,9 +1096,9 @@ int sack_close( HANDLE file_handle )
 		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( "Close %s", file->fullname );
 #endif
+		Deallocate( wchar_t*, file->wfullname );
 		/*
 		Deallocate( TEXTCHAR*, file->name );
-		Deallocate( TEXTCHAR*, file->fullname );
 		Deallocate( TEXTCHAR*, file );
 		DeleteLink( &(*winfile_local).files, file );
 		*/
@@ -1167,7 +1169,7 @@ int sack_ilseek( INDEX file_handle, size_t pos, int whence )
 		 HANDLE *holder = (HANDLE*)GetLink( &(*winfile_local).handles, file_handle );
 		 HANDLE handle = holder?holder[0]:INVALID_HANDLE_VALUE;
 #ifdef _WIN32
-		result = SetFilePointer(handle,(LONG)pos,NULL,whence);
+		result = SetFilePointer(handle,(LONG)pos,((PLONG)&pos)+1,whence);
 #else
 		result = lseek( handle, pos, whence );
 #endif
