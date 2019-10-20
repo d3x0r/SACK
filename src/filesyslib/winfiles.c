@@ -1968,10 +1968,22 @@ LOGICAL sack_existsEx ( const char *filename, struct file_system_mounted_interfa
 		int result = fsi->fsi->exists( fsi->psvInstance, filename );
 		return result;
 	}
-	else if( ( tmp = fopen( filename, "rb" ) ) )
-	{
-		fclose( tmp );
-		return TRUE;
+	else {
+#ifdef WIN32
+		wchar_t *wfilename = CharWConvert( filename );
+		if( (tmp = _wfopen( wfilename, L"rb" )) ) {
+#else
+		if( (tmp = fopen( filename, "rb" )) ) {
+#endif
+			fclose( tmp );
+#ifdef WIN32
+			Deallocate( wchar_t*, wfilename );
+#endif
+			return TRUE;
+		}
+#ifdef WIN32
+		Deallocate( wchar_t*, wfilename );
+#endif
 	}
 	return FALSE;
 }
@@ -2249,11 +2261,12 @@ static LOGICAL CPROC sack_filesys_copy_write_buffer( void ) { return FALSE; }
 
 struct find_cursor_data {
 	char *root;
-	char *filemask;
+	wchar_t *filemask;
 	char *mask;
+	char namebuf[256];
 #ifdef WIN32
 	intptr_t findHandle;
-	struct _finddata_t fileinfo;
+	struct _wfinddata_t fileinfo;
 #else
 	DIR* handle;
 	struct dirent *de;
@@ -2268,7 +2281,11 @@ static	struct find_cursor * CPROC sack_filesys_find_create_cursor ( uintptr_t ps
 	snprintf( maskbuf, 512, "%s/%s", root ? root : ".", "*" );
 	cursor->mask = StrDup( filemask );
 	cursor->root = StrDup( root?root:"." );
-	cursor->filemask = ExpandPath( maskbuf );// StrDup( filemask ? filemask : "*" );
+	{
+		char* mask = ExpandPath( maskbuf );// StrDup( filemask ? filemask : "*" );
+		cursor->filemask = CharWConvertLen( mask, strlen( mask ) );
+		Deallocate( char*, mask );
+	}
 #ifdef WIN32
    // windows mode is delayed until findfirst
 #else
@@ -2279,7 +2296,7 @@ static	struct find_cursor * CPROC sack_filesys_find_create_cursor ( uintptr_t ps
 static	int CPROC sack_filesys_find_first( struct find_cursor *_cursor ){
 	struct find_cursor_data *cursor = (struct find_cursor_data *)_cursor;
 #ifdef WIN32
-	cursor->findHandle = findfirst( cursor->filemask, &cursor->fileinfo );
+	cursor->findHandle = _wfindfirst( cursor->filemask, &cursor->fileinfo );
 	if( cursor->findHandle == -1 )
 	{
 		int err = errno;
@@ -2306,7 +2323,7 @@ static	int CPROC sack_filesys_find_close( struct find_cursor *_cursor ){
 #endif
 	Deallocate( char *, cursor->root );
 	Deallocate( char *, cursor->mask );
-	Deallocate( char *, cursor->filemask );
+	Deallocate( wchar_t *, cursor->filemask );
 	Deallocate( struct find_cursor_data *, cursor );
 	return 0;
 }
@@ -2314,7 +2331,7 @@ static	int CPROC sack_filesys_find_next( struct find_cursor *_cursor ){
    int r;
    struct find_cursor_data *cursor = (struct find_cursor_data *)_cursor;
 #ifdef WIN32
-   r = !findnext( cursor->findHandle, &cursor->fileinfo );
+   r = !_wfindnext( cursor->findHandle, &cursor->fileinfo );
 #else
 	do {
 		cursor->de = readdir( cursor->handle );
@@ -2329,7 +2346,15 @@ static	char * CPROC sack_filesys_find_get_name( struct find_cursor *_cursor ){
 #   ifdef UNDER_CE
 	return cursor->fileinfo.cFileName;
 #   else
-	return cursor->fileinfo.name;
+	{
+		const wchar_t* tmp = cursor->fileinfo.name;
+		char* out = cursor->namebuf;
+		while( tmp[0] ) {
+			out += ConvertToUTF8( out, GetUtfCharW( &tmp ) );
+		}
+		out[0] = 0;
+	}
+	return cursor->namebuf;
 #   endif
 #else
    return cursor->de->d_name;
@@ -2471,14 +2496,14 @@ PRELOAD( InitWinFileSys )
 
 static void * CPROC sack_filesys_open( uintptr_t psv, const char *filename, const char *opts ) { 
 	void *result;
-#ifdef UNICODE
-	TEXTCHAR *_filename = DupCStr( filename );
-#  define filename _filename
-#endif
+#ifdef _WIN32
+	wchar_t* wfilename = CharWConvert( filename );
+	wchar_t* wopts = CharWConvert( opts );
+	result = _wfopen( wfilename, wopts );
+	Deallocate( wchar_t*, wfilename );
+	Deallocate( wchar_t*, wopts );
+#else
 	result = fopen( filename, opts );
-#ifdef UNICODE
-	Deallocate( TEXTCHAR *, _filename );
-#  undef filename
 #endif
 	return result;
 }
