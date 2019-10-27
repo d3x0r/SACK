@@ -2369,7 +2369,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 					 , pcs->nLine[(pcs->nPrior+(MAX_SECTION_LOG_QUEUE-3))%MAX_SECTION_LOG_QUEUE]
 					 );
 #endif
-			lprintf( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle" );
+			_lprintf(DBG_RELAY)( "Timeout during critical section wait for lock.  No lock should take more than 1 task cycle" );
 			//DebugBreak();
 			//continue;
 		}
