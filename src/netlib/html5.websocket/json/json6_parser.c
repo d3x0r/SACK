@@ -1186,7 +1186,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					PushLink( state->outBuffers, output );
 					if( state->parse_context == CONTEXT_UNKNOWN
 					  && ( state->val.value_type != VALUE_UNSET
-					     || state->elements[0]->Cnt ) ) {
+					     || ( state->elements && state->elements[0]->Cnt ) ) ) {
 						if( state->word == WORD_POS_END ) {
 							state->word = WORD_POS_RESET;
 						}
