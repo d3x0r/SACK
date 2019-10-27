@@ -62,7 +62,7 @@ static struct {
 #define GFB_INIT_DIRENT 1
 #define GFB_INIT_NAMES  2
 static BLOCKINDEX GetFreeBlock( struct sack_vfs_volume *vol, int init );
-static struct directory_entry * ScanDirectory( struct sack_vfs_volume *vol, const char * filename, struct directory_entry *dirkey, int path_match );
+static struct directory_entry * VFSScanDirectory( struct sack_vfs_volume *vol, const char * filename, struct directory_entry *dirkey, int path_match );
 
 static char mytolower( int c ) {	if( c == '\\' ) return '/'; return tolower( c ); }
 
@@ -389,7 +389,7 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 		}
 	}
 	Release( usedSectors );
-	if( !ScanDirectory( vol, NULL, NULL, 0 ) ) return FALSE;
+	if( !VFSScanDirectory( vol, NULL, NULL, 0 ) ) return FALSE;
 	return TRUE;
 }
 
@@ -1147,7 +1147,7 @@ const char *sack_vfs_get_signature( struct sack_vfs_volume *vol ) {
 	return signature;
 }
 
-struct directory_entry * ScanDirectory( struct sack_vfs_volume *vol, const char * filename, struct directory_entry *dirkey, int path_match ) {
+struct directory_entry * VFSScanDirectory( struct sack_vfs_volume *vol, const char * filename, struct directory_entry *dirkey, int path_match ) {
 	size_t n;
 	BLOCKINDEX this_dir_block = 0;
 	BLOCKINDEX next_dir_block;
@@ -1287,7 +1287,7 @@ struct sack_vfs_file * CPROC sack_vfs_openfile( struct sack_vfs_volume *vol, con
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( filename[0] == '.' && filename[1] == '/' ) filename += 2;
 	LoG( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
-	file->entry = ScanDirectory( vol, filename, &file->dirent_key, 0 );
+	file->entry = VFSScanDirectory( vol, filename, &file->dirent_key, 0 );
 	if( !file->entry ) {
 		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Deallocate( struct sack_vfs_file *, file ); return NULL; }
 		else file->entry = GetNewDirectory( vol, filename );
@@ -1319,7 +1319,7 @@ int CPROC sack_vfs_exists( struct sack_vfs_volume *vol, const char * file ) {
 	struct directory_entry *ent;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( file[0] == '.' && file[1] == '/' ) file += 2;
-	ent = ScanDirectory( vol, file, &entkey, 0 );
+	ent = VFSScanDirectory( vol, file, &entkey, 0 );
 	//lprintf( "sack_vfs exists %s %s", ent?"ya":"no", file );
 	vol->lock = 0;
 	if( ent ) return TRUE;
@@ -1652,7 +1652,7 @@ int CPROC sack_vfs_unlink_file( struct sack_vfs_volume *vol, const char * filena
 	if( !vol ) return 0;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	LoG( "unlink file:%s", filename );
-	if( ( entry  = ScanDirectory( vol, filename, &entkey, 0 ) ) ) {
+	if( ( entry  = VFSScanDirectory( vol, filename, &entkey, 0 ) ) ) {
 		sack_vfs_unlink_file_entry( vol, entry, &entkey, entry->first_block ^ entkey.first_block, FALSE );
 		result = 1;
 	}
@@ -1755,7 +1755,7 @@ LOGICAL CPROC sack_vfs_is_directory( uintptr_t psvInstance, const char *path ) {
 	if( path[0] == '.' && path[1] == 0 ) return TRUE;
 	{
 		struct sack_vfs_volume *vol = (struct sack_vfs_volume *)psvInstance;
-		if( ScanDirectory( vol, path, NULL, 1 ) ) {
+		if( VFSScanDirectory( vol, path, NULL, 1 ) ) {
 			return TRUE;
 		}
 	}
@@ -1773,10 +1773,10 @@ LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, cons
 		struct directory_entry entkey;
 		struct directory_entry *entry;
 		while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
-		if( ( entry  = ScanDirectory( vol, original, &entkey, 0 ) ) ) {
+		if( ( entry  = VFSScanDirectory( vol, original, &entkey, 0 ) ) ) {
 			struct directory_entry new_entkey;
 			struct directory_entry *new_entry;
-			if( (new_entry = ScanDirectory( vol, newname, &new_entkey, 0 )) ) {
+			if( (new_entry = VFSScanDirectory( vol, newname, &new_entkey, 0 )) ) {
 				vol->lock = 0;
 				sack_vfs_unlink_file( vol, newname );
 				while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
