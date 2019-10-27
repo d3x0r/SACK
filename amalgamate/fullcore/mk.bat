@@ -25,6 +25,9 @@
 @set SRCS= %SRCS%   ../../src/timerlib/timers.c 
 @set SRCS= %SRCS%   ../../src/idlelib/idle.c 
 @set SRCS= %SRCS%   ../../src/netlib/network.c 
+@set SRCS= %SRCS%   ../../src/netlib/network_all.c 
+@set SRCS= %SRCS%   ../../src/netlib/network_addresses.c 
+@set SRCS= %SRCS%   ../../src/netlib/network_addresses.c 
 @set SRCS= %SRCS%   ../../src/netlib/tcpnetwork.c 
 @set SRCS= %SRCS%   ../../src/netlib/udpnetwork.c 
 @set SRCS= %SRCS%   ../../src/netlib/ping.c 
@@ -44,6 +47,11 @@
 @set SRCS= %SRCS%   ../../src/filesyslib/winfiles.c
 @set SRCS= %SRCS%   ../../src/filesyslib/filescan.c
 @set SRCS= %SRCS%   ../../src/filesyslib/pathops.c
+
+@set SRCS= %SRCS%   ../../src/filesyslib/filemon/allfiles.c
+@set SRCS= %SRCS%   ../../src/filesyslib/filemon/linuxfiles.c
+@set SRCS= %SRCS%   ../../src/filesyslib/filemon/windowsfiles.c
+
 
 @set SRCS= %SRCS%   ../../src/sysloglib/syslog.c
 
@@ -109,6 +117,7 @@ cd h
 @set HDRS= %HDRS% ../../../include/jsox_parser.h
 @set HDRS= %HDRS% ../../../include/configscript.h
 @set HDRS= %HDRS% ../../../include/filesys.h
+@set HDRS= %HDRS% ../../../include/filemon.h
 @set HDRS= %HDRS% ../../../include/procreg.h
 @set HDRS= %HDRS% ../../../include/http.h
 @set HDRS= %HDRS% ../../../include/pssql.h

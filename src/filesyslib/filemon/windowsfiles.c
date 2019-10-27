@@ -123,13 +123,13 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 
 //-------------------------------------------------------------------------
 
-struct peer_thread_info
+struct filemon_peer_thread_info
 {
 	HANDLE *phNextThread;
 	PMONITOR resume_from;
 	INDEX resume_from_sub;
-	struct peer_thread_info *parent_peer;
-	struct peer_thread_info *child_peer;
+	struct filemon_peer_thread_info *parent_peer;
+	struct filemon_peer_thread_info *child_peer;
 	PLIST monitor_list;
 	PDATALIST event_list;
 	HANDLE *phMyThread;
@@ -143,10 +143,10 @@ struct peer_thread_info
 };
 static uintptr_t CPROC MonitorFileThread( PTHREAD pThread );
 
-static void ClearThreadEvents( struct peer_thread_info *info )
+static void ClearThreadEvents( struct filemon_peer_thread_info *info )
 {
-	struct peer_thread_info *first_peer = info;
-	struct peer_thread_info *peer;
+	struct filemon_peer_thread_info *first_peer = info;
+	struct filemon_peer_thread_info *peer;
 	while( first_peer && first_peer->parent_peer )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
@@ -173,11 +173,11 @@ static void ClearThreadEvents( struct peer_thread_info *info )
 	}
 }
 
-static void AddThreadEvent( PMONITOR monitor, struct peer_thread_info *info )
+static void AddThreadEvent( PMONITOR monitor, struct filemon_peer_thread_info *info )
 {
-	struct peer_thread_info *first_peer;
-	struct peer_thread_info *last_peer;
-	struct peer_thread_info *peer;
+	struct filemon_peer_thread_info *first_peer;
+	struct filemon_peer_thread_info *last_peer;
+	struct filemon_peer_thread_info *peer;
 
 	if( monitor->flags.bRemoveFromEvents )
 	{
@@ -378,10 +378,10 @@ static void ReadChanges( PMONITOR monitor )
 	}
 }
 
-static LOGICAL PeerIsBuilding( struct peer_thread_info *info )
+static LOGICAL PeerIsBuilding( struct filemon_peer_thread_info *info )
 {
-	struct peer_thread_info *first_peer = info;
-	struct peer_thread_info *peer;
+	struct filemon_peer_thread_info *first_peer = info;
+	struct filemon_peer_thread_info *peer;
 	while( first_peer && first_peer->parent_peer )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
@@ -392,10 +392,10 @@ static LOGICAL PeerIsBuilding( struct peer_thread_info *info )
 	return FALSE;
 }
 
-static LOGICAL PeerIsBusy( struct peer_thread_info *info )
+static LOGICAL PeerIsBusy( struct filemon_peer_thread_info *info )
 {
-	struct peer_thread_info *first_peer = info;
-	struct peer_thread_info *peer;
+	struct filemon_peer_thread_info *first_peer = info;
+	struct filemon_peer_thread_info *peer;
 	while( first_peer && first_peer->parent_peer )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
@@ -406,10 +406,10 @@ static LOGICAL PeerIsBusy( struct peer_thread_info *info )
 	return FALSE;
 }
 
-static void WakePeers( struct peer_thread_info *info )
+static void WakePeers( struct filemon_peer_thread_info *info )
 {
-	struct peer_thread_info *first_peer = info;
-	struct peer_thread_info *peer;
+	struct filemon_peer_thread_info *first_peer = info;
+	struct filemon_peer_thread_info *peer;
 	while( first_peer && first_peer->parent_peer )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
@@ -421,8 +421,8 @@ static void WakePeers( struct peer_thread_info *info )
 
 static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 {
-	struct peer_thread_info this_thread;
-	struct peer_thread_info *peer_thread = (struct peer_thread_info*)GetThreadParam( pThread );
+	struct filemon_peer_thread_info this_thread;
+	struct filemon_peer_thread_info *peer_thread = (struct filemon_peer_thread_info*)GetThreadParam( pThread );
 	LOGICAL rebuild_events = peer_thread?FALSE:TRUE;
 	PMONITOR monitor;
 	DWORD dwResult;
