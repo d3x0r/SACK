@@ -30,6 +30,8 @@ static void (*DblClkCallback)(void);
 HICON hLastIcon;
 typedef struct addition {
 	CTEXTSTR text;
+	void (CPROC*f2)(uintptr_t);
+	uintptr_t param;
 	void (CPROC*f)(void);
    int id;
 } ADDITION, *PADDITION;
@@ -122,9 +124,14 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		default:
 			{
 				int fidx = LOWORD(wParam) - (MNU_EXIT + 1);
-				void (CPROC *func)(void) = ((PADDITION)GetLink( &Functions, fidx ))->f;
-				if( func )
-               func();
+				PADDITION addon = ((PADDITION)GetLink( &Functions, fidx ));
+				if( addon ) {
+					void (CPROC * func)(void) = addon->f;
+					if( func )
+				               func();
+					else if( addon->f2 )
+						addon->f2( addon->param );
+				}
 			}
 		}
 		break;
@@ -153,7 +160,7 @@ static int CPROC systrayidle( uintptr_t unused )
 		}
 		return 0;
 	}
-   return -1;
+	return -1;
 }
 
 //----------------------------------------------------------------------
@@ -314,7 +321,28 @@ void AddSystrayMenuFunction( CTEXTSTR text, void (CPROC*function)(void) )
 		PADDITION addition = New( ADDITION );
 		addition->text = StrDupEx( text DBG_SRC );
 		addition->f = function;
-      addition->id = additions;
+		addition->id = additions;
+		SetLink( &Functions, additions, addition );
+		additions++;
+	}
+}
+
+void AddSystrayMenuFunction_v2( CTEXTSTR text, void (CPROC* function)(uintptr_t), uintptr_t param ){
+	if( hMainMenu )
+	{
+#ifdef WIN32
+		AppendMenu( hMainMenu, MF_STRING, MNU_EXIT+1+additions, text );
+#else
+		AppendPopupItem( hMainMenu, MF_STRING, MNU_EXIT+1+addtions, text );
+#endif
+	}
+	{
+		PADDITION addition = New( ADDITION );
+		addition->text = StrDupEx( text DBG_SRC );
+		addition->f = NULL;
+		addition->param = param;
+		addition->f2 = function;
+		addition->id = additions;
 		SetLink( &Functions, additions, addition );
 		additions++;
 	}

@@ -1364,7 +1364,7 @@ void PutStringFontEx( ImageFile *pImage
 											 , CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	uint32_t _x = x;
-   uint32_t _y = y;
+	uint32_t _y = y;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	int ch;
@@ -1372,6 +1372,7 @@ void PutStringFontEx( ImageFile *pImage
 	int32_t bias_y;
 	if( !font )
 		font = &DEFAULTFONT;
+	if( !pImage ) return;
 	if( pImage->flags & IF_FLAG_FINAL_RENDER )
 	{
 		bias_x = ( font->bias & 0xF );

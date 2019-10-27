@@ -749,8 +749,9 @@ PSI_PROC( void, EditFrame )( PSI_CONTROL pc, int bEnable )
 	{
 		if( !pc->flags.auto_opened )
 		{
+			pc->flags.auto_opened = 1; // precondition this state...
+			DisplayFrame( pc ); // DIsplay frame will clear auto_opened....
 			pc->flags.auto_opened = 1;
-			DisplayFrame( pc );
 		}
 	}
 	if( !bEnable && pc->device )
