@@ -24,7 +24,7 @@ SYSTRAY_PROC void SetIconDoubleClick( void (*DoubleClick)(void ) );
 
 SYSTRAY_PROC void TerminateIcon( void );
 SYSTRAY_PROC void AddSystrayMenuFunction( CTEXTSTR text, void (CPROC*function)(void) );
-
+SYSTRAY_PROC void AddSystrayMenuFunction_v2( CTEXTSTR text, void (CPROC* function)(uintptr_t), uintptr_t );
 
 // this may be important one day!
 //void SetIconMenu( HMENU menu );
