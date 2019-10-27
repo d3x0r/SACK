@@ -358,8 +358,8 @@ size_t New4GetOptionStringValue( PODBC odbc, POPTION_TREE_NODE optval, TEXTCHAR 
 		}
 		result_len = StrLen( optval->value ) + 1;
 		if(result_len > buf->buflen)  expandResultBuffer( buf, result_len * 2 );
-		StrCpyEx( buf->buffer, optval->value, result_len+1 );
-		buf->buffer[result_len-1] = 0;
+		StrCpyEx( buf->buffer, optval->value, result_len );
+		//buf->buffer[result_len-1] = 0;
 		(*buffer) = buf->buffer;
 		(*len) = result_len-1;
 		return result_len-1;
