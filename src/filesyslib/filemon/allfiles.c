@@ -50,7 +50,7 @@ using namespace sack::containers::queue;
 //-------------------------------------------------------------------------
 
 
-static void Init( void )
+static void InitFileMonitor( void )
 {
 	if( !local_filemon.flags.bInit )
 	{
@@ -64,7 +64,7 @@ static void Init( void )
 
 PRELOAD( InitFileMon)
 {
-	Init();
+	InitFileMonitor();
 }
 
 int CPROC CompareName( uintptr_t psv1, uintptr_t psv2 )

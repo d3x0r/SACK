@@ -173,7 +173,7 @@ static void ClearThreadEvents( struct filemon_peer_thread_info *info )
 	}
 }
 
-static void AddThreadEvent( PMONITOR monitor, struct filemon_peer_thread_info *info )
+static void FileMonAddThreadEvent( PMONITOR monitor, struct filemon_peer_thread_info *info )
 {
 	struct filemon_peer_thread_info *first_peer;
 	struct filemon_peer_thread_info *last_peer;
@@ -474,11 +474,11 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 			{
 				PMONITOR sub_monitor;
 				INDEX idx;
-				AddThreadEvent( monitor, &this_thread );
+				FileMonAddThreadEvent( monitor, &this_thread );
 
 				LIST_FORALL( monitor->monitors, idx, PMONITOR, sub_monitor )
 				{
-					AddThreadEvent( sub_monitor, &this_thread );
+					FileMonAddThreadEvent( sub_monitor, &this_thread );
 				}
 			}
 
