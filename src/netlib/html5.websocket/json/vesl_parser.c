@@ -21,46 +21,46 @@ const char *value_type_names[] = {
 
 #define NUM_POS_NAMES  ((sizeof(word_pos_names)/sizeof(word_pos_names[0])))
 const char *word_pos_names[] = {
-	"WORD_POS_RESET" // not in a keyword
-	,"WORD_POS_END"  // at end of a word, waiting for separator
-	,"WORD_POS_TRUE_1"
-	,"WORD_POS_TRUE_2"
-	,"WORD_POS_TRUE_3"
-	,"WORD_POS_TRUE_4"
-	,"WORD_POS_FALSE_1" // 11
-	,"WORD_POS_FALSE_2"
-	,"WORD_POS_FALSE_3"
-	,"WORD_POS_FALSE_4"
-	,"WORD_POS_NULL_1" // 21  get u
-	,"WORD_POS_NULL_2" //  get l
-	,"WORD_POS_NULL_3" //  get l
-	,"WORD_POS_UNDEFINED_1"  // 31 
-	,"WORD_POS_UNDEFINED_2"
-	,"WORD_POS_UNDEFINED_3"
-	,"WORD_POS_UNDEFINED_4"
-	,"WORD_POS_UNDEFINED_5"
-	,"WORD_POS_UNDEFINED_6"
-	,"WORD_POS_UNDEFINED_7"
-	,"WORD_POS_UNDEFINED_8"
-	//WORD_POS_UNDEFINED_9, // instead of stepping to this value here, go to RESET
-	,"WORD_POS_NAN_1"
-	,"WORD_POS_NAN_2"
-	//WORD_POS_NAN_3,// instead of stepping to this value here, go to RESET
-	,"WORD_POS_INFINITY_1"
-	,"WORD_POS_INFINITY_2"
-	,"WORD_POS_INFINITY_3"
-	,"WORD_POS_INFINITY_4"
-	,"WORD_POS_INFINITY_5"
-	,"WORD_POS_INFINITY_6"
-	,"WORD_POS_INFINITY_7"
-	//WORD_POS_INFINITY_8,// instead of stepping to this value here, go to RESET
-	,"WORD_POS_FIELD"
-	,"WORD_POS_AFTER_FIELD"
-	,"WORD_POS_DOT_OPERATOR"
-	,"WORD_POS_PROPER_NAME"
-	,"WORD_POS_AFTER_PROPER_NAME"
-	,"WORD_POS_AFTER_GET"
-	,"WORD_POS_AFTER_SET"
+	"VESL_WORD_POS_RESET" // not in a keyword
+	,"VESL_WORD_POS_END"  // at end of a word, waiting for separator
+	,"VESL_WORD_POS_TRUE_1"
+	,"VESL_WORD_POS_TRUE_2"
+	,"VESL_WORD_POS_TRUE_3"
+	,"VESL_WORD_POS_TRUE_4"
+	,"VESL_WORD_POS_FALSE_1" // 11
+	,"VESL_WORD_POS_FALSE_2"
+	,"VESL_WORD_POS_FALSE_3"
+	,"VESL_WORD_POS_FALSE_4"
+	,"VESL_WORD_POS_NULL_1" // 21  get u
+	,"VESL_WORD_POS_NULL_2" //  get l
+	,"VESL_WORD_POS_NULL_3" //  get l
+	,"VESL_WORD_POS_UNDEFINED_1"  // 31 
+	,"VESL_WORD_POS_UNDEFINED_2"
+	,"VESL_WORD_POS_UNDEFINED_3"
+	,"VESL_WORD_POS_UNDEFINED_4"
+	,"VESL_WORD_POS_UNDEFINED_5"
+	,"VESL_WORD_POS_UNDEFINED_6"
+	,"VESL_WORD_POS_UNDEFINED_7"
+	,"VESL_WORD_POS_UNDEFINED_8"
+	//VESL_WORD_POS_UNDEFINED_9, // instead of stepping to this value here, go to RESET
+	,"VESL_WORD_POS_NAN_1"
+	,"VESL_WORD_POS_NAN_2"
+	//VESL_WORD_POS_NAN_3,// instead of stepping to this value here, go to RESET
+	,"VESL_WORD_POS_INFINITY_1"
+	,"VESL_WORD_POS_INFINITY_2"
+	,"VESL_WORD_POS_INFINITY_3"
+	,"VESL_WORD_POS_INFINITY_4"
+	,"VESL_WORD_POS_INFINITY_5"
+	,"VESL_WORD_POS_INFINITY_6"
+	,"VESL_WORD_POS_INFINITY_7"
+	//VESL_WORD_POS_INFINITY_8,// instead of stepping to this value here, go to RESET
+	,"VESL_WORD_POS_FIELD"
+	,"VESL_WORD_POS_AFTER_FIELD"
+	,"VESL_WORD_POS_DOT_OPERATOR"
+	,"VESL_WORD_POS_PROPER_NAME"
+	,"VESL_WORD_POS_AFTER_PROPER_NAME"
+	,"VESL_WORD_POS_AFTER_GET"
+	,"VESL_WORD_POS_AFTER_SET"
 
 };
 //#define DEBUG_PARSING
@@ -157,15 +157,15 @@ static void vesl_state_init( struct vesl_parse_state *state )
 	state->line = 1;
 	state->col = 1;
 	state->n = 0; // character index;
-	state->word = WORD_POS_RESET;
+	state->word = VESL_WORD_POS_RESET;
 	state->status = TRUE;
 	state->negative = FALSE;
 
 	state->context_stack = GetFromSet( PLINKSTACK, &vpsd.linkStacks );// NULL;
 	if( state->context_stack[0] ) state->context_stack[0]->Top = 0;
 	//state->first_token = TRUE;
-	//state->context = GetFromSet( PARSE_CONTEXT, &vpsd.parseContexts );
-	state->parse_context = CONTEXT_UNKNOWN;
+	//state->context = GetFromSet( VESL_PARSE_CONTEXT, &vpsd.parseContexts );
+	state->parse_context = VESL_CONTEXT_UNKNOWN;
 	state->comment = 0;
 	state->completed = FALSE;
 	//state->mOut = msg;// = NewArray( char, msglen );
@@ -185,7 +185,7 @@ static void vesl_state_init( struct vesl_parse_state *state )
 
 static void vesl_start_container( struct vesl_parse_state *state ) {
 	{
-		struct vesl_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &vpsd.parseContexts );
+		struct vesl_parse_context *old_context = GetFromSet( VESL_PARSE_CONTEXT, &vpsd.parseContexts );
 #ifdef _DEBUG_PARSING
 		lprintf( "Begin a new object; previously pushed into elements; but wait until trailing comma or close previously:%d", val.value_type );
 #endif				
@@ -199,7 +199,7 @@ static void vesl_start_container( struct vesl_parse_state *state ) {
 		//else state->elements[0]->Cnt = 0;
 		lprintf( "Pushing pending thing, so this object is assicated under it as a list: %s", state->val.string );
 		PushLink( state->context_stack, old_context );
-		state->word = WORD_POS_RESET;
+		state->word = VESL_WORD_POS_RESET;
 		RESET_STATE_VAL();
 	}
 }
@@ -210,7 +210,7 @@ static void commitPending( struct vesl_parse_state *state ) {
 			state->val.stringLen = state->output->pos - state->val.string;
 		AddDataItem( state->elements, &state->val );
 		RESET_STATE_VAL();
-		state->word = WORD_POS_RESET;
+		state->word = VESL_WORD_POS_RESET;
 		state->operatorAccum = 0;
 	}
 }
@@ -221,7 +221,7 @@ static void vesl_start_expression( struct vesl_parse_state *state ) {
 	//AddDataItem( state->elements, &state->val );
 	//RESET_STATE_VAL();
 	vesl_start_container( state );
-	state->parse_context = CONTEXT_OBJECT_FIELD;
+	state->parse_context = VESL_CONTEXT_OBJECT_FIELD;
 }
 
 static void vesl_start_array( struct vesl_parse_state *state ) {
@@ -231,7 +231,7 @@ static void vesl_start_array( struct vesl_parse_state *state ) {
 	//AddDataItem( state->elements, &state->val );
 	//RESET_STATE_VAL();
 	vesl_start_container( state );
-	state->parse_context = CONTEXT_IN_ARRAY;
+	state->parse_context = VESL_CONTEXT_IN_ARRAY;
 }
 
 
@@ -247,7 +247,7 @@ static void vesl_close_expression_array( struct vesl_parse_state *state ) {
 		state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
 		state->elements = old_context->elements;
 		state->val = old_context->valState;
-		DeleteFromSet( PARSE_CONTEXT, vpsd.parseContexts, old_context );
+		DeleteFromSet( VESL_PARSE_CONTEXT, vpsd.parseContexts, old_context );
 	}
 }
 
@@ -573,7 +573,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 {
 	/* I guess this is a good parser */
 	TEXTRUNE c;
-	PPARSE_BUFFER input;
+	PVESL_PARSE_BUFFER input;
 	struct vesl_output_buffer* output;
 	int string_status;
 	int retval = 0;
@@ -581,13 +581,13 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 		return -1;
 
 	if( msg && msglen ) {
-		input = GetFromSet( PARSE_BUFFER, &vpsd.parseBuffers );
+		input = GetFromSet( VESL_PARSE_BUFFER, &vpsd.parseBuffers );
 		input->pos = input->buf = msg;
 		input->size = msglen;
 		EnqueLinkNL( state->inBuffers, input );
 
 		output = (struct vesl_output_buffer*)DequeLinkNL( state->outQueue );
-		if( output && (state->gatheringString || state->gatheringNumber || state->parse_context == CONTEXT_OBJECT_FIELD) ) {
+		if( output && (state->gatheringString || state->gatheringNumber || state->parse_context == VESL_CONTEXT_OBJECT_FIELD) ) {
 			// have to extend the previous output buffer to include this one instead of allocating a split string.
 			size_t offset;
 			size_t offset2;
@@ -609,7 +609,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 		else {
 			if( output )
 				PrequeLink( state->outQueue, output );
-			output = (struct vesl_output_buffer*)GetFromSet( PARSE_BUFFER, &vpsd.parseBuffers );
+			output = (struct vesl_output_buffer*)GetFromSet( VESL_PARSE_BUFFER, &vpsd.parseBuffers );
 			output->pos = output->buf = NewArray( char, msglen + 1 );
 			output->size = msglen;
 			EnqueLinkNL( state->outQueue, output );
@@ -636,14 +636,14 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 				if( state->negative ) { state->val.result_n = -state->val.result_n; state->negative = FALSE; }
 			}
 			state->val.value_type = VESL_VALUE_NUMBER;
-			if( state->parse_context == CONTEXT_UNKNOWN ) {
+			if( state->parse_context == VESL_CONTEXT_UNKNOWN ) {
 				state->completed = TRUE;
 			}
 			retval = 1;
 		}
 	}
 
-	while( state->status && ( input = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) ) {
+	while( state->status && ( input = (PVESL_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) ) {
 		state->output = output = (struct vesl_output_buffer*)DequeLinkNL( state->outQueue );
 		//lprintf( "output is %p", output );
 		state->n = input->pos - input->buf;
@@ -905,7 +905,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								if( state->negative ) { state->val.result_n = -state->val.result_n; state->negative = FALSE; }
 							}
 							state->val.value_type = VESL_VALUE_NUMBER;
-							if( state->parse_context == CONTEXT_UNKNOWN ) {
+							if( state->parse_context == VESL_CONTEXT_UNKNOWN ) {
 								state->completed = TRUE;
 							}
 						}
@@ -983,15 +983,15 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 		//lprintf( "at end... %d %d comp:%d", state->n, input->size, state->completed );
 		if( input ) {
 			if( state->n >= input->size ) {
-				DeleteFromSet( PARSE_BUFFER, vpsd.parseBuffers, input );
-				if( state->gatheringString || state->gatheringNumber || state->word != WORD_POS_RESET ) {
+				DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, input );
+				if( state->gatheringString || state->gatheringNumber || state->word != VESL_WORD_POS_RESET ) {
 					//lprintf( "output is still incomplete? " );
 					PrequeLink( state->outQueue, output );
 					retval = 0;
 				}
 				else {
 					PushLink( state->outBuffers, output );
-					if( state->parse_context == CONTEXT_OBJECT_FIELD
+					if( state->parse_context == VESL_CONTEXT_OBJECT_FIELD
 					  && ( state->val.value_type != VESL_VALUE_UNSET
 					     || state->elements[0]->Cnt ) ) {
 						state->completed = TRUE;
@@ -1031,7 +1031,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 }
 
 void vesl_preinit_state( struct vesl_parse_state *state ) {
-	struct vesl_parse_context *old_context = GetFromSet( PARSE_CONTEXT, &vpsd.parseContexts );
+	struct vesl_parse_context *old_context = GetFromSet( VESL_PARSE_CONTEXT, &vpsd.parseContexts );
 #ifdef _DEBUG_PARSING
 	lprintf( "Begin a new object; previously pushed into elements; but wait until trailing comma or close previously:%d", val.value_type );
 #endif
@@ -1048,13 +1048,13 @@ void vesl_preinit_state( struct vesl_parse_state *state ) {
 	//else state->elements[0]->Cnt = 0;
 	PushLink( state->context_stack, old_context );
 	RESET_STATE_VAL();
-	state->parse_context = CONTEXT_OBJECT_FIELD;
+	state->parse_context = VESL_CONTEXT_OBJECT_FIELD;
 }
 
 /* I guess this is a good parser */
 struct vesl_parse_state * vesl_begin_parse( void )
 {
-	struct vesl_parse_state *state = GetFromSet( PARSE_STATE, &vpsd.parseStates );//New( struct vesl_parse_state );
+	struct vesl_parse_state *state = GetFromSet( VESL_PARSE_STATE, &vpsd.parseStates );//New( struct vesl_parse_state );
 	vesl_state_init( state );
 	return state;
 }
@@ -1093,12 +1093,12 @@ void _vesl_dispose_message( PDATALIST *msg_data )
 void vesl_parse_dispose_state( struct vesl_parse_state **ppState ) {
 	struct vesl_parse_state *state = (*ppState);
 	struct vesl_parse_context *old_context;
-	PPARSE_BUFFER buffer;
+	PVESL_PARSE_BUFFER buffer;
 	_vesl_dispose_message( state->elements );
 	//DeleteDataList( &state->elements );
-	while( buffer = (PPARSE_BUFFER)PopLink( state->outBuffers ) ) {
+	while( buffer = (PVESL_PARSE_BUFFER)PopLink( state->outBuffers ) ) {
 		Deallocate( const char *, buffer->buf );
-		DeleteFromSet( PARSE_BUFFER, vpsd.parseBuffers, buffer );
+		DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
 	}
 	{
 		char *buf;
@@ -1109,11 +1109,11 @@ void vesl_parse_dispose_state( struct vesl_parse_state **ppState ) {
 		DeleteFromSet( PLIST, vpsd.listSet, state->outValBuffers );
 		//DeleteList( &state->outValBuffers );
 	}
-	while( buffer = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
-		DeleteFromSet( PARSE_BUFFER, vpsd.parseBuffers, buffer );
-	while( buffer = (PPARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
+	while( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
+		DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
+	while( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
 		Deallocate( const char*, buffer->buf );
-		DeleteFromSet( PARSE_BUFFER, vpsd.parseBuffers, buffer );
+		DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
 	}
 	DeleteFromSet( PLINKQUEUE, vpsd.linkQueues, state->inBuffers );
 	//DeleteLinkQueue( &state->inBuffers );
@@ -1121,16 +1121,16 @@ void vesl_parse_dispose_state( struct vesl_parse_state **ppState ) {
 	//DeleteLinkQueue( &state->outQueue );
 	DeleteFromSet( PLINKSTACK, vpsd.linkStacks, state->outBuffers );
 	//DeleteLinkStack( &state->outBuffers );
-	//DeleteFromSet( PARSE_CONTEXT, vpsd.parseContexts, state->context );
+	//DeleteFromSet( VESL_PARSE_CONTEXT, vpsd.parseContexts, state->context );
 
 	while( (old_context = (struct vesl_parse_context *)PopLink( state->context_stack )) ) {
 		//lprintf( "warning unclosed contexts...." );
-		DeleteFromSet( PARSE_CONTEXT, vpsd.parseContexts, old_context );
+		DeleteFromSet( VESL_PARSE_CONTEXT, vpsd.parseContexts, old_context );
 	}
 	if( state->context_stack )
 		DeleteFromSet( PLINKSTACK, vpsd.linkStacks, state->context_stack );
 	//DeleteLinkStack( &state->context_stack );
-	DeleteFromSet( PARSE_STATE, vpsd.parseStates, state );
+	DeleteFromSet( VESL_PARSE_STATE, vpsd.parseStates, state );
 	//Deallocate( struct vesl_parse_state *, state );
 	(*ppState) = NULL;
 }
