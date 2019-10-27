@@ -41,6 +41,7 @@
 @set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/json_parser.c
 @set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/json6_parser.c
 @set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/jsox_parser.c
+@set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/vesl_parser.c
 
 
 @set SRCS= %SRCS%   ../../src/filesyslib/pathops.c
@@ -67,6 +68,8 @@
 @set SRCS= %SRCS%   ../../src/procreglib/names.c
 
 @set SRCS= %SRCS%   ../../src/vectlib/vectlib.c
+
+@set SRCS= %SRCS%   ../../src/commlib/sackcomm.c
 
 
 @set SRCS= %SRCS%   ../../src/utils/virtual_file_system/vfs.c
