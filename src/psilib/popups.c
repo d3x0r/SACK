@@ -66,7 +66,7 @@ PSI_PROC( PMENU, CreatePopup )( void )
 	local_popup_data.flags.bDisplayBoundless = RequiresDrawAll();
 #endif
 #ifndef __NO_OPTIONS__
-	local_popup_data.flags.bCustomMenuEnable = 1||SACK_GetProfileIntEx( GetProgramName()
+	local_popup_data.flags.bCustomMenuEnable = SACK_GetProfileIntEx( GetProgramName()
 																						, "SACK/PSI/menus/Use Custom Popups"
 																						, local_popup_data.flags.bCustomMenuEnable
 																						, TRUE );
