@@ -66,7 +66,7 @@ PSI_PROC( PMENU, CreatePopup )( void )
 	local_popup_data.flags.bDisplayBoundless = RequiresDrawAll();
 #endif
 #ifndef __NO_OPTIONS__
-	local_popup_data.flags.bCustomMenuEnable = SACK_GetProfileIntEx( GetProgramName()
+	local_popup_data.flags.bCustomMenuEnable = 1||SACK_GetProfileIntEx( GetProgramName()
 																						, "SACK/PSI/menus/Use Custom Popups"
 																						, local_popup_data.flags.bCustomMenuEnable
 																						, TRUE );
@@ -1069,42 +1069,65 @@ PSI_PROC( PMENUITEM, CheckPopupItem )( PMENU pm, uintptr_t dwID, uint32_t state 
 
 //----------------------------------------------------------------------
 
+struct trackerParams {
+	PMENU hMenuSub; PSI_CONTROL parent; void (*callback)(uintptr_t psv, int menuStatus); uintptr_t psvParam;
+};
+static uintptr_t CPROC OldTrackerPopup( PTHREAD thread ) {
+	uintptr_t param = GetThreadParam( thread );
+	struct trackerParams* params = (struct trackerParams*)param;
+	int result = TrackPopup( params->hMenuSub, params->parent );
+	if( params->callback )
+		params->callback( params->psvParam, result );
+	Release( params );
+	return 0;
+}
 
 PSI_PROC( void, TrackPopup_v2 )( PMENU hMenuSub, PSI_CONTROL parent, void (*callback)( uintptr_t psv, int menuStatus ), uintptr_t psvParam ) {
+	if( local_popup_data.flags.bCustomMenuEnable )
+	{
 
-	int32_t x, y;
-	int selection;
-	if( !hMenuSub )
-	{
-		//Log( "Invalid menu handle." );
-		callback( psvParam, -1 );
-		return;
+		int32_t x, y;
+		int selection;
+		if( !hMenuSub )
+		{
+			//Log( "Invalid menu handle." );
+			callback( psvParam, -1 );
+			return;
+		}
+		hMenuSub->callback = callback;
+		hMenuSub->psvParam = psvParam;
+		//GetMousePosition( &x, &y );
+		GetMouseState( &x, &y, &last_buttons );
+#ifdef DEBUG_MENUS
+		lprintf( "Mouse position: %" _32fs ", %" _32fs " %p is the menu", x, y, hMenuSub );
+#endif
+		if( hMenuSub->flags.showing || hMenuSub->flags.tracking )
+		{
+#ifdef DEBUG_MENUS
+			if( hMenuSub->flags.showing )
+				Log( "Already showing menu..." );
+			if( hMenuSub->flags.tracking )
+				Log( "Already tracking the menu..." );
+#endif
+			callback( psvParam, -1 );
+			return;
+		}
+		hMenuSub->parent = NULL;
+		hMenuSub->child = NULL;
+		ShowMenu( hMenuSub, x, y, FALSE, parent );
+		//selection = (int)hMenuSub->selection;
+#ifdef DEBUG_MENUS
+		Log1( "Track popup return selection:%p %d", hMenuSub, hMenuSub->selection );
+#endif
 	}
-	hMenuSub->callback = callback;
-	hMenuSub->psvParam = psvParam;
-	//GetMousePosition( &x, &y );
-	GetMouseState( &x, &y, &last_buttons );
-#ifdef DEBUG_MENUS
-	lprintf( "Mouse position: %" _32fs ", %" _32fs " %p is the menu", x, y, hMenuSub );
-#endif
-	if( hMenuSub->flags.showing || hMenuSub->flags.tracking )
-	{
-#ifdef DEBUG_MENUS
-		if( hMenuSub->flags.showing )
-			Log( "Already showing menu..." );
-		if( hMenuSub->flags.tracking )
-			Log( "Already tracking the menu..." );
-#endif
-		callback( psvParam, -1 );
-		return;
+	else {
+		struct trackerParams* params = New( struct trackerParams );
+		params->hMenuSub = hMenuSub;
+		params->parent = parent;
+		params->callback = callback;
+		params->psvParam = psvParam;
+		ThreadTo( OldTrackerPopup, (uintptr_t)params );
 	}
-	hMenuSub->parent = NULL;
-	hMenuSub->child = NULL;
-	ShowMenu( hMenuSub, x, y, FALSE, parent );
-	//selection = (int)hMenuSub->selection;
-#ifdef DEBUG_MENUS
-	Log1( "Track popup return selection:%p %d", hMenuSub, hMenuSub->selection );
-#endif
 }
 
 
