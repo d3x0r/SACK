@@ -30,6 +30,7 @@ void CPROC DrawFancyFrame( PSI_CONTROL pc )
 	int tmp;
 	Image window = pc->Window;
 	PFrameBorder border = pc->border;
+	if( !window ) return;
 //#undef ALPHA_TRANSPARENT
 //#define ALPHA_TRANSPARENT 1
 	if( pc->flags.bInitial || pc->flags.bHidden )

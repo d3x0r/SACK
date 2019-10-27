@@ -2309,7 +2309,7 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 {
 	if( !pc )
 		return;
-	if( pc->flags.bDestroy )
+	if( pc->flags.bDestroy || !pc->Window )
 		return;
 
 	// if( pc->flags.bTransparent && pc->parent && !pc->parent->flags.bDirty )
@@ -3067,6 +3067,7 @@ PSI_PROC( void, DisplayFrameOverOnUnder )( PSI_CONTROL pc, PSI_CONTROL over, PRE
 		//SyncRender( pf->pActImg );
 		if( pc->flags.bEditSet )
 			EditFrame( pc, !pc->flags.bNoEdit );
+		pc->flags.auto_opened = 0;
 	}
 
 }
