@@ -763,7 +763,7 @@ void CPROC ButtonLoad( PSI_CONTROL pc, CTEXTSTR line )
 }
 
 //---------------------------------------------------------------------------
-#undef MakeButton
+//#undef MakeButton
 
 CONTROL_PROC_DEF_EX( NORMAL_BUTTON, BUTTON, Button, (void) )
 {

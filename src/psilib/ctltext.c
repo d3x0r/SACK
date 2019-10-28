@@ -134,7 +134,7 @@ static int CPROC OnDrawCommon( STATIC_TEXT_NAME )( PSI_CONTROL pc )
 }
 
 //---------------------------------------------------------------------------
-#undef MakeTextControl
+//#undef MakeTextControl
 CAPTIONED_CONTROL_PROC_DEF( STATIC_TEXT, TEXTCONTROL, TextControl, (int attr) )
 {
 	ValidatedControlData( PTEXTCONTROL, STATIC_TEXT, ptc, pc );
