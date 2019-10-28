@@ -1050,6 +1050,23 @@ SET_TARGET_PROPERTIES(bag.externals PROPERTIES
                   FOLDER "Externals"
 )
 
+add_library( bag.externals.static STATIC
+    ${JPEG_SOURCE}
+    ${ZLIB_SOURCE}
+    ${PNG_SOURCE}
+    ${FREETYPE_SOURCE}
+    ${EXPAT_SOURCES}
+    ${FUSE_SOURCES}
+    ${BAG_EXTERNAL_SQLITE_SOURCES}
+    ${BAG_EXTERNAL_MORE_SOURCES}
+)
+SET_TARGET_PROPERTIES(bag.externals.static PROPERTIES
+                  COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__ ${ExtraFlags}"
+                  COMPILE_DEFINITIONS "${ExternalExtraDefinitions}"
+                  LINK_FLAGS "${extra_link_flags}"
+                  FOLDER "Externals"
+)
+
 if( __QNX__ )
     my_target_link_libraries( bag socket )
 endif( __QNX__ )
@@ -1082,6 +1099,8 @@ SET_TARGET_PROPERTIES(bag.psi PROPERTIES
                   FOLDER "Control Library"
                   LINK_FLAGS "${extra_link_flags}"
 )
+
+
 endif( NOT NO_C )
 
 if( NOT __NO_CPLUSPLUS )
@@ -1098,6 +1117,8 @@ if( NOT __NO_CPLUSPLUS )
                   FOLDER "Control Library"
                   LINK_FLAGS "${extra_link_flags}"
     )
+
+
     if( NOT NO_C )
       my_target_link_libraries( ${BAG_PSI_PLUSPLUS} bag ${BAG_PLUSPLUS} ${EXTERNALS} ${PLATFORM_LIBRARIES} )
       set( SACK_PSI_LIBRARY ${BAG_PSI_PLUSPLUS} bag.psi )
