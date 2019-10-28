@@ -8,9 +8,10 @@
 PSI_BUTTON_NAMESPACE
 
 #define PutMenuString PutString
+#define l buttonControlLocal
 //------------------------------------------------------------------------------
 
-typedef struct local_tag
+typedef struct psi_button_local_tag
 {
 	struct {
 		uint32_t bInited : 1;
@@ -18,7 +19,7 @@ typedef struct local_tag
 	} flags;
 } LOCAL;
 
-static LOCAL l;
+static LOCAL buttonControlLocal;
 //------------------------------------------------------------------------------
 
 typedef struct button {
@@ -75,10 +76,10 @@ typedef struct {
 
 static int Init( void )
 {
-	if( !l.flags.bInited )
+	if( !buttonControlLocal.flags.bInited )
 	{
-		l.flags.bTouchDisplay = IsTouchDisplay();
-		l.flags.bInited = TRUE;
+		buttonControlLocal.flags.bTouchDisplay = IsTouchDisplay();
+		buttonControlLocal.flags.bInited = TRUE;
 	}
 	return TRUE;
 }
@@ -498,7 +499,7 @@ static int CPROC ButtonMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 				pb->buttonflags.pressed = TRUE;
 				SmudgeCommon( pc );
 			}
-			if( l.flags.bTouchDisplay )
+			if( buttonControlLocal.flags.bTouchDisplay )
 				InvokeButton( pc );
 		}
 	}
@@ -512,7 +513,7 @@ static int CPROC ButtonMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 				pb->buttonflags.pressed = FALSE;
 				SmudgeCommon( pc );
 			}
-			if( !l.flags.bTouchDisplay )
+			if( !buttonControlLocal.flags.bTouchDisplay )
 				InvokeButton( pc );
 		}
 	}
@@ -1452,13 +1453,14 @@ static int OnCommonFocus( NORMAL_BUTTON_NAME )( PSI_CONTROL pc, LOGICAL bFocus )
 }
 
 PRIORITY_PRELOAD( register_buttons, PSI_PRELOAD_PRIORITY ) {
-	l.flags.bTouchDisplay = 1;//IsTouchDisplay();
+	buttonControlLocal.flags.bTouchDisplay = IsTouchDisplay(); // reverse click on down vs click on up
 	DoRegisterControl( &normal_button );
 	DoRegisterControl( &image_button );
 	DoRegisterControl( &custom_button );
 	DoRegisterControl( &radio_button );
 }
 
+#undef l
 PSI_BUTTON_NAMESPACE_END
 
 //---------------------------------------------------------------------------

@@ -44,7 +44,7 @@ struct analog_clock
 };
 
 
-void DrawClock( Image surface, PANALOG_CLOCK analog )
+static void psiAnalogDrawClock( Image surface, PANALOG_CLOCK analog )
 {
 	{
 		if( analog )
@@ -205,7 +205,7 @@ void CPROC DrawClockLayers( uintptr_t psv, PRENDERER renderer )
 	{
 		PANALOG_CLOCK analog = clock->analog_clock;
 		Image surface = GetDisplayImage( renderer );
-		DrawClock( surface, analog );
+		psiAnalogDrawClock( surface, analog );
 		UpdateDisplay( renderer );
 	}
 }
@@ -219,7 +219,7 @@ void DrawAnalogClock( PSI_CONTROL pc )
 		PANALOG_CLOCK analog = clock->analog_clock;
 		Image surface = GetControlSurface( pc );
 		//Redraw( analog->render );
-		DrawClock( surface, analog );
+		psiAnalogDrawClock( surface, analog );
 	}
 }
 void MakeClockAnalogEx( PSI_CONTROL pc, CTEXTSTR imagename, struct clock_image_thing *description )

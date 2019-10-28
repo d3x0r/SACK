@@ -137,7 +137,7 @@ int CalculateMenuItems( PMENU pm )
 		{
 			  DrawPopupItemProc dmip = pmi->data.owner.DrawPopupItem;
 			  DRAWPOPUPITEM dpi;
-  			  dpi.ID = pmi->value.userdata;
+  			  dpi.psvUser = pmi->value.userdata;
 			  dpi.flags.selected = pmi->flags.bSelected;
 			  dpi.flags.checked = pmi->flags.bChecked;
 			  if( dmip )
@@ -231,7 +231,7 @@ void RenderItem( PMENU pm, PMENUITEM pmi )
 	{
 		  DrawPopupItemProc dmip = pmi->data.owner.DrawPopupItem;
 		  DRAWPOPUPITEM dpi;
-		  dpi.ID = pmi->value.userdata;
+		  dpi.psvUser = pmi->value.userdata;
 		  dpi.flags.selected = pmi->flags.bSelected;
 		  dpi.flags.checked = pmi->flags.bChecked;
 		  dpi.draw.height = pmi->height;
