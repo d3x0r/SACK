@@ -214,11 +214,8 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 		if( !hVideo->pFractures || hVideo->nFractures == hVideo->nFracturesAvail )
 		{
 			hVideo->pFractures =
-#ifdef __cplusplus
-				(struct HVIDEO_tag::fracture_tag*)
-#endif
-				Allocate( sizeof( hVideo->pFractures[0] ) * ( hVideo->nFracturesAvail += 16 ) );
-         MemSet( hVideo->pFractures + nFracture, 0, sizeof( hVideo->pFractures[0] ) * 16 );
+				NewArray( struct fracture_tag, ( hVideo->nFracturesAvail += 16 ) );
+			MemSet( hVideo->pFractures + nFracture, 0, sizeof( hVideo->pFractures[0] ) * 16 );
 		}
       hVideo->pFractures[nFracture].x = x;
       hVideo->pFractures[nFracture].y = y;
