@@ -25,7 +25,7 @@ SET_TARGET_PROPERTIES(bag.video PROPERTIES
 my_target_link_libraries( bag.video bag ${EXTERNALS} ${OPENGL_LIBRARY}  ${PLATFORM_LIBRARIES})
 
 # this is linked to bag.image because of obsolete sprite methods
-my_target_link_libraries( bag.video bag.image )
+#my_target_link_libraries( bag.video bag.image )
 
 
 set( SACK_VIDEO_LIBRARY bag.video )

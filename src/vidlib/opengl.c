@@ -11,6 +11,7 @@
 #include <GL/glu.h>        // Header File For The GLu32 Library
 #endif
 //#include <gl\glaux.h>    // Header File For The Glaux Library
+#define USE_IMAGE_INTERFACE l.pii
 #include <imglib/imagestruct.h>
 #include <vidlib/vidstruc.h>
 #include <render.h>

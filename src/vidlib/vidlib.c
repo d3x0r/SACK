@@ -52,6 +52,8 @@
 #include <msgclient.h>
 #include <idle.h>
 //#include <imglib/imagestruct.h>
+
+#define USE_IMAGE_INTERFACE l.pii
 #include <image.h>
 #undef StrDup
 #include <shlwapi.h> // must include this if shellapi.h is used.
@@ -5932,7 +5934,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	l.CloseTouchInputHandle =(BOOL (WINAPI *)( HTOUCHINPUT ))LoadFunction( "user32.dll", "CloseTouchInputHandle" );
 	l.RegisterTouchWindow = (BOOL (WINAPI *)( HWND, ULONG  ))LoadFunction( "user32.dll", "RegisterTouchWindow" );
 #endif
-
+   l.pii = GetImageInterface();
 
 #endif
 	{
@@ -6006,8 +6008,7 @@ static void CPROC SavePortion( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint3
 						 */
 }
 
-PRELOAD( InitSetSavePortion )
-{
+PRELOAD( InitSetSavePortion ){
 	SetSavePortion( SavePortion );
 }
 
