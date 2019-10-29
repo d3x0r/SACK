@@ -29,11 +29,18 @@
 
 #include "local.h"
 #include "shaders.h"
+#define NEED_ALPHA2
 #include "blotproto.h"
 #include "../image_common.h"
+
+#define DO_GIF
+#define DO_JPG
+#define DO_PNG
+#define DO_BMP
+
 #include "../pngimage.h"
 #include "../jpgimage.h"
-
+#include "../pngimage.h"
 
 ASM_IMAGE_NAMESPACE
 extern unsigned char AlphaTable[256][256];
@@ -185,7 +192,7 @@ static void OnBeginDraw3d( "@00 PUREGL Image Library" )( uintptr_t psvInit, PTRA
 	l.flags.projection_read = 0;
 	l.flags.worldview_read = 0;
 	// reset matrix settings
-	CleanupFontSurfaces();
+	IMGVER(CleanupFontSurfaces)();
 	ClearShaders();
 }
 
@@ -195,7 +202,7 @@ static void OnDraw3d( "@00 PUREGL Image Library" )( uintptr_t psvInit )
 	FlushShaders( glSurface );
 }
 
-int ReloadOpenGlTexture( Image child_image, int option )
+int IMGVER(ReloadOpenGlTexture)( Image child_image, int option )
 {
 	Image image;
 	if( !child_image)
@@ -211,7 +218,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 		if( !image_data )
 		{
 			// just call this to create the data then
-			MarkImageUpdated( image );
+			IMGVER(MarkImageUpdated)( image );
 			image_data = (struct glSurfaceImageData *)GetLink( &image->glSurface
 			                                    , l.glImageIndex );
 		}
@@ -275,7 +282,7 @@ int ReloadOpenGlTexture( Image child_image, int option )
 					static int n;
 					TEXTCHAR buf[16];
 					FILE *file;
-					PngImageFile( image, &data, &datasize );
+					IMGVER(PngImageFile)( image, &data, &datasize );
 					tnprintf( buf, 12, "%d.png", n++ );
 					file = sack_fopen( 0, buf, "wb" );
 					if( file )
@@ -293,12 +300,12 @@ int ReloadOpenGlTexture( Image child_image, int option )
 	return image->glActiveSurface;
 }
 
-int ReloadOpenGlShadedTexture( Image child_image, int option, CDATA color )
+int IMGVER(ReloadOpenGlShadedTexture)( Image child_image, int option, CDATA color )
 {
-   return ReloadOpenGlTexture( child_image, option );
+   return IMGVER(ReloadOpenGlTexture)( child_image, option );
 }
 
-int ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDATA g, CDATA b )
+int IMGVER(ReloadOpenGlMultiShadedTexture)( Image child_image, int option, CDATA r, CDATA g, CDATA b )
 {
 	if( !child_image )
 		return 0;
@@ -325,7 +332,7 @@ static void CloseGLTextures( Image image )
 //------------------------------------------
 
 
-void MarkImageUpdated( Image child_image )
+void IMGVER(MarkImageUpdated)( Image child_image )
 {
 	Image image;
 	for( image = child_image; image && image->pParent; image = image->pParent );
@@ -366,7 +373,7 @@ void MarkImageUpdated( Image child_image )
 // it is used for clear image, clear image to
 // and for arbitrary rectangles - the direction
 // of images does not matter.
-void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color )
+void  IMGVER(BlatColor) ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color )
 {
 	PCDATA po;
 	int  oo;
@@ -392,7 +399,7 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 		r2.width  = pifDest->width;
 		r2.y      = pifDest->y;
 		r2.height = pifDest->height;
-		if( !IntersectRectangle( &r, &r1, &r2 ) )
+		if( !IMGVER(IntersectRectangle)( &r, &r1, &r2 ) )
 		{
 			//lprintf( "blat color is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 			//	, x, y, w, h
@@ -429,7 +436,7 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 		_color[1] = GreenVal( color ) / 255.0f;
 		_color[2] = BlueVal( color ) / 255.0f;
 		_color[3] = AlphaVal( color ) / 255.0f;
-		TranslateCoord( pifDest, &x, &y );
+		IMGVER(TranslateCoord)( pifDest, &x, &y );
 
 		v[vi][0][0] = x;
 		v[vi][0][1] = y;
@@ -486,11 +493,11 @@ void  BlatColor ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, C
 		po = IMG_ADDRESS(pifDest,x,y);
 		//oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
 		SetColor( po, oo, w, h, color );
-		MarkImageUpdated( pifDest );
+		IMGVER(MarkImageUpdated)( pifDest );
 	}
 }
 
-void  BlatColorAlpha ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color )
+void  IMGVER(BlatColorAlpha) ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color )
 {
 	PCDATA po;
 	int  oo;
@@ -518,7 +525,7 @@ void  BlatColorAlpha ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t
 		r2.width = pifDest->width;
 		r2.y = pifDest->y;
 		r2.height = pifDest->height;
-		if( !IntersectRectangle( &r, &r1, &r2 ) )
+		if( !IMGVER(IntersectRectangle)( &r, &r1, &r2 ) )
 		{
 			//lprintf( "blat color alpha is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 			//	, x, y, w, h
@@ -551,7 +558,7 @@ void  BlatColorAlpha ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t
 		_color[1] = GreenVal( color ) / 255.0f;
 		_color[2] = BlueVal( color ) / 255.0f;
 		_color[3] = AlphaVal( color ) / 255.0f;
-		TranslateCoord( pifDest, &x, &y );
+		IMGVER(TranslateCoord)( pifDest, &x, &y );
 
 		v[vi][0][0] = x;
 		v[vi][0][1] = y;
@@ -608,7 +615,7 @@ void  BlatColorAlpha ( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t
 		oo = 4*(pifDest->pwidth - w);     // w is how much we can copy...
 
 		SetColorAlpha( po, oo, w, h, color );
-		MarkImageUpdated( pifDest );
+		IMGVER(MarkImageUpdated)( pifDest );
 	}
 }
 //---------------------------------------------------------------------------
@@ -619,7 +626,7 @@ ASM_IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
-void CPROC plotraw( Image pi, int32_t x, int32_t y, CDATA c )
+void CPROC IMGVER(plotraw)( Image pi, int32_t x, int32_t y, CDATA c )
 {
 #ifdef _INVERT_IMAGE
    //y = (pi->real_height-1) - y;
@@ -633,7 +640,7 @@ void CPROC plotraw( Image pi, int32_t x, int32_t y, CDATA c )
       _color[1] = GreenVal( c )/255.0f;
       _color[2] = BlueVal( c )/255.0f;
       _color[3] = AlphaVal( c )/255.0f;
-		TranslateCoord( pi, &x, &y );
+		IMGVER(TranslateCoord)( pi, &x, &y );
 		v[0] = (float)(x/l.scale);
 		v[1] = (float)(y/l.scale);
 		v[2] = 0.0f;
@@ -645,11 +652,11 @@ void CPROC plotraw( Image pi, int32_t x, int32_t y, CDATA c )
 	else
 	{
 		*IMG_ADDRESS(pi,x,y) = c;
-		MarkImageUpdated( pi );
+		IMGVER(MarkImageUpdated)( pi );
 	}
 }
 
-void CPROC plot( Image pifDest, int32_t x, int32_t y, CDATA c )
+void CPROC IMGVER(plot)( Image pifDest, int32_t x, int32_t y, CDATA c )
 {
    if( !pifDest ) return;
    if( ( x >= pifDest->x ) && ( x < (pifDest->x + pifDest->width )) &&
@@ -660,19 +667,19 @@ void CPROC plot( Image pifDest, int32_t x, int32_t y, CDATA c )
 #endif
 		if( pifDest->flags & IF_FLAG_FINAL_RENDER )
 		{
-			BlatColor( pifDest, x, y, 1, 1, c );
+			IMGVER(BlatColor)( pifDest, x, y, 1, 1, c );
 		}
 		else if( pifDest->image )
 		{
 			*IMG_ADDRESS(pifDest,x,y)= c;
-			MarkImageUpdated( pifDest );
+			IMGVER(MarkImageUpdated)( pifDest );
 		}
    }
 }
 
 //---------------------------------------------------------------------------
 
-CDATA CPROC getpixel( Image pi, int32_t x, int32_t y )
+CDATA CPROC IMGVER(getpixel)( Image pi, int32_t x, int32_t y )
 {
    if( !pi || !pi->image ) return 0;
    if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
@@ -695,7 +702,7 @@ CDATA CPROC getpixel( Image pi, int32_t x, int32_t y )
 
 //---------------------------------------------------------------------------
 
-void CPROC plotalpha( Image pi, int32_t x, int32_t y, CDATA c )
+void CPROC IMGVER(plotalpha)( Image pi, int32_t x, int32_t y, CDATA c )
 {
    CDATA *po;
    if( !pi ) return;
@@ -707,13 +714,13 @@ void CPROC plotalpha( Image pi, int32_t x, int32_t y, CDATA c )
 #endif
 		if( pi->flags & IF_FLAG_FINAL_RENDER )
 		{
-			BlatColor( pi, x, y, 1, 1, c );
+			IMGVER(BlatColor)( pi, x, y, 1, 1, c );
 		}
 		else if( pi->image )
 		{
 			po = IMG_ADDRESS(pi,x,y);
 			*po = DOALPHA( *po, c, AlphaVal(c) );
-			MarkImageUpdated( pi );
+			IMGVER(MarkImageUpdated)( pi );
 		}
    }
 }
@@ -730,10 +737,10 @@ IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
-void SetImageTransformRelation( Image pImage, enum image_translation_relation relation, PRCOORD aux )
+void IMGVER(SetImageTransformRelation)( Image pImage, enum image_translation_relation relation, PRCOORD aux )
 {
    // just call this to make sure the ptransform exists.
-	GetImageTransformation( pImage );
+	IMGVER(GetImageTransformation)( pImage );
 	switch( relation )
 	{
 	case IMAGE_TRANSFORM_RELATIVE_TOP_LEFT:
@@ -932,7 +939,7 @@ struct workspace
 };
 
 // this is a point-sprite engine too....
-void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
+void IMGVER(Render3dImage)( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 {
 	struct workspace _tmp;
 	struct workspace *tmp = &_tmp;
@@ -940,7 +947,7 @@ void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 	// closed loop to get the top imgae size.
 	for( tmp->topmost_parent = pifSrc; tmp->topmost_parent->pParent; tmp->topmost_parent = tmp->topmost_parent->pParent );
 
-	ReloadOpenGlTexture( pifSrc, 0 );
+	IMGVER(ReloadOpenGlTexture)( pifSrc, 0 );
 	if( !pifSrc->glActiveSurface )
 	{
 		lprintf( "gl texture hasn't downloaded or went away?" );
@@ -1035,7 +1042,7 @@ void Render3dImage( Image pifSrc, PCVECTOR o, LOGICAL render_pixel_scaled )
 	}
 }
 
-void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, PCVECTOR o, LOGICAL render_pixel_scaled )
+void IMGVER(Render3dText)( CTEXTSTR string, int characters, CDATA color, SFTFont font, PCVECTOR o, LOGICAL render_pixel_scaled )
 {
 	static struct ImageFile_tag output;
 	VECTOR o_tmp;
@@ -1051,8 +1058,8 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 
 	// closed loop to get the top imgae size.
 	//lprintf( "use regular texture %p (%d,%d)", pifSrc, pifSrc->width, pifSrc->height );
-	GetStringSizeFontEx( string, characters, (uint32_t*)&output.real_width, (uint32_t*)&output.real_height, font );
-	SetImageTransformRelation( &output, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
+	IMGVER(GetStringSizeFontEx)( string, characters, (uint32_t*)&output.real_width, (uint32_t*)&output.real_height, font );
+	IMGVER(SetImageTransformRelation)( &output, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 	ApplyRotationT( l.camera, output.transform, VectorConst_I );
 	{
 		// the render3dimage has advnatege of supplying the output coordinates
@@ -1078,7 +1085,7 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 	scale( offset, offset, 1/tmp_del );
 	addscaled( o_tmp, offset, o, 1/(tmp_del) );
 	TranslateV( output.transform, o_tmp );
-	PutStringFontEx( &output, 0, 0, color, 0, string, characters, font );
+	IMGVER(PutStringFontEx)( &output, 0, 0, color, 0, string, characters, font );
 }
 
 

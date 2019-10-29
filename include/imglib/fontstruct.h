@@ -64,7 +64,7 @@ enum FontFlags {
 
 typedef struct font_renderer_tag *PFONT_RENDERER;
 
-void InternalRenderFontCharacter( PFONT_RENDERER renderer, PFONT font, INDEX idx );
+void IMGVER(InternalRenderFontCharacter)( PFONT_RENDERER renderer, PFONT font, INDEX idx );
 
 IMAGE_NAMESPACE_END
 

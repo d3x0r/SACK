@@ -36,7 +36,7 @@
 #include <sharemem.h>
 
 //extern IMAGE_INTERFACE RealImageInterface;
-extern int bGLColorMode;
+extern int IMGVER(bGLColorMode);
 static const char *loadingPng;
 
 typedef struct ImagePngRawData_tag
@@ -53,7 +53,7 @@ IMAGE_NAMESPACE
 namespace loader {
 #endif
 
-int ImagePngRead (png_structp png, png_bytep data, png_size_t size)
+static int ImagePngRead (png_structp png, png_bytep data, png_size_t size)
 {
 	ImagePngRawData *self = (ImagePngRawData *)png_get_io_ptr( png );
 	if (self->r_size < size)
@@ -76,7 +76,7 @@ int ImagePngRead (png_structp png, png_bytep data, png_size_t size)
 	return 1;
 }
 
-void PNGCBAPI NotSoFatalError( png_structp png_ptr, png_const_charp c )
+static void PNGCBAPI NotSoFatalError( png_structp png_ptr, png_const_charp c )
 {
 	if( strcmp( c, "iCCP: known incorrect sRGB profile" ) != 0 
 		&& strcmp( c, "iCCP: cHRM chunk does not match sRGB" ) != 0
@@ -106,11 +106,11 @@ static void PNGCAPI my_png_longjmp_ptr3(jmp_buf b, int i)
 }
 #endif
 
-void setPngImageName( const char *filename ) {
+void IMGVER(setPngImageName)( const char *filename ) {
 	loadingPng = filename;
 }
 
-ImageFile *ImagePngFile (uint8_t * buf, size_t size)
+ImageFile *IMGVER(ImagePngFile) (uint8_t * buf, size_t size)
 {
 	ImageFile *pImage;
 	png_structp png_ptr;
@@ -219,7 +219,7 @@ no_mem2:
 			png_set_gray_to_rgb(png_ptr);
 
 		/* flip the RGB pixels to BGR (or RGBA to BGRA) */
-		if( !bGLColorMode )
+		if( !IMGVER(bGLColorMode) )
 			if (color_type & PNG_COLOR_MASK_COLOR)
 				png_set_bgr(png_ptr);
 
@@ -230,7 +230,7 @@ no_mem2:
 		}
 		// else
 		//    png_set_invert_alpha(png_ptr);
-		pImage = MakeImageFile( Width, Height );
+		pImage = IMGVER(MakeImageFileEx)( Width, Height DBG_SRC );
 		{
 			size_t rowbytes;
 			int row;
@@ -326,12 +326,12 @@ static void CPROC ImagePngFlush(png_structp png_ptr)
 
 
 
-void CPROC NotSoFatalError2( png_structp png_ptr, png_const_charp c )
+static void CPROC NotSoFatalError2( png_structp png_ptr, png_const_charp c )
 {
 	lprintf( "Error in PNG stuff: %s", c );
 }
 
-LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size)
+LOGICAL IMGVER(PngImageFile) ( Image pImage, uint8_t ** buf, size_t *size)
 {
 	png_structp png_ptr;
 	png_infop info_ptr;

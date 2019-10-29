@@ -102,7 +102,7 @@ PRIORITY_PRELOAD( CreateFontCacheGlobal, IMAGE_PRELOAD_PRIORITY + 1 )
 
 //-------------------------------------------------------------------------
 #ifndef _PSI_INCLUSION_
- struct font_global_tag *  GetGlobalFonts( void )
+ struct font_global_tag *  IMGVER(GetGlobalFonts)( void )
 {
 	return &fg;
 }
@@ -145,7 +145,7 @@ void DoSHA1( PSIZE_FILE file )
 #endif
 //-------------------------------------------------------------------------
 
-void CPROC DestroyFontEntry( PCACHE_FONT_ENTRY pfe, TEXTCHAR *key )
+static void CPROC DestroyFontEntry( PCACHE_FONT_ENTRY pfe, TEXTCHAR *key )
 {
 	INDEX idx, idx2;
 	PCACHE_FONT_STYLE pfs;
@@ -178,7 +178,7 @@ void CPROC DestroyFontEntry( PCACHE_FONT_ENTRY pfe, TEXTCHAR *key )
 
 //-------------------------------------------------------------------------
 
-int UniqueStrCmp( TEXTCHAR *s1, INDEX s1_length, TEXTCHAR *s2 )
+static int UniqueStrCmp( TEXTCHAR *s1, INDEX s1_length, TEXTCHAR *s2 )
 {
 	int dir;
 	int num;
@@ -213,7 +213,7 @@ int UniqueStrCmp( TEXTCHAR *s1, INDEX s1_length, TEXTCHAR *s2 )
 
 //-------------------------------------------------------------------------
 
-void CPROC DestroyDictEntry( CPOINTER psvEntry, uintptr_t key )
+static void CPROC DestroyDictEntry( CPOINTER psvEntry, uintptr_t key )
 {
    Deallocate( POINTER, (POINTER)psvEntry );
 }
@@ -227,7 +227,7 @@ static int CPROC MyStrCmp( uintptr_t s1, uintptr_t s2 )
 
 //-------------------------------------------------------------------------
 
-PCACHE_DICT_ENTRY AddDictEntry( PTREEROOT *root, CTEXTSTR name )
+static PCACHE_DICT_ENTRY AddDictEntry( PTREEROOT *root, CTEXTSTR name )
 {
 	PCACHE_DICT_ENTRY pde;
 	size_t len;
@@ -251,7 +251,7 @@ PCACHE_DICT_ENTRY AddDictEntry( PTREEROOT *root, CTEXTSTR name )
 //-------------------------------------------------------------------------
 
 // if ID != 0 use than rather than custom assignment.
-PCACHE_DICT_ENTRY AddPath( CTEXTSTR filepath, PCACHE_DICT_ENTRY *file )
+static PCACHE_DICT_ENTRY AddPath( CTEXTSTR filepath, PCACHE_DICT_ENTRY *file )
 {
 	TEXTSTR tmp = StrDup( filepath );
 	TEXTSTR p;
@@ -277,7 +277,7 @@ PCACHE_DICT_ENTRY AddPath( CTEXTSTR filepath, PCACHE_DICT_ENTRY *file )
 //-------------------------------------------------------------------------
 
 
-void SetIDs( PTREEROOT root )
+static void SetIDs( PTREEROOT root )
 {
 	PCACHE_DICT_ENTRY pde;
 	uint32_t ID = 0;
@@ -292,7 +292,7 @@ void SetIDs( PTREEROOT root )
 //-------------------------------------------------------------------------
 
 
-PCACHE_FONT_ENTRY AddFontEntry( PCACHE_DICT_ENTRY name )
+static PCACHE_FONT_ENTRY AddFontEntry( PCACHE_DICT_ENTRY name )
 {
 	PCACHE_FONT_ENTRY pfe;
 	if( !fg.build.pFontCache )
@@ -316,7 +316,7 @@ PCACHE_FONT_ENTRY AddFontEntry( PCACHE_DICT_ENTRY name )
 
 //-------------------------------------------------------------------------
 
-void AddAlternateSizeFile( PCACHE_SIZE_FILE psfBase, PCACHE_DICT_ENTRY path, PCACHE_DICT_ENTRY file )
+static void AddAlternateSizeFile( PCACHE_SIZE_FILE psfBase, PCACHE_DICT_ENTRY path, PCACHE_DICT_ENTRY file )
 {
 	PCACHE_ALT_SIZE_FILE psf = New( CACHE_ALT_SIZE_FILE );
 	psf->path = path;
@@ -327,7 +327,7 @@ void AddAlternateSizeFile( PCACHE_SIZE_FILE psfBase, PCACHE_DICT_ENTRY path, PCA
 
 //-------------------------------------------------------------------------
 
-void AddSizeToFile( PCACHE_SIZE_FILE psf, int16_t width, int16_t height )
+static void AddSizeToFile( PCACHE_SIZE_FILE psf, int16_t width, int16_t height )
 {
 	if( psf )
 	{
@@ -342,7 +342,7 @@ void AddSizeToFile( PCACHE_SIZE_FILE psf, int16_t width, int16_t height )
 
 //-------------------------------------------------------------------------
 
-PCACHE_SIZE_FILE AddSizeFileEx( PCACHE_FONT_STYLE pfs
+static PCACHE_SIZE_FILE AddSizeFileEx( PCACHE_FONT_STYLE pfs
 								, PCACHE_DICT_ENTRY path
 								, PCACHE_DICT_ENTRY file
 								, LOGICAL bTest
@@ -398,7 +398,7 @@ PCACHE_SIZE_FILE AddSizeFileEx( PCACHE_FONT_STYLE pfs
 //-------------------------------------------------------------------------
 
 #ifndef _PSI_INCLUSION_
-void DumpFontCache( void )
+void IMGVER(DumpFontCache)( void )
 {
 	LoadAllFonts();
 	{
@@ -435,7 +435,7 @@ void DumpFontCache( void )
 }
 #endif
 
-int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_idx, LOGICAL fallback_to_cache )
+int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_idx, LOGICAL fallback_to_cache )
 {
 	int error;
 	POINTER _font_memory = NULL;
@@ -687,7 +687,7 @@ static PCACHE_FONT_STYLE AddFontStyle( PCACHE_FONT_ENTRY pfe, PCACHE_DICT_ENTRY 
 //-------------------------------------------------------------------------
 static uint32_t fonts_checked;
 
-void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
+static void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	FT_Face face;
 	int face_idx;
@@ -840,7 +840,7 @@ void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags
 
 //-------------------------------------------------------------------------
 
-void OutputFontCache( void )
+static void OutputFontCache( void )
 {
 	FILE *out;
 	PCACHE_FONT_ENTRY pfe;
@@ -1083,7 +1083,7 @@ void OutputFontCache( void )
 
 #ifdef _DEBUG
 
-INDEX IndexOf( TEXTCHAR **list, uint32_t count, POINTER item )
+static INDEX IndexOf( TEXTCHAR **list, uint32_t count, POINTER item )
 {
 	INDEX idx;
 	for( idx = 0; idx < count; idx++)
@@ -1244,7 +1244,7 @@ void DumpLoadedFontCache( void )
 //-------------------------------------------------------------------------
 
 #define SafeRelease(n)  if(fg.build.n) { Deallocate( POINTER, fg.build.n ); fg.build.n = NULL; }
-void UnloadFontBuilder( void )
+static void UnloadFontBuilder( void )
 {
 	if( fg.build.pFontCache )
 	{
@@ -1281,7 +1281,7 @@ void UnloadFontBuilder( void )
 static uint32_t StartTime;
 static int TimeElapsed;
 
-void CPROC UpdateStatus( uintptr_t psvFrame )
+static void CPROC UpdateStatus( uintptr_t psvFrame )
 {
 	TEXTCHAR msg[256];
 	fg.font_status_timer_thread = MakeThread();
@@ -1309,7 +1309,8 @@ void CPROC UpdateStatus( uintptr_t psvFrame )
 }
 
 //-------------------------------------------------------------------------
-
+#if 0
+// unrefernced?
 void CPROC ScanDrive( uintptr_t user, TEXTCHAR *letter, int flags )
 {
 	TEXTCHAR base[5];
@@ -1324,8 +1325,9 @@ void CPROC ScanDrive( uintptr_t user, TEXTCHAR *letter, int flags )
 						 , SFF_SUBCURSE, 0 ) );
 
 }
+#endif
 
-void BuildFontCache( void )
+static void BuildFontCache( void )
 {
 	void *data = NULL;
 	uint32_t timer;
@@ -1426,7 +1428,7 @@ void BuildFontCache( void )
 
 //-------------------------------------------------------------------------
 
-int IsNumber( char *num )
+static int IsNumber( char *num )
 {
 	while( num[0] )
 	{
@@ -1439,7 +1441,7 @@ int IsNumber( char *num )
 
 //-------------------------------------------------------------------------
 
-void LoadAllFonts( void )
+void IMGVER(LoadAllFonts)( void )
 {
 	FILE *in = NULL;
 	//if( !InitFont() )
@@ -1810,7 +1812,7 @@ void LoadAllFonts( void )
 	}
 }
 
-void UnloadAllFonts( void )
+void IMGVER(UnloadAllFonts)( void )
 {
    // Release all cached data...
 }

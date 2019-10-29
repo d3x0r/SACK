@@ -8,7 +8,7 @@
 IMAGE_NAMESPACE
 
 //const char *gles_
-static const char *gles_simple_v_shader =
+static const char *gles_simple_texture_v_shader =
    "precision mediump float;\n"
 	"precision mediump int;\n"
      "attribute vec4 vPosition;\n" 
@@ -22,7 +22,7 @@ static const char *gles_simple_v_shader =
 	 "out_texCoord = in_texCoord;\n" 
     "}\n"; 
 
-static const char *gles_simple_p_shader =
+static const char *gles_simple_texture_p_shader =
     // "precision mediump float;\n" 
    "precision mediump float;\n"
 	"precision mediump int;\n"
@@ -63,7 +63,7 @@ static const char *gles_simple_p_shader_shaded_texture =
 	 "   gl_FragColor = out_Color * texture2D( tex, out_texCoord );\n"
      "}\n" ;
 
-static const char *gles_simple_v_shader_1_30 =
+static const char *gles_simple_texture_v_shader_1_30 =
   // "precision mediump float;\n"
   // "precision mediump int;\n"
      "attribute vec4 vPosition;\n" 
@@ -77,7 +77,7 @@ static const char *gles_simple_v_shader_1_30 =
 	 "out_texCoord = in_texCoord;\n" 
     "}\n"; 
 
-static const char *gles_simple_p_shader_1_30 =
+static const char *gles_simple_texture_p_shader_1_30 =
     // "precision mediump float;\n" 
    //"precision mediump float;\n"
 	//"precision mediump int;\n"
@@ -307,16 +307,16 @@ void InitSimpleTextureShader( uintptr_t psv_data, PImageShaderTracker tracker )
 
 	if( l.glslVersion < 150 )
 	{
-		v_codeblocks[0] = gles_simple_v_shader_1_30;
+		v_codeblocks[0] = gles_simple_texture_v_shader_1_30;
 		v_codeblocks[1] = NULL;
-		p_codeblocks[0] = gles_simple_p_shader_1_30;
+		p_codeblocks[0] = gles_simple_texture_p_shader_1_30;
 		p_codeblocks[1] = NULL;
 	}
 	else
 	{
-		v_codeblocks[0] = gles_simple_v_shader;
+		v_codeblocks[0] = gles_simple_texture_v_shader;
 		v_codeblocks[1] = NULL;
-		p_codeblocks[0] = gles_simple_p_shader;
+		p_codeblocks[0] = gles_simple_texture_p_shader;
 		p_codeblocks[1] = NULL;
 	}
 	if( CompileShaderEx( tracker, v_codeblocks, 1, p_codeblocks, 1, attribs, 2 ) )

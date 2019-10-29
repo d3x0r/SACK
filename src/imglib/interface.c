@@ -16,12 +16,12 @@ IMAGE_NAMESPACE
 extern void CPROC MarkImageUpdated( Image child_image );
 
 
-void CPROC Nothing( void )
+static void CPROC Nothing( void )
 {
    return;
 }
 
-IMAGE_INTERFACE RealImageInterface = {
+static IMAGE_INTERFACE RealImageInterface = {
   SetStringBehavior
 , NULL//SetBlotMethod
 
@@ -153,7 +153,8 @@ IMAGE_INTERFACE RealImageInterface = {
 									 , MakeSlicedImage
 									 , MakeSlicedImageComplex
 									 , UnmakeSlicedImage
-									 , BlotSlicedImageEx
+												 , BlotSlicedImageEx
+                                     , SetSavePortion
 };
 
 #undef GetImageInterface

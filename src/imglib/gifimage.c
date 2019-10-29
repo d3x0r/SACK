@@ -44,7 +44,7 @@
 #include "image.h"   // interface to internal IMAGE.C functions...
 #include "gifimage.h"
 
-extern int bGLColorMode;
+extern int IMGVER(bGLColorMode);
 
 IMAGE_NAMESPACE
 #ifdef __cplusplus
@@ -114,7 +114,7 @@ int   ReadCode (void);
 void  AddToPixel (uint8_t);
 short transparency = -1;
 
-ImageFile *ImageGifFile (uint8_t* ptr, size_t filesize)
+ImageFile *IMGVER(ImageGifFile )(uint8_t* ptr, size_t filesize)
 {
   ImageFile *file = NULL;
   uint8_t     *sptr = ptr;  //save pointer
@@ -184,7 +184,7 @@ ImageFile *ImageGifFile (uint8_t* ptr, size_t filesize)
    {
       for (i = 0; i < ColorMapSize; i++)
 		{
-			if( bGLColorMode )
+			if( IMGVER(bGLColorMode) )
 			{
 				Palette[i].blue = NEXTBYTE;
 				Palette[i].green = NEXTBYTE;
@@ -255,7 +255,7 @@ ImageFile *ImageGifFile (uint8_t* ptr, size_t filesize)
 
   // Set the dimensions which will also allocate the image data
   // buffer.
-  file = MakeImageFile( Width, Height );
+  file = IMGVER(MakeImageFileEx)( Width, Height DBG_SRC );
   ImagePixelData = file->image;
 
 /* Note that I ignore the possible existence of a local color map.
@@ -403,7 +403,7 @@ ImageFile *ImageGifFile (uint8_t* ptr, size_t filesize)
     }
     goto file_okay;
 cleanup:
-  UnmakeImageFile( file );
+  IMGVER(UnmakeImageFileEx)( file DBG_SRC );
   file = NULL;
 file_okay:
   if (Raster) { Deallocate( uint8_t*, Raster ); Raster = NULL; }
@@ -416,7 +416,7 @@ file_okay:
  */
    if( file )
 		if( file->flags & IF_FLAG_INVERTED )
-	      FlipImage( file );
+	      IMGVER(FlipImageEx)( file DBG_SRC );
   bDecoding = 0;
   return file;
 }

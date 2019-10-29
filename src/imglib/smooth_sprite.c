@@ -986,7 +986,7 @@ static void PlotArbitrary( Image dest
 static void (CPROC *SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h );
 
 
-IMAGE_PROC( void, SetSavePortion )( void (CPROC*_SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h ) )
+IMAGE_PROC( void, IMGVER(SetSavePortion) )( void (CPROC*_SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h ) )
 {
    SavePortion = _SavePortion;
 }

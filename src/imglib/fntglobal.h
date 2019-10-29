@@ -1,3 +1,6 @@
+#ifndef FONT_GLOBAL_INCLUDED
+#define FONT_GLOBAL_INCLUDED
+
 #include <stdhdrs.h>
 #include <sha1.h>
 #ifndef STRUCT_ONLY
@@ -342,9 +345,9 @@ typedef struct render_font_data_tag {
 } RENDER_FONTDATA;
 
 /* internal function to load fonts */
-void LoadAllFonts( void );
+void IMGVER(LoadAllFonts)( void );
 /* internal function to unload fonts */
-void UnloadAllFonts( void );
+void IMGVER(UnloadAllFonts)( void );
 //#undef DumpFontFile
 //void DumpFontFile( CTEXTSTR name, SFTFont font_to_dump );
 
@@ -381,3 +384,4 @@ IMAGE_NAMESPACE_END
 // Revision 1.3  2003/03/25 08:45:56  panther
 // Added CVS logging tag
 //
+#endif

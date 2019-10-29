@@ -268,12 +268,12 @@ int ReloadOpenGlTexture( Image child_image, int option )
 	return image->vkActiveSurface;
 }
 
-int ReloadOpenGlShadedTexture( Image child_image, int option, CDATA color )
+int IMGVER(ReloadOpenGlShadedTexture)( Image child_image, int option, CDATA color )
 {
    return ReloadOpenGlTexture( child_image, option );
 }
 
-int ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDATA g, CDATA b )
+int IMGVER(ReloadOpenGlMultiShadedTexture)( Image child_image, int option, CDATA r, CDATA g, CDATA b )
 {
 	if( !child_image )
 		return 0;

@@ -32,24 +32,13 @@
 #ifdef __CYGWIN__
 #define XMD_H // lie.  This allows IN32 to be defined by jpeglib. (CYGWIN HACK)
 #endif
+
 //#define JDCT_DEFAULT JDCT_FLOAT  // use floating-point for decompression
-#if defined( WIN32 ) && !defined( __GNUC__ )
 #include <jpeglib.h>
 #include <jerror.h>
-#else
-#ifdef __cplusplus
-//extern "C" {
-#endif
-#include <jpeglib.h>
-#include <jerror.h>
-#ifdef __cplusplus
-//}
-#endif
-#endif
 
 
-
-extern int bGLColorMode;
+extern int IMGVER(bGLColorMode);
 
 #ifdef __cplusplus 
 IMAGE_NAMESPACE
@@ -181,7 +170,7 @@ static void jpeg_memory_src (j_decompress_ptr cinfo, char *inbfr, int len)
 
 /* ==== Constructor ==== */
 
-Image ImageJpgFile (uint8_t * buf, size_t size)
+Image IMGVER(ImageJpgFile) (uint8_t * buf, size_t size)
 {
    ImageFile *Image;
   struct jpeg_decompress_struct cinfo;
@@ -232,7 +221,7 @@ Image ImageJpgFile (uint8_t * buf, size_t size)
    * if we asked for color quantization.
    * In this example, we need to make an output work buffer of the right size.
    */
-  Image = MakeImageFile(cinfo.output_width, cinfo.output_height);
+  Image = IMGVER(MakeImageFileEx)(cinfo.output_width, cinfo.output_height DBG_SRC);
 
   /* JSAMPLEs per row in output buffer */
   row_stride = cinfo.output_width * cinfo.output_components;
@@ -272,7 +261,7 @@ Image ImageJpgFile (uint8_t * buf, size_t size)
       for( j = Image->width; j > 0; j-- )
       {
 			row[j * 4 - 1] = (uint8_t)0xff;
-			if( bGLColorMode )
+			if( IMGVER(bGLColorMode) )
 			{
 				row[j * 4 - 2] = row[j*3-1];
 				row[j * 4 - 3] = row[j*3-2];
@@ -365,7 +354,7 @@ Image ImageJpgFile (uint8_t * buf, size_t size)
  * and a compression quality factor are passed in.
  */
 
-LOGICAL JpgImageFile( Image image, uint8_t **buf, size_t *size, int Q )
+LOGICAL IMGVER(JpgImageFile)( Image image, uint8_t **buf, size_t *size, int Q )
 {
   /* This struct contains the JPEG compression parameters and pointers to
    * working space (which is allocated as needed by the JPEG library).
@@ -397,7 +386,7 @@ LOGICAL JpgImageFile( Image image, uint8_t **buf, size_t *size, int Q )
 	  uint8_t* out = tmpbuf;
 	  for( n = 0; n < m; n++ )
 	  {
-			if( bGLColorMode )
+			if( IMGVER(bGLColorMode) )
 			{
 			  out[0] = (*in++);
 			  out[1] = (*in++);

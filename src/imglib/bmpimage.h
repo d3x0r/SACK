@@ -5,7 +5,7 @@ IMAGE_NAMESPACE
 #endif
 
 
-Image ImageBMPFile (uint8_t* ptr, uint32_t filesize);
+Image IMGVER(ImageBMPFile) (uint8_t* ptr, uint32_t filesize);
 
 #ifdef __cplusplus
 		}// namespace loader

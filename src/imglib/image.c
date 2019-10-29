@@ -40,7 +40,7 @@ IMAGE_NAMESPACE
 //---------------------------------------------------------------------------
 
 
-void CPROC MarkImageUpdated( Image child_image )
+void CPROC IMGVER(MarkImageUpdated)( Image child_image )
 {
 	Image image;
 	for( image = child_image; image && image->pParent; image = image->pParent );
@@ -115,7 +115,7 @@ void CPROC MarkImageUpdated( Image child_image )
 		r2.width  = pifDest->width;
 		r2.y      = pifDest->y;
 		r2.height = pifDest->height;
-		if( !IntersectRectangle( &r, &r1, &r2 ) )
+		if( !IMGVER(IntersectRectangle)( &r, &r1, &r2 ) )
 		{
 			//lprintf( "blat color is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 			//	, x, y, w, h
@@ -177,7 +177,7 @@ void CPROC MarkImageUpdated( Image child_image )
 		r2.width = pifDest->width;
 		r2.y = pifDest->y;
 		r2.height = pifDest->height;
-		if( !IntersectRectangle( &r, &r1, &r2 ) )
+		if( !IMGVER(IntersectRectangle)( &r, &r1, &r2 ) )
 		{
 			//lprintf( "blat color alpha is out of bounds (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ") (%"_32fs ",%"_32fs ")x(%"_32f ",%"_32f ")"
 			//	, x, y, w, h

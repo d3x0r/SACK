@@ -1,3 +1,5 @@
+#ifndef IMGLIB_PUREGL_LOCAL_INCLUDED
+#define IMGLIB_PUREGL_LOCAL_INCLUDED
 
 #include <imglib/imagestruct.h>
 #include <imglib/fontstruct.h>
@@ -81,15 +83,17 @@ struct local_puregl_image_data_tag {
 
 void InitShader( void );
 
-int CPROC ReloadOpenGlTexture( Image child_image, int option );
-int CPROC ReloadOpenGlShadedTexture( Image child_image, int option, CDATA color );
-int CPROC ReloadOpenGlMultiShadedTexture( Image child_image, int option, CDATA r, CDATA g, CDATA b );
+int CPROC IMGVER(ReloadOpenGlTexture)( Image child_image, int option );
+int CPROC IMGVER(ReloadOpenGlShadedTexture)( Image child_image, int option, CDATA color );
+int CPROC IMGVER(ReloadOpenGlMultiShadedTexture)( Image child_image, int option, CDATA r, CDATA g, CDATA b );
 
-Image AllocateCharacterSpaceByFont( Image target_image, SFTFont font, PCHARACTER character );
-int ReloadOpenGlTexture( Image image, int option );
-void TranslateCoord( Image image, int32_t *x, int32_t *y );
-void CPROC MarkImageUpdated( Image image );
+Image IMGVER(AllocateCharacterSpaceByFont)( Image target_image, SFTFont font, PCHARACTER character );
+int IMGVER(ReloadOpenGlTexture)( Image image, int option );
+void IMGVER(TranslateCoord)( Image image, int32_t *x, int32_t *y );
+void CPROC IMGVER(MarkImageUpdated)( Image image );
 
-void 	CleanupFontSurfaces( void );
+void 	IMGVER(CleanupFontSurfaces)( void );
 
 IMAGE_NAMESPACE_END
+
+#endif

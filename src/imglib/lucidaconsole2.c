@@ -12,7 +12,7 @@
 
 #define EXTRA_STRUCT  uint32_t rg; struct ImageFile_tag *cell; RCOORD x1, x2, y1, y2; struct font_char_tag *next_in_line;
 #define EXTRA_INIT  0,0,0,0,0,0,0
-typedef char CHARACTER, *PCHARACTER;
+typedef struct font_char_tag *PCHARACTER;
 static struct { short s, w, o, j; short a, d; EXTRA_STRUCT unsigned char data[9]; } _char_0 =
 {  6,  8,  1, 0,  9,  1, EXTRA_INIT , { 
                   XXXXXX__,
@@ -3415,11 +3415,7 @@ static struct{ short s, w, o, j;short a, d; EXTRA_STRUCT unsigned char data[13];
 struct { unsigned short height, baseline;unsigned int chars; unsigned char flags, bias;
          char *fontname;
          PCHARACTER character[256]; }
-#ifdef __cplusplus
        ___LucidaConsole13by8
-#else
-       _LucidaConsole13by8
-#endif
 = { 
 13, 16, 256, 0, 0xC0, "LucidaConsoleRegularfixed14By14", {  (PCHARACTER)&_char_0
  ,(PCHARACTER)&_char_1
@@ -3679,9 +3675,8 @@ struct { unsigned short height, baseline;unsigned int chars; unsigned char flags
  ,(PCHARACTER)&_char_255
 
 } };
-#ifdef __cplusplus
 PFONT __LucidaConsole13by8 = (PFONT)&___LucidaConsole13by8;
-#endif
+
 #ifdef __cplusplus
       }; // default_font namespace
 IMAGE_NAMESPACE_END 

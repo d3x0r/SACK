@@ -2,9 +2,7 @@
 #define VIDEO_STRUCTURE_DEFINED
 
 #if defined( __EMSCRIPTEN__ )
-
-#include <GL/glfw.h>
-
+#  include <GL/glfw.h>
 #elif defined( __LINUX__ )
 #  include <stdio.h>
 #  if defined( USE_GLES2 )
@@ -26,13 +24,19 @@
 #        include <glu.h>
 #      else
 #        include <GL/glx.h>
-#        include <GL/gl.h>
-#        include <GL/glu.h>
+#        define INCLUDE_STD_GL
 #        include <X11/Xlib.h>
 #        include <X11/extensions/xf86vmode.h>
 #        include <X11/keysym.h>
 #    endif
 #  endif
+#else
+#  define INCLUDE_STD_GL
+#endif
+
+#ifdef INCLUDE_STD_GL
+#  include <GL/gl.h>
+#  include <GL/glu.h>
 #endif
 
 #if defined( _D3D10_DRIVER )

@@ -53,7 +53,7 @@ IMAGE_NAMESPACE
       }                       \
    }
 
- void CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi
                           , uint32_t oo, uint32_t oi
                           , uint32_t ws, uint32_t hs
                            )
@@ -65,7 +65,7 @@ IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsT1( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsT1( PCDATA po, PCDATA  pi
                           , uint32_t oo, uint32_t oi
                           , uint32_t ws, uint32_t hs
                            )
@@ -81,7 +81,7 @@ IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsTA( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsTA( PCDATA po, PCDATA  pi
                           , uint32_t oo, uint32_t oi
                           , uint32_t ws, uint32_t hs
                           , uint32_t nTransparent )
@@ -99,7 +99,7 @@ IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsTImgA( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsTImgA( PCDATA po, PCDATA  pi
                           , uint32_t oo, uint32_t oi
                           , uint32_t ws, uint32_t hs
                           , uint32_t nTransparent )
@@ -117,7 +117,7 @@ IMAGE_NAMESPACE
 }
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsTImgAI( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsTImgAI( PCDATA po, PCDATA  pi
                           , uint32_t oo, uint32_t oi
                           , uint32_t ws, uint32_t hs
                           , uint32_t nTransparent )
@@ -140,7 +140,7 @@ IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsShadedT0( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsShadedT0( PCDATA po, PCDATA  pi
                             , uint32_t oo, uint32_t oi
                             , uint32_t ws, uint32_t hs
                             , CDATA c )
@@ -153,7 +153,7 @@ IMAGE_NAMESPACE
 }
 
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsShadedT1( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsShadedT1( PCDATA po, PCDATA  pi
                             , uint32_t oo, uint32_t oi
                             , uint32_t ws, uint32_t hs
                             , CDATA c )
@@ -168,7 +168,7 @@ IMAGE_NAMESPACE
 }
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsShadedTA( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsShadedTA( PCDATA po, PCDATA  pi
                             , uint32_t oo, uint32_t oi
                             , uint32_t ws, uint32_t hs
                             , uint32_t nTransparent
@@ -185,7 +185,7 @@ IMAGE_NAMESPACE
 }
 
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsShadedTImgA( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsShadedTImgA( PCDATA po, PCDATA  pi
                             , uint32_t oo, uint32_t oi
                             , uint32_t ws, uint32_t hs
                             , uint32_t nTransparent
@@ -205,7 +205,7 @@ IMAGE_NAMESPACE
 }
 
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsShadedTImgAI( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsShadedTImgAI( PCDATA po, PCDATA  pi
                             , uint32_t oo, uint32_t oi
                             , uint32_t ws, uint32_t hs
                             , uint32_t nTransparent
@@ -230,7 +230,7 @@ IMAGE_NAMESPACE
 
 //---------------------------------------------------------------------------
 
- void CPROC cCopyPixelsMultiT0( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsMultiT0( PCDATA po, PCDATA  pi
                             , uint32_t oo, uint32_t oi
                             , uint32_t ws, uint32_t hs
                             , CDATA r, CDATA g, CDATA b )
@@ -247,7 +247,7 @@ IMAGE_NAMESPACE
 }
 
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsMultiT1( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsMultiT1( PCDATA po, PCDATA  pi
                             , uint32_t oo, uint32_t oi
                             , uint32_t ws, uint32_t hs
                             , CDATA r, CDATA g, CDATA b )
@@ -264,7 +264,7 @@ IMAGE_NAMESPACE
    EndLoop
 }
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsMultiTA( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsMultiTA( PCDATA po, PCDATA  pi
                             , uint32_t oo, uint32_t oi
                             , uint32_t ws, uint32_t hs
                             , uint32_t nTransparent
@@ -281,7 +281,7 @@ IMAGE_NAMESPACE
    EndLoop
 }
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsMultiTImgA( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsMultiTImgA( PCDATA po, PCDATA  pi
                             , uint32_t oo, uint32_t oi
                             , uint32_t ws, uint32_t hs
                             , uint32_t nTransparent
@@ -302,7 +302,7 @@ IMAGE_NAMESPACE
    EndLoop
 }
 //---------------------------------------------------------------------------
- void CPROC cCopyPixelsMultiTImgAI( PCDATA po, PCDATA  pi
+static void CPROC cCopyPixelsMultiTImgAI( PCDATA po, PCDATA  pi
                             , uint32_t oo, uint32_t oi
                             , uint32_t ws, uint32_t hs
                             , uint32_t nTransparent
@@ -332,7 +332,7 @@ IMAGE_NAMESPACE
 // w, h is height and width of the image to use.
 // default behavior is to omit copying 0 pixels for transparency
 // overlays....
- void  BlotImageSizedEx ( ImageFile *pifDest, ImageFile *pifSrc
+ void  IMGVER(BlotImageSizedEx) ( ImageFile *pifDest, ImageFile *pifSrc
                               , int32_t xd, int32_t yd
                               , int32_t xs, int32_t ys
                               , uint32_t ws, uint32_t hs
@@ -386,7 +386,7 @@ IMAGE_NAMESPACE
 			r2.height = 0;
 		else
 			r2.height = (IMAGE_SIZE_COORDINATE)tmp;
-		if( !IntersectRectangle( &rd, &r1, &r2 ) )
+		if( !IMGVER(IntersectRectangle)( &rd, &r1, &r2 ) )
 		{
 			//lprintf( "Images do not overlap. %d,%d %d,%d vs %d,%d %d,%d", r1.x,r1.y,r1.width,r1.height
 			//		 , r2.x,r2.y,r2.width,r2.height);
@@ -439,7 +439,7 @@ IMAGE_NAMESPACE
 			r2.height = 0;
 		else
 			r2.height = (IMAGE_SIZE_COORDINATE)tmp;
-		if( !IntersectRectangle( &rs, &r1, &r2 ) )
+		if( !IMGVER(IntersectRectangle)( &rs, &r1, &r2 ) )
 		{
 			lprintf( "Desired Output does not overlap..." );
 			return;
@@ -492,7 +492,7 @@ IMAGE_NAMESPACE
 	{
 		Image topmost_parent;
 
-		ReloadOpenGlTexture( pifSrc, 0 );
+		IMGVER(ReloadOpenGlTexture)( pifSrc, 0 );
 		if( !pifSrc->glActiveSurface )
 		{
 	        //lprintf( "gl texture hasn't updated or went away?" );
@@ -509,8 +509,8 @@ IMAGE_NAMESPACE
 		 * only a portion of the image is actually used, the rest is filled with blank space
 		 *
 		 */
-		TranslateCoord( pifDest, &xd, &yd );
-		TranslateCoord( pifSrc, &xs, &ys );
+		IMGVER(TranslateCoord)( pifDest, &xd, &yd );
+		IMGVER(TranslateCoord)( pifSrc, &xs, &ys );
 		{
 			struct image_shader_op *op;// = BeginImageShaderOp( GetShader( "Simple Texture" ), pifDest, pifSrc->glActiveSurface  );
 			int glDepth = 1;
@@ -650,31 +650,31 @@ IMAGE_NAMESPACE
 		{
 		case BLOT_COPY:
 			if( !nTransparent )
-				CopyPixelsT0( po, pi, oo, oi, ws, hs );
+				cCopyPixelsT0( po, pi, oo, oi, ws, hs );
 			else if( nTransparent == 1 )
-				CopyPixelsT1( po, pi, oo, oi, ws, hs );
+				cCopyPixelsT1( po, pi, oo, oi, ws, hs );
 			else if( nTransparent & ALPHA_TRANSPARENT )
-				CopyPixelsTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF);
+				cCopyPixelsTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF);
 			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-				CopyPixelsTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF );
+				cCopyPixelsTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF );
 			else
-				CopyPixelsTA( po, pi, oo, oi, ws, hs, nTransparent );
+				cCopyPixelsTA( po, pi, oo, oi, ws, hs, nTransparent );
 			break;
 		case BLOT_SHADED:
 			if( !nTransparent )
-				CopyPixelsShadedT0( po, pi, oo, oi, ws, hs
+				cCopyPixelsShadedT0( po, pi, oo, oi, ws, hs
                            , va_arg( colors, CDATA ) );
 			else if( nTransparent == 1 )
-				CopyPixelsShadedT1( po, pi, oo, oi, ws, hs
+				cCopyPixelsShadedT1( po, pi, oo, oi, ws, hs
                            , va_arg( colors, CDATA ) );
 			else if( nTransparent & ALPHA_TRANSPARENT )
-				CopyPixelsShadedTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
+				cCopyPixelsShadedTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
                            , va_arg( colors, CDATA ) );
 			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-				CopyPixelsShadedTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
+				cCopyPixelsShadedTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
                            , va_arg( colors, CDATA ) );
 			else
-				CopyPixelsShadedTA( po, pi, oo, oi, ws, hs, nTransparent
+				cCopyPixelsShadedTA( po, pi, oo, oi, ws, hs, nTransparent
                            , va_arg( colors, CDATA ) );
 			break;
 		case BLOT_MULTISHADE:
@@ -685,31 +685,31 @@ IMAGE_NAMESPACE
 				b = va_arg( colors, CDATA );
 				//lprintf( "r g b %08x %08x %08x", r,g, b );
 				if( !nTransparent )
-					CopyPixelsMultiT0( po, pi, oo, oi, ws, hs
+					cCopyPixelsMultiT0( po, pi, oo, oi, ws, hs
 										  , r, g, b );
 				else if( nTransparent == 1 )
-					CopyPixelsMultiT1( po, pi, oo, oi, ws, hs
+					cCopyPixelsMultiT1( po, pi, oo, oi, ws, hs
 										  , r, g, b );
 				else if( nTransparent & ALPHA_TRANSPARENT )
-					CopyPixelsMultiTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
+					cCopyPixelsMultiTImgA( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
 											  , r, g, b );
 				else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
-					CopyPixelsMultiTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
+					cCopyPixelsMultiTImgAI( po, pi, oo, oi, ws, hs, nTransparent & 0xFF
 												, r, g, b );
 				else
-					CopyPixelsMultiTA( po, pi, oo, oi, ws, hs, nTransparent
+					cCopyPixelsMultiTA( po, pi, oo, oi, ws, hs, nTransparent
 										  , r, g, b );
 			}
 			break;
 		}
-		MarkImageUpdated( pifDest );
+		IMGVER(MarkImageUpdated)( pifDest );
 	}
 	lock = 0;
 	//lprintf( "Image done.." );
 }
 // copy all of pifSrc to the destination - placing the upper left
 // corner of pifSrc on the point specified.
-void  BlotImageEx ( ImageFile *pifDest, ImageFile *pifSrc, int32_t xd, int32_t yd, uint32_t nTransparent, uint32_t method, ... )
+void  IMGVER(BlotImageEx) ( ImageFile *pifDest, ImageFile *pifSrc, int32_t xd, int32_t yd, uint32_t nTransparent, uint32_t method, ... )
 {
 	va_list colors;
 	CDATA r;
@@ -719,7 +719,7 @@ void  BlotImageEx ( ImageFile *pifDest, ImageFile *pifSrc, int32_t xd, int32_t y
 	r = va_arg( colors, CDATA );
 	g = va_arg( colors, CDATA );
 	b = va_arg( colors, CDATA );
-	BlotImageSizedEx( pifDest, pifSrc, xd, yd, 0, 0
+	IMGVER(BlotImageSizedEx)( pifDest, pifSrc, xd, yd, 0, 0
                    , pifSrc->real_width, pifSrc->real_height, nTransparent, method
                                       , r,g,b
                                     );
