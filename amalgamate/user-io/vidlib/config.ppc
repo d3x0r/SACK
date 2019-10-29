@@ -1,3 +1,4 @@
+#define _INCLUDE_CLIPBOARD
 
 #ifdef _MSC_VER
 // because snprintf IS secure; and _snprintf doesn't help.
@@ -17,15 +18,14 @@
 //#define __NO_MMAP__
 #define __STATIC__
 #define NO_FILEOP_ALIAS
-#define SACK_BAG_EXPORTS
 #define __STATIC_GLOBALS__
-#define DEFINE_DEFAULT_IMAGE_INTERFACE
+
 //#define TYPELIB_SOURCE
 #define NEED_SHLAPI
 #define NEED_SHLOBJ
 
 #define _OPENGL_ENABLED
-//#define RENDER_LIBRARY_SOURCE
+#define RENDER_LIBRARY_SOURCE
 
 //#include <stdio.h>
 //#include <stdarg.h> 

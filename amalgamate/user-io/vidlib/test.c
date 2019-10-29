@@ -1,4 +1,5 @@
 #define __STATIC__
+#define DEFINE_DEFAULT_RENDER_INTERFACE
 #include "sack_vidlib.h"
 
 int main( void ) {
