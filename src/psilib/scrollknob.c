@@ -34,8 +34,8 @@ typedef struct scroll_knob
 
 static CONTROL_REGISTRATION scrollKnobControl= { CONTROL_SCROLL_KNOB_NAME
 			, { 32, 32, sizeof( ScrollKnob ), BORDER_THINNER } };
-PRELOAD( scrollKnobProgressBarcontrol ){ DoRegisterControl( &progressBarControl ); }
-static uint32_t* sk_MyControlID = &progressBarControl.TypeID;
+PRELOAD( scrollKnobProgressBarcontrol ){ DoRegisterControl( &scrollKnobControl ); }
+static uint32_t* sk_MyControlID = &scrollKnobControl.TypeID;
 
 static int OnCreateCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 {
