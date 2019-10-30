@@ -263,7 +263,7 @@ void UpdateMouseRays( int32_t x, int32_t y )
 		ComputeMouseRay( camera, TRUE, &camera->mouse_ray, x, y );
 	}
 	l.flags.bViewVolumeUpdated = 1;
-	MarkDisplayUpdated( NULL ); // trigger redraw
+	ogl_MarkDisplayUpdated( NULL ); // trigger redraw
 }
 
 
@@ -313,7 +313,7 @@ int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD 
 	return 1;
 }
 
-void GetViewVolume( PRAY *planes )
+void ogl_GetViewVolume( PRAY *planes )
 {
 	static PRAY buffer;
 	static PRAY tmp_buffer;

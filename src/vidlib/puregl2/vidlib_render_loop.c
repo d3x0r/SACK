@@ -16,7 +16,7 @@ int IsVidThread( void )
 	return FALSE;
 }
 
-void Redraw( PVIDEO hVideo )
+void ogl_Redraw( PVIDEO hVideo )
 {
 	if( hVideo )
 		hVideo->flags.bUpdated = 1;
@@ -286,7 +286,7 @@ void drawCamera( struct display_camera *camera )
 	{
 		if( l.flags.bLogRenderTiming )
 			lprintf( "Open Camera..." );
-		OpenCamera( camera );
+		ogl_OpenCamera( camera );
 	}
 	if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
 	{
