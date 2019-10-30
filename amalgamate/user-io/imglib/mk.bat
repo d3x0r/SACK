@@ -21,8 +21,8 @@
 @set SRCS= %SRCS%   %S%/src/imglib/alphatab.c
 @set SRCS= %SRCS%   %S%/src/imglib/blotdirect.c
 @set SRCS= %SRCS%   %S%/src/imglib/blotscaled.c
-@set SRCS= %SRCS%   %S%/src/imglib/fntcache.c
 @set SRCS= %SRCS%   %S%/src/imglib/fntrender.c
+@set SRCS= %SRCS%   %S%/src/imglib/fntcache.c
 @set SRCS= %SRCS%   %S%/src/imglib/font.c
 @set SRCS= %SRCS%   %S%/src/imglib/image_common.c
 @set SRCS= %SRCS%   %S%/src/imglib/image.c
@@ -134,7 +134,10 @@ cd ..
 @set LIBS=%LIBS% -lglu32
 :@set LIBS=%LIBS% -lglew
 
+copy sack_imglib.c sack_imglib.cc
+copy sack_imglib_puregl2.c sack_imglib_puregl2.cc
 
+gcc -g -o a.so -shared %C_OPTS% sack_imglib.cc  sack_imglib_puregl2.cc ../../fullcore/a.o %LIBS%
 gcc -g -o a.so -shared %C_OPTS% sack_imglib.c  sack_imglib_puregl2.c ../../fullcore/a.o %LIBS%
 gcc -c -O3 -o a-opt.o %C_OPTS% sack_imglib.c
 
