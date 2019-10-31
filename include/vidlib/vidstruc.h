@@ -169,6 +169,20 @@ typedef struct WindowPos
 } WINDOWPOS;
 #endif
 
+
+#ifdef _OPENGL_ENABLED
+	struct hvideo_fracture_tag{
+		int x, y, w, h;
+		void *hBm;
+		void *hOldBitmap;
+		void *hDCBitmap;
+		HWND hWndFakeWindow;
+		HDC hDCFakeWindow;
+		struct ImageFile_tag *pImage;
+		HGLRC	hRC;	 // Permanent Rendering Context
+	};
+#endif
+
 /* Private structure for Vidlib. See PRENDERER. Exposed, but
 	applications should use appropriate methods in render
 	namespace.																*/
@@ -206,16 +220,7 @@ typedef struct HVIDEO_tag
 #ifdef _OPENGL_ENABLED
 	int nFractures, nFracturesAvail;
 	int _prior_fracture;
-	struct fracture_tag{
-		int x, y, w, h;
-		void *hBm;
-		void *hOldBitmap;
-		void *hDCBitmap;
-		HWND hWndFakeWindow;
-		HDC hDCFakeWindow;
-		struct ImageFile_tag *pImage;
-		HGLRC	hRC;	 // Permanent Rendering Context
-	} *pFractures;
+	struct hvideo_fracture_tag *pFractures;
 #endif
 
 #  if defined( __3D__ )
