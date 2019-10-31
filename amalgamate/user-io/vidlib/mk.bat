@@ -2,66 +2,7 @@
 :   
 :
 
-
-@set S=../../..
-
-@set SRCS=
-@set SRCS= %SRCS%   %S%/src/vidlib/vidlib.c
-@set SRCS= %SRCS%   %S%/src/vidlib/key.c
-@set SRCS= %SRCS%   %S%/src/vidlib/keydefs.c
-@set SRCS= %SRCS%   %S%/src/vidlib/opengl.c
-
-@set OGSRCS=
-@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/vidlib_common.c
-@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/vidlib_touch.c
-@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/vidlib_interface.c
-@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/vidlib_3d_mouse.c
-@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/vidlib_render_loop.c
-:@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/vidlib_wasm.c
-:@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/keymap_wasm.c
-@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/key_state.c
-
-@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/keydefs.c
-
-@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/vidlib_win32.c
-@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/keymap_win32.c
-@set OGSRCS= %OGSRCS%   %S%/src/vidlib/puregl2/win32_opengl.c
-
-set  SRCS= ^
-        keydefs.c    ^
-        key_state.c  ^
-        vidlib_common.c  ^
-        vidlib_touch.c   ^
-        vidlib_interface.c  ^
-        vidlib_3d_mouse.c  ^
-        vidlib_render_loop.c 
-
-set SRCS=%SRCS%  vidlib_wasm.c keymap_wasm.c
-
-
- 
-del sack_vidlib.c
-del sack_vidlib_puregl2.c
-del sack_typelib.h
-
-@set OPTS=
-@set OPTS=%OPTS%	-DRENDER_LIBRARY_SOURCE
-@set OPTS=%OPTS%	-DNEED_SHLAPI
-
-c:\tools\ppc.exe -c -K -once -ssio -sd %OPTS% -I%S%/include -p -osack_vidlib.c %SRCS% %OPTS%
-c:\tools\ppc.exe -c -K -once -ssio -sd %OPTS% -I%S%/include -p -osack_vidlib_puregl2.c split.c %OGSRCS% %OPTS%
-
-mkdir h
-copy config.vidlib.h h\config.ppc
-cd h
-
-@set HDRS=
-@set HDRS= %HDRS% %S%/../include/render.h
-@set HDRS= %HDRS% %S%/../include/render3d.h
-
-
-c:\tools\ppc.exe -c -K -once -ssio -sd -I%S%/../include -p -o../sack_vidlib.h %HDRS%
-cd ..
+call mksrc.bat
 
 
 set C_OPTS=
@@ -82,8 +23,8 @@ set C_OPTS=%C_OPTS% -DTARGETNAME=\"a.exe\"
 @set LIBS=%LIBS% -lopengl32
 @set LIBS=%LIBS% -lgdi32
 
-gcc -shared -g -o a.so %C_OPTS% sack_vidlib.c sack_vidlib_puregl2.c ../../fullcore/a.o %LIBS%
-gcc -c -O3 -o a-opt.o %C_OPTS% sack_vidlib.c
+gcc -shared -g -o a.so %C_OPTS% sack_vidlib.cc sack_vidlib_puregl2.cc ../../fullcore/a.o %LIBS%
+gcc -c -O3 -o a-opt.o %C_OPTS% sack_vidlib.cc sack_vidlib_puregl2.cc
 
 gcc -g -o a.exe %C_OPTS% sack_vidlib.c ../../fullcore/sack_ucb_full.c test.c %LIBS%
 gcc -O3 -o a-opt.exe %C_OPTS% sack_vidlib.c ../../fullcore/sack_ucb_full.c test.c %LIBS%

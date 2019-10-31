@@ -23,10 +23,22 @@
 //#define TYPELIB_SOURCE
 #define NEED_SHLAPI
 #define NEED_SHLOBJ
+#deifne _INCLUDE_CLIPBOARD
 
 #define _OPENGL_ENABLED
 #define RENDER_LIBRARY_SOURCE
 
+// define to get HTOUCHINPUT defined
+#define WINVER 0x0601 
+
+// need real_
+#define NEED_REAL_IMAGE_STRUCTURE
+
+// assume that this will be statically linked to the executable.
+// Otherwise this will have to be overloaded
+#ifndef TARGETNAME 
+#  define TARGETNAME NULL 
+#endif
 //#include <stdio.h>
 //#include <stdarg.h> 
 //#include <stdhdrs.h>
