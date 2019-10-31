@@ -1,0 +1,4 @@
+#define NO_OPEN_MACRO
+#define NO_FILEOP_ALIAS
+#define __NO_INTERFACE_SUPPORT__
+
