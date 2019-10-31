@@ -757,17 +757,19 @@ PTREEDEF GetClassTreeEx( PCTREEDEF root, PCTREEDEF _name_class, PTREEDEF alias, 
 					}
 					else
 					{
-						if( !end && alias && !new_root->flags.bAlias )
+						if( !end && alias )
 						{
-							static int error_count;
-							error_count++;
-							// this orphans the prior tree; but probably results from requests for values that aren't present
-							// and later are filled by an alias.
-							if( error_count > 20 )
-								lprintf( " Name %s exists, but we want it to be an alias, and it is not...(a LOT of this is bad) ", new_root->name );
+							if( !new_root->flags.bAlias ) {
+								static int error_count;
+								error_count++;
+								// this orphans the prior tree; but probably results from requests for values that aren't present
+								// and later are filled by an alias.
+								if( error_count > 20 )
+									lprintf( " Name %s exists, but we want it to be an alias, and it is not...(a LOT of this is bad) ", new_root->name );
 
-							if( new_root->tree.Magic != MAGIC_TREE_NUMBER )
-								lprintf( "Hell it's not even a tree!" );
+								if( new_root->tree.Magic != MAGIC_TREE_NUMBER )
+									lprintf( "Hell it's not even a tree!" );
+							}
 							new_root->flags.bAlias = 1;
 							new_root->tree.Tree = alias->Tree;
 							new_root->tree.self = alias->self;
