@@ -101,6 +101,9 @@
 #  define USE_VECTOR_NAMESPACE 
 #endif
 
+#undef EXTERNAL_NAME
+#undef VECTOR_METHOD
+
 #ifdef MAKE_RCOORD_SINGLE
 #  define VECTOR_METHOD(r,n,args) MATHLIB_EXPORT r n##f args
 #  define EXTERNAL_NAME(n)  n##f
@@ -294,22 +297,27 @@ typedef const PCTRANSFORM *CPCTRANSFORM;
 #define VectorConst_Z EXTERNAL_NAME(VectorConst_Z)
 #define VectorConst_I EXTERNAL_NAME(VectorConst_I)
 
+#ifdef __cplusplus
+#define VECTLIBCONST
+#else
+#define VECTLIBCONST const
+#endif
 
 //------ Constants for origin(0,0,0), and axii
 #ifndef VECTOR_LIBRARY_SOURCE
-MATHLIB_DEXPORT const PC_POINT VectorConst_0;
+MATHLIB_DEXPORT VECTLIBCONST PC_POINT VectorConst_0;
 /* Specifies the coordinate system's X axis direction. static
    constant.                                                  */
-MATHLIB_DEXPORT const PC_POINT VectorConst_X;
+MATHLIB_DEXPORT VECTLIBCONST PC_POINT VectorConst_X;
 /* Specifies the coordinate system's Y axis direction. static
    constant.                                                  */
-MATHLIB_DEXPORT const PC_POINT VectorConst_Y;
+MATHLIB_DEXPORT VECTLIBCONST PC_POINT VectorConst_Y;
 /* Specifies the coordinate system's Z axis direction. static
    constant.                                                  */
-MATHLIB_DEXPORT const PC_POINT VectorConst_Z;
+MATHLIB_DEXPORT VECTLIBCONST PC_POINT VectorConst_Z;
 /* This is a static constant identity matrix, which can be used
    to initialize a matrix transform (internally).               */
-MATHLIB_DEXPORT const PCTRANSFORM VectorConst_I;
+MATHLIB_DEXPORT VECTLIBCONST PCTRANSFORM VectorConst_I;
 #define _0 ((PC_POINT)VectorConst_0)
 #  ifndef _X
 #    define _X ((PC_POINT)VectorConst_X)
