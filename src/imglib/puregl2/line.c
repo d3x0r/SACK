@@ -161,7 +161,7 @@ void CPROC IMGVER(do_line)( ImageFile *pImage, int32_t x1, int32_t y1
 			err = -(dely / 2);
 			while( len >= 0 )
 			{
-				plot( pImage, x1, y1, d );
+				IMGVER(plot)( pImage, x1, y1, d );
 				y1++;
 				err += delx;
 				while( err >= 0 )
@@ -192,7 +192,7 @@ void CPROC IMGVER(do_line)( ImageFile *pImage, int32_t x1, int32_t y1
 			err = -(delx / 2);
 			while( len >= 0 )
 			{
-				plot( pImage, x1, y1, d );
+				IMGVER(plot)( pImage, x1, y1, d );
 				x1++;
 				err += dely;
 				while( err >= 0 )
@@ -322,7 +322,7 @@ void CPROC IMGVER(do_lineAlpha)( ImageFile *pImage, int32_t x1, int32_t y1
 			err = -(dely / 2);
 			while( len >= 0 )
 			{
-				plotalpha( pImage, x1, y1, d );
+				IMGVER(plotalpha)( pImage, x1, y1, d );
 				y1++;
 				err += delx;
 				while( err >= 0 )
@@ -353,7 +353,7 @@ void CPROC IMGVER(do_lineAlpha)( ImageFile *pImage, int32_t x1, int32_t y1
 			err = -(delx / 2);
 			while( len >= 0 )
 			{
-				plotalpha( pImage, x1, y1, d );
+				IMGVER(plotalpha)( pImage, x1, y1, d );
 				x1++;
 				err += dely;
 				while( err >= 0 )

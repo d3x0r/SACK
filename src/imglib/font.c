@@ -82,14 +82,14 @@ PFONT IMGVER(GetDefaultFont)( void )
 }
 
 #if __3D__
-#define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha( (Image)pRealImage->reverse_interface_instance, x, y, color ) : plot( pRealImage, x, y, color ) )
+#define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha( (Image)pRealImage->reverse_interface_instance, x, y, color ) : (void)IMGVER(plot)( pRealImage, x, y, color ) )
 #else
 #define CharPlotAlpha(pRealImage,x,y,color) do{   \
 	CDATA *po;                                  \
 	int r, g, b, aout;                          \
     ( pRealImage->reverse_interface             \
          ? pRealImage->reverse_interface->_plotalpha( (Image)pRealImage->reverse_interface_instance, x, y, color )   \
-         : plotalpha_( pRealImage, x, y, color ));   \
+         : (void)plotalpha_( pRealImage, x, y, color ));   \
 }while(0)
 #endif
 

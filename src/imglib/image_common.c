@@ -784,6 +784,16 @@ Image IMGVER(DecodeMemoryToImage)( uint8_t* buf, size_t size )
 }
 //----------------------------------------------------------------------
 
+#ifdef __cplusplus
+namespace loader {
+#endif
+
+void IMGVER(setPngImageName)( const char *filename );
+
+#ifdef __cplusplus
+}
+#endif
+
 ImageFile*  IMGVER(LoadImageFileFromGroupEx) ( INDEX group, CTEXTSTR filename DBG_PASS )
 {
 	size_t size;
@@ -803,13 +813,10 @@ ImageFile*  IMGVER(LoadImageFileFromGroupEx) ( INDEX group, CTEXTSTR filename DB
 
 	//lprintf("so far okay -%s %d (%d)", filename, buf, size );
 	{ 
-		void IMGVER(setPngImageName)( const char *filename );
 		IMGVER(setPngImageName)( filename );
 	}
-	file = 
-		IMGVER(DecodeMemoryToImage)( buf, size );
+	file = IMGVER(DecodeMemoryToImage)( buf, size );
 	{
-		void IMGVER(setPngImageName)( const char *filename );
 		IMGVER(setPngImageName)( NULL );
 	}
 

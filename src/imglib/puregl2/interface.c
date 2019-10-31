@@ -153,6 +153,11 @@ IMAGE_INTERFACE RealImageInterface = {
 									 , IMGVER(PngImageFile)
                                      , IMGVER(JpgImageFile)
 									 , IMGVER(SetFontBias)
+				, NULL //make sliced
+				, NULL // complex slice
+				, NULL // unmake sliced
+				, NULL //BlockSlicedImage
+				, IMGVER(SetSavePortion)
 };
 
 
@@ -240,7 +245,6 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 	RealImageInterface._IsImageTargetFinal = IMGVER(IsImageTargetFinal);
 }
 
-int link_interface_please;
 IMAGE_NAMESPACE_END
 
 

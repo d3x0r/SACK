@@ -214,6 +214,7 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 #endif
 
 	RegisterInterface( NAME, _ImageGetImageInterface, _ImageDropImageInterface );
+	RegisterClassAlias( NAME, "image" );
 //#ifndef _DEBUG
 //  MMX/Assembly do not support 
 //   alpha translation of multishaded imaged.
@@ -228,6 +229,5 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 //#endif
 }
 
-int link_interface_please;
 IMAGE_NAMESPACE_END
 

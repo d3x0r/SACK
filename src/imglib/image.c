@@ -213,8 +213,8 @@ void SetImageTransformRelation( Image pImage, enum image_translation_relation re
 }
 //---------------------------------------------------------------------------
 
-IMAGE_NAMESPACE_END
-ASM_IMAGE_NAMESPACE
+//IMAGE_NAMESPACE_END
+//ASM_IMAGE_NAMESPACE
 
 void CPROC cplot( ImageFile *pi, int32_t x, int32_t y, CDATA c );
 void CPROC cplotraw( ImageFile *pi, int32_t x, int32_t y, CDATA c );
@@ -245,7 +245,7 @@ void CPROC plotraw( ImageFile *pi, int32_t x, int32_t y, CDATA c )
    *IMG_ADDRESS(pi,x,y) = c;
 }
 
-void CPROC plot( ImageFile *pi, int32_t x, int32_t y, CDATA c )
+void plot( ImageFile *pi, int32_t x, int32_t y, CDATA c )
 {
    if( !pi || !pi->image ) return;
    if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
@@ -257,7 +257,7 @@ void CPROC plot( ImageFile *pi, int32_t x, int32_t y, CDATA c )
 
 //---------------------------------------------------------------------------
 
-CDATA CPROC getpixel( ImageFile *pi, int32_t x, int32_t y )
+CDATA getpixel( ImageFile *pi, int32_t x, int32_t y )
 {
    if( !pi || !pi->image ) return 0;
    if( ( x >= pi->x ) && ( x < (pi->x + pi->width )) &&
@@ -270,7 +270,7 @@ CDATA CPROC getpixel( ImageFile *pi, int32_t x, int32_t y )
 
 //---------------------------------------------------------------------------
 
-void CPROC plotalpha( ImageFile *pi, int32_t x, int32_t y, CDATA c )
+void plotalpha( ImageFile *pi, int32_t x, int32_t y, CDATA c )
 {
 	CDATA *po;
 	if( !pi || !pi->image ) return;
@@ -335,8 +335,8 @@ void CPROC do_vlineAlphaMMX( ImageFile *pImage, int32_t x, int32_t yfrom, int32_
 
 #endif
 
-ASM_IMAGE_NAMESPACE_END
-IMAGE_NAMESPACE
+//ASM_IMAGE_NAMESPACE_END
+//IMAGE_NAMESPACE
 
 
 IMAGE_NAMESPACE_END

@@ -42,20 +42,20 @@ uint32_t DOALPHA( uint32_t over, uint32_t in, uint8_t a );
 ASM_IMAGE_NAMESPACE_END
 
 #if !defined( _D3D_DRIVER ) && !defined( _D3D10_DRIVER ) && !defined( _D3D11_DRIVER )
-#if defined( REQUIRE_GLUINT ) //&& !defined( _OPENGL_DRIVER )
+#  if defined( REQUIRE_GLUINT ) //&& !defined( _OPENGL_DRIVER )
 typedef unsigned int GLuint;
-#endif
+#  endif
 
 IMAGE_NAMESPACE
 
-#if defined( _VULKAN_DRIVER )
+#  if defined( _VULKAN_DRIVER )
 struct vkSurfaceImageData {
 	struct vkSurfaceImageData_flags {
 		BIT_FIELD updated : 1;
 	} flags;
 	uint32_t index;
 };
-#elif defined( __3D__ )
+#  elif defined( __3D__ )
 // this is actually specific, and is not common, but common needs it in CLR
 // because of tight typechecking.
 struct glSurfaceImageData {
@@ -64,11 +64,9 @@ struct glSurfaceImageData {
 	} flags;
 	GLuint glIndex;
 };
+#  else
+#  endif
 #else
-IMAGE_NAMESPACE
-#endif
-#else
-IMAGE_NAMESPACE
 #endif
 
 struct shade_cache_element {

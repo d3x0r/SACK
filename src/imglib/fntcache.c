@@ -400,7 +400,7 @@ static PCACHE_SIZE_FILE AddSizeFileEx( PCACHE_FONT_STYLE pfs
 #ifndef _PSI_INCLUSION_
 void IMGVER(DumpFontCache)( void )
 {
-	LoadAllFonts();
+	IMGVER(LoadAllFonts)();
 	{
 		INDEX idx;
 		for( idx = 0; idx < fg.nFonts; idx++ )
@@ -510,7 +510,7 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, FT_Face *face, in
 			base_name = name;
 		//lprintf( "Direct open failed... try seaching..." );
 		// only open this if there's not a direct file ready.
-		LoadAllFonts();
+		IMGVER(LoadAllFonts)();
 		for( idx = 0; idx < fg.nFonts; idx++ )
 		{
 			PFONT_ENTRY pfe;

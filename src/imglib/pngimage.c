@@ -16,17 +16,17 @@
 #ifdef _MSC_VER 
 #define PNG_INTERNAL
 #endif
+
+
 #if defined( __GNUC__ ) || defined( __LINUX__ ) || defined( __CYGWIN__ )
 #define PNG_STDIO_SUPPORTED
-#include <zlib.h>
-//#include <pngconf.h>
-#include <png.h>
 #else
 #include <setjmp.h>
-#include <zlib.h> // include this before, and we get the types we need...
-//#include <pngconf.h>
-#include <png.h>
 #endif
+
+#include <zlib.h>
+#include <png.h>
+
 
 #include <signed_unsigned_comparisons.h>
 #define IMAGE_LIBRARY_SOURCE

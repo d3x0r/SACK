@@ -45,7 +45,8 @@ IMAGE_NAMESPACE
 
 #define SYMBIT(bit)  ( 1 << (bit&0x7) )
 
-FILE *output;
+FILE *IMGVER(output);
+#define output IMGVER(output)
 
 //-------------------------------------------------------------------------
 
@@ -2412,6 +2413,8 @@ void IMGVER(RerenderFont)( SFTFont font, int32_t width, int32_t height, PFRACTIO
 }
 
 #endif
+
+#undef output
 
 IMAGE_NAMESPACE_END
 
