@@ -159,10 +159,19 @@
 #define PASTE(sym,name) PASTE2(sym,name)
 #endif
 
-#        ifdef RENDER_LIBRARY_SOURCE 
-#           define RENDER_PROC(type,name) EXPORT_METHOD type CPROC PASTE(SECOND_RENDER_LEVEL,name)
+
+
+#ifdef USE_API_ALIAS_PREFIX
+#  define RVER(n)   IMGVER_(USE_API_ALIAS_PREFIX,n)
+#else
+#  define RVER(n)   n
+#endif
+
+
+#        ifdef RENDER_LIBRARY_SOURCE
+#           define RENDER_PROC(type,name) EXPORT_METHOD type CPROC PASTE(SECOND_RENDER_LEVEL,RVER(name))
 #        else
-#           define RENDER_PROC(type,name) IMPORT_METHOD type CPROC PASTE(SECOND_RENDER_LEVEL,name)
+#           define RENDER_PROC(type,name) IMPORT_METHOD type CPROC PASTE(SECOND_RENDER_LEVEL,RVER(name))
 #        endif
 
 SACK_NAMESPACE
