@@ -51,6 +51,9 @@
 @set SRCS= %SRCS%   ../../src/psilib/calctl/clock.c
 @set SRCS= %SRCS%   ../../src/psilib/calctl/analog.c
  
+@set SRCS= %SRCS%   ../../src/systraylib/systray.c
+
+@set SRCS= %SRCS%   ../../src/SQLlib/optib/editoption/editopt.c
 
 del sack_ucb_psi.h
 del sack_ucb_psi.c
