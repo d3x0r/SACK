@@ -49,7 +49,7 @@ static struct systray_local {
 	struct {
 		BIT_FIELD bLog : 1;
 	} flags;
-} l;
+} localSystrayState;
 
 //----------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		switch( GET_WM_COMMAND_ID (wParam, lParam) ) 
 		{
 		case MNU_EXIT:
-			if( l.flags.bLog )
+			if( localSystrayState.flags.bLog )
 				lprintf( "Posting quit Message" );
 			UnregisterIcon();
 			PostQuitMessage( 0 );
@@ -153,7 +153,7 @@ static int CPROC systrayidle( uintptr_t unused )
 	{
 		if( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
 		{
-			if( l.flags.bLog )
+			if( localSystrayState.flags.bLog )
 				lprintf( "dispatch %d ...", msg.message );
 			DispatchMessage( &msg );
 			return 1;
@@ -173,7 +173,7 @@ uintptr_t CPROC RegisterAndCreate( PTHREAD thread )
 	static WNDCLASS wc;  // zero init.
 	static ATOM ac;
 #ifndef __NO_OPTIONS__
-	l.flags.bLog = SACK_GetProfileIntEx( GetProgramName(), "SACK/System Tray/Logging Enable", 0, TRUE );
+	localSystrayState.flags.bLog = SACK_GetProfileIntEx( GetProgramName(), "SACK/System Tray/Logging Enable", 0, TRUE );
 #endif
 	if( !ac )
 	{
@@ -548,7 +548,7 @@ void TerminateIcon( void )
 	tnprintf( iconwindow, sizeof( iconwindow ), "AlertAgentIcon:%s", GetProgramName() );
 	while( ( hWndOld = FindWindow( "AlertAgentIcon", iconwindow ) ) && ( attempt < 5 ) )
 	{
-		if( l.flags.bLog )
+		if( localSystrayState.flags.bLog )
 			Log( "Telling previous instance to exit." );
 		SendMessage( hWndOld, WM_COMMAND, /*MNU_EXIT*/1000, 0 );
 		Sleep( 100 );
@@ -559,12 +559,12 @@ void TerminateIcon( void )
       DWORD dwProcess;
 		DWORD dwThread = GetWindowThreadProcessId( hWndOld, &dwProcess );
 		HANDLE hProc;
-		if( l.flags.bLog )
+		if( localSystrayState.flags.bLog )
 			lprintf( "posting didn't cause process to exit... attempting to terminate." );
 		hProc = OpenProcess( SYNCHRONIZE | PROCESS_TERMINATE, FALSE, dwProcess );
 		if( hProc == NULL )
 		{
-			if( l.flags.bLog )
+			if( localSystrayState.flags.bLog )
 				lprintf( "Failed to open process handle..." );
 			return;
 		}
