@@ -1453,6 +1453,7 @@ static int OnCommonFocus( NORMAL_BUTTON_NAME )( PSI_CONTROL pc, LOGICAL bFocus )
 }
 
 PRIORITY_PRELOAD( register_buttons, PSI_PRELOAD_PRIORITY ) {
+	GetMyInterface();
 	buttonControlLocal.flags.bTouchDisplay = IsTouchDisplay(); // reverse click on down vs click on up
 	DoRegisterControl( &normal_button );
 	DoRegisterControl( &image_button );
