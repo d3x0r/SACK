@@ -1,5 +1,7 @@
 // need to check if is instanced.
-#define DEFINE_DEFAULT_RENDER_INTERFACE
+#ifndef PSI_GLOBAL_STRUCTURE_DEFINED
+#  define DEFINE_DEFAULT_RENDER_INTERFACE
+#endif
 #include <controls.h>
 #include <idle.h>
 #include <sqlgetoption.h>
@@ -14,6 +16,7 @@
 #define BTN_COPY 1002
 #define EDT_OPTIONVALUE 1001
 #define LST_OPTIONMAP 1000
+
 
 struct query_params 
 {
