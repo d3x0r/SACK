@@ -1,7 +1,6 @@
 #define NO_OPEN_MACRO
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
-#undef StrDup
 #include <shlwapi.h>
 #include <shellapi.h>
 #include <sharemem.h>
