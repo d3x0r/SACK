@@ -1,0 +1,1 @@
+emcc -Wno-parentheses -Wno-address-of-packed-member -D__LINUX__ -D__NO_ODBC__ -DUSE_SQLITE -IM:\sack\src\contrib\sqlite\3.23.0-MySqlite sack_ucb_full.c M:\sack\src\contrib\sqlite\3.23.0-MySqlite\sqlite3.c 

@@ -25,6 +25,13 @@
 #define NEED_SHLOBJ
 #define JSON_PARSER_MAIN_SOURCE
 
+#define MAKE_RCOORD_SINGLE
+
+// this gets Wow64GetThreadContext 
+#define _WIN32_WINNT 0x600
+#define USE_SQLITE
+#define SQLITE_ENABLE_COLUMN_METADATA 1
+
 #include <stdio.h>
 #include <stdarg.h> 
 #include <stdhdrs.h>

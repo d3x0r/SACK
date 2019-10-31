@@ -4,4 +4,4 @@
 #define SACK_BAG_EXPORTS
 //#define TYPELIB_SOURCE
 #define __NO_INTERFACE_SUPPORT__
-
+#define USE_SQLITE
