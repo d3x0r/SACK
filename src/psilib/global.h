@@ -1,5 +1,5 @@
-#ifndef GLOBAL_STRUCTURE_DEFINED
-#define GLOBAL_STRUCTURE_DEFINED
+#ifndef PSI_GLOBAL_STRUCTURE_DEFINED
+#define PSI_GLOBAL_STRUCTURE_DEFINED
 
 #include <stdhdrs.h>
 
@@ -9,7 +9,7 @@
 #ifndef PSI_SERVICE
 #  ifndef FORCE_NO_INTERFACE
 #    ifndef USE_IMAGE_INTERFACE // some people including this may have already defined this
-#define USE_IMAGE_INTERFACE g.MyImageInterface
+#define USE_IMAGE_INTERFACE global_psi_structure.MyImageInterface
 #    endif
 #  endif
 #endif
@@ -27,7 +27,7 @@
 
 #ifndef PSI_SERVICE
 #  ifndef FORCE_NO_INTERFACE
-#define USE_RENDER_INTERFACE g.MyDisplayInterface
+#define USE_RENDER_INTERFACE global_psi_structure.MyDisplayInterface
 #  endif
 #endif
 #include <render.h>
@@ -108,8 +108,6 @@ enum {
 	  , SEGMENT_BOTTOM_RIGHT
      // border segment index's
 };
-//#define defaultcolor g.defaultcolors
-//#define basecolor(pc) ((pc)?((pc)->border?(pc)->border->defaultcolors:(pc)->basecolors):(g.DefaultBorder?g.DefaultBorder->defaultcolors:DefaultColors))
 
 #if !defined( CONTROL_BASE ) && (defined( SOURCE_PSI2 ) || defined( __cplusplus_cli ))
 extern
@@ -136,7 +134,7 @@ extern
 /* This is the structure PSI uses to track .... what? The
    application has to know its own handles... what does PSI keep
    anyhow? most methods are registered now.                      */
-PSI_GLOBAL g
+PSI_GLOBAL global_psi_structure
 #ifndef CONTROL_BASE
 ;
 #else
