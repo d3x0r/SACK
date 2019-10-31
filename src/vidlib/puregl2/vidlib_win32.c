@@ -9,7 +9,6 @@
 
 RENDER_NAMESPACE
 
-extern KEYDEFINE KeyDefs[];
 #if defined( UNDER_CE )
 #define NO_MOUSE_TRANSPARENCY
 #define NO_ENUM_DISPLAY
@@ -237,7 +236,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			// messages are thread safe.
 			static TEXTCHAR buffer[2048];
 			PVIDEO hVideo = (PVIDEO)_GetWindowLong( hWnd, WD_HVIDEO );
-			INDEX nFiles = DragQueryFile( hDrop, INVALID_INDEX, NULL, 0 );
+			INDEX nFiles = DragQueryFile( hDrop, (UINT)-1, NULL, 0 );
 			INDEX iFile;
 			POINT pt;
 			if( hVideo )
@@ -1571,9 +1570,9 @@ void OpenWin32Camera( struct display_camera *camera )
 															| (camera->hVidCore->flags.bLayeredWindow?WS_EX_LAYERED:0)
 #endif
 	#ifdef UNICODE
-													  , (LPWSTR)l.aClass
+													  , (LPWSTR)(uintptr_t)l.aClass
 	#else
-													  , (LPSTR)l.aClass
+													  , (LPSTR)(uintptr_t)l.aClass
 	#endif
 													  , (l.gpTitle && l.gpTitle[0]) ? l.gpTitle : window_name
 													  , WS_POPUP //| WINDOW_STYLE

@@ -2144,7 +2144,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			// messages are thread safe.
 			static TEXTCHAR buffer[2048];
 			PVIDEO hVideo = (PVIDEO)GetWindowLongPtr( hWnd, WD_HVIDEO );
-			INDEX nFiles = DragQueryFile( hDrop, INVALID_INDEX, NULL, 0 );
+			INDEX nFiles = DragQueryFile( hDrop, (UINT)-1, NULL, 0 );
 			INDEX iFile;
 			POINT pt;
 			// AND we should...
@@ -5959,6 +5959,8 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 			;
 		VidInterface._SetClipboardEventCallback = SetClipboardEventCallback;
 		RegisterInterface( name, GetDisplayInterface, DropDisplayInterface );
+		RegisterClassAlias( name, "render" );
+
 	}
 	if( SACK_GetProfileInt( "SACK/Video Render", "enable alt-f4 exit", 1 ) )
 		BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );

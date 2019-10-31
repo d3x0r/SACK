@@ -215,7 +215,7 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 		if( !hVideo->pFractures || hVideo->nFractures == hVideo->nFracturesAvail )
 		{
 			hVideo->pFractures =
-				NewArray( struct fracture_tag, ( hVideo->nFracturesAvail += 16 ) );
+				NewArray( struct hvideo_fracture_tag, ( hVideo->nFracturesAvail += 16 ) );
 			MemSet( hVideo->pFractures + nFracture, 0, sizeof( hVideo->pFractures[0] ) * 16 );
 		}
       hVideo->pFractures[nFracture].x = x;

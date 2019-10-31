@@ -299,11 +299,11 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 
 /// ---------------- Interface ---------------
 #undef GetDisplayInterface
-POINTER  CPROC GetDisplayInterface (void);
+POINTER  CPROC ogl_GetDisplayInterface (void);
 #undef DropDisplayInterface
-void  CPROC DropDisplayInterface (POINTER p);
-POINTER CPROC GetDisplay3dInterface (void);
-void  CPROC DropDisplay3dInterface (POINTER p);
+void  CPROC ogl_DropDisplayInterface (POINTER p);
+POINTER CPROC ogl_GetDisplay3dInterface (void);
+void  CPROC ogl_DropDisplay3dInterface (POINTER p);
 
 // ------------- Interface to system key event interface
 void SACK_Vidlib_ShowInputDevice( void );

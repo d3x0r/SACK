@@ -36,8 +36,6 @@ RENDER_NAMESPACE
 
 HWND  GetNativeHandle (PVIDEO hVideo);
 
-extern KEYDEFINE KeyDefs[];
-
 	static struct touch_event_state
 	{
 		struct touch_event_flags

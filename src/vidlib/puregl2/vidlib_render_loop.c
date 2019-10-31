@@ -8,13 +8,6 @@
 RENDER_NAMESPACE
 
 
-int IsVidThread( void )
-{
-	// used by opengl to allow selecting context.
-	if( IsThisThread( l.actual_thread ) )
-		return TRUE;
-	return FALSE;
-}
 
 void ogl_Redraw( PVIDEO hVideo )
 {

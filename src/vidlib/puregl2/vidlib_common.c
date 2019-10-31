@@ -72,9 +72,6 @@ RENDER_NAMESPACE
 
 HWND  ogl_GetNativeHandle (PVIDEO hVideo);
 
-extern KEYDEFINE KeyDefs[];
-
-
 // forward declaration - staticness will probably cause compiler errors.
 
 //----------------------------------------------------------------------------
@@ -612,7 +609,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 						reference->Update3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,"Update3d",(PTRANSFORM));
 						reference->Resume3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"Resume3d",(void));
 						// add one copy of each update proc to update list.
-						if( FindLink( &l.update, reference->Update3d ) == INVALID_INDEX )
+						if( FindLink( &l.update, (POINTER)reference->Update3d ) == INVALID_INDEX )
 							AddLink( &l.update, reference->Update3d );
 						reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraDraw3d",(uintptr_t));
 						reference->FirstDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"FirstDraw3d",(uintptr_t));
@@ -1603,12 +1600,6 @@ void  ogl_OwnMouseEx (PVIDEO hVideo, uint32_t own DBG_PASS)
 	}
 }
 
-//----------------------------------------------------------------------------
-void
-NoProc (void)
-{
-	// empty do nothing prodecudure for unimplemented features
-}
 
 //----------------------------------------------------------------------------
 #undef GetNativeHandle
@@ -2028,10 +2019,10 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 #ifdef _OPENGL_DRIVER
 	RegisterInterface( 
 		"puregl2.render"
-		, GetDisplayInterface, DropDisplayInterface );
+		, ogl_GetDisplayInterface, ogl_DropDisplayInterface );
 	RegisterInterface( 
 		"puregl2.render.3d"
-		, GetDisplay3dInterface, DropDisplay3dInterface );
+		, ogl_GetDisplay3dInterface, ogl_DropDisplay3dInterface );
 #endif
 #ifdef __EMSCRIPTEN__
 	RegisterClassAlias( "system/interfaces/puregl2.render", "system/interfaces/render" );

@@ -110,22 +110,22 @@ RENDER3D_INTERFACE Render3d = {
 #undef GetDisplayInterface
 #undef DropDisplayInterface
 
-POINTER  CPROC GetDisplayInterface (void)
+POINTER  CPROC ogl_GetDisplayInterface (void)
 {
    return (POINTER)&VidInterface;
 }
 
-void  CPROC DropDisplayInterface (POINTER p)
+void  CPROC ogl_DropDisplayInterface (POINTER p)
 {
 }
 
 #undef GetDisplay3dInterface
-POINTER CPROC GetDisplay3dInterface (void)
+POINTER CPROC ogl_GetDisplay3dInterface (void)
 {
 	return (POINTER)&Render3d;
 }
 
-void  CPROC DropDisplay3dInterface (POINTER p)
+void  CPROC ogl_DropDisplay3dInterface (POINTER p)
 {
 }
 
