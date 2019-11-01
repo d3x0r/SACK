@@ -22,7 +22,9 @@ without express or implied warranty of any kind.
 These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
-#define MD5_SOURCE
+#ifndef MD5_SOURCE
+#  define MD5_SOURCE
+#endif
 #include "../../../include/md5.h"
 
 /* Constants for MD5Transform routine.
