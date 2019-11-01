@@ -931,7 +931,7 @@ struct sack_vfs_volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, ui
 				vol->dwSize -= ((uintptr_t)actual_disk - (uintptr_t)memory);
 				memory = (POINTER)actual_disk;
 			} else {
-				lprintf( "Signature failed comparison; the core is not attached to anything." );
+				// not enough length to have a volume.
 				vol->diskReal = NULL;
 				vol->disk = NULL;
 				vol->dwSize = 0;
