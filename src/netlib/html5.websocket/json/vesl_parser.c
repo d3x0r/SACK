@@ -403,6 +403,8 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 				// fall through to clear escape status <CR><LF> support.
 			case 2028: // LS (Line separator)
 			case 2029: // PS (paragraph separate)
+				// escaped whitespace is nul'ed.
+				state->escape = 0;
 				continue;
 			case '/':
 			case '\\':
