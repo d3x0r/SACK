@@ -53,6 +53,7 @@
 
 // this is safe to leave on.
 #define LOG_ORDERING_REFOCUS
+//#define LOG_STARTUP
 
 // move local into render namespace.
 #define VIDLIB_MAIN
@@ -450,7 +451,9 @@ void  ogl_PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 			}
 			//lprintf( "Add camera to list" );
 			AddLink( &l.cameras, camera );
+#ifdef DEBUG_LOAD_OPTIONS
 			lprintf( " camera is %d,%d", camera->w, camera->h );
+#endif
 		}
 		if( !default_camera )
 		{
@@ -530,7 +533,9 @@ void  ogl_PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 			}
 			//lprintf( "Add camera to list" );
 			AddLink( &l.cameras, camera );
+#ifdef LOG_STARTUP
 			lprintf( " camera is %d,%d", camera->w, camera->h );
+#endif
 		}
 		if( !default_camera )
 		{

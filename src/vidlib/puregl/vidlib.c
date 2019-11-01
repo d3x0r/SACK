@@ -2933,7 +2933,7 @@ static void LoadOptions( void )
 	//int some_width;
 	//int some_height;
 #ifndef __NO_OPTIONS__
-	PODBC option = GetOptionODBC( NULL );
+	PODBC option = NULL;//GetOptionODBC( NULL );
 	l.flags.bLogRenderTiming = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Log Render Timing", 0, TRUE );
 	l.flags.bView360 = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/360 view", 0, TRUE );
 

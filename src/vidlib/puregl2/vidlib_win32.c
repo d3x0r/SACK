@@ -21,12 +21,12 @@ RENDER_NAMESPACE
 #  endif
 #endif
 
+// Log initial load options and startup (before real otuput is created)
 //#define LOG_STARTUP
 //#define OTHER_EVENTS_HERE
 //#define LOG_MOUSE_EVENTS
 //#define LOG_RECT_UPDATE
 //#define LOG_DESTRUCTION
-#define LOG_STARTUP
 //#define LOG_FOCUSEVENTS
 //#define LOG_SHOW_HIDE
 //#define LOG_DISPLAY_RESIZE
