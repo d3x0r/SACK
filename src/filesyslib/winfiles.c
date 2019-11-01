@@ -182,8 +182,10 @@ static void LocalInit( void )
 #endif
 		{
 #ifdef _WIN32
-			sack_set_common_data_producer( "Freedom Collective" );
-			sack_set_common_data_application( GetProgramName() );
+			if( !( *winfile_local ).producer )
+				sack_set_common_data_producer( "Freedom Collective" );
+			if( !( *winfile_local ).application )
+				sack_set_common_data_application( GetProgramName() );
 #else
 			{
 				char tmpPath[256];
@@ -431,7 +433,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi )
 			{
 				CTEXTSTR here;
 				size_t len;
-				here = (*winfile_local).data_file_root;
+				here = (*winfile_local).local_data_file_root;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
 			}
