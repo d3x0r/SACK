@@ -467,7 +467,15 @@ typedef struct font_renderer_tag FONT_RENDERER;
 static PLIST fonts;
 static LOGICAL cleanFonts;
 
-static void OnDisplayConnect( "@00 Image Core" )( struct display_app*app, struct display_app_local ***pppLocal )
+#ifdef USE_API_ALIAS_PREFIX
+#  define FNTRENDER_DISPLAYCONNECT_NAME__(a) a
+#  define FNTRENDER_DISPLAYCONNECT_NAME_(n)   FNTRENDER_DISPLAYCONNECT_NAME__("@00 Image Core" #n)
+#  define FNTRENDER_DISPLAYCONNECT_NAME FNTRENDER_DISPLAYCONNECT_NAME_(USE_API_ALIAS_PREFIX)
+#else
+#  define FNTRENDER_DISPLAYCONNECT_NAME
+#endif
+
+static void OnDisplayConnect( FNTRENDER_DISPLAYCONNECT_NAME )( struct display_app*app, struct display_app_local ***pppLocal )
 {
 	INDEX idx;
 	PFONT_RENDERER renderer;
