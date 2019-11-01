@@ -1320,7 +1320,7 @@ PROCREG_PROC( CTEXTSTR, GetFirstRegisteredNameEx )( PCLASSROOT root, CTEXTSTR cl
 	PTREEDEF class_root;
 	PNAME name;
 	*data =
-		(PCLASSROOT)(class_root = (PTREEDEF)GetClassTree( (PCTREEDEF)root, (PCTREEDEF)classname ));
+		(PCLASSROOT)(class_root = (PTREEDEF)GetClassTreeEx( (PCTREEDEF)root, (PCTREEDEF)classname, NULL, 0 ));
 	if( class_root )
 	{
 		name = (PNAME)GetLeastNodeEx( class_root->Tree, &class_root->cursor );
