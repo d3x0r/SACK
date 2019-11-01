@@ -30,7 +30,7 @@
 #define NEED_VECTLIB_ALIASES
 
 #define PNG_SOURCE
-#deifne FREETYPE_SOURCE
+#define FREETYPE_SOURCE
 //#include <stdio.h>
 //#include <stdarg.h> 
 //#include <stdhdrs.h>

@@ -8,6 +8,7 @@
 #define PURE_OPENGL2_ENABLED
 
 #define VECTOR_LIBRARY_IS_EXTERNAL
+#define GLEW_BUILD 
 
 #define USE_API_ALIAS_PREFIX ogl_
 
