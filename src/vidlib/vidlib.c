@@ -4090,7 +4090,7 @@ static void VideoLoadOptions( void )
 	//SetOptionDatabaseOption( option, TRUE );
 
 #ifndef __NO_OPTIONS__
-	PODBC option = GetOptionODBC( NULL );
+	PODBC option = NULL;//GetOptionODBC( NULL );
 	l.flags.bLogMessages = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/log messages", 0, TRUE );
 	l.flags.bHookTouchEvents = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/use touch event", 0, TRUE );
 
@@ -4110,7 +4110,7 @@ static void VideoLoadOptions( void )
 	l.flags.bUseLLKeyhook = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Use Low Level Keyhook", 0, TRUE );
    l.flags.bDisableAutoDoubleClickFullScreen = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Disable full-screen mouse auto double-click", 0, TRUE );
    l.flags.bDoNotPreserveAspectOnFullScreen = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Do not preserve aspect streching full-screen", 0, TRUE );
-	DropOptionODBC( option );
+	//DropOptionODBC( option );
 #else
 #  ifndef UNDER_CE
 	if( l.UpdateLayeredWindowIndirect )
