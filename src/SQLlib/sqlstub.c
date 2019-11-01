@@ -711,6 +711,9 @@ static void DumpODBCInfo( PODBC odbc )
 					 , c->flags.bPushed?"Pushed":"Auto"
 					 , c->flags.bEndOfFile?"EOF":"more"
 					 );
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+			lprintf( "odbc->stmt: %p", c->stmt );
+#endif
 			lprintf( "\tCommand: %s"
 					 , GetText( VarTextPeek( c->pvt_out ) )
 					 );
@@ -1825,7 +1828,7 @@ static uintptr_t CPROC CommitThread( PTHREAD thread )
 		//lprintf( "waiting..." );
 		// if it expires, set tick and get out of loop
 		// clearing last_command_tick will also end the thread (a manual sqlcommit on the connection)
-		if( odbc->last_command_tick < ( timeGetTime() - 500 ) )
+		if( odbc->last_command_tick < ( timeGetTime() - 50 ) )
 		{
 			if( ( !odbc->flags.bThreadProtect )
 				|| EnterCriticalSecNoWait( &odbc->cs, NULL ) )
@@ -1835,7 +1838,7 @@ static uintptr_t CPROC CommitThread( PTHREAD thread )
 				break;
 			}
 		}
-		WakeableSleep( 250 );
+		WakeableSleep( 25 );
 	}
 
 	// a SQLCommit may have happened outside of this, which cleas last_command_tick
@@ -2753,6 +2756,7 @@ void CloseDatabase( PODBC odbc )
 int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 {
 	int retry = 0;
+   int log = 0;
 #ifdef USE_ODBC
 	RETCODE rc;
 #endif
@@ -2817,8 +2821,10 @@ corruptRetry:
 		if( odbc->flags.bNoLogging )
 			//odbc->hidden_messages++
 			;
-		else
+		else {
 			_lprintf(DBG_RELAY)( "Do Command[%p:%s]: %s", odbc, odbc->info.pDSN?odbc->info.pDSN:"NoDSN?", GetText( cmd ) );
+         log = 1;
+		}
 	}
 
 #ifdef LOG_EVERYTHING
@@ -2885,11 +2891,14 @@ retry:
 				break;
 			case SQLITE_BUSY:
 				// going to retry the statement as a whole anyhow.
+				if(log ) {
+					lprintf( "BUSY - WHY?" );
+					DumpAllODBCInfo();
+				}
 				sqlite3_finalize( collection->stmt );
 				if( !odbc->flags.bNoLogging )
 				{
 					_lprintf(DBG_RELAY)( "Database Busy, waiting on[%p:%s]: %s", odbc, odbc->info.pDSN?odbc->info.pDSN:"NoDSN?", GetText( cmd ) );
-					//DumpAllODBCInfo();
 				}
 				WakeableSleep( 25 );
 				goto retry;
@@ -3308,7 +3317,10 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			switch( rc3 )
 			{
 			case SQLITE_BUSY:
-				lprintf( "Database busy, waiting..." );
+				if( pvtData ) {
+					lprintf( "Database busy, waiting..." );
+					DumpAllODBCInfo();
+				}
 				WakeableSleep( 25 );
 				goto retry;
 			case SQLITE_LOCKED:
