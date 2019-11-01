@@ -1,7 +1,4 @@
 #define NO_UNICODE_C
-#ifdef SACK_CORE_BUILD
-#define MD5_SOURCE
-#endif
 #define HTML5_WEBSOCKET_SOURCE
 #define SACK_WEBSOCKET_CLIENT_SOURCE // websocketclose is a common...
 
