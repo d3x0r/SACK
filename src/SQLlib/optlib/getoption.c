@@ -240,11 +240,16 @@ SQLGETOPTION_PROC( void, CreateOptionDatabaseEx )( PODBC odbc, POPTION_TREE tree
 					|| !result )
 				{
 					OpenWriter( tree );
-					SQLCommandf( tree->odbc_writer
+					if( !SQLCommandf( tree->odbc_writer
 					           , "insert into option4_map (option_id,parent_option_id,name_id)values('%s','%s','%s' )"
 					           , GuidZero(), GuidZero()
 					           , New4ReadOptionNameTable(tree,".",OPTION4_NAME,"name_id","name",1 DBG_SRC)
-									);
+										 ) ) {
+						CTEXTSTR error;
+						FetchSQLError( tree->odbc_writer, &error );
+						lprintf( "Error inserting option: %s %s", "", error );
+
+					}
 				}
 				SQLEndQuery( tree->odbc );
 				//for( SQLQueryf( tree->odbc, &result, "select * from option4_map" ); result; FetchSQLResult( tree->odbc, &result ));
@@ -294,6 +299,60 @@ void OpenWriterEx( POPTION_TREE option DBG_PASS )
 #endif
 		option->odbc_writer = ConnectToDatabaseExx( option->odbc?option->odbc->info.pDSN:sg.Primary.info.pDSN, FALSE DBG_RELAY );
 		SQLCommand( option->odbc_writer, "pragma foreign_keys=on" );
+
+		{
+			CTEXTSTR* result = NULL;
+			SQLRecordQuery( option->odbc_writer, "pragma integrity_check", NULL, &result, NULL );
+			while( result ) {
+				//lprintf( "integrity:%s", result[0] );
+				FetchSQLRecord( option->odbc_writer, &result );
+			}
+		}
+		{
+			CTEXTSTR *result = NULL;
+			SQLRecordQuery( option->odbc_writer, "select * from sqlite_master", NULL, &result, NULL );
+			while( result ) {
+				FetchSQLRecord( option->odbc_writer, &result );
+			}
+		}
+		{
+			CTEXTSTR* result = NULL;
+			if( !SQLRecordQuery( option->odbc_writer, "select option4_values.option_id as ov,option4_map.option_id as om from option4_values left outer join option4_map USING(option_id) where option4_map.option_id is NULL", NULL, &result, NULL ) ){
+				CTEXTSTR error;
+				FetchSQLError( option->odbc_writer, &error );
+				lprintf( "Error selecting options: %s %s", "", error );
+			}
+			while( result ) {
+				lprintf( "Got Row: %s %s", result[0], result[1] );
+				FetchSQLRecord( option->odbc_writer, &result );
+			}
+		}
+		{
+			CTEXTSTR* result = NULL;
+			PLIST fixes = NULL;
+			if( !SQLRecordQuery( option->odbc_writer, "select a.option_id,a.parent_option_id   from option4_map a left outer join option4_map b on a.parent_option_id=b.option_id where b.option_id is NULL", NULL, &result, NULL ) ) {
+				CTEXTSTR error;
+				FetchSQLError( option->odbc_writer, &error );
+				lprintf( "Error selecting options: %s %s", "", error );
+			}
+			while( result ) {
+				AddLink( &fixes, StrDup( result[0] ) );
+				lprintf( "Got Row: %s %s", result[0], result[1] );
+				FetchSQLRecord( option->odbc_writer, &result );
+			}
+			{
+				INDEX idx;
+				char* id;
+				LIST_FORALL( fixes, idx, char*, id ) {
+					SQLCommandf( option->odbc_writer, "delete from option4_map where option_id='%s'", id );
+					Release( id );
+				}
+				DeleteList( &fixes );
+				//SQLCommit( option->odbc_writer );
+			}
+		}
+
+
 		/*
 		SQLCommand( option->odbc_writer, "pragma integrity_check" );
 		{
@@ -402,6 +461,9 @@ retry:
       //lprintf( "and the command..." );
 		if( !SQLCommandEx( tree->odbc_writer, query DBG_RELAY ) )
 		{
+			CTEXTSTR error;
+			FetchSQLError( tree->odbc_writer, &error );
+			lprintf( "Error inserting option: %s %s", "", error );
 			// insert failed;  assume it's a duplicate key now, and retry.
 			// on an option connection, maybe the name has been inserted, and is waiting in a commit-on-idle
 			// ... if we try this a few times, the commit will happen; then we can re-select and continue as normal
@@ -945,9 +1007,8 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExx )( CTEXTSTR pSection
 																			DBG_PASS
 																				)
 {
-	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN() );
 	size_t result;
-	result = SACK_GetPrivateProfileStringExxx( odbc,    pSection
+	result = SACK_GetPrivateProfileStringExxx( NULL,    pSection
 																		  , pOptname
 																		  , pDefaultbuf
 																		  , pBuffer
@@ -956,7 +1017,6 @@ SQLGETOPTION_PROC( size_t, SACK_GetPrivateProfileStringExx )( CTEXTSTR pSection
 																		  , bQuiet
 																			DBG_RELAY
 																		  );
-	DropOptionODBC( odbc );
 	return result;
 }
 
@@ -1000,9 +1060,7 @@ SQLGETOPTION_PROC( int32_t, SACK_GetPrivateProfileIntExx )( PODBC odbc, CTEXTSTR
 SQLGETOPTION_PROC( int32_t, SACK_GetPrivateProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t nDefault, CTEXTSTR pINIFile, LOGICAL bQuiet )
 {
 	int32_t result;
-	PODBC odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN() );
-	result = SACK_GetPrivateProfileIntExx( odbc, pSection, pOptname, nDefault, pINIFile, bQuiet DBG_SRC );
-	DropOptionODBC( odbc );
+	result = SACK_GetPrivateProfileIntExx( NULL, pSection, pOptname, nDefault, pINIFile, bQuiet DBG_SRC );
 	return result;
 }
 
@@ -1103,11 +1161,8 @@ SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateOptionStringEx )( PODBC odbc, CTEXT
 //------------------------------------------------------------------------
 SQLGETOPTION_PROC( LOGICAL, SACK_WritePrivateProfileStringEx )( CTEXTSTR pSection, CTEXTSTR pName, CTEXTSTR pValue, CTEXTSTR pINIFile, LOGICAL flush )
 {
-	PODBC odbc;
 	LOGICAL result;
-	odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN() );
-	result = SACK_WritePrivateOptionStringEx( odbc, pSection, pName, pValue, pINIFile, flush );
-	DropOptionODBC( odbc );
+	result = SACK_WritePrivateOptionStringEx( NULL, pSection, pName, pValue, pINIFile, flush );
 	return result;
 }
 
@@ -1227,7 +1282,7 @@ SQLGETOPTION_PROC( int, SACK_WritePrivateProfileExceptionString )( CTEXTSTR pSec
 		if( !SQLCommand( og.Option, exception ) )
 		{
 			CTEXTSTR result = NULL;
-			GetSQLResult( &result );
+			GetSQLError( &result );
 			lprintf( "Insert exception failed: %s", result );
 		}
 		else
@@ -1598,6 +1653,7 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 #endif
 			odbc = ConnectToDatabaseExx( tracker->name, TRUE DBG_RELAY );
 			SetSQLCorruptionHandler( odbc, repairOptionDb, (uintptr_t)odbc );
+         SetSQLAutoTransact( odbc, 0 ); // this doesn't need to transact.
 			SQLCommand( odbc, "pragma foreign_keys=on" );
 
 			{

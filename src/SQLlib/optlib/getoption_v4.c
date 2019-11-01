@@ -95,16 +95,24 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 			if( SQLQueryEx( tree->odbc, query, &result DBG_RELAY) && result )
 			{
 				IDName = SaveText( result );
-				SQLEndQuery( tree->odbc );
+				SQLEndQuery( tree->odbc ); // allow repurposing...
+				PopODBCEx(tree->odbc);
 			}
 			else if( bCreate )
 			{
-				TEXTSTR newval = EscapeSQLString( tree->odbc, name );
+				TEXTSTR newval;
+				SQLEndQuery( tree->odbc );
+				PopODBCEx(tree->odbc);
+				OpenWriterEx( tree DBG_RELAY );
+				newval = EscapeSQLString( tree->odbc_writer, name );
 				tnprintf( query, sizeof( query ), "insert into %s (%s,%s) values( '%s','%s' )"
 						  , table, col, namecol, IDName = GetSeqGUID(), newval );
 				OpenWriterEx( tree DBG_RELAY );
 				if( !SQLCommandEx( tree->odbc_writer, query DBG_RELAY ) )
 				{
+					CTEXTSTR error;
+					FetchSQLError( tree->odbc_writer, &error );
+					lprintf( "Error inserting option name: %s %s", "", error );
 #ifdef DETAILED_LOGGING
 					lprintf( "insert failed, how can we define name %s?", name );
 #endif
@@ -116,10 +124,10 @@ CTEXTSTR New4ReadOptionNameTable( POPTION_TREE tree, CTEXTSTR name, CTEXTSTR tab
 				}
 				Release( newval );
 			}
-			else
+			else {
 				IDName = NULL;
-
-			PopODBCEx(tree->odbc);
+				PopODBCEx(tree->odbc);
+			}
 
 			if( IDName )
 			{
