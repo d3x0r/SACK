@@ -1048,7 +1048,7 @@ void IMGVER(Render3dText)( CTEXTSTR string, int characters, CDATA color, SFTFont
 	VECTOR o_tmp;
 	VECTOR offset;
 	RCOORD tmp_del = 1.0;
-	RCOORD distance;
+	//RCOORD distance;
 	VECTOR tmp_distance;
 	if( !output.transform )
 	{
