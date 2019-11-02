@@ -320,7 +320,7 @@ int CPROC PLUGIN( PSENTIENT ps, PTEXT parameters )
 			mask = base;
 			base = NULL;
 		}
-		while( ScanFiles( base, mask, &pInfo, LoadAPlugin, 0, 0 ) );
+		while( ScanFiles( base, mask, &pInfo, LoadAPlugin, SFF_DEFAULT, 0 ) );
 		if( base ) 
 			Release( base );
 		else

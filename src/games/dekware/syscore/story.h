@@ -1,5 +1,5 @@
 #define NUMLINES (sizeof(storytext)/sizeof(char *))
-TEXTCHAR *storytext[]={""
+TEXTCHAR const *storytext[]={""
 ,"     In the beginning there was The Void.  Contained in The Void was"
 ,"nothing.  Out of the nothingness there was born the Elf- Mister Y.  "
 ,"Famished from his spontaneous creation his mind formed the mad thought,"

@@ -11,5 +11,5 @@ typedef struct plugin_tag {
 	struct plugin_tag* pNext, * pPrior;
 	char* pVersion;
 	TEXTCHAR pName[];
-} PLUGIN, * PPLUGIN;
+} * PPLUGIN;
 

@@ -640,7 +640,7 @@ int CPROC CMD_STOP( PSENTIENT ps, PTEXT parameters )
 	return FALSE;
 }
 
-void ListMacro( PSENTIENT ps, PVARTEXT vt, PMACRO pm, TEXTCHAR *type )
+static void ListMacro( PSENTIENT ps, PVARTEXT vt, PMACRO pm, TEXTCHAR const *type )
 {
 	PTEXT pt;
 	INDEX idx;
