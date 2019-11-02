@@ -199,7 +199,6 @@ SaneWinMain( argc, argv )
 {
 	f2();
 	uint8_t buffer[512];
-	int offset;
 	//struct random_context *entropy = SRG_CreateEntropy2( getsalt, 0 );
 	struct random_context *entropy = argc > 1 ? 
 		  argv[1][0] == '1' ? SRG_CreateEntropy( getsalt, 0 )
@@ -210,7 +209,6 @@ SaneWinMain( argc, argv )
 		: SRG_CreateEntropy4( getsalt, 0 )
 		: SRG_CreateEntropy4( getsalt, 0 )
 		;
-	int n;
 	if( argc > 2 ) {
 		lprintf( "Disable external seed." );
 		useSeed = 0;
@@ -310,6 +308,7 @@ SaneWinMain( argc, argv )
 	start = timeGetTime();
 
 #endif
+	int n;
 	for( n = 0; n < 1000; n++ )
 	{
 		int d1 = ( SRG_GetEntropy( entropy, 3, 0 ) ) ;

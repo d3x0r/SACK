@@ -486,7 +486,7 @@ void RecallUserInput( PUSER_INPUT_BUFFER pci, int bUp )
 	if( !bUp )
 	{
 		pci->nHistory++;
-		if( pci->nHistory >= pci->InputHistory->Cnt )
+		if( SUS_GTE( pci->nHistory, int, pci->InputHistory->Cnt, INDEX ) )
 				pci->nHistory -= pci->InputHistory->Cnt;
 		if( pci->nHistory == pci->InputHistory->Top )
 		{

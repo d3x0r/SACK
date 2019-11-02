@@ -18,7 +18,7 @@ IMAGE_NAMESPACE
 #ifdef __cplusplus
 namespace loader {
 #endif
-extern LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
+	extern LOGICAL vid_proxy_PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
 #ifdef __cplusplus
 };
 #endif
@@ -315,7 +315,7 @@ static uint8_t* EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 		if( image )
 		{
 			uint8_t *buf;
-			if( PngImageFile( image, &buf, outsize ) )
+			if( vid_proxy_PngImageFile( image, &buf, outsize ) )
 			{
 				if( 1 )
 				{

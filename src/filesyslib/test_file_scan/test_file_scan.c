@@ -2,7 +2,7 @@
 #include <stdhdrs.h>
 #include <filesys.h>
 
-static void CPROC DumpScan( uintptr_t user, CTEXTSTR name, int flags ) {
+static void CPROC DumpScan( uintptr_t user, CTEXTSTR name, enum ScanFileProcessFlags flags ) {
 	printf( "%s %s %s\n", name, (flags&SFF_DIRECTORY)?"<DIR>":"", (flags&SFF_DRIVE)?"<DRIVE>":"" );
 }
 

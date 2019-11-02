@@ -34,7 +34,7 @@ int main( void ) {
 //	__declspec(dllimport) void c( PTREEROOT root, int **heights, int **swaps, int *maxScans, int*bfl, int *bfr );
 
 	for(  i = 0; i < 1000000; i++ ) {
-		AddBinaryNode( tree, i, i );
+		AddBinaryNode( tree, (POINTER)i, i );
 	}
 	AddBinaryNode( tree, i, i );
 #ifdef DEBUG_PERF
@@ -44,7 +44,7 @@ int main( void ) {
 
 	tree = CreateBinaryTree();
 	for( i = 1000000; i > 00; i-- ) {
-		AddBinaryNode( tree, i, i );
+		AddBinaryNode( tree, (POINTER)i, i );
 	}
 	AddBinaryNode( tree, i, i );
 #ifdef DEBUG_PERF
@@ -54,7 +54,7 @@ int main( void ) {
 
 	tree = CreateBinaryTree();
 	for( i = 0; i < 1000000; i++ ) {
-		AddBinaryNode( tree, rand(), rand() );
+		AddBinaryNode( tree, (POINTER)rand(), rand() );
 	}
 	i = rand();
 	AddBinaryNode( tree, i,i );

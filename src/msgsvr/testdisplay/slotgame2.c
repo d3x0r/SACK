@@ -292,7 +292,6 @@ void CPROC ComputeReels( uintptr_t psv )
 		// with an option for x instead of Y
       if( reel )
 		{
-			int32_t y;
 			if( reel->speed > 1000 )
             DebugBreak();
          lprintf( "speed is %ld", reel->speed );
@@ -364,7 +363,7 @@ void CPROC ComputeReels( uintptr_t psv )
 						//reel->speed = 96/2;
 						// should compute how far at current speed, I would go...
 						reel->position = reel->target_idx
-							- (( 25/*staring speed 150 cycles thereof */ * (3000/reel->stop_event_tick) )+
+							- (( 25/*staring speed 150 cycles thereof */ * (3000/reel->stop_event_tick) )
 							-  ( 5/*last 50 cycles at this speed*/ * (3000/reel->stop_event_tick) ))/96
 							;
 					}
@@ -449,8 +448,7 @@ int main( void )
 
 
 	{
-		int n, m;
-      INDEX idx;
+		int n;
 
 		for( n = 0; n < NUM_ICONS; n++ )
 		{
@@ -493,7 +491,6 @@ int main( void )
 		g.ofs = 0;
 		while( 1 )
 		{
-			int n;
 #ifndef __ARM__
 			// scale to approx unit speeds..
 			WakeableSleep( 250 );

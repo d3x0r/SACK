@@ -149,7 +149,7 @@ static void MaskStrCpy( char *output, size_t outlen, struct sack_vfs_volume *vol
 
 static void ExtendBlockChain( struct sack_vfs_file *file ) {
 	FPI newSize = ( file->blockChainAvail ) * 2 + 1;
-	file->blockChain = (BLOCKINDEX*)Reallocate( file->blockChain, newSize * sizeof( BLOCKINDEX ) );
+	file->blockChain = (BLOCKINDEX*)Reallocate( file->blockChain, (size_t)(newSize * sizeof( BLOCKINDEX )) );
 #ifdef _DEBUG
 	// debug
 	memset( file->blockChain + file->blockChainAvail, 0, (newSize - file->blockChainAvail ) * sizeof(BLOCKINDEX) );
@@ -1377,7 +1377,7 @@ size_t CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence )
 		}
 	}
 	{
-		size_t n = file->blockChainLength - 1;
+		size_t n = (size_t)(file->blockChainLength - 1);
 #ifdef _DEBUG
 		if( n & 0x80000000 ) DebugBreak();
 #endif

@@ -5274,7 +5274,7 @@ void  GetDisplaySize (uint32_t * width, uint32_t * height)
 			if( (struct display_camera*)1 == camera )
 			{
 				Relinquish();
-				idx == -1;
+				idx = -1;
 				continue;
 			}
 			if( width )

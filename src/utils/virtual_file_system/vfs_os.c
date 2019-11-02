@@ -387,7 +387,7 @@ static FPI GetBlockStart( struct sack_vfs_os_file* file, int blockType ) {
 	case FILE_BLOCK_REFERENCED_BY:
 		blockStart += file->header.indexes.avail;
 	case FILE_BLOCK_INDEXES:
-		blockStart += file->header.fileData.avail;
+		blockStart += (FPI)file->header.fileData.avail;
 	case FILE_BLOCK_DATA:
 		blockStart += file->header.references.avail;
 	case FILE_BLOCK_REFERENCES:
@@ -401,8 +401,8 @@ static FPI GetBlockStart( struct sack_vfs_os_file* file, int blockType ) {
 void WriteIntoBlock( struct sack_vfs_os_file* file, int blockType, FPI pos, CPOINTER data, FPI length ) {
 	FPI blockStart = GetBlockStart( file, blockType );
 
-	sack_vfs_os_seek_internal( file, blockStart, SEEK_SET );
-	sack_vfs_os_write_internal( file, data, length, NULL );
+	sack_vfs_os_seek_internal( file, (size_t)blockStart, SEEK_SET );
+	sack_vfs_os_write_internal( file, data, (size_t)length, NULL );
 }
 
 
@@ -426,9 +426,9 @@ static void _os_UpdateFileBlocks( struct sack_vfs_os_file* file ) {
 	starts[2] = starts[1] + file->header.references.avail;
 	oldStarts[2] = oldStarts[1] + file->diskHeader.references.avail;
 
-	deltas[2] = ( deltas[1] + file->header.fileData.avail) - file->diskHeader.fileData.avail;
-	starts[3] = starts[2] + file->header.fileData.avail;
-	oldStarts[3] = oldStarts[2] + file->diskHeader.fileData.avail;
+	deltas[2] = (FPI)(( deltas[1] + file->header.fileData.avail) - file->diskHeader.fileData.avail );
+	starts[3] = (FPI)( starts[2] + file->header.fileData.avail );
+	oldStarts[3] = (FPI)( oldStarts[2] + file->diskHeader.fileData.avail );
 
 	deltas[3] = ( deltas[2] + file->header.indexes.avail) - file->diskHeader.indexes.avail;
 	starts[4] = starts[3] + file->header.indexes.avail;
@@ -442,13 +442,13 @@ static void _os_UpdateFileBlocks( struct sack_vfs_os_file* file ) {
 		static uint8_t block[BLOCK_SIZE];
 		int n;
 		for( n = 5; n > 0; n-- ) {
-			size_t tailOffset = starts[n];
-			size_t oldTailOffset = oldStarts[n];
-			size_t dataLength = oldTailOffset - oldStarts[n-1];
+			size_t tailOffset = (size_t)starts[n];
+			size_t oldTailOffset = (size_t)oldStarts[n];
+			size_t dataLength = (size_t)(oldTailOffset - oldStarts[n-1]);
 
 			// only going to copy for old length, so back up the difference
 			// between new length and old length
-			tailOffset -= (starts[n] - starts[n-1] ) - dataLength;
+			tailOffset -= (size_t)((starts[n] - starts[n-1] ) - dataLength);
 			while( dataLength > 0 ) {
 				if( dataLength > BLOCK_SIZE ) {
 					oldTailOffset -= BLOCK_SIZE;
@@ -3482,7 +3482,7 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 						file->sealant = (uint8_t*)seal;
 						_os_SetSmallBlockUsage( &file->header.sealant, (uint8_t)strlen( seal ) );
 						_os_UpdateFileBlocks( file );
-						sack_vfs_os_seek_internal( file, GetBlockStart( file, FILE_BLOCK_DATA ), SEEK_SET );
+						sack_vfs_os_seek_internal( file, (size_t)GetBlockStart( file, FILE_BLOCK_DATA ), SEEK_SET );
 						sack_vfs_os_write_internal( file, objBuf, objBufLen, 0 );
 						sack_vfs_os_close_internal( file );
 					}

@@ -188,8 +188,7 @@ static void testVolume_slow( void ) {
 
 static void testVolume_db( void ) {
 #if !defined( __NO_OPTIONS__ )
-	FILE* db;
-	uint16_t buffer[2048];
+	//FILE* db;
 	int n;
 	PODBC odbc = ConnectToDatabase( "$sack@vfs$testsql.db" );
 	SQLCommandf( odbc, "delete * from sqlite_master" );
@@ -197,7 +196,6 @@ static void testVolume_db( void ) {
 	CheckODBCTable( odbc, GetFieldsInSQL("create table test2 (a,b,c)", FALSE ), CTO_MERGE );
 	
 	for( n = 0; n < 100000; n++ ) {
-		int b;
 		SQLCommandf( odbc, "insert into test1 (a,b,c) values(%d,%d,%d)", n, n * 2, n * 3 );
 		SQLCommandf( odbc, "insert into test2 (a,b,c) values(%d,%d,%d)", n, n * 2, n * 3 );
 		if( n % 3 )

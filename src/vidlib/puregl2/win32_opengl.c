@@ -303,7 +303,7 @@ int ogl_EnableOpenGL( struct display_camera *camera )
 	hdcEnable = hVideo->ENABLE_ON_DC_NORMAL;
 
 	if( !hVideo->ENABLE_ON_DC_NORMAL )
-		ogl_UpdateDisplay( hVideo );
+		ogl_UpdateDisplayEx( hVideo DBG_SRC );
 
 	EnterCriticalSec( &hVideo->cs );
 	if (!(PixelFormat=ChoosePixelFormat(hdcEnable,&pfd)))  // Did Windows Find A Matching Pixel Format?

@@ -7,7 +7,7 @@
 #include <sack_vfs.h>
 
 struct file_system_interface *fsi;
-struct volume *volume;
+struct sack_vfs_volume *volume;
 
 void test1( void )
 {

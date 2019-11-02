@@ -1279,7 +1279,7 @@ size_t CPROC sack_vfs_fs_read( struct sack_vfs_fs_file *file, void * data_, size
 		if( ( file->entry->filesize  ^ file->dirent_key.filesize ) < file->fpi )
 			length = 0;
 		else
-			length = ( file->entry->filesize  ^ file->dirent_key.filesize ) - file->fpi;
+			length = (size_t)(( file->entry->filesize  ^ file->dirent_key.filesize ) - file->fpi);
 	}
 	if( !length ) { errno = file->vol->lock = 0; LoG( "No Data to write..." );  return 0; }
 

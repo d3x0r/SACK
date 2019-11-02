@@ -2233,7 +2233,7 @@ static size_t CPROC sack_filesys_size( void*file ) {
 	if( length == (size_t)-1 ) {
 		int e = errno;
 #ifdef WIN32
-		length = _ftelli64( (FILE*)file );
+		length = (size_t)_ftelli64( (FILE*)file );
 		if( length == (size_t)-1 ) {
 #endif
 			lprintf( "ftell error %d", e );

@@ -742,12 +742,12 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 				{
 					RECT r;
 					if( hVideo->portion_update.pending ) {
-						if( x < hVideo->portion_update.x )
+						if( SUS_LT( x, int32_t, hVideo->portion_update.x, uint32_t ) )
 						{
 							hVideo->portion_update.w += hVideo->portion_update.x - x;
 							hVideo->portion_update.x = x;
 						}
-						if( y < hVideo->portion_update.y )
+						if( SUS_LT( y, int32_t, hVideo->portion_update.y, uint32_t ) )
 						{
 							hVideo->portion_update.h += hVideo->portion_update.y - y;
 							hVideo->portion_update.y = y;
