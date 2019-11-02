@@ -27,8 +27,8 @@ int main( void )
 {
 	struct json_context *context = json_create_context();
 	struct json_context_object *object1 = json_create_object( context, sizeof( struct message1 ) );
-	struct json_context_object *object1_sub1;
-	struct json_context_object *object1_sub2;
+	//struct json_context_object *object1_sub1;
+	//struct json_context_object *object1_sub2;
 	struct json_context_object *object2 = json_create_object( context, sizeof( struct message2 ) );
 	struct message1 *msg1 = New( struct message1 );
 	struct message2 *msg2 = NULL;
