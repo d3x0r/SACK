@@ -375,8 +375,9 @@
 
 /* ************************************************************************** */
 
-#include "libmng_types.h"              /* platform-specific definitions
+/* platform-specific definitions
                                           and other assorted stuff */
+#include "libmng_types.h"              
 
 /* ************************************************************************** */
 
