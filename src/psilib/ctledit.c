@@ -88,7 +88,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		{
 			uint32_t w, h;
 			GetStringSizeFontEx( "*", 1, &w, &h, font );
-			for( n= 0; n <= pe->nCaptionUsed; n++ )
+			for( n= 0; SUS_LTE( n, int, pe->nCaptionUsed, size_t ); n++ )
 			{
 				stringsize[n] = w * n;
 			}
@@ -97,7 +97,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		else
 		{
 			uint32_t w, h;
-			for( n = 0; n <= pe->nCaptionUsed; n++ )
+			for( n = 0; SUS_LTE( n, int, pe->nCaptionUsed, size_t ); n++ )
 			{
 				stringsize[n] = GetStringSizeFontEx(caption_text
 					, GetDisplayableCharacterBytes( caption_text, n)
@@ -304,7 +304,7 @@ static int OnMouseCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc, int32_t x, int32_t 
 		if( len > pe->Start )
 		{
 			CTEXTSTR tmp_offset_caption_text = GetDisplayableCharactersAtCount( caption_text, pe->Start );
-			for( cx = 1; ( cx <= ( len - pe->Start ) ); cx++ )
+			for( cx = 1; ( SUS_LTE( cx, int, ( len - pe->Start ), size_t ) ); cx++ )
 			{
 				if( GetStringSizeFontEx( tmp_offset_caption_text
 								, GetDisplayableCharacterBytes( tmp_offset_caption_text, cx ), &width, NULL, font ) )

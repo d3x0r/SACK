@@ -1087,7 +1087,6 @@ PSI_PROC( void, TrackPopup_v2 )( PMENU hMenuSub, PSI_CONTROL parent, void (*call
 	{
 
 		int32_t x, y;
-		int selection;
 		if( !hMenuSub )
 		{
 			//Log( "Invalid menu handle." );
