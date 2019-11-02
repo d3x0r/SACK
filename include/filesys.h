@@ -87,7 +87,7 @@ SACK_NAMESPACE
 _FILESYS_NAMESPACE
 
 	enum ScanFileFlags {
-
+SFF_DEFAULT = 0,
 SFF_SUBCURSE    = 1, // go into subdirectories
 SFF_DIRECTORIES = 2, // return directory names also
 SFF_NAMEONLY    = 4, // don't concatenate base with filename to result.
