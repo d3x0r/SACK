@@ -640,7 +640,7 @@ int CPROC OptionDevice( PSENTIENT ps, PTEXT params )
 							ps->CurrentMacro->state.flags.bSuccess = !fOptionHandler(pdp,ps,params);
 						}
 						else
-							f(pdp, ps, params );
+							fOptionHandler(pdp, ps, params );
 						return 0;
 					}
 					else
