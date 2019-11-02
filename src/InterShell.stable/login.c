@@ -8,5 +8,5 @@ static struct {
 	INDEX nSession;
  	char real_bingoday[24];
    INDEX iSessionID;
-}l;
+}local_login_data;
 

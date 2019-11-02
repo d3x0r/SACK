@@ -46,7 +46,7 @@ static struct {
 	Image image;
 	PSPRITE_METHOD psm;
 	PRENDERER renderer;
-} l;
+} local_sprite_data;
 static int rot;
 //static PRENDERER render;
 
@@ -57,7 +57,7 @@ void ProcessMotion( void )
 	{
 		if( sprite[n].ttl )
 		{
-			Image surface = GetDisplayImage( l.renderer );
+			Image surface = GetDisplayImage( local_sprite_data.renderer );
 			sprite[n].ttl--;
 			sprite[n].sprite->curx += sprite[n].dx;
 			sprite[n].sprite->cury += sprite[n].dy;
@@ -86,7 +86,7 @@ void CPROC SpriteDrawProc( uintptr_t psv, PRENDERER renderer, int32_t x, int32_t
 		}
 	}
 	if( !had_one )
-		l.renderer = NULL;
+		local_sprite_data.renderer = NULL;
 
 }
 
@@ -104,36 +104,36 @@ void GenerateSprites( PRENDERER renderer, int x, int y )
 			sprite[n].ttl = (rand() * 20) / RAND_MAX + 8;
 			if( !sprite[n].sprite )
 			{
-				if( !l.image )
-					l.image = LoadImageFile( "images/firestar2.png" );
+				if( !local_sprite_data.image )
+					local_sprite_data.image = LoadImageFile( "images/firestar2.png" );
 
-				if( !l.psm )
-					l.psm = EnableSpriteMethod( renderer, SpriteDrawProc, 0 );
-				sprite[n].sprite = MakeSpriteImage( l.image );
+				if( !local_sprite_data.psm )
+					local_sprite_data.psm = EnableSpriteMethod( renderer, SpriteDrawProc, 0 );
+				sprite[n].sprite = MakeSpriteImage( local_sprite_data.image );
 				if( !sprite[n].sprite )
 					return;
-				sprite[n].sprite->pSpriteMethod = l.psm;//psm;
+				sprite[n].sprite->pSpriteMethod = local_sprite_data.psm;//psm;
 				sprite[n].ttl = (rand() * 300) / RAND_MAX + 50;
 				sprite[n].sprite->curx = rand() * 500 / RAND_MAX;
 				sprite[n].sprite->cury = rand() * 500 / RAND_MAX;
 				sprite[n].dx = 15 - ( rand() * 31 / RAND_MAX );
 				sprite[n].dy = 15 - ( rand() * 31 / RAND_MAX );
-				sprite[n].sprite->hotx = l.image->width / 2;
-				sprite[n].sprite->hoty = l.image->height / 2;			
+				sprite[n].sprite->hotx = local_sprite_data.image->width / 2;
+				sprite[n].sprite->hoty = local_sprite_data.image->height / 2;			
 			}
 			sprite[n].sprite->curx = x;
 			sprite[n].sprite->cury = y;
 			sprite[n].dx = 15 - ( rand() * 31 / RAND_MAX );
 			sprite[n].dy = 15 - ( rand() * 31 / RAND_MAX );
 		}
-		l.renderer = renderer;
+		local_sprite_data.renderer = renderer;
 	}
 }
 
 
 void CPROC Tick( uintptr_t psv )
 {
-	if( !l.renderer )
+	if( !local_sprite_data.renderer )
 		return;
 	//for( n = 0; n < 16; n++ )
 	{
@@ -148,7 +148,7 @@ void CPROC Tick( uintptr_t psv )
 #ifdef DEBUG_TIMING
 		Log( "EndDraw" );
 #endif
-		UpdateDisplay( l.renderer );
+		UpdateDisplay( local_sprite_data.renderer );
 #ifdef DEBUG_TIMING
 		Log( "EndUpdate" );
 #endif

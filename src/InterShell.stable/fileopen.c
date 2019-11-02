@@ -21,7 +21,7 @@ filter == something like "Bodies\0*.Body\0"
 #define HWND int
 #define BOOL int
 #endif
-LOGICAL SelectExistingFile( PSI_CONTROL parent, TEXTCHAR * szFile, uint32_t buflen, TEXTCHAR * filter )
+LOGICAL SelectExistingFile( PSI_CONTROL parent, TEXTCHAR * szFile, uint32_t buflen, TEXTCHAR const * filter )
 {
 #ifdef COMPAT_MODE
    return PSI_PickFile( parent, ".", filter, szFile, buflen, FALSE );
@@ -84,7 +84,7 @@ LOGICAL SelectExistingFile( PSI_CONTROL parent, TEXTCHAR * szFile, uint32_t bufl
 }
 
 //------------------------------------------
-LOGICAL SelectNewFile( PSI_CONTROL parent, TEXTCHAR * szFile, uint32_t buflen, TEXTCHAR * filter )
+LOGICAL SelectNewFile( PSI_CONTROL parent, TEXTCHAR * szFile, uint32_t buflen, TEXTCHAR const * filter )
 {
 #ifdef COMPAT_MODE
    return PSI_PickFile( parent, ".", filter, szFile, buflen, TRUE );

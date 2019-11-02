@@ -37,7 +37,7 @@ static struct local_macro_data {
 	MACRO_BUTTON shutdown;
 	LOGICAL finished_startup;
 	PSI_CONTROL configuration_parent;
-} l;
+} local_macro_data;
 
 enum {
 	LIST_CONTROL_TYPES = 2000
@@ -64,7 +64,7 @@ PRELOAD( RegisterMacroDialogResources )
 	EasyRegisterResource( "intershell/macros", BUTTON_ELEMENT_CLONE_ELEMENT, NORMAL_BUTTON_NAME );
 	EasyRegisterResource( "intershell/macros", LIST_MACRO_ELEMENTS, LISTBOX_CONTROL_NAME );
 #define EasyAlias( x, y )	\
-	RegisterClassAlias( "psi/resources/intershell/macros/"y "/"#x, "psi/resources/application/" y "/" #x )
+	RegisterClassAlias( "psi/resources/intershell/macros/" y "/" #x, "psi/resources/application/" y "/" #x )
 	// migration path...
 	EasyAlias(LIST_CONTROL_TYPES, LISTBOX_CONTROL_NAME );
 	EasyAlias(BUTTON_ADD_CONTROL, NORMAL_BUTTON_NAME );
@@ -305,7 +305,7 @@ static void ConfigureMacroButton( PMACRO_BUTTON button, PSI_CONTROL parent )
 	{
 		int okay = 0;
 		int done = 0;
-		l.configuration_parent = parent;
+		local_macro_data.configuration_parent = parent;
 		SetCommonButtons( frame, &done, &okay );
 		{
 			PSI_CONTROL list;
@@ -468,7 +468,7 @@ static uintptr_t OnCreateMenuButton( MACRO_BUTTON_NAME )( PMENU_BUTTON common )
 	PMACRO_BUTTON button = New( MACRO_BUTTON );
 	button->button = common;
 	button->elements = NULL;
-	//AddLink( &l.buttons, button );
+	//AddLink( &local_macro_data.buttons, button );
 	return (uintptr_t)button;
 }
 
@@ -500,17 +500,17 @@ static uintptr_t CPROC LoadMacroElements( uintptr_t psv, arg_list args )
 	PARAM( args, TEXTCHAR *, name );
 	PMACRO_ELEMENT element = New( MACRO_ELEMENT );
 	if( !pmb )
-		if( l.finished_startup )
+		if( local_macro_data.finished_startup )
 		{
-			if( !l.shutdown.button )
-				l.shutdown.button = CreateButton( InterShell_GetCurrentLoadingCanvas() );
-			pmb = &l.shutdown;
+			if( !local_macro_data.shutdown.button )
+				local_macro_data.shutdown.button = CreateButton( InterShell_GetCurrentLoadingCanvas() );
+			pmb = &local_macro_data.shutdown;
 		}
 		else
 		{
-			if( !l.startup.button )
-				l.startup.button = CreateButton( InterShell_GetCurrentLoadingCanvas() );
-			pmb = &l.startup;
+			if( !local_macro_data.startup.button )
+				local_macro_data.startup.button = CreateButton( InterShell_GetCurrentLoadingCanvas() );
+			pmb = &local_macro_data.startup;
 		}
 	element->me = NULL;
 	element->next = NULL;
@@ -521,9 +521,9 @@ static uintptr_t CPROC LoadMacroElements( uintptr_t psv, arg_list args )
 		//lprintf( "Setting container of %p to %p", element->button, pmb->button );
 		element->button->container_button = pmb->button;
 		LinkLast( pmb->elements, PMACRO_ELEMENT, element );
-		if( !BeginSubConfigurationEx( element->button, name, (pmb==&l.startup)
+		if( !BeginSubConfigurationEx( element->button, name, (pmb==&local_macro_data.startup)
 											?"Startup macro element done"
-											:(pmb==&l.shutdown)
+											:(pmb==&local_macro_data.shutdown)
 											?"Shutdown macro element done"
 											:"macro element done" ) )
 		{
@@ -543,9 +543,9 @@ static uintptr_t CPROC FinishMacro( uintptr_t psv, arg_list args )
 	PMACRO_BUTTON pmb = (PMACRO_BUTTON)psv;
 	if( !pmb )
 	{
-		if( !l.finished_startup )
+		if( !local_macro_data.finished_startup )
 		{
-			l.finished_startup = 1;
+			local_macro_data.finished_startup = 1;
 		}
 	}
 	return psv;
@@ -562,7 +562,7 @@ static void OnGlobalPropertyEdit( "Startup Macro")( PSI_CONTROL parent )
 	// calling this direct causes a break for lack 
 	// of a g.configure_key... okay?
 	configure_key_dispatch.canvas = GetCanvas( parent );
-	ConfigureMacroButton( &l.startup, parent );
+	ConfigureMacroButton( &local_macro_data.startup, parent );
 	configure_key_dispatch.canvas = NULL;
 }
 static void OnGlobalPropertyEdit( "Shutdown Macro")( PSI_CONTROL parent )
@@ -570,27 +570,27 @@ static void OnGlobalPropertyEdit( "Shutdown Macro")( PSI_CONTROL parent )
 	// calling this direct causes a break for lack 
 	// of a g.configure_key... okay?
 	configure_key_dispatch.canvas = GetCanvas( parent );
-	ConfigureMacroButton( &l.shutdown, parent );
+	ConfigureMacroButton( &local_macro_data.shutdown, parent );
 	configure_key_dispatch.canvas = NULL;
 }
 
 void InvokeStartupMacro( void )
 {
 	Banner2NoWaitAlpha( "Running Startup Macro..." );
-	InvokeMacroButton( &l.startup, TRUE );
+	InvokeMacroButton( &local_macro_data.startup, TRUE );
 }
 
 void InvokeShutdownMacro( void )
 {
-	InvokeMacroButton( &l.shutdown, TRUE );
+	InvokeMacroButton( &local_macro_data.shutdown, TRUE );
 }
 
 static void OnSaveCommon( "Startup Macro" )( FILE *file )
 {
 	sack_fprintf( file, "\n" );
-	WriteMacroButton( "Startup ", file, (uintptr_t)&l.startup );
+	WriteMacroButton( "Startup ", file, (uintptr_t)&local_macro_data.startup );
 	sack_fprintf( file, "\n" );
-	WriteMacroButton( "Shutdown ", file, (uintptr_t)&l.shutdown );
+	WriteMacroButton( "Shutdown ", file, (uintptr_t)&local_macro_data.shutdown );
 }
 
 static void OnLoadCommon( "Startup Macro" )( PCONFIG_HANDLER pch )

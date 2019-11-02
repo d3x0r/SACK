@@ -42,7 +42,7 @@ enum {
 };
 static struct {
 	PLIST banners; // active banner list.
-} l;
+} local_banner_button;
 
 PRELOAD( RegisterResources )
 {
@@ -129,7 +129,7 @@ static void OnKeyPressEvent( MAKE_BANNER_MESSAGE )( uintptr_t psvBanner )
 	else
 	{
 		// can have a whole slew of banners each with their own removes ?
-		AddLink( &l.banners, banner );
+		AddLink( &local_banner_button.banners, banner );
 	}
 	//BannerMessage( "Yo, whatcha want!?" );
 }
@@ -148,10 +148,10 @@ static void OnKeyPressEvent( REMOVE_BANNER_MESSAGE )( uintptr_t psvBanner )
 {
 	PBANNER_BUTTON banner = (PBANNER_BUTTON)psvBanner;
 	INDEX idx;
-	LIST_FORALL( l.banners, idx, PBANNER_BUTTON, banner )
+	LIST_FORALL( local_banner_button.banners, idx, PBANNER_BUTTON, banner )
 	{
 		RemoveBanner2( banner->banner );
-		SetLink( &l.banners, idx, NULL );
+		SetLink( &local_banner_button.banners, idx, NULL );
 	}
 	//BannerMessage( "Yo, whatcha want!?" );
 }

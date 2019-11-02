@@ -13,24 +13,24 @@
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-enum { BTN_VARNAME = 1322
-	  , BTN_VARVAL
+enum { BTN_ENV_VARNAME = 1322
+	  , BTN_ENV_VARVAL
 	  , CHECKBOX_USER_VARIABLE
 };
 
 
-struct button_set_text {
+struct env_button_set_text {
 	TEXTSTR varname;
 	TEXTSTR newval;
 	LOGICAL bUser;
 };
-typedef struct button_set_text SETVAR;
-typedef struct button_set_text *PSETVAR;
+typedef struct env_button_set_text SETENV;
+typedef struct env_button_set_text *PSETENV;
 
-PRELOAD( AliasPageTitle )
+PRELOAD( EnvironmentVariableSetup )
 {
-	EasyRegisterResource( "intershell/Set Environment", BTN_VARNAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( "intershell/Set Environment", BTN_VARVAL, EDIT_FIELD_NAME );
+	EasyRegisterResource( "intershell/Set Environment", BTN_ENV_VARNAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "intershell/Set Environment", BTN_ENV_VARVAL, EDIT_FIELD_NAME );
 	EasyRegisterResource( "intershell/Set Environment", CHECKBOX_USER_VARIABLE, RADIO_BUTTON_NAME );
 }
 
@@ -81,7 +81,7 @@ static void SetEnvVariable( CTEXTSTR name, CTEXTSTR value, LOGICAL bUser )
 
 static void OnKeyPressEvent( "InterShell/Set Environment" )( uintptr_t psv )
 {
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETENV pSetVar = (PSETENV)psv;
 	SetEnvVariable( pSetVar->varname, pSetVar->newval, pSetVar->bUser );
 
 	//return 1;
@@ -89,7 +89,7 @@ static void OnKeyPressEvent( "InterShell/Set Environment" )( uintptr_t psv )
 
 static uintptr_t OnCreateMenuButton( "InterShell/Set Environment" )( PMENU_BUTTON button )
 {
-	PSETVAR pSetVar = New( SETVAR );
+	PSETENV pSetVar = New( SETENV );
 	pSetVar->varname = NULL;
 	pSetVar->newval = NULL;
 	InterShell_SetButtonStyle( button, "bicolor square" );
@@ -99,15 +99,15 @@ static uintptr_t OnCreateMenuButton( "InterShell/Set Environment" )( PMENU_BUTTO
 
 static uintptr_t OnConfigureControl( "InterShell/Set Environment" )( uintptr_t psv, PSI_CONTROL parent )
 {
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETENV pSetVar = (PSETENV)psv;
 	PSI_CONTROL frame;
 	frame = LoadXMLFrameOver( parent, "configure_environment_setvar_button.isframe" );
 	if( frame )
 	{
 		int okay = 0;
 		int done = 0;
-		SetControlText( GetControl( frame, BTN_VARNAME ), pSetVar->varname );
-		SetControlText( GetControl( frame, BTN_VARVAL ), pSetVar->newval );
+		SetControlText( GetControl( frame, BTN_ENV_VARNAME ), pSetVar->varname );
+		SetControlText( GetControl( frame, BTN_ENV_VARVAL ), pSetVar->newval );
 		SetCheckState( GetControl( frame, CHECKBOX_USER_VARIABLE ), pSetVar->bUser );
 		SetCommonButtons( frame, &done, &okay );
 		DisplayFrameOver( frame, parent );
@@ -115,13 +115,13 @@ static uintptr_t OnConfigureControl( "InterShell/Set Environment" )( uintptr_t p
 		if( okay )
 		{
 			TEXTCHAR buffer[256];
-			GetControlText( GetControl( frame, BTN_VARNAME ), buffer, sizeof( buffer )  );
+			GetControlText( GetControl( frame, BTN_ENV_VARNAME ), buffer, sizeof( buffer )  );
 			if( ( pSetVar->varname && strcmp( pSetVar->varname, buffer ) ) || ( !pSetVar->varname && buffer[0] ) )
 			{
 				Release( pSetVar->varname );
 				pSetVar->varname = StrDup( buffer );
 			}
-			GetControlText( GetControl( frame, BTN_VARVAL ), buffer, sizeof( buffer ) );
+			GetControlText( GetControl( frame, BTN_ENV_VARVAL ), buffer, sizeof( buffer ) );
 			if( ( pSetVar->newval && strcmp( pSetVar->newval, buffer ) ) || ( !pSetVar->newval && buffer[0] ) )
 			{
 				Release( pSetVar->newval );
@@ -136,7 +136,7 @@ static uintptr_t OnConfigureControl( "InterShell/Set Environment" )( uintptr_t p
 
 static void OnSaveControl( "InterShell/Set Environment" )( FILE *file, uintptr_t psv )
 {
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETENV pSetVar = (PSETENV)psv;
 	sack_fprintf( file, "Set Environment User=%s\n", pSetVar->bUser?"yes":"no" );
 	sack_fprintf( file, "Set Environment text name=%s\n", EscapeMenuString( pSetVar->varname ) );
 	sack_fprintf( file, "Set Environment text value=%s\n", EscapeMenuString( pSetVar->newval ) );
@@ -144,25 +144,25 @@ static void OnSaveControl( "InterShell/Set Environment" )( FILE *file, uintptr_t
 
 static void OnCloneControl( "InterShell/Set Environment" )( uintptr_t psvNew, uintptr_t psvOld )
 {
-	PSETVAR pSetVarNew = (PSETVAR)psvNew;
-	PSETVAR pSetVarOld = (PSETVAR)psvOld;
+	PSETENV pSetVarNew = (PSETENV)psvNew;
+	PSETENV pSetVarOld = (PSETENV)psvOld;
 	pSetVarNew->varname = StrDup( pSetVarOld->varname );
 	pSetVarNew->newval = StrDup( pSetVarOld->newval );
 	pSetVarNew->bUser = pSetVarOld->bUser;
 }
 
-static uintptr_t CPROC SetVariableVariableName( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetEnvVariableVariableName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETENV pSetVar = (PSETENV)psv;
 	pSetVar->varname = StrDup( name );
 	return psv;
 }
 
-static uintptr_t CPROC SetVariableVariableValue( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetEnvVariableVariableValue( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETENV pSetVar = (PSETENV)psv;
 	pSetVar->newval = StrDup( name );
 	return psv;
 }
@@ -170,7 +170,7 @@ static uintptr_t CPROC SetVariableVariableValue( uintptr_t psv, arg_list args )
 static uintptr_t CPROC SetVariableUser( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bUser );
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETENV pSetVar = (PSETENV)psv;
 	pSetVar->bUser = bUser;
 	return psv;
 }
@@ -178,6 +178,6 @@ static uintptr_t CPROC SetVariableUser( uintptr_t psv, arg_list args )
 static void OnLoadControl( "InterShell/Set Environment" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
 	AddConfigurationMethod( pch,  "Set Environment user=%b", SetVariableUser );
-	AddConfigurationMethod( pch,  "Set Environment text name=%m", SetVariableVariableName );
-	AddConfigurationMethod( pch,  "Set Environment text value=%m", SetVariableVariableValue );
+	AddConfigurationMethod( pch,  "Set Environment text name=%m", SetEnvVariableVariableName );
+	AddConfigurationMethod( pch,  "Set Environment text value=%m", SetEnvVariableVariableValue );
 }

@@ -213,10 +213,6 @@ typedef struct page_data   *PPAGE_DATA;
    translating label text which takes your menu button control
    container.                                                   */
 typedef struct page_label      *PPAGE_LABEL;
-/* A named font preset. The font may be extracted from this at
-   any given time, but internally handles scaling of the font to
-   match the one-size fits all.                                  */
-typedef struct font_preset     *PFONT_PRESET;
 
 
 //-------------------------------------------------------
@@ -380,7 +376,7 @@ INTERSHELL_PROC_PTR( LOGICAL, InterShell_IsButtonVirtual )( PMENU_BUTTON button 
 INTERSHELL_PROC_PTR( void, InterShell_SetButtonFont )( PMENU_BUTTON button, SFTFont *font );
 
 INTERSHELL_PROC_PTR( SFTFont*, InterShell_GetCurrentButtonFont )( void );
-INTERSHELL_PROC_PTR( void, InterShell_SetButtonStyle )( PMENU_BUTTON button, TEXTCHAR *style );
+INTERSHELL_PROC_PTR( void, InterShell_SetButtonStyle )( PMENU_BUTTON button, TEXTCHAR const *style );
 INTERSHELL_PROC_PTR( void, InterShell_SaveCommonButtonParameters )( FILE *file );
 INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSystemName )( void );
 
@@ -538,7 +534,7 @@ INTERSHELL_PROC_PTR( PMENU_BUTTON, InterShell_CreateSomeControl )( PSI_CONTROL p
 							   , CTEXTSTR name );
 INTERSHELL_PROC_PTR( PMENU_BUTTON, InterShell_GetCurrentlyCreatingButton )( void );
 INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetSaveIndent )( void );
-INTERSHELL_PROC_PTR( LOGICAL, BeginSubConfigurationEx )( PMENU_BUTTON button, TEXTCHAR *control_type_name, const TEXTCHAR *end_type_name );
+INTERSHELL_PROC_PTR( LOGICAL, BeginSubConfigurationEx )( PMENU_BUTTON button, TEXTCHAR const *control_type_name, const TEXTCHAR *end_type_name );
 
 INTERSHELL_PROC_PTR( void, InterShell_SetTheme )( PSI_CONTROL pc_canvas, int ID );
 INTERSHELL_PROC_PTR( void, DisplayMenuCanvas )( PSI_CONTROL pc_canvas, PRENDERER under, uint32_t width, uint32_t height, int32_t x, int32_t y );
@@ -636,7 +632,7 @@ INTERSHELL_PROC( void, InterShell_SetButtonFont )( PMENU_BUTTON button, SFTFont 
 // THis function returns the font of the current button being edited...
 // this result can be used for controls that are not really buttons to get the common
 // properties of the font being used for this control...
-INTERSHELL_PROC( void, InterShell_SetButtonStyle )( PMENU_BUTTON button, TEXTCHAR *style );
+INTERSHELL_PROC( void, InterShell_SetButtonStyle )( PMENU_BUTTON button, TEXTCHAR const *style );
 INTERSHELL_PROC( void, InterShell_SaveCommonButtonParameters )( FILE *file );
 INTERSHELL_PROC( void, InterShell_AddCommonButtonConfig )( PCONFIG_HANDLER pch );
 INTERSHELL_PROC( CTEXTSTR, InterShell_GetSystemName )( void );
@@ -758,8 +754,8 @@ INTERSHELL_PROC( PSI_CONTROL, InterShell_GetCurrentSavingCanvas )( void );
 //   other info to save... the method for setting additional configuration methods
 //   is invoked by thisname.
 //   Then end_type_name is the last string which will close the subconfiguration.
-INTERSHELL_PROC( LOGICAL, BeginSubConfiguration )( TEXTCHAR *control_type_name, const TEXTCHAR *end_type_name );
-INTERSHELL_PROC( LOGICAL, BeginSubConfigurationEx )( PMENU_BUTTON button, TEXTCHAR *control_type_name, const TEXTCHAR *end_type_name );
+INTERSHELL_PROC( LOGICAL, BeginSubConfiguration )( TEXTCHAR const *control_type_name, const TEXTCHAR *end_type_name );
+INTERSHELL_PROC( LOGICAL, BeginSubConfigurationEx )( PMENU_BUTTON button, TEXTCHAR const *control_type_name, const TEXTCHAR *end_type_name );
 INTERSHELL_PROC( CTEXTSTR, InterShell_GetSaveIndent )( void );
 INTERSHELL_PROC( CTEXTSTR, EscapeMenuString )( CTEXTSTR string );
 
