@@ -4,3 +4,7 @@ cd ../psi
 call mksrc.bat
 cd ../user_io
 call mksrc.bat
+cd ../intershell
+call mksrc.bat
+cd ../dekcore
+call mksrc.bat
