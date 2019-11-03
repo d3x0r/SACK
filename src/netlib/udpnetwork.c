@@ -68,7 +68,7 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 		NetworkUnlock( pc, 1 );
 		return NULL;
 	}
-#if WIN32
+#ifdef WIN32
 	if( 0 )
 	{
 		DWORD dwFlags;
