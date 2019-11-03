@@ -1266,10 +1266,9 @@ static PTEXT DeviceVolatileVariableGet( "net object", "server_ip", "current remo
 	return *ppLastValue;
 }
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
+PRELOAD( terminalObjectRegistration )
 {
 	iNetObject = RegisterExtension( "net object" );
-	return DekVersion;
 }
 
 PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
