@@ -141,56 +141,6 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 		//Unload = (UnloadPluginProc)LoadPrivateFunctionEx( pFile, "UnloadPlugin" DBG_SRC );
 		if( pPlugin->RegisterRoutines )
 		{
-			if( !pPlugin->pVersion ) {
-
-				pPlugin->pVersion = StrDup( DekVersion ); // benefit of the doubt...
-			}
-			Log2( "Loaded a plugin: %s(%s)", pFile, pPlugin->pVersion );
-			if( pPlugin->pVersion )
-			{  
-				int dots = 0;
-				TEXTCHAR *chkVersion = pPlugin->pVersion;
-				char const *chkDekVersion = DekVersion;
-				while( chkVersion[0] && chkDekVersion[0] )
-				{
-					// version must match X.X only
-					// 2.0.0 == 2.0.12
-					// dbg2.0.3 == dbg2.0.35
-					// 2.01.0 != 2.1.0
-					if( chkVersion[0] == '.' )
-					{
-						if( dots )
-							break; // second '.' is end of comparison...
-						dots++;
-					}
-					if( chkVersion[0] != chkDekVersion[0] )
-					{
-						TEXTCHAR byMsg[256];
-						snprintf( byMsg, sizeof( byMsg ), "Plugin %s is version %s not version %s."
-										, pFile, pPlugin->pVersion, DekVersion  );
-#ifdef _WIN32
-						MessageBox( NULL, byMsg, "Plugin Failure", MB_OK );
-#else
-						fprintf( stderr, "%s\n", byMsg );
-#endif
-						UnloadPlugin( pPluginLoading );
-						break; // do NOT continue testing version!
-					}
-					chkVersion++;
-					chkDekVersion++;  
-				}
-			}
-			else
-			{
-				TEXTCHAR byMsg[256];
-				snprintf( byMsg, sizeof( byMsg ), "Plugin %s did not return proper version information", pFile );
-#ifdef _WIN32
-				MessageBox( NULL, byMsg, "Plugin Version Failure", MB_OK );
-#else
-				fprintf( stderr, "%s\n", byMsg );
-#endif
-				AbortPlugin();
-			}
 		}
 		else
 		{
