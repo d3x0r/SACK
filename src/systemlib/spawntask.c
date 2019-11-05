@@ -42,7 +42,7 @@ typedef struct task_info_tag TASK_INFO;
 static int DumpErrorEx( DBG_VOIDPASS )
 #define DumpError() DumpErrorEx( DBG_VOIDSRC )
 {
-	_lprintf(DBG_RELAY)( "Failed create process:%d", GetLastError() );
+	_xlprintf( LOG_LEVEL_DEBUG DBG_RELAY)( "Failed create process:%d", GetLastError() );
 	return 0;
 }
 #endif
