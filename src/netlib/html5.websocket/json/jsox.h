@@ -107,7 +107,7 @@ enum jsox_parse_object_context_modes {
 };
 
 
-
+/*
 #define JSOX_RESET_VAL()  {  \
 	val.value_type = JSOX_VALUE_UNSET; \
 	val.contains = NULL;              \
@@ -116,6 +116,7 @@ enum jsox_parse_object_context_modes {
 	val.string = NULL;                \
 	val.className = NULL;             \
 	negative = FALSE; }
+*/
 #define JSOX_RESET_STATE_VAL()  {  \
 	state->val.value_type = JSOX_VALUE_UNSET; \
 	state->val.contains = NULL;              \
@@ -123,6 +124,7 @@ enum jsox_parse_object_context_modes {
 	state->val.name = NULL;                  \
 	state->val.string = NULL;                \
 	state->val.className = NULL;             \
+	state->completedString = FALSE;          \
 	state->negative = FALSE; }
 
 struct jsox_input_buffer {

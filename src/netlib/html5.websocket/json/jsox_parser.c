@@ -12,6 +12,7 @@
 //#define DEBUG_PARSING
 //#define DEBUG_CHARACTER_PARSING
 //#define DEBUG_CLASS_STATES
+//#define DEBUG_STRING_LENGTH
 
 /*
 Code Point	Name	Abbreviation	Usage
@@ -492,7 +493,6 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 		state->word = JSOX_WORD_POS_RESET;
 	} else if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD ) {
 		if( state->val.className ) { // this is a tagged object open.
-
 			if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_VALUE ) {
 				LIST_FORALL( state->classes, idx, PJSOX_CLASS, cls ) 
 					if( memcmp( cls->name, state->val.className, state->val.classNameLen ) == 0 )
@@ -509,16 +509,16 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 					// this is a tagged class for later prototype revival.
 					nextObjectMode = JSOX_OBJECT_CONTEXT_CLASS_NORMAL;
 			} else {
+				if( !state->pvtError ) state->pvtError = VarTextCreate();
 				vtprintf( state->pvtError, "Fault while parsing; object open class field definition : (duplicate colon)" " '%c' at %" _size_f " %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 				state->status = FALSE;
 				return FALSE;
 			}			
 		} else {
-			vtprintf( state->pvtError, "Fault while parsing; object open in the identifier field of an object value." " '%c' at %" _size_f " %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
-			state->status = FALSE;
-			return FALSE;
+			nextMode = JSOX_CONTEXT_OBJECT_FIELD;
+			nextObjectMode = JSOX_OBJECT_CONTEXT_CLASS_NORMAL;
+			// tis is just a simple object value in the field of a class type.
 		}
-
 	} else if( state->parse_context == JSOX_CONTEXT_IN_ARRAY 
 	         || state->parse_context == JSOX_CONTEXT_OBJECT_FIELD_VALUE 
 	         ) {
@@ -692,6 +692,7 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 			default:
 				lprintf( "FAULT: UNEXPECTED VALUE TYPE RECOVERING IDENT:%d", state->val.value_type );
 				break;
+			case JSOX_VALUE_UNSET:
 			case JSOX_VALUE_STRING:
 				// this type is already in the right place.
 				break;
@@ -919,9 +920,10 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 #endif
 	state->word = JSOX_WORD_POS_RESET; // but value is not UNSET.
 	state->negative = FALSE;
-	if( state->val.string )
+	if( state->val.string && state->val.value_type == JSOX_VALUE_UNSET ) {
 		state->val.value_type = JSOX_VALUE_STRING;
-	state->completedString = FALSE;
+		state->completedString = FALSE;
+	}
 
 	if( cInt == 123/*'{'*/ )
 		openObject( state, output, cInt );
@@ -929,17 +931,28 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 		openArray( state, output, cInt );
 	else if( cInt == 58/*':'*/ ) {
 		state->word = JSOX_WORD_POS_RESET; // well.. it is.  It's already a fairly commited value.
-		state->completedString = TRUE;
-		state->val.stringLen = output->pos - state->val.string;
+		if( !state->completedString ) {
+			state->completedString = TRUE;
+			state->val.stringLen = output->pos - state->val.string;
+		}
+#ifdef DEBUG_STRING_LENGTH
+		lprintf( "Update stringLen  '%c'  :%d", cInt, state->val.stringLen );
+#endif
 	} else if( cInt == 44/*','*/ ) {
 		state->word = JSOX_WORD_POS_RESET; // well.. it is.  It's already a fairly commited value.
 		state->completedString = TRUE;
 		state->val.stringLen = output->pos - state->val.string;
+#ifdef DEBUG_STRING_LENGTH
+		lprintf( "Update stringLen  '%c'  :%d", cInt, state->val.stringLen );
+#endif
 	} else if( cInt >= 0 ) {
 		// ignore white space.
 		if( cInt == 32/*' '*/ || cInt == 13 || cInt == 10 || cInt == 9 || cInt == 0xFEFF || cInt == 2028 || cInt == 2029 ) {
 			state->word = JSOX_WORD_POS_END;
 			state->val.stringLen = output->pos - state->val.string;
+#ifdef DEBUG_STRING_LENGTH
+			lprintf( "Update stringLen  '%c'  :%d", cInt, state->val.stringLen );
+#endif
 			return 0;
 		}
 
@@ -954,6 +967,9 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 			lprintf( "Collected .. %d %c  %*.*s", cInt, cInt, output->pos - state->val.string, output->pos - state->val.string, state->val.string );
 #endif
 			state->val.stringLen = output->pos - state->val.string;
+#ifdef DEBUG_STRING_LENGTH
+			lprintf( "Update stringLen  '%c'  :%d", cInt, state->val.stringLen );
+#endif
 		}
 	}
 
@@ -1118,6 +1134,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				state->n = input->pos - input->buf;
 				if( state->n > input->size ) DebugBreak();
 				state->val.stringLen = (output->pos - state->val.string)-1;
+#ifdef DEBUG_STRING_LENGTH
+				lprintf( "Update stringLen  collcting string :%d", state->val.stringLen );
+#endif
 #ifdef DEBUG_PARSING
 				lprintf( "STRING1: %s %d", state->val.string, state->val.stringLen );
 #endif
@@ -1185,6 +1204,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				lprintf( "Collected .. %d %c  %*.*s", c, c, output->pos - state->val.string, output->pos - state->val.string, state->val.string );
 #endif
 				state->val.stringLen = output->pos - state->val.string;
+#ifdef DEBUG_STRING_LENGTH
+				lprintf( "Update stringLen  unicode character:%d", state->val.stringLen );
+#endif
 			}
 			else switch( c )
 			{
@@ -1351,6 +1373,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->val.string ) {
 							if( state->val.value_type != JSOX_VALUE_STRING ) {
 								state->val.stringLen = output->pos - state->val.string;
+#ifdef DEBUG_STRING_LENGTH
+								lprintf( "Update stringLen  close array :%d", state->val.stringLen );
+#endif
 #ifdef DEBUG_PARSING
 								lprintf( "STRING3: %s %d", state->val.string, state->val.stringLen );
 #endif
@@ -1481,6 +1506,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					if( c < 128 ) ( *output->pos++ ) = c;
 					else output->pos += ConvertToUTF8( output->pos, c );
 					state->val.stringLen = output->pos - state->val.string;
+#ifdef DEBUG_STRING_LENGTH
+					lprintf( "Update stringLen  already an ident %c :%d", c, state->val.stringLen );
+#endif
 					break;
 				}
 
@@ -1523,6 +1551,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						else if( string_status > 0 ) {
 							state->gatheringString = FALSE;
 							state->val.stringLen = (output->pos - state->val.string) - 1;
+#ifdef DEBUG_STRING_LENGTH
+							lprintf( "Update stringLen  collcting string :%d", state->val.stringLen );
+#endif
 							if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) state->completed = TRUE;
 #ifdef DEBUG_PARSING
 							lprintf( "STRING4: %s %d", state->val.string, state->val.stringLen );
@@ -1593,6 +1624,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( c < 128 ) (*output->pos++) = c;
 						else output->pos += ConvertToUTF8( output->pos, c );
 						state->val.stringLen = output->pos - state->val.string;
+#ifdef DEBUG_STRING_LENGTH
+						lprintf( "Update stringLen  default collcting string :%d", state->val.stringLen );
+#endif
 						break; // default
 					}
 				}
@@ -1622,6 +1656,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					else if( string_status > 0 ) {
 						state->gatheringString = FALSE;
 						state->val.stringLen = (output->pos - state->val.string) - 1;
+#ifdef DEBUG_STRING_LENGTH
+						lprintf( "Update stringLen  quoted string :%d", state->val.stringLen );
+#endif
 #ifdef DEBUG_PARSING
 						lprintf( "STRING5: %s %d", state->val.string, state->val.stringLen );
 #endif
@@ -1934,6 +1971,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						{
 							(*output->pos++) = 0;
 							state->val.stringLen = (output->pos - state->val.string) - 1;
+#ifdef DEBUG_STRING_LENGTH
+							lprintf( "Update stringLen  extra nul :%d", state->val.stringLen );
+#endif
 #ifdef DEBUG_PARSING
 							lprintf( "STRING6: %s %d", state->val.string, state->val.stringLen );
 #endif
