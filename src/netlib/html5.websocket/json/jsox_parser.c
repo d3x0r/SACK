@@ -967,6 +967,7 @@ static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct js
 	if( val->name )
 		lprintf( "push named:%*.*s %d", val->nameLen, val->nameLen, val->name, line );
 #endif
+	if( val->value_type == JSOX_VALUE_UNSET ) return; // no value to push.
 	if( val->value_type == JSOX_VALUE_ARRAY ) {
 
 		if( state->arrayType >= 0 ) {
@@ -1286,6 +1287,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								} // otherwise it's just a close after an empty comma...
 							}
 						}
+						pushValue( state, state->elements, &state->val );
 
 						//if( _DEBUG_PARSING ) lprintf( "close object; empty object", val, elements );
 					}
@@ -1293,6 +1295,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						// current class doesn't really matter... we only get here after a ':'
 						// which will have faulted or not... 
 						// this is just push the value.
+						pushValue( state, state->elements, &state->val );
 					}
 					else {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
@@ -1473,7 +1476,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				break;
 
 			default:
-				if( state->val.value_type == JSOX_VALUE_STRING ) {
+				if( state->val.value_type == JSOX_VALUE_STRING && !state->completedString ) {
 					// already faulted to a string?
 					if( c < 128 ) ( *output->pos++ ) = c;
 					else output->pos += ConvertToUTF8( output->pos, c );
