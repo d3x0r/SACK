@@ -93,12 +93,19 @@ enum jsox_parse_context_modes {
 	JSOX_CONTEXT_UNKNOWN = 0,
 	JSOX_CONTEXT_IN_ARRAY = 1,
 	//JSOX_CONTEXT_IN_OBJECT = 2,
-	JSOX_CONTEXT_OBJECT_FIELD = 3,
-	JSOX_CONTEXT_OBJECT_FIELD_VALUE = 4,
-	JSOX_CONTEXT_CLASS_FIELD = 5,
-	JSOX_CONTEXT_CLASS_VALUE = 6,
-	JSOX_CONTEXT_CLASS_FIELD_VALUE = 7, // same as OBJECT_FIELD_VALUE; but within a CLASS_VALUE state
+	JSOX_CONTEXT_OBJECT_FIELD = 3, // in object, before ':'
+	JSOX_CONTEXT_OBJECT_FIELD_VALUE = 4, // in object, after ':' before ','
+	//JSOX_CONTEXT_CLASS_FIELD = 5,
+	//JSOX_CONTEXT_CLASS_VALUE = 6,
+	//JSOX_CONTEXT_CLASS_FIELD_VALUE = 7, // same as OBJECT_FIELD_VALUE; but within a CLASS_VALUE state
 };
+
+enum jsox_parse_object_context_modes {
+	JSOX_OBJECT_CONTEXT_CLASS_NORMAL = 0, // normal object parsing behavior field:value
+	JSOX_OBJECT_CONTEXT_CLASS_FIELD = 1,  // gathering a class defition - fields only
+	JSOX_OBJECT_CONTEXT_CLASS_VALUE = 2,  // expanding a defined class - values only
+};
+
 
 
 #define JSOX_RESET_VAL()  {  \
@@ -157,9 +164,12 @@ DeclareSet( JSOX_CLASS );
 
 struct jsox_parse_context {
 	enum jsox_parse_context_modes context;
+	enum jsox_parse_object_context_modes objectContext;
 	PDATALIST *elements;
 	char *name;	
 	size_t nameLen;	
+	char *className;
+	size_t classNameLen;
 	struct jsox_value_container valState;
 	//struct jsox_context_object *object;
 	PJSOX_CLASS current_class;
@@ -199,6 +209,7 @@ struct jsox_parse_state {
 	LOGICAL first_token;
 	PJSOX_PARSE_CONTEXT context;
 	enum jsox_parse_context_modes parse_context;
+	enum jsox_parse_object_context_modes objectContext;
 	struct jsox_value_container val;
 	int comment;
 	TEXTRUNE operatorAccum;
