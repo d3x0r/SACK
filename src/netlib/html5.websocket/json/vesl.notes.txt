@@ -1,0 +1,171 @@
+Entirely off topic; 
+One of the short falls of JSON is the verbosity when there's a lot of the same type of record... (like a library book-card-index; always have 'title' 'author' 'xyz' etc.  And then that data is replicated over and over for each card).
+Was considering extending the json-6 parser with somethign that support sort-of class definitions/macros.
+```
+card { author,title,date,publisher }
+[ card { "frank", "a book", 09-2029, "fishy books" },
+  card { "george", "b book", 08-2039, "fishy books" },
+]
+```
+where the additional syntax is <identifier> { object fields, ... }; and referencing it is in any valud position (after a : in a object, or as a simple value in an array)  <identifier> { object values, ... }
+There are cases where this doesn't get you a lot 1) simple messages that only use each field once anyway... 2) something like `point { x, y }` then the tag 'point' is longer than x: and y: it replaces....
+```
+p{x,y}
+r{o, n}
+{ position: p{1, 2},
+  data : r{ p{ 0,0}, p{1, 0 } }  // nested usage
+}
+//---- equivalent to 
+{ position: { x:1, y: 2 },
+  data : r{ o: { x:0, y:0}, n : { x:1, y:0 } }
+}
+```
+
+and then it kinda needs a new name. (ESON instead of JSON; MESON (macro ecma script object notation?; Meson is also a build system now; for the moment I'm using JSOX (JS object exchange)
+
+
+
+22:48:18.961500 IP 174.72.226.164.56345 > 198.143.191.26.30706: Flags [.], seq 0:1, ack 1, win 256, length 1
+22:48:18.986342 IP 198.143.191.26.30706 > 174.72.226.164.56345: Flags [.], ack 1, win 263, options [nop,nop,sack 1 {0:1}], length 0
+
+
+
+VESL 
+
+{
+	// getter
+	value : undefined,
+	linearArray : [],
+     field[] ( return this.value )  // _nothing_-expression is the getter
+		v( this.value = v ),  // late comma, lets (string-expr) be chainable... 
+	 // getter of an array
+	 field1[val] ( return this.linearArray[val] ) 
+	    v( linearArray[val] = v; ),
+	 // this would never be a call.
+	 field2(args) ( 
+	    // this could be a call, 
+	 ),
+	 
+	 // invalid(?)
+	 string string (expr)
+}
+
+/* Meta Translation
+
+{
+	// getter
+	value : undefined,
+	linearArray : [],
+	
+	// _nothing_-expression is the getter
+	//field$getter() { return this.value } ;
+	//field$setter(v) { this.value = v );
+	get field() { return this.value );
+	set field(v) { this.value = v );
+	
+	field1$getter(a) { return this.linearArray[a]; }
+	field1$setter(a,v){ this.linearArray[a] = v; }
+	// /*Illegal*/ get field1(a) { return this.linearArray[a]; }
+	// /*Illegal*/ set field1(a,v) { this.linearArray[a] = v; }
+
+	field2(args) { return /*expression*/... }
+	 
+	 // invalid(?)
+	 string string (expr)
+}
+
+
+*/
+
+
+
+x = .field;
+.field = 5;
+
+// if there is one, call getter version of function;  
+// otherwise call the function, and if the result is settalbe, use that value 
+.field2( 3 ) = .field1[2] 
+
+a.field1[2] = 3;  // = is evalutes from right to left.
+/*
+   .field1$setter( 2, 3 );
+   
+   .field2$setter(3 , .field$getter( 2 ) )
+   
+*/   
+
+
+rvalue function has access to 'out', 'in (if indexer)' and 'this'
+lvalue function has access to 'this' and 'that'
+
+
+function call
+
+function { arg1: 3, arg2: 4 }
+
+{ 
+   arg1: 3,
+   arg2: 4
+}
+
+Object[] (
+	that = this = those;
+)
+
+//-----------------------------------
+
+f(
+	if( out ) {
+		out.x += in.arg1;
+		out.y += in.arg2;
+	}
+)
+
+
+g(
+	out {
+		out.x *= in.arg1;
+		out.y *= in.arg2;
+	}
+)
+
+Number( out { out = this } )
+
+~( out && in { out = ~in } )
+!( out && in { out = !in } )
+
++( out && in { out = out + in } )
+
+-( out && in { out = out - in } in { out = -in } )
+
+
+&&( out = (out&&in)?in:false )
+||( out = (in)?in:out )
+
+
+
+
+args : { arg1: 3, arg2: 4 },
+result : { x : 1, y: 3 },
+value: 3.14,
+defaultString: "Hello World",
+
+
+(
+    result = f args
+	f g args
+	
+	
+)
+
+
+//------------------------------------
+
+(defun f (a b) (
+
+
+
+
+
+n> const o = {}; with (new Proxy(o, { has:()=>true, set(t,k,v) { if (!Reflect.has(t,k)) t[k] = [v]; else t[k].push(v); }})) { x = 1; x = 2; x = 3; }; o;
+
