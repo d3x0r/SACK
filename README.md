@@ -15,7 +15,7 @@ C single source packages.  C/C++ compilable sources, and a single header.  Links
 
 - [Maximal](https://github.com/d3x0r/micro-C-Boost-Core)
 - [Minimal](https://github.com/d3x0r/micro-C-Boost-Types)
-- [Minimal + File System Asctractions](https://github.com/d3x0r/micro-C-Boost-FileSystem)
+- [Minimal + File System Abstractions](https://github.com/d3x0r/micro-C-Boost-FileSystem)
 - [Minimal + FS + Networking ](https://github.com/d3x0r/micro-C-Boost-Network)
 
 Exposed through interop to V8 through Node.js...
