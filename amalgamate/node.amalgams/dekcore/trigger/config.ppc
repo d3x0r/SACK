@@ -1,0 +1,34 @@
+
+#define NO_OPEN_MACRO
+//#define __NO_MMAP__
+#define NO_FILEOP_ALIAS
+#define SACK_BAG_EXPORTS
+
+#define NEED_SHLAPI
+#define NEED_SHLOBJ
+#define _INCLUDE_CLIPBOARD
+
+#define JSON_PARSER_MAIN_SOURCE
+#define INTERNAL_DUMP_FONT_FILE
+#define SOURCE_PSI2
+#define SYSTRAY_LIBRARAY
+
+#define INTERSHELL_CORE_BUILD
+#define SACK_CORE_BUILD
+#define INTERSHELL_SOURCE
+
+
+#if 0
+#ifdef __cplusplus
+namespace sack {
+   namespace logging {
+#endif
+      INDEX real_lprintf( char const* f,... ) { va_list va; int n; va_start(va,f); n = vprintf(f ,va); puts(""); return n; }
+      INDEX null_lprintf( char const* f,... ) { return 0; }
+      RealLogFunction _xlprintf(uint32_t level DBG_PASS) { return real_lprintf; };
+      void SystemLog( char const* f ) { puts( f ); puts( "ZZZZ\n" ); }
+#ifdef __cplusplus
+   }
+}
+#endif
+#endif
