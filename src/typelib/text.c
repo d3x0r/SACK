@@ -685,11 +685,13 @@ TEXTCHAR NextCharEx( PTEXT input, size_t idx )
 		idx -= input->data.size;
 		input = NEXTLINE( input );
 	}
-	if( input )
-		return input->data.data[idx];
+	if( input ) {
+		return GetUtfCharIndexed( input->data.data, &idx, input->data.size );
+		//return input->data.data[idx];
+	}
 	return 0;
 }
-#define NextChar() NextCharEx( input, index )
+#define NextChar() NextCharEx( input, tempText-tempText_ )
 //----------------------------------------------------------------------
 
 // In this final implementation - it was decided that for a general
@@ -718,11 +720,10 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 	VARTEXT out;
 	PTEXT outdata=(PTEXT)NULL,
 	      word;
-	TEXTSTR tempText;
+	TEXTSTR tempText, tempText_;
 	int has_minus = -1;
 	int has_plus = -1;
 
-	uint32_t index;
 	INDEX size;
 
 	TEXTCHAR character;
@@ -749,7 +750,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 			input = NEXTLINE( input );
 			continue;
 		}
-		tempText = GetText(input);  // point to the data to process...
+		tempText_ = tempText = GetText(input);  // point to the data to process...
 		size = GetTextSize(input);
 		if( input->format.position.offset.spaces || input->format.position.offset.tabs )
 		{
@@ -763,8 +764,8 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 		spaces += input->format.position.offset.spaces;
 		tabs += input->format.position.offset.tabs;
 		//Log1( "Assuming %d spaces... ", spaces );
-		for (index=0;(character = tempText[index]),
-                   (index < size); index++) // while not at the
+		for (;(character = GetUtfChar( (char const**)&tempText ) ),
+                   ((tempText-tempText_) < (int)size); ) // while not at the
                                          // end of the line.
 		{
 			if( elipses && character != '.' )
@@ -784,7 +785,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 			}
 			else if( elipses ) // elipses and character is . - continue
 			{
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				continue;
 			}
 		if( StrChr( filter_space, character ) )
@@ -797,13 +798,13 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 			{
 				outdata = SegAppend( outdata, word );
 				SET_SPACES();
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				word = VarTextGetEx( &out DBG_OVERRIDE );
 				outdata = SegAppend( outdata, word );
 			}
 			else
 			{
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				word = VarTextGetEx( &out DBG_OVERRIDE );
 				SET_SPACES();
 				outdata = SegAppend( outdata, word );
@@ -820,6 +821,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 			outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
 			break;
 		case ' ':
+		case 'xa0':
 			if( bSpaces )
 			{
 			is_a_space:
@@ -878,7 +880,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 							( c >= '0' && c <= '9' ) )
 						{
 							// gather together as a floating point number...
-							VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+							VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 							break;
 						}
 					}
@@ -918,7 +920,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 							SET_SPACES();
 							// gather together as a sign indication on a number.
 						}
-						VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+						VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 						break;
 					}
 				}
@@ -927,13 +929,13 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 				{
 					outdata = SegAppend( outdata, word );
 					SET_SPACES();
-					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
 					outdata = SegAppend( outdata, word );
 				}
 				else
 				{
-					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
 					SET_SPACES();
 					outdata = SegAppend( outdata, word );
@@ -950,7 +952,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 					}
 					elipses = FALSE;
 				}
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				break;
 			}
 		}
@@ -982,12 +984,11 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 	VARTEXT out;
 	PTEXT outdata=(PTEXT)NULL,
 			word;
-	TEXTSTR tempText;
+	TEXTSTR tempText, tempText_;
 
-	uint32_t index;
 	size_t size;
 
-	TEXTCHAR character;
+	TEXTRUNE character;
 	uint32_t elipses = FALSE,
 		spaces = 0, tabs = 0;
 
@@ -1011,7 +1012,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 			input = NEXTLINE( input );
 			continue;
 		}
-		tempText = GetText(input);  // point to the data to process...
+		tempText_ = tempText = GetText(input);  // point to the data to process...
 		size = GetTextSize(input);
 		if( input->format.position.offset.spaces || input->format.position.offset.tabs )
 		{
@@ -1025,8 +1026,8 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 		spaces += input->format.position.offset.spaces;
 		tabs += input->format.position.offset.tabs;
 		//Log1( "Assuming %d spaces... ", spaces );
-		for (index=0;(character = tempText[index]),
-		             (index < size); index++) // while not at the
+		for (;(character = GetUtfChar( (char const**)&tempText ) ),
+		             ((tempText-tempText_) < (int)size); ) // while not at the
 		                                      // end of the line.
 		{
 			if( elipses && character != '.' )
@@ -1046,7 +1047,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 			}
 			else if( elipses ) // elipses and character is . - continue
 			{
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				continue;
 			}
 
@@ -1061,6 +1062,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 				outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
 				break;
 			case ' ':
+			case '\xa0': // nbsp
 				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
 				{
 					SET_SPACES();
@@ -1109,7 +1111,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 						 ( c >= '0' && c <= '9' ) )
 					{
 						// gather together as a floating point number...
-						VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+						VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 						break;
 					}
 				}
@@ -1126,7 +1128,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 							SET_SPACES();
 						}
 						// gather together as a sign indication on a number.
-						VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+						VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 						break;
 					}
 				}
@@ -1165,13 +1167,13 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 				{
 					outdata = SegAppend( outdata, word );
 					SET_SPACES();
-					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
 					outdata = SegAppend( outdata, word );
 				}
 				else
 				{
-					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
 					SET_SPACES();
 					outdata = SegAppend( outdata, word );
@@ -1188,7 +1190,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 					}
 					elipses = FALSE;
 				}
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				break;
 			}
 		}

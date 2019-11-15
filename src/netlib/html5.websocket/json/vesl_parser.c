@@ -729,7 +729,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 				break;
 
 			default:
-				if( c == ' ' || c == 0xFEFF ) {
+				if( c == ' ' || c == '\xa0' || c == 0xFEFF ) {
 					state->weakSpace = TRUE;
 					continue;
 				}
