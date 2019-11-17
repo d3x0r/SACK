@@ -956,7 +956,19 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 			return 0;
 		}
 
-		if( cInt == 44/*','*/ || cInt == 125/*'}'*/ || cInt == 93/*']'*/ || cInt == 58/*':'*/ )
+		if( cInt == '"' || cInt == '\'' || cInt == '`' ) {
+			if( !state->val.string )  state->val.string = output->pos;
+			state->val.value_type = JSOX_VALUE_STRING;
+			if( !state->val.className ) {
+				state->val.className = state->val.string;
+				state->val.classNameLen = state->val.stringLen;
+				state->val.string = output->pos;
+				state->val.stringLen = 0;
+				state->gatheringStringFirstChar = cInt;
+				state->gatheringString = TRUE;
+			}
+		}
+		else if( cInt == 44/*','*/ || cInt == 125/*'}'*/ || cInt == 93/*']'*/ || cInt == 58/*':'*/ )
 			vtprintf( state->pvtError, "invalid character; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, cInt, state->n, state->line, state->col );
 		else {
 			if( !state->val.string )  state->val.string = output->pos;
@@ -1123,7 +1135,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		//lprintf( "output is %p", output );
 		state->n = input->pos - input->buf;
 		if( state->n > input->size ) DebugBreak();
-
+	gatherStringInput:
 		if( state->gatheringString ) {
 			string_status = gatherStringX( state, input->buf, &input->pos, input->size, &output->pos, state->gatheringStringFirstChar );
 			if( string_status < 0 )
@@ -1326,12 +1338,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						break;
 					}
 
-					// lose current class in the pop; have; have to report completed status before popping.
-					if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
-						if( !state->current_class )
-							state->completed = TRUE;
-					}
-
 					{
 						struct jsox_parse_context* old_context = ( struct jsox_parse_context* )PopLink( state->context_stack );
 						//if( _DEBUG_PARSING_STACK ) console.log( "object pop stack (close obj)", context_stack.length, old_context );
@@ -1340,6 +1346,13 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->val._contains = state->elements;
 
 						state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
+
+					// lose current class in the pop; have; have to report completed status before popping.
+						if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
+							if( !state->current_class )
+								state->completed = TRUE;
+						}
+
 						state->elements = old_context->elements;
 						state->val.name = old_context->name;
 						state->val.nameLen = old_context->nameLen;
@@ -1503,6 +1516,43 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			default:
 				if( state->val.value_type == JSOX_VALUE_STRING && !state->completedString ) {
 					// already faulted to a string?
+					if( c == '\'' || c == '\"' || c == '`' ) {
+						state->val.className = state->val.string;
+						state->val.classNameLen = state->val.stringLen;
+						state->val.string = output->pos;
+						state->val.stringLen = 0;
+						state->gatheringString = TRUE;
+						state->gatheringStringFirstChar = c;
+						goto gatherStringInput;
+					}
+					if( c == 32/*' '*/ || c == 160/*nbsp*/ || c == 13 || c == 10 || c == 9 || c == 0xFEFF || c == 2028 || c == 2029 ) {
+						state->word = JSOX_WORD_POS_AFTER_FIELD;
+						break;
+					}
+					if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
+						if( state->val.className ) {
+							state->status = FALSE;
+							if( !state->pvtError ) state->pvtError = VarTextCreate();
+							vtprintf( state->pvtError, "unquoted spaces between stings; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+							break;
+						}
+						else {
+							if( !state->current_class ) {
+								state->status = FALSE;
+								if( !state->pvtError ) state->pvtError = VarTextCreate();
+								vtprintf( state->pvtError, "?? This is like doublestring revival; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+								break;
+							}
+							lprintf( "THIS IS WRONG!" );
+							lprintf( "STRING-STRING?" );
+							state->val.className = state->val.string;
+							state->val.classNameLen = state->val.stringLen;
+							state->val.string = NULL;
+							state->val.stringLen = 0;
+							state->word = JSOX_WORD_POS_RESET;
+							break;
+						}
+					}
 					if( c < 128 ) ( *output->pos++ ) = c;
 					else output->pos += ConvertToUTF8( output->pos, c );
 					state->val.stringLen = output->pos - state->val.string;
@@ -2012,6 +2062,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				}
 				break; // default of high level switch
 			}
+			if( state->gatheringString )
+				goto gatherStringInput;
 			// got a completed value; skip out
 			if( state->completed ) {
 				if( state->word == JSOX_WORD_POS_END ) {
