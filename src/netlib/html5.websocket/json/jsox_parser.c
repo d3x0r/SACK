@@ -1737,7 +1737,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->col = 1;
 					// FALLTHROUGH
 				case ' ':
-				160 :// case '\xa0': // nbsp
+				case 160 :// case '\xa0': // nbsp
 				case 2028: // LS (Line separator)
 				case 2029: // PS (paragraph separate)
 				case '\t':
