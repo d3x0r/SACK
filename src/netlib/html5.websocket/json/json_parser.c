@@ -623,7 +623,7 @@ int json_parse_add_data( struct json_parse_state *state
 					break;
 
 				case ' ':
-				case '\xa0':
+				case 160://case '\xa0':
 				case '\t':
 				case '\r':
 				case '\n':
