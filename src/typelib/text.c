@@ -821,7 +821,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 			outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
 			break;
 		case ' ':
-		160 :// case '\xa0': // &nbsp;
+		case 160 :// case '\xa0': // &nbsp;
 			if( bSpaces )
 			{
 			is_a_space:
