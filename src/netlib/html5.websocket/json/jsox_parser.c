@@ -1624,7 +1624,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->col = 1;
 						// fall through to normal space handling - just updated line/col position
 					case ' ':
-					case '\xa0': // nbsp
+					case 160 :// case '\xa0': // nbsp
 					case '\t':
 					case '\r':
 					case 2028: // LS (Line separator)
@@ -1737,7 +1737,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->col = 1;
 					// FALLTHROUGH
 				case ' ':
-				case '\xa0': // nbsp
+				160 :// case '\xa0': // nbsp
 				case 2028: // LS (Line separator)
 				case 2029: // PS (paragraph separate)
 				case '\t':
@@ -1987,7 +1987,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								}
 							} else {
 								// in non streaming mode; these would be required to follow
-								if( c == ' ' || c == '\xa0' || c == '\t' || c == '\n' || c == '\r' || c == 0xFEFF
+								if( c == ' ' || c == 160/*'\xa0'*/ || c == '\t' || c == '\n' || c == '\r' || c == 0xFEFF
 									|| c == ',' || c == ']' || c == '}'  || c == ':' ) {
 									//lprintf( "Non numeric character received; push the value we have" );
 									(*output->pos) = 0;

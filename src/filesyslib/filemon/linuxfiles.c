@@ -37,7 +37,7 @@
 
 #ifdef __LINUX__
 
-#ifndef __QNX__
+#if !defined( __QNX__ ) && !defined( __MAC__ )
 #include <sys/inotify.h>
 #endif
 
@@ -141,7 +141,9 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 		Release( monitor );
 		if( !Monitors )
 		{
+#if !defined( __QNX__ ) && !defined( __MAC__ )
 			signal( SIGRTMIN, SIG_IGN );
+#endif
 		}
 	}
 }
@@ -155,7 +157,7 @@ static void handler( int sig, siginfo_t *si, void *data )
         PMONITOR cur = Monitors;
         for( cur = Monitors; cur; cur = cur->next )
 		  {
-#ifndef __QNX__
+#if !defined( __QNX__ ) && !defined( __MAC__ )
 			  if( si->si_fd == cur->fdMon )
 #endif
             {
@@ -167,7 +169,7 @@ static void handler( int sig, siginfo_t *si, void *data )
         }
         if( !cur )
         {
-#ifndef __QNX__
+#if !defined( __QNX__ ) && !defined( __MAC__ )
            Log1( "Signal on handle which did not exist?! %d Invoking failure scanall!", si->si_fd );
 			  close( si->si_fd );
 #endif
@@ -182,6 +184,7 @@ static void handler( int sig, siginfo_t *si, void *data )
 
 void CPROC NewScanTimer( uintptr_t unused )
 {
+#if !defined( __QNX__ ) && !defined( __MAC__ )
 
 	PMONITOR monitor = (PMONITOR)unused;//  Monitors;
 					 //for( cur = Monitors; cur; cur = cur->next )
@@ -270,6 +273,7 @@ void CPROC NewScanTimer( uintptr_t unused )
 			}
 		}
 	}
+#endif
 }
 
 
@@ -305,7 +309,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 #if 0
 		fdMon = open( dirname, O_RDONLY );
 #else
-#ifndef __QNX__
+#if !defined( __QNX__ ) && !defined( __MAC__ )
 		fdMon = inotify_init();
 #endif
 		//fcntl(fdMon, F_SETFL, O_NONBLOCK);
@@ -317,7 +321,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 			fcntl( fdMon, F_SETSIG, SIGRTMIN );
 			fcntl( fdMon, F_NOTIFY, DN_CREATE|DN_DELETE|DN_RENAME|DN_MODIFY|DN_MULTISHOT );
 #else
-#ifndef __QNX__
+#if !defined( __QNX__ ) && !defined( __MAC__ )
          // this should work for QNX (qnx car?)
 			inotify_add_watch( fdMon, dirname, IN_ALL_EVENTS & ~(IN_OPEN|IN_CLOSE_NOWRITE) );
 #endif

@@ -821,7 +821,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 			outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
 			break;
 		case ' ':
-		case '\xa0':
+		160 :// case '\xa0': // &nbsp;
 			if( bSpaces )
 			{
 			is_a_space:
@@ -1062,7 +1062,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 				outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
 				break;
 			case ' ':
-			case '\xa0': // nbsp
+			case 160 :// '\xa0': // nbsp
 				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
 				{
 					SET_SPACES();
