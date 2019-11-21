@@ -229,8 +229,8 @@ void SRG_GetEntropyBuffer( struct random_context *ctx, uint32_t *buffer, uint32_
 		//    if get_bits == 32
 		//    but bits_used is 1-7, then it would have to pull 5 bytes to get the 32 required
 		//    so truncate get_bits to 25-31 bits
-		if( 32 < (get_bits + (ctx->bits_used & 0x7)) )
-			get_bits = (32 - (ctx->bits_used & 0x7));
+		if( 32 < (get_bits + (ctx->bits_used & 0x1f)) )
+			get_bits = (32 - (ctx->bits_used & 0x1f));
 		// if resultBits is 1-7 offset, then would have to store up to 5 bytes of value
 		//    so have to truncate to just the up to 4 bytes that will fit.
 		if( (get_bits+ resultBits) > 32 )
