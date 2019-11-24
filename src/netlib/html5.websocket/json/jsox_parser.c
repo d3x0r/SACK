@@ -940,8 +940,10 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 #endif
 	} else if( cInt == 44/*','*/ ) {
 		state->word = JSOX_WORD_POS_RESET; // well.. it is.  It's already a fairly commited value.
-		state->completedString = TRUE;
-		state->val.stringLen = output->pos - state->val.string;
+		if( !state->completedString ) {
+			state->completedString = TRUE;
+			state->val.stringLen = output->pos - state->val.string;
+		}
 #ifdef DEBUG_STRING_LENGTH
 		lprintf( "Update stringLen  '%c'  :%d", cInt, state->val.stringLen );
 #endif
@@ -949,7 +951,10 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 		// ignore white space.
 		if( cInt == 32/*' '*/ ||cInt==160/*nbsp*/|| cInt == 13 || cInt == 10 || cInt == 9 || cInt == 0xFEFF || cInt == 2028 || cInt == 2029 ) {
 			state->word = JSOX_WORD_POS_END;
-			state->val.stringLen = output->pos - state->val.string;
+			if( !state->completedString ) {
+				state->completedString = TRUE;
+				state->val.stringLen = output->pos - state->val.string;
+			}
 #ifdef DEBUG_STRING_LENGTH
 			lprintf( "Update stringLen  '%c'  :%d", cInt, state->val.stringLen );
 #endif
