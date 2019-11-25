@@ -2129,7 +2129,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 			{
 				// after 1 allocation, need a free chunk at end...
 				// and let's just have a couple more to spaere.
-				if( ExpandSpace( pMem, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE ) )
+				if( ExpandSpace( pMem, dwSize + 4096 + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE ) )
 				{
 #ifndef NO_LOGGING
 					//ll__lprintf(DBG_RELAY)( "Creating a new expanded space... %" _size_fs, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE );
