@@ -101,7 +101,7 @@ static void jsox_state_init( struct jsox_parse_state *state )
 	state->context_stack = GetFromSet( PLINKSTACK, &jxpsd.linkStacks );// NULL;
 	if( state->context_stack[0] ) state->context_stack[0]->Top = 0;
 	//state->first_token = TRUE;
-	state->context = GetFromSet( JSOX_PARSE_CONTEXT, &jxpsd.parseContexts );
+	state->context = GetFromSet( JSOX_PARSE_CONTEXT, &state->parseContexts );
 	state->parse_context = JSOX_CONTEXT_UNKNOWN;
 	state->comment = 0;
 	state->completed = FALSE;
@@ -124,8 +124,14 @@ static void jsox_state_init( struct jsox_parse_state *state )
 /* I guess this is a good parser */
 struct jsox_parse_state * jsox_begin_parse( void )
 {
+	if( !jxpsd.initialized ) {
+		InitializeCriticalSec( &jxpsd.cs_states );
+		jxpsd.initialized = TRUE;
+	}
+	EnterCriticalSec( &jxpsd.cs_states  );
 	struct jsox_parse_state *state = GetFromSet( JSOX_PARSE_STATE, &jxpsd.parseStates );//New( struct json_parse_state );
 	jsox_state_init( state );
+	LeaveCriticalSec( &jxpsd.cs_states  );
 	return state;
 }
 
@@ -468,7 +474,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 				if( memcmp( cls->name, state->val.className, state->val.classNameLen ) == 0 )
 					break;
 			if( !cls ) {
-				cls = GetFromSet( JSOX_CLASS, &jxpsd.classes );
+				cls = GetFromSet( JSOX_CLASS, &state->classPool );
 				cls->name = state->val.className;
 				cls->nameLen = state->val.stringLen;
 				cls->fields = NULL;
@@ -479,7 +485,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 			} else {
 				struct jsox_class_field* field;
 				LIST_FORALL( cls->fields, idx, struct jsox_class_field*,field ) {
-					DeleteFromSet( JSOX_CLASS_FIELD, jxpsd.class_fields, field );
+					DeleteFromSet( JSOX_CLASS_FIELD, state->class_fields, field );
 				}
 #ifdef DEBUG_CLASS_STATES
 				lprintf( "RESETTING CLASS: %s", cls->name );
@@ -549,7 +555,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 
 	// common code; create new object container layer...
 	{
-		struct jsox_parse_context *old_context = GetFromSet( JSOX_PARSE_CONTEXT, &jxpsd.parseContexts );
+		struct jsox_parse_context *old_context = GetFromSet( JSOX_PARSE_CONTEXT, &state->parseContexts );
 #ifdef DEBUG_PARSING
 		lprintf( "Begin a new object; previously pushed into elements; but wait until trailing comma or close previously:%d", state->val.value_type );
 #endif				
@@ -571,7 +577,9 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 		lprintf( "set current class: %s", cls?cls->name:"<none>" );
 #endif
 		state->current_class_item = 0;
+		EnterCriticalSec( &jxpsd.cs_states );
 		state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
+		LeaveCriticalSec( &jxpsd.cs_states );
 		if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
 		else state->elements[0]->Cnt = 0;
 		PushLink( state->context_stack, old_context );
@@ -643,7 +651,7 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		return FALSE;
 	}
 	{
-		struct jsox_parse_context *old_context = GetFromSet( JSOX_PARSE_CONTEXT, &jxpsd.parseContexts );
+		struct jsox_parse_context *old_context = GetFromSet( JSOX_PARSE_CONTEXT, &state->parseContexts );
 #ifdef DEBUG_PARSING
 		lprintf( "Begin a new array; previously pushed into elements; but wait until trailing comma or close previously:%d", state->val.value_type );
 #endif				
@@ -665,7 +673,9 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 #endif
 		state->current_class_item = 0;
 		state->arrayType = -1;
+		EnterCriticalSec( &jxpsd.cs_states );
 		state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
+		LeaveCriticalSec( &jxpsd.cs_states );
 		if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
 		else state->elements[0]->Cnt = 0;
 		PushLink( state->context_stack, old_context );
@@ -1071,7 +1081,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		// no input; or this buffer wasn't appended to the previous buffer... 
 		if( !input || !input->tempBuf )
 		{
-			input = GetFromSet( JSOX_PARSE_BUFFER, &jxpsd.parseBuffers );
+			input = GetFromSet( JSOX_PARSE_BUFFER, &state->parseBuffers );
 			input->pos = input->buf = msg;
 			input->size = msglen;
 			input->tempBuf = FALSE;
@@ -1100,7 +1110,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			PrequeLink( state->outQueue, output );
 		}
 		else {
-			output = (struct jsox_output_buffer*)GetFromSet( JSOX_PARSE_BUFFER, &jxpsd.parseBuffers );
+			output = (struct jsox_output_buffer*)GetFromSet( JSOX_PARSE_BUFFER, &state->parseBuffers );
 			output->pos = output->buf = NewArray( char, msglen + 1 );
 			output->size = msglen;
 			EnqueLinkNL( state->outQueue, output );
@@ -1291,7 +1301,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_FIELD ) {
 								// allow blank comma at end to not be a field
 								if( state->val.string ) {
-									struct jsox_class_field* field = GetFromSet( JSOX_CLASS_FIELD, &jxpsd.class_fields );
+									struct jsox_class_field* field = GetFromSet( JSOX_CLASS_FIELD, &state->class_fields );
+									
 									field->name = state->val.string;
 									field->nameLen = output->pos - state->val.string;
 									( *output->pos++ ) = 0;
@@ -1369,7 +1380,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 #ifdef DEBUG_CLASS_STATES
 						lprintf( "POP CLASS NAME %s %s %p", state->val.className, state->current_class ? state->current_class->name : "", state->current_class ? state->current_class->fields : 0 );
 #endif
-						DeleteFromSet( JSOX_PARSE_CONTEXT, jxpsd.parseContexts, old_context );
+						DeleteFromSet( JSOX_PARSE_CONTEXT, state->parseContexts, old_context );
 
 						if( emitObject )
 							state->val.value_type = JSOX_VALUE_OBJECT;
@@ -1428,7 +1439,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						lprintf( "POP2 CLASS NAME %s %s %p", state->val.className, state->current_class ? state->current_class->name : "", state->current_class ? state->current_class->fields : 0 );
 #endif
 						state->arrayType = old_context->arrayType;
-						DeleteFromSet( JSOX_PARSE_CONTEXT, jxpsd.parseContexts, old_context );
+						DeleteFromSet( JSOX_PARSE_CONTEXT, state->parseContexts, old_context );
 					}
 					if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
 						state->completed = TRUE;
@@ -1469,7 +1480,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					else if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_FIELD ) {
 						
 						if( state->current_class ) {
-							struct jsox_class_field *field = GetFromSet( JSOX_CLASS_FIELD, &jxpsd.class_fields );
+							struct jsox_class_field *field = GetFromSet( JSOX_CLASS_FIELD, &state->class_fields );
 							field->name = state->val.string;
 							field->nameLen = output->pos - state->val.string;
 							(*output->pos++) = 0;
@@ -2085,7 +2096,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				if( input->tempBuf )
 					Deallocate( CPOINTER, input->buf );
 
-				DeleteFromSet( JSOX_PARSE_BUFFER, jxpsd.parseBuffers, input );
+				DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, input );
 				if( state->gatheringString
 					|| state->gatheringNumber
 					|| state->parse_context == JSOX_CONTEXT_OBJECT_FIELD
@@ -2137,7 +2148,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 
 PDATALIST jsox_parse_get_data( struct jsox_parse_state *state ) {
 	PDATALIST *result = state->elements;
+	EnterCriticalSec( &jxpsd.cs_states );
 	state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
+	LeaveCriticalSec( &jxpsd.cs_states );
 	if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
 	else state->elements[0]->Cnt = 0;
 	return result[0];
@@ -2172,7 +2185,9 @@ void _jsox_dispose_message( PDATALIST *msg_data )
 	}
 	// quick method
 	DeleteDataList( msg_data );
+	EnterCriticalSec( &jxpsd.cs_states );
 	DeleteFromSet( PDATALIST, jxpsd.dataLists, msg_data );
+	LeaveCriticalSec( &jxpsd.cs_states );
 }
 
 static uintptr_t jsox_FindDataList( void*p, uintptr_t psv ) {
@@ -2194,13 +2209,13 @@ void jsox_parse_clear_state( struct jsox_parse_state *state ) {
 		PJSOX_PARSE_BUFFER buffer;
 		while( buffer = (PJSOX_PARSE_BUFFER)PopLink( state->outBuffers ) ) {
 			Deallocate( const char *, buffer->buf );
-			DeleteFromSet( JSOX_PARSE_BUFFER, jxpsd.parseBuffers, buffer );
+			DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 		}
 		while( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
-			DeleteFromSet( JSOX_PARSE_BUFFER, jxpsd.parseBuffers, buffer );
+			DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 		while( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
 			Deallocate( const char*, buffer->buf );
-			DeleteFromSet( JSOX_PARSE_BUFFER, jxpsd.parseBuffers, buffer );
+			DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 		}
 		DeleteFromSet( PLINKQUEUE, jxpsd.linkQueues, state->inBuffers );
 		//DeleteLinkQueue( &state->inBuffers );
@@ -2251,11 +2266,12 @@ void jsox_parse_dispose_state( struct jsox_parse_state **ppState ) {
 	struct jsox_parse_state *state = (*ppState);
 	struct jsox_parse_context *old_context;
 	PJSOX_PARSE_BUFFER buffer;
+	EnterCriticalSec( &jxpsd.cs_states );
 	_jsox_dispose_message( state->elements );
 	//DeleteDataList( &state->elements );
 	while( buffer = (PJSOX_PARSE_BUFFER)PopLink( state->outBuffers ) ) {
 		Deallocate( const char *, buffer->buf );
-		DeleteFromSet( JSOX_PARSE_BUFFER, jxpsd.parseBuffers, buffer );
+		DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 	}
 	{
 		char *buf;
@@ -2267,10 +2283,10 @@ void jsox_parse_dispose_state( struct jsox_parse_state **ppState ) {
 		//DeleteList( &state->outValBuffers );
 	}
 	while( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
-		DeleteFromSet( JSOX_PARSE_BUFFER, jxpsd.parseBuffers, buffer );
+		DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 	while( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
 		Deallocate( const char*, buffer->buf );
-		DeleteFromSet( JSOX_PARSE_BUFFER, jxpsd.parseBuffers, buffer );
+		DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 	}
 	DeleteFromSet( PLINKQUEUE, jxpsd.linkQueues, state->inBuffers );
 	//DeleteLinkQueue( &state->inBuffers );
@@ -2278,16 +2294,17 @@ void jsox_parse_dispose_state( struct jsox_parse_state **ppState ) {
 	//DeleteLinkQueue( &state->outQueue );
 	DeleteFromSet( PLINKSTACK, jxpsd.linkStacks, state->outBuffers );
 	//DeleteLinkStack( &state->outBuffers );
-	DeleteFromSet( JSOX_PARSE_CONTEXT, jxpsd.parseContexts, state->context );
+	DeleteFromSet( JSOX_PARSE_CONTEXT, state->parseContexts, state->context );
 
 	while( (old_context = (struct jsox_parse_context *)PopLink( state->context_stack )) ) {
 		//lprintf( "warning unclosed contexts...." );
-		DeleteFromSet( JSOX_PARSE_CONTEXT, jxpsd.parseContexts, old_context );
+		DeleteFromSet( JSOX_PARSE_CONTEXT, state->parseContexts, old_context );
 	}
 	if( state->context_stack )
 		DeleteFromSet( PLINKSTACK, jxpsd.linkStacks, state->context_stack );
 		//DeleteLinkStack( &state->context_stack );
 	DeleteFromSet( JSOX_PARSE_STATE, jxpsd.parseStates, state );
+	LeaveCriticalSec( &jxpsd.cs_states );
 	//Deallocate( struct jsox_parse_state *, state );
 	(*ppState) = NULL;
 }

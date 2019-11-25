@@ -183,6 +183,24 @@ typedef struct jsox_parse_context JSOX_PARSE_CONTEXT, *PJSOX_PARSE_CONTEXT;
 DeclareSet( JSOX_PARSE_CONTEXT );
 
 
+#ifndef JSON_PARSER_INCLUDED
+typedef PLIST *PPLIST;
+#define MAXPLISTSPERSET 256
+DeclareSet( PLIST );
+
+typedef PLINKSTACK *PPLINKSTACK;
+#define MAXPLINKSTACKSPERSET 256
+DeclareSet( PLINKSTACK );
+
+typedef PLINKQUEUE *PPLINKQUEUE;
+#define MAXPLINKQUEUESPERSET 256
+DeclareSet( PLINKQUEUE );
+
+typedef PDATALIST *PPDATALIST;
+#define MAXPDATALISTSPERSET 256
+DeclareSet( PDATALIST );
+#endif
+
 // this is the stack state that can be saved between parsing for streaming.
 struct jsox_parse_state {
 	//TEXTRUNE c;
@@ -252,44 +270,30 @@ struct jsox_parse_state {
 
 	PDATALIST root;
 	//char *token_begin;
+
+
+	PJSOX_CLASSSET  classPool;
+	PJSOX_PARSE_CONTEXTSET parseContexts;
+	PJSOX_CLASS_FIELDSET  class_fields;
+	PJSOX_PARSE_BUFFERSET parseBuffers;
+
 };
 typedef struct jsox_parse_state JSOX_PARSE_STATE, *PJSOX_PARSE_STATE;
 #define MAXJSOX_PARSE_STATESPERSET 32
 DeclareSet( JSOX_PARSE_STATE );
 
-#ifndef JSON_PARSER_INCLUDED
-typedef PLIST *PPLIST;
-#define MAXPLISTSPERSET 256
-DeclareSet( PLIST );
-
-typedef PLINKSTACK *PPLINKSTACK;
-#define MAXPLINKSTACKSPERSET 256
-DeclareSet( PLINKSTACK );
-
-typedef PLINKQUEUE *PPLINKQUEUE;
-#define MAXPLINKQUEUESPERSET 256
-DeclareSet( PLINKQUEUE );
-
-typedef PDATALIST *PPDATALIST;
-#define MAXPDATALISTSPERSET 256
-DeclareSet( PDATALIST );
-#endif
-
 struct jsox_parser_shared_data {
-	PJSOX_PARSE_CONTEXTSET parseContexts;
-	PJSOX_PARSE_BUFFERSET parseBuffers;
+	LOGICAL initialized;
+	CRITICALSECTION cs_states;
 	struct jsox_parse_state *last_parse_state;
 	PJSOX_PARSE_STATESET parseStates;
 	PPLISTSET listSet;
 	PPLINKSTACKSET linkStacks;
 	PPLINKQUEUESET linkQueues;
+
 	PPDATALISTSET dataLists;
 
-	PJSOX_CLASSSET  classes;
-	PJSOX_CLASS_FIELDSET  class_fields;
-
 	struct jsox_parse_state *_state; // static parsing state for simple message interface.
-
 };
 #ifndef JSOX_PARSER_MAIN_SOURCE
 extern
