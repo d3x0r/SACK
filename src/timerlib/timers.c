@@ -2287,7 +2287,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 					lprintf( "Failed to enter section... sleeping (forever)..." );
 #  endif
 #endif
-				WakeableNamedThreadSleepEx( "sack.critsec", SLEEP_FOREVER DBG_RELAY );
+				WakeableNamedThreadSleepEx( "sack.critsec", 25 DBG_RELAY ); // shouldn't need more than 1 cycle; but infinite can fail on short locks.
 #ifdef ENABLE_CRITICALSEC_LOGGING
 #  ifdef _DEBUG
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
@@ -2410,8 +2410,8 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 		if( !( pcs->dwLocks & ~(SECTION_LOGGED_WAIT) ) )
 		{
 			THREAD_ID dwWaiting = pcs->dwThreadWaiting;
-			pcs->dwLocks = 0;
 			pcs->dwThreadID = 0;
+			pcs->dwLocks = 0;
 			pcs->dwUpdating = pcs->dwLocks;
 
 			// wake the prior (if there is one sleeping)
