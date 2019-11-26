@@ -25,6 +25,7 @@ struct HttpState {
 	PTEXT resource; // the path of the resource - mostly for when this is used to receive requests.
 	PLIST fields; // list of struct HttpField *, these other the other meta fields in the header.
 	PLIST cgi_fields; // list of HttpField *, taken in from the URL or content (get or post)
+	PLIST anchor_fields; // parsed anchor (err... doesn't actually get this?)
 	int bLine;
 
 	size_t content_length;
@@ -182,7 +183,7 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 	return url;
 }
 
-void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
+void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT params )
 {
 	PTEXT start = TextParse( params, "&=", NULL, 1, 1 DBG_SRC );
 	PTEXT next = start;
@@ -213,10 +214,10 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 		field->name = name?resolvePercents( name ):NULL;
 		field->value = value?resolvePercents( value ):NULL;
 		//lprintf( "Added %s=%s", GetText( field->name ), GetText( field->value ) );
-		AddLink( &pHttpState->cgi_fields, field );
+		AddLink( cgi_fields, field );
 		next = NEXTLINE( next );
 	}
-	if( !GetLinkCount( pHttpState->cgi_fields ) ) // otherwise it will have been relesaed with the assignment.
+	if( !GetLinkCount( cgi_fields[0] ) ) // otherwise it will have been relesaed with the assignment.
 		LineRelease( start );
 }
 
@@ -447,11 +448,12 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											}
 											else if( GetText(tmp)[0] == '?' )
 											{
-												ProcessURL_CGI( pHttpState, next );
+												ProcessURL_CGI( pHttpState, &pHttpState->cgi_fields, next );
 												next = NEXTLINE( next );
 											}
 											else if( GetText(tmp)[0] == '#' )
 											{
+												ProcessURL_CGI( pHttpState, &pHttpState->anchor_fields, next );
 												lprintf( "Page anchor of URL is lost(not saved)...%s %s"
 													, GetText( tmp )
 													, GetText( next ) );
