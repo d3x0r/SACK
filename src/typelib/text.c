@@ -678,7 +678,7 @@ PTEXT SegSplitEx( PTEXT *pLine, INDEX nPos  DBG_PASS)
 
 //----------------------------------------------------------------------
 
-TEXTCHAR NextCharEx( PTEXT input, size_t idx )
+TEXTRUNE NextCharEx( PTEXT input, size_t idx )
 {
 	if( ( ++idx ) >= input->data.size )
 	{
@@ -726,7 +726,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 
 	INDEX size;
 
-	TEXTCHAR character;
+	TEXTRUNE character;
 	uint32_t elipses = FALSE,
 	   spaces = 0, tabs = 0;
 
