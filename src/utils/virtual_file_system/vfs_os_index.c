@@ -219,7 +219,7 @@ struct memoryStorageIndex* createIndexFile( struct sack_vfs_os_volume* vol, cons
 struct memoryStorageIndex* allocateIndex( struct sack_vfs_os_file* file
                   , const char* filename, size_t filenameLen 
 ) {
-	uint32_t indexOffset = (uint32_t)_os_AddSmallBlockUsage( &file->header.indexes, filenameLen + sizeof( BLOCKINDEX ) );
+	uint32_t indexOffset = _os_AddSmallBlockUsage( &file->header.indexes, (uint32_t)(filenameLen + sizeof( BLOCKINDEX )) );
 	struct memoryStorageIndex* newIndex = createIndexFile( file->vol, filename, filenameLen );
 	//newIndex->name = DupCStrLen( filename, filenameLen );
 	WriteIntoBlock( file, 3, indexOffset, &newIndex, sizeof( BLOCKINDEX ) );

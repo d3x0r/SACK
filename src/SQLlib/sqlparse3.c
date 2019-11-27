@@ -483,14 +483,14 @@ int GetTableColumns( PTABLE table, PTEXT *word DBG_PASS )
 		TEXTSTR extra = NULL;
 		int bQuoted;
 		(*word) = NEXTLINE( *word );
-		while( !GetTextSize( *word ) )
+		while( (*word) && !GetTextSize( *word ) )
 			(*word) = NEXTLINE( *word );
 
 		//if( (*word) && GetText( *word )[0] == ',' )
 		//	(*word) = NEXTLINE( *word );
 		if( !GrabName( word, &name, &bQuoted  DBG_SRC) )
 		{
-			lprintf( "Failed column parsing..." );
+			lprintf( "Failed column parsing...(Probably an extra comma before final parenthesis)" );
 		}
 		else
 		{
