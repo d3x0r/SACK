@@ -472,7 +472,9 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 												}
 											}
 										}
-										pHttpState->resource = resource_path;
+										if( resource_path ) resource_path->format.position.offset.spaces = 0;
+										pHttpState->resource = BuildLine( resource_path );
+										LineRelease( resource_path );
 									}
 									LineRelease( request );
 								}
