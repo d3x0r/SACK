@@ -65,7 +65,7 @@ int GrabName( PTEXT *word, TEXTSTR *result, int *bQuoted DBG_PASS )
 		}
 		// skip one more - end after the last `
 		(*word) = NEXTLINE( *word );
-		if( GetText( *word )[0] == '.' )
+		if( (*word) && GetText( *word )[0] == '.' )
 		{
 			(*word) = NEXTLINE( *word );
 			LineRelease( phrase );
