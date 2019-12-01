@@ -276,20 +276,20 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
    See Also
    <link sack::app::deadstart, deadstart Namespace>                         */
 #define PRIORITY_PRELOAD(name,priority) static void CPROC name(void); \
-   static class pastejunk(schedule_,name) {   \
+	namespace { static class pastejunk(schedule_,name) {   \
      public:pastejunk(schedule_,name)() {    \
 	RegisterPriorityStartupProc( name,TOSTR(name),priority,(void*)this DBG_SRC);\
 	  }  \
-	} pastejunk(do_schedule_,name);     \
+	} pastejunk(do_schedule_,name);   }  \
 	static void name(void)
 /* This is used once in deadstart_prog.c which is used to invoke
    startups when the program finishes loading.                   */
 #define MAGIC_PRIORITY_PRELOAD(name,priority) static void CPROC name(void); \
-   static class pastejunk(schedule_,name) {   \
+	namespace { static class pastejunk(schedule_,name) {   \
 	  public:pastejunk(schedule_,name)() {  \
 	name();  \
 	  }  \
-	} pastejunk(do_schedul_,name);     \
+	} pastejunk(do_schedul_,name);   }  \
 	static void name(void)
 /* A macro to define some code to run during program shutdown. An
    additional priority may be specified if the order matters. Higher

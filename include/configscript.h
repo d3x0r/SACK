@@ -75,7 +75,7 @@ struct va_args_tag {
 				+ (ARG_STACK_SIZE-1) )&-ARG_STACK_SIZE) ) )        \
 	?(argset.argCount++)                                                       \
 	 ,((*(enum configArgType*)(argset.args))=(argType))                        \
-	 ,(*(type*)(((uintptr_t)argset.args)+sizeof(enum configArgType)) = (arg))  \
+	 ,(*(type*)((((uintptr_t)argset.args)+sizeof(enum configArgType)+ (ARG_STACK_SIZE-1) )&-ARG_STACK_SIZE) = (arg))  \
 	 ,0                                                                        \
 	:0)
 
