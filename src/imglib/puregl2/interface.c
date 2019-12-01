@@ -225,7 +225,7 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 	RegisterInterface( "puregl2.image", (void*(CPROC*)(void))GetImageInterface, (void(CPROC*)(void*))DropImageInterface );
 	RegisterInterface( "puregl2.image.3d", GetImage3dInterface, DropImage3dInterface );
 
-#ifdef __EMSCRIPTEN__
+#if defined( __EMSCRIPTEN__ ) || defined( STATIC_RENDER_INTERFACE )
 	RegisterClassAlias( "system/interfaces/puregl2.image", "system/interfaces/image" );
 	RegisterClassAlias( "system/interfaces/puregl2.image.3d", "system/interfaces/image.3d" );
 #endif

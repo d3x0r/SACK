@@ -2029,7 +2029,7 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 		"puregl2.render.3d"
 		, ogl_GetDisplay3dInterface, ogl_DropDisplay3dInterface );
 #endif
-#ifdef __EMSCRIPTEN__
+#if defined( __EMSCRIPTEN__ ) || defined( STATIC_RENDER_INTERFACE )
 	RegisterClassAlias( "system/interfaces/puregl2.render", "system/interfaces/render" );
 	RegisterClassAlias( "system/interfaces/puregl2.render.3d", "system/interfaces/render.3d" );
 #endif
