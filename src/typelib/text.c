@@ -765,7 +765,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 		tabs += input->format.position.offset.tabs;
 		//Log1( "Assuming %d spaces... ", spaces );
 		for (;(character = GetUtfChar( (char const**)&tempText ) ),
-                   ((tempText-tempText_) < (int)size); ) // while not at the
+                   ((tempText-tempText_) <= (int)size); ) // while not at the
                                          // end of the line.
 		{
 			if( elipses && character != '.' )
@@ -1027,7 +1027,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 		tabs += input->format.position.offset.tabs;
 		//Log1( "Assuming %d spaces... ", spaces );
 		for (;(character = GetUtfChar( (char const**)&tempText ) ),
-		             ((tempText-tempText_) < (int)size); ) // while not at the
+		             ((tempText-tempText_) <= (int)size); ) // while not at the
 		                                      // end of the line.
 		{
 			if( elipses && character != '.' )
