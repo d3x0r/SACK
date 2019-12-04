@@ -130,6 +130,8 @@ struct file_system_interface {
 	uintptr_t (CPROC *fs_ioctl)(uintptr_t psvInstance, uintptr_t opCode, va_list args);
 	uint64_t( CPROC *find_get_ctime )(struct find_cursor *cursor);
 	uint64_t( CPROC *find_get_wtime )(struct find_cursor *cursor);
+	int ( CPROC* _mkdir )( uintptr_t psvInstance, const char* );
+	int ( CPROC* _rmdir )( uintptr_t psvInstance, const char* );
 };
 
 
@@ -415,6 +417,7 @@ FILESYS_PROC  int FILESYS_API  sack_unlinkEx ( INDEX group, CTEXTSTR filename, s
 
 FILESYS_PROC  int FILESYS_API  sack_unlink ( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_rmdir( INDEX group, CTEXTSTR filename );
+FILESYS_PROC  int FILESYS_API  sack_mkdir( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_renameEx ( CTEXTSTR file_source, CTEXTSTR new_name, struct file_system_mounted_interface *mount );
 FILESYS_PROC  int FILESYS_API  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name );
 
@@ -455,6 +458,8 @@ FILESYS_PROC  uintptr_t FILESYS_API  sack_fs_ioctl( struct file_system_mounted_i
 
 # define remove(a)   sack_unlink(0,a)
 # define unlink(a)   sack_unlink(0,a)
+# define rmdir(a)   sack_rmdir(0,a)
+# define mkdir(a)   sack_mkdir(0,a)
 #endif
 #endif
 
