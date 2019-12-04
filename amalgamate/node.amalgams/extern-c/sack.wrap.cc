@@ -38,6 +38,27 @@ extern "C"
 
 
 extern "C"
+  int   ScanFilesEx ( CTEXTSTR base
+           , CTEXTSTR mask
+           , void **pInfo
+           , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags )
+           , enum ScanFileFlags flags
+		   , uintptr_t psvUser, LOGICAL begin_sub_path, struct file_system_mounted_interface *mount ){
+	return sack::filesys::ScanFilesEx( base, mask, pInfo, Process, flags, psvUser, begin_sub_path, mount );
+}
+
+extern "C"
+  int   ScanFiles ( CTEXTSTR base
+           , CTEXTSTR mask
+           , void **pInfo
+           , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags )
+           , enum ScanFileFlags flags
+           , uintptr_t psvUser ) {
+	return sack::filesys::ScanFiles( base, mask, pInfo, Process, flags, psvUser);
+}
+
+
+extern "C"
 	FILE* sack_fopen ( INDEX group, CTEXTSTR filename, CTEXTSTR opts ){
       return sack::filesys::sack_fopen( group, filename, opts );
 	}
@@ -45,6 +66,21 @@ extern "C"
 extern "C"
 	int sack_fclose ( FILE *file_file ){
       return sack::filesys::sack_fclose( file_file );
+	}
+
+extern "C"
+	size_t sack_unlink ( INDEX group, CTEXTSTR filename ){
+      return sack::filesys::sack_unlink( group, filename );
+	}
+
+extern "C"
+	size_t sack_rmdir ( INDEX group, CTEXTSTR filename ){
+      return sack::filesys::sack_rmdir( group, filename );
+	}
+
+extern "C"
+	size_t sack_mkdir ( INDEX group, CTEXTSTR filename ){
+      return sack::filesys::sack_mkdir( group, filename );
 	}
 
 extern "C"
