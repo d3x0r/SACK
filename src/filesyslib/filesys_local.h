@@ -26,9 +26,9 @@ extern
 	PLIST handles;
 	PLIST file_system_interface;
 	struct file_system_interface *default_file_system_interface;
-	struct file_system_mounted_interface *mounted_file_systems;
+	struct file_system_mounted_interface *_mounted_file_systems;
 	struct file_system_mounted_interface *last_find_mount;
-	struct file_system_mounted_interface *default_mount;
+	struct file_system_mounted_interface *_default_mount;
 
 	LOGICAL have_default;
 	struct {
@@ -46,6 +46,24 @@ extern
 winfile_local__;
 #endif
 ;
+
+#if HAS_TLS
+struct filesys_thread_mount_info {
+	struct file_system_mounted_interface* default_mount;
+	struct file_system_mounted_interface* mounted_file_systems;
+	char* cwd;
+};
+#if !defined( WINFILE_COMMON_SOURCE )
+extern
+#endif
+	DeclareThreadVar  struct filesys_thread_mount_info _fileSysThreadInfo;
+#  define FileSysThreadInfo (_fileSysThreadInfo)
+
+#else
+#error "Please get a better platform target...."
+//#  define fileSysThreadInfo (*_fileSysThreadInfo)
+#endif
+
 
 #ifndef WINFILE_COMMON_SOURCE
 extern

@@ -8,9 +8,13 @@
 #ifdef __LINUX__
 #include <sys/stat.h>
 #endif
+
 //-----------------------------------------------------------------------
 
 FILESYS_NAMESPACE
+
+// have to include this in-namespace
+#include "filesys_local.h"
 
 	static char *currentPath
 #ifdef __EMSCRIPTEN__
@@ -68,6 +72,8 @@ extern TEXTSTR ExpandPath( CTEXTSTR path );
 
 TEXTSTR GetCurrentPath( TEXTSTR path, int len )
 {
+	return FileSysThreadInfo.cwd;
+
 	if( !path )
 		return 0;
 #ifdef __EMSCRIPTEN__
@@ -407,6 +413,13 @@ int  MakePath ( CTEXTSTR path )
 
 int  SetCurrentPath ( CTEXTSTR path )
 {
+	TEXTSTR tmp = ExpandPath( path );
+	if( IsPath( tmp ) ) {
+		Release( FileSysThreadInfo.cwd );
+		FileSysThreadInfo.cwd = StrDup( tmp );
+		return 1;
+	}
+
 	int status = 1;
 	TEXTSTR tmp_path;
 	if( !path )

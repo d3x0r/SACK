@@ -211,6 +211,14 @@ typedef uintptr_t (CPROC*ThreadStartProc)( PTHREAD );
    ThreadToSimple.                                             */
 typedef uintptr_t (*ThreadSimpleStartProc)( POINTER );
 
+/*
+  OnThreadCreate allows registering a procedure to run
+  when a thread is created.  (Or an existing thread becomes
+  tracked within this library, via MakeThread() ).
+  It is called once per thread, for each thread created
+  after registering the callback.
+*/
+TIMER_PROC( void, OnThreadCreate )( void ( *v )( void ) );
 
 /* Create a separate thread that starts in the routine
    specified. The uintptr_t value (something that might be a

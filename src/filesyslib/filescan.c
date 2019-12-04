@@ -331,7 +331,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 
 				//lprintf( "... %p", winfile_local );
 				pData->single_mount = FALSE;
-				pData->scanning_mount = (*winfile_local).mounted_file_systems;
+				pData->scanning_mount = FileSysThreadInfo.mounted_file_systems;
 			}
 			else
 				pData->single_mount = TRUE;

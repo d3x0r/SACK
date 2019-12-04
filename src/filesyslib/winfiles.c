@@ -186,12 +186,22 @@ void sack_set_common_data_application( CTEXTSTR name )
 	UpdateLocalDataPath();
 }
 
+static void threadInit( void ) {
+	if( !FileSysThreadInfo.cwd ) { // edge case the main thread might init twice.
+		FileSysThreadInfo.cwd = StrDup( "." );
+		FileSysThreadInfo.default_mount = ( *winfile_local )._default_mount;
+		FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	}
+}
+
 static void LocalInit( void )
 {
 #ifndef __STATIC_GLOBAL__
 	if( !winfile_local )
 		SimpleRegisterAndCreateGlobal( winfile_local );
 #endif
+	OnThreadCreate( threadInit );
+	threadInit();  // this might or might not get dispatched already on this thread.
 	if( !(*winfile_local).flags.bInitialized )
 	{
 		InitializeCriticalSec( &(*winfile_local).cs_files );
@@ -1271,8 +1281,10 @@ int sack_iwrite( INDEX file_handle, CPOINTER buffer, int size )
 int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface *mount )
 {
 	int noMount = 0;
-	if( !mount )
-		mount = (*winfile_local).default_mount;
+	if( !mount ) {
+		if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+		mount = FileSysThreadInfo.mounted_file_systems;
+	}
 	if( !mount )
 		noMount = 1;
 
@@ -1307,7 +1319,8 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 
 int sack_unlink( INDEX group, CTEXTSTR filename )
 {
-	return sack_unlinkEx( group, filename, (*winfile_local).mounted_file_systems );
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	return sack_unlinkEx( group, filename, FileSysThreadInfo.mounted_file_systems );
 }
 
 //----------------------------------------------------------------------------
@@ -1365,7 +1378,8 @@ int sack_mkdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_int
 }
 
 int sack_mkdir( INDEX group, CTEXTSTR filename ) {
-	return sack_mkdirEx( group, filename, ( *winfile_local ).mounted_file_systems );
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	return sack_mkdirEx( group, filename, FileSysThreadInfo.mounted_file_systems );
 }
 
 static int sack_filesys_mkdir( uintptr_t psv, CTEXTSTR filename )
@@ -1407,7 +1421,8 @@ int sack_rmdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_int
 }
 
 int sack_rmdir( INDEX group, CTEXTSTR filename ) {
-	return sack_rmdirEx( group, filename, ( *winfile_local ).mounted_file_systems );
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	return sack_rmdirEx( group, filename, FileSysThreadInfo.mounted_file_systems );
 }
 
 static int sack_filesys_rmdir( uintptr_t psv, CTEXTSTR filename )
@@ -1449,8 +1464,10 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 	LocalInit();
 	EnterCriticalSec( &(*winfile_local).cs_files );
 
-	if( !mount )
-		mount = (*winfile_local).mounted_file_systems;
+	if( !mount ) {
+		if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+		mount = FileSysThreadInfo.mounted_file_systems;
+	}
 
 	if( !StrChr( opts, 'r' ) && !StrChr( opts, '+' ) )
 		while( mount )
@@ -1721,8 +1738,10 @@ FILE*  sack_fsopenEx( INDEX group
 	LOGICAL single_mount = ( mount != NULL );
 	LocalInit();
 	EnterCriticalSec( &(*winfile_local).cs_files );
-	if( !mount )
-		mount = (*winfile_local).mounted_file_systems;
+	if( !mount ) {
+		if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+		mount = FileSysThreadInfo.mounted_file_systems;
+	}
 
 	if( !StrChr( opts, 'r' ) && !StrChr( opts, '+' ) )
 		while( mount )
@@ -1876,7 +1895,7 @@ default_fopen:
 
 FILE*  sack_fsopen( INDEX group, CTEXTSTR filename, CTEXTSTR opts, int share_mode )
 {
-	return sack_fsopenEx( group, filename, opts, share_mode, NULL/*(*winfile_local).mounted_file_systems*/ );
+	return sack_fsopenEx( group, filename, opts, share_mode, NULL/*FileSysThreadInfo.mounted_file_systems*/ );
 }
 
 //----------------------------------------------------------------------------
@@ -2147,7 +2166,8 @@ LOGICAL sack_existsEx ( const char *filename, struct file_system_mounted_interfa
 
 LOGICAL sack_exists( const char * filename )
 {
-	struct file_system_mounted_interface *mount = (*winfile_local).mounted_file_systems;
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	struct file_system_mounted_interface *mount = FileSysThreadInfo.mounted_file_systems;
 	while( mount )
 	{
 		if( sack_existsEx( filename, mount ) )
@@ -2193,7 +2213,8 @@ LOGICAL sack_isPathEx ( const char *filename, struct file_system_mounted_interfa
 
 LOGICAL sack_isPath( const char * filename )
 {
-	struct file_system_mounted_interface *mount = (*winfile_local).mounted_file_systems;
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	struct file_system_mounted_interface *mount = FileSysThreadInfo.mounted_file_systems;
 	while( mount )
 	{
 		if( sack_isPathEx( filename, mount ) )
@@ -2244,7 +2265,8 @@ int  sack_renameEx ( CTEXTSTR file_source, CTEXTSTR new_name, struct file_system
 
 int  sack_rename( CTEXTSTR file_source, CTEXTSTR new_name )
 {
-	return sack_renameEx( file_source, new_name, (*winfile_local).default_mount );
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	return sack_renameEx( file_source, new_name, FileSysThreadInfo.mounted_file_systems );
 }
 
 //----------------------------------------------------------------------------
@@ -2536,7 +2558,8 @@ LOGICAL windowDeepDelete( const char *path )
 
 static int CPROC sack_filesys_unlink( uintptr_t psv, const char*filename ) {
 	int okay = 0;
-	struct file *file = FindFileByName( 0, filename, (*winfile_local).default_mount, NULL );
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	struct file *file = FindFileByName( 0, filename, (*winfile_local)._mounted_file_systems, NULL );
 	if( file ) file->deleted = 1;
 #ifdef WIN32
 	okay = windowDeepDelete( filename );
@@ -2805,8 +2828,9 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 	LocalInit();
 	if( !sack_get_filesystem_interface( "native" ) )
 		sack_register_filesystem_interface( "native", &native_fsi );
-	if( !(*winfile_local).default_mount )
-		(*winfile_local).default_mount = sack_mount_filesystem( "native", &native_fsi, 1000, (uintptr_t)NULL, TRUE );
+	if( !(*winfile_local)._default_mount )
+		(*winfile_local)._default_mount = sack_mount_filesystem( "native", &native_fsi, 1000, (uintptr_t)NULL, TRUE );
+	FileSysThreadInfo.default_mount = ( *winfile_local )._default_mount;
 	pNtSetInformationFile = (sNtSetInformationFile)LoadFunction(
 		"ntdll.dll",
 		"NtSetInformationFile" );
@@ -2861,7 +2885,9 @@ static int CPROC sack_filesys_exists( uintptr_t psv, const char *filename ) {
 	return FALSE;
 }
 
-struct file_system_mounted_interface *sack_get_default_mount( void ) { return (*winfile_local).default_mount; }
+struct file_system_mounted_interface *sack_get_default_mount( void ) { 
+	return FileSysThreadInfo.default_mount;
+}
 
 struct file_system_interface * sack_get_mounted_filesystem_interface( struct file_system_mounted_interface *mount ){
 	if( mount )
@@ -2877,7 +2903,8 @@ uintptr_t sack_get_mounted_filesystem_instance( struct file_system_mounted_inter
 
 struct file_system_mounted_interface *sack_get_mounted_filesystem( const char *name )
 {
-	struct file_system_mounted_interface *root = (*winfile_local).mounted_file_systems;
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	struct file_system_mounted_interface *root = FileSysThreadInfo.mounted_file_systems;
 	while( root )
 	{
 		if( root->name ) if( stricmp( root->name, name ) == 0 ) break;
@@ -2898,7 +2925,8 @@ LOGICAL CPROC sack_filesys_rename( uintptr_t psvInstance, const char *original_n
 
 struct file_system_mounted_interface *sack_mount_filesystem( const char *name, struct file_system_interface *fsi, int priority, uintptr_t psvInstance, LOGICAL writable )
 {
-	struct file_system_mounted_interface *root = (*winfile_local).mounted_file_systems;
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	struct file_system_mounted_interface *root = FileSysThreadInfo.mounted_file_systems;
 	struct file_system_mounted_interface *mount = New( struct file_system_mounted_interface );
 	mount->name = name?strdup( name ):NULL;
 	mount->priority = priority;
@@ -2908,9 +2936,10 @@ struct file_system_mounted_interface *sack_mount_filesystem( const char *name, s
 	//lprintf( "Create mount called %s ", name );
 	if( !root || ( root->priority >= priority ) )
 	{
-		if( !root || root == (*winfile_local).mounted_file_systems )
+		if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+		if( !root || root == FileSysThreadInfo.mounted_file_systems )
 		{
-			LinkThing( (*winfile_local).mounted_file_systems, mount );
+			LinkThing( FileSysThreadInfo.mounted_file_systems, mount );
 		}
 		else
 		{

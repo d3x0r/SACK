@@ -186,17 +186,19 @@ struct timer_local_data {
 	uint32_t remove_timer;
 	uint32_t CurrentTimerID;
 	int32_t last_sleep;
-
+	PLIST onThreadCreate;
 #define globalTimerData (*global_timer_structure)
 	volatile uint64_t lock_thread_create;
 	// should be a short list... 10 maybe 15...
 	PLIST thread_events;
 
 	CRITICALSECTION csGrab;
-#if defined( WIN32 )
+#if !HAS_TLS
+#  if defined( WIN32 )
 	DWORD my_thread_info_tls;
-#elif defined( __LINUX__ )
+#  elif defined( __LINUX__ )
 	pthread_key_t my_thread_info_tls;
+#  endif
 #endif
 } 
 #ifdef __STATIC_GLOBALS__
@@ -216,7 +218,11 @@ struct my_thread_info {
 	PTHREAD pThread;
 	THREAD_ID nThread;
 };
-#define MyThreadInfo (*_MyThreadInfo)
+DeclareThreadLocal  struct my_thread_info _MyThreadInfo;
+#  define MyThreadInfo (_MyThreadInfo)
+
+#else
+#  define MyThreadInfo (*_MyThreadInfo)
 #endif
 
 #ifdef _WIN32
@@ -244,14 +250,15 @@ struct my_thread_info {
 
 void  RemoveTimerEx( uint32_t ID DBG_PASS );
 
+#if !HAS_TLS
 static struct my_thread_info* GetThreadTLS( void )
 {
 	struct my_thread_info* _MyThreadInfo;
-#if defined( WIN32 )
 #  ifndef __STATIC_GLOBALS__
 	if( !global_timer_structure )
 		SimpleRegisterAndCreateGlobal( global_timer_structure );
 #  endif
+#  if defined( WIN32 )
 	if( !( _MyThreadInfo = (struct my_thread_info*)TlsGetValue( global_timer_structure->my_thread_info_tls ) ) )
 	{
 		int old = SetAllocateLogging( FALSE );
@@ -260,17 +267,17 @@ static struct my_thread_info* GetThreadTLS( void )
 		_MyThreadInfo->nThread = 0;
 		_MyThreadInfo->pThread = 0;
 	}
-#elif defined( __LINUX__ )
+#  elif defined( __LINUX__ )
 	if( !( _MyThreadInfo = (struct my_thread_info*)pthread_getspecific( global_timer_structure->my_thread_info_tls ) ) )
 	{
 		pthread_setspecific( global_timer_structure->my_thread_info_tls, _MyThreadInfo = New( struct my_thread_info ) );
 		_MyThreadInfo->nThread = 0;
 		_MyThreadInfo->pThread = 0;
 	}
-#endif
-	return _MyThreadInfo;
+#  endif
+	return &MyThreadInfo;
 }
-
+#endif
 // this priorirty is also relative to a secondary init for procreg/names.c
 // if you change this, need to change when that is scheduled also
 PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
@@ -282,10 +289,12 @@ PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
 #  endif
 	if( !globalTimerData.timerID )
 	{
+#if !HAS_TLS
 #if defined( WIN32 )
 		globalTimerData.my_thread_info_tls = TlsAlloc();
 #elif defined( __LINUX__ )
 		pthread_key_create( &globalTimerData.my_thread_info_tls, NULL );
+#endif
 #endif
 		InitializeCriticalSec( &globalTimerData.csGrab );
 		// this may have initialized early?
@@ -773,17 +782,15 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 		pThread = FindWakeup( name );
 	else
 	{
-#ifdef HAS_TLS
+#if !HAS_TLS
 		struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+#endif
 		pThread = MyThreadInfo.pThread;
 		if( !pThread )
 		{
 			MakeThread();
 			pThread = MyThreadInfo.pThread;
 		}
-#else
-		pThread = FindThread( GetMyThreadID() );
-#endif
 	}
 	if( pThread )
 	{
@@ -1045,7 +1052,9 @@ uintptr_t CPROC ThreadProc( PTHREAD pThread );
 int  IsThisThreadEx( PTHREAD pThreadTest DBG_PASS )
 {
 	PTHREAD pThread;
+#if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+#endif
 	pThread
 #ifdef HAS_TLS
 		= MyThreadInfo.pThread;
@@ -1062,13 +1071,10 @@ int  IsThisThreadEx( PTHREAD pThreadTest DBG_PASS )
 static int NotTimerThread( void )
 {
 	PTHREAD pThread;
+#if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
-	pThread
-#ifdef HAS_TLS
-		= MyThreadInfo.pThread;
-#else
-		= FindThread( GetMyThreadID() );
 #endif
+	pThread = MyThreadInfo.pThread;
 	if( pThread && ( pThread->proc == ThreadProc ) )
 		return FALSE;
 	return TRUE;
@@ -1076,12 +1082,14 @@ static int NotTimerThread( void )
 
 //--------------------------------------------------------------------------
 
-void  UnmakeThread( void )
+static void  UnmakeThread( void )
 {
 	PTHREAD pThread;
+#if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+#endif
 	uint64_t oldval;
-	while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, _MyThreadInfo->nThread ) ) { //-V595
+	while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, MyThreadInfo.nThread ) ) { //-V595
 		//globalTimerData.lock_thread_create = oldval;
 		Relinquish();
 	}
@@ -1102,9 +1110,13 @@ void  UnmakeThread( void )
 			//lprintf( "Unmaking thread event! on thread %016" _64fx"x", pThread->thread_ident );
 			CloseHandle( pThread->thread_event->hEvent );
 			{
+#  if !HAS_TLS
 				struct my_thread_info* _MyThreadInfo = GetThreadTLS();
-				Deallocate( struct my_thread_info*, _MyThreadInfo );
 				TlsSetValue( global_timer_structure->my_thread_info_tls, NULL ); //-V595
+				Deallocate( struct my_thread_info*, _MyThreadInfo );
+#  else
+				//Deallocate( struct my_thread_info*, _MyThreadInfo );
+#  endif
 			}
 #else
 			closesem( (POINTER)pThread, 0 );
@@ -1132,7 +1144,9 @@ static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 #endif
 {
 	uintptr_t result = 0;
+#if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+#endif
 #ifdef _WIN32
 	while( !pThread->hThread )
 		Relinquish();
@@ -1152,6 +1166,13 @@ static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 		pThread->thread_ident = _GetMyThreadID();
 	//DebugBreak();
 	InitWakeup( pThread, NULL );
+	{
+		INDEX idx;
+		void ( *f )( void );
+		LIST_FORALL( globalTimerData.onThreadCreate, idx,  void( * )( void ), f ){
+			f();
+		}
+	}
 #ifdef LOG_THREAD
 	Log1( "Set thread ident: %016" _64fx, pThread->thread_ident );
 #endif
@@ -1181,7 +1202,9 @@ static void *SimpleThreadWrapper( PTHREAD pThread )
 static uintptr_t CPROC SimpleThreadWrapper( PTHREAD pThread )
 #endif
 {
+#if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+#endif
 	uintptr_t result = 0;
 #ifdef _WIN32
 	while( !pThread->hThread )
@@ -1193,11 +1216,9 @@ static uintptr_t CPROC SimpleThreadWrapper( PTHREAD pThread )
 	pThread->flags.bStarted = 1;
 	while( !pThread->flags.bReady )
 		Relinquish();
-#ifdef HAS_TLS
+
 	MyThreadInfo.pThread = pThread;
-	MyThreadInfo.nThread =
-#endif
-		pThread->thread_ident = GetMyThreadID();
+	MyThreadInfo.nThread = pThread->thread_ident = GetMyThreadID();
 	InitWakeup( pThread, NULL );
 #ifdef LOG_THREAD
 	Log1( "Set thread ident: %016" _64fx, pThread->thread_ident );
@@ -1218,18 +1239,18 @@ static uintptr_t CPROC SimpleThreadWrapper( PTHREAD pThread )
 
 PTHREAD  MakeThread( void )
 {
-#ifdef HAS_TLS
+#if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+#endif
 	if( MyThreadInfo.pThread )
 		return MyThreadInfo.pThread;
 	MyThreadInfo.nThread = _GetMyThreadID();
-#endif
+
 	{
 		PTHREAD pThread;
 		THREAD_ID thread_ident = _GetMyThreadID();
-#ifndef HAS_TLS
+		// this must be a search(?)
 		if( !(pThread = FindThread( thread_ident ) ) )
-#endif
 		{
 			THREAD_ID oldval;
 			LOGICAL dontUnlock = FALSE;
@@ -1262,9 +1283,7 @@ PTHREAD  MakeThread( void )
 			    , pThread->proc, pThread->thread_ident, pThread );
 #endif
 		}
-#ifdef HAS_TLS
 		MyThreadInfo.pThread = pThread;
-#endif
 		return pThread;
 	}
 }
@@ -1277,16 +1296,14 @@ THREAD_ID GetThreadID( PTHREAD thread )
 }
 THREAD_ID GetThisThreadID( void )
 {
-#if HAS_TLS
+#if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+#endif
 	if( !MyThreadInfo.nThread )
 	{
 		MyThreadInfo.nThread = _GetMyThreadID();
 	}
 	return MyThreadInfo.nThread;
-#else
-	return MakeThread()->thread_ident;
-#endif
 }
 uintptr_t GetThreadParam( PTHREAD thread )
 {
@@ -2462,16 +2479,20 @@ void DeleteCriticalSec( PCRITICALSECTION pcs )
 #ifdef _WIN32
 HANDLE  GetWakeEvent( void )
 {
-#if HAS_TLS
+#if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
-	if( !MyThreadInfo.pThread )
-		MakeThread();
-	return MyThreadInfo.pThread->thread_event->hEvent;
-#else
-	return MakeThread()->thread_event->hEvent;
 #endif
+	if( !MyThreadInfo.pThread ) MakeThread();
+	return MyThreadInfo.pThread->thread_event->hEvent;
 }
 #endif
+
+void OnThreadCreate( void (*f)(void) ) {
+	AddLink( &globalTimerData.onThreadCreate, f );
+}
+
+#undef GetThreadTLS
+#undef MyThreadInfo
 
 #ifdef __cplusplus
 }//	namespace timers {
