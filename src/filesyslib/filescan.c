@@ -412,7 +412,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 		findmaskw(pInfo) = CharWConvertLen( findmask( pInfo ), strlen( findmask( pInfo ) ) );
 
 		if( findbasename(pInfo)[0] )
-			tnprintf( findmask, sizeof(findmask), "%s/*", findbasename(pInfo) );
+			tnprintf( findmask, sizeof(findmask), "%s" PATHCHAR "*", findbasename(pInfo) );
 		else {
 			tnprintf( findmask, sizeof( findmask ), "*" );
 		}
@@ -575,7 +575,7 @@ getnext:
 		{
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
 			if( findbasename( pInfo )[0] )
-				tnprintf( pData->buffer, MAX_PATH_NAME, "%s/%s", findbasename(pInfo), pData->file_buffer );
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s" PATHCHAR "%s", findbasename(pInfo), pData->file_buffer );
 			else
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s", pData->file_buffer );
 		}
@@ -584,14 +584,14 @@ getnext:
 #ifdef WIN32
 #  ifdef UNDER_CE
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", finddata( pInfo )->cFileName );
-			tnprintf( pData->buffer, MAX_PATH_NAME, "%s/%s", findbasename(pInfo), finddata(pInfo)->cFileName );
+			tnprintf( pData->buffer, MAX_PATH_NAME, "%s" PATHCHAR "%s", findbasename(pInfo), finddata(pInfo)->cFileName );
 #  else
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%ls", finddata(pInfo)->name );
-			tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s", findbasename(pInfo), findbasename( pInfo )[0]?"/":"", pData->file_buffer );
+			tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s", findbasename(pInfo), findbasename( pInfo )[0]?PATHCHAR:"", pData->file_buffer );
 #  endif
 #else
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", de->d_name );
-			tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s", findbasename(pInfo), findbasename( pInfo )[0]?"/":"", de->d_name );
+			tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s", findbasename(pInfo), findbasename( pInfo )[0]?PATHCHAR:"", de->d_name );
 #endif
 		}
 	}
@@ -603,7 +603,7 @@ getnext:
 			{
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
 					  , pData->prior?pData->prior->buffer:""
-					  , pData->prior?"/":""
+					  , pData->prior?PATHCHAR:""
 					, pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) 
 					);
 			}
@@ -613,18 +613,18 @@ getnext:
 #  ifdef UNDER_CE
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
 						  , pData->prior?pData->prior->buffer:""
-						  , pData->prior?"/":""
+						  , pData->prior?PATHCHAR:""
 						  , finddata(pInfo)->cFileName );
 #  else
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%ls"
 						  , pData->prior?pData->prior->buffer:""
-						  , pData->prior?"/":""
+						  , pData->prior?PATHCHAR:""
 						  , finddata(pInfo)->name );
 #  endif
 #else
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
 					  , pData->prior?pData->prior->buffer:""
-					  , pData->prior?"/":""
+					  , pData->prior?PATHCHAR:""
 					  , de->d_name );
 					  lprintf( "resulting is %s", pData->buffer );
 #endif
@@ -699,18 +699,18 @@ getnext:
 				// even in name only - need to have this full buffer for subcurse.
 				if( pData->scanning_mount && pData->scanning_mount->fsi )
 				{
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s" PATHCHAR "%s", findbasename( pInfo ), pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) );
 				}
 				else
 				{
 #ifdef WIN32
 #  ifdef UNDER_CE
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), finddata( pInfo )->cFileName );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s" PATHCHAR "%s", findbasename( pInfo ), finddata( pInfo )->cFileName );
 #  else
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%ls", findbasename( pInfo ), finddata( pInfo )->name );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s" PATHCHAR "%ls", findbasename( pInfo ), finddata( pInfo )->name );
 #  endif
 #else	
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), de->d_name );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s" PATHCHAR "%s", findbasename( pInfo ), de->d_name );
 #endif
 				}
 				//lprintf( "process sub... %s %s", tmpbuf, findmask(pInfo)  );

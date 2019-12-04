@@ -12,6 +12,7 @@
 #include <stdhdrs.h>
 
 #if defined( _WIN32 ) && !defined( __TURBOC__ )
+#  include <winternl.h>
 #  ifndef UNDER_CE
 #    include <io.h>  // findfirst,findnext, fileinfo
 #  endif
@@ -81,15 +82,26 @@ struct file{
 	TEXTSTR name;
 	TEXTSTR fullname;
 	wchar_t* wfullname;
-	int fullname_size;
 
-	PLIST handles; // HANDLE 's
-	PLIST files; // FILE *'s
-	INDEX group;
-	enum textModes textmode;
+	PLIST  handles; // HANDLE 's
+	PLIST  files; // FILE *'s
+	INDEX  group;
+	enum   textModes textmode;
 	size_t file_start_offset;  // text file modes; skip existing BOM for seek purposes.
 	struct file_system_mounted_interface *mount;
+	int    deleted; // allow covering for file systems that don't actually delete files that are still open
+	int    delete_on_close; // has been deleted, but deletion failed (probably because it's open)
 };
+
+struct directory {
+	TEXTSTR name;
+	TEXTSTR fullname;
+	wchar_t* wfullname;
+
+	struct file_system_mounted_interface* mount;
+	int    deleted; // allow covering for file systems that don't actually delete files that are still open
+};
+
 
 struct file_interface_tracker
 {
@@ -113,6 +125,13 @@ EXTERN_C DECLSPEC_IMPORT HRESULT STDAPICALLTYPE SHGetFolderPathA( HWND hwnd, int
 
 #  endif
 #endif
+
+static void* CPROC sack_filesys_open( uintptr_t psv, const char* filename, const char* opts );
+static int CPROC sack_filesys_close( void* file ) { return fclose( (FILE*)file ); }
+static size_t CPROC sack_filesys_read( void* file, void* buf, size_t len ) { return fread( buf, 1, len, (FILE*)file ); }
+static size_t CPROC sack_filesys_write( void* file, const void* buf, size_t len ) { return fwrite( buf, 1, len, (FILE*)file ); }
+static size_t CPROC sack_filesys_seek( void* file, size_t pos, int whence ) { return fseek( (FILE*)file, (long)pos, whence ), ftell( (FILE*)file ); }
+static int CPROC sack_filesys_unlink( uintptr_t psv, const char* filename );
 
 static void UpdateLocalDataPath( void )
 {
@@ -801,6 +820,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 	{
 		struct Group *filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 		file = New( struct file );
+		file->deleted = file->delete_on_close = 0;
 		file->name = StrDup( filename );
 		file->fullname = PrependBasePath( group, filegroup, filename );
 		file->wfullname = CharWConvert( file->fullname );
@@ -959,6 +979,35 @@ struct file *FindFileByFILE( FILE *file_file )
 	LeaveCriticalSec( &(*winfile_local).cs_files );
 	return file;
 }
+
+//----------------------------------------------------------------------------
+
+struct file *FindFileByName( INDEX group, char const *filename, struct file_system_mounted_interface *mount, INDEX *allocedIndex )
+{
+	struct file *file;
+	INDEX idx;
+	LocalInit();
+	EnterCriticalSec( &(*winfile_local).cs_files );
+	LIST_FORALL( (*winfile_local).files, idx, struct file *, file )
+	{
+		if( ( file->group == group )
+			&& ( StrCmp( file->name, filename ) == 0 ) 
+			&& ( (!mount) || file->mount == mount ) )
+		{
+			if( allocedIndex ) {
+				AddLink( &file->files, allocedIndex );
+				allocedIndex[0] = FindLink( &file->files, allocedIndex );
+			}
+			break;
+		}
+	}
+
+	LeaveCriticalSec( &(*winfile_local).cs_files );
+	return file;
+
+}
+
+//----------------------------------------------------------------------------
 
 LOGICAL sack_set_eof ( HANDLE file_handle )
 {
@@ -1226,10 +1275,11 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 		mount = (*winfile_local).default_mount;
 	if( !mount )
 		noMount = 1;
+
 	while( mount || noMount )
 	{
 		int okay = 1;
-		if( !noMount && mount->fsi )
+		if( mount->fsi )
 		{
 			if( mount->fsi->exists( mount->psvInstance, filename ) )
 			{
@@ -1240,11 +1290,7 @@ int sack_unlinkEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_in
 		else
 		{
 			TEXTSTR tmp = PrependBasePath( group, NULL, filename );
-#ifdef _WIN32
-			okay = DeleteFile(tmp);
-#else
-			okay = unlink( filename );
-#endif
+			okay = sack_filesys_unlink( 0, filename );
 			Deallocate( TEXTCHAR*, tmp );
 		}
 		if( !okay )
@@ -1266,13 +1312,111 @@ int sack_unlink( INDEX group, CTEXTSTR filename )
 
 //----------------------------------------------------------------------------
 
-int sack_rmdir( INDEX group, CTEXTSTR filename )
+int sack_mkdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface *mount ) {
+	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
+	while( mount ) {
+		int okay = 0;
+		if( !mount->writeable ) {
+			mount = mount->next; continue;
+		}
+		if( mount->fsi && mount->fsi->is_directory ) {
+			if( mount->fsi->is_directory( mount->psvInstance, tmp ) ) {
+#ifdef WIN32
+				_set_doserrno( EEXIST );
+#else
+				errno = EEXIST;
+#endif
+				return FALSE;
+			}
+		}
+		if( mount->fsi && mount->fsi->_mkdir ) {
+			okay = mount->fsi->_mkdir( mount->psvInstance, tmp );
+			if( okay ) {
+				{
+					struct directory* d;
+					INDEX i;
+					LIST_FORALL( ( *winfile_local ).directories, i, struct directory*, d ) {
+						if( strcmp( d->name, filename ) == 0 ) {
+							d->deleted = 0;
+							break;
+						}
+					}
+					if( !d ) {
+						d = New( struct directory );
+						d->name = StrDup( filename );
+						d->fullname = (TEXTSTR)Hold( tmp );
+						d->mount = mount;
+						d->wfullname = CharWConvert( d->fullname );
+						d->deleted = 0;
+						AddLink( &( *winfile_local ).directories, d );
+					}
+				}
+			}
+		}
+		if( okay ) {
+			Deallocate( TEXTCHAR*, tmp );
+			return !okay;
+		}
+		mount = mount->next;
+	}
+	Deallocate( TEXTCHAR*, tmp );
+	return 0;
+
+}
+
+int sack_mkdir( INDEX group, CTEXTSTR filename ) {
+	return sack_mkdirEx( group, filename, ( *winfile_local ).mounted_file_systems );
+}
+
+static int sack_filesys_mkdir( uintptr_t psv, CTEXTSTR filename )
+{
+	return MakePath( filename );
+}
+
+//----------------------------------------------------------------------------
+
+int sack_rmdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface* mount ) {
+	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
+	while( mount ) {
+		int okay = 1;
+		if( !mount->writeable ) {
+			mount = mount->next; continue;
+		}
+		{
+			struct directory* d;
+			INDEX i;
+			LIST_FORALL( ( *winfile_local ).directories, i, struct directory*, d ) {
+				if( d->mount == mount && ( d->name, filename ) == 0 ) {
+					d->deleted = 1;
+					break;
+				}
+			}
+		}
+		if( mount->fsi && mount->fsi->_rmdir ) {
+			okay = mount->fsi->_rmdir( mount->psvInstance, tmp );
+		}
+		if( okay ) {
+			Deallocate( TEXTCHAR*, tmp );
+			return okay;
+		}
+		mount = mount->next;
+	}
+	Deallocate( TEXTCHAR*, tmp );
+	return 1; // lie... we'll try to take care of that directory later, if they close the file in it.
+
+}
+
+int sack_rmdir( INDEX group, CTEXTSTR filename ) {
+	return sack_rmdirEx( group, filename, ( *winfile_local ).mounted_file_systems );
+}
+
+static int sack_filesys_rmdir( uintptr_t psv, CTEXTSTR filename )
 {
 #ifdef __LINUX__
 	int okay;
 	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
 #ifdef UNICODE
-	char *tmpname = CStrDup( tmp );
+	char* tmpname = CStrDup( tmp );
 	okay = rmdir( tmpname );
 	Deallocate( char*, tmpname );
 #else
@@ -1282,9 +1426,10 @@ int sack_rmdir( INDEX group, CTEXTSTR filename )
 	return !okay; // unlink returns TRUE is 0, else error...
 #else
 	int okay;
-	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
-	okay = RemoveDirectory(tmp);
-	Deallocate( TEXTCHAR*, tmp );
+	//TEXTSTR tmp = PrependBasePath( group, NULL, filename );
+	wchar_t* wfilename = CharWConvert( filename );
+	okay = _wrmdir( wfilename );
+	Deallocate( wchar_t*, wfilename );
 	return !okay; // unlink returns TRUE is 0, else error...
 #endif
 }
@@ -1298,7 +1443,6 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 {
 	FILE *handle = NULL;
 	struct file *file;
-	INDEX idx;
 	INDEX allocedIndex = INVALID_INDEX;
 	LOGICAL memalloc = FALSE;
 	LOGICAL single_mount = (mount != NULL );
@@ -1322,18 +1466,8 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		lprintf( "open %s %p(%s) %s (%d)", filename, mount, mount->name, opts, mount?mount->writeable:1 );
 #endif
 
-	LIST_FORALL( (*winfile_local).files, idx, struct file *, file )
-	{
-		if( ( file->group == group )
-			&& ( StrCmp( file->name, filename ) == 0 ) 
-			&& ( file->mount == mount ) )
-		{
-			AddLink( &file->files, &allocedIndex );
-			allocedIndex = FindLink( &file->files, &allocedIndex );
-			break;
-		}
-	}
-   
+	file = FindFileByName( group, filename, mount, &allocedIndex );
+
 	LeaveCriticalSec( &(*winfile_local).cs_files );
 
 	if( !file )
@@ -1341,6 +1475,7 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		TEXTSTR tmpname = NULL;
 		struct Group *filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 		file = New( struct file );
+		file->deleted = file->delete_on_close = 0;
 		memalloc = TRUE;
 
 		DecodeFopenOpts( file, opts );
@@ -1415,6 +1550,8 @@ FILE * sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_
 		else
 			AddLink( &(*winfile_local).files, file );
 		LeaveCriticalSec( &(*winfile_local).cs_files );
+	} else {
+		file->deleted = 0; // file is undeleted now.
 	}
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( (*winfile_local).flags.bLogOpenClose )
@@ -1611,6 +1748,7 @@ FILE*  sack_fsopenEx( INDEX group
 		struct Group *filegroup = (struct Group *)GetLink( &(*winfile_local).groups, group );
 		file = New( struct file );
 		DecodeFopenOpts( file, opts );
+		file->deleted = file->delete_on_close = 0;
 		file->handles = NULL;
 		file->files = NULL;
 		file->name = StrDup( filename );
@@ -1844,8 +1982,16 @@ int  sack_fclose ( FILE *file_file )
 #endif
 		if( file->mount && file->mount->fsi )
 			status = file->mount->fsi->_close( file_file );
-		else
+		else {
 			status = fclose( file_file );
+			if( file->deleted ) {
+#if !defined( __FILESYS_NO_FILE_LOGGING__ )
+				if( ( *winfile_local ).flags.bLogOpenClose )
+					lprintf( "deleted FILE* %p to be actually deleted...", file_file );
+#endif
+				sack_unlink( 0, file->fullname );
+			}
+		}
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( (*winfile_local).flags.bLogOpenClose )
 			lprintf( "deleted FILE* %p and list is %p", file_file, file->files );
@@ -1964,15 +2110,20 @@ TEXTSTR sack_fgets ( TEXTSTR buffer, size_t size,FILE *file_file )
 
 //----------------------------------------------------------------------------
 
-LOGICAL sack_existsEx ( const char *filename, struct file_system_mounted_interface *fsi )
+LOGICAL sack_existsEx ( const char *filename, struct file_system_mounted_interface *mount )
 {
 	FILE *tmp;
-	if( fsi && fsi->fsi && fsi->fsi->exists )
+	if( mount && mount->fsi && mount->fsi->exists )
 	{
-		int result = fsi->fsi->exists( fsi->psvInstance, filename );
+		int result = mount->fsi->exists( mount->psvInstance, filename );
 		return result;
 	}
 	else {
+		{
+			struct file *file = FindFileByName( 0, filename, mount, NULL );
+			if( file ) 
+				if( file->deleted ) return FALSE;
+		}
 #ifdef WIN32
 		wchar_t *wfilename = CharWConvert( filename );
 		if( (tmp = _wfopen( wfilename, L"rb" )) ) {
@@ -2011,12 +2162,23 @@ LOGICAL sack_exists( const char * filename )
 
 //----------------------------------------------------------------------------
 
-LOGICAL sack_isPathEx ( const char *filename, struct file_system_mounted_interface *fsi )
+LOGICAL sack_isPathEx ( const char *filename, struct file_system_mounted_interface *mount )
 {
 	FILE *tmp;
-	if( fsi && fsi->fsi && fsi->fsi->exists )
+	if( mount && mount->fsi && mount->fsi->exists )
 	{
-		int result = fsi->fsi->is_directory( fsi->psvInstance, filename );
+		{
+			struct directory* d;
+			INDEX i;
+			LIST_FORALL( ( *winfile_local ).directories, i, struct directory*, d ) {
+				if( d->mount == mount && strcmp( d->name, filename ) == 0 ) {
+					if( d->deleted ) return FALSE;
+					break;
+				}
+			}
+		}
+
+		int result = mount->fsi->is_directory( mount->psvInstance, filename );
 		return result;
 	}
 	else if( ( tmp = fopen( filename, "rb" ) ) )
@@ -2203,28 +2365,191 @@ void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_inter
 }
 
 
-static void * CPROC sack_filesys_open( uintptr_t psv, const char *filename, const char *opts );
-static int CPROC sack_filesys_close( void*file ) { return fclose(  (FILE*)file ); }
-static size_t CPROC sack_filesys_read( void*file, void*buf, size_t len ) { return fread( buf, 1, len, (FILE*)file ); }
-static size_t CPROC sack_filesys_write( void*file, const void*buf, size_t len ) { return fwrite( buf, 1, len, (FILE*)file ); }
-static size_t CPROC sack_filesys_seek( void*file, size_t pos, int whence ) { return fseek( (FILE*)file, (long)pos, whence ), ftell( (FILE*)file ); }
+
+#ifdef WIN32
+typedef NTSTATUS( NTAPI* sNtSetInformationFile )
+( HANDLE FileHandle,
+	PIO_STATUS_BLOCK IoStatusBlock,
+	PVOID FileInformation,
+	ULONG Length,
+	FILE_INFORMATION_CLASS FileInformationClass );
+sNtSetInformationFile pNtSetInformationFile;
+
+typedef enum _REAL_FILE_INFORMATION_CLASS {
+	DupFileDirectoryInformation = 1,
+	FileFullDirectoryInformation,
+	FileBothDirectoryInformation,
+	FileBasicInformation,
+	FileStandardInformation,
+	FileInternalInformation,
+	FileEaInformation,
+	FileAccessInformation,
+	FileNameInformation,
+	FileRenameInformation,
+	FileLinkInformation,
+	FileNamesInformation,
+	FileDispositionInformation,
+	FilePositionInformation,
+	FileFullEaInformation,
+	FileModeInformation,
+	FileAlignmentInformation,
+	FileAllInformation,
+	FileAllocationInformation,
+	FileEndOfFileInformation,
+	FileAlternateNameInformation,
+	FileStreamInformation,
+	FilePipeInformation,
+	FilePipeLocalInformation,
+	FilePipeRemoteInformation,
+	FileMailslotQueryInformation,
+	FileMailslotSetInformation,
+	FileCompressionInformation,
+	FileObjectIdInformation,
+	FileCompletionInformation,
+	FileMoveClusterInformation,
+	FileQuotaInformation,
+	FileReparsePointInformation,
+	FileNetworkOpenInformation,
+	FileAttributeTagInformation,
+	FileTrackingInformation,
+	FileIdBothDirectoryInformation,
+	FileIdFullDirectoryInformation,
+	FileValidDataLengthInformation,
+	FileShortNameInformation,
+	FileIoCompletionNotificationInformation,
+	FileIoStatusBlockRangeInformation,
+	FileIoPriorityHintInformation,
+	FileSfioReserveInformation,
+	FileSfioVolumeInformation,
+	FileHardLinkInformation,
+	FileProcessIdsUsingFileInformation,
+	FileNormalizedNameInformation,
+	FileNetworkPhysicalNameInformation,
+	FileIdGlobalTxDirectoryInformation,
+	FileIsRemoteDeviceInformation,
+	FileAttributeCacheInformation,
+	FileNumaNodeInformation,
+	FileStandardLinkInformation,
+	FileRemoteProtocolInformation,
+	FileMaximumInformation
+} REAL_FILE_INFORMATION_CLASS, * PREAL_FILE_INFORMATION_CLASS;
+
+typedef struct _FILE_BASIC_INFORMATION {
+	LARGE_INTEGER CreationTime;
+	LARGE_INTEGER LastAccessTime;
+	LARGE_INTEGER LastWriteTime;
+	LARGE_INTEGER ChangeTime;
+	DWORD FileAttributes;
+} FILE_BASIC_INFORMATION, * PFILE_BASIC_INFORMATION;
+typedef struct _FILE_DISPOSITION_INFORMATION {
+	BOOLEAN DeleteFile;
+} FILE_DISPOSITION_INFORMATION, * PFILE_DISPOSITION_INFORMATION;
+
+
+LOGICAL windowDeepDelete( const char *path )
+{
+  WCHAR* pathw = CharWConvert( path );
+  HANDLE handle;
+  BY_HANDLE_FILE_INFORMATION info;
+  FILE_DISPOSITION_INFORMATION disposition;
+  IO_STATUS_BLOCK iosb;
+  NTSTATUS status;
+
+  handle = CreateFileW(pathw,
+                       FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES | DELETE,
+                       FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                       NULL,
+                       OPEN_EXISTING,
+                       FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
+                       NULL);
+  Deallocate( WCHAR*	, pathw );
+  if (handle == INVALID_HANDLE_VALUE) {
+    //SET_REQ_WIN32_ERROR(req, GetLastError());
+    return FALSE;
+  }
+
+  if (!GetFileInformationByHandle(handle, &info)) {
+    //SET_REQ_WIN32_ERROR(req, GetLastError());
+    CloseHandle(handle);
+    return FALSE;
+  }
+
+  if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+    /* Do not allow deletion of directories, unless it is a symlink. When the
+     * path refers to a non-symlink directory, report EPERM as mandated by
+     * POSIX.1. */
+
+    /* Check if it is a reparse point. If it's not, it's a normal directory. */
+    if (!(info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)) {
+      
+      CloseHandle(handle);
+      return FALSE;
+    }
+
+    /* Read the reparse point and check if it is a valid symlink. If not, don't
+     * unlink. */
+	/*
+    if (fs__readlink_handle(handle, NULL, NULL) < 0) {
+      DWORD error = GetLastError();
+      if (error == ERROR_SYMLINK_NOT_SUPPORTED)
+        error = ERROR_ACCESS_DENIED;
+      CloseHandle(handle);
+      return FALSE;
+    }
+  */
+  }
+
+  if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY) {
+    /* Remove read-only attribute */
+    FILE_BASIC_INFORMATION basic = { 0 };
+
+    basic.FileAttributes = (info.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY) |
+                           FILE_ATTRIBUTE_ARCHIVE;
+
+    status = pNtSetInformationFile(handle,
+                                   &iosb,
+                                   &basic,
+                                   sizeof basic,
+                                   (FILE_INFORMATION_CLASS)FileBasicInformation);
+    if (!NT_SUCCESS(status)) {
+      CloseHandle(handle);
+      return FALSE;
+    }
+  }
+
+  /* Try to set the delete flag. */
+  disposition.DeleteFile = TRUE;
+  status = pNtSetInformationFile(handle,
+                                 &iosb,
+                                 &disposition,
+                                 sizeof disposition,
+                                 (FILE_INFORMATION_CLASS)FileDispositionInformation);
+  if (NT_SUCCESS(status)) {
+  } else {
+    return FALSE;
+  }
+
+  CloseHandle(handle);
+  return TRUE;
+}
+#endif
+
 static int CPROC sack_filesys_unlink( uintptr_t psv, const char*filename ) {
 	int okay = 0;
-#ifdef UNICODE
-	TEXTCHAR *_filename = DupCStr( filename );
-#  define filename _filename
-#endif
+	struct file *file = FindFileByName( 0, filename, (*winfile_local).default_mount, NULL );
+	if( file ) file->deleted = 1;
 #ifdef WIN32
-	okay = DeleteFileA( filename );
+	okay = windowDeepDelete( filename );
+	if( !okay ) okay = DeleteFileA( filename );
 #else
-	okay = unlink( filename );
+	okay = !unlink( filename );
 #endif
-#ifdef UNICODE
-	Deallocate( char *, _filename );
-#  undef filename
-#endif
+	if( !okay ) {
+		file->delete_on_close = 1;
+	}
 	return okay;
 }
+
 static size_t CPROC sack_filesys_size( void*file ) { 
 	size_t here = ftell( (FILE*)file );
 	size_t length;
@@ -2282,7 +2607,7 @@ static	struct find_cursor * CPROC sack_filesys_find_create_cursor ( uintptr_t ps
 	char maskbuf[512];
 	MemSet( cursor, 0, sizeof( *cursor ) );
 	//snprintf( maskbuf, 512, "%s/%s", root ? root : ".", filemask?filemask:"*" );
-	snprintf( maskbuf, 512, "%s/%s", root ? root : ".", "*" );
+	snprintf( maskbuf, 512, "%s" PATHCHAR "%s", root ? root : ".", "*" );
 	cursor->mask = StrDup( filemask );
 	cursor->root = StrDup( root?root:"." );
 	{
@@ -2301,11 +2626,6 @@ static	int CPROC sack_filesys_find_first( struct find_cursor *_cursor ){
 	struct find_cursor_data *cursor = (struct find_cursor_data *)_cursor;
 #ifdef WIN32
 	cursor->findHandle = _wfindfirst( cursor->filemask, &cursor->fileinfo );
-	if( cursor->findHandle == -1 )
-	{
-		int err = errno;
-		lprintf( "error:%d", err );
-	}
 	return ( cursor->findHandle != -1 );
 #else
 	if( cursor->handle ) {
@@ -2476,6 +2796,8 @@ static struct file_system_interface native_fsi = {
 		, NULL   // file-system ioctl
 		, sack_filesys_find_get_ctime
 		, sack_filesys_find_get_wtime
+		, sack_filesys_mkdir // legacy support
+		, sack_filesys_rmdir // legacy support
 } ;
 
 PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
@@ -2485,6 +2807,10 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 		sack_register_filesystem_interface( "native", &native_fsi );
 	if( !(*winfile_local).default_mount )
 		(*winfile_local).default_mount = sack_mount_filesystem( "native", &native_fsi, 1000, (uintptr_t)NULL, TRUE );
+	pNtSetInformationFile = (sNtSetInformationFile)LoadFunction(
+		"ntdll.dll",
+		"NtSetInformationFile" );
+
 }
 
 #if !defined( __NO_OPTIONS__ )
@@ -2512,17 +2838,27 @@ static void * CPROC sack_filesys_open( uintptr_t psv, const char *filename, cons
 	return result;
 }
 static int CPROC sack_filesys_exists( uintptr_t psv, const char *filename ) { 
-	int result;
-#ifdef UNICODE
-	TEXTSTR _filename = DupCStr( filename );
-#define filename _filename
+	//int result;
+	//result = sack_existsEx( filename, NULL );//(*winfile_local).default_mount );
+	FILE* tmp;
+#ifdef WIN32
+	wchar_t *wfilename = CharWConvert( filename );
+	if( (tmp = _wfopen( wfilename, L"rb" )) ) {
+#else
+	if( (tmp = fopen( filename, "rb" )) ) {
 #endif
-	result = sack_existsEx( filename, NULL );//(*winfile_local).default_mount );
-#ifdef UNICODE
-	Deallocate( TEXTSTR, _filename );
-#undef filename
+		fclose( tmp );
+#ifdef WIN32
+		Deallocate( wchar_t*, wfilename );
 #endif
-	return result;
+		return TRUE;
+	}
+#ifdef WIN32
+	Deallocate( wchar_t*, wfilename );
+#endif
+
+
+	return FALSE;
 }
 
 struct file_system_mounted_interface *sack_get_default_mount( void ) { return (*winfile_local).default_mount; }

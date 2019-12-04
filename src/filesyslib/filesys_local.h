@@ -1,4 +1,10 @@
 
+#ifdef _WIN32
+#define PATHCHAR "\\"
+#else
+#define PATHCHAR "/"
+#endif
+
 struct file_system_mounted_interface 
 {
 	DeclareLink( struct file_system_mounted_interface );
@@ -15,6 +21,7 @@ extern
  struct winfile_local_tag {
 	CRITICALSECTION cs_files;
 	PLIST files;
+	PLIST directories;
 	PLIST groups;
 	PLIST handles;
 	PLIST file_system_interface;
