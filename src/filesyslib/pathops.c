@@ -72,7 +72,11 @@ extern TEXTSTR ExpandPath( CTEXTSTR path );
 
 TEXTSTR GetCurrentPath( TEXTSTR path, int len )
 {
-	return FileSysThreadInfo.cwd;
+	// allow thread to initialize itself with a real currentpath...
+	if( FileSysThreadInfo.cwd ) {
+		strncpy( path, FileSysThreadInfo.cwd, len );
+		return path;
+	}
 
 	if( !path )
 		return 0;

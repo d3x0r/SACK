@@ -7,7 +7,10 @@
 
 struct file_system_mounted_interface 
 {
-	DeclareLink( struct file_system_mounted_interface );
+	struct file_system_mounted_interface* nextLayer;
+	//struct file_system_mounted_interface* sideLayer; // mount-as... 
+	struct file_system_mounted_interface* parent;
+	//DeclareLink( struct file_system_mounted_interface );
 	const char *name;
 	int priority;
 	uintptr_t psvInstance;
@@ -50,7 +53,9 @@ winfile_local__;
 #if HAS_TLS
 struct filesys_thread_mount_info {
 	struct file_system_mounted_interface* default_mount;
-	struct file_system_mounted_interface* mounted_file_systems;
+	struct file_system_mounted_interface** _mounted_file_systems;
+#define mounted_file_systems _mounted_file_systems[0]
+	struct file_system_mounted_interface* thread_local_mounted_file_systems;
 	char* cwd;
 };
 #if !defined( WINFILE_COMMON_SOURCE )

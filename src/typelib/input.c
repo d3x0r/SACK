@@ -522,7 +522,7 @@ void RecallUserInput( PUSER_INPUT_BUFFER pci, int bUp )
 		}
 		// wrap to a valid position....
 		if( pci->nHistory < 0 )
-			pci->nHistory += pci->InputHistory->Cnt;
+			pci->nHistory += (int)pci->InputHistory->Cnt;
 	}
 
 	LineRelease( pci->CollectionBuffer );

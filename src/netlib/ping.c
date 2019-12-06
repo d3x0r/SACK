@@ -235,7 +235,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
    }
 
    // Setup destination socket address
-   saDest.sin_addr.s_addr = dwIP;
+   saDest.sin_addr.S_un.S_addr = dwIP;
    saDest.sin_family = AF_INET;
    saDest.sin_port = 0;
 
@@ -340,7 +340,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
       }
       else
       {
-         Entry[nEntry].dwIP = _dwIP = saSrc.sin_addr.s_addr;
+         Entry[nEntry].dwIP = _dwIP = saSrc.sin_addr.S_un.S_addr;
       }
 
       Entry[nEntry].TTL  = cTTL;
@@ -388,7 +388,7 @@ LoopBreakpoint:
       char *pIPBuf;
       if( Entry[i].dwIP )  
       {
-         saSrc.sin_addr.s_addr = Entry[i].dwIP;
+         saSrc.sin_addr.S_un.S_addr = Entry[i].dwIP;
          pIPBuf = inet_ntoa( *(struct in_addr*)&saSrc.sin_addr );
          nResult = TRUE;
       }

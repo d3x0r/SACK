@@ -1,3 +1,5 @@
+#ifdef _WIN32
+
 /****************
  * Some performance concerns regarding high numbers of layered windows...
  * every 1000 windows causes 2 - 12 millisecond delays...
@@ -6036,3 +6038,4 @@ PUBLIC( void, InvokePreloads )( void )
 
 RENDER_NAMESPACE_END
 
+#endif

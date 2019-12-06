@@ -466,7 +466,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 				//closedir( findhandle( pInfo ) );
 #endif
 			}
-			pData->scanning_mount = NextThing( pData->scanning_mount );
+			pData->scanning_mount =  pData->scanning_mount ->nextLayer;
 			if( !pData->scanning_mount || pData->single_mount )
 			{
 				(*pData->root_info) = pData->prior;
@@ -505,7 +505,7 @@ getnext:
 		{
 			PMFD prior = pData->prior;
 			//lprintf( "nothing left to find..." );
-			if( pData->scanning_mount->fsi )
+			if( pData->scanning_mount && pData->scanning_mount->fsi )
 				pData->scanning_mount->fsi->find_close( findcursor(pInfo) );
 			else
 			{
@@ -515,7 +515,7 @@ getnext:
 				closedir( (DIR*)findhandle(pInfo));
 #endif
 			}
-			pData->scanning_mount = NextThing( pData->scanning_mount );
+			pData->scanning_mount =  pData->scanning_mount ->nextLayer;
 			//lprintf( "Step mount... %p %d", pData->scanning_mount, pData->single_mount );
 			if( !pData->scanning_mount || pData->single_mount )
 			{

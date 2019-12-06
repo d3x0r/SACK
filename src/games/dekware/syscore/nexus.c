@@ -2387,7 +2387,7 @@ void Cleanup( void )
 	{
 		cleaned = 1;
 		pMainThread = NULL;
-		UnmakeThread();
+		//UnmakeThread();
 		Log( "Allowing threads to exit gracefully - wake them up first." );
 		while( sleeping )
 		{

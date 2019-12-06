@@ -4289,7 +4289,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 	INDEX idx;
 	struct jsox_value_container *val;
 	DATA_FORALL( pdlItems, idx, struct jsox_value_container *, val ) {
-		int useIndex = idx + 1;
+		int useIndex = (int)(idx + 1);
 		int rc;
 		//if( val->name ) {
 		//	useIndex = sqlite3_bind_parameter_index( db, val->name );
