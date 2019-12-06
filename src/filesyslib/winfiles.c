@@ -2833,10 +2833,55 @@ LOGICAL CPROC sack_filesys_rename( uintptr_t psvInstance, const char* original_n
 	return sack_renameEx( original_name, new_name, NULL );
 }
 
+static void link_mount( struct file_system_mounted_interface* mount ) {
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	struct file_system_mounted_interface* root = FileSysThreadInfo.mounted_file_systems;
+	if( !root || ( root->priority >= mount->priority ) ) {
+		mount->nextLayer = root;
+		if( !root )
+			FileSysThreadInfo.default_mount = mount;
+		FileSysThreadInfo.mounted_file_systems = mount; // higher priorirty, layer this thread's higher priority version.
+	}
+	else {
+		// allow a way to get away from the default filesystem.
+		struct file_system_mounted_interface* check, * check_ = root;
+		if( !root->nextLayer ) {
+			root->nextLayer = mount;
+			mount->nextLayer = NULL;
+		}
+		else for( check = root->nextLayer; check; check = check->nextLayer ) {
+			if( check->priority >= mount->priority ) {
+				check_->nextLayer = mount;
+				mount->nextLayer = check;
+				break;
+			}
+			check_ = check;
+		}
+		if( !check ) {
+			check_->nextLayer = mount;
+			mount->nextLayer = NULL;
+		}
+	}
+
+}
+
+// does this get a new name too? does it have to?
+struct file_system_mounted_interface* sack_remount_filesystem( const char* name, struct file_system_mounted_interface* oldMount, int priority, LOGICAL writable )
+{
+	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	struct file_system_mounted_interface* mount = New( struct file_system_mounted_interface );
+	mount->name = name ? strdup( name ) : NULL;
+	mount->priority = priority?priority:oldMount->priority;
+	mount->writeable = oldMount->writeable && writable;
+	mount->psvInstance = oldMount->psvInstance;
+	mount->fsi = oldMount->fsi;
+	link_mount( mount );
+	return mount;
+} 
+
 struct file_system_mounted_interface* sack_mount_filesystem( const char* name, struct file_system_interface* fsi, int priority, uintptr_t psvInstance, LOGICAL writable )
 {
 	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
-	struct file_system_mounted_interface* root = FileSysThreadInfo.mounted_file_systems;
 	struct file_system_mounted_interface* mount = New( struct file_system_mounted_interface );
 	mount->name = name ? strdup( name ) : NULL;
 	mount->priority = priority;
@@ -2844,32 +2889,7 @@ struct file_system_mounted_interface* sack_mount_filesystem( const char* name, s
 	mount->writeable = writable;
 	mount->fsi = fsi;
 	//lprintf( "Create mount called %s ", name );
-	if( !root || ( root->priority >= priority ) ) {
-		mount->nextLayer = root;
-		FileSysThreadInfo.mounted_file_systems = mount; // higher priorirty, layer this thread's higher priority version.
-	}
-	else {
-		// allow a way to get away from the default filesystem.
-		mount->nextLayer = NULL;
-		FileSysThreadInfo.default_mount = mount;
-		FileSysThreadInfo.mounted_file_systems = mount; // higher priorirty, layer this thread's higher priority version.
-	}
-	/*
-		while( root )
-		{
-			if( root->priority >= priority )
-			{
-				LinkThingBefore( root, mount ); //-V595
-				break;
-			}
-			if( ! root ->nextLayer )
-			{
-				LinkThingAfter( root, mount );
-				break;
-			}
-			root =  root ->nextLayer;
-		}
-	*/
+	link_mount( mount );
 	return mount;
 }
 
