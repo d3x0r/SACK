@@ -268,28 +268,6 @@ TIMER_PROC( PTHREAD, ThreadToSimpleEx )( ThreadSimpleStartProc proc, POINTER par
    thread. If this thread already has this structure created,
    the same one results on subsequent MakeThread calls.        */
 TIMER_PROC( PTHREAD, MakeThread )( void );
-/* Releases resources associated with a PTHREAD. For purposes of
-   waking a thread, and providing a wakeable point for the
-   thread, a system blocking event object is allocated, named
-   with the THREAD_ID so it can be referenced by other
-   processes. This is only allowed to be done by the thread
-   itself.
-   Parameters
-   Param1 :  \Description
-   Param2 :  \Description
-   
-   Example
-   <code lang="c++">
-   int main( void )
-   {
-       PTHREAD myself = MakeThread();
-       // create threads, do stuff...
-       UnmakeThread();
-       At this point the pointer in 'myself' is invalid, and should be cleared.
-       myself = NULL;
-   }
-   </code>                                                                      */
-TIMER_PROC( void, UnmakeThread )( void );
 /* This returns the parameter passed as user data to ThreadTo.
    
    

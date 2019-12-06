@@ -272,6 +272,7 @@ FILESYS_PROC TEXTSTR FILESYS_API ExpandPathEx( CTEXTSTR path, struct file_system
 
 FILESYS_PROC TEXTSTR FILESYS_API ExpandPath( CTEXTSTR path );
 
+
 FILESYS_PROC LOGICAL FILESYS_API SetFileLength( CTEXTSTR path, size_t length );
 /* \Returns the size of the file.
    
@@ -363,6 +364,12 @@ FILESYS_PROC  int FILESYS_API  sack_iclose ( INDEX file_handle );
 FILESYS_PROC  int FILESYS_API  sack_ilseek ( INDEX file_handle, size_t pos, int whence );
 FILESYS_PROC  int FILESYS_API  sack_iread ( INDEX file_handle, POINTER buffer, int size );
 FILESYS_PROC  int FILESYS_API  sack_iwrite ( INDEX file_handle, CPOINTER buffer, int size );
+
+/*
+	Enable per-thread mounts.
+	once you do this, you will have to provide the thread with some mounts.
+*/
+FILESYS_PROC void FILESYS_API sack_filesys_enable_thread_mounts( void );
 
 /* internal (c library) file system is registered as prority 1000.... lower priorities are checked first for things like
   ScanFiles(), fopen( ..., "r" ), ... exists(), */
