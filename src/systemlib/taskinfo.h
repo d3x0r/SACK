@@ -91,6 +91,7 @@ typedef struct loaded_library_tag
 	PLIST system_tasks;
 	PLIBRARY libraries;
 	PTREEROOT pFunctionTree;
+	LOGICAL allow_spawn;
 	int nLibrary;
 	LOGICAL (CPROC*ExternalLoadLibrary)( const char *filename );
 

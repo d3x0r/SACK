@@ -2293,6 +2293,14 @@ void SetProgramName( CTEXTSTR filename )
 	l.filename = filename;
 }
 
+DeclareThreadVar LOGICAL allow_spawn;
+LOGICAL sack_system_allow_spawn( void ) {
+	return allow_spawn;
+}
+void sack_system_disallow_spawn( void ) {
+	allow_spawn = FALSE;
+}
+
 #undef Seek
 
 SACK_SYSTEM_NAMESPACE_END

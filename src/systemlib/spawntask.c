@@ -329,6 +329,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 															  )
 {
 	PTASK_INFO task;
+	if( !sack_system_allow_spawn() ) return NULL;
 	TEXTSTR expanded_path = ExpandPath( program );
 	TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( "." );
 	if( program && program[0] )
