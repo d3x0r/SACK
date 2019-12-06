@@ -7,6 +7,7 @@
 
 @set SRCS=
 @set SRCS= %SRCS%   %S%/src/vidlib/vidlib.c
+@set SRCS= %SRCS%   %S%/src/vidlib/xvidlib.c
 @set SRCS= %SRCS%   %S%/src/vidlib/key.c
 @set SRCS= %SRCS%   %S%/src/vidlib/keydefs.c
 @set SRCS= %SRCS%   %S%/src/vidlib/opengl.c

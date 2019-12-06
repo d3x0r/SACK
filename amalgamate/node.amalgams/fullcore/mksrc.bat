@@ -45,10 +45,9 @@
 @set SRCS= %SRCS%   %S%/src/netlib/html5.websocket/json/vesl_parser.c
 
 
-@set SRCS= %SRCS%   %S%/src/filesyslib/pathops.c
 @set SRCS= %SRCS%   %S%/src/filesyslib/winfiles.c
-@set SRCS= %SRCS%   %S%/src/filesyslib/filescan.c
 @set SRCS= %SRCS%   %S%/src/filesyslib/pathops.c
+@set SRCS= %SRCS%   %S%/src/filesyslib/filescan.c
 
 @set SRCS= %SRCS%   %S%/src/filesyslib/filemon/allfiles.c
 @set SRCS= %SRCS%   %S%/src/filesyslib/filemon/linuxfiles.c
