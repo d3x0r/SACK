@@ -2004,6 +2004,12 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 		PSPACE pMemSpace;
 		uint32_t dwPad = 0;
 		uint32_t dwMin = 0;
+		intptr_t mask;
+		if( alignment > ( sizeof( masks ) / sizeof( masks[0] ) ) )
+			mask = ( ~( (uintptr_t)( alignment - 1 ) ) );
+		else
+			mask = masks[alignment];
+
 		//ll__lprintf(DBG_RELAY)( "..." );
 #ifdef _DEBUG
 		if( !g.bDisableAutoCheck )
@@ -2177,10 +2183,10 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 #  endif
 #endif
 		//#endif
-		if( alignment && ((uintptr_t)pc->byData & ~masks[alignment]) ) {
-			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
+		if( alignment && ((uintptr_t)pc->byData & ~mask ) ) {
+			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & mask );
 			((uint16_t*)(retval - sizeof( uint32_t )))[0] = /*pc->alignemnt =*/ alignment;
-			((uint16_t*)(retval - sizeof( uint32_t )))[1] = /*pc->to_chunk_start =*/ (uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData);
+			((uint16_t*)(retval - sizeof( uint32_t )))[1] = /*pc->to_chunk_start =*/ (uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & mask ) - (uintptr_t)pc->byData);
 			return (POINTER)retval;
 		}
 		else {

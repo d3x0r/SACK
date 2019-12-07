@@ -2801,7 +2801,7 @@ uintptr_t sack_get_mounted_filesystem_instance( struct file_system_mounted_inter
 
 struct file_system_mounted_interface* sack_get_mounted_filesystem( const char* name )
 {
-	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
+	if( !FileSysThreadInfo._mounted_file_systems )FileSysThreadInfo._mounted_file_systems = &( *winfile_local )._mounted_file_systems;
 	struct file_system_mounted_interface* root = FileSysThreadInfo.mounted_file_systems;
 	while( root ) {
 		if( root->name ) if( stricmp( root->name, name ) == 0 ) break;
@@ -2834,7 +2834,6 @@ LOGICAL CPROC sack_filesys_rename( uintptr_t psvInstance, const char* original_n
 }
 
 static void link_mount( struct file_system_mounted_interface* mount ) {
-	if( !FileSysThreadInfo.mounted_file_systems )FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
 	struct file_system_mounted_interface* root = FileSysThreadInfo.mounted_file_systems;
 	if( !root || ( root->priority >= mount->priority ) ) {
 		mount->nextLayer = root;
