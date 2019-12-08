@@ -2,7 +2,7 @@ cd fullcore
 call mksrc.bat
 cd ../psi
 call mksrc.bat
-cd ../user_io
+cd ../user-io
 call mksrc.bat
 cd ../intershell
 call mksrc.bat
