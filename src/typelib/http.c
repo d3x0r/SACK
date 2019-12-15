@@ -185,22 +185,26 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 
 void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT params )
 {
-	PTEXT start = TextParse( params, "&=", NULL, 1, 1 DBG_SRC );
+	PTEXT prms = BuildLine( params );
+	PTEXT start = TextParse( prms, "&=", NULL, 1, 1 DBG_SRC );
+	LineRelease( prms );
 	PTEXT next = start;
 	PTEXT tmp;
 	for( tmp = start; tmp; tmp = NEXTLINE( tmp ) ) {
 		if( tmp->format.position.offset.spaces ) {
 			SegBreak( tmp );
 			LineRelease( tmp );
-			if( tmp == start )
+			if( tmp == start ) // weren't actually any parameters.
 				return;
+			else
+            break;  // okay, stripped the end off, use the start...
 		}
 	}
 	//lprintf( "Input was %s", GetText( params ) );
 	while( ( tmp = next ) )
 	{
 		PTEXT name = tmp;
-		/*PTEXT equals = */(next = NEXTLINE( tmp ));
+		next = NEXTLINE( tmp );
 		while( next && GetText( next )[0] != '=' )
 			next = NEXTLINE( next );
 		SegBreak( next );
