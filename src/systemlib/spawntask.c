@@ -330,8 +330,24 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 {
 	PTASK_INFO task;
 	if( !sack_system_allow_spawn() ) return NULL;
-	TEXTSTR expanded_path = ExpandPath( program );
-	TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( "." );
+	TEXTSTR expanded_path;// = ExpandPath( program );
+	TEXTSTR expanded_working_path;// = path ? ExpandPath( path ) : ExpandPath( "." );
+	if( path ) {
+		path = ExpandPath( path );
+		if( IsAbsolutePath( program ) ) {
+			expanded_path = ExpandPath( program );
+		}
+		else {
+			PVARTEXT pvtPath;
+			pvtPath = VarTextCreate();
+			vtprintf( pvtPath, "%s" "/" "%s", path, program );
+			expanded_path = ExpandPath( GetText( VarTextPeek( pvtPath ) ) );
+			VarTextDestroy( &pvtPath );
+		}
+	} else {
+		path = ExpandPath( "." );
+		expanded_path = ExpandPath( program );
+	}
 	if( program && program[0] )
 	{
 #ifdef WIN32
