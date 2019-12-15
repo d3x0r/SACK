@@ -713,11 +713,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			// how can I know if the command failed?
 			// well I can't - but the user's callback will be invoked
 			// when the above exits.
-			if( path )
-			{
-				// if path is NULL we didn't change the path...
-				SetCurrentPath( saved_path );
-			}
 			Release( expanded_working_path );
 			Release( expanded_path );
 			return task;
