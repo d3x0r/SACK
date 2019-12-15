@@ -185,9 +185,7 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 
 void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT params )
 {
-	PTEXT prms = BuildLine( params );
-	PTEXT start = TextParse( prms, "&=", NULL, 1, 1 DBG_SRC );
-	LineRelease( prms );
+	PTEXT start = TextParse( params, "&=", NULL, 1, 1 DBG_SRC );
 	PTEXT next = start;
 	PTEXT tmp;
 	for( tmp = start; tmp; tmp = NEXTLINE( tmp ) ) {
