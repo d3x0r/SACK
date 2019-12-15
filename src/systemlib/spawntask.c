@@ -635,11 +635,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 
 			// always have to thread to taskend so waitpid can clean zombies.
 			ThreadTo( WaitForTaskEnd, (uintptr_t)task );
-			if( path )
-			{
-				GetCurrentPath( saved_path, sizeof( saved_path ) );
-				SetCurrentPath( path );
-			}
 			if( !( newpid = fork() ) )
 			{
 				// after fork; check that args has a space for
@@ -657,6 +652,9 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					newArgs[0] = (char*)program;
 					args = (PCTEXTSTR)newArgs;
 				}
+				if( path )
+					chdir( path );
+
 				char *_program = CStrDup( program );
 				// in case exec fails, we need to
 				// drop any registered exit procs...
