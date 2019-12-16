@@ -1680,15 +1680,7 @@ static size_t sack_fsizeEx( FILE* file_file, struct file_system_mounted_interfac
 {
 	if( mount && mount->fsi )
 		return mount->fsi->size( file_file );
-
-	{
-		size_t here = ftell( file_file );
-		size_t length;
-		fseek( file_file, 0, SEEK_END );
-		length = ftell( file_file );
-		fseek( file_file, (long)here, SEEK_SET );
-		return length;
-	}
+	return (size_t)0;
 }
 
 size_t sack_fsize( FILE* file_file ) {
@@ -1958,13 +1950,8 @@ LOGICAL sack_isPathEx( const char* filename, struct file_system_mounted_interfac
 				}
 			}
 		}
-
 		int result = mount->fsi->is_directory( mount->psvInstance, filename );
 		return result;
-	}
-	else if( ( tmp = fopen( filename, "rb" ) ) ) {
-		fclose( tmp );
-		return TRUE;
 	}
 	return FALSE;
 }
