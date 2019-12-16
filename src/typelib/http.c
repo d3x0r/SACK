@@ -192,15 +192,17 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT param
 		if( tmp->format.position.offset.spaces ) {
 			SegBreak( tmp );
 			LineRelease( tmp );
-			if( tmp == start )
+			if( tmp == start ) // weren't actually any parameters.
 				return;
+			else
+            break;  // okay, stripped the end off, use the start...
 		}
 	}
 	//lprintf( "Input was %s", GetText( params ) );
 	while( ( tmp = next ) )
 	{
 		PTEXT name = tmp;
-		/*PTEXT equals = */(next = NEXTLINE( tmp ));
+		next = NEXTLINE( tmp );
 		while( next && GetText( next )[0] != '=' )
 			next = NEXTLINE( next );
 		SegBreak( next );

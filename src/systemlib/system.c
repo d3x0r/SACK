@@ -2293,12 +2293,12 @@ void SetProgramName( CTEXTSTR filename )
 	l.filename = filename;
 }
 
-DeclareThreadVar LOGICAL allow_spawn;
+DeclareThreadVar LOGICAL disallow_spawn;
 LOGICAL sack_system_allow_spawn( void ) {
-	return allow_spawn;
+	return !disallow_spawn;
 }
 void sack_system_disallow_spawn( void ) {
-	allow_spawn = FALSE;
+	disallow_spawn = TRUE;
 }
 
 #undef Seek

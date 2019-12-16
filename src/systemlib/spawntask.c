@@ -330,8 +330,24 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 {
 	PTASK_INFO task;
 	if( !sack_system_allow_spawn() ) return NULL;
-	TEXTSTR expanded_path = ExpandPath( program );
-	TEXTSTR expanded_working_path = path?ExpandPath( path ):ExpandPath( "." );
+	TEXTSTR expanded_path;// = ExpandPath( program );
+	TEXTSTR expanded_working_path;// = path ? ExpandPath( path ) : ExpandPath( "." );
+	if( path ) {
+		path = ExpandPath( path );
+		if( IsAbsolutePath( program ) ) {
+			expanded_path = ExpandPath( program );
+		}
+		else {
+			PVARTEXT pvtPath;
+			pvtPath = VarTextCreate();
+			vtprintf( pvtPath, "%s" "/" "%s", path, program );
+			expanded_path = ExpandPath( GetText( VarTextPeek( pvtPath ) ) );
+			VarTextDestroy( &pvtPath );
+		}
+	} else {
+		path = ExpandPath( "." );
+		expanded_path = ExpandPath( program );
+	}
 	if( program && program[0] )
 	{
 #ifdef WIN32
@@ -619,11 +635,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 
 			// always have to thread to taskend so waitpid can clean zombies.
 			ThreadTo( WaitForTaskEnd, (uintptr_t)task );
-			if( path )
-			{
-				GetCurrentPath( saved_path, sizeof( saved_path ) );
-				SetCurrentPath( path );
-			}
 			if( !( newpid = fork() ) )
 			{
 				// after fork; check that args has a space for
@@ -641,6 +652,9 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 					newArgs[0] = (char*)program;
 					args = (PCTEXTSTR)newArgs;
 				}
+				if( path )
+					chdir( path );
+
 				char *_program = CStrDup( program );
 				// in case exec fails, we need to
 				// drop any registered exit procs...
@@ -699,11 +713,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			// how can I know if the command failed?
 			// well I can't - but the user's callback will be invoked
 			// when the above exits.
-			if( path )
-			{
-				// if path is NULL we didn't change the path...
-				SetCurrentPath( saved_path );
-			}
 			Release( expanded_working_path );
 			Release( expanded_path );
 			return task;
