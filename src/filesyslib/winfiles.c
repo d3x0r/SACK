@@ -389,7 +389,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 					lprintf( "transform subst [%s]", tmp_path );
 #endif
 			}
-			else  // was only one %... 
+			else  // was only one %...
 				break;
 		}
 	}
@@ -676,7 +676,7 @@ static void DetectUnicodeBOM( FILE* file ) {
  //			2B 2F 76 2B             43 47 118 47	+/v/
  //			2B 2F 76 2F[t 3]	43 47 118 57	+/v8
  //			2B 2F 76 38 2D[t 4]	43 47 118 56 45	+/v8-
- //		
+ //
  //UTF-1[t 1]		F7 64 4C	247 100 76
  //UTF-EBCDIC[t 1]	DD 73 66 73	221 115 102 115
  //SCSU[t 1]		0E FE FF[t 5]	14 254 255
@@ -826,13 +826,7 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 #ifdef __LINUX__
 #  undef open
 	{
-#  ifdef UNICODE
-		char* tmpfile = CStrDup( file->fullname );
-		handle = open( tmpfile, opts );
-		Deallocate( char*, tmpfile );
-#  else
 		handle = open( file->fullname, opts );
-#  endif
 	}
 #  if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( ( *winfile_local ).flags.bLogOpenClose )
@@ -889,22 +883,6 @@ HANDLE sack_open( INDEX group, CTEXTSTR filename, int opts, ... )
 	}
 	return handle;
 }
-
-#ifdef WIN32
-HANDLE sack_openfile( INDEX group, CTEXTSTR filename, OFSTRUCT* of, int flags )
-{
-#ifdef _UNICODE
-	char* tmpname = WcharConvert( filename );
-#undef OpenFile
-	HANDLE result = (HANDLE)OpenFile( tmpname, of, flags );
-	Deallocate( char*, tmpname );
-	return result;
-#else
-#undef OpenFile
-	return (HANDLE)(uintptr_t)OpenFile( filename, of, flags );
-#endif
-}
-#endif
 
 struct file* FindFileByHandle( HANDLE file_file )
 {
@@ -1053,9 +1031,9 @@ long sack_tell( INDEX file_handle )
 	HANDLE handle = holder ? holder[0] : INVALID_HANDLE_VALUE;
 #ifdef WIN32
 	uint32_t length = SetFilePointer( handle // must have GENERIC_READ and/or GENERIC_WRITE
-		, 0	// do not move pointer 
-		, NULL  // hFile is not large enough to need this pointer 
-		, FILE_CURRENT );  // provides offset from current position 
+		, 0	// do not move pointer
+		, NULL  // hFile is not large enough to need this pointer
+		, FILE_CURRENT );  // provides offset from current position
 	return length;
 #else
 	return lseek( handle, 0, SEEK_SET );
@@ -1524,35 +1502,23 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 			struct file_system_mounted_interface* test_mount = mount;
 			while( !handle && test_mount ) {
 				if( test_mount->fsi ) {
-#if UNICODE
-					char* _fullname = CStrDup( file->fullname );
-#else
-#  define _fullname file->fullname
-#endif
 					file->mount = test_mount;
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 					if( ( *winfile_local ).flags.bLogOpenClose )
 						lprintf( "Call mount %s to check if file exists %s", test_mount->name, file->fullname );
 #endif
-					if( test_mount->fsi->exists( test_mount->psvInstance, _fullname ) ) {
-						handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, _fullname, opts );
+					if( test_mount->fsi->exists( test_mount->psvInstance, file->fullname ) ) {
+						handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname, opts );
 					}
-					else if( single_mount ) {
-#if UNICODE
-						Deallocate( char*, _fullname );
-#else
-#  undef _fullname 
-#endif
-						if( allocedIndex != INVALID_INDEX )
-							SetLink( &file->files, allocedIndex, NULL );
-						return NULL;
+					else {
+						errno = -ENOENT;
+						if( single_mount ) {
+							if( allocedIndex != INVALID_INDEX )
+								SetLink( &file->files, allocedIndex, NULL );
+								return NULL;
+						}
 					}
-#if UNICODE
-					Deallocate( char*, _fullname );
-#endif
 				}
-				else
-					goto default_fopen;
 				test_mount = test_mount->nextLayer;
 			}
 		}
@@ -1562,68 +1528,15 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 			while( !handle && test_mount ) {
 				file->mount = test_mount;
 				if( test_mount->fsi && test_mount->writeable ) {
-#ifdef UNICODE
-					char* _fullname = CStrDup( file->fullname );
-#else
-#  define _fullname file->fullname
-#endif
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 					if( ( *winfile_local ).flags.bLogOpenClose )
 						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname );
 #endif
-					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, _fullname, opts );
-#ifdef UNICODE
-					Deallocate( char*, _fullname );
-#else
-#  undef _fullname 
-#endif
+					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname, opts );
 				}
-				else
-					goto default_fopen;
 				test_mount = test_mount->nextLayer;
 			}
 		}
-	}
-	if( !handle ) {
-	default_fopen:
-		//file->mount = NULL;
-
-#ifdef __LINUX__
-#  ifdef UNICODE
-		char* tmpname = CStrDup( file->fullname );
-		char* tmpopts = CStrDup( opts );
-		handle = fopen( tmpname, tmpopts );
-		Deallocate( char*, tmpname );
-		Deallocate( char*, tmpopts );
-#  else
-		handle = fopen( file->fullname, opts );
-#  endif
-#else
-#  ifdef _STRSAFE_H_INCLUDED_
-#    ifdef UNICODE
-		char* tmpname = CStrDup( file->fullname );
-		char* tmpopts = CStrDup( opts );
-		fopen_s( &handle, tmpname, tmpopts );
-		Deallocate( char*, tmpname );
-		Deallocate( char*, tmpopts );
-#    else
-		{
-			wchar_t* tmp = CharWConvert( file->fullname );
-			wchar_t* wopts = CharWConvert( opts );
-			handle = _wfopen( tmp, wopts );
-			//_wfopen_s( &handle, tmp, wopts );
-			Deallocate( wchar_t*, tmp );
-			Deallocate( wchar_t*, wopts );
-		}
-#    endif
-#  else
-		handle = fopen( file->fullname, opts );
-#  endif
-#endif
-#if !defined( __FILESYS_NO_FILE_LOGGING__ )
-		if( ( *winfile_local ).flags.bLogOpenClose )
-			lprintf( "native opened %s", file->fullname );
-#endif
 	}
 	if( !handle ) {
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
@@ -1638,15 +1551,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 		SetLink( &file->files, allocedIndex, NULL );
 		return NULL;
 	}
-#if !defined( __FILESYS_NO_FILE_LOGGING__ )
-	if( ( *winfile_local ).flags.bLogOpenClose )
-		lprintf( "sack_open %s (%s)", file->fullname, opts );
-#endif
 	AddLink( &file->files, handle );
-#if !defined( __FILESYS_NO_FILE_LOGGING__ )
-	if( ( *winfile_local ).flags.bLogOpenClose )
-		lprintf( "Added FILE* %p and list is %p", handle, file->files );
-#endif
 	return handle;
 }
 
@@ -1715,24 +1620,14 @@ FILE* sack_fsopenEx( INDEX group
 		if( StrChr( opts, 'r' ) && !StrChr( opts, '+' ) || !StrChr( opts, 'w' ) ) {
 			struct file_system_mounted_interface* test_mount = mount;
 			while( !handle && test_mount && test_mount->fsi ) {
-#ifdef UNICODE
-				char* _fullname = CStrDup( file->fullname );
-#else
-#  define _fullname file->fullname
-#endif
 				file->mount = test_mount;
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 				if( ( *winfile_local ).flags.bLogOpenClose )
 					lprintf( "Call mount %s to check if file exists %s", test_mount->name, file->fullname );
 #endif
-				if( test_mount->fsi->exists( test_mount->psvInstance, _fullname ) ) {
-					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, _fullname, opts );
+				if( test_mount->fsi->exists( test_mount->psvInstance, file->fullname ) ) {
+					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname, opts );
 				}
-#ifdef UNICODE
-				Deallocate( char*, _fullname );
-#else
-#  undef _fullname 
-#endif
 				if( !handle && single_mount ) {
 					return NULL;
 				}
@@ -1745,57 +1640,18 @@ FILE* sack_fsopenEx( INDEX group
 			while( !handle && test_mount ) {
 				file->mount = test_mount;
 				if( test_mount->fsi && test_mount->writeable ) {
-#ifdef UNICODE
-					char* _fullname = CStrDup( file->fullname );
-#else
-#  define _fullname file->fullname
-#endif
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 					if( ( *winfile_local ).flags.bLogOpenClose )
 						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname );
 #endif
-					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, _fullname, opts );
-#ifdef UNICODE
-					Deallocate( char*, _fullname );
-#else
-#  undef _fullname 
-#endif
+					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname, opts );
 				}
-				else
-					goto default_fopen;
 				test_mount = test_mount->nextLayer;
 			}
 		}
-		//file->fsi = mount?mount->fsi:NULL;
 	}
 	if( !handle ) {
-	default_fopen:
-#ifdef __LINUX__
-#  ifdef UNICODE
-		char* tmpname = CStrDup( file->fullname );
-		char* tmpopts = CStrDup( opts );
-		handle = fopen( tmpname, tmpopts );
-		Deallocate( char*, tmpname );
-		Deallocate( char*, tmpopts );
-#  else
-		handle = fopen( file->fullname, opts );
-#  endif
-#else
-		{
-			wchar_t* tmp = CharWConvert( file->fullname );
-			wchar_t* wopts = CharWConvert( opts );
-			handle = _wfsopen( tmp, wopts, share_mode );
-			Deallocate( wchar_t*, tmp );
-			Deallocate( wchar_t*, wopts );
-		}
-#endif
-	}
-	if( !handle ) {
-#if !defined( __FILESYS_NO_FILE_LOGGING__ )
-		if( ( *winfile_local ).flags.bLogOpenClose )
-			lprintf( "Failed to open file [%s]=[%s]", file->name, file->fullname );
-#endif
-		return NULL;
+		return handle;
 	}
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( ( *winfile_local ).flags.bLogOpenClose )
@@ -2875,7 +2731,7 @@ struct file_system_mounted_interface* sack_remount_filesystem( const char* name,
 	mount->fsi = oldMount->fsi;
 	link_mount( mount );
 	return mount;
-} 
+}
 
 struct file_system_mounted_interface* sack_mount_filesystem( const char* name, struct file_system_interface* fsi, int priority, uintptr_t psvInstance, LOGICAL writable )
 {
@@ -2987,7 +2843,7 @@ LOGICAL SetFileLength( CTEXTSTR path, size_t length )
 }
 
 void sack_filesys_enable_thread_mounts( void ) {
-	FileSysThreadInfo.default_mount = NULL; 
+	FileSysThreadInfo.default_mount = NULL;
 	FileSysThreadInfo._mounted_file_systems = &FileSysThreadInfo.thread_local_mounted_file_systems;
 
 }
