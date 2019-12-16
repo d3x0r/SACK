@@ -329,7 +329,7 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 }
 
 //----------------------------------------------------------------------------
-
+#if 0
 static void NetworkGlobalLock( DBG_VOIDPASS ) {
 	LOGICAL locked = FALSE;
 	do {
@@ -351,7 +351,7 @@ static void NetworkGlobalLock( DBG_VOIDPASS ) {
 #endif
 	} while( !locked );
 }
-
+#endif
 LOGICAL TryNetworkGlobalLock( DBG_VOIDPASS ) {
 	LOGICAL locked = FALSE;
 #ifdef USE_NATIVE_CRITICAL_SECTION
