@@ -1,6 +1,4 @@
 #!/bin/bash
-
-#:::
 #:   
 #:   ../../src/typelib/typecode.c 
 #:   ../../src/typelib/text.c 
@@ -13,12 +11,11 @@
 #:   
 S=../../..
 
-SRCS=''
+SRCS=
 SRCS+=*$S/src/typelib/typecode.c
 SRCS+=*$S/src/typelib/text.c
 SRCS+=*$S/src/typelib/input.c
-SRCS+=*$S/src/typelib/lets.c
-echo $SRCS
+SRCS+=*$S/src/typelib/sets.c
 SRCS+=*$S/src/typelib/binarylist.c
 SRCS+=*$S/src/typelib/http.c
 SRCS+=*$S/src/typelib/url.c
@@ -82,7 +79,7 @@ SRCS+=*$S/src/contrib/md5lib/md5c.c
 SRCS+=*$S/src/contrib/sha1lib/sha1.c
 SRCS+=*$S/src/contrib/sha2lib/sha2.c
 SRCS+=*$S/src/contrib/sha3lib/sha3.c
-SRCS+=*$S/src/contrib/k12/lib/KangarooTwelve.c
+SRCS+=*$S/src/contrib/K12/lib/KangarooTwelve.c
 SRCS+=*$S/src/salty_random_generator/salty_generator.c
 SRCS+=*$S/src/salty_random_generator/crypt_util.c
 SRCS+=*$S/src/salty_random_generator/block_shuffle.c

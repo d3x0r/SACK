@@ -93,8 +93,18 @@ extern "C"
 	}
 
 extern "C"
+	size_t sack_rmdirEx ( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface * ){
+      return sack::filesys::sack_rmdir( group, filename );
+	}
+
+extern "C"
 	size_t sack_rmdir ( INDEX group, CTEXTSTR filename ){
       return sack::filesys::sack_rmdir( group, filename );
+	}
+
+extern "C"
+	size_t sack_mkdirEx ( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface * ){
+      return sack::filesys::sack_mkdir( group, filename );
 	}
 
 extern "C"
