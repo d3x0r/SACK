@@ -26,7 +26,7 @@
  // derefecing NULL pointers; the function wouldn't be called with a NULL.
  // and partial expressions in lower precision
 // and NULL math because never NULL.
-#pragma warning( disable:6011 26451 28182) 
+#pragma warning( disable:6011 26451 28182)
 
 #ifdef __cplusplus
 namespace sack {
@@ -3566,7 +3566,7 @@ static TEXTCHAR b64xor_table2[256][256];
 static TEXTCHAR u8xor_table2[256][256];
 
 PRELOAD( initTables ) {
-	int n, m;
+	size_t n, m;
 	for( n = 0; n < (sizeof( encodings )-1); n++ )
 		for( m = 0; m < (sizeof( encodings )-1); m++ ) {
 			b64xor_table[(uint8_t)encodings[n]][(uint8_t)encodings[m]] = encodings[n^m];
@@ -3616,7 +3616,8 @@ char * u8xor( const char *a, size_t alen, const char *b, size_t blen, int *ofs )
 		else if( (v & 0xFE) == 0xFC ) { if( l )
 			lprintf( "short utf8 sequence found" ); l = 5; mask = 0;  _mask = 0x03; }  // 6(4) + 2 + 0 == 26 //-V640
 
-		char bchar = b[(n+o)%(keylen)];
+		// B is a base64 key; it would never be > 128 so char index is OK.
+		char bchar = b[(n+o)%(keylen)]&0x7f;
 		(*out) = (v & ~mask ) | ( u8xor_table[v & mask ][bchar] & mask );
 		out++;
 	}
@@ -3650,7 +3651,7 @@ static void decodeblock( const char in[4], uint8_t out[3], size_t len, const cha
 	}
 	for( ; n < 4; n++ )
 		index[n] = 0;
-	
+
 	out[0] = (char)(( index[0] ) << 2 | ( index[1] ) >> 4);
 	out[1] = (char)(( index[1] ) << 4 | ( ( ( index[2] ) >> 2 ) & 0x0f ));
 	out[2] = (char)(( index[2] ) << 6 | ( ( index[3] ) & 0x3F ));
