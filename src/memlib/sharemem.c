@@ -2294,6 +2294,7 @@ POINTER  HeapPreallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS
 
 //------------------------------------------------------------------------------------------------------
 
+#if USE_CUSTOM_ALLOCER
 static void Bubble( PMEM pMem )
 {
 	// handle sorting free memory to be least signficant first...
@@ -2331,6 +2332,7 @@ static void Bubble( PMEM pMem )
 		}
 	}
 }
+#endif
 
 //------------------------------------------------------------------------------------------------------
 
