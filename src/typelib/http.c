@@ -143,7 +143,6 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 	{
 		char *_url = GetText(url);
 		TEXTRUNE ch;
-		int outchar = 0;
 		char *newUrl = _url;
 		int decode = 0;
 		while( _url[0] ) {
@@ -1118,7 +1117,7 @@ PTEXT PostHttp( PTEXT address, PTEXT url, PTEXT content )
 
 static void httpConnected( PCLIENT pc, int error ) {
 	if( error ) {
-		struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 0 );
+		//struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 0 );
 		RemoveClient( pc );
 		return;
 	}

@@ -732,7 +732,6 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 		}
 		else
 		{
-			int totalpos = 0;
 			size_t tmpstart = 0;
 			PTEXT start = pci->CollectionBuffer;
 			PTEXT lastseg = start;
@@ -810,7 +809,6 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 			int start;
 			size_t cursor = (int)pci->CollectionIndex;
 			PTEXT curseg = pci->CollectionBuffer;
-			TEXTRUNE ch;
 			start = (int)cursor;
 			for( tmp = 0; tmp > nPos; tmp-- )
 			{
@@ -822,7 +820,8 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 				}
 				if( !curseg )
 					break;
-				ch = GetPriorUtfCharIndexed( curseg->data.data, &cursor );
+				// just updates the cursor, don't need the character result.
+				GetPriorUtfCharIndexed( curseg->data.data, &cursor );
 				if( !cursor )
 				{
 					total += (int)(cursor - start);
