@@ -225,6 +225,7 @@ struct jsox_parse_state {
 	PJSOX_CLASS current_class;
 	int current_class_item;
 	int arrayType;
+	int allowRedefinition;
 
 	LOGICAL first_token;
 	PJSOX_PARSE_CONTEXT context;

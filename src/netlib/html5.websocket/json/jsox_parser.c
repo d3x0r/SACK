@@ -473,6 +473,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 			LIST_FORALL( state->classes, idx, PJSOX_CLASS, cls )
 				if( memcmp( cls->name, state->val.className, state->val.classNameLen ) == 0 )
 					break;
+
 			if( !cls ) {
 				cls = GetFromSet( JSOX_CLASS, &state->classPool );
 				cls->name = state->val.className;
@@ -483,15 +484,27 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 #endif
 				AddLink( &state->classes, cls );
 			} else {
-				struct jsox_class_field* field;
-				LIST_FORALL( cls->fields, idx, struct jsox_class_field*,field ) {
-					DeleteFromSet( JSOX_CLASS_FIELD, state->class_fields, field );
-				}
+				if( state->allowRedefinition ) {
+					struct jsox_class_field* field;
+					LIST_FORALL( cls->fields, idx, struct jsox_class_field*, field ) {
+						DeleteFromSet( JSOX_CLASS_FIELD, state->class_fields, field );
+					}
 #ifdef DEBUG_CLASS_STATES
-				lprintf( "RESETTING CLASS: %s", cls->name );
+					lprintf( "RESETTING CLASS: %s", cls->name );
 #endif
-				DeleteList( &cls->fields );
-				// now can re-define fields.
+					DeleteList( &cls->fields );
+					// now can re-define fields.
+				}
+				else {
+					nextMode = JSOX_CONTEXT_OBJECT_FIELD; // no change to next...
+					if( cls )
+						// no colons, on comma push value.
+						// maybe allow colons for extra values that aren't part of the pre-type
+						nextObjectMode = JSOX_OBJECT_CONTEXT_CLASS_VALUE;
+					else
+						// this is a tagged class for later prototype revival.
+						nextObjectMode = JSOX_OBJECT_CONTEXT_CLASS_NORMAL;
+				}
 			}
 		}
 		else {
@@ -566,6 +579,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 		old_context->className = state->val.className;
 		old_context->classNameLen = state->val.classNameLen;
 		old_context->current_class = state->current_class;
+		old_context->objectContext = state->objectContext;
 #ifdef DEBUG_CLASS_STATES
 		lprintf( "object Push class: %s %s", state->val.className, state->current_class?state->current_class->name:"");
 #endif
@@ -599,7 +613,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buffer* output, int c ) {
 	PJSOX_CLASS cls = NULL;
 	if( state->word > JSOX_WORD_POS_RESET && state->word < JSOX_WORD_POS_FIELD )
-		recoverIdent(state,output,c);
+		recoverIdent(state,output,0); // don't pass C; otherwise array opens.
 
 	if( state->val.value_type == JSOX_VALUE_STRING ) {
 		state->val.className = state->val.string;
@@ -644,11 +658,12 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		}
 	} else if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD ) {
 		if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_VALUE ) {
+		}else {
+			if( !state->pvtError ) state->pvtError = VarTextCreate();
+			vtprintf( state->pvtError, "Fault while parsing; while getting field name unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+			state->status = FALSE;
+			return FALSE;
 		}
-		if( !state->pvtError ) state->pvtError = VarTextCreate();
-		vtprintf( state->pvtError, "Fault while parsing; while getting field name unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
-		state->status = FALSE;
-		return FALSE;
 	}
 	{
 		struct jsox_parse_context *old_context = GetFromSet( JSOX_PARSE_CONTEXT, &state->parseContexts );
@@ -661,6 +676,7 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		old_context->nameLen = state->val.nameLen;
 		old_context->className = state->val.className;
 		old_context->classNameLen = state->val.classNameLen;
+		old_context->objectContext = state->objectContext;
 #ifdef DEBUG_CLASS_STATES
 		lprintf( "Push2T class: %s", state->val.className );
 #endif
@@ -1377,6 +1393,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->current_class = old_context->current_class;
 						state->current_class_item = old_context->current_class_item;
 						state->arrayType = old_context->arrayType;
+						state->objectContext = old_context->objectContext;
 #ifdef DEBUG_CLASS_STATES
 						lprintf( "POP CLASS NAME %s %s %p", state->val.className, state->current_class ? state->current_class->name : "", state->current_class ? state->current_class->fields : 0 );
 #endif
@@ -1435,6 +1452,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->val.classNameLen = old_context->classNameLen;
 						state->current_class = old_context->current_class;
 						state->current_class_item = old_context->current_class_item;
+						state->objectContext = old_context->objectContext;
 #ifdef DEBUG_CLASS_STATES
 						lprintf( "POP2 CLASS NAME %s %s %p", state->val.className, state->current_class ? state->current_class->name : "", state->current_class ? state->current_class->fields : 0 );
 #endif
@@ -1490,6 +1508,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							lprintf( "Comma Adding field to class %p %s %p", state->current_class, state->current_class->name, state->current_class->fields );
 #endif
 							AddLink( &state->current_class->fields, field );
+							state->word = JSOX_WORD_POS_RESET;
 						}
 						else {
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
