@@ -8,8 +8,11 @@
 #include <salty_generator.h>
 #include "srg_internal.h"
 
+#ifdef _MSC_VER
+// integer partial expresions summed into 64 bit.
 // partial lower bit expressions
-#pragma warning( disable: 26451 )
+#  pragma warning( disable: 26451 )
+#endif
 
 static struct crypt_local
 {
@@ -268,7 +271,7 @@ int SRG_AES_decrypt( uint8_t *ciphertext, int ciphertext_len, uint8_t *key, uint
 
 	int blockSize = EVP_CIPHER_CTX_block_size( ctx );
 	uint8_t *block = NewArray( uint8_t, blockSize * 2 );
-	// read the first block of 1 block size.  This has the length so we know 
+	// read the first block of 1 block size.  This has the length so we know
 	// how much more to read.
 	if( 1 != EVP_DecryptUpdate( ctx, block, &len, ciphertext, blockSize ) )
 		handleErrors();
@@ -324,7 +327,7 @@ int SRG_AES_decrypt( uint8_t *ciphertext, int ciphertext_len, uint8_t *key, uint
 static __inline void encryptBlock( uint8_t const * const map
 	, uint8_t * const output, size_t const outlen
 	, uint8_t const bufKey[RNGHASH/8]
-) 
+)
 {
 	uint8_t *curBuf_out;
 	size_t n;
@@ -429,7 +432,7 @@ void SRG_XSWS_decryptData( uint8_t *objBuf, size_t objBufLen
 	, uint64_t tick, const uint8_t *keyBuf, size_t keyBufLen
 	, uint8_t **outBuf, size_t *outBufLen
 ) {
-	
+
 	struct random_context *signEntropy = (struct random_context *)DequeLink( &crypt_local.plqCrypters );
 	size_t b;
 	if( !signEntropy )
@@ -513,7 +516,7 @@ PRELOAD( CryptTestBuiltIn ) {
 	static char messageMega[2048 * 2048] = "Hello, This is a test, this is Only a test.";
 	// this is a 1 bit change in message from message
 	static char message2[] = "Hello, This is a test, this is only a test.";
-	// this is a slightly shorter message, which needs padding 
+	// this is a slightly shorter message, which needs padding
 	// (manual pad test to avoid a full 16 byte 0 pad block)
 	static char message3[] = "Hello, This is a test, this is the test.";
 
@@ -527,7 +530,7 @@ PRELOAD( CryptTestBuiltIn ) {
 	uint8_t *orig;
 	size_t origlen;
 
-#define DO_PERF_TESTS 
+#define DO_PERF_TESTS
 #define LENGTH_RECOVERY_TESTING
 
 #ifdef LENGTH_RECOVERY_TESTING
@@ -576,7 +579,7 @@ PRELOAD( CryptTestBuiltIn ) {
 	}
 	end = timeGetTime();
 	printf( "Big DID %d in %d   %d %d\n", i, end - start, i * 1000 / (end - start)
-		, (i * 1000 / (end - start))*sizeof( messageBig ) 
+		, (i * 1000 / (end - start))*sizeof( messageBig )
 	);
 	Sleep( 1000 );
 
@@ -586,7 +589,7 @@ PRELOAD( CryptTestBuiltIn ) {
 		Release( output );
 	}
 	end = timeGetTime();
-	printf( "Mega DID %d in %d   %d %d\n", i, end - start, i * 1000 / (end - start) 
+	printf( "Mega DID %d in %d   %d %d\n", i, end - start, i * 1000 / (end - start)
 		, (i * 1000 / (end - start)) * sizeof( messageMega )
 	);
 	Sleep( 1000 );
@@ -644,7 +647,7 @@ PRELOAD( CryptTestBuiltIn ) {
 
 #if 0
 	// memory leak tests.... if in 2M tests memory is +0, probably no leaks.
-	// is about 5 seconds for these tests each.... 
+	// is about 5 seconds for these tests each....
 
 	start = timeGetTime();
 	for( i = 0; i < 4000000; i++ ) {
@@ -662,7 +665,7 @@ PRELOAD( CryptTestBuiltIn ) {
 		Release( output );
 	}
 	end = timeGetTime();
-	printf( "Big DID %d in %d   %d   %d\n", i, end - start, i * 1000 / (end - start) 
+	printf( "Big DID %d in %d   %d   %d\n", i, end - start, i * 1000 / (end - start)
 		, (i * 1000 / (end - start)) * sizeof( messageBig )
 	);
 
@@ -672,7 +675,7 @@ PRELOAD( CryptTestBuiltIn ) {
 		Release( output );
 	}
 	end = timeGetTime();
-	printf( "Mega DID %d in %d   %d   %d\n", i, end - start, i * 1000 / (end - start) 
+	printf( "Mega DID %d in %d   %d   %d\n", i, end - start, i * 1000 / (end - start)
 		, (i * 1000 / (end - start)) * sizeof( messageMega )
 	);
 #endif
@@ -717,3 +720,8 @@ PRELOAD( CryptTestBuiltIn ) {
 #endif
 
 
+#ifdef _MSC_VER
+// integer partial expresions summed into 64 bit.
+// partial lower bit expressions
+#  pragma warning( default: 26451 )
+#endif
