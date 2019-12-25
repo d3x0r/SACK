@@ -1497,7 +1497,7 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 	else
 		sourcefile[0] = 0;
 	if( (*syslog_local).flags.bLogThreadID )
-		tnprintf( threadid, sizeof( threadid ), "%012" _64fX "~", GetMyThreadID() );
+		tnprintf( threadid, sizeof( threadid ), "%012" _64fX "~", GetThisThreadID() );
 	if( pFile )
 		tnprintf( buffer, sizeof( buffer )
 				  , "%s%s%s%s%s%s%s"
@@ -1745,7 +1745,7 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 		// argsize - the program's giving us file and line
 		// debug for here or not, this must be used.
 		if( (*syslog_local).flags.bLogThreadID )
-			tnprintf( threadid, sizeof( threadid ), "%012" _64fX "~", GetMyThreadID() );
+			tnprintf( threadid, sizeof( threadid ), "%012" _64fX "~", GetThisThreadID() );
 #ifdef UNDER_CE
 		tnprintf( buffer + ofs, 4095 - ofs, "%s%s%s"
 				  , (*syslog_local).flags.bLogThreadID?threadid:""
