@@ -15,7 +15,9 @@
 #include <stdhdrs.h>
 #include <sharemem.h>
 
+#ifdef _MSC_VER
 #pragma warning( disable : 28182)
+#endif
 
 #define PARSE_DEEP 0 // make true to recurse parse expressions
 
@@ -68,8 +70,8 @@ static PTEXT SplitLine( PTEXT pLine, size_t nPos )
 	if( !nPos )
 	{
 			if( PRIORLINE( pLine ) )
-				return PRIORLINE( pLine ); 
-			// otherwise we'll have to insert a new segment 
+				return PRIORLINE( pLine );
+			// otherwise we'll have to insert a new segment
 			// in front of this....
 		newseg = SegCreate( BUILD_LINE_OUTPUT_SIZE );
 		newseg->data.size = 0;
@@ -93,10 +95,10 @@ static PTEXT SplitLine( PTEXT pLine, size_t nPos )
 	newseg->data.size = pLine->data.size - nPos;
 	MemCpy( newseg->data.data, pLine->data.data + nPos, newseg->data.size );
 
-	pLine->data.size = nPos; 
+	pLine->data.size = nPos;
 	pLine->data.data[nPos] = 0; // terminate with null also...
 	SegAppend( pLine
-				, SegAppend( newseg, end ) 
+				, SegAppend( newseg, end )
 				);
 
 	return pLine;
@@ -107,7 +109,7 @@ static PTEXT SplitLine( PTEXT pLine, size_t nPos )
 PTEXT GetUserInputLine( PUSER_INPUT_BUFFER pci )
 {
 	PTEXT pReturn = NULL;
-	if( pci->CollectionIndex 
+	if( pci->CollectionIndex
 		|| ( pci->CollectionBuffer && GetTextSize( pci->CollectionBuffer ) ) )
 	{
 		PTEXT tmp;
@@ -138,7 +140,7 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 	// which remaineder if an EOL sequence was found....
 
 	// build line in buffer using standard console
-	// behavior... 
+	// behavior...
 
 	INDEX pos;
 	INDEX size;
@@ -219,7 +221,7 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 			case '\x1b': // escape; clear all text
 				if( !bData )
 				{
-					SetEnd( *pOutput );  
+					SetEnd( *pOutput );
 					SetStart( *pOutput )  // no semicolon; include the following in the loop.
 					{
 						SetTextSize( *pOutput, 0 );
@@ -384,7 +386,7 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 					if( !bSaveCR )
 						break;
 				}
-				// store carriage return... 
+				// store carriage return...
 			default:
 	 defaultcase:
 				output[len++] = character;
@@ -461,7 +463,7 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 				// can't happen that both are NULL - but JUST in case...
 				LineRelease( pReturn );
 				return NULL;
-			}	
+			}
 			SegGrab( pReturn );
 			pReturn = p;
 		}
@@ -512,7 +514,7 @@ void RecallUserInput( PUSER_INPUT_BUFFER pci, int bUp )
 		if( pci->nHistory == -1 )
 			pci->nHistory = pci->InputHistory->Top - 1;
 		else
-		{		 
+		{
 			// if already on the first entered command (last avail recall...)
 			if( pci->nHistory == (signed)pci->InputHistory->Bottom )
 			{
@@ -676,7 +678,7 @@ PTEXT GatherUserInput( PUSER_INPUT_BUFFER pci, PTEXT stroke )
 	DeleteLinkQueue( &pci->InputHistory );
 	LineRelease( pci->CollectionBuffer );
 	pci->InputHistory = NULL;
-	pci->nHistory = -1; // shouldn't matter what this gets set to...	
+	pci->nHistory = -1; // shouldn't matter what this gets set to...
 }
 
 //----------------------------------------------------------------------------
@@ -695,7 +697,7 @@ PTEXT GatherUserInput( PUSER_INPUT_BUFFER pci, PTEXT stroke )
 	pci->CollectionIndex = 0;
 	pci->storeCR = 0;
 	pci->CollectionInsert = TRUE;
-	return pci;	
+	return pci;
 }
 
 //----------------------------------------------------------------------------
@@ -778,7 +780,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 			PTEXT curseg = pci->CollectionBuffer;
 			TEXTRUNE ch;
 			start = cursor;
-			if( cursor == curseg->data.size ) 
+			if( cursor == curseg->data.size )
 			{
 				curseg = NEXTLINE( curseg );
 				if( !curseg )
@@ -828,7 +830,7 @@ LOGICAL  SetUserInputPosition ( PUSER_INPUT_BUFFER pci, int nPos, int whence )
 					curseg = PRIORLINE( curseg );
 					if( curseg )
 						start = (int)(cursor = curseg->data.size);
-					else 
+					else
 						break;
 				}
 			}
@@ -923,3 +925,6 @@ void  SetUserInputSaveCR( PUSER_INPUT_BUFFER pci, int bSave ) {
 // Revision 1.6  2003/03/25 08:59:03  panther
 // Added CVS logging
 //
+#ifdef _MSC_VER
+#pragma warning( default : 28182)
+#endif

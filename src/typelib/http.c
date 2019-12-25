@@ -5,9 +5,11 @@
 #include <signed_unsigned_comparisons.h>
 #include "http.h"
 
+#ifndef _MSC_VER
 // derefecing NULL pointers; the function wouldn't be called with a NULL.
 // and partial expressions in lower precision
-#pragma warning( disable:6011 26451) 
+#  pragma warning( disable:6011 26451)
+#endif
 
 HTTP_NAMESPACE
 
@@ -115,7 +117,7 @@ void GatherHttpData( struct HttpState *pHttpState )
 		{
 			//lprintf( "Partial is complete with %d", GetTextSize( pHttpState->partial ) );
 			pHttpState->content = SegSplit( &pHttpState->partial, pHttpState->content_length );
-			pHttpState->partial = NEXTLINE( pHttpState->partial );		
+			pHttpState->partial = NEXTLINE( pHttpState->partial );
 			SegGrab( pHttpState->partial );
 			pHttpState->flags.success = 1;
 		}
@@ -413,7 +415,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											//lprintf( "Unsupported Command:%s", GetText( request ) );
 											if( pHttpState->pc )
 												TriggerNetworkErrorCallback( *pHttpState->pc, SACK_NETWORK_ERROR_HTTP_UNSUPPORTED );
-											LineRelease( request );											
+											LineRelease( request );
 											unlockHttp( pHttpState );
 											if( pHttpState->pc )
 												RemoveClient( *pHttpState->pc );
@@ -618,7 +620,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 		const uint8_t* buf = (const uint8_t*)buffer;
 		size_t ofs = 0;
       //lprintf( "Add Chunk HTTP Data:%d", size );
-		
+
 		while( ofs < size )
 		{
 			switch( pHttpState->read_chunk_state )
@@ -944,24 +946,24 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 }
 
 void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
-{	
+{
 	PTEXT message;
 	PVARTEXT pvt_message = VarTextCreate();
 	PTEXT content_type;
 
 	vtprintf( pvt_message, "%s",  "HTTP/1.1 200 OK\r\n" );
-	vtprintf( pvt_message, "Content-Length: %d\r\n", GetTextSize( body ));	
+	vtprintf( pvt_message, "Content-Length: %d\r\n", GetTextSize( body ));
 	vtprintf( pvt_message, "Content-Type: %s\r\n"
-		, (content_type = GetHttpField( pHttpState, "Accept" ))?GetText(content_type):"text/plain");	
-	vtprintf( pvt_message, "\r\n"  );	
-	vtprintf( pvt_message, "%s", GetText( body ));	
+		, (content_type = GetHttpField( pHttpState, "Accept" ))?GetText(content_type):"text/plain");
+	vtprintf( pvt_message, "\r\n"  );
+	vtprintf( pvt_message, "%s", GetText( body ));
 	message = VarTextGet( pvt_message );
 	if( l.flags.bLogReceived )
 	{
 		lprintf( " Response Message:");
 		LogBinary( (uint8_t*)GetText( message ), GetTextSize( message ));
 	}
-	SendTCP( pc, GetText( message ), GetTextSize( message ));		
+	SendTCP( pc, GetText( message ), GetTextSize( message ));
 }
 
 //---------- CLIENT --------------------------------------------
@@ -1503,3 +1505,6 @@ HTTPState GetHttpState( PCLIENT pc ) {
 
 HTTP_NAMESPACE_END
 #undef l
+#ifndef _MSC_VER
+#pragma warning( default:6011 26451)
+#endif

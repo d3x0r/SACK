@@ -23,10 +23,17 @@
 #include <stdio.h>
 #include <wchar.h>
 
- // derefecing NULL pointers; the function wouldn't be called with a NULL.
- // and partial expressions in lower precision
+#ifdef _MSC_VER
+// derefecing NULL pointers; the function wouldn't be called with a NULL.
+// and partial expressions in lower precision
 // and NULL math because never NULL.
-#pragma warning( disable:6011 26451 28182)
+#  pragma warning( disable:6011 26451 28182)
+//Warning C26451: Arithmetic overflow: Using operator '%operator%'
+// on a %size1% byte value and then casting the result to a
+// %size2% byte value. Cast the value to the wider type
+// before calling operator '%operator%' to avoid overflow
+#  pragma warning( disable:26451 )
+#endif
 
 #ifdef __cplusplus
 namespace sack {
@@ -36,7 +43,6 @@ namespace text {
 	using namespace sack::logging;
 	using namespace sack::containers::queue;
 #endif
-#pragma warning( disable:26451 )
 
 typedef PTEXT (CPROC*GetTextOfProc)( uintptr_t, POINTER );
 
@@ -3769,4 +3775,8 @@ uint8_t *DecodeBase64Ex( const char* buf, size_t length, size_t *outsize, const 
 } //namespace text {
 } //namespace containers {
 } // namespace sack {
+#endif
+#ifdef _MSC_VER
+#  pragma warning( default:6011 26451 28182)
+#  pragma warning( default:26451 )
 #endif
