@@ -9,9 +9,11 @@
 #endif
 // intrinsics
 #endif
+#ifdef _MSC_VER
 // derefecing NULL pointers; the function wouldn't be called with a NULL.
 // and partial expressions in lower precision
-#pragma warning( disable:6011 26451) 
+#  pragma warning( disable:6011 26451)
+#endif
 
 #include <stdhdrs.h>
 #include <stdarg.h>
@@ -91,7 +93,7 @@ extern unsigned char AlphaTable[256][256];
 
 uint32_t IMGVER(DOALPHA)( uint32_t over, uint32_t in, uint8_t a )
 {
-#if defined( _MSC_VER ) && 0 
+#if defined( _MSC_VER ) && 0
 	int out;
 	/* blah, this code still generates a suplus of actual code...
 	 * generating data on the stack...
@@ -455,8 +457,8 @@ static void ComputeImageData( ImageFile *pImage )
 		pImage->pElder->pYounger = pImage->pYounger;
 
 	pImage->pParent = NULL;
-	pImage->pElder = NULL; 
-	pImage->pYounger = NULL; 
+	pImage->pElder = NULL;
+	pImage->pYounger = NULL;
 	ComputeImageData( pImage );
 }
 
@@ -716,7 +718,7 @@ static void SmearFlag( Image image, int flag )
 			return;
 		}
 		// it's a fake parented thing... should
-		if( !pif->pParent || 
+		if( !pif->pParent ||
 			 ( pif->flags & IF_FLAG_OWN_DATA ) ) // if this is not a sub image, and had no sub images
 		{
 			if( !( pif->flags & IF_FLAG_EXTERN_COLORS ) )
@@ -812,7 +814,7 @@ ImageFile*  IMGVER(LoadImageFileFromGroupEx) ( INDEX group, CTEXTSTR filename DB
 	sack_fclose (fp);
 
 	//lprintf("so far okay -%s %d (%d)", filename, buf, size );
-	{ 
+	{
 		IMGVER(setPngImageName)( filename );
 	}
 	file = IMGVER(DecodeMemoryToImage)( buf, size );
@@ -856,7 +858,7 @@ void IMGVER(TranslateCoord)( Image image, int32_t *x, int32_t *y )
 	// results in the union of the area extents...
 	// union will always result in a rectangle?...
 	int tmp1, tmp2;
-	
+
 	if( r1->x < r2->x )
 		r->x = r1->x;
 	else
@@ -867,7 +869,7 @@ void IMGVER(TranslateCoord)( Image image, int32_t *x, int32_t *y )
 	if( tmp1 > tmp2 )
 		r->width = tmp1 - r->x;
 	else
-		r->width = tmp2 - r->x; 
+		r->width = tmp2 - r->x;
 
 	if( r1->y < r2->y )
 		r->y = r1->y;
@@ -1259,7 +1261,7 @@ PCDATA  IMGVER(ImageAddress )( Image i, int32_t x, int32_t y )
 	return ((CDATA*) \
 										 ((i)->image + (( (x) - (i)->eff_x ) \
 										 +(INVERTY( (i), (y) ) * (i)->pwidth ) \
-										 ))   
+										 ))
 										)
 										;
 }
@@ -1515,7 +1517,7 @@ LOGICAL IMGVER(IsImageTargetFinal)( Image image )
 	return 0;
 }
 
-SlicedImage IMGVER(MakeSlicedImage)( Image source, uint32_t left, uint32_t right, uint32_t top, uint32_t bottom, LOGICAL output_center ) 
+SlicedImage IMGVER(MakeSlicedImage)( Image source, uint32_t left, uint32_t right, uint32_t top, uint32_t bottom, LOGICAL output_center )
 {
 	SlicedImage result = New( struct SlicedImageFile );
 	result->image = source;
@@ -1551,7 +1553,7 @@ SlicedImage IMGVER(MakeSlicedImageComplex)( Image source
 										, uint32_t bottom_left_x, uint32_t bottom_left_y, uint32_t bottom_left_width, uint32_t bottom_left_height
 										, uint32_t bottom_x, uint32_t bottom_y, uint32_t bottom_width, uint32_t bottom_height
 										, uint32_t bottom_right_x, uint32_t bottom_right_y, uint32_t bottom_right_width, uint32_t bottom_right_height
-										, LOGICAL output_center ) 
+										, LOGICAL output_center )
 {
 	SlicedImage result = New( struct SlicedImageFile );
 	result->image = source;
@@ -1691,11 +1693,11 @@ void IMGVER(BlotSlicedImageEx)( Image dest, SlicedImage source, int32_t x, int32
 			uint32_t h2 = h - h1;
 
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_TOP_LEFT]
-					, 0, 0 
+					, 0, 0
 					, source->left, h1
 					, 0, 0
 					, source->left, source->top
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 			if( center_w )
 				IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_TOP]
@@ -1705,19 +1707,19 @@ void IMGVER(BlotSlicedImageEx)( Image dest, SlicedImage source, int32_t x, int32
 						, source->center_w, source->top
 						, alpha, op, c1, c2, c3 );
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_TOP_RIGHT]
-					, source->left + center_w, 0 
+					, source->left + center_w, 0
 					, source->right_w, h1
 					, 0, 0
 					, source->right_w, source->top
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_BOTTOM_LEFT]
-					, 0, h1 
+					, 0, h1
 					, source->left, h2
 					, 0, 0
 					, source->left, source->bottom_h
-						, alpha, op, c1, c2, c3 
+						, alpha, op, c1, c2, c3
 					);
 			if( center_w )
 				IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_BOTTOM]
@@ -1731,7 +1733,7 @@ void IMGVER(BlotSlicedImageEx)( Image dest, SlicedImage source, int32_t x, int32
 					, source->right_w, h2
 					, 0, 0
 					, source->right_w, source->bottom_h
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 		}
 		else if( h >= ( source->left + ( source->right_w ) ) )
@@ -1742,18 +1744,18 @@ void IMGVER(BlotSlicedImageEx)( Image dest, SlicedImage source, int32_t x, int32
 			uint32_t w2 = w - w1;
 
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_TOP_LEFT]
-					, 0, 0 
+					, 0, 0
 					, w1, source->top
 					, 0, 0
 					, source->left, source->top
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_TOP_RIGHT]
-					, w1, 0 
+					, w1, 0
 					, w2, source->top
 					, 0, 0
 					, source->right_w, source->top
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 
 			if( center_h )
@@ -1773,18 +1775,18 @@ void IMGVER(BlotSlicedImageEx)( Image dest, SlicedImage source, int32_t x, int32
 			}
 
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_BOTTOM_LEFT]
-					, 0, source->top + center_h 
+					, 0, source->top + center_h
 					, w1, source->bottom_h
 					, 0, 0
 					, source->left, source->bottom_h
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_BOTTOM_RIGHT]
 					, w1, source->top + center_h
 					, w2, source->bottom_h
 					, 0, 0
 					, source->right_w, source->bottom_h
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 		}
 		else
@@ -1795,18 +1797,18 @@ void IMGVER(BlotSlicedImageEx)( Image dest, SlicedImage source, int32_t x, int32
 			uint32_t w2 = w - w1;
 
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_TOP_LEFT]
-					, 0, 0 
+					, 0, 0
 					, w1, h1
 					, 0, 0
 					, source->left, source->top
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_TOP_RIGHT]
-					, w1, 0 
+					, w1, 0
 					, w2, h1
 					, 0, 0
 					, source->right_w, source->top
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_BOTTOM_LEFT]
@@ -1814,14 +1816,14 @@ void IMGVER(BlotSlicedImageEx)( Image dest, SlicedImage source, int32_t x, int32
 					, w1, h2
 					, 0, 0
 					, source->left, source->bottom_h
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 			IMGVER(BlotScaledImageSizedEx)( dest, source->slices[SLICED_IMAGE_BOTTOM_RIGHT]
 					, w1, h1
 					, w2, h2
 					, 0, 0
 					, source->right_w, source->bottom_h
-					, alpha, op, c1, c2, c3 
+					, alpha, op, c1, c2, c3
 					);
 		}
 	}
@@ -1831,3 +1833,8 @@ void IMGVER(BlotSlicedImageEx)( Image dest, SlicedImage source, int32_t x, int32
 
 IMAGE_NAMESPACE_END
 
+#ifdef _MSC_VER
+// derefecing NULL pointers; the function wouldn't be called with a NULL.
+// and partial expressions in lower precision
+#  pragma warning( default:6011 26451)
+#endif
