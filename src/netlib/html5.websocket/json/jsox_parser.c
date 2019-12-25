@@ -25,9 +25,9 @@ U+FEFF	ZERO WIDTH NO-BREAK SPACE	<ZWNBSP>	WhiteSpace
 ID_Start       XID_Start        Uppercase letters, lowercase letters, titlecase letters, modifier letters
                                 , other letters, letter numbers, stability extensions
 ID_Continue    XID_Continue     All of the above, plus nonspacing marks, spacing combining marks, decimal numbers
-                                , connector punctuations, stability extensions. 
-                                These are also known simply as Identifier Characters, since they are a superset of 
-                                the ID_Start. The set of ID_Start characters minus the ID_Continue characters are 
+                                , connector punctuations, stability extensions.
+                                These are also known simply as Identifier Characters, since they are a superset of
+                                the ID_Start. The set of ID_Start characters minus the ID_Continue characters are
                                 known as ID_Only_Continue characters.
 */
 
@@ -169,8 +169,8 @@ char *jsox_escape_string( const char *string ) {
 
 #define BADUTF8 0xFFFFFFF
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))
-#define _zero(result,from)  ((*from)++,BADUTF8) 
-#define _gzero(result,from)  ((*from)++,0) 
+#define _zero(result,from)  ((*from)++,BADUTF8)
+#define _gzero(result,from)  ((*from)++,0)
 #define _3char(result,from) ( ((*from) += 3),( ( ( result & 0xF ) << 12 ) | ( ( result & 0x3F00 ) >> 2 ) | ( ( result & 0x3f0000 ) >> 16 )) )
 
 #define _4char(result,from)  ( ((*from) += 4), ( ( ( result & 0x7 ) << 18 )     \
@@ -205,7 +205,7 @@ char *jsox_escape_string( const char *string ) {
 #define GetUtfChar(x) __GetUtfChar(c,x)
 
 static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTSTR *pmOut, TEXTRUNE start_c
-		//, int literalString 
+		//, int literalString
 		) {
 	char *mOut = (*pmOut);
 	// collect a string
@@ -217,8 +217,8 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 	TEXTRUNE c;
 	//escape = 0;
 	//cr_escaped = FALSE;
-	while( ( ( n = nextN ), ( n < msglen ) ) 
-		&& ( ( ( c = GetUtfChar( msg_input ) ) != BADUTF8 ) 
+	while( ( ( n = nextN ), ( n < msglen ) )
+		&& ( ( ( c = GetUtfChar( msg_input ) ) != BADUTF8 )
 			&& ( status >= 0 ) ) )
 	{
 		if( (nextN = msg_input[0] - msg ) > msglen ) {
@@ -513,7 +513,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 	} else if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD ) {
 		if( state->val.className ) { // this is a tagged object open.
 			if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_VALUE ) {
-				LIST_FORALL( state->classes, idx, PJSOX_CLASS, cls ) 
+				LIST_FORALL( state->classes, idx, PJSOX_CLASS, cls )
 					if( memcmp( cls->name, state->val.className, state->val.classNameLen ) == 0 )
 						break;
 				// prototype classes don't have to have definitions
@@ -524,7 +524,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 					// no colons, on comma push value.
 					// maybe allow colons for extra values that aren't part of the pre-type
 					nextObjectMode = JSOX_OBJECT_CONTEXT_CLASS_VALUE;
-				else		
+				else
 					// this is a tagged class for later prototype revival.
 					nextObjectMode = JSOX_OBJECT_CONTEXT_CLASS_NORMAL;
 			} else {
@@ -532,21 +532,21 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 				vtprintf( state->pvtError, "Fault while parsing; object open class field definition : (duplicate colon)" " '%c' at %" _size_f " %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 				state->status = FALSE;
 				return FALSE;
-			}			
+			}
 		} else {
 			nextMode = JSOX_CONTEXT_OBJECT_FIELD;
 			nextObjectMode = JSOX_OBJECT_CONTEXT_CLASS_NORMAL;
 			// tis is just a simple object value in the field of a class type.
 		}
-	} else if( state->parse_context == JSOX_CONTEXT_IN_ARRAY 
-	         || state->parse_context == JSOX_CONTEXT_OBJECT_FIELD_VALUE 
+	} else if( state->parse_context == JSOX_CONTEXT_IN_ARRAY
+	         || state->parse_context == JSOX_CONTEXT_OBJECT_FIELD_VALUE
 	         ) {
 		if( state->val.className ) {
 			// a string value opening a class makes for having a className
 			LIST_FORALL( state->classes, idx, PJSOX_CLASS, cls )
 				if( memcmp( cls->name, state->val.className, state->val.classNameLen ) == 0 )
 					break;
-			// it's ok if it's a class type that's not known internally.  This should be returned to 
+			// it's ok if it's a class type that's not known internally.  This should be returned to
 			// the next assembling layer.
 			//if( !cls ) lprintf( "Referenced class %s has not been defined", state->val.string );
 
@@ -571,7 +571,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 		struct jsox_parse_context *old_context = GetFromSet( JSOX_PARSE_CONTEXT, &state->parseContexts );
 #ifdef DEBUG_PARSING
 		lprintf( "Begin a new object; previously pushed into elements; but wait until trailing comma or close previously:%d", state->val.value_type );
-#endif				
+#endif
 		old_context->context = state->parse_context;
 		old_context->elements = state->elements;
 		old_context->name = state->val.name;
@@ -604,11 +604,12 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 	return TRUE;
 }
 
-
-// this is about nLeast being uninitialized.  
+#ifdef _MSC_VER
+// this is about nLeast being uninitialized.
 // LIST_FORALL initilaizes typeIndex.
 // knownArrayTypeNames is always NOT NULL.
-#pragma warning( disable: 6001 ) 
+#  pragma warning( disable: 6001 )
+#endif
 
 static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buffer* output, int c ) {
 	PJSOX_CLASS cls = NULL;
@@ -669,7 +670,7 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		struct jsox_parse_context *old_context = GetFromSet( JSOX_PARSE_CONTEXT, &state->parseContexts );
 #ifdef DEBUG_PARSING
 		lprintf( "Begin a new array; previously pushed into elements; but wait until trailing comma or close previously:%d", state->val.value_type );
-#endif				
+#endif
 		old_context->context = state->parse_context;
 		old_context->elements = state->elements;
 		old_context->name = state->val.name;
@@ -702,7 +703,10 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 	}
 	return TRUE;
 }
-#pragma warning( default: 6001 ) 
+#ifdef _MSC_VER
+// restore warning...
+#  pragma warning( default: 6001 )
+#endif
 
 int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* output, int cInt ) {
 	if( state->word == JSOX_WORD_POS_FIELD && cInt == ':' ) return 0;
@@ -823,7 +827,7 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 			(*output->pos++) = 'u';
 			(*output->pos++) = 'l';
 			break;
-		case JSOX_WORD_POS_UNDEFINED_1:  // 31 
+		case JSOX_WORD_POS_UNDEFINED_1:  // 31
 			(*output->pos++) = 'u';
 			break;
 		case JSOX_WORD_POS_UNDEFINED_2:
@@ -1094,7 +1098,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				input->tempBuf = TRUE;
 			}
 		}
-		// no input; or this buffer wasn't appended to the previous buffer... 
+		// no input; or this buffer wasn't appended to the previous buffer...
 		if( !input || !input->tempBuf )
 		{
 			input = GetFromSet( JSOX_PARSE_BUFFER, &state->parseBuffers );
@@ -1217,7 +1221,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			if( state->comment ) {
 				if( state->comment == 1 ) {
 					if( c == '*' ) { state->comment = 3; continue; }
-					if( c != '/' ) { 
+					if( c != '/' ) {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
 						vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 						state->status = FALSE;
@@ -1318,7 +1322,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								// allow blank comma at end to not be a field
 								if( state->val.string ) {
 									struct jsox_class_field* field = GetFromSet( JSOX_CLASS_FIELD, &state->class_fields );
-									
+
 									field->name = state->val.string;
 									field->nameLen = output->pos - state->val.string;
 									( *output->pos++ ) = 0;
@@ -1359,7 +1363,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					}
 					else if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD_VALUE ) {
 						// current class doesn't really matter... we only get here after a ':'
-						// which will have faulted or not... 
+						// which will have faulted or not...
 						// this is just push the value.
 						pushValue( state, state->elements, &state->val );
 					}
@@ -1488,7 +1492,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								break;
 							}
 							pushValue( state, state->elements, &state->val );
-					        
+
 							JSOX_RESET_STATE_VAL();
 							//state->parse_context = JSOX_CONTEXT_CLASS_FIELD;
 							state->word = JSOX_WORD_POS_RESET;
@@ -1496,7 +1500,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					}
 
 					else if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_FIELD ) {
-						
+
 						if( state->current_class ) {
 							struct jsox_class_field *field = GetFromSet( JSOX_CLASS_FIELD, &state->class_fields );
 							field->name = state->val.string;
@@ -1531,7 +1535,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					}
 				}
 				else if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD_VALUE ) {
-					// after an array value, it will have returned to OBJECT_FIELD anyway	
+					// after an array value, it will have returned to OBJECT_FIELD anyway
 					if( state->word != JSOX_WORD_POS_RESET )
 						recoverIdent( state, output, c );
 #ifdef DEBUG_PARSING
@@ -1600,7 +1604,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				}
 
 				if( ( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD  && state->objectContext != JSOX_OBJECT_CONTEXT_CLASS_VALUE )
-				   //|| state->parse_context == JSOX_CONTEXT_UNKNOWN 
+				   //|| state->parse_context == JSOX_CONTEXT_UNKNOWN
 				   //|| state->parse_context == JSOX_CONTEXT_IN_ARRAY
 				   //|| (state->parse_context == JSOX_CONTEXT_OBJECT_FIELD_VALUE )
 				) {
@@ -1620,7 +1624,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							break;
 						}
 						if( state->word == JSOX_WORD_POS_FIELD
-							|| ( state->val.value_type == JSOX_VALUE_STRING 
+							|| ( state->val.value_type == JSOX_VALUE_STRING
 								&& !state->val.className ) ) {
 							(*output->pos++) = 0;
 							state->val.className = state->val.string;
@@ -1680,7 +1684,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
 								state->completed = TRUE;
 								break;
-							}							
+							}
 							if( state->val.string ) {
 								state->val.value_type = JSOX_VALUE_STRING;
 								state->word = JSOX_WORD_POS_AFTER_FIELD;
@@ -2365,7 +2369,7 @@ static void stepPath( const char **path ) {
 			skipped = 1;
 			break;
 		}
-		
+
 	} while( skipped );
 }
 
