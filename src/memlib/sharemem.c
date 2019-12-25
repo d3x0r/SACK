@@ -487,11 +487,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 
 			if( XCHG( &pcs->dwUpdating, 1 ) )
 				return -1;
-#ifdef USE_CUSTOM_ALLOCER
-			dwCurProc = _GetMyThreadID();
-#else
-			dwCurProc = GetMyThreadID();
-#endif
+			dwCurProc = GetThisThreadID();
 
 			if( !AND_NOT_SECTION_LOGGED_WAIT(pcs->dwLocks) )
 			{
@@ -722,11 +718,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 			THREAD_ID dwCurProc;
 			while( XCHG( &pcs->dwUpdating, 1 ) )
 				Relinquish();
-#ifdef USE_CUSTOM_ALLOCER
-			dwCurProc = _GetMyThreadID();
-#else
-			dwCurProc = GetMyThreadID();
-#endif
+			dwCurProc = GetThisThreadID();
 #  ifdef LOG_DEBUG_CRITICAL_SECTIONS
 #    ifndef NO_LOGGING
 			if( g.bLogCritical > 0 && g.bLogCritical < 2 )

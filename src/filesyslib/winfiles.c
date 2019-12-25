@@ -1511,7 +1511,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 						handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname, opts );
 					}
 					else {
-						errno = -ENOENT;
+						errno = ENOENT;
 						if( single_mount ) {
 							if( allocedIndex != INVALID_INDEX )
 								SetLink( &file->files, allocedIndex, NULL );
@@ -1831,7 +1831,9 @@ size_t  sack_fwrite( CPOINTER buffer, size_t size, int count, FILE* file_file )
 		size_t result;
 		if( file->mount->fsi->copy_write_buffer && file->mount->fsi->copy_write_buffer() ) {
 			POINTER dupbuf = malloc( size * count + 3 );
-#pragma warning( disable: 6387 )
+#ifdef _MSC_VER
+#  pragma warning( disable: 6387 )
+#endif
 			memcpy( dupbuf, buffer, size * count );
 			result = file->mount->fsi->_write( file_file, (const char*)dupbuf, size * count );
 			free( dupbuf );
@@ -2337,7 +2339,9 @@ static size_t CPROC sack_filesys_size( void* file ) {
 }
 static size_t CPROC sack_filesys_tell( void* file ) { return ftell( (FILE*)file ); }
 static void CPROC sack_filesys_truncate( void* file ) {
-#pragma warning( disable:  6031 ) // disable ignoring return value of chsize; nothing to do if it fails.
+#ifdef _MSC_VER
+#  pragma warning( disable:  6031 ) // disable ignoring return value of chsize; nothing to do if it fails.
+#endif
 #if _WIN32
 	_chsize_s( fileno( (FILE*)file ), _ftelli64( (FILE*)file ) );
 #else
@@ -2581,7 +2585,7 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 PRELOAD( InitWinFileSys )
 {
 #  if !defined( __FILESYS_NO_FILE_LOGGING__ )
-	( *winfile_local ).flags.bLogOpenClose = SACK_GetProfileIntEx( "SACK/filesys", "Log open and close", ( *winfile_local ).flags.bLogOpenClose, TRUE );
+	( *winfile_local ).flags.bLogOpenClose = 1 || SACK_GetProfileIntEx( "SACK/filesys", "Log open and close", ( *winfile_local ).flags.bLogOpenClose, TRUE );
 #  endif
 }
 #endif
@@ -2837,3 +2841,7 @@ void sack_filesys_enable_thread_mounts( void ) {
 
 
 FILESYS_NAMESPACE_END
+#ifdef _MSC_VER
+#  pragma warning( default: 6387 )
+#  pragma warning( default: 6031 ) // disable ignoring return value of chsize; nothing to do if it fails.
+#endif

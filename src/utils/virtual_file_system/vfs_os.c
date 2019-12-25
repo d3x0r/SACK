@@ -3,10 +3,10 @@
 /*
 
 	FILE Data has extra fields stored with the data.
-	
+
 	   File Data - Directory entry filesize
 	   references - a reference to a blockchain that contains the references to this object.
-	        In the reference data block is FPI which is the directory entry ( converted directories? )  
+	        In the reference data block is FPI which is the directory entry ( converted directories? )
 
 	   Sealant - length stored in NAME_OFFSET field of directory entry
 	   patches - a sealed object has the ability to be modified with other signed and sealed patches.
@@ -50,8 +50,10 @@
 //#include <sqlgetoption.h>
 #endif
 
+#ifdef _MSC_VER
 // integer partial expresions summed into 64 bit.
-#pragma warning( disable: 26451 )
+#  pragma warning( disable: 26451 )
+#endif
 
 #ifdef USE_STDIO
 #define sack_fopen(a,b,c)     fopen(b,c)
@@ -325,7 +327,7 @@ struct sack_vfs_os_file
 #  ifdef FILE_BASED_VFS
 	FPI entry_fpi;  // where to write the directory entry update to
 #    ifdef VIRTUAL_OBJECT_STORE
-	struct file_header diskHeader; 
+	struct file_header diskHeader;
 	struct file_header header;  // in-memory size, so we can just do generic move op
 
 	struct memoryTimelineNode timeline;
@@ -339,7 +341,7 @@ struct sack_vfs_os_file
 #    endif
 	struct directory_entry _entry;  // has file size within
 	struct directory_entry* entry;  // has file size within
-	enum block_cache_entries cache; 
+	enum block_cache_entries cache;
 #  else
 	struct directory_entry* entry;  // has file size within
 #  endif
@@ -513,7 +515,7 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 	, struct sack_vfs_os_file *file
 	, BLOCKINDEX firstblock
 	, FPI offset
-	, enum block_cache_entries *cache_index ) 
+	, enum block_cache_entries *cache_index )
 {
 	uint8_t *data;
 	FPI pos = 0;
@@ -527,9 +529,9 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 			if( file->blockChainLength ) {
 				// go to the last known block
 				firstblock = file->blockChain[pos = file->blockChainLength - 1];
-				pos <<= BLOCK_BYTE_SHIFT; 
+				pos <<= BLOCK_BYTE_SHIFT;
 				offset -= pos;
-			} 
+			}
 			// else there is no known blocks... continue as usual
 		}
 	}
@@ -681,10 +683,12 @@ static int _os_dumpDirectories( struct sack_vfs_os_volume *vol, BLOCKINDEX start
 }
 #endif
 
+#ifdef _MSC_VER
 // this is about nLeast not being initialized.
-// it will be set if it's used, if it's not 
-// intiailzied, it won't be used.
-#pragma warning( disable: 6001 ) 
+// it will be set if it's used, if it's not
+// initialized, it won't be used.
+#pragma warning( disable: 6001 )
+#endif
 
 #define _os_updateCacheAge(v,c,s,a,l) _os_updateCacheAge_(v,c,s,a,l DBG_SRC )
 static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cache_entries *cache_idx, BLOCKINDEX segment, uint8_t *age, int ageLength DBG_PASS ) {
@@ -907,8 +911,9 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 	return cache_idx;
 }
 
-#pragma warning( default: 6001 ) 
-
+#ifdef _MSC_VER
+#pragma warning( default: 6001 )
+#endif
 //---------------------------------------------------------------------------
 
 
@@ -1065,7 +1070,7 @@ static POINTER _os_GetExtraData( POINTER block )
 
 static void _os_AddSalt2( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	struct datatype { void* start; size_t length; } *data = (struct datatype*)psv;
-	
+
 	(*salt_size) = data->length;
 	(*salt) = (POINTER)data->start;
 	// only need to make one pass of it....
@@ -1566,7 +1571,7 @@ struct sack_vfs_os_volume *sack_vfs_os_load_volume( const char * filepath, struc
 	if( !mount )
 		mount = sack_get_default_mount();
 	vol->mount = mount;
-	// since time is morely forward going; keeping the stack for the avl 
+	// since time is morely forward going; keeping the stack for the avl
 	// balancer can reduce forward-scanning insertion time
 	vol->pdsCTimeStack = CreateDataStack( sizeof( struct memoryTimelineNode ) );
 	vol->pdsWTimeStack = CreateDataStack( sizeof( struct memoryTimelineNode ) );
@@ -1774,7 +1779,7 @@ const char *sack_vfs_os_get_signature( struct sack_vfs_os_volume *vol ) {
 					next_entries = BTSEEK( BLOCKINDEX *, vol, this_dir_block, cache );
 					for( n = 0; n < BLOCKS_PER_BAT; n++ )
 						datakey[n] ^= next_entries[n];
-					
+
 					next_dir_block = vfs_os_GetNextBlock( vol, this_dir_block, GFB_INIT_DIRENT, FALSE );
 #ifdef _DEBUG
 					if( this_dir_block == next_dir_block )
@@ -1984,7 +1989,7 @@ static FPI _os_SaveFileName( struct sack_vfs_os_volume *vol, BLOCKINDEX firstNam
 					LoG( "using existing entry for new file...%s", filename );
 					return (name) - (names) + blocks * BLOCK_SIZE;
 				}
-			while( 
+			while(
 				( UTF8_EOT != ( name[0] ) )
 				&& ( name-names < BLOCK_SIZE )
 			) name++;
@@ -1996,7 +2001,7 @@ static FPI _os_SaveFileName( struct sack_vfs_os_volume *vol, BLOCKINDEX firstNam
 					// next seek will be on right character...
 				}
 			}
-			else 
+			else
 				scanToEnd = TRUE; // still looking for EOT
 			//LoG( "new position is %" _size_f "  %" _size_f, this_name_block, name - names );
 		}
@@ -2253,7 +2258,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 	// unlink dirblock->names_first_block
 }
 
-static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *vol, 
+static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *vol,
 #if defined( _MSC_VER )
 	_In_
 #endif
@@ -2345,7 +2350,7 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 			name_ofs = _os_SaveFileName( vol, firstNameBlock, filename, StrLen( filename ) );
 			// have to allocate a block for the file, otherwise it would be deleted.
 			first_blk = _os_GetFreeBlock( vol, GFB_INIT_NONE);
-		
+
 			ent->filesize = 0;
 			ent->name_offset = name_ofs;
 			ent->first_block = first_blk;
@@ -2399,7 +2404,7 @@ struct sack_vfs_os_file * CPROC sack_vfs_os_openfile( struct sack_vfs_os_volume 
 		else _os_GetNewDirectory( vol, filename, file );
 	}
 	file->_first_block = file->block = file->entry->first_block;
-	
+
 	sack_vfs_os_read_internal( file, &file->diskHeader, sizeof( file->diskHeader ) );
 	file->header = file->diskHeader;
 	file->fpi = file->header.sealant.avail + file->header.references.avail;
@@ -2467,7 +2472,7 @@ static char * getFilename( const char *objBuf, size_t objBufLen
 		SRG_DestroyEntropy( &signEntropy );
 
 		idBuf[0] = EncodeBase64Ex( outbuf, 256 / 8, idBufLen, (const char *)1 );
-		
+
 		EnqueLink( &l.plqCrypters, signEntropy );
 		return fileKey;
 	}
@@ -2935,7 +2940,7 @@ static void _os_shrinkBAT( struct sack_vfs_os_file *file ) {
 			}
 		}
 		_block = block;
-	} while( block != EOFBLOCK );	
+	} while( block != EOFBLOCK );
 }
 
 size_t CPROC sack_vfs_os_truncate_internal( struct sack_vfs_os_file *file ) { file->entry->filesize = file->fpi; _os_shrinkBAT( file ); return (size_t)file->fpi; }
@@ -3210,7 +3215,7 @@ uintptr_t CPROC sack_vfs_os_file_ioctl_internal( struct sack_vfs_os_file* file, 
 	case SOSFSFIO_ADD_INDEX_ITEM:
 	{
 		struct memoryStorageIndex* index = (struct memoryStorageIndex*)va_arg( args, uintptr_t );
-		struct sack_vfs_os_file *reference = va_arg( args, struct sack_vfs_os_file* );		
+		struct sack_vfs_os_file *reference = va_arg( args, struct sack_vfs_os_file* );
 		struct jsox_value_container * value = va_arg( args, struct jsox_value_container* );
 
 		//file->
@@ -3548,3 +3553,7 @@ SACK_VFS_NAMESPACE_END
 
 #undef SACK_VFS_SOURCE
 #undef SACK_VFS_OS_SOURCE
+#ifdef _MSC_VER
+// integer partial expresions summed into 64 bit.
+#  pragma warning( default: 26451 )
+#endif

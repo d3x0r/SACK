@@ -278,6 +278,7 @@ static struct my_thread_info* GetThreadTLS( void )
 	return &MyThreadInfo;
 }
 #endif
+
 // this priorirty is also relative to a secondary init for procreg/names.c
 // if you change this, need to change when that is scheduled also
 PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
@@ -535,7 +536,7 @@ static PTHREAD FindWakeup( CTEXTSTR name )
 #endif
 		check = GetFromSet( THREAD, &globalTimerData.threadset );
 		MemSet( check, 0, sizeof( THREAD ) );
-		check->thread_ident = GetMyThreadID();
+		check->thread_ident = GetThisThreadID();
 		InitWakeup( check, name );
 		check->flags.bReady = 1;
 	}
@@ -777,7 +778,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 {
 	PTHREAD pThread;
 	if( name && threaded )
-		pThread = FindThreadWakeup( name, GetMyThreadID() );
+		pThread = FindThreadWakeup( name, GetThisThreadID() );
 	else if( name )
 		pThread = FindWakeup( name );
 	else
@@ -1298,12 +1299,9 @@ THREAD_ID GetThisThreadID( void )
 {
 #if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
+#else
+        return MyThreadInfo.nThread;
 #endif
-	if( !MyThreadInfo.nThread )
-	{
-		MyThreadInfo.nThread = _GetMyThreadID();
-	}
-	return MyThreadInfo.nThread;
 }
 uintptr_t GetThreadParam( PTHREAD thread )
 {
@@ -2372,7 +2370,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #endif
 			Relinquish();
 }
-		dwCurProc = GetMyThreadID();
+		dwCurProc = GetThisThreadID();
 #ifdef _DEBUG
 		//GetTickCount() )
 		if( ( curtick + 2000 ) <= timeGetTime() ) {
@@ -2488,6 +2486,10 @@ HANDLE  GetWakeEvent( void )
 #endif
 
 void OnThreadCreate( void (*f)(void) ) {
+#ifndef __STATIC_GLOBALS__
+	if( !global_timer_structure )
+		SimpleRegisterAndCreateGlobal( global_timer_structure );
+#endif
 	AddLink( &globalTimerData.onThreadCreate, f );
 }
 

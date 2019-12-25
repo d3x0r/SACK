@@ -25,8 +25,10 @@
 //#include <sqlgetoption.h>
 #endif
 
+#ifdef _MSC_VER
 // integer partial expresions summed into 64 bit.
-#pragma warning( disable: 26451 )
+#  pragma warning( disable: 26451 )
+#endif
 
 SACK_VFS_NAMESPACE
 //#define PARANOID_INIT
@@ -155,7 +157,7 @@ static void ExtendBlockChain( struct sack_vfs_file *file ) {
 	memset( file->blockChain + file->blockChainAvail, 0, (newSize - file->blockChainAvail ) * sizeof(BLOCKINDEX) );
 #endif
 	file->blockChainAvail = newSize;
-	
+
 }
 
 static void SetBlockChain( struct sack_vfs_file *file, FPI fpi, BLOCKINDEX newBlock ) {
@@ -271,12 +273,12 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 	usedSectors = NewArray( FLAGSETTYPE, size= (2+(vol->dwSize / BLOCK_SIZE)/(CHAR_BIT*sizeof(FLAGSETTYPE) )) );
 	MemSet( usedSectors, 0, size * sizeof( FLAGSETTYPE ) );
 
-	//if( vol->key ) 
+	//if( vol->key )
 	{
 		for( sector = 0, n = first_slab; n < slab; n += BLOCKS_PER_SECTOR, sector++ ) {
 			size_t m;
-			BLOCKINDEX *BAT; 
-			BLOCKINDEX *blockKey; 
+			BLOCKINDEX *BAT;
+			BLOCKINDEX *blockKey;
 			BLOCKINDEX *BAT_;
 			BLOCKINDEX *blockKey_;
 			BLOCKINDEX *checkBAT;
@@ -346,7 +348,7 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 										LogBinary( (uint8_t*)usedSectors, size * sizeof( FLAGSETTYPE ) );
 										DebugBreak();
 										break;
-									} 
+									}
 #ifdef DEBUG_VERBOSE_CHAIN_FOLLOW
 									LoG( "Next block in chain to follow: %d %p", nextBlock, checkBAT );
 #endif
@@ -359,12 +361,16 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 									BAT[-1] = EOFBLOCK ^ blockKey[-1];
 									//return FALSE;
 
-#pragma warning( disable: 6001 ) 
+#ifdef _MSC_VER
+#pragma warning( disable: 6001 )
+#endif
 									// this was something.
 									// the warning _nextblock will have always been set in this state, it's
 									// not uninitialized.
 									lprintf( "THIS IS BAD - cross-linked files; or otherwise %d  %d", (int)nextBlock, (int)nextBlock_ );
-#pragma warning( default: 6001 ) 
+#ifdef _MSC_VER
+#pragma warning( default: 6001 )
+#endif
 
 									LogBinary( (uint8_t*)usedSectors, size * sizeof( FLAGSETTYPE ) );
 									DebugBreak();
@@ -455,7 +461,7 @@ static POINTER GetExtraData( POINTER block )
 
 static void AddSalt2( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	struct datatype { void* start; size_t length; } *data = (struct datatype*)psv;
-	
+
 	(*salt_size) = data->length;
 	(*salt) = (POINTER)data->start;
 	// only need to make one pass of it....
@@ -742,7 +748,7 @@ static BLOCKINDEX GetFreeBlock( struct sack_vfs_volume *vol, int init )
 			uint8_t* dirsec = (uint8_t*)vfs_BSEEK( vol, result, &cache );
 			((struct directory_entry*)dirsec)->first_block = EODMARK ^ ((struct directory_entry*)vol->usekey[cache])->first_block;
 			//((struct directory_entry*)(((uint8_t*)vol->disk) + (vol->segment[cache] - 1) * BLOCK_SIZE))[0].first_block = EODMARK ^ ((struct directory_entry*)vol->usekey[cache])->first_block;
-		} 
+		}
 		else if( init == GFB_INIT_NAMES ) {
 			uint8_t* namesec = (uint8_t*)vfs_BSEEK( vol, result, &cache );
 			((char*)namesec)[0] = ((char*)vol->usekey[cache])[0];
@@ -1040,7 +1046,7 @@ LOGICAL sack_vfs_decrypt_volume( struct sack_vfs_volume *vol )
 		BLOCKINDEX slab = vol->dwSize / ( BLOCKS_PER_SECTOR * BLOCK_SIZE );
 		for( n = 0; n < slab; n++  ) {
 			size_t m;
-			BLOCKINDEX *blockKey; 
+			BLOCKINDEX *blockKey;
 			BLOCKINDEX *block;// = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * (BLOCKS_PER_SECTOR * BLOCK_SIZE));
 			block = TSEEK( BLOCKINDEX*, vol, n * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
 			blockKey = ((BLOCKINDEX*)vol->usekey[cache]);
@@ -1115,7 +1121,7 @@ const char *sack_vfs_get_signature( struct sack_vfs_volume *vol ) {
 					next_entries = BTSEEK( BLOCKINDEX *, vol, this_dir_block, cache );
 					for( n = 0; n < BLOCKS_PER_BAT; n++ )
 						datakey[n] ^= next_entries[n] ^ ((BLOCKINDEX*)(((uint8_t*)usekey)))[n];
-					
+
 					next_dir_block = vfs_GetNextBlock( vol, this_dir_block, GFB_INIT_DIRENT, FALSE );
 #ifdef _DEBUG
 					if( this_dir_block == next_dir_block )
@@ -1211,7 +1217,7 @@ static FPI SaveFileName( struct sack_vfs_volume *vol, const char * filename ) {
 				size_t namelen;
 				if( ( namelen = StrLen( filename ) ) < (size_t)( ( (unsigned char*)names + BLOCK_SIZE ) - name ) ) {
 					LoG( "using unused entry for new file...%" _size_f "  %" _size_f " %s", this_name_block, (uintptr_t)name - (uintptr_t)names, filename );
-					if( vol->key ) {						
+					if( vol->key ) {
 						for( n = 0; n < namelen + 1; n++ )
 							name[n] = filename[n] ^ vol->usekey[BC(NAMES)][n + (name-(unsigned char*)names)];
 						if( (namelen + 1) < (size_t)(((unsigned char*)names + BLOCK_SIZE) - name) )
@@ -1619,7 +1625,7 @@ static void shrinkBAT( struct sack_vfs_file *file ) {
 			}
 		}
 		_block = block;
-	} while( block != EOFBLOCK );	
+	} while( block != EOFBLOCK );
 }
 
 size_t CPROC sack_vfs_truncate( struct sack_vfs_file *file ) { file->entry->filesize = file->fpi ^ file->dirent_key.filesize; shrinkBAT( file ); return (size_t)file->fpi; }
@@ -1696,7 +1702,7 @@ static int iterate_find( struct sack_vfs_find_info *info ) {
 		for( n = info->thisent; n < VFS_DIRECTORY_ENTRIES; n++ ) {
 			struct directory_entry *entkey = ( info->vol->key)?((struct directory_entry *)info->vol->usekey[cache])+n:&l.zero_entkey;
 			FPI name_ofs = next_entries[n].name_offset ^ entkey->name_offset;
-			if( !name_ofs )	
+			if( !name_ofs )
 				return 0;
 			// if file is deleted; don't check it's name.
 			if( !(next_entries[n].first_block ^ entkey->first_block ) )
@@ -1843,3 +1849,7 @@ PRIORITY_PRELOAD( Sack_VFS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 1 )
 }
 
 SACK_VFS_NAMESPACE_END
+#ifdef _MSC_VER
+// integer partial expresions summed into 64 bit.
+#  pragma warning( default: 26451 )
+#endif

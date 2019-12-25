@@ -606,13 +606,13 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileFlags fla
 	struct find_cursor * cursor = GetScanFileCursor( pInfo->ppInfo[0] );
 	ctime = l.fsi->find_get_ctime?l.fsi->find_get_ctime( cursor):0;
 	wtime = l.fsi->find_get_wtime?l.fsi->find_get_wtime( cursor ):0;
-	if( !ctime )DebugBreak();
+	//if( !ctime )DebugBreak();
 	ConvertTickToTime( ctime, &ct );
 	ConvertTickToTime( wtime, &wt );
 	if( file[0] == '.' && file[1] == '/' ) ofs = 2;
 	size_t size = l.fsi->find_get_size( cursor );
 	//printf( "%9zd %s %" PRId64 "  %" PRId64 "\n", l.fsi->size( f ), file, ctime, wtime );
-	if( !size ) DebugBreak();
+	//if( !size ) DebugBreak();
 	printf( "%9zd %s " "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "\n"
 		, size, file
 		, ct.yr, ct.mo, ct.dy, ct.hr, ct.mn, ct.sc, ct.ms, ct.zhr

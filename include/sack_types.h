@@ -70,7 +70,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #    define DeclareThreadLocal static __thread
 #    define DeclareThreadVar __thread
 #  endif
-#else 
+#else
 // if no HAS_TLS
 #  define DeclareThreadLocal static
 #  define DeclareThreadVar
@@ -276,11 +276,6 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #  endif
 
 #  if defined( _MSC_VER )
-// disable pointer conversion warnings - wish I could disable this
-// according to types...
-//#pragma warning( disable:4312; disable:4311 )
-// disable deprication warnings of snprintf, et al.
-//#pragma warning( disable:4996 )
 #    define EMPTY_STRUCT struct { char nothing[]; }
 #  endif
 #  if defined( __WATCOMC__ )
@@ -1125,9 +1120,9 @@ SACK_NAMESPACE
 #if defined( __STDC_FORMAT_MACROS )
 
 #  define _32f   PRIu32
-#  define _32fx    PRIx32 
-#  define _32fX    PRIX32 
-#  define _32fs    PRId32 
+#  define _32fx    PRIx32
+#  define _32fX    PRIX32
+#  define _32fs    PRId32
 
 #  define _64f    PRIu64
 #  define _64fx   PRIx64
@@ -1175,10 +1170,10 @@ SACK_NAMESPACE
 #  if defined( __STDC_FORMAT_MACROS )
 
 #    if !defined( __GNUC__ ) || defined( _WIN32 )
-#      define _size_f     PRIu64 
-#      define _size_fx    PRIx64 
-#      define _size_fX    PRIX64 
-#      define _size_fs    PRId64 
+#      define _size_f     PRIu64
+#      define _size_fx    PRIx64
+#      define _size_fX    PRIX64
+#      define _size_fs    PRId64
 #      define c_size_f    PRIu64
 #      define c_size_fx   PRIx64
 #      define c_size_fX   PRIX64
@@ -1194,8 +1189,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs  PRIuPTR 
-#    define _PTRSZVALfx  PRIxPTR 
+#    define _PTRSZVALfs  PRIuPTR
+#    define _PTRSZVALfx  PRIxPTR
 #    define cPTRSZVALfs PRIuPTR
 #    define cPTRSZVALfx PRIxPTR
 
@@ -1220,8 +1215,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs  PRIuPTR 
-#    define _PTRSZVALfx  PRIxPTR 
+#    define _PTRSZVALfs  PRIuPTR
+#    define _PTRSZVALfx  PRIxPTR
 #    define cPTRSZVALfs PRIuPTR
 #    define cPTRSZVALfx PRIxPTR
 #  endif
@@ -1232,10 +1227,10 @@ SACK_NAMESPACE
 
       // this HAS been fixed in UCRT - 2015!  but it'll take 5 years before everyone has that...
 #    if !defined( __GNUC__ ) || defined( _WIN32 )
-#      define _size_f     PRIu32 
-#      define _size_fx    PRIx32 
-#      define _size_fX    PRIX32 
-#      define _size_fs    PRId32 
+#      define _size_f     PRIu32
+#      define _size_fx    PRIx32
+#      define _size_fX    PRIX32
+#      define _size_fs    PRId32
 #      define c_size_f    PRIu32
 #      define c_size_fx   PRIx32
 #      define c_size_fX   PRIX32
@@ -1251,8 +1246,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs  PRIuPTR 
-#    define _PTRSZVALfx  PRIxPTR 
+#    define _PTRSZVALfs  PRIuPTR
+#    define _PTRSZVALfx  PRIxPTR
 #    define cPTRSZVALfs PRIuPTR
 #    define cPTRSZVALfx PRIxPTR
 #  else
@@ -1278,8 +1273,8 @@ SACK_NAMESPACE
 #      define c_size_fs   "zd"
 #    endif
 
-#    define _PTRSZVALfs  PRIuPTR 
-#    define _PTRSZVALfx  PRIxPTR 
+#    define _PTRSZVALfs  PRIuPTR
+#    define _PTRSZVALfx  PRIxPTR
 #    define cPTRSZVALfs PRIuPTR
 #    define cPTRSZVALfx PRIxPTR
 #  endif
@@ -1373,7 +1368,7 @@ typedef uint64_t THREAD_ID;
 //
 //  struct my_node *newNode = (struct my_node*)malloc( sizeof( *newNode ) );
 //     // does not require next or me to be initiialized.
-//  LinkThing( root, newNode ); 
+//  LinkThing( root, newNode );
 //     // now newNode is in the list.
 //
 //  to remove from a list
