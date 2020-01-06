@@ -40,21 +40,20 @@ typedef struct font_select_tag
 	SFTFont font;
 	POINTER *fontdata;
 	size_t *fontdatalen;
-	PFONT_PRESET selected_font;
+	struct font_preset *selected_font;
 	PSI_CONTROL canvas;
 } FONT_SELECT, *PFONT_SELECT;
 
 static struct intershell_font_local
 {
 	PLIST canvas;
-#define l local_font_data
 }local_font_data;
 
 
-PFONT_PRESET _CreateAFont( PCanvasData canvas, CTEXTSTR name, SFTFont font, POINTER data, size_t datalen )
+struct font_preset* _CreateAFont( PCanvasData canvas, CTEXTSTR name, SFTFont font, POINTER data, size_t datalen )
 {
-	PFONT_PRESET theme_font_preset = NULL;
-	PFONT_PRESET font_preset;
+	struct font_preset* theme_font_preset = NULL;
+	struct font_preset* font_preset;
 	INDEX idx;
 	TEXTSTR check_name = StrDup( name );
 	TEXTSTR theme_check;
@@ -75,12 +74,12 @@ PFONT_PRESET _CreateAFont( PCanvasData canvas, CTEXTSTR name, SFTFont font, POIN
 #ifdef DEBUG_FONT_CREATION
 	lprintf( "looking for %s", check_name );
 #endif
-	LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, font_preset )
+	LIST_FORALL( canvas->fonts, idx, struct font_preset*, font_preset )
 	{
 		if( StrCaseCmp( check_name, font_preset->name ) == 0 )
 		{
 			theme_font_preset = font_preset;
-			font_preset = (PFONT_PRESET)GetLink( font_preset->font_theme, theme_index );
+			font_preset = (struct font_preset*)GetLink( font_preset->font_theme, theme_index );
 			break;
 		}
 	}
@@ -147,8 +146,8 @@ PFONT_PRESET _CreateAFont( PCanvasData canvas, CTEXTSTR name, SFTFont font, POIN
 SFTFont *CreateACanvasFont2( PSI_CONTROL pc_canvas, CTEXTSTR name, CTEXTSTR fontfilename, int sizex, int sizey )
 {
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
-	PFONT_PRESET theme_font_preset = NULL;
-	PFONT_PRESET font_preset;
+	struct font_preset* theme_font_preset = NULL;
+	struct font_preset* font_preset;
 	INDEX idx;
 	TEXTSTR check_name = StrDup( name );
 	TEXTSTR theme_check;
@@ -166,7 +165,7 @@ SFTFont *CreateACanvasFont2( PSI_CONTROL pc_canvas, CTEXTSTR name, CTEXTSTR font
 		}
 	}
 
-	LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, font_preset )
+	LIST_FORALL( canvas->fonts, idx, struct font_preset*, font_preset )
 	{
 		if( StrCaseCmp( check_name, font_preset->name ) == 0 )
 		{
@@ -174,7 +173,7 @@ SFTFont *CreateACanvasFont2( PSI_CONTROL pc_canvas, CTEXTSTR name, CTEXTSTR font
 			lprintf( "found existing name:%s", check_name );
 #endif
 			theme_font_preset = font_preset;
-			font_preset = (PFONT_PRESET)GetLink( font_preset->font_theme, theme_index );
+			font_preset = (struct font_preset*)GetLink( font_preset->font_theme, theme_index );
 			break;
 		}
 	}
@@ -246,7 +245,7 @@ static void CPROC EditPageFont(uintptr_t psv, PSI_CONTROL pc )
 SFTFont* CreateACanvasFont( PSI_CONTROL pc_canvas, CTEXTSTR name, SFTFont font, POINTER data, size_t datalen )
 {
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
-	PFONT_PRESET preset;
+	struct font_preset* preset;
 	preset = _CreateAFont( canvas, name, font, data, datalen );
 	if( preset )
 		return &preset->font;
@@ -257,7 +256,7 @@ void CPROC SetCurrentPreset( uintptr_t psv, PSI_CONTROL list, PLISTITEM pli )
 {
 	PFONT_SELECT font_select = (PFONT_SELECT)psv;
 
-	font_select->selected_font = (PFONT_PRESET)GetItemData( pli );
+	font_select->selected_font = (struct font_preset*)GetItemData( pli );
 }
 
 static void CPROC CreatePageFont( uintptr_t psv, PSI_CONTROL pc )
@@ -271,9 +270,9 @@ static void CPROC CreatePageFont( uintptr_t psv, PSI_CONTROL pc )
 								  , "Enter new font preset name", GetFrame( pc ) ) )
 			return;
 		{
-			PFONT_PRESET font_preset;
+			struct font_preset* font_preset;
 			INDEX idx;
-			LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, font_preset )
+			LIST_FORALL( canvas->fonts, idx, struct font_preset*, font_preset )
 			{
 				if( StrCaseCmp( font_preset->name, name_buffer ) == 0 )
 				{
@@ -294,7 +293,7 @@ static void CPROC CreatePageFont( uintptr_t psv, PSI_CONTROL pc )
 		if( font )
 		{
 			PLISTITEM pli;
-			PFONT_PRESET font_preset;
+			struct font_preset* font_preset;
 			font_preset =  _CreateAFont( canvas, name_buffer
 																, font
 																, tmp
@@ -311,13 +310,13 @@ static void CPROC CreatePageFont( uintptr_t psv, PSI_CONTROL pc )
 SFTFont * UseACanvasFont( PSI_CONTROL pc_canvas, CTEXTSTR name )
 {
 	ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
-	PFONT_PRESET font_preset;
+	struct font_preset* font_preset;
 	INDEX idx;
 	if( !name )
 		name = "Default";
-	if( FindLink( &l.canvas, canvas ) == INVALID_INDEX )
-		AddLink( &l.canvas, canvas );
-	LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, font_preset )
+	if( FindLink( &local_font_data.canvas, canvas ) == INVALID_INDEX )
+		AddLink( &local_font_data.canvas, canvas );
+	LIST_FORALL( canvas->fonts, idx, struct font_preset*, font_preset )
 	{
 		if( !StrCaseCmp( font_preset->name, name ) )
 		{
@@ -361,16 +360,16 @@ SFTFont *SelectACanvasFont( PSI_CONTROL pc_canvas, PSI_CONTROL parent, CTEXTSTR*
 			SetButtonPushMethod( GetControl( frame, BTN_EDITFONT ), EditPageFont, (uintptr_t)&font_select );
 			if( list )
 			{
- 				PFONT_PRESET font_preset;
+ 				struct font_preset* font_preset;
 				INDEX idx;
 				SetListboxIsTree( list, TRUE );
-				LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, font_preset )
+				LIST_FORALL( canvas->fonts, idx, struct font_preset*, font_preset )
 				{
-					PFONT_PRESET theme_font_preset;
+					struct font_preset* theme_font_preset;
 					INDEX idx2;
 					PLISTITEM pli = AddListItem( list, font_preset->name );
 					SetItemData( pli, (uintptr_t)font_preset );
-					LIST_FORALL( (*font_preset->font_theme), idx2, PFONT_PRESET, theme_font_preset )
+					LIST_FORALL( (*font_preset->font_theme), idx2, struct font_preset*, theme_font_preset )
 					{
 						if( !idx2 )
 							continue;
@@ -412,13 +411,13 @@ SFTFont *SelectACanvasFont( PSI_CONTROL pc_canvas, PSI_CONTROL parent, CTEXTSTR*
 static void OnSaveCommon( "Common Fonts" )( FILE *out )
 {
 	PCanvasData canvas = g.current_saving_canvas;
-	PFONT_PRESET preset;
+	struct font_preset* preset;
 	INDEX idx;
-	LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, preset )
+	LIST_FORALL( canvas->fonts, idx, struct font_preset*, preset )
 	{
 		INDEX idx2;
-		PFONT_PRESET theme_preset;
-		LIST_FORALL( (*preset->font_theme), idx2, PFONT_PRESET, theme_preset )
+		struct font_preset* theme_preset;
+		LIST_FORALL( (*preset->font_theme), idx2, struct font_preset*, theme_preset )
 		{
 			TEXTCHAR *data;
 			if( theme_preset->fontdata && theme_preset->fontdatalen )
@@ -431,7 +430,7 @@ static void OnSaveCommon( "Common Fonts" )( FILE *out )
 				if( n < 12 )
 					EncodeBinaryConfig( &data, theme_preset->fontdata, theme_preset->fontdatalen );
 				else
-					data = EscapeMenuString( theme_preset->fontdata );
+					data = (TEXTSTR)EscapeMenuString( (TEXTSTR)theme_preset->fontdata );
 				sack_fprintf( out, "font preset %s=%s\n"
 						 , theme_preset->name
 						 , data );
@@ -475,15 +474,15 @@ static void OnLoadCommon( "Common Fonts" )( PCONFIG_HANDLER pch )
 static void OnThemeAdded( "Fonts" )( int theme_id )
 {
 	INDEX idx;
-	PFONT_PRESET preset;
+	struct font_preset* preset;
 	PCanvasData canvas;
 	INDEX idx_canvas;
-	LIST_FORALL( l.canvas, idx_canvas, PCanvasData, canvas )
+	LIST_FORALL( local_font_data.canvas, idx_canvas, PCanvasData, canvas )
 	{
-		LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, preset )
+		LIST_FORALL( canvas->fonts, idx, struct font_preset*, preset )
 		{
 			TEXTCHAR buf[256];
-			PFONT_PRESET theme_preset = (PFONT_PRESET)GetLink( preset->font_theme, theme_id );
+			struct font_preset* theme_preset = (struct font_preset*)GetLink( preset->font_theme, theme_id );
 			if( !theme_preset )
 			{
 				snprintf( buf, sizeof( buf ), "%s.%d", preset->name, theme_id );
@@ -499,10 +498,10 @@ static void OnThemeAdded( "Fonts" )( int theme_id )
 void UpdateFontTheme( PCanvasData canvas, int theme_id )
 {
 	INDEX idx;
-	PFONT_PRESET preset;
-	LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, preset )
+	struct font_preset* preset;
+	LIST_FORALL( canvas->fonts, idx, struct font_preset*, preset )
 	{
-		PFONT_PRESET theme_preset = (PFONT_PRESET)GetLink( preset->font_theme, theme_id );
+		struct font_preset* theme_preset = (struct font_preset*)GetLink( preset->font_theme, theme_id );
 		if( theme_id && theme_preset )
 			preset->font = theme_preset->font;
 		else
@@ -512,22 +511,22 @@ void UpdateFontTheme( PCanvasData canvas, int theme_id )
 
 void UpdateFontScaling( PCanvasData canvas )
 {
-	PFONT_PRESET font_preset;
+	struct font_preset* font_preset;
 	INDEX idx;
 #ifdef DEBUG_FONT_CREATION
 	lprintf( "Updating font scaling...." );
 #endif
-	LIST_FORALL( canvas->fonts, idx, PFONT_PRESET, font_preset )
+	LIST_FORALL( canvas->fonts, idx, struct font_preset*, font_preset )
 	{
 		INDEX theme_idx;
-		PFONT_PRESET theme_font;
+		struct font_preset* theme_font;
 #ifdef DEBUG_FONT_CREATION
 		lprintf( "Rescale font %p", font_preset->base_font );
 #endif
 		RerenderFont( font_preset->base_font
 						, 0, 0
 						, &canvas->width_scale, &canvas->height_scale );
-		LIST_FORALL( (*font_preset->font_theme), theme_idx, PFONT_PRESET, theme_font )
+		LIST_FORALL( (*font_preset->font_theme), theme_idx, struct font_preset*, theme_font )
 		{
 			RerenderFont( theme_font->font
 							, 0, 0

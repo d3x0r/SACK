@@ -75,8 +75,8 @@ struct dekware_interface {
 													  , INDEX nCommands
 													  , PTEXT pMatch );
 
-	CORE_PROC_PTR( Function, GetRoutineRegistered )( TEXTSTR prefix, PTEXT Command );
-	CORE_PROC_PTR( OptionHandler, GetOptionRegistered )( TEXTSTR prefix, PTEXT Command );
+	CORE_PROC_PTR( Function, GetRoutineRegistered )( CTEXTSTR prefix, PTEXT Command );
+	CORE_PROC_PTR( OptionHandler, GetOptionRegistered )( CTEXTSTR prefix, PTEXT Command );
 
 	CORE_PROC_PTR( PDATAPATH, FindOpenDevice )( PSENTIENT ps, PTEXT pName );
 	CORE_PROC_PTR( PDATAPATH, FindDataDatapath )( PSENTIENT ps, int type );

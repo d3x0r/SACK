@@ -25,11 +25,11 @@ enum{
 //TEXT DELETE_STROKE = DEFTEXT( "\x7f" );
 #endif
 
-KEYDEFINE KeyDefs[256];
+KEYDEFINE ogl_KeyDefs[256];
 //----------------------------------------------------------------------------
 
 #if defined( _WIN32 )
-int KeystrokePaste( PRENDERER pRenderer )
+static int KeystrokePaste( PRENDERER pRenderer )
 {
     if( OpenClipboard(NULL) )
     {
@@ -187,7 +187,7 @@ RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE pKeyDefs, uint32_t keycode, uin
 
 RENDER_PROC( int, BindEventToKey )( PRENDERER pRenderer, uint32_t keycode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv )
 {
-	return BindEventToKeyEx( pRenderer?pRenderer->KeyDefs:KeyDefs
+	return ogl_BindEventToKeyEx( pRenderer?pRenderer->KeyDefs:ogl_KeyDefs
 								  , keycode, modifier
 								  , trigger, psv );
 }
@@ -201,7 +201,7 @@ RENDER_PROC( int, UnbindKey )( PRENDERER pRenderer, uint32_t keycode, uint32_t m
    }
    else
    {
-      KeyDefs[keycode].mod[modifier].flags.bFunction = FALSE;
+      ogl_KeyDefs[keycode].mod[modifier].flags.bFunction = FALSE;
    }
    return TRUE;
 }
@@ -363,7 +363,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 			{
 				if( l.flags.bLogKeyEvent )
 					lprintf( "already dispatched, delay it." );
-				EnqueLink( &hVideo->pInput, (POINTER)key );
+				EnqueLink( &hVideo->pInput, (POINTER)(uintptr_t)key );
 			}
 			else
 			{
@@ -373,7 +373,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 					if( l.flags.bLogKeyEvent )
 						lprintf( "Dispatching key %08lx", key );
 					if( KEY_MOD( key ) & 6 )
-						if( HandleKeyEvents( KeyDefs, key )  )
+						if( ogl_HandleKeyEvents( ogl_KeyDefs, key )  )
 						{
 							lprintf( "Sent global first." );
 							dispatch_handled = 1;
@@ -393,7 +393,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 						{
 							if( l.flags.bLogKeyEvent )
 								lprintf( "Local Keydefs Dispatch key : %p %08lx", hVideo, key );
-							if( hVideo && !HandleKeyEvents( hVideo->KeyDefs, key ) )
+							if( hVideo && !ogl_HandleKeyEvents( hVideo->KeyDefs, key ) )
 							{
 								if( l.flags.bLogKeyEvent )
 									lprintf( "Global Keydefs Dispatch key : %08lx", key );
@@ -409,7 +409,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 					if( !dispatch_handled )
 					{
 						if( !(KEY_MOD( key ) & 6) )
-							if( HandleKeyEvents( KeyDefs, key )  )
+							if( ogl_HandleKeyEvents( ogl_KeyDefs, key )  )
 							{
 								dispatch_handled = 1;
   						}
@@ -420,7 +420,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 							lprintf( "lost active window." );
 						break;
 					}
-					key = (uint32_t)DequeLink( &hVideo->pInput );
+					key = (uint32_t)(uintptr_t)DequeLink( &hVideo->pInput );
 					if( l.flags.bLogKeyEvent )
 						lprintf( "key from deque : %p", key );
 				} while( key );
@@ -437,7 +437,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 		}
 		else  // no keyproc on the hrenderer; might be mouse-based; but give global a shot...
 		{
-			if( !HandleKeyEvents( KeyDefs, key ) ) /* global events, if no keyproc */
+			if( !ogl_HandleKeyEvents( ogl_KeyDefs, key ) ) /* global events, if no keyproc */
 			{
 				if( hVideo->pMouseCallback )
 					hVideo->pMouseCallback( hVideo->dwMouseData, hVideo->_mouse_x, hVideo->_mouse_y
@@ -449,7 +449,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 	{
 		if( l.flags.bLogKeyEvent )
 			lprintf( "Not active window?" );
-		HandleKeyEvents( KeyDefs, key ); /* global events, if no keyproc */
+		ogl_HandleKeyEvents( ogl_KeyDefs, key ); /* global events, if no keyproc */
 	}
 	//else9
 	//	lprintf( "Failed to find active window..." );

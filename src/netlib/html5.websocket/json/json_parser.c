@@ -62,11 +62,11 @@ char *json_escape_string( const char *string ) {
 						| ( ( result & 0x3f0000 ) >> 10 )    \
 						| ( ( result & 0x3f000000 ) >> 24 ) ) )
 
-#define get4Chars(p) ((((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[0]  \
-				>> (CHAR_BIT*((uintptr_t)(p) & 0x3)))             \
-			| (( ((uintptr_t)(p)) & 0x3 )                          \
-				? (((TEXTRUNE*) ((uintptr_t)(p) & ~0x3) )[1]      \
-					<< (CHAR_BIT*(4-((uintptr_t)(p) & 0x3))))     \
+#define get4Chars(p) ((((TEXTRUNE*) ((uintptr_t)(p) & ~(sizeof(uint32_t)-1)) )[0]  \
+				>> (CHAR_BIT*((uintptr_t)(p) & (sizeof(uint32_t)-1))))             \
+			| (( ((uintptr_t)(p)) & (sizeof(uint32_t)-1) )                          \
+				? (((TEXTRUNE*) ((uintptr_t)(p) & ~(sizeof(uint32_t)-1)) )[1]      \
+					<< (CHAR_BIT*(4-((uintptr_t)(p) & (sizeof(uint32_t)-1)))))     \
 				:(TEXTRUNE)0 ))
 
 #define __GetUtfChar( result, from )           ((result = get4Chars(*from)),     \
@@ -623,6 +623,7 @@ int json_parse_add_data( struct json_parse_state *state
 					break;
 
 				case ' ':
+				case 160://case '\xa0':
 				case '\t':
 				case '\r':
 				case '\n':

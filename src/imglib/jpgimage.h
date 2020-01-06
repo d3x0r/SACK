@@ -19,7 +19,7 @@
 #ifndef JPGIMAGE_H
 #define JPGIMAGE_H
 
-#include "image.h"
+#include <image.h>
 
 /**
  * the JPEG Image Loader.
@@ -29,8 +29,8 @@ IMAGE_NAMESPACE
 namespace loader {
 #endif
 
-Image ImageJpgFile (uint8_t* buf, size_t size);
-LOGICAL CPROC JpgImageFile( Image image, uint8_t **buf, size_t *size, int Q);
+Image IMGVER(ImageJpgFile )(uint8_t* buf, size_t size);
+LOGICAL CPROC IMGVER(JpgImageFile)( Image image, uint8_t **buf, size_t *size, int Q);
 
 #ifdef __cplusplus 
 }// namespace loader

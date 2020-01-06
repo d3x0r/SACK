@@ -257,7 +257,7 @@ PSI_CONTROL SetSliderUpdateHandler( PSI_CONTROL pc, SliderUpdateProc SliderUpdat
 
 
 
-#undef MakeSlider
+//#undef MakeSlider
 static int OnCreateCommon( SLIDER_CONTROL_NAME )( PSI_CONTROL pc )
 //CONTROL_PROC_DEF( SLIDER_CONTROL, SLIDER, Slider, (void)/* (CPROC*SliderUpdated)(uintptr_t psv, PSI_CONTROL pc, int val), uintptr_t psv)*/ )
 {

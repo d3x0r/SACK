@@ -1,8 +1,12 @@
 #ifndef LOADSAVE_EVOMENU_DEFINED
 #define LOADSAVE_EVOMENU_DEFINED
 #include "intershell_local.h"
-#include <genx/genx.h>
 #include <configscript.h>
+#ifdef SACK_CORE_BUILD
+#include <../src/contrib/genx/genx.h>
+#else
+#include <genx/genx.h>
+#endif
 
 INTERSHELL_NAMESPACE
 

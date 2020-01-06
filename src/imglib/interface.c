@@ -16,12 +16,12 @@ IMAGE_NAMESPACE
 extern void CPROC MarkImageUpdated( Image child_image );
 
 
-void CPROC Nothing( void )
+static void CPROC Nothing( void )
 {
    return;
 }
 
-IMAGE_INTERFACE RealImageInterface = {
+static IMAGE_INTERFACE RealImageInterface = {
   SetStringBehavior
 , NULL//SetBlotMethod
 
@@ -153,7 +153,8 @@ IMAGE_INTERFACE RealImageInterface = {
 									 , MakeSlicedImage
 									 , MakeSlicedImageComplex
 									 , UnmakeSlicedImage
-									 , BlotSlicedImageEx
+												 , BlotSlicedImageEx
+                                     , SetSavePortion
 };
 
 #undef GetImageInterface
@@ -213,7 +214,13 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 #endif
 
 	RegisterInterface( NAME, _ImageGetImageInterface, _ImageDropImageInterface );
-//#ifndef _DEBUG
+	// if there hasn't been a default set already, default to this.
+	// DLL this will not be set, but will end up overridden later
+	// Static library, this gets set after interface.conf is read, which
+	// means the alias should aready be set.
+	if( !CheckClassRoot( "system/interfaces/image" ) )
+		RegisterClassAlias( "system/interfaces/" NAME, "system/interfaces/image" );
+	//#ifndef _DEBUG
 //  MMX/Assembly do not support 
 //   alpha translation of multishaded imaged.
 //   mono shaded images were updated a while ago also,
@@ -227,6 +234,5 @@ PRIORITY_PRELOAD( ImageRegisterInterface, IMAGE_PRELOAD_PRIORITY )
 //#endif
 }
 
-int link_interface_please;
 IMAGE_NAMESPACE_END
 

@@ -132,7 +132,7 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 
 //------------------------------------------------------------------------
 
-static int CPROC DrawClock( PSI_CONTROL pc )
+static int CPROC psiClockDrawClock( PSI_CONTROL pc )
 {
 	Image surface = GetControlSurface( pc );
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, pClk, pc );
@@ -267,7 +267,7 @@ CONTROL_REGISTRATION clock_control = { "Basic Clock Widget"
 										 , BORDER_FIXED|BORDER_NONE|BORDER_NOCAPTION }
 									  , InitClock
 									  , NULL
-									  , DrawClock
+									  , psiClockDrawClock
 									  , NULL
 									  , NULL
                              , DestroyClock

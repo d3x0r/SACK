@@ -148,7 +148,7 @@ static void CPROC SelectString( uintptr_t psv, PSI_CONTROL pc, PLISTITEM pli )
 		TEXTCHAR buf[256];
 		TEXTSTR sep;
 		GetItemText( pli, 256, buf );
-		sep = StrChr( buf, '\t' );
+		sep = (TEXTSTR)StrChr( buf, '\t' );
 		if( sep )
 			sep[0] = 0;
 		l.selected_string = GetItemData( pli );

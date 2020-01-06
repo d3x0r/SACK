@@ -23,10 +23,17 @@
 #include <stdio.h>
 #include <wchar.h>
 
- // derefecing NULL pointers; the function wouldn't be called with a NULL.
- // and partial expressions in lower precision
+#ifdef _MSC_VER
+// derefecing NULL pointers; the function wouldn't be called with a NULL.
+// and partial expressions in lower precision
 // and NULL math because never NULL.
-#pragma warning( disable:6011 26451 28182) 
+#  pragma warning( disable:6011 26451 28182)
+//Warning C26451: Arithmetic overflow: Using operator '%operator%'
+// on a %size1% byte value and then casting the result to a
+// %size2% byte value. Cast the value to the wider type
+// before calling operator '%operator%' to avoid overflow
+#  pragma warning( disable:26451 )
+#endif
 
 #ifdef __cplusplus
 namespace sack {
@@ -36,7 +43,6 @@ namespace text {
 	using namespace sack::logging;
 	using namespace sack::containers::queue;
 #endif
-#pragma warning( disable:26451 )
 
 typedef PTEXT (CPROC*GetTextOfProc)( uintptr_t, POINTER );
 
@@ -678,18 +684,20 @@ PTEXT SegSplitEx( PTEXT *pLine, INDEX nPos  DBG_PASS)
 
 //----------------------------------------------------------------------
 
-TEXTCHAR NextCharEx( PTEXT input, size_t idx )
+TEXTRUNE NextCharEx( PTEXT input, size_t idx )
 {
 	if( ( ++idx ) >= input->data.size )
 	{
 		idx -= input->data.size;
 		input = NEXTLINE( input );
 	}
-	if( input )
-		return input->data.data[idx];
+	if( input ) {
+		return GetUtfCharIndexed( input->data.data, &idx, input->data.size );
+		//return input->data.data[idx];
+	}
 	return 0;
 }
-#define NextChar() NextCharEx( input, index )
+#define NextChar() NextCharEx( input, tempText-tempText_ )
 //----------------------------------------------------------------------
 
 // In this final implementation - it was decided that for a general
@@ -718,14 +726,13 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 	VARTEXT out;
 	PTEXT outdata=(PTEXT)NULL,
 	      word;
-	TEXTSTR tempText;
+	TEXTSTR tempText, tempText_;
 	int has_minus = -1;
 	int has_plus = -1;
 
-	uint32_t index;
 	INDEX size;
 
-	TEXTCHAR character;
+	TEXTRUNE character;
 	uint32_t elipses = FALSE,
 	   spaces = 0, tabs = 0;
 
@@ -749,7 +756,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 			input = NEXTLINE( input );
 			continue;
 		}
-		tempText = GetText(input);  // point to the data to process...
+		tempText_ = tempText = GetText(input);  // point to the data to process...
 		size = GetTextSize(input);
 		if( input->format.position.offset.spaces || input->format.position.offset.tabs )
 		{
@@ -763,8 +770,8 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 		spaces += input->format.position.offset.spaces;
 		tabs += input->format.position.offset.tabs;
 		//Log1( "Assuming %d spaces... ", spaces );
-		for (index=0;(character = tempText[index]),
-                   (index < size); index++) // while not at the
+		for (;(character = GetUtfChar( (char const**)&tempText ) ),
+                   ((tempText-tempText_) <= (int)size); ) // while not at the
                                          // end of the line.
 		{
 			if( elipses && character != '.' )
@@ -784,7 +791,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 			}
 			else if( elipses ) // elipses and character is . - continue
 			{
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				continue;
 			}
 		if( StrChr( filter_space, character ) )
@@ -797,13 +804,13 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 			{
 				outdata = SegAppend( outdata, word );
 				SET_SPACES();
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				word = VarTextGetEx( &out DBG_OVERRIDE );
 				outdata = SegAppend( outdata, word );
 			}
 			else
 			{
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				word = VarTextGetEx( &out DBG_OVERRIDE );
 				SET_SPACES();
 				outdata = SegAppend( outdata, word );
@@ -820,6 +827,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 			outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
 			break;
 		case ' ':
+		case 160 :// case '\xa0': // &nbsp;
 			if( bSpaces )
 			{
 			is_a_space:
@@ -878,7 +886,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 							( c >= '0' && c <= '9' ) )
 						{
 							// gather together as a floating point number...
-							VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+							VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 							break;
 						}
 					}
@@ -918,7 +926,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 							SET_SPACES();
 							// gather together as a sign indication on a number.
 						}
-						VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+						VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 						break;
 					}
 				}
@@ -927,13 +935,13 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 				{
 					outdata = SegAppend( outdata, word );
 					SET_SPACES();
-					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
 					outdata = SegAppend( outdata, word );
 				}
 				else
 				{
-					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
 					SET_SPACES();
 					outdata = SegAppend( outdata, word );
@@ -950,7 +958,7 @@ PTEXT TextParse( PTEXT input, CTEXTSTR punctuation, CTEXTSTR filter_space, int b
 					}
 					elipses = FALSE;
 				}
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				break;
 			}
 		}
@@ -982,12 +990,11 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 	VARTEXT out;
 	PTEXT outdata=(PTEXT)NULL,
 			word;
-	TEXTSTR tempText;
+	TEXTSTR tempText, tempText_;
 
-	uint32_t index;
 	size_t size;
 
-	TEXTCHAR character;
+	TEXTRUNE character;
 	uint32_t elipses = FALSE,
 		spaces = 0, tabs = 0;
 
@@ -1011,7 +1018,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 			input = NEXTLINE( input );
 			continue;
 		}
-		tempText = GetText(input);  // point to the data to process...
+		tempText_ = tempText = GetText(input);  // point to the data to process...
 		size = GetTextSize(input);
 		if( input->format.position.offset.spaces || input->format.position.offset.tabs )
 		{
@@ -1025,8 +1032,8 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 		spaces += input->format.position.offset.spaces;
 		tabs += input->format.position.offset.tabs;
 		//Log1( "Assuming %d spaces... ", spaces );
-		for (index=0;(character = tempText[index]),
-		             (index < size); index++) // while not at the
+		for (;(character = GetUtfChar( (char const**)&tempText ) ),
+		             ((tempText-tempText_) <= (int)size); ) // while not at the
 		                                      // end of the line.
 		{
 			if( elipses && character != '.' )
@@ -1046,7 +1053,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 			}
 			else if( elipses ) // elipses and character is . - continue
 			{
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				continue;
 			}
 
@@ -1061,6 +1068,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 				outdata = SegAppend( outdata, SegCreate( 0 ) ); // add a line-break packet
 				break;
 			case ' ':
+			case 160 :// '\xa0': // nbsp
 				if( ( word = VarTextGetEx( &out DBG_OVERRIDE ) ) )
 				{
 					SET_SPACES();
@@ -1109,7 +1117,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 						 ( c >= '0' && c <= '9' ) )
 					{
 						// gather together as a floating point number...
-						VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+						VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 						break;
 					}
 				}
@@ -1126,7 +1134,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 							SET_SPACES();
 						}
 						// gather together as a sign indication on a number.
-						VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+						VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 						break;
 					}
 				}
@@ -1165,13 +1173,13 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 				{
 					outdata = SegAppend( outdata, word );
 					SET_SPACES();
-					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
 					outdata = SegAppend( outdata, word );
 				}
 				else
 				{
-					VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+					VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 					word = VarTextGetEx( &out DBG_OVERRIDE );
 					SET_SPACES();
 					outdata = SegAppend( outdata, word );
@@ -1188,7 +1196,7 @@ PTEXT burstEx( PTEXT input DBG_PASS )
 					}
 					elipses = FALSE;
 				}
-				VarTextAddCharacterEx( &out, character DBG_OVERRIDE );
+				VarTextAddRuneEx( &out, character, FALSE DBG_OVERRIDE );
 				break;
 			}
 		}
@@ -3007,7 +3015,7 @@ char * WcharConvert_v2 ( const wchar_t *wch, size_t len, size_t *outlen DBG_PASS
 char * WcharConvertExx ( const wchar_t *wch, size_t len DBG_PASS )
 {
 	size_t outlen;
-	return WcharConvert_v2( wch, len, &outlen );
+	return WcharConvert_v2( wch, len, &outlen DBG_RELAY );
 }
 
 char * WcharConvertEx ( const wchar_t *wch DBG_PASS )
@@ -3564,7 +3572,7 @@ static TEXTCHAR b64xor_table2[256][256];
 static TEXTCHAR u8xor_table2[256][256];
 
 PRELOAD( initTables ) {
-	int n, m;
+	size_t n, m;
 	for( n = 0; n < (sizeof( encodings )-1); n++ )
 		for( m = 0; m < (sizeof( encodings )-1); m++ ) {
 			b64xor_table[(uint8_t)encodings[n]][(uint8_t)encodings[m]] = encodings[n^m];
@@ -3614,7 +3622,8 @@ char * u8xor( const char *a, size_t alen, const char *b, size_t blen, int *ofs )
 		else if( (v & 0xFE) == 0xFC ) { if( l )
 			lprintf( "short utf8 sequence found" ); l = 5; mask = 0;  _mask = 0x03; }  // 6(4) + 2 + 0 == 26 //-V640
 
-		char bchar = b[(n+o)%(keylen)];
+		// B is a base64 key; it would never be > 128 so char index is OK.
+		char bchar = b[(n+o)%(keylen)]&0x7f;
 		(*out) = (v & ~mask ) | ( u8xor_table[v & mask ][bchar] & mask );
 		out++;
 	}
@@ -3648,7 +3657,7 @@ static void decodeblock( const char in[4], uint8_t out[3], size_t len, const cha
 	}
 	for( ; n < 4; n++ )
 		index[n] = 0;
-	
+
 	out[0] = (char)(( index[0] ) << 2 | ( index[1] ) >> 4);
 	out[1] = (char)(( index[1] ) << 4 | ( ( ( index[2] ) >> 2 ) & 0x0f ));
 	out[2] = (char)(( index[2] ) << 6 | ( ( index[3] ) & 0x3F ));
@@ -3766,4 +3775,8 @@ uint8_t *DecodeBase64Ex( const char* buf, size_t length, size_t *outsize, const 
 } //namespace text {
 } //namespace containers {
 } // namespace sack {
+#endif
+#ifdef _MSC_VER
+#  pragma warning( default:6011 26451 28182)
+#  pragma warning( default:26451 )
 #endif

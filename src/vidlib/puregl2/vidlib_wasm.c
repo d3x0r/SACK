@@ -73,7 +73,7 @@ RENDER_PROC( int, SetActiveGLDisplay )( struct display_camera *hDisplay )
 
 
 
-void  GetDisplaySizeEx ( int nDisplay
+void  ogl_GetDisplaySizeEx ( int nDisplay
 												 , int32_t *x, int32_t *y
 												 , uint32_t *width, uint32_t *height)
 {

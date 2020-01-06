@@ -589,12 +589,12 @@ int MeasureListboxItemEx( PSI_CONTROL pc, CTEXTSTR item, int asLevel ) {
 			if( bRight ) {
 				column -= width;
 			}
-			if( USS_GT( ( nextColumn - column ), uint32_t, width, int32_t) )
+			if( SUS_GT( ( nextColumn - column ), int32_t, width, uint32_t) )
 				x = ( ( nextColumn - column ) - width ) / 2;
 			else
 				x = 0;
 
-			if( USS_GT( ( x + width + column ),uint32_t, right, int32_t ) )
+			if( SUS_GT( column,int32_t, (right-(x+width)), uint32_t ) )
 				right = ( x + width + column );
 
 		}

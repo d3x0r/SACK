@@ -1,4 +1,8 @@
 
+#include <stdhdrs.h>
+
+#ifndef WIN32
+
 #include <X11/Xlib.h>
 
 typedef struct xvideo_tag
@@ -223,3 +227,4 @@ static int CPROC ProcessDisplayMessages(void )
 }
 
 
+#endif

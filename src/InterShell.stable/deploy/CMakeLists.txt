@@ -35,7 +35,7 @@ if( NOT __ANDROID__ AND NOT UNIX )
   EXECUTE_PROCESS(COMMAND cmake -E copy_if_different ${CMAKE_BINARY_DIR}/deploy.c.tmp ${CMAKE_BINARY_DIR}/deploy.c )
   add_executable_force_source( ${PROJECT_NAME} ${CMAKE_BINARY_DIR}/deploy.c )
   target_link_libraries( ${PROJECT_NAME} advapi32 )
-  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER install )
+  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER "Install and Deploy" )
 
   if( WIN32 )
 	# On Windows platforms, the dynamic libs should

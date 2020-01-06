@@ -22,9 +22,9 @@
 #include <sharemem.h>
 #include <vectlib.h>
 #include <imglib/imagestruct.h>
+#include <image.h>
 #define NEED_ALPHA2
 #include "blotproto.h"
-#include "image.h"
 #include "../sprite_local.h"
 #include "local.h"
 
@@ -932,7 +932,7 @@ static void PlotArbitrary( Image dest
 static void (CPROC *SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h );
 
 
- void  SetSavePortion ( void (CPROC*_SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h ) )
+ void  IMGVER(SetSavePortion) ( void (CPROC*_SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h ) )
 {
    SavePortion = _SavePortion;
 }
@@ -955,7 +955,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 		transform = CreateNamedTransform( NULL );
 	xd = sprite->curx;// * sprite->scalex / (RCOORD)0x10000;
 	yd = sprite->cury;// * sprite->scaley / (RCOORD)0x10000;
-	TranslateCoord( dest, &xd, &yd );
+	IMGVER(TranslateCoord)( dest, &xd, &yd );
 
 	Translate( transform
 				, (RCOORD)xd
@@ -1132,7 +1132,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
 				texture_v[3][0] = x_size2;
 				texture_v[3][1] = y_size2;
 
-				ReloadOpenGlTexture( topmost_parent, 0 );
+				IMGVER(ReloadOpenGlTexture)( topmost_parent, 0 );
 				//EnableShader( GetShader( "Simple Texture" ), v[vi], topmost_parent->glActiveSurface, texture_v );
 				//AppendShaderTristripQuad( GetShader( "Simple Texture" ), v[vi], topmost_parent->glActiveSurface, texture_v );
 				{
@@ -1154,7 +1154,7 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
  *  to a full circle, 64 a right angle, etc. This function can draw onto
  *  both linear and mode-X bitmaps.
  */
-  void  rotate_scaled_sprite (ImageFile *bmp, SPRITE *sprite, fixed angle, fixed scale_width, fixed scale_height)
+  void  IMGVER(rotate_scaled_sprite) (ImageFile *bmp, SPRITE *sprite, fixed angle, fixed scale_width, fixed scale_height)
 {
 	sprite->angle = (float)(( ( 2 * 3.14159268 ) * angle ) / 0x100000000LL);
 	sprite->scalex = scale_width;
@@ -1169,9 +1169,9 @@ static void TranslatePoints( Image dest, PSPRITE sprite )
  *  to a full circle, 64 a right angle, etc. This function can draw onto
  *  both linear and mode-X bitmaps.
  */
-  void  rotate_sprite (ImageFile *bmp, SPRITE *sprite, fixed angle)
+  void  IMGVER(rotate_sprite) (ImageFile *bmp, SPRITE *sprite, fixed angle)
 {
-	rotate_scaled_sprite(bmp, sprite, angle, 0x10000, 0x10000 );
+	IMGVER(rotate_scaled_sprite) (bmp, sprite, angle, 0x10000, 0x10000 );
 }
 
 

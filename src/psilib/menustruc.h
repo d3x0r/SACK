@@ -53,9 +53,10 @@ typedef struct menuitemflags_tag {
 	uint32_t bSubMenu:1; // data content is a submenu.. else ID data
 } ITEMFLAGS;
 
+// duplicated in controls.h - applications need this structure...
+/*
 typedef struct draw_popup_item_tag  DRAWPOPUPITEM;
 typedef struct draw_popup_item_tag  *PDRAWPOPUPITEM;
-// duplicated in controls.h - applications need this structure...
 struct draw_popup_item_tag 
 {
 	uintptr_t ID;
@@ -74,7 +75,7 @@ struct draw_popup_item_tag
 		} draw;
 	};
 };
-
+*/
 
 typedef void (*DrawPopupItemProc)( LOGICAL measure, PDRAWPOPUPITEM pdi );
 

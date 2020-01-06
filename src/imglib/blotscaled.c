@@ -21,7 +21,7 @@
 #include <sharemem.h>
 #include <imglib/imagestruct.h>
 #include <colordef.h>
-#include "image.h"
+#include <image.h>
 #define NEED_ALPHA2
 #include "blotproto.h"
 
@@ -474,7 +474,7 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 // x, y location on dest
 // w, h are actual width and height to span...
 
- void  BlotScaledImageSizedEx ( ImageFile *pifDest, ImageFile *pifSrc
+ void  IMGVER(BlotScaledImageSizedEx) ( ImageFile *pifDest, ImageFile *pifSrc
 												, int32_t xd, int32_t yd
 												, uint32_t wd, uint32_t hd
 												, int32_t xs, int32_t ys

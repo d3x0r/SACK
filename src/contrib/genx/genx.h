@@ -23,8 +23,8 @@
 
 
 #ifdef __cplusplus
-#define GENX_NAMESPACE namespace sack {  namespace xml { namespace gen {
-#define GENX_NAMESPACE_END }}}
+#define GENX_NAMESPACE extern "C" {
+#define GENX_NAMESPACE_END }
 #else
 #define GENX_NAMESPACE
 #define GENX_NAMESPACE_END
@@ -308,7 +308,7 @@ GENX_PROC(const char *, genxGetVersion )();
 
 GENX_NAMESPACE_END
 #ifdef __cplusplus
-	using namespace sack::xml::gen;
+//	using namespace sack::xml::gen;
 #endif
 
 #endif

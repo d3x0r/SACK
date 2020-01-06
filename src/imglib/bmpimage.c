@@ -26,7 +26,7 @@
 #include <image.h>
 #include <logging.h>
 
-extern int bGLColorMode;
+extern int IMGVER(bGLColorMode);
 
 #ifdef __cplusplus 
 IMAGE_NAMESPACE
@@ -182,11 +182,11 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, uint8_t* data )
 	int x, y, w, h;
    lprintf( "Untested code here..." );
 	if( pbm->bV5Height < 0 )
-		pif = MakeImageFile( w = pbm->bV5Width,
-								  h = -pbm->bV5Height );
+		pif = IMGVER(MakeImageFileEx)( w = pbm->bV5Width,
+								  h = -pbm->bV5Height DBG_SRC );
 	else
-		pif = MakeImageFile( w = pbm->bV5Width,
-								  h = pbm->bV5Height );
+		pif = IMGVER(MakeImageFileEx)( w = pbm->bV5Width,
+								  h = pbm->bV5Height DBG_SRC );
 	Log3( "Load bitmamp image: %d by %d %d bits", w, h, pbm->bV5BitCount );
    if( pif )
    {
@@ -204,7 +204,7 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, uint8_t* data )
 					{
 						((uint32_t*)pif->image)[y*w+x] = (*(uint32_t*)&pColor[x*4]) & 0xFFFFFF;
 						((uint32_t*)pif->image)[y*w+x] |= 0xFF000000;
-						if( bGLColorMode )
+						if( IMGVER(bGLColorMode) )
 						{
 							((uint32_t*)pif->image)[y*w+x] = GLColor( ((uint32_t*)pif->image)[y*w+x] );
 						}
@@ -219,7 +219,7 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, uint8_t* data )
 					for( x = 0; x < w; x++ )
 					{
 						((uint32_t*)pif->image)[y*w+x] = (*(uint32_t*)&pColor[x*4]);
-						if( bGLColorMode )
+						if( IMGVER(bGLColorMode) )
 						{
 							((uint32_t*)pif->image)[y*w+x] = GLColor( ((uint32_t*)pif->image)[y*w+x] );
 						}
@@ -235,7 +235,7 @@ static ImageFile *Bitmap5ToImageFile( BITMAPV5HEADER *pbm, uint8_t* data )
 				{
 					((uint32_t*)pif->image)[y*w+x] = (*(uint32_t*)&pColor[x*3]) & 0xFFFFFF;
 					((uint32_t*)pif->image)[y*w+x] |= 0xFF000000;
-					if( bGLColorMode )
+					if( IMGVER(bGLColorMode) )
 					{
                   ((uint32_t*)pif->image)[y*w+x] = GLColor( ((uint32_t*)pif->image)[y*w+x] );
 					}
@@ -296,11 +296,11 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, uint8_t* data )
 	{
       return Bitmap5ToImageFile( (BITMAPV5HEADER*)pbm, data );
 	}
-   pif = MakeImageFile( w = pbm->biWidth,
-                        h = pbm->biHeight );
+   pif = IMGVER(MakeImageFileEx)( w = pbm->biWidth,
+                        h = pbm->biHeight DBG_SRC );
    /*
 	lprintf( "Load bitmamp image: %d by %d %d bits (%s) (%08x=%08x)", w, h, pbm->biBitCount
-			 , bGLColorMode?"GL Color":"Native Colors"
+			 , IMGVER(bGLColorMode)?"GL Color":"Native Colors"
 			 , 0x12345678
            , GLColor( 0x12345678)
 			 );
@@ -308,7 +308,7 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, uint8_t* data )
    if( pif )
    {
 		dwPalette = (uint32_t*)(((uint8_t*)pbm) + pbm->biSize);
-      if( bGLColorMode && ( pbm->biBitCount <= 8 ) )
+      if( IMGVER(bGLColorMode) && ( pbm->biBitCount <= 8 ) )
 		{
 			int n;
 			for( n = 0; n < ( 1 << pbm->biBitCount ); n++ )
@@ -324,7 +324,7 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, uint8_t* data )
             for( x = 0; x < w; x++ )
 				{
 					//((uint32_t*)pif->image)[y*w+x] |= 0xFF000000;
-					if( bGLColorMode )
+					if( IMGVER(bGLColorMode) )
 					{
 						((uint32_t*)pif->image)[y*w+x] = GLColor((*(uint32_t*)&pColor[x*4]) );
 					}
@@ -341,7 +341,7 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, uint8_t* data )
 				{
 					((uint32_t*)pif->image)[y*w+x] = (*(uint32_t*)&pColor[x*3]) & 0xFFFFFF;
 					((uint32_t*)pif->image)[y*w+x] |= 0xFF000000;
-					if( bGLColorMode )
+					if( IMGVER(bGLColorMode) )
 					{
                   ((uint32_t*)pif->image)[y*w+x] = GLColor( ((uint32_t*)pif->image)[y*w+x] );
 					}
@@ -389,11 +389,11 @@ static ImageFile *BitmapToImageFile( BITMAPINFOHEADER *pbm, uint8_t* data )
       }
 	}
 	if( !( pif->flags & IF_FLAG_INVERTED ) )
-      FlipImage( pif );
+      IMGVER(FlipImageEx)( pif DBG_SRC );
    return pif;
 }
 
-Image ImageBMPFile (uint8_t* ptr, uint32_t filesize)
+Image IMGVER(ImageBMPFile) (uint8_t* ptr, uint32_t filesize)
 {
    ImageFile *image;
    uint8_t *data;
@@ -406,7 +406,7 @@ Image ImageBMPFile (uint8_t* ptr, uint32_t filesize)
    return image;
 }
 
-Image ImageRawBMPFile (uint8_t* ptr, uint32_t filesize)
+Image IMGVER(ImageRawBMPFile) (uint8_t* ptr, uint32_t filesize)
 {
 	BITMAPINFOHEADER *bmp = (BITMAPINFOHEADER*)ptr;
    /* do some basic checking on the data... */

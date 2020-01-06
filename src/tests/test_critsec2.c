@@ -23,7 +23,7 @@ int main( void ) {
 	InitializeCriticalSec( &cs );
 	for( n = 0; n < 12; n++ )
 	{
-		ThreadTo( ThreadWrapper, (void*)n );
+		ThreadTo( ThreadWrapper, (uintptr_t)n );
 	}
 	Sleep( 10000 );
 	for( n = 0; n < 12; n++ ) {

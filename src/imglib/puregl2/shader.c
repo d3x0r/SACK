@@ -349,7 +349,7 @@ void DumpAttribs( PImageShaderTracker tracker, int program )
 		int size;
 		unsigned int type;
 		glGetActiveUniform( program, n, 64, &length, &size, &type, tmp );
-		lprintf( "uniform [%"_cstring_f  "] %d %d", tmp, size, type );
+		lprintf( "uniform [%" _cstring_f "] %d %d", tmp, size, type );
 	}
 }
 

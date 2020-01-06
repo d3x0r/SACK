@@ -29,7 +29,7 @@ void ScanDirectory( PMONITOR monitor, PCHANGECALLBACK Change )
 	WIN32_FIND_DATA FindFileData;
 	tnprintf( match, sizeof(match), "%s/*.*", monitor->directory );
 	hFile = FindFirstFile( match, &FindFileData );
-	if( l.flags.bLog )
+	if( local_filemon.flags.bLog )
 		lprintf( "Scan directory: %s", match );
 	if( hFile != INVALID_HANDLE_VALUE )
 	{
@@ -39,7 +39,7 @@ void ScanDirectory( PMONITOR monitor, PCHANGECALLBACK Change )
 			{
 				//PCHANGECALLBACK Change;
 				if( monitor->flags.bLogFilesFound )
-					if( l.flags.bLog )
+					if( local_filemon.flags.bLog )
 						Log1( "Found file %s", FindFileData.cFileName );
 				// invoke change on this and it's parent (if there was a parent)
 				//for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
@@ -50,7 +50,7 @@ void ScanDirectory( PMONITOR monitor, PCHANGECALLBACK Change )
 										, FALSE ) )
 					{
 						if( monitor->flags.bLogFilesFound )
-							if( l.flags.bLog ) Log( "And the mask matched." );
+							if( local_filemon.flags.bLog ) Log( "And the mask matched." );
 						AddMonitoredFile( Change, FindFileData.cFileName );
 					}
 				}
@@ -59,8 +59,8 @@ void ScanDirectory( PMONITOR monitor, PCHANGECALLBACK Change )
 		FindClose( hFile );
 	}
 	else
-		if( l.flags.bLog ) Log( "FindFirstFile returned an invalid find handle" );
-	if( l.flags.bLog ) lprintf( "Scanned directory: %s", match );
+		if( local_filemon.flags.bLog ) Log( "FindFirstFile returned an invalid find handle" );
+	if( local_filemon.flags.bLog ) lprintf( "Scanned directory: %s", match );
 }
 
 
@@ -81,7 +81,7 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 	}
 	if( monitor->flags.bClosing )
 	{
-		if( l.flags.bLog ) Log( "Monitor already closing..." );
+		if( local_filemon.flags.bLog ) Log( "Monitor already closing..." );
 		return;
 	}
 	EnterCriticalSec( &monitor->cs );
@@ -90,7 +90,7 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 
 	if( !monitor->flags.bRemovedFromEvents )
 	{
-		SetEvent( l.hMonitorThreadControlEvent );
+		SetEvent( local_filemon.hMonitorThreadControlEvent );
 		while( !monitor->flags.bRemovedFromEvents )
 			Relinquish();
 	}
@@ -123,13 +123,13 @@ FILEMONITOR_PROC( void, EndMonitor )( PMONITOR monitor )
 
 //-------------------------------------------------------------------------
 
-struct peer_thread_info
+struct filemon_peer_thread_info
 {
 	HANDLE *phNextThread;
 	PMONITOR resume_from;
 	INDEX resume_from_sub;
-	struct peer_thread_info *parent_peer;
-	struct peer_thread_info *child_peer;
+	struct filemon_peer_thread_info *parent_peer;
+	struct filemon_peer_thread_info *child_peer;
 	PLIST monitor_list;
 	PDATALIST event_list;
 	HANDLE *phMyThread;
@@ -143,10 +143,10 @@ struct peer_thread_info
 };
 static uintptr_t CPROC MonitorFileThread( PTHREAD pThread );
 
-static void ClearThreadEvents( struct peer_thread_info *info )
+static void ClearThreadEvents( struct filemon_peer_thread_info *info )
 {
-	struct peer_thread_info *first_peer = info;
-	struct peer_thread_info *peer;
+	struct filemon_peer_thread_info *first_peer = info;
+	struct filemon_peer_thread_info *peer;
 	while( first_peer && first_peer->parent_peer )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
@@ -173,11 +173,11 @@ static void ClearThreadEvents( struct peer_thread_info *info )
 	}
 }
 
-static void AddThreadEvent( PMONITOR monitor, struct peer_thread_info *info )
+static void FileMonAddThreadEvent( PMONITOR monitor, struct filemon_peer_thread_info *info )
 {
-	struct peer_thread_info *first_peer;
-	struct peer_thread_info *last_peer;
-	struct peer_thread_info *peer;
+	struct filemon_peer_thread_info *first_peer;
+	struct filemon_peer_thread_info *last_peer;
+	struct filemon_peer_thread_info *peer;
 
 	if( monitor->flags.bRemoveFromEvents )
 	{
@@ -189,7 +189,7 @@ static void AddThreadEvent( PMONITOR monitor, struct peer_thread_info *info )
 	for( peer = first_peer; peer->nEvents >= 60; peer = peer->child_peer );
 	if( !peer )
 	{
-		if( l.flags.bLog )
+		if( local_filemon.flags.bLog )
 			lprintf( "Now at event capacity, this is where next should resume from" );
 		ThreadTo( MonitorFileThread, (uintptr_t)last_peer );
 		while( !last_peer->child_peer )
@@ -206,7 +206,7 @@ static void AddThreadEvent( PMONITOR monitor, struct peer_thread_info *info )
 		{
 			AddLink( &peer->monitor_list, monitor );
 			AddDataItem( &peer->event_list, &monitor->hChange );
-			if( l.flags.bLog )
+			if( local_filemon.flags.bLog )
 			{
 				lprintf( "Added handle %d on %s", monitor->hChange, monitor->directory );
 				//LogBinary( event_list->data, (nEvents +1)* sizeof( HANDLE ));
@@ -222,7 +222,7 @@ static void ReadChanges( PMONITOR monitor )
 	static uint8_t buffer[4096];
 	DWORD dwResultSize;
 
-	if( l.flags.bLog )
+	if( local_filemon.flags.bLog )
 		lprintf( "Begin getting changes on %p (%d)", monitor, monitor->hChange );
 
 	if( ReadDirectoryChangesW( monitor->hChange
@@ -255,39 +255,39 @@ static void ReadChanges( PMONITOR monitor )
 				dupname = NewArray( wchar_t, ( pni->FileNameLength + sizeof( wchar_t ) ) / sizeof( wchar_t ) );
 				MemCpy( dupname, pni->FileName, pni->FileNameLength );
 				dupname[pni->FileNameLength/2] = '\0';
-				if( l.flags.bLog )
+				if( local_filemon.flags.bLog )
 					lprintf( "offset %d, next %d", dwOffset, pni->NextEntryOffset );
 				if( !pni->NextEntryOffset )
 					dwOffset = (DWORD)INVALID_INDEX;
 				else
 					dwOffset += pni->NextEntryOffset;
-				if( l.flags.bLog )
+				if( local_filemon.flags.bLog )
 				{
 					LogBinary( (const uint8_t*)pni, sizeof( (*pni ) ) );
 					LogBinary( (const uint8_t*)pni->FileName, 64 );
 				}
 				a_name = DupWideToText( dupname );
 
-				if( l.flags.bLog )
+				if( local_filemon.flags.bLog )
 					lprintf( "File change was on %s", a_name );
 				switch( pni->Action )
 				{
 				case FILE_ACTION_MODIFIED:
-					if( l.flags.bLog )
+					if( local_filemon.flags.bLog )
 						lprintf( "File modified" );
 					if( 0 )
 					{
 				case FILE_ACTION_ADDED:
-					if( l.flags.bLog )
+					if( local_filemon.flags.bLog )
 						lprintf( "File added" );
 					}
 					{
 						PCHANGECALLBACK Change;
-						if( l.flags.bLog )
+						if( local_filemon.flags.bLog )
 							lprintf( "checking handlers %p", monitor->ChangeHandlers );
 						for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 						{
-							if( l.flags.bLog )
+							if( local_filemon.flags.bLog )
 								lprintf( "checking handlers %p %s %s", Change->mask, Change->mask?Change->mask: "*", a_name );
 							if( !Change->mask ||
 								CompareMask( Change->mask
@@ -295,14 +295,14 @@ static void ReadChanges( PMONITOR monitor )
 											  , FALSE ) )
 							{
 								if( monitor->flags.bLogFilesFound )
-									if( l.flags.bLog ) Log( "And the mask matched." );
+									if( local_filemon.flags.bLog ) Log( "And the mask matched." );
 								AddMonitoredFile( Change, a_name );
 							}
 						}
 					}
 					break;
 				case FILE_ACTION_REMOVED:
-					if( l.flags.bLog )
+					if( local_filemon.flags.bLog )
 						lprintf( "File removed" );
 					{
 						PCHANGECALLBACK Change;
@@ -327,7 +327,7 @@ static void ReadChanges( PMONITOR monitor )
 					}
 					break;
 				case FILE_ACTION_RENAMED_OLD_NAME:
-					if( l.flags.bLog )
+					if( local_filemon.flags.bLog )
 						lprintf( "old rename" );
 					{
 						PCHANGECALLBACK Change;
@@ -351,7 +351,7 @@ static void ReadChanges( PMONITOR monitor )
 					}
 					break;
 				case FILE_ACTION_RENAMED_NEW_NAME:
-					if( l.flags.bLog )
+					if( local_filemon.flags.bLog )
 						lprintf( "new rename" );
 					{
 						PCHANGECALLBACK Change;
@@ -378,10 +378,10 @@ static void ReadChanges( PMONITOR monitor )
 	}
 }
 
-static LOGICAL PeerIsBuilding( struct peer_thread_info *info )
+static LOGICAL PeerIsBuilding( struct filemon_peer_thread_info *info )
 {
-	struct peer_thread_info *first_peer = info;
-	struct peer_thread_info *peer;
+	struct filemon_peer_thread_info *first_peer = info;
+	struct filemon_peer_thread_info *peer;
 	while( first_peer && first_peer->parent_peer )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
@@ -392,10 +392,10 @@ static LOGICAL PeerIsBuilding( struct peer_thread_info *info )
 	return FALSE;
 }
 
-static LOGICAL PeerIsBusy( struct peer_thread_info *info )
+static LOGICAL PeerIsBusy( struct filemon_peer_thread_info *info )
 {
-	struct peer_thread_info *first_peer = info;
-	struct peer_thread_info *peer;
+	struct filemon_peer_thread_info *first_peer = info;
+	struct filemon_peer_thread_info *peer;
 	while( first_peer && first_peer->parent_peer )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
@@ -406,10 +406,10 @@ static LOGICAL PeerIsBusy( struct peer_thread_info *info )
 	return FALSE;
 }
 
-static void WakePeers( struct peer_thread_info *info )
+static void WakePeers( struct filemon_peer_thread_info *info )
 {
-	struct peer_thread_info *first_peer = info;
-	struct peer_thread_info *peer;
+	struct filemon_peer_thread_info *first_peer = info;
+	struct filemon_peer_thread_info *peer;
 	while( first_peer && first_peer->parent_peer )
 		first_peer = first_peer->parent_peer;
 	for( peer = first_peer; peer; peer = peer->child_peer )
@@ -421,15 +421,15 @@ static void WakePeers( struct peer_thread_info *info )
 
 static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 {
-	struct peer_thread_info this_thread;
-	struct peer_thread_info *peer_thread = (struct peer_thread_info*)GetThreadParam( pThread );
+	struct filemon_peer_thread_info this_thread;
+	struct filemon_peer_thread_info *peer_thread = (struct filemon_peer_thread_info*)GetThreadParam( pThread );
 	LOGICAL rebuild_events = peer_thread?FALSE:TRUE;
 	PMONITOR monitor;
 	DWORD dwResult;
 
 	this_thread.nEvents = 0;
 	this_thread.hNextThread = INVALID_HANDLE_VALUE;
-	this_thread.phMyThread = peer_thread?peer_thread->phNextThread:&l.hMonitorThreadControlEvent;
+	this_thread.phMyThread = peer_thread?peer_thread->phNextThread:&local_filemon.hMonitorThreadControlEvent;
 	this_thread.monitor_list = NULL;
 	this_thread.event_list = CreateDataList( sizeof( HANDLE ) );
 	this_thread.phNextThread = &this_thread.hNextThread;
@@ -443,7 +443,7 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 
 	(*this_thread.phMyThread) = CreateEvent( NULL, TRUE, FALSE, NULL );
 
-	if( l.flags.bLog )
+	if( local_filemon.flags.bLog )
 		lprintf( "thread control handle %p", (*this_thread.phMyThread) );
 
 	SetLink( &this_thread.monitor_list, 0, (POINTER)1 ); // has to be a non zero value.  monitor is not referenced for wait event 0
@@ -454,7 +454,7 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 	{
 		if( rebuild_events )
 		{
-			if( l.flags.bLog )
+			if( local_filemon.flags.bLog )
 				lprintf( "rebuilding events." );
 			this_thread.flags.bBuildingList = 1;
 			this_thread.flags.bProcessing = 0;
@@ -474,11 +474,11 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 			{
 				PMONITOR sub_monitor;
 				INDEX idx;
-				AddThreadEvent( monitor, &this_thread );
+				FileMonAddThreadEvent( monitor, &this_thread );
 
 				LIST_FORALL( monitor->monitors, idx, PMONITOR, sub_monitor )
 				{
-					AddThreadEvent( sub_monitor, &this_thread );
+					FileMonAddThreadEvent( sub_monitor, &this_thread );
 				}
 			}
 
@@ -488,7 +488,7 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 		}
 
 
-		if( l.flags.bLog )
+		if( local_filemon.flags.bLog )
 		{
 			lprintf( "begin wait on %d events", this_thread.nEvents );
 			//LogBinary( event_list->data, this_thread. * sizeof( HANDLE ));
@@ -505,12 +505,12 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 
 		if( PeerIsBuilding( &this_thread ) )
 		{
-			if( l.flags.bLog )
+			if( local_filemon.flags.bLog )
 				lprintf( "Work on %ld but peer is building my lists, so I can't use them", dwResult );
 			continue;
 		}
 
-		if( l.flags.bLog )
+		if( local_filemon.flags.bLog )
 			lprintf( "Result of wait was %ld", dwResult );
 		//dwResult = WaitForSingleObject( monitor->hChange, monitor->free_scan_delay /*900000*/ /*3600000*/ );
 		if( dwResult == WAIT_FAILED )
@@ -518,14 +518,14 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 			if( GetLastError() == 6 )
 			{
 				rebuild_events = TRUE;
-				if( l.flags.bLog )
+				if( local_filemon.flags.bLog )
 				{
 					LogBinary( (const uint8_t*)this_thread.event_list->data, this_thread.nEvents * sizeof( HANDLE ));
 					lprintf( "Wait failed on %d... %d", this_thread.nEvents, GetLastError() );
 				}
 				continue;
 			}
-			if( l.flags.bLog )
+			if( local_filemon.flags.bLog )
 			{
 				LogBinary( (const uint8_t*)this_thread.event_list->data, this_thread.nEvents * sizeof( HANDLE ));
 				lprintf( "Wait failed on %d... %d", this_thread.nEvents, GetLastError() );
@@ -534,20 +534,20 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 		}
 		else if( dwResult == WAIT_ABANDONED )
 		{
-			if( l.flags.bLog ) lprintf( "Wait abandoned - have to leave..." );
+			if( local_filemon.flags.bLog ) lprintf( "Wait abandoned - have to leave..." );
 			//MessageBox( NULL, "Wait returned bad error", "Monitor Failed", MB_OK );
 			break;
 		}
 		else if( dwResult == WAIT_OBJECT_0 )
 		{
-			if( l.flags.bLog ) 
+			if( local_filemon.flags.bLog ) 
 				lprintf( "signaled to rebuild events..." );
 			ResetEvent( (*this_thread.phMyThread) );
 
 			// if not the root thread, our lists will be built for us.
 			if( this_thread.parent_peer == NULL )
 			{
-				if( l.flags.bLog ) 
+				if( local_filemon.flags.bLog ) 
 					lprintf( "this is the root thread... " );
 				rebuild_events = TRUE;
 			}
@@ -585,7 +585,7 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 		}
  
 	} while( 1 );
-	if( l.flags.bLog ) Log( "Leaving the thread..." );
+	if( local_filemon.flags.bLog ) Log( "Leaving the thread..." );
 
 	for( monitor = Monitors; monitor; monitor = Monitors )
 	{
@@ -602,7 +602,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 	PMONITOR monitor;
 	if( !scan_delay )
 		scan_delay = 1000;
-	if( l.flags.bLog )
+	if( local_filemon.flags.bLog )
 		Log1( "Going to start monitoring changes to: %s", directory );
 
 	{
@@ -640,7 +640,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 	                                               | FILE_NOTIFY_CHANGE_SECURITY
 	                                              );
 
-	if( l.flags.bLog ) lprintf( "Opened handle %d on %s", monitor->hChange, monitor->directory );
+	if( local_filemon.flags.bLog ) lprintf( "Opened handle %d on %s", monitor->hChange, monitor->directory );
 	if( monitor->hChange == INVALID_HANDLE_VALUE )
 	{
 		TEXTCHAR msg[128];
@@ -652,23 +652,23 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 		MessageBox( NULL, msg, "Monitor Failed", MB_OK );
 	}
 
-	if( !l.directory_monitor_thread )
+	if( !local_filemon.directory_monitor_thread )
 	{
-		l.directory_monitor_thread = ThreadTo( MonitorFileThread, (uintptr_t)0 );
+		local_filemon.directory_monitor_thread = ThreadTo( MonitorFileThread, (uintptr_t)0 );
 	}
 
 	// wait for thread to finish initialization
-	while( !l.hMonitorThreadControlEvent )
+	while( !local_filemon.hMonitorThreadControlEvent )
 		Relinquish();
 
 	// This could be added boefre the thread is ready; but then we're not guaranteed that this will be in the list of objects to wait on
 	LinkLast( Monitors, PMONITOR, monitor );
 
-	if( l.flags.bLog )
-		lprintf( "Signal monitor to wake on %d", l.hMonitorThreadControlEvent );
-	SetEvent( l.hMonitorThreadControlEvent );
+	if( local_filemon.flags.bLog )
+		lprintf( "Signal monitor to wake on %d", local_filemon.hMonitorThreadControlEvent );
+	SetEvent( local_filemon.hMonitorThreadControlEvent );
 
-	if( l.flags.bLog )
+	if( local_filemon.flags.bLog )
 		Log1( "Adding timer %d", scan_delay / 3 );
 	monitor->timer = AddTimer( scan_delay/3, ScanTimer, (uintptr_t)monitor );
 

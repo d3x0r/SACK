@@ -33,7 +33,6 @@
 #ifdef __cplusplus
 namespace sack {
 	namespace image {
-extern "C" {
 #endif
 
 //unsigned long DOALPHA( unsigned long over, unsigned long in, unsigned long a );
@@ -41,7 +40,7 @@ extern "C" {
 #define FIX_SHIFT 18
 #define ROUND_ERROR ( ( 1<< ( FIX_SHIFT - 1 ) ) - 1 )
 
-void CPROC do_line( Image pImage, int32_t x1, int32_t y1
+void do_line( Image pImage, int32_t x1, int32_t y1
 									 , int32_t x2, int32_t y2, CDATA d )
 {
 	int err, delx, dely, len, inc;
@@ -416,7 +415,6 @@ void CPROC do_vlineAlpha( Image pImage, int32_t x, int32_t yfrom, int32_t yto, C
 }
 
 #ifdef __cplusplus
-		} //extern "C" {
 	} //	namespace image {
 } //namespace sack {
 #endif

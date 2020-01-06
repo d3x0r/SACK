@@ -16,10 +16,11 @@
 					if( err )                   \
 						lprintf( "err=%d (%" _cstring_f ")",err, gluErrorString( err ) ); \
 				}                               
+#define zzzceh(a,b) a b
 #define CheckErrf(f,...)  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-					lprintf( "err=%d " f,err,##__VA_ARGS__ ); \
+					lprintf( zzzceh("err=%d ", f),err,##__VA_ARGS__ ); \
 				}                               
 #else
 #if _DEBUG
@@ -31,10 +32,11 @@
 #else
 #  define CheckErr()
 #endif	
+#define zzzceh(a,b) a b
 #define CheckErrf(f,...)  				{    \
 					GLenum err = glGetError();  \
 					if( err )                   \
-					lprintf( "err=%d "f,err,##__VA_ARGS__ ); \
+					lprintf( zzzceh("err=%d ", f),err,##__VA_ARGS__ ); \
 				}                               
 #endif
 

@@ -177,7 +177,7 @@ int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods )
 	int mod = keymap_local.flags.bShifted?1:0;
 	{
 		int result = 0;
-		//Log1( "Keyfunc = %d", KeyDefs[key_index].op[mod].bFunction );
+		//Log1( "Keyfunc = %d", AndroidKeyDefs[key_index].op[mod].bFunction );
 		switch( AndroidKeyDefs[key_index].op[mod].bFunction )
 		{
 #undef KEYSHIFT

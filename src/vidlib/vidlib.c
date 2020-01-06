@@ -1,3 +1,5 @@
+#ifdef _WIN32
+
 /****************
  * Some performance concerns regarding high numbers of layered windows...
  * every 1000 windows causes 2 - 12 millisecond delays...
@@ -52,6 +54,8 @@
 #include <msgclient.h>
 #include <idle.h>
 //#include <imglib/imagestruct.h>
+
+#define USE_IMAGE_INTERFACE l.pii
 #include <image.h>
 #undef StrDup
 #include <shlwapi.h> // must include this if shellapi.h is used.
@@ -740,12 +744,12 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 				{
 					RECT r;
 					if( hVideo->portion_update.pending ) {
-						if( x < hVideo->portion_update.x )
+						if( SUS_LT( x, int32_t, hVideo->portion_update.x, uint32_t ) )
 						{
 							hVideo->portion_update.w += hVideo->portion_update.x - x;
 							hVideo->portion_update.x = x;
 						}
-						if( y < hVideo->portion_update.y )
+						if( SUS_LT( y, int32_t, hVideo->portion_update.y, uint32_t ) )
 						{
 							hVideo->portion_update.h += hVideo->portion_update.y - y;
 							hVideo->portion_update.y = y;
@@ -2142,7 +2146,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			// messages are thread safe.
 			static TEXTCHAR buffer[2048];
 			PVIDEO hVideo = (PVIDEO)GetWindowLongPtr( hWnd, WD_HVIDEO );
-			INDEX nFiles = DragQueryFile( hDrop, INVALID_INDEX, NULL, 0 );
+			INDEX nFiles = DragQueryFile( hDrop, (UINT)-1, NULL, 0 );
 			INDEX iFile;
 			POINT pt;
 			// AND we should...
@@ -4088,7 +4092,7 @@ static void VideoLoadOptions( void )
 	//SetOptionDatabaseOption( option, TRUE );
 
 #ifndef __NO_OPTIONS__
-	PODBC option = GetOptionODBC( NULL );
+	PODBC option = NULL;//GetOptionODBC( NULL );
 	l.flags.bLogMessages = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/log messages", 0, TRUE );
 	l.flags.bHookTouchEvents = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/use touch event", 0, TRUE );
 
@@ -4108,7 +4112,7 @@ static void VideoLoadOptions( void )
 	l.flags.bUseLLKeyhook = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Use Low Level Keyhook", 0, TRUE );
    l.flags.bDisableAutoDoubleClickFullScreen = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Disable full-screen mouse auto double-click", 0, TRUE );
    l.flags.bDoNotPreserveAspectOnFullScreen = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/Do not preserve aspect streching full-screen", 0, TRUE );
-	DropOptionODBC( option );
+	//DropOptionODBC( option );
 #else
 #  ifndef UNDER_CE
 	if( l.UpdateLayeredWindowIndirect )
@@ -5932,31 +5936,36 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 	l.CloseTouchInputHandle =(BOOL (WINAPI *)( HTOUCHINPUT ))LoadFunction( "user32.dll", "CloseTouchInputHandle" );
 	l.RegisterTouchWindow = (BOOL (WINAPI *)( HWND, ULONG  ))LoadFunction( "user32.dll", "RegisterTouchWindow" );
 #endif
-
+   l.pii = GetImageInterface();
 
 #endif
 	{
-		CTEXTSTR name =
 #ifdef SACK_BAG_EXPORTS  // symbol defined by visual studio sack_bag.vcproj
 #  ifdef __cplusplus
-		"sack.render++"
+#    define name		"sack.render++"
 #  else
-		"sack.render"
+#    define name		"sack.render"
 #  endif
 #else
 #  ifdef UNDER_CE
-			"render"
+#    define name			"render"
 #  else
 #	 ifdef __cplusplus
-		"sack.render++"
+#     define name		"sack.render++"
 #	 else
-			"sack.render"
+#     define name			"sack.render"
 #	 endif
 #  endif
 #endif
 			;
 		VidInterface._SetClipboardEventCallback = SetClipboardEventCallback;
 		RegisterInterface( name, GetDisplayInterface, DropDisplayInterface );
+		// if there hasn't been a default set already, default to this.
+		// DLL this will not be set, but will end up overridden later
+		// Static library, this gets set after interface.conf is read, which
+      // means the alias should aready be set.
+      if( !CheckClassRoot( "system/interfaces/render" ) )
+			RegisterClassAlias( "system/interfaces/" name, "system/interfaces/render" );
 	}
 	if( SACK_GetProfileInt( "SACK/Video Render", "enable alt-f4 exit", 1 ) )
 		BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
@@ -6006,8 +6015,7 @@ static void CPROC SavePortion( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint3
 						 */
 }
 
-PRELOAD( InitSetSavePortion )
-{
+PRELOAD( InitSetSavePortion ){
 	SetSavePortion( SavePortion );
 }
 
@@ -6030,3 +6038,4 @@ PUBLIC( void, InvokePreloads )( void )
 
 RENDER_NAMESPACE_END
 
+#endif

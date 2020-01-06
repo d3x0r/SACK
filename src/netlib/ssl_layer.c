@@ -848,11 +848,11 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		return 0;
 	}
 	const char* host = SSL_get_servername( ssl, t );
-	int strlen = StrLen( host );
+	int strlen = (int)StrLen( host );
 	//lprintf( "ServerName;%s", host );
 	struct ssl_hostContext* hostctx;
 	struct ssl_hostContext* defaultHostctx;
-	lprintf( "Have hostchange: %.*s", strlen, host );
+	//lprintf( "Have hostchange: %.*s", strlen, host );
 	pcAccept->ssl_session->hostname = DupCStrLen( host, strlen );
 	LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
 		char const* checkName;

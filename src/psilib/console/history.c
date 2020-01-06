@@ -321,7 +321,7 @@ PTEXTLINE GetAHistoryLine( PHISTORY_LINE_CURSOR phc, PHISTORY_BROWSER phbr, int 
 {
 	if( phc )
 	{
-		INDEX tmp;
+		int tmp;
 		PHISTORYBLOCK phb;
 		//lprintf( "Get line %d after %d", nLine, phc->output.top_of_form.line );
 

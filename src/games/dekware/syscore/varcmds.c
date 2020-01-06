@@ -325,7 +325,7 @@ void ChangeCase( PTEXT pVar, int nMethod )
 
 //--------------------------------------------------------------------------
 
-TEXTCHAR * GetBound( PTEXT pText )
+TEXTCHAR const * GetBound( PTEXT pText )
 {
 	if( !pText )
 		return "(Bad Variable)";

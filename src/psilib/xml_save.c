@@ -28,15 +28,16 @@ typedef struct context_tag
 
 } XML_CONTEXT, *PXML_CONTEXT;
 
-typedef struct local_tag
+typedef struct psi_xml_local_tag
 {
 	PDATASTACK contexts; // list of PXML_CONTEXTs
 	PXML_CONTEXT current_context;
 	//char *file;
 	PVARTEXT current_vt;
-} LOCAL;
+} PSI_XML_LOCAL;
 
-static LOCAL l;
+#define l psiXmlLocal
+static PSI_XML_LOCAL l;
 
 void WriteCommonData( PSI_CONTROL pc )
 {
@@ -266,5 +267,7 @@ int SaveXMLFrame( PSI_CONTROL frame, CTEXTSTR file )
 	}
    return 1;
 }
+
+#undef l
 PSI_XML_NAMESPACE_END
 

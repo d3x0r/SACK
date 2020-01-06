@@ -10,7 +10,7 @@
 //#define DEBUG_TRIGGER_MATCHING
 
 int myTypeID; // supplied for uhmm... grins...
-INDEX nTrigExten;
+//INDEX nTrigExten;
 
 
 // format of trigger command
@@ -1586,25 +1586,20 @@ static int HandleCommand( "IO", "ALIAS", "Alias macro commands - handle command 
 
 //--------------------------------------------------------------------------
 
-PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
-{
+PRELOAD( DoRegisterTriggerRoutines ) {
 	RegisterCommands( "TRIGGER/Commands", commands, nCommands );
-	//RegisterCommands( "TRIGGER/Options", options, nOptions );
-	//RegisterDeviceOpts( "TRIGGER", options, nOptions );
 	myTypeID = RegisterDeviceOpts( "trigger", "Fictional Trigger device layer", OpenTriggerSet, options, nOptions  );
-	//RegisterRoutine( "Trigger", "Data trigger functions", Trigger );
-	//RegisterRoutine( "Alias", "Data trigger functions", Alias );
-	nTrigExten = RegisterExtension( "Trigger" );
-	return DekVersion;
+	//nTrigExten = RegisterExtension( "Trigger" );
+
 }
 
 //--------------------------------------------------------------------------
 
-PUBLIC( void, UnloadPlugin )( void ) // this routine is called when /unload is invoked
+ATEXIT( UnregisterTriggerRoutines ) // this routine is called when /unload is invoked
 {
-	UnregisterRoutine( "Trigger" );
-	UnregisterRoutine( "Alias" );
-	UnregisterDevice( "trigger" );
+	//UnregisterRoutine( "Trigger" );
+	//UnregisterRoutine( "Alias" );
+	//UnregisterDevice( "trigger" );
 
 }
 

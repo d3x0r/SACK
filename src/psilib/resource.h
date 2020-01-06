@@ -1,15 +1,19 @@
+#pragma multiinclude
 
 #ifndef FIRST_SYMBOL_VALUE
 #define FIRST_SYMBOL_VALUE 1
 #endif
 
 #ifndef BUILD_NAMES
-#define FIRST_SYMNAME(name,control_type_name)    FIRST_SYMBOL = FIRST_SYMBOL_VALUE, name = FIRST_SYMBOL_VALUE
-#define SYMNAME(name,control_type_name)        , name
-#define SYMNAME_SKIP(prior, range, name,control_type_name)        , prior, name = prior+range
+#  if !defined( NAME_ENUMERATION_DECLARED )
+#    define FIRST_SYMNAME(name,control_type_name)    FIRST_SYMBOL = FIRST_SYMBOL_VALUE, name = FIRST_SYMBOL_VALUE
+#    define SYMNAME(name,control_type_name)        , name
+#    define SYMNAME_SKIP(prior, range, name,control_type_name)        , prior, name = prior+range
 
 enum resource_enum {
+#  endif
 #endif
+#if !defined( NAME_ENUMERATION_DECLARED ) || defined( BUILD_NAMES )
 #undef BTN_OKAY
 #undef BTN_CANCEL
 FIRST_SYMNAME( BTN_OKAY, NORMAL_BUTTON_NAME )
@@ -40,12 +44,15 @@ SYMNAME( CST_ZOOM        , "Shade Well" )
 SYMNAME( CST_SHADE_RED   , "Shade Well" )
 SYMNAME( CST_SHADE_BLUE  , "Shade Well" )
 SYMNAME( CST_SHADE_GREEN , "Shade Well" )
-SYMNAME_SKIP( BTN_PRESET_BASE, 64, BTN_PRESET_LAST, CUSTOM_BUTTON_NAME )
-
+		SYMNAME_SKIP( BTN_PRESET_BASE, 64, BTN_PRESET_LAST, CUSTOM_BUTTON_NAME )
+#endif
 #ifndef BUILD_NAMES
+#  if !defined( NAME_ENUMERATION_DECLARED )
+#  define NAME_ENUMERATION_DECLARED
 };
+#  endif
 #endif
 #undef SYMNAME
 #undef FIRST_SYMNAME
 #undef SYMNAME_SKIP
-
+#undef BUILD_NAMES

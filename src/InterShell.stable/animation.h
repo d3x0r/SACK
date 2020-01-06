@@ -3,11 +3,7 @@
 
 #ifndef __cplusplus
 
-#ifdef WIN32
-#include <mng/libmng.h>
-#else
 #include <libmng.h>
-#endif
 
 /*---- private ------*/
 typedef enum {ANIM_RUN = 0, ANIM_STOPBEGIN, ANIM_STOPEND} ANIM_MODES;

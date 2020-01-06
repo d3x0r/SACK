@@ -129,7 +129,7 @@ void AcceptClient(PCLIENT pListen)
 										,&nTemp
 										);
 	//lprintf( "Accept new client...%p %d", pNewClient, pNewClient->Socket );
-#if WIN32
+#ifdef WIN32
 	SetHandleInformation( (HANDLE)pNewClient->Socket, HANDLE_FLAG_INHERIT, 0 );
 #endif
 
@@ -278,7 +278,7 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 										, SOCK_STREAM
 										, (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_TCP:0 );
 #endif
-#if WIN32
+#ifdef WIN32
 	SetHandleInformation( (HANDLE)pListen->Socket, HANDLE_FLAG_INHERIT, 0 );
 #endif
 

@@ -219,7 +219,7 @@ struct memoryStorageIndex* createIndexFile( struct sack_vfs_os_volume* vol, cons
 struct memoryStorageIndex* allocateIndex( struct sack_vfs_os_file* file
                   , const char* filename, size_t filenameLen 
 ) {
-	uint32_t indexOffset = (uint32_t)_os_AddSmallBlockUsage( &file->header.indexes, filenameLen + sizeof( BLOCKINDEX ) );
+	uint32_t indexOffset = _os_AddSmallBlockUsage( &file->header.indexes, (uint32_t)(filenameLen + sizeof( BLOCKINDEX )) );
 	struct memoryStorageIndex* newIndex = createIndexFile( file->vol, filename, filenameLen );
 	//newIndex->name = DupCStrLen( filename, filenameLen );
 	WriteIntoBlock( file, 3, indexOffset, &newIndex, sizeof( BLOCKINDEX ) );
@@ -236,8 +236,8 @@ struct storageIndexEntry* indexFileFind( struct memoryStorageIndex* index, void*
 }
 
 struct memoryIndexEntry* loadIndexEntry( struct memoryStorageIndex* index, struct memoryIndexEntry* parent, uint64_t timeEntry ) {
-	FPI pos = (sizeof( struct index_header ) - sizeof( struct storageIndexEntry ))
-		+ index->diskData->indexType.keyLength * timeEntry;
+	FPI pos = (FPI)( (sizeof( struct index_header ) - sizeof( struct storageIndexEntry ))
+	               + index->diskData->indexType.keyLength * timeEntry);
 	FPI ofs;
 	struct memoryIndexEntry* entry;
 	if( (ofs = index->diskData->indexType.keyLength) == 1 ) {
@@ -245,9 +245,9 @@ struct memoryIndexEntry* loadIndexEntry( struct memoryStorageIndex* index, struc
 		entry = GetFromSet( MEMORY_INDEX_ENTRY, &index->entries );
 	}
 	else {
-		entry = GetUsedSetMember( MEMORY_INDEX_ENTRY, &index->entries, timeEntry );
+		entry = GetUsedSetMember( MEMORY_INDEX_ENTRY, &index->entries, (INDEX)timeEntry );
 		if( !entry ) {
-			entry = GetSetMember( MEMORY_INDEX_ENTRY, &index->entries, timeEntry );
+			entry = GetSetMember( MEMORY_INDEX_ENTRY, &index->entries, (INDEX)timeEntry );
 
 		}
 	}
@@ -277,8 +277,8 @@ struct memoryIndexEntry* loadIndexEntry( struct memoryStorageIndex* index, struc
 
 
 void reloadIndexEntry( struct memoryStorageIndex* index, struct memoryIndexEntry* entry, uint64_t timeEntry ) {
-	FPI pos = (sizeof( struct index_header ) - sizeof( struct storageIndexEntry ))
-		+ index->diskData->indexType.keyLength * timeEntry;
+	FPI pos = (FPI)((sizeof( struct index_header ) - sizeof( struct storageIndexEntry ))
+	               + index->diskData->indexType.keyLength * timeEntry);
 	if( !TESTFLAG( index->diskDataLoadedSectors, pos >> BLOCK_SHIFT ) ) {
 		sack_vfs_os_seek_internal( index->file, pos & BLOCK_MASK, SEEK_SET );
 		sack_vfs_os_read_internal( index->file, index->diskData + (pos & BLOCK_MASK), BLOCK_SIZE );
@@ -300,7 +300,7 @@ void updateIndexEntry( struct memoryIndexEntry* entry, struct memoryStorageIndex
 	//node->edge.used.lesser.raw = entry->lesser.raw;
 	//node->edge.used.greater.raw = entry->lesser.raw;
 
-	sack_vfs_os_seek_internal( index->file, entry->this_fpi, SEEK_SET );
+	sack_vfs_os_seek_internal( index->file, (size_t)entry->this_fpi, SEEK_SET );
 	sack_vfs_os_write_internal( index->file, node, sane_offsetof( struct storageIndexEntry, data ), NULL );
 
 }

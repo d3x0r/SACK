@@ -14,12 +14,16 @@ PSI_NAMESPACE
 	   uint32_t progress; // current progress portion
    };
    
-   EasyRegisterControl( PROGRESS_BAR_CONTROL_NAME, sizeof( struct progress_bar_data ) );
+//EasyRegisterControl( PROGRESS_BAR_CONTROL_NAME, sizeof( struct progress_bar_data ) );
 
+static CONTROL_REGISTRATION progressBarControl= { PROGRESS_BAR_CONTROL_NAME
+			, { 32, 32, sizeof( struct progress_bar_data ), BORDER_THINNER } };
+PRELOAD( registerProgressBarcontrol ){ DoRegisterControl( &progressBarControl ); }
+static uint32_t* pb_MyControlID = &progressBarControl.TypeID;
 
 static int OnCreateCommon( PROGRESS_BAR_CONTROL_NAME )( PSI_CONTROL pc )
 {
-	ValidatedControlData( struct progress_bar_data *, MyControlID, data, pc );
+	ValidatedControlData( struct progress_bar_data *, pb_MyControlID[0], data, pc );
 	if( data )
 	{
 		data->range = 100;
@@ -32,7 +36,7 @@ static int OnCreateCommon( PROGRESS_BAR_CONTROL_NAME )( PSI_CONTROL pc )
 
 static int OnDrawCommon( PROGRESS_BAR_CONTROL_NAME )( PSI_CONTROL pc )
 {
-	ValidatedControlData( struct progress_bar_data *, MyControlID, data, pc );
+	ValidatedControlData( struct progress_bar_data *, pb_MyControlID[0], data, pc );
 	if( data )
 	{
 		Image surface = GetControlSurface( pc );
@@ -48,7 +52,7 @@ static int OnDrawCommon( PROGRESS_BAR_CONTROL_NAME )( PSI_CONTROL pc )
 
 void ProgressBar_SetRange( PSI_CONTROL pc, int range )
 {
-	ValidatedControlData( struct progress_bar_data *, MyControlID, data, pc );
+	ValidatedControlData( struct progress_bar_data *, pb_MyControlID[0], data, pc );
 	if( data )
 	{
 		data->range = range;
@@ -57,7 +61,7 @@ void ProgressBar_SetRange( PSI_CONTROL pc, int range )
 
 void ProgressBar_SetProgress( PSI_CONTROL pc, int progress )
 {
-	ValidatedControlData( struct progress_bar_data *, MyControlID, data, pc );
+	ValidatedControlData( struct progress_bar_data *, pb_MyControlID[0], data, pc );
 	if( data )
 	{
 		data->progress = progress;
@@ -68,7 +72,7 @@ void ProgressBar_SetProgress( PSI_CONTROL pc, int progress )
 
 void ProgressBar_SetColors( PSI_CONTROL pc, CDATA background, CDATA foreground )
 {
-	ValidatedControlData( struct progress_bar_data *, MyControlID, data, pc );
+	ValidatedControlData( struct progress_bar_data *, pb_MyControlID[0], data, pc );
 	if( data )
 	{
 		data->back_color = background;

@@ -2,10 +2,6 @@
 # because sources are common to monolithic build mode
 # they are already defined in a variable calld VIDLIB_SOURCES (defined in CMakeSources.lst)
 
-if( FORCE_CXX )
-    set_source_files_properties( ${VIDLIB_SOURCES}  PROPERTIES LANGUAGE CXX )
-endif( FORCE_CXX )
-
 if( __NO_ODBC__ OR NOT USE_OPTIONS )
    ADD_DEFINITIONS( -D__NO_OPTIONS__ )
 endif( __NO_ODBC__ OR NOT USE_OPTIONS )
@@ -29,7 +25,7 @@ SET_TARGET_PROPERTIES(bag.video PROPERTIES
 my_target_link_libraries( bag.video bag ${EXTERNALS} ${OPENGL_LIBRARY}  ${PLATFORM_LIBRARIES})
 
 # this is linked to bag.image because of obsolete sprite methods
-my_target_link_libraries( bag.video bag.image )
+#my_target_link_libraries( bag.video bag.image )
 
 
 set( SACK_VIDEO_LIBRARY bag.video )

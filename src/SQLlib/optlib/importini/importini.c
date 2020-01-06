@@ -107,7 +107,7 @@ void ProcessINIFile( CTEXTSTR filename, TEXTCHAR *pData, uint32_t nData )
 
 
 //void CPROC ReadINIFile( uintptr_t psv, char *filename, int flags )
-void CPROC ReadINIFile( uintptr_t psv,  CTEXTSTR filename, int flags )
+void CPROC ReadINIFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileProcessFlags flags )
 {
 	FILE *handle;
 	handle = sack_fopen( 0, filename, "rb" );

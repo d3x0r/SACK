@@ -9,123 +9,123 @@ RENDER_NAMESPACE
 
 
 static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
-                                       , SetApplicationTitle
-                                       , (void (CPROC*)(Image)) SetApplicationIcon
-                                       , GetDisplaySize
-                                       , SetDisplaySize
-                                       , (PRENDERER (CPROC*)(uint32_t, uint32_t, uint32_t, int32_t, int32_t)) OpenDisplaySizedAt
-                                       , (PRENDERER (CPROC*)(uint32_t, uint32_t, uint32_t, int32_t, int32_t, PRENDERER)) OpenDisplayAboveSizedAt
-                                       , (void (CPROC*)(PRENDERER)) CloseDisplay
-                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t, uint32_t, uint32_t DBG_PASS)) UpdateDisplayPortionEx
-                                       , (void (CPROC*)(PRENDERER DBG_PASS)) UpdateDisplayEx
-                                       , GetDisplayPosition
-                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) MoveDisplay
-                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) MoveDisplayRel
-                                       , (void (CPROC*)(PRENDERER, uint32_t, uint32_t)) SizeDisplay
-                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) SizeDisplayRel
-                                       , MoveSizeDisplayRel
-                                       , (void (CPROC*)(PRENDERER, PRENDERER)) PutDisplayAbove
-                                       , (Image (CPROC*)(PRENDERER)) GetDisplayImage
-                                       , (void (CPROC*)(PRENDERER, CloseCallback, uintptr_t)) SetCloseHandler
-                                       , (void (CPROC*)(PRENDERER, MouseCallback, uintptr_t)) SetMouseHandler
-                                       , (void (CPROC*)(PRENDERER, RedrawCallback, uintptr_t)) SetRedrawHandler
-                                       , (void (CPROC*)(PRENDERER, KeyProc, uintptr_t)) SetKeyboardHandler
-													,  SetLoseFocusHandler
+                                       , ogl_SetApplicationTitle
+                                       , (void (CPROC*)(Image)) ogl_SetApplicationIcon
+                                       , ogl_GetDisplaySize
+                                       , ogl_SetDisplaySize
+                                       , (PRENDERER (CPROC*)(uint32_t, uint32_t, uint32_t, int32_t, int32_t)) ogl_OpenDisplaySizedAt
+                                       , (PRENDERER (CPROC*)(uint32_t, uint32_t, uint32_t, int32_t, int32_t, PRENDERER)) ogl_OpenDisplayAboveSizedAt
+                                       , (void (CPROC*)(PRENDERER)) ogl_CloseDisplay
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t, uint32_t, uint32_t DBG_PASS)) ogl_UpdateDisplayPortionEx
+                                       , (void (CPROC*)(PRENDERER DBG_PASS)) ogl_UpdateDisplayEx
+                                       , ogl_GetDisplayPosition
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) ogl_MoveDisplay
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) ogl_MoveDisplayRel
+                                       , (void (CPROC*)(PRENDERER, uint32_t, uint32_t)) ogl_SizeDisplay
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) ogl_SizeDisplayRel
+                                       , ogl_MoveSizeDisplayRel
+                                       , (void (CPROC*)(PRENDERER, PRENDERER)) ogl_PutDisplayAbove
+                                       , (Image (CPROC*)(PRENDERER)) ogl_GetDisplayImage
+                                       , (void (CPROC*)(PRENDERER, CloseCallback, uintptr_t)) ogl_SetCloseHandler
+                                       , (void (CPROC*)(PRENDERER, MouseCallback, uintptr_t)) ogl_SetMouseHandler
+                                       , (void (CPROC*)(PRENDERER, RedrawCallback, uintptr_t)) ogl_SetRedrawHandler
+                                       , (void (CPROC*)(PRENDERER, KeyProc, uintptr_t)) ogl_SetKeyboardHandler
+													,  ogl_SetLoseFocusHandler
                                           , NULL
-                                       , (void (CPROC*)(int32_t *, int32_t *)) GetMousePosition
-                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) SetMousePosition
-                                       , HasFocus  // has focus
-                                       , GetKeyText
-                                       , IsKeyDown
-                                       , KeyDown
-                                       , DisplayIsValid
-                                       , OwnMouseEx
-                                       , BeginCalibration
-													, SyncRender   // sync
-                                       , MoveSizeDisplay
-                                       , MakeTopmost
-                                       , HideDisplay
-                                       , RestoreDisplay
-                                       , ForceDisplayFocus
-                                       , ForceDisplayFront
-                                       , ForceDisplayBack
-                                       , BindEventToKey
-													, UnbindKey
-													, IsTopmost
+                                       , (void (CPROC*)(int32_t *, int32_t *)) ogl_GetMousePosition
+                                       , (void (CPROC*)(PRENDERER, int32_t, int32_t)) ogl_SetMousePosition
+                                       , ogl_HasFocus  // has focus
+                                       , ogl_GetKeyText
+                                       , ogl_IsKeyDown
+                                       , ogl_KeyDown
+                                       , ogl_DisplayIsValid
+                                       , ogl_OwnMouseEx
+                                       , ogl_BeginCalibration
+													, ogl_SyncRender   // sync
+                                       , ogl_MoveSizeDisplay
+                                       , ogl_MakeTopmost
+                                       , ogl_HideDisplay
+                                       , ogl_RestoreDisplay
+                                       , ogl_ForceDisplayFocus
+                                       , ogl_ForceDisplayFront
+                                       , ogl_ForceDisplayBack
+                                       , ogl_BindEventToKey
+													, ogl_UnbindKey
+													, ogl_IsTopmost
 													, NULL // OkaySyncRender is internal.
-													, IsTouchDisplay
-													, GetMouseState
-													, EnableSpriteMethod
+													, ogl_IsTouchDisplay
+													, ogl_GetMouseState
+													, ogl_EnableSpriteMethod
 #if defined( __ANDROID__ ) || defined( __LINUX__ )
 													, NULL// WinShell_AcceptDroppedFiles
 #else
-													, WinShell_AcceptDroppedFiles
+													, ogl_WinShell_AcceptDroppedFiles
 #endif
-													, PutDisplayIn
+													, ogl_PutDisplayIn
                                        , NULL //MakeDisplayFrom
-													, SetRendererTitle
-													, DisableMouseOnIdle
-													, OpenDisplayAboveUnderSizedAt
-													, SetDisplayNoMouse
-													, Redraw
-													, MakeAbsoluteTopmost
-													, SetDisplayFade
-													, IsDisplayHidden
+													, ogl_SetRendererTitle
+													, ogl_DisableMouseOnIdle
+													, ogl_OpenDisplayAboveUnderSizedAt
+													, ogl_SetDisplayNoMouse
+													, ogl_Redraw
+													, ogl_MakeAbsoluteTopmost
+													, ogl_SetDisplayFade
+													, ogl_IsDisplayHidden
 #ifdef WIN32
-													, GetNativeHandle
+													, ogl_GetNativeHandle
 #endif
-                                       , GetDisplaySizeEx
-													, LockRenderer
-													, UnlockRenderer
-													, NULL  //IssueUpdateLayeredEx
-                                       , RequiresDrawAll
+                                       , ogl_GetDisplaySizeEx
+													, ogl_LockRenderer
+													, ogl_UnlockRenderer
+													, NULL  
+                                       , ogl_RequiresDrawAll
 #ifndef NO_TOUCH
-													, SetTouchHandler
+													, ogl_SetTouchHandler
 #endif
-                                       , MarkDisplayUpdated
-									   , SetHideHandler
-									   , SetRestoreHandler
-													, RestoreDisplayEx
+                                       , ogl_MarkDisplayUpdated
+									   , ogl_SetHideHandler
+									   , ogl_SetRestoreHandler
+													, ogl_RestoreDisplayEx
 #if defined( __ANDROID__ )
-                                       , SACK_Vidlib_ShowInputDevice
-													, SACK_Vidlib_HideInputDevice
+                                       , ogl_SACK_Vidlib_ShowInputDevice
+													, ogl_SACK_Vidlib_HideInputDevice
 #else
 													, NULL   //SACK_Vidlib_ShowInputDevice
                                        , NULL   //SACK_Vidlib_HideInputDevice
 #endif
-									   , PureGL2_Vidlib_AllowsAnyThreadToUpdate
+									   , ogl_PureGL2_Vidlib_AllowsAnyThreadToUpdate
 									   , NULL // SetDisplayFullScreen
-									   , PureGL2_Vidlib_SuspendSystemSleep
+									   , ogl_PureGL2_Vidlib_SuspendSystemSleep
 									   , NULL //PureGL2_Vidlib_RenderIsInstanced
 									   , NULL // PureGL2_Vidlib_VidlibRenderAllowsCopy
-									   , PureGL2_Vidlib_SetDisplayCursor
+									   , ogl_PureGL2_Vidlib_SetDisplayCursor
 };
 
 RENDER3D_INTERFACE Render3d = {
-	GetRenderTransform
+	ogl_GetRenderTransform
 										, NULL
-                              , GetViewVolume
+                              , ogl_GetViewVolume
 };
 
 #undef GetDisplayInterface
 #undef DropDisplayInterface
 
-POINTER  CPROC GetDisplayInterface (void)
+POINTER  CPROC ogl_GetDisplayInterface (void)
 {
    return (POINTER)&VidInterface;
 }
 
-void  CPROC DropDisplayInterface (POINTER p)
+void  CPROC ogl_DropDisplayInterface (POINTER p)
 {
 }
 
 #undef GetDisplay3dInterface
-POINTER CPROC GetDisplay3dInterface (void)
+POINTER CPROC ogl_GetDisplay3dInterface (void)
 {
 	return (POINTER)&Render3d;
 }
 
-void  CPROC DropDisplay3dInterface (POINTER p)
+void  CPROC ogl_DropDisplay3dInterface (POINTER p)
 {
 }
 

@@ -127,7 +127,7 @@ RENDER_PROC( LOGICAL, KeyDouble )( PRENDERER hVideo, int c )
 {
 	if( hVideo )
 	{
-		if( KeyDown( hVideo, c) )
+		if( ogl_KeyDown( hVideo, c) )
 			if( hVideo->kbd.keydouble[c] )
 			{
 				hVideo->kbd.keydouble[c] = FALSE;  // clear keydouble....... incomplete...
@@ -136,7 +136,7 @@ RENDER_PROC( LOGICAL, KeyDouble )( PRENDERER hVideo, int c )
 	}
 	else
 	{
-		if( KeyDown( hVideo, c) )
+		if( ogl_KeyDown( hVideo, c) )
 			if( l.kbd.keydouble[c] )
 			{
 				l.kbd.keydouble[c] = FALSE;  // clear keydouble....... incomplete...

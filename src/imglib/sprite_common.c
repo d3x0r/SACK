@@ -30,17 +30,17 @@ static PSPRITE MakeSpriteEx( DBG_VOIDPASS )
    return ps;
 }
 
-  PSPRITE  MakeSpriteImageEx ( ImageFile *Image DBG_PASS)
+  PSPRITE  IMGVER(MakeSpriteImageEx )( ImageFile *Image DBG_PASS)
 {
    PSPRITE ps = MakeSpriteEx( DBG_VOIDRELAY );
    ps->image = Image;
    return ps;
 }
 
-  PSPRITE  MakeSpriteImageFileEx ( CTEXTSTR fname DBG_PASS )
+  PSPRITE  IMGVER(MakeSpriteImageFileEx )( CTEXTSTR fname DBG_PASS )
 {
    PSPRITE ps = MakeSpriteEx( DBG_VOIDRELAY );
-   ps->image = LoadImageFileEx( fname DBG_RELAY );
+   ps->image = IMGVER(LoadImageFileEx)( fname DBG_RELAY );
    if( !ps->image )
    {
       ReleaseEx( ps DBG_RELAY );
@@ -49,11 +49,11 @@ static PSPRITE MakeSpriteEx( DBG_VOIDPASS )
    return ps;
 }
 
-void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
+void IMGVER(UnmakeSprite)( PSPRITE sprite, int bForceImageAlso )
 {
 	if( bForceImageAlso )// of if the sprite was created by name...
 	{
-      UnmakeImageFile( sprite->image );
+      IMGVER(UnmakeImageFileEx)( sprite->image DBG_SRC );
 	}
    Deallocate( PSPRITE, sprite );
 }
@@ -61,7 +61,7 @@ void UnmakeSprite( PSPRITE sprite, int bForceImageAlso )
 
 
 
-PSPRITE SetSpriteHotspot( PSPRITE sprite, int32_t x, int32_t y )
+PSPRITE IMGVER(SetSpriteHotspot)( PSPRITE sprite, int32_t x, int32_t y )
 {
 	if( sprite )
 	{
@@ -71,7 +71,7 @@ PSPRITE SetSpriteHotspot( PSPRITE sprite, int32_t x, int32_t y )
    return sprite;
 }
 
-PSPRITE SetSpritePosition( PSPRITE sprite, int32_t x, int32_t y )
+PSPRITE IMGVER(SetSpritePosition)( PSPRITE sprite, int32_t x, int32_t y )
 {
 	if( sprite )
 	{

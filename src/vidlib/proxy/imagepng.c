@@ -88,7 +88,7 @@ static void CPROC NotSoFatalError( png_structp png_ptr, png_const_charp c )
 	lprintf( "Error in PNG stuff: %s", c );
 }
 
-LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size)
+LOGICAL vid_proxy_PngImageFile ( Image pImage, uint8_t ** buf, size_t *size)
 {
 	png_structp png_ptr;
 	png_infop info_ptr;
@@ -108,7 +108,6 @@ LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size)
 	info_ptr = png_create_info_struct(png_ptr);
 	if (!info_ptr)
 	{
-no_mem2:
 		png_destroy_write_struct(&png_ptr,
 			(png_infopp)NULL);
 		return FALSE;

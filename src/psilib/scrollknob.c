@@ -20,21 +20,26 @@ typedef struct scroll_knob
 	uintptr_t psvEvent;
 
 	Image knob_image;
-   PSPRITE knob_sprite;
+	PSPRITE knob_sprite;
 	CTEXTSTR knob_image_file;
 
 
 	fixed zero_angle;
 	fixed width_scale;
-   fixed height_scale;
+	fixed height_scale;
 
 } ScrollKnob, *PScrollKnob;
 
-EasyRegisterControl( CONTROL_SCROLL_KNOB_NAME, sizeof( ScrollKnob ) );
+//EasyRegisterControl( CONTROL_SCROLL_KNOB_NAME, sizeof( ScrollKnob ) );
+
+static CONTROL_REGISTRATION scrollKnobControl= { CONTROL_SCROLL_KNOB_NAME
+			, { 32, 32, sizeof( ScrollKnob ), BORDER_THINNER } };
+PRELOAD( scrollKnobProgressBarcontrol ){ DoRegisterControl( &scrollKnobControl ); }
+static uint32_t* sk_MyControlID = &scrollKnobControl.TypeID;
 
 static int OnCreateCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 {
-   PScrollKnob knob = ControlData( PScrollKnob, pc );
+	PScrollKnob knob = ControlData( PScrollKnob, pc );
 	knob->width_scale = 0x100000000ULL;
 	knob->height_scale = 0x100000000ULL;
 
@@ -43,7 +48,7 @@ static int OnCreateCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 
 static int OnMouseCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
-	PScrollKnob knob = ControlData( PScrollKnob, pc );
+	ValidatedControlData( PScrollKnob, sk_MyControlID[0], knob, pc );
 	int arc;
 	uint32_t w, h;
 	Image surface;
@@ -173,7 +178,7 @@ static int OnMouseCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, int32_t x,
 
 static int OnDrawCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 {
-	PScrollKnob knob = ControlData( PScrollKnob, pc );
+	ValidatedControlData( PScrollKnob, sk_MyControlID[0], knob, pc );
 	if( knob )
 	{
 		Image surface;
@@ -207,7 +212,7 @@ static int OnDrawCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 #ifndef NO_TOUCH
 static int OnTouchCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, PINPUT_POINT inputs, int input_count )
 {
-	PScrollKnob knob = ControlData( PScrollKnob, pc );
+	ValidatedControlData( PScrollKnob, sk_MyControlID[0], knob, pc );
 	if( knob )
 	{
 	}
@@ -217,17 +222,17 @@ static int OnTouchCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc, PINPUT_POI
 
 void SetScrollKnobEvent( PSI_CONTROL pc, KnobEvent event, uintptr_t psvEvent )
 {
-	PScrollKnob knob = ControlData( PScrollKnob, pc );
+	ValidatedControlData( PScrollKnob, sk_MyControlID[0], knob, pc );
 	if( knob )
 	{
 		knob->psvEvent = psvEvent;
-      knob->event_handler = event;
+		knob->event_handler = event;
 	}
 }
 
 PSI_PROC( void, SetScrollKnobImageName )( PSI_CONTROL pc, CTEXTSTR image )
 {
-	PScrollKnob knob = ControlData( PScrollKnob, pc );
+	ValidatedControlData( PScrollKnob, sk_MyControlID[0], knob, pc );
 	if( knob )
 	{
 		knob->knob_image_file = StrDup( image );
@@ -280,10 +285,10 @@ PSI_PROC( void, SetScrollKnobImage )( PSI_CONTROL pc, Image image )
 // angle is a fixed scaled integer with 0x1 0000 0000 being the full circle.
 PSI_PROC( void, SetScrollKnobImageZeroAngle )( PSI_CONTROL pc, fixed angle )
 {
-	PScrollKnob knob = ControlData( PScrollKnob, pc );
+	ValidatedControlData( PScrollKnob, sk_MyControlID[0], knob, pc );
 	if( knob )
 	{
-      knob->zero_angle = angle;
+		knob->zero_angle = angle;
 	}
 }
 

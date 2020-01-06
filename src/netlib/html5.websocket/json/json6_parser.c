@@ -76,11 +76,11 @@ char *json6_escape_string( const char *string ) {
 						| ( ( result & 0x3f0000 ) >> 10 )    \
 						| ( ( result & 0x3f000000 ) >> 24 ) ) )
 
-#define get4Chars(p) ((((TEXTRUNE*) ((uint32_t)(p) & ~(sizeof(uint32_t)-1)) )[0]  \
-				>> (CHAR_BIT*((uint32_t)(p) & (sizeof(uint32_t)-1))))             \
-			| (( ((uint32_t)(p)) & sizeof(uint32_t)-1 )                          \
-				? (((TEXTRUNE*) ((uint32_t)(p) & ~(sizeof(uint32_t)-1)) )[1]      \
-					<< (CHAR_BIT*(4-((uint32_t)(p) & (sizeof(uint32_t)-1))))     \
+#define get4Chars(p) ((((TEXTRUNE*) ((uintptr_t)(p) & ~(sizeof(uint32_t)-1)) )[0]  \
+				>> (CHAR_BIT*((uintptr_t)(p) & (sizeof(uint32_t)-1))))             \
+			| (( ((uintptr_t)(p)) & (sizeof(uint32_t)-1) )                          \
+				? (((TEXTRUNE*) ((uintptr_t)(p) & ~(sizeof(uint32_t)-1)) )[1]      \
+					<< (CHAR_BIT*(4-((uintptr_t)(p) & (sizeof(uint32_t)-1)))))     \
 				:(TEXTRUNE)0 ))
 
 #define __GetUtfChar( result, from )           ((result = get4Chars(*from)),     \
@@ -227,6 +227,8 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				// fall through to clear escape status <CR><LF> support.
 			case 2028: // LS (Line separator)
 			case 2029: // PS (paragraph separate)
+				// escaped whitespace is nul'ed.
+				state->escape = 0;
 				continue;
 			case '/':
 			case '\\':
@@ -1186,7 +1188,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					PushLink( state->outBuffers, output );
 					if( state->parse_context == CONTEXT_UNKNOWN
 					  && ( state->val.value_type != VALUE_UNSET
-					     || state->elements[0]->Cnt ) ) {
+					     || ( state->elements && state->elements[0]->Cnt ) ) ) {
 						if( state->word == WORD_POS_END ) {
 							state->word = WORD_POS_RESET;
 						}
@@ -1383,8 +1385,8 @@ LOGICAL json6_parse_message( const char * msg
 }
 
 void getJson6Ticks( int *tickBuf ) {
-    int n;
 # ifdef DEBUG_LOG_TIMING
+    int n;
     for( n = 0; n < sizeof( ticks ) / sizeof(ticks[0] ); n++ ) {
 	tickBuf[n] = ticks[n];
     }

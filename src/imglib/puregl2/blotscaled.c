@@ -29,7 +29,7 @@
 #include <sharemem.h>
 #include <imglib/imagestruct.h>
 #include <colordef.h>
-#include "image.h"
+#include <image.h>
 #include "local.h"
 #define NEED_ALPHA2
 #include "blotproto.h"
@@ -125,7 +125,7 @@ typedef struct rect_tag {
 
 //---------------------------------------------------------------------------
 
-         void CPROC cBlotScaledT0( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledT0( SCALED_BLOT_WORK_PARAMS
                                  )
 {
 	ScaleLoopStart
@@ -138,7 +138,7 @@ typedef struct rect_tag {
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledT1( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledT1( SCALED_BLOT_WORK_PARAMS
                         )
 {
    ScaleLoopStart
@@ -148,7 +148,7 @@ void CPROC cBlotScaledT1( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledTA( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledTA( SCALED_BLOT_WORK_PARAMS
                       , uint32_t nTransparent )
 {
    ScaleLoopStart
@@ -162,7 +162,7 @@ void CPROC cBlotScaledTA( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledTImgA(SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledTImgA(SCALED_BLOT_WORK_PARAMS
                       , uint32_t nTransparent )
 {
    ScaleLoopStart
@@ -179,7 +179,7 @@ void CPROC cBlotScaledTImgA(SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledTImgAI( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledTImgAI( SCALED_BLOT_WORK_PARAMS
                       , uint32_t nTransparent )
 {
 
@@ -198,7 +198,7 @@ void CPROC cBlotScaledTImgAI( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledShadedT0( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledShadedT0( SCALED_BLOT_WORK_PARAMS
                        , CDATA shade )
 {
    ScaleLoopStart
@@ -210,7 +210,7 @@ void CPROC cBlotScaledShadedT0( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledShadedT1( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledShadedT1( SCALED_BLOT_WORK_PARAMS
                        , CDATA shade )
 {
    ScaleLoopStart
@@ -221,7 +221,7 @@ void CPROC cBlotScaledShadedT1( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledShadedTA( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledShadedTA( SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA shade )
 {
@@ -236,7 +236,7 @@ void CPROC cBlotScaledShadedTA( SCALED_BLOT_WORK_PARAMS
 }                    
 
 //---------------------------------------------------------------------------
-void CPROC cBlotScaledShadedTImgA( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledShadedTImgA( SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA shade )
 {
@@ -254,7 +254,7 @@ void CPROC cBlotScaledShadedTImgA( SCALED_BLOT_WORK_PARAMS
 }                    
 
 //---------------------------------------------------------------------------
-void CPROC cBlotScaledShadedTImgAI( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledShadedTImgAI( SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA shade )
 {
@@ -276,7 +276,7 @@ void CPROC cBlotScaledShadedTImgAI( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledMultiT0( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledMultiT0( SCALED_BLOT_WORK_PARAMS
                        , CDATA r
                        , CDATA g
                        , CDATA b )
@@ -290,7 +290,7 @@ void CPROC cBlotScaledMultiT0( SCALED_BLOT_WORK_PARAMS
             
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledMultiT1(  SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledMultiT1(  SCALED_BLOT_WORK_PARAMS
                        , CDATA r
                        , CDATA g
                        , CDATA b )
@@ -306,7 +306,7 @@ void CPROC cBlotScaledMultiT1(  SCALED_BLOT_WORK_PARAMS
 }
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledMultiTA(  SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledMultiTA(  SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA r
                        , CDATA g
@@ -326,7 +326,7 @@ void CPROC cBlotScaledMultiTA(  SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledMultiTImgA( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledMultiTImgA( SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA r
                        , CDATA g
@@ -349,7 +349,7 @@ void CPROC cBlotScaledMultiTImgA( SCALED_BLOT_WORK_PARAMS
 
 //---------------------------------------------------------------------------
 
-void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
+static void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
                        , uint32_t nTransparent 
                        , CDATA r
                        , CDATA g
@@ -377,7 +377,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 // x, y location on dest
 // w, h are actual width and height to span...
 
- void  BlotScaledImageSizedEx ( ImageFile *pifDest, ImageFile *pifSrc
+ void  IMGVER(BlotScaledImageSizedEx) ( ImageFile *pifDest, ImageFile *pifSrc
                                     , int32_t xd, int32_t yd
                                     , uint32_t wd, uint32_t hd
                                     , int32_t xs, int32_t ys
@@ -518,7 +518,7 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 		// closed loop to get the top imgae size.
 		for( topmost_parent = pifSrc; topmost_parent->pParent; topmost_parent = topmost_parent->pParent );
 
-		ReloadOpenGlTexture( pifSrc, 0 );
+		IMGVER(ReloadOpenGlTexture)( pifSrc, 0 );
 		if( !pifSrc->glActiveSurface )
 		{
 			lprintf( "gl texture hasn't downloaded or went away?" );
@@ -538,8 +538,8 @@ void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 			 * only a portion of the image is actually used, the rest is filled with blank space
 			 *
 			 */
-			TranslateCoord( pifDest, &xd, &yd );
-			TranslateCoord( pifSrc, &xs, &ys );
+			IMGVER(TranslateCoord)( pifDest, &xd, &yd );
+			IMGVER(TranslateCoord)( pifSrc, &xs, &ys );
 
 			v[vi][0][0] = xd;
 			v[vi][0][1] = yd;

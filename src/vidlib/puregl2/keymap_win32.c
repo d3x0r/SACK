@@ -19,7 +19,7 @@ RENDER_NAMESPACE
 
 // key_events has this
 
-const TEXTCHAR*  GetKeyText (int key)
+const TEXTCHAR*  ogl_GetKeyText (int key)
 {
 	static int c;
 	static char ch[5];
@@ -66,7 +66,7 @@ const TEXTCHAR*  GetKeyText (int key)
 #ifdef USE_KEYHOOK
 #ifndef __NO_WIN32API__
 LRESULT CALLBACK
-   KeyHook (int code,      // hook code
+   ogl_KeyHook (int code,      // hook code
 				WPARAM wParam,    // virtual-key code
 				LPARAM lParam     // keystroke-message information
 			  )
@@ -227,7 +227,7 @@ LRESULT CALLBACK
 }
 
 LRESULT CALLBACK
-   KeyHook2 (int code,      // hook code
+   ogl_KeyHook2 (int code,      // hook code
 				WPARAM wParam,    // virtual-key code
 				LPARAM lParam     // keystroke-message information
 			  )

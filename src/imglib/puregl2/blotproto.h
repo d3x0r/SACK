@@ -81,6 +81,7 @@ static uint32_t _XXr, _XXg, _XXb, aout, atmp, atmp2;
  	   ScalarAlphaTable[(RedVal(pixel)?AlphaVal(r):255)][ScalarAlphaTable[(BlueVal(pixel)?AlphaVal(b):255)][(GreenVal(pixel)?AlphaVal(g):255) ] ] ]) )
 #endif
 
+#if 0
 //-----------------------------------------------------------
 
 void  CPROC cCopyPixelsT0( PCDATA po, PCDATA  pi       
@@ -433,7 +434,7 @@ BLOT_EXTERN void (CPROC*CopyPixelsMultiTImgAI)( PCDATA po, PCDATA  pi
 #endif
 								  ;
 
-
+#endif
 //-----------------------------------------------------------
 //-----------------------------------------------------------
 //-----------------------------------------------------------
@@ -443,7 +444,7 @@ BLOT_EXTERN void (CPROC*CopyPixelsMultiTImgAI)( PCDATA po, PCDATA  pi
 				          , uint32_t dwd, uint32_t dhd                \
 				          , uint32_t dws, uint32_t dhs                \
 				          , uint32_t oo, uint32_t srcpwidth
-
+#if 0
 void CPROC cBlotScaledT0( SCALED_BLOT_WORK_PARAMS );   
 void CPROC cBlotScaledT1( SCALED_BLOT_WORK_PARAMS );   
 void CPROC cBlotScaledTA( SCALED_BLOT_WORK_PARAMS
@@ -715,7 +716,7 @@ BLOT_EXTERN void (CPROC*BlotScaledMultiTImgAI)( SCALED_BLOT_WORK_PARAMS
 								  = cBlotScaledMultiTImgAI
 #endif
 								  ; 
-
+#endif
 
 #ifdef __cplusplus
 } // extern "C"

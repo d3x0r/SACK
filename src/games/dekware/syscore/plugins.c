@@ -60,8 +60,8 @@ void DumpLoadedPluginList( PSENTIENT ps )
 PPLUGIN AddPlugin( CTEXTSTR pName )
 {
 	PPLUGIN pPlugin;
-	pPlugin = NewPlus( PLUGIN, StrLen( pName ) + 1 );
-	MemSet( pPlugin, 0, sizeof( PLUGIN ) );
+	pPlugin = NewPlus( struct plugin_tag, StrLen( pName ) + 1 );
+	MemSet( pPlugin, 0, sizeof(*pPlugin) );
 	StrCpy( pPlugin->pName, pName );
 
 	pPluginLoading = pPlugin;
@@ -141,55 +141,6 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 		//Unload = (UnloadPluginProc)LoadPrivateFunctionEx( pFile, "UnloadPlugin" DBG_SRC );
 		if( pPlugin->RegisterRoutines )
 		{
-			if( !pPlugin->pVersion ) {
-
-				pPlugin->pVersion = StrDup( DekVersion ); // benefit of the doubt...
-			}
-			Log2( "Loaded a plugin: %s(%s)", pFile, pPlugin->pVersion );
-			if( pPlugin->pVersion )
-			{  
-				int dots = 0;
-				TEXTCHAR *chkVersion = pPlugin->pVersion, *chkDekVersion = DekVersion;
-				while( chkVersion[0] && chkDekVersion[0] )
-				{
-					// version must match X.X only
-					// 2.0.0 == 2.0.12
-					// dbg2.0.3 == dbg2.0.35
-					// 2.01.0 != 2.1.0
-					if( chkVersion[0] == '.' )
-					{
-						if( dots )
-							break; // second '.' is end of comparison...
-						dots++;
-					}
-					if( chkVersion[0] != chkDekVersion[0] )
-					{
-						TEXTCHAR byMsg[256];
-						snprintf( byMsg, sizeof( byMsg ), "Plugin %s is version %s not version %s."
-										, pFile, pPlugin->pVersion, DekVersion  );
-#ifdef _WIN32
-						MessageBox( NULL, byMsg, "Plugin Failure", MB_OK );
-#else
-						fprintf( stderr, "%s\n", byMsg );
-#endif
-						UnloadPlugin( pPluginLoading );
-						break; // do NOT continue testing version!
-					}
-					chkVersion++;
-					chkDekVersion++;  
-				}
-			}
-			else
-			{
-				TEXTCHAR byMsg[256];
-				snprintf( byMsg, sizeof( byMsg ), "Plugin %s did not return proper version information", pFile );
-#ifdef _WIN32
-				MessageBox( NULL, byMsg, "Plugin Version Failure", MB_OK );
-#else
-				fprintf( stderr, "%s\n", byMsg );
-#endif
-				AbortPlugin();
-			}
 		}
 		else
 		{
@@ -298,9 +249,9 @@ void LoadPlugins( CTEXTSTR base )
 	if( !pluginfile )
 	{
 #ifdef __ANDROID__
-		while( ScanFiles( base, "lib*.nex.so", &pInfo, LoadAPlugin, 0, 0 ) );
+		while( ScanFiles( base, "lib*.nex.so", &pInfo, LoadAPlugin, SFF_DEFAULT, 0 ) );
 #else
-		while( ScanFiles( base, "*.nex", &pInfo, LoadAPlugin, 0, 0 ) );
+		while( ScanFiles( base, "*.nex", &pInfo, LoadAPlugin, SFF_DEFAULT, 0 ) );
 #endif
 	}
 	else
@@ -329,13 +280,13 @@ void LoadPlugins( CTEXTSTR base )
 					LineRelease( result );
 				}
 
-				while( ScanFiles( filename, r+1, &pInfo, LoadAPlugin, 0, 0 ) );
+				while( ScanFiles( filename, r+1, &pInfo, LoadAPlugin, SFF_DEFAULT, 0 ) );
 				if( bAppended )
 					OSALOT_SetEnvironmentVariable( "PATH", old_environ );
 			}
 			else
 			{
-				while( ScanFiles( base, buf, &pInfo, LoadAPlugin, 0, 0 ) );
+				while( ScanFiles( base, buf, &pInfo, LoadAPlugin, SFF_DEFAULT, 0 ) );
 			}
 		}
 		fclose( pluginfile );
@@ -490,7 +441,7 @@ CORE_PROC( int, RegisterDeviceOpts )( CTEXTSTR pName
 		{
 			TEXTCHAR tmp[64];
 			snprintf( tmp, sizeof( tmp ), "dekware/devices/%d", nTypeID );
-			RegisterClassAlias( root, tmp );
+			RegisterClassAlias( (CTEXTSTR)root, tmp );
 		}
 		
 		if( pOptions && nOptions )
@@ -630,16 +581,16 @@ int CPROC OptionDevice( PSENTIENT ps, PTEXT params )
 				temp = GetParam( ps, &params );
 				//if( pdp->pDevice->pOptions && pdp->pDevice->nOptions )
 				{
-					OptionHandler f;
-					f = GetRegisteredProcedure2( option_root, int, GetText(temp), (PDATAPATH,PSENTIENT,PTEXT) );
-					if( f )
+					OptionHandler fOptionHandler;
+					fOptionHandler = GetRegisteredProcedure2( option_root, int, GetText(temp), (PDATAPATH,PSENTIENT,PTEXT) );
+					if( fOptionHandler )
 					{
 						if( ps->CurrentMacro )
 						{
-							ps->CurrentMacro->state.flags.bSuccess = !f(pdp,ps,params);
+							ps->CurrentMacro->state.flags.bSuccess = !fOptionHandler(pdp,ps,params);
 						}
 						else
-							f(pdp, ps, params );
+							fOptionHandler(pdp, ps, params );
 						return 0;
 					}
 					else
@@ -755,7 +706,7 @@ PDATAPATH OpenDevice( PDATAPATH *pChannel, PSENTIENT ps, PTEXT pName, PTEXT para
 					RegisterIntValue( (CTEXTSTR)pdp->pDeviceRoot, "TypeID", nTypeID );
 					RegisterValue( (CTEXTSTR)pdp->pDeviceRoot, "Name", GetText( pName  ) );
 					snprintf( tmp, sizeof( tmp ), "%d", nTypeID );
-					RegisterClassAlias( GetClassRootEx( (PCLASSROOT)"dekware/devices", tmp ), pdp->pDeviceRoot );
+					RegisterClassAlias( (CTEXTSTR)GetClassRootEx( (PCLASSROOT)"dekware/devices", (PCLASSROOT)tmp ), (CTEXTSTR)pdp->pDeviceRoot );
 				}
 				pdp->Type = nTypeID;
 				//SetDatapathType( pdp, (int)id );
@@ -916,7 +867,7 @@ CORE_PROC( void, RegisterObjectEx )( CTEXTSTR pName
 {
 	// should confirm the names... and delete duplicates...
 	SimpleRegisterMethod( "dekware/objects", Init, "int", pName, "(PSENTIENT,PENTITY,PTEXT)");
-	RegisterValueExx( "dekware/objects", pName, "Description", FALSE, pDescription );
+	RegisterValueExx( (PCLASSROOT)"dekware/objects", pName, "Description", FALSE, pDescription );
 }
 
 ObjectInit ScanRegisteredObjects( PENTITY pe, CTEXTSTR for_name )

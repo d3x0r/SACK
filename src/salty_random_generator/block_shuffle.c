@@ -4,9 +4,13 @@
 #include <salty_generator.h>
 #include "srg_internal.h"
 
+#ifdef _MSC_VER
+// integer partial expresions summed into 64 bit.
+// partial lower bit expressions
 // disable warnings about integer partial expressions being used
 // to sum to larger integers.
-#pragma warning( disable: 26451 ) 
+#  pragma warning( disable: 26451 )
+#endif
 
 struct block_shuffle_key
 {
@@ -158,7 +162,7 @@ void BlockShuffle_DropByteShuffler( struct byte_shuffle_key *key ) {
 	Release( key );
 }
 
-//0, 43, 86 
+//0, 43, 86
 //128, 171, 214
 
 static uint8_t leftStacks[3][2] = { { 0, 43 }, {43, 43}, {86,42} };
@@ -208,7 +212,7 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 			}
 			root = last+1;
 		}
-		else 
+		else
 			root++;
 	}
 
@@ -284,7 +288,7 @@ struct byte_shuffle_key *BlockShuffle_ByteShufflerSE( struct random_context *ctx
 	}
 
 	int t[2] = { 0, 0 };
-		
+
 	SRG_GetBit_( lrStart, ctx );
 	for( n = 0; (t[0] < 43 || t[1] < 43) && n < 86; n++ ) {
 		int bit;
@@ -439,7 +443,7 @@ void BlockShuffle_SubByte( struct byte_shuffle_key *key
 
 void BlockShuffle_SubBytes( struct byte_shuffle_key *key
 	, uint8_t *bytes_input, uint8_t *bytes_output
-	, size_t byteCount ) 
+	, size_t byteCount )
 {
 	size_t n;
 	uint8_t *map = key->map;
@@ -456,7 +460,7 @@ void BlockShuffle_BusByte( struct byte_shuffle_key *key
 
 void BlockShuffle_BusBytes( struct byte_shuffle_key *key
 	, uint8_t *bytes_input, uint8_t *bytes_output
-	, size_t byteCount ) 
+	, size_t byteCount )
 {
 	size_t n;
 	uint8_t *map = key->dmap;
@@ -464,3 +468,11 @@ void BlockShuffle_BusBytes( struct byte_shuffle_key *key
 		bytes_output[0] = map[bytes_input[0]];
 	}
 }
+
+#ifdef _MSC_VER
+// integer partial expresions summed into 64 bit.
+// partial lower bit expressions
+// disable warnings about integer partial expressions being used
+// to sum to larger integers.
+#  pragma warning( default: 26451 )
+#endif

@@ -1369,7 +1369,6 @@ int PSI_DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
          default:
          normal_process:
             {
-               PTEXT pLine;
                if( pdp->flags.bDirect && pdp->flags.bCharMode )
                {
                   PTEXT newseg = TextDuplicate( stroke, FALSE );

@@ -1775,7 +1775,7 @@ retry:
 					if( table->comment )
 						vtprintf( pvtCreate, " COMMENT=\'%s\'", table->comment );
 				}
-				PopODBCEx(odbc);
+				//PopODBCEx(odbc);
 
 				txt_cmd = VarTextPeek( pvtCreate );
 				if( f_odbc )

@@ -392,7 +392,7 @@ MEM_PROC  POINTER MEM_API  AllocateEx ( uintptr_t nSize DBG_PASS );
    Returns
    A pointer to type. (this is important, since in C++ it's cast
    correctly to the destination type).                           */
-#define NewArray(type,count) ((type*)HeapAllocate(0,sizeof(type)*(count)))
+#define NewArray(type,count) ((type*)HeapAllocate(0,(uintptr_t)(sizeof(type)*(count))))
 /* Allocate sizeof(type). Will invoke some sort of registered
    initializer
    Parameters

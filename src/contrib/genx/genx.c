@@ -20,12 +20,7 @@
 #define False 0
 #define STRLEN_XMLNS_COLON 6
 
-#ifdef __cplusplus
-namespace sack {
-	namespace xml {
-		namespace gen {
-//using namespace sack::xml::gen;
-#endif
+GENX_NAMESPACE
 
 /*******************************
  * writer state
@@ -1954,10 +1949,6 @@ const char * genxGetVersion()
 {
   return GENX_VERSION;
 }
-#ifdef __cplusplus
-		} //namespace sack {
-	} //namespace xml {
-} //namespace gen {
-//using namespace sack::xml::gen;
-#endif
- 
+
+GENX_NAMESPACE_END
+

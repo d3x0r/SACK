@@ -362,7 +362,8 @@ int PSSQL_AddSqliteFunction( PODBC odbc
 	, void( *callDestroy )( void* )
 	, int args
 	, void *userData ) {
-	return sqlite3_create_function_v2(
+	if( odbc->flags.bSQLite_native )
+		return sqlite3_create_function_v2(
 	    odbc->db //sqlite3 *,
 	    , name  //const char *zFunctionName,
 	    , args //int nArg,
@@ -373,6 +374,7 @@ int PSSQL_AddSqliteFunction( PODBC odbc
 	    , NULL //void (*xFinal)(sqlite3_context*)
 	    , callDestroy
 	);
+   return -1;
 }
 
 int PSSQL_AddSqliteProcedure( PODBC odbc
@@ -381,6 +383,7 @@ int PSSQL_AddSqliteProcedure( PODBC odbc
 	, void( *callDestroy )( void* )
 	, int args
 	, void *userData ) {
+	if( odbc->flags.bSQLite_native )
 	return sqlite3_create_function_v2(
 	    odbc->db //sqlite3 *,
 	    , name  //const char *zFunctionName,
@@ -392,6 +395,7 @@ int PSSQL_AddSqliteProcedure( PODBC odbc
 	    , NULL //void (*xFinal)(sqlite3_context*)
 	    , callDestroy
 	);
+   return -1;
 }
 
 int PSSQL_AddSqliteAggregate( PODBC odbc
@@ -401,6 +405,7 @@ int PSSQL_AddSqliteAggregate( PODBC odbc
 	, void( *callDestroy )( void* )
 	, int args
 	, void *userData ) {
+	if( odbc->flags.bSQLite_native )
 	return sqlite3_create_function_v2(
 	    odbc->db //sqlite3 *,
 	    , name  //const char *zFunctionName,
@@ -411,7 +416,8 @@ int PSSQL_AddSqliteAggregate( PODBC odbc
 	    , callStep //void (*xStep)(sqlite3_context*,int,sqlite3_value**),
 	    , callFinal //void (*xFinal)(sqlite3_context*)
 	    , callDestroy
-	);
+												);
+   return -1;
 }
 
 
@@ -469,8 +475,18 @@ const char * PSSQL_GetColumnTableName( PODBC odbc, int col) {
 			return tmp;
 		}
 	}
-	else
-		return "?";
+#ifdef USE_ODBC
+	else {
+		PCOLLECT pCollect;
+		pCollect = odbc ? odbc->collection : NULL;
+		if( pCollect ) {
+			static SQLCHAR colname[256];
+			static SQLSMALLINT len;
+			SQLColAttribute( pCollect->hstmt, col, SQL_DESC_BASE_TABLE_NAME, colname, 256, &len, NULL );
+			return (char const *)colname;
+		}
+	}
+#endif
 	return NULL;
 }
 const char * PSSQL_GetColumnTableAliasName( PODBC odbc, int col ) {
@@ -485,13 +501,18 @@ const char * PSSQL_GetColumnTableAliasName( PODBC odbc, int col ) {
 			return tmp;
 		}
 	}
+#ifdef USE_ODBC
 	else {
 		PCOLLECT pCollect;
 		pCollect = odbc ? odbc->collection : NULL;
 		if( pCollect ) {
+			static SQLCHAR colname[256];
+			static SQLSMALLINT len;
+			SQLColAttribute( pCollect->hstmt, col, SQL_DESC_TABLE_NAME, colname, 256, &len, NULL );
+			return (char const *)colname;
 		}
-		return "?";
 	}
+#endif
 	return NULL;
 }
 
@@ -711,6 +732,9 @@ static void DumpODBCInfo( PODBC odbc )
 					 , c->flags.bPushed?"Pushed":"Auto"
 					 , c->flags.bEndOfFile?"EOF":"more"
 					 );
+#if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+			lprintf( "odbc->stmt: %p", c->stmt );
+#endif
 			lprintf( "\tCommand: %s"
 					 , GetText( VarTextPeek( c->pvt_out ) )
 					 );
@@ -1827,7 +1851,7 @@ static uintptr_t CPROC CommitThread( PTHREAD thread )
 		//lprintf( "waiting..." );
 		// if it expires, set tick and get out of loop
 		// clearing last_command_tick will also end the thread (a manual sqlcommit on the connection)
-		if( odbc->last_command_tick < ( timeGetTime() - 500 ) )
+		if( odbc->last_command_tick < ( timeGetTime() - 50 ) )
 		{
 			if( ( !odbc->flags.bThreadProtect )
 				|| EnterCriticalSecNoWait( &odbc->cs, NULL ) )
@@ -1837,7 +1861,7 @@ static uintptr_t CPROC CommitThread( PTHREAD thread )
 				break;
 			}
 		}
-		WakeableSleep( 250 );
+		WakeableSleep( 25 );
 	}
 
 	// a SQLCommit may have happened outside of this, which cleas last_command_tick
@@ -2755,6 +2779,7 @@ void CloseDatabase( PODBC odbc )
 int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 {
 	int retry = 0;
+   int log = 0;
 #ifdef USE_ODBC
 	RETCODE rc;
 #endif
@@ -2819,8 +2844,10 @@ corruptRetry:
 		if( odbc->flags.bNoLogging )
 			//odbc->hidden_messages++
 			;
-		else
+		else {
 			_lprintf(DBG_RELAY)( "Do Command[%p:%s]: %s", odbc, odbc->info.pDSN?odbc->info.pDSN:"NoDSN?", GetText( cmd ) );
+         log = 1;
+		}
 	}
 
 #ifdef LOG_EVERYTHING
@@ -2887,11 +2914,14 @@ retry:
 				break;
 			case SQLITE_BUSY:
 				// going to retry the statement as a whole anyhow.
+				if(log ) {
+					lprintf( "BUSY - WHY?" );
+					DumpAllODBCInfo();
+				}
 				sqlite3_finalize( collection->stmt );
 				if( !odbc->flags.bNoLogging )
 				{
 					_lprintf(DBG_RELAY)( "Database Busy, waiting on[%p:%s]: %s", odbc, odbc->info.pDSN?odbc->info.pDSN:"NoDSN?", GetText( cmd ) );
-					//DumpAllODBCInfo();
 				}
 				WakeableSleep( 25 );
 				goto retry;
@@ -3310,7 +3340,10 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			switch( rc3 )
 			{
 			case SQLITE_BUSY:
-				lprintf( "Database busy, waiting..." );
+				if( pvtData ) {
+					lprintf( "Database busy, waiting..." );
+					DumpAllODBCInfo();
+				}
 				WakeableSleep( 25 );
 				goto retry;
 			case SQLITE_LOCKED:
@@ -3475,7 +3508,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 #ifdef USE_ODBC
 						{
-#if 0
+#  if 0
 							SQLCHAR* cat[256];
 							SQLCHAR* table[256];
 							SQLCHAR col[256];
@@ -3488,7 +3521,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							printf( "TN2: %d   %s\n", idx, col );
 							SQLColAttribute( collection->hstmt, idx, SQL_DESC_NAME, col, 256, &len, &len2 );
 							printf( "CN2: %d   %s\n", idx, col );
-#endif
+#  endif
 							//SQLColumns( collection->hstmt, cat, 256, schema, 256, table, 256, col, 256 );
 							rc = SQLDescribeCol( collection->hstmt
 													 , idx
@@ -3759,6 +3792,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								MemCpy( val->string, byResult, ResultLen );
 								val->stringLen = ResultLen;
 							}
+							if( pvtData )vtprintf( pvtData, "%s<BINARY>", idx > 1 ? "," : "" );
 							break;
 						case SQL_CHAR:
 						case SQL_VARCHAR:
@@ -3779,6 +3813,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								val->string = DupCStrLen( byResult, ResultLen );
 								val->stringLen = ResultLen;
 							}
+							if( pvtData )vtprintf( pvtData, "%s%s", idx > 1 ? "," : "", val->string );
 							break;
 						case SQL_WCHAR:
 						case SQL_WVARCHAR:
@@ -3795,9 +3830,10 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								val->stringLen = 0;
 							}
 							else {
-								val->string = WcharConvertLen( (wchar*)byResult, ResultLen/2 );
+								val->string = WcharConvertLen( (wchar_t*)byResult, ResultLen/2 );
 								val->stringLen = ResultLen;
 							}
+							if( pvtData )vtprintf( pvtData, "%s%s", idx > 1 ? "," : "", val->string );
 							break;
 						case SQL_BIT:
 							{
@@ -3809,10 +3845,13 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 									, &tmp
 									, colsize
 									, &ResultLen );
-								if( tmp )
+								if( tmp ) {
 									val->value_type = JSOX_VALUE_TRUE;
-								else
+									if( pvtData )vtprintf( pvtData, "%strue", idx > 1 ? "," : "" );
+								} else {
 									val->value_type = JSOX_VALUE_FALSE;
+									if( pvtData )vtprintf( pvtData, "%sfalse", idx > 1 ? "," : "" );
+								}
 							}
 							break;
 						case SQL_TIMESTAMP:
@@ -3842,6 +3881,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								st.ms = ts.fraction;
 								val->result_n = ConvertTimeToTick( &st );
 								*/
+								if( pvtData )vtprintf( pvtData, "%s%d", idx > 1 ? "," : "", isoTime );
 							}
 							break;
 						case SQL_DECIMAL:
@@ -3861,6 +3901,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								val->string = NULL;
 								val->stringLen = 0;
 							}
+							if( pvtData )vtprintf( pvtData, "%s%g", idx > 1 ? "," : "", val->result_d );
 							break;
 						case SQL_INTEGER:
 						case SQL_SMALLINT:
@@ -3881,6 +3922,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							}
 							else {
 							}
+							if( pvtData )vtprintf( pvtData, "%s%d", idx > 1 ? "," : "", (int)val->result_n );
 							break;
 						}
 					} else {
@@ -4244,12 +4286,12 @@ int GetSQLResult( CTEXTSTR *result )
 
 //-----------------------------------------------------------------------
 
-#if defined USE_ODBC && 0
+#if defined USE_ODBC
 static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 	INDEX idx;
 	struct jsox_value_container *val;
 	DATA_FORALL( pdlItems, idx, struct jsox_value_container *, val ) {
-		int useIndex = idx + 1;
+		int useIndex = (int)(idx + 1);
 		int rc;
 		//if( val->name ) {
 		//	useIndex = sqlite3_bind_parameter_index( db, val->name );
@@ -4269,7 +4311,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 			}
 		case JSOX_VALUE_NUMBER:
 			if( val->float_result ) {
-				rc = SQLBindParamter( hstmt
+				rc = SQLBindParameter( hstmt
 										  , useIndex  // parameter number
 										  , SQL_PARAM_INPUT // inputoutputtype
 										  , SQL_C_DOUBLE  // value type
@@ -4278,10 +4320,10 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 										  , 0 // decimal digits
 										  , &val->result_d  // pointer value
 										  , sizeof( val->result_d ) // bufferlength
-										  , SQL_NULL_DATA
+										  , NULL
 										  );
 			} else {
-				rc = SQLBindParamter( hstmt
+				rc = SQLBindParameter( hstmt
 										  , useIndex  // parameter number
 										  , SQL_PARAM_INPUT // inputoutputtype
 										  , SQL_C_UBIGINT  // value type
@@ -4290,7 +4332,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 										  , 0 // decimal digits
 										  , &val->result_n  // pointer value
 										  , sizeof( val->result_n ) // bufferlength
-										  , SQL_NULL_DATA
+										  , NULL
 										  );
 			}
 			break;
@@ -4299,7 +4341,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 			break;
 		case JSOX_VALUE_STRING:
 			//rc = sqlite3_bind_text( db, useIndex, val->string, val->stringLen, NULL );
-				rc = SQLBindParamter( hstmt
+				rc = SQLBindParameter( hstmt
 										  , useIndex  // parameter number
 										  , SQL_PARAM_INPUT // inputoutputtype
 										  , SQL_C_CHAR  // value type
@@ -4308,7 +4350,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 										  , 0 // decimal digits
 										  , val->string  // pointer value
 										  , val->stringLen // bufferlength
-										  , SQL_NULL_DATA
+										  , NULL
 										  );
 			break;
 		}
@@ -4569,10 +4611,8 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 		}
 		else
 		{
-#if 0
-         if( pdlParams )
+			if( pdlParams )
 				__DoODBCBinding( collection->hstmt, pdlParams );
-#endif
 			rc = SQLExecDirect( collection->hstmt
 									,
 #ifdef _UNICODE

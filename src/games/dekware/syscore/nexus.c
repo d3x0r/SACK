@@ -2315,7 +2315,12 @@ void Startup( TEXTCHAR *lpCmdLine )
 		{
 			TEXTCHAR pMyLoadPath[256];
 			TEXTCHAR *truncname;
-			HMODULE mylib = LoadLibrary( TARGETNAME );
+			HMODULE mylib = 
+#ifdef TARGETNAME
+				LoadLibrary( TARGETNAME );
+#else
+				NULL;
+#endif
 			if( !GetModuleFileName( mylib, pMyLoadPath, sizeof( pMyLoadPath ) ) )
 			{
 				lprintf( "Not compiled correctly!  You didn't set targetname to my name, so I don't know where I'm running." );
@@ -2382,7 +2387,7 @@ void Cleanup( void )
 	{
 		cleaned = 1;
 		pMainThread = NULL;
-		UnmakeThread();
+		//UnmakeThread();
 		Log( "Allowing threads to exit gracefully - wake them up first." );
 		while( sleeping )
 		{
@@ -2604,3 +2609,6 @@ public:
 
 } // namespace
 #endif
+
+// restore defintiion for amalgamation...
+#define CreateDataPath(where, pathname) (P##pathname)CreateDataPath( where, sizeof(pathname) - sizeof( DATAPATH ) )

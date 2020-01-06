@@ -44,7 +44,7 @@
 #include "image.h"   // interface to internal IMAGE.C functions...
 #include "gifimage.h"
 
-extern int bGLColorMode;
+extern int IMGVER(bGLColorMode);
 
 IMAGE_NAMESPACE
 #ifdef __cplusplus
@@ -63,7 +63,7 @@ namespace loader {
 #define INTERLACEMASK 0x40
 #define COLORMAPMASK  0x80
 
-int BitOffset = 0,      /* Bit Offset of next code */
+static int BitOffset = 0,      /* Bit Offset of next code */
     XC = 0, YC = 0,     /* Output X and Y coords of current pixel */
     Pass = 0,        /* Used by output routine if interlaced pic */
     OutCount = 0,    /* Decompressor output 'stack count' */
@@ -87,9 +87,9 @@ int BitOffset = 0,      /* Bit Offset of next code */
     BitMask,         /* AND mask for data size */
     ReadMask;        /* Code AND mask for current code size */
 
-int Interlace, HasColormap;
+static int Interlace, HasColormap;
 
-PCOLOR   ImagePixelData;                /* The result array */
+static PCOLOR   ImagePixelData;                /* The result array */
 
 /**
  * An RGB color.
@@ -100,21 +100,21 @@ typedef struct RGBcolor
 } RGBcolor;
 
    
-RGBcolor *Palette;              /* The palette that is used */
-uint8_t *Raster;       /* The raster data stream, unblocked */
+static RGBcolor *Palette;              /* The palette that is used */
+static uint8_t *Raster;       /* The raster data stream, unblocked */
 
-uint8_t used[256];
-int  numused;
+static uint8_t used[256];
+static int  numused;
 
-const char *id87 = "GIF87a";
-const char *id89 = "GIF89a";
+static const char *id87 = "GIF87a";
+static const char *id89 = "GIF89a";
 
-int   ReadCode (void);
+static int   ReadCode (void);
 //int   log2 (int);
-void  AddToPixel (uint8_t);
-short transparency = -1;
+static void  AddToPixel (uint8_t);
+static short transparency = -1;
 
-ImageFile *ImageGifFile (uint8_t* ptr, size_t filesize)
+ImageFile *IMGVER(ImageGifFile )(uint8_t* ptr, size_t filesize)
 {
   ImageFile *file = NULL;
   uint8_t     *sptr = ptr;  //save pointer
@@ -184,7 +184,7 @@ ImageFile *ImageGifFile (uint8_t* ptr, size_t filesize)
    {
       for (i = 0; i < ColorMapSize; i++)
 		{
-			if( bGLColorMode )
+			if( IMGVER(bGLColorMode) )
 			{
 				Palette[i].blue = NEXTBYTE;
 				Palette[i].green = NEXTBYTE;
@@ -255,7 +255,7 @@ ImageFile *ImageGifFile (uint8_t* ptr, size_t filesize)
 
   // Set the dimensions which will also allocate the image data
   // buffer.
-  file = MakeImageFile( Width, Height );
+  file = IMGVER(MakeImageFileEx)( Width, Height DBG_SRC );
   ImagePixelData = file->image;
 
 /* Note that I ignore the possible existence of a local color map.
@@ -403,7 +403,7 @@ ImageFile *ImageGifFile (uint8_t* ptr, size_t filesize)
     }
     goto file_okay;
 cleanup:
-  UnmakeImageFile( file );
+  IMGVER(UnmakeImageFileEx)( file DBG_SRC );
   file = NULL;
 file_okay:
   if (Raster) { Deallocate( uint8_t*, Raster ); Raster = NULL; }
@@ -416,7 +416,7 @@ file_okay:
  */
    if( file )
 		if( file->flags & IF_FLAG_INVERTED )
-	      FlipImage( file );
+	      IMGVER(FlipImageEx)( file DBG_SRC );
   bDecoding = 0;
   return file;
 }

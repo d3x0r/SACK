@@ -177,7 +177,7 @@ static void RenderTextLine(
 #ifdef DEBUG_HISTORY_RENDER
 				lprintf( "nShown < nLen... char %d len %d toshow %d", nChar, nLen, pCurrentLine->nToShow );
 #endif
-				if( nChar + nLen > pCurrentLine->nToShow )
+				if( USS_GT( nLen, size_t, pCurrentLine->nToShow- nChar, int ) )
 					nShow = (int)(pCurrentLine->nToShow - nChar);
 				else
 				{
@@ -577,7 +577,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 			y -= pdp->pCommandDisplay->nLineHeight;
 			r.top = y;
 		}
-		while( pStart && nShown > GetTextSize( pStart ) )
+		while( pStart && SUS_GT( nShown, int, GetTextSize( pStart ), size_t ) )
 		{
 			nShown -= (int)GetTextSize( pStart );
 			pStart = NEXTLINE( pStart );

@@ -487,11 +487,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 
 			if( XCHG( &pcs->dwUpdating, 1 ) )
 				return -1;
-#ifdef USE_CUSTOM_ALLOCER
-			dwCurProc = _GetMyThreadID();
-#else
-			dwCurProc = GetMyThreadID();
-#endif
+			dwCurProc = GetThisThreadID();
 
 			if( !AND_NOT_SECTION_LOGGED_WAIT(pcs->dwLocks) )
 			{
@@ -722,11 +718,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 			THREAD_ID dwCurProc;
 			while( XCHG( &pcs->dwUpdating, 1 ) )
 				Relinquish();
-#ifdef USE_CUSTOM_ALLOCER
-			dwCurProc = _GetMyThreadID();
-#else
-			dwCurProc = GetMyThreadID();
-#endif
+			dwCurProc = GetThisThreadID();
 #  ifdef LOG_DEBUG_CRITICAL_SECTIONS
 #    ifndef NO_LOGGING
 			if( g.bLogCritical > 0 && g.bLogCritical < 2 )
@@ -1617,7 +1609,7 @@ uintptr_t GetFileSize( int fd )
 					ll_lprintf( "Expanding file to size requested." );
 #endif
 					didCreate = 1;
-					SetFilePointer( hFile, (LONG)*dwSize, NULL, FILE_BEGIN );
+					SetFilePointer( hFile, (LONG) * (int32_t*)dwSize, (sizeof(dwSize[0])>4)?(PLONG)(((int32_t*)dwSize) + 1):NULL, FILE_BEGIN );
 					SetEndOfFile( hFile );
 				}
 				else
@@ -1633,7 +1625,7 @@ uintptr_t GetFileSize( int fd )
 #ifdef DEBUG_OPEN_SPACE
 				ll_lprintf( "New file, setting size to requested %d", *dwSize );
 #endif
-				SetFilePointer( hFile, (LONG)*dwSize, NULL, FILE_BEGIN );
+				SetFilePointer( hFile, (LONG)*(int32_t*)dwSize, (sizeof( dwSize[0] ) > 4) ? (PLONG)(((int32_t*)dwSize)+1) : NULL, FILE_BEGIN );
 				SetEndOfFile( hFile );
 				didCreate = 1;
 			}
@@ -2004,6 +1996,12 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 		PSPACE pMemSpace;
 		uint32_t dwPad = 0;
 		uint32_t dwMin = 0;
+		intptr_t mask;
+		if( alignment > ( sizeof( masks ) / sizeof( masks[0] ) ) )
+			mask = ( ~( (uintptr_t)( alignment - 1 ) ) );
+		else
+			mask = masks[alignment];
+
 		//ll__lprintf(DBG_RELAY)( "..." );
 #ifdef _DEBUG
 		if( !g.bDisableAutoCheck )
@@ -2129,7 +2127,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 			{
 				// after 1 allocation, need a free chunk at end...
 				// and let's just have a couple more to spaere.
-				if( ExpandSpace( pMem, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE ) )
+				if( ExpandSpace( pMem, dwSize + 4096 + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE ) )
 				{
 #ifndef NO_LOGGING
 					//ll__lprintf(DBG_RELAY)( "Creating a new expanded space... %" _size_fs, dwSize + (CHUNK_SIZE*4) + MEM_SIZE + 8 * MAGIC_SIZE );
@@ -2159,7 +2157,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 		}
 		if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 		{
-			if( pc->dwPad < < 2*sizeof( uintptr_t) )
+			if( pc->dwPad < 2*sizeof( uintptr_t) )
 				DebugBreak();
 			BLOCK_FILE(pc) = pFile;
 			BLOCK_LINE(pc) = nLine;
@@ -2177,10 +2175,10 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 #  endif
 #endif
 		//#endif
-		if( alignment && ((uintptr_t)pc->byData & ~masks[alignment]) ) {
-			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]);
+		if( alignment && ((uintptr_t)pc->byData & ~mask ) ) {
+			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & mask );
 			((uint16_t*)(retval - sizeof( uint32_t )))[0] = /*pc->alignemnt =*/ alignment;
-			((uint16_t*)(retval - sizeof( uint32_t )))[1] = /*pc->to_chunk_start =*/ (uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & masks[alignment]) - (uintptr_t)pc->byData);
+			((uint16_t*)(retval - sizeof( uint32_t )))[1] = /*pc->to_chunk_start =*/ (uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & mask ) - (uintptr_t)pc->byData);
 			return (POINTER)retval;
 		}
 		else {
@@ -2288,6 +2286,7 @@ POINTER  HeapPreallocateEx ( PMEM pHeap, POINTER source, uintptr_t size DBG_PASS
 
 //------------------------------------------------------------------------------------------------------
 
+#if USE_CUSTOM_ALLOCER
 static void Bubble( PMEM pMem )
 {
 	// handle sorting free memory to be least signficant first...
@@ -2325,6 +2324,7 @@ static void Bubble( PMEM pMem )
 		}
 	}
 }
+#endif
 
 //------------------------------------------------------------------------------------------------------
 

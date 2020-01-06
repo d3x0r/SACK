@@ -266,7 +266,7 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 	decoded_dirent->mask = NULL;
 	decoded_dirent->pds_directories = NULL;
 
-	decoded_dirent->filesize = dirent->filesize ^ entkey->filesize;
+	decoded_dirent->filesize = (size_t)( dirent->filesize ^ entkey->filesize );
 	decoded_dirent->ctime = time->ctime.raw;
 	decoded_dirent->wtime = time->stime.raw;
 

@@ -1,0 +1,43 @@
+#ifndef HAVE_SSL
+#  define NO_SSL 1
+#endif
+
+#ifndef HAVE_ZLIB
+#  define __NO_WEBSOCK_COMPRESSION__
+#endif
+
+#define NO_OPEN_MACRO
+//#define __NO_MMAP__
+#define __STATIC__
+#define NO_FILEOP_ALIAS
+#define SACK_BAG_EXPORTS
+#define __STATIC_GLOBALS__
+//#define DEFINE_DEFAULT_IMAGE_INTERFACE
+//#define TYPELIB_SOURCE
+#define NEED_SHLAPI
+#define NEED_SHLOBJ
+#define JSON_PARSER_MAIN_SOURCE
+#define INTERNAL_DUMP_FONT_FILE
+#define SOURCE_PSI2
+#define SYSTRAY_LIBRARAY
+#define TARGETNAME "someTarget"
+#define _INCLUDE_CLIPBOARD
+
+#include <stdio.h>
+#include <stdarg.h> 
+#include <stdhdrs.h>
+
+#if 0
+#ifdef __cplusplus
+namespace sack {
+   namespace logging {
+#endif
+      INDEX real_lprintf( char const* f,... ) { va_list va; int n; va_start(va,f); n = vprintf(f ,va); puts(""); return n; }
+      INDEX null_lprintf( char const* f,... ) { return 0; }
+      RealLogFunction _xlprintf(uint32_t level DBG_PASS) { return real_lprintf; };
+      void SystemLog( char const* f ) { puts( f ); puts( "ZZZZ\n" ); }
+#ifdef __cplusplus
+   }
+}
+#endif
+#endif

@@ -12,7 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-#ifdef __MAC__
+#if defined( __MAC__ )
 #include "network_mac.c"
 #endif
 
@@ -20,6 +20,6 @@
 #include "network_win32.c"
 #endif
 
-#ifdef __LINUX__
+#if defined( __LINUX__ ) && !defined( __MAC__ )
 #include "network_linux.c"
 #endif

@@ -26,8 +26,7 @@ struct configured_plugin {
 static struct {
 	PLIST plugins; // list of plugins StrDup()s
 	struct configured_plugin *current_plugin;
-#define l local_intershell_common
-} l;
+} local_intershell_common;
 
 
 //-------------------------------------------------------------------------------
@@ -74,7 +73,7 @@ struct configured_plugin *GetPlugin( CTEXTSTR plugin_mask )
 		extra_path[0] = 0;
 		extra_path++;
 	}
-	LIST_FORALL( l.plugins, idx, struct configured_plugin*, plugin )
+	LIST_FORALL( local_intershell_common.plugins, idx, struct configured_plugin*, plugin )
 	{
 		if( StrCaseCmp( plugin->plugin_mask, plugin_mask ) == 0 )
 			break;
@@ -92,7 +91,7 @@ struct configured_plugin *GetPlugin( CTEXTSTR plugin_mask )
 		plugin->flags.bDelete = FALSE;
 		plugin->flags.bLoaded = FALSE;
 		plugin->flags.bNoLoad = FALSE;
-		AddLink( &l.plugins, plugin );
+		AddLink( &local_intershell_common.plugins, plugin );
 	}
 	else
 		Release( full_name );
@@ -109,18 +108,18 @@ static void CPROC PluginPicked( uintptr_t psv, PSI_CONTROL list, PLISTITEM pli )
 	if( plugin )
 	{
 		CTEXTSTR system;
-		if( l.current_plugin )
+		if( local_intershell_common.current_plugin )
 		{
 			PLISTITEM pli;
 			{
 				INDEX idx;
 				POINTER p;
-				LIST_FORALL( l.current_plugin->pNoLoadOn, idx, POINTER, p )
+				LIST_FORALL( local_intershell_common.current_plugin->pNoLoadOn, idx, POINTER, p )
 					Release( p );
-				LIST_FORALL( l.current_plugin->pLoadOn, idx, POINTER, p )
+				LIST_FORALL( local_intershell_common.current_plugin->pLoadOn, idx, POINTER, p )
 					Release( p );
-				DeleteList( &l.current_plugin->pNoLoadOn );
-				DeleteList( &l.current_plugin->pLoadOn );
+				DeleteList( &local_intershell_common.current_plugin->pNoLoadOn );
+				DeleteList( &local_intershell_common.current_plugin->pLoadOn );
 			}
 			syslist = GetNearControl( list, LISTBOX_SYSTEMS );
 			if( syslist )
@@ -129,7 +128,7 @@ static void CPROC PluginPicked( uintptr_t psv, PSI_CONTROL list, PLISTITEM pli )
 				{
 					TEXTCHAR buffer[256];
 					GetListItemText( pli, buffer, sizeof( buffer ) );
-					AddLink( &l.current_plugin->pLoadOn, StrDup( buffer ) );
+					AddLink( &local_intershell_common.current_plugin->pLoadOn, StrDup( buffer ) );
 				}
 			}
 
@@ -140,7 +139,7 @@ static void CPROC PluginPicked( uintptr_t psv, PSI_CONTROL list, PLISTITEM pli )
 				{
 					TEXTCHAR buffer[256];
 					GetListItemText( pli, buffer, sizeof( buffer ) );
-					AddLink( &l.current_plugin->pNoLoadOn, StrDup( buffer ) );
+					AddLink( &local_intershell_common.current_plugin->pNoLoadOn, StrDup( buffer ) );
 				}
 			}
 		}
@@ -164,7 +163,7 @@ static void CPROC PluginPicked( uintptr_t psv, PSI_CONTROL list, PLISTITEM pli )
 				SetItemData( AddListItem( syslist, system ), (uintptr_t)system );
 			}
 		}
-		l.current_plugin = plugin;
+		local_intershell_common.current_plugin = plugin;
 	}
 }
 
@@ -193,7 +192,7 @@ static void CPROC AddPlugin( uintptr_t psv, PSI_CONTROL button )
 
 static void CPROC AddSystem( uintptr_t psv, PSI_CONTROL button )
 {
-	if( l.current_plugin )
+	if( local_intershell_common.current_plugin )
 	{
 		PSI_CONTROL system_name = GetNearControl( button, SYSTEM_NAME );
 		if( system_name )
@@ -202,14 +201,14 @@ static void CPROC AddSystem( uintptr_t psv, PSI_CONTROL button )
 			CTEXTSTR system;
 			INDEX idx;
 			GetControlText( system_name, name, sizeof( name ) );
-			LIST_FORALL( l.current_plugin->pLoadOn, idx, CTEXTSTR, system )
+			LIST_FORALL( local_intershell_common.current_plugin->pLoadOn, idx, CTEXTSTR, system )
 			{
 				if( StrCaseCmp( system, name ) == 0 )
 					break;
 			}
 			if( !system )
 			{
-				AddLink( &l.current_plugin->pLoadOn, StrDup( name ) );
+				AddLink( &local_intershell_common.current_plugin->pLoadOn, StrDup( name ) );
 				SetItemData( AddListItem( GetNearControl( button, LISTBOX_SYSTEMS ), name ), 0 );
 			}
 		}
@@ -221,7 +220,7 @@ static void CPROC AddSystem( uintptr_t psv, PSI_CONTROL button )
 
 static void CPROC AddNoSystem( uintptr_t psv, PSI_CONTROL button )
 {
-	if( l.current_plugin )
+	if( local_intershell_common.current_plugin )
 	{
 		PSI_CONTROL system_name = GetNearControl( button, SYSTEM_NAME );
 		if( system_name )
@@ -230,14 +229,14 @@ static void CPROC AddNoSystem( uintptr_t psv, PSI_CONTROL button )
 			CTEXTSTR system;
 			INDEX idx;
 			GetControlText( system_name, name, sizeof( name ) );
-			LIST_FORALL( l.current_plugin->pLoadOn, idx, CTEXTSTR, system )
+			LIST_FORALL( local_intershell_common.current_plugin->pLoadOn, idx, CTEXTSTR, system )
 			{
 				if( StrCaseCmp( system, name ) == 0 )
 					break;
 			}
 			if( !system )
 			{
-				AddLink( &l.current_plugin->pLoadOn, StrDup( name ) );
+				AddLink( &local_intershell_common.current_plugin->pLoadOn, StrDup( name ) );
 				SetItemData( AddListItem( GetNearControl( button, LISTBOX_NO_SYSTEMS ), name ), 0 );
 			}
 		}
@@ -253,7 +252,7 @@ static void CPROC RemovePlugin( uintptr_t psv, PSI_CONTROL button )
 	if( pli )
 	{
 		struct configured_plugin *plugin = (struct configured_plugin *)GetItemData( pli );
-		DeleteLink( &l.plugins, plugin );
+		DeleteLink( &local_intershell_common.plugins, plugin );
 		{
 			INDEX idx;
 			POINTER p;
@@ -268,7 +267,7 @@ static void CPROC RemovePlugin( uintptr_t psv, PSI_CONTROL button )
 		Release( (TEXTSTR)plugin->plugin_extra_path );
 		Release( plugin );
 		DeleteListItem( list, pli );
-		l.current_plugin = NULL; // clean this up after the config handlers above...
+		local_intershell_common.current_plugin = NULL; // clean this up after the config handlers above...
 	}
 }
 //-------------------------------------------------------------------------------
@@ -302,7 +301,7 @@ static void InitControls( PSI_CONTROL frame )
 	{
 		INDEX idx;
 		struct configured_plugin *plugin;
-		LIST_FORALL( l.plugins, idx, struct configured_plugin *, plugin )
+		LIST_FORALL( local_intershell_common.plugins, idx, struct configured_plugin *, plugin )
 		{
 			SetItemData( plugin->pli = AddListItem( list, plugin->plugin_full_name ), (uintptr_t)plugin );
 		}
@@ -326,7 +325,7 @@ static void UpdateFromControls( PSI_CONTROL frame )
 
 	PluginPicked( 0, list, GetSelectedItem( list ) );
 
-	LIST_FORALL( l.plugins, idx, struct configured_plugin *, plugin )
+	LIST_FORALL( local_intershell_common.plugins, idx, struct configured_plugin *, plugin )
 	{
 		plugin->flags.bDelete = 1;
 	}
@@ -336,12 +335,12 @@ static void UpdateFromControls( PSI_CONTROL frame )
 		plugin = (struct configured_plugin*)GetItemData( pli );
 		plugin->flags.bDelete = FALSE;
 	}
-	LIST_FORALL( l.plugins, idx, struct configured_plugin *, plugin )
+	LIST_FORALL( local_intershell_common.plugins, idx, struct configured_plugin *, plugin )
 	{
 		CTEXTSTR p;
 		if( plugin->flags.bDelete )
 		{
-			SetLink( &l.plugins, idx, NULL );
+			SetLink( &local_intershell_common.plugins, idx, NULL );
 			LIST_FORALL( plugin->pLoadOn, idx, CTEXTSTR, p )
 				Release( (POINTER)p );
 			LIST_FORALL( plugin->pNoLoadOn, idx, CTEXTSTR, p )
@@ -357,7 +356,7 @@ static void UpdateFromControls( PSI_CONTROL frame )
 
 void ClearControls( void )
 {
-	l.current_plugin = NULL;
+	local_intershell_common.current_plugin = NULL;
 }
 
 static void OnGlobalPropertyEdit( "Edit Plugins" )( PSI_CONTROL parent )
@@ -389,19 +388,19 @@ static void OnGlobalPropertyEdit( "Edit Plugins" )( PSI_CONTROL parent )
 static uintptr_t CPROC LoadConfigPlugin( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, filemask );
-	l.current_plugin = GetPlugin( filemask );
+	local_intershell_common.current_plugin = GetPlugin( filemask );
 	return psv;
 }
 
 static uintptr_t CPROC NoLoadConfigPluginOn( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, systemmask );
-	if( l.current_plugin )
+	if( local_intershell_common.current_plugin )
 	{
-		AddLink( &l.current_plugin->pNoLoadOn, StrDup( systemmask ) );
+		AddLink( &local_intershell_common.current_plugin->pNoLoadOn, StrDup( systemmask ) );
 		if( CompareMask( systemmask, InterShell_GetSystemName(), FALSE ) )
 		{
-			l.current_plugin->flags.bNoLoad = TRUE;
+			local_intershell_common.current_plugin->flags.bNoLoad = TRUE;
 			// add just this libraries global config stuff....
 		}
 	}
@@ -412,15 +411,15 @@ static uintptr_t CPROC NoLoadConfigPluginOn( uintptr_t psv, arg_list args )
 static uintptr_t CPROC LoadConfigPluginOn( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, systemmask );
-	if( l.current_plugin )
+	if( local_intershell_common.current_plugin )
 	{
-		AddLink( &l.current_plugin->pLoadOn, StrDup( systemmask ) );
+		AddLink( &local_intershell_common.current_plugin->pLoadOn, StrDup( systemmask ) );
 		if( CompareMask( systemmask, InterShell_GetSystemName(), FALSE ) )
 		{
-			if( !l.current_plugin->flags.bNoLoad )
+			if( !local_intershell_common.current_plugin->flags.bNoLoad )
 			{
-				l.current_plugin->flags.bLoaded = TRUE;
-				LoadInterShellPlugins( NULL, l.current_plugin->plugin_mask, l.current_plugin->plugin_extra_path );
+				local_intershell_common.current_plugin->flags.bLoaded = TRUE;
+				LoadInterShellPlugins( NULL, local_intershell_common.current_plugin->plugin_mask, local_intershell_common.current_plugin->plugin_extra_path );
 				// register additional OnLoadCommon methods avaialble now.
 				InvokeLoadCommon();
 				// add just this libraries global config stuff....
@@ -448,7 +447,7 @@ static void OnSaveCommon( "@00 Plugins" )( FILE *file )
 {
 	struct configured_plugin *plugin;
 	INDEX idx;
-	LIST_FORALL( l.plugins, idx, struct configured_plugin*, plugin )
+	LIST_FORALL( local_intershell_common.plugins, idx, struct configured_plugin*, plugin )
 	{
 		INDEX idx;
 		CTEXTSTR system;
@@ -468,5 +467,5 @@ static void OnSaveCommon( "@00 Plugins" )( FILE *file )
 //-------------------------------------------------------------------------------
 static void OnFinishInit( "Plugins" )( PSI_CONTROL pc_canvas )
 {
-	l.current_plugin = NULL; // clean this up after the config handlers above...
+	local_intershell_common.current_plugin = NULL; // clean this up after the config handlers above...
 }

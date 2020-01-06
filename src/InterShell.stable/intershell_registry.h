@@ -222,7 +222,7 @@ namespace sack {
 
 /* Intended use:edits properties regarding page security... OnPageChange return FALSE to disallow page change...*/
 #define OnEditPageSecurityContext( name ) \
-	DefineRegistryMethod(TASK_PREFIX,EditSecurityContext,"common","global properties","Page Security:"name,void,(PPAGE_DATA),__LINE__)
+	DefineRegistryMethod(TASK_PREFIX,EditSecurityContext,"common","global properties","Page Security:" name,void,(PPAGE_DATA),__LINE__)
 
 #define OnApplicationQuit( name ) \
 	DefineRegistryMethod(TASK_PREFIX,IntershellQuitApplication,"common","quit application",name,void,(void),__LINE__)
@@ -231,19 +231,19 @@ namespace sack {
  static void OnThemeAdded( name )( int theme_id )
  */
 #define OnThemeAdded( name ) \
-	DefineRegistryMethod(TASK_PREFIX,ThemeAdded,"common","theme/add","Theme Add:"name,void,(int theme_id),__LINE__)
+	DefineRegistryMethod(TASK_PREFIX,ThemeAdded,"common","theme/add","Theme Add:" name,void,(int theme_id),__LINE__)
 
 /* Intended use: Theme is changing, the theme_id that is given was the prior theme set
  static void OnThemeChanging( name )( int theme_id )
 */
 #define OnThemeChanging( name ) \
-	DefineRegistryMethod(TASK_PREFIX,ThemeChanging,"common","theme/changing","Theme Changing:"name,void,(int theme_id),__LINE__)
+	DefineRegistryMethod(TASK_PREFIX,ThemeChanging,"common","theme/changing","Theme Changing:" name,void,(int theme_id),__LINE__)
 
 /* Intended use: Receive event that theme has changed, use theme_id to update graphics if available
  static void OnThemeChanging( name )( int theme_id )
 */
 #define OnThemeChanged( name ) \
-	DefineRegistryMethod(TASK_PREFIX,ThemeChanged,"common","theme/changed","Theme Change:"name,void,(int theme_id),__LINE__)
+	DefineRegistryMethod(TASK_PREFIX,ThemeChanged,"common","theme/changed","Theme Change:" name,void,(int theme_id),__LINE__)
 
 #ifdef __cplusplus
 	} }

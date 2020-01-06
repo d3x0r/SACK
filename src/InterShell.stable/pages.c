@@ -41,7 +41,6 @@ static struct local_page_information
 	PPAGE_DATA current_page; // used in page property; saves current page we started on
 
 } local_page_info;
-#define l local_page_info
 
 void CreateNamedPage( PSI_CONTROL pc_canvas, CTEXTSTR page_name )
 {
@@ -183,7 +182,7 @@ void ClearPageList( PSI_CONTROL pc_canvas )
 		PCanvasData canvas = GetCanvas( pc_canvas );
 		while( PopLink( &canvas->prior_pages ) );
 	}
-	//while( PopLink( &l.prior_pages ) );
+	//while( PopLink( &local_page_info.prior_pages ) );
 }
 
 //-------------------------------------------------------------------------
@@ -395,7 +394,7 @@ void RestoreCurrentPage( PSI_CONTROL pc_canvas )
 //-------------------------------------------------------------------------
 
 /* this is function has a duplicately named function in main.c */
-static void CPROC ChooseImage( uintptr_t psv, PSI_CONTROL button )
+static void CPROC PageChooseImage( uintptr_t psv, PSI_CONTROL button )
 {
 	TEXTCHAR buffer[256];
 	// was attempting to make a general select here
@@ -730,23 +729,23 @@ static void CPROC ListBoxThemeSelectionChanged( uintptr_t psv, PSI_CONTROL list,
 	CTEXTSTR prior_image_name;
 	GetControlText( GetNearControl( list, TXT_IMAGE_NAME ), prior_name, sizeof( prior_name ) );
 	prior_color = GetColorFromWell( GetNearControl( list, CLR_BACKGROUND ) );
-	prior_image_name = (CTEXTSTR)GetLink( &l.current_page->backgrounds, l.current_page_theme );
+	prior_image_name = (CTEXTSTR)GetLink( &local_page_info.current_page->backgrounds, local_page_info.current_page_theme );
 	if( prior_image_name )
 	{
 		if( StrCaseCmp( prior_image_name, prior_name ) != 0 )
 		{
 			Deallocate( CTEXTSTR, prior_image_name );
-			SetLink( &l.current_page->backgrounds, l.current_page_theme, StrDup( prior_name ) );
-			SetLink( &l.current_page->background_images, l.current_page_theme, NULL );
+			SetLink( &local_page_info.current_page->backgrounds, local_page_info.current_page_theme, StrDup( prior_name ) );
+			SetLink( &local_page_info.current_page->background_images, local_page_info.current_page_theme, NULL );
 		}
 	}
 
-	SetLink( &l.current_page->background_colors, l.current_page_theme, (POINTER)(uintptr_t)prior_color );
+	SetLink( &local_page_info.current_page->background_colors, local_page_info.current_page_theme, (POINTER)(uintptr_t)prior_color );
 
-	l.current_page_theme = n;
+	local_page_info.current_page_theme = n;
 
-	SetControlText( GetNearControl( list, TXT_IMAGE_NAME ), (CTEXTSTR)GetLink( &l.current_page->backgrounds, n ) );
-	SetColorWell( GetNearControl( list, CLR_BACKGROUND ), (CDATA)(uintptr_t)GetLink( &l.current_page->background_colors, n ) );
+	SetControlText( GetNearControl( list, TXT_IMAGE_NAME ), (CTEXTSTR)GetLink( &local_page_info.current_page->backgrounds, n ) );
+	SetColorWell( GetNearControl( list, CLR_BACKGROUND ), (CDATA)(uintptr_t)GetLink( &local_page_info.current_page->background_colors, n ) );
 }
 
 //---------------------------------------------------------------------------
@@ -778,13 +777,13 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 			EnableColorWellPick( MakeColorWell( frame, 130, 97, 18, 18, CLR_BACKGROUND, canvas->current_page->background_color ), TRUE );
 
 			MakeEditControl( frame, 130, 120, 240, 18, TXT_IMAGE_NAME, canvas->current_page->background, 0 );
-			button = MakeButton( frame, 89, 120, 36, 18, BTN_PICKFILE, "...", 0, ChooseImage, (uintptr_t)frame );
+			button = MakeButton( frame, 89, 120, 36, 18, BTN_PICKFILE, "...", 0, PageChooseImage, (uintptr_t)frame );
 
 			MakeEditControl( frame, 130, 143, 240, 18, TXT_ANIMATION_NAME, canvas->current_page->background, 0 );
 			button = MakeButton( frame, 89, 143, 36, 18, BTN_PICKANIMFILE, "...", 0, ChooseAnimation, (uintptr_t)frame );
 
 			SaveXMLFrame( frame, "InterShellPageProperty.isFrame" );
-					//SetControlUserData( button, l.file_text_field );
+					//SetControlUserData( button, local_page_info.file_text_field );
 
 			/*
 			AddPropertySheet( button
@@ -801,13 +800,13 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 
 	if( frame )
 	{
-		l.current_page = canvas->current_page;
-		l.current_page_theme = 0;
+		local_page_info.current_page = canvas->current_page;
+		local_page_info.current_page_theme = 0;
 
 		SetCommonButtons( frame, &done, &okay );
 		EnableColorWellPick( GetControl( frame, CLR_BACKGROUND ), TRUE );
 		SetColorWell( GetControl( frame, CLR_BACKGROUND ), canvas->current_page->background_color );
-		SetButtonPushMethod( GetControl( frame, BTN_PICKFILE ), ChooseImage, (uintptr_t)frame );
+		SetButtonPushMethod( GetControl( frame, BTN_PICKFILE ), PageChooseImage, (uintptr_t)frame );
 		SetControlText( GetControl( frame, TXT_IMAGE_NAME ), canvas->current_page->background );
 
 		SetButtonPushMethod( GetControl( frame, BTN_PICKANIMFILE ), ChooseAnimation, (uintptr_t)frame );
@@ -845,11 +844,11 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 		GetControlText( GetControl( frame, TXT_IMAGE_NAME ), buffer, sizeof( buffer ) );
 		// Get info from dialog...
 		canvas->current_page->background_color = GetColorFromWell( GetControl( frame, CLR_BACKGROUND ) );
-		SetLink( &l.current_page->background_colors, l.current_page_theme, (POINTER)(uintptr_t)canvas->current_page->background_color );
+		SetLink( &local_page_info.current_page->background_colors, local_page_info.current_page_theme, (POINTER)(uintptr_t)canvas->current_page->background_color );
 		if( buffer[0] )
 		{
 			canvas->current_page->background = StrDup( buffer );
-			SetLink( &canvas->current_page->backgrounds, l.current_page_theme, (POINTER)(uintptr_t)canvas->current_page->background );
+			SetLink( &canvas->current_page->backgrounds, local_page_info.current_page_theme, (POINTER)(uintptr_t)canvas->current_page->background );
 			if( canvas->current_page->background_image )
 			{
 				UnmakeImageFile( canvas->current_page->background_image );
@@ -861,7 +860,7 @@ void EditCurrentPageProperties(PSI_CONTROL parent, PCanvasData canvas)
 		{
 			if( canvas->current_page->background )
 			{
-				SetLink( &canvas->current_page->backgrounds, l.current_page_theme, NULL );
+				SetLink( &canvas->current_page->backgrounds, local_page_info.current_page_theme, NULL );
 				Release( (POINTER)canvas->current_page->background );
 				canvas->current_page->background = NULL;
 				UnmakeImageFile( canvas->current_page->background_image );
@@ -1270,7 +1269,7 @@ void InterShell_SetPageColor( PPAGE_DATA page, CDATA color )
 	if( page )
 	{
 		page->background_color = color;
-		SetLink( &page->background_colors, l.current_page_theme, (POINTER)(uintptr_t)color );
+		SetLink( &page->background_colors, local_page_info.current_page_theme, (POINTER)(uintptr_t)color );
 		SmudgeCommon( page->frame );
 	}
 }

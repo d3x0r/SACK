@@ -94,7 +94,7 @@
 SACK_NETWORK_NAMESPACE
 
 
-static uintptr_t CPROC NetworkThreadProc( PTHREAD thread );
+//static uintptr_t CPROC NetworkThreadProc( PTHREAD thread );
 
 void RemoveThreadEvent( PCLIENT pc ) {
 	struct peer_thread_info *thread = pc->this_thread;
@@ -623,7 +623,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 }
 
 //----------------------------------------------------------------------------
-static int CPROC IdleProcessNetworkMessages( uintptr_t quick_check )
+int CPROC IdleProcessNetworkMessages( uintptr_t quick_check )
 {
 	struct peer_thread_info *this_thread = IsNetworkThread();
 	if( this_thread )

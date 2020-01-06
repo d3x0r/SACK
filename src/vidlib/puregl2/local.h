@@ -30,7 +30,7 @@
 
 #define NEED_VECTLIB_COMPARE
 #define FORCE_NO_RENDER_INTERFACE
-
+#define USE_API_ALIAS_PREFIX ogl_
 #include <imglib/imagestruct.h>
 #include <imglib/fontstruct.h>
 #include <vidlib/vidstruc.h>
@@ -299,29 +299,29 @@ int Handle3DTouches( struct display_camera *camera, PINPUT_POINT touches, int nT
 
 /// ---------------- Interface ---------------
 #undef GetDisplayInterface
-POINTER  CPROC GetDisplayInterface (void);
+POINTER  CPROC ogl_GetDisplayInterface (void);
 #undef DropDisplayInterface
-void  CPROC DropDisplayInterface (POINTER p);
-POINTER CPROC GetDisplay3dInterface (void);
-void  CPROC DropDisplay3dInterface (POINTER p);
+void  CPROC ogl_DropDisplayInterface (POINTER p);
+POINTER CPROC ogl_GetDisplay3dInterface (void);
+void  CPROC ogl_DropDisplay3dInterface (POINTER p);
 
 // ------------- Interface to system key event interface
 void SACK_Vidlib_ShowInputDevice( void );
 void SACK_Vidlib_HideInputDevice( void );
 
 // ---------------- Common --------------------
-void LoadOptions( void );
+void ogl_LoadOptions( void );
 #undef GetRenderTransform
-PTRANSFORM CPROC GetRenderTransform( PRENDERER r );
-struct display_camera *SACK_Vidlib_OpenCameras( void );
-LOGICAL CreateDrawingSurface (PVIDEO hVideo);
-void DoDestroy (PVIDEO hVideo);
-LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
+PTRANSFORM CPROC ogl_GetRenderTransform( PRENDERER r );
+struct display_camera *ogl_SACK_Vidlib_OpenCameras( void );
+LOGICAL ogl_CreateDrawingSurface (PVIDEO hVideo);
+void ogl_DoDestroy (PVIDEO hVideo);
+LOGICAL  ogl_CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy);
-void CPROC PureGL2_Vidlib_SuspendSystemSleep( int suspend );
-void CPROC PureGL2_Vidlib_SetDisplayCursor( CTEXTSTR cursor );
-LOGICAL CPROC PureGL2_Vidlib_AllowsAnyThreadToUpdate( void );
-void OpenCamera( struct display_camera *camera );
+void CPROC ogl_PureGL2_Vidlib_SuspendSystemSleep( int suspend );
+void CPROC ogl_PureGL2_Vidlib_SetDisplayCursor( CTEXTSTR cursor );
+LOGICAL CPROC ogl_PureGL2_Vidlib_AllowsAnyThreadToUpdate( void );
+void ogl_OpenCamera( struct display_camera *camera );
 
 
 // --------------- Mouse 3d ------------
@@ -332,11 +332,10 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 								, RCOORD *pT2, PVECTOR s2, PVECTOR o2 );
 // this uses coordiantes in l.mouse_x and l.mouse_y and computes the current mouse ray in all displays
 void UpdateMouseRays( int32_t x, int32_t y );
-#undef GetViewVolume
-void CPROC GetViewVolume( PRAY *planes );
+void CPROC ogl_GetViewVolume( PRAY *planes );
 
 // -------- keymap_win32.c ----------------
-int CPROC OpenGLKey( uintptr_t psv, uint32_t keycode ); // should move this
+//int CPROC ogl_OpenGLKey( uintptr_t psv, uint32_t keycode ); // should move this
 
 // ------- keymap_linux.c
 CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used );
@@ -371,7 +370,7 @@ void SetCameraNativeHandle( struct display_camera *camera );
 #endif
 
 int SACK_Vidlib_SendKeyEvents( int pressed, int key_index, int key_mods );
-int EnableOpenGL( struct display_camera *camera );
+int ogl_EnableOpenGL( struct display_camera *camera );
 int SetActiveGLDisplayView( struct display_camera *camera, int nFracture );
 int SetActiveGLDisplay( struct display_camera *camera );
 #if defined( USE_EGL )
@@ -385,12 +384,12 @@ void EnableEGLContext( struct display_camera *camera );
 // --------------- win32 keymap ------------------------
 #ifdef _WIN32
 LRESULT CALLBACK
-   KeyHook (int code,      // hook code
+   ogl_KeyHook (int code,      // hook code
 				WPARAM wParam,    // virtual-key code
 				LPARAM lParam     // keystroke-message information
 			  );
 LRESULT CALLBACK
-   KeyHook2 (int code,      // hook code
+   ogl_KeyHook2 (int code,      // hook code
 				WPARAM wParam,    // virtual-key code
 				LPARAM lParam     // keystroke-message information
 			  );

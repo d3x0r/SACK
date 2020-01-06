@@ -223,11 +223,9 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 		nFracture = hVideo->nFractures;
 		if( !hVideo->pFractures || hVideo->nFractures == hVideo->nFracturesAvail )
 		{
+			hVideo->nFracturesAvail += 16;
 			hVideo->pFractures =
-#ifdef __cplusplus
-				(struct HVIDEO_tag::fracture_tag*)
-#endif
-				Allocate( sizeof( hVideo->pFractures[0] ) * ( hVideo->nFracturesAvail += 16 ) );
+				NewArray( struct hvideo_fracture_tag, hVideo->nFracturesAvail );
 			MemSet( hVideo->pFractures + nFracture, 0, sizeof( hVideo->pFractures[0] ) * 16 );
 		}
 		hVideo->pFractures[nFracture].x = x;
@@ -262,7 +260,7 @@ static int CreatePartialDrawingSurface (PVIDEO hVideo, int x, int y, int w, int 
 //GetDisplayImageView
 
 
-int EnableOpenGL( struct display_camera *camera )
+int ogl_EnableOpenGL( struct display_camera *camera )
 {
    PVIDEO hVideo = camera->hVidCore;
 	GLuint      PixelFormat;         // Holds The Results After Searching For A Match
@@ -305,7 +303,7 @@ int EnableOpenGL( struct display_camera *camera )
 	hdcEnable = hVideo->ENABLE_ON_DC_NORMAL;
 
 	if( !hVideo->ENABLE_ON_DC_NORMAL )
-		UpdateDisplay( hVideo );
+		ogl_UpdateDisplayEx( hVideo DBG_SRC );
 
 	EnterCriticalSec( &hVideo->cs );
 	if (!(PixelFormat=ChoosePixelFormat(hdcEnable,&pfd)))  // Did Windows Find A Matching Pixel Format?
@@ -386,7 +384,7 @@ int EnableOpenGLView( struct display_camera *camera, int x, int y, int w, int h 
 
 	if( !hVideo->flags.bOpenGL )
 	{
-		if( !EnableOpenGL( camera ) )
+		if( !ogl_EnableOpenGL( camera ) )
          return 0;
 	}
 	nFracture = CreatePartialDrawingSurface( hVideo, x, y, w, h );

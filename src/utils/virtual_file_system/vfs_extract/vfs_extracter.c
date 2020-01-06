@@ -132,7 +132,7 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileFlags fla
 
 PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 {
-	struct volume *vol;
+	struct sack_vfs_volume *vol;
 	int argc;
 	char **argv;
 #if _WIN32 

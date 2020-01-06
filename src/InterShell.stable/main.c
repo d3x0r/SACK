@@ -669,7 +669,7 @@ PGLARE_SET GetGlareSet( CTEXTSTR name )
 	return glare_set;
 }
 
-void SetGlareSetFlags( TEXTCHAR *name, int flags )
+void SetGlareSetFlags( TEXTCHAR const *name, int flags )
 {
 	PGLARE_SET glare_set = GetGlareSet( name );
 	if( glare_set )
@@ -684,7 +684,7 @@ void SetGlareSetFlags( TEXTCHAR *name, int flags )
 	}
 }
 
-void MakeGlareSet( TEXTCHAR *name, TEXTCHAR *glare, TEXTCHAR *up, TEXTCHAR *down, TEXTCHAR *mask )
+void MakeGlareSet( TEXTCHAR const *name, TEXTCHAR const *glare, TEXTCHAR const *up, TEXTCHAR const *down, TEXTCHAR const *mask )
 {
 	PGLARE_SET glare_set = GetGlareSet( name );
 #define SetGlareName(n)	if( glare_set->n ) \
@@ -863,7 +863,7 @@ CTEXTSTR InterShell_GetSystemName( void )
 }
 
 
-void InterShell_SetButtonStyle( PMENU_BUTTON button, TEXTCHAR *style )
+void InterShell_SetButtonStyle( PMENU_BUTTON button, TEXTCHAR const *style )
 {
 	if( !button )
 		button = configure_key_dispatch.button;
@@ -2190,7 +2190,7 @@ void SetAllowDisallowControls( void )
 
 /* this is function has a duplicately named function in pages.c */
 
-static void CPROC ChooseImage( uintptr_t psv, PSI_CONTROL pc )
+static void CPROC MainChooseImage( uintptr_t psv, PSI_CONTROL pc )
 {
 	TEXTCHAR result[256];
 	if( PSI_PickFile( pc, ".", NULL, result, sizeof( result ), FALSE ) )
@@ -2286,7 +2286,7 @@ void SetCommonButtonControls( PSI_CONTROL frame )
 			configure_key_dispatch.new_font_name = NULL;
 		configure_key_dispatch.new_font = NULL;
 		SetButtonPushMethod( GetControl( frame, BTN_PICKFONT ), PickMenuControlFont, 0 );
-		SetButtonPushMethod( GetControl( frame, BTN_PICKFILE ), ChooseImage, 0 );
+		SetButtonPushMethod( GetControl( frame, BTN_PICKFILE ), MainChooseImage, 0 );
 #ifndef __NO_ANIMATION__
 		SetButtonPushMethod( GetControl( frame, BTN_PICKANIMFILE ), ChooseAnimation, 0 );
 #endif
@@ -3953,7 +3953,7 @@ void CPROC CheckMemStats( uintptr_t psv )
 	if( f(a)||f(b)||f(c)||f(d))
 	{
 		h(a),h(b),h(c),h(d);
-		lprintf( "---***--- MemStats  free: %"_32f " used: %"_32f " used chunks: %"_32f " free chunks: %"_32f, a, b, c-d, d );
+		lprintf( "---***--- MemStats  free: %" _32f " used: %" _32f " used chunks: %" _32f " free chunks: %" _32f, a, b, c-d, d );
 		if( _c != c )
 		{
 			_c = c;
@@ -3988,7 +3988,7 @@ void GetPageSizeEx( PSI_CONTROL pc_canvas, uint32_t* width, uint32_t* height )
 		ValidatedControlData( PCanvasData, menu_surface.TypeID, canvas, pc_canvas );
 		if( canvas )
 		{
-			GetFrameSize( pc_canvas, (int*)width, (int*)height );
+			GetFrameSize( pc_canvas, width, height );
 		}
 	}
 }
@@ -4217,7 +4217,7 @@ void CPROC DoKeyDown( PSI_CONTROL pc, uint32_t key )
 }
 
 //---------------------------------------------------------------------------
-PMENU MakeControlsMenu( PMENU parent, TEXTCHAR *basename, CTEXTSTR priorname )
+static PMENU MakeControlsMenu( PMENU parent, TEXTCHAR const *basename, CTEXTSTR priorname )
 {
 	static int n = 0;
 	CTEXTSTR name;
@@ -5330,7 +5330,7 @@ void AddTmpPath( TEXTCHAR *tmp )
 	}
 }
 
-void CPROC LoadAPlugin( uintptr_t psv, CTEXTSTR name, int flags )
+void CPROC LoadAPlugin( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	TEXTCHAR msg[256];
 	snprintf( msg, sizeof( msg ), "Loading Plugin: %s", name );
@@ -5421,7 +5421,7 @@ void LoadInterShellPlugins( CTEXTSTR mypath, CTEXTSTR mask, CTEXTSTR extra_path 
 	else
 	{
 		ext = filename;
-		filename = ".";
+		filename = (TEXTCHAR*)".";
 		//StrCpyEx( filename, ".", sizeof( filename ) );
 	}
 	//lprintf( "Scanning as [%s] [%s] [%s]", filename, ext+1, extra_path?extra_path:"" );
@@ -5433,7 +5433,7 @@ void LoadInterShellPlugins( CTEXTSTR mypath, CTEXTSTR mask, CTEXTSTR extra_path 
 			AddTmpPath( tmp );
 			Release( tmp );
 		}
-		while( ScanFiles( filename, ext, &info, LoadAPlugin, 0, 0 ) );
+		while( ScanFiles( filename, ext, &info, LoadAPlugin, SFF_DEFAULT, 0 ) );
 		OSALOT_SetEnvironmentVariable( "PATH", old_environ );
 		Release( (POINTER)old_environ );
 	}
@@ -5530,10 +5530,11 @@ PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole,struct volume* (CPRO
 	return 1;
 }
 
+INTERSHELL_NAMESPACE_END
+
 #ifdef __cplusplus_cli
 #include <vcclr.h>
 
-INTERSHELL_NAMESPACE_END
 
 namespace sack
 {

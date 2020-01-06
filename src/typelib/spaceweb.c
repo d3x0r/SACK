@@ -289,7 +289,6 @@ void UnsignIsland( PSPACEWEB_NODE node, uint32_t old_value, uint32_t value )
 LOGICAL FindIslands( PSPACEWEB_NODE node )
 {
 	static uint32_t zzz;
-	uint32_t zzzz;
 	PSPACEWEB web = node->web;
 	PSPACEWEB_NODE orphan;
 	count = 0;
@@ -649,7 +648,6 @@ PSPACEWEB_NODE IsNodeWithinEx( PSPACEWEB_NODE node, PCVECTOR new_point, PSPACEWE
 {
 	{
 		INDEX idx;
-		PSPACEWEB_NODE near_node;
 		PSPACEWEB_LINK link;
 		LIST_FORALL( node->links, idx, PSPACEWEB_LINK, link )
 		{
@@ -1154,7 +1152,7 @@ void MigrateLink( PSPACEWEB_NODE node, PCVECTOR p_dest )
 		// self's links maybe invalid now... so, use the regular check on this node
 		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, check )
 		{
-			PSPACEWEB_NODE check2;
+			//PSPACEWEB_NODE check2;
 			_POINT p;
 			RCOORD t;
 			INDEX idx2 = idx;
@@ -1492,7 +1490,7 @@ void RelinkANode( PSPACEWEB_NODE web, PSPACEWEB_NODE came_from, PSPACEWEB_NODE n
 	PSPACEWEB_NODE current = web;
 	INDEX idx;
 	int linked = 0;
-	PSPACEWEB_NODE check;
+	//PSPACEWEB_NODE check;
 	PLIST list = NULL;
 	static int levels;
 	static int paint;
@@ -2072,7 +2070,7 @@ static int OnKeyCommon( "Web Tester" )( PSI_CONTROL pc, uint32_t key )
 		update_pause = 0;
 	if( IsKeyPressed(key) && KEY_CODE(key) == KEY_N )
 	{
-		PSPACEWEB_NODE check;
+		//PSPACEWEB_NODE check;
 		test.root++;
 		test.pRoot = GetUsedSetMember( SPACEWEB_NODE, &test.web->nodes, test.root );
 		if( !test.pRoot )

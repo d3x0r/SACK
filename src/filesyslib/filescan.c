@@ -257,11 +257,7 @@ typedef struct myfinddata {
 #    ifdef UNDER_CE
 	WIN32_FIND_DATA fd;
 #    else
-#      ifdef UNICODE
 	struct _wfinddata_t fd;
-#    else
-	 struct finddata_t fd;
-#    endif
 #  endif
 #endif
 	struct find_cursor *cursor;
@@ -273,6 +269,7 @@ typedef struct myfinddata {
 	TEXTCHAR file_buffer[MAX_PATH_NAME];
 	TEXTCHAR basename[MAX_PATH_NAME];
 	TEXTCHAR findmask[MAX_PATH_NAME];
+	wchar_t *findmaskw;
 	struct myfinddata *current;
 	struct myfinddata *prior;
 	struct myfinddata **root_info;
@@ -283,6 +280,7 @@ typedef struct myfinddata {
 #define findbuffer(pInfo) ( ((PMFD)(*pInfo))->buffer)
 #define findbasename(pInfo) ( ((PMFD)(*pInfo))->basename)
 #define findmask(pInfo)     ( ((PMFD)(*pInfo))->findmask)
+#define findmaskw(pInfo)     ( ((PMFD)(*pInfo))->findmaskw)
 #define findinfo(pInfo)     (((PMFD)(*pInfo)))
 #define findcursor(pInfo)     ( ((PMFD)(*pInfo))->cursor)
 
@@ -320,6 +318,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 	if( !*pInfo || begin_sub_path || ((PMFD)*pInfo)->new_mount )
 	{
 		TEXTCHAR findmask[256];
+		wchar_t findmaskw[256];
 		pData = (PMFD)(*pInfo);
 		if( !pData )
 		{
@@ -332,7 +331,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 
 				//lprintf( "... %p", winfile_local );
 				pData->single_mount = FALSE;
-				pData->scanning_mount = (*winfile_local).mounted_file_systems;
+				pData->scanning_mount = FileSysThreadInfo.mounted_file_systems;
 			}
 			else
 				pData->single_mount = TRUE;
@@ -410,11 +409,22 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 				StrCpyEx( findmask(pInfo), mask, MAX_PATH_NAME );
 			}
 		}
+		findmaskw(pInfo) = CharWConvertLen( findmask( pInfo ), strlen( findmask( pInfo ) ) );
+
 		if( findbasename(pInfo)[0] )
-			tnprintf( findmask, sizeof(findmask), "%s/*", findbasename(pInfo) );
+			tnprintf( findmask, sizeof(findmask), "%s" PATHCHAR "*", findbasename(pInfo) );
 		else {
 			tnprintf( findmask, sizeof( findmask ), "*" );
 		}
+		{
+			wchar_t* out = findmaskw;
+			const char* tmp = findmask;
+			while( tmp[0] ) {
+				out += ConvertToUTF16( out, GetUtfChar( &tmp ) );
+			}
+			out[0] = 0;
+		}
+
 		if( pData->scanning_mount?pData->scanning_mount->fsi:NULL ) {
 #ifndef _WIN32
 			de = NULL;
@@ -425,7 +435,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 				findhandle(pInfo) = (HANDLECAST)-1;
 		} else {
 #ifdef WIN32
-			findhandle(pInfo) = findfirst( findmask, finddata(pInfo) );
+			findhandle(pInfo) = _wfindfirst( findmaskw, finddata(pInfo) );
 #else
 			lprintf( "opendir [%s]", findbasename(pInfo) );
 			if( !findbasename(pInfo)[0] ) {
@@ -456,7 +466,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 				//closedir( findhandle( pInfo ) );
 #endif
 			}
-			pData->scanning_mount = NextThing( pData->scanning_mount );
+			pData->scanning_mount =  pData->scanning_mount ->nextLayer;
 			if( !pData->scanning_mount || pData->single_mount )
 			{
 				(*pData->root_info) = pData->prior;
@@ -484,7 +494,7 @@ getnext:
 		else
 		{
 #ifdef _WIN32
-			r = findnext( findhandle(pInfo), finddata( pInfo ) );
+			r = _wfindnext( findhandle(pInfo), finddata( pInfo ) );
 #else
 			de = readdir( (DIR*)findhandle( pInfo ) );
 			//lprintf( "using %p got %p", findhandle( pInfo ), de );
@@ -495,7 +505,7 @@ getnext:
 		{
 			PMFD prior = pData->prior;
 			//lprintf( "nothing left to find..." );
-			if( pData->scanning_mount->fsi )
+			if( pData->scanning_mount && pData->scanning_mount->fsi )
 				pData->scanning_mount->fsi->find_close( findcursor(pInfo) );
 			else
 			{
@@ -505,7 +515,7 @@ getnext:
 				closedir( (DIR*)findhandle(pInfo));
 #endif
 			}
-			pData->scanning_mount = NextThing( pData->scanning_mount );
+			pData->scanning_mount =  pData->scanning_mount ->nextLayer;
 			//lprintf( "Step mount... %p %d", pData->scanning_mount, pData->single_mount );
 			if( !pData->scanning_mount || pData->single_mount )
 			{
@@ -542,14 +552,17 @@ getnext:
 	else
 	{
 #ifdef WIN32 
+		{
+			const wchar_t* tmp = finddata( pInfo )->name;
+			char* out = findbuffer( pInfo );
+			while( tmp[0] ) {
+				out += ConvertToUTF8( out, GetUtfCharW( &tmp ) );
+			}
+			out[0] = 0;
+		}
 		//lprintf( "... %s", finddata(pInfo)->name );
-#  ifdef UNDER_CE
-		if( !StrCmp( ".", finddata(pInfo)->cFileName ) ||
-		    !StrCmp( "..", finddata(pInfo)->cFileName ) )
-#  else
-		if( !StrCmp( ".", finddata(pInfo)->name ) ||
-		    !StrCmp( "..", finddata(pInfo)->name ) )
-#  endif
+		if( !StrCmp( ".", findbuffer(pInfo) ) ||
+		    !StrCmp( "..", findbuffer(pInfo) ) )
 #else
 		if( !StrCmp( ".", de->d_name ) ||
 		    !StrCmp( "..", de->d_name ) )
@@ -562,7 +575,7 @@ getnext:
 		{
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) );
 			if( findbasename( pInfo )[0] )
-				tnprintf( pData->buffer, MAX_PATH_NAME, "%s/%s", findbasename(pInfo), pData->file_buffer );
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s" PATHCHAR "%s", findbasename(pInfo), pData->file_buffer );
 			else
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s", pData->file_buffer );
 		}
@@ -571,14 +584,14 @@ getnext:
 #ifdef WIN32
 #  ifdef UNDER_CE
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", finddata( pInfo )->cFileName );
-			tnprintf( pData->buffer, MAX_PATH_NAME, "%s/%s", findbasename(pInfo), finddata(pInfo)->cFileName );
+			tnprintf( pData->buffer, MAX_PATH_NAME, "%s" PATHCHAR "%s", findbasename(pInfo), finddata(pInfo)->cFileName );
 #  else
-			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", finddata(pInfo)->name );
-			tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s", findbasename(pInfo), findbasename( pInfo )[0]?"/":"", pData->file_buffer );
+			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%ls", finddata(pInfo)->name );
+			tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s", findbasename(pInfo), findbasename( pInfo )[0]?PATHCHAR:"", pData->file_buffer );
 #  endif
 #else
 			tnprintf( pData->file_buffer, MAX_PATH_NAME, "%s", de->d_name );
-			tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s", findbasename(pInfo), findbasename( pInfo )[0]?"/":"", de->d_name );
+			tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s", findbasename(pInfo), findbasename( pInfo )[0]?PATHCHAR:"", de->d_name );
 #endif
 		}
 	}
@@ -590,7 +603,7 @@ getnext:
 			{
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
 					  , pData->prior?pData->prior->buffer:""
-					  , pData->prior?"/":""
+					  , pData->prior?PATHCHAR:""
 					, pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) 
 					);
 			}
@@ -600,18 +613,18 @@ getnext:
 #  ifdef UNDER_CE
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
 						  , pData->prior?pData->prior->buffer:""
-						  , pData->prior?"/":""
+						  , pData->prior?PATHCHAR:""
 						  , finddata(pInfo)->cFileName );
 #  else
-				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%ls"
 						  , pData->prior?pData->prior->buffer:""
-						  , pData->prior?"/":""
+						  , pData->prior?PATHCHAR:""
 						  , finddata(pInfo)->name );
 #  endif
 #else
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
 					  , pData->prior?pData->prior->buffer:""
-					  , pData->prior?"/":""
+					  , pData->prior?PATHCHAR:""
 					  , de->d_name );
 					  lprintf( "resulting is %s", pData->buffer );
 #endif
@@ -629,11 +642,7 @@ getnext:
 #  ifdef UNDER_CE
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s", finddata(pInfo)->cFileName );
 #  else
-#    ifdef UNICODE
-				snwprintf( pData->buffer, MAX_PATH_NAME, "%s", finddata(pInfo)->name );
-#    else
-				tnprintf( pData->buffer, MAX_PATH_NAME, "%s", finddata(pInfo)->name );
-#    endif
+				tnprintf( pData->buffer, MAX_PATH_NAME, "%ls", finddata(pInfo)->name );
 #  endif
 #else
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s", de->d_name );
@@ -690,22 +699,18 @@ getnext:
 				// even in name only - need to have this full buffer for subcurse.
 				if( pData->scanning_mount && pData->scanning_mount->fsi )
 				{
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s" PATHCHAR "%s", findbasename( pInfo ), pData->scanning_mount->fsi->find_get_name( findcursor( pInfo ) ) );
 				}
 				else
 				{
 #ifdef WIN32
 #  ifdef UNDER_CE
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), finddata( pInfo )->cFileName );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s" PATHCHAR "%s", findbasename( pInfo ), finddata( pInfo )->cFileName );
 #  else
-#    ifdef UNICODE
-					/*ofs = */snwprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), finddata( pInfo )->name );
-#    else
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), finddata( pInfo )->name );
-#    endif
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s" PATHCHAR "%ls", findbasename( pInfo ), finddata( pInfo )->name );
 #  endif
 #else	
-					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s/%s", findbasename( pInfo ), de->d_name );
+					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s" PATHCHAR "%s", findbasename( pInfo ), de->d_name );
 #endif
 				}
 				//lprintf( "process sub... %s %s", tmpbuf, findmask(pInfo)  );
@@ -804,5 +809,16 @@ int  ScanFiles ( CTEXTSTR base
 #endif
 
 }
+
+
+#undef findhandle
+#undef finddata
+#undef findbuffer
+#undef findbasename
+#undef findmask
+#undef findmaskw
+#undef findinfo
+#undef findcursor
+
 
 FILESYS_NAMESPACE_END

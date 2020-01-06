@@ -93,14 +93,21 @@ enum jsox_parse_context_modes {
 	JSOX_CONTEXT_UNKNOWN = 0,
 	JSOX_CONTEXT_IN_ARRAY = 1,
 	//JSOX_CONTEXT_IN_OBJECT = 2,
-	JSOX_CONTEXT_OBJECT_FIELD = 3,
-	JSOX_CONTEXT_OBJECT_FIELD_VALUE = 4,
-	JSOX_CONTEXT_CLASS_FIELD = 5,
-	JSOX_CONTEXT_CLASS_VALUE = 6,
-	JSOX_CONTEXT_CLASS_FIELD_VALUE = 7, // same as OBJECT_FIELD_VALUE; but within a CLASS_VALUE state
+	JSOX_CONTEXT_OBJECT_FIELD = 3, // in object, before ':'
+	JSOX_CONTEXT_OBJECT_FIELD_VALUE = 4, // in object, after ':' before ','
+	//JSOX_CONTEXT_CLASS_FIELD = 5,
+	//JSOX_CONTEXT_CLASS_VALUE = 6,
+	//JSOX_CONTEXT_CLASS_FIELD_VALUE = 7, // same as OBJECT_FIELD_VALUE; but within a CLASS_VALUE state
+};
+
+enum jsox_parse_object_context_modes {
+	JSOX_OBJECT_CONTEXT_CLASS_NORMAL = 0, // normal object parsing behavior field:value
+	JSOX_OBJECT_CONTEXT_CLASS_FIELD = 1,  // gathering a class defition - fields only
+	JSOX_OBJECT_CONTEXT_CLASS_VALUE = 2,  // expanding a defined class - values only
 };
 
 
+/*
 #define JSOX_RESET_VAL()  {  \
 	val.value_type = JSOX_VALUE_UNSET; \
 	val.contains = NULL;              \
@@ -109,6 +116,7 @@ enum jsox_parse_context_modes {
 	val.string = NULL;                \
 	val.className = NULL;             \
 	negative = FALSE; }
+*/
 #define JSOX_RESET_STATE_VAL()  {  \
 	state->val.value_type = JSOX_VALUE_UNSET; \
 	state->val.contains = NULL;              \
@@ -116,6 +124,7 @@ enum jsox_parse_context_modes {
 	state->val.name = NULL;                  \
 	state->val.string = NULL;                \
 	state->val.className = NULL;             \
+	state->completedString = FALSE;          \
 	state->negative = FALSE; }
 
 struct jsox_input_buffer {
@@ -157,9 +166,12 @@ DeclareSet( JSOX_CLASS );
 
 struct jsox_parse_context {
 	enum jsox_parse_context_modes context;
+	enum jsox_parse_object_context_modes objectContext;
 	PDATALIST *elements;
 	char *name;	
 	size_t nameLen;	
+	char *className;
+	size_t classNameLen;
 	struct jsox_value_container valState;
 	//struct jsox_context_object *object;
 	PJSOX_CLASS current_class;
@@ -170,6 +182,24 @@ typedef struct jsox_parse_context JSOX_PARSE_CONTEXT, *PJSOX_PARSE_CONTEXT;
 #define MAXJSOX_PARSE_CONTEXTSPERSET 128
 DeclareSet( JSOX_PARSE_CONTEXT );
 
+
+#ifndef JSON_PARSER_INCLUDED
+typedef PLIST *PPLIST;
+#define MAXPLISTSPERSET 256
+DeclareSet( PLIST );
+
+typedef PLINKSTACK *PPLINKSTACK;
+#define MAXPLINKSTACKSPERSET 256
+DeclareSet( PLINKSTACK );
+
+typedef PLINKQUEUE *PPLINKQUEUE;
+#define MAXPLINKQUEUESPERSET 256
+DeclareSet( PLINKQUEUE );
+
+typedef PDATALIST *PPDATALIST;
+#define MAXPDATALISTSPERSET 256
+DeclareSet( PDATALIST );
+#endif
 
 // this is the stack state that can be saved between parsing for streaming.
 struct jsox_parse_state {
@@ -195,10 +225,12 @@ struct jsox_parse_state {
 	PJSOX_CLASS current_class;
 	int current_class_item;
 	int arrayType;
+	int allowRedefinition;
 
 	LOGICAL first_token;
 	PJSOX_PARSE_CONTEXT context;
 	enum jsox_parse_context_modes parse_context;
+	enum jsox_parse_object_context_modes objectContext;
 	struct jsox_value_container val;
 	int comment;
 	TEXTRUNE operatorAccum;
@@ -239,44 +271,30 @@ struct jsox_parse_state {
 
 	PDATALIST root;
 	//char *token_begin;
+
+
+	PJSOX_CLASSSET  classPool;
+	PJSOX_PARSE_CONTEXTSET parseContexts;
+	PJSOX_CLASS_FIELDSET  class_fields;
+	PJSOX_PARSE_BUFFERSET parseBuffers;
+
 };
 typedef struct jsox_parse_state JSOX_PARSE_STATE, *PJSOX_PARSE_STATE;
 #define MAXJSOX_PARSE_STATESPERSET 32
 DeclareSet( JSOX_PARSE_STATE );
 
-#ifndef JSON_PARSER_INCLUDED
-typedef PLIST *PPLIST;
-#define MAXPLISTSPERSET 256
-DeclareSet( PLIST );
-
-typedef PLINKSTACK *PPLINKSTACK;
-#define MAXPLINKSTACKSPERSET 256
-DeclareSet( PLINKSTACK );
-
-typedef PLINKQUEUE *PPLINKQUEUE;
-#define MAXPLINKQUEUESPERSET 256
-DeclareSet( PLINKQUEUE );
-
-typedef PDATALIST *PPDATALIST;
-#define MAXPDATALISTSPERSET 256
-DeclareSet( PDATALIST );
-#endif
-
 struct jsox_parser_shared_data {
-	PJSOX_PARSE_CONTEXTSET parseContexts;
-	PJSOX_PARSE_BUFFERSET parseBuffers;
+	LOGICAL initialized;
+	CRITICALSECTION cs_states;
 	struct jsox_parse_state *last_parse_state;
 	PJSOX_PARSE_STATESET parseStates;
 	PPLISTSET listSet;
 	PPLINKSTACKSET linkStacks;
 	PPLINKQUEUESET linkQueues;
+
 	PPDATALISTSET dataLists;
 
-	PJSOX_CLASSSET  classes;
-	PJSOX_CLASS_FIELDSET  class_fields;
-
 	struct jsox_parse_state *_state; // static parsing state for simple message interface.
-
 };
 #ifndef JSOX_PARSER_MAIN_SOURCE
 extern

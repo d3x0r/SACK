@@ -53,6 +53,7 @@
 
 // this is safe to leave on.
 #define LOG_ORDERING_REFOCUS
+//#define LOG_STARTUP
 
 // move local into render namespace.
 #define VIDLIB_MAIN
@@ -70,21 +71,18 @@ IMAGE_NAMESPACE_END
 
 RENDER_NAMESPACE
 
-HWND  GetNativeHandle (PVIDEO hVideo);
-
-extern KEYDEFINE KeyDefs[];
-
+HWND  ogl_GetNativeHandle (PVIDEO hVideo);
 
 // forward declaration - staticness will probably cause compiler errors.
 
 //----------------------------------------------------------------------------
 
-void  EnableLoggingOutput( LOGICAL bEnable )
+void  ogl_EnableLoggingOutput( LOGICAL bEnable )
 {
 	l.flags.bLogWrites = bEnable;
 }
 
-void  UpdateDisplayPortionEx( PVIDEO hVideo
+void  ogl_UpdateDisplayPortionEx( PVIDEO hVideo
                                           , int32_t x, int32_t y
                                           , uint32_t w, uint32_t h DBG_PASS)
 {
@@ -98,8 +96,7 @@ void  UpdateDisplayPortionEx( PVIDEO hVideo
 
 //----------------------------------------------------------------------------
 
-void
-UnlinkVideo (PVIDEO hVideo)
+static void UnlinkVideo (PVIDEO hVideo)
 {
 	// yes this logging is correct, to say what I am below, is to know what IS above me
 	// and to say what I am above means I nkow what IS below me
@@ -131,40 +128,7 @@ UnlinkVideo (PVIDEO hVideo)
 
 //----------------------------------------------------------------------------
 
-void
-FocusInLevel (PVIDEO hVideo)
-{
-	//lprintf( "Focus IN level" );
-	if (hVideo->pPrior)
-	{
-		hVideo->pPrior->pNext = hVideo->pNext;
-		if (hVideo->pNext)
-			hVideo->pNext->pPrior = hVideo->pPrior;
-
-		hVideo->pPrior = NULL;
-
-		if (hVideo->pAbove)
-		{
-			hVideo->pNext = hVideo->pAbove->pBelow;
-			hVideo->pAbove->pBelow->pPrior = hVideo;
-			hVideo->pAbove->pBelow = hVideo;
-		}
-		else		  // nothing points to this - therefore we must find the start
-		{
-			PVIDEO pCur = hVideo->pPrior;
-			while (pCur->pPrior)
-				pCur = pCur->pPrior;
-			pCur->pPrior = hVideo;
-			hVideo->pNext = pCur;
-		}
-		hVideo->pPrior = NULL;
-	}
-	// else we were the first in this level's chain...
-}
-
-//----------------------------------------------------------------------------
-
-void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
+void  ogl_PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 {
 	//  this above that...
 	//  this->below is now that // points at things below
@@ -253,14 +217,14 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 #endif
 }
 
-void  PutDisplayIn (PVIDEO hVideo, PVIDEO hIn)
+ void  ogl_PutDisplayIn (PVIDEO hVideo, PVIDEO hIn)
 {
 	lprintf( "Relate hVideo as a child of hIn..." );
 }
 
 //----------------------------------------------------------------------------
 
-LOGICAL CreateDrawingSurface (PVIDEO hVideo)
+ LOGICAL ogl_CreateDrawingSurface (PVIDEO hVideo)
 {
 	if (!hVideo)
 		return FALSE;
@@ -287,7 +251,7 @@ LOGICAL CreateDrawingSurface (PVIDEO hVideo)
 	return TRUE;
 }
 
-void DoDestroy (PVIDEO hVideo)
+ void ogl_DoDestroy (PVIDEO hVideo)
 {
 	if (hVideo)
 	{
@@ -301,7 +265,7 @@ void DoDestroy (PVIDEO hVideo)
 		if( hVideo->under )
 			hVideo->under->over = NULL;
 		Deallocate(TEXTCHAR *, hVideo->pTitle);
-		DestroyKeyBinder( hVideo->KeyDefs );
+		ogl_DestroyKeyBinder( hVideo->KeyDefs );
 		// Image library tracks now that someone else gave it memory
 		// and it does not deallocate something it didn't allocate...
 		UnmakeImageFile (hVideo->pImage);
@@ -345,7 +309,7 @@ void DoDestroy (PVIDEO hVideo)
 
 //----------------------------------------------------------------------------
 
-void LoadOptions( void )
+ void ogl_LoadOptions( void )
 {
 	uint32_t average_width, average_height;
 	//int some_width;
@@ -379,7 +343,7 @@ void LoadOptions( void )
 		int n;
 		//lprintf( "Loading %d displays", nDisplays );
 		l.flags.bForceUnaryAspect = SACK_GetProfileIntEx( GetProgramName(), "SACK/Video Render/Force Aspect 1.0", (nDisplays==1)?0:1, TRUE );
-		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
+		ogl_GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		switch( nDisplays )
 		{
 		default:
@@ -468,7 +432,7 @@ void LoadOptions( void )
 			{
 				tnprintf( tmp, sizeof( tmp ), "SACK/Video Render/Display %d/Use Display", n+1 );
 				camera->display = SACK_GetProfileIntEx( GetProgramName(), tmp, nDisplays>1?n+1:0, TRUE );
-				GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
+				ogl_GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
 			}
 
 			camera->identity_depth = camera->w/2.0f;
@@ -487,7 +451,9 @@ void LoadOptions( void )
 			}
 			//lprintf( "Add camera to list" );
 			AddLink( &l.cameras, camera );
+#ifdef DEBUG_LOAD_OPTIONS
 			lprintf( " camera is %d,%d", camera->w, camera->h );
+#endif
 		}
 		if( !default_camera )
 		{
@@ -498,7 +464,7 @@ void LoadOptions( void )
 		SetLink( &l.cameras, 0, default_camera );
 	}
 	{
-		PODBC option = GetOptionODBC( NULL );
+		PODBC option = NULL;//GetOptionODBC( NULL );
 		l.flags.bLogMessageDispatch = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/log message dispatch", 0, TRUE );
 		l.flags.bLogFocus = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/log focus event", 0, TRUE );
 		l.flags.bLogKeyEvent = SACK_GetOptionIntEx( option, GetProgramName(), "SACK/Video Render/log key event", 0, TRUE );
@@ -527,7 +493,7 @@ void LoadOptions( void )
 		int n;
 		//lprintf( "Loading %d displays", nDisplays );
 		l.flags.bForceUnaryAspect = 0;
-		GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
+		ogl_GetDisplaySizeEx( 0, NULL, NULL, &screen_w, &screen_h );
 		//lprintf( "Set camera 0 to 1" );
 		average_width = screen_w;
 		average_height = screen_h;
@@ -550,7 +516,7 @@ void LoadOptions( void )
 			custom_pos = 0;
 #endif
 			camera->display = 0;
-			GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
+			ogl_GetDisplaySizeEx( camera->display, &camera->x, &camera->y, &camera->w, &camera->h );
 
 			camera->identity_depth = camera->w/2;
 			if( l.flags.bForceUnaryAspect )
@@ -567,7 +533,9 @@ void LoadOptions( void )
 			}
 			//lprintf( "Add camera to list" );
 			AddLink( &l.cameras, camera );
+#ifdef LOG_STARTUP
 			lprintf( " camera is %d,%d", camera->w, camera->h );
+#endif
 		}
 		if( !default_camera )
 		{
@@ -646,7 +614,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 						reference->Update3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,LOGICAL,"Update3d",(PTRANSFORM));
 						reference->Resume3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"Resume3d",(void));
 						// add one copy of each update proc to update list.
-						if( FindLink( &l.update, reference->Update3d ) == INVALID_INDEX )
+						if( FindLink( &l.update, (POINTER)reference->Update3d ) == INVALID_INDEX )
 							AddLink( &l.update, reference->Update3d );
 						reference->Draw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"ExtraDraw3d",(uintptr_t));
 						reference->FirstDraw3d = GetRegisteredProcedureExx( draw3d,(CTEXTSTR)name,void,"FirstDraw3d",(uintptr_t));
@@ -668,7 +636,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 
 }
 
-int CPROC OpenGLKey( uintptr_t psv, uint32_t keycode )
+static  int CPROC OpenGLKey( uintptr_t psv, uint32_t keycode )
 {
 	struct display_camera *camera = (struct display_camera *)psv;
 	int used = 0;
@@ -702,7 +670,7 @@ int CPROC OpenGLKey( uintptr_t psv, uint32_t keycode )
 	return used;
 }
 
-void OpenCamera( struct display_camera *camera )
+ void ogl_OpenCamera( struct display_camera *camera )
 {
 	{
 		//lprintf( "Open camera %p", camera);
@@ -773,7 +741,7 @@ void OpenCamera( struct display_camera *camera )
 }
 
 // returns the forward view camera (or default camera)
-struct display_camera *SACK_Vidlib_OpenCameras( void )
+struct display_camera *ogl_SACK_Vidlib_OpenCameras( void )
 {
 	struct display_camera *camera;
 	INDEX idx;
@@ -782,7 +750,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 		if( !idx ) // default camera is a duplicate of another camera
 			continue;
 		//lprintf( "Open camera %d", idx);
-		OpenCamera( camera );
+		ogl_OpenCamera( camera );
 	}
 
 	return (struct display_camera *)GetLink( &l.cameras, 0 );
@@ -799,7 +767,7 @@ static void OnLibraryLoad( "Video Render PureGL 2" )( void )
 }
 #endif
 
-LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
+ LOGICAL  ogl_CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy)
 {
 		if( hVideo )
@@ -807,7 +775,7 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 			if (wx == CW_USEDEFAULT || wy == CW_USEDEFAULT)
 			{
 				uint32_t w, h;
-				GetDisplaySize( &w, &h );
+				ogl_GetDisplaySize( &w, &h );
 				wx = w * 7 / 10;
 				wy = h * 7 / 10;
 			}
@@ -868,16 +836,16 @@ LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
 
 //----------------------------------------------------------------------------
 
-LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
+static LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 {
 	// starts our message thread if there is one...
 	if( !l.top )
 		l.hVidVirtualFocused = hNextVideo;
 
-	PutDisplayAbove( hNextVideo, l.top );
+	ogl_PutDisplayAbove( hNextVideo, l.top );
 
 	AddLink( &l.pActiveList, hNextVideo );
-	hNextVideo->KeyDefs = CreateKeyBinder();
+	hNextVideo->KeyDefs = ogl_CreateKeyBinder();
 #ifdef LOG_OPEN_TIMING
 	lprintf( "Doing open of a display... %p" , hNextVideo);
 #endif
@@ -886,7 +854,7 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 #ifdef LOG_OPEN_TIMING
 		lprintf( "About to create my own stuff..." );
 #endif
-		CreateWindowStuffSizedAt( hNextVideo
+		ogl_CreateWindowStuffSizedAt( hNextVideo
 										 , hNextVideo->pWindowPos.x
 										 , hNextVideo->pWindowPos.y
 										 , hNextVideo->pWindowPos.cx
@@ -899,7 +867,7 @@ LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 }
 
 
-PVIDEO  OpenDisplaySizedAt (uint32_t attr, uint32_t wx, uint32_t wy, int32_t x, int32_t y) // if native - we can return and let the messages dispatch...
+PVIDEO  ogl_OpenDisplaySizedAt (uint32_t attr, uint32_t wx, uint32_t wy, int32_t x, int32_t y) // if native - we can return and let the messages dispatch...
 {
 	PVIDEO hNextVideo;
 	//lprintf( "open display..." );
@@ -948,7 +916,7 @@ PVIDEO  OpenDisplaySizedAt (uint32_t attr, uint32_t wx, uint32_t wy, int32_t x, 
 	return NULL;
 }
 
- void  SetDisplayNoMouse ( PVIDEO hVideo, int bNoMouse )
+ void  ogl_SetDisplayNoMouse ( PVIDEO hVideo, int bNoMouse )
 {
 	if( hVideo ) 
 	{
@@ -970,22 +938,22 @@ PVIDEO  OpenDisplaySizedAt (uint32_t attr, uint32_t wx, uint32_t wy, int32_t x, 
 
 //----------------------------------------------------------------------------
 
-PVIDEO  OpenDisplayAboveSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
+PVIDEO  ogl_OpenDisplayAboveSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
                                                int32_t x, int32_t y, PVIDEO parent)
 {
-	PVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
+	PVIDEO newvid = ogl_OpenDisplaySizedAt (attr, wx, wy, x, y);
 	if (parent)
 	{
 		lprintf( "Want to reposition; had a parent to put this window above" );
-		PutDisplayAbove (newvid, parent);
+		ogl_PutDisplayAbove (newvid, parent);
 	}
 	return newvid;
 }
 
-PVIDEO  OpenDisplayAboveUnderSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
+PVIDEO  ogl_OpenDisplayAboveUnderSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
                                                int32_t x, int32_t y, PVIDEO parent, PVIDEO barrier)
 {
-	PVIDEO newvid = OpenDisplaySizedAt (attr, wx, wy, x, y);
+	PVIDEO newvid = ogl_OpenDisplaySizedAt (attr, wx, wy, x, y);
 	if( barrier )
 	{
 		// use initial SW_RESTORE instead of SW_NORMAL
@@ -1014,14 +982,14 @@ PVIDEO  OpenDisplayAboveUnderSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
 	if (parent)
 	{
 		lprintf( "Want to reposition; had a parent to put this window above" );
-		PutDisplayAbove (newvid, parent);
+		ogl_PutDisplayAbove (newvid, parent);
 	}
 	return newvid;
 }
 
 //----------------------------------------------------------------------------
 
-void  CloseDisplay (PVIDEO hVideo)
+void  ogl_CloseDisplay (PVIDEO hVideo)
 {
 	lprintf( "close display %p", hVideo );
 	// just kills this video handle....
@@ -1054,7 +1022,7 @@ void  CloseDisplay (PVIDEO hVideo)
 
 //----------------------------------------------------------------------------
 
-void  SizeDisplay (PVIDEO hVideo, uint32_t w, uint32_t h)
+void  ogl_SizeDisplay (PVIDEO hVideo, uint32_t w, uint32_t h)
 {
 #ifdef LOG_ORDERING_REFOCUS
 	lprintf( "Size Display..." );
@@ -1066,16 +1034,16 @@ void  SizeDisplay (PVIDEO hVideo, uint32_t w, uint32_t h)
 		// need to remake image surface too...
 		hVideo->pWindowPos.cx = w;
 		hVideo->pWindowPos.cy = h;
-		CreateDrawingSurface (hVideo);
+		ogl_CreateDrawingSurface (hVideo);
 		if( hVideo->flags.bShown )
-			UpdateDisplay( hVideo );
+			ogl_UpdateDisplayEx( hVideo DBG_SRC );
 	}
 }
 
 
 //----------------------------------------------------------------------------
 
-void  SizeDisplayRel (PVIDEO hVideo, int32_t delw, int32_t delh)
+void  ogl_SizeDisplayRel (PVIDEO hVideo, int32_t delw, int32_t delh)
 {
 	if (delw || delh)
 	{
@@ -1096,13 +1064,13 @@ void  SizeDisplayRel (PVIDEO hVideo, int32_t delw, int32_t delh)
 #ifdef LOG_ORDERING_REFOCUS
 		lprintf( "size display relative" );
 #endif
-		CreateDrawingSurface( hVideo );
+		ogl_CreateDrawingSurface( hVideo );
 	}
 }
 
 //----------------------------------------------------------------------------
 
-void  MoveDisplay (PVIDEO hVideo, int32_t x, int32_t y)
+void  ogl_MoveDisplay (PVIDEO hVideo, int32_t x, int32_t y)
 {
 #ifdef LOG_ORDERING_REFOCUS
 	//lprintf( "Move display %d,%d", x, y );
@@ -1117,7 +1085,7 @@ void  MoveDisplay (PVIDEO hVideo, int32_t x, int32_t y)
 			if( hVideo->flags.bShown )
 			{
 				// layered window requires layered output to be called to move the display.
-				UpdateDisplay( hVideo );
+				ogl_UpdateDisplayEx( hVideo DBG_SRC );
 			}
 		}
 	}
@@ -1125,7 +1093,7 @@ void  MoveDisplay (PVIDEO hVideo, int32_t x, int32_t y)
 
 //----------------------------------------------------------------------------
 
-void  MoveDisplayRel (PVIDEO hVideo, int32_t x, int32_t y)
+void  ogl_MoveDisplayRel (PVIDEO hVideo, int32_t x, int32_t y)
 {
 	if (x || y)
 	{
@@ -1137,7 +1105,7 @@ void  MoveDisplayRel (PVIDEO hVideo, int32_t x, int32_t y)
 
 //----------------------------------------------------------------------------
 
-void  MoveSizeDisplay (PVIDEO hVideo, int32_t x, int32_t y, int32_t w,
+void  ogl_MoveSizeDisplay (PVIDEO hVideo, int32_t x, int32_t y, int32_t w,
                                      int32_t h)
 {
 	int32_t cx, cy;
@@ -1155,12 +1123,12 @@ void  MoveSizeDisplay (PVIDEO hVideo, int32_t x, int32_t y, int32_t w,
 	lprintf( "move and size display." );
 #endif
 	// updates window translation
-	CreateDrawingSurface( hVideo );
+	ogl_CreateDrawingSurface( hVideo );
 }
 
 //----------------------------------------------------------------------------
 
-void  MoveSizeDisplayRel (PVIDEO hVideo, int32_t delx, int32_t dely,
+void  ogl_MoveSizeDisplayRel (PVIDEO hVideo, int32_t delx, int32_t dely,
                                         int32_t delw, int32_t delh)
 {
 	int32_t cx, cy;
@@ -1177,24 +1145,24 @@ void  MoveSizeDisplayRel (PVIDEO hVideo, int32_t delx, int32_t dely,
 //fdef LOG_DISPLAY_RESIZE
 	lprintf( "move and size relative %d,%d %d,%d", delx, dely, delw, delh );
 //ndif
-	CreateDrawingSurface( hVideo );
+	ogl_CreateDrawingSurface( hVideo );
 }
 
 //----------------------------------------------------------------------------
 
-void  UpdateDisplayEx (PVIDEO hVideo DBG_PASS )
+void  ogl_UpdateDisplayEx (PVIDEO hVideo DBG_PASS )
 {
 	// copy hVideo->lpBuffer to hVideo->hDCOutput
 	if (hVideo )
 	{
-		UpdateDisplayPortionEx (hVideo, 0, 0, 0, 0 DBG_RELAY);
+		ogl_UpdateDisplayPortionEx (hVideo, 0, 0, 0, 0 DBG_RELAY);
 	}
 	return;
 }
 
 //----------------------------------------------------------------------------
 
-void  SetMousePosition (PVIDEO hVid, int32_t x, int32_t y)
+void  ogl_SetMousePosition (PVIDEO hVid, int32_t x, int32_t y)
 {
 	if( !hVid )
 	{
@@ -1247,7 +1215,7 @@ void  SetMousePosition (PVIDEO hVid, int32_t x, int32_t y)
 
 //----------------------------------------------------------------------------
 
-void  GetMousePosition (int32_t * x, int32_t * y)
+void  ogl_GetMousePosition (int32_t * x, int32_t * y)
 {
 	lprintf( "This is really relative to what is looking at it " );
 	//DebugBreak();
@@ -1259,16 +1227,16 @@ void  GetMousePosition (int32_t * x, int32_t * y)
 
 //----------------------------------------------------------------------------
 
-void CPROC GetMouseState(int32_t * x, int32_t * y, uint32_t *b)
+void ogl_GetMouseState(int32_t * x, int32_t * y, uint32_t *b)
 {
-	GetMousePosition( x, y );
+	ogl_GetMousePosition( x, y );
 	if( b )
 		(*b) = l.mouse_b;
 }
 
 //----------------------------------------------------------------------------
 
-void  SetCloseHandler (PVIDEO hVideo,
+void  ogl_SetCloseHandler (PVIDEO hVideo,
                                      CloseCallback pWindowClose,
                                      uintptr_t dwUser)
 {
@@ -1281,7 +1249,7 @@ void  SetCloseHandler (PVIDEO hVideo,
 
 //----------------------------------------------------------------------------
 
-void  SetMouseHandler (PVIDEO hVideo,
+void  ogl_SetMouseHandler (PVIDEO hVideo,
                                      MouseCallback pMouseCallback,
                                      uintptr_t dwUser)
 {
@@ -1289,7 +1257,7 @@ void  SetMouseHandler (PVIDEO hVideo,
    hVideo->pMouseCallback = pMouseCallback;
 }
 
-void  SetHideHandler (PVIDEO hVideo,
+void  ogl_SetHideHandler (PVIDEO hVideo,
                                      HideAndRestoreCallback pHideCallback,
                                      uintptr_t dwUser)
 {
@@ -1297,7 +1265,7 @@ void  SetHideHandler (PVIDEO hVideo,
    hVideo->pHideCallback = pHideCallback;
 }
 
-void  SetRestoreHandler (PVIDEO hVideo,
+void  ogl_SetRestoreHandler (PVIDEO hVideo,
                                      HideAndRestoreCallback pRestoreCallback,
                                      uintptr_t dwUser)
 {
@@ -1319,7 +1287,7 @@ RENDER_PROC (void, SetTouchHandler) (PVIDEO hVideo,
 //----------------------------------------------------------------------------
 
 
-void  SetRedrawHandler (PVIDEO hVideo,
+void  ogl_SetRedrawHandler (PVIDEO hVideo,
                                       RedrawCallback pRedrawCallback,
                                       uintptr_t dwUser)
 {
@@ -1339,7 +1307,7 @@ void  SetRedrawHandler (PVIDEO hVideo,
 
 //----------------------------------------------------------------------------
 
-void  SetKeyboardHandler (PVIDEO hVideo, KeyProc pKeyProc,
+void  ogl_SetKeyboardHandler (PVIDEO hVideo, KeyProc pKeyProc,
                                         uintptr_t dwUser)
 {
 	hVideo->dwKeyData = dwUser;
@@ -1348,7 +1316,7 @@ void  SetKeyboardHandler (PVIDEO hVideo, KeyProc pKeyProc,
 
 //----------------------------------------------------------------------------
 
-void  SetLoseFocusHandler (PVIDEO hVideo,
+void  ogl_SetLoseFocusHandler (PVIDEO hVideo,
                                          LoseFocusCallback pLoseFocus,
                                          uintptr_t dwUser)
 {
@@ -1361,7 +1329,7 @@ void  SetLoseFocusHandler (PVIDEO hVideo,
 
 //----------------------------------------------------------------------------
 
-void  SetApplicationTitle (const TEXTCHAR *pTitle)
+void  ogl_SetApplicationTitle (const TEXTCHAR *pTitle)
 {
 	l.gpTitle = pTitle;
 	if (l.cameras)
@@ -1373,7 +1341,7 @@ void  SetApplicationTitle (const TEXTCHAR *pTitle)
 
 //----------------------------------------------------------------------------
 
-void  SetRendererTitle (PVIDEO hVideo, const TEXTCHAR *pTitle)
+void  ogl_SetRendererTitle (PVIDEO hVideo, const TEXTCHAR *pTitle)
 {
 	//l.gpTitle = pTitle;
 	//if (l.hWndInstance)
@@ -1386,7 +1354,7 @@ void  SetRendererTitle (PVIDEO hVideo, const TEXTCHAR *pTitle)
 
 //----------------------------------------------------------------------------
 
-void  SetApplicationIcon (ImageFile * hIcon)
+void  ogl_SetApplicationIcon (ImageFile * hIcon)
 {
 #ifdef _WIN32
    //HICON hIcon = CreateIcon();
@@ -1395,7 +1363,7 @@ void  SetApplicationIcon (ImageFile * hIcon)
 
 //----------------------------------------------------------------------------
 
-void  MakeTopmost (PVIDEO hVideo)
+void  ogl_MakeTopmost (PVIDEO hVideo)
 {
 	if( hVideo )
 	{
@@ -1412,7 +1380,7 @@ void  MakeTopmost (PVIDEO hVideo)
 
 //----------------------------------------------------------------------------
 
-void  MakeAbsoluteTopmost (PVIDEO hVideo)
+void  ogl_MakeAbsoluteTopmost (PVIDEO hVideo)
 {
 	if( hVideo )
 	{
@@ -1426,13 +1394,13 @@ void  MakeAbsoluteTopmost (PVIDEO hVideo)
 
 //----------------------------------------------------------------------------
 
- int  IsTopmost ( PVIDEO hVideo )
+ int  ogl_IsTopmost ( PVIDEO hVideo )
 {
    return hVideo->flags.bTopmost;
 }
 
 //----------------------------------------------------------------------------
-void  HideDisplay (PVIDEO hVideo)
+void  ogl_HideDisplay (PVIDEO hVideo)
 {
 //#ifdef LOG_SHOW_HIDE
 	lprintf("Hiding the window! %p %p %p", hVideo, hVideo?hVideo->pAbove:0, hVideo?hVideo->pBelow:0 );
@@ -1459,11 +1427,11 @@ void  HideDisplay (PVIDEO hVideo)
 
 //----------------------------------------------------------------------------
 #undef RestoreDisplay
-void  RestoreDisplay (PVIDEO hVideo)
+void  ogl_RestoreDisplay (PVIDEO hVideo)
 {
-	RestoreDisplayEx( hVideo DBG_SRC );
+	ogl_RestoreDisplayEx( hVideo DBG_SRC );
 }
-void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
+void ogl_RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 {
 #ifdef WIN32
 	PostThreadMessage (l.dwThreadID, WM_USER_OPEN_CAMERAS, 0, 0 );
@@ -1472,7 +1440,7 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 	if( hVideo )
 	{
 		if( hVideo->flags.bHidden )
-			PutDisplayAbove( hVideo, l.top );  // might as well take it out of the list, no keys, mouse or output allowed.
+			ogl_PutDisplayAbove( hVideo, l.top );  // might as well take it out of the list, no keys, mouse or output allowed.
 		hVideo->flags.bShown = 1;
 		hVideo->flags.bHidden = 0;
 	}
@@ -1480,15 +1448,15 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 
 //----------------------------------------------------------------------------
 
-void  GetDisplaySize (uint32_t * width, uint32_t * height)
+void  ogl_GetDisplaySize (uint32_t * width, uint32_t * height)
 {
    lprintf( "GetDisplaySize (this will pause for a display to be given to us...)" );
-   GetDisplaySizeEx( 0, NULL, NULL, width, height );
+   ogl_GetDisplaySizeEx( 0, NULL, NULL, width, height );
 }
 
 //----------------------------------------------------------------------------
 
-void  GetDisplayPosition (PVIDEO hVid, int32_t * x, int32_t * y,
+void  ogl_GetDisplayPosition (PVIDEO hVid, int32_t * x, int32_t * y,
                                         uint32_t * width, uint32_t * height)
 {
 	if (!hVid)
@@ -1504,35 +1472,35 @@ void  GetDisplayPosition (PVIDEO hVid, int32_t * x, int32_t * y,
 }
 
 //----------------------------------------------------------------------------
-LOGICAL  DisplayIsValid (PVIDEO hVid)
+LOGICAL  ogl_DisplayIsValid (PVIDEO hVid)
 {
    return hVid->flags.bReady;
 }
 
 //----------------------------------------------------------------------------
 
-void  SetDisplaySize (uint32_t width, uint32_t height)
+void  ogl_SetDisplaySize (uint32_t width, uint32_t height)
 {
-	SizeDisplay (l.hVideoPool, width, height);
+	ogl_SizeDisplay (l.hVideoPool, width, height);
 }
 
 //----------------------------------------------------------------------------
 
-ImageFile * GetDisplayImage (PVIDEO hVideo)
+ImageFile * ogl_GetDisplayImage (PVIDEO hVideo)
 {
 	return hVideo->pImage;
 }
 
 //----------------------------------------------------------------------------
 
-PKEYBOARD  GetDisplayKeyboard (PVIDEO hVideo)
+PKEYBOARD  ogl_GetDisplayKeyboard (PVIDEO hVideo)
 {
 	return &hVideo->kbd;
 }
 
 //----------------------------------------------------------------------------
 
-LOGICAL  HasFocus (PRENDERER hVideo)
+LOGICAL  ogl_HasFocus (PRENDERER hVideo)
 {
 	return hVideo->flags.bFocused;
 }
@@ -1550,14 +1518,14 @@ PACTIVEMESSAGE  CreateActiveMessage (int ID, int size,...)
 	return NULL;
 }
 
-void  SetDefaultHandler (PRENDERER hVideo,
+void  ogl_SetDefaultHandler (PRENDERER hVideo,
                                        GeneralCallback general, uintptr_t psv)
 {
 }
 #endif
 //----------------------------------------------------------------------------
 
-void  OwnMouseEx (PVIDEO hVideo, uint32_t own DBG_PASS)
+void  ogl_OwnMouseEx (PVIDEO hVideo, uint32_t own DBG_PASS)
 {
 	if (own)
 	{
@@ -1637,27 +1605,21 @@ void  OwnMouseEx (PVIDEO hVideo, uint32_t own DBG_PASS)
 	}
 }
 
-//----------------------------------------------------------------------------
-void
-NoProc (void)
-{
-	// empty do nothing prodecudure for unimplemented features
-}
 
 //----------------------------------------------------------------------------
 #undef GetNativeHandle
-	HWND  GetNativeHandle (PVIDEO hVideo)
+	HWND  ogl_GetNativeHandle (PVIDEO hVideo)
 	{
 		return NULL; //hVideo->hWndOutput;
 	}
 
-int  BeginCalibration (uint32_t nPoints)
+int  ogl_BeginCalibration (uint32_t nPoints)
 {
 	return 1;
 }
 
 //----------------------------------------------------------------------------
-void  SyncRender( PVIDEO hVideo )
+void  ogl_SyncRender( PVIDEO hVideo )
 {
 	// sync has no consequence...
 	return;
@@ -1665,7 +1627,7 @@ void  SyncRender( PVIDEO hVideo )
 
 //----------------------------------------------------------------------------
 
-void  ForceDisplayFocus ( PRENDERER pRender )
+void  ogl_ForceDisplayFocus ( PRENDERER pRender )
 {
 	if( !l.hVidVirtualFocused ||
 		l.hVidVirtualFocused != pRender )
@@ -1681,19 +1643,19 @@ void  ForceDisplayFocus ( PRENDERER pRender )
 
 //----------------------------------------------------------------------------
 
- void  ForceDisplayFront ( PRENDERER pRender )
+ void  ogl_ForceDisplayFront ( PRENDERER pRender )
 {
 	if( pRender != l.top )
 	{
 		//lprintf( "Force some display forward %p", pRender );
-		PutDisplayAbove( pRender, l.top );
+		ogl_PutDisplayAbove( pRender, l.top );
 	}
 
 }
 
 //----------------------------------------------------------------------------
 
- void  ForceDisplayBack ( PRENDERER pRender )
+ void  ogl_ForceDisplayBack ( PRENDERER pRender )
 {
 	// uhmm...
 	lprintf( "Force display backward." );
@@ -1702,13 +1664,13 @@ void  ForceDisplayFocus ( PRENDERER pRender )
 //----------------------------------------------------------------------------
 
 #undef UpdateDisplay
-void  UpdateDisplay (PRENDERER hVideo )
+void  ogl_UpdateDisplay (PRENDERER hVideo )
 {
 	//DebugBreak();
-	UpdateDisplayEx( hVideo DBG_SRC );
+	ogl_UpdateDisplayEx( hVideo DBG_SRC );
 }
 
-void  DisableMouseOnIdle (PVIDEO hVideo, LOGICAL bEnable )
+void  ogl_DisableMouseOnIdle (PVIDEO hVideo, LOGICAL bEnable )
 {
 	if( hVideo->flags.bIdleMouse != bEnable )
 	{
@@ -1739,7 +1701,7 @@ void  DisableMouseOnIdle (PVIDEO hVideo, LOGICAL bEnable )
 }
 
 
- void  SetDisplayFade ( PVIDEO hVideo, int level )
+ void  ogl_SetDisplayFade ( PVIDEO hVideo, int level )
 {
 	if( hVideo )
 	{
@@ -1755,17 +1717,17 @@ void  DisableMouseOnIdle (PVIDEO hVideo, LOGICAL bEnable )
 }
 
 #undef GetRenderTransform
-PTRANSFORM CPROC GetRenderTransform       ( PRENDERER r )
+PTRANSFORM CPROC ogl_GetRenderTransform       ( PRENDERER r )
 {
 	return r->transform;
 }
 
-LOGICAL RequiresDrawAll ( void )
+LOGICAL ogl_RequiresDrawAll ( void )
 {
 	return TRUE;
 }
 
-void MarkDisplayUpdated( PRENDERER r )
+void ogl_MarkDisplayUpdated( PRENDERER r )
 {
 	l.flags.bUpdateWanted = 1;
 	if( r )
@@ -1975,12 +1937,12 @@ static LOGICAL CPROC CameraUp( uintptr_t psv, uint32_t keycode )
 }
 
 
-int IsTouchDisplay( void )
+int ogl_IsTouchDisplay( void )
 {
 	return 0;
 }
 
-LOGICAL IsDisplayHidden( PVIDEO video )
+LOGICAL ogl_IsDisplayHidden( PVIDEO video )
 {
 	if( video )
 		return video->flags.bHidden;
@@ -2062,12 +2024,12 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 #ifdef _OPENGL_DRIVER
 	RegisterInterface( 
 		"puregl2.render"
-		, GetDisplayInterface, DropDisplayInterface );
+		, ogl_GetDisplayInterface, ogl_DropDisplayInterface );
 	RegisterInterface( 
 		"puregl2.render.3d"
-		, GetDisplay3dInterface, DropDisplay3dInterface );
+		, ogl_GetDisplay3dInterface, ogl_DropDisplay3dInterface );
 #endif
-#ifdef __EMSCRIPTEN__
+#if defined( __EMSCRIPTEN__ ) || defined( STATIC_RENDER_INTERFACE )
 	RegisterClassAlias( "system/interfaces/puregl2.render", "system/interfaces/render" );
 	RegisterClassAlias( "system/interfaces/puregl2.render.3d", "system/interfaces/render.3d" );
 #endif
@@ -2116,16 +2078,16 @@ PRIORITY_PRELOAD( VideoRegisterInterface, VIDLIB_PRELOAD_PRIORITY )
 #endif
 
 #ifndef __ANDROID__
-	BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
-	BindEventToKey( NULL, KEY_SCROLL_LOCK, 0, EnableRotation, 0 );
-	BindEventToKey( NULL, KEY_F12, 0, EnableRotation, 0 );
+	ogl_BindEventToKey( NULL, KEY_F4, KEY_MOD_RELEASE|KEY_MOD_ALT, DefaultExit, 0 );
+	ogl_BindEventToKey( NULL, KEY_SCROLL_LOCK, 0, EnableRotation, 0 );
+	ogl_BindEventToKey( NULL, KEY_F12, 0, EnableRotation, 0 );
 #endif
 	//EnableLoggingOutput( TRUE );
 }
 
 //typedef struct sprite_method_tag *PSPRITE_METHOD;
 
-PSPRITE_METHOD  EnableSpriteMethod (PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv )
+PSPRITE_METHOD  ogl_EnableSpriteMethod (PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv )
 {
 	// add a sprite callback to the image.
 	// enable copy image, and restore image
@@ -2159,23 +2121,23 @@ PRELOAD( InitSetSavePortion )
 	//SetSavePortion( SavePortion );
 }
 
-void LockRenderer( PRENDERER render )
+void ogl_LockRenderer( PRENDERER render )
 {
 	EnterCriticalSec( &render->cs );
 }
 
-void UnlockRenderer( PRENDERER render )
+void ogl_UnlockRenderer( PRENDERER render )
 {
 	LeaveCriticalSec( &render->cs );
 }
 
-LOGICAL CPROC PureGL2_Vidlib_AllowsAnyThreadToUpdate( void )
+LOGICAL CPROC ogl_PureGL2_Vidlib_AllowsAnyThreadToUpdate( void )
 {
 	// require draw all makes this irrelavent.
 	return FALSE;
 }
 
-void CPROC PureGL2_Vidlib_SuspendSystemSleep( int suspend )
+void CPROC ogl_PureGL2_Vidlib_SuspendSystemSleep( int suspend )
 {
 #ifdef WIN32
 	if( suspend )
@@ -2185,7 +2147,7 @@ void CPROC PureGL2_Vidlib_SuspendSystemSleep( int suspend )
 #endif
 }
 
-void CPROC PureGL2_Vidlib_SetDisplayCursor( CTEXTSTR cursor )
+void CPROC ogl_PureGL2_Vidlib_SetDisplayCursor( CTEXTSTR cursor )
 {
 	/* suppose we should do something about the cursor? */
 #ifdef WIN32

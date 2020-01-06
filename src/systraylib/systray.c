@@ -1,7 +1,6 @@
 #define NO_OPEN_MACRO
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
-#undef StrDup
 #include <shlwapi.h>
 #include <shellapi.h>
 #include <sharemem.h>
@@ -9,7 +8,9 @@
 #include <controls.h>
 #include <idle.h>
 //#ifndef __cplusplus_cli
+#ifdef WIN32
 #include	<windowsx.h>
+#endif
 #include <sqlgetoption.h>
 //#endif
 
@@ -18,36 +19,45 @@
 #include "../systraylib/resource.h"
 //----------------------------------------------------------------------
 
-HWND ghWndIcon;
-#define WM_USERICONMSG (WM_USER + 212)
+#define MNU_EXIT 1000
 
 #ifdef WIN32
+HWND ghWndIcon;
+#define WM_USERICONMSG (WM_USER + 212)
 static HMENU hMainMenu;
-#else
-static PMENU hMainMenu;
-#endif
-static void (*DblClkCallback)(void);
 HICON hLastIcon;
+static NOTIFYICONDATA nid;
+
+static HINSTANCE hInstMe;
+static UINT WM_TASKBARCREATED;
+
+CTEXTSTR icon;
+LOGICAL thread_ready;
+
+#else
+
+#define __NO_WIN32API__
+static PMENU hMainMenu;
+
+#endif
+
+static void (*DblClkCallback)(void);
 typedef struct addition {
 	CTEXTSTR text;
+	void (CPROC*f2)(uintptr_t);
+	uintptr_t param;
 	void (CPROC*f)(void);
    int id;
 } ADDITION, *PADDITION;
 static int additions = 0;
 static PLIST Functions;
-static NOTIFYICONDATA nid;
-
-#define MNU_EXIT 1000
-
-static HINSTANCE hInstMe;
-static UINT WM_TASKBARCREATED;
 
 
 static struct systray_local {
 	struct {
 		BIT_FIELD bLog : 1;
 	} flags;
-} l;
+} localSystrayState;
 
 //----------------------------------------------------------------------
 
@@ -112,7 +122,7 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		switch( GET_WM_COMMAND_ID (wParam, lParam) ) 
 		{
 		case MNU_EXIT:
-			if( l.flags.bLog )
+			if( localSystrayState.flags.bLog )
 				lprintf( "Posting quit Message" );
 			UnregisterIcon();
 			PostQuitMessage( 0 );
@@ -122,9 +132,14 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		default:
 			{
 				int fidx = LOWORD(wParam) - (MNU_EXIT + 1);
-				void (CPROC *func)(void) = ((PADDITION)GetLink( &Functions, fidx ))->f;
-				if( func )
-               func();
+				PADDITION addon = ((PADDITION)GetLink( &Functions, fidx ));
+				if( addon ) {
+					void (CPROC * func)(void) = addon->f;
+					if( func )
+				               func();
+					else if( addon->f2 )
+						addon->f2( addon->param );
+				}
 			}
 		}
 		break;
@@ -135,7 +150,7 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 	}
 	return DefWindowProc( hWnd, uMsg, wParam, lParam );
 }
-#endif
+
 //----------------------------------------------------------------------
 
 static PTHREAD pMyThread;
@@ -146,19 +161,19 @@ static int CPROC systrayidle( uintptr_t unused )
 	{
 		if( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
 		{
-			if( l.flags.bLog )
+			if( localSystrayState.flags.bLog )
 				lprintf( "dispatch %d ...", msg.message );
 			DispatchMessage( &msg );
 			return 1;
 		}
 		return 0;
 	}
-   return -1;
+	return -1;
 }
 
+#endif
+
 //----------------------------------------------------------------------
-CTEXTSTR icon;
-LOGICAL thread_ready;
 uintptr_t CPROC RegisterAndCreate( PTHREAD thread )
 {
 #ifndef __NO_WIN32API__ 
@@ -166,7 +181,7 @@ uintptr_t CPROC RegisterAndCreate( PTHREAD thread )
 	static WNDCLASS wc;  // zero init.
 	static ATOM ac;
 #ifndef __NO_OPTIONS__
-	l.flags.bLog = SACK_GetProfileIntEx( GetProgramName(), "SACK/System Tray/Logging Enable", 0, TRUE );
+	localSystrayState.flags.bLog = SACK_GetProfileIntEx( GetProgramName(), "SACK/System Tray/Logging Enable", 0, TRUE );
 #endif
 	if( !ac )
 	{
@@ -240,6 +255,7 @@ int RegisterIconHandler( CTEXTSTR param_icon )
 	//	return RegisterAndCreate( NULL );
 	//}
 	//else
+#ifdef WIN32
 	{
 		// start as a thread... which creates the window and registers the class..
 		// and continues to receive messages... since the thread parameter is NOT NULL
@@ -260,6 +276,8 @@ int RegisterIconHandler( CTEXTSTR param_icon )
 		}
 		return TRUE;
 	}
+#endif
+	return 0;
 }
 
 //----------------------------------------------------------------------
@@ -273,11 +291,11 @@ void SetIconDoubleClick( void (*DoubleClick)(void ) )
 
 void BasicExitMenu( void )
 {
-	TEXTCHAR filepath[256];
-	GetModuleFileName( NULL, filepath, sizeof( filepath ) );
-	hInstMe = GetModuleHandle( TARGETNAME );
+	CTEXTSTR filepath;
+	filepath = GetProgramName();
 #ifdef WIN32
- 	hMainMenu = CreatePopupMenu();
+	hInstMe = GetModuleHandle( TARGETNAME );
+	hMainMenu = CreatePopupMenu();
 	AppendMenu( hMainMenu, MF_STRING, TXT_STATIC, filepath );
 	AppendMenu( hMainMenu, MF_STRING, MNU_EXIT, "&Exit" );
 #else
@@ -307,14 +325,35 @@ void AddSystrayMenuFunction( CTEXTSTR text, void (CPROC*function)(void) )
 #ifdef WIN32
 		AppendMenu( hMainMenu, MF_STRING, MNU_EXIT+1+additions, text );
 #else
-		AppendPopupItem( hMainMenu, MF_STRING, MNU_EXIT+1+addtions, text );
+		AppendPopupItem( hMainMenu, MF_STRING, MNU_EXIT+1+additions, text );
 #endif
 	}
 	{
 		PADDITION addition = New( ADDITION );
 		addition->text = StrDupEx( text DBG_SRC );
 		addition->f = function;
-      addition->id = additions;
+		addition->id = additions;
+		SetLink( &Functions, additions, addition );
+		additions++;
+	}
+}
+
+void AddSystrayMenuFunction_v2( CTEXTSTR text, void (CPROC* function)(uintptr_t), uintptr_t param ){
+	if( hMainMenu )
+	{
+#ifdef WIN32
+		AppendMenu( hMainMenu, MF_STRING, MNU_EXIT+1+additions, text );
+#else
+		AppendPopupItem( hMainMenu, MF_STRING, MNU_EXIT+1+additions, text );
+#endif
+	}
+	{
+		PADDITION addition = New( ADDITION );
+		addition->text = StrDupEx( text DBG_SRC );
+		addition->f = NULL;
+		addition->param = param;
+		addition->f2 = function;
+		addition->id = additions;
 		SetLink( &Functions, additions, addition );
 		additions++;
 	}
@@ -331,6 +370,7 @@ int RegisterIconEx( CTEXTSTR user_icon DBG_PASS )
 		return 0;
 	if( !hMainMenu )
 		BasicExitMenu();
+#ifdef WIN32
 
 	nid.cbSize = sizeof( NOTIFYICONDATA );
 	nid.hWnd = ghWndIcon;
@@ -437,6 +477,7 @@ int RegisterIconEx( CTEXTSTR user_icon DBG_PASS )
 	status = Shell_NotifyIcon( NIM_ADD, &nid );
 	DeleteObject( hLastIcon );
 	hLastIcon = nid.hIcon;
+#endif
 	return status;
 }
 
@@ -445,9 +486,9 @@ int RegisterIconEx( CTEXTSTR user_icon DBG_PASS )
 
 void ChangeIconEx( CTEXTSTR icon DBG_PASS )
 {
-	if( !ghWndIcon )
-	{
-		RegisterIcon( icon ); 
+#ifdef WIN32
+	if( !ghWndIcon ) {
+		RegisterIcon( icon );
 		return;
 	}
 	nid.cbSize = sizeof( NOTIFYICONDATA );
@@ -495,12 +536,14 @@ void ChangeIconEx( CTEXTSTR icon DBG_PASS )
 	Shell_NotifyIcon( NIM_MODIFY, &nid );
 	DeleteObject( hLastIcon );
 	hLastIcon = nid.hIcon;
+#endif
 }
 
 //----------------------------------------------------------------------
 
 void UnregisterIcon( void )
 {
+#ifdef WIN32
 	if( nid.cbSize )
 	{
 		nid.cbSize = sizeof( NOTIFYICONDATA );
@@ -510,17 +553,19 @@ void UnregisterIcon( void )
 		nid.uCallbackMessage = WM_USERICONMSG;
 		Shell_NotifyIcon( NIM_DELETE, &nid );
 	}
+#endif
 }
 
 void TerminateIcon( void )
 {
+#if WIN32
 	int attempt = 0;
 	HWND hWndOld;
 	TEXTCHAR iconwindow[256];
 	tnprintf( iconwindow, sizeof( iconwindow ), "AlertAgentIcon:%s", GetProgramName() );
 	while( ( hWndOld = FindWindow( "AlertAgentIcon", iconwindow ) ) && ( attempt < 5 ) )
 	{
-		if( l.flags.bLog )
+		if( localSystrayState.flags.bLog )
 			Log( "Telling previous instance to exit." );
 		SendMessage( hWndOld, WM_COMMAND, /*MNU_EXIT*/1000, 0 );
 		Sleep( 100 );
@@ -531,18 +576,19 @@ void TerminateIcon( void )
       DWORD dwProcess;
 		DWORD dwThread = GetWindowThreadProcessId( hWndOld, &dwProcess );
 		HANDLE hProc;
-		if( l.flags.bLog )
+		if( localSystrayState.flags.bLog )
 			lprintf( "posting didn't cause process to exit... attempting to terminate." );
 		hProc = OpenProcess( SYNCHRONIZE | PROCESS_TERMINATE, FALSE, dwProcess );
 		if( hProc == NULL )
 		{
-			if( l.flags.bLog )
+			if( localSystrayState.flags.bLog )
 				lprintf( "Failed to open process handle..." );
 			return;
 		}
 		TerminateProcess( hProc, 0xFEED );
-      CloseHandle( hProc );
+		CloseHandle( hProc );
 	}
+#endif
 }
 
 ATEXIT( DoUnregisterIcon )

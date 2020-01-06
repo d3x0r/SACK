@@ -5,9 +5,11 @@
 #include <signed_unsigned_comparisons.h>
 #include "http.h"
 
+#ifndef _MSC_VER
 // derefecing NULL pointers; the function wouldn't be called with a NULL.
 // and partial expressions in lower precision
-#pragma warning( disable:6011 26451) 
+#  pragma warning( disable:6011 26451)
+#endif
 
 HTTP_NAMESPACE
 
@@ -25,6 +27,7 @@ struct HttpState {
 	PTEXT resource; // the path of the resource - mostly for when this is used to receive requests.
 	PLIST fields; // list of struct HttpField *, these other the other meta fields in the header.
 	PLIST cgi_fields; // list of HttpField *, taken in from the URL or content (get or post)
+	PLIST anchor_fields; // parsed anchor (err... doesn't actually get this?)
 	int bLine;
 
 	size_t content_length;
@@ -114,7 +117,7 @@ void GatherHttpData( struct HttpState *pHttpState )
 		{
 			//lprintf( "Partial is complete with %d", GetTextSize( pHttpState->partial ) );
 			pHttpState->content = SegSplit( &pHttpState->partial, pHttpState->content_length );
-			pHttpState->partial = NEXTLINE( pHttpState->partial );		
+			pHttpState->partial = NEXTLINE( pHttpState->partial );
 			SegGrab( pHttpState->partial );
 			pHttpState->flags.success = 1;
 		}
@@ -142,7 +145,6 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 	{
 		char *_url = GetText(url);
 		TEXTRUNE ch;
-		int outchar = 0;
 		char *newUrl = _url;
 		int decode = 0;
 		while( _url[0] ) {
@@ -182,7 +184,7 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 	return url;
 }
 
-void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
+void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT params )
 {
 	PTEXT start = TextParse( params, "&=", NULL, 1, 1 DBG_SRC );
 	PTEXT next = start;
@@ -191,15 +193,17 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 		if( tmp->format.position.offset.spaces ) {
 			SegBreak( tmp );
 			LineRelease( tmp );
-			if( tmp == start )
+			if( tmp == start ) // weren't actually any parameters.
 				return;
+			else
+            break;  // okay, stripped the end off, use the start...
 		}
 	}
 	//lprintf( "Input was %s", GetText( params ) );
 	while( ( tmp = next ) )
 	{
 		PTEXT name = tmp;
-		/*PTEXT equals = */(next = NEXTLINE( tmp ));
+		next = NEXTLINE( tmp );
 		while( next && GetText( next )[0] != '=' )
 			next = NEXTLINE( next );
 		SegBreak( next );
@@ -213,10 +217,10 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PTEXT params )
 		field->name = name?resolvePercents( name ):NULL;
 		field->value = value?resolvePercents( value ):NULL;
 		//lprintf( "Added %s=%s", GetText( field->name ), GetText( field->value ) );
-		AddLink( &pHttpState->cgi_fields, field );
+		AddLink( cgi_fields, field );
 		next = NEXTLINE( next );
 	}
-	if( !GetLinkCount( pHttpState->cgi_fields ) ) // otherwise it will have been relesaed with the assignment.
+	if( !GetLinkCount( cgi_fields[0] ) ) // otherwise it will have been relesaed with the assignment.
 		LineRelease( start );
 }
 
@@ -411,7 +415,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											//lprintf( "Unsupported Command:%s", GetText( request ) );
 											if( pHttpState->pc )
 												TriggerNetworkErrorCallback( *pHttpState->pc, SACK_NETWORK_ERROR_HTTP_UNSUPPORTED );
-											LineRelease( request );											
+											LineRelease( request );
 											unlockHttp( pHttpState );
 											if( pHttpState->pc )
 												RemoveClient( *pHttpState->pc );
@@ -425,7 +429,13 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											if( TextSimilar( tmp, "HTTP/" ) )
 											{
 												TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( tmp ), '.' );
-												pHttpState->response_version = (int)(( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 ));
+												if( tmp2 )
+													pHttpState->response_version = (int)(( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 ));
+												else if( GetTextSize( tmp ) > 5 )
+													pHttpState->response_version = (int)( IntCreateFromText( GetText( tmp ) + 5 ) * 100 );
+												else
+													pHttpState->response_version = 0;
+
 												if( pHttpState->response_version >= 101 ) {
 													pHttpState->flags.close = 0;
 													pHttpState->flags.keep_alive = 1;
@@ -441,11 +451,12 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											}
 											else if( GetText(tmp)[0] == '?' )
 											{
-												ProcessURL_CGI( pHttpState, next );
+												ProcessURL_CGI( pHttpState, &pHttpState->cgi_fields, next );
 												next = NEXTLINE( next );
 											}
 											else if( GetText(tmp)[0] == '#' )
 											{
+												ProcessURL_CGI( pHttpState, &pHttpState->anchor_fields, next );
 												lprintf( "Page anchor of URL is lost(not saved)...%s %s"
 													, GetText( tmp )
 													, GetText( next ) );
@@ -464,7 +475,9 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 												}
 											}
 										}
-										pHttpState->resource = resource_path;
+										if( resource_path ) resource_path->format.position.offset.spaces = 0;
+										pHttpState->resource = BuildLine( resource_path );
+										LineRelease( resource_path );
 									}
 									LineRelease( request );
 								}
@@ -607,7 +620,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 		const uint8_t* buf = (const uint8_t*)buffer;
 		size_t ofs = 0;
       //lprintf( "Add Chunk HTTP Data:%d", size );
-		
+
 		while( ofs < size )
 		{
 			switch( pHttpState->read_chunk_state )
@@ -933,24 +946,24 @@ void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, C
 }
 
 void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
-{	
+{
 	PTEXT message;
 	PVARTEXT pvt_message = VarTextCreate();
 	PTEXT content_type;
 
 	vtprintf( pvt_message, "%s",  "HTTP/1.1 200 OK\r\n" );
-	vtprintf( pvt_message, "Content-Length: %d\r\n", GetTextSize( body ));	
+	vtprintf( pvt_message, "Content-Length: %d\r\n", GetTextSize( body ));
 	vtprintf( pvt_message, "Content-Type: %s\r\n"
-		, (content_type = GetHttpField( pHttpState, "Accept" ))?GetText(content_type):"text/plain");	
-	vtprintf( pvt_message, "\r\n"  );	
-	vtprintf( pvt_message, "%s", GetText( body ));	
+		, (content_type = GetHttpField( pHttpState, "Accept" ))?GetText(content_type):"text/plain");
+	vtprintf( pvt_message, "\r\n"  );
+	vtprintf( pvt_message, "%s", GetText( body ));
 	message = VarTextGet( pvt_message );
 	if( l.flags.bLogReceived )
 	{
 		lprintf( " Response Message:");
 		LogBinary( (uint8_t*)GetText( message ), GetTextSize( message ));
 	}
-	SendTCP( pc, GetText( message ), GetTextSize( message ));		
+	SendTCP( pc, GetText( message ), GetTextSize( message ));
 }
 
 //---------- CLIENT --------------------------------------------
@@ -1106,7 +1119,7 @@ PTEXT PostHttp( PTEXT address, PTEXT url, PTEXT content )
 
 static void httpConnected( PCLIENT pc, int error ) {
 	if( error ) {
-		struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 0 );
+		//struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 0 );
 		RemoveClient( pc );
 		return;
 	}
@@ -1468,16 +1481,30 @@ PTEXT GetHTTPField( struct HttpState *pHttpState, CTEXTSTR name )
 
 PLIST GetHttpHeaderFields( HTTPState pHttpState )
 {
-	return pHttpState->fields;
+	if( pHttpState )
+		return pHttpState->fields;
+	return NULL;
 }
 
 int GetHttpVersion( HTTPState pHttpState ) {
-	return pHttpState->response_version;
+	if( pHttpState )
+		return pHttpState->response_version;
+	return -1;
 }
 
 int GetHttpResponseCode( HTTPState pHttpState ) {
-	return pHttpState->numeric_code;
+	if( pHttpState )
+		return pHttpState->numeric_code;
+	return -1;
 }
+
+HTTPState GetHttpState( PCLIENT pc ) {
+	return (struct HttpState *)GetNetworkLong( pc, 1 );
+}
+
 
 HTTP_NAMESPACE_END
 #undef l
+#ifndef _MSC_VER
+#pragma warning( default:6011 26451)
+#endif

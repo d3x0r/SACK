@@ -188,8 +188,7 @@ static void testVolume_slow( void ) {
 
 static void testVolume_db( void ) {
 #if !defined( __NO_OPTIONS__ )
-	FILE* db;
-	uint16_t buffer[2048];
+	//FILE* db;
 	int n;
 	PODBC odbc = ConnectToDatabase( "$sack@vfs$testsql.db" );
 	SQLCommandf( odbc, "delete * from sqlite_master" );
@@ -197,7 +196,6 @@ static void testVolume_db( void ) {
 	CheckODBCTable( odbc, GetFieldsInSQL("create table test2 (a,b,c)", FALSE ), CTO_MERGE );
 	
 	for( n = 0; n < 100000; n++ ) {
-		int b;
 		SQLCommandf( odbc, "insert into test1 (a,b,c) values(%d,%d,%d)", n, n * 2, n * 3 );
 		SQLCommandf( odbc, "insert into test2 (a,b,c) values(%d,%d,%d)", n, n * 2, n * 3 );
 		if( n % 3 )
@@ -213,11 +211,11 @@ static void testVolume_db( void ) {
 
 static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 {
-	FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
+	FILE *in = sack_fopenEx( 0, filename, "rbn", sack_get_default_mount() );
 	if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
 	if( in )
 	{
-		FILE *out = sack_fopenEx( 0, asfile, "wb", l.current_mount );
+		FILE *out = sack_fopenEx( 0, asfile, "wbn", l.current_mount );
 		size_t size = sack_fsize( in );
 		POINTER data = NewArray( uint8_t, size );
 		if( l.verbose ) printf( " Opened file %s = %p\n", asfile, out );
@@ -236,14 +234,19 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileFl
 	if( flags & SFF_DIRECTORY ) {// don't need to do anything with directories... already
       // doing subcurse option.
 	} else {
-		FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
+		FILE *in = sack_fopenEx( 0, filename, "rbn", sack_get_default_mount() );
 		if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
 		if( in )
 		{
 			size_t size = sack_fsize( in );
+			if( size == (size_t)-1 ) {
+				sack_fclose( in );
+				printf( "Failed to open file:%s\n", filename );
+				return;
+			}
 			if( l.verbose ) printf( " file size (%zd)\n", size );
 			{
-				FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
+				FILE *out = sack_fopenEx( 0, filename, "wbn", l.current_mount );
 				POINTER data = NewArray( uint8_t, size );
 				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
 				sack_fread( data, size, 1, in );
@@ -254,7 +257,8 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileFl
 				sack_fclose( out );
 				Release( data );
 			}
-		}
+		}else
+			printf( " Failed to opened file %s\n", filename );
 	}
 }
 
@@ -364,23 +368,31 @@ static void CPROC _ExtractFile( uintptr_t psv, CTEXTSTR filename, enum ScanFileF
 		// doing subcurse option.
 	}
 	else {
-		FILE *in = sack_fopenEx( 0, filename, "rb", l.current_mount );
+		FILE *in = sack_fopenEx( 0, filename, "rbn", l.current_mount );
 		if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
 		if( in )
 		{
 			size_t size = sack_fsize( in );
+			CTEXTSTR filepart;
 			if( l.verbose ) printf( " file size (%zd)\n", size );
+			if( filepart = pathrchr( filename ) ) {
+				TEXTSTR tmp = DupCStrLen( filename, filepart - filename );
+				MakePath( tmp );
+				Release( tmp );
+			}
 			{
-				FILE *out = sack_fopenEx( 0, filename, "wb", sack_get_default_mount() );
-				POINTER data = NewArray( uint8_t, size );
-				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
-				sack_fread( data, size, 1, in );
-				if( l.verbose ) printf( " read %zd\n", size );
-				sack_fwrite( data, size, 1, out );
+				FILE *out = sack_fopenEx( 0, filename, "wbn", sack_get_default_mount() );
+				if( out ) {
+					POINTER data = NewArray( uint8_t, size );
+					if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
+					sack_fread( data, size, 1, in );
+					if( l.verbose ) printf( " read %zd\n", size );
+					sack_fwrite( data, size, 1, out );
+					sack_ftruncate( out );
+					sack_fclose( out );
+					Release( data );
+				}
 				sack_fclose( in );
-				sack_ftruncate( out );
-				sack_fclose( out );
-				Release( data );
 			}
 		}
 	}
@@ -594,13 +606,13 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileFlags fla
 	struct find_cursor * cursor = GetScanFileCursor( pInfo->ppInfo[0] );
 	ctime = l.fsi->find_get_ctime?l.fsi->find_get_ctime( cursor):0;
 	wtime = l.fsi->find_get_wtime?l.fsi->find_get_wtime( cursor ):0;
-	if( !ctime )DebugBreak();
+	//if( !ctime )DebugBreak();
 	ConvertTickToTime( ctime, &ct );
 	ConvertTickToTime( wtime, &wt );
 	if( file[0] == '.' && file[1] == '/' ) ofs = 2;
 	size_t size = l.fsi->find_get_size( cursor );
 	//printf( "%9zd %s %" PRId64 "  %" PRId64 "\n", l.fsi->size( f ), file, ctime, wtime );
-	if( !size ) DebugBreak();
+	//if( !size ) DebugBreak();
 	printf( "%9zd %s " "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "\n"
 		, size, file
 		, ct.yr, ct.mo, ct.dy, ct.hr, ct.mn, ct.sc, ct.ms, ct.zhr

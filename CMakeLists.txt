@@ -1,9 +1,13 @@
-#cmake_policy( SET CMP0077 NEW )
+cmake_minimum_required(VERSION 3.1)
+
+if( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
+	cmake_policy( SET CMP0077 NEW )
+	MESSAGE( "POLICY IS SET!" )
+endif( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
 
 enable_language( ASM )
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
-cmake_minimum_required(VERSION 3.1)
 
 project( SACK )
 
@@ -319,7 +323,7 @@ else( APPLE )
         SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
         SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
 
-        SET( ExtraFlags ${ExtraFlags} -Wno-multichar)
+        SET( ExtraFlags "${ExtraFlags} -Wno-attributes -Wno-multichar")
     endif( CMAKE_COMPILER_IS_GNUCC )
 endif( APPLE )
 
@@ -1046,6 +1050,23 @@ SET_TARGET_PROPERTIES(bag.externals PROPERTIES
                   FOLDER "Externals"
 )
 
+add_library( bag.externals.static STATIC
+    ${JPEG_SOURCE}
+    ${ZLIB_SOURCE}
+    ${PNG_SOURCE}
+    ${FREETYPE_SOURCE}
+    ${EXPAT_SOURCES}
+    ${FUSE_SOURCES}
+    ${BAG_EXTERNAL_SQLITE_SOURCES}
+    ${BAG_EXTERNAL_MORE_SOURCES}
+)
+SET_TARGET_PROPERTIES(bag.externals.static PROPERTIES
+                  COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__ ${ExtraFlags}"
+                  COMPILE_DEFINITIONS "${ExternalExtraDefinitions}"
+                  LINK_FLAGS "${extra_link_flags}"
+                  FOLDER "Externals"
+)
+
 if( __QNX__ )
     my_target_link_libraries( bag socket )
 endif( __QNX__ )
@@ -1078,6 +1099,8 @@ SET_TARGET_PROPERTIES(bag.psi PROPERTIES
                   FOLDER "Control Library"
                   LINK_FLAGS "${extra_link_flags}"
 )
+
+
 endif( NOT NO_C )
 
 if( NOT __NO_CPLUSPLUS )
@@ -1094,6 +1117,8 @@ if( NOT __NO_CPLUSPLUS )
                   FOLDER "Control Library"
                   LINK_FLAGS "${extra_link_flags}"
     )
+
+
     if( NOT NO_C )
       my_target_link_libraries( ${BAG_PSI_PLUSPLUS} bag ${BAG_PLUSPLUS} ${EXTERNALS} ${PLATFORM_LIBRARIES} )
       set( SACK_PSI_LIBRARY ${BAG_PSI_PLUSPLUS} bag.psi )

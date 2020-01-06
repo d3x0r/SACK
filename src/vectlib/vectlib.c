@@ -22,11 +22,11 @@ VECTOR_NAMESPACE
 #undef _X
 #undef _Y
 #undef _Z
-static RCOORD time_scale = ONE;
-static const _POINT __0 = {ZERO, ZERO, ZERO};
-static const _POINT __X = { ONE, ZERO, ZERO};
-static const _POINT __Y = {ZERO,  ONE, ZERO};
-static const _POINT __Z = {ZERO, ZERO,  ONE};
+//static RCOORD EXTERNAL_NAME(time_scale) = ONE;
+static const _POINT EXTERNAL_NAME(__0) = {ZERO, ZERO, ZERO};
+static const _POINT EXTERNAL_NAME(__X) = { ONE, ZERO, ZERO};
+static const _POINT EXTERNAL_NAME(__Y) = {ZERO,  ONE, ZERO};
+static const _POINT EXTERNAL_NAME(__Z) = {ZERO, ZERO,  ONE};
 #if (DIMENSIONS > 3 )
 static const _POINT __W = {ZERO, ZERO, ZERO, ONE};
 #endif
@@ -39,21 +39,26 @@ static const _POINT __W = {ZERO, ZERO, ZERO, ONE};
 #else
 #define PRE_EXTERN
 #endif
-PRE_EXTERN MATHLIB_DEXPORT const PC_POINT EXTERNAL_NAME(VectorConst_0) = (PC_POINT)&__0[0];
-PRE_EXTERN MATHLIB_DEXPORT const PC_POINT EXTERNAL_NAME(VectorConst_X) = (PC_POINT)&__X[0];
-PRE_EXTERN MATHLIB_DEXPORT const PC_POINT EXTERNAL_NAME(VectorConst_Y) = (PC_POINT)&__Y[0];
-PRE_EXTERN MATHLIB_DEXPORT const PC_POINT EXTERNAL_NAME(VectorConst_Z) = (PC_POINT)&__Z[0];
+#ifdef __cplusplus
+#define VECTLIBCONST 
+#else 
+#define VECTLIBCONST const
+#endif
+PRE_EXTERN MATHLIB_DEXPORT VECTLIBCONST PC_POINT EXTERNAL_NAME(VectorConst_0) = (PC_POINT)&EXTERNAL_NAME(__0)[0];
+PRE_EXTERN MATHLIB_DEXPORT VECTLIBCONST PC_POINT EXTERNAL_NAME(VectorConst_X) = (PC_POINT)&EXTERNAL_NAME(__X)[0];
+PRE_EXTERN MATHLIB_DEXPORT VECTLIBCONST PC_POINT EXTERNAL_NAME(VectorConst_Y) = (PC_POINT)&EXTERNAL_NAME(__Y)[0];
+PRE_EXTERN MATHLIB_DEXPORT VECTLIBCONST PC_POINT EXTERNAL_NAME(VectorConst_Z) = (PC_POINT)&EXTERNAL_NAME(__Z)[0];
 #if (DIMENSIONS > 3 )
 const PC_POINT _W = (PC_POINT)&__W;
 #endif
-static const TRANSFORM __I = { { { 1, 0, 0, 0 }
+static const TRANSFORM EXTERNAL_NAME(__I) = { { { 1, 0, 0, 0 }
 								, { 0, 1, 0, 0 }
 								, { 0, 0, 1, 0 }
 								, { 0, 0, 0, 1 } }
 							 , { 1, 1, 1 } // s
   //                    , NULL // motion
 };
-PRE_EXTERN MATHLIB_DEXPORT const PCTRANSFORM EXTERNAL_NAME(VectorConst_I) = &__I;
+PRE_EXTERN MATHLIB_DEXPORT VECTLIBCONST PCTRANSFORM EXTERNAL_NAME(VectorConst_I) = &EXTERNAL_NAME(__I);
 
 static struct {
 	struct {
@@ -101,24 +106,28 @@ static struct {
 #define DOFUNC(name) EXTERNAL_NAME(name)
 #endif
 
+#undef SIN
+#undef COS
+#undef sqrt
+
 #ifdef __BORLANDC__
-#define SIN sin
-#define COS cos
+#  define SIN sin
+#  define COS cos
 #else
 #  ifdef MAKE_RCOORD_SINGLE
 #    define sqrt(n) ((float)sqrt(n))
 #    ifdef __WATCOMC__
-#define SIN (float)sin
-#define COS (float)cos
-#else
-#define SIN sinf
-#define COS cosf
-#endif
-#else
-#define sqrt sqrt
-#define SIN sin
-#define COS cos
-#endif
+#       define SIN (float)sin
+#       define COS (float)cos
+#    else
+#       define SIN sinf
+#       define COS cosf
+#    endif
+#  else
+#    define sqrt sqrt
+#    define SIN sin
+#    define COS cos
+#  endif
 #endif
 
 
@@ -262,6 +271,8 @@ RCOORD EXTERNAL_NAME(DirectedDistance)( PC_POINT pvOn, PC_POINT pvOf )
 }
 
 //----------------------------------------------------------------
+#undef LogVector
+
  static void LogVector( char *lpName, VECTOR v )
 #define LogVector(v) LogVector( #v, v )
 {
@@ -316,6 +327,7 @@ PTRANSFORM EXTERNAL_NAME(CreateNamedTransform)( CTEXTSTR name  )
 		if( !l.flags.bRegisteredTransform )
 		{
 			l.flags.bRegisteredTransform = 1;
+#  undef TYPENAME
 #ifdef MAKE_RCOORD_SINGLE
 #  define TYPENAME "transformf"
 #else
@@ -1713,6 +1725,8 @@ void EXTERNAL_NAME(PrintVector)( CTEXTSTR lpName, PCVECTOR v )
 }
 
 #undef PrintMatrix
+#undef PrintMatrixf
+#undef PrintMatrixd
 void EXTERNAL_NAME(PrintMatrix)( CTEXTSTR lpName, MATRIX m )
 #define PrintMatrixd(m) PrintMatrixd( #m, m )
 #define PrintMatrixf(m) PrintMatrixf( #m, m )

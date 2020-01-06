@@ -9,7 +9,6 @@
 
 RENDER_NAMESPACE
 
-extern KEYDEFINE KeyDefs[];
 #if defined( UNDER_CE )
 #define NO_MOUSE_TRANSPARENCY
 #define NO_ENUM_DISPLAY
@@ -22,12 +21,12 @@ extern KEYDEFINE KeyDefs[];
 #  endif
 #endif
 
+// Log initial load options and startup (before real otuput is created)
 //#define LOG_STARTUP
 //#define OTHER_EVENTS_HERE
 //#define LOG_MOUSE_EVENTS
 //#define LOG_RECT_UPDATE
 //#define LOG_DESTRUCTION
-#define LOG_STARTUP
 //#define LOG_FOCUSEVENTS
 //#define LOG_SHOW_HIDE
 //#define LOG_DISPLAY_RESIZE
@@ -76,7 +75,7 @@ struct dropped_file_acceptor_tag {
 	uintptr_t psvUser;
 };
 
-void WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, uintptr_t psvUser )
+void ogl_WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, uintptr_t psvUser )
 {
 	if( renderer )
 	{
@@ -93,7 +92,7 @@ void WinShell_AcceptDroppedFiles( PRENDERER renderer, dropped_file_acceptor f, u
 
 //----------------------------------------------------------------------------
 
-HWND MoveWindowStack( PVIDEO hInChain, HWND hwndInsertAfter, int use_under )
+static HWND MoveWindowStack( PVIDEO hInChain, HWND hwndInsertAfter, int use_under )
 {
 #ifdef _WIN32
 	HWND result_after = hwndInsertAfter;
@@ -154,7 +153,7 @@ HWND MoveWindowStack( PVIDEO hInChain, HWND hwndInsertAfter, int use_under )
 static HCURSOR hCursor;
 
 //#ifndef __NO_WIN32API__
-LRESULT CALLBACK
+static LRESULT CALLBACK
 VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 #if defined( OTHER_EVENTS_HERE )
@@ -237,7 +236,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			// messages are thread safe.
 			static TEXTCHAR buffer[2048];
 			PVIDEO hVideo = (PVIDEO)_GetWindowLong( hWnd, WD_HVIDEO );
-			INDEX nFiles = DragQueryFile( hDrop, INVALID_INDEX, NULL, 0 );
+			INDEX nFiles = DragQueryFile( hDrop, (UINT)-1, NULL, 0 );
 			INDEX iFile;
 			POINT pt;
 			if( hVideo )
@@ -783,7 +782,7 @@ WM_DROPFILES
 #ifdef LOG_DISPLAY_RESIZE
 				lprintf( "Resize happened, recreate drawing surface..." );
 #endif
-				CreateDrawingSurface (hVideo);
+				ogl_CreateDrawingSurface (hVideo);
 				// ??
 			}
 			LeaveCriticalSec( &hVideo->cs );
@@ -1155,7 +1154,7 @@ WM_DROPFILES
 #ifdef LOG_DESTRUCTION
 			Log ("Killing the window...");
 #endif
-			DoDestroy (hVideo);
+			ogl_DoDestroy (hVideo);
 		}
 		break;
 #endif
@@ -1253,13 +1252,13 @@ WM_DROPFILES
 
 					if( l.flags.bUseLLKeyhook )
 						AddLink( &l.ll_keyhooks,
-								  added = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KeyHook2
+								  added = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)ogl_KeyHook2
 																  , GetModuleHandle(TARGETNAME), 0 /*GetCurrentThreadId()*/
 																  )
 								 );
 					else
 						AddLink( &l.keyhooks,
-								  added = SetWindowsHookEx(WH_KEYBOARD, (HOOKPROC)KeyHook
+								  added = SetWindowsHookEx(WH_KEYBOARD, (HOOKPROC)ogl_KeyHook
 																  , NULL /*GetModuleHandle(TARGETNAME)*/, GetCurrentThreadId()
 																  )
 								 );
@@ -1330,7 +1329,7 @@ WM_DROPFILES
 				hVideo->hWndOutput = hWnd;
 				hVideo->pThreadWnd = MakeThread();
 
-				CreateDrawingSurface (hVideo);
+				ogl_CreateDrawingSurface (hVideo);
 				//hVideo->flags.bReady = TRUE;
 				WakeThread( hVideo->thread );
 			}
@@ -1353,7 +1352,7 @@ WM_DROPFILES
 
 //----------------------------------------------------------------------------
 
-void HandleDestroyMessage( PVIDEO hVidDestroy )
+static void HandleDestroyMessage( PVIDEO hVidDestroy )
 {
 	{
 #ifdef LOG_DESTRUCTION
@@ -1418,7 +1417,7 @@ void HandleDestroyMessage( PVIDEO hVidDestroy )
 
 //----------------------------------------------------------------------------
 
-void HandleMessage (MSG Msg)
+static void HandleMessage (MSG Msg)
 {
 #ifdef USE_XP_RAW_INPUT
 	//#if(_WIN32_WINNT >= 0x0501)
@@ -1490,14 +1489,14 @@ void HandleMessage (MSG Msg)
 #ifdef LOG_OPEN_TIMING
 		lprintf( "Message Create window stuff..." );
 #endif
-		CreateWindowStuffSizedAt (hVidCreate, hVidCreate->pWindowPos.x,
+		ogl_CreateWindowStuffSizedAt (hVidCreate, hVidCreate->pWindowPos.x,
                                 hVidCreate->pWindowPos.y,
                                 hVidCreate->pWindowPos.cx,
                                 hVidCreate->pWindowPos.cy);
 	}
 	else if( !Msg.hwnd && (Msg.message == (	WM_USER_OPEN_CAMERAS ) ) )
 	{
-		SACK_Vidlib_OpenCameras(); // returns the forward camera
+		ogl_SACK_Vidlib_OpenCameras(); // returns the forward camera
 		l.flags.bUpdateWanted = 1;
 	}
 	else if (!Msg.hwnd && (Msg.message == (WM_USER + 513)))
@@ -1571,9 +1570,9 @@ void OpenWin32Camera( struct display_camera *camera )
 															| (camera->hVidCore->flags.bLayeredWindow?WS_EX_LAYERED:0)
 #endif
 	#ifdef UNICODE
-													  , (LPWSTR)l.aClass
+													  , (LPWSTR)(uintptr_t)l.aClass
 	#else
-													  , (LPSTR)l.aClass
+													  , (LPSTR)(uintptr_t)l.aClass
 	#endif
 													  , (l.gpTitle && l.gpTitle[0]) ? l.gpTitle : window_name
 													  , WS_POPUP //| WINDOW_STYLE
@@ -1592,7 +1591,7 @@ void OpenWin32Camera( struct display_camera *camera )
 				l.redraw_timer_id = SetTimer( camera->hWndInstance, (UINT_PTR)1, 16, NULL );
 			}
 #ifdef _OPENGL_DRIVER
-			EnableOpenGL( camera );
+			ogl_EnableOpenGL( camera );
 #endif
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
 			EnableD3d( camera );
@@ -1655,8 +1654,8 @@ static int CPROC ProcessDisplayMessages( uintptr_t psvUnused )
 }
 
 #ifndef NO_TOUCH
-HHOOK prochook;
-LRESULT CALLBACK AllWndProc( int code, WPARAM wParam, LPARAM lParam )
+static HHOOK prochook;
+static LRESULT CALLBACK AllWndProc( int code, WPARAM wParam, LPARAM lParam )
 {
 	PCWPSTRUCT msg  = (PCWPSTRUCT)lParam;
 	//lprintf( "msg %p %d %d %p", msg->hwnd, msg->message, msg->wParam, msg->lParam );
@@ -1667,8 +1666,8 @@ LRESULT CALLBACK AllWndProc( int code, WPARAM wParam, LPARAM lParam )
 
 	return CallNextHookEx( prochook, code, wParam, lParam );
 }
-HHOOK get_prochook;
-LRESULT CALLBACK AllGetWndProc( int code, WPARAM wParam, LPARAM lParam )
+static HHOOK get_prochook;
+static LRESULT CALLBACK AllGetWndProc( int code, WPARAM wParam, LPARAM lParam )
 {
 	MSG *msg  = (MSG*)lParam;
 	lprintf( "msg %p %d %d %p %d"
@@ -1686,7 +1685,7 @@ LRESULT CALLBACK AllGetWndProc( int code, WPARAM wParam, LPARAM lParam )
 
 
 //----------------------------------------------------------------------------
-uintptr_t CPROC VideoThreadProc (PTHREAD thread)
+static uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 {
 #ifdef LOG_STARTUP
 	Log( "Video thread..." );
@@ -1721,12 +1720,12 @@ uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 
 	if( l.flags.bUseLLKeyhook )
 		AddLink( &l.ll_keyhooks,
-				  SetWindowsHookEx (WH_KEYBOARD_LL, (HOOKPROC)KeyHook2
+				  SetWindowsHookEx (WH_KEYBOARD_LL, (HOOKPROC)ogl_KeyHook2
 										 ,GetModuleHandle(TARGETNAME), 0 /*GetCurrentThreadId()*/
 										 ) );
 	else
 		AddLink( &l.keyhooks,
-				  SetWindowsHookEx(WH_KEYBOARD, (HOOKPROC)KeyHook
+				  SetWindowsHookEx(WH_KEYBOARD, (HOOKPROC)ogl_KeyHook
 										, NULL /*GetModuleHandle(TARGETNAME)*/, GetCurrentThreadId()
 										)
 				 );
@@ -1799,7 +1798,7 @@ PRELOAD( HostSystem_InitDisplayInfo )
 		l.dwMsgBase = LoadService( NULL, VideoEventHandler );
 #endif
 		// need options loaded before thread, because cameras will open.
-		LoadOptions();
+		ogl_LoadOptions();
 		AddLink( &l.threads, ThreadTo( VideoThreadProc, 0 ) );
 		AddIdleProc( ProcessDisplayMessages, 0 );
 	}

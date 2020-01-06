@@ -5,59 +5,59 @@
 SACK_NAMESPACE namespace network { namespace vesl {
 #endif
 
-enum word_char_states {
-	WORD_POS_RESET = 0, // not in a keyword
-	WORD_POS_END,  // at end of a word, waiting for separator
-	WORD_POS_TRUE_1,
-	WORD_POS_TRUE_2,
-	WORD_POS_TRUE_3,
-	WORD_POS_TRUE_4,
-	WORD_POS_FALSE_1, // 11
-	WORD_POS_FALSE_2,
-	WORD_POS_FALSE_3,
-	WORD_POS_FALSE_4,
-	WORD_POS_NULL_1, // 21  get u
-	WORD_POS_NULL_2, //  get l
-	WORD_POS_NULL_3, //  get l
-	WORD_POS_UNDEFINED_1,  // 31 
-	WORD_POS_UNDEFINED_2,
-	WORD_POS_UNDEFINED_3,
-	WORD_POS_UNDEFINED_4,
-	WORD_POS_UNDEFINED_5,
-	WORD_POS_UNDEFINED_6,
-	WORD_POS_UNDEFINED_7,
-	WORD_POS_UNDEFINED_8,
-	//WORD_POS_UNDEFINED_9, // instead of stepping to this value here, go to RESET
-	WORD_POS_NAN_1,
-	WORD_POS_NAN_2,
-	//WORD_POS_NAN_3,// instead of stepping to this value here, go to RESET
-	WORD_POS_INFINITY_1,
-	WORD_POS_INFINITY_2,
-	WORD_POS_INFINITY_3,
-	WORD_POS_INFINITY_4,
-	WORD_POS_INFINITY_5,
-	WORD_POS_INFINITY_6,
-	WORD_POS_INFINITY_7,
-	//WORD_POS_INFINITY_8,// instead of stepping to this value here, go to RESET
-	WORD_POS_FIELD, 
-	WORD_POS_AFTER_FIELD, 
-	WORD_POS_DOT_OPERATOR,
-	WORD_POS_PROPER_NAME, 
-	WORD_POS_AFTER_PROPER_NAME, 
-	WORD_POS_AFTER_GET,
-	WORD_POS_AFTER_SET,
+enum vesl_word_char_states {
+	VESL_WORD_POS_RESET = 0, // not in a keyword
+	VESL_WORD_POS_END,  // at end of a word, waiting for separator
+	VESL_WORD_POS_TRUE_1,
+	VESL_WORD_POS_TRUE_2,
+	VESL_WORD_POS_TRUE_3,
+	VESL_WORD_POS_TRUE_4,
+	VESL_WORD_POS_FALSE_1, // 11
+	VESL_WORD_POS_FALSE_2,
+	VESL_WORD_POS_FALSE_3,
+	VESL_WORD_POS_FALSE_4,
+	VESL_WORD_POS_NULL_1, // 21  get u
+	VESL_WORD_POS_NULL_2, //  get l
+	VESL_WORD_POS_NULL_3, //  get l
+	VESL_WORD_POS_UNDEFINED_1,  // 31 
+	VESL_WORD_POS_UNDEFINED_2,
+	VESL_WORD_POS_UNDEFINED_3,
+	VESL_WORD_POS_UNDEFINED_4,
+	VESL_WORD_POS_UNDEFINED_5,
+	VESL_WORD_POS_UNDEFINED_6,
+	VESL_WORD_POS_UNDEFINED_7,
+	VESL_WORD_POS_UNDEFINED_8,
+	//VESL_WORD_POS_UNDEFINED_9, // instead of stepping to this value here, go to RESET
+	VESL_WORD_POS_NAN_1,
+	VESL_WORD_POS_NAN_2,
+	//VESL_WORD_POS_NAN_3,// instead of stepping to this value here, go to RESET
+	VESL_WORD_POS_INFINITY_1,
+	VESL_WORD_POS_INFINITY_2,
+	VESL_WORD_POS_INFINITY_3,
+	VESL_WORD_POS_INFINITY_4,
+	VESL_WORD_POS_INFINITY_5,
+	VESL_WORD_POS_INFINITY_6,
+	VESL_WORD_POS_INFINITY_7,
+	//VESL_WORD_POS_INFINITY_8,// instead of stepping to this value here, go to RESET
+	VESL_WORD_POS_FIELD, 
+	VESL_WORD_POS_AFTER_FIELD, 
+	VESL_WORD_POS_DOT_OPERATOR,
+	VESL_WORD_POS_PROPER_NAME, 
+	VESL_WORD_POS_AFTER_PROPER_NAME, 
+	VESL_WORD_POS_AFTER_GET,
+	VESL_WORD_POS_AFTER_SET,
 };
 
-enum parse_context_modes {
- CONTEXT_UNKNOWN = 0,
- CONTEXT_IN_ARRAY = 1,
- CONTEXT_IN_OBJECT = 2,
- CONTEXT_OBJECT_FIELD = 3,
- CONTEXT_OBJECT_FIELD_VALUE = 4,
+enum vesl_parse_context_modes {
+ VESL_CONTEXT_UNKNOWN = 0,
+ VESL_CONTEXT_IN_ARRAY = 1,
+ VESL_CONTEXT_IN_OBJECT = 2,
+ VESL_CONTEXT_OBJECT_FIELD = 3,
+ VESL_CONTEXT_OBJECT_FIELD_VALUE = 4,
  };
 
 struct vesl_parse_context {
-	enum parse_context_modes context;
+	enum vesl_parse_context_modes context;
 	PDATALIST *elements;
 	char *name;	
 	size_t nameLen;	
@@ -85,9 +85,9 @@ struct vesl_parse_context {
 	state->val.string = NULL;            \
 	state->negative = FALSE; }
 
-typedef struct vesl_parse_context PARSE_CONTEXT, *PPARSE_CONTEXT;
-#define MAXPARSE_CONTEXTSPERSET 128
-DeclareSet( PARSE_CONTEXT );
+typedef struct vesl_parse_context VESL_PARSE_CONTEXT, *PVESL_PARSE_CONTEXT;
+#define MAXVESL_PARSE_CONTEXTSPERSET 128
+DeclareSet( VESL_PARSE_CONTEXT );
 
 struct vesl_input_buffer {
 	char const * buf;      // prior input buffer
@@ -101,9 +101,9 @@ struct vesl_output_buffer {
 	char * pos;  // last position in _input if context closed before end of buffer
 };
 
-typedef struct vesl_input_buffer PARSE_BUFFER, *PPARSE_BUFFER;
-#define MAXPARSE_BUFFERSPERSET 128
-DeclareSet( PARSE_BUFFER );
+typedef struct vesl_input_buffer VESL_PARSE_BUFFER, *PVESL_PARSE_BUFFER;
+#define MAXVESL_PARSE_BUFFERSPERSET 128
+DeclareSet( VESL_PARSE_BUFFER );
 
 
 // this is the stack state that can be saved between parsing for streaming.
@@ -119,7 +119,7 @@ struct vesl_parse_state {
 	size_t col;
 	size_t n; // character index;
 	//size_t _n = 0; // character index; (restore1)
-	enum word_char_states word;
+	enum vesl_word_char_states word;
 	LOGICAL status;
 	LOGICAL negative;
 	LOGICAL literalString;
@@ -128,7 +128,7 @@ struct vesl_parse_state {
 
 	LOGICAL first_token;
 	//PPARSE_CONTEXT context;
-	enum parse_context_modes parse_context;
+	enum vesl_parse_context_modes parse_context;
 	struct vesl_value_container val;
 	int comment;
 	TEXTRUNE operatorAccum;
@@ -169,10 +169,11 @@ struct vesl_parse_state {
 	PDATALIST root;
 	//char *token_begin;
 };
-typedef struct vesl_parse_state PARSE_STATE, *PPARSE_STATE;
-#define MAXPARSE_STATESPERSET 32
-DeclareSet( PARSE_STATE );
+typedef struct vesl_parse_state VESL_PARSE_STATE, *PVESL_PARSE_STATE;
+#define MAXVESL_PARSE_STATESPERSET 32
+DeclareSet( VESL_PARSE_STATE );
 
+#ifndef MAXPLISTSPERSET
 typedef PLIST *PPLIST;
 #define MAXPLISTSPERSET 256
 DeclareSet( PLIST );
@@ -189,11 +190,13 @@ typedef PDATALIST *PPDATALIST;
 #define MAXPDATALISTSPERSET 256
 DeclareSet( PDATALIST );
 
+#endif
+
 struct vesl_parser_shared_data {
-	PPARSE_CONTEXTSET parseContexts;
-	PPARSE_BUFFERSET parseBuffers;
+	PVESL_PARSE_CONTEXTSET parseContexts;
+	PVESL_PARSE_BUFFERSET parseBuffers;
 	struct vesl_parse_state *last_parse_state;
-	PPARSE_STATESET parseStates;
+	PVESL_PARSE_STATESET parseStates;
 	PPLISTSET listSet;
 	PPLINKSTACKSET linkStacks;
 	PPLINKQUEUESET linkQueues;

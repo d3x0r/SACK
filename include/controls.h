@@ -616,7 +616,6 @@ typedef struct menuitem_tag *PMENUITEM;
 /* This is a popup menu or sub-menu. */
 typedef struct menu_tag *PMENU;
 
-#ifndef MENU_DRIVER_SOURCE
 /* <combine sack::PSI::popup::draw_popup_item_tag>
    
    \ \                                             */
@@ -671,7 +670,6 @@ struct draw_popup_item_tag
     };
 };
 
-#endif
 _MENU_NAMESPACE_END
 USE_MENU_NAMESPACE
 

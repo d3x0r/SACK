@@ -62,8 +62,8 @@ CORE_PROC( void, RemoveMethod      	)( PENTITY pe, command_entry *pce );
 CORE_CPROC( void, RegisterRoutine  )( CTEXTSTR pClassname, CTEXTSTR pName, CTEXTSTR pDescription, RoutineAddress Routine );
 CORE_CPROC( void, RegisterCommands )(CTEXTSTR device, command_entry *cmds, INDEX nCommands);
 CORE_CPROC( void, RegisterOptions )(CTEXTSTR device, option_entry *cmds, INDEX nCommands);
-CORE_PROC( Function, GetRoutineRegistered )( TEXTSTR prefix, PTEXT Command );
-CORE_PROC( OptionHandler, GetOptionRegistered )( TEXTSTR prefix, PTEXT Command );
+CORE_PROC( Function, GetRoutineRegistered )( CTEXTSTR prefix, PTEXT Command );
+CORE_PROC( OptionHandler, GetOptionRegistered )( CTEXTSTR prefix, PTEXT Command );
 
 CORE_CPROC( void,  UnregisterRoutine    )( CTEXTSTR pName );
 CORE_PROC( void,  PrintRegisteredRoutines)( PLINKQUEUE *Output, PSENTIENT ps, PTEXT parameters );

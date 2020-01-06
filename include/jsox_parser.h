@@ -123,6 +123,7 @@ struct jsox_value_container {
 	PDATALIST contains;  // list of struct json_value_container that this contains.
 	PDATALIST *_contains;  // acutal source datalist(?)
 	char *className;  // if VALUE_OBJECT or VALUE_TYPED_ARRAY; this may be non NULL indicating what the class name is.
+	size_t classNameLen;
 };
 
 

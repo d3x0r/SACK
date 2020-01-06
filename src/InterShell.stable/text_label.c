@@ -51,13 +51,13 @@ struct page_label {
 	TEXTSTR last_text; // the last value set as the label content.
 };
 
-enum { BTN_VARNAME = 1322
-	  , BTN_VARVAL };
+enum { BTN_TEXT_VARNAME = 1322
+	  , BTN_TEXT_VARVAL };
 
-PRIORITY_PRELOAD( AliasPageTitle, DEFAULT_PRELOAD_PRIORITY-3 )
+PRIORITY_PRELOAD( TextVariableSetup, DEFAULT_PRELOAD_PRIORITY-3 )
 {
-	EasyRegisterResource( "intershell/text", BTN_VARNAME, EDIT_FIELD_NAME );
-	EasyRegisterResource( "intershell/text", BTN_VARVAL, EDIT_FIELD_NAME );
+	EasyRegisterResource( "intershell/text", BTN_TEXT_VARNAME, EDIT_FIELD_NAME );
+	EasyRegisterResource( "intershell/text", BTN_TEXT_VARVAL, EDIT_FIELD_NAME );
 }
 
 typedef struct variable_tag VARIABLE;
@@ -97,7 +97,7 @@ static struct label_local
 	PLIST bad_button_variable; // check these controls that have bad variables.
 	PLIST bad_label_variables; // check these controls that have bad variables.
 
-} l;
+} local_text_label_data;
 
 /*
 #define NUM_VARIABLES ( sizeof( variables ) / sizeof( variables[0] ) )
@@ -159,19 +159,19 @@ PVARIABLE CreateLabelVariableEx( CTEXTSTR name, enum label_variable_types type, 
 			PLIST to_update = NULL;
 			INDEX idx;
 			PMENU_BUTTON button;
-			LIST_FORALL( l.bad_button_variable, idx, PMENU_BUTTON, button )
+			LIST_FORALL( local_text_label_data.bad_button_variable, idx, PMENU_BUTTON, button )
 			{
 				//lprintf( "Had a bad variable...(button) and refreshing that will give us new text?!" );
-				SetLink( &l.bad_button_variable, idx, NULL );
+				SetLink( &local_text_label_data.bad_button_variable, idx, NULL );
 				AddLink( &to_update, button );
 			}
 			{
 				PPAGE_LABEL label;
 				INDEX idx;
-				LIST_FORALL( l.bad_label_variables, idx, PPAGE_LABEL, label )
+				LIST_FORALL( local_text_label_data.bad_label_variables, idx, PPAGE_LABEL, label )
 				{
 					//lprintf( "Had a bad variable...(label) and refreshing that will give us new text?!" );
-					SetLink( &l.bad_label_variables, idx, NULL );
+					SetLink( &local_text_label_data.bad_label_variables, idx, NULL );
 					AddLink( &to_update, label->button );
 				}
 			}
@@ -213,7 +213,7 @@ void CPROC ScrollingLabelUpdate( uintptr_t psv )
 {
 	PPAGE_LABEL label;
 	INDEX idx;
-	LIST_FORALL( l.labels, idx, PPAGE_LABEL, label )
+	LIST_FORALL( local_text_label_data.labels, idx, PPAGE_LABEL, label )
 	{
 		if( label->flags.bScroll )
 		{
@@ -493,13 +493,13 @@ CTEXTSTR InterShell_GetControlLabelText( PMENU_BUTTON button, PPAGE_LABEL label,
 					{
 						if( button )
 						{
-							if( FindLink( &l.bad_button_variable, button ) == INVALID_INDEX )
-								AddLink( &l.bad_button_variable, button );
+							if( FindLink( &local_text_label_data.bad_button_variable, button ) == INVALID_INDEX )
+								AddLink( &local_text_label_data.bad_button_variable, button );
 						}
 						if( label )
 						{
-							if( FindLink( &l.bad_label_variables, label ) == INVALID_INDEX )
-								AddLink( &l.bad_label_variables, label );
+							if( FindLink( &local_text_label_data.bad_label_variables, label ) == INVALID_INDEX )
+								AddLink( &local_text_label_data.bad_label_variables, label );
 						}
 
 #ifdef OUTPUT_BAD_VARIABLES
@@ -516,16 +516,16 @@ CTEXTSTR InterShell_GetControlLabelText( PMENU_BUTTON button, PPAGE_LABEL label,
 					//lprintf( "is a button? might be badvar? %p %p", button, label );
 					if( button )
 					{
-						if( FindLink( &l.bad_button_variable, button ) == INVALID_INDEX )
+						if( FindLink( &local_text_label_data.bad_button_variable, button ) == INVALID_INDEX )
 						{
-							AddLink( &l.bad_button_variable, button );
+							AddLink( &local_text_label_data.bad_button_variable, button );
 						}
 					}
 					if( label )
 					{
-						if( FindLink( &l.bad_label_variables, label ) == INVALID_INDEX )
+						if( FindLink( &local_text_label_data.bad_label_variables, label ) == INVALID_INDEX )
 						{
-							AddLink( &l.bad_label_variables, label );
+							AddLink( &local_text_label_data.bad_label_variables, label );
 						}
 					}
 #ifdef OUTPUT_BAD_VARIABLES
@@ -651,13 +651,13 @@ CTEXTSTR InterShell_TranslateLabelTextEx( PMENU_BUTTON button, PPAGE_LABEL label
 					{
 						if( button )
 						{
-							if( FindLink( &l.bad_button_variable, button ) == INVALID_INDEX )
-								AddLink( &l.bad_button_variable, button );
+							if( FindLink( &local_text_label_data.bad_button_variable, button ) == INVALID_INDEX )
+								AddLink( &local_text_label_data.bad_button_variable, button );
 						}
 						if( label )
 						{
-							if( FindLink( &l.bad_label_variables, label ) == INVALID_INDEX )
-								AddLink( &l.bad_label_variables, label );
+							if( FindLink( &local_text_label_data.bad_label_variables, label ) == INVALID_INDEX )
+								AddLink( &local_text_label_data.bad_label_variables, label );
 						}
 
 #ifdef OUTPUT_BAD_VARIABLES
@@ -751,7 +751,7 @@ static void OnDestroyControl( TEXT_LABEL_NAME )( uintptr_t psv )
 	{
 		DeleteLink( &var->references, (POINTER)psv );
 	}
-	DeleteLink( &l.labels, title );
+	DeleteLink( &local_text_label_data.labels, title );
 	DestroyCommon( &title->control );
 	Release( title );
 
@@ -769,7 +769,7 @@ static uintptr_t OnCreateControl( TEXT_LABEL_NAME )( PSI_CONTROL frame, int32_t 
 	//SetControlAlignment( title->control, 2 );
 	SetTextControlColors( title->control, BASE_COLOR_WHITE, 0 );
 	SetCommonTransparent( title->control, TRUE );
-	AddLink( &l.labels, title );
+	AddLink( &local_text_label_data.labels, title );
 	return (uintptr_t)title;
 }
 
@@ -1099,12 +1099,12 @@ static uintptr_t OnEditControl( TEXT_LABEL_NAME )( uintptr_t psv, PSI_CONTROL pa
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-struct button_set_text {
+struct text_button_set_text {
 	TEXTSTR varname;
 	TEXTSTR newval;
 };
-typedef struct button_set_text SETVAR;
-typedef struct button_set_text *PSETVAR;
+typedef struct text_button_set_text SETTEXT;
+typedef struct text_button_set_text *PSETTEXT;
 
 void SetVariable( CTEXTSTR name, CTEXTSTR value )
 {
@@ -1128,7 +1128,7 @@ void SetVariable( CTEXTSTR name, CTEXTSTR value )
 
 static void OnKeyPressEvent( "InterShell/Set Variable" )( uintptr_t psv )
 {
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETTEXT pSetVar = (PSETTEXT)psv;
 	SetVariable( pSetVar->varname, pSetVar->newval );
 
 	//return 1;
@@ -1136,7 +1136,7 @@ static void OnKeyPressEvent( "InterShell/Set Variable" )( uintptr_t psv )
 
 static uintptr_t OnCreateMenuButton( "InterShell/Set Variable" )( PMENU_BUTTON button )
 {
-	PSETVAR pSetVar = New( SETVAR );
+	PSETTEXT pSetVar = New( SETTEXT );
 	pSetVar->varname = NULL;
 	pSetVar->newval = NULL;
 	InterShell_SetButtonStyle( button, "bicolor square" );
@@ -1146,15 +1146,15 @@ static uintptr_t OnCreateMenuButton( "InterShell/Set Variable" )( PMENU_BUTTON b
 
 static uintptr_t OnConfigureControl( "InterShell/Set Variable" )( uintptr_t psv, PSI_CONTROL parent )
 {
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETTEXT pSetVar = (PSETTEXT)psv;
 	PSI_CONTROL frame;
 	frame = LoadXMLFrameOver( parent, "configure_text_setvar_button.isframe" );
 	if( frame )
 	{
 		int okay = 0;
 		int done = 0;
-		SetControlText( GetControl( frame, BTN_VARNAME ), pSetVar->varname );
-		SetControlText( GetControl( frame, BTN_VARVAL ), pSetVar->newval );
+		SetControlText( GetControl( frame, BTN_TEXT_VARNAME ), pSetVar->varname );
+		SetControlText( GetControl( frame, BTN_TEXT_VARVAL ), pSetVar->newval );
 		FillVariableList( frame );
 		SetCommonButtons( frame, &done, &okay );
 		DisplayFrameOver( frame, parent );
@@ -1162,13 +1162,13 @@ static uintptr_t OnConfigureControl( "InterShell/Set Variable" )( uintptr_t psv,
 		if( okay )
 		{
 			TEXTCHAR buffer[256];
-			GetControlText( GetControl( frame, BTN_VARNAME ), buffer, sizeof( buffer )  );
+			GetControlText( GetControl( frame, BTN_TEXT_VARNAME ), buffer, sizeof( buffer )  );
 			if( ( pSetVar->varname && strcmp( pSetVar->varname, buffer ) ) || ( !pSetVar->varname && buffer[0] ) )
 			{
 				Release( pSetVar->varname );
 				pSetVar->varname = StrDup( buffer );
 			}
-			GetControlText( GetControl( frame, BTN_VARVAL ), buffer, sizeof( buffer ) );
+			GetControlText( GetControl( frame, BTN_TEXT_VARVAL ), buffer, sizeof( buffer ) );
 			if( ( pSetVar->newval && strcmp( pSetVar->newval, buffer ) ) || ( !pSetVar->newval && buffer[0] ) )
 			{
 				Release( pSetVar->newval );
@@ -1187,23 +1187,23 @@ static uintptr_t OnConfigureControl( "InterShell/Set Variable" )( uintptr_t psv,
 
 static void OnSaveControl( "InterShell/Set Variable" )( FILE *file, uintptr_t psv )
 {
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETTEXT pSetVar = (PSETTEXT)psv;
 	sack_fprintf( file, "set variable text name=%s\n", EscapeMenuString( pSetVar->varname ) );
 	sack_fprintf( file, "set variable text value=%s\n", EscapeMenuString( pSetVar->newval ) );
 }
 
 static void OnCloneControl( "InterShell/Set Variable" )( uintptr_t psvNew, uintptr_t psvOld )
 {
-	PSETVAR pSetVarNew = (PSETVAR)psvNew;
-	PSETVAR pSetVarOld = (PSETVAR)psvOld;
+	PSETTEXT pSetVarNew = (PSETTEXT)psvNew;
+	PSETTEXT pSetVarOld = (PSETTEXT)psvOld;
 	pSetVarNew->varname = StrDup( pSetVarOld->varname );
 	pSetVarNew->newval = StrDup( pSetVarOld->newval );
 }
 
-static uintptr_t CPROC SetVariableVariableName( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetTextVariableVariableName( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETTEXT pSetVar = (PSETTEXT)psv;
 	pSetVar->varname = StrDup( name );
 	{
 		PVARIABLE pVar = FindVariableByName( pSetVar->varname );
@@ -1213,18 +1213,18 @@ static uintptr_t CPROC SetVariableVariableName( uintptr_t psv, arg_list args )
 	return psv;
 }
 
-static uintptr_t CPROC SetVariableVariableValue( uintptr_t psv, arg_list args )
+static uintptr_t CPROC SetTextVariableVariableValue( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, name );
-	PSETVAR pSetVar = (PSETVAR)psv;
+	PSETTEXT pSetVar = (PSETTEXT)psv;
 	pSetVar->newval = StrDup( name );
 	return psv;
 }
 
 static void OnLoadControl( "InterShell/Set Variable" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	AddConfigurationMethod( pch,  "set variable text name=%m", SetVariableVariableName );
-	AddConfigurationMethod( pch,  "set variable text value=%m", SetVariableVariableValue );
+	AddConfigurationMethod( pch,  "set variable text name=%m", SetTextVariableVariableName );
+	AddConfigurationMethod( pch,  "set variable text value=%m", SetTextVariableVariableValue );
 }
 
 #undef SetTextLabelOptions

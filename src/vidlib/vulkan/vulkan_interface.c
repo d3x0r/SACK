@@ -152,16 +152,26 @@ void createRenderPass( struct display_camera* camera ) {
 
 }
 
+struct QueueFamilyIndices {
+	uint32_t graphicsFamily;
+};
+
 void createGraphicsPipeline() {
 
 }
 
+struct QueueFamilyIndices  findQueueFamilies( VkPhysicalDevice device ) {
+	struct QueueFamilyIndices indices;
+	// Logic to find queue family indices to populate struct with
+	return indices;
+	// Logic to find graphics queue family
+}
 void createCommandPool( struct SwapChain *chain ) {
-	QueueFamilyIndices queueFamilyIndices = findQueueFamilies( chain->device );
+	struct QueueFamilyIndices queueFamilyIndices = findQueueFamilies( chain->device );
 
 	VkCommandPoolCreateInfo poolInfo = {0};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;// .value();
 	// VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,   // get recreated often.
 	// VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT  // individual commands can be reset
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Optional

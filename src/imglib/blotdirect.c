@@ -365,7 +365,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 // w, h is height and width of the image to use.
 // default behavior is to omit copying 0 pixels for transparency
 // overlays....
- void  BlotImageSizedEx ( ImageFile *pifDest, ImageFile *pifSrc
+ void  IMGVER(BlotImageSizedEx) ( ImageFile *pifDest, ImageFile *pifSrc
 										, int32_t xd, int32_t yd
 										, int32_t xs, int32_t ys
 										, uint32_t ws, uint32_t hs
@@ -413,7 +413,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 			r2.height = 0;
 		else
 			r2.height = (IMAGE_SIZE_COORDINATE)tmp;
-		if( !IntersectRectangle( &rd, &r1, &r2 ) )
+		if( !IMGVER(IntersectRectangle)( &rd, &r1, &r2 ) )
 		{
 			//lprintf( "Images do not overlap. %d,%d %d,%d vs %d,%d %d,%d", r1.x,r1.y,r1.width,r1.height
 			//		 , r2.x,r2.y,r2.width,r2.height);
@@ -466,7 +466,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 			r2.height = 0;
 		else
 			r2.height = (IMAGE_SIZE_COORDINATE)tmp;
-		if( !IntersectRectangle( &rs, &r1, &r2 ) )
+		if( !IMGVER(IntersectRectangle)( &rs, &r1, &r2 ) )
 		{
 			//lprintf( "Desired Output does not overlap..." );
 			return;
@@ -596,7 +596,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 }
 // copy all of pifSrc to the destination - placing the upper left
 // corner of pifSrc on the point specified.
- void  BlotImageEx ( ImageFile *pifDest, ImageFile *pifSrc, int32_t xd, int32_t yd, uint32_t nTransparent, uint32_t method, ... )
+ void  IMGVER(BlotImageEx) ( ImageFile *pifDest, ImageFile *pifSrc, int32_t xd, int32_t yd, uint32_t nTransparent, uint32_t method, ... )
 {
 	va_list colors;
 	CDATA r;
@@ -608,7 +608,7 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 		r = va_arg( colors, CDATA );
 		g = va_arg( colors, CDATA );
 		b = va_arg( colors, CDATA );
-		BlotImageSizedEx( pifDest, pifSrc, xd, yd, 0, 0
+		IMGVER(BlotImageSizedEx)( pifDest, pifSrc, xd, yd, 0, 0
 						, pifSrc->real_width, pifSrc->real_height, nTransparent, method
 										  , r,g,b
 										);

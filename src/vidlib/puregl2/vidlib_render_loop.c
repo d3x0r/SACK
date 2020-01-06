@@ -8,15 +8,8 @@
 RENDER_NAMESPACE
 
 
-int IsVidThread( void )
-{
-	// used by opengl to allow selecting context.
-	if( IsThisThread( l.actual_thread ) )
-		return TRUE;
-	return FALSE;
-}
 
-void Redraw( PVIDEO hVideo )
+void ogl_Redraw( PVIDEO hVideo )
 {
 	if( hVideo )
 		hVideo->flags.bUpdated = 1;
@@ -286,7 +279,7 @@ void drawCamera( struct display_camera *camera )
 	{
 		if( l.flags.bLogRenderTiming )
 			lprintf( "Open Camera..." );
-		OpenCamera( camera );
+		ogl_OpenCamera( camera );
 	}
 	if( !camera->hVidCore || !camera->hVidCore->flags.bReady )
 	{

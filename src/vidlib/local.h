@@ -94,6 +94,7 @@ extern
 	uint32_t last_mouse_update; // last tick the mouse moved.
 	PRENDERER last_mouse_update_display;
 	PLIST invalidated_windows;
+   PIMAGE_INTERFACE pii;
 } l;
 
 RENDER_NAMESPACE_END

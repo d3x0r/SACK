@@ -13,7 +13,7 @@ namespace loader {
    // decompress a buffer into an image...
 	ImageFile *ImagePngFile (uint8_t * buf, size_t size);
 	// compress image into a buffer
-	LOGICAL CPROC PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
+	LOGICAL CPROC IMGVER(PngImageFile) ( Image pImage, uint8_t ** buf, size_t *size);
 #ifdef __cplusplus
 }
 #endif

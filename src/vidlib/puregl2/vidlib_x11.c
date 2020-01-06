@@ -265,7 +265,7 @@ const TEXTCHAR*  GetKeyText (int key)
 	return 0;
 }
 
-void  GetDisplaySizeEx ( int nDisplay
+void  ogl_GetDisplaySizeEx ( int nDisplay
 												 , int32_t *x, int32_t *y
 												 , uint32_t *width, uint32_t *height)
 {
@@ -503,7 +503,7 @@ uintptr_t CPROC ProcessDisplayMessages( PTHREAD thread )
 	INDEX idx;
 	struct display_camera *did_one;
 	LoadOptions(); // loads camera config, and logging options...
-	SACK_Vidlib_OpenCameras();  // create logical camera structures
+	ogl_SACK_Vidlib_OpenCameras();  // create logical camera structures
 	l.bThreadRunning = 1;
 	while( !l.bExitThread )
 	{
