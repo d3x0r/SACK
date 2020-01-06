@@ -901,6 +901,7 @@ void process_jsox_state( struct jsox_parse_state *state
 	if( !state->status )
 		return -1;
 
+	int phrase_done = 0;
 	int quote = 0;
 	int escape = 0;
 	int empty = 1;
@@ -916,9 +917,9 @@ void process_jsox_state( struct jsox_parse_state *state
 		EnqueLink( &plqInputs, input );
 
 		//lprintf( "Completed at start?%d", state->completed );
-		while( state->status && ((input->pos-input->buf) < input->size) && ( (c = GetUtfChar( &input->pos ))!= BADUTF8) )
+		while( !phrase_done && state->status && ((input->pos-input->buf) < input->size) && ( (c = GetUtfChar( &input->pos ))!= BADUTF8) )
 		{
-			switch( c ) {
+			if( empty ) switch( c ) {
 			case ' ':
 			case '\t':
 			case '\r':
@@ -970,22 +971,17 @@ void process_jsox_state( struct jsox_parse_state *state
 				if( !state->comment ) state->comment = 1;
 				break;
 			case '{':
-				empty = 1;
-				containers++;	
-				levels++;
-				break;
 			case '[':
 				empty = 1;
 				containers++;	
 				levels++;
 				break;
 			case '}':
-				if( !empty ) values++;
-				levels--;
-				break;
 			case ']':
 				if( !empty ) values++;
 				levels--;
+				if( !levels )
+					phrase_done = 1;
 				break;
 			case ',':
 				values++;
