@@ -55,7 +55,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #if !defined( __NO_THREAD_LOCAL__ ) && ( defined( _MSC_VER ) || defined( __WATCOMC__ ) )
 #  define HAS_TLS 1
 #  ifdef __cplusplus
-#    define DeclareThreadLocal thread_local
+#    define DeclareThreadLocal static thread_local
 #    define DeclareThreadVar  thread_local
 #  else
 #    define DeclareThreadLocal static __declspec(thread)
@@ -64,7 +64,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #elif !defined( __NO_THREAD_LOCAL__ ) && ( defined( __GNUC__ ) )
 #    define HAS_TLS 1
 #    ifdef __cplusplus
-#      define DeclareThreadLocal thread_local
+#      define DeclareThreadLocal static thread_local
 #      define DeclareThreadVar thread_local
 #    else
 #    define DeclareThreadLocal static __thread
