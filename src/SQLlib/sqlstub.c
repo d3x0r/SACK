@@ -116,8 +116,6 @@ static uintptr_t CPROC AutoCloseThread( PTHREAD thread );
 static uintptr_t CPROC AutoCheckpointThread( PTHREAD thread );
 void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection );
 
-static int __DoSQLQueryEx(  PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS );
-#define __DoSQLQuery( o,c,q ) __DoSQLQueryEx(o,c,q DBG_SRC )
 static int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection/*, uint32_t MyID*/ DBG_PASS );
 #define __DoSQLCommand(o,c) __DoSQLCommandEx(o,c DBG_SRC )
 static int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore/*, uint32_t MyID*/ );
@@ -1070,15 +1068,18 @@ void SetSQLThreadProtect( PODBC odbc, LOGICAL bEnable )
 void SetSQLAutoTransact( PODBC odbc, LOGICAL bEnable )
 {
 	if( odbc )
-		odbc->flags.bAutoTransact = bEnable;
+		if( odbc->flags.bAutoTransact = bEnable )
+			odbc->flags.bThreadProtect = 1;
 }
 
 void SetSQLAutoTransactCallback( PODBC odbc, void (CPROC*callback)(uintptr_t,PODBC), uintptr_t psv )
 {
 	if( odbc )
 	{
-		if( callback )
+		if( callback ) {
 			odbc->flags.bAutoTransact = 1;
+			odbc->flags.bThreadProtect = 1;
+		} 
 		else
 			odbc->flags.bAutoTransact = 0;
 		odbc->auto_commit_callback = callback;
@@ -1715,7 +1716,7 @@ void SQLCommit( PODBC odbc )
 		{
 			int n = odbc->flags.bAutoTransact;
 			odbc->last_command_tick = 0;
-			if( odbc->auto_commit_thread )
+			if( odbc->auto_commit_thread ) // either this is clear, called from thread, or called from user, and the thread needs to end.
 			{
 				uint32_t start = timeGetTime();
 				WakeThread( odbc->auto_commit_thread );
@@ -1766,7 +1767,7 @@ uintptr_t CPROC AutoCloseThread( PTHREAD thread )
 			// make sure we still need to close (modeled more after commit; this could be less paranoid)
 			if( ( !odbc->flags.bAutoClose )
 			// and then claim the thread protection to prevent more statements from starting while we close this
-			  || (( odbc->flags.bThreadProtect )?EnterCriticalSecNoWait( &odbc->cs, NULL ):1) )
+			  || (( odbc->flags.bThreadProtect )?(EnterCriticalSecNoWait( &odbc->cs, NULL ), odbc->nProtect++):1) )
 			{
 				tick = 1;
 				break;
@@ -1780,8 +1781,10 @@ uintptr_t CPROC AutoCloseThread( PTHREAD thread )
 		// this will close any in progress result sets... still need a check
 		CloseDatabaseEx( odbc, FALSE );
 		// release our lock allowing any statement that started JUST as this ticked to resume.
-		if( odbc->flags.bThreadProtect )
+		if( odbc->flags.bThreadProtect ) {
+			odbc->nProtect--;
 			LeaveCriticalSec( &odbc->cs );
+		}
 	}
 	odbc->auto_close_thread = NULL;
 	return 0;
@@ -1818,8 +1821,11 @@ uintptr_t CPROC AutoCheckpointThread( PTHREAD thread )
 	{
 		int oldCommit = odbc->flags.bAutoTransact;
 		int oldCheckpoint = odbc->flags.bAutoCheckpoint;
-		if( odbc->flags.bThreadProtect )
-			EnterCriticalSec( &odbc->cs );
+		if( odbc->flags.bThreadProtect ){
+			EnterCriticalSec(&odbc->cs);
+			odbc->nProtect++;
+		}
+
 		odbc->flags.bAutoTransact = 0;
 		odbc->flags.bAutoCheckpoint = 0;
 		// this will checkpoint any in progress result sets... still need a check
@@ -1828,8 +1834,10 @@ uintptr_t CPROC AutoCheckpointThread( PTHREAD thread )
 		odbc->flags.bAutoCheckpoint = oldCheckpoint;
 		// release our lock allowing any statement that started JUST as this ticked to resume.
 		odbc->auto_checkpoint_thread = NULL;
-		if( odbc->flags.bThreadProtect )
+		if( odbc->flags.bThreadProtect ) {
+			odbc->nProtect--;
 			LeaveCriticalSec( &odbc->cs );
+		}
 	}// redundant; because I want to claer this before unlocking the connection
 	odbc->auto_checkpoint_thread = NULL;
 	return 0;
@@ -1842,35 +1850,25 @@ uintptr_t CPROC AutoCheckpointThread( PTHREAD thread )
 // intended for.
 static uintptr_t CPROC CommitThread( PTHREAD thread )
 {
-	uintptr_t psv = GetThreadParam( thread );
-	PODBC odbc = (PODBC)psv;
+	PODBC odbc = (PODBC)GetThreadParam(thread);
 	int tick = 0;
-	//lprintf( "begin..." );
 	while( odbc->last_command_tick )
 	{
-		//lprintf( "waiting..." );
 		// if it expires, set tick and get out of loop
 		// clearing last_command_tick will also end the thread (a manual sqlcommit on the connection)
 		if( odbc->last_command_tick < ( timeGetTime() - 50 ) )
 		{
-			if( ( !odbc->flags.bThreadProtect )
-				|| EnterCriticalSecNoWait( &odbc->cs, NULL ) )
-			{
-				//lprintf( "tick and out ");
-				tick = 1;
-				break;
-			}
+			tick = 1;
+			break;
 		}
 		WakeableSleep( 25 );
 	}
 
-	// a SQLCommit may have happened outside of this, which cleas last_command_tick
+	// a SQLCommit may have happened outside of this, which clears last_command_tick
 	if( odbc->last_command_tick && tick )
 	{
-		odbc->auto_commit_thread = NULL;
+		odbc->auto_commit_thread = NULL; // clear this is a waiting thread so commit will just go.
 		SQLCommit( odbc );
-		if( odbc->flags.bThreadProtect )
-			LeaveCriticalSec( &odbc->cs );
 	}
 	else
 	{
@@ -1944,6 +1942,7 @@ void SQLBeginTransact( PODBC odbc ) {
 
 //----------------------------------------------------------------------
 
+static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t queryLength, PDATALIST pdlParams DBG_PASS );
 
 void DispatchPriorRequests( PODBC odbc )
 {
@@ -1966,8 +1965,8 @@ void DispatchPriorRequests( PODBC odbc )
 			{
 				collection->odbc = g.odbc;
 				UnlinkThing( collection );
-				lprintf( "Adding %p to %p at %p", collection, odbc, &odbc->collection );
-				LinkThing( odbc->collection, collection );
+				lprintf( "Adding %p to %p at %p", collection, g.odbc, &g.odbc->collection );
+				LinkThing( g.odbc->collection, collection );
 			}
 			else
 			{
@@ -1988,7 +1987,7 @@ void DispatchPriorRequests( PODBC odbc )
 				Log( "Dispach prior QUERY" );
 				{
 					PTEXT tmp = VarTextPeek( collection->pvt_out );
-					__DoSQLQuery( g.odbc, collection, GetText( tmp ) );
+					__DoSQLQueryExx( g.odbc, collection, GetText( tmp ), GetTextSize( tmp ), NULL DBG_SRC );
 					if( collection->lastop != LAST_QUERY )
 					{
 					// if the command is now completed... (no longer a query)
@@ -2791,22 +2790,18 @@ int __DoSQLCommandEx( PODBC odbc, PCOLLECT collection DBG_PASS )
 		//collection->hLastWnd = hWnd;
 		return FALSE;
 	}
-
+	/*
 	if( odbc->flags.bThreadProtect )
 	{
 		EnterCriticalSec( &odbc->cs );
 		odbc->nProtect++;
 	}
+	*/
 corruptRetry:
 	if( !OpenSQLConnectionEx( odbc DBG_SRC ) )
 	{
 		lprintf( "Fail connect odbc... should already be open?!" );
 		GenerateResponce( collection, WM_SQL_RESULT_ERROR );
-		if( odbc->flags.bThreadProtect )
-		{
-			odbc->nProtect--;
-			LeaveCriticalSec( &odbc->cs );
-		}
 		return FALSE;
 	}
 	cmd = VarTextPeek( collection->pvt_out );
@@ -2865,11 +2860,7 @@ retry:
 		if( odbc->last_command_tick )
 			odbc->last_command_tick = odbc->last_command_tick_;
 		// can get back what was not used when parsing...
-#ifdef UNICODE
-		rc3 = sqlite3_prepare16_v2( odbc->db, (void*)GetText( cmd ), (int)(GetTextSize( cmd )) * sizeof( TEXTCHAR ), &collection->stmt, (const void**)&tail );
-#else
-		rc3 = sqlite3_prepare_v2( odbc->db, GetText( cmd ), (int)(GetTextSize( cmd )), &collection->stmt, &tail );
-#endif
+		rc3 = sqlite3_prepare_v2( odbc->db, tail = GetText( cmd ), (int)(GetTextSize( cmd )), &collection->stmt, &tail );
 		if( rc3 )
 		{
 			char *realSql = sqlite3_expanded_sql( collection->stmt );
@@ -2881,12 +2872,6 @@ retry:
 				sack_fflush( g.pSQLLog );
 			}
  			GenerateResponce( collection, WM_SQL_RESULT_ERROR );
-			if( odbc->flags.bThreadProtect )
-			{
-				// had to close a prior connection...
-				odbc->nProtect--;
-				LeaveCriticalSec( &odbc->cs );
-			}
 			return FALSE;
 		}
 		else
@@ -2960,11 +2945,6 @@ retry:
 			{
 				lprintf( "Failed to open ODBC statement handle...." );
 				GenerateResponce( collection, WM_SQL_RESULT_ERROR );
-				if( odbc->flags.bThreadProtect )
-				{
-					odbc->nProtect--;
-					LeaveCriticalSec( &odbc->cs );
-				}
 				return FALSE;
 			}
 		}
@@ -3007,11 +2987,6 @@ retry:
 	}
 #endif
 
-	if( odbc->flags.bThreadProtect )
-	{
-		odbc->nProtect--;
-		LeaveCriticalSec( &odbc->cs );
-	}
 	//  actually we keep collections around while there's a client...
 	//lprintf( "Command destroy collection..." );
 	//DestroyCollector( collection );
@@ -3033,6 +3008,10 @@ SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 	if( use_odbc )
 	{
 		PCOLLECT pCollector;
+		if( use_odbc->flags.bThreadProtect ) {
+			EnterCriticalSec( &use_odbc->cs );
+			use_odbc->nProtect++;
+		}
 		BeginTransactEx( use_odbc, 0 );
 		do
 		{
@@ -3042,8 +3021,12 @@ SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 			Collect( pCollector = CreateCollector( 0, use_odbc, TRUE ), (uint32_t*)command, (uint32_t)strlen( command ) );
 			//SimpleMessageBox( NULL, "Please shut down the database...", "Waiting.." );
 		} while( __DoSQLCommandEx( use_odbc, pCollector DBG_RELAY ) );
-		if( use_odbc->collection )
-			return use_odbc->collection->responce == WM_SQL_RESULT_SUCCESS?TRUE:0;
+		if( use_odbc->flags.bThreadProtect ) {
+			use_odbc->nProtect--;
+			LeaveCriticalSec( &use_odbc->cs );
+		}
+		if( pCollector )
+			return pCollector->responce == WM_SQL_RESULT_SUCCESS?TRUE:0;
 		return WM_SQL_RESULT_ERROR;
 	}
 	else
@@ -3067,6 +3050,10 @@ SQLPROXY_PROC( int, SQLCommandExx )(PODBC odbc, CTEXTSTR command, size_t command
 	if( use_odbc )
 	{
 		PCOLLECT pCollector;
+		if( use_odbc->flags.bThreadProtect ) {
+			EnterCriticalSec( &use_odbc->cs );
+			use_odbc->nProtect++;
+		}
 		BeginTransactEx( use_odbc, 0 );
 		do
 		{
@@ -3076,8 +3063,12 @@ SQLPROXY_PROC( int, SQLCommandExx )(PODBC odbc, CTEXTSTR command, size_t command
 			Collect( pCollector = CreateCollector( 0, use_odbc, TRUE ), (uint32_t*)command, commandLen?commandLen:strlen( command ) );
 			//SimpleMessageBox( NULL, "Please shut down the database...", "Waiting.." );
 		} while( __DoSQLCommandEx( use_odbc, pCollector DBG_RELAY ) );
-		if( use_odbc->collection )
-			return use_odbc->collection->responce == WM_SQL_RESULT_SUCCESS ? TRUE : 0;
+		if( use_odbc->flags.bThreadProtect ) {
+			use_odbc->nProtect--;
+			LeaveCriticalSec( &use_odbc->cs );
+		}
+		if( pCollector )
+			return pCollector->responce == WM_SQL_RESULT_SUCCESS ? TRUE : 0;
 		return WM_SQL_RESULT_ERROR;
 	}
 	else
@@ -4161,8 +4152,8 @@ int FetchSQLRecordJS( PODBC odbc, PDATALIST *ppdlRecord ) {
 			if( odbc->collection->responce == WM_SQL_RESULT_DATA ) {
 			}
 			if( odbc->flags.bThreadProtect ) {
-				LeaveCriticalSec( &odbc->cs );
 				odbc->nProtect--;
+				LeaveCriticalSec( &odbc->cs );
 			}
 			return odbc->collection->responce == WM_SQL_RESULT_DATA ? TRUE : 0;
 		}
@@ -4205,8 +4196,8 @@ int FetchSQLRecord( PODBC odbc, CTEXTSTR **result )
 			}
 			if( odbc->flags.bThreadProtect )
 			{
-				LeaveCriticalSec( &odbc->cs );
 				odbc->nProtect--;
+				LeaveCriticalSec( &odbc->cs );
 			}
 			return odbc->collection->responce == WM_SQL_RESULT_DATA?TRUE:0;
 		}
@@ -4240,16 +4231,16 @@ SQLPROXY_PROC( int, FetchSQLResult )( PODBC odbc, CTEXTSTR *result )
 			{
 				if( odbc->flags.bThreadProtect )
 				{
-					LeaveCriticalSec( &odbc->cs );
 					odbc->nProtect--;
+					LeaveCriticalSec( &odbc->cs );
 				}
 				return 0;
 			}
 		}
 		if( odbc->flags.bThreadProtect )
 		{
-			LeaveCriticalSec( &odbc->cs );
 			odbc->nProtect--;
+			LeaveCriticalSec( &odbc->cs );
 		}
 		return odbc->collection->responce == WM_SQL_RESULT_DATA?TRUE:0;
 	}
@@ -4337,6 +4328,8 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 			}
 			break;
 		case JSOX_VALUE_TYPED_ARRAY:
+			rc = 1;
+			lprintf( "Typed array (blob) not supported for ODBC (yet)" );
 			//rc = sqlite3_bind_blob( db, useIndex, val->string, val->stringLen, NULL );
 			break;
 		case JSOX_VALUE_STRING:
@@ -4431,7 +4424,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 #endif
 	if( !query )
 	{
-		xlprintf(LOG_ALWAYS)( "REally should pass a query if you expect a query (was passed NULL)." );
+		xlprintf(LOG_ALWAYS)( "Really should pass a query if you expect a query (was passed NULL)." );
 		return FALSE;
 	}
 	if( !odbc )
@@ -4447,7 +4440,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			lprintf( "Should not be a new query..." );
 		}
 		//collection->hLastWnd = hWnd;
-		return FALSE;
+		return TRUE; // assume it will succeed...
 	}
 	if( !odbc )
 	{
@@ -4460,11 +4453,13 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 	odbc->last_command_tick_ = timeGetTime();
 	if( odbc->last_command_tick )
 		odbc->last_command_tick = odbc->last_command_tick_;
+	/*
 	if( odbc->flags.bThreadProtect )
 	{
 		EnterCriticalSec( &odbc->cs );
 		odbc->nProtect++;
 	}
+	*/
 
 	//lprintf( "Query: %s", GetText( cmd ) );
 	ReleaseCollectionResults( collection, TRUE );
@@ -4533,11 +4528,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 		const TEXTCHAR *tail;
 		// can get back what was not used when parsing...
 		retry:
-#ifdef UNICODE
-		rc3 = sqlite3_prepare16_v2( odbc->db, (void*)query, (int)(querylen) * sizeof( TEXTCHAR ), &collection->stmt, (const void**)&tail );
-#else
-		rc3 = sqlite3_prepare_v2( odbc->db, query, (int)(queryLen), &collection->stmt, &tail );
-#endif
+		rc3 = sqlite3_prepare_v2( odbc->db, tail = query, (int)(queryLen), &collection->stmt, &tail );
 		if( rc3 )
 		{
 			const char *tmp;
@@ -4546,10 +4537,12 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 					odbc->pCorruptionHandler( odbc->psvCorruptionHandler, odbc );
 				}
 				GenerateResponce( collection, WM_SQL_RESULT_ERROR );
+				/*
 				if( odbc->flags.bThreadProtect ) {
 					odbc->nProtect--;
 					LeaveCriticalSec( &odbc->cs );
 				}
+				*/
 				return FALSE;
 			}
 			if( rc3 == SQLITE_BUSY )
@@ -4595,11 +4588,13 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 		if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 		{
 			xlprintf(LOG_ALWAYS)( "Failed to open ODBC statement handle...." );
+			/*
 			if( odbc->flags.bThreadProtect )
 			{
 				odbc->nProtect--;
 				LeaveCriticalSec( &odbc->cs );
 			}
+			*/
 			return FALSE;
 		}
 #ifdef LOG_EVERYTHING
@@ -4648,11 +4643,13 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 		}
 #endif
 		GenerateResponce( collection, WM_SQL_RESULT_ERROR );
+		/*
 		if( odbc->flags.bThreadProtect )
 		{
 			odbc->nProtect--;
 			LeaveCriticalSec( &odbc->cs );
 		}
+		*/
 		return retry;
 	}
 	/*
@@ -4675,11 +4672,13 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 									, odbc->flags.bNoLogging);
 			  GenerateResponce( collection, WM_SQL_RESULT_ERROR );
 			  //DestroyCollector( collection );
+			  /*
 			  if( odbc->flags.bThreadProtect )
 			  {
 				  odbc->nProtect--;
 				  LeaveCriticalSec( &odbc->cs );
 			  }
+			  */
 			  return retry ;
 		}
 	}
@@ -4687,18 +4686,14 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 
 	//lprintf( "Get result ..." );
 	retry = __GetSQLResult( odbc, collection, FALSE );
+	/*
 	if( odbc->flags.bThreadProtect )
 	{
 		odbc->nProtect--;
 		LeaveCriticalSec( &odbc->cs );
 	}
+	*/
 	return retry;
-}
-
-//------------------------------------------------------------------
-
-int __DoSQLQueryEx( PODBC odbc, PCOLLECT collection, CTEXTSTR query DBG_PASS ) {
-	return __DoSQLQueryExx( odbc, collection, query, strlen( query ), NULL DBG_RELAY ); //-V522
 }
 
 //------------------------------------------------------------------
@@ -4778,6 +4773,7 @@ int SQLRecordQuery_js( PODBC odbc
 {
 	PODBC use_odbc;
 	int once = 0;
+	PCOLLECT collection;
 	if( !(*pdlResults) )
 		(*pdlResults) = CreateDataList( sizeof ( struct jsox_value_container  ) );
 
@@ -4793,47 +4789,51 @@ int SQLRecordQuery_js( PODBC odbc
 			// but mostly fail.
 			use_odbc = g.odbc;
 		}
+		if( use_odbc->flags.bThreadProtect )
+		{
+			EnterCriticalSec( &use_odbc->cs );
+			use_odbc->nProtect++;
+		}
 		// if not a [sS]elect then begin a transaction.... some code uses query record for everything.
 		if( !once && query[0] != 's' && query[0] != 'S' ) {
 			once = 1;
 			BeginTransactEx( use_odbc, 0 );
 		}
+
+		if( !( collection = use_odbc->collection ) )
+			collection = use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
+
 		// collection is very important to have - even if we will have to be opened,
 		// we ill need one, so make at least one.
-		if( !use_odbc->collection || !use_odbc->collection->flags.bTemporary )
+		if( collection->flags.bTemporary )
 		{
-			if( use_odbc->collection && use_odbc->collection->flags.bTemporary )
-			{
 #ifdef LOG_COLLECTOR_STATES
-				lprintf( "using existing collector..." );
+			lprintf( "using existing collector..." );
 #endif
-				use_odbc->collection->flags.bTemporary = 0;
-			}
-			else
-			{
-#ifdef LOG_COLLECTOR_STATES
-				lprintf( "creating collector..." );
-#endif
-				use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
-			}
+			collection->flags.bTemporary = 0;
 		}
+
 		// if it was temporary, it shouldn't be anymore
-		use_odbc->collection->flags.bTemporary = 0;
 		// ask the collector to build the type of result set we want...
-		use_odbc->collection->flags.bBuildResultArray = 0;
-		use_odbc->collection->ppdlResults = pdlResults;
+		collection->flags.bBuildResultArray = 0;
+		collection->ppdlResults = pdlResults;
 		// this will do an open, and delay queue processing and all sorts
 		// of good fun stuff...
 	}
-	while( __DoSQLQueryExx( use_odbc, use_odbc->collection, query, queryLen, pdlParams DBG_RELAY) );
+	while( __DoSQLQueryExx( use_odbc, collection, query, queryLen, pdlParams DBG_RELAY) );
+	if( use_odbc->flags.bThreadProtect )
+	{
+		use_odbc->nProtect--;
+		LeaveCriticalSec( &use_odbc->cs );
+	}
 
-	if( use_odbc->collection->responce == WM_SQL_RESULT_DATA )
+	if( collection->responce == WM_SQL_RESULT_DATA )
 	{
 		return TRUE;
 	}
-	else if( use_odbc->collection->responce == WM_SQL_RESULT_NO_DATA )
+	else if( collection->responce == WM_SQL_RESULT_NO_DATA )
 	{
-		use_odbc->collection->ppdlResults = NULL;
+		collection->ppdlResults = NULL;
 		DeleteDataList( pdlResults );
 		return TRUE;
 	}
@@ -4853,6 +4853,7 @@ int SQLRecordQuery_v4( PODBC odbc
 {
 	PODBC use_odbc;
 	int once = 0;
+	PCOLLECT collection;
 	// clean up what we think of as our result set data (reset to nothing)
 	if( result )
 		(*result) = NULL;
@@ -4866,6 +4867,11 @@ int SQLRecordQuery_v4( PODBC odbc
 			// but mostly fail.
 			use_odbc = g.odbc;
 		}
+		if( use_odbc->flags.bThreadProtect )
+		{
+			EnterCriticalSec( &use_odbc->cs );
+			use_odbc->nProtect++;
+		}
 		// if not a [sS]elect then begin a transaction.... some code uses query record for everything.
 		if( !once && query[0] != 's' && query[0] != 'S' ) {
 			once = 1;
@@ -4873,50 +4879,58 @@ int SQLRecordQuery_v4( PODBC odbc
 		}
 		// collection is very important to have - even if we will have to be opened,
 		// we ill need one, so make at least one.
-		if( !use_odbc->collection || !use_odbc->collection->flags.bTemporary ) {
+		if( !(collection = use_odbc->collection ) )
+			collection = use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
+		if( !collection->flags.bTemporary ) {
+			collection = use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
 			if( use_odbc->collection && use_odbc->collection->flags.bTemporary ) {
 #ifdef LOG_COLLECTOR_STATES
 				lprintf( "using existing collector..." );
 #endif
-				use_odbc->collection->flags.bTemporary = 0;
+				(collection = use_odbc->collection)->flags.bTemporary = 0;
 			}
 			else {
 #ifdef LOG_COLLECTOR_STATES
 				lprintf( "creating collector..." );
 #endif
-				use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
 			}
-		}
+		} else 
+			collection = use_odbc->collection;
 		// if it was temporary, it shouldn't be anymore
-		use_odbc->collection->flags.bTemporary = 0;
+		collection->flags.bTemporary = 0;
 		// ask the collector to build the type of result set we want...
-		use_odbc->collection->flags.bBuildResultArray = 1;
-		use_odbc->collection->ppdlResults = NULL;
+		collection->flags.bBuildResultArray = 1;
+		collection->ppdlResults = NULL;
 		// this will do an open, and delay queue processing and all sorts
 		// of good fun stuff...
-	} while( __DoSQLQueryExx( use_odbc, use_odbc->collection, query, queryLen, pdlParams DBG_RELAY ) );
+	} while( __DoSQLQueryExx( use_odbc, collection, query, queryLen, pdlParams DBG_RELAY ) );
 
-	if( use_odbc->collection->responce == WM_SQL_RESULT_DATA ) {
+	if( use_odbc->flags.bThreadProtect )
+	{
+		use_odbc->nProtect--;
+		LeaveCriticalSec( &use_odbc->cs );
+	}
+	if( collection->responce == WM_SQL_RESULT_DATA ) {
 		//lprintf( "Result with data..." );
 		if( nResults )
-			(*nResults) = use_odbc->collection->columns;
+			(*nResults) = collection->columns;
 		if( result )
-			(*result) = (CTEXTSTR*)use_odbc->collection->results;
+			(*result) = (CTEXTSTR*)collection->results;
 		if( resultLengths )
-			(*resultLengths) = use_odbc->collection->result_len;
+			(*resultLengths) = collection->result_len;
 		// claim that we grabbed that...
 		if( fields )
-			(*fields) = (CTEXTSTR*)use_odbc->collection->fields;
+			(*fields) = (CTEXTSTR*)collection->fields;
 		//use_odbc->collection->results = NULL;
 		return TRUE;
 	}
-	else if( use_odbc->collection->responce == WM_SQL_RESULT_NO_DATA ) {
+	else if( collection->responce == WM_SQL_RESULT_NO_DATA ) {
 		if( nResults )
-			(*nResults) = use_odbc->collection->columns;
+			(*nResults) = collection->columns;
 		if( resultLengths )
 			(*resultLengths) = NULL;
 		if( fields )
-			(*fields) = (CTEXTSTR*)use_odbc->collection->fields;
+			(*fields) = (CTEXTSTR*)collection->fields;
 		return TRUE;
 	}
 	return FALSE;
@@ -4938,6 +4952,7 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 {
 	PODBC use_odbc;
 	LOGICAL once = 0;
+	PCOLLECT collection;
 	// clean up our result data....
 	if( *result )
 		(*result) = NULL;
@@ -4954,46 +4969,56 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 			use_odbc = g.odbc;
 		}
 
+		if( use_odbc->flags.bThreadProtect )
+		{
+			EnterCriticalSec( &use_odbc->cs );
+			use_odbc->nProtect++;
+		}
 		if( !once && query[0] != 's' && query[0] != 'S' ) {
 			BeginTransactEx( use_odbc, 0 );
 			once = 1;
 		}
+		if( !use_odbc->collection )
+			collection = use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
+
 		// this would be hard to come by...
 		// there's a collector stil around from the open command.
-		if( !use_odbc->collection || !use_odbc->collection->flags.bTemporary )
+		if( use_odbc->collection->flags.bTemporary )
 		{
-			if( use_odbc->collection && use_odbc->collection->flags.bTemporary )
-			{
 #ifdef LOG_COLLECTOR_STATES
-				lprintf( "using existing collector..." );
+			lprintf( "using existing collector..." );
 #endif
-				use_odbc->collection->flags.bTemporary = 0;
-			}
-			else
-			{
-#ifdef LOG_COLLECTOR_STATES
-				lprintf( "creating collector...: %s", query );
-#endif
-				use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
-			}
+			(collection = use_odbc->collection)->flags.bTemporary = 0;
 		}
-		use_odbc->collection->flags.bTemporary = 0;
+		else
+		{
+#ifdef LOG_COLLECTOR_STATES
+			lprintf( "creating collector...: %s", query );
+#endif
+			collection = use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
+		}
+		collection->flags.bTemporary = 0;
 
 		// ask the collector GetSQLResult to build our sort of data...
-		use_odbc->collection->ppdlResults = NULL;
-		use_odbc->collection->flags.bBuildResultArray = 0;
+		collection->ppdlResults = NULL;
+		collection->flags.bBuildResultArray = 0;
 
 		// go ahead, open connection, issue command, get some data
 		// or have some sort of failure along that path.
 	}
-	while( __DoSQLQueryEx( use_odbc, use_odbc->collection, query DBG_RELAY) );
-	if( use_odbc->collection->responce == WM_SQL_RESULT_DATA )
+	while( __DoSQLQueryExx( use_odbc, collection, query, strlen( query ), NULL DBG_RELAY ) );
+	if( use_odbc->flags.bThreadProtect )
 	{
-		use_odbc->collection->result_text= VarTextPeek( use_odbc->collection->pvt_result );
-		if( use_odbc->collection->result_text )
+		use_odbc->nProtect--;
+		LeaveCriticalSec( &use_odbc->cs );
+	}
+	if( collection->responce == WM_SQL_RESULT_DATA )
+	{
+		collection->result_text= VarTextPeek( collection->pvt_result );
+		if( collection->result_text )
 		{
 			//lprintf( "Result with data..." );
-			(*result) = GetText( use_odbc->collection->result_text );
+			(*result) = GetText( collection->result_text );
 		}
 		else
 		{
@@ -5003,7 +5028,7 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 		//return use_odbc->collection->responce == WM_SQL_RESULT_DATA?TRUE:0;
 		return TRUE;
 	}
-	else if( use_odbc->collection->responce == WM_SQL_RESULT_NO_DATA )
+	else if( collection->responce == WM_SQL_RESULT_NO_DATA )
 	{
 		return TRUE;
 	}
@@ -5361,8 +5386,9 @@ void ConvertSQLDateEx( CTEXTSTR date
 
 //-----------------------------------------------------------------------
 
-//#ifdef SQL_PROXY_SERVER
+#ifdef SQL_PROXY_SERVER
 //-----------------------------------------------------------------------
+#define __DoSQLQuery( o,c,q ) __DoSQLQueryExx(o,c,q,strlen(q),NULL DBG_SRC )
 
 void CPROC Timer( uintptr_t psv )
 {
@@ -5611,6 +5637,8 @@ void SQLBeginService( void )
 	//return 0;
 }
 #endif
+// if SQL_PROXY_SERVER
+#endif 
 //-------------------------------------------------------------------------
 
 void SQLSetUserData( PODBC odbc, uintptr_t psvUser )
