@@ -59,17 +59,26 @@ struct sqlite_interface my_sqlite_interface = {
                                            , sqlite3_column_table_alias
 };
 
+struct my_sqlite3_vfs_file_lock {
+	volatile PLIST shares;
+	volatile struct my_sqlite3_vfs_file_data* reserve;
+	volatile struct my_sqlite3_vfs_file_data* pending;
+	volatile struct my_sqlite3_vfs_file_data* exclusive;
+	CRITICALSECTION csLock;
+};
 
-
-struct my_file_data
+struct my_sqlite3_vfs_file_data
 {
 	struct sqlite3_io_methods *pMethods; // must be first member to be file subclass...
 	FILE *file;
-	CRITICALSECTION cs;
+	//CRITICALSECTION cs;
 	TEXTSTR filename;
-	int locktype;
 	struct file_system_mounted_interface *mount;
 	LOGICAL temp;
+	PLIST otherHandles;
+	int locktype;
+	struct my_sqlite3_vfs_file_lock locks_;
+	struct my_sqlite3_vfs_file_lock* locks;
 };
 
 struct my_sqlite3_vfs
@@ -86,6 +95,7 @@ struct my_sqlite3_vfs
 
 struct local_data {
 	PLIST registered_vfs;
+	PLIST openFiles;
 } 
 #ifdef __STATIC_GLOBALS__
     local_sqlite_interface__
@@ -103,7 +113,7 @@ struct local_data *local_sqlite_interface
 
 int xClose(sqlite3_file*file)
 {
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	if( my_file->file )
 	{
 		sack_fclose( my_file->file );
@@ -119,12 +129,20 @@ int xClose(sqlite3_file*file)
 		lprintf( "unlink temp file : %s", my_file->filename );
 #endif
 	}
+	{
+		INDEX idx;
+		struct my_sqlite3_vfs_file_data* check;
+		LIST_FORALL( my_file->otherHandles, idx, struct my_sqlite3_vfs_file_data*, check ) {
+			DeleteLink( &check->otherHandles, my_file );
+		}
+	}
+	DeleteLink( &local_sqlite_interface->openFiles, file );
 	return SQLITE_OK;
 }
 
 int xRead(sqlite3_file*file, void*buffer, int iAmt, sqlite3_int64 iOfst)
 {
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	size_t actual;
 #ifdef LOG_OPERATIONS
 	lprintf( "read %p %s %d  %d", my_file->file, my_file->filename, iAmt, iOfst );
@@ -147,7 +165,7 @@ int xRead(sqlite3_file*file, void*buffer, int iAmt, sqlite3_int64 iOfst)
 
 int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 {
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	size_t actual;
 #ifdef LOG_OPERATIONS
 	lprintf( "Write %p %s %d at %d", my_file->file, my_file->filename, iAmt, iOfst );
@@ -193,7 +211,7 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 
 int xTruncate(sqlite3_file*file, sqlite3_int64 size)
 {
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	sack_fseek( my_file->file, (size_t)size, SEEK_SET );
 	sack_ftruncate( my_file->file ); // works through file system interface...
 	//SetFileLength( my_file->filename, (size_t)size );
@@ -202,7 +220,7 @@ int xTruncate(sqlite3_file*file, sqlite3_int64 size)
 
 int xSync(sqlite3_file*file, int flags)
 {
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	if( !my_file->file )
 		return SQLITE_OK;
 #ifdef LOG_OPERATIONS
@@ -215,7 +233,7 @@ int xSync(sqlite3_file*file, int flags)
 
 int xFileSize(sqlite3_file*file, sqlite3_int64 *pSize)
 {
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	if( my_file->file )
 		(*pSize) = sack_fsize( my_file->file );
 	else {
@@ -227,73 +245,186 @@ int xFileSize(sqlite3_file*file, sqlite3_int64 *pSize)
 	lprintf( "Get File size result of %s %d", my_file->filename, (*pSize) );
 #endif
 	return SQLITE_OK;
-
 }
 
+struct lock_history_entry {
+	int lockUnlock;
+	int locktype;
+	struct my_sqlite3_vfs_file_data* file;
+	int shares;
+	struct my_sqlite3_vfs_file_data* res;
+	struct my_sqlite3_vfs_file_data* pend;
+	struct my_sqlite3_vfs_file_data* excl;
+};
+
+int nHistory = 0;
+struct lock_history_entry history[10000];
+
+static void markHistory( int lock, struct my_sqlite3_vfs_file_data* file, int locktype ) {
+	history[nHistory].lockUnlock = lock;
+	history[nHistory].locktype = locktype;
+	history[nHistory].file = file;
+	history[nHistory].shares = GetLinkCount( file->locks->shares );
+	history[nHistory].res = (struct my_sqlite3_vfs_file_data*)file->locks->reserve;
+	history[nHistory].pend = (struct my_sqlite3_vfs_file_data*) file->locks->pending;
+	history[nHistory].excl = (struct my_sqlite3_vfs_file_data*) file->locks->exclusive;
+	nHistory++;
+	if( nHistory >= 10000 ) nHistory = 0;
+}
+
+static void removeOldLock( struct my_sqlite3_vfs_file_data* my_file ) {
+	switch( my_file->locktype ) {
+	case SQLITE_LOCK_NONE:
+		//lprintf( "Had no lock, why is this still unlocking?" );
+		break;
+	case SQLITE_LOCK_SHARED:
+		if( !DeleteLink( (PLIST*)&my_file->locks->shares, my_file )  )
+			lprintf( "Shared lock was not found in list of share locks" );
+		break;
+	case SQLITE_LOCK_RESERVED:
+		if( my_file->locks->reserve == my_file )
+			my_file->locks->reserve = NULL;
+		else
+			lprintf( "Reserved lock type, but the lock wasn't owned by this thread" );
+		break;
+	case SQLITE_LOCK_PENDING:
+		if( my_file->locks->pending == my_file )
+			my_file->locks->pending = NULL;
+		else
+			lprintf( "Pending lock type, but the lock wasn't owned by this thread" );
+		break;
+	case SQLITE_LOCK_EXCLUSIVE:
+		if( my_file->locks->exclusive == my_file )
+			my_file->locks->exclusive = NULL;
+		else
+			lprintf( "Exclusive lock type, but the lock wasn't owned by this thread" );
+		break;
+	}
+	my_file->locktype = SQLITE_LOCK_NONE;
+}
+#define LockReturn(n) { LeaveCriticalSec( &my_file->locks->csLock ); return n; }
 int xLock(sqlite3_file*file, int locktype)
 {
-	return SQLITE_OK;
-#if 0
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
+	//markHistory( TRUE, my_file, locktype );
+	//lprintf( "lock %p %d %d %p %p %p ", my_file, locktype, my_file->locktype, my_file->locks->reserve, my_file->locks->pending, my_file->locks->exclusive );
+	EnterCriticalSec( &my_file->locks->csLock );
 	switch( locktype )
 	{
 	case SQLITE_LOCK_NONE:
-		//return SQLITE_OK;
-	case SQLITE_LOCK_SHARED:
-	case SQLITE_LOCK_RESERVED:
-	case SQLITE_LOCK_PENDING:
-	case SQLITE_LOCK_EXCLUSIVE:
-		EnterCriticalSec( &my_file->cs );
+		removeOldLock( my_file );
 		my_file->locktype = locktype;
-		return SQLITE_OK;
+		break;
+	case SQLITE_LOCK_SHARED:
+		while( my_file->locks->exclusive || my_file->locks->pending ) LockReturn( SQLITE_BUSY );// Relinquish();
+		removeOldLock( my_file );
+		AddLink( (PLIST*)&my_file->locks->shares, my_file );
+		my_file->locktype = locktype;
+		break;
+	case SQLITE_LOCK_RESERVED:
+		while( my_file->locks->reserve || my_file->locks->exclusive || my_file->locks->pending ) LockReturn( SQLITE_BUSY );//Relinquish();
+		removeOldLock( my_file );
+		my_file->locks->reserve = my_file;
+		my_file->locktype = locktype;
+		break;
+	case SQLITE_LOCK_PENDING:
+		while( my_file->locks->exclusive || my_file->locks->pending ) LockReturn( SQLITE_BUSY );//Relinquish();
+		removeOldLock( my_file );
+		my_file->locks->pending = my_file;
+		my_file->locktype = locktype;
+		break;
+	case SQLITE_LOCK_EXCLUSIVE:
+		//while( my_file->locks->shares || my_file->locks->exclusive || my_file->locks->pending || my_file->locks->reserve ) Relinquish();
+		while( GetLinkCount( my_file->locks->shares ) || my_file->locks->exclusive || my_file->locks->pending ) LockReturn( SQLITE_BUSY );//Relinquish();
+		removeOldLock( my_file );
+		my_file->locks->exclusive = my_file;
+		my_file->locktype = locktype;
 		break;
 	}
-#endif
+	LockReturn( SQLITE_OK );
 }
 
 int xUnlock(sqlite3_file*file, int locktype)
 {
-	return SQLITE_OK;
-#if 0
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
+	EnterCriticalSec( &my_file->locks->csLock );
+	//markHistory( FALSE, my_file, locktype );
+	//lprintf( "unlock %p %d", my_file, locktype, my_file->locktype );
+	//removeOldLock( my_file );
 	switch( locktype )
 	{
 	case SQLITE_LOCK_NONE:
-		//break;
 	case SQLITE_LOCK_SHARED:
+		switch( my_file->locktype ) {
+		case SQLITE_LOCK_NONE:
+			//lprintf( "Had no lock, why is this still unlocking?" );
+			break;
+		case SQLITE_LOCK_SHARED:
+			lprintf( "THIS SHOULD BE ILLEGAL, Lock is shared, and going to shared with unlock." );
+			if( !DeleteLink( (PLIST*)&my_file->locks->shares, my_file ) )
+				lprintf( "Shared lock was not found in list of share locks" );
+			break;
+		case SQLITE_LOCK_RESERVED:
+			if( my_file->locks->reserve == my_file )
+				my_file->locks->reserve = NULL;
+			else
+				lprintf( "Reserved lock type, but the lock wasn't owned by this thread" );
+			break;
+		case SQLITE_LOCK_PENDING:
+			if( my_file->locks->pending == my_file )
+				my_file->locks->pending = NULL;
+			else
+				lprintf( "Pending lock type, but the lock wasn't owned by this thread" );
+			break;
+		case SQLITE_LOCK_EXCLUSIVE:
+			if( my_file->locks->exclusive == my_file )
+				my_file->locks->exclusive = NULL;
+			else
+				lprintf( "Exclusive lock type, but the lock wasn't owned by this thread" );
+			break;
+		}
+		if( locktype == SQLITE_LOCK_SHARED ) {
+			my_file->locktype = SQLITE_LOCK_SHARED;
+			AddLink( (PLIST*)&my_file->locks->shares, my_file );
+		}
+		my_file->locktype = locktype;
+		//memset( my_file->locks, 0, sizeof( *my_file->locks ) );
+		break;
 	case SQLITE_LOCK_RESERVED:
+		lprintf( "never unlocks into reserved state?" );
+		DebugBreak();
+		//my_file->locks->reserve = 0;
+		break;
 	case SQLITE_LOCK_PENDING:
+		lprintf( "never unlocks into pending state?" );
+		DebugBreak();
+		my_file->locks->pending = NULL;
+		break;
 	case SQLITE_LOCK_EXCLUSIVE:
-		//my_file->error = SQLITE_LOCK_EXCLUSIVE;
-		LeaveCriticalSec( &my_file->cs );
-		my_file->locktype = SQLITE_LOCK_NONE;
+		lprintf( "never unlocks into exclusive state?" );
+		DebugBreak();
+		my_file->locks->exclusive = NULL;
 		break;
 	}
-	return SQLITE_OK;
-#endif
+	LockReturn( SQLITE_OK );
 }
 
 
 int xCheckReservedLock(sqlite3_file*file, int *pResOut)
 {
-	
-	*pResOut = 0;
+	struct my_sqlite3_vfs_file_data* my_file = (struct my_sqlite3_vfs_file_data*)file;
+	if( my_file->locks->reserve || my_file->locks->pending || my_file->locks->exclusive )
+		*pResOut = TRUE;
+	else
+		*pResOut = FALSE;
+	//lprintf( "Called checkReserved...%d", pResOut[0] );
 	return SQLITE_OK;
-#if 0
-	struct my_file_data *my_file = (struct my_file_data*)file;
-	if( EnterCriticalSecNoWait( &my_file->cs, NULL ) )
-	{
-		LeaveCriticalSec( &my_file->cs );
-		return SQLITE_LOCK_NONE;
-	}
-	return my_file->locktype;
-#endif
 }
 
 int xFileControl(sqlite3_file*file, int op, void *pArg)
 {
+	struct my_sqlite3_vfs_file_data* my_file = (struct my_sqlite3_vfs_file_data*)file;
 #ifdef LOG_OPERATIONS
-	struct my_file_data *my_file = (struct my_file_data*)file;
 	lprintf( "file %s control op: %d %p", my_file->filename, op, pArg );
 #endif
 	switch( op )
@@ -310,6 +441,18 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 		break;
 #endif
 	case SQLITE_FCNTL_LOCKSTATE:
+		lprintf( "Return file's lock state" );
+		if( my_file->locks->exclusive )
+			((int*)pArg)[0] = SQLITE_LOCK_EXCLUSIVE;
+		else if( my_file->locks->pending )
+			((int*)pArg)[0] = SQLITE_LOCK_PENDING;
+		else if( my_file->locks->reserve )
+			((int*)pArg)[0] = SQLITE_LOCK_RESERVED;
+		else if( my_file->locks->shares )
+			((int*)pArg)[0] = SQLITE_LOCK_SHARED;
+		else
+			((int*)pArg)[0] = SQLITE_LOCK_NONE;
+		break;
 	case SQLITE_GET_LOCKPROXYFILE:
 	case SQLITE_SET_LOCKPROXYFILE:
 	case SQLITE_LAST_ERRNO:
@@ -343,13 +486,13 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 
 int xSectorSize(sqlite3_file*file)
 {
-	//struct my_file_data *my_file = (struct my_file_data*)file;
+	//struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	return 512;
 }
 
 int xDeviceCharacteristics(sqlite3_file*file)
 {
-	//struct my_file_data *my_file = (struct my_file_data*)file;
+	//struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	return SQLITE_IOCAP_ATOMIC|SQLITE_IOCAP_SAFE_APPEND|SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN|SQLITE_IOCAP_POWERSAFE_OVERWRITE;
 }
 
@@ -396,7 +539,7 @@ int xShmUnmap(sqlite3_file*file, int deleteFlag)
   /* Additional methods may be added in future releases */
 
 struct sqlite3_io_methods my_methods = { 1
-													/*, sizeof( struct my_file_data )*/
+													/*, sizeof( struct my_sqlite3_vfs_file_data )*/
 													, xClose
 													, xRead
 													, xWrite
@@ -421,10 +564,12 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 			 int flags, int *pOutFlags)
 {
 	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)vfs;
-	struct my_file_data *my_file = (struct my_file_data*)file;
+	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	static int temp_id;
 	char buf[32];
+	AddLink( &local_sqlite_interface->openFiles, file );
 	file->pMethods = &my_methods;
+	my_file->otherHandles = NULL;
 	my_file->mount = my_vfs->mount;
 	if( zName == NULL )
 	{
@@ -439,6 +584,23 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #endif
 
 	my_file->filename = DupCStr( zName );
+
+	{
+		INDEX idx;
+		struct my_sqlite3_vfs_file_data* check;
+		LIST_FORALL( local_sqlite_interface->openFiles, idx, struct my_sqlite3_vfs_file_data*, check ) {
+			if( check != my_file && StrCmp( check->filename, my_file->filename ) == 0 ) {
+				my_file->locks = check->locks;
+				AddLink( &my_file->otherHandles, check );
+				AddLink( &check->otherHandles, my_file );
+			}
+		}
+		if( !my_file->locks ) {
+			//my_file->locks_.shares = CreateDataList( sizeof( THREAD_ID ) );
+			my_file->locks = &my_file->locks_;
+			InitializeCriticalSec( &my_file->locks_.csLock );
+		}
+	}
 #if defined( __GNUC__ )
 	//__ANDROID__
 #define sack_fsopen(a,b,c,d) sack_fopen(a,b,c)
@@ -459,7 +621,7 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #ifdef LOG_OPERATIONS
 			lprintf( "Opened file: %s (vfs:%s) %p", zName, vfs->zName, my_file->file );
 #endif
-			InitializeCriticalSec( &my_file->cs );
+			//InitializeCriticalSec( &my_file->cs );
 			return SQLITE_OK;
 		}
 		//lprintf( "failed..." );
@@ -474,7 +636,7 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 #ifdef LOG_OPERATIONS
 			lprintf( "Opened file: %s (vfs:%s) %p", zName, vfs->zName, my_file->file );
 #endif
-			InitializeCriticalSec( &my_file->cs );
+			//InitializeCriticalSec( &my_file->cs );
 			return SQLITE_OK;
 		}
 	}
@@ -620,7 +782,7 @@ void InitVFS( CTEXTSTR name, struct file_system_mounted_interface *mount )
 		new_vfs = New( struct my_sqlite3_vfs );
 		MemCpy( &new_vfs->vfs, default_vfs, sizeof( sqlite3_vfs ) );
 		new_vfs->vfs.pAppData = 0;
-		new_vfs->vfs.szOsFile = sizeof( struct my_file_data );
+		new_vfs->vfs.szOsFile = sizeof( struct my_sqlite3_vfs_file_data );
 		new_vfs->vfs.zName = CStrDup( name );
 		new_vfs->vfs.xOpen = xOpen;
 		new_vfs->vfs.xDelete = xDelete;
