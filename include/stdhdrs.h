@@ -138,8 +138,11 @@
 #    define stricmp _stricmp
 #    define strdup _strdup
 #  endif
+#ifdef WANT_MMSYSTEM
+#  include <mmsystem.h>
+#endif
 
-
+#if USE_NATIVE_TIME_GET_TIME
 //#  include <windowsx.h>
 // we like timeGetTime() instead of GetTickCount()
 //#  include <mmsystem.h>
@@ -147,6 +150,7 @@
 extern "C"
 #endif
 __declspec(dllimport) DWORD WINAPI timeGetTime(void);
+#endif
 
 #  ifdef WIN32
 #    if defined( NEED_SHLAPI )
@@ -314,6 +318,36 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #    define EndSaneWinMain() } }
 #  endif
 #endif
+
+
+/**
+ * https://stackoverflow.com/questions/3585583/convert-unix-linux-time-to-windows-filetime
+ * number of seconds from 1 Jan. 1601 00:00 to 1 Jan 1970 00:00 UTC
+ * subtract from FILETIME to get timespec
+ * add to timespec to get FILETIME ticks.
+ * * 1000000000
+ */
+#define EPOCH_DIFF 11644473600ULL
+#define EPOCH_DIFF_MS 11644473600000ULL
+#define EPOCH_DIFF_NS 11644473600000000000ULL
+
+#ifdef WIN32
+DeclareThreadLocal FILETIME ft;
+// we want this as fast as possible, so inline always.
+#define timeGetTime64ns( ) ( GetSystemTimeAsFileTime( &ft ),((uint64_t*)&ft)[0]*100-EPOCH_DIFF_NS )
+#define timeGetTime64( ) ( GetSystemTimeAsFileTime( &ft ),((uint64_t*)&ft)[0]/10000-EPOCH_DIFF_MS )
+#define timeGetTime() (uint32_t)(timeGetTime64())
+#else
+DeclareThreadLocal struct timespec global_static_time_ts;
+#define timeGetTime64ns( ) ( clock_gettime(CLOCK_REALTIME, &global_static_time_ts), (uint64_t)global_static_time_ts.tv_sec*(uint64_t)1000000000 + (uint64_t)global_static_time_ts.tv_nsec )
+#define timeGetTime64( ) ( clock_gettime(CLOCK_REALTIME, &global_static_time_ts), (uint64_t)global_static_time_ts.tv_sec*(uint64_t)1000 + (uint64_t)global_static_time_ts.tv_nsec/1000000 )
+#define timeGetTime() (uint32_t)(timeGetTime64())
+#endif
+
+#define tickToTimeSpec(ts,tick) (((ts).tv_sec = (tick) / 1000ULL),((ts).tv_nsec=((tick)%1000ULL)*1000000ULL))
+#define tickToFileTime(ft,tick) ((((ft).highPart).tv_sec = ((tick*10000)+EPOCH_DIFF_MS)>>32 ),(((ft).lowPart)=((tick*10000)+EPOCH_DIFF_MS) & 0XFFFFFFFF ))
+#define tickNsToTimeSpec(ts,tick) (((ts).tv_sec = (tick) / 1000000000ULL),((ts).tv_nsec=(tick)%1000000000ULL))
+#define tickNsToFileTime(ft,tick) ((((ft).highPart).tv_sec = ((tick)+EPOCH_DIFF_NS)>>32 ),(((ft).lowPart)=((tick)+EPOCH_DIFF_NS) & 0XFFFFFFFF ))
 
 
 #include <final_types.h>
