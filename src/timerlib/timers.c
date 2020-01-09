@@ -250,6 +250,7 @@ DeclareThreadLocal  struct my_thread_info _MyThreadInfo;
 
 void  RemoveTimerEx( uint32_t ID DBG_PASS );
 
+
 #if !HAS_TLS
 static struct my_thread_info* GetThreadTLS( void )
 {
@@ -285,11 +286,16 @@ PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
 {
 	// there is a small chance the local is already initialized.
 #  ifndef __STATIC_GLOBALS__
-	if( !global_timer_structure )
+	if( !global_timer_structure ) {
 		SimpleRegisterAndCreateGlobal( global_timer_structure );
+		OnThreadCreate( (void(*)(void))MakeThread );
+		MakeThread(); // init thread local variable with thread id and self thread.
+	}
 #  endif
+
 	if( !globalTimerData.timerID )
 	{
+		MakeThread(); // init thread local variable with thread id and self thread.
 #if !HAS_TLS
 #if defined( WIN32 )
 		globalTimerData.my_thread_info_tls = TlsAlloc();
@@ -1300,7 +1306,9 @@ THREAD_ID GetThisThreadID( void )
 #if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 #else
-        return MyThreadInfo.nThread;
+	if( !MyThreadInfo.nThread ) 
+		MakeThread();
+	return MyThreadInfo.nThread;
 #endif
 }
 uintptr_t GetThreadParam( PTHREAD thread )
@@ -2501,7 +2509,7 @@ void OnThreadCreate( void (*f)(void) ) {
 }//namespace sack {
 #endif
 //--------------------------------------------------------------------------
-
+#undef globalTimerData
 // $Log: timers.c,v $
 // Revision 1.140  2005/06/22 23:13:51  jim
 // Differentiate the normal logging of 'entered, left section' but leave in notable exception case logging when enabling critical section debugging.
