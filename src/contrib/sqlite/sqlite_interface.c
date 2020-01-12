@@ -59,11 +59,15 @@ struct sqlite_interface my_sqlite_interface = {
                                            , sqlite3_column_table_alias
 };
 
+struct lockInfo {
+	volatile struct my_sqlite3_vfs_file_data* fd;
+	volatile THREAD_ID id;
+};
 struct my_sqlite3_vfs_file_lock {
-	volatile PLIST shares;
-	volatile struct my_sqlite3_vfs_file_data* reserve;
-	volatile struct my_sqlite3_vfs_file_data* pending;
-	volatile struct my_sqlite3_vfs_file_data* exclusive;
+	volatile DATALIST *shares;
+	volatile struct lockInfo reserve;
+	volatile struct lockInfo pending;
+	volatile struct lockInfo exclusive;
 	CRITICALSECTION csLock;
 };
 
@@ -129,13 +133,24 @@ int xClose(sqlite3_file*file)
 		lprintf( "unlink temp file : %s", my_file->filename );
 #endif
 	}
+	EnterCriticalSec( &my_file->locks->csLock );
 	{
 		INDEX idx;
 		struct my_sqlite3_vfs_file_data* check;
 		LIST_FORALL( my_file->otherHandles, idx, struct my_sqlite3_vfs_file_data*, check ) {
+			if( my_file->locks == &my_file->locks_ ) {
+				memcpy( &check->locks_ , & my_file->locks_, sizeof( check->locks_ ) );
+				my_file->locks = &check->locks_;
+			}
+			check->locks = my_file->locks;
 			DeleteLink( &check->otherHandles, my_file );
 		}
+		if( my_file->locks == &my_file->locks_ ) {
+			DeleteDataList( (PDATALIST*)&my_file->locks_.shares );
+		}
+		DeleteList( &my_file->otherHandles );
 	}
+	LeaveCriticalSec( &my_file->locks->csLock );
 	DeleteLink( &local_sqlite_interface->openFiles, file );
 	return SQLITE_OK;
 }
@@ -264,10 +279,10 @@ static void markHistory( int lock, struct my_sqlite3_vfs_file_data* file, int lo
 	history[nHistory].lockUnlock = lock;
 	history[nHistory].locktype = locktype;
 	history[nHistory].file = file;
-	history[nHistory].shares = GetLinkCount( file->locks->shares );
-	history[nHistory].res = (struct my_sqlite3_vfs_file_data*)file->locks->reserve;
-	history[nHistory].pend = (struct my_sqlite3_vfs_file_data*) file->locks->pending;
-	history[nHistory].excl = (struct my_sqlite3_vfs_file_data*) file->locks->exclusive;
+	history[nHistory].shares = file->locks->shares->Cnt;
+	history[nHistory].res = (struct my_sqlite3_vfs_file_data*)file->locks->reserve.fd;
+	history[nHistory].pend = (struct my_sqlite3_vfs_file_data*) file->locks->pending.fd;
+	history[nHistory].excl = (struct my_sqlite3_vfs_file_data*) file->locks->exclusive.fd;
 	nHistory++;
 	if( nHistory >= 10000 ) nHistory = 0;
 }
@@ -278,24 +293,32 @@ static void removeOldLock( struct my_sqlite3_vfs_file_data* my_file ) {
 		//lprintf( "Had no lock, why is this still unlocking?" );
 		break;
 	case SQLITE_LOCK_SHARED:
-		if( !DeleteLink( (PLIST*)&my_file->locks->shares, my_file )  )
-			lprintf( "Shared lock was not found in list of share locks" );
+		{
+			INDEX idx;
+			struct lockInfo* lock;
+			DATA_FORALL( my_file->locks->shares, idx, struct lockInfo*, lock ) {
+				if( lock->fd == my_file )
+					break;
+			}
+			if( lock )
+				DeleteDataItem( (PDATALIST*)&my_file->locks->shares, idx );
+		}
 		break;
 	case SQLITE_LOCK_RESERVED:
-		if( my_file->locks->reserve == my_file )
-			my_file->locks->reserve = NULL;
+		if( my_file->locks->reserve.fd == my_file )
+			my_file->locks->reserve.fd = NULL;
 		else
 			lprintf( "Reserved lock type, but the lock wasn't owned by this thread" );
 		break;
 	case SQLITE_LOCK_PENDING:
-		if( my_file->locks->pending == my_file )
-			my_file->locks->pending = NULL;
+		if( my_file->locks->pending.fd == my_file )
+			my_file->locks->pending.fd = NULL;
 		else
 			lprintf( "Pending lock type, but the lock wasn't owned by this thread" );
 		break;
 	case SQLITE_LOCK_EXCLUSIVE:
-		if( my_file->locks->exclusive == my_file )
-			my_file->locks->exclusive = NULL;
+		if( my_file->locks->exclusive.fd == my_file )
+			my_file->locks->exclusive.fd = NULL;
 		else
 			lprintf( "Exclusive lock type, but the lock wasn't owned by this thread" );
 		break;
@@ -306,9 +329,10 @@ static void removeOldLock( struct my_sqlite3_vfs_file_data* my_file ) {
 int xLock(sqlite3_file*file, int locktype)
 {
 	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
+	THREAD_ID tid = GetThisThreadID();
 	//markHistory( TRUE, my_file, locktype );
-	//lprintf( "lock %p %d %d %p %p %p ", my_file, locktype, my_file->locktype, my_file->locks->reserve, my_file->locks->pending, my_file->locks->exclusive );
 	EnterCriticalSec( &my_file->locks->csLock );
+	//lprintf( "lock %p %d %d %p %p %p ", my_file, locktype, my_file->locktype, my_file->locks->reserve.fd, my_file->locks->pending.fd, my_file->locks->exclusive.fd );
 	switch( locktype )
 	{
 	case SQLITE_LOCK_NONE:
@@ -316,28 +340,70 @@ int xLock(sqlite3_file*file, int locktype)
 		my_file->locktype = locktype;
 		break;
 	case SQLITE_LOCK_SHARED:
-		while( my_file->locks->exclusive || my_file->locks->pending ) LockReturn( SQLITE_BUSY );// Relinquish();
+		while( my_file->locks->exclusive.fd || my_file->locks->pending.fd ) {
+			{
+				INDEX idx;
+				struct lockInfo* lock;
+				DATA_FORALL( my_file->locks->shares, idx, struct lockInfo*, lock ) {
+					if( lock->fd == my_file )
+						break;
+				}
+				if( lock )
+					DeleteDataItem( (PDATALIST*)&my_file->locks->shares, idx );
+			}
+			//if( FindLink( (PLIST*)&my_file->locks->shares, my_file ) != INVALID_INDEX )
+			//	LockReturn( SQLITE_OK );
+			LockReturn( SQLITE_BUSY );// Relinquish();
+		}
 		removeOldLock( my_file );
-		AddLink( (PLIST*)&my_file->locks->shares, my_file );
+		{
+			struct lockInfo li;
+			li.fd = my_file;
+			li.id = GetThisThreadID();
+			AddDataItem( (PDATALIST*)&my_file->locks->shares, &li );
+		}
+		//AddLink( (PLIST*)&my_file->locks->shares, my_file );
 		my_file->locktype = locktype;
 		break;
 	case SQLITE_LOCK_RESERVED:
-		while( my_file->locks->reserve || my_file->locks->exclusive || my_file->locks->pending ) LockReturn( SQLITE_BUSY );//Relinquish();
+		while( my_file->locks->reserve.fd || my_file->locks->exclusive.fd || my_file->locks->pending.fd )
+			LockReturn( SQLITE_BUSY );//Relinquish();
 		removeOldLock( my_file );
-		my_file->locks->reserve = my_file;
+		my_file->locks->reserve.fd = my_file;
+		my_file->locks->reserve.id = tid;
 		my_file->locktype = locktype;
 		break;
 	case SQLITE_LOCK_PENDING:
-		while( my_file->locks->exclusive || my_file->locks->pending ) LockReturn( SQLITE_BUSY );//Relinquish();
+		while( my_file->locks->exclusive.fd || my_file->locks->pending.fd )
+			LockReturn( SQLITE_BUSY );//Relinquish();
 		removeOldLock( my_file );
-		my_file->locks->pending = my_file;
+		my_file->locks->pending.fd = my_file;
+		my_file->locks->pending.id = tid;
 		my_file->locktype = locktype;
 		break;
 	case SQLITE_LOCK_EXCLUSIVE:
 		//while( my_file->locks->shares || my_file->locks->exclusive || my_file->locks->pending || my_file->locks->reserve ) Relinquish();
-		while( GetLinkCount( my_file->locks->shares ) || my_file->locks->exclusive || my_file->locks->pending ) LockReturn( SQLITE_BUSY );//Relinquish();
+		while( my_file->locks->exclusive.fd || my_file->locks->pending.fd ) {
+			/*
+			if( my_file->locks->reserve == my_file )
+			{
+				my_file->locks->pending = my_file;
+				my_file->locks->reserve = NULL;
+			}
+			*/
+			LockReturn( SQLITE_BUSY );//Relinquish();
+		}
+		{
+			struct lockInfo* li;
+			INDEX idx;
+			DATA_FORALL( my_file->locks->shares, idx, struct lockInfo*, li ) {
+				if( li->fd && li->id != tid )
+					LockReturn( SQLITE_BUSY );
+			}
+		}
 		removeOldLock( my_file );
-		my_file->locks->exclusive = my_file;
+		my_file->locks->exclusive.fd = my_file;
+		my_file->locks->exclusive.id = tid;
 		my_file->locktype = locktype;
 		break;
 	}
@@ -349,7 +415,7 @@ int xUnlock(sqlite3_file*file, int locktype)
 	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	EnterCriticalSec( &my_file->locks->csLock );
 	//markHistory( FALSE, my_file, locktype );
-	//lprintf( "unlock %p %d", my_file, locktype, my_file->locktype );
+	//lprintf( "unlock %p %d %d", my_file, locktype, my_file->locktype );
 	//removeOldLock( my_file );
 	switch( locktype )
 	{
@@ -360,32 +426,52 @@ int xUnlock(sqlite3_file*file, int locktype)
 			//lprintf( "Had no lock, why is this still unlocking?" );
 			break;
 		case SQLITE_LOCK_SHARED:
-			lprintf( "THIS SHOULD BE ILLEGAL, Lock is shared, and going to shared with unlock." );
-			if( !DeleteLink( (PLIST*)&my_file->locks->shares, my_file ) )
-				lprintf( "Shared lock was not found in list of share locks" );
+			if( locktype == SQLITE_LOCK_SHARED )
+				lprintf( "THIS SHOULD BE ILLEGAL, Lock is shared, and going to shared with unlock." );
+			{
+				INDEX idx;
+				struct lockInfo* lock;
+				DATA_FORALL( my_file->locks->shares, idx, struct lockInfo*, lock ) {
+					if( lock->fd == my_file )
+						break;
+				}
+				if( lock )
+					DeleteDataItem( (PDATALIST*)&my_file->locks->shares, idx );
+				else
+					lprintf( "Shared lock was not found in list of share locks" );
+
+			}
+			//if( !DeleteLink( (PLIST*)&my_file->locks->shares, my_file ) )
+			//	lprintf( "Shared lock was not found in list of share locks" );
 			break;
 		case SQLITE_LOCK_RESERVED:
-			if( my_file->locks->reserve == my_file )
-				my_file->locks->reserve = NULL;
+			if( my_file->locks->reserve.fd == my_file )
+				my_file->locks->reserve.fd = NULL;
 			else
 				lprintf( "Reserved lock type, but the lock wasn't owned by this thread" );
 			break;
 		case SQLITE_LOCK_PENDING:
-			if( my_file->locks->pending == my_file )
-				my_file->locks->pending = NULL;
+			if( my_file->locks->pending.fd == my_file )
+				my_file->locks->pending.fd = NULL;
 			else
 				lprintf( "Pending lock type, but the lock wasn't owned by this thread" );
 			break;
 		case SQLITE_LOCK_EXCLUSIVE:
-			if( my_file->locks->exclusive == my_file )
-				my_file->locks->exclusive = NULL;
+			if( my_file->locks->exclusive.fd == my_file )
+				my_file->locks->exclusive.fd = NULL;
 			else
 				lprintf( "Exclusive lock type, but the lock wasn't owned by this thread" );
 			break;
 		}
 		if( locktype == SQLITE_LOCK_SHARED ) {
 			my_file->locktype = SQLITE_LOCK_SHARED;
-			AddLink( (PLIST*)&my_file->locks->shares, my_file );
+			{
+				struct lockInfo li;
+				li.fd = my_file;
+				li.id = GetThisThreadID();
+				AddDataItem( (PDATALIST*)&my_file->locks->shares, &li );
+			}
+			//AddLink( (PLIST*)&my_file->locks->shares, my_file );
 		}
 		my_file->locktype = locktype;
 		//memset( my_file->locks, 0, sizeof( *my_file->locks ) );
@@ -393,17 +479,17 @@ int xUnlock(sqlite3_file*file, int locktype)
 	case SQLITE_LOCK_RESERVED:
 		lprintf( "never unlocks into reserved state?" );
 		DebugBreak();
-		//my_file->locks->reserve = 0;
+		//my_file->locks->reserve.fd = 0;
 		break;
 	case SQLITE_LOCK_PENDING:
 		lprintf( "never unlocks into pending state?" );
 		DebugBreak();
-		my_file->locks->pending = NULL;
+		my_file->locks->pending.fd = NULL;
 		break;
 	case SQLITE_LOCK_EXCLUSIVE:
 		lprintf( "never unlocks into exclusive state?" );
 		DebugBreak();
-		my_file->locks->exclusive = NULL;
+		my_file->locks->exclusive.fd = NULL;
 		break;
 	}
 	LockReturn( SQLITE_OK );
@@ -413,7 +499,7 @@ int xUnlock(sqlite3_file*file, int locktype)
 int xCheckReservedLock(sqlite3_file*file, int *pResOut)
 {
 	struct my_sqlite3_vfs_file_data* my_file = (struct my_sqlite3_vfs_file_data*)file;
-	if( my_file->locks->reserve || my_file->locks->pending || my_file->locks->exclusive )
+	if( my_file->locks->reserve.fd || my_file->locks->pending.fd || my_file->locks->exclusive.fd )
 		*pResOut = TRUE;
 	else
 		*pResOut = FALSE;
@@ -442,13 +528,13 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 #endif
 	case SQLITE_FCNTL_LOCKSTATE:
 		lprintf( "Return file's lock state" );
-		if( my_file->locks->exclusive )
+		if( my_file->locks->exclusive.fd )
 			((int*)pArg)[0] = SQLITE_LOCK_EXCLUSIVE;
-		else if( my_file->locks->pending )
+		else if( my_file->locks->pending.fd )
 			((int*)pArg)[0] = SQLITE_LOCK_PENDING;
-		else if( my_file->locks->reserve )
+		else if( my_file->locks->reserve.fd )
 			((int*)pArg)[0] = SQLITE_LOCK_RESERVED;
-		else if( my_file->locks->shares )
+		else if( my_file->locks->shares->Cnt )
 			((int*)pArg)[0] = SQLITE_LOCK_SHARED;
 		else
 			((int*)pArg)[0] = SQLITE_LOCK_NONE;
@@ -590,13 +676,15 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 		struct my_sqlite3_vfs_file_data* check;
 		LIST_FORALL( local_sqlite_interface->openFiles, idx, struct my_sqlite3_vfs_file_data*, check ) {
 			if( check != my_file && StrCmp( check->filename, my_file->filename ) == 0 ) {
-				my_file->locks = check->locks;
-				AddLink( &my_file->otherHandles, check );
-				AddLink( &check->otherHandles, my_file );
+				if( check->mount == my_vfs->mount ) {
+					my_file->locks = check->locks;
+					AddLink( &my_file->otherHandles, check );
+					AddLink( &check->otherHandles, my_file );
+				}
 			}
 		}
 		if( !my_file->locks ) {
-			//my_file->locks_.shares = CreateDataList( sizeof( THREAD_ID ) );
+			my_file->locks_.shares = CreateDataList( sizeof( struct lockInfo ) );
 			my_file->locks = &my_file->locks_;
 			InitializeCriticalSec( &my_file->locks_.csLock );
 		}
