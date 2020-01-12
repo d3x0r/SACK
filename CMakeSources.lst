@@ -338,7 +338,9 @@ SET_SOURCE_FILES_PROPERTIES( ${IMAGE_SOURCES} PROPERTIES
 		FOLDER "Source Files\\Image Library" )
 
 set( PSI_MORE_CONTROLS
-  ${SOURCES_ROOT}src/psilib/console/history.c
+  ${SOURCES_ROOT}src/psilib/console/history_block.c
+  ${SOURCES_ROOT}src/psilib/console/history_browser.c
+  ${SOURCES_ROOT}src/psilib/console/history_cursor.c
   ${SOURCES_ROOT}src/psilib/console/console_keydefs.c
   ${SOURCES_ROOT}src/psilib/console/paste.c
   ${SOURCES_ROOT}src/psilib/console/psicon.c

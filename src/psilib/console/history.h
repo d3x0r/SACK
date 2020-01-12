@@ -21,7 +21,6 @@ typedef struct STRUC_PREFIX(history_region_tag)  HISTORY_REGION, *PHISTORY_REGIO
 typedef struct STRUC_PREFIX(displayed_line_info_tag)  DISPLAYED_LINE, *PDISPLAYED_LINE;
 typedef struct STRUC_PREFIX(history_browser_cursor_tag) HISTORY_BROWSER, *PHISTORY_BROWSER;
 typedef struct STRUC_PREFIX(history_line_cursor_tag) HISTORY_LINE_CURSOR, *PHISTORY_LINE_CURSOR;
-typedef struct STRUC_PREFIX(history_tracking_tag) HISTORYTRACK, *PHISTORYTRACK;
 typedef struct STRUC_PREFIX(history_bios_tag) HISTORY_BIOS, *PHISTORY_BIOS;
 
 
@@ -34,11 +33,9 @@ CORECON_PROC( void, PSI_DestroyHistoryRegion )( PHISTORY_REGION );
 CORECON_PROC( void, PSI_DestroyHistoryCursor )( PHISTORY_LINE_CURSOR );
 CORECON_PROC( void, PSI_DestroyHistoryBrowser )( PHISTORY_BROWSER );
 
-CORECON_PROC( void, PSI_DestroyHistory )( PHISTORYTRACK pht );
 CORECON_PROC( PSI_Console_Phrase, PSI_EnqueDisplayHistory )( PHISTORY_LINE_CURSOR phc, PTEXT pLine );
 CORECON_PROC( int, PSI_GetLastLineLength )( PHISTORY_REGION pht );
 CORECON_PROC( void, PSI_InitHistory )( PHISTORY_REGION pht, PTEXT name );
-//void CalculateHistory( PHISTORYTRACK pht, int columns, int lines );
 
 CORECON_PROC( void, PSI_SetHistoryBrowserNoPageBreak )( PHISTORY_BROWSER phbr );
 CORECON_PROC( void, PSI_SetHistoryBrowserOwnPageBreak )( PHISTORY_BROWSER phbr );
@@ -52,6 +49,12 @@ CORECON_PROC( PTEXT, PSI_EnumHistoryLine )( PHISTORY_BROWSER pht
 
 CORECON_PROC( void, PSI_SetHistoryDefaultForeground )( PHISTORY_LINE_CURSOR phc, int iColor );
 CORECON_PROC( void, PSI_SetHistoryDefaultBackground )( PHISTORY_LINE_CURSOR phc, int iColor );
+
+PHISTORYBLOCK CreateHistoryBlock( PHISTORY_BLOCK_LINK phbl );
+PHISTORYBLOCK PSI_DestroyRawHistoryBlock( PHISTORYBLOCK pHistory );
+PTEXTLINE GetNewHistoryLine( PHISTORY_REGION region );
+PTEXTLINE GetAHistoryLine( PHISTORY_LINE_CURSOR phc, PHISTORY_BROWSER phbr, int nLine, int bCreate );
+void DumpBlock( PHISTORYBLOCK pBlock DBG_PASS );
 
 //int BeginHistory( PHISTORY_LINE_CURSOR cursor );
 // adjust history by offset...

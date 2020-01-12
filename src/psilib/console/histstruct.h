@@ -194,12 +194,6 @@ struct history_line_cursor_tag {
 
 //----------------------------------------------------------------------------
 
-struct history_tracking_tag {
-	int nRegions;
-	PHISTORY_REGION pRegion;
-	struct myconsolestruc *pdp;
-} ;
-
 struct history_bios_tag
 // basic io system... takes all the above and
 // brings together everything needed for
