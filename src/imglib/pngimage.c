@@ -27,7 +27,7 @@
 #include <zlib.h>
 #include <png.h>
 
-
+#include <stdhdrs.h>
 #include <signed_unsigned_comparisons.h>
 #define IMAGE_LIBRARY_SOURCE
 #include <imglib/imagestruct.h>
@@ -186,7 +186,6 @@ no_mem2:
 		return NULL;
 	}
 #endif
-
 	png_read_info (png_ptr, info_ptr);
 
 	{
@@ -260,7 +259,7 @@ no_mem2:
 
 			// Read image data
 			png_read_image (png_ptr, row_pointers);
-		/*
+			/*
 			if( !png_read_image (png_ptr, row_pointers) )
 			{
 				UnmakeImageFile( pImage );
