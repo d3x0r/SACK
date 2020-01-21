@@ -603,10 +603,10 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, FT_Face *face, in
 #endif
 	if( *font_memory && size < 0xd000000 )
 	{
-		POINTER p = NewArray( uint8_t, size );
-		MemCpy( p, (*font_memory), size );
-		Deallocate( POINTER, (*font_memory) );
-		(*font_memory) = p;
+		//POINTER p = NewArray( uint8_t, size );
+		//MemCpy( p, (*font_memory), size );
+		//Deallocate( POINTER, (*font_memory) );
+		//(*font_memory) = p;
 #ifdef DEBUG_OPENFONTFILE
 		lprintf( "re-copied the font memory." );
 #endif
