@@ -342,7 +342,7 @@ void SetCommonFocus( PSI_CONTROL pc )
 				}
 				// but we can transfer focus to an internal thingy...
 				// might revisit uhmm something.
-				if( pf->pFocus != pf->common )
+				if( pf->pFocus && pf->pFocus != pf->common )
 					pf->pFocus->flags.bFocused = FALSE;
 
 				//lprintf( "Set frame focused control to: %p (from)%p (to)%p", pf, pf->pFocus, pc );
