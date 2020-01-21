@@ -1311,6 +1311,7 @@ retry:
 		PTABLE pTestTable;
 		//lprintf("Does this work or not?");
 		pTestTable = GetFieldsInSQL( result[1] , 0 );
+		//lprintf( "closing the odbc %p", odbc );
 		SQLEndQuery( odbc );
 		//lprintf(" ---------------Table to test-----------------------------------------" );
 		//DumpSQLTable( pTestTable );
@@ -1837,9 +1838,7 @@ LOGICAL CheckODBCTableEx( PODBC odbc, PTABLE table, uint32_t options DBG_PASS )
 	{
 		OpenSQL( DBG_VOIDRELAY );
 		odbc = g.odbc;
-
 	}
-			  //    DebugBreak();
 
 	if( !odbc )
 		return FALSE;

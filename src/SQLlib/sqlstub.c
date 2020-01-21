@@ -2724,12 +2724,12 @@ void ReleaseODBC( PODBC odbc )
 
 void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 {
-	uint32_t tick = GetTickCount();
+	uint32_t tick = (uint32_t)timeGetTime64();
 	ReleaseODBC( odbc );
 	odbc->flags.bClosed = 1;
 	odbc->flags.bAutoCheckpoint = 0;
 	odbc->last_command_tick = 0;
-	while( ( (GetTickCount()-tick) < 100 ) && odbc->auto_checkpoint_thread ) {
+	while( ( ((uint32_t)timeGetTime64() - tick) < 100 ) && odbc->auto_checkpoint_thread ) {
 		WakeThread( odbc->auto_checkpoint_thread );
 		Relinquish();
 	}
@@ -4527,7 +4527,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 	{
 		const TEXTCHAR *tail;
 		// can get back what was not used when parsing...
-		retry:
+	retry:
 		rc3 = sqlite3_prepare_v2( odbc->db, tail = query, (int)(queryLen), &collection->stmt, &tail );
 		if( rc3 )
 		{
@@ -4549,7 +4549,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			{
 				lprintf( "wait for lock..." );
 				DumpAllODBCInfo();
-				WakeableSleep( 200 );
+				WakeableSleep( 20 );
 				goto retry;
 			}
 			//DebugBreak();
