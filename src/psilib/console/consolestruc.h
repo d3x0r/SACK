@@ -26,7 +26,7 @@
 
 #include <psi/console.h>
 
-//#define DEBUG_OUTPUT
+#define DEBUG_OUTPUT
 
 #ifdef DEKWARE_PLUGIN
 #define PLUGIN_MODULE

@@ -22,7 +22,7 @@ void CPROC WindowInput( uintptr_t psv, PTEXT text )
 	// collapse text to a single segment.
 	PTEXT out = BuildLine( text );
 	//LogBinary( GetText( out ), GetTextSize( out ) );
-	pprintf( (PTASK_INFO)psv, "%s", GetText( out ) );
+	pprintf( (PTASK_INFO)psv, "%s\n", GetText( out ) );
 	LineRelease( out );
    // for a command prompt, do not echo result.
 }

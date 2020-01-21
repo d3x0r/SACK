@@ -1,5 +1,5 @@
 //#define NO_LOGGING
-//#define DEBUG_HISTORY_RENDER
+#define DEBUG_HISTORY_RENDER
 
 #include "consolestruc.h"
 //#include "interface.h"

@@ -587,7 +587,7 @@ uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown )
 	 uint32_t offset = 0;
 	 while( segment )
 	 {
-		uint32_t nLen = (uint32_t)GetTextSize( segment );
+		size_t nLen = GetTextSize( segment );
 		TEXTCHAR *text = GetText( segment );
 		while( nShown < nLen 
 			  && text[nShown] == ' ' )
@@ -623,17 +623,19 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, u
 		uint32_t good_space_size;
 		LOGICAL has_good_space = FALSE;
 		uint32_t good_space = 0;
-		uint32_t nSpace;
+		uint32_t nSpace, nNextSpace;
 		uint32_t nSegSize, nSegHeight;
 		uint32_t best_chars = 0;
 		uint32_t best_char_size;
 		TEXTCHAR *text = GetText( segment );
+		size_t textLen = GetTextSize( segment );
+		TEXTRUNE thisChar;
 
-		for( nSpace = nShown; nSpace < nLen; nSpace++ )
+		for( nNextSpace = nSpace = nShown; (nSpace < nLen)?((thisChar = GetUtfCharIndexed( text, &nNextSpace, textLen )),1):0 ; nSpace = nNextSpace )
 		{
-			if( text[nSpace] == '\n' )
+			if( thisChar == '\n' )
 			{
-				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
+				phbr->measureString( phbr->psvMeasure, text + nShown
 					, nSpace - nShown, &nSegSize, &nSegHeight, font );
 				good_space_size = nSegSize;
 				has_good_space = TRUE;
@@ -641,10 +643,10 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, u
 				result_bias = 1; // start next line past the \n
 				break;
 			}
-			else if( text[nSpace] == ' ' || text[nSpace] == '\t' ) 
+			else if( thisChar == ' ' || thisChar == '\t' )
 			{
 				//lprintf( "measure string until space... %s (%s)", text, text + nSpace );
-				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
+				phbr->measureString( phbr->psvMeasure, text + nShown
 					, nSpace - nShown, &nSegSize, &nSegHeight, font );
 				if( ( (*col_offset) + nSegSize  ) < colsize )
 				{
@@ -657,7 +659,7 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, u
 			}
 			else if( !best_chars )
 			{
-				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
+				phbr->measureString( phbr->psvMeasure, text + nShown
 					, nSpace - nShown, &nSegSize, &nSegHeight, font );
 
 				if( ( (*col_offset) + nSegSize  ) >= colsize )
@@ -706,7 +708,7 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, u
 			// well.. have to figure out which character will still fit....
 			for( nSpace = nShown; nSpace <= nLen; nSpace++ )
 			{
-				phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
+				phbr->measureString( phbr->psvMeasure, text + nShown
 					, nSpace - nShown, &nSegSize, &nSegHeight, font );
 				if( ( (*col_offset) + nSegSize  ) < colsize )
 					;
