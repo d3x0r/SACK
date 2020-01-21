@@ -1617,7 +1617,12 @@ uintptr_t GetFileSize( int fd )
 #ifdef DEBUG_OPEN_SPACE
 					ll_lprintf( "Setting size to size of file (which was larger.." );
 #endif
-					(*dwSize) = (uintptr_t)(lSize.QuadPart);
+					if( *dwSize ) {
+						SetFilePointer( hFile, (LONG) * (int32_t*)dwSize, (sizeof( dwSize[0] ) > 4) ? (PLONG)(((int32_t*)dwSize) + 1) : NULL, FILE_BEGIN );
+						SetEndOfFile( hFile );
+					}
+					else
+						(*dwSize) = (uintptr_t)(lSize.QuadPart);
 				}
 			}
 			else
