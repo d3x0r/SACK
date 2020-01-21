@@ -619,12 +619,9 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 				pResult->dwFlags |= ( CF_CALLBACKTYPES );
 
 			AddActive( pResult );
-			if( !(flags & OPEN_TCP_FLAG_DELAY_CONNECT) ) {
-				NetworkConnectTCPEx( pResult DBG_RELAY );
-			}
+			NetworkUnlockEx(pResult, 1 DBG_SRC);
+			NetworkUnlockEx(pResult, 0 DBG_SRC);
 			//lprintf( "Leaving Client's critical section" );
-			NetworkUnlockEx( pResult, 1 DBG_SRC );
-			NetworkUnlockEx( pResult, 0 DBG_SRC );
 
 			// socket should now get scheduled for events, after unlocking it?
 #ifdef USE_WSA_EVENTS
@@ -648,16 +645,19 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 #ifdef __LINUX__
 			AddThreadEvent( pResult, 0 );
 #endif
+			if (!(flags & OPEN_TCP_FLAG_DELAY_CONNECT)) {
+				NetworkConnectTCPEx(pResult DBG_RELAY);
+			}
 			if( !pConnectComplete && !(flags & OPEN_TCP_FLAG_DELAY_CONNECT) )
 			{
-				int Start, bProcessing = 0;
+				uint64_t Start = timeGetTime64();
+				int bProcessing = 0;
 
 				// should trigger a rebuild (if it's the root thread)
-				Start = (GetTickCount()&0xFFFFFFF);
 				pResult->dwFlags |= CF_CONNECT_WAITING;
 				// caller was expecting connect to block....
 				while( !( pResult->dwFlags & (CF_CONNECTED|CF_CONNECTERROR|CF_CONNECT_CLOSED) ) &&
-						( ( (GetTickCount()&0xFFFFFFF) - Start ) < globalNetworkData.dwConnectTimeout ) )
+						( ( timeGetTime64() - Start ) < globalNetworkData.dwConnectTimeout ) )
 				{
 					// may be this thread itself which connects...
 					if( this_thread )
@@ -697,7 +697,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 						Relinquish();
 					}
 				}
-				if( (( (GetTickCount()&0xFFFFFFF) - Start ) >= 10000)
+				if( (( timeGetTime64() - Start ) >= 10000)
 					|| (pResult->dwFlags &  CF_CONNECTERROR ) )
 				{
 					if( pResult->dwFlags &  CF_CONNECTERROR )
