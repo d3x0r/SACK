@@ -193,7 +193,7 @@ SYSTEM_PROC( void, OSALOT_PrependEnvironmentVariable )(CTEXTSTR name, CTEXTSTR v
  * Otherwise, the command line needs to have the program name, and arguments passed in the string
  * the parameter to winmain has the program name skipped
  */
-SYSTEM_PROC( void, ParseIntoArgs )( TEXTCHAR *lpCmdLine, int *pArgc, TEXTCHAR ***pArgv );
+SYSTEM_PROC( void, ParseIntoArgs )( TEXTCHAR const *lpCmdLine, int *pArgc, TEXTCHAR ***pArgv );
 
 #define UnloadFunction(p) UnloadFunctionEx(p DBG_SRC )
 

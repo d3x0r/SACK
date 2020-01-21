@@ -132,6 +132,8 @@ struct file_system_interface {
 	uint64_t( CPROC *find_get_wtime )(struct find_cursor *cursor);
 	int ( CPROC* _mkdir )( uintptr_t psvInstance, const char* );
 	int ( CPROC* _rmdir )( uintptr_t psvInstance, const char* );
+    int (CPROC* _lock)(void*);                //file *
+    int (CPROC* _unlock)(void*);              //file *
 };
 
 
@@ -460,6 +462,9 @@ FILESYS_PROC  void FILESYS_API sack_set_common_data_producer( CTEXTSTR name );
 
 FILESYS_PROC  uintptr_t FILESYS_API  sack_ioctl( FILE *file, uintptr_t opCode, ... );
 FILESYS_PROC  uintptr_t FILESYS_API  sack_fs_ioctl( struct file_system_mounted_interface *mount, uintptr_t opCode, ... );
+
+FILESYS_PROC int FILESYS_API sack_flock( FILE* file );
+FILESYS_PROC int FILESYS_API sack_funlock( FILE* file );
 
 #ifndef NO_FILEOP_ALIAS
 
