@@ -162,7 +162,7 @@ struct sack_vfs_disk {
 };
 
 
-PREFIX_PACKED struct sack_vfs_volume {
+struct sack_vfs_volume {
 	const char * volname;
 #  ifdef FILE_BASED_VFS
 	FILE *file;
@@ -222,9 +222,12 @@ PREFIX_PACKED struct sack_vfs_volume {
 	LOGICAL external_memory;
 	LOGICAL closed;
 	volatile uint32_t lock;
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	THREAD_ID locked_thread;
+#endif
 	uint8_t tmpSalt[16];
 	uintptr_t clusterKeyVersion;
-} PACKED;
+};
 
 
 #if !defined( VIRTUAL_OBJECT_STORE )

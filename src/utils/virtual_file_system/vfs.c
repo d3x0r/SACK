@@ -1038,6 +1038,9 @@ static void mask_block( struct sack_vfs_volume *vol, size_t n ) {
 
 LOGICAL sack_vfs_decrypt_volume( struct sack_vfs_volume *vol )
 {
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	while( vol->locked_thread && vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( !vol->key ) { vol->lock = 0; return FALSE; } // volume is already decrypted, cannot remove key
 	{
@@ -1066,6 +1069,9 @@ LOGICAL sack_vfs_decrypt_volume( struct sack_vfs_volume *vol )
 }
 
 LOGICAL sack_vfs_encrypt_volume( struct sack_vfs_volume *vol, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 ) {
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	while( vol->locked_thread && vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( vol->key ) { vol->lock = 0; return FALSE; } // volume already has a key, cannot apply new key
 	if( !version ) version = 2;
@@ -1104,6 +1110,9 @@ const char *sack_vfs_get_signature( struct sack_vfs_volume *vol ) {
 	static const char *output = "0123456789ABCDEF";
 	if( !vol )
 		return NULL;
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	while( vol->locked_thread && vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	{
 		static BLOCKINDEX datakey[BLOCKS_PER_BAT];
@@ -1290,6 +1299,9 @@ static struct directory_entry * GetNewDirectory( struct sack_vfs_volume *vol, co
 
 struct sack_vfs_file * CPROC sack_vfs_openfile( struct sack_vfs_volume *vol, const char * filename ) {
 	struct sack_vfs_file *file = New( struct sack_vfs_file );
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	while( vol->locked_thread && vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( filename[0] == '.' && filename[1] == '/' ) filename += 2;
 	LoG( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
@@ -1323,6 +1335,9 @@ static struct sack_vfs_file * CPROC sack_vfs_open( uintptr_t psvInstance, const 
 int CPROC sack_vfs_exists( struct sack_vfs_volume *vol, const char * file ) {
 	struct directory_entry entkey;
 	struct directory_entry *ent;
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	while( vol->locked_thread && vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	if( file[0] == '.' && file[1] == '/' ) file += 2;
 	ent = VFSScanDirectory( vol, file, &entkey, 0 );
@@ -1343,6 +1358,9 @@ size_t CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence )
 	if( whence == SEEK_SET ) file->fpi = pos;
 	if( whence == SEEK_CUR ) file->fpi += pos;
 	if( whence == SEEK_END ) file->fpi = ( file->entry->filesize  ^ file->dirent_key.filesize ) + pos;
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	while( file->vol->locked_thread && file->vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 
 
@@ -1415,6 +1433,9 @@ size_t CPROC sack_vfs_write( struct sack_vfs_file *file, const void * data_, siz
 	const char* data = (const char*)data_;
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	while( file->vol->locked_thread && file->vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 	LoG( "Write to file %p %" _size_f "  @%" _size_f, file, length, file->fpi );
 	if( ofs ) {
@@ -1496,6 +1517,9 @@ size_t CPROC sack_vfs_read( struct sack_vfs_file *file, void * data_, size_t len
 	char* data = (char*)data_;
 	size_t written = 0;
 	size_t ofs = file->fpi & BLOCK_MASK;
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	while( file->vol->locked_thread && file->vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 	if( ( file->entry->filesize  ^ file->dirent_key.filesize ) < ( file->fpi + length ) ) {
 		if( ( file->entry->filesize  ^ file->dirent_key.filesize ) < file->fpi )
@@ -1631,6 +1655,9 @@ static void shrinkBAT( struct sack_vfs_file *file ) {
 size_t CPROC sack_vfs_truncate( struct sack_vfs_file *file ) { file->entry->filesize = file->fpi ^ file->dirent_key.filesize; shrinkBAT( file ); return (size_t)file->fpi; }
 
 int CPROC sack_vfs_close( struct sack_vfs_file *file ) {
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	while( file->vol->locked_thread && file->vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 #ifdef DEBUG_TRACE_LOG
 	{
@@ -1656,6 +1683,9 @@ int CPROC sack_vfs_unlink_file( struct sack_vfs_volume *vol, const char * filena
 	struct directory_entry entkey;
 	struct directory_entry *entry;
 	if( !vol ) return 0;
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+	while( vol->locked_thread && vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	LoG( "unlink file:%s", filename );
 	if( ( entry  = VFSScanDirectory( vol, filename, &entkey, 0 ) ) ) {
@@ -1778,6 +1808,9 @@ LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, cons
 	if( vol ) {
 		struct directory_entry entkey;
 		struct directory_entry *entry;
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+		while( vol->locked_thread && vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 		while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 		if( ( entry  = VFSScanDirectory( vol, original, &entkey, 0 ) ) ) {
 			struct directory_entry new_entkey;
@@ -1785,6 +1818,9 @@ LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, cons
 			if( (new_entry = VFSScanDirectory( vol, newname, &new_entkey, 0 )) ) {
 				vol->lock = 0;
 				sack_vfs_unlink_file( vol, newname );
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+				while( vol->locked_thread && vol->locked_thread != GetThisThreadID() ) Relinquish();
+#endif
 				while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 			}
 			entry->name_offset = SaveFileName( vol, newname ) ^ entkey.name_offset;
@@ -1795,6 +1831,20 @@ LOGICAL CPROC sack_vfs_rename( uintptr_t psvInstance, const char *original, cons
 	}
 	return FALSE;
 }
+
+
+#ifdef VFS_IMPLEMENT_FILE_LOCKING
+int CPROC sack_vfs_file_lock( struct sack_vfs_file* file, int disposition ) {
+	while( LockedExchange64( &file->vol->locked_thread, GetThisThreadID() ) ) Relinquish();
+	return 1;
+}
+
+int CPROC sack_vfs_file_unlock( struct sack_vfs_file* file, int disposition ) {
+	file->vol->locked_thread = 0;
+	return 1;
+}
+#endif
+
 
 static struct file_system_interface sack_vfs_fsi = {
                                                      (void*(CPROC*)(uintptr_t,const char *, const char*))sack_vfs_open
@@ -1822,6 +1872,10 @@ static struct file_system_interface sack_vfs_fsi = {
 	, (uintptr_t( CPROC* )(uintptr_t, uintptr_t, va_list))NULL
 	, (uint64_t( CPROC* )(struct find_cursor* cursor))sack_vfs_find_get_ctime
 	, (uint64_t( CPROC* )(struct find_cursor* cursor))sack_vfs_find_get_wtime
+	, NULL 	//int (CPROC* _mkdir)(uintptr_t psvInstance, const char*);
+	, NULL //int (CPROC* _rmdir)(uintptr_t psvInstance, const char*);
+	, NULL //(int(CPROC*)(void*))sack_vfs_file_lock
+	, NULL //(int(CPROC*)(void*))sack_vfs_file_unlock
 };
 
 PRIORITY_PRELOAD( Sack_VFS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )
