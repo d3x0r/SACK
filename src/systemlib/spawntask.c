@@ -331,7 +331,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 	PTASK_INFO task;
 	if( !sack_system_allow_spawn() ) return NULL;
 	TEXTSTR expanded_path;// = ExpandPath( program );
-	TEXTSTR expanded_working_path;// = path ? ExpandPath( path ) : ExpandPath( "." );
+	TEXTSTR expanded_working_path = path ? ExpandPath( path ) : NULL;
 	if( path ) {
 		path = ExpandPath( path );
 		if( IsAbsolutePath( program ) ) {
@@ -340,7 +340,10 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		else {
 			PVARTEXT pvtPath;
 			pvtPath = VarTextCreate();
-			vtprintf( pvtPath, "%s" "/" "%s", path, program );
+			if( path[0] == '.' && path[1] == 0 )
+				vtprintf( pvtPath, "%s", program );
+			else
+				vtprintf( pvtPath, "%s" "/" "%s", path, program );
 			expanded_path = ExpandPath( GetText( VarTextPeek( pvtPath ) ) );
 			VarTextDestroy( &pvtPath );
 		}
@@ -619,14 +622,16 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			if( OutputHandler )
 			{
 				if( pipe(task->hStdIn.pair) < 0 ) {
-					Release( expanded_working_path );
+					if( expanded_working_path )
+						Release( expanded_working_path );
 					Release( expanded_path );
 					return NULL;
 				}
 				task->hStdIn.handle = task->hStdIn.pair[1];
 
 				if( pipe(task->hStdOut.pair) < 0 ) {
-					Release( expanded_working_path );
+					if (expanded_working_path)
+						Release( expanded_working_path );
 					Release( expanded_path );
 					return NULL;
 				}
@@ -713,7 +718,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			// how can I know if the command failed?
 			// well I can't - but the user's callback will be invoked
 			// when the above exits.
-			Release( expanded_working_path );
+			if (expanded_working_path)
+				Release( expanded_working_path );
 			Release( expanded_path );
 			return task;
 		}

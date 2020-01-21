@@ -201,9 +201,9 @@ static void LocalInit( void )
 	if( !winfile_local )
 		SimpleRegisterAndCreateGlobal( winfile_local );
 #endif
-	OnThreadCreate( threadInit );
-	threadInit();  // this might or might not get dispatched already on this thread.
 	if( !( *winfile_local ).flags.bInitialized ) {
+		OnThreadCreate( threadInit );
+		threadInit();  // this might or might not get dispatched already on this thread.
 		InitializeCriticalSec( &( *winfile_local ).cs_files );
 		( *winfile_local ).flags.bInitialized = 1;
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
@@ -356,8 +356,16 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 					//=======================================================================
 					// Get rid of the ending '%' AND any '/' or '\' that might come after it
 					//=======================================================================
-					tnprintf( newest_path, len, "%*.*s%s/%s", (int)( ( subst_path - tmp_path ) - 1 ), (int)( ( subst_path - tmp_path ) - 1 ), tmp_path, filegroup->base_path,
-						( ( end + 1 )[0] == '/' || ( end + 1 )[0] == '\\' ) ? ( end + 2 ) : ( end + 1 ) );
+					if( ( end[2] && ( end[1] == '/' || end[1] == '\\' ) ) || end[1] )
+						tnprintf( newest_path, len, "%*.*s%s" PATHCHAR "%s", (int)( ( subst_path - tmp_path ) - 1 )
+						        , (int)( ( subst_path - tmp_path ) - 1 )
+						        , tmp_path, filegroup->base_path
+						        , ( ( end + 1 )[0] == '/' || ( end + 1 )[0] == '\\' ) ? ( end + 2 ) : ( end + 1 ) );
+					else
+						tnprintf( newest_path, len, "%*.*s%s", (int)((subst_path - tmp_path) - 1)
+						        , (int)((subst_path - tmp_path) - 1)
+						        , tmp_path, filegroup->base_path
+						        );
 
 					Deallocate( TEXTCHAR*, tmp_path );
 					tmp_path = ExpandPathVariable( newest_path );
@@ -374,8 +382,16 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 						//=======================================================================
 						// Get rid of the ending '%' AND any '/' or '\' that might come after it
 						//=======================================================================
-						tnprintf( newest_path, len, "%*.*s%s/%s", (int)( ( subst_path - tmp_path ) - 1 ), (int)( ( subst_path - tmp_path ) - 1 ), tmp_path, external_var,
-							( ( end + 1 )[0] == '/' || ( end + 1 )[0] == '\\' ) ? ( end + 2 ) : ( end + 1 ) );
+						if( (end[2] && (end[1] == '/' || end[1] == '\\')) || end[1] )
+							tnprintf( newest_path, len, "%*.*s%s/%s", (int)( ( subst_path - tmp_path ) - 1 ), (int)( ( subst_path - tmp_path ) - 1 )
+							        , tmp_path
+							        , external_var
+							        , ( ( end + 1 )[0] == '/' || ( end + 1 )[0] == '\\' ) ? ( end + 2 ) : ( end + 1 ) );
+						else
+							tnprintf( newest_path, len, "%*.*s%s", (int)((subst_path - tmp_path) - 1), (int)((subst_path - tmp_path) - 1)
+							        , tmp_path
+							        , external_var
+							        );
 
 						tmp_path = ExpandPathVariable( newest_path );
 						Deallocate( TEXTCHAR*, newest_path );
@@ -1903,6 +1919,7 @@ LOGICAL sack_existsEx( const char* filename, struct file_system_mounted_interfac
 		}
 #ifdef WIN32
 		wchar_t* wfilename = CharWConvert( filename );
+		{ wchar_t* tmp; if( LONG_PATHCHAR ) for( tmp = wfilename; tmp[0]; tmp++ ) if( tmp[0] == '/' ) tmp[0] = LONG_PATHCHAR; }
 		if( ( tmp = _wfopen( wfilename, L"rb" ) ) ) {
 #else
 		if( ( tmp = fopen( filename, "rb" ) ) ) {
@@ -1940,7 +1957,6 @@ LOGICAL sack_exists( const char* filename )
 
 LOGICAL sack_isPathEx( const char* filename, struct file_system_mounted_interface* mount )
 {
-	FILE* tmp;
 	if( mount && mount->fsi && mount->fsi->exists ) {
 		{
 			struct directory* d;
@@ -2585,7 +2601,7 @@ PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 PRELOAD( InitWinFileSys )
 {
 #  if !defined( __FILESYS_NO_FILE_LOGGING__ )
-	( *winfile_local ).flags.bLogOpenClose = 1 || SACK_GetProfileIntEx( "SACK/filesys", "Log open and close", ( *winfile_local ).flags.bLogOpenClose, TRUE );
+	( *winfile_local ).flags.bLogOpenClose = SACK_GetProfileIntEx( "SACK/filesys", "Log open and close", ( *winfile_local ).flags.bLogOpenClose, TRUE );
 #  endif
 }
 #endif
@@ -2597,6 +2613,7 @@ static void* CPROC sack_filesys_open( uintptr_t psv, const char* filename, const
 #ifdef _WIN32
 	wchar_t* wfilename = CharWConvert( filename );
 	wchar_t* wopts = CharWConvert( opts );
+	{ wchar_t* tmp; if( LONG_PATHCHAR ) for( tmp = wfilename; tmp[0]; tmp++ ) if( tmp[0] == '/' ) tmp[0] = LONG_PATHCHAR; }
 	result = _wfopen( wfilename, wopts );
 	Deallocate( wchar_t*, wfilename );
 	Deallocate( wchar_t*, wopts );
@@ -2611,6 +2628,7 @@ static int CPROC sack_filesys_exists( uintptr_t psv, const char* filename ) {
 	FILE* tmp;
 #ifdef WIN32
 	wchar_t* wfilename = CharWConvert( filename );
+	{ wchar_t* tmp; if( LONG_PATHCHAR ) for( tmp = wfilename; tmp[0]; tmp++ ) if( tmp[0] == '/' ) tmp[0] = LONG_PATHCHAR; }
 	if( ( tmp = _wfopen( wfilename, L"rb" ) ) ) {
 #else
 	if( ( tmp = fopen( filename, "rb" ) ) ) {
@@ -2839,6 +2857,23 @@ void sack_filesys_enable_thread_mounts( void ) {
 
 }
 
+int sack_flock( FILE* file_ ) {
+	struct file *file = FindFileByFILE( file_ );
+	if( file ) {
+		if( file->mount->fsi->_lock )
+			return file->mount->fsi->_lock( file_ );
+	}
+	return 0;
+}
+
+int sack_funlock( FILE* file_ ) {
+	struct file* file = FindFileByFILE( file_ );
+	if( file ) {
+		if( file->mount->fsi->_unlock )
+			return file->mount->fsi->_unlock( file_ );
+	}
+	return 0;
+}
 
 FILESYS_NAMESPACE_END
 #ifdef _MSC_VER

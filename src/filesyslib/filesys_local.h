@@ -1,9 +1,10 @@
 
 #ifdef _WIN32
-#define PATHCHAR "\\"
+#define LONG_PATHCHAR '\\'
 #else
-#define PATHCHAR "/"
+#define LONG_PATHCHAR 0
 #endif
+#define PATHCHAR "/"
 
 struct file_system_mounted_interface 
 {

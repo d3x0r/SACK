@@ -3358,7 +3358,7 @@ TEXTRUNE GetPriorUtfCharIndexed( const char *pc, size_t *n )
 			return result;
 		}
 	}
-	return INVALID_RUNE;
+	return RUNE_BEFORE_START;
 }
 
 //---------------------------------------------------------------------------
@@ -3576,10 +3576,10 @@ PRELOAD( initTables ) {
 	for( n = 0; n < (sizeof( encodings )-1); n++ )
 		for( m = 0; m < (sizeof( encodings )-1); m++ ) {
 			b64xor_table[(uint8_t)encodings[n]][(uint8_t)encodings[m]] = encodings[n^m];
-			u8xor_table[n][(uint8_t)encodings[m]] = n^m;
+			u8xor_table[n][(uint8_t)encodings[m]] = (TEXTCHAR)(n^m);
 
 			b64xor_table2[(uint8_t)encodings2[n]][(uint8_t)encodings2[m]] = encodings2[n^m];
-			u8xor_table2[n][(uint8_t)encodings2[m]] = n^m;
+			u8xor_table2[n][(uint8_t)encodings2[m]] = (TEXTCHAR)(n^m);
 	}
 	//LogBinary( (uint8_t*)u8xor_table[0], sizeof( u8xor_table ) );
 	b64xor_table['=']['='] = '=';
