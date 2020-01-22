@@ -2055,9 +2055,15 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 						uint32_t amount = cursor_pos;
 						uint32_t seg_amount;
 						size_t seg_start = pCurrentLine->nFirstSegOfs;
+#if 0
+						lprintf( "Drawing line line:%d  toShow:%d offs:%d seg:%d", nLine, pCurrentLine->nToShow, pCurrentLine->nFirstSegOfs, GetTextSize( pCurrentLine->start ) );
+#endif
 						for( tmp = pCurrentLine->start; cursor_pos && tmp; tmp = NEXTLINE( tmp ) )
 						{
-							seg_amount = GetTextSize( tmp ) - seg_start;
+							if( ( pCurrentLine->nToShow - pCurrentLine->nFirstSegOfs ) < GetTextSize(tmp) )
+								seg_amount = pCurrentLine->nToShow - pCurrentLine->nFirstSegOfs;
+							else
+								seg_amount = GetTextSize( tmp ) - seg_start;
 							if( cursor_pos > seg_amount )
 								amount = seg_amount;
 							else
@@ -2069,8 +2075,12 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 							seg_start = 0;
 						}
 					}
-					else
+					else {
+#if 0
+						lprintf( "Drawing no line... " );
+#endif
 						total_w = 0;
+					}
 					if( list->flags.bCursorOn )
 						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + total_w
 						, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * ( nLine - list->input.command_skip_lines ) )
