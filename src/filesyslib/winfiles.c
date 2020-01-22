@@ -50,6 +50,7 @@
 #ifdef WIN32
 #include <shlobj.h>
 #endif
+#include <errno.h>
 #include <filesys.h>
 #include <sqlgetoption.h>
 
@@ -145,8 +146,8 @@ static void UpdateLocalDataPath( void )
 		+ StrLen( ( *winfile_local ).producer ? ( *winfile_local ).producer : "" )
 		+ StrLen( ( *winfile_local ).application ? ( *winfile_local ).application : "" ) + 3 ); // worse case +3
 	tnprintf( realpath, len, "%s%s%s%s%s", path
-		, ( *winfile_local ).producer ? "/" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
-		, ( *winfile_local ).application ? "/" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
+		, ( *winfile_local ).producer ? "\\" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
+		, ( *winfile_local ).application ? "\\" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
 	if( ( *winfile_local ).data_file_root )
 		Deallocate( TEXTSTR, ( *winfile_local ).data_file_root );
@@ -159,8 +160,8 @@ static void UpdateLocalDataPath( void )
 		+ StrLen( ( *winfile_local ).producer ? ( *winfile_local ).producer : "" )
 		+ StrLen( ( *winfile_local ).application ? ( *winfile_local ).application : "" ) + 3 ); // worse case +3
 	tnprintf( realpath, len, "%s%s%s%s%s", path
-		, ( *winfile_local ).producer ? "/" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
-		, ( *winfile_local ).application ? "/" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
+		, ( *winfile_local ).producer ? "\\" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
+		, ( *winfile_local ).application ? "\\" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
 	if( ( *winfile_local ).local_data_file_root )
 		Deallocate( TEXTSTR, ( *winfile_local ).local_data_file_root );
@@ -357,7 +358,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 					// Get rid of the ending '%' AND any '/' or '\' that might come after it
 					//=======================================================================
 					if( ( end[2] && ( end[1] == '/' || end[1] == '\\' ) ) || end[1] )
-						tnprintf( newest_path, len, "%*.*s%s" PATHCHAR "%s", (int)( ( subst_path - tmp_path ) - 1 )
+						tnprintf( newest_path, len, "%*.*s%s" SYS_PATHCHAR "%s", (int)( ( subst_path - tmp_path ) - 1 )
 						        , (int)( ( subst_path - tmp_path ) - 1 )
 						        , tmp_path, filegroup->base_path
 						        , ( ( end + 1 )[0] == '/' || ( end + 1 )[0] == '\\' ) ? ( end + 2 ) : ( end + 1 ) );
@@ -429,7 +430,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface* fsi )
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s%s%s"
 					, here
-					, path[1] ? "/" : ""
+					, path[1] ? SYS_PATHCHAR : ""
 					, path[1] ? ( path + 2 ) : "" );
 			}
 			else if( ( path[0] == '@' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
@@ -437,42 +438,42 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface* fsi )
 				size_t len;
 				here = GetLibraryPath();
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
+				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
 			else if( ( path[0] == '#' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = GetProgramPath();
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
+				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
 			else if( ( path[0] == '~' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = OSALOT_GetEnvironmentVariable( "HOME" );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
+				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
 			else if( ( path[0] == '*' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).data_file_root;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
+				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
 			else if( ( path[0] == ';' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).local_data_file_root;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
+				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
 			else if( path[0] == '^' && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = GetStartupPath();
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s/%s", here, path + 2 );
+				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
 			else if( path[0] == '%' ) {
 				tmp_path = ExpandPathVariable( path );
@@ -610,7 +611,7 @@ static TEXTSTR PrependBasePathEx( INDEX groupid, struct Group* group, CTEXTSTR f
 		if( ( *winfile_local ).flags.bLogOpenClose )
 			lprintf( "prepend %s[%s] with %s", group->base_path, tmp_path, filename );
 #endif
-		tnprintf( fullname, len, "%s/%s", tmp_path, real_filename );
+		tnprintf( fullname, len, "%s" SYS_PATHCHAR "%s", tmp_path, real_filename );
 		{
 			// resolve recusive % paths...
 			TEXTSTR tmp2 = ExpandPath( fullname );
@@ -1289,7 +1290,7 @@ int sack_mkdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_int
 		}
 		if( mount->fsi && mount->fsi->is_directory ) {
 			if( mount->fsi->is_directory( mount->psvInstance, tmp ) ) {
-#ifdef WIN32
+#if defined( WIN32 ) && defined( MSCVER )
 				_set_doserrno( EEXIST );
 #else
 				errno = EEXIST;
@@ -2153,6 +2154,11 @@ typedef NTSTATUS( NTAPI* sNtSetInformationFile )
 	FILE_INFORMATION_CLASS FileInformationClass );
 sNtSetInformationFile pNtSetInformationFile;
 
+#ifdef __GNUC__
+#include <winternl.h>
+#  undef DeleteFile
+#  define DeleteFile DoDeleteFile
+#else
 typedef enum _REAL_FILE_INFORMATION_CLASS {
 	DupFileDirectoryInformation = 1,
 	FileFullDirectoryInformation,
@@ -2211,7 +2217,6 @@ typedef enum _REAL_FILE_INFORMATION_CLASS {
 	FileRemoteProtocolInformation,
 	FileMaximumInformation
 } REAL_FILE_INFORMATION_CLASS, * PREAL_FILE_INFORMATION_CLASS;
-
 typedef struct _FILE_BASIC_INFORMATION {
 	LARGE_INTEGER CreationTime;
 	LARGE_INTEGER LastAccessTime;
@@ -2222,6 +2227,7 @@ typedef struct _FILE_BASIC_INFORMATION {
 typedef struct _FILE_DISPOSITION_INFORMATION {
 	BOOLEAN DeleteFile;
 } FILE_DISPOSITION_INFORMATION, * PFILE_DISPOSITION_INFORMATION;
+#endif
 
 
 LOGICAL windowDeepDelete( const char* path )
@@ -2389,7 +2395,7 @@ static	struct find_cursor* CPROC sack_filesys_find_create_cursor( uintptr_t psvI
 	char maskbuf[512];
 	MemSet( cursor, 0, sizeof( *cursor ) );
 	//snprintf( maskbuf, 512, "%s/%s", root ? root : ".", filemask?filemask:"*" );
-	snprintf( maskbuf, 512, "%s" PATHCHAR "%s", root ? root : ".", "*" );
+	snprintf( maskbuf, 512, "%s" SYS_PATHCHAR "%s", root ? root : ".", "*" );
 	cursor->mask = StrDup( filemask );
 	cursor->root = StrDup( root ? root : "." );
 	{

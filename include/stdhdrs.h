@@ -187,7 +187,6 @@ __declspec(dllimport) DWORD WINAPI timeGetTime(void);
 #  include <sched.h>
 #  include <unistd.h>
 #  include <sys/time.h>
-#  include <errno.h>
 #  if defined( __ARM__ )
 #    define DebugBreak()
 #  else
@@ -225,6 +224,8 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #  define GetCurrentThreadId() ((uint32_t)getpid())
 
 #endif  // end if( !__LINUX__ )
+
+#include <errno.h>
 
 #ifndef NEED_MIN_MAX
 #  ifndef NO_MIN_MAX_MACROS

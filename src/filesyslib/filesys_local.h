@@ -1,8 +1,10 @@
 
 #ifdef _WIN32
 #define LONG_PATHCHAR '\\'
+#define SYS_PATHCHAR "\\"
 #else
 #define LONG_PATHCHAR 0
+#define SYS_PATHCHAR "/"
 #endif
 #define PATHCHAR "/"
 
