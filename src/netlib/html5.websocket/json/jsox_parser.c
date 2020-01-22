@@ -167,9 +167,9 @@ char *jsox_escape_string( const char *string ) {
 #undef _zero
 
 
-#define BADUTF8 0xFFFFFFF
+#define JSOX_BADUTF8 0xFFFFFFF
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))
-#define _zero(result,from)  ((*from)++,BADUTF8)
+#define _zero(result,from)  ((*from)++,JSOX_BADUTF8)
 #define _gzero(result,from)  ((*from)++,0)
 #define _3char(result,from) ( ((*from) += 3),( ( ( result & 0xF ) << 12 ) | ( ( result & 0x3F00 ) >> 2 ) | ( ( result & 0x3f0000 ) >> 16 )) )
 
@@ -218,7 +218,7 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 	//escape = 0;
 	//cr_escaped = FALSE;
 	while( ( ( n = nextN ), ( n < msglen ) )
-		&& ( ( ( c = GetUtfChar( msg_input ) ) != BADUTF8 )
+		&& ( ( ( c = GetUtfChar( msg_input ) ) != JSOX_BADUTF8 )
 			&& ( status >= 0 ) ) )
 	{
 		if( (nextN = msg_input[0] - msg ) > msglen ) {
@@ -1205,7 +1205,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		}
 
 		//lprintf( "Completed at start?%d", state->completed );
-		while( state->status && (state->n < input->size) && ( (c = GetUtfChar( &input->pos ))!= BADUTF8) )
+		while( state->status && (state->n < input->size) && ( (c = GetUtfChar( &input->pos ))!= JSOX_BADUTF8) )
 		{
 #if defined( DEBUG_PARSING ) && defined( DEBUG_CHARACTER_PARSING )
 			lprintf( "parse character %c %d %d %d %d", c<32?'.':c, state->word, state->parse_context, state->parse_context, state->word );
@@ -1931,7 +1931,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						continueNumber:
 							fromDate = state->numberFromDate;
 						}
-						while( (_msg_input = input->pos), ((state->n < input->size) && ( (c = GetUtfChar( &input->pos ))!= BADUTF8)) )
+						while( (_msg_input = input->pos), ((state->n < input->size) && ( (c = GetUtfChar( &input->pos ))!= JSOX_BADUTF8)) )
 						{
 							newN = input->pos - input->buf;
 							if( newN > input->size ) {
