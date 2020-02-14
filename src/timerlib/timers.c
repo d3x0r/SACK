@@ -331,14 +331,14 @@ uint32_t  GetTickCount( void )
 	gettimeofday( &time, 0 );
 	return (time.tv_sec * 1000) + (time.tv_usec / 1000);
 }
-
+#ifndef timeGetTime
 uint32_t  timeGetTime( void )
 {
 	struct timeval time;
 	gettimeofday( &time, 0 );
 	return (time.tv_sec * 1000) + (time.tv_usec / 1000);
 }
-
+#endif
 void  Sleep( uint32_t ms )
 {
 	(usleep((ms)*1000));
