@@ -456,7 +456,8 @@ TIMER_PROC( LOGICAL, EnterCriticalSecEx )( PCRITICALSECTION pcs DBG_PASS );
 TIMER_PROC( LOGICAL, LeaveCriticalSecEx )( PCRITICALSECTION pcs DBG_PASS );
 /* Does nothing. There are no extra resources required for
    critical sections, and the memory is allocated by the
-   application.
+	application; native windows criticalsections allocate an
+   external object; this should be called typically.
    Parameters
    pcs :  pointer to critical section to do nothing with.  */
 TIMER_PROC( void, DeleteCriticalSec )( PCRITICALSECTION pcs );
