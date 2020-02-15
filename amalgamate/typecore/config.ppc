@@ -8,6 +8,7 @@
 #define __STATIC__
 #define __NO_OPTIONS__
 #define __NO_ODBC__
+#define __NO_IDLE__
 #define NO_FILEOP_ALIAS
 #define SACK_BAG_EXPORTS
 #define __STATIC_GLOBALS__
