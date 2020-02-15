@@ -353,7 +353,7 @@ void IMGVER(UnloadAllFonts)( void );
 
 #ifndef STRUCT_ONLY
 
-int OpenFontFile( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_idx, LOGICAL fallback_to_cache );
+int OpenFontFile( CTEXTSTR name, POINTER *font_memory, size_t *font_memory_size, FT_Face *face, int face_idx, LOGICAL fallback_to_cache );
 #endif
 
 #if !defined( NO_FONT_GLOBAL )

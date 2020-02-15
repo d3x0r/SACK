@@ -441,6 +441,7 @@ struct font_renderer_tag {
 	POINTER ResultData; // data that was resulted for creating this font.
 	size_t ResultDataLen;
 	POINTER font_memory;
+	size_t font_memory_size;
 	FT_Face face;
 	FT_Glyph glyph;
 	FT_GlyphSlot slot;
@@ -1642,127 +1643,6 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 			font->height = 0; //CEIL(face->size->metrics.height);
 			font->name = StrDup( renderer->fontname );
 			IMGVER(InternalRenderFontCharacter)( renderer, NULL, 0 );
-			if( 0 )
-			for( idx = 0; idx < font->characters; idx++ )
-			{
-				FT_Face face = renderer->face;
-				int glyph_index = FT_Get_Char_Index( face, (FT_ULong)idx );
-				//lprintf( "Character %d is glyph %d", idx, glyph_index );
-				if( glyph_index < 0 )
-					continue;
-				FT_Load_Glyph( face
-								 , glyph_index
-								 , 0
-								  | FT_LOAD_FORCE_AUTOHINT
-								 );
-
-				{
-					int ascent = CEIL(face->glyph->metrics.horiBearingY);
-					int descent;
-					if( face->glyph->metrics.height )
-					{
-						descent = -CEIL(face->glyph->metrics.height - face->glyph->metrics.horiBearingY) + 1;
-					}
-					else
-					{
-						descent = CEIL( face->glyph->metrics.horiBearingY ) /*- font->height + */ + 1;
-					}
-
-					// done when the font is initially loaded
-					// loading face characteristics shouldn't matter
-					if( ascent > renderer->max_ascent )
-					{
-						renderer->max_ascent = ascent;
-						renderer->font->baseline = renderer->max_ascent +
-							( ( renderer->font->height
-								- ( renderer->max_ascent - renderer->min_descent ) )
-							 / 2 );
-						if( 0 )
-							lprintf( "Result baseline %c(%d %x) %d  %d   %d,%d", idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
-					}
-					if( 0 )
-							lprintf( "Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d"
-								, idx?idx:' ', idx, idx
-								, ascent, descent
-								, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
-					if( descent < renderer->min_descent )
-					{
-						renderer->min_descent = descent;
-						renderer->font->baseline = renderer->max_ascent +
-							( ( renderer->font->height
-								- ( renderer->max_ascent - renderer->min_descent ) )
-							 / 2 );
-						if( 0 )
-							lprintf( "Result baseline %c(%d %x) %d  %d   %d,%d", idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
-					}
-				}
-				{
-					if( ( face->glyph->linearVertAdvance>>16 ) > renderer->font->height )
-					{
-						renderer->font->height = (short)(face->glyph->linearVertAdvance>>16);
-						renderer->font->baseline = renderer->max_ascent +
-							( ( renderer->font->height
-								- ( renderer->max_ascent - renderer->min_descent ) )
-							 / 2 );
-						if( 0 )
-							lprintf( "Result baseline %d   %d,%d", renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
-
-					}
-				}
-				{
-					int ascent = CEIL(face->glyph->metrics.horiBearingY);
-					int descent;
-					if( face->glyph->metrics.height )
-					{
-						descent = -CEIL(face->glyph->metrics.height - face->glyph->metrics.horiBearingY) + 1;
-					}
-					else
-					{
-						descent = CEIL( face->glyph->metrics.horiBearingY ) /*- font->height + */ + 1;
-					}
-
-					// done when the font is initially loaded
-					// loading face characteristics shouldn't matter
-					if( ascent > renderer->max_ascent )
-					{
-						renderer->max_ascent = ascent;
-						renderer->font->baseline = renderer->max_ascent +
-							( ( renderer->font->height
-								- ( renderer->max_ascent - renderer->min_descent ) )
-							 / 2 );
-						if( 0 )
-							lprintf( "Result baseline %c(%d %x) %d  %d   %d,%d", idx?idx:' ', idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
-					}
-					if( 0 )
-							lprintf( "Result baseline %c(%d %x) %d  %d  %d  %d   %d,%d"
-								, idx?idx:' ', idx, idx
-								, ascent, descent
-								, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
-					if( descent < renderer->min_descent )
-					{
-						renderer->min_descent = descent;
-						renderer->font->baseline = renderer->max_ascent +
-							( ( renderer->font->height
-								- ( renderer->max_ascent - renderer->min_descent ) )
-							 / 2 );
-						if( 0 )
-							lprintf( "Result baseline %c(%d %x) %d  %d   %d,%d", idx, idx, idx, renderer->font->height, renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
-					}
-				}
-				{
-					if( ( face->glyph->linearVertAdvance>>16 ) > renderer->font->height )
-					{
-						renderer->font->height = (short)(face->glyph->linearVertAdvance>>16);
-						renderer->font->baseline = renderer->max_ascent +
-							( ( renderer->font->height
-								- ( renderer->max_ascent - renderer->min_descent ) )
-							 / 2 );
-						if( 0 )
-							lprintf( "Result baseline %d   %d,%d", renderer->font->baseline, renderer->max_ascent, renderer->min_descent );
-
-					}
-				}
-			}
 		}
 	}
 	return renderer->ResultFont;
@@ -1816,14 +1696,17 @@ try_another_default:
 	}
 	{
 		INDEX idx;
+		PFONT_RENDERER fileDataRenderer = NULL;
 		LIST_FORALL( fonts, idx, PFONT_RENDERER, renderer )
 		{
-			if( renderer->nWidth == nWidth
-				&& renderer->nHeight == nHeight
-				&& renderer->flags == flags
-				&& strcmp( renderer->file, file ) == 0 )
-			{
-				break;
+			if( strcmp( renderer->file, file ) == 0 ) {
+				fileDataRenderer = renderer;
+				if( renderer->nWidth == nWidth
+					&& renderer->nHeight == nHeight
+					&& renderer->flags == flags )
+				{
+					break;
+				}
 			}
 		}
 		if( !renderer )
@@ -1854,8 +1737,20 @@ try_another_default:
 
 				if( !renderer->face )
 				{
-					//lprintf( "memopen %s", renderer->file );
-					error = OpenFontFile( renderer->file, &renderer->font_memory, &renderer->face, face_idx, TRUE );
+					if( fileDataRenderer ) {
+						renderer->font_memory = fileDataRenderer->font_memory;
+						renderer->font_memory_size = fileDataRenderer->font_memory_size;
+						error = FT_New_Memory_Face( fg.library
+							, (FT_Byte*)(renderer->font_memory)
+							, (FT_Long)(renderer->font_memory_size)
+							, face_idx
+							, &renderer->face );
+
+					}
+					else {
+						//lprintf( "memopen %s", renderer->file );
+						error = OpenFontFile( renderer->file, &renderer->font_memory, &renderer->font_memory_size, &renderer->face, face_idx, TRUE );
+					}
 					if( IsColorEmojiFont( renderer->face ) )
 						renderer->flags |= FONT_FLAG_COLOR;
 #if rotation_was_italic

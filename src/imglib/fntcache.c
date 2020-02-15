@@ -435,7 +435,7 @@ void IMGVER(DumpFontCache)( void )
 }
 #endif
 
-int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, FT_Face *face, int face_idx, LOGICAL fallback_to_cache )
+int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memory_size, FT_Face *face, int face_idx, LOGICAL fallback_to_cache )
 {
 	int error;
 	POINTER _font_memory = NULL;
@@ -444,9 +444,12 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, FT_Face *face, in
 	LOGICAL style_set = FALSE;
 	size_t temp_filename_len = 0;
 	uintptr_t size = 0;
+	size_t _font_memory_size;
 	LOGICAL logged_error;
 	if( !font_memory )
 		font_memory = &_font_memory;
+	if( !font_memory_size )
+		font_memory_size = &_font_memory_size;
 
 	if( font_style = (TEXTSTR)StrChr( name, '[' ) )
 	{
@@ -490,12 +493,17 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, FT_Face *face, in
 #endif
 				size = sack_fsize( file );
 				(*font_memory) = NewArray( uint8_t, size );
+				(*font_memory_size) = size;
 				sack_fread( (*font_memory), size, 1, file );
 				sack_fclose( file );
 			}
 		}
-
+		else
+			(*font_memory_size) = size;
 	}
+	else
+		(*font_memory_size) = size;
+
 #ifdef DEBUG_OPENFONTFILE
 	lprintf( "fallback is %d", fallback_to_cache );
 #endif
@@ -708,7 +716,7 @@ static void CPROC ListFontFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProce
 	do
 	{
 		POINTER font_memory = NULL;
-		error = OpenFontFile( name, &font_memory, &face, face_idx, FALSE );
+		error = OpenFontFile( name, &font_memory, NULL, &face, face_idx, FALSE );
 		Deallocate( POINTER, font_memory );
 		if( error == FT_Err_Unknown_File_Format )
 		{
