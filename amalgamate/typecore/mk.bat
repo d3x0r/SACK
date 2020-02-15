@@ -28,6 +28,7 @@
 :@set SRCS= %SRCS%   ../../src/filesyslib/winfiles.c
 @set SRCS= %SRCS%   ../../src/memlib/sharemem.c 
 @set SRCS= %SRCS%   ../../src/memlib/memory_operations.c 
+@set SRCS= %SRCS%   ../../src/timerlib/timers.c 
 
 @set SRCS= %SRCS%   ../../src/deadstart/deadstart_core.c 
  
@@ -35,7 +36,7 @@
 del sack_ucb_typelib.h
 del sack_ucb_typelib.c
 
-c:\tools\ppc.exe -c -K -once -ssio -sd -I../../include -p -osack_ucb_typelib.c -DINCLUDE_LOGGING %SRCS%
+c:\tools\ppc.exe -c -K -once -ssio -sd -I../../include -p -osack_ucb_typelib.c %SRCS%
 
 mkdir h
 copy config.ppc.h h\config.ppc
@@ -43,6 +44,7 @@ cd h
 
 @set HDRS=
 @set HDRS= %HDRS% ../../../include/stdhdrs.h
+@set HDRS= %HDRS% ../../../include/timers.h
 @set HDRS= %HDRS% ../../../include/json_emitter.h
 @set HDRS= %HDRS% ../../../include/jsox_parser.h
 @set HDRS= %HDRS% ../../../include/fractions.h
