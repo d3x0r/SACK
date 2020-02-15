@@ -1866,8 +1866,205 @@ void GetInputCursorPos( PCHAT_LIST list, int *x, int *y )
 	(*y) = nCursorLine;
 }
 
+
+static void SetTextEntryCursor( PSI_CONTROL pc, PCHAT_LIST list ) {
+	uint32_t newfontheight = GetFontHeight( list->sent_font );
+	Image window = GetControlSurface( pc );
+	int outLines = 0;
+
+	outLines = list->input.command_lines = CountDisplayedLines( list->input.phb_Input );
+	list->input.command_skip_lines = 0; 
+	if( outLines > 3 )
+		outLines = 3;
+	lprintf( "Lines available:%d", list->input.command_lines );
+
+	if( !list->nFontHeight ) {
+		list->nFontHeight = newfontheight;
+		list->command_height = newfontheight * outLines;
+		list->send_button_size = ( newfontheight /*list->command_height */
+			//list->nFontHeight
+			+ l.side_pad /** 2 /* above and below input*/
+			+ l.sent.BorderSegment[SEGMENT_TOP]->height
+			+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
+		MoveSizeControl( list->send_button, list->message_window->width - ( ( list->send_button_width ? list->send_button_width : 55 ) + l.side_pad )
+			+ list->send_button_x_offset
+			, window->height - ( ( list->send_button_height
+				? list->send_button_height
+				: list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
+			+ list->send_button_y_offset
+			, list->send_button_width ? list->send_button_width : 55
+			, list->send_button_height ? list->send_button_height : ( list->send_button_size ) );
+		if( list->alt_send_button )
+			MoveSizeControl( list->alt_send_button, list->message_window->width
+				- ( ( list->alt_send_button_width ? list->alt_send_button_width : 55 )
+					+ ( list->send_button_width ? list->send_button_width : 55 )
+					+ l.side_pad )
+				+ list->alt_send_button_x_offset
+				, window->height - ( ( list->alt_send_button_height
+					? list->alt_send_button_height
+					: list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
+				+ list->send_button_y_offset
+				, list->alt_send_button_width ? list->alt_send_button_width : 55
+				, list->alt_send_button_height ? list->alt_send_button_height : ( list->send_button_size ) );
+	}
+	else if( list->nFontHeight != newfontheight
+		|| ( list->command_height != newfontheight * outLines )
+		) {
+		list->nFontHeight = newfontheight;
+		list->command_height = list->nFontHeight * outLines;
+		list->send_button_size = ( list->nFontHeight /*list->command_height */
+			//list->nFontHeight
+			+ l.side_pad /** 2*/ /* above and below input*/
+			+ l.sent.BorderSegment[SEGMENT_TOP]->height
+			+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
+
+		MoveSizeControl( list->send_button
+			, list->message_window->width
+			- ( ( list->send_button_width ? list->send_button_width : 55 )
+				+ l.side_pad )
+			+ list->send_button_x_offset
+			, window->height - ( ( list->send_button_height
+				? list->send_button_height
+				: list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
+			+ list->send_button_y_offset
+			, list->send_button_width ? list->send_button_width : 55
+			, list->send_button_height ? list->send_button_height : ( list->send_button_size - l.side_pad ) );
+		if( list->alt_send_button )
+			MoveSizeControl( list->alt_send_button
+				, list->message_window->width
+				- ( ( list->alt_send_button_width ? list->alt_send_button_width : 55 )
+					+ ( list->send_button_width ? list->send_button_width : 55 )
+					+ l.side_pad )
+				+ list->send_button_x_offset
+				, window->height - ( ( list->send_button_height
+					? list->send_button_height
+					: list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
+				+ list->send_button_y_offset
+				, list->alt_send_button_width ? list->alt_send_button_width : 55
+				, list->alt_send_button_height ? list->alt_send_button_height : ( list->send_button_size - l.side_pad ) );
+#if 0
+		MoveSizeControl( list->send_button, list->message_window->width - 60
+			, window->height - ( list->send_button_size ) /*list->message_window->height + l.side_pad*/
+			, 55
+			, list->send_button_size - l.side_pad * 2 );
+#endif
+	}
+
+	list->region_x = 0;
+	list->region_y = window->height - ( list->command_height + l.side_pad + l.sent.BorderSegment[SEGMENT_BOTTOM]->height + l.sent.BorderSegment[SEGMENT_TOP]->height );
+	list->region_w = window->width - ( list->alt_send_button_width + ( list->send_button_width ? list->send_button_width : 55 ) + l.side_pad );
+	list->region_h = list->command_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
+
+
+	{
+		int nLine, nDisplayLine;
+		size_t cursor_pos = list->input.CommandInfo->CollectionIndex;
+		uint32_t counter;
+		DISPLAYED_LINE* pCurrentLine;
+		PDATALIST* ppCurrentLineInfo;
+		PTEXT cursor_segs;
+		PTEXT first_seg = list->input.CommandInfo->CollectionBuffer;
+		SetStart( first_seg );
+		ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
+		for( nLine = 0, counter = 0; ; nLine++ ) {
+			pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+			if( !pCurrentLine
+				|| ( pCurrentLine->nFirstSegOfs == 0 && pCurrentLine->start == first_seg ) )
+				break;
+		}
+		for( cursor_segs = list->input.CommandInfo->CollectionBuffer; cursor_segs; cursor_segs = cursor_segs->Prior ) {
+			if( cursor_segs == list->input.CommandInfo->CollectionBuffer )
+				continue;
+			cursor_pos += GetTextSize( cursor_segs );
+		}
+		for( list->nCursorLine = nLine; list->nCursorLine >= 0; list->nCursorLine-- ) {
+			pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, list->nCursorLine );
+			if( !pCurrentLine )
+				break;
+			if( cursor_pos > pCurrentLine->nLineEnd )
+				continue;
+			cursor_pos -= pCurrentLine->nLineStart;
+			break;
+		}
+		if( list->nCursorLine >= 0 ) {
+			nDisplayLine = list->nCursorLine;
+			if( list->input.command_lines > 3 ) {
+				if( list->nCursorLine ) {
+					if( list->nCursorLine < ( list->input.command_lines - 1 ) ) {
+						list->input.command_skip_lines = list->nCursorLine - 1;
+						list->input.command_lines = 3;
+					}
+					else {
+						list->input.command_skip_lines = list->input.command_lines - 3;
+						list->input.command_lines = 3;
+					}
+				}
+				else {
+					// on top line of input space, no skip...
+					list->input.command_lines = 3; // truncate showing count
+				}
+			}
+		} else {
+			// otherwise no skip..
+			nDisplayLine = 0;
+			list->nCursorLine = 0;
+			list->input.command_lines = outLines; // truncate showing count
+		}
+		/*
+		if( ( nDisplayLine - list->input.command_skip_lines ) < 0 )
+			list->input.command_skip_lines = nDisplayLine;
+		if( ( nDisplayLine - list->input.command_skip_lines ) > 2 )
+			list->input.command_skip_lines = list->nCursorLine - 2;
+		*/
+
+		for( nLine = list->input.command_skip_lines;
+			nLine < ( list->input.command_skip_lines + list->input.command_lines );
+			nLine++ ) {
+			pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
+			if( IsControlFocused( list->pc ) &&
+				( nLine == list->nCursorLine ) ) {
+				uint32_t w;
+				list->total_w = 0;
+				if( pCurrentLine ) {
+					PTEXT tmp;
+					uint32_t amount = cursor_pos;
+					uint32_t seg_amount;
+					size_t seg_start = pCurrentLine->nFirstSegOfs;
+#if 0
+					lprintf( "Drawing line line:%d  toShow:%d offs:%d seg:%d", nLine, pCurrentLine->nToShow, pCurrentLine->nFirstSegOfs, GetTextSize( pCurrentLine->start ) );
+#endif
+					for( tmp = pCurrentLine->start; cursor_pos && tmp; tmp = NEXTLINE( tmp ) ) {
+						if( ( pCurrentLine->nToShow - pCurrentLine->nFirstSegOfs ) < GetTextSize( tmp ) )
+							seg_amount = pCurrentLine->nToShow - pCurrentLine->nFirstSegOfs;
+						else
+							seg_amount = GetTextSize( tmp ) - seg_start;
+						if( cursor_pos > seg_amount )
+							amount = seg_amount;
+						else
+							amount = cursor_pos;
+						GetStringSizeFontEx( GetText( tmp ) + seg_start
+							, amount, &w, NULL, list->sent_font );
+						cursor_pos -= amount;
+						list->total_w += w;
+						lprintf( "Cursor offset %d %d", list->total_w, nLine );
+						seg_start = 0;
+					}
+				}
+				else {
+#if 0
+					lprintf( "Drawing no line... " );
+#endif
+					list->total_w = 0;
+				}
+			}
+		}
+	}
+
+}
+
 static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 {
+	lprintf( "DTE: Update: %d", update );
 	if( !IsControlHidden( pc ) )
 	{
 		Image window = GetControlSurface( pc );
@@ -1875,120 +2072,12 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 		int region_x, region_y, region_w, region_h;
 		int newfontheight;
 
-		list->input.command_lines = CountDisplayedLines( list->input.phb_Input );
-
-		if( list->input.command_lines <= 0 )
-		{
-			//list->input.command_skip_lines = 0;
-			list->input.command_lines = 1;
-		}
-		else 
-		{
-			if( list->input.command_skip_lines > list->input.command_lines )
-			{
-				if( list->input.command_lines > 3 )
-				{
-					//list->input.command_skip_lines = list->input.command_lines - 3;
-					list->input.command_lines = 3;
-				}
-				else
-				{
-					//list->input.command_skip_lines = 0;
-				}
-			}
-			else if( ( list->input.command_lines - list->input.command_skip_lines ) > 3 )
-			{
-				//list->input.command_skip_lines = list->input.command_lines - 3;
-				list->input.command_lines = 3;
-			}
-		}
-
-		newfontheight = GetFontHeight( list->sent_font );
-		if( !list->nFontHeight )
-		{
-			list->nFontHeight = newfontheight;
-			list->command_height = newfontheight * list->input.command_lines;
-			list->send_button_size = ( newfontheight /*list->command_height */
-				//list->nFontHeight
-				+ l.side_pad /** 2 /* above and below input*/ 
-				+ l.sent.BorderSegment[SEGMENT_TOP]->height 
-				+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
-			MoveSizeControl( list->send_button, list->message_window->width - ( ( list->send_button_width?list->send_button_width:55 ) + l.side_pad )
-									+ list->send_button_x_offset
-				, window->height - ( ( list->send_button_height
-									?list->send_button_height
-									:list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
-					+ list->send_button_y_offset
-				, list->send_button_width?list->send_button_width:55
-				, list->send_button_height?list->send_button_height:(list->send_button_size ) );
-			if( list->alt_send_button )
-				MoveSizeControl( list->alt_send_button, list->message_window->width 
-					- ( (list->alt_send_button_width?list->alt_send_button_width:55) 
-						+ ( list->send_button_width ? list->send_button_width : 55 ) 
-						+ l.side_pad )
-					+ list->alt_send_button_x_offset
-					, window->height - ( ( list->alt_send_button_height
-						? list->alt_send_button_height
-						: list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
-					+ list->send_button_y_offset
-					, list->alt_send_button_width ? list->alt_send_button_width : 55
-					, list->alt_send_button_height ? list->alt_send_button_height : ( list->send_button_size ) );
-		}
-		else if( list->nFontHeight != newfontheight 
-		       || ( list->command_height != newfontheight * list->input.command_lines )
-		       )
-		{
-			list->nFontHeight = newfontheight;
-			list->command_height = list->nFontHeight * list->input.command_lines ;
-			list->send_button_size = ( list->nFontHeight /*list->command_height */
-				//list->nFontHeight
-				+ l.side_pad /** 2*/ /* above and below input*/ 
-				+ l.sent.BorderSegment[SEGMENT_TOP]->height 
-				+ l.sent.BorderSegment[SEGMENT_BOTTOM]->height );
-
-			MoveSizeControl( list->send_button
-				, list->message_window->width 
-					- ( ( list->send_button_width?list->send_button_width:55 ) 
-						+ l.side_pad )
-					+ list->send_button_x_offset
-				, window->height - ( ( list->send_button_height
-									?list->send_button_height
-									:list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
-					+ list->send_button_y_offset
-				, list->send_button_width?list->send_button_width:55
-				, list->send_button_height?list->send_button_height:(list->send_button_size - l.side_pad ) );
-			if( list->alt_send_button )
-				MoveSizeControl( list->alt_send_button
-					, list->message_window->width 
-					- ( ( list->alt_send_button_width ? list->alt_send_button_width : 55 ) 
-						+ ( list->send_button_width ? list->send_button_width : 55 ) 
-						+ l.side_pad )
-					+ list->send_button_x_offset
-					, window->height - ( ( list->send_button_height
-						? list->send_button_height
-						: list->send_button_size ) + l.side_pad ) /*list->message_window->height + l.side_pad*/
-					+ list->send_button_y_offset
-					, list->alt_send_button_width ? list->alt_send_button_width : 55
-					, list->alt_send_button_height ? list->alt_send_button_height : ( list->send_button_size - l.side_pad ) );
-#if 0
-			MoveSizeControl( list->send_button, list->message_window->width - 60
-				, window->height - ( list->send_button_size ) /*list->message_window->height + l.side_pad*/
-				, 55
-				, list->send_button_size - l.side_pad * 2 );
-#endif
-		}
-
-		region_x = 0;
-		region_y = window->height - ( list->command_height + l.side_pad + l.sent.BorderSegment[SEGMENT_BOTTOM]->height  + l.sent.BorderSegment[SEGMENT_TOP]->height);
-		region_w = window->width - ( list->alt_send_button_width + (list->send_button_width?list->send_button_width:55) + l.side_pad );
-		region_h = list->command_height + l.sent.BorderSegment[SEGMENT_TOP]->height + l.sent.BorderSegment[SEGMENT_BOTTOM]->height;
-
 		if( update && list->colors.background_color )
-			BlatColor( window, region_x, region_y
-					, region_w, region_h, list->colors.background_color);
+			BlatColor( window, list->region_x, list->region_y
+					, list->region_w, list->region_h, list->colors.background_color);
 		else
-			BlatColor( window, region_x, region_y
-					, region_w, region_h, GetControlColor( pc, NORMAL ) );
+			BlatColor( window, list->region_x, list->region_y
+					, list->region_w, list->region_h, GetControlColor( pc, NORMAL ) );
 		
 		DrawSendTextFrame( window
 			, window->height - ( list->command_height + l.side_pad ) 
@@ -1996,98 +2085,25 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 			, list->alt_send_button_width + ( list->send_button_width?list->send_button_width:55 ) + l.side_pad );
 
 		{
-			int nLine, nCursorLine, nDisplayLine;
-			size_t cursor_pos = list->input.CommandInfo->CollectionIndex;
-			uint32_t counter;
-			DISPLAYED_LINE *pCurrentLine;
-			PDATALIST *ppCurrentLineInfo;
-			PTEXT cursor_segs;
-			PTEXT first_seg = list->input.CommandInfo->CollectionBuffer;
-			SetStart( first_seg );
-			ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
-			for( nLine = 0, counter = 0; ; nLine ++ )
-			{
-				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
-				if( !pCurrentLine
-					|| ( pCurrentLine->nFirstSegOfs == 0 && pCurrentLine->start == first_seg ) )
-					break;
-			}
-			for( cursor_segs = list->input.CommandInfo->CollectionBuffer; cursor_segs; cursor_segs = cursor_segs->Prior )
-			{
-				if( cursor_segs == list->input.CommandInfo->CollectionBuffer )
-					continue;
-				cursor_pos += GetTextSize( cursor_segs );
-			}
-			for( nCursorLine = nLine; nCursorLine >= 0; nCursorLine-- )
-			{
-				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nCursorLine );
-				if( !pCurrentLine )
-					break;
-				if( cursor_pos > pCurrentLine->nLineEnd )
-					continue;
-				cursor_pos -= pCurrentLine->nLineStart;
-				break;
-			}
-			if( nCursorLine >= 0 )
-				nDisplayLine = nCursorLine;
-			else
-			{
-				nDisplayLine = 0;
-				nCursorLine = 0;
-			}
-			if( ( nDisplayLine - list->input.command_skip_lines ) < 0 )
-				list->input.command_skip_lines = nDisplayLine;
-			if( ( nDisplayLine - list->input.command_skip_lines ) > 2 )
-				list->input.command_skip_lines = nCursorLine - 2;
-			for( nLine = list->input.command_skip_lines; 
+			int nLine;
+			PDISPLAYED_LINE pCurrentLine;
+			PDATALIST* ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
+
+			for( nLine = list->input.command_skip_lines;
 				 nLine < (list->input.command_skip_lines+list->input.command_lines); 
 				 nLine ++ )
 			{
 				pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
 				if( IsControlFocused( list->pc ) &&
-					( nLine == nCursorLine ) )
+					( nLine == list->nCursorLine ) )
 				{
-					uint32_t w;
-					uint32_t total_w = 0;
-					if( pCurrentLine )
-					{
-						PTEXT tmp;
-						uint32_t amount = cursor_pos;
-						uint32_t seg_amount;
-						size_t seg_start = pCurrentLine->nFirstSegOfs;
-#if 0
-						lprintf( "Drawing line line:%d  toShow:%d offs:%d seg:%d", nLine, pCurrentLine->nToShow, pCurrentLine->nFirstSegOfs, GetTextSize( pCurrentLine->start ) );
-#endif
-						for( tmp = pCurrentLine->start; cursor_pos && tmp; tmp = NEXTLINE( tmp ) )
-						{
-							if( ( pCurrentLine->nToShow - pCurrentLine->nFirstSegOfs ) < GetTextSize(tmp) )
-								seg_amount = pCurrentLine->nToShow - pCurrentLine->nFirstSegOfs;
-							else
-								seg_amount = GetTextSize( tmp ) - seg_start;
-							if( cursor_pos > seg_amount )
-								amount = seg_amount;
-							else
-								amount = cursor_pos;
-							GetStringSizeFontEx( GetText( tmp ) + seg_start
-								, amount, &w, NULL, list->sent_font );
-							cursor_pos -= amount;
-							total_w += w;
-							seg_start = 0;
-						}
-					}
-					else {
-#if 0
-						lprintf( "Drawing no line... " );
-#endif
-						total_w = 0;
-					}
 					if( list->flags.bCursorOn )
-						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + total_w
+						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + list->total_w
 						, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * ( nLine - list->input.command_skip_lines ) )
 							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * (( nLine - list->input.command_skip_lines )+1))
 							, BASE_COLOR_BLACK );
 					else
-						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + total_w
+						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + list->total_w
 							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * ( nLine - list->input.command_skip_lines ) )
 							, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * (( nLine - list->input.command_skip_lines )+1))
 							, BASE_COLOR_WHITE );
@@ -2115,11 +2131,6 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 						);  // cursor; to know where to draw the mark...
 				}
 			}
-		}
-		if( update )
-		{
-			//SmudgeCommon( pc );
-			//UpdateFrame( pc, region_x, region_y, region_w, region_h );
 		}
 	}
 }
@@ -2247,7 +2258,10 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 size_t GetChatInputCursor( PCHAT_LIST list, int x, int y )
 {
 	PDATALIST *ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
-	int nLine = list->input.command_skip_lines + ( list->input.command_lines - ( 1 + y / list->nFontHeight ) ); 
+	int nLine;
+	if( !list->nFontHeight )
+		return 20;
+	nLine = list->input.command_skip_lines + ( list->input.command_lines - ( 1 + y / list->nFontHeight ) );
 	{
 		PDISPLAYED_LINE pCurrentLine = (PDISPLAYED_LINE)GetDataItem( ppCurrentLineInfo, nLine );
 		if( pCurrentLine )
@@ -2626,6 +2640,7 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	list->colors.crText = BASE_COLOR_BLACK;
 	list->colors.crMark = BASE_COLOR_WHITE;
 	list->colors.crMarkBackground = BASE_COLOR_BLUE;
+	SetTextEntryCursor( pc, list );
 	return 1;
 }
 
@@ -2689,8 +2704,10 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			&& ( key & KEY_CONTROL_DOWN )
 			&& !( key & ( KEY_SHIFT_DOWN | KEY_ALT_DOWN ) ) )
 		{
-			if( list->InputPaste )
+			if( list->InputPaste ) {
 				list->InputPaste( list->psvInputPaste );
+				SetTextEntryCursor( pc, list );
+			}
 		}
 		else switch( KEY_CODE( key ) )
 		{
@@ -2698,6 +2715,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
 			if( key & KEY_PRESSED ) {
 				Chat_KeyHome( list, list->input.CommandInfo );
+				SetTextEntryCursor( pc, list );
 				SmudgeCommon( pc );
 			}
 			break;
@@ -2705,6 +2723,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
 			if( key & KEY_PRESSED ) {
 				Chat_KeyEndCmd( list, list->input.CommandInfo );
+				SetTextEntryCursor( pc, list );
 				SmudgeCommon( pc );
 			}
 			break;
@@ -2712,6 +2731,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
 			if( key & KEY_PRESSED ) {
 				Chat_KeyLeft( list, list->input.CommandInfo );
+				SetTextEntryCursor( pc, list );
 				SmudgeCommon( pc );
 			}
 			break;
@@ -2719,6 +2739,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
 			if( key & KEY_PRESSED ) {
 				Chat_KeyRight( list, list->input.CommandInfo );
+				SetTextEntryCursor( pc, list );
 				SmudgeCommon( pc );
 			}
 			break;
@@ -2726,6 +2747,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
 			if( key & KEY_PRESSED ) {
 				Chat_CommandKeyUp( list, list->input.CommandInfo );
+				SetTextEntryCursor( pc, list );
 				SmudgeCommon( pc );
 			}
 			break;
@@ -2733,6 +2755,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			list->input.control_key_state = ( key & ( KEY_SHIFT_DOWN|KEY_CONTROL_DOWN|KEY_ALT_DOWN ) ) >> 28;
 			if( key & KEY_PRESSED ) {
 				Chat_HandleKeyDown( list, list->input.CommandInfo );
+				SetTextEntryCursor( pc, list );
 				SmudgeCommon( pc );
 			}
 			break;
@@ -2741,6 +2764,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 				DECLTEXT( KeyStrokeDelete, "\x7f" ); // DECLTEXT implies 'static'
 				if( key & KEY_PRESSED ) {
 					DeleteUserInput( list->input.CommandInfo );
+					SetTextEntryCursor( pc, list );
 					ReformatInput( list );
 					SmudgeCommon( pc );
 				}
@@ -2751,6 +2775,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 				DECLTEXT( KeyStrokeBackspace, "\x08" ); // DECLTEXT implies 'static'
 				if( key & KEY_PRESSED ) {
 					Widget_WinLogicDoStroke( list, (PTEXT)&KeyStrokeBackspace );
+					SetTextEntryCursor( pc, list );
 					SmudgeCommon( pc );
 				}
 			}
@@ -2759,6 +2784,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			if( key & ( KEY_SHIFT_DOWN | KEY_CONTROL_DOWN ) )
 			{
 				KeyGetGatheredLine( list, (key&KEY_CONTROL_DOWN), list->input.CommandInfo );
+				SetTextEntryCursor( pc, list );
 				SmudgeCommon( pc );
 				break;
 			}
@@ -2790,6 +2816,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 				if( key & KEY_PRESSED )
 				{
 					Widget_WinLogicDoStroke( list, (PTEXT)&stroke );
+					SetTextEntryCursor( pc, list );
 					//Widget_KeyPressHandler( list, (uint8_t)(KEY_CODE(key)&0xFF), (uint8_t)KEY_MOD(key), (PTEXT)&stroke );
 					SmudgeCommon( pc );
 				}
@@ -3011,6 +3038,17 @@ void Chat_SetSendButtonText( PSI_CONTROL pc, CTEXTSTR text )
 	PCHAT_LIST *ppList = ControlData( PCHAT_LIST*, pc );
 	PCHAT_LIST list = (*ppList);
 	SetControlText( list->send_button, text );
+}
+
+void Chat_SetFonts( PSI_CONTROL pc, SFTFont messages, SFTFont dates, SFTFont sender ) {
+	PCHAT_LIST* ppList = ControlData( PCHAT_LIST*, pc );
+	PCHAT_LIST list = (*ppList);
+	list->sent_font
+		= list->received_font
+		= list->input_font
+		= messages;
+	list->date_font = dates;
+	list->sender_font = sender;
 }
 
 void Chat_SetSendButtonFont( PSI_CONTROL pc, SFTFont font ) {

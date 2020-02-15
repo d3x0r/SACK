@@ -94,6 +94,9 @@ typedef struct chat_list_tag
 		PMENU popup_text_entry;
 	void (CPROC*OnImageAutoClose)( uintptr_t );
 	uintptr_t psvImageAutoClose;
+	uint32_t total_w;
+	int region_x, region_y, region_w, region_h;
+	int nCursorLine;
 } CHAT_LIST;
 typedef struct chat_list_tag *PCHAT_LIST;
 
