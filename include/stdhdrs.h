@@ -1,9 +1,9 @@
 /* Includes the system platform as required or appropriate. If
    under a linux system, include appropriate basic linux type
    headers, if under windows pull "windows.h".
-   
-   
-   
+
+
+
    Includes the MOST stuff here ( a full windows.h parse is many
    many lines of code.)                                          */
 
@@ -19,17 +19,23 @@
 
 #ifndef STANDARD_HEADERS_INCLUDED
 /* multiple inclusion protection symbol */
-#define STANDARD_HEADERS_INCLUDED 
+#define STANDARD_HEADERS_INCLUDED
+#if _POSIX_C_SOURCE < 200112L
+#  ifdef _POSIX_C_SOURCE
+#    undef _POSIX_C_SOURCE
+#  endif
+#  define _POSIX_C_SOURCE 200112L
+#endif
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
 
-#if _MSC_VER 
+#if _MSC_VER
 #  ifdef EXCLUDE_SAFEINT_H
 #    define _INTSAFE_H_INCLUDED_
 #  endif
-#endif //_MSC_VER 
+#endif //_MSC_VER
 
 #ifndef WINVER
 #  define WINVER 0x0601
@@ -47,55 +53,55 @@
 #  endif
 #  define WIN32_LEAN_AND_MEAN
 
-// #define NOGDICAPMASKS             // CC_*, LC_*, PC_*, CP_*, TC_*, RC_                          
-// #define NOVIRTUALKEYCODES         // VK_*                                                       
-// #define NOWINMESSAGES             // WM_*, EM_*, LB_*, CB_*                                     
-// #define NOWINSTYLES               // WS_*, CS_*, ES_*, LBS_*, SBS_*, CBS_*                      
-// #define NOSYSMETRICS              // SM_*                                                       
-// #define NOMENUS                   // MF_*                                                       
-// #define NOICONS                   // IDI_*                                                      
-// #define NOKEYSTATES               // MK_*                                                       
-// #define NOSYSCOMMANDS             // SC_*                                                       
-// #define NORASTEROPS               // Binary and Tertiary raster ops                             
-// #define NOSHOWWINDOW              // SW_*                                                       
+// #define NOGDICAPMASKS             // CC_*, LC_*, PC_*, CP_*, TC_*, RC_
+// #define NOVIRTUALKEYCODES         // VK_*
+// #define NOWINMESSAGES             // WM_*, EM_*, LB_*, CB_*
+// #define NOWINSTYLES               // WS_*, CS_*, ES_*, LBS_*, SBS_*, CBS_*
+// #define NOSYSMETRICS              // SM_*
+// #define NOMENUS                   // MF_*
+// #define NOICONS                   // IDI_*
+// #define NOKEYSTATES               // MK_*
+// #define NOSYSCOMMANDS             // SC_*
+// #define NORASTEROPS               // Binary and Tertiary raster ops
+// #define NOSHOWWINDOW              // SW_*
 #  define OEMRESOURCE               // OEM Resource values
-// #define NOATOM                    // Atom Manager routines                                      
+// #define NOATOM                    // Atom Manager routines
 #  ifndef _INCLUDE_CLIPBOARD
 #    define NOCLIPBOARD               // Clipboard routines
 #  endif
-// #define NOCOLOR                   // Screen colors                                              
-// #define NOCTLMGR                  // Control and Dialog routines                                
-//(spv) #define NODRAWTEXT                // DrawText() and DT_*                                        
+// #define NOCOLOR                   // Screen colors
+// #define NOCTLMGR                  // Control and Dialog routines
+//(spv) #define NODRAWTEXT                // DrawText() and DT_*
 
-// #define NOGDI                     // All GDI defines and routines                               
-// #define NOKERNEL                  // All KERNEL defines and routines                            
+// #define NOGDI                     // All GDI defines and routines
+// #define NOKERNEL                  // All KERNEL defines and routines
 // #define NOUSER                    // All USER defines and routines
 #  ifndef _ARM_
 #    ifndef _INCLUDE_NLS
 #      define NONLS                     // All NLS defines and routines
 #    endif
 #  endif
-// #define NOMB                      // MB_* and MessageBox()                                      
+// #define NOMB                      // MB_* and MessageBox()
 #  define NOMEMMGR                  // GMEM_*, LMEM_*, GHND, LHND, associated routines
 #  define NOMETAFILE                // typedef METAFILEPICT
 #  ifndef NOMINMAX
 #    define NOMINMAX                  // Macros min(a,b) and max(a,b)
 #  endif
-// #define NOMSG                     // typedef MSG and associated routines                        
-// #define NOOPENFILE                // OpenFile(), OemToAnsi, AnsiToOem, and OF_*                 
-// #define NOSCROLL                  // SB_* and scrolling routines                                
+// #define NOMSG                     // typedef MSG and associated routines
+// #define NOOPENFILE                // OpenFile(), OemToAnsi, AnsiToOem, and OF_*
+// #define NOSCROLL                  // SB_* and scrolling routines
 #  define NOSERVICE                 // All Service Controller routines, SERVICE_ equates, etc.
-//#define NOSOUND                   // Sound driver routines                                      
+//#define NOSOUND                   // Sound driver routines
 #  ifndef _INCLUDE_TEXTMETRIC
 #    define NOTEXTMETRIC              // typedef TEXTMETRIC and associated routines
 #  endif
-// #define NOWH                      // SetWindowsHook and WH_*                                    
-// #define NOWINOFFSETS              // GWL_*, GCL_*, associated routines                          
-// #define NOCOMM                    // COMM driver routines                                       
+// #define NOWH                      // SetWindowsHook and WH_*
+// #define NOWINOFFSETS              // GWL_*, GCL_*, associated routines
+// #define NOCOMM                    // COMM driver routines
 #  define NOKANJI                   // Kanji support stuff.
 #  define NOHELP                    // Help engine interface.
 #  define NOPROFILER                // Profiler interface.
-//#define NODEFERWINDOWPOS          // DeferWindowPos routines                                    
+//#define NODEFERWINDOWPOS          // DeferWindowPos routines
 #  define NOMCX                     // Modem Configuration Extensions
 #  define NO_SHLWAPI_STRFCNS   // no StrCat StrCmp StrCpy etc functions.  (used internally)
 #  define STRSAFE_NO_DEPRECATE  // This also has defines that override StrCmp StrCpy etc... but no override
@@ -183,6 +189,9 @@ __declspec(dllimport) DWORD WINAPI timeGetTime(void);
 #  endif
 
 #else // ifdef unix/linux
+#  ifndef _GNU_SOURCE
+#    define _GNU_SOURCE
+#  endif
 #  include <pthread.h>
 #  include <sched.h>
 #  include <unistd.h>
@@ -269,7 +278,7 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #else
 //#include "loadsock.h"
 #endif
-//#include <stdlib.h>
+
 #include <stdarg.h>
 #include <string.h>
 #ifdef __CYGWIN__
@@ -290,7 +299,7 @@ extern __sighandler_t bsd_signal(int, __sighandler_t);
 #ifndef MAXPATH
 // windef.h has MAX_PATH
 #  define MAXPATH MAX_PATH
-#  if (!MAXPATH) 
+#  if (!MAXPATH)
 #    undef MAXPATH
 #    define MAXPATH 256
 #  endif

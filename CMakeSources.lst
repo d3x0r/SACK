@@ -228,13 +228,13 @@ if( UNIX )
 	set( VIDLIB_SOURCES
 	  ${SOURCES_ROOT}src/vidlib/key.c
 	  ${SOURCES_ROOT}src/vidlib/keydefs.c
-#	  ${SOURCES_ROOT}src/vidlib/vidlib.c
-#	  ${SOURCES_ROOT}src/vidlib/xvidlib.c
+	  ${SOURCES_ROOT}src/vidlib/vidlib.c
+	  ${SOURCES_ROOT}src/vidlib/xvidlib.c
 	)
 	set( ExtraRenderFlags "RENDER_LIBRARY_SOURCE;_OPENGL_ENABLED" )
 
 	if( NOT __ARM__ )
-#		set( VIDLIB_SOURCES ${VIDLIB_SOURCES} ${SOURCES_ROOT}src/vidlib/opengl.c )
+		set( VIDLIB_SOURCES ${VIDLIB_SOURCES} ${SOURCES_ROOT}src/vidlib/opengl.c )
 	endif( NOT __ARM__ )
 
 endif( UNIX )

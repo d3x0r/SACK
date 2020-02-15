@@ -200,7 +200,7 @@ struct timer_local_data {
 	pthread_key_t my_thread_info_tls;
 #  endif
 #endif
-} 
+}
 #ifdef __STATIC_GLOBALS__
   global_timer_structure__
 #endif
@@ -726,7 +726,7 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 #    ifdef DEBUG_PIPE_USAGE
 		_lprintf(DBG_RELAY)( "(wakethread)wil write pipe... %p", thread );
 #    endif
-		
+
 		if( write( thread->pipe_ends[1], "G", 1 ) != 1 ) {
 			int e = errno;
 			lprintf( "Pipe Error? %d", e );
@@ -900,7 +900,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 						timeout.tv_sec += n / 1000;
 						timeout.tv_sec += timeout.tv_nsec / 1000000000L;
 						timeout.tv_nsec %= 1000000000L;
-						
+
 						//lprintf( "Timed wait:%d %d", timeout.tv_nsec, timeout.tv_sec );
 						stat = pthread_mutex_timedlock( &pThread->mutex, &timeout );
 						//lprintf( "Stat for timed lock:%d", stat );
@@ -1306,7 +1306,7 @@ THREAD_ID GetThisThreadID( void )
 #if !HAS_TLS
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 #else
-	if( !MyThreadInfo.nThread ) 
+	if( !MyThreadInfo.nThread )
 		MakeThread();
 	return MyThreadInfo.nThread;
 #endif

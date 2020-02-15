@@ -106,17 +106,12 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 //#  define TARGETNAME "sack_bag.dll"  //$(TargetFileName)
 //#endif
 
-#    ifndef __cplusplus_cli
-// cli mode, we use this directly, and build the exports in sack_bag.dll directly
-#    else
-#      define LIBRARY_DEADSTART
-#    endif
-#define MD5_SOURCE
+#    define MD5_SOURCE
 
-#define USE_SACK_FILE_IO
+#    define USE_SACK_FILE_IO
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define MEM_LIBRARY_SOURCE
+#    define MEM_LIBRARY_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
 #define SYSLOG_SOURCE
@@ -161,77 +156,65 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #define SHA1_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define CONSTRUCT_SOURCE
+#    define CONSTRUCT_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define PROCREG_SOURCE
+#    define PROCREG_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define SQLPROXY_LIBRARY_SOURCE
+#    define SQLPROXY_LIBRARY_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define TYPELIB_SOURCE
+#      define TYPELIB_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define JSON_EMITTER_SOURCE
+#      define JSON_EMITTER_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define SERVICE_SOURCE
-#  ifndef __NO_SQL__
-#    ifndef __NO_OPTIONS__
+#    define SERVICE_SOURCE
+#    ifndef __NO_SQL__
+#      ifndef __NO_OPTIONS__
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.    and not NO_SQL and not NO_OPTIONS   */
-#      define SQLGETOPTION_SOURCE
+#        define SQLGETOPTION_SOURCE
+#      endif
 #    endif
-#  endif
 
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define PSI_SOURCE
-
-#  ifdef _MSC_VER
-
-#    ifndef JPEG_SOURCE
-//wouldn't matter... the external things wouldn't need to define this
-//#error projects were not generated with CMAKE, and JPEG_SORUCE needs to be defined
-#    endif
-//#define JPEG_SOURCE
-//#define __PNG_LIBRARY_SOURCE__
-//#define FT2_BUILD_LIBRARY   // freetype is internal
-//#define FREETYPE_SOURCE		// build Dll Export
-#  endif
+#    define PSI_SOURCE
 
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define MNG_BUILD_DLL
+#    define MNG_BUILD_DLL
 
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define BAGIMAGE_EXPORTS
+#    define BAGIMAGE_EXPORTS
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
  individual library module once upon a time.           */
-#ifndef IMAGE_LIBRARY_SOURCE
-#  define IMAGE_LIBRARY_SOURCE
-#endif
+#    ifndef IMAGE_LIBRARY_SOURCE
+#      define IMAGE_LIBRARY_SOURCE
+#    endif
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define SYSTRAY_LIBRARAY
+#    define SYSTRAY_LIBRARAY
 
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define SOURCE_PSI2
+#    define SOURCE_PSI2
 
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define VIDEO_LIBRARY_SOURCE
+#    define VIDEO_LIBRARY_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
 	/* define RENDER SOURCE when building monolithic. */
-#     ifndef RENDER_LIBRARY_SOURCE
-#       define RENDER_LIBRARY_SOURCE
-#     endif
+#    ifndef RENDER_LIBRARY_SOURCE
+#      define RENDER_LIBRARY_SOURCE
+#    endif
 
 // define a type that is a public name struct type...
 // good thing that typedef and struct were split
@@ -252,7 +235,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #include <sys/types.h>
 #include <sys/stat.h>
 #if !defined( _WIN32 ) && !defined( __MAC__ )
-#  include <syscall.h>
+#  include <sys/syscall.h>
 #elif defined( __MAC__ )
 #  include <sys/syscall.h>
 #endif

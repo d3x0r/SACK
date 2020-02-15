@@ -133,7 +133,7 @@ IDLE_PROC( int, RemoveIdleProc )( int (CPROC*Proc)(uintptr_t psv ) )
 
 IDLE_PROC( int, IdleEx )( DBG_VOIDPASS )
 {
-	THREAD_ID me = GetMyThreadID();
+	THREAD_ID me = GetThisThreadID();
 	int success = 0;
 	PIDLEPROC proc;
 #ifndef __STATIC_GLOBALS__

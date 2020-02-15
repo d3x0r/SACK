@@ -123,7 +123,7 @@ if( EMSCRIPTEN )
 	SET( __NO_ODBC__ ON )
 	set( __NO_MSGSVR__ ON )
         #  use constructor on all registrations, and then call InvokeDeadstart() in main;
-	add_definitions( -D__MANUAL_PRELOAD__ ) 
+	add_definitions( -D__MANUAL_PRELOAD__ )
 endif( EMSCRIPTEN )
 
 DEFINE_DEFAULT( ALLOW_IMAGE_INTERFACES OFF )
@@ -320,10 +320,14 @@ if( APPLE )
    SET( ExtraFlags "${ExtraFlags} -Wno-parentheses -Wno-address-of-packed-member")
 else( APPLE )
     if( CMAKE_COMPILER_IS_GNUCC )
+	 	message( "Not apple, is GCC... ")
         SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
         SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
 
         SET( ExtraFlags "${ExtraFlags} -Wno-attributes -Wno-multichar")
+        SET( ExtraFlags "${ExtraFlags} -Wno-address-of-packed-member")
+        SET( ExtraFlags "${ExtraFlags} -Wno-int-to-pointer-cast")
+		  ADD_DEFINITIONS( ${ExtraFlags} )
     endif( CMAKE_COMPILER_IS_GNUCC )
 endif( APPLE )
 
@@ -481,7 +485,7 @@ SET(CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_DEBUG CACHE STRING "" )
 SET(CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG CACHE STRING "" )
 
 
-macro( setupDefines PLATFORM_DEFINES PLATFORM_CMAKE_DEFINES PLATFORM_LIBRARIES APPLE __ANDROID__ __LINUX__ WIN32 MSVC __ARM__ __NO_ODBC__ ) 
+macro( setupDefines PLATFORM_DEFINES PLATFORM_CMAKE_DEFINES PLATFORM_LIBRARIES APPLE __ANDROID__ __LINUX__ WIN32 MSVC __ARM__ __NO_ODBC__ )
 
 #message( "MACRO ARGUMENTS: android ${__ANDROID__} linux ${__LINUX__} no odbc ${__NO_ODBC__}" )
 
@@ -517,7 +521,7 @@ if( ${__ANDROID__} )
 	set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} android log m )
 endif( ${__ANDROID__} )
 
-if( ${WIN32} ) 
+if( ${WIN32} )
         if( WATCOM )
 	        set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} shfolder psapi )
         endif( WATCOM)
@@ -1183,6 +1187,7 @@ add_subdirectory( src/imglib )
 
 if( NOT __NO_GUI__ )
   if( NOT __ANDROID__ AND NOT APPLE )
+     add_subdirectory( src/vidlib/wayland )
      add_subdirectory( src/vidlib )
   endif( NOT __ANDROID__ AND NOT APPLE )
 
@@ -1512,7 +1517,7 @@ if( NOT EMSCRIPTEN )
   		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
 		-DPLATFORM_DEFINES=${PLATFORM_DEFINES_ARG}
 		-DPLATFORM_CMAKE_DEFINES=${PLATFORM_CMAKE_DEFINES_ARG}
-      
+
   )
 endif( NOT EMSCRIPTEN)
 
