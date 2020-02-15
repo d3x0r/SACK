@@ -207,7 +207,7 @@ static int handshake( PCLIENT pc ) {
 		lprintf( "doing handshake...." );
 #endif
 		/* NOT INITIALISED */
-#ifdef DEBUG_SSL_IO		
+#ifdef DEBUG_SSL_IO
 		lprintf(" Handshake is not finished? %p", pc );
 #endif
 		r = SSL_do_handshake(ses->ssl);
@@ -259,7 +259,7 @@ static int handshake( PCLIENT pc ) {
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
 				return -1;
 			}
-			if (SSL_ERROR_WANT_READ == r) 
+			if (SSL_ERROR_WANT_READ == r)
 			{
 			}
 			else {
@@ -272,7 +272,7 @@ static int handshake( PCLIENT pc ) {
 	}
 	else {
 		/* SSL IS INITIALISED */
-#ifdef DEBUG_SSL_IO		
+#ifdef DEBUG_SSL_IO
 		lprintf(" Handshake is and has been finished?");
 #endif
 		return 1;
@@ -414,7 +414,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 					lprintf( "SSL SESSION SELF DESTRUCTED!" );
 				}
 				if( pending > 0 ) {
-					int read; 
+					int read;
 #ifdef DEBUG_SSL_IO_VERBOSE
 					lprintf( "pending to send is %zd into %zd %p " , pending, pc->ssl_session->obuflen, pc->ssl_session->obuffer );
 #endif
@@ -588,14 +588,14 @@ static void win32_locking_callback(int mode, int type, const char *file, int lin
 
 unsigned long pthreads_thread_id(void)
 {
-	return (unsigned long)GetMyThreadID();
+	return (unsigned long)GetThisThreadID();
 }
 
 static LOGICAL ssl_InitLibrary( void ){
 	if( !ssl_global.flags.bInited )
 	{
 		SSL_library_init();
-		
+
 		ssl_global.lock_cs = NewArray( uint32_t, CRYPTO_num_locks() );
 		memset( ssl_global.lock_cs, 0, sizeof( uint32_t ) * CRYPTO_num_locks() );
 		CRYPTO_set_locking_callback(win32_locking_callback);
@@ -659,7 +659,7 @@ static void infoCallback( const SSL *ssl, int where, int ret ){
 	if( !ret )
 		lprintf( "ERROR : SSL Info Event %p %s %x %x", ssl, SSL_state_string(ssl), where, ret );
 	else if( ret & SSL_CB_ALERT ) {
-		lprintf( "ALERT : SSL Alert Event %p %s %s %s", ssl, SSL_state_string(ssl), SSL_alert_type_string_long(ret), SSL_alert_desc_string_long(ret) );		
+		lprintf( "ALERT : SSL Alert Event %p %s %s %s", ssl, SSL_state_string(ssl), SSL_alert_type_string_long(ret), SSL_alert_desc_string_long(ret) );
 	}
 	else
 		lprintf( "INFO : SSL Info Event %p %s %x %x %s %s", ssl, SSL_state_string(ssl)
@@ -731,7 +731,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	}
 	PLIST* ctxList = &pcListener->ssl_session->hosts;
 
-	
+
 	int* type;
 	size_t typelen;
 	size_t n;
@@ -768,11 +768,11 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 					}
 				}
 				break;
-			case TLSEXT_TYPE_status_request: // 5 HTTPS 
+			case TLSEXT_TYPE_status_request: // 5 HTTPS
 			case TLSEXT_TYPE_renegotiate: // ff01 HTTP Header does this.  00
 			case TLSEXT_TYPE_signed_certificate_timestamp: // 18 empty value.
 				break;
-			case TLSEXT_TYPE_server_name: 
+			case TLSEXT_TYPE_server_name:
 				if( SSL_client_hello_get0_ext( ssl, type[n], &buf, &buflen ) ) {
 					int len = (int)((buf[0] << 8) | buf[1]);
 					if( len == (buflen - 2) ) {
@@ -822,7 +822,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	return SSL_CLIENT_HELLO_SUCCESS;
 	return 1; // success.
 	return 0; // fail this .  set al[0]
-	return -1; // pause, resume later, handshake result SSL_ERROR_WANT_CLIENT_HELLO_CB 
+	return -1; // pause, resume later, handshake result SSL_ERROR_WANT_CLIENT_HELLO_CB
 }
 #else
 static int handleServerName( SSL* ssl, int* al, void* param ) {
@@ -1024,7 +1024,7 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 	}
 
 	// these are set per-context... but only the first context is actually used?
-	
+
 #if !defined( LIBRESSL_VERSION_NUMBER )
 	SSL_CTX_set_client_hello_cb( ctx->ctx, handleServerName, pc );// &ses->hosts );
 #else
@@ -1198,7 +1198,7 @@ void ssl_SetIgnoreVerification( PCLIENT pc ) {
 //#include <openssl/pem.h>
 //#include <openssl/evp.h>
 
-// Fatal error; abort with message, including file and line number 
+// Fatal error; abort with message, including file and line number
 //
 static int cb(const char *str, size_t len, void *u)  {
 	lprintf( "%s", str);
@@ -1207,44 +1207,44 @@ static int cb(const char *str, size_t len, void *u)  {
 }
 
 static void fatal_error(const char *file, int line, const char *msg)
-{ 
+{
 	fprintf(stderr, "**FATAL** %s:%i %s\n", file, line, msg);
 	fprintf( stderr, "specific error available, but not dumped; ERR_print_errors_fp is gone" );
 	ERR_print_errors_cb( cb, 0 );
 	//ERR_print_errors_fp(stderr);
-	exit(-1); 
-} 
+	exit(-1);
+}
 
-#define fatal(msg) fatal_error(__FILE__, __LINE__, msg) 
+#define fatal(msg) fatal_error(__FILE__, __LINE__, msg)
 
-// Parameter settings for this cert 
-// 
+// Parameter settings for this cert
+//
 #define ENTRIES (sizeof(entries)/sizeof(entries[0]))
 
 
-// declare array of entries to assign to cert 
-struct entry 
-{ 
+// declare array of entries to assign to cert
+struct entry
+{
 	const char *key;
 	const char *value;
-}; 
+};
 
 struct entry entries[] =
-{ 
-    { "countryName", "US" }, 
+{
+    { "countryName", "US" },
     { "stateOrProvinceName", "NV" },
     { "localityName", "Las Vegas" },
     { "organizationName", "d3x0r.org" },
-    { "organizationalUnitName", "Development" }, 
-    { "commonName", "Internal Project" }, 
-}; 
+    { "organizationalUnitName", "Development" },
+    { "commonName", "Internal Project" },
+};
 
-// main --- 
-// 
-// 
+// main ---
+//
+//
 //int main(int argc, char *argv[])
 struct internalCert * MakeRequest( void )
-{ 
+{
 	 struct internalCert *cert = NewArray( struct internalCert, 1 );
 	 int ca_len;
 	 int key_len; // already cached key
@@ -1253,8 +1253,8 @@ struct internalCert * MakeRequest( void )
 
 	 BIO *keybuf = BIO_new( BIO_s_mem() );
 	 MemSet( cert, 0, sizeof( struct internalCert ) );
-	 // Create evp obj to hold our rsakey 
-	 // 
+	 // Create evp obj to hold our rsakey
+	 //
 	 if( !(cert->pkey = EVP_PKEY_new()) )
 		 fatal( "Could not create EVP object" );
 
@@ -1328,15 +1328,15 @@ struct internalCert * MakeRequest( void )
 		}
 	}
 
-    // seed openssl's prng 
-    // 
-    /* 
-    if (RAND_load_file("/dev/random", -1)) 
-        fatal("Could not seed prng"); 
-    */ 
-    // Generate the RSA key; we don't assign a callback to monitor progress 
-    // since generating keys is fast enough these days 
-    // 
+    // seed openssl's prng
+    //
+    /*
+    if (RAND_load_file("/dev/random", -1))
+        fatal("Could not seed prng");
+    */
+    // Generate the RSA key; we don't assign a callback to monitor progress
+    // since generating keys is fast enough these days
+    //
 
 	if (!cert->x509)
 	{
@@ -1393,7 +1393,7 @@ struct internalCert * MakeRequest( void )
 		}
 	}
 	return cert;
-} 
+}
 
 #ifdef __LINUX__
 void loadSystemCerts( X509_STORE *store )

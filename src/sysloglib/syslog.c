@@ -15,7 +15,7 @@
  */
 
 //#define SUPPORT_LOG_ALLOCATE
-//#define DEFAULT_OUTPUT_STDERR
+#define DEFAULT_OUTPUT_STDERR
 //#define DEFAULT_OUTPUT_STDOUT
 
 #define COMPUTE_CPU_FREQUENCY
@@ -486,7 +486,7 @@ void InitSyslog( int ignore_options )
 		return;
 	}
 	SimpleRegisterAndCreateGlobal( syslog_local );
- 	
+
 #endif
 	if( !(*syslog_local).flags.bInitialized )
 	{
@@ -519,7 +519,7 @@ void InitSyslog( int ignore_options )
 #    if defined( __LINUX__ ) && 0
 			logtype = SYSLOG_SOCKET_SYSLOGD;
 			(*syslog_local).flags.bLogProgram = 1;
-			
+
 #    else
 			/* using SYSLOG_AUTO_FILE option does not require this to be open.
 			* it is opened on demand.
@@ -757,7 +757,7 @@ void ConvertTickToTime( int64_t tick, PSACK_TIME st ) {
 	tick += EPOCH;
 	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
 	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
-	// until 00:00:00 January 1, 1970 
+	// until 00:00:00 January 1, 1970
 	SYSTEMTIME  system_time;
 	FILETIME    file_time;
 
@@ -799,13 +799,13 @@ int64_t GetTimeOfDay( void )
 	//struct timezone tzp;
 	int tz = GetTimeZone();
 	if( tz < 0 )
-		tz = -(((-tz / 100) * 60) + (-tz % 100)) / 15; // -840/15 = -56  
+		tz = -(((-tz / 100) * 60) + (-tz % 100)) / 15; // -840/15 = -56
 	else
 		tz = (((tz / 100) * 60) + (tz % 100)) / 15; // -840/15 = -56  720/15 = 48
 #ifdef _WIN32
 	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
 	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
-	// until 00:00:00 January 1, 1970 
+	// until 00:00:00 January 1, 1970
 	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
 	SYSTEMTIME  system_time;
 	FILETIME    file_time;

@@ -60,6 +60,7 @@ SRCS="${SRCS}   ../../src/contrib/md5lib/md5c.c"
 SRCS="${SRCS}   ../../src/contrib/sha1lib/sha1.c"
 SRCS="${SRCS}   ../../src/contrib/sha2lib/sha2.c"
 SRCS="${SRCS}   ../../src/contrib/sha3lib/sha3.c"
+SRCS="${SRCS}   ../../src/contrib/K12/lib/KangarooTwelve.c"
 SRCS="${SRCS}   ../../src/salty_random_generator/salty_generator.c"
 SRCS="${SRCS}   ../../src/salty_random_generator/crypt_util.c"
 

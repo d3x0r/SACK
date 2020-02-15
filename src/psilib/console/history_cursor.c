@@ -465,7 +465,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 	}
 	else if( segment->flags & TF_FORMATEX )
 	{
-		// the only one that gets here is the set top of form?? 
+		// the only one that gets here is the set top of form??
 		//switch( segment->format.flags.format_op )
 
 		pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
@@ -589,7 +589,7 @@ uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown )
 	 {
 		size_t nLen = GetTextSize( segment );
 		TEXTCHAR *text = GetText( segment );
-		while( nShown < nLen 
+		while( nShown < nLen
 			  && text[nShown] == ' ' )
 			nShown++;
 		if( nShown == nLen )
@@ -623,7 +623,8 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, u
 		uint32_t good_space_size;
 		LOGICAL has_good_space = FALSE;
 		uint32_t good_space = 0;
-		uint32_t nSpace, nNextSpace;
+		uint32_t nSpace;
+		size_t nNextSpace;
 		uint32_t nSegSize, nSegHeight;
 		uint32_t best_chars = 0;
 		uint32_t best_char_size;

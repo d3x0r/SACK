@@ -523,13 +523,13 @@ struct rt_init // structure placed in XI/YI segment
 
 #define PRIORITY_PRELOAD(name,pr) static void name(void);         \
 	RTINIT_STATIC struct rt_init pastejunk(name,_ctor_label)       \
-	  __attribute__((section(DEADSTART_SECTION))) __attribute__((used)) HIDDEN_VISIBILITY \
+	  __attribute__((section(DEADSTART_SECTION))) __attribute__((used))  \
 	={0,0,pr INIT_PADDING                                          \
 	 ,__LINE__,name                                                \
 	 PASS_FILENAME                                                 \
 	,TOSTR(name)                                                   \
 	JUNKINIT(name)};                                               \
-	static void name(void) __attribute__((used)) HIDDEN_VISIBILITY; \
+	static void name(void) __attribute__((used)); \
 	void name(void)
 
 #endif
