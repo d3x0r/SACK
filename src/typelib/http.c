@@ -62,7 +62,7 @@ struct HttpState {
 		BIT_FIELD ssl : 1; // prevent issuing network reads... ssl pushes data from internal buffers
 		BIT_FIELD success : 1;
 	}flags;
-	uint32_t lock;
+	CRITICALSECTION lock;
 };
 
 struct HttpServer {
@@ -95,15 +95,18 @@ PRELOAD( loadOption ) {
 }
 
 static void lockHttp( struct HttpState *state ) {
-	while( LockedExchange( &state->lock, 1 ) );
+	EnterCriticalSec( &state->lock );
+	//while( LockedExchange( &state->lock, 1 ) );
 }
 
 static void unlockHttp( struct HttpState *state ) {
-	state->lock = 0;
+	LeaveCriticalSec( &state->lock );
+	//state->lock = 0;
 }
 
 void GatherHttpData( struct HttpState *pHttpState )
 {
+	lockHttp( pHttpState );
 	if( pHttpState->content_length )
 	{
 		PTEXT pMergedLine;
@@ -135,6 +138,7 @@ void GatherHttpData( struct HttpState *pHttpState )
 		//lprintf( "Setting content to partial... " );
 		pHttpState->content = pHttpState->partial;
 	}
+	unlockHttp( pHttpState );
 }
 
 
@@ -750,6 +754,8 @@ struct HttpState *CreateHttpState( PCLIENT *pc )
 
 	pHttpState = New( struct HttpState );
 	MemSet( pHttpState, 0, sizeof( struct HttpState ) );
+	InitializeCriticalSec( &pHttpState->lock );
+
 	pHttpState->pvt_collector = VarTextCreate();
 	pHttpState->pc = pc;
 	return pHttpState;
@@ -809,6 +815,7 @@ void EndHttp( struct HttpState *pHttpState )
 
 PTEXT GetHttpContent( struct HttpState *pHttpState )
 {
+	lockHttp( pHttpState );
 	if( pHttpState->read_chunks )
 	{
 		/* did a timeout happen? */
@@ -816,6 +823,7 @@ PTEXT GetHttpContent( struct HttpState *pHttpState )
 			return pHttpState->content;
 		return NULL;
 	}
+	unlockHttp( pHttpState );
 
 	if( pHttpState->content_length )
 		return pHttpState->content;
@@ -826,31 +834,37 @@ void ProcessHttpFields( struct HttpState *pHttpState, void (CPROC*f)( uintptr_t 
 {
 	INDEX idx;
 	struct HttpField *field;
+	lockHttp( pHttpState );
 	LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
 	{
 		f( psv, field->name, field->value );
 	}
+	unlockHttp( pHttpState );
 }
 
 void ProcessCGIFields( struct HttpState *pHttpState, void (CPROC*f)( uintptr_t psv, PTEXT name, PTEXT value ), uintptr_t psv )
 {
 	INDEX idx;
 	struct HttpField *field;
+	lockHttp( pHttpState );
 	LIST_FORALL( pHttpState->cgi_fields, idx, struct HttpField *, field )
 	{
 		f( psv, field->name, field->value );
 	}
+	unlockHttp( pHttpState );
 }
 
 PTEXT GetHttpField( struct HttpState *pHttpState, CTEXTSTR name )
 {
 	INDEX idx;
 	struct HttpField *field;
+	lockHttp( pHttpState );
 	LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
 	{
 		if( StrCaseCmp( GetText( field->name ), name ) == 0 )
 			return field->value;
 	}
+	unlockHttp( pHttpState );
 	return NULL;
 }
 
@@ -885,6 +899,7 @@ PTEXT GetHttpMethod( struct HttpState *pHttpState )
 
 void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 {
+	lockHttp( pHttpState );
 	//_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too?" );
 	EndHttp( pHttpState ); // empties variables
 	DeleteList( &pHttpState->fields );
@@ -893,6 +908,8 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 	VarTextDestroy( &pHttpState->pvt_collector );
 	if( pHttpState->buffer )
 		Release( pHttpState->buffer );
+	unlockHttp( pHttpState );
+	DeleteCriticalSec( &pHttpState->lock );
 	Release( pHttpState );
 }
 
