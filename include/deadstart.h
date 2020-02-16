@@ -109,6 +109,11 @@ SACK_NAMESPACE
 #  endif
 
 
+     // 28 (thread ID for critical sections used to allocate memory)
+#define TIMER_MODULE_PRELOAD_PRIORITY  (CONFIG_SCRIPT_PRELOAD_PRIORITY-3)
+
+     // 30 specify where to load external resources from... like the option database
+#define VIRTUAL_FILESYSTEM_PRELOAD_PRIORITY (CONFIG_SCRIPT_PRELOAD_PRIORITY-1)
 
    /* this is just a global space initializer (shared, named
       region, allows static link plugins to share information)
@@ -118,9 +123,11 @@ SACK_NAMESPACE
       Allocates its shared memory global region, so if this library
       is built statically and referenced in multiple plugins
       ConfigScript can share the same symbol tables. This also
-      provides sharing between C++ and C.                           */
+		provides sharing between C++ and C.                           */
+         // 31
 #define CONFIG_SCRIPT_PRELOAD_PRIORITY    (SQL_PRELOAD_PRIORITY-3)
-   // this is just a global space initializer (shared, named region, allows static link plugins to share information)
+			// this is just a global space initializer (shared, named region, allows static link plugins to share information)
+         // 34
 #define SQL_PRELOAD_PRIORITY    (SYSLOG_PRELOAD_PRIORITY-1)
 /* Level at which logging is initialized. Nothing under this
    should be doing logging, if it does, the behavior is not as

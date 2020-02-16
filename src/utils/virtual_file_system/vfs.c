@@ -1878,7 +1878,7 @@ static struct file_system_interface sack_vfs_fsi = {
 	, NULL //(int(CPROC*)(void*))sack_vfs_file_unlock
 };
 
-PRIORITY_PRELOAD( Sack_VFS_Register, CONFIG_SCRIPT_PRELOAD_PRIORITY - 2 )
+PRIORITY_PRELOAD( Sack_VFS_Register, VIRTUAL_FILESYSTEM_PRELOAD_PRIORITY )
 {
 #ifdef ALT_VFS_NAME
 #   define DEFAULT_VFS_NAME SACK_VFS_FILESYSTEM_NAME ".runner"

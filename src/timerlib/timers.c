@@ -282,7 +282,7 @@ static struct my_thread_info* GetThreadTLS( void )
 
 // this priorirty is also relative to a secondary init for procreg/names.c
 // if you change this, need to change when that is scheduled also
-PRIORITY_PRELOAD( LowLevelInit, CONFIG_SCRIPT_PRELOAD_PRIORITY-1 )
+PRIORITY_PRELOAD( LowLevelInit, TIMER_MODULE_PRELOAD_PRIORITY )
 {
 	// there is a small chance the local is already initialized.
 #  ifndef __STATIC_GLOBALS__
