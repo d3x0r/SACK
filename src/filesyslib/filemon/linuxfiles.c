@@ -197,7 +197,7 @@ void CPROC NewScanTimer( uintptr_t unused )
       //lprintf( "new scan timer." );
 		while( ( len = read( monitor->fdMon, &buf, sizeof( buf ) ) ) > 0 )
 		{
-			PFILEMON filemon;
+			PFILEMON filemon = NULL;
 			for( used = 0; used < len; used += sizeof( struct inotify_event ) + event->len ) {
 				PCHANGEHANDLER Change;
 				event = (struct inotify_event*)buf;
