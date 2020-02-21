@@ -105,7 +105,7 @@ int MoveHistoryCursor( PHISTORY_BROWSER phbr, int amount );
 
 uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown );
 //int ComputeToShow( uint32_t cols, PTEXT segment, int nOfs, int nShown );
-uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, uint32_t nLen, uint32_t nOfs, uint32_t nShown, PHISTORY_BROWSER phbr, SFTFont font );
+uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, PTEXT* endSegment, uint32_t nOfs, uint32_t nShown, PHISTORY_BROWSER phbr, SFTFont font );
 int CountLinesSpanned( PHISTORY_BROWSER phb, PTEXT countseg, SFTFont font, LOGICAL count_trailing_linefeeds );
 
 CORECON_PROC( void, BuildDisplayInfoLines )( PHISTORY_BROWSER phlc, PHISTORY_BROWSER leadin, SFTFont font );

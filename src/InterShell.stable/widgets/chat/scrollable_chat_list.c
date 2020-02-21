@@ -20,6 +20,9 @@
 #include "../../intershell_registry.h"
 #include "../../intershell_export.h"
 
+//#define DEBUG_TEXT_ENTRY_UPDATES
+
+
 struct chat_widget_message;
 
 // include public defs before internals...
@@ -1748,15 +1751,16 @@ int GetInputCursorIndex( PCHAT_LIST list, int x, int y )
 		//if( pCurrentLine && cursor_pos > pCurrentLine->nToShow )
 		if( nCursorLine == y )
 		{
-			if( (INDEX)x < pCurrentLine->nToShow )
-				cursor_pos += x;
+			if( (INDEX)x < ( pCurrentLine->nLineEnd - pCurrentLine->nLineStart ) )
+				cursor_pos = pCurrentLine->nLineStart + x;
 			else
-				cursor_pos += pCurrentLine->nToShow;
+				cursor_pos = pCurrentLine->nLineEnd+1;
 			break;
 		}
 		else
 		{
 			{					
+				/*
 				PTEXT seg = pCurrentLine->start;
 				int ofs = 0; 
 				int checklen = pCurrentLine->nToShow;
@@ -1779,9 +1783,10 @@ int GetInputCursorIndex( PCHAT_LIST list, int x, int y )
 						break;
 					}
 				}
-				cursor_pos += ofs;
+				*/
+				cursor_pos += pCurrentLine->nLineEnd - pCurrentLine->nLineStart;
 			}
-			cursor_pos += pCurrentLine->nToShow;
+			//cursor_pos += pCurrentLine->nToShow;
 		}
 	}
 	return cursor_pos;
@@ -1873,13 +1878,19 @@ static void SetTextEntryCursor( PSI_CONTROL pc, PCHAT_LIST list ) {
 	int outLines = 0;
 
 	outLines = list->input.command_lines = CountDisplayedLines( list->input.phb_Input );
+	if( outLines < 1 )
+		outLines = 1;
 	list->input.command_skip_lines = 0; 
 	if( outLines > 3 )
 		outLines = 3;
+#ifdef DEBUG_TEXT_ENTRY_UPDATES
 	lprintf( "Lines available:%d", list->input.command_lines );
-
+#endif
 	if( !list->nFontHeight ) {
 		list->nFontHeight = newfontheight;
+#ifdef DEBUG_TEXT_ENTRY_UPDATES
+		lprintf( "Setting command height:%d %d %d", newfontheight * outLines, newfontheight,  outLines );
+#endif
 		list->command_height = newfontheight * outLines;
 		list->send_button_size = ( newfontheight /*list->command_height */
 			//list->nFontHeight
@@ -1911,6 +1922,9 @@ static void SetTextEntryCursor( PSI_CONTROL pc, PCHAT_LIST list ) {
 		|| ( list->command_height != newfontheight * outLines )
 		) {
 		list->nFontHeight = newfontheight;
+#ifdef DEBUG_TEXT_ENTRY_UPDATES
+		lprintf( "Setting command height:%d %d %d", newfontheight * outLines, newfontheight, outLines );
+#endif
 		list->command_height = list->nFontHeight * outLines;
 		list->send_button_size = ( list->nFontHeight /*list->command_height */
 			//list->nFontHeight
@@ -2010,6 +2024,9 @@ static void SetTextEntryCursor( PSI_CONTROL pc, PCHAT_LIST list ) {
 			list->nCursorLine = 0;
 			list->input.command_lines = outLines; // truncate showing count
 		}
+#ifdef DEBUG_TEXT_ENTRY_UPDATES
+		lprintf( "Lines might be adjusted: %d %d %d", list->input.command_lines, list->input.command_skip_lines, nDisplayLine );
+#endif
 		/*
 		if( ( nDisplayLine - list->input.command_skip_lines ) < 0 )
 			list->input.command_skip_lines = nDisplayLine;
@@ -2029,13 +2046,16 @@ static void SetTextEntryCursor( PSI_CONTROL pc, PCHAT_LIST list ) {
 					PTEXT tmp;
 					uint32_t amount = cursor_pos;
 					uint32_t seg_amount;
+					size_t segsize;
+					uint32_t offset;
+					uint32_t showlen = pCurrentLine->nLineEnd - pCurrentLine->nLineStart;
 					size_t seg_start = pCurrentLine->nFirstSegOfs;
 #if 0
 					lprintf( "Drawing line line:%d  toShow:%d offs:%d seg:%d", nLine, pCurrentLine->nToShow, pCurrentLine->nFirstSegOfs, GetTextSize( pCurrentLine->start ) );
 #endif
 					for( tmp = pCurrentLine->start; cursor_pos && tmp; tmp = NEXTLINE( tmp ) ) {
-						if( ( pCurrentLine->nToShow - pCurrentLine->nFirstSegOfs ) < GetTextSize( tmp ) )
-							seg_amount = pCurrentLine->nToShow - pCurrentLine->nFirstSegOfs;
+						if( showlen < ( ( segsize = GetTextSize( tmp ) ) - seg_start ) )
+							seg_amount = showlen;
 						else
 							seg_amount = GetTextSize( tmp ) - seg_start;
 						if( cursor_pos > seg_amount )
@@ -2046,7 +2066,9 @@ static void SetTextEntryCursor( PSI_CONTROL pc, PCHAT_LIST list ) {
 							, amount, &w, NULL, list->sent_font );
 						cursor_pos -= amount;
 						list->total_w += w;
+#ifdef DEBUG_TEXT_ENTRY_UPDATES
 						lprintf( "Cursor offset %d %d", list->total_w, nLine );
+#endif
 						seg_start = 0;
 					}
 				}
@@ -2064,7 +2086,9 @@ static void SetTextEntryCursor( PSI_CONTROL pc, PCHAT_LIST list ) {
 
 static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 {
+#ifdef DEBUG_TEXT_ENTRY_UPDATES
 	lprintf( "DTE: Update: %d", update );
+#endif
 	if( !IsControlHidden( pc ) )
 	{
 		Image window = GetControlSurface( pc );
@@ -2088,7 +2112,10 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 			int nLine;
 			PDISPLAYED_LINE pCurrentLine;
 			PDATALIST* ppCurrentLineInfo = GetDisplayInfo( list->input.phb_Input );
+#ifdef DEBUG_TEXT_ENTRY_UPDATES
 
+			lprintf( "drawing: %d-%d", list->input.command_skip_lines, ( list->input.command_skip_lines + list->input.command_lines ) );
+#endif
 			for( nLine = list->input.command_skip_lines;
 				 nLine < (list->input.command_skip_lines+list->input.command_lines); 
 				 nLine ++ )
@@ -2097,6 +2124,9 @@ static void DrawTextEntry( PSI_CONTROL pc, PCHAT_LIST list, LOGICAL update )
 				if( IsControlFocused( list->pc ) &&
 					( nLine == list->nCursorLine ) )
 				{
+#ifdef DEBUG_TEXT_ENTRY_UPDATES
+					lprintf( "Cursorline: %d %d", nLine, list->input.command_skip_lines );
+#endif
 					if( list->flags.bCursorOn )
 						do_vline( window, 2 + l.side_pad + l.sent.BorderSegment[SEGMENT_LEFT]->width + list->total_w
 						, window->height - ( l.side_pad + (l.sent.BorderSegment[SEGMENT_BOTTOM]->height ) + list->nFontHeight * ( nLine - list->input.command_skip_lines ) )
@@ -2380,6 +2410,9 @@ static int OnMouseCommon( CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int32_t y, 
 			int start = list->input.command_mark_start;
 			int end = list->input.command_mark_end;
 			SetUserInputPosition( list->input.CommandInfo, cursor, COMMAND_POS_SET );
+			SetTextEntryCursor( pc, list );
+			SmudgeCommon( pc );
+
 			if( cursor != list->input.command_mark_cursor_down )
 			{
 				if( cursor > list->input.command_mark_cursor_down )
@@ -2707,6 +2740,7 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			if( list->InputPaste ) {
 				list->InputPaste( list->psvInputPaste );
 				SetTextEntryCursor( pc, list );
+				SmudgeCommon( pc );
 			}
 		}
 		else switch( KEY_CODE( key ) )
@@ -2763,7 +2797,15 @@ static int OnKeyCommon( CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 			{
 				DECLTEXT( KeyStrokeDelete, "\x7f" ); // DECLTEXT implies 'static'
 				if( key & KEY_PRESSED ) {
-					DeleteUserInput( list->input.CommandInfo );
+					if( list->input.command_mark_start != list->input.command_mark_end ) {
+						int n;
+						SetUserInputPosition( list->input.CommandInfo, list->input.command_mark_start, COMMAND_POS_SET );
+						for( n = 0; n < ( list->input.command_mark_end - list->input.command_mark_start ); n++ )
+							DeleteUserInput( list->input.CommandInfo );
+						list->input.command_mark_start = list->input.command_mark_end = 0;
+					}
+					else
+						DeleteUserInput( list->input.CommandInfo );
 					SetTextEntryCursor( pc, list );
 					ReformatInput( list );
 					SmudgeCommon( pc );
@@ -3049,6 +3091,8 @@ void Chat_SetFonts( PSI_CONTROL pc, SFTFont messages, SFTFont dates, SFTFont sen
 		= messages;
 	list->date_font = dates;
 	list->sender_font = sender;
+	// compute and redisplay
+	SetTextEntryCursor( pc, list );
 }
 
 void Chat_SetSendButtonFont( PSI_CONTROL pc, SFTFont font ) {
