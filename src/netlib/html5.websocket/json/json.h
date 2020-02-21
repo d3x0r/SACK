@@ -222,6 +222,11 @@ typedef PDATALIST *PPDATALIST;
 #define MAXPDATALISTSPERSET 256
 DeclareSet( PDATALIST );
 
+struct pendingParser {
+	PDATALIST* pdlMessage;
+	struct json_parse_state* state;
+};
+
 struct json_parser_shared_data {
 	PPARSE_CONTEXTSET parseContexts;
 	PPARSE_BUFFERSET parseBuffers;
@@ -232,7 +237,8 @@ struct json_parser_shared_data {
 	PPLINKQUEUESET linkQueues;
 	PPDATALISTSET dataLists;
 	struct json_parse_state *json_state; // used by simple parse_message interface.
-	struct json_parse_state *json6_state; // used by simple parse_message interface.
+	///struct json_parse_state *json6_state; // used by simple parse_message interface.
+	PLIST pendingParsers6;
 };
 #ifndef JSON_PARSER_MAIN_SOURCE
 extern
