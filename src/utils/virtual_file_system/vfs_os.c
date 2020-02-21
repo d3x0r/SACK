@@ -2390,6 +2390,7 @@ struct sack_vfs_os_file * CPROC sack_vfs_os_openfile( struct sack_vfs_os_volume 
 	struct sack_vfs_os_file *file = New( struct sack_vfs_os_file );
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
+	BLOCKINDEX offset;
 	file->vol = vol;
 	file->entry = &file->_entry;
 	file->sealant = NULL;
@@ -2404,25 +2405,26 @@ struct sack_vfs_os_file * CPROC sack_vfs_os_openfile( struct sack_vfs_os_volume 
 		else _os_GetNewDirectory( vol, filename, file );
 	}
 	file->_first_block = file->block = file->entry->first_block;
+	offset = file->entry->name_offset;
+	file->filename = StrDup( filename );
 
-	sack_vfs_os_read_internal( file, &file->diskHeader, sizeof( file->diskHeader ) );
-	file->header = file->diskHeader;
-	file->fpi = file->header.sealant.avail + file->header.references.avail;
-
-	{
-		BLOCKINDEX offset = file->entry->name_offset;
-		uint32_t sealLen = (offset & DIRENT_NAME_OFFSET_FLAG_SEALANT) >> DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT;
-		if( sealLen ) {
-			file->seal = NewArray( uint8_t, sealLen );
-			//file->sealantLen = sealLen;
-			file->sealed = SACK_VFS_OS_SEAL_LOAD;
+	if( ( file->entry->name_offset ) & DIRENT_NAME_OFFSET_FLAG_SEALANT ) {
+		sack_vfs_os_read_internal( file, &file->diskHeader, sizeof( file->diskHeader ) );
+		file->header = file->diskHeader;
+		file->fpi = file->header.sealant.avail + file->header.references.avail;
+		{
+			uint32_t sealLen = (offset & DIRENT_NAME_OFFSET_FLAG_SEALANT) >> DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT;
+			if( sealLen ) {
+				file->seal = NewArray( uint8_t, sealLen );
+				//file->sealantLen = sealLen;
+				file->sealed = SACK_VFS_OS_SEAL_LOAD;
+			}
+			else {
+				file->seal = NULL;
+				//file->sealantLen = 0;
+				file->sealed = SACK_VFS_OS_SEAL_NONE;
+			}
 		}
-		else {
-			file->seal = NULL;
-			//file->sealantLen = 0;
-			file->sealed = SACK_VFS_OS_SEAL_NONE;
-		}
-		file->filename = StrDup( filename );
 	}
 	AddLink( &vol->files, file );
 	vol->lock = 0;
@@ -2709,14 +2711,13 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, void * da
 	if( (file->entry->name_offset ) & DIRENT_NAME_OFFSET_FLAG_READ_KEYED ) {
 		if( !file->readKey ) return 0;
 	}
-	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 	if( ( file->entry->filesize  ) < ( file->fpi + length ) ) {
 		if( ( file->entry->filesize  ) < file->fpi )
 			length = 0;
 		else
 			length = (size_t)(( file->entry->filesize ) - file->fpi);
 	}
-	if( !length ) {  file->vol->lock = 0; return 0; }
+	if( !length ) {  return 0; }
 
 	if( ofs ) {
 		enum block_cache_entries cache = BC(FILE);
@@ -2782,12 +2783,15 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, void * da
 		file->fpi = saveFpi;
 		file->sealed = ValidateSeal( file, data, length );
 	}
-	file->vol->lock = 0;
 	return written;
 }
 
 size_t CPROC sack_vfs_os_read( struct sack_vfs_os_file* file, void* data_, size_t length ) {
-	return sack_vfs_os_read_internal( (struct sack_vfs_os_file*)file, data_, length );
+	size_t result;
+	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
+	result = sack_vfs_os_read_internal( (struct sack_vfs_os_file*)file, data_, length );
+	file->vol->lock = 0;
+	return result;
 }
 
 static BLOCKINDEX sack_vfs_os_read_patches( struct sack_vfs_os_file *file ) {

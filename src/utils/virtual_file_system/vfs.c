@@ -12,6 +12,7 @@
 #  include <ctype.h> // tolower on linux
 #  include <filesys.h>
 #  include <procreg.h>
+#  include <deadstart.h>
 #  include <salty_generator.h>
 #  include <sack_vfs.h>
 #  include <sqlgetoption.h>
