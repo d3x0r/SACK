@@ -1863,11 +1863,13 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 			}
 		}
 		usedNames = dirblock->used_names;
-		minName = 0;
+		if( usedNames )
+			minName = 0;
+		else minName = 1; // fail looping; empty list.
 		curName = (usedNames) >> 1;
 		{
 			next_entries = dirblock->entries;
-			while( minName <= usedNames && ( curName < usedNames ) && ( curName >= 0 ) )
+			while( minName <= usedNames && ( curName <= usedNames ) && ( curName >= 0 ) )
 			//for( n = 0; n < VFS_DIRECTORY_ENTRIES; n++ )
 			{
 				BLOCKINDEX bi;
@@ -2535,17 +2537,6 @@ size_t CPROC sack_vfs_os_seek( struct sack_vfs_os_file* file, size_t pos, int wh
 	return sack_vfs_os_seek_internal( (struct sack_vfs_os_file*) file, pos, whence );
 }
 
-
-static void _os_MaskBlock( struct sack_vfs_os_volume *vol, uint8_t* usekey, uint8_t* block, BLOCKINDEX block_ofs, size_t ofs, const char *data, size_t length ) {
-	size_t n;
-	block += block_ofs;
-	usekey += ofs;
-	if( vol->key )
-		for( n = 0; n < length; n++ ) (*block++) = (*data++) ^ (*usekey++);
-	else
-		memcpy( block, data, length );
-}
-
 #define IS_OWNED(file)  ( (file->entry->name_offset) & DIRENT_NAME_OFFSET_FLAG_OWNED )
 
 size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const void* data_, size_t length
@@ -2586,7 +2577,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 		enum block_cache_entries cache = BC( FILE );
 		uint8_t* block = (uint8_t*)vfs_os_BSEEK( file->vol, file->block, &cache );
 		if( length >= (BLOCK_SIZE - (ofs)) ) {
-			_os_MaskBlock( file->vol, file->vol->usekey[cache], block, ofs, ofs, data, BLOCK_SIZE - ofs );
+			memcpy( block + ofs, data, BLOCK_SIZE-ofs );
 			SETFLAG( file->vol->dirty, cache );
 			data += BLOCK_SIZE - ofs;
 			written += BLOCK_SIZE - ofs;
@@ -2600,7 +2591,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 			length -= BLOCK_SIZE - ofs;
 		}
 		else {
-			_os_MaskBlock( file->vol, file->vol->usekey[cache], block, ofs, ofs, data, length );
+			memcpy( block+ofs, data, length );
 			SETFLAG( file->vol->dirty, cache );
 			data += length;
 			written += length;
@@ -2620,7 +2611,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 		if( file->block < 2 ) DebugBreak();
 #endif
 		if( length >= BLOCK_SIZE ) {
-			_os_MaskBlock( file->vol, file->vol->usekey[cache], block, 0, 0, data, BLOCK_SIZE );
+			memcpy( block, data, BLOCK_SIZE );
 			SETFLAG( file->vol->dirty, cache );
 			data += BLOCK_SIZE;
 			written += BLOCK_SIZE;
@@ -2633,7 +2624,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 			length -= BLOCK_SIZE;
 		}
 		else {
-			_os_MaskBlock( file->vol, file->vol->usekey[cache], block, 0, 0, data, length );
+			memcpy( block, data, length );
 			SETFLAG( file->vol->dirty, cache );
 			data += length;
 			written += length;
@@ -2723,14 +2714,14 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, void * da
 		enum block_cache_entries cache = BC(FILE);
 		uint8_t* block = (uint8_t*)vfs_os_BSEEK( file->vol, file->block, &cache );
 		if( length >= ( BLOCK_SIZE - ( ofs ) ) ) {
-			_os_MaskBlock( file->vol, file->vol->usekey[cache], (uint8_t*)data, 0, ofs, (const char*)(block+ofs), BLOCK_SIZE - ofs );
+			memcpy( data, block+ofs, BLOCK_SIZE-ofs );
 			written += BLOCK_SIZE - ofs;
 			data += BLOCK_SIZE - ofs;
 			length -= BLOCK_SIZE - ofs;
 			file->fpi += BLOCK_SIZE - ofs;
 			file->block = vfs_os_GetNextBlock( file->vol, file->block, GFB_INIT_NONE, TRUE );
 		} else {
-			_os_MaskBlock( file->vol, file->vol->usekey[cache], (uint8_t*)data, 0, ofs, (const char*)(block+ofs), length );
+			memcpy( data, block + ofs, length );
 			written += length;
 			file->fpi += length;
 			length = 0;
@@ -2741,14 +2732,14 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, void * da
 		enum block_cache_entries cache = BC(FILE);
 		uint8_t* block = (uint8_t*)vfs_os_BSEEK( file->vol, file->block, &cache );
 		if( length >= BLOCK_SIZE ) {
-			_os_MaskBlock( file->vol, file->vol->usekey[cache], (uint8_t*)data, 0, 0, (const char*)block, BLOCK_SIZE - ofs );
+			memcpy( data, block, BLOCK_SIZE - ofs );
 			written += BLOCK_SIZE;
 			data += BLOCK_SIZE;
 			length -= BLOCK_SIZE;
 			file->fpi += BLOCK_SIZE;
 			file->block = vfs_os_GetNextBlock( file->vol, file->block, GFB_INIT_NONE, TRUE );
 		} else {
-			_os_MaskBlock( file->vol, file->vol->usekey[cache], (uint8_t*)data, 0, 0, (const char*)block, length );
+			memcpy( data, block, length );
 			written += length;
 			file->fpi += length;
 			length = 0;
