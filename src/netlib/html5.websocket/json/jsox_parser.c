@@ -1283,7 +1283,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						break;
 					}
 					if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_FIELD ) {
-						lprintf( "This would be a default value for the object... if I ignore this..." );
+						// need to establish whether this is a tag definition state
+						// or tagged-revival revival, or just a prototyped object that's not a tag-revival.
+						//lprintf( "This would be a default value for the object... if I ignore this..." );
 					}
 					state->word = JSOX_WORD_POS_RESET;
 					state->val.name = state->val.string;
