@@ -28,6 +28,7 @@
  */
 #define SACK_VFS_SOURCE
 #define SACK_VFS_OS_SOURCE
+#define SKIP_LIGHT_ENCRYPTION(n)
 //#define USE_STDIO
 #if 1
 #  include <stdhdrs.h>
@@ -599,7 +600,7 @@ static void _os_MaskStrCpy( char *output, size_t outlen, struct sack_vfs_os_volu
 	if( vol->key ) {
 		int c;
 		FPI name_start = name_offset;
-		while( UTF8_EOT != (unsigned char)( c = ( vol->usekey_buffer[BC(NAMES)][name_offset&BLOCK_MASK] ^ vol->usekey[BC(NAMES)][name_offset&BLOCK_MASK] ) ) ) {
+		while( UTF8_EOT != (unsigned char)( c = vol->usekey_buffer[BC(NAMES)][name_offset&BLOCK_MASK] ) ) {
 			if( ( name_offset - name_start ) < outlen )
 				output[name_offset-name_start] = c;
 			name_offset++;
@@ -763,9 +764,9 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 			uint8_t *crypt;
 			size_t cryptlen;
 			sack_fseek( vol->file, (size_t)vol->bufferFPI[useCache], SEEK_SET );
-			if( vol->userkey ) {
+			if( vol->key ) {
 				SRG_XSWS_encryptData( vol->usekey_buffer[useCache], BLOCK_SIZE
-					, vol->segment[useCache], (const uint8_t*)vol->userkey, strlen( vol->userkey )
+					, vol->segment[useCache], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 					, &crypt, &cryptlen );
 				sack_fwrite( crypt, 1, BLOCK_SIZE, vol->file );
 				Deallocate( uint8_t*, crypt );
@@ -784,9 +785,9 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 		if( !sack_fread( vol->usekey_buffer[cache_idx[0]], 1, BLOCK_SIZE, vol->file ) )
 			memset( vol->usekey_buffer[cache_idx[0]], 0, BLOCK_SIZE );
 		else {
-			if( vol->userkey )
+			if( vol->key )
 				SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE
-					, vol->segment[cache_idx[0]], (const uint8_t*)vol->userkey, strlen( vol->userkey )
+					, vol->segment[cache_idx[0]], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 					, NULL, NULL );
 		}
 	}
@@ -827,9 +828,9 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 				sack_fseek( vol->file, (size_t)vol->bufferFPI[cache_idx], SEEK_SET );
 				uint8_t *crypt;
 				size_t cryptlen;
-				if( vol->userkey ) {
+				if( vol->key ) {
 					SRG_XSWS_encryptData( vol->usekey_buffer[cache_idx], BLOCK_SIZE
-						, vol->segment[cache_idx], (const uint8_t*)vol->userkey, strlen( vol->userkey )
+						, vol->segment[cache_idx], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 						, &crypt, &cryptlen );
 					sack_fwrite( crypt, 1, BLOCK_SIZE, vol->file );
 					Deallocate( uint8_t*, crypt );
@@ -854,9 +855,9 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 				memset( vol->usekey_buffer[cache_idx], 0, BLOCK_SIZE );
 			}
 			else {
-				if( vol->userkey )
+				if( vol->key )
 					SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx], BLOCK_SIZE
-						, vol->segment[cache_idx], (const uint8_t*)vol->userkey, strlen( vol->userkey )
+						, vol->segment[cache_idx], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 						, NULL, NULL );
 			}
 		}
@@ -877,6 +878,7 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 		//lprintf( "Resulting stored segment in %d", cache_idx );
 		return cache_idx;
 	}
+#ifndef SKIP_LIGHT_ENCRYPTION
 	SRG_ResetEntropy( vol->entropy );
 	vol->_segment[cache_idx] = vol->segment[cache_idx];
 	vol->curseg = cache_idx;  // so we know which 'segment[idx]' to use.
@@ -907,6 +909,7 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 		}
 #endif
 	}
+#endif
 	//LoG( "Resulting stored segment in %d", cache_idx );
 	return cache_idx;
 }
@@ -1481,18 +1484,19 @@ void sack_vfs_os_flush_volume( struct sack_vfs_os_volume * vol, LOGICAL unload )
 				if( TESTFLAG( vol->dirty, idx ) || TESTFLAG( vol->_dirty, idx ) ) {
 					LoG( "Flush dirty segment: %d   %zx %d", (int)idx, vol->bufferFPI[idx], vol->segment[idx] );
 					sack_fseek( vol->file, (size_t)vol->bufferFPI[idx], SEEK_SET );
-					if( vol->userkey )
+					if( vol->key )
 						SRG_XSWS_encryptData( vol->usekey_buffer[idx], BLOCK_SIZE
-							, vol->segment[idx], (const uint8_t*)vol->userkey, strlen( vol->userkey )
+							, vol->segment[idx], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 							, NULL, NULL );
 					sack_fwrite( vol->usekey_buffer[idx], 1, BLOCK_SIZE, vol->file );
-					if( !TESTFLAG( vol->seglock, idx ) ) {
+					if( !TESTFLAG( vol->seglock, idx ) )
 						vol->segment[idx] = ~0;
-						if( vol->userkey )
+					else
+						if( vol->key )
 							SRG_XSWS_decryptData( vol->usekey_buffer[idx], BLOCK_SIZE
-								, vol->segment[idx], (const uint8_t*)vol->userkey, strlen( vol->userkey )
+								, vol->segment[idx], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 								, NULL, NULL );
-					}
+
 					RESETFLAG( vol->dirty, idx );
 					RESETFLAG( vol->_dirty, idx );
 				}
@@ -1537,9 +1541,9 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 					sack_fseek( vol->file, (size_t)vol->bufferFPI[idx], SEEK_SET );
 					//uint8_t *crypt;
 					//size_t cryptlen;
-					if( vol->userkey )
+					if( vol->key )
 						SRG_XSWS_encryptData( vol->usekey_buffer[idx], BLOCK_SIZE
-							, vol->segment[idx], (const uint8_t*)vol->userkey, strlen( vol->userkey )
+							, vol->segment[idx], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 							, NULL, NULL );
 					sack_fwrite( vol->usekey_buffer[idx], 1, BLOCK_SIZE, vol->file );
 					RESETFLAG( vol->_dirty, idx );
@@ -1600,8 +1604,6 @@ struct sack_vfs_os_volume *sack_vfs_os_load_crypt_volume( const char * filepath,
 	vol->pdlFreeBlocks = CreateDataList( sizeof( BLOCKINDEX ) );
 	vol->clusterKeyVersion = version - 1;
 	vol->volname = StrDup( filepath );
-	vol->userkey = userkey;
-	vol->devkey = devkey;
 	_os_AssignKey( vol, userkey, devkey );
 	if( !_os_ExpandVolume( vol ) || !_os_ValidateBAT( vol ) ) { sack_vfs_os_unload_volume( vol ); return NULL; }
 	return vol;
@@ -1707,6 +1709,7 @@ LOGICAL sack_vfs_os_decrypt_volume( struct sack_vfs_os_volume *vol )
 			BLOCKINDEX *block;// = (BLOCKINDEX*)(((uint8_t*)vol->disk) + n * (BLOCKS_PER_SECTOR * BLOCK_SIZE));
 			block = TSEEK( BLOCKINDEX*, vol, n * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
 			blockKey = ((BLOCKINDEX*)vol->usekey[cache]);
+#ifndef SKIP_LIGHT_ENCRYPTION
 			for( m = 0; m < BLOCKS_PER_BAT; m++ ) {
 				block[0] ^= blockKey[0];
 				if( block[0] == EOBBLOCK ) break;
@@ -1714,6 +1717,9 @@ LOGICAL sack_vfs_os_decrypt_volume( struct sack_vfs_os_volume *vol )
 				block++;
 				blockKey++;
 			}
+#else
+         m = 0;
+#endif
 			if( m < BLOCKS_PER_BAT ) break;
 		}
 	}
@@ -1741,6 +1747,7 @@ LOGICAL sack_vfs_os_encrypt_volume( struct sack_vfs_os_volume *vol, uintptr_t ve
 			block = TSEEK( BLOCKINDEX*, vol, n * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
 			blockKey = ((BLOCKINDEX*)vol->usekey[cache]);
 
+#ifndef SKIP_LIGHT_ENCRYPTION
 			//vol->segment[BC(BAT)] = n + 1;
 			for( m = 0; m < BLOCKS_PER_BAT; m++ ) {
 				if( block[0] == EOBBLOCK ) done = TRUE;
@@ -1750,6 +1757,8 @@ LOGICAL sack_vfs_os_encrypt_volume( struct sack_vfs_os_volume *vol, uintptr_t ve
 				block++;
 				blockKey++;
 			}
+#else
+#endif
 			if( done ) break;
 		}
 	}
@@ -2883,7 +2892,7 @@ static void sack_vfs_os_unlink_file_entry( struct sack_vfs_os_volume *vol, struc
 	}
 
 	if( !file_found ) {
-		_block = block = first_block;// entry->first_block ^ entkey->first_block;
+		_block = block = first_block;
 		LoG( "(marking physical deleted (again?)) entry starts at %d", block );
 		// wipe out file chain BAT
 		do {

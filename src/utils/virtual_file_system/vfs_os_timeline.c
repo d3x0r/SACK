@@ -110,15 +110,15 @@ void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 	struct storageTimelineNode* nodeKey = (struct storageTimelineNode*)(vol->usekey[cache] + (pos & BLOCK_MASK));
 	time->index = timeEntry;
 
-	time->dirent_fpi = (FPI)(node->dirent_fpi ^ nodeKey->dirent_fpi);
+	time->dirent_fpi = (FPI)(node->dirent_fpi);
 
-	time->ctime.raw = node->ctime.raw ^ nodeKey->ctime.raw;
-	time->clesser.raw = node->clesser.raw ^ nodeKey->clesser.raw;
-	time->cgreater.raw = node->cgreater.raw ^ nodeKey->cgreater.raw;
+	time->ctime.raw = node->ctime.raw;
+	time->clesser.raw = node->clesser.raw;
+	time->cgreater.raw = node->cgreater.raw;
 
-	time->stime.raw = node->stime.raw ^ nodeKey->stime.raw;
-	time->slesser.raw = node->slesser.raw ^ nodeKey->slesser.raw;
-	time->sgreater.raw = node->sgreater.raw ^ nodeKey->sgreater.raw;
+	time->stime.raw = node->stime.raw;
+	time->slesser.raw = node->slesser.raw;
+	time->sgreater.raw = node->sgreater.raw;
 
 	time->this_fpi = vol->bufferFPI[cache] + (pos & BLOCK_MASK);
 	//LoG( "Set this FPI: %d  %d", (int)timeEntry, (int)time->this_fpi );
@@ -179,14 +179,14 @@ static void DumpTimelineTree( struct sack_vfs_os_volume* vol, LOGICAL bSortCreat
 			return;
 		}
 		reloadTimeEntry( &curNode, vol
-			, (timeline->header.crootNode.ref.index ^ timelineKey->header.crootNode.ref.index) );
+			, (timeline->header.crootNode.ref.index ) );
 	}
 	else {
 		if( !timeline->header.srootNode.ref.index ) {
 			return;
 		}
 		reloadTimeEntry( &curNode, vol
-			, timeline->header.srootNode.ref.index ^ timelineKey->header.srootNode.ref.index );
+			, timeline->header.srootNode.ref.index  );
 	}
 	DumpTimelineTreeWork( vol, 0, &curNode, bSortCreation );
 }
@@ -207,15 +207,15 @@ void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 	struct storageTimelineNode* nodeKey;
 	struct storageTimelineNode* node = (struct storageTimelineNode*)vfs_os_DSEEK( vol, time->this_fpi, &cache, (POINTER*)& nodeKey );
 
-	node->dirent_fpi = time->dirent_fpi ^ nodeKey->dirent_fpi;
+	node->dirent_fpi = time->dirent_fpi;
 
-	node->ctime.raw = time->ctime.raw ^ nodeKey->ctime.raw;
-	node->clesser.raw = time->clesser.raw ^ nodeKey->clesser.raw;
-	node->cgreater.raw = time->cgreater.raw ^ nodeKey->cgreater.raw;
+	node->ctime.raw = time->ctime.raw;
+	node->clesser.raw = time->clesser.raw;
+	node->cgreater.raw = time->cgreater.raw;
 
-	node->stime.raw = time->stime.raw ^ nodeKey->stime.raw;
-	node->slesser.raw = time->slesser.raw ^ nodeKey->slesser.raw;
-	node->sgreater.raw = time->sgreater.raw ^ nodeKey->sgreater.raw;
+	node->stime.raw = time->stime.raw;
+	node->slesser.raw = time->slesser.raw;
+	node->sgreater.raw = time->sgreater.raw;
 
 	SETFLAG( vol->dirty, cache );
 	{
@@ -266,11 +266,11 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 	decoded_dirent->mask = NULL;
 	decoded_dirent->pds_directories = NULL;
 
-	decoded_dirent->filesize = (size_t)( dirent->filesize ^ entkey->filesize );
+	decoded_dirent->filesize = (size_t)( dirent->filesize );
 	decoded_dirent->ctime = time->ctime.raw;
 	decoded_dirent->wtime = time->stime.raw;
 
-	while( (next_block = dirblock->next_block[DIRNAME_CHAR_PARENT] ^ dirblockkey->next_block[DIRNAME_CHAR_PARENT]) ) {
+	while( (next_block = dirblock->next_block[DIRNAME_CHAR_PARENT]) ) {
 		enum block_cache_entries back_cache = BC( DIRECTORY );
 		struct directory_hash_lookup_block* back_dirblock;
 		struct directory_hash_lookup_block* back_dirblockkey;
@@ -278,7 +278,7 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 		back_dirblockkey = (struct directory_hash_lookup_block*)vol->usekey[back_cache];
 		int i;
 		for( i = 0; i < DIRNAME_CHAR_PARENT; i++ ) {
-			if( (back_dirblock->next_block[i] ^ back_dirblockkey->next_block[i]) == this_dir_block ) {
+			if( (back_dirblock->next_block[i]) == this_dir_block ) {
 				PushData( &pdsChars, &i );
 				break;
 			}
@@ -304,7 +304,7 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 	{
 		BLOCKINDEX nameBlock;
 		nameBlock = dirblock->names_first_block;
-		FPI name_offset = (dirent[n].name_offset ^ entkey->name_offset) & DIRENT_NAME_OFFSET_OFFSET;
+		FPI name_offset = (dirent[n].name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
 
 		enum block_cache_entries cache = BC( NAMES );
 		const char* dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset, &cache );
@@ -313,7 +313,7 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 		const char* prior_dirname = dirname;
 		int c;
 		do {
-			while( (((unsigned char)(c = (dirname[0] ^ dirkey[0])) != UTF8_EOT))
+			while( (((unsigned char)(c = (dirname[0] )) != UTF8_EOT))
 				&& ((((uintptr_t)prior_dirname) & ~BLOCK_MASK) == (((uintptr_t)dirname) & ~BLOCK_MASK))
 				) {
 				decoded_dirent->filename[n++] = c;
@@ -369,7 +369,7 @@ static void _os_AVL_RotateToRight(
 #endif
 		}
 		else {
-			vol->timeline->header.crootNode.raw = node->clesser.raw ^ vol->timelineKey->header.crootNode.raw;
+			vol->timeline->header.crootNode.raw = node->clesser.raw ;
 		}
 
 		// read into stack entry
@@ -442,7 +442,7 @@ static void _os_AVL_RotateToRight(
 #endif
 		}
 		else {
-			vol->timeline->header.srootNode.raw = node->slesser.raw ^ vol->timelineKey->header.srootNode.raw;
+			vol->timeline->header.srootNode.raw = node->slesser.raw ;
 		}
 
 		node->slesser.raw = left_->sgreater.raw;
@@ -536,7 +536,7 @@ static void _os_AVL_RotateToLeft(
 #endif
 		}
 		else
-			vol->timeline->header.crootNode.raw = node->cgreater.raw ^ vol->timelineKey->header.crootNode.raw;
+			vol->timeline->header.crootNode.raw = node->cgreater.raw ;
 
 		node->cgreater.raw = right_->clesser.raw;
 		right_->clesser.ref.index = node->index;
@@ -599,7 +599,7 @@ static void _os_AVL_RotateToLeft(
 					DebugBreak();
 #endif
 		else
-			vol->timeline->header.srootNode.raw = node->sgreater.raw ^ vol->timelineKey->header.srootNode.raw;
+			vol->timeline->header.srootNode.raw = node->sgreater.raw ;
 
 		node->sgreater.raw = right_->slesser.raw;
 		right_->slesser.ref.index = node->index;
@@ -952,24 +952,24 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 	if( !root )
 		if( bSortCreation ) {
 			if( !timeline->header.crootNode.ref.index ) {
-				timeline->header.crootNode.ref.index = index.ref.index ^ timeline->header.crootNode.ref.index;
-				timeline->header.crootNode.ref.depth = 0 ^ timeline->header.crootNode.ref.depth;
+				timeline->header.crootNode.ref.index = index.ref.index ;
+				timeline->header.crootNode.ref.depth = 0 ;
 				return 1;
 			}
 
 			reloadTimeEntry( &curNode, vol
-				, curindex = (timeline->header.crootNode.ref.index ^ timelineKey->header.crootNode.ref.index) );
+				, curindex = (timeline->header.crootNode.ref.index ) );
 			PushData( pdsStack, &curNode );
 
 		}
 		else {
 			if( !timeline->header.srootNode.ref.index ) {
-				timeline->header.srootNode.ref.index = index.ref.index ^ timeline->header.srootNode.ref.index;
-				timeline->header.srootNode.ref.depth = 0 ^ timeline->header.srootNode.ref.depth;
+				timeline->header.srootNode.ref.index = index.ref.index ;
+				timeline->header.srootNode.ref.depth = 0 ;
 				return 1;
 			}
 			reloadTimeEntry( &curNode, vol
-				, curindex = timeline->header.srootNode.ref.index ^ timelineKey->header.srootNode.ref.index );
+				, curindex = timeline->header.srootNode.ref.index  );
 			PushData( pdsStack, &curNode );
 		}
 	//else
@@ -1105,8 +1105,7 @@ void getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* v
 	struct storageTimeline* timelineKey = vol->timelineKey;
 	TIMELINE_BLOCK_TYPE freeIndex;
 
-	freeIndex.ref.index = (timeline->header.first_free_entry.ref.index
-		^ timelineKey->header.first_free_entry.ref.index);
+	freeIndex.ref.index = timeline->header.first_free_entry.ref.index;
 	freeIndex.ref.depth = 0;
 
 	// update next free.
@@ -1115,13 +1114,11 @@ void getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* v
 	if( keepDirent ) time->dirent_fpi = orig_dirent;
 
 	if( time->cgreater.ref.index ) {
-		timeline->header.first_free_entry.ref.index = time->cgreater.ref.index ^ timelineKey->header.first_free_entry.ref.index;
+		timeline->header.first_free_entry.ref.index = time->cgreater.ref.index;
 		SETFLAG( vol->dirty, cache );
 	}
 	else {
-		timeline->header.first_free_entry.ref.index = ((timeline->header.first_free_entry.ref.index
-			^ timelineKey->header.first_free_entry.ref.index) + 1)
-			^ timelineKey->header.first_free_entry.ref.index;
+		timeline->header.first_free_entry.ref.index = timeline->header.first_free_entry.ref.index;
 		SETFLAG( vol->dirty, cache );
 	}
 
