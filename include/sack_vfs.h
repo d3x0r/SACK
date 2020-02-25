@@ -372,6 +372,7 @@ SACK_VFS_PROC struct sack_vfs_os_volume * CPROC sack_vfs_os_load_volume( CTEXTST
 	waits a short time of no dirty updates. (flush, but polish <-> dirty )
  */
 SACK_VFS_PROC void CPROC sack_vfs_os_polish_volume( struct sack_vfs_os_volume* vol );
+SACK_VFS_PROC void CPROC sack_vfs_os_flush_volume( struct sack_vfs_os_volume* vol, LOGICAL unload );
 
 // open a volume at the specified pathname.  Use the specified keys to encrypt it.
 // if the volume does not exist, will create it.
