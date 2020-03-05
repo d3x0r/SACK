@@ -2,6 +2,10 @@
 // such that an unsigned > integer range is true if it is more than an maxint
 // and signed integer < 0 is less than any unsigned value.
 
+// the macro prefix SUS  or USS is the comparison type
+// Signed-UnSigned and UnSigned-Signed  depending on the 
+// operand order.
+
 // the arguments passed are variable a and b and the respective types of those
 // if( SUS_GT( 324, int, 545, unsigned int ) ) {
 //    is > 
