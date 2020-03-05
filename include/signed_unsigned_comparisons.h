@@ -2,6 +2,10 @@
 // such that an unsigned > integer range is true if it is more than an maxint
 // and signed integer < 0 is less than any unsigned value.
 
+// the arguments passed are variable a and b and the respective types of those
+// if( SUS_GT( 324, int, 545, unsigned int ) ) {
+//    is > 
+// }
 
 #  define SUS_GT(a,at,b,bt)   (((a)<0)?0:(((bt)a)>(b)))
 #  define USS_GT(a,at,b,bt)   (((b)<0)?1:((a)>((at)b)))
