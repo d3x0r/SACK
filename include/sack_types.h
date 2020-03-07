@@ -1572,7 +1572,8 @@ node->me = &thing->next;     \
 	uint8_t maskVariableName[ (32*5 +(CHAR_BIT-1))/CHAR_BIT ];  //data array used for storage.
    const int askVariableName_mask_size = 5;  // used aautomatically by macros
 */
-#define MASKSET(v,n,r)  MASKSETTYPE  (v)[(((n)*(r))+MASK_MAX_ROUND())/MASKTYPEBITS(MASKSETTYPE)]; const int v##_mask_size = r;
+#define MASKSET(v,n,r)  MASKSETTYPE  (v)[(((n)*(r))+MASK_MAX_ROUND())/MASKTYPEBITS(MASKSETTYPE)]; const int v##_mask_size = r
+#define MASKSET_(v,n,r)  MASKSETTYPE  (v)[(((n)*(r))+MASK_MAX_ROUND())/MASKTYPEBITS(MASKSETTYPE)]
 
 /* set a field index to a value
     SETMASK( askVariableName, 3, 13 );  // set set member 3 to the value '13'
@@ -1582,6 +1583,11 @@ node->me = &thing->next;     \
  & (~(MASK_MASK(n,v##_mask_size))) )                                                                           \
 	| MASK_MASK_VAL(n,v##_mask_size,val) )
 
+#define SETMASK_(v,v2,n,val)    (((MASKSET_READTYPE*)((v)+((n)*(v2##_mask_size))/MASKTYPEBITS((v)[0])))[0] =    \
+( ((MASKSET_READTYPE*)((v)+((n)*(v2##_mask_size))/MASKTYPEBITS(uint8_t)))[0]                                 \
+ & (~(MASK_MASK(n,v2##_mask_size))) )                                                                           \
+	| MASK_MASK_VAL(n,v2##_mask_size,val) )
+
 /* get the value of a field
      GETMASK( maskVariableName, 3 );   // returns '13' given the SETMASK() example code.
  */
@@ -1589,6 +1595,9 @@ node->me = &thing->next;     \
  & MASK_MASK(n,v##_mask_size) )                                                                           \
 	>> (((n)*(v##_mask_size))&0x7))
 
+#define GETMASK_(v,v2,n)  ( ( ((MASKSET_READTYPE*)((v)+((n)*(v2##_mask_size))/MASKTYPEBITS((v)[0])))[0]        \
+ & MASK_MASK(n,v2##_mask_size) )                                                                           \
+	>> (((n)*(v2##_mask_size))&0x7))
 
 
 /* This type stores data, it has a self-contained length in
