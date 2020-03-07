@@ -487,7 +487,6 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 	{
 		CPOINTER userdata = node->userdata;
 		uintptr_t userkey = node->key;
-
 		LOGICAL no_children = FALSE;
 		// lprintf( "Removing node from tree.. %p under %p", node, node->parent );
 		if( !node->parent->flags.bRoot
@@ -539,25 +538,42 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 			}
 		}
 		{
+			LOGICAL updating = 1;
 			backtrack = bottom;
 			do {
 				backtrack = backtrack->parent;
 				while( backtrack && ( no_children || backtrack != node ) ) {
 					backtrack->children--;
-					if( backtrack->lesser )
-						if( backtrack->greater ) {
-							int tmp1, tmp2;
-							if( (tmp1=backtrack->lesser->depth) > (tmp2=backtrack->greater->depth) )
-								backtrack->depth = tmp1 + 1;
-							else
-								backtrack->depth = tmp2 + 1;
-						} else
-							backtrack->depth = backtrack->lesser->depth + 1;
-					else
-						if( backtrack->greater )
-							backtrack->depth = backtrack->greater->depth + 1;
+					if( updating )
+						if( backtrack->lesser )
+							if( backtrack->greater ) {
+								int tmp1, tmp2;
+								if( (tmp1=backtrack->lesser->depth) > (tmp2=backtrack->greater->depth) )
+									if( backtrack->depth != ( tmp1 + 1 ) )
+										backtrack->depth = tmp1 + 1;
+									else 
+										updating = 0;
+								else
+									if( backtrack->depth != ( tmp2 + 1 ) )
+										backtrack->depth = tmp2 + 1;
+									else 
+										updating = 0;
+							} else
+									if( backtrack->depth != ( backtrack->lesser->depth + 1 ) )
+										backtrack->depth = backtrack->lesser->depth + 1;
+									else 
+										updating = 0;
 						else
-							backtrack->depth = 0;
+							if( backtrack->greater )
+									if( backtrack->depth != ( backtrack->greater->depth + 1 ) )
+										backtrack->depth = backtrack->greater->depth + 1;
+									else 
+										updating = 0;
+							else
+									if( backtrack->depth != 0 )
+										backtrack->depth = 0;
+									else 
+										updating = 0;
 					backtrack = backtrack->parent;
 				}
 				if( least ) {
