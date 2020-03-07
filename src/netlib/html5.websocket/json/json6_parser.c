@@ -1369,18 +1369,21 @@ LOGICAL json6_parse_message( const char * msg
 	logTick(1);
 	int result = json6_parse_add_data( state, msg, msglen );
 	//logTick(3);
-	if( jpsd.json6_state ) json_parse_dispose_state( &jpsd.json6_state );
 	if( result > 0 ) {
 		logTick(4);
 		(*_msg_output) = json_parse_get_data( state );
 		logTick(5);
-		jpsd.json6_state = state;
-		//json6_parse_dispose_state( &state );
+		{
+			struct pendingParser* pp = New( struct pendingParser );
+			pp->state = state;
+			pp->pdlMessage = _msg_output;
+			AddLink( &jpsd.pendingParsers6, pp );
+		}
 		return TRUE;
 	}
 	(*_msg_output) = NULL;
 	jpsd.last_parse_state = state;
-	jpsd.json6_state = state;
+	//jpsd.json6_state = state;
 	return FALSE;
 }
 
@@ -1396,13 +1399,27 @@ void getJson6Ticks( int *tickBuf ) {
 
 
 struct json_parse_state *json6_get_message_parser( void ) {
-	//lprintf( "Return simple json6 parser:%p", jpsd.json6_state );
-	return jpsd.json6_state;
+	lprintf( "Return simple json6 parser:%p", jpsd.pendingParsers6 );
+	DebugBreak();
+	return (struct json_parse_state*)GetLink( &jpsd.pendingParsers6, 0); // need to pass this a message to find the thing.
 }
 
 void json6_dispose_message( PDATALIST *msg_data )
 {
 	json_dispose_message( msg_data );
+	{
+		struct pendingParser* pp;
+		INDEX idx;
+		LIST_FORALL( jpsd.pendingParsers6, idx, struct pendingParser*, pp ) {
+			if( pp->pdlMessage == msg_data )
+				break;
+		}
+		if( pp ) {
+			DeleteLink( &jpsd.pendingParsers6, pp );
+			json_parse_dispose_state( &pp->state );
+			Release( pp );
+		}
+	}
 	return;
 }
 

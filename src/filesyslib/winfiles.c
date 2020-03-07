@@ -2718,17 +2718,19 @@ static void link_mount( struct file_system_mounted_interface* mount ) {
 			root->nextLayer = mount;
 			mount->nextLayer = NULL;
 		}
-		else for( check = root->nextLayer; check; check = check->nextLayer ) {
-			if( check->priority >= mount->priority ) {
-				check_->nextLayer = mount;
-				mount->nextLayer = check;
-				break;
+		else {
+			for( check = root->nextLayer; check; check = check->nextLayer ) {
+				if( check->priority >= mount->priority ) {
+					check_->nextLayer = mount;
+					mount->nextLayer = check;
+					break;
+				}
+				check_ = check;
 			}
-			check_ = check;
-		}
-		if( !check ) {
-			check_->nextLayer = mount;
-			mount->nextLayer = NULL;
+			if( !check ) {
+				check_->nextLayer = mount;
+				mount->nextLayer = NULL;
+			}
 		}
 	}
 
@@ -2818,7 +2820,7 @@ uintptr_t sack_ioctl( FILE * file_handle, uintptr_t opCode, ... ) {
 	else {
 		// unknown file handle; ignore unknown ioctl.
 	}
-	return 0;
+	return ENOTSUP;
 }
 
 uintptr_t sack_fs_ioctl( struct file_system_mounted_interface* mount, uintptr_t opCode, ... ) {
@@ -2832,7 +2834,7 @@ uintptr_t sack_fs_ioctl( struct file_system_mounted_interface* mount, uintptr_t 
 		// unknown file handle; ignore unknown ioctl.
 	}
 
-	return 0;
+	return ENOTSUP;
 }
 
 LOGICAL SetFileLength( CTEXTSTR path, size_t length )

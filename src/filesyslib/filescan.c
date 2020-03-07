@@ -343,7 +343,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 					Release( tmp_base );
 				return 0;
 			}
-			if( pData->scanning_mount->fsi )
+			if( pData->scanning_mount->fsi && pData->scanning_mount->fsi->find_create_cursor )
 			{
 				char *tmp1, *tmp2;
 				//lprintf( "create cursor" );
@@ -362,7 +362,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 		{
 			if( pData->new_mount )
 			{
-				if( pData->scanning_mount->fsi )
+				if( pData->scanning_mount->fsi && pData->scanning_mount->fsi->find_create_cursor )
 				{
 					//lprintf( "create cursor (new mount)" );
 					tmp_base = ExpandPathEx( base, pData->scanning_mount->fsi );

@@ -162,7 +162,7 @@ void RenderTextLine(
 		//	list->FillConsoleRect(pdp, r, FILL_DISPLAY_BACK );
 
 		//(*r).left = x;
-		nChar = 0;
+		nChar = pCurrentLine->nLineStart;
 		pText = pCurrentLine->start;
 		if( pText && ( pText->flags & TF_FORMATEX ) )
 		{
@@ -177,7 +177,7 @@ void RenderTextLine(
 		if( !pText )
 			lprintf( "Okay no text to show... end up filling line blank." );
 #endif
-		while( pText && SUS_LT( nChar, int, pCurrentLine->nToShow, INDEX ) )
+		while( pText && SUS_LT( nChar, int, pCurrentLine->nLineEnd, INDEX ) )
 		{
 			size_t nLen;
 			TEXTCHAR *text = GetText( pText );
@@ -197,10 +197,10 @@ void RenderTextLine(
 			while( SUS_LT( nShown, int, nLen, size_t ) )
 			{
 #ifdef DEBUG_HISTORY_RENDER
-				lprintf( "nShown < nLen... char %d len %d toshow %d", nChar, nLen, pCurrentLine->nToShow );
+				lprintf( "nShown < nLen... char %d len %d toshow %d", nChar, nLen, pCurrentLine->nLineEnd );
 #endif
-				if( ( nChar + ( nLen - nShown ) ) > pCurrentLine->nToShow )
-					nShow = (int)pCurrentLine->nToShow - nChar;
+				if( ( nChar + ( nLen - nShown ) ) > pCurrentLine->nLineEnd )
+					nShow = (int)pCurrentLine->nLineEnd - nChar;
 				else
 				{
 #ifdef DEBUG_HISTORY_RENDER

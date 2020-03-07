@@ -607,136 +607,139 @@ uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown )
 
 //----------------------------------------------------------------------------
 
-uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, uint32_t nLen, uint32_t nOfs, uint32_t nShown, PHISTORY_BROWSER phbr, SFTFont font )
+uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, PTEXT *endSegment, uint32_t nOfs, uint32_t nShown, PHISTORY_BROWSER phbr, SFTFont font )
 {
 	int32_t result_bias = 0;
-	int32_t nShow = nLen - nShown;
+	int32_t nShow = 0; // how much we will eventually show.
 	uint32_t nLenSize, nLenHeight;
-	// if space left to show here is less than
-	// then length to show, compute wrapping point.
-	//lprintf( "Compute to show: %d (%d)%s %d %d", cols, GetTextSize( segment ), GetText( segment ), nOfs, nShown );
-	phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
-		, nLen - nShown, &nLenSize, &nLenHeight, font );
+	size_t seglen;
+	LOGICAL overflowed = FALSE;
+	while( !overflowed && segment) {
 
-	if( ( nLenSize + (*col_offset ) ) > colsize || nLenHeight > (uint32_t)phbr->nLineHeight )
-	{
-		uint32_t good_space_size;
-		LOGICAL has_good_space = FALSE;
-		uint32_t good_space = 0;
-		uint32_t nSpace;
-		size_t nNextSpace;
-		uint32_t nSegSize, nSegHeight;
-		uint32_t best_chars = 0;
-		uint32_t best_char_size;
-		TEXTCHAR *text = GetText( segment );
-		size_t textLen = GetTextSize( segment );
-		TEXTRUNE thisChar;
+		// if space left to show here is less than
+		// then length to show, compute wrapping point.
+		//lprintf( "Compute to show: %d (%d)%s %d %d", cols, GetTextSize( segment ), GetText( segment ), nOfs, nShown );
+		seglen = GetTextSize( segment );
+		if( nShown > seglen ) {
+			nShown -= seglen;
+			continue;
+		}
 
-		for( nNextSpace = nSpace = nShown; (nSpace < nLen)?((thisChar = GetUtfCharIndexed( text, &nNextSpace, textLen )),1):0 ; nSpace = nNextSpace )
-		{
-			if( thisChar == '\n' )
-			{
-				phbr->measureString( phbr->psvMeasure, text + nShown
-					, nSpace - nShown, &nSegSize, &nSegHeight, font );
-				good_space_size = nSegSize;
-				has_good_space = TRUE;
-				good_space = nSpace; // include space in this part of the line...
-				result_bias = 1; // start next line past the \n
-				break;
-			}
-			else if( thisChar == ' ' || thisChar == '\t' )
-			{
-				//lprintf( "measure string until space... %s (%s)", text, text + nSpace );
-				phbr->measureString( phbr->psvMeasure, text + nShown
-					, nSpace - nShown, &nSegSize, &nSegHeight, font );
-				if( ( (*col_offset) + nSegSize  ) < colsize )
-				{
-					has_good_space = TRUE;
+		phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
+			, seglen - nShown, &nLenSize, &nLenHeight, font );
+
+		if( ( nLenSize + ( *col_offset ) ) > colsize || nLenHeight > (uint32_t)phbr->nLineHeight ) {
+			uint32_t good_space_size;
+			LOGICAL has_good_space = FALSE;
+			uint32_t good_space = 0;
+			uint32_t nSpace;
+			size_t nNextSpace;
+			uint32_t nSegSize, nSegHeight;
+			uint32_t best_chars = 0;
+			uint32_t best_char_size;
+			TEXTCHAR* text = GetText( segment );
+			size_t textLen = GetTextSize( segment );
+			TEXTRUNE thisChar;
+
+			for( nNextSpace = nSpace = nShown; ( nSpace < seglen ) ? ( ( thisChar = GetUtfCharIndexed( text, &nNextSpace, textLen ) ), 1 ) : 0 ; nSpace = nNextSpace ) {
+				if( thisChar == '\n' ) {
+					phbr->measureString( phbr->psvMeasure, text + nShown
+						, nSpace - nShown, &nSegSize, &nSegHeight, font );
 					good_space_size = nSegSize;
-					good_space = nSpace + 1; // include space in this part of the line...
-				}
-				else
+					has_good_space = TRUE;
+					good_space = nSpace; // include space in this part of the line...
+					result_bias = 1; // start next line past the \n
+					overflowed = TRUE;
 					break;
-			}
-			else if( !best_chars )
-			{
-				phbr->measureString( phbr->psvMeasure, text + nShown
-					, nSpace - nShown, &nSegSize, &nSegHeight, font );
+				}
+				else if( thisChar == ' ' || thisChar == '\t' ) {
+					//lprintf( "measure string until space... %s (%s)", text, text + nSpace );
+					phbr->measureString( phbr->psvMeasure, text + nShown
+						, nSpace - nShown, &nSegSize, &nSegHeight, font );
+					if( ( ( *col_offset ) + nSegSize ) < colsize ) {
+						has_good_space = TRUE;
+						good_space_size = nSegSize;
+						good_space = nSpace + 1; // include space in this part of the line...
+					}
+					else
+						break;
+				}
+				else if( !best_chars ) {
+					phbr->measureString( phbr->psvMeasure, text + nShown
+						, nSpace - nShown, &nSegSize, &nSegHeight, font );
 
-				if( ( (*col_offset) + nSegSize  ) >= colsize )
-				{
-					if( (nSpace - nShown) < 2 ) {
-						if( *col_offset ) return 0;
-						best_char_size = nSegSize;
-						best_chars = nShown + 1;  // minimum of 1 character to use.
+					if( ( ( *col_offset ) + nSegSize ) >= colsize ) {
+						if( ( nSpace - nShown ) < 2 ) {
+							if( *col_offset ) return 0;
+							best_char_size = nSegSize;
+							best_chars = nShown + 1;  // minimum of 1 character to use.
+							break;
+						}
+						best_chars = ( nSpace - 1 );
 						break;
 					}
-					best_chars = (nSpace - 1);
-					break;
-				}
-				else {
-					best_char_size = nSegSize;
+					else {
+						best_char_size = nSegSize;
+					}
 				}
 			}
-		}
-		if( !best_chars && !has_good_space && best_char_size && (*col_offset) == 0 )
-			best_chars = nSpace - 1;
+			if( !best_chars && !has_good_space && best_char_size && ( *col_offset ) == 0 )
+				best_chars = nSpace - 1;
 
-		// found a space, please show up to that.
-		if( has_good_space )
-		{
-			//while( text[good_space] == ' ' )
-			//	good_space++;
-			(*col_offset) += good_space_size;
-			nShow = good_space - nShown;
-		}
-		else if( best_chars )
-		{
-			(*col_offset) += best_char_size;
+			// found a space, please show up to that.
+			if( has_good_space ) {
+				//while( text[good_space] == ' ' )
+				//	good_space++;
+				( *col_offset ) += good_space_size;
+				nShow += good_space - nShown;
+			}
+			else if( best_chars ) {
+				( *col_offset ) += best_char_size;
 
-			nShow = best_chars - nShown;
-		}
-		else if( nOfs ) // if started after a line, wrap whole thing to next...
-		{
-			nShow = 0;
-			(*col_offset) = 0;
-		}
-		else
-		{
-			// failing all of this nShow will be length, and non delimited text
-			// will wrap forcably.
-			// show as much fo this....
-			// well.. have to figure out which character will still fit....
-			for( nSpace = nShown; nSpace <= nLen; nSpace++ )
+				nShow += best_chars - nShown;
+			}
+			else if( nOfs ) // if started after a line, wrap whole thing to next...
 			{
-				phbr->measureString( phbr->psvMeasure, text + nShown
-					, nSpace - nShown, &nSegSize, &nSegHeight, font );
-				if( ( (*col_offset) + nSegSize  ) < colsize )
-					;
-				else
-				{
+				nShow = 0;
+				( *col_offset ) = 0;
+			}
+			else {
+				// failing all of this nShow will be length, and non delimited text
+				// will wrap forcably.
+				// show as much fo this....
+				// well.. have to figure out which character will still fit....
+				for( nSpace = nShown; nSpace <= seglen; nSpace++ ) {
+					phbr->measureString( phbr->psvMeasure, text + nShown
+						, nSpace - nShown, &nSegSize, &nSegHeight, font );
+					if( ( ( *col_offset ) + nSegSize ) < colsize )
+						;
+					else {
+						nShow = ( nSpace - 1 ) - nShown;
+						( *col_offset ) += nSegSize;
+						break;
+					}
+				}
+				if( nSpace > seglen ) {
 					nShow = ( nSpace - 1 ) - nShown;
-					(*col_offset) += nSegSize;
-					break;
+					( *col_offset ) += nSegSize;
+					// ran out of characters in segment... whole segment fits.
+					// it didn't fit, but now it fits?!
+					//lprintf( "This should be a segfault or something" );
 				}
 			}
-			if( nSpace > nLen )
-			{
-				nShow = ( nSpace - 1 ) - nShown;
-				(*col_offset) += nSegSize;
-				// ran out of characters in segment... whole segment fits.
-				// it didn't fit, but now it fits?!
-				//lprintf( "This should be a segfault or something" );
-			}
+			break;
 		}
-	 }
-	 else
-	{
-		 nShow = nLen - nShown;
-		(*col_offset) += nLenSize;
+		else {
+			nShow += seglen - nShown;
+			( *col_offset ) += nLenSize;
+		}
+		if( ( nShow + result_bias ) < 0 )
+			DebugBreak();
+
+		segment = NEXTLINE( segment );
+		nShown = 0;
 	}
-	if( (nShow + result_bias) < 0 )
-		DebugBreak();
+	endSegment[0] = segment;
 	//lprintf( "Show %d", nShow );
 	return nShow + result_bias;
 }

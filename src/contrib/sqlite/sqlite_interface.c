@@ -8,6 +8,7 @@
 #include <procreg.h>
 #include <filesys.h>
 #include <deadstart.h>
+#include <sack_vfs.h>
 #define SQLLIB_SOURCE
 #define BUILDS_INTERFACE
 #define DEFINES_SQLITE_INTERFACE
@@ -182,10 +183,10 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 {
 	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	size_t actual;
-#ifdef LOG_OPERATIONS
+//#ifdef LOG_OPERATIONS
 	lprintf( "Write %p %s %d at %d", my_file->file, my_file->filename, iAmt, iOfst );
 	//LogBinary( buffer, iAmt );
-#endif
+//#endif
 	{
 		size_t filesize = sack_fsize( my_file->file );
 		if( USS_LT( filesize, size_t, iOfst, sqlite3_int64 ) )
@@ -573,13 +574,13 @@ int xFileControl(sqlite3_file*file, int op, void *pArg)
 int xSectorSize(sqlite3_file*file)
 {
 	//struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
-	return 512;
+	return 4096;
 }
 
 int xDeviceCharacteristics(sqlite3_file*file)
 {
 	//struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
-	return SQLITE_IOCAP_ATOMIC|SQLITE_IOCAP_SAFE_APPEND|SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN|SQLITE_IOCAP_POWERSAFE_OVERWRITE;
+	return SQLITE_IOCAP_ATOMIC4K|SQLITE_IOCAP_SAFE_APPEND|SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN|SQLITE_IOCAP_POWERSAFE_OVERWRITE;
 }
 
 
@@ -706,6 +707,7 @@ int xOpen(sqlite3_vfs* vfs, const char *zName, sqlite3_file*file,
 			my_file->file = sack_fsopenEx( 0, my_file->filename, "wb", _SH_DENYNO, my_vfs->mount );
 		if( my_file->file )
 		{
+			sack_ioctl( my_file->file, SOSFSFIO_SET_BLOCKSIZE, 4096 );
 #ifdef LOG_OPERATIONS
 			lprintf( "Opened file: %s (vfs:%s) %p", zName, vfs->zName, my_file->file );
 #endif

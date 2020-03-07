@@ -1,3 +1,4 @@
+#define WANT_MMSYSTEM
 #include <stdhdrs.h>
 
 #if defined( __LINUX__ )
@@ -172,10 +173,6 @@ int GetSoundList( PSENTIENT ps, PLIST *pList, PTEXT pName )
 	}	
 	return cnt;
 }
-
-#ifdef WIN32
-#include <mmsystem.h>
-#endif
 
 int CPROC Sound( PSENTIENT ps, PTEXT parameters )
 {
