@@ -794,7 +794,7 @@ void ConvertTickToTime( int64_t tick, PSACK_TIME st ) {
 }
 
 
-int64_t GetTimeOfDay( void )
+int64_t GetTimeOfDay( uint64_t* tick, uint8_t* ptz )
 {
 	//struct timezone tzp;
 	int tz = GetTimeZone();
@@ -802,6 +802,11 @@ int64_t GetTimeOfDay( void )
 		tz = -(((-tz / 100) * 60) + (-tz % 100)) / 15; // -840/15 = -56
 	else
 		tz = (((tz / 100) * 60) + (tz % 100)) / 15; // -840/15 = -56  720/15 = 48
+
+	tick[0] = timeGetTime64ns();
+	ptz[0] = tz;
+	return ( tick[0] /1000000 )<<8 | (tz&0xFF);
+
 #ifdef _WIN32
 	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
 	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
@@ -815,7 +820,6 @@ int64_t GetTimeOfDay( void )
 	SystemTimeToFileTime( &system_time, &file_time );
 	time = ((uint64_t)file_time.dwLowDateTime);
 	time += ((uint64_t)file_time.dwHighDateTime) << 32;
-
 	return (((uint64_t)((time - EPOCH) / 10000L)) << 8) | (tz & 0xFF);
 #else
 	{
