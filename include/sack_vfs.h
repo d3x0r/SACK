@@ -230,6 +230,7 @@ namespace objStore {
 		SOSFSFIO_REMOVE_REFERENCE,
 		SOSFSFIO_ADD_REFERENCE_BY,
 		SOSFSFIO_REMOVE_REFERENCE_BY,
+		SOSFSFIO_SET_BLOCKSIZE, // set file preferred block size intead of automatic
 	};
 
 	enum sack_object_store_file_system_system_ioctl_ops {
@@ -530,10 +531,10 @@ SACK_VFS_PROC size_t CPROC sack_vfs_os_find_get_size( struct sack_vfs_os_find_in
 
 
 SACK_VFS_NAMESPACE_END
-#if defined( __cplusplus ) && !defined( SACK_VFS_SOURCE )
+#if defined( __cplusplus ) 
 using namespace sack::SACK_VFS;
-//using namespace sack::SACK_VFS::fs;
-//using namespace sack::SACK_VFS::objStore;
+using namespace sack::SACK_VFS::fs;
+using namespace sack::SACK_VFS::objStore;
 #endif
 
 #endif
