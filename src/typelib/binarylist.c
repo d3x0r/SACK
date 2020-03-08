@@ -512,28 +512,25 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 		} else {
 			node->children--;
 
+			bottom = node;
 			// have a lesser and a greater.
 			if( node->lesser->depth > node->greater->depth ) {
 				least = node->lesser;
-				while( least->greater ) least = least->greater;
+				while( least->greater ) { bottom = least; least = least->greater; }
 				if( least->lesser ) {
 					(*(least->lesser->me =least->me)) = least->lesser;
 					least->lesser->parent  = least->parent;
-					bottom = least->lesser;
 				} else {
 					(*(least->me)) = NULL;
-					bottom = least->parent;
 				}
 			} else {
 				least = node->greater;
-				while( least->lesser ) least = least->lesser;
+				while( least->lesser ) { bottom = least; least = least->lesser; }
 				if( least->greater ) {
 					(*(least->greater->me = least->me)) = least->greater;
 					least->greater->parent  = least->parent;
-					bottom = least->greater;
 				} else {
 					(*(least->me)) = NULL;
-					bottom = least->parent;
 				}
 			}
 		}
