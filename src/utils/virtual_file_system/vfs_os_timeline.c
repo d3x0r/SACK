@@ -28,58 +28,74 @@ typedef struct timelineTimeType {
 
 PREFIX_PACKED struct timelineHeader {
 	TIMELINE_BLOCK_TYPE first_free_entry;
-	TIMELINE_BLOCK_TYPE crootNode;
+	TIMELINE_BLOCK_TYPE crootNode_deleted;
 	TIMELINE_BLOCK_TYPE srootNode;
 	uint64_t unused[5];
+	uint64_t unused2[8];
 } PACKED;
+
+// current size is 64 bytes.
+// me_fpi is the physical FPI in the timeline file of the TIMELINE_BLOCK_TYPE that references 'this' block.
+// structure defines little endian structure for storage.
 
 PREFIX_PACKED struct storageTimelineNode {
 	// if dirent_fpi == 0; it's free.
 	uint64_t dirent_fpi;
-	union {
-		//FPI dirent_fpi;   // FPI on disk
-		struct padding {
-			uint64_t b;
-		}unused;
-	} data;
-
-	// if the block is free, cgreater is used as pointer to next free block
+	TIMELINE_BLOCK_TYPE prior;
+	// if the block is free, sgreater is used as pointer to next free block
 	// delete an object can leave free timeline nodes in the middle of the physical chain.
 
-	union {
-		uint64_t raw;
-		TIMELINE_TIME_TYPE parts;        // file time tick/ created stamp, sealing stamp
-	}ctime;
+	//uint64_t padding[4];
+/*
+	uint64_t ctime;                      // uses timeGetTime64() tick resolution
+	//union {
+	//	uint64_t raw;
+	//	TIMELINE_TIME_TYPE parts;         // file time tick/ created stamp, sealing stamp
+	//}ctime;
 	TIMELINE_BLOCK_TYPE clesser;         // FPI/32 within timeline chain
-	TIMELINE_BLOCK_TYPE cgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
-	union {
-		uint64_t raw;
-		TIMELINE_TIME_TYPE parts;        // time file was stored
-	}stime;
+	TIMELINE_BLOCK_TYPE sgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
+	TIMELINE_BLOCK_TYPE cparent;
+*/
+	uint32_t filler32_1;
+	uint16_t priorDataPad;
+	uint8_t  filler8_1; // how much of the last block in the file is not used
+
+	uint8_t  timeTz; // lesser least significant byte of time... sometimes can read time including timezone offset with time - 1 byte
+
+	uint64_t time;
+	//union {
+	//	uint64_t raw;
+	//	TIMELINE_TIME_TYPE parts;        // time file was stored
+	//}stime;
 	TIMELINE_BLOCK_TYPE slesser;         // FPI/32 within timeline chain
 	TIMELINE_BLOCK_TYPE sgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
+	uint64_t me_fpi; // it is know by  ( me_fpi & 0x3f ) == 32 or == 36 whether this is slesser or sgreater, (me_fpi & ~3f) = parent_fpi
+	uint64_t priorData; // if not 0, references a start block version of data.
 } PACKED;
 
 struct memoryTimelineNode {
 	// if dirent_fpi == 0; it's free.
-	FPI dirent_fpi;   // FPI on disk
 	FPI this_fpi;
 	uint64_t index;
-	// if the block is free, cgreater is used as pointer to next free block
-	// delete an object can leave free timeline nodes in the middle of the physical chain.
+	// the end of this is the same as storage timeline.
 
-	union {
-		uint64_t raw;
-		TIMELINE_TIME_TYPE parts;        // file time tick/ created stamp, sealing stamp
-	}ctime;
-	TIMELINE_BLOCK_TYPE clesser;         // FPI/32 within timeline chain
-	TIMELINE_BLOCK_TYPE cgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
-	union {
-		uint64_t raw;
-		TIMELINE_TIME_TYPE parts;        // time file was stored
-	}stime;
+	FPI dirent_fpi;   // FPI on disk
+	// if the block is free, sgreater is used as pointer to next free block
+	// delete an object can leave free timeline nodes in the middle of the physical chain.
+	TIMELINE_BLOCK_TYPE prior;
+
+	PREFIX_PACKED struct {
+		uint32_t filler_32;
+		uint16_t priorDataPad;
+		uint8_t filler_8;
+		uint8_t timeTz;
+	} PACKED bits;
+
+	uint64_t time;
 	TIMELINE_BLOCK_TYPE slesser;         // FPI/32 within timeline chain
 	TIMELINE_BLOCK_TYPE sgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
+	uint64_t me_fpi; // it is know by  ( me_fpi & 0x3f ) == 32 or == 36 whether this is slesser or sgreater, (me_fpi & ~3f) = parent_fpi
+	uint64_t priorData; // if not 0, references a start block version of data.
 };
 
 
@@ -88,111 +104,128 @@ struct storageTimelineCursor {
 	struct storageTimelineCache dirents; // temp; needs work.
 };
 
-#define NUM_ROOT_TIMELINE_NODES (BLOCK_SIZE - sizeof( struct timelineHeader )) / sizeof( struct storageTimelineNode )
+#define NUM_ROOT_TIMELINE_NODES (TIME_BLOCK_SIZE - sizeof( struct timelineHeader )) / sizeof( struct storageTimelineNode )
 PREFIX_PACKED struct storageTimeline {
 	struct timelineHeader header;
 	struct storageTimelineNode entries[NUM_ROOT_TIMELINE_NODES];
 } PACKED;
 
-#define NUM_TIMELINE_NODES (BLOCK_SIZE) / sizeof( struct storageTimelineNode )
+#define NUM_TIMELINE_NODES (TIME_BLOCK_SIZE) / sizeof( struct storageTimelineNode )
 PREFIX_PACKED struct storageTimelineBlock {
-	struct storageTimelineNode entries[(BLOCK_SIZE) / sizeof( struct storageTimelineNode )];
+	struct storageTimelineNode entries[(TIME_BLOCK_SIZE) / sizeof( struct storageTimelineNode )];
 } PACKED;
 
 
+struct storageTimelineNode* getRawTimeEntry( struct sack_vfs_os_volume* vol, uint64_t timeEntry, enum block_cache_entries *cache )
+{
+	int locks;
+	cache[0] = BC( TIMELINE );
+	FPI pos = sane_offsetof( struct storageTimeline, entries[timeEntry - 1] );
+	struct storageTimelineNode* node = ( struct storageTimelineNode* )vfs_os_FSEEK( vol, vol->timeline_file, 0/*no block*/, pos, cache, TIME_BLOCK_SIZE );
+	SETMASK_( vol->seglock, seglock, cache[0], locks = GETMASK_( vol->seglock, seglock, cache[0] ) + 1 );
 
-void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, uint64_t timeEntry ) {
+	return node;
+}
+
+TIMELINE_BLOCK_TYPE* getRawTimePointer( struct sack_vfs_os_volume* vol, uint64_t fpi, enum block_cache_entries *cache ) {
+	cache[0] = BC( TIMELINE );
+	return (TIMELINE_BLOCK_TYPE*)vfs_os_FSEEK( vol, vol->timeline_file, 0/*no block*/, fpi, cache, TIME_BLOCK_SIZE );
+}
+
+void dropRawTimeEntry( struct sack_vfs_os_volume* vol, enum block_cache_entries cache ) {
+	int locks;
+	SETMASK_( vol->seglock, seglock, cache, locks = GETMASK_( vol->seglock, seglock, cache ) - 1 );
+}
+
+void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, uint64_t timeEntry )
+{
 	enum block_cache_entries cache = BC( TIMELINE );
 	//uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index ) {
 	//if( timeEntry > 62 )DebugBreak();
 	FPI pos = sane_offsetof( struct storageTimeline, entries[timeEntry - 1] );
-	struct storageTimelineNode* node = (struct storageTimelineNode*)vfs_os_FSEEK( vol, vol->timeline_file, FIRST_TIMELINE_BLOCK, pos, &cache );
-	struct storageTimelineNode* nodeKey = (struct storageTimelineNode*)(vol->usekey[cache] + (pos & BLOCK_MASK));
+	struct storageTimelineNode* node = (struct storageTimelineNode*)vfs_os_FSEEK( vol, vol->timeline_file, 0/*no block*/, pos, &cache, TIME_BLOCK_SIZE );
 	time->index = timeEntry;
 
 	time->dirent_fpi = (FPI)(node->dirent_fpi);
 
-	time->ctime.raw = node->ctime.raw;
-	time->clesser.raw = node->clesser.raw;
-	time->cgreater.raw = node->cgreater.raw;
+	time->prior = node->prior;
+	time->time = node->time;
+	time->priorData = node->priorData;
+	time->bits.priorDataPad = node->priorDataPad ;
+	time->bits.timeTz = node->timeTz;
 
-	time->stime.raw = node->stime.raw;
+	//time->time = node->time;
 	time->slesser.raw = node->slesser.raw;
 	time->sgreater.raw = node->sgreater.raw;
+	time->me_fpi = node->me_fpi;
 
-	time->this_fpi = vol->bufferFPI[cache] + (pos & BLOCK_MASK);
+	time->this_fpi = pos;
 	//LoG( "Set this FPI: %d  %d", (int)timeEntry, (int)time->this_fpi );
 }
 
 
 
-static void DumpTimelineTreeWork( struct sack_vfs_os_volume* vol, int level, struct memoryTimelineNode* parent, LOGICAL bSortCreation ) {
+static void DumpTimelineTreeWork( struct sack_vfs_os_volume* vol, int level, struct memoryTimelineNode* parent, LOGICAL unused ) {
 	struct memoryTimelineNode curNode;
 	static char indent[256];
 	int i;
 #if 0
 	lprintf( "input node %d %d %d", parent->index
-		, bSortCreation ? parent->clesser.ref.index : parent->slesser.ref.index
-		, bSortCreation ? parent->cgreater.ref.index : parent->sgreater.ref.index
+		, parent->slesser.ref.index
+		, parent->sgreater.ref.index
 	);
 #endif
-	if( bSortCreation ? parent->clesser.ref.index : parent->slesser.ref.index ) {
-		reloadTimeEntry( &curNode, vol, bSortCreation ? parent->clesser.ref.index : parent->slesser.ref.index );
+	if( parent->slesser.ref.index ) {
+		reloadTimeEntry( &curNode, vol, parent->slesser.ref.index );
 #if 0
 		lprintf( "(lesser) go to node %d", curNode.index );
 #endif
-		DumpTimelineTreeWork( vol, level + 1, &curNode, bSortCreation );
+		DumpTimelineTreeWork( vol, level + 1, &curNode, unused );
 	}
 	for( i = 0; i < level * 3; i++ )
 		indent[i] = ' ';
 	indent[i] = 0;
-	lprintf( "CurNode: (%s ->  %d  has children %d %d  with depths of %d %d"
+	lprintf( "CurNode: (%s -> %5d  %d <-%d %s has children %d %d  with depths of %d %d"
 		, indent
+		, (int)parent->dirent_fpi
 		, (int)parent->index
-		, (int)(bSortCreation ? parent->clesser.ref.index : parent->slesser.ref.index)
-		, (int)(bSortCreation ? parent->cgreater.ref.index : parent->sgreater.ref.index)
-		, (int)(bSortCreation ? parent->clesser.ref.depth : parent->slesser.ref.depth)
-		, (int)(bSortCreation ? parent->cgreater.ref.depth : parent->sgreater.ref.depth)
+		, parent->me_fpi >> 6
+		, ( ( parent->me_fpi & 0x3f ) == 0x20 ) ? "L"
+		: ( ( parent->me_fpi & 0x3f ) == 0x10 ) ? "R"
+		: "G"
+		, (int)(parent->slesser.ref.index)
+		, (int)(parent->sgreater.ref.index)
+		, (int)(parent->slesser.ref.depth)
+		, (int)(parent->sgreater.ref.depth)
 	);
-	if( bSortCreation ? parent->cgreater.ref.index : parent->sgreater.ref.index ) {
-		reloadTimeEntry( &curNode, vol, bSortCreation ? parent->cgreater.ref.index : parent->sgreater.ref.index );
+	if( parent->sgreater.ref.index ) {
+		reloadTimeEntry( &curNode, vol, parent->sgreater.ref.index );
 #if 0
 		lprintf( "(greater) go to node %d", curNode.index );
 #endif
-		DumpTimelineTreeWork( vol, level + 1, &curNode, bSortCreation );
+		DumpTimelineTreeWork( vol, level + 1, &curNode, unused );
 	}
 }
 
 //---------------------------------------------------------------------------
 
-static void DumpTimelineTree( struct sack_vfs_os_volume* vol, LOGICAL bSortCreation ) {
+static void DumpTimelineTree( struct sack_vfs_os_volume* vol, LOGICAL unused ) {
 	enum block_cache_entries cache = BC( TIMELINE );
 
 	struct storageTimeline* timeline = vol->timeline;// (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, &cache );
 	SETFLAG( vol->seglock, cache );
-	struct storageTimeline* timelineKey = vol->timelineKey; // (struct storageTimeline *)(vol->usekey[cache]);
 
 	struct memoryTimelineNode curNode;
 
-	if( bSortCreation ) {
-		if( !timeline->header.crootNode.ref.index ) {
-			return;
-		}
-		reloadTimeEntry( &curNode, vol
-			, (timeline->header.crootNode.ref.index ) );
-	}
-	else {
+	{
 		if( !timeline->header.srootNode.ref.index ) {
 			return;
 		}
 		reloadTimeEntry( &curNode, vol
 			, timeline->header.srootNode.ref.index  );
 	}
-	DumpTimelineTreeWork( vol, 0, &curNode, bSortCreation );
+	DumpTimelineTreeWork( vol, 0, &curNode, unused );
 }
-
-
-
 
 
 
@@ -204,18 +237,18 @@ void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 	FPI timeEntry = time->this_fpi;
 
 	enum block_cache_entries cache = BC( TIMELINE );
-	struct storageTimelineNode* nodeKey;
-	struct storageTimelineNode* node = (struct storageTimelineNode*)vfs_os_DSEEK( vol, time->this_fpi, &cache, (POINTER*)& nodeKey );
+	struct storageTimelineNode* node = (struct storageTimelineNode*)vfs_os_FSEEK( vol, vol->timeline_file, 0, time->this_fpi, &cache, TIME_BLOCK_SIZE );
 
 	node->dirent_fpi = time->dirent_fpi;
 
-	node->ctime.raw = time->ctime.raw;
-	node->clesser.raw = time->clesser.raw;
-	node->cgreater.raw = time->cgreater.raw;
-
-	node->stime.raw = time->stime.raw;
+	node->prior = time->prior;
+	node->priorData = time->priorData;
+	node->priorDataPad = time->bits.priorDataPad;
+	node->timeTz = time->bits.timeTz;
+	node->time = time->time;
 	node->slesser.raw = time->slesser.raw;
 	node->sgreater.raw = time->sgreater.raw;
+	node->me_fpi = time->me_fpi;
 
 	SETFLAG( vol->dirty, cache );
 	{
@@ -247,16 +280,16 @@ void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 
 void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimelineNode* time, struct sack_vfs_os_find_info* decoded_dirent ) {
 	enum block_cache_entries cache = BC( DIRECTORY );
-	struct directory_entry* dirent, * entkey;
+	struct directory_entry* dirent;// , * entkey;
 	struct directory_hash_lookup_block* dirblock;
-	struct directory_hash_lookup_block* dirblockkey;
+	//struct directory_hash_lookup_block* dirblockkey;
 	PDATASTACK pdsChars = CreateDataStack( 1 );
 	BLOCKINDEX this_dir_block = (time->dirent_fpi >> BLOCK_BYTE_SHIFT);
 	BLOCKINDEX next_block;
-	dirblock = BTSEEK( struct directory_hash_lookup_block*, vol, this_dir_block, cache );
-	dirblockkey = (struct directory_hash_lookup_block*)vol->usekey[cache];
+	dirblock = BTSEEK( struct directory_hash_lookup_block*, vol, this_dir_block, DIR_BLOCK_SIZE, cache );
+	//dirblockkey = (struct directory_hash_lookup_block*)vol->usekey[cache];
 	dirent = (struct directory_entry*)(((uintptr_t)dirblock) + (time->dirent_fpi & BLOCK_SIZE));
-	entkey = (struct directory_entry*)(((uintptr_t)dirblockkey) + (time->dirent_fpi & BLOCK_SIZE));
+	//entkey = (struct directory_entry*)(((uintptr_t)dirblockkey) + (time->dirent_fpi & BLOCK_SIZE));
 
 	decoded_dirent->vol = vol;
 
@@ -267,15 +300,25 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 	decoded_dirent->pds_directories = NULL;
 
 	decoded_dirent->filesize = (size_t)( dirent->filesize );
-	decoded_dirent->ctime = time->ctime.raw;
-	decoded_dirent->wtime = time->stime.raw;
+	if( time->prior.raw ) {
+		enum block_cache_entries cache;
+		struct storageTimelineNode* prior = getRawTimeEntry( vol, time->prior.raw, &cache );
+		while( prior->prior.raw ) {
+			dropRawTimeEntry( vol, cache );
+			prior = getRawTimeEntry( vol, prior->prior.raw, &cache );
+		}
+		decoded_dirent->ctime = prior->time;
+		dropRawTimeEntry( vol, cache );
+	}
+	else
+		decoded_dirent->ctime = time->time;
+	decoded_dirent->wtime = time->time;
 
 	while( (next_block = dirblock->next_block[DIRNAME_CHAR_PARENT]) ) {
 		enum block_cache_entries back_cache = BC( DIRECTORY );
 		struct directory_hash_lookup_block* back_dirblock;
-		struct directory_hash_lookup_block* back_dirblockkey;
-		back_dirblock = BTSEEK( struct directory_hash_lookup_block*, vol, next_block, back_cache );
-		back_dirblockkey = (struct directory_hash_lookup_block*)vol->usekey[back_cache];
+		back_dirblock = BTSEEK( struct directory_hash_lookup_block*, vol, next_block, DIR_BLOCK_SIZE, back_cache );
+		//back_dirblockkey = (struct directory_hash_lookup_block*)vol->usekey[back_cache];
 		int i;
 		for( i = 0; i < DIRNAME_CHAR_PARENT; i++ ) {
 			if( (back_dirblock->next_block[i]) == this_dir_block ) {
@@ -289,7 +332,6 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 		}
 		this_dir_block = next_block;
 		dirblock = back_dirblock;
-		dirblockkey = back_dirblockkey;
 	}
 
 	char* c;
@@ -307,9 +349,9 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 		FPI name_offset = (dirent[n].name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
 
 		enum block_cache_entries cache = BC( NAMES );
-		const char* dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset, &cache );
+		const char* dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset, &cache, NAME_BLOCK_SIZE );
 		const char* dirname_ = dirname;
-		const char* dirkey = (const char*)(vol->usekey[cache]) + (name_offset & BLOCK_MASK);
+		//const char* dirkey = (const char*)(vol->usekey[cache]) + (name_offset & BLOCK_MASK);
 		const char* prior_dirname = dirname;
 		int c;
 		do {
@@ -318,13 +360,13 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 				) {
 				decoded_dirent->filename[n++] = c;
 				dirname++;
-				dirkey++;
+				//dirkey++;
 			}
 			if( ((((uintptr_t)prior_dirname) & ~BLOCK_MASK) != (((uintptr_t)dirname) & ~BLOCK_MASK)) ) {
 				int partial = (int)(dirname - dirname_);
 				cache = BC( NAMES );
-				dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset + partial, &cache );
-				dirkey = (const char*)(vol->usekey[cache]) + ((name_offset + partial) & BLOCK_MASK);
+				dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset + partial, &cache, NAME_BLOCK_SIZE );
+				//dirkey = (const char*)(vol->usekey[cache]) + ((name_offset + partial) & BLOCK_MASK);
 				dirname_ = dirname - partial;
 				prior_dirname = dirname;
 				continue;
@@ -343,7 +385,7 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 
 static void _os_AVL_RotateToRight(
 	struct sack_vfs_os_volume* vol,
-	LOGICAL bSortCreation,
+	LOGICAL unused,
 	PDATASTACK * pdsStack,
 	struct memoryTimelineNode* node,
 	struct memoryTimelineNode* left_
@@ -353,100 +395,78 @@ static void _os_AVL_RotateToRight(
 	struct memoryTimelineNode* parent;
 	parent = (struct memoryTimelineNode*)PeekData( pdsStack ); // the next one up the tree
 
-	if( bSortCreation ) {
+	{
+#if 0
 		/* Perform rotation*/
 		if( parent ) {
-			if( parent->clesser.ref.index == node->index )
-				parent->clesser.raw = node->clesser.raw;
-			else
-#ifdef _DEBUG
-				if( parent->cgreater.ref.index == node->index )
-#endif
-					parent->cgreater.raw = node->clesser.raw;
-#ifdef _DEBUG
-				else
-					DebugBreak();
-#endif
-		}
-		else {
-			vol->timeline->header.crootNode.raw = node->clesser.raw ;
-		}
-
-		// read into stack entry
-		//reloadTimeEntry( left_, vol, node->clesser.ref.index );
-
-		node->clesser.raw = left_->cgreater.raw;
-		left_->cgreater.ref.index = node->index;
-		/* Update heights */
-		{
-			int leftDepth, rightDepth;
-			leftDepth = (int)node->clesser.ref.depth;
-			rightDepth = (int)node->cgreater.ref.depth;
-			if( leftDepth > rightDepth )
-				left_->cgreater.ref.depth = leftDepth + 1;
-			else
-				left_->cgreater.ref.depth = rightDepth + 1;
-
-			leftDepth = (int)left_->clesser.ref.depth;
-			rightDepth = (int)left_->cgreater.ref.depth;
-
-			if( parent ) {
-				if( leftDepth > rightDepth )
-					if( parent->cgreater.ref.index == left_->index )
-						parent->cgreater.ref.depth = leftDepth + 1;
-					else
-#ifdef _DEBUG
-						if( parent->clesser.ref.index == left_->index )
-#endif
-							parent->clesser.ref.depth = leftDepth + 1;
-#ifdef _DEBUG
-						else
-							DebugBreak();
-#endif
-				else
-					if( parent->cgreater.ref.index == left_->index )
-						parent->cgreater.ref.depth = rightDepth + 1;
-					else
-#ifdef _DEBUG
-						if( parent->clesser.ref.index == left_->index )
-#endif
-							parent->clesser.ref.depth = rightDepth + 1;
-#ifdef _DEBUG
-						else
-							DebugBreak();
-#endif
-			}
-			else {
-				if( leftDepth > rightDepth ) {
-					vol->timeline->header.crootNode.ref.depth = leftDepth + 1;
-				}
-				else {
-					vol->timeline->header.crootNode.ref.depth = rightDepth + 1;
-				}
-			}
-		}
-	}
-	else {
-		/* Perform rotation*/
-		if( parent ) {
-			if( parent->slesser.ref.index == node->index )
+			if( parent->slesser.ref.index == node->index ) {
 				parent->slesser.ref.index = node->slesser.ref.index;
-			else
+				{
+					struct storageTimelineNode* x;
+					enum block_cache_entries cache;
+					x = getRawTimeEntry( vol, node->slesser.ref.index, &cache );
+					x->me_fpi = node->me_fpi;
+					SETFLAG( vol->dirty, cache );
+					dropRawTimeEntry( vol, cache );
+				}
+			} else {
 #ifdef _DEBUG
-				if( parent->sgreater.ref.index == node->index )
+				if( parent->sgreater.ref.index == node->index ) {
 #endif
 					parent->sgreater.ref.index = node->slesser.ref.index;
+					{
+						struct storageTimelineNode* x;
+						enum block_cache_entries cache;
+						x = getRawTimeEntry( vol, node->slesser.ref.index, &cache );
+						x->me_fpi = node->me_fpi;
+						SETFLAG( vol->dirty, cache );
+						dropRawTimeEntry( vol, cache );
+					}
 #ifdef _DEBUG
-				else
+				} else
 					DebugBreak();
 #endif
+			}
 		}
 		else {
 			vol->timeline->header.srootNode.raw = node->slesser.raw ;
+			{
+				struct storageTimelineNode* x;
+				enum block_cache_entries cache;
+				x = getRawTimeEntry( vol, node->slesser.ref.index, &cache );
+				x->me_fpi = node->me_fpi;
+				SETFLAG( vol->dirty, cache );
+				dropRawTimeEntry( vol, cache );
+			}
 		}
+#else
+		{
+			enum block_cache_entries meCache;
+			TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, node->me_fpi, &meCache );
+			ptr[0] = node->slesser;
+			if( parent )
+				if( ( node->me_fpi & 0x3f ) == 0x20 )
+					parent->slesser = node->slesser;
+				else
+					parent->sgreater = node->slesser;
+			SETFLAG( vol->dirty, meCache );
+		}
+#endif
 
 		node->slesser.raw = left_->sgreater.raw;
+		{
+			struct storageTimelineNode* x;
+			enum block_cache_entries cache;
+			x = getRawTimeEntry( vol, node->slesser.ref.index, &cache );
+			x->me_fpi = node->this_fpi + sane_offsetof( struct storageTimelineNode, slesser );
+			SETFLAG( vol->dirty, cache );
+			dropRawTimeEntry( vol, cache );
+		}
+		left_->me_fpi = node->me_fpi;
+
 		left_->sgreater.ref.index = node->index;
+		node->me_fpi = left_->this_fpi + sane_offsetof( struct storageTimelineNode, sgreater );
+
 
 		/* Update heights */
 		{
@@ -501,8 +521,6 @@ static void _os_AVL_RotateToRight(
 	}
 	if( parent )
 		updateTimeEntry( parent, vol );
-	else
-		SETFLAG( vol->dirty, FIRST_TIMELINE_BLOCK );
 	updateTimeEntry( node, vol );
 	updateTimeEntry( left_, vol );
 }
@@ -511,7 +529,7 @@ static void _os_AVL_RotateToRight(
 
 static void _os_AVL_RotateToLeft(
 	struct sack_vfs_os_volume* vol,
-	LOGICAL bSortCreation,
+	LOGICAL unused,
 	PDATASTACK * pdsStack,
 	struct memoryTimelineNode* node,
 	struct memoryTimelineNode* right_
@@ -521,88 +539,72 @@ static void _os_AVL_RotateToLeft(
 	struct memoryTimelineNode* parent;
 	parent = (struct memoryTimelineNode*)PeekData( pdsStack );
 
-	if( bSortCreation ) {
+	{
+#if 0
+		// old way to check for link to set.
 		if( parent ) {
-			if( parent->clesser.ref.index == node->index )
-				parent->clesser.raw = node->cgreater.raw;
-			else
-#ifdef _DEBUG
-				if( parent->cgreater.ref.index == node->index )
-#endif
-					parent->cgreater.raw = node->cgreater.raw;
-#ifdef _DEBUG
-				else
-					DebugBreak();
-#endif
-		}
-		else
-			vol->timeline->header.crootNode.raw = node->cgreater.raw ;
-
-		node->cgreater.raw = right_->clesser.raw;
-		right_->clesser.ref.index = node->index;
-
-		/*  Update heights */
-		{
-			int leftDepth, rightDepth;
-			leftDepth = (int)node->clesser.ref.depth;
-			rightDepth = (int)node->cgreater.ref.depth;
-			if( leftDepth > rightDepth )
-				right_->clesser.ref.depth = leftDepth + 1;
-			else
-				right_->clesser.ref.depth = rightDepth + 1;
-
-			leftDepth = (int)right_->clesser.ref.depth;
-			rightDepth = (int)right_->cgreater.ref.depth;
-
-			//struct memoryTimelineNode *parent;
-			//parent = (struct memoryTimelineNode *)PeekData( pdsStack );
-			if( parent ) {
-				if( leftDepth > rightDepth ) {
-					if( parent->clesser.ref.index == right_->index )
-						parent->clesser.ref.depth = leftDepth + 1;
-					else
-#ifdef _DEBUG
-						if( parent->cgreater.ref.index == right_->index )
-#endif
-							parent->cgreater.ref.depth = leftDepth + 1;
-				}
-				else {
-					if( parent->clesser.ref.index == right_->index )
-						parent->clesser.ref.depth = rightDepth + 1;
-					else
-#ifdef _DEBUG
-						if( parent->cgreater.ref.index == right_->index )
-#endif
-							parent->cgreater.ref.depth = rightDepth + 1;
-				}
-			}
-			else
-				if( leftDepth > rightDepth ) {
-					vol->timeline->header.crootNode.ref.depth = leftDepth + 1;
-				}
-				else {
-					vol->timeline->header.crootNode.ref.depth = rightDepth + 1;
-				}
-		}
-	}
-	else {
-		if( parent )
-			if( parent->slesser.ref.index == node->index )
+			
+			if( parent->slesser.ref.index == node->index ) {
 				parent->slesser.raw = node->sgreater.raw;
-			else
+				{
+					struct memoryTimelineNode x;
+					reloadTimeEntry( &x, vol, node->sgreater.ref.index );
+					x.me_fpi = node->me_fpi; // I know by the offset of 
+					updateTimeEntry( &x, vol );
+				}
+			} else {
 #ifdef _DEBUG
-				if( parent->sgreater.ref.index == node->index )
+				if( parent->sgreater.ref.index == node->index ) {
 #endif
 					parent->sgreater.raw = node->sgreater.raw;
+					{
+						struct memoryTimelineNode x;
+						reloadTimeEntry( &x, vol, node->sgreater.ref.index );
+						x.me_fpi = node->me_fpi;
+						updateTimeEntry( &x, vol );
+					}
 #ifdef _DEBUG
-				else
+				} else
 					DebugBreak();
 #endif
-		else
-			vol->timeline->header.srootNode.raw = node->sgreater.raw ;
+			}
+		else {
+			vol->timeline->header.srootNode.raw = node->sgreater.raw;
+			{
+				struct memoryTimelineNode x;
+				reloadTimeEntry( &x, vol, node->sgreater.ref.index );
+				x.me_fpi = node->me_fpi;
+				updateTimeEntry( &x, vol );
+			}
+		}
+#else
+		{
+			enum block_cache_entries meCache;
+			TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, node->me_fpi, &meCache );
+			ptr[0] = node->sgreater;
+			if( parent )
+			if( ( node->me_fpi & 0x3f ) == 0x20 )
+				parent->slesser = node->sgreater;
+			else
+				parent->sgreater = node->sgreater;
+			SETFLAG( vol->dirty, meCache );
+		}
+#endif
 
 		node->sgreater.raw = right_->slesser.raw;
+		{
+			struct storageTimelineNode *x;
+			enum block_cache_entries cache;
+			x = getRawTimeEntry( vol, right_->slesser.ref.index, &cache );
+			x->me_fpi = node->this_fpi + sane_offsetof( struct storageTimelineNode, sgreater );
+			dropRawTimeEntry( vol, cache );
+		}
+		right_->me_fpi = node->me_fpi;
+
 		right_->slesser.ref.index = node->index;
+		node->me_fpi = right_->this_fpi + sane_offsetof( struct storageTimelineNode, slesser );;
+
+
 
 		/*  Update heights */
 		{
@@ -655,8 +657,6 @@ static void _os_AVL_RotateToLeft(
 
 	if( parent )
 		updateTimeEntry( parent, vol );
-	else
-		SETFLAG( vol->dirty, FIRST_TIMELINE_BLOCK );
 	updateTimeEntry( node, vol );
 	updateTimeEntry( right_, vol );
 }
@@ -664,7 +664,7 @@ static void _os_AVL_RotateToLeft(
 //---------------------------------------------------------------------------
 
 
-static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, LOGICAL bSortCreation, PDATASTACK * pdsStack
+static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, LOGICAL unused, PDATASTACK * pdsStack
 	, struct memoryTimelineNode* node ) {
 	struct memoryTimelineNode* _x = NULL;
 	struct memoryTimelineNode* _y = NULL;
@@ -675,108 +675,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, LOGICAL bSortCreati
 	LOGICAL balanced = FALSE;
 	_z = node;
 
-	if( bSortCreation ) {
-		while( _z ) {
-			int doBalance;
-			doBalance = FALSE;
-			rightDepth = (int)_z->cgreater.ref.depth;
-			leftDepth = (int)_z->clesser.ref.depth;
-			if( tmp = (struct memoryTimelineNode*)PeekData( pdsStack ) ) {
-#ifdef DEBUG_TIMELINE_AVL
-				lprintf( "CR (P)left/right depths: %d  %d   %d    %d  %d", (int)tmp->index, (int)leftDepth, (int)rightDepth, (int)tmp->cgreater.ref.index, (int)tmp->clesser.ref.index );
-				lprintf( "CR left/right depths: %d  %d   %d    %d  %d", (int)_z->index, (int)leftDepth, (int)rightDepth, (int)_z->cgreater.ref.index, (int)_z->clesser.ref.index );
-#endif
-				if( leftDepth > rightDepth ) {
-					if( tmp->cgreater.ref.index == _z->index ) {
-						if( (1 + leftDepth) == tmp->cgreater.ref.depth ) {
-							break;
-						}
-						tmp->cgreater.ref.depth = 1 + leftDepth;
-					}
-					else {
-#ifdef _DEBUG
-						if( tmp->clesser.ref.index == _z->index )
-
-#endif
-						{
-							if( (1 + leftDepth) == tmp->clesser.ref.depth ) {
-								break;
-							}
-							tmp->clesser.ref.depth = 1 + leftDepth;
-						}
-#ifdef _DEBUG
-						else
-							DebugBreak();// Should be one or the other... 
-#endif
-					}
-				}
-				else {
-					if( tmp->cgreater.ref.index == _z->index ) {
-						if( (1 + rightDepth) == tmp->cgreater.ref.depth ) {
-							break;
-						}
-						tmp->cgreater.ref.depth = 1 + rightDepth;
-					}
-					else {
-#ifdef _DEBUG
-						if( tmp->clesser.ref.index == _z->index )
-#endif
-						{
-							if( (1 + rightDepth) == tmp->clesser.ref.depth ) {
-								break;
-							}
-							tmp->clesser.ref.depth = 1 + rightDepth;
-						}
-#ifdef _DEBUG
-
-						else
-							DebugBreak();
-#endif
-					}
-				}
-#ifdef DEBUG_TIMELINE_AVL
-				lprintf( "CR updated left/right depths: %d      %d  %d", (int)tmp->index, (int)tmp->cgreater.ref.depth, (int)tmp->clesser.ref.depth );
-#endif
-				updateTimeEntry( tmp, vol );
-			}
-			if( leftDepth > rightDepth )
-				doBalance = ((leftDepth - rightDepth) > 1);
-			else
-				doBalance = ((rightDepth - leftDepth) > 1);
-
-			if( doBalance && _x ) {
-				if( _x->index == _y->clesser.ref.index ) {
-					if( _y->index == _z->clesser.ref.index ) {
-						// left/left
-						_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, _z, _y );
-					}
-					else {
-						//left/rightDepth
-						_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, _y, _x );
-						_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, _z, _y );
-					}
-				}
-				else {
-					if( _y->index == _z->clesser.ref.index ) {
-						_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, _y, _x );
-						_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, _z, _y );
-						// rightDepth.left
-					}
-					else {
-						//rightDepth/rightDepth
-						_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, _z, _y );
-					}
-				}
-#ifdef DEBUG_TIMELINE_AVL
-				lprintf( "CR Balanced, should redo this one... %d %d", (int)_z->clesser.ref.index, _z->cgreater.ref.index );
-#endif
-			}
-			_x = _y;
-			_y = _z;
-			_z = (struct memoryTimelineNode*)PopData( pdsStack );
-		}
-	}
-	else {
+	{
 		while( _z ) {
 			int doBalance;
 			rightDepth = (int)_z->sgreater.ref.depth;
@@ -854,23 +753,23 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, LOGICAL bSortCreati
 					if( _x->index == _y->slesser.ref.index ) {
 						if( _y->index == _z->slesser.ref.index ) {
 							// left/left
-							_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, _z, _y );
+							_os_AVL_RotateToRight( vol, unused, pdsStack, _z, _y );
 						}
 						else {
 							//left/rightDepth
-							_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, _y, _x );
-							_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, _z, _y );
+							_os_AVL_RotateToRight( vol, unused, pdsStack, _y, _x );
+							_os_AVL_RotateToLeft( vol, unused, pdsStack, _z, _y );
 						}
 					}
 					else {
 						if( _y->index == _z->slesser.ref.index ) {
-							_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, _y, _x );
-							_os_AVL_RotateToRight( vol, bSortCreation, pdsStack, _z, _y );
+							_os_AVL_RotateToLeft( vol, unused, pdsStack, _y, _x );
+							_os_AVL_RotateToRight( vol, unused, pdsStack, _z, _y );
 							// rightDepth.left
 						}
 						else {
 							//rightDepth/rightDepth
-							_os_AVL_RotateToLeft( vol, bSortCreation, pdsStack, _z, _y );
+							_os_AVL_RotateToLeft( vol, unused, pdsStack, _z, _y );
 						}
 					}
 #ifdef DEBUG_TIMELINE_AVL
@@ -893,13 +792,12 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, LOGICAL bSortCreati
 
 static int hangTimelineNode( struct sack_vfs_os_volume* vol
 	, TIMELINE_BLOCK_TYPE index
-	, LOGICAL bSortCreation
+	, LOGICAL unused
 	, struct storageTimeline* timeline
-	, struct storageTimeline* timelineKey
 	, struct memoryTimelineNode* timelineNode
 )
 {
-	PDATASTACK* pdsStack = bSortCreation ? &vol->pdsCTimeStack : &vol->pdsWTimeStack;
+	PDATASTACK* pdsStack = &vol->pdsWTimeStack;
 	struct memoryTimelineNode curNode;
 	struct memoryTimelineNode* curNode_;
 	struct memoryTimelineNode* root;
@@ -914,58 +812,29 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 		if( !parent )
 			break;
 
-		if( bSortCreation ) {
-			if( parent->cgreater.ref.index == root->index ) {
-				if( timelineNode->ctime.raw < parent->ctime.raw ) {
-					// this belongs to the lesser side of parent...
-					PopData( pdsStack );
-					continue;
-				}
-			}
-			if( parent->clesser.ref.index == root->index ) {
-				if( timelineNode->ctime.raw > parent->ctime.raw ) {
-					// this belongs to the greater isde of parent...
-					PopData( pdsStack );
-					continue;
-				}
+		if( parent->sgreater.ref.index == root->index ) {
+			if( timelineNode->time < parent->time ) {
+				// this belongs to the lesser side of parent...
+				PopData( pdsStack );
+				continue;
 			}
 		}
-		else {
-			if( parent->sgreater.ref.index == root->index ) {
-				if( timelineNode->stime.raw < parent->stime.raw ) {
-					// this belongs to the lesser side of parent...
-					PopData( pdsStack );
-					continue;
-				}
-			}
-			if( parent->slesser.ref.index == root->index ) {
-				if( timelineNode->stime.raw > parent->stime.raw ) {
-					// this belongs to the greater isde of parent...
-					PopData( pdsStack );
-					continue;
-				}
+		if( parent->slesser.ref.index == root->index ) {
+			if( timelineNode->time > parent->time ) {
+				// this belongs to the greater isde of parent...
+				PopData( pdsStack );
+				continue;
 			}
 		}
 		break;
 	}
 
 	if( !root )
-		if( bSortCreation ) {
-			if( !timeline->header.crootNode.ref.index ) {
-				timeline->header.crootNode.ref.index = index.ref.index ;
-				timeline->header.crootNode.ref.depth = 0 ;
-				return 1;
-			}
-
-			reloadTimeEntry( &curNode, vol
-				, curindex = (timeline->header.crootNode.ref.index ) );
-			PushData( pdsStack, &curNode );
-
-		}
-		else {
+		{
 			if( !timeline->header.srootNode.ref.index ) {
 				timeline->header.srootNode.ref.index = index.ref.index ;
 				timeline->header.srootNode.ref.depth = 0 ;
+				timelineNode->me_fpi = offsetof( struct timelineHeader, srootNode );
 				return 1;
 			}
 			reloadTimeEntry( &curNode, vol
@@ -979,21 +848,10 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 	while( 1 ) {
 		int dir;// = root->Compare( node->key, check->key );
 		curNode_ = (struct memoryTimelineNode*)PeekData( pdsStack );
-		if( bSortCreation ) {
-#ifdef DEBUG_TIMELINE_AVL
-			lprintf( "Compare node %lld  %lld %lld", curNode_->index, curNode_->ctime.raw, timelineNode->ctime.raw );;
-#endif
-			if( curNode_->ctime.raw > timelineNode->ctime.raw )
+		{
+			if( curNode_->time > timelineNode->time )
 				dir = -1;
-			else if( curNode_->ctime.raw < timelineNode->ctime.raw )
-				dir = 1;
-			else
-				dir = 0;
-		}
-		else {
-			if( curNode_->stime.raw > timelineNode->stime.raw )
-				dir = -1;
-			else if( curNode_->stime.raw < timelineNode->stime.raw )
+			else if( curNode_->time < timelineNode->time )
 				dir = 1;
 			else
 				dir = 0;
@@ -1003,40 +861,39 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 		uint64_t nextIndex;
 		//dir = -dir; // test opposite rotation.
 		if( dir < 0 ) {
-			if( nextIndex = bSortCreation ? curNode_->clesser.ref.index : curNode_->slesser.ref.index ) {
+			if( nextIndex = curNode_->slesser.ref.index ) {
 				reloadTimeEntry( &curNode, vol
 					, curindex = nextIndex );
 				PushData( pdsStack, &curNode );
 				//check = check->lesser;
 			}
 			else {
-				if( bSortCreation ) {
-					curNode_->clesser.ref.index = index.ref.index;
-					curNode_->clesser.ref.depth = 0;
-				}
-				else {
-					curNode_->slesser.ref.index = index.ref.index;
-					curNode_->slesser.ref.depth = 0;
-				}
+
+				curNode_->slesser.ref.index = index.ref.index;
+				curNode_->slesser.ref.depth = 0;
+
+				timelineNode->me_fpi = curNode_->this_fpi + sane_offsetof( struct storageTimelineNode, slesser );
 				updateTimeEntry( curNode_, vol );
 				break;
 			}
 		}
 		else if( dir > 0 )
-			if( nextIndex = bSortCreation ? curNode_->cgreater.ref.index : curNode_->sgreater.ref.index ) {
+			if( nextIndex = curNode_->sgreater.ref.index ) {
 				reloadTimeEntry( &curNode, vol
 					, curindex = nextIndex );
 				PushData( pdsStack, &curNode );
 			}
 			else {
-				if( bSortCreation ) {
-					curNode_->cgreater.ref.index = index.ref.index;
-					curNode_->cgreater.ref.depth = 0;
-				}
-				else {
-					curNode_->sgreater.ref.index = index.ref.index;
-					curNode_->sgreater.ref.depth = 0;
-				}
+				/*
+				enum block_cache_entries cache;
+				TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, curNode_->me_fpi, cache );
+				ptr[0].ref.index = index.ref.index;
+				SETFLAG( vol->dirty, cache );
+				*/
+				curNode_->sgreater.ref.index = index.ref.index;
+				curNode_->sgreater.ref.depth = 0;
+				timelineNode->me_fpi = curNode_->this_fpi + sane_offsetof( struct storageTimelineNode, sgreater );
+				updateTimeEntry( timelineNode, vol );
 				updateTimeEntry( curNode_, vol );
 				break;
 			}
@@ -1045,10 +902,10 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 			// or right... depending on the depth.
 			int leftdepth = 0, rightdepth = 0;
 			uint64_t nextLesserIndex, nextGreaterIndex;
-			if( nextLesserIndex = bSortCreation ? curNode_->clesser.ref.index : curNode_->slesser.ref.index )
-				leftdepth = (int)(bSortCreation ? curNode_->clesser.ref.depth : curNode_->slesser.ref.depth);
-			if( nextGreaterIndex = bSortCreation ? curNode_->cgreater.ref.index : curNode_->sgreater.ref.index )
-				rightdepth = (int)(bSortCreation ? curNode_->cgreater.ref.depth : curNode_->sgreater.ref.depth);
+			if( nextLesserIndex = curNode_->slesser.ref.index )
+				leftdepth = (int)(curNode_->slesser.ref.depth);
+			if( nextGreaterIndex = curNode_->sgreater.ref.index )
+				rightdepth = (int)(curNode_->sgreater.ref.depth);
 			if( leftdepth < rightdepth ) {
 				if( nextLesserIndex ) {
 					reloadTimeEntry( &curNode, vol
@@ -1056,14 +913,12 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 					PushData( pdsStack, &curNode );
 				}
 				else {
-					if( bSortCreation ) {
-						curNode_->clesser.ref.index = index.ref.index;
-						curNode_->clesser.ref.depth = 0;
-					}
-					else {
+					{
 						curNode_->slesser.ref.index = index.ref.index;
 						curNode_->slesser.ref.depth = 0;
 					}
+					timelineNode->me_fpi = curNode_->this_fpi + sane_offsetof( struct storageTimelineNode, slesser );
+					updateTimeEntry( timelineNode, vol );
 					updateTimeEntry( curNode_, vol );
 					break;
 				}
@@ -1075,14 +930,12 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 					PushData( pdsStack, &curNode );
 				}
 				else {
-					if( bSortCreation ) {
-						curNode_->cgreater.ref.index = index.ref.index;
-						curNode_->cgreater.ref.depth = 0;
-					}
-					else {
+					{
 						curNode_->sgreater.ref.index = index.ref.index;
 						curNode_->sgreater.ref.depth = 0;
 					}
+					timelineNode->me_fpi = curNode_->this_fpi + sane_offsetof( struct storageTimelineNode, sgreater );
+					updateTimeEntry( timelineNode, vol );
 					updateTimeEntry( curNode_, vol );
 					break;
 				}
@@ -1090,10 +943,262 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 		}
 	}
 	//PushData( &pdsStack, timelineNode );
-	_os_AVLbalancer( vol, bSortCreation, pdsStack, timelineNode );
+	lprintf( " ------------- BEFORE AVL BALANCER ---------------- " );
+	DumpTimelineTree( vol, TRUE );
+	_os_AVLbalancer( vol, 0, pdsStack, timelineNode );
 	return 1;
 }
 
+static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX index, struct storageTimelineNode* time, enum block_cache_entries cache ) {
+	//PDATASTACK* pdsStack = &vol->pdsWTimeStack;
+	enum block_cache_entries cache_left = BC( TIMELINE );
+	enum block_cache_entries cache_right = BC( TIMELINE );
+	enum block_cache_entries cache_parent = BC( TIMELINE );
+	enum block_cache_entries meCache;
+
+	{
+		
+
+		enum block_cache_entries bottomCache = BC( ZERO );
+		struct storageTimelineNode* bottom;
+		struct storageTimelineNode* least = NULL;
+		BLOCKINDEX leastIndex;
+		struct memoryTimelineNode tmp;
+
+		//time = getRawTimeEntry( vol, index, &cache );
+
+		if( !time->slesser.ref.index ) {
+			if( time->sgreater.ref.index ) {
+				TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, time->me_fpi, &meCache );
+				struct storageTimelineNode *greater = getRawTimeEntry( vol, time->sgreater.ref.index, &bottomCache );
+				ptr[0] = time->sgreater;
+				greater->me_fpi = time->me_fpi;
+				SETFLAG( vol->dirty, meCache );
+				dropRawTimeEntry( vol, meCache );
+
+				bottom = greater;
+			} else {
+				TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, time->me_fpi, &meCache );
+				ptr[0].raw = timelineBlockIndexNull;
+				SETFLAG( vol->dirty, meCache );
+				dropRawTimeEntry( vol, meCache );
+
+				// no greater or lesser...
+				bottom = time;
+			}
+		} else if( !time->sgreater.ref.index ) {
+			TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, time->me_fpi, &meCache );
+			struct storageTimelineNode* lesser = getRawTimeEntry( vol, time->slesser.ref.index, &bottomCache );
+			ptr[0].raw = time->slesser.raw;
+			lesser->me_fpi = time->me_fpi;
+			SETFLAG( vol->dirty, meCache );
+			dropRawTimeEntry( vol, meCache );
+			bottom = lesser;
+		} else {
+
+			if( time->slesser.ref.depth > time->sgreater.ref.depth ) {
+				enum block_cache_entries cache;
+				bottom = time;
+				least = getRawTimeEntry( vol, leastIndex = time->slesser.ref.index, &cache );
+				while( least->sgreater.raw ) {
+					bottom = least;
+					least = getRawTimeEntry( vol, leastIndex = least->sgreater.ref.index, &cache );
+				}
+
+				TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, least->me_fpi, &meCache );
+				if( least->slesser.raw ) {
+					enum block_cache_entries cache;
+					struct storageTimelineNode* leastLesser = getRawTimeEntry( vol, least->slesser.ref.index, &cache );
+					leastLesser->me_fpi = least->me_fpi;
+					SETFLAG( vol->dirty, cache );
+					ptr[0].raw = least->slesser.raw;
+					least->slesser.raw = 0; // now no longer points to a thing.
+					bottom = leastLesser;
+				}
+				else {
+					ptr[0].raw = timelineBlockIndexNull;
+				}
+				least->me_fpi = time->me_fpi;
+				SETFLAG( vol->dirty, meCache );
+				dropRawTimeEntry( vol, meCache );
+			}else {
+				enum block_cache_entries cache;
+				enum block_cache_entries cache_ = BC( ZERO );
+				bottom = time;
+				least = getRawTimeEntry( vol, leastIndex = time->slesser.ref.index, &cache );
+				while( least->sgreater.raw ) {
+					if( cache_ ) 
+						dropRawTimeEntry( vol, cache_ );
+					cache_ = cache;
+					bottom = least;
+					least = getRawTimeEntry( vol, leastIndex = least->slesser.ref.index, &cache );
+				}
+
+				TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, least->me_fpi, &meCache );
+				if( least->sgreater.raw ) {
+					ptr[0].raw = least->sgreater.raw;
+					if( cache_ )
+						dropRawTimeEntry( vol, cache_ );
+					struct storageTimelineNode* leastGreater = getRawTimeEntry( vol, least->sgreater.ref.index, &cache_ );
+					leastGreater->me_fpi = least->me_fpi;
+					SETFLAG( vol->dirty, cache );
+					bottom = leastGreater;
+				} else {
+					ptr[0].raw = timelineBlockIndexNull;
+				}
+				least->me_fpi = time->me_fpi;
+				SETFLAG( vol->dirty, meCache );
+				dropRawTimeEntry( vol, meCache );
+			}
+		}
+		dropRawTimeEntry( vol, cache );
+
+		{
+			uint64_t node_fpi;
+			int updating = 1;
+			PDATASTACK pdlStack = CreateDataStack( sizeof( struct memoryTimelineNode ) );
+			PDATASTACK pdlStack2 = CreateDataStack( sizeof( struct memoryTimelineNode ) );
+
+			PushData( &pdlStack, bottom );
+
+			// bottom->parent
+			node_fpi = bottom->me_fpi & ~0x3f;
+
+			while( node_fpi > 0x3f ) {
+				uint64_t node_idx = ( node_fpi - sizeof( struct timelineHeader ) ) / sizeof( struct storageTimelineNode ) + 1;
+				reloadTimeEntry( &tmp, vol, node_idx );
+
+				if( tmp.me_fpi < sizeof( struct timelineHeader ) ) break;
+				if( updating ) {
+					if( tmp.slesser.raw ) {
+						if( tmp.sgreater.raw ) {
+							int tmp1, tmp2;
+							if( ( tmp1 = tmp.slesser.ref.depth ) > ( tmp2 = tmp.sgreater.ref.depth ) ) {
+								TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, tmp.me_fpi, &meCache );
+								if( ptr[0].ref.depth != ( tmp1 + 1 ) ) {
+									ptr[0].ref.depth = tmp1 + 1;
+									SETFLAG( vol->dirty, meCache );
+								}
+								else
+									updating = 0;
+
+								dropRawTimeEntry( vol, meCache );
+								//backtrack->depth = tmp1 + 1;
+							} else {
+								TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, tmp.me_fpi, &meCache );
+								if( ptr[0].ref.depth != (tmp2 + 1) ) {
+									ptr[0].ref.depth = tmp2 + 1;
+									SETFLAG( vol->dirty, meCache );
+								}
+								else
+									updating = 0;
+								dropRawTimeEntry( vol, meCache );
+								//backtrack->depth = tmp2 + 1;
+							}
+						} else {
+							TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, tmp.me_fpi, &meCache );
+							if( ptr[0].ref.depth != ( tmp.slesser.ref.depth + 1 ) ) {
+								ptr[0].ref.depth = tmp.slesser.ref.depth + 1;
+								SETFLAG( vol->dirty, meCache );
+							}
+							else
+								updating = 0;
+							dropRawTimeEntry( vol, meCache );
+							//backtrack->depth = backtrack->lesser->depth + 1;
+						}
+					} else {
+						if( tmp.sgreater.raw ) {
+							TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, tmp.me_fpi, &meCache );
+							if( ptr[0].ref.depth != ( tmp.sgreater.ref.depth + 1 ) ) {
+								ptr[0].ref.depth = tmp.sgreater.ref.depth + 1;
+								SETFLAG( vol->dirty, meCache );
+							}
+							else
+								updating = 0;
+							dropRawTimeEntry( vol, meCache );
+							//backtrack->depth = backtrack->greater->depth + 1;
+						} else {
+							TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, tmp.me_fpi, &meCache );
+							if( ptr[0].ref.depth ) {
+								ptr[0].ref.depth = 0;
+								SETFLAG( vol->dirty, meCache );
+							}
+							else
+								updating = 0;
+							dropRawTimeEntry( vol, meCache );
+						}
+					}
+				}
+				PushData( &pdlStack, &tmp );
+				node_fpi = tmp.me_fpi & ~0x3f;
+			}
+			if( least ) {
+				TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, bottom->me_fpi, &meCache );
+				ptr[0].ref.index = leastIndex;
+				least->me_fpi = time->me_fpi;
+				if( least->slesser.raw = time->slesser.raw )
+				{
+					enum block_cache_entries cache;
+					struct storageTimelineNode* tmp;
+					tmp = getRawTimeEntry( vol, time->slesser.ref.index, &cache );
+					tmp->me_fpi = sane_offsetof( struct storageTimeline, entries[leastIndex - 1].slesser );
+					dropRawTimeEntry( vol, cache );
+				}
+				if( least->sgreater.raw = time->sgreater.raw )
+				{
+					enum block_cache_entries cache;
+					struct storageTimelineNode* tmp;
+					tmp = getRawTimeEntry( vol, time->sgreater.ref.index, &cache );
+					tmp->me_fpi = sane_offsetof( struct storageTimeline, entries[leastIndex - 1].sgreater );
+					dropRawTimeEntry( vol, cache );
+				}
+				least = NULL;
+			}
+			{
+				struct storageTimeline* timeline = vol->timeline;
+				TIMELINE_BLOCK_TYPE freeIndex;
+				time->sgreater.ref.index = timeline->header.first_free_entry.ref.index;
+				timeline->header.first_free_entry.ref.index = index;
+				SETFLAG( vol->dirty, vol->timelineCache );
+				SETFLAG( vol->dirty, cache );
+
+			}
+			{
+				struct memoryTimelineNode* p, *_p = NULL;
+				// reverse the stack before the balancer
+				for( p = ( struct memoryTimelineNode*)PopData( &pdlStack );
+					p;
+					(_p?PushData( &pdlStack2, _p ):0)
+					, (_p = p)
+					, (p = (struct memoryTimelineNode*)PopData( &pdlStack ))
+					);
+				if( _p )
+					_os_AVLbalancer( vol, 0, &pdlStack2, p );
+			}
+			DeleteDataStack( &pdlStack );
+			DeleteDataStack( &pdlStack2 );
+
+		}
+
+
+	}
+
+	lprintf( " ------------- DELETE TIME ENTRY ---------------- " );
+	DumpTimelineTree( vol, TRUE );
+	//node->
+}
+
+static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX index ) {
+	BLOCKINDEX next;
+	do {
+		struct storageTimelineNode* time;
+		enum block_cache_entries cache = BC( TIMELINE );
+
+		time = getRawTimeEntry( vol, index, &cache );
+		next = time->prior.raw;
+		deleteTimelineIndexWork( vol, index, time, cache );
+	} while( index = next );
+}
 
 void getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, LOGICAL keepDirent, void(*init)(uintptr_t, struct memoryTimelineNode*), uintptr_t psv ) {
 	enum block_cache_entries cache = BC( TIMELINE );
@@ -1102,7 +1207,6 @@ void getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* v
 	enum block_cache_entries cache_new = BC( TIMELINE );
 	FPI orig_dirent;
 	struct storageTimeline* timeline = vol->timeline;
-	struct storageTimeline* timelineKey = vol->timelineKey;
 	TIMELINE_BLOCK_TYPE freeIndex;
 
 	freeIndex.ref.index = timeline->header.first_free_entry.ref.index;
@@ -1113,46 +1217,73 @@ void getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* v
 	reloadTimeEntry( time, vol, freeIndex.ref.index );
 	if( keepDirent ) time->dirent_fpi = orig_dirent;
 
-	if( time->cgreater.ref.index ) {
-		timeline->header.first_free_entry.ref.index = time->cgreater.ref.index;
+	if( time->sgreater.ref.index ) {
+		timeline->header.first_free_entry.ref.index = time->sgreater.ref.index;
 		SETFLAG( vol->dirty, cache );
 	}
 	else {
-		timeline->header.first_free_entry.ref.index = timeline->header.first_free_entry.ref.index;
+		timeline->header.first_free_entry.ref.index = timeline->header.first_free_entry.ref.index + 1;
 		SETFLAG( vol->dirty, cache );
 	}
 
 	// make sure the new entry is emptied.
-	time->clesser.ref.index = 0;
-	time->clesser.ref.depth = 0;
-	time->cgreater.ref.index = 0;
-	time->cgreater.ref.depth = 0;
+	//time->clesser.ref.index = 0;
+	//time->clesser.ref.depth = 0;
+	//time->sgreater.ref.index = 0;
+	//time->sgreater.ref.depth = 0;
 
-	time->slesser.ref.index = 0;
-	time->slesser.ref.depth = 0;
-	time->sgreater.ref.index = 0;
-	time->sgreater.ref.depth = 0;
+	time->slesser.raw = timelineBlockIndexNull;
+	time->sgreater.raw = timelineBlockIndexNull;
 
-	time->stime.raw = time->ctime.raw = GetTimeOfDay();
+	//time->stime.raw = time->ctime.raw =
+	time->time = timeGetTime64ns();
+	{
+		int tz = GetTimeZone();
+		if( tz < 0 )
+			tz = -( ( ( -tz / 100 ) * 60 ) + ( -tz % 100 ) ) / 15; // -840/15 = -56
+		else
+			tz = ( ( ( tz / 100 ) * 60 ) + ( tz % 100 ) ) / 15; // -840/15 = -56  720/15 = 48
+		time->bits.timeTz = tz;
+	}
 
 	if( init ) init( psv, time );
 
 	hangTimelineNode( vol
 		, freeIndex
 		, 0
-		, timeline, timelineKey
-		, time );
-	hangTimelineNode( vol
-		, freeIndex
-		, 1
-		, timeline, timelineKey
+		, timeline
 		, time );
 #if defined( DEBUG_TIMELINE_DIR_TRACKING) || defined( DEBUG_TIMELINE_AVL )
 	LoG( "Return time entry:%d", time->index );
 #endif
 	updateTimeEntry( time, vol );
-	//DumpTimelineTree( vol, TRUE );
+	lprintf( " ------------- NEW TIME ENTRY ---------------- " );
+	DumpTimelineTree( vol, TRUE );
 	//DumpTimelineTree( vol, FALSE );
 }
 
-
+void updateTimeEntryTime( struct memoryTimelineNode* time
+			, struct sack_vfs_os_volume *vol, uint64_t index
+			, LOGICAL allocateNew
+			, void( *init )( uintptr_t, struct memoryTimelineNode* ), uintptr_t psv ) {
+	if( allocateNew ) {
+		uint64_t inputIndex = time->index;
+		// gets a new timestamp.
+		getTimeEntry( time, vol, TRUE, init, psv );
+		time->prior.raw = inputIndex;
+		updateTimeEntry( time, vol );
+	}
+	else {
+		reloadTimeEntry( time, vol, index );
+		{
+			int tz = GetTimeZone();
+			if( tz < 0 )
+				tz = -( ( ( -tz / 100 ) * 60 ) + ( -tz % 100 ) ) / 15; // -840/15 = -56
+			else
+				tz = ( ( ( tz / 100 ) * 60 ) + ( tz % 100 ) ) / 15; // -840/15 = -56  720/15 = 48
+			time->bits.timeTz = tz;
+		}
+		time->time = timeGetTime64ns();
+		updateTimeEntry( time, vol );
+	}
+}

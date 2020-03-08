@@ -480,7 +480,7 @@ uintptr_t vfs_fs_SEEK( struct sack_vfs_fs_volume *vol, FPI offset, enum block_ca
 
 // shared with fuse module
 uintptr_t vfs_fs_BSEEK( struct sack_vfs_fs_volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) {
-	BLOCKINDEX b = BLOCK_SIZE + (block >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + ( block & (BLOCKS_PER_BAT-1) ) * BLOCK_SIZE;
+	BLOCKINDEX b = BLOCK_SIZE + (block >> BLOCK_INDEX_SHIFT) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + ( block & (BLOCKS_PER_BAT-1) ) * BLOCK_SIZE;
 	while( b >= vol->dwSize ) if( !_fs_ExpandVolume( vol ) ) return 0;
 	{
 		BLOCKINDEX seg = ( b / BLOCK_SIZE ) + 1;
@@ -576,7 +576,7 @@ static BLOCKINDEX _fs_GetFreeBlock( struct sack_vfs_fs_volume *vol, int init )
 }
 
 static BLOCKINDEX vfs_fs_GetNextBlock( struct sack_vfs_fs_volume *vol, BLOCKINDEX block, int init, LOGICAL expand ) {
-	BLOCKINDEX sector = block >> BLOCK_SHIFT;
+	BLOCKINDEX sector = block >> BLOCK_INDEX_SHIFT;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX *, vol, sector * (BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
 	BLOCKINDEX check_val;
@@ -825,7 +825,7 @@ void sack_vfs_fs_shrink_volume( struct sack_vfs_fs_volume * vol ) {
 }
 
 static void _fs_mask_block( struct sack_vfs_fs_volume *vol, size_t n ) {
-	BLOCKINDEX b = ( 1 + (n >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR) + (n & (BLOCKS_PER_BAT - 1)));
+	BLOCKINDEX b = ( 1 + (n >> BLOCK_INDEX_SHIFT) * (BLOCKS_PER_SECTOR) + (n & (BLOCKS_PER_BAT - 1)));
 	_fs_UpdateSegmentKey( vol, BC(DATAKEY), b + 1 );
 	{
 #ifdef __64__
@@ -1367,9 +1367,9 @@ static void sack_vfs_fs_unlink_file_entry( struct sack_vfs_fs_volume *vol, FPI e
 		do {
 			enum block_cache_entries cache = BC(BAT);
 			enum block_cache_entries fileCache = BC(DATAKEY);
-			BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), cache );
+			BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_INDEX_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), cache );
 			BLOCKINDEX _thiskey = ( vol->key )?((BLOCKINDEX*)vol->usekey[cache])[_block & (BLOCKS_PER_BAT-1)]:0;
-			//BLOCKINDEX b = BLOCK_SIZE + (block >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + (block & (BLOCKS_PER_BAT - 1)) * BLOCK_SIZE;
+			//BLOCKINDEX b = BLOCK_SIZE + (block >> BLOCK_INDEX_SHIFT) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + (block & (BLOCKS_PER_BAT - 1)) * BLOCK_SIZE;
 			uint8_t* blockData = (uint8_t*)vfs_fs_BSEEK( vol, block, &fileCache );
 			LoG( "Clearing file datablock...%p", (uintptr_t)block*BLOCK_SIZE );
 			memset( blockData, 0, BLOCK_SIZE );
@@ -1394,7 +1394,7 @@ static void _fs_shrinkBAT( struct sack_vfs_fs_file *file ) {
 	do {
 		enum block_cache_entries cache = BC(BAT);
 		enum block_cache_entries data_cache = BC(DATAKEY);
-		BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), cache );
+		BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_INDEX_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), cache );
 		BLOCKINDEX _thiskey;
 		_thiskey = ( vol->key )?((BLOCKINDEX*)vol->usekey[cache])[_block & (BLOCKS_PER_BAT-1)]:0;
 		block = vfs_fs_GetNextBlock( vol, block, FALSE, FALSE );

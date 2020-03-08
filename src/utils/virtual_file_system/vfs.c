@@ -665,7 +665,7 @@ uintptr_t vfs_SEEK( struct sack_vfs_volume *vol, FPI offset, enum block_cache_en
 
 // shared with fuse module
 uintptr_t vfs_BSEEK( struct sack_vfs_volume *vol, BLOCKINDEX block, enum block_cache_entries *cache_index ) {
-	BLOCKINDEX b = BLOCK_SIZE + (block >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + ( block & (BLOCKS_PER_BAT-1) ) * BLOCK_SIZE;
+	BLOCKINDEX b = BLOCK_SIZE + (block >> BLOCK_BAT_SHIFT ) * (BLOCKS_PER_SECTOR*BLOCK_SIZE) + ( block & (BLOCKS_PER_BAT-1) ) * BLOCK_SIZE;
 	while( b >= vol->dwSize ) if( !ExpandVolume( vol ) ) return 0;
 	if( vol->key ) {
 		BLOCKINDEX seg = ( b / BLOCK_SIZE ) + 1;
@@ -1012,7 +1012,7 @@ void sack_vfs_shrink_volume( struct sack_vfs_volume * vol ) {
 }
 
 static void mask_block( struct sack_vfs_volume *vol, size_t n ) {
-	BLOCKINDEX b = ( 1 + (n >> BLOCK_SHIFT) * (BLOCKS_PER_SECTOR) + (n & (BLOCKS_PER_BAT - 1)));
+	BLOCKINDEX b = ( 1 + (n >> BLOCK_INDEX_SHIFT) * (BLOCKS_PER_SECTOR) + (n & (BLOCKS_PER_BAT - 1)));
 	UpdateSegmentKey( vol, BC(DATAKEY), b + 1 );
 	{
 #ifdef __64__
@@ -1606,7 +1606,7 @@ static void sack_vfs_unlink_file_entry( struct sack_vfs_volume *vol, struct dire
 		// wipe out file chain BAT
 		do {
 			enum block_cache_entries cache = BC(BAT);
-			BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), cache );
+			BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_BAT_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), cache );
 			BLOCKINDEX _thiskey = ( vol->key )?((BLOCKINDEX*)vol->usekey[cache])[_block & (BLOCKS_PER_BAT-1)]:0;
 			uint8_t* blockData = (uint8_t*)vfs_BSEEK( vol, block, &cache );
 			//LoG( "Clearing file datablock...%p", (uintptr_t)blockData - (uintptr_t)vol->disk );
@@ -1631,7 +1631,7 @@ static void shrinkBAT( struct sack_vfs_file *file ) {
 	do {
 		enum block_cache_entries cache = BC(BAT);
 		enum block_cache_entries data_cache = BC(DATAKEY);
-		BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), cache );
+		BLOCKINDEX *this_BAT = TSEEK( BLOCKINDEX*, vol, ( ( block >> BLOCK_BAT_SHIFT ) * ( BLOCKS_PER_SECTOR*BLOCK_SIZE) ), cache );
 		BLOCKINDEX _thiskey;
 		_thiskey = ( vol->key )?((BLOCKINDEX*)vol->usekey[cache])[_block & (BLOCKS_PER_BAT-1)]:0;
 		block = vfs_GetNextBlock( vol, block, FALSE, FALSE );

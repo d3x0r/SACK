@@ -12,12 +12,41 @@
 #define BLOCK_SIZE_BITS 12
 // BLOCKINDEX is either 4 or 8 bytes... sizeof( size_t )... 
 // all constants though should compile out to a single value... and just for grins went to 16 bit size_t and 0 shift... or 1 byte
-#define BLOCK_SHIFT (BLOCK_SIZE_BITS-(sizeof(BLOCKINDEX)==16?4:sizeof(BLOCKINDEX)==8?3:sizeof(BLOCKINDEX)==4?2:sizeof(BLOCKINDEX)==2?1:0) )
+#define BLOCK_BAT_SHIFT (BLOCK_SIZE_BITS-(sizeof(BLOCKINDEX)==16?4:sizeof(BLOCKINDEX)==8?3:sizeof(BLOCKINDEX)==4?2:sizeof(BLOCKINDEX)==2?1:0) )
+#define BLOCK_INDEX_SHIFT ((sizeof(BLOCKINDEX)==16?4:sizeof(BLOCKINDEX)==8?3:sizeof(BLOCKINDEX)==4?2:sizeof(BLOCKINDEX)==2?1:0) )
 #define BLOCK_BYTE_SHIFT (BLOCK_SIZE_BITS)
 #define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
+
+
+#define BLOCK_SMALL_SIZE 256
+
+
+#define DIR_BLOCK_SIZE 4096
+#define BAT_BLOCK_SIZE 4096
+#define NAME_BLOCK_SIZE 4096
+#define KEY_SIZE        1024 
+#define TIME_BLOCK_SIZE 4096
+
+#define FILE_NAME_MAXLEN 4096
+
 #define BLOCK_MASK (BLOCK_SIZE-1) 
-#define BLOCKS_PER_BAT (1<<BLOCK_SHIFT)
-#define BLOCKS_PER_SECTOR (1 + BLOCKS_PER_BAT)
+#ifdef VIRTUAL_OBJECT_STORE
+// if the block index & BAT_BLOCK_MASK, is a data block
+// all BATs are 4096
+#  undef BLOCKS_PER_BAT
+#  undef BLOCK_SECTOR_MASK
+#  define BLOCKS_PER_BAT ((BAT_BLOCK_SIZE >> BLOCK_INDEX_SHIFT)-1)
+#  define BLOCK_SECTOR_MASK BLOCKS_PER_BAT
+#else
+#  undef BLOCKS_PER_BAT
+#  undef BLOCK_SECTOR_MASK
+#  define BLOCKS_PER_BAT ((BAT_BLOCK_SIZE >> BLOCK_INDEX_SHIFT))
+#  define BLOCK_SECTOR_MASK (BLOCKS_PER_BAT-1)
+#endif
+
+#define BAT_BLOCK_MASK ( ( BAT_BLOCK_SIZE >> BLOCK_INDEX_SHIFT ) - 1)
+#define BLOCKS_PER_SECTOR (1+BLOCKS_PER_BAT)
+
 // per-sector perumation; needs to be a power of 2 (in bytes)
 #define SHORTKEY_LENGTH 16
 
@@ -88,7 +117,8 @@ int sack_vfs_volume;
 
 enum block_cache_entries
 {
-	BC( DIRECTORY )
+	BC( ZERO )
+	, BC( DIRECTORY ) = 0
 #ifdef VIRTUAL_OBJECT_STORE
 	, BC( DIRECTORY_LAST ) = BC( DIRECTORY ) + 64
 #endif
@@ -104,7 +134,7 @@ enum block_cache_entries
 	, BC(FILE_LAST) = BC(FILE) + 32
 #ifdef VIRTUAL_OBJECT_STORE
 	, BC( TIMELINE )
-	, BC( TIMELINE_LAST ) = BC( TIMELINE ) + 6
+	, BC( TIMELINE_LAST ) = BC( TIMELINE ) + 8
 #endif
 	, BC(COUNT)
 };
@@ -117,7 +147,11 @@ enum block_cache_entries
 #define DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT 17
 #define DIRENT_NAME_OFFSET_FLAG_OWNED         0x00400000
 #define DIRENT_NAME_OFFSET_FLAG_READ_KEYED    0x00800000
-#define DIRENT_NAME_OFFSET_UNUSED             0xFF000000
+#define DIRENT_NAME_OFFSET_VERSIONED          0x01000000
+#define DIRENT_NAME_OFFSET_VERSION_SHIFT      25
+#define DIRENT_NAME_OFFSET_VERSIONS           0x1E000000
+
+#define DIRENT_NAME_OFFSET_UNUSED             0xFE000000
 
 
 
@@ -142,6 +176,7 @@ PREFIX_PACKED struct directory_entry
 #  define VFS_PATCH_ENTRIES ( ( BLOCK_SIZE ) /sizeof( struct directory_entry) )
 #endif
 
+/*
 struct sack_vfs_diskSection
 {
 	// BAT is at 0 of every BLOCK_SIZE blocks (4097 total)
@@ -160,7 +195,17 @@ struct sack_vfs_disk {
 	struct sack_vfs_diskSection firstBlock;
 	struct sack_vfs_diskSection blocks[];
 };
+*/
 
+struct sack_vfs_os_BAT_info {
+	FPI sectorStart;
+	FPI sectorEnd;
+	BLOCKINDEX blockStart;
+	int size;
+};
+
+
+static int const seglock_mask_size = 3;
 
 struct sack_vfs_volume {
 	const char * volname;
@@ -181,32 +226,41 @@ struct sack_vfs_volume {
 	BLOCKINDEX _segment[BC(COUNT)];// cached segment with usekey[n]
 	BLOCKINDEX segment[BC(COUNT)];// associated with usekey[n]
 #  ifdef VIRTUAL_OBJECT_STORE
+	BLOCKINDEX lastBlock;
+	unsigned int sector_size[BC(COUNT)];
+	PDATALIST pdl_BAT_information;
 	PDATASTACK pdsCTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
 	PDATASTACK pdsWTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
 
-	//BLOCKINDEX timelineStart; // constant 2
 	struct storageTimeline *timeline; // timeline root
+	enum block_cache_entries timelineCache;
+
 	struct storageTimeline *timelineKey; // timeline root key
 	struct sack_vfs_os_file *timeline_file;
 	struct storageTimelineCursor *timeline_cache;
-	FLAGSET( seglock, BC( COUNT ) );  // segment is locked into cache.
+	MASKSET_( seglock, BC( COUNT ), 3 );  // segment is locked into cache.
 #  endif
 
 	uint8_t fileCacheAge[BC(FILE_LAST) - BC(FILE)];
-#  ifdef VIRTUAL_OBJECT_STORE
+#ifdef VIRTUAL_OBJECT_STORE
 	uint8_t dirHashCacheAge[BC(DIRECTORY_LAST) - BC(DIRECTORY)];
 	uint8_t batHashCacheAge[BC(BAT_LAST) - BC(BAT)];
 	uint8_t timelineCacheAge[BC( TIMELINE_LAST ) - BC( TIMELINE )];
-#  endif
+#endif
 	uint8_t nameCacheAge[BC(NAMES_LAST) - BC(NAMES)];
 
 	struct random_context *entropy;
 	uint8_t* key;  // root of all cached key buffers
+#ifdef FILE_BASED_VFS
+	uint8_t* oldkey;  // root of all cached key buffers
+#endif
+#ifndef VIRTUAL_OBJECT_STORE
 	uint8_t* segkey;  // allow byte encrypting... key based on sector volume file index
+	uint8_t* usekey[BC( COUNT )]; // composite key
+#endif
 	uint8_t* sigkey;  // signature of executable attached as header
 	uint8_t* sigsalt;  // signature of executable attached as header
 	size_t sigkeyLength;
-	uint8_t* usekey[BC(COUNT)]; // composite key
 
 #  ifdef FILE_BASED_VFS
 	uint8_t* key_buffer;  // root buffer space of all cache blocks
@@ -217,6 +271,10 @@ struct sack_vfs_volume {
 #  endif
 	BLOCKINDEX lastBatBlock;
 	PDATALIST pdlFreeBlocks;
+#ifdef VIRTUAL_OBJECT_STORE
+	BLOCKINDEX lastBatSmallBlock;
+	PDATALIST pdlFreeSmallBlocks;
+#endif
 	PLIST files; // when reopened file structures need to be updated also...
 	LOGICAL read_only;
 	LOGICAL external_memory;
@@ -269,8 +327,8 @@ struct sack_vfs_file
 #  undef TSEEK
 #  undef BTSEEK
 #  ifdef VIRTUAL_OBJECT_STORE
-#    define TSEEK(type,v,o,c) ((type)vfs_os_SEEK(v,o,&c))
-#    define BTSEEK(type,v,o,c) ((type)vfs_os_BSEEK(v,o,&c))
+#    define TSEEK(type,v,o,s,c) ((type)vfs_os_SEEK(v,o,s,&c))
+#    define BTSEEK(type,v,o,s,c) ((type)vfs_os_BSEEK(v,o,s,&c))
 #  elif defined FILE_BASED_VFS
 #    define TSEEK(type,v,o,c) ((type)vfs_fs_SEEK(v,o,&c))
 #    define BTSEEK(type,v,o,c) ((type)vfs_fs_BSEEK(v,o,&c))
@@ -290,8 +348,8 @@ struct sack_vfs_file
   uintptr_t vfs_SEEK( struct sack_vfs_volume* vol, FPI offset, enum block_cache_entries* cache_index ) HIDDEN;
   uintptr_t vfs_BSEEK( struct sack_vfs_volume* vol, BLOCKINDEX block, enum block_cache_entries* cache_index ) HIDDEN;
 #elif defined( VIRTUAL_OBJECT_STORE ) 
-  uintptr_t vfs_os_SEEK( struct sack_vfs_os_volume* vol, FPI offset, enum block_cache_entries* cache_index ) HIDDEN;
-  uintptr_t vfs_os_BSEEK( struct sack_vfs_os_volume* vol, BLOCKINDEX block, enum block_cache_entries* cache_index ) HIDDEN;
+  uintptr_t vfs_os_SEEK( struct sack_vfs_os_volume* vol, FPI offset, int size, enum block_cache_entries* cache_index ) HIDDEN;
+  uintptr_t vfs_os_BSEEK( struct sack_vfs_os_volume* vol, BLOCKINDEX block, int size, enum block_cache_entries* cache_index ) HIDDEN;
 #elif defined( FILE_BASED_VFS )
   uintptr_t vfs_fs_SEEK( struct sack_vfs_fs_volume* vol, FPI offset, enum block_cache_entries* cache_index ) HIDDEN;
   uintptr_t vfs_fs_BSEEK( struct sack_vfs_fs_volume* vol, BLOCKINDEX block, enum block_cache_entries* cache_index ) HIDDEN;
