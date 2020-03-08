@@ -157,7 +157,9 @@ SYSLOG_PROC  CTEXTSTR SYSLOG_API  GetPackedTime ( void );
 //    uint64_t epoch_milliseconds : 56;
 //    int64_t timezone : 8; divided by 15... hours * 60 / 15 
 // }
-SYSLOG_PROC  int64_t SYSLOG_API GetTimeOfDay( void );
+
+// returns the nanosecond of the day (since UNIX Epoch) and timezone/15
+SYSLOG_PROC  int64_t SYSLOG_API GetTimeOfDay( uint64_t* tick, int8_t* ptz );
 
 // binary little endian order; somewhat
 typedef struct sack_expanded_time_tag
