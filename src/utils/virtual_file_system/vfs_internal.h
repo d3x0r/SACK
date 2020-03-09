@@ -205,7 +205,7 @@ struct sack_vfs_os_BAT_info {
 };
 
 
-static int const seglock_mask_size = 3;
+static int const seglock_mask_size = 4;
 
 struct sack_vfs_volume {
 	const char * volname;

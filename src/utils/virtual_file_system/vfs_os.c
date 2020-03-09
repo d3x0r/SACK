@@ -225,7 +225,7 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDEX block, enum getFreeBlockInit init, LOGICAL expand, int blockSize, int *realBlockSize );
 
 static LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, int size );
-static void reloadTimeEntry( struct memoryTimelineNode *time, struct sack_vfs_os_volume *vol, uint64_t timeEntry );
+//static void reloadTimeEntry( struct memoryTimelineNode *time, struct sack_vfs_os_volume *vol, uint64_t timeEntry DBG_PASS );
 
 #define vfs_os_BSEEK(v,b,s,c) vfs_os_BSEEK_(v,b,s,c DBG_SRC )
 uintptr_t vfs_os_BSEEK_( struct sack_vfs_os_volume *vol, BLOCKINDEX block, int blockSize, enum block_cache_entries *cache_index DBG_PASS );
@@ -343,7 +343,7 @@ struct sack_vfs_os_file
 	struct file_header diskHeader;
 	struct file_header header;  // in-memory size, so we can just do generic move op
 
-	struct memoryTimelineNode timeline;
+	//struct memoryTimelineNode timeline;
 	uint8_t* seal;
 	uint8_t* sealant;
 	uint8_t* readKey;
@@ -1947,9 +1947,10 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 				{
 					// make sure timeline and file entries reference each other.
 					struct memoryTimelineNode time;
-					reloadTimeEntry( &time, vol, entry->timelineEntry );
+					reloadTimeEntry( &time, vol, entry->timelineEntry DBG_SRC );
 					FPI entry_fpi = vol->bufferFPI[cache] + sane_offsetof( struct directory_hash_lookup_block, entries[curName] );
-					if( entry_fpi != time.dirent_fpi ) DebugBreak();
+					if( entry_fpi != time.disk->dirent_fpi ) DebugBreak();
+					dropRawTimeEntry( vol, time.diskCache DBG_SRC );
 				}
 #endif
 				//if( filename && !name_ofs )	return FALSE; // done.
@@ -2175,22 +2176,22 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 			if( dirblock->entries[f].timelineEntry ) {
 				struct memoryTimelineNode time;
 				enum block_cache_entries  timeCache = BC( TIMELINE );
-				reloadTimeEntry( &time, vol, ( dirblock->entries[f].timelineEntry ) );
-				time.dirent_fpi = vol->bufferFPI[nameCache] + sane_offsetof( struct directory_hash_lookup_block, entries[f - 1] );
+				reloadTimeEntry( &time, vol, ( dirblock->entries[f].timelineEntry ) DBG_SRC );
+				time.disk->dirent_fpi = vol->bufferFPI[nameCache] + sane_offsetof( struct directory_hash_lookup_block, entries[f - 1] );
 				{
-					uint64_t index = time.prior.ref.index;
+					uint64_t index = time.disk->prior.ref.index;
 					while( index ) {
 						struct memoryTimelineNode time2;
-						reloadTimeEntry( &time2, vol, index );
-						time2.dirent_fpi = time.dirent_fpi;
-						updateTimeEntry( &time2, vol );
-						index = time2.prior.ref.index;
+						reloadTimeEntry( &time2, vol, index DBG_SRC );
+						time2.disk->dirent_fpi = time.disk->dirent_fpi;
+						index = time2.disk->prior.ref.index;
+						updateTimeEntry( &time2, vol, TRUE DBG_SRC );
 					}
 				}
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
-				lprintf( "Set timeline %d to %d", (int)time.index, (int)time.dirent_fpi );
+				lprintf( "Set timeline %d to %d", (int)time.index, (int)time.disk->dirent_fpi );
 #endif
-				updateTimeEntry( &time, vol );
+				updateTimeEntry( &time, vol, TRUE DBG_SRC );
 			}
 			dirblock->entries[f - 1] = dirblock->entries[f];
 		}
@@ -2314,26 +2315,26 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 							struct memoryTimelineNode time;
 							FPI oldFPI;
 							enum block_cache_entries  timeCache = BC( TIMELINE );
-							reloadTimeEntry( &time, vol, (entry->timelineEntry     ) );
-							oldFPI = time.dirent_fpi;
+							reloadTimeEntry( &time, vol, (entry->timelineEntry     ) DBG_SRC );
+							oldFPI = time.disk->dirent_fpi;
 							// new entry is still the same timeline entry as the old entry.
 							newEntry->timelineEntry = (entry->timelineEntry     )     ;
 							// timeline points at new entry.
-							time.dirent_fpi = vol->bufferFPI[newdir_cache] + sane_offsetof( struct directory_hash_lookup_block , entries[nf]);
+							time.disk->dirent_fpi = vol->bufferFPI[newdir_cache] + sane_offsetof( struct directory_hash_lookup_block , entries[nf]);
 							{
-								uint64_t index = time.prior.ref.index;
+								uint64_t index = time.disk->prior.ref.index;
 								while( index ) {
 									struct memoryTimelineNode time2;
-									reloadTimeEntry( &time2, vol, index );
-									time2.dirent_fpi = time.dirent_fpi;
-									updateTimeEntry( &time2, vol );
-									index = time2.prior.ref.index;
+									reloadTimeEntry( &time2, vol, index DBG_SRC );
+									time2.disk->dirent_fpi = time.disk->dirent_fpi;
+									updateTimeEntry( &time2, vol, TRUE DBG_SRC );
+									index = time2.disk->prior.ref.index;
 								}
 							}
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
-							lprintf( "Set timeline %d to %d", (int)time.index, (int)time.dirent_fpi );
+							lprintf( "Set timeline %d to %d", (int)time.index, (int)time.disk->dirent_fpi );
 #endif
-							updateTimeEntry( &time, vol );
+							updateTimeEntry( &time, vol, TRUE DBG_SRC );
 
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
 							lprintf( "direntry at %d  %d is time %d", (int)new_dir_block, (int)nf, (int)newEntry->timelineEntry );
@@ -2344,7 +2345,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 								struct sack_vfs_file  * file;
 								LIST_FORALL( vol->files, idx, struct sack_vfs_file  *, file ) {
 									if( file->entry_fpi == oldFPI ) {
-										file->entry_fpi = time.dirent_fpi; // new entry_fpi.
+										file->entry_fpi = time.disk->dirent_fpi; // new entry_fpi.
 									}
 								}
 							}
@@ -2383,22 +2384,22 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 						{
 							struct memoryTimelineNode time;
 							enum block_cache_entries  timeCache = BC( TIMELINE );
-							reloadTimeEntry( &time, vol, (dirblock->entries[m + offset].timelineEntry) );
-							time.dirent_fpi = vol->bufferFPI[cache] + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
+							reloadTimeEntry( &time, vol, (dirblock->entries[m + offset].timelineEntry) DBG_SRC );
+							time.disk->dirent_fpi = vol->bufferFPI[cache] + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
 							{
-								uint64_t index = time.prior.ref.index;
+								uint64_t index = time.disk->prior.ref.index;
 								while( index ) {
 									struct memoryTimelineNode time2;
-									reloadTimeEntry( &time2, vol, index );
-									time2.dirent_fpi = time.dirent_fpi;
-									updateTimeEntry( &time2, vol );
-									index = time2.prior.ref.index;
+									reloadTimeEntry( &time2, vol, index DBG_SRC );
+									time2.disk->dirent_fpi = time.disk->dirent_fpi;
+									updateTimeEntry( &time2, vol, TRUE DBG_SRC );
+									index = time2.disk->prior.ref.index;
 								}
 							}
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
-							lprintf( "Set timeline %d to %d", (int)time.index, (int)time.dirent_fpi );
+							lprintf( "Set timeline %d to %d", (int)time.index, (int)time.disk->dirent_fpi );
 #endif
-							updateTimeEntry( &time, vol );
+							updateTimeEntry( &time, vol, TRUE DBG_SRC );
 						}
 #ifdef _DEBUG
 						if( !dirblock->names_first_block ) DebugBreak();
@@ -2536,26 +2537,26 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 						dirblock->entries[m].filesize      = dirblock->entries[m - 1].filesize      ;
 						dirblock->entries[m].first_block   = dirblock->entries[m - 1].first_block   ;
 						dirblock->entries[m].name_offset   = dirblock->entries[m - 1].name_offset   ;
-						reloadTimeEntry( &node, vol, dirblock->entries[m - 1].timelineEntry );
+						reloadTimeEntry( &node, vol, dirblock->entries[m - 1].timelineEntry DBG_SRC );
 						dirblock->entries[m].timelineEntry = dirblock->entries[m - 1].timelineEntry;
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
 						lprintf( "direntry at %d  %d is time %d", (int)this_dir_block, (int)m, (int)dirblock->entries[m].timelineEntry );
 #endif
-						node.dirent_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
+						node.disk->dirent_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
 						{
-							uint64_t index = node.prior.ref.index;
+							uint64_t index = node.disk->prior.ref.index;
 							while( index ) {
 								struct memoryTimelineNode time2;
-								reloadTimeEntry( &time2, vol, index );
-								time2.dirent_fpi = node.dirent_fpi;
-								updateTimeEntry( &time2, vol );
-								index = time2.prior.ref.index;
+								reloadTimeEntry( &time2, vol, index DBG_SRC );
+								time2.disk->dirent_fpi = node.disk->dirent_fpi;
+								updateTimeEntry( &time2, vol, TRUE DBG_SRC );
+								index = time2.disk->prior.ref.index;
 							}
 						}
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
-						lprintf( "Set timeline %d to %d", (int)node.index, (int)node.dirent_fpi );
+						lprintf( "Set timeline %d to %d", (int)node.index, (int)node.disk->dirent_fpi );
 #endif
-						updateTimeEntry( &node, vol );
+						updateTimeEntry( &node, vol, TRUE DBG_SRC );
 					}
 					dirblock->used_names++;
 					break;
@@ -2576,22 +2577,19 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 			{
 				struct memoryTimelineNode time_;
 				struct memoryTimelineNode *time = &time_;
-				if( file )
-					time = &file->timeline;
-				else {
-					time_.time = timeGetTime64ns();// GetTimeOfDay();
-				}
-				time->dirent_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[n] );;
+				time_.index = 0;
+				ent->timelineEntry = getTimeEntry( time, vol, 0, NULL, 0 DBG_SRC );
+				// reset dirent_fpi afterward.
+				time->disk->dirent_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[n] );;
 				// associate a time entry with this directory entry, and vice-versa.
-				getTimeEntry( time, vol, 1, NULL, 0 );
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
-				lprintf( "Set timeline %d to %d", (int)time->index, (int)time->dirent_fpi );
+				lprintf( "Set timeline %d to %d", (int)time->index, (int)time->disk->dirent_fpi );
 #endif
-				ent->timelineEntry = time->index;
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
 				lprintf( "direntry at %d  %d is time %d", (int)this_dir_block, (int)n, (int)dirblock->entries[n].timelineEntry );
 #endif
-				//updateTimeEntry( time, vol );
+				// update drop the new entry.
+				updateTimeEntry( time, vol, TRUE DBG_SRC );
 			}
 			if( file ) {
 				int locks;
@@ -2789,9 +2787,12 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 
 
 	if( file->readKey && !file->fpi ) {
-		SRG_XSWS_encryptData( (uint8_t*)data, length, file->timeline.time
+		enum block_cache_entries cache;
+		struct storageTimelineNode* time = getRawTimeEntry( file->vol, file->entry->timelineEntry, &cache DBG_SRC );
+		SRG_XSWS_encryptData( (uint8_t*)data, length, time->time
 			, (const uint8_t*)file->readKey, file->readKeyLen
 			, &cdata, &cdataLen );
+		dropRawTimeEntry( file->vol, cache DBG_SRC );
 		data = (const char*)cdata;
 		length = cdataLen;
 	}
@@ -2811,28 +2812,30 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 
 			{
 				int last = file->blockChainLength - 1;
-				file->timeline.bits.priorDataPad = (uint16_t)( file->blockChain[last].size - ( file->entry->filesize & ( file->blockChain[last].size - 1 ) ) );
-				file->timeline.priorData = file->entry->first_block;
+				enum block_cache_entries cache;
+				struct storageTimelineNode* timeline = getRawTimeEntry( file->vol, file->entry->timelineEntry, &cache DBG_SRC );
+				timeline->priorDataPad = (uint16_t)( file->blockChain[last].size - ( file->entry->filesize & ( file->blockChain[last].size - 1 ) ) );
+				timeline->priorData = file->entry->first_block;
 				file->entry->first_block = DIR_ALLOCATING_MARK;
 				file->entry->filesize = 0;
 				file->blockChainLength = 0;
-				updateTimeEntryTime( &file->timeline, file->vol, file->timeline.index, TRUE, NULL, 0 );
+				dropRawTimeEntry( file->vol, cache DBG_SRC );
 			} 
 
-			file->entry->timelineEntry = file->timeline.index;
+			//file->entry->timelineEntry = file->entry->timelineEntry;
 			updated = TRUE;
 		} else {
 			// no versioning - so just keep 1 block so we get last write and first create
 			if( !( file->entry->name_offset & DIRENT_NAME_OFFSET_VERSIONS ) ) {
 				// don't have a new time block for write time; so create one
-				updateTimeEntryTime( &file->timeline, file->vol, file->timeline.index, TRUE, NULL, 0 );
+				file->entry->timelineEntry = updateTimeEntryTime( NULL, file->vol, file->entry->timelineEntry, TRUE, NULL, 0 DBG_SRC );
 				file->entry->name_offset |= 1 << DIRENT_NAME_OFFSET_VERSION_SHIFT;
 			}
 			else {
 				// update the current time.
-				updateTimeEntryTime( &file->timeline, file->vol, file->timeline.index, FALSE, NULL, 0 );
+				file->entry->timelineEntry = updateTimeEntryTime( NULL, file->vol, file->entry->timelineEntry, FALSE, NULL, 0 DBG_SRC );
 			}
-			file->entry->timelineEntry = file->timeline.index;
+			//file->entry->timelineEntry = file->timeline.index;
 			updated = TRUE;
 		}
 
@@ -3059,9 +3062,12 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, void * da
 	{
 		uint8_t *outbuf;
 		size_t outlen;
-		SRG_XSWS_decryptData( (uint8_t*)data, written, file->timeline.time
+		enum block_cache_entries cache;
+		struct storageTimelineNode* time = getRawTimeEntry( file->vol, file->entry->timelineEntry, &cache DBG_SRC );
+		SRG_XSWS_decryptData( (uint8_t*)data, written, time->time
 		                    , (const uint8_t*)file->readKey, file->readKeyLen
 		                    , &outbuf, &outlen );
+		dropRawTimeEntry( file->vol, cache DBG_SRC );
 		memcpy( data, outbuf, outlen );
 		Release( outbuf );
 		written = outlen;
@@ -3385,18 +3391,20 @@ static int _os_iterate_find( struct sack_vfs_os_find_info *_info ) {
 
 			struct memoryTimelineNode time;
 			enum block_cache_entries  timeCache = BC( TIMELINE );
-			reloadTimeEntry( &time, info->vol, (next_entries[n].timelineEntry) );
-			if( !time.time ) DebugBreak();
-			if( time.prior.raw )
+			reloadTimeEntry( &time, info->vol, (next_entries[n].timelineEntry) DBG_SRC );
+			if( !time.disk->time ) DebugBreak();
+			if( time.disk->prior.raw )
 			{
 				enum block_cache_entries cache;
-				struct storageTimelineNode* prior = getRawTimeEntry( info->vol, time.prior.raw, &cache );
-				while( prior->prior.raw ) prior = getRawTimeEntry( info->vol, prior->prior.raw, &cache );
+				struct storageTimelineNode* prior = getRawTimeEntry( info->vol, time.disk->prior.raw, &cache DBG_SRC );
+				while( prior->prior.raw ) prior = getRawTimeEntry( info->vol, prior->prior.raw, &cache DBG_SRC );
 				info->ctime = prior->time;
 			}
 			else
-				info->ctime = time.time;
-			info->wtime = time.time;
+				info->ctime = time.disk->time;
+			info->wtime = time.disk->time;
+			dropRawTimeEntry( info->vol, time.diskCache DBG_SRC );
+
 			// if file is deleted; don't check it's name.
 			info->filesize = (size_t)(next_entries[n].filesize);
 			if( (name_ofs) > info->vol->dwSize ) {
