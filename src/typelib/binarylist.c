@@ -545,16 +545,55 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 						if( backtrack->lesser )
 							if( backtrack->greater ) {
 								int tmp1, tmp2;
-								if( (tmp1=backtrack->lesser->depth) > (tmp2=backtrack->greater->depth) )
-									if( backtrack->depth != ( tmp1 + 1 ) )
+								PTREENODE z_, y_, x_;
+
+								if( (tmp1=backtrack->lesser->depth) > (tmp2=backtrack->greater->depth) ) {
+									if( backtrack->depth != ( tmp1 + 1 ) ) 
 										backtrack->depth = tmp1 + 1;
 									else 
 										updating = 0;
-								else
+									if( (tmp1-tmp2) > 1 ) {
+										// unblanced here...
+										int tmp3, tmp4;
+										tmp3 = backtrack->lesser->lesser?backtrack->lesser->lesser->depth:0;
+										tmp4 = backtrack->lesser->greater?backtrack->lesser->greater->depth:0;
+										z_ = backtrack;
+										y_ = backtrack->lesser;
+										if( tmp3 > tmp4 ) {
+											x_ = backtrack->lesser->lesser; 
+											// left-left Rotate Right(Z)
+											AVL_RotateToRight( z_ );
+										} else {
+											// left-right
+											x_ = backtrack->lesser->greater; 
+											AVL_RotateToLeft( y_ );
+											AVL_RotateToRight( z_ );
+										}
+									}
+								} else {
 									if( backtrack->depth != ( tmp2 + 1 ) )
 										backtrack->depth = tmp2 + 1;
 									else 
 										updating = 0;
+									if( (tmp2-tmp1) > 1 ) {
+										// unblanced here...
+										int tmp3, tmp4;
+										tmp3 = backtrack->greater->lesser?backtrack->greater->lesser->depth:0;
+										tmp4 = backtrack->greater->greater?backtrack->greater->greater->depth:0;
+										z_ = backtrack;
+										y_ = backtrack->greater;
+										if( tmp4 > tmp3 ) {
+											x_ = y_->greater; 
+											// right-right Rotate Right(Z)
+											AVL_RotateToLeft( y_ );
+										} else {
+											// right-left
+											x_ = y_->lesser; 
+											AVL_RotateToRight( y_ );
+											AVL_RotateToLeft( z_ );
+										}
+									}
+								}
 							} else
 									if( backtrack->depth != ( backtrack->lesser->depth + 1 ) )
 										backtrack->depth = backtrack->lesser->depth + 1;
