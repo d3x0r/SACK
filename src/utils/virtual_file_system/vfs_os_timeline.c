@@ -280,7 +280,62 @@ static void DumpTimelineTree( struct sack_vfs_os_volume* vol, LOGICAL unused DBG
 	dropRawTimeEntry( vol, curNode.diskCache DBG_RELAY );
 }
 
+//---------------------------------------------------------------------------
 
+static void ValidateTimelineTreeWork( struct sack_vfs_os_volume* vol, int level, struct memoryTimelineNode* parent, BLOCKINDEX index DBG_PASS ) {
+	struct memoryTimelineNode curNode;
+	static char indent[256];
+	int i;
+#if 0
+	lprintf( "input node %d %d %d", parent->index
+		, parent->disk->slesser.ref.index
+		, parent->disk->sgreater.ref.index
+	);
+#endif
+	if( parent->disk->slesser.ref.index ) {
+		reloadTimeEntry( &curNode, vol, parent->disk->slesser.ref.index DBG_RELAY );
+#if 0
+		lprintf( "(lesser) go to node %d", curNode.index );
+#endif
+		if( ( parent->this_fpi + sane_offsetof( struct storageTimelineNode, slesser ) ) != curNode.disk->me_fpi ) {
+			DumpTimelineTree( vol, 0 DBG_SRC );
+			DebugBreak();
+		}
+		ValidateTimelineTreeWork( vol, level + 1, &curNode, parent->disk->slesser.ref.index DBG_RELAY );
+		dropRawTimeEntry( vol, curNode.diskCache DBG_RELAY );
+	}
+	if( parent->disk->sgreater.ref.index ) {
+		reloadTimeEntry( &curNode, vol, parent->disk->sgreater.ref.index DBG_RELAY );
+#if 0
+		lprintf( "(greater) go to node %d", curNode.index );
+#endif
+		if( ( parent->this_fpi + sane_offsetof( struct storageTimelineNode, sgreater ) ) != curNode.disk->me_fpi ) {
+			DumpTimelineTree( vol, 0 DBG_SRC );
+			DebugBreak();
+		}
+		ValidateTimelineTreeWork( vol, level + 1, &curNode, parent->disk->sgreater.ref.index DBG_RELAY );
+		dropRawTimeEntry( vol, curNode.diskCache DBG_RELAY );
+	}
+}
+
+//---------------------------------------------------------------------------
+
+static void ValidateTimelineTree( struct sack_vfs_os_volume* vol DBG_PASS ) {
+	enum block_cache_entries cache = BC( TIMELINE );
+	// (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, &cache );
+	struct storageTimeline* timeline = vol->timeline;
+	SETFLAG( vol->seglock, cache );
+	struct memoryTimelineNode curNode;
+	{
+		if( !timeline->header.srootNode.ref.index ) {
+			return;
+		}
+		reloadTimeEntry( &curNode, vol
+			, timeline->header.srootNode.ref.index  DBG_RELAY );
+	}
+	ValidateTimelineTreeWork( vol, 0, &curNode, timeline->header.srootNode.ref.index DBG_RELAY );
+	dropRawTimeEntry( vol, curNode.diskCache DBG_RELAY );
+}
 
 
 //-----------------------------------------------------------------------------------
@@ -517,6 +572,7 @@ static void _os_AVL_RotateToLeft(
 			enum block_cache_entries cache;
 			x = getRawTimeEntry( vol, node->sgreater.ref.index, &cache DBG_RELAY );
 			x->me_fpi = sane_offsetof( struct storageTimeline, entries[nodeIdx - 1].sgreater );
+			SETFLAG( vol->dirty, cache );
 			dropRawTimeEntry( vol, cache DBG_RELAY );
 		}
 		right_->me_fpi = node->me_fpi;
@@ -666,6 +722,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 							lprintf( " ------------- AFTER AVL BALANCER PHASE R1 ---------------- " );
 							DumpTimelineTree( vol, TRUE DBG_RELAY );
 #endif
+							ValidateTimelineTree( vol DBG_SRC );
 						}
 						else {
 							//left/rightDepth
@@ -674,6 +731,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 							lprintf( " ------------- AFTER AVL BALANCER PHASE R2 ---------------- " );
 							DumpTimelineTree( vol, TRUE DBG_RELAY );
 #endif
+							ValidateTimelineTree( vol DBG_SRC );
 							_os_AVL_RotateToLeft( vol, _z, curIndex, _y, idx_y DBG_RELAY );
 #ifdef DEBUG_DELETE_BALANCE
 							lprintf( " ------------- AFTER AVL BALANCER PHASE L1 ---------------- " );
@@ -682,6 +740,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 							SETFLAG( vol->dirty, cache_z );
 							SETFLAG( vol->dirty, cache_y );
 							SETFLAG( vol->dirty, cache_x );
+							ValidateTimelineTree( vol DBG_SRC );
 						}
 					}
 					else {
@@ -690,6 +749,9 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 #ifdef DEBUG_DELETE_BALANCE
 							lprintf( " ------------- AFTER AVL BALANCER PHASE L2 ---------------- " );
 #endif
+							SETFLAG( vol->dirty, cache_y );
+							SETFLAG( vol->dirty, cache_x );
+							ValidateTimelineTree( vol DBG_SRC );
 							_os_AVL_RotateToRight( vol, _z, curIndex, _y, idx_y DBG_RELAY );
 #ifdef DEBUG_DELETE_BALANCE
 							lprintf( " ------------- AFTER AVL BALANCER PHASE R3 ---------------- " );
@@ -697,7 +759,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 #endif
 							SETFLAG( vol->dirty, cache_z );
 							SETFLAG( vol->dirty, cache_y );
-							SETFLAG( vol->dirty, cache_x );
+							ValidateTimelineTree( vol DBG_SRC );
 							// rightDepth.left
 						}
 						else {
@@ -709,11 +771,19 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 #endif
 							SETFLAG( vol->dirty, cache_y );
 							SETFLAG( vol->dirty, cache_z );
+							ValidateTimelineTree( vol DBG_SRC );
 						}
 					}
 #ifdef DEBUG_TIMELINE_AVL
 					lprintf( "WR Balanced, should redo this one... %d %d", (int)_z->slesser.ref.index, _z->sgreater.ref.index );
 #endif
+					// reset to bottom of tree so we get a proper tail going further up
+					// x and y and z can reverse order in the above.
+					dropRawTimeEntry( vol, cache_z DBG_RELAY );
+					dropRawTimeEntry( vol, cache_y DBG_RELAY );
+					_z = _x;
+					cache_z = cache_x;
+					_y = _x = NULL;
 				}
 				else {
 					//lprintf( "Not deep enough for balancing." );
@@ -906,7 +976,9 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 	lprintf( " ------------- BEFORE AVL BALANCER ---------------- " );
 	DumpTimelineTree( vol, TRUE  DBG_RELAY );
 #endif
+	ValidateTimelineTree( vol DBG_SRC );
 	_os_AVLbalancer( vol, index.ref.index DBG_RELAY );
+	ValidateTimelineTree( vol DBG_SRC );
 	return 1;
 }
 
@@ -938,24 +1010,22 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				ptr[0] = time->sgreater;
 				greater->me_fpi = time->me_fpi;
 				SETFLAG( vol->dirty, meCache );
+				SETFLAG( vol->dirty, cache );
 
 #ifdef DEBUG_DELETE_BALANCE
 				lprintf( "had only greater" );
 #endif
 				bottom_me_fpi = greater->me_fpi;
 				dropRawTimeEntry( vol, cache DBG_DELETE_ );
-				//bottom = greater;
 			} else {
 				TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, time->me_fpi, &meCache );
 				ptr[0].raw = timelineBlockIndexNull;
 				SETFLAG( vol->dirty, meCache );
+				// no greater or lesser...
+				bottom_me_fpi = time->me_fpi;
 #ifdef DEBUG_DELETE_BALANCE
 				lprintf( "Leaf node; no left or right" );
 #endif
-				// no greater or lesser...
-				bottom_me_fpi = time->me_fpi;
-				//bottom = time;
-				//bottomCache = BC(ZERO);
 			}
 		} else if( !time->sgreater.ref.index ) {
 			TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, time->me_fpi, &meCache );
@@ -965,10 +1035,11 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 			lesser->me_fpi = time->me_fpi;
 			SETFLAG( vol->dirty, meCache );
 			bottom_me_fpi = lesser->me_fpi;
+			SETFLAG( vol->dirty, cache );
+			dropRawTimeEntry( vol, cache DBG_DELETE_ );
 #ifdef DEBUG_DELETE_BALANCE
 			lprintf( "had only lesser" );
 #endif
-			dropRawTimeEntry( vol, cache DBG_DELETE_ );
 		} else {
 
 #ifdef DEBUG_DELETE_BALANCE
@@ -1015,17 +1086,18 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				}
 				least->me_fpi = time->me_fpi;
 				SETFLAG( vol->dirty, meCache );
+				SETFLAG( vol->dirty, leastCache );
 				dropRawTimeEntry( vol, leastCache DBG_DELETE_ );
 				// bottom contains this reference, and will release later.
 				//dropRawTimeEntry( vol, leastCache DBG_DELETE_ );
 			}else {
 				enum block_cache_entries cache = BC( ZERO );
 
-				least = getRawTimeEntry( vol, leastIndex = time->slesser.ref.index, &cache DBG_DELETE_ );
+				least = getRawTimeEntry( vol, leastIndex = time->sgreater.ref.index, &cache DBG_DELETE_ );
 #ifdef DEBUG_DELETE_BALANCE
 				lprintf( "Stepped to least2 %d", leastIndex );
 #endif
-				while( least->sgreater.raw ) {
+				while( least->slesser.raw ) {
 					dropRawTimeEntry( vol, cache DBG_DELETE_ );
 					least = getRawTimeEntry( vol, leastIndex = least->slesser.ref.index, &cache DBG_DELETE_ );
 #ifdef DEBUG_DELETE_BALANCE
@@ -1054,6 +1126,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				}
 				least->me_fpi = time->me_fpi;
 				SETFLAG( vol->dirty, meCache );
+				SETFLAG( vol->dirty, cache );
 				dropRawTimeEntry( vol, cache DBG_DELETE_ );
 
 			}
@@ -1072,6 +1145,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				struct storageTimelineNode* tmp;
 				tmp = getRawTimeEntry( vol, time->slesser.ref.index, &cache DBG_DELETE_ );
 				tmp->me_fpi = sane_offsetof( struct storageTimeline, entries[leastIndex - 1].slesser );
+				SETFLAG( vol->dirty, cache );
 				dropRawTimeEntry( vol, cache DBG_DELETE_ );
 			}
 			if( least->sgreater.raw = time->sgreater.raw ) {
@@ -1079,8 +1153,11 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				struct storageTimelineNode* tmp;
 				tmp = getRawTimeEntry( vol, time->sgreater.ref.index, &cache DBG_DELETE_ );
 				tmp->me_fpi = sane_offsetof( struct storageTimeline, entries[leastIndex - 1].sgreater );
+				SETFLAG( vol->dirty, cache );
 				dropRawTimeEntry( vol, cache DBG_DELETE_ );
 			}
+			SETFLAG( vol->dirty, cache ); // mark that the least node was updated.
+			SETFLAG( vol->dirty, meCache );
 #ifdef DEBUG_DELETE_BALANCE
 			lprintf( " ------------- DELETE TIME ENTRY move least node to node? ---------------- " );
 			DumpTimelineTree( vol, TRUE  DBG_DELETE_ );
@@ -1100,7 +1177,8 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 			while( node_fpi > 0x3f ) {
 				uint64_t node_idx = ( node_fpi - sizeof( struct timelineHeader ) ) / sizeof( struct storageTimelineNode ) + 1;
 				tmp = getRawTimeEntry( vol, node_idx, &cacheTmp DBG_DELETE_ );
-				
+				node_fpi = tmp->me_fpi & ~0x3f;
+
 				if( updating ) {
 					if( tmp->slesser.raw ) {
 						if( tmp->sgreater.raw ) {
@@ -1134,6 +1212,8 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 											lprintf( " ------------- DELETE TIME ENTRY after rotate to right ---------------- " );
 											DumpTimelineTree( vol, TRUE DBG_DELETE_ );
 #endif
+											SETFLAG( vol->dirty, cacheTmp );
+											SETFLAG( vol->dirty, cache );
 										}
 										else {
 											struct storageTimelineNode *_x;
@@ -1153,9 +1233,13 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 											lprintf( " ------------- DELETE TIME ENTRY after rotate to right ---------------- %d %d", node_idx, lessGreater );
 											DumpTimelineTree( vol, TRUE DBG_DELETE_ );
 #endif
+											SETFLAG( vol->dirty, cacheTmp );
+											SETFLAG( vol->dirty, cache );
+											SETFLAG( vol->dirty, cache_x );
 											dropRawTimeEntry( vol, cache_x DBG_DELETE_ );
 										}
 										dropRawTimeEntry( vol, cache DBG_DELETE_ );
+										ValidateTimelineTree( vol DBG_SRC );
 									}
 								}
 							} else {
@@ -1184,6 +1268,8 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 											lprintf( " ------------- DELETE TIME ENTRY after rotate to left ---------------- " );
 											DumpTimelineTree( vol, TRUE  DBG_DELETE_ );
 #endif
+											SETFLAG( vol->dirty, cacheTmp );
+											SETFLAG( vol->dirty, cache );
 										}
 										else {
 											struct storageTimelineNode *_x;
@@ -1200,9 +1286,13 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 											lprintf( " ------------- DELETE TIME ENTRY  after rotte to left---------------- " );
 											DumpTimelineTree( vol, TRUE  DBG_DELETE_ );
 #endif
+											SETFLAG( vol->dirty, cacheTmp );
+											SETFLAG( vol->dirty, cache );
+											SETFLAG( vol->dirty, cache_x );
 											dropRawTimeEntry( vol, cache_x DBG_DELETE_ );
 										}
 										dropRawTimeEntry( vol, cache DBG_DELETE_ );
+										ValidateTimelineTree( vol DBG_SRC );
 									}
 								}
 							}
@@ -1253,7 +1343,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 					}
 				}
 				dropRawTimeEntry( vol, cacheTmp DBG_DELETE_ );
-				node_fpi = tmp->me_fpi & ~0x3f;
+				ValidateTimelineTree( vol DBG_SRC );
 			}
 
 			{
@@ -1281,12 +1371,13 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 		struct storageTimelineNode* time;
 		enum block_cache_entries cache = BC( TIMELINE );
 
-		lprintf( "Delete start..." );
+		//lprintf( "Delete start..." );
 		time = getRawTimeEntry( vol, index, &cache DBG_SRC );
 		next = time->prior.raw;
 		deleteTimelineIndexWork( vol, index, time, cache DBG_SRC );
 		dropRawTimeEntry( vol, cache DBG_SRC );
-		lprintf( "Delete done..." );
+		ValidateTimelineTree( vol DBG_SRC );
+		//lprintf( "Delete done..." );
 	} while( index = next );
 }
 
@@ -1358,6 +1449,7 @@ BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vol
 	lprintf( " ------------- NEW TIME ENTRY ---------------- " );
 	DumpTimelineTree( vol, TRUE  DBG_RELAY );
 #endif
+	ValidateTimelineTree( vol DBG_SRC );
 	//DumpTimelineTree( vol, FALSE );
 	return index;
 }

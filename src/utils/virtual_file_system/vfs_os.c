@@ -470,7 +470,9 @@ static void _os_SetBlockChain( struct sack_vfs_os_file* file, FPI fpi, BLOCKINDE
 	FPI fileBlock = file->blockChainLength;
 	if( file->blockChainLength ) {
 		if( fpi < ( file->blockChain[file->blockChainLength - 1].start + file->blockChain[file->blockChainLength - 1].size ) ) {
-			lprintf( "Re-setting an internal block??" );
+			// when seek happens and initial position is past the end,
+			// seek has to step through the file, for each block to adjust size properly...
+			//lprintf( "Re-setting an internal block??" );
 			fileBlock = getBlockChainBlock( file, fpi );
 		}
 		else if( fpi == ( file->blockChain[file->blockChainLength - 1].start + file->blockChain[file->blockChainLength - 1].size ) ) {
@@ -546,7 +548,7 @@ static FPI vfs_os_compute_block( struct sack_vfs_os_volume *vol, BLOCKINDEX bloc
 	struct sack_vfs_os_BAT_info *info;
 	INDEX idx = block / BLOCKS_PER_SECTOR;
 	info = (struct sack_vfs_os_BAT_info*)GetDataItem( &vol->pdl_BAT_information, idx );
-	if( !info ) return 0;
+	if( !info ) return ~0;
 	{
 		if( block % BLOCKS_PER_SECTOR ) { // not reading a BAT, add the fixed offset, 0 based data offset
 			if( cache < BC(COUNT) )
@@ -726,7 +728,7 @@ static int _os_dumpDirectories( struct sack_vfs_os_volume *vol, BLOCKINDEX start
 static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cache_entries *cache_idx, BLOCKINDEX segment, uint8_t *age, int ageLength DBG_PASS ) {
 	int n, m;
 	int least;
-	int nLeast;
+	int nLeast = -1;
 	enum block_cache_entries cacheRoot = cache_idx[0];
 	BLOCKINDEX *test_segment = vol->segment + cacheRoot;
 	least = ageLength + 1;
@@ -775,6 +777,10 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 			nLeast = n; // this one will be oldest, unlocked candidate
 		}
 	}
+	if( ( n == ( ageLength ) ) && ( nLeast < 0 ) ) {
+		lprintf( "All cache blocks are locked, unable to find a free, old block." );
+		DebugBreak();
+	}
 	if( n == (ageLength) ) {
 		int useCache = cacheRoot + nLeast;
 #ifdef _DEBUG
@@ -806,6 +812,15 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 			RESETFLAG( vol->dirty, useCache );
 			RESETFLAG( vol->_dirty, useCache );
 		}
+		else {
+#ifdef DEBUG_CACHE_FLUSH
+			if( memcmp( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE ) ) {
+				lprintf( "Block was written to, but was not flagged as dirty, changes will be lost." );
+				DebugBreak();
+			}
+#endif
+
+		}
 	}
 	{
 		// read new buffer for new segment
@@ -820,6 +835,9 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 				SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]]
 					, vol->segment[cache_idx[0]], (const uint8_t*)vol->oldkey?vol->oldkey:vol->key, 1024 /* some amount of the key to use */
 					, NULL, NULL );
+#ifdef DEBUG_CACHE_FLUSH
+			memcpy( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE );
+#endif
 		}
 	}
 #ifdef DEBUG_CACHE_AGING
@@ -919,9 +937,10 @@ struct sack_vfs_os_file * _os_createFile( struct sack_vfs_os_volume *vol, BLOCKI
 //---------------------------------------------------------------------------
 
 uintptr_t vfs_os_block_index_SEEK( struct sack_vfs_os_volume* vol, BLOCKINDEX block, int blockSize, enum block_cache_entries* cache_index ) {
-	FPI offset = vfs_os_compute_block( vol, block, cache_index[0] );
+	FPI offset;
 
-	while( offset >= vol->dwSize ) if( !_os_ExpandVolume( vol, vol->lastBlock, blockSize ) ) return 0;
+	while( ( offset = vfs_os_compute_block( vol, block, cache_index[0] ) ) >= vol->dwSize )
+		if( !_os_ExpandVolume( vol, vol->lastBlock, blockSize ) ) return 0;
 	{
 		cache_index[0] = _os_UpdateSegmentKey( vol, cache_index[0], block + 1 );
 		//LoG( "RETURNING SEEK CACHED %p %d  0x%x   %d", vol->usekey_buffer[cache_index[0]], cache_index[0], (int)offset, (int)seg );
@@ -1088,7 +1107,7 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 		vol->timelineCache = BC( TIMELINE );
 		vol->timeline = (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, TIME_BLOCK_SIZE, &vol->timelineCache );
 		
-		SETMASK_( vol->seglock, seglock, cache, locks = GETMASK_( vol->seglock, seglock, cache )+1 );
+		SETMASK_( vol->seglock, seglock, vol->timelineCache, locks = GETMASK_( vol->seglock, seglock, vol->timelineCache )+1 );
 		if( locks > 5 ) {
 			lprintf( "Lock is in danger of overflow" );
 		}
@@ -1522,7 +1541,7 @@ static void _os_AddSalt( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 
 static void _os_AssignKey( struct sack_vfs_os_volume *vol, const char *key1, const char *key2 )
 {
-	uintptr_t size = BLOCK_SIZE + BLOCK_SIZE * BC(COUNT) + BLOCK_SIZE + SHORTKEY_LENGTH;
+	uintptr_t size = BLOCK_SIZE + BLOCK_SIZE * BC(COUNT) * 2 + BLOCK_SIZE + SHORTKEY_LENGTH;
 	if( !vol->key_buffer ) {
 		int n;
 		// internal buffers to read and decode into
@@ -1530,6 +1549,9 @@ static void _os_AssignKey( struct sack_vfs_os_volume *vol, const char *key1, con
 		memset( vol->key_buffer, 0, size );
 		for( n = 0; n < BC(COUNT); n++ ) {
 			vol->usekey_buffer[n] = vol->key_buffer + (n + 1) * BLOCK_SIZE;
+#ifdef DEBUG_CACHE_FLUSH
+			vol->usekey_buffer_clean[n] = vol->key_buffer + ( n + 1 + BC(COUNT) ) * BLOCK_SIZE ;
+#endif
 		}
 		for( n = 0; n < BC( COUNT ); n++ ) {
 			vol->segment[n] = ~0; // if not dirty, ~0 wont' be written but ages don't have to change.
@@ -2093,7 +2115,7 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 	uint8_t* nameblock_;
 	int f;
 	int e = -1;
-	enum block_cache_entries name_cache, name_cache_;
+	enum block_cache_entries name_cache = BC(ZERO), name_cache_;
 	int endNameOffset = 0;
 	int findNameOffset = nameOffset;
 	struct directory_hash_lookup_block* dirblock = (struct directory_hash_lookup_block*)vol->usekey_buffer[nameCache];
@@ -2107,9 +2129,9 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 	do {
 		uint8_t* out;
 		uint8_t* in;
+		name_cache_ = name_cache;
 		name_cache = BC( NAMES );
 		nameblock_ = nameblock;
-		name_cache_ = name_cache;
 		nameblock = BTSEEK( uint8_t*, vol, name_block, NAME_BLOCK_SIZE, name_cache );
 		if( findNameOffset < NAME_BLOCK_SIZE ) {
 			// first read block (nameoffset = 0)
@@ -2150,7 +2172,8 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 				}
 				SETFLAG( vol->dirty, name_cache );  // re-wrote block;
 				// unlock the previous block (if there was one);
-				SETMASK_( vol->seglock, seglock, name_cache, GETMASK_( vol->seglock, seglock, name_cache_ ) - 1 );
+				if( name_cache_ )
+					SETMASK_( vol->seglock, seglock, name_cache_, GETMASK_( vol->seglock, seglock, name_cache_ ) - 1 );
 			}
 			nameoffset += NAME_BLOCK_SIZE;
 		}

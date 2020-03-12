@@ -8,6 +8,8 @@
  **************/
 #define VFS_VERSION     0x100
 
+#define DEBUG_CACHE_FLUSH
+
 // 12 bits = 1 << 12 = 4096
 #define BLOCK_SIZE_BITS 12
 // BLOCKINDEX is either 4 or 8 bytes... sizeof( size_t )... 
@@ -134,7 +136,7 @@ enum block_cache_entries
 	, BC(FILE_LAST) = BC(FILE) + 32
 #ifdef VIRTUAL_OBJECT_STORE
 	, BC( TIMELINE )
-	, BC( TIMELINE_LAST ) = BC( TIMELINE ) + 8
+	, BC( TIMELINE_LAST ) = BC( TIMELINE ) + 32
 #endif
 	, BC(COUNT)
 };
@@ -265,6 +267,9 @@ struct sack_vfs_volume {
 #  ifdef FILE_BASED_VFS
 	uint8_t* key_buffer;  // root buffer space of all cache blocks
 	uint8_t* usekey_buffer[BC(COUNT)]; // data cache blocks
+#ifdef DEBUG_CACHE_FLUSH
+	uint8_t* usekey_buffer_clean[BC(COUNT)];
+#endif
 	FLAGSET( dirty, BC(COUNT) );
 	FLAGSET( _dirty, BC( COUNT ) );
 	FPI bufferFPI[BC(COUNT)];
