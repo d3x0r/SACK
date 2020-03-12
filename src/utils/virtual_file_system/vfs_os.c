@@ -107,8 +107,8 @@ namespace objStore {
 #define DEBUG_DISK_IO
 #define DEBUG_DIRECTORIES
 #define DEBUG_BLOCK_INIT
-#define DEBUG_TIMELINE_AVL
-#define DEBUG_TIMELINE_DIR_TRACKING
+//#define DEBUG_TIMELINE_AVL
+//#define DEBUG_TIMELINE_DIR_TRACKING
 #define DEBUG_FILE_SCAN
 #define DEBUG_FILE_OPEN
 
@@ -1531,7 +1531,7 @@ static void _os_AssignKey( struct sack_vfs_os_volume *vol, const char *key1, con
 			vol->usekey_buffer[n] = vol->key_buffer + (n + 1) * BLOCK_SIZE;
 		}
 		for( n = 0; n < BC( COUNT ); n++ ) {
-			vol->segment[n] = ~0;
+			vol->segment[n] = ~0; // if not dirty, ~0 wont' be written but ages don't have to change.
 			RESETFLAG( vol->dirty, n );
 			RESETFLAG( vol->_dirty, n );
 		}
@@ -1577,7 +1577,9 @@ void sack_vfs_os_flush_volume( struct sack_vfs_os_volume * vol, LOGICAL unload )
 						, NULL, NULL );
 				sack_fwrite( vol->usekey_buffer[idx], 1, vol->sector_size[idx], vol->file );
 				if( !GETMASK_( vol->seglock, seglock, idx ) )
-					vol->segment[idx] = ~0;
+					// don't HAVE To release that this segment is in this cache block...
+					// it's just claimable, and not dirty.
+					;// vol->segment[idx] = ~0;
 				else
 					if( vol->key )
 						SRG_XSWS_decryptData( vol->usekey_buffer[idx], vol->sector_size[idx]
@@ -1635,7 +1637,8 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 					sack_fwrite( vol->usekey_buffer[idx], 1, BLOCK_SIZE, vol->file );
 					RESETFLAG( vol->_dirty, idx );
 					if( !GETMASK_( vol->seglock, seglock, idx ) )
-						vol->segment[idx] = ~0; // relesae segment
+						// don't really have to clear this; it will be reclaimed if needed
+						;// vol->segment[idx] = ~0; // release segment
 					else
 						if( vol->key ) // locked, revert segment
 							SRG_XSWS_decryptData( vol->usekey_buffer[idx], vol->sector_size[idx]
@@ -2253,8 +2256,8 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 			dirblock->next_block[imax]
 				= ( new_dir_block
 				  = _os_GetFreeBlock( vol, GFB_INIT_DIRENT, 4096 ) );
-			if( new_dir_block == 48 || new_dir_block == 36 )
-				DebugBreak();
+			//if( new_dir_block == 48 || new_dir_block == 36 )
+			//	DebugBreak();
 
 			SETFLAG( vol->dirty, cache );
 			{

@@ -238,7 +238,7 @@ struct sack_vfs_volume {
 	struct storageTimeline *timelineKey; // timeline root key
 	struct sack_vfs_os_file *timeline_file;
 	struct storageTimelineCursor *timeline_cache;
-	MASKSET_( seglock, BC( COUNT ), 3 );  // segment is locked into cache.
+	MASKSET_( seglock, BC( COUNT ), 4 );  // segment is locked into cache.
 #  endif
 
 	uint8_t fileCacheAge[BC(FILE_LAST) - BC(FILE)];
