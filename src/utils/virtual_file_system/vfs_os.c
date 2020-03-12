@@ -509,6 +509,7 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 	, int blockSize
 )
 {
+	enum block_cache_entries cacheRoot = cache_index[0];
 	uint8_t *data;
 	FPI pos = 0;
 	if( file ) {
@@ -519,7 +520,6 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 			offset -= pos;
 		} else
 			firstblock = file->_first_block;
-
 	}
 	data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, blockSize, cache_index DBG_NULL );
 
@@ -533,6 +533,7 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 		if( file ) {
 			//if( !file->filename ) LoG( "Set timeline block chain at %d to %d", (int)pos, (int)firstblock );
 			_os_SetBlockChain( file, pos, firstblock, size );
+			cache_index[0] = cacheRoot;
 			data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, blockSize, cache_index DBG_NULL );
 		}
 	}
