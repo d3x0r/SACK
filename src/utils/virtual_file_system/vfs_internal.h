@@ -209,6 +209,28 @@ struct sack_vfs_os_BAT_info {
 
 static int const seglock_mask_size = 4;
 
+#ifdef DEBUG_SECTOR_DIRT
+#define SMUDGECACHE(vol,n) { \
+	if( !TESTFLAG( vol->dirty, n ) ) {\
+		SETFLAG( vol->dirty, n ); \
+		lprintf( "set dirty on %d", n); \
+	} else {  \
+		lprintf( "Already dirty on %d", n ); \
+	}         \
+}  
+#define CLEANCACHE(vol,n) { \
+	lprintf( "reset dirty on %d", n); \
+	RESETFLAG( vol->dirty, n ); \
+} 
+#else
+#define SMUDGECACHE(vol,n) { \
+	if( !TESTFLAG( vol->dirty, n ) ) \
+		SETFLAG( vol->dirty, n ); \
+}  
+#define CLEANCACHE(vol,n) { \
+	RESETFLAG( vol->dirty, n ); \
+} 
+#endif
 struct sack_vfs_volume {
 	const char * volname;
 #  ifdef FILE_BASED_VFS
