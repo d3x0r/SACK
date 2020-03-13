@@ -142,8 +142,8 @@ static struct {
 #define EOBBLOCK  ((BLOCKINDEX)1)
 #define EODMARK   (1)
 #define DIR_ALLOCATING_MARK (~0)
-#define DIR_DELETED_MARK    (1)
-#define DIR_CREATED_MARK    (2)
+//#define DIR_DELETED_MARK    (1)
+//#define DIR_CREATED_MARK    (2)
 
 #undef GFB_INIT_NONE
 #undef GFB_INIT_DIRENT
@@ -1267,6 +1267,10 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 			vol->file = fopen( 0, vol->volname, "wb+" );
 		}
 #endif
+		if( !vol->file ) {
+			//lprintf( "Failed to open volume" );
+			return FALSE;
+		}
 		sack_fseek( vol->file, 0, SEEK_END );
 		vol->dwSize = sack_ftell( vol->file );
 		if( vol->dwSize == 0 )
@@ -1548,7 +1552,11 @@ static void _os_AddSalt( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 
 static void _os_AssignKey( struct sack_vfs_os_volume *vol, const char *key1, const char *key2 )
 {
-	uintptr_t size = BLOCK_SIZE + BLOCK_SIZE * BC(COUNT) * 2 + BLOCK_SIZE + SHORTKEY_LENGTH;
+	uintptr_t size = BLOCK_SIZE + BLOCK_SIZE * BC(COUNT)
+#ifdef DEBUG_CACHE_FLUSH
+		* 2
+#endif
+		+ BLOCK_SIZE + SHORTKEY_LENGTH;
 	if( !vol->key_buffer ) {
 		int n;
 		// internal buffers to read and decode into
@@ -1620,6 +1628,12 @@ void sack_vfs_os_flush_volume( struct sack_vfs_os_volume * vol, LOGICAL unload )
 #endif
 				CLEANCACHE( vol, idx );
 				RESETFLAG( vol->_dirty, idx );
+			} else {
+#ifdef DEBUG_CACHE_FLUSH
+				if( memcmp( vol->usekey_buffer_clean[idx], vol->usekey_buffer[idx], BLOCK_SIZE ) ) {
+					lprintf( "Block was written to, but was not flagged as dirty, changes will be lost." );
+				}
+#endif
 			}
 		}
 	}
@@ -1651,7 +1665,7 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 					break; // have lock, break; no new changes; flush dirty sectors(if any)
 			}
 			else // didn't get lock, wait.
-				Relinquish();
+				WakeableSleep( 10 );
 		}
 
 		{
@@ -1680,6 +1694,13 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 							SRG_XSWS_decryptData( vol->usekey_buffer[idx], vol->sector_size[idx]
 								, vol->segment[idx], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 								, NULL, NULL );
+				}
+				else {
+#ifdef DEBUG_CACHE_FLUSH
+					if( memcmp( vol->usekey_buffer_clean[idx], vol->usekey_buffer[idx], BLOCK_SIZE ) ) {
+						lprintf( "Block was written to, but was not flagged as dirty, changes will be lost." );
+					}
+#endif
 				}
 		}
 		vol->lock = 0;
@@ -2208,6 +2229,7 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 		}
 	}
 	// move the directory entries down.
+	//file->entry->name_offset = 0;
 	for( f = 0; f < dirblock->used_names; f++ ) {
 		if( ( dirblock->entries[f].name_offset & DIRENT_NAME_OFFSET_OFFSET ) > nameOffset )
 			dirblock->entries[f].name_offset -= endNameOffset - findNameOffset;
@@ -2239,7 +2261,6 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 		}
 	}
 	dirblock->used_names--;
-	file->entry->name_offset = 0;
 	SMUDGECACHE( vol, name_cache );
 
 }
@@ -2480,6 +2501,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 					}
 					newnamebuffer[newout++] = UTF8_EOTB;
 					memcpy( namebuffer, newnamebuffer, newout );
+					memset( namebuffer + newout, 0, NAME_BLOCK_SIZE - newout ); // tidy up the end of the old buffer.
 					memset( newnamebuffer, 0, newout );
 				}
 				else {
@@ -2495,7 +2517,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 						out = BTSEEK( uint8_t *, vol, name_block, NAME_BLOCK_SIZE, name_cache );
 						for( n = 0; n < 4096; n++ )
 							(*out++) = (*nameblock++);
-						SMUDGECACHE( vol, cache );
+						SMUDGECACHE( vol, name_cache );
 						name_block = vfs_os_GetNextBlock( vol, name_block, GFB_INIT_NONE, 0, NAME_BLOCK_SIZE, NULL );
 						nameoffset += 4096;
 					} while( name_block != EOFBLOCK );
@@ -2636,7 +2658,9 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 			if( file ) {
 				int locks;
 				SETMASK_( vol->seglock, seglock, cache, locks = GETMASK_( vol->seglock, seglock, cache )+1 );
-				if( locks > 4 ) {
+				if( locks > 12 ) {
+					lprintf( "Too many locks open... " );
+					DebugBreak();
 				}
 				file->entry_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[n] );;
 				file->_entry.name_offset = ( file->entry->name_offset & DIRENT_NAME_OFFSET_OFFSET ) + vfs_os_compute_data_block( vol, dirblock->names_first_block, BC( COUNT ) );
@@ -3241,7 +3265,7 @@ static void sack_vfs_os_unlink_file_entry( struct sack_vfs_os_volume *vol, struc
 		_block = block = first_block;
 		LoG( "(marking physical deleted (again?)) entry starts at %d", block );
 		// wipe out file chain BAT
-		if( first_block > DIR_ALLOCATING_MARK )
+		if( first_block != DIR_ALLOCATING_MARK )
 			do {
 				enum block_cache_entries cache = BC(BAT);
 				enum block_cache_entries fileCache = BC(DATAKEY);
@@ -3250,6 +3274,7 @@ static void sack_vfs_os_unlink_file_entry( struct sack_vfs_os_volume *vol, struc
 				//LoG( "Clearing file datablock...%p", (uintptr_t)blockData - (uintptr_t)vol->disk );
 				memset( blockData, 0, vol->sector_size[fileCache] );
 				// after seek, block was read, and file position updated.
+				SMUDGECACHE( vol, fileCache );
 				SMUDGECACHE( vol, cache );
 
 				block = vfs_os_GetNextBlock( vol, block, GFB_INIT_NONE, FALSE, vol->sector_size[fileCache], NULL );
