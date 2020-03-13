@@ -794,7 +794,7 @@ void ConvertTickToTime( int64_t tick, PSACK_TIME st ) {
 }
 
 
-int64_t GetTimeOfDay( uint64_t* tick, uint8_t* ptz )
+int64_t GetTimeOfDay( uint64_t* tick, int8_t* ptz )
 {
 	//struct timezone tzp;
 	int tz = GetTimeZone();
