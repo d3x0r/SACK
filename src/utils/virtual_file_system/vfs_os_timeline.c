@@ -1,5 +1,6 @@
 #define DEBUG_TEST_LOCKS
-//#define DEBUG_VALIDATE_TREE
+#define DEBUG_VALIDATE_TREE
+//#define DEBUG_VALIDATE_TREE_ADD
 //#define DEBUG_LOG_LOCKS
 
 //#define INVERSE_TEST
@@ -330,6 +331,10 @@ static void ValidateTimelineTreeWork( struct sack_vfs_os_volume* vol, int level,
 			DumpTimelineTree( vol, 0 DBG_SRC );
 			DebugBreak();
 		}
+		if( !parent->disk->slesser.ref.index && parent->disk->slesser.ref.depth )
+			DebugBreak();
+		if( !parent->disk->sgreater.ref.index && parent->disk->sgreater.ref.depth )
+			DebugBreak();
 		ValidateTimelineTreeWork( vol, level + 1, &curNode, parent->disk->slesser.ref.index DBG_RELAY );
 		dropRawTimeEntry( vol, curNode.diskCache GRTENoLog DBG_RELAY );
 	}
@@ -750,7 +755,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 							lprintf( " ------------- AFTER AVL BALANCER PHASE R1 ---------------- " );
 							DumpTimelineTree( vol, TRUE DBG_RELAY );
 #endif
-#ifdef DEBUG_VALIDATE_TREE
+#ifdef DEBUG_VALIDATE_TREE_ADD
 							ValidateTimelineTree( vol DBG_SRC );
 #endif
 						}
@@ -761,7 +766,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 							lprintf( " ------------- AFTER AVL BALANCER PHASE R2 ---------------- " );
 							DumpTimelineTree( vol, TRUE DBG_RELAY );
 #endif
-#ifdef DEBUG_VALIDATE_TREE
+#ifdef DEBUG_VALIDATE_TREE_ADD
 							ValidateTimelineTree( vol DBG_SRC );
 #endif
 							_os_AVL_RotateToLeft( vol, _z, curIndex, _y, idx_y DBG_RELAY );
@@ -772,7 +777,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 							SMUDGECACHE( vol, cache_z );
 							SMUDGECACHE( vol, cache_y );
 							SMUDGECACHE( vol, cache_x );
-#ifdef DEBUG_VALIDATE_TREE
+#ifdef DEBUG_VALIDATE_TREE_ADD
 							ValidateTimelineTree( vol DBG_SRC );
 #endif
 						}
@@ -785,7 +790,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 #endif
 							SMUDGECACHE( vol, cache_y );
 							SMUDGECACHE( vol, cache_x );
-#ifdef DEBUG_VALIDATE_TREE
+#ifdef DEBUG_VALIDATE_TREE_ADD
 							ValidateTimelineTree( vol DBG_SRC );
 #endif
 							_os_AVL_RotateToRight( vol, _z, curIndex, _y, idx_y DBG_RELAY );
@@ -795,7 +800,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 #endif
 							SMUDGECACHE( vol, cache_z );
 							SMUDGECACHE( vol, cache_y );
-#ifdef DEBUG_VALIDATE_TREE
+#ifdef DEBUG_VALIDATE_TREE_ADD
 							ValidateTimelineTree( vol DBG_SRC );
 #endif
 							// rightDepth.left
@@ -809,7 +814,7 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 #endif
 							SMUDGECACHE( vol, cache_y );
 							SMUDGECACHE( vol, cache_z );
-#ifdef DEBUG_VALIDATE_TREE
+#ifdef DEBUG_VALIDATE_TREE_ADD
 							ValidateTimelineTree( vol DBG_SRC );
 #endif
 						}
@@ -1016,11 +1021,11 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 	lprintf( " ------------- BEFORE AVL BALANCER ---------------- " );
 	DumpTimelineTree( vol, TRUE  DBG_RELAY );
 #endif
-#ifdef DEBUG_VALIDATE_TREE
+#ifdef DEBUG_VALIDATE_TREE_ADD
 	ValidateTimelineTree( vol DBG_SRC );
 #endif
 	_os_AVLbalancer( vol, index.ref.index DBG_RELAY );
-#ifdef DEBUG_VALIDATE_TREE
+#ifdef DEBUG_VALIDATE_TREE_ADD
 	ValidateTimelineTree( vol DBG_SRC );
 #endif
 	return 1;
@@ -1245,12 +1250,12 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 										struct storageTimelineNode* lesser = getRawTimeEntry( vol, tmp->slesser.ref.index, &cache GRTELog DBG_DELETE_ );
 										tmp3 = lesser->slesser.ref.depth;
 										tmp4 = lesser->sgreater.ref.depth;
-										struct storageTimelineNode *_y;
+										struct storageTimelineNode* _y;
 										_y = lesser;
 #ifdef DEBUG_DELETE_BALANCE
 										lprintf( "y node is %d", tmp->slesser.ref.index );
 #endif
-										if( tmp3 > tmp4 ) {
+										if( tmp3 >= tmp4 ) {
 											_os_AVL_RotateToRight( vol, tmp, node_idx, _y, tmp->slesser.ref.index DBG_DELETE_ );
 #ifdef DEBUG_DELETE_BALANCE
 											lprintf( " ------------- DELETE TIME ENTRY after rotate to right ---------------- " );
@@ -1258,9 +1263,12 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 #endif
 											SMUDGECACHE( vol, cacheTmp );
 											SMUDGECACHE( vol, cache );
+#ifdef DEBUG_VALIDATE_TREE
+											ValidateTimelineTree( vol DBG_SRC );
+#endif
 										}
 										else {
-											struct storageTimelineNode *_x;
+											struct storageTimelineNode* _x;
 											enum block_cache_entries cache_x;
 											BLOCKINDEX lessGreater = lesser->sgreater.ref.index;
 											_x = getRawTimeEntry( vol, lesser->sgreater.ref.index, &cache_x GRTELog DBG_DELETE_ );
@@ -1281,11 +1289,11 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 											SMUDGECACHE( vol, cache );
 											SMUDGECACHE( vol, cache_x );
 											dropRawTimeEntry( vol, cache_x GRTENoLog DBG_DELETE_ );
+#ifdef DEBUG_VALIDATE_TREE
+											ValidateTimelineTree( vol DBG_SRC );
+#endif
 										}
 										dropRawTimeEntry( vol, cache GRTENoLog DBG_DELETE_ );
-#ifdef DEBUG_VALIDATE_TREE
-										ValidateTimelineTree( vol DBG_SRC );
-#endif
 									}
 								}
 							} else {
@@ -1316,6 +1324,9 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 #endif
 											SMUDGECACHE( vol, cacheTmp );
 											SMUDGECACHE( vol, cache );
+#ifdef DEBUG_VALIDATE_TREE
+											ValidateTimelineTree( vol DBG_SRC );
+#endif
 										}
 										else {
 											struct storageTimelineNode *_x;
@@ -1336,11 +1347,11 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 											SMUDGECACHE( vol, cache );
 											SMUDGECACHE( vol, cache_x );
 											dropRawTimeEntry( vol, cache_x GRTENoLog DBG_DELETE_ );
+#ifdef DEBUG_VALIDATE_TREE
+											ValidateTimelineTree( vol DBG_SRC );
+#endif
 										}
 										dropRawTimeEntry( vol, cache GRTENoLog DBG_DELETE_ );
-#ifdef DEBUG_VALIDATE_TREE
-										ValidateTimelineTree( vol DBG_SRC );
-#endif
 									}
 								}
 							}
@@ -1422,7 +1433,7 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 		deleteTimelineIndexWork( vol, index, time, cache DBG_SRC );
 		dropRawTimeEntry( vol, cache GRTELog DBG_SRC );
 #ifdef DEBUG_VALIDATE_TREE
-		ValidateTimelineTree( vol DBG_SRC );
+		//ValidateTimelineTree( vol DBG_SRC );
 #endif
 		//lprintf( "Delete done... %d", index );
 	} while( index = next );
