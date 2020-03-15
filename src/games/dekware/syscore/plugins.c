@@ -371,7 +371,7 @@ CORE_PROC( void, UnregisterRoutine )( CTEXTSTR pName )
 extern int gbTrace;
 
 
-Function GetRoutineRegistered( TEXTSTR prefix, PTEXT Command )
+Function GetRoutineRegistered( CTEXTSTR prefix, PTEXT Command )
 {
 	Function f;
 	TEXTCHAR tmp[256];
@@ -384,7 +384,7 @@ Function GetRoutineRegistered( TEXTSTR prefix, PTEXT Command )
 	return f;
 }
 
-OptionHandler GetOptionRegistered( TEXTSTR prefix, PTEXT Command )
+OptionHandler GetOptionRegistered( CTEXTSTR prefix, PTEXT Command )
 {
 	OptionHandler f;
 	TEXTCHAR tmp[256];

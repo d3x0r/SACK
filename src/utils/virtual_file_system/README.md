@@ -140,3 +140,9 @@ struct directory_entry
 `vfs_os.c` uses several more structures for tracking it's data... this is just meant to be a high level overview of the
 basic principles.
 
+
+## VFS Object Storage module
+
+Implements a name hash table lookup for quickly finding random access blobs of data.
+Implements a timeline index so just things that have been changed after a certain date can be tracked for distributing their data.
+Can implement version history on object data, so data of the object at previous times can be retrieved.
