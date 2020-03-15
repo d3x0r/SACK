@@ -1,5 +1,5 @@
 #define DEBUG_TEST_LOCKS
-#define DEBUG_VALIDATE_TREE
+//#define DEBUG_VALIDATE_TREE
 //#define DEBUG_VALIDATE_TREE_ADD
 //#define DEBUG_LOG_LOCKS
 
@@ -1227,6 +1227,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				uint64_t node_idx = ( node_fpi - sizeof( struct timelineHeader ) ) / sizeof( struct storageTimelineNode ) + 1;
 				tmp = getRawTimeEntry( vol, node_idx, &cacheTmp GRTELog DBG_DELETE_ );
 				node_fpi = tmp->me_fpi & ~0x3f;
+				if( node_fpi == ( bottom_me_fpi & ~0x3f ) ) DebugBreak();
 
 				if( updating ) {
 					if( tmp->slesser.raw ) {

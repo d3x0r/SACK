@@ -852,8 +852,10 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 		}
 	}
 	{
+		vol->bufferFPI[cache_idx[0]] = vfs_os_compute_block( vol, segment - 1, cache_idx[0] );
+		if( vol->bufferFPI[cache_idx[0]] >= vol->dwSize ) _os_ExpandVolume( vol, vol->lastBlock, vol->sector_size[cache_idx[0]] );
 		// read new buffer for new segment
-		sack_fseek( vol->file, (size_t)(vol->bufferFPI[cache_idx[0]] = vfs_os_compute_block( vol, segment-1, cache_idx[0] )), SEEK_SET );
+		sack_fseek( vol->file, (size_t)vol->bufferFPI[cache_idx[0]], SEEK_SET );
 #ifdef DEBUG_DISK_IO
 		LoG_( "Read into block: fpi:%x cache:%d n:%d  seg:%d", (int)vol->bufferFPI[cache_idx[0]], (int)cache_idx[0] , (int)n, (int)segment );
 #endif
@@ -924,8 +926,10 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 			}
 
 			// read new buffer for new segment
-			
-			sack_fseek( vol->file, (size_t)(vol->bufferFPI[cache_idx]=vfs_os_compute_block(vol, segment - 1, cache_idx)), SEEK_SET);
+			vol->bufferFPI[cache_idx] = vfs_os_compute_block( vol, segment - 1, cache_idx );
+			if( vol->bufferFPI[cache_idx] >= vol->dwSize ) _os_ExpandVolume( vol, vol->lastBlock, vol->sector_size[cache_idx] );
+
+			sack_fseek( vol->file, (size_t)(vol->bufferFPI[cache_idx]), SEEK_SET);
 #ifdef DEBUG_DISK_IO
 			LoG( "OS VFS read old sector: fpi:%d %d %d", (int)vol->bufferFPI[cache_idx], cache_idx, segment );
 #endif
@@ -1419,6 +1423,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum getFre
 			int lastB = ( ( vol->lastBatSmallBlock > vol->lastBatBlock ) ? vol->lastBatSmallBlock : vol->lastBatBlock ) / BLOCKS_PER_BAT;
 			enum block_cache_entries cache = BC( BAT );
 
+			//_os_ExpandVolume( vol, lastB, blockSize );
 			current_BAT = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, ( lastB + 1 ) * ( BLOCKS_PER_SECTOR ), blockSize, &cache );
 			current_BAT[BLOCKS_PER_BAT] = ( blockSize == BLOCK_SMALL_SIZE ) ? 1 : ( blockSize == 4096 ) ? 0 : 2;
 			//lprintf( "Initialized bat at block %d to %d", lastB + 1, current_BAT[BLOCKS_PER_BAT] );
