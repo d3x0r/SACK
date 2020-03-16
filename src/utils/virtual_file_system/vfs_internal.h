@@ -138,6 +138,10 @@ enum block_cache_entries
 	, BC( TIMELINE )
 	, BC( TIMELINE_LAST ) = BC( TIMELINE ) + 32
 #endif
+#if defined( VIRTUAL_OBJECT_STORE ) && defined( DEBUG_VALIDATE_TREE )
+	, BC( TIMELINE_RO )
+	, BC( TIMELINE_RO_LAST ) = BC( TIMELINE_RO ) + 32
+#endif
 	, BC(COUNT)
 };
 

@@ -1,12 +1,14 @@
 #define DEBUG_TEST_LOCKS
-//#define DEBUG_VALIDATE_TREE
-//#define DEBUG_VALIDATE_TREE_ADD
+
+#define DEBUG_VALIDATE_TREE_ADD
 //#define DEBUG_LOG_LOCKS
 
 //#define INVERSE_TEST
 //#define DEBUG_DELETE_BALANCE
 
 #define DEBUG_AVL_DETAIL
+
+int nodes;
 
 struct storageTimelineCache {
 	BLOCKINDEX timelineSector;
@@ -127,6 +129,16 @@ PREFIX_PACKED struct storageTimelineBlock {
 	struct storageTimelineNode entries[(TIME_BLOCK_SIZE) / sizeof( struct storageTimelineNode )];
 } PACKED;
 
+#ifdef DEBUG_VALIDATE_TREE
+#define VTReadOnly  , TRUE
+#define VTReadWrite  , FALSE
+
+#else
+#define VTReadOnly
+#define VTReadWrite
+#endif
+
+
 #ifdef _DEBUG
 #define GRTENoLog ,0
 #define GRTELog ,1
@@ -195,12 +207,15 @@ void dropRawTimeEntry( struct sack_vfs_os_volume* vol, enum block_cache_entries 
 }
 
 void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, uint64_t timeEntry
+#ifdef DEBUG_VALIDATE_TREE
+	, LOGICAL readOnly
+#endif
 #if _DEBUG
 	, int log
 #endif
 	 DBG_PASS )
 {
-	enum block_cache_entries cache = BC( TIMELINE );
+	enum block_cache_entries cache = readOnly ?BC(TIMELINE_RO):BC( TIMELINE );
 	//uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol, BLOCKINDEX firstblock, FPI offset, enum block_cache_entries *cache_index DBG_SRC ) {
 	//if( timeEntry > 62 )DebugBreak();
 	int locks;
@@ -259,7 +274,7 @@ static void DumpTimelineTreeWork( struct sack_vfs_os_volume* vol, int level, str
 	);
 #endif
 	if( parent->disk->slesser.ref.index ) {
-		reloadTimeEntry( &curNode, vol, parent->disk->slesser.ref.index GRTENoLog DBG_RELAY );
+		reloadTimeEntry( &curNode, vol, parent->disk->slesser.ref.index VTReadOnly GRTENoLog DBG_RELAY );
 #if 0
 		lprintf( "(lesser) go to node %d", curNode.index );
 #endif
@@ -283,7 +298,7 @@ static void DumpTimelineTreeWork( struct sack_vfs_os_volume* vol, int level, str
 		, (int)(parent->disk->sgreater.ref.depth)
 	);
 	if( parent->disk->sgreater.ref.index ) {
-		reloadTimeEntry( &curNode, vol, parent->disk->sgreater.ref.index GRTENoLog DBG_RELAY );
+		reloadTimeEntry( &curNode, vol, parent->disk->sgreater.ref.index VTReadOnly GRTENoLog DBG_RELAY );
 #if 0
 		lprintf( "(greater) go to node %d", curNode.index );
 #endif
@@ -304,7 +319,7 @@ static void DumpTimelineTree( struct sack_vfs_os_volume* vol, LOGICAL unused DBG
 			return;
 		}
 		reloadTimeEntry( &curNode, vol
-			, timeline->header.srootNode.ref.index  GRTENoLog DBG_RELAY );
+			, timeline->header.srootNode.ref.index  VTReadOnly GRTENoLog DBG_RELAY );
 	}
 	DumpTimelineTreeWork( vol, 0, &curNode, unused DBG_RELAY );
 	dropRawTimeEntry( vol, curNode.diskCache GRTENoLog DBG_RELAY );
@@ -323,7 +338,7 @@ static void ValidateTimelineTreeWork( struct sack_vfs_os_volume* vol, int level,
 	);
 #endif
 	if( parent->disk->slesser.ref.index ) {
-		reloadTimeEntry( &curNode, vol, parent->disk->slesser.ref.index GRTENoLog DBG_RELAY );
+		reloadTimeEntry( &curNode, vol, parent->disk->slesser.ref.index VTReadOnly GRTENoLog DBG_RELAY );
 #if 0
 		lprintf( "(lesser) go to node %d", curNode.index );
 #endif
@@ -339,7 +354,7 @@ static void ValidateTimelineTreeWork( struct sack_vfs_os_volume* vol, int level,
 		dropRawTimeEntry( vol, curNode.diskCache GRTENoLog DBG_RELAY );
 	}
 	if( parent->disk->sgreater.ref.index ) {
-		reloadTimeEntry( &curNode, vol, parent->disk->sgreater.ref.index GRTENoLog DBG_RELAY );
+		reloadTimeEntry( &curNode, vol, parent->disk->sgreater.ref.index VTReadOnly GRTENoLog DBG_RELAY );
 #if 0
 		lprintf( "(greater) go to node %d", curNode.index );
 #endif
@@ -365,9 +380,21 @@ static void ValidateTimelineTree( struct sack_vfs_os_volume* vol DBG_PASS ) {
 			return;
 		}
 		reloadTimeEntry( &curNode, vol
-			, timeline->header.srootNode.ref.index GRTENoLog  DBG_RELAY );
+			, timeline->header.srootNode.ref.index VTReadOnly GRTENoLog  DBG_RELAY );
 	}
 	ValidateTimelineTreeWork( vol, 0, &curNode, timeline->header.srootNode.ref.index DBG_RELAY );
+
+		
+	{
+		BLOCKINDEX freeblock = ;
+		if( freeblock = timeline->header.first_free_entry.ref.index ) {
+			while(  )
+			reloadTimeEntry( &curNode, vol
+				, timeline->header.srootNode.ref.index VTReadOnly GRTENoLog  DBG_RELAY );
+		}
+	}
+
+
 	dropRawTimeEntry( vol, curNode.diskCache GRTENoLog DBG_RELAY );
 }
 
@@ -532,8 +559,7 @@ static void _os_AVL_RotateToRight(
 		TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, node->me_fpi, &meCache );
 		ptr[0] = node->slesser;
 
-		node->slesser.raw = left_->sgreater.raw;
-
+		if( node->slesser.raw = left_->sgreater.raw ) // this could be NULL
 		{
 			struct storageTimelineNode* x;
 			enum block_cache_entries cache;
@@ -600,7 +626,7 @@ static void _os_AVL_RotateToLeft(
 		ptr[0] = node->sgreater;
 		SMUDGECACHE( vol, meCache );
 
-		node->sgreater.raw = right_->slesser.raw;
+		if( node->sgreater.raw = right_->slesser.raw )
 		{
 			struct storageTimelineNode *x;
 			enum block_cache_entries cache;
@@ -873,40 +899,10 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 {
 	PDATASTACK* pdsStack = &vol->pdsWTimeStack;
 	struct storageTimelineNode *pCurNode;
-	//struct memoryTimelineNode curNode;
-	//struct memoryTimelineNode* curNode_;
-	//struct memoryTimelineNode* root;
-	//struct memoryTimelineNode* parent;
 	uint64_t curindex;
 	enum block_cache_entries cacheCur;
-	/*
-	while( 1 ) {
-		root = (struct memoryTimelineNode*)PeekData( pdsStack );
-		if( !root )
-			break;
-		parent = (struct memoryTimelineNode*)PeekDataEx( pdsStack, 1 );
-		if( !parent )
-			break;
 
-		if( parent->sgreater.ref.index == root->index ) {
-			if( timelineNode->time < parent->time ) {
-				// this belongs to the lesser side of parent...
-				PopData( pdsStack );
-				continue;
-			}
-		}
-		if( parent->slesser.ref.index == root->index ) {
-			if( timelineNode->time > parent->time ) {
-				// this belongs to the greater isde of parent...
-				PopData( pdsStack );
-				continue;
-			}
-		}
-		break;
-	}
-	*/
 
-	//if( !root )
 		{
 			if( !timeline->header.srootNode.ref.index ) {
 				timeline->header.srootNode.ref.index = index.ref.index ;
@@ -916,16 +912,8 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 			}
 
 			pCurNode = getRawTimeEntry( vol, curindex = timeline->header.srootNode.ref.index, &cacheCur GRTELog DBG_SRC );
-		/*
-			reloadTimeEntry( &curNode, vol
-				, curindex = timeline->header.srootNode.ref.index  DBG_SRC );
-			PushData( pdsStack, &curNode );
-		*/
 		}
-	//else
-		// the top of the stack is already setup to peek at.
 
-	//check = root->tree;
 	while( 1 ) {
 		int dir;// = root->Compare( node->key, check->key );
 		//curNode_ = (struct memoryTimelineNode*)PeekData( pdsStack );
@@ -1431,6 +1419,7 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 		//lprintf( "Delete start... %d", index );
 		time = getRawTimeEntry( vol, index, &cache GRTELog DBG_SRC );
 		next = time->prior.raw;
+		nodes--;
 		deleteTimelineIndexWork( vol, index, time, cache DBG_SRC );
 		dropRawTimeEntry( vol, cache GRTELog DBG_SRC );
 #ifdef DEBUG_VALIDATE_TREE
@@ -1438,6 +1427,7 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 #endif
 		//lprintf( "Delete done... %d", index );
 	} while( index = next );
+	lprintf( "Root is now %d %d", nodes, vol->timeline->header.srootNode.ref.index );
 }
 
 BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, LOGICAL keepDirent, void(*init)(uintptr_t, struct memoryTimelineNode*), uintptr_t psv DBG_PASS ) {
@@ -1456,17 +1446,16 @@ BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vol
 
 	// update next free.
 	//if( keepDirent ) orig_dirent = time->disk->dirent_fpi;
-	reloadTimeEntry( time, vol, index = freeIndex.ref.index GRTELog DBG_RELAY );
+	reloadTimeEntry( time, vol, index = freeIndex.ref.index VTReadWrite GRTELog DBG_RELAY );
 	//if( keepDirent ) time->disk->dirent_fpi = orig_dirent;
 
 	if( time->disk->sgreater.ref.index ) {
 		timeline->header.first_free_entry.ref.index = time->disk->sgreater.ref.index;
-		SMUDGECACHE( vol, cache );
 	}
 	else {
 		timeline->header.first_free_entry.ref.index = timeline->header.first_free_entry.ref.index + 1;
-		SMUDGECACHE( vol, cache );
 	}
+	SMUDGECACHE( vol, vol->timelineCache );
 
 	// make sure the new entry is emptied.
 	//time->clesser.ref.index = 0;
@@ -1492,7 +1481,7 @@ BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vol
 	}
 
 	if( init ) init( psv, time );
-
+	nodes++;
 	hangTimelineNode( vol
 		, freeIndex
 		, 0
@@ -1502,7 +1491,7 @@ BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vol
 #if defined( DEBUG_TIMELINE_DIR_TRACKING) || defined( DEBUG_TIMELINE_AVL )
 	LoG( "Return time entry:%d", time->index );
 #endif
-	updateTimeEntry( time, vol, FALSE DBG_RELAY );
+	updateTimeEntry( time, vol, FALSE DBG_RELAY ); // don't drop; returning this one.
 
 #ifdef DEBUG_DELETE_BALANCE
 	lprintf( " ------------- NEW TIME ENTRY ---------------- " );
@@ -1537,8 +1526,6 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 			enum block_cache_entries inputCache;
 			FPI dirent_fpi;
 			timeold = getRawTimeEntry( vol, index, &inputCache GRTELog DBG_RELAY );
-			//reloadTimeEntry( &time_, vol, index GRTENoLog DBG_RELAY );
-			//inputCache = time_.diskCache;
 			dirent_fpi = timeold->dirent_fpi;
 			dropRawTimeEntry( vol, inputCache GRTELog DBG_RELAY );
 
@@ -1552,7 +1539,7 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 		}
 	}
 	else {
-		reloadTimeEntry( time, vol, index GRTENoLog DBG_RELAY );
+		reloadTimeEntry( time, vol, index VTReadWrite GRTENoLog DBG_RELAY );
 		{
 			int tz = GetTimeZone();
 			if( tz < 0 )

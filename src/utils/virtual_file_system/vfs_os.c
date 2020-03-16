@@ -28,6 +28,8 @@
 #define SACK_VFS_SOURCE
 #define SACK_VFS_OS_SOURCE
 #define SKIP_LIGHT_ENCRYPTION(n)
+#define DEBUG_VALIDATE_TREE
+
 //#define USE_STDIO
 #if 1
 #  include <stdhdrs.h>
@@ -843,10 +845,11 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 		}
 		else {
 #ifdef DEBUG_CACHE_FLUSH
-			if( memcmp( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE ) ) {
-				lprintf( "Block was written to, but was not flagged as dirty, changes will be lost." );
-				DebugBreak();
-			}
+			if( cache_idx[0] < BC(TIMELINE_RO) )
+				if( memcmp( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE ) ) {
+					lprintf( "Block was written to, but was not flagged as dirty, changes will be lost." );
+					DebugBreak();
+				}
 #endif
 
 		}
@@ -894,6 +897,21 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 	}
 	else if( cache_idx == BC( TIMELINE ) ) {
 		_os_updateCacheAge_( vol, &cache_idx, segment, vol->timelineCacheAge, (BC( TIMELINE_LAST ) - BC( TIMELINE )) DBG_RELAY );
+	}
+	else if( cache_idx == BC( TIMELINE_RO ) ) {
+		_os_updateCacheAge_( vol, &cache_idx, segment, vol->timelineCacheAge, ( BC( TIMELINE_RO_LAST ) - BC( TIMELINE_RO ) ) DBG_RELAY );
+		{
+			int n;
+			for( n = BC( TIMELINE ); n < BC( TIMELINE_LAST ); n++ ) {
+				if( vol->segment[n] == segment ) {
+					if( TESTFLAG( vol->dirty, n ) ) {
+						// use the cached value instead of the disk value.
+						memcpy( vol->usekey_buffer[cache_idx], vol->usekey_buffer[n], BLOCK_SIZE );
+					}
+					break;
+				}
+			}
+		}
 	}
 	else if( cache_idx == BC( BAT ) ) {
 		_os_updateCacheAge_( vol, &cache_idx, segment, vol->batHashCacheAge, (BC(BAT_LAST) - BC(BAT)) DBG_RELAY );
@@ -1125,7 +1143,7 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 				}
 				//if( block >= last_block ) return FALSE;
 				if( block == 0 ) {
-					if( vol->sector_size[cache] == 4096 ) {
+					if( info.size == 4096 ) {
 						vol->lastBatBlock = dataBlock + m; // use as a temp variable....
 						AddDataItem( &vol->pdlFreeBlocks, &vol->lastBatBlock );
 					}
@@ -1677,6 +1695,7 @@ void sack_vfs_os_flush_volume( struct sack_vfs_os_volume * vol, LOGICAL unload )
 #ifdef DEBUG_CACHE_FLUSH
 				if( memcmp( vol->usekey_buffer_clean[idx], vol->usekey_buffer[idx], BLOCK_SIZE ) ) {
 					lprintf( "Block was written to, but was not flagged as dirty, changes will be lost." );
+					DebugBreak();
 				}
 #endif
 			}
@@ -2051,7 +2070,7 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 				{
 					// make sure timeline and file entries reference each other.
 					struct memoryTimelineNode time;
-					reloadTimeEntry( &time, vol, entry->timelineEntry GRTELog DBG_SRC );
+					reloadTimeEntry( &time, vol, entry->timelineEntry VTReadOnly GRTELog DBG_SRC );
 					FPI entry_fpi = vol->bufferFPI[cache] + sane_offsetof( struct directory_hash_lookup_block, entries[curName] );
 					if( entry_fpi != time.disk->dirent_fpi ) DebugBreak();
 					dropRawTimeEntry( vol, time.diskCache GRTELog DBG_SRC );
@@ -2292,13 +2311,13 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 			if( dirblock->entries[f].timelineEntry ) {
 				struct memoryTimelineNode time;
 				enum block_cache_entries  timeCache = BC( TIMELINE );
-				reloadTimeEntry( &time, vol, ( dirblock->entries[f].timelineEntry ) GRTENoLog DBG_SRC );
+				reloadTimeEntry( &time, vol, ( dirblock->entries[f].timelineEntry ) VTReadWrite GRTENoLog DBG_SRC );
 				time.disk->dirent_fpi = vol->bufferFPI[nameCache] + sane_offsetof( struct directory_hash_lookup_block, entries[f - 1] );
 				{
 					uint64_t index = time.disk->prior.ref.index;
 					while( index ) {
 						struct memoryTimelineNode time2;
-						reloadTimeEntry( &time2, vol, index GRTENoLog DBG_SRC );
+						reloadTimeEntry( &time2, vol, index GRTENoLog VTReadWrite DBG_SRC );
 						time2.disk->dirent_fpi = time.disk->dirent_fpi;
 						index = time2.disk->prior.ref.index;
 						updateTimeEntry( &time2, vol, TRUE DBG_SRC );
@@ -2430,7 +2449,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 							struct memoryTimelineNode time;
 							FPI oldFPI;
 							enum block_cache_entries  timeCache = BC( TIMELINE );
-							reloadTimeEntry( &time, vol, (entry->timelineEntry     ) GRTENoLog DBG_SRC );
+							reloadTimeEntry( &time, vol, (entry->timelineEntry     ) VTReadWrite GRTENoLog DBG_SRC );
 							oldFPI = time.disk->dirent_fpi;
 							// new entry is still the same timeline entry as the old entry.
 							newEntry->timelineEntry = (entry->timelineEntry     )     ;
@@ -2440,7 +2459,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 								uint64_t index = time.disk->prior.ref.index;
 								while( index ) {
 									struct memoryTimelineNode time2;
-									reloadTimeEntry( &time2, vol, index GRTENoLog DBG_SRC );
+									reloadTimeEntry( &time2, vol, index VTReadWrite GRTENoLog DBG_SRC );
 									time2.disk->dirent_fpi = time.disk->dirent_fpi;
 									updateTimeEntry( &time2, vol, TRUE DBG_SRC );
 									index = time2.disk->prior.ref.index;
@@ -2500,13 +2519,13 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 						{
 							struct memoryTimelineNode time;
 							enum block_cache_entries  timeCache = BC( TIMELINE );
-							reloadTimeEntry( &time, vol, (dirblock->entries[m + offset].timelineEntry) GRTENoLog DBG_SRC );
+							reloadTimeEntry( &time, vol, (dirblock->entries[m + offset].timelineEntry) VTReadWrite GRTENoLog DBG_SRC );
 							time.disk->dirent_fpi = vol->bufferFPI[cache] + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
 							{
 								uint64_t index = time.disk->prior.ref.index;
 								while( index ) {
 									struct memoryTimelineNode time2;
-									reloadTimeEntry( &time2, vol, index GRTENoLog DBG_SRC );
+									reloadTimeEntry( &time2, vol, index VTReadWrite GRTENoLog DBG_SRC );
 									time2.disk->dirent_fpi = time.disk->dirent_fpi;
 									updateTimeEntry( &time2, vol, TRUE DBG_SRC );
 									index = time2.disk->prior.ref.index;
@@ -2654,7 +2673,7 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 						dirblock->entries[m].filesize      = dirblock->entries[m - 1].filesize      ;
 						dirblock->entries[m].first_block   = dirblock->entries[m - 1].first_block   ;
 						dirblock->entries[m].name_offset   = dirblock->entries[m - 1].name_offset   ;
-						reloadTimeEntry( &node, vol, dirblock->entries[m - 1].timelineEntry GRTENoLog DBG_SRC );
+						reloadTimeEntry( &node, vol, dirblock->entries[m - 1].timelineEntry VTReadWrite GRTENoLog DBG_SRC );
 						dirblock->entries[m].timelineEntry = dirblock->entries[m - 1].timelineEntry;
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
 						lprintf( "direntry at %d  %d is time %d", (int)this_dir_block, (int)m, (int)dirblock->entries[m].timelineEntry );
@@ -2664,7 +2683,7 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 							uint64_t index = node.disk->prior.ref.index;
 							while( index ) {
 								struct memoryTimelineNode time2;
-								reloadTimeEntry( &time2, vol, index GRTENoLog DBG_SRC );
+								reloadTimeEntry( &time2, vol, index VTReadWrite GRTENoLog DBG_SRC );
 								time2.disk->dirent_fpi = node.disk->dirent_fpi;
 								updateTimeEntry( &time2, vol, TRUE DBG_SRC );
 								index = time2.disk->prior.ref.index;
@@ -3530,7 +3549,7 @@ static int _os_iterate_find( struct sack_vfs_os_find_info *_info ) {
 
 			struct memoryTimelineNode time;
 			enum block_cache_entries  timeCache = BC( TIMELINE );
-			reloadTimeEntry( &time, info->vol, (next_entries[n].timelineEntry) GRTENoLog  DBG_SRC );
+			reloadTimeEntry( &time, info->vol, (next_entries[n].timelineEntry) VTReadWrite GRTENoLog  DBG_SRC );
 			if( !time.disk->time ) DebugBreak();
 			if( time.disk->prior.raw )
 			{
