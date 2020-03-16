@@ -136,11 +136,11 @@ enum block_cache_entries
 	, BC(FILE_LAST) = BC(FILE) + 32
 #ifdef VIRTUAL_OBJECT_STORE
 	, BC( TIMELINE )
-	, BC( TIMELINE_LAST ) = BC( TIMELINE ) + 32
+	, BC( TIMELINE_LAST ) = BC( TIMELINE ) + 48
 #endif
 #if defined( VIRTUAL_OBJECT_STORE ) && defined( DEBUG_VALIDATE_TREE )
 	, BC( TIMELINE_RO )
-	, BC( TIMELINE_RO_LAST ) = BC( TIMELINE_RO ) + 32
+	, BC( TIMELINE_RO_LAST ) = BC( TIMELINE_RO ) + 48
 #endif
 	, BC(COUNT)
 };
@@ -219,7 +219,7 @@ static int const seglock_mask_size = 4;
 		SETFLAG( vol->dirty, n ); \
 		lprintf( "set dirty on %d", n); \
 	} else {  \
-		lprintf( "Already dirty on %d", n ); \
+		/*lprintf( "Already dirty on %d", n );*/ \
 	}         \
 }  
 #define CLEANCACHE(vol,n) { \
@@ -295,6 +295,12 @@ struct sack_vfs_volume {
 	uint8_t* usekey_buffer[BC(COUNT)]; // data cache blocks
 #ifdef DEBUG_CACHE_FLUSH
 	uint8_t* usekey_buffer_clean[BC(COUNT)];
+#endif
+	PTHREAD flusher;
+	volatile LOGICAL flushing;
+#ifdef DEBUG_CACHE_FAULTS
+	int cacheRequests[10];
+	int cacheFaults[10];
 #endif
 	FLAGSET( dirty, BC(COUNT) );
 	FLAGSET( _dirty, BC( COUNT ) );

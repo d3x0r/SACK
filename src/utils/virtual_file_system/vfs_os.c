@@ -28,7 +28,10 @@
 #define SACK_VFS_SOURCE
 #define SACK_VFS_OS_SOURCE
 #define SKIP_LIGHT_ENCRYPTION(n)
-#define DEBUG_VALIDATE_TREE
+
+//#define DEBUG_SECTOR_DIRT
+#define DEBUG_CACHE_FAULTS
+//#define DEBUG_VALIDATE_TREE
 
 //#define USE_STDIO
 #if 1
@@ -138,6 +141,7 @@ static struct {
 	int leadinDepth;
 	PLINKQUEUE plqCrypters;
 	PLIST volumes;
+	LOGICAL exited;
 } l;
 
 #define EOFBLOCK  (~(BLOCKINDEX)0)
@@ -394,6 +398,7 @@ static void _os_SetFileBlockUsage( struct file_block_small_definition* block, ui
 ATEXIT( flushVolumes ){
 	INDEX idx;
 	struct sack_vfs_os_volume* vol;
+	l.exited = 1;
 	LIST_FORALL( l.volumes, idx, struct sack_vfs_os_volume*, vol ) {
 		sack_vfs_os_flush_volume( vol, TRUE );
 	}
@@ -760,6 +765,16 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 	enum block_cache_entries cacheRoot = cache_idx[0];
 	BLOCKINDEX *test_segment = vol->segment + cacheRoot;
 	least = ageLength + 1;
+#ifdef DEBUG_CACHE_FAULTS
+	switch( cacheRoot ) {
+	case BC(TIMELINE):
+		vol->cacheRequests[0]++;
+		break;
+	case BC( DIRECTORY ):
+		vol->cacheRequests[1]++;
+		break;
+	}
+#endif
 #ifdef DEBUG_CACHE_AGING
 	lprintf( "age start:" );
 	LogBinary( age, ageLength );
@@ -774,6 +789,10 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 	for( n = 0; n < (ageLength); n++,test_segment++ ) {
 		if( test_segment[0] == segment ) {
 			//if( pFile ) LoG_( "Cache found existing segment already. %d at %d(%d)", (int)segment, (cache_idx[0]+n), (int)n );
+#ifdef DEBUG_VALIDATE_TREE
+			//if( cache_idx[0] < BC( TIMELINE_RO ) )
+			//	_lprintf( DBG_RELAY )( "FOUND segment in cache: %d   %d  %d   %d", segment, n, age[n], cache_idx[0] );
+#endif
 			cache_idx[0] = (enum block_cache_entries)((cache_idx[0]) + n);
 			for( m = 0; m < (ageLength); m++ ) {
 				if( !age[m] ) break;
@@ -843,6 +862,7 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 			CLEANCACHE( vol, useCache );
 			RESETFLAG( vol->_dirty, useCache );
 		}
+#ifdef DEBUG_VALIDATE_TREE
 		else {
 #ifdef DEBUG_CACHE_FLUSH
 			if( cache_idx[0] < BC(TIMELINE_RO) )
@@ -851,9 +871,23 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 					DebugBreak();
 				}
 #endif
-
 		}
+#endif
 	}
+#ifdef DEBUG_VALIDATE_TREE
+	//if( cache_idx[0] < BC(TIMELINE_RO) )
+	//	_lprintf(DBG_RELAY)( "Get segment into cache: %d   %d", segment, cache_idx[0] );
+#endif
+#ifdef DEBUG_CACHE_FAULTS
+	switch( cacheRoot ) {
+	case BC( TIMELINE ):
+		vol->cacheFaults[0]++;
+		break;
+	case BC( DIRECTORY ):
+		vol->cacheFaults[1]++;
+		break;
+	}
+#endif
 	{
 		vol->bufferFPI[cache_idx[0]] = vfs_os_compute_block( vol, segment - 1, cache_idx[0] );
 		if( vol->bufferFPI[cache_idx[0]] >= vol->dwSize ) _os_ExpandVolume( vol, vol->lastBlock, vol->sector_size[cache_idx[0]] );
@@ -898,13 +932,14 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 	else if( cache_idx == BC( TIMELINE ) ) {
 		_os_updateCacheAge_( vol, &cache_idx, segment, vol->timelineCacheAge, (BC( TIMELINE_LAST ) - BC( TIMELINE )) DBG_RELAY );
 	}
+#ifdef DEBUG_VALIDATE_TREE
 	else if( cache_idx == BC( TIMELINE_RO ) ) {
 		_os_updateCacheAge_( vol, &cache_idx, segment, vol->timelineCacheAge, ( BC( TIMELINE_RO_LAST ) - BC( TIMELINE_RO ) ) DBG_RELAY );
 		{
 			int n;
 			for( n = BC( TIMELINE ); n < BC( TIMELINE_LAST ); n++ ) {
 				if( vol->segment[n] == segment ) {
-					if( TESTFLAG( vol->dirty, n ) ) {
+					if( TESTFLAG( vol->dirty, n ) || TESTFLAG( vol->_dirty, n ) ) {
 						// use the cached value instead of the disk value.
 						memcpy( vol->usekey_buffer[cache_idx], vol->usekey_buffer[n], BLOCK_SIZE );
 					}
@@ -913,6 +948,7 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 			}
 		}
 	}
+#endif
 	else if( cache_idx == BC( BAT ) ) {
 		_os_updateCacheAge_( vol, &cache_idx, segment, vol->batHashCacheAge, (BC(BAT_LAST) - BC(BAT)) DBG_RELAY );
 	}
@@ -965,6 +1001,7 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 		vol->segment[cache_idx] = segment;
 	}
 	//LoG( "Resulting stored segment in %d", cache_idx );
+	//lprintf( "Got Block %d into cache %d", (int)segment, cache_idx );
 	return cache_idx;
 }
 
@@ -1435,7 +1472,6 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum getFre
 				vol->lastBatBlock++;
 			else
 				vol->lastBatSmallBlock++;
-			SMUDGECACHE( vol, cache );
 		}
 		else {
 			int lastB = ( ( vol->lastBatSmallBlock > vol->lastBatBlock ) ? vol->lastBatSmallBlock : vol->lastBatBlock ) / BLOCKS_PER_BAT;
@@ -1451,9 +1487,9 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum getFre
 			else
 				vol->lastBatSmallBlock = ( lastB + 1 ) * BLOCKS_PER_BAT;
 			//lprintf( "Set last block....%d", (int)vol->lastBatBlock );
-			SMUDGECACHE( vol, cache );
 		}
 	}
+	SMUDGECACHE( vol, cache );
 
 	switch( init ) {
 	case GFB_INIT_DIRENT: {
@@ -1665,6 +1701,9 @@ void sack_vfs_os_flush_volume( struct sack_vfs_os_volume * vol, LOGICAL unload )
 	{
 		INDEX idx;
 		for( idx = 0; idx < BC( COUNT ); idx++ ) {
+#ifdef DEBUG_VALIDATE_TREE
+			if( idx >= BC( TIMELINE_RO ) ) break;
+#endif
 			if( unload ) {
 				SETMASK_( vol->seglock, seglock, idx, 0 );  // reset any locks. (will fail any open files)
 				//RESETFLAG( vol->seglock, idx );
@@ -1707,6 +1746,7 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 	struct sack_vfs_os_volume *vol = (struct sack_vfs_os_volume *)GetThreadParam( thread );
 	while( 1 ) {
 
+		vol->flushing = 1;
 		while( 1 ) {
 			int updated;
 			INDEX idx;
@@ -1724,17 +1764,25 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 				if( updated ) {
 					vol->lock = 0; // data changed, don't flush.
 					WakeableSleep( 256 );
+					if( l.exited )break;
 				}
 				else
 					break; // have lock, break; no new changes; flush dirty sectors(if any)
 			}
-			else // didn't get lock, wait.
+			else { // didn't get lock, wait.
 				WakeableSleep( 10 );
+				if( l.exited )break;
+				continue;
+			}
 		}
+		if( l.exited )break;
 
 		{
 			INDEX idx;
-			for( idx = 0; idx < BC(COUNT); idx++ )
+			for( idx = 0; idx < BC( COUNT ); idx++ )
+#ifdef DEBUG_VALIDATE_TREE
+				if( idx > BC( TIMELINE_RO ) )break;
+#endif
 				if( TESTFLAG( vol->_dirty, idx )  // last pass marked this dirty
 					&& !TESTFLAG( vol->dirty, idx ) ) { // hasn't been re-marked as dirty, so it's been idle...
 					size_t sectorSize = vol->sector_size[idx];
@@ -1761,15 +1809,21 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 				}
 				else {
 #ifdef DEBUG_CACHE_FLUSH
-					if( memcmp( vol->usekey_buffer_clean[idx], vol->usekey_buffer[idx], BLOCK_SIZE ) ) {
-						lprintf( "Block was written to, but was not flagged as dirty, changes will be lost." );
-					}
+					if( !TESTFLAG( vol->_dirty, idx )
+						// hasn't been re-marked as dirty, so it's been idle...
+						&& !TESTFLAG( vol->dirty, idx ) )
+						if( memcmp( vol->usekey_buffer_clean[idx], vol->usekey_buffer[idx], BLOCK_SIZE ) ) {
+							lprintf( "Block was written to, but was not flagged as dirty, changes will be lost." );
+							//DebugBreak();
+						}
 #endif
 				}
 		}
+		vol->flushing = 0;
 		vol->lock = 0;
 		// for all dirty
 		WakeableSleep( SLEEP_FOREVER );
+		if( l.exited )break;
 
 	}
 	return 0;
@@ -1777,10 +1831,10 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 
 void sack_vfs_os_polish_volume( struct sack_vfs_os_volume* vol ) {
 	static PTHREAD flusher;
-	if( !flusher )
-		flusher = ThreadTo( volume_flusher, (uintptr_t)vol );
-	else
-		WakeThread( flusher );
+	if( !vol->flusher )
+		vol->flusher = ThreadTo( volume_flusher, (uintptr_t)vol );
+	else if( !vol->flushing )
+		WakeThread( vol->flusher );
 }
 
 void sack_vfs_os_unload_volume( struct sack_vfs_os_volume* vol );
@@ -2024,7 +2078,6 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 	do {
 		enum block_cache_entries cache = BC(DIRECTORY);
 		BLOCKINDEX nameBlock;
-		if( this_dir_block > 10000 ) DebugBreak();
 		dirblock = BTSEEK( struct directory_hash_lookup_block *, vol, this_dir_block, DIR_BLOCK_SIZE, cache );
 		nameBlock = dirblock->names_first_block;
 		if( filename )
@@ -2052,6 +2105,10 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 			}
 		}
 		usedNames = dirblock->used_names - 1;
+		if( SUS_GT( usedNames, int, ( sizeof( dirblock->entries ) / sizeof( dirblock->entries[0] ) ), size_t ) ) {
+			lprintf( "Directory block name count is corrupt." );
+			DebugBreak();
+		}
 		minName = 0;
 		curName = (usedNames) >> 1;
 		{
@@ -2087,7 +2144,10 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 				if( curName < usedNames ) {
 					bi = entry->first_block ;
 					// if file is deleted; don't check it's name.
-					if( !bi ) continue;
+					if( !bi ) {
+						lprintf( "File is already deleted... (these should be removed)" );
+						continue;
+					}
 					// if file is end of directory, done sanning.
 					if( bi == EODMARK ) return filename ? FALSE : (2); // done.
 					if( name_ofs > vol->dwSize ) { return FALSE; }
@@ -2444,6 +2504,10 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 							}
 						}
 						dirblock->used_names = ((dirblock->used_names) - 1);
+						if( dirblock->used_names > ( sizeof( dirblock->entries ) / sizeof( dirblock->entries[0] ) ) ) {
+							lprintf( "Directory block name count is corrupt." );
+							DebugBreak();
+						}
 						newEntry->filesize = entry->filesize;
 						{
 							struct memoryTimelineNode time;
@@ -2492,6 +2556,10 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 						nf++;
 
 						newDirblock->used_names = ((newDirblock->used_names) + 1);
+						if( newDirblock->used_names > ( sizeof( newDirblock->entries ) / sizeof( newDirblock->entries[0] ) ) ) {
+							lprintf( "Directory block name count is corrupt." );
+							DebugBreak();
+						}
 						//usedNames--;
 					}
 					else {
@@ -2639,7 +2707,8 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 				leadin[leadinDepth++] = filename[0];
 				filename++;
 				this_dir_block = nextblock;
-				continue; // retry;
+				// retry;
+				continue; 
 			}
 		}
 		usedNames = dirblock->used_names;
@@ -2647,7 +2716,8 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 		//_os_dumpDirectories( vol, this_dir_block, 1 );
 		if( usedNames == VFS_DIRECTORY_ENTRIES ) {
 			ConvertDirectory( vol, leadin, leadinDepth, this_dir_block, dirblock, &cache );
-			continue; // retry;
+			/* retry */
+			continue; 
 		}
 		{
 			struct directory_entry *ent;
@@ -2701,6 +2771,10 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 			ent = dirblock->entries + (n);
 			if( n == usedNames ) {
 				dirblock->used_names = (uint8_t)((n + 1));
+			}
+			if( dirblock->used_names > ( sizeof( dirblock->entries ) / sizeof( dirblock->entries[0] ) ) ) {
+				lprintf( "Directory block name count is corrupt." );
+				DebugBreak();
 			}
 			//LoG( "Get New Directory save naem:%s", filename );
 			name_ofs = _os_SaveFileName( vol, firstNameBlock, filename, StrLen( filename ) );
