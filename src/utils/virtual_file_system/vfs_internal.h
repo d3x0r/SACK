@@ -8,8 +8,6 @@
  **************/
 #define VFS_VERSION     0x100
 
-#define DEBUG_CACHE_FLUSH
-
 // 12 bits = 1 << 12 = 4096
 #define BLOCK_SIZE_BITS 12
 // BLOCKINDEX is either 4 or 8 bytes... sizeof( size_t )... 
@@ -255,7 +253,6 @@ struct sack_vfs_volume {
 	BLOCKINDEX segment[BC(COUNT)];// associated with usekey[n]
 #  ifdef VIRTUAL_OBJECT_STORE
 	BLOCKINDEX lastBlock;
-	unsigned int sector_size[BC(COUNT)];
 	PDATALIST pdl_BAT_information;
 	PDATASTACK pdsCTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
 	PDATASTACK pdsWTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
@@ -265,8 +262,10 @@ struct sack_vfs_volume {
 
 	struct storageTimeline *timelineKey; // timeline root key
 	struct sack_vfs_os_file *timeline_file;
-	struct storageTimelineCursor *timeline_cache;
+	struct sack_vfs_os_file* timeline_index_file;
+	//struct storageTimelineCursor *timeline_cache;
 	MASKSET_( seglock, BC( COUNT ), 4 );  // segment is locked into cache.
+	unsigned int sector_size[BC( COUNT )];
 #  endif
 
 	uint8_t fileCacheAge[BC(FILE_LAST) - BC(FILE)];
@@ -298,6 +297,7 @@ struct sack_vfs_volume {
 #endif
 	PTHREAD flusher;
 	volatile LOGICAL flushing;
+	PVARTEXT pvtDeleteBuffer;
 #ifdef DEBUG_CACHE_FAULTS
 	int cacheRequests[10];
 	int cacheFaults[10];

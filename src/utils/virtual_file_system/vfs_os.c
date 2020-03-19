@@ -30,8 +30,10 @@
 #define SKIP_LIGHT_ENCRYPTION(n)
 
 //#define DEBUG_SECTOR_DIRT
-#define DEBUG_CACHE_FAULTS
-//#define DEBUG_VALIDATE_TREE
+//#define DEBUG_CACHE_FAULTS
+#define DEBUG_VALIDATE_TREE
+#define DEBUG_CACHE_FLUSH
+
 
 //#define USE_STDIO
 #if 1
@@ -858,6 +860,8 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 				sack_fwrite( vol->usekey_buffer[useCache], 1, vol->sector_size[useCache], vol->file );
 #ifdef DEBUG_CACHE_FLUSH
 			memcpy( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE );
+			if( cache_idx[0] < BC( TIMELINE_RO ) )
+				_lprintf(DBG_RELAY)( "Updated clean buffer %d", cache_idx[0] );
 #endif
 			CLEANCACHE( vol, useCache );
 			RESETFLAG( vol->_dirty, useCache );
@@ -905,6 +909,8 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 					, NULL, NULL );
 #ifdef DEBUG_CACHE_FLUSH
 			memcpy( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE );
+			if( cache_idx[0] < BC(TIMELINE_RO) )
+				_lprintf(DBG_RELAY)( "Updated clean buffer %d", cache_idx[0] );
 #endif
 		}
 	}
@@ -942,6 +948,8 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 					if( TESTFLAG( vol->dirty, n ) || TESTFLAG( vol->_dirty, n ) ) {
 						// use the cached value instead of the disk value.
 						memcpy( vol->usekey_buffer[cache_idx], vol->usekey_buffer[n], BLOCK_SIZE );
+						memcpy( vol->usekey_buffer_clean[cache_idx], vol->usekey_buffer[n], BLOCK_SIZE );
+						//lprintf( "Updaed clean buffer %d", n );
 					}
 					break;
 				}
@@ -1727,6 +1735,7 @@ void sack_vfs_os_flush_volume( struct sack_vfs_os_volume * vol, LOGICAL unload )
 							, NULL, NULL );
 #ifdef DEBUG_CACHE_FLUSH
 				memcpy( vol->usekey_buffer_clean[idx], vol->usekey_buffer[idx], BLOCK_SIZE );
+				lprintf( "Updated clean buffer %d", idx );
 #endif
 				CLEANCACHE( vol, idx );
 				RESETFLAG( vol->_dirty, idx );
@@ -1796,6 +1805,7 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 					sack_fwrite( vol->usekey_buffer[idx], 1, sectorSize, vol->file );
 #ifdef DEBUG_CACHE_FLUSH
 					memcpy( vol->usekey_buffer_clean[idx], vol->usekey_buffer[idx], sectorSize );
+					lprintf( "Updated clean buffer %d", idx );
 #endif
 					RESETFLAG( vol->_dirty, idx );
 					if( !GETMASK_( vol->seglock, seglock, idx ) )
@@ -1855,6 +1865,7 @@ struct sack_vfs_os_volume *sack_vfs_os_load_volume( const char * filepath, struc
 	vol->pdlFreeBlocks = CreateDataList( sizeof( BLOCKINDEX ) );
 	vol->pdlFreeSmallBlocks = CreateDataList( sizeof( BLOCKINDEX ) );
 	vol->volname = StrDup( filepath );
+	vol->pvtDeleteBuffer = VarTextCreate();
 	_os_AssignKey( vol, NULL, NULL );
 	if( !_os_ExpandVolume( vol, 0, 4096 )
 	  || !_os_ExpandVolume(vol, BLOCKS_PER_SECTOR, BLOCK_SMALL_SIZE )
@@ -1884,6 +1895,7 @@ struct sack_vfs_os_volume *sack_vfs_os_load_crypt_volume( const char * filepath,
 	vol->pdlFreeSmallBlocks = CreateDataList( sizeof( BLOCKINDEX ) );
 	vol->clusterKeyVersion = version - 1;
 	vol->volname = StrDup( filepath );
+	vol->pvtDeleteBuffer = VarTextCreate();
 	_os_AssignKey( vol, userkey, devkey );
 	if( !_os_ExpandVolume( vol, 0, 4096 ) || !_os_ExpandVolume( vol, BLOCKS_PER_SECTOR, BLOCK_SMALL_SIZE ) || !_os_ValidateBAT( vol ) ) { sack_vfs_os_unload_volume( vol ); return NULL; }
 	AddLink( &l.volumes, vol );

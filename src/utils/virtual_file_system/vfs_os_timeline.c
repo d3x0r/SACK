@@ -38,9 +38,9 @@ typedef struct timelineTimeType {
 
 PREFIX_PACKED struct timelineHeader {
 	TIMELINE_BLOCK_TYPE first_free_entry;
-	TIMELINE_BLOCK_TYPE crootNode_deleted;
+	BLOCKINDEX  indexFileFirstBlock;
 	TIMELINE_BLOCK_TYPE srootNode;
-	uint64_t unused[5];
+	uint64_t unused[1];
 	//uint64_t unused2[8];
 } PACKED;
 
@@ -48,39 +48,43 @@ PREFIX_PACKED struct timelineHeader {
 // me_fpi is the physical FPI in the timeline file of the TIMELINE_BLOCK_TYPE that references 'this' block.
 // structure defines little endian structure for storage.
 
+enum timeline_flags {
+	TIMELINE_FLAG_DELETED = 0x01,
+	//TIMELINE_FLAG_ = 0x01,
+
+};
+
 PREFIX_PACKED struct storageTimelineNode {
 	// if dirent_fpi == 0; it's free.
 	uint64_t dirent_fpi;
 	TIMELINE_BLOCK_TYPE prior;
-	// if the block is free, sgreater is used as pointer to next free block
-	// delete an object can leave free timeline nodes in the middle of the physical chain.
 
-	//uint64_t padding[4];
-/*
-	uint64_t ctime;                      // uses timeGetTime64() tick resolution
-	//union {
-	//	uint64_t raw;
-	//	TIMELINE_TIME_TYPE parts;         // file time tick/ created stamp, sealing stamp
-	//}ctime;
-	TIMELINE_BLOCK_TYPE clesser;         // FPI/32 within timeline chain
-	TIMELINE_BLOCK_TYPE sgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
-	TIMELINE_BLOCK_TYPE cparent;
-*/
-	uint32_t filler32_1;
-	uint16_t priorDataPad;
-	uint8_t  filler8_1; // how much of the last block in the file is not used
+	uint32_t filler_32;
+	uint16_t priorDataPad; // how much of the last block in the file is not used - see Also priorData
+	uint8_t  filler_8;
 
 	uint8_t  timeTz; // lesser least significant byte of time... sometimes can read time including timezone offset with time - 1 byte
 
 	uint64_t time;
-	//union {
-	//	uint64_t raw;
-	//	TIMELINE_TIME_TYPE parts;        // time file was stored
-	//}stime;
-	TIMELINE_BLOCK_TYPE slesser;         // FPI/32 within timeline chain
-	TIMELINE_BLOCK_TYPE sgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
-	uint64_t me_fpi; // it is know by  ( me_fpi & 0x3f ) == 32 or == 36 whether this is slesser or sgreater, (me_fpi & ~3f) = parent_fpi
+	// --- 3 words up to here
+
 	uint64_t priorData; // if not 0, references a start block version of data.
+	// prior is used to track multiple timestamps.
+
+}
+
+PACKED_PREFIX struct storageTimelineIndexNode {
+
+	uint32_t next_continuous_entries;
+	uint32_t filler;
+
+	uint64_t me_fpi; // it is know by  ( me_fpi & 0x3f ) == 32 or == 36 whether this is slesser or sgreater, (me_fpi & ~3f) = parent_fpi
+
+	TIMELINE_BLOCK_TYPE slesser;         // FPI/sizeof(entry) within timeline chain
+	// if the block is free, sgreater is used as pointer to next free block
+	// delete an object can leave free timeline nodes in the middle of the physical chain.
+	TIMELINE_BLOCK_TYPE sgreater;        // FPI/sizeof(entry) within timeline chain + (child depth in this direction AVL)
+
 } PACKED;
 
 struct memoryTimelineNode {
@@ -127,6 +131,11 @@ PREFIX_PACKED struct storageTimeline {
 #define NUM_TIMELINE_NODES (TIME_BLOCK_SIZE) / sizeof( struct storageTimelineNode )
 PREFIX_PACKED struct storageTimelineBlock {
 	struct storageTimelineNode entries[(TIME_BLOCK_SIZE) / sizeof( struct storageTimelineNode )];
+} PACKED;
+
+#define NUM_TIMELINE_NODES (TIME_BLOCK_SIZE) / sizeof( struct storageTimelineIndexNode )
+PREFIX_PACKED struct storageTimelineIndexBlock {
+	struct storageTimelineIndexNode entries[( TIME_BLOCK_SIZE ) / sizeof( struct storageTimelineIndexNode )];
 } PACKED;
 
 #ifdef DEBUG_VALIDATE_TREE
@@ -224,7 +233,7 @@ void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 	//if( timeEntry > 62 )DebugBreak();
 	int locks;
 	FPI pos = sane_offsetof( struct storageTimeline, entries[timeEntry - 1] );
-	struct storageTimelineNode* node = ( struct storageTimelineNode* )vfs_os_FSEEK( vol, vol->timeline_file, 0/*no block*/, pos, &cache, TIME_BLOCK_SIZE DBG_SRC );
+	struct storageTimelineNode* node = ( struct storageTimelineNode* )vfs_os_FSEEK( vol, vol->timeline_file, 0/*no block*/, pos, &cache, TIME_BLOCK_SIZE DBG_RELAY );
 	locks = GETMASK_( vol->seglock, seglock, cache );
 #ifdef DEBUG_TEST_LOCKS
 #ifdef DEBUG_LOG_LOCKS
@@ -314,13 +323,13 @@ static void DumpTimelineTree( struct sack_vfs_os_volume* vol, LOGICAL unused DBG
 }
 
 //---------------------------------------------------------------------------
-#ifdef DEBUG_VALIDATE_TREE
-static void ValidateTimelineTreeWork( struct sack_vfs_os_volume* vol, int level, struct memoryTimelineNode* parent, BLOCKINDEX index DBG_PASS ) {
+
+static void LogTimelineTreeWork( PVARTEXT pvt, struct sack_vfs_os_volume* vol, int level, struct memoryTimelineNode* parent DBG_PASS ) {
 	struct memoryTimelineNode curNode;
 	static char indent[256];
 	int i;
 #if 0
-	lprintf( "input node %d %d %d", parent->index
+	vtprintf( pvt,"input node %d %d %d\n", parent->index
 		, parent->disk->slesser.ref.index
 		, parent->disk->sgreater.ref.index
 	);
@@ -328,39 +337,42 @@ static void ValidateTimelineTreeWork( struct sack_vfs_os_volume* vol, int level,
 	if( parent->disk->slesser.ref.index ) {
 		reloadTimeEntry( &curNode, vol, parent->disk->slesser.ref.index VTReadOnly GRTENoLog DBG_RELAY );
 #if 0
-		lprintf( "(lesser) go to node %d", curNode.index );
+		vtprintf( pvt,"(lesser) go to node %d", curNode.index );
 #endif
-		if( ( parent->this_fpi + sane_offsetof( struct storageTimelineNode, slesser ) ) != curNode.disk->me_fpi ) {
-			DumpTimelineTree( vol, 0 DBG_SRC );
-			DebugBreak();
-		}
-		if( !parent->disk->slesser.ref.index && parent->disk->slesser.ref.depth )
-			DebugBreak();
-		if( !parent->disk->sgreater.ref.index && parent->disk->sgreater.ref.depth )
-			DebugBreak();
-		ValidateTimelineTreeWork( vol, level + 1, &curNode, parent->disk->slesser.ref.index DBG_RELAY );
+		LogTimelineTreeWork( pvt, vol, level + 1, &curNode DBG_RELAY );
 		dropRawTimeEntry( vol, curNode.diskCache GRTENoLog DBG_RELAY );
 	}
+	for( i = 0; i < level * 3; i++ )
+		indent[i] = ' ';
+	indent[i] = 0;
+	vtprintf( pvt,"CurNode: (%s -> %5d  %d <-%d %s has children %d %d  with depths of %d %d\m"
+		, indent
+		, (int)parent->disk->dirent_fpi
+		, (int)parent->index
+		, parent->disk->me_fpi >> 6
+		, ( ( parent->disk->me_fpi & 0x3f ) == 0x20 ) ? "L"
+		: ( ( parent->disk->me_fpi & 0x3f ) == 0x10 ) ? "R"
+		: "G"
+		, (int)( parent->disk->slesser.ref.index )
+		, (int)( parent->disk->sgreater.ref.index )
+		, (int)( parent->disk->slesser.ref.depth )
+		, (int)( parent->disk->sgreater.ref.depth )
+	);
 	if( parent->disk->sgreater.ref.index ) {
 		reloadTimeEntry( &curNode, vol, parent->disk->sgreater.ref.index VTReadOnly GRTENoLog DBG_RELAY );
 #if 0
-		lprintf( "(greater) go to node %d", curNode.index );
+		vtprintf( pvt,"(greater) go to node %d", curNode.index );
 #endif
-		if( ( parent->this_fpi + sane_offsetof( struct storageTimelineNode, sgreater ) ) != curNode.disk->me_fpi ) {
-			DumpTimelineTree( vol, 0 DBG_SRC );
-			DebugBreak();
-		}
-		ValidateTimelineTreeWork( vol, level + 1, &curNode, parent->disk->sgreater.ref.index DBG_RELAY );
+		LogTimelineTreeWork( pvt, vol, level + 1, &curNode DBG_RELAY );
 		dropRawTimeEntry( vol, curNode.diskCache GRTENoLog DBG_RELAY );
 	}
 }
 
 //---------------------------------------------------------------------------
 
-static void ValidateTimelineTree( struct sack_vfs_os_volume* vol DBG_PASS ) {
+static void LogTimelineTree( PVARTEXT pvt, struct sack_vfs_os_volume* vol, BLOCKINDEX fromRoot DBG_PASS ) {
 	enum block_cache_entries cache = BC( TIMELINE );
-	// (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, &cache );
-	struct storageTimeline* timeline = vol->timeline;
+	struct storageTimeline* timeline = vol->timeline;// (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, &cache );
 	SETFLAG( vol->seglock, cache );
 	struct memoryTimelineNode curNode;
 	{
@@ -368,9 +380,158 @@ static void ValidateTimelineTree( struct sack_vfs_os_volume* vol DBG_PASS ) {
 			return;
 		}
 		reloadTimeEntry( &curNode, vol
+			, fromRoot?fromRoot:timeline->header.srootNode.ref.index  VTReadOnly GRTENoLog DBG_RELAY );
+	}
+	LogTimelineTreeWork( pvt, vol, 0, &curNode DBG_RELAY );
+	dropRawTimeEntry( vol, curNode.diskCache GRTENoLog DBG_RELAY );
+}
+
+//---------------------------------------------------------------------------
+
+static void checkRoot( struct sack_vfs_os_volume* vol ) {
+	enum block_cache_entries cache = BC( TIMELINE_RO );
+	// (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, &cache );
+	struct storageTimeline* timeline = vol->timeline;
+	struct memoryTimelineNode curNode;
+	if( !timeline->header.srootNode.ref.index ) {
+		return;
+	}
+	reloadTimeEntry( &curNode, vol
+		, timeline->header.srootNode.ref.index VTReadOnly GRTENoLog  DBG_SRC );
+	if( curNode.disk->me_fpi != 0x10 ) {
+		lprintf( "Root of tree does not point to itself." );
+		DebugBreak();
+	}
+	dropRawTimeEntry( vol, curNode.diskCache GRTENoLog DBG_SRC );
+}
+//---------------------------------------------------------------------------
+
+#ifdef DEBUG_VALIDATE_TREE
+static int ValidateTimelineTreeWork( struct sack_vfs_os_volume* vol, int level
+	, struct memoryTimelineNode* parent
+	, struct memoryTimelineNode* left
+	, struct memoryTimelineNode* right
+	, BLOCKINDEX index DBG_PASS ) {
+	struct memoryTimelineNode curNodeLeft;
+	struct memoryTimelineNode curNodeRight;
+	static char indent[256];
+	int i;
+	int n = 0;
+#if 0
+	lprintf( "input node %d %d %d", parent->index
+		, parent->disk->slesser.ref.index
+		, parent->disk->sgreater.ref.index
+	);
+#endif
+	if( parent->disk->slesser.ref.index ) {
+		reloadTimeEntry( left, vol, parent->disk->slesser.ref.index VTReadOnly GRTENoLog DBG_RELAY );
+#if 0
+		lprintf( "(lesser) go to node %d", curNode.index );
+#endif
+		if( ( parent->this_fpi + sane_offsetof( struct storageTimelineNode, slesser ) ) != left->disk->me_fpi ) {
+			DumpTimelineTree( vol, 0 DBG_SRC );
+			DebugBreak();
+		}
+		if( !parent->disk->slesser.ref.index && parent->disk->slesser.ref.depth )
+			DebugBreak();
+		if( !parent->disk->sgreater.ref.index && parent->disk->sgreater.ref.depth )
+			DebugBreak();
+		n += ValidateTimelineTreeWork( vol, level + 1, left, &curNodeLeft, &curNodeRight, parent->disk->slesser.ref.index DBG_RELAY );
+		if( curNodeLeft.index && curNodeRight.index )
+			if( curNodeLeft.disk->time > curNodeRight.disk->time ) {
+				lprintf( "tree is out of order children.  %d", left->index );
+				DumpTimelineTree( vol, 0 DBG_SRC );
+				DebugBreak();
+			}
+		if( curNodeLeft.index ) {
+			if( curNodeLeft.disk->time > left->disk->time ) {
+				lprintf( "tree is out of order to left.  %d", left->index );
+				DumpTimelineTree( vol, 0 DBG_SRC );
+				DebugBreak();
+			}
+			dropRawTimeEntry( vol, curNodeLeft.diskCache GRTENoLog DBG_RELAY );
+		}
+		if( curNodeRight.index ) {
+			if( curNodeRight.disk->time < left->disk->time ) {
+				lprintf( "tree is out of order to right.  %d", left->index );
+				DumpTimelineTree( vol, 0 DBG_SRC );
+				DebugBreak();
+			}
+			dropRawTimeEntry( vol, curNodeRight.diskCache GRTENoLog DBG_RELAY );
+		}
+	}
+	else
+		left->index = 0;
+
+	if( parent->disk->sgreater.ref.index ) {
+		reloadTimeEntry( right, vol, parent->disk->sgreater.ref.index VTReadOnly GRTENoLog DBG_RELAY );
+#if 0
+		lprintf( "(greater) go to node %d", right->index );
+#endif
+		if( ( parent->this_fpi + sane_offsetof( struct storageTimelineNode, sgreater ) ) != right->disk->me_fpi ) {
+			DumpTimelineTree( vol, 0 DBG_SRC );
+			DebugBreak();
+		}
+
+		n += ValidateTimelineTreeWork( vol, level + 1, right, &curNodeLeft, &curNodeRight, parent->disk->sgreater.ref.index DBG_RELAY );
+
+		if( curNodeLeft.index && curNodeRight.index )
+			if( curNodeLeft.disk->time > curNodeRight.disk->time ) {
+				lprintf( "tree is out of order.  %d", right->index );
+				DumpTimelineTree( vol, 0 DBG_SRC );
+				DebugBreak();
+			}
+		if( curNodeLeft.index ) {
+			if( curNodeLeft.disk->time > right->disk->time ) {
+				lprintf( "tree is out of order to left.  %d", right->index );
+				DumpTimelineTree( vol, 0 DBG_SRC );
+				DebugBreak();
+			}
+			dropRawTimeEntry( vol, curNodeLeft.diskCache GRTENoLog DBG_RELAY );
+		}
+		if( curNodeRight.index ) {
+			if( curNodeRight.disk->time < right->disk->time ) {
+				lprintf( "tree is out of order to right.  %d", right->index );
+				DumpTimelineTree( vol, 0 DBG_SRC );
+				DebugBreak();
+			}
+			dropRawTimeEntry( vol, curNodeRight.diskCache GRTENoLog DBG_RELAY );
+		}
+	}
+	else
+		right->index = 0;
+	return n + 1;
+}
+
+//---------------------------------------------------------------------------
+
+static void ValidateTimelineTree( struct sack_vfs_os_volume* vol DBG_PASS ) {
+	enum block_cache_entries cache = BC( TIMELINE_RO );
+	// (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, &cache );
+	struct storageTimeline* timeline = vol->timeline;
+	SETFLAG( vol->seglock, cache );
+	struct memoryTimelineNode curNode;
+	struct memoryTimelineNode curNodeLeft;
+	struct memoryTimelineNode curNodeRight;
+	int nodeCount;
+	checkRoot( vol );
+	{
+		if( !timeline->header.srootNode.ref.index ) {
+			return;
+		}
+		reloadTimeEntry( &curNode, vol
 			, timeline->header.srootNode.ref.index VTReadOnly GRTENoLog  DBG_RELAY );
 	}
-	ValidateTimelineTreeWork( vol, 0, &curNode, timeline->header.srootNode.ref.index DBG_RELAY );
+	nodeCount = ValidateTimelineTreeWork( vol, 0, &curNode, &curNodeLeft, &curNodeRight, timeline->header.srootNode.ref.index DBG_RELAY );
+	if( nodeCount != nodes ) {
+		lprintf( "The count of nodes in the tree and those that are free is differnt." );
+		DebugBreak();
+	}
+	dropRawTimeEntry( vol, curNode.diskCache GRTENoLog DBG_RELAY );
+	if( curNodeLeft.index )
+		dropRawTimeEntry( vol, curNodeLeft.diskCache GRTENoLog DBG_RELAY );
+	if( curNodeRight.index )
+		dropRawTimeEntry( vol, curNodeRight.diskCache GRTENoLog DBG_RELAY );
 
 		
 	{
@@ -388,7 +549,6 @@ static void ValidateTimelineTree( struct sack_vfs_os_volume* vol DBG_PASS ) {
 	}
 
 
-	dropRawTimeEntry( vol, curNode.diskCache GRTENoLog DBG_RELAY );
 }
 
 #endif
@@ -396,23 +556,6 @@ static void ValidateTimelineTree( struct sack_vfs_os_volume* vol DBG_PASS ) {
 // Timeline Support Functions
 //-----------------------------------------------------------------------------------
 void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, LOGICAL drop DBG_PASS ) {
-#if 0
-	FPI timeEntry = time->this_fpi;
-
-	enum block_cache_entries cache = BC( TIMELINE );
-	struct storageTimelineNode* node = ( struct storageTimelineNode* )vfs_os_FSEEK( vol, vol->timeline_file, 0, time->this_fpi, &cache, TIME_BLOCK_SIZE DBG_SRC );
-
-	node->dirent_fpi = time->dirent_fpi;
-
-	node->prior = time->prior;
-	node->priorData = time->priorData;
-	node->priorDataPad = time->bits.priorDataPad;
-	node->timeTz = time->bits.timeTz;
-	node->time = time->time;
-	node->slesser.raw = time->slesser.raw;
-	node->sgreater.raw = time->sgreater.raw;
-	node->me_fpi = time->me_fpi;
-#endif
 	SMUDGECACHE( vol, time->diskCache );
 	if( drop ) {
 		int locks;
@@ -1029,7 +1172,9 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 		BLOCKINDEX leastIndex;
 		struct storageTimelineNode *tmp;
 		PDATALIST pdlVisited = CreateDataList( sizeof( BLOCKINDEX ) );
-
+		VarTextEmpty( vol->pvtDeleteBuffer );
+		vtprintf( vol->pvtDeleteBuffer, "Delete %d\n", index );
+		checkRoot( vol );
 		//time = getRawTimeEntry( vol, index, &cache );
 #ifdef DEBUG_DELETE_BALANCE
 		lprintf( "delete index %d", index );
@@ -1039,10 +1184,12 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				enum block_cache_entries cache;
 				TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, time->me_fpi, &meCache );
 				struct storageTimelineNode *greater = getRawTimeEntry( vol, time->sgreater.ref.index, &cache GRTELog DBG_DELETE_ );
-				ptr[0] = time->sgreater;
+				ptr[0] = time->sgreater; // my depth to my greater is correct to copy anyway.
 				greater->me_fpi = time->me_fpi;
 				SMUDGECACHE( vol, meCache );
 				SMUDGECACHE( vol, cache );
+
+				vtprintf( vol->pvtDeleteBuffer, "Only Right %d\n", time->sgreater.ref.index );
 
 #ifdef DEBUG_DELETE_BALANCE
 				lprintf( "had only greater" );
@@ -1051,6 +1198,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				dropRawTimeEntry( vol, cache GRTELog DBG_DELETE_ );
 			} else {
 				TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, time->me_fpi, &meCache );
+				vtprintf( vol->pvtDeleteBuffer, "No Children\n" );
 				ptr[0].raw = timelineBlockIndexNull;
 				SMUDGECACHE( vol, meCache );
 				// no greater or lesser...
@@ -1069,6 +1217,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 			bottom_me_fpi = lesser->me_fpi;
 			SMUDGECACHE( vol, cache );
 			dropRawTimeEntry( vol, cache GRTELog DBG_DELETE_ );
+			vtprintf( vol->pvtDeleteBuffer, "Only Left %d\n", time->slesser.ref.index );
 #ifdef DEBUG_DELETE_BALANCE
 			lprintf( "had only lesser" );
 #endif
@@ -1077,13 +1226,15 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 #ifdef DEBUG_DELETE_BALANCE
 			lprintf( "has greater and lesser %d %d", time->slesser.ref.depth, time->sgreater.ref.depth );
 #endif
+			vtprintf( vol->pvtDeleteBuffer, "both left and right %d  %d\n", time->slesser.ref.index, time->sgreater.ref.index );
 			if( time->slesser.ref.depth > time->sgreater.ref.depth ) {
 				PDATALIST pdlVisitedLesser = CreateDataList( sizeof( BLOCKINDEX ) );
 				enum block_cache_entries leastCache;
 				bottom_me_fpi = time->me_fpi;
 				//bottom = time;
 				//bottomCache = BC( ZERO );
-				
+					
+				vtprintf( vol->pvtDeleteBuffer, "left is deeper %d %d\n", time->slesser.ref.depth, time->sgreater.ref.depth );
 				least = getRawTimeEntry( vol, leastIndex = time->slesser.ref.index, &leastCache GRTELog DBG_DELETE_ );
 #ifdef DEBUG_DELETE_BALANCE
 				lprintf( "Stepped to least %d", leastIndex );
@@ -1103,6 +1254,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 					AddDataItem( &pdlVisitedLesser, &bottom_me_fpi );
 					dropRawTimeEntry( vol, leastCache GRTELog DBG_DELETE_ );
 					least = getRawTimeEntry( vol, leastIndex = least->sgreater.ref.index, &leastCache GRTELog DBG_DELETE_ );
+					vtprintf( vol->pvtDeleteBuffer, "move to lesser's greater %d\n", leastIndex );
 #ifdef DEBUG_DELETE_BALANCE
 					lprintf( "Stepped to least1 %d", leastIndex );
 #endif
@@ -1117,16 +1269,18 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 					lprintf( "Least has a lesser node (off of greatest on least) %d", least->slesser.ref.index );
 #endif
 					leastLesser->me_fpi = least->me_fpi;
-					SMUDGECACHE( vol, cache );
 					ptr[0].raw = least->slesser.raw;
 					least->slesser.raw = 0; // now no longer points to a thing.
+					SMUDGECACHE( vol, cache );
+					vtprintf( vol->pvtDeleteBuffer, "lesser's greatest has a lesser %d\n", least->slesser.ref.index );
+
 					bottom_me_fpi = leastLesser->me_fpi;
 					dropRawTimeEntry( vol, cache GRTELog DBG_DELETE_ );
-	}
-				else {
+				} else {
 #ifdef DEBUG_DELETE_BALANCE
 					lprintf( "Fill parent of least with null" );
 #endif
+					vtprintf( vol->pvtDeleteBuffer, "lesser's greatest is the bottom\n", least->slesser.ref.index );
 					ptr[0].raw = timelineBlockIndexNull;
 				}
 				least->me_fpi = time->me_fpi;
@@ -1141,6 +1295,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 
 				bottom_me_fpi = time->me_fpi;
 				least = getRawTimeEntry( vol, leastIndex = time->sgreater.ref.index, &cache GRTELog DBG_DELETE_ );
+				vtprintf( vol->pvtDeleteBuffer, "right is deeper %d %d\n", time->slesser.ref.depth, time->sgreater.ref.depth );
 #ifdef DEBUG_DELETE_BALANCE
 				lprintf( "Stepped to least2 %d", leastIndex );
 #endif
@@ -1159,6 +1314,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 					AddDataItem( &pdlVisitedLesser, &bottom_me_fpi );
 					dropRawTimeEntry( vol, cache GRTELog DBG_DELETE_ );
 					least = getRawTimeEntry( vol, leastIndex = least->slesser.ref.index, &cache GRTELog DBG_DELETE_ );
+					vtprintf( vol->pvtDeleteBuffer, "move to greater's lesser %d\n", leastIndex );
 #ifdef DEBUG_DELETE_BALANCE
 					lprintf( "Stepped to least3 %d", leastIndex );
 #endif
@@ -1173,6 +1329,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 					lprintf( "least greater : %d", least->sgreater.ref.index );
 #endif
 					leastGreater->me_fpi = least->me_fpi;
+					vtprintf( vol->pvtDeleteBuffer, "greater's least has a greater %d\n", least->sgreater.ref.index );
 					least->sgreater.raw = 0; // now no longer points to a thing.
 					SMUDGECACHE( vol, cache );
 					bottom_me_fpi = leastGreater->me_fpi;
@@ -1181,6 +1338,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 #ifdef DEBUG_DELETE_BALANCE
 					lprintf( "Fill parent of least with null2" );
 #endif
+					vtprintf( vol->pvtDeleteBuffer, "greater's least is the bottom\n", least->slesser.ref.index );
 					ptr[0].raw = timelineBlockIndexNull;
 				}
 				least->me_fpi = time->me_fpi;
@@ -1190,7 +1348,9 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 
 			}
 		}
+
 		if( least ) {
+			int depth = 0;
 			TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, time->me_fpi, &meCache );
 #ifdef DEBUG_DELETE_BALANCE
 			lprintf( "Moving least node into in-place of deleted node. %d %d", time->me_fpi, leastIndex );
@@ -1199,29 +1359,51 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 
 			//least->me_fpi = time->me_fpi;
 
+			// the old node that pointed to 'the lesser' is being deleted, no need to update him.
 			if( least->slesser.raw = time->slesser.raw ) {
 				enum block_cache_entries cache;
 				struct storageTimelineNode* tmp;
 				tmp = getRawTimeEntry( vol, time->slesser.ref.index, &cache GRTELog DBG_DELETE_ );
 				tmp->me_fpi = sane_offsetof( struct storageTimeline, entries[leastIndex - 1].slesser );
+				if( tmp->sgreater.ref.depth > tmp->slesser.ref.depth )
+					depth = tmp->sgreater.ref.depth;
+				else
+					depth = tmp->slesser.ref.depth;
+				//if( least->slesser.ref.depth != depth+1 )
+				//	DebugBreak();
+				vtprintf( vol->pvtDeleteBuffer, "least's new lesser is %d  %d %d\n", least->slesser.ref.index, least->slesser.ref.depth, depth + 1 );
 				SMUDGECACHE( vol, cache );
 				dropRawTimeEntry( vol, cache GRTELog DBG_DELETE_ );
 			}
+			// the old node that pointed to 'the greater' is being deleted, no need to update him.
 			if( least->sgreater.raw = time->sgreater.raw ) {
 				enum block_cache_entries cache;
 				struct storageTimelineNode* tmp;
 				tmp = getRawTimeEntry( vol, time->sgreater.ref.index, &cache GRTELog DBG_DELETE_ );
 				tmp->me_fpi = sane_offsetof( struct storageTimeline, entries[leastIndex - 1].sgreater );
+				if( tmp->sgreater.ref.depth > tmp->slesser.ref.depth )
+					depth = tmp->sgreater.ref.depth;
+				else
+					depth = tmp->slesser.ref.depth;
+				//if( least->sgreater.ref.depth != depth + 1 )
+				//	DebugBreak();
+				vtprintf( vol->pvtDeleteBuffer, "least's new greater is %d  %d %d\n", least->sgreater.ref.index, least->sgreater.ref.depth, depth + 1 );
 				SMUDGECACHE( vol, cache );
 				dropRawTimeEntry( vol, cache GRTELog DBG_DELETE_ );
 			}
+
+			if( least->slesser.ref.depth > least->sgreater.ref.depth )
+				ptr[0].ref.depth = least->slesser.ref.depth + 1;
+			else
+				ptr[0].ref.depth = least->sgreater.ref.depth + 1;
+
 			SMUDGECACHE( vol, cache ); // mark that the least node was updated.
 			SMUDGECACHE( vol, meCache );
 #ifdef DEBUG_DELETE_BALANCE
 			lprintf( " ------------- DELETE TIME ENTRY move least node to node? ---------------- " );
 			DumpTimelineTree( vol, TRUE  DBG_DELETE_ );
 #endif
-			least = NULL;
+			//least = NULL;
 		}
 
 		// this is the incoming thing...
@@ -1249,6 +1431,8 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				tmp = getRawTimeEntry( vol, node_idx, &cacheTmp GRTELog DBG_DELETE_ );
 				node_fpi = tmp->me_fpi & ~0x3f;
 				if( node_fpi == ( bottom_me_fpi & ~0x3f ) ) DebugBreak();
+				vtprintf( vol->pvtDeleteBuffer, "going up the tree %d\n", node_idx );
+				LogTimelineTree( vol->pvtDeleteBuffer, vol, node_idx DBG_SRC );
 
 				if( updating ) {
 					if( tmp->slesser.raw ) {
@@ -1453,6 +1637,7 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 		time = getRawTimeEntry( vol, index, &cache GRTELog DBG_SRC );
 		next = time->prior.raw;
 		nodes--;
+		checkRoot( vol );
 		if( !nodes ) {
 			lprintf( "CurNode: (%s -> %5d  %d <-%d %s has children %d %d  with depths of %d %d"
 				, "*"
@@ -1475,6 +1660,7 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 #endif
 		//lprintf( "Delete done... %d", index );
 	} while( index = next );
+	checkRoot( vol );
 	if( !nodes && vol->timeline->header.srootNode.ref.index ) {
 		lprintf( "No more nodes, but the root points at something." );
 		DebugBreak();
