@@ -38,9 +38,9 @@ typedef struct timelineTimeType {
 
 PREFIX_PACKED struct timelineHeader {
 	TIMELINE_BLOCK_TYPE first_free_entry;
-	BLOCKINDEX  indexFileFirstBlock;
+	TIMELINE_BLOCK_TYPE crootNode_deleted;
 	TIMELINE_BLOCK_TYPE srootNode;
-	uint64_t unused[1];
+	uint64_t unused[5];
 	//uint64_t unused2[8];
 } PACKED;
 
@@ -48,43 +48,39 @@ PREFIX_PACKED struct timelineHeader {
 // me_fpi is the physical FPI in the timeline file of the TIMELINE_BLOCK_TYPE that references 'this' block.
 // structure defines little endian structure for storage.
 
-enum timeline_flags {
-	TIMELINE_FLAG_DELETED = 0x01,
-	//TIMELINE_FLAG_ = 0x01,
-
-};
-
 PREFIX_PACKED struct storageTimelineNode {
 	// if dirent_fpi == 0; it's free.
 	uint64_t dirent_fpi;
 	TIMELINE_BLOCK_TYPE prior;
+	// if the block is free, sgreater is used as pointer to next free block
+	// delete an object can leave free timeline nodes in the middle of the physical chain.
 
-	uint32_t filler_32;
-	uint16_t priorDataPad; // how much of the last block in the file is not used - see Also priorData
-	uint8_t  filler_8;
+	//uint64_t padding[4];
+/*
+	uint64_t ctime;                      // uses timeGetTime64() tick resolution
+	//union {
+	//	uint64_t raw;
+	//	TIMELINE_TIME_TYPE parts;         // file time tick/ created stamp, sealing stamp
+	//}ctime;
+	TIMELINE_BLOCK_TYPE clesser;         // FPI/32 within timeline chain
+	TIMELINE_BLOCK_TYPE sgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
+	TIMELINE_BLOCK_TYPE cparent;
+*/
+	uint32_t filler32_1;
+	uint16_t priorDataPad;
+	uint8_t  filler8_1; // how much of the last block in the file is not used
 
 	uint8_t  timeTz; // lesser least significant byte of time... sometimes can read time including timezone offset with time - 1 byte
 
 	uint64_t time;
-	// --- 3 words up to here
-
-	uint64_t priorData; // if not 0, references a start block version of data.
-	// prior is used to track multiple timestamps.
-
-}
-
-PACKED_PREFIX struct storageTimelineIndexNode {
-
-	uint32_t next_continuous_entries;
-	uint32_t filler;
-
+	//union {
+	//	uint64_t raw;
+	//	TIMELINE_TIME_TYPE parts;        // time file was stored
+	//}stime;
+	TIMELINE_BLOCK_TYPE slesser;         // FPI/32 within timeline chain
+	TIMELINE_BLOCK_TYPE sgreater;        // FPI/32 within timeline chain + (child depth in this direction AVL)
 	uint64_t me_fpi; // it is know by  ( me_fpi & 0x3f ) == 32 or == 36 whether this is slesser or sgreater, (me_fpi & ~3f) = parent_fpi
-
-	TIMELINE_BLOCK_TYPE slesser;         // FPI/sizeof(entry) within timeline chain
-	// if the block is free, sgreater is used as pointer to next free block
-	// delete an object can leave free timeline nodes in the middle of the physical chain.
-	TIMELINE_BLOCK_TYPE sgreater;        // FPI/sizeof(entry) within timeline chain + (child depth in this direction AVL)
-
+	uint64_t priorData; // if not 0, references a start block version of data.
 } PACKED;
 
 struct memoryTimelineNode {
@@ -131,11 +127,6 @@ PREFIX_PACKED struct storageTimeline {
 #define NUM_TIMELINE_NODES (TIME_BLOCK_SIZE) / sizeof( struct storageTimelineNode )
 PREFIX_PACKED struct storageTimelineBlock {
 	struct storageTimelineNode entries[(TIME_BLOCK_SIZE) / sizeof( struct storageTimelineNode )];
-} PACKED;
-
-#define NUM_TIMELINE_NODES (TIME_BLOCK_SIZE) / sizeof( struct storageTimelineIndexNode )
-PREFIX_PACKED struct storageTimelineIndexBlock {
-	struct storageTimelineIndexNode entries[( TIME_BLOCK_SIZE ) / sizeof( struct storageTimelineIndexNode )];
 } PACKED;
 
 #ifdef DEBUG_VALIDATE_TREE
