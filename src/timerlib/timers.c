@@ -1100,6 +1100,11 @@ static void  UnmakeThread( void )
 		//globalTimerData.lock_thread_create = oldval;
 		Relinquish();
 	}
+	if( globalTimerData.flags.bExited ) {
+		globalTimerData.lock_thread_create = 0;
+		return;
+	}
+
 	pThread
 #ifdef HAS_TLS
 		= MyThreadInfo.pThread;
@@ -1185,6 +1190,8 @@ static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 #endif
 	if( pThread->proc )
 		result = pThread->proc( pThread );
+	if( globalTimerData.flags.bExited )
+		return result;
 	//lprintf( "%s(%d):Thread is exiting... ", pThread->pFile, pThread->nLine );
 	//DeAttachThreadToLibraries( FALSE );
 	UnmakeThread();
