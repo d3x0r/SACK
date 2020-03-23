@@ -29,10 +29,15 @@
 #define SACK_VFS_OS_SOURCE
 #define SKIP_LIGHT_ENCRYPTION(n)
 
+//#define DEBUG_VALIDATE_TREE
+
 //#define DEBUG_SECTOR_DIRT
-//#define DEBUG_CACHE_FAULTS
-#define DEBUG_VALIDATE_TREE
+#define DEBUG_CACHE_FAULTS
 #define DEBUG_CACHE_FLUSH
+
+// this is a badly named debug symbol;
+// it is the LAST debugging of delete logging/checking... 
+//#define DEBUG_DELETE_LAST
 
 
 //#define USE_STDIO
@@ -860,7 +865,9 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 				sack_fwrite( vol->usekey_buffer[useCache], 1, vol->sector_size[useCache], vol->file );
 #ifdef DEBUG_CACHE_FLUSH
 			memcpy( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE );
+#  ifdef DEBUG_VALIDATE_TREE
 			if( cache_idx[0] < BC( TIMELINE_RO ) )
+#  endif
 				_lprintf(DBG_RELAY)( "Updated clean buffer %d", cache_idx[0] );
 #endif
 			CLEANCACHE( vol, useCache );
@@ -869,7 +876,9 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 #ifdef DEBUG_VALIDATE_TREE
 		else {
 #ifdef DEBUG_CACHE_FLUSH
+#  ifdef DEBUG_VALIDATE_TREE
 			if( cache_idx[0] < BC(TIMELINE_RO) )
+#  endif
 				if( memcmp( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE ) ) {
 					lprintf( "Block was written to, but was not flagged as dirty, changes will be lost." );
 					DebugBreak();
@@ -909,7 +918,9 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 					, NULL, NULL );
 #ifdef DEBUG_CACHE_FLUSH
 			memcpy( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE );
+#  ifdef DEBUG_VALIDATE_TREE
 			if( cache_idx[0] < BC(TIMELINE_RO) )
+#  endif
 				_lprintf(DBG_RELAY)( "Updated clean buffer %d", cache_idx[0] );
 #endif
 		}
@@ -948,7 +959,9 @@ static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume
 					if( TESTFLAG( vol->dirty, n ) || TESTFLAG( vol->_dirty, n ) ) {
 						// use the cached value instead of the disk value.
 						memcpy( vol->usekey_buffer[cache_idx], vol->usekey_buffer[n], BLOCK_SIZE );
+#ifdef DEBUG_CACHE_FLUSH
 						memcpy( vol->usekey_buffer_clean[cache_idx], vol->usekey_buffer[n], BLOCK_SIZE );
+#endif
 						//lprintf( "Updaed clean buffer %d", n );
 					}
 					break;
@@ -1207,8 +1220,8 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 	}
 
 
-	vol->timeline_cache = New( struct storageTimelineCursor );
-	vol->timeline_cache->parentNodes = CreateDataStack( sizeof( struct storageTimelineNode ) );
+	//vol->timeline_cache = New( struct storageTimelineCursor );
+	//vol->timeline_cache->parentNodes = CreateDataStack( sizeof( struct storageTimelineNode ) );
 	vol->timeline_file = _os_createFile( vol, FIRST_TIMELINE_BLOCK, TIME_BLOCK_SIZE );
 	{
 		int locks;
@@ -1865,7 +1878,9 @@ struct sack_vfs_os_volume *sack_vfs_os_load_volume( const char * filepath, struc
 	vol->pdlFreeBlocks = CreateDataList( sizeof( BLOCKINDEX ) );
 	vol->pdlFreeSmallBlocks = CreateDataList( sizeof( BLOCKINDEX ) );
 	vol->volname = StrDup( filepath );
+#ifdef DEBUG_DELETE_LAST
 	vol->pvtDeleteBuffer = VarTextCreate();
+#endif
 	_os_AssignKey( vol, NULL, NULL );
 	if( !_os_ExpandVolume( vol, 0, 4096 )
 	  || !_os_ExpandVolume(vol, BLOCKS_PER_SECTOR, BLOCK_SMALL_SIZE )
@@ -2287,7 +2302,7 @@ static FPI _os_SaveFileName( struct sack_vfs_os_volume *vol, BLOCKINDEX firstNam
 
 static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sack_vfs_os_file* file, int nameOffset, enum block_cache_entries nameCache ) {
 	size_t n;
-	FPI nameoffset = 0;
+	FPI nameoffset_temp = 0;
 
 	static uint8_t namebuffer[3 * 4096];
 	uint8_t* nameblock = NULL;
@@ -2313,14 +2328,14 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 		nameblock_ = nameblock;
 		nameblock = BTSEEK( uint8_t*, vol, name_block, NAME_BLOCK_SIZE, name_cache );
 		if( findNameOffset < NAME_BLOCK_SIZE ) {
-			// first read block (nameoffset = 0)
+			// first read block (nameoffset_temp = 0)
 			// not already found end of text mark ( endNameOffset = 0 )
 			SETMASK_( vol->seglock, seglock, name_cache, GETMASK_( vol->seglock, seglock, name_cache ) + 1 );
 			if( !endNameOffset ) {
 
 				for( n = findNameOffset; n < NAME_BLOCK_SIZE; n++ ) {
 					if( nameblock[n] == UTF8_EOT ) {
-						endNameOffset = nameoffset + n + 1;
+						endNameOffset = nameoffset_temp + n + 1;
 						break;
 					}
 				}
@@ -2354,7 +2369,7 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 				if( name_cache_ )
 					SETMASK_( vol->seglock, seglock, name_cache_, GETMASK_( vol->seglock, seglock, name_cache_ ) - 1 );
 			}
-			nameoffset += NAME_BLOCK_SIZE;
+			nameoffset_temp += NAME_BLOCK_SIZE;
 		}
 		else {
 			findNameOffset -= NAME_BLOCK_SIZE;
@@ -2415,7 +2430,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 #endif
 	do {
 		enum block_cache_entries cache = BC(DIRECTORY);
-		FPI nameoffset = 0;
+		FPI nameoffset_temp = 0;
 		BLOCKINDEX new_dir_block;
 		struct directory_hash_lookup_block *dirblock;
 		dirblock = BTSEEK( struct directory_hash_lookup_block *, vol, this_dir_block, DIR_BLOCK_SIZE, cache );
@@ -2430,13 +2445,13 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 			BLOCKINDEX name_block = dirblock->names_first_block;
 			// read name block chain into a single array
 			do {
-				uint8_t *out = namebuffer + nameoffset;
+				uint8_t *out = namebuffer + nameoffset_temp;
 				name_cache = BC( NAMES );
 				nameblock = BTSEEK( uint8_t *, vol, name_block, NAME_BLOCK_SIZE, name_cache );
 				for( n = 0; n < 4096; n++ )
 					(*out++) = (*nameblock++);
 				name_block = vfs_os_GetNextBlock( vol, name_block, GFB_INIT_NONE, 0, NAME_BLOCK_SIZE, NULL );
-				nameoffset += NAME_BLOCK_SIZE;
+				nameoffset_temp += NAME_BLOCK_SIZE;
 			} while( name_block != EOFBLOCK );
 
 
@@ -2661,17 +2676,17 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 				}
 				{
 					name_block = dirblock->names_first_block;
-					nameoffset = 0;
+					nameoffset_temp = 0;
 					do {
 						uint8_t *out;
-						nameblock = namebuffer + nameoffset;
+						nameblock = namebuffer + nameoffset_temp;
 						name_cache = BC( NAMES );
 						out = BTSEEK( uint8_t *, vol, name_block, NAME_BLOCK_SIZE, name_cache );
 						for( n = 0; n < 4096; n++ )
 							(*out++) = (*nameblock++);
 						SMUDGECACHE( vol, name_cache );
 						name_block = vfs_os_GetNextBlock( vol, name_block, GFB_INIT_NONE, 0, NAME_BLOCK_SIZE, NULL );
-						nameoffset += 4096;
+						nameoffset_temp += 4096;
 					} while( name_block != EOFBLOCK );
 				}
 			}
