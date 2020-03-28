@@ -742,6 +742,11 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 	if( rollback->flags.dirty ) {
 		BLOCKINDEX bigSector = 0;
 		BLOCKINDEX smallSector = 0;
+		struct BATInfo {
+			BLOCKINDEX block;
+			BLOCKINDEX bigSector;
+		};
+		PDATALIST pdlBATs = CreateDataList( sizeof( BLOCKINDEX ) );
 		
 		for( e = 0; e < rollback->nextEntry; e++ ) {
 			rollbackEntryCache = BC( ROLLBACK );
@@ -756,6 +761,15 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 				// lock the new one
 				SETMASK_( vol->seglock, seglock, rollbackEntryCache, GETMASK_( vol->seglock, seglock, rollbackEntryCache ) + 1 );
 				rollbackEntryCache_ = rollbackEntryCache;
+			}
+			if( ( ( rollbackEntry->fileBlock - 1 ) % BLOCKS_PER_SECTOR ) == 0 ) {
+				// defer restoring BAT blocks until end;
+				// the journal itself may exist in the dirty blocks already in the image.
+				struct BATInfo info;
+				info.block = rollbackEntry->fileBlock;
+				info.bigSector = bigSector++;
+				AddDataItem( &pdlBATs, &info );
+				continue;
 			}
 			entry = _os_UpdateSegmentKey_( vol, BC( ROLLBACK ), rollbackEntry->fileBlock DBG_SRC );
 			vol->sector_size[entry] = rollbackEntry->flags.small ? BLOCK_SMALL_SIZE : BLOCK_SIZE;
@@ -776,6 +790,24 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 				}
 			}
 			SMUDGECACHE( vol, entry );
+		}
+		{
+			struct BATInfo *info;
+			DATA_FORALL( pdlBATs, e, struct BATInfo*, info ) {
+				entry = _os_UpdateSegmentKey_( vol, BC( ROLLBACK ), info->block DBG_SRC );
+				vol->sector_size[entry] = rollbackEntry->flags.small ? BLOCK_SMALL_SIZE : BLOCK_SIZE;
+				if( rollbackEntry->flags.zero ) {
+					// might happen later; usually these are non-zero filled
+					memset( vol->usekey_buffer[entry], 0, BLOCK_SIZE );
+				}
+				else {
+					rollbackCacheJournal = BC( ROLLBACK );
+					journal = (POINTER)vfs_os_FSEEK( vol, vol->journal.rollback_journal_file, 0
+						, BLOCK_SIZE * info->bigSector++, &rollbackCacheJournal, BLOCK_SIZE DBG_SRC );
+					memcpy( vol->usekey_buffer[entry], journal, BLOCK_SIZE );
+				}
+			}
+			DeleteDataList( &pdlBATs );
 		}
 
 		rollback->flags.dirty = 0;
