@@ -18,16 +18,16 @@
 #define BLOCK_SIZE (1<<BLOCK_SIZE_BITS)
 
 
-#define BLOCK_SMALL_SIZE 256
+#define BLOCK_SMALL_SIZE     256
 
 
-#define DIR_BLOCK_SIZE 4096
-#define BAT_BLOCK_SIZE 4096
-#define NAME_BLOCK_SIZE 4096
-#define KEY_SIZE        1024 
-#define TIME_BLOCK_SIZE 4096
-
-#define FILE_NAME_MAXLEN 4096
+#define DIR_BLOCK_SIZE      4096
+#define BAT_BLOCK_SIZE      4096
+#define NAME_BLOCK_SIZE     4096
+#define KEY_SIZE            1024 
+#define TIME_BLOCK_SIZE     4096
+#define ROLLBACK_BLOCK_SIZE 4096
+#define FILE_NAME_MAXLEN    4096
 
 #define BLOCK_MASK (BLOCK_SIZE-1) 
 #ifdef VIRTUAL_OBJECT_STORE
@@ -136,6 +136,22 @@ enum block_cache_entries
 	, BC( TIMELINE )
 	, BC( TIMELINE_LAST ) = BC( TIMELINE ) + 48
 #endif
+#if defined( VIRTUAL_OBJECT_STORE )
+	// really shouldn't need more than one of these...
+	// record
+	// 1 - header
+	// 0/1 - entry (might be with header)
+	// 1 - small/big block journal entry
+
+	// replay
+	// 1 - header
+	// 0/1 - entry (might be with header)
+	// 1 - small/big block journal entry
+	// 1 - target disk sector
+
+	, BC( ROLLBACK )
+	, BC( ROLLBACK_LAST ) = BC( ROLLBACK ) + 6
+#endif
 #if defined( VIRTUAL_OBJECT_STORE ) && defined( DEBUG_VALIDATE_TREE )
 	, BC( TIMELINE_RO )
 	, BC( TIMELINE_RO_LAST ) = BC( TIMELINE_RO ) + 48
@@ -226,22 +242,61 @@ static int const seglock_mask_size = 4;
 } 
 #else
 #define SMUDGECACHE(vol,n) { \
-	if( !TESTFLAG( vol->dirty, n ) ) \
-		SETFLAG( vol->dirty, n ); \
-}  
+   vfs_os_smudge_cache(vol,n);   \
+}
+
 #define CLEANCACHE(vol,n) { \
 	RESETFLAG( vol->dirty, n ); \
 } 
 #endif
+
+struct vfs_os_rollback_journal {
+	struct sack_vfs_os_file* rollback_file;
+	struct sack_vfs_os_file* rollback_journal_file;
+	struct sack_vfs_os_file* rollback_small_journal_file;
+	PDATALIST pdlPendingRecord;
+	BLOCKINDEX nextBlock;
+	BLOCKINDEX nextSmallBlock;
+	PDATALIST pdlJournaled;
+};
+
+#ifdef small
+#  undef small
+#endif
+
+PREFIX_PACKED struct vfs_os_rollback_entry {
+	BLOCKINDEX fileBlock;
+	struct {
+		uint64_t small : 1;
+		uint64_t zero : 1;  // block was full of 0's
+	} flags;
+	// block size is retrievable when the block is reloadeded to write
+} PACKED entries[1];
+
+PREFIX_PACKED struct vfs_os_rollback_header {
+	struct {
+		uint64_t dirty : 1;
+	} flags;
+	BLOCKINDEX journal;  // where the blocks are tracked.
+	BLOCKINDEX small_journal; // where small blocks are tracked
+	BLOCKINDEX rollbackLength;
+	BLOCKINDEX nextBlock;
+	BLOCKINDEX nextSmallBlock;
+	BLOCKINDEX nextEntry;
+	// where this is tracked.
+	struct vfs_os_rollback_entry  entries[1];
+}PACKED ;
+
+
 struct sack_vfs_volume {
 	const char * volname;
-#  ifdef FILE_BASED_VFS
+#ifdef FILE_BASED_VFS
 	FILE *file;
 	struct file_system_mounted_interface *mount;
-#  else
+#else
 	struct sack_vfs_disk *disk;
 	struct sack_vfs_disk *diskReal; // disk might be offset from diskReal because it's a .exe attached.
-#  endif
+#endif
 	//uint32_t dirents;  // constant 0
 	//uint32_t nameents; // constant 1
 	uintptr_t dwSize;
@@ -251,11 +306,12 @@ struct sack_vfs_volume {
 	enum block_cache_entries curseg;
 	BLOCKINDEX _segment[BC(COUNT)];// cached segment with usekey[n]
 	BLOCKINDEX segment[BC(COUNT)];// associated with usekey[n]
-#  ifdef VIRTUAL_OBJECT_STORE
+#ifdef VIRTUAL_OBJECT_STORE
+	struct vfs_os_rollback_journal journal;
 	BLOCKINDEX lastBlock;
 	PDATALIST pdl_BAT_information;
-	PDATASTACK pdsCTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
-	PDATASTACK pdsWTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
+	//PDATASTACK pdsCTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
+	//PDATASTACK pdsWTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
 
 	struct storageTimeline *timeline; // timeline root
 	enum block_cache_entries timelineCache;
@@ -266,13 +322,14 @@ struct sack_vfs_volume {
 	//struct storageTimelineCursor *timeline_cache;
 	MASKSET_( seglock, BC( COUNT ), 4 );  // segment is locked into cache.
 	unsigned int sector_size[BC( COUNT )];
-#  endif
+#endif
 
 	uint8_t fileCacheAge[BC(FILE_LAST) - BC(FILE)];
 #ifdef VIRTUAL_OBJECT_STORE
 	uint8_t dirHashCacheAge[BC(DIRECTORY_LAST) - BC(DIRECTORY)];
 	uint8_t batHashCacheAge[BC(BAT_LAST) - BC(BAT)];
 	uint8_t timelineCacheAge[BC( TIMELINE_LAST ) - BC( TIMELINE )];
+	uint8_t rollbackCacheAge[BC( ROLLBACK_LAST ) - BC( ROLLBACK )];
 #endif
 	uint8_t nameCacheAge[BC(NAMES_LAST) - BC(NAMES)];
 
@@ -292,9 +349,7 @@ struct sack_vfs_volume {
 #  ifdef FILE_BASED_VFS
 	uint8_t* key_buffer;  // root buffer space of all cache blocks
 	uint8_t* usekey_buffer[BC(COUNT)]; // data cache blocks
-#ifdef DEBUG_CACHE_FLUSH
-	uint8_t* usekey_buffer_clean[BC(COUNT)];
-#endif
+	uint8_t* usekey_buffer_clean[BC(COUNT)]; // duplicate copy of original sector data
 	PTHREAD flusher;
 	volatile LOGICAL flushing;
 	PVARTEXT pvtDeleteBuffer;

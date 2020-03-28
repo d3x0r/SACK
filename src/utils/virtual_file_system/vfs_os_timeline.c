@@ -1074,7 +1074,6 @@ static void _os_AVLbalancer( struct sack_vfs_os_volume* vol, BLOCKINDEX index DB
 			} else {
 				_z = NULL;
 			}
-			//_z = (struct memoryTimelineNode*)PopData( pdsStack );
 		}
 
 		if( _x )
@@ -1097,7 +1096,6 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 	DBG_PASS
 )
 {
-	PDATASTACK* pdsStack = &vol->pdsWTimeStack;
 	struct storageTimelineNode *pCurNode;
 	uint64_t curindex;
 	enum block_cache_entries cacheCur;
@@ -1117,7 +1115,6 @@ static int hangTimelineNode( struct sack_vfs_os_volume* vol
 
 	while( 1 ) {
 		int dir;// = root->Compare( node->key, check->key );
-		//curNode_ = (struct memoryTimelineNode*)PeekData( pdsStack );
 		{
 			if( pCurNode->time > timelineNode->disk->time )
 				dir = -1;
@@ -1517,12 +1514,8 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 		// this is the incoming thing...
 		// I think this was already dropped really(?)
 		{
-			uint64_t node_fpi;
 			uint64_t node_idx; // ( node_fpi - sizeof( struct timelineHeader ) ) / sizeof( struct storageTimelineNode ) + 1;
 			int updating = 1;
-
-			// bottom->parent
-			//node_fpi = bottom_me_fpi & ~0x3f;
 
 			while( ( node_idx = bottom_node ) ) {
 #if defined( DEBUG_DELETE_CIRCULAR_UP_PATH ) || 1
