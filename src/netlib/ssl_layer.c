@@ -789,7 +789,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 									char* checkName;
 									char* nextName;
 									for( checkName = hostctx->host; checkName ? (nextName = StrChr( checkName, '~' )), 1 : 0; checkName = nextName ) {
-										int namelen = nextName ? (nextName - checkName) : strlen;
+										int namelen = (int)(nextName ? (nextName - checkName) : strlen);
 										if( nextName ) nextName++;
 										if( namelen != strlen ) {
 											//lprintf( "%.*s is not %.*s", namelen, checkName, strlen, host );
