@@ -2674,7 +2674,7 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 	// move the directory entries down.
 	//file->entry->name_offset = 0;
 	for( f = 0; f < dirblock->used_names; f++ ) {
-		if( ( dirblock->entries[f].name_offset & DIRENT_NAME_OFFSET_OFFSET ) > nameOffset )
+		if( USS_GT( ( dirblock->entries[f].name_offset & DIRENT_NAME_OFFSET_OFFSET ), FPI, nameOffset, int ) )
 			dirblock->entries[f].name_offset -= endNameOffset - findNameOffset;
 		if( ( dirblock->entries + f ) == file->entry ) {
 			e = f;
