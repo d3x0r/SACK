@@ -29,11 +29,6 @@
 #define SACK_VFS_OS_SOURCE
 #define SKIP_LIGHT_ENCRYPTION(n)
 
-//#define DEBUG_VALIDATE_TREE
-//#define DEBUG_BLOCK_COMPUTE
-//#define DEBUG_SECTOR_DIRT
-#define DEBUG_CACHE_FAULTS
-//#define DEBUG_CACHE_FLUSH
 
 // this is a badly named debug symbol;
 // it is the LAST debugging of delete logging/checking... 
@@ -103,6 +98,25 @@ using namespace sack::filesys;
 
 SACK_VFS_NAMESPACE
 
+// have to enable TRACE_LOG for most of the symbols to actually log
+//#define DEBUG_TRACE_LOG
+//#define DEBUG_ROLLBACK_JOURNAL
+//#define DEBUG_FILE_OPS
+//#define DEBUG_DISK_IO
+//#define DEBUG_DIRECTORIES
+//#define DEBUG_BLOCK_INIT
+//#define DEBUG_TIMELINE_AVL
+//#define DEBUG_TIMELINE_DIR_TRACKING
+//#define DEBUG_FILE_SCAN
+//#define DEBUG_FILE_OPEN
+
+//#define DEBUG_VALIDATE_TREE
+//#define DEBUG_BLOCK_COMPUTE
+//#define DEBUG_SECTOR_DIRT
+//#define DEBUG_CACHE_FAULTS
+//#define DEBUG_CACHE_FLUSH
+
+
 #define FILE_BASED_VFS
 #define VIRTUAL_OBJECT_STORE
 #include "vfs_internal.h"
@@ -116,17 +130,9 @@ namespace objStore {
 #endif
 //#define PARANOID_INIT
 
-#define DEBUG_TRACE_LOG
-#define DEBUG_ROLLBACK_JOURNAL
-//#define DEBUG_FILE_OPS
-#define DEBUG_DISK_IO
-#define DEBUG_DIRECTORIES
-//#define DEBUG_BLOCK_INIT
-//#define DEBUG_TIMELINE_AVL
-//#define DEBUG_TIMELINE_DIR_TRACKING
-//#define DEBUG_FILE_SCAN
-//#define DEBUG_FILE_OPEN
 
+#undef LoG
+#undef LoG_
 #ifdef DEBUG_TRACE_LOG
 #define LoG( a,... ) lprintf( a,##__VA_ARGS__ )
 #define LoG_( a,... ) _lprintf(DBG_RELAY)( a,##__VA_ARGS__ )
@@ -1271,7 +1277,6 @@ uintptr_t vfs_os_block_index_SEEK( struct sack_vfs_os_volume* vol, BLOCKINDEX bl
 	while( ( offset = vfs_os_compute_block( vol, block, cache_index[0] ) ) >= vol->dwSize )
 		if( !_os_ExpandVolume( vol, vol->lastBlock, blockSize ) ) return 0;
 	{
-		vol->sector_size[cache_index[0]] = blockSize;
 		cache_index[0] = _os_UpdateSegmentKey( vol, cache_index[0], block + 1 );
 		//LoG( "RETURNING SEEK CACHED %p %d  0x%x   %d", vol->usekey_buffer[cache_index[0]], cache_index[0], (int)offset, (int)seg );
 		return ( (uintptr_t)vol->usekey_buffer[cache_index[0]] ) + ( offset % vol->sector_size[cache_index[0]] );
@@ -1316,8 +1321,6 @@ uintptr_t vfs_os_BSEEK_( struct sack_vfs_os_volume* vol, BLOCKINDEX block, int b
 		while( vfs_os_compute_block( vol, b, BC( COUNT ) ) >= vol->dwSize ) if( !_os_ExpandVolume( vol, vol->lastBlock, blockSize ) ) return 0;
 		{
 			cache_index[0] = _os_UpdateSegmentKey_( vol, cache_index[0], b + 1 DBG_RELAY );
-			if( blockSize )
-				vol->sector_size[cache_index[0]] = blockSize;
 			//LoG( "RETURNING BSEEK CACHED %p  %d %d %d  0x%x  %d   %d", vol->usekey_buffer[cache_index[0]], cache_index[0], (int)(block/ BLOCKS_PER_BAT), (int)(BLOCKS_PER_BAT-1), (int)b, (int)block, (int)seg );
 			return ( (uintptr_t)vol->usekey_buffer[cache_index[0]] )/* + (b&BLOCK_MASK) always 0 */;
 		}
@@ -1751,6 +1754,10 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 			current_BAT[BLOCKS_PER_BAT] = ( blockSize == BLOCK_SMALL_SIZE ) ? 1 : ( blockSize == 4096 ) ? 0 : 2;
 			//lprintf( "Initialized bat at block %d to %d", lastB + 1, current_BAT[BLOCKS_PER_BAT] );
 			current_BAT[0] = EOBBLOCK;
+
+			// update the clean buffer, so journal writes initialized data.
+			memcpy( vol->usekey_buffer_clean[cache], vol->usekey_buffer[cache], DIR_BLOCK_SIZE );
+
 			if( blockSize == 4096 )
 				vol->lastBatBlock = ( lastB + 1) * BLOCKS_PER_BAT;
 			else
@@ -1773,7 +1780,8 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 			newcache = BC( NAMES );
 			dir->names_first_block = _os_GetFreeBlock( vol, &newcache, GFB_INIT_NAMES, NAME_BLOCK_SIZE );
 			dir->used_names = 0;
-			//((struct directory_hash_lookup_block*)(vol->usekey_buffer[newcache]))->entries[0].first_block = EODMARK;
+			// update the clean buffer, so journal writes initialized data.
+			memcpy( vol->usekey_buffer_clean[newcache], vol->usekey_buffer[newcache], DIR_BLOCK_SIZE );
 			break;
 		}
 	case GFB_INIT_TIMELINE: {
@@ -1789,6 +1797,8 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 			tl->header.srootNode.raw = 0;
 			tl->header.first_free_entry.ref.index = 1;
 			tl->header.first_free_entry.ref.depth = 0;
+			// update the clean buffer, so journal writes initialized data.
+			memcpy( vol->usekey_buffer_clean[newcache], vol->usekey_buffer[newcache], TIME_BLOCK_SIZE );
 			break;
 		}
 	case GFB_INIT_TIMELINE_MORE: {
@@ -1798,7 +1808,9 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 		newcache = _os_UpdateSegmentKey_( vol, blockCache[0], b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
 		blockCache[0] = newcache;
 		memset( vol->usekey_buffer[newcache], 0, vol->sector_size[newcache] );
-			break;
+		// update the clean buffer, so journal writes initialized data.
+		memcpy( vol->usekey_buffer_clean[newcache],  vol->usekey_buffer[newcache], TIME_BLOCK_SIZE );
+		break;
 		}
 	case GFB_INIT_NAMES: {
 #ifdef DEBUG_BLOCK_INIT
@@ -1808,6 +1820,8 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 		blockCache[0] = newcache;
 		memset( vol->usekey_buffer[newcache], 0, vol->sector_size[newcache] );
 			((char*)(vol->usekey_buffer[newcache]))[0] = (char)UTF8_EOTB;
+			// update the clean buffer, so journal writes initialized data.
+			memcpy( vol->usekey_buffer_clean[newcache], vol->usekey_buffer[newcache], DIR_BLOCK_SIZE );
 			//LoG( "New Name Buffer: %x %p", vol->segment[newcache], vol->usekey_buffer[newcache] );
 			break;
 		}
@@ -1970,7 +1984,9 @@ static void _os_AssignKey( struct sack_vfs_os_volume *vol, const char *key1, con
 
 static void sack_vfs_os_flush_block( struct sack_vfs_os_volume* vol, enum block_cache_entries entry ) {
 	INDEX idx = entry;
+#ifdef DEBUG_CACHE_FLUSH
 	LoG( "Flush dirty segment: %d   %zx %d", (int)idx, vol->bufferFPI[idx], vol->segment[idx] );
+#endif
 	sack_fseek( vol->file, (size_t)vol->bufferFPI[idx], SEEK_SET );
 	if( vol->key )
 		SRG_XSWS_encryptData( vol->usekey_buffer[idx], vol->sector_size[idx]
@@ -2431,10 +2447,12 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 							file->_entry.name_offset = ( entry->name_offset & DIRENT_NAME_OFFSET_OFFSET ) + vfs_os_compute_data_block( vol, dirblock->names_first_block, BC( COUNT ) );
 							file->entry = entry;
 						}
+#ifdef DEBUG_DIRECTORIES
 						LoG( "return found entry: %p (%" _size_f ":%" _size_f ") %*.*s%s"
 							, entry, name_ofs, entry->first_block
 							, *leadinDepth, *leadinDepth, leadin
 							, filename+ofs );
+#endif
 						if( nameBlockStart ) nameBlockStart[0] = dirblock->names_first_block ;
 						return TRUE;
 					}
@@ -3684,7 +3702,9 @@ static void sack_vfs_os_unlink_file_entry( struct sack_vfs_os_volume *vol, struc
 
 	if( !file_found ) {
 		_block = block = first_block;
+#ifdef DEBUG_DIRECTORIES
 		LoG( "(marking physical deleted (again?)) entry starts at %d", block );
+#endif
 		// wipe out file chain BAT
 		if( first_block != DIR_ALLOCATING_MARK )
 			do {
@@ -3822,7 +3842,9 @@ int CPROC sack_vfs_os_unlink_file( struct sack_vfs_os_volume *vol, const char * 
 	struct sack_vfs_os_file tmp_dirinfo;
 	if( !vol ) return 0;
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
+#ifdef DEBUG_DIRECTORIES
 	LoG( "unlink file:%s", filename );
+#endif
 	if( _os_ScanDirectory( vol, filename, FIRST_DIR_BLOCK, NULL, &tmp_dirinfo, 0 ) ) {
 		sack_vfs_os_unlink_file_entry( vol, &tmp_dirinfo, tmp_dirinfo.entry->first_block, FALSE );
 		{
