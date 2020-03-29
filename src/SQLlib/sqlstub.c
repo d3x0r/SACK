@@ -480,7 +480,7 @@ const char * PSSQL_GetColumnTableName( PODBC odbc, int col) {
 		if( pCollect ) {
 			static SQLCHAR colname[256];
 			static SQLSMALLINT len;
-			SQLColAttribute( pCollect->hstmt, col, SQL_DESC_BASE_TABLE_NAME, colname, 256, &len, NULL );
+			SQLColAttribute( pCollect->hstmt, col+1, SQL_DESC_BASE_TABLE_NAME, colname, 256, &len, NULL );
 			return (char const *)colname;
 		}
 	}
@@ -506,7 +506,7 @@ const char * PSSQL_GetColumnTableAliasName( PODBC odbc, int col ) {
 		if( pCollect ) {
 			static SQLCHAR colname[256];
 			static SQLSMALLINT len;
-			SQLColAttribute( pCollect->hstmt, col, SQL_DESC_TABLE_NAME, colname, 256, &len, NULL );
+			SQLColAttribute( pCollect->hstmt, col+1, SQL_DESC_TABLE_NAME, colname, 256, &len, NULL );
 			return (char const *)colname;
 		}
 	}
