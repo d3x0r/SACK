@@ -263,6 +263,7 @@ int xFileSize(sqlite3_file*file, sqlite3_int64 *pSize)
 	return SQLITE_OK;
 }
 
+#ifdef DEBUG_FILE_LOCKING
 struct lock_history_entry {
 	int lockUnlock;
 	int locktype;
@@ -280,13 +281,14 @@ static void markHistory( int lock, struct my_sqlite3_vfs_file_data* file, int lo
 	history[nHistory].lockUnlock = lock;
 	history[nHistory].locktype = locktype;
 	history[nHistory].file = file;
-	history[nHistory].shares = file->locks->shares->Cnt;
+	history[nHistory].shares = (int)file->locks->shares->Cnt;
 	history[nHistory].res = (struct my_sqlite3_vfs_file_data*)file->locks->reserve.fd;
 	history[nHistory].pend = (struct my_sqlite3_vfs_file_data*) file->locks->pending.fd;
 	history[nHistory].excl = (struct my_sqlite3_vfs_file_data*) file->locks->exclusive.fd;
 	nHistory++;
 	if( nHistory >= 10000 ) nHistory = 0;
 }
+#endif
 
 static void removeOldLock( struct my_sqlite3_vfs_file_data* my_file ) {
 	switch( my_file->locktype ) {
