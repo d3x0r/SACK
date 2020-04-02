@@ -101,7 +101,7 @@ struct my_sqlite3_vfs
 struct local_data {
 	PLIST registered_vfs;
 	PLIST openFiles;
-} 
+}
 #ifdef __STATIC_GLOBALS__
     local_sqlite_interface__
 #endif
@@ -183,10 +183,10 @@ int xWrite(sqlite3_file*file, const void*buffer, int iAmt, sqlite3_int64 iOfst)
 {
 	struct my_sqlite3_vfs_file_data *my_file = (struct my_sqlite3_vfs_file_data*)file;
 	size_t actual;
-//#ifdef LOG_OPERATIONS
+#ifdef LOG_OPERATIONS
 	lprintf( "Write %p %s %d at %d", my_file->file, my_file->filename, iAmt, iOfst );
 	//LogBinary( buffer, iAmt );
-//#endif
+#endif
 	{
 		size_t filesize = sack_fsize( my_file->file );
 		if( USS_LT( filesize, size_t, iOfst, sqlite3_int64 ) )
@@ -769,9 +769,9 @@ int xDelete(sqlite3_vfs*vfs, const char *zName, int syncDir)
 ** is both readable and writable.
 */
 static int xAccess(
-  sqlite3_vfs *pVfs, 
-  const char *zPath, 
-  int flags, 
+  sqlite3_vfs *pVfs,
+  const char *zPath,
+  int flags,
   int *pResOut
 ){
 	struct my_sqlite3_vfs *my_vfs = (struct my_sqlite3_vfs *)pVfs;
@@ -779,8 +779,8 @@ static int xAccess(
 	//int eAccess = F_OK;             /* Second argument to access() */
 #if 0
 	assert( flags==SQLITE_ACCESS_EXISTS       /* access(zPath, F_OK)*/
-       || flags==SQLITE_ACCESS_READ         /* access(zPath, R_OK)*/ 
-       || flags==SQLITE_ACCESS_READWRITE    /* access(zPath, R_OK|W_OK)*/ 
+       || flags==SQLITE_ACCESS_READ         /* access(zPath, R_OK)*/
+       || flags==SQLITE_ACCESS_READWRITE    /* access(zPath, R_OK|W_OK)*/
   );
 #endif
 #ifdef LOG_OPERATIONS
@@ -820,13 +820,13 @@ static int xAccess(
 
 /*
 ** Argument zPath points to a nul-terminated string containing a file path.
-** If zPath is an absolute path, then it is copied as is into the output 
+** If zPath is an absolute path, then it is copied as is into the output
 ** buffer. Otherwise, if it is a relative path, then the equivalent full
 ** path is written to the output buffer.
 **
 ** This function assumes that paths are UNIX style. Specifically, that:
 **
-**   1. Path components are separated by a '/'. and 
+**   1. Path components are separated by a '/'. and
 **   2. Full paths begin with a '/' character.
 */
 static int xFullPathname(
@@ -910,7 +910,7 @@ void errorLogCallback(void *pArg, int iErrCode, const char *zMsg){
 	}
 	else if( iErrCode == SQLITE_ERROR )
 		; // these will generally be logged by other error handling.
-	else if( (iErrCode & SQLITE_CONSTRAINT) == SQLITE_CONSTRAINT )		
+	else if( (iErrCode & SQLITE_CONSTRAINT) == SQLITE_CONSTRAINT )
 		; // these will generally be logged by other error handling.
 	else
 		lprintf( "Sqlite3 Err: (%d) %s", iErrCode, zMsg);
