@@ -5,7 +5,7 @@
 #include <signed_unsigned_comparisons.h>
 #include "http.h"
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
 // derefecing NULL pointers; the function wouldn't be called with a NULL.
 // and partial expressions in lower precision
 #  pragma warning( disable:6011 26451)
@@ -1522,6 +1522,6 @@ HTTPState GetHttpState( PCLIENT pc ) {
 
 HTTP_NAMESPACE_END
 #undef l
-#ifndef _MSC_VER
-#pragma warning( default:6011 26451)
+#ifdef _MSC_VER
+#  pragma warning( default:6011 26451)
 #endif

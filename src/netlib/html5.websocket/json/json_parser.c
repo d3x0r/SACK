@@ -9,8 +9,10 @@
 
 #include "json.h"
 
+#ifdef _MSC_VER
 // derefecing NULL pointers; the function wouldn't be called with a NULL.
-#pragma warning( disable:6011) 
+#  pragma warning( disable:6011) 
+#endif
 
 #ifdef __cplusplus
 SACK_NAMESPACE namespace network { namespace json {
