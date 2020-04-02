@@ -727,6 +727,7 @@ int NetworkQuit(void)
 		WSAEVENT hThread;
 		peer_thread = globalNetworkData.root_thread;
 		globalNetworkData.root_thread = NULL;
+      MakeThread();
 		for( ; peer_thread; peer_thread = peer_thread->child_peer ) {
 			AddLink( &wakeEvents, peer_thread->hThread );
 		}
