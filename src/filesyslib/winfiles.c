@@ -1356,7 +1356,7 @@ int sack_rmdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_int
 			struct directory* d;
 			INDEX i;
 			LIST_FORALL( ( *winfile_local ).directories, i, struct directory*, d ) {
-				if( d->mount == mount && ( d->name, filename ) == 0 ) {
+				if( d->mount == mount && strcmp( d->name, filename ) == 0 ) {
 					d->deleted = 1;
 					break;
 				}
