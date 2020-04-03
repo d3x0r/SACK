@@ -1071,7 +1071,9 @@ SACK_NAMESPACE_END
 //------------------------------------------------------
 // formatting macro defintions for [vsf]printf output of the above types
 #if !defined( _MSC_VER ) || ( _MSC_VER >= 1900 )
-#define __STDC_FORMAT_MACROS
+#ifndef __STDC_FORMAT_MACROS
+#  define __STDC_FORMAT_MACROS
+#endif
 #include <inttypes.h>
 #endif
 
@@ -1299,6 +1301,9 @@ typedef uint64_t THREAD_ID;
 // this is now always the case
 // it's a safer solution anyhow...
 #  ifdef __MAC__
+#    ifndef SYS_thread_selfid
+#      define SYS_thread_selfid                 372
+#    endif
 #    define GetMyThreadID()  (( ((uint64_t)getpid()) << 32 ) | ( (uint64_t)( syscall(SYS_thread_selfid) ) ) )
 #  else
 #    ifndef GETPID_RETURNS_PPID
