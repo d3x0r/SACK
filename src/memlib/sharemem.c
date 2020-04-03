@@ -1947,7 +1947,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 {
    // if a heap is passed, it's a private heap, and allocation is as normal...
 	uint32_t dwAlignPad = 0;
-#if defined( __64_ )
+#if defined( __64__ )
 	if( !alignment ) alignment = 8;
 #endif
 	if( alignment ) {

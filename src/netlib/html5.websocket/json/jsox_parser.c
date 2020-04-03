@@ -644,6 +644,9 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 			if( memcmp( state->val.className, name, state->val.classNameLen ) == 0 )
 				break;
 		}
+		else {
+			typeIndex = 0;
+		}
 		if( typeIndex < 13 ) {
 			state->word = JSOX_WORD_POS_FIELD;
 			state->arrayType = (int)typeIndex;

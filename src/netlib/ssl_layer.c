@@ -922,6 +922,15 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 			lprintf( "Ignoring hostname for anonymous, quickshot server certificate" );
 		}
 		certStruc = ses->cert = MakeRequest();
+		ctx = New( struct ssl_hostContext );
+		ctx->host = StrDup( hosts );
+		ctx->ctx = NULL;
+		ctx->cert = certStruc;
+
+		AddLink( &ses->hosts, ctx );
+		if( !ses->cert )
+			ses->cert = certStruc;
+
 	} else {
 		certStruc = New( struct internalCert );
 		BIO *keybuf = BIO_new( BIO_s_mem() );

@@ -3289,7 +3289,7 @@ size_t CPROC sack_vfs_os_seek_internal( struct sack_vfs_os_file *file, size_t po
 				file->entry->first_block
 					= file->_first_block
 					= b
-					= _os_GetFreeBlock( file->vol, &cache, GFB_INIT_NONE, dist > 4096 ? 4096 : dist < 2048 ? BLOCK_SMALL_SIZE : 4096 );
+					= _os_GetFreeBlock( file->vol, &cache, GFB_INIT_NONE, bs=(dist > 4096 ? 4096 : dist < 2048 ? BLOCK_SMALL_SIZE : 4096) );
 			else
 				b = vfs_os_GetNextBlock( file->vol, b, &cache, GFB_INIT_NONE, TRUE, dist>4096?4096:dist<2048? BLOCK_SMALL_SIZE :4096, &bs );
 			n += bs;

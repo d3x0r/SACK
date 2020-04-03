@@ -311,6 +311,8 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR dirname, int scan_delay, 
 #else
 #if !defined( __QNX__ ) && !defined( __MAC__ )
 		fdMon = inotify_init();
+#else
+		fdMon = -2;
 #endif
 		//fcntl(fdMon, F_SETFL, O_NONBLOCK);
 #endif

@@ -270,12 +270,14 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 	{
 		FILETIME lastmodified;
 		filemon->flags.bScanned = TRUE;
-		if( filemon->flags.bDirectory )
+		if( filemon->flags.bDirectory ) {
 			dwSize = 0xFFFFFFFF;
-		else
-		{
+			lastmodified.dwHighDateTime = 0;
+			lastmodified.dwLowDateTime = 0;
+		} else {
 			dwSize = GetFileTimeAndSize( filemon->name, NULL, NULL, &lastmodified, NULL );
 		}
+		if( local_filemon.flags.bLog )
 		lprintf( "File change stats: %s(%s) %lu %lu, %lu %lu, %s"
 				 , filemon->name
 				 , filemon->filename

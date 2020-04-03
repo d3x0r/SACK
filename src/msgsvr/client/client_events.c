@@ -323,7 +323,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 				  && !( Msg & 0x80000000 ) // not negative result (msg IS 32 bits)
 				  /*&& ( Msg < pHandler->MsgCountEvents )*/ ) // in range of handler
 				{
-					int result_yesno;
+					int result_yesno = 0;
 #ifdef DEBUG_EVENTS
 					lprintf( "Dispatch event message to handler..." );
 #endif
