@@ -1883,6 +1883,8 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 		}
 	}
 	else {
+		struct memoryTimelineNode time_;
+		if( !time ) time = &time_;
 		reloadTimeEntry( time, vol, index VTReadWrite GRTENoLog DBG_RELAY );
 		{
 			int tz = GetTimeZone();
