@@ -272,11 +272,17 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 		filemon->flags.bScanned = TRUE;
 		if( filemon->flags.bDirectory ) {
 			dwSize = 0xFFFFFFFF;
+#ifdef WIN32
 			lastmodified.dwHighDateTime = 0;
 			lastmodified.dwLowDateTime = 0;
+#else
+			lastmodified = 0;
+#endif
 		} else {
 			dwSize = GetFileTimeAndSize( filemon->name, NULL, NULL, &lastmodified, NULL );
 		}
+#ifdef WIN32
+		// this 
 		if( local_filemon.flags.bLog )
 		lprintf( "File change stats: %s(%s) %lu %lu, %lu %lu, %s"
 				 , filemon->name
@@ -285,6 +291,7 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 				 , filemon->lastknownsize
 		  	 , lastmodified, filemon->lastmodifiedtime
 		  	 , filemon->flags.bToDelete?"delete":"" );
+#endif
 		if( dwSize != filemon->lastknownsize
 			|| (*(uint64_t*)&lastmodified) != (*(uint64_t*)&filemon->lastmodifiedtime)
 			|| filemon->flags.bToDelete
