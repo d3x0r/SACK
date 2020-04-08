@@ -2024,14 +2024,15 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 		if( !pHeap )
 			pHeap = g.pMemInstance;
 		pMem = GrabMem( pHeap );
+		dwPad = dwAlignPad;
 #ifdef __64__
-		dwPad = (uint32_t)( (((dwSize + 7) & 0xFFFFFFFFFFFFFFF8) - dwSize) );
-		dwSize += 7; // fix size to allocate at least _32s which
-		dwSize &= 0xFFFFFFFFFFFFFFF8;
+		//dwPad = (uint32_t)( (((dwSize + 7) & 0xFFFFFFFFFFFFFFF8) - dwSize) );
+		//dwSize += 7; // fix size to allocate at least _32s which
+		//dwSize &= 0xFFFFFFFFFFFFFFF8;
 #else
-		dwPad = (((dwSize + 3) & 0xFFFFFFFC) -dwSize);
-		dwSize += 3; // fix size to allocate at least _32s which
-		dwSize &= 0xFFFFFFFC;
+		//dwPad = (((dwSize + 3) & 0xFFFFFFFC) -dwSize);
+		//dwSize += 3; // fix size to allocate at least _32s which
+		//dwSize &= 0xFFFFFFFC;
 #endif
 
 #ifdef _DEBUG
