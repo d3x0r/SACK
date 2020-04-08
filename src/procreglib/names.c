@@ -2019,7 +2019,7 @@ static uintptr_t CPROC SetOptionSet( uintptr_t psv, arg_list args )
 #ifndef __NO_OPTIONS__
 	PARAM( args, TEXTSTR, key );
 	PARAM( args, CTEXTSTR, value );
-	size_t valueLen = strlen( value );
+	size_t valueLen = value?strlen( value ):0;
 	TEXTCHAR *buf = (TEXTCHAR*)malloc( valueLen + 2 );
 	if( l.flags.bFindEndif || l.flags.bFindElse )
 		return psv;
@@ -2193,8 +2193,8 @@ void ReadConfiguration( void )
 			if( l.config_filename )
 			{
 				success = ProcessConfigurationFile( pch, l.config_filename, 0 );
-				if( !success )
-					lprintf( "Failed to open custom interface configuration file:%s", l.config_filename );
+				//if( !success )
+				//	lprintf( "Failed to open custom interface configuration file:%s", l.config_filename );
 				return;
 			}
 			if( !success )
