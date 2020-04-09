@@ -1255,7 +1255,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 		if( !time->slesser.ref.index ) {
 			if( time->sgreater.ref.index ) {
 				enum block_cache_entries cache;
-				struct storageTimelineNode *greater = getRawTimeEntry( vol, leastIndex = time->sgreater.ref.index, &cache GRTELog DBG_DELETE_ );
+				struct storageTimelineNode *greater = getRawTimeEntry( vol, leastIndex = (BLOCKINDEX)time->sgreater.ref.index, &cache GRTELog DBG_DELETE_ ); // ref.index type is larger than index in some configurations; but won't exceed those bounds
 				ptr[0] = time->sgreater; // my depth to my greater is correct to copy anyway.
 				greater->me_fpi = time->me_fpi;
 				SMUDGECACHE( vol, meCache );
@@ -1287,7 +1287,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 			}
 		} else if( !time->sgreater.ref.index ) {
 			enum block_cache_entries cache;
-			struct storageTimelineNode* lesser = getRawTimeEntry( vol, leastIndex = time->slesser.ref.index, &cache  GRTELog DBG_DELETE_ );
+			struct storageTimelineNode* lesser = getRawTimeEntry( vol, leastIndex = (BLOCKINDEX)time->slesser.ref.index, &cache  GRTELog DBG_DELETE_ );
 			ptr[0].raw = time->slesser.raw;
 			SMUDGECACHE( vol, meCache );
 			lesser->me_fpi = time->me_fpi;
@@ -1318,7 +1318,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 #ifdef DEBUG_DELETE_LAST
 				vtprintf( vol->pvtDeleteBuffer, "left is deeper %d %d\n", time->slesser.ref.depth, time->sgreater.ref.depth );
 #endif
-				least = getRawTimeEntry( vol, leastIndex = time->slesser.ref.index, &leastCache GRTELog DBG_DELETE_ );
+				least = getRawTimeEntry( vol, leastIndex = (BLOCKINDEX)time->slesser.ref.index, &leastCache GRTELog DBG_DELETE_ );
 #ifdef DEBUG_DELETE_BALANCE
 				lprintf( "Stepped to least %d", leastIndex );
 #endif
@@ -1351,7 +1351,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				TIMELINE_BLOCK_TYPE* ptrLeast = getRawTimePointer( vol, least->me_fpi, &lcache );
 				if( least->slesser.raw ) {
 					enum block_cache_entries cache;
-					struct storageTimelineNode* leastLesser = getRawTimeEntry( vol, bottom_node = least->slesser.ref.index, &cache GRTELog DBG_DELETE_ );
+					struct storageTimelineNode* leastLesser = getRawTimeEntry( vol, bottom_node = (BLOCKINDEX)least->slesser.ref.index, &cache GRTELog DBG_DELETE_ );
 #ifdef DEBUG_DELETE_BALANCE
 					lprintf( "Least has a lesser node (off of greatest on least) %d", least->slesser.ref.index );
 #endif
@@ -1385,7 +1385,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				enum block_cache_entries cache = BC( ZERO );
 				enum block_cache_entries lcache;
 
-				least = getRawTimeEntry( vol, leastIndex = time->sgreater.ref.index, &cache GRTELog DBG_DELETE_ );
+				least = getRawTimeEntry( vol, leastIndex = (BLOCKINDEX)time->sgreater.ref.index, &cache GRTELog DBG_DELETE_ );
 #ifdef DEBUG_DELETE_LAST
 				vtprintf( vol->pvtDeleteBuffer, "right is deeper %d %d\n", time->slesser.ref.depth, time->sgreater.ref.depth );
 #endif
@@ -1421,7 +1421,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				if( least->sgreater.raw ) {
 					enum block_cache_entries cache;
 					ptrLeast[0].raw = least->sgreater.raw;
-					struct storageTimelineNode* leastGreater = getRawTimeEntry( vol, bottom_node = least->sgreater.ref.index, &cache GRTELog DBG_DELETE_ );
+					struct storageTimelineNode* leastGreater = getRawTimeEntry( vol, bottom_node = (BLOCKINDEX)least->sgreater.ref.index, &cache GRTELog DBG_DELETE_ );
 #ifdef DEBUG_DELETE_BALANCE
 					lprintf( "least greater : %d", least->sgreater.ref.index );
 #endif
@@ -1464,9 +1464,9 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				tmp = getRawTimeEntry( vol, time->slesser.ref.index, &cache GRTELog DBG_DELETE_ );
 				tmp->me_fpi = sane_offsetof( struct storageTimeline, entries[leastIndex - 1].slesser );
 				if( tmp->sgreater.ref.depth > tmp->slesser.ref.depth )
-					depth = tmp->sgreater.ref.depth;
+					depth = (int)tmp->sgreater.ref.depth; // cast smaller... it's only a few bits.
 				else
-					depth = tmp->slesser.ref.depth;
+					depth = (int)tmp->slesser.ref.depth; // cast smaller... it's only a few bits.
 				//if( least->slesser.ref.depth != depth+1 )
 				//	DebugBreak();
 #ifdef DEBUG_DELETE_LAST
@@ -1482,9 +1482,9 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 				tmp = getRawTimeEntry( vol, time->sgreater.ref.index, &cache GRTELog DBG_DELETE_ );
 				tmp->me_fpi = sane_offsetof( struct storageTimeline, entries[leastIndex - 1].sgreater );
 				if( tmp->sgreater.ref.depth > tmp->slesser.ref.depth )
-					depth = tmp->sgreater.ref.depth;
+					depth = tmp->sgreater.ref.depth; // cast smaller... it's only a few bits.
 				else
-					depth = tmp->slesser.ref.depth;
+					depth = tmp->slesser.ref.depth; // cast smaller... it's only a few bits.
 				//if( least->sgreater.ref.depth != depth + 1 )
 				//	DebugBreak();
 #ifdef DEBUG_DELETE_LAST
@@ -1545,7 +1545,7 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 						if( tmp->sgreater.raw ) {
 							int tmp1, tmp2;
 
-							if( ( tmp1 = tmp->slesser.ref.depth ) > ( tmp2 = tmp->sgreater.ref.depth ) ) {
+							if( ( tmp1 = (int)tmp->slesser.ref.depth ) > ( tmp2 = (int)tmp->sgreater.ref.depth ) ) { // cast smaller... it's only a few bits.
 								TIMELINE_BLOCK_TYPE* ptr = getRawTimePointer( vol, tmp->me_fpi, &meCache );
 								if( ptr[0].ref.depth != ( tmp1 + 1 ) ) {
 									vtprintf( vol->pvtDeleteBuffer, "Update parent count to %d on %d", tmp1 + 1, convertMeToParentIndex( tmp->me_fpi ) );
@@ -1562,15 +1562,15 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 										int tmp3, tmp4;
 										enum block_cache_entries cache;
 										struct storageTimelineNode* lesser = getRawTimeEntry( vol, tmp->slesser.ref.index, &cache GRTELog DBG_DELETE_ );
-										tmp3 = lesser->slesser.ref.depth;
-										tmp4 = lesser->sgreater.ref.depth;
+										tmp3 = (int)lesser->slesser.ref.depth; // cast smaller... it's only a few bits.
+										tmp4 = (int)lesser->sgreater.ref.depth; // cast smaller... it's only a few bits.
 										struct storageTimelineNode* _y;
 										_y = lesser;
 #ifdef DEBUG_DELETE_BALANCE
 										lprintf( "y node is %d", tmp->slesser.ref.index );
 #endif
 										if( tmp3 >= tmp4 ) {
-											_os_AVL_RotateToRight( vol, tmp, node_idx, _y, tmp->slesser.ref.index DBG_DELETE_ );
+											_os_AVL_RotateToRight( vol, tmp, (BLOCKINDEX)node_idx, _y, tmp->slesser.ref.index DBG_DELETE_ ); // truncate to blockindex size
 #ifdef DEBUG_DELETE_BALANCE
 											lprintf( " ------------- DELETE TIME ENTRY after rotate to right ---------------- " );
 											DumpTimelineTree( vol, TRUE DBG_DELETE_ );
@@ -1585,16 +1585,16 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 											struct storageTimelineNode* _x;
 											enum block_cache_entries cache_x;
 											BLOCKINDEX lessGreater = lesser->sgreater.ref.index;
-											_x = getRawTimeEntry( vol, lesser->sgreater.ref.index, &cache_x GRTELog DBG_DELETE_ );
+											_x = getRawTimeEntry( vol, (BLOCKINDEX)lesser->sgreater.ref.index, &cache_x GRTELog DBG_DELETE_ ); // truncate to blockindex size
 #ifdef DEBUG_DELETE_BALANCE
 											lprintf( " ------------- to TIME ENTRY after rotate to left ---------------- %d %d ", node_idx, lessGreater );
 #endif
-											_os_AVL_RotateToLeft( vol, _y, tmp->slesser.ref.index, _x, lessGreater DBG_DELETE_ );
+											_os_AVL_RotateToLeft( vol, _y, (BLOCKINDEX)tmp->slesser.ref.index, _x, lessGreater DBG_DELETE_ ); // truncate to blockindex size
 #ifdef DEBUG_DELETE_BALANCE
 											lprintf( " ------------- DELETE TIME ENTRY after rotate to left ---------------- %d %d ", node_idx, lesser->sgreater.ref.index );
 											DumpTimelineTree( vol, TRUE DBG_DELETE_ );
 #endif
-											_os_AVL_RotateToRight( vol, tmp, node_idx, _x, lessGreater DBG_DELETE_ );
+											_os_AVL_RotateToRight( vol, tmp, (BLOCKINDEX)node_idx, _x, lessGreater DBG_DELETE_ ); // truncate to blockindex size
 #ifdef DEBUG_DELETE_BALANCE
 											lprintf( " ------------- DELETE TIME ENTRY after rotate to right ---------------- %d %d", node_idx, lessGreater );
 											DumpTimelineTree( vol, TRUE DBG_DELETE_ );
@@ -1626,13 +1626,13 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 										int tmp3, tmp4;
 										enum block_cache_entries cache;
 										struct storageTimelineNode* lesser = getRawTimeEntry( vol, tmp->sgreater.ref.index, &cache GRTELog DBG_DELETE_ );
-										tmp3 = lesser->slesser.ref.depth;
-										tmp4 = lesser->sgreater.ref.depth;
+										tmp3 = (int)lesser->slesser.ref.depth; // truncate to int, it's only a few bits anyway
+										tmp4 = (int)lesser->sgreater.ref.depth; // truncate to int, it's only a few bits anyway
 										struct storageTimelineNode* _y;
 										_y = lesser;
 
 										if( tmp4 >= tmp3 ) {
-											_os_AVL_RotateToLeft( vol, tmp, node_idx, _y, tmp->sgreater.ref.index DBG_DELETE_ );
+											_os_AVL_RotateToLeft( vol, tmp, (BLOCKINDEX)node_idx, _y, tmp->sgreater.ref.index DBG_DELETE_ ); // truncate to blockindex size
 #ifdef DEBUG_DELETE_BALANCE
 											lprintf( " ------------- DELETE TIME ENTRY after rotate to left ---------------- " );
 											DumpTimelineTree( vol, TRUE  DBG_DELETE_ );
@@ -1646,14 +1646,14 @@ static void deleteTimelineIndexWork( struct sack_vfs_os_volume* vol, BLOCKINDEX 
 										else {
 											struct storageTimelineNode *_x;
 											enum block_cache_entries cache_x;
-											BLOCKINDEX greatLesser = lesser->slesser.ref.index;
-											_x = getRawTimeEntry( vol, lesser->slesser.ref.index, &cache_x GRTELog DBG_DELETE_ );
-											_os_AVL_RotateToRight( vol, _y, tmp->sgreater.ref.index, _x, greatLesser DBG_DELETE_ );
+											BLOCKINDEX greatLesser = (BLOCKINDEX)lesser->slesser.ref.index; // truncate to blockindex size
+											_x = getRawTimeEntry( vol, (BLOCKINDEX)lesser->slesser.ref.index, &cache_x GRTELog DBG_DELETE_ ); // truncate to blockindex size
+											_os_AVL_RotateToRight( vol, _y, (BLOCKINDEX)tmp->sgreater.ref.index, _x, greatLesser DBG_DELETE_ ); // truncate to blockindex size
 #ifdef DEBUG_DELETE_BALANCE
 											lprintf( " ------------- DELETE TIME ENTRY after rotate to right ---------------- " );
 											DumpTimelineTree( vol, TRUE  DBG_DELETE_ );
 #endif
-											_os_AVL_RotateToLeft( vol, tmp, node_idx, _x, greatLesser DBG_DELETE_ );
+											_os_AVL_RotateToLeft( vol, tmp, (BLOCKINDEX)node_idx, _x, greatLesser DBG_DELETE_ ); // truncate to blockindex size
 #ifdef DEBUG_DELETE_BALANCE
 											lprintf( " ------------- DELETE TIME ENTRY  after rotte to left---------------- " );
 											DumpTimelineTree( vol, TRUE  DBG_DELETE_ );
@@ -1744,7 +1744,7 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 
 		//lprintf( "Delete start... %d", index );
 		time = getRawTimeEntry( vol, index, &cache GRTELog DBG_SRC );
-		next = time->prior.raw;
+		next = (BLOCKINDEX)time->prior.raw; // this type is larger than index in some configurations
 		nodes--;
 #ifdef DEBUG_DELETE_LAST
 		checkRoot( vol );
@@ -1789,13 +1789,13 @@ BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vol
 	struct storageTimeline* timeline = vol->timeline;
 	TIMELINE_BLOCK_TYPE freeIndex;
 	BLOCKINDEX index;
-	BLOCKINDEX priorIndex = time->index;
+	BLOCKINDEX priorIndex = (BLOCKINDEX)time->index; // ref.index type is larger than index in some configurations; but won't exceed those bounds
 
 	freeIndex.ref.index = timeline->header.first_free_entry.ref.index;
 	freeIndex.ref.depth = 0;
 
 	// update next free.
-	reloadTimeEntry( time, vol, index = freeIndex.ref.index VTReadWrite GRTELog DBG_RELAY );
+	reloadTimeEntry( time, vol, index = (BLOCKINDEX)freeIndex.ref.index VTReadWrite GRTELog DBG_RELAY ); // ref.index type is larger than index in some configurations; but won't exceed those bounds
 
 	if( time->disk->sgreater.ref.index ) {
 		timeline->header.first_free_entry.ref.index = time->disk->sgreater.ref.index;
@@ -1870,7 +1870,7 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 			enum block_cache_entries inputCache;
 			FPI dirent_fpi;
 			timeold = getRawTimeEntry( vol, index, &inputCache GRTELog DBG_RELAY );
-			dirent_fpi = timeold->dirent_fpi;
+			dirent_fpi = (FPI)timeold->dirent_fpi; // ref.index type is larger than index in some configurations; but won't exceed those bounds
 			dropRawTimeEntry( vol, inputCache GRTELog DBG_RELAY );
 
 			// gets a new timestamp.
@@ -1896,6 +1896,6 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 		}
 		time->disk->time = timeGetTime64ns();
 		updateTimeEntry( time, vol, FALSE DBG_RELAY );
-		return index;
+		return (BLOCKINDEX)index; // index type is larger than index in some configurations; but won't exceed those bounds
 	}
 }

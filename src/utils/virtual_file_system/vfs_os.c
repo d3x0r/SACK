@@ -2828,7 +2828,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 							FPI oldFPI;
 							enum block_cache_entries  timeCache = BC( TIMELINE );
 							reloadTimeEntry( &time, vol, (entry->timelineEntry     ) VTReadWrite GRTENoLog DBG_SRC );
-							oldFPI = time.disk->dirent_fpi;
+							oldFPI = (FPI)time.disk->dirent_fpi; // dirent_fpi type is larger than index in some configurations; but won't exceed those bounds
 							// new entry is still the same timeline entry as the old entry.
 							newEntry->timelineEntry = (entry->timelineEntry     )     ;
 							// timeline points at new entry.
@@ -2857,7 +2857,8 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 								struct sack_vfs_file  * file;
 								LIST_FORALL( vol->files, idx, struct sack_vfs_file  *, file ) {
 									if( file->entry_fpi == oldFPI ) {
-										file->entry_fpi = time.disk->dirent_fpi; // new entry_fpi.
+										// new entry_fpi.
+										file->entry_fpi = (FPI)time.disk->dirent_fpi; // dirent_fpi type is larger than index in some configurations; but won't exceed those bounds
 									}
 								}
 							}
@@ -3764,7 +3765,7 @@ static void sack_vfs_os_unlink_file_entry( struct sack_vfs_os_volume *vol, struc
 			} while( block != EOFBLOCK );
 			// this deletes the allocated name
 			// it also removes the directory entry from list of entries
-			deleteTimelineIndex( vol, dirinfo->entry->timelineEntry );
+			deleteTimelineIndex( vol, (BLOCKINDEX)dirinfo->entry->timelineEntry ); // timelineEntry type is larger than index in some configurations; but won't exceed those bounds
 			deleteDirectoryEntryName( vol, dirinfo, dirinfo->entry->name_offset & DIRENT_NAME_OFFSET_OFFSET, dirinfo->cache );
 			
 	}
