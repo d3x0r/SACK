@@ -1479,8 +1479,10 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 	{
 		if( (!(lpClient->dwFlags & CF_ACTIVE )) || (lpClient->dwFlags & CF_TOCLOSE) )
 		{
+#ifdef LOG_NETWORK_LOCKING
 			_lprintf(DBG_RELAY)( "Failing send... inactive or closing" );
 			LogBinary( (uint8_t*)pInBuffer, nInLen );
+#endif
 			return FALSE;
 		}
 		Relinquish();
