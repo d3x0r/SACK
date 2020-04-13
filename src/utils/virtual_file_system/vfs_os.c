@@ -422,6 +422,7 @@ ATEXIT( flushVolumes ){
 	struct sack_vfs_os_volume* vol;
 	l.exited = 1;
 	LIST_FORALL( l.volumes, idx, struct sack_vfs_os_volume*, vol ) {
+		if( vol->file )
 		sack_vfs_os_flush_volume( vol, TRUE );
 	}
 
@@ -2208,7 +2209,8 @@ void sack_vfs_os_unload_volume( struct sack_vfs_os_volume * vol ) {
 		return;
 	}
 	DeleteLink( &l.volumes, vol );
-	sack_vfs_os_flush_volume( vol, TRUE );
+	if( vol->file )
+		sack_vfs_os_flush_volume( vol, TRUE );
 	strdup_free( (char*)vol->volname );
 	DeleteListEx( &vol->files DBG_SRC );
 	sack_fclose( vol->file );
