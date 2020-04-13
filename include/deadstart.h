@@ -522,7 +522,7 @@ struct rt_init // structure placed in XI/YI segment
 
 #else
 
-#if defined( _WIN32 ) && defined( __GNUC__ )
+#if defined( _WIN32 ) || defined( __GNUC__ )
 #  define HIDDEN_VISIBILITY
 #else
 #  define HIDDEN_VISIBILITY  __attribute__((visibility("hidden")))
