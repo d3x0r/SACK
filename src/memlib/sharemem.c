@@ -2712,7 +2712,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		}
 		else
 		{
-			PCHUNK pc = (PCHUNK)((char*)pData - CHUNK_SIZE);
+			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - ( ( (uint16_t*)pData)[-1] +
+													offsetof( CHUNK, byData ) ) );
 			PMEM pMem = GrabMem( pc->pRoot );
 
 #ifndef NO_LOGGING
