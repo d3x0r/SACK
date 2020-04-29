@@ -11,6 +11,7 @@
 struct file_system_mounted_interface 
 {
 	struct file_system_mounted_interface* nextLayer;
+	struct file_system_mounted_interface** meLayer;
 	//struct file_system_mounted_interface* sideLayer; // mount-as... 
 	struct file_system_mounted_interface* parent;
 	//DeclareLink( struct file_system_mounted_interface );
