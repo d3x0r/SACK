@@ -1,0 +1,25 @@
+
+if( UNIX )
+# because sources are common to monolithic build mode
+# they are already defined in a variable calld VIDLIB_SOURCES (defined in CMakeSources.lst)
+
+add_library( bag.video.wayland SHARED
+  ${FIRST_GCC_LIBRARY_SOURCE}
+  vidlib.wayland.c
+
+  ${LAST_GCC_LIBRARY_SOURCE}
+)
+SET_TARGET_PROPERTIES(bag.video.wayland PROPERTIES
+                  COMPILE_FLAGS  "-DRENDER_LIBRARY_SOURCE"
+                  COMPILE_DEFINITIONS "TARGET_LABEL=bag_video_wayland;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag.video.wayland${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
+                  FOLDER "Video Renderer"
+                  LINK_FLAGS "${extra_link_flags}"
+)
+
+my_target_link_libraries( bag.video.wayland bag ${EXTERNALS} wayland-client ${PLATFORM_LIBRARIES})
+
+
+
+install_mode_dest( bag.video.wayland )
+
+endif( UNIX )
