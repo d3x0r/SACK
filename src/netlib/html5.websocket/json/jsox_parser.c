@@ -640,13 +640,11 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		lprintf( "define typed array:%s", state->val.className );
 #endif
 		if( !knownArrayTypeNames ) registerKnownArrayTypeNames();
-		LIST_FORALL( knownArrayTypeNames, typeIndex, char *, name ) {
+		typeIndex = 0;
+		LIST_FORALL( knownArrayTypeNames, typeIndex, char *, name )
 			if( memcmp( state->val.className, name, state->val.classNameLen ) == 0 )
 				break;
-		}
-		else {
-			typeIndex = 0;
-		}
+				
 		if( typeIndex < 13 ) {
 			state->word = JSOX_WORD_POS_FIELD;
 			state->arrayType = (int)typeIndex;
