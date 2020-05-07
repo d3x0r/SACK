@@ -276,6 +276,7 @@ PREFIX_PACKED struct vfs_os_rollback_entry {
 PREFIX_PACKED struct vfs_os_rollback_header {
 	struct {
 		uint64_t dirty : 1;
+		uint64_t processing : 1;
 	} flags;
 	BLOCKINDEX journal;  // where the blocks are tracked.
 	BLOCKINDEX small_journal; // where small blocks are tracked

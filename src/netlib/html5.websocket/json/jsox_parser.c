@@ -1211,7 +1211,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		while( state->status && (state->n < input->size) && ( (c = GetUtfChar( &input->pos ))!= JSOX_BADUTF8) )
 		{
 #if defined( DEBUG_PARSING ) && defined( DEBUG_CHARACTER_PARSING )
-			lprintf( "parse character %c %d %d %d %d", c<32?'.':c, state->word, state->parse_context, state->parse_context, state->word );
+			lprintf( "parse character %c %d %d %d %d", c<32?'.':c, state->word, state->parse_context, state->val.value_type, state->word );
 #endif
 			state->col++;
 			newN = input->pos - input->buf;
@@ -1563,6 +1563,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				if( state->val.value_type == JSOX_VALUE_STRING && !state->completedString ) {
 					// already faulted to a string?
 					if( c == '\'' || c == '\"' || c == '`' ) {
+#ifdef DEBUG_CLASS_STATES
+						lprintf( "Setting classname for string here... %d %.*s", state->val.stringLen, state->val.stringLen, state->val.string );
+#endif
 						state->val.className = state->val.string;
 						state->val.classNameLen = state->val.stringLen;
 						state->val.string = output->pos;
@@ -1609,11 +1612,13 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				}
 
 				if( ( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD  && state->objectContext != JSOX_OBJECT_CONTEXT_CLASS_VALUE )
-				   //|| state->parse_context == JSOX_CONTEXT_UNKNOWN
-				   //|| state->parse_context == JSOX_CONTEXT_IN_ARRAY
-				   //|| (state->parse_context == JSOX_CONTEXT_OBJECT_FIELD_VALUE )
 				) {
-					//lprintf( "gathering object field:%c  %*.*s", c, output->pos- state->val.string, output->pos - state->val.string, state->val.string );
+#ifdef DEBUG_PARSING
+					if( state->val.string )
+						lprintf( "gathering object field:%c  %d %.*s", c, output->pos- state->val.string, output->pos - state->val.string, state->val.string );
+					else
+						lprintf( "Gathering, but no string yet?" );
+#endif
 					switch( c )
 					{
 					case '`':
@@ -1621,8 +1626,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						// but gatherString now just gathers all strings
 					case '"':
 					case '\'':
-						if( state->val.value_type == JSOX_VALUE_STRING
-							&& state->val.className ) {
+						if( state->val.value_type == JSOX_VALUE_STRING && state->val.className ) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
 							vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
@@ -1632,11 +1636,20 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							|| ( state->val.value_type == JSOX_VALUE_STRING
 								&& !state->val.className ) ) {
 							(*output->pos++) = 0;
+#ifdef DEBUG_PARSING
+							lprintf( "Promoting previous string to... what? %d %.*s", state->val.stringLen, state->val.stringLen, state->val.string );
+#endif
 							state->val.className = state->val.string;
+							state->val.classNameLen = state->val.stringLen;
 #ifdef DEBUG_CLASS_STATES
 							lprintf( "Setting classname HERE (why?):", state->val.string );
 #endif
 						}
+#ifdef DEBUG_PARSING
+						else {
+							lprintf( "Was there already a string in progress?");
+						}
+#endif
 						state->val.string = output->pos;
 						state->gatheringString = TRUE;
 						state->gatheringStringFirstChar = c;
@@ -1739,8 +1752,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							 && !state->val.className ) ) {
 						(*output->pos++) = 0;
 						state->val.className = state->val.string;
+						state->val.classNameLen = state->val.stringLen;
 #ifdef DEBUG_CLASS_STATES
-						lprintf( "Setting classname HERE (why?):", state->val.string );
+						lprintf( "Setting classname HERE (why?): %d %.*s", state->val.stringLen, state->val.stringLen, state->val.string );
 #endif
 					}
 					state->val.string = output->pos;
