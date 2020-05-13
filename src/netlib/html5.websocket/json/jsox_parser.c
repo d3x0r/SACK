@@ -1096,6 +1096,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				if( input->tempBuf )
 					Deallocate( CPOINTER, input->buf );
 				input->pos = input->buf = newBuf;
+				input->size = unused+msglen;
 				input->tempBuf = TRUE;
 			}
 		}
