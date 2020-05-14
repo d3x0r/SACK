@@ -41,6 +41,9 @@ SACK_VFS_NAMESPACE
 #define LoG( a,... )
 #endif
 
+// more verbose logging...
+//#define DEBUG_BLOCK_TRACKING
+
 //#define DEBUG_NAME_POSITION_SEEK
 //#define DEBUG_VERBOSE_CHAIN_FOLLOW
 
@@ -705,7 +708,9 @@ static BLOCKINDEX GetFreeBlock( struct sack_vfs_volume *vol, int init )
 		b = vol->lastBatBlock / BLOCKS_PER_BAT;
 		n = vol->lastBatBlock % BLOCKS_PER_BAT;
 	}
-	LoG( "(should be 0) check, start, b, n %d %d %d %d", (int)check_val, (int) vol->lastBatBlock, (int)b, (int)n );
+#ifdef DEBUG_BLOCK_TRACKING
+	LoG( "(should be 0(free in-bat) or 1(end of tracked)) check, start, b, n %d %d %d %d", (int)check_val, (int) vol->lastBatBlock, (int)b, (int)n );
+#endif
 	current_BAT = TSEEK( BLOCKINDEX*, vol, b*BLOCKS_PER_SECTOR*BLOCK_SIZE, cache ) + n;
 	blockKey = ((BLOCKINDEX*)vol->usekey[cache]) + n;
 	result = b * BLOCKS_PER_BAT + n;
@@ -1380,7 +1385,9 @@ size_t CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence )
 	}
 	else {
 		file->block = b = file->blockChain[file->blockChainLength - 1];
-		LoG( "NEed more blocks after end of file.... %d", file->block );
+#ifdef DEBUG_BLOCK_TRACKING
+		LoG( "Need more blocks after end of file.... %d", file->block );
+#endif
 		old_fpi = ( file->blockChainLength - 1 ) * BLOCK_SIZE;
 	}
 
@@ -1394,7 +1401,9 @@ size_t CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence )
 					return (size_t)file->fpi;
 				}
 				b = vfs_GetNextBlock( file->vol, b, FALSE, TRUE );
+#ifdef DEBUG_BLOCK_TRACKING
 				LoG( "-- file block will be %d   %d  %d", (int)b, (int)file->fpi, (int)(old_fpi) );
+#endif
 				old_fpi += BLOCK_SIZE;// the actual old FPI already had a block (input file->block), new FPI gets this block.
 				SetBlockChain( file, old_fpi, b );
 				//SetBlockChain( file, old_fpi, file->block );

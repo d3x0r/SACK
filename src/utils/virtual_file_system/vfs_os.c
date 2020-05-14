@@ -422,6 +422,7 @@ ATEXIT( flushVolumes ){
 	struct sack_vfs_os_volume* vol;
 	l.exited = 1;
 	LIST_FORALL( l.volumes, idx, struct sack_vfs_os_volume*, vol ) {
+		if( vol->file )
 		sack_vfs_os_flush_volume( vol, TRUE );
 	}
 
@@ -646,6 +647,7 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 
 	enum block_cache_entries rollbackCache = BC( ROLLBACK );
 	struct vfs_os_rollback_header* rollback = ( struct vfs_os_rollback_header* )vfs_os_FSEEK( vol, vol->journal.rollback_file, 0, 0, &rollbackCache, ROLLBACK_BLOCK_SIZE DBG_SRC );
+	if( rollback->flags.processing ) return; // don't journal recovery.
 	rollback->flags.dirty = 1;
 
 	do {
@@ -747,7 +749,7 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 			BLOCKINDEX bigSector;
 		};
 		PDATALIST pdlBATs = CreateDataList( sizeof( BLOCKINDEX ) );
-		
+		rollback->flags.processing = 1;
 		for( e = 0; e < rollback->nextEntry; e++ ) {
 			rollbackEntryCache = BC( ROLLBACK );
 			rollbackEntry = ( struct vfs_os_rollback_entry* )vfs_os_FSEEK( vol, vol->journal.rollback_file, 0
@@ -2208,7 +2210,8 @@ void sack_vfs_os_unload_volume( struct sack_vfs_os_volume * vol ) {
 		return;
 	}
 	DeleteLink( &l.volumes, vol );
-	sack_vfs_os_flush_volume( vol, TRUE );
+	if( vol->file )
+		sack_vfs_os_flush_volume( vol, TRUE );
 	strdup_free( (char*)vol->volname );
 	DeleteListEx( &vol->files DBG_SRC );
 	sack_fclose( vol->file );

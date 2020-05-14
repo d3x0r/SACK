@@ -2675,28 +2675,15 @@ struct file_system_mounted_interface* sack_get_mounted_filesystem( const char* n
 	struct file_system_mounted_interface* root = FileSysThreadInfo.mounted_file_systems;
 	while( root ) {
 		if( root->name ) if( stricmp( root->name, name ) == 0 ) break;
-		root =  root ->nextLayer;
+		root = root->nextLayer;
 	}
 	return root;
 }
 
 void sack_unmount_filesystem( struct file_system_mounted_interface* mount )
 {
-	struct file_system_mounted_interface* isMount = FileSysThreadInfo.mounted_file_systems;
-	struct file_system_mounted_interface* priorMount = NULL;
-	while( isMount ) {
-		if( isMount == mount ) {
-			break;
-		}
-		priorMount = isMount;
-		isMount = isMount->nextLayer;
-	}
-	if( isMount ) {
-		if( !priorMount )
-			FileSysThreadInfo.mounted_file_systems = mount->nextLayer;
-		else
-			priorMount->nextLayer = mount->nextLayer;
-	}
+	if( mount->meLayer )
+		mount->meLayer[0] = mount->nextLayer;
 }
 
 LOGICAL CPROC sack_filesys_rename( uintptr_t psvInstance, const char* original_name, const char* new_name ) {
@@ -2706,7 +2693,10 @@ LOGICAL CPROC sack_filesys_rename( uintptr_t psvInstance, const char* original_n
 static void link_mount( struct file_system_mounted_interface* mount ) {
 	struct file_system_mounted_interface* root = FileSysThreadInfo.mounted_file_systems;
 	if( !root || ( root->priority >= mount->priority ) ) {
-		mount->nextLayer = root;
+		if( mount->nextLayer = FileSysThreadInfo.mounted_file_systems )
+			root->meLayer = &mount->nextLayer;
+		mount->meLayer = &FileSysThreadInfo.mounted_file_systems;
+		
 		if( !root )
 			FileSysThreadInfo.default_mount = mount;
 		FileSysThreadInfo.mounted_file_systems = mount; // higher priorirty, layer this thread's higher priority version.
@@ -2716,6 +2706,7 @@ static void link_mount( struct file_system_mounted_interface* mount ) {
 		struct file_system_mounted_interface* check, * check_ = root;
 		if( !root->nextLayer ) {
 			root->nextLayer = mount;
+			mount->meLayer = &root->nextLayer;
 			mount->nextLayer = NULL;
 		}
 		else {
@@ -2723,6 +2714,8 @@ static void link_mount( struct file_system_mounted_interface* mount ) {
 				if( check->priority >= mount->priority ) {
 					check_->nextLayer = mount;
 					mount->nextLayer = check;
+					mount->meLayer = check_->meLayer;
+					check_->meLayer = &mount->nextLayer;
 					break;
 				}
 				check_ = check;
@@ -2730,6 +2723,7 @@ static void link_mount( struct file_system_mounted_interface* mount ) {
 			if( !check ) {
 				check_->nextLayer = mount;
 				mount->nextLayer = NULL;
+				mount->meLayer = &check_->nextLayer;
 			}
 		}
 	}
