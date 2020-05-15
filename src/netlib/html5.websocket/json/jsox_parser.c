@@ -10,6 +10,7 @@
 
 #include "unicode_non_identifiers.h"
 //#define DEBUG_PARSING
+//#define DEBUG_ARRAY_TYPE
 //#define DEBUG_CHARACTER_PARSING
 //#define DEBUG_CLASS_STATES
 //#define DEBUG_STRING_LENGTH
@@ -96,7 +97,9 @@ static void jsox_state_init( struct jsox_parse_state *state )
 	state->current_class = NULL;
 	state->current_class_item = 0;
 	state->arrayType = -1;
-
+#ifdef DEBUG_ARRAY_TYPE
+	lprintf( "Init arrayType to -1");
+#endif
 
 	state->context_stack = GetFromSet( PLINKSTACK, &jxpsd.linkStacks );// NULL;
 	if( state->context_stack[0] ) state->context_stack[0]->Top = 0;
@@ -584,6 +587,9 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 		lprintf( "object Push class: %s %s", state->val.className, state->current_class?state->current_class->name:"");
 #endif
 		old_context->current_class_item = state->current_class_item;
+#ifdef DEBUG_ARRAY_TYPE
+		lprintf( "open object save arrayType:%d",state->arrayType );
+#endif
 		old_context->arrayType = state->arrayType;
 		state->arrayType = -1;
 		state->current_class = cls;
@@ -613,6 +619,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 
 static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buffer* output, int c ) {
 	PJSOX_CLASS cls = NULL;
+	int newArrayType = -1;
 	if( state->word > JSOX_WORD_POS_RESET && state->word < JSOX_WORD_POS_FIELD )
 		recoverIdent(state,output,0); // don't pass C; otherwise array opens.
 
@@ -644,10 +651,9 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		LIST_FORALL( knownArrayTypeNames, typeIndex, char *, name )
 			if( memcmp( state->val.className, name, state->val.classNameLen ) == 0 )
 				break;
-				
 		if( typeIndex < 13 ) {
 			state->word = JSOX_WORD_POS_FIELD;
-			state->arrayType = (int)typeIndex;
+			newArrayType = (int)typeIndex;
 #ifdef DEBUG_PARSING
 			lprintf( "setup array type... %d", typeIndex );
 #endif
@@ -684,13 +690,16 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 #endif
 		old_context->current_class = state->current_class;
 		old_context->current_class_item = state->current_class_item;
+#ifdef DEBUG_ARRAY_TYPE
+		lprintf( "open array save arrayType:%d to %d", state->arrayType, newArrayType );
+#endif		
 		old_context->arrayType = state->arrayType;
 		state->current_class = cls;
 #ifdef DEBUG_CLASS_STATES
 		lprintf( "set current class: %s", cls ? cls->name : "<none>" );
 #endif
 		state->current_class_item = 0;
-		state->arrayType = -1;
+		state->arrayType = newArrayType;
 		EnterCriticalSec( &jxpsd.cs_states );
 		state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
 		LeaveCriticalSec( &jxpsd.cs_states );
@@ -1032,18 +1041,12 @@ static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct js
 		lprintf( "push named:%*.*s %d", val->nameLen, val->nameLen, val->name, line );
 #endif
 	if( val->value_type == JSOX_VALUE_UNSET ) return; // no value to push.
-	if( val->value_type == JSOX_VALUE_ARRAY ) {
-
-		if( state->arrayType >= 0 ) {
+	if( val->value_type >= JSOX_VALUE_TYPED_ARRAY && val->value_type <= JSOX_VALUE_TYPED_ARRAY_MAX ) {
+		
+		//lprintf( "Setting value type as JSOX_VALUD_TYPED_ARRAY+%d",val->value_type - JSOX_VALUE_TYPED_ARRAY );
+		if( (val->value_type - JSOX_VALUE_TYPED_ARRAY) >= 0 && (val->value_type - JSOX_VALUE_TYPED_ARRAY) < 12 ) {
 			struct jsox_value_container *innerVal = (struct jsox_value_container *)GetDataItem( &val->contains, 0 );
-			//size_t size;
-			//val->className = (char*)GetLink( &knownArrayTypeNames, state->arrayType );
-			val->value_type = (enum jsox_value_types)(JSOX_VALUE_TYPED_ARRAY + state->arrayType);
-			//lprintf( "INPUT:%d %s", val->stringLen, val->string );
-			if( state->arrayType < 12 )
-				val->string = (char*)DecodeBase64Ex( innerVal->string, innerVal->stringLen, &val->stringLen, NULL );
-			//lprintf( "base:%s", EncodeBase64Ex( "HELLO, World!", 13, NULL, NULL ) );
-			//lprintf( "Resolve base64 string:%s", val->string );
+			val->string = (char*)DecodeBase64Ex( innerVal->string, innerVal->stringLen, &val->stringLen, NULL );
 		}
 	}
 	AddDataItem( pdl, val );
@@ -1401,6 +1404,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->current_class = old_context->current_class;
 						state->current_class_item = old_context->current_class_item;
 						state->arrayType = old_context->arrayType;
+#ifdef DEBUG_ARRAY_TYPE
+						lprintf( "close object restore arrayType:%d",state->arrayType );
+#endif
 						state->objectContext = old_context->objectContext;
 #ifdef DEBUG_CLASS_STATES
 						lprintf( "POP CLASS NAME %s %s %p", state->val.className, state->current_class ? state->current_class->name : "", state->current_class ? state->current_class->fields : 0 );
@@ -1439,7 +1445,12 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						pushValue( state, state->elements, &state->val );
 						JSOX_RESET_STATE_VAL();
 					}
-					state->val.value_type = JSOX_VALUE_ARRAY;
+
+					if( state->arrayType >= 0 ) {
+						state->val.value_type = (enum jsox_value_types)(JSOX_VALUE_TYPED_ARRAY + state->arrayType);
+					}
+					else
+						state->val.value_type = JSOX_VALUE_ARRAY;
 
 					//state->val.string = NULL;
 					state->val.contains = state->elements[0];
@@ -1465,6 +1476,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						lprintf( "POP2 CLASS NAME %s %s %p", state->val.className, state->current_class ? state->current_class->name : "", state->current_class ? state->current_class->fields : 0 );
 #endif
 						state->arrayType = old_context->arrayType;
+#ifdef DEBUG_ARRAY_TYPE
+						lprintf( "close array restore arrayType:%d",state->arrayType );
+#endif
 						DeleteFromSet( JSOX_PARSE_CONTEXT, state->parseContexts, old_context );
 					}
 					if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
