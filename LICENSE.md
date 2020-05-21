@@ -2,20 +2,21 @@ SACK - System Abstraction Component Kit
 
 This project provides abstraction components for windows/linux/BSD/...
 
-For lack of time and expediency, all sources from this point 'down' (that
-is a recursive directory listin from the directory which contains this file)
-are 
+All sources from this point 'down' (that is a recursive directory 
+listing from the directory which contains this file) are 
 
 Copyright (C) 1996-2020++ to James Buckeyne (d3x0r as in github.com/d3x0r). 
 
 The intent of the current chosen liscense is to protect the work as a whole
 from being claimed as the work of another; especially without significant
-modifications.  
+modifications.
 
 Snippets, and code chunks are permissable to repurpose into other code,
-with on a request that a notation be made where the code was originally
-sourced from.  If the code is significantly modified, please do indicate
-such, so the original work is not blamed.  
+with only an awareness of a request that a notation be made where the 
+code was originally sourced from.  If the code is significantly 
+modified, please do indicate such, so the original work is not blamed.  
+(But; what can I know, I wonder how many people actually read THIS file;
+I certainly can't blame you if you were not aware I want to make a request )
 
 'Significant changes' would be... more than ... N.  lines added or deleted.
 I don't know how much more you would add or extend this in your own ways...
