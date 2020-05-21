@@ -27,7 +27,7 @@ A good gray example would be, someone refactors the code to remove all
 types that are ALL CAPITAL LETTERS.  This change would cause significant
 additions and subtractions to code; but it would still essentially be the same...
 
-But, failling  this is liscensed currently as [WTFPL](WTFPL.md).
+That said, this is licensed currently as [WTFPL](WTFPL.md).
 
 
 ## Pre 2020/05/20
