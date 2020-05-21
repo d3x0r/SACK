@@ -18,10 +18,29 @@ modified, please do indicate such, so the original work is not blamed.
 (But; what can I know, I wonder how many people actually read THIS file;
 I certainly can't blame you if you were not aware I want to make a request )
 
+
+```
+Example optional notation
+
+// included from github.com/d3x0r/sack include/sack_types.h
+
+```
+
+Github links to sources don't work directly; but have like a branch/base/tree inbetween word... it is sufficient to 
+indicate the root repository and separately relative paths source file(s) referenced.
+
+optionally...
+
+```
+// significantly modified for use here
+```
+
+
 'Significant changes' would be... more than ... N.  lines added or deleted.
 I don't know how much more you would add or extend this in your own ways...
 again; the point isn't to prevent you from using this in any way you wish, 
 except to claim this work, as a whole, as it is, as property of someone else.
+
 
 A good gray example would be, someone refactors the code to remove all
 types that are ALL CAPITAL LETTERS.  This change would cause significant
