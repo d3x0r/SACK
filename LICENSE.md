@@ -1,7 +1,6 @@
 SACK - System Abstraction Component Kit
 
-This project provides abstraction components for windows/linux/BSD (though
-it relies on GNU make and at the moment does not build properly on BSD)
+This project provides abstraction components for windows/linux/BSD/...
 
 For lack of time and expediency, all sources from this point 'down' (that
 is a recursive directory listin from the directory which contains this file)
