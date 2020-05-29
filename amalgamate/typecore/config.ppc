@@ -23,10 +23,68 @@
 namespace sack {
    namespace logging {
 #endif
-      INDEX real_lprintf( char const* f,... ) { va_list va; int n; va_start(va,f); n = vprintf(f ,va); puts(""); return n; }
-      INDEX null_lprintf( char const* f,... ) { return 0; }
-      RealLogFunction _xlprintf(uint32_t level DBG_PASS) { return real_lprintf; };
-      void SystemLog( char const* f ) { puts( f ); puts( "ZZZZ\n" ); }
+		INDEX real_lprintf( char const* f,... ) { va_list va; int n; va_start(va,f); n = vprintf(f ,va); puts(""); return n; }
+		INDEX null_lprintf( char const* f,... ) { return 0; }
+		RealLogFunction _xlprintf(uint32_t level DBG_PASS) { return real_lprintf; };
+#undef SystemLog
+		void SystemLog( char const* f ) { puts( f ); puts( "\n" ); }
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
+#define SystemLog(buf)    SystemLogFL(buf DBG_SRC )
+#endif
+		void SystemLogFL( const char *f FILELINE_PASS ) { printf( "%s(%d):", pFile, nLine ); puts( f); puts("\n"); }
+
+		void SYSLOG_API LogBinaryFL ( const uint8_t* buffer, size_t size FILELINE_PASS )
+		{
+			size_t nOut = size;
+			const uint8_t* data = buffer;
+			if( pFile )
+			{
+				CTEXTSTR p;
+				for( p = pFile + (pFile?StrLen(pFile) -1:0);p > pFile;p-- )
+					if( p[0] == '/' || p[0] == '\\' )
+					{
+						pFile = p+1;break;
+					}
+			}
+			// should make this expression something in signed_usigned_comparison...
+			while( nOut && !( nOut & ( ((size_t)1) << ( ( sizeof( nOut ) * CHAR_BIT ) - 1 ) ) ) )
+			{
+				TEXTCHAR cOut[96];
+				size_t ofs = 0;
+				size_t x;
+				ofs = 0;
+				for ( x=0; x<nOut && x<16; x++ )
+					ofs += tnprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, "%02X ", (unsigned char)data[x] );
+				// space fill last partial buffer
+				for( ; x < 16; x++ )
+					ofs += tnprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, "   " );
+
+				for ( x=0; x<nOut && x<16; x++ )
+				{
+					if( data[x] >= 32 && data[x] < 127 )
+						ofs += tnprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, "%c", (unsigned char)data[x] );
+					else
+						ofs += tnprintf( cOut+ofs, sizeof(cOut)/sizeof(TEXTCHAR)-ofs, "." );
+				}
+				SystemLogFL( cOut FILELINE_RELAY );
+				nOut -= x;
+				data += x;
+			}
+		}
+		void  LogBinaryEx ( const uint8_t* buffer, size_t size DBG_PASS )
+		{
+#ifdef _DEBUG
+			LogBinaryFL( buffer,size DBG_RELAY );
+#else
+			LogBinaryFL( buffer,size FILELINE_NULL );
+#endif
+		}		
+#undef LogBinary
+		void  LogBinary ( const uint8_t* buffer, size_t size )
+#define LogBinary(buf,sz) LogBinary((uint8_t*)(buf),sz )
+		{
+			LogBinaryFL( buffer,size, NULL, 0 );
+		}
 #ifdef __cplusplus
    }
 }
