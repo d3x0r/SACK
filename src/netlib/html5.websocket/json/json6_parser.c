@@ -478,9 +478,9 @@ int json6_parse_add_data( struct json_parse_state *state
 				break;
 
 			case '[':
-				if( state->parse_context == CONTEXT_OBJECT_FIELD ) {
+				if( state->parse_context == CONTEXT_OBJECT_FIELD || state->val.value_type != VALUE_UNSET ) {
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, "Fault while parsing; while getting field name unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+					vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 					state->status = FALSE;
 					break;
 				}
@@ -556,6 +556,13 @@ int json6_parse_add_data( struct json_parse_state *state
 					//if( (state->parse_context == CONTEXT_OBJECT_FIELD_VALUE) )
 					if( state->val.value_type != VALUE_UNSET ) {
 						AddDataItem( state->elements, &state->val );
+					}
+					else if( state->parse_context == CONTEXT_OBJECT_FIELD_VALUE )
+					{
+						if( !state->pvtError ) state->pvtError = VarTextCreate();
+						vtprintf( state->pvtError, "object close after field with no value? fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+						state->status = FALSE;
+						break;
 					}
 					//RESET_STATE_VAL();
 					state->val.value_type = VALUE_OBJECT;
@@ -647,16 +654,21 @@ int json6_parse_add_data( struct json_parse_state *state
 #ifdef _DEBUG_PARSING
 					lprintf( "comma after field value, push field to object: %s", state->val.name );
 #endif
-					state->parse_context = CONTEXT_OBJECT_FIELD;
 					if( state->val.value_type != VALUE_UNSET )
 						AddDataItem( state->elements, &state->val );
+					else {
+						if( !state->pvtError ) state->pvtError = VarTextCreate();
+						vtprintf( state->pvtError, "comma after no value? fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+						state->status = FALSE;
+					}
+					state->parse_context = CONTEXT_OBJECT_FIELD;
 					RESET_STATE_VAL();
 				}
 				else
 				{
 					state->status = FALSE;
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, "bad context; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+					vtprintf( state->pvtError, "excessive commas or bad context; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
 				}
 				break;
 
@@ -976,7 +988,15 @@ int json6_parse_add_data( struct json_parse_state *state
 					//
 					//----------------------------------------------------------
 				case '-':
-					state->negative = !state->negative;
+					if( state->word == WORD_POS_RESET )
+						state->negative = !state->negative;
+					else {
+						state->status = FALSE;
+						if( !state->pvtError ) state->pvtError = VarTextCreate();
+						vtprintf( state->pvtError, "fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
+							, c, state->n, state->line, state->col );
+					}// fault
+
 					break;
 
 				default:
