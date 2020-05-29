@@ -1373,7 +1373,10 @@ size_t CPROC sack_vfs_seek( struct sack_vfs_file *file, size_t pos, int whence )
 	if( (file->fpi >> BLOCK_SIZE_BITS) < file->blockChainLength ) {
 		enum block_cache_entries cache = BC( FILE );
 		file->block = file->blockChain[file->fpi >> BLOCK_SIZE_BITS];
-		LoG( "(seek)File block set to %d from block chain", (int)file->block );
+
+#ifdef DEBUG_BLOCK_TRACKING
+		LoG( "(_seek)File block set to %d from block chain", (int)file->block );
+#endif
 
 #ifdef _DEBUG
 		if( !file->block )DebugBreak();

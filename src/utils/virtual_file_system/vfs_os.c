@@ -28,7 +28,7 @@
 #define SACK_VFS_SOURCE
 #define SACK_VFS_OS_SOURCE
 #define SKIP_LIGHT_ENCRYPTION(n)
-
+#define VFS_OS_PARANOID_TRUNCATE
 
 // this is a badly named debug symbol;
 // it is the LAST debugging of delete logging/checking... 
@@ -476,8 +476,6 @@ static void _os_ExtendBlockChain( struct sack_vfs_os_file* file ) {
 	memset( file->blockChain + file->blockChainAvail, 0, ( newSize - file->blockChainAvail ) * sizeof( struct blockInfo ) );
 #endif
 	 file->blockChainAvail = newSize;
-	
-		
 }
 
 static unsigned int getBlockChainBlock( struct sack_vfs_os_file* file, FPI fpi ) {
@@ -850,7 +848,7 @@ static FPI vfs_os_compute_block( struct sack_vfs_os_volume *vol, BLOCKINDEX bloc
 			// smaller blocks...
 
 			return info->sectorStart + BAT_BLOCK_SIZE + ( ( block % BLOCKS_PER_SECTOR ) - 1 ) * info->size;
-		} else {	
+		} else {
 			if( cache < BC(COUNT) )
 				vol->sector_size[cache] = BAT_BLOCK_SIZE;
 			return info->sectorStart;
@@ -1486,7 +1484,7 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 		int locks;
 		vol->timelineCache = BC( TIMELINE );
 		vol->timeline = (struct storageTimeline *)vfs_os_BSEEK( vol, FIRST_TIMELINE_BLOCK, TIME_BLOCK_SIZE, &vol->timelineCache );
-		
+
 		SETMASK_( vol->seglock, seglock, vol->timelineCache, locks = GETMASK_( vol->seglock, seglock, vol->timelineCache )+1 );
 		if( locks > 5 ) {
 			lprintf( "Lock is in danger of overflow" );
@@ -1975,7 +1973,7 @@ static void _os_AssignKey( struct sack_vfs_os_volume *vol, const char *key1, con
 {
 	// *2 is to duplicate all buffers so there's a backing clean-copy for rollback
 
-	uintptr_t size = BLOCK_SIZE + BLOCK_SIZE * ( BC(COUNT) * 2 )		
+	uintptr_t size = BLOCK_SIZE + BLOCK_SIZE * ( BC(COUNT) * 2 )
 		+ BLOCK_SIZE + SHORTKEY_LENGTH;
 	if( !vol->key_buffer ) {
 		int n;
@@ -2005,7 +2003,7 @@ static void _os_AssignKey( struct sack_vfs_os_volume *vol, const char *key1, con
 		if( vol->oldkey ) Release( vol->oldkey );
 		vol->oldkey = vol->key;
 		vol->key = (uint8_t*)HeapAllocateAligned( NULL, 1024, 4096 ); //NewArray( uint8_t, size );
-		
+
 		vol->curseg = BC(COUNT);
 		SRG_GetEntropyBuffer( vol->entropy, (uint32_t*)vol->key, 1024 * 8 );
 	}
@@ -2605,7 +2603,6 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 #ifdef DEBUG_FILE_OPEN
 	LoG( "------------ BEGIN DELETE DIRECTORY ENTRY NAME ----------------------" );
 #endif
-	
 	// read name block chain into a single array
 	do {
 		uint8_t* out;
@@ -3770,7 +3767,7 @@ static void sack_vfs_os_unlink_file_entry( struct sack_vfs_os_volume *vol, struc
 			// it also removes the directory entry from list of entries
 			deleteTimelineIndex( vol, (BLOCKINDEX)dirinfo->entry->timelineEntry ); // timelineEntry type is larger than index in some configurations; but won't exceed those bounds
 			deleteDirectoryEntryName( vol, dirinfo, dirinfo->entry->name_offset & DIRENT_NAME_OFFSET_OFFSET, dirinfo->cache );
-			
+
 	}
 }
 
@@ -3779,7 +3776,8 @@ static void _os_shrinkBAT( struct sack_vfs_os_file *file ) {
 	BLOCKINDEX block, _block;
 	size_t bsize = 0;
 	int smallBlocks = 0;
-
+	int nBlock = 0;
+	if( file->entry->first_block == EOFBLOCK ) return;  // no data blocks already.
 	_block = block = file->entry->first_block;
 	do {
 		enum block_cache_entries cache = BC(BAT);
@@ -3795,11 +3793,16 @@ static void _os_shrinkBAT( struct sack_vfs_os_file *file ) {
 		if( bsize > (file->entry->filesize) ) {
 			uint8_t* blockData = (uint8_t*)vfs_os_BSEEK( file->vol, _block, 0, &data_cache );
 			//LoG( "clearing a datablock after a file..." );
+#ifdef VFS_OS_PARANOID_TRUNCATE
 			memset( blockData, 0, file->vol->sector_size[data_cache] );
+#endif
+			lprintf( "Should be able to unlink this... extra block of data %d", (int)_block );
+			if( vol->sector_size[data_cache] == BLOCK_SMALL_SIZE )
+				AddDataItem( &vol->pdlFreeSmallBlocks, &_block );
+			else
+				AddDataItem( &vol->pdlFreeBlocks, &_block );
 
-			lprintf( "Should be able to unlink this... extra block of data" );
-
-			//this_BAT[_block % BLOCKS_PER_BAT] = 0;
+			this_BAT[_block % BLOCKS_PER_BAT] = 0;
 		} else {
 			if( this_BAT[BLOCKS_PER_BAT] ) {
 				smallBlocks++;
@@ -3810,20 +3813,43 @@ static void _os_shrinkBAT( struct sack_vfs_os_file *file ) {
 				uint8_t* blockData = (uint8_t*)vfs_os_BSEEK( file->vol, _block, 0, &data_cache );
 				int blockSize = file->vol->sector_size[data_cache];
 				//LoG( "clearing a partial datablock after a file..., %d, %d", blockSize-(file->entry->filesize & (blockSize-1)), ( file->entry->filesize & (blockSize-1)) );
+#ifdef VFS_OS_PARANOID_TRUNCATE
 				memset( blockData + (file->entry->filesize & (blockSize-1)), 0, blockSize-(file->entry->filesize & (blockSize-1)) );
+#endif
 				//this_BAT[_block % BLOCKS_PER_BAT] = 0;
 			}
+			else if( file->entry->filesize )
+				nBlock++;
 		}
 		_block = block;
 	} while( block != EOFBLOCK );
+
+	if( !file->entry->filesize ) {
+		file->_first_block = file->block = file->entry->first_block = EOFBLOCK;
+		LoG( "Truncated file block chain length is now:%d", nBlock );
+		file->blockChainLength = nBlock;
+	}
 	if( smallBlocks > ( 4096 / BLOCK_SMALL_SIZE ) * 2 ) {
 		lprintf( "File has lots of fragments, consider defragmenting its small blocks" );
 	}
 }
 
-size_t CPROC sack_vfs_os_truncate_internal( struct sack_vfs_os_file *file ) { file->entry->filesize = file->fpi; _os_shrinkBAT( file ); return (size_t)file->fpi; }
+size_t CPROC sack_vfs_os_truncate_internal( struct sack_vfs_os_file *file ) {
+	if( file->entry->filesize != file->fpi ) {
+		file->entry->filesize = file->fpi;
+		_os_shrinkBAT( file );
+		SETFLAG( file->vol->dirty, file->cache ); // directory cache block (locked)
+	}
+	return (size_t)file->fpi;
+}
 
-size_t CPROC sack_vfs_os_truncate( struct sack_vfs_os_file* file ) { return sack_vfs_os_truncate_internal( (struct sack_vfs_os_file*)file ); }
+size_t CPROC sack_vfs_os_truncate( struct sack_vfs_os_file* file ) {
+	size_t result;
+	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
+	result = sack_vfs_os_truncate_internal( (struct sack_vfs_os_file*)file );
+	file->vol->lock = 0;
+	return result;
+}
 
 int sack_vfs_os_close_internal( struct sack_vfs_os_file *file ) {
 #ifdef DEBUG_TRACE_LOG
@@ -4288,13 +4314,12 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 				patchBlock = _os_GetFreeBlock( vol, &cacheSomething, GFB_INIT_PATCHBLOCK, 4096 );
 			}
 			{
-
 				enum block_cache_entries cache;
 				struct directory_patch_block *newPatchblock;
 
 				cache = BC(FILE);
 				newPatchblock = BTSEEK( struct directory_patch_block *, vol, patchBlock, DIR_BLOCK_SIZE, cache );
-				
+
 				while( 1 ) {
 					//char objId[45];
 					//size_t objIdLen;
