@@ -231,43 +231,17 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 		(state->col)++;
 
 		if( c == start_c ) {
-			if( state->escape ) { ( *mOut++ ) = c; state->escape = FALSE; }
-			else if( c == start_c ) {
+			if( state->escape ) {
+				if( state->cr_escaped ) { state->cr_escaped = FALSE; state->escape = FALSE; status = 1; break; }
+				// otherwise, escaped quote, append it.
+				( *mOut++ ) = c; state->escape = FALSE;
+			}
+			else {
 				status = 1;
 				break;
-			} else ( *mOut++ ) = c; // other else is not valid close quote; just store as content.
+			}
 		} else if( state->escape ) {
-			if( state->stringOct ) {
-				if( state->hex_char_len < 3 && c >= 48/*'0'*/ && c <= 57/*'9'*/ ) {
-					state->hex_char *= 8;
-					state->hex_char += c/*.codePointAt(0)*/ - 0x30;
-					state->hex_char_len++;
-					if( state->hex_char_len == 3 ) {
-						mOut += ConvertToUTF8(mOut, state->hex_char);
-						state->stringOct = FALSE;
-						state->escape = FALSE;
-						continue;
-					}
-					continue;
-				} else {
-					if( state->hex_char > 255 ) {
-						lprintf("(escaped character, parsing octal escape val=%d) fault while parsing; )" " (near %*.*s[%c]%s)"
-							, state->hex_char
-							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
-							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
-							, c
-							, ( *msg_input ) + 1
-						);// fault
-						status = -1;
-						break;
-					}
-					mOut += ConvertToUTF8(mOut, state->hex_char);
-					state->stringOct = FALSE;
-					state->escape = FALSE;
-					continue;
-				}
-
-			} else if( state->unicodeWide ) {
+			if( state->unicodeWide ) {
 				if( c == '}' ) {
 					mOut += ConvertToUTF8(mOut, state->hex_char);
 					state->unicodeWide = FALSE;
@@ -280,7 +254,8 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 				else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 				else {
-					lprintf("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
+					if( !state->pvtError ) state->pvtError = VarTextCreate();
+					vtprintf( state->pvtError, "(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n > 3 ) ? 3 : n ), (int)( ( n > 3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n > 3 ) ? 3 : n )
 						, c
@@ -302,7 +277,8 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 					else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 					else {
-						lprintf("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
+						if( !state->pvtError ) state->pvtError = VarTextCreate();
+						vtprintf( state->pvtError, "(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 							, c
@@ -364,11 +340,9 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 			case 'f':
 				( *mOut++ ) = '\f';
 				break;
-			case '0': case '1': case '2': case '3':
-				state->stringOct = TRUE;
-				state->hex_char = c - 48;
-				state->hex_char_len = 1;
-				continue;
+			case '0':
+				( *mOut++ ) = '\0';
+				break;
 			case 'x':
 				state->stringHex = TRUE;
 				state->hex_char_len = 0;
@@ -1150,18 +1124,24 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			PushLink( state->outBuffers, output );
 			state->gatheringNumber = FALSE;
 			//lprintf( "result with number:%s", state->val.string );
-			if( state->val.float_result )
-			{
-				CTEXTSTR endpos;
-				state->val.result_d = FloatCreateFromText( state->val.string, &endpos );
-				if( state->negative ) { state->val.result_d = -state->val.result_d; state->negative = FALSE; }
+			if( state->numberFromDate ) {
+				state->val.stringLen = ( output->pos - state->val.string );
+				state->val.value_type = JSOX_VALUE_DATE;
+			} else if( state->numberFromBigInt ) {
+				state->val.stringLen = ( output->pos - state->val.string );
+				state->val.value_type = JSOX_VALUE_BIGINT;
+			} else {
+				if( state->val.float_result ) {
+					CTEXTSTR endpos;
+					state->val.result_d = FloatCreateFromText( state->val.string, &endpos );
+					if( state->negative ) { state->val.result_d = -state->val.result_d; state->negative = FALSE; }
+				}
+				else {
+					state->val.result_n = IntCreateFromText( state->val.string );
+					if( state->negative ) { state->val.result_n = -state->val.result_n; state->negative = FALSE; }
+				}
+				state->val.value_type = JSOX_VALUE_NUMBER;
 			}
-			else
-			{
-				state->val.result_n = IntCreateFromText( state->val.string );
-				if( state->negative ) { state->val.result_n = -state->val.result_n; state->negative = FALSE; }
-			}
-			state->val.value_type = JSOX_VALUE_NUMBER;
 			if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
 				state->completed = TRUE;
 			}
@@ -1249,6 +1229,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			}
 			if( c > 127 ) {
 				// irrelativent.
+				if( c == 0x2028 || c == 0x2029 || c == 0xfeff ) {
+					goto whitespace;
+				}
 				if( !state->val.string )  state->val.string = output->pos;
 				state->val.value_type = JSOX_VALUE_STRING;
 				output->pos += ConvertToUTF8( output->pos, c );
@@ -1702,6 +1685,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					case 2028: // LS (Line separator)
 					case 2029: // PS (paragraph separate)
 					case 0xFEFF: // ZWNBS is WS though
+					whitespace:
 						if( state->word == JSOX_WORD_POS_END ) {
 							state->word = JSOX_WORD_POS_RESET;
 							if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
@@ -1941,7 +1925,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				default:
 					if( state->word == JSOX_WORD_POS_RESET && ( (c >= '0' && c <= '9') || (c == '+') || (c == '.') ) )
 					{
-						LOGICAL fromDate;
 						const char *_msg_input; // to unwind last character past number.
 						// always reset this here....
 						// keep it set to determine what sort of value is ready.
@@ -1952,7 +1935,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							state->exponent = FALSE;
 							state->exponent_sign = FALSE;
 							state->exponent_digit = FALSE;
-							fromDate = FALSE;
 							state->fromHex = FALSE;
 							state->val.float_result = (c == '.');
 							state->val.string = output->pos;
@@ -1960,8 +1942,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						}
 						else
 						{
-						continueNumber:
-							fromDate = state->numberFromDate;
+					continueNumber: ;
 						}
 						while( (_msg_input = input->pos), ((state->n < input->size) && ( (c = GetUtfChar( &input->pos ))!= JSOX_BADUTF8)) )
 						{
@@ -1992,7 +1973,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								// Returns 2011-10-05T14:48:00.000Z
 								*/
 								(*output->pos++) = c;
-								state->numberFromDate = TRUE;
+								if( c != '+' && c != '-' )
+									state->numberFromDate = TRUE;
 							}
 							else if( ( c == 'x' || c == 'b' || c =='o' || c == 'X' || c == 'B' || c == 'O')
 							       && ( output->pos - state->val.string) == 1
@@ -2090,7 +2072,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						{
 							//lprintf( "completion mode is not end of string; and at end of string" );
 							state->gatheringNumber = TRUE;
-							state->numberFromDate = fromDate;
 						}
 						else
 						{

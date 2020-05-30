@@ -265,7 +265,6 @@ struct jsox_parse_state {
 	LOGICAL stringHex;
 	TEXTRUNE hex_char;
 	int hex_char_len;
-	LOGICAL stringOct;
 
 	LOGICAL weakSpace;
 

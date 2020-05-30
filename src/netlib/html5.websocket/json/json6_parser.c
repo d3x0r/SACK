@@ -139,7 +139,8 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					continue;
 				} else {
 					if( state->hex_char > 255 ) {
-						lprintf("(escaped character, parsing octal escape val=%d) fault while parsing; )" " (near %*.*s[%c]%s)"
+						if( !state->pvtError ) state->pvtError = VarTextCreate();
+						vtprintf( state->pvtError, "(escaped character, parsing octal escape val=%d) fault while parsing; )" " (near %*.*s[%c]%s)"
 							, state->hex_char
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
@@ -168,7 +169,8 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 				else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 				else {
-					lprintf("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
+					if( !state->pvtError ) state->pvtError = VarTextCreate();
+					vtprintf( state->pvtError, "(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n > 3 ) ? 3 : n ), (int)( ( n > 3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n > 3 ) ? 3 : n )
 						, c
@@ -190,7 +192,8 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 					else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 					else {
-						lprintf("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
+						if( !state->pvtError ) state->pvtError = VarTextCreate();
+						vtprintf( state->pvtError, "(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 							, c
@@ -273,7 +276,8 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					state->escape = FALSE;
 					mOut += ConvertToUTF8(mOut, c);
 				} else {
-					lprintf("(escaped character) fault while parsing; '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, n
+					if( !state->pvtError ) state->pvtError = VarTextCreate();
+					vtprintf( state->pvtError, "(escaped character) fault while parsing; '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 						, c
@@ -1419,8 +1423,8 @@ void getJson6Ticks( int *tickBuf ) {
 
 
 struct json_parse_state *json6_get_message_parser( void ) {
-	lprintf( "Return simple json6 parser:%p", jpsd.pendingParsers6 );
-	DebugBreak();
+	//lprintf( "Return simple json6 parser:%p", jpsd.pendingParsers6 );
+	//DebugBreak();
 	return (struct json_parse_state*)GetLink( &jpsd.pendingParsers6, 0); // need to pass this a message to find the thing.
 }
 
