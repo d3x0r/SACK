@@ -1796,7 +1796,7 @@ int64_t IntCreateFromTextRef( CTEXTSTR *p_ )
 		}
 		else
 		{
-			if( ( !altBase ) && (*p == '0') ) { altBase = TRUE; base = 8; }
+			if( ( !altBase ) && (*p == '0') ) { altBase = TRUE; base = 10; }
 			else { if( (*p - '0') >= base ) { break; } altBase = TRUE; }
 			num *= base;
 			num += *p - '0';
@@ -2779,7 +2779,7 @@ int ConvertToUTF8( char *output, TEXTRUNE rune )
 	else if( !( rune & 0xFFE00000 ) )
 	{
 		// 21 bits
-		(*output++) = 0xF0 | ( ( ( rune & 0x1C0000 ) >> 15 ) & 0xFF );
+		(*output++) = 0xF0 | ( ( ( rune & 0x1C0000 ) >> 18 ) & 0xFF );
 		goto plus3;
 	}
 	else if( !( rune & 0xFC000000 ) )
@@ -2830,7 +2830,7 @@ int ConvertToUTF8Ex( char *output, TEXTRUNE rune, LOGICAL overlong )
 	else if( !(rune & 0xFFFF0000) )
 	{
 		// 21 bits
-		(*output++) = 0xF0 | (((rune & 0x1C0000) >> 15) & 0xFF);
+		(*output++) = 0xF0 | (((rune & 0x1C0000) >> 18) & 0xFF);
 		goto plus3;
 	}
 	else if( !(rune & 0xFFE00000) )
