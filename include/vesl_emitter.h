@@ -32,6 +32,7 @@ VESL_EMITTER_PROC( LOGICAL, vesl_parse_message )(const char * msg
                                                 , PDATALIST *msg_data_out
 																);
 
+
 // allocates a parsing context and begins parsing data.
 VESL_EMITTER_PROC( struct vesl_parse_state *, vesl_begin_parse )( void );
 // return TRUE when a completed value/object is available.
@@ -48,6 +49,8 @@ VESL_EMITTER_PROC( int, vesl_parse_add_data )( struct vesl_parse_state *context
 // these are common functions that work for VESL stream parsers
 VESL_EMITTER_PROC( PDATALIST, vesl_parse_get_data )( struct vesl_parse_state *context );
 VESL_EMITTER_PROC( void, vesl_parse_dispose_state )( struct vesl_parse_state **context );
+// when an error occurs during streaming, use this to reset the parser and continue
+// using the existing parser.
 VESL_EMITTER_PROC( void, vesl_parse_clear_state )(struct vesl_parse_state *context);
 VESL_EMITTER_PROC( PTEXT, vesl_parse_get_error )(struct vesl_parse_state *context);
 
