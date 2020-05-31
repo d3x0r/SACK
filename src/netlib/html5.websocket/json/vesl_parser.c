@@ -1091,6 +1091,53 @@ void _vesl_dispose_message( PDATALIST *msg_data )
 
 }
 
+void vesl_parse_clear_state( struct vesl_parse_state* state ) {
+	if( state ) {
+		PVESL_PARSE_BUFFER buffer;
+		while( buffer = (PVESL_PARSE_BUFFER)PopLink( state->outBuffers ) ) {
+			Deallocate( const char*, buffer->buf );
+			DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
+		}
+		while( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
+			DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
+		while( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
+			Deallocate( const char*, buffer->buf );
+			DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
+		}
+		DeleteFromSet( PLINKQUEUE, vpsd.linkQueues, state->inBuffers );
+		//DeleteLinkQueue( &state->inBuffers );
+		DeleteFromSet( PLINKQUEUE, vpsd.linkQueues, state->outQueue );
+		//DeleteLinkQueue( &state->outQueue );
+		DeleteFromSet( PLINKSTACK, vpsd.linkStacks, state->outBuffers );
+		//DeleteLinkStack( &state->outBuffers );
+		{
+			char* buf;
+			INDEX idx;
+			LIST_FORALL( state->outValBuffers[0], idx, char*, buf ) {
+				Deallocate( char*, buf );
+			}
+			DeleteFromSet( PLIST, vpsd.listSet, state->outValBuffers );
+			//DeleteList( &state->outValBuffers );
+		}
+		state->status = TRUE;
+		state->parse_context = VESL_CONTEXT_UNKNOWN;
+		state->word = VESL_WORD_POS_RESET;
+		state->n = 0;
+		state->col = 1;
+		state->line = 1;
+		state->gatheringString = FALSE;
+		state->gatheringNumber = FALSE;
+		{
+			PDATALIST* result = state->elements;
+			state->elements = GetFromSet( PDATALIST, &vpsd.dataLists );// CreateDataList( sizeof( state->val ) );
+			if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
+			else state->elements[0]->Cnt = 0;
+			//state->elements = CreateDataList( sizeof( state->val ) );
+			_vesl_dispose_message( result );
+		}
+	}
+}
+
 
 void vesl_parse_dispose_state( struct vesl_parse_state **ppState ) {
 	struct vesl_parse_state *state = (*ppState);

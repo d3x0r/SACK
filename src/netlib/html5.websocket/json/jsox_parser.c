@@ -313,8 +313,8 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				state->col = 1;
 				if( state->cr_escaped ) state->cr_escaped = FALSE;
 				// fall through to clear escape status <CR><LF> support.
-			case 2028: // LS (Line separator)
-			case 2029: // PS (paragraph separate)
+			case 0x2028: // LS (Line separator)
+			case 0x2029: // PS (paragraph separate)
 				// escaped whitespace is nul'ed.
 				state->escape = 0;
 				continue;
@@ -359,7 +359,8 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					state->escape = FALSE;
 					mOut += ConvertToUTF8(mOut, c);
 				} else {
-					lprintf("(escaped character) fault while parsing; '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, n
+					if( !state->pvtError ) state->pvtError = VarTextCreate();
+					vtprintf( state->pvtError, "(escaped character) fault while parsing; '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, n
 						, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 						, c
@@ -594,6 +595,12 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buffer* output, int c ) {
 	PJSOX_CLASS cls = NULL;
 	int newArrayType = -1;
+	if( state->word == JSOX_WORD_POS_FIELD ) {
+		if( !state->pvtError ) state->pvtError = VarTextCreate();
+		vtprintf( state->pvtError, "Fault while parsing; colon expected after field name %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+		state->status = FALSE;
+		return FALSE;
+	}
 	if( state->word > JSOX_WORD_POS_RESET && state->word < JSOX_WORD_POS_FIELD )
 		recoverIdent(state,output,0); // don't pass C; otherwise array opens.
 
@@ -963,7 +970,7 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 #endif
 	} else if( cInt >= 0 ) {
 		// ignore white space.
-		if( cInt == 32/*' '*/ ||cInt==160/*nbsp*/|| cInt == 13 || cInt == 10 || cInt == 9 || cInt == 0xFEFF || cInt == 2028 || cInt == 2029 ) {
+		if( cInt == 32/*' '*/ ||cInt==160/*nbsp*/|| cInt == 13 || cInt == 10 || cInt == 9 || cInt == 0xFEFF || cInt == 0x2028 || cInt == 0x2029 ) {
 			state->word = JSOX_WORD_POS_END;
 			if( !state->completedString ) {
 				state->completedString = TRUE;
@@ -1144,6 +1151,12 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			}
 			if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
 				state->completed = TRUE;
+			}
+			else { // this is a flush; and there's still an open object, array, etc.
+				if( !state->pvtError ) state->pvtError = VarTextCreate();
+				vtprintf( state->pvtError, "Fault while parsing; unexpected end of stream at %" _size_f "  %" _size_f ":%" _size_f, state->n, state->line, state->col );
+				state->status = FALSE;
+				return -1;
 			}
 			retval = 1;
 		}
@@ -1355,7 +1368,13 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						// current class doesn't really matter... we only get here after a ':'
 						// which will have faulted or not...
 						// this is just push the value.
-						pushValue( state, state->elements, &state->val );
+						if( state->val.value_type != JSOX_VALUE_UNSET )
+							pushValue( state, state->elements, &state->val );
+						else {
+							if( !state->pvtError ) state->pvtError = VarTextCreate();
+							vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+							state->status = FALSE;
+						}
 					}
 					else {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
@@ -1546,6 +1565,12 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->word = JSOX_WORD_POS_RESET;
 					if( state->val.value_type != JSOX_VALUE_UNSET )
 						pushValue( state, state->elements, &state->val );
+					else {
+						if( !state->pvtError ) state->pvtError = VarTextCreate();
+						vtprintf( state->pvtError, "missing value for object field; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+						state->status = FALSE;
+						break;
+					}
 					JSOX_RESET_STATE_VAL();
 				}
 				else {
@@ -1570,7 +1595,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->gatheringStringFirstChar = c;
 						goto gatherStringInput;
 					}
-					if( c == 32/*' '*/ || c == 160/*nbsp*/ || c == 13 || c == 10 || c == 9 || c == 0xFEFF || c == 2028 || c == 2029 ) {
+					if( c == 32/*' '*/ || c == 160/*nbsp*/ || c == 13 || c == 10 || c == 9 || c == 0xFEFF || c == 0x2028 || c == 0x2029 ) {
 						state->word = JSOX_WORD_POS_AFTER_FIELD;
 						break;
 					}
@@ -1682,8 +1707,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					case 160 :// case '\xa0': // nbsp
 					case '\t':
 					case '\r':
-					case 2028: // LS (Line separator)
-					case 2029: // PS (paragraph separate)
+					case 0x2028: // LS (Line separator)
+					case 0x2029: // PS (paragraph separate)
 					case 0xFEFF: // ZWNBS is WS though
 					whitespace:
 						if( state->word == JSOX_WORD_POS_END ) {
@@ -1706,9 +1731,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							}
 						}
 						else {
-							state->status = FALSE;
-							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "fault while parsing; whitespace unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->n, state->line, state->col );	// fault
+							//state->status = FALSE;
+							//if( !state->pvtError ) state->pvtError = VarTextCreate();
+							//vtprintf( state->pvtError, "fault while parsing; whitespace unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->n, state->line, state->col );	// fault
 						}
 						break;
 					default:
@@ -1795,8 +1820,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					// FALLTHROUGH
 				case ' ':
 				case 160 :// case '\xa0': // nbsp
-				case 2028: // LS (Line separator)
-				case 2029: // PS (paragraph separate)
+				case 0x2028: // LS (Line separator)
+				case 0x2029: // PS (paragraph separate)
 				case '\t':
 				case '\r':
 				case 0xFEFF:
@@ -1819,9 +1844,11 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						}
 					}
 					else {
-						state->status = FALSE;
-						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "fault while parsing; whitespace unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->n );	// fault
+						recoverIdent( state, output, c );
+
+						//state->status = FALSE;
+						//if( !state->pvtError ) state->pvtError = VarTextCreate();
+						//vtprintf( state->pvtError, "fault while parsing; whitespace unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->n );	// fault
 					}
 					// skip whitespace
 					//n++;
