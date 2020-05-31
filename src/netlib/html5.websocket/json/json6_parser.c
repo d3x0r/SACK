@@ -228,8 +228,8 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				state->col = 1;
 				if( state->cr_escaped ) state->cr_escaped = FALSE;
 				// fall through to clear escape status <CR><LF> support.
-			case 2028: // LS (Line separator)
-			case 2029: // PS (paragraph separate)
+			case 0x2028: // LS (Line separator)
+			case 0x2029: // PS (paragraph separate)
 				// escaped whitespace is nul'ed.
 				state->escape = 0;
 				continue;
