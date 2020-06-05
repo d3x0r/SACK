@@ -3,6 +3,8 @@
 /* Header multiple inclusion protection symbol. */
 #define SACK_VFS_DEFINED
 
+#include <filesys.h>
+
 #ifdef SACK_VFS_STATIC
 #  ifdef SACK_VFS_SOURCE
 #    define SACK_VFS_PROC
