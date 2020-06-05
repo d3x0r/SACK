@@ -262,7 +262,7 @@ endif( __ANDROID__ )
 
 
 set( BULLET_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../bullet" CACHE STRING "bullet source path "  )
-OPTION( FORCE_EXTERNAL_BUILD OFF CACHE STRING "Force build on external projects" );
+OPTION( FORCE_EXTERNAL_BUILD OFF CACHE STRING "Force build on external projects" )
 OPTION( SACK_BUILD_STATIC_LIBS "Enable building static versions of libraries" OFF )
 OPTION( BUILD_EXTRAS "Enable building extras" OFF )
 OPTION( INSTALL_EXTRAS "Enable installing extras; build anyway" ${BUILD_EXTRAS} )
