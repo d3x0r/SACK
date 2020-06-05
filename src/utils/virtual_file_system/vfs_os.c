@@ -103,6 +103,7 @@ SACK_VFS_NAMESPACE
 //#define DEBUG_ROLLBACK_JOURNAL
 //#define DEBUG_FILE_OPS
 //#define DEBUG_DISK_IO
+//#define DEBUG_DISK_DATA
 //#define DEBUG_DIRECTORIES
 //#define DEBUG_BLOCK_INIT
 //#define DEBUG_TIMELINE_AVL
@@ -391,7 +392,7 @@ struct sack_vfs_os_file
 
 //static void _os_UpdateFileBlocks( struct sack_vfs_os_file* file );
 static struct sack_vfs_os_file* _os_createFile( struct sack_vfs_os_volume* vol, BLOCKINDEX first_block, int blockSize );
-static int sack_vfs_os_close_internal( struct sack_vfs_os_file* file );
+static int sack_vfs_os_close_internal( struct sack_vfs_os_file* file, int unlock );
 static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume* vol, enum block_cache_entries cache_idx, BLOCKINDEX segment DBG_PASS );
 
 static uint32_t _os_AddSmallBlockUsage( struct file_block_small_definition* block, uint32_t more );
@@ -1102,6 +1103,9 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 		if( TESTFLAG( vol->dirty, useCache ) || TESTFLAG( vol->_dirty, useCache ) ) {
 #ifdef DEBUG_DISK_IO
 			LoG_( "MUST CLAIM SEGMENT Flush dirty segment: %d %x %d", nLeast, vol->bufferFPI[useCache], vol->segment[useCache] );
+#  ifdef DEBUG_DISK_DATA
+			LogBinary( vol->usekey_buffer[useCache], vol->sector_size[useCache] );
+#  endif
 #endif
 			uint8_t *crypt;
 			size_t cryptlen;
@@ -1233,6 +1237,9 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 			if( TESTFLAG( vol->dirty, cache_idx ) || TESTFLAG( vol->_dirty, cache_idx ) ) {
 #ifdef DEBUG_DISK_IO
 				LoG_( "MUST CLAIM SEGEMNT Flush dirty segment: %x %d", vol->bufferFPI[cache_idx], vol->segment[cache_idx] );
+#  ifdef DEBUG_DISK_DATA
+				LogBinary( vol->usekey_buffer[cache_idx], vol->sector_size[cache_idx] );
+#  endif
 #endif
 				sack_fseek( vol->file, (size_t)vol->bufferFPI[cache_idx], SEEK_SET );
 				uint8_t *crypt;
@@ -2016,8 +2023,11 @@ static void _os_AssignKey( struct sack_vfs_os_volume *vol, const char *key1, con
 
 static void sack_vfs_os_flush_block( struct sack_vfs_os_volume* vol, enum block_cache_entries entry ) {
 	INDEX idx = entry;
-#ifdef DEBUG_CACHE_FLUSH
+#ifdef DEBUG_DISK_IO
 	LoG( "Flush dirty segment: %d   %zx %d", (int)idx, vol->bufferFPI[idx], vol->segment[idx] );
+#  ifdef DEBUG_DISK_DATA
+	LogBinary( vol->usekey_buffer[idx], vol->sector_size[idx] );
+#  endif
 #endif
 	sack_fseek( vol->file, (size_t)vol->bufferFPI[idx], SEEK_SET );
 	if( vol->key )
@@ -3013,7 +3023,15 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 		cache = BC( DIRECTORY );
 		dirblock = BTSEEK( struct directory_hash_lookup_block *, vol, this_dir_block, DIR_BLOCK_SIZE, cache );
 #ifdef _DEBUG
-		if( !dirblock->names_first_block ) DebugBreak();
+		if( !dirblock->names_first_block ) {
+			if( dirblock->used_names )
+				DebugBreak();
+			{
+				enum block_cache_entries newcache = BC( NAMES );
+				dirblock->names_first_block = _os_GetFreeBlock( vol, &newcache, GFB_INIT_NAMES, NAME_BLOCK_SIZE );
+			}
+			dirblock->used_names = 0;
+		}
 #endif
 
 		dirblockFPI = vol->bufferFPI[cache];
@@ -3317,6 +3335,10 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 	uint8_t* cdata;
 	size_t cdataLen;
 
+#ifdef DEBUG_DISK_DATA
+	lprintf( "Write to %p %d at %d", data_, length, file->fpi );
+	LogBinary( data, file->blockSize );
+#endif
 
 	if( file->readKey && !file->fpi ) {
 		enum block_cache_entries cache;
@@ -3781,22 +3803,22 @@ static void _os_shrinkBAT( struct sack_vfs_os_file *file ) {
 	_block = block = file->entry->first_block;
 	do {
 		enum block_cache_entries cache = BC(BAT);
-		enum block_cache_entries data_cache = BC(DATAKEY);
+		enum block_cache_entries data_cache = BC( FILE );
 		//lprintf( " block %d %d %d ", (int)block, (int)( block % BLOCKS_PER_BAT ), (int)( block / BLOCKS_PER_BAT ) );
 		BLOCKINDEX *this_BAT = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, ( ( block / BLOCKS_PER_BAT ) * ( BLOCKS_PER_SECTOR) ), 0, &cache );
 		if( !this_BAT[block % BLOCKS_PER_BAT] ) {
 			lprintf( "This file is already deleted..." );
 			return;
 		}
-		enum block_cache_entries gnbCache = BC( NAMES );
+		enum block_cache_entries gnbCache = BC( FILE );
 		block = vfs_os_GetNextBlock( vol, block, &gnbCache, GFB_INIT_NONE, FALSE, BAT_BLOCK_SIZE, NULL );
-		if( bsize > (file->entry->filesize) ) {
-			uint8_t* blockData = (uint8_t*)vfs_os_BSEEK( file->vol, _block, 0, &data_cache );
-			//LoG( "clearing a datablock after a file..." );
+		if( bsize >= (file->entry->filesize) ) {
 #ifdef VFS_OS_PARANOID_TRUNCATE
+			uint8_t* blockData = (uint8_t*)vfs_os_BSEEK( file->vol, _block, 0, &data_cache );
 			memset( blockData, 0, file->vol->sector_size[data_cache] );
+			//LoG( "clearing a datablock after a file..." );
 #endif
-			lprintf( "Should be able to unlink this... extra block of data %d", (int)_block );
+			//lprintf( "Should be able to unlink this... extra block of data %d", (int)_block );
 			if( vol->sector_size[data_cache] == BLOCK_SMALL_SIZE )
 				AddDataItem( &vol->pdlFreeSmallBlocks, &_block );
 			else
@@ -3851,7 +3873,7 @@ size_t CPROC sack_vfs_os_truncate( struct sack_vfs_os_file* file ) {
 	return result;
 }
 
-int sack_vfs_os_close_internal( struct sack_vfs_os_file *file ) {
+int sack_vfs_os_close_internal( struct sack_vfs_os_file *file, int unlock ) {
 #ifdef DEBUG_TRACE_LOG
 	{
 		enum block_cache_entries cache = BC(NAMES);
@@ -3889,13 +3911,13 @@ int sack_vfs_os_close_internal( struct sack_vfs_os_file *file ) {
 	if( file->sealant )
 		Deallocate( uint8_t*, file->sealant );
 	if( file->vol->closed ) sack_vfs_os_unload_volume( file->vol );
+	if( unlock ) file->vol->lock = 0;
 	Deallocate( struct sack_vfs_os_file *, file );
 	return 0;
 }
 int CPROC sack_vfs_os_close( struct sack_vfs_os_file* file ) {
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
-	int status = sack_vfs_os_close_internal( (struct sack_vfs_os_file*) file );
-	file->vol->lock = 0;
+	int status = sack_vfs_os_close_internal( (struct sack_vfs_os_file*) file, TRUE );
 	return status;
 }
 
@@ -4348,7 +4370,7 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 						//_os_UpdateFileBlocks( file );
 						sack_vfs_os_seek_internal( file, (size_t)GetBlockStart( file, FILE_BLOCK_DATA ), SEEK_SET );
 						sack_vfs_os_write_internal( file, objBuf, objBufLen, 0 );
-						sack_vfs_os_close_internal( file );
+						sack_vfs_os_close_internal( file, FALSE );
 					}
 					return TRUE;
 				}
@@ -4394,7 +4416,7 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 					//file->sealantLen = 0;
 				}
 				sack_vfs_os_write_internal( file, objBuf, objBufLen, NULL );
-				sack_vfs_os_close_internal( file );
+				sack_vfs_os_close_internal( file, FALSE );
 			}
 			return TRUE;
 		}
