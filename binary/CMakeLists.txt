@@ -8,7 +8,7 @@ include( ExternalProject )
 
 PROJECT( "Sack.Binaries" )
 
-OPTION( FORCE_EXTERNAL_BUILD CACHE STRING "FOrce External Projects to build" OFF );
+OPTION( FORCE_EXTERNAL_BUILD "Force External Projects to build" OFF );
 
 if( FORCE_EXTERNAL_BUILD ) 
 	SET( EXTERNAL_BUILD_EXTRA_FLAGS BUILD_ALWAYS 1 )
