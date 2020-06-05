@@ -9,6 +9,8 @@ enable_language( ASM )
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
+
+
 project( SACK )
 
 SET( ENABLE_VULKAN ON )
@@ -260,7 +262,7 @@ endif( __ANDROID__ )
 
 
 set( BULLET_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../bullet" CACHE STRING "bullet source path "  )
-
+OPTION( FORCE_EXTERNAL_BUILD OFF CACHE STRING "Force build on external projects" );
 OPTION( SACK_BUILD_STATIC_LIBS "Enable building static versions of libraries" OFF )
 OPTION( BUILD_EXTRAS "Enable building extras" OFF )
 OPTION( INSTALL_EXTRAS "Enable installing extras; build anyway" ${BUILD_EXTRAS} )
@@ -315,6 +317,10 @@ OPTION( INCLUDE_VULKAN "Include vulkan interfaces" ${ENABLE_VULKAN} )
 # default itnerface output path... (override if __CLR__)
 # should make this a common target variable instead also...
 set( INTERFACE_OUTPUT_DIR ${BINARY_OUTPUT_DIR} )
+
+if( FORCE_EXTERNAL_BUILD )
+   set( EXTERNAL_BUILD_EXTRA_FLAGS BUILD_ALWAYS 1 )
+endif( FORCE_EXTERNAL_BUILD )
 
 if( APPLE )
    SET( ExtraFlags "${ExtraFlags} -Wno-parentheses -Wno-address-of-packed-member")
@@ -1514,7 +1520,7 @@ if( NOT EMSCRIPTEN )
 	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/makefiles/prog/ppc
 	BINARY_DIR ppc_portable
 	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
-        BUILD_ALWAYS 1
+        ${EXTERNAL_BUILD_EXTRA_FLAGS}
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
 		-DCMAKE_BUILD_TYPE:PATH=${CMAKE_BUILD_TYPE}
   		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
