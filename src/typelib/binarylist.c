@@ -124,6 +124,52 @@ void BalanceBinaryTree( PTREEROOT root )
 
 //---------------------------------------------------------------------------
 
+#ifdef DEBUG_AVL_VALIDATION
+//-------------------------------------------------------------------------- -
+void ValidateTreeNode( PTREENODE node ) {
+	if( node->parent && !node->parent->flags.bRoot ) {
+		if( node->parent->children != ( ( node->parent->lesser ? ( node->parent->lesser->children + 1 ) : 0 )
+			+ ( node->parent->greater ? ( node->parent->greater->children + 1 ) : 0 )
+			) ) {
+			lprintf( "child account is failed." );
+			DebugBreak();
+		}
+		if( node->parent->depth <= node->depth ) {
+			lprintf( "Depth tracking is failure." );
+			DebugBreak();
+		}
+		else if( ( node->parent->depth - node->depth ) > 2 ) {
+			lprintf( "Depth tracking is failure(2)." );
+			DebugBreak();
+		}
+		if( node->parent->lesser != node && node->parent->greater != node ) {
+			lprintf( "My parent is not pointing at me." );
+			DebugBreak();
+		}
+	}
+	if( node->lesser ) {
+		if( node->lesser->parent != node ) {
+			lprintf( "My Lesser does not point back to me as a parent." );
+			DebugBreak();
+		}
+		ValidateTreeNode( node->lesser );
+	}
+	if( node->greater ) {
+		if( node->greater->parent != node ) {
+			lprintf( "My Greater does not point back to me as a parent." );
+			DebugBreak();
+		}
+		ValidateTreeNode( node->greater );
+	}
+
+}
+//-------------------------------------------------------------------------- -
+void ValidateTree( PTREEROOT root ) {
+	//lprintf( "--------------------------- VALIDATE TREE -----------------------------" );
+	//DumpTree( root, NULL );
+	ValidateTreeNode( root->tree );
+}
+#endif
 //---------------------------------------------------------------------------
 
 //static PTREENODE AVL_RotateToRight( PTREENODE node )
@@ -131,7 +177,7 @@ void BalanceBinaryTree( PTREEROOT root )
 {                                                                        \
 	PTREENODE left = node->lesser;                                   \
 	PTREENODE T2 = left->greater;                                    \
-                                                                         \
+/*lprintf( "RTR %p %p %p", node, left, T2 );     */                   \
 	node->children -= (left->children + 1);                          \
                                                                          \
 	node->me[0] = left;                                              \
@@ -147,8 +193,8 @@ void BalanceBinaryTree( PTREEROOT root )
 	if( T2 ) {                                                       \
 		T2->me = &node->lesser;                                  \
 		T2->parent = node;                                       \
-		node->children += (left->greater->children + 1);         \
-		left->children -= (left->greater->children + 1);         \
+		node->children += (T2->children + 1);         \
+		left->children -= (T2->children + 1);         \
 	}                                                                \
 	left->children += (node->children + 1);                          \
                                                                          \
@@ -179,7 +225,7 @@ void BalanceBinaryTree( PTREEROOT root )
 {                                                                        \
 	PTREENODE right = node->greater;                                 \
 	PTREENODE T2 = right->lesser;                                    \
-                                                                         \
+	/*lprintf( "RTL %p %p %p", node, right, T2 );  */                \
 	node->children -= (right->children + 1);                         \
                                                                          \
 	node->me[0] = right;                                             \
@@ -194,8 +240,8 @@ void BalanceBinaryTree( PTREEROOT root )
 	if( T2 ) {                                                       \
 		T2->me = &node->greater;                                 \
 		T2->parent = node;                                       \
-		node->children += (right->lesser->children + 1);         \
-		right->children -= (right->lesser->children + 1);        \
+		node->children += (T2->children + 1);         \
+		right->children -= (T2->children + 1);        \
 	}                                                                \
 	right->children += (node->children + 1);                         \
 	/*  Update heights */                                            \
@@ -353,6 +399,9 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 		root->tree = node;
 		node->me = &root->tree;
 		node->parent = (PTREENODE)root;
+#ifdef DEBUG_AVL_VALIDATION
+		ValidateTree( root );
+#endif
 		return 1;
 	}
  	check = root->tree;
@@ -400,14 +449,6 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 		}
 		else
 		{
-#if SACK_BINARYLIST_USE_CHILD_COUNTS
-			int leftchildren = 0, rightchildren = 0;
-			if( check->lesser )
-				leftchildren = check->lesser->children;
-			if( check->greater )
-				rightchildren = check->greater->children;
-			if( leftchildren <= rightchildren )
-#else
 			// allow duplicates; but link in as a near node, either left
 			// or right... depending on the depth.
 			int leftdepth = 0, rightdepth = 0;
@@ -416,7 +457,6 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 			if( check->greater )
 				rightdepth = check->greater->depth;
 			if( leftdepth < rightdepth )
-#endif
 			{
 				if( check->lesser )
 					check = check->lesser;
@@ -446,6 +486,9 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 		*(int*)0 = 0;
 	}
 	AVLbalancer( root, node );
+#ifdef DEBUG_AVL_VALIDATION
+	ValidateTree( root );
+#endif
 	return 1;
 }
 
@@ -629,6 +672,9 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 
 		if( node )
 			DeleteFromSet( TREENODE, TreeNodeSet, node );
+#ifdef DEBUG_AVL_VALIDATION
+		ValidateTree( root );
+#endif
 		return;
 	}
 	lprintf( "Fatal RemoveBinaryNode could not find the root!" );
@@ -681,7 +727,70 @@ static void DestroyBinaryTreeNode( PTREEROOT root, PTREENODE node )
 			DestroyBinaryTreeNode( root, node->lesser );
 		if( node->greater )
 			DestroyBinaryTreeNode( root, node->greater );
-		NativeRemoveBinaryNode( root, node );
+
+		CPOINTER userdata = node->userdata;
+		uintptr_t userkey = node->key;
+		// lprintf( "Removing node from tree.. %p under %p", node, node->parent );
+		if( !node->parent->flags.bRoot
+			&& node->parent->lesser != node
+			&& node->parent->greater != node ) {
+			*(int*)0 = 0;
+		}
+		PTREENODE least = NULL;
+		PTREENODE bottom;  // deepest node a change was made on.
+		if( !node->lesser ) {
+			if( node->greater ) {
+				bottom = ( *node->me ) = node->greater;
+				bottom->parent = node->parent;
+			}
+			else {
+				( *node->me ) = NULL;
+				bottom = node;
+			}
+		}
+		else if( !node->greater ) {
+			bottom = ( *node->me ) = node->lesser;
+			bottom->parent = node->parent;
+		}
+		else {
+			bottom = node;
+			// have a lesser and a greater.
+			if( node->lesser->depth > node->greater->depth ) {
+				least = node->lesser;
+				while( least->greater ) { bottom = least; least = least->greater; }
+				if( least->lesser ) {
+					( *( least->lesser->me = least->me ) ) = least->lesser;
+					least->lesser->parent = least->parent;
+				}
+				else {
+					( *( least->me ) ) = NULL;
+				}
+			}
+			else {
+				least = node->greater;
+				while( least->lesser ) { bottom = least; least = least->lesser; }
+				if( least->greater ) {
+					( *( least->greater->me = least->me ) ) = least->greater;
+					least->greater->parent = least->parent;
+				}
+				else {
+					( *( least->me ) ) = NULL;
+				}
+			}
+		}
+		if( least ) {
+			node->userdata = least->userdata;
+			node->key = least->key;
+			DeleteFromSet( TREENODE, TreeNodeSet, least );
+			node = NULL;
+			least = NULL;
+		}
+
+		if( root->Destroy )
+			root->Destroy( userdata, userkey );
+
+		if( node )
+			DeleteFromSet( TREENODE, TreeNodeSet, node );
 	}
 }
 
