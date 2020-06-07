@@ -728,69 +728,9 @@ static void DestroyBinaryTreeNode( PTREEROOT root, PTREENODE node )
 		if( node->greater )
 			DestroyBinaryTreeNode( root, node->greater );
 
-		CPOINTER userdata = node->userdata;
-		uintptr_t userkey = node->key;
-		// lprintf( "Removing node from tree.. %p under %p", node, node->parent );
-		if( !node->parent->flags.bRoot
-			&& node->parent->lesser != node
-			&& node->parent->greater != node ) {
-			*(int*)0 = 0;
-		}
-		PTREENODE least = NULL;
-		PTREENODE bottom;  // deepest node a change was made on.
-		if( !node->lesser ) {
-			if( node->greater ) {
-				bottom = ( *node->me ) = node->greater;
-				bottom->parent = node->parent;
-			}
-			else {
-				( *node->me ) = NULL;
-				bottom = node;
-			}
-		}
-		else if( !node->greater ) {
-			bottom = ( *node->me ) = node->lesser;
-			bottom->parent = node->parent;
-		}
-		else {
-			bottom = node;
-			// have a lesser and a greater.
-			if( node->lesser->depth > node->greater->depth ) {
-				least = node->lesser;
-				while( least->greater ) { bottom = least; least = least->greater; }
-				if( least->lesser ) {
-					( *( least->lesser->me = least->me ) ) = least->lesser;
-					least->lesser->parent = least->parent;
-				}
-				else {
-					( *( least->me ) ) = NULL;
-				}
-			}
-			else {
-				least = node->greater;
-				while( least->lesser ) { bottom = least; least = least->lesser; }
-				if( least->greater ) {
-					( *( least->greater->me = least->me ) ) = least->greater;
-					least->greater->parent = least->parent;
-				}
-				else {
-					( *( least->me ) ) = NULL;
-				}
-			}
-		}
-		if( least ) {
-			node->userdata = least->userdata;
-			node->key = least->key;
-			DeleteFromSet( TREENODE, TreeNodeSet, least );
-			node = NULL;
-			least = NULL;
-		}
-
 		if( root->Destroy )
-			root->Destroy( userdata, userkey );
-
-		if( node )
-			DeleteFromSet( TREENODE, TreeNodeSet, node );
+			root->Destroy( node->userdata, node->key );
+		DeleteFromSet( TREENODE, TreeNodeSet, node );
 	}
 }
 
