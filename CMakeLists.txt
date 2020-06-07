@@ -13,7 +13,8 @@ set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 project( SACK )
 
-SET( ENABLE_VULKAN ON )
+# someday we can enable this by default....
+SET( ENABLE_VULKAN OFF )
 
 if( NOT CMAKE_COMPILER_IS_GNUCC
   AND (CMAKE_CXX_COMPILER_ID MATCHES "Clang"
