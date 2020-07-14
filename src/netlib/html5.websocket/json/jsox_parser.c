@@ -654,6 +654,7 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		}else {
 			if( !state->pvtError ) state->pvtError = VarTextCreate();
 			vtprintf( state->pvtError, "Fault while parsing; while getting field name unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+			vtprintf( state->pvtError, "\nError: word state: %d %d", state->parse_context, state->objectContext );
 			state->status = FALSE;
 			return FALSE;
 		}

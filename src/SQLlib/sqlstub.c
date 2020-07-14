@@ -3782,6 +3782,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							}
 							if( pvtData )vtprintf( pvtData, "%s<BINARY>", idx > 1 ? "," : "" );
 							break;
+						case SQL_GUID:
 						case SQL_CHAR:
 						case SQL_VARCHAR:
 						case SQL_LONGVARCHAR:
