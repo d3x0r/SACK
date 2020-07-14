@@ -747,7 +747,7 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 			BLOCKINDEX block;
 			BLOCKINDEX bigSector;
 		};
-		PDATALIST pdlBATs = CreateDataList( sizeof( BLOCKINDEX ) );
+		PDATALIST pdlBATs = CreateDataList( sizeof( struct BATInfo ) );
 		rollback->flags.processing = 1;
 		for( e = 0; e < rollback->nextEntry; e++ ) {
 			rollbackEntryCache = BC( ROLLBACK );
