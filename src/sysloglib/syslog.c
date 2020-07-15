@@ -804,6 +804,7 @@ int64_t GetTimeOfDay( uint64_t* tick, int8_t* ptz )
 		tz = (((tz / 100) * 60) + (tz % 100)) / 15; // -840/15 = -56  720/15 = 48
 
 	tick[0] = timeGetTime64ns();
+	tick[0] += (int64_t)tz * 900 * (int64_t)1000000000;
 	ptz[0] = tz;
 	return ( tick[0] /1000000 )<<8 | (tz&0xFF);
 
