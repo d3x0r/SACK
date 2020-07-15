@@ -346,7 +346,11 @@ static void flushFileSuffix( struct sack_vfs_os_file* file );
 static void WriteIntoBlock( struct sack_vfs_os_file* file, int blockType, FPI pos, CPOINTER data, FPI length );
 
 
-#include "vfs_os_timeline.c"
+#include "vfs_os_timeline_unsorted.c"
+#define priorIndex priorData
+
+//#include "vfs_os_timeline.c"
+//#define priorIndex prior.ref.index
 
 struct blockInfo {
 	BLOCKINDEX block;
@@ -1835,7 +1839,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 			//tl->header.crootNode.raw = 0;
 			tl->header.srootNode.raw = 0;
 			tl->header.first_free_entry.ref.index = 1;
-			tl->header.first_free_entry.ref.depth = 0;
+			//tl->header.first_free_entry.ref.depth = 0;
 			// update the clean buffer, so journal writes initialized data.
 			memcpy( vol->usekey_buffer_clean[newcache], vol->usekey_buffer[newcache], TIME_BLOCK_SIZE );
 			break;
@@ -2696,12 +2700,12 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 				reloadTimeEntry( &time, vol, ( dirblock->entries[f].timelineEntry ) VTReadWrite GRTENoLog DBG_SRC );
 				time.disk->dirent_fpi = vol->bufferFPI[nameCache] + sane_offsetof( struct directory_hash_lookup_block, entries[f - 1] );
 				{
-					uint64_t index = time.disk->prior.ref.index;
+					uint64_t index = time.disk->priorIndex;
 					while( index ) {
 						struct memoryTimelineNode time2;
 						reloadTimeEntry( &time2, vol, index GRTENoLog VTReadWrite DBG_SRC );
 						time2.disk->dirent_fpi = time.disk->dirent_fpi;
-						index = time2.disk->prior.ref.index;
+						index = time2.disk->priorIndex;
 						updateTimeEntry( &time2, vol, TRUE DBG_SRC );
 					}
 				}
@@ -2844,13 +2848,13 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 							// timeline points at new entry.
 							time.disk->dirent_fpi = vol->bufferFPI[newdir_cache] + sane_offsetof( struct directory_hash_lookup_block , entries[nf]);
 							{
-								uint64_t index = time.disk->prior.ref.index;
+								uint64_t index = time.disk->priorIndex;
 								while( index ) {
 									struct memoryTimelineNode time2;
 									reloadTimeEntry( &time2, vol, index VTReadWrite GRTENoLog DBG_SRC );
 									time2.disk->dirent_fpi = time.disk->dirent_fpi;
 									updateTimeEntry( &time2, vol, TRUE DBG_SRC );
-									index = time2.disk->prior.ref.index;
+									index = time2.disk->priorIndex;
 								}
 							}
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
@@ -2915,13 +2919,13 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 							reloadTimeEntry( &time, vol, (dirblock->entries[m + offset].timelineEntry) VTReadWrite GRTENoLog DBG_SRC );
 							time.disk->dirent_fpi = vol->bufferFPI[cache] + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
 							{
-								uint64_t index = time.disk->prior.ref.index;
+								uint64_t index = time.disk->priorIndex;
 								while( index ) {
 									struct memoryTimelineNode time2;
 									reloadTimeEntry( &time2, vol, index VTReadWrite GRTENoLog DBG_SRC );
 									time2.disk->dirent_fpi = time.disk->dirent_fpi;
 									updateTimeEntry( &time2, vol, TRUE DBG_SRC );
-									index = time2.disk->prior.ref.index;
+									index = time2.disk->priorIndex;
 								}
 							}
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
@@ -3085,13 +3089,13 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 #endif
 						node.disk->dirent_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
 						{
-							uint64_t index = node.disk->prior.ref.index;
+							uint64_t index = node.disk->priorIndex;
 							while( index ) {
 								struct memoryTimelineNode time2;
 								reloadTimeEntry( &time2, vol, index VTReadWrite GRTENoLog DBG_SRC );
 								time2.disk->dirent_fpi = node.disk->dirent_fpi;
 								updateTimeEntry( &time2, vol, TRUE DBG_SRC );
-								index = time2.disk->prior.ref.index;
+								index = time2.disk->priorIndex;
 							}
 						}
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
@@ -4005,11 +4009,11 @@ static int _os_iterate_find( struct sack_vfs_os_find_info *_info ) {
 			enum block_cache_entries  timeCache = BC( TIMELINE );
 			reloadTimeEntry( &time, info->vol, (next_entries[n].timelineEntry) VTReadWrite GRTENoLog  DBG_SRC );
 			if( !time.disk->time ) DebugBreak();
-			if( time.disk->prior.raw )
+			if( time.disk->priorIndex )
 			{
 				enum block_cache_entries cache;
-				struct storageTimelineNode* prior = getRawTimeEntry( info->vol, time.disk->prior.raw, &cache GRTENoLog DBG_SRC );
-				while( prior->prior.raw ) prior = getRawTimeEntry( info->vol, prior->prior.raw, &cache GRTENoLog DBG_SRC );
+				struct storageTimelineNode* prior = getRawTimeEntry( info->vol, time.disk->priorIndex, &cache GRTENoLog DBG_SRC );
+				while( prior->priorIndex ) prior = getRawTimeEntry( info->vol, prior->priorIndex, &cache GRTENoLog DBG_SRC );
 				info->ctime = prior->time;
 			}
 			else
@@ -4436,6 +4440,42 @@ uintptr_t CPROC sack_vfs_os_system_ioctl( struct sack_vfs_os_volume* vol, uintpt
 	return sack_vfs_os_system_ioctl_internal( vol, opCode, args );
 }
 
+
+LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArray, size_t* timeCount ) {
+	if( !timeArray ) return TRUE;
+	uint64_t scratchTime;
+	PDATALIST pdlTimes = CreateDataList( sizeof( uint64_t ) );
+	struct sack_vfs_os_volume* vol = file->vol;
+
+	struct memoryTimelineNode time;
+	enum block_cache_entries  timeCache = BC( TIMELINE );
+
+	reloadTimeEntry( &time, vol, file->entry->timelineEntry VTReadWrite GRTENoLog  DBG_SRC );
+	if( !time.disk->time ) DebugBreak();
+	scratchTime = ( (time.disk->time / 1000000 ) <<8) | time.disk->timeTz;
+	AddDataItem( &pdlTimes, &scratchTime );
+	if( time.disk->priorIndex ) {
+		enum block_cache_entries cache;
+		struct storageTimelineNode* prior = getRawTimeEntry( vol, time.disk->priorIndex, &cache GRTENoLog DBG_SRC );
+		scratchTime = ( ( time.disk->time / 1000000 ) << 8 ) | time.disk->timeTz;
+		AddDataItem( &pdlTimes, &scratchTime );
+		while( prior->priorIndex ) {
+			prior = getRawTimeEntry( vol, prior->priorIndex, &cache GRTENoLog DBG_SRC );
+			scratchTime = ( ( time.disk->time / 1000000 ) << 8 ) | time.disk->timeTz;
+			AddDataItem( &pdlTimes, &scratchTime );
+		}
+	}
+
+	dropRawTimeEntry( vol, time.diskCache GRTENoLog DBG_SRC );
+
+	timeArray[0] = NewArray( uint64_t, pdlTimes->Cnt );
+	MemCpy( timeArray[0], pdlTimes->data, pdlTimes->Cnt * sizeof( timeArray[0] ) );
+	timeCount[0] = pdlTimes->Cnt;
+	return TRUE;
+
+}
+
+
 #ifndef USE_STDIO
 static struct file_system_interface sack_vfs_os_fsi = {
                                                      (void*(CPROC*)(uintptr_t,const char *, const char*))sack_vfs_os_open
@@ -4491,6 +4531,7 @@ PRIORITY_PRELOAD( Sack_VFS_OS_RegisterDefaultFilesystem, SQL_PRELOAD_PRIORITY + 
 }
 
 #endif
+
 
 #ifdef __cplusplus
 }
