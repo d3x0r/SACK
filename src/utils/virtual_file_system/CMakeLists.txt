@@ -34,6 +34,7 @@ set( VFSFSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_fs.cc )
 set( VFSOSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os.cc )
 set( VFSOSIPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os_index.c )
 set( VFSOSTPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os_timeline.c )
+set( VFSOSTPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os_timeline_unsorted.c )
 set( VFSPPH ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_internal.h )
 
        add_custom_command( OUTPUT ${VFSPP}
