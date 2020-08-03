@@ -233,6 +233,7 @@ if( NOT __ANDROID__ )
   set( PROJECT mercurial_version_tagger )
   set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
   BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/utils/mercurial_version_tagger MERCURIAL_TAGGER_ROOT_PATH ${EXTRA_FLAGS} )
+  add_dependencies( ${LAST_TARGET} Buildcore )
 endif( NOT __ANDROID__ )
 
 IF( BULLET_ENABLED )
