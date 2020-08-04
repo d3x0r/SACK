@@ -1652,7 +1652,7 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 				created = TRUE;
 			}
 			else
-				vol->file = sack_fopenEx( 0, fname, "wb+", mount );
+				vol->file = sack_fopenEx( 0, fname, "rb+", mount );
 			tmp[0] = '@';
 		}
 		else {
