@@ -502,7 +502,7 @@ uintptr_t CPROC ProcessDisplayMessages( PTHREAD thread )
 	struct display_camera *camera;
 	INDEX idx;
 	struct display_camera *did_one;
-	LoadOptions(); // loads camera config, and logging options...
+	ogl_LoadOptions(); // loads camera config, and logging options...
 	ogl_SACK_Vidlib_OpenCameras();  // create logical camera structures
 	l.bThreadRunning = 1;
 	while( !l.bExitThread )

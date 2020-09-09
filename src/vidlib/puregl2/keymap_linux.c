@@ -171,6 +171,12 @@ PRELOAD( dump_Table )
 }
 #endif
 
+const TEXTCHAR*  ogl_GetKeyText (int key)
+{
+   return "?!";
+}
+
+
 CTEXTSTR SACK_Vidlib_GetKeyText( int pressed, int key_index, int *used )
 {
 	// check current keyboard override...

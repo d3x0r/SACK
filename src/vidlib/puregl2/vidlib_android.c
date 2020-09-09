@@ -118,7 +118,7 @@ void SACK_Vidlib_SetNativeWindowHandle( NativeWindowType displayWindow )
 	HostSystem_InitDisplayInfo();
 	// creates the cameras.
 
-	LoadOptions();
+	ogl_LoadOptions();
 
 	if( !l.bThreadRunning )
 	{
