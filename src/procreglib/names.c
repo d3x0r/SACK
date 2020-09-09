@@ -2172,6 +2172,7 @@ void ReadConfiguration( void )
 		AddConfigurationMethod( pch, "else", ElseTestOption );
 
 		AddConfigurationMethod( pch, "service=%w library=%w load=%w unload=%w", HandleLibrary );
+		AddConfigurationMethod( pch, "alias service '%m' = '%m'", HandleAlias );
 		AddConfigurationMethod( pch, "alias service %w %w", HandleAlias );
 		AddConfigurationMethod( pch, "module %w", HandleModule );
 		AddConfigurationMethod( pch, "pmodule %w", HandlePrivateModule );
