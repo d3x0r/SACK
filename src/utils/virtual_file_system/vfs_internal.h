@@ -271,7 +271,7 @@ PREFIX_PACKED struct vfs_os_rollback_entry {
 		uint64_t zero : 1;  // block was full of 0's
 	} flags;
 	// block size is retrievable when the block is reloadeded to write
-} PACKED entries[1];
+};// PACKED entries[1];
 
 PREFIX_PACKED struct vfs_os_rollback_header {
 	struct {

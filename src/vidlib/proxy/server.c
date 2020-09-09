@@ -11,7 +11,7 @@
 #include <json_emitter.h>
 
 #include <zlib.h>
-
+#define MAIN_SOURCE
 #include "server_local.h"
 
 IMAGE_NAMESPACE

@@ -105,6 +105,9 @@ typedef struct vidlib_proxy_renderer
 
 
 #define l vidlib_proxy_server_local
+#ifndef MAIN_SOURCE
+extern
+#endif
 struct vidlib_proxy_local
 {
 	PCLIENT listener;
