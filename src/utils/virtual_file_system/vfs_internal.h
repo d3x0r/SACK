@@ -113,8 +113,6 @@ namespace fs {
 
 /* AFTER DEF */
 
-int sack_vfs_volume;
-
 enum block_cache_entries
 {
 	BC( ZERO )
