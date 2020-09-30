@@ -11,7 +11,7 @@
 #include "../vfs_internal.h"  // for BLOCK_SIZE
 
 // dereferencing NULL pointers; the function wouldn't be called with a NULL.
-#pragma warning( disable:26451) 
+#pragma warning( disable:26451)
 
 static struct vfs_command_local
 {
@@ -182,7 +182,7 @@ static void testVolume_slow( void ) {
 			sack_fseek( db, (check+1) * 4096, SEEK_SET );
 		}
 	}
-	
+
 	l.current_vol;
 }
 
@@ -194,7 +194,7 @@ static void testVolume_db( void ) {
 	SQLCommandf( odbc, "delete * from sqlite_master" );
 	CheckODBCTable( odbc, GetFieldsInSQL( "create table test1 (a,b,c)", FALSE ), CTO_MERGE );
 	CheckODBCTable( odbc, GetFieldsInSQL("create table test2 (a,b,c)", FALSE ), CTO_MERGE );
-	
+
 	for( n = 0; n < 100000; n++ ) {
 		SQLCommandf( odbc, "insert into test1 (a,b,c) values(%d,%d,%d)", n, n * 2, n * 3 );
 		SQLCommandf( odbc, "insert into test2 (a,b,c) values(%d,%d,%d)", n, n * 2, n * 3 );
@@ -229,7 +229,7 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 	}
 }
 
-static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileFlags flags )
+static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileProcessFlags flags )
 {
 	if( flags & SFF_DIRECTORY ) {// don't need to do anything with directories... already
       // doing subcurse option.
@@ -262,7 +262,7 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileFl
 	}
 }
 
-static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileFlags flags )
+static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileProcessFlags flags )
 {
 	if( flags & SFF_DIRECTORY ) {
 		// don't need to do anything with directories... already
@@ -361,7 +361,7 @@ static void ExtractFile( CTEXTSTR filename )
 }
 */
 
-static void CPROC _ExtractFile( uintptr_t psv, CTEXTSTR filename, enum ScanFileFlags flags )
+static void CPROC _ExtractFile( uintptr_t psv, CTEXTSTR filename, enum ScanFileProcessFlags flags )
 {
 	if( flags & SFF_DIRECTORY ) {
 		// don't need to do anything with directories... already
@@ -596,7 +596,7 @@ struct scanFileInfo {
 	POINTER *ppInfo;
 };
 
-static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileFlags flags )
+static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFlags flags )
 {
 	struct scanFileInfo *pInfo = (struct scanFileInfo*)psv;
 	uint64_t ctime;

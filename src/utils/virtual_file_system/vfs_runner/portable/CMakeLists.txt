@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
+PROJECT( vfs_runner.portable )
 MESSAGE( "CONFIGURE WITH:" ${CMAKE_TOOLCHAIN_FILE} )
 
 if( PLATFORM_CMAKE_DEFINES )

@@ -97,7 +97,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 				tmp = (char*)pathrchr( target );
 				if( tmp ) {
 					tmp[0] = 0;
-					if( !l.prior_output_path 
+					if( !l.prior_output_path
 						|| StrCmp( l.prior_output_path, target ) ) {
 						l.prior_output_path = strdup( target );
 						MakePath( target );
@@ -124,7 +124,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 	return FALSE;
 }
 
-static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileFlags flags )
+static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFlags flags )
 {
 	ExtractFile( file );
 }
@@ -135,7 +135,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	struct sack_vfs_volume *vol;
 	int argc;
 	char **argv;
-#if _WIN32 
+#if _WIN32
 	wchar_t * wcmd = GetCommandLineW();
 	char *cmd = WcharConvert( wcmd );
 	ParseIntoArgs( cmd, &argc, &argv );
@@ -167,7 +167,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		if( argc > 1 ) {
 			l.target_path = ExpandPath( argv[1] );
 		}
-		SetSystemLog( SYSLOG_FILE, stderr ); 
+		SetSystemLog( SYSLOG_FILE, stderr );
 		if( !memory ) {
 			lprintf( "Please launch with full application name/path" );
 			return;
@@ -175,7 +175,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		// raw EXE images can be passed to VFS module now and it internally figures an offset
 		// includes verification of the EXE signature.
 		//lprintf( "Memory: %p %d", memory, sz );
-		
+
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
 		//lprintf( "use crypt.." );
@@ -225,7 +225,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			}
 			sack_fclose( file );
 		}
-		else 
+		else
 			if( !l.target_path ) l.target_path = (char*)GetProgramName();
 		{
 			INDEX idx;
