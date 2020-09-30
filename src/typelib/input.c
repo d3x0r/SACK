@@ -498,7 +498,7 @@ void RecallUserInput( PUSER_INPUT_BUFFER pci, int bUp )
 			LineRelease( pci->CollectionBuffer );
 				pci->CollectionBuffer = NULL;
 			pci->CollectionIndex = 0;
-			pci->nHistory = INVALID_INDEX;
+			pci->nHistory = -1;
 			return;
 		}
 	}
