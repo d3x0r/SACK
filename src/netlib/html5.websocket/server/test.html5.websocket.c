@@ -22,7 +22,7 @@ void my_web_socket_error( PCLIENT pc, uintptr_t psv, int error )
 	lprintf( "Connection error... %p %p", pc, psv );
 }
 
-void my_web_socket_event( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, int msglen )
+void my_web_socket_event( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, size_t msglen )
 {
 	lprintf( "Recieved event" );
 	LogBinary( buffer, msglen );
