@@ -9,6 +9,7 @@ add_library( bag.video.wayland SHARED
 
   ${LAST_GCC_LIBRARY_SOURCE}
 )
+
 SET_TARGET_PROPERTIES(bag.video.wayland PROPERTIES
                   COMPILE_FLAGS  "-DRENDER_LIBRARY_SOURCE"
                   COMPILE_DEFINITIONS "TARGET_LABEL=bag_video_wayland;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}bag.video.wayland${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"

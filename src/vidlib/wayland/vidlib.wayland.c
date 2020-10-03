@@ -16,6 +16,9 @@
 #include <xkbcommon/xkbcommon.h>
 #include <linux/input-event-codes.h>
 
+
+//#define ALLOW_KDE
+
 typedef struct wvideo_tag
 {
 	struct {
@@ -87,6 +90,9 @@ enum WAYLAND_INTERFACE_STRING {
 	wis_shell,
 	wis_seat,
 	wis_shm,
+#ifdef ALLOW_KDE
+	wis_kde_shell,
+#endif
 	max_interface_versions
 };
 
@@ -99,7 +105,9 @@ static char * interfaces [max_interface_versions] = {
  ,[wis_shell]="wl_shell"
  ,[wis_seat]="wl_seat"
 ,[wis_shm]= "wl_shm"
-
+#ifdef ALLOW_KDE
+ ,[wis_kde_shell]="org_kde_plasma_shell"
+#endif
 };
 
 
@@ -119,6 +127,7 @@ struct wayland_local_tag
 	struct wl_compositor* compositor;
 	struct wl_subcompositor* subcompositor;
 	struct wl_shm *shm;
+	volatile int registering; // valid pixel format found.
 	int canDraw; // valid pixel format found.
 	struct wl_shell *shell;
 	struct wl_seat *seat;
@@ -234,6 +243,7 @@ shm_format(void *data, struct wl_shm *wl_shm, uint32_t format)
     switch (format) {
     case WL_SHM_FORMAT_ARGB8888: s = "ARGB8888";
 	 	wl.canDraw = 1;
+		 wl.registering = 0;
 		  break;
     case WL_SHM_FORMAT_XRGB8888: s = "XRGB8888"; break;
     case WL_SHM_FORMAT_RGB565: s = "RGB565"; break;
@@ -420,7 +430,7 @@ static void keyboard_enter(void *data,
 {
 	PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
 	if( wl.hVidFocused )
-		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, r );
+		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)r );
 	wl.hVidFocused = r;
 	r->pLoseFocus( r->dwLoseFocus, NULL );
 }
@@ -432,7 +442,7 @@ static void keyboard_leave(void *data,
 	PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
 	if( wl.hVidFocused ){
 		lprintf( "on leave lose focus?");
-		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, 1 );
+		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)1 );
 	}
 	//r->pLoseFocus( r->dwLoseFocus, 1 );
 }
@@ -448,7 +458,6 @@ static int xkbToWindows[] = {
 
 static void initKeys( void ) {
 	int n;
-	if( KEY_TAB == 15 ) DebugBreak();
 	for( n = 32 ; n <= 127; n++ ){
 		xkbToWindows[n] = n;
 	}
@@ -531,7 +540,8 @@ static void keyboard_modifiers(void *data,
 	if( mods_depressed & 8 ) {
 		wl.keyMods |= KEY_ALT_DOWN;
 	}
-	lprintf( "MOD: %p %d %x %x %d",  mods_depressed, mods_latched, mods_locked, group );
+	// I get an initial state of nil,0,0,0,N
+	//lprintf( "MOD: %p %d %x %x %d",  mods_depressed, mods_latched, mods_locked, group );
 	xkb_state_update_mask (wl.xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 
 
@@ -567,13 +577,22 @@ static void
 global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 	       const char *interface, uint32_t version)
 {
+	static int processing;
+	while( processing ) Relinquish();
+	processing = 1;
+
 	int n;
 	for( n = 0; n < sizeof( interfaces )/sizeof(interfaces[0] ); n++ ){
 		if( strcmp( interface, interfaces[n] ) == 0 ){
+			//lprintf( "Is: %s %s ", interface, interfaces[n]);
 			wl.versions[n] = version;
+			if( version < supportedVersions[n] ){
+				lprintf( "Interface %s is version %d and library expects %d",
+				      interfaces[wis_compositor], version, supportedVersions[n] );
+			}
 			if( supportedVersions[n] < version ){
 				lprintf( "Interface %s is version %d and library only supports %d",
-				interfaces[wis_compositor], version, supportedVersions[n] );
+				      interfaces[wis_compositor], version, supportedVersions[n] );
 				version = supportedVersions[n];
 			}
 
@@ -581,7 +600,7 @@ global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 		}
 	}
 
-	//lprintf("Got a registry event for %s id %d", interface, id);
+	//lprintf("Got a registry event for %s id %d %d", interface, id, n);
 	if( n == wis_compositor ) {
 		wl.compositor = wl_registry_bind(registry,
 				      id,
@@ -595,9 +614,14 @@ global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 	//} else if( n == wis_zwp_linux_dmabuf_v1] ) {
 		//lprintf( "Well, fancy that,we get DMA buffers?");
 		// can video fullscreen
-	} else if( n == wis_shell ) {
+	} else if( n == wis_shell  ) {
        wl.shell = wl_registry_bind(registry, id,
                                  &wl_shell_interface, version);
+#ifdef ALLOW_KDE
+	} else if( n == wis_kde_shell ) {
+       wl.shell = wl_registry_bind(registry, id,
+                                 &org_kde_plasma_shell_interface, version);
+#endif
 	} else if( n == wis_seat ) {
 		wl.seat = wl_registry_bind(registry, id,
 			&wl_seat_interface,  version>2?version:version);
@@ -620,6 +644,7 @@ global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 		AddLink( &wl.outputSurfaces, out );
 */
    }
+	processing = 0;
 }
 
 static void
@@ -654,13 +679,16 @@ static void initConnections( void ) {
 
 static void finishInitConnections( void ) {
 	wl.xkb_context = xkb_context_new (XKB_CONTEXT_NO_FLAGS);
-
+	wl.registering = 1;
 	struct wl_registry *registry = wl_display_get_registry(wl.display);
 	wl_registry_add_listener(registry, &registry_listener, NULL);
 	wl_proxy_set_queue( (struct wl_proxy*)registry, wl.queue );
 
-   wl_display_roundtrip_queue(wl.display, wl.queue);
+	wl_display_roundtrip_queue(wl.display, wl.queue);
+
+	while( wl.registering )Relinquish(); // wait one more time, the last prior thing might take a bit.
    wl_registry_destroy(registry);
+	//lprintf( "and we finish with %p %d", wl.compositor, wl.canDraw );
 
 #if 0
 	/// dump all the versions found, so supportedVersions can be udpated.
@@ -671,8 +699,12 @@ static void finishInitConnections( void ) {
 		}
 	}
 #endif
-
+	if( !wl.shell ){
+		lprintf( "Can't find wl_shell.");
+		DebugBreak();
+	}
 	if (!wl.compositor || !wl.canDraw ) {
+		DebugBreak();
 		lprintf( "Can't find compositor or no supported pixel format found.");
 		return;
 	} else {
@@ -821,11 +853,14 @@ static void clearBuffer( PXPANEL r ) {
 	wl_surface_attach( r->surface, NULL, 0, 0);
 }
 
-static void nextBuffer( PXPANEL r ) {
-	if( r->flags.hidden ) return;
+static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
+	if( r->flags.hidden ) {
+		lprintf( "window is hidden... returning a fault.");
+		return NULL;
+	}
 	if( r->freeBuffer[r->curBuffer] ) {
-		//lprintf( "Can just use the current image... it's already attached");
-		return;
+		//lprintf( "Can just use the current image... it's already attached", r->buff);
+		return r->buff;
 	}
 
 	r->curBuffer=1-r->curBuffer;
@@ -864,6 +899,7 @@ static void nextBuffer( PXPANEL r ) {
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
 	r->pImage->flags |= IF_FLAG_FINAL_RENDER;
 	wl_surface_attach( r->surface, r->buff, 0, 0);
+	return r->buff;
 }
 
 
@@ -875,15 +911,17 @@ static void nextBuffer( PXPANEL r ) {
 	if( r->frame_callback ) wl_callback_destroy( r->frame_callback );
 	r->frame_callback = wl_surface_frame( r->surface );
 	wl_callback_add_listener( r->frame_callback, &frame_listener, r );
+	//lprintf( "frame callback - check dirty %d %d %d", r->flags.dirty, r->flags.canCommit );
 
 	if( r->flags.dirty ){
 		r->flags.canCommit = 0;
 		r->flags.dirty = 0;
 		//lprintf( "Window is dirty, do commit");
+		struct wl_buffer *next = nextBuffer(r, 0);
 
 		wl_surface_commit( r->surface );
+		wl_surface_attach( r->surface, next, 0, 0 );
 		// wait until we actually NEED the buffer, maybe we can use the same one.
-		nextBuffer(r);
 	}else {
 		//lprintf( "Allow window to be commited at will.");
 		r->flags.canCommit = 1;
@@ -893,6 +931,7 @@ static void nextBuffer( PXPANEL r ) {
 
 static uintptr_t waylandThread( PTHREAD thread ) {
 	wl.waylandThread = thread;
+	if( wl.display) DebugBreak();
 	initConnections();
 	while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 ) {
 		//lprintf( "Handled an event." );
@@ -909,9 +948,11 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 						r->flags.dirty = 0;
 						r->flags.canCommit = 0;
 						r->freeBuffer[r->curBuffer] = 0; // the image is NOT free
+						struct wl_buffer *next = nextBuffer(r, 0);
 						wl_surface_commit( r->surface );
+						wl_surface_attach( r->surface, next, 0, 0 );
 						// wait until we NEED a buffer...
-						nextBuffer(r);
+
 					}else {
 						//lprintf( "frame callback still waiting?");
 						// still waiting... next commit event will catch this.
@@ -993,7 +1034,7 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 	PXPANEL r = (PXPANEL)data;
 	int n;
 	for( n = 0; n < 2; n++ )  {
-		lprintf( "is %p %p?", r->buffers[n] , wl_buffer );
+		//lprintf( "is %p %p?", r->buffers[n] , wl_buffer );
 		if( r->buffers[n] == wl_buffer ) {
 			//lprintf( "Buffer %d is free again", n );
 			r->freeBuffer[n] = 1;
@@ -1052,28 +1093,6 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 	return TRUE;
 }
 
-int dispatchMessages( uintptr_t psv ){
-	if( MakeThread() != wl.waylandThread ) return -1; // not for this thread...
-	int n = wl_display_dispatch(wl.display);
-	if( n == 0 ) return 0;
-	if( n > 1 ) return 1;
-}
-
-int InitDisplay( void )
-{
-	if( !wl.flags.bInited ) {
-		//AddIdleProc( dispatchMessages, 0 );
-		//wl.waylandThread = MakeThread();
-		//initConnections();
-		//wl.flags.bInited = 1;
-		ThreadTo( waylandThread, 0 );
-		while( !wl.flags.bInited) {
-			Relinquish();
-		}
-		finishInitConnections();
-
-	}
-}
 
 void ShutdownVideo( void )
 {
@@ -1085,10 +1104,12 @@ void ShutdownVideo( void )
 
 static void sack_wayland_Redraw( PRENDERER renderer ) {
 	PXPANEL r = (PXPANEL)renderer;
-	//lprintf( "(get new buffer)Issue redraw on renderer %p", renderer );
-	nextBuffer(r);
+	struct wl_buffer *b = nextBuffer(r,1);
+	lprintf( "(get new buffer)Issue redraw on renderer %p %p", renderer, b );
+	if( !b )DebugBreak();
 	r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
 
+	wl_display_flush( wl.display );
 	wl_display_roundtrip_queue(wl.display, wl.queue);
 }
 
@@ -1179,6 +1200,14 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 		if( i == INVALID_INDEX )
 			AddLink( &wl.damaged, r );
 		 wl.commit = 1;
+	}
+	if( r->flags.canCommit ){
+		struct wl_buffer *next = nextBuffer(r, 0);
+		r->flags.canCommit = 0;
+		wl_surface_commit( r->surface );
+		wl_display_flush( wl.display );
+
+		wl_surface_attach( r->surface, next, 0, 0 );
 	}
 }
 
@@ -1288,7 +1317,7 @@ static void sack_wayland_RestoreDisplayEx( PRENDERER renderer DBG_PASS ){
 	if( r->flags.hidden ) {
 		r->flags.hidden = 0;
 		lprintf( "RESTORE AND REDRAW" );
-		nextBuffer(r);
+		nextBuffer(r, 1);
 	}
 	//lprintf( "REDRAW" );
 	sack_wayland_Redraw( renderer );
@@ -1312,7 +1341,7 @@ Image GetDisplayImage(PRENDERER renderer) {
 	if( r ) {
 		if( !r->pImage ) {
 			//lprintf( "Get the display iamge, which uses next buffer");
-			nextBuffer(r);
+			nextBuffer(r,1 );
 		}
 		return r->pImage;
 	}
@@ -1448,7 +1477,16 @@ static RENDER_INTERFACE VidInterface = { InitializeDisplay
 
 static POINTER GetWaylandDisplayInterface(void)
 {
-	InitDisplay();
+	if( !wl.flags.bInited ) {
+		//wl.waylandThread = MakeThread();
+		//initConnections();
+		//wl.flags.bInited = 1;
+		ThreadTo( waylandThread, 0 );
+		while( !wl.flags.bInited) {
+			Relinquish();
+		}
+		finishInitConnections();
+	}
 	return (POINTER)&VidInterface;
 }
 
