@@ -13,6 +13,7 @@
 #include <fcntl.h>
 
 #include <wayland-client.h>
+#include <xkbcommon/xkbcommon.h>
 #include <linux/input-event-codes.h>
 
 typedef struct wvideo_tag
@@ -24,6 +25,7 @@ typedef struct wvideo_tag
 		uint32_t dirty : 1;
 		uint32_t canCommit : 1;
 		uint32_t wantDraw : 1;
+		uint32_t hidden : 1; // tracks whether the window is visible or not.
 	} flags;
 
 	int32_t x, y;
@@ -78,6 +80,28 @@ struct output_data {
 	int32_t pending_scale;
 };
 
+enum WAYLAND_INTERFACE_STRING {
+	wis_compositor,
+	wis_subcompositor,
+	wis_shell,
+	wis_seat,
+	wis_shm,
+	max_interface_versions
+};
+
+// these(name and version) should be merged into a struct.
+static int supportedVersions[max_interface_versions] = {4,1,1,7,1};
+static char * interfaces [max_interface_versions] = {
+ [wis_compositor]="wl_compositor"
+ ,[wis_subcompositor]="wl_subcompositor"
+// ,"zwp_linux_dmabuf_v1"
+ ,[wis_shell]="wl_shell"
+ ,[wis_seat]="wl_seat"
+,[wis_shm]= "wl_shm"
+
+};
+
+
 struct wayland_local_tag
 {
 	PTHREAD waylandThread;
@@ -98,7 +122,13 @@ struct wayland_local_tag
 	struct wl_seat *seat;
 	struct wl_pointer *pointer;
 	struct pointer_data pointer_data ;
-	PLIST outputSurfaces;
+	struct wl_keyboard *keyboard;
+	struct xkb_context *xkb_context;
+	struct xkb_keymap *keymap;
+	struct xkb_state *xkb_state;
+	int versions[max_interface_versions]; // reported versions
+
+	//PLIST outputSurfaces;
 
 	int screen_width;
 	int screen_height;
@@ -107,13 +137,16 @@ struct wayland_local_tag
 /* colors of the given screen. More on this will be explained later.    */
 	unsigned long white_pixel;
 	unsigned long black_pixel;
+
+	//-------------- Global seat/input tracking
 	struct mouse {
 		int32_t x, y;
 		uint32_t b;
 	}mouse_;
 	PXPANEL hVidFocused; // keyboard events go here
 	PXPANEL hCaptured; // send all mouse events here (probalby should-no-op this)
-	PLIST pActiveList;
+	PLIST pActiveList; // non-destroyed windows are here
+
 };
 struct wayland_local_tag wl;
 
@@ -345,41 +378,135 @@ static const struct wl_pointer_listener pointer_listener = {
 };
 
 
+static void keyboard_keymap(void *data,
+		       struct wl_keyboard *wl_keyboard,
+		       uint32_t format,
+		       int32_t fd,
+		       uint32_t size)
+{
+	switch( format ) {
+	case WL_KEYBOARD_KEYMAP_FORMAT_NO_KEYMAP:
+		break;
+	case WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1:
+		;
+		//lprintf( "Well here's a map...");
+
+		char *keymap_string = mmap (NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+		//lprintf( "mmap:%p %d", keymap_string, errno );
+		xkb_keymap_unref (wl.keymap);
+		wl.keymap = xkb_keymap_new_from_string (wl.xkb_context, keymap_string, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+		munmap (keymap_string, size);
+		close (fd);
+		xkb_state_unref (wl.xkb_state);
+		wl.xkb_state = xkb_state_new (wl.keymap);
+
+		break;
+	}
+}
+
+static void keyboard_enter(void *data,
+		      struct wl_keyboard *wl_keyboard,
+		      uint32_t serial,
+		      struct wl_surface *surface,
+		      struct wl_array *keys)
+{
+
+}
+
+static void keyboard_leave(void *data,
+		      struct wl_keyboard *wl_keyboard,
+		      uint32_t serial,
+		      struct wl_surface *surface){
+
+}
+static void keyboard_key(void *data,
+		    struct wl_keyboard *wl_keyboard,
+		    uint32_t serial,
+		    uint32_t time,
+		    uint32_t key,
+		    uint32_t state)
+{
+	lprintf( "KEY: %p %d %d %d %d", wl_keyboard, serial, time, key, state );
+}
+
+static void keyboard_modifiers(void *data,
+			  struct wl_keyboard *wl_keyboard,
+			  uint32_t serial,
+			  uint32_t mods_depressed,
+			  uint32_t mods_latched,
+			  uint32_t mods_locked,
+			  uint32_t group)
+{
+	lprintf( "MOD: %p %d %d %d %d", wl_keyboard, serial, mods_depressed, mods_latched, mods_locked, group );
+
+}
+
+static void keyboard_repeat_info(void *data,
+			    struct wl_keyboard *wl_keyboard,
+			    int32_t rate,
+			    int32_t delay){
+					 lprintf( "Why do I care about the repeat? %d %d", rate, delay );
+				 }
+
+
+static const struct wl_keyboard_listener keyboard_listener = {
+	.keymap = keyboard_keymap,
+	.enter = keyboard_enter,
+	.leave = keyboard_leave,
+	.key = keyboard_key,
+	.modifiers = keyboard_modifiers,
+	.repeat_info = keyboard_repeat_info,
+};
+
+
 static void
 global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 	       const char *interface, uint32_t version)
 {
+	int n;
+	for( n = 0; n < sizeof( interfaces )/sizeof(interfaces[0] ); n++ ){
+		if( strcmp( interface, interfaces[n] ) == 0 ){
+			wl.versions[n] = version;
+			if( supportedVersions[n] < version ){
+				lprintf( "Interface %s is version %d and library only supports %d",
+				interfaces[wis_compositor], version, supportedVersions[n] );
+				version = supportedVersions[n];
+			}
+
+			break;
+		}
+	}
 
 	//lprintf("Got a registry event for %s id %d", interface, id);
-	if( strcmp(interface, "wl_compositor") == 0 ) {
+	if( n == wis_compositor ) {
 		wl.compositor = wl_registry_bind(registry,
 				      id,
 				      &wl_compositor_interface,
 				      version);
-	} else if( strcmp(interface, "wl_subcompositor") == 0 ) {
+	} else if( n == wis_subcompositor ) {
 		wl.subcompositor = wl_registry_bind(registry,
 				      id,
 				      &wl_subcompositor_interface,
 				      version);
-	} else if( strcmp(interface, "zwp_linux_dmabuf_v1") == 0 ) {
+	//} else if( n == wis_zwp_linux_dmabuf_v1] ) {
 		//lprintf( "Well, fancy that,we get DMA buffers?");
 		// can video fullscreen
-	} else if( strcmp(interface, "wl_shell") == 0 ) {
+	} else if( n == wis_shell ) {
        wl.shell = wl_registry_bind(registry, id,
                                  &wl_shell_interface, version);
-	} else if( strcmp(interface, "wl_seat") == 0 ) {
+	} else if( n == wis_seat ) {
 		wl.seat = wl_registry_bind(registry, id,
 			&wl_seat_interface,  version>2?version:version);
 		wl.pointer = wl_seat_get_pointer(wl.seat);
 		wl.pointer_data.surface = wl_compositor_create_surface(wl.compositor);
-
 		wl_pointer_add_listener(wl.pointer, &pointer_listener, &wl.pointer_data);
-
-	} else if( strcmp(interface, "wl_shm") == 0 ) {
+		wl.keyboard = wl_seat_get_keyboard(wl.seat );
+		wl_keyboard_add_listener(wl.keyboard, &keyboard_listener, NULL );
+	} else if( n == wis_shm ) {
       wl.shm = wl_registry_bind(registry, id,
                                  &wl_shm_interface, version);
 		wl_shm_add_listener(wl.shm, &shm_listener, NULL);
-/*	} else if( strcmp(interface, "wl_output") == 0 ) {
+/*	} else if( n == wis_output ) {
 		struct output_data *out = New( struct output_data );
 		out->wl_output = wl_registry_bind( registry, id, &wl_output_interface, version );
 		// pending scaling
@@ -422,15 +549,24 @@ static void initConnections( void ) {
 
 
 static void finishInitConnections( void ) {
-
+	wl.xkb_context = xkb_context_new (XKB_CONTEXT_NO_FLAGS);
 
 	struct wl_registry *registry = wl_display_get_registry(wl.display);
 	wl_registry_add_listener(registry, &registry_listener, NULL);
 	wl_proxy_set_queue( (struct wl_proxy*)registry, wl.queue );
 
+   wl_display_roundtrip_queue(wl.display, wl.queue);
+   wl_registry_destroy(registry);
 
-    wl_display_roundtrip_queue(wl.display, wl.queue);
-    wl_registry_destroy(registry);
+#if 0
+	/// dump all the versions found, so supportedVersions can be udpated.
+	{
+		int n;
+		for( n = 0; n < sizeof( interfaces )/sizeof(interfaces[0] ); n++ ){
+			lprintf( "interface %d %s v %d", n, interfaces[n], wl.versions[n] );
+		}
+	}
+#endif
 
 	if (!wl.compositor ) {
 		lprintf( "Can't find compositor");
@@ -599,10 +735,14 @@ static void nextBuffer( PXPANEL r ) {
 	if( !r->buff ) {
 		allocateBuffer(r);
 		r->buffer_images[r->curBuffer] = RemakeImage( NULL, r->shm_data, r->w, r->h );
+		if( r->buffer_images[1-r->curBuffer] )
+			BlotImage( r->buffer_images[r->curBuffer], r->buffer_images[1-r->curBuffer], 0, 0 );
+
 		r->buffers[r->curBuffer] = r->buff;
 		r->color_buffers[r->curBuffer] = r->shm_data;
 	}
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
+	r->pImage->flags |= IF_FLAG_FINAL_RENDER;
 	wl_surface_attach( r->surface, r->buff, 0, 0);
 }
 
@@ -650,6 +790,7 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 						r->flags.dirty = 0;
 						r->flags.canCommit = 0;
 						wl_surface_commit( r->surface );
+						nextBuffer(r);
 					}else {
 						lprintf( "frame callback still waiting?");
 						// still waiting... next commit event will catch this.
@@ -658,8 +799,8 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 			}
 			EmptyList( &wl.damaged );
 			if( flush ) {
-				lprintf( "And then even try flush?" );
-				wl_display_flush( wl.display );
+				//lprintf( "And then even try flush?" );
+				//wl_display_flush( wl.display );
 			}
 		}
 	}
@@ -897,8 +1038,8 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	//lprintf( "Update whole surface %d %d", r->w, r->h );
 	//wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
 
-	//lprintf( "Update portion: %d %d  %d %d", x, y, w, h );
-	//wl_surface_damage( r->surface, x, y, w, h );
+	lprintf( "Update portion: %d %d  %d %d", x, y, w, h );
+	wl_surface_damage( r->surface, x, y, w, h );
 	if( r->buffer_images[r->curBuffer] && r->buffer_images[1-r->curBuffer] ) {
 		BlotImageSizedTo( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer], x, y, x, y, w, h );
 	}
@@ -916,6 +1057,7 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	lprintf( "Update whole surface %d %d", r->w, r->h );
 	wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
 	if( r->buffer_images[r->curBuffer] && r->buffer_images[1-r->curBuffer] ) {
+
 		BlotImage( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer], 0, 0 );
 	}
 	r->flags.dirty = 1;
@@ -1025,9 +1167,10 @@ static void sack_wayland_HideDisplay( PRENDERER renderer ){
 Image GetDisplayImage(PRENDERER renderer) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( r ) {
-		if( !r->pImage )
+		if( !r->pImage ) {
 			r->pImage = RemakeImage( r->pImage, NULL, 0, 0 );
-
+			r->pImage->flags |= IF_FLAG_FINAL_RENDER;
+		}
 		return r->pImage;
 	}
 	return NULL;

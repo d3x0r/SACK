@@ -16,7 +16,7 @@ SET_TARGET_PROPERTIES(bag.video.wayland PROPERTIES
                   LINK_FLAGS "${extra_link_flags}"
 )
 
-my_target_link_libraries( bag.video.wayland bag ${EXTERNALS} wayland-client ${PLATFORM_LIBRARIES})
+my_target_link_libraries( bag.video.wayland bag ${EXTERNALS} wayland-client xkbcommon ${PLATFORM_LIBRARIES})
 
 
 
