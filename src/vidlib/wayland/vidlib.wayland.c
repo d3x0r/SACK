@@ -41,6 +41,7 @@ typedef struct wvideo_tag
 	struct wl_buffer *buff;
 	int curBuffer;
 	uint32_t bufw, bufh;
+	int freeBuffer[2];
 	struct wl_buffer * buffers[2];
 	PCOLOR  color_buffers[2];
 	size_t buffer_sizes[2];
@@ -118,6 +119,7 @@ struct wayland_local_tag
 	struct wl_compositor* compositor;
 	struct wl_subcompositor* subcompositor;
 	struct wl_shm *shm;
+	int canDraw; // valid pixel format found.
 	struct wl_shell *shell;
 	struct wl_seat *seat;
 	struct wl_pointer *pointer;
@@ -143,6 +145,10 @@ struct wayland_local_tag
 		int32_t x, y;
 		uint32_t b;
 	}mouse_;
+	int keyMods;
+	uint32_t  utfKeyCode;
+	xkb_keysym_t keysym;
+
 	PXPANEL hVidFocused; // keyboard events go here
 	PXPANEL hCaptured; // send all mouse events here (probalby should-no-op this)
 	PLIST pActiveList; // non-destroyed windows are here
@@ -226,12 +232,14 @@ shm_format(void *data, struct wl_shm *wl_shm, uint32_t format)
 {
     char *s;
     switch (format) {
-    case WL_SHM_FORMAT_ARGB8888: s = "ARGB8888"; break;
+    case WL_SHM_FORMAT_ARGB8888: s = "ARGB8888";
+	 	wl.canDraw = 1;
+		  break;
     case WL_SHM_FORMAT_XRGB8888: s = "XRGB8888"; break;
     case WL_SHM_FORMAT_RGB565: s = "RGB565"; break;
     default: s = "other format"; break;
     }
-    lprintf( "Possible shmem format %s", s);
+    //lprintf( "Possible shmem format %s", s);
 }
 
 
@@ -428,6 +436,25 @@ static void keyboard_leave(void *data,
 	}
 	//r->pLoseFocus( r->dwLoseFocus, 1 );
 }
+
+
+static int xkbToWindows[] = {
+	[65288] = KEY_BACKSPACE,
+	[65307] = KEY_ESCAPE,
+	[65289] = KEY_TAB,
+};
+
+static void initKeys( void ) {
+	int n;
+	for( n = 32 ; n <= 127; n++ ){
+		xkbToWindows[n] = n;
+	}
+
+	for( n = 'A' ; n <= 'Z'; n++ ){
+		xkbToWindows[n+32] = n;
+	}
+}
+
 static void keyboard_key(void *data,
 		    struct wl_keyboard *wl_keyboard,
 		    uint32_t serial,
@@ -435,17 +462,32 @@ static void keyboard_key(void *data,
 		    uint32_t key,
 		    uint32_t state)
 {
+	PXPANEL r = wl.hVidFocused;
+	if( !xkbToWindows[32] ) initKeys();
 	//lprintf( "KEY: %p %d %d %d %d", wl_keyboard, serial, time, key, state );
 	if (state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		xkb_keysym_t keysym = xkb_state_key_get_one_sym (wl.xkb_state, key+8);
-		uint32_t utf32 = xkb_keysym_to_utf32 (keysym);
-		if (utf32) {
-			if (utf32 >= 0x21 && utf32 <= 0x7E) {
-				lprintf ("the key %c was pressed", (char)utf32);
+		wl.utfKeyCode = xkb_keysym_to_utf32 (keysym);
+
+		uint32_t keycode;
+		uint8_t keyval = xkbToWindows[keysym];
+		lprintf( "Keysym:%d %d %d %d", keysym, key, state, keyval );
+		keycode = KEY_PRESSED;
+		keycode |= keyval << 16;
+		keycode |= keyval;
+		keycode |= wl.keyMods;
+
+		if( r->pKeyProc ){
+			lprintf( "Sending as key %08x", keycode );
+			r->pKeyProc( r->dwKeyData, keycode );
+		}
+		if (wl.utfKeyCode) {
+			if (wl.utfKeyCode >= 0x21 && wl.utfKeyCode <= 0x7E) {
+				lprintf ("the key %c was pressed", (char)wl.utfKeyCode);
 				//if (utf32 == 'q') running = 0;
 			}
 			else {
-				lprintf ("the key U+%04X was pressed", utf32);
+				lprintf ("the key U+%04X was pressed", wl.utfKeyCode);
 			}
 		}
 		else {
@@ -455,8 +497,17 @@ static void keyboard_key(void *data,
 		}
 	}
 	if (state == WL_KEYBOARD_KEY_STATE_RELEASED) {
+		uint32_t keycode;
+		keycode = 0;
+		keycode |= ( wl.keysym << 16 ) | wl.keysym;
+		keycode |= wl.keyMods;
+
+		if( r->pKeyProc ){
+			r->pKeyProc( r->dwKeyData, keycode );
+		}
 	}
 }
+
 
 static void keyboard_modifiers(void *data,
 			  struct wl_keyboard *wl_keyboard,
@@ -466,9 +517,30 @@ static void keyboard_modifiers(void *data,
 			  uint32_t mods_locked,
 			  uint32_t group)
 {
-	lprintf( "MOD: %p %d %d %d %d", wl_keyboard, serial, mods_depressed, mods_latched, mods_locked, group );
+	wl.keyMods = 0;
+	if( mods_depressed & 1 ) {
+		//wl.keyMods |= KEY_MOD_SHIFT;
+		wl.keyMods |= KEY_SHIFT_DOWN;
+	}
+	if( mods_depressed & 4 ) {
+		wl.keyMods |= KEY_CONTROL_DOWN;
+	}
+	if( mods_depressed & 8 ) {
+		wl.keyMods |= KEY_ALT_DOWN;
+	}
+	lprintf( "MOD: %p %d %x %x %d",  mods_depressed, mods_latched, mods_locked, group );
+	xkb_state_update_mask (wl.xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
+
 
 }
+
+static const TEXTCHAR * sack_wayland_GetKeyText           ( int key ){
+	static char buf[6];
+	lprintf( "assuming key was the one dispatched....");
+	ConvertToUTF8( buf, wl.utfKeyCode );
+	return buf;
+}
+
 
 static void keyboard_repeat_info(void *data,
 			    struct wl_keyboard *wl_keyboard,
@@ -597,11 +669,11 @@ static void finishInitConnections( void ) {
 	}
 #endif
 
-	if (!wl.compositor ) {
-		lprintf( "Can't find compositor");
+	if (!wl.compositor || !wl.canDraw ) {
+		lprintf( "Can't find compositor or no supported pixel format found.");
 		return;
 	} else {
-		lprintf( "Found compositor");
+		//lprintf( "Found compositor");
 	}
 	wl.dirty = 0;
 }
@@ -712,35 +784,32 @@ static const struct wl_buffer_listener  buffer_listener = {
 
 static struct wl_buffer * allocateBuffer( PXPANEL r )
 {
-	{
-		int stride = r->w * 4; // 4 bytes per pixel
-		int size = stride * r->h;
-		int fd;
+	int stride = r->w * 4; // 4 bytes per pixel
+	int size = stride * r->h;
+	int fd;
 
-		fd = os_create_anonymous_file(size);
-		if (fd < 0) {
-			lprintf( "creating a buffer file for %d B failed: %m\n",
-				size);
-			return FALSE;
-		}
-		r->buffer_sizes[r->curBuffer] = size;
-		r->shm_data = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-		if (r->shm_data == MAP_FAILED) {
-			lprintf( "mmap failed: %m\n");
-			close(fd);
-			return FALSE;
-		}
-
-		struct wl_shm_pool *pool = wl_shm_create_pool(wl.shm, fd, size);
-
-
-		r->buff = wl_shm_pool_create_buffer(pool, 0, /* starting offset */
-						r->w, r->h,
-						stride,
-						WL_SHM_FORMAT_ARGB8888);
-	   wl_buffer_add_listener( r->buff, &buffer_listener, r );
-		wl_shm_pool_destroy(pool);
+	fd = os_create_anonymous_file(size);
+	if (fd < 0) {
+		lprintf( "creating a buffer file for %d B failed: %m\n",
+			size);
+		return FALSE;
 	}
+	r->buffer_sizes[r->curBuffer] = size;
+	r->shm_data = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	if (r->shm_data == MAP_FAILED) {
+		lprintf( "mmap failed: %m\n");
+		close(fd);
+		return FALSE;
+	}
+
+	struct wl_shm_pool *pool = wl_shm_create_pool(wl.shm, fd, size);
+	r->buff = wl_shm_pool_create_buffer(pool, 0, /* starting offset */
+					r->w, r->h,
+					stride,
+					WL_SHM_FORMAT_ARGB8888);
+	wl_buffer_add_listener( r->buff, &buffer_listener, r );
+	wl_shm_pool_destroy(pool);
+
 	return r->buff;
 }
 
@@ -751,9 +820,16 @@ static void clearBuffer( PXPANEL r ) {
 
 static void nextBuffer( PXPANEL r ) {
 	if( r->flags.hidden ) return;
+	if( r->freeBuffer[r->curBuffer] ) {
+		//lprintf( "Can just use the current image... it's already attached");
+		return;
+	}
 
 	r->curBuffer=1-r->curBuffer;
+	//lprintf( "using image to a new image.... %d",r->curBuffer );
 	if( r->bufw != r->w || r->bufh != r->h ) {
+		// if the buffer has to change size, we need a new one....
+		// maybe can keep this around to fill a copy of the prior window?
 		if( r->color_buffers[r->curBuffer] ) {
 			munmap( r->color_buffers[r->curBuffer], r->buffer_sizes[r->curBuffer] );
 			UnmakeImageFile( r->buffer_images[r->curBuffer] );
@@ -764,17 +840,23 @@ static void nextBuffer( PXPANEL r ) {
 		r->buffers[r->curBuffer] = NULL;
 		r->color_buffers[r->curBuffer] = NULL;
 	}
+
+	// setup the current values to this buffer...
 	r->shm_data = r->color_buffers[r->curBuffer];
 	r->buff = r->buffers[r->curBuffer];
 
 	if( !r->buff ) {
+		// haven't actually allocated a bufer yet... so do so...
 		allocateBuffer(r);
-		r->buffer_images[r->curBuffer] = RemakeImage( NULL, r->shm_data, r->w, r->h );
-		if( r->buffer_images[1-r->curBuffer] )
+		r->buffer_images[r->curBuffer] = RemakeImage( r->buffer_images[r->curBuffer], r->shm_data, r->w, r->h );
+		if( r->buffer_images[1-r->curBuffer] ) {
+			//lprintf( "Copy old buffer to new current buffer...");
 			BlotImage( r->buffer_images[r->curBuffer], r->buffer_images[1-r->curBuffer], 0, 0 );
+		}
 
 		r->buffers[r->curBuffer] = r->buff;
 		r->color_buffers[r->curBuffer] = r->shm_data;
+		r->freeBuffer[r->curBuffer] = 1;
 	}
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
 	r->pImage->flags |= IF_FLAG_FINAL_RENDER;
@@ -794,12 +876,13 @@ static void nextBuffer( PXPANEL r ) {
 	if( r->flags.dirty ){
 		r->flags.canCommit = 0;
 		r->flags.dirty = 0;
-		lprintf( "Window is dirty, do commit");
+		//lprintf( "Window is dirty, do commit");
 
 		wl_surface_commit( r->surface );
+		// wait until we actually NEED the buffer, maybe we can use the same one.
 		nextBuffer(r);
 	}else {
-		lprintf( "Allow window to be commited at will.");
+		//lprintf( "Allow window to be commited at will.");
 		r->flags.canCommit = 1;
 	}
 }
@@ -807,9 +890,7 @@ static void nextBuffer( PXPANEL r ) {
 
 static uintptr_t waylandThread( PTHREAD thread ) {
 	wl.waylandThread = thread;
-	lprintf( "Start event thread on display?");
 	initConnections();
-	lprintf( "-------- WAIT ------------");
 	while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 ) {
 		//lprintf( "Handled an event." );
 		if( wl.commit ) {
@@ -818,16 +899,18 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 			PXPANEL r;
 			wl.commit = 0;
 			LIST_FORALL( wl.damaged, idx, PXPANEL, r ){
-				lprintf( "Damage found... send %p", r );
+				//lprintf( "Damage found... send %p", r );
 				if( !r->flags.bDestroy ){
 					if( r->flags.canCommit ) {
 						flush++;
 						r->flags.dirty = 0;
 						r->flags.canCommit = 0;
+						r->freeBuffer[r->curBuffer] = 0; // the image is NOT free
 						wl_surface_commit( r->surface );
+						// wait until we NEED a buffer...
 						nextBuffer(r);
 					}else {
-						lprintf( "frame callback still waiting?");
+						//lprintf( "frame callback still waiting?");
 						// still waiting... next commit event will catch this.
 					}
 				}
@@ -876,7 +959,7 @@ handle_ping(void *data, struct wl_shell_surface *shell_surface,
 {
 	//PXPANEL r = (PXPANEL)data;
    wl_shell_surface_pong(shell_surface, serial);
-   lprintf("Pinged and ponged");
+   //lprintf("Pinged and ponged");
 }
 
 static void
@@ -905,10 +988,22 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
 
 void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 	PXPANEL r = (PXPANEL)data;
-	lprintf( "Buffer is released, you can draw now..." );
+	int n;
+	for( n = 0; n < 2; n++ )  {
+		lprintf( "is %p %p?", r->buffers[n] , wl_buffer );
+		if( r->buffers[n] == wl_buffer ) {
+			//lprintf( "Buffer %d is free again", n );
+			r->freeBuffer[n] = 1;
+			break;
+		}
+	}
+	if( n == 2 ) {
+		lprintf( "Released buffer isn't on this surface?");
+	}
+	//lprintf( "Buffer is released, you can draw now..." );
 	//if( !)
 	//r->surface
-	wl_surface_attach(r->surface, r->buff, 0, 0);
+	//wl_surface_attach(r->surface, r->buff, 0, 0);
 
 }
 
@@ -929,8 +1024,8 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 		if( r->y == -1 )
 			r->y = h * 7 / 10;
 	}
-	lprintf( "Okay still need a actual drawing surface here:" );
-   r->surface = wl_compositor_create_surface(wl.compositor);
+
+	r->surface = wl_compositor_create_surface(wl.compositor);
    if (r->surface == NULL) {
 		lprintf( "Can't create surface");
 		return FALSE;
@@ -987,11 +1082,11 @@ void ShutdownVideo( void )
 
 static void sack_wayland_Redraw( PRENDERER renderer ) {
 	PXPANEL r = (PXPANEL)renderer;
-	lprintf( "Issue redraw on renderer %p", renderer );
+	//lprintf( "(get new buffer)Issue redraw on renderer %p", renderer );
+	nextBuffer(r);
 	r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
 
 	wl_display_roundtrip_queue(wl.display, wl.queue);
-	lprintf( "------ TICK-------------");
 }
 
 static void sack_wayland_SetApplicationTitle( char const *title ){
@@ -1054,6 +1149,8 @@ static PRENDERER sack_wayland_OpenDisplaySizedAt(uint32_t attr , uint32_t w, uin
 
 static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
+	if( wl.hVidFocused == r ) wl.hVidFocused = NULL;
+	if( wl.hCaptured == r ) wl.hCaptured = NULL;
 	r->flags.bDestroy = 1;
 	if( r->sub_surface )
 		wl_subsurface_destroy( r->sub_surface );
@@ -1066,39 +1163,35 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	//LogBinary( r->buff, 1024 );
-	r->flags.dirty = 1;
-	//lprintf( "Update whole surface %d %d", r->w, r->h );
-	//wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
 
-	lprintf( "Update portion: %d %d  %d %d", x, y, w, h );
-	wl_surface_damage( r->surface, x, y, w, h );
 	if( r->buffer_images[r->curBuffer] && r->buffer_images[1-r->curBuffer] ) {
 		BlotImageSizedTo( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer], x, y, x, y, w, h );
 	}
+
+	r->flags.dirty = 1;
+	wl_surface_damage( r->surface, x, y, w, h );
 
 	{
 		INDEX i = FindLink( &wl.damaged, r );
 		if( i == INVALID_INDEX )
 			AddLink( &wl.damaged, r );
-		 wl.commit= 1;
+		 wl.commit = 1;
 	}
 }
 
 static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	lprintf( "Update whole surface %d %d", r->w, r->h );
-	wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
+	//lprintf( "Update whole surface %d %d", r->w, r->h );
 	if( r->buffer_images[r->curBuffer] && r->buffer_images[1-r->curBuffer] ) {
-
 		BlotImage( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer], 0, 0 );
 	}
 	r->flags.dirty = 1;
+	wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
 	{
 		INDEX i = FindLink( &wl.damaged, r );
 		if( i == INVALID_INDEX )
 			AddLink( &wl.damaged, r );
-		 wl.commit= 1;
+		 wl.commit = 1;
 	}
 }
 
@@ -1136,7 +1229,8 @@ static void sack_wayland_MoveSizeDisplayRel(PRENDERER renderer, int32_t dx, int3
 
 static void sack_wayland_SetCloseHandler( PRENDERER renderer, CloseCallback closeCallback, uintptr_t psv ){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	lprintf( "CLOSE HANDLER FIX");
+	r->pWindowClose = closeCallback;
+	r->dwCloseData = psv;
 }
 
 static void sack_wayland_SetMouseHandler( PRENDERER renderer, MouseCallback mouse, uintptr_t psv ){
@@ -1151,7 +1245,8 @@ static void sack_wayland_SetRedrawHandler( PRENDERER renderer, RedrawCallback re
 
 static void sack_wayland_SetKeyboardHandler(PRENDERER renderer, KeyProc keyproc, uintptr_t psv){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-
+	r->pKeyProc = keyproc;
+	r->dwKeyData = psv;
 }
 
 static void sack_wayland_SetLoseFocusHandler( PRENDERER renderer, LoseFocusCallback lfCallback, uintptr_t psv ) {
@@ -1192,7 +1287,7 @@ static void sack_wayland_RestoreDisplayEx( PRENDERER renderer DBG_PASS ){
 		lprintf( "RESTORE AND REDRAW" );
 		nextBuffer(r);
 	}
-	lprintf( "REDRAW" );
+	//lprintf( "REDRAW" );
 	sack_wayland_Redraw( renderer );
 }
 
@@ -1213,6 +1308,7 @@ Image GetDisplayImage(PRENDERER renderer) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( r ) {
 		if( !r->pImage ) {
+			//lprintf( "Get the display iamge, which uses next buffer");
 			nextBuffer(r);
 		}
 		return r->pImage;
@@ -1288,7 +1384,7 @@ static RENDER_INTERFACE VidInterface = { InitializeDisplay
 													, sack_wayland_GetMousePosition// (void (CPROC*)(int32_t *, int32_t *)) GetMousePosition
 													, NULL//(void (CPROC*)(PRENDERER, int32_t, int32_t)) SetMousePosition
 													, NULL//HasFocus  // has focus
-													, NULL//GetKeyText
+													, sack_wayland_GetKeyText
 													, NULL//IsKeyDown
 													, NULL//KeyDown
 													, NULL//DisplayIsValid
