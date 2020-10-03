@@ -410,14 +410,23 @@ static void keyboard_enter(void *data,
 		      struct wl_surface *surface,
 		      struct wl_array *keys)
 {
-
+	PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
+	if( wl.hVidFocused )
+		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, r );
+	wl.hVidFocused = r;
+	r->pLoseFocus( r->dwLoseFocus, NULL );
 }
 
 static void keyboard_leave(void *data,
 		      struct wl_keyboard *wl_keyboard,
 		      uint32_t serial,
 		      struct wl_surface *surface){
-
+	PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
+	if( wl.hVidFocused ){
+		lprintf( "on leave lose focus?");
+		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, 1 );
+	}
+	//r->pLoseFocus( r->dwLoseFocus, 1 );
 }
 static void keyboard_key(void *data,
 		    struct wl_keyboard *wl_keyboard,
@@ -426,7 +435,27 @@ static void keyboard_key(void *data,
 		    uint32_t key,
 		    uint32_t state)
 {
-	lprintf( "KEY: %p %d %d %d %d", wl_keyboard, serial, time, key, state );
+	//lprintf( "KEY: %p %d %d %d %d", wl_keyboard, serial, time, key, state );
+	if (state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+		xkb_keysym_t keysym = xkb_state_key_get_one_sym (wl.xkb_state, key+8);
+		uint32_t utf32 = xkb_keysym_to_utf32 (keysym);
+		if (utf32) {
+			if (utf32 >= 0x21 && utf32 <= 0x7E) {
+				lprintf ("the key %c was pressed", (char)utf32);
+				//if (utf32 == 'q') running = 0;
+			}
+			else {
+				lprintf ("the key U+%04X was pressed", utf32);
+			}
+		}
+		else {
+			char name[64];
+			xkb_keysym_get_name (keysym, name, 64);
+			lprintf ("the key %s was pressed", name);
+		}
+	}
+	if (state == WL_KEYBOARD_KEY_STATE_RELEASED) {
+	}
 }
 
 static void keyboard_modifiers(void *data,
@@ -715,7 +744,13 @@ static struct wl_buffer * allocateBuffer( PXPANEL r )
 	return r->buff;
 }
 
+static void clearBuffer( PXPANEL r ) {
+	//if( r->flags.hidden ) return;
+	wl_surface_attach( r->surface, NULL, 0, 0);
+}
+
 static void nextBuffer( PXPANEL r ) {
+	if( r->flags.hidden ) return;
 
 	r->curBuffer=1-r->curBuffer;
 	if( r->bufw != r->w || r->bufh != r->h ) {
@@ -915,8 +950,6 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 
    wl_shell_surface_set_user_data(r->shell_surface, r);
    wl_surface_set_user_data(r->surface, r);
-
-	nextBuffer(r);
 
 	return TRUE;
 }
@@ -1153,7 +1186,14 @@ static void sack_wayland_SetRendererTitle( PRENDERER render, char const* title )
 }
 
 static void sack_wayland_RestoreDisplayEx( PRENDERER renderer DBG_PASS ){
-
+	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
+	if( r->flags.hidden ) {
+		r->flags.hidden = 0;
+		lprintf( "RESTORE AND REDRAW" );
+		nextBuffer(r);
+	}
+	lprintf( "REDRAW" );
+	sack_wayland_Redraw( renderer );
 }
 
 static void sack_wayland_RestoreDisplay( PRENDERER renderer ){
@@ -1161,6 +1201,11 @@ static void sack_wayland_RestoreDisplay( PRENDERER renderer ){
 }
 
 static void sack_wayland_HideDisplay( PRENDERER renderer ){
+	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
+	if( !r->flags.hidden ) {
+		r->flags.hidden = 1;
+		clearBuffer(r);
+	}
 
 }
 
@@ -1168,8 +1213,7 @@ Image GetDisplayImage(PRENDERER renderer) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( r ) {
 		if( !r->pImage ) {
-			r->pImage = RemakeImage( r->pImage, NULL, 0, 0 );
-			r->pImage->flags |= IF_FLAG_FINAL_RENDER;
+			nextBuffer(r);
 		}
 		return r->pImage;
 	}
