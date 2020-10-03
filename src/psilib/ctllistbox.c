@@ -17,7 +17,7 @@ PSI_LISTBOX_NAMESPACE
 
 // derefecing NULL pointers; the function wouldn't be called with a NULL.
 // and partial expressions in lower precision
-#pragma warning( disable:6011 26451) 
+#pragma warning( disable:6011 26451)
 
 typedef struct listcolumn_tag LISTCOL, *PLISTCOL;
 struct listcolumn_tag
@@ -262,7 +262,7 @@ static void AdjustItemsIntoBox( PSI_CONTROL pc )
 		// while there's stuff above current to show, and
 		// current will still fit integrally on the listbox
 		// back up firstshown....
-		while( plb->firstshown->prior && 
+		while( plb->firstshown->prior &&
 				 ( SUS_LT( y, int, (pc->surface_rect.height - (h-1)),uint32_t) ) )
 		{
 			y += h;
@@ -294,7 +294,7 @@ static int RenderRelationLines( PSI_CONTROL pc, Image surface, PLISTITEM pli, in
 	PLISTITEM pliNextUpLevel;
 	int x, y, ymin, ymax;
 	pliNextUpLevel = pli->next;
-	x = (int)(pli->nLevel * (1.75 * pli->height) 
+	x = (int)(pli->nLevel * (1.75 * pli->height)
 		+ (pli->height * 1.75) / 2);
 	x -= plb->nXOffset;
 	y = pli->top + (pli->height / 2);
@@ -385,7 +385,7 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	{
 		// this is not an openable item, therefore
 		// just draw some lines...
-		return RenderRelationLines( pc, surface, pli, TRUE ) 
+		return RenderRelationLines( pc, surface, pli, TRUE )
 			+ ((pli->height * 1.75) / 2);
 	}
 	else
@@ -397,7 +397,7 @@ static int RenderItemKnob( PSI_CONTROL pc, Image surface, PLISTITEM pli )
 	while( pliNextUpLevel && ( pliNextUpLevel->nLevel > pli->nLevel ) )
 		pliNextUpLevel = pliNextUpLevel->prior;
 
-	//x = (int)(pli->nLevel * (pli->height*1.75) 
+	//x = (int)(pli->nLevel * (pli->height*1.75)
 	//	+ ((pli->height*1.75)/2));
 	//x -= plb->nXOffset;
 	y = pli->top + ( pli->height / 2 );
@@ -983,7 +983,7 @@ static void CPROC ScrollBarUpdate( uintptr_t psvList, int type, int current )
 	{
 		plb->firstshown = (PLISTITEM)GetNthItem( pc, current );
 		SmudgeCommon( pc );
-	}	
+	}
 }
 
 
@@ -1341,7 +1341,7 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 	else
 		lprintf( "No listbox?" );
 	return handled;
-}	
+}
 
 //---------------------------------------------------------------------------
 
@@ -1722,7 +1722,7 @@ void SetItemSelected( PSI_CONTROL pc, PLISTITEM pli, int bSelect )
 				SmudgeCommon( pc );
 			}
 		}
-	}	
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -1742,7 +1742,7 @@ void SetSelectedItem( PSI_CONTROL pc, PLISTITEM hli )
 			DispatchSelectionChanged( plb, pc, pli );
 		}
 		SmudgeCommon( pc );
-	}	
+	}
 }
 
 //---------------------------------------------------------------------------

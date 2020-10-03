@@ -70,7 +70,7 @@ PSI_NAMESPACE
 #include "resource.h"
 
 #ifdef BLAT_COLOR_UPDATE_PORTION
-// was for testing blotting regions... 
+// was for testing blotting regions...
   CDATA TESTCOLOR;
 #endif
 typedef struct resource_names
@@ -575,7 +575,7 @@ PFrameBorder PSI_CreateBorder( Image image, int width, int height, int anchors, 
 				//CDATA *old_colors = border->defaultcolors;
 				//border->defaultcolors = (CDATA*)Allocate( sizeof( DefaultColors ) );
 				//MemCpy( border->defaultcolors, DefaultColors, sizeof( DefaultColors ) );
-				if( border->BorderSegment[SEGMENT_CENTER]->height >= 2 
+				if( border->BorderSegment[SEGMENT_CENTER]->height >= 2
 					&& border->BorderSegment[SEGMENT_CENTER]->width >= 7
 					&& defines_colors )
 				{
@@ -890,7 +890,7 @@ PSI_PROC( void, AlignBaseToWindows )( void )
 	DefaultColors[TEXTCOLOR        ] =  Swap(GetSysColor(COLOR_BTNTEXT ));
 	DefaultColors[CAPTION          ] =  Swap(GetSysColor(COLOR_ACTIVECAPTION ));
 	DefaultColors[CAPTIONTEXTCOLOR] =  Swap(GetSysColor( COLOR_CAPTIONTEXT));
-	DefaultColors[INACTIVECAPTION ] =  Swap(GetSysColor(COLOR_INACTIVECAPTION ));    
+	DefaultColors[INACTIVECAPTION ] =  Swap(GetSysColor(COLOR_INACTIVECAPTION ));
 	DefaultColors[INACTIVECAPTIONTEXTCOLOR]=Swap(GetSysColor(COLOR_INACTIVECAPTIONTEXT ));
 	DefaultColors[SELECT_BACK      ] =  Swap(GetSysColor(COLOR_HIGHLIGHT ));
 	DefaultColors[SELECT_TEXT      ] =  Swap(GetSysColor(COLOR_HIGHLIGHTTEXT ));
@@ -924,7 +924,7 @@ PSI_PROC( void, SetControlColor )( PSI_CONTROL pc, INDEX idx, CDATA c )
 			if( !pc->border ) {
 				pc->basecolors = NewArray( CDATA, sizeof( DefaultColors ) / sizeof( CDATA ) );
 				MemCpy( pc->basecolors, DefaultColors, sizeof( DefaultColors ) );
-			} // otherwise we'll be setting the border default... which can be shared... 
+			} // otherwise we'll be setting the border default... which can be shared...
 		}
 		basecolor( pc )[idx] = c;
 	}
@@ -1270,7 +1270,7 @@ void SmudgeSomeControls( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 	//IMAGE_RECTANGLE _rect;
 	//ValidatedControlData( PFRAME, CONTROL_FRAME, pf, GetFrame( pc ) );
 	int prior_flag;
-	// include bias to surface - allow everyone 
+	// include bias to surface - allow everyone
 	// else to think in area within frame surface...
 
 	// add the final frame surface offset...
@@ -1278,7 +1278,7 @@ void SmudgeSomeControls( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 	// plus - now pc will refer to the frame, and is where
 	// we desire to be drawing anyhow....
 	// working down within the frame/controls ....
-	// but so far - usage has been from the control's rect, 
+	// but so far - usage has been from the control's rect,
 	// and not its surface, therefore subracting it's surface rect was
 	// wrong - but this allows us to cleanly subract the last, and not
 	// the first...
@@ -1562,7 +1562,7 @@ void IntelligentFrameUpdateAllDirtyControls( PSI_CONTROL pc DBG_PASS )
 						, //pc->surface_rect.x
 						 + upd.x
 						, //pc->surface_rect.x
-						 + upd.y	
+						 + upd.y
 						, 5, 5, BASE_COLOR_ORANGE );
 			TESTCOLOR=SetAlpha( BASE_COLOR_RED, 0x20 );
 #endif
@@ -1856,7 +1856,7 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 		{
 			// okay surface rect of parent should be considered as 0,0.
 			if( SUS_GT( pc->rect.x, IMAGE_COORDINATE, pc->parent->surface_rect.width, IMAGE_SIZE_COORDINATE )
-			    || SUS_GT( pc->rect.y, IMAGE_COORDINATE, pc->parent->surface_rect.height, IMAGE_SIZE_COORDINATE ) 
+			    || SUS_GT( pc->rect.y, IMAGE_COORDINATE, pc->parent->surface_rect.height, IMAGE_SIZE_COORDINATE )
 			    || USS_LT( pc->rect.width, IMAGE_SIZE_COORDINATE, /*pc->parent->surface_rect.x*/-pc->rect.x, IMAGE_COORDINATE )
 			    || USS_LT( pc->rect.height, IMAGE_SIZE_COORDINATE, /*pc->parent->surface_rect.y*/-pc->rect.y, IMAGE_COORDINATE )
 			  )
@@ -1935,10 +1935,13 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 							 , pc->flags.bParentCleaned
 							 , pc->flags.bTransparent );
 #endif
-				if( !g.flags.always_draw && !IsImageTargetFinal( pc->Window ) 
+				if( !g.flags.always_draw
+				   || ( g.flags.always_draw && !IsImageTargetFinal( pc->Window ) )
 					&& g.flags.allow_copy_from_render )
 				{
-					if( ( ((pc->parent&&!pc->device) && pc->parent->flags.bDirty ) || pc->flags.bParentCleaned ) && pc->flags.bTransparent )//&& pc->flags.bFirstCleaning )
+					if( ( ((pc->parent&&!pc->device) && pc->parent->flags.bDirty )
+					    || pc->flags.bParentCleaned )
+					  && pc->flags.bTransparent )//&& pc->flags.bFirstCleaning )
 					{
 						Image OldSurface;
 						OldSurface = CopyOriginalSurface( pc, pc->OriginalSurface );
@@ -2001,8 +2004,8 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 #endif
 					return;
 				}
-				if( pc->flags.bTransparent 
-					&& !pc->flags.bParentCleaned 
+				if( pc->flags.bTransparent
+					&& !pc->flags.bParentCleaned
 					&& (pc->parent&&!pc->device)
 					)
 				{
@@ -2054,7 +2057,7 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 						LockRenderer( device->pActImg );
 #endif
 					// this causes a lock in that layer.?
-					ResetImageBuffers( pc->Surface, FALSE );	
+					ResetImageBuffers( pc->Surface, FALSE );
 					InvokeDrawMethod( pc, _DrawThySelf, ( pc ) );
 				}
 
@@ -2098,8 +2101,8 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 				// from a different place... this one only needs to
 				// worry aobut child region borders after telling them to
 				// draw - to enforce cleanest bordering...
-				if( g.flags.always_draw 
-					|| ( pc->parent && !pc->parent->flags.children_cleaned ) 
+				if( g.flags.always_draw
+					|| ( pc->parent && !pc->parent->flags.children_cleaned )
 					|| ( pc->flags.bParentCleaned )
 					)
 					if( pc->DrawBorder )  // and initial?
@@ -2846,7 +2849,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 							  , w, h
 							  , -1
 							  , caption
-							  , BorderTypeFlags	
+							  , BorderTypeFlags
 							  , NULL
 							  , NULL
 								DBG_SRC );
@@ -2854,7 +2857,7 @@ PSI_PROC( PSI_CONTROL, CreateFrame )( CTEXTSTR caption
 		pc->parent = hAbove;
 	SetCommonBorder( pc, BorderTypeFlags
 				| (( BorderTypeFlags & BORDER_CAPTION_NO_CLOSE_BUTTON )?0:BORDER_CAPTION_CLOSE_BUTTON)
-				| ((BorderTypeFlags & BORDER_WITHIN)?0:BORDER_FRAME) 
+				| ((BorderTypeFlags & BORDER_WITHIN)?0:BORDER_FRAME)
 				);
 
 	// init close button here.
@@ -3050,7 +3053,7 @@ PSI_PROC( void, DisplayFrameOverOnUnder )( PSI_CONTROL pc, PSI_CONTROL over, PRE
 
 			//MoveSizeDisplay( pf->pActImg, pc->rect.x, pc->rect.y, pc->rect.width, pc->rect.height );
 
-			//Initial prevents all updates in all ways.  So here we're showing, we have a device, 
+			//Initial prevents all updates in all ways.  So here we're showing, we have a device,
 			// and we should be allowed to draw - right? that's what initial is?
 
 			pc->flags.bInitial = FALSE;
@@ -3186,7 +3189,7 @@ PSI_PROC( void, HideControl )( PSI_CONTROL pc )
 		{
 			//pc->parent->InUse++;
 			//lprintf( "Added one to use.." );
-			ResetImageBuffers( pc->Window, FALSE );	
+			ResetImageBuffers( pc->Window, FALSE );
 			if( pc->flags.bTransparent && pc->OriginalSurface )
 			{
 #ifdef DEBUG_UPDAATE_DRAW
