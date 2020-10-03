@@ -442,10 +442,13 @@ static int xkbToWindows[] = {
 	[65288] = KEY_BACKSPACE,
 	[65307] = KEY_ESCAPE,
 	[65289] = KEY_TAB,
+	[65056] = KEY_TAB,
+	[65293] = KEY_ENTER,
 };
 
 static void initKeys( void ) {
 	int n;
+	if( KEY_TAB == 15 ) DebugBreak();
 	for( n = 32 ; n <= 127; n++ ){
 		xkbToWindows[n] = n;
 	}
@@ -471,7 +474,7 @@ static void keyboard_key(void *data,
 
 		uint32_t keycode;
 		uint8_t keyval = xkbToWindows[keysym];
-		lprintf( "Keysym:%d %d %d %d", keysym, key, state, keyval );
+		lprintf( "Keysym:%d(%04x) %d %d %d", keysym, keysym, key, state, keyval );
 		keycode = KEY_PRESSED;
 		keycode |= keyval << 16;
 		keycode |= keyval;

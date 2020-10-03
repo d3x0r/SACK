@@ -15,12 +15,12 @@ enum {
     KEY_FUNCTION_NOT_DEFINED = 0
 	  , KEYDATA
      , KEY_COMMAND_SHIFT
- , KEYDATA_DEFINED // do this stroke?  
+ , KEYDATA_DEFINED // do this stroke?
  , COMMANDKEY
  , HISTORYKEY
  , CONTROLKEY
  , SPECIALKEY
-};  
+};
 
 typedef struct LinuxKeymapKeyDefine {
    CTEXTSTR name1;
@@ -70,7 +70,7 @@ PSIKEYDEFINE LinuxKeyDefs[256] =
                       , [KEY_UP]={"up" , 0, 0 }
                       , [KEY_RIGHT]={"right", 0, 0 }
                       , [KEY_DOWN]={"down", 0, 0 }
-                      , [KEY_CENTER]={"center", 0, 0 }
+                      //, [KEY_PAD_5]={"center", 0, 0 }
                       //, {"select"}
                       //, [KEY_PRINT]={"print"}
                       //, {"execute"}
@@ -124,17 +124,17 @@ PSIKEYDEFINE LinuxKeyDefs[256] =
  * Used only as parameters to GetAsyncKeyState() and GetKeyState().
  * No other API or message will distinguish left and right keys in this way.
  */
-                      , [KEY_SHIFT_LEFT] = {"lshift",0,KDF_NODEFINE,KEY_COMMAND_SHIFT}  // 0xa0
-                      , [KEY_SHIFT_RIGHT] ={"rshift",0,KDF_NODEFINE,KEY_COMMAND_SHIFT}
+                      , [KEY_LEFT_SHIFT] = {"lshift",0,KDF_NODEFINE,KEY_COMMAND_SHIFT}  // 0xa0
+                      , [KEY_RIGHT_SHIFT] ={"rshift",0,KDF_NODEFINE,KEY_COMMAND_SHIFT}
                       //, NONAMES // {"lctrl", "lcontrol",0,KDF_NODEFINE}
                       //, NONAMES // {"rctrl", "rcontrol",0,KDF_NODEFINE}
                       //, NONAMES // {"lmenu", "lalt",0,KDF_NODEFINE }
                       //, NONAMES // {"rmenu", "ralt",0,KDF_NODEFINE }
 							, [KEY_SEMICOLON]={";", "semicolon",0,KEYDATA(";",":")}
-                      , [KEY_EQUALS]={"=", "equal",0    ,KEYDATA("=","+")}
+                      , [KEY_EQUAL]={"=", "equal",0    ,KEYDATA("=","+")}
                       , [KEY_COMMA]={",", "comma",0    ,KEYDATA(",","<")}
                       , [KEY_MINUS]={"-", "dash",0     ,KEYDATA("-","_")}
-                      , [KEY_PERIOD]={".", "period",0   ,KEYDATA(".",">")}
+                      , [KEY_DOT]={".", "period",0   ,KEYDATA(".",">")}
                       , [KEY_SLASH]={"/","slash",0     ,KEYDATA("/","?")}
                       , [KEY_GRAVE]={"`", "accent",0   ,KEYDATA("`","~")}
 							, [KEY_LEFT_BRACKET]={ "[", "lbracket",0  ,KEYDATA("[","{")}
@@ -142,7 +142,7 @@ PSIKEYDEFINE LinuxKeyDefs[256] =
 							, [KEY_RIGHT_BRACKET]={ "]", "rbracket",0  ,KEYDATA("]","}")}
                       , [KEY_APOSTROPHE]={ "'", "apostrophe",0     ,KEYDATA("`","~")}
 
-                     
+
                       , [KEY_QUOTE]={ "quote", "quote",0     ,KEYDATA("\'","\"")}
 };
 
@@ -165,7 +165,7 @@ PRELOAD( dump_Table )
    int n;
    for( n = 0; n < 255; n++ )
    {
- 
+
       lprintf( "key %d = %s", n, LinuxKeyDefs[n].name1?LinuxKeyDefs[n].name1:"NULL" );
    }
 }
@@ -218,7 +218,7 @@ void SACK_Vidlib_ProcessKeyState( int pressed, int key_index, int *used )
 					(*used) = 1;
 				break;
 			}
-		
+
 		else
 		switch( LinuxKeyDefs[key_index].op[mod].bFunction )
 		{
