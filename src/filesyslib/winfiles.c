@@ -2419,6 +2419,11 @@ static	int CPROC sack_filesys_find_first( struct find_cursor* _cursor ) {
 	if( cursor->handle ) {
 		do {
 			cursor->de = readdir( cursor->handle );
+			//lprintf( "filefound? %s", cursor->de->d_name );
+			if( cursor->de && cursor->de->d_type == DT_DIR) {
+				//lprintf( "result with dir? %s", cursor->de->d_name );
+					break;
+			}
 		} while( cursor->de && !CompareMask( cursor->mask, cursor->de->d_name, 0 ) );
 		return ( cursor->de != NULL );
 	}
@@ -2447,6 +2452,11 @@ static	int CPROC sack_filesys_find_next( struct find_cursor* _cursor ) {
 #else
 	do {
 		cursor->de = readdir( cursor->handle );
+			//lprintf( "filefound? %s", cursor->de->d_name );
+			if( cursor->de && cursor->de->d_type == DT_DIR) {
+				//lprintf( "result with dir? %s", cursor->de->d_name );
+				break;
+			}
 	} while( cursor->de && !CompareMask( cursor->mask, cursor->de->d_name, 0 ) );
 	r = ( cursor->de != NULL );
 #endif
@@ -2696,7 +2706,7 @@ static void link_mount( struct file_system_mounted_interface* mount ) {
 		if( mount->nextLayer = FileSysThreadInfo.mounted_file_systems )
 			root->meLayer = &mount->nextLayer;
 		mount->meLayer = &FileSysThreadInfo.mounted_file_systems;
-		
+
 		if( !root )
 			FileSysThreadInfo.default_mount = mount;
 		FileSysThreadInfo.mounted_file_systems = mount; // higher priorirty, layer this thread's higher priority version.

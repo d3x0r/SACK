@@ -58,7 +58,7 @@ try_mask:
 	{
 		if( mask[m] == '\t' || mask[m] == '|' )
 		{
-			lprintf( "Found mask seperator - skipping to next mask :%s", mask + m + 1 );
+			//lprintf( "Found mask seperator - skipping to next mask :%s", mask + m + 1 );
 			n = 0;
 			m++;
 			continue;
@@ -174,7 +174,7 @@ try_mask:
 		m = mask_m;
 	}
 	//lprintf( "Result: %d %c %d", matchone, mask[m], name[n] );
-	// match ???? will not match abc 
+	// match ???? will not match abc
 	// a??? abc not match
 	if( !matchone && (!mask[m] || mask[m] == '\t' || mask[m] == '|' ) && !name[n] )
 		return 1;
@@ -245,14 +245,14 @@ typedef struct myfinddata {
 	intptr_t
 #  else
 #define HANDLECAST int
-	int 
+	int
 #  endif
 #else
 #  define HANDLECAST DIR*
 	DIR*
 #endif
 		handle;
-		
+
 #  ifdef WIN32
 #    ifdef UNDER_CE
 	WIN32_FIND_DATA fd;
@@ -293,9 +293,9 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
            , CTEXTSTR mask
            , void **pInfo
            , void CPROC Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags )
-           , enum ScanFileFlags flags 
-           , uintptr_t psvUser 
-		   , LOGICAL begin_sub_path 
+           , enum ScanFileFlags flags
+           , uintptr_t psvUser
+		   , LOGICAL begin_sub_path
 		   , struct file_system_mounted_interface *mount
 		   )
 {
@@ -551,7 +551,7 @@ getnext:
 	}
 	else
 	{
-#ifdef WIN32 
+#ifdef WIN32
 		{
 			const wchar_t* tmp = finddata( pInfo )->name;
 			char* out = findbuffer( pInfo );
@@ -604,7 +604,7 @@ getnext:
 				tnprintf( pData->buffer, MAX_PATH_NAME, "%s%s%s"
 					  , pData->prior?pData->prior->buffer:""
 					  , pData->prior?PATHCHAR:""
-					, pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) ) 
+					, pData->scanning_mount->fsi->find_get_name( findcursor(pInfo) )
 					);
 			}
 			else
@@ -676,7 +676,7 @@ getnext:
 	{
 #ifdef UNICODE
 		Deallocate( char *, pDataBuffer );
-#else 
+#else
 #  undef pDataBuffer
 #endif
 		//lprintf( "... it is?" );
@@ -709,7 +709,7 @@ getnext:
 #  else
 					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s" PATHCHAR "%ls", findbasename( pInfo ), finddata( pInfo )->name );
 #  endif
-#else	
+#else
 					/*ofs = */tnprintf( tmpbuf, sizeof( tmpbuf ), "%s" PATHCHAR "%s", findbasename( pInfo ), de->d_name );
 #endif
 				}
@@ -731,7 +731,7 @@ getnext:
 #ifdef UNICODE
 	Deallocate( char *, pDataBuffer );
 	}
-#else 
+#else
 #  undef pDataBuffer
 #endif
 	if( ( sendflags = SFF_DIRECTORY, ( ( flags & SFF_DIRECTORIES )
@@ -798,7 +798,7 @@ int  ScanFiles ( CTEXTSTR base
 	{
 		TEXTCHAR name[2];
 		name[1] = 0;
-		if( drives & ( 1 << i ) ) 
+		if( drives & ( 1 << i ) )
 		{
 			name[0] = 'A' + i;
 			if( Process )
