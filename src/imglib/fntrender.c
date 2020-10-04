@@ -73,7 +73,7 @@ static void PrintLeadinJS( CTEXTSTR name, SFTFont font, int bits )
 {
 	//sack_fprintf( output, "var font = {};\n" );
 	sack_fprintf( output, "var font = { \nheight:%d, baseline:%d, flags:%d, characters:["
-	       , font->height 
+	       , font->height
 	       , font->baseline
 	       , font->flags
 	       );
@@ -318,7 +318,7 @@ static void PrintFontTable( CTEXTSTR name, PFONT font )
 	       , font->characters
 	       , name
 	       , name
-	       , font->height 
+	       , font->height
 	       , font->baseline
 	       , font->characters
 	       , font->flags
@@ -498,8 +498,8 @@ static void OnDisplayConnect( FNTRENDER_DISPLAYCONNECT_NAME )( struct display_ap
 	}
 	{
 		POINTER node;
-		for( node = (Image)GetLeastNode( image_common_local.tint_cache ); 
-			node; 
+		for( node = (Image)GetLeastNode( image_common_local.tint_cache );
+			node;
 			node = (Image)GetGreaterNode( image_common_local.tint_cache ) )
 		{
 			struct shade_cache_image *ci = ( struct shade_cache_image *)node;
@@ -561,7 +561,7 @@ void IMGVER(UpdateRendererImage)( Image image, PFONT_RENDERER renderer, int char
 			image->reverse_interface->_BlatColor( new_surface,0,0,new_surface->width,new_surface->height, 0 );
 			image->reverse_interface->_BlotImageEx( new_surface, renderer->surface, 0, 0, 1, BLOT_COPY );
 			image->reverse_interface->_TransferSubImages( new_surface, renderer->surface );
-#if defined( __3D__ ) 
+#if defined( __3D__ )
 			cleanFonts = TRUE;
 			AddLink( &renderer->priorSurfaces, renderer->surface );
 #else
@@ -574,7 +574,7 @@ void IMGVER(UpdateRendererImage)( Image image, PFONT_RENDERER renderer, int char
 			IMGVER(ClearImage( new_surface ));
 			IMGVER(BlotImage)( new_surface, renderer->surface, 0, 0 );
 			IMGVER(TransferSubImages)( new_surface, renderer->surface );
-#if defined( __3D__ ) 
+#if defined( __3D__ )
 			cleanFonts = TRUE;
 			AddLink( &renderer->priorSurfaces, renderer->surface );
 #else
@@ -1534,7 +1534,7 @@ void IMGVER(InternalRenderFontCharacter)( PFONT_RENDERER renderer, PFONT font, I
 				);
 			}
 			else if( ( face->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_MONO )
-				|| ( ( renderer->flags & 3 ) == 0 ) 
+				|| ( ( renderer->flags & 3 ) == 0 )
 				)
 			{
 				RenderMonoChar( renderer->font
@@ -1542,8 +1542,8 @@ void IMGVER(InternalRenderFontCharacter)( PFONT_RENDERER renderer, PFONT font, I
 								, &face->glyph->bitmap
 								, &face->glyph->metrics
 								, face->glyph->bitmap_left // left offset?
-								, (face->face_flags & FT_FACE_FLAG_SCALABLE) 
-							? (face->glyph->linearHoriAdvance >> 16) 
+								, (face->face_flags & FT_FACE_FLAG_SCALABLE)
+							? (face->glyph->linearHoriAdvance >> 16)
 							:( face->glyph->advance.x >> 6 )
 								//face->glyph->linearHoriAdvance>>16
 									);
@@ -1676,13 +1676,13 @@ SFTFont IMGVER(InternalRenderFontFile)( CTEXTSTR file
 	if( nWidth > 255 ) nWidth = 255;
 	//if( nHeight > 227 ) nHeight = 227;
 
-try_another_default:	
+try_another_default:
 	if( !file || bDefaultFile )
 	{
 		switch( bDefaultFile )
 		{
-		case 0:  	
-			file = "arialbd.ttf"; 	  	
+		case 0:
+			file = "arialbd.ttf";
 			break;
 		case 1:
 			file = "fonts/arialbd.ttf";
@@ -1699,7 +1699,7 @@ try_another_default:
 		PFONT_RENDERER fileDataRenderer = NULL;
 		LIST_FORALL( fonts, idx, PFONT_RENDERER, renderer )
 		{
-			if( strcmp( renderer->file, file ) == 0 ) {
+			if( renderer->file && strcmp( renderer->file, file ) == 0 ) {
 				fileDataRenderer = renderer;
 				if( renderer->nWidth == nWidth
 					&& renderer->nHeight == nHeight
@@ -1764,10 +1764,10 @@ try_another_default:
 						matrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
 						FT_Set_Transform(renderer->face,&matrix,0);
 					}
-					else 
+					else
 					{
 						//FT_Set_Transform(renderer->face,0,0);
-					} 
+					}
 #endif
 					if( renderer->flags & FONT_FLAG_ITALIC )
 					{
@@ -2196,7 +2196,7 @@ SFTFont IMGVER(RenderScaledFontEx)( CTEXTSTR name, uint32_t width, uint32_t heig
 			IMGVER(SetFontRendererData)( return_font, (*pFontData), (*pnFontDataSize) );
 			/*
 			PRENDER_FONTDATA pResult = NewPlus( RENDER_FONTDATA, (*pnFontDataSize)
-																					= 
+																					=
 																 (chars = StrLen( name ) + 1)*sizeof(TEXTCHAR) );
 			(*pnFontDataSizec) += sizeof( RENDER_FONTDATA );
 			pResult->magic = MAGIC_RENDER_FONT;
