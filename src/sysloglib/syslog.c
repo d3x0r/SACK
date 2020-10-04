@@ -779,7 +779,7 @@ void ConvertTickToTime( int64_t tick, PSACK_TIME st ) {
 	struct tm tm;
 	tv.tv_sec = ( tick >> 8 ) / 1000;
 	tv.tv_usec =  ( ( tick >> 8 ) % 1000 ) * 1000;
-	gmtime_r( &tv.tv_sec, &tm );
+	localtime_r( &tv.tv_sec, &tm );
 
 	st->yr = tm.tm_year + 1900;
 	st->mo = tm.tm_mon+1;
