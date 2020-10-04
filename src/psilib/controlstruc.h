@@ -13,7 +13,7 @@
 SACK_NAMESPACE
 
 _PSI_NAMESPACE
-// define this to prevent multiple definition to application 
+// define this to prevent multiple definition to application
 // viewpoint...
 //---------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ typedef void (CPROC*ApplyControlPropSheet)( PSI_CONTROL, PSI_CONTROL );
 #define CONTROL_PROPERTIES_APPLY( name )  OnPropertyEditOkay( TOSTR(name) )
 /* Tells a control that the edit process is done with the
 	property sheet requested.
-	
+
 	\Internal event callback definition.                   */
 typedef void (CPROC*DoneControlPropSheet)( PSI_CONTROL );
 #define CONTROL_PROPERTIES_DONE( name )  OnPropertyEditDone( TOSTR(name) )
@@ -131,7 +131,7 @@ typedef void (CPROC*_CaptionChanged)    ( struct psi_common_control_frame * );
 	resources.                                              */
 typedef void (CPROC*_Destroy)           ( struct psi_common_control_frame * );
 /* \Internal event callback definition.
-	
+
 	A control has been added to this control. */
 typedef void (CPROC*_AddedControl)      ( struct psi_common_control_frame *, struct psi_common_control_frame *pcAdding );
 /* \Internal event callback definition. The focus of a control
@@ -144,7 +144,7 @@ typedef void (CPROC*_Move)            ( struct psi_common_control_frame *, LOGIC
 typedef void (CPROC*_Rescale)            ( struct psi_common_control_frame * );
 /* \Internal event callback definition. Called when the
 	control's position (x,y) is changing.                */
-typedef void (CPROC*_PosChanging)       ( struct psi_common_control_frame *, LOGICAL bMoving );	
+typedef void (CPROC*_PosChanging)       ( struct psi_common_control_frame *, LOGICAL bMoving );
 /* \Internal event callback definition. Triggered when edit on a
 	frame is started.                                             */
 typedef void (CPROC*_BeginEdit)         ( struct psi_common_control_frame * );
@@ -177,7 +177,7 @@ struct edit_state_tag {
 	// so we can restore keystrokes to the control
 	// and/or relay unused keys to the control...
 	// perhaps should override draw this way
-	// some controls may take a long time to draw while 
+	// some controls may take a long time to draw while
 	// sizing... although we probably do want to see
 	// their behavior at the new size....
 	// but THIS definatly so we can process arrow keys...
@@ -277,7 +277,7 @@ struct physical_device_interface
 	//uintptr_t psvUser; // user data...
 	int drag_x, drag_y; // position drag was started; for absolute motion
 	int _x, _y;
-	uint32_t _b; // last button state...
+	uint32_t _b, nextB; // last button state...
 	// these two buttons override controls which have the ID BTN_OKAY, BTN_CANCEL
 	int nIDDefaultOK;
 	int nIDDefaultCancel;
@@ -343,7 +343,7 @@ typedef struct psi_common_control_frame
 
 	// this is the numeric type ID of the control.  Although, now
 	// controls are mostly tracked with their name.
-	int nType; 
+	int nType;
 	/* Name of the type this control is. Even if a control is
 		created by numeric Type ID, it still gets its name from the
 		procedure registry.                                         */
@@ -351,7 +351,7 @@ typedef struct psi_common_control_frame
 	// unique control ID ....
 	int nID;
 	// this is the text ID registered...
-	CTEXTSTR pIDName; 
+	CTEXTSTR pIDName;
 	//----------------
 	// the data above this point may be known by
 	// external sources...
@@ -363,29 +363,29 @@ typedef struct psi_common_control_frame
 	/* flags that affect a control's behavior or state.
 		                                                 */
 	/* <combine sack::psi::psi_common_control_frame::flags@1>
-		
+
 		\ \                                                */
 	struct {
 		/* Control is currently keyboard focused. */
 		BIT_FIELD bFocused : 1;
 		// destroyed - and at next opportunity will be...
-		BIT_FIELD bDestroy : 1; 
+		BIT_FIELD bDestroy : 1;
 		// set when a size op begins to void draw done during size
-		BIT_FIELD bSizing : 1; 
+		BIT_FIELD bSizing : 1;
 		// used to make Frame more 'Pop' Up...
-		BIT_FIELD bInitial : 1; 
+		BIT_FIELD bInitial : 1;
 		// set to disable updates
 		BIT_FIELD bNoUpdate : 1;
 		// this control was explicitly set hidden.. don't unhide.
-		BIT_FIELD bHiddenParent : 1; 
+		BIT_FIELD bHiddenParent : 1;
 		// can't see it, can't touch it.
-		BIT_FIELD bHidden : 1; 
+		BIT_FIELD bHidden : 1;
 		// scale currently applies.
-		BIT_FIELD bScaled : 1; 
+		BIT_FIELD bScaled : 1;
 		/* control gets no keyboard focus. */
 		BIT_FIELD bNoFocus:1;
 		// greyed out state?
-		BIT_FIELD bDisable : 1; 
+		BIT_FIELD bDisable : 1;
 		 // 0 = default alignment 1 = left, 2 = center 3 = right
 		BIT_FIELD bAlign:2;
 		// draw veritcal instead of horizontal
@@ -401,7 +401,7 @@ typedef struct psi_common_control_frame
 		// parent drew, therefore this needs to draw, and it's an initial draw.
 		BIT_FIELD bParentCleaned : 1;
 		// saves it's original surface and restores it before invoking the control draw.
-		BIT_FIELD bTransparent : 1; 
+		BIT_FIELD bTransparent : 1;
 
 		/* Adopted children are not automatically saved in XML files. */
 		BIT_FIELD bAdoptedChild : 1;
@@ -456,7 +456,7 @@ typedef struct psi_common_control_frame
 
 	/* Information about the caption of a control. */
 	/* <combine sack::psi::psi_common_control_frame::caption@1>
-		
+
 		\ \                                                  */
 	struct {
 		/* This is the font that applies to the current control. If it
@@ -487,21 +487,21 @@ typedef struct psi_common_control_frame
 		positioning.                                              */
 	FRACTION scaley;
 		// the actual rect of the control...
-	IMAGE_RECTANGLE rect;  
+	IMAGE_RECTANGLE rect;
 	/* This is the rectangle that describes where the surface of the
 		control is relative to is outside position.                   */
 	IMAGE_RECTANGLE surface_rect;
 		// size and position of detachment.
-	IMAGE_RECTANGLE detached_at; 
+	IMAGE_RECTANGLE detached_at;
 	/* this is the output device that the control is being rendered
 		to.                                                          */
 	PPHYSICAL_DEVICE device;
 	// includes border/caption of control
-	Image Window; 
+	Image Window;
  // actively processing - only when decremented to 0 do we destroy...
 	uint32_t InUse;
 	// fake counter to allow ReleaseCommonUse to work.
-	uint32_t NotInUse; 
+	uint32_t NotInUse;
 	// waitinig for a responce... when both inuse and inwait become 0 destroy can happy.
 	// otherwise when inuse reduces to 0, draw events are dispatched.
 	uint32_t InWait;
@@ -550,9 +550,9 @@ typedef struct psi_common_control_frame
 		and Cancel buttons that are commonly on dialogs.           */
 	PSI_COMMON_BUTTON_DATA pCommonButtonData;
 		// invalidating an arbitrary rect, this is the intersection of the parent's dirty rect on this
-	IMAGE_RECTANGLE dirty_rect;   
+	IMAGE_RECTANGLE dirty_rect;
 		// during update this may be set, and should be used for the update region insted of control surface
-	IMAGE_RECTANGLE update_rect;  
+	IMAGE_RECTANGLE update_rect;
 	/* A copy of the name that the frame was loaded from or saved
 		to. For subsequent save when the control is edited.        */
 	TEXTSTR save_name;
@@ -564,7 +564,7 @@ typedef struct psi_common_control_frame
 	PFrameBorder border;
 	PCAPTION_BUTTON hover_caption_button;  // the current button pressed
 	PCAPTION_BUTTON pressed_caption_button;  // the current button pressed
-	PCLASSROOT class_root; 
+	PCLASSROOT class_root;
 	int nCaptionHeight;
 	Image pCaptionImage;
 	int nExtra; // size above common required...
@@ -598,15 +598,15 @@ void SetupHotSpots( PEDIT_STATE pEditState );
 	controls are fully active, and you can use them as you are
 	developing. Hotspots are drawn in WHITE unless the mouse is
 	captured by one, then the spot is RED.
-	
-	
+
+
 	Parameters
 	pf :  frame being edited.
 	pe :  pointer to the current edit state containing information
 		   like the currently active control for editing on a frame.  */
 void DrawHotSpotsEx( PSI_CONTROL pf, PEDIT_STATE pEditState, PSI_CONTROL pcChild DBG_PASS );
 /* <combine sack::psi::_mouse::DrawHotSpotsEx@PSI_CONTROL@PEDIT_STATE pEditState>
-	
+
 	\ \                                                                        */
 #define DrawHotSpots(pf,pe,pChild) DrawHotSpotsEx(pf,pe,pChild DBG_SRC)
 //void DrawHotSpots( PSI_CONTROL pf, PEDIT_STATE pEditState );
@@ -632,9 +632,9 @@ _MOUSE_NAMESPACE
 		default accept or default cancel.                      */
 	enum MouseInvokeType {
  INV_OKAY   = 0, /* Invoke Button OK. */
- 
+
  INV_CANCEL = 1 /* Invoke Button Cancel. */
- 
+
 	};
 /* Invokes a default button on a frame.
 	Parameters
@@ -646,14 +646,14 @@ int InvokeDefault( PSI_CONTROL pc, int type );
 	events blocked.                                               */
 void AddUseEx( PSI_CONTROL pc DBG_PASS);
 /* <combine sack::psi::_mouse::AddUseEx@PSI_CONTROL pc>
-	
+
 	\ \                                              */
 #define AddUse( pc ) AddUseEx( pc DBG_SRC )
 
 /* Removes a use added by AddUse. COntrols in use cannot update. */
 void DeleteUseEx( PSI_CONTROL *pc DBG_PASS );
 /* <combine sack::psi::_mouse::DeleteUseEx@PSI_CONTROL *pc>
-	
+
 	\ \                                                  */
 #define DeleteUse(pc) DeleteUseEx( &pc DBG_SRC )
 
@@ -661,14 +661,14 @@ void DeleteUseEx( PSI_CONTROL *pc DBG_PASS );
 	system is out of a drawable state.                        */
 void AddWaitEx( PSI_CONTROL pc DBG_PASS);
 /* <combine sack::psi::_mouse::AddWaitEx@PSI_CONTROL pc>
-	
+
 	\ \                                               */
 #define AddWait( pc ) AddWaitEx( pc DBG_SRC )
 
 /* Removes a wait added by AddWait */
 void DeleteWaitEx( PSI_CONTROL *pc DBG_PASS );
 #define DeleteWait(pc) DeleteWaitEx( &pc DBG_SRC ) /* <combine sack::psi::_mouse::DeleteWaitEx@PSI_CONTROL *pc>
-		                                                
+
 		                                                \ \                                                   */
 
 
