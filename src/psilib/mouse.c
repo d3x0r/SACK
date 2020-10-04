@@ -1466,12 +1466,17 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 																	 , b ) );
 					}
 				}
-				if( result )
-					BeginSizeDisplay( pf->pActImg, (enum sizeDisplayValues)(( pf->flags.bSizing_right?wrsdv_right:0)
-						|( pf->flags.bSizing_right?wrsdv_left:0)
-						|( pf->flags.bSizing_top?wrsdv_top:0)
-						|( pf->flags.bSizing_bottom?wrsdv_bottom:0))
-					);
+				if( pf->flags.bSizing ) {
+					if( BeginSizeDisplay( pf->pActImg, (enum sizeDisplayValues)(( pf->flags.bSizing_right?wrsdv_right:0)
+							|( pf->flags.bSizing_right?wrsdv_left:0)
+							|( pf->flags.bSizing_top?wrsdv_top:0)
+							|( pf->flags.bSizing_bottom?wrsdv_bottom:0))
+						) ){
+						// won't get a release.
+						pf->nextB &= ~MK_LBUTTON;
+						pf->flags.bSizing = 0;
+					}
+				}
 		}
 		else
 		{
@@ -1596,7 +1601,6 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 													 , y - pc->surface_rect.y
 													 , b ) );
 	}
-	//pf->_b = b;
 	return result;
 }
 
@@ -2086,6 +2090,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 	PSI_CONTROL pc = pf->common;
 	PSI_CONTROL pcIn;
 	extern void DumpFrameContents( PSI_CONTROL );
+	pf->nextB = b;
 	if( !pc )
 	{
 		// maybe this was closed before it actually got the first message?
@@ -2133,7 +2138,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 		{
 			result = InvokeMouseMethod( pc, x, y, b );
 		}
-		pf->_b = b;
+		pf->_b = pf->nextB;
 		DeleteUse( pc );
 		return result;
 	}
@@ -2161,7 +2166,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 					lprintf( "Returning early... still owned..." );
 #endif
 			}
-			pf->_b = b;
+			pf->_b = pf->nextB;
 		}
 		// no longer owned, but event was already dispatched.
 		DeleteUse( pc );
@@ -2366,7 +2371,7 @@ uintptr_t CPROC AltFrameMouse( uintptr_t psvCommon, int32_t x, int32_t y, uint32
 		}
 	}
 	if( pf && pc->device )
- 		pf->_b = b;
+ 		pf->_b = pf->nextB;
 	//lprintf("releasing %p", pc );
 	DeleteUse( pc );
 	return result;
@@ -2405,11 +2410,14 @@ static int OnMouseCommon( "Frame" )( PSI_CONTROL pc, int32_t x, int32_t y, uint3
 						, pc->surface_rect.y
 						, pf->CurrentBias.x, pf->CurrentBias.y );
 #endif
-			BeginMoveDisplay( pf->pActImg );
-
-			pf->flags.bDragging = TRUE;
-			pf->drag_x = x + pf->CurrentBias.x;
-			pf->drag_y = y + pf->CurrentBias.y;
+			if( !BeginMoveDisplay( pf->pActImg ) ) {
+				pf->flags.bDragging = TRUE;
+				pf->drag_x = x + pf->CurrentBias.x;
+				pf->drag_y = y + pf->CurrentBias.y;
+			}else {
+				// won't get a release.
+				pf->nextB &= ~MK_LBUTTON;
+			}
 		}
 	}
 	return TRUE;
