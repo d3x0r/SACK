@@ -17,7 +17,7 @@
 #include <psi/clock.h>
 #include "local.h"
 
-PSI_CLOCK_NAMESPACE 
+PSI_CLOCK_NAMESPACE
 
 #define CLOCK_NAME "Basic Clock Widget"
 extern CONTROL_REGISTRATION clock_control;

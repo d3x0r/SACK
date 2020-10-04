@@ -1388,7 +1388,7 @@ endif( CMAKE_COMPILER_IS_GNUCC )
 
 
 if( UNIX AND NOT __ANDROID__ )
-  set( INTERFACE_TARGET opengl1.5 )
+  set( INTERFACE_TARGET wayland )
 else( UNIX AND NOT __ANDROID__ )
   set( INTERFACE_TARGET windows )
 endif( UNIX AND NOT __ANDROID__ )

@@ -436,10 +436,11 @@ static void keyboard_enter(void *data,
 		      struct wl_array *keys)
 {
 	PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
-	if( wl.hVidFocused )
+	if( wl.hVidFocused && wl.hVidFocused->pLoseFocus )
 		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)r );
 	wl.hVidFocused = r;
-	r->pLoseFocus( r->dwLoseFocus, NULL );
+	if( r && r->pLoseFocus )
+		r->pLoseFocus( r->dwLoseFocus, NULL );
 }
 
 static void keyboard_leave(void *data,
@@ -447,7 +448,7 @@ static void keyboard_leave(void *data,
 		      uint32_t serial,
 		      struct wl_surface *surface){
 	PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
-	if( wl.hVidFocused ){
+	if( wl.hVidFocused && wl.hVidFocused->pLoseFocus ){
 		lprintf( "on leave lose focus?");
 		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)1 );
 	}
@@ -1122,7 +1123,7 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			r->shell_surface = (struct wl_shell_surface*)xdg_wm_base_get_xdg_surface( wl.xdg_wm_base, r->surface );
 			xdg_surface_add_listener( (struct xdg_surface*)r->shell_surface, &xdg_surface_listener, r );
 			struct xdg_toplevel * xdg_toplevel = xdg_surface_get_toplevel( (struct xdg_surface*)r->shell_surface );
-			xdg_toplevel_set_title(  xdg_toplevel, "I DOn't want a title");
+			//xdg_toplevel_set_title(  xdg_toplevel, "I DOn't want a title");
 		   xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
 			// must commit to get a config
 			wl_surface_commit( r->surface );
@@ -1451,10 +1452,19 @@ static void sack_wayland_ForceDisplayFocus( PRENDERER display ) {
 			}
 		}
 	}
-
 }
 
+static PSPRITE_METHOD sack_wayland_EnableSpriteMethod(PRENDERER render, void(CPROC*RenderSprites)(uintptr_t psv, PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h ), uintptr_t psv ){
+	PXPANEL r = (PXPANEL)render;
+	//r->drawSprites = RenderSprites;
+	//r->psvSprites = psv;
+}
 
+static void sack_wayland_SyncRender( PRENDERER r ) {
+	wl_display_flush( wl.display);
+	wl_display_roundtrip_queue(wl.display, wl.queue);
+
+}
 
 static void sack_wayland_GetMousePosition ( int32_t *x, int32_t *y ){
 	(*x) = wl.mouse_.x;
@@ -1495,7 +1505,7 @@ static RENDER_INTERFACE VidInterface = { InitializeDisplay
 													, NULL//DisplayIsValid
 													, sack_wayland_OwnMouseEx
 													, NULL//BeginCalibration
-													, NULL//SyncRender	// sync
+													, sack_wayland_SyncRender	// sync
 													, NULL//MoveSizeDisplay
 													, NULL//MakeTopmost
 													, sack_wayland_HideDisplay
@@ -1509,7 +1519,7 @@ static RENDER_INTERFACE VidInterface = { InitializeDisplay
 													, NULL // OkaySyncRender is internal.
 													, sack_wayland_IsTouchDisplay
 													, sack_wayland_GetMouseState
-													, NULL//EnableSpriteMethod
+													, sack_wayland_EnableSpriteMethod
 													, NULL//WinShell_AcceptDroppedFiles
 													, NULL//PutDisplayIn
 													, NULL//MakeDisplayFrom

@@ -28,9 +28,9 @@ static LOGICAL CPROC FileDroppedOnFrame( uintptr_t psvControl, CTEXTSTR filename
 			{
 				if( current->flags.bHidden )
 					continue;
-				if( ( x < current->rect.x ) || 
-					( y < current->rect.y ) || 
-					( SUS_GT( x, int32_t, ( current->rect.x + current->rect.width ) , uint32_t ) ) || 
+				if( ( x < current->rect.x ) ||
+					( y < current->rect.y ) ||
+					( SUS_GT( x, int32_t, ( current->rect.x + current->rect.width ) , uint32_t ) ) ||
 					( SUS_GT( y, int32_t, ( current->rect.y + current->rect.height ), uint32_t ) ) )
 				{
 					continue;
@@ -675,7 +675,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 			WinShell_AcceptDroppedFiles( device->pActImg, FileDroppedOnFrame, (uintptr_t)pc );
 #endif
 			AddLink( &g.shown_frames, pc );
-         
+
 		}
 		pc->BorderType |= BORDER_FRAME; // mark this as outer frame... as a popup we still have 'parent'
 		GetCurrentDisplaySurface( device );

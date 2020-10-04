@@ -12,7 +12,7 @@
 #include "vectlib.h"
 
 // hDisplay is passed because that's the input of all keystrokes.
-// we can count on being focused... not much point in 
+// we can count on being focused... not much point in
 // responding to ALL keystrokes ALL the time...
 void ScanKeyboard( PRENDERER hDisplay, PVECTOR KeySpeed, PVECTOR KeyRotation )
 {
@@ -23,17 +23,17 @@ void ScanKeyboard( PRENDERER hDisplay, PVECTOR KeySpeed, PVECTOR KeyRotation )
    //	return;
    // how does this HOOK into the camera update functions?!
 #define Relax(V, n)  if( (V[n]>0.001) || ( V[n]<-0.001) )  \
-                      (V[n] /= 2.0f); else (V[n] = 0);  
+                      (V[n] /= 2.0f); else (V[n] = 0);
 
 #define Accel(V, n)          \
           if ( V[n] < max )  \
              V[n] += step;   \
-            else V[n] = max; 
+            else V[n] = max;
 
 #define Decel(V,n)            \
           if( V[n] > -max )   \
              V[n] -= step;    \
-           else V[n] = -max; 
+           else V[n] = -max;
 
 #define ROTATION (v=KeyRotation, \
                   max = ROTATION_DELTA, \
@@ -54,7 +54,7 @@ void ScanKeyboard( PRENDERER hDisplay, PVECTOR KeySpeed, PVECTOR KeyRotation )
 
 	(SPEED);
 	Inertia( KEY_END, KEY_PGDN, KEY_Q, KEY_E, vRight );
-	Inertia( KEY_CENTER, KEY_ENTER,  KEY_G, KEY_T, vUp );
+	Inertia( KEY_KP5, KEY_ENTER,  KEY_G, KEY_T, vUp );
 	Inertia( KEY_DELETE, KEY_INSERT,  KEY_S, KEY_W, vForward );
 }
 

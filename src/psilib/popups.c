@@ -70,7 +70,7 @@ PSI_PROC( PMENU, CreatePopup )( void )
 																						, "SACK/PSI/menus/Use Custom Popups"
 																						, local_popup_data.flags.bCustomMenuEnable
 																						, TRUE );
-	local_popup_data.flags.bDisplayBoundless = SACK_GetProfileIntEx( GetProgramName()
+	local_popup_data.flags.bDisplayBoundless = 1||SACK_GetProfileIntEx( GetProgramName()
 																						, "SACK/PSI/menus/Do not clip to display"
 																						, local_popup_data.flags.bDisplayBoundless
 																						, TRUE );
@@ -564,7 +564,7 @@ void UnshowMenu( PMENU pm )
 			Log( "Aboring the parent." );
 #endif
 			pm->parent->flags.abort = TRUE;
-		}	
+		}
 		//pm->flags.abort = TRUE; // if we weren't previously we still need this..
 //#ifdef DEBUG_MENUS
 		Log1( "Telling parent that selection is: %08" _32fx "", pm->selection );
@@ -776,8 +776,8 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 		 pm->display.x = x;
 		 pm->display.y = y;
 	}
-
-	MoveCommon( pm->image, pm->display.x, pm->display.y );
+	lprintf( "MOVE COMMON");
+//	MoveCommon( pm->image, pm->display.x, pm->display.y );
 	if( pm->parent )
 		display_parent = pm->parent->image;
 	else
@@ -793,6 +793,7 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 	lprintf( "Popup capture capture" );
 #endif
 	CaptureCommonMouse( pm->image, 1 ); // grab ownership again...
+	MoveCommon( pm->image, pm->display.x, pm->display.y );
 	pm->flags.showing = 1;
 
 	// well should loop and wait for responces... guess I need
@@ -1132,6 +1133,7 @@ PSI_PROC( void, TrackPopup_v2 )( PMENU hMenuSub, PSI_CONTROL parent, void (*call
 
 PSI_PROC( int, TrackPopup )( PMENU hMenuSub, PSI_CONTROL parent )
 {
+	lprintf( "Parent:%p", parent );
 	//lprintf( "TRACK POPUP IS DEPRECAED, USE CALLBACK VERSION INSTAEAD" );
 	if( local_popup_data.flags.bCustomMenuEnable )
 	{

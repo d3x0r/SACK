@@ -14,7 +14,7 @@
 #define CLOCK_CORE
 #include "local.h"
 
-PSI_CLOCK_NAMESPACE 
+PSI_CLOCK_NAMESPACE
 
 extern CONTROL_REGISTRATION clock_control;
 
@@ -59,6 +59,7 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 		clock->time_data.mo = (uint8_t)st.wMonth;
 		clock->time_data.yr = st.wYear;
 		clock->time_data.ms = st.wMilliseconds;
+
 	/*
 	 n = sprintf( pTime->data.data, "%s, %s %d, %d, %02d:%02d:%02d",
 	 Days[st.wDayOfWeek], Months[st.wMonth],
@@ -96,25 +97,28 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 	}
 #else
 	{
-		//struct timeval tv;
-		struct tm *timething;
-      char ftime[80];
-		time_t timevalnow;
-		time(&timevalnow);
-		timething = localtime( &timevalnow );
-		clock->time_data.sc = timething->tm_sec;
-		clock->time_data.mn = timething->tm_min;
-		clock->time_data.hr = timething->tm_hour;
-		clock->time_data.dy = timething->tm_mday;
-		clock->time_data.mo = timething->tm_mon;
-		clock->time_data.yr = timething->tm_year;
-		clock->time_data.ms = 0;
+		struct timeval tv;
+		struct tm tm;
+		uint64_t tick = timeGetTime64();
+		tv.tv_sec = ( tick  ) / 1000;
+		tv.tv_usec =  ( ( tick ) % 1000 ) * 1000;
+		localtime_r( &tv.tv_sec, &tm );
+		char ftime[80];
+		clock->time_data.sc = tm.tm_sec  ;//= st.sc;
+		clock->time_data.mn = tm.tm_min  ;//= st.mn;
+		clock->time_data.hr = tm.tm_hour ;//= st.hr;
+		clock->time_data.dy = tm.tm_mday ;//= st.dy;
+		clock->time_data.mo = tm.tm_mon  ;//= st.mo;
+		clock->time_data.yr = tm.tm_year ;//= st.yr;
+		clock->time_data.ms = tv.tv_usec/1000;
+
 		strftime( ftime
 				  , 80
 				  , bNewline
 					?"%m/%d/%Y\n%H:%M:%S"
 					:"%m/%d/%Y %H:%M:%S"
-				  , timething );
+				  , &tm );
+
 #ifdef UNICODE
 		{
 			TEXTCHAR *tmp = DupCStr( ftime );
@@ -171,7 +175,7 @@ static int CPROC psiClockDrawClock( PSI_CONTROL pc )
 
 				if( pClk->back_image )
 					BlotScaledImageAlpha( surface, pClk->back_image, ALPHA_TRANSPARENT );
-				else 
+				else
 					BlatColorAlpha( surface, 0, 0, surface->width, surface->height, pClk->backcolor );
 				//DebugBreak();
 				PutStringFontEx( surface

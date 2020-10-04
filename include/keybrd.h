@@ -22,18 +22,18 @@ KEYISDOWN =1
 			};
 
 /* <combine sack::image::render::keyboard::keyboard_tag>
-   
+
    \ \                                                   */
 typedef struct keyboard_tag KEYBOARD;
 /* <combine sack::image::render::keyboard::keyboard_tag>
-   
+
    \ \                                                   */
 typedef struct keyboard_tag *PKEYBOARD;
 struct keyboard_tag
 {
-#define NUM_KEYS 256  
+#define NUM_KEYS 256
    /* one byte index... more than sufficient
-      
+
       if character in array is '1' key is down, '2' key is up. */
    char keyupdown[NUM_KEYS];
    /* Indicator that the key is a double-tap, not just a single.
@@ -95,7 +95,6 @@ RENDER_NAMESPACE_END
 #  include <stdhdrs.h>
 
 #  define BIT_7           0x80
-
 #  define KEY_TAB          9
 #  define KEY_CENTER       12
 #  define KEY_PAD5         12
@@ -159,10 +158,10 @@ RENDER_NAMESPACE_END
 //#  define KEY_GRAY_MINUS    0x6d
 #  define KEY_GRAY_SLASH    VK_OEM_5
 
-//#  define KEY_GRAY_PLUS     107    
+//#  define KEY_GRAY_PLUS     107
 
-#  define KEY_NUM_LOCK      VK_NUMLOCK 
-#  define KEY_SCROLL_LOCK VK_SCROLL 
+#  define KEY_NUM_LOCK      VK_NUMLOCK
+#  define KEY_SCROLL_LOCK VK_SCROLL
 #  define KEY_SLASH        VK_OEM_2
 #  define KEY_BACKSPACE   '\b'
 #  define KEY_SPACE        ' '
@@ -244,7 +243,7 @@ RENDER_NAMESPACE_END
 #  define KEY_RIGHT_BRACKET VK_OEM_6
 #  define KEY_BACKSLASH     VK_OEM_5
 //'-'
-#  define KEY_DASH     VK_OEM_MINUS 
+#  define KEY_DASH     VK_OEM_MINUS
 #  define KEY_EQUAL    VK_OEM_PLUS
 #  define KEY_EQUALS   KEY_EQUAL
 #  define KEY_ACCENT 192
@@ -463,23 +462,23 @@ RENDER_NAMESPACE_END
 #define KEY_SCROLL_LOCK 145
 
      /*   https://w3c.github.io/uievents/#fixed-virtual-key-codes
-     Backspace	8	
-Tab	9	
-Enter	13	
-Shift	16	
-Control	17	
-Alt	18	
-CapsLock	20	
+     Backspace	8
+Tab	9
+Enter	13
+Shift	16
+Control	17
+Alt	18
+CapsLock	20
 Escape	27	Esc
-Space	32	
-PageUp	33	
-PageDown	34	
-End	35	
-Home	36	
-ArrowLeft	37	
-ArrowUp	38	
-ArrowRight	39	
-ArrowDown	40	
+Space	32
+PageUp	33
+PageDown	34
+End	35
+Home	36
+ArrowLeft	37
+ArrowUp	38
+ArrowRight	39
+ArrowDown	40
 Delete	46	Del
 
 Semicolon	";"	186
@@ -508,10 +507,8 @@ Double quote	"""	222
      */
 #  endif
 
-
-
 // if any key...
-#if !defined( KEY_1 )
+#if 1 || !defined( KEY_1 )
 
 #  if defined( __ANDROID__ )
 
@@ -636,7 +633,6 @@ Double quote	"""	222
 #    define KEY_WINDOW_1      0 // windows keys keys
 #    define KEY_WINDOW_2      0 // windows keys keys
 
-
 #    define KEY_TAB           AKEYCODE_TAB
 
 #    define KEY_SLASH         AKEYCODE_SLASH
@@ -708,6 +704,60 @@ Double quote	"""	222
 
 #  elif defined( __LINUX__ )
 
+#include <linux/input-event-codes.h>
+
+#undef BTN_START
+
+#define KEY_ESCAPE KEY_ESC
+#define KEY_PGDN KEY_PAGEDOWN
+#define KEY_PAGE_DOWN  KEY_PAGEDOWN
+#define KEY_PGUP KEY_PAGEUP
+#define KEY_PAGE_UP  KEY_PAGEUP
+#define KEY_DASH KEY_MINUS
+#define KEY_QUOTE KEY_APOSTROPHE
+#define KEY_PAD_PLUS KEY_KPPLUS
+#define KEY_PAD_ENTER KEY_KPENTER
+#define KEY_PAD_MINUS KEY_KPMINUS
+#define KEY_PAD_DOT   KEY_KPDOT
+#define KEY_PAD_DIV   KEY_KPSLASH
+//#define KEY_DASH
+#define KEY_LEFT_BRACKET KEY_LEFTBRACE
+#define KEY_RIGHT_BRACKET KEY_RIGHTBRACE
+
+#define KEY_PAD_MULT  KEY_KPASTERISK
+#define KEY_PAD_9   KEY_KP9
+#define KEY_PAD_8   KEY_KP8
+#define KEY_PAD_7   KEY_KP7
+#define KEY_PAD_6   KEY_KP6
+#define KEY_PAD_5   KEY_KP5
+#define KEY_PAD_4   KEY_KP4
+#define KEY_PAD_3   KEY_KP3
+#define KEY_PAD_2   KEY_KP2
+#define KEY_PAD_1   KEY_KP1
+#define KEY_PAD_0   KEY_KP0
+#define KEY_CENTER  KEY_KPPLUSMINUS
+#define KEY_LESS   KEY_COMMA
+#define KEY_PAD_DELETE KEY_KPDOT
+#define KEY_GREY_INSERT KEY_INSERT
+#define KEY_GREY_DELETE KEY_DELETE
+#define KEY_PERIOD KEY_DOT
+#define KEY_CAPS_LOCK KEY_CAPSLOCK
+
+#define KEY_LEFT_SHIFT KEY_LEFTSHIFT
+#define KEY_RIGHT_SHIFT KEY_RIGHTSHIFT
+#define KEY_ALT KEY_LEFTALT
+#define KEY_LEFT_ALT KEY_LEFTALT
+#define KEY_RIGHT_ALT KEY_RIGHTALT
+#define KEY_CTRL KEY_LEFTCTRL
+#define KEY_LEFT_CONTROL KEY_LEFTCTRL
+#define KEY_RIGHT_CONTROL KEY_RIGHTCTRL
+#define KEY_SCROLL_LOCK KEY_SCROLLLOCK
+#define KEY_SHIFT KEY_LEFTSHIFT
+#define KEY_DEL KEY_BACKSPACE
+
+//#define
+
+#define KEY_ACCENT KEY_GRAVE
 	  //#define USE_SDL_KEYSYM
 // ug - KEYSYMS are too wide...
 // so - we fall back to x scancode tables - and translate sym to these
@@ -715,10 +765,14 @@ Double quote	"""	222
 // but - perhaps we should re-translate these to REAL scancodes... but in either
 // case - these fall to under 256 characters, and can therefore be used...
 
-#    define USE_X_RAW_SCANCODES
+//#    define USE_X_RAW_SCANCODES
 
 
 #    ifdef USE_X_RAW_SCANCODES
+
+
+//#pragma message( "XRAW")
+
 
 #      define KEY_SHIFT        0xFF
 #      define KEY_LEFT_SHIFT   50
@@ -821,7 +875,7 @@ Double quote	"""	222
 #      define KEY_WINDOW_1      115 // windows keys keys
 #      define KEY_WINDOW_2      117 // windows keys keys
 
-
+//#pragma message("GOOD DEFINE")
 #      define KEY_TAB           23
 
 #      define KEY_SLASH         61
@@ -897,6 +951,7 @@ Double quote	"""	222
 #      define KEY_Z         52
 
 #    elif defined( USE_SDL_KEYSYM )
+#pragma message( "SDL" );
 #      include <SDL.h>
 #      define KEY_SHIFT        0xFF
 #      define KEY_LEFT_SHIFT   SDLK_LSHIFT
@@ -994,7 +1049,6 @@ Double quote	"""	222
 
 #      define KEY_WINDOW_1      115 // windows keys keys
 #      define KEY_WINDOW_2      117 // windows keys keys
-
 
 #      define KEY_TAB           SDLK_TAB
 
@@ -1163,7 +1217,7 @@ Double quote	"""	222
 #      define KEY_WINDOW_1      115 // windows keys keys
 #      define KEY_WINDOW_2      117 // windows keys keys
 
-
+#pragma message( "THIS IS OK 2")
 #      define KEY_TAB           23
 
 #      define KEY_SLASH         61
@@ -1282,9 +1336,10 @@ Double quote	"""	222
 #      define KEY_MINUS     0x0C
 #      define KEY_PLUS         0x0D
 #      define  KEY_BKSP        0x0E
+#pragma error BAD DEFINE
 #      define KEY_TAB       0x0F
 #      define KEY_Q         0x10
-#      define KEY_W         0x11  
+#      define KEY_W         0x11
 #      define KEY_E         0x12
 #      define KEY_R         0x13
 #      define KEY_T         0x14

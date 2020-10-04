@@ -71,7 +71,7 @@ static LOGICAL OnKey3d( "Virtuality" )( uintptr_t psvView, uint32_t key )
 	VIEW *v = (VIEW*)psvView;
 	int used = 0;
 	int SetChanged;
-		SetChanged = FALSE;	
+		SetChanged = FALSE;
 	if( !IsKeyPressed( key ) )
 		return FALSE;
 	if( KeyDown(  NULL, KEY_E ) )
@@ -104,13 +104,13 @@ static LOGICAL OnKey3d( "Virtuality" )( uintptr_t psvView, uint32_t key )
 			used = 1;
          	SetChanged = TRUE;
          }
-      // next facet set 
+      // next facet set
          if( KeyDown( NULL, KEY_S ) )
          {
 				g.EditInfo.nFacetSet++;
 #if 0
          	if( g.EditInfo.nFacetSet >= g.EditInfo.pEditObject->objinfo->FacetSetPool.nUsedFacetSets )
-         		g.EditInfo.nFacetSet = 0;	
+         		g.EditInfo.nFacetSet = 0;
 				g.EditInfo.nFacet = 0;
 #endif
 				used = 1;
@@ -319,11 +319,11 @@ static LOGICAL OnUpdate3d( "Virtuality" )( PTRANSFORM origin )
 		if( !frame_time )
 			frame_time = timeGetTime();
 
-		// scan the keyboard, cause ... well ... it needs 
+		// scan the keyboard, cause ... well ... it needs
 		// scaled keyspeed and acceleration ticks.
 		ScanKeyboard( NULL, KeySpeed, KeyRotation );
 
-		if( !g.EditInfo.bEditing || IsKeyDown(  NULL, KEY_CONTROL ) )
+		if( !g.EditInfo.bEditing || IsKeyDown(  NULL, KEY_CTRL ) )
 		{
 			SetSpeed( origin, KeySpeed );
 			SetRotation( origin, KeyRotation );
@@ -369,12 +369,12 @@ static void OnDraw3d( "Virtuality" )( uintptr_t psvUnusedOne )
 			        , g.EditInfo.pEditObject
 			        , g.EditInfo.nFacetSet
 			        , g.EditInfo.nFacet );
-			
+
 			//PutString( GetDisplayImage( v->hVideo )
 		///				, 4, GetDisplayImage( v->hVideo )->height - 11
 			//			, Color( 255,255,255 ), Color(0,0,0)
 				//		, buf );
-			
+
 
 			{
 				PFACET pf;
@@ -386,7 +386,7 @@ static void OnDraw3d( "Virtuality" )( uintptr_t psvUnusedOne )
 					DrawLine( rf.o, rf.n, 0, 10, 0x3f5f9f );
 				}
 			}
-			
+
 		}
 
 		//glFlush();
@@ -546,14 +546,14 @@ uintptr_t CPROC RenderFacet(  POBJECT po
 				 gl_color[0] = RedVal( pf->color ) / 255.0f;
 				gl_color[1] = GreenVal( pf->color ) / 255.0f;
 				gl_color[2] = BlueVal( pf->color ) / 255.0f;
-				gl_color[3] = AlphaVal( pf->color ) / 255.0f;	
+				gl_color[3] = AlphaVal( pf->color ) / 255.0f;
 			}
 			else
 			{
 				 gl_color[0] = RedVal( po->color ) / 255.0f;
 				gl_color[1] = GreenVal( po->color ) / 255.0f;
 				gl_color[2] = BlueVal( po->color ) / 255.0f;
-				gl_color[3] = AlphaVal( po->color ) / 255.0f;	
+				gl_color[3] = AlphaVal( po->color ) / 255.0f;
 			}
 			v = NewArray( VECTOR, points );
 
@@ -567,7 +567,7 @@ uintptr_t CPROC RenderFacet(  POBJECT po
 				}
 
 				Apply( (PCTRANSFORM)po->Ti, v[l], pvPoints[l] );
-				//SetPoint( pvPoints[l], v );				
+				//SetPoint( pvPoints[l], v );
 				//glVertex3fv( v );
 			}
 			//glEnd();
@@ -705,7 +705,7 @@ void ShowObjectChildren( POBJECT po )
 				//lprintf( "Render facet %d(%p)", idx, facet );
 #ifndef __cplusplus
 #ifdef MSC_VER
-				__try 
+				__try
 				{
 #endif
 #endif

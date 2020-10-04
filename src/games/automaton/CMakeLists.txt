@@ -11,7 +11,7 @@ endif( NOT SACK_SDK_ROOT_PATH )
 
 if( NOT SACK_CORE_LIBRARY )
   include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
-  INSTALL_SACK( bin )
+  INSTALL_SACK( bin lib )
 endif()
 include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
