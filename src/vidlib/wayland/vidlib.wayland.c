@@ -13,6 +13,7 @@
 #include <fcntl.h>
 
 #include <wayland-client.h>
+#include "xdg-shell-client-protocol.h"
 #include <xkbcommon/xkbcommon.h>
 #include <linux/input-event-codes.h>
 
@@ -90,6 +91,8 @@ enum WAYLAND_INTERFACE_STRING {
 	wis_shell,
 	wis_seat,
 	wis_shm,
+	wis_xdg_base,
+	wis_xdg_shell,
 #ifdef ALLOW_KDE
 	wis_kde_shell,
 #endif
@@ -97,14 +100,16 @@ enum WAYLAND_INTERFACE_STRING {
 };
 
 // these(name and version) should be merged into a struct.
-static int supportedVersions[max_interface_versions] = {4,1,1,7,1};
-static char * interfaces [max_interface_versions] = {
+static int supportedVersions[max_interface_versions] = {4,1,1,7,1,1,1};
+static char const * interfaces [max_interface_versions] = {
  [wis_compositor]="wl_compositor"
  ,[wis_subcompositor]="wl_subcompositor"
 // ,"zwp_linux_dmabuf_v1"
  ,[wis_shell]="wl_shell"
  ,[wis_seat]="wl_seat"
 ,[wis_shm]= "wl_shm"
+,[wis_xdg_shell]="zxdg_shell_v6"
+,[	wis_xdg_base]=NULL
 #ifdef ALLOW_KDE
  ,[wis_kde_shell]="org_kde_plasma_shell"
 #endif
@@ -130,6 +135,8 @@ struct wayland_local_tag
 	volatile int registering; // valid pixel format found.
 	int canDraw; // valid pixel format found.
 	struct wl_shell *shell;
+	struct xdg_wm_base *xdg_wm_base;
+	struct xdg_shell *xdg_shell;
 	struct wl_seat *seat;
 	struct wl_pointer *pointer;
 	struct pointer_data pointer_data ;
@@ -283,8 +290,8 @@ static void pointer_enter(void *data,
     //    pointer_data->surface, pointer_data->hot_spot_x,
     //    pointer_data->hot_spot_y);
 
-	wl.mouse_.x = surface_x;
-	wl.mouse_.y = surface_y;
+	wl.mouse_.x = surface_x >> 8;
+	wl.mouse_.y = surface_y >> 8;
 
     PXPANEL r = wl_surface_get_user_data(
         pointer_data->target_surface);
@@ -573,6 +580,24 @@ static const struct wl_keyboard_listener keyboard_listener = {
 };
 
 
+static void xdg_surface_configure ( void *data, struct xdg_surface* xdg_surface, uint32_t serial ){
+	PXPANEL r= (PXPANEL)data;
+	xdg_surface_ack_configure( xdg_surface, serial );
+
+}
+
+static struct xdg_surface_listener const xdg_surface_listener = {
+	.configure = xdg_surface_configure,
+};
+
+static void xdg_wm_base_ping( void*data, struct xdg_wm_base*base, uint32_t serial){
+	xdg_wm_base_pong( base,serial);
+}
+static struct xdg_wm_base_listener const xdg_wm_base_listener = {
+	.ping = xdg_wm_base_ping,
+};
+
+
 static void
 global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 	       const char *interface, uint32_t version)
@@ -587,12 +612,12 @@ global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 			//lprintf( "Is: %s %s ", interface, interfaces[n]);
 			wl.versions[n] = version;
 			if( version < supportedVersions[n] ){
-				lprintf( "Interface %s is version %d and library expects %d",
-				      interfaces[wis_compositor], version, supportedVersions[n] );
+				lprintf( "Interface %d:%s is version %d and library expects %d",
+				      n, interfaces[n], version, supportedVersions[n] );
 			}
 			if( supportedVersions[n] < version ){
-				lprintf( "Interface %s is version %d and library only supports %d",
-				      interfaces[wis_compositor], version, supportedVersions[n] );
+				lprintf( "Interface %d:%s is version %d and library only supports %d",
+				      n, interfaces[n], version, supportedVersions[n] );
 				version = supportedVersions[n];
 			}
 
@@ -622,6 +647,13 @@ global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
        wl.shell = wl_registry_bind(registry, id,
                                  &org_kde_plasma_shell_interface, version);
 #endif
+	} else if( n == wis_xdg_shell ) {
+       //wl.xdg_shell = wl_registry_bind(registry, id,
+       //                          &, version);
+	} else if( n == wis_xdg_base ) {
+      wl.xdg_wm_base = wl_registry_bind(registry, id,
+                                 &xdg_wm_base_interface, version);
+		xdg_wm_base_add_listener( wl.xdg_wm_base, &xdg_wm_base_listener, NULL );
 	} else if( n == wis_seat ) {
 		wl.seat = wl_registry_bind(registry, id,
 			&wl_seat_interface,  version>2?version:version);
@@ -674,6 +706,8 @@ static void initConnections( void ) {
    //wl_proxy_create( NULL, )
 	wl.flags.bInited = 1;
 
+	interfaces[wis_xdg_base] = xdg_wm_base_interface.name;
+
 }
 
 
@@ -699,7 +733,7 @@ static void finishInitConnections( void ) {
 		}
 	}
 #endif
-	if( !wl.shell ){
+	if( !wl.shell&& !wl.xdg_wm_base ){
 		lprintf( "Can't find wl_shell.");
 		DebugBreak();
 	}
@@ -905,9 +939,6 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 
  void redraw( void *data, struct wl_callback* callback, uint32_t time ) {
 	PXPANEL r = (PXPANEL)data;
-
-	//lprintf( "And a commit after redraw callback... setup for next completion" );
-
 	if( r->frame_callback ) wl_callback_destroy( r->frame_callback );
 	r->frame_callback = wl_surface_frame( r->surface );
 	wl_callback_add_listener( r->frame_callback, &frame_listener, r );
@@ -940,6 +971,7 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 			int flush = 0;
 			PXPANEL r;
 			wl.commit = 0;
+			if(0)
 			LIST_FORALL( wl.damaged, idx, PXPANEL, r ){
 				//lprintf( "Damage found... send %p", r );
 				if( !r->flags.bDestroy ){
@@ -1051,8 +1083,6 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 
 }
 
-
-
 LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 {
 	//lprintf( "-----Create WIndow Stuff----- %s %s", hVideo->flags.bLayeredWindow?"layered":"solid"
@@ -1074,21 +1104,38 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 		lprintf( "Can't create surface");
 		return FALSE;
    }
+   wl_surface_set_user_data(r->surface, r);
 
 	if( parent ) {
 		r->sub_surface = wl_subcompositor_get_subsurface( wl.subcompositor, r->surface, parent->surface );
-	}else {
-		r->shell_surface = wl_shell_get_shell_surface(wl.shell, r->surface);
+		wl_subsurface_set_user_data(r->sub_surface, r);
+	} else {
+		if(0) {
+			r->shell_surface = wl_shell_get_shell_surface(wl.shell, r->surface);
+			wl_shell_surface_add_listener( r->shell_surface, &shell_surface_listener, r );
+			wl_shell_surface_set_toplevel(r->shell_surface);
+		   wl_shell_surface_set_user_data(r->shell_surface, r);
+		}
+
+		if(1) {
+			//r->shell_surface = xdg_shell_get_shell_surface(wl.shell, r->surface);
+			r->shell_surface = (struct wl_shell_surface*)xdg_wm_base_get_xdg_surface( wl.xdg_wm_base, r->surface );
+			xdg_surface_add_listener( (struct xdg_surface*)r->shell_surface, &xdg_surface_listener, r );
+			struct xdg_toplevel * xdg_toplevel = xdg_surface_get_toplevel( (struct xdg_surface*)r->shell_surface );
+			xdg_toplevel_set_title(  xdg_toplevel, "I DOn't want a title");
+		   xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
+			// must commit to get a config
+			wl_surface_commit( r->surface );
+			// must also wait to get config.
+			wl_display_roundtrip_queue(wl.display, wl.queue);
+		}
+
 		if (r->shell_surface == NULL) {
 			lprintf("Can't create shell surface");
 			return FALSE;
 		}
-		wl_shell_surface_add_listener( r->shell_surface, &shell_surface_listener, r );
-		wl_shell_surface_set_toplevel(r->shell_surface);
 	}
 
-   wl_shell_surface_set_user_data(r->shell_surface, r);
-   wl_surface_set_user_data(r->surface, r);
 
 	return TRUE;
 }
@@ -1105,11 +1152,11 @@ void ShutdownVideo( void )
 static void sack_wayland_Redraw( PRENDERER renderer ) {
 	PXPANEL r = (PXPANEL)renderer;
 	struct wl_buffer *b = nextBuffer(r,1);
-	lprintf( "(get new buffer)Issue redraw on renderer %p %p", renderer, b );
+	//lprintf( "(get new buffer)Issue redraw on renderer %p %p", renderer, b );
 	if( !b )DebugBreak();
 	r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
 
-	wl_display_flush( wl.display );
+	//wl_display_flush( wl.display );
 	wl_display_roundtrip_queue(wl.display, wl.queue);
 }
 
@@ -1182,7 +1229,6 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 		wl_shell_surface_destroy( r->shell_surface );
 	wl_surface_destroy( r->surface );
 	DeleteLink( &wl.pActiveList, r );
-
 }
 
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
@@ -1192,22 +1238,28 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 		BlotImageSizedTo( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer], x, y, x, y, w, h );
 	}
 
-	r->flags.dirty = 1;
 	wl_surface_damage( r->surface, x, y, w, h );
 
-	{
-		INDEX i = FindLink( &wl.damaged, r );
-		if( i == INVALID_INDEX )
-			AddLink( &wl.damaged, r );
-		 wl.commit = 1;
-	}
 	if( r->flags.canCommit ){
+		//lprintf( "Updating now - getting new buffer, commit, flush, roundtrip, and attach the new buffer");
 		struct wl_buffer *next = nextBuffer(r, 0);
 		r->flags.canCommit = 0;
+		r->flags.dirty = 0; // don't need a commit.
 		wl_surface_commit( r->surface );
 		wl_display_flush( wl.display );
-
+		//if( wl.xdg_wm_base )
+		//	wl_display_roundtrip_queue(wl.display, wl.queue);
 		wl_surface_attach( r->surface, next, 0, 0 );
+	}else {
+		if(0)
+		{
+			INDEX i = FindLink( &wl.damaged, r );
+			if( i == INVALID_INDEX )
+				AddLink( &wl.damaged, r );
+			wl.commit = 1;
+		}
+		r->flags.dirty = 1;
+		//lprintf( "update portion, was not ready yet, wait for callback");
 	}
 }
 
@@ -1217,13 +1269,28 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	if( r->buffer_images[r->curBuffer] && r->buffer_images[1-r->curBuffer] ) {
 		BlotImage( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer], 0, 0 );
 	}
-	r->flags.dirty = 1;
 	wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
-	{
-		INDEX i = FindLink( &wl.damaged, r );
-		if( i == INVALID_INDEX )
-			AddLink( &wl.damaged, r );
-		 wl.commit = 1;
+	if( r->flags.canCommit ){
+		//lprintf( "Updating now - getting new buffer, commit, flush, roundtrip, and attach the new buffer");
+		struct wl_buffer *next = nextBuffer(r, 0);
+		r->flags.canCommit = 0;
+		r->flags.dirty = 0; // don't need a commit.
+		wl_surface_commit( r->surface );
+		wl_display_flush( wl.display );
+		//if( wl.xdg_wm_base )
+		//	wl_display_roundtrip_queue(wl.display, wl.queue);
+
+		wl_surface_attach( r->surface, next, 0, 0 );
+	}else {
+		r->flags.dirty = 1;
+		if(0)
+		{
+			INDEX i = FindLink( &wl.damaged, r );
+			if( i == INVALID_INDEX )
+				AddLink( &wl.damaged, r );
+			wl.commit = 1;
+		}
+		//lprintf( "update portion, was not ready yet, wait for callback");
 	}
 }
 
@@ -1233,6 +1300,7 @@ static void sack_wayland_GetDisplayPosition( PRENDERER renderer, int32_t* x, int
 
 static void sack_wayland_MoveDisplay(PRENDERER renderer, int32_t x, int32_t y){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
+	lprintf( "MOVE DISPLAY %d %d", x, y);
 	if( r->above ){
 		lprintf( "MOVE SUBSURFACE" );
 		wl_subsurface_set_position( r->sub_surface, x, y );
@@ -1240,7 +1308,7 @@ static void sack_wayland_MoveDisplay(PRENDERER renderer, int32_t x, int32_t y){
 }
 static void sack_wayland_MoveDisplayRel(PRENDERER renderer, int32_t dx, int32_t dy){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-		lprintf( "MOVE DISPLAYREL" );
+	lprintf( "MOVE DISPLAYREL %d %d", dx, dy);
 
 }
 
@@ -1333,7 +1401,12 @@ static void sack_wayland_HideDisplay( PRENDERER renderer ){
 		r->flags.hidden = 1;
 		clearBuffer(r);
 	}
+}
 
+static void sack_wayland_GetMouseState    ( int32_t *x, int32_t *y, uint32_t *b ){
+	if( x ) x[0] = wl.mouse_.x;
+	if( y ) y[0] = wl.mouse_.y;
+	if( b ) b[0] = wl.mouse_.b;
 }
 
 Image GetDisplayImage(PRENDERER renderer) {
@@ -1435,7 +1508,7 @@ static RENDER_INTERFACE VidInterface = { InitializeDisplay
 													, NULL//IsTopmost
 													, NULL // OkaySyncRender is internal.
 													, sack_wayland_IsTouchDisplay
-													, NULL//GetMouseState
+													, sack_wayland_GetMouseState
 													, NULL//EnableSpriteMethod
 													, NULL//WinShell_AcceptDroppedFiles
 													, NULL//PutDisplayIn
