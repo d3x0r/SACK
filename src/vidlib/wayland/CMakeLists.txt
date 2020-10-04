@@ -8,6 +8,7 @@ if( UNIX )
 add_library( bag.video.wayland SHARED
   ${FIRST_GCC_LIBRARY_SOURCE}
   vidlib.wayland.c
+  keydefs.c
 	${CMAKE_BINARY_DIR}/xdg-shell-protocol.c
 	${CMAKE_BINARY_DIR}/xdg-shell-client-protocol.h
   ${LAST_GCC_LIBRARY_SOURCE}
