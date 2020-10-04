@@ -1,9 +1,9 @@
 /*
  *  Crafted by Jim Buckeyne
  *   (c)1999-2006++ Freedom Collective
- * 
+ *
  *   Handle usage of 'SFTFont's on 'Image's.
- * 
+ *
  *  *  consult doc/image.html
  *
  */
@@ -208,7 +208,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 	pchar = UseFont->character[c];
 	if( !pchar ) return 0;
 
-	if( !UseFont->character[c]->cell 
+	if( !UseFont->character[c]->cell
 		&& ( pImage->flags & IF_FLAG_FINAL_RENDER )
 		&& !( pImage->flags & IF_FLAG_IN_MEMORY ) )
 	{
@@ -557,7 +557,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 				for( n = 0; n < 4; n++ )
 				{
 					//lprintf( "fore vert %g,%d", v[vi][n][0],v[vi][n][1] );
-					glTexCoord2f( texture_v[n][0], texture_v[n][1]  ); 
+					glTexCoord2f( texture_v[n][0], texture_v[n][1]  );
 					glVertex3fv(v[vi][n]);	// Bottom Left Of The Texture and Quad
 				}
 			}
@@ -670,7 +670,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 				bufferDesc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE;
 				bufferDesc.MiscFlags        = 0;
 				bufferDesc.StructureByteStride = sizeof( D3DPOSVERTEX );
-	
+
 				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB_back);
 			}
 			if( !pQuadVB )
@@ -682,7 +682,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 				bufferDesc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE;
 				bufferDesc.MiscFlags        = 0;
 				bufferDesc.StructureByteStride = sizeof( D3DTEXTUREDVERTEX );
-	
+
 				g_d3d_device->CreateBuffer( &bufferDesc, NULL/*&InitData*/, &pQuadVB);
 			}
 			D3D11_MAPPED_SUBRESOURCE resource;
@@ -707,7 +707,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 			_color[1] = GreenVal( color ) / 255.0f;
 			_color[2] = BlueVal( color ) / 255.0f;
 			_color[3] = AlphaVal( color ) / 255.0f;
-			
+
 			EnableShader( l.simple_texture_shader, pifSrc, _color );
 
 			g_d3d_device_context->IASetVertexBuffers(0, 1, &pQuadVB, &stride, &offset);
@@ -1440,7 +1440,7 @@ void IMGVER(PutStringFontExx)( ImageFile *pImage
 				pchar = font->character[ ch ];
 				if( ch == '\n' )
 				{
-					if( justification == 2 )				
+					if( justification == 2 )
 						x = ( _x + _width ) - length;
 					else
 						x = ( ( _x + _width ) - length ) / 2;
@@ -1747,9 +1747,9 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 		UseFont = DEFAULTFONT;
 	if( width > 0 )
 		// character 0 should contain the average width of a character or is it max?
-		return width/UseFont->character[0]->width; 
+		return width/UseFont->character[0]->width;
 	return 0;
-}  
+}
 
  uint32_t  IMGVER(GetFontHeight) ( PFONT font )
 {
