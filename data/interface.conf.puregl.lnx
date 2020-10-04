@@ -26,6 +26,8 @@ if sack/vidlib/use interface == wayland
 module libbag.image.so
 module libbag.video.wayland.so
 
+set option SACK/PSI/menus/Do not clip to display=1
+
 alias service 'render'='sack.render.wayland'
 alias service 'image'='sack.image'
 endif
