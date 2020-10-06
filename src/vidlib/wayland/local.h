@@ -4,6 +4,14 @@
 #include <xkbcommon/xkbcommon.h>
 #include <linux/input-event-codes.h>
 
+
+struct HVIDEO_tag {
+	KEYBOARD kbd;
+	RenderReadCallback ReadComplete;
+	uintptr_t psvRead;
+	PLINKQUEUE pInput;
+};
+
 typedef struct wvideo_tag
 {
 	struct {
@@ -54,7 +62,7 @@ typedef struct wvideo_tag
 
 	HideAndRestoreCallback pHideCallback;
 	uintptr_t  dwHideData;
-
+	PKEYDEFINE pKeyDefs;
 } XPANEL, *PXPANEL;
 
 struct pointer_data {
@@ -89,6 +97,7 @@ enum WAYLAND_INTERFACE_STRING {
 #endif
 	max_interface_versions
 };
+
 
 
 struct wayland_local_tag
@@ -147,3 +156,14 @@ struct wayland_local_tag
 	PLIST pActiveList; // non-destroyed windows are here
 
 };
+
+
+//----------------------------
+
+PKEYDEFINE wl_CreateKeyBinder ( void );
+void wl_DestroyKeyBinder ( PKEYDEFINE pKeyDef );
+// keycode is JUST a KEY_ symbol
+int wl_BindEventToKey ( PKEYDEFINE pKeyDefs, uint32_t keycode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv );
+int wl_UnbindKey ( PKEYDEFINE pKeyDefs, uint32_t keycode, uint32_t modifier );
+// key is a key event with key sumbol and modifiers with pressed/released status
+int wl_HandleKeyEvents ( PKEYDEFINE pKeyDefs, uint32_t key );

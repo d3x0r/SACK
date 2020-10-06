@@ -21,14 +21,6 @@ enum{
    KS_DELETE
 };
 
-struct HVIDEO_tag {
-	KEYBOARD kbd;
-	PKEYDEFINE KeyDefs;
-	RenderReadCallback ReadComplete;
-	uintptr_t psvRead;
-	PLINKQUEUE pInput;
-
-};
 
 KEYDEFINE KeyDefs[256];
 //----------------------------------------------------------------------------
@@ -135,14 +127,14 @@ int FindKey( PTEXT pKey )
 #endif
 //----------------------------------------------------------------------------
 
-RENDER_PROC( PKEYDEFINE, CreateKeyBinder )( void )
+ PKEYDEFINE wl_CreateKeyBinder( void )
 {
 	PKEYDEFINE KeyDef = NewArray( KEYDEFINE, 256 );
 	MemSet( KeyDef, 0, sizeof( KEYDEFINE ) * 256 );
 	return KeyDef;
 }
 
-RENDER_PROC( void, DestroyKeyBinder )( PKEYDEFINE pKeyDef )
+void wl_DestroyKeyBinder ( PKEYDEFINE pKeyDef )
 {
    Deallocate( PKEYDEFINE, pKeyDef );
 }
@@ -157,10 +149,11 @@ RENDER_PROC( void, DestroyKeyBinder )( PKEYDEFINE pKeyDef )
 //  if no parameters follow, the definition is assumed to
 //  be a macro definition, and the macro is invoked by
 //  the processing entity...
-RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE pKeyDefs, uint32_t keycode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv )
+int wl_BindEventToKey( PKEYDEFINE pKeyDefs, uint32_t keycode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv )
 {
 	PKEY_FUNCTION keyfunc = New( KEY_FUNCTION );
 	MemSet( keyfunc, 0, sizeof( KEY_FUNCTION ) );
+	if( !pKeyDefs ) pKeyDefs = KeyDefs;
 	if( modifier & KEY_MOD_ALL_CHANGES )
 	{
 		pKeyDefs[keycode].mod[modifier&0x7].flags.bAll = TRUE;
@@ -189,29 +182,18 @@ RENDER_PROC( int, BindEventToKeyEx )( PKEYDEFINE pKeyDefs, uint32_t keycode, uin
 	return TRUE;
 }
 
-RENDER_PROC( int, BindEventToKey )( PRENDERER pRenderer, uint32_t keycode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv )
-{
-	return BindEventToKeyEx( pRenderer?pRenderer->KeyDefs:KeyDefs
-								  , keycode, modifier
-								  , trigger, psv );
-}
 //----------------------------------------------------------------------------
 
-RENDER_PROC( int, UnbindKey )( PRENDERER pRenderer, uint32_t keycode, uint32_t modifier )
+int wl_UnbindKey( PKEYDEFINE pKeyDefs, uint32_t keycode, uint32_t modifier )
 {
-   if( pRenderer )
-   {
-      pRenderer->KeyDefs[keycode].mod[modifier].flags.bFunction = FALSE;
-   }
-   else
-   {
-      KeyDefs[keycode].mod[modifier].flags.bFunction = FALSE;
-   }
+	if( !pKeyDefs )
+		pKeyDefs = KeyDefs;
+	pKeyDefs[keycode].mod[modifier].flags.bFunction = FALSE;
    return TRUE;
 }
 
 
-RENDER_PROC( void, SetRenderReadCallback )( PRENDERER pRenderer, RenderReadCallback callback, uintptr_t psv )
+void wl_SetRenderReadCallback ( PRENDERER pRenderer, RenderReadCallback callback, uintptr_t psv )
 {
    if( pRenderer )
    {
@@ -220,7 +202,7 @@ RENDER_PROC( void, SetRenderReadCallback )( PRENDERER pRenderer, RenderReadCallb
    }
 }
 
-RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
+ int wl_HandleKeyEvents ( PKEYDEFINE pKeyDefs, uint32_t key )
 {
 	int keycode = KEY_CODE(key);
 	int keymod = KEY_MOD(key);

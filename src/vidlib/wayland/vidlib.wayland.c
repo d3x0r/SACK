@@ -174,6 +174,7 @@ static void pointer_enter(void *data,
 
 	wl.mouse_.x = surface_x >> 8;
 	wl.mouse_.y = surface_y >> 8;
+		lprintf( "Mouse Enter" );
 
     PXPANEL r = wl_surface_get_user_data(
         pointer_data->target_surface);
@@ -190,6 +191,7 @@ static void pointer_leave(void *data,
     struct pointer_data* pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
     PXPANEL r = wl_surface_get_user_data(
         pointer_data->target_surface);
+		lprintf( "Mouse Leave" );
     if (r != NULL && r->mouse ) {
 		 r->mouse( r->psvMouse, wl.mouse_.x, wl.mouse_.y, MK_NO_BUTTON );
        // callback(b);
@@ -203,7 +205,7 @@ static void pointer_motion(void *data,
     struct pointer_data* pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
 	wl.mouse_.x = surface_x>>8;
 	wl.mouse_.y = surface_y>>8;
-  	//lprintf( "mouse motion:%d %d", wl.mouse_.x, wl.mouse_.y );
+  	lprintf( "mouse motion:%d %d", wl.mouse_.x, wl.mouse_.y );
 
 
    PXPANEL r = wl_surface_get_user_data(
@@ -373,6 +375,7 @@ static void keyboard_key(void *data,
 	}
 	if( !xkbToWindows[32] ) initKeys();
 	//lprintf( "KEY: %p %d %d %d %d", wl_keyboard, serial, time, key, state );
+
 	if (state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		xkb_keysym_t keysym = xkb_state_key_get_one_sym (wl.xkb_state, key+8);
 		wl.utfKeyCode = xkb_keysym_to_utf32 (keysym);
@@ -491,7 +494,7 @@ static void
 global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 	       const char *interface, uint32_t version)
 {
-	static int processing;
+	static volatile int processing;
 	while( processing ) Relinquish();
 	processing = 1;
 
@@ -1112,6 +1115,7 @@ static PRENDERER sack_wayland_OpenDisplayAboveUnderSizedAt(uint32_t attr , uint3
 	struct wvideo_tag *r;
 	r = New( struct wvideo_tag );
 	memset( r, 0, sizeof( *r ) );
+
 	r->flags.canCommit = 1;
 	r->above = rAbove;
 	r->under = rUnder;
@@ -1362,7 +1366,7 @@ Image GetDisplayImage(PRENDERER renderer) {
 
 static void sack_wayland_OwnMouseEx ( PRENDERER display, uint32_t bOwn DBG_PASS ){
 	struct wvideo_tag *r = (struct wvideo_tag*)display;
-	_lprintf( DBG_RELAY )( "Own Mouse - probably for move/drag... %p %d", display, bOwn );
+	//_lprintf( DBG_RELAY )( "Own Mouse - probably for move/drag... %p %d", display, bOwn );
 	if( bOwn )
 		wl.hCaptured = r;
 	else if( wl.hCaptured == r || !r )
@@ -1410,11 +1414,26 @@ static void sack_wayland_GetMousePosition ( int32_t *x, int32_t *y ){
 }
 
 
-static int sack_wayland_BindEventToKey( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv ){
-
+static int sack_wayland_BindEventToKey( PRENDERER pRenderer
+	, uint32_t scancode, uint32_t modifier
+	, KeyTriggerHandler trigger, uintptr_t psv ){
+	PXPANEL r = (PXPANEL)pRenderer;
+	if( r ) {
+		if( !r->pKeyDefs )
+			r->pKeyDefs = wl_CreateKeyBinder();
+		wl_BindEventToKey( r->pKeyDefs, scancode, modifier, trigger, psv );
+	}
+	else
+		wl_BindEventToKey( NULL, scancode, modifier, trigger, psv );
 }
 
 static int sack_wayland_UnbindKey( PRENDERER pRenderer, uint32_t scancode, uint32_t modifier ){
+	PXPANEL r = (PXPANEL)pRenderer;
+	if( r && r->pKeyDefs ) {
+		wl_UnbindKey( r->pKeyDefs, scancode, modifier );
+	}
+	else
+		wl_UnbindKey( NULL, scancode, modifier );
 }
 
  static void sack_wayland_BeginMoveDisplay(  PRENDERER renderer ) {
