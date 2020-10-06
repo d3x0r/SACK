@@ -2780,6 +2780,9 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	}
 	pc->flags.bSetBorderType = 0;
 
+	pc->CaptionChanged = NULL; // don't send this event, and uninitialized(yet)
+	pc->ChangeFocus = NULL; // don't send this event, and uninitialized(yet)
+
 	SetControlText( pc, text );
 	if( pContainer )
 	{
