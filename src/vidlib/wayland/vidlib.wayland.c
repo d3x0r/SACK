@@ -159,57 +159,64 @@ static void pointer_enter(void *data,
     uint32_t serial, struct wl_surface *surface,
     wl_fixed_t surface_x, wl_fixed_t surface_y)
 {
-    struct pointer_data *pointer_data;
+	struct pointer_data *pointer_data;
 
-    pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
-    pointer_data->target_surface = surface;
-    /*
-    wl_surface_attach(pointer_data->surface,
-        pointer_data->buffer, 0, 0);
-    wl_surface_commit(pointer_data->surface);
-    */
-    //wl_pointer_set_cursor(wl_pointer, serial,
-    //    pointer_data->surface, pointer_data->hot_spot_x,
-    //    pointer_data->hot_spot_y);
+	pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
+	pointer_data->target_surface = surface;
+	/*
+	wl_surface_attach(pointer_data->surface,
+		pointer_data->buffer, 0, 0);
+	wl_surface_commit(pointer_data->surface);
+	*/
+	//wl_pointer_set_cursor(wl_pointer, serial,
+	//    pointer_data->surface, pointer_data->hot_spot_x,
+	//    pointer_data->hot_spot_y);
 
 	wl.mouse_.x = surface_x >> 8;
 	wl.mouse_.y = surface_y >> 8;
-		lprintf( "Mouse Enter" );
+	//lprintf( "Mouse Enter %d %d" );
 
-    PXPANEL r = wl_surface_get_user_data(
-        pointer_data->target_surface);
-    if (r != NULL && r->mouse ) {
-		 r->mouse( r->psvMouse, wl.mouse_.x, wl.mouse_.y, wl.mouse_.b );
-       // callback(b);
-	 }
+	PXPANEL r = wl_surface_get_user_data(
+		pointer_data->target_surface);
+	//if( !GetPixel( GetDipslaySurface( r ), wl.mouse.x, wl.mouse.y ))
+		//wl_seat_pointer_forward( wl.seat, serial );
+	if (r != NULL && r->mouse ) {
+		r->mouse( r->psvMouse, wl.mouse_.x, wl.mouse_.y, wl.mouse_.b );
+		// callback(b);
+	}
 
 }
 
 static void pointer_leave(void *data,
-    struct wl_pointer *wl_pointer, uint32_t serial,
-    struct wl_surface *wl_surface) {
-    struct pointer_data* pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
-    PXPANEL r = wl_surface_get_user_data(
-        pointer_data->target_surface);
-		lprintf( "Mouse Leave" );
-    if (r != NULL && r->mouse ) {
-		 r->mouse( r->psvMouse, wl.mouse_.x, wl.mouse_.y, MK_NO_BUTTON );
-       // callback(b);
-	 }
+	struct wl_pointer *wl_pointer, uint32_t serial,
+	struct wl_surface *wl_surface) {
+	struct pointer_data* pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
+	PXPANEL r = wl_surface_get_user_data(
+		pointer_data->target_surface);
+	//lprintf( "Mouse Leave" );
+	wl.mouse_.b = 0;
+	if (r != NULL && r->mouse ) {
+		r->mouse( r->psvMouse, wl.mouse_.x, wl.mouse_.y, MK_NO_BUTTON );
+		// callback(b);
+	}
 
  }
 
 static void pointer_motion(void *data,
-    struct wl_pointer *wl_pointer, uint32_t time,
-    wl_fixed_t surface_x, wl_fixed_t surface_y) {
-    struct pointer_data* pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
+	struct wl_pointer *wl_pointer, uint32_t time,
+	wl_fixed_t surface_x, wl_fixed_t surface_y) {
+	struct pointer_data* pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
 	wl.mouse_.x = surface_x>>8;
 	wl.mouse_.y = surface_y>>8;
-  	lprintf( "mouse motion:%d %d", wl.mouse_.x, wl.mouse_.y );
+  	//lprintf( "mouse motion:%d %d", wl.mouse_.x, wl.mouse_.y );
 
 
    PXPANEL r = wl_surface_get_user_data(
         pointer_data->target_surface);
+
+	//if( !GetPixel( GetDipslaySurface( r ), wl.mouse.x, wl.mouse.y ))
+		 //wl_seat_pointer_forward( wl.seat, serial );
+
     if (r != NULL && r->mouse ) {
 		 r->mouse( r->psvMouse, wl.mouse_.x, wl.mouse_.y, wl.mouse_.b );
        // callback(b);
@@ -221,36 +228,36 @@ static void pointer_button(void *data,
     struct wl_pointer *wl_pointer, uint32_t serial,
     uint32_t time, uint32_t button, uint32_t state)
 {
-    struct pointer_data *pointer_data;
-	 PXPANEL r;
-    void (*callback)(uint32_t);
+	struct pointer_data *pointer_data;
+	PXPANEL r;
+	void (*callback)(uint32_t);
 	wl.mouseSerial = serial;
-	 lprintf( "pointer button:%d %d", button, state);
-    pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
-		 if( button == BTN_LEFT ) {
-			 if( state )
-			 	wl.mouse_.b |= MK_LBUTTON;
-			else
-				wl.mouse_.b &= ~MK_LBUTTON;
-		 }
-		 if( button == BTN_RIGHT ) {
-			 if( state )
-			 	wl.mouse_.b |= MK_RBUTTON;
-			else
-				wl.mouse_.b &= ~MK_RBUTTON;
-		 }
-		 if( button == BTN_MIDDLE ) {
-			 if( state )
-			 	wl.mouse_.b |= MK_MBUTTON;
-			else
-				wl.mouse_.b &= ~MK_MBUTTON;
-		 }
-    r = wl_surface_get_user_data(
-        pointer_data->target_surface);
-    if (r != NULL && r->mouse ) {
-		 r->mouse( r->psvMouse, wl.mouse_.x, wl.mouse_.y, wl.mouse_.b );
-       // callback(button);
-	 }
+	//lprintf( "pointer button:%d %d", button, state);
+	pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
+	if( button == BTN_LEFT ) {
+		if( state )
+		wl.mouse_.b |= MK_LBUTTON;
+	else
+		wl.mouse_.b &= ~MK_LBUTTON;
+	}
+	if( button == BTN_RIGHT ) {
+		if( state )
+		wl.mouse_.b |= MK_RBUTTON;
+	else
+		wl.mouse_.b &= ~MK_RBUTTON;
+	}
+	if( button == BTN_MIDDLE ) {
+		if( state )
+		wl.mouse_.b |= MK_MBUTTON;
+	else
+		wl.mouse_.b &= ~MK_MBUTTON;
+	}
+	r = wl_surface_get_user_data(
+		pointer_data->target_surface);
+	if (r != NULL && r->mouse ) {
+		r->mouse( r->psvMouse, wl.mouse_.x, wl.mouse_.y, wl.mouse_.b );
+		// callback(button);
+	}
 }
 
 static void pointer_axis(void *data,
@@ -848,6 +855,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		if( r->flags.dirty ){
 			r->flags.canCommit = 0;
 			r->flags.dirty = 0;
+			r->flags.commited = 1;
 			//lprintf( "Window is dirty, do commit");
 			struct wl_buffer *next = nextBuffer(r, 0);
 
@@ -883,6 +891,7 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 						flush++;
 						r->flags.dirty = 0;
 						r->flags.canCommit = 0;
+						r->flags.commited = 1;
 						r->freeBuffer[r->curBuffer] = 0; // the image is NOT free
 						struct wl_buffer *next = nextBuffer(r, 0);
 						wl_surface_commit( r->surface );
@@ -941,10 +950,8 @@ void GetDisplaySizeEx( int display, int* x, int* y, uint32_t* w, uint32_t* h ){
 	 	w[0] = output->w;
 	 	h[0] = output->h;
 	 }else {
-
-	 	x[0] = y[0] = w[0] = h[0] = 9;
+	 	x[0] = y[0] = w[0] = h[0] = 0;
 	 }
-
 }
 
 
@@ -1085,10 +1092,15 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 	struct wl_buffer *b = nextBuffer(r,1);
 	//lprintf( "(get new buffer)Issue redraw on renderer %p %p", renderer, b );
 	if( !b )DebugBreak();
+	r->flags.commited = 0;
 	r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
 
 	//wl_display_flush( wl.display );
-	wl_display_roundtrip_queue(wl.display, wl.queue);
+	if( r->flags.commited ){
+		//lprintf( "A commit happened during redraw, wait for that to flush.");
+		//wl_display_flush( wl.display );
+		wl_display_roundtrip_queue(wl.display, wl.queue);
+	}
 }
 
 static void sack_wayland_SetApplicationTitle( char const *title ){
@@ -1186,6 +1198,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 		struct wl_buffer *next = nextBuffer(r, 0);
 		r->flags.canCommit = 0;
 		r->flags.dirty = 0; // don't need a commit.
+		r->flags.commited = 1;
 		wl_surface_commit( r->surface );
 		wl_display_flush( wl.display );
 		//if( wl.xdg_wm_base )
@@ -1216,6 +1229,7 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 		struct wl_buffer *next = nextBuffer(r, 0);
 		r->flags.canCommit = 0;
 		r->flags.dirty = 0; // don't need a commit.
+		r->flags.commited = 1;
 		wl_surface_commit( r->surface );
 		wl_display_flush( wl.display );
 		//if( wl.xdg_wm_base )
@@ -1327,7 +1341,7 @@ static void sack_wayland_RestoreDisplayEx( PRENDERER renderer DBG_PASS ){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( r->flags.hidden ) {
 		r->flags.hidden = 0;
-		lprintf( "RESTORE AND REDRAW" );
+		//lprintf( "RESTORE AND REDRAW" );
 		nextBuffer(r, 1);
 	}
 	//lprintf( "REDRAW" );
