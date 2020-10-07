@@ -591,6 +591,8 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 								if( l.actual_thread != thread )
 									 continue;
 							//lprintf( "Is a thread." );
+							if( !hVideo->flags.event_dispatched ) {
+
 							EnterCriticalSec( &hVideo->cs );
 							if( hVideo->flags.bDestroy )
 							{
@@ -598,6 +600,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 								// by now we could be in a place where we've been destroyed....
 								LeaveCriticalSec( &hVideo->cs );
 								return;
+							}
 							}
 #ifdef LOG_RECT_UPDATE
 							lprintf( "Good thread..." ); /* can't be? */
@@ -734,7 +737,9 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 								lprintf( "Restored Original" );
 #endif
 							}
-							LeaveCriticalSec( &hVideo->cs );
+							if( !hVideo->flags.event_dispatched ) {
+								LeaveCriticalSec( &hVideo->cs );
+							}
 							break;
 						}
 					}
