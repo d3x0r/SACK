@@ -2,6 +2,7 @@
 // https://jan.newmarch.name/Wayland/ProgrammingClient/
 // https://jan.newmarch.name/Wayland/WhenCanIDraw/
 //
+//#define DEBUG_COMMIT
 
 #define USE_IMAGE_INTERFACE wl.pii
 #include <stdhdrs.h>
@@ -800,41 +801,43 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	}
 
 	r->curBuffer=1-r->curBuffer;
-	//lprintf( "using image to a new image.... %d",r->curBuffer );
+	int curBuffer = r->curBuffer;
+	lprintf( "using image to a new image.... %d",curBuffer );
 	if( r->bufw != r->w || r->bufh != r->h ) {
 		// if the buffer has to change size, we need a new one....
 		// maybe can keep this around to fill a copy of the prior window?
 		//lprintf( "Remove Old Buffer");
-		if( r->color_buffers[r->curBuffer] ) {
-			munmap( r->color_buffers[r->curBuffer], r->buffer_sizes[r->curBuffer] );
-			UnmakeImageFile( r->buffer_images[r->curBuffer] );
-			if( r->buffers[r->curBuffer] )
-				wl_buffer_destroy( r->buffers[r->curBuffer] );
+		if( r->color_buffers[curBuffer] ) {
+			munmap( r->color_buffers[curBuffer], r->buffer_sizes[curBuffer] );
+			UnmakeImageFile( r->buffer_images[curBuffer] );
+			if( r->buffers[curBuffer] )
+				wl_buffer_destroy( r->buffers[curBuffer] );
 		}
 		r->w = r->bufw;
 		r->h = r->bufh;
-		r->buffer_images[r->curBuffer] = NULL;
-		r->buffers[r->curBuffer] = NULL;
-		r->color_buffers[r->curBuffer] = NULL;
+		r->buffer_images[curBuffer] = NULL;
+		r->buffers[curBuffer] = NULL;
+		r->color_buffers[curBuffer] = NULL;
 	}
 
 	// setup the current values to this buffer...
-	r->shm_data = r->color_buffers[r->curBuffer];
-	r->buff = r->buffers[r->curBuffer];
+	r->shm_data = r->color_buffers[curBuffer];
+	r->buff = r->buffers[curBuffer];
 
 	if( !r->buff ) {
 		//lprintf( "Allocate NEW buffer" );
 		// haven't actually allocated a bufer yet... so do so...
 		allocateBuffer(r);
-		r->buffer_images[r->curBuffer] = RemakeImage( r->buffer_images[r->curBuffer], r->shm_data, r->w, r->h );
-		if( r->buffer_images[1-r->curBuffer] ) {
+		r->buffer_images[curBuffer] = RemakeImage( r->buffer_images[curBuffer], r->shm_data, r->w, r->h );
+		if( r->buffer_images[1-curBuffer] ) {
 			//lprintf( "Copy old buffer to new current buffer...");
-			BlotImage( r->buffer_images[r->curBuffer], r->buffer_images[1-r->curBuffer], 0, 0 );
+			BlotImage( r->buffer_images[curBuffer], r->buffer_images[1-curBuffer], 0, 0 );
 		}
 
-		r->buffers[r->curBuffer] = r->buff;
-		r->color_buffers[r->curBuffer] = r->shm_data;
-		r->freeBuffer[r->curBuffer] = 1;
+		r->buffers[curBuffer] = r->buff;
+		lprintf( "Setting buffer %d  %p", curBuffer, r->buff );
+		r->color_buffers[curBuffer] = r->shm_data;
+		r->freeBuffer[curBuffer] = 1;
 	}
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
 	r->pImage->flags |= IF_FLAG_FINAL_RENDER;
@@ -856,7 +859,9 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 			r->flags.canCommit = 0;
 			r->flags.dirty = 0;
 			r->flags.commited = 1;
-			//lprintf( "Window is dirty, do commit");
+#if defined( DEBUG_COMMIT )
+			lprintf( "Window is dirty, do commit");
+#endif
 			struct wl_buffer *next = nextBuffer(r, 0);
 
 			wl_surface_commit( r->surface );
@@ -871,6 +876,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 
 }
 
+static void sack_wayland_Redraw( PRENDERER renderer );
 
 static uintptr_t waylandThread( PTHREAD thread ) {
 	wl.waylandThread = thread;
@@ -878,13 +884,16 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 	initConnections();
 	while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 ) {
 		//lprintf( "Handled an event." );
-		if( wl.commit ) {
+		{
 			INDEX idx;
-			int flush = 0;
+			//int flush = 0;
 			PXPANEL r;
-			wl.commit = 0;
-			if(0)
-			LIST_FORALL( wl.damaged, idx, PXPANEL, r ){
+			//wl.commit = 0;
+			//if(0)
+			LIST_FORALL( wl.wantDraw, idx, PXPANEL, r ){
+				lprintf( "Sending a want draw window...");
+				sack_wayland_Redraw( r );
+#if 0
 				//lprintf( "Damage found... send %p", r );
 				if( !r->flags.bDestroy ){
 					if( r->flags.canCommit ) {
@@ -903,12 +912,9 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 						// still waiting... next commit event will catch this.
 					}
 				}
+#endif
 			}
-			EmptyList( &wl.damaged );
-			if( flush ) {
-				//lprintf( "And then even try flush?" );
-				//wl_display_flush( wl.display );
-			}
+			EmptyList( &wl.wantDraw );
 		}
 	}
 	lprintf( "Thread exiting?" );
@@ -964,7 +970,6 @@ handle_ping(void *data, struct wl_shell_surface *shell_surface,
    //lprintf("Pinged and ponged");
 }
 
-static void sack_wayland_Redraw( PRENDERER renderer );
 
 static void
 handle_configure(void *data, struct wl_shell_surface *shell_surface,
@@ -1005,7 +1010,7 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 	PXPANEL r = (PXPANEL)data;
 	int n;
 	for( n = 0; n < 2; n++ )  {
-		//lprintf( "is %p %p?", r->buffers[n] , wl_buffer );
+		lprintf( "is %p %p?", r->buffers[n] , wl_buffer );
 		if( r->buffers[n] == wl_buffer ) {
 			//lprintf( "Buffer %d is free again", n );
 			r->freeBuffer[n] = 1;
@@ -1090,16 +1095,42 @@ void ShutdownVideo( void )
 static void sack_wayland_Redraw( PRENDERER renderer ) {
 	PXPANEL r = (PXPANEL)renderer;
 	struct wl_buffer *b = nextBuffer(r,1);
-	//lprintf( "(get new buffer)Issue redraw on renderer %p %p", renderer, b );
-	if( !b )DebugBreak();
-	r->flags.commited = 0;
-	r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
-
-	//wl_display_flush( wl.display );
-	if( r->flags.commited ){
-		//lprintf( "A commit happened during redraw, wait for that to flush.");
-		//wl_display_flush( wl.display );
+	if( wl.waylandThread != MakeThread() ){
+		AddLink( &wl.wantDraw, r );
+#if defined( DEBUG_COMMIT )
+		lprintf( "Dispatching roundtrip to trigger draw in thread...");
+#endif
 		wl_display_roundtrip_queue(wl.display, wl.queue);
+	}else {
+#if defined( DEBUG_COMMIT )
+		lprintf( "(get new buffer)Issue redraw on renderer %p %p", renderer, b );
+#endif
+		r->flags.commited = 0;
+		r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
+		if( !r->flags.commited )
+			if( r->flags.canCommit ) {
+#if defined( DEBUG_COMMIT )
+				lprintf( "Commiting redraw... ");
+#endif
+				struct wl_buffer *next = nextBuffer(r, 0);
+				r->flags.canCommit = 0;
+				r->flags.dirty = 0;
+				r->flags.commited = 1;
+				wl_surface_commit( r->surface );
+				wl_surface_attach( r->surface, next, 0, 0 );
+			}else {
+#if defined( DEBUG_COMMIT )
+				lprintf( "Can't commit, mark dirty" );
+#endif
+				r->flags.dirty = 1;
+
+			}
+		//wl_display_flush( wl.display );
+		//if( r->flags.commited ){
+			//lprintf( "A commit happened during redraw, wait for that to flush.");
+			//wl_display_flush( wl.display );
+			//wl_display_roundtrip_queue(wl.display, wl.queue);
+		//}
 	}
 }
 
@@ -1194,9 +1225,11 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	wl_surface_damage( r->surface, x, y, w, h );
 
 	if( r->flags.canCommit ){
-		//lprintf( "Updating now - getting new buffer, commit, flush, roundtrip, and attach the new buffer");
-		struct wl_buffer *next = nextBuffer(r, 0);
+#if defined( DEBUG_COMMIT )
+		lprintf( "Updating now - getting new buffer, commit, flush, roundtrip, and attach the new buffer");
+#endif
 		r->flags.canCommit = 0;
+		struct wl_buffer *next = nextBuffer(r, 0);
 		r->flags.dirty = 0; // don't need a commit.
 		r->flags.commited = 1;
 		wl_surface_commit( r->surface );
@@ -1205,13 +1238,6 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 		//	wl_display_roundtrip_queue(wl.display, wl.queue);
 		wl_surface_attach( r->surface, next, 0, 0 );
 	}else {
-		if(0)
-		{
-			INDEX i = FindLink( &wl.damaged, r );
-			if( i == INVALID_INDEX )
-				AddLink( &wl.damaged, r );
-			wl.commit = 1;
-		}
 		r->flags.dirty = 1;
 		//lprintf( "update portion, was not ready yet, wait for callback");
 	}
@@ -1225,7 +1251,9 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	}
 	wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
 	if( r->flags.canCommit ){
-		//lprintf( "Updating now - getting new buffer, commit, flush, roundtrip, and attach the new buffer");
+#if defined( DEBUG_COMMIT )
+		lprintf( "Updating now - getting new buffer, commit, flush, roundtrip, and attach the new buffer");
+#endif
 		struct wl_buffer *next = nextBuffer(r, 0);
 		r->flags.canCommit = 0;
 		r->flags.dirty = 0; // don't need a commit.
@@ -1238,13 +1266,6 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 		wl_surface_attach( r->surface, next, 0, 0 );
 	}else {
 		r->flags.dirty = 1;
-		if(0)
-		{
-			INDEX i = FindLink( &wl.damaged, r );
-			if( i == INVALID_INDEX )
-				AddLink( &wl.damaged, r );
-			wl.commit = 1;
-		}
 		//lprintf( "update portion, was not ready yet, wait for callback");
 	}
 }
@@ -1341,7 +1362,7 @@ static void sack_wayland_RestoreDisplayEx( PRENDERER renderer DBG_PASS ){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( r->flags.hidden ) {
 		r->flags.hidden = 0;
-		//lprintf( "RESTORE AND REDRAW" );
+		lprintf( "RESTORE AND REDRAW" );
 		nextBuffer(r, 1);
 	}
 	//lprintf( "REDRAW" );
@@ -1370,7 +1391,7 @@ Image GetDisplayImage(PRENDERER renderer) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( r ) {
 		if( !r->pImage ) {
-			//lprintf( "Get the display iamge, which uses next buffer");
+			lprintf( "Get the display iamge, which uses next buffer");
 			nextBuffer(r,1 );
 		}
 		return r->pImage;

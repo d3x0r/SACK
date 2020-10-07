@@ -18,8 +18,8 @@ typedef struct wvideo_tag
 		uint32_t bShown : 1;
 		uint32_t bDestroy : 1;
 		uint32_t bFocused : 1;
-		uint32_t dirty : 1;
-		uint32_t canCommit : 1;
+		volatile uint32_t dirty : 1;
+		volatile uint32_t canCommit : 1;
 		uint32_t wantDraw : 1;
 		uint32_t hidden : 1; // tracks whether the window is visible or not.
 		uint32_t commited : 1; // if a redraw did not update anything, update everything.
@@ -109,7 +109,7 @@ struct wayland_local_tag
 		volatile uint32_t bInited : 1;
 		uint32_t bLogKeyEvent:1;
 	} flags;
-	PLIST damaged;
+	PLIST wantDraw;
 	int dirty;
 	int commit;
 
