@@ -189,8 +189,8 @@ IDLE_PROC( int, Idle )( void )
 
 IDLE_PROC( int, IdleForEx )( uint32_t dwMilliseconds DBG_PASS )
 {
-	uint32_t dwStart = timeGetTime();
-	while( ( dwStart + dwMilliseconds ) > timeGetTime() )
+	//uint32_t dwStart = timeGetTime();
+	//while( ( dwStart + dwMilliseconds ) > timeGetTime() )
 	{
 		if( !IdleEx( DBG_VOIDRELAY ) )
 		{
