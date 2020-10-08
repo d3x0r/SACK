@@ -805,7 +805,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	if( r->freeBuffer[r->curBuffer]  && ( r->bufw == r->w && r->bufh == r->h ) ) {
 #if defined( DEBUG_COMMIT )
 		lprintf( "Can just use the current image... it's already attached", r->buff);
-#enif
+#endif
 		return r->buff;
 	}
 	r->curBuffer=1-r->curBuffer;
