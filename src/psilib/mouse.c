@@ -1466,17 +1466,6 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 																	 , b ) );
 					}
 				}
-				if( pf->flags.bSizing ) {
-					if( BeginSizeDisplay( pf->pActImg, (enum sizeDisplayValues)(( pf->flags.bSizing_right?wrsdv_right:0)
-							|( pf->flags.bSizing_right?wrsdv_left:0)
-							|( pf->flags.bSizing_top?wrsdv_top:0)
-							|( pf->flags.bSizing_bottom?wrsdv_bottom:0))
-						) ){
-						// won't get a release.
-						pf->nextB &= ~MK_LBUTTON;
-						pf->flags.bSizing = 0;
-					}
-				}
 		}
 		else
 		{
@@ -1549,6 +1538,27 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 					pf->drag_y = y;
 					result = 1;
 				}
+			}
+		}
+		if( pf->flags.bSizing ) {
+			if( BeginSizeDisplay( pf->pActImg, (enum sizeDisplayValues)(( pf->flags.bSizing_right?wrsdv_right:0)
+					|( pf->flags.bSizing_right?wrsdv_left:0)
+					|( pf->flags.bSizing_top?wrsdv_top:0)
+					|( pf->flags.bSizing_bottom?wrsdv_bottom:0))
+				) ){
+				// won't get a release.
+				pf->nextB &= ~MK_LBUTTON;
+				pf->flags.bSizing = 0;
+			}
+		} else if( pf->flags.bDragging ) {
+			if( !BeginMoveDisplay( pf->pActImg ) ) {
+				pf->flags.bDragging = TRUE;
+				pf->drag_x = x + pf->CurrentBias.x;
+				pf->drag_y = y + pf->CurrentBias.y;
+			}else {
+				// won't get a release; and won't be able to release dragging
+				pf->flags.bDragging = FALSE;
+				pf->nextB &= ~MK_LBUTTON;
 			}
 		}
 	}
@@ -2417,6 +2427,7 @@ static int OnMouseCommon( "Frame" )( PSI_CONTROL pc, int32_t x, int32_t y, uint3
 			}else {
 				// won't get a release.
 				pf->nextB &= ~MK_LBUTTON;
+				pf->flags.bDragging = FALSE;
 			}
 		}
 	}
