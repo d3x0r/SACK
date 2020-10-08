@@ -128,7 +128,7 @@ void DrawButtonCaption( PSI_CONTROL pc, PBUTTON pb, int xofs, int yofs, CDATA co
 			start = end+1;
 		else
 			start = NULL;
-		y += h;	
+		y += h;
 	}
 	if( yout )
 		*yout = y;
@@ -413,7 +413,7 @@ void InvokeButton( PSI_CONTROL pc )
 	if( pc->nType == NORMAL_BUTTON ||
 	    pc->nType == CUSTOM_BUTTON ||
 		pc->nType == IMAGE_BUTTON ||
-		pc->nType == RADIO_BUTTON 
+		pc->nType == RADIO_BUTTON
 	  )
 	{
 		PBUTTON  pb = ControlData( PBUTTON, pc );
@@ -569,7 +569,7 @@ static void ToggleButtonCheck( PSI_CONTROL pCom )
 	if( pc->groupid && pCom->parent )
 	{
 				// this should handle recursiveness...
-				// but for now we can go just one up, and back down to the 
+				// but for now we can go just one up, and back down to the
 				// start of the list...
 				PSI_CONTROL pcCheck = pCom->parent->child;
 				PCHECK pcheck;
@@ -1056,7 +1056,7 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 	ResizeImage( pchk->pCheckSurface, (height-4), (height-4) );
 
 
-	// can be several flavors for check buttons 
+	// can be several flavors for check buttons
 	// a> a box [ ]
 	// b> a button <> which goes into a pressed state
 	// c> the whole control si a button that locks down...
@@ -1310,7 +1310,7 @@ PSI_CONTROL SetButtonAttributes( PSI_CONTROL pCom, int attr )
 {
 	// BUTTON_ flags...
 	if( attr & BUTTON_NO_BORDER )
-		SetCommonBorder( pCom, BORDER_NONE );
+		SetCommonBorder( pCom, BORDER_NONE|BORDER_NOCAPTION );
 	//else
 	//	SetCommonBorder( pc, BORDER_DEFAULT_FOR_BUTTON ); // LOL - someday
 	{

@@ -82,7 +82,7 @@ typedef struct font_info_tag
 {
 	// should contain enough information to
 	// recreate any font selected with the dialog...
- char unused;	
+ char unused;
 } FONT_INFO, *PFONT_INFO;
 
 //-------------------------------------------------------------------------
@@ -185,7 +185,7 @@ static int CPROC DrawCharacterSize( PSI_CONTROL pc )
 	ClearImageTo( surface, Color( 92, 91, 42 ) );
 	if( pfd->width_scale )
 		(width = ScaleValue( pfd->width_scale, pfd->nSliderWidth ) );
-	else 
+	else
 		(width = pfd->nSliderWidth);
 	if( width <= surface->width )
 		x = (surface->width - width )/ 2;
@@ -780,7 +780,6 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 						 , 350, 25
 						 , 65, 58, LST_FONT_SIZES, 0 );
 	SetSelChangeHandler( pc, SizeSelected, (uintptr_t)&fdData );
-
 	MakeRadioButton( fdData.pFrame
 						, 220, 88
 						, 95, 15
