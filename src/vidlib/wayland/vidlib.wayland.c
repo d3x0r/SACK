@@ -852,7 +852,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		r->freeBuffer[curBuffer] = 1;
 	}
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
-	r->pImage->flags |= IF_FLAG_FINAL_RENDER;
+	r->pImage->flags |= IF_FLAG_FINAL_RENDER|IF_FLAG_IN_MEMORY;
 	wl_surface_attach( r->surface, r->buff, 0, 0);
 	return r->buff;
 }
