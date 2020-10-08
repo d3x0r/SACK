@@ -1291,6 +1291,11 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 
 static void sack_wayland_GetDisplayPosition( PRENDERER renderer, int32_t* x, int32_t* y, uint32_t* w, uint32_t* h ){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
+	// wayland displays are always at '0'
+	if( x ) x[0] = 0;
+	if( y ) y[0] = 0;
+	if( w ) w[0] = r->w;
+	if( h ) h[0] = r->h;
 }
 
 static void sack_wayland_MoveDisplay(PRENDERER renderer, int32_t x, int32_t y){
