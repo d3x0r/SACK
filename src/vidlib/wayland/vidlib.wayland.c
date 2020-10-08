@@ -2,7 +2,7 @@
 // https://jan.newmarch.name/Wayland/ProgrammingClient/
 // https://jan.newmarch.name/Wayland/WhenCanIDraw/
 //
-//#define DEBUG_COMMIT
+#define DEBUG_COMMIT
 
 #define USE_IMAGE_INTERFACE wl.pii
 #include <stdhdrs.h>
@@ -795,14 +795,24 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		lprintf( "window is hidden... returning a fault.");
 		return NULL;
 	}
+	if( !attach ) {
+#if defined( DEBUG_COMMIT )
+		lprintf( "Commiting this image... make sure we get a NEW image." );
+#endif
+		r->freeBuffer[r->curBuffer] = 0;
+
+	}
 	if( r->freeBuffer[r->curBuffer]  && ( r->bufw == r->w && r->bufh == r->h ) ) {
-		//lprintf( "Can just use the current image... it's already attached", r->buff);
+#if defined( DEBUG_COMMIT )
+		lprintf( "Can just use the current image... it's already attached", r->buff);
+#enif
 		return r->buff;
 	}
-
 	r->curBuffer=1-r->curBuffer;
 	int curBuffer = r->curBuffer;
+#if defined( DEBUG_COMMIT )
 	lprintf( "using image to a new image.... %d",curBuffer );
+#endif
 	if( r->bufw != r->w || r->bufh != r->h ) {
 		// if the buffer has to change size, we need a new one....
 		// maybe can keep this around to fill a copy of the prior window?
@@ -835,7 +845,9 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		}
 
 		r->buffers[curBuffer] = r->buff;
+#if defined( DEBUG_COMMIT )
 		lprintf( "Setting buffer %d  %p", curBuffer, r->buff );
+#endif
 		r->color_buffers[curBuffer] = r->shm_data;
 		r->freeBuffer[curBuffer] = 1;
 	}
@@ -856,11 +868,13 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		//lprintf( "frame callback - check dirty %d %d %d", r->flags.dirty, r->flags.canCommit );
 
 		if( r->flags.dirty ){
+			// already wants to commit again...
+			// clear dirty, still can't commit.
 			r->flags.canCommit = 0;
 			r->flags.dirty = 0;
 			r->flags.commited = 1;
 #if defined( DEBUG_COMMIT )
-			lprintf( "Window is dirty, do commit");
+			lprintf( "Window is (already) dirty, do commit");
 #endif
 			struct wl_buffer *next = nextBuffer(r, 0);
 
@@ -868,7 +882,9 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 			wl_surface_attach( r->surface, next, 0, 0 );
 			// wait until we actually NEED the buffer, maybe we can use the same one.
 		}else {
-			//lprintf( "Allow window to be commited at will.");
+#if defined( DEBUG_COMMIT )
+			lprintf( "Allow window to be commited at will.");
+#endif
 			r->flags.canCommit = 1;
 		}
 	}else
@@ -878,45 +894,36 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 
 static void sack_wayland_Redraw( PRENDERER renderer );
 
+static uintptr_t waylandDrawThread( PTHREAD thread ) {
+	// need draws to happen on a 'draw' thread, which is NOT the application thread.
+	//
+	wl.drawThread = thread;
+	while(1)
+		{
+			INDEX idx;
+			struct drawRequest *req;
+			PXPANEL r;
+			LIST_FORALL( wl.wantDraw, idx, struct drawRequest *, req ){
+#if defined( DEBUG_COMMIT )
+				lprintf( "Sending a want draw window...");
+#endif
+				sack_wayland_Redraw( (PRENDERER)req->r );
+				req->r = NULL; // clear draw request.
+				//WakeThread( req->thread );
+				Release( req );
+			}
+			EmptyList( &wl.wantDraw );
+			WakeableSleep(100);
+		}
+}
+
 static uintptr_t waylandThread( PTHREAD thread ) {
 	wl.waylandThread = thread;
 	if( wl.display) DebugBreak();
 	initConnections();
-	while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 ) {
-		//lprintf( "Handled an event." );
-		{
-			INDEX idx;
-			//int flush = 0;
-			PXPANEL r;
-			//wl.commit = 0;
-			//if(0)
-			LIST_FORALL( wl.wantDraw, idx, PXPANEL, r ){
-				lprintf( "Sending a want draw window...");
-				sack_wayland_Redraw( r );
-#if 0
-				//lprintf( "Damage found... send %p", r );
-				if( !r->flags.bDestroy ){
-					if( r->flags.canCommit ) {
-						flush++;
-						r->flags.dirty = 0;
-						r->flags.canCommit = 0;
-						r->flags.commited = 1;
-						r->freeBuffer[r->curBuffer] = 0; // the image is NOT free
-						struct wl_buffer *next = nextBuffer(r, 0);
-						wl_surface_commit( r->surface );
-						wl_surface_attach( r->surface, next, 0, 0 );
-						// wait until we NEED a buffer...
 
-					}else {
-						//lprintf( "frame callback still waiting?");
-						// still waiting... next commit event will catch this.
-					}
-				}
-#endif
-			}
-			EmptyList( &wl.wantDraw );
-		}
-	}
+	while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 );
+
 	lprintf( "Thread exiting?" );
 	//wl_event_queue_destroy( wl.queue );
 	wl_display_disconnect( wl.display );
@@ -981,7 +988,7 @@ handle_configure(void *data, struct wl_shell_surface *shell_surface,
 	sack_wayland_Redraw((PRENDERER)r);
 	//wl_surface_commit( r->surface );
 	//r->changedEdge = edges;
-	lprintf( "shell configure %d %d", width, height );
+	//lprintf( "shell configure %d %d", width, height );
 	if( edges & wrsdv_left ){
 
 	}
@@ -1010,7 +1017,9 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 	PXPANEL r = (PXPANEL)data;
 	int n;
 	for( n = 0; n < 2; n++ )  {
+#if defined( DEBUG_COMMIT_BUFFER )
 		lprintf( "is %p %p?", r->buffers[n] , wl_buffer );
+#endif
 		if( r->buffers[n] == wl_buffer ) {
 			//lprintf( "Buffer %d is free again", n );
 			r->freeBuffer[n] = 1;
@@ -1094,13 +1103,19 @@ void ShutdownVideo( void )
 
 static void sack_wayland_Redraw( PRENDERER renderer ) {
 	PXPANEL r = (PXPANEL)renderer;
-	struct wl_buffer *b = nextBuffer(r,1);
-	if( wl.waylandThread != MakeThread() ){
-		AddLink( &wl.wantDraw, r );
+	struct drawRequest* req = New( struct drawRequest );
+	//struct wl_buffer *b = nextBuffer(r,1);
+	PTHREAD thisThread = MakeThread();
+	if( wl.waylandThread != thisThread && wl.drawThread != thisThread ){
+		req->r = r;
+		req->thread = thisThread;
+		AddLink( &wl.wantDraw, req );
 #if defined( DEBUG_COMMIT )
 		lprintf( "Dispatching roundtrip to trigger draw in thread...");
 #endif
-		wl_display_roundtrip_queue(wl.display, wl.queue);
+		WakeThread( wl.drawThread );
+		//while( req.r ) WakeableSleep( 100 );
+		//wl_display_roundtrip_queue(wl.display, wl.queue);
 	}else {
 #if defined( DEBUG_COMMIT )
 		lprintf( "(get new buffer)Issue redraw on renderer %p %p", renderer, b );
@@ -1123,7 +1138,6 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 				lprintf( "Can't commit, mark dirty" );
 #endif
 				r->flags.dirty = 1;
-
 			}
 		//wl_display_flush( wl.display );
 		//if( r->flags.commited ){
@@ -1158,7 +1172,9 @@ static PRENDERER sack_wayland_OpenDisplayAboveUnderSizedAt(uint32_t attr , uint3
 	struct wvideo_tag *r;
 	r = New( struct wvideo_tag );
 	memset( r, 0, sizeof( *r ) );
-
+#if defined( DEBUG_COMMIT )
+	lprintf( "Initialize with canCommit" );
+#endif
 	r->flags.canCommit = 1;
 	r->above = rAbove;
 	r->under = rUnder;
@@ -1236,6 +1252,9 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 		wl_display_flush( wl.display );
 		//if( wl.xdg_wm_base )
 		//	wl_display_roundtrip_queue(wl.display, wl.queue);
+#if defined( DEBUG_COMMIT )
+		lprintf( "This should have a NEW buffer." );
+#endif
 		wl_surface_attach( r->surface, next, 0, 0 );
 	}else {
 		r->flags.dirty = 1;
@@ -1599,6 +1618,7 @@ static POINTER GetWaylandDisplayInterface(void)
 		//initConnections();
 		//wl.flags.bInited = 1;
 		ThreadTo( waylandThread, 0 );
+		ThreadTo( waylandDrawThread, 0 );
 		while( !wl.flags.bInited) {
 			Relinquish();
 		}

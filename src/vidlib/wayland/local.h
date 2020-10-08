@@ -12,6 +12,12 @@ struct HVIDEO_tag {
 	PLINKQUEUE pInput;
 };
 
+struct drawRequest {
+	PTHREAD thread;
+	struct wvideo_tag *r;
+
+};
+
 typedef struct wvideo_tag
 {
 	struct {
@@ -104,6 +110,7 @@ enum WAYLAND_INTERFACE_STRING {
 struct wayland_local_tag
 {
 	PTHREAD waylandThread;
+	PTHREAD drawThread;
 	PIMAGE_INTERFACE pii;
 	struct {
 		volatile uint32_t bInited : 1;
