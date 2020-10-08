@@ -2,7 +2,7 @@
 // https://jan.newmarch.name/Wayland/ProgrammingClient/
 // https://jan.newmarch.name/Wayland/WhenCanIDraw/
 //
-#define DEBUG_COMMIT
+//#define DEBUG_COMMIT
 
 #define USE_IMAGE_INTERFACE wl.pii
 #include <stdhdrs.h>
