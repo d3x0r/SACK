@@ -1131,6 +1131,38 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 #if defined( DEBUG_COMMIT_BUFFER )
 			lprintf( "UNLOCK Buffer %d is free again", n );
 #endif
+			if( n == (1-r->curBuffer ) )
+			{
+				INDEX idx;
+				int minx = r->w;
+				int miny = r->h;
+				int maxx = 0;
+				int maxy = 0;
+				struct damageInfo *damage;
+				LIST_FORALL( r->damage, idx, struct damageInfo *, damage ) {
+					int newminx, newminy, newmaxx, newmaxy;
+					int grew;
+					//lprintf( "Recovering a damaged area %d %d %d %d", damage->x, damage->y, damage->w, damage->h );
+
+					if( damage->x < minx )
+						minx = damage->x;
+					if( damage->y < miny )
+						miny = damage->y;
+
+					if( (damage->x+damage->w) > maxx )
+						maxx = damage->x+damage->w;
+					if( (damage->y+damage->h) > maxy )
+						maxy = damage->y+damage->h;
+
+					Release( damage );
+				}
+				EmptyList( &r->damage );
+				if( maxx  ) {
+					//lprintf( "update damaged area %d %d %d %d", minx, miny, maxx-minx, maxy-miny );
+					BlotImageSizedTo( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer]
+								, minx, miny, minx, miny, maxx-minx, maxy-miny );
+				}
+			}
 			r->freeBuffer[n] = 1;
 			if( r->flags.wantBuffer ){
 				r->flags.wantBuffer = 0;
@@ -1358,8 +1390,19 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 
-	if( r->buffer_images[r->curBuffer] && r->buffer_images[1-r->curBuffer] ) {
-		BlotImageSizedTo( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer], x, y, x, y, w, h );
+	if( r->buffer_images[r->curBuffer]
+	   && r->buffer_images[1-r->curBuffer]) {
+		if( r->freeBuffer[1-r->curBuffer] && !( r->damage && GetLinkCount(r->damage) ))
+			BlotImageSizedTo( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer], x, y, x, y, w, h );
+		else
+		{
+			struct damageInfo *damage = New( struct damageInfo );
+			damage->x = x;
+			damage->y = y;
+			damage->w = w;
+			damage->h = h;
+			AddLink( &r->damage, damage );
+		}
 	}
 
 	wl_surface_damage( r->surface, x, y, w, h );
@@ -1395,7 +1438,17 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	//lprintf( "Update whole surface %d %d", r->w, r->h );
 	if( r->buffer_images[r->curBuffer] && r->buffer_images[1-r->curBuffer] ) {
-		BlotImage( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer], 0, 0 );
+		if( r->freeBuffer[1-r->curBuffer]  || (r->damage && GetLinkCount(r->damage) ) )
+			BlotImage( r->buffer_images[1-r->curBuffer], r->buffer_images[r->curBuffer], 0, 0 );
+		else
+		{
+			struct damageInfo *damage = New( struct damageInfo );
+			damage->x = 0;
+			damage->y = 0;
+			damage->w = r->w;
+			damage->h = r->h;
+			AddLink( &r->damage, damage );
+		}
 	}
 	wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
 	if( r->flags.canCommit ){

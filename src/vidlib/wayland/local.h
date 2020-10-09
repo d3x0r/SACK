@@ -18,6 +18,11 @@ struct drawRequest {
 
 };
 
+struct damageInfo {
+	int32_t x, y;
+	uint32_t w, h;
+};
+
 typedef struct wvideo_tag
 {
 	struct {
@@ -52,6 +57,7 @@ typedef struct wvideo_tag
 	PCOLOR  color_buffers[2];
 	size_t buffer_sizes[2];
 	Image buffer_images[2];
+	PLIST damage; // backing buffer was in use while damage happened...
 	struct wl_shm_pool *pool;
 	struct wl_callback *frame_callback;  // request for WM_PAINT
 	Image pImage;
