@@ -25,6 +25,7 @@ typedef struct wvideo_tag
 		uint32_t bDestroy : 1;
 		uint32_t bFocused : 1;
 		volatile uint32_t dirty : 1;
+		volatile uint32_t wantBuffer : 1; // cannot be 'canCommit', because no new buffer can be used.
 		volatile uint32_t canCommit : 1;
 		uint32_t wantDraw : 1;
 		uint32_t hidden : 1; // tracks whether the window is visible or not.
@@ -105,7 +106,13 @@ enum WAYLAND_INTERFACE_STRING {
 	max_interface_versions
 };
 
-
+struct pendingKey {
+	uint rawKey;
+	uint32_t key;
+	uint32_t tick;
+	PXPANEL r;
+	int repeating;
+};
 
 struct wayland_local_tag
 {
@@ -117,8 +124,6 @@ struct wayland_local_tag
 		uint32_t bLogKeyEvent:1;
 	} flags;
 	PLIST wantDraw;
-	int dirty;
-	int commit;
 
 	struct wl_event_queue* queue;
 	struct wl_display* display;
@@ -132,6 +137,12 @@ struct wayland_local_tag
 	struct xdg_wm_base *xdg_wm_base;
 	struct xdg_shell *xdg_shell;
 	struct wl_seat *seat;
+	struct wl_keyboard_config {
+		uint32_t repeat;
+		uint32_t delay;
+		PLIST pendingKeys;
+		//struct pendingKey pendingKey;
+	} keyRepeat;
 	struct wl_pointer *pointer;
 	int32_t mouseSerial;
 	struct pointer_data pointer_data ;
@@ -140,15 +151,6 @@ struct wayland_local_tag
 	struct xkb_keymap *keymap;
 	struct xkb_state *xkb_state;
 	int versions[max_interface_versions]; // reported versions
-
-
-	int screen_width;
-	int screen_height;
-	int screen_num;
-/* these variables will be used to store the IDs of the black and white */
-/* colors of the given screen. More on this will be explained later.    */
-	unsigned long white_pixel;
-	unsigned long black_pixel;
 
 	//-------------- Global seat/input tracking
 	struct mouse {
