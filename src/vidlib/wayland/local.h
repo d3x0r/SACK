@@ -79,6 +79,13 @@ typedef struct wvideo_tag
 	PKEYDEFINE pKeyDefs;
 } XPANEL, *PXPANEL;
 
+
+struct mouseEvent {
+	int32_t x, y;
+	uint32_t b;
+	PXPANEL r;
+};
+
 struct pointer_data {
     struct wl_surface *surface;
     struct wl_buffer *buffer;
@@ -150,6 +157,7 @@ struct wayland_local_tag
 		//struct pendingKey pendingKey;
 	} keyRepeat;
 	struct wl_pointer *pointer;
+	PDATAQUEUE pdlMouseEvents;
 	int32_t mouseSerial;
 	struct pointer_data pointer_data ;
 	struct wl_keyboard *keyboard;
@@ -159,10 +167,7 @@ struct wayland_local_tag
 	int versions[max_interface_versions]; // reported versions
 
 	//-------------- Global seat/input tracking
-	struct mouse {
-		int32_t x, y;
-		uint32_t b;
-	}mouse_;
+	struct mouseEvent mouse_;
 	int keyMods;
 	uint32_t  utfKeyCode;
 	xkb_keysym_t keysym;
