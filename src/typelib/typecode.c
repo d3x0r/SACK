@@ -405,7 +405,7 @@ PDATALIST ExpandDataListEx( PDATALIST *ppdl, INDEX entries DBG_PASS )
 POINTER SetDataItemEx( PDATALIST *ppdl, INDEX idx, POINTER data DBG_PASS )
 {
 	POINTER p = NULL;
-	if( !ppdl || !(*ppdl) || idx > 0x100000 ) 
+	if( !ppdl || !(*ppdl) || idx > 0x100000 )
 		return NULL;
 	if( idx >= (*ppdl)->Avail )
 	{
@@ -1443,6 +1443,46 @@ PDATAQUEUE  CreateLargeDataQueueEx( INDEX size, INDEX entries, INDEX expand DBG_
 	return PeekDataQueueEx( ppdq, result, 0 );
 }
 
+// zero is the first,
+POINTER  PeekDataInQueueEx ( PDATAQUEUE *ppdq, INDEX idx )
+{
+	INDEX top;
+	if( ppdq && *ppdq )
+		while( LockedExchange( data_queue_local_lock, 1 ) )
+			Relinquish();
+	else
+		return 0;
+
+	// cannot get invalid id.
+	if( idx != INVALID_INDEX )
+	{
+		for( top = (*ppdq)->Bottom;
+			 idx != INVALID_INDEX && top != (*ppdq)->Top
+			 ; )
+		{
+			idx--;
+			if( idx != INVALID_INDEX )
+			{
+				top++;
+				if( (top) >= (*ppdq)->Cnt )
+					top = top-(*ppdq)->Cnt;
+			}
+		}
+		if( idx == INVALID_INDEX )
+		{
+			data_queue_local_lock[0] = 0;
+			return (*ppdq)->data + top * (*ppdq)->Size;
+		}
+	}
+	data_queue_local_lock[0] = 0;
+	return NULL;
+}
+
+POINTER  PeekDataInQueue ( PDATAQUEUE *ppdq )
+{
+	return PeekDataInQueueEx( ppdq, 0 );
+}
+
 void  EmptyDataQueue ( PDATAQUEUE *ppdq )
 {
 	if( ppdq && *ppdq )
@@ -1652,7 +1692,7 @@ PRIORITY_PRELOAD( InitLocals, NAMESPACE_PRELOAD_PRIORITY + 1 )
 // Revision 1.7  2002/11/04 09:29:50  panther
 // Added container class - DATAQUEUE.
 //
-// 
+//
 //  - Added DataQueue to compliment LinkQueue  (datastack/linkstack)
 //  - Added EmptyDataStack method to quickly remove all items on stack.
 // Revision 1.6  2002/07/15 08:28:56  panther
