@@ -455,3 +455,20 @@ char *SRG_ID_Generator4( void ) {
 	used[usingCtx] = 0;
 	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }
+
+char *SRG_ID_ShortGenerator4( void ) {
+
+    	struct random_context *ctx;
+	uint32_t buf[(12)/4];
+	size_t outlen;
+
+	static struct random_context *_ctx[SRG_MAX_GENERATOR_THREADS];
+	static uint32_t used[SRG_MAX_GENERATOR_THREADS];
+	int usingCtx;
+	usingCtx = 0;
+	ctx = getGenerator( _ctx, used, SRG_CreateEntropy4, &usingCtx );
+        SRG_GetEntropyBuffer( ctx, buf, 8 * (12) );
+	used[usingCtx] = 0;
+	return EncodeBase64Ex( (uint8*)buf, (12), &outlen, (const char *)1 );
+
+}
