@@ -66,8 +66,8 @@ enum jsox_word_char_states {
 	JSOX_WORD_POS_UNDEFINED_7,
 	JSOX_WORD_POS_UNDEFINED_8,
 	//JSOX_WORD_POS_UNDEFINED_9, // instead of stepping to this value here, go to RESET
-	JSOX_WORD_POS_NAN_1,
-	JSOX_WORD_POS_NAN_2,  // 20 
+	JSOX_WORD_POS_NAN_1,  // 20
+	JSOX_WORD_POS_NAN_2,  // 21
 	//JSOX_WORD_POS_NAN_3,// instead of stepping to this value here, go to RESET
 	JSOX_WORD_POS_INFINITY_1,
 	JSOX_WORD_POS_INFINITY_2,
@@ -78,8 +78,8 @@ enum jsox_word_char_states {
 	JSOX_WORD_POS_INFINITY_7,
 	//JSOX_WORD_POS_INFINITY_8,// instead of stepping to this value here, go to RESET
 	JSOX_WORD_POS_FIELD, 
-	JSOX_WORD_POS_AFTER_FIELD, 
-	JSOX_WORD_POS_DOT_OPERATOR, // 30
+	JSOX_WORD_POS_AFTER_FIELD,  // 30
+	JSOX_WORD_POS_DOT_OPERATOR, // 31
 	JSOX_WORD_POS_PROPER_NAME, 
 	JSOX_WORD_POS_AFTER_PROPER_NAME, 
 	JSOX_WORD_POS_AFTER_GET,
