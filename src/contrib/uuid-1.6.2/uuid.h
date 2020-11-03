@@ -118,7 +118,7 @@ UUID_PROC( uuid_rc_t, uuid_import )(      uuid_t  *_uuid, uuid_fmt_t _fmt, const
 UUID_PROC( uuid_rc_t, uuid_export )(const uuid_t  *_uuid, uuid_fmt_t _fmt,       void  *_data_ptr, size_t *_data_len);
 
 /* library utilities */
-UUID_PROC( char*, uuid_error )(uuid_rc_t _rc);
+UUID_PROC( char const*, uuid_error )(uuid_rc_t _rc);
 UUID_PROC( unsigned long, uuid_version  )(void);
 
 DECLARATION_END

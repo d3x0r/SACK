@@ -73,7 +73,7 @@
 #define LDOUBLE double
 #endif
 
-static void fmtstr     (char *, size_t *, size_t, char *, int, int, int);
+static void fmtstr     (char *, size_t *, size_t, char const*, int, int, int);
 static void fmtint     (char *, size_t *, size_t, LLONG, int, int, int, int);
 static void fmtfp      (char *, size_t *, size_t, LDOUBLE, int, int, int);
 static void dopr_outch (char *, size_t *, size_t, int);
@@ -369,7 +369,7 @@ fmtstr(
     char *buffer,
     size_t *currlen,
     size_t maxlen,
-    char *value,
+    char const *value,
     int flags,
     int min,
     int max)

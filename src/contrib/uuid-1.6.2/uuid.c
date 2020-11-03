@@ -650,7 +650,7 @@ static uuid_rc_t uuid_export_txt(const uuid_t *uuid, void *_data_ptr, size_t *da
     size_t out_len;
     const char *version;
     const char *variant;
-    char *content;
+    char const *content;
     int isnil;
     uuid_uint8_t tmp8;
     uuid_uint16_t tmp16;
@@ -1008,7 +1008,7 @@ static uuid_rc_t uuid_make_v1(uuid_t *uuid, unsigned int mode, va_list ap)
       (uuid_uint8_t)(a9),  (uuid_uint8_t)(a10), (uuid_uint8_t)(a11), (uuid_uint8_t)(a12), \
       (uuid_uint8_t)(a13), (uuid_uint8_t)(a14), (uuid_uint8_t)(a15), (uuid_uint8_t)(a16) }
 static struct {
-    char *name;
+    char const *name;
     uuid_uint8_t uuid[UUID_LEN_BIN];
 } uuid_value_table[] = {
     { "nil",     /* 00000000-0000-0000-0000-000000000000 ("Nil UUID") */
@@ -1200,9 +1200,9 @@ uuid_rc_t uuid_make(uuid_t *uuid, unsigned int mode, ...)
 }
 
 /* translate UUID API error code into corresponding error string */
-char *uuid_error(uuid_rc_t rc)
+char const *uuid_error(uuid_rc_t rc)
 {
-    char *str;
+    char const *str;
 
     switch (rc) {
         case UUID_RC_OK:  str = "everything ok";    break;
