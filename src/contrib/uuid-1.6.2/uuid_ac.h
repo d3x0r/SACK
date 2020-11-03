@@ -32,7 +32,9 @@
 
 /* include GNU autoconf results */
 #include "config.h"           /* HAVE_xxx */
-#define NO_FILEOP_ALIAS
+#ifndef NO_FILEOP_ALIAS
+#  define NO_FILEOP_ALIAS
+#endif
 /* include standard system headers */
 #include <stdhdrs.h>
 //#include <stdio.h>            /* NULL, etc. */
