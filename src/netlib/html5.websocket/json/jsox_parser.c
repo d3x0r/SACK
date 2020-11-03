@@ -604,14 +604,12 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		vtprintf( state->pvtError, "Fault while parsing; colon expected after field name %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 		state->status = FALSE;
 		return FALSE;
-	}
-	if( state->word > JSOX_WORD_POS_RESET && state->word < JSOX_WORD_POS_FIELD )
-		recoverIdent(state,output,0); // don't pass C; otherwise array opens.
+        }
 
 	if( state->val.value_type == JSOX_VALUE_STRING ) {
 		state->val.className = state->val.string;
 #ifdef DEBUG_CLASS_STATES
-		lprintf( "SET class: %s", state->val.className );
+		lprintf( "SET class: %.*s %d", state->val.stringLen, state->val.className, state->val.stringLen );
 #endif
 		state->val.classNameLen = state->val.stringLen;
 		state->val.string = NULL;
@@ -954,15 +952,15 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 	if( cInt == 123/*'{'*/ )
 		openObject( state, output, cInt );
 	else if( cInt == 91/*'['*/ )
-		openArray( state, output, cInt );
+		openArray( state, output, 0 );
 	else if( cInt == 58/*':'*/ ) {
 		state->word = JSOX_WORD_POS_RESET; // well.. it is.  It's already a fairly commited value.
 		if( !state->completedString ) {
 			state->completedString = TRUE;
-			state->val.stringLen = output->pos - state->val.string;
+                        state->val.stringLen = output->pos - state->val.string;
 		}
 #ifdef DEBUG_STRING_LENGTH
-		lprintf( "Update stringLen  '%c'  :%d", cInt, state->val.stringLen );
+                lprintf( "Update stringLen  '%c'  :%d", cInt?cInt:'?', state->val.stringLen );
 #endif
 	} else if( cInt == 44/*','*/ ) {
 		state->word = JSOX_WORD_POS_RESET; // well.. it is.  It's already a fairly commited value.
@@ -971,7 +969,7 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 			state->val.stringLen = output->pos - state->val.string;
 		}
 #ifdef DEBUG_STRING_LENGTH
-		lprintf( "Update stringLen  '%c'  :%d", cInt, state->val.stringLen );
+		lprintf( "Update stringLen  '%c'  :%d", cInt?cInt:'~', state->val.stringLen );
 #endif
 	} else if( cInt >= 0 ) {
 		// ignore white space.
@@ -1275,7 +1273,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				break;
 
 			case '[':
-				openArray( state, output, c );
+				recoverIdent(state,output,c);  // gather any preceeding string.
+				//openArray( state, output, c );
 				break;
 
 			case ':':
@@ -1318,7 +1317,10 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			case '}':
 				{
 					int emitObject;
-					emitObject = TRUE;
+                                        emitObject = TRUE;
+                                        if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
+						state->word = JSOX_WORD_POS_RESET;
+                                        }
 					if( state->word == JSOX_WORD_POS_END ) {
 						// allow starting a new word
 						state->word = JSOX_WORD_POS_RESET;
@@ -1378,15 +1380,19 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							pushValue( state, state->elements, &state->val );
 						else {
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+							vtprintf( state->pvtError, "Fault while parsing(2); unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 							state->status = FALSE;
 						}
 					}
 					else {
+                                            if( state->val.value_type != JSOX_VALUE_UNSET ) {
+                                                //pushValue( state, state->elements, &state->val );
+                                            } else {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
-						state->status = FALSE;
+						vtprintf( state->pvtError, "Fault while parsing(3); unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+                                                state->status = FALSE;
 						break;
+                                            }
 					}
 
 					{
@@ -1398,7 +1404,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 
 						state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
 
-					// lose current class in the pop; have; have to report completed status before popping.
+                                                // lose current class in the pop; have; have to report completed status before popping.
 						if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
 							if( !state->current_class )
 								state->completed = TRUE;
@@ -1644,7 +1650,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					if( state->val.string )
 						lprintf( "gathering object field:%c  %d %.*s", c, output->pos- state->val.string, output->pos - state->val.string, state->val.string );
 					else
-						lprintf( "Gathering, but no string yet?" );
+						lprintf( "Gathering, but no string yet? %c", c );
 #endif
 					switch( c )
 					{
@@ -1749,6 +1755,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
+							//lprintf( "Val is:%s", state->val.string );
 							vtprintf( state->pvtError, "fault while parsing; second string in field name at %" _size_f "  %" _size_f ":%" _size_f, state->n, state->line, state->col );	// fault
 							break;
 						} else if( state->word == JSOX_WORD_POS_RESET ) {
