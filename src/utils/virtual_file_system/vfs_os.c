@@ -509,7 +509,7 @@ static void _os_SetBlockChain( struct sack_vfs_os_file* file, FPI fpi, BLOCKINDE
 		if( fpi < ( file->blockChain[file->blockChainLength - 1].start + file->blockChain[file->blockChainLength - 1].size ) ) {
 			// when seek happens and initial position is past the end,
 			// seek has to step through the file, for each block to adjust size properly...
-			//lprintf( "Re-setting an internal block??" );
+			//lprintf( "Re-setting an internal block?" );
 			fileBlock = getBlockChainBlock( file, fpi );
 		}
 		else if( fpi == ( file->blockChain[file->blockChainLength - 1].start + file->blockChain[file->blockChainLength - 1].size ) ) {
