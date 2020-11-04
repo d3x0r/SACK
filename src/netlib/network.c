@@ -391,12 +391,6 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 #endif
 	if( !pc )
 		return;
-	if( pc->dwFlags & CF_TOCLOSE ) {
-#ifdef VERBOSE_DEBUG
-		lprintf( "WAIT FOR CLOSE LATER... %x", pc->dwFlags );
-#endif
-		//return;
-	}
 	if( pc->dwFlags & CF_CLOSED )
 	{
 		PendingBuffer * lpNext;
@@ -1256,12 +1250,12 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 #endif
 			return;
 		}
-		if( lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) {
-#ifdef LOG_DEBUG_CLOSING
-			lprintf( "CLOSE WHILE WAITING FOR WRITE TO FINISH..." );
-#endif
-			//lpClient->dwFlags |= CF_TOCLOSE;
-			//return;
+		if( bLinger && ( lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) ) {
+//#ifdef LOG_DEBUG_CLOSING
+			lprintf( "GRACEFUL CLOSE WHILE WAITING FOR WRITE TO FINISH..." );
+//#endif
+			lpClient->dwFlags |= CF_TOCLOSE;
+			return;
 			// continue on; otherwise the close event gets lost...
 		}
 		{
@@ -1371,13 +1365,18 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 
 	if( !( lpClient->dwFlags & CF_UDP ) 
 		&& ( lpClient->dwFlags & ( CF_CONNECTED ) ) ) {
-		shutdown( lpClient->Socket, SHUT_WR );
-	} else
-
-	{
+		// not linger 
+		// OR  nothing to write allow shutdown.
+		if( !bLinger || !(lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) )
+			shutdown( lpClient->Socket, SHUT_WR );
+		else {
+			lprintf( "linger and still pending write data..." );
+			lpClient->dwFlags |= CF_TOCLOSE;
+		}
+	} else {
 		int n = 0;
 		// UDP still needs to be done this way...
-				//
+		// socket not connected; shutdown will not work.
 		//lprintf( "This will end up resetting the socket?" );
 		EnterCriticalSec( &globalNetworkData.csNetwork );
 		InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );

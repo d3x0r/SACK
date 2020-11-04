@@ -1337,21 +1337,12 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					lprintf( "Pending write..." );
 #endif
 					pc->dwFlags |= CF_WRITEPENDING;
-#ifdef __LINUX__
-					//if( !(pc->dwFlags & CF_WRITEISPENDED ) )
-					//{
-					//	   lprintf( "Sending signal" );
-					//    WakeThread( globalNetworkData.pThread );
-					//}
-					//else
-					//    lprintf( "Yes... it was already pending..(no signal)" );
-#endif
-
 					return TRUE;
 				}
 				{
-					_lprintf(DBG_RELAY)(" Network Send Error: %5d(buffer:%p ofs: %" _size_f "  Len: %" _size_f ")",
+					_lprintf(DBG_RELAY)(" Network Send Error: %5d(sock:%p, buffer:%p ofs: %" _size_f "  Len: %" _size_f ")",
 											  dwError,
+											  pc,
 											  pc->lpFirstPending->buffer.c,
 											  pc->lpFirstPending->dwUsed,
 											  pc->lpFirstPending->dwAvail );

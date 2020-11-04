@@ -92,7 +92,7 @@ enum NetworkConnectionFlags {
 	, CF_CONNECTING      = 0x00000080
 	, CF_CONNECT_WAITING = 0x00008000
 	, CF_CONNECT_CLOSED  = 0x00100000
-	, CF_TOCLOSE         = 0x00000100
+	, CF_TOCLOSE         = 0x00000100  // wants to close at the next opportunity.
 	, UNUSED_CF_WRITEISPENDED   = 0x00000200  // this flag is unused at this time
 	, CF_CLOSING         = 0x00000400
 	, CF_DRAINING        = 0x00000800

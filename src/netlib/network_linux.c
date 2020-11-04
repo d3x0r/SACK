@@ -601,6 +601,17 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 										lprintf( "Data was pending on a connecting socket, try sending it now" );
 										TCPWrite( event_data->pc );
 									}
+									if( !event_data->pc->lpFirstPending ) {
+										if( event_data->pc->dwFlags & CF_TOCLOSE )
+										{
+											event_data->pc->dwFlags &= ~CF_TOCLOSE;
+											lprintf( "Pending write completed - and wants to close." );
+											EnterCriticalSec( &globalNetworkData.csNetwork );
+											InternalRemoveClientEx( event_data->pc, FALSE, TRUE );
+											TerminateClosedClient( event_data->pc );
+											LeaveCriticalSec( &globalNetworkData.csNetwork );
+										}
+									}
 								} else {
 									event_data->pc->dwFlags |= CF_CONNECTERROR;
 								}
