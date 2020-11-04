@@ -17,6 +17,7 @@
 
 #ifndef INCLUDED_SHA1_H_
 #define INCLUDED_SHA1_H_
+#define _SHA1_H_
 	
 #include <sack_types.h>
 
