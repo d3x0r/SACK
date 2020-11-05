@@ -951,7 +951,7 @@ Double quote	"""	222
 #      define KEY_Z         52
 
 #    elif defined( USE_SDL_KEYSYM )
-#pragma message( "SDL" );
+
 #      include <SDL.h>
 #      define KEY_SHIFT        0xFF
 #      define KEY_LEFT_SHIFT   SDLK_LSHIFT
@@ -1217,7 +1217,6 @@ Double quote	"""	222
 #      define KEY_WINDOW_1      115 // windows keys keys
 #      define KEY_WINDOW_2      117 // windows keys keys
 
-#pragma message( "THIS IS OK 2")
 #      define KEY_TAB           23
 
 #      define KEY_SLASH         61
