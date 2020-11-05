@@ -1,4 +1,4 @@
-#ifndef WIN32
+#if !defined( WIN32 ) && !defined( __MAC__ )
 #include "uuid.c"
 #include "uuid_md5.c"
 #include "uuid_sha1.c"
