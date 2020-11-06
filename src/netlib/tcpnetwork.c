@@ -1358,16 +1358,14 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					return FALSE; // get out of here!
 				}
 			} else if (!nSent) { // other side closed.
-				lprintf( "sent zero bytes - assume it was closed - and HOPE there's an event..." );
+				//lprintf( "sent zero bytes - assume it was closed - and HOPE there's an event..." );
+				// this is more likely to show up as an EPIPE
 				pc->dwFlags |= CF_TOCLOSE;
 				// if this happened - don't return TRUE result which would
 				// result in queuing a pending buffer...
 				return FALSE;  // no sence processing the rest of this.
 			} else if( pc->lpFirstPending && ( nSent < (int)pc->lpFirstPending->dwAvail ) ) {
-				//pc->lpFirstPending->dwUsed += nSent;
-				//pc->lpFirstPending->dwAvail -= nSent;
 				pc->dwFlags |= CF_WRITEPENDING;
-				//lprintf( "THIS IS ANOTHER PENDING CONDITION THAT WASN'T ACCOUNTED %d of %d", nSent, pc->lpFirstPending->dwAvail  );
 			}
 		}
 		else
@@ -1428,17 +1426,6 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					if( !(pc->dwFlags & CF_WRITEPENDING) )
 					{
 						pc->dwFlags |= CF_WRITEPENDING;
-#if 0
-#ifdef USE_WSA_EVENTS
-						if( globalNetworkData.flags.bLogNotices )
-							lprintf( "SET GLOBAL EVENT (write pending)" );
-						EnqueLink( &globalNetworkData.client_schedule, pc );
-						WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-#endif
-#ifdef __LINUX__
-						AddThreadEvent( pc, 0 );
-#endif
-#endif
 					}
 					return TRUE;
 				}
