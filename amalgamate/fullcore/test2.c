@@ -4,7 +4,9 @@
 void callNewTimeTest() {
 	int z;
 	for( z = 0; z < 10; z++ ) {
-		uint64_t time = GetTimeOfDay();
+		uint64_t time;
+      int8_t tz2;
+		GetTimeOfDay( &time, &tz2)
 		int tmp = ((int8_t)time*15);
 		int sign = tmp < 0 ?  -1 : 1;
 		int tz = GetTimeZone();
@@ -16,7 +18,9 @@ void callNewTimeTest() {
 
 
 	{
-		uint64_t tick = GetTimeOfDay();
+		uint64_t tick;
+		uint8_t tz2;
+		GetTimeOfDay( &tick, &tz2 );
 		uint64_t tick2;
 		uint64_t tick3;
 		uint64_t tick4;

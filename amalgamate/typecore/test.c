@@ -5,6 +5,7 @@ int main( void ) {
 	INDEX idx;
 	char *name;
 	AddLink( &list, "asdf" );
+	AddLink( &list, "ghij" );
 	LIST_FORALL( list, idx, char *, name ) {
 		printf( "list has: %d = %s\n", idx, name );
 	}

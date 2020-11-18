@@ -1,3 +1,8 @@
+if ! command -v ppc &> /dev/null
+then
+  echo "ppc is not installed...; ppc is sack/src/makefiles/prog/ppc"
+  exit
+fi
 #::
 #   
 #   
@@ -17,6 +22,8 @@ SRCS="${SRCS}   ../../src/memlib/memory_operations.c "
 SRCS="${SRCS}   ../../src/timerlib/timers.c "
 SRCS="${SRCS}   ../../src/idlelib/idle.c "
 SRCS="${SRCS}   ../../src/netlib/network.c "
+SRCS="${SRCS}   ../../src/netlib/network_all.c "
+SRCS="${SRCS}   ../../src/netlib/network_addresses.c "
 SRCS="${SRCS}   ../../src/netlib/tcpnetwork.c "
 SRCS="${SRCS}   ../../src/netlib/udpnetwork.c "
 SRCS="${SRCS}   ../../src/netlib/ping.c "

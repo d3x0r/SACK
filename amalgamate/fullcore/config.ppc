@@ -24,7 +24,7 @@
 #define NEED_SHLAPI
 #define NEED_SHLOBJ
 #define JSON_PARSER_MAIN_SOURCE
-
+#define WINFILE_COMMON_SOURCE
 #define MAKE_RCOORD_SINGLE
 
 // this gets Wow64GetThreadContext 

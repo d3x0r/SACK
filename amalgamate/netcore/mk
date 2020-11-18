@@ -1,6 +1,6 @@
 if ! command -v ppc &> /dev/null
 then
-  echo "ppc is not installed..."
+  echo "ppc is not installed...; ppc is sack/src/makefiles/prog/ppc"
   exit
 fi
 
