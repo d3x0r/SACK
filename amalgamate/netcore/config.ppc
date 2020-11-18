@@ -25,6 +25,7 @@
 #define NEED_SHLOBJ
 #define JSON_PARSER_MAIN_SOURCE
 #define FORCE_COLOR_MACROS
+#define WINFILE_COMMON_SOURCE
 
 #include <stdio.h>
 #include <stdarg.h> 
