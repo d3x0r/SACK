@@ -1564,11 +1564,13 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 #endif
 						pushValue( state, state->elements, &state->val );
 						JSOX_RESET_STATE_VAL();
+						state->word = JSOX_WORD_POS_RESET;
 					}
 				}
 				else if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD_VALUE ) {
 					// after an array value, it will have returned to OBJECT_FIELD anyway
-					if( state->word != JSOX_WORD_POS_RESET )
+					if( state->word > JSOX_WORD_POS_END
+						&& state->word < JSOX_WORD_POS_AFTER_FIELD )
 						recoverIdent( state, output, c );
 #ifdef DEBUG_PARSING
 					lprintf( "comma after field value, push field to object: %s", state->val.name );
