@@ -1,7 +1,7 @@
 # XSWS
 
 This was Xor, Sub, Wipe(LR,sub,RL), Sub.  While this had slightly higher performance, it produced
-encrypted data with an obvious period.  
+encrypted data with an obvious period.  This algorithm can be applied to buffer in-place.
 
 # X(WS)*(WS)*
 
@@ -9,7 +9,7 @@ Revision 2
   - Moves byte map swap into wipe stage.
 
 This is an encryption algorithm called Xor-Sub-Wipe-Sub (XSWS). 
- - Xor - the initial masking of data with a mask
+ - Xor - the initial masking of data with a 256 bit mask
  - Wipe-subByte ( xor each byte with the previous byte L->R ). (use 0x55 as first prvious byte)
  - Wipe-subByte ( xor each byte with the previous byte R->L ). (use 0xAA as the first previous byte)
 
@@ -29,28 +29,30 @@ should not matter; all final entropy reads are done in byte sized units.
 
 Take an input if less than 4096 bytes, add one byte to the length, and pad
 to 8 byte boundary (int64); the length of the pad is stored in the last
-byte; unused padding bytes will be set to 0.  
+byte; unused padding bytes will be set to 0.  (Block Padding...)[#Block_padding]
 
-### Summary; again
+### Summary
 
-   - Simple xor-chains a 256 bit mask computed from the key using KangarooTwelve(K12) over the data.
+   - Simple xor of a 256 bit mask computed from the key using KangarooTwelve(K12) over the key data.
+   - Setup 256 byte swap map. (M)
    - xor 0x55 into first byte, swap byte for some other byte, store that result, use that result to xor on the next byte, repeatedly.
        1. T(0) = B(0) ^ 0x55
-       1. R(0) = map T(0) byte to naother byte
-       1. T(N) = B(N) ^ R(N-1)
-       1. R(N) = map T(N) byte to naother byte
-       1. repeat  3-4 until no byte bytes
+       2. R(0) = map T(0) byte to another byte using M
+       3. T(N) = B(N) ^ R(N-1)
+       4. R(N) = map T(N) byte to another byte using M
+       5. repeat  3-4 until no byte bytes
    - xor 0xAA into last byte, swap byte for some other byte, store that result, use that result to xor on the previous byte, repeatedly.
        1. T(N) = B(N) ^ 0xAA
-       1. R(N) = map T(N) byte to naother byte
-       1. T(N-1) = B(N-1) ^ R(N)
-       1. R(N-1) = map T(N-1) byte to naother byte
-       1. repeat  3-4 until first byte
+       2. R(N) = map T(N) byte to naother byte using M
+       3. T(N-1) = B(N-1) ^ R(N)
+       4. R(N-1) = map T(N-1) byte to naother byte using M
+       5. repeat  3-4 until first byte
  
    - T is a temporary value
    - B is input Byte 
    - R is Result byte
    - N represents position in a string of bytes
+   - M is the xbox map built below
  
 Data is processed in blocks of 4096 bytes.  XOR pass uses wide integers to reduce time.  Blocks
 MUST be padded to a multiple of 8 bytes.  Blocks that ARE a multiple of 8 bytes may or may not have
@@ -91,7 +93,7 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 	for( n = 0; n < 256; n++ ) {
 		int m; // the position to move
 		int t; // temp
-		SRG_GetByte_( m, ctx ); // m = random 8 bits
+		SRG_GetByte_( m, ctx ); // m = next random 8 bits
 		t = key->map[m];
 		key->map[m] = key->map[n];
 		key->map[n] = t;
@@ -107,33 +109,30 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 
 ## Block padding...
 
-Encryption is done in 4096 byte blocks.  If the data is fewer than 4096 bytes,
-then 1 byte is added to the length, and then padded up to the next 8 byte boundary.
-Adding 1 byte first causes there to always be extra space added, where a buffer might 
-already be a length that is a multiple of 8 bytes; In this case, 8 more bytes will be
-added (1 + 7 to pad to next boundary).
+Encryption is done in up to 4096 byte blocks.  
 
-If a block of data is larger than 4096 bytes; then each 4096 byte block is processed
-separately.  Again, if the last block after all other complete 4096 byte blocks have
-been processed is shorter than 4096 bytes, then the padding is applied to this block.
+One(1) byte is added to the length, and then padded up to the next 8 byte boundary.
 
-The padding is merely to allow wide parallel operations across the data, and serves no
-other purpose.
+If the total block of data is larger than 4096 bytes; then each 4096 byte block is processed
+separately.
+
+The last byte of the last block is the number of bytes to remove from the end.  Other bytes 
+added to pad to 8 byte boundary (will be 0 in this implementation, though there is no specific
+requirement to be 0).
+
 
 ```
 // 
 encrypt( data, datalen ) { 
-	int outlen = datalen;
-	if( outlen < 4096 ) {
-		outlen += 1; // add 1 byte for pad length
-		if( outlen & 7 )
-			outlen += ( 8 - (outlen&7) );
-	}
+	int outlen = datalen + 1;
+	
+	if( outlen & 7 )
+		outlen += ( 8 - (outlen&7) );
 	
 	char *output = malloc( outlen );
 	((uin64_t*)( output + outlen-8 ))[0] = 0; // make sure all extra pad bytes are 0
 	output[outlen-1] = outlen - datalen; // save pad to recover length.
-	memcpy( output, data, datalen );
+	memcpy( output, data, datalen ); // encryption happens in-place.
 
 	/* ... do real work ... */
 }
