@@ -10,10 +10,10 @@ Revision 2
 
 This is an encryption algorithm called Xor-Sub-Wipe-Sub (XSWS). 
  - Xor - the initial masking of data with a 256 bit mask
- - Wipe-subByte ( xor each byte with the previous byte L->R ). (use 0x55 as first previous byte)
- - Wipe-subByte ( xor each byte with the previous byte R->L ). (use 0xAA as the first previous byte)
+ - Wipe-subByte ( xor each byte with the previous byte L->R, then magic-ring swap byte ). (use 0x55 as the first previous byte) 
+ - Wipe-subByte ( xor each byte with the previous byte R->L, then magic-ring swap byte ). (use 0xAA as the first previous byte)
 
- 
+
 It is built on Salty Random Generator(SRG).  SRG uses various hash
 algorithms to generate streams of random bits.  It then consumes bits
 generated from the hashing function.  This specifically uses K12.
@@ -29,7 +29,7 @@ should not matter; all final entropy reads are done in byte sized units.
 
 Take an input if less than 4096 bytes, add one byte to the length, and pad
 to 8 byte boundary (int64); the length of the pad is stored in the last
-byte; unused padding bytes will be set to 0.  [Block Padding...](#Block_padding)
+byte; unused padding bytes will be set to 0.  [Block Padding...](#block-padding)
 
 ### Summary
 
