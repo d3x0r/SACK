@@ -29,7 +29,7 @@ should not matter; all final entropy reads are done in byte sized units.
 
 Take an input if less than 4096 bytes, add one byte to the length, and pad
 to 8 byte boundary (int64); the length of the pad is stored in the last
-byte; unused padding bytes will be set to 0.  [Block Padding...](#block-padding)
+byte; unused padding bytes will be set to 0.  [Message Padding...](#message-padding)
 
 ### Summary
 
@@ -107,18 +107,15 @@ struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx )
 }
 ```
 
-## Block padding...
+## Message padding...
 
-Encryption is done in up to 4096 byte blocks.  
-
-One(1) byte is added to the length, and then padded up to the next 8 byte boundary.
+One(1) byte is added to the total length, and then padded up to the next 8 byte boundary.
 
 If the total block of data is larger than 4096 bytes; then each 4096 byte block is processed
 separately.
 
-The last byte of the last block is the number of bytes to remove from the end.  Other bytes 
-added to pad to 8 byte boundary (will be 0 in this implementation, though there is no specific
-requirement to be 0).
+The last byte of the message is the number of bytes to remove from the end.  Other bytes 
+added to pad to 8 byte boundary must be 0 in this implementation.
 
 
 ```
