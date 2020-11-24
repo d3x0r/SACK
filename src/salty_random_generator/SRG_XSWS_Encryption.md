@@ -165,17 +165,13 @@ same K12 bitstream to shuffle the substitution map (**)[xbox-generation]. __
 
 ## Detail of the algorithm
 
-This is very old notes; the weakness with just a XOR operation swipe left-right.
-With the sustitution done with each xor swap the following weakness disappears.
-
-
-
 input keys of < hash size bits are the same as a buffer filled with 0's 
 to pad to length of hash.  ( a 3-bit 0 is same as a 0-bit 0 ).
 
 mask = 256 bit hash (K12) based on input key of 0-N bits.
 xbox = Short for 'exchange box' to differentiate from s-box.  
        2 maps for byte A->B and B->A.  based on input key of 0-N bits.
+
 
 ```
 ^   = xor with above value
@@ -204,7 +200,11 @@ given     a b c d   e f g h
 	     
  xboxSub     - xbox -           masked text swapped through xbox
          
-         
+
+// The following is a representation of the composite of each value.
+// a (proof) that every byte affects every other byte withiin
+// a message.
+
        =  A B C D   E F G H     a^k, b^k,...
        ^  5 A B C   D E F G
        ^    5 A B   C D E F
@@ -217,7 +217,7 @@ given     a b c d   e f g h
 
  xboxSub     - xbox -           xor'd sum then each byte swapped through xbox
          
-       =  A'B'C'D'  E'F'G'H'    above columns xor'd together
+       =  A'B'C'D'  E'F'G'H'    above columns xor'd together (AND SWAPPED)
 
 
 	   
@@ -246,7 +246,7 @@ given     a b c d   e f g h
 	   output buffer must be at least 1 byte larger than input buffer.
 	   the last output buffer byte is the pad length.
 	*/
-
+	// masking can be done in wide blocks
 	for( n = 0; n < outlen; n += 8, output += 8 )
 		((uint64_t*)output)[0] ^= ((uint64_t*)(bufKey + (n % 32)))[0];
 	   
@@ -287,80 +287,12 @@ for the swap instead. (xor-wipe is inversed too)
 
 	BlockShuffle_BusBytes_( bytKey, output, output, len );
 
+	// masking can be done in wide blocks
 	for( n = 0; n < len; n += 8, output += 8 ) {
 		((uint64_t*)output)[0] ^= ((uint64_t*)(bufKey + (n % (RNGHASH / 8))))[0];;
 	}
 	   
 ```
-
-
----
-
-## Simple XOr L->R, R-> Expanded... (continued obsolete)
-
-
-```
-A' = 0x55 ^ A
- 
-B' = 0x55 ^ A ^ B                              [A' ^ B]
- 
-C' = 0x55 ^ A ^ B ^ C                          [B' ^ C]
- 
-D' = 0x55 ^ A ^ B ^ C ^ D                      [C' ^ D]
- 
-E' = 0x55 ^ A ^ B ^ C ^ D ^ E
- 
-F' = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F
- 
-G' = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G
- 
-H' = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G ^ H      [G' ^ H]
- 
-H" = H' ^ 0xAA
-H" = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G ^ H   ^    0xAA
- 
-G" = G' ^ H"
-G" = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G     ^      0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G ^ H ^ 0xAA
-G" = H ^ 0xAA
- 
- 
-F" =  F' ^ G"
-F" =  0x55 ^ A ^ B ^ C ^ D ^ E ^ F    ^  H ^ 0xAA
- 
-E" = E' ^ F"
-E" = 0x55 ^ A ^ B ^ C ^ D ^ E   ^      0x55 ^ A ^ B ^ C ^ D ^ E ^ F    ^  H ^ 0xAA
-E" =  F ^  H ^ 0xAA
- 
-D" = D' ^ E"
-D" = 0x55 ^ A ^ B ^ C ^ D  ^  F ^  H ^ 0xAA
- 
-C" = C' ^ D"
-C" = 0x55 ^ A ^ B ^ C    ^     0x55 ^ A ^ B ^ C ^ D  ^  F ^  H ^ 0xAA
-C" = D  ^  F ^  H ^ 0xAA
- 
-B" = B' ^ C"
-B" = 0x55 ^ A ^ B       ^      D  ^  F ^  H ^ 0xAA
- 
-A" = A' ^ B"
-A" = 0x55 ^ A     ^      0x55 ^ A ^ B       ^      D  ^  F ^  H ^ 0xAA
-A" = B  ^   D  ^  F ^  H ^ 0xAA
-``` 
- 
- 
-Final summarized output....
- 
-``` 
- 
-A" =            B ^     D     ^ F     ^ H ^ 0xAA
-B" = 0x55 ^ A ^ B ^     D     ^ F     ^ H ^ 0xAA
-C" =                    D     ^ F     ^ H ^ 0xAA
-D" = 0x55 ^ A ^ B ^ C ^ D     ^ F     ^ H ^ 0xAA
-E" =                            F     ^ H ^ 0xAA
-F" = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F     ^ H ^ 0xAA
-G" =                                    H ^ 0xAA
-H" = 0x55 ^ A ^ B ^ C ^ D ^ E ^ F ^ G ^ H ^ 0xAA
- 
-``` 
 
 ---
 
@@ -521,272 +453,3 @@ Tiny DID 900000 in 7844   114737 5048428
 Big DID 300000 in 4815   62305 127600640
 Mega DID 300 in 6594   45 188743680
 
-
-
-
-
-
-## xbox generation (small-entropy)
-
-This is a modified version of the above, it uses only approximately 112 bits of 
-entropy to shuffle the deck.  This causes fewer hashes generated internally.
-
-Pseudo-Random Bit (PRB) is a single bit from the entropy generating hash
-function.  
-
-The shuffle algorithm was implemented in such a way as to use only a few
-bits from the entropy stream.  Other solutions used (8*256; 2K) bits, which
-caused a heavier load on the hash generation.
-
-The range of bytes is considered as a deck of cards.
-
-In operation, the deck of cards is split into two equal stacks (128 each).
-Each of these stack is then split into 3 ranges of 43 or 42 cards each.
-
-The stacks are shuffled 5 times.
-FOr each round, 2-PRB are used to determine the order of the left stacks,
-another 2 PRB are used to determine the order of the right stacks. And 
-1 PRB is picked to determine to start with left or right stack.
-
-(25 bits)
-
-1 PRB is picked to determine starting to... control a maximum card stack
-length before forcing a swap.
-(26 bits)
-
-Then, ordering for as many as 86 cards is chosen.  Take one card from
-one stack; get 1 PRB, if (1), take another card from the same stack; else
-set the count of cards to take into the counter-list; and reset count to 1.
-Repeat getting 1PRB, until enough cards are matched.  As many as 86 bits 
-are used; THere is s small probability that enough cards have been counted
-that the target stack is full, and just the remaining cards needs to be set 
-on the other side. Additionally, if more than (4 or 5) cards in a row are 
-picked, force saving that count, and 'switch stacks'.  The 1 PRB picked
-earlier determines whether the limit is 4 or 5 cards, which is sort-of 
-mapped to left/right stacks,  but depending on that bit, and the bit 
-chosen for the shuffle round left/right swap.  
-
-It's obvious, from counting the bits of entropy used, there is a maximum 
-of 2^112 different outcomes.  Ideal permutations of 256 cards is factorial(256).
-
-
-```
-	for( n = 0; (t[0] < 43 || t[1] < 43 ) && n < 86; n++ ) {
-		int bit;
-		int c;
-		c = 1;
-		while( c < (5- lrStart) && ( SRG_GetBit_( bit, ctx ), !bit ) ) {
-			c++;
-		}
-		lrStart = !lrStart;
-		stacks[n] = c;
-		t[n&1] += c;
-	}
-```
-
-
-### Example Configurations (for minimal shuffler)
-
-
-```
-
-//0, 43, 86 
-//128, 171, 214
-
-leftStacks [3][2] = { {   0, 43 }, { 43, 43}, { 86,42} };
-rightStacks[4][2] = { { 128, 43 }, {171, 43}, {214,42} };
-
-leftOrders [4][3] = { { 1, 0, 2 }, { 1, 2, 0 }, {2, 1, 0 }, {2, 0, 1 } };
-rightOrders[4][3] = { { 0, 2, 1 }, { 2, 0, 1 }, { 1, 2, 0 }, {2, 1, 0 } };
-
-struct halfDeck {
-	int from;
-	int until;
-	int cut;
-	uint8_t starts[3];
-	uint8_t lens[3];
-};
-
-struct byte_shuffle_key *BlockShuffle_ByteShuffler( struct random_context *ctx ) {
-	struct byte_shuffle_key *key = New( struct byte_shuffle_key );
-	int n;
-#define BLOCKSHUF_BYTE_ROUNDS 5
-	uint8_t stacks[86];
-	uint8_t halves[8][2];
-	uint8_t lrStarts[8];
-	uint8_t lrStart;
-	uint8_t *readLMap;
-	uint8_t *readRMap;
-	uint8_t *writeMap;
-	key->map = NewArray( uint8_t, 512 );
-	int srcMap;
-
-	key->dmap = key->map + 256;
-	uint8_t *maps[2] = { key->dmap, key->map };
-	key->ctx = ctx;
-
-	/* 40 bits for 8 shuffles. */
-	for( n = 0; n < BLOCKSHUF_BYTE_ROUNDS; n++ ) {
-		halves[n][0] = SRG_GetEntropy( ctx, 2, 0 );
-		halves[n][1] = SRG_GetEntropy( ctx, 2, 0 );
-		lrStarts[n] = SRG_GetEntropy( ctx, 1, 0 );
-	}
-
-	int t[2] = { 0, 0 };
-	SRG_GetBit_( lrStart, ctx );
-	for( n = 0; (t[0] < 43 || t[1] < 43 ) && n < 86; n++ ) {
-		int bit;
-		int c;
-		c = 1;
-		while( c < (5- lrStart) && ( SRG_GetBit_( bit, ctx ), !bit ) ) {
-			c++;
-		}
-		lrStart = !lrStart;
-		stacks[n] = c;
-		t[n&1] += c;
-	}
-	for( n = 0; n < 256; n++ )
-		key->map[n] = n;
-	srcMap = 1;
-	for( n = 0; n < BLOCKSHUF_BYTE_ROUNDS; n++ ) {
-		struct halfDeck left, right;
-		int s;
-		int useCards;
-
-		left.starts[0] = leftStacks[ leftOrders[ halves[n][0] ] [0] ] [0];
-		left.lens[0]   = leftStacks[ leftOrders[ halves[n][0] ] [0] ] [1];
-		left.starts[1] = leftStacks[ leftOrders[ halves[n][0] ] [1] ] [0];
-		left.lens[1]   = leftStacks[ leftOrders[ halves[n][0] ] [1] ] [1];
-		left.starts[2] = leftStacks[ leftOrders[ halves[n][0] ] [2] ] [0];
-		left.lens[2]   = leftStacks[ leftOrders[ halves[n][0] ] [2] ] [1];
-		left.cut = 0;
-		left.from = left.starts[left.cut];
-		left.until = left.starts[left.cut] + left.lens[left.cut];
-
-		right.starts[0] = rightStacks[ rightOrders[ halves[n][1] ] [0] ] [0];
-		right.lens[0]   = rightStacks[ rightOrders[ halves[n][1] ] [0] ] [1];
-		right.starts[1] = rightStacks[ rightOrders[ halves[n][1] ] [1] ] [0];
-		right.lens[1]   = rightStacks[ rightOrders[ halves[n][1] ] [1] ] [1];
-		right.starts[2] = rightStacks[ rightOrders[ halves[n][1] ] [2] ] [0];
-		right.lens[2]   = rightStacks[ rightOrders[ halves[n][1] ] [2] ] [1];
-		right.cut = 0;
-		right.from = right.starts[right.cut];
-		right.until = right.starts[right.cut] + right.lens[right.cut];
-
-		lrStart = lrStarts[n];
-		useCards = stacks[s=0];
-
-		readLMap = maps[srcMap] + left.from;
-		readRMap = maps[srcMap] + right.from;
-		writeMap = maps[1 - srcMap];
-		s = 0;
-		for( int outCard = 0; outCard < 256;  ) {
-			useCards = stacks[s];
-			for( int c = 0; c < useCards; c++ ) {
-				if( lrStart ) {
-					(writeMap++)[0] = (readLMap++)[0];
-					outCard++;
-					left.from++;
-					//maps[1 - srcMap][outCard++] = maps[srcMap][left.from++];
-					if( left.from >= left.until ) {
-						if( ++left.cut < 3 ) {
-							s = 0;
-							useCards = stacks[s];
-							c = -1;
-
-							left.from = left.starts[left.cut];
-							left.until = left.starts[left.cut] + left.lens[left.cut];
-							readLMap = maps[srcMap] + left.from;
-						}
-						while( left.cut != right.cut ) {
-							(writeMap++)[0] = (readRMap++)[0];
-							outCard++;
-							right.from++;
-							//maps[1 - srcMap][outCard++] = maps[srcMap][right.from++];
-							if( right.from >= right.until ) {
-								if( ++right.cut < 3 ) {
-									right.from = right.starts[right.cut];
-									right.until = right.starts[right.cut] + right.lens[right.cut];
-									readRMap = maps[srcMap] + right.from;
-								}
-							}
-						}
-						if( s ) break;
-						// L/R 2 new stacks... lrStart = same for whole stack each 3 subpart so...;
-					}
-				}
-				else {
-					(writeMap++)[0] = (readRMap++)[0];
-					outCard++;
-					right.from++;
-					//maps[1 - srcMap][outCard++] = maps[srcMap][right.from++];
-					if( right.from >= right.until ) {
-						if( ++right.cut < 3 ) {
-							s = 0;
-							useCards = stacks[s];
-							c = -1;
-
-							right.from = right.starts[right.cut];
-							right.until = right.starts[right.cut] + right.lens[right.cut];
-							readRMap = maps[srcMap] + right.from;
-						}
-						while( left.cut != right.cut ) {
-							(writeMap++)[0] = (readLMap++)[0];
-							outCard++;
-							left.from++;
-							//maps[1 - srcMap][outCard++] = maps[srcMap][left.from++];
-							if( left.from >= left.until ) {
-								if( ++left.cut < 3 ) {
-									left.from = left.starts[left.cut];
-									left.until = left.starts[left.cut] + left.lens[left.cut];
-									readLMap = maps[srcMap] + left.from;
-								}
-							}
-						}
-						if( s ) break;
-						// L/R 2 new stacks... lrStart = same for whole stack each 3 subpart so...;
-					}
-
-				}
-			}
-			if( outCard >= 256 )
-				break;
-			lrStart = 1-lrStart;
-			s++;
-			if( s >= 86 ) {
-				useCards = stacks[s=0];
-			}
-		}
-
-		srcMap = 1 - srcMap;
-	}
-
-#if 0
-    /* original shuffler */
-	{
-		for( n = 0; n < 256; n++ ) {
-			int m = SRG_GetEntropy( ctx, 8, 0 );
-			int t = key->map[m];
-			key->map[m] = key->map[n];
-			key->map[n] = t;
-		}
-
-		//ShuffleBytes( key, key->map, 256 );
-	}
-#endif
-	for( n = 0; n < 256; n++ )
-		key->dmap[key->map[n]] = n;
-	return key;
-}
-
-void BlockShuffle_SubByte( struct byte_shuffle_key *key
-	, uint8_t *bytes_input, uint8_t *bytes_output ) {
-	bytes_output[0] = key->map[bytes_input[0]];
-}
-
-void BlockShuffle_BusByte( struct byte_shuffle_key *key
-	, uint8_t *bytes_input, uint8_t *bytes_output ) {
-	bytes_output[0] = key->dmap[bytes_input[0]];
-}
-
-```
