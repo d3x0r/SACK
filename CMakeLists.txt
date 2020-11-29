@@ -5,6 +5,7 @@ if( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
 	MESSAGE( "POLICY IS SET!" )
 endif( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
 
+enable_language( C )
 enable_language( ASM )
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
@@ -317,7 +318,14 @@ OPTION( INCLUDE_VULKAN "Include vulkan interfaces" ${ENABLE_VULKAN} )
 
 # default itnerface output path... (override if __CLR__)
 # should make this a common target variable instead also...
-set( INTERFACE_OUTPUT_DIR ${BINARY_OUTPUT_DIR} )
+
+if( WIN32 )
+	# goes with .dll
+	set( INTERFACE_OUTPUT_DIR ${CMAKE_INSTALL_BINDIR} )
+else(WIN32)        
+	# goes with .so
+	set( INTERFACE_OUTPUT_DIR ${CMAKE_INSTALL_LIBDIR} )
+endif(WIN32)
 
 if( FORCE_EXTERNAL_BUILD )
    set( EXTERNAL_BUILD_EXTRA_FLAGS BUILD_ALWAYS 1 )
@@ -1260,7 +1268,6 @@ IF(NOT FORCE_CXX AND EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
       SET(CMAKE_RELWITHDEBINFO_POSTFIX "" CACHE STRING "Adds a postfix for ReleaseWithDebug-built libraries.")
 
       set( USE_GLUT OFF CACHE BOOL "Option Use Glut" )
-      #set( LIBRARY_OUTPUT_PATH ${CMAKE_INSTALL_PREFIX}/lib )
       set( INTERNAL_ADD_POSTFIX_EXECUTABLE_NAMES OFF )
       set( BUILD_INTEL_OPENCL_DEMOS OFF CACHE BOOL "Bullet option default override"  )
       set( BUILD_MINICL_OPENCL_DEMOS OFF CACHE BOOL "Bullet option default override"  )
@@ -1426,7 +1433,7 @@ add_subdirectory( src/utils/virtual_file_system )
 endif( NOT EMSCRIPTEN )
 
 # parts of SDK ...
-set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}/images CACHE STRING "Option to install default images actually" )
+set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}images CACHE STRING "Option to install default images actually" )
 add_subdirectory( data )
 add_subdirectory( include )
 
