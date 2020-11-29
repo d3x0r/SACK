@@ -296,8 +296,9 @@ if( INCLUDE_VULKAN )
                 SET( libfile_list ${libfile_list} bag.image.vulkan )
                 SET( libfile_list ${libfile_list} bag.video.vulkan )
 endif( INCLUDE_VULKAN )
-
+if( __LINUX__ )
                 SET( libfile_list ${libfile_list} bag.video.wayland )
+endif( __LINUX__ )
 
 		# proxy is memory-only and platform agnostic
                 SET( libfile_list ${libfile_list} bag.video.proxy.server )
