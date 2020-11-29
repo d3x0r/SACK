@@ -97,6 +97,7 @@ RENDER_NAMESPACE_END
 #  define BIT_7           0x80
 #  define KEY_TAB          9
 #  define KEY_CENTER       12
+#  define KEY_KP5       12
 #  define KEY_PAD5         12
 #  define KEY_ENTER        13
 #  define KEY_LSHIFT       16
