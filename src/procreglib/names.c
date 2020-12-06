@@ -927,9 +927,13 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 					oldname->data.proc.procname = newname->data.proc.procname;
 					newname->data.proc.name = NULL;
 				}
-				else if( oldname->data.proc.proc == proc )
-					Log( "And fortunatly it's the same address... all is well..." );
-				else
+				else if( oldname->data.proc.proc == proc ) {
+#ifdef _DEBUG
+					CTEXTSTR file = GetRegisteredValue( (CTEXTSTR)&oldname->tree, "Source File" );
+					int line = (int)(uintptr_t)GetRegisteredValueEx( (CTEXTSTR)&oldname->tree, "Source Line", TRUE );
+					lprintf( "Duplicate function registration, it's the same address as before... %s(%d) %s(%d) %s %s", file, line, pFile, nLine, name_class, public_name );
+#endif
+				}else
 				{
 					TEXTSTR s1, s2;
 #ifndef NO_LOGGING
