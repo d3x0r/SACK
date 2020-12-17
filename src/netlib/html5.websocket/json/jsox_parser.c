@@ -438,7 +438,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 		if( state->val.value_type != JSOX_VALUE_UNSET
 			&& !( state->val.value_type == JSOX_VALUE_OBJECT && state->val.className )
 			) {
-			lprintf( "Unhandled value type preceeding object open: %d %s", state->val.value_type, state->val.string );
+			lprintf( "Unhandled value type preceeding object open: %d %s", state->val.value_type, state->val.string );	
 		}
 	}
 
@@ -2302,10 +2302,11 @@ void jsox_parse_clear_state( struct jsox_parse_state *state ) {
 		DeleteFromSet( PLINKSTACK, jxpsd.linkStacks, state->outBuffers );
 		//DeleteLinkStack( &state->outBuffers );
 		{
-			char *buf;
+			char* buf;
 			INDEX idx;
 			LIST_FORALL( state->outValBuffers[0], idx, char*, buf ) {
 				Deallocate( char*, buf );
+				SetLink( state->outValBuffers, idx, NULL ); // maybe it was saved?
 			}
 			DeleteFromSet( PLIST, jxpsd.listSet, state->outValBuffers );
 			//DeleteList( &state->outValBuffers );
@@ -2318,6 +2319,7 @@ void jsox_parse_clear_state( struct jsox_parse_state *state ) {
 		state->line = 1;
 		state->gatheringString = FALSE;
 		state->gatheringNumber = FALSE;
+		state->val.value_type = JSOX_VALUE_UNSET;
 		{
 			PDATALIST *result = state->elements;
 			state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
@@ -2352,10 +2354,11 @@ void jsox_parse_dispose_state( struct jsox_parse_state **ppState ) {
 		DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 	}
 	{
-		char *buf;
+		char* buf;
 		INDEX idx;
 		LIST_FORALL( state->outValBuffers[0], idx, char*, buf ) {
-			Deallocate( char*, buf );
+			Release( buf );
+			SetLink( state->outValBuffers, idx, NULL ); // maybe it was saved?
 		}
 		DeleteFromSet( PLIST, jxpsd.listSet, state->outValBuffers );
 		//DeleteList( &state->outValBuffers );
