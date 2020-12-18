@@ -87,7 +87,15 @@ static void jsox_state_init( struct jsox_parse_state *state )
 	if( ppList[0] ) ppList[0]->Cnt = 0;
 	state->outValBuffers = ppList;
 
-
+	if( state->classes ){
+		INDEX idx;
+		PJSOX_CLASS cls;
+		LIST_FORALL( state->classes, idx, PJSOX_CLASS, cls ) {
+			DeleteFromSet( JSOX_CLASS, &state->classPool, cls );
+			SetLink( &state->classes, idx, NULL );
+		}
+	}
+	DeleteList( &state->classes );
 	state->line = 1;
 	state->col = 1;
 	state->n = 0; // character index;
@@ -619,7 +627,8 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 	}
 	else {
 		if( state->val.value_type != JSOX_VALUE_UNSET ) {
-			lprintf( "Unhandled value type preceeding object open: %d %s", state->val.value_type, state->val.string );
+			//lprintf( "Unhandled value type preceeding object open: %d %s", state->val.value_type, state->val.string );
+			// just assume it is okay up to this point... macro-tag{} []  is object type before this.
 		}
 	}
 
@@ -1354,11 +1363,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								JSOX_RESET_STATE_VAL();
 								emitObject = FALSE;
 								state->word = JSOX_WORD_POS_RESET;
-								lprintf( "closing in context...");
-								break;
+								//break;
 							}
 							else if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_VALUE ) {
-								lprintf( "class value" );
 								if( state->val.value_type != JSOX_VALUE_UNSET ) {
 									if( state->current_class->fields ) {
 										if( !state->val.name ) {
@@ -1378,7 +1385,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								} // otherwise it's just a close after an empty comma...
 							}
 						}
-						pushValue( state, state->elements, &state->val );
+						if( emitObject )  // there isn't a value for this...
+							pushValue( state, state->elements, &state->val );
 
 						//if( _DEBUG_PARSING ) lprintf( "close object; empty object", val, elements );
 					}
@@ -1541,7 +1549,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					}
 
 					else if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_FIELD ) {
-						lprintf( "Adding defined name..." );
 						if( state->current_class ) {
 							struct jsox_class_field *field = GetFromSet( JSOX_CLASS_FIELD, &state->class_fields );
 							field->name = state->val.string;
@@ -2313,11 +2320,17 @@ void jsox_parse_clear_state( struct jsox_parse_state *state ) {
 		{
 			char* buf;
 			INDEX idx;
+			PJSOX_CLASS cls;
 			LIST_FORALL( state->outValBuffers[0], idx, char*, buf ) {
 				Deallocate( char*, buf );
 				SetLink( state->outValBuffers, idx, NULL ); // maybe it was saved?
 			}
 			DeleteFromSet( PLIST, jxpsd.listSet, state->outValBuffers );
+
+			LIST_FORALL( state->classes, idx, PJSOX_CLASS, cls ) {
+				DeleteFromSet( JSOX_CLASS, &state->classPool, cls );
+				SetLink( &state->classes, idx, NULL );
+			}
 			//DeleteList( &state->outValBuffers );
 		}
 		state->status = TRUE;
