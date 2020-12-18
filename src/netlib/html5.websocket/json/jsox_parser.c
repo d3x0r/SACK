@@ -1291,12 +1291,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					}
 					if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_FIELD ) {
 						if( GetLinkCount( state->current_class->fields ) == 0 ) {
-							lprintf( "Now reverting back to a normal field... clearing class?");
-						
 							DeleteLink( &state->classes, state->current_class );
 							DeleteFromSet( JSOX_CLASS, &state->classPool, state->current_class );
 							state->current_class = NULL;
-							
 							state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_NORMAL;
 						}
 						// need to establish whether this is a tag definition state
