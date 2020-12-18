@@ -12,6 +12,7 @@
 // events related to keys.
 //#define DEBUG_KEY_EVENTS
 
+#define DEBUG_ATTACH_SURFACE
 
 #define USE_IMAGE_INTERFACE wl.pii
 #include <stdhdrs.h>
@@ -1079,7 +1080,7 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 	initConnections();
 
 	while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 ){
-		lprintf( ".... did some messages...");
+		//lprintf( ".... did some messages...");
 	}
 
 	lprintf( "Thread exiting?" );
@@ -1325,7 +1326,10 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 		lprintf( "(get new buffer)Issue redraw on renderer %p", renderer );
 #endif
 		r->flags.commited = 0;
-		r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
+		if( r->pRedrawCallback )
+			r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
+		else
+			r->flags.commited = 1; // no real draw (closed?)
 		if( !r->flags.commited )
 			if( r->flags.canCommit ) {
 #if defined( DEBUG_COMMIT ) || defined( DEBUG_COMMIT_STATE )
@@ -1341,10 +1345,14 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 				if( next ) {
 					r->flags.dirty = 0;
 					r->flags.commited = 1;
-					wl_surface_commit( r->surface );
+					if( r->surface ) wl_surface_commit( r->surface );
+#if defined( DEBUG_ATTACH_SURFACE )
 					lprintf( "attach %p", next );
-					wl_surface_attach( r->surface, next, 0, 0 );
-					wl_display_flush( wl.display );
+#endif
+					if( r->surface ) {
+						wl_surface_attach( r->surface, next, 0, 0 );
+						wl_display_flush( wl.display );
+					}
 				}
 			}else {
 #if defined( DEBUG_COMMIT ) || defined( DEBUG_COMMIT_STATE )
@@ -1443,12 +1451,13 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 	}
 	lprintf( "Destroy surface:%p %p", r, r->surface );
 	wl_surface_destroy( r->surface );
+	r->surface = NULL;
 	DeleteLink( &wl.pActiveList, r );
 }
 
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-
+	if( !r->surface ) return;
 	if( r->buffer_images[r->curBuffer]
 	   && r->buffer_images[1-r->curBuffer]) {
 		if( r->freeBuffer[1-r->curBuffer] && !( r->damage && GetLinkCount(r->damage) ))
@@ -1463,7 +1472,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 			AddLink( &r->damage, damage );
 		}
 	}
-
+	if( !r->surface ) return;
 	wl_surface_damage( r->surface, x, y, w, h );
 
 	if( r->flags.canCommit ){
@@ -1479,6 +1488,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 		if( next ) {
 			r->flags.dirty = 0; // don't need a commit.
 			r->flags.commited = 1;
+			if( !r->surface ) return;
 			wl_surface_commit( r->surface );
 			wl_display_flush( wl.display );
 			//if( wl.xdg_wm_base )
@@ -1497,6 +1507,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 
 static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
+	if( !r->surface ) return;
 	//lprintf( "Update whole surface %d %d", r->w, r->h );
 	if( r->buffer_images[r->curBuffer] && r->buffer_images[1-r->curBuffer] ) {
 		if( r->freeBuffer[1-r->curBuffer]  || (r->damage && GetLinkCount(r->damage) ) )
@@ -1511,6 +1522,7 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 			AddLink( &r->damage, damage );
 		}
 	}
+	if( !r->surface ) return;
 	wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
 	if( r->flags.canCommit ){
 #if defined( DEBUG_COMMIT ) || defined( DEBUG_COMMIT_STATE )
@@ -1525,6 +1537,7 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 		if( next ) {
 			r->flags.dirty = 0; // don't need a commit.
 			r->flags.commited = 1;
+			if( !r->surface ) return;
 			wl_surface_commit( r->surface );
 			wl_display_flush( wl.display );
 			//if( wl.xdg_wm_base )
