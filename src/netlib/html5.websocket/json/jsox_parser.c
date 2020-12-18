@@ -9,6 +9,7 @@
 #include "jsox.h"
 
 #include "unicode_non_identifiers.h"
+
 //#define DEBUG_PARSING
 //#define DEBUG_ARRAY_TYPE
 //#define DEBUG_CHARACTER_PARSING
@@ -957,10 +958,10 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 		state->word = JSOX_WORD_POS_RESET; // well.. it is.  It's already a fairly commited value.
 		if( !state->completedString ) {
 			state->completedString = TRUE;
-                        state->val.stringLen = output->pos - state->val.string;
+			state->val.stringLen = output->pos - state->val.string;
 		}
 #ifdef DEBUG_STRING_LENGTH
-                lprintf( "Update stringLen  '%c'  :%d", cInt?cInt:'?', state->val.stringLen );
+			lprintf( "Update stringLen  '%c'  :%d", cInt?cInt:'?', state->val.stringLen );
 #endif
 	} else if( cInt == 44/*','*/ ) {
 		state->word = JSOX_WORD_POS_RESET; // well.. it is.  It's already a fairly commited value.
@@ -1036,7 +1037,7 @@ static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct js
 	}
 	AddDataItem( pdl, val );
 #ifdef DEBUG_CLASS_STATES
-	lprintf( "RESET CLASS NAME %s", val->className );
+	lprintf( "RESET CLASS NAME %.*s", val->classNameLen, val->className );
 #endif
 	val->className = NULL;
 	val->classNameLen = 0;
@@ -1289,6 +1290,15 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						break;
 					}
 					if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_FIELD ) {
+						if( GetLinkCount( state->current_class->fields ) == 0 ) {
+							lprintf( "Now reverting back to a normal field... clearing class?");
+						
+							DeleteLink( &state->classes, state->current_class );
+							DeleteFromSet( JSOX_CLASS, &state->classPool, state->current_class );
+							state->current_class = NULL;
+							
+							state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_NORMAL;
+						}
 						// need to establish whether this is a tag definition state
 						// or tagged-revival revival, or just a prototyped object that's not a tag-revival.
 						//lprintf( "This would be a default value for the object... if I ignore this..." );
@@ -1317,10 +1327,10 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			case '}':
 				{
 					int emitObject;
-                                        emitObject = TRUE;
-                                        if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
+					emitObject = TRUE;
+					if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
 						state->word = JSOX_WORD_POS_RESET;
-                                        }
+					}
 					if( state->word == JSOX_WORD_POS_END ) {
 						// allow starting a new word
 						state->word = JSOX_WORD_POS_RESET;
@@ -1347,8 +1357,11 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								JSOX_RESET_STATE_VAL();
 								emitObject = FALSE;
 								state->word = JSOX_WORD_POS_RESET;
+								lprintf( "closing in context...");
+								break;
 							}
 							else if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_VALUE ) {
+								lprintf( "class value" );
 								if( state->val.value_type != JSOX_VALUE_UNSET ) {
 									if( state->current_class->fields ) {
 										if( !state->val.name ) {
@@ -1385,14 +1398,14 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						}
 					}
 					else {
-                                            if( state->val.value_type != JSOX_VALUE_UNSET ) {
-                                                //pushValue( state, state->elements, &state->val );
-                                            } else {
-						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "Fault while parsing(3); unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
-                                                state->status = FALSE;
-						break;
-                                            }
+						if( state->val.value_type != JSOX_VALUE_UNSET ) {
+							//pushValue( state, state->elements, &state->val );
+						} else {
+							if( !state->pvtError ) state->pvtError = VarTextCreate();
+							vtprintf( state->pvtError, "Fault while parsing(3); unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+							state->status = FALSE;
+							break;
+						}
 					}
 
 					{
@@ -1404,7 +1417,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 
 						state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
 
-                                                // lose current class in the pop; have; have to report completed status before popping.
+						// lose current class in the pop; have; have to report completed status before popping.
 						if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
 							if( !state->current_class )
 								state->completed = TRUE;
@@ -1508,7 +1521,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				break;
 			case ',':
 				if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD ) {
-
 					if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_VALUE ) {
 						if( state->val.value_type != JSOX_VALUE_UNSET ) {
 							// revive class value, get name from class definition
@@ -1532,7 +1544,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					}
 
 					else if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_FIELD ) {
-
+						lprintf( "Adding defined name..." );
 						if( state->current_class ) {
 							struct jsox_class_field *field = GetFromSet( JSOX_CLASS_FIELD, &state->class_fields );
 							field->name = state->val.string;
