@@ -140,7 +140,7 @@ void InitJSOX(void ) {
 		};
       Module.SACK.JSOX = JSOX;
 			  ), 0 );
-
+	/*
 	EM_ASM_INT( (
  		 Module.constants = Module.constants||{};
        Module.constants[UTF8ToString( $1 )]  = ( $0 );
@@ -182,6 +182,7 @@ void InitJSOX(void ) {
 	, JSOX_VALUE_TYPED_ARRAY       , "JSOX_VALUE_TYPED_ARRAY"
 	, JSOX_VALUE_TYPED_ARRAY_MAX   , "JSOX_VALUE_TYPED_ARRAY_MAX"
 				 );
+	*/
 }
 
 static int composeJSObject( struct reviver_data *revive, LOGICAL firstObject ) {
