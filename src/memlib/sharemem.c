@@ -2182,6 +2182,7 @@ uint16_t  AlignOfMemBlock( CPOINTER pData )
 
 POINTER ReleaseEx ( POINTER pData DBG_PASS )
 {
+	if( !g.bInit ) return NULL;
 	if( pData )
 	{
 #ifndef __NO_MMAP__
