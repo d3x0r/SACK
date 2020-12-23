@@ -31,7 +31,7 @@
 #define VFS_OS_PARANOID_TRUNCATE
 
 // this is a badly named debug symbol;
-// it is the LAST debugging of delete logging/checking... 
+// it is the LAST debugging of delete logging/checking...
 //#define DEBUG_DELETE_LAST
 
 
@@ -102,6 +102,7 @@ SACK_VFS_NAMESPACE
 //#define DEBUG_TRACE_LOG
 //#define DEBUG_ROLLBACK_JOURNAL
 //#define DEBUG_FILE_OPS
+// this is large binary blocks.
 //#define DEBUG_DISK_IO
 //#define DEBUG_DISK_DATA
 //#define DEBUG_DIRECTORIES
@@ -608,6 +609,7 @@ static void vfs_os_empty_rollback( struct sack_vfs_os_volume* vol ) {
 	enum block_cache_entries rollbackCache = BC( ROLLBACK );
 	struct vfs_os_rollback_header* rollback = ( struct vfs_os_rollback_header* )vfs_os_FSEEK( vol, vol->journal.rollback_file, 0, 0, &rollbackCache, ROLLBACK_BLOCK_SIZE DBG_SRC );
 	if( rollback->flags.dirty ) {
+		vol->journal.pdlJournaled->Cnt = 0;
 		rollback->flags.dirty = 0;
 		rollback->nextBlock = 0;
 		rollback->nextSmallBlock = 0;
@@ -724,7 +726,7 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 			entry = ( ( enum block_cache_entries* )GetDataItem( &vol->journal.pdlPendingRecord, nextRecord ) )[0];
 		else {
 			vol->journal.pdlPendingRecord->Cnt = 0; // empty the list.
-			vol->journal.pdlJournaled->Cnt = 0; // empty the list.
+			//vol->journal.pdlJournaled->Cnt = 0; // empty the list.
 		}
 	} while( vol->journal.pdlPendingRecord->Cnt );
 
@@ -830,7 +832,7 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 void vfs_os_smudge_cache( struct sack_vfs_os_volume* vol, enum block_cache_entries n ) {
 	if( !TESTFLAG( vol->dirty, n ) ) {
 #ifdef DEBUG_SECTOR_DIRT
-		lprintf( "set dirty on %d", n); 
+		lprintf( "set dirty on %d", n);
 #endif
 		if( !TESTFLAG( vol->_dirty, n ) )
 			vfs_os_record_rollback( vol, n );
@@ -936,7 +938,7 @@ static void _os_MaskStrCpy( char *output, size_t outlen, struct sack_vfs_os_volu
 			output[name_offset-name_start] = 0;
 		else
 			output[outlen-1] = 0;
-	} 
+	}
 }
 #endif
 
@@ -1020,7 +1022,7 @@ static int _os_dumpDirectories( struct sack_vfs_os_volume *vol, BLOCKINDEX start
 // THis is assigning segment into a cache entry, and then reading that data into memory.
 // Large block filebuffers (? like 64 megs of empty space?)
 // where the block is located determines the size of that block; this updates
-// the size 
+// the size
 static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cache_entries *cache_idx, BLOCKINDEX segment, uint8_t *age, int ageLength DBG_PASS ) {
 	int n, m;
 	int least;
@@ -1196,7 +1198,8 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 
 enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, enum block_cache_entries cache_idx, BLOCKINDEX segment DBG_PASS )
 {
-	//LoG( "UPDATE OS SEGKEY %d %d", cache_idx, segment );
+	BLOCKINDEX oldSegs[BC(COUNT)];
+	memcpy(oldSegs, vol->segment, sizeof(oldSegs));
 	if( cache_idx == BC(FILE) ) {
 		_os_updateCacheAge_( vol, &cache_idx, segment, vol->fileCacheAge, (BC(FILE_LAST) - BC(FILE)) DBG_RELAY );
 	}
@@ -1286,6 +1289,10 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 		}
 		vol->segment[cache_idx] = segment;
 	}
+#ifdef DEBUG_TRACE_LOG
+	if (segment != oldSegs[cache_idx])
+		_lprintf(DBG_RELAY)("UPDATE OS SEGKEY %d %d", cache_idx, segment);
+#endif
 	//LoG( "Resulting stored segment in %d", cache_idx );
 	//lprintf( "Got Block %d into cache %d", (int)segment, cache_idx );
 	return cache_idx;
@@ -3047,7 +3054,7 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 				filename++;
 				this_dir_block = nextblock;
 				// retry;
-				continue; 
+				continue;
 			}
 		}
 		usedNames = dirblock->used_names;
@@ -3056,7 +3063,7 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 		if( usedNames == VFS_DIRECTORY_ENTRIES ) {
 			ConvertDirectory( vol, leadin, leadinDepth, this_dir_block, dirblock, &cache );
 			/* retry */
-			continue; 
+			continue;
 		}
 		{
 			struct directory_entry *ent;
@@ -3378,7 +3385,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 				file->entry->filesize = 0;
 				file->blockChainLength = 0;
 				dropRawTimeEntry( file->vol, cache GRTENoLog DBG_SRC );
-			} 
+			}
 
 			//file->entry->timelineEntry = file->entry->timelineEntry;
 			updated = TRUE;
