@@ -405,11 +405,11 @@ PDATALIST ExpandDataListEx( PDATALIST *ppdl, INDEX entries DBG_PASS )
 POINTER SetDataItemEx( PDATALIST *ppdl, INDEX idx, POINTER data DBG_PASS )
 {
 	POINTER p = NULL;
-	if( !ppdl || !(*ppdl) || idx > 0x100000 )
+	if( !ppdl || !(*ppdl) || idx > 0x1000000 )
 		return NULL;
 	if( idx >= (*ppdl)->Avail )
 	{
-		ExpandDataListEx( ppdl, (idx-(*ppdl)->Avail)+32 DBG_RELAY );
+		ExpandDataListEx( ppdl, idx+32 DBG_RELAY );
 	}
 	p = (*ppdl)->data + ( (*ppdl)->Size * idx );
 	MemCpy( p, data, (*ppdl)->Size );
