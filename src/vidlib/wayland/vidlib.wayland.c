@@ -175,7 +175,10 @@ static void pointer_enter(void *data,
     wl_fixed_t surface_x, wl_fixed_t surface_y)
 {
 	struct pointer_data *pointer_data;
-
+	if( !surface )  {
+		lprintf( "pointer enter No Surface.... not sure how we can handle that" );
+		return;
+	}
 	pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
 	pointer_data->target_surface = surface;
 	/*
@@ -204,6 +207,7 @@ static void pointer_enter(void *data,
 static void pointer_leave(void *data,
 	struct wl_pointer *wl_pointer, uint32_t serial,
 	struct wl_surface *wl_surface) {
+	if( !wl_surface ) return; // closed surface..
 	struct pointer_data* pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
 	PXPANEL r = wl_surface_get_user_data(
 		pointer_data->target_surface);
@@ -296,8 +300,8 @@ static void pointer_button(void *data,
 static void pointer_axis(void *data,
     struct wl_pointer *wl_pointer, uint32_t time,
     uint32_t axis, wl_fixed_t value) {
-
-					 lprintf( "Axis discrete:%d %d.%02x", axis, value>>8, value&0xFF );
+		 // 0 is default scroll wheel
+		//lprintf( "Axis discrete:%d %d.%02x", axis, value>>8, value&0xFF );
 
 
 	  }
@@ -310,19 +314,19 @@ static void pointer_frame( void *data,
 	static void pointer_axis_source(void *data,
 			    struct wl_pointer *wl_pointer,
 			    uint32_t axis_source){
-					 lprintf( "Axis source:%d", axis_source );
+					 //lprintf( "Axis source:%d", axis_source );
 				 }
 	static void pointer_axis_stop(void *data,
 			  struct wl_pointer *wl_pointer,
 			  uint32_t time,
 			  uint32_t axis){
-					 lprintf( "Axis stop:%d %d", time, axis );
+					 //lprintf( "Axis stop:%d %d", time, axis );
 			  }
 	static void pointer_axis_discrete(void *data,
 			      struct wl_pointer *wl_pointer,
 			      uint32_t axis,
 			      int32_t discrete){
-					 lprintf( "Axis discrete:%d %d", axis, discrete );
+					 //lprintf( "Axis discrete:%d %d", axis, discrete );
 
 					}
 
@@ -865,7 +869,7 @@ static struct wl_buffer * allocateBuffer( PXPANEL r )
 					stride,
 					WL_SHM_FORMAT_ARGB8888);
 	wl_buffer_add_listener( r->buff, &buffer_listener, r );
-	lprintf( "" );
+	lprintf( "created a pool and got a buffer, destroy pool now..." );
 	wl_shm_pool_destroy(pool);
 
 	return r->buff;
@@ -1028,9 +1032,24 @@ static uintptr_t waylandDrawThread( PTHREAD thread ) {
 		struct mouseEvent event;
 
 		if( DequeData( &wl.pdlMouseEvents, &event ) ) {
+			if( wl.hCaptured ) {
+				/*
+					struct wvideo_tag *r = wl.hCaptured;
+
+					while( r && r->above ){
+						lprintf( "adjust mouse event by %d %d   %d %d", r->x, r->y, event.x, event.y );
+						//event.x -= r->x; // root x/y is not reliable... we're sourced to that parent.
+						//event.y -= r->y;
+						r = r->above;
+					}
+					*/
+					wl.hCaptured->mouse( wl.hCaptured->psvMouse, event.x, event.y, event.b );
+
+			}else {
 				if (event.r != NULL && event.r->mouse ) {
 					event.r->mouse( event.r->psvMouse, event.x, event.y, event.b );
 				}
+			}
 				sleepTime = 0;
 		}
 		if( sleepTime ) { // if mouse happened, ignore keys this pass...
@@ -1266,6 +1285,11 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 	if( parent ) {
 		r->sub_surface = wl_subcompositor_get_subsurface( wl.subcompositor, r->surface, parent->surface );
 		wl_subsurface_set_user_data(r->sub_surface, r);
+		wl_subsurface_set_position( r->sub_surface, r->x, r->y );
+		wl_subsurface_set_desync( r->sub_surface );
+		lprintf( "Created subsurface and attached it... %d %d", r->x, r->y );
+		wl_surface_commit( parent->surface );
+
 	} else {
 		if(wl.shell && !wl.xdg_wm_base) {
 			r->shell_surface = wl_shell_get_shell_surface(wl.shell, r->surface);
@@ -1328,8 +1352,10 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 		r->flags.commited = 0;
 		if( r->pRedrawCallback )
 			r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
-		else
+		else {
 			r->flags.commited = 1; // no real draw (closed?)
+			lprintf( "No redraw callback, forcing commit");
+		}
 		if( !r->flags.commited )
 			if( r->flags.canCommit ) {
 #if defined( DEBUG_COMMIT ) || defined( DEBUG_COMMIT_STATE )
@@ -1396,13 +1422,22 @@ static PRENDERER sack_wayland_OpenDisplayAboveUnderSizedAt(uint32_t attr , uint3
 	r = New( struct wvideo_tag );
 	memset( r, 0, sizeof( *r ) );
 #if defined( DEBUG_COMMIT )
-	lprintf( "Initialize with canCommit" );
+	lprintf( "Initialize with canCommit %d %d %d %d", x, y, w, h );
 #endif
 	r->flags.canCommit = 1;
 	r->above = rAbove;
 	r->under = rUnder;
 	r->bufw = r->w = w;
 	r->bufh = r->h = h;
+	{
+		struct wvideo_tag *parent = r->above;
+		while( (parent ) && parent->sub_surface ) {
+			x -= parent->x;
+			y -= parent->y;
+			lprintf( "adjust position:%d %d %d %d", x, y, parent->x, parent->y );
+			parent = parent->above;
+		}
+	}
 	r->x = x;
 	r->y = y;
 
@@ -1439,8 +1474,10 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 	if( wl.hVidFocused == r ) wl.hVidFocused = NULL;
 	if( wl.hCaptured == r ) wl.hCaptured = NULL;
 	r->flags.bDestroy = 1;
-	if( r->sub_surface )
+	if( r->sub_surface ) {
 		wl_subsurface_destroy( r->sub_surface );
+		lprintf( "destroy sub_surface... " );
+	}
 	if( r->shell_surface ) {
 		if( wl.xdg_wm_base ) {
 		if( r->xdg_toplevel )
@@ -1453,6 +1490,11 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 	wl_surface_destroy( r->surface );
 	r->surface = NULL;
 	DeleteLink( &wl.pActiveList, r );
+	if( r->above ) {
+		struct wvideo_tag *a = r->above;
+		while( a->above ) a = a->above;
+		wl_surface_commit( a->surface );
+	}
 }
 
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
@@ -1563,21 +1605,36 @@ static void sack_wayland_GetDisplayPosition( PRENDERER renderer, int32_t* x, int
 
 static void sack_wayland_MoveDisplay(PRENDERER renderer, int32_t x, int32_t y){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	//lprintf( "MOVE DISPLAY %d %d", x, y);
-	if( wl.hCaptured == r ){
+	lprintf( "MOVE DISPLAY %d %d", x, y);
+	if( r->sub_surface ){
+		struct wvideo_tag *parent = r->above;
+		while( (parent) && parent->sub_surface ) {
+			x -= parent->x;
+			y -= parent->y;
+			lprintf( "adjust position:%d %d %d %d", x, y, parent->x, parent->y );
+			parent = parent->above;
+		}
+		lprintf( "MOVE SUBSURFACE %d %d", x, y );
+		r->x = x;
+		r->y = y;
+		wl_subsurface_set_position( r->sub_surface, x, y );
+
+	}
+	else if( wl.hCaptured == r ){
 		lprintf( "Fabricting system drag");
 		sack_wayland_BeginMoveDisplay(renderer);
 
-	}
-	if( r->above ){
-		lprintf( "MOVE SUBSURFACE" );
-		wl_subsurface_set_position( r->sub_surface, x, y );
 	}
 }
 static void sack_wayland_MoveDisplayRel(PRENDERER renderer, int32_t dx, int32_t dy){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	lprintf( "MOVE DISPLAYREL %d %d", dx, dy);
+	if( r->sub_surface ){
+		r->x += dx;
+		r->y += dy;
+		wl_subsurface_set_position( r->sub_surface, r->x, r->y );
 
+	}
 }
 
 
@@ -1671,6 +1728,7 @@ static void sack_wayland_HideDisplay( PRENDERER renderer ){
 	if( !r->flags.hidden ) {
 		r->flags.hidden = 1;
 		clearBuffer(r);
+		wl_surface_commit( r->surface );
 	}
 }
 
@@ -1684,7 +1742,7 @@ Image GetDisplayImage(PRENDERER renderer) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( r ) {
 		if( !r->pImage ) {
-			lprintf( "Get the display iamge, which uses next buffer");
+			lprintf( "Get the display image, which uses next buffer");
 			nextBuffer(r,1 );
 		}
 		return r->pImage;
@@ -1694,7 +1752,7 @@ Image GetDisplayImage(PRENDERER renderer) {
 
 static void sack_wayland_OwnMouseEx ( PRENDERER display, uint32_t bOwn DBG_PASS ){
 	struct wvideo_tag *r = (struct wvideo_tag*)display;
-	//_lprintf( DBG_RELAY )( "Own Mouse - probably for move/drag... %p %d", display, bOwn );
+	_lprintf( DBG_RELAY )( "Own Mouse - probably for move/drag... %p %d", display, bOwn );
 	if( bOwn )
 		wl.hCaptured = r;
 	else if( wl.hCaptured == r || !r )
@@ -1769,9 +1827,11 @@ void sack_wayland_BeginMoveDisplay(  PRENDERER renderer ) {
 	lprintf( "Issue Mouse Move %d", wl.mouseSerial );
  	wl.mouse_.b &= ~MK_LBUTTON;
 
-	if( wl.xdg_wm_base )
-		xdg_toplevel_move( r->xdg_toplevel, wl.seat, wl.mouseSerial );
-	else
+	if( r->sub_surface ) {
+		//wl_subsurface_set_position( r->sub_surface, 0, 0 );
+	} else if( wl.xdg_wm_base ) {
+		if( r->xdg_toplevel) xdg_toplevel_move( r->xdg_toplevel, wl.seat, wl.mouseSerial );
+	} else
 		wl_shell_surface_move( r->shell_surface, wl.seat, wl.mouseSerial );
  }
  //static void sack_wayland_EndMoveDisplay(  PRENDERER pRenderer )
