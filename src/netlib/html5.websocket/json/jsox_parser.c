@@ -641,9 +641,12 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 #endif
 		if( !knownArrayTypeNames ) registerKnownArrayTypeNames();
 		typeIndex = 0;
-		LIST_FORALL( knownArrayTypeNames, typeIndex, char *, name )
-			if( memcmp( state->val.className, name, state->val.classNameLen ) == 0 )
+		LIST_FORALL( knownArrayTypeNames, typeIndex, char *, name ) {
+			int typeLen = name[0] ? name[1] ? name[2] ? name[3] ? 4 : 3 : 2 : 1 : 0;
+			if( typeLen == state->val.classNameLen 
+				&& memcmp( state->val.className, name, state->val.classNameLen ) == 0 )
 				break;
+		}
 		if( typeIndex < 13 ) {
 			state->word = JSOX_WORD_POS_FIELD;
 			newArrayType = (int)typeIndex;
@@ -977,7 +980,7 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 		if( !state->completedString ) {
 			state->completedString = TRUE;
 			state->val.stringLen = output->pos - state->val.string;
-		}
+}
 #ifdef DEBUG_STRING_LENGTH
 		lprintf( "Update stringLen  '%c'  :%d", cInt?cInt:'~', state->val.stringLen );
 #endif
@@ -988,7 +991,7 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 			if( !state->completedString ) {
 				state->completedString = TRUE;
 				state->val.stringLen = output->pos - state->val.string;
-			}
+}
 #ifdef DEBUG_STRING_LENGTH
 			lprintf( "Update stringLen  '%c'  :%d", cInt, state->val.stringLen );
 #endif
@@ -1108,6 +1111,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			EnqueLinkNL( state->inBuffers, input );
 		}
 		if( state->gatheringString
+			|| state->val.string // already assigned to an existing outbuffer
 			|| state->gatheringNumber
 			|| state->word == JSOX_WORD_POS_FIELD
 			|| state->parse_context == JSOX_CONTEXT_OBJECT_FIELD ) {
@@ -1116,13 +1120,25 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			size_t offset2;
 			output = (struct jsox_output_buffer*)DequeLinkNL( state->outQueue );
 			//lprintf( "output from before is %p", output );
-			offset = (output->pos - output->buf);
-			offset2 = state->val.string ? (state->val.string - output->buf) : 0;
-			AddLink( state->outValBuffers, output->buf );
-			output->buf = NewArray( char, output->size + msglen + 1 );
-			if( state->val.string ) {
-				MemCpy( output->buf + offset2, state->val.string, offset - offset2 );
-				state->val.string = output->buf + offset2;
+			if( output ) {
+				offset = (output->pos - output->buf);
+			}
+			offset2 = ( state->val.string && output ) ? (state->val.string - output->buf) : 0;
+			if( output ) {
+				AddLink( state->outValBuffers, output->buf );
+				output->buf = NewArray( char, output->size + msglen + 1 );
+				if( state->val.string ) {
+					MemCpy( output->buf + offset2, state->val.string, offset - offset2 );
+					state->val.string = output->buf + offset2;
+				}
+			} else {
+				output = (struct jsox_output_buffer*)GetFromSet( JSOX_PARSE_BUFFER, &state->parseBuffers );
+				offset = state->val.stringLen;
+				output->size = state->val.stringLen;
+				output->buf = NewArray( char, output->size + msglen + 1 );
+				MemCpy( output->buf, state->val.string, state->val.stringLen );
+				
+				state->val.string = output->buf;
 			}
 			output->size += msglen;
 			//lprintf( "previous val:%s", state->val.string, state->val.string );
@@ -1303,7 +1319,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							DeleteLink( &state->classes, state->current_class );
 							DeleteFromSet( JSOX_CLASS, &state->classPool, state->current_class );
 							state->current_class = NULL;
-							state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_NORMAL;
+							state->objectContext = JSOX_OBJECT_CONTEXT_CLASS_NORMAL;
 						}
 						// need to establish whether this is a tag definition state
 						// or tagged-revival revival, or just a prototyped object that's not a tag-revival.
@@ -1568,6 +1584,14 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							state->status = FALSE;
 						}
 					}
+					else {
+						if( state->val.value_type != JSOX_VALUE_UNSET ) {
+							if( !state->pvtError ) state->pvtError = VarTextCreate();
+// fault
+							vtprintf( state->pvtError, "invalid value where a field name is expected %" _size_f "  %" _size_f ":%" _size_f, state->parse_context, c, state->n, state->line, state->col );
+							state->status = FALSE;
+						}
+					}
 					// empty comma , field,field... woudlbe ,,,, '
 				}
 				else if( state->parse_context == JSOX_CONTEXT_IN_ARRAY ) {
@@ -1748,9 +1772,12 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							}
 							break;
 						}
-						if( (state->word == JSOX_WORD_POS_RESET) || ( state->word == JSOX_WORD_POS_AFTER_FIELD ) )
+						if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
+							state->completed = TRUE;
 							break;
-						else if( state->word == JSOX_WORD_POS_FIELD ) {
+						} else if( state->word == JSOX_WORD_POS_RESET ) {
+							break;
+						} else if( state->word == JSOX_WORD_POS_FIELD ) {
 							if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
 								state->completed = TRUE;
 								break;
@@ -1863,10 +1890,12 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						}
 						break;
 					}
-					if( state->word == JSOX_WORD_POS_RESET || (state->word == JSOX_WORD_POS_AFTER_FIELD) ) {
+					if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
+						state->completed = TRUE;
+						break;					
+					} else if( (state->word == JSOX_WORD_POS_RESET) ) {
 						break;
-					}
-					else if( state->word == JSOX_WORD_POS_FIELD ) {
+					} else if( state->word == JSOX_WORD_POS_FIELD ) {
 						if( state->val.string ) {
 							state->val.value_type = JSOX_VALUE_STRING;
 							state->word = JSOX_WORD_POS_AFTER_FIELD;
@@ -2178,7 +2207,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				goto gatherStringInput;
 			// got a completed value; skip out
 			if( state->completed ) {
-				if( state->word == JSOX_WORD_POS_END ) {
+				if( state->word == JSOX_WORD_POS_END || state->completedString ) {
 					state->word = JSOX_WORD_POS_RESET;
 				}
 				break;
@@ -2192,6 +2221,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 
 				DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, input );
 				if( state->gatheringString
+				    || ( state->val.string && state->parse_context == JSOX_CONTEXT_UNKNOWN && !state->completedString )
 					|| state->gatheringNumber
 					|| state->parse_context == JSOX_CONTEXT_OBJECT_FIELD
 					|| state->word == JSOX_WORD_POS_FIELD ) {
@@ -2342,6 +2372,7 @@ void jsox_parse_clear_state( struct jsox_parse_state *state ) {
 		state->gatheringString = FALSE;
 		state->gatheringNumber = FALSE;
 		state->val.value_type = JSOX_VALUE_UNSET;
+		state->val.string = NULL;
 		{
 			PDATALIST *result = state->elements;
 			state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
@@ -2387,6 +2418,7 @@ void jsox_parse_dispose_state( struct jsox_parse_state **ppState ) {
 	}
 	while( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
 		DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
+	state->val.string = NULL; 
 	while( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
 		Deallocate( const char*, buffer->buf );
 		DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
