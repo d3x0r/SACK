@@ -1,25 +1,25 @@
 /* Defines the interface InterShell exports for plugin modules
    to use.
-   
-   
-   
-   
+
+
+
+
    Note
    When using the intershell interface in a project, each file
    must define USES_INTERSHELL_INTERFACE, and a single file must
    define DEFINES_INTERSHELL_INTERFACE.
-   
+
    <code lang="c++">
-   
+
    // only define this in a single source
    \#define DEFINES_INTERSHELL_INTERFACE
    // define this for each source that uses methods in InterShell.
    \#define USES_INTERSHELL_INTERFACE
    \#include \<InterShell_export.h\>
    </code>
-   
-   
-   
+
+
+
                                                                    */
 #define DEPRICATE_USE_A_FONT
 #ifndef InterShell_EXPORT
@@ -65,10 +65,10 @@
 
 
 namespace sack {
-	/* \ \ 
+	/* \ \
 	   Example
 	   A Simple Button
-	   
+
 	   This simple button, when clicked will show a message box
 	   indicating that the button was clicked. For button controls
 	   there is a default configuration dialog that is used for
@@ -77,17 +77,17 @@ namespace sack {
 	   dialog, depending on its current design is able to set all
 	   relavent properties common to buttons, such as colors, font,
 	   button style, perhaps a page change indicator.
-	   
-	   
-	   
+
+
+
 	   <code lang="c++">
-	   
-	   
+
+
 	   OnCreateMenuButton( "basic/Hello World" )( PMENU_BUTTON button )
 	   {
 	       return 1; // result OK to create.
 	   }
-	   
+
 	   OnKeyPressEvent( "basic/Hello World" )( uintptr_t psvUnused )
 	   {
 	       SimpleMessageBox( NULL  // the parent frame, NULL is okay
@@ -97,12 +97,12 @@ namespace sack {
 	       // and a title, and an OK button. The function waits
 	       // until the OK button is clicked before returning.
 	   }
-	   
-	   
+
+
 	   </code>
-	   
+
 	   A Simple Listbox
-	   
+
 	   <code lang="c++">
 	   OnCreateListbox( "basic/List Test" )( PSI_CONTROL pc_list )
 	   {
@@ -111,24 +111,24 @@ namespace sack {
 	   // by typecasting it back to the original PSI_CONTROL
 	   // type that it is.
 	   }
-	   
-	   
-	   
+
+
+
 	   </code>
 	   // several implementations of listboxes change their content
-	   
+
 	   based on the state of other controls around them, and/or
-	   
+
 	   database content. The OnShowControl is a convenient place
-	   
+
 	   to re-populate the listbox with new data.
-	   
+
 	   There is no requirement to do this in this way.
-	   
+
 	   Some listboxes may populate their content during OnCreate.
-	   
+
 	   <code lang="c++">
-	   
+
 	   OnShowControl( "basic/List Test" )( uintptr_t psvList )
 	   {
 	         PSI_CONTROL pc_list = (PSI_CONTROL)psvList;
@@ -136,25 +136,25 @@ namespace sack {
 	         AddListItem( pc_list, "One List Item" );
 	         AddListItem( pc_list, "Another List Item" );
 	   }
-	   
-	   
-	   
-	   
-	   
-	   
-	   
-	   
-	   
+
+
+
+
+
+
+
+
+
 	   A Simple Control
-	   
-	   
-	   
+
+
+
 	   There is no such thing as a "simple" control.
-	   
-	   
-	   
+
+
+
 	   OnCreateControl( "basic/Other Control" )( PSI_CONTROL frame, int32_t x, int32_t y, uint32_t w, uint32_t h )
-	   
+
 	   {
 	         // this code results with a create PSI control.
 	         // the PSI control must have been previously registered
@@ -163,7 +163,7 @@ namespace sack {
 	   // or of creating a control that fails creation
 	   // for one reason or another is NULL, which will in turn
 	   // fails creation of the InterShell control.
-	   
+
 	         return (uintptr_t)MakeNamedControl( frame
 	                 , "Some PSI Control type-name"
 	                 , x, y  // control position passed to event
@@ -174,16 +174,16 @@ namespace sack {
 	   </code>
 	   <code lang="c++">
 	   }
-	   
-	   
-	   
+
+
+
 	   // For InterShell to be able to hide the control when pages change,
 	   // show the control when pages change, move the control to
 	   // a new position, or to resize the control, this method MUST
 	   // be defined for InterShell widgets created through OnCreateControl.
-	   
-	   
-	   
+
+
+
 	   OnQueryGetControl( uintptr_t psv )
 	   {
 	         // since we know that we returned a PSI_CONTROL from the
@@ -234,9 +234,9 @@ typedef struct variable_tag *PVARIABLE;
 
 /* moved from text_label.h these values need to be exposed to
    peer modules
-   
-   
-   
+
+
+
    This enumeration defines values used in CreateLabelVariable
    and CreateLabelVariableEx.                                  */
 enum label_variable_types {
@@ -266,52 +266,52 @@ enum label_variable_types {
 };
 /* This is the type of the variable expected if a label is
    created with LABEL_TYPE_STRING.
-   
-   
+
+
    See Also
    CreateLabelVariable
-   
+
    CreateLabelVariableEx                                   */
 typedef CTEXTSTR  *label_string_value;
 /* This is the type of the variable expected if a label is
    created with LABEL_TYPE_INT.
    See Also
    CreateLabelVariable
-   
+
    CreateLabelVariableEx                                   */
 typedef uint32_t       *label_int_value;
 /* This is the type of the variable expected if a label is
    created with LABEL_TYPE_PROC.
-   
-   
+
+
    See Also
    CreateLabelVariable
-   
+
    CreateLabelVariableEx                                   */
 typedef CTEXTSTR (*label_gettextproc)(void);
 /* This is the type of the variable expected if a label is
    created with LABEL_TYPE_PROC_EX.
    See Also
    CreateLabelVariable
-   
+
    CreateLabelVariableEx                                   */
 typedef CTEXTSTR (*label_gettextproc_ex)(uintptr_t);
 /* This is the type of the variable expected if a label is
    created with LABEL_TYPE_PROC_CONTROL_EX.
-   
-   
+
+
    See Also
    CreateLabelVariable
-   
+
    CreateLabelVariableEx                                   */
 typedef CTEXTSTR (*label_gettextproc_control)(uintptr_t, PMENU_BUTTON);
 /* This is the type of the variable expected if a label is
    created with LABEL_TYPE_PROC_PARAMETER.
-   
-   
+
+
    See Also
    CreateLabelVariable
-   
+
    CreateLabelVariableEx                                   */
 typedef CTEXTSTR (*label_value_proc_parameter)( int64_t value );
    /* this is the type of function to pass LABEL_TYPE_VALUE_STRING */
@@ -321,7 +321,7 @@ struct intershell_interface {
 
 
 /* <combine sack::intershell::GetCommonButtonControls@PSI_CONTROL>
-   
+
    \ \                                                             */
 INTERSHELL_PROC_PTR( void, GetCommonButtonControls )( PSI_CONTROL frame );
 
@@ -336,7 +336,7 @@ INTERSHELL_PROC_PTR( void, ResumeMenu )( uintptr_t psv, uint32_t keycode );
 #define COLOR_DISABLE 0x00010000 // okay transparent level 1 red is disable key. - cause that's such a useful color alone.
 #define COLOR_IGNORE  0x00000000
 /* <combine sack::intershell::InterShell_GetButtonColors@PMENU_BUTTON@CDATA *@CDATA *@CDATA *@CDATA *>
-   
+
    \ \                                                                                                 */
 INTERSHELL_PROC_PTR( void, InterShell_GetButtonColors )( PMENU_BUTTON button
 													, CDATA *cText
@@ -347,7 +347,7 @@ INTERSHELL_PROC_PTR( void, InterShell_SetButtonColors )( PMENU_BUTTON button, CD
 INTERSHELL_PROC_PTR( void, InterShell_SetButtonColor )( PMENU_BUTTON button, CDATA primary, CDATA secondary );
 INTERSHELL_PROC_PTR( void, InterShell_SetButtonText )( PMENU_BUTTON button, CTEXTSTR text );
 /* <combine sack::intershell::InterShell_GetButtonText@PMENU_BUTTON@TEXTSTR@int>
-   
+
    \ \                                                                           */
 INTERSHELL_PROC_PTR( void, InterShell_GetButtonText )( PMENU_BUTTON button, TEXTSTR text, int text_buf_len );
 INTERSHELL_PROC_PTR( void, InterShell_SetButtonImage )( PMENU_BUTTON button, CTEXTSTR name );
@@ -355,15 +355,15 @@ INTERSHELL_PROC_PTR( void, InterShell_SetButtonImage )( PMENU_BUTTON button, CTE
 
 #endif
 /* <combine sack::intershell::InterShell_CommonImageLoad@CTEXTSTR>
-   
+
    \ \                                                             */
 INTERSHELL_PROC_PTR( Image, InterShell_CommonImageLoad )( CTEXTSTR name );
 /* <combine sack::intershell::InterShell_CommonImageUnloadByName@CTEXTSTR>
-   
+
    \ \                                                                     */
 INTERSHELL_PROC_PTR( void, InterShell_CommonImageUnloadByName )( CTEXTSTR name );
 /* <combine sack::intershell::InterShell_CommonImageUnloadByImage@Image>
-   
+
    \ \                                                                   */
 INTERSHELL_PROC_PTR( void, InterShell_CommonImageUnloadByImage )( Image unload );
 
@@ -404,17 +404,17 @@ INTERSHELL_PROC_PTR( int, ShellCallSetCurrentPage )( PSI_CONTROL pc_canvas, CTEX
 
 INTERSHELL_PROC_PTR( void, ShellReturnCurrentPage )( PSI_CONTROL pc_canvas );
 /* <combine sack::intershell::ClearPageList>
-   
+
    \ \                                       */
 INTERSHELL_PROC_PTR( void, ClearPageList )( PSI_CONTROL pc_canvas );
 
 /* <combine sack::intershell::InterShell_DisablePageUpdate@LOGICAL>
-   
+
    \ \                                                              */
 INTERSHELL_PROC_PTR( void, InterShell_DisablePageUpdate )( PSI_CONTROL pc_canvas, LOGICAL bDisable );
 INTERSHELL_PROC_PTR( void, RestoreCurrentPage )( PSI_CONTROL pc_canvas );
 /* <combine sack::intershell::HidePageExx@PSI_CONTROL pc_canvas>
-   
+
    \ \                                                           */
 INTERSHELL_PROC_PTR( void, HidePageExx )( PSI_CONTROL pc_canvas DBG_PASS);
 #define HidePageEx2(page) HidePageExx( page DBG_SRC )
@@ -423,20 +423,20 @@ INTERSHELL_PROC_PTR( void, HidePageExx )( PSI_CONTROL pc_canvas DBG_PASS);
 
 
 /* <combine sack::intershell::InterShell_DisableButtonPageChange@PMENU_BUTTON>
-   
+
    \ \                                                                         */
 INTERSHELL_PROC_PTR( void, InterShell_DisableButtonPageChange )( PMENU_BUTTON button );
 
 /* <combine sack::intershell::CreateLabelVariable@CTEXTSTR@enum label_variable_types@CPOINTER>
-   
+
    \ \                                                                                         */
 INTERSHELL_PROC_PTR( PVARIABLE, CreateLabelVariable )( CTEXTSTR name, enum label_variable_types type, CPOINTER data );
 /* <combine sack::intershell::CreateLabelVariableEx@CTEXTSTR@enum label_variable_types@CPOINTER@uintptr_t>
-   
+
    \ \                                                                                                    */
 INTERSHELL_PROC_PTR( PVARIABLE, CreateLabelVariableEx )( CTEXTSTR name, enum label_variable_types type, CPOINTER data, uintptr_t psv );
-INTERSHELL_PROC_PTR( void, LabelVariableChanged )( PVARIABLE ); 
-INTERSHELL_PROC_PTR( void, LabelVariablesChanged )( PLIST ); 
+INTERSHELL_PROC_PTR( void, LabelVariableChanged )( PVARIABLE );
+INTERSHELL_PROC_PTR( void, LabelVariablesChanged )( PLIST );
 
 
 INTERSHELL_PROC_PTR( void, InterShell_HideEx )( PSI_CONTROL pc_canvas DBG_PASS );
@@ -446,21 +446,21 @@ INTERSHELL_PROC_PTR( void, InterShell_RevealEx )( PSI_CONTROL pc_canvas DBG_PASS
 #define InterShell_Reveal( c )  InterShell_RevealEx( c DBG_SRC )
 
 /* <combine sack::intershell::GetPageSize@uint32_t*@uint32_t*>
-   
+
    \ \                                               */
 INTERSHELL_PROC_PTR( void, GetPageSize )( uint32_t* width, uint32_t* height );
 
 
 INTERSHELL_PROC_PTR( void, SetButtonTextField )( PMENU_BUTTON pKey, PTEXT_PLACEMENT pField, TEXTCHAR *text );
 /* <combine sack::intershell::AddButtonLayout@PMENU_BUTTON@int@int@SFTFont *@CDATA@uint32_t>
-   
+
    \ \                                                                               */
 INTERSHELL_PROC_PTR( PTEXT_PLACEMENT, AddButtonLayout )( PMENU_BUTTON pKey, int x, int y, SFTFont *font, CDATA color, uint32_t flags );
 
 
 
 /* <combine sack::intershell::InterShell_GetButtonControl@PMENU_BUTTON>
-   
+
    \ \                                                                  */
 INTERSHELL_PROC_PTR( PSI_CONTROL, InterShell_GetButtonControl )( PMENU_BUTTON button );
 
@@ -471,7 +471,7 @@ INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_TranslateLabelText )( PPAGE_LABEL labe
 
 
 /* <combine sack::intershell::InterShell_GetControlLabelText@PMENU_BUTTON@PPAGE_LABEL@CTEXTSTR>
-   
+
    \ \                                                                                          */
 INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_GetControlLabelText )( PMENU_BUTTON button, PPAGE_LABEL label, CTEXTSTR variable );
 
@@ -479,7 +479,7 @@ INTERSHELL_PROC_PTR( SFTFont *, SelectACanvasFont )( PSI_CONTROL canvas, PSI_CON
 
 
 /* <combine sack::intershell::BeginCanvasConfiguration@PSI_CONTROL>
-   
+
    \ \                                                              */
 INTERSHELL_PROC_PTR( void, BeginCanvasConfiguration )( PSI_CONTROL pc_canvas );
 INTERSHELL_PROC_PTR( void, SaveCanvasConfiguration )( FILE *file, PSI_CONTROL pc_canvas );
@@ -490,11 +490,11 @@ INTERSHELL_PROC_PTR( PCONFIG_HANDLER, InterShell_GetCurrentConfigHandler )( void
 
 
 /* <combine sack::intershell::BeginSubConfiguration@TEXTCHAR *@TEXTCHAR *>
-   
+
    \ \                                                                     */
-INTERSHELL_PROC_PTR( LOGICAL, BeginSubConfiguration )( TEXTCHAR *control_type_name, const TEXTCHAR *end_type_name );
+INTERSHELL_PROC_PTR( LOGICAL, BeginSubConfiguration )( const TEXTCHAR *control_type_name, const TEXTCHAR *end_type_name );
 /* <combine sack::intershell::EscapeMenuString@CTEXTSTR>
-   
+
    \ \                                                   */
 INTERSHELL_PROC_PTR( CTEXTSTR, EscapeMenuString )( CTEXTSTR string );
 INTERSHELL_PROC_PTR( PMENU_BUTTON, InterShell_GetCurrentLoadingControl )( void );
@@ -511,14 +511,14 @@ INTERSHELL_PROC_PTR( PMENU_BUTTON, InterShell_GetPhysicalButton )( PMENU_BUTTON 
 
 INTERSHELL_PROC_PTR( void, InterShell_SetButtonHighlight )( PMENU_BUTTON button, LOGICAL bEnable );
 /* <combine sack::intershell::InterShell_GetButtonHighlight@PMENU_BUTTON>
-   
+
    \ \                                                                    */
 INTERSHELL_PROC_PTR( LOGICAL, InterShell_GetButtonHighlight )( PMENU_BUTTON button );
 
 INTERSHELL_PROC_PTR( CTEXTSTR, InterShell_TranslateLabelTextEx )( PMENU_BUTTON button, PPAGE_LABEL label, TEXTSTR output, int buffer_len, CTEXTSTR variable );
 
 /* <combine sack::intershell::InterShell_CreateControl@CTEXTSTR@int@int@int@int>
-   
+
    \ \                                                                           */
 INTERSHELL_PROC_PTR( uintptr_t,  InterShell_CreateControl )( PSI_CONTROL canvas, CTEXTSTR type, int x, int y, int w, int h );
 
@@ -781,7 +781,7 @@ INTERSHELL_PROC( void, InterShell_SetCloneButton )( PMENU_BUTTON button );
 
 #ifdef USES_INTERSHELL_INTERFACE
 #  ifndef DEFINES_INTERSHELL_INTERFACE
-extern 
+extern
 #  endif
 	 struct intershell_interface *InterShell
 #ifdef __GCC__
@@ -803,10 +803,10 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 
 #ifndef INTERSHELL_SOURCE
 #define InterShell_CreateControl                                ( !InterShell )?0:InterShell->InterShell_CreateControl
-#define  GetCommonButtonControls                               if( InterShell )InterShell->GetCommonButtonControls 
-#define  SetCommonButtonControls							   if( InterShell )InterShell->SetCommonButtonControls 
+#define  GetCommonButtonControls                               if( InterShell )InterShell->GetCommonButtonControls
+#define  SetCommonButtonControls							   if( InterShell )InterShell->SetCommonButtonControls
 #define  InterShell_AddCommonButtonConfig						if( InterShell )InterShell->InterShell_AddCommonButtonConfig
-#define  RestartMenu										   if( InterShell )InterShell->RestartMenu 
+#define  RestartMenu										   if( InterShell )InterShell->RestartMenu
 #define  ResumeMenu											   if( InterShell )InterShell->ResumeMenu
 
 #define  InterShell_SetPageLayout 							   if( InterShell ) InterShell->InterShell_SetPageLayout
@@ -814,58 +814,58 @@ PRIORITY_PRELOAD( InitInterShellInterface, DEFAULT_PRELOAD_PRIORITY - 3)
 #define  InterShell_CreateSomeControl								   ( !InterShell )?NULL:InterShell->InterShell_CreateSomeControl
 
 #define InterShell_GetCurrentlyCreatingButton                (!InterShell)?NULL:InterShell->InterShell_GetCurrentlyCreatingButton
-#define  InterShell_GetButtonColors								   if( InterShell )InterShell->InterShell_GetButtonColors 
-#define  InterShell_SetButtonColors								   if( InterShell )InterShell->InterShell_SetButtonColors 
-#define  InterShell_SetButtonColor								   if( InterShell )InterShell->InterShell_SetButtonColor 
-#define  InterShell_SetButtonText									   if( InterShell )InterShell->InterShell_SetButtonText 
-#define  InterShell_GetButtonText									   if( InterShell )InterShell->InterShell_GetButtonText 
-#define  InterShell_SetButtonImage								   if( InterShell )InterShell->InterShell_SetButtonImage 
-#define  InterShell_SetButtonAnimation							   if( InterShell )InterShell->InterShell_SetButtonAnimation 
-#define  InterShell_CommonImageLoad								   if( InterShell )InterShell->InterShell_CommonImageLoad 
-#define  InterShell_CommonImageUnloadByName						   if( InterShell )InterShell->InterShell_CommonImageUnloadByName 
-#define  InterShell_CommonImageUnloadByImage						   if( InterShell )InterShell->InterShell_CommonImageUnloadByImage 
-#define  InterShell_SetButtonImageAlpha							   if( InterShell )InterShell->InterShell_SetButtonImageAlpha 
+#define  InterShell_GetButtonColors								   if( InterShell )InterShell->InterShell_GetButtonColors
+#define  InterShell_SetButtonColors								   if( InterShell )InterShell->InterShell_SetButtonColors
+#define  InterShell_SetButtonColor								   if( InterShell )InterShell->InterShell_SetButtonColor
+#define  InterShell_SetButtonText									   if( InterShell )InterShell->InterShell_SetButtonText
+#define  InterShell_GetButtonText									   if( InterShell )InterShell->InterShell_GetButtonText
+#define  InterShell_SetButtonImage								   if( InterShell )InterShell->InterShell_SetButtonImage
+#define  InterShell_SetButtonAnimation							   if( InterShell )InterShell->InterShell_SetButtonAnimation
+#define  InterShell_CommonImageLoad								   if( InterShell )InterShell->InterShell_CommonImageLoad
+#define  InterShell_CommonImageUnloadByName						   if( InterShell )InterShell->InterShell_CommonImageUnloadByName
+#define  InterShell_CommonImageUnloadByImage						   if( InterShell )InterShell->InterShell_CommonImageUnloadByImage
+#define  InterShell_SetButtonImageAlpha							   if( InterShell )InterShell->InterShell_SetButtonImageAlpha
 #define  InterShell_IsButtonVirtual								   ( !InterShell )?FALSE:InterShell->InterShell_IsButtonVirtual
-#define  InterShell_SetButtonFont									   if( InterShell )InterShell->InterShell_SetButtonFont 
+#define  InterShell_SetButtonFont									   if( InterShell )InterShell->InterShell_SetButtonFont
 #define  InterShell_GetCurrentButtonFont							   ( !InterShell )?NULL:InterShell->InterShell_GetCurrentButtonFont
-#define  InterShell_SetButtonStyle								   if( InterShell )InterShell->InterShell_SetButtonStyle 
-#define  InterShell_SaveCommonButtonParameters					   if( InterShell )InterShell->InterShell_SaveCommonButtonParameters 
+#define  InterShell_SetButtonStyle								   if( InterShell )InterShell->InterShell_SetButtonStyle
+#define  InterShell_SaveCommonButtonParameters					   if( InterShell )InterShell->InterShell_SaveCommonButtonParameters
 #define  InterShell_GetSystemName									   ( !InterShell )?"NoInterShell":InterShell->InterShell_GetSystemName
-#define  UpdateButtonExx									   if( InterShell )InterShell->UpdateButtonExx 
+#define  UpdateButtonExx									   if( InterShell )InterShell->UpdateButtonExx
 #define  ShellGetCurrentPage(x)								   (( !InterShell )?NULL:InterShell->ShellGetCurrentPage(x))
 #define  ShellGetNamedPage									   ( !InterShell )?NULL:InterShell->ShellGetNamedPage
 #define  ShellSetCurrentPage								   if( InterShell )InterShell->ShellSetCurrentPage
 #define  ShellCallSetCurrentPage							   ( InterShell )?FALSE:InterShell->ShellCallSetCurrentPage
-#define  ShellCallSetCurrentPageEx							   if( InterShell )InterShell->ShellCallSetCurrentPageEx 
-#define  ShellReturnCurrentPage								   if( InterShell )InterShell->ShellReturnCurrentPage 
-#define  ClearPageList										   if( InterShell )InterShell->ClearPageList 
-#define  InterShell_DisablePageUpdate								   if( InterShell )InterShell->InterShell_DisablePageUpdate 
-#define  RestoreCurrentPage									   if( InterShell )InterShell->RestoreCurrentPage 
+#define  ShellCallSetCurrentPageEx							   if( InterShell )InterShell->ShellCallSetCurrentPageEx
+#define  ShellReturnCurrentPage								   if( InterShell )InterShell->ShellReturnCurrentPage
+#define  ClearPageList										   if( InterShell )InterShell->ClearPageList
+#define  InterShell_DisablePageUpdate								   if( InterShell )InterShell->InterShell_DisablePageUpdate
+#define  RestoreCurrentPage									   if( InterShell )InterShell->RestoreCurrentPage
 #define  HidePageExx											   if( InterShell )InterShell->HidePageExx
-#define  InterShell_DisableButtonPageChange						   if( InterShell )InterShell->InterShell_DisableButtonPageChange 
+#define  InterShell_DisableButtonPageChange						   if( InterShell )InterShell->InterShell_DisableButtonPageChange
 #define  CreateLabelVariable								  ( !InterShell )?NULL:InterShell->CreateLabelVariable
 #define  CreateLabelVariableEx								   ( !InterShell )?NULL:InterShell->CreateLabelVariableEx
-#define  LabelVariableChanged								   if( InterShell )InterShell->LabelVariableChanged 
-#define  LabelVariablesChanged								   if( InterShell )InterShell->LabelVariablesChanged 
+#define  LabelVariableChanged								   if( InterShell )InterShell->LabelVariableChanged
+#define  LabelVariablesChanged								   if( InterShell )InterShell->LabelVariablesChanged
 #define  InterShell_HideEx											   if( InterShell )InterShell->InterShell_HideEx
 //#define  InterShell_Reveal										   if( InterShell )InterShell->InterShell_Reveal
 #define  InterShell_RevealEx										   if( InterShell )InterShell->InterShell_RevealEx
 #define  InterShell_GetCurrentlyCreatingButtonType         (!InterShell)?NULL:InterShell->InterShell_GetCurrentlyCreatingButtonType
-#define  GetPageSize										   if( InterShell )InterShell->GetPageSize 
-#define  SetButtonTextField									   if( InterShell )InterShell->SetButtonTextField 
+#define  GetPageSize										   if( InterShell )InterShell->GetPageSize
+#define  SetButtonTextField									   if( InterShell )InterShell->SetButtonTextField
 #define  AddButtonLayout									   ( !InterShell )?NULL:InterShell->AddButtonLayout
 #define  InterShell_GetButtonControl								   ( !InterShell )?NULL:InterShell->InterShell_GetButtonControl
 #define  InterShell_GetButtonCanvas								   ( !InterShell )?NULL:InterShell->InterShell_GetButtonCanvas
 #define  InterShell_GetPhysicalButton								   ( !InterShell )?NULL:InterShell->InterShell_GetPhysicalButton
 #define  InterShell_GetLabelText(label,string)								   ( !InterShell )?(string):InterShell->InterShell_GetLabelText(label,string)
 #define  InterShell_TranslateLabelText								   ( !InterShell )?NULL:InterShell->InterShell_TranslateLabelText
-#define  InterShell_GetControlLabelText								   if( InterShell )InterShell->InterShell_GetControlLabelText 
-#define  BeginCanvasConfiguration								   if( InterShell )InterShell->BeginCanvasConfiguration 
-#define  SaveCanvasConfiguration								   if( InterShell )InterShell->SaveCanvasConfiguration 
-#define  SaveCanvasConfiguration_XML								   if( InterShell )InterShell->SaveCanvasConfiguration_XML 
-#define  InterShell_GetCurrentConfigHandler								   if( InterShell )InterShell->InterShell_GetCurrentConfigHandler 
+#define  InterShell_GetControlLabelText								   if( InterShell )InterShell->InterShell_GetControlLabelText
+#define  BeginCanvasConfiguration								   if( InterShell )InterShell->BeginCanvasConfiguration
+#define  SaveCanvasConfiguration								   if( InterShell )InterShell->SaveCanvasConfiguration
+#define  SaveCanvasConfiguration_XML								   if( InterShell )InterShell->SaveCanvasConfiguration_XML
+#define  InterShell_GetCurrentConfigHandler								   if( InterShell )InterShell->InterShell_GetCurrentConfigHandler
 #define  InterShell_GetCurrentLoadingControl								   ( !InterShell )?NULL:InterShell->InterShell_GetCurrentLoadingControl
-#define  BeginSubConfiguration								   if( InterShell )InterShell->BeginSubConfiguration 
+#define  BeginSubConfiguration								   if( InterShell )InterShell->BeginSubConfiguration
 #define  EscapeMenuString								   ( !InterShell )?NULL:InterShell->EscapeMenuString
 
 #define  InterShell_SetButtonHighlight(a,b)     if(InterShell)InterShell->InterShell_SetButtonHighlight(a,b)

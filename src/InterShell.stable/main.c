@@ -1585,7 +1585,7 @@ SFTFont* CPROC InterShell_GetCurrentButtonFont( void )
 PMENU_BUTTON CPROC InterShell_GetCurrentButton( void )
 {
 	return ( configure_key_dispatch.button );
-}		 
+}
 
 PMENU_BUTTON InterShell_GetPhysicalButton( PMENU_BUTTON button )
 {
@@ -2054,7 +2054,7 @@ void ApplyCommonButtonControls( PSI_CONTROL frame )
 
 static void CPROC PickMenuControlFont( uintptr_t psv, PSI_CONTROL pc )
 {
-	SFTFont *font = SelectACanvasFont( configure_key_dispatch.canvas->pc_canvas 
+	SFTFont *font = SelectACanvasFont( configure_key_dispatch.canvas->pc_canvas
 		, configure_key_dispatch.frame
 		, &configure_key_dispatch.new_font_name
 		);
@@ -2506,7 +2506,7 @@ uintptr_t CPROC ThreadConfigureButton( PTHREAD thread )
 	PTHREAD wake			  = info->waiting;
 
 	info->flags.received = 1;
-	// do not use (*info) after this point! 
+	// do not use (*info) after this point!
 	// the calling thread is GONE and so is this info.
 	save = configure_key_dispatch;
 	MemSet( &configure_key_dispatch, 0, sizeof( configure_key_dispatch ) );
@@ -2592,7 +2592,7 @@ uintptr_t CPROC ThreadConfigureButton( PTHREAD thread )
 		}
 
 	}
-	if( wake ) 
+	if( wake )
 	{
 		// this parameter means the calling thread is waiting for completion, thereofre info is still a valid pointer.
 		info->flags.complete = 1;
@@ -2798,7 +2798,7 @@ void CPROC DrawEditGlare( uintptr_t psv, Image surface )
 						base_color = BASE_COLOR_GREEN;
 						LIST_FORALL( canvas->selected_list, idx2, PMENU_BUTTON, button2 )
 						{
-							if( button2 == button )	
+							if( button2 == button )
 							{
 								selected = 1;
 								base_color = BASE_COLOR_MAGENTA;
@@ -3118,76 +3118,28 @@ static int OnDrawCommon( "Menu Canvas" )( PSI_CONTROL pf )
 }
 
 //---------------------------------------------------------------------------
+struct popupParams {
+	PCanvasData canvas;
+	PSI_CONTROL pc;
+	int32_t px, py;
+	PSI_CONTROL parent_frame;
 
-static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, int32_t px, int32_t py )
-{
-			if( canvas->flags.bEditMode )
-			{
-				canvas->pCurrentControl = MouseInControl( canvas, px, py );
-				if( canvas->pCurrentControl && !canvas->flags.bIgnoreKeys )
-				{
-					PSI_CONTROL parent_frame;
-					uint32_t result;
-					parent_frame = canvas->edit_glare_frame?canvas->edit_glare_frame:canvas->current_page->frame;
+	int read;
+};
+
+static void selectedRegionCallback( uintptr_t psv, int result ) {
+	struct popupParams* params = (struct popupParams*)psv;
+	PSI_CONTROL pc = params->pc;
+	int32_t px = params->px;
+	int32_t py = params->py;
+	PSI_CONTROL parent_frame = params->parent_frame;
+
+	PCanvasData canvas = params->canvas;
+	params->read = 1;
 #ifdef USE_EDIT_GLARE
-					result = TrackPopup( canvas->pControlMenu, parent_frame );
 					OwnMouse( canvas->edit_glare, TRUE );
-#else
-					result = TrackPopup( canvas->pControlMenu, parent_frame );
 #endif
-					if( g.flags.multi_edit )
-					{
-						PPAGE_DATA page = GetPageFromFrame( pc );
-						canvas->current_page = page;
-					}
-					if( !ProcessPageMenuResult( pc, result ) ) switch( result )
-					{
-					case MNU_EDIT_BEHAVIORS:
-						if( EditControlBehaviors )
-						{
-							Banner2Message( "EditControlBehaviors has been disabled" );
-							/*
-							 if( canvas->pCurrentControl->flags.bCustom )
-							 EditControlBehaviors( canvas->pCurrentControl->control );
-							 else
-							 EditControlBehaviors( GetKeyCommon( canvas->pCurrentControl->key ) );
-							 */
-						}
-						break;
-					case MNU_CLONE:
-						InterShell_SetCloneButton( canvas->pCurrentControl );
-						break;
-					case MNU_COPY:
-						InterShell_SetCloneButton( canvas->pCurrentControl );
-						InvokeCopyControl( canvas->pCurrentControl );
-						break;
-					case MNU_PASTE:
-						InterShell_SetCloneButton( canvas->pCurrentControl );
-						InvokePasteControl( canvas->pCurrentControl );
-						break;
-					case MNU_EDIT_CONTROL:
-						ConfigureKeyEx( pc, canvas->pCurrentControl );
-						break;
-					case MNU_EDIT_CONTROL_COMMON:
-						ConfigureKeyExx( pc, canvas->pCurrentControl, FALSE, TRUE );
-						break;
-					case MNU_DESTROY_CONTROL:
-						// first locate it I suppose...
-						DestroyButton( canvas->pCurrentControl );
-						canvas->pCurrentControl = NULL;
-						break;
-					}
-				}
-				else if( ( px >= canvas->selection.x && px < ( canvas->selection.x + canvas->selection.w ) )
-						  && ( py >= canvas->selection.y && py < ( canvas->selection.y + canvas->selection.h ) )
-						  && !canvas->flags.bIgnoreKeys )
-				{
-#ifdef USE_EDIT_GLARE
-					uint32_t result = TrackPopup( g.pSelectionMenu, parent_frame );
-					OwnMouse( canvas->edit_glare, TRUE );
-#else
-					uint32_t result = TrackPopup( g.pSelectionMenu, canvas->pc_canvas );
-#endif
+
 					if( g.flags.multi_edit )
 					{
 						PPAGE_DATA page = GetPageFromFrame( pc );
@@ -3220,23 +3172,18 @@ static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, int32_t px, i
 						}
 						//SaveButtonConfig();
 					}
-				}
-				else
-				{
 
-					if( canvas->flags.bSuperMode )
-					{
-						if( canvas->flags.bEditMode && !canvas->flags.bIgnoreKeys )
-						{
-							PSI_CONTROL parent_frame;
-							uint32_t result;
-							parent_frame = canvas->edit_glare_frame?canvas->edit_glare_frame:canvas->current_page->frame;
-#ifdef USE_EDIT_GLARE
-							result = TrackPopup( canvas->pEditMenu, parent_frame );
-							OwnMouse( canvas->edit_glare, TRUE );
-#else
-							result = TrackPopup( canvas->pEditMenu, canvas->pc_canvas );
-#endif
+}
+
+static void canvasBackgroundMenu( uintptr_t psv, int result ) {
+	struct popupParams* params = (struct popupParams*)psv;
+	PSI_CONTROL pc = params->pc;
+	int32_t px = params->px;
+	int32_t py = params->py;
+	PSI_CONTROL parent_frame = params->parent_frame;
+	PCanvasData canvas = params->canvas;
+	params->read = 1;
+
 							if( g.flags.multi_edit )
 							{
 								PPAGE_DATA page = GetPageFromFrame( pc );
@@ -3269,6 +3216,117 @@ static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, int32_t px, i
 								Log1( "Unhandled menu option: %ld", result );
 								break;
 							}
+
+}
+
+static void menuCallback( uintptr_t psv, int result ) {
+	struct popupParams* params = (struct popupParams*)psv;
+	PSI_CONTROL pc = params->pc;
+	int32_t px = params->px;
+	int32_t py = params->py;
+	PSI_CONTROL parent_frame = params->parent_frame;
+	PCanvasData canvas = params->canvas;
+	params->read = 1;
+
+#ifdef USE_EDIT_GLARE
+					OwnMouse( canvas->edit_glare, TRUE );
+#endif
+
+				if( !ProcessPageMenuResult( pc, result ) ) switch( result )
+				{
+				case MNU_EDIT_BEHAVIORS:
+					if( EditControlBehaviors )
+					{
+						Banner2Message( "EditControlBehaviors has been disabled" );
+						/*
+							if( canvas->pCurrentControl->flags.bCustom )
+							EditControlBehaviors( canvas->pCurrentControl->control );
+							else
+							EditControlBehaviors( GetKeyCommon( canvas->pCurrentControl->key ) );
+							*/
+					}
+					break;
+				case MNU_CLONE:
+					InterShell_SetCloneButton( canvas->pCurrentControl );
+					break;
+				case MNU_COPY:
+					InterShell_SetCloneButton( canvas->pCurrentControl );
+					InvokeCopyControl( canvas->pCurrentControl );
+					break;
+				case MNU_PASTE:
+					InterShell_SetCloneButton( canvas->pCurrentControl );
+					InvokePasteControl( canvas->pCurrentControl );
+					break;
+				case MNU_EDIT_CONTROL:
+					ConfigureKeyEx( pc, canvas->pCurrentControl );
+					break;
+				case MNU_EDIT_CONTROL_COMMON:
+					ConfigureKeyExx( pc, canvas->pCurrentControl, FALSE, TRUE );
+					break;
+				case MNU_DESTROY_CONTROL:
+					// first locate it I suppose...
+					DestroyButton( canvas->pCurrentControl );
+					canvas->pCurrentControl = NULL;
+					break;
+				}
+
+}
+
+static int ProcessContextMenu( PCanvasData canvas, PSI_CONTROL pc, int32_t px, int32_t py )
+{
+			if( canvas->flags.bEditMode )
+			{
+				canvas->pCurrentControl = MouseInControl( canvas, px, py );
+				if( canvas->pCurrentControl && !canvas->flags.bIgnoreKeys )
+				{
+					PSI_CONTROL parent_frame;
+					parent_frame = canvas->edit_glare_frame?canvas->edit_glare_frame:canvas->current_page->frame;
+					struct popupParams params_ = { canvas, pc, px, py, parent_frame, 0 };
+					static struct popupParams params; params = params_;
+
+					if( g.flags.multi_edit )
+					{
+						PPAGE_DATA page = GetPageFromFrame( pc );
+						canvas->current_page = page;
+					}
+#ifdef USE_EDIT_GLARE
+					TrackPopup_v2( canvas->pControlMenu, parent_frame, menuCallback, (uintptr_t)&params );
+					OwnMouse( canvas->edit_glare, TRUE );
+#else
+					TrackPopup_v2( canvas->pControlMenu, parent_frame, menuCallback, (uintptr_t)&params );
+#endif
+					//while( !params.read ) Relinquish();
+				}
+				else if( ( px >= canvas->selection.x && px < ( canvas->selection.x + canvas->selection.w ) )
+						  && ( py >= canvas->selection.y && py < ( canvas->selection.y + canvas->selection.h ) )
+						  && !canvas->flags.bIgnoreKeys )
+				{
+					PSI_CONTROL parent_frame;
+					parent_frame = canvas->edit_glare_frame?canvas->edit_glare_frame:canvas->current_page->frame;
+					struct popupParams params_ = { canvas, pc, px, py, parent_frame, 0 };
+					static struct popupParams params; params = params_;
+#ifdef USE_EDIT_GLARE
+					TrackPopup_v2( g.pSelectionMenu, parent_frame,selectedRegionCallback, (uintptr_t)&params );
+#else
+					TrackPopup_v2( g.pSelectionMenu, canvas->pc_canvas, selectedRegionCallback, (uintptr_t)&params );
+#endif
+					//while( !params.read ) Relinquish();
+				}
+				else
+				{
+					if( canvas->flags.bSuperMode )
+					{
+						if( canvas->flags.bEditMode && !canvas->flags.bIgnoreKeys )
+						{
+							PSI_CONTROL parent_frame;
+							parent_frame = canvas->edit_glare_frame?canvas->edit_glare_frame:canvas->current_page->frame;
+							struct popupParams params_ = { canvas, pc, px, py, parent_frame, 0 };
+							static struct popupParams params; params = params_;
+#ifdef USE_EDIT_GLARE
+							TrackPopup_v2( canvas->pEditMenu, parent_frame, canvasBackgroundMenu, (uintptr_t)&params );
+#else
+							TrackPopup_v2( canvas->pEditMenu, canvas->pc_canvas, canvasBackgroundMenu, (uintptr_t)&params );
+#endif
 
 						}
 						else if( !canvas->flags.bIgnoreKeys )
@@ -3355,13 +3413,13 @@ static void MouseFirstDown( PCanvasData canvas, uintptr_t psv, int32_t px, int32
 }
 
 static void MouseDrag( PCanvasData canvas, uintptr_t psv
-					  , int32_t px, int32_t py 
+					  , int32_t px, int32_t py
 					  // , pad_left/right, pad top/button (sizing margins)
 					  )
 {
 	/* if first drag */
-				if( ( !canvas->flags.dragging 
-					&& !canvas->flags.sizing ) 
+				if( ( !canvas->flags.dragging
+					&& !canvas->flags.sizing )
 					)
 				{
 					PMENU_BUTTON pmc;
@@ -3402,7 +3460,7 @@ static void MouseDrag( PCanvasData canvas, uintptr_t psv
 #endif
 					}
 				}
-				
+
 				{
 									/* else - subsequent drag */
 					if( canvas->flags.selecting )
@@ -3431,7 +3489,7 @@ static void MouseDrag( PCanvasData canvas, uintptr_t psv
 							canvas->selection.w = nw;
 							canvas->selection.h = nh;
 						}
-						
+
 						//lprintf( "And now our selection is %d,%d %d,%d" );
 #ifndef USE_EDIT_GLARE
 						SmudgeCommon( canvas->pc_canvas );
@@ -3600,7 +3658,7 @@ retry:
 
 static void MouseFirstRelease( PCanvasData canvas, uintptr_t psv, int32_t px, int32_t py, uint32_t b )
 {
-		
+
 
 
 				// first release after having been down until now.
@@ -4382,7 +4440,7 @@ static LOGICAL CPROC AcceptFiles( PSI_CONTROL pc, CTEXTSTR file, int32_t x, int3
 //#define PARTOFY(yc) ( ( yc ) * canvas->current_page->grid.nPartsY ) / canvas->height
 	px = PARTOFX( x );
 	py = PARTOFY( y );
-					
+
 	for( name = GetFirstRegisteredName( TASK_PREFIX "/common/Drop Accept", &data );
 		name;
 		name = GetNextRegisteredName( &data ) )
@@ -4406,28 +4464,28 @@ static int OnCreateCommon( "Menu Canvas" )( PSI_CONTROL pc )
 		//parent = GetFrame( pc );
 		//if( parent )
 		{
-			int displays_wide = 
+			int displays_wide =
 #ifndef __NO_OPTIONS__
 				SACK_GetProfileIntEx( GetProgramName(), "Intershell Layout/Expected displays wide", 1, TRUE );
-#else 
+#else
 				1;
 #endif
 			int display_native_width =
 #ifndef __NO_OPTIONS__
 				SACK_GetProfileIntEx( GetProgramName(), "Intershell Layout/Native display width", 1024, TRUE );
-#else 
+#else
 				1024;
 #endif
-			int displays_high = 
+			int displays_high =
 #ifndef __NO_OPTIONS__
 				SACK_GetProfileIntEx( GetProgramName(), "Intershell Layout/Expected displays high", 1, TRUE );
-#else 
+#else
 				1;
 #endif
 			int display_native_height =
 #ifndef __NO_OPTIONS__
 				SACK_GetProfileIntEx( GetProgramName(), "Intershell Layout/Native Display Height", 768, TRUE );
-#else 
+#else
 				768;
 #endif
 			Image surface = GetControlSurface( pc );
@@ -4591,7 +4649,7 @@ CONTROL_REGISTRATION menu_edit_glare = { "Edit Glare"
 , NULL //ShellMouse
 , NULL //ShellKey
 , NULL, NULL,NULL,NULL,NULL,NULL
-, NULL 
+, NULL
 };
 
 
@@ -4685,7 +4743,7 @@ PSI_CONTROL OpenPageFrame( PPAGE_DATA page )
 		}
 	}
 	return page->frame;
-}	 
+}
 
 void InvokeFinishInit( PSI_CONTROL canvas );
 
@@ -5545,7 +5603,7 @@ namespace InterShell
 		PSI_CONTROL this_frame;
 		PCanvasData canvas;
 		PRENDERER render;
-			
+
 	public:
 
 		// preload should have already been invoked...
@@ -5609,7 +5667,7 @@ namespace InterShell
 		void  Load( System::String^ string )
 		{
 			pin_ptr<const wchar_t> wch = PtrToStringChars(string);
-			TEXTCHAR	 *ch = DupWideToText( wch );			
+			TEXTCHAR	 *ch = DupWideToText( wch );
 			LoadButtonConfig( this_frame, ch );
 
 			Banner2NoWaitAlpha( "Finish Config..." );
@@ -5636,52 +5694,52 @@ INTERSHELL_NAMESPACE
 
 #endif
 
-#ifdef _DEFINE_INTERFACE 
+#ifdef _DEFINE_INTERFACE
 
 static struct intershell_interface RealInterShellInterface = {
-GetCommonButtonControls					 
-, SetCommonButtonControls				
-, RestartMenu							
-, ResumeMenu								
-, InterShell_GetButtonColors					
-, InterShell_SetButtonColors					
-, InterShell_SetButtonColor					
-, InterShell_SetButtonText						
-, InterShell_GetButtonText						
-, InterShell_SetButtonImage					
+GetCommonButtonControls
+, SetCommonButtonControls
+, RestartMenu
+, ResumeMenu
+, InterShell_GetButtonColors
+, InterShell_SetButtonColors
+, InterShell_SetButtonColor
+, InterShell_SetButtonText
+, InterShell_GetButtonText
+, InterShell_SetButtonImage
 #ifndef __NO_ANIMATION__
-//, InterShell_SetButtonAnimation				
+//, InterShell_SetButtonAnimation
 #endif
-, InterShell_CommonImageLoad					
-, InterShell_CommonImageUnloadByName			
-, InterShell_CommonImageUnloadByImage			
-, InterShell_SetButtonImageAlpha				
-, InterShell_IsButtonVirtual					
-, InterShell_SetButtonFont						
-, InterShell_GetCurrentButtonFont				
-, InterShell_SetButtonStyle					
-, InterShell_SaveCommonButtonParameters		
-, InterShell_GetSystemName						
-, UpdateButtonExx						
-, ShellGetCurrentPage					
-, ShellGetNamedPage						
-, ShellSetCurrentPage					
-, ShellCallSetCurrentPage				
-, ShellReturnCurrentPage					
-, ClearPageList							
-, InterShell_DisablePageUpdate					
-, RestoreCurrentPage						
+, InterShell_CommonImageLoad
+, InterShell_CommonImageUnloadByName
+, InterShell_CommonImageUnloadByImage
+, InterShell_SetButtonImageAlpha
+, InterShell_IsButtonVirtual
+, InterShell_SetButtonFont
+, InterShell_GetCurrentButtonFont
+, InterShell_SetButtonStyle
+, InterShell_SaveCommonButtonParameters
+, InterShell_GetSystemName
+, UpdateButtonExx
+, ShellGetCurrentPage
+, ShellGetNamedPage
+, ShellSetCurrentPage
+, ShellCallSetCurrentPage
+, ShellReturnCurrentPage
+, ClearPageList
+, InterShell_DisablePageUpdate
+, RestoreCurrentPage
 , HidePageExx
 , InterShell_DisableButtonPageChange
-, CreateLabelVariable					
-, CreateLabelVariableEx					
-, LabelVariableChanged					
-, LabelVariablesChanged					
+, CreateLabelVariable
+, CreateLabelVariableEx
+, LabelVariableChanged
+, LabelVariablesChanged
 , InterShell_HideEx
 , InterShell_RevealEx
-, GetPageSize							
-, SetButtonTextField						
-, AddButtonLayout						
+, GetPageSize
+, SetButtonTextField
+, AddButtonLayout
 , QueryGetControl //InterShell_GetButtonControl
 																 , InterShell_GetLabelText
 																 , InterShell_TranslateLabelText
@@ -5821,7 +5879,7 @@ PRIORITY_PRELOAD( RegisterInterShellInterface, DEFAULT_PRELOAD_PRIORITY-4 )
 	EasyRegisterResource( "intershell/glareset", GLARESET_CREATE, NORMAL_BUTTON_NAME );
 	EasyRegisterResource( "intershell/glareset", GLARESET_ADD_THEME, NORMAL_BUTTON_NAME );
 
-	DoRegisterControl( &menu_surface ); 
+	DoRegisterControl( &menu_surface );
 	DoRegisterControl( &menu_edit_glare );
 
 	InitInterShell();
