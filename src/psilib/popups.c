@@ -1,4 +1,5 @@
-//#define DEBUG_DRAW_MENU
+#define DEBUG_MENUS
+#define DEBUG_DRAW_MENU
 
 //#if !defined( WIN32 ) && !defined( _MSC_VER)
 // haha - well at least under windows these menu issues can be resolved.
@@ -21,7 +22,6 @@
 #include "controlstruc.h"
 #include <psi.h>
 
-//#define DEBUG_MENUS
 
 PSI_MENU_NAMESPACE
 
@@ -66,10 +66,14 @@ PSI_PROC( PMENU, CreatePopup )( void )
 	local_popup_data.flags.bDisplayBoundless = RequiresDrawAll();
 #endif
 #ifndef __NO_OPTIONS__
+#  if WIN32
 	local_popup_data.flags.bCustomMenuEnable = SACK_GetProfileIntEx( GetProgramName()
 																						, "SACK/PSI/menus/Use Custom Popups"
 																						, local_popup_data.flags.bCustomMenuEnable
 																						, TRUE );
+#  else
+	local_popup_data.flags.bCustomMenuEnable = 1;
+#  endif
 	local_popup_data.flags.bDisplayBoundless = 1||SACK_GetProfileIntEx( GetProgramName()
 																						, "SACK/PSI/menus/Do not clip to display"
 																						, local_popup_data.flags.bDisplayBoundless
@@ -340,7 +344,7 @@ static int CPROC RenderItems( PSI_CONTROL pc )
 	PMENUITEM pmi;
 	if( pm )
 	{
-		//lprintf( "rendering a menu popup control thing..." );
+		lprintf( "rendering a menu popup control thing..." );
 		ClearImageTo( pc->Surface, basecolor(pm->image)[NORMAL] );
 		pm->surface = pc->Surface;
 		if( !pm->surface )
@@ -390,6 +394,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 		x > pm->width || y > pm->height )
 	{
 		PMENU parent = pm->parent;
+		lprintf( "on menu.");
 		if( parent )
 		{
 			//lprintf( "Menu has a parent... check to see if it's still there." );
@@ -398,12 +403,13 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 						, pm->display.y - parent->display.y + y
 						, b );
 			last_buttons = b;
+			lprintf( "passed mouse to parent" );
 			return TRUE;
 		}
 		else
 		{
 #ifdef DEBUG_DRAW_MENU
-			lprintf( "%08lx %08lx", b, last_buttons );
+			//lprintf( "%08lx %08lx", b, last_buttons );
 #endif
 			if( MAKE_FIRSTBUTTON( b, last_buttons ) )
 			{
@@ -421,10 +427,11 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 
 	while( pmi )
 	{
+		lprintf( "Scanning for which item this is... %p", pmi );
 		if( y >= pmi->baseline &&
 			 y <= (pmi->baseline + (int)pmi->height) )
 		{
-			//lprintf( "Finding item which has %d in it... starts at %d?", y, pmi->baseline );
+			lprintf( "Finding item which has %d in it... starts at %d?", y, pmi->baseline );
 			if( pmi->flags.bSeparator )
 			{
 				if( pm->selected )
@@ -435,6 +442,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 						pm->flags.bSubmenuOpen = 0;
 					}
 					//RenderUnselect( pm, pm->selected );
+					lprintf( "Smudge unselected");
 					SmudgeCommon( pm->image );
 					pm->selected->flags.bSelected = FALSE;
 				}
@@ -444,6 +452,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 			}
 			if( pmi->flags.bSelected )
 			{
+				lprintf( "Selected item is already set?");
 				break;
 			}
 			else
@@ -460,6 +469,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 				}
 
 				//RenderSelect( pm, pmi );
+				lprintf( "Smudge selected");
 				SmudgeCommon( pm->image );
 #ifdef DEBUG_DRAW_MENU
 				lprintf( "New selected %p", pmi );
@@ -776,8 +786,7 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 		 pm->display.x = x;
 		 pm->display.y = y;
 	}
-	lprintf( "MOVE COMMON");
-//	MoveCommon( pm->image, pm->display.x, pm->display.y );
+	MoveCommon( pm->image, pm->display.x, pm->display.y );
 	if( pm->parent )
 		display_parent = pm->parent->image;
 	else
@@ -785,7 +794,7 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 
 	pm->surface = pm->image->Surface;
 #ifdef DEBUG_MENUS
-	lprintf( "do the reveal to compliemnt the hide?" );
+	lprintf( "do the reveal to compliemnt the hide? %p %p", pm->image, display_parent );
 #endif
 	//RevealCommon( pm->image );
 	DisplayFrameOver( pm->image, display_parent );
@@ -793,7 +802,8 @@ void ShowMenu( PMENU pm, int x, int y, LOGICAL bWait, PSI_CONTROL parent )
 	lprintf( "Popup capture capture" );
 #endif
 	CaptureCommonMouse( pm->image, 1 ); // grab ownership again...
-	MoveCommon( pm->image, pm->display.x, pm->display.y );
+
+	//MoveCommon( pm->image, pm->display.x, pm->display.y );
 	pm->flags.showing = 1;
 
 	// well should loop and wait for responces... guess I need
@@ -937,15 +947,15 @@ PSI_PROC( PMENUITEM, AppendPopupItem )( PMENU pm, int type, uintptr_t dwID, CPOI
 	}
 	else if( type & MF_OWNERDRAW )
 	{
-	  pmi->flags.bOwnerDraw = TRUE;
+	  	pmi->flags.bOwnerDraw = TRUE;
 		pmi->data.owner.DrawPopupItem = (DrawPopupItemProc)pData;
-	  pmi->value.userdata = dwID;
+	  	pmi->value.userdata = dwID;
 	}
 	else
 	{
 		if( pData )
 		{
-		 int len;
+		 	int len;
 			pmi->flags.bHasText = TRUE;
 			pmi->data.text.text = NewArray( TEXTCHAR, ( len = (int)( pmi->data.text.textlen = StrLen( (TEXTSTR)pData ) ) + 1));
 			StrCpyEx( pmi->data.text.text, (CTEXTSTR)pData, len );
@@ -1117,7 +1127,7 @@ PSI_PROC( void, TrackPopup_v2 )( PMENU hMenuSub, PSI_CONTROL parent, void (*call
 		ShowMenu( hMenuSub, x, y, FALSE, parent );
 		//selection = (int)hMenuSub->selection;
 #ifdef DEBUG_MENUS
-		Log1( "Track popup return selection:%p %d", hMenuSub, hMenuSub->selection );
+		lprintf( "Track popup return selection:%p %d", hMenuSub, hMenuSub->selection );
 #endif
 	}
 	else {
