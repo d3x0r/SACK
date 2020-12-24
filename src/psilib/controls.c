@@ -1406,7 +1406,7 @@ static void DoUpdateFrame( PSI_CONTROL pc
 		_lprintf(DBG_RELAY)( "Do Update frame.. x, y on frame of %d,%d,%d,%d ", x, y, w, h );
 #endif
 	level++;
-	if( pc && !pf )
+	if( pc && !pf ) // might just not have a device but be a root?
 	{
 #ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
