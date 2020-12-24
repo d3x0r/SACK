@@ -147,19 +147,6 @@ namespace objStore {
 //#endif
 
 
-
-#define l vfs_os_local
-static struct {
-	struct directory_entry zero_entkey;
-	uint8_t zerokey[KEY_SIZE];
-	uint16_t index[256][256];
-	char leadin[256];
-	int leadinDepth;
-	PLINKQUEUE plqCrypters;
-	PLIST volumes;
-	LOGICAL exited;
-} l;
-
 #define EOFBLOCK  (~(BLOCKINDEX)0)
 #define EOBBLOCK  ((BLOCKINDEX)1)
 #define EODMARK   (1)
@@ -385,6 +372,7 @@ struct sack_vfs_os_file
 	//uint8_t sealantLen;
 	uint8_t sealed; // boolean, on read, validates seal.  Defaults to FALSE.
 	char* filename;
+	LOGICAL fileName;
 #    endif
 	struct directory_entry _entry;  // has file size within
 	struct directory_entry* entry;  // has file size within
@@ -394,6 +382,24 @@ struct sack_vfs_os_file
 #  endif
 
 };
+
+typedef struct sack_vfs_os_file VFS_OS_FILE;
+#define MAXVFS_OS_FILESPERSET 256
+DeclareSet( VFS_OS_FILE );
+
+#define l vfs_os_local
+static struct {
+	struct directory_entry zero_entkey;
+	uint8_t zerokey[KEY_SIZE];
+	uint16_t index[256][256];
+	char leadin[256];
+	int leadinDepth;
+	PLINKQUEUE plqCrypters;
+	PLIST volumes;
+	LOGICAL exited;
+	VFS_OS_FILESET files;//	
+} l;
+
 
 //static void _os_UpdateFileBlocks( struct sack_vfs_os_file* file );
 static struct sack_vfs_os_file* _os_createFile( struct sack_vfs_os_volume* vol, BLOCKINDEX first_block, int blockSize );
@@ -579,10 +585,10 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 
 	while( firstblock != EOFBLOCK && offset >= vol->sector_size[*cache_index] ) {
 		int size;
-		enum block_cache_entries cache = file ? file->filename ? BC( FILE ) : file->cache: cacheRoot;
+		enum block_cache_entries cache = file ? file->fileName ? BC( FILE ) : file->cache: cacheRoot;
 		firstblock = vfs_os_GetNextBlock( vol, firstblock
 			, &cache
-			, file?file->filename?GFB_INIT_NONE:GFB_INIT_TIMELINE_MORE:GFB_INIT_NAMES, 1, blockSize, &size );
+			, file?file->fileName?GFB_INIT_NONE:GFB_INIT_TIMELINE_MORE:GFB_INIT_NAMES, 1, blockSize, &size );
 		if( size != blockSize ) {
 			lprintf( "Tried to allocate %d got %d at %d (from %d)", blockSize, vol->sector_size[*cache_index], *cache_index, cacheRoot );
 			DebugBreak();
@@ -596,7 +602,7 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 		//LoG( "Skipping a whole block of 'file' %d %d", firstblock, offset );
 		// this only follows the chain in the BAT; it does not load the sector into memory(?)
 		if( file ) {
-			//if( !file->filename ) LoG( "Set timeline block chain at %d to %d", (int)pos, (int)firstblock );
+			//if( !file->fileName ) LoG( "Set timeline block chain at %d to %d", (int)pos, (int)firstblock );
 			_os_SetBlockChain( file, pos, firstblock, size );
 		}
 		cache_index[0] = cacheRoot;
@@ -1198,8 +1204,8 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 
 enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, enum block_cache_entries cache_idx, BLOCKINDEX segment DBG_PASS )
 {
-	BLOCKINDEX oldSegs[BC(COUNT)];
-	memcpy(oldSegs, vol->segment, sizeof(oldSegs));
+	//BLOCKINDEX oldSegs[BC(COUNT)];
+	//memcpy(oldSegs, vol->segment, sizeof(oldSegs));
 	if( cache_idx == BC(FILE) ) {
 		_os_updateCacheAge_( vol, &cache_idx, segment, vol->fileCacheAge, (BC(FILE_LAST) - BC(FILE)) DBG_RELAY );
 	}
@@ -1289,10 +1295,10 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 		}
 		vol->segment[cache_idx] = segment;
 	}
-#ifdef DEBUG_TRACE_LOG
-	if (segment != oldSegs[cache_idx])
-		_lprintf(DBG_RELAY)("UPDATE OS SEGKEY %d %d", cache_idx, segment);
-#endif
+//#ifdef DEBUG_TRACE_LOG
+//	if (segment != oldSegs[cache_idx])
+//		_lprintf(DBG_RELAY)("UPDATE OS SEGKEY %d %d", cache_idx, segment);
+//#endif
 	//LoG( "Resulting stored segment in %d", cache_idx );
 	//lprintf( "Got Block %d into cache %d", (int)segment, cache_idx );
 	return cache_idx;
@@ -1306,7 +1312,7 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 
 struct sack_vfs_os_file * _os_createFile( struct sack_vfs_os_volume *vol, BLOCKINDEX first_block, int blockSize )
 {
-	struct sack_vfs_os_file * file = New( struct sack_vfs_os_file );
+	struct sack_vfs_os_file * file = GetFromSet( VFS_OS_FILE, &l.files );//New( struct sack_vfs_os_file );
 	// breaks in C++
 	//file[0] = ( struct sack_vfs_os_file ){ 0 };
 	MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
@@ -3167,9 +3173,9 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 }
 
 struct sack_vfs_os_file * CPROC sack_vfs_os_openfile( struct sack_vfs_os_volume *vol, const char * filename ) {
-	struct sack_vfs_os_file *file = New( struct sack_vfs_os_file );
+	struct sack_vfs_os_file *file = GetFromSet( VFS_OS_FILE, &l.files );//New( struct sack_vfs_os_file );
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
-	MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
+	//MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
 	BLOCKINDEX offset;
 	file->vol = vol;
 	file->entry = &file->_entry;
@@ -3181,12 +3187,16 @@ struct sack_vfs_os_file * CPROC sack_vfs_os_openfile( struct sack_vfs_os_volume 
 	LoG( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
 #endif
 	if( !_os_ScanDirectory( vol, filename, FIRST_DIR_BLOCK, NULL, file, 0 ) ) {
-		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; Deallocate( struct sack_vfs_os_file*, file ); return NULL; }
+		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; 
+			DeleteFromSet( VFS_OS_FILE, &l.files, file ); //Deallocate( struct sack_vfs_os_file*, file ); 
+			return NULL; 
+		}
 		else _os_GetNewDirectory( vol, filename, file );
 	}
 	file->_first_block = file->block = file->entry->first_block;
 	offset = file->_entry.name_offset; // file->entry->name_offset;
-	file->filename = StrDup( filename );
+	//file->filename = StrDup( filename );
+	file->fileName = !!filename;
 
 	if( ( file->entry->name_offset ) & DIRENT_NAME_OFFSET_FLAG_SEALANT ) {
 		sack_vfs_os_read_internal( file, &file->diskHeader, sizeof( file->diskHeader ) );
@@ -3564,8 +3574,8 @@ static enum sack_vfs_os_seal_states ValidateSeal( struct sack_vfs_os_file *file,
 		enum sack_vfs_os_seal_states success = SACK_VFS_OS_SEAL_INVALID;
 		size_t len;
 		char *rid = EncodeBase64Ex( outbuf, 256 / 8, &len, (const char *)1 );
-		if( StrCmp( file->filename, rid ) == 0 )
-			success = SACK_VFS_OS_SEAL_VALID;
+		//if( StrCmp( file->filename, rid ) == 0 )
+		//	success = SACK_VFS_OS_SEAL_VALID;
 		Deallocate( char *, rid );
 		return success;
 	}
@@ -3918,12 +3928,13 @@ int sack_vfs_os_close_internal( struct sack_vfs_os_file *file, int unlock ) {
 			SETMASK_( file->vol->seglock, seglock, file->cache, locks );
 		}
 	}
-	Deallocate( char *, file->filename );
+	//Deallocate( char *, file->filename );
 	if( file->sealant )
 		Deallocate( uint8_t*, file->sealant );
 	if( file->vol->closed ) sack_vfs_os_unload_volume( file->vol );
 	if( unlock ) file->vol->lock = 0;
-	Deallocate( struct sack_vfs_os_file *, file );
+	DeleteFromSet( VFS_OS_FILE, &l.files, file );
+	//Deallocate( struct sack_vfs_os_file *, file );
 	return 0;
 }
 int CPROC sack_vfs_os_close( struct sack_vfs_os_file* file ) {
