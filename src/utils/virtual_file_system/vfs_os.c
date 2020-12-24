@@ -371,7 +371,7 @@ struct sack_vfs_os_file
 	uint16_t readKeyLen;
 	//uint8_t sealantLen;
 	uint8_t sealed; // boolean, on read, validates seal.  Defaults to FALSE.
-	char* filename;
+	//char* filename;
 	LOGICAL fileName;
 #    endif
 	struct directory_entry _entry;  // has file size within
@@ -397,7 +397,7 @@ static struct {
 	PLINKQUEUE plqCrypters;
 	PLIST volumes;
 	LOGICAL exited;
-	VFS_OS_FILESET files;//	
+	PVFS_OS_FILESET files;
 } l;
 
 
@@ -3175,7 +3175,7 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 struct sack_vfs_os_file * CPROC sack_vfs_os_openfile( struct sack_vfs_os_volume *vol, const char * filename ) {
 	struct sack_vfs_os_file *file = GetFromSet( VFS_OS_FILE, &l.files );//New( struct sack_vfs_os_file );
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
-	//MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
+	MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
 	BLOCKINDEX offset;
 	file->vol = vol;
 	file->entry = &file->_entry;
