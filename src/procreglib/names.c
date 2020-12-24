@@ -2626,7 +2626,7 @@ public ref class ProcReg
 				if( oldname )
 				{
 					if( oldname->data.stdproc.proc == Delegate )
-						Log( "And fortunatly it's the same address... all is well..." );
+						lprintf( "And fortunatly it's the same address... all is well: %s", newname->name );
 					else
 					{
 						xlprintf( 2 )( "proc %s/%s regisry by %s of %s(%s) conflicts with %s(%s)..."
