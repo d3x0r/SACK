@@ -215,15 +215,8 @@ struct sack_vfs_disk {
 };
 */
 
-struct sack_vfs_os_BAT_info {
-	FPI sectorStart;
-	FPI sectorEnd;
-	BLOCKINDEX blockStart;
-	int size;
-};
 
 
-static int const seglock_mask_size = 4;
 
 #ifdef DEBUG_SECTOR_DIRT
 #define SMUDGECACHE(vol,n) { \
@@ -247,6 +240,18 @@ static int const seglock_mask_size = 4;
 	RESETFLAG( vol->dirty, n ); \
 } 
 #endif
+
+#ifndef ROLLBACK_JOURNAL_DEFINED
+#define ROLLBACK_JOURNAL_DEFINED
+
+static int const seglock_mask_size = 4;
+
+struct sack_vfs_os_BAT_info {
+	FPI sectorStart;
+	FPI sectorEnd;
+	BLOCKINDEX blockStart;
+	int size;
+};
 
 struct vfs_os_rollback_journal {
 	struct sack_vfs_os_file* rollback_file;
@@ -286,6 +291,7 @@ PREFIX_PACKED struct vfs_os_rollback_header {
 	struct vfs_os_rollback_entry  entries[1];
 }PACKED ;
 
+#endif
 
 struct sack_vfs_volume {
 	const char * volname;
