@@ -1773,7 +1773,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							break;
 						}
 						if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
-							state->completed = TRUE;
+							if( state->parse_context == JSOX_CONTEXT_UNKNOWN )
+								state->completed = TRUE;
 							break;
 						} else if( state->word == JSOX_WORD_POS_RESET ) {
 							break;
@@ -1891,7 +1892,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						break;
 					}
 					if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
-						state->completed = TRUE;
+						if( state->parse_context == JSOX_CONTEXT_UNKNOWN )
+							state->completed = TRUE;
 						break;					
 					} else if( (state->word == JSOX_WORD_POS_RESET) ) {
 						break;
