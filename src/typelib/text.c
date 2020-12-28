@@ -3693,7 +3693,10 @@ TEXTCHAR *EncodeBase64Ex( const uint8_t* buf, size_t length, size_t *outsize, co
 static void setupDecodeBytes( const char *code ) {
 	int n = 0;
 	// default all of these, allow code to override them.
-
+	if( _last_base64_set != code ) {
+		_last_base64_set = code;
+		memset( _base64_r, 0, 256 );
+	}
 	// allow nul terminators (sortof)
 	_base64_r[0] = 64; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
 	_base64_r['~'] = 64; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
@@ -3716,8 +3719,6 @@ static void setupDecodeBytes( const char *code ) {
 	_base64_r[','] = 63; // = ix 64 (0x40) and mask is & 0x3F dropping the upper bit.
 
 	if( _last_base64_set != code ) {
-		_last_base64_set = code;
-		memset( _base64_r, 0, 256 );
 		while( *code ) {
 			_base64_r[*code] = n++;
 			code++;
