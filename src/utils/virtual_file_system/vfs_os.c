@@ -832,6 +832,8 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 		//SETMASK_( vol->seglock, seglock, rollbackCacheJournal, GETMASK_( vol->seglock, seglock, rollbackCacheJournal ) - 1 );
 		SETMASK_( vol->seglock, seglock, rollbackCache, GETMASK_( vol->seglock, seglock, rollbackCache ) - 1 );
 		SMUDGECACHE( vol, rollbackCache );
+		rollback->flags.processing = 0;
+
 	}
 }
 
