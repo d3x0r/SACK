@@ -614,7 +614,9 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 static void vfs_os_empty_rollback( struct sack_vfs_os_volume* vol ) {
 	enum block_cache_entries rollbackCache = BC( ROLLBACK );
 	struct vfs_os_rollback_header* rollback = ( struct vfs_os_rollback_header* )vfs_os_FSEEK( vol, vol->journal.rollback_file, 0, 0, &rollbackCache, ROLLBACK_BLOCK_SIZE DBG_SRC );
+#ifdef DEBUG_ROLLBACK_JOURNAL
 	LoG( "------- ROLLBACK FLUSH---------------- %d", rollback->flags.dirty );
+#endif
 	if( rollback->flags.dirty ) {
 		vol->journal.pdlJournaled->Cnt = 0;
 		rollback->flags.dirty = 0;
@@ -752,7 +754,9 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 	POINTER journal;
 	SETMASK_( vol->seglock, seglock, rollbackCache, GETMASK_( vol->seglock, seglock, rollbackCache )+1 );
 	BLOCKINDEX e;
+#ifdef DEBUG_ROLLBACK_JOURNAL
 	LoG( "---- READ ROLLBACK ---- %d", rollback->flags.dirty );
+#endif
 	if( rollback->flags.dirty ) {
 		BLOCKINDEX bigSector = 0;
 		BLOCKINDEX smallSector = 0;
@@ -1201,8 +1205,8 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 #ifdef DEBUG_DISK_IO
 #  ifdef DEBUG_DISK_DATA
 		LogBinary( vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]] );
-#  endif		
-#endif		
+#  endif
+#endif
 	}
 #ifdef DEBUG_CACHE_AGING
 	LoG( "age end2:" );
@@ -1305,8 +1309,8 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 #ifdef DEBUG_DISK_IO
 #  ifdef DEBUG_DISK_DATA
 		LogBinary( vol->usekey_buffer[cache_idx], vol->sector_size[cache_idx] );
-#  endif		
-#endif		
+#  endif
+#endif
 		}
 		vol->segment[cache_idx] = segment;
 	}
@@ -1900,7 +1904,6 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 		LoG( "Default or NO init..." );
 #endif
 		newcache = _os_UpdateSegmentKey_( vol, blockCache[0], b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
-		memcpy( vol->usekey_buffer_clean[newcache], vol->usekey_buffer[newcache], DIR_BLOCK_SIZE );
 		blockCache[0] = newcache;
 		break;
 	}
