@@ -216,16 +216,13 @@ struct sack_vfs_disk {
 */
 
 
-
+#undef SMUDGECACHE
+#undef CLEANCACHE
 
 #ifdef DEBUG_SECTOR_DIRT
 #define SMUDGECACHE(vol,n) { \
-	if( !TESTFLAG( vol->dirty, n ) ) {\
-		SETFLAG( vol->dirty, n ); \
-		lprintf( "set dirty on %d", n); \
-	} else {  \
-		/*lprintf( "Already dirty on %d", n );*/ \
-	}         \
+	lprintf( "set dirty on %d", n); \
+	vfs_os_smudge_cache(vol,n);   \
 }  
 #define CLEANCACHE(vol,n) { \
 	lprintf( "reset dirty on %d", n); \
