@@ -1545,7 +1545,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_VALUE ) {
 						if( state->val.value_type != JSOX_VALUE_UNSET ) {
 							// revive class value, get name from class definition
-							if( state->current_class->fields ) {
+							if( state->current_class && state->current_class->fields ) {
 								struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
 								state->val.name = field->name;
 								state->val.nameLen = field->nameLen;
