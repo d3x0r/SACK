@@ -1580,7 +1580,10 @@ uintptr_t GetFileSize( int fd )
 	pMem->dwSize = dwSize;
 	pMem->dwHeapID = 0xbab1f1ea;
 	pMem->pFirstFree = NULL;
-	pMem->dwFlags = 0;
+        pMem->dwFlags = 0;
+        // this uses the address of next to assign a member.
+        // next is the first member of this structure;
+        // even if it is packed, there's no issue surely with taking the address of the first member?
 	LinkThing( pMem->pFirstFree, pMem->pRoot );
 	InitializeCriticalSec( &pMem->cs );
 	pMem->pRoot[0].dwSize = dwSize - MEM_SIZE - CHUNK_SIZE;
