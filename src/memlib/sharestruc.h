@@ -92,6 +92,7 @@ PREFIX_PACKED struct malloc_chunk_tag
 
 PREFIX_PACKED struct heap_chunk_tag
 {
+	DeclareLink( struct heap_chunk_tag );
 	uint16_t dwOwners;            // if 0 - block is free
 	uint16_t dwPad;   // extra bytes 4/12 typical, sometimes pad untill next.
 	// which is < ( CHUNK_SIZE + nMinAllocate )
@@ -100,7 +101,6 @@ PREFIX_PACKED struct heap_chunk_tag
 	uintptr_t dwSize;  // limited to allocating 4 billion bytes...
 	struct heap_chunk_tag *pPrior;         // save some math backwards...
 	struct memory_block_tag * pRoot;  // pointer to master allocation struct (pMEM)
-	DeclareLink( struct heap_chunk_tag );
 	uint16_t alignment; // this is additional to subtract to get back to start (aligned allocate)
 	uint16_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
 	uint8_t byData[1]; // uint8_t is the smallest valid datatype could be _0
