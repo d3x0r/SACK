@@ -147,7 +147,6 @@ int xClose(sqlite3_file*file)
 				// but C++ throws some warning about assignment with no trivial copy-assigment.
 				// (see above deleted operator)
 				memcpy( &check->locks_ , & my_file->locks_, sizeof( check->locks_ ) );
-
 				my_file->locks = &check->locks_;
 			}
 			check->locks = my_file->locks;
