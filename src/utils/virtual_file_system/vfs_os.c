@@ -635,7 +635,7 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 	}
 	// not setup to journal yet (initial loading/configuration)
 	if( !vol->journal.rollback_file ) {
-		lprintf( "Journal is not a file... bad open? Unjournaled storage?");
+		//lprintf( "Journal is not a file... bad open? Unjournaled storage?");
 		return;
 	}
 

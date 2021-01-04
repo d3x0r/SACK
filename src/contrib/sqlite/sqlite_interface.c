@@ -140,7 +140,14 @@ int xClose(sqlite3_file*file)
 		struct my_sqlite3_vfs_file_data* check;
 		LIST_FORALL( my_file->otherHandles, idx, struct my_sqlite3_vfs_file_data*, check ) {
 			if( my_file->locks == &my_file->locks_ ) {
+				// C++ Error: use of deleted function converting to '=' operator
+				///check->locks_ = my_file->locks_;
+
+				// they're the same structure type and everything, but C++ can't just assign them
+				// but C++ throws some warning about assignment with no trivial copy-assigment.
+				// (see above deleted operator)
 				memcpy( &check->locks_ , & my_file->locks_, sizeof( check->locks_ ) );
+
 				my_file->locks = &check->locks_;
 			}
 			check->locks = my_file->locks;
