@@ -76,7 +76,7 @@ namespace sack {
 
 struct malloc_chunk_tag
 {
-	uintptr_t dwSize;  // limited to allocating 4 billion bytes...
+	uintptr_t dwSize;
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
 	uint32_t LeadProtect[2];
 #endif
