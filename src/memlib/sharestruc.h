@@ -74,37 +74,42 @@ namespace sack {
 #  endif
 // custom allocer, use heap_chunk_tag
 
-PREFIX_PACKED struct malloc_chunk_tag
+struct malloc_chunk_tag
 {
-	uint16_t dwOwners;   // if 0 - block is free
-	uint16_t dwPad;      // extra bytes 4/12 typical, sometimes pad untill next. (alignment extra bytes)
-#ifdef __64__
-	uint32_t pad;
-#endif
 	uintptr_t dwSize;  // limited to allocating 4 billion bytes...
 #ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
 	uint32_t LeadProtect[2];
 #endif
-	uint16_t alignment; // this is additional to subtract to get back to start (aligned allocate)
-	uint16_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
+	PREFIX_PACKED struct {
+		uint16_t dwOwners;   // if 0 - block is free
+		uint16_t dwPad;      // extra bytes 4/12 typical, sometimes pad untill next. (alignment extra bytes)
+		uint16_t alignment; // this is additional to subtract to get back to start (aligned allocate)
+		uint16_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
+	} PACKED info;
 	uint8_t byData[1]; // uint8_t is the smallest valid datatype could be _0
-} PACKED;
+};
 
-PREFIX_PACKED struct heap_chunk_tag
+struct heap_chunk_tag
 {
-	DeclareLink( struct heap_chunk_tag );
-	uint16_t dwOwners;            // if 0 - block is free
-	uint16_t dwPad;   // extra bytes 4/12 typical, sometimes pad untill next.
+	DeclareLink( struct heap_chunk_tag ); // *next, **me; &next is also &this block.
+
 	// which is < ( CHUNK_SIZE + nMinAllocate )
 	// real size is then dwSize - dwPad.
 	// this is actually where the end of block tag(s) should begin!
-	uintptr_t dwSize;  // limited to allocating 4 billion bytes...
+	uintptr_t dwSize;
 	struct heap_chunk_tag *pPrior;         // save some math backwards...
-	struct memory_block_tag * pRoot;  // pointer to master allocation struct (pMEM)
-	uint16_t alignment; // this is additional to subtract to get back to start (aligned allocate)
-	uint16_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
+   // needed for release to find free linked list head
+	struct memory_block_tag *pRoot;  // pointer to master allocation struct (pMEM)
+
+	PREFIX_PACKED struct {
+		uint16_t dwOwners;            // if 0 - block is free
+		uint16_t dwPad;   // extra bytes 4/12 typical, sometimes pad untill next.
+		uint16_t alignment; // this is additional to subtract to get back to start (aligned allocate)
+      // to_chunk_start is computed from byData offset by alignment minus a uin16_t.
+		uint16_t to_chunk_start; // this is additional to subtract to get back to start (aligned allocate)
+	} PACKED info;
 	uint8_t byData[1]; // uint8_t is the smallest valid datatype could be _0
-} PACKED;
+};
 
 // a chunk of memory in a heap space, heaps are also tracked, so extents
 // of that space are known, therefore one can identify a heap chunk

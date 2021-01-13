@@ -277,12 +277,12 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #define MAGIC_SIZE sizeof( void* )
 
 #ifdef __64__
-#define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
+#define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
 // so when we look at memory this stamp is 0123456789ABCDEF
 #define TAG_FORMAT_MODIFIER "ll"
 #define BLOCK_TAG_ID 0xefcdab8967452301LL
 #else
-#define BLOCK_TAG(pc)  (*(uint32_t*)((pc)->byData + (pc)->dwSize - (pc)->dwPad ))
+#define BLOCK_TAG(pc)  (*(uint32_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
 // so when we look at memory this stamp is 12345678
 #define TAG_FORMAT_MODIFIER "l"
 #define BLOCK_TAG_ID 0x78563412L
@@ -1580,15 +1580,15 @@ uintptr_t GetFileSize( int fd )
 	pMem->dwSize = dwSize;
 	pMem->dwHeapID = 0xbab1f1ea;
 	pMem->pFirstFree = NULL;
-        pMem->dwFlags = 0;
+	pMem->dwFlags = 0;
         // this uses the address of next to assign a member.
         // next is the first member of this structure;
         // even if it is packed, there's no issue surely with taking the address of the first member?
 	LinkThing( pMem->pFirstFree, pMem->pRoot );
 	InitializeCriticalSec( &pMem->cs );
 	pMem->pRoot[0].dwSize = dwSize - MEM_SIZE - CHUNK_SIZE;
-	pMem->pRoot[0].dwPad = MAGIC_SIZE;
-	pMem->pRoot[0].dwOwners = 0;
+	pMem->pRoot[0].info.dwPad = MAGIC_SIZE;
+	pMem->pRoot[0].info.dwOwners = 0;
 	pMem->pRoot[0].pRoot  = pMem;
 	pMem->pRoot[0].pPrior = NULL;
 #ifdef _DEBUG
@@ -1603,7 +1603,7 @@ uintptr_t GetFileSize( int fd )
 		BLOCK_TAG( pMem->pRoot ) = BLOCK_TAG_ID;
 	}
 	{
-		pMem->pRoot[0].dwPad += 2*MAGIC_SIZE;
+		pMem->pRoot[0].info.dwPad += 2*MAGIC_SIZE;
 		BLOCK_FILE( pMem->pRoot ) = __FILE__;
 		BLOCK_LINE( pMem->pRoot ) = __LINE__;
 	}
@@ -1766,9 +1766,9 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 #else
 		pc = (PMALLOC_CHUNK)malloc( sizeof( MALLOC_CHUNK ) - 1 + dwSize );
 #endif
-		pc->dwOwners = 1;
+		pc->info.dwOwners = 1;
+		pc->info.dwPad = dwAlignPad;
 		pc->dwSize = dwSize;
-		pc->dwPad = dwAlignPad;
 #ifndef NO_LOGGING
 #  ifdef _DEBUG
 		if( g.bLogAllocate )
@@ -1783,15 +1783,15 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 			mask = masks[alignment];
 		if( alignment && ( (uintptr_t)pc->byData & ~mask) ) {
 			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & mask);
-			//pc->dwPad = (uint16_t)( dwAlignPad - sizeof(uintptr_t) );
+			//pc->info.dwPad = (uint16_t)( dwAlignPad - sizeof(uintptr_t) );
 			// to_chunk_start is the last thing in chunk, so it's pre-allocated space
-			((uint16_t*)(retval - sizeof(uint32_t)))[0] = /*pc->alignemnt = */alignment;
-			((uint16_t*)(retval - sizeof(uint32_t)))[1] = /*pc->to_chunk_start = */(uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & mask) - (uintptr_t)pc->byData);
+			((uint16_t*)(retval - sizeof(uint32_t)))[0] = alignment;
+			((uint16_t*)(retval - sizeof(uint32_t)))[1] = (uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & mask) - (uintptr_t)pc->byData);
 			return (POINTER)retval; //-V773
 		}
 		else {
-			pc->alignment = 0;
-			pc->to_chunk_start = 0;
+			pc->info.alignment = 0;
+			pc->info.to_chunk_start = 0;
 			return pc->byData;
 		}
 	}
@@ -1869,9 +1869,9 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 					// split block
 					if( ( pc->dwSize - dwSize ) <= ( dwMin + CHUNK_SIZE + g.nMinAllocateSize ) ) // must allocate it all.
 					{
-						pc->dwPad = (uint16_t)(dwPad + ( pc->dwSize - dwSize ));
+						pc->info.dwPad = (uint16_t)(dwPad + ( pc->dwSize - dwSize ));
 						UnlinkThing( pc );
-						pc->dwOwners = 1;
+						pc->info.dwOwners = 1;
 						break; // successful allocation....
 					}
 					else
@@ -1880,18 +1880,18 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 						PHEAP_CHUNK next;
 						next = (PHEAP_CHUNK)( pc->byData + pc->dwSize );
 						pNew = (PHEAP_CHUNK)(pc->byData + dwSize);
-						pNew->dwPad = 0;
+						pNew->info.dwPad = 0;
 						pNew->dwSize = ((pc->dwSize - CHUNK_SIZE) - dwSize);
 #ifdef _DEBUG
 						if( pNew->dwSize > 0x80000000 )
 							DebugBreak();
 						if( pMem && !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
 						{
-							pNew->dwPad += MAGIC_SIZE * 2;
+							pNew->info.dwPad += MAGIC_SIZE * 2;
 						}
 						if( !g.bDisableDebug )
 						{
-							pNew->dwPad += MAGIC_SIZE;
+							pNew->info.dwPad += MAGIC_SIZE;
 							BLOCK_TAG( pNew ) = BLOCK_TAG_ID;
 						}
 						if( pMem && !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
@@ -1901,7 +1901,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 						}
 #endif
 
-						pc->dwPad = (uint16_t)dwPad;
+						pc->info.dwPad = (uint16_t)dwPad;
 						pc->dwSize = dwSize; // set old size?  this can wait until we have the block.
 						if( pc->dwSize & 0x80000000 )
 							DebugBreak();
@@ -1909,8 +1909,10 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 						if( (uintptr_t)next - (uintptr_t)pCurMem < (uintptr_t)pCurMem->dwSize )  // not beyond end of memory...
 							next->pPrior = pNew;
 
-						pNew->dwOwners = 0;
+						pNew->info.dwOwners = 0;
+#ifdef _DEBUG
 						pNew->pRoot = pc->pRoot;
+#endif
 						pNew->pPrior = pc;
 
 						// copy link...
@@ -1918,7 +1920,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 							pNew->next->me = &pNew->next;
 						*( pNew->me = pc->me ) = pNew;
 
-						pc->dwOwners = 1;  // set owned block.
+						pc->info.dwOwners = 1;  // set owned block.
 						break; // successful allocation....
 					}
 				}
@@ -1965,7 +1967,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 		}
 		if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 		{
-			if( pc->dwPad < 2*sizeof( uintptr_t) )
+			if( pc->info.dwPad < 2*sizeof( uintptr_t) )
 				DebugBreak();
 			BLOCK_FILE(pc) = pFile;
 			BLOCK_LINE(pc) = nLine;
@@ -1985,13 +1987,13 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 		//#endif
 		if( alignment && ((uintptr_t)pc->byData & ~mask ) ) {
 			uintptr_t retval = ((((uintptr_t)pc->byData) + (alignment - 1)) & mask );
-			((uint16_t*)(retval - sizeof( uint32_t )))[0] = /*pc->alignemnt =*/ alignment;
-			((uint16_t*)(retval - sizeof( uint32_t )))[1] = /*pc->to_chunk_start =*/ (uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & mask ) - (uintptr_t)pc->byData);
+			((uint16_t*)(retval - sizeof( uint32_t )))[0] = alignment;
+			((uint16_t*)(retval - sizeof( uint32_t )))[1] = (uint16_t)(((((uintptr_t)pc->byData) + (alignment - 1)) & mask ) - (uintptr_t)pc->byData);
 			return (POINTER)retval;
 		}
 		else {
-			pc->alignment = 0;
-			pc->to_chunk_start = 0;
+			pc->info.alignment = 0;
+			pc->info.to_chunk_start = 0;
 			return pc->byData;
 		}
 	}
@@ -2143,12 +2145,12 @@ static void Bubble( PMEM pMem )
 		if( USE_CUSTOM_ALLOCER )
 		{
 			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - (((uint16_t*)pData)[-1] + offsetof( CHUNK, byData )));
-			return pc->dwSize - pc->dwPad;
+			return pc->dwSize - pc->info.dwPad;
 		}
 		else
 		{
 			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - MALLOC_CHUNK_SIZE(pData));
-			return pc->dwSize - pc->dwPad;
+			return pc->dwSize - pc->info.dwPad;
 		}
 	}
 	return 0;
@@ -2206,8 +2208,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		{
 			//PMEM pMem = (PMEM)(pData - offsetof( MEM, pRoot ));
 			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)(((uintptr_t)pData) - MALLOC_CHUNK_SIZE(pData) );
-			pc->dwOwners--;
-			if( !pc->dwOwners )
+			pc->info.dwOwners--;
+			if( !pc->info.dwOwners )
 			{
 				extern int  MemChk ( POINTER p, uintptr_t val, size_t sz );
 #ifndef NO_LOGGING
@@ -2268,16 +2270,19 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 #endif
 
 			pMem = GrabMem( pc->pRoot );
+#ifdef _DEBUG
 			if( !pMem )
 			{
-#ifndef NO_LOGGING
+#  ifndef NO_LOGGING
 				ll__lprintf( DBG_RELAY )( "ERROR: Chunk to free does not reference a heap!" );
-#endif
+#  endif
 				DebugDumpHeapMemEx( pc->pRoot, 1 );
 				DebugBreak();
 			}
+#endif
 			pMemSpace = FindSpace( pMem );
 
+#ifdef _DEBUG
 			while( pMemSpace && ( ( pCurMem = (PMEM)pMemSpace->pMem ),
 										(	( (uintptr_t)pData < (uintptr_t)pCurMem )
 										||  ( (uintptr_t)pData > ( (uintptr_t)pCurMem + pCurMem->dwSize ) ) )
@@ -2287,6 +2292,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				Log( "ERROR: This block should have immediatly referenced it's correct heap!" );
 				pMemSpace = pMemSpace->next;
 			}
+#endif
+
 			if( !pMemSpace )
 			{
 #ifndef NO_LOGGING
@@ -2300,10 +2307,12 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				DropMem( pMem );
 				return NULL;
 			}
+#ifdef _DEBUG
 			pCurMem = (PMEM)pMemSpace->pMem;
+#endif
 			if( pData && pc )
 			{
-				if( !pc->dwOwners )
+				if( !pc->info.dwOwners )
 				{
 #ifndef NO_LOGGING
 #  ifdef _DEBUG
@@ -2331,8 +2340,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 						DebugBreak();
 					}
 #endif
-				pc->dwOwners--;
-				if( pc->dwOwners )
+				pc->info.dwOwners--;
+				if( pc->info.dwOwners )
 				{
 #ifdef _DEBUG
 					if( !(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
@@ -2363,10 +2372,13 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 					if( !g.bDisableDebug )
 					{
 						BLOCK_TAG(pc)=BLOCK_TAG_ID;
-						MemSet( pc->byData, FREE_MEMORY_TAG, pc->dwSize - pc->dwPad );
+						MemSet( pc->byData, FREE_MEMORY_TAG, pc->dwSize - pc->info.dwPad );
 					}
 #endif
 					next = (PCHUNK)(pc->byData + pc->dwSize);
+#ifndef _DEBUG
+					pCurMem = (PMEM)pMemSpace->pMem;
+#endif
 					if( (nNext = (uintptr_t)next - (uintptr_t)pCurMem) >= pCurMem->dwSize )
 					{
 						// if next is NOT within valid memory...
@@ -2375,7 +2387,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 
 					if( ( pPrior = pc->pPrior ) ) // is not root chunk...
 					{
-						if( !pPrior->dwOwners ) // prior physical is free
+						if( !pPrior->info.dwOwners ) // prior physical is free
 						{
 							pPrior->dwSize += CHUNK_SIZE + pc->dwSize; // add this header plus size
 #ifdef _DEBUG
@@ -2385,24 +2397,24 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 							}
 							if( !g.bDisableDebug )
 							{
-								pPrior->dwPad = MAGIC_SIZE;
+								pPrior->info.dwPad = MAGIC_SIZE;
 								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
 								{
-									pPrior->dwPad += 2 * MAGIC_SIZE;
+									pPrior->info.dwPad += 2 * MAGIC_SIZE;
 									BLOCK_FILE( pPrior ) = pFile;
 									BLOCK_LINE( pPrior ) = nLine;
 								}
 								BLOCK_TAG( pPrior ) = BLOCK_TAG_ID;
-								MemSet( pPrior->byData, FREE_MEMORY_TAG, pPrior->dwSize - pPrior->dwPad );
+								MemSet( pPrior->byData, FREE_MEMORY_TAG, pPrior->dwSize - pPrior->info.dwPad );
 							}
 							else
 #endif
 							{
-								pPrior->dwPad = 0; // *** NEEDFILELINE ***
+								pPrior->info.dwPad = 0; // *** NEEDFILELINE ***
 #ifdef _DEBUG
 								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
 								{
-									pPrior->dwPad += 2 * MAGIC_SIZE;
+									pPrior->info.dwPad += 2 * MAGIC_SIZE;
 									BLOCK_FILE( pPrior ) = pFile;
 									BLOCK_LINE( pPrior ) = nLine;
 								}
@@ -2419,7 +2431,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 					// begin checking NEXT physical memory block for conglomerating
 					if( next )
 					{
-						if( !next->dwOwners )
+						if( !next->info.dwOwners )
 						{
 							pc->dwSize += CHUNK_SIZE + next->dwSize;
 							if( bCollapsed )
@@ -2441,24 +2453,25 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 								//ll_lprintf( "Collapsing freed block with next block...%p %p", pc, next );
 							if( !g.bDisableDebug )
 							{
-								pc->dwPad = MAGIC_SIZE;
+								pc->info.dwPad = MAGIC_SIZE;
 								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
 								{
-									pc->dwPad += 2 * MAGIC_SIZE;
+									pc->info.dwPad += 2 * MAGIC_SIZE;
 									BLOCK_FILE( pc ) = pFile;
 									BLOCK_LINE( pc ) = nLine;
 								}
 								BLOCK_TAG( pc ) = BLOCK_TAG_ID;
-								MemSet( pc->byData, FREE_MEMORY_TAG, pc->dwSize - pc->dwPad );
+								MemSet( pc->byData, FREE_MEMORY_TAG, pc->dwSize - pc->info.dwPad );
 							}
 							else
 #endif
 							{
-								pc->dwPad = 0; // *** NEEDFILELINE ***
+								pc->info.dwPad = 0;
 #ifdef _DEBUG
 								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
 								{
-									pc->dwPad += 2 * MAGIC_SIZE;
+                            // *** NEEDFILELINE ***
+									pc->info.dwPad += 2 * MAGIC_SIZE;
 									BLOCK_FILE( pc ) = pFile;
 									BLOCK_LINE( pc ) = nLine;
 								}
@@ -2484,10 +2497,10 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			}
 			Bubble( pMem );
 			DropMem( pMem );
-#ifdef _DEBUG
+#  ifdef _DEBUG
 			if( !g.bDisableAutoCheck )
 				GetHeapMemStatsEx(pMem, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
-#endif
+#  endif
 		}
 #endif
 	}
@@ -2508,7 +2521,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			if( g.bLogAllocate && g.bLogAllocateWithHold )
 				_xlprintf( 2 DBG_RELAY)( "Hold	 : %p - %" _PTRSZVALfs " bytes",pc, pc->dwSize );
 #endif
-			pc->dwOwners++;
+			pc->info.dwOwners++;
 		}
 		else
 		{
@@ -2522,14 +2535,14 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				_xlprintf( 2 DBG_RELAY)( "Hold	 : %p - %" _PTRSZVALfs " bytes",pc, pc->dwSize );
 			}
 #endif
-			if( !pc->dwOwners )
+			if( !pc->info.dwOwners )
 			{
 				ll_lprintf( "Held block has already been released!  too late to hold it!" );
 				DebugBreak();
 				DropMem( pMem );
 				return pData;
 			}
-			pc->dwOwners++;
+			pc->info.dwOwners++;
 			DropMem(pMem );
 #ifdef _DEBUG
 			if( !g.bDisableAutoCheck )
@@ -2580,7 +2593,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 				Relinquish(); // allow debug log to work... (OutputDebugString() Win32, also network streams may require)
 #endif
 				nChunks++;
-				if( !pc->dwOwners )
+				if( !pc->info.dwOwners )
 				{
 					nTotalFree += pc->dwSize;
 #ifndef NO_LOGGING
@@ -2686,7 +2699,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 			{
 				//Relinquish(); // allow debug log to work...
 				nChunks++;
-				if( !pc->dwOwners )
+				if( !pc->info.dwOwners )
 				{
 					nTotalFree += pc->dwSize;
 					snprintf( byDebug, sizeof(byDebug), "Free at %p size: %" cPTRSZVALfs "(%" cPTRSZVALfx ") Prior:%p NF:%p",
@@ -2792,9 +2805,9 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		// this reallocation may move the free next to another free, which
 		// should be collapsed into this one...
 	pPrior = pc->pPrior;
-	if( ( pc->dwOwners == 1 ) && // not HELD by others... no way to update their pointers
+	if( ( pc->info.dwOwners == 1 ) && // not HELD by others... no way to update their pointers
 		pPrior &&
-		!pPrior->dwOwners )
+		!pPrior->info.dwOwners )
 	{
 		CHUNK Free = *pPrior;
 		CHUNK Allocated, *pNew;
@@ -2802,7 +2815,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		MemCpy( pPrior->byData, pc->byData, Allocated.dwSize );
 		pNew = (PCHUNK)(pPrior->byData + Allocated.dwSize);
 		pNew->dwSize = Free.dwSize;
-		pNew->dwOwners = 0;
+		pNew->info.dwOwners = 0;
 		pNew->pPrior = pPrior; // now pAllocated...
 		pNew->pRoot = Free.pRoot;
 		if( ( pNew->next = Free.next ) )
@@ -2817,7 +2830,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		}
 #endif
 		pPrior->dwSize = Allocated.dwSize;
-		pPrior->dwOwners = 1;
+		pPrior->info.dwOwners = 1;
 		pPrior->next = NULL;
 		pPrior->me = NULL;
 		// update NEXT NEXT real block...
@@ -2827,7 +2840,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 			if( (((uintptr_t)next) - ((uintptr_t)pMem)) < (uintptr_t)pMem->dwSize )
 			{
-				if( !next->dwOwners ) // if next is free.....
+				if( !next->info.dwOwners ) // if next is free.....
 				{
 					// consolidate...
 					if( (pNew->next = next->next) )
@@ -2882,7 +2895,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		while( (((uintptr_t)pc) - ((uintptr_t)pMemCheck)) < (uintptr_t)pMemCheck->dwSize ) // while PC not off end of memory
 		{
 			nChunks++;
-			if( !pc->dwOwners )
+			if( !pc->info.dwOwners )
 			{
 				nFree += pc->dwSize;
 				nFreeChunks++;
@@ -2903,7 +2916,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 						int minPad = MAGIC_SIZE;
 						if( pMem && !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
 							minPad += MAGIC_SIZE * 2;
-						if( ( pc->dwPad >= minPad ) && ( BLOCK_TAG(pc) != BLOCK_TAG_ID ) )
+						if( ( pc->info.dwPad >= minPad ) && ( BLOCK_TAG(pc) != BLOCK_TAG_ID ) )
 						{
 #ifndef NO_LOGGING
 							ll_lprintf( "memory block: %p(%p) %08" TAG_FORMAT_MODIFIER "x instead of %08" TAG_FORMAT_MODIFIER "x", pc, pc->byData, BLOCK_TAG(pc), BLOCK_TAG_ID );
@@ -2956,7 +2969,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		pc = pMemCheck->pFirstFree;
 		while( pc )
 		{
-			if( pc->dwOwners )
+			if( pc->info.dwOwners )
 			{  // owned block is in free memory chain ! ?
 				ll_lprintf( "Owned block %p is in free memory chain!", pc );
 				DebugBreak();
