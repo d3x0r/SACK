@@ -1,4 +1,12 @@
-# SACK
+# SACK 
+
+<img src="https://github.com/d3x0r/sack/blob/master/src/games/dekware/doc/webpage/nexus1.jpg?raw=true" width="32" height="32"> SACK System abstraction Component Kit.
+
+libuv, libSDL, GKT, QT, ... only none of those all in one.   Primarily extensions to C for lists, stacks, queues, with and without locking mechanisms.  Memory diagnsotics
+builtin to identify over/underflow or use(write) after free; file system event notifications in a standard API, simple threads, event based networking which works on background threads, HTTP, Websocket, JSON, JSON6, JSOX parsers, XML parser exported; SQLite/ODBC common wrapper that simplifies database connection and use;   Simple Fraction numeric library, vector library, procedure and function registration system which can register both functions or interface tables for library module intercommunication in complex pluggable systems; file system abstraction and virtual file system interface.  
+
+what isn't it?  It's not itself an operating system, it lacks task loaders, and process allocation itself; memory is requested from the system and managed for code, memory may be shared between proceses.
+
 
 [![Gitter](https://badges.gitter.im/FreedomCollective/Sack.svg)](https://gitter.im/FreedomCollective/Sack?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
