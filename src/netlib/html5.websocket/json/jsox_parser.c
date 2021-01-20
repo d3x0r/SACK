@@ -243,7 +243,16 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 			if( state->escape ) {
 				if( state->cr_escaped ) { state->cr_escaped = FALSE; state->escape = FALSE; status = 1; break; }
 				// otherwise, escaped quote, append it.
+				if( state->stringHex ) {
+					c = state->hex_char;
+					state->stringHex = FALSE;
+				}
+				if( state->stringUnicode ){
+					c = state->hex_char;
+					state->stringUnicode = FALSE;
+				}
 				( *mOut++ ) = c; state->escape = FALSE;
+				state->val.stringLen = mOut - state->val.string;
 			}
 			else {
 				status = 1;
@@ -287,7 +296,7 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 					else {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
+						vtprintf( state->pvtError, "(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
 							, c
@@ -295,6 +304,7 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 						);// fault
 						status = -1;
 						state->stringHex = FALSE;
+						state->stringUnicode = FALSE;
 						state->escape = FALSE;
 						continue;
 					}
@@ -385,7 +395,11 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				(*mOut++) = '\\';
 				state->escape = 0;
 			}
-			else state->escape = 1;
+			else {
+				state->escape = 1;
+				state->stringHex = 0;
+				state->stringUnicode = 0;
+			}
 		}
 		else
 		{
@@ -1189,6 +1203,11 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				return -1;
 			}
 			retval = 1;
+		}else {
+			if( state->inBuffers[0]->Top == state->inBuffers[0]->Bottom )
+			if( state->val.value_type || state->word != WORD_POS_RESET ) {
+				state->completed = 1;
+			}
 		}
 	}
 
@@ -1201,9 +1220,10 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 	gatherStringInput:
 		if( state->gatheringString ) {
 			string_status = gatherStringX( state, input->buf, &input->pos, input->size, &output->pos, state->gatheringStringFirstChar );
-			if( string_status < 0 )
+			if( string_status < 0 ) {
 				state->status = FALSE;
-			else if( string_status > 0 )
+				state->gatheringString = FALSE;
+			} else if( string_status > 0 )
 			{
 				state->gatheringString = FALSE;
 				state->n = input->pos - input->buf;
@@ -2266,6 +2286,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		if( state->val.value_type != JSOX_VALUE_UNSET ) {
 			pushValue( state, state->elements, &state->val );
 			JSOX_RESET_STATE_VAL();
+			if( !retval )
+			retval = 1;
 		}
 		state->completed = FALSE;
 	}
