@@ -1204,9 +1204,17 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			}
 			retval = 1;
 		}else {
-			if( state->inBuffers[0]->Top == state->inBuffers[0]->Bottom )
-			if( state->val.value_type || state->word != WORD_POS_RESET ) {
-				state->completed = 1;
+			// end of buffer, and nothing at all to process.
+			if( state->inBuffers[0]->Top == state->inBuffers[0]->Bottom ) {
+				if( state->parse_context != JSOX_CONTEXT_UNKNOWN ) {
+					if( !state->pvtError ) state->pvtError = VarTextCreate();
+					vtprintf( state->pvtError, "Fault while parsing; unexpected end of stream at %" _size_f "  %" _size_f ":%" _size_f, state->n, state->line, state->col );
+					state->status = FALSE;
+					return -1;
+				}
+				if( state->val.value_type || state->word != JSOX_WORD_POS_RESET ) {
+					state->completed = 1;
+				}
 			}
 		}
 	}
