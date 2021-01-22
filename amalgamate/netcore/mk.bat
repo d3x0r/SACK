@@ -103,8 +103,8 @@ cd h
 c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_ucb_networking.h %HDRS%
 cd ..
 
-gcc -c -g -o a.o  "-DTARGETNAME=""a.exe""" sack_ucb_networking.c
-gcc -c -O3 -o a-opt.o  "-DTARGETNAME=""a.exe""" sack_ucb_networking.c
+gcc -c -g -o a.o sack_ucb_networking.c
+gcc -c -O3 -o a-opt.o  sack_ucb_networking.c
 
 @set LIBS=
 @set LIBS=%LIBS% -lwinmm 
@@ -117,8 +117,8 @@ gcc -c -O3 -o a-opt.o  "-DTARGETNAME=""a.exe""" sack_ucb_networking.c
 @set LIBS=%LIBS% -lcrypt32
 @set LIBS=%LIBS% -lole32
 
-gcc -g -o a.exe "-DTARGETNAME=""a.exe""" sack_ucb_networking.c test.c %LIBS%
-gcc -O3 -o a-opt.exe "-DTARGETNAME=""a-opt.exe""" sack_ucb_networking.c test.c %LIBS%
+gcc -g -o a.exe sack_ucb_networking.c test.c %LIBS%
+gcc -O3 -o a-opt.exe sack_ucb_networking.c test.c %LIBS%
 
 gcc -g -o a.exe a.o test.c %LIBS%
 gcc -O3 -o a-opt.exe a-opt.o test.c %LIBS%
