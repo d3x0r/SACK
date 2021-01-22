@@ -29,7 +29,6 @@
 
 #include <stdio.h>
 #include <stdarg.h> 
-#include <stdhdrs.h>
 
 #ifndef TARGETNAME
 // TARGETNAME is to register functions specific to a library/module
