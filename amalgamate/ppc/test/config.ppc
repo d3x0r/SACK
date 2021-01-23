@@ -1,0 +1,5 @@
+
+#define PREDEFINED_SYMBOL 3
+
+#include <preload.h>
+
