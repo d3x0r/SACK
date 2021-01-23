@@ -1160,7 +1160,7 @@ void loadConfig( void ) {
 #endif
 		ProcessFile( file );
 		CommitDefinesToCommandLine();
-		DestoyDepends();
+		//DestoyDepends();
 	}
 
 }
@@ -1624,7 +1624,6 @@ int processArguments( int argc, char **argv ) {
 						else if( argv[i][n] == 'o' ||
 								  argv[i][n] == 'O' )
 						{
-							printf( "output %s", argv[i] + 2 );
 							if( negarg )
 							{
 								g.CurrentOutName[0] = 0xFF;
