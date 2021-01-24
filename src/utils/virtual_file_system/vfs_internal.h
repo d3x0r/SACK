@@ -172,6 +172,9 @@ enum block_cache_entries
 #define DIRENT_NAME_OFFSET_UNUSED             0xFE000000
 
 
+#  ifdef _MSC_VER
+#    pragma pack (push, 1)
+#  endif
 
 PREFIX_PACKED struct directory_entry
 {
@@ -182,6 +185,9 @@ PREFIX_PACKED struct directory_entry
 	uint64_t timelineEntry;  // when the file was created/last written
 #endif
 } PACKED;
+#  ifdef _MSC_VER
+#    pragma pack (pop)
+#  endif
 
 #undef VFS_DIRECTORY_ENTRIES
 #ifdef VIRTUAL_OBJECT_STORE
@@ -264,6 +270,10 @@ struct vfs_os_rollback_journal {
 #  undef small
 #endif
 
+#  ifdef _MSC_VER
+#    pragma pack (push, 1)
+#  endif
+
 PREFIX_PACKED struct vfs_os_rollback_entry {
 	BLOCKINDEX fileBlock;
 	struct {
@@ -287,6 +297,10 @@ PREFIX_PACKED struct vfs_os_rollback_header {
 	// where this is tracked.
 	struct vfs_os_rollback_entry  entries[1];
 }PACKED ;
+
+#  ifdef _MSC_VER
+#    pragma pack (pop)
+#  endif
 
 #endif
 

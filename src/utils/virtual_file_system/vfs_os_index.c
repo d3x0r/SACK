@@ -78,6 +78,10 @@ enum index_header_type_flags {
 	iltf_fixed = 1,
 };
 
+#  ifdef _MSC_VER
+#    pragma pack (push, 1)
+#  endif
+
 PREFIX_PACKED struct index_header {
 	INDEX_BLOCK_TYPE first_free_entry; // blank entry list, if any
 	INDEX_BLOCK_TYPE rootNode;
@@ -97,6 +101,10 @@ PREFIX_PACKED struct index_header {
 	struct storageIndexEntry firstEntry;
 
 } PACKED;
+
+#  ifdef _MSC_VER
+#    pragma pack (pop)
+#  endif
 
 struct memoryStorageIndex {
 	// name/identifer

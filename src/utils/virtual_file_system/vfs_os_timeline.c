@@ -53,6 +53,10 @@ typedef struct timelineTimeType {
 	uint64_t tick : 56;
 } TIMELINE_TIME_TYPE;
 
+#  ifdef _MSC_VER
+#    pragma pack (push, 1)
+#  endif
+
 PREFIX_PACKED struct timelineHeader {
 	TIMELINE_BLOCK_TYPE first_free_entry;
 	TIMELINE_BLOCK_TYPE crootNode_deleted;
@@ -99,6 +103,10 @@ PREFIX_PACKED struct storageTimelineNode {
 	uint64_t me_fpi; // it is know by  ( me_fpi & 0x3f ) == 32 or == 36 whether this is slesser or sgreater, (me_fpi & ~3f) = parent_fpi
 	uint64_t priorData; // if not 0, references a start block version of data.
 } PACKED;
+
+#  ifdef _MSC_VER
+#    pragma pack (pop)
+#  endif
 
 struct memoryTimelineNode {
 	// if dirent_fpi == 0; it's free.
@@ -261,7 +269,7 @@ void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 #endif
 	locks++;
 	SETMASK_( vol->seglock, seglock, cache, locks );
-
+	if( node->priorData > 100000 ) DebugBreak();
 	time->disk = node;
 	time->diskCache = cache;
 

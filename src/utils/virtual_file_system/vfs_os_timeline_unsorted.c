@@ -36,6 +36,9 @@ typedef struct timelineTimeType {
 	uint64_t tick : 56;
 } TIMELINE_TIME_TYPE;
 
+#  ifdef _MSC_VER
+#    pragma pack (push, 1)
+#  endif
 PREFIX_PACKED struct timelineHeader {
 	TIMELINE_BLOCK_TYPE first_free_entry;
 	TIMELINE_BLOCK_TYPE crootNode_deleted;
@@ -52,7 +55,7 @@ PREFIX_PACKED struct storageTimelineNode {
 	// if dirent_fpi == 0; it's free; and priorData will point at another free node
 	uint64_t dirent_fpi;
 
-	uint32_t filler32_1;
+	uint32_t filler16_1;
 	uint16_t priorDataPad;
 	uint8_t  filler8_1; // how much of the last block in the file is not used
 
@@ -60,9 +63,11 @@ PREFIX_PACKED struct storageTimelineNode {
 
 	uint64_t time;
 
-	uint64_t me_fpi; // it is know by  ( me_fpi & 0x3f ) == 32 or == 36 whether this is slesser or sgreater, (me_fpi & ~3f) = parent_fpi
 	uint64_t priorData; // if not 0, references a start block version of data.
 } PACKED;
+#  ifdef _MSC_VER
+#    pragma pack (pop)
+#  endif
 
 struct memoryTimelineNode {
 	// if dirent_fpi == 0; it's free.
@@ -80,16 +85,26 @@ struct storageTimelineCursor {
 	struct storageTimelineCache dirents; // temp; needs work.
 };
 
+#  ifdef _MSC_VER
+#    pragma pack (push, 1)
+#  endif
+
 #define NUM_ROOT_TIMELINE_NODES (TIME_BLOCK_SIZE - sizeof( struct timelineHeader )) / sizeof( struct storageTimelineNode )
 PREFIX_PACKED struct storageTimeline {
 	struct timelineHeader header;
 	struct storageTimelineNode entries[NUM_ROOT_TIMELINE_NODES];
 } PACKED;
 
+/*
 #define NUM_TIMELINE_NODES (TIME_BLOCK_SIZE) / sizeof( struct storageTimelineNode )
 PREFIX_PACKED struct storageTimelineBlock {
 	struct storageTimelineNode entries[(TIME_BLOCK_SIZE) / sizeof( struct storageTimelineNode )];
 } PACKED;
+*/
+
+#  ifdef _MSC_VER
+#    pragma pack (pop)
+#  endif
 
 #ifdef DEBUG_VALIDATE_TREE
 #define VTReadOnly  , TRUE
@@ -400,7 +415,7 @@ BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vol
 	SMUDGECACHE( vol, vol->timelineCache );
 
 	// make sure the new entry is emptied.
-	time->disk->me_fpi = 0;
+	//time->disk->me_fpi = 0;
 	time->disk->dirent_fpi = 0;
 	time->disk->priorData = 0;
 	time->disk->time = timeGetTime64ns();
