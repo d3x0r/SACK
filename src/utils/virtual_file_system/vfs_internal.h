@@ -227,7 +227,7 @@ struct sack_vfs_disk {
 
 #ifdef DEBUG_SECTOR_DIRT
 #define SMUDGECACHE(vol,n) { \
-	lprintf( "set dirty on %d", n); \
+	lprintf( "set dirty on %d %d %d", n, vol->segment[n], vol->bufferFPI[n]); \
 	vfs_os_smudge_cache(vol,n);   \
 }  
 #define CLEANCACHE(vol,n) { \
@@ -326,6 +326,7 @@ struct sack_vfs_volume {
 	struct vfs_os_rollback_journal journal;
 	BLOCKINDEX lastBlock;
 	PDATALIST pdl_BAT_information;
+	PLIST pending_rollback;
 	//PDATASTACK pdsCTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
 	//PDATASTACK pdsWTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
 
