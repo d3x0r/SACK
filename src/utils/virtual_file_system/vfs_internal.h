@@ -294,6 +294,7 @@ PREFIX_PACKED struct vfs_os_rollback_header {
 	BLOCKINDEX nextBlock;
 	BLOCKINDEX nextSmallBlock;
 	BLOCKINDEX nextEntry;
+	uint64_t   Filler1;  // align entries on 4096 boundaries
 	// where this is tracked.
 	struct vfs_os_rollback_entry  entries[1];
 }PACKED ;
