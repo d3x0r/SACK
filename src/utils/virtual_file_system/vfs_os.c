@@ -569,6 +569,7 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 	DBG_PASS
 )
 {
+	LoG_( "File Seek: %p %d %d", file, (int)offset, cache_index[0] );
 	enum block_cache_entries cacheRoot = cache_index[0];
 	uint8_t *data;
 	FPI pos = 0;
@@ -595,10 +596,11 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 		}
 	}
 	data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, blockSize, cache_index DBG_RELAY );
-
+	LoG_( "Sector size: %p (ss)%d (blk)%d (ofs)%d (size)%d (cache)%d",data, vol->sector_size[cache_index[0]], (int)firstblock, (int)offset , (int)vol->sector_size[*cache_index], cache_index[0] );
 	while( firstblock != EOFBLOCK && offset >= vol->sector_size[*cache_index] ) {
 		int size;
 		enum block_cache_entries cache = file ? file->fileName ? BC( FILE ) : file->cache: cacheRoot;
+		LoG( "Getting next block after %p %d %d", file, firstblock, blockSize );
 		firstblock = vfs_os_GetNextBlock( vol, firstblock
 			, &cache
 			, file?file->fileName?GFB_INIT_NONE:GFB_INIT_TIMELINE_MORE:GFB_INIT_NAMES, 1, blockSize, &size );
@@ -606,20 +608,18 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 			lprintf( "Tried to allocate %d got %d at %d (from %d)", blockSize, vol->sector_size[*cache_index], *cache_index, cacheRoot );
 			DebugBreak();
 		}
+		offset -= vol->sector_size[*cache_index];
+		pos += vol->sector_size[*cache_index];
 		// have to re-load the sector key after getting a new block.
 		vol->sector_size[cache] = size;
 		cache_index[0] = cache;
 		data = vol->usekey_buffer[cache];// (uint8_t*)vfs_os_BSEEK_( vol, firstblock, blockSize, cache_index DBG_RELAY );
-		offset -= vol->sector_size[*cache_index];
-		pos += vol->sector_size[*cache_index];
 		//LoG( "Skipping a whole block of 'file' %d %d", firstblock, offset );
 		// this only follows the chain in the BAT; it does not load the sector into memory(?)
 		if( file ) {
-			//if( !file->fileName ) LoG( "Set timeline block chain at %d to %d", (int)pos, (int)firstblock );
+			//if( !file->fileName ) LoG( "Set block chain at %d to %d", (int)pos, (int)firstblock, *cache_index );
 			_os_SetBlockChain( file, pos, firstblock, size );
 		}
-		cache_index[0] = cacheRoot;
-		data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, blockSize, cache_index DBG_RELAY );
 	}
 	return (uintptr_t)(data + (offset));
 }
@@ -882,15 +882,17 @@ static FPI vfs_os_compute_block( struct sack_vfs_os_volume *vol, BLOCKINDEX bloc
 	if( !info ) return ~0;
 	{
 		if( block % BLOCKS_PER_SECTOR ) { // not reading a BAT, add the fixed offset, 0 based data offset
-			if( cache < BC(COUNT) )
-				vol->sector_size[cache] = info->size;
+			//if( cache < BC(COUNT) )
+			LoG( "Setting sector size according to BAT information:%d %d %d", info->size, (int)block, (cache<BC(COUNT))?(int)vol->segment[cache]:0, (int)cache );
+			if( cache >= BC(COUNT) ) ;//lprintf( "CACHE OVERFLOW not setting info %d", info->size );
+			else vol->sector_size[cache] = info->size;
 			// the first 'block' is always bat size, so add that, and then the remaining
 			// smaller blocks...
 
 			return info->sectorStart + BAT_BLOCK_SIZE + ( ( block % BLOCKS_PER_SECTOR ) - 1 ) * info->size;
 		} else {
-			if( cache < BC(COUNT) )
-				vol->sector_size[cache] = BAT_BLOCK_SIZE;
+			if( cache >= BC(COUNT) ) ;//lprintf( "CACHE OVERFLOW skipping size(BAT)" );
+			else vol->sector_size[cache] = BAT_BLOCK_SIZE;
 			return info->sectorStart;
 		}
 	}
@@ -907,6 +909,7 @@ static FPI vfs_os_compute_data_block( struct sack_vfs_os_volume* vol, BLOCKINDEX
 	// not reading a BAT, add the fixed offset, 0 based data offset
 	if( cache < BC( COUNT ) )
 		vol->sector_size[cache] = info->size;
+
 	// the first 'block' is always bat size, so add that, and then the remaining
 	// smaller blocks...
 	return info->sectorStart + BAT_BLOCK_SIZE + ( ( block - 1 ) % BLOCKS_PER_BAT ) * info->size;
@@ -1267,6 +1270,7 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 		_os_updateCacheAge_( vol, &cache_idx, segment, vol->timelineCacheAge, (BC( TIMELINE_LAST ) - BC( TIMELINE )) DBG_RELAY );
 	}
 	else if( cache_idx == BC( ROLLBACK ) ) {
+		//lprintf( "Cache age rollback: %d", (int)segment );
 		_os_updateCacheAge_( vol, &cache_idx, segment, vol->rollbackCacheAge, ( BC( ROLLBACK_LAST ) - BC( ROLLBACK ) ) DBG_RELAY );
 	}
 #ifdef DEBUG_VALIDATE_TREE
@@ -1427,6 +1431,7 @@ uintptr_t vfs_os_BSEEK_( struct sack_vfs_os_volume* vol, BLOCKINDEX block, int b
 			}
 		}
 #endif
+		// first call can skip setting information
 		while( vfs_os_compute_block( vol, b, BC( COUNT ) ) >= vol->dwSize ) if( !_os_ExpandVolume( vol, vol->lastBlock, blockSize ) ) return 0;
 		{
 			cache_index[0] = _os_UpdateSegmentKey_( vol, cache_index[0], b + 1 DBG_RELAY );
@@ -1991,10 +1996,17 @@ static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDE
 #ifdef _DEBUG
 			if( !check_val )DebugBreak();
 #endif
+			sector = check_val / BLOCKS_PER_BAT;
 			// free block might have expanded...
-			this_BAT = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, sector * ( BLOCKS_PER_SECTOR ), BAT_BLOCK_SIZE, &cache );
-			if( !this_BAT ) return 0;
-			thisSize = this_BAT[BLOCKS_PER_BAT]? BLOCK_SMALL_SIZE :4096;
+			{
+				enum block_cache_entries cache = BC(BAT);
+				BLOCKINDEX* this_BAT2 = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, sector * ( BLOCKS_PER_SECTOR ), BAT_BLOCK_SIZE, &cache );
+				if( !this_BAT2 ) {
+					lprintf( "failed to load next bat to get size" );
+					return 0;
+				}
+				thisSize = this_BAT2[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
+			}
 			// segment could already be set from the _os_GetFreeBlock...
 			//lprintf( "set block %d %d %d to %d", (int)block, (int)( block % BLOCKS_PER_BAT ), (int)sector, (int)check_val );
 			this_BAT[block % BLOCKS_PER_BAT] = check_val;
