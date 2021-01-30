@@ -55,6 +55,10 @@ CTEXTSTR ssl_GetRequestedHostName( PCLIENT pc ) {
 	return NULL;
 }
 
+void ssl_CloseSession( PCLIENT pc ) {
+   return;
+}
+
 SACK_NETWORK_NAMESPACE_END
 
 #else
@@ -128,6 +132,7 @@ struct ssl_session {
 	struct internalCert* cert;
 	LOGICAL ignoreVerification;
 	LOGICAL firstPacket;
+	LOGICAL closed;
 	BIO *rbio;
 	BIO *wbio;
 	//EVP_PKEY *privkey;
@@ -174,29 +179,70 @@ ATEXIT( CloseSSL )
 	}
 }
 
+static int logerr( const char *str, size_t len, void *userdata ) {
+	lprintf( "%d: %s", *((int*)&userdata), str );
+	return 0;
+}
 
-void CloseSession( PCLIENT pc )
+static void ssl_handlePendingControlwrites( PCLIENT pc ) {
+	// the read generated write data, output that data
+	size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
+	if( !pc->ssl_session ) {
+		lprintf( "SSL SESSION SELF DESTRUCTED!" );
+	}
+	if( pending > 0 ) {
+		int read;
+#ifdef DEBUG_SSL_IO_VERBOSE
+		lprintf( "pending to send is %zd into %zd %p " , pending, pc->ssl_session->obuflen, pc->ssl_session->obuffer );
+#endif
+		if( pending > pc->ssl_session->obuflen ) {
+			if( pc->ssl_session->obuffer )
+				Deallocate( uint8_t *, pc->ssl_session->obuffer );
+			pc->ssl_session->obuffer = NewArray( uint8_t, pc->ssl_session->obuflen = pending * 2 );
+			//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
+		}
+		read  = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pending );
+		if( read < 0 ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+			lprintf( "failed to read pending control data...SSL will fail without it." );
+		} else {
+#ifdef DEBUG_SSL_IO
+			lprintf( "Send pending control %p %d", pc->ssl_session->obuffer, read );
+#endif
+			SendTCP( pc, pc->ssl_session->obuffer, read );
+		}
+	}
+}
+
+LOGICAL ssl_IsClosed( PCLIENT pc ) {
+	if( pc->ssl_session ) {
+		return pc->ssl_session->closed;
+	}
+}
+
+void ssl_CloseSession( PCLIENT pc )
 {
 	if( pc->ssl_session )
 	{
 		INDEX idx;
 		PTEXT seg;
+		SSL_shutdown( pc->ssl_session->ssl );
+		ssl_handlePendingControlwrites( pc );
+
 		LIST_FORALL( pc->ssl_session->protocols, idx, PTEXT, seg ) {
 			LineRelease( seg );
 		}
 		DeleteList( &pc->ssl_session->protocols );
-		if( pc->ssl_session->hostname )
+		if( pc->ssl_session->hostname ) {
 			Release( pc->ssl_session->hostname );
-		Release( pc->ssl_session );
-		pc->ssl_session = NULL;
+			pc->ssl_session->hostname = NULL;
+		}
+		pc->ssl_session->closed = TRUE;
+		//Release( pc->ssl_session );
+		//pc->ssl_session = NULL;
 	}
 	if( !( pc->dwFlags & ( CF_CLOSED|CF_CLOSING ) ) )
 		RemoveClient( pc );
-}
-
-static int logerr( const char *str, size_t len, void *userdata ) {
-	lprintf( "%d: %s", *((int*)&userdata), str );
-	return 0;
 }
 
 static int handshake( PCLIENT pc ) {
@@ -407,38 +453,11 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			}
 			else
 				len = 0;
-			{
-				// the read generated write data, output that data
-				size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
-				if( !pc->ssl_session ) {
-					lprintf( "SSL SESSION SELF DESTRUCTED!" );
-				}
-				if( pending > 0 ) {
-					int read;
-#ifdef DEBUG_SSL_IO_VERBOSE
-					lprintf( "pending to send is %zd into %zd %p " , pending, pc->ssl_session->obuflen, pc->ssl_session->obuffer );
-#endif
-					if( pending > pc->ssl_session->obuflen ) {
-						if( pc->ssl_session->obuffer )
-							Deallocate( uint8_t *, pc->ssl_session->obuffer );
-						pc->ssl_session->obuffer = NewArray( uint8_t, pc->ssl_session->obuflen = pending * 2 );
-						//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
-					}
-					read  = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pending );
-					if( read < 0 ) {
-						ERR_print_errors_cb( logerr, (void*)__LINE__ );
-						lprintf( "failed to read pending control data...SSL will fail without it." );
-					} else {
-#ifdef DEBUG_SSL_IO
-						lprintf( "Send pending control %p %d", pc->ssl_session->obuffer, read );
-#endif
-						SendTCP( pc, pc->ssl_session->obuffer, read );
-						if( !pc->ssl_session ) {
-							LeaveCriticalSec( &pc->ssl_session->csReadWrite );
-							return;
-						}
-					}
-				}
+
+			ssl_handlePendingControlwrites( pc );
+			if( !pc->ssl_session ) {
+				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+				return;
 			}
 
 			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
@@ -505,12 +524,14 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
 		}
 		//lprintf( "Read more data..." );
-		if( !buffer )
-			pc->ssl_session->firstPacket = 1;
-		else
-			pc->ssl_session->firstPacket = 0;
 		if( pc->ssl_session ) {
-			ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
+			if( !buffer )
+				pc->ssl_session->firstPacket = 1;
+			else
+				pc->ssl_session->firstPacket = 0;
+			if( pc->ssl_session ) {
+				ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
+			}
 		}
 	}
 }
