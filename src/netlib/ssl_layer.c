@@ -218,6 +218,7 @@ LOGICAL ssl_IsClosed( PCLIENT pc ) {
 	if( pc->ssl_session ) {
 		return pc->ssl_session->closed;
 	}
+   return TRUE;
 }
 
 void ssl_CloseSession( PCLIENT pc )
