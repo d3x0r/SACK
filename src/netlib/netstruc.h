@@ -422,6 +422,11 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread );
 int CPROC IdleProcessNetworkMessages( uintptr_t quick_check );
 
 
+//----------------------------
+// ssl_close - redirected removeClient from network..
+void ssl_CloseSession( PCLIENT pc );
+LOGICAL ssl_IsClosed( PCLIENT pc );
+
 //---------------------------
 // some utility macros
 
