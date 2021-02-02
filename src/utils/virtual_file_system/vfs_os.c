@@ -1720,7 +1720,6 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 	LOGICAL path_checked = FALSE;
 	int n;
 	size_t oldsize = vol->dwSize;
-	if( (fromBlock*size) > 1000000 ) DebugBreak();
 	if( vol->file && vol->read_only ) return TRUE;
 	if( !size ) return FALSE;
 	if( !vol->file ) {
@@ -4141,7 +4140,6 @@ static int _os_iterate_find( struct sack_vfs_os_find_info *_info ) {
 					subnode.leadinDepth = node.leadinDepth + 1;
 					subnode.leadin[subnode.leadinDepth] = 0;
 					subnode.this_dir_block = block;
-					if( subnode.this_dir_block > 5000 ) DebugBreak();
 					PushData( &info->pds_directories, &subnode );
 				}
 			}
@@ -4238,7 +4236,6 @@ static int _os_iterate_find( struct sack_vfs_os_find_info *_info ) {
 					continue;
 			}
 			node.thisent = n + 1;
-			if( node.this_dir_block > 5000 ) DebugBreak();
 			PushData( &info->pds_directories, &node );
 			return 1;
 		}
