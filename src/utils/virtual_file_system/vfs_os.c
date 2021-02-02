@@ -1553,12 +1553,12 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 				if( block == 0 ) {
 					if( info.size == 4096 ) {
 						vol->lastBatBlock = dataBlock + m; // use as a temp variable....
-						lprintf( "Marking (lg)blank sector %d", vol->lastBatBlock );
+						LoG( "Marking (lg)blank sector %d", vol->lastBatBlock );
 						AddDataItem( &vol->pdlFreeBlocks, &vol->lastBatBlock );
 					}
 					else {
 						vol->lastBatSmallBlock = dataBlock + m; // use as a temp variable....
-						lprintf( "Marking (sm)blank sector %d", vol->lastBatBlock );
+						LoG( "Marking (sm)blank sector %d", vol->lastBatBlock );
 						AddDataItem( &vol->pdlFreeSmallBlocks, &vol->lastBatSmallBlock );
 					}
 				}
