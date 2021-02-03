@@ -264,6 +264,11 @@ struct vfs_os_rollback_journal {
 	BLOCKINDEX nextBlock;
 	BLOCKINDEX nextSmallBlock;
 	PDATALIST pdlJournaled;
+
+	BLOCKINDEX *pJournaled; // sectors that are in rollback already
+	int journalLength; // how long pJournaled is used
+	int journalAvail; // max length of pJournaled
+	
 };
 
 #ifdef small

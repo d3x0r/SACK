@@ -635,6 +635,7 @@ static void vfs_os_empty_rollback( struct sack_vfs_os_volume* vol ) {
 #endif
 	if( rollback->flags.dirty ) {
 		vol->journal.pdlJournaled->Cnt = 0;
+		vol->journal.journalLength = 0;
 		rollback->flags.dirty = 0;
 		rollback->nextBlock = 0;
 		rollback->nextSmallBlock = 0;
@@ -644,8 +645,27 @@ static void vfs_os_empty_rollback( struct sack_vfs_os_volume* vol ) {
 	}
 }
 
+//---------------------------------------------------------------------------
+
+static void ExpandJournalIndex(struct vfs_os_rollback_journal *journal ) {
+	BLOCKINDEX *pNewJournaled; // sectors that are in rollback already
+	//int journalLength; // how long pJournaled is used
+	//int journalAvail; // max length of pJournaled
+	journal->journalAvail = journal->journalAvail*2+1;
+
+	pNewJournaled = NewArray( BLOCKINDEX, 	journal->journalAvail );
+	MemCpy( pNewJournaled, journal->pJournaled, journal->journalLength * sizeof( *pNewJournaled ) );
+	Release( journal->pJournaled );
+	journal->pJournaled = pNewJournaled;
+}
+
+//---------------------------------------------------------------------------
+
+
 static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_cache_entries entry ) {
 	INDEX nextRecord = 0;
+	INDEX curIdx = 0;
+	BLOCKINDEX segment = vol->segment[entry];
 	if( entry >= BC( ROLLBACK ) ) {
 		return;
 	}
@@ -655,17 +675,43 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 		AddLink( &vol->pending_rollback, (uintptr_t)entry );
 		return;
 	}
-
+	if( vol->journal.journalLength )
 	{
-		INDEX idx;
-		BLOCKINDEX* check;
-		BLOCKINDEX check2= vol->segment[entry];
-		DATA_FORALL( vol->journal.pdlJournaled, idx, BLOCKINDEX*, check ) {
-			if( check[0] == check2 ) {
+		int imin = 0;
+		int imax = vol->journal.journalLength-1;
+
+		if( segment < vol->journal.pJournaled[imax] )
+			
+		{
+			curIdx = imax >> 1;
+			while( imin <= imax && ( curIdx <= imax ) && ( imax >= 0 ) ) {
+				int d;
+				//LoG( "this name: %s", names );
+				if( ( d = (segment - vol->journal.pJournaled[curIdx] ) ) == 0  ) {
+					return;
+				}
+				if( d > 0 ) {
+					imin = curIdx + 1;
+				} else {
+					if( !curIdx ) break;
+					imax = curIdx - 1;
+				}
+				curIdx = (imin + imax) >> 1;
+			}
+		}
+		else
+			curIdx = imax;	
+		if( 0 )
+		{
+			INDEX idx;
+			BLOCKINDEX* check;
+			DATA_FORALL( vol->journal.pdlJournaled, idx, BLOCKINDEX*, check ) {
+				if( check[0] == segment ) {
 #ifdef DEBUG_ROLLBACK_JOURNAL
-				LoG( "Journal recording already has this sector marked %d %d", idx, check2 );
+					LoG( "Journal recording already has this sector marked %d %d", idx, segment );
 #endif
-				return;
+					return;
+				}
 			}
 		}
 	}
@@ -679,7 +725,48 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 	}
 	// mark in-progress.
 	AddDataItem( &vol->journal.pdlPendingRecord, &entry );
-	AddDataItem( &vol->journal.pdlJournaled, &vol->segment[entry] );
+
+	{
+		if( (vol->journal.journalLength+1) >= vol->journal.journalAvail ) ExpandJournalIndex( &vol->journal );
+		if( curIdx >= vol->journal.journalLength ) {
+			if( curIdx && ( segment < vol->journal.pJournaled[curIdx-1] ) )  {
+				vol->journal.pJournaled[curIdx] = vol->journal.pJournaled[curIdx-1];
+				vol->journal.pJournaled[curIdx-1] = segment;
+				vol->journal.journalLength++;
+			}else {				
+				vol->journal.pJournaled[curIdx] = segment;
+				vol->journal.journalLength++;
+			}
+		} else {
+			if( segment < vol->journal.pJournaled[curIdx] ){
+				if( curIdx ) {
+					if( segment > vol->journal.pJournaled[curIdx-1] ){
+						for( int n = vol->journal.journalLength; n > curIdx; n-- ) {
+							vol->journal.pJournaled[n] = vol->journal.pJournaled[n-1];
+						}	
+					}
+					else lprintf( "segment is bad" );
+				}else {
+					for( int n = vol->journal.journalLength; n > curIdx; n-- ) {
+						vol->journal.pJournaled[n] = vol->journal.pJournaled[n-1];
+					}	
+				}
+			}
+			else if( segment > vol->journal.pJournaled[curIdx] ){
+				if( curIdx + 1 >= vol->journal.journalLength ) {
+					curIdx = curIdx+1;
+				} else {
+					while( segment > vol->journal.pJournaled[curIdx] ) curIdx++;
+					for( int n = vol->journal.journalLength; n > (curIdx); n-- ) {
+						vol->journal.pJournaled[n] = vol->journal.pJournaled[n-1];
+					}
+				}
+			}
+			vol->journal.pJournaled[curIdx] = segment;
+			vol->journal.journalLength++;
+		}
+	}
+	//AddDataItem( &vol->journal.pdlJournaled, &segment );
 
 	enum block_cache_entries rollbackCache = BC( ROLLBACK );
 	struct vfs_os_rollback_header* rollback = ( struct vfs_os_rollback_header* )vfs_os_FSEEK( vol, vol->journal.rollback_file, 0, 0, &rollbackCache, ROLLBACK_BLOCK_SIZE DBG_SRC );
@@ -1489,7 +1576,6 @@ uint8_t * vfs_os_DSEEK_( struct sack_vfs_os_volume* vol, FPI dataFPI, int blockS
 }
 
 //---------------------------------------------------------------------------
-
 
 static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 	//BLOCKINDEX slab = vol->dwSize / ( BLOCK_SIZE );
