@@ -489,7 +489,7 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 			time->disk->time += (int64_t)tz * 900 * (int64_t)1000000000;
 			time->disk->timeTz = tz;
 		}
-		updateTimeEntry( time, vol, FALSE DBG_RELAY );
+		updateTimeEntry( time, vol, TRUE DBG_RELAY );
 		return (BLOCKINDEX)index; // index type is larger than index in some configurations; but won't exceed those bounds
 	}
 }
