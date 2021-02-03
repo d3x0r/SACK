@@ -4687,13 +4687,13 @@ LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArr
 	scratchTime = ( (time.disk->time / 1000000 ) <<8) | time.disk->timeTz;
 	AddDataItem( &pdlTimes, &scratchTime );
 	if( time.disk->priorData ) {
-		enum block_cache_entries cache;
-		struct storageTimelineNode* prior = getRawTimeEntry( vol, time.disk->priorData, &cache GRTENoLog DBG_SRC );
-		scratchTime = ( ( time.disk->time / 1000000 ) << 8 ) | time.disk->timeTz;
-		AddDataItem( &pdlTimes, &scratchTime );
-		while( prior->priorData ) {
-			prior = getRawTimeEntry( vol, prior->priorData, &cache GRTENoLog DBG_SRC );
+		BLOCKINDEX priorData = time.disk->priorData;
+		while( priorData ) {
+			enum block_cache_entries cache;
+			struct storageTimelineNode* prior = getRawTimeEntry( vol, priorData, &cache GRTENoLog DBG_SRC );
 			scratchTime = ( ( time.disk->time / 1000000 ) << 8 ) | time.disk->timeTz;
+			priorData = prior->priorData;
+			dropRawTimeEntry( file->vol, cache GRTENoLog DBG_SRC );
 			AddDataItem( &pdlTimes, &scratchTime );
 		}
 	}
