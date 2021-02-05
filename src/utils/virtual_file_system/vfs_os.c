@@ -99,11 +99,11 @@ using namespace sack::filesys;
 SACK_VFS_NAMESPACE
 
 // have to enable TRACE_LOG for most of the symbols to actually log
-//#define DEBUG_TRACE_LOG
+#define DEBUG_TRACE_LOG
 //#define DEBUG_ROLLBACK_JOURNAL
 //#define DEBUG_FILE_OPS
 // this is large binary blocks.
-//#define DEBUG_DISK_IO
+#define DEBUG_DISK_IO
 //#define DEBUG_DISK_DATA
 //#define DEBUG_DIRECTORIES
 //#define DEBUG_BLOCK_INIT
@@ -117,6 +117,7 @@ SACK_VFS_NAMESPACE
 //#define DEBUG_SECTOR_DIRT
 //#define DEBUG_CACHE_FAULTS
 //#define DEBUG_CACHE_FLUSH
+//#define DEBUG_SET_SECTOR_SIZE
 
 //#define DEBUG_FILE_TRUNCATE
 
@@ -125,6 +126,8 @@ SACK_VFS_NAMESPACE
 #include "vfs_internal.h"
 #define vfs_SEEK vfs_os_SEEK
 #define vfs_BSEEK vfs_os_BSEEK
+
+#define MAX_FILENAME_LEN 256
 
 struct memoryTimelineNode;
 
@@ -195,7 +198,7 @@ struct dirent_cache {
 
 
 struct hashnode {
-	char leadin[256];
+	char leadin[MAX_FILENAME_LEN];
 	int leadinDepth;
 	BLOCKINDEX this_dir_block;
 	size_t thisent;
@@ -210,7 +213,7 @@ struct sack_vfs_os_find_info {
 	size_t filesize;
 	CTEXTSTR mask;
 #ifdef VIRTUAL_OBJECT_STORE
-	char leadin[256];
+	char leadin[MAX_FILENAME_LEN];
 	int leadinDepth;
 	PDATASTACK pds_directories;
 	uint64_t ctime;
@@ -399,7 +402,7 @@ static struct {
 	struct directory_entry zero_entkey;
 	uint8_t zerokey[KEY_SIZE];
 	uint16_t index[256][256];
-	char leadin[256];
+	char leadin[MAX_FILENAME_LEN];
 	int leadinDepth;
 	PLINKQUEUE plqCrypters;
 	PLIST volumes;
@@ -569,7 +572,9 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 	DBG_PASS
 )
 {
+#ifdef DEBUG_FILE_SEEK
 	LoG_( "File Seek: %p %d %d", file, (int)offset, cache_index[0] );
+#endif
 	enum block_cache_entries cacheRoot = cache_index[0];
 	size_t priorSize;
 	uint8_t *data;
@@ -603,7 +608,9 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 	while( firstblock != EOFBLOCK && offset >= priorSize ) {
 		int size;
 		enum block_cache_entries cache = file ? file->fileName ? BC( FILE ) : file->cache: cacheRoot;
-		LoG( "Getting next block after %p %d %d", file, firstblock, blockSize );
+#ifdef DEBUG_FILE_SEEK
+		LoG_( "Getting next block after %p %d %d", file, firstblock, blockSize );
+#endif
 		firstblock = vfs_os_GetNextBlock( vol, firstblock
 			, &cache
 			, file?file->fileName?GFB_INIT_NONE:GFB_INIT_TIMELINE_MORE:GFB_INIT_NAMES, 1, blockSize, &size );
@@ -620,10 +627,9 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 		}
 	}
 	data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, blockSize, cache_index DBG_RELAY );
-	if( offset < priorSize ) {
-		//data = (uint8_t*)vfs_os_BSEEK_( vol, firstblock, blockSize, cache_index DBG_RELAY );
-		LoG_( "Sector size: %p (ss)%d (blk)%d (ofs)%d (cache)%d",data, priorSize, (int)firstblock, (int)offset , cache_index[0] );
-	}
+#if DEBUG_SET_SECTOR_SIZE
+	LoG_( "Sector size: %p (ss)%d (blk)%d (ofs)%d (cache)%d",data, priorSize, (int)firstblock, (int)offset , cache_index[0] );
+#endif
 	return (uintptr_t)(data + (offset));
 }
 
@@ -687,18 +693,20 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 			while( imin <= imax && ( curIdx <= imax ) && ( imax >= 0 ) ) {
 				int d;
 				//LoG( "this name: %s", names );
-				if( ( d = (segment - vol->journal.pJournaled[curIdx] ) ) == 0  ) {
+				if( ( d = (int)(segment - vol->journal.pJournaled[curIdx] ) ) == 0  ) {
 					return;
 				}
 				if( d > 0 ) {
-					imin = curIdx + 1;
+					imin = (int)curIdx + 1;
 				} else {
 					if( !curIdx ) break;
-					imax = curIdx - 1;
+					imax = (int)curIdx - 1;
 				}
 				curIdx = (imin + imax) >> 1;
 			}
 		}
+		else if( segment == vol->journal.pJournaled[imax] )
+			return; // is already saved as the last.
 		else
 			curIdx = imax;	
 		if( 0 )
@@ -843,6 +851,14 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 			//vol->journal.pdlJournaled->Cnt = 0; // empty the list.
 		}
 	} while( vol->journal.pdlPendingRecord->Cnt );
+	{
+		int n;
+		BLOCKINDEX prior = vol->journal.pJournaled[0];
+		for( n = 1; n < vol->journal.journalLength; n++ ) {
+			if( vol->journal.pJournaled[n] < prior ) DebugBreak();
+			prior = vol->journal.pJournaled[n];
+		}
+	}
 
 	SMUDGECACHE( vol, rollbackCache );
 	sack_vfs_os_flush_block( vol, rollbackCache );
@@ -973,7 +989,9 @@ static FPI vfs_os_compute_block( struct sack_vfs_os_volume *vol, BLOCKINDEX bloc
 	{
 		if( block % BLOCKS_PER_SECTOR ) { // not reading a BAT, add the fixed offset, 0 based data offset
 			//if( cache < BC(COUNT) )
+#ifdef DEBUG_SET_SECTOR_SIZE
 			LoG( "Setting sector size according to BAT information:%d %d %d", info->size, (int)block, (cache<BC(COUNT))?(int)vol->segment[cache]:0, (int)cache );
+#endif
 			if( cache >= BC(COUNT) ) ;//lprintf( "CACHE OVERFLOW not setting info %d", info->size );
 			else vol->sector_size[cache] = info->size;
 			// the first 'block' is always bat size, so add that, and then the remaining
@@ -1072,13 +1090,14 @@ static void _os_MaskStrCpy( char *output, size_t outlen, struct sack_vfs_os_volu
 int _os_dumpDirectories( struct sack_vfs_os_volume *vol, BLOCKINDEX start, LOGICAL init ) {
 	struct directory_hash_lookup_block *dirBlock;
 	struct directory_entry *next_entries;
-	static char leadin[256];
+	static char leadin[MAX_FILENAME_LEN];
 	static int leadinDepth;
-	char outfilename[256];
+	char outfilename[MAX_FILENAME_LEN];
 	int outfilenamelen;
 	size_t n;
 	if( init )
 		leadinDepth = 0;
+	LoG( "Starting directory dump: %d %d", start, init );
 	{
 		enum block_cache_entries cache = BC( DIRECTORY );
 		enum block_cache_entries name_cache = BC( NAMES );
@@ -1087,8 +1106,7 @@ int _os_dumpDirectories( struct sack_vfs_os_volume *vol, BLOCKINDEX start, LOGIC
 		dirBlock = BTSEEK( struct directory_hash_lookup_block *, vol, start, 0, cache );
 		_dirBlock = dirBlock[0];
 		dirBlock = &_dirBlock;
-		if( !dirBlock->used_names ) DebugBreak();
-		lprintf( "leadin : %*.*s %d %d", leadinDepth, leadinDepth, leadin, leadinDepth, dirBlock->used_names);
+		lprintf( "leadin : %*.*s %d names:%d start:%d", leadinDepth, leadinDepth, leadin, leadinDepth, dirBlock->used_names, (int)start );
 		next_entries = dirBlock->entries;
 
 		for( n = 0; n < dirBlock->used_names; n++ ) {
@@ -1130,13 +1148,14 @@ int _os_dumpDirectories( struct sack_vfs_os_volume *vol, BLOCKINDEX start, LOGIC
 					filename = (const char *)vfs_os_FSEEK( vol, NULL, dirBlock->names_first_block, name_ofs, &name_cache, NAME_BLOCK_SIZE DBG_SRC );
 				}
 			}
-			lprintf( "%3d filename: %5d %.*s", n, name_ofs, outfilenamelen, outfilename );
+			lprintf( "%3d filename: %5d %.*s", n, next_entries[n].name_offset & DIRENT_NAME_OFFSET_OFFSET, outfilenamelen, outfilename );
+			if( outfilenamelen > 44 ) DebugBreak();
 		}
 
 		for( n = 0; n < 255; n++ ) {
 			BLOCKINDEX block = dirBlock->next_block[n];
 			if( block ) {
-				lprintf( "Found directory with char '%c'", n );
+				lprintf( "Found directory with char '%c' %d", n, block );
 				leadin[leadinDepth] = (char)n;
 				leadinDepth = leadinDepth + 1;
 #ifdef DEBUG_DIRECTORIES
@@ -1185,9 +1204,9 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 	LogBinary( age, ageLength );
 	{
 		int z;
-		char buf[256];
+		char buf[MAX_FILENAME_LEN];
 		int ofs = 0;
-		for( z = 0; z < ageLength; z++ ) ofs += snprintf( buf + ofs, 256 - ofs, "%x ", vol->bufferFPI[z+ cacheRoot] );
+		for( z = 0; z < ageLength; z++ ) ofs += snprintf( buf + ofs, MAX_FILENAME_LEN - ofs, "%x ", vol->bufferFPI[z+ cacheRoot] );
 		lprintf( "%s", buf );
 	}
 #endif
@@ -1199,14 +1218,17 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 			//	_lprintf( DBG_RELAY )( "FOUND segment in cache: %d   %d  %d   %d", segment, n, age[n], cache_idx[0] );
 #endif
 			cache_idx[0] = (enum block_cache_entries)((cache_idx[0]) + n);
+		int x = 0;
 			for( m = 0; m < (ageLength); m++ ) {
 				if( !age[m] ) break;
-				if( age[m] > age[n] )
+				if( age[m] > age[n] ) {
 					age[m]--;
+					x++;
+				}
 			}
 			age[n] = m;
 #ifdef DEBUG_CACHE_AGING
-			lprintf( "age end:" );
+			lprintf( "Age end: %d %d", segment, x );
 			LogBinary( age, ageLength );
 #endif
 			return;
@@ -1244,7 +1266,6 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 		}
 		cache_idx[0] = (enum block_cache_entries)useCache;
 		age[nLeast] = (ageLength); // make this one the newest, and return it.
-		vol->segment[useCache] = segment;
 		//_lprintf(DBG_RELAY)( "reclaim %d for seg %d", useCache, segment );
 		if( TESTFLAG( vol->dirty, useCache ) || TESTFLAG( vol->_dirty, useCache ) ) {
 #ifdef DEBUG_DISK_IO
@@ -1267,11 +1288,11 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 
 #ifdef DEBUG_CACHE_FLUSH
 			// if not dirty, then clean and buffer have to match; and this is clearing the dirty flag
-			memcpy( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], BLOCK_SIZE );
+			memcpy( vol->usekey_buffer_clean[useCache], vol->usekey_buffer[useCache], BLOCK_SIZE );
 #  ifdef DEBUG_VALIDATE_TREE
-			if( cache_idx[0] < BC( TIMELINE_RO ) )
+			if( useCache < BC( TIMELINE_RO ) )
 #  endif
-				_lprintf(DBG_RELAY)( "(usedto)Updated clean buffer %d", cache_idx[0] );
+				_lprintf(DBG_RELAY)( "(usedto)Updated clean buffer %d", useCache );
 #endif
 			CLEANCACHE( vol, useCache );
 			RESETFLAG( vol->_dirty, useCache );
@@ -1289,6 +1310,7 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 #endif
 		}
 #endif
+		vol->segment[useCache] = segment;
 	}
 #ifdef DEBUG_VALIDATE_TREE
 	//if( cache_idx[0] < BC(TIMELINE_RO) )
@@ -1958,7 +1980,9 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 			b = (unsigned int)( vol->lastBatSmallBlock / BLOCKS_PER_BAT );
 		}
 	}
+#ifdef DEBUG_SET_SECTOR_SIZE
 	LoG_( "GetFreeBlock is using... check, start, b, n %d %d %d %d", (int)check_val, (int) vol->lastBatBlock, (int)b, (int)n );
+#endif
 //	vfs_os_compute_block( vol, b * BLOCKS_PER_SECTOR, cache );
 	current_BAT =  (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, b*BLOCKS_PER_SECTOR, blockSize, &cache ) + n;
 	if( !current_BAT ) return 0;
