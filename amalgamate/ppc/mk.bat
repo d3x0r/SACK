@@ -10,11 +10,11 @@
 @set SRCS= %SRCS%   ../../makefiles/prog/ppc/fileio.c  
 @set SRCS= %SRCS%   ../../makefiles/prog/ppc/expr.c    
 
-del panther_preprocessor.c
+del panthers_c_preprocessor.c
 
-c:\tools\ppc.exe -c -K -once -ssio -sd -I../../include -p -opanther_preprocessor.c -DINCLUDE_LOGGING %SRCS%
+ppc.exe -c -K -once -ssio -sd -I../../include -p -opanthers_c_preprocessor.c -DINCLUDE_LOGGING %SRCS%
 
-gcc -O3 -o ppc.exe panther_preprocessor.c
+gcc -O3 -o ppc.exe panthers_c_preprocessor.c
 
 echo Please Update https://gist.github.com/d3x0r/8c8ab33cd7130c3c9983e12d354ad067
 
