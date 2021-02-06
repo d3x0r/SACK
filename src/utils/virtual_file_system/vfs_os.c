@@ -99,11 +99,11 @@ using namespace sack::filesys;
 SACK_VFS_NAMESPACE
 
 // have to enable TRACE_LOG for most of the symbols to actually log
-#define DEBUG_TRACE_LOG
+//#define DEBUG_TRACE_LOG
 //#define DEBUG_ROLLBACK_JOURNAL
 //#define DEBUG_FILE_OPS
 // this is large binary blocks.
-#define DEBUG_DISK_IO
+//#define DEBUG_DISK_IO
 //#define DEBUG_DISK_DATA
 //#define DEBUG_DIRECTORIES
 //#define DEBUG_BLOCK_INIT
@@ -985,12 +985,20 @@ static FPI vfs_os_compute_block( struct sack_vfs_os_volume *vol, BLOCKINDEX bloc
 	struct sack_vfs_os_BAT_info *info;
 	INDEX idx = block / BLOCKS_PER_SECTOR;
 	info = (struct sack_vfs_os_BAT_info*)GetDataItem( &vol->pdl_BAT_information, idx );
-	if( !info ) return ~0;
+	if( !info ) {
+		if( !block ) return 0;
+		else {
+			info = (struct sack_vfs_os_BAT_info*)GetDataItem( &vol->pdl_BAT_information, idx-1 );
+			if( info ) 
+				return info->sectorEnd;
+		}
+		return ~0;
+	}
 	{
 		if( block % BLOCKS_PER_SECTOR ) { // not reading a BAT, add the fixed offset, 0 based data offset
 			//if( cache < BC(COUNT) )
-#ifdef DEBUG_SET_SECTOR_SIZE
-			LoG( "Setting sector size according to BAT information:%d %d %d", info->size, (int)block, (cache<BC(COUNT))?(int)vol->segment[cache]:0, (int)cache );
+#if defined( DEBUG_SET_SECTOR_SIZE )
+			LoG( "Setting sector size according to BAT information:%d %d %d %d", info->size, (int)block, (cache<BC(COUNT))?(int)vol->segment[cache]:0, (int)cache );
 #endif
 			if( cache >= BC(COUNT) ) ;//lprintf( "CACHE OVERFLOW not setting info %d", info->size );
 			else vol->sector_size[cache] = info->size;
@@ -1103,7 +1111,7 @@ int _os_dumpDirectories( struct sack_vfs_os_volume *vol, BLOCKINDEX start, LOGIC
 		enum block_cache_entries name_cache = BC( NAMES );
 		struct directory_hash_lookup_block _dirBlock;
 		
-		dirBlock = BTSEEK( struct directory_hash_lookup_block *, vol, start, 0, cache );
+		dirBlock = BTSEEK( struct directory_hash_lookup_block *, vol, start, DIR_BLOCK_SIZE, cache );
 		_dirBlock = dirBlock[0];
 		dirBlock = &_dirBlock;
 		lprintf( "leadin : %*.*s %d names:%d start:%d", leadinDepth, leadinDepth, leadin, leadinDepth, dirBlock->used_names, (int)start );
@@ -1327,18 +1335,25 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 	}
 #endif
 	{
-		vol->bufferFPI[cache_idx[0]] = vfs_os_compute_block( vol, segment - 1, cache_idx[0] );
-		if( vol->bufferFPI[cache_idx[0]] >= vol->dwSize ) _os_ExpandVolume( vol, vol->lastBlock, vol->sector_size[cache_idx[0]] );
+		size_t short_Read;
+		do {
+			vol->bufferFPI[cache_idx[0]] = vfs_os_compute_block( vol, segment - 1, cache_idx[0] );
+			if( vol->bufferFPI[cache_idx[0]] == ~0 ) 
+				_os_ExpandVolume( vol, vol->lastBlock, vol->sector_size[cache_idx[0]] );
+		} while( vol->bufferFPI[cache_idx[0]] == ~0 );
 		// read new buffer for new segment
 		sack_fseek( vol->file, (size_t)vol->bufferFPI[cache_idx[0]], SEEK_SET );
 #ifdef DEBUG_DISK_IO
-		LoG_( "Read into block: fpi:%x cache:%d n:%d  seg:%d buf:%p", (int)vol->bufferFPI[cache_idx[0]], (int)cache_idx[0] , (int)n, (int)segment, vol->usekey_buffer[cache_idx[0]]  );
+		LoG_( "Read into block: fpi:%x cache:%d n:%d  seg:%d buf:%p size:%d", (int)vol->bufferFPI[cache_idx[0]], (int)cache_idx[0] , (int)n, (int)segment, vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]]  );
 #endif
-		if( !sack_fread( vol->usekey_buffer[cache_idx[0]], 1, vol->sector_size[cache_idx[0]], vol->file ) ) {
+		if( !( short_Read = sack_fread( vol->usekey_buffer[cache_idx[0]], 1, vol->sector_size[cache_idx[0]], vol->file ) ) ) {
 			memset( vol->usekey_buffer[cache_idx[0]], 0, vol->sector_size[cache_idx[0]] );
 			// only need to clear this if it's checked for write data without setting dirty flag.
 			memset( vol->usekey_buffer_clean[cache_idx[0]], 0, vol->sector_size[cache_idx[0]] );
 		} else {
+			if( short_Read != vol->sector_size[cache_idx[0]] ) {
+				lprintf( "Short read  on file:", short_Read );
+			}
 			if( vol->key )
 				SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]]
 					, vol->segment[cache_idx[0]], (const uint8_t*)vol->oldkey?vol->oldkey:vol->key, 1024 /* some amount of the key to use */
@@ -1607,6 +1622,7 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 	BLOCKINDEX sector = 0;
 	{
 		struct sack_vfs_os_BAT_info info;
+		struct sack_vfs_os_BAT_info *priorInfo;
 		FPI thisPos;
 		//struct sack_vfs_os_BAT_info* oldinfo;
 
@@ -1617,8 +1633,9 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 		info.size = 4096;
 
 		AddDataItem( &vol->pdl_BAT_information, &info );
+		priorInfo = (struct sack_vfs_os_BAT_info*)GetDataItem( &vol->pdl_BAT_information, vol->pdl_BAT_information->Cnt-1 );
 
-		for( n = 0; ( thisPos = vfs_os_compute_block( vol, n, BC(COUNT) ) ) < vol->dwSize; n += BLOCKS_PER_SECTOR ) {
+		for( n = 0; ( thisPos = info.sectorStart ) < vol->dwSize; n += BLOCKS_PER_SECTOR ) {
 			BLOCKINDEX dataBlock = ( n / BLOCKS_PER_SECTOR ) * BLOCKS_PER_BAT;
 			size_t m;
 			BLOCKINDEX *BAT;
@@ -1627,18 +1644,17 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 			// seek loads and updates the segment key...
 			BAT = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, n, 0, &cache );
 
-			info.size = BAT[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
-
+			info.size = priorInfo->size = BAT[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
 			{
 				struct sack_vfs_os_BAT_info *oldinfo;
-				info.sectorEnd = thisPos + BAT_BLOCK_SIZE + ( ( ( BLOCKS_PER_BAT * info.size ) + 4095 ) & ~4095 );
-				info.blockStart = n;
-				oldinfo = ( struct sack_vfs_os_BAT_info* )GetDataItem( &vol->pdl_BAT_information, sector );
-				if( oldinfo )
-					oldinfo[0] = info;
-				info.sectorStart = info.sectorEnd;
+				priorInfo->sectorEnd = thisPos + BAT_BLOCK_SIZE + ( ( ( BLOCKS_PER_BAT * info.size ) + 4095 ) & ~4095 );
+
+				info.sectorStart = priorInfo->sectorEnd;
+				info.blockStart = n + BLOCKS_PER_SECTOR;
+
 				vol->lastBlock = n + BLOCKS_PER_SECTOR;
 				AddDataItem( &vol->pdl_BAT_information, &info );
+				priorInfo = (struct sack_vfs_os_BAT_info*)GetDataItem( &vol->pdl_BAT_information, vol->pdl_BAT_information->Cnt-1 );
 			}
 			sector++;
 
@@ -1673,10 +1689,18 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 			}
 			//if( m < BLOCKS_PER_BAT ) break;
 		}
-		if( sector > 1 ) {
-			// this ends up pusing 1 more so that compute can actually work on reload
-			vol->pdl_BAT_information->Cnt--;
+
+		// this ends up pusing 1 more so that compute can actually work on reload
+		vol->pdl_BAT_information->Cnt--;
+		/*
+		{
+			INDEX idx;
+			struct sack_vfs_os_BAT_info *info;
+			DATA_FORALL( vol->pdl_BAT_information, idx, struct sack_vfs_os_BAT_info *, info ) {
+				lprintf( "BAT Reloaded: %d %d %d %d", info->blockStart, info->sectorStart, info->sectorEnd, info->size );
+			}
 		}
+		*/
 	}
 
 
@@ -1900,7 +1924,15 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 		info.blockStart = ( pinfo ? ( pinfo->blockStart + BLOCKS_PER_SECTOR ) : 0 );
 		info.size = size;
 		AddDataItem( &vol->pdl_BAT_information, &info );
-
+		/*
+		{
+			INDEX idx;
+			struct sack_vfs_os_BAT_info *info;
+			DATA_FORALL( vol->pdl_BAT_information, idx, struct sack_vfs_os_BAT_info *, info ) {
+				lprintf( "BAT Updated expanded: %d %d %d %d", info->blockStart, info->sectorStart, info->sectorEnd, info->size );
+			}
+		}
+		*/
 		// a BAT plus the sectors it references... ( BLOCKS_PER_BAT + 1 ) * BLOCK_SIZE
 		if( info.sectorEnd > vol->dwSize )
 			vol->dwSize = info.sectorEnd;
@@ -2014,7 +2046,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 				vol->lastBatBlock = ( lastB + 1) * BLOCKS_PER_BAT;
 			else
 				vol->lastBatSmallBlock = ( lastB + 1 ) * BLOCKS_PER_BAT;
-			//lprintf( "Set last block....%d", (int)vol->lastBatBlock );
+			lprintf( "Set last block....%d", (int)vol->lastBatBlock );
 		}
 	}
 	SMUDGECACHE( vol, cache );
@@ -2808,7 +2840,7 @@ static FPI _os_SaveFileName( struct sack_vfs_os_volume *vol, BLOCKINDEX firstNam
 					name[namelen+0] = UTF8_EOT;
 					name[namelen+1] = UTF8_EOTB;
 					SMUDGECACHE( vol, cache );
-					//lprintf( "OFFSET:%d %d", (name) - (names), +blocks * NAME_BLOCK_SIZE );
+					//LoG( "save name OFFSET:%d %d", (name) - (names), +blocks * NAME_BLOCK_SIZE );
 					return (name) - (names) + blocks * NAME_BLOCK_SIZE;
 				}
 			}
