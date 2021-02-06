@@ -1,8 +1,5 @@
 #ifndef PPC_MEMORY_INTERFACE_DEFINED
 #define PPC_MEMORY_INTERFACE_DEFINED
-#if defined __WATCOMC__
-//# include "sharemem.h"
-#else
 
 # include "./types.h"
 
@@ -17,7 +14,7 @@ void CPROC ReleaseExx( void ** DBG_PASS );
 #   define ReleaseEx(p ) ReleaseExx( (void**)&p )
 #  endif
 # else
-#  define ReleaseEx(... ) ReleaseExx( (void**)&__VA_ARGS__ )
+#  define ReleaseEx(... )	x( (void**)&__VA_ARGS__ )
 # endif
 #define Release(p) ReleaseExx( (void**)&p DBG_SRC)
 
@@ -36,4 +33,3 @@ char CPROC *StrDupEx( const char *original DBG_PASS );
 
 #endif
 
-#endif

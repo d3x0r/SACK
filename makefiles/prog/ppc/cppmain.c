@@ -1,13 +1,10 @@
 // make #if conditions spanning files a warning...
 // also unbalanced #endif statements....
 
-#ifndef __GCC__
-//#include <conio.h>
-#endif
 #if defined( _WIN32 )
-#include <windows.h> // getmodulefilename
-#include <direct.h>
+#  include <direct.h> // _getcwd
 #endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "fileio.h"
@@ -1782,12 +1779,6 @@ int main( int argc, char **argv, char **env )
 	}
 	getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
 #elif defined( _WIN32 )
-	 char *laststroke;
-	 GetModuleFileName( NULL, g.pExecPath, sizeof(g.pExecPath) );
-	 laststroke = pathrchr( g.pExecPath );
-	 if( laststroke )
-		 laststroke[0] = 0;
-	//printf( "path: %s\n", g.pExecPath );
 	_getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
 #else
 	printf( "Path is not defined - probably will not work." );

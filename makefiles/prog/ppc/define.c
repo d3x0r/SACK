@@ -1,5 +1,5 @@
 #if defined( __WINTIME__ )
-#include <windows.h>
+#include <windows.h> // SYSTEMTIME
 #endif
 #include <stdlib.h>
 #include "mem.h"

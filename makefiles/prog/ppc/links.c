@@ -1,9 +1,6 @@
-//#include <windows.h>
-//#include <stdio.h>
 #include "mem.h"
 
 #include <stddef.h> // offsetof
-//#include <string.h> // memset
 
 #include "links.h"
 

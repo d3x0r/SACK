@@ -1,4 +1,3 @@
-//#include <windows.h>
 #include <stdio.h> // FILE *
 #include "mem.h"
 #include "input.h" // includes text.h...
