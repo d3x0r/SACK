@@ -1692,6 +1692,10 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 
 		// this ends up pusing 1 more so that compute can actually work on reload
 		vol->pdl_BAT_information->Cnt--;
+		priorInfo = (struct sack_vfs_os_BAT_info*)GetDataItem( &vol->pdl_BAT_information, vol->pdl_BAT_information->Cnt-1 );
+
+		if( priorInfo->sectorEnd > vol->dwSize )
+			vol->dwSize = priorInfo->sectorEnd;
 		/*
 		{
 			INDEX idx;
@@ -2046,7 +2050,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 				vol->lastBatBlock = ( lastB + 1) * BLOCKS_PER_BAT;
 			else
 				vol->lastBatSmallBlock = ( lastB + 1 ) * BLOCKS_PER_BAT;
-			lprintf( "Set last block....%d", (int)vol->lastBatBlock );
+			//lprintf( "Set last block....%d", (int)vol->lastBatBlock );
 		}
 	}
 	SMUDGECACHE( vol, cache );
