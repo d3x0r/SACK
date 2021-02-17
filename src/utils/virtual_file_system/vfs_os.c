@@ -408,6 +408,11 @@ static struct {
 	PLIST volumes;
 	LOGICAL exited;
 	PVFS_OS_FILESET files;
+
+#ifdef DEBUG_CONVERT_DIRECTORY // symbol not defined
+	int fileCount;
+	int fileCount_old;
+#endif
 } l;
 
 
@@ -1646,7 +1651,6 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 
 			info.size = priorInfo->size = BAT[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
 			{
-				struct sack_vfs_os_BAT_info *oldinfo;
 				priorInfo->sectorEnd = thisPos + BAT_BLOCK_SIZE + ( ( ( BLOCKS_PER_BAT * info.size ) + 4095 ) & ~4095 );
 
 				info.sectorStart = priorInfo->sectorEnd;
@@ -1723,6 +1727,7 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 	}
 
 	if( !_os_ScanDirectory( vol, NULL, FIRST_DIR_BLOCK, NULL, NULL, 0 ) ) return FALSE;
+	//lprintf( "total files:%d", l.fileCount );
 	if( !vol->journal.rollback_file ) {
 		struct sack_vfs_os_file* file;
 		file = _os_createFile( vol, FIRST_ROLLBACK_BLOCK, ROLLBACK_BLOCK_SIZE );
@@ -1855,6 +1860,7 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 	LOGICAL created = FALSE;
 	LOGICAL path_checked = FALSE;
 	int n;
+	LoG( "Expand Volume: %d %d", fromBlock, size ); 
 	size_t oldsize = vol->dwSize;
 	if( vol->file && vol->read_only ) return TRUE;
 	if( !size ) return FALSE;
@@ -1932,6 +1938,7 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 		{
 			INDEX idx;
 			struct sack_vfs_os_BAT_info *info;
+			// dump reloaded bat information (or bat so far...)
 			DATA_FORALL( vol->pdl_BAT_information, idx, struct sack_vfs_os_BAT_info *, info ) {
 				lprintf( "BAT Updated expanded: %d %d %d %d", info->blockStart, info->sectorStart, info->sectorEnd, info->size );
 			}
@@ -1969,8 +1976,9 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 
 			vol->lastBatBlock = 0;
 		}
-		else
-			vol->lastBatSmallBlock = BLOCKS_PER_BAT;
+		else {
+			//vol->lastBatSmallBlock = BLOCKS_PER_BAT;
+		}
 
 	}
 
@@ -2156,6 +2164,8 @@ static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDE
 	}
 	if( check_val == EOFBLOCK || check_val == EOBBLOCK ) {
 		if( expand ) {
+			SETMASK_( vol->seglock, seglock, cache, GETMASK_( vol->seglock, seglock, cache )+1 );
+
 			check_val = _os_GetFreeBlock( vol, blockCache, init, blockSize );
 #ifdef _DEBUG
 			if( !check_val )DebugBreak();
@@ -2174,7 +2184,9 @@ static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDE
 			// segment could already be set from the _os_GetFreeBlock...
 			//lprintf( "set block %d %d %d to %d", (int)block, (int)( block % BLOCKS_PER_BAT ), (int)sector, (int)check_val );
 			this_BAT[block % BLOCKS_PER_BAT] = check_val;
+			//lprintf( "Set %d  %d %d to %d", block, sector, block % BLOCKS_PER_BAT, check_val );
 			SMUDGECACHE( vol, cache );
+			SETMASK_( vol->seglock, seglock, cache, GETMASK_( vol->seglock, seglock, cache )-1 );
 		}
 	} else {
 		enum block_cache_entries cache = BC(BAT);
@@ -2651,6 +2663,33 @@ const char *sack_vfs_os_get_signature( struct sack_vfs_os_volume *vol ) {
 	return signature;
 }
 
+LOGICAL checkFileLength( struct sack_vfs_os_volume *vol
+	, BLOCKINDEX firstBlock
+	, FPI expectedLength ) {
+	BLOCKINDEX curBlock = firstBlock;
+	size_t len;
+	enum block_cache_entries cache;
+	BLOCKINDEX sector = firstBlock / BLOCKS_PER_BAT;
+	enum block_cache_entries batcache = BC(BAT);
+	BLOCKINDEX *this_BAT = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, sector * (BLOCKS_PER_SECTOR), BLOCK_SIZE, &batcache );
+	len = this_BAT[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
+	while( curBlock != EOFBLOCK ) {
+		int blockSize;
+		cache = BC(FILE);
+
+		curBlock = vfs_os_GetNextBlock( vol, curBlock, &cache, GFB_INIT_NONE, FALSE, 0, &blockSize );
+		if( curBlock != EOFBLOCK )
+			len += blockSize;
+	}
+	if( len < expectedLength ) {
+		lprintf( "Short file chain: %d %d", (int)len, (int)expectedLength );
+		return FALSE;
+	}
+	//else lprintf( "Success: %d %d %d",  (int) firstBlock, (int)len, (int)expectedLength );
+	return TRUE;
+	
+	
+}
 
 //-----------------------------------------------------------------------------------
 // Director Support Functions
@@ -2672,10 +2711,26 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 	struct directory_hash_lookup_block *dirblock;
 	struct directory_entry *next_entries;
 	if( filename && filename[0] == '.' && ( filename[1] == '/' || filename[1] == '\\' ) ) filename += 2;
+	if( !file && !filename && nameBlockStart )
+		lprintf( "Begin a scan dir:%d", (int)dirBlockSeg );
 	do {
 		enum block_cache_entries cache = BC(DIRECTORY);
 		BLOCKINDEX nameBlock;
 		dirblock = BTSEEK( struct directory_hash_lookup_block *, vol, this_dir_block, DIR_BLOCK_SIZE, cache );
+
+		SETMASK_( vol->seglock, seglock, cache, GETMASK_( vol->seglock, seglock, cache )+1 );
+
+		if( !dirblock->next_block[255] ) {
+#ifdef DEBUG_CONVERT_DIRECTORY // symbol not defined
+			l.fileCount = 0;
+#endif
+		}
+		else{
+			if( !file && !filename && nameBlockStart )
+				 lprintf( "parent block: %d(%d) %d p:%d c:%d c:%c", (int)this_dir_block, cache, (int)dirblock->used_names
+							, dirblock->next_block[255] >> 8
+							, dirblock->next_block[255] & 0xFF, dirblock->next_block[255] & 0xFF );
+		}
 		nameBlock = dirblock->names_first_block;
 		if( filename )
 		{
@@ -2684,6 +2739,9 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 				leadin[(*leadinDepth)++] = filename[ofs];
 				ofs += 1;
 				this_dir_block = nextblock;
+				// just stepping to new block - unlock old, will lock new.
+				SETMASK_( vol->seglock, seglock, cache, GETMASK_( vol->seglock, seglock, cache )-1 );
+				//lprintf( "Follow subdirectory %d", (int)nextblock );
 				continue;
 			}
 		}
@@ -2694,10 +2752,17 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 				if( nextblock ) {
 					LOGICAL r;
 					leadin[(*leadinDepth)++] = (char)charIndex;
+#ifdef _DEBUG
+					if( !file && !filename && nameBlockStart )
+						lprintf( "Check subdirectory %d %d %c", (int)nextblock, (int)(dirblock->next_block[255] >> 8), charIndex );
+#endif
 					r = _os_ScanDirectory_( vol, NULL, nextblock, nameBlockStart, file, path_match, leadin, leadinDepth );
 					(*leadinDepth)--;
-					if( r )
+					if( r && r != 2 )   {
+						lprintf( "scan is returning early.. %d",r );
+						SETMASK_( vol->seglock, seglock, cache, GETMASK_( vol->seglock, seglock, cache )-1 );
 						return r;
+					}
 				}
 			}
 		}
@@ -2710,14 +2775,18 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 		curName = (usedNames) >> 1;
 		{
 			next_entries = dirblock->entries;
+			//lprintf( "name block %d %d %d", (int)dirBlockSeg, (int)usedNames, (int)cache );
 			while( minName <= usedNames && ( curName <= usedNames ) && ( curName >= 0 ) )
-			//for( n = 0; n < VFS_DIRECTORY_ENTRIES; n++ )
 			{
 				BLOCKINDEX bi;
 				enum block_cache_entries name_cache = BC(NAMES);
 				struct directory_entry *entry = dirblock->entries + curName;
 				//const char * testname;
 				FPI name_ofs = ( entry->name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
+#ifdef DEBUG_CONVERT_DIRECTORY // symbol not defined
+
+				l.fileCount++;
+#endif
 
 #ifdef DEBUG_TIMELINE_DIR_TRACKING
 				if( entry->timelineEntry ) // else we have a different issue.
@@ -2749,8 +2818,8 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 						continue;
 					}
 					// if file is end of directory, done sanning.
-					if( bi == EODMARK ) return filename ? FALSE : (2); // done.
-					if( name_ofs > vol->dwSize ) { return FALSE; }
+					if( bi == EODMARK ) { lprintf( "Found end of directory mark." ); return filename ? FALSE : (2); }// done.
+					if( name_ofs > vol->dwSize ) { lprintf( "name offset is bigger than volume size!"); return FALSE; }
 				}
 				//testname =
 				if( filename ) {
@@ -2759,13 +2828,14 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 					if( ( d = _os_MaskStrCmp( vol, filename+ofs, nameBlock, name_ofs, path_match ) ) == 0 ) {
 						if( file )
 						{
+							/* can just keep the existing lock...
 							int locks = GETMASK_( vol->seglock, seglock, cache ) + 1;
 							if( locks > 12 ) {
 								lprintf( "Too many locks open... " );
 								DebugBreak();
 							}
 							SETMASK_( vol->seglock, seglock, cache, locks );
-
+							*/
 							file->cache = cache;
 							file->entry_fpi = vol->bufferFPI[BC(DIRECTORY)] + ((uintptr_t)(((struct directory_hash_lookup_block *)0)->entries + curName));
 							file->_entry.name_offset = ( entry->name_offset & DIRENT_NAME_OFFSET_OFFSET ) + vfs_os_compute_data_block( vol, dirblock->names_first_block, BC( COUNT ) );
@@ -2779,6 +2849,9 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 							, filename+ofs );
 #endif
 						if( nameBlockStart ) nameBlockStart[0] = dirblock->names_first_block ;
+						// keep the lock because of the file cache reference.
+						if( !file )
+							SETMASK_( vol->seglock, seglock, cache, GETMASK_( vol->seglock, seglock, cache )-1 );
 						return TRUE;
 					}
 					if( d > 0 ) {
@@ -2788,9 +2861,19 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 					}
 					curName = (minName + usedNames) >> 1;
 				}
-				else
-					minName++;
+				else {
+					if( minName < usedNames && !file ) {
+						if( !checkFileLength( vol, entry->first_block, entry->filesize ) ) {
+							lprintf( "directory scan found a short file chain" );
+							return FALSE;
+						}
+					}
+					curName++;
+				}
 			}
+			// no file created, found end, unlock this directory
+			SETMASK_( vol->seglock, seglock, cache, GETMASK_( vol->seglock, seglock, cache )-1 );
+
 			return filename ? FALSE : (2); // done.;
 		}
 		// unreachable, and broken code.
@@ -3002,9 +3085,32 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 
 static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin, int leadinLength, BLOCKINDEX this_dir_block, struct directory_hash_lookup_block *orig_dirblock, enum block_cache_entries *newCache ) {
 	size_t n;
-#ifdef DEBUG_FILE_OPEN
-	LoG( "------------ BEGIN CONVERT DIRECTORY ----------------------" );
+#ifdef DEBUG_CONVERT_DIRECTORY
+	LoG( "------------ BEGIN CONVERT DIRECTORY ---------------------- %d", this_dir_block );
 #endif
+#ifdef DEBUG_CONVERT_DIRECTORY // symbol not defined
+	{
+		BLOCKINDEX a;
+		if( !_os_ScanDirectory( vol, NULL, FIRST_DIR_BLOCK, NULL, NULL, 0 ) ) {
+		 	lprintf( "Directory scan in close failed" );
+			DebugBreak();
+			//return ;
+		}
+		if( l.fileCount_old > l.fileCount ) {
+			BLOCKINDEX x;
+			lprintf( "operation befoe the convert lost files. %d %d", l.fileCount_old, l.fileCount );
+			//if( !_os_ScanDirectory( vol, NULL, FIRST_DIR_BLOCK, &x, NULL, 0 ) ) {
+		 	//lprintf( "Directory scan in close failed" );
+			DebugBreak();
+			//return ;
+		}
+	}
+	lprintf( "total files:%d", l.fileCount );
+	l.fileCount_old = l.fileCount;
+#endif
+
+
+
 	do {
 		enum block_cache_entries cache = BC(DIRECTORY);
 		FPI nameoffset_temp = 0;
@@ -3053,6 +3159,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 			dirblock->next_block[imax]
 				= ( new_dir_block
 				  = _os_GetFreeBlock( vol, &newBlockCache, GFB_INIT_DIRENT, 4096 ) );
+
 			//if( new_dir_block == 48 || new_dir_block == 36 )
 			//	DebugBreak();
 
@@ -3071,8 +3178,8 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 				newdir_cache = BC(DIRECTORY);
 				newDirblock = BTSEEK( struct directory_hash_lookup_block *, vol, new_dir_block, DIR_BLOCK_SIZE, newdir_cache );
 
-#ifdef DEBUG_FILE_OPEN
-				LoG( "new dir block cache is  %d   %d", newdir_cache, (int)new_dir_block );
+#ifdef DEBUG_CONVERT_DIRECTORY
+				LoG( "new dir block cache is  %d   %d   %d  %d", newdir_cache, (int)new_dir_block, (int)this_dir_block, imax );
 #endif
 				newFirstNameBlock = newDirblock->names_first_block;
 #ifdef _DEBUG
@@ -3149,8 +3256,28 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 								struct sack_vfs_file  * file;
 								LIST_FORALL( vol->files, idx, struct sack_vfs_file  *, file ) {
 									if( file->entry_fpi == oldFPI ) {
+										// unlock old directory
+										int locks = GETMASK_( vol->seglock, seglock, file->cache ) - 1;
+										if( locks < 0 ) {
+											lprintf( "File lock in convert underflow... " );
+											DebugBreak();
+										}
+										SETMASK_( vol->seglock, seglock, cache, locks );
+
 										// new entry_fpi.
 										file->entry_fpi = (FPI)time.disk->dirent_fpi; // dirent_fpi type is larger than index in some configurations; but won't exceed those bounds
+										lprintf( "File cache might have been wrong... (AND USED OLD ENTRY)" );
+										file->entry = newEntry;
+										file->cache = newdir_cache;
+
+										// lock new cache entry
+										locks = GETMASK_( vol->seglock, seglock, file->cache ) + 1;
+										if( locks < 0 ) {
+											lprintf( "File lock in convert underflow... " );
+											DebugBreak();
+										}
+										SETMASK_( vol->seglock, seglock, cache, locks );
+
 									}
 								}
 							}
@@ -3175,7 +3302,10 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 						}
 					}
 				}
-
+				LoG( "blocks: %d %d %d old names new names %d %d = %d"
+						, this_dir_block, new_dir_block
+						, imax
+						, dirblock->used_names, newDirblock->used_names, dirblock->used_names+ newDirblock->used_names );
 				// move all others down 1.
 				movedEntry = movedEntry - 1;
 				offset = (f - movedEntry);
@@ -3272,6 +3402,28 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 					} while( name_block != EOFBLOCK );
 				}
 			}
+#ifdef DEBUG_CONVERT_DIRECTORY // symbol not defined
+
+			if( !_os_ScanDirectory( vol, NULL, FIRST_DIR_BLOCK, NULL, NULL, 0 ) ) {
+			 	lprintf( "Directory scan in close failed" );
+				DebugBreak();
+				//return ;
+			}
+			if( l.fileCount_old > l.fileCount ) {
+				BLOCKINDEX x;
+				lprintf( "This convert operation lost files. %d %d", l.fileCount_old, l.fileCount );
+				if( !_os_ScanDirectory( vol, NULL, FIRST_DIR_BLOCK, &x, NULL, 0 ) ) {
+				 	lprintf( "Directory scan in close failed" );
+					DebugBreak();
+					//return ;
+				}
+				DebugBreak();
+			}
+			lprintf( "total files:%d", l.fileCount );
+			l.fileCount_old = l.fileCount;
+#endif
+
+
 			break;  // a set of names has been moved out of this block.
 			// has block.
 		}
@@ -3451,7 +3603,7 @@ struct sack_vfs_os_file * CPROC sack_vfs_os_openfile( struct sack_vfs_os_volume 
 	MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
 	BLOCKINDEX offset;
 	file->vol = vol;
-	file->entry = &file->_entry;
+	file->entry = &file->_entry; // default to internal buffer; might never have a real directory
 	file->sealant = NULL;
 
 	if( filename[0] == '.' && ( filename[1] == '\\' || filename[1] == '/' ) ) filename += 2;
@@ -3459,13 +3611,14 @@ struct sack_vfs_os_file * CPROC sack_vfs_os_openfile( struct sack_vfs_os_volume 
 #ifdef DEBUG_FILE_OPEN
 	LoG( "sack_vfs open %s = %p on %s", filename, file, vol->volname );
 #endif
-	if( !_os_ScanDirectory( vol, filename, FIRST_DIR_BLOCK, NULL, file, 0 ) ) {
-		if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; 
-			DeleteFromSet( VFS_OS_FILE, &l.files, file ); //Deallocate( struct sack_vfs_os_file*, file ); 
-			return NULL; 
+	if( filename )
+		if( !_os_ScanDirectory( vol, filename, FIRST_DIR_BLOCK, NULL, file, 0 ) ) {
+			if( vol->read_only ) { LoG( "Fail open: readonly" ); vol->lock = 0; 
+				DeleteFromSet( VFS_OS_FILE, &l.files, file ); //Deallocate( struct sack_vfs_os_file*, file ); 
+				return NULL; 
+			}
+			else _os_GetNewDirectory( vol, filename, file );
 		}
-		else _os_GetNewDirectory( vol, filename, file );
-	}
 	file->_first_block = file->block = file->entry->first_block;
 	offset = file->_entry.name_offset; // file->entry->name_offset;
 	//file->filename = StrDup( filename );
@@ -3709,7 +3862,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 
 		if( length >= (blockSize - (ofs)) ) {
 			memcpy( block + ofs, data, blockSize-ofs );
-			SETFLAG( file->vol->dirty, cache );
+			SMUDGECACHE( file->vol, cache );
 			data += blockSize - ofs;
 			written += blockSize - ofs;
 			file->fpi += blockSize - ofs;
@@ -3734,7 +3887,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 		}
 		else {
 			memcpy( block+ofs, data, length );
-			SETFLAG( file->vol->dirty, cache );
+			SMUDGECACHE( file->vol, cache );
 			data += length;
 			written += length;
 			file->fpi += length;
@@ -3767,7 +3920,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 #endif
 		if( length >= blockSize ) {
 			memcpy( block, data, blockSize );
-			SETFLAG( file->vol->dirty, cache );
+			SMUDGECACHE( file->vol, cache );
 			data += blockSize;
 			written += blockSize;
 			file->fpi += blockSize;
@@ -3784,7 +3937,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 		}
 		else {
 			memcpy( block, data, length );
-			SETFLAG( file->vol->dirty, cache );
+			SMUDGECACHE( file->vol, cache );
 			data += length;
 			written += length;
 			file->fpi += length;
@@ -3808,7 +3961,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 	}
 #endif
 	if( updated ) {
-		SETFLAG( file->vol->dirty, file->cache ); // directory cache block (locked)
+		SMUDGECACHE( file->vol, file->cache );
 	}
 	if( cdata ) Release( cdata );
 	//if( !writeState )
@@ -3867,7 +4020,7 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, void * da
 		else
 			length = (size_t)(( file->entry->filesize ) - file->fpi);
 	}
-	if( !length ) {  return 0; }
+	if( !length || file->block == EOFBLOCK ) {  return 0; }
 
 	if( ofs ) {
 		enum block_cache_entries cache = BC(FILE);
@@ -3880,7 +4033,13 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, void * da
 			length -= blockSize - ofs;
 			file->fpi += blockSize - ofs;
 			cache = BC( FILE );
-			file->block = vfs_os_GetNextBlock( file->vol, file->block, &cache, GFB_INIT_NONE, TRUE, 0, &blockSize );
+			file->block = vfs_os_GetNextBlock( file->vol, file->block, &cache, GFB_INIT_NONE, FALSE, 0, &blockSize );
+#ifdef _DEBUG
+			if( file->block == EOFBLOCK ) {
+				lprintf( "bad read - file data too short" );
+				DebugBreak();
+			}
+#endif
 		} else {
 			memcpy( data, block + ofs, length );
 			written += length;
@@ -3900,7 +4059,13 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, void * da
 			length -= blockSize;
 			file->fpi += blockSize;
 			cache = BC( FILE );
-			file->block = vfs_os_GetNextBlock( file->vol, file->block, &cache, GFB_INIT_NONE, TRUE, 0, (int*)&blockSize );
+			file->block = vfs_os_GetNextBlock( file->vol, file->block, &cache, GFB_INIT_NONE, FALSE, 0, (int*)&blockSize );
+#ifdef _DEBUG
+			if( file->block == EOFBLOCK ) {
+				lprintf( "bad read - file data too short" );
+				DebugBreak();
+			}
+#endif
 		} else {
 			memcpy( data, block, length );
 			written += length;
@@ -4117,8 +4282,9 @@ static void _os_shrinkBAT( struct sack_vfs_os_file *file ) {
 				AddDataItem( &vol->pdlFreeSmallBlocks, &_block );
 			else
 				AddDataItem( &vol->pdlFreeBlocks, &_block );
+#ifdef DEBUG_FILE_TRUNCATE
 			LoG( "shrink storing free block:%d", _block );
-
+#endif
 			this_BAT[_block % BLOCKS_PER_BAT] = 0;
 		} else {
 			if( this_BAT[BLOCKS_PER_BAT] ) {
@@ -4157,7 +4323,7 @@ size_t CPROC sack_vfs_os_truncate_internal( struct sack_vfs_os_file *file ) {
 	if( file->entry->filesize != file->fpi ) {
 		file->entry->filesize = file->fpi;
 		_os_shrinkBAT( file );
-		SETFLAG( file->vol->dirty, file->cache ); // directory cache block (locked)
+		SMUDGECACHE( file->vol, file->cache );
 	}
 	return (size_t)file->fpi;
 }
@@ -4187,6 +4353,7 @@ int sack_vfs_os_close_internal( struct sack_vfs_os_file *file, int unlock ) {
 #endif
 	DeleteLink( &file->vol->files, file );
 	if( file->delete_on_close ) sack_vfs_os_unlink_file_entry( file->vol, file, file->_first_block, TRUE );
+
 	{
 		INDEX idx;
 		struct sack_vfs_file * testFile;
