@@ -2058,6 +2058,8 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 				vol->lastBatBlock = ( lastB + 1) * BLOCKS_PER_BAT;
 			else
 				vol->lastBatSmallBlock = ( lastB + 1 ) * BLOCKS_PER_BAT;
+
+			SMUDGECACHE( vol, cache ); // make sure this gets saved... 
 			//lprintf( "Set last block....%d", (int)vol->lastBatBlock );
 		}
 	}
@@ -2170,16 +2172,19 @@ static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDE
 #ifdef _DEBUG
 			if( !check_val )DebugBreak();
 #endif
-			sector = check_val / BLOCKS_PER_BAT;
-			// free block might have expanded...
 			{
-				enum block_cache_entries cache = BC(BAT);
-				BLOCKINDEX* this_BAT2 = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, sector * ( BLOCKS_PER_SECTOR ), BAT_BLOCK_SIZE, &cache );
-				if( !this_BAT2 ) {
-					lprintf( "failed to load next bat to get size" );
-					return 0;
-				}
-				thisSize = this_BAT2[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
+				// free block might have expanded... get the size that was actually allocated
+				BLOCKINDEX nextSector = check_val / BLOCKS_PER_BAT;
+				if( sector != nextSector ) {
+					enum block_cache_entries cache = BC(BAT);
+					BLOCKINDEX* this_BAT2 = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, nextSector * ( BLOCKS_PER_SECTOR ), BAT_BLOCK_SIZE, &cache );
+					if( !this_BAT2 ) {
+						lprintf( "failed to load next bat to get size" );
+						return 0;
+					}
+					thisSize = this_BAT2[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
+				} else
+					thisSize = this_BAT[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
 			}
 			// segment could already be set from the _os_GetFreeBlock...
 			//lprintf( "set block %d %d %d to %d", (int)block, (int)( block % BLOCKS_PER_BAT ), (int)sector, (int)check_val );
@@ -2190,13 +2195,16 @@ static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDE
 		}
 	} else {
 		enum block_cache_entries cache = BC(BAT);
-		sector = check_val / BLOCKS_PER_BAT;
-		BLOCKINDEX* this_BAT2 = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, sector * ( BLOCKS_PER_SECTOR ), BAT_BLOCK_SIZE, &cache );
-		if( !this_BAT2 ) {
-			lprintf( "failed to load next bat to get size" );
-			return 0;
-		}
-		thisSize = this_BAT2[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
+		BLOCKINDEX nextSector = check_val / BLOCKS_PER_BAT;
+		if( nextSector != sector ) {
+			BLOCKINDEX* this_BAT2 = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, nextSector * ( BLOCKS_PER_SECTOR ), BAT_BLOCK_SIZE, &cache );
+			if( !this_BAT2 ) {
+				lprintf( "failed to load next bat to get size" );
+				return 0;
+			}
+			thisSize = this_BAT2[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
+		} else
+			thisSize = this_BAT[BLOCKS_PER_BAT] ? BLOCK_SMALL_SIZE : 4096;
 	}
 #ifdef _DEBUG
 	if( !check_val )DebugBreak();
