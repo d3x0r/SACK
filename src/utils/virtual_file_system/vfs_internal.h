@@ -125,7 +125,7 @@ enum block_cache_entries
 	, BC( BAT )
 #ifdef VIRTUAL_OBJECT_STORE
 	// keep a few tables for cache (file system too?)
-	, BC( BAT_LAST ) = BC( BAT ) + 4
+	, BC( BAT_LAST ) = BC( BAT ) + 16
 #endif
 	, BC(DATAKEY)
 	, BC(FILE)
