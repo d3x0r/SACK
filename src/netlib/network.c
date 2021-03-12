@@ -1367,6 +1367,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		&& ( lpClient->dwFlags & ( CF_CONNECTED ) ) ) {
 		// not linger 
 		// OR  nothing to write allow shutdown.
+#ifndef NO_SSL
 		if( ssl_IsClientSecure( lpClient ) ) {
 			if( !ssl_IsClosed( lpClient ) ) {
 				// let client notify_close actually close this...
@@ -1374,6 +1375,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 				return;
 			}
 		}
+#endif
 		if( !bLinger || !(lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) )
 			shutdown( lpClient->Socket, SHUT_WR );
 		else {
