@@ -103,7 +103,19 @@ to disable the dependancy of the odbc libraries... many more.
 
 ###Dependencies
 
-unixodbc (cmake options using ccmake in core can disable this dependancy);
+ - unixodbc (cmake options using ccmake in core can disable this dependancy);
+ 
+ - OpenSSL/LibreSSL  (has LibreSSL 3.2.1 included)
+
+ - Gui Parts
+    - (opt) system freetype-dev, png, jpeg, zlib (has latest versions included)
+    - wayland-protocols
+    - libwayland-dev
+    - libxkbcommon-dev 
+    - libgl1-mesa-dev 
+    - libglew-dev  
+    - libxext-dev 
+    - libxxf86vm-dev
 
 ----
 
