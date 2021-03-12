@@ -1910,9 +1910,9 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 							next->pPrior = pNew;
 
 						pNew->info.dwOwners = 0;
-#ifdef _DEBUG
+//#ifdef _DEBUG
 						pNew->pRoot = pc->pRoot;
-#endif
+//#endif
 						pNew->pPrior = pc;
 
 						// copy link...
