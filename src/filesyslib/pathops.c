@@ -391,19 +391,22 @@ int  MakePath ( CTEXTSTR path )
 #  else
 	if( ( status = mkdir( path, -1 ) ) < 0 ) // make directory with full umask permissions
 	{
-		TEXTSTR tmppath = StrDup( path );
-		TEXTSTR last = (TEXTSTR)pathrchr( tmppath );
-		if( last )
-		{
-			last[0] = 0;
-			if( MakePath( tmppath ) ) {
-				status = mkdir( path, -1 );
-				if( status < 0 )
-					if( EEXIST == errno )
-						status = 0;
+		if( errno == EEXIST ) status = 0;
+		else {
+			TEXTSTR tmppath = StrDup( path );
+			TEXTSTR last = (TEXTSTR)pathrchr( tmppath );
+			if( last )
+			{
+				last[0] = 0;
+				if( tmppath[0] && MakePath( tmppath ) ) {
+					status = mkdir( path, -1 );
+					if( status < 0 )
+						if( EEXIST == errno )
+							status = 0;
+				}
 			}
+			Release( tmppath );
 		}
-		Release( tmppath );
 	}
 	if( status < 0 )
 		if( EEXIST == errno )
