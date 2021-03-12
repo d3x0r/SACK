@@ -101,7 +101,7 @@ in SACK that are lesser supported or for testing or deeply in development.
 Configuration of SACK ..._solution/core project has many options like whether to use included PNG/JPEG/ZLIB etc, or system versions.  Same with SQLITE.  Can enable __NO_ODBC__ 
 to disable the dependancy of the odbc libraries... many more.
 
-###Dependencies
+### Dependencies
 
  - unixodbc (cmake options using ccmake in core can disable this dependancy);
  
