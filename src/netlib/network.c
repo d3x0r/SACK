@@ -1412,14 +1412,14 @@ void AddNetWork( PCLIENT lpClient, uintptr_t psv ) {
 
 
 void ClearNetWork( PCLIENT lpClient, uintptr_t psv ) {
-	INDEX id = FindLink( &lpClient->psvInUse, psv );
+	INDEX id = FindLink( &lpClient->psvInUse, (POINTER)psv );
 	if( id != INVALID_INDEX ) {
 		SetLink( &lpClient->psvInUse, id, NULL );
 	}	
 	if( GetLinkCount( lpClient->psvInUse ) ) 
 		return;
 	lpClient->flags.bInUse = 0;
-	if( lpClient->dwFlags & CF_TOCLOSE ) {
+	if( lpClient->dwFlags & CF_TOCLOSE && (!lpClient->lpFirstPending || !lpClient->lpFirstPending->dwAvail) ) {
 		RemoveClient( lpClient );
 	}
 }
