@@ -49,7 +49,9 @@
 #include <logging.h>
 
 // display pause/resume support.
+#ifndef __NO_GUI__
 #include <render.h>
+#endif
 #include <timers.h>
 
 #ifndef _SHARED_MEMORY_LIBRARY
@@ -2253,10 +2255,11 @@ void  RescheduleTimer( uint32_t ID )
 }
 
 //--------------------------------------------------------------------------
-#ifndef __NO_INTERFACE_SUPPORT__
-#  ifndef TARGETNAME
-#    define TARGETNAME ""
-#  endif
+#if !defined( __NO_GUI__ )
+#  ifndef __NO_INTERFACE_SUPPORT__
+#    ifndef TARGETNAME
+#      define TARGETNAME ""
+#    endif
 static void OnDisplayPause( "@Internal Timers" TARGETNAME )( void )
 {
 	globalTimerData.flags.bHaltTimers = 1;
@@ -2269,6 +2272,7 @@ static void OnDisplayResume( "@Internal Timers" TARGETNAME)( void )
 	if( globalTimerData.pTimerThread )
 		WakeThread( globalTimerData.pTimerThread );
 }
+#  endif
 #endif
 //--------------------------------------------------------------------------
 
