@@ -29,7 +29,7 @@
 #define DO_LOGGING
 #include <logging.h>
 #include <configscript.h>
-#include "fractions.h"
+#include <fractions.h>
 
 #ifdef __cplusplus
 namespace sack { namespace config {
