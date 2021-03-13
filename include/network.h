@@ -844,6 +844,16 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void );//int get_mac_addr (char *device, 
 
 NETWORK_PROC( LOGICAL, sack_network_is_active )( PCLIENT pc );
 
+// mark that a socket has outstanding work.  If a close is handled while in network read
+// prevent the automatic close until work is cleared.
+NETWORK_PROC( void, AddNetWork )( PCLIENT lpClient, uintptr_t psv );
+
+// clear outstanding work on a socket.  Once all work is cleared, and the socket is flagged
+// to close, then a oustanding close operation will be performed when the last work is cleared.
+// 
+NETWORK_PROC( void, ClearNetWork )( PCLIENT lpClient, uintptr_t psv );
+
+
 NETWORK_PROC( void, RemoveClientExx )(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLinger DBG_PASS );
 /* <combine sack::network::RemoveClientExx@PCLIENT@LOGICAL@LOGICAL bLinger>
 
