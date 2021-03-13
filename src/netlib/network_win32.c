@@ -392,16 +392,16 @@ static void HandleEvent( PCLIENT pClient )
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf("FD_CLOSE... %p  %08x", pClient, pClient->dwFlags );
 #endif
-					if( pClient->dwFlags & CF_ACTIVE )
+					if( pClient->dwFlags & CF_ACTIVE && !pClient->flags.bInUse )
 					{
 						// might already be cleared and gone..
 						EnterCriticalSec( &globalNetworkData.csNetwork );
 						InternalRemoveClientEx( pClient, FALSE, TRUE );
 						TerminateClosedClient( pClient );
 						LeaveCriticalSec( &globalNetworkData.csNetwork );
+						pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
 					}
 					// section will be blank after termination...(correction, we keep the section state now)
-					pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
 				}
 				if( networkEvents.lNetworkEvents & FD_ACCEPT )
 				{
