@@ -35,7 +35,7 @@
 #include <sack_types.h>
 #include <stdarg.h>
 #include <colordef.h>
-#include "fractions.h"
+#include <fractions.h>
 
 #ifdef CONFIGURATION_LIBRARY_SOURCE
 #define CONFIGSCR_PROC(type,name) EXPORT_METHOD type CPROC name

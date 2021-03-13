@@ -1,26 +1,28 @@
 #ifndef CLIENT_MESSAGE_INTERFACE
 #define CLIENT_MESSAGE_INTERFACE
 
+#  ifndef __NO_MSGSVR__
+
 #include <sack_types.h>
 
-#  ifdef CLIENTMSG_SOURCE
-#   define CLIENTMSG_PROC(type,name) EXPORT_METHOD type CPROC name
-#  else
-#   define CLIENTMSG_PROC(type,name) IMPORT_METHOD type CPROC name
-#  endif
+#    ifdef CLIENTMSG_SOURCE
+#     define CLIENTMSG_PROC(type,name) EXPORT_METHOD type CPROC name
+#    else
+#     define CLIENTMSG_PROC(type,name) IMPORT_METHOD type CPROC name
+#    endif
 
 #include <msgprotocol.h>
 
-#ifdef __cplusplus
-#define _CLIENT_NAMESPACE namespace client {
-#define MSGCLIENT_NAMESPACE SACK_NAMESPACE namespace msg { namespace client {
-#define MSGCLIENT_NAMESPACE_END }} SACK_NAMESPACE_END
-#else
-#define _CLIENT_NAMESPACE
-#define MSGCLIENT_NAMESPACE 
-#define MSGCLIENT_NAMESPACE_END
+#  ifdef __cplusplus
+#    define _CLIENT_NAMESPACE namespace client {
+#    define MSGCLIENT_NAMESPACE SACK_NAMESPACE namespace msg { namespace client {
+#    define MSGCLIENT_NAMESPACE_END }} SACK_NAMESPACE_END
+#  else
+#    define _CLIENT_NAMESPACE
+#    define MSGCLIENT_NAMESPACE 
+#    define MSGCLIENT_NAMESPACE_END
 
-#endif
+#  endif
 SACK_NAMESPACE
    _MSG_NAMESPACE
 	/* Defines methods and macros for use as a client of a service. */
@@ -202,11 +204,11 @@ CLIENTMSG_PROC( LOGICAL, IsMsgSourceSameAsMsgDest )( PSERVICE_ROUTE a, PSERVICE_
 
 
 MSGCLIENT_NAMESPACE_END
-#ifdef __cplusplus
+#    ifdef __cplusplus
 using namespace sack::msg::client;
-#endif
+#    endif
 
-
+#  endif
 #endif
 // $Log: msgclient.h,v $
 // Revision 1.26  2005/06/30 18:31:32  jim

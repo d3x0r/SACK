@@ -1,6 +1,7 @@
 #ifndef SERVER_MESSAGE_INTERFACE
 #define SERVER_MESSAGE_INTERFACE
 
+#ifndef __NO_MSGSVR__
 
 #ifdef BCC16
 # ifdef SERVERMSG_SOURCE
@@ -63,9 +64,11 @@ SERVERMSG_PROC(int, SendMultiServiceEvent)( uint32_t pid, uint32_t event
 #endif
 #endif
 
-MSGSERVER_NAMESPACE_END
+	MSGSERVER_NAMESPACE_END
 #ifdef __cplusplus
 using namespace sack::msg::server;
+#endif
+
 #endif
 
 #endif
