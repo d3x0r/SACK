@@ -8,6 +8,13 @@
 #     include <sqlite3.h>
 # endif
 
+#ifdef __NO_MSGSVR__
+typedef int PSERVICE_ROUTE;
+#define MSG_UserServiceMessages 100
+#define _MsgID_f "%d"
+typedef int MSGIDTYPE;
+#endif
+
 #if defined( __NO_ODBC__ )
 // if not using odbc, need these 
 // otherwise they will be defined in sql.h
@@ -48,7 +55,6 @@ enum {
      , WM_SQL_NUM_MESSAGES
 };
 
-
 typedef struct data_collection_tag
 {
 	struct {
@@ -61,7 +67,9 @@ typedef struct data_collection_tag
 	PVARTEXT pvt_out; // the last SQL command for this...
 	PVARTEXT pvt_result; // the last result for this...
 	PVARTEXT pvt_errorinfo; // the last error info for this...
+
 	PSERVICE_ROUTE SourceID;
+
 	struct odbc_handle_tag *odbc;
 	uint32_t      responce;
 	uint32_t      lastop;
@@ -200,6 +208,7 @@ struct pssql_global
 	} flags;
 	struct update_task_def *UpdateTasks;
 	PSERVICE_ROUTE SQLMsgBase;
+
 	FILE *pSQLLog;
 	void (CPROC*feedback_handler)(CTEXTSTR message);
 	ODBC OptionDb; // a third, well-known DSN used for option library by default.  May be SQLite.
