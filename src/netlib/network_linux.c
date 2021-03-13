@@ -223,7 +223,6 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 		if( pc->dwFlags & CF_LISTEN )
 			ev.events = EPOLLIN;
 		else {
-
 			ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
 		}
 #    ifdef LOG_NETWORK_EVENT_THREAD
@@ -305,7 +304,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 				{
 					int locked;
 					locked = 1;
-
+					// ------- Large complicated lock ---------------
 					while( !NetworkLock( event_data->pc, 1 ) ) {
 						if( !( event_data->pc->dwFlags & CF_ACTIVE ) ) {
 #  ifdef LOG_NETWORK_EVENT_THREAD
@@ -320,6 +319,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						}
 						Relinquish();
 					}
+					// ------- End Large complicated lock ---------------
+
 					if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {
 #  ifdef LOG_NETWORK_EVENT_THREAD
 						lprintf( "not active but locked? dwFlags : %8x", event_data->pc->dwFlags );
@@ -391,7 +392,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						// partial messages at a time...
 						read = FinishPendingRead( event_data->pc DBG_SRC );
 						//lprintf( "Read %d", read );						
-						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) )
+						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) && !event_data->pc->flags.bInUse )
 						{
 							int locked;
 							locked = 1;
@@ -399,7 +400,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							//if( globalNetworkData.flags.bLogNotices )
 							lprintf( "Pending read failed - reset connection." );
 #endif
-							// lock other read channel.
+							// lock other both channels.
 							while( !NetworkLock( event_data->pc, 0 ) ) {
 								if( !(event_data->pc->dwFlags & CF_ACTIVE) ) {
 #  ifdef LOG_NETWORK_EVENT_THREAD

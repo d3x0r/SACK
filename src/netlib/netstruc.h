@@ -265,7 +265,10 @@ struct NetworkClient
 		BIT_FIELD bAllowDowngrade : 1;
 		BIT_FIELD bWaiting : 1; // waiting is a accept() flag to prevent accepting sockets before really setup.
 		BIT_FIELD bWriteOnUnlock : 1; // write event failed to get lock, so if the locked holder would please write...
+		BIT_FIELD bInUse : 1; // has work outstanding; wait for close until release
 	} flags;
+	PLIST psvInUse; // we have the ability to save outstatnding UID locks...
+
 	// this is set to what the thread that's waiting for this event is.
 	struct peer_thread_info * volatile this_thread;
 	int tcp_delay_count;

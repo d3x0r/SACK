@@ -1402,4 +1402,26 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 	}
 }
 
+void AddNetWork( PCLIENT lpClient, uintptr_t psv ) {
+	AddLink( &lpClient->psvInUse, (POINTER)psv );
+	if( lpClient->flags.bInUse ) {
+		return;
+	}
+	lpClient->flags.bInUse = 1;
+}
+
+
+void ClearNetWork( PCLIENT lpClient, uintptr_t psv ) {
+	INDEX id = FindLink( &lpClient->psvInUse, psv );
+	if( id != INVALID_INDEX ) {
+		SetLink( &lpClient->psvInUse, id, NULL );
+	}	
+	if( GetLinkCount( lpClient->psvInUse ) ) 
+		return;
+	lpClient->flags.bInUse = 0;
+	if( lpClient->dwFlags & CF_TOCLOSE ) {
+		RemoveClient( lpClient );
+	}
+}
+
 SACK_NETWORK_NAMESPACE_END
