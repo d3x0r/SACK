@@ -5,8 +5,10 @@
 // haha - well at least under windows these menu issues can be resolved.
 #ifndef _WIN32
 #define DISABLE_NATIVE_POPUPS
-#endif
+// custom menus, in windows, with intershell transparency, falls behind
+// the applicatoin surface; so only enable this as a last resort
 #define CUSTOM_MENUS
+#endif
 //#endif
 #define MENU_DRIVER_SOURCE
 #include <stdhdrs.h>
