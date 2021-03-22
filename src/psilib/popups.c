@@ -7,8 +7,8 @@
 #define DISABLE_NATIVE_POPUPS
 // custom menus, in windows, with intershell transparency, falls behind
 // the applicatoin surface; so only enable this as a last resort
-#define CUSTOM_MENUS
 #endif
+#define CUSTOM_MENUS
 //#endif
 #define MENU_DRIVER_SOURCE
 #include <stdhdrs.h>
