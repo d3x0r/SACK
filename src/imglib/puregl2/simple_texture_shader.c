@@ -9,6 +9,7 @@ IMAGE_NAMESPACE
 
 //const char *gles_
 static const char *gles_simple_texture_v_shader =
+	"#version 150\n"
    "precision mediump float;\n"
 	"precision mediump int;\n"
      "attribute vec4 vPosition;\n" 
@@ -23,6 +24,7 @@ static const char *gles_simple_texture_v_shader =
     "}\n"; 
 
 static const char *gles_simple_texture_p_shader =
+	"#version 150\n"
     // "precision mediump float;\n" 
    "precision mediump float;\n"
 	"precision mediump int;\n"
@@ -35,7 +37,8 @@ static const char *gles_simple_texture_p_shader =
 
 //const char *gles_
 static const char *gles_simple_v_shader_shaded_texture =
-   "precision mediump float;\n"
+"#version 150\n"
+"precision mediump float;\n"
 	"precision mediump int;\n"
      "attribute vec4 vPosition;\n" 
 	  "attribute vec2 in_texCoord;\n" 
@@ -53,7 +56,8 @@ static const char *gles_simple_v_shader_shaded_texture =
     "}"; 
 
 static const char *gles_simple_p_shader_shaded_texture =
-    // "precision mediump float;\n" 
+	"#version 150\n"
+	// "precision mediump float;\n" 
    "precision mediump float;\n"
 	"precision mediump int;\n"
 	 " varying vec4 out_Color;\n" 
