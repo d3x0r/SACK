@@ -24,8 +24,8 @@ module bag.video.vulkan.dll
 alias service render vulkan.render
 alias service image vulkan.image
 
-alias service render.3d vulkan.render.3d
-alias service image.3d vulkan.image.3d
+alias service 'render.3d' = 'vulkan.render.3d'
+alias service 'image.3d' = 'vulkan.image.3d'
 endif
 
 if sack/vidlib/use interface == headless.instanced
@@ -107,11 +107,11 @@ module glew.dll
 module bag.video.puregl2.dll
 module bag.image.puregl2.dll
 
-alias service render puregl2.render
-alias service image puregl2.image
+alias service 'render' = 'puregl2.render'
+alias service 'image' = 'puregl2.image'
 
-alias service render.3d puregl2.render.3d
-alias service image.3d puregl2.image.3d
+alias service 'render.3d' = 'puregl2.render.3d'
+alias service 'image.3d' ='puregl2.image.3d'
 endif
 
 if sack/vidlib/use interface == windows
