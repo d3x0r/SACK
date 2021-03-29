@@ -717,12 +717,23 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINES} )
 SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 
+if( ON )
 	set( LIBRESSL_SKIP_INSTALL ON )
 	set( LIBRESSL_APPS OFF )
 	set( LIBRESSL_TESTS OFF )
 	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
         include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
         set( SSL_LIBS ssl tls crypto )
+endif( ON )
+
+
+if( OFF )
+	set( BORINGSSL_SKIP_TESTS ON )
+	set( OPENSSL_NO_ASM ON )
+	add_subdirectory( src/contrib/boringssl/boringssl )
+        include_directories( src/contrib/boringssl/boringssl/include )
+        set( SSL_LIBS ssl tls crypto )
+endif( OFF )
 
 add_subdirectory( src/contrib/gsm-1.0-pl13 )
 #add_subdirectory( src/contrib/libvlc/2.2.4 )
