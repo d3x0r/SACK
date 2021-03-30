@@ -1209,8 +1209,19 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 	return NULL;
 }
 
-HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
+HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char* certChain )
 {
+	return GetHttpsQueryEx( address, url, certChain, NULL );
+}
+
+HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, struct HTTPRequestOptions* options )
+{
+	static struct HTTPRequestOptions defaultOpts = {
+		"GET",
+		NULL,
+		NULL,
+	};
+	if( !options ) options = &defaultOpts;
 	int retries;
 	if( !address )
 		return NULL;
@@ -1232,6 +1243,8 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 		ReleaseAddress( addr );
 		if( pc )
 		{
+			struct HTTPRequestHeader* header;
+			INDEX idx;
 			state->last_read_tick = timeGetTime();
 			state->waiter = MakeThread();
 			state->request_socket = connect->pc;
@@ -1241,9 +1254,13 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char *certChain )
 			//SetNetworkConn
 			state->ssl = TRUE;
 			state->pvtOut = VarTextCreate();
-			vtprintf( state->pvtOut, "GET %s HTTP/1.0\r\n", GetText( url ) );
+			vtprintf( state->pvtOut, "%s %s HTTP/1.0\r\n", options->method, GetText( url ) );
 			vtprintf( state->pvtOut, "Host: %s\r\n", GetText( address ) );
-			vtprintf( state->pvtOut, "User-Agent: SACK(%s)\r\n", "System" );
+			vtprintf( state->pvtOut, "User-Agent: %s\r\n", options->agent?options->agent:"SACK(System)" );
+			LIST_FORALL( options->headers, idx, struct HTTPRequestHeader*, header ) {
+				vtprintf( state->pvtOut, "%s:%s\r\n", header->field, header->value);
+
+			}
 			//vtprintf( state->pvtOut, "connection: close\r\n" );
 			vtprintf( state->pvtOut, "\r\n" );
 #ifndef NO_SSL

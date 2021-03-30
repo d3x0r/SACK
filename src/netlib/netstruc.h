@@ -234,8 +234,8 @@ struct NetworkClient
 	uintptr_t psvRead;
 
 	union {
-		void (CPROC*WriteComplete)( struct NetworkClient * );
-		void (CPROC*CPPWriteComplete)( uintptr_t psv );
+		void (CPROC*WriteComplete)( struct NetworkClient *, CPOINTER buffer, size_t len );
+		void (CPROC*CPPWriteComplete)( uintptr_t psv, CPOINTER buffer, size_t len );
 	}write;
 	uintptr_t psvWrite;
 

@@ -196,13 +196,13 @@ NETWORK_PROC( void, NetworkUnlockEx )( PCLIENT pc, int readWrite DBG_PASS );
 typedef void (CPROC*cReadComplete)(PCLIENT, POINTER, size_t );
 typedef void (CPROC*cReadCompleteEx)(PCLIENT, POINTER, size_t, SOCKADDR * );
 typedef void (CPROC*cCloseCallback)(PCLIENT);
-typedef void (CPROC*cWriteComplete)(PCLIENT );
+typedef void (CPROC*cWriteComplete)(PCLIENT, CPOINTER buffer, size_t len );
 typedef void (CPROC*cNotifyCallback)(PCLIENT server, PCLIENT newClient);
 typedef void (CPROC*cConnectCallback)(PCLIENT, int);
 typedef void (CPROC*cppReadComplete)(uintptr_t, POINTER, size_t );
 typedef void (CPROC*cppReadCompleteEx)(uintptr_t,POINTER, size_t, SOCKADDR * );
 typedef void (CPROC*cppCloseCallback)(uintptr_t);
-typedef void (CPROC*cppWriteComplete)(uintptr_t );
+typedef void (CPROC*cppWriteComplete)(uintptr_t, CPOINTER buffer, size_t len );
 typedef void (CPROC*cppNotifyCallback)(uintptr_t, PCLIENT newClient);
 typedef void (CPROC*cppConnectCallback)(uintptr_t, int);
 

@@ -203,17 +203,19 @@ void AcceptClient(PCLIENT pListen)
 				else
 					pNewClient->read.ReadComplete( pNewClient, NULL, 0 );  // process read to get data already pending...
 			}
-
+			/*
+			* really don't need a write complete on initial open... the initial read should suffice.
 			if( pNewClient->write.WriteComplete  &&
 				!pNewClient->bWriteComplete )
 			{
 				pNewClient->bWriteComplete = TRUE;
 				if( pNewClient->dwFlags & CF_CPPWRITE )
-					pNewClient->write.CPPWriteComplete( pNewClient->psvWrite );
+					pNewClient->write.CPPWriteComplete( pNewClient->psvWrite, NULL, 0 );
 				else
-					pNewClient->write.WriteComplete( pNewClient );
+					pNewClient->write.WriteComplete( pNewClient, NULL, 0 );
 				pNewClient->bWriteComplete = FALSE;
 			}
+			*/
 			//lprintf( "Is it already closed HERE?""?""?");
 			if( pNewClient->Socket ) {
 #ifdef USE_WSA_EVENTS
@@ -1383,9 +1385,13 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 				pc->lpFirstPending->dwUsed  += nSent;
 				if (!pc->lpFirstPending->dwAvail)  // no more to send...
 				{
+					CPOINTER p = pc->lpFirstPending->buffer.p;
+					size_t len = pc->lpFirstPending->dwUsed;
 					lpNext = pc->lpFirstPending -> lpNext;
-					if( pc->lpFirstPending->s.bDynBuffer )
-						Release(pc->lpFirstPending->buffer.p );
+					if( pc->lpFirstPending->s.bDynBuffer ) {
+						Release( pc->lpFirstPending->buffer.p );
+						p = NULL; // already released the buffer.
+					}
 					// there is one pending holder in the client
 					// structure that was NOT allocated...
 					if( pc->lpFirstPending != &pc->FirstWritePending )
@@ -1408,14 +1414,14 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 						pc->lpLastPending = NULL;
 					pc->lpFirstPending = lpNext;
 
-					if( pc->write.WriteComplete &&
+					if( p && pc->write.WriteComplete &&
 						!pc->bWriteComplete )
 					{
 						pc->bWriteComplete = TRUE;
 						if( pc->dwFlags & CF_CPPWRITE )
-							pc->write.CPPWriteComplete( pc->psvWrite );  // SOME WRITE!!!
+							pc->write.CPPWriteComplete( pc->psvWrite, p, len );  // SOME WRITE!!!
 						else
-							pc->write.WriteComplete( pc );  // SOME WRITE!!!
+							pc->write.WriteComplete( pc, p, len );  // SOME WRITE!!!
 						pc->bWriteComplete = FALSE;
 					}
 					if( !pc->lpFirstPending )

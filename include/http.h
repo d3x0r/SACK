@@ -54,6 +54,18 @@ struct HttpField {
 	PTEXT value;
 };
 
+struct HTTPRequestHeader {
+	char* field;
+	char* value;
+};
+
+struct HTTPRequestOptions {
+	char* method;
+	PLIST headers;
+	PTEXT content;
+	char* agent;
+};
+
 typedef struct HttpState *HTTPState;
 enum ProcessHttpResult{
 	HTTP_STATE_RESULT_NOTHING = 0,
@@ -198,6 +210,9 @@ HTTP_EXPORT PTEXT HTTPAPI PostHttp( PTEXT site, PTEXT resource, PTEXT content );
 HTTP_EXPORT PTEXT HTTPAPI GetHttp( PTEXT site, PTEXT resource, LOGICAL secure );
 /* results with just the content of the message; no access to other information avaialble */
 HTTP_EXPORT PTEXT HTTPAPI GetHttps( PTEXT address, PTEXT url, const char *certChain );
+
+/* results with the http state of the message response; Allows getting other detailed information about the result */
+HTTP_EXPORT HTTPState HTTPAPI GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, struct HTTPRequestOptions* options );
 
 /* results with the http state of the message response; Allows getting other detailed information about the result */
 HTTP_EXPORT HTTPState  HTTPAPI PostHttpQuery( PTEXT site, PTEXT resource, PTEXT content );
