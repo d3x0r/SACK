@@ -209,7 +209,7 @@ PCLIENT GrabClientEx( PCLIENT pClient DBG_PASS )
 		pClient->dwFlags &= ~CF_STATEFLAGS;
 		if( pClient->dwFlags & CF_AVAILABLE )
 			lprintf( "Grabbed. %p  %08x", pClient, pClient->dwFlags );
-		pClient->LastEvent = GetTickCount();
+		pClient->LastEvent = timeGetTime();
 		if( ( (*pClient->me) = pClient->next ) )
 			pClient->next->me = pClient->me;
 	}
@@ -227,7 +227,7 @@ static PCLIENT AddAvailable( PCLIENT pClient )
 		DumpLists();
 #endif
 		pClient->dwFlags |= CF_AVAILABLE;
-		pClient->LastEvent = GetTickCount();
+		pClient->LastEvent = timeGetTime();
 		pClient->me = &globalNetworkData.AvailableClients;
 		if( ( pClient->next = globalNetworkData.AvailableClients ) )
 			globalNetworkData.AvailableClients->me = &pClient->next;
@@ -247,7 +247,7 @@ PCLIENT AddActive( PCLIENT pClient )
 		DumpLists();
 #endif
 		pClient->dwFlags |= CF_ACTIVE;
-		pClient->LastEvent = GetTickCount();
+		pClient->LastEvent = timeGetTime();
 		pClient->me = &globalNetworkData.ActiveClients;
 		if( ( pClient->next = globalNetworkData.ActiveClients ) )
 			globalNetworkData.ActiveClients->me = &pClient->next;
@@ -272,7 +272,7 @@ static PCLIENT AddClosed( PCLIENT pClient )
 		DumpLists();
 #endif
 		pClient->dwFlags |= CF_CLOSED;
-		pClient->LastEvent = GetTickCount();
+		pClient->LastEvent = timeGetTime();
 		pClient->me = &globalNetworkData.ClosedClients;
 		if( ( pClient->next = globalNetworkData.ClosedClients ) )
 			globalNetworkData.ClosedClients->me = &pClient->next;

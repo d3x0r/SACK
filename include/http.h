@@ -60,10 +60,20 @@ struct HTTPRequestHeader {
 };
 
 struct HTTPRequestOptions {
-	char* method;
-	PLIST headers;
-	PTEXT content;
+	char* method;  // deafult GET 
+	PLIST headers; // list of TEXTCAHR*  
+	CPOINTER content;  // content to send with request, if any
+	size_t contentLen;// lengt of content to send with request
+	LOGICAL ssl; // set to true to request over SSL;
+
+	const char* certChain; //optionally this can be used to specify the certain, if not set, uses parameter, which will otherwise be NULL.
+
+	// specify the agent field, default to SACK(System)
 	char* agent;
+	// if set, will be called when content buffer has been sent.
+	void ( *writeComplete )( uintptr_t userData );
+	uintptr_t userData;
+
 };
 
 typedef struct HttpState *HTTPState;

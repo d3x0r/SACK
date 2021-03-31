@@ -63,6 +63,7 @@ struct HttpState {
 		BIT_FIELD success : 1;
 	}flags;
 	CRITICALSECTION lock;
+	struct HTTPRequestOptions* options;
 };
 
 struct HttpServer {
@@ -991,6 +992,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 	if( !buffer )
 	{
 		//lprintf( "Initial read on HTTP requestor" );
+#ifndef NO_SSL
 		if( state && state->ssl )
 		{
 			PTEXT send = VarTextGet( state->pvtOut );
@@ -999,15 +1001,17 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 				lprintf( "Sending Request..." );
 				LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 			}
-#ifndef NO_SSL
 			// had to wait for handshake, so NULL event
 			// on secure has already had time to build the send
 			// but had to wait until now to do that.
 			ssl_Send( pc, GetText( send ), GetTextSize( send ) );
-#endif
+			if( state->options && state->options->content && state->options->contentLen )
+				SendTCPLong( pc, state->options->content, state->options->contentLen );
+
 			LineRelease( send );
 		}
 		else
+#endif
 		{
 			state->buffer = Allocate( 4096 );
 			ReadTCP( pc, state->buffer, 4096 );
@@ -1214,6 +1218,12 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char* certChain )
 	return GetHttpsQueryEx( address, url, certChain, NULL );
 }
 
+static void writeComplete( PCLIENT pc, CPOINTER buffer, size_t length ) {
+	struct HttpState* data = (struct HttpState*)GetNetworkLong( pc, 0 );
+	if( data && data->options && data->options->writeComplete )
+		data->options->writeComplete( data->options->userData );
+}
+
 HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, struct HTTPRequestOptions* options )
 {
 	static struct HTTPRequestOptions defaultOpts = {
@@ -1231,6 +1241,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
 		struct pendingConnect *connect = New( struct pendingConnect );
 		struct HttpState *state = CreateHttpState( &connect->pc );
+		state->options = options;
 		connect->state = state;
 		AddLink( &l.pendingConnects, connect );
 		if( retries ) {
@@ -1238,7 +1249,8 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			//lprintf( "PC of connect:%p  %d", pc, retries );
 		}
 		//DumpAddr( "Http Address:", addr );
-		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, httpConnected, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
+		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose
+				, writeComplete, httpConnected, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
 		connect->pc = pc;
 		ReleaseAddress( addr );
 		if( pc )
@@ -1254,37 +1266,65 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			//SetNetworkConn
 			state->ssl = TRUE;
 			state->pvtOut = VarTextCreate();
+			// 1.0 expects close after request - this is a one shot synchronous process so...
 			vtprintf( state->pvtOut, "%s %s HTTP/1.0\r\n", options->method, GetText( url ) );
+			// 1.1 would need this sort of header....
+			//vtprintf( state->pvtOut, "connection: close\r\n" );
 			vtprintf( state->pvtOut, "Host: %s\r\n", GetText( address ) );
 			vtprintf( state->pvtOut, "User-Agent: %s\r\n", options->agent?options->agent:"SACK(System)" );
 			LIST_FORALL( options->headers, idx, struct HTTPRequestHeader*, header ) {
 				vtprintf( state->pvtOut, "%s:%s\r\n", header->field, header->value);
-
 			}
-			//vtprintf( state->pvtOut, "connection: close\r\n" );
-			vtprintf( state->pvtOut, "\r\n" );
+			vtprintf( state->pvtOut, "\r\n" ); // send blank header
 #ifndef NO_SSL
-			if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0, certChain, certChain ? strlen( certChain ) : 0 ) )
-			{
-				if( !certChain )
-					ssl_SetIgnoreVerification( pc );
+			if( options->ssl ) {
+				if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0, options->certChain?options->certChain:certChain, certChain
+							? strlen( options->certChain ? options->certChain:certChain ) : 0 ) ) {
+					state->waiter = MakeThread();
+					if( !certChain )
+						ssl_SetIgnoreVerification( pc );
+					if( NetworkConnectTCP( pc ) < 0 ) {
+						DestroyHttpState( state );
+						return NULL;
+					}
+				} else
+					RemoveClient( pc );
+			} else
+#endif
+
+			if( pc ) {
+				state->waiter = MakeThread();
+				PTEXT send = VarTextPeek( state->pvtOut );
+				state->pc = &connect->pc;
+
+				SetNetworkLong( connect->pc, 0, (uintptr_t)state );
+				SetNetworkCloseCallback( connect->pc, HttpReaderClose );
+
 				if( NetworkConnectTCP( pc ) < 0 ) {
 					DestroyHttpState( state );
 					return NULL;
 				}
-				state->waiter = MakeThread();
-				// wait for response.
-				while( state->request_socket && ( state->last_read_tick > (timeGetTime() - 3000 ) ) )
-				{
-					WakeableSleep( 1000 );
+
+				if( l.flags.bLogReceived ) {
+					lprintf( "Sending %s...", options->method );
+					LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 				}
-				//lprintf( "Request has completed.... %p %p", pc, state->content );
-				if( state->request_socket )
-					RemoveClient( state->request_socket ); // this shouldn't happen... it should have ben closed already.
+				SendTCP( pc, GetText( send ), GetTextSize( send ) );
+				if( options->content && options->contentLen )
+					SendTCPLong( pc, options->content, options->contentLen );
+				//LineRelease( send );
 			}
-			else
+
+			// wait for response.
+			while( state->request_socket && ( state->last_read_tick > ( timeGetTime() - 3000 ) ) ) {
+				WakeableSleep( 1000 );
+			}
+			//lprintf( "Request has completed.... %p %p", pc, state->content );
+			if( state->request_socket ) {
+				RemoveClient( state->request_socket ); // this shouldn't happen... it should have ben closed already.
+			} else
 				RemoveClient( state->request_socket ); // ssl begin failed to start.
-#endif
+
 			VarTextDestroy( &state->pvtOut );
 			if( !state->request_socket )
 				return state;

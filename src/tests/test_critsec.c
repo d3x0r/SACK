@@ -49,7 +49,7 @@ int main( void )
 {
 	PTHREAD threads[10];
 	int n;
-   uint32_t size = sizeof( CRITICALSECTION ) * 5;
+   size_t size = sizeof( CRITICALSECTION ) * 5;
 	CRITICALSECTION *secs = (CRITICALSECTION*)OpenSpace( "shared_test_crit_sec", NULL, &size );
 	cs1 = secs;
 	cs2 = secs + 1;

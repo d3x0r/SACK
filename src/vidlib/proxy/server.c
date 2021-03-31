@@ -2140,7 +2140,7 @@ uint8_t* GetMessageBuf( PVPImage image, size_t size )
 		image->buffer = newbuf;
 	}
 	resultbuf = image->buffer + image->sendlen;
-	((uint32_t*)resultbuf)[0] = size - 4;
+	((uint32_t*)resultbuf)[0] = (uint32_t)(size - 4);
 	image->sendlen += size;
 
 	return resultbuf + 4;
