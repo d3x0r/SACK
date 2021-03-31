@@ -52,6 +52,7 @@ struct HttpState {
 	enum ReadChunkState read_chunk_state;
 	uint32_t last_read_tick;
 	PTHREAD waiter;
+	LOGICAL closed;
 	PCLIENT *pc;
 	struct httpStateFlags {
 		BIT_FIELD keep_alive : 1;
@@ -235,7 +236,8 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 	lockHttp( pHttpState );
 	if( pHttpState->final )
 	{
-		if( !pHttpState->method ) {
+		//if( !pHttpState->method )
+		{
 			//lprintf( "Reading more, after returning a packet before... %d", pHttpState->response_version );
 			if( pHttpState->response_version ) {
 				GatherHttpData( pHttpState );
@@ -404,10 +406,14 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 													nextword = next;
 													if( nextword )
 													{
-														next = NEXTLINE( nextword );
+														next = NULL;// NEXTLINE( nextword );
 														if( pHttpState->text_code )
 															Release( pHttpState->text_code );
-														pHttpState->text_code = StrDup( GetText( nextword ) );
+														{
+															PTEXT words = BuildLine( nextword );
+															pHttpState->text_code = StrDup( GetText( words ) );
+															LineRelease( words );
+														}
 													}
 												}
 												else
@@ -869,10 +875,16 @@ PTEXT GetHttpField( struct HttpState *pHttpState, CTEXTSTR name )
 	return NULL;
 }
 
-PTEXT GetHttpResponce( struct HttpState *pHttpState )
+PTEXT GetHttpResponse( struct HttpState *pHttpState )
 {
 	if( pHttpState )
 		return pHttpState->response_status;
+	return NULL;
+}
+
+const char* GetHttpResponseStatus( HTTPState  pHttpState ) {
+	if( pHttpState )
+		return pHttpState->text_code;
 	return NULL;
 }
 
@@ -1005,8 +1017,13 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 			// on secure has already had time to build the send
 			// but had to wait until now to do that.
 			ssl_Send( pc, GetText( send ), GetTextSize( send ) );
-			if( state->options && state->options->content && state->options->contentLen )
-				SendTCPLong( pc, state->options->content, state->options->contentLen );
+			if( state->options && state->options->content && state->options->contentLen ) {
+				ssl_Send( pc, state->options->content, state->options->contentLen );
+				if( state->options->writeComplete ) {
+					state->options->writeComplete( state->options->userData );
+					state->options->writeComplete = NULL;
+				}
+			}
 
 			LineRelease( send );
 		}
@@ -1057,6 +1074,7 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 		//lprintf( "So now i's null?" );
 		if( data->waiter ) {
 			//lprintf( "(on close) Waking waiting to return with result." );
+			data->closed = TRUE;
 			WakeThread( data->waiter );
 		}
 	}
@@ -1092,6 +1110,7 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 	struct pendingConnect *connect = New( struct pendingConnect );
 	struct HttpState *state = CreateHttpState(&connect->pc);
 	connect->state = state;
+	state->closed = FALSE;
 	AddLink( &l.pendingConnects, connect );
 	pc = OpenTCPClientExx( GetText( address ), 80, HttpReader, NULL, NULL, HttpConnected );
 	connect->pc = pc;
@@ -1175,6 +1194,7 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		struct pendingConnect *connect = New( struct pendingConnect );
 		struct HttpState *state = CreateHttpState( &connect->pc );
 		connect->state = state;
+		state->closed = FALSE;
 		AddLink( &l.pendingConnects, connect );
 		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, httpConnected, 0 DBG_SRC );
 		connect->pc = pc;
@@ -1242,6 +1262,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		struct pendingConnect *connect = New( struct pendingConnect );
 		struct HttpState *state = CreateHttpState( &connect->pc );
 		state->options = options;
+		state->closed = FALSE;
 		connect->state = state;
 		AddLink( &l.pendingConnects, connect );
 		if( retries ) {
@@ -1255,7 +1276,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		ReleaseAddress( addr );
 		if( pc )
 		{
-			struct HTTPRequestHeader* header;
+			char* header;
 			INDEX idx;
 			state->last_read_tick = timeGetTime();
 			state->waiter = MakeThread();
@@ -1264,16 +1285,19 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			SetNetworkLong( pc, 0, (uintptr_t)state );
 
 			//SetNetworkConn
-			state->ssl = TRUE;
+			state->ssl = options->ssl;
 			state->pvtOut = VarTextCreate();
 			// 1.0 expects close after request - this is a one shot synchronous process so...
 			vtprintf( state->pvtOut, "%s %s HTTP/1.0\r\n", options->method, GetText( url ) );
 			// 1.1 would need this sort of header....
 			//vtprintf( state->pvtOut, "connection: close\r\n" );
-			vtprintf( state->pvtOut, "Host: %s\r\n", GetText( address ) );
-			vtprintf( state->pvtOut, "User-Agent: %s\r\n", options->agent?options->agent:"SACK(System)" );
-			LIST_FORALL( options->headers, idx, struct HTTPRequestHeader*, header ) {
-				vtprintf( state->pvtOut, "%s:%s\r\n", header->field, header->value);
+			if( options->content && options->contentLen ) {
+				vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
+			}
+			vtprintf( state->pvtOut, "Host:%s\r\n", GetText( address ) );
+			vtprintf( state->pvtOut, "User-Agent:%s\r\n", options->agent?options->agent:"SACK(System)" );
+			LIST_FORALL( options->headers, idx, char*, header ) {
+				vtprintf( state->pvtOut, "%s\r\n", header );
 			}
 			vtprintf( state->pvtOut, "\r\n" ); // send blank header
 #ifndef NO_SSL
@@ -1312,21 +1336,20 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 				SendTCP( pc, GetText( send ), GetTextSize( send ) );
 				if( options->content && options->contentLen )
 					SendTCPLong( pc, options->content, options->contentLen );
-				//LineRelease( send );
 			}
 
 			// wait for response.
-			while( state->request_socket && ( state->last_read_tick > ( timeGetTime() - 3000 ) ) ) {
+			while( state->request_socket && !state->closed
+				&& ( state->last_read_tick > ( timeGetTime() - 3000 ) ) ) {
 				WakeableSleep( 1000 );
 			}
 			//lprintf( "Request has completed.... %p %p", pc, state->content );
-			if( state->request_socket ) {
+			if( state->request_socket && !state->closed ) {
 				RemoveClient( state->request_socket ); // this shouldn't happen... it should have ben closed already.
-			} else
-				RemoveClient( state->request_socket ); // ssl begin failed to start.
+			}
 
 			VarTextDestroy( &state->pvtOut );
-			if( !state->request_socket )
+			if( !state->request_socket || state->closed )
 				return state;
 		}
 		else
