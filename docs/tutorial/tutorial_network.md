@@ -126,7 +126,7 @@ static void Closed( PCLIENT pc ) {
 
 And of course you'll probably want to send data on a socket....
 
-```
+``` c
 SendTCP( pc, (void*)data, (size_t)length );
 ```
 
@@ -143,7 +143,7 @@ You are free to dispose of the buffer immediately after calling `SendTCP()`.
 The default internal backing copy is reasonable for typically small traffic, but obviously if there are
 buffers of several MB, it might not be good to copy it.
 
-```
+``` c
 SendTCPLong( pc, (void*)data, (size_t)length );
 ```
 
@@ -157,7 +157,7 @@ is done.  (Advanced usges below).
 
 When you want to end a conversation on a socket, you can call `RemoveClient()`, passing the `PCLIENT` object pointer.
 
-```
+``` c
 RemoveClient( pc );
 ```
 
@@ -180,7 +180,7 @@ Otherwise, the Close, and write complete event handling is exactly the same for 
 
 ## Opening
 
-```
+``` c
 PCLIENT pcUdp = ServeUDP( address, port, UDP_ReadComplete, UDP_Close) 
 ```
 
@@ -198,7 +198,7 @@ static void UDP_ReadComplete( PCLIENT pc, CPOINTER buffer, size_t length, SOCKAD
 ### Close Event
 
 
-``` c
+``` c c
 static void UDP_Close( PCLIENT pc ) {
 	// not sure why you need this event, you know you just closed it, right?
         // nothing else causes this socket to close.
@@ -224,7 +224,7 @@ You can open a UDP connection, which species both ends of the conversation,
 or can later 'connect' the socket to a specific address, and use `SendUDP()` to send
 data without re-specifying the target address.
 
-``` c
+``` c c
 	PCLIENT pcConnectedUDP = ConnectUDPAddr( listenAt, sendTo, UDP_ReadComplete, UDP_Close );
 ```
 
@@ -257,7 +257,7 @@ and a `://` to determine a default port; although the port may also be specified
 Any path parts of the URL are ignored, and only the domain and port are used to determine where
 to listed.   `"http://0.0.0.0"` would also be valid as a server address.
 
-```
+``` c
 PCLIENT pcWebServer = WebSocketCreate( "http://example.com:8080"
                                      , WebSocketOpened
                                      , WebSocketMessage
@@ -267,7 +267,7 @@ PCLIENT pcWebServer = WebSocketCreate( "http://example.com:8080"
                                      );
 ```
 
-```
+``` c
 static uintptr_t WebSocketOpened( PCLIENT pcNew, uintptr_t userValue ) {
 	// pcNew is the newly accepted websocket client.
         // userValue is the value specified in the WebSocketCreate.
@@ -302,7 +302,7 @@ static uintptr_t WebSocketOpened( PCLIENT pcNew, uintptr_t userValue ) {
 
 ### Close Event
 
-```
+``` c
 static void WebSocketClose( PCLIENT pc, uintptr_t userValue, int code, const char *reason ) {
 	// this socket is closing.
         // ths userValue will be the 'newUserValue' returned from the open.
@@ -315,7 +315,7 @@ static void WebSocketClose( PCLIENT pc, uintptr_t userValue, int code, const cha
 
 ### Read Event
 
-```
+``` c
 static void WebSocketMessage( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, size_t msglen ) {
 	// a completed packet received...
         // psv userValue will be the same as the 'newUserValue' returned from the open.
@@ -333,7 +333,7 @@ static void WebSocketMessage( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTE
 
 This almost never occurs.
 
-```
+``` c
 staic void WebSocketError( PCLIENT pc, uintptr_t psv, int error ){
 	// psv will be the same as newUserValue returned from Open.
 	// error indicates the websocket error code.
@@ -368,7 +368,7 @@ PCLIENT pcWebClient = WebSocketOpen( "https://d3x0r.org"
 ```
 
 
-```
+``` c
 
 static uintptr_t WebSocketOpen( PCLIENT pcNew, uintptr_t userValue ) {
 	// pcNew is the newly accepted websocket client.
@@ -397,7 +397,7 @@ by-codepoint into utf8, it's better to use a Base64 conversion method..
 
 Calling send will complete a packet, and finish the message.
 
-``` 
+``` c 
 	WebSocketSendText( pc, "text", 4 );
 ```
 
@@ -405,7 +405,7 @@ Calling send will complete a packet, and finish the message.
 
 Calling send will complete a packet, and finish the message.
 
-```
+``` c
 	char *data = malloc(12);
 	WebSocketSendBinary( pc, data, 12 );
 ```        
@@ -418,7 +418,7 @@ Using `BeginSend` you can progressively build a packet to send, and flush it whe
 The packets should be sent as specified, with the last packet including the completion event.
 There's no overall message size of a websocket message, it's just the sum of its fragments.
 
-```
+``` c
 WebSocketBeginSendText( pc, "Hello", 5 ); 
 WebSocketBeginSendText( pc, "World", 5 ); 
 WebSocketSendText( pc, ".", 1 ); 
@@ -427,7 +427,7 @@ WebSocketSendText( pc, ".", 1 );
 
 ### Binary (Progressive)
 
-```
+``` c
 WebSocketBeginSendBinary( pc, "Hello", 5 ); 
 WebSocketBeginSendBinary( pc, "World", 5 ); 
 WebSocketSendBinary( pc, ".", 1 ); 
@@ -440,7 +440,7 @@ WebSocketSendBinary( pc, ".", 1 );
 When closing the socket, you must specify the websocket close code, and appropriate text to send.
 
 
-```
+``` c
 	WebSocketClose( pc, 1000, "Disconnect OK" );
 ```
 
@@ -455,7 +455,7 @@ The client open ablve (`WebSocketOpen()`) takes a option parameter, which is set
 may also be `WS_DELAY_OPEN`.  This allows setting up other information about the connection before actually
 doing the connect.
 
-```
+``` c
 	WebSocketConnect( pcWebClient );
 ```
 
