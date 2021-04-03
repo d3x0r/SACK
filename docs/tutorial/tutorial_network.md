@@ -574,19 +574,14 @@ NetworkShutdown();
 
 ## Complete Example, from `include/network.h`
 
-``` c
-	   Example
-	   \Example One : A simple client side application. Reads
+	   Example One : A simple client side application. Reads
 	   standard input, and writes it to a server it connects to. Read
 	   the network and write as standard output.
-	   <code lang="c++">
-	   \#include \<network.h\>
-	   </code>
-	   <code>
-	   \#include \<logging.h\>
-	   \#include \<sharemem.h\>
-	   </code>
-	   <code lang="c++">
+
+``` c
+	   #include <network.h>
+	   #include <logging.h>
+	   #include <sharemem.h>
 
 	   void CPROC ReadComplete( PCLIENT pc, void *bufptr, int sz )
 	   {
@@ -615,9 +610,9 @@ NetworkShutdown();
 	   int main( int argc, char** argv )
 	   {
 	       SOCKADDR *sa;
-	       if( argc \< 2 )
+	       if( argc < 2 )
 	       {
-	           printf( "usage: %s \<Telnet IP[:port]\>\\n", argv[0] );
+	           printf( "usage: %s <Telnet IP[:port]>\\n", argv[0] );
 	           return 0;
 	       }
 	       SystemLog( "Starting the network" );
@@ -647,16 +642,15 @@ NetworkShutdown();
 ```
 
 
-``` c
-	   </code>
-	   \Example Two : A server application, opens a socket that it
+	   Example Two : A server application, opens a socket that it
 	   accepts connections on. Reads the socket, and writes the
 	   information it reads back to the socket as an echo.
-	   <code lang="c++">
-	   \#include \<stdhdrs.h\>
-	   \#include \<sharemem.h\>
-	   \#include \<timers.h\>
-	   \#include \<network.h\>
+
+``` c
+	   #include <stdhdrs.h>
+	   #include <sharemem.h>
+	   #include <timers.h>
+	   #include <network.h>
 
 	   void CPROC ServerRecieve( PCLIENT pc, POINTER buf, int size )
 	   {
@@ -672,7 +666,7 @@ NetworkShutdown();
 	       // test for waitread support...
 	       // read will not result until the data is read.
 	       //bytes = WaitReadTCP( pc, buf, 4096 );
-	       //if( bytes \> 0 )
+	       //if( bytes > 0 )
 	       //   SendTCP( pc, buf, bytes );
 
 	       ReadTCP( pc, buf, 4095 );
@@ -688,9 +682,9 @@ NetworkShutdown();
 	   {
 	       PCLIENT pcListen;
 	       SOCKADDR *port;
-	       if( argc \< 2 )
+	       if( argc < 2 )
 	       {
-	           printf( "usage: %s \<listen port\> (defaulting to telnet)\\n", argv[0] );
+	           printf( "usage: %s <listen port> (defaulting to telnet)\\n", argv[0] );
 	           port = CreateSockAddress( "localhost:23", 23 );
 	       }
 	       else
