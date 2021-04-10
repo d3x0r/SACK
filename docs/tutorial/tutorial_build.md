@@ -59,7 +59,7 @@ sudo apt-get install -y libxext-dev
 git clone https://github.com/d3x0r/sack
 mkdir build
 cd build
-cmake ../sack/cmake-all -DCMAKE_BUILD_TYPE=Debug
+cmake ../sack/cmake_all -DCMAKE_BUILD_TYPE=Debug
 ```
 
 ### Configure top level options
