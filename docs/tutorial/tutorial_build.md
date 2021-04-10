@@ -21,7 +21,35 @@
    - (optional)OpenSSL/LibreSSL-devel
    - Sqlite-devel
    - OpenAL-devel
-   
+
+### Ubuntu example
+
+``` bash
+sudo apt-get update -y
+sudo apt-get install cmake
+sudo apt-get install -y ninja-build
+sudo apt-get install uuid-dev unixodbc-dev
+```
+
+and
+
+``` bash
+sudo apt-get install -y  libfreetype6-dev libpng-dev zlib1g-dev libjpeg-dev wayland-protocols libwayland-dev libxkbcommon-dev libgl1-mesa-dev libglew-dev libxext-dev
+```
+
+or
+
+``` bash
+sudo apt-get install -y libfreetype6-dev
+sudo apt-get install libpng-dev zlib1g-dev libjpeg-dev
+sudo apt-get install -y wayland-protocols
+sudo apt-get install -y libwayland-dev
+sudo apt-get install -y libxkbcommon-dev
+sudo apt-get install -y libgl1-mesa-dev
+sudo apt-get install -y libglew-dev
+sudo apt-get install -y libxext-dev
+```
+    
 - Windows
    - none 
 
