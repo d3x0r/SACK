@@ -53,11 +53,13 @@ sudo apt-get install -y libxext-dev
 - Windows
    - none 
 
+## Get the source and build.
+
 ```
 git clone https://github.com/d3x0r/sack
 mkdir build
 cd build
-../
+cmake ../sack/cmake-all -DCMAKE_BUILD_TYPE=Debug
 ```
 
 ### Configure top level options
