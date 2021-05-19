@@ -1212,7 +1212,7 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 				state->waiter = MakeThread();
 				state->request_socket = connect->pc;
 				state->pc = &state->request_socket;
-				SetNetworkLong( connect->pc, 0, (uintptr_t)state );
+				SetNetworkLong( connect->pc, 0, (uintptr_t)connect );
 				//SetNetworkCloseCallback( connect->pc, HttpReaderClose );
 				if( l.flags.bLogReceived )
 				{
@@ -1283,7 +1283,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			state->waiter = MakeThread();
 			state->request_socket = connect->pc;
 			state->pc = &state->request_socket;
-			SetNetworkLong( pc, 0, (uintptr_t)state );
+			SetNetworkLong( pc, 0, (uintptr_t)connect );
 
 			//SetNetworkConn
 			state->ssl = options->ssl;
@@ -1320,9 +1320,9 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			if( pc ) {
 				state->waiter = MakeThread();
 				PTEXT send = VarTextPeek( state->pvtOut );
-				state->pc = &connect->pc;
+				state->pc = &state->request_socket;
 
-				SetNetworkLong( connect->pc, 0, (uintptr_t)state );
+				SetNetworkLong( connect->pc, 0, (uintptr_t)connect );
 				SetNetworkCloseCallback( connect->pc, HttpReaderClose );
 
 				if( NetworkConnectTCP( pc ) < 0 ) {
