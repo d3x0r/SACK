@@ -57,6 +57,7 @@ struct HttpState {
 	struct httpStateFlags {
 		BIT_FIELD keep_alive : 1;
 		BIT_FIELD close : 1;
+		BIT_FIELD no_content_length : 1;
 		BIT_FIELD upgrade : 1;
 		BIT_FIELD h2c_upgrade : 1;
 		BIT_FIELD ws_upgrade : 1;
@@ -202,7 +203,7 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT param
 			if( tmp == start ) // weren't actually any parameters.
 				return;
 			else
-            break;  // okay, stripped the end off, use the start...
+	    break;  // okay, stripped the end off, use the start...
 		}
 	}
 	//lprintf( "Input was %s", GetText( params ) );
@@ -366,7 +367,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 							}
 							else
 							{
-                        //lprintf( "Parsing http state content for something.." );
+			//lprintf( "Parsing http state content for something.." );
 								pLine = SegCreate( pos - start - pHttpState->bLine );
 								MemCpy( line = GetText( pLine ), c + start, (pos - start - pHttpState->bLine)*sizeof(TEXTCHAR));
 								line[pos-start- pHttpState->bLine] = 0;
@@ -551,7 +552,8 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 				if( TextLike( field->name, "content-length" ) )
 				{
 					// down convert from int64_t
-					pHttpState->content_length = (int)IntCreateFromSeg( field->value );
+				    pHttpState->content_length = (int)IntCreateFromSeg( field->value );
+				    pHttpState->flags.no_content_length = 0;
 					//lprintf( "content length: %d", pHttpState->content_length );
 				}
 				else if( TextLike( field->name, "upgrade" ) )
@@ -574,6 +576,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 					if( TextLike( field->value, "chunked" ) )
 					{
 						pHttpState->content_length = 0xFFFFFFF;
+						pHttpState->flags.no_content_length = 0;
 						pHttpState->read_chunks = TRUE;
 						pHttpState->read_chunk_state = READ_VALUE;
 						pHttpState->read_chunk_length = 0;
@@ -762,7 +765,7 @@ struct HttpState *CreateHttpState( PCLIENT *pc )
 	pHttpState = New( struct HttpState );
 	MemSet( pHttpState, 0, sizeof( struct HttpState ) );
 	InitializeCriticalSec( &pHttpState->lock );
-
+	pHttpState->flags.no_content_length = 1;
 	pHttpState->pvt_collector = VarTextCreate();
 	pHttpState->pc = pc;
 	return pHttpState;
@@ -776,6 +779,7 @@ void EndHttp( struct HttpState *pHttpState )
 	pHttpState->bLine = 0;
 	pHttpState->final = 0;
 	pHttpState->response_version = 0;
+	pHttpState->flags.no_content_length = 0;
 	pHttpState->content_length = 0;
 	LineRelease( pHttpState->method );
 	pHttpState->method = NULL;
@@ -1047,7 +1051,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 		if( AddHttpData( state, buffer, size ) )
 			if( ProcessHttp( pc, state ) )
 			{
-				//lprintf( "this is where we should close and not end... %d %d",state->flags.close , !state->flags.keep_alive );
+				lprintf( "this is where we should close and not end... %d %d",state->flags.close , !state->flags.keep_alive );
 				if( state->flags.close || !state->flags.keep_alive) {
 					RemoveClient( pc );
 					return;
@@ -1067,6 +1071,14 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 {
 	struct HttpState *data = (struct HttpState *)GetNetworkLong( pc, 0 );
 	PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
+	if( data->flags.no_content_length ) {
+            data->content_length = GetTextSize( data->partial );
+	    // there might not have been any data collected yet
+	    if( data.content_length ) {
+		// should do one further gather; will set resulting status better.
+		ProcessHttp( pc, data );
+	    }
+	}
 	//lprintf( "Closing http: %p ", pc );
 	if( ppc[0] == pc ) {
 		if( ppc )
@@ -1319,10 +1331,6 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			if( pc ) {
 				state->waiter = MakeThread();
 				PTEXT send = VarTextPeek( state->pvtOut );
-				state->pc = &connect->pc;
-
-				SetNetworkLong( connect->pc, 0, (uintptr_t)state );
-				SetNetworkCloseCallback( connect->pc, HttpReaderClose );
 
 				if( NetworkConnectTCP( pc ) < 0 ) {
 					DestroyHttpState( state );
