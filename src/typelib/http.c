@@ -1074,7 +1074,7 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 	if( data->flags.no_content_length ) {
             data->content_length = GetTextSize( data->partial );
 	    // there might not have been any data collected yet
-	    if( data.content_length ) {
+	    if( data->content_length ) {
 		// should do one further gather; will set resulting status better.
 		ProcessHttp( pc, data );
 	    }
