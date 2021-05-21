@@ -1222,9 +1222,10 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 			{
 				PTEXT send = VarTextGet( pvtOut );
 				state->waiter = MakeThread();
-				state->pc = &connect->pc;
-				SetNetworkLong( connect->pc, 0, (uintptr_t)state );
-				SetNetworkCloseCallback( connect->pc, HttpReaderClose );
+				state->request_socket = connect->pc;
+				state->pc = &state->request_socket;
+				SetNetworkLong( connect->pc, 0, (uintptr_t)connect );
+				//SetNetworkCloseCallback( connect->pc, HttpReaderClose );
 				if( l.flags.bLogReceived )
 				{
 					lprintf( "Sending POST..." );
@@ -1232,7 +1233,7 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 				}
 				SendTCP( pc, GetText( send ), GetTextSize( send ) );
 				LineRelease( send );
-				while( connect->pc )
+				while( state->request_socket )
 				{
 					WakeableSleep( 100 );
 				}
@@ -1294,7 +1295,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			state->waiter = MakeThread();
 			state->request_socket = connect->pc;
 			state->pc = &state->request_socket;
-			SetNetworkLong( pc, 0, (uintptr_t)state );
+			SetNetworkLong( pc, 0, (uintptr_t)connect );
 
 			//SetNetworkConn
 			state->ssl = options->ssl;
