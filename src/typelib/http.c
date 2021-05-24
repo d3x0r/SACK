@@ -250,7 +250,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 					return pHttpState->numeric_code;
 				}
 			}
-			else {
+                        else {
 				if( pHttpState->content_length ) {
 					GatherHttpData( pHttpState );
 					if( ((GetTextSize( pHttpState->partial ) >= pHttpState->content_length)
@@ -383,13 +383,15 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
-											pHttpState->method = SegBreak( request );
+                                                                                        pHttpState->method = SegBreak( request );
+                                                                                        pHttpState->flags.no_content_length = 0;
 										}
 										else if( TextSimilar( request, "POST" ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
 											pHttpState->method = SegBreak( request );
+                                                                                        pHttpState->flags.no_content_length = 0;
 										}
 										// this loop is used for both client and server http requests...
 										// this will be the first part of a HTTP response (this one will have a result code, the other is just version)
@@ -603,7 +605,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 		( ( pHttpState->content_length
 			&& ( ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
 				||( GetTextSize( pHttpState->content ) >= pHttpState->content_length ) ) )
-			|| ( !pHttpState->content_length )
+			|| ( !pHttpState->content_length && !pHttpState->flags.no_content_length )
 			) )
 	{
 		pHttpState->returned_status = 1;
@@ -724,7 +726,8 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				}
 				else
 				{
-					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
+
+                                    lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
 					TriggerNetworkErrorCallback( pHttpState->request_socket, SACK_NETWORK_ERROR_HTTP_CHUNK );
 					unlockHttp( pHttpState );
 					RemoveClient( pHttpState->request_socket );
@@ -1061,7 +1064,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 	}
 
 	// read is handled by the SSL layer instead of here.  Just trust that someone will give us data later
-	if( buffer && ( !state || !state->ssl ) )
+	if( buffer && ( !state || ( state && !state->ssl ) ) )
 	{
 		ReadTCP( pc, state->buffer, 4096 );
 	}
@@ -1259,8 +1262,9 @@ static void writeComplete( PCLIENT pc, CPOINTER buffer, size_t length ) {
 
 HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, struct HTTPRequestOptions* options )
 {
+	DECLTEXT( defaultCmd, "GET" );
 	static struct HTTPRequestOptions defaultOpts = {
-		"GET",
+		(PTEXT)&defaultCmd,
 		NULL,
 		NULL,
 	};
