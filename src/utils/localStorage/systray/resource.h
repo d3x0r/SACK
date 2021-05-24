@@ -1,0 +1,2 @@
+
+#define ICO_DEFAULT 1001
