@@ -60,7 +60,9 @@ struct HTTPRequestHeader {
 };
 
 struct HTTPRequestOptions {
-	char* method;  // deafult GET 
+	char* method;  // deafult GET
+	PTEXT url;     // path part of the request
+	PTEXT address; // address part of request (ip:port)
 	PLIST headers; // list of TEXTCAHR*  
 	CPOINTER content;  // content to send with request, if any
 	size_t contentLen;// lengt of content to send with request

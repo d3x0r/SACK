@@ -1262,9 +1262,8 @@ static void writeComplete( PCLIENT pc, CPOINTER buffer, size_t length ) {
 
 HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, struct HTTPRequestOptions* options )
 {
-	DECLTEXT( defaultCmd, "GET" );
 	static struct HTTPRequestOptions defaultOpts = {
-		(PTEXT)&defaultCmd,
+		"GET",
 		NULL,
 		NULL,
 	};
