@@ -4290,6 +4290,22 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 			lprintf( "Failed to handline binding for type: %d", val->value_type );
 			DebugBreak();
 			break;
+        case JSOX_VALUE_NULL:
+            {
+                static SQLLEN iVal = SQL_NULL_DATA;
+				rc = SQLBindParameter( hstmt
+										  , useIndex  // parameter number
+										  , SQL_PARAM_INPUT // inputoutputtype
+										  , SQL_C_CHAR   // value type
+										  , SQL_CHAR    // parameter type
+										  , 0 // precision (colsize)
+										  , 0 // decimal digits
+										  , NULL   // pointer value
+										  , 0 // bufferlength
+										  , &iVal // StrOrInd
+                                     );
+            }
+                    break;
 		case JSOX_VALUE_TRUE:
 			val->result_n = 1;
 			val->float_result = 0;
