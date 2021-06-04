@@ -1211,7 +1211,8 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 				if (setsockopt(lpClient->Socket, SOL_SOCKET, SO_LINGER,
 									(char*)&lingerSet, sizeof(lingerSet)) <0 )
 				{
-					lprintf( "error setting no linger in close." );
+					// this happens(in windows) when a client didn't connect, and resulted with a error
+					//lprintf( "error setting no linger in close." );
 					//cerr << "NFMSim:setHost:ERROR: could not set socket to linger." << endl;
 				}
 			}
