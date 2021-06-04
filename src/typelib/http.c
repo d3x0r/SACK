@@ -1073,6 +1073,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 static void CPROC HttpReaderClose( PCLIENT pc )
 {
 	struct HttpState *data = (struct HttpState *)GetNetworkLong( pc, 0 );
+	if( !data ) return;
 	PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
 	if( data->flags.no_content_length ) {
             data->content_length = GetTextSize( data->partial );
@@ -1173,11 +1174,6 @@ PTEXT PostHttp( PTEXT address, PTEXT url, PTEXT content )
 }
 
 static void httpConnected( PCLIENT pc, int error ) {
-	if( error ) {
-		//struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 0 );
-		RemoveClient( pc );
-		return;
-	}
 	{
 		INDEX idx;
 		struct pendingConnect *connect;
@@ -1194,6 +1190,9 @@ static void httpConnected( PCLIENT pc, int error ) {
 		}
 		SetNetworkLong( pc, 0, (uintptr_t)connect->state );
 		Release( connect );
+	}
+	if( error ) {
+		RemoveClient( pc );
 	}
 }
 
@@ -1282,7 +1281,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		connect->state = state;
 		AddLink( &l.pendingConnects, connect );
 		if( retries ) {
-			lprintf( "HTTPS QUery (retry):%s", GetText( url ) );
+			//lprintf( "HTTP(S) Query (retry):%s", GetText( url ) );
 			//lprintf( "PC of connect:%p  %d", pc, retries );
 		}
 		//DumpAddr( "Http Address:", addr );
