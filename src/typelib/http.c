@@ -391,7 +391,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
 											pHttpState->method = SegBreak( request );
-                                                                                        pHttpState->flags.no_content_length = 0;
+											pHttpState->flags.no_content_length = 0;
 										}
 										// this loop is used for both client and server http requests...
 										// this will be the first part of a HTTP response (this one will have a result code, the other is just version)
@@ -418,6 +418,8 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 															LineRelease( words );
 														}
 													}
+													if( pHttpState->numeric_code == 101 )
+														pHttpState->flags.no_content_length = 0;
 												}
 												else
 												{
