@@ -415,6 +415,7 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 						else
 							vtprintf( pvt_output, "HTTP/1.1 101 Switching Protocols\r\n" );
 						vtprintf( pvt_output, "Upgrade: WebSocket\r\n" );
+						vtprintf( pvt_output, "content-length: 0\r\n" );
 						vtprintf( pvt_output, "Connection: Upgrade\r\n" );
 					}
 
