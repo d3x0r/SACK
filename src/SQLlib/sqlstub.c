@@ -3894,7 +3894,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							break;
 						case SQL_INTEGER:
 						case SQL_SMALLINT:
-						case SQL_TINYINT:
+                                                case SQL_TINYINT:
+                                                case SQL_BIGINT:
 							val->value_type = JSOX_VALUE_NUMBER;
 							val->float_result = 0;
 							val->result_n = 0;
