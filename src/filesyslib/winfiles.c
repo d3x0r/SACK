@@ -2063,7 +2063,7 @@ size_t GetSizeofFile( TEXTCHAR * name, uint32_t * unused )
 		return size;
 	}
 	else
-		return (size_t)-1;
+		return 0;
 #endif
 }
 
@@ -2095,7 +2095,7 @@ uint32_t GetFileTimeAndSize( CTEXTSTR name
 		return size;
 	}
 	else
-		return (uint32_t)-1;
+		return 0;
 #else
 	HANDLE hFile = CreateFile( name, 0, 0, NULL, OPEN_EXISTING, 0, NULL );
 	uint32_t extra_size;
@@ -2113,7 +2113,7 @@ uint32_t GetFileTimeAndSize( CTEXTSTR name
 		return size;
 	}
 	else
-		return (uint32_t)-1;
+		return 0;
 #endif
 }
 
@@ -2499,7 +2499,7 @@ static	size_t CPROC sack_filesys_find_get_size( struct find_cursor* _cursor ) {
 		}
 		if( S_ISREG( s.st_mode ) )
 			return s.st_size;
-		return -1;
+		return 0;
 	}
 #endif
 	return 0;
