@@ -60,7 +60,7 @@ struct HTTPRequestHeader {
 };
 
 struct HTTPRequestOptions {
-	char* method;  // deafult GET
+	const char* method;  // deafult GET
 	PTEXT url;     // path part of the request
 	PTEXT address; // address part of request (ip:port)
 	PLIST headers; // list of TEXTCAHR*  
@@ -71,7 +71,7 @@ struct HTTPRequestOptions {
 	const char* certChain; //optionally this can be used to specify the certain, if not set, uses parameter, which will otherwise be NULL.
 
 	// specify the agent field, default to SACK(System)
-	char* agent;
+	const char* agent;
 	// if set, will be called when content buffer has been sent.
 	void ( *writeComplete )( uintptr_t userData );
 	uintptr_t userData;
