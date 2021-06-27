@@ -14,6 +14,10 @@ typedef struct handle_info_tag
 #endif
 } HANDLEINFO, *PHANDLEINFO;
 
+struct taskOutputStruct {
+	PTASK_INFO task;
+   LOGICAL stdErr;
+};
 
 //typedef void (CPROC*TaskEnd)(uintptr_t, struct task_info_tag *task_ended);
 struct task_info_tag {
@@ -26,22 +30,25 @@ struct task_info_tag {
 	} flags;
 	TaskEnd EndNotice;
 	TaskOutput OutputEvent;
+	TaskOutput OutputEvent2;
 	uintptr_t psvEnd;
 	HANDLEINFO hStdIn;
 	HANDLEINFO hStdOut;
+	HANDLEINFO hStdErr;
 	volatile PTHREAD pOutputThread;
-	//HANDLEINFO hStdErr;
+   struct taskOutputStruct args1;
+   struct taskOutputStruct args2;
 #if defined(WIN32)
 
 	HANDLE hReadOut, hWriteOut;
-	//HANDLE hReadErr, hWriteErr;
+	HANDLE hReadErr, hWriteErr;
 	HANDLE hReadIn, hWriteIn;
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
    DWORD exitcode;
 #elif defined( __LINUX__ )
    int hReadOut, hWriteOut;
-   //HANDLE hReadErr, hWriteErr;
+   int hReadErr, hWriteErr;
 	int hReadIn, hWriteIn;
    pid_t pid;
    uint32_t exitcode;

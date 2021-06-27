@@ -53,12 +53,13 @@ extern uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread );
 
 static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 {
-	PTASK_INFO task = (PTASK_INFO)GetThreadParam( thread );
+   struct taskOutputStruct* taskParams = (struct taskOutputStruct*)GetThreadParam( thread );
+	PTASK_INFO task = taskParams->task;  // (PTASK_INFO)GetThreadParam( thread );
 	{
 		task->pOutputThread = thread;
 		// read input from task, montiro close and dispatch TaskEnd Notification also.
 		{
-			PHANDLEINFO phi = &task->hStdOut;
+			PHANDLEINFO phi = taskParams->stdErr?&task->hStdErr:&task->hStdOut;
 			PTEXT pInput = SegCreate( 4096 );
 			int done, lastloop;
 			Hold( task );
@@ -112,9 +113,12 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 							GetText( pInput )[dwRead] = 0;
 							pInput->data.size = dwRead;
 							//LogBinary( GetText( pInput ), GetTextSize( pInput ) );
-							if( task->OutputEvent )
-							{
-								task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+							if( taskParams->stdErr ) {
+								if( task->OutputEvent2 )
+									task->OutputEvent2( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+							} else {
+								if( task->OutputEvent )
+									task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
 							}
 							pInput->data.size = 4096;
 #ifdef _WIN32
@@ -166,15 +170,17 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 #ifdef _WIN32
 			CloseHandle( task->hReadIn );
 			CloseHandle( task->hReadOut );
+			CloseHandle( task->hReadErr );
 			CloseHandle( task->hWriteIn );
 			CloseHandle( task->hWriteOut );
+			CloseHandle( task->hWriteErr );
 			//lprintf( "Closing process handle %p", task->pi.hProcess );
 			phi->hThread = 0;
 #else
 			//close( phi->handle );
 			close( task->hStdIn.pair[1] );
 			close( task->hStdOut.pair[0] );
-			//close( task->hStdErr.pair[0] );
+			close( task->hStdErr.pair[0] );
 #define INVALID_HANDLE_VALUE -1
 #endif
 			if( phi->handle == task->hStdIn.handle )
@@ -317,14 +323,27 @@ void LoadReadExe( PTASK_INFO task, uintptr_t base )
 #ifdef WIN32
 extern HANDLE GetImpersonationToken( void );
 #endif
-// Run a program completely detached from the current process
-// it runs independantly.  Program does not suspend until it completes.
-// No way at all to know if the program works or fails.
+
 SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
 															  , int flags
 															  , TaskOutput OutputHandler
 															  , TaskEnd EndNotice
 															  , uintptr_t psv
+																DBG_PASS
+															  ){
+   return LaunchPeerProgram_v2( program, path, args, flags, OutputHandler, NULL, EndNotice, psv, NULL DBG_RELAY );
+}
+
+// Run a program completely detached from the current process
+// it runs independantly.  Program does not suspend until it completes.
+// No way at all to know if the program works or fails.
+SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
+															  , int flags
+															  , TaskOutput OutputHandler
+															  , TaskOutput OutputHandler2
+															  , TaskEnd EndNotice
+															  , uintptr_t psv
+															  , PLIST list
 																DBG_PASS
 															  )
 {
@@ -332,6 +351,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 	if( !sack_system_allow_spawn() ) return NULL;
 	TEXTSTR expanded_path;// = ExpandPath( program );
 	TEXTSTR expanded_working_path = path ? ExpandPath( path ) : NULL;
+	{
+		INDEX idx;
+      struct environmentValue* val;
+		LIST_FORALL( list, idx, struct environmentValue*, val ) {
+         OSALOT_SetEnvironmentVariable( val->field, val->value );
+		}
+	}
 	if( path ) {
 		path = ExpandPath( path );
 		if( IsAbsolutePath( program ) ) {
@@ -443,6 +469,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 		}
 		*/
 		task->OutputEvent = OutputHandler;
+		task->OutputEvent2 = OutputHandler2;
 		if( OutputHandler )
 		{
 			SECURITY_ATTRIBUTES sa;
@@ -452,10 +479,10 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 			sa.nLength = sizeof( sa );
 
 			CreatePipe( &task->hReadOut, &task->hWriteOut, &sa, 0 );
-			//CreatePipe( &hReadErr, &hWriteErr, &sa, 0 );
+			CreatePipe( &task->hReadErr, &task->hWriteErr, &sa, 0 );
 			CreatePipe( &task->hReadIn, &task->hWriteIn, &sa, 0 );
 			task->si.hStdInput = task->hReadIn;
-			task->si.hStdError = task->hWriteOut;
+			task->si.hStdError = task->hWriteErr;
 			task->si.hStdOutput = task->hWriteOut;
 			task->si.dwFlags |= STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
 			if( !( flags & LPP_OPTION_DO_NOT_HIDE ) )
@@ -568,17 +595,33 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 #endif
 				if( OutputHandler )
 				{
-					task->hStdIn.handle 	= task->hWriteIn;
-					task->hStdIn.pLine 	= NULL;
+
+					task->hStdIn.handle 	 = task->hWriteIn;
+					task->hStdIn.pLine 	 = NULL;
 					//task->hStdIn.pdp 		= pdp;
 					task->hStdIn.hThread  = 0;
 					task->hStdIn.bNextNew = TRUE;
 
-					task->hStdOut.handle 	 = task->hReadOut;
-					task->hStdOut.pLine 	 = NULL;
+					task->hStdOut.handle   = task->hReadOut;
+					task->hStdOut.pLine 	  = NULL;
 					//task->hStdOut.pdp 		 = pdp;
 					task->hStdOut.bNextNew = TRUE;
-					task->hStdOut.hThread  = ThreadTo( HandleTaskOutput, (uintptr_t)task );
+					task->args1.task       = task;
+               task->args1.stdErr     = FALSE;
+					task->hStdOut.hThread  = ThreadTo( HandleTaskOutput, (uintptr_t)&task->args1 );
+
+					if( OutputHandler2 ) {
+						task->hStdErr.handle   = task->hReadErr;
+						task->hStdErr.pLine 	  = NULL;
+						//task->hStdOut.pdp 		 = pdp;
+						task->hStdErr.bNextNew = TRUE;
+						task->args2.task       = task;
+						task->args2.stdErr     = TRUE;
+						task->hStdErr.hThread  = ThreadTo( HandleTaskOutput, (uintptr_t)&task->args2 );
+					} else {
+						task->hStdErr.handle   = task->hReadOut;
+					}
+
 					ThreadTo( WaitForTaskEnd, (uintptr_t)task );
 				}
 				else
@@ -669,7 +712,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 				if( OutputHandler ) {
 					dup2( task->hStdIn.pair[0], 0 );
 					dup2( task->hStdOut.pair[1], 1 );
-					dup2( task->hStdOut.pair[1], 2 );
+					dup2( task->hStdErr.pair[1], 2 );
 				}
 				DispelDeadstart();
 
