@@ -8,37 +8,215 @@ id
 [0 0 1 0][z] - [z]
 [0 0 0 1][w]   [w]
 
-xy
+
+[1 0 0 0][x]   [x]
+[0 1 0 0][y] - [y]
+[0 0 1 0][z] - [z]
+[0 0 0 1][xw]   [w]
+          xy
+          cz
+
+
+xy  ( Z rotation)
 [c  s  0  0][x]   [xc+ys]
 [-s c  0  0][y] - [yc-xs]
 [0  0  1  0][z] - [  z  ]
 [0  0  0  1][w]   [  w  ]
 
-xz
+{{a,b,0},{-b,a,0},{0,0,1}}
+{{a,0,b},{0,1,0},{-b,0,a}}
+
+Dimensions[{{a^2, b, a b}, {-(a b), a, -b^2}, {-b, 0, a}}]
+
+{{1,0,0},{0,a,b},{0,-b,a}}
+
+
+{{a,b,0,0,0,0},{-b,a,0,0,0,0},{0,0,1,0,0,0},{0,0,0,1,0,0},{0,0,0,0,1,0},{0,0,0,0,0,1}}
+{{a,0,0,b,0,0},{0,1,0,0,0,0},{0,0,1,0,0,0},{-b,0,0,a,0,0},{0,0,0,0,1,0},{0,0,0,0,0,1}}
+{{1,0,0,0,0,0},{0,a,0,0,b,0},{0,0,1,0,0,0},{0,0,0,1,0,0},{0,-b,0,0,a,0},{0,0,0,0,0,1}}
+
+{{a, b, 0, 0, 0, 0}, {-b, a, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 0}, {0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 0, 0, 1}} . {{a, 0, 0, b, 0, 0}, {0, 1, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 0}, {-b, 0, 0, a, 0, 0}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 0, 0, 1}}
+
+{{a^2, b, 0, a b, 0, 0}, {-(a b), a, 0, -b^2, 0, 0}, {0, 0, 1, 0, 0, 0}, {-b, 0, 0, a, 0, 0}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 0, 0, 1}}
+
+{{a^2, a b, 0, a b, b^2, 0}, {-(a b), a^2, 0, -b^2, a b, 0}, {0, 0, 1, 0, 0, 0}, {-b, 0, 0, a, 0, 0}, {0, -b, 0, 0, a, 0}, {0, 0, 0, 0, 0, 1}}
+{{a^2, b, 0, a b, 0, 0}, {-(a^2 b), a^2, 0, -(a b^2), b, 0}, {0, 0, 1, 0, 0, 0}, {-b, 0, 0, a, 0, 0}, {a b^2, -(a b), 0, b^3, a, 0}, {0, 0, 0, 0, 0, 1}}
+
+x to y ( zw ) 
+[c  s  0  0  0  0][x]   [xc+ys]
+[-s c  0  0  0  0][y] - [yc-xs]
+[0  0  1  0  0  0][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+xz - Y
+[c  0  s  0  0  0][x]   [xc+ys]
+[0  1  0  0  0  0][y] - [yc-xs]
+[-s 0  c  0  0  0][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+y to z - X
+[1  0  0  0  0  0][x]   [xc+ys]
+[0  C  s  0  0  0][y] - [yc-xs]
+[0 -s  c  0  0  0][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+
+-------- Z -----------------
+
+x to y ( zw ) 
+[c  s  0  0  0  0][x]   [xc+ys]
+[-s c  0  0  0  0][y] - [yc-xs]
+[0  0  1  0  0  0][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+
+x to xw ( yz ) 
+[c  0  0  s  0  0][x]   [xc+ys]
+[0  1  0  0  0  0][y] - [yc-xs]
+[0  0  1  0  0  0][z] - [  z  ]
+[-s 0  0  c  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+y to yw ( xz  ) 
+[1  0  0  0  0  0][x]   [xc+ys]
+[0  c  0  0  s  0][y] - [yc-xs]
+[0  0  1  0  0  0][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  -s 0  0  c  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+
+-------- Y -----------------
+Y axis rotation
+
+xz - Y
+[c  0  s  0  0  0][x]   [xc+ys]
+[0  1  0  0  0  0][y] - [yc-xs]
+[-s 0  c  0  0  0][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+xw - Y
+[c  0  0  s  0  0][x]   [xc+ys]
+[0  1  0  0  0  0][y] - [yc-xs]
+[0  0  1  0  0  0][z] - [  z  ]
+[-s 0  0  c  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+
+zw - Y
+[1  0  0  0  0  0][x]   [xc+ys]
+[0  1  0  0  0  0][y] - [yc-xs]
+[0  0  c  0  0  s][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0 -s  0  0  c][w]   [  w  ]
+
+
+-------- X -----------------
+X axis rotation
+
+y to z - X
+[1  0  0  0  0  0][x]   [xc+ys]
+[0  C  s  0  0  0][y] - [yc-xs]
+[0 -s  c  0  0  0][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+
+y yw - X
+[1  0  0  0  0  0][x]   [xc+ys]
+[0  c  0  0  s  0][y] - [yc-xs]
+[0  0  1  0  0  0][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  -s 0  0  c  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+z zw - X
+[1  0  0  0  0  0][x]   [xc+ys]
+[0  1  0  0  0  0][y] - [yc-xs]
+[0  0  c  0  0  s][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0 -s  0  0  c][w]   [  w  ]
+
+
+-------- W -----------------
+W axis rotation
+
+x xw - W
+[c  0  0  s  0  0][x]   [xc+ys]
+[0  1  0  0  0  0][y] - [yc-xs]
+[0  0  1  0  0  0][z] - [  z  ]
+[-s 0  0  c  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+y yw - W
+[1  0  0  0  0  0][x]   [xc+ys]
+[0  c  0  0  s  0][y] - [yc-xs]
+[0  0  1  0  0  0][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  -s  0  0  c  0][w]   [  w  ]
+[0  0  0  0  0  1][w]   [  w  ]
+
+z zw ( W ) 
+[1  0  0  0  0  0][x]   [xc+ys]
+[0  1  0  0  0  0][y] - [yc-xs]
+[0  0  C  0  0  s][z] - [  z  ]
+[0  0  0  1  0  0][w]   [  w  ]
+[0  0  0  0  1  0][w]   [  w  ]
+[0  0 -s  0  0  C][w]   [  w  ]
+
+
+(combined)
+[C  0  0  s  0  0][x]   [xc+ys]
+[0  C  0  0  s  0][y] - [yc-xs]
+[0  0  C  0  0  s][z] - [  z  ]
+[-s 0  0  C  0  0][w]   [  w  ]
+[0 -s  0  0  C  0][w]   [  w  ]
+[0  0 -s  0  0  C][w]   [  w  ]
+
+
+
+
+xz ( Y ROTATION)
 [c  0  s  0][x]   [xc+zs]
 [0  1  0  0][y] - [  y  ]
 [-s 0  c  0][z] - [zc-xs]
 [0  0  0  1][w]   [  w  ]
 
-xw
+xw ( Y/Z ROTATION)
 [c  0  0  s][x]   [xc+ws]
 [0  1  0  0][y] - [  y  ]
 [0  0  1  0][z] - [  z  ]
 [-s 0  0  c][w]   [wc-xs]
 
-yz
+yz ( X ROTATION )
 [1  0  0  0][x]   [  x  ]
 [0  c  s  0][y] - [yc+zs]
 [0  -s c  0][z] - [zc-ys]
 [0  0  0  1][w]   [  w  ]
 
-yw
+yw ( X/Z rotation )
 [1  0  0  0][x]   [  x  ]
 [0  c  0  s][y] - [yc+ws]
 [0  0  1  0][z] - [  z  ]
 [0  -s 0  c][w]   [wc-ys]
 
-zw
+zw  ( X/Y rotation)
 [1  0  0  0][x]   [  x  ]
 [0  1  0  0][y] - [  y  ]
 [0  0  c  s][z] - [zc+ws]
@@ -62,5 +240,129 @@ zw
 
 
 
+t = 2 * cross(q.xyz, v)
+v' = v + q.w * t + cross(q.xyz, t)
 
+
+
+ v' = v + q.w * 2 * cross(q.xyzW, v) + cross(q.xyzW,  2 * cross(q.xyzW, v))
+
+
+t = 2 * cross(q.xyz, v)
+
+{a,b,c}x{x,y,z}
+
+Cross[{a, b, c}, {x, y, z}]
+(-c y + b z, c x - a z, -b x + a y)
+{-(c y) + b z, c x - a z, -(b x) + a y}
+
+
+(2 b^2 x + 2 c^2 x - 2 a b y - 2 a c z
+, -2 a b x + 2 a^2 y + 2 c^2 y - 2 b c z
+, -2 a c x - 2 b c y + 2 a^2 z + 2 b^2 z)
+
+
+(  2 x ( b^2 + c^2 ) - 2 y a b         - 2 z a c
+, -2 x a b           + 2 y ( a^2 c^2 ) - 2 z b c
+, -2 x a c           - 2 y b c         + 2 z ( a^2 + b^2 ) )
+
+
+// vCurvature = 
+v' =   cosTheta * t 
+     + cross(q.xyz, t)
+
+
+
+
+		const nst = q.s; // normal * sin_theta
+		const qw = q.qw;  //Math.cos( pl );   quaternion q.w  = (exp(lnQ)) [ *exp(lnQ.W=0) ]
+
+		const qx = q.nx*nst;
+		const qy = q.ny*nst;
+		const qz = q.nz*nst;
+
+		//p┬Æ = (v*v.dot(p) + v.cross(p)*(w))*2 + p*(w*w ┬û v.dot(v))
+		const tx = 2 * (qy * v.z - qz * v.y); // v.cross(p)*w*2
+		const ty = 2 * (qz * v.x - qx * v.z);
+		const tz = 2 * (qx * v.y - qy * v.x);
+		return { x : v.x + qw * tx + ( qy * tz - ty * qz )
+		       , y : v.y + qw * ty + ( qz * tx - tz * qx )
+		       , z : v.z + qw * tz + ( qx * ty - tx * qy ) };
+
+
+
+
+
+
+
+	s = Math.sin( q.θ ); // double angle sin
+	c1 = Math.cos( q.θ ); // sin/cos are the function of exp()
+	c = 1- c1;
+
+	cny = c * q.ny;
+	ax = ( cny*q.nx ) - s*q.nz;
+	ay = ( cny*q.ny ) + c1;
+	az = ( cny*q.nz ) + s*q.nx;
+
+	
+	 ( ( c * q.ny*q.nx *q.nx ) - q.nx *s*q.nz )
+	 ( ( c * q.ny*q.ny *q.ny ) + q.ny *c1 )
+	 ( ( c * q.ny*q.nz *q.nz ) + q.nz *s*q.nx )
+
+
+	//const AdotB = (q.nx*ax + q.ny*ay + q.nz*az);
+
+	const xmy = dt - q.θ/2; // X - Y  (x minus y)
+	const xpy = dt + q.θ/2  // X + Y  (x plus y )
+	const cxmy = Math.cos(xmy);
+	const cxpy = Math.cos(xpy);
+	const sxmy = Math.sin(xmy);
+	const sxpy = Math.sin(xpy);
+
+	// only good for rotations between 0 and pi.
+
+	let ang = acos( ( ( 1-AdotB )*Math.cos( dt - q.θ/2 ) + (1+AdotB)*Math.cos( dt + q.θ/2 ) )/2 ) * 2
+
+	//const cosCo2 = ( ( 1-AdotB )*cxmy + (1+AdotB)*cxpy )/2;
+	//let ang = acos( cosCo2 )*2 + ((oct|0)) * (Math.PI*4); // index4 demo still uses octave settings
+
+	if( ang ) {
+		// vector rotation is just...
+		// when atheta is small, aaxis is small pi/2 cos is 0 so this is small
+		// when btheta is small, baxis is small pi/2 cos is 0 so this is small
+		// when both are large, cross product is dominant (pi/2)
+
+		const ss1 = sxmy + sxpy // sin x-y + sin x+y
+		const ss2 = sxpy - sxmy // sin x+y - sin x-y
+		const cc1 = cxmy - cxpy // cos x-y - cos x+y
+
+		const sAng = Math.sin(ang/2)*2;
+	
+		const Clx = 1/sAng;
+		// A cross B                                 
+		//const crsX =  c * q.ny*q.ny*q.nz  + c1*q.nz      -  c * q.ny*q.nz*q.ny  + s *q.ny*q.nx;
+		//const crsY =  c * q.ny*q.nz*q.nx  + s *q.nx*q.nx -  c * q.ny*q.nx*q.nz  - s *q.nz*q.nz;
+		//const crsZ =  c * q.ny*q.nx*q.ny  - s *q.ny*q.nz -  c * q.ny*q.ny*q.nx  + c1*q.nx     ;
+
+		const crsX =   + c1*q.nz      - s *q.ny*q.nx;
+		const crsY =   + s *q.nx*q.nx + s *q.nz*q.nz;
+		const crsZ =   - s *q.ny*q.nz - c1*q.nx     ;
+
+		// a bunch of parallel multiplies and adds...
+		const Cx = ( crsX * cc1 +  (( c * q.ny*q.nx ) - s*q.nz) * ss1 + q.nx * ss2 )*Clx;
+		const Cy = ( crsY * cc1 +  (( c * q.ny*q.ny ) + c1    ) * ss1 + q.ny * ss2 )*Clx;
+		const Cz = ( crsZ * cc1 +  (( c * q.ny*q.nz ) + s*q.nx) * ss1 + q.nz * ss2 )*Clx;
+			
+		q.θ = ang;
+		q.qw = cosCo2;
+		q.s = sAng/2;
+		q.nx = Cx;
+		q.ny = Cy;
+		q.nz = Cz;
+	
+		q.x = Cx*ang;
+		q.y = Cy*ang;
+		q.z = Cz*ang;
+
+		q.dirty = false;
 
