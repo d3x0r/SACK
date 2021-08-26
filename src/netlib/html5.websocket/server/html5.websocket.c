@@ -243,13 +243,265 @@ static void CPROC closed( PCLIENT pc_client ) {
 	destroyHttpState( socket, pc_client );
 }
 
+static void CPROC read_complete_process_data( PCLIENT pc ) {
+	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+	int result;
+	while( ( result = ProcessHttp( pc, socket->http_state ) ) ) {
+		switch( result ) {
+		default:
+			lprintf( "unexpected result is %d", result );
+			break;
+		case HTTP_STATE_RESULT_CONTENT:
+		{
+			PVARTEXT pvt_output = VarTextCreate();
+			PTEXT value, value2;
+			PTEXT key1, key2;
+			value = GetHTTPField( socket->http_state, "Connection" );
+			value2 = GetHTTPField( socket->http_state, "Upgrade" );
+			if( !value || !value2
+				|| !StrCaseStr( GetText( value ), "upgrade" )
+				|| !TextLike( value2, "websocket" ) ) {
+				//lprintf( "request is not an upgrade for websocket." );
+				socket->flags.initial_handshake_done = 1;
+				socket->flags.http_request_only = 1;
+				socket->flags.in_open_event = 1;
+				if( socket->input_state.on_request ) {
+					socket->input_state.on_request( pc, socket->input_state.psv_on );
+				} else {
+					socket->flags.in_open_event = 0;
+					RemoveClient( pc );
+					return;
+				}
+				socket->flags.in_open_event = 0;
+				if( socket->flags.closed ) {
+					destroyHttpState( socket, NULL );
+					return;
+				}
+				break;
+			}
+
+			value = GetHTTPField( socket->http_state, "Sec-WebSocket-Extensions" );
+			if( value ) {
+				PTEXT options = TextParse( value, "=", "; ", 0, 0 DBG_SRC );
+				PTEXT opt = options;
+				while( opt ) {
+					// "server_no_context_takeover"
+					// "client_no_context_takeover"
+					// "server_max_window_bits"
+					// "client_max_window_bits"
+#ifndef __NO_WEBSOCK_COMPRESSION__
+					if( TextLike( opt, "permessage-deflate" ) ) {
+						socket->input_state.flags.deflate = socket->input_state.flags.deflate & 1;
+						if( socket->input_state.flags.deflate ) {
+							socket->input_state.server_max_bits = 15;
+							socket->input_state.client_max_bits = 15;
+						}
+					} else
+						if( TextLike( opt, "client_max_window_bits" ) ) {
+							opt = NEXTLINE( opt );
+							if( opt ) {
+								if( GetText( opt )[0] == '=' ) {
+									opt = NEXTLINE( opt );
+									socket->input_state.client_max_bits = (int)IntCreateFromSeg( opt );
+								} else
+									opt = PRIORLINE( opt );
+							}
+							//socket->flags.max_window_bits = 1;
+						} else if( TextLike( opt, "server_max_window_bits" ) ) {
+							opt = NEXTLINE( opt );
+							if( opt ) {
+								if( GetText( opt )[0] == '=' ) {
+									opt = NEXTLINE( opt );
+									socket->input_state.server_max_bits = (int)IntCreateFromSeg( opt );
+								}
+							} else {
+								lprintf( "required server_max_window_bits value is missing" );
+							}
+
+							//socket->flags.max_window_bits = 1;
+						} else if( TextLike( opt, "client_no_context_takeover" ) ) {
+							//socket->flags.max_window_bits = 1;
+						} else if( TextLike( opt, "server_no_context_takeover" ) ) {
+							//socket->flags.max_window_bits = 1;
+						}
+#endif
+						opt = NEXTLINE( opt );
+				}
+				LineRelease( options );
+#ifndef __NO_WEBSOCK_COMPRESSION__
+				if( socket->input_state.flags.deflate && !socket->input_state.flags.do_not_deflate ) {
+					if( deflateInit2( &socket->input_state.deflater
+						, Z_BEST_SPEED, Z_DEFLATED
+						, -socket->input_state.server_max_bits
+						, 8
+						, Z_DEFAULT_STRATEGY ) != Z_OK )
+						socket->input_state.flags.deflate = 0;
+				}
+				if( socket->input_state.flags.deflate ) {
+					//socket->inflateWindow = NewArray( uint8_t, (size_t)(1 << (socket->client_max_bits&0x1f)) );
+					if( inflateInit2( &socket->input_state.inflater, -socket->input_state.client_max_bits ) != Z_OK ) {
+						//if( inflateBackInit( &socket->input_state.inflater, socket->client_max_bits, socket->inflateWindow ) != Z_OK ) {
+						deflateEnd( &socket->input_state.deflater );
+						socket->input_state.flags.deflate = 0;
+					} else {
+						socket->input_state.inflateBuf = NewArray( uint8_t, 4096 );
+						socket->input_state.inflateBufLen = 4096;
+						socket->input_state.deflateBuf = NewArray( uint8_t, 4096 );
+						socket->input_state.deflateBufLen = 4096;
+					}
+				}
+#endif
+			} else {
+				socket->input_state.flags.deflate = 0;
+			}
+
+			value = GetHTTPField( socket->http_state, "Sec-WebSocket-Protocol" );
+
+			if( value ) {
+				socket->protocols = GetText( value );
+			} else socket->protocols = NULL;
+
+			{
+				PTEXT protocols = GetHTTPField( socket->http_state, "Sec-WebSocket-Protocol" );
+				PTEXT resource = GetHttpResource( socket->http_state );
+				if( socket->input_state.on_accept ) {
+					socket->flags.accepted = socket->input_state.on_accept( pc, socket->input_state.psv_on, GetText( protocols ), GetText( resource ), &socket->protocols );
+				} else
+					socket->flags.accepted = 1;
+			}
+
+			key1 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key1" );
+			key2 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key2" );
+			if( key1 && key2 )
+				socket->flags.rfc6455 = 0;
+			else
+				socket->flags.rfc6455 = 1;
+
+			if( !socket->flags.accepted ) {
+				vtprintf( pvt_output, "HTTP/1.1 403 Connection refused\r\n" );
+			} else {
+				if( key1 && key2 )
+					vtprintf( pvt_output, "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" );
+				else
+					vtprintf( pvt_output, "HTTP/1.1 101 Switching Protocols\r\n" );
+				vtprintf( pvt_output, "Upgrade: WebSocket\r\n" );
+				vtprintf( pvt_output, "content-length: 0\r\n" );
+				vtprintf( pvt_output, "Connection: Upgrade\r\n" );
+			}
+
+			value = GetHTTPField( socket->http_state, "Origin" );
+			if( value ) {
+				if( key1 && key2 )
+					vtprintf( pvt_output, "Sec-WebSocket-Origin: %s\r\n", GetText( value ) );
+				else
+					vtprintf( pvt_output, "WebSocket-Origin: %s\r\n", GetText( value ) );
+			}
+
+			if( key1 && key2 ) {
+				vtprintf( pvt_output, "Sec-WebSocket-Location: ws://%s%s\r\n"
+					, GetText( GetHTTPField( socket->http_state, "Host" ) )
+					, GetText( GetHttpRequest( socket->http_state ) )
+				);
+			}
+			if( socket->flags.accepted ) {
+				value = GetHTTPField( socket->http_state, "Sec-webSocket-Key" );
+				if( value ) {
+					{
+						const char guid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+						size_t len;
+
+						char* resultval = NewArray( char, len = ( GetTextSize( value ) + sizeof( guid ) ) );
+						snprintf( resultval, len, "%s%s"
+							, GetText( value )
+							, guid );
+						{
+							TEXTCHAR output[32];
+							SHA1Context context;
+							int n;
+							uint8_t Message_Digest[SHA1HashSize + 2];
+							SHA1Reset( &context );
+							SHA1Input( &context, (uint8_t*)resultval, len - 1 );
+							SHA1Result( &context, Message_Digest );
+							Message_Digest[SHA1HashSize] = 0;
+							Message_Digest[SHA1HashSize + 1] = 0;
+							for( n = 0; n < ( SHA1HashSize + 2 ) / 3; n++ ) {
+								int blocklen;
+								blocklen = SHA1HashSize - n * 3;
+								if( blocklen > 3 )
+									blocklen = 3;
+								wssencodeblock( Message_Digest + n * 3, output + n * 4, blocklen );
+							}
+							output[n * 4 + 0] = 0;
+							// s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+							vtprintf( pvt_output, "Sec-WebSocket-Accept: %s\r\n", output );
+						}
+						Deallocate( char*, resultval );
+					}
+				}
+#ifndef __NO_WEBSOCK_COMPRESSION__
+				if( socket->input_state.flags.deflate ) {
+					vtprintf( pvt_output, "Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_max_window_bits=%d\r\n", socket->input_state.server_max_bits );
+				}
+#endif
+				if( socket->protocols )
+					vtprintf( pvt_output, "Sec-WebSocket-Protocol: %s\r\n", socket->protocols );
+				vtprintf( pvt_output, "WebSocket-Server: sack\r\n" );
+
+				vtprintf( pvt_output, "\r\n" );
+
+				if( key1 && key2 ) {
+					ComputeReplyKey2( pvt_output, socket, key1, key2 );
+				}
+
+				value = VarTextPeek( pvt_output );
+#ifdef _UNICODE
+				{
+					char* output;
+					output = DupTextToChar( GetText( value ) );
+					//LogBinary( output, GetTextSize( value ) );
+					if( socket->input_state.flags.use_ssl )
+						ssl_Send( pc, output, GetTextSize( value ) );
+					else
+						SendTCP( pc, output, GetTextSize( value ) );
+				}
+#else
+				if( socket->input_state.flags.use_ssl )
+					ssl_Send( pc, GetText( value ), GetTextSize( value ) );
+				else
+					SendTCP( pc, GetText( value ), GetTextSize( value ) );
+#endif
+				//lprintf( "Sent http reply." );
+				VarTextDestroy( &pvt_output );
+				socket->flags.in_open_event = 1;
+
+				if( socket->input_state.on_open )
+					socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
+				socket->flags.in_open_event = 0;
+				if( socket->flags.closed ) {
+					destroyHttpState( socket, NULL );
+					return;
+				}
+			} else {
+				WebSocketClose( pc, 0, NULL );
+				return;
+			}
+			// keep this until close, application might want resource and/or headers from this.
+			//EndHttp( socket->http_state );
+			socket->flags.initial_handshake_done = 1;
+			break;
+		}
+		case HTTP_STATE_RESULT_CONTINUE:
+			break;
+		}
+	}
+
+}
 static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 {
 	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 	if( !socket ) return; // closing/closed....
 	if( buffer )
 	{
-		int result;
 #ifdef _UNICODE
 		TEXTSTR tmp = CharWConvertExx( (const char*)buffer, length DBG_SRC );
 #else
@@ -260,276 +512,8 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		if( !socket->flags.initial_handshake_done || socket->flags.http_request_only )
 		{
 			//lprintf( "Initial handshake is not done..." );
-			AddHttpData( socket->http_state, tmp, length );
-			while( ( result = ProcessHttp( pc, socket->http_state ) ) )
-			{
-				switch( result )
-				{
-				default:
-					lprintf( "unexpected result is %d", result );
-					break;
-				case HTTP_STATE_RESULT_CONTENT:
-				{
-					PVARTEXT pvt_output = VarTextCreate();
-					PTEXT value, value2;
-					PTEXT key1, key2;
-					value = GetHTTPField( socket->http_state, "Connection" );
-					value2 = GetHTTPField( socket->http_state, "Upgrade" );
-					if( !value || !value2
-						|| !StrCaseStr( GetText(value), "upgrade" )
-						|| !TextLike( value2, "websocket" ) ) {
-						//lprintf( "request is not an upgrade for websocket." );
-						socket->flags.initial_handshake_done = 1;
-						socket->flags.http_request_only = 1;
-						socket->flags.in_open_event = 1;
-						if( socket->input_state.on_request ) {
-							socket->input_state.on_request( pc, socket->input_state.psv_on );
-						} else {
-							socket->flags.in_open_event = 0;
-							RemoveClient( pc );
-							return;
-						}
-						socket->flags.in_open_event = 0;
-						if( socket->flags.closed ) {
-							destroyHttpState( socket, NULL );
-							return;
-						}
-						break;
-					}
-
-					value = GetHTTPField( socket->http_state, "Sec-WebSocket-Extensions" );
-					if( value )
-					{
-						PTEXT options = TextParse( value, "=", "; ", 0, 0 DBG_SRC );
-						PTEXT opt = options;
-						while( opt ) {
-							// "server_no_context_takeover"
-							// "client_no_context_takeover"
-							// "server_max_window_bits"
-							// "client_max_window_bits"
-#ifndef __NO_WEBSOCK_COMPRESSION__
-							if( TextLike( opt, "permessage-deflate" ) ) {
-								socket->input_state.flags.deflate = socket->input_state.flags.deflate & 1;
-								if( socket->input_state.flags.deflate ) {
-									socket->input_state.server_max_bits = 15;
-									socket->input_state.client_max_bits = 15;
-								}
-							}
-							else 
-							if( TextLike( opt, "client_max_window_bits" ) ) {
-								opt = NEXTLINE( opt );
-								if( opt ) {
-									if( GetText( opt )[0] == '=' ) {
-										opt = NEXTLINE( opt );
-										socket->input_state.client_max_bits = (int)IntCreateFromSeg( opt );
-									}
-									else
-										opt = PRIORLINE( opt );
-								}
-								//socket->flags.max_window_bits = 1;
-							}
-							else if( TextLike( opt, "server_max_window_bits" ) ) {
-								opt = NEXTLINE( opt );
-								if( opt ) {
-									if( GetText( opt )[0] == '=' ) {
-										opt = NEXTLINE( opt );
-										socket->input_state.server_max_bits = (int)IntCreateFromSeg( opt );
-									}
-								}
-								else {
-									lprintf( "required server_max_window_bits value is missing" );
-								}
-
-								//socket->flags.max_window_bits = 1;
-							}
-							else if( TextLike( opt, "client_no_context_takeover" ) ) {
-								//socket->flags.max_window_bits = 1;
-							}
-							else if( TextLike( opt, "server_no_context_takeover" ) ) {
-								//socket->flags.max_window_bits = 1;
-							}
-#endif
-							opt = NEXTLINE( opt );
-						}
-						LineRelease( options );
-#ifndef __NO_WEBSOCK_COMPRESSION__
-						if( socket->input_state.flags.deflate && !socket->input_state.flags.do_not_deflate ) {
-							if( deflateInit2( &socket->input_state.deflater
-								, Z_BEST_SPEED, Z_DEFLATED
-								, -socket->input_state.server_max_bits
-								, 8
-								, Z_DEFAULT_STRATEGY ) != Z_OK )
-								socket->input_state.flags.deflate = 0;
-						}
-						if( socket->input_state.flags.deflate ) {
-							//socket->inflateWindow = NewArray( uint8_t, (size_t)(1 << (socket->client_max_bits&0x1f)) );
-							if( inflateInit2( &socket->input_state.inflater, -socket->input_state.client_max_bits ) != Z_OK ) {
-							//if( inflateBackInit( &socket->input_state.inflater, socket->client_max_bits, socket->inflateWindow ) != Z_OK ) {
-								deflateEnd( &socket->input_state.deflater );
-								socket->input_state.flags.deflate = 0;
-							}
-							else {
-								socket->input_state.inflateBuf = NewArray( uint8_t, 4096 );
-								socket->input_state.inflateBufLen = 4096;
-								socket->input_state.deflateBuf = NewArray( uint8_t, 4096 );
-								socket->input_state.deflateBufLen = 4096;
-							}
-						}
-#endif
-					}
-					else {
-						socket->input_state.flags.deflate = 0;
-					}
-
-					value = GetHTTPField( socket->http_state, "Sec-WebSocket-Protocol" );
-
-					if( value ) {
-						socket->protocols = GetText( value );
-					}
-					else socket->protocols = NULL;
-
-					{
-						PTEXT protocols = GetHTTPField( socket->http_state, "Sec-WebSocket-Protocol" );
-						PTEXT resource = GetHttpResource( socket->http_state );
-						if( socket->input_state.on_accept ) {
-							socket->flags.accepted = socket->input_state.on_accept( pc, socket->input_state.psv_on, GetText( protocols ), GetText( resource ), &socket->protocols );
-						}
-						else
-							socket->flags.accepted = 1;
-					}
-
-					key1 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key1" );
-					key2 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key2" );
-					if( key1 && key2 )
-						socket->flags.rfc6455 = 0;
-					else
-						socket->flags.rfc6455 = 1;
-
-					if( !socket->flags.accepted ) {
-						vtprintf( pvt_output, "HTTP/1.1 403 Connection refused\r\n" );
-					}
-					else
-					{
-						if( key1 && key2 )
-							vtprintf( pvt_output, "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" );
-						else
-							vtprintf( pvt_output, "HTTP/1.1 101 Switching Protocols\r\n" );
-						vtprintf( pvt_output, "Upgrade: WebSocket\r\n" );
-						vtprintf( pvt_output, "content-length: 0\r\n" );
-						vtprintf( pvt_output, "Connection: Upgrade\r\n" );
-					}
-
-					value = GetHTTPField( socket->http_state, "Origin" );
-					if( value )
-					{
-						if( key1 && key2 )
-							vtprintf( pvt_output, "Sec-WebSocket-Origin: %s\r\n", GetText( value ) );
-						else
-							vtprintf( pvt_output, "WebSocket-Origin: %s\r\n", GetText( value ) );
-					}
-
-					if( key1 && key2 )
-					{
-						vtprintf( pvt_output, "Sec-WebSocket-Location: ws://%s%s\r\n"
-							, GetText( GetHTTPField( socket->http_state, "Host" ) )
-							, GetText( GetHttpRequest( socket->http_state ) )
-						);
-					}
-					if( socket->flags.accepted ) {
-						value = GetHTTPField( socket->http_state, "Sec-webSocket-Key" );
-						if( value )
-						{
-							{
-								const char guid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-								size_t len;
-
-								char *resultval = NewArray( char, len = (GetTextSize( value ) + sizeof( guid ) ) );
-								snprintf( resultval, len, "%s%s"
-									, GetText( value )
-									, guid );
-								{
-									TEXTCHAR output[32];
-									SHA1Context context;
-									int n;
-									uint8_t Message_Digest[SHA1HashSize + 2];
-									SHA1Reset( &context );
-									SHA1Input( &context, (uint8_t*)resultval, len - 1 );
-									SHA1Result( &context, Message_Digest );
-									Message_Digest[SHA1HashSize] = 0;
-									Message_Digest[SHA1HashSize + 1] = 0;
-									for( n = 0; n < (SHA1HashSize + 2) / 3; n++ )
-									{
-										int blocklen;
-										blocklen = SHA1HashSize - n * 3;
-										if( blocklen > 3 )
-											blocklen = 3;
-										wssencodeblock( Message_Digest + n * 3, output + n * 4, blocklen );
-									}
-									output[n * 4 + 0] = 0;
-									// s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
-									vtprintf( pvt_output, "Sec-WebSocket-Accept: %s\r\n", output );
-								}
-								Deallocate( char *, resultval );
-							}
-						}
-#ifndef __NO_WEBSOCK_COMPRESSION__
-						if( socket->input_state.flags.deflate ) {
-							vtprintf( pvt_output, "Sec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; server_max_window_bits=%d\r\n", socket->input_state.server_max_bits );
-						}
-#endif
-						if( socket->protocols )
-							vtprintf( pvt_output, "Sec-WebSocket-Protocol: %s\r\n", socket->protocols );
-						vtprintf( pvt_output, "WebSocket-Server: sack\r\n" );
-
-						vtprintf( pvt_output, "\r\n" );
-
-						if( key1 && key2 )
-						{
-							ComputeReplyKey2( pvt_output, socket, key1, key2 );
-						}
-
-						value = VarTextPeek( pvt_output );
-#ifdef _UNICODE
-						{
-							char *output;
-							output = DupTextToChar( GetText( value ) );
-							//LogBinary( output, GetTextSize( value ) );
-							if( socket->input_state.flags.use_ssl )
-								ssl_Send( pc, output, GetTextSize( value ) );
-							else
-								SendTCP( pc, output, GetTextSize( value ) );
-						}
-#else
-						if( socket->input_state.flags.use_ssl )
-							ssl_Send( pc, GetText( value ), GetTextSize( value ) );
-						else
-							SendTCP( pc, GetText( value ), GetTextSize( value ) );
-#endif
-						//lprintf( "Sent http reply." );
-						VarTextDestroy( &pvt_output );
-						socket->flags.in_open_event = 1;
-
-						if( socket->input_state.on_open )
-							socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
-						socket->flags.in_open_event = 0;
-						if( socket->flags.closed ) {
-							destroyHttpState( socket, NULL );
-							return;
-						}
-					}
-					else {
-						WebSocketClose( pc, 0, NULL );
-						return;
-					}
-					// keep this until close, application might want resource and/or headers from this.
-					//EndHttp( socket->http_state );
-					socket->flags.initial_handshake_done = 1;
-					break;
-				}
-				case HTTP_STATE_RESULT_CONTINUE:
-					break;
-				}
-			}
+			if( AddHttpData( socket->http_state, tmp, length ) )
+				read_complete_process_data( pc );
 		}
 		else
 		{

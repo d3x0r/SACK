@@ -754,11 +754,16 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 	}
 	else
 	{
-		//lprintf( "Add HTTP Data:%d", size );
+		//lprintf( "Add HTTP Data:%p %d", pHttpState->pc[0], size );
 		//LogBinary( (uint8_t*)buffer, 256>size?size:256 );
 		if( size )
 			VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)buffer, size );
 		unlockHttp( pHttpState );
+		if( pHttpState->final ) {
+			// this will cause it to wait until 'endhttp' to process next block.
+			//lprintf( "still handling a previous requet in add data", pHttpState->pc[0] );
+			return FALSE;
+		}
 		return TRUE;
 	}
 }
