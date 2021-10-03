@@ -64,6 +64,8 @@ if( __ANDROID__ )
 	set( MORE_DEFS ${MORE_DEFS} "__LINUX__=1" )
 endif( __ANDROID__ )
 
+set( MORE_DEFS ${MORE_DEFS} "__STATIC_GLOBALS__" )
+
   
 if( WIN32 )
 	set( MORE_TIMER_SOURCES ../../../systemlib/oswin.c )

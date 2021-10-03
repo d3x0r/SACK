@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+#include <deadstart.h>
 #include <service_hook.h>
 
 static LOGICAL programEnd;
@@ -13,7 +14,12 @@ static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task );
 
 static void logOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-	lprintf( "%s", buffer );
+	int less=-1;
+	if( buffer[size +less]=='\n' )
+		less--; else less++;
+	if( less<0 && buffer[size +less]=='\r' )
+		less--; else less++;
+	lprintf( "%.*s", size+less, buffer );
 }
 
 static void runTask( void ) {
@@ -39,6 +45,12 @@ void Start( void )
 
 int main( int argc, char **argv )
 {
+	FLAGSET( opts, SYSLOG_OPT_MAX );
+	InvokeDeadstart();
+	SETFLAG( opts, SYSLOG_OPT_OPEN_BACKUP );
+	SetSyslogOptions( opts );
+	SetSystemLog( SYSLOG_AUTO_FILE, 0 );
+	SetSystemLoggingLevel( 2000 );
 	if( argc == 1 ) {
 		lprintf( "usage: [install/uninstall] [service_description] <task> <start-in path> <arguments....>" );
 		lprintf( "     install [service_description] <task> <start-in path> <arguments....>" );
