@@ -1,6 +1,8 @@
 
 #include <sack_types.h>
-#include <msgprotocol.h> 
+#ifndef __NO_MSGSVR__
+#  include <msgprotocol.h>
+#endif
 
 
 

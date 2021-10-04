@@ -1,6 +1,4 @@
 #include <stdhdrs.h>
-#include <sack_types.h>
-#include <sharemem.h>
 #include <procreg.h>
 #include <filesys.h>
 #define SQLLIB_SOURCE

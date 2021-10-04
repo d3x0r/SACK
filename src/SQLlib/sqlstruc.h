@@ -9,10 +9,13 @@
 # endif
 
 #ifdef __NO_MSGSVR__
-typedef int PSERVICE_ROUTE;
-#define MSG_UserServiceMessages 100
-#define _MsgID_f "%d"
-typedef int MSGIDTYPE;
+  typedef int PSERVICE_ROUTE;
+#  define MSG_UserServiceMessages 100
+#  define _MsgID_f "%d"
+  typedef int MSGIDTYPE;
+#else
+#  include <msgclient.h>
+#  include <msgprotocol.h>
 #endif
 
 #if defined( __NO_ODBC__ )
@@ -31,8 +34,7 @@ enum {
 #  include <sql.h>
 #  include <sqlext.h>
 #endif
-#include <msgclient.h>
-#include <msgprotocol.h>
+
 #include <timers.h> // critical section
 
 SQL_NAMESPACE

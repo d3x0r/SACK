@@ -18,9 +18,6 @@
 #endif
 #include <stdhdrs.h>
 #include <deadstart.h>
-#include <sack_types.h>
-#include <logging.h>
-#include <sharemem.h>
 #include <timers.h>
 #include <idle.h>
 #include <sqlgetoption.h>
@@ -34,7 +31,9 @@
 // please remove this reference ASAP
 //#include <controls.h> // temp graphic interface for debugging....
 #include <systray.h>
-#include <msgclient.h>
+#ifndef __NO_MSGSVR__
+#  include <msgclient.h>
+#endif
 #ifdef SQL_PROXY_SERVER
 #include <construct.h>
 #endif
