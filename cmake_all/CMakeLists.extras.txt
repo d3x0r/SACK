@@ -5,13 +5,7 @@ set( EXTRA_FLAGS3  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DINTERSHELL_SDK_R
 
 set( PROJECT dekware )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/dekware DEKWARE_SDK_ROOT_PATH ${EXTRA_FLAGS} )
-#if( NOT __ANDROID__ AND NOT __LINUX__ )
-#Add_custom_command( TARGET Build${PROJECT} 
-#	COMMAND ${DEKWARE_SDK_ROOT_PATH}/Dekware.Deploy.exe -nr
-#	WORKING_DIRECTORY ${DEKWARE_SDK_ROOT_PATH}
-#)                
-#endif( NOT __ANDROID__ AND NOT __LINUX__ )
-add_dependencies( ${LAST_TARGET} Buildintershell Buildcore )
+add_dependencies( ${LAST_TARGET} intershell core )
 
 # have to define these after dekware target, or we don't have the dekware_core_path
 set( EXTRA_FLAGS2  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DINTERSHELL_SDK_ROOT_PATH=${INTERSHELL_SDK_ROOT_PATH} -DSACK_BINARY_SDK_ROOT_PATH=${SACK_BINARY_SDK_ROOT_PATH} -DDEKWARE_SDK_ROOT_PATH=${DEKWARE_SDK_ROOT_PATH} ${D__ANDROID__} ${TOOLCHAIN} )
@@ -19,42 +13,42 @@ set( EXTRA_FLAGS2  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DINTERSHELL_SDK_R
 if( FLATLAND_IS_NOT_BROKEN )
 set( PROJECT flatland )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/flatland INSTALL ${EXTRA_FLAGS3} )
-add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+add_dependencies( ${LAST_TARGET} core binary )
 endif( FLATLAND_IS_NOT_BROKEN )
 
 set( PROJECT stock_market )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/stock_market INSTALL ${EXTRA_FLAGS} )
-add_dependencies( ${LAST_TARGET} Buildcore )
+add_dependencies( ${LAST_TARGET} core )
 
 set( PROJECT ChainReaction )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ChainReact INSTALL ${EXTRA_FLAGS} )
-add_dependencies( ${LAST_TARGET} Buildcore )
+add_dependencies( ${LAST_TARGET} core )
 
 if( NOT MINGW )
 set( PROJECT router )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/router INSTALL ${EXTRA_FLAGS} )
-add_dependencies( ${LAST_TARGET} Buildcore Buildintershell )
+add_dependencies( ${LAST_TARGET} core intershell )
 
 set( PROJECT Automaton )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/automaton INSTALL ${EXTRA_FLAGS} )
-add_dependencies( ${LAST_TARGET} Buildcore Buildintershell )
+add_dependencies( ${LAST_TARGET} core intershell )
 
 # F&R depends on brains
 set( PROJECT foxes_and_rabbits )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/foxes_and_rabbits INSTALL ${EXTRA_FLAGS2} )
-add_dependencies( ${LAST_TARGET} Buildcore Buildbinary Buildintershell Builddekware )
+add_dependencies( ${LAST_TARGET} core-install binary intershell-install dekware-install )
 
 set( PROJECT PlasmaGrid )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/plasma_grid INSTALL ${EXTRA_FLAGS2} )
-add_dependencies( ${LAST_TARGET} Buildcore )
+add_dependencies( ${LAST_TARGET} core )
 
 set( PROJECT train )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/train/new INSTALL ${EXTRA_FLAGS3} )
-add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+add_dependencies( ${LAST_TARGET} core binary )
 
 set( PROJECT loop_render )
 BuildProject( ${PROJECT} SegRenderer ${CMAKE_CURRENT_LIST_DIR}/../src/games/seg INSTALL ${EXTRA_FLAGS3} )
-add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+add_dependencies( ${LAST_TARGET} core binary )
 
 endif( NOT MINGW )
 
@@ -62,7 +56,7 @@ if( NOT __ANDROID__ )
   if( NOT BUILD_MONOLITHIC )
     set( PROJECT ball_display )
     BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ball_display INSTALL ${EXTRA_FLAGS3} )
-    add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+    add_dependencies( ${LAST_TARGET} core binary )
   endif( NOT BUILD_MONOLITHIC )
 endif( NOT __ANDROID__ )
 
@@ -74,18 +68,18 @@ if( NOT BUILD_MONOLITHIC )
 			set( PROJECT ragdoll )
 			set( EXTRA_FLAGS2  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DSACK_BINARY_SDK_ROOT_PATH=${SACK_BINARY_SDK_ROOT_PATH} )
 			BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ragdoll INSTALL ${EXTRA_FLAGS2} )
-			add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+			add_dependencies( ${LAST_TARGET} core binary )
 		endif( NOT MINGW )
 
 		set( PROJECT simple_array_tester )
 		set( EXTRA_FLAGS2  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DSACK_BINARY_SDK_ROOT_PATH=${SACK_BINARY_SDK_ROOT_PATH} )
 		BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/simple_array_tester INSTALL ${EXTRA_FLAGS2} )
-		add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+		add_dependencies( ${LAST_TARGET} core binary )
 
 		set( PROJECT simple_vector_tester )
 		set( EXTRA_FLAGS2  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DSACK_BINARY_SDK_ROOT_PATH=${SACK_BINARY_SDK_ROOT_PATH} )
 		BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/simple_vector_tester INSTALL ${EXTRA_FLAGS2} )
-		add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+		add_dependencies( ${LAST_TARGET} core binary )
 
 	ENDIF( BULLET_ENABLED )
 endif( NOT BUILD_MONOLITHIC )

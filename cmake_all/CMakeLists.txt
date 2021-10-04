@@ -54,7 +54,7 @@ endif( MSVC12 )
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
 			${CMAKE_CONFIGURATION_TYPES} Debug Release RelWithDebInfo MinSizeRel )
 
-include( ${CMAKE_CURRENT_LIST_DIR}/CMakeBuild.txt )
+include( ${CMAKE_CURRENT_LIST_DIR}/CMakeExtBuild.txt )
 
 DEFINE_DEFAULT( __ANDROID__  OFF )
 
@@ -189,8 +189,9 @@ set( PROJECT_BASE_PROJECT ${PROJECT} )
 BuildProject( ${PROJECT} sack ${CMAKE_CURRENT_LIST_DIR}/.. SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
 
 set( EXTRA_FLAGS -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} )
-BuildProject( ${PROJECT}.framebuffer sack.nosolution ${CMAKE_CURRENT_LIST_DIR}/../not-exists UNUSED_SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
-BuildProject( ${PROJECT}.puregl2 sack.nosolution ${CMAKE_CURRENT_LIST_DIR}/../not-exists UNUSED_SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
+
+#BuildProject( ${PROJECT}.framebuffer sack.nosolution ${CMAKE_CURRENT_LIST_DIR}/../not-exists UNUSED_SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
+#BuildProject( ${PROJECT}.puregl2 sack.nosolution ${CMAKE_CURRENT_LIST_DIR}/../not-exists UNUSED_SACK_SDK_ROOT_PATH ${EXTRA_FLAGS} )
 
 if( NOT __ANDROID__ )
   # this calls sack_deploy to build cmakepackage
@@ -205,7 +206,7 @@ if( NOT __CLR__ )
 set( PROJECT binary )
 set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
 BuildProject( ${PROJECT} sack.binaries ${CMAKE_CURRENT_LIST_DIR}/../binary SACK_BINARY_SDK_ROOT_PATH ${EXTRA_FLAGS} )
-add_dependencies( ${LAST_TARGET} Buildcore )
+add_dependencies( ${LAST_TARGET} ${PROJECT_BASE_PROJECT} )
 else( NOT __CLR__ )
 message( "Disabled Binaries output for CLR build" )
 endif( NOT __CLR__ )
@@ -214,26 +215,26 @@ endif( NOT __CLR__ )
 set( PROJECT intershell )
 set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell.stable INTERSHELL_SDK_ROOT_PATH ${EXTRA_FLAGS} )
-add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+add_dependencies( ${LAST_TARGET} ${PROJECT_BASE_PROJECT} binary )
 
 if( NOT __LINUX__ AND NOT __ANDROID__ )
   set( PROJECT intershell_Package )
   set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
   BuildProject( ${PROJECT} Intershell.Package ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell.stable/package INTERSHELL_PACKAGE_ROOT_PATH ${EXTRA_FLAGS} -DINTERSHELL_SDK_ROOT_PATH=${INTERSHELL_SDK_ROOT_PATH} )
-  add_dependencies( ${LAST_TARGET} Buildcore Buildintershell )
+  add_dependencies( ${LAST_TARGET} ${PROJECT_BASE_PROJECT} intershell )
 endif( NOT __LINUX__ AND NOT __ANDROID__ )
 
 
 #set( PROJECT intershell2 )
 #set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
 #BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/InterShell INTERSHELL2_SDK_ROOT_PATH ${EXTRA_FLAGS} )
-#add_dependencies( ${LAST_TARGET} Buildcore Buildbinary )
+#add_dependencies( ${LAST_TARGET} ${PROJECT_BASE_PROJECT} binary )
 
 if( NOT __ANDROID__ )
   set( PROJECT mercurial_version_tagger )
   set( EXTRA_FLAGS  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} ${D__ANDROID__} )
   BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/utils/mercurial_version_tagger MERCURIAL_TAGGER_ROOT_PATH ${EXTRA_FLAGS} )
-  add_dependencies( ${LAST_TARGET} Buildcore )
+  add_dependencies( ${LAST_TARGET} ${PROJECT_BASE_PROJECT} )
 endif( NOT __ANDROID__ )
 
 IF( BULLET_ENABLED )
@@ -242,13 +243,13 @@ IF( BULLET_ENABLED )
     set( PROJECT ball_mixer1 )
     set( EXTRA_FLAGS_MIXER  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DSACK_BINARY_SDK_ROOT_PATH=${SACK_BINARY_SDK_ROOT_PATH} -DINTERSHELL_SDK_ROOT_PATH=${INTERSHELL_SDK_ROOT_PATH} ${D__ANDROID__} )
     BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ball_mixer INSTALL ${EXTRA_FLAGS_MIXER} )
-    add_dependencies( ${LAST_TARGET} Buildcore Buildbinary Buildintershell )
+    add_dependencies( ${LAST_TARGET} ${PROJECT_BASE_PROJECT} binary intershell )
   endif( NOT __ANDROID__ )
 
   set( PROJECT ball_mixer2 )
   set( EXTRA_FLAGS_MIXER  -DSACK_SDK_ROOT_PATH=${SACK_SDK_ROOT_PATH} -DSACK_BINARY_SDK_ROOT_PATH=${SACK_BINARY_SDK_ROOT_PATH} -DINTERSHELL_SDK_ROOT_PATH=${INTERSHELL_SDK_ROOT_PATH} ${D__ANDROID__} )
   BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ball_mixer2 INSTALL ${EXTRA_FLAGS_MIXER} )
-  add_dependencies( ${LAST_TARGET} Buildcore Buildbinary Buildintershell )
+  add_dependencies( ${LAST_TARGET} ${PROJECT_BASE_PROJECT} binary intershell )
 
 ENDIF( BULLET_ENABLED )
 
