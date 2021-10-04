@@ -198,7 +198,7 @@ static void threadInit( void ) {
 
 static void LocalInit( void )
 {
-#ifndef __STATIC_GLOBAL__
+#ifndef __STATIC_GLOBALS__
 	if( !winfile_local )
 		SimpleRegisterAndCreateGlobal( winfile_local );
 #endif
@@ -416,11 +416,11 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface* fsi )
 {
 	TEXTSTR tmp_path = NULL;
+	LocalInit();
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( ( *winfile_local ).flags.bLogOpenClose )
 		lprintf( "input path is [%s]", path );
 #endif
-	LocalInit();
 	if( path ) {
 		if( !fsi && !IsAbsolutePath( path ) ) {
 			if( ( path[0] == '.' ) && ( ( path[1] == 0 ) || ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
