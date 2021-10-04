@@ -8,10 +8,6 @@
 #include "global.h"
 
 #include <idle.h>
-#ifdef _WIN32
-#include <conio.h>
-#include <mmsystem.h>
-#endif
 #include <render.h>
 #include <math.h>
 #include <timers.h>
