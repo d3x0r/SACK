@@ -45,7 +45,7 @@ elseif( UNIX )
 	# epoll event handling
 	SET( NETWORK_OS _linux )
    endif( MAC )
-endif( UNIX )
+endif( WIN32 )
 
 
 set(BASE_SOURCES
