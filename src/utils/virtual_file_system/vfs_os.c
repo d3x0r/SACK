@@ -419,7 +419,7 @@ static struct {
 //static void _os_UpdateFileBlocks( struct sack_vfs_os_file* file );
 static struct sack_vfs_os_file* _os_createFile( struct sack_vfs_os_volume* vol, BLOCKINDEX first_block, int blockSize );
 static int sack_vfs_os_close_internal( struct sack_vfs_os_file* file, int unlock );
-static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume* vol, enum block_cache_entries cache_idx, BLOCKINDEX segment DBG_PASS );
+static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume* vol, enum block_cache_entries* cache_idx, BLOCKINDEX segment DBG_PASS );
 
 static uint32_t _os_AddSmallBlockUsage( struct file_block_small_definition* block, uint32_t more );
 
@@ -919,7 +919,8 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 #ifdef DEBUG_ROLLBACK_JOURNAL
 			LoG( "Reading rollback fileblock:%d", rollbackEntry->fileBlock );
 #endif
-			entry = _os_UpdateSegmentKey_( vol, BC( ROLLBACK ), rollbackEntry->fileBlock DBG_SRC );
+			entry = BC( ROLLBACK );
+			_os_UpdateSegmentKey_( vol, &entry, rollbackEntry->fileBlock DBG_SRC );
 			vol->sector_size[entry] = rollbackEntry->flags.small ? BLOCK_SMALL_SIZE : BLOCK_SIZE;
 			if( rollbackEntry->flags.zero ) {
 				memset( vol->usekey_buffer[entry], 0, rollbackEntry->flags.small ? BLOCK_SMALL_SIZE : BLOCK_SIZE );
@@ -939,10 +940,12 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 			}
 			SMUDGECACHE( vol, entry );
 		}
+		// finally, clear the BAT entries with any existing bat sectors
 		{
 			struct BATInfo *info;
 			DATA_FORALL( pdlBATs, e, struct BATInfo*, info ) {
-				entry = _os_UpdateSegmentKey_( vol, BC( ROLLBACK ), info->block DBG_SRC );
+				entry = BC( ROLLBACK );
+				_os_UpdateSegmentKey_( vol, &entry, info->block DBG_SRC );
 				vol->sector_size[entry] = rollbackEntry->flags.small ? BLOCK_SMALL_SIZE : BLOCK_SIZE;
 				if( rollbackEntry->flags.zero ) {
 					// might happen later; usually these are non-zero filled
@@ -1053,7 +1056,7 @@ static int  _os_PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
 	for( ;s1[0] && ((unsigned char)s2[0] != UTF8_EOT) && (s1[0] == s2[0]) && maxlen;
 		  s1++, s2++, maxlen-- );
 	if( maxlen )
-		return tolower_(s1[0]) - (((unsigned char)s2[0] == UTF8_EOT)?0:tolower_(s2[0]));
+		return s1[0] - (((unsigned char)s2[0] == UTF8_EOT)?0:s2[0]);
 	return 0;
 }
 
@@ -1212,17 +1215,6 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 		break;
 	}
 #endif
-#ifdef DEBUG_CACHE_AGING
-	lprintf( "age start:" );
-	LogBinary( age, ageLength );
-	{
-		int z;
-		char buf[MAX_FILENAME_LEN];
-		int ofs = 0;
-		for( z = 0; z < ageLength; z++ ) ofs += snprintf( buf + ofs, MAX_FILENAME_LEN - ofs, "%x ", vol->bufferFPI[z+ cacheRoot] );
-		lprintf( "%s", buf );
-	}
-#endif
 	for( n = 0; n < (ageLength); n++,test_segment++ ) {
 		if( test_segment[0] == segment ) {
 			//if( pFile ) LoG_( "Cache found existing segment already. %d at %d(%d)", (int)segment, (cache_idx[0]+n), (int)n );
@@ -1231,19 +1223,13 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 			//	_lprintf( DBG_RELAY )( "FOUND segment in cache: %d   %d  %d   %d", segment, n, age[n], cache_idx[0] );
 #endif
 			cache_idx[0] = (enum block_cache_entries)((cache_idx[0]) + n);
-		int x = 0;
 			for( m = 0; m < (ageLength); m++ ) {
 				if( !age[m] ) break;
 				if( age[m] > age[n] ) {
 					age[m]--;
-					x++;
 				}
 			}
 			age[n] = m;
-#ifdef DEBUG_CACHE_AGING
-			lprintf( "Age end: %d %d", segment, x );
-			LogBinary( age, ageLength );
-#endif
 			return;
 			//break;
 		}
@@ -1303,7 +1289,7 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 			// if not dirty, then clean and buffer have to match; and this is clearing the dirty flag
 			memcpy( vol->usekey_buffer_clean[useCache], vol->usekey_buffer[useCache], BLOCK_SIZE );
 #  ifdef DEBUG_VALIDATE_TREE
-			if( useCache < BC( TIMELINE_RO ) )
+			if( useCache < BC( TIMELINE_RO ) ) // timeline cache is noisy for readonly
 #  endif
 				_lprintf(DBG_RELAY)( "(usedto)Updated clean buffer %d", useCache );
 #endif
@@ -1387,30 +1373,30 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 
 #define _os_UpdateSegmentKey(v,c,s) _os_UpdateSegmentKey_(v,c,s DBG_SRC )
 
-enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, enum block_cache_entries cache_idx, BLOCKINDEX segment DBG_PASS )
+enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, enum block_cache_entries* cache_idx, BLOCKINDEX segment DBG_PASS )
 {
 	//BLOCKINDEX oldSegs[BC(COUNT)];
 	//memcpy(oldSegs, vol->segment, sizeof(oldSegs));
-	if( cache_idx == BC(FILE) ) {
-		_os_updateCacheAge_( vol, &cache_idx, segment, vol->fileCacheAge, (BC(FILE_LAST) - BC(FILE)) DBG_RELAY );
+	if( cache_idx[0] == BC(FILE) ) {
+		_os_updateCacheAge_( vol, cache_idx, segment, vol->fileCacheAge, (BC(FILE_LAST) - BC(FILE)) DBG_RELAY );
 	}
-	else if( cache_idx == BC(NAMES) ) {
-		_os_updateCacheAge_( vol, &cache_idx, segment, vol->nameCacheAge, (BC(NAMES_LAST) - BC(NAMES)) DBG_RELAY );
+	else if( cache_idx[0] == BC(NAMES) ) {
+		_os_updateCacheAge_( vol, cache_idx, segment, vol->nameCacheAge, (BC(NAMES_LAST) - BC(NAMES)) DBG_RELAY );
 	}
 #ifdef VIRTUAL_OBJECT_STORE
-	else if( cache_idx == BC(DIRECTORY) ) {
-		_os_updateCacheAge_( vol, &cache_idx, segment, vol->dirHashCacheAge, (BC(DIRECTORY_LAST) - BC(DIRECTORY)) DBG_RELAY );
+	else if( cache_idx[0] == BC(DIRECTORY) ) {
+		_os_updateCacheAge_( vol, cache_idx, segment, vol->dirHashCacheAge, (BC(DIRECTORY_LAST) - BC(DIRECTORY)) DBG_RELAY );
 	}
-	else if( cache_idx == BC( TIMELINE ) ) {
-		_os_updateCacheAge_( vol, &cache_idx, segment, vol->timelineCacheAge, (BC( TIMELINE_LAST ) - BC( TIMELINE )) DBG_RELAY );
+	else if( cache_idx[0] == BC( TIMELINE ) ) {
+		_os_updateCacheAge_( vol, cache_idx, segment, vol->timelineCacheAge, (BC( TIMELINE_LAST ) - BC( TIMELINE )) DBG_RELAY );
 	}
-	else if( cache_idx == BC( ROLLBACK ) ) {
+	else if( cache_idx[0] == BC( ROLLBACK ) ) {
 		//lprintf( "Cache age rollback: %d", (int)segment );
-		_os_updateCacheAge_( vol, &cache_idx, segment, vol->rollbackCacheAge, ( BC( ROLLBACK_LAST ) - BC( ROLLBACK ) ) DBG_RELAY );
+		_os_updateCacheAge_( vol, cache_idx, segment, vol->rollbackCacheAge, ( BC( ROLLBACK_LAST ) - BC( ROLLBACK ) ) DBG_RELAY );
 	}
 #ifdef DEBUG_VALIDATE_TREE
-	else if( cache_idx == BC( TIMELINE_RO ) ) {
-		_os_updateCacheAge_( vol, &cache_idx, segment, vol->timelineCacheAge, ( BC( TIMELINE_RO_LAST ) - BC( TIMELINE_RO ) ) DBG_RELAY );
+	else if( cache_idx[0] == BC( TIMELINE_RO ) ) {
+		_os_updateCacheAge_( vol, cache_idx, segment, vol->timelineCacheAge, ( BC( TIMELINE_RO_LAST ) - BC( TIMELINE_RO ) ) DBG_RELAY );
 		{
 			int n;
 			for( n = BC( TIMELINE ); n < BC( TIMELINE_LAST ); n++ ) {
@@ -1427,8 +1413,8 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 		}
 	}
 #endif
-	else if( cache_idx == BC( BAT ) ) {
-		_os_updateCacheAge_( vol, &cache_idx, segment, vol->batHashCacheAge, (BC(BAT_LAST) - BC(BAT)) DBG_RELAY );
+	else if( cache_idx[0] == BC( BAT ) ) {
+		_os_updateCacheAge_( vol, cache_idx, segment, vol->batHashCacheAge, (BC(BAT_LAST) - BC(BAT)) DBG_RELAY );
 	}
 #endif
 	else {
@@ -1529,7 +1515,7 @@ uintptr_t vfs_os_block_index_SEEK( struct sack_vfs_os_volume* vol, BLOCKINDEX bl
 	while( ( offset = vfs_os_compute_block( vol, block, cache_index[0] ) ) >= vol->dwSize )
 		if( !_os_ExpandVolume( vol, vol->lastBlock, blockSize ) ) return 0;
 	{
-		cache_index[0] = _os_UpdateSegmentKey( vol, cache_index[0], block + 1 );
+		_os_UpdateSegmentKey( vol, cache_index, block + 1 );
 		//LoG( "RETURNING SEEK CACHED %p %d  0x%x   %d", vol->usekey_buffer[cache_index[0]], cache_index[0], (int)offset, (int)seg );
 		return ( (uintptr_t)vol->usekey_buffer[cache_index[0]] ) + ( offset % vol->sector_size[cache_index[0]] );
 	}
@@ -1547,7 +1533,7 @@ uintptr_t vfs_os_SEEK( struct sack_vfs_os_volume* vol, FPI offset, int blockSize
 
 	{
 		BLOCKINDEX seg = ( offset / BLOCK_SIZE ) + 1;
-		cache_index[0] = _os_UpdateSegmentKey( vol, cache_index[0], seg );
+		_os_UpdateSegmentKey( vol, cache_index, seg );
 		//LoG( "RETURNING SEEK CACHED %p %d  0x%x   %d", vol->usekey_buffer[cache_index[0]], cache_index[0], (int)offset, (int)seg );
 		return ( (uintptr_t)vol->usekey_buffer[cache_index[0]] ) + ( offset & BLOCK_MASK );
 	}
@@ -1574,14 +1560,14 @@ uintptr_t vfs_os_BSEEK_( struct sack_vfs_os_volume* vol, BLOCKINDEX block, int b
 		// first call can skip setting information
 		while( vfs_os_compute_block( vol, b, BC( COUNT ) ) >= vol->dwSize ) if( !_os_ExpandVolume( vol, vol->lastBlock, blockSize ) ) return 0;
 		{
-			cache_index[0] = _os_UpdateSegmentKey_( vol, cache_index[0], b + 1 DBG_RELAY );
+			_os_UpdateSegmentKey_( vol, cache_index, b + 1 DBG_RELAY );
 			//LoG( "RETURNING BSEEK CACHED %p  %d %d %d  0x%x  %d   %d", vol->usekey_buffer[cache_index[0]], cache_index[0], (int)(block/ BLOCKS_PER_BAT), (int)(BLOCKS_PER_BAT-1), (int)b, (int)block, (int)seg );
 			return ( (uintptr_t)vol->usekey_buffer[cache_index[0]] )/* + (b&BLOCK_MASK) always 0 */;
 		}
 	} else {
 		BLOCKINDEX b = _os_GetFreeBlock( vol, cache_index, GFB_INIT_NONE, blockSize );
 		b = ( 1 /* for first BAT */ + ( b / BLOCKS_PER_BAT ) * (BLOCKS_PER_SECTOR)+( b % BLOCKS_PER_BAT ) );
-		cache_index[0] = _os_UpdateSegmentKey_( vol, cache_index[0], b + 1 DBG_RELAY );
+		_os_UpdateSegmentKey_( vol, cache_index, b + 1 DBG_RELAY );
 		// the returned block is set in the ((segment[cache_index[0]]-1)-1)
 		return ( (uintptr_t)vol->usekey_buffer[cache_index[0]] );
 	}
@@ -1609,7 +1595,7 @@ uint8_t * vfs_os_DSEEK_( struct sack_vfs_os_volume* vol, FPI dataFPI, int blockS
 				block = 0;
 			else
 				block = 1 + ( dataFPI - BAT_BLOCK_SIZE ) / info->size;
-			cache_index[0] = _os_UpdateSegmentKey( vol, cache_index[0], info->blockStart + block + 1 );
+			_os_UpdateSegmentKey( vol, cache_index, info->blockStart + block + 1 );
 
 			return vol->usekey_buffer[cache_index[0]] + ( dataFPI & (vol->sector_size[cache_index[0]] - 1) );
 		}
@@ -1663,7 +1649,7 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 			sector++;
 
 			// loads data into the cache entry.
-			//cache = _os_UpdateSegmentKey( vol, cache, n + 1 );
+			//_os_UpdateSegmentKey( vol, &cache, n + 1 );
 
 			for( m = 0; m < BLOCKS_PER_BAT; m++ )
 			{
@@ -1960,7 +1946,8 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 	n = 0;
 
 	if( created || ( (n=1),size == BLOCK_SMALL_SIZE && oldsize == ( BLOCK_SIZE * BLOCKS_PER_SECTOR ) ) ) {
-		enum block_cache_entries cache = _os_UpdateSegmentKey( vol, BC(BAT), n*BLOCKS_PER_SECTOR + 1 );
+		enum block_cache_entries cache = BC(BAT);
+		_os_UpdateSegmentKey( vol, &cache, n*BLOCKS_PER_SECTOR + 1 );
 		((BLOCKINDEX*)vol->usekey_buffer[cache])[0] = EOBBLOCK;
 		((BLOCKINDEX*)vol->usekey_buffer[cache])[BLOCKS_PER_BAT] = (size== BLOCK_SMALL_SIZE )?1:(size==4096)?0:2;
 		SMUDGECACHE( vol, cache );
@@ -2071,7 +2058,8 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 #ifdef DEBUG_BLOCK_INIT
 			LoG( "Create new directory: result %d", (int)(b * BLOCKS_PER_BAT + n) );
 #endif
-			newcache = _os_UpdateSegmentKey_( vol, BC( DIRECTORY ), b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
+			newcache = BC( DIRECTORY )
+			_os_UpdateSegmentKey_( vol, &newcache, b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
 			memset( vol->usekey_buffer[newcache], 0, DIR_BLOCK_SIZE );
 
 			dir = (struct directory_hash_lookup_block *)vol->usekey_buffer[newcache];
@@ -2087,9 +2075,8 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 #ifdef DEBUG_BLOCK_INIT
 			LoG( "new block, init as root timeline" );
 #endif
-			newcache = _os_UpdateSegmentKey_( vol, blockCache[0], b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
-			blockCache[0] = newcache;
-			tl = (struct storageTimeline *)vol->usekey_buffer[newcache];
+			_os_UpdateSegmentKey_( vol, blockCache, b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
+			tl = (struct storageTimeline *)vol->usekey_buffer[blockCache[0]];
 			//tl->header.timeline_length  = 0;
 			//tl->header.crootNode.raw = 0;
 			tl->header.srootNode.raw = 0;
@@ -2103,20 +2090,18 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 #ifdef DEBUG_BLOCK_INIT
 		LoG( "new block, init timeline more " );
 #endif
-		newcache = _os_UpdateSegmentKey_( vol, blockCache[0], b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
-		blockCache[0] = newcache;
-		memset( vol->usekey_buffer[newcache], 0, vol->sector_size[newcache] );
+		_os_UpdateSegmentKey_( vol, blockCache, b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
+		memset( vol->usekey_buffer[blockCache[0]], 0, vol->sector_size[blockCache[0]] );
 		// update the clean buffer, so journal writes initialized data.
 		//memcpy( vol->usekey_buffer_clean[newcache],  vol->usekey_buffer[newcache], TIME_BLOCK_SIZE );
 		break;
 	case GFB_INIT_NAMES:
 #ifdef DEBUG_BLOCK_INIT
-		LoG( "new BLock, init names" );
+		LoG( "new block, init names" );
 #endif
-		newcache = _os_UpdateSegmentKey_( vol, blockCache[0], b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
-		blockCache[0] = newcache;
-		memset( vol->usekey_buffer[newcache], 0, vol->sector_size[newcache] );
-		((char*)(vol->usekey_buffer[newcache]))[0] = (char)UTF8_EOTB;
+		_os_UpdateSegmentKey_( vol, blockCache, b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
+		memset( vol->usekey_buffer[blockCache[0]], 0, vol->sector_size[blockCache[0]] );
+		((char*)(vol->usekey_buffer[blockCache[0]]))[0] = (char)UTF8_EOTB;
 		// update the clean buffer, so journal writes initialized data.
 		//memcpy( vol->usekey_buffer_clean[newcache], vol->usekey_buffer[newcache], DIR_BLOCK_SIZE );
 		//LoG( "New Name Buffer: %x %p", vol->segment[newcache], vol->usekey_buffer[newcache] );
@@ -2126,8 +2111,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 #ifdef DEBUG_BLOCK_INIT
 		LoG( "Default or NO init..." );
 #endif
-		newcache = _os_UpdateSegmentKey_( vol, blockCache[0], b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
-		blockCache[0] = newcache;
+		_os_UpdateSegmentKey_( vol, blockCache, b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
 		break;
 	}
 	
