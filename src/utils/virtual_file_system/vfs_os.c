@@ -1403,8 +1403,8 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 				if( vol->segment[n] == segment ) {
 					if( TESTFLAG( vol->dirty, n ) || TESTFLAG( vol->_dirty, n ) ) {
 						// use the cached value instead of the disk value.
-						memcpy( vol->usekey_buffer[cache_idx], vol->usekey_buffer[n], BLOCK_SIZE );
-						memcpy( vol->usekey_buffer_clean[cache_idx], vol->usekey_buffer[n], BLOCK_SIZE );
+						memcpy( vol->usekey_buffer[cache_idx[0]], vol->usekey_buffer[n], BLOCK_SIZE );
+						memcpy( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[n], BLOCK_SIZE );
 						//lprintf( "Updaed clean buffer %d", n );
 					}
 					break;
@@ -1418,64 +1418,64 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 	}
 #endif
 	else {
-		if( vol->segment[cache_idx] != segment ) {
-			if( TESTFLAG( vol->dirty, cache_idx ) || TESTFLAG( vol->_dirty, cache_idx ) ) {
+		if( vol->segment[cache_idx[0]] != segment ) {
+			if( TESTFLAG( vol->dirty, cache_idx[0] ) || TESTFLAG( vol->_dirty, cache_idx[0] ) ) {
 #ifdef DEBUG_DISK_IO
-				LoG_( "MUST CLAIM SEGMENT Flush dirty segment: fpi:%x %d", vol->bufferFPI[cache_idx], vol->segment[cache_idx] );
+				LoG_( "MUST CLAIM SEGMENT Flush dirty segment: fpi:%x %d", vol->bufferFPI[cache_idx[0]], vol->segment[cache_idx[0]] );
 #  ifdef DEBUG_DISK_DATA
-				LogBinary( vol->usekey_buffer[cache_idx], vol->sector_size[cache_idx] );
+				LogBinary( vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]] );
 #  endif
 #endif
-				sack_fseek( vol->file, (size_t)vol->bufferFPI[cache_idx], SEEK_SET );
+				sack_fseek( vol->file, (size_t)vol->bufferFPI[cache_idx[0]], SEEK_SET );
 				uint8_t *crypt;
 				size_t cryptlen;
 				if( vol->key ) {
-					SRG_XSWS_encryptData( vol->usekey_buffer[cache_idx], vol->sector_size[cache_idx]
-						, vol->segment[cache_idx], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
+					SRG_XSWS_encryptData( vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]]
+						, vol->segment[cache_idx[0]], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 						, &crypt, &cryptlen );
-					sack_fwrite( crypt, 1, vol->sector_size[cache_idx], vol->file );
+					sack_fwrite( crypt, 1, vol->sector_size[cache_idx[0]], vol->file );
 					Deallocate( uint8_t*, crypt );
 				}
 				else
-					sack_fwrite( vol->usekey_buffer[cache_idx], 1, vol->sector_size[cache_idx], vol->file );
+					sack_fwrite( vol->usekey_buffer[cache_idx[0]], 1, vol->sector_size[cache_idx[0]], vol->file );
 
-				CLEANCACHE( vol, cache_idx );
-				RESETFLAG( vol->_dirty, cache_idx );
+				CLEANCACHE( vol, cache_idx[0] );
+				RESETFLAG( vol->_dirty, cache_idx[0] );
 #ifdef DEBUG_DISK_IO
-				LoG( "Flush dirty sector: %d", cache_idx, vol->bufferFPI[cache_idx] );
+				LoG( "Flush dirty sector: %d", cache_idx[0], vol->bufferFPI[cache_idx[0]] );
 #endif
 			}
 
 			// read new buffer for new segment
-			vol->bufferFPI[cache_idx] = vfs_os_compute_block( vol, segment - 1, cache_idx );
-			if( vol->bufferFPI[cache_idx] >= vol->dwSize ) _os_ExpandVolume( vol, vol->lastBlock, vol->sector_size[cache_idx] );
+			vol->bufferFPI[cache_idx[0]] = vfs_os_compute_block( vol, segment - 1, cache_idx[0] );
+			if( vol->bufferFPI[cache_idx[0]] >= vol->dwSize ) _os_ExpandVolume( vol, vol->lastBlock, vol->sector_size[cache_idx[0]] );
 
-			sack_fseek( vol->file, (size_t)(vol->bufferFPI[cache_idx]), SEEK_SET);
+			sack_fseek( vol->file, (size_t)(vol->bufferFPI[cache_idx[0]]), SEEK_SET);
 #ifdef DEBUG_DISK_IO
-			LoG( "OS VFS read old sector: fpi:%d %d %d", (int)vol->bufferFPI[cache_idx], cache_idx, segment );
+			LoG( "OS VFS read old sector: fpi:%d %d %d", (int)vol->bufferFPI[cache_idx[0]], cache_idx[0], segment );
 #endif
-			if( !sack_fread( vol->usekey_buffer[cache_idx], 1, vol->sector_size[cache_idx], vol->file ) ) {
+			if( !sack_fread( vol->usekey_buffer[cache_idx[0]], 1, vol->sector_size[cache_idx[0]], vol->file ) ) {
 				//lprintf( "Cleared BLock on failed read." );
-				memset( vol->usekey_buffer[cache_idx], 0, vol->sector_size[cache_idx] );
+				memset( vol->usekey_buffer[cache_idx[0]], 0, vol->sector_size[cache_idx[0]] );
 				// only need to clear this if it's checked for write data without setting dirty flag.
-				memset( vol->usekey_buffer_clean[cache_idx], 0, vol->sector_size[cache_idx] );
+				memset( vol->usekey_buffer_clean[cache_idx[0]], 0, vol->sector_size[cache_idx[0]] );
 			}
 			else {
 				if( vol->key )
-					SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx], vol->sector_size[cache_idx]
-						, vol->segment[cache_idx], (const uint8_t*)vol->oldkey?vol->oldkey:vol->key, 1024 /* some amount of the key to use */
+					SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]]
+						, vol->segment[cache_idx[0]], (const uint8_t*)vol->oldkey?vol->oldkey:vol->key, 1024 /* some amount of the key to use */
 						, NULL, NULL );
 				// after reading what was on the disk (in the sector), save it as the 'clean' state for journaling
 				// modifications happen to usekey_buffer before SMUDGE is called.
-				memcpy( vol->usekey_buffer_clean[cache_idx], vol->usekey_buffer[cache_idx], vol->sector_size[cache_idx] );
+				memcpy( vol->usekey_buffer_clean[cache_idx[0]], vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]] );
 			}
 #ifdef DEBUG_DISK_IO
 #  ifdef DEBUG_DISK_DATA
-		LogBinary( vol->usekey_buffer[cache_idx], vol->sector_size[cache_idx] );
+		LogBinary( vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]] );
 #  endif
 #endif
 		}
-		vol->segment[cache_idx] = segment;
+		vol->segment[cache_idx[0]] = segment;
 	}
 //#ifdef DEBUG_TRACE_LOG
 //	if (segment != oldSegs[cache_idx])
@@ -1483,7 +1483,7 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 //#endif
 	//LoG( "Resulting stored segment in %d", cache_idx );
 	//lprintf( "Got Block %d into cache %d", (int)segment, cache_idx );
-	return cache_idx;
+	return cache_idx[0];
 }
 
 #ifdef _MSC_VER
@@ -2058,7 +2058,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 #ifdef DEBUG_BLOCK_INIT
 			LoG( "Create new directory: result %d", (int)(b * BLOCKS_PER_BAT + n) );
 #endif
-			newcache = BC( DIRECTORY )
+			newcache = BC( DIRECTORY );
 			_os_UpdateSegmentKey_( vol, &newcache, b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
 			memset( vol->usekey_buffer[newcache], 0, DIR_BLOCK_SIZE );
 
