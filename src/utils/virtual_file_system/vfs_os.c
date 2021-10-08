@@ -1981,7 +1981,6 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 	enum block_cache_entries cache = BC( BAT );
 	BLOCKINDEX *current_BAT;
 	BLOCKINDEX check_val;
-	enum block_cache_entries newcache;
 
 	if( blockSize == 4096 ) {
 		if( vol->pdlFreeBlocks->Cnt ) {
@@ -2058,16 +2057,16 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 #ifdef DEBUG_BLOCK_INIT
 			LoG( "Create new directory: result %d", (int)(b * BLOCKS_PER_BAT + n) );
 #endif
-			newcache = BC( DIRECTORY );
-			_os_UpdateSegmentKey_( vol, &newcache, b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
-			memset( vol->usekey_buffer[newcache], 0, DIR_BLOCK_SIZE );
+			blockCache[0] = BC( DIRECTORY );
+			_os_UpdateSegmentKey_( vol, blockCache, b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
+			memset( vol->usekey_buffer[blockCache[0]], 0, DIR_BLOCK_SIZE );
 
-			dir = (struct directory_hash_lookup_block *)vol->usekey_buffer[newcache];
+			dir = (struct directory_hash_lookup_block *)vol->usekey_buffer[blockCache[0]];
 			enum block_cache_entries newcache2 = BC( NAMES );
 			dir->names_first_block = _os_GetFreeBlock( vol, &newcache2, GFB_INIT_NAMES, NAME_BLOCK_SIZE );
 			dir->used_names = 0;
 			// update the clean buffer, so journal writes initialized data.
-			//memcpy( vol->usekey_buffer_clean[newcache], vol->usekey_buffer[newcache], DIR_BLOCK_SIZE );
+			//memcpy( vol->usekey_buffer_clean[newcache], vol->usekey_buffer[newcache2], DIR_BLOCK_SIZE );
 			break;
 		}
 	case GFB_INIT_TIMELINE: {
@@ -2083,7 +2082,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 			tl->header.first_free_entry.ref.index = 1;
 			//tl->header.first_free_entry.ref.depth = 0;
 			// update the clean buffer, so journal writes initialized data.
-			//memcpy( vol->usekey_buffer_clean[newcache], vol->usekey_buffer[newcache], TIME_BLOCK_SIZE );
+			//memcpy( vol->usekey_buffer_clean[blockCache[0]], vol->usekey_buffer[blockCache[0]], TIME_BLOCK_SIZE );
 			break;
 		}
 	case GFB_INIT_TIMELINE_MORE:
@@ -2093,7 +2092,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 		_os_UpdateSegmentKey_( vol, blockCache, b * (BLOCKS_PER_SECTOR)+n + 1 + 1 DBG_RELAY );
 		memset( vol->usekey_buffer[blockCache[0]], 0, vol->sector_size[blockCache[0]] );
 		// update the clean buffer, so journal writes initialized data.
-		//memcpy( vol->usekey_buffer_clean[newcache],  vol->usekey_buffer[newcache], TIME_BLOCK_SIZE );
+		//memcpy( vol->usekey_buffer_clean[blockCache[0]],  vol->usekey_buffer[blockCache[0]], TIME_BLOCK_SIZE );
 		break;
 	case GFB_INIT_NAMES:
 #ifdef DEBUG_BLOCK_INIT
@@ -2103,8 +2102,8 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 		memset( vol->usekey_buffer[blockCache[0]], 0, vol->sector_size[blockCache[0]] );
 		((char*)(vol->usekey_buffer[blockCache[0]]))[0] = (char)UTF8_EOTB;
 		// update the clean buffer, so journal writes initialized data.
-		//memcpy( vol->usekey_buffer_clean[newcache], vol->usekey_buffer[newcache], DIR_BLOCK_SIZE );
-		//LoG( "New Name Buffer: %x %p", vol->segment[newcache], vol->usekey_buffer[newcache] );
+		//memcpy( vol->usekey_buffer_clean[blockCache[0]], vol->usekey_buffer[blockCache[0]], DIR_BLOCK_SIZE );
+		//LoG( "New Name Buffer: %x %p", vol->segment[blockCache[0]], vol->usekey_buffer[blockCache[0]] );
 		break;
 		
 	default:
@@ -2115,7 +2114,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 		break;
 	}
 	
-	SMUDGECACHE( vol, newcache );
+	SMUDGECACHE( vol, blockCache[0] );
 #ifdef DEBUG_ROLLBACK_JOURNAL
 	LoG( "(post smudge)Return Free block:%d   %d  %d", (int)(b*BLOCKS_PER_BAT + n), (int)b, (int)n );
 #endif
