@@ -48,6 +48,7 @@ int main( int argc, char **argv )
 	FLAGSET( opts, SYSLOG_OPT_MAX );
 	InvokeDeadstart();
 	SETFLAG( opts, SYSLOG_OPT_OPEN_BACKUP );
+	SystemLogTime( SYSLOG_TIME_LOG_DAY );
 	SetSyslogOptions( opts );
 	SetSystemLog( SYSLOG_AUTO_FILE, 0 );
 	SetSystemLoggingLevel( 2000 );
