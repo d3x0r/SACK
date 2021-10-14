@@ -86,7 +86,7 @@ struct internalCert {
 	STACK_OF( X509 ) *chain;
 };
 
-void loadSystemCerts(X509_STORE *store );
+void loadSystemCerts(SSL_CTX* ctx,X509_STORE *store );
 
 //static void gencp
 struct internalCert * MakeRequest( void );
@@ -1148,7 +1148,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 		X509_STORE_add_cert( store, cert );
 	} else {
 		X509_STORE *store = SSL_CTX_get_cert_store( ses->ctx );
-		loadSystemCerts( store );
+		loadSystemCerts( ses->ctx, store );
 	}
 	ssl_InitSession( ses );
 	//SSL_set_default_read_buffer_len( ses->ssl, 16384 );
@@ -1427,9 +1427,12 @@ struct internalCert * MakeRequest( void )
 }
 
 #ifdef __LINUX__
-void loadSystemCerts( X509_STORE *store )
+void loadSystemCerts( SSL_CTX* ctx,X509_STORE *store )
 {
-   return;
+	// "/etc/ssl/certs"
+	(void)store; // unused;
+	SSL_CTX_load_verify_locations(ctx, NULL/*caName*/, "/etc/ssl/certs" );
+	return;
 }
 #endif
 
@@ -1438,8 +1441,9 @@ void loadSystemCerts( X509_STORE *store )
 
 #define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
 
-void loadSystemCerts( X509_STORE *store )
+void loadSystemCerts( SSL_CTX* ctx,X509_STORE *store )
 {
+	(void)ctx;// unused;
 	HCERTSTORE hStore;
 	PCCERT_CONTEXT pContext = NULL;
 	X509 *x509;
