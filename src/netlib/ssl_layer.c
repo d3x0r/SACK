@@ -1431,7 +1431,7 @@ void loadSystemCerts( SSL_CTX* ctx,X509_STORE *store )
 {
 	// "/etc/ssl/certs"
 	(void)store; // unused;
-   SSL_CTX_set_default_verify_paths( ctx );
+	SSL_CTX_set_default_verify_paths( ctx );
 	return;
 }
 #endif
