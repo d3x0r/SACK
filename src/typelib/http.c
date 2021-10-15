@@ -1082,13 +1082,12 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 	struct HttpState *data = (struct HttpState *)GetNetworkLong( pc, 0 );
 	if( !data ) return;
 	PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
-	if( data->flags.no_content_length ) {
-            data->content_length = GetTextSize( data->partial );
-	    // there might not have been any data collected yet
-	    if( data->content_length ) {
+	if( data->flags.no_content_length ) { // data is collected into 'partial' until close
+        	data->content_length = GetTextSize( data->partial );
+	}
+	if( data->content_length ) {
 		// should do one further gather; will set resulting status better.
 		ProcessHttp( pc, data );
-	    }
 	}
 	//lprintf( "Closing http: %p ", pc );
 	if( ppc[0] == pc ) {
