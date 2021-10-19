@@ -746,7 +746,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		return 0;
 	}
 	if( SSL_client_hello_isv2(ssl) ) {
-		lprintf( "Unsupported version?" );
+		lprintf( "Unsupported version? V2" );
 		// wrong version?
 		al[0] = 0;
 		return 0;
@@ -762,6 +762,12 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 			unsigned char const* buf;
 			size_t buflen;
 			switch( type[n] ) {
+			case TLSEXT_TYPE_max_fragment_length:
+				SSL_client_hello_get0_ext( ssl, type[n], &buf, &buflen );
+				{
+					// there's some sort of length to this... and should limit sending? receiving?				
+				}					
+				break;
 			case TLSEXT_TYPE_ec_point_formats:
 			case TLSEXT_TYPE_supported_groups:
 			case TLSEXT_TYPE_session_ticket: // empty value?
