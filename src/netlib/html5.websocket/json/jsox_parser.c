@@ -1826,7 +1826,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->word == JSOX_WORD_POS_RESET && ( (c >= '0' && c <= '9') || (c == '+') || (c == '.') ) ) {
 							goto beginNumber;
 						}
-						if( state->word == JSOX_WORD_POS_AFTER_FIELD ) {
+						if( state->word == JSOX_WORD_POS_AFTER_FIELD && state->val.value_type != JSOX_VALUE_UNSET) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
 							//lprintf( "Val is:%s", state->val.string );
