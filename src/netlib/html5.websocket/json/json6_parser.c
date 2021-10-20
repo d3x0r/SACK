@@ -1278,10 +1278,12 @@ void json_parse_clear_state( struct json_parse_state *state ) {
 		DeleteFromSet( PLINKSTACK, jpsd.linkStacks, state->outBuffers );
 		//DeleteLinkStack( &state->outBuffers );
 		{
-			char *buf;
+
+			PPARSE_BUFFER buf;
 			INDEX idx;
-			LIST_FORALL( state->outValBuffers[0], idx, char*, buf ) {
-				Deallocate( char*, buf );
+			LIST_FORALL( state->outValBuffers[0], idx, PPARSE_BUFFER, buf ) {
+				Deallocate( const char *, buf->buf );
+				DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buf );
 				SetLink( state->outValBuffers, idx, NULL );
 			}
 			DeleteFromSet( PLIST, jpsd.listSet, state->outValBuffers );
@@ -1352,7 +1354,7 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 		LIST_FORALL( state->outValBuffers[0], idx, PPARSE_BUFFER, buf ) {
 			Deallocate( const char *, buf->buf );
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buf );
-			Deallocate( PPARSE_BUFFER, buf );
+			//Deallocate( PPARSE_BUFFER, buf );
 			SetLink( state->outValBuffers, idx, NULL );
 		}
 		DeleteFromSet( PLIST, jpsd.listSet, state->outValBuffers );
