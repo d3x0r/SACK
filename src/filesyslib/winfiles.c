@@ -2331,7 +2331,8 @@ static int CPROC sack_filesys_unlink( uintptr_t psv, const char* filename ) {
 	okay = !unlink( filename );
 #endif
 	if( !okay ) {
-		file->delete_on_close = 1;
+		if( file )
+			file->delete_on_close = 1;
 	}
 	return okay;
 }
