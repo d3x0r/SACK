@@ -371,6 +371,7 @@ static uintptr_t CPROC ConsoleInputThread( PTHREAD thread )
    hInput = pdp->consolecon.hStdin;
       while( !gbExitThread )
       {
+	lprintf( "This can get key events in groups that are arrow inputs.... pleae update." );
          if (! ReadConsoleInput(
                 pdp->consolecon.hStdin,      // input buffer handle
                 irInBuf,     // buffer to read into
