@@ -71,6 +71,9 @@ SACK_NETWORK_NAMESPACE_END
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <openssl/pkcs12.h>
+#if OPENSSL_VERSION_MAJOR >= 3
+#include <openssl/core_names.h>
+#endif
 
 SACK_NETWORK_NAMESPACE
 
@@ -98,9 +101,11 @@ EVP_PKEY *genKey() {
 	//char *pem_key;
 	//BN_GENCB cb = { }
 	BIGNUM          *bne = BN_new();
-	RSA *rsa = RSA_new();
 	int ret;
 	ret = BN_set_word( bne, kExp );
+#if OPENSSL_VERSION_MAJOR < 3
+	RSA *rsa = RSA_new();
+
 	if( ret != 1 ) {
 		BN_free( bne );
 		RSA_free( rsa );
@@ -110,8 +115,30 @@ EVP_PKEY *genKey() {
 	RSA_generate_key_ex( rsa, kBits, bne, NULL );
 	EVP_PKEY_set1_RSA( keypair, rsa );
 
-	BN_free( bne );
 	RSA_free( rsa );
+#else
+	EVP_PKEY_CTX* ctx; 
+	ctx = EVP_PKEY_CTX_new_from_name( NULL, "rsa", NULL );
+	if( !ctx )
+		return NULL;
+	EVP_KEYMGMT* keymgmt;  keymgmt = EVP_KEYMGMT_fetch( NULL, "rsa", NULL );
+	if( !keymgmt )
+		return NULL;
+	if( EVP_PKEY_set_type_by_keymgmt( keypair, keymgmt ) != 1 )
+		return NULL;
+
+	{
+		OSSL_PARAM params[2] = {
+			OSSL_PARAM_BN( OSSL_PKEY_PARAM_RSA_E, bne, BN_num_bytes( bne ) ),
+			OSSL_PARAM_END
+		};
+
+		if( EVP_PKEY_fromdata_init( ctx ) != 1 ||
+			EVP_PKEY_fromdata( ctx, &keypair, EVP_PKEY_KEY_PARAMETERS, params ) != 1 )
+			exit( 7 );
+	}
+#endif
+	BN_free( bne );
 
 	return keypair;
 }
@@ -626,7 +653,7 @@ static LOGICAL ssl_InitLibrary( void ){
 		//ssl_global.tls_config = tls_config_new();
 
 		SSL_load_error_strings();
-		ERR_load_BIO_strings();
+//		ERR_load_BIO_strings();
 		OpenSSL_add_all_algorithms();
 		ssl_global.flags.bInited = 1;
 	}
@@ -1330,6 +1357,7 @@ struct internalCert * MakeRequest( void )
 		 Deallocate( void *, key );
 		 PEM_read_bio_PrivateKey( keybuf, &cert->pkey, NULL, NULL );
 	} else {
+#if 0
 		RSA *rsa = RSA_new();
 		BIGNUM *bne = BN_new();
 		int ret;
@@ -1363,6 +1391,7 @@ struct internalCert * MakeRequest( void )
 			SACK_WriteProfileString( "TLS", "Key", (TEXTCHAR*)ca );
 			Release( ca );
 		}
+#endif
 	}
 
     // seed openssl's prng
