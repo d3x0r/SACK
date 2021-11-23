@@ -308,8 +308,8 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	return  websock->pc;
 }
 
-void WebSocketConnect( PCLIENT pc ) {
-	NetworkConnectTCP( pc );
+int WebSocketConnect( PCLIENT pc ) {
+	return NetworkConnectTCP( pc );
 }
 
 // end a websocket connection nicely.

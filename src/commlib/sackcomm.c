@@ -763,8 +763,8 @@ void DumpTermios( struct termios *opts )
    lprintf( "cflag %x", opts->c_cflag );
 	lprintf( "lflag %x", opts->c_lflag );
 #ifndef __ARM__
-	lprintf( "ispeed: %x", opts->c_ispeed );
-	lprintf( "ospeed: %x", opts->c_ospeed );
+	//lprintf( "ispeed: %x", opts->c_ispeed );
+	//lprintf( "ospeed: %x", opts->c_ospeed );
 #endif
 }
 #endif
