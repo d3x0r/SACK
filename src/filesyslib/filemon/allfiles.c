@@ -473,7 +473,7 @@ static int DispatchChangesInternal( PMONITOR monitor, LOGICAL bExternalSource )
 		{
 			while( ( Change->currentchange = (PFILEMON)DequeLink( &Change->PendingChanges ) ) )
 			{
-				TEXTCHAR fullname[256];
+				TEXTCHAR fullname[512];
 				if( Change->currentchange->ScannedAt > now )
 				{
 					PrequeLink( &Change->PendingChanges, Change->currentchange );

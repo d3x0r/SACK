@@ -265,7 +265,7 @@ typedef struct myfinddata {
 	LOGICAL new_mount;
 	LOGICAL single_mount;
 	struct file_system_mounted_interface *scanning_mount;
-	TEXTCHAR buffer[4096];
+	TEXTCHAR buffer[MAX_PATH_NAME];
 	TEXTCHAR file_buffer[MAX_PATH_NAME];
 	TEXTCHAR basename[MAX_PATH_NAME];
 	TEXTCHAR findmask[MAX_PATH_NAME];
