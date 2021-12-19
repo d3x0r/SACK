@@ -69,7 +69,7 @@ void ScanDirectory( PMONITOR monitor, PCHANGECALLBACK Change )
 										, dirent->d_name
 										, FALSE ) ) {
 						if( monitor->flags.bLogFilesFound )
-							lprintf( "And the mask matched.", Change->mask );
+							lprintf( "And the mask matched." );
 						AddMonitoredFile( Change, dirent->d_name );
 					}
 				}

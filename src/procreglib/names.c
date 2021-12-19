@@ -931,7 +931,7 @@ PROCREG_PROC( LOGICAL, RegisterFunctionExx )( PCLASSROOT root
 #ifdef _DEBUG
 					CTEXTSTR file = GetRegisteredValue( (CTEXTSTR)&oldname->tree, "Source File" );
 					int line = (int)(uintptr_t)GetRegisteredValueEx( (CTEXTSTR)&oldname->tree, "Source Line", TRUE );
-					lprintf( "Duplicate function registration, it's the same address as before... %s(%d) %s(%d) %s %s", file, line, pFile, nLine, name_class, public_name );
+					lprintf( "Duplicate function registration, it's the same address as before... %s(%d) %s(%d) %s %s", file, line, pFile, nLine, (char*)name_class, public_name );
 #endif
 				}else
 				{

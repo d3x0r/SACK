@@ -317,7 +317,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 	//lprintf( "Search in %s for %s   %d %d", base?base:"(NULL)", mask?mask:"(*)", (*pInfo)?((PMFD)*pInfo)->scanning_mount:0, (*pInfo)?((PMFD)*pInfo)->single_mount:0 );
 	if( !*pInfo || begin_sub_path || ((PMFD)*pInfo)->new_mount )
 	{
-		TEXTCHAR findmask[4096];
+		TEXTCHAR findmask[4096+32];
 		wchar_t findmaskw[256];
 		pData = (PMFD)(*pInfo);
 		if( !pData )
@@ -693,7 +693,7 @@ getnext:
 		if( flags & SFF_SUBCURSE )
 		{
 			//int ofs = 0;
-			TEXTCHAR tmpbuf[MAX_PATH_NAME];
+			TEXTCHAR tmpbuf[MAX_PATH_NAME + 512];
 			if( flags & SFF_NAMEONLY )
 			{
 				// even in name only - need to have this full buffer for subcurse.

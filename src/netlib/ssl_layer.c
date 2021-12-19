@@ -64,6 +64,7 @@ SACK_NETWORK_NAMESPACE_END
 #else
 
 #define _LIB
+#include <openssl/configuration.h>
 #include <openssl/ssl.h>
 #include <openssl/tls1.h>
 #include <openssl/err.h>

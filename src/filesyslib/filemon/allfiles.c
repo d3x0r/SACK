@@ -639,7 +639,8 @@ void DoScan( PMONITOR monitor )
 			INDEX idx;
 			LIST_FORALL( monitor->monitors, idx, PMONITOR, sub_monitor )
 			{
-				lprintf( "Scan:%d %d", sub_monitor->DoScanTime );
+				if( local_filemon.flags.bLog )
+					lprintf( "Scan:%d", sub_monitor->DoScanTime );
 				if( sub_monitor->DoScanTime )
 				{
 					if( now > sub_monitor->DoScanTime )
@@ -650,8 +651,9 @@ void DoScan( PMONITOR monitor )
 					{
 						if( monitor->DoScanTime < sub_monitor->DoScanTime )
 						{
-						// setting the do scan time here should not also set bPendingScan
-                     lprintf( "updating monitor scantime to sub scan time" );
+							// setting the do scan time here should not also set bPendingScan
+							if( local_filemon.flags.bLog )
+								lprintf( "updating monitor scantime to sub scan time" );
 							monitor->DoScanTime = sub_monitor->DoScanTime;
 						}
 					}
