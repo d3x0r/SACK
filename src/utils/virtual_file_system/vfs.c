@@ -271,7 +271,7 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 	BLOCKINDEX sector_b = (BLOCKINDEX)-1;
 	FLAGSETTYPE *usedSectors;
 	if( vol->dwSize & 0xfFF ) {
-		lprintf( "Volume is setup to fail with an odd number of bytes total : %d %08x %08x", (int)(vol->dwSize & 0xFFF), vol->dwSize, vol->dwSize );
+		lprintf( "Volume is setup to fail with an odd number of bytes total : %d %08" _size_f, (int)(vol->dwSize & 0xFFF), vol->dwSize );
 	}
 	size_t size;
 	usedSectors = NewArray( FLAGSETTYPE, size= (2+(vol->dwSize / BLOCK_SIZE)/(CHAR_BIT*sizeof(FLAGSETTYPE) )) );
@@ -676,7 +676,7 @@ uintptr_t vfs_BSEEK( struct sack_vfs_volume *vol, BLOCKINDEX block, enum block_c
 			//vol->segment[cache_index] = seg;
 			if( (cache_index[0] == BC(FILE))
 				&& (seg < 3) ) {
-				lprintf( "CRITICAL FAILURE, SEEK OUT OF DISK %d", seg );
+				lprintf( "CRITICAL FAILURE, SEEK OUT OF DISK %d", (int)seg );
 				(*(int*)0) = 0;
 			}
 			cache_index[0] = UpdateSegmentKey( vol, cache_index[0], seg );

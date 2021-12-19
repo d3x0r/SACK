@@ -1343,7 +1343,7 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 			memset( vol->usekey_buffer_clean[cache_idx[0]], 0, vol->sector_size[cache_idx[0]] );
 		} else {
 			if( short_Read != vol->sector_size[cache_idx[0]] ) {
-				lprintf( "Short read  on file:", short_Read );
+				lprintf( "Short read on file:%" _size_f, short_Read );
 			}
 			if( vol->key )
 				SRG_XSWS_decryptData( vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]]
@@ -2718,9 +2718,9 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 		}
 		else{
 			if( !file && !filename && nameBlockStart )
-				 lprintf( "parent block: %d(%d) %d p:%d c:%d c:%c", (int)this_dir_block, cache, (int)dirblock->used_names
-							, dirblock->next_block[255] >> 8
-							, dirblock->next_block[255] & 0xFF, dirblock->next_block[255] & 0xFF );
+				 lprintf( "parent block(may be truncated): %d(%d) %d p:%d c:%d c:%c", (int)this_dir_block, cache, (int)dirblock->used_names
+							, (int)(dirblock->next_block[255] >> 8)
+							, (int)(dirblock->next_block[255] & 0xFF), (char)(dirblock->next_block[255] & 0xFF) );
 		}
 		nameBlock = dirblock->names_first_block;
 		if( filename )
