@@ -265,7 +265,7 @@ typedef struct myfinddata {
 	LOGICAL new_mount;
 	LOGICAL single_mount;
 	struct file_system_mounted_interface *scanning_mount;
-	TEXTCHAR buffer[MAX_PATH_NAME];
+	TEXTCHAR buffer[4096];
 	TEXTCHAR file_buffer[MAX_PATH_NAME];
 	TEXTCHAR basename[MAX_PATH_NAME];
 	TEXTCHAR findmask[MAX_PATH_NAME];
@@ -317,7 +317,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 	//lprintf( "Search in %s for %s   %d %d", base?base:"(NULL)", mask?mask:"(*)", (*pInfo)?((PMFD)*pInfo)->scanning_mount:0, (*pInfo)?((PMFD)*pInfo)->single_mount:0 );
 	if( !*pInfo || begin_sub_path || ((PMFD)*pInfo)->new_mount )
 	{
-		TEXTCHAR findmask[256];
+		TEXTCHAR findmask[4096];
 		wchar_t findmaskw[256];
 		pData = (PMFD)(*pInfo);
 		if( !pData )
