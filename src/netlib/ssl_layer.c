@@ -64,8 +64,11 @@ SACK_NETWORK_NAMESPACE_END
 #else
 
 #define _LIB
-#include <openssl/configuration.h>
 #include <openssl/ssl.h>
+#  ifdef OPENSSL_VERSION_MAJOR > 3
+// this can't work?
+//#    include <openssl/configuration.h>
+#  endif
 #include <openssl/tls1.h>
 #include <openssl/err.h>
 
