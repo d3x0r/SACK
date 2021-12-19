@@ -372,7 +372,7 @@ struct url_data * SACK_URLParse( const char *url )
 				&& ( state != PARSE_STATE_COLLECT_RESOURCE_NAME )  // after starting the path, look for fliename, if the extension or other is not found
 				&& ( state != PARSE_STATE_COLLECT_CGI_NAME ) // blank cgi names go & to & and stay in the same state
 				)
-				lprintf( "Dropping character (%d) '%c' in %s", url - _outbuf, ch, _outbuf );
+				lprintf( "Dropping character (%d) '%c' in %s", (int)(url - _outbuf), ch, _outbuf );
 		}
 		_state = state;
 	}
