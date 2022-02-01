@@ -133,7 +133,7 @@ EVP_PKEY *genKey() {
 
 	{
 		OSSL_PARAM params[2] = {
-			OSSL_PARAM_BN( OSSL_PKEY_PARAM_RSA_E, bne, BN_num_bytes( bne ) ),
+			OSSL_PARAM_BN( OSSL_PKEY_PARAM_RSA_E, bne, (size_t)BN_num_bytes( bne ) ),
 			OSSL_PARAM_END
 		};
 
