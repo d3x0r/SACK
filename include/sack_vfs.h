@@ -233,12 +233,15 @@ namespace objStore {
 		SOSFSFIO_ADD_REFERENCE_BY,
 		SOSFSFIO_REMOVE_REFERENCE_BY,
 		SOSFSFIO_SET_BLOCKSIZE, // set file preferred block size intead of automatic
+		SOSFSFIO_SET_TIME, // set the last updated time of a file
+		SOSFSFIO_GET_TIMES, // set the last updated time of a file
 	};
 
 	enum sack_object_store_file_system_system_ioctl_ops {
 		SOSFSSIO_STORE_OBJECT, // get the resulting storage ID.  (Move ID creation into low level driver)
 		SOSFSSIO_PATCH_OBJECT,
 		SOSFSSIO_LOAD_OBJECT,
+		SOSFSSIO_OPEN_VERSION,
 		//SFSIO_GET_OBJECT_ID, // get the resulting storage ID.  (Move ID creation into low level driver)
 	};
 
@@ -363,6 +366,11 @@ namespace objStore {
 
 #define sack_vfs_os_ioctl_create_index( file, indexName ) sack_vfs_os_fs_ioctl( file, SOSFSFIO_CREATE_INDEX, indexName )
 
+#define sack_vfs_os_ioctl_get_times( file, timeArray,timeCount ) sack_vfs_os_fs_ioctl( file, SOSFSFIO_GET_TIMES, timeArray,timeCount )
+#define sack_vfs_os_ioctl_set_time( file, timestamp )            sack_vfs_os_fs_ioctl( file, SOSFSFIO_SETTIME, timestamp )
+
+
+
 // open a volume at the specified pathname.
 // if the volume does not exist, will create it.
 // if the volume does exist, a quick validity check is made on it, and then the result is opened
@@ -451,6 +459,10 @@ SACK_VFS_PROC size_t sack_vfs_os_find_get_size( struct sack_vfs_os_find_info *in
 
 // get times for the object in storage.
 SACK_VFS_PROC LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArray, size_t* timeCount );
+
+// set last time for object in storage. (overwrites current tick used to update on write)
+SACK_VFS_PROC LOGICAL sack_vfs_os_set_time( struct sack_vfs_os_file* file, uint64_t time );
+
 
 #ifdef __cplusplus
 }

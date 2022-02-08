@@ -55,7 +55,7 @@ PREFIX_PACKED struct storageTimelineNode {
 	// if dirent_fpi == 0; it's free; and priorData will point at another free node
 	uint64_t dirent_fpi;
 
-	uint32_t filler16_1;
+	uint32_t priorTime;
 	uint16_t priorDataPad;
 	uint8_t  filler8_1; // how much of the last block in the file is not used
 
@@ -277,12 +277,12 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 	decoded_dirent->pds_directories = NULL;
 
 	decoded_dirent->filesize = (size_t)( dirent->filesize );
-	if( time->disk->priorData ) {
+	if( time->disk->priorTime ) {
 		enum block_cache_entries cache;
-		struct storageTimelineNode* prior = getRawTimeEntry( vol, time->disk->priorData, &cache GRTENoLog DBG_SRC );
-		while( prior->priorData ) {
+		struct storageTimelineNode* prior = getRawTimeEntry( vol, time->disk->priorTime, &cache GRTENoLog DBG_SRC );
+		while( prior->priorTime ) {
 			dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-			prior = getRawTimeEntry( vol, prior->priorData, &cache GRTENoLog DBG_RELAY );
+			prior = getRawTimeEntry( vol, prior->priorTime, &cache GRTENoLog DBG_RELAY );
 		}
 		decoded_dirent->ctime = prior->time;
 		dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
@@ -368,12 +368,12 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 
 		//lprintf( "Delete start... %d", index );
 		time = getRawTimeEntry( vol, index, &cache GRTELog DBG_SRC );
-		next = (BLOCKINDEX)time->priorData; // this type is larger than index in some configurations
+		next = (BLOCKINDEX)time->priorTime; // this type is larger than index in some configurations
 		nodes--;
 
 		{
 			struct storageTimeline* timeline = vol->timeline;
-			time->priorData = timeline->header.first_free_entry.ref.index;
+			time->priorTime = (uint32_t)timeline->header.first_free_entry.ref.index;
 			timeline->header.first_free_entry.ref.index = index;
 			SMUDGECACHE( vol, vol->timelineCache );
 			SMUDGECACHE( vol, cache );
@@ -417,6 +417,7 @@ BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vol
 	// make sure the new entry is emptied.
 	//time->disk->me_fpi = 0;
 	time->disk->dirent_fpi = 0;
+	time->disk->priorTime = 0;
 	time->disk->priorData = 0;
 	time->disk->time = timeGetTime64ns();
 
@@ -426,7 +427,7 @@ BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vol
 			tz = -( ( ( -tz / 100 ) * 60 ) + ( -tz % 100 ) ) / 15; // -840/15 = -56
 		else
 			tz = ( ( ( tz / 100 ) * 60 ) + ( tz % 100 ) ) / 15; // -840/15 = -56  720/15 = 48
-		time->disk->time += (int64_t)tz * 900 * (int64_t)1000000000;
+		//time->disk->time += (int64_t)tz * 900 * (int64_t)1000000000;
 		time->disk->timeTz = tz;
 	}
 
@@ -451,7 +452,7 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 			// gets a new timestamp.
 			enum block_cache_entries inputCache = time ? time->diskCache : BC( ZERO );
 			BLOCKINDEX newIndex = getTimeEntry( time, vol, TRUE, init, psv DBG_RELAY );
-			time->disk->priorData = inputIndex;
+			time->disk->priorTime = (uint32_t)inputIndex;
 			updateTimeEntry( time, vol, FALSE DBG_RELAY );
 			dropRawTimeEntry( vol, inputCache GRTELog DBG_RELAY );
 			return newIndex;
@@ -469,7 +470,7 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 			// gets a new timestamp.
 			time_.index = index;
 			BLOCKINDEX newIndex = getTimeEntry( &time_, vol, TRUE, init, psv DBG_RELAY );
-			time_.disk->priorData = inputIndex;
+			time_.disk->priorTime = (uint32_t)inputIndex;
 			time_.disk->dirent_fpi = dirent_fpi;
 			updateTimeEntry( &time_, vol, TRUE DBG_RELAY );
 			return newIndex;
@@ -486,10 +487,27 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 				tz = -( ( ( -tz / 100 ) * 60 ) + ( -tz % 100 ) ) / 15; // -840/15 = -56
 			else
 				tz = ( ( ( tz / 100 ) * 60 ) + ( tz % 100 ) ) / 15; // -840/15 = -56  720/15 = 48
-			time->disk->time += (int64_t)tz * 900 * (int64_t)1000000000;
+			//time->disk->time += (int64_t)tz * 900 * (int64_t)1000000000;
 			time->disk->timeTz = tz;
 		}
 		updateTimeEntry( time, vol, TRUE DBG_RELAY );
 		return (BLOCKINDEX)index; // index type is larger than index in some configurations; but won't exceed those bounds
+	}
+}
+
+LOGICAL setTimeEntryTime( struct memoryTimelineNode* time
+			, struct sack_vfs_os_volume *vol
+			, uint64_t tick 
+			, int tz ) {
+	if( !time ) {
+//time = &time_;
+		lprintf( "invalid time entry passed" );
+		return FALSE;
+	} else {
+		//reloadTimeEntry( time, vol, index VTReadWrite GRTENoLog DBG_RELAY );
+		time->disk->timeTz = tz;
+		time->disk->time = tick;
+		updateTimeEntry( time, vol, FALSE DBG_SRC );
+		return TRUE;
 	}
 }

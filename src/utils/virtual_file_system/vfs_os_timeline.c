@@ -1907,3 +1907,18 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 		return (BLOCKINDEX)index; // index type is larger than index in some configurations; but won't exceed those bounds
 	}
 }
+
+LOGICAL setTimeEntryTime( struct memoryTimelineNode* time
+			, struct sack_vfs_os_volume *vol
+			, uint64_t tick ) {
+	if( !time ) {
+		lprintf( "invalid time entry passed" );//time = &time_;
+		return FALSE;
+	} else {
+		//reloadTimeEntry( time, vol, index VTReadWrite GRTENoLog DBG_RELAY );
+		time->disk->timeTz = (tick & 0xFF)/15;
+		time->disk->time = ( (tick>>8) /1000000);
+		updateTimeEntry( time, vol, FALSE DBG_SRC );
+		return TRUE;
+	}
+}
