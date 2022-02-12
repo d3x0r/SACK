@@ -372,6 +372,7 @@ struct sack_vfs_os_file
 #  ifdef FILE_BASED_VFS
 	FPI entry_fpi;  // where to write the directory entry update to
 #    ifdef VIRTUAL_OBJECT_STORE
+	BLOCKINDEX dir_block; // delete also needs the block number
 	int blockSize;
 	struct file_header diskHeader;
 	struct file_header header;  // in-memory size, so we can just do generic move op
@@ -1528,11 +1529,13 @@ uintptr_t vfs_os_block_index_SEEK( struct sack_vfs_os_volume* vol, BLOCKINDEX bl
 // shared with fuse module
 // seek by byte position; result with an offset into a block.
 // this is used to access BAT information; and should be otherwise avoided.
-uintptr_t vfs_os_SEEK( struct sack_vfs_os_volume* vol, FPI offset, int blockSize, enum block_cache_entries* cache_index ) {
+uintptr_t vfs_os_SEEKX( struct sack_vfs_os_volume* vol, FPI offset, int blockSize, enum block_cache_entries* cache_index ) {
 	//lprintf( "This is more complicated with variable size data blocks" );
 	// unused function mostly.
 	while( offset >= vol->dwSize ) if( !_os_ExpandVolume( vol, vol->lastBlock, blockSize ) ) return 0;
 
+	// this assumes that all blocks are the same size; which is untrue.  This should be removed.
+	
 	{
 		BLOCKINDEX seg = ( offset / BLOCK_SIZE ) + 1;
 		_os_UpdateSegmentKey( vol, cache_index, seg );
@@ -2831,6 +2834,7 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 							*/
 							file->cache = cache;
 							file->entry_fpi = vol->bufferFPI[BC(DIRECTORY)] + ((uintptr_t)(((struct directory_hash_lookup_block *)0)->entries + curName));
+							file->dir_block = this_dir_block;
 							file->_entry.name_offset = ( entry->name_offset & DIRENT_NAME_OFFSET_OFFSET ) + vfs_os_compute_data_block( vol, dirblock->names_first_block, BC( COUNT ) );
 							file->entry = entry;
 						}
@@ -2953,7 +2957,7 @@ static FPI _os_SaveFileName( struct sack_vfs_os_volume *vol, BLOCKINDEX firstNam
 	lprintf( "didn't actually save the name?" );
 }
 
-static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sack_vfs_os_file* file, int nameOffset, enum block_cache_entries nameCache ) {
+static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sack_vfs_os_file* file, int nameOffset, enum block_cache_entries nameCache, BLOCKINDEX dir_block_index ) {
 	size_t n;
 	FPI nameoffset_temp = 0;
 
@@ -3224,7 +3228,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 							// new entry is still the same timeline entry as the old entry.
 							newEntry->timelineEntry = (entry->timelineEntry     )     ;
 							// timeline points at new entry.
-							time.disk->dirent_fpi = vol->bufferFPI[newdir_cache] + sane_offsetof( struct directory_hash_lookup_block , entries[nf]);
+							time.disk->dirent_fpi = vol->bufferFPI[newdir_cache] + sane_offsetof(struct directory_hash_lookup_block, entries[nf]);
 							{
 								uint64_t index = time.disk->priorTime;
 								while( index ) {
@@ -3259,6 +3263,9 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 
 										// new entry_fpi.
 										file->entry_fpi = (FPI)time.disk->dirent_fpi; // dirent_fpi type is larger than index in some configurations; but won't exceed those bounds
+
+										//file->dir_block = time.disk->dir
+
 										lprintf( "File cache might have been wrong... (AND USED OLD ENTRY)" );
 										file->entry = newEntry;
 										file->cache = newdir_cache;
@@ -3318,7 +3325,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 							struct memoryTimelineNode time;
 							enum block_cache_entries  timeCache = BC( TIMELINE );
 							reloadTimeEntry( &time, vol, (dirblock->entries[m + offset].timelineEntry) VTReadWrite GRTENoLog DBG_SRC );
-							time.disk->dirent_fpi = vol->bufferFPI[cache] + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
+							time.disk->dirent_fpi = this_dir_block * BLOCK_SIZE /*vol->bufferFPI[cache]*/ + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
 							{
 								uint64_t index = time.disk->priorTime;
 								while( index ) {
@@ -3578,7 +3585,9 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 				}
 				SETMASK_( vol->seglock, seglock, cache, locks );
 				file->entry_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[n] );;
+				file->dir_block = this_dir_block;
 				file->_entry.name_offset = ( file->entry->name_offset & DIRENT_NAME_OFFSET_OFFSET ) + vfs_os_compute_data_block( vol, dirblock->names_first_block, BC( COUNT ) );
+				// the modern version only uses entry and cache; entry_fpi, dir_block above are unused; this dirent is locked into the caching subsystem.
 				file->entry = ent;
 				file->cache = cache;
 			}
@@ -3590,7 +3599,7 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 
 }
 
-static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sack_vfs_os_volume *vol, const char * filename, uint64_t version ) {
+static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sack_vfs_os_volume *vol, const char * filename, uint64_t version, LOGICAL create ) {
 	struct sack_vfs_os_file *file = GetFromSet( VFS_OS_FILE, &l.files );//New( struct sack_vfs_os_file );
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
@@ -3626,6 +3635,7 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 #ifdef _DEBUG
 		if( !time.disk->time ) DebugBreak();
 #endif
+		// open oldest by default, with no prior time set...
 		if( time.disk->priorTime ) {
 			BLOCKINDEX priorTime = time.disk->priorTime;
 			while( priorTime ) {
@@ -3674,7 +3684,7 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 }
 
 struct sack_vfs_os_file * CPROC sack_vfs_os_openfile( struct sack_vfs_os_volume *vol, const char * filename ) {
-	return sack_vfs_os_openfile_internal( vol, filename, 0 );
+	return sack_vfs_os_openfile_internal( vol, filename, 0, FALSE );
 }
 
 static struct sack_vfs_os_file * CPROC sack_vfs_os_open( uintptr_t psvInstance, const char * filename, const char *opts ) {
@@ -3846,6 +3856,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 				timeline->priorDataPad = (uint16_t)( file->blockChain[last].size - ( file->entry->filesize & ( file->blockChain[last].size - 1 ) ) );
 				//timeline->priorData = file->entry->first_block;
 				timeline->priorData = file->entry->first_block;
+				timeline->priorDataSize = file->entry->filesize;
 				file->entry->first_block = DIR_ALLOCATING_MARK;
 				file->entry->filesize = 0;
 				file->blockChainLength = 0;
@@ -4276,7 +4287,7 @@ static void sack_vfs_os_unlink_file_entry( struct sack_vfs_os_volume *vol, struc
 			// this deletes the allocated name
 			// it also removes the directory entry from list of entries
 			deleteTimelineIndex( vol, (BLOCKINDEX)dirinfo->entry->timelineEntry ); // timelineEntry type is larger than index in some configurations; but won't exceed those bounds
-			deleteDirectoryEntryName( vol, dirinfo, dirinfo->entry->name_offset & DIRENT_NAME_OFFSET_OFFSET, dirinfo->cache );
+			deleteDirectoryEntryName( vol, dirinfo, dirinfo->entry->name_offset & DIRENT_NAME_OFFSET_OFFSET, dirinfo->cache, dirinfo->dir_block );
 
 	}
 }
@@ -4770,15 +4781,17 @@ uintptr_t CPROC sack_vfs_os_file_ioctl_internal( struct sack_vfs_os_file* file, 
 	case SOSFSFIO_SET_TIME:
 	{
 		uint64_t timestamp = va_arg( args, uint64_t );
-		return sack_vfs_os_set_time( file, timestamp );
+		int8_t tz = va_arg( args, int8_t );
+		return sack_vfs_os_set_time( file, timestamp, tz );
 	}
 	break;
 	case SOSFSFIO_GET_TIMES:
 	{
 		uint64_t** timeArray = va_arg( args, uint64_t** );
+		int8_t** tzArray = va_arg( args, int8_t** );
 		size_t* timeCount  = va_arg( args, size_t* );
 		
-		return sack_vfs_os_get_times( file, timeArray, timeCount );
+		return sack_vfs_os_get_times( file, timeArray, tzArray, timeCount );
 	}
 	break;
 	case SOSFSFIO_SET_BLOCKSIZE:
@@ -4813,7 +4826,33 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 		{
 			const char * name = va_arg( args, const char* );
 			uint64_t version = va_arg( args, uint64_t );
-			return (uintptr_t)sack_vfs_os_openfile_internal( vol, name, version );
+			return (uintptr_t)sack_vfs_os_openfile_internal( vol, name, version, FALSE );
+		}
+		break;
+	case SOSFSSIO_NEW_VERSION:
+		{
+			const char * name = va_arg( args, const char* );
+			uint64_t version = va_arg( args, uint64_t );
+			return (uintptr_t)sack_vfs_os_openfile_internal( vol, name, 0, TRUE );
+		}
+		break;
+	case SOSFSSIO_OPEN_TIMELINE:
+		{
+			return (uintptr_t)sack_vfs_os_get_time_cursor( vol );
+		}
+		break;
+	case SOSFSSIO_READ_TIMELINE:
+		{
+			struct sack_vfs_os_time_cursor* cursor = va_arg(args, struct sack_vfs_os_time_cursor* );
+			int step = va_arg( args, int );
+			uint64_t timestamp = va_arg( args, uint64_t );
+			const char ** filename = va_arg( args, const char ** );
+			uint64_t* timestamp_result = va_arg( args, uint64_t* );
+			int8_t* tz_result = va_arg( args, int8_t* );
+			const char** buffer = va_arg( args, const char** );
+			size_t* size_result = va_arg( args, size_t* );
+			sack_vfs_os_read_time_cursor( cursor, step, timestamp, filename, timestamp_result, tz_result, buffer, size_result );
+			return TRUE;
 		}
 		break;
 	case SOSFSSIO_LOAD_OBJECT:
@@ -4950,10 +4989,13 @@ uintptr_t CPROC sack_vfs_os_system_ioctl( struct sack_vfs_os_volume* vol, uintpt
 }
 
 
-LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArray, size_t* timeCount ) {
+LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArray, int8_t** tzArray, size_t* timeCount ) {
 	if( !timeArray ) return TRUE;
-	uint64_t scratchTime;
-	PDATALIST pdlTimes = CreateDataList( sizeof( uint64_t ) );
+	struct scratchTime {
+		uint64_t scratchTime;
+		uint8_t scratchTz;
+	} scratch;
+	PDATALIST pdlTimes = CreateDataList( sizeof( scratch ) );
 	struct sack_vfs_os_volume* vol = file->vol;
 
 	struct memoryTimelineNode time;
@@ -4961,38 +5003,50 @@ LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArr
 
 	reloadTimeEntry( &time, vol, file->entry->timelineEntry VTReadWrite GRTENoLog  DBG_SRC );
 	if( !time.disk->time ) DebugBreak();
-	scratchTime = ( (time.disk->time / 1000000 ) <<8) | time.disk->timeTz;
-	AddDataItem( &pdlTimes, &scratchTime );
+	scratch.scratchTime = time.disk->time;
+	scratch.scratchTz = time.disk->timeTz;
+	AddDataItem( &pdlTimes, &scratch );
 	if( time.disk->priorTime ) {
 		BLOCKINDEX priorTime = time.disk->priorTime;
 		while( priorTime ) {
 			enum block_cache_entries cache;
 			struct storageTimelineNode* prior = getRawTimeEntry( vol, priorTime, &cache GRTENoLog DBG_SRC );
-			scratchTime = ( ( prior->time / 1000000 ) << 8 ) | prior->timeTz;
+			scratch.scratchTime = prior->time;
+			scratch.scratchTz = prior->timeTz;
 			priorTime = prior->priorTime;
 			dropRawTimeEntry( file->vol, cache GRTENoLog DBG_SRC );
-			AddDataItem( &pdlTimes, &scratchTime );
+			AddDataItem( &pdlTimes, &scratch );
 		}
 	}
 
 	dropRawTimeEntry( vol, time.diskCache GRTENoLog DBG_SRC );
 
 	timeArray[0] = NewArray( uint64_t, pdlTimes->Cnt );
-	MemCpy( timeArray[0], pdlTimes->data, pdlTimes->Cnt * sizeof( timeArray[0] ) );
+	tzArray[0] = NewArray( int8_t, pdlTimes->Cnt );
+	{
+		struct scratchTime* st;
+		INDEX idx;
+		DATA_FORALL( pdlTimes, idx, struct scratchTime*, st ) {
+			timeArray[0][idx] = st->scratchTime;
+			tzArray[0][idx] = st->scratchTz;
+		}
+	}
+	//MemCpy( timeArray[0], pdlTimes->data, pdlTimes->Cnt * sizeof( timeArray[0] ) );
 	timeCount[0] = pdlTimes->Cnt;
+	DeleteDataList( &pdlTimes );
 	return TRUE;
 
 }
 
-LOGICAL sack_vfs_os_set_time( struct sack_vfs_os_file* file, uint64_t timeVal ) {
+LOGICAL sack_vfs_os_set_time( struct sack_vfs_os_file* file, uint64_t timeVal, int8_t tz ) {
 	struct sack_vfs_os_volume* vol = file->vol;
 
 	struct memoryTimelineNode time;
 	enum block_cache_entries  timeCache = BC( TIMELINE );
 	
 	reloadTimeEntry( &time, vol, file->entry->timelineEntry VTReadWrite GRTENoLog  DBG_SRC );
-	int tz = timeVal & 0xFF;
-	timeVal = ( timeVal >> 8 ) * 1000000LL;
+	//int tz = timeVal & 0xFF;
+	//timeVal = ( timeVal >> 8 ) * 1000000LL;
 	return setTimeEntryTime( &time, vol, timeVal, tz );
 }
 

@@ -20,8 +20,9 @@
 
 #define BLOCK_SMALL_SIZE     256
 
+#define DIR_BLOCK_SIZE_BITS   12
+#define DIR_BLOCK_SIZE      (1<<DIR_BLOCK_SIZE_BITS)
 
-#define DIR_BLOCK_SIZE      4096
 #define BAT_BLOCK_SIZE      4096
 #define NAME_BLOCK_SIZE     4096
 #define KEY_SIZE            1024 

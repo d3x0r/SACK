@@ -216,6 +216,7 @@ namespace objStore {
 	struct sack_vfs_os_volume;
 	struct sack_vfs_os_file;
 	struct sack_vfs_os_find_info;
+	struct sack_vfs_os_time_cursor;
 
 	/* thse should probably be moved to sack_vfs_os.h being file system specific extensions. */
 	enum sack_object_store_file_system_file_ioctl_ops {
@@ -242,6 +243,9 @@ namespace objStore {
 		SOSFSSIO_PATCH_OBJECT,
 		SOSFSSIO_LOAD_OBJECT,
 		SOSFSSIO_OPEN_VERSION,
+		SOSFSSIO_NEW_VERSION,
+		SOSFSSIO_OPEN_TIMELINE,
+		SOSFSSIO_READ_TIMELINE,
 		//SFSIO_GET_OBJECT_ID, // get the resulting storage ID.  (Move ID creation into low level driver)
 	};
 
@@ -366,8 +370,8 @@ namespace objStore {
 
 #define sack_vfs_os_ioctl_create_index( file, indexName ) sack_vfs_os_fs_ioctl( file, SOSFSFIO_CREATE_INDEX, indexName )
 
-#define sack_vfs_os_ioctl_get_times( file, timeArray,timeCount ) sack_vfs_os_fs_ioctl( file, SOSFSFIO_GET_TIMES, timeArray,timeCount )
-#define sack_vfs_os_ioctl_set_time( file, timestamp )            sack_vfs_os_fs_ioctl( file, SOSFSFIO_SETTIME, timestamp )
+#define sack_vfs_os_ioctl_get_times( file, timeArray,tzArray,timeCount ) sack_vfs_os_fs_ioctl( file, SOSFSFIO_GET_TIMES, timeArray,tzArray,timeCount )
+#define sack_vfs_os_ioctl_set_time( file, timestamp,tz )            sack_vfs_os_fs_ioctl( file, SOSFSFIO_SETTIME, timestamp,tz )
 
 
 
@@ -458,10 +462,12 @@ SACK_VFS_PROC char * sack_vfs_os_find_get_name( struct sack_vfs_os_find_info *in
 SACK_VFS_PROC size_t sack_vfs_os_find_get_size( struct sack_vfs_os_find_info *info );
 
 // get times for the object in storage.
-SACK_VFS_PROC LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArray, size_t* timeCount );
+SACK_VFS_PROC LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArray, int8_t**tzArray, size_t* timeCount );
 
 // set last time for object in storage. (overwrites current tick used to update on write)
-SACK_VFS_PROC LOGICAL sack_vfs_os_set_time( struct sack_vfs_os_file* file, uint64_t time );
+SACK_VFS_PROC LOGICAL sack_vfs_os_set_time( struct sack_vfs_os_file* file, uint64_t time, int8_t tz );
+SACK_VFS_PROC struct sack_vfs_os_time_cursor* sack_vfs_os_get_time_cursor( struct sack_vfs_os_volume* vol );
+SACK_VFS_PROC LOGICAL sack_vfs_os_read_time_cursor( struct sack_vfs_os_time_cursor* cursor, int step, uint64_t time_, const char** filename, uint64_t* result_timestamp, int8_t* result_tz, const char** buffer, size_t* size );
 
 
 #ifdef __cplusplus

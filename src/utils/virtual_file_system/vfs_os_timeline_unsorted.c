@@ -30,26 +30,36 @@ typedef union timelineBlockType {
 	} ref;
 } TIMELINE_BLOCK_TYPE;
 
-// this is milliseconds since 1970 (unix epoc) * 256 + timezoneOffset /15 in the low byte
-typedef struct timelineTimeType {
-	int64_t tzOfs : 8;
-	uint64_t tick : 56;
-} TIMELINE_TIME_TYPE;
-
 #  ifdef _MSC_VER
 #    pragma pack (push, 1)
 #  endif
 PREFIX_PACKED struct timelineHeader {
 	TIMELINE_BLOCK_TYPE first_free_entry;
 	TIMELINE_BLOCK_TYPE crootNode_deleted;
-	TIMELINE_BLOCK_TYPE srootNode;
-	uint64_t unused[5];
+	TIMELINE_BLOCK_TYPE srootNode;  // this index is 0 when initialized, and has a +1 to the entry number.
+	TIMELINE_BLOCK_TYPE last_added_entry;
+	uint64_t unused[4];
 	//uint64_t unused2[8];
 } PACKED;
 
 // current size is 64 bytes.
 // me_fpi is the physical FPI in the timeline file of the TIMELINE_BLOCK_TYPE that references 'this' block.
 // structure defines little endian structure for storage.
+
+PREFIX_PACKED struct storageTimelineNode0 {
+	// if dirent_fpi == 0; it's free; and priorData will point at another free node
+	uint64_t dirent_fpi;
+
+	uint32_t priorTime;
+	uint16_t priorDataPad;
+	uint8_t  filler8_1; // how much of the last block in the file is not used
+
+	uint8_t  timeTz; // lesser least significant byte of time... sometimes can read time including timezone offset with time - 1 byte
+
+	uint64_t time;
+
+	uint64_t priorData; // if not 0, references a start block version of data.
+} PACKED;
 
 PREFIX_PACKED struct storageTimelineNode {
 	// if dirent_fpi == 0; it's free; and priorData will point at another free node
@@ -64,7 +74,13 @@ PREFIX_PACKED struct storageTimelineNode {
 	uint64_t time;
 
 	uint64_t priorData; // if not 0, references a start block version of data.
+
+	uint64_t nextWrite; // if not 0, references a start block version of data.
+	uint64_t priorWrite; // if not 0, references a start block version of data.
+	uint64_t priorDataSize; // This is the actual size of the data starting at block priorData
+	uint64_t filler64_2; // if not 0, references a start block version of data.
 } PACKED;
+
 #  ifdef _MSC_VER
 #    pragma pack (pop)
 #  endif
@@ -83,6 +99,11 @@ struct memoryTimelineNode {
 struct storageTimelineCursor {
 	PDATASTACK parentNodes;  // save stack of parents in cursor
 	struct storageTimelineCache dirents; // temp; needs work.
+};
+
+struct sack_vfs_os_time_cursor {
+	struct sack_vfs_os_volume* vol;
+	uint64_t at;
 };
 
 #  ifdef _MSC_VER
@@ -235,10 +256,102 @@ void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 // Timeline Support Functions
 //-----------------------------------------------------------------------------------
 void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, LOGICAL drop DBG_PASS ) {
-	SMUDGECACHE( vol, time->diskCache );
+	if( time ) {
+		SMUDGECACHE( vol, time->diskCache );
+		// time changed...(maybe?)
+		{
+			uint64_t myself;
+			struct storageTimelineNode* prev;
+			enum block_cache_entries_os cache;
+			if( time->disk->priorWrite ) {
+				prev = getRawTimeEntry( vol, time->disk->priorWrite, &cache GRTENoLog DBG_RELAY );
+			} else prev = NULL;
+			struct storageTimelineNode* next;
+			if( time->disk->nextWrite ) {
+				next = getRawTimeEntry( vol, time->disk->nextWrite, &cache GRTENoLog DBG_RELAY );
+			} else next = NULL;
+
+			if( next && ( next->time < time->disk->time ) ) {
+				myself = next->priorWrite;
+				if( prev )
+					prev->nextWrite = time->disk->nextWrite;
+				else {
+					vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
+					SMUDGECACHE( vol, vol->timelineCache );
+				}
+
+				next->priorWrite = time->disk->priorWrite;
+				while( ( prev = next ),
+					( next = getRawTimeEntry( vol, prev->nextWrite, &cache GRTENoLog DBG_RELAY ) )
+					) {
+					if( !next->nextWrite ) {
+						if( next->time < time->disk->time ) {
+							next->nextWrite = myself;
+							time->disk->priorWrite = prev->nextWrite;
+							time->disk->nextWrite = 0;
+
+							// if this is the new end of the list, update the last entry....
+							vol->timeline->header.last_added_entry.ref.index = myself;
+							SMUDGECACHE( vol, vol->timelineCache );
+							break; // done. (at end anyway)
+						}
+					}
+
+					if( next->time > time->disk->time ) {
+						time->disk->nextWrite = prev->nextWrite;
+						time->disk->priorWrite = next->priorWrite;
+						prev->nextWrite = myself;
+						next->priorWrite = myself;
+						break;
+					}
+				}
+			} else if( prev && ( prev->time > time->disk->time ) ) {
+				myself = prev->nextWrite;
+				if( !(prev->nextWrite = time->disk->nextWrite) ) 	{
+					vol->timeline->header.last_added_entry.ref.index = time->disk->priorWrite;
+					SMUDGECACHE( vol, vol->timelineCache );
+				}
+				if( next )
+					next->priorWrite = time->disk->priorWrite;
+
+				while( next = prev ) {
+					if( !next->priorWrite ) {
+						next->priorWrite = myself;
+						time->disk->nextWrite = vol->timeline->header.srootNode.ref.index;
+						time->disk->priorWrite = 0;
+						vol->timeline->header.srootNode.ref.index = myself;
+						SMUDGECACHE( vol, vol->timelineCache );
+						break;
+					} else
+						( prev = getRawTimeEntry( vol, next->priorWrite, &cache GRTENoLog DBG_RELAY ) );
+					if( !prev->priorWrite ) {
+						if( prev->time > time->disk->time ) {
+							prev->priorWrite = myself;
+							time->disk->priorWrite = 0;
+							time->disk->nextWrite = next->priorWrite;
+							break; // done. (at end anyway)
+						}
+					}
+
+					if( prev->time < time->disk->time ) {
+						time->disk->nextWrite = prev->nextWrite;
+						time->disk->priorWrite = next->priorWrite;
+						prev->nextWrite = myself;
+						next->priorWrite = myself;
+						break;
+					}
+				}
+			} else {
+				// didn't have to move anything... maybe it's time is still the same relative to everything?
+			}
+
+		}
+	}
+
 	if( drop ) {
 		int locks;
-		locks = GETMASK_( vol->seglock, seglock, time->diskCache );
+		int bit = time->diskCache;
+		locks = GETMASK_( vol->seglock, seglock, bit );
 #ifdef DEBUG_TEST_LOCKS
 #ifdef DEBUG_LOG_LOCKS
 		lprintf( "Unlock %d %d", time->diskCache, locks );
@@ -249,7 +362,7 @@ void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 		}
 #endif
 		locks--;
-		SETMASK_( vol->seglock, seglock, time->diskCache, locks );
+		SETMASK_( vol->seglock, seglock, bit, locks );
 	}
 }
 
@@ -261,11 +374,11 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 	struct directory_hash_lookup_block* dirblock;
 	//struct directory_hash_lookup_block* dirblockkey;
 	PDATASTACK pdsChars = CreateDataStack( 1 );
-	BLOCKINDEX this_dir_block = (time->disk->dirent_fpi >> BLOCK_BYTE_SHIFT);
+	BLOCKINDEX this_dir_block = (time->disk->dirent_fpi >> DIR_BLOCK_SIZE_BITS )-1;
 	BLOCKINDEX next_block;
 	dirblock = BTSEEK( struct directory_hash_lookup_block*, vol, this_dir_block, DIR_BLOCK_SIZE, cache );
 	//dirblockkey = (struct directory_hash_lookup_block*)vol->usekey[cache];
-	dirent = (struct directory_entry*)(((uintptr_t)dirblock) + (time->disk->dirent_fpi & BLOCK_SIZE));
+	dirent = (struct directory_entry*)( ( (uintptr_t)dirblock ) + ( time->disk->dirent_fpi & ( DIR_BLOCK_SIZE - 1 ) ) );
 	//entkey = (struct directory_entry*)(((uintptr_t)dirblockkey) + (time->dirent_fpi & BLOCK_SIZE));
 
 	decoded_dirent->vol = vol;
@@ -404,22 +517,53 @@ BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vol
 	TIMELINE_BLOCK_TYPE freeIndex;
 	BLOCKINDEX index;
 	BLOCKINDEX priorIndex = (BLOCKINDEX)time->index; // ref.index type is larger than index in some configurations; but won't exceed those bounds
+	BLOCKINDEX lastIndex = timeline->header.last_added_entry.ref.index;
 
 	freeIndex.ref.index = timeline->header.first_free_entry.ref.index;
 
 	// update next free.
 	reloadTimeEntry( time, vol, index = (BLOCKINDEX)freeIndex.ref.index VTReadWrite GRTELog DBG_RELAY ); // ref.index type is larger than index in some configurations; but won't exceed those bounds
 
-	timeline->header.first_free_entry.ref.index = timeline->header.first_free_entry.ref.index + 1;
+	if( !timeline->header.srootNode.ref.index )
+		timeline->header.srootNode.ref.index = 1;
 
-	SMUDGECACHE( vol, vol->timelineCache );
+	timeline->header.first_free_entry.ref.index = timeline->header.first_free_entry.ref.index + 1;
 
 	// make sure the new entry is emptied.
 	//time->disk->me_fpi = 0;
 	time->disk->dirent_fpi = 0;
 	time->disk->priorTime = 0;
 	time->disk->priorData = 0;
-	time->disk->time = timeGetTime64ns();
+	time->disk->priorDataSize = 0;
+	if( lastIndex )
+	{
+		enum block_cache_entries cache_near = BC( TIMELINE );
+		struct storageTimelineNode* last = getRawTimeEntry( vol, lastIndex, &cache_near GRTENoLog DBG_RELAY );
+		if( !last->nextWrite ) {
+			last->nextWrite = index;
+			// updated a value here...
+			SMUDGECACHE( vol, cache_near );
+		} else {
+			lprintf( "Shouldn't have to find what the last node in the chain is...." );
+			/*
+			dropRawTimeEntry( vol, cache_near GRTENoLog DBG_RELAY ); 
+			while( last = getRawTimeEntry( vol, last->nextWrite, &cache_near GRTENoLog DBG_RELAY ) ) {
+				dropRawTimeEntry( vol, cache_near );
+				if( !last->nextWrite ) {
+					last->nextWrite = index;
+					break;
+				}
+			}
+			*/
+		}
+		dropRawTimeEntry( vol, cache_near GRTENoLog DBG_RELAY );
+	}
+	time->disk->priorWrite = lastIndex;
+	time->disk->nextWrite = 0;
+	time->disk->time = timeGetTime64ns(); // there really shouldn't be any times after this one....
+	timeline->header.last_added_entry.ref.index = index;
+
+	SMUDGECACHE( vol, vol->timelineCache );
 
 	{
 		int tz = GetTimeZone();
@@ -450,11 +594,12 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 		if( time ) {
 			uint64_t inputIndex = time ? time->index : index;
 			// gets a new timestamp.
-			enum block_cache_entries inputCache = time ? time->diskCache : BC( ZERO );
+			//enum block_cache_entries inputCache = time ? time->diskCache : BC( ZERO );
 			BLOCKINDEX newIndex = getTimeEntry( time, vol, TRUE, init, psv DBG_RELAY );
 			time->disk->priorTime = (uint32_t)inputIndex;
+
 			updateTimeEntry( time, vol, FALSE DBG_RELAY );
-			dropRawTimeEntry( vol, inputCache GRTELog DBG_RELAY );
+			//dropRawTimeEntry( vol, inputCache GRTELog DBG_RELAY );
 			return newIndex;
 		}
 		else {
@@ -511,3 +656,122 @@ LOGICAL setTimeEntryTime( struct memoryTimelineNode* time
 		return TRUE;
 	}
 }
+
+struct sack_vfs_os_time_cursor* sack_vfs_os_get_time_cursor( struct sack_vfs_os_volume *vol ) {
+	struct sack_vfs_os_time_cursor* cursor;
+	cursor = New( struct sack_vfs_os_time_cursor );
+	cursor->vol = vol;
+	cursor->at = 0;
+	return cursor;
+}
+
+
+//--------------------------------
+//  read TIme Cursor reads/steps the cursor...
+//    step==0 && time === 0 && at === 0 ; start at the start of timeline.
+//    step==0 && time === N ; seek to time N, update at to the found record
+//    step==1 && time === N ; seek to record N, update at to the time at the indexed record
+//
+
+ LOGICAL sack_vfs_os_read_time_cursor( struct sack_vfs_os_time_cursor* cursor, int step, uint64_t time, const char**filename
+	 , uint64_t *result_timestamp, int8_t *result_tz, const char**buffer, size_t *size ) {
+	 static char* dataBuffer;
+	 static size_t bufsize;
+	 //uint64_t time = (time_ >> 8) * 1000000;
+
+	 enum block_cache_entries_os cache; // last raw entry cache
+	 LOGICAL dropCache = FALSE;
+	 uint64_t entry = 0; // used as the record found indicator.
+
+	 if( step == 2 ) {
+		 entry = cursor->at;
+		 //cursor->at++;
+	 }
+	 if( step == 1 ) {
+		 if( !time ) {
+			 cursor->at = entry = cursor->vol->timeline->header.srootNode.ref.index;
+		 }else
+			cursor->at = entry = time;
+	 }
+
+	 if( step == 0 ) {
+		 // if( !time_ )
+		 if( !cursor->at ) {
+			 struct storageTimelineNode* timeNode = getRawTimeEntry( cursor->vol, entry+1, &cache GRTENoLog DBG_SRC );
+			 while( timeNode && timeNode->time < time ) {
+				 uint64_t next = timeNode->nextWrite;
+				 dropRawTimeEntry( cursor->vol, cache  GRTENoLog DBG_SRC );
+				 if( next ) timeNode = getRawTimeEntry( cursor->vol, next, &cache GRTENoLog DBG_SRC );
+				 else timeNode = NULL;
+				 cursor->at = next + 1;
+			 }
+			 if( !timeNode )
+				return FALSE;
+			 dropCache = TRUE;
+		 } else {
+			 struct storageTimelineNode* timeNode = getRawTimeEntry( cursor->vol, cursor->at, &cache GRTENoLog DBG_SRC );
+			 if( timeNode ) {
+				 uint64_t next = timeNode->nextWrite;
+				 dropRawTimeEntry( cursor->vol, cache  GRTENoLog DBG_SRC );
+				 if( next ) timeNode = getRawTimeEntry( cursor->vol, next, &cache GRTENoLog DBG_SRC );
+				 else timeNode = NULL;
+				 cursor->at = next + 1;
+			 } else return FALSE;
+			 dropCache = TRUE;
+		 }
+	 }
+
+	 if( entry )
+	 {
+		 LOGICAL retVal = TRUE;
+		 {
+			struct memoryTimelineNode memEntry;
+
+			reloadTimeEntry( &memEntry, cursor->vol, entry GRTENoLog DBG_SRC );
+			if( memEntry.disk->dirent_fpi ) {
+				cursor->at = memEntry.disk->nextWrite;
+				struct sack_vfs_os_find_info decoded_dirent;
+				reloadDirectoryEntry( cursor->vol, &memEntry, &decoded_dirent DBG_SRC );
+
+				if( result_tz ) {
+					result_tz[0] = memEntry.disk->timeTz;
+				}
+				if( result_timestamp ) {
+					result_timestamp[0] = memEntry.disk->time;
+				}
+
+				if( filename ) {
+					filename[0] = StrDup( decoded_dirent.filename );
+				}
+				if( size ) {
+					size[0] = decoded_dirent.filesize;
+
+					if( buffer ) {
+						if( bufsize < size[0] ) {
+							dataBuffer = (char*)Reallocate( dataBuffer, size[0] );
+						}
+						buffer[0] = dataBuffer;
+
+						{
+							// there might be a more optimal method of doing this; but this is easy to read.
+							struct sack_vfs_file* file = sack_vfs_os_openfile( cursor->vol, decoded_dirent.filename );
+							sack_vfs_os_read( file, dataBuffer, size[0] );
+							sack_vfs_os_close( file );
+						}
+					}
+				}
+			} else
+				retVal = FALSE;
+			dropRawTimeEntry( cursor->vol, memEntry.diskCache GRTENoLog DBG_SRC );
+
+			if( dropCache )
+				dropRawTimeEntry( cursor->vol, cache  GRTENoLog DBG_SRC );
+		 }
+		 return retVal;
+		 //cursor->at = time;
+	}
+
+
+	 return FALSE;
+}
+
