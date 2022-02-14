@@ -34,7 +34,7 @@ set( VFSFSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_fs.cc )
 set( VFSOSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os.cc )
 set( VFSOSIPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os_index.c )
 set( VFSOSTPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os_timeline.c )
-set( VFSOSTPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os_timeline_unsorted.c )
+set( VFSOSTUPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os_timeline_unsorted.c )
 set( VFSPPH ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_internal.h )
 
        add_custom_command( OUTPUT ${VFSPP}
@@ -62,6 +62,11 @@ set( VFSPPH ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_internal.h )
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/vfs_os_timeline.c ${VFSOSTPP}
                            COMMAND ${CMAKE_COMMAND} -E touch ${VFSOSTPP}
                            )
+       add_custom_command( OUTPUT ${VFSOSTUPP}
+                           DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vfs_os_timeline_unsorted.c
+                           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/vfs_os_timeline_unsorted.c ${VFSOSTUPP}
+                           COMMAND ${CMAKE_COMMAND} -E touch ${VFSOSTUPP}
+                           )
        add_custom_command( OUTPUT ${VFSPPH}
                            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vfs_internal.h
                            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/vfs_internal.h ${VFSPPH}
@@ -73,7 +78,7 @@ sack_add_library( ${PROJECT} SHARED ${VFSPP} ${VFSFSPP} ${VFSOSPP} ${VFSPPH} )
 
 add_custom_target(
     generate-foo
-    DEPENDS ${VFSOSIPP} ${VFSOSTPP} ${VFSPPH}
+    DEPENDS ${VFSOSIPP} ${VFSOSTPP} ${VFSOSTUPP} ${VFSPPH}
     )
 add_dependencies( ${PROJECT} generate-foo )
 

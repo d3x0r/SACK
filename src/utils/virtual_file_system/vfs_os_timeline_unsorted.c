@@ -159,6 +159,7 @@ struct storageTimelineNode* getRawTimeEntry( struct sack_vfs_os_volume* vol, uin
 	cache[0] = BC( TIMELINE );
 	FPI pos = sane_offsetof( struct storageTimeline, entries[timeEntry - 1] );
 	struct storageTimelineNode* node = ( struct storageTimelineNode* )vfs_os_FSEEK( vol, vol->timeline_file, 0/*no block*/, pos, cache, TIME_BLOCK_SIZE DBG_SRC );
+	//_lprintf(DBG_RELAY)( "Load Entry %d", (int)timeEntry );
 
 	locks = GETMASK_( vol->seglock, seglock, cache[0] );
 #ifdef DEBUG_TEST_LOCKS
@@ -208,6 +209,7 @@ void dropRawTimeEntry( struct sack_vfs_os_volume* vol, enum block_cache_entries 
 	SETMASK_( vol->seglock, seglock, cache, locks );
 }
 
+
 void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, uint64_t timeEntry
 #ifdef DEBUG_VALIDATE_TREE
 	, LOGICAL readOnly
@@ -226,6 +228,7 @@ void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 	//if( timeEntry > 62 )DebugBreak();
 	int locks;
 	FPI pos = sane_offsetof( struct storageTimeline, entries[timeEntry - 1] );
+	//lprintf( "Read Entry %d", (int)timeEntry );
 	struct storageTimelineNode* node = ( struct storageTimelineNode* )vfs_os_FSEEK( vol, vol->timeline_file, 0/*no block*/, pos, &cache, TIME_BLOCK_SIZE DBG_RELAY );
 	locks = GETMASK_( vol->seglock, seglock, cache );
 #ifdef DEBUG_TEST_LOCKS
@@ -251,7 +254,162 @@ void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 
 }
 
+#if 0
+// didn't actually have to use this.
+static void dumpTimeline( struct sack_vfs_os_volume* vol ) {
+	lprintf( "--- Timeline ----" );
+	lprintf( "root %lld last %lld free %lld", vol->timeline->header.srootNode.raw, vol->timeline->header.last_added_entry.raw, vol->timeline->header.first_free_entry.raw );
+	int entry;
+	enum block_cache_entries_os cache = BC( TIMELINE );
+	struct storageTimelineNode* block;
+	for( entry = 0; entry != vol->timeline->header.first_free_entry.raw; entry++ ) {
+		block = getRawTimeEntry( vol, entry, &cache GRTENoLog DBG_SRC );
+		lprintf( "Entry %d  de:%lld prev:%lld next:%lld time:%lld tz:%d", entry, block->dirent_fpi, block->priorWrite, block->nextWrite, block->time, block->timeTz );
+		dropRawTimeEntry( vol, cache GRTENoLog DBG_SRC );
+	}
+}
+#endif
 
+
+//-----------------------------------------------------------------------------------
+// Timeline Support Functions
+//-----------------------------------------------------------------------------------
+
+static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol DBG_PASS ) {
+	if( time ) {
+		// time changed...(maybe?)
+		{
+			uint64_t myself = time->index;
+			struct storageTimelineNode* prev;
+			enum block_cache_entries_os cache, _cache = BC(ZERO);
+			if( time->disk->priorWrite ) {
+				prev = getRawTimeEntry( vol, time->disk->priorWrite, &cache GRTENoLog DBG_RELAY );
+			} else { prev = NULL; cache = BC(ZERO); }
+
+			enum block_cache_entries_os cache2, _cache2 = BC(ZERO);
+			struct storageTimelineNode* next;
+			if( time->disk->nextWrite ) {
+				next = getRawTimeEntry( vol, time->disk->nextWrite, &cache2 GRTENoLog DBG_RELAY );
+			} else { next = NULL; cache2 = BC(ZERO); }
+
+			enum block_cache_entries_os cache3;
+			struct storageTimelineNode* last;
+			last = getRawTimeEntry( vol, vol->timeline->header.last_added_entry.ref.index, &cache3 GRTENoLog DBG_SRC );
+			if( last && last->time < time->disk->time ) {
+				last->nextWrite = myself;
+				time->disk->priorWrite = vol->timeline->header.last_added_entry.ref.index;
+				time->disk->nextWrite = 0;
+				// if this is the new end of the list, update the last entry....
+				vol->timeline->header.last_added_entry.ref.index = myself;
+				SMUDGECACHE( vol, vol->timelineCache );
+				if( prev ) dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+				if( next ) dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+				if( last ) dropRawTimeEntry( vol, cache3 GRTENoLog DBG_RELAY );
+				return;
+			}
+
+
+			if( next && ( next->time < time->disk->time ) ) {
+				//myself = next->priorWrite;
+				if( prev )
+					prev->nextWrite = time->disk->nextWrite;
+				else {
+					vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
+					SMUDGECACHE( vol, vol->timelineCache );
+				}
+
+				next->priorWrite = time->disk->priorWrite;
+				while( ( prev = next ), (_cache? dropRawTimeEntry(vol,_cache GRTENoLog DBG_RELAY ):0), ( _cache=cache ), (cache=BC(TIMELINE)),
+					( next = getRawTimeEntry( vol, prev->nextWrite, &cache GRTENoLog DBG_SRC ) )
+					) {
+					if( !next->nextWrite ) {
+						if( next->time < time->disk->time ) {
+
+							next->nextWrite = myself;
+							time->disk->priorWrite = prev->nextWrite;
+							time->disk->nextWrite = 0;
+
+							// if this is the new end of the list, update the last entry....
+							vol->timeline->header.last_added_entry.ref.index = myself;
+							SMUDGECACHE( vol, vol->timelineCache );
+							break; // done. (at end anyway)
+						}
+					}
+
+					if( next->time > time->disk->time ) {
+						time->disk->nextWrite = prev->nextWrite;
+						time->disk->priorWrite = next->priorWrite;
+						prev->nextWrite = myself;
+						next->priorWrite = myself;
+						dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+						if( cache2 ) dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+						break;
+					} else {
+						if( !next->nextWrite ) {
+							next->nextWrite = myself;
+							time->disk->priorWrite = prev->nextWrite;
+							time->disk->nextWrite = 0;
+							// if this is the new end of the list, update the last entry....
+							vol->timeline->header.last_added_entry.ref.index = myself;
+							SMUDGECACHE( vol, vol->timelineCache );
+							dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+							if( cache2 ) dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+							break;
+						}
+					}
+				}
+			} else if( prev && ( prev->time > time->disk->time ) ) {
+				//myself = prev->nextWrite;
+				if( !( prev->nextWrite = time->disk->nextWrite ) ) {
+					vol->timeline->header.last_added_entry.ref.index = time->disk->priorWrite;
+					SMUDGECACHE( vol, vol->timelineCache );
+				}
+				if( next )
+					next->priorWrite = time->disk->priorWrite;
+
+				while( (next = prev ), ( _cache2 ? dropRawTimeEntry( vol, _cache2 GRTENoLog DBG_RELAY ) : 0 ), ( _cache2 = cache2 ), ( cache2 = BC( TIMELINE ) ) ) {
+					if( !next->priorWrite ) {
+						next->priorWrite = myself;
+						time->disk->nextWrite = vol->timeline->header.srootNode.ref.index;
+						time->disk->priorWrite = 0;
+						vol->timeline->header.srootNode.ref.index = myself;
+						SMUDGECACHE( vol, vol->timelineCache );
+						if( cache ) dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+						dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+						break;
+					} else {
+						( prev = getRawTimeEntry( vol, next->priorWrite, &cache2 GRTENoLog DBG_SRC ) );
+					}
+					if( !prev->priorWrite ) {
+						if( prev->time > time->disk->time ) {
+							// new root node...
+							vol->timeline->header.srootNode.ref.index = prev->priorWrite = myself;
+							SMUDGECACHE( vol, vol->timelineCache );
+							time->disk->priorWrite = 0;
+							time->disk->nextWrite = next->priorWrite;
+							if( cache ) dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+							dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+							break; // done. (at end anyway)
+						}
+					}
+
+					if( prev->time < time->disk->time ) {
+						time->disk->nextWrite = prev->nextWrite;
+						time->disk->priorWrite = next->priorWrite;
+						prev->nextWrite = myself;
+						next->priorWrite = myself;
+						if( cache ) dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+						dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+						break;
+					}
+				}
+			} else {
+				// didn't have to move anything... maybe it's time is still the same relative to everything?
+			}
+
+		}
+	}
+}
 //-----------------------------------------------------------------------------------
 // Timeline Support Functions
 //-----------------------------------------------------------------------------------
@@ -259,6 +417,7 @@ void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 	if( time ) {
 		SMUDGECACHE( vol, time->diskCache );
 		// time changed...(maybe?)
+#if 0
 		{
 			uint64_t myself;
 			struct storageTimelineNode* prev;
@@ -282,7 +441,7 @@ void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 
 				next->priorWrite = time->disk->priorWrite;
 				while( ( prev = next ),
-					( next = getRawTimeEntry( vol, prev->nextWrite, &cache GRTENoLog DBG_RELAY ) )
+					( next = getRawTimeEntry( vol, prev->nextWrite, &cache GRTENoLog DBG_SRC ) )
 					) {
 					if( !next->nextWrite ) {
 						if( next->time < time->disk->time ) {
@@ -303,6 +462,16 @@ void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 						prev->nextWrite = myself;
 						next->priorWrite = myself;
 						break;
+					} else {
+						if( !next->nextWrite ) {
+							next->nextWrite = myself;
+							time->disk->priorWrite = prev->nextWrite;
+							time->disk->nextWrite = 0;
+							// if this is the new end of the list, update the last entry....
+							vol->timeline->header.last_added_entry.ref.index = myself;
+							SMUDGECACHE( vol, vol->timelineCache );
+							break;
+						}
 					}
 				}
 			} else if( prev && ( prev->time > time->disk->time ) ) {
@@ -323,10 +492,12 @@ void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 						SMUDGECACHE( vol, vol->timelineCache );
 						break;
 					} else
-						( prev = getRawTimeEntry( vol, next->priorWrite, &cache GRTENoLog DBG_RELAY ) );
+						( prev = getRawTimeEntry( vol, next->priorWrite, &cache GRTENoLog DBG_SRC ) );
 					if( !prev->priorWrite ) {
 						if( prev->time > time->disk->time ) {
-							prev->priorWrite = myself;
+							// new root node...
+							vol->timeline->header.srootNode.ref.index = prev->priorWrite = myself;
+							SMUDGECACHE( vol, vol->timelineCache );
 							time->disk->priorWrite = 0;
 							time->disk->nextWrite = next->priorWrite;
 							break; // done. (at end anyway)
@@ -344,8 +515,8 @@ void updateTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 			} else {
 				// didn't have to move anything... maybe it's time is still the same relative to everything?
 			}
-
 		}
+#endif
 	}
 
 	if( drop ) {
@@ -673,105 +844,94 @@ struct sack_vfs_os_time_cursor* sack_vfs_os_get_time_cursor( struct sack_vfs_os_
 //    step==1 && time === N ; seek to record N, update at to the time at the indexed record
 //
 
- LOGICAL sack_vfs_os_read_time_cursor( struct sack_vfs_os_time_cursor* cursor, int step, uint64_t time, const char**filename
-	 , uint64_t *result_timestamp, int8_t *result_tz, const char**buffer, size_t *size ) {
-	 static char* dataBuffer;
-	 static size_t bufsize;
-	 //uint64_t time = (time_ >> 8) * 1000000;
+LOGICAL sack_vfs_os_read_time_cursor( struct sack_vfs_os_time_cursor* cursor, int step, uint64_t time, uint64_t* result_entry, const char**filename
+	, uint64_t *result_timestamp, int8_t *result_tz, const char**buffer, size_t *size ) {
+	static char* dataBuffer;
+	static size_t bufsize;
+	//uint64_t time = (time_ >> 8) * 1000000;
 
-	 enum block_cache_entries_os cache; // last raw entry cache
-	 LOGICAL dropCache = FALSE;
-	 uint64_t entry = 0; // used as the record found indicator.
+	enum block_cache_entries_os cache; // last raw entry cache
+	LOGICAL dropCache = FALSE;
+	uint64_t entry = 0; // used as the record found indicator.
 
-	 if( step == 2 ) {
-		 entry = cursor->at;
-		 //cursor->at++;
-	 }
-	 if( step == 1 ) {
-		 if( !time ) {
-			 cursor->at = entry = cursor->vol->timeline->header.srootNode.ref.index;
-		 }else
+	if( step == 2 ) {
+		entry = cursor->at;
+	}
+	else if( step == 1 ) {
+		if( !time ) {
+			cursor->at = entry = cursor->vol->timeline->header.srootNode.ref.index;
+		}else
 			cursor->at = entry = time;
-	 }
+	}
 
-	 if( step == 0 ) {
-		 // if( !time_ )
-		 if( !cursor->at ) {
-			 struct storageTimelineNode* timeNode = getRawTimeEntry( cursor->vol, entry+1, &cache GRTENoLog DBG_SRC );
-			 while( timeNode && timeNode->time < time ) {
-				 uint64_t next = timeNode->nextWrite;
-				 dropRawTimeEntry( cursor->vol, cache  GRTENoLog DBG_SRC );
-				 if( next ) timeNode = getRawTimeEntry( cursor->vol, next, &cache GRTENoLog DBG_SRC );
-				 else timeNode = NULL;
-				 cursor->at = next + 1;
-			 }
-			 if( !timeNode )
-				return FALSE;
-			 dropCache = TRUE;
-		 } else {
-			 struct storageTimelineNode* timeNode = getRawTimeEntry( cursor->vol, cursor->at, &cache GRTENoLog DBG_SRC );
-			 if( timeNode ) {
-				 uint64_t next = timeNode->nextWrite;
-				 dropRawTimeEntry( cursor->vol, cache  GRTENoLog DBG_SRC );
-				 if( next ) timeNode = getRawTimeEntry( cursor->vol, next, &cache GRTENoLog DBG_SRC );
-				 else timeNode = NULL;
-				 cursor->at = next + 1;
-			 } else return FALSE;
-			 dropCache = TRUE;
-		 }
-	 }
+	else if( step == 0 ) {
+		// if( !time_ )
+		struct storageTimelineNode* timeNode = getRawTimeEntry( cursor->vol, cursor->vol->timeline->header.srootNode.ref.index, &cache GRTENoLog DBG_SRC );
+		while( timeNode && timeNode->time < time ) {
+			uint64_t next = timeNode->nextWrite;
+			dropRawTimeEntry( cursor->vol, cache  GRTENoLog DBG_SRC );
+			if( next ) timeNode = getRawTimeEntry( cursor->vol, next, &cache GRTENoLog DBG_SRC );
+			else timeNode = NULL;
+			entry = next;
+		}
+		if( !timeNode )
+			return FALSE;
+		dropCache = TRUE;
+	}
 
-	 if( entry )
-	 {
-		 LOGICAL retVal = TRUE;
-		 {
-			struct memoryTimelineNode memEntry;
+	if( entry )
+	{
+		LOGICAL retVal = TRUE;
+		{
+		struct memoryTimelineNode memEntry;
 
-			reloadTimeEntry( &memEntry, cursor->vol, entry GRTENoLog DBG_SRC );
-			if( memEntry.disk->dirent_fpi ) {
-				cursor->at = memEntry.disk->nextWrite;
-				struct sack_vfs_os_find_info decoded_dirent;
-				reloadDirectoryEntry( cursor->vol, &memEntry, &decoded_dirent DBG_SRC );
+		reloadTimeEntry( &memEntry, cursor->vol, entry GRTENoLog DBG_SRC );
+		if( memEntry.disk->dirent_fpi ) {
+			cursor->at = memEntry.disk->nextWrite;
+			struct sack_vfs_os_find_info decoded_dirent;
+			reloadDirectoryEntry( cursor->vol, &memEntry, &decoded_dirent DBG_SRC );
+			if( result_entry ) {
+				result_entry[0] = memEntry.index;
+			}
+			if( result_tz ) {
+				result_tz[0] = memEntry.disk->timeTz;
+			}
+			if( result_timestamp ) {
+				result_timestamp[0] = memEntry.disk->time;
+			}
 
-				if( result_tz ) {
-					result_tz[0] = memEntry.disk->timeTz;
-				}
-				if( result_timestamp ) {
-					result_timestamp[0] = memEntry.disk->time;
-				}
+			if( filename ) {
+				filename[0] = StrDup( decoded_dirent.filename );
+			}
+			if( size ) {
+				size[0] = decoded_dirent.filesize;
 
-				if( filename ) {
-					filename[0] = StrDup( decoded_dirent.filename );
-				}
-				if( size ) {
-					size[0] = decoded_dirent.filesize;
-
-					if( buffer ) {
-						if( bufsize < size[0] ) {
-							dataBuffer = (char*)Reallocate( dataBuffer, size[0] );
-						}
-						buffer[0] = dataBuffer;
-
-						{
-							// there might be a more optimal method of doing this; but this is easy to read.
-							struct sack_vfs_file* file = sack_vfs_os_openfile( cursor->vol, decoded_dirent.filename );
-							sack_vfs_os_read( file, dataBuffer, size[0] );
-							sack_vfs_os_close( file );
-						}
+				if( buffer ) {
+					if( bufsize < size[0] ) {
+						dataBuffer = (char*)Reallocate( dataBuffer, size[0] );
+					}
+					buffer[0] = dataBuffer;
+					{
+						// there might be a more optimal method of doing this; but this is easy to read.
+						struct sack_vfs_file* file = sack_vfs_os_openfile( cursor->vol, decoded_dirent.filename );
+						sack_vfs_os_read( file, dataBuffer, size[0] );
+						sack_vfs_os_close( file );
 					}
 				}
-			} else
-				retVal = FALSE;
-			dropRawTimeEntry( cursor->vol, memEntry.diskCache GRTENoLog DBG_SRC );
+			}
+		} else
+			retVal = FALSE;
 
-			if( dropCache )
-				dropRawTimeEntry( cursor->vol, cache  GRTENoLog DBG_SRC );
-		 }
-		 return retVal;
-		 //cursor->at = time;
+		dropRawTimeEntry( cursor->vol, memEntry.diskCache GRTENoLog DBG_SRC );
+
+		if( dropCache )
+			dropRawTimeEntry( cursor->vol, cache  GRTENoLog DBG_SRC );
+		}
+		return retVal;
+		//cursor->at = time;
 	}
 
 
-	 return FALSE;
+	return FALSE;
 }
 

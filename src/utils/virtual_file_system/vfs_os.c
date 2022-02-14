@@ -4846,12 +4846,13 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 			struct sack_vfs_os_time_cursor* cursor = va_arg(args, struct sack_vfs_os_time_cursor* );
 			int step = va_arg( args, int );
 			uint64_t timestamp = va_arg( args, uint64_t );
+			uint64_t* result_entry = va_arg( args, uint64_t* );
 			const char ** filename = va_arg( args, const char ** );
 			uint64_t* timestamp_result = va_arg( args, uint64_t* );
 			int8_t* tz_result = va_arg( args, int8_t* );
 			const char** buffer = va_arg( args, const char** );
 			size_t* size_result = va_arg( args, size_t* );
-			sack_vfs_os_read_time_cursor( cursor, step, timestamp, filename, timestamp_result, tz_result, buffer, size_result );
+			sack_vfs_os_read_time_cursor( cursor, step, timestamp, result_entry, filename, timestamp_result, tz_result, buffer, size_result );
 			return TRUE;
 		}
 		break;
