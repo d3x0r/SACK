@@ -6,6 +6,7 @@
 //#define INVERSE_TEST
 //#define DEBUG_DELETE_BALANCE
 
+//#define DEBUG_TIMELINE_REORDER_LOGGING
 
 //#define DEBUG_AVL_DETAIL
 
@@ -254,7 +255,8 @@ void reloadTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume
 
 }
 
-#if 0
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+
 // didn't actually have to use this.
 static void dumpTimeline( struct sack_vfs_os_volume* vol ) {
 	lprintf( "--- Timeline ----" );
@@ -262,7 +264,7 @@ static void dumpTimeline( struct sack_vfs_os_volume* vol ) {
 	int entry;
 	enum block_cache_entries_os cache = BC( TIMELINE );
 	struct storageTimelineNode* block;
-	for( entry = 0; entry != vol->timeline->header.first_free_entry.raw; entry++ ) {
+	for( entry = 1; entry != vol->timeline->header.first_free_entry.raw; entry++ ) {
 		block = getRawTimeEntry( vol, entry, &cache GRTENoLog DBG_SRC );
 		lprintf( "Entry %d  de:%lld prev:%lld next:%lld time:%lld tz:%d", entry, block->dirent_fpi, block->priorWrite, block->nextWrite, block->time, block->timeTz );
 		dropRawTimeEntry( vol, cache GRTENoLog DBG_SRC );
@@ -275,7 +277,7 @@ static void dumpTimeline( struct sack_vfs_os_volume* vol ) {
 // Timeline Support Functions
 //-----------------------------------------------------------------------------------
 
-static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol DBG_PASS ) {
+static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, int toEnd DBG_PASS ) {
 	if( time ) {
 		// time changed...(maybe?)
 		{
@@ -292,22 +294,39 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 				next = getRawTimeEntry( vol, time->disk->nextWrite, &cache2 GRTENoLog DBG_RELAY );
 			} else { next = NULL; cache2 = BC(ZERO); }
 
-			enum block_cache_entries_os cache3;
-			struct storageTimelineNode* last;
-			last = getRawTimeEntry( vol, vol->timeline->header.last_added_entry.ref.index, &cache3 GRTENoLog DBG_SRC );
-			if( last && last->time < time->disk->time ) {
-				last->nextWrite = myself;
-				time->disk->priorWrite = vol->timeline->header.last_added_entry.ref.index;
-				time->disk->nextWrite = 0;
-				// if this is the new end of the list, update the last entry....
-				vol->timeline->header.last_added_entry.ref.index = myself;
-				SMUDGECACHE( vol, vol->timelineCache );
-				if( prev ) dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-				if( next ) dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
-				if( last ) dropRawTimeEntry( vol, cache3 GRTENoLog DBG_RELAY );
-				return;
+			if( toEnd ) {
+				enum block_cache_entries_os cache3;
+				struct storageTimelineNode* last;
+				last = getRawTimeEntry( vol, vol->timeline->header.last_added_entry.ref.index, &cache3 GRTENoLog DBG_SRC );
+				if( last && last->time <= time->disk->time ) {
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+					dumpTimeline( vol );
+#endif
+					last->nextWrite = myself;
+					if( !time->disk->priorWrite ) {
+						if( next ) next->priorWrite = 0;
+						vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
+					} else if(next ) next->priorWrite = time->disk->priorWrite;
+					if( prev ) prev->nextWrite = time->disk->nextWrite;
+					time->disk->priorWrite = vol->timeline->header.last_added_entry.ref.index;
+					time->disk->nextWrite = 0;
+					// if this is the new end of the list, update the last entry....
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+					lprintf( "new last block:%lld after %lld", myself, vol->timeline->header.last_added_entry.ref.index );
+#endif
+					vol->timeline->header.last_added_entry.ref.index = myself;
+					SMUDGECACHE( vol, vol->timelineCache );
+					if( prev ) dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
+					if( next ) dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
+					if( last ) dropRawTimeEntry( vol, cache3 GRTELog DBG_RELAY );
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+					dumpTimeline( vol );
+#endif
+					return;
+				} else {
+					if( last ) dropRawTimeEntry( vol, cache3 GRTENoLog DBG_RELAY );
+				}
 			}
-
 
 			if( next && ( next->time < time->disk->time ) ) {
 				//myself = next->priorWrite;
@@ -317,7 +336,9 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 					vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
 					SMUDGECACHE( vol, vol->timelineCache );
 				}
-
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+				lprintf( "Searching forward...." );
+#endif
 				next->priorWrite = time->disk->priorWrite;
 				while( ( prev = next ), (_cache? dropRawTimeEntry(vol,_cache GRTENoLog DBG_RELAY ):0), ( _cache=cache ), (cache=BC(TIMELINE)),
 					( next = getRawTimeEntry( vol, prev->nextWrite, &cache GRTENoLog DBG_SRC ) )
@@ -326,6 +347,14 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 						if( next->time < time->disk->time ) {
 
 							next->nextWrite = myself;
+							if( !time->disk->priorWrite ) {
+								struct storageTimelineNode* next;
+								enum block_cache_entries_os cache = BC( TIMELINE );
+								next = getRawTimeEntry( vol, time->disk->nextWrite, &cache GRTENoLog DBG_RELAY );
+								if( next ) next->priorWrite = 0;
+								vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
+								dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+							}
 							time->disk->priorWrite = prev->nextWrite;
 							time->disk->nextWrite = 0;
 
@@ -337,23 +366,51 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 					}
 
 					if( next->time > time->disk->time ) {
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+						lprintf( "found insertion point %lld  %lld %lld", myself, prev->nextWrite, next->priorWrite );
+#endif
+						if( !time->disk->priorWrite ) {
+							struct storageTimelineNode* next;
+							enum block_cache_entries_os cache = BC( TIMELINE );
+							next = getRawTimeEntry( vol, time->disk->nextWrite, &cache GRTENoLog DBG_RELAY );
+							if( next ) next->priorWrite = 0;
+							vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
+							dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+						}
+						if( !time->disk->nextWrite ) {
+							struct storageTimelineNode* prev;
+							enum block_cache_entries_os cache = BC( TIMELINE );
+							prev = getRawTimeEntry( vol, time->disk->priorWrite, &cache GRTENoLog DBG_RELAY );
+							if( prev ) prev->nextWrite = 0;
+							vol->timeline->header.last_added_entry.ref.index = time->disk->priorWrite;
+							dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+						}
 						time->disk->nextWrite = prev->nextWrite;
 						time->disk->priorWrite = next->priorWrite;
 						prev->nextWrite = myself;
 						next->priorWrite = myself;
-						dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-						if( cache2 ) dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+						dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
+						if( cache2 ) dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
 						break;
 					} else {
 						if( !next->nextWrite ) {
 							next->nextWrite = myself;
+							if( !time->disk->priorWrite ) {
+								struct storageTimelineNode* next;
+								enum block_cache_entries_os cache = BC( TIMELINE );
+								next = getRawTimeEntry( vol, time->disk->nextWrite, &cache GRTENoLog DBG_RELAY );
+								if( next ) next->priorWrite = 0;
+								vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
+								dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+							}
 							time->disk->priorWrite = prev->nextWrite;
 							time->disk->nextWrite = 0;
 							// if this is the new end of the list, update the last entry....
 							vol->timeline->header.last_added_entry.ref.index = myself;
 							SMUDGECACHE( vol, vol->timelineCache );
-							dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-							if( cache2 ) dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+							dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
+							lprintf( "ran into end of chain anyway %lld", myself );
+							if( cache2 ) dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
 							break;
 						}
 					}
@@ -366,16 +423,33 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 				}
 				if( next )
 					next->priorWrite = time->disk->priorWrite;
-
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+				lprintf( "Searching backward" );
+				dumpTimeline( vol );
+#endif
 				while( (next = prev ), ( _cache2 ? dropRawTimeEntry( vol, _cache2 GRTENoLog DBG_RELAY ) : 0 ), ( _cache2 = cache2 ), ( cache2 = BC( TIMELINE ) ) ) {
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+					lprintf( "checking next record %lld", next->priorWrite );
+#endif
 					if( !next->priorWrite ) {
 						next->priorWrite = myself;
+						if( !time->disk->nextWrite ) {
+							struct storageTimelineNode* prev;
+							enum block_cache_entries_os cache = BC( TIMELINE );
+							prev = getRawTimeEntry( vol, time->disk->priorWrite, &cache GRTENoLog DBG_RELAY );
+							if( prev ) prev->nextWrite = 0;
+							vol->timeline->header.last_added_entry.ref.index = time->disk->priorWrite;
+							dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+						}
 						time->disk->nextWrite = vol->timeline->header.srootNode.ref.index;
 						time->disk->priorWrite = 0;
 						vol->timeline->header.srootNode.ref.index = myself;
 						SMUDGECACHE( vol, vol->timelineCache );
-						if( cache ) dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-						dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+						lprintf( "Saving as first..." );
+#endif
+						if( cache ) dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
+						dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
 						break;
 					} else {
 						( prev = getRawTimeEntry( vol, next->priorWrite, &cache2 GRTENoLog DBG_SRC ) );
@@ -385,21 +459,51 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 							// new root node...
 							vol->timeline->header.srootNode.ref.index = prev->priorWrite = myself;
 							SMUDGECACHE( vol, vol->timelineCache );
+							if( !time->disk->priorWrite ) {
+								struct storageTimelineNode* next;
+								enum block_cache_entries_os cache = BC( TIMELINE );
+								next = getRawTimeEntry( vol, time->disk->nextWrite, &cache GRTENoLog DBG_RELAY );
+								if( next ) next->priorWrite = 0;
+								vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
+								dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+							}
+							if( !time->disk->nextWrite ) {
+								struct storageTimelineNode* prev;
+								enum block_cache_entries_os cache = BC( TIMELINE );
+								prev = getRawTimeEntry( vol, time->disk->priorWrite, &cache GRTENoLog DBG_RELAY );
+								if( prev ) prev->nextWrite = 0;
+								vol->timeline->header.last_added_entry.ref.index = time->disk->priorWrite;
+								dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+							}
 							time->disk->priorWrite = 0;
 							time->disk->nextWrite = next->priorWrite;
-							if( cache ) dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-							dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+							lprintf( "Saving as first(2)..." );
+#endif
+							if( cache ) dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
+							dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
 							break; // done. (at end anyway)
 						}
 					}
 
 					if( prev->time < time->disk->time ) {
+						if( !time->disk->nextWrite ) {
+							struct storageTimelineNode* prev;
+							enum block_cache_entries_os cache = BC( TIMELINE );
+							prev = getRawTimeEntry( vol, time->disk->priorWrite, &cache GRTENoLog DBG_RELAY );
+							if( prev ) prev->nextWrite = 0;
+							vol->timeline->header.last_added_entry.ref.index = time->disk->priorWrite;
+							dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
+						}
 						time->disk->nextWrite = prev->nextWrite;
 						time->disk->priorWrite = next->priorWrite;
 						prev->nextWrite = myself;
 						next->priorWrite = myself;
-						if( cache ) dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-						dropRawTimeEntry( vol, cache2 GRTENoLog DBG_RELAY );
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+						lprintf( "Saving in middle..." );
+#endif
+						if( cache ) dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
+						dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
 						break;
 					}
 				}
@@ -409,6 +513,9 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 
 		}
 	}
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+	dumpTimeline( vol );
+#endif
 }
 //-----------------------------------------------------------------------------------
 // Timeline Support Functions
@@ -794,6 +901,7 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 	}
 	else {
 		struct memoryTimelineNode time_;
+		LOGICAL existing = ( time ) ? 1 : 0;
 		if( !time ) time = &time_;
 		reloadTimeEntry( time, vol, index VTReadWrite GRTENoLog DBG_RELAY );
 		time->disk->time = timeGetTime64ns();
@@ -806,6 +914,7 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 			//time->disk->time += (int64_t)tz * 900 * (int64_t)1000000000;
 			time->disk->timeTz = tz;
 		}
+		reorderEntry( time, vol, 1 DBG_RELAY );
 		updateTimeEntry( time, vol, TRUE DBG_RELAY );
 		return (BLOCKINDEX)index; // index type is larger than index in some configurations; but won't exceed those bounds
 	}
@@ -823,6 +932,7 @@ LOGICAL setTimeEntryTime( struct memoryTimelineNode* time
 		//reloadTimeEntry( time, vol, index VTReadWrite GRTENoLog DBG_RELAY );
 		time->disk->timeTz = tz;
 		time->disk->time = tick;
+		reorderEntry( time, vol, 0 DBG_SRC );
 		updateTimeEntry( time, vol, FALSE DBG_SRC );
 		return TRUE;
 	}
