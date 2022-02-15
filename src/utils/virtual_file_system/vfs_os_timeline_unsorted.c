@@ -340,30 +340,31 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 				lprintf( "Searching forward...." );
 #endif
 				next->priorWrite = time->disk->priorWrite;
-				while( ( prev = next ), (_cache? dropRawTimeEntry(vol,_cache GRTENoLog DBG_RELAY ):(void)0), ( _cache=cache ), (cache=BC(TIMELINE)),
-					( next = getRawTimeEntry( vol, prev->nextWrite, &cache GRTENoLog DBG_SRC ) )
+				while( ( prev = next ) && ( ( _cache ? dropRawTimeEntry( vol, _cache GRTENoLog DBG_RELAY ) : (void)0 ), ( _cache = cache ), ( cache = BC( TIMELINE ) ),
+					( next = getRawTimeEntry( vol, prev->nextWrite, &cache GRTENoLog DBG_SRC ) ) )
 					) {
 					if( !next->nextWrite ) {
-						if( next->time < time->disk->time ) {
-
-							next->nextWrite = myself;
-							if( !time->disk->priorWrite ) {
-								struct storageTimelineNode* next;
-								enum block_cache_entries_os cache = BC( TIMELINE );
-								next = getRawTimeEntry( vol, time->disk->nextWrite, &cache GRTENoLog DBG_RELAY );
-								if( next ) next->priorWrite = 0;
-								vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
-								dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-							}
-							time->disk->priorWrite = prev->nextWrite;
-							time->disk->nextWrite = 0;
-
-							// if this is the new end of the list, update the last entry....
-							vol->timeline->header.last_added_entry.ref.index = myself;
-							SMUDGECACHE( vol, vol->timelineCache );
-							break; // done. (at end anyway)
+						if( !time->disk->priorWrite ) {
+							struct storageTimelineNode* next;
+							enum block_cache_entries_os cache = BC( TIMELINE );
+							next = getRawTimeEntry( vol, time->disk->nextWrite, &cache GRTENoLog DBG_RELAY );
+							if( next ) next->priorWrite = 0;
+							vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
+							dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
 						}
+						time->disk->priorWrite = prev->nextWrite;
+						time->disk->nextWrite = 0;
+						next->nextWrite = myself;
+
+						dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
+						if( cache2 ) dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
+
+						// if this is the new end of the list, update the last entry....
+						vol->timeline->header.last_added_entry.ref.index = myself;
+						SMUDGECACHE( vol, vol->timelineCache );
+						break; // done. (at end anyway)
 					}
+
 
 					if( next->time > time->disk->time ) {
 #ifdef DEBUG_TIMELINE_REORDER_LOGGING
@@ -377,14 +378,6 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 							vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
 							dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
 						}
-						if( !time->disk->nextWrite ) {
-							struct storageTimelineNode* prev;
-							enum block_cache_entries_os cache = BC( TIMELINE );
-							prev = getRawTimeEntry( vol, time->disk->priorWrite, &cache GRTENoLog DBG_RELAY );
-							if( prev ) prev->nextWrite = 0;
-							vol->timeline->header.last_added_entry.ref.index = time->disk->priorWrite;
-							dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-						}
 						time->disk->nextWrite = prev->nextWrite;
 						time->disk->priorWrite = next->priorWrite;
 						prev->nextWrite = myself;
@@ -392,27 +385,6 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 						dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
 						if( cache2 ) dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
 						break;
-					} else {
-						if( !next->nextWrite ) {
-							next->nextWrite = myself;
-							if( !time->disk->priorWrite ) {
-								struct storageTimelineNode* next;
-								enum block_cache_entries_os cache = BC( TIMELINE );
-								next = getRawTimeEntry( vol, time->disk->nextWrite, &cache GRTENoLog DBG_RELAY );
-								if( next ) next->priorWrite = 0;
-								vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
-								dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-							}
-							time->disk->priorWrite = prev->nextWrite;
-							time->disk->nextWrite = 0;
-							// if this is the new end of the list, update the last entry....
-							vol->timeline->header.last_added_entry.ref.index = myself;
-							SMUDGECACHE( vol, vol->timelineCache );
-							dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
-							lprintf( "ran into end of chain anyway %lld", myself );
-							if( cache2 ) dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
-							break;
-						}
 					}
 				}
 			} else if( prev && ( prev->time > time->disk->time ) ) {
@@ -427,7 +399,8 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 				lprintf( "Searching backward" );
 				dumpTimeline( vol );
 #endif
-				while( (next = prev ), ( _cache2 ? dropRawTimeEntry( vol, _cache2 GRTENoLog DBG_RELAY ) : (void)0 ), ( _cache2 = cache2 ), ( cache2 = BC( TIMELINE ) ) ) {
+				while( ( _cache2 ? dropRawTimeEntry( vol, _cache2 GRTENoLog DBG_RELAY ) : (void)0 ), ( _cache2 = cache2 ), ( cache2 = BC( TIMELINE ) )
+					, ( next = prev ) ) {
 #ifdef DEBUG_TIMELINE_REORDER_LOGGING
 					lprintf( "checking next record %lld", next->priorWrite );
 #endif
@@ -455,35 +428,25 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 						( prev = getRawTimeEntry( vol, next->priorWrite, &cache2 GRTENoLog DBG_SRC ) );
 					}
 					if( !prev->priorWrite ) {
-						if( prev->time > time->disk->time ) {
-							// new root node...
-							vol->timeline->header.srootNode.ref.index = prev->priorWrite = myself;
-							SMUDGECACHE( vol, vol->timelineCache );
-							if( !time->disk->priorWrite ) {
-								struct storageTimelineNode* next;
-								enum block_cache_entries_os cache = BC( TIMELINE );
-								next = getRawTimeEntry( vol, time->disk->nextWrite, &cache GRTENoLog DBG_RELAY );
-								if( next ) next->priorWrite = 0;
-								vol->timeline->header.srootNode.ref.index = time->disk->nextWrite;
-								dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-							}
-							if( !time->disk->nextWrite ) {
-								struct storageTimelineNode* prev;
-								enum block_cache_entries_os cache = BC( TIMELINE );
-								prev = getRawTimeEntry( vol, time->disk->priorWrite, &cache GRTENoLog DBG_RELAY );
-								if( prev ) prev->nextWrite = 0;
-								vol->timeline->header.last_added_entry.ref.index = time->disk->priorWrite;
-								dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
-							}
-							time->disk->priorWrite = 0;
-							time->disk->nextWrite = next->priorWrite;
-#ifdef DEBUG_TIMELINE_REORDER_LOGGING
-							lprintf( "Saving as first(2)..." );
-#endif
-							if( cache ) dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
-							dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
-							break; // done. (at end anyway)
+						// new root node...
+						vol->timeline->header.srootNode.ref.index = prev->priorWrite = myself;
+						SMUDGECACHE( vol, vol->timelineCache );
+						if( !time->disk->nextWrite ) {
+							struct storageTimelineNode* prev;
+							enum block_cache_entries_os cache = BC( TIMELINE );
+							prev = getRawTimeEntry( vol, time->disk->priorWrite, &cache GRTENoLog DBG_RELAY );
+							if( prev ) prev->nextWrite = 0;
+							vol->timeline->header.last_added_entry.ref.index = time->disk->priorWrite;
+							dropRawTimeEntry( vol, cache GRTENoLog DBG_RELAY );
 						}
+						time->disk->nextWrite = next->priorWrite;
+						time->disk->priorWrite = 0;
+#ifdef DEBUG_TIMELINE_REORDER_LOGGING
+						lprintf( "Saving as first(2)..." );
+#endif
+						if( cache ) dropRawTimeEntry( vol, cache GRTELog DBG_RELAY );
+						dropRawTimeEntry( vol, cache2 GRTELog DBG_RELAY );
+						break; // done. (at end anyway)
 					}
 
 					if( prev->time < time->disk->time ) {
