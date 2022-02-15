@@ -340,7 +340,7 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 				lprintf( "Searching forward...." );
 #endif
 				next->priorWrite = time->disk->priorWrite;
-				while( ( prev = next ), (_cache? dropRawTimeEntry(vol,_cache GRTENoLog DBG_RELAY ):0), ( _cache=cache ), (cache=BC(TIMELINE)),
+				while( ( prev = next ), (_cache? dropRawTimeEntry(vol,_cache GRTENoLog DBG_RELAY ):(void)0), ( _cache=cache ), (cache=BC(TIMELINE)),
 					( next = getRawTimeEntry( vol, prev->nextWrite, &cache GRTENoLog DBG_SRC ) )
 					) {
 					if( !next->nextWrite ) {
@@ -427,7 +427,7 @@ static void reorderEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vo
 				lprintf( "Searching backward" );
 				dumpTimeline( vol );
 #endif
-				while( (next = prev ), ( _cache2 ? dropRawTimeEntry( vol, _cache2 GRTENoLog DBG_RELAY ) : 0 ), ( _cache2 = cache2 ), ( cache2 = BC( TIMELINE ) ) ) {
+				while( (next = prev ), ( _cache2 ? dropRawTimeEntry( vol, _cache2 GRTENoLog DBG_RELAY ) : (void)0 ), ( _cache2 = cache2 ), ( cache2 = BC( TIMELINE ) ) ) {
 #ifdef DEBUG_TIMELINE_REORDER_LOGGING
 					lprintf( "checking next record %lld", next->priorWrite );
 #endif
