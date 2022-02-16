@@ -1097,14 +1097,17 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 	wl.waylandThread = thread;
 	if( wl.display) DebugBreak();
 	initConnections();
+	if( wl.display ) {
+		while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 ){
+			//lprintf( ".... did some messages...");
+		}
 
-	while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 ){
-		//lprintf( ".... did some messages...");
+		lprintf( "Thread exiting?" );
+		//wl_event_queue_destroy( wl.queue );
+		wl_display_disconnect( wl.display );
+	} else {
+		lprintf( "Failed to connect to wayland display" );
 	}
-
-	lprintf( "Thread exiting?" );
-	//wl_event_queue_destroy( wl.queue );
-	wl_display_disconnect( wl.display );
 }
 
 
