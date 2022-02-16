@@ -39,7 +39,7 @@ target_include_directories(tls
 
 export_symbol(tls ${CMAKE_CURRENT_SOURCE_DIR}/tls.sym)
 target_link_libraries(tls ssl crypto ${PLATFORM_LIBS})
-if (WIN32)
+if (ON)
 	set(TLS_POSTFIX -${TLS_MAJOR_VERSION})
 endif()
 set_target_properties(tls PROPERTIES
