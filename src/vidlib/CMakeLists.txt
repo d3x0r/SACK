@@ -1,5 +1,5 @@
 
-if( WIN32 )
+
 # because sources are common to monolithic build mode
 # they are already defined in a variable calld VIDLIB_SOURCES (defined in CMakeSources.lst)
 
@@ -32,4 +32,3 @@ my_target_link_libraries( bag.video bag ${EXTERNALS} ${OPENGL_LIBRARY}  ${PLATFO
 set( SACK_VIDEO_LIBRARY bag.video )
 install_mode_dest( bag.video )
 
-endif( WIN32 )
