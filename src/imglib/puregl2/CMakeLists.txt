@@ -34,7 +34,7 @@ ${FIRST_GCC_LIBRARY_SOURCE}
   line.c interface.c sprite.c ${sprite_sources}
   ${loader_sources}
   ${font_sources}
-  shader simple_shader simple_texture_shader
+  shader.c simple_shader.c simple_texture_shader.c
   simple_multi_shaded_texture_shader.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )

@@ -2,7 +2,7 @@
 set( PROJECT EditOptions )
 
 set(BASE_SOURCES
-    editopt
+    editopt.c
 )
 
 add_program(${PROJECT} WIN32  ${BASE_SOURCES}  )

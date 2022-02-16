@@ -1217,6 +1217,7 @@ if( NOT __NO_GUI__ )
      add_subdirectory( src/vidlib/wayland )
   endif( UNIX AND NOT __ANDROID__ AND NOT APPLE )
   if( NOT __ANDROID__ AND NOT APPLE )
+  message( "ASDASDASDSAD" )
      add_subdirectory( src/vidlib )
   endif( NOT __ANDROID__ AND NOT APPLE )
 
