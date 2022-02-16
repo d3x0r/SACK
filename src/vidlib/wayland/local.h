@@ -134,6 +134,7 @@ struct wayland_local_tag
 	PIMAGE_INTERFACE pii;
 	struct {
 		volatile uint32_t bInited : 1;
+		volatile uint32_t bFailed : 1;
 		uint32_t bLogKeyEvent:1;
 	} flags;
 	PLIST wantDraw;

@@ -692,7 +692,8 @@ static void initConnections( void ) {
 	wl.pdlMouseEvents = CreateDataQueue( sizeof( struct mouseEvent ));
 	wl.display = wl_display_connect(NULL);
 	if (wl.display == NULL) {
-		lprintf( "Can't connect to display");
+		wl.flags.bFailed = 1;
+		//lprintf( "Can't connect to display");
 		return;
 	}
 	wl.queue = wl_display_create_queue( wl.display );
@@ -1447,10 +1448,11 @@ static PRENDERER sack_wayland_OpenDisplayAboveUnderSizedAt(uint32_t attr , uint3
 	// eventually we'll need a commit callback.
 
 	AddLink( &wl.pActiveList, r );
-	while( !wl.flags.bInited ) {
-		lprintf( "Waiting for wayland setup...");
+	while( !wl.flags.bInited && !wl.flags.bFailed ) {
+		//lprintf( "Waiting for wayland setup...");
 		Relinquish();
 	}
+	if( wl.flags.Failed ) return NULL;
 
 	if( !CreateWindowStuff( r, rAbove ) ) {
 		lprintf( "Failed to create drawing surface... falling back to offscreen rendering?");
@@ -1956,10 +1958,11 @@ static POINTER GetWaylandDisplayInterface(void)
 		//wl.flags.bInited = 1;
 		ThreadTo( waylandThread, 0 );
 		ThreadTo( waylandDrawThread, 0 );
-		while( !wl.flags.bInited) {
+		while( !wl.flags.bInited && !wl.flags.bFailed) {
 			Relinquish();
 		}
-		finishInitConnections();
+		if( wl.flags.bInited )
+			finishInitConnections();
 	}
 	return (POINTER)&VidInterface;
 }
