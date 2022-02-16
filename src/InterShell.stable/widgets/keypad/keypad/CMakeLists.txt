@@ -3,7 +3,7 @@ set( project keypad.isp )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-keypad
+keypad.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 

@@ -3,7 +3,7 @@ project( vlc_button.isp )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-vlc_button
+vlc_button.c
 ${LAST_GCC_LIBRARY_SOURCE} 
 )
 

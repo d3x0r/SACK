@@ -3,7 +3,7 @@ set( project Slider.isp )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-       slider
+       slider.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 

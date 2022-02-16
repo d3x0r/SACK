@@ -3,7 +3,7 @@ set( PROJECT tasks.isp )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-tasks
+tasks.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 

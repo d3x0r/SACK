@@ -3,7 +3,7 @@ set( PROJECT page_cycle.isp )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-page_cycle
+page_cycle.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 
@@ -28,7 +28,7 @@ set( PROJECT net_page_changer.isp  )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-net_page_change
+net_page_change.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 

@@ -3,7 +3,7 @@ set( PROJECT clock.isp )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-clock_addon
+clock_addon.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 

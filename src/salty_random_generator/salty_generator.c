@@ -55,7 +55,7 @@ void NeedBits( struct random_context *ctx )
 {
 	if( ctx->use_versionK12 ) {
 #if USE_K12_LONG_SQUEEZE
-		if( ctx->f.K12i.phase == ABSORBING || ctx->total_bits_used > K12_SQUEEZE_LENGTH ) {
+		if( ctx->f.K12i.phase == ABSORBING || ctx->total_bits_used >= K12_SQUEEZE_LENGTH ) {
 			if( ctx->f.K12i.phase == SQUEEZING ) {
 				KangarooTwelve_Initialize( &ctx->f.K12i, 0 );
 				KangarooTwelve_Update( &ctx->f.K12i, ctx->s.entropy4, K12_DIGEST_SIZE );
@@ -127,6 +127,10 @@ void NeedBits( struct random_context *ctx )
 }
 
 void SRG_StepEntropy( struct random_context* ctx ) {
+#if USE_K12_LONG_SQUEEZE
+	if( ctx->use_versionK12 )
+		ctx->total_bits_used = K12_SQUEEZE_LENGTH;
+#endif
 	NeedBits( ctx );
 }
 

@@ -10,7 +10,7 @@ include_directories( ../../contrib/libvlc/2.2.4/sdk/include )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-	vlc_interface
+	vlc_interface.c
 ${LAST_GCC_LIBRARY_SOURCE} )
 
 if( NOT VLC_PATH )
