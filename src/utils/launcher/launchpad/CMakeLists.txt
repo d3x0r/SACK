@@ -14,7 +14,7 @@ endif( MINGW OR MSVC )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
-    launchpad ${MORE_SOURCES}
+    launchpad.c ${MORE_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
@@ -80,7 +80,7 @@ set( project launchpad.isp )
 
 set(BASE_SOURCES2
 ${FIRST_GCC_LIBRARY_SOURCE}
-    launchpad ishell_plugin
+    launchpad.c ishell_plugin.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 
