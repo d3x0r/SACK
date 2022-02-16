@@ -8,7 +8,7 @@ project( service_list )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
-    servicelist
+    servicelist.c
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 

@@ -2,7 +2,7 @@
 set( project sack.msgsvr.service.plugin. )
 
 
-set(SOURCES server2 )
+set(SOURCES server2.c )
 
 
 sack_add_library( ${project} SHARED ${SOURCES} )
@@ -29,7 +29,7 @@ install_mode_dest( ${project} )
 set( project msgsvr )
 
 set(SERVER_SOURCES 
-server3
+server3.c
 )
 
 add_program( ${project} WIN32 ${SERVER_SOURCES} )

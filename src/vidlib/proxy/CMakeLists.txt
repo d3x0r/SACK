@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+#cmake_minimum_required(VERSION 2.8)
 
 if( NOT MAKING_SACK_CORE )
 if( NOT SACK_SDK_ROOT_PATH )
