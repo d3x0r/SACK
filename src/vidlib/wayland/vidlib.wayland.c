@@ -1452,7 +1452,7 @@ static PRENDERER sack_wayland_OpenDisplayAboveUnderSizedAt(uint32_t attr , uint3
 		//lprintf( "Waiting for wayland setup...");
 		Relinquish();
 	}
-	if( wl.flags.Failed ) return NULL;
+	if( wl.flags.bFailed ) return NULL;
 
 	if( !CreateWindowStuff( r, rAbove ) ) {
 		lprintf( "Failed to create drawing surface... falling back to offscreen rendering?");
