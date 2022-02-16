@@ -1,6 +1,6 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 PROJECT( InterShell )
 
 if( NOT MAKING_SACK_CORE )

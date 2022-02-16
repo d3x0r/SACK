@@ -1,7 +1,4 @@
 
-
-cmake_minimum_required(VERSION 2.8)
-
 project( vlc_button.isp )
 
 set( SOURCES

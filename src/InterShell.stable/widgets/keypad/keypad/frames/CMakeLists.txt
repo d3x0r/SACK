@@ -1,6 +1,4 @@
 
-cmake_minimum_required(VERSION 2.8)
-
 project( keypad.frames )
 
 FILE( GLOB INTERSHELL_FRAMES  *.isFrame )

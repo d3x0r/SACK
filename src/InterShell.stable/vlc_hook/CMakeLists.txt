@@ -1,7 +1,4 @@
 
-
-cmake_minimum_required(VERSION 2.8)
-
 PROJECT( vlc_interface )
 set( VLC_INTERFACE ${PROJECT_NAME} )
 

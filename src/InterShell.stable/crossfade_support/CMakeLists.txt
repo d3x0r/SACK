@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
 
 
 project( crossfade_vid_mount.isp )
