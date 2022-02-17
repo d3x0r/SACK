@@ -186,9 +186,9 @@ static void pointer_enter(void *data,
 		pointer_data->buffer, 0, 0);
 	wl_surface_commit(pointer_data->surface);
 	*/
-	//wl_pointer_set_cursor(wl_pointer, serial,
-	//    pointer_data->surface, pointer_data->hot_spot_x,
-	//    pointer_data->hot_spot_y);
+	wl_pointer_set_cursor(wl_pointer, serial,
+	    wl.cursor_surface, pointer_data->hot_spot_x,
+	    pointer_data->hot_spot_y);
 
 	wl.mouse_.x = surface_x >> 8;
 	wl.mouse_.y = surface_y >> 8;
@@ -715,7 +715,8 @@ static void finishInitConnections( void ) {
 	wl_display_roundtrip_queue(wl.display, wl.queue);
 
 	while( wl.registering )Relinquish(); // wait one more time, the last prior thing might take a bit.
-   wl_registry_destroy(registry);
+
+	wl_registry_destroy(registry);
 	//lprintf( "and we finish with %p %d", wl.compositor, wl.canDraw );
 
 #if 0
@@ -737,6 +738,13 @@ static void finishInitConnections( void ) {
 		return;
 	} else {
 		//lprintf( "Found compositor");
+		wl.cursor_theme = wl_cursor_theme_load( NULL, 24, wl.shm );
+		struct wl_cursor *cursor = wl_cursor_theme_get_cursor( wl.cursor_theme, "left_ptr");
+		wl.cursor_image = cursor->images[0];
+		struct wl_buffer *cursor_buffer = wl_cursor_image_get_buffer( wl.cursor_image );
+		wl.cursor_surface = wl_compositor_create_surface( wl.compositor );
+		wl_surface_attach( wl.cursor_surface, cursor_buffer, 0, 0 );
+		wl_surface_commit( wl.cursor_surface );
 	}
 }
 

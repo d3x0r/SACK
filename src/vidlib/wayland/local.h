@@ -3,7 +3,7 @@
 #include "xdg-shell-client-protocol.h"
 #include <xkbcommon/xkbcommon.h>
 #include <linux/input-event-codes.h>
-
+#include <wayland-cursor.h>
 
 struct HVIDEO_tag {
 	KEYBOARD kbd;
@@ -47,6 +47,7 @@ typedef struct wvideo_tag
 	struct wl_shell_surface *shell_surface;
 	struct wl_subsurface *sub_surface;
 	struct xdg_toplevel *xdg_toplevel;
+
 	PCOLOR shm_data;
 	struct wl_buffer *buff;
 	int curBuffer;
@@ -166,6 +167,10 @@ struct wayland_local_tag
 	struct xkb_keymap *keymap;
 	struct xkb_state *xkb_state;
 	int versions[max_interface_versions]; // reported versions
+
+	struct wl_surface *cursor_surface;
+	struct wl_cursor_image *cursor_image;
+	struct wl_cursor_theme *cursor_theme;
 
 	//-------------- Global seat/input tracking
 	struct mouseEvent mouse_;
