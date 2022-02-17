@@ -55,6 +55,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 {
    struct taskOutputStruct* taskParams = (struct taskOutputStruct*)GetThreadParam( thread );
 	PTASK_INFO task = taskParams->task;  // (PTASK_INFO)GetThreadParam( thread );
+	if( task )
 	{
 		task->pOutputThread = thread;
 		// read input from task, montiro close and dispatch TaskEnd Notification also.
