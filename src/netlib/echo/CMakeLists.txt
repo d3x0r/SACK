@@ -1,5 +1,5 @@
 PROJECT( test_echo_server )
-add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} echo ${LAST_GCC_PROGRAM_SOURCE} )
+add_executable( ${PROJECT_NAME} ${FIRST_GCC_PROGRAM_SOURCE} echo.c ${LAST_GCC_PROGRAM_SOURCE} )
 
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT_NAME} )
 
