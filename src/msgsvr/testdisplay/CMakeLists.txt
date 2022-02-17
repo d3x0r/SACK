@@ -11,7 +11,7 @@ INSTALL(
 #-------------------------------------------------------------------
 
 SET( PROJECT test_display1 )
-SET( PROJECT_SOURCES test )
+SET( PROJECT_SOURCES test.c )
 
 ADD_EXECUTABLE( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} ${PROJECT_SOURCES} ${LAST_GCC_PROGRAM_SOURCE} )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT}" 
@@ -23,7 +23,7 @@ install_default_dest( ${PROJECT} )
 #-------------------------------------------------------------------
 
 SET( PROJECT test_display2 )
-SET( PROJECT_SOURCES test2 )
+SET( PROJECT_SOURCES test2.c )
 
 ADD_EXECUTABLE( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} ${PROJECT_SOURCES} ${LAST_GCC_PROGRAM_SOURCE} )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT}" 
@@ -36,7 +36,7 @@ install_default_dest( ${PROJECT} )
 #-------------------------------------------------------------------
 
 SET( PROJECT test_display3 )
-SET( PROJECT_SOURCES test3 )
+SET( PROJECT_SOURCES test3.c )
 
 ADD_EXECUTABLE( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} ${PROJECT_SOURCES} ${LAST_GCC_PROGRAM_SOURCE} )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT}" 
@@ -48,7 +48,7 @@ install_default_dest( ${PROJECT} )
 #-------------------------------------------------------------------
 
 SET( PROJECT test_display4 )
-SET( PROJECT_SOURCES test4 )
+SET( PROJECT_SOURCES test4.c )
 
 ADD_EXECUTABLE( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} ${PROJECT_SOURCES} ${LAST_GCC_PROGRAM_SOURCE} )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT}" 

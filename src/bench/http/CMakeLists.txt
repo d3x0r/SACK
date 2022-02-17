@@ -1,6 +1,4 @@
 
-cmake_minimum_required(VERSION 2.8)
-
 PROJECT( http_benchmarks )
 
 #if( NOT SACK_SDK_ROOT_PATH )

@@ -3,7 +3,7 @@ set( project test_service_client )
 
 
 set(BASE_SOURCES
-    service_client
+    service_client.c
 )
 
 add_program( ${project} ${BASE_SOURCES} )

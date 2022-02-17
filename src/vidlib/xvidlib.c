@@ -2,7 +2,6 @@
 #include <stdhdrs.h>
 
 #ifndef WIN32
-
 #include <X11/Xlib.h>
 
 typedef struct xvideo_tag
@@ -32,7 +31,7 @@ typedef struct local_tag
 } LOCAL;
 static LOCAL l;
 
-RENDER_PROC (void, UpdateDisplayPortionEx)( PXPANEL pPanel
+void UpdateDisplayPortionEx( PXPANEL pPanel
                                           , int32_t x, int32_t y
                                           , uint32_t w, uint32_t h DBG_PASS)
 {
