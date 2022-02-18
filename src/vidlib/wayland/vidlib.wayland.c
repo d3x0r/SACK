@@ -12,7 +12,7 @@
 // events related to keys.
 //#define DEBUG_KEY_EVENTS
 
-#define DEBUG_ATTACH_SURFACE
+//#define DEBUG_ATTACH_SURFACE
 
 #define USE_IMAGE_INTERFACE wl.pii
 #include <stdhdrs.h>
@@ -588,8 +588,8 @@ static struct xdg_wm_base_listener const xdg_wm_base_listener = {
 
 
 static void
-global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
-	       const char *interface, uint32_t version)
+global_registry_handler( void *data, struct wl_registry *registry, uint32_t id
+                       , const char *interface, uint32_t version )
 {
 	static volatile int processing;
 	while( processing ) Relinquish();
@@ -629,11 +629,11 @@ global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 		//lprintf( "Well, fancy that,we get DMA buffers?");
 		// can video fullscreen
 	} else if( n == wis_shell  ) {
-       wl.shell = wl_registry_bind(registry, id,
+		wl.shell = wl_registry_bind(registry, id,
                                  &wl_shell_interface, version);
 #ifdef ALLOW_KDE
 	} else if( n == wis_kde_shell ) {
-       wl.shell = wl_registry_bind(registry, id,
+		wl.shell = wl_registry_bind(registry, id,
                                  &org_kde_plasma_shell_interface, version);
 #endif
 	} else if( n == wis_xdg_shell ) {
@@ -641,21 +641,21 @@ global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
        //                          &, version);
 	} else if( n == wis_xdg_base ) {
 
-      wl.xdg_wm_base = wl_registry_bind(registry, id,
-                                 &xdg_wm_base_interface, version);
+		wl.xdg_wm_base = wl_registry_bind(registry, id
+		                                 , &xdg_wm_base_interface, version);
 		xdg_wm_base_add_listener( wl.xdg_wm_base, &xdg_wm_base_listener, NULL );
 
 	} else if( n == wis_seat ) {
-		wl.seat = wl_registry_bind(registry, id,
-			&wl_seat_interface,  version>2?version:version);
+		wl.seat = wl_registry_bind( registry, id
+		                          , &wl_seat_interface,  version>2?version:version);
 		wl.pointer = wl_seat_get_pointer(wl.seat);
 		wl.pointer_data.surface = wl_compositor_create_surface(wl.compositor);
 		wl_pointer_add_listener(wl.pointer, &pointer_listener, &wl.pointer_data);
 		wl.keyboard = wl_seat_get_keyboard(wl.seat );
 		wl_keyboard_add_listener(wl.keyboard, &keyboard_listener, NULL );
 	} else if( n == wis_shm ) {
-      wl.shm = wl_registry_bind(registry, id,
-                                 &wl_shm_interface, version);
+		wl.shm = wl_registry_bind(registry, id
+		                         , &wl_shm_interface, version);
 		wl_shm_add_listener(wl.shm, &shm_listener, NULL);
 	} else if( n == wis_output ) {
 		struct output_data *out = New( struct output_data );
@@ -667,7 +667,7 @@ global_registry_handler(void *data, struct wl_registry *registry, uint32_t id,
 		wl_output_add_listener( out->wl_output, &output_listener, out );
 		AddLink( &wl.outputSurfaces, out );
 
-   }
+	}
 	processing = 0;
 }
 
@@ -697,7 +697,7 @@ static void initConnections( void ) {
 		return;
 	}
 	wl.queue = wl_display_create_queue( wl.display );
-   //wl_proxy_create( NULL, )
+	//wl_proxy_create( NULL, )
 	wl.flags.bInited = 1;
 
 	interfaces[wis_xdg_base].name = xdg_wm_base_interface.name;
