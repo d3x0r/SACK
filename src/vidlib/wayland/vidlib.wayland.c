@@ -187,7 +187,7 @@ static void pointer_enter(void *data,
 	wl_surface_commit(pointer_data->surface);
 	*/
 	wl_pointer_set_cursor(wl_pointer, serial,
-	    wl.cursor_surface, pointer_data->hot_spot_x,
+	wl.cursor_surface, pointer_data->hot_spot_x,
 	    pointer_data->hot_spot_y);
 
 	wl.mouse_.x = surface_x >> 8;
@@ -896,14 +896,15 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	}
 	if( r->freeBuffer[r->curBuffer]  && ( r->bufw == r->w && r->bufh == r->h ) ) {
 #if defined( DEBUG_COMMIT )
-		lprintf( "Can just use the current image... it's already attached", r->buff);
+		lprintf( "Can just use the current image... it's already attached %d", r->curBuffer);
 #endif
 		return r->buff;
 	}
 	if( r->buffers[1-r->curBuffer] && !r->freeBuffer[1-r->curBuffer] ) {
 #if defined( DEBUG_COMMIT_BUFFER )
-		lprintf( "Can just use the current image... it's already attached", r->buff);
+		lprintf( "buffers in use and nothing free, (no more commit!!) want buffer %d", r->curBuffer);
 #endif
+		r->flags.canCommit = 0;
 		r->flags.wantBuffer = 1;
 		return NULL;
 	}
@@ -971,7 +972,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	// internal usage doesn't re-add callback... was stalled on buffer
 	// after allocating a callback that's still valid.
 #if defined( DEBUG_COMMIT )
-	lprintf( "surfaceFrameCallback" );
+	lprintf( "----------- surfaceFrameCallback (after surface is freed? no...) %d %p",r->curBuffer, r->buffers[r->curBuffer] );
 #endif
 	if( callback && r->frame_callback ) wl_callback_destroy( r->frame_callback );
 	if( !r->flags.bDestroy ) {
@@ -987,6 +988,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 			lprintf( "lock commit;LOCK BUFFER %d", r->curBuffer );
 #endif
 			struct wl_buffer *next = nextBuffer(r, 0);
+			if( next ) {
 			r->flags.canCommit = 0;
 			if( r->flags.wantBuffer ){
 #if defined( DEBUG_COMMIT_BUFFER )
@@ -1005,12 +1007,13 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 			lprintf( "Window is (already) dirty, do commit");
 #endif
 
-			wl_surface_commit( r->surface );
 			wl_surface_attach( r->surface, next, 0, 0 );
+			wl_surface_commit( r->surface );
+			}else lprintf( "No next buffer, can't commit already dirty thing yet." );
 			// wait until we actually NEED the buffer, maybe we can use the same one.
 		}else {
 #if defined( DEBUG_COMMIT ) || defined( DEBUG_COMMIT_STATE )
-			lprintf( "Allow window to be commited at will.");
+			lprintf( "Only Allow window to be commited at will.");
 #endif
 			r->flags.canCommit = 1;
 		}
@@ -1208,7 +1211,7 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 	int n;
 	for( n = 0; n < 2; n++ )  {
 #if defined( DEBUG_COMMIT_BUFFER )
-		lprintf( "is %p %p?", r->buffers[n] , wl_buffer );
+		lprintf( "RELEASE BUFFER FINDING BUFFER is %p %p?", r->buffers[n] , wl_buffer );
 #endif
 		if( r->buffers[n] == wl_buffer ) {
 #if defined( DEBUG_COMMIT_BUFFER )
@@ -1252,7 +1255,7 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 			if( r->flags.wantBuffer ){
 				r->flags.wantBuffer = 0;
 #if defined( DEBUG_COMMIT_BUFFER )
-				lprintf( "a pending dirty commit couldn't get a buffer, it now has a buffer...");
+				lprintf( "~~~ This should be rare? a pending dirty commit couldn't get a buffer, it now has a buffer...");
 #endif
 				surfaceFrameCallback( r, NULL, 0 );
 			}
@@ -1266,6 +1269,8 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 	//if( !)
 	//r->surface
 	//wl_surface_attach(r->surface, r->buff, 0, 0);
+	//wl_buffer_add_listener( r->buff, &buffer_listener, r );
+
 #if defined( DEBUG_COMMIT_BUFFER )
 	lprintf( "--- end of unlock buffer--");
 #endif
@@ -1299,7 +1304,7 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 		wl_subsurface_set_user_data(r->sub_surface, r);
 		wl_subsurface_set_position( r->sub_surface, r->x, r->y );
 		wl_subsurface_set_desync( r->sub_surface );
-		lprintf( "Created subsurface and attached it... %d %d", r->x, r->y );
+		lprintf( "Created subsurface and attached it...(commit) %d %d", r->x, r->y );
 		wl_surface_commit( parent->surface );
 
 	} else {
@@ -1315,7 +1320,7 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			xdg_surface_add_listener( (struct xdg_surface*)r->shell_surface, &xdg_surface_listener, r );
 			r->xdg_toplevel = xdg_surface_get_toplevel( (struct xdg_surface*)r->shell_surface );
 			//xdg_toplevel_set_title(  r->xdg_toplevel, "I DOn't want a title");
-		   xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
+			xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
 			// must commit to get a config
 			wl_surface_commit( r->surface );
 			// must also wait to get config.
@@ -1379,10 +1384,11 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 #endif
 				r->freeBuffer[r->curBuffer] = 0; // lock this buffer.
 				struct wl_buffer *next = nextBuffer(r, 0);
-				r->flags.canCommit = 0;
+				//r->flags.canCommit = 0;
 				if( next ) {
 					r->flags.dirty = 0;
 					r->flags.commited = 1;
+					lprintf( "In Redraw; which is what, a global callback? commit surface here.", r->surface );
 					if( r->surface ) wl_surface_commit( r->surface );
 #if defined( DEBUG_ATTACH_SURFACE )
 					lprintf( "attach %p", next );
@@ -1391,6 +1397,8 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 						wl_surface_attach( r->surface, next, 0, 0 );
 						wl_display_flush( wl.display );
 					}
+				}else {
+					lprintf( "No Next buffer was available, we shouldn't actually commit yet..." );
 				}
 			}else {
 #if defined( DEBUG_COMMIT ) || defined( DEBUG_COMMIT_STATE )
@@ -1512,6 +1520,7 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
+//	lprintf( "UpdateDisplayProtionEx %p", r->surface );
 	if( !r->surface ) return;
 	if( r->buffer_images[r->curBuffer]
 	   && r->buffer_images[1-r->curBuffer]) {
@@ -1529,21 +1538,24 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	}
 	if( !r->surface ) return;
 	wl_surface_damage( r->surface, x, y, w, h );
-
+#if defined( DEBUG_COMMIT ) || defined( DEBUG_COMMIT_STATE )
+	lprintf( "Damaged area, and can we commit? %d", r->flags.canCommit );
+#endif
 	if( r->flags.canCommit ){
 #if defined( DEBUG_COMMIT ) || defined( DEBUG_COMMIT_STATE )
 		lprintf( "Updating now - getting new buffer, commit, flush, roundtrip, and attach the new buffer");
 #endif
 #if defined( DEBUG_COMMIT_BUFFER )
-		lprintf( "LOCK BUFFER %d", r->curBuffer );
+		lprintf( "LOCK BUFFER %d", r->curBuffer, r->buffers[r->curBuffer] );
 #endif
 		r->freeBuffer[r->curBuffer] = 0; // lock this buffer.
 		struct wl_buffer *next = nextBuffer(r, 0);
-		r->flags.canCommit = 0;
+		//r->flags.canCommit = 0;
 		if( next ) {
 			r->flags.dirty = 0; // don't need a commit.
 			r->flags.commited = 1;
 			if( !r->surface ) return;
+			//lprintf( "DUring update display, do a commit right now" );
 			wl_surface_commit( r->surface );
 			wl_display_flush( wl.display );
 			//if( wl.xdg_wm_base )
@@ -1553,6 +1565,10 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 			lprintf( "attach %p", next );
 #endif
 			wl_surface_attach( r->surface, next, 0, 0 );
+			wl_surface_commit( r->surface );
+		}else {
+			wl_surface_commit( r->surface );
+			lprintf( "Don't have another surface ready to commit" );
 		}
 	}else {
 		r->flags.dirty = 1;
@@ -1562,6 +1578,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 
 static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
+//	lprintf( "update DIpslay Ex" );
 	if( !r->surface ) return;
 	//lprintf( "Update whole surface %d %d", r->w, r->h );
 	if( r->buffer_images[r->curBuffer] && r->buffer_images[1-r->curBuffer] ) {
@@ -1584,22 +1601,27 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 		lprintf( "Updating now - getting new buffer, commit, flush, roundtrip, and attach the new buffer");
 #endif
 #if defined( DEBUG_COMMIT_BUFFER )
-		lprintf( "LOCK BUFFER %d", r->curBuffer );
+		lprintf( "LOCK BUFFER %d", r->curBuffer, r->buffers[r->curBuffer] );
 #endif
 		r->freeBuffer[r->curBuffer] = 0; // lock this buffer.
 		struct wl_buffer *next = nextBuffer(r, 0);
-		r->flags.canCommit = 0;
 		if( next ) {
 			r->flags.dirty = 0; // don't need a commit.
+			//r->flags.canCommit = 0;
 			r->flags.commited = 1;
 			if( !r->surface ) return;
+			lprintf("Update commit" );
 			wl_surface_commit( r->surface );
 			wl_display_flush( wl.display );
 			//if( wl.xdg_wm_base )
 			//	wl_display_roundtrip_queue(wl.display, wl.queue);
 
-					lprintf( "attach %p", next );
+			lprintf( "attach %p", next );
 			wl_surface_attach( r->surface, next, 0, 0 );
+			wl_surface_commit( r->surface );
+		}else {
+			wl_surface_commit( r->surface );
+		    lprintf( "couldn't commit yet, no next surface available" );
 		}
 	}else {
 		r->flags.dirty = 1;
