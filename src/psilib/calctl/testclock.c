@@ -7,18 +7,18 @@ SaneWinMain( argc, argv )
 	PSI_CONTROL clock;
 	if( argc > 1 )
 		frame = NULL;
-   else
+	else
 		frame = CreateFrame( "blah", 0, 0, 500, 500, BORDER_RESIZABLE|BORDER_NORMAL, NULL );
 	clock = MakeNamedControl( frame, "Basic Clock Widget", 0, 0, 350, 350, -1 );
 	if( frame )
-		SetControlText( frame, "CLock Test Widet" );
-	SetControlText( clock, "CLock Test Widet" );
-   if( !frame )
+		SetControlText( frame, "Clock Test Widget" );
+	SetControlText( clock, "Clock Test Widget" );
+	if( !frame )
 		SetCommonBorder( clock,BORDER_RESIZABLE|BORDER_NORMAL );
 	DisplayFrame( frame?frame:clock );
-   MakeClockAnalog( clock );
+	MakeClockAnalog( clock );
 	while( 1 )
-      WakeableSleep( 1000 );
+		WakeableSleep( 10000 );
 
 }
 EndSaneWinMain()
