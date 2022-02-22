@@ -85,7 +85,7 @@ lprintf( "Beginning task read thred..." );
 							dwRead = read( phi->handle
 											 , GetText( pInput )
 											 , GetTextSize( pInput ) - 1 );
-					lprintf( "GOT BACK:", dwRead );
+					lprintf( "GOT BACK:%d", dwRead );
 							if( !dwRead )
 							{
 #  ifdef _DEBUG
@@ -724,7 +724,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				DispelDeadstart();
 
 				execve( _program, (char *const*)args, environ );
-				//lprintf( "Direct execute failed... trying along path..." );
+				lprintf( "Direct execute failed... trying along path..." );
 				{
 					char *tmp = strdup( getenv( "PATH" ) );
 					char *tok;
