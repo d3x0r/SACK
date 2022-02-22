@@ -395,6 +395,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		task = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
 		MemSet( task, 0, sizeof( TASK_INFO ) );
 		task->psvEnd = psv;
+		task->flags.log_input = TRUE;
 		task->flags.runas_root = (flags & LPP_OPTION_ELEVATE) != 0;
 		task->EndNotice = EndNotice;
 		if( l.ExternalFindProgram ) {
