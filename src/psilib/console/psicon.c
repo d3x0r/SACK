@@ -283,6 +283,102 @@ int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 
 //----------------------------------------------------------------------------
 
+void HandleOption1( uintptr_t psv, int cmd ) {
+	PCONSOLE_INFO console = (PCONSOLE_INFO)psv;
+
+		if( ( cmd >= MNU_BKBLACK ) &&
+			( cmd <= MNU_BKWHITE ) )
+		{
+			PSI_SetHistoryDefaultBackground( console->pCursor, cmd - MNU_BKBLACK );
+			SACK_WriteProfileInt( "sack/PSI/console", "background", cmd - MNU_BKBLACK );
+		}
+		else if( ( cmd >= MNU_BLACK ) &&
+				  ( cmd <= MNU_WHITE ) )
+		{
+			PSI_SetHistoryDefaultForeground( console->pCursor, cmd - MNU_BLACK );
+			SACK_WriteProfileInt( "sack/PSI/console", "foreground", cmd - MNU_BLACK );
+		}
+		else switch( cmd )
+		{
+		case MNU_DIRECT:
+			{
+				console->flags.bDirect ^= 1;
+				SACK_WriteProfileInt( "sack/PSI/console", "direct", console->flags.bDirect );
+
+				EnterCriticalSec( &console->Lock );
+				console->lockCount++;
+				PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
+				console->lockCount--;
+				LeaveCriticalSec( &console->Lock );
+			}
+			break;
+		case MNU_HISTORYSIZE25:
+		case MNU_HISTORYSIZE50:
+		case MNU_HISTORYSIZE75:
+		case MNU_HISTORYSIZE100:
+			{
+				console->nHistoryPercent =  cmd - MNU_HISTORYSIZE25;
+				SACK_WriteProfileInt( "sack/PSI/console", "direct", console->nHistoryPercent );
+				if( console->flags.bHistoryShow ) // currently showing history
+				{
+					EnterCriticalSec( &console->Lock );
+					console->lockCount++;
+					PSI_ConsoleCalculate( console, GetCommonFont( pc ) ); // changed history display...
+					console->lockCount--;
+					LeaveCriticalSec( &console->Lock );
+				}
+			}
+			break;
+		case MNU_FONT:
+			{
+				//console->cfFont.hwndOwner = hWnd;
+				size_t size;
+				SFTFont font;
+				POINTER info = NULL;
+				if( font = PickFont( -1, -1, &size, &info, NULL ) )
+				{
+					//POINTER data;
+					//size_t datalen;
+					//GetFontRenderData( font, &data, &datalen );
+					SACK_WriteProfileString( "sack/PSI/console", "font", (CTEXTSTR)info );
+					//console->psicon.hFont = (SFTFont)font;
+					SetCommonFont( console->psicon.frame, (SFTFont)font );
+					//GetDefaultFont();
+					//GetStringSizeFont( " ", &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
+					PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
+				}
+			}
+				break;
+		  case MNU_COMMAND_COLOR:
+				{
+				CDATA color;
+					 if( PickColor( &color, console->psicon.crCommand, console->psicon.frame ) )
+						  console->psicon.crCommand = color;
+					 else
+						  Log2( "Colors %08x %08x", color, console->psicon.crCommand );
+				}
+			break;
+		  case MNU_COMMAND_BACK:
+				{
+				CDATA color;
+					 if( PickColor( &color, console->psicon.crCommandBackground, console->psicon.frame ) )
+						  console->psicon.crCommandBackground = color;
+					 else
+						  Log2( "Colors %08x %08x", color, console->psicon.crCommandBackground );
+				}
+			break;
+		}
+		  CheckPopupItem( hHistoryMenu
+								 , MNU_HISTORYSIZE25+console->nHistoryPercent
+								 , MF_BYCOMMAND|MF_UNCHECKED  );
+		  CheckPopupItem( hChildMenu
+								 , MNU_DIRECT
+								 , MF_BYCOMMAND|MF_UNCHECKED );
+}
+
+
+
+
 int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int32_t _x, _y;
@@ -429,95 +525,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 			CheckPopupItem( hChildMenu
 							  , MNU_DIRECT
 							  , MF_BYCOMMAND|MF_CHECKED );
-		cmd = TrackPopup( hChildMenu, console->psicon.frame );
-		if( ( cmd >= MNU_BKBLACK ) &&
-			( cmd <= MNU_BKWHITE ) )
-		{
-			PSI_SetHistoryDefaultBackground( console->pCursor, cmd - MNU_BKBLACK );
-			SACK_WriteProfileInt( "sack/PSI/console", "background", cmd - MNU_BKBLACK );
-		}
-		else if( ( cmd >= MNU_BLACK ) &&
-				  ( cmd <= MNU_WHITE ) )
-		{
-			PSI_SetHistoryDefaultForeground( console->pCursor, cmd - MNU_BLACK );
-			SACK_WriteProfileInt( "sack/PSI/console", "foreground", cmd - MNU_BLACK );
-		}
-		else switch( cmd )
-		{
-		case MNU_DIRECT:
-			{
-				console->flags.bDirect ^= 1;
-				SACK_WriteProfileInt( "sack/PSI/console", "direct", console->flags.bDirect );
-
-				EnterCriticalSec( &console->Lock );
-				console->lockCount++;
-				PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
-				console->lockCount--;
-				LeaveCriticalSec( &console->Lock );
-			}
-			break;
-		case MNU_HISTORYSIZE25:
-		case MNU_HISTORYSIZE50:
-		case MNU_HISTORYSIZE75:
-		case MNU_HISTORYSIZE100:
-			{
-				console->nHistoryPercent =  cmd - MNU_HISTORYSIZE25;
-				SACK_WriteProfileInt( "sack/PSI/console", "direct", console->nHistoryPercent );
-				if( console->flags.bHistoryShow ) // currently showing history
-				{
-					EnterCriticalSec( &console->Lock );
-					console->lockCount++;
-					PSI_ConsoleCalculate( console, GetCommonFont( pc ) ); // changed history display...
-					console->lockCount--;
-					LeaveCriticalSec( &console->Lock );
-				}
-			}
-			break;
-		case MNU_FONT:
-			{
-				//console->cfFont.hwndOwner = hWnd;
-				size_t size;
-				SFTFont font;
-				POINTER info = NULL;
-				if( font = PickFont( -1, -1, &size, &info, NULL ) )
-				{
-					//POINTER data;
-					//size_t datalen;
-					//GetFontRenderData( font, &data, &datalen );
-					SACK_WriteProfileString( "sack/PSI/console", "font", (CTEXTSTR)info );
-					//console->psicon.hFont = (SFTFont)font;
-					SetCommonFont( console->psicon.frame, (SFTFont)font );
-					//GetDefaultFont();
-					//GetStringSizeFont( " ", &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
-					PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
-				}
-			}
-				break;
-		  case MNU_COMMAND_COLOR:
-				{
-				CDATA color;
-					 if( PickColor( &color, console->psicon.crCommand, console->psicon.frame ) )
-						  console->psicon.crCommand = color;
-					 else
-						  Log2( "Colors %08x %08x", color, console->psicon.crCommand );
-				}
-			break;
-		  case MNU_COMMAND_BACK:
-				{
-				CDATA color;
-					 if( PickColor( &color, console->psicon.crCommandBackground, console->psicon.frame ) )
-						  console->psicon.crCommandBackground = color;
-					 else
-						  Log2( "Colors %08x %08x", color, console->psicon.crCommandBackground );
-				}
-			break;
-		}
-		  CheckPopupItem( hHistoryMenu
-								 , MNU_HISTORYSIZE25+console->nHistoryPercent
-								 , MF_BYCOMMAND|MF_UNCHECKED  );
-		  CheckPopupItem( hChildMenu
-								 , MNU_DIRECT
-								 , MF_BYCOMMAND|MF_UNCHECKED );
+		cmd = TrackPopup_v2( hChildMenu, console->psicon.frame, HandleOption1, (uintptr_t)console );
 	 }
 
 	 _x = x;
