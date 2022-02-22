@@ -606,7 +606,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					//task->hStdOut.pdp 		 = pdp;
 					task->hStdOut.bNextNew = TRUE;
 					task->args1.task       = task;
-               task->args1.stdErr     = FALSE;
+					task->args1.stdErr     = FALSE;
 					task->hStdOut.hThread  = ThreadTo( HandleTaskOutput, (uintptr_t)&task->args1 );
 
 					if( OutputHandler2 ) {
@@ -662,6 +662,10 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			task->psvEnd = psv;
 			task->EndNotice = EndNotice;
 			task->OutputEvent = OutputHandler;
+			task->args1.task       = task;
+			task->args1.stdErr     = FALSE;
+			task->args2.task       = task;
+			task->args2.stdErr     = TRUE;
 			if( OutputHandler )
 			{
 				if( pipe(task->hStdIn.pair) < 0 ) {
@@ -755,8 +759,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					close( task->hStdOut.pair[1] );
 				}
 			}
+
 			if( OutputHandler )
-				ThreadTo( HandleTaskOutput, (uintptr_t)task );
+				ThreadTo( HandleTaskOutput, (uintptr_t)&task->args1 );
+			if( OutputHandler2 ) {
+				ThreadTo( HandleTaskOutput, (uintptr_t)&task->args2 );
+			} 
+
 			task->pid = newpid;
 			// how can I know if the command failed?
 			// well I can't - but the user's callback will be invoked
