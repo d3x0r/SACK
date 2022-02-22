@@ -55,6 +55,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 {
    struct taskOutputStruct* taskParams = (struct taskOutputStruct*)GetThreadParam( thread );
 	PTASK_INFO task = taskParams->task;  // (PTASK_INFO)GetThreadParam( thread );
+lprintf( "Beginning task read thred..." );
 	if( task )
 	{
 		task->pOutputThread = thread;
@@ -80,9 +81,11 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 										, (LPDWORD)&dwRead, NULL ) )  //read the  pipe
 						{
 #else
+							lprintf( "Beign read: %d", GetTextSize( pInput ) );
 							dwRead = read( phi->handle
 											 , GetText( pInput )
 											 , GetTextSize( pInput ) - 1 );
+					lprintf( "GOT BACK:", dwRead );
 							if( !dwRead )
 							{
 #  ifdef _DEBUG
