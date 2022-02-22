@@ -285,7 +285,7 @@ int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 
 void HandleOption1( uintptr_t psv, int cmd ) {
 	PCONSOLE_INFO console = (PCONSOLE_INFO)psv;
-
+	PSI_CONTROL pc = console->psicon.frame;
 		if( ( cmd >= MNU_BKBLACK ) &&
 			( cmd <= MNU_BKWHITE ) )
 		{
@@ -525,7 +525,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 			CheckPopupItem( hChildMenu
 							  , MNU_DIRECT
 							  , MF_BYCOMMAND|MF_CHECKED );
-		cmd = TrackPopup_v2( hChildMenu, console->psicon.frame, HandleOption1, (uintptr_t)console );
+		TrackPopup_v2( hChildMenu, console->psicon.frame, HandleOption1, (uintptr_t)console );
 	 }
 
 	 _x = x;
