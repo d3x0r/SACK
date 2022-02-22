@@ -395,7 +395,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		task = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
 		MemSet( task, 0, sizeof( TASK_INFO ) );
 		task->psvEnd = psv;
-		task->flags.log_input = TRUE;
 		task->flags.runas_root = (flags & LPP_OPTION_ELEVATE) != 0;
 		task->EndNotice = EndNotice;
 		if( l.ExternalFindProgram ) {
@@ -504,7 +503,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		{
 			HINSTANCE hShellProcess = 0;
 			int success = 0;
-#ifdef WIN32
 			if( flags & LPP_OPTION_IMPERSONATE_EXPLORER )
 			{
 				HANDLE hExplorer = GetImpersonationToken();
@@ -547,7 +545,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				CloseHandle( hExplorer );
 			}
 			else
-#endif
 			{
 				if( ( (!task->flags.runas_root) && ( CreateProcess( program
 										, GetText( cmdline )
@@ -661,6 +658,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			TEXTCHAR saved_path[256];
 			task = (PTASK_INFO)Allocate( sizeof( TASK_INFO ) );
 			MemSet( task, 0, sizeof( TASK_INFO ) );
+			task->flags.log_input = TRUE;
 			task->psvEnd = psv;
 			task->EndNotice = EndNotice;
 			task->OutputEvent = OutputHandler;
