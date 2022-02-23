@@ -47,7 +47,7 @@ SaneWinMain( argc, argv )
 					:"bash", 
 #endif
 					".", argc>2?argv+2:NULL
-		                        , 0 /*LPP_OPTION_DO_NOT_HIDE*/
+		                        , LPP_OPTION_FIRST_ARG_IS_ARG /*LPP_OPTION_DO_NOT_HIDE*/
 		                        , OutputHandle
 		                        , OutputHandle2
 		                        , TaskEnded, (uintptr_t)pc
