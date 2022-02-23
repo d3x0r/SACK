@@ -85,7 +85,7 @@ lprintf( "Beginning task read thred..." );
 							dwRead = read( phi->handle
 											 , GetText( pInput )
 											 , GetTextSize( pInput ) - 1 );
-					lprintf( "GOT BACK:%d", dwRead );
+					lprintf( "GOT BACK:%d %s", dwRead, GetText( pInput ) );
 							if( !dwRead )
 							{
 #  ifdef _DEBUG
