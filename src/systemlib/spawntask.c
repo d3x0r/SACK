@@ -53,9 +53,8 @@ extern uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread );
 
 static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 {
-   struct taskOutputStruct* taskParams = (struct taskOutputStruct*)GetThreadParam( thread );
+	struct taskOutputStruct* taskParams = (struct taskOutputStruct*)GetThreadParam( thread );
 	PTASK_INFO task = taskParams->task;  // (PTASK_INFO)GetThreadParam( thread );
-lprintf( "Beginning task read thred..." );
 	if( task )
 	{
 		task->pOutputThread = thread;
@@ -81,11 +80,9 @@ lprintf( "Beginning task read thred..." );
 										, (LPDWORD)&dwRead, NULL ) )  //read the  pipe
 						{
 #else
-							lprintf( "Beign read: %d", GetTextSize( pInput ) );
 							dwRead = read( phi->handle
 											 , GetText( pInput )
 											 , GetTextSize( pInput ) - 1 );
-					lprintf( "GOT BACK:%d %s", dwRead, GetText( pInput ) );
 							if( !dwRead )
 							{
 #  ifdef _DEBUG
@@ -157,19 +154,7 @@ lprintf( "Beginning task read thred..." );
 				}
 			}
 			while( !lastloop );
-			//lprintf( "Exited read loop" );
-#ifdef _DEBUG
-			if( lastloop )
-			{
-				//DECLTEXT( msg, "Ending system thread because of process exit!" );
-				//EnqueLink( phi->pdp->&ps->Command->Output, &msg );
-			}
-			else
-			{
-				//DECLTEXT( msg, "Guess we exited from broken pipe" );
-				//EnqueLink( phi->pdp->&ps->Command->Output, &msg );
-			}
-#endif
+
 			LineRelease( pInput );
 #ifdef _WIN32
 			CloseHandle( task->hReadIn );
@@ -661,7 +646,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			TEXTCHAR saved_path[256];
 			task = (PTASK_INFO)Allocate( sizeof( TASK_INFO ) );
 			MemSet( task, 0, sizeof( TASK_INFO ) );
-			task->flags.log_input = TRUE;
+			//task->flags.log_input = TRUE;
 			task->psvEnd = psv;
 			task->EndNotice = EndNotice;
 			task->OutputEvent = OutputHandler;
@@ -724,7 +709,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				DispelDeadstart();
 
 				execve( _program, (char *const*)args, environ );
-				lprintf( "Direct execute failed... trying along path..." );
+				//lprintf( "Direct execute failed... trying along path..." );
 				{
 					char *tmp = strdup( getenv( "PATH" ) );
 					char *tok;
