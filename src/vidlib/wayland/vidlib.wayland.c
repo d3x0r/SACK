@@ -1562,7 +1562,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 			if( !r->surface ) return;
 			//lprintf( "DUring update display, do a commit right now" );
 			wl_surface_commit( r->surface );
-			//wl_display_flush( wl.display );
+			wl_display_flush( wl.display );
 			//if( wl.xdg_wm_base )
 			//	wl_display_roundtrip_queue(wl.display, wl.queue);
 #if defined( DEBUG_COMMIT )
