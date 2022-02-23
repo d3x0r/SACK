@@ -46,7 +46,7 @@ SaneWinMain( argc, argv )
 #ifdef __LINUX__
 					:"bash", 
 #endif
-					".", NULL
+					".", argc>2?argv+2:NULL
 		                        , 0 /*LPP_OPTION_DO_NOT_HIDE*/
 		                        , OutputHandle
 		                        , OutputHandle2
