@@ -6,16 +6,12 @@ static PTHREAD pThread;
 
 void CPROC OutputHandle( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-	int ofs = 0;
-   //lprintf( "output %s", buffer );
-	pcprintf( (PSI_CONTROL)psv, "%s", buffer + ofs );
+	pcprintf( (PSI_CONTROL)psv, "%s", buffer );
 }
 
 void CPROC OutputHandle2( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-	int ofs = 0;
-	lprintf( "stderr output %s", buffer );
-	pcprintf( (PSI_CONTROL)psv, "%s", buffer + ofs );
+	pcprintf( (PSI_CONTROL)psv, "%s", buffer );
 }
 void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 {
