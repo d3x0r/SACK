@@ -49,15 +49,16 @@ typedef struct wvideo_tag
 	struct xdg_toplevel *xdg_toplevel;
 
 	PCOLOR shm_data;
-	struct wl_buffer *buff;
-	int curBuffer;
 	uint32_t bufw, bufh;
+	struct wl_buffer *buff; // current buffer pointer
+	int curBuffer;         // current buffer index
 	//enum sizeDisplayValues changedEdge; // when resized, this is how to copy the existing image.
-	int freeBuffer[2];
-	struct wl_buffer * buffers[2];
-	PCOLOR  color_buffers[2];
-	size_t buffer_sizes[2];
-	Image buffer_images[2];
+	#define MAX_OUTSTANDING_FRAMES 2
+	int freeBuffer[MAX_OUTSTANDING_FRAMES];
+	struct wl_buffer * buffers[MAX_OUTSTANDING_FRAMES];
+	PCOLOR  color_buffers[MAX_OUTSTANDING_FRAMES];
+	size_t buffer_sizes[MAX_OUTSTANDING_FRAMES];
+	Image buffer_images[MAX_OUTSTANDING_FRAMES];
 	PLIST damage; // backing buffer was in use while damage happened...
 	struct wl_shm_pool *pool;
 	struct wl_callback *frame_callback;  // request for WM_PAINT
