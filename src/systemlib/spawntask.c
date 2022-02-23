@@ -111,17 +111,20 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 								}
 							}
 							//lprintf( "result %d", dwRead );
-							GetText( pInput )[dwRead] = 0;
-							pInput->data.size = dwRead;
-							//LogBinary( GetText( pInput ), GetTextSize( pInput ) );
-							if( taskParams->stdErr ) {
-								if( task->OutputEvent2 )
-									task->OutputEvent2( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
-							} else {
-								if( task->OutputEvent )
-									task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+							if( dwRead < 4096 ) {
+								GetText( pInput )[dwRead] = 0;
+								pInput->data.size = dwRead;
+								//LogBinary( GetText( pInput ), GetTextSize( pInput ) );
+								if( taskParams->stdErr ) {
+									if( task->OutputEvent2 )
+										task->OutputEvent2( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+								} else {
+									if( task->OutputEvent )
+										task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+								}
+
+								pInput->data.size = 4096;
 							}
-							pInput->data.size = 4096;
 #ifdef _WIN32
 						}
 						else
@@ -767,7 +770,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 
 			if( OutputHandler )
 				ThreadTo( HandleTaskOutput, (uintptr_t)&task->args1 );
-			if( OutputHandler2 ) {
+			if( OutputHandler2 ) { // only if it was opened as a separate handle...
 				ThreadTo( HandleTaskOutput, (uintptr_t)&task->args2 );
 			} 
 
