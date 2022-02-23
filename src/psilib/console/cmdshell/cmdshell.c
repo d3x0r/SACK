@@ -11,6 +11,12 @@ void CPROC OutputHandle( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t
 	pcprintf( (PSI_CONTROL)psv, "%s", buffer + ofs );
 }
 
+void CPROC OutputHandle2( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
+{
+	int ofs = 0;
+	lprintf( "stderr output %s", buffer );
+	pcprintf( (PSI_CONTROL)psv, "%s", buffer + ofs );
+}
 void CPROC TaskEnded( uintptr_t psv, PTASK_INFO task )
 {
 	done = TRUE;
@@ -37,9 +43,19 @@ SaneWinMain( argc, argv )
 		DisplayFrame( pc );
 
 		//task = LaunchPeerProgram( argc>1?argv[1]:"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", ".", NULL, OutputHandle, TaskEnded, (uintptr_t)pc );
-		task = LaunchPeerProgramExx( argc>1?argv[1]:"cmd.exe", ".", NULL
-											, 0 /*LPP_OPTION_DO_NOT_HIDE*/
-											, OutputHandle, TaskEnded, (uintptr_t)pc
+		task = LaunchPeerProgram_v2( argc>1?argv[1]
+#ifdef WIN32
+					:"cmd.exe", 
+#endif
+#ifdef __LINUX__
+					:"bash", 
+#endif
+					".", NULL
+		                        , 0 /*LPP_OPTION_DO_NOT_HIDE*/
+		                        , OutputHandle
+		                        , OutputHandle2
+		                        , TaskEnded, (uintptr_t)pc
+		                        , NULL
                                   DBG_SRC
 											);
 		if( task )
