@@ -650,6 +650,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			task->psvEnd = psv;
 			task->EndNotice = EndNotice;
 			task->OutputEvent = OutputHandler;
+			task->OutputEvent2 = OutputHandler2;
 			task->args1.task       = task;
 			task->args1.stdErr     = FALSE;
 			task->args2.task       = task;
@@ -671,6 +672,18 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					return NULL;
 				}
 				task->hStdOut.handle = task->hStdOut.pair[0];
+
+				if( OutputHandler2 ) {
+					if( pipe(task->hStdErr.pair) < 0 ) {
+						if (expanded_working_path)
+							Release( expanded_working_path );
+						Release( expanded_path );
+						return NULL;
+					}
+					task->hStdErr.handle = task->hStdErr.pair[0];
+				} else
+					task->hStdErr.handle =task->hStdOut.pair[0];
+
 			}
 
 			// always have to thread to taskend so waitpid can clean zombies.
@@ -703,7 +716,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				//close( task->hStdErr.pair[0] );
 				if( OutputHandler ) {
 					dup2( task->hStdIn.pair[0], 0 );
-					dup2( task->hStdOut.pair[1], 1 );
+					dup2( task->hStdOut.pair[1], 1 );				
 					dup2( task->hStdErr.pair[1], 2 );
 				}
 				DispelDeadstart();
@@ -728,6 +741,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				if( OutputHandler ) {
 					close( task->hStdIn.pair[0] );
 					close( task->hStdOut.pair[1] );
+					if( OutputHandler2 )
+						close( task->hStdErr.pair[1] );
 				}
 				//close( task->hWriteErr );
 				close( 0 );
@@ -745,12 +760,14 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				if( OutputHandler ) {
 					close( task->hStdIn.pair[0] );
 					close( task->hStdOut.pair[1] );
+					if( OutputHandler2 )
+						close( task->hStdErr.pair[1] );
 				}
 			}
 
 			if( OutputHandler )
 				ThreadTo( HandleTaskOutput, (uintptr_t)&task->args1 );
-			if( OutputHandler2 || OutputHandler ) {
+			if( OutputHandler2 ) {
 				ThreadTo( HandleTaskOutput, (uintptr_t)&task->args2 );
 			} 
 
