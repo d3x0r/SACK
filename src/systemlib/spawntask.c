@@ -765,7 +765,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 
 			if( OutputHandler )
 				ThreadTo( HandleTaskOutput, (uintptr_t)&task->args1 );
-			if( OutputHandler2 ) {
+			if( OutputHandler2 || OutputHandler ) {
 				ThreadTo( HandleTaskOutput, (uintptr_t)&task->args2 );
 			} 
 
