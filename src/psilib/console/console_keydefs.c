@@ -1,5 +1,5 @@
 #define CORECON_SOURCE
-#define NO_LOGGING
+//#define NO_LOGGING
 #define KEYS_DEFINED
 #include <stdhdrs.h>
 #include <keybrd.h>
@@ -1350,7 +1350,7 @@ int PSI_DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
    INDEX i;
    int bOutput = FALSE;
    DECLTEXT( key, " " );
-   //Log1( "Do Stroke with %c", stroke->data.data[0] );
+   //Log1( "Do Stroke with %s", stroke->data.data );
    while( stroke )
    {
       for( i = 0; i < stroke->data.size; i++ )
@@ -1429,10 +1429,10 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
       //}
    }
 
-
 	if( pdp->Keyboard[key_index][mod].flags.bStroke ||
 		pdp->Keyboard[key_index][mod].flags.bMacro )
 	{
+
 		if( pdp->Keyboard[key_index][mod].flags.bStroke )
 		{
 			extern void CPROC PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke );
@@ -1452,7 +1452,7 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 	else // key was not overridden
 	{
 		int result = 0;
-		//Log1( "Keyfunc = %d", KeyDefs[key_index].op[mod].bFunction );
+		//Log1( "Keyfunc = %d", ConsoleKeyDefs[key_index].op[mod].bFunction );
 		switch( ConsoleKeyDefs[key_index].op[mod].bFunction )
 		{
 		case KEYDATA_DEFINED:
@@ -1467,6 +1467,7 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 			// the command prompt or not.
 			break;
 		case KEYDATA:
+		default:
 			if( GetTextSize( characters ) )
 			{
 				extern void CPROC PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke );
@@ -1478,9 +1479,9 @@ void PSI_KeyPressHandler( PCONSOLE_INFO pdp
 		case COMMANDKEY:
 			result = ConsoleKeyDefs[key_index].op[mod].data.CommandKey( (uintptr_t)pdp, pdp->
 #ifdef __DEKWARE_PLUGIN__
-																				 common.
+			                                                           common.
 #endif
-																				 CommandInfo );
+			                                                          CommandInfo );
 			if( result == UPDATE_COMMAND ) {
 				pdp->pCommandDisplay->flags.bUpdated = 1;
 
