@@ -1273,7 +1273,7 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 			break;
 		}
 	}
-	if( n == 2 ) {
+	if( n == MAX_OUTSTANDING_FRAMES ) {
 		lprintf( "Released buffer isn't on this surface?");
 	}
 	//lprintf( "Buffer is released, you can draw now..." );
