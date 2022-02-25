@@ -954,6 +954,10 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		r->color_buffers[curBuffer] = r->shm_data;
 		r->freeBuffer[curBuffer] = 1; // initialize this as 'free' as in not commited(in use)
 	}
+	else {
+		if( MAX_OUTSTANDING_FRAMES > 2 )
+			BlotImage( r->buffer_images[curBuffer], r->buffer_images[r->curBuffer+(MAX_OUTSTANDING_FRAMES-1)%MAX_OUTSTANDING_FRAMES], 0, 0 );
+	}
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
 	r->pImage->flags |= IF_FLAG_FINAL_RENDER|IF_FLAG_IN_MEMORY;
 	return r->buff;
@@ -1224,38 +1228,40 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 #endif
 			if( r->freeBuffer[n] )
 				lprintf( "!!!!!!!!!!!!! MULTIPLE EVENT ON SAME BUFFER ");
-			if( n == ( (r->curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES ) )
-			{
-				INDEX idx;
-				int minx = r->w;
-				int miny = r->h;
-				int maxx = 0;
-				int maxy = 0;
-				struct damageInfo *damage;
-				LIST_FORALL( r->damage, idx, struct damageInfo *, damage ) {
-					int newminx, newminy, newmaxx, newmaxy;
-					int grew;
-					//lprintf( "Recovering a damaged area %d %d %d %d", damage->x, damage->y, damage->w, damage->h );
-
-					if( damage->x < minx )
-						minx = damage->x;
-					if( damage->y < miny )
-						miny = damage->y;
-
-					if( (damage->x+damage->w) > maxx )
-						maxx = damage->x+damage->w;
-					if( (damage->y+damage->h) > maxy )
-						maxy = damage->y+damage->h;
-
-					Release( damage );
-				}
-				EmptyList( &r->damage );
-				if( maxx  ) {
-					lprintf( "update next damaged area %d %d %d %d", minx, miny, maxx-minx, maxy-miny );
-					BlotImageSizedTo( r->buffer_images[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES], r->buffer_images[r->curBuffer]
-								, minx, miny, minx, miny, maxx-minx, maxy-miny );
-				}
-			}
+			if( MAX_OUTSTANDING_FRAMES < 3 ) 
+				if( n == ( (r->curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES ) )
+				{
+					INDEX idx;
+					int minx = r->w;
+					int miny = r->h;
+					int maxx = 0;
+					int maxy = 0;
+					struct damageInfo *damage;
+					LIST_FORALL( r->damage, idx, struct damageInfo *, damage ) {
+						int newminx, newminy, newmaxx, newmaxy;
+						int grew;
+						//lprintf( "Recovering a damaged area %d %d %d %d", damage->x, damage->y, damage->w, damage->h );
+			        
+						if( damage->x < minx )
+							minx = damage->x;
+						if( damage->y < miny )
+							miny = damage->y;
+			        
+						if( (damage->x+damage->w) > maxx )
+							maxx = damage->x+damage->w;
+						if( (damage->y+damage->h) > maxy )
+							maxy = damage->y+damage->h;
+			        
+						Release( damage );
+					}
+					EmptyList( &r->damage );
+					if( maxx  ) {
+						lprintf( "update next damaged area %d %d %d %d", minx, miny, maxx-minx, maxy-miny );
+						BlotImageSizedTo( r->buffer_images[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES], r->buffer_images[r->curBuffer]
+									, minx, miny, minx, miny, maxx-minx, maxy-miny );
+					}
+				};
+				
 			r->freeBuffer[n] = 1;
 			if( r->flags.wantBuffer ){
 				r->flags.wantBuffer = 0;
@@ -1528,20 +1534,22 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 //	lprintf( "UpdateDisplayProtionEx %p", r->surface );
 	if( !r->surface ) return;
-	if( r->buffer_images[r->curBuffer]
-	   && r->buffer_images[(r->curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES]) {
-		if( r->freeBuffer[(r->curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES] && !( r->damage && GetLinkCount(r->damage) ))
-			BlotImageSizedTo( r->buffer_images[(r->curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], r->buffer_images[r->curBuffer], x, y, x, y, w, h );
-		else
-		{
-			struct damageInfo *damage = New( struct damageInfo );
-			damage->x = x;
-			damage->y = y;
-			damage->w = w;
-			damage->h = h;
-			AddLink( &r->damage, damage );
-		}
-	}
+	if( MAX_OUTSTANDING_FRAMES < 3 )
+		if( r->buffer_images[r->curBuffer]
+		   && r->buffer_images[(r->curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES]) {
+			if( r->freeBuffer[(r->curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES] && !( r->damage && GetLinkCount(r->damage) ))
+				BlotImageSizedTo( r->buffer_images[(r->curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], r->buffer_images[r->curBuffer], x, y, x, y, w, h );
+			else
+			{
+				struct damageInfo *damage = New( struct damageInfo );
+				damage->x = x;
+				damage->y = y;
+				damage->w = w;
+				damage->h = h;
+				AddLink( &r->damage, damage );
+			}
+		};
+
 	if( !r->surface ) return;
 	wl_surface_damage( r->surface, x, y, w, h );
 #if defined( DEBUG_COMMIT ) || defined( DEBUG_COMMIT_STATE )
@@ -1587,19 +1595,20 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 //	lprintf( "update DIpslay Ex" );
 	if( !r->surface ) return;
 	//lprintf( "Update whole surface %d %d", r->w, r->h );
-	if( r->buffer_images[r->curBuffer] && r->buffer_images[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES] ) {
-		if( r->freeBuffer[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES]  || (r->damage && GetLinkCount(r->damage) ) )
-			BlotImage( r->buffer_images[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES], r->buffer_images[r->curBuffer], 0, 0 );
-		else
-		{
-			struct damageInfo *damage = New( struct damageInfo );
-			damage->x = 0;
-			damage->y = 0;
-			damage->w = r->w;
-			damage->h = r->h;
-			AddLink( &r->damage, damage );
+	if( MAX_OUTSTANDING_FRAMES < 3 )
+		if( r->buffer_images[r->curBuffer] && r->buffer_images[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES] ) {
+			if( r->freeBuffer[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES]  || (r->damage && GetLinkCount(r->damage) ) )
+				BlotImage( r->buffer_images[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES], r->buffer_images[r->curBuffer], 0, 0 );
+			else
+			{
+				struct damageInfo *damage = New( struct damageInfo );
+				damage->x = 0;
+				damage->y = 0;
+				damage->w = r->w;
+				damage->h = r->h;
+				AddLink( &r->damage, damage );
+			}
 		}
-	}
 	if( !r->surface ) return;
 	wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
 	if( r->flags.canCommit ){
