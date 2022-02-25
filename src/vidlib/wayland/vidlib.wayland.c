@@ -1099,7 +1099,8 @@ static uintptr_t waylandDrawThread( PTHREAD thread ) {
 		EmptyList( &wl.wantDraw );
 		if( sleepTime ) // mouse events might want to tick off quickly
 		{
-			wl_display_flush( wl.display );
+			if( wl.display )
+				wl_display_flush( wl.display );
 			WakeableSleep(sleepTime);
 			
 		}
