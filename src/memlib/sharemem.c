@@ -902,9 +902,9 @@ static void DoCloseSpace( PSPACE ps, int bFinal )
 		CloseHandle( ps->hFile );
 #else
 		munmap( ps->pMem, ps->dwSmallSize );
-		if( ps->flags.bTemporary && (ps->hFile >= 0) )
+		if( (ps->hFile >= 0) )
 		{
-			if( bFinal )
+			if( ps->flags.bTemporary && bFinal )
 			{
 				char file[256];
 				char fdname[64];
