@@ -55,7 +55,7 @@ typedef struct wvideo_tag
 	struct wl_buffer *buff; // current buffer pointer
 	int curBuffer;         // current buffer index
 	//enum sizeDisplayValues changedEdge; // when resized, this is how to copy the existing image.
-	#define MAX_OUTSTANDING_FRAMES 5
+	#define MAX_OUTSTANDING_FRAMES 2
 	int freeBuffer[MAX_OUTSTANDING_FRAMES];
 	struct wl_buffer * buffers[MAX_OUTSTANDING_FRAMES];
 	PCOLOR  color_buffers[MAX_OUTSTANDING_FRAMES];

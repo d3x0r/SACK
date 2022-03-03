@@ -586,6 +586,9 @@ static void finishInitConnections( void ) {
 		lprintf( "Surface Attach (cursor)" );
 		wl_surface_attach( wl.cursor_surface, cursor_buffer, 0, 0 );
 		wl_surface_commit( wl.cursor_surface );
+		wl_display_flush(wl.display);
+		//wl_surface_flush( wl.cursor_surface);
+	wl_display_roundtrip_queue(wl.display, wl.queue);
 	}
 }
 
@@ -1038,7 +1041,7 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			r->shell_surface = wl_shell_get_shell_surface(wl.shell, r->surface);
 			wl_shell_surface_add_listener( r->shell_surface, &shell_surface_listener, r );
 			wl_shell_surface_set_toplevel(r->shell_surface);
-		   wl_shell_surface_set_user_data(r->shell_surface, r);
+			wl_shell_surface_set_user_data(r->shell_surface, r);
 		}
 
 		if(wl.xdg_wm_base) {
@@ -1049,7 +1052,6 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			//xdg_toplevel_set_title(  r->xdg_toplevel, "I DOn't want a title");
 			xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
 			// must commit to get a config
-			wl_surface_commit( r->surface );
 			// must also wait to get config.
 			lprintf( "XDG? %p", r->shell_surface );
 		}
@@ -1059,8 +1061,19 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			return FALSE;
 		}
 	}
-
-
+	{
+		struct wl_buffer *next = nextBuffer(r, 0);
+		if( next ) {
+			r->freeBuffer[r->curBuffer] = 0; // lock this buffer.
+			r->flags.dirty = 0; // don't need a commit.
+			wl_surface_commit( r->surface );
+			wl_display_roundtrip_queue(wl.display, wl.queue);
+        		wl_surface_attach( r->surface, next, 0, 0 );
+			//lprintf( "DUring update display, do a commit right now" );
+		}else {
+			lprintf( "Don't have another surface ready to commit" );
+		}
+	}
 	return TRUE;
 }
 
@@ -1180,13 +1193,15 @@ static PRENDERER sack_wayland_OpenDisplayAboveUnderSizedAt(uint32_t attr , uint3
 	}
 	#endif
 	if( wl.flags.bFailed ) return NULL;
-
+ lprintf( "----------------- BEGIN CREATE WINDOW -----------------------" );
 	if( !CreateWindowStuff( r, rAbove ) ) {
 		lprintf( "Failed to create drawing surface... falling back to offscreen rendering?");
 	}else {
 		r->frame_callback = wl_surface_frame( r->surface );
 		wl_callback_add_listener( r->frame_callback, &frame_listener, r );
+		//wl_surface_commit( r->surface );
 	}
+	lprintf( "did we ever do a initial draw? Probably no" );
 
 	return (PRENDERER)r;
 }
@@ -1350,7 +1365,8 @@ int main( void ) {
             wl_display_roundtrip_queue(wl.display, wl.queue);
         }
 
-        		wl_surface_damage( r->surface, 20, 20, 50, 50 );
+        		wl_surface_damage( r->surface, 10, 10, 50, 50 );
+
     for( int i = 0; i < 5; i++ ) {
 		printf( "------------------------ BEGIN %d FRAME ---------------------\n", i );
         r->freeBuffer[r->curBuffer] = 0; // lock this buffer.
@@ -1370,14 +1386,14 @@ int main( void ) {
         		wl_surface_attach( r->surface, next, 0, 0 );
         		//wl_surface_commit( r->surface );
         		//if(i>2)
-        		wl_surface_damage( r->surface, 20, 20, 50, 50 );
+        		wl_surface_damage( r->surface, 20+i, 20, 50, 50 );
         		//wl_surface_commit( r->surface );
         		//wl_display_flush( wl.display );
         	}
         }else {
         	lprintf( "No Next buffer was available, we shouldn't actually commit yet..." );
         }
-        if(i)
+//        if(i)
         while( !r->flags.canCommit ) {
             wl_display_roundtrip_queue(wl.display, wl.queue);
             usleep( 10000 );

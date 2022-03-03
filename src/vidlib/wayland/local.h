@@ -32,6 +32,7 @@ typedef struct wvideo_tag
 		volatile uint32_t dirty : 1;
 		volatile uint32_t wantBuffer : 1; // cannot be 'canCommit', because no new buffer can be used.
 		volatile uint32_t canCommit : 1;
+		volatile uint32_t canDamage : 1;
 		uint32_t wantDraw : 1;
 		uint32_t hidden : 1; // tracks whether the window is visible or not.
 		uint32_t commited : 1; // if a redraw did not update anything, update everything.
@@ -53,7 +54,7 @@ typedef struct wvideo_tag
 	struct wl_buffer *buff; // current buffer pointer
 	int curBuffer;         // current buffer index
 	//enum sizeDisplayValues changedEdge; // when resized, this is how to copy the existing image.
-	#define MAX_OUTSTANDING_FRAMES 5
+	#define MAX_OUTSTANDING_FRAMES 2
 	int freeBuffer[MAX_OUTSTANDING_FRAMES];
 	struct wl_buffer * buffers[MAX_OUTSTANDING_FRAMES];
 	PCOLOR  color_buffers[MAX_OUTSTANDING_FRAMES];
@@ -79,6 +80,7 @@ typedef struct wvideo_tag
 	HideAndRestoreCallback pHideCallback;
 	uintptr_t  dwHideData;
 	PKEYDEFINE pKeyDefs;
+	PTHREAD   bufferWaiter;
 } XPANEL, *PXPANEL;
 
 
@@ -131,12 +133,14 @@ struct pendingKey {
 
 struct wayland_local_tag
 {
+	CRITICALSECTION cs_wl;
 	PTHREAD waylandThread;
 	PTHREAD drawThread;
 	PIMAGE_INTERFACE pii;
 	struct {
 		volatile uint32_t bInited : 1;
 		volatile uint32_t bFailed : 1;
+		volatile uint32_t shellInit : 1;
 		uint32_t bLogKeyEvent:1;
 	} flags;
 	PLIST wantDraw;
@@ -182,7 +186,7 @@ struct wayland_local_tag
 	PXPANEL hVidFocused; // keyboard events go here
 	PXPANEL hCaptured; // send all mouse events here (probalby should-no-op this)
 	PLIST pActiveList; // non-destroyed windows are here
-
+	volatile PTHREAD shellWaiter;
 };
 
 
