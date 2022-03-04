@@ -984,7 +984,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 
 
 static void attachNewBuffer( PXPANEL r, int req, int locked ) {
-
+	if( !r->surface ) return; 
 			struct wl_buffer *next = nextBuffer(r, 0);
 			if( req && !next ) {
 #if defined( DEBUG_COMMIT_BUFFER )
@@ -1060,8 +1060,10 @@ static void attachNewBuffer( PXPANEL r, int req, int locked ) {
 #if defined( DEBUG_SURFACE_ATTACH )
 				lprintf( "Attach new surface (can damage this." );
 #endif
-				wl_surface_attach( r->surface, next, 0, 0 );
-				r->flags.canDamage = 1;
+				if( r->surface ) {
+					wl_surface_attach( r->surface, next, 0, 0 );
+					r->flags.canDamage = 1;
+				}
 			}else {
 				lprintf( "Leaving without attaching a buffer..." );
 				//r->flags.dirty = 1;
@@ -1136,6 +1138,19 @@ static uintptr_t waylandDrawThread( PTHREAD thread ) {
 					event.r->mouse( event.r->psvMouse, event.x, event.y, event.b );
 				}
 			}
+			if( event.r->flags.dirty ) {
+				INDEX idx;
+				struct drawRequest *check;
+				LIST_FORALL( wl.wantDraw, idx, struct drawRequest *, check ) {
+					if( check->r == event.r ) break;
+				}
+				if( !check ) {
+					check = New( struct drawRequest );
+					check->r = event.r;
+					check->thread = NULL;
+					AddLink( &wl.wantDraw, check );
+				}
+			}
 			sleepTime = 0;
 		}
 		if( sleepTime ) { // if mouse happened, ignore keys this pass...
@@ -1164,6 +1179,7 @@ static uintptr_t waylandDrawThread( PTHREAD thread ) {
 			if( newSleepTime < sleepTime )
 				sleepTime = newSleepTime;
 		}
+		
 		LIST_FORALL( wl.wantDraw, idx, struct drawRequest *, req ){
 #if defined( DEBUG_COMMIT )
 			lprintf( "Sending a want draw window...");
@@ -1452,7 +1468,10 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 	PXPANEL r = (PXPANEL)renderer;
 	struct drawRequest* req = New( struct drawRequest );
 	PTHREAD thisThread = MakeThread();
-	if( wl.waylandThread != thisThread && wl.drawThread != thisThread ){
+	if( wl.waylandThread == thisThread ) {
+		
+	}
+	if( wl.drawThread != thisThread ){
 		//r->flags.dirty = 1;  // This must be dirty?  (Will be dirty?)
 		{
 			INDEX idx;
@@ -1621,7 +1640,7 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	lprintf( "UpdateDisplayProtionEx %p", r->surface );
+	lprintf( "UpdateDisplayProtionEx %p %d %d %d %d", r->surface, x, y, w, h );
 	if( !r->surface ) return;
 	EnterCriticalSec( &wl.cs_wl );
 	wl_surface_damage( r->surface, x, y, w, h );
