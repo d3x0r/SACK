@@ -967,7 +967,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		// haven't actually allocated a bufer yet... so do so...
 		allocateBuffer(r);
 		r->buffer_images[curBuffer] = RemakeImage( r->buffer_images[curBuffer], r->shm_data, r->w, r->h );
-		if( r->buffer_images[curBuffer+(MAX_OUTSTANDING_FRAMES-1)%MAX_OUTSTANDING_FRAMES] ) {
+		if( r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES] ) {
 #if defined(DEBUG_COMMIT_ATTACH )
 			lprintf( "Copy old buffer to new current buffer...%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES);
 #endif			
