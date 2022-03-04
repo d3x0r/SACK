@@ -3,6 +3,8 @@
 // https://jan.newmarch.name/Wayland/WhenCanIDraw/
 //
 
+//#define DEBUG_COMMIT_ATTACH
+
 // general debug enable...
 //#define DEBUG_COMMIT
 // tracks the allocation, locking and unlocking of buffers
@@ -758,7 +760,13 @@ static void finishInitConnections( void ) {
 		wl.cursor_image = cursor->images[0];
 		struct wl_buffer *cursor_buffer = wl_cursor_image_get_buffer( wl.cursor_image );
 		wl.cursor_surface = wl_compositor_create_surface( wl.compositor );
+#if defined( DEBUG_SURFACE_ATTACH )
+		lprintf( "Cursor surface attach." );
+#endif
 		wl_surface_attach( wl.cursor_surface, cursor_buffer, 0, 0 );
+#if defined( DEBUG_SURFACE_ATTACH )
+		lprintf( "Commiting cursor attach." );
+#endif
 		wl_surface_commit( wl.cursor_surface );
 		} else lprintf( "Naive theme check failed..." );
 		//wl_display_flush(wl.display);
@@ -960,8 +968,10 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		allocateBuffer(r);
 		r->buffer_images[curBuffer] = RemakeImage( r->buffer_images[curBuffer], r->shm_data, r->w, r->h );
 		if( r->buffer_images[curBuffer+(MAX_OUTSTANDING_FRAMES-1)%MAX_OUTSTANDING_FRAMES] ) {
-			//lprintf( "Copy old buffer to new current buffer...%d %d", curBuffer, curBuffer+(MAX_OUTSTANDING_FRAMES-1)%MAX_OUTSTANDING_FRAMES);
-			BlotImage( r->buffer_images[curBuffer], r->buffer_images[curBuffer+(MAX_OUTSTANDING_FRAMES-1)%MAX_OUTSTANDING_FRAMES], 0, 0 );
+#if defined(DEBUG_COMMIT_ATTACH )
+			lprintf( "Copy old buffer to new current buffer...%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES);
+#endif			
+			BlotImage( r->buffer_images[curBuffer], r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], 0, 0 );
 		}
 
 		r->buffers[curBuffer] = r->buff;
@@ -973,9 +983,11 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	}
 	else {
 		// update previous frame to current frame.
-		//lprintf( "Copying old buffer to current buffer...." );
+#if defined(DEBUG_COMMIT_ATTACH )
+		lprintf( "Copying old buffer to current buffer....%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES );
+#endif
 		// copy just the damaged portion?Â
-		BlotImage( r->buffer_images[curBuffer], r->buffer_images[curBuffer+(MAX_OUTSTANDING_FRAMES-1)%MAX_OUTSTANDING_FRAMES], 0, 0 );
+		BlotImage( r->buffer_images[curBuffer], r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], 0, 0 );
 	}
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
 	r->pImage->flags |= IF_FLAG_FINAL_RENDER|IF_FLAG_IN_MEMORY;
@@ -999,7 +1011,9 @@ static void attachNewBuffer( PXPANEL r, int req, int locked ) {
 					r->flags.canDamage = 0; // no buffer, no damage
 					r->flags.wantBuffer = 1;
 					r->bufferWaiter = MakeThread();
-					
+#if defined( DEBUG_COMMIT_ATTACH )
+					lprintf( "Commiting my surface, flushing, and waiting for new surface" );
+#endif
 					wl_surface_commit( r->surface );
 					wl_display_flush( wl.display );
 					do {
@@ -1009,7 +1023,7 @@ static void attachNewBuffer( PXPANEL r, int req, int locked ) {
 	if( locked )
 		LeaveCriticalSec( &wl.cs_wl );
 					if( r->bufferWaiter == wl.waylandThread ) {
-					lprintf( "Is the wayland thread, not the draw thread?" );
+						lprintf( "Is the wayland thread, not the draw thread?" );
 					    wl_display_roundtrip_queue(wl.display, wl.queue);
 					}
 						while( r->flags.wantBuffer ) {
@@ -1051,6 +1065,7 @@ static void attachNewBuffer( PXPANEL r, int req, int locked ) {
 				if( r->flags.dirty ) {
 					r->flags.dirty = 0;
 					r->flags.commited = 1;
+					lprintf( "While attaching this is already dirty again???? Commiting here" );
 					wl_surface_commit( r->surface );
 #if defined( DEBUG_COMMIT )
 					lprintf( "Window is (already) dirty, do commit");
@@ -1061,6 +1076,9 @@ static void attachNewBuffer( PXPANEL r, int req, int locked ) {
 				lprintf( "Attach new surface (can damage this." );
 #endif
 				if( r->surface ) {
+#if defined( DEBUG_SURFACE_ATTACH )
+					lprintf( "Attach new surface, such that can damage (wake someone?)" );
+#endif
 					wl_surface_attach( r->surface, next, 0, 0 );
 					r->flags.canDamage = 1;
 				}
@@ -1208,9 +1226,10 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 	if( wl.display ) {
 		while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 ){
 			if( wl.shellWaiter ) {
+				// have to round trip this; HOPE is blind.
 				WakeThread( wl.shellWaiter ); wl.shellWaiter = NULL;
 			}
-			lprintf( ".... did some messages...");
+			//lprintf( ".... did some messages...");
 		}
 
 		lprintf( "Thread exiting?" );
@@ -1424,7 +1443,7 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			//xdg_toplevel_set_title(  r->xdg_toplevel, "I DOn't want a title");
 			xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
 			// must commit to get a config
-			
+			lprintf( "Commiting shell intialization" );
 			wl_surface_commit( r->surface );
 			r->flags.canCommit = 0;
 			r->flags.canDamage = 0;
@@ -1632,6 +1651,7 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 	if( r->above ) {
 		struct wvideo_tag *a = r->above;
 		while( a->above ) a = a->above;
+		lprintf( "Destroyed surface commit here" );
 		wl_surface_commit( a->surface );
 	}
 	LeaveCriticalSec( &wl.cs_wl );
@@ -1640,7 +1660,7 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	lprintf( "UpdateDisplayProtionEx %p %d %d %d %d", r->surface, x, y, w, h );
+	//lprintf( "UpdateDisplayPortionEx %p %d %d %d %d", r->surface, x, y, w, h );
 	if( !r->surface ) return;
 	EnterCriticalSec( &wl.cs_wl );
 	wl_surface_damage( r->surface, x, y, w, h );
@@ -1653,7 +1673,7 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 
 //	lprintf( "update DIpslay Ex" );
 	if( !r->surface ) return;
-	lprintf( "Update whole surface %d %d", r->w, r->h );
+	//lprintf( "Update whole surface %d %d", r->w, r->h );
 
 	EnterCriticalSec( &wl.cs_wl );
 	wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
@@ -1787,6 +1807,9 @@ static void sack_wayland_RestoreDisplayEx( PRENDERER renderer DBG_PASS ){
 		EnterCriticalSec( &wl.cs_wl );
 		struct wl_buffer *next = nextBuffer(r, 0);
 		if( next ){
+#if defined( DEBUG_SURFACE_ATTACH )
+			lprintf( "Restoring hidden display attachment...; this should have been required?" );
+#endif
 			wl_surface_attach( r->surface, next, 0, 0 );
 			r->flags.canDamage = 1;
 			//wl_surface_commit( r->surface );
@@ -1807,6 +1830,7 @@ static void sack_wayland_HideDisplay( PRENDERER renderer ){
 		r->flags.hidden = 1;
 		clearBuffer(r);
 		EnterCriticalSec( &wl.cs_wl );
+		lprintf( "Hide display commit" );
 		wl_surface_commit( r->surface );
 		LeaveCriticalSec( &wl.cs_wl );
 	}
