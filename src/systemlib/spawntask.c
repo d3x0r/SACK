@@ -185,6 +185,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 			return 0xdead;
 		}
 	}
+	return 0;
 }
 
 //--------------------------------------------------------------------------
