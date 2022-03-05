@@ -1872,16 +1872,6 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 		char *fname;
 		char *iface;
 		char *tmp;
-		{
-			char *tmp = StrDup( vol->volname );
-			char *dir = (char*)pathrchr( tmp );
-			if( dir ) {
-				dir[0] = 0;
-				if( !IsPath( tmp ) ) MakePath( tmp );
-			}
-			free( tmp );
-			//Deallocate( char*, tmp );
-		}
 #ifndef USE_STDIO
 
 		if( tmp =(char*)StrChr( vol->volname, '@' ) ) {
@@ -1906,6 +1896,16 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 		}
 		else {
 defaultOpen:
+			{
+				char* tmp = StrDup( vol->volname );
+				char* dir = (char*)pathrchr( tmp );
+				if( dir ) {
+					dir[0] = 0;
+					if( !IsPath( tmp ) ) MakePath( tmp );
+				}
+				free( tmp );
+				//Deallocate( char*, tmp );
+			}
 			vol->file = sack_fopenEx( 0, vol->volname, "rb+", vol->mount );
 			if( !vol->file ) {
 				created = TRUE;
