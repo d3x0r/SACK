@@ -607,12 +607,15 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFl
 	uint64_t wtime;
 	size_t ofs = 0;
 	SACK_TIME ct, wt;
+	size_t size;
 	struct find_cursor * cursor = GetScanFileCursor( pInfo->ppInfo[0] );
 	if( pInfo->vol ) {
+		size = l.fsi->find_get_size( cursor );
 		ctime = l.fsi->find_get_ctime ? l.fsi->find_get_ctime( cursor ) : 0;
 		wtime = l.fsi->find_get_wtime ? l.fsi->find_get_wtime( cursor ) : 0;
 	}
 	if( pInfo->storage ) {
+		size = l.os_fsi->find_get_size( cursor );
 		ctime = l.os_fsi->find_get_ctime ? l.os_fsi->find_get_ctime( cursor ) : 0;
 		wtime = l.os_fsi->find_get_wtime ? l.os_fsi->find_get_wtime( cursor ) : 0;
 	}
@@ -620,13 +623,13 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFl
 	ConvertTickToTime( ctime, &ct );
 	ConvertTickToTime( wtime, &wt );
 	if( file[0] == '.' && file[1] == '/' ) ofs = 2;
-	size_t size = l.fsi->find_get_size( cursor );
 	//printf( "%9zd %s %" PRId64 "  %" PRId64 "\n", l.fsi->size( f ), file, ctime, wtime );
 	//if( !size ) DebugBreak();
-	printf( "%9zd %s " "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "\n"
-		, size, file
+	printf( "%9zd   %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "  %s\n"
+		, size
 		, ct.yr, ct.mo, ct.dy, ct.hr, ct.mn, ct.sc, ct.ms, ct.zhr
 		, wt.yr, wt.mo, wt.dy, wt.hr, wt.mn, wt.sc, wt.ms, wt.zhr
+		, file
 		);
 }
 

@@ -1885,22 +1885,27 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 #ifndef USE_STDIO
 
 		if( tmp =(char*)StrChr( vol->volname, '@' ) ) {
-			tmp[0] = 0;
-			iface = (char*)vol->volname;
-			fname = tmp + 1;
-			struct file_system_mounted_interface *mount = sack_get_mounted_filesystem( iface );
-			//struct file_system_interface *iface = sack_get_filesystem_interface( iface );
-			if( !sack_exists( fname ) ) {
-				vol->file = sack_fopenEx( 0, fname, "rb+", mount );
-				if( !vol->file )
-					vol->file = sack_fopenEx( 0, fname, "wb+", mount );
-				created = TRUE;
+			if( tmp[1] == '@' ) {
+				strcpy( tmp, tmp + 1 );
+				goto defaultOpen;
+			} else {
+				tmp[0] = 0;
+				iface = (char*)vol->volname;
+				fname = tmp + 1;
+				struct file_system_mounted_interface* mount = sack_get_mounted_filesystem( iface );
+				//struct file_system_interface *iface = sack_get_filesystem_interface( iface );
+				if( !sack_exists( fname ) ) {
+					vol->file = sack_fopenEx( 0, fname, "rb+", mount );
+					if( !vol->file )
+						vol->file = sack_fopenEx( 0, fname, "wb+", mount );
+					created = TRUE;
+				} else
+					vol->file = sack_fopenEx( 0, fname, "rb+", mount );
+				tmp[0] = '@';
 			}
-			else
-				vol->file = sack_fopenEx( 0, fname, "rb+", mount );
-			tmp[0] = '@';
 		}
 		else {
+defaultOpen:
 			vol->file = sack_fopenEx( 0, vol->volname, "rb+", vol->mount );
 			if( !vol->file ) {
 				created = TRUE;
@@ -4557,11 +4562,11 @@ static int _os_iterate_find( struct sack_vfs_os_find_info *_info ) {
 				enum block_cache_entries cache;
 				struct storageTimelineNode* prior = getRawTimeEntry( info->vol, time.disk->priorTime, &cache GRTENoLog DBG_SRC );
 				while( prior->priorTime ) prior = getRawTimeEntry( info->vol, prior->priorTime, &cache GRTENoLog DBG_SRC );
-				info->ctime = prior->time;
+				info->ctime = (prior->time/1000000)<<8 | prior->timeTz;
 			}
 			else
-				info->ctime = time.disk->time;
-			info->wtime = time.disk->time;
+				info->ctime = (time.disk->time / 1000000) << 8 | time.disk->timeTz;
+			info->wtime = (time.disk->time / 1000000) << 8 | time.disk->timeTz;
 			dropRawTimeEntry( info->vol, time.diskCache GRTENoLog DBG_SRC );
 
 			// if file is deleted; don't check it's name.
