@@ -16,7 +16,10 @@
 static struct vfs_command_local
 {
 	struct file_system_interface *fsi;
+
+	struct file_system_interface* os_fsi;
 	struct sack_vfs_volume *current_vol;
+	struct sack_vfs_os_volume* current_storage;
 	struct file_system_mounted_interface *current_mount;
 	LOGICAL verbose;
 
@@ -183,7 +186,7 @@ static void testVolume_slow( void ) {
 		}
 	}
 
-	l.current_vol;
+	//l.current_vol;
 }
 
 static void testVolume_db( void ) {
@@ -203,7 +206,7 @@ static void testVolume_db( void ) {
 
 	}
 
-	l.current_vol;
+	//l.current_vol;
 #endif
 }
 
@@ -593,6 +596,7 @@ static void ExtractFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 
 struct scanFileInfo {
 	struct sack_vfs_volume * vol;
+	struct sack_vfs_os_volume* storage;
 	POINTER *ppInfo;
 };
 
@@ -604,8 +608,14 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFl
 	size_t ofs = 0;
 	SACK_TIME ct, wt;
 	struct find_cursor * cursor = GetScanFileCursor( pInfo->ppInfo[0] );
-	ctime = l.fsi->find_get_ctime?l.fsi->find_get_ctime( cursor):0;
-	wtime = l.fsi->find_get_wtime?l.fsi->find_get_wtime( cursor ):0;
+	if( pInfo->vol ) {
+		ctime = l.fsi->find_get_ctime ? l.fsi->find_get_ctime( cursor ) : 0;
+		wtime = l.fsi->find_get_wtime ? l.fsi->find_get_wtime( cursor ) : 0;
+	}
+	if( pInfo->storage ) {
+		ctime = l.os_fsi->find_get_ctime ? l.os_fsi->find_get_ctime( cursor ) : 0;
+		wtime = l.os_fsi->find_get_wtime ? l.os_fsi->find_get_wtime( cursor ) : 0;
+	}
 	//if( !ctime )DebugBreak();
 	ConvertTickToTime( ctime, &ct );
 	ConvertTickToTime( wtime, &wt );
@@ -623,7 +633,7 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFl
 static void GetDirectory( void )
 {
 	POINTER info = NULL;
-	struct scanFileInfo sfi = { l.current_vol, &info };
+	struct scanFileInfo sfi = { l.current_vol, l.current_storage, &info };
 	while( ScanFilesEx( NULL, "*", &info, ShowFile, SFF_SUBCURSE|SFF_SUBPATHONLY
 	                  , (uintptr_t)&sfi, FALSE, l.current_mount ) );
 	//l.fsi->
@@ -635,6 +645,7 @@ static void usage( void )
 	printf( "   verbose                             : show operations; (some)debugging\n" );
 	printf( "   vfs <filename>                      : specify a unencrypted VFS file to use.\n" );
 	printf( "   cvfs <filename> <key1> <key2>       : specify an encrypted VFS file to use; and keys to use.\n" );
+	printf( "   os <filename>                       : specify a object storage file to use.\n" );
 	printf( "   dir                                 : show current directory.\n" );
 	printf( "   rm <filename>                       : delete file within VFS.\n" );
 	printf( "   delete <filename>                   : delete file within VFS.\n" );
@@ -664,13 +675,19 @@ SaneWinMain( argc, argv )
 	if( !l.fsi ) {
 		l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME "-fs" );
 		if( !l.fsi ) {
-			l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME "-os" );
-			if( !l.fsi ) {
-				printf( "Failed to load file system interface.\n" );
-				return 0;
-			}
+			printf( "Failed to load file system interface.\n" );
+			return 0;
 		}
 	}
+
+	if( !l.os_fsi ) {
+		l.os_fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME "-os" );
+		if( !l.os_fsi ) {
+			printf( "Failed to load storage interface.\n" );
+			//return 0;
+		}
+	}
+
 	for( arg = 1; arg < argc; arg++ )
 	{
 		if( StrCaseCmp( argv[arg], "dir" ) == 0 )
@@ -684,8 +701,11 @@ SaneWinMain( argc, argv )
 					lprintf( "Arg %d = %s", arg2, argv[arg2] );
 			}
 		}
-		else if( StrCaseCmp( argv[arg], "cvfs" ) == 0 )
-		{
+		else if( StrCaseCmp( argv[arg], "cvfs" ) == 0 ) {
+			if( l.current_storage ){
+				sack_vfs_os_unload_volume( l.current_storage );
+				l.current_storage = NULL;
+			}
 			if( l.current_vol )
 				sack_vfs_unload_volume( l.current_vol );
 			l.current_vol = sack_vfs_load_crypt_volume( argv[arg+1], version, argv[arg+2], argv[arg+3] );
@@ -699,6 +719,10 @@ SaneWinMain( argc, argv )
 		}
 		else if( StrCaseCmp( argv[arg], "vfs" ) == 0 )
 		{
+			if( l.current_storage ) {
+				sack_vfs_os_unload_volume( l.current_storage );
+				l.current_storage = NULL;
+			}
 			if( l.current_vol )
 				sack_vfs_unload_volume( l.current_vol );
 			l.current_vol = sack_vfs_load_volume( argv[arg+1] );
@@ -710,10 +734,26 @@ SaneWinMain( argc, argv )
 			l.current_mount = sack_mount_filesystem( "vfs", l.fsi, 10, (uintptr_t)l.current_vol, 1 );
 			arg++;
 		}
+		else if( StrCaseCmp( argv[arg], "os" ) == 0 ) {
+			if( l.current_storage )
+				sack_vfs_os_unload_volume( l.current_storage );
+			if( l.current_vol ) {
+				sack_vfs_unload_volume( l.current_vol );
+				l.current_vol = NULL;
+			}
+			l.current_storage = sack_vfs_os_load_volume( argv[arg + 1], NULL );
+			if( !l.current_storage ) {
+				printf( "Failed to load storage: %s", argv[arg + 1] );
+				return 2;
+			}
+			l.current_mount = sack_mount_filesystem( "os", l.os_fsi, 10, (uintptr_t)l.current_storage, 1 );
+			arg++;
+		}
 		else if( StrCaseCmp( argv[arg], "rm" ) == 0
 			|| StrCaseCmp( argv[arg], "delete" ) == 0 )
 		{
-			l.fsi->_unlink( (uintptr_t)l.current_vol, argv[arg+1] );
+			if( l.current_storage ) l.os_fsi->_unlink( (uintptr_t)l.current_storage, argv[arg + 1] );
+			if( l.current_vol ) l.fsi->_unlink( (uintptr_t)l.current_vol, argv[arg+1] );
 			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "store" ) == 0 )
@@ -783,51 +823,60 @@ SaneWinMain( argc, argv )
 		}
 		else if( StrCaseCmp( argv[arg], "shrink" ) == 0 )
 		{
-			sack_vfs_shrink_volume( l.current_vol );
+			if( l.current_vol ) sack_vfs_shrink_volume( l.current_vol );
 			arg += 3;
 		}
 		else if( StrCaseCmp( argv[arg], "decrypt" ) == 0 )
 		{
-			if( !sack_vfs_decrypt_volume( l.current_vol ) )
-				printf( "Failed to decrypt volume.\n" );
+			if( l.current_vol )
+				if( !sack_vfs_decrypt_volume( l.current_vol ) )
+					printf( "Failed to decrypt volume.\n" );
 		}
 		else if( StrCaseCmp( argv[arg], "encrypt" ) == 0 )
 		{
-			if( !sack_vfs_encrypt_volume( l.current_vol, version, argv[arg+1], argv[arg+2] ) )
-				printf( "Failed to encrypt volume.\n" );
+			if( l.current_vol )
+				if( !sack_vfs_encrypt_volume( l.current_vol, version, argv[arg+1], argv[arg+2] ) )
+					printf( "Failed to encrypt volume.\n" );
 			arg += 2;
 		}
 		else if( StrCaseCmp( argv[arg], "sign" ) == 0 )
 		{
-			const char *signature = sack_vfs_get_signature( l.current_vol );
-			printf( "%s\n", signature );
+			if( l.current_vol ){
+				const char *signature = sack_vfs_get_signature( l.current_vol );
+				printf( "%s\n", signature );
+			}
 		}
 		else if( StrCaseCmp( argv[arg], "version" ) == 0 ) {
 			version = atoi( argv[arg + 1] );
 			arg++;
 		} else if( StrCaseCmp( argv[arg], "sign-encrypt" ) == 0 )
 		{
-			const char *signature = sack_vfs_get_signature( l.current_vol );
-			if( !sack_vfs_encrypt_volume( l.current_vol, version, argv[arg+1], signature ) )
-				printf( "Failed to encrypt volume.\n" );
+			if( l.current_vol ) {
+				const char* signature = sack_vfs_get_signature( l.current_vol );
+				if( !sack_vfs_encrypt_volume( l.current_vol, version, argv[arg + 1], signature ) )
+					printf( "Failed to encrypt volume.\n" );
+			}
 			arg += 1;
 		}
 		else if( StrCaseCmp( argv[arg], "sign-to-header" ) == 0 )
 		{
-			const char *signature = sack_vfs_get_signature( l.current_vol );
-			FILE *output = sack_fopenEx( 0, argv[arg+1], "wb", sack_get_default_mount() );
-			if( !output )
-			{
-				printf( "Failed to open output header file: %s", argv[arg+1] );
-				return 2;
+			if( l.current_vol ) {
+				const char* signature = sack_vfs_get_signature( l.current_vol );
+				FILE* output = sack_fopenEx( 0, argv[arg + 1], "wb", sack_get_default_mount() );
+				if( !output ) {
+					printf( "Failed to open output header file: %s", argv[arg + 1] );
+					return 2;
+				}
+				sack_fprintf( output, "const char *%s = \"%s\";\n", argv[arg + 2], signature );
+				sack_fclose( output );
 			}
-			sack_fprintf( output, "const char *%s = \"%s\";\n", argv[arg+2], signature );
-			sack_fclose( output );
 			arg += 2;
 		}
 	}
 	if( l.current_vol )
 		sack_vfs_unload_volume( l.current_vol );
+	if( l.current_storage )
+		sack_vfs_os_unload_volume( l.current_storage );
 	if( l.current_vol_source )
 		sack_vfs_unload_volume( l.current_vol_source );
 	return 0;
