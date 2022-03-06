@@ -910,14 +910,14 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		const char* host = SSL_get_servername( ssl, t );
 		int strlen = (int)StrLen( host );
 		//lprintf( "ServerName;%s", host );
-		struct ssl_hostContext* hostctx;
-		struct ssl_hostContext* defaultHostctx;
 		//lprintf( "Have hostchange: %.*s", strlen, host );
 		pcAccept->ssl_session->hostname = DupCStrLen( host, strlen );
 	} else {
 		// allow connection, but without a hostanme set, the application may reject later?
 		// default to what? the client IP as a hostname?
 	}
+	struct ssl_hostContext* hostctx;
+	struct ssl_hostContext* defaultHostctx;
 	LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
 		char const* checkName;
 		char const* nextName;
