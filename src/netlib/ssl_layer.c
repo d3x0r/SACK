@@ -907,9 +907,10 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		//return 0;
 	}
 	const char* host = NULL;
+	int strlen = 0;
 	if( t ) {
 		host = SSL_get_servername( ssl, t );
-		int strlen = (int)StrLen( host );
+		strlen = (int)StrLen( host );
 		//lprintf( "ServerName;%s", host );
 		//lprintf( "Have hostchange: %.*s", strlen, host );
 		pcAccept->ssl_session->hostname = DupCStrLen( host, strlen );
