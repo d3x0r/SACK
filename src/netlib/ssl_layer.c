@@ -906,8 +906,9 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		//lprintf( "Handshake sent bad hostname type... %d", t );
 		//return 0;
 	}
+	const char* host = NULL;
 	if( t ) {
-		const char* host = SSL_get_servername( ssl, t );
+		host = SSL_get_servername( ssl, t );
 		int strlen = (int)StrLen( host );
 		//lprintf( "ServerName;%s", host );
 		//lprintf( "Have hostchange: %.*s", strlen, host );
@@ -932,7 +933,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 				continue;
 			}
 			//lprintf( "Check:%.*s", )
-			if( StrCaseCmpEx( checkName, (CTEXTSTR)host, strlen ) == 0 ) {
+			if( !host || ( StrCaseCmpEx( checkName, (CTEXTSTR)host, strlen ) == 0 ) ) {
 				SSL_set_SSL_CTX( ssl, hostctx->ctx );
 				return SSL_TLSEXT_ERR_OK;
 			}
