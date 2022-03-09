@@ -903,16 +903,21 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	if( !ctxList[0] ) return SSL_TLSEXT_ERR_OK;
 	int t;
 	if( TLSEXT_NAMETYPE_host_name != (t =SSL_get_servername_type( ssl ) ) ) {
-		lprintf( "Handshake sent bad hostname type... %d", t );
-		return 0;
+		//lprintf( "Handshake sent bad hostname type... %d", t );
+		//return 0;
 	}
-	const char* host = SSL_get_servername( ssl, t );
-	int strlen = (int)StrLen( host );
-	//lprintf( "ServerName;%s", host );
-	struct ssl_hostContext* hostctx;
-	struct ssl_hostContext* defaultHostctx;
-	//lprintf( "Have hostchange: %.*s", strlen, host );
-	pcAccept->ssl_session->hostname = DupCStrLen( host, strlen );
+	if( t ) {
+		const char* host = SSL_get_servername( ssl, t );
+		int strlen = (int)StrLen( host );
+		//lprintf( "ServerName;%s", host );
+		struct ssl_hostContext* hostctx;
+		struct ssl_hostContext* defaultHostctx;
+		//lprintf( "Have hostchange: %.*s", strlen, host );
+		pcAccept->ssl_session->hostname = DupCStrLen( host, strlen );
+	} else {
+		// allow connection, but without a hostanme set, the application may reject later?
+		// default to what? the client IP as a hostname?
+	}
 	LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
 		char const* checkName;
 		char const* nextName;
