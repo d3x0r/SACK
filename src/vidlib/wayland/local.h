@@ -144,6 +144,7 @@ struct wayland_local_tag
 		uint32_t bLogKeyEvent:1;
 	} flags;
 	PLIST wantDraw;
+	int frame;
 
 	struct wl_event_queue* queue;
 	struct wl_display* display;

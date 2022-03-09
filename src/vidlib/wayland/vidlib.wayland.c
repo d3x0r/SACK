@@ -3,6 +3,7 @@
 // https://jan.newmarch.name/Wayland/WhenCanIDraw/
 //
 
+//#define DEBUG_DUMP_SURFACE_IMAGES
 //#define DEBUG_COMMIT_ATTACH
 
 // general debug enable...
@@ -123,7 +124,7 @@ static void output_mode(void *data, struct wl_output *wl_output, uint32_t flags,
 		  output_data->w = width;
 		  output_data->h = height;
 	  }
-  	  //lprintf( "Screen mode:%d %d %d  %d ", flags, width, height, refresh );
+  	lprintf( "Screen mode:%d %d %d  %d ", flags, width, height, refresh );
   }
 }
 
@@ -156,7 +157,7 @@ shm_format(void *data, struct wl_shm *wl_shm, uint32_t format)
 	case WL_SHM_FORMAT_RGB565: s = "RGB565"; break;
 	default: s = "other format"; break;
 	}
-	//lprintf( "Possible shmem format %s", s);
+	lprintf( "Possible shmem format %s", s);
 }
 
 
@@ -899,14 +900,15 @@ static struct wl_buffer * allocateBuffer( PXPANEL r )
 		return FALSE;
 	}
 
-	static struct wl_shm_pool *pool; if( !pool ) pool = wl_shm_create_pool(wl.shm, fd, size);
+	//static struct wl_shm_pool *pool; if( !pool ) pool = wl_shm_create_pool(wl.shm, fd, size);
+	struct wl_shm_pool *pool = wl_shm_create_pool(wl.shm, fd, size);
 	r->buff = wl_shm_pool_create_buffer(pool, 0, /* starting offset */
 					r->w, r->h,
 					stride,
 					WL_SHM_FORMAT_ARGB8888);
 	wl_buffer_add_listener( r->buff, &buffer_listener, r );
 	//lprintf( "created a pool and got a buffer, destroy pool now..." );
-	//wl_shm_pool_destroy(pool);
+	wl_shm_pool_destroy(pool);
 
 	return r->buff;
 }
@@ -932,8 +934,6 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 #if defined( DEBUG_COMMIT_BUFFER )
 		lprintf( "buffers in use and nothing free, (no more commit!!) want buffer %d", r->curBuffer);
 #endif
-		//r->flags.canCommit = 0;
-		//r->flags.wantBuffer = 1;
 		return NULL;
 	}
 	r->curBuffer=(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES;
@@ -986,7 +986,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 #if defined(DEBUG_COMMIT_ATTACH )
 		lprintf( "Copying old buffer to current buffer....%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES );
 #endif
-		// copy just the damaged portion?Â
+		// copy just the damaged portions?Â
 		BlotImage( r->buffer_images[curBuffer], r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], 0, 0 );
 	}
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
@@ -995,8 +995,8 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 }
 
 
-static void attachNewBuffer( PXPANEL r, int req, int locked ) {
-	if( !r->surface ) return; 
+static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
+	if( !r->surface ) return FALSE; 
 			struct wl_buffer *next = nextBuffer(r, 0);
 			if( req && !next ) {
 #if defined( DEBUG_COMMIT_BUFFER )
@@ -1014,45 +1014,69 @@ static void attachNewBuffer( PXPANEL r, int req, int locked ) {
 #if defined( DEBUG_COMMIT_ATTACH )
 					lprintf( "Commiting my surface, flushing, and waiting for new surface" );
 #endif
+#if defined( DEBUG_DUMP_SURFACE_IMAGES )
+{
+	uint8_t *buf; size_t len;
+	PngImageFile( r->pImage, &buf, &len );
+	char name[12];
+	snprintf( name, 12, "im-%d.png", wl.frame++ );
+	FILE *out= fopen( name, "wb" );
+	fwrite( buf, 1, len, out );
+	fclose( out );
+	Release( buf );
+}
+#endif
 					wl_surface_commit( r->surface );
 					wl_display_flush( wl.display );
 					do {
 #if defined( DEBUG_COMMIT_BUFFER )
 						lprintf( "to round" );
 #endif
-	if( locked )
-		LeaveCriticalSec( &wl.cs_wl );
-					if( r->bufferWaiter == wl.waylandThread ) {
-						lprintf( "Is the wayland thread, not the draw thread?" );
-					    wl_display_roundtrip_queue(wl.display, wl.queue);
-					}
+						if( locked )
+							LeaveCriticalSec( &wl.cs_wl );
+						if( r->bufferWaiter == wl.waylandThread ) {
+							lprintf( "Is the wayland thread, not the draw thread?" );
+							wl_display_roundtrip_queue(wl.display, wl.queue);
+						}
 						while( r->flags.wantBuffer ) {
 							//lprintf( "SLEEP?" ); 
 							WakeableSleep( 250 ); 
 							//lprintf( "Slept?%d", r->flags.wantBuffer );
 						} 
-	if( locked )
-		EnterCriticalSec( &wl.cs_wl );
-						//WakeableSleep( 10 );
+						if( locked )
+							EnterCriticalSec( &wl.cs_wl );
 						next = nextBuffer(r,0);
 #if defined( DEBUG_COMMIT_BUFFER )
 						lprintf( "called next buffer again" );
 #endif						
-					} while( !next );
+					} while( !r->flags.hidden && !next );
 					// now have a buffer, do not want it.
 					r->bufferWaiter = NULL;
-					//r->flags.wantBuffer = 0;
 				}else {
 					lprintf( "Attach New Buffer is really still waiting for a new buffer !!!!!!!!!!!!!!!! ");
 				}
+			} else {
+				wl_surface_commit( r->surface );
 			}
 			if( next ) {
+#if defined( DEBUG_DUMP_SURFACE_IMAGES )
+	{
+		uint8_t *buf; size_t len;
+		PngImageFile( r->pImage, &buf, &len );
+		char name[12];
+		snprintf( name, 12, "nx-%d.png", wl.frame++ );
+		FILE *out= fopen( name, "wb" );
+		fwrite( buf, 1, len, out );
+		fclose( out );
+		Release( buf );
+	}
+#endif
 				if( r->flags.wantBuffer ){
 #if defined( DEBUG_COMMIT_BUFFER )
 					lprintf( "Buffers: %d %d %p %p", r->freeBuffer[0], r->freeBuffer[1], r->buffers[0], r->buffers[1]);
 					lprintf( "NEED TO WAIT FOR A BUFFER or commit won't finish with a good attached buffer... right now there is a good buffer." );
 #endif
-					return;
+					return FALSE;
 				}
 				if( !next ) lprintf( "auto clean can't be done... backing buffer is still in use...");
 				r->freeBuffer[r->curBuffer] = 0; // lock this buffer.
@@ -1060,33 +1084,20 @@ static void attachNewBuffer( PXPANEL r, int req, int locked ) {
 				// clear dirty, still can't commit.
 				
 #if defined( DEBUG_SURFACE_ATTACH )
-				lprintf( "Dirty Is %d", r->flags.dirty );
-#endif
-				if( r->flags.dirty ) {
-					r->flags.dirty = 0;
-					r->flags.commited = 1;
-					lprintf( "While attaching this is already dirty again???? Commiting here" );
-					wl_surface_commit( r->surface );
-#if defined( DEBUG_COMMIT )
-					lprintf( "Window is (already) dirty, do commit");
-#endif
-				}
-				//wl_display_flush(wl.display);
-#if defined( DEBUG_SURFACE_ATTACH )
 				lprintf( "Attach new surface (can damage this." );
 #endif
-				if( r->surface ) {
+				if( r->surface ) { // by this point, thse surce COULD have closed... 
 #if defined( DEBUG_SURFACE_ATTACH )
 					lprintf( "Attach new surface, such that can damage (wake someone?)" );
 #endif
 					wl_surface_attach( r->surface, next, 0, 0 );
 					r->flags.canDamage = 1;
+					return TRUE;
 				}
 			}else {
 				lprintf( "Leaving without attaching a buffer..." );
-				//r->flags.dirty = 1;
 			}
-
+			return FALSE;
 }
 
 static  void surfaceFrameCallback( void *data, struct wl_callback* callback, uint32_t time ) {
@@ -1129,7 +1140,7 @@ static uintptr_t waylandDrawThread( PTHREAD thread ) {
 	while(1)
 	{
 		int sleepTime = 100;
-		int newSleepTime;
+		int newSleepTime = -1;
 		INDEX idx;
 		struct drawRequest *req;
 		struct pendingKey *key;
@@ -1413,12 +1424,12 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 	}
 
 	r->surface = wl_compositor_create_surface(wl.compositor);
-   if (r->surface == NULL) {
+	if (r->surface == NULL) {
 		lprintf( "Can't create surface");
 		LeaveCriticalSec( &wl.cs_wl );
 		return FALSE;
-   }
-   wl_surface_set_user_data(r->surface, r);
+	}
+	wl_surface_set_user_data(r->surface, r);
 
 	if( parent ) {
 		r->sub_surface = wl_subcompositor_get_subsurface( wl.subcompositor, r->surface, parent->surface );
@@ -1427,15 +1438,14 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 		wl_subsurface_set_desync( r->sub_surface );
 		lprintf( "Created subsurface and attached it...(commit) %d %d", r->x, r->y );
 		wl_surface_commit( parent->surface );
-
+		wl_display_flush( wl.display );
 	} else {
 		if(wl.shell && !wl.xdg_wm_base) {
 			r->shell_surface = wl_shell_get_shell_surface(wl.shell, r->surface);
 			wl_shell_surface_add_listener( r->shell_surface, &shell_surface_listener, r );
 			wl_shell_surface_set_toplevel(r->shell_surface);
-		   wl_shell_surface_set_user_data(r->shell_surface, r);
+			wl_shell_surface_set_user_data(r->shell_surface, r);
 		}
-
 		if(wl.xdg_wm_base) {
 			r->shell_surface = (struct wl_shell_surface*)xdg_wm_base_get_xdg_surface( wl.xdg_wm_base, r->surface );
 			xdg_surface_add_listener( (struct xdg_surface*)r->shell_surface, &xdg_surface_listener, r );
@@ -1443,10 +1453,8 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			//xdg_toplevel_set_title(  r->xdg_toplevel, "I DOn't want a title");
 			xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
 			// must commit to get a config
-			lprintf( "Commiting shell intialization" );
+			//lprintf( "Commiting shell intialization" );
 			wl_surface_commit( r->surface );
-			r->flags.canCommit = 0;
-			r->flags.canDamage = 0;
 			// must also wait to get config.
 			wl_display_flush( wl.display );
 			if( r->bufferWaiter == wl.waylandThread ) {
@@ -1532,7 +1540,6 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 		EnterCriticalSec( &wl.cs_wl );
 		
 		r->flags.canCommit = 0; // don't allow sub-daamages to commit... just damage  (if this gets a frame callback it'll reset and flush early)
-		//lprintf( "Dirty? before draw %d", r->flags.dirty );
 		if( r->pRedrawCallback )
 			r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
 		else {
@@ -1580,20 +1587,17 @@ static PRENDERER sack_wayland_OpenDisplayAboveUnderSizedAt(uint32_t attr , uint3
 	struct wvideo_tag *r;
 	r = New( struct wvideo_tag );
 	memset( r, 0, sizeof( *r ) );
-#if defined( DEBUG_COMMIT )
-	lprintf( "Initialize with canCommit %d %d %d %d", x, y, w, h );
-#endif
-	r->flags.canCommit = 1;
+
 	r->above = rAbove;
 	r->under = rUnder;
 	r->bufw = r->w = w;
 	r->bufh = r->h = h;
+	
 	{
 		struct wvideo_tag *parent = r->above;
 		while( (parent ) && parent->sub_surface ) {
 			x -= parent->x;
 			y -= parent->y;
-			//lprintf( "adjust position:%d %d %d %d", x, y, parent->x, parent->y );
 			parent = parent->above;
 		}
 	}
@@ -1801,21 +1805,7 @@ static void sack_wayland_SetRendererTitle( PRENDERER render, char const* title )
 
 static void sack_wayland_RestoreDisplayEx( PRENDERER renderer DBG_PASS ){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	if( r->flags.hidden ) {
-		r->flags.hidden = 0;
-		lprintf( "RESTORE AND REDRAW" );
-		EnterCriticalSec( &wl.cs_wl );
-		struct wl_buffer *next = nextBuffer(r, 0);
-		if( next ){
-#if defined( DEBUG_SURFACE_ATTACH )
-			lprintf( "Restoring hidden display attachment...; this should have been required?" );
-#endif
-			wl_surface_attach( r->surface, next, 0, 0 );
-			r->flags.canDamage = 1;
-			//wl_surface_commit( r->surface );
-		}
-		LeaveCriticalSec( &wl.cs_wl );
-	}
+	r->flags.hidden = 0;
 	//lprintf( "REDRAW" );
 	sack_wayland_Redraw( renderer );
 }
