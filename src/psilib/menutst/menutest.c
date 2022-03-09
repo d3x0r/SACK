@@ -33,15 +33,19 @@ int AddSubMenus( int base, int level, PMENU menu )
    return 0;
 }
 
+static void result( uintptr_t psv, int cmd ) {
+    
+}
 
 static int OnMouseCommon( "Click Me" )( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	if( b & MK_RBUTTON )
 	{
-		printf( "Menu result: %d\n", TrackPopup( Menu, pc ) );
+		TrackPopup_v2( Menu, pc, result, 0 );
+		//printf( "Menu result: %d\n",  );
 
 	}
-   return 0;
+	return 0;
 }
 	
 SaneWinMain( argc, argv )
