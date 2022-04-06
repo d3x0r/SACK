@@ -330,6 +330,11 @@ struct sack_vfs_volume {
 	BLOCKINDEX _segment[BC(COUNT)];// cached segment with usekey[n]
 	BLOCKINDEX segment[BC(COUNT)];// associated with usekey[n]
 #ifdef VIRTUAL_OBJECT_STORE
+	struct vfs_volume_flags {
+		BIT_FIELD skipRollbackProcessing : 1;
+	}flags;
+	LOGICAL halted; // stop any disk activity; test journal recoverability.
+
 	struct vfs_os_rollback_journal journal;
 	BLOCKINDEX lastBlock;
 	PDATALIST pdl_BAT_information;

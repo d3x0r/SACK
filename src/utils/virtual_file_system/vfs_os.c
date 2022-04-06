@@ -1289,17 +1289,20 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 			LogBinary( vol->usekey_buffer[useCache], vol->sector_size[useCache] );
 #  endif
 #endif
-			uint8_t *crypt;
-			size_t cryptlen;
 			sack_fseek( vol->file, (size_t)vol->bufferFPI[useCache], SEEK_SET );
 			if( vol->key ) {
+				uint8_t* crypt;
+				size_t cryptlen;
 				SRG_XSWS_encryptData( vol->usekey_buffer[useCache], vol->sector_size[useCache]
 					, vol->segment[useCache], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 					, &crypt, &cryptlen );
-				sack_fwrite( crypt, 1, vol->sector_size[useCache], vol->file );
+				if( !vol->halted )
+					sack_fwrite( crypt, 1, vol->sector_size[useCache], vol->file );
 				Deallocate( uint8_t*, crypt );
-			}else
-				sack_fwrite( vol->usekey_buffer[useCache], 1, vol->sector_size[useCache], vol->file );
+			}else {
+				if( !vol->halted )
+					sack_fwrite( vol->usekey_buffer[useCache], 1, vol->sector_size[useCache], vol->file );
+			}
 
 #ifdef DEBUG_CACHE_FLUSH
 			// if not dirty, then clean and buffer have to match; and this is clearing the dirty flag
@@ -1443,18 +1446,20 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 #  endif
 #endif
 				sack_fseek( vol->file, (size_t)vol->bufferFPI[cache_idx[0]], SEEK_SET );
-				uint8_t *crypt;
-				size_t cryptlen;
 				if( vol->key ) {
+					uint8_t* crypt;
+					size_t cryptlen;
 					SRG_XSWS_encryptData( vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]]
 						, vol->segment[cache_idx[0]], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 						, &crypt, &cryptlen );
-					sack_fwrite( crypt, 1, vol->sector_size[cache_idx[0]], vol->file );
+					if( !vol->halted )
+						sack_fwrite( crypt, 1, vol->sector_size[cache_idx[0]], vol->file );
 					Deallocate( uint8_t*, crypt );
 				}
-				else
-					sack_fwrite( vol->usekey_buffer[cache_idx[0]], 1, vol->sector_size[cache_idx[0]], vol->file );
-
+				else {
+					if( !vol->halted )
+						sack_fwrite( vol->usekey_buffer[cache_idx[0]], 1, vol->sector_size[cache_idx[0]], vol->file );
+				}
 				CLEANCACHE( vol, cache_idx[0] );
 				RESETFLAG( vol->_dirty, cache_idx[0] );
 #ifdef DEBUG_DISK_IO
@@ -1767,8 +1772,10 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 			DeleteList( &vol->pending_rollback) ;
 			sack_vfs_os_polish_volume( vol );
 		}
-		else
+		else {
+			if( !vol->flags.skipRollbackProcessing )
 			vfs_os_process_rollback( vol );
+			}
 	}
 
 	return TRUE;
@@ -2323,21 +2330,26 @@ static void sack_vfs_os_flush_block( struct sack_vfs_os_volume* vol, enum block_
 #  endif
 #endif
 	sack_fseek( vol->file, (size_t)vol->bufferFPI[idx], SEEK_SET );
-	if( vol->key )
+	if( vol->key ) {
+		uint8_t* crypt;
+		size_t cryptlen;
 		SRG_XSWS_encryptData( vol->usekey_buffer[idx], vol->sector_size[idx]
 			, vol->segment[idx], (const uint8_t*)vol->key, 1024
-			, NULL, NULL );
-	sack_fwrite( vol->usekey_buffer[idx], vol->sector_size[idx], 1, vol->file );
+			, &crypt, &cryptlen );
+		if( !vol->halted )
+			sack_fwrite( crypt, 1, vol->sector_size[idx], vol->file );
+		Deallocate( uint8_t*, crypt );
+	} else {
+		if( !vol->halted )
+			sack_fwrite( vol->usekey_buffer[idx], vol->sector_size[idx], 1, vol->file );
+	}
+	/*
 	if( !GETMASK_( vol->seglock, seglock, idx ) )
 		// don't HAVE To release that this segment is in this cache block...
 		// it's just claimable, and not dirty.
 		// vol->segment[idx] = ~0;
 		;
-	else
-		if( vol->key )
-			SRG_XSWS_decryptData( vol->usekey_buffer[idx], vol->sector_size[idx]
-				, vol->segment[idx], (const uint8_t*)vol->key, 1024
-				, NULL, NULL );
+	*/
 #ifdef DEBUG_CACHE_FLUSH
 	memcpy( vol->usekey_buffer_clean[idx], vol->usekey_buffer[idx], BLOCK_SIZE );
 #endif
@@ -2487,7 +2499,7 @@ struct sack_vfs_os_volume *sack_vfs_os_load_volume( const char * filepath, struc
 	return vol;
 }
 
-struct sack_vfs_os_volume *sack_vfs_os_load_crypt_volume( const char * filepath, uintptr_t version, const char * userkey, const char * devkey, struct file_system_mounted_interface* mount  ) {
+struct sack_vfs_os_volume* sack_vfs_os_load_volume_v2( int flags, CTEXTSTR filepath, uintptr_t version, CTEXTSTR userkey, CTEXTSTR devkey, struct file_system_mounted_interface* mount ) 	{
 	struct sack_vfs_os_volume *vol = New( struct sack_vfs_os_volume );
 	MemSet( vol, 0, sizeof( struct sack_vfs_os_volume ) );
 	if( !mount )
@@ -2509,6 +2521,10 @@ struct sack_vfs_os_volume *sack_vfs_os_load_crypt_volume( const char * filepath,
 	return vol;
 }
 
+struct sack_vfs_os_volume* sack_vfs_os_load_crypt_volume( const char* filepath, uintptr_t version, const char* userkey, const char* devkey, struct file_system_mounted_interface* mount ) {
+	return sack_vfs_os_load_volume_v2( 0, filepath, version, userkey, devkey, mount );
+}
+
 void sack_vfs_os_unload_volume( struct sack_vfs_os_volume * vol ) {
 	INDEX idx;
 	struct sack_vfs_file *file;
@@ -2524,7 +2540,7 @@ void sack_vfs_os_unload_volume( struct sack_vfs_os_volume * vol ) {
 	DeleteLink( &l.volumes, vol );
 	if( vol->file )
 		sack_vfs_os_flush_volume( vol, TRUE );
-	strdup_free( (char*)vol->volname );
+	free( (char*)vol->volname );
 	DeleteListEx( &vol->files DBG_SRC );
 	sack_fclose( vol->file );
 	DeleteDataList( &vol->pdl_BAT_information );
@@ -5109,6 +5125,11 @@ LOGICAL sack_vfs_os_set_time( struct sack_vfs_os_file* file, uint64_t timeVal, i
 	return setTimeEntryTime( &time, vol, timeVal, tz );
 }
 
+LOGICAL sack_vfs_os_halt( struct sack_vfs_os_volume* volume ) {
+	LOGICAL prior = volume->halted;
+	volume->halted = TRUE;	
+	return prior;
+}
 
 #ifndef USE_STDIO
 static struct file_system_interface sack_vfs_os_fsi = {
