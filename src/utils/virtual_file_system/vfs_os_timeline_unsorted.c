@@ -725,6 +725,12 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 		next = (BLOCKINDEX)time->priorTime; // this type is larger than index in some configurations
 		nodes--;
 
+		if( !next ) {
+			if( vol->timeline->header.srootNode.ref.index == index ) {
+				vol->timeline->header.srootNode.ref.index = time->nextWrite;
+			}
+		}
+
 		{
 			struct storageTimeline* timeline = vol->timeline;
 			time->priorTime = (uint32_t)timeline->header.first_free_entry.ref.index;
@@ -742,10 +748,6 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 #ifdef DEBUG_DELETE_LAST
 	checkRoot( vol );
 #endif
-	if( !nodes && vol->timeline->header.srootNode.ref.index ) {
-		lprintf( "No more nodes, but the root points at something." );
-		DebugBreak();
-	}
 	//lprintf( "Root is now %d %d", nodes, vol->timeline->header.srootNode.ref.index );
 }
 
@@ -817,7 +819,7 @@ BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_vol
 	}
 
 	if( init ) init( psv, time );
-	nodes++;
+	//nodes++;
 	//lprintf( "Add start... %d", freeIndex.ref.index );
 #if defined( DEBUG_TIMELINE_DIR_TRACKING) || defined( DEBUG_TIMELINE_AVL )
 	LoG( "Return time entry:%d", time->index );

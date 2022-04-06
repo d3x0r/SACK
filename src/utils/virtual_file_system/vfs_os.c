@@ -228,8 +228,9 @@ struct sack_vfs_os_find_info {
 
 static void sack_vfs_os_flush_block( struct sack_vfs_os_volume* vol, enum block_cache_entries entry );
 static void vfs_os_smudge_cache( struct sack_vfs_os_volume* vol, enum block_cache_entries n );
-static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_cache_entries* cache, enum getFreeBlockInit init, int blocksize DBG_PASS );
-#define _os_GetFreeBlock(v,c,i,s) _os_GetFreeBlock_(v,c,i,s DBG_SRC )
+static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_cache_entries* cache, enum getFreeBlockInit init, int blocksize, LOGICAL flush_BAT_caches  DBG_PASS );
+
+#define _os_GetFreeBlock(v,c,i,s) _os_GetFreeBlock_(v,c,i,s,FALSE DBG_SRC )
 
 #define IS_OWNED(file)  ( (file->entry->name_offset) & DIRENT_NAME_OFFSET_FLAG_OWNED )
 #define IS_VERSIONED(file)  ( (file->entry->name_offset) & DIRENT_NAME_OFFSET_VERSIONED )
@@ -245,6 +246,7 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 #define _os_ScanDirectory(v,f,db,nb,file,pm) ((l.leadinDepth = 0), _os_ScanDirectory_(v,f,db,nb,file,pm, l.leadin, &l.leadinDepth ))
 
 // This getNextBlock is optional allocate new one; it uses _os_getFreeBlock_
+static BLOCKINDEX vfs_os_GetNextBlock_v2( struct sack_vfs_os_volume* vol, BLOCKINDEX block, enum block_cache_entries* blockCache, enum getFreeBlockInit init, LOGICAL expand, int blockSize, int* realBlockSize, LOGICAL flush_BAT_caches );
 static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDEX block, enum block_cache_entries *cache, enum getFreeBlockInit init, LOGICAL expand, int blockSize, int *realBlockSize );
 
 static LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, int size );
@@ -574,13 +576,15 @@ static void _os_SetBlockChain( struct sack_vfs_os_file* file, FPI fpi, BLOCKINDE
 }
 
 
+
 // seek by byte position from a starting block; as file; result with an offset into a block.
-uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
+uintptr_t vfs_os_FSEEK_v2( struct sack_vfs_os_volume *vol
 	, struct sack_vfs_os_file *file  // if no file, first block must be manually specified
 	, BLOCKINDEX firstblock  // if file, firstblock comes from the file
 	, FPI offset    // offset in the block-chain from the specified start
 	, enum block_cache_entries *cache_index  // this is the cache entry that the data was loaded into
 	, int blockSize   // if a new block is needed, use this size to allocate.
+	, LOGICAL flush_BAT_caches // where the new block ( if any) is updated;
 	DBG_PASS
 )
 {
@@ -628,13 +632,13 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 #ifdef DEBUG_FILE_SEEK
 		LoG_( "Getting next block after %p %d %d", file, firstblock, blockSize );
 #endif
-		firstblock = vfs_os_GetNextBlock( vol, firstblock
+		firstblock = vfs_os_GetNextBlock_v2( vol, firstblock
 			, &cache
 			, file?
 #ifdef XX_VIRTUAL_OBJECT_STORE
 			file->fileName?GFB_INIT_NONE:
 #endif
-			GFB_INIT_TIMELINE_MORE:GFB_INIT_NAMES, 1, blockSize, &size );
+			GFB_INIT_TIMELINE_MORE:GFB_INIT_NAMES, 1, blockSize, &size, flush_BAT_caches );
 		if( size != blockSize ) {
 			lprintf( "Tried to allocate %d got %d at %d (from %d)", blockSize, size, *cache_index, cacheRoot );
 			DebugBreak();
@@ -652,6 +656,17 @@ uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume *vol
 	LoG_( "Sector size: %p (ss)%d (blk)%d (ofs)%d (cache)%d",data, priorSize, (int)firstblock, (int)offset , cache_index[0] );
 #endif
 	return (uintptr_t)(data + (offset));
+}
+
+uintptr_t vfs_os_FSEEK( struct sack_vfs_os_volume* vol
+	, struct sack_vfs_os_file* file  // if no file, first block must be manually specified
+	, BLOCKINDEX firstblock  // if file, firstblock comes from the file
+	, FPI offset    // offset in the block-chain from the specified start
+	, enum block_cache_entries* cache_index  // this is the cache entry that the data was loaded into
+	, int blockSize   // if a new block is needed, use this size to allocate.
+	DBG_PASS
+) {
+	return vfs_os_FSEEK_v2( vol, file, firstblock, offset, cache_index, blockSize, FALSE DBG_RELAY );
 }
 
 static void vfs_os_empty_rollback( struct sack_vfs_os_volume* vol ) {
@@ -699,7 +714,8 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 	// not setup to journal yet (initial loading/configuration)
 	if( !vol->journal.rollback_file ) {
 		//lprintf( "Journal is not a file... bad open? Unjournaled storage?");
-		AddLink( &vol->pending_rollback, (uintptr_t)entry );
+		//AddLink( &vol->pending_rollback, (uintptr_t)entry );
+		sack_vfs_os_flush_block( vol, entry );
 		return;
 	}
 	if( vol->journal.journalLength )
@@ -811,9 +827,9 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 #ifdef DEBUG_ROLLBACK_JOURNAL
 		LoG( "Record to journal: e: %d fpi:%x seg:%d  ne: %d  at %d", entry, (int)vol->bufferFPI[entry], (int)vol->segment[entry], rollback->nextEntry, sane_offsetof( struct vfs_os_rollback_header, entries[rollback->nextEntry]) );
 #endif
-		rollbackEntry = (struct vfs_os_rollback_entry*)vfs_os_FSEEK( vol, vol->journal.rollback_file, 0
+		rollbackEntry = (struct vfs_os_rollback_entry*)vfs_os_FSEEK_v2( vol, vol->journal.rollback_file, 0
 			, sane_offsetof( struct vfs_os_rollback_header, entries[rollback->nextEntry++] )
-			, &rollbackEntryCache, ROLLBACK_BLOCK_SIZE DBG_SRC );
+			, &rollbackEntryCache, ROLLBACK_BLOCK_SIZE, FALSE DBG_SRC );
 
 		rollbackEntry->fileBlock = vol->segment[entry];
 
@@ -829,7 +845,7 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 				LoG( "Found non 0 at: %d  %d", n, p[0] );
 				LoG( "Saving large, clean block" );
 #endif
-				journal = (POINTER)vfs_os_FSEEK( vol, vol->journal.rollback_journal_file, 0, vol->sector_size[entry] * rollback->nextBlock++, &rollbackCacheJournal, vol->sector_size[entry] DBG_SRC );
+				journal = (POINTER)vfs_os_FSEEK_v2( vol, vol->journal.rollback_journal_file, 0, vol->sector_size[entry] * rollback->nextBlock++, &rollbackCacheJournal, vol->sector_size[entry], TRUE DBG_SRC );
 			}  else {
 #ifdef DEBUG_ROLLBACK_JOURNAL
 				LoG( "Save as large zero" );
@@ -847,7 +863,7 @@ static void vfs_os_record_rollback( struct sack_vfs_os_volume* vol, enum block_c
 				LoG( "Found non 0 at: %d  %d", n, p[0] );
 				LoG( "Saving small, clean block" );
 #endif
-				journal = (POINTER)vfs_os_FSEEK( vol, vol->journal.rollback_small_journal_file, 0, vol->sector_size[entry] * rollback->nextSmallBlock++, &rollbackCacheJournal, vol->sector_size[entry] DBG_SRC );
+				journal = (POINTER)vfs_os_FSEEK_v2( vol, vol->journal.rollback_small_journal_file, 0, vol->sector_size[entry] * rollback->nextSmallBlock++, &rollbackCacheJournal, vol->sector_size[entry], TRUE DBG_SRC );
 			} else {
 #ifdef DEBUG_ROLLBACK_JOURNAL
 				LoG( "Save as small zero" );
@@ -904,7 +920,7 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 		BLOCKINDEX bigSector = 0;
 		BLOCKINDEX smallSector = 0;
 		struct BATInfo {
-			BLOCKINDEX block;
+			struct vfs_os_rollback_entry entry;
 			BLOCKINDEX bigSector;
 		};
 		PDATALIST pdlBATs = CreateDataList( sizeof( struct BATInfo ) );
@@ -927,13 +943,13 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 				// defer restoring BAT blocks until end;
 				// the journal itself may exist in the dirty blocks already in the image.
 				struct BATInfo info;
-				info.block = rollbackEntry->fileBlock;
+				info.entry = rollbackEntry[0];
 				info.bigSector = bigSector++;
 				AddDataItem( &pdlBATs, &info );
 				continue;
 			}
 #ifdef DEBUG_ROLLBACK_JOURNAL
-			LoG( "Reading rollback fileblock:%d", rollbackEntry->fileBlock );
+			LoG( "Reading rollback fileblock:%d %s", rollbackEntry->fileBlock, rollbackEntry->flags.zero ? "Empty" : "" );
 #endif
 			entry = BC( ROLLBACK );
 			_os_UpdateSegmentKey_( vol, &entry, rollbackEntry->fileBlock DBG_SRC );
@@ -942,18 +958,41 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 				memset( vol->usekey_buffer[entry], 0, rollbackEntry->flags.small ? BLOCK_SMALL_SIZE : BLOCK_SIZE );
 			}
 			else {
+				int useSize;
 				rollbackCacheJournal = BC( ROLLBACK );
 				if( !rollbackEntry->flags.small ) {
 					journal = (POINTER)vfs_os_FSEEK( vol, vol->journal.rollback_journal_file, 0
 						, BLOCK_SIZE * bigSector++, &rollbackCacheJournal, BLOCK_SIZE DBG_SRC );
-					memcpy( vol->usekey_buffer[entry], journal, BLOCK_SIZE );
+#ifdef DEBUG_ROLLBACK_JOURNAL
+					if( memcmp( vol->usekey_buffer[entry], journal, BLOCK_SIZE ) == 1 ) {
+						LoG( "Journal is actually updating data..." );
+					}
+#endif
+					memcpy( vol->usekey_buffer[entry], journal, useSize = BLOCK_SIZE );
 				}
 				else {
 					journal = (POINTER)vfs_os_FSEEK( vol, vol->journal.rollback_small_journal_file, 0
 						, BLOCK_SMALL_SIZE * smallSector++, &rollbackCacheJournal, BLOCK_SMALL_SIZE DBG_SRC );
-					memcpy( vol->usekey_buffer[entry], journal, BLOCK_SMALL_SIZE );
+#ifdef DEBUG_ROLLBACK_JOURNAL
+					if( memcmp( vol->usekey_buffer[entry], journal, BLOCK_SMALL_SIZE ) == 1 ) {
+						LoG( "Journal is actually updating data..." );
+					}
+#endif
+					memcpy( vol->usekey_buffer[entry], journal, useSize = BLOCK_SMALL_SIZE );
+				}
+				{
+					int seg;
+					for( seg = 0; seg < BC( ROLLBACK ); seg++ ) {
+						if( vol->segment[seg] == rollbackEntry->fileBlock ) {
+							//lprintf( "Duplicate! %d", vol->segment[seg] );
+							memcpy( vol->usekey_buffer[seg], vol->usekey_buffer[entry], useSize );
+							memcpy( vol->usekey_buffer_clean[seg], vol->usekey_buffer[entry], useSize );
+						}
+					}
 				}
 			}
+
+
 			SMUDGECACHE( vol, entry );
 		}
 		// finally, clear the BAT entries with any existing bat sectors
@@ -961,9 +1000,10 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 			struct BATInfo *info;
 			DATA_FORALL( pdlBATs, e, struct BATInfo*, info ) {
 				entry = BC( ROLLBACK );
-				_os_UpdateSegmentKey_( vol, &entry, info->block DBG_SRC );
-				vol->sector_size[entry] = rollbackEntry->flags.small ? BLOCK_SMALL_SIZE : BLOCK_SIZE;
-				if( rollbackEntry->flags.zero ) {
+				_os_UpdateSegmentKey_( vol, &entry, info->entry.fileBlock DBG_SRC );
+				// BATs are always not-small blocks.
+				vol->sector_size[entry] = BLOCK_SIZE;
+				if( info->entry.flags.zero ) {
 					// might happen later; usually these are non-zero filled
 					memset( vol->usekey_buffer[entry], 0, BLOCK_SIZE );
 				}
@@ -971,7 +1011,19 @@ static void vfs_os_process_rollback( struct sack_vfs_os_volume* vol ) {
 					rollbackCacheJournal = BC( ROLLBACK );
 					journal = (POINTER)vfs_os_FSEEK( vol, vol->journal.rollback_journal_file, 0
 						, BLOCK_SIZE * info->bigSector++, &rollbackCacheJournal, BLOCK_SIZE DBG_SRC );
+
 					memcpy( vol->usekey_buffer[entry], journal, BLOCK_SIZE );
+					memcpy( vol->usekey_buffer_clean[entry], journal, BLOCK_SIZE );
+				}
+				{
+					int seg;
+					for( seg = 0; seg < BC( ROLLBACK ); seg++ ) {
+						if( vol->segment[seg] == info->entry.fileBlock ) {
+							//lprintf( "Duplicate! %d", vol->segment[seg] );
+							memcpy( vol->usekey_buffer[seg], vol->usekey_buffer[entry], BLOCK_SIZE );
+							memcpy( vol->usekey_buffer_clean[seg], vol->usekey_buffer[entry], BLOCK_SIZE );
+						}
+					}
 				}
 			}
 			DeleteDataList( &pdlBATs );
@@ -998,9 +1050,9 @@ void vfs_os_smudge_cache( struct sack_vfs_os_volume* vol, enum block_cache_entri
 #ifdef DEBUG_SECTOR_DIRT
 		lprintf( "set dirty on %d", n);
 #endif
+		SETFLAG( vol->dirty, n );
 		if( !TESTFLAG( vol->_dirty, n ) )
 			vfs_os_record_rollback( vol, n );
-		SETFLAG( vol->dirty, n );
 	}
 }
 
@@ -1296,11 +1348,11 @@ static void _os_updateCacheAge_( struct sack_vfs_os_volume *vol, enum block_cach
 				SRG_XSWS_encryptData( vol->usekey_buffer[useCache], vol->sector_size[useCache]
 					, vol->segment[useCache], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 					, &crypt, &cryptlen );
-				if( !vol->halted )
+				if( !vol->flags.halted )
 					sack_fwrite( crypt, 1, vol->sector_size[useCache], vol->file );
 				Deallocate( uint8_t*, crypt );
 			}else {
-				if( !vol->halted )
+				if( !vol->flags.halted )
 					sack_fwrite( vol->usekey_buffer[useCache], 1, vol->sector_size[useCache], vol->file );
 			}
 
@@ -1452,12 +1504,12 @@ enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume *vol, 
 					SRG_XSWS_encryptData( vol->usekey_buffer[cache_idx[0]], vol->sector_size[cache_idx[0]]
 						, vol->segment[cache_idx[0]], (const uint8_t*)vol->key, 1024 /* some amount of the key to use */
 						, &crypt, &cryptlen );
-					if( !vol->halted )
+					if( !vol->flags.halted )
 						sack_fwrite( crypt, 1, vol->sector_size[cache_idx[0]], vol->file );
 					Deallocate( uint8_t*, crypt );
 				}
 				else {
-					if( !vol->halted )
+					if( !vol->flags.halted )
 						sack_fwrite( vol->usekey_buffer[cache_idx[0]], 1, vol->sector_size[cache_idx[0]], vol->file );
 				}
 				CLEANCACHE( vol, cache_idx[0] );
@@ -1671,9 +1723,6 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 			}
 			sector++;
 
-			// loads data into the cache entry.
-			//_os_UpdateSegmentKey( vol, &cache, n + 1 );
-
 			for( m = 0; m < BLOCKS_PER_BAT; m++ )
 			{
 				BLOCKINDEX block = BAT[0];
@@ -1690,12 +1739,12 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 				if( block == 0 ) {
 					if( info.size == 4096 ) {
 						vol->lastBatBlock = dataBlock + m; // use as a temp variable....
-						LoG( "Marking (lg)blank sector %d", vol->lastBatBlock );
+						LoG( "Marking free (lg)blank sector %d", vol->lastBatBlock );
 						AddDataItem( &vol->pdlFreeBlocks, &vol->lastBatBlock );
 					}
 					else {
 						vol->lastBatSmallBlock = dataBlock + m; // use as a temp variable....
-						LoG( "Marking (sm)blank sector %d", vol->lastBatBlock );
+						LoG( "Marking free (sm)blank sector %d", vol->lastBatBlock );
 						AddDataItem( &vol->pdlFreeSmallBlocks, &vol->lastBatSmallBlock );
 					}
 				}
@@ -1709,15 +1758,46 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 
 		if( priorInfo->sectorEnd > vol->dwSize )
 			vol->dwSize = priorInfo->sectorEnd;
-		/*
+	}
+
+	// need to handle rollback before any timeline/directory loading
+	// otherwise they will cache sectors that are duplicated here.
+	if( !vol->journal.rollback_file ) {
+		struct sack_vfs_os_file* file;
+		file = _os_createFile( vol, FIRST_ROLLBACK_BLOCK, ROLLBACK_BLOCK_SIZE );
+		file->cache = BC( ROLLBACK );
+
+		enum block_cache_entries rollbackCache = BC( ROLLBACK );
+		struct vfs_os_rollback_header* rollback = (struct vfs_os_rollback_header*)vfs_os_FSEEK( vol, file, 0, 0, &rollbackCache, ROLLBACK_BLOCK_SIZE DBG_SRC );
+		if( !rollback->journal ) {
+			enum block_cache_entries firstBlockCache = BC( ROLLBACK );
+			rollback->journal = _os_GetFreeBlock( vol, &firstBlockCache, GFB_INIT_NONE, 4096 );
+			firstBlockCache = BC( ROLLBACK );
+			rollback->small_journal = _os_GetFreeBlock( vol, &firstBlockCache, GFB_INIT_NONE, 256 );
+			LoG( "Initial allocate of journal blocks: %d %d", rollback->journal, rollback->small_journal );
+		} else {
+			LoG( "Reload allocate of journal blocks: %d %d", rollback->journal, rollback->small_journal );
+		}
+		vol->journal.rollback_journal_file = _os_createFile( vol, rollback->journal, BLOCK_SIZE );
+		vol->journal.rollback_journal_file->cache = BC( ROLLBACK );
+		vol->journal.rollback_small_journal_file = _os_createFile( vol, rollback->small_journal, BLOCK_SMALL_SIZE );
+		vol->journal.rollback_small_journal_file->cache = BC( ROLLBACK );
+		vol->journal.rollback_file = file;
+
+		vol->journal.pdlPendingRecord = CreateDataList( sizeof( enum block_cache_entries ) );
+		vol->journal.pdlJournaled = CreateDataList( sizeof( BLOCKINDEX ) );
+
+		if( !vol->flags.skipRollbackProcessing )
+			vfs_os_process_rollback( vol );
 		{
 			INDEX idx;
-			struct sack_vfs_os_BAT_info *info;
-			DATA_FORALL( vol->pdl_BAT_information, idx, struct sack_vfs_os_BAT_info *, info ) {
-				lprintf( "BAT Reloaded: %d %d %d %d", info->blockStart, info->sectorStart, info->sectorEnd, info->size );
+			enum block_cache_entries block;
+			LIST_FORALL( vol->pending_rollback, idx, enum block_cache_entries, block ) {
+				vfs_os_record_rollback( vol, block );
 			}
+			DeleteList( &vol->pending_rollback );
+			sack_vfs_os_polish_volume( vol );
 		}
-		*/
 	}
 
 
@@ -1737,46 +1817,6 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 
 	if( !_os_ScanDirectory( vol, NULL, FIRST_DIR_BLOCK, NULL, NULL, 0 ) ) return FALSE;
 	//lprintf( "total files:%d", l.fileCount );
-	if( !vol->journal.rollback_file ) {
-		struct sack_vfs_os_file* file;
-		file = _os_createFile( vol, FIRST_ROLLBACK_BLOCK, ROLLBACK_BLOCK_SIZE );
-		file->cache = BC( ROLLBACK );
-
-		enum block_cache_entries rollbackCache = BC( ROLLBACK );
-		struct vfs_os_rollback_header* rollback = ( struct vfs_os_rollback_header* )vfs_os_FSEEK( vol, file, 0, 0, &rollbackCache, ROLLBACK_BLOCK_SIZE DBG_SRC );
-		if( !rollback->journal ) {
-			enum block_cache_entries firstBlockCache = BC( ROLLBACK );
-			rollback->journal = _os_GetFreeBlock( vol, &firstBlockCache, GFB_INIT_NONE, 4096 );
-			firstBlockCache = BC( ROLLBACK );
-			rollback->small_journal = _os_GetFreeBlock( vol, &firstBlockCache, GFB_INIT_NONE, 256 );
-			LoG( "Initial allocate of journal blocks: %d %d", rollback->journal, rollback->small_journal );
-		} else {
-			LoG( "Reload allocate of journal blocks: %d %d", rollback->journal, rollback->small_journal );
-			
-		}
-		vol->journal.rollback_journal_file = _os_createFile( vol, rollback->journal, BLOCK_SIZE );
-		vol->journal.rollback_journal_file->cache = BC( ROLLBACK );
-		vol->journal.rollback_small_journal_file = _os_createFile( vol, rollback->small_journal, BLOCK_SMALL_SIZE );
-		vol->journal.rollback_small_journal_file->cache = BC( ROLLBACK );
-		vol->journal.rollback_file = file;
-
-		vol->journal.pdlPendingRecord = CreateDataList( sizeof( enum block_cache_entries ) );
-		vol->journal.pdlJournaled = CreateDataList( sizeof( BLOCKINDEX ) );
-
-		if( vol->lastBatBlock == 5 ) {
-			INDEX idx;
-			enum block_cache_entries block;
-			LIST_FORALL( vol->pending_rollback, idx, enum block_cache_entries, block ){
-				vfs_os_record_rollback( vol, block );									
-			}
-			DeleteList( &vol->pending_rollback) ;
-			sack_vfs_os_polish_volume( vol );
-		}
-		else {
-			if( !vol->flags.skipRollbackProcessing )
-			vfs_os_process_rollback( vol );
-			}
-	}
 
 	return TRUE;
 }
@@ -1976,13 +2016,15 @@ defaultOpen:
 	n = 0;
 
 	if( created || ( (n=1),size == BLOCK_SMALL_SIZE && oldsize == ( BLOCK_SIZE * BLOCKS_PER_SECTOR ) ) ) {
+
 		enum block_cache_entries cache = BC(BAT);
 		_os_UpdateSegmentKey( vol, &cache, n*BLOCKS_PER_SECTOR + 1 );
 		((BLOCKINDEX*)vol->usekey_buffer[cache])[0] = EOBBLOCK;
 		((BLOCKINDEX*)vol->usekey_buffer[cache])[BLOCKS_PER_BAT] = (size== BLOCK_SMALL_SIZE )?1:(size==4096)?0:2;
-		SMUDGECACHE( vol, cache );
-		vol->bufferFPI[cache] = oldsize;
+
 		if( created ) {
+
+
 			enum block_cache_entries dirCache = BC( DIRECTORY );
 			enum block_cache_entries timeCache = BC( TIMELINE );
 			enum block_cache_entries rollbackCache = BC( ROLLBACK );
@@ -1997,6 +2039,10 @@ defaultOpen:
 			//vol->lastBatSmallBlock = BLOCKS_PER_BAT;
 		}
 
+		SMUDGECACHE( vol, cache );
+		sack_vfs_os_flush_block( vol, cache );
+		vol->bufferFPI[cache] = oldsize;
+
 	}
 
 	return TRUE;
@@ -2004,7 +2050,7 @@ defaultOpen:
 
 
 
-static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_cache_entries *blockCache, enum getFreeBlockInit init, int blockSize DBG_PASS )
+static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_cache_entries *blockCache, enum getFreeBlockInit init, int blockSize, LOGICAL flush_BAT_caches DBG_PASS )
 {
 	size_t n;
 	unsigned int b = 0;
@@ -2048,7 +2094,6 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 	if( !current_BAT ) return 0;
 
 	current_BAT[0] = EOFBLOCK;
-
 	if( (check_val == EOBBLOCK) ) {
 		if( n < (BLOCKS_PER_BAT - 1) ) {
 			current_BAT[1] = EOBBLOCK;
@@ -2066,7 +2111,6 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 			current_BAT[BLOCKS_PER_BAT] = ( blockSize == BLOCK_SMALL_SIZE ) ? 1 : ( blockSize == 4096 ) ? 0 : 2;
 			//lprintf( "Initialized bat at block %d to %d", lastB + 1, current_BAT[BLOCKS_PER_BAT] );
 			current_BAT[0] = EOBBLOCK;
-
 			// update the clean buffer, so journal writes initialized data.
 			//memcpy( vol->usekey_buffer_clean[cache], vol->usekey_buffer[cache], DIR_BLOCK_SIZE );
 
@@ -2075,11 +2119,13 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 			else
 				vol->lastBatSmallBlock = ( lastB + 1 ) * BLOCKS_PER_BAT;
 
-			SMUDGECACHE( vol, cache ); // make sure this gets saved... 
+			if( flush_BAT_caches ) sack_vfs_os_flush_block( vol, cache );
+			else SMUDGECACHE( vol, cache ); // make sure this gets saved... 
 			//lprintf( "Set last block....%d", (int)vol->lastBatBlock );
 		}
 	}
-	SMUDGECACHE( vol, cache );
+	if( flush_BAT_caches ) sack_vfs_os_flush_block( vol, cache );
+	else SMUDGECACHE( vol, cache );
 
 	switch( init ) {
 	case GFB_INIT_DIRENT: {
@@ -2152,7 +2198,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 	return b * BLOCKS_PER_BAT + n;
 }
 
-static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDEX block, enum block_cache_entries* blockCache, enum getFreeBlockInit init, LOGICAL expand, int blockSize, int *realBlockSize ) {
+static BLOCKINDEX vfs_os_GetNextBlock_v2( struct sack_vfs_os_volume *vol, BLOCKINDEX block, enum block_cache_entries* blockCache, enum getFreeBlockInit init, LOGICAL expand, int blockSize, int *realBlockSize, LOGICAL flush_BAT_caches ) {
 	BLOCKINDEX sector = block / BLOCKS_PER_BAT;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *this_BAT = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, sector * (BLOCKS_PER_SECTOR), blockSize, &cache );
@@ -2181,7 +2227,7 @@ static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDE
 		if( expand ) {
 			SETMASK_( vol->seglock, seglock, cache, GETMASK_( vol->seglock, seglock, cache )+1 );
 
-			check_val = _os_GetFreeBlock( vol, blockCache, init, blockSize );
+			check_val = _os_GetFreeBlock_( vol, blockCache, init, blockSize, flush_BAT_caches DBG_SRC );
 #ifdef _DEBUG
 			if( !check_val )DebugBreak();
 #endif
@@ -2203,8 +2249,10 @@ static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDE
 			//lprintf( "set block %d %d %d to %d", (int)block, (int)( block % BLOCKS_PER_BAT ), (int)sector, (int)check_val );
 			this_BAT[block % BLOCKS_PER_BAT] = check_val;
 			//lprintf( "Set %d  %d %d to %d", block, sector, block % BLOCKS_PER_BAT, check_val );
-			SMUDGECACHE( vol, cache );
-			SETMASK_( vol->seglock, seglock, cache, GETMASK_( vol->seglock, seglock, cache )-1 );
+			if( flush_BAT_caches ) sack_vfs_os_flush_block( vol, cache );
+			else SMUDGECACHE( vol, cache );
+
+			SETMASK_( vol->seglock, seglock, cache, GETMASK_( vol->seglock, seglock, cache ) - 1 );
 		}
 	} else {
 		enum block_cache_entries cache = BC(BAT);
@@ -2227,6 +2275,9 @@ static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume *vol, BLOCKINDE
 	return check_val;
 }
 
+static BLOCKINDEX vfs_os_GetNextBlock( struct sack_vfs_os_volume* vol, BLOCKINDEX block, enum block_cache_entries* blockCache, enum getFreeBlockInit init, LOGICAL expand, int blockSize, int* realBlockSize ) {
+	return vfs_os_GetNextBlock_v2( vol, block, blockCache, init, expand, blockSize, realBlockSize, FALSE );
+}
 
 
 static void _os_AddSalt( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
@@ -2336,11 +2387,11 @@ static void sack_vfs_os_flush_block( struct sack_vfs_os_volume* vol, enum block_
 		SRG_XSWS_encryptData( vol->usekey_buffer[idx], vol->sector_size[idx]
 			, vol->segment[idx], (const uint8_t*)vol->key, 1024
 			, &crypt, &cryptlen );
-		if( !vol->halted )
+		if( !vol->flags.halted )
 			sack_fwrite( crypt, 1, vol->sector_size[idx], vol->file );
 		Deallocate( uint8_t*, crypt );
 	} else {
-		if( !vol->halted )
+		if( !vol->flags.halted )
 			sack_fwrite( vol->usekey_buffer[idx], vol->sector_size[idx], 1, vol->file );
 	}
 	/*
@@ -2350,13 +2401,11 @@ static void sack_vfs_os_flush_block( struct sack_vfs_os_volume* vol, enum block_
 		// vol->segment[idx] = ~0;
 		;
 	*/
-#ifdef DEBUG_CACHE_FLUSH
-	memcpy( vol->usekey_buffer_clean[idx], vol->usekey_buffer[idx], BLOCK_SIZE );
-#endif
+	memcpy( vol->usekey_buffer_clean[idx], vol->usekey_buffer[idx], vol->sector_size[idx] );
 	//lprintf( "Updated clean buffer %d", idx );
 	CLEANCACHE( vol, idx );
 	RESETFLAG( vol->_dirty, idx );
-	RESETFLAG( vol->dirty, idx );
+	//RESETFLAG( vol->dirty, idx );  // CLEANCACHE is this op...
 }
 
 
@@ -2506,6 +2555,8 @@ struct sack_vfs_os_volume* sack_vfs_os_load_volume_v2( int flags, CTEXTSTR filep
 		mount = sack_get_default_mount();
 	vol->mount = mount;
 	if( !version ) version = 2;
+	if( flags & 1 ) vol->flags.skipRollbackProcessing = TRUE;
+	if( flags & 2 ) vol->flags.halted = TRUE;
 	vol->pdl_BAT_information = CreateDataList( sizeof( struct sack_vfs_os_BAT_info ) );
 	vol->pdlFreeBlocks = CreateDataList( sizeof( BLOCKINDEX ) );
 	vol->pdlFreeSmallBlocks = CreateDataList( sizeof( BLOCKINDEX ) );
@@ -5126,8 +5177,8 @@ LOGICAL sack_vfs_os_set_time( struct sack_vfs_os_file* file, uint64_t timeVal, i
 }
 
 LOGICAL sack_vfs_os_halt( struct sack_vfs_os_volume* volume ) {
-	LOGICAL prior = volume->halted;
-	volume->halted = TRUE;	
+	LOGICAL prior = volume->flags.halted;
+	volume->flags.halted = TRUE;
 	return prior;
 }
 

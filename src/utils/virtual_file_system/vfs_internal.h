@@ -152,6 +152,8 @@ enum block_cache_entries
 	, BC( ROLLBACK_LAST ) = BC( ROLLBACK ) + 6
 #endif
 #if defined( VIRTUAL_OBJECT_STORE ) && defined( DEBUG_VALIDATE_TREE )
+	// debug timeline, keep a mirror for comparisons, when links were lost, etc...
+	// can be factored out at some point.
 	, BC( TIMELINE_RO )
 	, BC( TIMELINE_RO_LAST ) = BC( TIMELINE_RO ) + 48
 #endif
@@ -296,7 +298,7 @@ PREFIX_PACKED struct vfs_os_rollback_header {
 	} flags;
 	BLOCKINDEX journal;  // where the blocks are tracked.
 	BLOCKINDEX small_journal; // where small blocks are tracked
-	BLOCKINDEX rollbackLength;
+	BLOCKINDEX unused_rollbackLength;
 	BLOCKINDEX nextBlock;
 	BLOCKINDEX nextSmallBlock;
 	BLOCKINDEX nextEntry;
@@ -332,8 +334,8 @@ struct sack_vfs_volume {
 #ifdef VIRTUAL_OBJECT_STORE
 	struct vfs_volume_flags {
 		BIT_FIELD skipRollbackProcessing : 1;
+		BIT_FIELD halted : 1; // stop any disk activity; test journal recoverability.
 	}flags;
-	LOGICAL halted; // stop any disk activity; test journal recoverability.
 
 	struct vfs_os_rollback_journal journal;
 	BLOCKINDEX lastBlock;
