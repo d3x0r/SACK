@@ -1601,7 +1601,8 @@ void  SetSystemLog ( enum syslog_types type, const void *data )
 	{
 		FILE *close_file = (*syslog_local).file;
 		(*syslog_local).file = NULL;  // reset this first, in case logging closing.
-		sack_fclose( close_file );
+      if( !( close_file == stderr || close_file == stdout ) )
+			sack_fclose( close_file );
 	}
 	if( type == SYSLOG_FILE )
 	{
