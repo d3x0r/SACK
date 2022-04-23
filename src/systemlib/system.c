@@ -779,6 +779,8 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 	task->flags.process_ended = 1;
 	if( task->pOutputThread )
 		WakeThread( task->pOutputThread );
+	if( task->pOutputThread2 )
+		WakeThread( task->pOutputThread2 );
 
 #ifdef WIN32
 #ifndef UNDER_CE
@@ -969,35 +971,50 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 					// maybe the read wasn't queued yet....
 					//lprintf( "Failed to cancel IO on thread %d %d", GetThreadHandle( task->hStdOut.hThread ), GetLastError() );
 				}
+				if( !MyCancelSynchronousIo( GetThreadHandle( task->hStdErr.hThread ) ) )
+				{
+					// maybe the read wasn't queued yet....
+					//lprintf( "Failed to cancel IO on thread %d %d", GetThreadHandle( task->hStdOut.hThread ), GetLastError() );
+				}
 			}
 			else
 			{
 				static BOOL (WINAPI *MyCancelIoEx)( HANDLE hFile,LPOVERLAPPED ) = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))-1;
 				if( (uintptr_t)MyCancelIoEx == (uintptr_t)-1 )
 					MyCancelIoEx = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))LoadFunction( "kernel32.dll", "CancelIoEx" );
-				if( MyCancelIoEx )
+				if( MyCancelIoEx ) {
 					MyCancelIoEx( task->hStdOut.handle, NULL );
-				else
-				{
+						MyCancelIoEx( task->hStdErr.handle, NULL );
+				} else {
 					DWORD written;
-					//lprintf( "really? You're still using xp or less?" );
+					// if I can't cancel, send something oob to wake up the thread.
 					task->flags.bSentIoTerminator = 1;
 					if( !WriteFile( task->hWriteOut, "\x04", 1, &written, NULL ) )
-					lprintf( "write pipe failed! %d", GetLastError() );
-					//lprintf( "Pipe write was %d", written );
+						lprintf( "write stdout pipe failed! %d", GetLastError() );
+
+					if( !WriteFile( task->hWriteErr, "\x04", 1, &written, NULL ) )
+						lprintf( "write stderr pip failed! %d", GetLastError() );
 				}
 			}
 #endif
 		}
 
 		// wait for task last output before notification of end of task.
-		while( task->pOutputThread )
+		while( task->pOutputThread || task->pOutputThread2 )
 			Relinquish();
 
 		if( task->EndNotice )
 			task->EndNotice( task->psvEnd, task );
 #if defined( WIN32 )
 		//lprintf( "Closing process and thread handles." );
+		CloseHandle( task->hReadIn );
+		CloseHandle( task->hReadOut );
+		CloseHandle( task->hReadErr );
+		CloseHandle( task->hWriteIn );
+		CloseHandle( task->hWriteOut );
+		CloseHandle( task->hWriteErr );
+		//lprintf( "Closing process handle %p", task->pi.hProcess );
+
 		if( task->pi.hProcess )
 		{
 			CloseHandle( task->pi.hProcess );

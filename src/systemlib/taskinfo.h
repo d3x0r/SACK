@@ -36,7 +36,8 @@ struct task_info_tag {
 	HANDLEINFO hStdOut;
 	HANDLEINFO hStdErr;
 	volatile PTHREAD pOutputThread;
-   struct taskOutputStruct args1;
+	volatile PTHREAD pOutputThread2;
+	struct taskOutputStruct args1;
    struct taskOutputStruct args2;
 #if defined(WIN32)
 

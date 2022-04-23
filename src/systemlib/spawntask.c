@@ -57,7 +57,10 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 	PTASK_INFO task = taskParams->task;  // (PTASK_INFO)GetThreadParam( thread );
 	if( task )
 	{
-		task->pOutputThread = thread;
+		if( taskParams->stdErr )
+			task->pOutputThread2 = thread;
+		else
+			task->pOutputThread = thread;
 		// read input from task, montiro close and dispatch TaskEnd Notification also.
 		{
 			PHANDLEINFO phi = taskParams->stdErr?&task->hStdErr:&task->hStdOut;
@@ -162,12 +165,14 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 
 			LineRelease( pInput );
 #ifdef _WIN32
+			/*
 			CloseHandle( task->hReadIn );
 			CloseHandle( task->hReadOut );
 			CloseHandle( task->hReadErr );
 			CloseHandle( task->hWriteIn );
 			CloseHandle( task->hWriteOut );
 			CloseHandle( task->hWriteErr );
+			*/
 			//lprintf( "Closing process handle %p", task->pi.hProcess );
 			phi->hThread = 0;
 #else
@@ -180,7 +185,10 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 			if( phi->handle == task->hStdIn.handle )
 				task->hStdIn.handle = INVALID_HANDLE_VALUE;
 			phi->handle = INVALID_HANDLE_VALUE;
-			task->pOutputThread = NULL;
+			if( taskParams->stdErr )
+				task->pOutputThread2 = NULL;
+			else
+				task->pOutputThread = NULL;
 
 			Release( task );
 			//WakeAThread( phi->pdp->common.Owner );
