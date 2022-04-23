@@ -118,6 +118,8 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 								if( taskParams->stdErr ) {
 									if( task->OutputEvent2 )
 										task->OutputEvent2( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+									else if( task->OutputEvent )
+										task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
 								} else {
 									if( task->OutputEvent )
 										task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
@@ -601,7 +603,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					task->args1.stdErr     = FALSE;
 					task->hStdOut.hThread  = ThreadTo( HandleTaskOutput, (uintptr_t)&task->args1 );
 
-					if( OutputHandler2 ) {
+					{
 						task->hStdErr.handle   = task->hReadErr;
 						task->hStdErr.pLine 	  = NULL;
 						//task->hStdOut.pdp 		 = pdp;
@@ -609,8 +611,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 						task->args2.task       = task;
 						task->args2.stdErr     = TRUE;
 						task->hStdErr.hThread  = ThreadTo( HandleTaskOutput, (uintptr_t)&task->args2 );
-					} else {
-						task->hStdErr.handle   = task->hReadOut;
 					}
 
 					ThreadTo( WaitForTaskEnd, (uintptr_t)task );
