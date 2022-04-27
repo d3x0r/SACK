@@ -4902,7 +4902,7 @@ uintptr_t CPROC sack_vfs_os_file_ioctl_internal( struct sack_vfs_os_file* file, 
 	case SOSFSFIO_SET_TIME:
 	{
 		uint64_t timestamp = va_arg( args, uint64_t );
-		int8_t tz = va_arg( args, int8_t );
+		int8_t tz = (uint8_t)va_arg( args, int );
 		return sack_vfs_os_set_time( file, timestamp, tz );
 	}
 	break;
