@@ -63,6 +63,10 @@ SACK_NETWORK_NAMESPACE_END
 
 #else
 
+#ifndef OPENSSL_API_COMPAT
+#  define OPENSSL_API_COMPAT 10101
+#endif
+
 #define _LIB
 #  if NODE_MAJOR_VERSION >= 17
 // this can't work?
@@ -107,7 +111,7 @@ EVP_PKEY *genKey() {
 	BIGNUM          *bne = BN_new();
 	int ret;
 	ret = BN_set_word( bne, kExp );
-#if OPENSSL_VERSION_MAJOR < 3
+#if OPENSSL_VERSION_MAJOR < 3 || OPENSSL_API_COMPAT==10101
 	RSA *rsa = RSA_new();
 
 	if( ret != 1 ) {
