@@ -1437,7 +1437,7 @@ int64_t CPROC ffmpeg_seek(void *opaque, int64_t offset, int whence)
 					file->ffmpeg_buffer_used = tmpofs;
 					return offset;
 				}
-				if( whence == 0 && offset < file->ffmpeg_buffer_size )
+				if( whence == 0 && (size_t)offset < file->ffmpeg_buffer_size )
 					file->ffmpeg_buffer_used = offset;
 				else if( whence == 1 && (offset+file->ffmpeg_buffer_used) < file->ffmpeg_buffer_size )
 					file->ffmpeg_buffer_used = offset+file->ffmpeg_buffer_used;
@@ -1609,8 +1609,8 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		// The fourth parameter (pStream) is a user parameter which will be passed to our callback functions
 		//lprintf( "new avio alloc context..." );
 		file->ffmpeg_io = ffmpeg.avio_alloc_context(file->ffmpeg_buffer
-		                                           , file->ffmpeg_buffer_size  // internal Buffer and its size
-		                                           , 0                  // bWriteable (1=true,0=false)
+		                                           , (int)file->ffmpeg_buffer_size  // internal Buffer and its size
+		                                           , 0                // bWriteable (1=true,0=false)
 		                                           , file          // user data ; will be passed to our callback functions
 		                                           , ffmpeg_read_packet
 		                                           , ffmpeg_write_packet                  // Write callback function (not used in this example)
@@ -1700,7 +1700,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 					, file->file_memory + file->file_position_index
 					, ulReadBytes = file->ffmpeg_buffer_size );
 			else
-				ulReadBytes = sack_fread(file->ffmpeg_buffer, 1, file->ffmpeg_buffer_size, file->file_device );
+				ulReadBytes = sack_fread(file->ffmpeg_buffer, 1, (int)file->ffmpeg_buffer_size, file->file_device );
 			//ulReadBytes = file->ffmpeg_buffer_size;
 #ifdef DEBUG_LOW_LEVEL_PACKET_READ
 			lprintf( "did a read %d", ulReadBytes );
@@ -1714,7 +1714,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 #endif
 			// Now we set the ProbeData-structure for av_probe_input_format:
 			probeData.buf = file->ffmpeg_buffer;
-			probeData.buf_size = file->ffmpeg_buffer_size;//ulReadBytes;
+			probeData.buf_size = (int)file->ffmpeg_buffer_size;//ulReadBytes;
 			probeData.filename = "";
 #ifdef DEBUG_LOG_INFO
 			LogBinary( probeData.buf, 256 );
@@ -1776,7 +1776,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		// Find the first video stream
 		file->videoStream=-1;
 		file->audioStream=-1;
-		for(i = 0; i < file->pFormatCtx->nb_streams; i++)
+		for(i = 0; i < (int)(file->pFormatCtx->nb_streams); i++)
 		{
 			if(file->pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) 
 			{
@@ -2026,7 +2026,7 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 	if( file->videoFrame > 0 )
 	{
 		// Post .5 second updates to position feedback controls
-		if( video_time > (( file->last_tick_update + 500 ) ) )
+		if( (uint64_t)video_time > (( file->last_tick_update + (uint64_t)500 ) ) )
 		{
 			uint64_t tick = ( video_time * 1000000000000 )
 									/ file->pFormatCtx->duration ;
@@ -2240,7 +2240,7 @@ static uintptr_t CPROC ProcessAudioFrame( PTHREAD thread )
 							//LogTime(file, FALSE, "audio deque", 1 DBG_SRC );
 							EnqueLink( &file->al_free_buffer_queue, buffer );
 							if( GetQueueLength( file->al_free_buffer_queue ) > file->max_in_queue )
-								file->max_in_queue = GetQueueLength( file->al_free_buffer_queue );
+								file->max_in_queue = (int)GetQueueLength( file->al_free_buffer_queue );
 						}
 						else
 						{

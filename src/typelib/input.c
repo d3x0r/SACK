@@ -489,7 +489,7 @@ void RecallUserInput( PUSER_INPUT_BUFFER pci, int bUp )
 	{
 		pci->nHistory++;
 		if( SUS_GTE( pci->nHistory, int, pci->InputHistory->Cnt, INDEX ) )
-				pci->nHistory -= pci->InputHistory->Cnt;
+				pci->nHistory -= (int)pci->InputHistory->Cnt;
 		if( pci->nHistory == pci->InputHistory->Top )
 		{
 			// now we are at the NEW entry to the list...
@@ -512,7 +512,7 @@ void RecallUserInput( PUSER_INPUT_BUFFER pci, int bUp )
 
 		// if we weren't previously working on a recalled command...
 		if( pci->nHistory == -1 )
-			pci->nHistory = pci->InputHistory->Top - 1;
+			pci->nHistory = (int)pci->InputHistory->Top - 1;
 		else
 		{
 			// if already on the first entered command (last avail recall...)

@@ -41,11 +41,11 @@ else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     DEFINE_DEFAULT( __64__ OFF )
 endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
-set( LIBRESSL_VERSION 2.5.4 )
+#set( LIBRESSL_VERSION 3.2.1 )
 
-add_subdirectory( ../../src/contrib/libressl/${LIBRESSL_VERSION} libressl )
-include_directories( ../../src/contrib/libressl/${LIBRESSL_VERSION}/include )
-set( SSL_LIBS ssl tls crypto )
+#add_subdirectory( ../../src/contrib/libressl/${LIBRESSL_VERSION} libressl )
+#include_directories( ../../src/contrib/libressl/${LIBRESSL_VERSION}/include )
+#set( SSL_LIBS ssl tls crypto )
 
 if( WIN32 )
   # WSAWaitMultipleObject network handling
