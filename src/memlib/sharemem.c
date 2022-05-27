@@ -70,6 +70,10 @@
 #include <new.h>
 #endif
 
+#define VERBLOG(f,...)     		if( !g.bDisableDebug ) lprint( f,##__VA_ARGS__ );
+#define LL_VERBLOG(f,...)     		if( !g.bDisableDebug ) ll_lprint( f,##__VA_ARGS__ );
+
+
 #ifdef __cplusplus
 namespace sack {
 	namespace memory {
@@ -438,7 +442,6 @@ uint64_t  LockedExchange64( volatile uint64_t* p, uint64_t val )
 //-------------------------------------------------------------------------
 
 #ifdef DEBUG_CRITICAL_SECTIONS
-#if 0
 static void DumpSection( PCRITICALSECTION pcs )
 {
 	ll_lprintf( "Critical Section....." );
@@ -448,7 +451,6 @@ static void DumpSection( PCRITICALSECTION pcs )
 	ll_lprintf( "Next Process:    %16" _64fx, pcs->dwThreadWaiting );
 	ll_lprintf( "Last update: %s(%d)", pcs->pFile ? pcs->pFile : "unknown", pcs->nLine );
 }
-#endif
 #endif
 
 #ifdef __cplusplus
@@ -461,9 +463,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 		{
 			return pcs->dwLocks;
 		}
-#endif
 
-#ifndef USE_NATIVE_CRITICAL_SECTION
 //#  ifdef _MSC_VER
 //#    pragma optimize( "st", off )
 //#  endif
@@ -559,11 +559,9 @@ static void DumpSection( PCRITICALSECTION pcs )
 			pcs->dwUpdating = 0;
 			return 0;
 		}
-#endif
 
 		//-------------------------------------------------------------------------
 
-#ifndef USE_NATIVE_CRITICAL_SECTION
 //#  ifdef _MSC_VER
 //#    pragma optimize( "st", off )
 //#  endif
@@ -608,20 +606,19 @@ static void DumpSection( PCRITICALSECTION pcs )
 			pcs->dwUpdating = 0;
 			return TRUE;
 		}
+
+		void  InitializeCriticalSec( PCRITICALSECTION pcs )
+		{
+			memset( pcs, 0, sizeof( CRITICALSECTION ) );
+			return;
+		}
+
 #else
 #define LeaveCriticalSecNoWake(pcs) LeaveCriticalSection(pcs)
 #endif
 
 
 //-------------------------------------------------------------------------
-#ifndef USE_NATIVE_CRITICAL_SECTION
-		void  InitializeCriticalSec( PCRITICALSECTION pcs )
-		{
-			memset( pcs, 0, sizeof( CRITICALSECTION ) );
-			return;
-		}
-#endif
-
 #ifdef __cplusplus
 	} // namespace timers {
 	namespace memory { // resume memory namespace
@@ -755,29 +752,21 @@ void InitSharedMemory( void )
 #else
 		g.pagesize = sysconf(_SC_PAGESIZE);
 #endif
-#ifdef VERBOSE_LOGGING
-		if( !g.bDisableDebug )
-			Log2( "CHUNK: %d  MEM:%d", CHUNK_SIZE(0), MEM_SIZE );
-#endif
+		VERBLOG( "CHUNK: %d  MEM:%d", CHUNK_SIZE(0), MEM_SIZE );
+
 		g.bInit = TRUE;  // onload was definatly a zero.
 		{
 			if( OpenRootMemory() )
 			{
 				MemSet( g.pSpacePool, 0, sizeof( SPACEPOOL ) );
 				g.pSpacePool->me = &g.pSpacePool;
-#ifdef VERBOSE_LOGGING
-				if( !g.bDisableDebug )
-					Log1( "Allocated Space pool %lu", dwSize );
-#endif
+				VERBLOG( "Allocated Space pool %lu", dwSize );
 			}
 		}
 	}
 	else
 	{
-#ifdef VERBOSE_LOGGING
-		if( !g.bDisableDebug )
-			ODS( "already initialized?" );
-#endif
+		VERBLOG( "already initialized?" );
 	}
 #endif
 }
@@ -801,10 +790,7 @@ static PSPACE AddSpace( PSPACE pAddAfter
 	int i;
 	if( !g.pSpacePool || g.InAdding )
 	{
-#ifdef VERBOSE_LOGGING
-		if( !g.bDisableDebug )
-			Log2( "No space pool(%p) or InAdding(%d)", g.pSpacePool, g.InAdding );
-#endif
+		VERBLOG( "No space pool(%p) or InAdding(%d)", g.pSpacePool, g.InAdding );
 		return NULL;
 	}
 	g.InAdding = 1;
@@ -1594,11 +1580,9 @@ uintptr_t GetFileSize( int fd )
 #ifdef _DEBUG
 	if( !g.bDisableDebug )
 	{
-#ifdef VERBOSE_LOGGING
-		ll_lprintf( "Initializing %p %d"
+		LL_VERBLOG( "Initializing %p %d"
 				, pMem->pRoot[0].byData
 				, pMem->pRoot[0].dwSize );
-#endif
 		MemSet( pMem->pRoot[0].byData, 0x1BADCAFE, pMem->pRoot[0].dwSize );
 		BLOCK_TAG( pMem->pRoot ) = BLOCK_TAG_ID;
 	}
@@ -1625,9 +1609,7 @@ PMEM DigSpace( TEXTSTR pWhat, TEXTSTR pWhere, uintptr_t *dwSize )
 		CloseSpace( (POINTER)pMem );
 		return NULL;
 	}
-#ifdef VERBOSE_LOGGING
-	Log( "Go to init the heap..." );
-#endif
+	VERBLOG( "Go to init the heap..." );
 	pMem->dwSize = 0;
 #if USE_CUSTOM_ALLOCER
 	InitHeap( pMem, *dwSize );
@@ -2212,34 +2194,11 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			if( !pc->info.dwOwners )
 			{
 				extern int  MemChk ( POINTER p, uintptr_t val, size_t sz );
-#ifndef NO_LOGGING
-#  ifdef _DEBUG
-				if( g.bLogAllocate )
-				{
-					ll__lprintf(DBG_RELAY)( "Release %p(%p)", pc, pc->byData );
-				}
-#  endif
-#endif
-#ifdef ENABLE_NATIVE_MALLOC_PROTECTOR
-				if( !MemChk( pc->LeadProtect, LEAD_PROTECT_TAG, sizeof( pc->LeadProtect ) ) ||
-					!MemChk( pc->byData + pc->dwSize, LEAD_PROTECT_BLOCK_TAIL, sizeof( pc->LeadProtect ) ) )
-				{
-					ll_lprintf( "overflow block (%p) %p", pData, pc );
-					DebugBreak();
-				}
-#endif
-
 				free( pc );
 				return NULL;
 			}
 			else
 			{
-#ifndef NO_LOGGING
-				if( g.bLogAllocate && g.bLogAllocateWithHold )
-				{
-					ll__lprintf(DBG_RELAY)( "Release(holding) %p(%p)", pc, pc->byData );
-				}
-#endif
 			}
 			return pData;
 		}
@@ -2270,87 +2229,20 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 #endif
 
 			pMem = GrabMem( pc->pRoot );
-#ifdef _DEBUG
-			if( !pMem )
-			{
-#  ifndef NO_LOGGING
-				ll__lprintf( DBG_RELAY )( "ERROR: Chunk to free does not reference a heap!" );
-#  endif
-				DebugDumpHeapMemEx( pc->pRoot, 1 );
-				DebugBreak();
-			}
-#endif
 			pMemSpace = FindSpace( pMem );
 
-#ifdef _DEBUG
-			while( pMemSpace && ( ( pCurMem = (PMEM)pMemSpace->pMem ),
-										(	( (uintptr_t)pData < (uintptr_t)pCurMem )
-										||  ( (uintptr_t)pData > ( (uintptr_t)pCurMem + pCurMem->dwSize ) ) )
-									 )
-				 )
-			{
-				Log( "ERROR: This block should have immediatly referenced it's correct heap!" );
-				pMemSpace = pMemSpace->next;
-			}
-#endif
-
-			if( !pMemSpace )
-			{
-#ifndef NO_LOGGING
-#  ifdef _DEBUG
-				ll__lprintf( DBG_RELAY )( "This Block is NOT within the managed heap! : %p", pData );
-#  endif
-#endif
-				ll_lprintf( "this may not be an error.  This could be an old block from not using customallocer..." );
-				DebugDumpHeapMemEx( pc->pRoot, 1 );
-				DebugBreak();
-				DropMem( pMem );
-				return NULL;
-			}
-#ifdef _DEBUG
 			pCurMem = (PMEM)pMemSpace->pMem;
-#endif
+
 			if( pData && pc )
 			{
 				if( !pc->info.dwOwners )
 				{
-#ifndef NO_LOGGING
-#  ifdef _DEBUG
-					if( !g.bDisableDebug &&
-						!(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
-						_xlprintf( 2
-									, BLOCK_FILE(pc)
-									, BLOCK_LINE(pc)
-									)( "Block is already Free! %p "
-									, pc );
-					else
-#  endif
-						// CRITICAL ERROR!
-						_xlprintf( 2 DBG_RELAY)( "Block is already Free! %p ", pc );
-#endif
 					DropMem( pMem );
 					return pData;
 				}
-#ifdef _DEBUG
-				if( !g.bDisableDebug )
-					if( BLOCK_TAG( pc ) != BLOCK_TAG_ID )
-					{
-						ll_lprintf( "Application overflowed memory:%p", pc->byData );
-						DebugDumpHeapMemEx( pc->pRoot, 1 );
-						DebugBreak();
-					}
-#endif
 				pc->info.dwOwners--;
 				if( pc->info.dwOwners )
 				{
-#ifdef _DEBUG
-					if( !(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
-					{
-						// store where it was released from
-						BLOCK_FILE(pc) = pFile;
-						BLOCK_LINE(pc) = nLine;
-					}
-#endif
 					DropMem( pMem );
 					return pData;
 				}
@@ -2362,23 +2254,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 					// fill memory with a known value...
 					// this will allow me to check usage after release....
 
-#ifdef _DEBUG
-					if( !(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
-					{
-						// store where it was released from
-						BLOCK_FILE(pc) = pFile;
-						BLOCK_LINE(pc) = nLine;
-					}
-					if( !g.bDisableDebug )
-					{
-						BLOCK_TAG(pc)=BLOCK_TAG_ID;
-						MemSet( pc->byData, FREE_MEMORY_TAG, pc->dwSize - pc->info.dwPad );
-					}
-#endif
 					next = (PCHUNK)(pc->byData + pc->dwSize);
-#ifndef _DEBUG
-					pCurMem = (PMEM)pMemSpace->pMem;
-#endif
+
 					if( (nNext = (uintptr_t)next - (uintptr_t)pCurMem) >= pCurMem->dwSize )
 					{
 						// if next is NOT within valid memory...
@@ -2390,38 +2267,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 						if( !pPrior->info.dwOwners ) // prior physical is free
 						{
 							pPrior->dwSize += CHUNK_SIZE + pc->dwSize; // add this header plus size
-#ifdef _DEBUG
-							//if( bLogAllocate )
-							{
-								//ll_lprintf( "Collapsing freed block with prior block...%p %p", pc, pPrior );
-							}
-							if( !g.bDisableDebug )
-							{
-								pPrior->info.dwPad = MAGIC_SIZE;
-								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
-								{
-									pPrior->info.dwPad += 2 * MAGIC_SIZE;
-									BLOCK_FILE( pPrior ) = pFile;
-									BLOCK_LINE( pPrior ) = nLine;
-								}
-								BLOCK_TAG( pPrior ) = BLOCK_TAG_ID;
-								MemSet( pPrior->byData, FREE_MEMORY_TAG, pPrior->dwSize - pPrior->info.dwPad );
-							}
-							else
-#endif
-							{
-								pPrior->info.dwPad = 0; // *** NEEDFILELINE ***
-#ifdef _DEBUG
-								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
-								{
-									pPrior->info.dwPad += 2 * MAGIC_SIZE;
-									BLOCK_FILE( pPrior ) = pFile;
-									BLOCK_LINE( pPrior ) = nLine;
-								}
-#endif
-							}
-							if( pPrior->dwSize & 0x80000000 )
-								DebugBreak();
+							pPrior->info.dwPad = 0; // *** NEEDFILELINE ***
 							pc = pPrior; // use prior block as base ....
 							if( next )
 								next->pPrior = pPrior;
@@ -2448,38 +2294,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 								*( pc->me = next->me ) = pc;
 								bCollapsed = TRUE;
 							}
-#ifdef _DEBUG
-							//if( bLogAllocate )
-								//ll_lprintf( "Collapsing freed block with next block...%p %p", pc, next );
-							if( !g.bDisableDebug )
-							{
-								pc->info.dwPad = MAGIC_SIZE;
-								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
-								{
-									pc->info.dwPad += 2 * MAGIC_SIZE;
-									BLOCK_FILE( pc ) = pFile;
-									BLOCK_LINE( pc ) = nLine;
-								}
-								BLOCK_TAG( pc ) = BLOCK_TAG_ID;
-								MemSet( pc->byData, FREE_MEMORY_TAG, pc->dwSize - pc->info.dwPad );
-							}
-							else
-#endif
-							{
-								pc->info.dwPad = 0;
-#ifdef _DEBUG
-								if( !(pMem->dwFlags & HEAP_FLAG_NO_DEBUG) )
-								{
-                            // *** NEEDFILELINE ***
-									pc->info.dwPad += 2 * MAGIC_SIZE;
-									BLOCK_FILE( pc ) = pFile;
-									BLOCK_LINE( pc ) = nLine;
-								}
-#endif
-							}
+							pc->info.dwPad = 0;
 
-							if( pc->dwSize & 0x80000000 )
-								DebugBreak();
 							nextNext = (PCHUNK)(pc->byData + pc->dwSize );
 
 							if( (((uintptr_t)nextNext) - ((uintptr_t)pCurMem)) < (uintptr_t)pCurMem->dwSize )
@@ -2497,10 +2313,6 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			}
 			Bubble( pMem );
 			DropMem( pMem );
-#  ifdef _DEBUG
-			if( !g.bDisableAutoCheck )
-				GetHeapMemStatsEx(pMem, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
-#  endif
 		}
 #endif
 	}
@@ -2517,24 +2329,13 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		{
 			PMALLOC_CHUNK pc = (PMALLOC_CHUNK)((uintptr_t)pData - MALLOC_CHUNK_SIZE(pData));
 			//ll__lprintf( DBG_RELAY )( "holding block %p", pc );
-#ifndef NO_LOGGING
-			if( g.bLogAllocate && g.bLogAllocateWithHold )
-				_xlprintf( 2 DBG_RELAY)( "Hold	 : %p - %" _PTRSZVALfs " bytes",pc, pc->dwSize );
-#endif
 			pc->info.dwOwners++;
 		}
 		else
 		{
 			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - ( ( (uint16_t*)pData)[-1] +
 													offsetof( CHUNK, byData ) ) );
-			PMEM pMem = GrabMem( pc->pRoot );
-
-#ifndef NO_LOGGING
-			if( g.bLogAllocate )
-			{
-				_xlprintf( 2 DBG_RELAY)( "Hold	 : %p - %" _PTRSZVALfs " bytes",pc, pc->dwSize );
-			}
-#endif
+			PMEM pMem = GrabMem( pc->pRoot ); // heap lock (expensive?)
 			if( !pc->info.dwOwners )
 			{
 				ll_lprintf( "Held block has already been released!  too late to hold it!" );
@@ -2543,11 +2344,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				return pData;
 			}
 			pc->info.dwOwners++;
-			DropMem(pMem );
-#ifdef _DEBUG
-			if( !g.bDisableAutoCheck )
-				GetHeapMemStatsEx(pc->pRoot, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
-#endif
+			DropMem( pMem );  // heap unlock; malloc version has no locks.
 		}
 	}
 	return pData;
@@ -2555,7 +2352,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 
 //------------------------------------------------------------------------------------------------------
 
- POINTER  GetFirstUsedBlock ( PMEM pHeap )
+POINTER  GetFirstUsedBlock ( PMEM pHeap )
 {
 	return pHeap->pRoot[0].byData;
 }
