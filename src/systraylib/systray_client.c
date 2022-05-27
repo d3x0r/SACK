@@ -177,8 +177,10 @@ void TerminateIcon( void )
 {
 }
 
-void AddSystrayMenuFunction(
-									CTEXTSTR text, void (CPROC*function)(void) )
+void AddSystrayMenuFunction( CTEXTSTR text, void (CPROC*function)(void) )
 {
+}
+
+void AddSystrayMenuFunction_v2( CTEXTSTR text, void (CPROC* function)(uintptr_t), uintptr_t param ){
 }
 
