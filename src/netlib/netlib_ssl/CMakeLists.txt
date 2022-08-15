@@ -47,13 +47,7 @@ else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 
-set( MATRIXSSL_VERSION 3.8.4 )
-set( LIBRESSL_VERSION 2.5.4 )
-
-#add_subdirectory( ${SOURCES_ROOT}/src/contrib/MatrixSSL/${MATRIXSSL_VERSION} MatrixSSL )
-#INCLUDE_DIRECTORIES( ${SOURCES_ROOT}/src/contrib/MatrixSSL/${MATRIXSSL_VERSION} )
-#set( NETLIB_SSL_SOURCES ${SOURCES_ROOT}/src/netlib/mssl_layer.c )
-#set( SSL_LIBS 
+set( LIBRESSL_VERSION 3.5.3 )
 
 add_subdirectory( ${SOURCES_ROOT}/src/contrib/libressl/${LIBRESSL_VERSION} libressl )
 include_directories( ${SOURCES_ROOT}/src/contrib/libressl/${LIBRESSL_VERSION}/include )
