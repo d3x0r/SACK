@@ -138,7 +138,6 @@ void GatherHttpData( struct HttpState *pHttpState )
 		pMergedLine = SegConcat( NULL, pNewLine, 0, GetTextSize( pHttpState->partial ) + GetTextSize( pInput ) );
 		LineRelease( pNewLine );
 		pHttpState->partial = pMergedLine;
-		//lprintf( "Setting content to partial... " );
 		pHttpState->content = pHttpState->partial;
 	}
 	unlockHttp( pHttpState );
@@ -242,7 +241,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 			//lprintf( "Reading more, after returning a packet before... %d", pHttpState->response_version );
 			if( pHttpState->response_version ) {
 				GatherHttpData( pHttpState );
-				//lprintf( "return http nothing  %d", pHttpState->flags.success );
+				//lprintf( "return http nothing  %d %d %d", pHttpState->content_length, pHttpState->flags.success, pHttpState->returned_status );
 
 				if( pHttpState->flags.success && !pHttpState->returned_status ) {
 					unlockHttp( pHttpState );
@@ -250,7 +249,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 					return pHttpState->numeric_code;
 				}
 			}
-                        else {
+			else {
 				if( pHttpState->content_length ) {
 					GatherHttpData( pHttpState );
 					if( ((GetTextSize( pHttpState->partial ) >= pHttpState->content_length)
@@ -718,6 +717,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 					else
 					{
 						pHttpState->content_length = GetTextSize( VarTextPeek( pHttpState->pvt_collector ) );
+						//lprintf( "This may or may not be the end of content? %d", pHttpState->content_length );
 						if( pHttpState->waiter ) {
 							//lprintf( "Waking waiting to return with result." );
 							WakeThread( pHttpState->waiter );
@@ -1061,7 +1061,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 		if( AddHttpData( state, buffer, size ) )
 			if( ProcessHttp( pc, state ) )
 			{
-				lprintf( "this is where we should close and not end... %d %d",state->flags.close , !state->flags.keep_alive );
+				//lprintf( "this is where we should close and not end... %d %d",state->flags.close , !state->flags.keep_alive );
 				if( state->flags.close || !state->flags.keep_alive) {
 					RemoveClient( pc );
 					return;
@@ -1083,7 +1083,9 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 	if( !data ) return;
 	PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
 	if( data->flags.no_content_length ) { // data is collected into 'partial' until close
-        	data->content_length = GetTextSize( data->partial );
+		GatherHttpData( data );
+		data->content_length = GetTextSize( data->partial );
+		//lprintf( "at close what is content length? %d", data->content_length );
 	}
 	if( data->content_length ) {
 		// should do one further gather; will set resulting status better.
@@ -1360,7 +1362,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 				&& ( state->last_read_tick > ( timeGetTime() - 3000 ) ) ) {
 				WakeableSleep( 1000 );
 			}
-			//lprintf( "Request has completed.... %p %p", pc, state->content );
+			//lprintf( "Request has completed.... %p %p %d", pc, state->content, state->closed );
 			if( state->request_socket && !state->closed ) {
 				RemoveClient( state->request_socket ); // this shouldn't happen... it should have ben closed already.
 			}
