@@ -390,8 +390,10 @@ struct sack_vfs_os_file
 	//char* filename;
 	LOGICAL fileName;
 #    endif
-	struct directory_entry _entry;  // has file size within
+	struct directory_entry  entry_;  // has file size within
 	struct directory_entry* entry;  // has file size within
+	VFS_DISK_DATATYPE filesize_;  // how big the file is (live - reflects size for files opened by version)
+
 	enum block_cache_entries cache; // files without names use this as thier preferred cache target
 #  else
 	struct directory_entry* entry;  // has file size within
@@ -2920,7 +2922,7 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 							file->cache = cache;
 							file->entry_fpi = vol->bufferFPI[BC(DIRECTORY)] + ((uintptr_t)(((struct directory_hash_lookup_block *)0)->entries + curName));
 							file->dir_block = this_dir_block;
-							file->_entry.name_offset = ( entry->name_offset & DIRENT_NAME_OFFSET_OFFSET ) + vfs_os_compute_data_block( vol, dirblock->names_first_block, BC( COUNT ) );
+							file->entry_.name_offset = ( entry->name_offset & DIRENT_NAME_OFFSET_OFFSET ) + vfs_os_compute_data_block( vol, dirblock->names_first_block, BC( COUNT ) );
 							file->entry = entry;
 						}
 #ifdef DEBUG_DIRECTORIES
@@ -3671,7 +3673,7 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 				SETMASK_( vol->seglock, seglock, cache, locks );
 				file->entry_fpi = dirblockFPI + sane_offsetof( struct directory_hash_lookup_block, entries[n] );;
 				file->dir_block = this_dir_block;
-				file->_entry.name_offset = ( file->entry->name_offset & DIRENT_NAME_OFFSET_OFFSET ) + vfs_os_compute_data_block( vol, dirblock->names_first_block, BC( COUNT ) );
+				file->entry_.name_offset = ( file->entry->name_offset & DIRENT_NAME_OFFSET_OFFSET ) + vfs_os_compute_data_block( vol, dirblock->names_first_block, BC( COUNT ) );
 				// the modern version only uses entry and cache; entry_fpi, dir_block above are unused; this dirent is locked into the caching subsystem.
 				file->entry = ent;
 				file->cache = cache;
@@ -3690,7 +3692,7 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 	MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
 	BLOCKINDEX offset;
 	file->vol = vol;
-	file->entry = &file->_entry; // default to internal buffer; might never have a real directory
+	file->entry = &file->entry_; // default to internal buffer; might never have a real directory
 	//file->sealant = NULL;
 
 	if( filename[0] == '.' && ( filename[1] == '\\' || filename[1] == '/' ) ) filename += 2;
@@ -3716,6 +3718,7 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 		enum block_cache_entries  timeCache = BC( TIMELINE );
 	        
 		BLOCKINDEX priorData = file->entry->first_block;
+		file->filesize_ = file->entry->filesize;
 		reloadTimeEntry( &time, vol, file->entry->timelineEntry VTReadWrite GRTENoLog  DBG_SRC );
 #ifdef _DEBUG
 		if( !time.disk->time ) DebugBreak();
@@ -3729,6 +3732,7 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 				//prior->
 				priorTime = prior->priorTime;
 				priorData = prior->priorData;
+				file->filesize_ = prior->priorDataSize;
 				if( prior->time <= version ) break;
 				dropRawTimeEntry( file->vol, cache GRTENoLog DBG_SRC );
 			}
@@ -3741,7 +3745,7 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 
 		file->_first_block = file->block = file->entry->first_block;
 	}
-	offset = file->_entry.name_offset; // file->entry->name_offset;
+	offset = file->entry_.name_offset; // file->entry->name_offset;
 	//file->filename = StrDup( filename );
 	//file->fileName = !!filename;
 #ifdef XX_VIRTUAL_OBJECT_STORE
@@ -3839,14 +3843,14 @@ int CPROC sack_vfs_os_exists( struct sack_vfs_os_volume *vol, const char * file 
 
 size_t CPROC sack_vfs_os_tell( struct sack_vfs_os_file *file ) { return (size_t)file->fpi; }
 
-size_t CPROC sack_vfs_os_size( struct sack_vfs_os_file *file ) {	return (size_t)(file->entry->filesize); }
+size_t CPROC sack_vfs_os_size( struct sack_vfs_os_file *file ) {	return (size_t)(file->filesize_); }
 
 size_t CPROC sack_vfs_os_seek_internal( struct sack_vfs_os_file *file, size_t pos, int whence )
 {
 	FPI old_fpi = file->fpi;
 	if( whence == SEEK_SET ) file->fpi = pos;
 	if( whence == SEEK_CUR ) file->fpi += pos;
-	if( whence == SEEK_END ) file->fpi = ( file->entry->filesize  ) + pos;
+	if( whence == SEEK_END ) file->fpi = ( file->filesize_  ) + pos;
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 
 	{
@@ -3928,7 +3932,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 #endif
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 
-	if( file->entry->filesize != DIR_ALLOCATING_MARK )
+	if( file->entry->first_block != DIR_ALLOCATING_MARK )
 		if( IS_VERSIONED( file ) )
 		{
 			// if versioned, but no limit, just do this.
@@ -3947,6 +3951,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 				timeline->priorDataSize = file->entry->filesize;
 				file->entry->first_block = DIR_ALLOCATING_MARK;
 				file->entry->filesize = 0;
+				file->filesize_ = 0;
 				file->blockChainLength = 0;
 				dropRawTimeEntry( file->vol, cache GRTENoLog DBG_SRC );
 			}
@@ -3998,7 +4003,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 			written += blockSize - ofs;
 			file->fpi += blockSize - ofs;
 			if( file->fpi > (file->entry->filesize) ) {
-				file->entry->filesize = file->fpi;
+				file->filesize_ = file->entry->filesize = file->fpi;
 				updated = TRUE;
 			}
 
@@ -4027,7 +4032,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 			written += length;
 			file->fpi += length;
 			if( file->fpi > (file->entry->filesize) ) {
-				file->entry->filesize = file->fpi;
+				file->filesize_ = file->entry->filesize = file->fpi;
 				updated = TRUE;
 			}
 			length = 0;
@@ -4067,7 +4072,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 			file->fpi += blockSize;
 			if( file->fpi > ( file->entry->filesize  ) ) {
 				updated = TRUE;
-				file->entry->filesize = file->fpi ;
+				file->filesize_ = file->entry->filesize = file->fpi ;
 			}
 			length -= blockSize;
 			cache = BC( FILE );
@@ -4088,7 +4093,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 			file->fpi += length;
 			if( file->fpi > (file->entry->filesize ) ) {
 				updated = TRUE;
-				file->entry->filesize = file->fpi ;
+				file->filesize_ = file->entry->filesize = file->fpi ;
 			}
 			length = 0;
 		}
@@ -4163,11 +4168,11 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, uint64_t 
 		if( !file->readKey ) return 0;
 	}
 #endif
-	if( ( file->entry->filesize  ) < ( file->fpi + length ) ) {
-		if( ( file->entry->filesize  ) < file->fpi )
+	if( ( file->filesize_ ) < ( file->fpi + length ) ) {
+		if( ( file->filesize_ ) < file->fpi )
 			length = 0;
 		else
-			length = (size_t)(( file->entry->filesize ) - file->fpi);
+			length = (size_t)(( file->filesize_ ) - file->fpi);
 	}
 	if( !length || file->block == EOFBLOCK ) {  return 0; }
 
@@ -4224,7 +4229,7 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, uint64_t 
 	}
 #ifdef XX_VIRTUAL_OBJECT_STORE
 	if( file->readKey
-	   && ( file->fpi == ( file->entry->filesize ) )
+	   && ( file->fpi == ( file->filesize_ ) ) //entry->filesize ) )
 	   && ( (file->entry->name_offset)
 	      & DIRENT_NAME_OFFSET_FLAG_READ_KEYED) )
 	{
@@ -4243,7 +4248,7 @@ size_t CPROC sack_vfs_os_read_internal( struct sack_vfs_os_file *file, uint64_t 
 
 	if( file->sealant
 		&& (void*)file->sealant != (void*)data
-		&& length == ( file->entry->filesize ) ) {
+		&& length == ( file->filesize_ ) ) { //file->entry->filesize ) ) {
 		BLOCKINDEX saveSize = file->entry->filesize;
 		BLOCKINDEX saveFpi = file->fpi;
 		file->entry->filesize = ((file->entry->filesize
@@ -4274,7 +4279,7 @@ static BLOCKINDEX sack_vfs_os_read_patches( struct sack_vfs_os_file *file ) {
 	size_t length;
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 
-	length = (size_t)(file->entry->filesize);
+	length = (size_t)(file->filesize_ );//entry->filesize);
 
 	if( !length ) { file->vol->lock = 0; return 0; }
 
@@ -4362,7 +4367,7 @@ static void sack_vfs_os_unlink_file_entry( struct sack_vfs_os_volume *vol, struc
 	}
 	if( !deleted ) {
 		// delete the file entry now; this disk entry may be reused immediately.
-		dirinfo->_entry.first_block = dirinfo->_first_block;
+		dirinfo->entry_.first_block = dirinfo->_first_block;
 		dirinfo->_first_block = dirinfo->entry->first_block = 0;
 		SMUDGECACHE( vol, dirinfo->cache );
 	}
@@ -4474,7 +4479,7 @@ static void _os_shrinkBAT( struct sack_vfs_os_file *file ) {
 
 size_t CPROC sack_vfs_os_truncate_internal( struct sack_vfs_os_file *file ) {
 	if( file->entry->filesize != file->fpi ) {
-		file->entry->filesize = file->fpi;
+		file->filesize_ = file->entry->filesize = file->fpi;
 		_os_shrinkBAT( file );
 		SMUDGECACHE( file->vol, file->cache );
 	}
@@ -4495,7 +4500,7 @@ int sack_vfs_os_close_internal( struct sack_vfs_os_file *file, int unlock ) {
 	{
 		enum block_cache_entries cache = BC(NAMES);
 		static char fname[256];
-		FPI name_ofs = file->_entry.name_offset;
+		FPI name_ofs = file->entry_.name_offset;
 		// this following line needs to be updated.
 		//FPI base = (const char *)
 		//char const *filename = (char const *)vfs_os_DSEEK( file->vol, name_ofs, 0, &cache ); // have to do the seek to the name block otherwise it might not be loaded.
@@ -4904,6 +4909,15 @@ uintptr_t CPROC sack_vfs_os_file_ioctl_internal( struct sack_vfs_os_file* file, 
 		uint64_t timestamp = va_arg( args, uint64_t );
 		int8_t tz = (uint8_t)va_arg( args, int );
 		return sack_vfs_os_set_time( file, timestamp, tz );
+	}
+	break;
+	case SOSFSFIO_GET_TIME:
+	{
+		uint64_t** timeArray = va_arg( args, uint64_t** );
+		int8_t** tzArray = va_arg( args, int8_t** );
+		size_t* timeCount  = va_arg( args, size_t* );
+		
+		return file->entry->timelineEntry;
 	}
 	break;
 	case SOSFSFIO_GET_TIMES:
