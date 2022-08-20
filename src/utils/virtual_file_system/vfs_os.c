@@ -233,7 +233,6 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 #define _os_GetFreeBlock(v,c,i,s) _os_GetFreeBlock_(v,c,i,s,FALSE DBG_SRC )
 
 #define IS_OWNED(file)  ( (file->entry->name_offset) & DIRENT_NAME_OFFSET_FLAG_OWNED )
-#define IS_VERSIONED(file)  ( (file->entry->name_offset) & DIRENT_NAME_OFFSET_VERSIONED )
 
 LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filename
 	, BLOCKINDEX dirBlockSeg
@@ -390,6 +389,9 @@ struct sack_vfs_os_file
 	//char* filename;
 	LOGICAL fileName;
 #    endif
+	struct sack_vfs_os_file_flags {
+		BIT_FIELD versioned : 1;
+	}flags;
 	struct directory_entry  entry_;  // has file size within
 	struct directory_entry* entry;  // has file size within
 	VFS_DISK_DATATYPE filesize_;  // how big the file is (live - reflects size for files opened by version)
@@ -3709,8 +3711,18 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 			else _os_GetNewDirectory( vol, filename, file );
 		}
 
-	if( IS_VERSIONED( file ) ) {
-		//if( !timeArray ) return TRUE;
+	if( ( file->entry->first_block != DIR_ALLOCATING_MARK ) && create ) {
+		// if there is already data
+		file->flags.versioned = 1;
+	} else 
+		file->flags.versioned = 0;
+	
+	file->filesize_ = file->entry->filesize; // saved for versioning really
+	// update to the file's first block (allocating, data, whatever)
+	file->_first_block = file->block = file->entry->first_block;
+
+	if( create ) {  // sort of a opened for write
+		// this updates the timestamp of the file, and allocates a new one
 		PDATALIST pdlTimes = CreateDataList( sizeof( uint64_t ) );
 		struct sack_vfs_os_volume* vol = file->vol;
 	        
@@ -3718,7 +3730,6 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 		enum block_cache_entries  timeCache = BC( TIMELINE );
 	        
 		BLOCKINDEX priorData = file->entry->first_block;
-		file->filesize_ = file->entry->filesize;
 		reloadTimeEntry( &time, vol, file->entry->timelineEntry VTReadWrite GRTENoLog  DBG_SRC );
 #ifdef _DEBUG
 		if( !time.disk->time ) DebugBreak();
@@ -3737,13 +3748,7 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 				dropRawTimeEntry( file->vol, cache GRTENoLog DBG_SRC );
 			}
 		}
-	        
 		dropRawTimeEntry( vol, time.diskCache GRTENoLog DBG_SRC );
-
-		file->_first_block = file->block = priorData;
-	} else {
-
-		file->_first_block = file->block = file->entry->first_block;
 	}
 	offset = file->entry_.name_offset; // file->entry->name_offset;
 	//file->filename = StrDup( filename );
@@ -3933,7 +3938,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 
 	if( file->entry->first_block != DIR_ALLOCATING_MARK )
-		if( IS_VERSIONED( file ) )
+		if( file->flags.versioned )
 		{
 			// if versioned, but no limit, just do this.
 			if( file->entry->name_offset & DIRENT_NAME_OFFSET_VERSIONS ) {
@@ -4959,15 +4964,14 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 
 	case SOSFSSIO_OPEN_VERSION:
 		{
-			const char * name = va_arg( args, const char* );
+			const char * name;name = va_arg( args, const char* );
 			uint64_t version = va_arg( args, uint64_t );
 			return (uintptr_t)sack_vfs_os_openfile_internal( vol, name, version, FALSE );
 		}
 		break;
 	case SOSFSSIO_NEW_VERSION:
 		{
-			const char * name = va_arg( args, const char* );
-			uint64_t version = va_arg( args, uint64_t );
+			const char * name;name = va_arg( args, const char* );
 			return (uintptr_t)sack_vfs_os_openfile_internal( vol, name, 0, TRUE );
 		}
 		break;
@@ -4978,15 +4982,15 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 		break;
 	case SOSFSSIO_READ_TIMELINE:
 		{
-			struct sack_vfs_os_time_cursor* cursor = va_arg(args, struct sack_vfs_os_time_cursor* );
+			struct sack_vfs_os_time_cursor* cursor;cursor = va_arg(args, struct sack_vfs_os_time_cursor* );
 			int step = va_arg( args, int );
-			uint64_t timestamp = va_arg( args, uint64_t );
-			uint64_t* result_entry = va_arg( args, uint64_t* );
-			const char ** filename = va_arg( args, const char ** );
-			uint64_t* timestamp_result = va_arg( args, uint64_t* );
-			int8_t* tz_result = va_arg( args, int8_t* );
-			const char** buffer = va_arg( args, const char** );
-			size_t* size_result = va_arg( args, size_t* );
+			uint64_t timestamp; timestamp = va_arg( args, uint64_t );
+			uint64_t* result_entry; result_entry = va_arg( args, uint64_t* );
+			const char ** filename;filename = va_arg( args, const char ** );
+			uint64_t* timestamp_result;timestamp_result = va_arg( args, uint64_t* );
+			int8_t* tz_result;tz_result = va_arg( args, int8_t* );
+			const char** buffer;buffer = va_arg( args, const char** );
+			size_t* size_result;size_result = va_arg( args, size_t* );
 			sack_vfs_os_read_time_cursor( cursor, step, timestamp, result_entry, filename, timestamp_result, tz_result, buffer, size_result );
 			return TRUE;
 		}
@@ -4996,9 +5000,10 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 
 	case SOSFSSIO_PATCH_OBJECT:
 		{
-		LOGICAL owner = va_arg( args, LOGICAL );  // seal input is a constant, generate random meta key
+		LOGICAL owner;owner = va_arg( args, LOGICAL );  // seal input is a constant, generate random meta key
 
-		char *objIdBuf = va_arg( args, char * );
+		char *objIdBuf;objIdBuf = va_arg( args, char * );
+		/*
 		size_t objIdBufLen = va_arg( args, size_t );
 
 		char *patchAuth = va_arg( args, char * );
@@ -5015,6 +5020,7 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 
 		char *idBuf = va_arg( args, char * );
 		size_t idBufLen = va_arg( args, size_t );
+		*/
 #ifdef XX_VIRTUAL_OBJECT_STORE
 
 		if( sack_vfs_os_exists( vol, objIdBuf ) ) {
@@ -5070,6 +5076,7 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 	}
 	break;
 	case SOSFSSIO_STORE_OBJECT:
+	#if 0
 	{
 		LOGICAL owner = va_arg( args, LOGICAL );  // seal input is a constant, generate random meta key
 		char *objBuf = va_arg( args, char * );
@@ -5114,8 +5121,10 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 		}
 
 	}
+#endif	
 	break;
 	}
+	return 0;
 }
 
 

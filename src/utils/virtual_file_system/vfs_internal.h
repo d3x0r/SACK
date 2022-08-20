@@ -168,7 +168,8 @@ enum block_cache_entries
 #define DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT 17
 #define DIRENT_NAME_OFFSET_FLAG_OWNED         0x00400000
 #define DIRENT_NAME_OFFSET_FLAG_READ_KEYED    0x00800000
-#define DIRENT_NAME_OFFSET_VERSIONED          0x01000000
+// unused flag; previous indicated versioning.
+#define DIRENT_NAME_OFFSET_UNUSED_0         0x01000000
 #define DIRENT_NAME_OFFSET_VERSION_SHIFT      25
 #define DIRENT_NAME_OFFSET_VERSIONS           0x1E000000
 
@@ -335,6 +336,7 @@ struct sack_vfs_volume {
 	struct vfs_volume_flags {
 		BIT_FIELD skipRollbackProcessing : 1;
 		BIT_FIELD halted : 1; // stop any disk activity; test journal recoverability.
+		BIT_FIELD versioned : 1; // stop any disk activity; test journal recoverability.
 	}flags;
 
 	struct vfs_os_rollback_journal journal;
