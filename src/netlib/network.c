@@ -1383,6 +1383,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 			lprintf( "linger and still pending write data..." );
 			lpClient->dwFlags |= CF_TOCLOSE;
 		}
+		lpClient->dwFlags |= CF_WANTCLOSE;
 	} else {
 		int n = 0;
 		// UDP still needs to be done this way...

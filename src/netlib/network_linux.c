@@ -346,8 +346,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #  ifdef LOG_NOTICES
 						lprintf("FD_CLOSE... %p  %08x", pClient, pClient->dwFlags );
 #  endif
+						EnterCriticalSec( &globalNetworkData.csNetwork );
+						InternalRemoveClientEx( pClient, FALSE, TRUE );
 						TerminateClosedClient( pClient );
 						closed = 1;
+						LeaveCriticalSec( &globalNetworkData.csNetwork );
 
 						// section will be blank after termination...(correction, we keep the section state now)
 						pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
