@@ -579,7 +579,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 										event_data->pc->read.ReadComplete( event_data->pc, NULL, 0 );
 									}
 									if( event_data->pc->lpFirstPending ) {
-										lprintf( "Data was pending on a connecting socket, try sending it now" );
+										//lprintf( "Data was pending on a connecting socket, try sending it now" );
 										TCPWrite( event_data->pc );
 									}
 								} else {

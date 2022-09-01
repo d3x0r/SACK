@@ -624,7 +624,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 #if !defined( __EMSCRIPTEN__ )
 					else
 					{
-						lprintf( "Strange, gethostbyname failed, but AF_INET worked... %s", tmp );
+						//lprintf( "Strange, gethostbyname failed, but AF_INET worked... %s", tmp );
 						SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 						lpsaAddr->sin_family = AF_INET;
 						memcpy( &lpsaAddr->sin_addr.S_un.S_addr,           // save IP address from host entry.
