@@ -3842,6 +3842,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								}
 							}
 							break;
+						case SQL_DATE:
 						case SQL_TIMESTAMP:
 							{
 								TIMESTAMP_STRUCT ts;
