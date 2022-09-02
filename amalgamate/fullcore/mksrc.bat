@@ -106,6 +106,7 @@ del sack_typelib.h
 @set OPTS=%OPTS%	-I${SACK_BASE}/src/contrib/sqlite/3.23.0-MySqlite
 
 c:\tools\ppc.exe -c -K -once -ssio -sd %OPTS% -I../../include -p -osack_ucb_full.cc -DINCLUDE_LOGGING %SRCS%
+cp sack_ucb_full.cc sack_ucb_full.c
 
 mkdir h
 copy config.ppc.h h\config.ppc
