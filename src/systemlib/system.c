@@ -1335,12 +1335,12 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 			{
 			case 42:
 #ifdef _DEBUG
-				lprintf( "No association picked : %p (gle:%d)", (uintptr_t)execinfo.hInstApp , GetLastError() );
+				//lprintf( "No association picked : %p (gle:%d)", (uintptr_t)execinfo.hInstApp , GetLastError() );
 #endif
 				break;
 			}
 #ifdef _DEBUG
-			lprintf( "sucess with shellexecute of(%p) %s ", execinfo.hInstApp, program );
+			//lprintf( "sucess with shellexecute of(%p) %s ", execinfo.hInstApp, program );
 #endif
 			task->pi.hProcess = execinfo.hProcess;
 			task->pi.hThread = 0;

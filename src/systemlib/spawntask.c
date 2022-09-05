@@ -42,7 +42,8 @@ typedef struct task_info_tag TASK_INFO;
 static int DumpErrorEx( DBG_VOIDPASS )
 #define DumpError() DumpErrorEx( DBG_VOIDSRC )
 {
-	_xlprintf( LOG_LEVEL_DEBUG DBG_RELAY)( "Failed create process:%d", GetLastError() );
+	const int err = GetLastError();
+	//_xlprintf( LOG_NOISE+1 DBG_RELAY)( "Failed create process:%d", err );
 	return 0;
 }
 #endif
@@ -393,6 +394,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		PTEXT final_cmdline;
 		LOGICAL needs_quotes;
 		int first = TRUE;
+		int success = 0;
+		int shellExec = 0;
 		//TEXTCHAR saved_path[256];
 		task = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
 		MemSet( task, 0, sizeof( TASK_INFO ) );
@@ -473,20 +476,23 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		*/
 		task->OutputEvent = OutputHandler;
 		task->OutputEvent2 = OutputHandler2;
-		if( OutputHandler )
+		if( OutputHandler || OutputHandler2 )
 		{
 			SECURITY_ATTRIBUTES sa;
 
 			sa.bInheritHandle = TRUE;
 			sa.lpSecurityDescriptor = NULL;
 			sa.nLength = sizeof( sa );
-
-			CreatePipe( &task->hReadOut, &task->hWriteOut, &sa, 0 );
-			CreatePipe( &task->hReadErr, &task->hWriteErr, &sa, 0 );
+			if( OutputHandler )
+				CreatePipe( &task->hReadOut, &task->hWriteOut, &sa, 0 );
+			if( OutputHandler2 )
+				CreatePipe( &task->hReadErr, &task->hWriteErr, &sa, 0 );
 			CreatePipe( &task->hReadIn, &task->hWriteIn, &sa, 0 );
 			task->si.hStdInput = task->hReadIn;
-			task->si.hStdError = task->hWriteErr;
-			task->si.hStdOutput = task->hWriteOut;
+			if( OutputHandler )
+				task->si.hStdError = task->hWriteErr;
+			if( OutputHandler )
+				task->si.hStdOutput = task->hWriteOut;
 			task->si.dwFlags |= STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
 			if( !( flags & LPP_OPTION_DO_NOT_HIDE ) )
 				task->si.wShowWindow = SW_HIDE;
@@ -504,7 +510,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 
 		{
 			HINSTANCE hShellProcess = 0;
-			int success = 0;
 			if( flags & LPP_OPTION_IMPERSONATE_EXPLORER )
 			{
 				HANDLE hExplorer = GetImpersonationToken();
@@ -572,8 +577,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 										, expanded_working_path
 										, &task->si
 										, &task->pi ) || FixHandles(task) || DumpError()) ) ||
-					( TryShellExecute( task, expanded_working_path, program, cmdline ) ) ||
-					( CreateProcess( NULL//"cmd.exe"
+					( (shellExec=1),TryShellExecute( task, expanded_working_path, program, cmdline ) ) ||
+					( (shellExec=0),CreateProcess( NULL//"cmd.exe"
 										, GetText( final_cmdline )
 										, NULL, NULL, TRUE
 										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
@@ -594,23 +599,23 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 #ifdef _DEBUG
 				//xlprintf(LOG_NOISE)( "Success running %s[%s] in %s (%p): %d", program, GetText( cmdline ), expanded_working_path, task->pi.hProcess, GetLastError() );
 #endif
-				if( OutputHandler )
+				if( !shellExec && ( OutputHandler || OutputHandler2 ) )
 				{
-
 					task->hStdIn.handle 	 = task->hWriteIn;
 					task->hStdIn.pLine 	 = NULL;
 					//task->hStdIn.pdp 		= pdp;
 					task->hStdIn.hThread  = 0;
 					task->hStdIn.bNextNew = TRUE;
-
-					task->hStdOut.handle   = task->hReadOut;
-					task->hStdOut.pLine 	  = NULL;
-					//task->hStdOut.pdp 		 = pdp;
-					task->hStdOut.bNextNew = TRUE;
-					task->args1.task       = task;
-					task->args1.stdErr     = FALSE;
-					task->hStdOut.hThread  = ThreadTo( HandleTaskOutput, (uintptr_t)&task->args1 );
-
+					if( task->OutputEvent ) {
+						task->hStdOut.handle   = task->hReadOut;
+						task->hStdOut.pLine 	  = NULL;
+						//task->hStdOut.pdp 		 = pdp;
+						task->hStdOut.bNextNew = TRUE;
+						task->args1.task       = task;
+						task->args1.stdErr     = FALSE;
+						task->hStdOut.hThread  = ThreadTo( HandleTaskOutput, (uintptr_t)&task->args1 );
+					}
+					if( task->OutputEvent2 )
 					{
 						task->hStdErr.handle   = task->hReadErr;
 						task->hStdErr.pLine 	  = NULL;
@@ -625,6 +630,20 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				}
 				else
 				{
+					if( shellExec ) {
+						// shell exec doesn't get any of this specified... it doesn't use any of it.
+						if( OutputHandler2 ) {
+							CloseHandle( task->hReadErr );
+							CloseHandle( task->hWriteErr ); 
+						}
+						if( OutputHandler ) {
+							CloseHandle( task->hWriteOut );
+							CloseHandle( task->hReadOut );
+						}
+						CloseHandle( task->hWriteIn );
+						CloseHandle( task->hReadIn );
+					}
+
 					//task->hThread =
 					ThreadTo( WaitForTaskEnd, (uintptr_t)task );
 				}
