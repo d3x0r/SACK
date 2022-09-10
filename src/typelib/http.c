@@ -1124,6 +1124,7 @@ static void CPROC HttpConnected( PCLIENT pc, int error ) {
 		Relinquish();
 	}
 	SetNetworkLong( pc, 0, (uintptr_t)connect->state );
+
 	Release( connect );
 	//lprintf( "Got connected... so connect gets released?");
 }
@@ -1223,8 +1224,10 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		ReleaseAddress( addr );
 		if( pc ) {
 			PVARTEXT pvtOut = VarTextCreate();
+			char* resource = GetText( url );
+			if( !resource ) resource = "/";
 			SetTCPNoDelay( pc, TRUE );
-			vtprintf( pvtOut, "GET %s HTTP/1.0\r\n", GetText( url ) );
+			vtprintf( pvtOut, "GET %s HTTP/1.0\r\n", resource );
 			vtprintf( pvtOut, "Host: %s\r\n", GetText( address ) );
 			//vtprintf( pvtOut, "connection: close\r\n" );
 			vtprintf( pvtOut, "\r\n" );
@@ -1232,13 +1235,13 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 			{
 				PTEXT send = VarTextGet( pvtOut );
 				state->waiter = MakeThread();
-				state->request_socket = connect->pc;
+				state->request_socket = pc;
 				state->pc = &state->request_socket;
-				SetNetworkLong( connect->pc, 0, (uintptr_t)connect );
+				SetNetworkLong( pc, 0, (uintptr_t)state );
 				//SetNetworkCloseCallback( connect->pc, HttpReaderClose );
 				if( l.flags.bLogReceived )
 				{
-					lprintf( "Sending POST..." );
+					lprintf( "Sending GET..." );
 					LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 				}
 				SendTCP( pc, GetText( send ), GetTextSize( send ) );
@@ -1301,17 +1304,19 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		{
 			char* header;
 			INDEX idx;
+			char* resource = GetText( url );
+			if( !resource ) resource = "/";
 			state->last_read_tick = timeGetTime();
 			state->waiter = MakeThread();
 			state->request_socket = connect->pc;
 			state->pc = &state->request_socket;
-			SetNetworkLong( pc, 0, (uintptr_t)connect );
+			SetNetworkLong( pc, 0, (uintptr_t)state );
 
 			//SetNetworkConn
 			state->ssl = options->ssl;
 			state->pvtOut = VarTextCreate();
 			// 1.0 expects close after request - this is a one shot synchronous process so...
-			vtprintf( state->pvtOut, "%s %s HTTP/1.0\r\n", options->method, GetText( url ) );
+			vtprintf( state->pvtOut, "%s %s HTTP/1.0\r\n", options->method, resource );
 			// 1.1 would need this sort of header....
 			//vtprintf( state->pvtOut, "connection: close\r\n" );
 			if( options->content && options->contentLen ) {
