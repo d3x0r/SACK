@@ -34,7 +34,7 @@ int main( int argc, char **argv )
 			//printf( "Got: %p", httpResponse );
 			if( httpResponse ) {
 				int code = GetHttpResponseCode( httpResponse );
-				if(  code == 200 )
+				if(  code == 200 || code == 301 )
 					break;
 				else 
 					printf( "Request Failed: %s.\n", code?"reject":"timeout");

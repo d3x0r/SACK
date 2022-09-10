@@ -167,6 +167,17 @@ elseif( UNIX )
    endif( MAC )
 endif( WIN32 )
 
+set( LIBRESSL_VERSION 3.5.3 )
+
+set( LIBRESSL_SKIP_INSTALL ON )
+set( LIBRESSL_MAKE_APPS OFF )
+set( LIBRESSL_MAKE_TESTS OFF )
+
+add_subdirectory( ${SOURCES_ROOT}/contrib/libressl/${LIBRESSL_VERSION} libressl )
+include_directories( ${SOURCES_ROOT}/contrib/libressl/${LIBRESSL_VERSION}/include )
+set( SSL_LIBS ssl tls crypto )
+
+
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
@@ -206,14 +217,20 @@ ${LAST_GCC_PROGRAM_SOURCE}
 
 sack_add_executable(${project} ${BASE_SOURCES} )
 target_link_libraries( ${project}  ${SPLATFORM_LIBRARIES} )
+target_link_libraries( ${project}  ${SSL_LIBS} )
 string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY 
-       COMPILE_DEFINITIONS "NO_SSL;__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;BUILD_PORTABLE_EXECUTABLE" )
+       COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;BUILD_PORTABLE_EXECUTABLE" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
                   FOLDER utils
 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+
+if( WIN32 )
+   target_link_libraries( ${project} crypt32 )
+endif( WIN32 )
+
 install_default_dest( ${project} )
 
 
