@@ -1217,7 +1217,6 @@ if( NOT __NO_GUI__ )
      add_subdirectory( src/vidlib/wayland )
   endif( UNIX AND NOT __ANDROID__ AND NOT APPLE )
   if( NOT __ANDROID__ AND NOT APPLE )
-  message( "ASDASDASDSAD" )
      add_subdirectory( src/vidlib )
   endif( NOT __ANDROID__ AND NOT APPLE )
 
@@ -1642,7 +1641,7 @@ endif()
 
 if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
 	STRING( REPLACE "\\" "/" CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}" )
-	message( "Extra runtime install: ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}")
+	#message( "Extra runtime install: ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}")
 	INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ${BINARY_OUTPUT_DIR} )
 endif( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
 
