@@ -109,6 +109,7 @@ add_subpath( ../src/utils/frame_ID_converter )
 ExternalProject_Add( ppc
 	SOURCE_DIR ${CMAKE_SOURCE_DIR}/../makefiles/prog/ppc
 	BINARY_DIR ppc
+	BUILD_ALWAYS ON
 	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
         ${EXTERNAL_BUILD_EXTRA_FLAGS}
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
