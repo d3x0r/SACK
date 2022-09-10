@@ -1466,8 +1466,10 @@ struct internalCert * MakeRequest( void )
 
 				BIO_read( keybuf, ca, ca_len );
 				ca[ca_len] = 0;
+#ifndef __NO_OPTIONS__
 				SACK_WriteProfileInt( "TLS", "CA Length", ca_len );
 				SACK_WriteProfileString( "TLS", "CA Cert", (TEXTCHAR*)ca );
+#endif
 				Release( ca );
 			}
 
