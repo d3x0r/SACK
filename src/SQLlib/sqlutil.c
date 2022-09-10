@@ -1682,10 +1682,13 @@ retry:
 						else
 #endif
 						{
-							vtprintf( pvtCreate, "%s%sKEY `%s` ("
+							vtprintf( pvtCreate, "%s%s`%s` %s%s ("
 									  , first?"":","
+									  , table->keys.key[n].flags.bUnique?"CONSTRAINT ":""
+									  , table->keys.key[n].name
 									  , table->keys.key[n].flags.bUnique?"UNIQUE ":""
-									  , table->keys.key[n].name );
+							        , table->keys.key[n].flags.bUnique?"":"KEY " );
+			lprintf( "!!! Create Table statement: %s", GetText( VarTextPeek( pvtCreate ) ) );
 							for( col = 0; table->keys.key[n].colnames[col]; col++ )
 							{
 								if( !table->keys.key[n].colnames[col] )
