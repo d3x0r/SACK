@@ -1261,7 +1261,14 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 
 HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char* certChain )
 {
-	return GetHttpsQueryEx( address, url, certChain, NULL );
+	static struct HTTPRequestOptions defaultOpts = {
+		"GET",
+		NULL,
+		NULL,
+		NULL, NULL, 0,
+		TRUE
+	};
+	return GetHttpsQueryEx( address, url, certChain, &defaultOpts );
 }
 
 static void writeComplete( PCLIENT pc, CPOINTER buffer, size_t length ) {
@@ -1276,6 +1283,8 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		"GET",
 		NULL,
 		NULL,
+		NULL, NULL, 0, 
+		FALSE
 	};
 	if( !options ) options = &defaultOpts;
 	int retries;
