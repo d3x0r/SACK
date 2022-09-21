@@ -1677,18 +1677,27 @@ retry:
 												  );
 									first = 0;
 								}
+							} else {
+								lprintf( "non unique key is not being emitted to sqlite?" );
 							}
 						}
 						else
 #endif
 						{
-							vtprintf( pvtCreate, "%s%s`%s` %s%s ("
-									  , first?"":","
-									  , table->keys.key[n].flags.bUnique?"CONSTRAINT ":""
-									  , table->keys.key[n].name
-									  , table->keys.key[n].flags.bUnique?"UNIQUE ":""
-							        , table->keys.key[n].flags.bUnique?"":"KEY " );
-			lprintf( "!!! Create Table statement: %s", GetText( VarTextPeek( pvtCreate ) ) );
+							if( table->keys.key[n].flags.bUnique ) {
+								vtprintf( pvtCreate, "%s%s`%s` %s ("
+										  , first?"":","
+										  , "CONSTRAINT "
+										  , table->keys.key[n].name
+										  , "UNIQUE "
+								         );
+							} else {
+								vtprintf( pvtCreate, "%sKEY `%s` ("
+										  , first?"":","
+										  , table->keys.key[n].name
+											 );
+							}
+							//lprintf( "!!! Create Table statement: %s", GetText( VarTextPeek( pvtCreate ) ) );
 							for( col = 0; table->keys.key[n].colnames[col]; col++ )
 							{
 								if( !table->keys.key[n].colnames[col] )
