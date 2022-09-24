@@ -3846,19 +3846,26 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						case SQL_TIMESTAMP:
 							{
 								TIMESTAMP_STRUCT ts;
-								char *isoTime = NewArray( char, 32 );
 								rc = SQLGetData( collection->hstmt
 									, (short)(idx)
 									, SQL_C_TIMESTAMP
 									, &ts
 									, colsize
 									, &ResultLen );
-
-								val->stringLen = snprintf( isoTime, 32, "%d-%02d-%02dT%02d:%02d:%02d.%03dZ"
-									, ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.fraction );
-
-								val->value_type = JSOX_VALUE_DATE;
-								val->string = isoTime;
+								if( rc == SQL_SUCCESS ) {
+									if( ResultLen == SQL_NULL_DATA ) {
+										val->value_type = JSOX_VALUE_NULL;
+										if( pvtData )vtprintf( pvtData, "%sNULL", idx > 1 ? "," : ""  );
+									}else {
+										char *isoTime = NewArray( char, 32 );
+										val->stringLen = snprintf( isoTime, 32, "%d-%02d-%02dT%02d:%02d:%02d.%03dZ"
+										                         , ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.fraction );
+										val->value_type = JSOX_VALUE_DATE;
+										val->string = isoTime;
+										if( pvtData )vtprintf( pvtData, "%s%s", idx > 1 ? "," : "", isoTime );
+									}
+								} else {
+								}
 								/*
 								SACK_TIME st;
 								st.yr = ts.year;
@@ -3870,7 +3877,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								st.ms = ts.fraction;
 								val->result_n = ConvertTimeToTick( &st );
 								*/
-								if( pvtData )vtprintf( pvtData, "%s%d", idx > 1 ? "," : "", isoTime );
 							}
 							break;
 						case SQL_DECIMAL:
