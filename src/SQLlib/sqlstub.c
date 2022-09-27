@@ -3300,10 +3300,11 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		//INDEX idx;
 		int lines = 0;
 #ifdef USE_ODBC
-		TEXTCHAR byResultStatic[256];
+		//TEXTCHAR byResultStatic[256];
 		TEXTCHAR *byResult;
 #endif
 		PVARTEXT pvtData;
+		PVARTEXT pvtDataCollector = NULL;
 		TEXTCHAR *tmpResult = NULL;
 #ifdef USE_ODBC
       // used as a buffer length to get odbc result
@@ -3709,7 +3710,9 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #ifdef USE_ODBC
 				{
 					short coltype;
+					LOGICAL useCollector;
 					SQLULEN colsize;
+					useCollector = FALSE;
 					rc = SQLDescribeCol( collection->hstmt
 											 , (SQLUSMALLINT)idx
 											 , NULL, 0 // colname, bufsize
@@ -3719,22 +3722,27 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 											 , NULL // decimal digits short int
 											 , NULL // nullable ptr ?
 											 );
-					colsize = (colsize * 2) + 1 + 1024 ;
-					if( colsize >= sizeof( byResultStatic ) )
-					{
-						if( colsize > byTmpResultLen )
+					if( colsize != 0xFFFFFFFF ) {
+						colsize = (colsize * 2) + 1;
+						if( colsize >= sizeof( collection->byResultStatic ) )
 						{
-							if( tmpResult )
-								Release( tmpResult );
-							tmpResult = NewArray( TEXTCHAR, colsize );
-							byTmpResultLen = colsize;
-						}
+							if( colsize > byTmpResultLen )
+							{
+								if( tmpResult )
+									Release( tmpResult );
+								tmpResult = NewArray( TEXTCHAR, colsize );
+								byTmpResultLen = colsize;
+							}
 
-						byResult = tmpResult;
-					}
-					else
-					{
-						byResult = byResultStatic;
+							byResult = tmpResult;
+						}
+						else
+						{
+							byResult = collection->byResultStatic;
+						}
+					} else {
+						byResult = collection->byResultStatic;
+						colsize = sizeof( collection->byResultStatic );
 					}
 
 					if( collection->ppdlResults ) {
@@ -3763,21 +3771,44 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							break;
 						case SQL_BINARY:
 							val->value_type = JSOX_VALUE_TYPED_ARRAY;
-							rc = SQLGetData( collection->hstmt
-								, (short)(idx)
-								, SQL_C_BINARY
-								, byResult
-								, colsize
-								, &ResultLen );
+							do {
+								rc = SQLGetData( collection->hstmt
+									, (short)(idx)
+									, SQL_C_BINARY
+									, byResult
+									, colsize
+									, &ResultLen );
+								if( rc == SQL_SUCCESS_WITH_INFO ) {
+									SQLSMALLINT sqlErrorLen;
+									SQLINTEGER nativeError;
+									SQLCHAR state[6];
+									rc = SQLGetDiagRec( SQL_HANDLE_STMT, collection->hstmt, 1, state, &nativeError, NULL, 0, NULL );
+									if( strcmp( (const char *)state, "01004" ) == 0 ){
+										useCollector = TRUE;
+										if( !pvtDataCollector ) pvtDataCollector = VarTextCreate();
+										VarTextAddData( pvtDataCollector, byResult, ResultLen );
+									}else {
+										break;
+									}
+								}
+							} while( rc == SQL_SUCCESS_WITH_INFO );
 							if( ResultLen == SQL_NULL_DATA ) {
 								val->value_type = JSOX_VALUE_NULL;
 								val->string = NULL;
 								val->stringLen = 0;
 							}
 							else {
-								val->string = NewArray( char, ResultLen );//DupCStrLen( byResult, ResultLen );
-								MemCpy( val->string, byResult, ResultLen );
-								val->stringLen = ResultLen;
+								if( pvtDataCollector && useCollector ){
+									PTEXT data = VarTextPeek( pvtDataCollector );
+									val->stringLen = GetTextSize( data );
+									val->string = NewArray( char, val->stringLen );
+									MemCpy( val->string, GetText( data ), val->stringLen );
+									VarTextEmpty( pvtDataCollector );
+								}else {
+									val->string = NewArray( char, ResultLen );//DupCStrLen( byResult, ResultLen );
+									MemCpy( val->string, byResult, ResultLen );
+									val->stringLen = ResultLen;
+								}
 							}
 							if( pvtData )vtprintf( pvtData, "%s<BINARY>", idx > 1 ? "," : "" );
 							break;
@@ -3786,20 +3817,46 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						case SQL_VARCHAR:
 						case SQL_LONGVARCHAR:
 							val->value_type = JSOX_VALUE_STRING;
-							rc = SQLGetData( collection->hstmt
-								, (short)(idx)
-								, SQL_CHAR
-								, byResult
-								, colsize
-								, &ResultLen );
+							do {
+								rc = SQLGetData( collection->hstmt
+									, (short)(idx)
+									, SQL_CHAR
+									, byResult
+									, colsize
+									, &ResultLen );
+								if( rc == SQL_SUCCESS_WITH_INFO ) {
+									SQLSMALLINT sqlErrorLen;
+									SQLINTEGER nativeError;
+									SQLCHAR state[6];
+									rc = SQLGetDiagRec( SQL_HANDLE_STMT, collection->hstmt, 1, state, &nativeError, NULL, 0, NULL );
+									if( strcmp( (const char *)state, "01004" ) == 0 ){
+										useCollector = TRUE;
+										if( !pvtDataCollector ) pvtDataCollector = VarTextCreate();
+										VarTextAddData( pvtDataCollector, byResult, ResultLen );
+									}else {
+										lprintf( "SQLGetData return info [%s] but this state is not handled.", state );
+										break;
+									}
+								}
+							} while( rc == SQL_SUCCESS_WITH_INFO );
+
 							if( ResultLen == SQL_NULL_DATA ) {
 								val->value_type = JSOX_VALUE_NULL;
 								val->string = NULL;
 								val->stringLen = 0;
 							}
 							else {
-								val->string = DupCStrLen( byResult, ResultLen );
-								val->stringLen = ResultLen;
+
+								if( pvtDataCollector && useCollector ){
+									PTEXT data = VarTextPeek( pvtDataCollector );
+									val->stringLen = GetTextSize( data );
+									val->string = NewArray( char, val->stringLen );
+									MemCpy( val->string, GetText( data ), val->stringLen );
+									VarTextEmpty( pvtDataCollector );
+								}else {
+									val->string = DupCStrLen( byResult, ResultLen );
+									val->stringLen = ResultLen;
+								}
 							}
 							if( pvtData )vtprintf( pvtData, "%s%s", idx > 1 ? "," : "", val->string );
 							break;
@@ -4088,6 +4145,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			//lprintf( "%s", GetText( VarTextPeek( pvtData ) ) );
 			VarTextDestroy( &pvtData );
 		}
+		if( pvtDataCollector )
+			VarTextDestroy( &pvtDataCollector );
 
 		/* these were temporary for collectiong other meta information */
 		if( tmpResult )

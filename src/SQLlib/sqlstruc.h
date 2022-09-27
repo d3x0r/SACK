@@ -87,6 +87,8 @@ typedef struct data_collection_tag
 #if !defined( __NO_ODBC__ )
 	SQLHSTMT    hstmt;
 #endif
+	TEXTCHAR byResultStatic[4096];
+
 	SQLSMALLINT columns;
 	PTEXT result_text;
 	SQLULEN  *colsizes;
