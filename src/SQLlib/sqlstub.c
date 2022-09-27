@@ -3837,6 +3837,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 										lprintf( "SQLGetData return info [%s] but this state is not handled.", state );
 										break;
 									}
+								} else if( useCollector ) {
+									VarTextAddData( pvtDataCollector, byResult, ResultLen );
 								}
 							} while( rc == SQL_SUCCESS_WITH_INFO );
 
@@ -3846,7 +3848,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								val->stringLen = 0;
 							}
 							else {
-								if( pvtDataCollector && useCollector ){
+								if( useCollector ){
 									PTEXT data = VarTextPeek( pvtDataCollector );
 									val->stringLen = GetTextSize( data );
 									val->string = NewArray( char, val->stringLen );
