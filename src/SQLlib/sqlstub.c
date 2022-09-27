@@ -3846,7 +3846,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								val->stringLen = 0;
 							}
 							else {
-
 								if( pvtDataCollector && useCollector ){
 									PTEXT data = VarTextPeek( pvtDataCollector );
 									val->stringLen = GetTextSize( data );
