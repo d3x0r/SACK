@@ -1376,7 +1376,22 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 		WaitForSingleObject( task->pi.hProcess, INFINITE );
 		GetExitCodeProcess( task->pi.hProcess, &task->exitcode );
 #elif defined( __LINUX__ )
-		waitpid( task->pid, NULL, 0 );
+		{
+			int status;
+			pid_t result;
+			result = waitpid( task->pid, &status, 0 );
+			/*
+			if( WIFEXITED(status)){
+				lprintf( "waitpid exited:%d", status );
+			}else if( WIFSTOPPED(status)){
+				lprintf( "waitpid stopped:%d", status );
+
+			}else if( WIFSIGNALED(status)){
+				lprintf( "waitpid signaled:%d", status );
+			}
+			lprintf( "waitpid said: %zd %d", result, status );
+			*/
+		}
 #endif
 		task->flags.process_ended = 1;
 		//lprintf( "Task Ended, have to wake and remove pipes " );
