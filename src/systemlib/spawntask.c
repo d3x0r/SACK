@@ -727,12 +727,18 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				if( flags & LPP_OPTION_FIRST_ARG_IS_ARG ) {
 					char ** newArgs;
 					int n;
-					for( n = 0; args[n]; n++ );
+					if( args )
+						for( n = 0; args[n]; n++ );
+					else n = 0;
 					newArgs = NewArray( char *, n + 2 );
-					for( n = 0; args[n]; n++ ) {
+					if( args ) {
+						for( n = 0; args[n]; n++ ) {
+							newArgs[n + 1] = (char*)args[n];
+						}
 						newArgs[n + 1] = (char*)args[n];
+					} else {
+						newArgs[1] = NULL;
 					}
-					newArgs[n + 1] = (char*)args[n];
 					newArgs[0] = (char*)program;
 					args = (PCTEXTSTR)newArgs;
 				}
