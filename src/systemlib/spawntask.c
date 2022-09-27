@@ -489,7 +489,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				CreatePipe( &task->hReadErr, &task->hWriteErr, &sa, 0 );
 			CreatePipe( &task->hReadIn, &task->hWriteIn, &sa, 0 );
 			task->si.hStdInput = task->hReadIn;
-			if( OutputHandler )
+			if( OutputHandler2 )
 				task->si.hStdError = task->hWriteErr;
 			if( OutputHandler )
 				task->si.hStdOutput = task->hWriteOut;
