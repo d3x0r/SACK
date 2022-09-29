@@ -911,10 +911,10 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		//return 0;
 	}
 	const char* host = NULL;
-	int strlen = 0;
+	size_t strlen = 0;
 	if( t ) {
 		host = SSL_get_servername( ssl, t );
-		strlen = (int)StrLen( host );
+		strlen = StrLen( host );
 		//lprintf( "ServerName;%s", host );
 		//lprintf( "Have hostchange: %.*s", strlen, host );
 		pcAccept->ssl_session->hostname = DupCStrLen( host, strlen );
@@ -931,7 +931,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 			defaultHostctx = hostctx;
 		}
 		for( checkName = hostctx->host; checkName ? (nextName = StrChr( checkName, '~' )), 1 : 0; checkName = nextName ) {
-			int namelen = nextName ? (nextName - checkName) : strlen;
+			size_t namelen = nextName ? (nextName - checkName) : strlen;
 			if( nextName ) nextName++;
 			if( namelen != strlen ) {
 				lprintf( "%.*s is not %.*s", namelen, checkName, strlen, host );
