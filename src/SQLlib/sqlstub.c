@@ -3779,7 +3779,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 									, colsize
 									, &ResultLen );
 								if( rc == SQL_SUCCESS_WITH_INFO ) {
-									SQLSMALLINT sqlErrorLen;
 									SQLINTEGER nativeError;
 									SQLCHAR state[6];
 									rc = SQLGetDiagRec( SQL_HANDLE_STMT, collection->hstmt, 1, state, &nativeError, NULL, 0, NULL );
@@ -3825,7 +3824,6 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 									, colsize
 									, &ResultLen );
 								if( rc == SQL_SUCCESS_WITH_INFO ) {
-									SQLSMALLINT sqlErrorLen;
 									SQLINTEGER nativeError;
 									SQLCHAR state[6];
 									rc = SQLGetDiagRec( SQL_HANDLE_STMT, collection->hstmt, 1, state, &nativeError, NULL, 0, NULL );
