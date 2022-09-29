@@ -934,7 +934,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 			size_t namelen = nextName ? (nextName - checkName) : strlen;
 			if( nextName ) nextName++;
 			if( namelen != strlen ) {
-				lprintf( "%.*s is not %.*s", namelen, checkName, strlen, host );
+				lprintf( "%.*s is not %.*s", (int)namelen, checkName, (int)strlen, host );
 				continue;
 			}
 			//lprintf( "Check:%.*s", )
