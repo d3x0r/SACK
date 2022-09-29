@@ -1224,7 +1224,7 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		ReleaseAddress( addr );
 		if( pc ) {
 			PVARTEXT pvtOut = VarTextCreate();
-			char* resource = GetText( url );
+			const char* resource = GetText( url );
 			if( !resource ) resource = "/";
 			SetTCPNoDelay( pc, TRUE );
 			vtprintf( pvtOut, "GET %s HTTP/1.0\r\n", resource );
@@ -1313,7 +1313,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		{
 			char* header;
 			INDEX idx;
-			char* resource = GetText( url );
+			const char* resource = GetText( url );
 			if( !resource ) resource = "/";
 			state->last_read_tick = timeGetTime();
 			state->waiter = MakeThread();
