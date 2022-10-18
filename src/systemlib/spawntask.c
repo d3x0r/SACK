@@ -633,15 +633,18 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					if( shellExec ) {
 						// shell exec doesn't get any of this specified... it doesn't use any of it.
 						if( OutputHandler2 ) {
-							CloseHandle( task->hReadErr );
 							CloseHandle( task->hWriteErr ); 
+							CloseHandle( task->hReadErr );
+							task->hReadErr = task->hWriteErr = INVALID_HANDLE_VALUE;
 						}
 						if( OutputHandler ) {
 							CloseHandle( task->hWriteOut );
 							CloseHandle( task->hReadOut );
+							task->hReadOut = task->hWriteOut = INVALID_HANDLE_VALUE;
 						}
 						CloseHandle( task->hWriteIn );
 						CloseHandle( task->hReadIn );
+						task->hReadIn = task->hWriteIn = INVALID_HANDLE_VALUE;
 					}
 
 					//task->hThread =
@@ -651,12 +654,12 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			else
 			{
 				xlprintf(LOG_NOISE)( "Failed to run %s[%s]: %d", program, GetText( cmdline ), GetLastError() );
-				CloseHandle( task->hWriteIn );
-				CloseHandle( task->hReadIn );
-				CloseHandle( task->hWriteOut );
-				CloseHandle( task->hReadOut );
-				CloseHandle( task->pi.hProcess );
-				CloseHandle( task->pi.hThread );
+				if( task->hWriteIn    != INVALID_HANDLE_VALUE ) CloseHandle( task->hWriteIn );
+				if( task->hReadIn     != INVALID_HANDLE_VALUE ) CloseHandle( task->hReadIn );
+				if( task->hWriteOut   != INVALID_HANDLE_VALUE ) CloseHandle( task->hWriteOut );
+				if( task->hReadOut    != INVALID_HANDLE_VALUE ) CloseHandle( task->hReadOut );
+				if( task->pi.hProcess != INVALID_HANDLE_VALUE ) CloseHandle( task->pi.hProcess );
+				if( task->pi.hThread  != INVALID_HANDLE_VALUE ) CloseHandle( task->pi.hThread );
 				Release( task );
 				task = NULL;
 			}

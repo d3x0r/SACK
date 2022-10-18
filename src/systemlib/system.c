@@ -1007,12 +1007,12 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 			task->EndNotice( task->psvEnd, task );
 #if defined( WIN32 )
 		//lprintf( "Closing process and thread handles." );
-		CloseHandle( task->hReadIn );
-		CloseHandle( task->hReadOut );
-		CloseHandle( task->hReadErr );
-		CloseHandle( task->hWriteIn );
-		CloseHandle( task->hWriteOut );
-		CloseHandle( task->hWriteErr );
+		if( task->hReadIn    != INVALID_HANDLE_VALUE ) CloseHandle( task->hReadIn );
+		if( task->hReadOut   != INVALID_HANDLE_VALUE ) CloseHandle( task->hReadOut );
+		if( task->hReadErr   != INVALID_HANDLE_VALUE ) CloseHandle( task->hReadErr );
+		if( task->hWriteIn   != INVALID_HANDLE_VALUE ) CloseHandle( task->hWriteIn );
+		if( task->hWriteOut  != INVALID_HANDLE_VALUE ) CloseHandle( task->hWriteOut );
+		if( task->hWriteErr  != INVALID_HANDLE_VALUE ) CloseHandle( task->hWriteErr );
 		//lprintf( "Closing process handle %p", task->pi.hProcess );
 
 		if( task->pi.hProcess )
