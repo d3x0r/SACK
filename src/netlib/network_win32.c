@@ -594,8 +594,6 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 	//lprintf( "Check messages." );
 	if( globalNetworkData.bQuit )
 		return -1;
-	if( thread->flags.bProcessing )
-		return 0;
 	// disallow changing of the lists.
 	if( !thread->parent_peer )
 	{
@@ -651,6 +649,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 		while( thread->nEvents == 0 )
 			Relinquish();
 	}
+	if( thread->flags.bProcessing )
+		return 0;
 	while( 1 )
 	{
 		int32_t result;

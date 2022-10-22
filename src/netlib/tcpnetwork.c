@@ -640,7 +640,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			else {
 				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 				while( !pResult->this_thread )
-					Relinquish(); // wait for it to be added to waiting lists?
+					Idle(); // wait for it to be added to waiting lists?
 			}
 
 #endif
