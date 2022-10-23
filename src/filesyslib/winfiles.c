@@ -1921,10 +1921,11 @@ LOGICAL sack_existsEx( const char* filename, struct file_system_mounted_interfac
 #ifdef WIN32
 		wchar_t* wfilename = CharWConvert( filename );
 		{ wchar_t* tmp; if( LONG_PATHCHAR ) for( tmp = wfilename; tmp[0]; tmp++ ) if( tmp[0] == '/' ) tmp[0] = LONG_PATHCHAR; }
-		if( ( tmp = _wfopen( wfilename, L"rb" ) ) ) {
+		if( ( tmp = _wfopen( wfilename, L"rb" ) ) ) 
 #else
-		if( ( tmp = fopen( filename, "rb" ) ) ) {
+		if( ( tmp = fopen( filename, "rb" ) ) ) 
 #endif
+		{
 			fclose( tmp );
 #ifdef WIN32
 			Deallocate( wchar_t*, wfilename );
@@ -1934,9 +1935,9 @@ LOGICAL sack_existsEx( const char* filename, struct file_system_mounted_interfac
 #ifdef WIN32
 		Deallocate( wchar_t*, wfilename );
 #endif
-		}
-	return FALSE;
 	}
+	return FALSE;
+}
 
 //----------------------------------------------------------------------------
 
@@ -2646,10 +2647,11 @@ static int CPROC sack_filesys_exists( uintptr_t psv, const char* filename ) {
 #ifdef WIN32
 	wchar_t* wfilename = CharWConvert( filename );
 	{ wchar_t* tmp; if( LONG_PATHCHAR ) for( tmp = wfilename; tmp[0]; tmp++ ) if( tmp[0] == '/' ) tmp[0] = LONG_PATHCHAR; }
-	if( ( tmp = _wfopen( wfilename, L"rb" ) ) ) {
+	if( ( tmp = _wfopen( wfilename, L"rb" ) ) )
 #else
-	if( ( tmp = fopen( filename, "rb" ) ) ) {
+	if( ( tmp = fopen( filename, "rb" ) ) )
 #endif
+	{
 		fclose( tmp );
 #ifdef WIN32
 		Deallocate( wchar_t*, wfilename );
@@ -2662,7 +2664,7 @@ static int CPROC sack_filesys_exists( uintptr_t psv, const char* filename ) {
 
 
 	return FALSE;
-	}
+}
 
 struct file_system_mounted_interface* sack_get_default_mount( void ) {
 	return FileSysThreadInfo.default_mount;
