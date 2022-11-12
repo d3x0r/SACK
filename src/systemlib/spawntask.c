@@ -670,6 +670,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		}
 		LineRelease( cmdline );
 		LineRelease( final_cmdline );
+		goto reset_env;
+
 #endif
 #ifdef __LINUX__
 		{
@@ -832,7 +834,7 @@ reset_env:
 			OSALOT_SetEnvironmentVariable( val->field, oldVal );
 			if( oldVal ) Deallocate( const char *, oldVal );
 		}
-		Deletelist( &oldStrings );
+		DeleteList( &oldStrings );
 	}
 	return task;
 }
