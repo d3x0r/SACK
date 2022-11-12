@@ -823,6 +823,7 @@ reset_env:
 	if( expanded_working_path )
 		Release( expanded_working_path );
 	Release( expanded_path );
+	if( oldStrings )
 	{
 		INDEX idx;
 		struct environmentValue* val;
@@ -831,6 +832,7 @@ reset_env:
 			OSALOT_SetEnvironmentVariable( val->field, oldVal );
 			if( oldVal ) Deallocate( const char *, oldVal );
 		}
+		Deletelist( &oldStrings );
 	}
 	return task;
 }
