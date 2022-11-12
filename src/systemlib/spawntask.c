@@ -355,11 +355,15 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 	if( !sack_system_allow_spawn() ) return NULL;
 	TEXTSTR expanded_path;// = ExpandPath( program );
 	TEXTSTR expanded_working_path = path ? ExpandPath( path ) : NULL;
+	PLIST oldStrings = NULL;
 	{
 		INDEX idx;
       struct environmentValue* val;
 		LIST_FORALL( list, idx, struct environmentValue*, val ) {
-         OSALOT_SetEnvironmentVariable( val->field, val->value );
+			const char *oldVal = OSALOT_GetEnvironmentVariable( val->field );
+			if( oldVal ) oldVal = StrDup( oldVal );
+			SetLink( &oldStrings, idx, oldVal );
+			OSALOT_SetEnvironmentVariable( val->field, val->value );
 		}
 	}
 	if( path ) {
@@ -666,13 +670,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		}
 		LineRelease( cmdline );
 		LineRelease( final_cmdline );
-		Release( expanded_working_path );
-		Release( expanded_path );
-		/*
-		if( path )
-		SetCurrentPath( saved_path );
-		*/
-		return task;
 #endif
 #ifdef __LINUX__
 		{
@@ -691,28 +688,31 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			task->args2.stdErr     = TRUE;
 			if( OutputHandler )
 			{
-				if( pipe(task->hStdIn.pair) < 0 ) {
-					if( expanded_working_path )
-						Release( expanded_working_path );
-					Release( expanded_path );
-					return NULL;
+				if( pipe(task->hStdIn.pair) < 0 ) { // pipe failed
+					Release( task );
+					task = null;
+					goto reset_env;
 				}
 				task->hStdIn.handle = task->hStdIn.pair[1];
 
 				if( pipe(task->hStdOut.pair) < 0 ) {
-					if (expanded_working_path)
-						Release( expanded_working_path );
-					Release( expanded_path );
-					return NULL;
+					close( task->hStdIn.pair[0] );
+					close( task->hStdIn.pair[1] );
+					Release( task );
+					task = null;
+					goto reset_env;
 				}
 				task->hStdOut.handle = task->hStdOut.pair[0];
 
 				if( OutputHandler2 ) {
 					if( pipe(task->hStdErr.pair) < 0 ) {
-						if (expanded_working_path)
-							Release( expanded_working_path );
-						Release( expanded_path );
-						return NULL;
+						close( task->hStdIn.pair[0] );
+						close( task->hStdIn.pair[1] );
+						close( task->hStdOut.pair[0] );
+						close( task->hStdOut.pair[1] );
+						Release( task );
+						task = null;
+						goto reset_env;
 					}
 					task->hStdErr.handle = task->hStdErr.pair[0];
 				} else
@@ -815,16 +815,22 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			// how can I know if the command failed?
 			// well I can't - but the user's callback will be invoked
 			// when the above exits.
-			if (expanded_working_path)
-				Release( expanded_working_path );
-			Release( expanded_path );
-			return task;
 		}
 #endif
 	}
-	Release( expanded_working_path );
+
+reset_env:
+	if( expanded_working_path )
+		Release( expanded_working_path );
 	Release( expanded_path );
-	return FALSE;
+
+	LIST_FORALL( list, idx, struct environmentValue*, val ) {
+		const char *oldVal = GetLink( &oldStrings, idx );
+		OSALOT_SetEnvironmentVariable( val->field, oldVal );
+		if( oldVal ) Deallocate( const char *, oldVal );
+	}
+
+	return task;
 }
 
 SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramEx )( CTEXTSTR program, CTEXTSTR path, PCTEXTSTR args
