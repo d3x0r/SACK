@@ -358,7 +358,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 	PLIST oldStrings = NULL;
 	{
 		INDEX idx;
-      struct environmentValue* val;
+		struct environmentValue* val;
 		LIST_FORALL( list, idx, struct environmentValue*, val ) {
 			const char *oldVal = OSALOT_GetEnvironmentVariable( val->field );
 			if( oldVal ) oldVal = StrDup( oldVal );
@@ -825,7 +825,7 @@ reset_env:
 	Release( expanded_path );
 	{
 		INDEX idx;
-      struct environmentValue* val;
+		struct environmentValue* val;
 		LIST_FORALL( list, idx, struct environmentValue*, val ) {
 			const char *oldVal = (const char*)GetLink( &oldStrings, idx );
 			OSALOT_SetEnvironmentVariable( val->field, oldVal );
