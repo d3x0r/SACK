@@ -823,13 +823,15 @@ reset_env:
 	if( expanded_working_path )
 		Release( expanded_working_path );
 	Release( expanded_path );
-
-	LIST_FORALL( list, idx, struct environmentValue*, val ) {
-		const char *oldVal = GetLink( &oldStrings, idx );
-		OSALOT_SetEnvironmentVariable( val->field, oldVal );
-		if( oldVal ) Deallocate( const char *, oldVal );
+	{
+		INDEX idx;
+      struct environmentValue* val;
+		LIST_FORALL( list, idx, struct environmentValue*, val ) {
+			const char *oldVal = (const char*)GetLink( &oldStrings, idx );
+			OSALOT_SetEnvironmentVariable( val->field, oldVal );
+			if( oldVal ) Deallocate( const char *, oldVal );
+		}
 	}
-
 	return task;
 }
 
