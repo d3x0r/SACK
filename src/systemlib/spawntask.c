@@ -692,7 +692,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			{
 				if( pipe(task->hStdIn.pair) < 0 ) { // pipe failed
 					Release( task );
-					task = null;
+					task = NULL;
 					goto reset_env;
 				}
 				task->hStdIn.handle = task->hStdIn.pair[1];
@@ -701,7 +701,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					close( task->hStdIn.pair[0] );
 					close( task->hStdIn.pair[1] );
 					Release( task );
-					task = null;
+					task = NULL;
 					goto reset_env;
 				}
 				task->hStdOut.handle = task->hStdOut.pair[0];
@@ -713,7 +713,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 						close( task->hStdOut.pair[0] );
 						close( task->hStdOut.pair[1] );
 						Release( task );
-						task = null;
+						task = NULL;
 						goto reset_env;
 					}
 					task->hStdErr.handle = task->hStdErr.pair[0];
