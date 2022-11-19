@@ -173,7 +173,10 @@ void OSALOT_SetEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 		ReleaseEx( tmpvalue DBG_SRC );
 	}
 #else
-	setenv( name, value, TRUE );
+	if( !value )
+		unsetenv( name );
+	else
+		setenv( name, value, TRUE );
 #endif
 #endif
 }
