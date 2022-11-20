@@ -247,7 +247,7 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 	// scheduler thread already awake do not wake him.
 }
 
-int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unused )
+int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non_blocking )
 {
 	int cnt;
 	struct timeval time;
@@ -262,7 +262,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #    ifdef LOG_NETWORK_EVENT_THREAD
 		lprintf( "Wait on %d   %d", thread->epoll_fd, thread->nEvents );
 #    endif
-		cnt = epoll_wait( thread->epoll_fd, events, 10, -1 );
+		if( non_blocking ) {
+			cnt = epoll_wait( thread->epoll_fd, events, 10, 0 );
+		}else {
+			cnt = epoll_wait( thread->epoll_fd, events, 10, -1 );
+		}
 		if( cnt < 0 )
 		{
 			int err = errno;
@@ -271,7 +275,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 			Log1( "Sorry epoll_pwait/kevent call failed... %d", err );
 			return 1;
 		}
-		if( cnt > 0 )
+		else if( cnt > 0 )
 		{
 			int closed;
 			int n;
