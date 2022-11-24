@@ -307,7 +307,7 @@ void SetResolution( PLOAD_TASK task, uint32_t w, uint32_t h, LOGICAL bAtLeast )
 
 void ResetResolution( PLOAD_TASK task )
 {
-	lprintf( "RESET RESOLUTION" );
+	//lprintf( "RESET RESOLUTION" );
 	if( task )
 	{
 		INDEX idx;
@@ -347,7 +347,7 @@ void ResetResolution( PLOAD_TASK task )
 			if( !task->flags.bCaptureOutput || task->flags.bHideCanvas )
 			{
 				InterShell_DisablePageUpdate( InterShell_GetButtonCanvas( task->button ), FALSE );
-				lprintf( "Calling InterShell_Reveal..." );
+				//lprintf( "Calling InterShell_Reveal..." );
 				InterShell_Reveal( InterShell_GetButtonCanvas( task->button ) );
 			}
 		}
@@ -675,7 +675,7 @@ void EditTaskProperties( uintptr_t psv, PSI_CONTROL parent_frame, LOGICAL bVisua
 	DisplayFrameOver( frame, parent_frame );
 	EditFrame( frame, TRUE );
 	CommonWait( frame );
-	lprintf( "Wait complete... %d %d", okay, done );
+	//lprintf( "Wait complete... %d %d", okay, done );
 	if( okay )
 	{
 		TEXTCHAR args[256];
@@ -1513,7 +1513,7 @@ uintptr_t CPROC WaitForNetworkThread( PTHREAD thread )
 	}
 	if( !task )
 	{
-		lprintf( "Found no tasks to check drives...");
+		//lprintf( "Found no tasks to check drives...");
 		return 0;
 	}
 
@@ -1973,7 +1973,7 @@ uintptr_t  CPROC FinishConfigTask( uintptr_t psv, arg_list args )
 /* place holder for common subconfiguration start. */
 static void OnLoadControl( "TaskInfo" )( PCONFIG_HANDLER pch, uintptr_t psv )
 {
-	lprintf( "Begin sub for task..." );
+	//lprintf( "Begin sub for task..." );
 	AddTaskConfigs( pch );
 }
 
