@@ -967,7 +967,7 @@ static void OnChangeCaption( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 	pe->select_start = 0;
 	pe->select_end = pe->nCaptionDisplayableChars-1;
 	
-	SmudgeCommon(pc);
+	//SmudgeCommon(pc);
 }
 
 void SetEditControlSelection( PSI_CONTROL pc, int start, int end ) {
