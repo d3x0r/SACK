@@ -351,7 +351,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 																DBG_PASS
 															  )
 {
-	PTASK_INFO task;
+	PTASK_INFO task = NULL;
 	if( !sack_system_allow_spawn() ) return NULL;
 	TEXTSTR expanded_path;// = ExpandPath( program );
 	TEXTSTR expanded_working_path = path ? ExpandPath( path ) : NULL;
