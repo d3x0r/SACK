@@ -196,28 +196,6 @@ void DestroyItem( PMENUITEM pmi )
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-/*
-static void AddItem( PMENU pm, PMENUITEM pmi )
-{
-	PMENUITEM pmiafter;
-	pmiafter = pm->items;
-	while( pmiafter && pmiafter->next )
-		pmiafter = pmiafter->next;
-	if( !pmiafter )
-	{
-		pm->items = pmi;
-		pmi->me = &pm->items;
-	}
-	else
-	{
-	  pmiafter->next = pmi;
-	  pmi->me = &pmiafter->next;
-	}
-   pm->flags.changed = 1;
-	}
-*/
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void RenderItem( PMENU pm, PMENUITEM pmi )
 {
    Image surface;
@@ -317,7 +295,7 @@ void RenderUnselect( PMENU pm, PMENUITEM pmi )
 	do_hline( pm->surface, pmi->baseline, 0, pm->width, basecolor(pm->image)[NORMAL] );
 	do_hline( pm->surface, pmi->baseline+pmi->height+2, 0, pm->width, basecolor(pm->image)[NORMAL] );
 #ifdef DEBUG_DRAW_MENU
-	lprintf( "Render unselect" );
+	lprintf( "Render unselect %p", pmi );
 #endif
 	//SmudgeCommon( pm->image );
 }
@@ -331,7 +309,7 @@ void RenderSelect( PMENU pm, PMENUITEM pmi )
 	do_vline( pm->surface, 0, pmi->baseline, pmi->baseline + pmi->height + 2, basecolor(pm->image)[SHADE] );
 	do_vline( pm->surface, pm->width-1, pmi->baseline, pmi->baseline + pmi->height + 2, basecolor(pm->image)[HIGHLIGHT] );
 #ifdef DEBUG_DRAW_MENU
-	lprintf( "Render select" );
+	lprintf( "Render select : %p", pmi );
 #endif
 	//SmudgeCommon( pm->image );
 }
@@ -347,7 +325,6 @@ static int CPROC RenderItems( PSI_CONTROL pc )
 	PMENUITEM pmi;
 	if( pm )
 	{
-		lprintf( "rendering a menu popup control thing..." );
 		ClearImageTo( pc->Surface, basecolor(pm->image)[NORMAL] );
 		pm->surface = pc->Surface;
 		if( !pm->surface )
@@ -435,7 +412,7 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 	while( pmi )
 	{
 #ifdef DEBUG_MOUSE_ACTION
-		lprintf( "Scanning for which item this is... %p", pmi );
+		lprintf( "Scanning for which item this is... %p (and next will be in this width)", pmi );
 #endif
 		if( y >= pmi->baseline &&
 			 y <= (pmi->baseline + (int)pmi->height) )
@@ -456,8 +433,8 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 #ifdef DEBUG_MOUSE_ACTION
 					lprintf( "Smudge unselected");
 #endif
-					SmudgeCommon( pm->image );
 					pm->selected->flags.bSelected = FALSE;
+					SmudgeCommon(pm->image);
 				}
 				pm->selected = NULL;
 				pmi = NULL;
@@ -466,8 +443,9 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 			if( pmi->flags.bSelected )
 			{
 #ifdef DEBUG_MOUSE_ACTION
-				lprintf( "Selected item is already set?");
+				lprintf( "Selected item is already set? %p", pmi);
 #endif
+				// item selected; this is a mouse down on it... and we break and get a pmi ?
 				break;
 			}
 			else
@@ -479,18 +457,20 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 						UnshowMenu( pm->selected->value.menu );
 						pm->flags.bSubmenuOpen = 0;
 					}
-					//RenderUnselect( pm, pm->selected );
+					RenderUnselect( pm, pm->selected );
 					pm->selected->flags.bSelected = FALSE;
 				}
 
-				//RenderSelect( pm, pmi );
-				lprintf( "Smudge selected");
-				SmudgeCommon( pm->image );
 #ifdef DEBUG_DRAW_MENU
 				lprintf( "New selected %p", pmi );
 #endif
 				pmi->flags.bSelected = TRUE;
 				pm->selected = pmi;
+				//RenderSelect( pm, pmi );
+#ifdef DEBUG_DRAW_MENU
+				lprintf("Smudge selected");
+#endif
+				SmudgeCommon(pm->image);
 				if( pmi->flags.bSubMenu && pmi->value.menu )
 				{
 					pm->child = pmi->value.menu;
@@ -505,6 +485,15 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 					return TRUE;
 				}
 			}
+		}
+		else {
+			if (pmi->flags.bSelected) {
+				if (pm->selected != pmi) {
+					pmi->flags.bSelected = FALSE;
+					RenderUnselect(pm, pmi);
+				}
+			}
+
 		}
 		pmi = pmi->next;
 	}
@@ -525,9 +514,11 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 		if( pmi && !pmi->flags.bSubMenu )
 		{
 #ifdef DEBUG_MOUSE_ACTION
-			Log1( "Returning Selection: %08" _PTRSZVALfx "", pmi->value.ID );
+			lprintf( "Returning Selection: %p, %08" _PTRSZVALfx "", pmi, pmi->value.ID );
 #endif
 			pm->selection = pmi->value.ID;
+			pmi->flags.bSelected = FALSE;
+			//pm->
 			UnshowMenu( pm );
 			last_buttons = b;
 			return  TRUE;
@@ -593,9 +584,9 @@ void UnshowMenu( PMENU pm )
 			pm->parent->flags.abort = TRUE;
 		}
 		//pm->flags.abort = TRUE; // if we weren't previously we still need this..
-//#ifdef DEBUG_MENUS
+#ifdef DEBUG_MENUS
 		Log1( "Telling parent that selection is: %08" _32fx "", pm->selection );
-//#endif
+#endif
 		if( ( ( pm->parent->selection = pm->selection ) != -1 )
 			|| pm->flags.abort)
 			passed_result = pm->parent;
@@ -686,16 +677,16 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 		child = pc;
 		while( child )
 		{
-			Log2( "Check  to see if child is gaining %p losing=%d ",
-					 child, LosingFocus );
-		 // actually LosingFocus is GainingFocus...
+			//Log2( "Check  to see if child is gaining %p losing=%d ",
+			//		 child, LosingFocus );
+			// actually LosingFocus is GainingFocus...
 			if( child )
 				break;
 			child = child->child;
 		}
 		if( !child )
 		{
-			Log( "Truly lost focus and children are not gaining." );
+			//Log( "Truly lost focus and children are not gaining." );
 			pm->flags.abort = TRUE;
 			UnshowMenu( pm );
 		}
@@ -704,7 +695,7 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 	{
 		if( pm && pm->selection != -1 )
 		{
-			Log( "Returning updated selection..." );
+			//Log( "Returning updated selection..." );
 			UnshowMenu( pm );
 			return TRUE;
 		}
