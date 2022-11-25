@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
+PROJECT( logger.portable )
+
 include( ${SACK_BASE}/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include/SACK )
 STRING( REPLACE " " ";" SACK_PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
@@ -50,7 +52,7 @@ elseif( UNIX )
 	# epoll event handling
 	SET( NETWORK_OS _linux )
    endif( MAC )
-endif( UNIX )
+endif( WIN32 )
 
 
 

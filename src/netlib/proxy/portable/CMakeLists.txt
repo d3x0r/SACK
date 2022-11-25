@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
+project( network.scanner.portable )
+
 if( PLATFORM_CMAKE_DEFINES )
    STRING( REPLACE "," ";" PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} )
    foreach( DEF IN LISTS PLATFORM_CMAKE_DEFINES)
@@ -66,7 +68,7 @@ elseif( UNIX )
 	# epoll event handling
 	SET( NETWORK_OS _linux )
    endif( MAC )
-endif( UNIX )
+endif( WIN32 )
 
 
 sack_add_executable( ${project} ${FIRST_GCC_PROGRAM_SOURCE} 

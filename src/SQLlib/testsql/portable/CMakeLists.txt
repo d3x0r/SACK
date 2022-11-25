@@ -1,6 +1,8 @@
 
 cmake_minimum_required(VERSION 3.0)
 
+PROJECT( pssqlcmd.portable )
+
 if( PLATFORM_CMAKE_DEFINES )
    STRING( REPLACE "," ";" PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} )
    foreach( DEF IN LISTS PLATFORM_CMAKE_DEFINES)

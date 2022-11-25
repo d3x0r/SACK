@@ -1604,7 +1604,6 @@ static SFTFont DoInternalRenderFontFile( PFONT_RENDERER renderer )
 		}
 
 		{
-			INDEX idx;
 			PFONT font;
 			font = (PFONT)renderer->ResultFont;
 			if( !font ) {

@@ -2,7 +2,7 @@
 set( project pssqlcmd )
 
 set(BASE_SOURCES
-    sqlcmd
+    sqlcmd.c
 )
 
 
