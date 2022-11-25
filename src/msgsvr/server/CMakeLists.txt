@@ -46,7 +46,7 @@ set( project sack.msgsvr.service )
 
 set(SERVER_SOURCES 
 ${FIRST_GCC_PROGRAM_SOURCE}
-server_service
+server_service.c
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
