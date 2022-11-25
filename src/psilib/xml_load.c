@@ -205,7 +205,7 @@ static XML_Memory_Handling_Suite XML_memhandler;// = { MyAllocate, MyReallocate,
 //-------------------------------------------------------------------------
 
 // expected character buffer of appropriate size.
-static PSI_CONTROL ParseXMLFrameEx( PSI_CONTROL parent, POINTER buffer, size_t size DBG_PASS )
+PSI_CONTROL ParseXMLFrameEx( PSI_CONTROL parent, POINTER buffer, size_t size DBG_PASS )
 {
 	POINTER xml_buffer;
 	struct xml_userdata userdata;
