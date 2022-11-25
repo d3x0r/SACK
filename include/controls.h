@@ -807,7 +807,7 @@ PSI_PROC( int, SaveXMLFrame )( PSI_CONTROL frame, CTEXTSTR file );
    buffer :    buffer to parse with XML frame loader
    size :      length of the buffer in bytes.
    DBG_PASS :  passed to track allocation responsiblity. */
-PSI_PROC( PSI_CONTROL, ParseXMLFrameEx )( POINTER buffer, size_t size DBG_PASS );
+PSI_PROC( PSI_CONTROL, ParseXMLFrameEx )( PSI_CONTROL parent, POINTER buffer, size_t size DBG_PASS );
 /* <combine sack::PSI::xml::LoadXMLFrameEx@CTEXTSTR file>
    
    \ \                                                    */
@@ -831,7 +831,7 @@ PSI_PROC( PSI_CONTROL, LoadXMLFrameOverEx )( PSI_CONTROL frame, CTEXTSTR file DB
 /* <combine sack::PSI::xml::ParseXMLFrameEx@POINTER@uint32_t size>
    
    \ \                                                        */
-#define ParseXMLFrame(p,s) ParseXMLFrameEx( (p),(s) DBG_SRC )
+#define ParseXMLFrame(par, p,s) ParseXMLFrameEx( (par), (p),(s) DBG_SRC )
 _XML_NAMESPACE_END
 USE_XML_NAMESPACE
 
@@ -1030,10 +1030,10 @@ PSI_PROC( PSI_CONTROL, GetFrame)( PSI_CONTROL pc );
 #define GetFrame(c) GetFrame((PSI_CONTROL)(c))
 
 PSI_PROC( PSI_CONTROL, GetNearControl)( PSI_CONTROL pc, int ID );
-PSI_PROC( void, GetCommonTextEx)( PSI_CONTROL pc, TEXTSTR  buffer, int buflen, int bCString );
-#define GetControlTextEx(pc,b,len,str) GetCommonTextEx(pc,b,len,str)
-#define GetControlText( pc, buffer, buflen ) GetCommonTextEx( (PSI_CONTROL)(pc), buffer, buflen, FALSE )
-#define GetFrameText( pc, buffer, buflen ) GetCommonTextEx( (PSI_CONTROL)(pc), buffer, buflen, FALSE )
+PSI_PROC( void, GetControlTextEx)( PSI_CONTROL pc, TEXTSTR  buffer, size_t buflen, int bCString );
+#define GetControlTextEx(pc,b,len,str) GetControlTextEx(pc,b,len,str)
+#define GetControlText( pc, buffer, buflen ) GetControlTextEx( (PSI_CONTROL)(pc), buffer, buflen, FALSE )
+#define GetFrameText( pc, buffer, buflen ) GetControlTextEx( (PSI_CONTROL)(pc), buffer, buflen, FALSE )
 
 //PSI_PROC( void, SetCommonText )( PSI_CONTROL pc, CTEXTSTR text );
 PSI_PROC( void, SetControlText )( PSI_CONTROL pc, CTEXTSTR text );
