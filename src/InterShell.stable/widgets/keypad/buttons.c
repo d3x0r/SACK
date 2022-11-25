@@ -468,7 +468,7 @@ void CPROC PressKeyThread( PTHREAD thread )
 
 CTEXTSTR GetKeyValue( PKEY_BUTTON pKey )
 {
-   return pKey->value;
+	return pKey->value;
 }
 
 
@@ -477,11 +477,11 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	size_t retval;
 	TEXTCHAR szTheme[256];
 	TEXTCHAR szBuffer[256];
-   TEXTCHAR szThemeId[12];
+	TEXTCHAR szThemeId[12];
 	struct theme_tag *theme;
 	static const CTEXTSTR gIniFileName = "theme.ini";
 	PTHEME base_theme;
-   INDEX idx;
+	INDEX idx;
 	// Allocate memory for structure
 
 	if( !l.pii )
@@ -1267,7 +1267,9 @@ void SetKeyLenses( PKEY_BUTTON key, Image lense, Image down, Image up, Image mas
 		key->frame_up = up;
 		key->frame_down = down;
 		key->mask = mask;
-      key->flags.bThemeSetExternal = 1;
+		key->flags.bMultiShade = 0;
+		key->flags.bShade = 1;
+		key->flags.bThemeSetExternal = 1;
 		SmudgeCommon( key->button );
 	}
 
@@ -1676,7 +1678,8 @@ void SetKeyHighlight( PKEY_BUTTON key, LOGICAL bHighlight )
 {
 	if( key )
 	{
-		key->multi_shade.layer2_color = 1+bHighlight;
+		if( key->flags.bMultiShade )
+			key->multi_shade.layer2_color = 1+bHighlight;
 		key->flags.bHighlight = bHighlight;
 		SmudgeCommon( key->button );
 	}
