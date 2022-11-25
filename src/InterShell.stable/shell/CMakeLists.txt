@@ -65,7 +65,7 @@ set(SOURCES
 )
 
 add_program(${project} ${SOURCES} )
-string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
+string( REPLACE "." "_" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER InterShell
 		COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
