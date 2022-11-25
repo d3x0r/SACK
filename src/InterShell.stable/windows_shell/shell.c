@@ -199,7 +199,14 @@ static void OnKeyPressEvent( "Windows/Set Permashell" )( uintptr_t psv )
 
 	if( dwStatus == ERROR_FILE_NOT_FOUND )
 	{
+			Banner2Message( "Failed to find registry key." );
+			return;
 	}
+	else if( dwStatus == ERROR_ACCESS_DENIED ) {
+			Banner2Message( "Access Denied to login key" );
+			return;
+	}
+
 	if( (dwStatus == ERROR_SUCCESS) && hTemp )
 	{
 		//lprintf( "Write shell to: %s", my_button->shell );
@@ -268,6 +275,12 @@ static void OnShowControl( "Windows/Set Permashell" )( uintptr_t psv )
 										KEY_QUERY_VALUE|KEY_WRITE, &hTemp );
 		if( dwStatus == ERROR_FILE_NOT_FOUND )
 		{
+			Banner2Message( "Failed to find login key" );
+			return;
+		}
+		else if( dwStatus == ERROR_ACCESS_DENIED ) {
+			Banner2Message( "Access Denied to login key" );
+			return;
 		}
 		if( (dwStatus == ERROR_SUCCESS) && hTemp )
 		{

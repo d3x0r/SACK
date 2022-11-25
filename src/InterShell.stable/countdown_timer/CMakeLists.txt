@@ -3,7 +3,7 @@ set( PROJECT countdown_timer.isp )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-countdown_timer
+countdown_timer.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 

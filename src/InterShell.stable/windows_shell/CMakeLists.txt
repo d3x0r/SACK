@@ -3,7 +3,7 @@ project( windows_shell.isp )
 
 set( SOURCES 
 ${FIRST_GCC_LIBRARY_SOURCE} 
-   shell
+   shell.c
 ${LAST_GCC_LIBRARY_SOURCE} )
 
 

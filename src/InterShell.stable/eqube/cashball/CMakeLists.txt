@@ -3,7 +3,7 @@ set( PROJECT cashball.isp )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-cashball
+cashball.c
 ${LAST_GCC_LIBRARY_SOURCE} )
 
 add_library_force_source(${PROJECT} SHARED ${SOURCES} )

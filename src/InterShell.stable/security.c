@@ -231,10 +231,10 @@ static void OnSaveCommon( "@10 EditSecurity" )( FILE *file )
 
 static uintptr_t CPROC BeginGlobalEditPerms( uintptr_t psv, arg_list args )
 {
-	lprintf( "Setting psv to single_frame %p, adding security plugin rules", InterShell_GetCurrentLoadingCanvas() );
+	//lprintf( "Setting psv to single_frame %p, adding security plugin rules", InterShell_GetCurrentLoadingCanvas() );
 	InterShell_ReloadSecurityInformation( InterShell_GetCurrentConfigHandler() );
-   // change/set what the psv is for global paramters.
-   return (uintptr_t)InterShell_GetCurrentLoadingCanvas();
+	// change/set what the psv is for global paramters.
+	return (uintptr_t)InterShell_GetCurrentLoadingCanvas();
 }
 
 static void OnLoadCommon( "@10 EditSecurity" )( PCONFIG_HANDLER pch )

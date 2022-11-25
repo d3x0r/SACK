@@ -571,12 +571,12 @@ PTHEME LoadButtonThemeByNameEx( CTEXTSTR name, int theme_id, CDATA default_color
 	if (StrCmpEx(szBuffer, "NULL", 4)  )
 	{
 		theme->buttons.iNormal = LoadImageFileFromGroup( GetFileGroup( "Button Resources", "%Resources%/images" ), szBuffer );
-		xlprintf(LOG_NOISE+1)( " LoadImageFile returned a pointer to %p " , theme->buttons.iNormal );
+		//xlprintf(LOG_NOISE+1)( " LoadImageFile returned a pointer to %p " , theme->buttons.iNormal );
 	}
 
 	else
 	{
-		xlprintf(LOG_NOISE+1)( "setting an image file to null" );
+		//xlprintf(LOG_NOISE+1)( "setting an image file to null" );
 		theme->buttons.iNormal = NULL;
 	}
 	

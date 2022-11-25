@@ -401,7 +401,7 @@ PRELOAD( RegisterTaskControls )
 		l.shell = CreateTask( NULL );
 		l.shell->flags.bExclusive = 0;
 		StrCpyEx( l.shell->pName, "Command Shell", sizeof( l.shell->pName )/sizeof( TEXTCHAR ) );
-		StrCpyEx( l.shell->pTask, "cmd.exe", sizeof( l.shell->pTask )/sizeof( TEXTCHAR ) );
+		StrCpyEx( l.shell->pTask, "%SystemRoot%\\System32\\cmd.exe", sizeof( l.shell->pTask )/sizeof( TEXTCHAR ) );
 		StrCpyEx( l.shell->pPath, ".", sizeof( l.shell->pPath )/sizeof( TEXTCHAR ) );
 	}
 	{
@@ -2306,7 +2306,7 @@ void CPROC DestroyNetworkTaskProperties( uintptr_t psv, PSI_CONTROL button )
 
 static void OnGlobalPropertyEdit( "Tasks" )( PSI_CONTROL parent )
 {
-	PSI_CONTROL frame = LoadXMLFrame( "CommonTaskProperties.isFrame" );
+	PSI_CONTROL frame = LoadXMLFrameOver(NULL, "CommonTaskProperties.isFrame");
 	if( frame )
 	{
 		int okay = 0;

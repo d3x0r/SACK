@@ -5538,9 +5538,11 @@ PUBLIC( int, Main)( int argc, TEXTCHAR **argv, int bConsole,struct volume* (CPRO
 					g.flags.bSQLConfig = 1;
 				else if( StrCaseCmp( argv[n]+1, "Sysname=" ) == 0 )
 					g.system_name = StrDup( argv[n] + 9 );
-				else if( StrCaseCmp( argv[n]+1, "local" ) == 0 )
+				else if (StrCaseCmp(argv[n] + 1, "local") == 0) {
 					g.flags.local_config = 1; // don't save in sql...
-				else if( StrCaseCmp( argv[n]+1, "tsr" ) == 0 )
+					g.flags.bSQLConfig = 0;
+				} 
+				else if (StrCaseCmp(argv[n] + 1, "tsr") == 0)
 					g.flags.bTerminateStayResident = 1; // return to caller from main instead of exit and idle.
 				else if( StrCaseCmp( argv[n]+1, "names" ) == 0 )
 					g.flags.bLogNames = 1;
