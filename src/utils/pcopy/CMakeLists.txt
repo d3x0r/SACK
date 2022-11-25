@@ -3,7 +3,7 @@ set( project pcopy )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
-    pcopy docopy
+    pcopy.c docopy.c
 ${LAST_GCC_PROGRAM_SOURCE}
 )
 
