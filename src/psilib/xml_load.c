@@ -144,7 +144,8 @@ void XMLCALL start_tags( void *UserData
 														, ID
 												, caption );
 	}
-	if( border ) {
+	if( border )
+	{
 		if( pc->parent )
 			SetCommonBorder( pc, border | BORDER_NOCAPTION );
 		else
@@ -204,7 +205,7 @@ static XML_Memory_Handling_Suite XML_memhandler;// = { MyAllocate, MyReallocate,
 //-------------------------------------------------------------------------
 
 // expected character buffer of appropriate size.
-PSI_CONTROL ParseXMLFrameEx( POINTER buffer, size_t size DBG_PASS )
+static PSI_CONTROL ParseXMLFrameEx( PSI_CONTROL parent, POINTER buffer, size_t size DBG_PASS )
 {
 	POINTER xml_buffer;
 	struct xml_userdata userdata;
@@ -302,7 +303,7 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 	}
 	if( buffer && size )
 	{
-		ParseXMLFrame( buffer, size );
+		ParseXMLFrame( parent, buffer, size );
 		Release( buffer );
 	}
 

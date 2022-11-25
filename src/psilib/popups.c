@@ -1,5 +1,6 @@
-#define DEBUG_MENUS
-#define DEBUG_DRAW_MENU
+//#define DEBUG_MENUS
+//#define DEBUG_DRAW_MENU
+//#define DEBUG_MOUSE_ACTION
 
 //#if !defined( WIN32 ) && !defined( _MSC_VER)
 // haha - well at least under windows these menu issues can be resolved.
@@ -69,7 +70,7 @@ PSI_PROC( PMENU, CreatePopup )( void )
 #endif
 #ifndef __NO_OPTIONS__
 #  if WIN32
-	local_popup_data.flags.bCustomMenuEnable = SACK_GetProfileIntEx( GetProgramName()
+	local_popup_data.flags.bCustomMenuEnable = 1||SACK_GetProfileIntEx( GetProgramName()
 																						, "SACK/PSI/menus/Use Custom Popups"
 																						, local_popup_data.flags.bCustomMenuEnable
 																						, TRUE );
@@ -396,7 +397,9 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 		x > pm->width || y > pm->height )
 	{
 		PMENU parent = pm->parent;
+#ifdef DEBUG_MOUSE_ACTION
 		lprintf( "on menu.");
+#endif
 		if( parent )
 		{
 			//lprintf( "Menu has a parent... check to see if it's still there." );
@@ -405,7 +408,9 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 						, pm->display.y - parent->display.y + y
 						, b );
 			last_buttons = b;
+#ifdef DEBUG_MOUSE_ACTION
 			lprintf( "passed mouse to parent" );
+#endif
 			return TRUE;
 		}
 		else
@@ -429,11 +434,15 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 
 	while( pmi )
 	{
+#ifdef DEBUG_MOUSE_ACTION
 		lprintf( "Scanning for which item this is... %p", pmi );
+#endif
 		if( y >= pmi->baseline &&
 			 y <= (pmi->baseline + (int)pmi->height) )
 		{
+#ifdef DEBUG_MOUSE_ACTION
 			lprintf( "Finding item which has %d in it... starts at %d?", y, pmi->baseline );
+#endif
 			if( pmi->flags.bSeparator )
 			{
 				if( pm->selected )
@@ -444,7 +453,9 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 						pm->flags.bSubmenuOpen = 0;
 					}
 					//RenderUnselect( pm, pm->selected );
+#ifdef DEBUG_MOUSE_ACTION
 					lprintf( "Smudge unselected");
+#endif
 					SmudgeCommon( pm->image );
 					pm->selected->flags.bSelected = FALSE;
 				}
@@ -454,7 +465,9 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 			}
 			if( pmi->flags.bSelected )
 			{
+#ifdef DEBUG_MOUSE_ACTION
 				lprintf( "Selected item is already set?");
+#endif
 				break;
 			}
 			else
@@ -511,7 +524,9 @@ static int MenuMouse( PMENU pm, int32_t x, int32_t y, uint32_t b )
 	{
 		if( pmi && !pmi->flags.bSubMenu )
 		{
+#ifdef DEBUG_MOUSE_ACTION
 			Log1( "Returning Selection: %08" _PTRSZVALfx "", pmi->value.ID );
+#endif
 			pm->selection = pmi->value.ID;
 			UnshowMenu( pm );
 			last_buttons = b;
@@ -621,7 +636,9 @@ int CPROC FocusChanged( PSI_CONTROL pc, LOGICAL bFocus )
 {
 	ValidatedControlData( PMENU, menu.TypeID, pm, pc );
 #define LosingFocus  (!pc->flags.bFocused )
+#ifdef DEBUG_MENUS
 	Log1( "Losing focus callback? %08" _32fx "", bFocus );
+#endif
 	if( !pm )
 	{
 		// if bFocus - refuse, if losefocus, accept.

@@ -2586,7 +2586,7 @@ PRIORITY_PRELOAD( register_frame_control, PSI_PRELOAD_PRIORITY )
 //---------------------------------------------------------------------------
 static void LinkInNewControl( PSI_CONTROL parent, PSI_CONTROL elder, PSI_CONTROL child );
 
-PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
+static PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 									  , PSI_CONTROL pContainer
 										// if not typename, must pass type ID...
 									  , CTEXTSTR pTypeName
@@ -2597,7 +2597,6 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 									  , uint32_t nID
 									  , CTEXTSTR pIDName
 										// ALL controls have a caption...
-									  , CTEXTSTR text
 										// fields in this override the defaults...
 										// if not 0.
 									  , uint32_t ExtraBorderType
@@ -2780,10 +2779,6 @@ PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	}
 	pc->flags.bSetBorderType = 0;
 
-	pc->CaptionChanged = NULL; // don't send this event, and uninitialized(yet)
-	pc->ChangeFocus = NULL; // don't send this event, and uninitialized(yet)
-
-	SetControlText( pc, text );
 	if( pContainer )
 	{
 		LinkInNewControl( pContainer, NULL, pc );
@@ -3854,7 +3849,7 @@ PSI_PROC( PSI_CONTROL, GetNearControl )( PSI_CONTROL pc, int ID )
 
 //---------------------------------------------------------------------------
 
-void GetCommonTextEx( PSI_CONTROL pc, TEXTSTR buffer, int buflen, int bCString )
+void GetControlTextEx( PSI_CONTROL pc, TEXTSTR buffer, size_t buflen, int bCString )
 {
 	if( !buffer || !buflen )
 		return;
@@ -4058,28 +4053,28 @@ void GetControlSize( PSI_CONTROL _pc, uint32_t* w, uint32_t* h )
 //---------------------------------------------------------------------------
 
 PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
-								 // if not typename, must pass type ID...
-								, CTEXTSTR pTypeName
-								, uint32_t nType
-								 // position of control
-								, int x, int y
-								, int w, int h
-								, uint32_t nID
-								, CTEXTSTR pIDName // if this is NOT NULL, use Named ID to ID the control.
-								// ALL controls have a caption...
-							  , CTEXTSTR text
-								// fields in this override the defaults...
-								// if not 0.
-							  , uint32_t ExtraBorderType
-								// if this is reloaded...
-							  , PTEXT parameters
-                        , POINTER extra_param
-								//, va_list args
-								DBG_PASS )
+                             // if not typename, must pass type ID...
+                            , CTEXTSTR pTypeName
+                            , uint32_t nType
+                             // position of control
+                            , int x, int y
+                            , int w, int h
+                            , uint32_t nID
+                            , CTEXTSTR pIDName // if this is NOT NULL, use Named ID to ID the control.
+                            // ALL controls have a caption...
+                            , CTEXTSTR text
+                            // fields in this override the defaults...
+                            // if not 0.
+                            , uint32_t ExtraBorderType
+                            // if this is reloaded...
+                            , PTEXT parameters
+                            , POINTER extra_param
+                            //, va_list args
+                            DBG_PASS )
 {
 	PSI_CONTROL pResult;
 	PROCEDURE proc;
-	proc = RealCreateCommonExx( &pResult, pContainer, pTypeName, nType, x, y, w, h, nID, pIDName, text
+	proc = RealCreateCommonExx( &pResult, pContainer, pTypeName, nType, x, y, w, h, nID, pIDName
 									  , ExtraBorderType
 										// uhmm need to retain this ... as it also means 'private' as in contained
                               // within a control - editing functions should not operate on these either...
@@ -4098,10 +4093,13 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 				AddCaptionButton( pResult, NULL, NULL, NULL, 0, NULL );
 		}
 	}
-	pResult->flags.bCreating = 0;
 	if( pResult ) // no point in doing anything extra if the initial init fails.
 	{
 		TEXTCHAR mydef[256];
+		pResult->flags.bCreating = 0;
+
+		SetControlText(pResult, text);
+
 		if( pTypeName )
 			tnprintf( mydef, sizeof( mydef ), PSI_ROOT_REGISTRY "/control/%s/rtti/extra init", pTypeName );
 		else
@@ -4149,18 +4147,18 @@ PSI_CONTROL CreateCommonExxx( PSI_CONTROL pContainer
 		{
 			pResult->flags.private_control = 1;
 		}
-	}
-	if( pContainer && pContainer->AddedControl )
-		pContainer->AddedControl( pContainer, pResult );
-	if( pContainer )
-	{
-		// creation could have caused it to be hidden...
-		pResult->flags.bInitial = pContainer->flags.bInitial;
-		if( !pResult->flags.bHiddenParent && !pResult->flags.bInitial )
+		if (pContainer && pContainer->AddedControl)
+			pContainer->AddedControl(pContainer, pResult);
+		if (pContainer)
 		{
-			pResult->flags.bHidden = pContainer->flags.bHidden;
-			// same thing as DeleteUse would do
-			UpdateCommon( pResult );
+			// creation could have caused it to be hidden...
+			pResult->flags.bInitial = pContainer->flags.bInitial;
+			if (!pResult->flags.bHiddenParent && !pResult->flags.bInitial)
+			{
+				pResult->flags.bHidden = pContainer->flags.bHidden;
+				// same thing as DeleteUse would do
+				UpdateCommon(pResult);
+			}
 		}
 	}
 	return pResult;

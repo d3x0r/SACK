@@ -358,7 +358,7 @@ static void popupCallback( uintptr_t psv, int select ) {
 			if( !bAnotherLayer )
 			{
 				bAnotherLayer++;
-				pEditProps->pSheet = ParseXMLFrame( control_property_frame_xml, sizeof( control_property_frame_xml ) );
+				pEditProps->pSheet = ParseXMLFrame( NULL, control_property_frame_xml, sizeof( control_property_frame_xml ) );
 				if( !pEditProps->pSheet )
 					pEditProps->pSheet = LoadXMLFrame( "Common Edit.Frame" );
 				//DumpFrameContents( pEditProps->pSheet );

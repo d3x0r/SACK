@@ -515,7 +515,6 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 	{
 		ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 		//PCONSOLE_INFO console = (PCONSOLE_INFO)GetCommonUserData( pc );
-		int cmd;
 		if( !console )
 			return 0;
 		CheckPopupItem( hHistoryMenu
