@@ -78,6 +78,7 @@ endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 if( MSVC )
     SET( SERVICE_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
 endif( MSVC )
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
 
 set(SOURCES
   ${FIRST_GCC_PROGRAM_SOURCE}
@@ -89,7 +90,7 @@ set(SOURCES
 add_program(${project} WIN32 ${SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER InterShell
-		COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT}" 
+		COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}" 
 		LINK_FLAGS "${SERVICE_LINK_FLAGS}"
 
 )

@@ -65,11 +65,11 @@ set(SOURCES
 )
 
 add_program(${project} ${SOURCES} )
+string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER InterShell
-		COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT}" 
+		COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
 		LINK_FLAGS "${SERVICE_LINK_FLAGS}"
-
 )
 if( __ANDROID__ )
 install( TARGETS ${project} RUNTIME DESTINATION lib
