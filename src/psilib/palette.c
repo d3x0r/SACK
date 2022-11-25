@@ -327,6 +327,8 @@ BUTTON_CLICK( PresetButton, ( uintptr_t psv, PSI_CONTROL pc ))
 
 	if( ppcd->bSetPreset )
 	{
+		SetCheckState(GetControl(ppcd->frame, BTN_PRESET), FALSE);
+
 		ppcd->Presets[idx] = ppcd->CurrentColor;
 		ppcd->bSetPreset = FALSE;
 		SavePresets( ppcd );
@@ -465,7 +467,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 	InitColorData( &pcd, original );
 	// remove test for debugging save/load..
 	// don't parse the NUL at the end.
-	pf = ParseXMLFrame( palette_frame_xml, sizeof( palette_frame_xml ) - 1 );
+	pf = ParseXMLFrame( hAbove, palette_frame_xml, sizeof( palette_frame_xml ) - 1 );
 	if( !pf )
 		pf = LoadXMLFrame( "palette.frame" /*, NULL, PaletteLoad, (uintptr_t)&pcd*/ );;
 	if( pf )
