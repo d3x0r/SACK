@@ -1464,7 +1464,7 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			} else {
 				//lprintf( "This has to e called anyway ( with flush, after commit) " );
 				PTHREAD waiting = MakeThread();
-				AddLink( wl.shellWaits, &waiting );				
+				AddLink( &wl.shellWaits, &waiting );				
 				while(waiting) WakeableSleep(1000);//wl_display_roundtrip_queue(wl.display, wl.queue);
 			}
 		}
