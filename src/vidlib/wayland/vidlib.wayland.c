@@ -1463,7 +1463,7 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			} else {
 				//lprintf( "This has to e called anyway ( with flush, after commit) " );
 				wl.shellWaiter = MakeThread();
-				while(wl.shellWaiter&&r->shell_surface) WakeableSleep(1000);//wl_display_roundtrip_queue(wl.display, wl.queue);
+				while(wl.shellWaiter&&!r->shell_surface) WakeableSleep(1000);//wl_display_roundtrip_queue(wl.display, wl.queue);
 			}
 		}
 
