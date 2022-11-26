@@ -1239,6 +1239,7 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 			PTHREAD *ppWaiter; INDEX idx;
 			LIST_FORALL( wl.shellWaits, idx, PTHREAD*, ppWaiter ) {
 				PTHREAD waiter = ppWaiter[0]; ppWaiter[0] = NULL;
+				SetLink( &wl.shellWaits, idx, NULL );
 				WakeThread( waiter );
 			}
 			//lprintf( ".... did some messages...");
