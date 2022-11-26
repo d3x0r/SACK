@@ -1237,8 +1237,10 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 	if( wl.display ) {
 		while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 ){
 			if( wl.shellWaiter ) {
+				//lprintf( "wake creation window" );
 				// have to round trip this; HOPE is blind.
-				WakeThread( wl.shellWaiter ); wl.shellWaiter = NULL;
+				PTHREAD wake = wl.shellWaiter; wl.shellWaiter = NULL;
+				WakeThread( wake ); 
 			}
 			//lprintf( ".... did some messages...");
 		}
