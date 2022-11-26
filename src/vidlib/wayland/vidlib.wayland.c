@@ -1236,11 +1236,10 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 	initConnections();
 	if( wl.display ) {
 		while( wl_display_dispatch_queue(wl.display, wl.queue) != -1 ){
-			if( wl.shellWaiter ) {
-				//lprintf( "wake creation window" );
-				// have to round trip this; HOPE is blind.
-				PTHREAD wake = wl.shellWaiter; wl.shellWaiter = NULL;
-				WakeThread( wake ); 
+			PTHREAD *ppWaiter; INDEX idx;
+			LIST_FORALL( wl.shellWaits, idx, PTHREAD*, ppWaiter ) {
+				PTHREAD waiter = ppWaiter[0]; ppWaiter[0] = NULL;
+				wakeThread( waiter );
 			}
 			//lprintf( ".... did some messages...");
 		}
@@ -1464,8 +1463,9 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 				wl_display_roundtrip_queue(wl.display, wl.queue);
 			} else {
 				//lprintf( "This has to e called anyway ( with flush, after commit) " );
-				wl.shellWaiter = MakeThread();
-				while(wl.shellWaiter&&!r->shell_surface) WakeableSleep(1000);//wl_display_roundtrip_queue(wl.display, wl.queue);
+				PTHREAD waiting = MakeThread();
+				AddLink( wl.shellWaits, &waiting );				
+				while(waiting) WakeableSleep(1000);//wl_display_roundtrip_queue(wl.display, wl.queue);
 			}
 		}
 
