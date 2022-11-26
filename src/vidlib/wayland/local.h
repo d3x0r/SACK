@@ -187,7 +187,8 @@ struct wayland_local_tag
 	PXPANEL hVidFocused; // keyboard events go here
 	PXPANEL hCaptured; // send all mouse events here (probalby should-no-op this)
 	PLIST pActiveList; // non-destroyed windows are here
-	volatile PTHREAD shellWaiter;
+	//volatile PTHREAD shellWaiter;
+	volatile PLIST shellWaits;
 };
 
 
