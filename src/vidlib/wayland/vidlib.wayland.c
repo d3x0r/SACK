@@ -665,9 +665,11 @@ global_registry_handler( void *data, struct wl_registry *registry, uint32_t id
 		                          , &wl_seat_interface,  version>2?version:version);
 		wl_proxy_set_queue( (struct wl_proxy*)wl.seat, wl.queue );
 		wl.pointer = wl_seat_get_pointer(wl.seat);
+		wl_proxy_set_queue( (struct wl_proxy*)wl.pointer, wl.queue );
 		wl.pointer_data.surface = wl_compositor_create_surface(wl.compositor);
 		wl_pointer_add_listener(wl.pointer, &pointer_listener, &wl.pointer_data);
 		wl.keyboard = wl_seat_get_keyboard(wl.seat );
+		wl_proxy_set_queue( (struct wl_proxy*)wl.keyboard, wl.queue );
 		wl_keyboard_add_listener(wl.keyboard, &keyboard_listener, NULL );
 	} else if( n == wis_shm ) {
 		wl.shm = wl_registry_bind(registry, id
@@ -680,6 +682,7 @@ global_registry_handler( void *data, struct wl_registry *registry, uint32_t id
 		out->wl_output = wl_registry_bind( registry, id, &wl_output_interface, version );
 		// pending scaling
 		out->pending_scale = 1;
+		wl_proxy_set_queue( (struct wl_proxy*)out->wl_output, wl.queue );
 		wl_output_set_user_data( out->wl_output, out );
 		wl_output_add_listener( out->wl_output, &output_listener, out );
 		AddLink( &wl.outputSurfaces, out );
