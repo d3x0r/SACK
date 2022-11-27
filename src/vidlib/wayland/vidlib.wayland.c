@@ -1674,10 +1674,11 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	//lprintf( "UpdateDisplayPortionEx %p %d %d %d %d", r->surface, x, y, w, h );
-	if( !r->surface ) return;
 	EnterCriticalSec( &wl.cs_wl );
-	wl_surface_damage( r->surface, x, y, w, h );
-	r->flags.dirty = 1;
+	if( r->surface ) {
+		wl_surface_damage( r->surface, x, y, w, h );
+		r->flags.dirty = 1;
+	}
 	LeaveCriticalSec( &wl.cs_wl );
 }
 
@@ -1685,12 +1686,13 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 
 //	lprintf( "update DIpslay Ex" );
-	if( !r->surface ) return;
 	//lprintf( "Update whole surface %d %d", r->w, r->h );
 
 	EnterCriticalSec( &wl.cs_wl );
-	wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
-	r->flags.dirty = 1;
+	if( r->surface ) {
+		wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
+		r->flags.dirty = 1;
+	}
 	LeaveCriticalSec( &wl.cs_wl );
 }
 
