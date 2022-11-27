@@ -585,6 +585,7 @@ void CPROC DrawNormalFrameInverted( PSI_CONTROL pc )
 
 void CPROC DrawThinnerFrameImage( PSI_CONTROL pc, Image window )
 {
+	if( !window ) return;
    //Image window = pc->Window;
 	uint32_t width = window->width;
 	uint32_t height = window->height;
@@ -606,6 +607,7 @@ void CPROC DrawThinnerFrameImage( PSI_CONTROL pc, Image window )
 void CPROC DrawThinnerFrame( PSI_CONTROL pc )
 {
    Image window = pc->Window;
+	if( !window ) return;
 	uint32_t width = window->width;
 	uint32_t height = window->height;
    if( pc->flags.bInitial || pc->flags.bHidden ) return;
@@ -625,6 +627,7 @@ void CPROC DrawThinnerFrame( PSI_CONTROL pc )
 void CPROC DrawThinnerFrameInverted( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
+	if( !window ) return;
 	uint32_t width = window->width;
 	uint32_t height = window->height;
 	if( pc->flags.bInitial || pc->flags.bHidden ) return;
@@ -644,6 +647,7 @@ void CPROC DrawThinnerFrameInverted( PSI_CONTROL pc )
 void CPROC DrawThinnerFrameInvertedImage( PSI_CONTROL pc, Image window )
 {
 	//Image window = pc->Window;
+	if( !window ) return;
 	uint32_t width = window->width;
 	uint32_t height = window->height;
 	do_hline( window, 0, 0, width-1, basecolor(pc)[SHADOW] );
@@ -663,8 +667,9 @@ void CPROC DrawThinnerFrameInvertedImage( PSI_CONTROL pc, Image window )
 
 void DrawThinnerFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amount )
 {
+	if( !window ) return;
 	uint32_t width = window->width;
-    uint32_t height = window->height;
+	uint32_t height = window->height;
 	if( !bInvert )
 	{
 		do_hline( window, amount+0, amount+0, width-(amount+1), basecolor(pc)[HIGHLIGHT] );
@@ -700,6 +705,7 @@ void DrawThinnerFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amoun
 void CPROC DrawThinFrame( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
+	if( !window ) return;
 	uint32_t width = window->width;
 	uint32_t height = window->height;
 	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) 
@@ -715,6 +721,7 @@ void CPROC DrawThinFrame( PSI_CONTROL pc )
 void CPROC DrawThinFrameInverted( PSI_CONTROL pc )
 {
 	Image window = pc->Window;
+	if( !window ) return;
 	uint32_t width = window->width;
 	uint32_t height = window->height;
 	if( /*pc->flags.bInitial ||*/ pc->flags.bHidden ) return;
@@ -729,6 +736,7 @@ void CPROC DrawThinFrameInverted( PSI_CONTROL pc )
 
 void CPROC DrawThinFrameInvertedImage( PSI_CONTROL pc, Image window )
 {
+	if( !window ) return;
 	//Image window = pc->Window;
 	uint32_t width = window->width;
 	uint32_t height = window->height;
@@ -742,6 +750,7 @@ void CPROC DrawThinFrameInvertedImage( PSI_CONTROL pc, Image window )
 
 void DrawThinFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amount )
 {
+	if( !window ) return;
 	uint32_t width = window->width;
 	uint32_t height = window->height;
 	if( !bInvert )
