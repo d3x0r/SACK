@@ -658,10 +658,12 @@ global_registry_handler( void *data, struct wl_registry *registry, uint32_t id
 		wl.xdg_wm_base = wl_registry_bind(registry, id
 		                                 , &xdg_wm_base_interface, version);
 		xdg_wm_base_add_listener( wl.xdg_wm_base, &xdg_wm_base_listener, NULL );
+		wl_proxy_set_queue( (struct wl_proxy*)wl.xdg_wm_base, wl.queue );
 
 	} else if( n == wis_seat ) {
 		wl.seat = wl_registry_bind( registry, id
 		                          , &wl_seat_interface,  version>2?version:version);
+		wl_proxy_set_queue( (struct wl_proxy*)wl.seat, wl.queue );
 		wl.pointer = wl_seat_get_pointer(wl.seat);
 		wl.pointer_data.surface = wl_compositor_create_surface(wl.compositor);
 		wl_pointer_add_listener(wl.pointer, &pointer_listener, &wl.pointer_data);
@@ -671,6 +673,7 @@ global_registry_handler( void *data, struct wl_registry *registry, uint32_t id
 		wl.shm = wl_registry_bind(registry, id
 		                         , &wl_shm_interface, version);
 		wl_shm_add_listener(wl.shm, &shm_listener, NULL);
+		wl_proxy_set_queue( (struct wl_proxy*)wl.shm, wl.queue );
 	} else if( n == wis_output ) {
 		struct output_data *out = New( struct output_data );
 		//lprintf( "Display");
