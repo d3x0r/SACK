@@ -434,18 +434,18 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		l.entry_point = (int(CPROC*)(int argc, char**argv, int bConsole
 											  ,struct volume* (CPROC *load)( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey )
 											  ,void (CPROC*unload)(struct volume *)
-											  ))LoadFunction( "intershell.core", "Main" );
+											  ))LoadFunction( "InterShell.core", "Main" );
 #  else
 		l.entry_point = (int(CPROC*)(int argc, char**argv, int bConsole
 											  ,struct volume* (CPROC *load)( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey )
 											  ,void (CPROC*unload)(struct volume *)
-											  ))LoadFunction( "libintershell.core.so", "Main" );
+											  ))LoadFunction( "libInterShell.core.so", "Main" );
 #  endif
 #else
 		l.entry_point = (int(CPROC*)(int argc, char**argv, int bConsole
 											  ,struct volume* (CPROC *load)( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey )
 											  ,void (CPROC*unload)(struct volume *)
-											  ))LoadFunction( "intershell.core", "Main" );
+											  ))LoadFunction( "InterShell.core", "Main" );
 #endif
 	}
    //return 0;
