@@ -1782,7 +1782,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		{
 			//if( l.flags.bLog )
 				_xlprintf( 2 DBG_RELAY)( "Attempt to load %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
-				          , library->cur_full_name, funcname?funcname:"all", dlerror() );
+				          , library->alt_full_name, funcname?funcname:"all", dlerror() );
 #  endif
 #  ifdef UNICODE
 			{
