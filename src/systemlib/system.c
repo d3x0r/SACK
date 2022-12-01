@@ -1816,11 +1816,11 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 						ReleaseEx( library DBG_SRC );
 						ResumeDeadstart();
 						return NULL;
-					}
-				}
-			}
+					}else lprintf( "Success opening:%s", library->cur_full_name );
+				}else lprintf( "Success opening:%s", library->alt_full_name );
+			}else lprintf( "Success opening:%s", library->full_name );
 #  ifndef __ANDROID__
-		}
+		}else lprintf( "Success opening:%s", library->name );
 #  endif
 }
 #endif
