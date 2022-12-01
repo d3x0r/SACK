@@ -1775,14 +1775,14 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			Release( tmpname );
 		}
 #    else
-		library->library = dlopen( library->name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
+		library->library = dlopen( library->cur_full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 #    endif
 
 		if( !library->library )
 		{
 			//if( l.flags.bLog )
 				_xlprintf( 2 DBG_RELAY)( "Attempt to load %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
-				          , library->name, funcname?funcname:"all", dlerror() );
+				          , library->cur_full_name, funcname?funcname:"all", dlerror() );
 #  endif
 #  ifdef UNICODE
 			{
@@ -1805,12 +1805,12 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 					_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
 							, library->alt_full_name, funcname?funcname:"all", dlerror() );
 
-					library->library = dlopen( library->cur_full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
+					library->library = dlopen( library->name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 
 					if( !library->library )
 					{
 						_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
-								, library->cur_full_name, funcname?funcname:"all", dlerror() );
+								, library->name, funcname?funcname:"all", dlerror() );
 
 						UnlinkThing( library );
 						ReleaseEx( library DBG_SRC );
