@@ -1780,7 +1780,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 
 		if( !library->library )
 		{
-			//if( l.flags.bLog )
+			if( l.flags.bLog )
 				_xlprintf( 2 DBG_RELAY)( "Attempt to load %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
 				          , library->alt_full_name, funcname?funcname:"all", dlerror() );
 #  endif
@@ -1795,32 +1795,35 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #  endif
 			if( !library->library )
 			{
-				_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
-						, library->full_name, funcname?funcname:"all", dlerror() );
+				if( l.flags.bLog )
+					_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
+							, library->full_name, funcname?funcname:"all", dlerror() );
 
 				library->library = dlopen( library->cur_full_name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 
 				if( !library->library )
 				{
-					_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
-							, library->cur_full_name, funcname?funcname:"all", dlerror() );
+					if( l.flags.bLog )
+						_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
+								, library->cur_full_name, funcname?funcname:"all", dlerror() );
 
 					library->library = dlopen( library->name, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 
 					if( !library->library )
 					{
-						_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
-								, library->name, funcname?funcname:"all", dlerror() );
+						if( l.flags.bLog )
+							_xlprintf( 2 DBG_RELAY)( "Attempt to load  %s%s(%s) failed: %s.", bPrivate?"(local)":"(global)"
+									, library->name, funcname?funcname:"all", dlerror() );
 
 						UnlinkThing( library );
 						ReleaseEx( library DBG_SRC );
 						ResumeDeadstart();
 						return NULL;
-					}else lprintf( "Success opening:%s", library->name );
-				}else lprintf( "Success opening:%s", library->cur_full_name );
-			}else lprintf( "Success opening:%s", library->full_name );
+					}//else lprintf( "Success opening:%s", library->name );
+				}//else lprintf( "Success opening:%s", library->cur_full_name );
+			}//else lprintf( "Success opening:%s", library->full_name );
 #  ifndef __ANDROID__
-		}else lprintf( "Success opening:%s", library->alt_full_name );
+		}//else lprintf( "Success opening:%s", library->alt_full_name );
 #  endif
 }
 #endif
