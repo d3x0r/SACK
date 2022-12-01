@@ -1770,7 +1770,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		// ANDROID This will always fail from the application manager.
 #    ifdef UNICODE
 		{
-			char *tmpname = CStrDup( library->name );
+			char *tmpname = CStrDup( library->cur_full_name );
 			library->library = dlopen( tmp, RTLD_LAZY|(bPrivate?RTLD_LOCAL: RTLD_GLOBAL) );
 			Release( tmpname );
 		}
@@ -1816,11 +1816,11 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 						ReleaseEx( library DBG_SRC );
 						ResumeDeadstart();
 						return NULL;
-					}else lprintf( "Success opening:%s", library->cur_full_name );
+					}else lprintf( "Success opening:%s", library->name );
 				}else lprintf( "Success opening:%s", library->alt_full_name );
 			}else lprintf( "Success opening:%s", library->full_name );
 #  ifndef __ANDROID__
-		}else lprintf( "Success opening:%s", library->name );
+		}else lprintf( "Success opening:%s", library->cur_full_name );
 #  endif
 }
 #endif
