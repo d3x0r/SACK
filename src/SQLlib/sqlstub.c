@@ -3826,17 +3826,17 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								if( rc == SQL_SUCCESS_WITH_INFO ) {
 									SQLINTEGER nativeError;
 									SQLCHAR state[6];
-									rc = SQLGetDiagRec( SQL_HANDLE_STMT, collection->hstmt, 1, state, &nativeError, NULL, 0, NULL );
+									RETCODE rc = SQLGetDiagRec( SQL_HANDLE_STMT, collection->hstmt, 1, state, &nativeError, NULL, 0, NULL );
 									if( strcmp( (const char *)state, "01004" ) == 0 ){
 										useCollector = TRUE;
 										if( !pvtDataCollector ) pvtDataCollector = VarTextCreate();
-										VarTextAddData( pvtDataCollector, byResult, ResultLen );
+										VarTextAddData( pvtDataCollector, byResult, ( ResultLen<(int)colsize ) ?ResultLen:colsize);
 									}else {
 										lprintf( "SQLGetData return info [%s] but this state is not handled.", state );
 										break;
 									}
 								} else if( useCollector ) {
-									VarTextAddData( pvtDataCollector, byResult, ResultLen );
+									VarTextAddData( pvtDataCollector, byResult, ( ResultLen< (int)colsize )?ResultLen:colsize );
 								}
 							} while( rc == SQL_SUCCESS_WITH_INFO );
 
