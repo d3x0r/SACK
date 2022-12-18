@@ -3914,7 +3914,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 										if( pvtData )vtprintf( pvtData, "%sNULL", idx > 1 ? "," : ""  );
 									}else {
 										char *isoTime = NewArray( char, 32 );
-										val->stringLen = snprintf( isoTime, 32, "%d-%02d-%02dT%02d:%02d:%02d.%03dZ"
+										val->stringLen = snprintf( isoTime, 32, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ"
 										                         , ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.fraction );
 										val->value_type = JSOX_VALUE_DATE;
 										val->string = isoTime;
