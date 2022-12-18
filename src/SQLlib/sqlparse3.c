@@ -221,17 +221,17 @@ void GrabKeyColumns( PTEXT *word, CTEXTSTR *columns )
 			GrabName( word, (TEXTSTR*)columns + cols, NULL DBG_SRC );
 			if( (*word) && GetText( *word )[0] == '(' ){
 				// sometimes there's a paren and a number associated with a column name?
-				PVARTEXT pvtTmp = VarTextCreate();
-				vtprintf( pvtTmp, "%s", (columns+cols)[0] );
+				//PVARTEXT pvtTmp = VarTextCreate();
+				//vtprintf( pvtTmp, "%s", (columns+cols)[0] );
 				while( (*word) && GetText( *word )[0] != ')' ) {
-					vtprintf( pvtTmp, "%.*s", GetTextSize( *word ), GetText( *word ) );
+					//vtprintf( pvtTmp, "%.*s", GetTextSize( *word ), GetText( *word ) );
 					(*word) = NEXTLINE( *word );
 				}
-				vtprintf( pvtTmp, "%.*s", GetTextSize( *word ), GetText( *word ) );
+				//vtprintf( pvtTmp, "%.*s", GetTextSize( *word ), GetText( *word ) );
 				(*word) = NEXTLINE( *word );
-				Release( (POINTER)columns[cols] );
-				(columns+cols)[0] = StrDup( GetText( VarTextPeek( pvtTmp)) );
-				VarTextDestroy( &pvtTmp );
+				//Release( (POINTER)columns[cols] );
+				//(columns+cols)[0] = StrDup( GetText( VarTextPeek( pvtTmp)) );
+				//VarTextDestroy( &pvtTmp );
 			}
 			cols++;
 			columns[cols] = NULL;
