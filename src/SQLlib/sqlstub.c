@@ -3830,13 +3830,13 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 									if( strcmp( (const char *)state, "01004" ) == 0 ){
 										useCollector = TRUE;
 										if( !pvtDataCollector ) pvtDataCollector = VarTextCreate();
-										VarTextAddData( pvtDataCollector, byResult, ( ResultLen<(int)colsize ) ?ResultLen:colsize);
+										VarTextAddData( pvtDataCollector, byResult, ( ResultLen<(int)(colsize-1) ) ?ResultLen:(colsize-1));
 									}else {
 										lprintf( "SQLGetData return info [%s] but this state is not handled.", state );
 										break;
 									}
 								} else if( useCollector ) {
-									VarTextAddData( pvtDataCollector, byResult, ( ResultLen< (int)colsize )?ResultLen:colsize );
+									VarTextAddData( pvtDataCollector, byResult, ( ResultLen< (int)(colsize-1) )?ResultLen:(colsize-1) );
 								}
 							} while( rc == SQL_SUCCESS_WITH_INFO );
 
