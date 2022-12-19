@@ -1512,6 +1512,7 @@ retry:
 				for( n = 0; n < table->fields.count; n++ )
 				{
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
+					int hadAutoPK = FALSE;
 					if( odbc->flags.bSQLite_native )
 					{
 						if( table->fields.field[n].extra
@@ -1526,6 +1527,7 @@ retry:
 									  , "INTEGER" //table->fields.field[n].type
 									  , " PRIMARY KEY"
 									  );
+							hadAutoPK = TRUE;
 						}
 						else
 						{
@@ -1579,13 +1581,14 @@ retry:
 						int k;
 						for( k = 0; k < table->keys.count; k++ )
 						{
-							if( table->keys.key[k].flags.bPrimary && !table->keys.key[k].colnames[1] )
-							{
-								if( StrCmp( table->keys.key[k].colnames[0], table->fields.field[n].name ) == 0 )
+							if( !hadAutoPK )
+								if( table->keys.key[k].flags.bPrimary && !table->keys.key[k].colnames[1] )
 								{
-									vtprintf( pvtCreate, " PRIMARY KEY" );
+									if( StrCmp( table->keys.key[k].colnames[0], table->fields.field[n].name ) == 0 )
+									{
+										vtprintf( pvtCreate, " PRIMARY KEY" );
+									}
 								}
-							}
 							if( table->keys.key[k].flags.bUnique && !table->keys.key[k].colnames[1] )
 							{
 								if( StrCmp( table->keys.key[k].colnames[0], table->fields.field[n].name ) == 0 )
@@ -1677,8 +1680,11 @@ retry:
 												  );
 									first = 0;
 								}
-							} else {
-								lprintf( "non unique key is not being emitted to sqlite?" );
+							} else {								
+								// indexes are added after the create table statement;
+								// not sure the history of this.  If this IS emitted as other databases,
+								// then the below create index emits for sqlite will have to be removed
+								//lprintf( "non unique key is not being emitted to sqlite?" );
 							}
 						}
 						else
