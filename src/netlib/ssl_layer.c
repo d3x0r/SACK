@@ -1058,7 +1058,7 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 	ctx->ctx = SSL_CTX_new( TLSv1_2_server_method() );
 #else
 	ctx->ctx = SSL_CTX_new( TLS_server_method() );
-	SSL_CTX_set_min_proto_version( ses->ctx, TLS1_2_VERSION );
+	SSL_CTX_set_min_proto_version( ctx->ctx, TLS1_2_VERSION );
 #endif
 	{
 		int r;
