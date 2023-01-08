@@ -306,6 +306,7 @@ static int handshake( PCLIENT pc ) {
 #endif
 			return -1;
 		}
+		if( r >= 0 )
 		{
 			size_t pending;
 			while( ( pending = BIO_ctrl_pending( ses->wbio) ) > 0 ) {
