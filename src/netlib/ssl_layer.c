@@ -423,7 +423,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 								pc->errorCallback( pc->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_CERTCHAIN_FAIL );
 							lprintf( "Certificate verification failed. %d", r );
 							LeaveCriticalSec( &pc->ssl_session->csReadWrite );
-							RemoveClientEx( pc, 0, 1 );
+							ssl_CloseSession( pc );
 							return;
 							//ERR_print_errors_cb( logerr, (void*)__LINE__ );
 						}
@@ -471,9 +471,6 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 							lprintf( "SSL_Read failed. %d", error );
 						if( pc->errorCallback )
 							pc->errorCallback( pc->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_FAIL );
-						//ERR_print_errors_cb( logerr, (void*)__LINE__ );
-						//RemoveClient( pc );
-						//return;
 					}
 				}
 			}
@@ -483,9 +480,12 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 						? SACK_NETWORK_ERROR_SSL_HANDSHAKE
 						: SACK_NETWORK_ERROR_SSL_HANDSHAKE_2
 						, buffer, length );
+				// disableSSL call can happen during error callback
+				// in which case this will eventually fall back to non-SSL reading
+				// and the buffer will get passed back in (or a new buffer if someone really crafty uses it...)
 				if( pc->ssl_session ) {
 					LeaveCriticalSec( &pc->ssl_session->csReadWrite );
-					RemoveClient( pc );
+					ssl_CloseSession( pc );
 				}
 				return;
 			}
@@ -520,11 +520,6 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				lprintf( "incomplete read" );
 #endif
 			}
-			//else {
-			//	lprintf( "SSL_Read failed." );
-			//	ERR_print_errors_cb( logerr, (void*)__LINE__ );
-			//	RemoveClient( pc );
-			//}
 
 		}
 		else {
