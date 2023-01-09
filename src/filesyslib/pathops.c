@@ -364,7 +364,9 @@ int  MakePath ( CTEXTSTR path )
 	if( !path )
 		return 0;
 #ifdef _WIN32
-	status = CreateDirectory( path, NULL );
+	wchar_t* wpath = CharWConvert( path );
+	{ wchar_t* tmp; if( LONG_PATHCHAR ) for( tmp = wpath; tmp[0]; tmp++ ) if( tmp[0] == '/' ) tmp[0] = LONG_PATHCHAR; }
+	status = CreateDirectoryW( wpath, NULL );
 	if( !status )
 	{
 		uint32_t err = GetLastError();
@@ -374,10 +376,11 @@ int  MakePath ( CTEXTSTR path )
 		{
 			last[0] = 0;
 			if( MakePath( tmppath ) )
-				status = CreateDirectory( path, NULL );
+				status = CreateDirectoryW( wpath, NULL );
 		}
 		Release( tmppath );
 	}
+	Release( wpath );
 	return status;
 #else
 #  ifdef UNICODE
