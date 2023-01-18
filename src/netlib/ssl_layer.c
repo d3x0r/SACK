@@ -390,8 +390,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			if( len < (int)length ) {
 				lprintf( "Internal buffer error; wrote less to buffer than specified?" );
 				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
-				Release( pc->ssl_session );
-				RemoveClient( pc );
+				ssl_CloseSession( pc );
 				return;
 			}
 
