@@ -3963,7 +3963,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							val->result_n = 0;
 							rc = SQLGetData( collection->hstmt
 								, (short)(idx)
-								, SQL_C_LONG
+								, SQL_C_SBIGINT
 								, &val->result_n
 								, colsize
 								, &ResultLen );
