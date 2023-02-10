@@ -3764,6 +3764,10 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 //#define SQL_SS_TABLE            (-153) SQL Server 2008
 //#define SQL_SS_TIME2            (-154) SQL Server 2008
 //#define SQL_SS_TIMESTAMPOFFSET  (-155) SQL Server 2008
+#ifndef SQL_WLONGVARCHAR
+#  define SQL_WLONGVARCHAR (-10)
+#endif
+
 						struct jsox_value_container *val = (struct jsox_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
 						switch( coltype ) {
 						default:
@@ -3861,6 +3865,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							break;
 						case SQL_WCHAR:
 						case SQL_WVARCHAR:
+						case SQL_WLONGVARCHAR:
 							val->value_type = JSOX_VALUE_STRING;
 							rc = SQLGetData( collection->hstmt
 								, (short)(idx)
