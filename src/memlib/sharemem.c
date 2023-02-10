@@ -1918,8 +1918,8 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 						// copy link...
 						if( ( pNew->next = pc->next ) )
 							pNew->next->me = &pNew->next;
-						*( pNew->me = pc->me ) = pNew;
-
+						pNew->me = pc->me;
+						pc->me[0] = pNew;
 						pc->info.dwOwners = 1;  // set owned block.
 						break; // successful allocation....
 					}
