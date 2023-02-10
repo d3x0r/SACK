@@ -370,6 +370,10 @@ int  MakePath ( CTEXTSTR path )
 	if( !status )
 	{
 		uint32_t err = GetLastError();
+		if( err == ERROR_ALREADY_EXISTS ){
+			Release( wpath );
+			return TRUE;
+		}
 		TEXTSTR tmppath = StrDup( path );
 		TEXTSTR last = (TEXTSTR)pathrchr( tmppath );
 		if( last )
