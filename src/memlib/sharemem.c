@@ -2445,7 +2445,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 								// for this pc...
 								if( (pc->next = next->next) )
 									pc->next->me = &pc->next;
-								*( pc->me = next->me ) = pc;
+								pc->me = next->me;
+								pc->me[0] = pc;
 								bCollapsed = TRUE;
 							}
 #ifdef _DEBUG
@@ -2845,7 +2846,8 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 					// consolidate...
 					if( (pNew->next = next->next) )
 						pNew->next->me = &pNew->next;
-					*( pNew->me = next->me ) = pNew;
+					pNew->me = next->me;
+					pNew->me[0] = pNew;
 
 					pNew->dwSize += next->dwSize + CHUNK_SIZE;
 					next = (PCHUNK)( pNew->byData + pNew->dwSize );
