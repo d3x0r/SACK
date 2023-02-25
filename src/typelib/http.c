@@ -190,19 +190,22 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 	return url;
 }
 
-void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT params )
+void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT *pparams )
 {
+	PTEXT params = pparams[0];
 	PTEXT start = TextParse( params, "&=", NULL, 1, 1 DBG_SRC );
 	PTEXT next = start;
 	PTEXT tmp;
 	for( tmp = start; tmp; tmp = NEXTLINE( tmp ) ) {
 		if( tmp->format.position.offset.spaces ) {
 			SegBreak( tmp );
-			LineRelease( tmp );
+			//LineRelease( tmp );
 			if( tmp == start ) // weren't actually any parameters.
 				return;
-			else
-	    break;  // okay, stripped the end off, use the start...
+			else{
+				pparams[0] = tmp;
+				break;  // okay, stripped the end off, use the start...
+			}
 		}
 	}
 	//lprintf( "Input was %s", GetText( params ) );
@@ -466,12 +469,13 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 											}
 											else if( GetText(tmp)[0] == '?' )
 											{
-												ProcessURL_CGI( pHttpState, &pHttpState->cgi_fields, next );
-												next = NEXTLINE( next );
+												ProcessURL_CGI( pHttpState, &pHttpState->cgi_fields, &next );
+												//next = NEXTLINE( next );
 											}
 											else if( GetText(tmp)[0] == '#' )
 											{
-												ProcessURL_CGI( pHttpState, &pHttpState->anchor_fields, next );
+												// anchor is stripped by the client before requesting
+												ProcessURL_CGI( pHttpState, &pHttpState->anchor_fields, &next );
 												lprintf( "Page anchor of URL is lost(not saved)...%s %s"
 													, GetText( tmp )
 													, GetText( next ) );
