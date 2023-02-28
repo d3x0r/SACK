@@ -5,57 +5,33 @@
 
 void DoReboot( char *mode )
 {
-   int b95;
 	HANDLE hToken, hProcess;
 	TOKEN_PRIVILEGES tp;
-	OSVERSIONINFO osvi;
-//cpg27dec2006 c:\work\sack\src\utils\reboot\reboot.c(9): Warning! W202: Symbol 'dwPriority' has been defined, but not referenced
-//cpg27dec2006 	DWORD dwPriority;
-	osvi.dwOSVersionInfoSize = sizeof( osvi );
-	GetVersionEx( &osvi );
-	if( osvi.dwPlatformId  == VER_PLATFORM_WIN32_NT )
-		b95 = FALSE;
-	else
-		b95 = TRUE;
 
 	if( DuplicateHandle( GetCurrentProcess(), GetCurrentProcess()
 							 , GetCurrentProcess(), &hProcess, 0
 							 , FALSE, DUPLICATE_SAME_ACCESS  ) )
 	{
-		if( b95 || OpenProcessToken( hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken ) )
+		if( OpenProcessToken( hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken ) )
 		{
 			tp.PrivilegeCount = 1;
-			if( b95 || LookupPrivilegeValue( NULL
+			if( LookupPrivilegeValue( NULL
 													 , SE_SHUTDOWN_NAME
 													 , &tp.Privileges[0].Luid ) )
 			{
-				if( !b95 )
-				{
-					tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-					AdjustTokenPrivileges( hToken, FALSE, &tp, 0, NULL, NULL );
-				}
+				tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+				AdjustTokenPrivileges( hToken, FALSE, &tp, 0, NULL, NULL );
 				//ExitWindowsEx( EWX_LOGOFF|EWX_FORCE, 0 );
-				{
-					// PTEXT temp;
-					// DECLTEXT( msg, "Initiating system shutdown..." );
-					// EnqueLink( &ps->Command->Output, &msg );
-					// if( !(temp = GetParam( ps, &param ) ) )
-               if( stricmp( mode, "shutdown" ) == 0 )
-						ExitWindowsEx( EWX_SHUTDOWN|EWX_FORCE, 0 );
-               else if( stricmp( mode, "reboot" ) == 0 )
-						ExitWindowsEx( EWX_REBOOT|EWX_FORCE, 0 );
-					else
-                  printf( "Mode specified invalid! (reboot/shutdown)\n" );
-				 //  else
-				   {
-						//if( TextLike( temp, "logoff" ) )
-						//	ExitWindowsEx( EWX_LOGOFF|EWX_FORCE, 0 );
-						//else if( TextLike( temp, "reboot" ) )
-						//	ExitWindowsEx( EWX_REBOOT|EWX_FORCE, 0 );
-						//else if( TextLike( temp, "shutdown" ) )
-						//	ExitWindowsEx( EWX_SHUTDOWN|EWX_FORCE, 0 );
-					}
-				}
+				// PTEXT temp;
+				// DECLTEXT( msg, "Initiating system shutdown..." );
+				// EnqueLink( &ps->Command->Output, &msg );
+				// if( !(temp = GetParam( ps, &param ) ) )
+            if( stricmp( mode, "shutdown" ) == 0 )
+					ExitWindowsEx( EWX_SHUTDOWN|EWX_FORCE, 0 );
+            else if( stricmp( mode, "reboot" ) == 0 )
+					ExitWindowsEx( EWX_REBOOT|EWX_FORCE, 0 );
+				else
+               lprintf( "Mode specified invalid! (reboot/shutdown)\n" );
 			}
 			else
 			{
