@@ -5140,7 +5140,7 @@ uintptr_t CPROC sack_vfs_os_system_ioctl( struct sack_vfs_os_volume* vol, uintpt
 
 LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArray, int8_t** tzArray, size_t* timeCount ) {
 	if( !timeArray ) return TRUE;
-	struct scratchTime {
+	struct s_scratchTime {
 		uint64_t scratchTime;
 		uint8_t scratchTz;
 	} scratch;
@@ -5173,9 +5173,9 @@ LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArr
 	timeArray[0] = NewArray( uint64_t, pdlTimes->Cnt );
 	tzArray[0] = NewArray( int8_t, pdlTimes->Cnt );
 	{
-		struct scratchTime* st;
+		struct s_scratchTime* st;
 		INDEX idx;
-		DATA_FORALL( pdlTimes, idx, struct scratchTime*, st ) {
+		DATA_FORALL( pdlTimes, idx, struct s_scratchTime*, st ) {
 			timeArray[0][idx] = st->scratchTime;
 			tzArray[0][idx] = st->scratchTz;
 		}
