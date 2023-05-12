@@ -4401,7 +4401,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 				rc = SQLBindParameter( hstmt
 										  , useIndex  // parameter number
 										  , SQL_PARAM_INPUT // inputoutputtype
-										  , SQL_C_UBIGINT  // value type
+										  , SQL_C_SBIGINT  // value type
 										  , SQL_BIGINT    // parameter type
 										  , 100 // precision (colsize)
 										  , 0 // decimal digits
