@@ -788,6 +788,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 #ifdef WIN32
 #ifndef UNDER_CE
 	int error;
+	if( task->pi.dwProcessId ) // sometimes we can't get back the launched process? rude.
 	if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, task->pi.dwProcessId ) )
 	{
 		error = GetLastError();
@@ -799,6 +800,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 		}
 	}
 	// try and copy some code to it..
+	if( task->pi.hProcess )
 	{
 		POINTER mem = VirtualAllocEx( task->pi.hProcess, NULL, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE );
 		DWORD err = GetLastError();
@@ -819,7 +821,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 		}
 	}
 #endif
-	if( WaitForSingleObject( task->pi.hProcess, 1 ) != WAIT_OBJECT_0 )
+	if( (!task->pi.hProcess) || WaitForSingleObject( task->pi.hProcess, 1 ) != WAIT_OBJECT_0 )
 		return FALSE;
 	else
 		return TRUE;
