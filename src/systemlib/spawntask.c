@@ -335,7 +335,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
 															  , uintptr_t psv
 																DBG_PASS
 															  ){
-   return LaunchPeerProgram_v2( program, path, args, flags, OutputHandler, NULL, EndNotice, psv, NULL DBG_RELAY );
+   return LaunchPeerProgram_v2( program, path, args, flags, OutputHandler, OutputHandler, EndNotice, psv, NULL DBG_RELAY );
 }
 
 // Run a program completely detached from the current process
