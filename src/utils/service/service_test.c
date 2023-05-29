@@ -94,16 +94,36 @@ int main( int argc, char **argv )
 			return 0;
 		}
 		else {
+			int argofs = 3;
 			progname = argv[1];
 			startin = argv[2];
+			while( argofs < argc ){
+				const char *p;
+				if( argv[argofs][0] == '-' 
+					&& argv[argofs][1] == '-' 
+					&& argv[argofs][2] == 0 
+					){
+					argofs++;
+					break;
+				}
+				if( ( p = StrChr( argv[argofs], '=' ) ) ){
+					char *tmpname = DupCStrLen( argv[argofs], p-argv[argofs] );
+					char *tmpval = DupCStr( p+1 );
+					lprintf( "Setting Environtment: %s = %s", tmpname, tmpval );
+					OSALOT_SetEnvironmentVariable( tmpname, tmpval );
+					Release( tmpname );
+					Release( tmpval );
+					argofs++;
+				} else break;
+			}
 			args = NewArray( CTEXTSTR, argc );
 			args[0] = progname;
 			{
 				int n;
-				for( n = 3; n < argc; n++ ) {
-					args[n-2] = argv[n];
+				for( n = argofs; n < argc; n++ ) {
+					args[n-(argofs-1)] = argv[n];
 				}
-				args[n-2] = NULL;
+				args[n-(argofs-1)] = NULL;
 			}
 		}
 	}
