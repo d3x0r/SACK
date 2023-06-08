@@ -638,9 +638,25 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 				}
 			}
 			else {
+				int tries = 0;
 				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-				while( !pResult->this_thread )
-					Idle(); // wait for it to be added to waiting lists?
+				while( !pResult->this_thread ) {
+					INDEX idx;
+					POINTER client;
+					IdleFor(1); // wait for it to be added to waiting lists?
+					if( tries++ > 10 ) {
+						tries = 0;
+						for( idx = 0; client = PeekQueueEx( globalNetworkData.client_schedule, idx); idx++ ){
+							if( client == pResult ) break;
+						}
+						if( !pResult->this_thread && !client ) {
+							lprintf( "Lost client in schedule list:%p (Requeuing)", pResult );
+							EnqueLink( &globalNetworkData.client_schedule, pResult );
+							WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
+						}
+					}
+				}
+				//if( tries > 1 ) lprintf( "Took %d tries.", tries );
 			}
 
 #endif
