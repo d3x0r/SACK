@@ -472,8 +472,13 @@ void RemoveThreadEvent( PCLIENT pc ) {
 		LIST_FORALL( thread->monitor_list, idx, PCLIENT, previous ) {
 			if( previous != pc )
 			{
-				AddLink( &newList, previous );
-				SetDataItem( &thread->event_list, c++, GetDataItem( &thread->event_list, idx ) );
+				POINTER p = GetDataItem( &thread->event_list, idx );
+				if( p ) {
+					AddLink( &newList, previous );
+					SetDataItem( &thread->event_list, c++, p );
+				} else {
+					lprintf( "Item %d is not found in events.", idx );
+				}
 			}
 		}
 		thread->event_list->Cnt = c;
