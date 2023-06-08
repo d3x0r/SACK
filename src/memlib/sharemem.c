@@ -2573,6 +2573,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		uintptr_t nChunks = 0;
 		uintptr_t nTotalUsed = 0;
 		PSPACE pMemSpace;
+		if( !pHeap ) pHeap = g.pMemInstance;
 		PMEM pMem = GrabMem( pHeap ), pCurMem;
 
 		pc = pMem->pRoot;
@@ -2679,7 +2680,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		size_t nChunks = 0;
 		size_t nTotalUsed = 0;
 		char byDebug[256];
-
+		if( !pHeap ) pHeap = g.pMemInstance;
 		pMem = GrabMem( pHeap );
 
 		fprintf( file, " ------ Memory Dump ------- \n" );
