@@ -300,7 +300,7 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 	pbtemp = pc->lpUserData;
 	csr = pc->csLockRead;
 	csw = pc->csLockWrite;
-
+	DeleteList( &pc->psvInUse );
 	ReleaseAddress( pc->saClient );
 	ReleaseAddress( pc->saSource );
 #if _WIN32
