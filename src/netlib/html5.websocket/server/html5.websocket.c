@@ -214,6 +214,7 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 		socket->flags.closed = 1;
 		return;
 	}
+	SetNetworkLong( pc_client, 0, 0 );
 	//lprintf( "ServerWebSocket Connection closed event..." );
 	if( pc_client && socket->input_state.on_close && socket->input_state.psv_open  ) {
 		socket->input_state.on_close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
@@ -235,7 +236,6 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	DestroyHttpState( socket->http_state );
 	Deallocate( POINTER, socket->buffer );
 	Deallocate( HTML5WebSocket, socket );
-	SetNetworkLong( pc_client, 0, 0 );
 }
 
 static void CPROC closed( PCLIENT pc_client ) {
@@ -253,7 +253,7 @@ static void CPROC read_complete_process_data( PCLIENT pc ) {
 			break;
 		case HTTP_STATE_RESULT_CONTENT:
 		{
-			PVARTEXT pvt_output = VarTextCreate();
+			PVARTEXT pvt_output;
 			PTEXT value, value2;
 			PTEXT key1, key2;
 			value = GetHTTPField( socket->http_state, "Connection" );
@@ -376,7 +376,8 @@ static void CPROC read_complete_process_data( PCLIENT pc ) {
 				socket->flags.rfc6455 = 0;
 			else
 				socket->flags.rfc6455 = 1;
-
+				
+			pvt_output = VarTextCreate();
 			if( !socket->flags.accepted ) {
 				vtprintf( pvt_output, "HTTP/1.1 403 Connection refused\r\n" );
 			} else {
