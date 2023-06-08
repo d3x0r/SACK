@@ -83,6 +83,7 @@ static struct local_http_data
 		BIT_FIELD bLogReceived : 1;
 	} flags;
 	PLIST pendingConnects;
+	PLIST activeConnects;
 }local_http_data;
 #define l local_http_data
 
@@ -732,8 +733,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
 				}
 				else
 				{
-
-                                    lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
+					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
 					TriggerNetworkErrorCallback( pHttpState->request_socket, SACK_NETWORK_ERROR_HTTP_CHUNK );
 					unlockHttp( pHttpState );
 					RemoveClient( pHttpState->request_socket );
@@ -931,7 +931,7 @@ PTEXT GetHttpMethod( struct HttpState *pHttpState )
 void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 {
 	lockHttp( pHttpState );
-	//_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too?" );
+	//_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too? %p", pHttpState );
 	EndHttp( pHttpState ); // empties variables
 	DeleteList( &pHttpState->fields );
 	DeleteList( &pHttpState->cgi_fields );
@@ -1116,20 +1116,27 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 static void CPROC HttpConnected( PCLIENT pc, int error ) {
 	INDEX idx;
 	struct pendingConnect *connect;
+	//lprintf( "Connection for Http: %p", pc );
 	while( 1 ) {
 		LIST_FORALL( l.pendingConnects, idx, struct pendingConnect *, connect ) {
 			if( connect->pc == pc ) {
+				//lprintf( "Found pending connect(Http): %p %d", connect, idx );
 				SetLink( &l.pendingConnects, idx, NULL );
 				break;
 			}
 		}
 		if( connect )
 			break;
+		else {
+			AddLink( &l.activeConnects, pc );
+			break;
+		}
 		Relinquish();
 	}
-	SetNetworkLong( pc, 0, (uintptr_t)connect->state );
-
-	Release( connect );
+	if( connect ) {
+		SetNetworkLong( pc, 0, (uintptr_t)connect->state );
+		Release( connect );
+	}
 	//lprintf( "Got connected... so connect gets released?");
 }
 
@@ -1138,8 +1145,10 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 	PCLIENT pc;
 	struct pendingConnect *connect = New( struct pendingConnect );
 	struct HttpState *state = CreateHttpState(&connect->pc);
+	connect->pc = NULL;
 	connect->state = state;
 	state->closed = FALSE;
+	//lprintf( "adding pending: %p", connect->pc );
 	AddLink( &l.pendingConnects, connect );
 	pc = OpenTCPClientExx( GetText( address ), 80, HttpReader, NULL, NULL, HttpConnected );
 	connect->pc = pc;
@@ -1187,25 +1196,34 @@ PTEXT PostHttp( PTEXT address, PTEXT url, PTEXT content )
 }
 
 static void httpConnected( PCLIENT pc, int error ) {
+	if( error ) {
+		RemoveClient( pc );
+	}
+	if(0)
 	{
 		INDEX idx;
 		struct pendingConnect *connect;
+		//lprintf( "Connection for http: %p", pc );
 		while( 1 ) {
 			LIST_FORALL( l.pendingConnects, idx, struct pendingConnect *, connect ) {
 				if( connect->pc == pc ) {
+					//lprintf( "Found pending connect(http): %p %d", connect, idx );
 					SetLink( &l.pendingConnects, idx, NULL );
 					break;
 				}
 			}
 			if( connect )
 				break;
+			else {
+				AddLink( &l.activeConnects, pc );
+				break;
+			}
 			Relinquish();
 		}
-		SetNetworkLong( pc, 0, (uintptr_t)connect->state );
-		Release( connect );
-	}
-	if( error ) {
-		RemoveClient( pc );
+		if( connect ){
+			SetNetworkLong( pc, 0, (uintptr_t)connect->state );
+			Release( connect );
+		}
 	}
 }
 
@@ -1220,9 +1238,11 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
 		struct pendingConnect *connect = New( struct pendingConnect );
 		struct HttpState *state = CreateHttpState( &connect->pc );
+		connect->pc = NULL;
 		connect->state = state;
 		state->closed = FALSE;
-		AddLink( &l.pendingConnects, connect );
+		//lprintf( "adding pending2: %p", connect->pc );
+		//AddLink( &l.pendingConnects, connect );
 		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, httpConnected, 0 DBG_SRC );
 		connect->pc = pc;
 		ReleaseAddress( addr );
@@ -1302,8 +1322,11 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		struct HttpState *state = CreateHttpState( &connect->pc );
 		state->options = options;
 		state->closed = FALSE;
+		connect->pc = NULL;
 		connect->state = state;
-		AddLink( &l.pendingConnects, connect );
+		//lprintf( "adding pending3: %p", connect );
+		//AddLink( &l.pendingConnects, connect );
+		//lprintf( "added pending3" );
 		if( retries ) {
 			//lprintf( "HTTP(S) Query (retry):%s", GetText( url ) );
 			//lprintf( "PC of connect:%p  %d", pc, retries );
@@ -1312,6 +1335,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose
 				, writeComplete, httpConnected, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
 		connect->pc = pc;
+		//lprintf( "setting pending3: %p", connect->pc );
 		ReleaseAddress( addr );
 		if( pc )
 		{
