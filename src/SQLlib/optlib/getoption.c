@@ -1337,6 +1337,11 @@ PRIORITY_PRELOAD( AllocateOptionGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY )
 	SimpleRegisterAndCreateGlobal( sack_global_option_data );
 	InitializeCriticalSec( &og.cs_option );
 }
+#else 
+PRIORITY_PRELOAD( AllocateOptionGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY )
+{
+	InitializeCriticalSec( &og.cs_option );
+}
 #endif
 
 PRIORITY_PRELOAD(RegisterSQLOptionInterface, SQL_PRELOAD_PRIORITY + 1 )
