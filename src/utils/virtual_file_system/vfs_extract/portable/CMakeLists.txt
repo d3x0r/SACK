@@ -19,6 +19,10 @@ add_definitions( ${PLATFORM_DEFINES} )
 
 STRING( REPLACE " " ";" K12_SOURCES ${K12_SOURCES} )
 
+if( MSVC )
+    SET( EXTRACTER_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
+endif( MSVC )
+
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
         CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
