@@ -660,8 +660,8 @@ getnext:
 	//lprintf( "Check if %s is a directory...", pData->buffer );
 	if( ((flags & (SFF_DIRECTORIES | SFF_SUBCURSE))
 		&& (pData->scanning_mount && pData->scanning_mount->fsi
-			&& (pData->scanning_mount->fsi->is_directory
-				&& pData->scanning_mount->fsi->is_directory( pData->scanning_mount->psvInstance, pDataBuffer ))))
+			&& (pData->scanning_mount->fsi->find_is_directory
+				&& pData->scanning_mount->fsi->find_is_directory( findcursor( pInfo ) ))))
 		|| (!(pData->scanning_mount ? pData->scanning_mount->fsi : NULL)
 #ifdef WIN32
 #  ifdef UNDER_CE
@@ -759,8 +759,10 @@ getnext:
 																							  , (flags & SFF_IGNORECASE)?0:0 ) ) )
 	{
 		//lprintf( "Send %s", pData->buffer );
-		if( Process != NULL )
+		if( Process != NULL ) {
+			//lprintf( "Process with flags:%s %d", pData->buffer, sendflags );
 			Process( psvUser, pData->buffer, sendflags );
+		}
 		if( tmp_base )
 			Release( tmp_base );
 		return (*pInfo)?1:0;
