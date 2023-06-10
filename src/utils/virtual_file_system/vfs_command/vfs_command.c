@@ -236,6 +236,7 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 {
 	if( flags & SFF_DIRECTORY ) {// don't need to do anything with directories... already
       // doing subcurse option.
+		if( l.verbose ) printf( "Got Subdirectory:%s\n", filename );
 	} else {
 		FILE *in = sack_fopenEx( 0, filename, "rbn", sack_get_default_mount() );
 		if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
@@ -320,7 +321,10 @@ static void StoreFile( CTEXTSTR filemask )
 		end = tmppath;
 		tmppath = NULL;
 	}
-	while( ScanFilesEx( tmppath, end, &info, _StoreFile, SFF_DIRECTORIES|SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
+	if( StrChr( end, '*' ) || StrChr( end, '?' ) || IsPath( filemask ) )
+		while( ScanFilesEx( tmppath?tmppath:end, tmppath?end:"*", &info, _StoreFile, SFF_DIRECTORIES | SFF_SUBCURSE | SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount()) );
+	else
+		_StoreFile( 0, filemask, 0 );
 }
 
 static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 )
