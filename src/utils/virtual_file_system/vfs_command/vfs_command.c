@@ -313,7 +313,7 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 static void StoreFile( CTEXTSTR filemask )
 {
 	void *info = NULL;
-	char * tmppath = strdup( filemask );
+	char * tmppath = StrDup( filemask );
 	char *end = (char*)pathrchr( tmppath );
 	if( end ) {
 		end[0] = 0; end++;
@@ -321,10 +321,22 @@ static void StoreFile( CTEXTSTR filemask )
 		end = tmppath;
 		tmppath = NULL;
 	}
-	if( StrChr( end, '*' ) || StrChr( end, '?' ) || IsPath( filemask ) )
+	LOGICAL doScan = FALSE;
+	if( StrChr( end, '*' ) || StrChr( end, '?' ) )
+		doScan = TRUE;
+	else if( IsPath( filemask ) ) {
+		Release( tmppath );
+		tmppath = StrDup( filemask );
+		end = "*";
+		doScan = TRUE;	
+	}
+	
+	if( doScan )
 		while( ScanFilesEx( tmppath?tmppath:end, tmppath?end:"*", &info, _StoreFile, SFF_DIRECTORIES | SFF_SUBCURSE | SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount()) );
 	else
 		_StoreFile( 0, filemask, 0 );
+	if( tmppath )
+		Release( tmppath );
 }
 
 static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 )
