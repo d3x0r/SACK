@@ -256,6 +256,12 @@ DEADSTART_PROC  LOGICAL DEADSTART_CALLTYPE  IsRootDeadstartStarted ( void );
 /* \returns whether MarkRootDeadstartComplete has been called. */
 DEADSTART_PROC  LOGICAL DEADSTART_CALLTYPE  IsRootDeadstartComplete ( void );
 
+/*
+   Setup flags to ignore control C Events on windows.  use 1 << (ControlType) or'd together to set ignore.
+   Use 0 to clear ignore.
+*/
+DEADSTART_PROC void DEADSTART_CALLTYPE IgnoreBreakHandler( int ignore );
+
 #if defined( __LINUX__ )
 // call this after a fork().  Otherwise, it will falsely invoke shutdown when it exits.
 DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );

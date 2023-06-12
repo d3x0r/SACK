@@ -27,6 +27,7 @@ struct task_info_tag {
 		BIT_FIELD bSentIoTerminator : 1;
 		BIT_FIELD log_input : 1;
 		BIT_FIELD runas_root : 1;
+		BIT_FIELD useCtrlBreak : 1;
 	} flags;
 	TaskEnd EndNotice;
 	TaskOutput OutputEvent;
@@ -40,7 +41,7 @@ struct task_info_tag {
 	struct taskOutputStruct args1;
    struct taskOutputStruct args2;
 #if defined(WIN32)
-
+	char name[256]; // used for event to shutdown a task
 	HANDLE hReadOut, hWriteOut;
 	HANDLE hReadErr, hWriteErr;
 	HANDLE hReadIn, hWriteIn;
@@ -93,6 +94,7 @@ typedef struct loaded_library_tag
 	struct system_local_flags{
 		BIT_FIELD bLog : 1;
 		BIT_FIELD bInitialized : 1;
+		BIT_FIELD shutdown : 1;
 	} flags;
 	CTEXTSTR filename;  // pointer to just filename part...
 	TEXTCHAR *work_path;

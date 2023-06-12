@@ -403,11 +403,49 @@ void loadMacLibraries(struct local_systemlib_data *init_l) {
 
 #endif
 
+#ifdef _WIN32
+static uintptr_t DeathThread( PTHREAD thread ) {
+	char *eventName = (char*)GetThreadParam( thread );
+	HANDLE hRestartEvent = NULL;
+	{
+		PSECURITY_DESCRIPTOR psd = (PSECURITY_DESCRIPTOR)LocalAlloc( LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH );
+		InitializeSecurityDescriptor( psd, SECURITY_DESCRIPTOR_REVISION );
+		SetSecurityDescriptorDacl( psd, TRUE, NULL, FALSE );
+
+		SECURITY_ATTRIBUTES sa = { 0 };
+		sa.nLength = sizeof( sa );
+		sa.lpSecurityDescriptor = psd;
+		sa.bInheritHandle = FALSE;
+		//lprintf( "Creating event:%s", eventName );
+		//HANDLE hEvent = CreateEvent( &sa, TRUE, FALSE, TEXT( "Global\\Test" ) );
+		hRestartEvent = CreateEvent( &sa, FALSE, FALSE, eventName );
+		LocalFree( psd );
+		eventName[0] = 0;
+	}
+
+	DWORD status = WaitForSingleObject( hRestartEvent, INFINITE );
+	if( status == WAIT_OBJECT_0 ) {
+		InvokeExits();
+		exit(0);
+	}
+	return 0;
+}
+
+PRELOAD( addExitEvent ) {
+	char eventName[256];
+	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetCurrentProcessId() );
+	//lprintf( "Starting exit event thread... %s", eventName );
+	ThreadTo( DeathThread, (uintptr_t)eventName );
+	while( eventName[0] ) Relinquish();
+}
+
+#endif
 
 static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 {
 	struct local_systemlib_data *init_l = (struct local_systemlib_data *)mem;
 #ifdef _WIN32
+	
 	extern void InitCo( void );
 	InitCo();
 	{
@@ -770,11 +808,43 @@ int CPROC EndTaskWindow( PTASK_INFO task )
 #endif
 static DWORD STDCALL SendCtrlCThreadProc( void *data )
 {
+	return GenerateConsoleCtrlEvent( CTRL_C_EVENT, 0 );
+}
+static DWORD STDCALL SendBreakThreadProc( void* data ) {
 	return GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, 0 );
 }
 #if _MSC_VER
 #pragma runtime_checks( "sru", restore )
 #endif
+#endif
+
+#ifdef _WIN32
+
+struct handle_data {
+	unsigned long process_id;
+	HWND window_handle;
+};
+
+
+BOOL is_main_window( HWND handle ) {
+	return GetWindow( handle, GW_OWNER ) == (HWND)0 && IsWindowVisible( handle );
+}
+BOOL CALLBACK enum_windows_callback( HWND handle, LPARAM lParam ) {
+	struct handle_data* data = (struct handle_data*)lParam;
+	unsigned long process_id = 0;
+	GetWindowThreadProcessId( handle, &process_id );
+	if( data->process_id != process_id || !is_main_window( handle ) )
+		return TRUE;
+	data->window_handle = handle;
+	return FALSE;
+}
+HWND find_main_window( unsigned long process_id ) {
+	struct handle_data data;
+	data.process_id = process_id;
+	data.window_handle = 0;
+	EnumWindows( enum_windows_callback, (LPARAM)&data );
+	return data.window_handle;
+}
 #endif
 
 LOGICAL CPROC StopProgram( PTASK_INFO task )
@@ -788,43 +858,85 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 #ifdef WIN32
 #ifndef UNDER_CE
 	int error;
+	int exited = 0;
+	//ExitProcess()
+
+
 	if( task->pi.dwProcessId ) // sometimes we can't get back the launched process? rude.
-	if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, task->pi.dwProcessId ) )
 	{
-		error = GetLastError();
-		lprintf( "Failed to send CTRL_C_EVENT %d", error );
-		if( !GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, task->pi.dwProcessId ) )
-		{
-			error = GetLastError();
-			lprintf( "Failed to send CTRL_BREAK_EVENT %d", error );
+
+		HWND hWndMain = find_main_window( task->pi.dwProcessId );
+		if( hWndMain ) {
+			//lprintf( "Sending WM_CLOSE to %p", hWndMain );
+			SendMessage( hWndMain, WM_CLOSE, 0, 0 );
 		}
-	}
-	// try and copy some code to it..
-	if( task->pi.hProcess )
-	{
-		POINTER mem = VirtualAllocEx( task->pi.hProcess, NULL, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE );
-		DWORD err = GetLastError();
-		if( mem ) {
-			SIZE_T written;
-			if( WriteProcessMemory( task->pi.hProcess, mem,
-				(LPCVOID)SendCtrlCThreadProc, 1024, &written ) ) {
-				DWORD dwThread;
-				HANDLE hThread = CreateRemoteThread( task->pi.hProcess, NULL, 0 //-V575
-					, (LPTHREAD_START_ROUTINE)mem, NULL, 0, &dwThread );
-				err = GetLastError();
-				if( hThread )
-					if( WaitForSingleObject( task->pi.hProcess, 50 ) != WAIT_OBJECT_0 )
-						return FALSE;
-					else
-						return TRUE;
+		else {
+			IgnoreBreakHandler( ( 1 << CTRL_C_EVENT ) | ( 1 << CTRL_BREAK_EVENT ) );
+			AttachConsole( task->pi.dwProcessId );
+			if( !task->flags.useCtrlBreak )
+				if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, task->pi.dwProcessId ) ) {
+					error = GetLastError();
+					lprintf( "Failed to send CTRL_C_EVENT %d %d", task->pi.dwProcessId, error );
+				}// else lprintf( "Success sending ctrl C?" );
+			else			
+				if( !GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, task->pi.dwProcessId ) ) {
+					error = GetLastError();
+					lprintf( "Failed to send CTRL_BREAK_EVENT %d %d", task->pi.dwProcessId, error );
+				}// else lprintf( "Success sending ctrl break?" );
+			AttachConsole( ATTACH_PARENT_PROCESS ); // go back to parent.
+			IgnoreBreakHandler( 0 );
+		}
+		{
+			char eventName[256];
+			HANDLE hEvent;
+			snprintf( eventName, 256, "Global\\%s(%d):exit", task->name, task->pi.dwProcessId );
+			hEvent = OpenEvent( EVENT_MODIFY_STATE, FALSE, eventName );
+			if( hEvent != NULL ) {
+				//lprintf( "Opened event:%p %s %d", hEvent, eventName, GetLastError() );
+				if( !SetEvent( hEvent ) ) {
+					lprintf( "Failed to set event? %d", GetLastError() );
+				} else exited = 1;
 			}
 		}
 	}
+	// try and copy some code to it..
+	if( !exited )
+		if( task->pi.hProcess && FALSE )
+		{
+			POINTER mem = VirtualAllocEx( task->pi.hProcess, NULL, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE );
+			DWORD err = GetLastError();
+			lprintf( "Trying to do remote thread... %p %d", mem, err );
+			if( mem ) {
+				SIZE_T written;
+				if( WriteProcessMemory( task->pi.hProcess, mem,
+					(LPCVOID)SendCtrlCThreadProc, 1024, &written ) ) {
+					DWORD dwThread;
+					HANDLE hThread = CreateRemoteThread( task->pi.hProcess, NULL, 0 //-V575
+						, (LPTHREAD_START_ROUTINE)mem, NULL, 0, &dwThread );
+					err = GetLastError();
+					if( hThread ) {
+						//lprintf( "waiting for task to self terminate" );
+						if( WaitForSingleObject( task->pi.hProcess, 1000 ) != WAIT_OBJECT_0 ) {
+							lprintf( "Not exited after a second" );
+							return FALSE;
+						} else {
+							lprintf( "Exited for sure." );
+							return TRUE;
+						}
+					} else {
+						lprintf( "Failed to create remote thread %d", GetLastError() );
+					}
+				}
+			}
+		}
 #endif
-	if( (!task->pi.hProcess) || WaitForSingleObject( task->pi.hProcess, 1 ) != WAIT_OBJECT_0 )
+	if( (!task->pi.hProcess) || WaitForSingleObject( task->pi.hProcess, 1 ) != WAIT_OBJECT_0 ) {
+		//lprintf( "don't think it exited" );
 		return FALSE;
-	else
-		return TRUE;
+	} else {
+		//lprintf( "it definitly exited..." );
+		return TRUE;	
+	}
 #else
 //lprintf( "need to send kill() to signal process to stop" );
 #ifndef PEDANTIC_TEST
@@ -2320,6 +2432,8 @@ void SetProgramName( CTEXTSTR filename )
 
 DeclareThreadVar LOGICAL disallow_spawn;
 LOGICAL sack_system_allow_spawn( void ) {
+	if( ( *local_systemlib ).flags.shutdown )
+		return FALSE;
 	return !disallow_spawn;
 }
 void sack_system_disallow_spawn( void ) {

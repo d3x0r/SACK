@@ -403,6 +403,19 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		//TEXTCHAR saved_path[256];
 		task = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
 		MemSet( task, 0, sizeof( TASK_INFO ) );
+		task->flags.useCtrlBreak = ( flags & LPP_OPTION_USE_CONTROL_BREAK ) ? 1 : 0;
+		{
+			CTEXTSTR nameStart = StrRChr( (CTEXTSTR)program, '/' );
+			CTEXTSTR nameEnd = StrRChr( (CTEXTSTR)program, '.' );
+			if( !nameStart ) {
+				nameStart = StrRChr( (CTEXTSTR)program, '\\' );
+				if( !nameStart ) nameStart = program;
+				else nameStart++;
+			} else nameStart++;
+			if( !nameEnd ) nameEnd = nameStart + StrLen( nameStart );
+			snprintf( task->name, 256, "%.*s", (int)(nameEnd-nameStart), nameStart );
+			//lprintf( "Set Spawned Task Name to : %s", task->name );
+		}
 		task->psvEnd = psv;
 		task->flags.runas_root = (flags & LPP_OPTION_ELEVATE) != 0;
 		task->EndNotice = EndNotice;
@@ -560,7 +573,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				if( ( (!task->flags.runas_root) && ( CreateProcess( program
 										, GetText( cmdline )
 										, NULL, NULL, TRUE
-										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
+										, launch_flags
 										, NULL
 										, expanded_working_path
 										, &task->si
@@ -568,7 +581,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					((!task->flags.runas_root) && (CreateProcess( NULL //program
 										 , GetText( cmdline )
 										 , NULL, NULL, TRUE
-										 , launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
+										 , launch_flags
 										 , NULL
 										 , expanded_working_path
 										 , &task->si
@@ -576,7 +589,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					((!task->flags.runas_root) && (CreateProcess( program
 										, NULL // GetText( cmdline )
 										, NULL, NULL, TRUE
-										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
+										, launch_flags
 										, NULL
 										, expanded_working_path
 										, &task->si
@@ -585,7 +598,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					( (shellExec=0),CreateProcess( NULL//"cmd.exe"
 										, GetText( final_cmdline )
 										, NULL, NULL, TRUE
-										, launch_flags | ( OutputHandler?CREATE_NO_WINDOW:0 )//CREATE_NEW_PROCESS_GROUP
+										, launch_flags
 										, NULL
 										, expanded_working_path
 										, &task->si
@@ -876,11 +889,13 @@ ATEXIT( SystemAutoShutdownTasks )
 {
 	INDEX idx;
 	PTASK_INFO task;
-	if( local_systemlib )
+	if( local_systemlib ) {
+		( *local_systemlib ).flags.shutdown = TRUE;
 		LIST_FORALL( (*local_systemlib).system_tasks, idx, PTASK_INFO, task )
 		{
 			TerminateProgram( task );
 		}
+	}
 }
 
 SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line

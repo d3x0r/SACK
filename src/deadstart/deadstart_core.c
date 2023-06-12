@@ -287,23 +287,28 @@ void ClearDeadstarts( void )
 
 #ifndef UNDER_CE
 #  if defined( WIN32 )
+
+static int ignoreBreak;
+void IgnoreBreakHandler( int ignore) {
+	ignoreBreak = ignore;
+}
+
 #    ifndef __cplusplus_cli
 static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 {
+	if( ignoreBreak & ( 1 << dwCtrlType ) ) return TRUE;
+	//printf( "Received ctrlC Event %08x %d\n", ignoreBreak, dwCtrlType );
 	switch( dwCtrlType )
 	{
 	case CTRL_BREAK_EVENT:
 	case CTRL_C_EVENT:
+	case CTRL_CLOSE_EVENT:
+	case CTRL_LOGOFF_EVENT:
+	case CTRL_SHUTDOWN_EVENT:
 		InvokeExits();
 		// allow C api to exit, whatever C api we're using
 		// (allows triggering atexit functions)
-		exit(3);
-		return TRUE;
-	case CTRL_CLOSE_EVENT:
-		break;
-	case CTRL_LOGOFF_EVENT:
-		break;
-	case CTRL_SHUTDOWN_EVENT:
+		//exit(3);
 		break;
 	}
 	// default... return not processed.
@@ -347,15 +352,12 @@ void InvokeDeadstart( void )
 #  ifndef UNDER_CE
 		if( GetConsoleWindow() )
 		{
-#    ifndef __cplusplus_cli
-			//MessageBox( NULL, "!!--!! CtrlC", "blah", MB_OK );
-			SetConsoleCtrlHandler( CtrlC, TRUE );
-#    endif
+			if( !SetConsoleCtrlHandler( CtrlC, TRUE ) ) fprintf( stderr, "failed to SetConsoleCtrlHandler? %d\n", GetLastError() );
 		}
 		else
 		{
 			//MessageBox( NULL, "!!--!! NO CtrlC", "blah", MB_OK );
-			; // do nothing if we're no actually a console window. this should fix ctrl-c not working in CMD prompts launched by MILK/InterShell
+			// do nothing if we're no actually a console window. this should fix ctrl-c not working in CMD prompts launched by MILK/InterShell
 		}
 #  endif
 	}

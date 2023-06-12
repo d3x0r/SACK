@@ -62,6 +62,7 @@ typedef void (CPROC*TaskOutput)(uintptr_t, PTASK_INFO task, CTEXTSTR buffer, siz
 #define LPP_OPTION_NEW_CONSOLE          16
 #define LPP_OPTION_SUSPEND              32
 #define LPP_OPTION_ELEVATE              64
+#define LPP_OPTION_USE_CONTROL_BREAK   128
 
 struct environmentValue {
 	char* field;
