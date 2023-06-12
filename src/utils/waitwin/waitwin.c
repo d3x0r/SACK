@@ -8,6 +8,7 @@ int main( int argc, char **argv )
 	{
       int wait_exit = 1;
 		printf( "waiting for [%s]\n", argv[1] );
+		fflush( stdout );
 		if( argc > 2 && argv[2] )
 			if( stricmp( argv[2], "started" ) == 0 )
 			{
