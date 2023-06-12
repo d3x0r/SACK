@@ -646,7 +646,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 					IdleFor(1); // wait for it to be added to waiting lists?
 					if( tries++ > 10 ) {
 						tries = 0;
-						for( idx = 0; client = PeekQueueEx( globalNetworkData.client_schedule, idx); idx++ ){
+						for( idx = 0; client = PeekQueueEx( globalNetworkData.client_schedule, (int)idx); idx++ ){
 							if( client == pResult ) break;
 						}
 						if( !pResult->this_thread && !client ) {
