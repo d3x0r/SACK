@@ -5,10 +5,12 @@
 static LOGICAL programEnd;
 static PTASK_INFO task;
 static PTHREAD waiting;
+static PTHREAD waiting2;
 static CTEXTSTR progname;
 static CTEXTSTR *args;
 static CTEXTSTR startin;
-
+static TEXTCHAR eventName[256];
+static HANDLE hRestartEvent;
 
 static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task );
 
@@ -23,24 +25,52 @@ static void logOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t s
 }
 
 static void runTask( void ) {
-	lprintf( "Launching user process..." );
+	//lprintf( "Launching user process..." );
 	//task = LaunchUserProcess( progname, NULL, args, 0, NULL, MyTaskDone, 0 DBG_SRC );
 	task = LaunchPeerProgramExx( progname, startin, args, 0, logOutput, MyTaskDone, 0 DBG_SRC );
 }
 
-static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task )
+static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task_done )
 {
 	task = NULL;
-	lprintf( "task ended." );
 	if( !programEnd )
 		runTask();
+	else {
+		if( waiting ) WakeThread( waiting );
+		if( waiting2 ) WakeThread( waiting2 );
+	}
+}
+
+static uintptr_t WaitRestart( PTHREAD thread ) {
+	//lprintf( "Waiting to restart...%p", hRestartEvent );
+	while( TRUE ) {
+		PTASK_INFO pOldTask;
+		while( !task ) Relinquish();
+		pOldTask = task;
+		DWORD status = WaitForSingleObject( hRestartEvent, INFINITE );
+		//lprintf( "got signaled" );
+		if( status == WAIT_OBJECT_0 ) {
+			if( programEnd ) break; // this program is exiting, don't restart it...
+			waiting2 = thread;
+			StopProgram( task );
+			WakeableSleep( 1000 );
+			//lprintf( "waited a bit but still have a task %p", task );
+			if( task == pOldTask ) {
+				WakeableSleep( 5000 );
+				//lprintf( "Still? %p", task );
+				if( task == pOldTask ) {
+					TerminateProgram( task );
+				}
+			}
+			waiting2 = NULL;
+		}
+	}
+	return 0;
 }
 
 void Start( void )
 {
-	waiting = MakeThread();
 	runTask();
-	// start is like init...
 }
 
 int main( int argc, char **argv )
@@ -52,6 +82,7 @@ int main( int argc, char **argv )
 	SetSyslogOptions( opts );
 	SetSystemLog( SYSLOG_AUTO_FILE, 0 );
 	SetSystemLoggingLevel( 2000 );
+
 	if( argc == 1 ) {
 		lprintf( "usage: [install/uninstall] [service_description] <task> <start-in path> <arguments....>" );
 		lprintf( "     install [service_description] <task> <start-in path> <arguments....>" );
@@ -61,15 +92,18 @@ int main( int argc, char **argv )
 		printf( "     uninstall\n" );
 		return 0;
 	}
+	snprintf( eventName, 256, "Global\\%s:restart", GetProgramName() );
+
 	if( argc > 1 )
 	{
-		if( StrCaseCmp( argv[1], "uninstall" ) == 0 )
-		{
+		if( StrCaseCmp( argv[1], "uninstall" ) == 0 ) {
 			ServiceUninstall( GetProgramName() );
 			return 0;
-		}
-		else if( StrCaseCmp( argv[1], "install" ) == 0 )
-		{
+		} else if( StrCaseCmp( argv[1], "restart" ) == 0 ) {
+			HANDLE hEvent = OpenEvent( EVENT_MODIFY_STATE, FALSE, eventName );
+			if( hEvent != INVALID_HANDLE_VALUE ) if( !SetEvent( hEvent ) ) lprintf( "Failed to set event? %d", GetLastError() );
+			return 0;			
+		} else if( StrCaseCmp( argv[1], "install" ) == 0 ) {
 			PVARTEXT pvt = VarTextCreate();
 			{
 				int first = 1;
@@ -127,13 +161,30 @@ int main( int argc, char **argv )
 			}
 		}
 	}
+	
+	{
+		PSECURITY_DESCRIPTOR psd = (PSECURITY_DESCRIPTOR)LocalAlloc( LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH );
+		InitializeSecurityDescriptor( psd, SECURITY_DESCRIPTOR_REVISION );
+		SetSecurityDescriptorDacl( psd, TRUE, NULL, FALSE );
+
+		SECURITY_ATTRIBUTES sa = { 0 };
+		sa.nLength = sizeof( sa );
+		sa.lpSecurityDescriptor = psd;
+		sa.bInheritHandle = FALSE;
+
+		//HANDLE hEvent = CreateEvent( &sa, TRUE, FALSE, TEXT( "Global\\Test" ) );
+		hRestartEvent = CreateEvent( &sa, FALSE, FALSE, eventName );
+		LocalFree( psd );
+	}
+	ThreadTo( WaitRestart, 0 );
 	SetupService( (TEXTSTR)GetProgramName(), Start );
 	programEnd = 1;
+	waiting = MakeThread();
 	if( task ) {
 		StopProgram( task );
 		WakeableSleep( 10 );
 		if( task ) {
-			WakeableSleep( 50 );
+			WakeableSleep( 5000 );
 			if( task ) {
 				TerminateProgram( task );
 			}

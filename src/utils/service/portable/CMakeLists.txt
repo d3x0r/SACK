@@ -148,3 +148,7 @@ add_custom_command(TARGET
                   )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
+if( WIN32 )
+	add_executable( signal_event ../signal_event )
+	install_default_dest( signal_event )
+endif( WIN32 )
