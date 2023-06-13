@@ -102,8 +102,8 @@
    find deadlocks by tracking who is entering critical sections
    and probably failing to leave them.                          */
 struct critical_section_tag {
-	uint32_t dwUpdating; // this is set when entering or leaving (updating)...
-	uint32_t dwLocks;  // count of locks entered.  (only low 24 bits may count for 16M entries, upper bits indicate internal statuses.
+	volatile uint32_t dwUpdating; // this is set when entering or leaving (updating)...
+	volatile uint32_t dwLocks;  // count of locks entered.  (only low 24 bits may count for 16M entries, upper bits indicate internal statuses.
 	THREAD_ID dwThreadID; // windows upper 16 is process ID, lower is thread ID
 	THREAD_ID dwThreadWaiting; // ID of thread waiting for this..
 #ifdef DEBUG_CRITICAL_SECTIONS
