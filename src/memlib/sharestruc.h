@@ -34,26 +34,7 @@ namespace sack {
 #define AND_NOT_SECTION_LOGGED_WAIT(n) (n)
 #define AND_SECTION_LOGGED_WAIT(n) (0)
 #endif
-// If you change this structure please change the public
-// reference of this structure, and please, do hand-count
-// the bytes to set there... so not include this file
-// to get the size.  The size there should be the worst
-// case - debug or release mode.
-#ifdef NO_PRIVATE_DEF
-struct critical_section_tag {
-	volatile uint32_t dwUpdating; // this is set when entering or leaving (updating)...
-	volatile uint32_t dwLocks;
-	THREAD_ID dwThreadID; // windows upper 16 is process ID, lower is thread ID
-	THREAD_ID dwThreadWaiting; // ID of thread waiting for this..
-	//PDATAQUEUE pPriorWaiters;
-#ifdef DEBUG_CRITICAL_SECTIONS
-	uint32_t bCollisions ;
-	CTEXTSTR pFile;
-	uint32_t  nLine;
-#endif
-};
-typedef struct critical_section_tag CRITICALSECTION;
-#endif
+
 #ifdef __cplusplus
 	}
 }

@@ -483,12 +483,10 @@ static void DumpSection( PCRITICALSECTION pcs )
 				if( pcs->dwThreadWaiting ) {
 					// someone was waiting for it...
 					if( pcs->dwThreadWaiting != dwCurProc ) {
-						if( prior ) {
-							if( *prior ) {
-								// prior is set, so someone has set their prior to me....
-								pcs->dwUpdating = 0;
-								return 0;
-							}
+						if( prior && (*prior ) ) {
+							// prior is set, so someone has set their prior to me....
+							pcs->dwUpdating = 0;
+							return 0;
 						}
 					}
 					else { //  waiting is me
@@ -1689,8 +1687,9 @@ static PMEM GrabMemEx( PMEM pMem DBG_PASS )
 		// use default heap...
 		if( !XCHG( &g.bMemInstanced, TRUE ) )
 			pMem = InitMemory();
-		else
-			return 0;
+		else {
+			pMem = g.pMemInstance;
+		}
 	}
 	//ll_lprintf( "grabbing memory %p", pMem );
 	{
