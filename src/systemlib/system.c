@@ -803,10 +803,11 @@ int CPROC EndTaskWindow( PTASK_INFO task )
 #endif
 
 //--------------------------------------------------------------------------
-#ifdef WIN32
-#if _MSC_VER
-#pragma runtime_checks( "sru", off )
-#endif
+#if 0
+#  ifdef WIN32
+#    if _MSC_VER
+#      pragma runtime_checks( "sru", off )
+#    endif
 static DWORD STDCALL SendCtrlCThreadProc( void *data )
 {
 	return GenerateConsoleCtrlEvent( CTRL_C_EVENT, 0 );
@@ -814,11 +815,11 @@ static DWORD STDCALL SendCtrlCThreadProc( void *data )
 static DWORD STDCALL SendBreakThreadProc( void* data ) {
 	return GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, 0 );
 }
-#if _MSC_VER
-#pragma runtime_checks( "sru", restore )
+#    if _MSC_VER
+#      pragma runtime_checks( "sru", restore )
+#    endif
+#  endif
 #endif
-#endif
-
 #ifdef _WIN32
 
 struct handle_data {
