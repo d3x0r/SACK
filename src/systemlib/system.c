@@ -403,6 +403,7 @@ void loadMacLibraries(struct local_systemlib_data *init_l) {
 
 #endif
 
+#if 0
 #ifdef _WIN32
 static uintptr_t DeathThread( PTHREAD thread ) {
 	char *eventName = (char*)GetThreadParam( thread );
@@ -440,7 +441,7 @@ PRELOAD( addExitEvent ) {
 }
 
 #endif
-
+#endif
 static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 {
 	struct local_systemlib_data *init_l = (struct local_systemlib_data *)mem;
@@ -886,6 +887,8 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 			AttachConsole( ATTACH_PARENT_PROCESS ); // go back to parent.
 			IgnoreBreakHandler( 0 );
 		}
+#if 0
+		// this is pretty niche; was an attempt to handle when ctrl-break and ctrl-c events failed.
 		{
 			char eventName[256];
 			HANDLE hEvent;
@@ -898,9 +901,12 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 				} else exited = 1;
 			}
 		}
+#endif
 	}
 	// try and copy some code to it..
 	if( !exited )
+#if 0
+		// this is bad, and just causes the remote to crash; left for reference.
 		if( task->pi.hProcess && FALSE )
 		{
 			POINTER mem = VirtualAllocEx( task->pi.hProcess, NULL, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE );
@@ -929,6 +935,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 				}
 			}
 		}
+#endif
 #endif
 	if( (!task->pi.hProcess) || WaitForSingleObject( task->pi.hProcess, 1 ) != WAIT_OBJECT_0 ) {
 		//lprintf( "don't think it exited" );
