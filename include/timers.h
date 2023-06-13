@@ -472,8 +472,17 @@ TIMER_PROC( void, DeleteCriticalSec )( PCRITICALSECTION pcs );
 #endif
 
 #ifdef USE_NATIVE_CRITICAL_SECTION
-#define EnterCriticalSec(pcs) EnterCriticalSection( pcs )
-#define LeaveCriticalSec(pcs) LeaveCriticalSection( pcs )
+#  define EnterCriticalSec(pcs) EnterCriticalSection( pcs )
+#  define LeaveCriticalSec(pcs) LeaveCriticalSection( pcs )
+#  if DBG_AVAILABLE
+#    define EnterCriticalSecEx(pcs, a, b) EnterCriticalSection( pcs )
+#    define LeaveCriticalSecEx(pcs, a, b) LeaveCriticalSection( pcs )
+#    define InitializeCriticalSecEx(pcs, a, b) InitializeCriticalSection( pcs )
+#  else
+#    define EnterCriticalSecEx(pcs) EnterCriticalSection( pcs )
+#    define LeaveCriticalSecEx(pcs) LeaveCriticalSection( pcs )
+#    define InitializeCriticalSecEx(pcs) InitializeCriticalSection( pcs )
+#  endif
 #else
 /* <combine sack::timers::EnterCriticalSecEx@PCRITICALSECTION pcs>
    
