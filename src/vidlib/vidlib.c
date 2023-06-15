@@ -5480,6 +5480,7 @@ RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
 					}
 				}
 			}
+			Release( teststring );
 		}
 		else
 #endif
@@ -5490,7 +5491,6 @@ RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
 				(*y)= 0;
 			GetDisplaySize( width, height );
 		}
-
 }
 
 RENDER_PROC (void, GetDisplaySize) (uint32_t * width, uint32_t * height)
