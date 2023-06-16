@@ -131,6 +131,8 @@ static struct deadstart_local_data_ deadstart_local_data;
 
 EXPORT_METHOD void RunExits( void )
 {
+	fprintf( stderr, "Run Exits InvokeExits()\n" );
+
 	InvokeExits();
 }
 
@@ -297,7 +299,7 @@ void IgnoreBreakHandler( int ignore) {
 static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 {
 	if( ignoreBreak & ( 1 << dwCtrlType ) ) return TRUE;
-	//printf( "Received ctrlC Event %08x %d\n", ignoreBreak, dwCtrlType );
+	fprintf( stderr, "Received ctrlC Event %08x %d\n", ignoreBreak, dwCtrlType );
 	switch( dwCtrlType )
 	{
 	case CTRL_BREAK_EVENT:
@@ -312,7 +314,7 @@ static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 		break;
 	}
 	// default... return not processed.
-	return FALSE;
+	return FALSE; // allow others to process this too
 }
 #    endif
 #  endif
@@ -514,7 +516,7 @@ void InvokeExits( void )
 	PSHUTDOWN_PROC proc;
 	// shutdown is much easier than startup cause more
 	// procedures shouldn't be added as a property of shutdown.
-
+	fprintf( stderr, "InvokeExits()\n" );
 	// don't allow shutdown procs to schedule more shutdown procs...
 	// although in theory we could; if the first list contained
 	// ReleaseAllMemory(); then there is no memory.
@@ -589,6 +591,7 @@ void DispelDeadstart( void )
 
 ROOT_ATEXIT(AutoRunExits)
 {
+	fprintf( stderr, "Root Atexit Called\n" );
 	InvokeExits();
 }
 
@@ -616,6 +619,7 @@ SACK_NAMESPACE
 // this then invokes an exit in the mainline program (if available)
 void BAG_Exit( int code )
 {
+	fprintf( stderr, "BAG_Exit();" );
 #ifndef __cplusplus_cli
 	InvokeExits();
 #endif
@@ -673,6 +677,8 @@ __declspec(dllexport)
    LPVOID lpvReserved
   		 )
 {
+	fprintf( stderr, "DLL_DETACH\n" );
+
 	if( fdwReason == DLL_PROCESS_DETACH )
 		InvokeExits();
 	return TRUE;
@@ -681,6 +687,7 @@ __declspec(dllexport)
 void RootDestructor(void) __attribute__((destructor));
 void RootDestructor( void )
 {
+	fprintf( stderr, "RootDestructor\n" );
 	InvokeExits();
 }
 #  endif
