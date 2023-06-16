@@ -33,6 +33,7 @@ static void runTask( void ) {
 static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task_done )
 {
 	task = NULL;
+	lprintf( "Service Task Exited..." );
 	if( !programEnd ) {
 		runTask();
 	} else {
@@ -53,12 +54,16 @@ static uintptr_t WaitRestart( PTHREAD thread ) {
 			waiting2 = thread;
 			StopProgram( task );
 			WakeableSleep( 100 );
-			//lprintf( "waited a bit but still have a task %p %p", task, pOldTask );
+			lprintf( "waited a bit but still have a task %p %p", task, pOldTask );
 			if( task == pOldTask ) {
 				WakeableSleep( 500 );
-				//lprintf( "Still? %p %p", task, pOldTask );
+				lprintf( "Still? %p %p", task, pOldTask );
 				if( task == pOldTask ) {
 					TerminateProgram( task );
+				}
+				// wait for task to at least exit, and maybe restart.
+				while( task == pOldTask ) {
+					WakeableSleep( 100 );
 				}
 			}
 			waiting2 = NULL;
