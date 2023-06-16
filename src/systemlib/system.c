@@ -403,12 +403,13 @@ void loadMacLibraries(struct local_systemlib_data *init_l) {
 
 #endif
 
-#if 0
 #ifdef _WIN32
-static uintptr_t DeathThread( PTHREAD thread ) {
+static uintptr_t KillEventThread( PTHREAD thread ) {
 	char *eventName = (char*)GetThreadParam( thread );
 	HANDLE hRestartEvent = NULL;
 	{
+		// I don't know that this is stricly required;
+		//   There was a error in the service checking for signaled event... 
 		PSECURITY_DESCRIPTOR psd = (PSECURITY_DESCRIPTOR)LocalAlloc( LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH );
 		InitializeSecurityDescriptor( psd, SECURITY_DESCRIPTOR_REVISION );
 		SetSecurityDescriptorDacl( psd, TRUE, NULL, FALSE );
@@ -426,21 +427,37 @@ static uintptr_t DeathThread( PTHREAD thread ) {
 
 	DWORD status = WaitForSingleObject( hRestartEvent, INFINITE );
 	if( status == WAIT_OBJECT_0 ) {
-		InvokeExits();
-		exit(0);
+		INDEX idx;
+		int( *cb )( void );
+		int preventShutdown = 0;
+		LIST_FORALL( l.killEventCallbacks, idx, int( * )( void ), cb ) {
+			preventShutdown |= cb();
+		}
+		if( !preventShutdown ) {
+			InvokeExits();
+			exit( 0 );
+		}
 	}
+	CloseHandle( hRestartEvent );
 	return 0;
 }
 
-PRELOAD( addExitEvent ) {
+void AddKillSignalCallback( int( *cb )( void ) ) {
+	AddLink( &l.killEventCallbacks, cb );
+}
+
+void RemoveKillSignalCallback( int( *cb )( void ) ) {
+	DeleteLink( &l.killEventCallbacks, cb );
+}
+
+void EnableExitEvent( void ) {
 	char eventName[256];
 	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetCurrentProcessId() );
 	//lprintf( "Starting exit event thread... %s", eventName );
-	ThreadTo( DeathThread, (uintptr_t)eventName );
+	ThreadTo( KillEventThread, (uintptr_t)eventName );
 	while( eventName[0] ) Relinquish();
 }
 
-#endif
 #endif
 static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 {
@@ -1110,18 +1127,20 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 			lprintf( "Sending WM_CLOSE to %p", hWndMain );
 			SendMessage( hWndMain, WM_CLOSE, 0, 0 );
 		}
-		else {
-			PDATALIST pdlProcs;
-			INDEX idx;
-			struct process_id_pair* pair;
+		else if( !task->flags.useEventSignal ) {
 			DWORD dwKillId = task->pi.dwProcessId;
 			IgnoreBreakHandler( ( 1 << CTRL_C_EVENT ) | ( 1 << CTRL_BREAK_EVENT ) );
+#if 0
+			INDEX idx;
+			struct process_id_pair* pair;
+			PDATALIST pdlProcs;
 			ProcIdFromParentProcId( task->pi.dwProcessId, &pdlProcs );
 			DATA_FORALL( pdlProcs, idx, struct process_id_pair*, pair ) {
 				lprintf( "Got Pair: %d %d", pair->parent, pair->child );
 				//dwKillId = pair->child;
 			}
-			lprintf( "Killing child %d instead of %d? %s", dwKillId, task->pi.dwProcessId, task->name );
+#endif
+			lprintf( "Killing child %d? %s", dwKillId, task->name );
 			//MessageBox( NULL, "pause", "pause", MB_OK );
 			FreeConsole();
 			BOOL a = AttachConsole( dwKillId );
@@ -1129,8 +1148,6 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 				DWORD dwError = GetLastError();
 				lprintf( "Failed to attachConsole %d %d %d", a, dwError, dwKillId );
 			}
-			//SetConsoleCtrlHandler( NULL, FALSE ); // remove default?
-			//SetConsoleCtrlHandler( CtrlC, TRUE ); // remove default?
 			if( !task->flags.useCtrlBreak )
 				if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, dwKillId ) ) {
 					error = GetLastError();
@@ -1141,16 +1158,11 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 					error = GetLastError();
 					lprintf( "Failed to send CTRL_BREAK_EVENT %d %d", dwKillId, error );
 				} else lprintf( "Success sending ctrl break?" );
-			//FreeConsole();
-			//a = AttachConsole( ATTACH_PARENT_PROCESS ); // go back to parent.
-			//if( !a ) {
-			//	DWORD dwError = GetLastError();
-			//	lprintf( "Failed to attachConsole %d %d %d", a, dwError, dwKillId );
-			//}
 			IgnoreBreakHandler( 0 );
 		}
-#if 0
+//#if 0
 		// this is pretty niche; was an attempt to handle when ctrl-break and ctrl-c events failed.
+		if( task->flags.useEventSignal )
 		{
 			char eventName[256];
 			HANDLE hEvent;
@@ -1160,10 +1172,10 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 				//lprintf( "Opened event:%p %s %d", hEvent, eventName, GetLastError() );
 				if( !SetEvent( hEvent ) ) {
 					lprintf( "Failed to set event? %d", GetLastError() );
-				} else exited = 1;
+				}
 			}
 		}
-#endif
+//#endif
 	}
 	// try and copy some code to it..
 	if( !exited )

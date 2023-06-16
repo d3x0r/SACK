@@ -62,8 +62,12 @@ typedef void (CPROC*TaskOutput)(uintptr_t, PTASK_INFO task, CTEXTSTR buffer, siz
 #define LPP_OPTION_NEW_CONSOLE          16
 #define LPP_OPTION_SUSPEND              32
 #define LPP_OPTION_ELEVATE              64
+// use ctrl-break instead of ctrl-c for break (see also LPP_OPTION_USE_SIGNAL)
 #define LPP_OPTION_USE_CONTROL_BREAK   128
+// specify CREATE_NO_WINDOW in create process
 #define LPP_OPTION_NO_WINDOW           256
+// use process signal to kill process instead of ctrl-c or ctrl-break
+#define LPP_OPTION_USE_SIGNAL          512
 
 struct environmentValue {
 	char* field;
@@ -224,18 +228,34 @@ SYSTEM_PROC( void, sack_system_disallow_spawn )( void );
 
 #if _WIN32 
 /*
-* moves the window of the task; if there is a main window for the task within the timeout perioud.
-* callback is called when the window is moved; this allows a background thread to wait
-* until the task has created its window.
+  moves the window of the task; if there is a main window for the task within the timeout perioud.
+  callback is called when the window is moved; this allows a background thread to wait
+  until the task has created its window.
 */
 SYSTEM_PROC( void, MoveTaskWindow )( PTASK_INFO task, int timeout, int left, int top, int width, int height, void cb( uintptr_t, LOGICAL ), uintptr_t psv );
 /*
-* Moves the window of the specified task to the specified display; using a lookup to get the display size.
-* -1 is an invalid display.
-* 0 is the default display
-* 1+ is the first display and subsequent displays - one of which may be the default
+  Moves the window of the specified task to the specified display; using a lookup to get the display size.
+  -1 is an invalid display.
+  0 is the default display
+  1+ is the first display and subsequent displays - one of which may be the default
 */
 SYSTEM_PROC( void, MoveTaskWindowToDisplay )( PTASK_INFO task, int timeout, int display, void cb( uintptr_t, LOGICAL ), uintptr_t psv );
+
+/*
+* Creates a process-identified exit event which can be signaled to terminate the process.
+*/
+SYSTEM_PROC( void, EnableExitEvent )( void );
+/*
+  Add callback which is called when the exit event is executed.
+  The callback can return non-zero to prevent the task from exiting; but the event is no
+  longer valid, and cannot be triggered again.
+*/
+SYSTEM_PROC( void, AddKillSignalCallback )( int( *cb )( void ) );
+
+/*
+  Remove a callback which was added to event callback list.
+*/
+SYSTEM_PROC( void, RemoveKillSignalCallback )( int( *cb )( void ) );
 
 #endif
 

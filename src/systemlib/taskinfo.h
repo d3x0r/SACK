@@ -28,6 +28,7 @@ struct task_info_tag {
 		BIT_FIELD log_input : 1;
 		BIT_FIELD runas_root : 1;
 		BIT_FIELD useCtrlBreak : 1;
+		BIT_FIELD useEventSignal : 1;
 	} flags;
 	TaskEnd EndNotice;
 	TaskOutput OutputEvent;
@@ -102,6 +103,7 @@ typedef struct loaded_library_tag
 	PLIBRARY libraries;
 	PTREEROOT pFunctionTree;
 	LOGICAL allow_spawn;
+
 	int nLibrary;
 	LOGICAL (CPROC*ExternalLoadLibrary)( const char *filename );
 
@@ -109,6 +111,7 @@ typedef struct loaded_library_tag
 
 	// on XP this is in PSAPI.DLL later it's in Kernel32.DLL 
 #ifdef WIN32
+	PLIST killEventCallbacks;
 	BOOL (WINAPI* EnumProcessModules)( HANDLE hProcess, HMODULE *lphModule
 	                                 , DWORD cb, LPDWORD lpcbNeeded );
 #endif

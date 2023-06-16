@@ -407,6 +407,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		task = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
 		MemSet( task, 0, sizeof( TASK_INFO ) );
 		task->flags.useCtrlBreak = ( flags & LPP_OPTION_USE_CONTROL_BREAK ) ? 1 : 0;
+		task->flags.useEventSignal = ( flags & LPP_OPTION_USE_SIGNAL ) ? 1 : 0;
 		{
 			CTEXTSTR nameStart = StrRChr( (CTEXTSTR)program, '/' );
 			CTEXTSTR nameEnd = StrRChr( (CTEXTSTR)program, '.' );
