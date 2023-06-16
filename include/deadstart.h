@@ -304,16 +304,13 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 	  }  \
 	} pastejunk(do_schedul_,name);   }  \
 	static void name(void)
-/* A macro to define some code to run during program shutdown. An
-   additional priority may be specified if the order matters. Higher
-   numbers are called first.
-
-
+/*
+  Internal macro used to trigger InvokeExits() which runs scheduled exits.
                                                                      */
-#define ATEXIT_PRIORITY(name,priority) static void CPROC name(void); \
+#define ATEXIT_INVOKE_INTERNAL(name) static void CPROC name(void); \
    static class pastejunk(schedule_,name) {   \
-     public:pastejunk(schedule_,name)() {    \
-	RegisterPriorityShutdownProc( name,TOSTR(name),priority,(void*)this DBG_SRC );\
+     public:pastejunk(~schedule_,name)() {    \
+			name();\
 	  }  \
 	} pastejunk(do_schedule_,name);     \
 	static void name(void)
@@ -373,7 +370,7 @@ DEADSTART_PROC  void DEADSTART_CALLTYPE  DispelDeadstart ( void );
 #define ATEXIT(name)      PRIORITY_ATEXIT(name,ATEXIT_PRIORITY_DEFAULT)
 /* This is the core atexit. It dispatches all other exit
    routines. This is defined for internal use only...    */
-#define ROOT_ATEXIT(name) ATEXIT_PRIORITY(name,ATEXIT_PRIORITY_ROOT)
+#define ROOT_ATEXIT(name) ATEXIT_INVOKE_INTERNAL(name)
 
 //------------------------------------------------------------------------------------
 // Win32 Watcom
