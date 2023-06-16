@@ -4806,7 +4806,7 @@ PCanvasData Init( LOGICAL bLoadConfig )
 }
 
 
-ATEXIT_PRIORITY( ExitMisc, ATEXIT_PRIORITY_DEFAULT + 1 )
+PRIORITY_ATEXIT( ExitMisc, ATEXIT_PRIORITY_DEFAULT + 1 )
 {
 	// not sure how we could be here without exit having
 	// been set - perhaps a signal exit?

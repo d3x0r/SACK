@@ -5480,7 +5480,7 @@ RENDER_PROC (void, GetDisplaySizeEx) ( int nDisplay
 					}
 				}
 			}
-			Release( teststring );
+			Deallocate( char*, teststring );
 		}
 		else
 #endif

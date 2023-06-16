@@ -654,7 +654,7 @@ static void DisconnectClient(void)
 
 }
 
-ATEXIT_PRIORITY( _DisconnectClient, ATEXIT_PRIORITY_MSGCLIENT )
+PRIORITY_ATEXIT( _DisconnectClient, ATEXIT_PRIORITY_MSGCLIENT )
 {
 	DisconnectClient();
 }

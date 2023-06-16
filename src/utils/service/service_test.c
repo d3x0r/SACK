@@ -59,10 +59,10 @@ static uintptr_t WaitRestart( PTHREAD thread ) {
 			if( programEnd ) break; // this program is exiting, don't restart it...
 			waiting2 = thread;
 			StopProgram( task );
-			WakeableSleep( 100 );
+			WakeableSleep( 1000 );
 			lprintf( "waited a bit but still have a task %p %p", task, pOldTask );
 			if( task == pOldTask ) {
-				WakeableSleep( 500 );
+				WakeableSleep( 2000 );
 				lprintf( "Still? %p %p", task, pOldTask );
 				if( task == pOldTask ) {
 					TerminateProgram( task );
@@ -153,7 +153,7 @@ int main( int argc, char **argv )
 			startin = argv[2];
 			while( argofs < argc ){
 				const char *p;
-				while( argv[argofs][0] == '-' ) {
+				if( argv[argofs][0] == '-' ) {
 					// --  force end of options
 					if( argv[argofs][1] == '-'
 						&& argv[argofs][2] == 0
@@ -168,7 +168,7 @@ int main( int argc, char **argv )
 						lprintf( "Bad option:%s", argv[argofs] );
 					argofs++;
 				}
-				if( ( p = StrChr( argv[argofs], '=' ) ) ){
+				else if( ( p = StrChr( argv[argofs], '=' ) ) ){
 					char *tmpname = DupCStrLen( argv[argofs], p-argv[argofs] );
 					char *tmpval = DupCStr( p+1 );
 					lprintf( "Setting Environtment: %s = %s", tmpname, tmpval );
