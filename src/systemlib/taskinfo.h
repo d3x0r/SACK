@@ -111,7 +111,7 @@ typedef struct loaded_library_tag
 
 	// on XP this is in PSAPI.DLL later it's in Kernel32.DLL 
 #ifdef WIN32
-	PLIST killEventCallbacks;
+	PDATALIST killEventCallbacks;
 	BOOL (WINAPI* EnumProcessModules)( HANDLE hProcess, HMODULE *lphModule
 	                                 , DWORD cb, LPDWORD lpcbNeeded );
 #endif

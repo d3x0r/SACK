@@ -62,6 +62,11 @@ SACK_SYSTEM_NAMESPACE
 
 #include "taskinfo.h"
 
+struct callback_info {
+	int ( *cb )( uintptr_t );
+	uintptr_t psv;
+	int deleted;
+};
 
 #ifdef __MAC__
 //sourced from https://github.com/comex/myvmmap/blob/master/myvmmap.c Jan/7/2018
@@ -428,11 +433,15 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 	DWORD status = WaitForSingleObject( hRestartEvent, INFINITE );
 	if( status == WAIT_OBJECT_0 ) {
 		INDEX idx;
-		int( *cb )( void );
+		struct callback_info* ci;
+		//int( *cb )( void );
 		int preventShutdown = 0;
-		LIST_FORALL( l.killEventCallbacks, idx, int( * )( void ), cb ) {
-			preventShutdown |= cb();
+		DATA_FORALL( l.killEventCallbacks, idx, struct callback_info*, ci ) {
+			lprintf( "callback: %p %p %d", ci->cb, ci->psv, ci->deleted );
+			if( !ci->deleted )
+				preventShutdown |= ci->cb(ci->psv);
 		}
+		lprintf( "Callbacks done: %d", preventShutdown );
 		if( !preventShutdown ) {
 			InvokeExits();
 			exit( 0 );
@@ -442,12 +451,24 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 	return 0;
 }
 
-void AddKillSignalCallback( int( *cb )( void ) ) {
-	AddLink( &l.killEventCallbacks, cb );
+void AddKillSignalCallback( int( *cb )( uintptr_t ), uintptr_t psv ) {
+	struct callback_info ci;
+	ci.cb = cb;
+	ci.psv = psv;
+	ci.deleted = 0;
+	if( !l.killEventCallbacks ) l.killEventCallbacks = CreateDataList( sizeof( struct callback_info ) );
+	AddDataItem( &l.killEventCallbacks, &ci );
 }
 
-void RemoveKillSignalCallback( int( *cb )( void ) ) {
-	DeleteLink( &l.killEventCallbacks, cb );
+void RemoveKillSignalCallback( int( *cb )( uintptr_t ), uintptr_t psv ) {
+	struct callback_info *ci;
+	INDEX idx;
+	DATA_FORALL( l.killEventCallbacks, idx, struct callback_info*, ci ) {
+		if( ci->cb == cb && ci->psv == psv ) {
+			ci->deleted = TRUE;
+			break;
+		}
+	}
 }
 
 void EnableExitEvent( void ) {
@@ -928,7 +949,7 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 	BOOL success = FALSE;
 	int tries = 0;
 	//lprintf( "move Thread: %d", time );
-	while( ( timeGetTime() - time ) < move->timeout ) {
+	while( (int)( timeGetTime() - time ) < move->timeout ) {
 		lprintf( "move Thread(time): %d", timeGetTime() - time );
 		HWND hWndProc = find_main_window( move->task->pi.dwProcessId );
 		int atx, aty, atw, ath;
@@ -961,7 +982,7 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 			lprintf( "Widow reports min/max? %d %d", info.ptMaxTrackSize.x, info.ptMaxTrackSize.y );
 		}
 #endif
-		while( ( timeGetTime() - time ) < move->timeout ) {
+		while( (int)( timeGetTime() - time ) < move->timeout ) {
 			lprintf( "move window(time): %d", timeGetTime() - time );
 #if 0
 			INDEX idx;
@@ -1168,6 +1189,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 			HANDLE hEvent;
 			snprintf( eventName, 256, "Global\\%s(%d):exit", task->name, task->pi.dwProcessId );
 			hEvent = OpenEvent( EVENT_MODIFY_STATE, FALSE, eventName );
+			lprintf( "Signal process event: %s", eventName );
 			if( hEvent != NULL ) {
 				//lprintf( "Opened event:%p %s %d", hEvent, eventName, GetLastError() );
 				if( !SetEvent( hEvent ) ) {
@@ -1266,7 +1288,7 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 				{
 					if( !TerminateProcess( task->pi.hProcess, 0xD3ed ) )
 					{
-						HANDLE hTmp;
+						//HANDLE hTmp;
 						lprintf( "Failed to terminate process... " );
 #if 0
 						lprintf( "Failed to terminate process... %p %ld : %d (will try again with OpenProcess)", task->pi.hProcess, task->pi.dwProcessId, GetLastError() );

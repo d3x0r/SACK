@@ -78,7 +78,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 						if( task->flags.log_input )
 							lprintf( "Go to read task's stdout." );
 #ifdef _WIN32
-						if( !task->flags.process_ended &&
+						if( //!task->flags.process_ended &&
 							 ReadFile( phi->handle
 										, GetText( pInput ), (DWORD)(GetTextSize( pInput ) - 1)
 										, (LPDWORD)&dwRead, NULL ) )  //read the  pipe
@@ -158,11 +158,13 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 				}
 				//allow a minor time for output to be gathered before sending
 				// partial gathers...
+#ifndef _WIN32
 				if( task->flags.process_ended )
 				{
 					// Ending system thread because of process exit!
   					done = TRUE; // do one pass to make sure we completed read
 				}
+#endif
 			}
 			while( !lastloop );
 
