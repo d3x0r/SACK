@@ -25,17 +25,17 @@ static void logOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t s
 }
 
 static void runTask( void ) {
-	//lprintf( "Launching user process..." );
+	lprintf( "Launching service process..." );
 	//task = LaunchUserProcess( progname, NULL, args, 0, NULL, MyTaskDone, 0 DBG_SRC );
-	task = LaunchPeerProgramExx( progname, startin, args, 0, logOutput, MyTaskDone, 0 DBG_SRC );
+	task = LaunchPeerProgramExx( progname, startin, args, LPP_OPTION_NEW_GROUP, logOutput, MyTaskDone, 0 DBG_SRC );
 }
 
 static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task_done )
 {
 	task = NULL;
-	if( !programEnd )
+	if( !programEnd ) {
 		runTask();
-	else {
+	} else {
 		if( waiting ) WakeThread( waiting );
 		if( waiting2 ) WakeThread( waiting2 );
 	}
@@ -48,16 +48,15 @@ static uintptr_t WaitRestart( PTHREAD thread ) {
 		while( !task ) Relinquish();
 		pOldTask = task;
 		DWORD status = WaitForSingleObject( hRestartEvent, INFINITE );
-		//lprintf( "got signaled" );
 		if( status == WAIT_OBJECT_0 ) {
 			if( programEnd ) break; // this program is exiting, don't restart it...
 			waiting2 = thread;
 			StopProgram( task );
-			WakeableSleep( 1000 );
-			//lprintf( "waited a bit but still have a task %p", task );
+			WakeableSleep( 100 );
+			//lprintf( "waited a bit but still have a task %p %p", task, pOldTask );
 			if( task == pOldTask ) {
-				WakeableSleep( 5000 );
-				//lprintf( "Still? %p", task );
+				WakeableSleep( 500 );
+				//lprintf( "Still? %p %p", task, pOldTask );
 				if( task == pOldTask ) {
 					TerminateProgram( task );
 				}
