@@ -250,12 +250,12 @@ SYSTEM_PROC( void, EnableExitEvent )( void );
   The callback can return non-zero to prevent the task from exiting; but the event is no
   longer valid, and cannot be triggered again.
 */
-SYSTEM_PROC( void, AddKillSignalCallback )( int( *cb )( void ) );
+SYSTEM_PROC( void, AddKillSignalCallback )( int( *cb )( uintptr_t ), uintptr_t );
 
 /*
   Remove a callback which was added to event callback list.
 */
-SYSTEM_PROC( void, RemoveKillSignalCallback )( int( *cb )( void ) );
+SYSTEM_PROC( void, RemoveKillSignalCallback )( int( *cb )( uintptr_t ), uintptr_t );
 
 #endif
 
