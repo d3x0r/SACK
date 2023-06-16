@@ -101,7 +101,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 							}
 #endif
 							if( task->flags.log_input )
-								lprintf( "got read on task's stdout: %d", dwRead );
+								lprintf( "got read on task's stdout: %d %d", taskParams->stdErr, dwRead );
 							if( task->flags.bSentIoTerminator )
 							{
 								if( dwRead > 1 )
@@ -137,6 +137,8 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 						{
 							DWORD dwError = GetLastError();
 							int32_t dwAvail;
+							//lprintf( "Thread Read was 0? %d", taskParams->stdErr );
+
 							if( ( dwError == ERROR_OPERATION_ABORTED ) && task->flags.process_ended )
 							{
 								if( PeekNamedPipe( phi->handle, NULL, 0, NULL, (LPDWORD)&dwAvail, NULL ) )
@@ -391,6 +393,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		int launch_flags = ( ( flags & LPP_OPTION_NEW_CONSOLE ) ? CREATE_NEW_CONSOLE : 0 )
 		                 | ( ( flags & LPP_OPTION_NEW_GROUP ) ? CREATE_NEW_PROCESS_GROUP : 0 )
 		                 | ( ( flags & LPP_OPTION_SUSPEND ) ? CREATE_SUSPENDED : 0 )
+		                 | ( ( flags & LPP_OPTION_NO_WINDOW ) ? CREATE_NO_WINDOW : 0 )
 			;
 		PVARTEXT pvt = VarTextCreateEx( DBG_VOIDRELAY );
 		PTEXT cmdline;
@@ -496,6 +499,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		if( OutputHandler || OutputHandler2 )
 		{
 			SECURITY_ATTRIBUTES sa;
+			lprintf( "setting IO handles." );
 
 			sa.bInheritHandle = TRUE;
 			sa.lpSecurityDescriptor = NULL;
@@ -518,6 +522,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		}
 		else
 		{
+			lprintf( "Not setting IO handles." );
 			task->si.dwFlags |= STARTF_USESHOWWINDOW;
 			if( !( flags & LPP_OPTION_DO_NOT_HIDE ) )
 				task->si.wShowWindow = SW_HIDE;
@@ -570,6 +575,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			}
 			else
 			{
+				//lprintf( "Using launch flags; %s %08x", task->name, launch_flags );
 				if( ( (!task->flags.runas_root) && ( CreateProcess( program
 										, GetText( cmdline )
 										, NULL, NULL, TRUE

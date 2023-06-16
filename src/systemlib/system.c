@@ -822,6 +822,52 @@ static DWORD STDCALL SendBreakThreadProc( void* data ) {
 #endif
 #ifdef _WIN32
 
+struct process_id_pair {
+	DWORD parent;
+	DWORD child;
+};
+
+void ProcIdFromParentProcId( DWORD dwProcessId, PDATALIST *ppdlProcs ) {
+	struct process_id_pair pair = { 0, dwProcessId };
+	PDATALIST pdlProcs = CreateDataList( sizeof( struct process_id_pair ) );// vector<PROCID> vec;
+	int i = 0;
+	INDEX maxId = 1;
+	INDEX minId = 0;
+	HANDLE hp = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
+	PROCESSENTRY32 pe = { 0 };
+	pe.dwSize = sizeof( PROCESSENTRY32 );
+	AddDataItem( &pdlProcs, &pair );
+	while( 1 ) {
+		int found;
+		INDEX idx;
+		struct process_id_pair*procId;
+		found = 0;
+		if( Process32First( hp, &pe ) ) {
+			do {
+				idx = minId-1;  // NEXTALL steps index 1.
+				//lprintf( "Check  %d %d", pe.th32ParentProcessID, pe.th32ProcessID );
+				DATA_NEXTALL( pdlProcs, idx, struct process_id_pair*, procId ) {
+					//lprintf( " subCheck %d %d %d %d", idx, maxId, pe.th32ParentProcessID, procId->child );
+					if( idx > maxId ) break;
+					if( pe.th32ParentProcessID == procId->child ) {
+						found = 1;
+						pair.parent = procId->child;
+						pair.child = pe.th32ProcessID;
+						lprintf( "Found child %d %d", pair.parent, pair.child );
+						AddDataItem( &pdlProcs, &pair );
+					}
+				}
+			} while( Process32Next( hp, &pe ) );
+			minId = maxId;
+			maxId = pdlProcs->Cnt;
+		}
+		if( !found )
+			break;
+	}
+	CloseHandle( hp );
+	ppdlProcs[0] = pdlProcs;
+}
+
 struct handle_data {
 	unsigned long process_id;
 	HWND window_handle;
@@ -847,7 +893,199 @@ HWND find_main_window( unsigned long process_id ) {
 	EnumWindows( enum_windows_callback, (LPARAM)&data );
 	return data.window_handle;
 }
+
+static BOOL WINAPI CtrlC( DWORD dwCtrlType ) {
+	fprintf( stderr, "Received ctrlC Event %d\n", dwCtrlType );
+	return TRUE; // return handled?
+}
+struct move_window {
+	PTASK_INFO task;
+	int timeout, left, top, width, height;
+	uintptr_t psv;
+	void (*cb)( uintptr_t, LOGICAL );
+};
+
+static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
+	struct move_window* move = (struct move_window*)GetThreadParam( thread );
+	uint32_t time = timeGetTime();
+	BOOL success = FALSE;
+	int tries = 0;
+	//lprintf( "move Thread: %d", time );
+	while( ( timeGetTime() - time ) < move->timeout ) {
+		lprintf( "move Thread(time): %d", timeGetTime() - time );
+		HWND hWndProc = find_main_window( move->task->pi.dwProcessId );
+		int atx, aty, atw, ath;
+		if( !hWndProc ) {
+			WakeableSleep( 100 );
+			continue;
+		}
+#if 0
+		PDATALIST procTree;
+		PDATALIST windows = CreateDataList( sizeof( HWND ) );
+		INDEX idx;
+		struct process_id_pair* pair;
+		ProcIdFromParentProcId( move->task->pi.dwProcessId, &procTree );
+
+		DATA_FORALL( procTree, idx, struct process_id_pair*, pair ) {
+			HWND procWnd = find_main_window( pair->child );
+			AddDataItem( &windows, &procWnd );
+		}
 #endif
+
+		lprintf( "Window? %d  %p", move->task->pi.dwProcessId, hWndProc );
+#if 0		
+		{
+			POINT minSize = { 500, 500 }, maxSize = { 600, 600 };
+			MINMAXINFO info;
+			memset( &info, 0, sizeof( info ) );
+			SendMessage( hWndProc, WM_GETMINMAXINFO, NULL, (LPARAM )& info); //WM_GETMINMAXINFO(NULL, &info);
+			lprintf( "Widow reports min/max? %d %d", info.ptMinTrackSize.x, info.ptMinTrackSize.y );
+			lprintf( "Widow reports min/max? %d %d", info.ptMaxSize.x, info.ptMaxSize.y );
+			lprintf( "Widow reports min/max? %d %d", info.ptMaxTrackSize.x, info.ptMaxTrackSize.y );
+		}
+#endif
+		while( ( timeGetTime() - time ) < move->timeout ) {
+			lprintf( "move window(time): %d", timeGetTime() - time );
+#if 0
+			INDEX idx;
+			HWND* phWndProc;
+			HWND hWndProc;
+			DATA_FORALL( windows, idx, HWND*, phWndProc ) {
+				hWndProc = phWndProc[0];
+				lprintf( "Update window: %d %p", idx, hWndProc );
+#endif
+				{
+					RECT rect;
+					BOOL a = GetWindowRect( hWndProc, &rect );
+					atx = rect.left;
+					aty = rect.top;
+					atw = rect.right - rect.left;
+					ath = rect.bottom - rect.top;
+					lprintf( "Get Pos1 :%d %d %d %d %d", tries, rect.left, rect.top, atw, ath );
+				}
+
+				if( atx != move->left || aty != move->top || atw != move->width || ath != move->height ) {
+					success = SetWindowPos( hWndProc, NULL, move->left, move->top, move->width, move->height, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_ASYNCWINDOWPOS );
+					lprintf( "Success:%d %d %d %d %d", success, move->left, move->top, move->width, move->height );
+				} else {
+					lprintf( "Window is already positioned correctly" );
+					success = 1;
+					break;
+				}
+#if 0
+			}
+#endif
+			tries++;
+			if( tries < 3 ) {
+				WakeableSleep( 100 );
+				continue;
+			} else break;
+		}
+		if( !success ) {
+			DWORD dwError = GetLastError();
+			lprintf( "Failed to move window? %d Trying again...", dwError );
+			continue;
+		} else {
+			break;
+		}
+
+	}
+	lprintf( "Done Move...%d", success );
+	if( move->cb ) move->cb( move->psv, success );
+	Deallocate( struct move_window, move );
+	return 0;
+}
+
+
+static int _GetDisplaySizeEx ( int nDisplay
+	, int* x, int* y
+	, int* width, int* height ) {
+
+	TEXTSTR teststring = NewArray( TEXTCHAR, 20 );
+	//int idx;
+	int v_test = 0;
+	int i;
+	int found = 0;
+	DISPLAY_DEVICE dev;
+	DEVMODE dm;
+	if( x ) ( *x ) = 0;
+	if( y ) ( *y ) = 0;
+	if( width ) ( *width ) = 1920;
+	if( height ) ( *height ) = 1080;
+	dm.dmSize = sizeof( DEVMODE );
+	dm.dmDriverExtra = 0;
+	dev.cb = sizeof( DISPLAY_DEVICE );
+	for( v_test = 0; !found && ( v_test < 2 ); v_test++ ) {
+		// go ahead and try to find V devices too... not sure what they are, but probably won't get to use them.
+		tnprintf( teststring, 20, "\\\\.\\DISPLAY%s%d", ( v_test == 1 ) ? "V" : "", nDisplay );
+		for( i = 0;
+			!found && EnumDisplayDevices( NULL // all devices
+				, i
+				, &dev
+				, 0 // dwFlags
+			); i++ ) {
+			if( EnumDisplaySettings( dev.DeviceName, ENUM_CURRENT_SETTINGS, &dm ) ) {
+				//if( l.flags.bLogDisplayEnumTest )
+				lprintf( "display(cur) %s is at %d,%d %dx%d", dev.DeviceName, dm.dmPosition.x, dm.dmPosition.y, dm.dmPelsWidth, dm.dmPelsHeight );
+			}
+			else if( EnumDisplaySettings( dev.DeviceName, ENUM_REGISTRY_SETTINGS, &dm ) ) {
+				//if( l.flags.bLogDisplayEnumTest )
+				lprintf( "display(reg) %s is at %d,%d %dx%d", dev.DeviceName, dm.dmPosition.x, dm.dmPosition.y, dm.dmPelsWidth, dm.dmPelsHeight );
+			} else {
+				lprintf( "Found display name, but enum current settings failed? %s %d", teststring, GetLastError() );
+				continue;
+			}
+			if( StrCaseCmp( teststring, dev.DeviceName ) == 0 ) {
+				//if( l.flags.bLogDisplayEnumTest )
+				//	lprintf( "[%s] might be [%s]", teststring, dev.DeviceName );
+				if( x )
+					( *x ) = dm.dmPosition.x;
+				if( y )
+					( *y ) = dm.dmPosition.y;
+				if( width )
+					( *width ) = dm.dmPelsWidth;
+				if( height )
+					( *height ) = dm.dmPelsHeight;
+				found = 1;
+				break;
+			}
+		}
+	}
+	Deallocate( char*, teststring );
+	return found;
+}
+
+
+void MoveTaskWindow( PTASK_INFO task, int timeout, int left, int top, int width, int height, void cb(uintptr_t, LOGICAL ), uintptr_t psv ) {
+	struct move_window* move = New( struct move_window );
+	lprintf( "MoveTask" );
+	move->task = task;
+	move->timeout = timeout;
+	move->left = left;
+	move->top = top;
+	move->width = width;
+	move->height = height;
+	move->cb = cb;
+	move->psv = psv;
+	ThreadTo( moveTaskWindowThread, (uintptr_t)move );
+}
+
+void MoveTaskWindowToDisplay( PTASK_INFO task, int timeout, int display, void cb( uintptr_t, LOGICAL ), uintptr_t psv ) {
+	struct move_window* move = New( struct move_window );
+	move->task = task;
+	move->timeout = timeout;
+	lprintf( "TaskToDisplay %d", display );
+	if( !_GetDisplaySizeEx( display, &move->left, &move->top, &move->width, &move->height ) ) {
+		if( cb ) cb( psv, FALSE );
+		return;
+	}
+	move->cb = cb;
+	move->psv = psv;
+	ThreadTo( moveTaskWindowThread, (uintptr_t)move );
+}
+
+#endif
+
 
 LOGICAL CPROC StopProgram( PTASK_INFO task )
 {
@@ -869,23 +1107,46 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 
 		HWND hWndMain = find_main_window( task->pi.dwProcessId );
 		if( hWndMain ) {
-			//lprintf( "Sending WM_CLOSE to %p", hWndMain );
+			lprintf( "Sending WM_CLOSE to %p", hWndMain );
 			SendMessage( hWndMain, WM_CLOSE, 0, 0 );
 		}
 		else {
+			PDATALIST pdlProcs;
+			INDEX idx;
+			struct process_id_pair* pair;
+			DWORD dwKillId = task->pi.dwProcessId;
 			IgnoreBreakHandler( ( 1 << CTRL_C_EVENT ) | ( 1 << CTRL_BREAK_EVENT ) );
-			AttachConsole( task->pi.dwProcessId );
+			ProcIdFromParentProcId( task->pi.dwProcessId, &pdlProcs );
+			DATA_FORALL( pdlProcs, idx, struct process_id_pair*, pair ) {
+				lprintf( "Got Pair: %d %d", pair->parent, pair->child );
+				//dwKillId = pair->child;
+			}
+			lprintf( "Killing child %d instead of %d? %s", dwKillId, task->pi.dwProcessId, task->name );
+			//MessageBox( NULL, "pause", "pause", MB_OK );
+			FreeConsole();
+			BOOL a = AttachConsole( dwKillId );
+			if( !a ) {
+				DWORD dwError = GetLastError();
+				lprintf( "Failed to attachConsole %d %d %d", a, dwError, dwKillId );
+			}
+			//SetConsoleCtrlHandler( NULL, FALSE ); // remove default?
+			//SetConsoleCtrlHandler( CtrlC, TRUE ); // remove default?
 			if( !task->flags.useCtrlBreak )
-				if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, task->pi.dwProcessId ) ) {
+				if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, dwKillId ) ) {
 					error = GetLastError();
-					lprintf( "Failed to send CTRL_C_EVENT %d %d", task->pi.dwProcessId, error );
-				}// else lprintf( "Success sending ctrl C?" );
+					lprintf( "Failed to send CTRL_C_EVENT %d %d", dwKillId, error );
+				} else lprintf( "Success sending ctrl C?" );
 			else			
-				if( !GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, task->pi.dwProcessId ) ) {
+				if( !GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, dwKillId ) ) {
 					error = GetLastError();
-					lprintf( "Failed to send CTRL_BREAK_EVENT %d %d", task->pi.dwProcessId, error );
-				}// else lprintf( "Success sending ctrl break?" );
-			AttachConsole( ATTACH_PARENT_PROCESS ); // go back to parent.
+					lprintf( "Failed to send CTRL_BREAK_EVENT %d %d", dwKillId, error );
+				} else lprintf( "Success sending ctrl break?" );
+			//FreeConsole();
+			//a = AttachConsole( ATTACH_PARENT_PROCESS ); // go back to parent.
+			//if( !a ) {
+			//	DWORD dwError = GetLastError();
+			//	lprintf( "Failed to attachConsole %d %d %d", a, dwError, dwKillId );
+			//}
 			IgnoreBreakHandler( 0 );
 		}
 #if 0
@@ -959,22 +1220,22 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 
 uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 {
+	//lprintf( "TerminateProgram Task?%p %d", task, task->flags.closed );
 	if( task )
 	{
-#if defined( WIN32 )
-		int bDontCloseProcess = 0;
-#endif
 		if( !task->flags.closed )
 		{
 			task->flags.closed = 1;
-
 			//lprintf( "%ld, %ld %p %p", task->pi.dwProcessId, task->pi.dwThreadId, task->pi.hProcess, task->pi.hThread );
 
 #if defined( WIN32 )
+			// if not already ended...
 			if( WaitForSingleObject( task->pi.hProcess, 0 ) != WAIT_OBJECT_0 )
 			{
 				int nowait = 0;
+				//lprintf( "Wait timeout happened..." );
 				// try using ctrl-c, ctrl-break to end process...
+#if 0
 				if( !StopProgram( task ) )
 				{
 					xlprintf(LOG_LEVEL_DEBUG+1)( "Program did not respond to ctrl-c or ctrl-break..." );
@@ -987,13 +1248,15 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 						nowait = 1;
 					}
 				}
-				if( nowait || ( WaitForSingleObject( task->pi.hProcess, 500 ) != WAIT_OBJECT_0 ) )
+#endif
+				DWORD dwResult = WaitForSingleObject( task->pi.hProcess, 500 );
+				if( dwResult != WAIT_OBJECT_0 )
 				{
-					xlprintf(LOG_LEVEL_DEBUG+1)( "Terminating process...." );
-					bDontCloseProcess = 1;
-					if( !TerminateProcess( task->pi.hProcess, 0xD1E ) )
+					if( !TerminateProcess( task->pi.hProcess, 0xD3ed ) )
 					{
 						HANDLE hTmp;
+						lprintf( "Failed to terminate process... " );
+#if 0
 						lprintf( "Failed to terminate process... %p %ld : %d (will try again with OpenProcess)", task->pi.hProcess, task->pi.dwProcessId, GetLastError() );
 						hTmp = OpenProcess( SYNCHRONIZE|PROCESS_TERMINATE, FALSE, task->pi.dwProcessId);
 						if( !TerminateProcess( hTmp, 0xD1E ) )
@@ -1001,23 +1264,24 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 							lprintf( "Failed to terminate process... %p %ld : %d", task->pi.hProcess, task->pi.dwProcessId, GetLastError() );
 						}
 						CloseHandle( hTmp );
+#endif
 					}
 				}
 			}
 			if( !task->EndNotice )
 			{
-				lprintf( "Closing handle (no end notification)" );
+				//lprintf( "Closing handle (no end notification)" );
 				// task end notice - will get the event and close these...
 				CloseHandle( task->pi.hThread );
 				task->pi.hThread = 0;
-				if( !bDontCloseProcess )
+				//if( !bDontCloseProcess )
 				{
-					lprintf( "And close process handle" );
+					//lprintf( "And close process handle" );
 					CloseHandle( task->pi.hProcess );
 					task->pi.hProcess = 0;
 				}
-				else
-					lprintf( "Keeping process handle" );
+				//else
+				//	lprintf( "Keeping process handle" );
 			}
 //			else
 //				lprintf( "Would have close handles rudely." );
@@ -1028,11 +1292,6 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 			// wait a moment for it to die...
 #endif
 		}
-		//if( !task->EndNotice )
-		//{
-		//	Release( task );
-		//}
-		//task = NULL;
 	}
 	return 0;
 }
@@ -1081,8 +1340,8 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 		waitpid( task->pid, NULL, 0 );
 #endif
 		task->flags.process_ended = 1;
-
-		if( task->hStdOut.hThread )
+		//lprintf( "Task Ended, have to wake and remove pipes " );
+		if( task->hStdOut.hThread || task->hStdErr.hThread )
 		{
 #ifdef _WIN32
 			// vista++ so this won't work for XP support...
@@ -1091,24 +1350,32 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 				MyCancelSynchronousIo = (BOOL(WINAPI*)(HANDLE))LoadFunction( "kernel32.dll", "CancelSynchronousIo" );
 			if( MyCancelSynchronousIo )
 			{
-				if( !MyCancelSynchronousIo( GetThreadHandle( task->hStdOut.hThread ) ) )
-				{
-					// maybe the read wasn't queued yet....
-					//lprintf( "Failed to cancel IO on thread %d %d", GetThreadHandle( task->hStdOut.hThread ), GetLastError() );
-				}
-				if( !MyCancelSynchronousIo( GetThreadHandle( task->hStdErr.hThread ) ) )
-				{
-					// maybe the read wasn't queued yet....
-					//lprintf( "Failed to cancel IO on thread %d %d", GetThreadHandle( task->hStdOut.hThread ), GetLastError() );
-				}
+				///lprintf( "!!! Cancelling syncrhous IO " );
+				if( task->hStdOut.hThread )
+					if( !MyCancelSynchronousIo( GetThreadHandle( task->hStdOut.hThread ) ) )
+					{
+						DWORD dwError = GetLastError();
+						// maybe the read wasn't queued yet....
+						lprintf( "Failed to cancel IO on thread %d %d", GetThreadHandle( task->hStdOut.hThread ), dwError );
+					}
+				if( task->hStdErr.hThread )
+					if( !MyCancelSynchronousIo( GetThreadHandle( task->hStdErr.hThread ) ) )
+					{
+						DWORD dwError = GetLastError();
+						// maybe the read wasn't queued yet....
+						lprintf( "Failed to cancel IO on thread %d %d", GetThreadHandle( task->hStdErr.hThread ), dwError );
+					}
 			}
 			else
 			{
 				static BOOL (WINAPI *MyCancelIoEx)( HANDLE hFile,LPOVERLAPPED ) = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))-1;
+				//lprintf( "Trying CancelIo instead?" );
 				if( (uintptr_t)MyCancelIoEx == (uintptr_t)-1 )
 					MyCancelIoEx = (BOOL(WINAPI*)(HANDLE,LPOVERLAPPED))LoadFunction( "kernel32.dll", "CancelIoEx" );
 				if( MyCancelIoEx ) {
-					MyCancelIoEx( task->hStdOut.handle, NULL );
+					if( task->hStdOut.hThread )
+						MyCancelIoEx( task->hStdOut.handle, NULL );
+					if( task->hStdErr.hThread )
 						MyCancelIoEx( task->hStdErr.handle, NULL );
 				} else {
 					DWORD written;
@@ -1125,9 +1392,10 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 		}
 
 		// wait for task last output before notification of end of task.
+		//lprintf( "Task is exiting... %p %p", task->pOutputThread, task->pOutputThread2 );
 		while( task->pOutputThread || task->pOutputThread2 )
 			Relinquish();
-
+		//lprintf( "Task Exit didn't finish - output threads are stuck." );
 		if( task->EndNotice )
 			task->EndNotice( task->psvEnd, task );
 #if defined( WIN32 )
