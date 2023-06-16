@@ -11,6 +11,8 @@ static CTEXTSTR *args;
 static CTEXTSTR startin;
 static TEXTCHAR eventName[256];
 static HANDLE hRestartEvent;
+static LOGICAL useBreak;
+static LOGICAL useSignal;
 
 static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task );
 
@@ -27,7 +29,11 @@ static void logOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t s
 static void runTask( void ) {
 	lprintf( "Launching service process..." );
 	//task = LaunchUserProcess( progname, NULL, args, 0, NULL, MyTaskDone, 0 DBG_SRC );
-	task = LaunchPeerProgramExx( progname, startin, args, LPP_OPTION_NEW_GROUP, logOutput, MyTaskDone, 0 DBG_SRC );
+	task = LaunchPeerProgramExx( progname, startin, args
+		, (useBreak?LPP_OPTION_USE_CONTROL_BREAK:0)
+		| ( useSignal ? LPP_OPTION_USE_SIGNAL : 0 )
+		| LPP_OPTION_NEW_GROUP
+		, logOutput, MyTaskDone, 0 DBG_SRC );
 }
 
 static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task_done )
@@ -88,10 +94,20 @@ int main( int argc, char **argv )
 	SetSystemLoggingLevel( 2000 );
 
 	if( argc == 1 ) {
-		lprintf( "usage: [install/uninstall] [service_description] <task> <start-in path> <arguments....>" );
+		lprintf( "usage: [install/uninstall] <options> [service_description] <task> <start-in path> <environment... --> <arguments....>" );
+		lprintf( "   options:" );
+		lprintf( "       -break : use ctrl-break to terminate child." );
+		lprintf( "       -signal : use process signal to terminate child." );
+		lprintf( "   environment : additional environment variables to set in the form 'name=value'." );
+		lprintf( "      if an argument to the process looks like an environment value '--' can be used to terminate the environment list." );
 		lprintf( "     install [service_description] <task> <start-in path> <arguments....>" );
 		lprintf( "     uninstall" );
-		printf( "usage: [install/uninstall] [service_description] <task> <start-in path> <arguments....>\n" );
+		printf( "usage: [install/uninstall] [service_description] <task> <start-in path> <environment... --> <arguments....>\n" );
+		printf( "   options:\n" );
+		printf( "       -break : use ctrl-break to terminate child.\n" );
+		printf( "       -signal : use process signal to terminate child.\n" );
+		printf( "   environment : additional environment variables to set in the form 'name=value'.\n" );
+		printf( "      if an argument to the process looks like an environment value '--' can be used to terminate the environment list.\n" );
 		printf( "     install [service_description] <task> <start-in path> <arguments....>\n" );
 		printf( "     uninstall\n" );
 		return 0;
@@ -137,12 +153,20 @@ int main( int argc, char **argv )
 			startin = argv[2];
 			while( argofs < argc ){
 				const char *p;
-				if( argv[argofs][0] == '-' 
-					&& argv[argofs][1] == '-' 
-					&& argv[argofs][2] == 0 
-					){
+				while( argv[argofs][0] == '-' ) {
+					// --  force end of options
+					if( argv[argofs][1] == '-'
+						&& argv[argofs][2] == 0
+						){
+						argofs++;
+						break;
+					} else if( StrCaseCmp( argv[argofs] + 1, "break" ) == 0 ) {
+						useBreak = 1;
+					} else if( StrCaseCmp( argv[argofs] + 1, "signal" ) == 0 ) {
+						useSignal = 1;
+					} else
+						lprintf( "Bad option:%s", argv[argofs] );
 					argofs++;
-					break;
 				}
 				if( ( p = StrChr( argv[argofs], '=' ) ) ){
 					char *tmpname = DupCStrLen( argv[argofs], p-argv[argofs] );
