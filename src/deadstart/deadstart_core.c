@@ -131,7 +131,7 @@ static struct deadstart_local_data_ deadstart_local_data;
 
 EXPORT_METHOD void RunExits( void )
 {
-	fprintf( stderr, "Run Exits InvokeExits()\n" );
+	//fprintf( stderr, "Run Exits InvokeExits()\n" );
 
 	InvokeExits();
 }
@@ -516,7 +516,7 @@ void InvokeExits( void )
 	PSHUTDOWN_PROC proc;
 	// shutdown is much easier than startup cause more
 	// procedures shouldn't be added as a property of shutdown.
-	fprintf( stderr, "InvokeExits()\n" );
+	//fprintf( stderr, "InvokeExits()\n" );
 	// don't allow shutdown procs to schedule more shutdown procs...
 	// although in theory we could; if the first list contained
 	// ReleaseAllMemory(); then there is no memory.
@@ -591,7 +591,6 @@ void DispelDeadstart( void )
 
 ROOT_ATEXIT(AutoRunExits)
 {
-	fprintf( stderr, "Root Atexit Called\n" );
 	InvokeExits();
 }
 

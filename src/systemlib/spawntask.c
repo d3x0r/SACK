@@ -51,13 +51,14 @@ static int DumpErrorEx( DBG_VOIDPASS )
 //--------------------------------------------------------------------------
 extern uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread );
 
-
+#ifdef _WIN32
 static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 {
 	struct taskOutputStruct* taskParams = (struct taskOutputStruct*)GetThreadParam( thread );
 	PTASK_INFO task = taskParams->task;  // (PTASK_INFO)GetThreadParam( thread );
 	if( task )
 	{
+		Hold( task );
 		if( taskParams->stdErr )
 			task->pOutputThread2 = thread;
 		else
@@ -67,106 +68,199 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 			PHANDLEINFO phi = taskParams->stdErr?&task->hStdErr:&task->hStdOut;
 			PTEXT pInput = SegCreate( 4096 );
 			int done, lastloop;
-			Hold( task );
+			size_t offset = 0;
 			done = lastloop = FALSE;
 			do
 			{
+				DWORD dwRead;
+				DWORD dwAvail;
+				if( task->flags.log_input )
+					lprintf( "Go to read task's stdout." );
+				offset = 0;
+				while( 1 ) {
+					BOOL readSuccess = ReadFile( phi->handle
+						, GetText( pInput ) + offset, (DWORD)( GetTextSize( pInput ) - ( 1 + offset ) )
+						, &dwRead, NULL );
+					DWORD dwError = ( !readSuccess ) ? GetLastError() : 0;
+					if( readSuccess || dwError == ERROR_BROKEN_PIPE )
+					{
+						offset += dwRead;
+						if( dwError != ERROR_BROKEN_PIPE ) {
+							if( offset < 4095 ) {
+								Relinquish();
+								if( PeekNamedPipe( phi->handle, NULL, 0, NULL, &dwAvail, NULL ) ) {
+									if( dwAvail ) {
+										lprintf( "More data became avaialble: %d", dwAvail );
+										continue;
+									}
+								}
+							}
+						} else if( !dwRead ) {
+							lastloop = 1;
+							break;
+						}
+						if( task->flags.log_input )
+							lprintf( "got read on task's stdout: %d %d", taskParams->stdErr, dwRead );
+						//lprintf( "result %d", dwRead );
+						GetText( pInput )[offset] = 0;
+						pInput->data.size = offset;
+						offset = 0;
+						//LogBinary( GetText( pInput ), GetTextSize( pInput ) );
+						if( taskParams->stdErr ) {
+							if( task->OutputEvent2 )
+								task->OutputEvent2( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+							else if( task->OutputEvent )
+								task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+						} else {
+							if( task->OutputEvent )
+								task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+						}
+
+						pInput->data.size = 4096;
+
+						if( dwError == ERROR_BROKEN_PIPE )
+							break;
+					} else {
+						DWORD dwError = GetLastError();
+						offset = 0;
+						//lprintf( "Thread Read was 0? %d %d", taskParams->stdErr, dwError );
+
+						if( ( dwError == ERROR_BROKEN_PIPE
+							|| dwError == ERROR_OPERATION_ABORTED )
+							&& task->flags.process_ended ) {
+							lastloop = TRUE;
+							break;
+						}
+					}
+				}
+				//allow a minor time for output to be gathered before sending
+				// partial gathers...
+			}
+			while( !lastloop );
+			
+			LineRelease( pInput );
+
+			//lprintf( "Clearing thread handle (done)" );
+			phi->hThread = 0;
+			phi->handle = INVALID_HANDLE_VALUE;
+			if( taskParams->stdErr )
+				task->pOutputThread2 = NULL;
+			else
+				task->pOutputThread = NULL;
+
+			Release( task );
+			//WakeAThread( phi->pdp->common.Owner );
+			return 0xdead;
+		}
+	}
+	return 0;
+}
+#endif
+
+
+#ifdef __LINUX__
+
+static uintptr_t CPROC HandleTaskOutput( PTHREAD thread ) {
+	struct taskOutputStruct* taskParams = (struct taskOutputStruct*)GetThreadParam( thread );
+	PTASK_INFO task = taskParams->task;  // (PTASK_INFO)GetThreadParam( thread );
+	if( task ) {
+		Hold( task );
+		if( taskParams->stdErr )
+			task->pOutputThread2 = thread;
+		else
+			task->pOutputThread = thread;
+		// read input from task, montiro close and dispatch TaskEnd Notification also.
+		{
+			PHANDLEINFO phi = taskParams->stdErr ? &task->hStdErr : &task->hStdOut;
+			PTEXT pInput = SegCreate( 4096 );
+			int done, lastloop;
+			done = lastloop = FALSE;
+			do {
 				uint32_t dwRead;
 				if( done )
 					lastloop = TRUE;
 				{
-						if( task->flags.log_input )
-							lprintf( "Go to read task's stdout." );
+					if( task->flags.log_input )
+						lprintf( "Go to read task's stdout." );
 #ifdef _WIN32
-						if( //!task->flags.process_ended &&
-							 ReadFile( phi->handle
-										, GetText( pInput ), (DWORD)(GetTextSize( pInput ) - 1)
-										, (LPDWORD)&dwRead, NULL ) )  //read the  pipe
-						{
+					if( //!task->flags.process_ended &&
+						ReadFile( phi->handle
+							, GetText( pInput ), (DWORD)( GetTextSize( pInput ) - 1 )
+							, (LPDWORD)&dwRead, NULL ) )  //read the  pipe
+					{
 #else
-							dwRead = read( phi->handle
-											 , GetText( pInput )
-											 , GetTextSize( pInput ) - 1 );
-							if( !dwRead )
-							{
+					dwRead = read( phi->handle
+						, GetText( pInput )
+						, GetTextSize( pInput ) - 1 );
+					if( !dwRead ) {
 #  ifdef _DEBUG
-												//lprintf( "Ending system thread because of broke pipe! %d", errno );
+						//lprintf( "Ending system thread because of broke pipe! %d", errno );
 #  endif
 #  ifdef WIN32
-								continue;
+						continue;
 #  else
 												//lprintf( "0 read = pipe failure." );
-								break;
+						break;
 #  endif
-							}
+					}
 #endif
+					if( task->flags.log_input )
+						lprintf( "got read on task's stdout: %d %d", taskParams->stdErr, dwRead );
+					if( task->flags.bSentIoTerminator ) {
+						if( dwRead > 1 )
+							dwRead--;
+						else {
 							if( task->flags.log_input )
-								lprintf( "got read on task's stdout: %d %d", taskParams->stdErr, dwRead );
-							if( task->flags.bSentIoTerminator )
-							{
-								if( dwRead > 1 )
-									dwRead--;
-								else
-								{
-									if( task->flags.log_input )
-										lprintf( "Finished, no more data, task has ended; no need for once more around" );
-									lastloop = 1;
-									break; // we're done; task ended, and we got an io terminator on XP
-								}
-							}
-							//lprintf( "result %d", dwRead );
-							if( dwRead < 4096 ) {
-								GetText( pInput )[dwRead] = 0;
-								pInput->data.size = dwRead;
-								//LogBinary( GetText( pInput ), GetTextSize( pInput ) );
-								if( taskParams->stdErr ) {
-									if( task->OutputEvent2 )
-										task->OutputEvent2( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
-									else if( task->OutputEvent )
-										task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
-								} else {
-									if( task->OutputEvent )
-										task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
-								}
+								lprintf( "Finished, no more data, task has ended; no need for once more around" );
+							lastloop = 1;
+							break; // we're done; task ended, and we got an io terminator on XP
+						}
+					}
+					//lprintf( "result %d", dwRead );
+					if( dwRead < 4096 ) {
+						GetText( pInput )[dwRead] = 0;
+						pInput->data.size = dwRead;
+						//LogBinary( GetText( pInput ), GetTextSize( pInput ) );
+						if( taskParams->stdErr ) {
+							if( task->OutputEvent2 )
+								task->OutputEvent2( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+							else if( task->OutputEvent )
+								task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+						} else {
+							if( task->OutputEvent )
+								task->OutputEvent( task->psvEnd, task, GetText( pInput ), GetTextSize( pInput ) );
+						}
 
-								pInput->data.size = 4096;
-							}
+						pInput->data.size = 4096;
+					}
 #ifdef _WIN32
-						}
-						else
-						{
-							DWORD dwError = GetLastError();
-							int32_t dwAvail;
-							//lprintf( "Thread Read was 0? %d", taskParams->stdErr );
+					} else {
+					DWORD dwError = GetLastError();
+					int32_t dwAvail;
+					//lprintf( "Thread Read was 0? %d", taskParams->stdErr );
 
-							if( ( dwError == ERROR_OPERATION_ABORTED ) && task->flags.process_ended )
-							{
-								if( PeekNamedPipe( phi->handle, NULL, 0, NULL, (LPDWORD)&dwAvail, NULL ) )
-								{
-									if( dwAvail > 0 )
-									{
-										lprintf( "caught data" );
-										// there is still data in the pipe, just that the process closed
-										// and we got the sync even before getting the data.
-									}
-									else
-										break;
-								}
-							}
+					if( ( dwError == ERROR_OPERATION_ABORTED ) && task->flags.process_ended ) {
+						if( PeekNamedPipe( phi->handle, NULL, 0, NULL, (LPDWORD)&dwAvail, NULL ) ) {
+							if( dwAvail > 0 ) {
+								lprintf( "caught data" );
+								// there is still data in the pipe, just that the process closed
+								// and we got the sync even before getting the data.
+							} else
+								break;
 						}
+					}
+				}
 #endif
 				}
-				//allow a minor time for output to be gathered before sending
-				// partial gathers...
+			//allow a minor time for output to be gathered before sending
+			// partial gathers...
 #ifndef _WIN32
-				if( task->flags.process_ended )
-				{
-					// Ending system thread because of process exit!
-  					done = TRUE; // do one pass to make sure we completed read
-				}
-#endif
+			if( task->flags.process_ended ) {
+				// Ending system thread because of process exit!
+				done = TRUE; // do one pass to make sure we completed read
 			}
-			while( !lastloop );
+#endif
+			} while( !lastloop );
 
 			LineRelease( pInput );
 #ifdef _WIN32
@@ -200,8 +294,10 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 			return 0xdead;
 		}
 	}
-	return 0;
+return 0;
 }
+
+#endif
 
 //--------------------------------------------------------------------------
 
@@ -675,6 +771,19 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 
 					//task->hThread =
 					ThreadTo( WaitForTaskEnd, (uintptr_t)task );
+				}
+				// close my side of the pipes...
+				if( task->hWriteOut != INVALID_HANDLE_VALUE ) {
+					CloseHandle( task->hWriteOut );
+					task->hWriteOut = INVALID_HANDLE_VALUE;
+				}
+				if( task->hWriteErr != INVALID_HANDLE_VALUE ) {
+					CloseHandle( task->hWriteErr );
+					task->hWriteErr = INVALID_HANDLE_VALUE;
+				}
+				if( task->hReadIn != INVALID_HANDLE_VALUE ) {
+					CloseHandle( task->hReadIn );
+					task->hReadIn = INVALID_HANDLE_VALUE;
 				}
 			}
 			else

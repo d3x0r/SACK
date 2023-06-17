@@ -437,11 +437,11 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 		//int( *cb )( void );
 		int preventShutdown = 0;
 		DATA_FORALL( l.killEventCallbacks, idx, struct callback_info*, ci ) {
-			lprintf( "callback: %p %p %d", ci->cb, ci->psv, ci->deleted );
+			//lprintf( "callback: %p %p %d", ci->cb, ci->psv, ci->deleted );
 			if( !ci->deleted )
 				preventShutdown |= ci->cb(ci->psv);
 		}
-		lprintf( "Callbacks done: %d", preventShutdown );
+		//lprintf( "Callbacks done: %d", preventShutdown );
 		if( !preventShutdown ) {
 			InvokeExits();
 			exit( 0 );
@@ -1189,7 +1189,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 			HANDLE hEvent;
 			snprintf( eventName, 256, "Global\\%s(%d):exit", task->name, task->pi.dwProcessId );
 			hEvent = OpenEvent( EVENT_MODIFY_STATE, FALSE, eventName );
-			lprintf( "Signal process event: %s", eventName );
+			//lprintf( "Signal process event: %s", eventName );
 			if( hEvent != NULL ) {
 				//lprintf( "Opened event:%p %s %d", hEvent, eventName, GetLastError() );
 				if( !SetEvent( hEvent ) ) {
@@ -1378,6 +1378,10 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 		if( task->hStdOut.hThread || task->hStdErr.hThread )
 		{
 #ifdef _WIN32
+			uint32_t now = timeGetTime();
+			while( ( timeGetTime() - now ) < 100 && ( task->hStdOut.hThread || task->hStdErr.hThread ) )
+				Relinquish();
+			//lprintf( "Stalled before cancel?", ( task->hStdOut.hThread || task->hStdErr.hThread ) );
 			// vista++ so this won't work for XP support...
 			static BOOL (WINAPI *MyCancelSynchronousIo)( HANDLE hThread ) = (BOOL(WINAPI*)(HANDLE))-1;
 			if( (uintptr_t)MyCancelSynchronousIo == (uintptr_t)-1 )
@@ -1427,8 +1431,12 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 
 		// wait for task last output before notification of end of task.
 		//lprintf( "Task is exiting... %p %p", task->pOutputThread, task->pOutputThread2 );
-		while( task->pOutputThread || task->pOutputThread2 )
-			Relinquish();
+		{
+			uint32_t now = timeGetTime();
+			while( ( ( timeGetTime()-now)< 500 )
+			       && ( task->pOutputThread || task->pOutputThread2 ) )
+				Relinquish();
+		}
 		//lprintf( "Task Exit didn't finish - output threads are stuck." );
 		if( task->EndNotice )
 			task->EndNotice( task->psvEnd, task );
