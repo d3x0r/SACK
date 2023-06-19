@@ -2416,6 +2416,7 @@ static	int CPROC sack_filesys_find_first( struct find_cursor* _cursor ) {
 	struct find_cursor_data* cursor = ( struct find_cursor_data* )_cursor;
 #ifdef WIN32
 	cursor->findHandle = _wfindfirst( cursor->filemask, &cursor->fileinfo );
+	//lprintf( "findFirst %p %p", cursor->findHandle, cursor );
 	return ( cursor->findHandle != -1 );
 #else
 	if( cursor->handle ) {
@@ -2435,7 +2436,9 @@ static	int CPROC sack_filesys_find_first( struct find_cursor* _cursor ) {
 static	int CPROC sack_filesys_find_close( struct find_cursor* _cursor ) {
 	struct find_cursor_data* cursor = ( struct find_cursor_data* )_cursor;
 #ifdef WIN32
-	findclose( cursor->findHandle );
+	int r;
+	r = findclose( cursor->findHandle );
+	//lprintf( "findClose %d %p", r, cursor );
 #else
 	if( cursor->handle )
 		closedir( cursor->handle );
@@ -2451,6 +2454,7 @@ static	int CPROC sack_filesys_find_next( struct find_cursor* _cursor ) {
 	struct find_cursor_data* cursor = ( struct find_cursor_data* )_cursor;
 #ifdef WIN32
 	r = !_wfindnext( cursor->findHandle, &cursor->fileinfo );
+	//lprintf( "findNext %d %p", r, cursor );
 #else
 	do {
 		cursor->de = readdir( cursor->handle );
@@ -2556,6 +2560,7 @@ static	LOGICAL CPROC sack_filesys_find_is_directory( struct find_cursor* _cursor
 #  ifdef UNDER_CE
 	return ( cursor->fileinfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY );
 #  else
+	//lprintf( "isDir %d %08x %p", ( cursor->fileinfo.attrib & _A_SUBDIR ), cursor->fileinfo.attrib, cursor );
 	return ( cursor->fileinfo.attrib & _A_SUBDIR );
 #  endif
 #else

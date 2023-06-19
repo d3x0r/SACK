@@ -657,22 +657,23 @@ getnext:
 #else
 #  define pDataBuffer pData->buffer
 #endif
-	//lprintf( "Check if %s is a directory...", pData->buffer );
-	if( ((flags & (SFF_DIRECTORIES | SFF_SUBCURSE))
-		&& (pData->scanning_mount && pData->scanning_mount->fsi
-			&& (pData->scanning_mount->fsi->find_is_directory
-				&& pData->scanning_mount->fsi->find_is_directory( findcursor( pInfo ) ))))
-		|| (!(pData->scanning_mount ? pData->scanning_mount->fsi : NULL)
+	int isDir = ( ( pData->scanning_mount && pData->scanning_mount->fsi
+			&& ( pData->scanning_mount->fsi->find_is_directory
+				&& pData->scanning_mount->fsi->find_is_directory( findcursor( pInfo ) ) ) )
+			|| ( !( pData->scanning_mount ? pData->scanning_mount->fsi : NULL )
 #ifdef WIN32
 #  ifdef UNDER_CE
-			&& (finddata( pInfo )->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+				&& ( finddata( pInfo )->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
 #  else
-			&& (finddata( pInfo )->attrib & _A_SUBDIR)
+				&& ( finddata( pInfo )->attrib & _A_SUBDIR )
 #  endif
 #else
-			&& IsPath( pData->buffer )
+				&& IsPath( pData->buffer )
 #endif
-			) )
+				) );
+	//lprintf( "Check if %s is a directory...", pData->buffer );
+	if( ( flags & ( SFF_DIRECTORIES | SFF_SUBCURSE ) )
+		&& isDir )
 	{
 #ifdef UNICODE
 		Deallocate( char *, pDataBuffer );
@@ -734,18 +735,8 @@ getnext:
 #else
 #  undef pDataBuffer
 #endif
-	if( ( sendflags = SFF_DIRECTORY, ( ( flags & SFF_DIRECTORIES )
-#ifdef WIN32
-#  ifdef UNDER_CE
-												 && ( finddata(pInfo)->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
-#  else
-												 && ( finddata(pInfo)->attrib & _A_SUBDIR )
-#  endif
-#else
-												 && ( IsPath( pData->buffer ) )
-
-#endif
-												) ) || ( (sendflags = (enum ScanFileProcessFlags)0), CompareMask( findmask( pInfo )
+	if( ( sendflags = SFF_DIRECTORY, ( ( flags & SFF_DIRECTORIES ) && isDir ) )
+	  || ( (sendflags = (enum ScanFileProcessFlags)0), CompareMask( findmask( pInfo )
 #ifdef WIN32
 #  ifdef UNDER_CE
 																							  , finddata(pInfo)->cFileName
