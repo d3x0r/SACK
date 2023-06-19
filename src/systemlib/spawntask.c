@@ -90,7 +90,8 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 								Relinquish();
 								if( PeekNamedPipe( phi->handle, NULL, 0, NULL, &dwAvail, NULL ) ) {
 									if( dwAvail ) {
-										lprintf( "More data became avaialble: %d", dwAvail );
+										if( task->flags.log_input )
+											lprintf( "More data became avaialble: %d", dwAvail );
 										continue;
 									}
 								}
@@ -598,8 +599,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		if( OutputHandler || OutputHandler2 )
 		{
 			SECURITY_ATTRIBUTES sa;
-			lprintf( "setting IO handles." );
-
+			//lprintf( "setting IO handles." );
 			sa.bInheritHandle = TRUE;
 			sa.lpSecurityDescriptor = NULL;
 			sa.nLength = sizeof( sa );
