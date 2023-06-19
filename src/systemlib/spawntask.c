@@ -91,7 +91,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 								if( PeekNamedPipe( phi->handle, NULL, 0, NULL, &dwAvail, NULL ) ) {
 									if( dwAvail ) {
 										if( task->flags.log_input )
-											lprintf( "More data became avaialble: %d", dwAvail );
+											lprintf( "More data became available: %d", dwAvail );
 										continue;
 									}
 								}
@@ -621,7 +621,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		}
 		else
 		{
-			lprintf( "Not setting IO handles." );
+			//lprintf( "Not setting IO handles." );
 			task->si.dwFlags |= STARTF_USESHOWWINDOW;
 			if( !( flags & LPP_OPTION_DO_NOT_HIDE ) )
 				task->si.wShowWindow = SW_HIDE;
