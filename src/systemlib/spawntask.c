@@ -507,6 +507,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		MemSet( task, 0, sizeof( TASK_INFO ) );
 		task->flags.useCtrlBreak = ( flags & LPP_OPTION_USE_CONTROL_BREAK ) ? 1 : 0;
 		task->flags.useEventSignal = ( flags & LPP_OPTION_USE_SIGNAL ) ? 1 : 0;
+		task->flags.noKillOnExit = ( flags & LPP_OPTION_NO_KILL_ON_EXIT ) ? 1 : 0;
 		{
 			CTEXTSTR nameStart = StrRChr( (CTEXTSTR)program, '/' );
 			CTEXTSTR nameEnd = StrRChr( (CTEXTSTR)program, '.' );
@@ -1011,7 +1012,8 @@ ATEXIT( SystemAutoShutdownTasks )
 		( *local_systemlib ).flags.shutdown = TRUE;
 		LIST_FORALL( (*local_systemlib).system_tasks, idx, PTASK_INFO, task )
 		{
-			TerminateProgram( task );
+			if( !task->flags.noKillOnExit )
+				TerminateProgram( task );
 		}
 	}
 }
