@@ -27,6 +27,11 @@ static struct vfs_command_local
 	struct file_system_mounted_interface *current_mount_source;
 } l;
 
+// used to pass options to file scan callback
+struct store_file_info {
+	CTEXTSTR usePath; // new path to substitute 
+	int skipLength; // how much of path to skip
+};
 #ifdef USE_VFS_OS_INTERFACE
 const char *testDatas[] = {
 	"Test File Data...."
@@ -234,6 +239,14 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 
 static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileProcessFlags flags )
 {
+	struct store_file_info *info = (struct store_file_info*)psv;
+	CTEXTSTR outName = filename;
+	if( info->usePath ) {
+		int tmpLen = (int)(strlen(filename) + strlen(info->usePath) + 3);
+		char *tmpName = NewArray( char, tmpLen );
+		snprintf( tmpName, tmpLen, "%s%s%s", info->usePath, info->skipLength?"/":"", filename + info->skipLength );
+		outName = (CTEXTSTR)tmpName;
+	}
 	if( flags & SFF_DIRECTORY ) {// don't need to do anything with directories... already
       // doing subcurse option.
 		if( l.verbose ) printf( "Got Subdirectory:%s\n", filename );
@@ -245,14 +258,14 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 			size_t size = sack_fsize( in );
 			if( size == (size_t)-1 ) {
 				sack_fclose( in );
-				printf( "Failed to open file:%s\n", filename );
-				return;
+				printf( "Failed to get file size:%s\n", filename );
+				goto finish;
 			}
 			if( l.verbose ) printf( " file size (%zd)\n", size );
 			{
-				FILE *out = sack_fopenEx( 0, filename, "wbn", l.current_mount );
+				FILE *out = sack_fopenEx( 0, outName, "wbn", l.current_mount );
 				POINTER data = NewArray( uint8_t, size );
-				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
+				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", outName, out, size );
 				sack_fread( data, size, 1, in );
 				if( l.verbose ) printf( " read %zd\n", size );
 				sack_fwrite( data, size, 1, out );
@@ -263,6 +276,10 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 			}
 		}else
 			printf( " Failed to opened file %s\n", filename );
+	}
+finish:
+	if( info->usePath ) {
+		Deallocate( CTEXTSTR, outName );
 	}
 }
 
@@ -308,13 +325,16 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 			Release( data );
 		}
 	}
+
 }
 
-static void StoreFile( CTEXTSTR filemask )
+static void StoreFile( CTEXTSTR filemask, CTEXTSTR asPath, LOGICAL replace )
 {
 	void *info = NULL;
+	struct store_file_info storeOptions;
 	char * tmppath = StrDup( filemask );
 	char *end = (char*)pathrchr( tmppath );
+	const char *firstSlash = asPath?pathchr( tmppath ):NULL;
 	if( end ) {
 		end[0] = 0; end++;
 	} else {
@@ -330,11 +350,12 @@ static void StoreFile( CTEXTSTR filemask )
 		end = "*";
 		doScan = TRUE;	
 	}
-	
+	storeOptions.usePath = asPath;
+	storeOptions.skipLength = replace?( (int)((firstSlash - tmppath)+1)):0;
 	if( doScan )
-		while( ScanFilesEx( tmppath?tmppath:end, tmppath?end:"*", &info, _StoreFile, SFF_DIRECTORIES | SFF_SUBCURSE | SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount()) );
+		while( ScanFilesEx( tmppath?tmppath:end, tmppath?end:"*", &info, _StoreFile, SFF_DIRECTORIES | SFF_SUBCURSE | SFF_SUBPATHONLY, (uintptr_t)&storeOptions, FALSE, sack_get_default_mount()) );
 	else
-		_StoreFile( 0, filemask, 0 );
+		_StoreFile( (uintptr_t)&storeOptions, filemask, 0 );
 	if( tmppath )
 		Release( tmppath );
 }
@@ -669,10 +690,12 @@ static void usage( void )
 	printf( "   rm <filename>                       : delete file within VFS.\n" );
 	printf( "   delete <filename>                   : delete file within VFS.\n" );
 	printf( "   store <filemask>                    : store files that match the name in the VFS from local filesystem.\n" );
+	printf( "   storein <filemask> <path>           : similar to 'store' but replaces the leading path part with <path> option.\n" );
+	printf( "   storewith <filemask> <path>         : similar to 'storein' but does not replace the leading path.\n" );
+	printf( "   storeas <filename> <as file>        : store file from <filename> into VFS as <as file>.\n" );
 	printf( "   patch <vfsName> <filemask>          : store files that match the name and are different from those in the VFS.\n" );
 	printf( "   cpatch <vfsName> <key1> <key2> <filemask> : store files that match the name and are different from those in the VFS.\n" );
 	printf( "   extract <filemask>                  : extract files that match the name in the VFS to local filesystem.\n" );
-	printf( "   storeas <filename> <as file>        : store file from <filename> into VFS as <as file>.\n" );
 	printf( "   extractas <filename> <as file>      : extract file <filename> from VFS as <as file>.\n" );
 	printf( "   append <file 1> <file 2> <to file>  : store <file 1>+<file 2> as <to file> in native file system.\n" );
 	printf( "   shrink                              : remove extra space at the end of a volume.\n" );
@@ -777,8 +800,22 @@ SaneWinMain( argc, argv )
 		}
 		else if( StrCaseCmp( argv[arg], "store" ) == 0 )
 		{
-			StoreFile( argv[arg+1] );
+			StoreFile( argv[arg+1], NULL, FALSE );
 			arg++;
+		}
+		else if( StrCaseCmp( argv[arg], "storein" ) == 0 )
+		{
+			if( (arg+2) <= argc ) {
+				StoreFile( argv[arg+1], argv[arg+2], TRUE );
+				arg+=2;
+			}
+		}
+		else if( StrCaseCmp( argv[arg], "storewith" ) == 0 )
+		{
+			if( (arg+2) <= argc ) {
+				StoreFile( argv[arg+1], argv[arg+2], FALSE );
+				arg+=2;
+			}
 		}
 		else if( StrCaseCmp( argv[arg], "patch" ) == 0 )
 		{
