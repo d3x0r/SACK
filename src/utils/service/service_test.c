@@ -22,8 +22,9 @@ static void logOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t s
 	if( buffer[size +less]=='\n' )
 		less--; else less++;
 	if( less<0 && buffer[size +less]=='\r' )
-		less--; else less++;
-	lprintf( "%.*s", size+less, buffer );
+		less--;// else less++;
+	
+	lprintf( "%.*s", size+less+1, buffer );
 }
 
 static void runTask( void ) {
