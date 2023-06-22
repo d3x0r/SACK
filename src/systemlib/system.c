@@ -943,6 +943,10 @@ struct move_window {
 	void (*cb)( uintptr_t, LOGICAL );
 };
 
+void RefreshTaskWindow( PTASK_INFO task ) {
+	task->taskWindow = find_main_window( task->pi.dwProcessId );
+}
+
 static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 	struct move_window* move = (struct move_window*)GetThreadParam( thread );
 	uint32_t time = timeGetTime();
@@ -951,12 +955,13 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 	//lprintf( "move Thread: %d", time );
 	while( (int)( timeGetTime() - time ) < move->timeout ) {
 		lprintf( "move Thread(time): %d", timeGetTime() - time );
-		HWND hWndProc = find_main_window( move->task->pi.dwProcessId );
+		HWND hWndProc = move->task->taskWindow ?move->task->taskWindow :find_main_window( move->task->pi.dwProcessId );
 		int atx, aty, atw, ath;
 		if( !hWndProc ) {
 			WakeableSleep( 100 );
 			continue;
 		}
+		move->task->taskWindow = hWndProc;
 #if 0
 		PDATALIST procTree;
 		PDATALIST windows = CreateDataList( sizeof( HWND ) );
@@ -1143,7 +1148,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 	if( task->pi.dwProcessId ) // sometimes we can't get back the launched process? rude.
 	{
 
-		HWND hWndMain = find_main_window( task->pi.dwProcessId );
+		HWND hWndMain = task->taskWindow?task->taskWindow:find_main_window( task->pi.dwProcessId );
 		if( hWndMain ) {
 			lprintf( "Sending WM_CLOSE to %p", hWndMain );
 			SendMessage( hWndMain, WM_CLOSE, 0, 0 );

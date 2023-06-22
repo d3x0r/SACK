@@ -50,6 +50,7 @@ struct task_info_tag {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
    DWORD exitcode;
+	HWND taskWindow;
 #elif defined( __LINUX__ )
    int hReadOut, hWriteOut;
    int hReadErr, hWriteErr;
