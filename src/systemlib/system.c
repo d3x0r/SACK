@@ -943,8 +943,8 @@ struct move_window {
 	void (*cb)( uintptr_t, LOGICAL );
 };
 
-void RefreshTaskWindow( PTASK_INFO task ) {
-	task->taskWindow = find_main_window( task->pi.dwProcessId );
+HWND RefreshTaskWindow( PTASK_INFO task ) {
+	return task->taskWindow = find_main_window( task->pi.dwProcessId );
 }
 
 static uintptr_t moveTaskWindowThread( PTHREAD thread ) {

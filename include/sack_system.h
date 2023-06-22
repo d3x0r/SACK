@@ -259,6 +259,10 @@ SYSTEM_PROC( void, AddKillSignalCallback )( int( *cb )( uintptr_t ), uintptr_t )
 */
 SYSTEM_PROC( void, RemoveKillSignalCallback )( int( *cb )( uintptr_t ), uintptr_t );
 
+/*
+  Refresh internal window handle for task; uses internal handle as cached value for performance.
+*/
+SYSTEM_PROC( HWND, RefreshTaskWindow )( PTASK_INFO task );
 #endif
 
 SACK_SYSTEM_NAMESPACE_END
