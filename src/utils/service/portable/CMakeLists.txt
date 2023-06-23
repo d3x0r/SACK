@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
+if( MSVC )
+   add_definitions( -wd4996  -wd4244 -wd4068 -wd6011 )
+endif( MSVC )
+
 if( PLATFORM_CMAKE_DEFINES )
    STRING( REPLACE "," ";" PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} )
    foreach( DEF IN LISTS PLATFORM_CMAKE_DEFINES)
