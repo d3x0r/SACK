@@ -1039,62 +1039,102 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 	return 0;
 }
 
+struct find_monitor_data {
+	int monitor;
+	int* x; int* y;
+	int* width; int* height;
+	int found;
+};
+static BOOL addMonitor( HMONITOR hMonitor,
+	HDC hDC_null,
+	LPRECT pRect,
+	LPARAM dwParam
+) {
+	struct find_monitor_data* data = (struct find_monitor_data*)dwParam;
+	if( !( --data->monitor ) ) {
+		data->found = 1;
+		data->x[0] = pRect->left;
+		data->y[0] = pRect->top;
+		data->width[0] = pRect->right - pRect->left;
+		data->height[0] = pRect->bottom - pRect->top;
+		return FALSE;
+	}
+	return TRUE;
+}
 
-static int _GetDisplaySizeEx ( int nDisplay
+
+static int _GetDisplaySizeEx ( int nDisplay, int monitor
 	, int* x, int* y
 	, int* width, int* height ) {
-
-	TEXTSTR teststring = NewArray( TEXTCHAR, 20 );
-	//int idx;
-	int v_test = 0;
-	int i;
 	int found = 0;
-	DISPLAY_DEVICE dev;
-	DEVMODE dm;
-	if( x ) ( *x ) = 0;
-	if( y ) ( *y ) = 0;
-	if( width ) ( *width ) = 1920;
-	if( height ) ( *height ) = 1080;
-	dm.dmSize = sizeof( DEVMODE );
-	dm.dmDriverExtra = 0;
-	dev.cb = sizeof( DISPLAY_DEVICE );
-	for( v_test = 0; !found && ( v_test < 2 ); v_test++ ) {
-		// go ahead and try to find V devices too... not sure what they are, but probably won't get to use them.
-		tnprintf( teststring, 20, "\\\\.\\DISPLAY%s%d", ( v_test == 1 ) ? "V" : "", nDisplay );
-		for( i = 0;
-			!found && EnumDisplayDevices( NULL // all devices
-				, i
-				, &dev
-				, 0 // dwFlags
-			); i++ ) {
-			if( EnumDisplaySettings( dev.DeviceName, ENUM_CURRENT_SETTINGS, &dm ) ) {
-				//if( l.flags.bLogDisplayEnumTest )
-				lprintf( "display(cur) %s is at %d,%d %dx%d", dev.DeviceName, dm.dmPosition.x, dm.dmPosition.y, dm.dmPelsWidth, dm.dmPelsHeight );
-			}
-			else if( EnumDisplaySettings( dev.DeviceName, ENUM_REGISTRY_SETTINGS, &dm ) ) {
-				//if( l.flags.bLogDisplayEnumTest )
-				lprintf( "display(reg) %s is at %d,%d %dx%d", dev.DeviceName, dm.dmPosition.x, dm.dmPosition.y, dm.dmPelsWidth, dm.dmPelsHeight );
-			} else {
-				lprintf( "Found display name, but enum current settings failed? %s %d", teststring, GetLastError() );
-				continue;
-			}
-			if( StrCaseCmp( teststring, dev.DeviceName ) == 0 ) {
-				//if( l.flags.bLogDisplayEnumTest )
-				//	lprintf( "[%s] might be [%s]", teststring, dev.DeviceName );
-				if( x )
-					( *x ) = dm.dmPosition.x;
-				if( y )
-					( *y ) = dm.dmPosition.y;
-				if( width )
-					( *width ) = dm.dmPelsWidth;
-				if( height )
-					( *height ) = dm.dmPelsHeight;
-				found = 1;
-				break;
+
+	if( monitor >= 0 ) {
+		struct find_monitor_data data;
+		data.monitor = monitor;
+		data.x = x;
+		data.y = y;
+		data.width = width;
+		data.height = height;
+		data.found = 0;
+		EnumDisplayMonitors( NULL
+			, NULL
+			, addMonitor
+			, (LPARAM)&data
+		);
+		return data.found;
+	}
+
+	if( nDisplay >= 0 ) {
+		TEXTSTR teststring = NewArray( TEXTCHAR, 20 );
+		//int idx;
+		int v_test = 0;
+		int i;
+		DISPLAY_DEVICE dev;
+		DEVMODE dm;
+		if( x ) ( *x ) = 0;
+		if( y ) ( *y ) = 0;
+		if( width ) ( *width ) = 1920;
+		if( height ) ( *height ) = 1080;
+		dm.dmSize = sizeof( DEVMODE );
+		dm.dmDriverExtra = 0;
+		dev.cb = sizeof( DISPLAY_DEVICE );
+		for( v_test = 0; !found && ( v_test < 2 ); v_test++ ) {
+			// go ahead and try to find V devices too... not sure what they are, but probably won't get to use them.
+			tnprintf( teststring, 20, "\\\\.\\DISPLAY%s%d", ( v_test == 1 ) ? "V" : "", nDisplay );
+			for( i = 0;
+				!found && EnumDisplayDevices( NULL // all devices
+					, i
+					, &dev
+					, 0 // dwFlags
+				); i++ ) {
+				if( EnumDisplaySettings( dev.DeviceName, ENUM_CURRENT_SETTINGS, &dm ) ) {
+					//if( l.flags.bLogDisplayEnumTest )
+					lprintf( "display(cur) %s is at %d,%d %dx%d", dev.DeviceName, dm.dmPosition.x, dm.dmPosition.y, dm.dmPelsWidth, dm.dmPelsHeight );
+				} else if( EnumDisplaySettings( dev.DeviceName, ENUM_REGISTRY_SETTINGS, &dm ) ) {
+					//if( l.flags.bLogDisplayEnumTest )
+					lprintf( "display(reg) %s is at %d,%d %dx%d", dev.DeviceName, dm.dmPosition.x, dm.dmPosition.y, dm.dmPelsWidth, dm.dmPelsHeight );
+				} else {
+					lprintf( "Found display name, but enum current settings failed? %s %d", teststring, GetLastError() );
+					continue;
+				}
+				if( StrCaseCmp( teststring, dev.DeviceName ) == 0 ) {
+					//if( l.flags.bLogDisplayEnumTest )
+					//	lprintf( "[%s] might be [%s]", teststring, dev.DeviceName );
+					if( x )
+						( *x ) = dm.dmPosition.x;
+					if( y )
+						( *y ) = dm.dmPosition.y;
+					if( width )
+						( *width ) = dm.dmPelsWidth;
+					if( height )
+						( *height ) = dm.dmPelsHeight;
+					found = 1;
+					break;
+				}
 			}
 		}
+		Deallocate( char*, teststring );
 	}
-	Deallocate( char*, teststring );
 	return found;
 }
 
@@ -1118,7 +1158,23 @@ void MoveTaskWindowToDisplay( PTASK_INFO task, int timeout, int display, void cb
 	move->task = task;
 	move->timeout = timeout;
 	lprintf( "TaskToDisplay %d", display );
-	if( !_GetDisplaySizeEx( display, &move->left, &move->top, &move->width, &move->height ) ) {
+	if( !_GetDisplaySizeEx( display, -1, &move->left, &move->top, &move->width, &move->height ) ) {
+		Deallocate( struct move_window, move );
+		if( cb ) cb( psv, FALSE );
+		return;
+	}
+	move->cb = cb;
+	move->psv = psv;
+	ThreadTo( moveTaskWindowThread, (uintptr_t)move );
+}
+
+void MoveTaskWindowToMonitor( PTASK_INFO task, int timeout, int display, void cb( uintptr_t, LOGICAL ), uintptr_t psv ) {
+	struct move_window* move = New( struct move_window );
+	move->task = task;
+	move->timeout = timeout;
+	lprintf( "TaskToMonitor %d", display );
+	if( !_GetDisplaySizeEx( -1, display, &move->left, &move->top, &move->width, &move->height ) ) {
+		Deallocate( struct move_window, move );
 		if( cb ) cb( psv, FALSE );
 		return;
 	}
