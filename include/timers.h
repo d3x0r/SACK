@@ -219,6 +219,13 @@ typedef uintptr_t (*ThreadSimpleStartProc)( POINTER );
   after registering the callback.
 */
 TIMER_PROC( void, OnThreadCreate )( void ( *v )( void ) );
+/*
+  OnThreadExit allows registering a procedure to run
+  when a thread exits.
+  It is called once per thread, for each thread that exits
+  after registering the callback.
+*/
+TIMER_PROC( void, OnThreadExit )( void ( *v )( void ) );
 
 /* Create a separate thread that starts in the routine
    specified. The uintptr_t value (something that might be a

@@ -189,6 +189,7 @@ struct timer_local_data {
 	uint32_t CurrentTimerID;
 	int32_t last_sleep;
 	PLIST onThreadCreate;
+	PLIST onThreadExit;
 #define globalTimerData (*global_timer_structure)
 	volatile uint64_t lock_thread_create;
 	// should be a short list... 10 maybe 15...
@@ -1202,6 +1203,13 @@ static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 #else
 	pThread->hThread = NULL;
 #endif
+	{
+		INDEX idx;
+		void ( *f )( void );
+		LIST_FORALL( globalTimerData.onThreadExit, idx, void( * )( void ), f ) {
+			f();
+		}
+	}
 	//lprintf( "%s(%d):Thread is exiting... ", pThread->pFile, pThread->nLine );
 #ifdef __WATCOMC__
 	return (void*)result;
@@ -2512,6 +2520,13 @@ void OnThreadCreate( void (*f)(void) ) {
 		SimpleRegisterAndCreateGlobal( global_timer_structure );
 #endif
 	AddLink( &globalTimerData.onThreadCreate, f );
+}
+void OnThreadExit( void ( *f )( void ) ) {
+#ifndef __STATIC_GLOBALS__
+	if( !global_timer_structure )
+		SimpleRegisterAndCreateGlobal( global_timer_structure );
+#endif
+	AddLink( &globalTimerData.onThreadExit, f );
 }
 
 #undef GetThreadTLS
