@@ -317,6 +317,9 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #endif
 	g.nMinAllocateSize = 32;
 	g.allowLogging = 1;
+#if !(USE_CUSTOM_ALLOCER)
+	g.bInit = 1;
+#endif
 }
 
 #if __GNUC__
