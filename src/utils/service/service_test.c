@@ -2,6 +2,8 @@
 #include <deadstart.h>
 #include <service_hook.h>
 
+//#define DEBUG_MEMORY_LEAKS
+
 static LOGICAL programEnd;
 static PTASK_INFO task;
 static PTHREAD waiting;
@@ -11,6 +13,9 @@ static CTEXTSTR *args;
 static CTEXTSTR startin;
 static TEXTCHAR eventName[256];
 static HANDLE hRestartEvent;
+#ifdef DEBUG_MEMORY_LEAKS
+  static HANDLE hDebugMemEvent;
+#endif
 static LOGICAL useBreak;
 static LOGICAL useSignal;
 
@@ -48,6 +53,18 @@ static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task_done )
 		if( waiting2 ) WakeThread( waiting2 );
 	}
 }
+
+#ifdef DEBUG_MEMORY_LEAKS
+static uintptr_t WaitMemSignal( PTHREAD thread ) {
+	//lprintf( "Waiting to restart...%p", hRestartEvent );
+	while( TRUE ) {
+		DWORD status = WaitForSingleObject( hDebugMemEvent, INFINITE );
+		if( status == WAIT_OBJECT_0 ) {
+			DebugDumpHeapMemEx( NULL, 1 );
+		}
+	}
+}
+#endif
 
 static uintptr_t WaitRestart( PTHREAD thread ) {
 	//lprintf( "Waiting to restart...%p", hRestartEvent );
@@ -89,6 +106,7 @@ int main( int argc, char **argv )
 	FLAGSET( opts, SYSLOG_OPT_MAX );
 	InvokeDeadstart();
 	SETFLAG( opts, SYSLOG_OPT_OPEN_BACKUP );
+	SETFLAG( opts, SYSLOG_OPT_LOG_SOURCE_FILE );
 	SystemLogTime( SYSLOG_TIME_LOG_DAY );
 	SetSyslogOptions( opts );
 	SetSystemLog( SYSLOG_AUTO_FILE, 0 );
@@ -203,9 +221,16 @@ int main( int argc, char **argv )
 
 		//HANDLE hEvent = CreateEvent( &sa, TRUE, FALSE, TEXT( "Global\\Test" ) );
 		hRestartEvent = CreateEvent( &sa, FALSE, FALSE, eventName );
+#ifdef DEBUG_MEMORY_LEAKS
+		snprintf( eventName, 256, "Global\\%s:dumpmem", GetProgramName() );
+		hDebugMemEvent = CreateEvent( &sa, FALSE, FALSE, eventName );
+#endif
 		LocalFree( psd );
 	}
 	ThreadTo( WaitRestart, 0 );
+#ifdef DEBUG_MEMORY_LEAKS
+	ThreadTo( WaitMemSignal, 0 );
+#endif
 	SetupService( (TEXTSTR)GetProgramName(), Start );
 	programEnd = 1;
 	waiting = MakeThread();
