@@ -125,7 +125,8 @@ struct odbc_handle_tag{
 		BIT_FIELD  bConnected  : 1;
 		BIT_FIELD  bAccess  : 1; // operate as if talking to an access MDB
 		BIT_FIELD  bSQLite  : 1; // sqllite via sqlite odbc driver...
-		BIT_FIELD  bMySQL : 1;  // for selecting how transactions are done.
+		BIT_FIELD  bMySQL   : 1; // for selecting how transactions are done.
+		BIT_FIELD  bPSQL    : 1; // for selecting how transactions are done.
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		BIT_FIELD  bSQLite_native  : 1;
 #endif

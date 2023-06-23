@@ -1549,25 +1549,36 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 						SQLGetInfo( odbc->hdbc, SQL_DRIVER_NAME, buffer, (SQLSMALLINT)sizeof( buffer ), &reslen );
 						if( g.flags.bDeadstartCompleted && (!g.flags.bNoLog) && (~odbc->flags.bNoLogging) )
 							lprintf( "Driver name = %s", buffer );
+
 						if( strcmp( buffer, "odbcjt32.dll" ) == 0 )
 							odbc->flags.bAccess = 1;
-						if( strcmp( buffer, "sqlite3odbc.dll" ) == 0 || strcmp( buffer, "sqliteodbc.dll" ) == 0 ) {
+						else if( strcmp( buffer, "sqlite3odbc.dll" ) == 0 || strcmp( buffer, "sqliteodbc.dll" ) == 0 ) {
 							odbc->flags.bSQLite = 1;
+						}
+						else if( StrCaseCmpEx( buffer, "myodbc", 6 ) == 0  ) {
+							odbc->flags.bMySQL = 1;
+						}
+						else if( StrCaseCmpEx( buffer, "PSQLODBC", 8 ) == 0  ) {
+							odbc->flags.bPSQL = 1;
+						} else {
+							lprintf( "Could not identify database driver: %s", buffer );
 						}
 						if( !odbc->flags.bSQLite )
 							odbc->flags.bAutoCheckpoint = 0;
+/*
 						SQLGetInfo( odbc->hdbc, SQL_DRIVER_ODBC_VER, buffer, (SQLSMALLINT)sizeof( buffer ), &reslen );
 #ifdef LOG_EVERYTHING
 						lprintf( "Driver name = %s", buffer );
 #endif
 						SQLGetInfo( odbc->hdbc, SQL_DRIVER_VER, buffer, (SQLSMALLINT)sizeof( buffer ), &reslen );
 #ifdef LOG_EVERYTHING
-						lprintf( "Driver name = %s", buffer );
+						lprintf( "Driver Version = %s", buffer );
 #endif
 						if( StrCaseCmp( buffer, "05.01.0005" ) == 0 )
 						{
 							odbc->flags.bFailEnvOnDbcFail = 1;
 						}
+*/
 					}
 					odbc->flags.bConnected = TRUE;
 					odbc->flags.bODBC = TRUE;
@@ -5852,6 +5863,17 @@ POINTER GetODBCHandle( PODBC odbc ) {
 	return NULL;
 }
 
+int GetDatabaseProvider( PODBC odbc ) {
+	if( odbc->flags.bSQLite || odbc->flags.bSQLite_native )
+		return 1;
+	if( odbc->flags.bMySQL )
+		return 2;
+	if( odbc->flags.bPSQL )
+		return 3;
+	if( odbc->flags.bAccess )
+		return 4;
+	return -1;
+}
 
 void SQLDropAndCloseODBC( CTEXTSTR dsn )
 {
