@@ -1200,6 +1200,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 				if( !SetEvent( hEvent ) ) {
 					lprintf( "Failed to set event? %d", GetLastError() );
 				}
+				CloseHandle( hEvent );
 			}
 		}
 //#endif
