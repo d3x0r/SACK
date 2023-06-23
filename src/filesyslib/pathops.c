@@ -23,7 +23,7 @@ FILESYS_NAMESPACE
 	;
 
 #ifndef __NO_SACK_FILESYS__
-extern TEXTSTR ExpandPath( CTEXTSTR path );
+//extern TEXTSTR ExpandPath( CTEXTSTR path );
 #endif
 
  CTEXTSTR  pathrchr ( CTEXTSTR path )
