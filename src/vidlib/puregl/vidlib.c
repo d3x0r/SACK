@@ -1579,7 +1579,7 @@ static void RenderGL( struct display_camera *camera )
 		first_draw = 0;
 
 	// do OpenGL Frame
-	SetActiveGLDisplay( camera->hVidCore );
+	SetActiveGLDisplay( camera );
 
 	InitGL( camera );
 
@@ -1782,7 +1782,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				INDEX idx;
 				struct dropped_file_acceptor_tag *callback;
 				//uint32_t namelen = DragQueryFile( hDrop, iFIle, NULL, 0 );
-				DragQueryFile( hDrop, iFile, buffer, (UINT)sizeof( buffer ) );
+				DragQueryFile( hDrop, (UINT)iFile, buffer, (UINT)sizeof( buffer ) );
 				//lprintf( "Accepting file drop [%s]", buffer );
 				LIST_FORALL( hVideo->dropped_file_acceptors, idx, struct dropped_file_acceptor_tag*, callback )
 				{
@@ -3207,8 +3207,8 @@ int Parallel( PVECTOR pv1, PVECTOR pv2 )
 
    // intersect a line with a plane.
 
-//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß     
+//   v Â· w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v Â· w)/(|v| |w|) = cos Î¸
 
    a = dotproduct( pv1, pv2 );
 
@@ -3250,8 +3250,8 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 
    // intersect a line with a plane.
 
-//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß     
+//   v Â· w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v Â· w)/(|v| |w|) = cos Î¸     
 
 	//cosPhi = CosAngle( Slope, n );
 
@@ -3392,7 +3392,7 @@ static int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hV
 
 
 
-static int CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b )
+static uintptr_t CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b )
 {
 	int used = 0;
 	PRENDERER check;
@@ -3597,7 +3597,7 @@ static struct display_camera *OpenCameras( void )
 			if( !idx )
 				tnprintf( window_name, 128, "%s:3D View", GetProgramName() );
 			else
-				tnprintf( window_name, 128, "%s:3D View(%d)", GetProgramName(), idx );
+				tnprintf( window_name, 128, "%s:3D View(%d)", GetProgramName(), (int)idx );
 
 			camera->hWndInstance = CreateWindowEx (0
 	#ifndef NO_DRAG_DROP
@@ -3805,19 +3805,19 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 		break;
 	case MSG_LoseFocusMethod:
 		{
-			PVIDEO hVideo = (PVIDEO)params[0];
+			PVIDEO hVideo = (PVIDEO)((uintptr_t*)params)[0];
 			if( l.flags.bLogFocus )
-				lprintf( "Got a losefocus for %p at %P", params[0], params[1] );
+				lprintf( "Got a losefocus for %p at %P", ( (uintptr_t*)params )[0], ( (uintptr_t*)params )[1] );
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 			{
 				if( hVideo && hVideo->pLoseFocus )
-					hVideo->pLoseFocus (hVideo->dwLoseFocus, (PVIDEO)params[1] );
+					hVideo->pLoseFocus (hVideo->dwLoseFocus, (PVIDEO)( (uintptr_t*)params )[1] );
 			}
 		}
 		break;
 	case MSG_RedrawMethod:
 		{
-			PVIDEO hVideo = (PVIDEO)params[0];
+			PVIDEO hVideo = (PVIDEO)( (uintptr_t*)params )[0];
 			//lprintf( "Show video %p", hVideo );
             /* Oh neat a safe window list... we should use this more places! */
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
@@ -3844,7 +3844,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 		break;
 	case MSG_MouseMethod:
 		{
-			PVIDEO hVideo = (PVIDEO)params[0];
+			PVIDEO hVideo = (PVIDEO)( (uintptr_t*)params )[0];
 #ifdef LOG_MOUSE_EVENTS
 			lprintf( "mouse method... forward to application please..." );
          lprintf( "params %ld %ld %ld", params[1], params[2], params[3] );
@@ -3897,14 +3897,14 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 	case MSG_KeyMethod:
 		{
 			int dispatch_handled = 0;
-			PVIDEO hVideo = (PVIDEO)params[0];
+			PVIDEO hVideo = (PVIDEO)( (uintptr_t*)params )[0];
 			if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
 				if( hVideo && hVideo->pKeyProc )
 				{
 					hVideo->flags.event_dispatched = 1;
 					//lprintf( "Dispatched KEY!" );
 					if( hVideo->flags.key_dispatched )
-						EnqueLink( &hVideo->pInput, (POINTER)params[1] );
+						EnqueLink( &hVideo->pInput, (POINTER)( (uintptr_t*)params )[1] );
 					else
 					{
 						hVideo->flags.key_dispatched = 1;
@@ -3930,7 +3930,7 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 									}
 								}
 							}
-							params[1] = (uint32_t)DequeLink( &hVideo->pInput );
+							( (uintptr_t*)params )[1] = (uintptr_t)DequeLink( &hVideo->pInput );
 						} while( params[1] );
 						hVideo->flags.key_dispatched = 0;
 					}
