@@ -583,6 +583,8 @@ PRIORITY_PRELOAD( InitSyslogPreload, SYSLOG_PRELOAD_PRIORITY )
 PRIORITY_PRELOAD( InitSyslogPreloadWithOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
 	InitSyslog( 0 );
+	void free_next_info( void );
+	OnThreadExit( free_next_info );
 }
 
 PRIORITY_PRELOAD( InitSyslogPreloadAllowGroups, DEFAULT_PRELOAD_PRIORITY + 1 )
@@ -1687,6 +1689,37 @@ static struct next_lprint_info *GetNextInfo( void )
 #  endif
 #endif
 	return next;
+}
+
+static void free_next_info( void ) {
+	struct next_lprint_info *next;
+
+#ifdef USE_CUSTOM_ALLOCER
+#  if defined( WIN32 )
+	if( ( next = (struct next_lprint_info*)TlsGetValue( (*syslog_local).next_lprintf_tls ) ) ){
+		TlsSetValue( (*syslog_local).next_lprintf_tls, NULL );
+		free( next );
+	}
+#  elif defined( __LINUX__ )
+	if( ( next = (struct next_lprint_info*)pthread_getspecific( (*syslog_local).next_lprintf_tls ) ) ) {
+		pthread_setspecific( (*syslog_local).next_lprintf_tls, NULL );
+		free( next );
+	}
+#  endif
+#else
+#  if defined( WIN32 )
+	if( (next = (struct next_lprint_info*)TlsGetValue( (*syslog_local).next_lprintf_tls )) ) {
+		TlsSetValue( (*syslog_local).next_lprintf_tls, NULL );
+		Release( next );
+	}
+#  elif defined( __LINUX__ )
+	if( (next = (struct next_lprint_info*)pthread_getspecific( (*syslog_local).next_lprintf_tls )) ) {
+		pthread_setspecific( (*syslog_local).next_lprintf_tls, NULL );
+		Release( next );
+	}
+#  endif
+#endif
+	
 }
 
 static INDEX CPROC _null_vlprintf ( CTEXTSTR format, va_list args )
