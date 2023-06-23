@@ -157,8 +157,8 @@ SaneWinMain( argc, argv )
 	{
 		printf( "Usage: %s [u/a] [filename]\n", argv[0] );
 		printf( "  u or U read utf16 write utf8\n" );
-		printf( "  a read utf8 write utf16\n" );
-		printf( "  A read utf8 write utf8\n" );
+		printf( "  a read ascii write utf16\n" );
+		printf( "  A read ascii write utf8\n" );
 		printf( "  o read ascii, output overlong utf8\n" );
 		printf( "  O read unicode, output overlong utf8\n" );
 		printf( "  ascii translates from unicode to ascii\n" );

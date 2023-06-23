@@ -438,10 +438,10 @@ static void FormatKeypadDisplay( CTEXTSTR format, int out_start, TEXTCHAR *outpu
 {
 	int n;
 	int outpos = out_start;
-	int inpos = StrLen( input ) - 1;
+	int inpos = (int)(StrLen( input ) - 1);
 	int escape = 0;
 	output[outpos--] = 0;
-	for( n = StrLen( format ) - 1; n >= 0; n-- )
+	for( n = (int)(StrLen( format ) - 1); n >= 0; n-- )
 	{
 		switch( format[n] )
 		{

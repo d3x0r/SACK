@@ -68,7 +68,7 @@ static uintptr_t CPROC EventThread( PTHREAD thread )
 	return 0;
 }
 
-static int CPROC MouseEvent( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
+static uintptr_t CPROC MouseEvent( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	size_t sendlen;
 	struct event_msg *event = (struct event_msg*)NewArray( uint8_t, sizeof( PCLIENT ) + ( sendlen = ( 4 + 1 + sizeof( struct mouse_event_data ) ) ) );

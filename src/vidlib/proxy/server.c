@@ -909,7 +909,7 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			Bytef *output = NewArray( Bytef, image->websock_sendlen + 1 );
 			size_t sendlen;
 			size_t outlen;
-			uLongf destlen = image->websock_sendlen + 1;
+			uLongf destlen = (uLongf)(image->websock_sendlen + 1);
 #ifdef _UNICODE
 			char * encoded_data;
 			encoded_data = CStrDup( (CTEXTSTR)image->websock_buffer );
@@ -919,7 +919,7 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			Deallocate( char *, encoded_data );
 #else
 			// this is includnig the close ] of the buffer to this state...
-			compress2( output, &destlen, image->websock_buffer, image->websock_sendlen + 1, Z_BEST_COMPRESSION );
+			compress2( output, &destlen, image->websock_buffer, (uLong)(image->websock_sendlen + 1), Z_BEST_COMPRESSION );
 #endif
 
 			text_encoded_data = Encode64Image( "application/zip", output, TRUE, destlen, &outlen );
@@ -1204,7 +1204,7 @@ static void WebSockError( PCLIENT pc, uintptr_t psv, int error )
 {
 }
 
-static void WebSockEvent( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, int msglen )
+static void WebSockEvent( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, size_t msglen )
 {
 	POINTER msg = NULL;
 	struct server_proxy_client *client= (struct server_proxy_client *)psv;
@@ -3218,7 +3218,7 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 	 /* <combine sack::image::DecodeMemoryToImage@uint8_t*@uint32_t>
 		 
 		 \ \																*/
-static Image CPROC VidlibProxy_DecodeMemoryToImage ( uint8_t* buf, uint32_t size )
+static Image CPROC VidlibProxy_DecodeMemoryToImage ( uint8_t* buf, size_t size )
 {
 	Image real_image = l.real_interface->_DecodeMemoryToImage( buf, size );
 	return (Image)WrapImageFile( real_image );

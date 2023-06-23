@@ -22,7 +22,7 @@ struct video_player {
 	uint32_t fade_in_time;
 };
 
-typedef struct video_element {
+struct video_element {
 	int type;
 	struct video_player *player;
 	Image image;
@@ -30,7 +30,7 @@ typedef struct video_element {
 	uint32_t display_time; // how long to next image
 };
 
-typedef struct video_sequence {
+struct video_sequence {
 	int sequence;
 
 	int nImages; // convenience counter of the length of images.

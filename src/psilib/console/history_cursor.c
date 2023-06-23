@@ -621,12 +621,12 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, P
 		//lprintf( "Compute to show: %d (%d)%s %d %d", cols, GetTextSize( segment ), GetText( segment ), nOfs, nShown );
 		seglen = GetTextSize( segment );
 		if( nShown > seglen ) {
-			nShown -= seglen;
+			nShown -= (uint32_t)seglen;
 			continue;
 		}
 
 		phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
-			, seglen - nShown, &nLenSize, &nLenHeight, font );
+			, (int)(seglen - nShown), &nLenSize, &nLenHeight, font );
 
 		if( ( nLenSize + ( *col_offset ) ) > colsize || nLenHeight > (uint32_t)phbr->nLineHeight ) {
 			uint32_t good_space_size;
@@ -641,7 +641,7 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, P
 			size_t textLen = GetTextSize( segment );
 			TEXTRUNE thisChar;
 
-			for( nNextSpace = nSpace = nShown; ( nSpace < seglen ) ? ( ( thisChar = GetUtfCharIndexed( text, &nNextSpace, textLen ) ), 1 ) : 0 ; nSpace = nNextSpace ) {
+			for( nNextSpace = nSpace = nShown; ( nSpace < seglen ) ? ( ( thisChar = GetUtfCharIndexed( text, &nNextSpace, textLen ) ), 1 ) : 0 ; nSpace = (uint32_t)nNextSpace ) {
 				if( thisChar == '\n' ) {
 					phbr->measureString( phbr->psvMeasure, text + nShown
 						, nSpace - nShown, &nSegSize, &nSegHeight, font );
@@ -730,7 +730,7 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, P
 			break;
 		}
 		else {
-			nShow += seglen - nShown;
+			nShow += (int32_t)(seglen - nShown);
 			( *col_offset ) += nLenSize;
 		}
 		if( ( nShow + result_bias ) < 0 )

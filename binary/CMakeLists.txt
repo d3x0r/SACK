@@ -79,6 +79,7 @@ ExternalProject_Add( shell_util
 #add_subpath( ../src/utils/shell )
 endif( WIN32 )
 add_subpath( ../src/utils/guid_generator )
+add_subpath( ../src/utils/unicode_ascii )
 add_subpath( ../src/netlib/network_relay_server )
 add_subpath( ../src/netlib/user )
 add_subpath( ../src/netlib/echo )

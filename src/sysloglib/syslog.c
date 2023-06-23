@@ -36,6 +36,7 @@
 #endif
 
 #include <stdhdrs.h>
+#include <timers.h>
 #include <loadsock.h>
 #include <time.h>
 #ifdef __ANDROID__

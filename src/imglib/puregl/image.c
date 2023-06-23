@@ -94,7 +94,7 @@ static uintptr_t OnInit3d( "@00 PUREGL Image Library" )( PMatrix projection, PTR
 		LIST_FORALL( l.glSurface, idx, struct glSurfaceData *, data )
 			if( data == glSurface )
 			{
-				glSurface->index = idx;
+				glSurface->index = (int)idx;
 				break;
 			}
 	}
@@ -1046,7 +1046,7 @@ void InitShader( void )
 					"END\n"
 					"";
 #undef strlen
-				glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, strlen(program_string), program_string);
+				glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(program_string), program_string);
 
 				result = glGetError();
 				if( result )
@@ -1197,7 +1197,7 @@ void InitShader( void )
 					"# 3 instructions, 1 R-regs\n"
 #endif
 					"";
-				glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, strlen(program_string), program_string);
+				glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(program_string), program_string);
 
 				result = glGetError();
 				if( result )

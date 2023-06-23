@@ -30,7 +30,7 @@ int GetRegistryItem( HKEY hRoot, CTEXTSTR pPrefix,
 			((int*)nResult)[0] = SACK_GetProfileBlob( szString, pKey, &data, &dataLen );
 			memcpy( nResult, data, dataLen );
 			Release( data );
-			return dataLen;
+			return (int)dataLen;
 		}
 		break;
 	}
@@ -163,7 +163,7 @@ int SetRegistryString( CTEXTSTR pProduct, CTEXTSTR pKey,
    return SetRegistryItem( HKEY_LOCAL_MACHINE, KEY_PREFIX,
                            pProduct, pKey, 
                            REG_SZ,
-                           pValue, StrLen( pValue ) );
+                           pValue, (int)StrLen( pValue ) );
 }
 
 //-----------------------------------------------------------
@@ -186,7 +186,7 @@ int SetLocalRegistryString( CTEXTSTR pProduct, CTEXTSTR pKey,
    return SetRegistryItem( HKEY_CURRENT_USER, KEY_PREFIX,
                            pProduct, pKey, 
                            REG_SZ,
-                           pValue, StrLen( pValue ) );
+                           pValue, (int)StrLen( pValue ) );
 }
 //-----------------------------------------------------------
 

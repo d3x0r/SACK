@@ -17,7 +17,7 @@ IMAGE_NAMESPACE
 #ifdef __cplusplus
 namespace loader {
 #endif
-extern LOGICAL PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
+	IMAGE_PROC LOGICAL IMAGE_API PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
 #ifdef __cplusplus
 };
 using namespace sack::image::loader;
@@ -716,7 +716,7 @@ static void SendCompressedBuffer( PCLIENT pc, PVPImage image )
 			Bytef *output = NewArray( Bytef, image->websock_sendlen + 1 );
 			size_t sendlen;
 			size_t outlen;
-			uLongf destlen = image->websock_sendlen + 1;
+			uLongf destlen = (uLongf)(image->websock_sendlen + 1);
 #ifdef _UNICODE
 			char * encoded_data;
 			encoded_data = CStrDup( (CTEXTSTR)image->websock_buffer );
@@ -3100,7 +3100,7 @@ static void CPROC VidlibProxy_TransferSubImages( Image pImageTo, Image pImageFro
 	 /* <combine sack::image::DecodeMemoryToImage@uint8_t*@uint32_t>
 		 
 		 \ \																*/
-static Image CPROC VidlibProxy_DecodeMemoryToImage ( uint8_t* buf, uint32_t size )
+static Image CPROC VidlibProxy_DecodeMemoryToImage ( uint8_t* buf, size_t size )
 {
 	Image real_image = l.real_interface->_DecodeMemoryToImage( buf, size );
 	return (Image)WrapImageFile( real_image );

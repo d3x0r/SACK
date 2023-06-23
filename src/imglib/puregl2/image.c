@@ -121,7 +121,7 @@ static uintptr_t OnInit3d( "@00 PUREGL Image Library" )( PMatrix projection, PTR
 			LIST_FORALL( l.glSurface, idx, struct glSurfaceData *, data )
 				if( data == glSurface )
 				{
-					glSurface->index = idx;
+					glSurface->index = (int)idx;
 					break;
 			}
 		}
@@ -287,7 +287,7 @@ int IMGVER(ReloadOpenGlTexture)( Image child_image, int option )
 					file = sack_fopen( 0, buf, "wb" );
 					if( file )
 					{
-						sack_fwrite( data, 1, datasize, file );
+						sack_fwrite( data, datasize, 1, file );
 						sack_fclose( file );
 					}
 				}

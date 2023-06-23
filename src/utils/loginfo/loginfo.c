@@ -21,15 +21,15 @@ PRELOAD( loginfo )
 			  )
 		{
 			int tmp_len;
-			if( (tmp_len = strlen( buffer[0] ) ), buffer[0][tmp_len-1] == '\n' )
+			if( (tmp_len = (int)strlen( buffer[0] ) ), buffer[0][tmp_len-1] == '\n' )
             buffer[0][tmp_len-1] = 0;
-			if( (tmp_len = strlen( buffer[1] ) ), buffer[1][tmp_len-1] == '\n' )
+			if( (tmp_len = (int)strlen( buffer[1] ) ), buffer[1][tmp_len-1] == '\n' )
             buffer[1][tmp_len-1] = 0;
-			if( (tmp_len = strlen( buffer[2] ) ), buffer[2][tmp_len-1] == '\n' )
+			if( (tmp_len = (int)strlen( buffer[2] ) ), buffer[2][tmp_len-1] == '\n' )
             buffer[2][tmp_len-1] = 0;
 			if( input[3] && fgets( buffer[3], sizeof( buffer[3] ), input[3] ) )
 			{
-				if( (tmp_len = strlen( buffer[3] ) ), buffer[3][tmp_len-1] == '\n' )
+				if( (tmp_len = (int)strlen( buffer[3] ) ), buffer[3][tmp_len-1] == '\n' )
 					buffer[3][tmp_len-1] = 0;
 				lprintf( "Version %s: %s[%s]%s", buffer[3], buffer[0], buffer[1], buffer[2] );
 			}
