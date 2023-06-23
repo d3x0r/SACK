@@ -196,6 +196,12 @@ static void threadInit( void ) {
 	}
 }
 
+static void threadExit( void ) {
+	if( FileSysThreadInfo.cwd ) {
+		Deallocate( char*, FileSysThreadInfo.cwd );
+	}
+}
+
 static void LocalInit( void )
 {
 #ifndef __STATIC_GLOBALS__
@@ -204,6 +210,7 @@ static void LocalInit( void )
 #endif
 	if( !( *winfile_local ).flags.bInitialized ) {
 		OnThreadCreate( threadInit );
+		OnThreadExit( threadExit );
 		threadInit();  // this might or might not get dispatched already on this thread.
 		InitializeCriticalSec( &( *winfile_local ).cs_files );
 		( *winfile_local ).flags.bInitialized = 1;
@@ -413,7 +420,7 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 	return tmp_path;
 }
 
-TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface* fsi )
+TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS )
 {
 	TEXTSTR tmp_path = NULL;
 	LocalInit();
@@ -479,7 +486,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface* fsi )
 				tmp_path = ExpandPathVariable( path );
 			}
 			else {
-				tmp_path = StrDup( path );
+				tmp_path = StrDupEx( path DBG_RELAY );
 			}
 #if __ANDROID__
 			{
@@ -513,7 +520,7 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface* fsi )
 			tmp_path = ExpandPathVariable( path );
 		}
 		else {
-			tmp_path = StrDup( path );
+			tmp_path = StrDupEx( path DBG_RELAY );
 		}
 	}
 
@@ -524,10 +531,20 @@ TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface* fsi )
 	return tmp_path;
 }
 
+
+#undef ExpandPathEx
+TEXTSTR ExpandPathEx( CTEXTSTR path, struct file_system_interface* fsi ) {
+	return ExpandPathExx( path, fsi DBG_SRC );
+}
+#define ExpandPathEx( path, fsi )  ExpandPathExx( path, fsi DBG_SRC )
+
+
+#undef ExpandPath
 TEXTSTR ExpandPath( CTEXTSTR path )
 {
 	return ExpandPathEx( path, NULL );
 }
+#define ExpandPath(path) ExpandPathExx( path, NULL DBG_SRC )
 
 INDEX  SetGroupFilePath( CTEXTSTR group, CTEXTSTR path )
 {

@@ -270,9 +270,13 @@ FILESYS_PROC INDEX FILESYS_API  GetFileGroup ( CTEXTSTR groupname, CTEXTSTR defa
 
 FILESYS_PROC TEXTSTR FILESYS_API GetFileGroupText ( INDEX group, TEXTSTR path, int path_chars );
 
-FILESYS_PROC TEXTSTR FILESYS_API ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi );
 
-FILESYS_PROC TEXTSTR FILESYS_API ExpandPath( CTEXTSTR path );
+FILESYS_PROC TEXTSTR FILESYS_API ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS );
+#define ExpandPathEx( path, fsi )  ExpandPathExx( path, fsi DBG_SRC )
+#define ExpandPath(path) ExpandPathExx( path, NULL DBG_SRC )
+//FILESYS_PROC TEXTSTR FILESYS_API ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi );
+
+//FILESYS_PROC TEXTSTR FILESYS_API ExpandPath( CTEXTSTR path );
 
 
 FILESYS_PROC LOGICAL FILESYS_API SetFileLength( CTEXTSTR path, size_t length );
