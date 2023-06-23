@@ -502,6 +502,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		int first = TRUE;
 		int success = 0;
 		int shellExec = 0;
+		if( path )
+			Release( path );
 		//TEXTCHAR saved_path[256];
 		task = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
 		MemSet( task, 0, sizeof( TASK_INFO ) );
@@ -548,13 +550,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		if( needs_quotes )
 			vtprintf( pvt,  "\"" );
 
-		/*
-		if( !IsAbsolutePath( expanded_path ) && expanded_working_path )
-		{
-			//lprintf( "needs working path too" );
-			vtprintf( pvt, "%s/", expanded_working_path );
-		}
-		*/
 		vtprintf( pvt, "%s", expanded_path );
 
 		if( needs_quotes )
@@ -880,7 +875,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					args = (PCTEXTSTR)newArgs;
 				}
 				if( path )
-					chdir( path );
+					chdir( expanded_working_path );
 
 				char *_program = CStrDup( program );
 				// in case exec fails, we need to
@@ -931,6 +926,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			}
 			else
 			{
+				Release( path );
 				if( OutputHandler ) {
 					close( task->hStdIn.pair[0] );
 					close( task->hStdOut.pair[1] );
