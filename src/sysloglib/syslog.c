@@ -149,7 +149,7 @@ struct syslog_local_data _syslog_local;
 struct syslog_local_data *syslog_local = &_syslog_local;
 #endif
 
-
+static void free_next_info( void );
 static void DoSystemLog( const TEXTCHAR *buffer );
 //----------------------------------------------------------------------------
 
@@ -583,7 +583,6 @@ PRIORITY_PRELOAD( InitSyslogPreload, SYSLOG_PRELOAD_PRIORITY )
 PRIORITY_PRELOAD( InitSyslogPreloadWithOptions, NAMESPACE_PRELOAD_PRIORITY + 1 )
 {
 	InitSyslog( 0 );
-	void free_next_info( void );
 	OnThreadExit( free_next_info );
 }
 
@@ -1691,7 +1690,7 @@ static struct next_lprint_info *GetNextInfo( void )
 	return next;
 }
 
-static void free_next_info( void ) {
+void free_next_info( void ) {
 	struct next_lprint_info *next;
 
 #ifdef USE_CUSTOM_ALLOCER
