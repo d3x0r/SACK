@@ -1122,8 +1122,9 @@ static void  UnmakeThread( void )
 		{
 			int tmp = SetAllocateLogging( FALSE );
 #ifdef _WIN32
-			//lprintf( "Unmaking thread event! on thread %016" _64fx"x", pThread->thread_ident );
+			/lprintf( "Unmaking thread event! on thread %016" _64fx"x", pThread->thread_ident );
 			CloseHandle( pThread->thread_event->hEvent );
+			CloseHandle( pThread->hThread );
 			{
 #  if !HAS_TLS
 				struct my_thread_info* _MyThreadInfo = GetThreadTLS();
