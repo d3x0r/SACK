@@ -299,6 +299,10 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 PRIORITY_PRELOAD( Deadstart_finished_enough, GLOBAL_INIT_PRELOAD_PRIORITY + 1 )
 {
 	g.deadstart_finished = 1;
+#if !(USE_CUSTOM_ALLOCER)
+        // enable Release().
+	g.bInit = 1;
+#endif
 	//g.bLogAllocate = 1;
 }
 
@@ -317,9 +321,6 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #endif
 	g.nMinAllocateSize = 32;
 	g.allowLogging = 1;
-#if !(USE_CUSTOM_ALLOCER)
-	g.bInit = 1;
-#endif
 }
 
 #if __GNUC__
