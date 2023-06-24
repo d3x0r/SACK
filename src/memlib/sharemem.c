@@ -299,6 +299,12 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 PRIORITY_PRELOAD( Deadstart_finished_enough, GLOBAL_INIT_PRELOAD_PRIORITY + 1 )
 {
 	g.deadstart_finished = 1;
+#ifdef _WIN32
+	GetSystemInfo( &g.si );
+#else
+	g.pagesize = sysconf(_SC_PAGESIZE);
+#endif
+
 #if !(USE_CUSTOM_ALLOCER)
         // enable Release().
 	g.bInit = 1;
@@ -752,11 +758,6 @@ void InitSharedMemory( void )
 	// only with closing those regions which have a file
 		// backing, espcecially those that are temporary chickens.
 		//atexit( ReleaseAllMemory );
-#ifdef _WIN32
-		GetSystemInfo( &g.si );
-#else
-		g.pagesize = sysconf(_SC_PAGESIZE);
-#endif
 #ifdef VERBOSE_LOGGING
 		if( !g.bDisableDebug )
 			Log2( "CHUNK: %d  MEM:%d", CHUNK_SIZE(0), MEM_SIZE );
