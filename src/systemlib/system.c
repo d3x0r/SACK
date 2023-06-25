@@ -1035,11 +1035,12 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 	}
 	lprintf( "Done Move...%d", success );
 	if( move->cb ) move->cb( move->psv, success );
-	Deallocate( struct move_window, move );
+	Deallocate( struct move_window*, move );
 	return 0;
 }
 
 struct find_monitor_data {
+	int device;
 	int monitor;
 	int* x; int* y;
 	int* width; int* height;
@@ -1051,13 +1052,33 @@ static BOOL addMonitor( HMONITOR hMonitor,
 	LPARAM dwParam
 ) {
 	struct find_monitor_data* data = (struct find_monitor_data*)dwParam;
-	if( !( --data->monitor ) ) {
-		data->found = 1;
-		data->x[0] = pRect->left;
-		data->y[0] = pRect->top;
-		data->width[0] = pRect->right - pRect->left;
-		data->height[0] = pRect->bottom - pRect->top;
-		return FALSE;
+	MONITORINFOEX monitorInfo;
+	monitorInfo.cbSize = sizeof( monitorInfo );
+	GetMonitorInfo( hMonitor, (LPMONITORINFO)& monitorInfo);
+	if( data->monitor > 0 ) {
+		if( !( --data->monitor ) ) {
+			data->found = 1;
+			data->x[0] = pRect->left;
+			data->y[0] = pRect->top;
+			data->width[0] = pRect->right - pRect->left;
+			data->height[0] = pRect->bottom - pRect->top;
+			return FALSE;
+		}
+	} else {
+		for( int numStart = 0; monitorInfo.szDevice[numStart]; numStart++ ) {
+			if( monitorInfo.szDevice[numStart] >= '0' && monitorInfo.szDevice[numStart] <= '9' ) {
+				int devNum = atoi( monitorInfo.szDevice + numStart );
+				if( devNum == data->device ) {
+					data->found = 1;
+					data->x[0] = pRect->left;
+					data->y[0] = pRect->top;
+					data->width[0] = pRect->right - pRect->left;
+					data->height[0] = pRect->bottom - pRect->top;
+					return FALSE;
+				}
+				break;
+			}
+		}
 	}
 	return TRUE;
 }
@@ -1068,9 +1089,15 @@ static int _GetDisplaySizeEx ( int nDisplay, int monitor
 	, int* width, int* height ) {
 	int found = 0;
 
-	if( monitor >= 0 ) {
+	{
 		struct find_monitor_data data;
-		data.monitor = monitor;
+		if( monitor >= 0 ) {
+			data.monitor = monitor;
+			data.device = 0;
+		} else {
+			data.monitor = -1;
+			data.device = nDisplay;
+		}
 		data.x = x;
 		data.y = y;
 		data.width = width;
@@ -1083,7 +1110,7 @@ static int _GetDisplaySizeEx ( int nDisplay, int monitor
 		);
 		return data.found;
 	}
-
+#if 0
 	if( nDisplay >= 0 ) {
 		TEXTSTR teststring = NewArray( TEXTCHAR, 20 );
 		//int idx;
@@ -1136,6 +1163,7 @@ static int _GetDisplaySizeEx ( int nDisplay, int monitor
 		Deallocate( char*, teststring );
 	}
 	return found;
+#endif
 }
 
 
@@ -1159,7 +1187,7 @@ void MoveTaskWindowToDisplay( PTASK_INFO task, int timeout, int display, void cb
 	move->timeout = timeout;
 	lprintf( "TaskToDisplay %d", display );
 	if( !_GetDisplaySizeEx( display, -1, &move->left, &move->top, &move->width, &move->height ) ) {
-		Deallocate( struct move_window, move );
+		Deallocate( struct move_window*, move );
 		if( cb ) cb( psv, FALSE );
 		return;
 	}
@@ -1174,7 +1202,7 @@ void MoveTaskWindowToMonitor( PTASK_INFO task, int timeout, int display, void cb
 	move->timeout = timeout;
 	lprintf( "TaskToMonitor %d", display );
 	if( !_GetDisplaySizeEx( -1, display, &move->left, &move->top, &move->width, &move->height ) ) {
-		Deallocate( struct move_window, move );
+		Deallocate( struct move_window*, move );
 		if( cb ) cb( psv, FALSE );
 		return;
 	}
