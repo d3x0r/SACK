@@ -299,16 +299,6 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 PRIORITY_PRELOAD( Deadstart_finished_enough, GLOBAL_INIT_PRELOAD_PRIORITY + 1 )
 {
 	g.deadstart_finished = 1;
-#ifdef _WIN32
-	GetSystemInfo( &g.si );
-#else
-	g.pagesize = sysconf(_SC_PAGESIZE);
-#endif
-
-#if !(USE_CUSTOM_ALLOCER)
-        // enable Release().
-	g.bInit = 1;
-#endif
 	//g.bLogAllocate = 1;
 }
 
@@ -751,6 +741,11 @@ void InitSharedMemory( void )
 #ifndef __NO_MMAP__
 	if( !g.bInit )
 	{
+#ifdef _WIN32
+		GetSystemInfo( &g.si );
+#else
+		g.pagesize = sysconf( _SC_PAGESIZE );
+#endif
 	// this would be really slick to do
 	// especially in the case where files have been used
 	// to back storage...
@@ -2191,7 +2186,7 @@ uint16_t  AlignOfMemBlock( CPOINTER pData )
 
 POINTER ReleaseEx ( POINTER pData DBG_PASS )
 {
-	if( !g.bInit ) return NULL;
+	//if( !g.bInit ) return NULL;
 	if( pData )
 	{
 #ifndef __NO_MMAP__
