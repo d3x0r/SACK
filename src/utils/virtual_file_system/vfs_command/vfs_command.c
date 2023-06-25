@@ -13,6 +13,11 @@
 // dereferencing NULL pointers; the function wouldn't be called with a NULL.
 #pragma warning( disable:26451)
 
+struct source_volume {
+	struct file_system_mounted_interface* mount;
+	struct sack_vfs_volume* vol;
+};
+
 static struct vfs_command_local
 {
 	struct file_system_interface *fsi;
@@ -23,8 +28,10 @@ static struct vfs_command_local
 	struct file_system_mounted_interface *current_mount;
 	LOGICAL verbose;
 
-	struct sack_vfs_volume *current_vol_source;
-	struct file_system_mounted_interface *current_mount_source;
+	//struct sack_vfs_volume *current_vol_source;
+	//struct file_system_mounted_interface *current_mount_source;
+	PDATALIST current_vol_source_list;
+	const char* source_name;
 } l;
 
 // used to pass options to file scan callback
@@ -46,6 +53,73 @@ static void testVolume_os( void ) {
 	}
 }
 #endif
+
+static void closeSource( void ) {
+	INDEX idx;
+	struct source_volume* vol;
+	DATA_FORALL( l.current_vol_source_list, idx, struct source_volume*, vol ) {
+		sack_unmount_filesystem( vol->mount );
+		sack_vfs_unload_volume( vol->vol );
+	}
+	DeleteDataList( &l.current_vol_source_list );
+
+}
+static int openSource( const char* name ) {
+	// ifi the name is still the same, don't re-open the volumes.
+	if( !l.source_name || StrCmp( l.source_name, name ) ) {
+		struct source_volume volInfo;
+		if( l.source_name ) Deallocate( const char*, l.source_name );
+		l.source_name = StrDup( name );
+
+		if( l.current_vol_source_list ) {
+			closeSource();
+		}
+		l.current_vol_source_list = CreateDataList( sizeof( struct source_volume ) );
+
+		if( name[0] == '@' ) {
+			char lineBuffer[256];
+			FILE* list = sack_fopen( 0, name + 1, "rt" );
+			int failed = 0;
+			if( !list ) {
+				printf( "Failed to open patch file list:%s\n", name + 1 );
+				return FALSE;
+			}
+			while( sack_fgets( lineBuffer, 256, list ) ) {
+				size_t lastChar = StrLen( lineBuffer );
+				if( lastChar && ( lineBuffer[lastChar - 1] == '\n' ) ) lineBuffer[lastChar - 1] = 0;
+				if( !lastChar ) continue;
+				volInfo.vol = sack_vfs_load_volume( lineBuffer );
+				if( !volInfo.vol ) {
+					printf( "Failed to load volume(%s) in list(%s)\n", lineBuffer, name + 1 );
+					failed = 2;
+				}
+				if( l.verbose ) printf( "Opened source volume:%s\n", lineBuffer );
+
+				volInfo.mount = sack_mount_filesystem( "vfs2", l.fsi, 10, (uintptr_t)volInfo.vol, 1 );
+				AddDataItem( &l.current_vol_source_list, &volInfo );
+			}
+			sack_fclose( list );
+			if( failed ) {
+				return FALSE;
+			}
+		} else {
+			volInfo.vol = sack_vfs_load_volume( name );
+			volInfo.mount = sack_mount_filesystem( "vfs2", l.fsi, 10, (uintptr_t)volInfo.vol, 1 );
+			AddDataItem( &l.current_vol_source_list, &volInfo );
+		}
+	}
+	return TRUE;
+}
+
+static FILE* openSourceFile( const char* name ) {
+	INDEX lastMount = l.current_vol_source_list->Cnt;
+	while( lastMount-- > 0 ) {
+		struct source_volume* vol = GetDataItem( &l.current_vol_source_list, lastMount );
+		FILE* file = sack_fopenEx( 0, name, "rb", vol->mount );
+		if( file ) return file;
+	}
+	return NULL;
+}
 
 static void testVolume( void ) {
 	struct sack_vfs_file *db;
@@ -234,8 +308,58 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 		sack_ftruncate( out );
 		sack_fclose( out );
 		Release( data );
+	} else {
+		printf( "File to store was not found:%s\n", filename );
 	}
 }
+
+static int PatchFileAs( CTEXTSTR filename, CTEXTSTR asfile, CTEXTSTR vfsName, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 ) {
+	FILE* in = sack_fopenEx( 0, filename, "rbn", sack_get_default_mount() );
+
+	if( !openSource( vfsName ) )
+		return 2;
+
+	if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
+	if( in ) {
+		FILE* in2 = openSourceFile( filename );
+		size_t size = sack_fsize( in );
+		size_t size2 = in2 ? sack_fsize( in2 ) : -1;
+		LOGICAL doPatch = FALSE;
+		POINTER data = NewArray( uint8_t, size );
+		sack_fread( data, size, 1, in );
+		if( l.verbose ) printf( " read %zd\n", size );
+		if( in2 && size != size2 ) {
+			if( l.verbose ) printf( " file size is different do patch.\n" );
+			doPatch = TRUE;
+		} else if( in2 ) {
+			POINTER data2 = NewArray( uint8_t, size2 );
+			sack_fread( data2, size2, 1, in2 );
+			if( memcmp( data, data2, size ) ) {
+				if( l.verbose ) printf( " file content did not match\n" );
+				doPatch = TRUE;
+			} else {
+				if( l.verbose ) printf( " file content matched\n" );
+			}
+			sack_fclose( in2 );
+			Deallocate( POINTER, data2 );
+		}
+
+		if( doPatch ) {
+			FILE* out = sack_fopenEx( 0, asfile, "wbn", l.current_mount );
+			if( l.verbose ) printf( " Opened file %s = %p\n", asfile, out );
+			sack_fwrite( data, size, 1, out );
+			sack_ftruncate( out );
+			sack_fclose( out );
+		}
+		sack_fclose( in );
+		Deallocate( POINTER, data );
+	} else {
+		printf( "File to patch with was not found:%s\n", filename );
+		return 2;
+	}
+	return 0;
+}
+
 
 static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileProcessFlags flags )
 {
@@ -269,9 +393,9 @@ static void CPROC _StoreFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 				sack_fread( data, size, 1, in );
 				if( l.verbose ) printf( " read %zd\n", size );
 				sack_fwrite( data, size, 1, out );
-				sack_fclose( in );
 				sack_ftruncate( out );
 				sack_fclose( out );
+				sack_fclose( in );
 				Release( data );
 			}
 		}else
@@ -283,27 +407,36 @@ finish:
 	}
 }
 
+
 static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFileProcessFlags flags )
 {
+	struct store_file_info* info = (struct store_file_info*)psv;
+	CTEXTSTR outName = filename;
+	if( info->usePath ) {
+		int tmpLen = (int)( strlen( filename ) + strlen( info->usePath ) + 3 );
+		char* tmpName = NewArray( char, tmpLen );
+		snprintf( tmpName, tmpLen, "%s%s%s", info->usePath, info->skipLength ? "/" : "", filename + info->skipLength );
+		outName = (CTEXTSTR)tmpName;
+	}
 	if( flags & SFF_DIRECTORY ) {
 		// don't need to do anything with directories... already
       // doing subcurse option.
 	} else {
 		FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
-		FILE *in2 = sack_fopenEx( 0, filename, "rb", l.current_mount_source );
-		if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
+		FILE *in2 = openSourceFile( outName );
+		if( l.verbose ) printf( " Opened file %s %s = %p %p\n", filename, outName, in, in2 );
 		if( in )
 		{
 			size_t size = sack_fsize( in );
 			size_t size2 = in2?sack_fsize( in2 ):0;
 			POINTER data = NewArray( uint8_t, size );
 			sack_fread( data, size, 1, in );
-			if( l.verbose ) printf( " file sizes (%zd) (%zd)\n", size, size2 );
+			if( l.verbose ) printf( "  file sizes (%zd) (%zd)\n", size, size2 );
 			if( size == size2 )
 			{
 				POINTER data2 = NewArray( uint8_t, size2 );
 				sack_fread( data2, size2, 1, in2 );
-				if( l.verbose ) printf( "read %zd\n", size );
+				if( l.verbose ) printf( "  read %zd\n", size );
 				if( memcmp( data, data2, size ) ) {
 					size2 = -1;
 					if( l.verbose ) printf( "data compared inequal; including in output\n" );
@@ -311,12 +444,10 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 				sack_fclose( in2 );
 				Deallocate( POINTER, data2 );
 			}
-			if( ( size != size2 )
-			   || (StrCaseCmp( filename, ".app.config" ) == 0)
-			   || (StrCaseCmp( filename, "./.app.config" ) == 0) )
+			if( ( size != size2 ) )
 			{
-				FILE *out = sack_fopenEx( 0, filename, "wb", l.current_mount );
-				if( l.verbose ) printf( " Opened file %s = %p (%zd)\n", filename, out, size );
+				FILE *out = sack_fopenEx( 0, outName, "wb", l.current_mount );
+				if( l.verbose ) printf( " Opened file %s = %p (%zd %zd)\n", filename, out, size, size2 );
 				sack_fwrite( data, size, 1, out );
 				sack_ftruncate( out );
 				sack_fclose( out );
@@ -324,6 +455,9 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 			sack_fclose( in );
 			Release( data );
 		}
+	}
+	if( info->usePath ) {
+		Deallocate( CTEXTSTR, outName );
 	}
 
 }
@@ -360,25 +494,41 @@ static void StoreFile( CTEXTSTR filemask, CTEXTSTR asPath, LOGICAL replace )
 		Release( tmppath );
 }
 
-static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 )
+static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2, CTEXTSTR asPath, LOGICAL replace  )
 {
 	void *info = NULL;
-	if( l.current_vol_source )
-		sack_vfs_unload_volume( l.current_vol_source );
-	if( key1 && key2 ) {
-		l.current_vol_source = sack_vfs_load_crypt_volume( vfsName, version, key1, key2 );
+	struct store_file_info storeOptions;
 
-	}else {
-		l.current_vol_source = sack_vfs_load_volume( vfsName );
-	}
-	if( !l.current_vol_source )
-	{
-		printf( "Failed to load vfs: %s", vfsName );
-		return 2;
-	}
-	l.current_mount_source = sack_mount_filesystem( "vfs2", l.fsi, 10, (uintptr_t)l.current_vol_source, 1 );
+	if( !openSource( vfsName ) ) return 2;
 
-	while( ScanFilesEx( NULL, filemask, &info, _PatchFile, SFF_DIRECTORIES|SFF_SUBCURSE|SFF_SUBPATHONLY, 0, FALSE, sack_get_default_mount() ) );
+	char* tmppath = StrDup( filemask );
+	char* end = (char*)pathrchr( tmppath );
+	const char* firstSlash = asPath ? pathchr( tmppath ) : NULL;
+	if( end ) {
+		end[0] = 0; end++;
+	} else {
+		end = tmppath;
+		tmppath = NULL;
+	}
+	LOGICAL doScan = FALSE;
+	if( StrChr( end, '*' ) || StrChr( end, '?' ) )
+		doScan = TRUE;
+	else if( IsPath( filemask ) ) {
+		Release( tmppath );
+		tmppath = StrDup( filemask );
+		end = "*";
+		doScan = TRUE;
+	}
+	storeOptions.usePath = asPath;
+	storeOptions.skipLength = replace ? ( (int)( ( firstSlash - tmppath ) + 1 ) ) : 0;
+
+	if( doScan ) {
+		while( ScanFilesEx( tmppath, end, &info, _PatchFile, SFF_DIRECTORIES | SFF_SUBCURSE | SFF_SUBPATHONLY
+			, (uintptr_t)&storeOptions, FALSE, sack_get_default_mount() ) );
+	}  else
+		_PatchFile( (uintptr_t)&storeOptions, filemask, 0 );
+	if( tmppath )
+		Release( tmppath );
 	return 0;
 }
 
@@ -561,10 +711,10 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	POINTER buffer;
 
 	file1 = sack_fopenEx( 0, filename1, "rb", sack_get_default_mount() );
-	if( !file1 ) { printf( "Failed to read file to append: %s", filename1 ); return; }
+	if( !file1 ) { printf( "Failed to read file to append: %s\n", filename1 ); return; }
 	file1_size = sack_fsize( file1 );
 	file2 = sack_fopenEx( 0, filename2, "rb", sack_get_default_mount() );
-	if( !file2 ) { printf( "Failed to read file to append: %s", filename2 ); return; }
+	if( !file2 ) { printf( "Failed to read file to append: %s\n", filename2 ); return; }
 	file2_size = sack_fsize( file2 );
 	file_out = sack_fopenEx( 0, outputname, "wb", sack_get_default_mount() );
 	if( !file_out ) { printf( "Failed to read file to append to: %s", outputname ); return; }
@@ -694,6 +844,9 @@ static void usage( void )
 	printf( "   storewith <filemask> <path>         : similar to 'storein' but does not replace the leading path.\n" );
 	printf( "   storeas <filename> <as file>        : store file from <filename> into VFS as <as file>.\n" );
 	printf( "   patch <vfsName> <filemask>          : store files that match the name and are different from those in the VFS.\n" );
+	printf( "   patchin <vfsName> <filemask> <path> : store files that match the name and are different from those in the VFS.\n" );
+	printf( "   patchwith <vfsName> <filemask> <path>     : store files that match the name and are different from those in the VFS.\n" );
+	printf( "   patchas <vfsName> <filemask> <as file>    : store files that match the name and are different from those in the VFS.\n" );
 	printf( "   cpatch <vfsName> <key1> <key2> <filemask> : store files that match the name and are different from those in the VFS.\n" );
 	printf( "   extract <filemask>                  : extract files that match the name in the VFS to local filesystem.\n" );
 	printf( "   extractas <filename> <as file>      : extract file <filename> from VFS as <as file>.\n" );
@@ -704,6 +857,10 @@ static void usage( void )
 	printf( "   sign                                : get volume short signature.\n" );
 	printf( "   sign-encrypt <key1>                 : get volume short signature; use key1 and signature to encrypt volume.\n" );
 	printf( "   sign-to-header <filename> <varname> : get volume short signature; write a c header called filename, with a variable varname.\n" );
+	printf( "\n" );
+	printf( " - [vfsName] specified to patch commands may start with an '@' which then indicates the name\n" );
+	printf( "   is a filename of a file containing a list of volumes to open. Volumes in the list must\n" );
+	printf( "   be listed from oldest to newest.\n" );
 }
 
 SaneWinMain( argc, argv )
@@ -797,41 +954,50 @@ SaneWinMain( argc, argv )
 			if( l.current_storage ) l.os_fsi->_unlink( (uintptr_t)l.current_storage, argv[arg + 1] );
 			if( l.current_vol ) l.fsi->_unlink( (uintptr_t)l.current_vol, argv[arg+1] );
 			arg++;
-		}
-		else if( StrCaseCmp( argv[arg], "store" ) == 0 )
-		{
+		} else if( StrCaseCmp( argv[arg], "store" ) == 0 ) {
 			StoreFile( argv[arg+1], NULL, FALSE );
 			arg++;
-		}
-		else if( StrCaseCmp( argv[arg], "storein" ) == 0 )
-		{
+		} else if( StrCaseCmp( argv[arg], "storeas" ) == 0 ) {
+			StoreFileAs( argv[arg + 1], argv[arg + 2] );
+			arg += 2;
+		} else if( StrCaseCmp( argv[arg], "storein" ) == 0 ) {
 			if( (arg+2) <= argc ) {
 				StoreFile( argv[arg+1], argv[arg+2], TRUE );
 				arg+=2;
 			}
-		}
-		else if( StrCaseCmp( argv[arg], "storewith" ) == 0 )
-		{
+		} else if( StrCaseCmp( argv[arg], "storewith" ) == 0 ) {
 			if( (arg+2) <= argc ) {
 				StoreFile( argv[arg+1], argv[arg+2], FALSE );
 				arg+=2;
 			}
-		}
-		else if( StrCaseCmp( argv[arg], "patch" ) == 0 )
-		{
-			if( (arg+2) <= argc )
-				if( PatchFile( argv[arg+1], argv[arg+2], 0, NULL, NULL ) )
+		} else if( StrCaseCmp( argv[arg], "patch" ) == 0 ) {
+			if( (arg+2) <= argc ) {
+				if( PatchFile( argv[arg+1], argv[arg+2], 0, NULL, NULL, NULL, FALSE ) )
 					return 2;
-			arg+=2;
-		}
-		else if( StrCaseCmp( argv[arg], "cpatch" ) == 0 )
-		{
+				arg+=2;
+			}
+		} else if( StrCaseCmp( argv[arg], "patchas" ) == 0 ) {
+			if( ( arg + 3 ) <= argc ) {
+				if( PatchFileAs( argv[arg + 1], argv[arg+3], argv[arg + 2], 0, NULL, NULL ) )
+					return 2;
+				arg += 3;
+			}
+		} else if( StrCaseCmp( argv[arg], "patchin" ) == 0 ) {
+			if( ( arg + 2 ) <= argc )
+				if( PatchFile( argv[arg + 1], argv[arg + 2], 0, NULL, NULL, NULL, TRUE ) )
+					return 2;
+			arg += 2;
+		}  else if( StrCaseCmp( argv[arg], "patchwdith" ) == 0 ) {
+			if( ( arg + 3 ) <= argc )
+				if( PatchFile( argv[arg + 1], argv[arg + 2], 0, NULL, NULL, argv[arg+3], FALSE ) )
+					return 2;
+			arg += 3;
+		} else if( StrCaseCmp( argv[arg], "cpatch" ) == 0 ) {
 			if( (arg+4) <= argc )
-				if( PatchFile( argv[arg+1], argv[arg+4], version, argv[arg+2], argv[arg+3] ) )
+				if( PatchFile( argv[arg+1], argv[arg+4], version, argv[arg+2], argv[arg+3], NULL, FALSE ) )
 					return 2;
 			arg+=4;
-		}
-		else if( StrCaseCmp( argv[arg], "test" ) == 0 ) {
+		} else if( StrCaseCmp( argv[arg], "test" ) == 0 ) {
 			arg++;
 			switch( argv[arg][0] ) {
 			default:
@@ -856,19 +1022,10 @@ SaneWinMain( argc, argv )
 				break;
 			}
 			arg++;
-		}
-		else if( StrCaseCmp( argv[arg], "extract" ) == 0 )
-		{
+		} else if( StrCaseCmp( argv[arg], "extract" ) == 0 ) {
 			ExtractFile( argv[arg+1] );
 			arg++;
-		}
-		else if( StrCaseCmp( argv[arg], "storeas" ) == 0 )
-		{
-			StoreFileAs( argv[arg+1], argv[arg+2] );
-			arg += 2;
-		}
-		else if( StrCaseCmp( argv[arg], "extractas" ) == 0 )
-		{
+		} else if( StrCaseCmp( argv[arg], "extractas" ) == 0 ) {
 			ExtractFileAs( argv[arg+1], argv[arg+2] );
 			arg += 2;
 		}
@@ -880,7 +1037,6 @@ SaneWinMain( argc, argv )
 		else if( StrCaseCmp( argv[arg], "shrink" ) == 0 )
 		{
 			if( l.current_vol ) sack_vfs_shrink_volume( l.current_vol );
-			arg += 3;
 		}
 		else if( StrCaseCmp( argv[arg], "decrypt" ) == 0 )
 		{
@@ -933,8 +1089,7 @@ SaneWinMain( argc, argv )
 		sack_vfs_unload_volume( l.current_vol );
 	if( l.current_storage )
 		sack_vfs_os_unload_volume( l.current_storage );
-	if( l.current_vol_source )
-		sack_vfs_unload_volume( l.current_vol_source );
+	closeSource();
 	return 0;
 }
 EndSaneWinMain()

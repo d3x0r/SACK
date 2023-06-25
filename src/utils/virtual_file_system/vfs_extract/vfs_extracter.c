@@ -129,6 +129,11 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFl
 	ExtractFile( file );
 }
 
+static void CPROC ListFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFlags flags ) {
+	FILE* input = sack_fopenEx( 0, file, "r", l.rom );
+	size_t size = sack_fsize( input );
+	printf( "%10zd %s\n", size, file );
+}
 
 PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 {
@@ -205,6 +210,16 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
 	}
 #endif
+	{
+		if( argc > 1 && StrCaseCmp( argv[1], "-list" ) == 0 ) {
+			POINTER info = NULL;
+			printf( "Package List\n-- size -- --------- name ---------\n" );
+			while( ScanFilesEx( NULL, "*", &info, ListFile, SFF_SUBCURSE | SFF_SUBPATHONLY
+				, (uintptr_t)0, FALSE, l.rom ) );
+			System( "pause", NULL, 0 );
+			return;
+		}
+	}
 	//l.target_path = ".";
 	if( vol )
 	{
