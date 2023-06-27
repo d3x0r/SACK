@@ -139,6 +139,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 {
 	struct sack_vfs_volume *vol;
 	int argc;
+	int argofs = 0;
 	char **argv;
 #if _WIN32
 	wchar_t * wcmd = GetCommandLineW();
@@ -163,14 +164,27 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	argv[argc] = NULL;
 #endif
 	InitConfigHandler();
-
+	
+	{
+		while( ( 1 + argofs ) < argc ) {
+			if( StrCaseCmp( argv[1 + argofs], "-list" ) == 0 ) {
+				POINTER info = NULL;
+				printf( "Package List\n-- size -- --------- name ---------\n" );
+				while( ScanFilesEx( NULL, "*", &info, ListFile, SFF_SUBCURSE | SFF_SUBPATHONLY
+					, (uintptr_t)0, FALSE, l.rom ) );
+				System( "pause", NULL, 0 );
+				return;
+			}
+			argofs++;
+		}
+	}
 
 #ifdef STANDALONE_HEADER
 	{
 		size_t sz = 0;
 		POINTER memory = OpenSpace( NULL, argv[0], &sz );
-		if( argc > 1 ) {
-			l.target_path = ExpandPath( argv[1] );
+		if( argc > (1+argofs) ) {
+			l.target_path = ExpandPath( argv[1+argofs] );
 		}
 		SetSystemLog( SYSLOG_FILE, stderr );
 		if( !memory ) {
@@ -200,8 +214,8 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 #  else
 		l.fsi = sack_get_filesystem_interface( "sack_shmem" );
 #  endif
-		if( argc > 2 ) {
-			l.target_path = ExpandPath( argv[2] );
+		if( argc > (2+argofs) ) {
+			l.target_path = ExpandPath( argv[2+argofs] );
 		} else {
 			l.target_path = ExpandPath( "." );
 		}
@@ -210,16 +224,6 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
 	}
 #endif
-	{
-		if( argc > 1 && StrCaseCmp( argv[1], "-list" ) == 0 ) {
-			POINTER info = NULL;
-			printf( "Package List\n-- size -- --------- name ---------\n" );
-			while( ScanFilesEx( NULL, "*", &info, ListFile, SFF_SUBCURSE | SFF_SUBPATHONLY
-				, (uintptr_t)0, FALSE, l.rom ) );
-			System( "pause", NULL, 0 );
-			return;
-		}
-	}
 	//l.target_path = ".";
 	if( vol )
 	{
