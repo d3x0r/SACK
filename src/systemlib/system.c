@@ -1008,7 +1008,27 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 				}
 
 				if( atx != move->left || aty != move->top || atw != move->width || ath != move->height ) {
-					success = SetWindowPos( hWndProc, NULL, move->left, move->top, move->width, move->height, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_ASYNCWINDOWPOS );
+					//DWORD dwNow = GetTickCount();
+					//BOOL b = SetForegroundWindow( hWndProc );
+					//DWORD dwFGError = GetLastError();
+					//BringWindowToTop( hWndProc );
+					success = SetWindowPos( hWndProc, HWND_TOPMOST, move->left, move->top, move->width, move->height, 0 );
+					/*
+					while( (GetTickCount()-dwNow) < 1000 ) {
+						if( GetWindowLong( hWndProc, GWL_EXSTYLE ) & WS_EX_TOPMOST ) break;
+						Sleep( 1 );
+					}
+					lprintf( "Waited %d for it to be top", ( GetTickCount() - dwNow ) );
+					*/
+					BOOL success2 = SetWindowPos( hWndProc, HWND_NOTOPMOST, move->left, move->top, move->width, move->height, 0 );
+					/*
+					dwNow = GetTickCount();
+					while( ( GetTickCount() - dwNow ) < 1000 ) {
+						if( !(GetWindowLong( hWndProc, GWL_EXSTYLE ) & WS_EX_TOPMOST) ) break;
+						Sleep( 1 );
+					}
+					lprintf( "Waited %d for it to be not-top", ( GetTickCount() - dwNow ) );
+					*/
 					lprintf( "Success:%d %d %d %d %d", success, move->left, move->top, move->width, move->height );
 				} else {
 					lprintf( "Window is already positioned correctly" );
