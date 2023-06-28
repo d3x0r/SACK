@@ -926,7 +926,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			}
 			else
 			{
-				Release( path );
+				Release( (POINTER)path );
 				if( OutputHandler ) {
 					close( task->hStdIn.pair[0] );
 					close( task->hStdOut.pair[1] );
