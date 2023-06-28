@@ -45,12 +45,12 @@ static void runTask( void ) {
 static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task_done )
 {
 	task = NULL;
+	if( waiting2 ) WakeThread( waiting2 );
 	lprintf( "Service Task Exited..." );
 	if( !programEnd ) {
 		runTask();
 	} else {
 		if( waiting ) WakeThread( waiting );
-		if( waiting2 ) WakeThread( waiting2 );
 	}
 }
 
@@ -76,13 +76,14 @@ static uintptr_t WaitRestart( PTHREAD thread ) {
 		if( status == WAIT_OBJECT_0 ) {
 			if( programEnd ) break; // this program is exiting, don't restart it...
 			waiting2 = thread;
+			lprintf( "Ending service task to restart..." );
 			StopProgram( task );
-			WakeableSleep( 1000 );
+			WakeableSleep( 2000 );
 			lprintf( "waited a bit but still have a task %p %p", task, pOldTask );
 			if( task == pOldTask ) {
 				WakeableSleep( 2000 );
-				lprintf( "Still? %p %p", task, pOldTask );
 				if( task == pOldTask ) {
+					lprintf( "Task still running... generating terminate : %p %p", task, pOldTask );
 					TerminateProgram( task );
 				}
 				// wait for task to at least exit, and maybe restart.
@@ -107,7 +108,7 @@ int main( int argc, char **argv )
 	InvokeDeadstart();
 	SETFLAG( opts, SYSLOG_OPT_OPEN_BACKUP );
 	SETFLAG( opts, SYSLOG_OPT_LOG_SOURCE_FILE );
-	SystemLogTime( SYSLOG_TIME_LOG_DAY );
+	SystemLogTime( SYSLOG_TIME_LOG_DAY | SYSLOG_TIME_HIGH );
 	SetSyslogOptions( opts );
 	SetSystemLog( SYSLOG_AUTO_FILE, 0 );
 	SetSystemLoggingLevel( 2000 );
