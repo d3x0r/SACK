@@ -1059,6 +1059,17 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 	return 0;
 }
 
+char* GetWindowTitle( PTASK_INFO task ) {
+
+	HWND hWndProc = task->taskWindow ? task->taskWindow : find_main_window( task->pi.dwProcessId );
+	char* str = NewArray( char, 256 );
+	if( hWndProc ) {
+		GetWindowText( hWndProc, str, 256 );
+	} else
+		StrCpy( str, "No Window" );
+	return str;
+}
+
 struct find_monitor_data {
 	int device;
 	int monitor;
