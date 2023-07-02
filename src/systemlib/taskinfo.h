@@ -29,7 +29,7 @@ struct task_info_tag {
 		BIT_FIELD runas_root : 1;
 		BIT_FIELD useCtrlBreak : 1;
 		BIT_FIELD useEventSignal : 1;
-		BIT_FIELD noKillOnExit : 1;
+		//BIT_FIELD noKillOnExit : 1;
 	} flags;
 	TaskEnd EndNotice;
 	TaskOutput OutputEvent;
