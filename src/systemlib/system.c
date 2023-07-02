@@ -1874,8 +1874,8 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 	MemSet( &execinfo, 0, sizeof( execinfo ) );
 	execinfo.cbSize = sizeof( SHELLEXECUTEINFO );
 	execinfo.fMask = SEE_MASK_NOCLOSEPROCESS  // need this to get process handle back for terminate later
-		| SEE_MASK_FLAG_NO_UI
-		| SEE_MASK_NO_CONSOLE
+		| ( ( task->spawn_flags & LPP_OPTION_DO_NOT_HIDE) ? 0 : SEE_MASK_FLAG_NO_UI )
+		| ( ( task->spawn_flags & LPP_OPTION_NEW_CONSOLE ) ? 0 : SEE_MASK_NO_CONSOLE )
 		//| SEE_MASK_NOASYNC
 		;
 	execinfo.lpFile = program;
@@ -1895,7 +1895,7 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 			execinfo.lpParameters = params;
 		}
 	}
-	execinfo.nShow = SW_SHOWNORMAL;
+	execinfo.nShow = (( task->spawn_flags&LPP_OPTION_DO_NOT_HIDE)? SW_SHOWNORMAL:SW_HIDE);
 	if( task->flags.runas_root )
 		execinfo.lpVerb = "runas";
 	if( ShellExecuteEx( &execinfo ) )

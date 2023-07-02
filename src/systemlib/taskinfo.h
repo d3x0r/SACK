@@ -43,6 +43,8 @@ struct task_info_tag {
 	struct taskOutputStruct args1;
    struct taskOutputStruct args2;
 #if defined(WIN32)
+	int spawn_flags;
+	int launch_flags;
 	char name[256]; // used for event to shutdown a task
 	HANDLE hReadOut, hWriteOut;
 	HANDLE hReadErr, hWriteErr;

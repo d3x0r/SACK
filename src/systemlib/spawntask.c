@@ -473,14 +473,14 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			expanded_path = ExpandPath( program );
 		}
 		else {
-			PVARTEXT pvtPath;
-			pvtPath = VarTextCreate();
-			if( path[0] == '.' && path[1] == 0 )
-				vtprintf( pvtPath, "%s", program );
-			else
-				vtprintf( pvtPath, "%s" "/" "%s", path, program );
-			expanded_path = ExpandPath( GetText( VarTextPeek( pvtPath ) ) );
-			VarTextDestroy( &pvtPath );
+			//PVARTEXT pvtPath;
+			//pvtPath = VarTextCreate();
+			//if( path[0] == '.' && path[1] == 0 )
+			//	vtprintf( pvtPath, "%s", program );
+			//else
+			//	vtprintf( pvtPath, "%s" "/" "%s", path, program );
+			expanded_path = ExpandPath( program );// GetText( VarTextPeek( pvtPath ) ) );
+			//VarTextDestroy( &pvtPath );
 		}
 	} else {
 		path = ExpandPath( "." );
@@ -490,6 +490,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 	{
 #ifdef WIN32
 		int launch_flags = ( ( flags & LPP_OPTION_NEW_CONSOLE ) ? CREATE_NEW_CONSOLE : 0 )
+		                 | ( ( flags & LPP_OPTION_DETACH ) ? DETACHED_PROCESS : 0 )
 		                 | ( ( flags & LPP_OPTION_NEW_GROUP ) ? CREATE_NEW_PROCESS_GROUP : 0 )
 		                 | ( ( flags & LPP_OPTION_SUSPEND ) ? CREATE_SUSPENDED : 0 )
 		                 | ( ( flags & LPP_OPTION_NO_WINDOW ) ? CREATE_NO_WINDOW : 0 )
@@ -507,6 +508,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		//TEXTCHAR saved_path[256];
 		task = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
 		MemSet( task, 0, sizeof( TASK_INFO ) );
+		task->spawn_flags = flags;
+		task->launch_flags = launch_flags;
 		task->flags.useCtrlBreak = ( flags & LPP_OPTION_USE_CONTROL_BREAK ) ? 1 : 0;
 		task->flags.useEventSignal = ( flags & LPP_OPTION_USE_SIGNAL ) ? 1 : 0;
 		//task->flags.noKillOnExit = ( flags & LPP_OPTION_NO_KILL_ON_EXIT ) ? 1 : 0;
@@ -555,6 +558,15 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		if( needs_quotes )
 			vtprintf( pvt, "\"" );
 
+		{
+			PTEXT tmpText = VarTextPeek( pvt );
+			int i;
+			int len = (int)GetTextSize( tmpText );
+			char* tmp = GetText( tmpText );
+			for( i = 0; i < len; i++, tmp++ ) {
+				if( tmp[0] == '/' ) tmp[0] = '\\';
+			}
+		}
 		if( flags & LPP_OPTION_FIRST_ARG_IS_ARG )
 			;
 		else
@@ -603,12 +615,16 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				CreatePipe( &task->hReadOut, &task->hWriteOut, &sa, 0 );
 			if( OutputHandler2 )
 				CreatePipe( &task->hReadErr, &task->hWriteErr, &sa, 0 );
+
 			CreatePipe( &task->hReadIn, &task->hWriteIn, &sa, 0 );
 			task->si.hStdInput = task->hReadIn;
 			if( OutputHandler2 )
 				task->si.hStdError = task->hWriteErr;
 			if( OutputHandler )
 				task->si.hStdOutput = task->hWriteOut;
+			if( OutputHandler && !OutputHandler2 ) {
+				task->si.hStdError = task->hWriteOut; // if this is not set, then stderr gets inherited.
+			}
 			task->si.dwFlags |= STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
 			if( !( flags & LPP_OPTION_DO_NOT_HIDE ) )
 				task->si.wShowWindow = SW_HIDE;
