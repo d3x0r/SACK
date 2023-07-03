@@ -2164,7 +2164,7 @@ static void TestUnicode( PCONFIG_HANDLER pch )
 		size_t char_check;
 		int ascii_unicode = 1;
 		len_read = sack_fread( charbuf, 1, 64, pch->file );
-		if( len_read >= 2 &&
+		if( len_read >= 2
 			&& ( ( ((uint16_t*)charbuf)[0] == 0xFEFF )
 		      || ( ((uint16_t*)charbuf)[0] == 0xFFFE )
 		      || ( ((uint16_t*)charbuf)[0] == 0xFDEF ) ) )
