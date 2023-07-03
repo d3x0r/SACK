@@ -170,8 +170,8 @@ endif( WIN32 )
 set( LIBRESSL_VERSION 3.5.3 )
 
 set( LIBRESSL_SKIP_INSTALL ON )
-set( LIBRESSL_MAKE_APPS OFF )
-set( LIBRESSL_MAKE_TESTS OFF )
+set( LIBRESSL_APPS OFF )
+set( LIBRESSL_TESTS OFF )
 
 add_subdirectory( ${SOURCES_ROOT}/contrib/libressl/${LIBRESSL_VERSION} libressl )
 include_directories( ${SOURCES_ROOT}/contrib/libressl/${LIBRESSL_VERSION}/include )
