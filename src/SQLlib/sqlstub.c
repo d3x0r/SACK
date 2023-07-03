@@ -5049,7 +5049,7 @@ int SQLQueryEx( PODBC odbc, CTEXTSTR query, CTEXTSTR *result DBG_PASS )
 	LOGICAL once = 0;
 	PCOLLECT collection;
 	// clean up our result data....
-	if( *result )
+	if( result )
 		(*result) = NULL;
 	// if not a [sS]elect then begin a transaction.... some code might use query for everything.
 	do
