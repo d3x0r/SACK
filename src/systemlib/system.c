@@ -133,20 +133,27 @@ CTEXTSTR OSALOT_GetEnvironmentVariable(CTEXTSTR name)
 
 #ifdef WIN32
 	static int env_size;
-	static TEXTCHAR *env;
+	static wchar_t *env;
+	static char* lastResult;
+	wchar_t* wName = CharWConvert( name );
 	int size;
-	if( size = GetEnvironmentVariable( name, NULL, 0 ) )
+	if( size = GetEnvironmentVariableW( wName, NULL, 0 ) )
 	{
 		if( size > env_size )
 		{
 			if( env )
 				ReleaseEx( (POINTER)env DBG_SRC );
-			env = NewArray( TEXTCHAR, size + 10 );
+			env = NewArray( wchar_t, size + 10 );
 			env_size = size + 10;
 		}
-		if( GetEnvironmentVariable( name, env, env_size ) )
-			return env;
+		if( GetEnvironmentVariableW( wName, env, env_size ) ) {
+			if( lastResult ) Deallocate( char*, lastResult );
+			lastResult = WcharConvert( env );
+			Deallocate( wchar_t*, wName );
+			return lastResult;
+		}
 	}
+	Deallocate( wchar_t*, wName );
 	return NULL;
 #else
 #ifdef UNICODE
@@ -167,7 +174,9 @@ CTEXTSTR OSALOT_GetEnvironmentVariable(CTEXTSTR name)
 void OSALOT_SetEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 {
 #if defined( WIN32 ) || defined( __CYGWIN__ )
-	SetEnvironmentVariable( name, value );
+	wchar_t *wName = CharWConvert( name );
+	wchar_t *wValue = CharWConvert( value );
+	SetEnvironmentVariableW( wName, wValue );
 #else
 #ifdef UNICODE
 	{
