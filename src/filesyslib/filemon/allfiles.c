@@ -627,7 +627,7 @@ void DoScan( PMONITOR monitor )
 	if( monitor->DoScanTime && ( now > monitor->DoScanTime ) )
 	{
 		if( local_filemon.flags.bLog )
-			lprintf( "... %p", monitor->monitors, monitor->flags.bPendingScan );
+			lprintf( "... %p %d", monitor->monitors, monitor->flags.bPendingScan );
 		if( monitor->flags.bPendingScan ) {
 			if( local_filemon.flags.bLog )
 				lprintf( "pending scan on monitor" );

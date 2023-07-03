@@ -1681,7 +1681,7 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 			if( ( matched = IsAnyVar( pEnd, start ) ) != 0 ){
 				pce->data[0].multiword.pWhichEnd = pEnd;
 				if( g.flags.bLogTrace )
-					lprintf( "Matched one of several?  set next to %p", pEnd, pEnd->next );
+					lprintf( "Matched one of several?  set next to %p %p", pEnd, pEnd->next );
 				pce->next = pEnd->next;
 				break;
 			}
