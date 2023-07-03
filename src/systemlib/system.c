@@ -1437,7 +1437,9 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 {
 	PTASK_INFO task = (PTASK_INFO)GetThreadParam( pThread );
 #ifdef __LINUX__
-	while( !task->pid ) {
+	while( !task->pid 
+		|| ( task->OutputEvent && !task->pOutputThread ) 
+		|| ( task->OutputEvent2 && !task->pOutputThread2 ) ) {
 		Relinquish();
 	}
 #endif
