@@ -177,6 +177,8 @@ void OSALOT_SetEnvironmentVariable(CTEXTSTR name, CTEXTSTR value)
 	wchar_t *wName = CharWConvert( name );
 	wchar_t *wValue = CharWConvert( value );
 	SetEnvironmentVariableW( wName, wValue );
+	Deallocate( wchar_t*, wName );
+	Deallocate( wchar_t*, wValue );
 #else
 #ifdef UNICODE
 	{
