@@ -30,7 +30,7 @@ static void InitVersion( PODBC odbc )
 	if( !l.inited )
 	{
 		PTABLE table;
-      TEXTCHAR build_table[sizeof( create_build_table ) + 12];
+		TEXTCHAR build_table[sizeof( create_build_table ) + 12];
 		CTEXTSTR result;
 		
 		table = GetFieldsInSQL( create_version_table, FALSE );
@@ -109,14 +109,14 @@ void SetCurrentVersion( PODBC odbc, CTEXTSTR version )
 	CheckODBCTable( odbc, table, CTO_MERGE );
 	DestroySQLTable( table );
 
-	SQLQueryf( odbc, &result, "select build_id from build_%d order by build_id desc limit 1", l.version_id );
+	SQLQueryf( odbc, &result, "select build_id from build_%zd order by build_id desc limit 1", l.version_id );
 	if( result )
 		g.build_id = (INDEX)IntCreateFromText( result );
 	else
 	{
       TEXTCHAR build_table[64];
-		SQLCommandf( odbc, "insert into build_%d(build_timestamp)values(now()x)", l.version_id );
-		snprintf( build_table, 64, "build_%d", l.version_id );
+		SQLCommandf( odbc, "insert into build_%zd(build_timestamp)values(now()x)", l.version_id );
+		snprintf( build_table, 64, "build_%zd", l.version_id );
 		g.build_id = FetchLastInsertID( odbc, build_table, "build_id" );
 	}
 }
@@ -126,8 +126,8 @@ void IncrementBuild( PODBC odbc )
 	TEXTCHAR build_table[64];
 	InitVersion( odbc );
 
-	SQLCommandf( odbc, "insert into build_%d(build_timestamp)values(now())", l.version_id );
-	snprintf( build_table, 64, "build_%d", l.version_id );
+	SQLCommandf( odbc, "insert into build_%zd(build_timestamp)values(now())", l.version_id );
+	snprintf( build_table, 64, "build_%zd", l.version_id );
 	g.build_id = FetchLastInsertID( odbc, build_table, "build_id" );
 
 }
@@ -142,7 +142,7 @@ INDEX CheckProjectTable( PODBC odbc, CTEXTSTR project_root )
 		INDEX project_id = SQLReadNameTableExx( odbc, project_root, "project", "project_id", "root_path", TRUE );
 		PTABLE table;
 
-		snprintf( tmp, 256, "project_version_%d_%d", l.version_id, project_id );
+		snprintf( tmp, 256, "project_version_%zd_%zd", l.version_id, project_id );
 
 		snprintf( tmp_create, 256, create_project_version_table, tmp );
 
@@ -176,7 +176,7 @@ INDEX GetBuildVersion( PODBC odbc, INDEX project_id )
 	snprintf( tmp, 256, "project_version_%d_%d", l.version_id, project_id );
 	if( System( "hg id -i", CaptureMercurialVersion, (uintptr_t)(&result) ) )
 	{
-		SQLCommandf( odbc, "insert into %s(project_id,hg_id,build_id,version_id)values(%d,'%s',%d,%d)"
+		SQLCommandf( odbc, "insert into %s(project_id,hg_id,build_id,version_id)values(%zd,'%s',%zd,%zd)"
 					  , tmp
 					  , project_id
 					  , result
@@ -190,7 +190,7 @@ INDEX GetBuildVersion( PODBC odbc, INDEX project_id )
 
 		if( g.flags.use_common_build )
 		{
-			snprintf( tmp, 256, "hg tag -m \"Tag Version %s.%d\" %s.%d"
+			snprintf( tmp, 256, "hg tag -m \"Tag Version %s.%zd\" %s.%zd"
 					  , result_value[0]
 					  , g.build_id
 					  , result_value[0]
@@ -198,7 +198,7 @@ INDEX GetBuildVersion( PODBC odbc, INDEX project_id )
 		}
 		else if( g.flags.use_all_build )
 		{
-			snprintf( tmp, 256, "hg tag -m \"Tag Version %s.%d.%d\" %s.%d.%d"
+			snprintf( tmp, 256, "hg tag -m \"Tag Version %s.%zd.%zd\" %s.%zd.%zd"
 					  , result_value[0]
 					  , g.build_id
 					  , project_build_id
@@ -208,7 +208,7 @@ INDEX GetBuildVersion( PODBC odbc, INDEX project_id )
 		}
 		else
 		{
-			snprintf( tmp, 256, "hg tag -m \"Tag Version %s.%d\" %s.%d"
+			snprintf( tmp, 256, "hg tag -m \"Tag Version %s.%zd\" %s.%zd"
 					  , result_value[0]
 					  , project_build_id
 					  , result_value[0]
