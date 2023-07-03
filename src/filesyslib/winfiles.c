@@ -1507,10 +1507,11 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 		if( !StrChr( opts, 'n' ) && StrChr( file->fullname, '%' ) ) {
 			if( allocedIndex != INVALID_INDEX )
 				SetLink( &file->files, allocedIndex, NULL );
-			if( memalloc ) {
+			if( memalloc ) { // was a brand new file anway
 				DeleteLink( &( *winfile_local ).files, file );
 				Deallocate( TEXTCHAR*, file->name );
 				Deallocate( TEXTCHAR*, file->fullname );
+				DeleteList( &file->files );
 				Deallocate( struct file*, file );
 			}
 			//DebugBreak();
@@ -1555,6 +1556,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 				}
 				test_mount = test_mount->nextLayer;
 			}
+			SetLink( &file->files, allocedIndex, handle );
 		}
 		else {
 			struct file_system_mounted_interface* test_mount = mount;
@@ -1570,22 +1572,23 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 				}
 				test_mount = test_mount->nextLayer;
 			}
+			SetLink( &file->files, allocedIndex, handle );
 		}
 	}
-	if( !handle ) {
+	if( !GetLinkCount( file->files ) ) {
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( ( *winfile_local ).flags.bLogOpenClose )
 			lprintf( "Failed to open file [%s]=[%s]", file->name, file->fullname );
-#endif
+#endif		
 		DeleteLink( &( *winfile_local ).files, file );
 		Deallocate( TEXTCHAR*, file->name );
 		Deallocate( TEXTCHAR*, file->fullname );
-		Deallocate( struct file*, file );
+		DeleteList( &file->files );
 
-		SetLink( &file->files, allocedIndex, NULL );
+		Deallocate( struct file*, file );
 		return NULL;
 	}
-	AddLink( &file->files, handle );
+	//AddLink( &file->files, handle );
 	return handle;
 }
 
