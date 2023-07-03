@@ -1009,6 +1009,7 @@ uintptr_t GetFileSize( int fd )
 							0
 #endif
 						  , 0 );
+			if( bCreated) bCreated[0] = TRUE; // anonymous spaces are always created
 			if( pMem == (POINTER)-1 )
 			{
 				if( errno == ENODEV ) {
@@ -1193,6 +1194,7 @@ uintptr_t GetFileSize( int fd )
 			          , PROT_READ|(readonly?(0):PROT_WRITE)
 			          , MAP_SHARED|((fd<0)?MAP_ANONYMOUS:0)
 			          , fd, 0 );
+			if( bCreated) bCreated[0] = !exists; // anonymous spaces are always created
 			if( !exists && pMem )
 			{
 				MemSet( pMem, 0, *dwSize );
