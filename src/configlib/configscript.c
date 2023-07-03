@@ -2172,7 +2172,8 @@ static void TestUnicode( PCONFIG_HANDLER pch )
 			return_pos = 2;
 			pch->flags.bUnicode = 1;
 		}
-		else if( ( charbuf[0] == (char)0xef ) && ( charbuf[1] == (char)0xbb ) && ( charbuf[0] == (char)0xbf ) )
+		else if( len_read >= 2
+			&& ( charbuf[0] == (char)0xef ) && ( charbuf[1] == (char)0xbb ) && ( charbuf[0] == (char)0xbf ) )
 		{
 			return_pos = 1;
 			pch->flags.bUnicode8 = 1;
