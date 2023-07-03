@@ -1387,59 +1387,12 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 			// if not already ended...
 			if( WaitForSingleObject( task->pi.hProcess, 0 ) != WAIT_OBJECT_0 )
 			{
-				int nowait = 0;
-				//lprintf( "Wait timeout happened..." );
-				// try using ctrl-c, ctrl-break to end process...
-#if 0
-				if( !StopProgram( task ) )
+				if( !TerminateProcess( task->pi.hProcess, 0xD3ed ) )
 				{
-					xlprintf(LOG_LEVEL_DEBUG+1)( "Program did not respond to ctrl-c or ctrl-break..." );
-					// if ctrl-c fails, try finding the window, and sending exit (systray close)
-					if( EndTaskWindow( task ) )
-					{
-						xlprintf(LOG_LEVEL_DEBUG+1)( "failed to find task window to send postquitmessage..." );
-						// didn't find the window - result was continue_enum with no more (1)
-						// so didn't find the window - nothing to wait for, fall through
-						nowait = 1;
-					}
-				}
-#endif
-				DWORD dwResult = WaitForSingleObject( task->pi.hProcess, 500 );
-				if( dwResult != WAIT_OBJECT_0 )
-				{
-					if( !TerminateProcess( task->pi.hProcess, 0xD3ed ) )
-					{
-						//HANDLE hTmp;
-						lprintf( "Failed to terminate process... " );
-#if 0
-						lprintf( "Failed to terminate process... %p %ld : %d (will try again with OpenProcess)", task->pi.hProcess, task->pi.dwProcessId, GetLastError() );
-						hTmp = OpenProcess( SYNCHRONIZE|PROCESS_TERMINATE, FALSE, task->pi.dwProcessId);
-						if( !TerminateProcess( hTmp, 0xD1E ) )
-						{
-							lprintf( "Failed to terminate process... %p %ld : %d", task->pi.hProcess, task->pi.dwProcessId, GetLastError() );
-						}
-						CloseHandle( hTmp );
-#endif
-					}
+					//HANDLE hTmp;
+					lprintf( "Failed to terminate process... " );
 				}
 			}
-			if( !task->EndNotice )
-			{
-				//lprintf( "Closing handle (no end notification)" );
-				// task end notice - will get the event and close these...
-				CloseHandle( task->pi.hThread );
-				task->pi.hThread = 0;
-				//if( !bDontCloseProcess )
-				{
-					//lprintf( "And close process handle" );
-					CloseHandle( task->pi.hProcess );
-					task->pi.hProcess = 0;
-				}
-				//else
-				//	lprintf( "Keeping process handle" );
-			}
-//			else
-//				lprintf( "Would have close handles rudely." );
 #else
 #ifndef PEDANTIC_TEST
 			kill( task->pid, SIGTERM );
