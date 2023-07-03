@@ -26,12 +26,12 @@ void DoReboot( char *mode )
 				// DECLTEXT( msg, "Initiating system shutdown..." );
 				// EnqueLink( &ps->Command->Output, &msg );
 				// if( !(temp = GetParam( ps, &param ) ) )
-            if( stricmp( mode, "shutdown" ) == 0 )
+				if( stricmp( mode, "shutdown" ) == 0 )
 					ExitWindowsEx( EWX_SHUTDOWN|EWX_FORCE, 0 );
-            else if( stricmp( mode, "reboot" ) == 0 )
+				else if( stricmp( mode, "reboot" ) == 0 )
 					ExitWindowsEx( EWX_REBOOT|EWX_FORCE, 0 );
 				else
-               lprintf( "Mode specified invalid! (reboot/shutdown)\n" );
+					printf( "Mode specified invalid! (reboot/shutdown)\n" );
 			}
 			else
 			{
@@ -79,8 +79,8 @@ int main( int argc, char **argv )
 #ifndef DEDICATE_REBOOT
 	RegisterIcon( (TEXTCHAR*)ICO_REBOOT );
 	NetworkStart();
-   while( !OpenTCPServerEx( 16661, Connection ) )
-   	Sleep( 2 );
+	while( !OpenTCPServerEx( 16661, Connection ) )
+	Sleep( 2 );
 	{
 		MSG msg;
 		while( GetMessage( &msg, NULL, 0, 0 ) )
