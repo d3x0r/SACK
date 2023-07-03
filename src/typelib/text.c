@@ -3033,10 +3033,13 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 	// WideCharToMultiByte()
 	// wcstombs_s()
 	// ... etc
-	size_t  sizeInChars = 0;
-	const char *_wch = wch;
+	size_t  sizeInChars;
+	const char *_wch;
 	wchar_t	*ch;
 	wchar_t   *_ch;
+	if( !wch ) return NULL;
+	sizeInChars = 0;
+	_wch = wch;
 	{
 		size_t n;
 		for( n = 0; n < len; n++ )
@@ -3102,6 +3105,7 @@ wchar_t * CharWConvertExx ( const char *wch, size_t len DBG_PASS )
 wchar_t * CharWConvertEx ( const char *ch DBG_PASS )
 {
 	int len;
+	if( !ch ) return NULL;
 	for( len = 0; ch[len]; len++ );
 	return CharWConvertExx( ch, len DBG_RELAY );
 }
