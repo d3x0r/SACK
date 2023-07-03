@@ -1511,7 +1511,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 				DeleteLink( &( *winfile_local ).files, file );
 				Deallocate( TEXTCHAR*, file->name );
 				Deallocate( TEXTCHAR*, file->fullname );
-				DeleteList( &file->files );
+				DeleteListEx( &file->files DBG_SRC );
 				Deallocate( struct file*, file );
 			}
 			//DebugBreak();
@@ -1583,7 +1583,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 		DeleteLink( &( *winfile_local ).files, file );
 		Deallocate( TEXTCHAR*, file->name );
 		Deallocate( TEXTCHAR*, file->fullname );
-		DeleteList( &file->files );
+		DeleteListEx( &file->files DBG_SRC );
 
 		Deallocate( struct file*, file );
 		return NULL;
