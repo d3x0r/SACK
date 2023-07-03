@@ -1518,10 +1518,8 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 			return NULL;
 		}
 		EnterCriticalSec( &( *winfile_local ).cs_files );
-		if( allocedIndex != INVALID_INDEX )
-			SetLink( &( *winfile_local ).files, allocedIndex, file );
-		else
-			AddLink( &( *winfile_local ).files, file );
+		AddLink( &( *winfile_local ).files, file );
+		allocedIndex = 0;
 		LeaveCriticalSec( &( *winfile_local ).cs_files );
 	}
 	else {
