@@ -197,7 +197,7 @@ LOGICAL CompareTime( SYSTEMTIME *st1, SYSTEMTIME *st2, int seconds )
 		li2.u.LowPart = ft2.dwLowDateTime;
 		li2.u.HighPart = ft2.dwHighDateTime;
 
-		if( llabs( li1.QuadPart - li2.QuadPart ) > ( (uint64_t)seconds * ( ( 10LL /* microsecond scale*/) * ( 1000LL /*millisecond scale*/ ) * ( 1000 /* second scale */ ) ) ) )
+		if( llabs( li1.QuadPart - li2.QuadPart ) > ( (uint64_t)seconds * ( ( 10U /* microsecond scale*/) * ( 1000U /*millisecond scale*/ ) * ( 1000U /* second scale */ ) ) ) )
 			return FALSE;
 		return TRUE;
 }
@@ -1481,7 +1481,7 @@ static void UpdateStatus( PACCOUNT account )
 	}
 	else
 	{
-		snprintf( msg, sizeof( msg ), "Blocks: %d of %zd", account->finished_files.count, account->files.count );
+		snprintf( msg, sizeof( msg ), "Blocks: %d of %d", account->finished_files.count, account->files.count );
 		SetControlText( GetControl( account->client.frame, 1 ), msg );
 		snprintf( msg, sizeof( msg ), "Bytes: %zd of %zd", account->finished_files.size, account->files.size );
 		SetControlText( GetControl( account->client.frame, 2 ), msg );

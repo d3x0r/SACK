@@ -193,7 +193,7 @@ int ReadValidateCRCs( PCLIENT_CONNECTION pcc, uint32_t *crc, size_t crclen
 	uintptr_t size = 0;
 	uint8_t* mem;
 	PFILECHANGE pfc = NULL;
-   PFILECHANGE pfc_last = NULL;
+	PFILECHANGE pfc_last = NULL;
 
 	if( finalsize == 0 )
 	{
@@ -1306,7 +1306,7 @@ struct monitor_data {
 
 void MonitorSubdirectories( PNETWORK_STATE pns, PDIRECTORY pDirectory, PLIST *monitors, CTEXTSTR path );
 
-void CPROC MonitorCheck( uintptr_t psv, CTEXTSTR name, int flags )
+void CPROC MonitorCheck( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	if( flags & SFF_DIRECTORY )
 	{
@@ -2162,7 +2162,7 @@ int CPROC PrescanFileUpdate( uintptr_t psv
 }
 
 
-static void CPROC PrescanFile( uintptr_t psv, CTEXTSTR name, int flags )
+static void CPROC PrescanFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	PDIRECTORY directory = (PDIRECTORY)psv;
 	PACCOUNT account = directory->account;
@@ -2261,7 +2261,7 @@ struct DeleteScanInfo {
 	PLINKSTACK delete_dirlist;
 };
 
-static void CPROC DeleteScanFile( uintptr_t psv, CTEXTSTR name, int flags )
+static void CPROC DeleteScanFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	struct DeleteScanInfo *info = (struct DeleteScanInfo*)psv;
 	PFILE_INFO pFileInfo;
