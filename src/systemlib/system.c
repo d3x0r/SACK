@@ -1823,7 +1823,7 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 	} SHELLEXECUTEINFO, *LPSHELLEXECUTEINFO;
 #endif
 #endif
-	SHELLEXECUTEINFO execinfo;
+	SHELLEXECUTEINFOW execinfo;
 	MemSet( &execinfo, 0, sizeof( execinfo ) );
 	execinfo.cbSize = sizeof( SHELLEXECUTEINFO );
 	execinfo.fMask = SEE_MASK_NOCLOSEPROCESS  // need this to get process handle back for terminate later
@@ -1831,8 +1831,8 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 		| ( ( task->spawn_flags & LPP_OPTION_NEW_CONSOLE ) ? 0 : SEE_MASK_NO_CONSOLE )
 		//| SEE_MASK_NOASYNC
 		;
-	execinfo.lpFile = program;
-	execinfo.lpDirectory = path;
+	execinfo.lpFile = CharWConvert( program );
+	execinfo.lpDirectory = CharWConvert( path );
 	{
 		TEXTCHAR *params;
 		params = GetText( cmdline );
@@ -1845,13 +1845,13 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 		if( params[0] )
 		{
 			//lprintf( "adding extra parames [%s]", params );
-			execinfo.lpParameters = params;
+			execinfo.lpParameters = CharWConvert( params );
 		}
 	}
 	execinfo.nShow = (( task->spawn_flags&LPP_OPTION_DO_NOT_HIDE)? SW_SHOWNORMAL:SW_HIDE);
 	if( task->flags.runas_root )
-		execinfo.lpVerb = "runas";
-	if( ShellExecuteEx( &execinfo ) )
+		execinfo.lpVerb = CharWConvert( "runas" );
+	if( ShellExecuteExW( &execinfo ) )
 	{
 		if( (uintptr_t)execinfo.hInstApp > 32)
 		{
@@ -1866,12 +1866,18 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 #ifdef _DEBUG
 			//lprintf( "sucess with shellexecute of(%p) %s ", execinfo.hInstApp, program );
 #endif
+			Deallocate( LPCWSTR, execinfo.lpVerb );
+			if( execinfo.lpFile ) Deallocate( LPCWSTR, execinfo.lpFile );
+			if( execinfo.lpDirectory ) Deallocate( LPCWSTR, execinfo.lpDirectory );
 			task->pi.hProcess = execinfo.hProcess;
 			task->pi.hThread = 0;
 			return TRUE;
 		}
 		else
 		{
+			Deallocate( LPCWSTR, execinfo.lpVerb );
+			if( execinfo.lpFile ) Deallocate( LPCWSTR, execinfo.lpFile );
+			if( execinfo.lpDirectory ) Deallocate( LPCWSTR, execinfo.lpDirectory );
 			//switch( (uintptr_t)execinfo.hInstApp )
 			{
 			//default:
@@ -1883,6 +1889,10 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 	}
 	else
 		lprintf( "Shellexec error %d", GetLastError() );
+
+	Deallocate( LPCWSTR, execinfo.lpVerb );
+	if( execinfo.lpFile ) Deallocate( LPCWSTR, execinfo.lpFile );
+	if( execinfo.lpDirectory ) Deallocate( LPCWSTR, execinfo.lpDirectory );
 	return FALSE;
 
 }

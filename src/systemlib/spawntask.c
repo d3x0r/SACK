@@ -439,6 +439,90 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgramExx )( CTEXTSTR program, CTEXTSTR path
    return LaunchPeerProgram_v2( program, path, args, flags, OutputHandler, OutputHandler, EndNotice, psv, NULL DBG_RELAY );
 }
 
+#ifdef _WIN32
+
+static wchar_t* ConvertEnvironment( char* env ) {
+	int avail_chars = 256;
+	int used_chars = 0;
+	wchar_t* buffer = NewArray( wchar_t, avail_chars );
+	char* value = env;
+	while( value[0] ) {
+		int valLen = 0;
+		wchar_t* tmp = CharWConvert( value );
+		int len = 0;
+		for( len = 0; tmp[len]; len++ ); len++;
+		for( valLen = 0; value[valLen]; valLen++ ); valLen++;
+		
+		while( ( used_chars + len ) >= avail_chars ) {
+			avail_chars *= 2;
+			buffer = (wchar_t*)Reallocate( buffer, sizeof( wchar_t ) * avail_chars );
+		}
+		MemCpy( buffer + used_chars, tmp, sizeof( wchar_t ) * len );
+		Deallocate( wchar_t*, tmp );
+		value += valLen;		
+	}
+	return buffer;
+}
+
+static void convertStartupInfo( LPSTARTUPINFOA sia, LPSTARTUPINFOW siw ) {
+
+	siw->lpReserved = NULL;
+	siw->lpDesktop = CharWConvert( sia->lpDesktop );
+	siw->lpTitle = CharWConvert( sia->lpTitle );
+	siw->dwX = sia->dwX;
+	siw->dwY = sia->dwY;
+	siw->dwXSize = sia->dwXSize;
+	siw->dwYSize = sia->dwYSize;
+	siw->dwXCountChars = sia->dwXCountChars;
+	siw->dwYCountChars = sia->dwYCountChars;
+	siw->dwFillAttribute = sia->dwFillAttribute;
+	siw->dwFlags = sia->dwFlags;
+	siw->wShowWindow = sia->wShowWindow;
+	siw->cbReserved2 = sia->cbReserved2;
+	siw->lpReserved2 = sia->lpReserved2;
+	siw->hStdInput = sia->hStdInput;
+	siw->hStdOutput = sia->hStdOutput;
+	siw->hStdError = sia->hStdError;
+}
+
+static BOOL _CreateProcess(
+	LPCSTR lpApplicationName,
+	LPSTR lpCommandLine,
+	LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	BOOL bInheritHandles,
+	DWORD dwCreationFlags,
+	LPVOID lpEnvironment,
+	LPCSTR lpCurrentDirectory,
+	LPSTARTUPINFOA lpStartupInfo,
+	LPPROCESS_INFORMATION lpProcessInformation
+) {
+	wchar_t* wAppName = lpApplicationName?CharWConvert( lpApplicationName ):NULL;
+	wchar_t* wCmdLine = lpCommandLine ? CharWConvert( lpCommandLine ) : NULL;
+	wchar_t* wWorkDir = lpCurrentDirectory ? CharWConvert( lpCurrentDirectory ) : NULL;
+	wchar_t* envBlock = lpEnvironment?ConvertEnvironment((char*)lpEnvironment):NULL;
+	DWORD dwLastError;
+	STARTUPINFOW si;
+	si.cb = sizeof( si );
+	convertStartupInfo( lpStartupInfo, &si );
+
+	BOOL status = CreateProcessW( wAppName, wCmdLine
+		, lpProcessAttributes, lpThreadAttributes
+		, bInheritHandles, dwCreationFlags
+		, lpEnvironment, wWorkDir, &si, lpProcessInformation );
+	dwLastError = GetLastError();
+	if( si.lpDesktop ) Deallocate( LPWSTR, si.lpDesktop );
+	if( si.lpTitle ) Deallocate( LPWSTR, si.lpTitle );
+	if( wAppName ) Deallocate( wchar_t*, wAppName );
+	if( wCmdLine ) Deallocate( wchar_t*, wCmdLine );
+	if( wWorkDir ) Deallocate( wchar_t*, wWorkDir );
+	if( envBlock ) Deallocate( wchar_t*, envBlock );
+	SetLastError( dwLastError );
+	return status;
+}
+
+#endif
+
 // Run a program completely detached from the current process
 // it runs independantly.  Program does not suspend until it completes.
 // No way at all to know if the program works or fails.
@@ -687,7 +771,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			else
 			{
 				//lprintf( "Using launch flags; %s %08x", task->name, launch_flags );
-				if( ( (!task->flags.runas_root) && ( CreateProcess( program
+				if( ( (!task->flags.runas_root) && ( _CreateProcess( program
 										, GetText( cmdline )
 										, NULL, NULL, TRUE
 										, launch_flags
@@ -695,7 +779,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 										, expanded_working_path
 										, &task->si
 										, &task->pi ) || FixHandles(task) || DumpError()) ) ||
-					((!task->flags.runas_root) && (CreateProcess( NULL //program
+					((!task->flags.runas_root) && (_CreateProcess( NULL //program
 										 , GetText( cmdline )
 										 , NULL, NULL, TRUE
 										 , launch_flags
@@ -703,7 +787,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 										 , expanded_working_path
 										 , &task->si
 										 , &task->pi ) || FixHandles(task) || DumpError()) ) ||
-					((!task->flags.runas_root) && (CreateProcess( program
+					((!task->flags.runas_root) && (_CreateProcess( program
 										, NULL // GetText( cmdline )
 										, NULL, NULL, TRUE
 										, launch_flags
@@ -712,7 +796,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 										, &task->si
 										, &task->pi ) || FixHandles(task) || DumpError()) ) ||
 					( (shellExec=1),TryShellExecute( task, expanded_working_path, program, cmdline ) ) ||
-					( (shellExec=0),CreateProcess( NULL//"cmd.exe"
+					( (shellExec=0),_CreateProcess( NULL//"cmd.exe"
 										, GetText( final_cmdline )
 										, NULL, NULL, TRUE
 										, launch_flags
