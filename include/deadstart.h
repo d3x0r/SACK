@@ -12,12 +12,9 @@
 
 #ifdef __cplusplus
 
-//using namespace sack::app::deadstart;
-#  define USE_SACK_DEADSTART_NAMESPACE 
-//SACK_NAMESPACE namespace app { namespace deadstart {
-#  define SACK_DEADSTART_NAMESPACE   extern "C" {
-//} } SACK_NAMESPACE_END
-#  define SACK_DEADSTART_NAMESPACE_END  }  
+#  define USE_SACK_DEADSTART_NAMESPACE using namespace sack::app::deadstart;
+#  define SACK_DEADSTART_NAMESPACE  SACK_NAMESPACE namespace app { namespace deadstart {
+#  define SACK_DEADSTART_NAMESPACE_END  } } SACK_NAMESPACE_END
 
 SACK_NAMESPACE
 	namespace app{
@@ -86,7 +83,7 @@ SACK_NAMESPACE
 
 		namespace deadstart {
 		}
-	}
+        }
 SACK_NAMESPACE_END   
 #else
 #define USE_SACK_DEADSTART_NAMESPACE
