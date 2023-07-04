@@ -617,8 +617,6 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 				char *mypath;
 				void *lib;
 				char *myext;
-				void (*InvokeDeadstart)(void );
-				void (*MarkRootDeadstartComplete)(void );
 
 				fclose( maps );
 				maps = NULL;
