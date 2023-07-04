@@ -950,7 +950,7 @@ add_library( bag ${CORE_LINKMODE}
     ${BAG_SQLITE_SOURCES}
   ${LAST_GCC_LIBRARY_SOURCE}
 )
-target_link_libraries( bag gsm-1.0-pl13 )
+target_link_libraries( bag gsm-1.0-pl13 deadstart )
 	#target_link_libraries( bag MatrixSSL mssl_core )
 	target_link_libraries( bag ${SSL_LIBS} )
 
@@ -1001,7 +1001,7 @@ set( psi_cplusplus_sources )
 COPY_CPLUSPLUS( psi_cplusplus_sources ${PSI_SOURCES} )
 
 add_library( ${BAG_PLUSPLUS} ${CORE_LINKMODE} ${cplusplus_sources} )
-target_link_libraries( ${BAG_PLUSPLUS} gsm-1.0-pl13 )
+target_link_libraries( ${BAG_PLUSPLUS} gsm-1.0-pl13 deadstart )
 	#target_link_libraries( ${BAG_PLUSPLUS} MatrixSSL )
 	target_link_libraries( ${BAG_PLUSPLUS} ${SSL_LIBS} )
 
@@ -1049,7 +1049,7 @@ if( NOT __NO_CPLUSPLUS )
   else( FORCE_CXX )
     set( SACK_LIBRARIES bag bag.psi )
     set( SACK_LIBRARIES_PLUSPLUS ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} )
-    set( SACK_CORE_LIBRARY bag bag.externals )
+    set( SACK_CORE_LIBRARY bag bag.externals deadstart )
     set( SACK_CORE_LIBRARY_PLUSPLUS ${BAG_PLUSPLUS} )
   endif( FORCE_CXX )
 else( NOT __NO_CPLUSPLUS )
@@ -1153,7 +1153,7 @@ if( NOT __NO_CPLUSPLUS )
 
 
     if( NOT NO_C )
-      my_target_link_libraries( ${BAG_PSI_PLUSPLUS} bag ${BAG_PLUSPLUS} ${EXTERNALS} ${PLATFORM_LIBRARIES} )
+      my_target_link_libraries( ${BAG_PSI_PLUSPLUS} bag ${BAG_PLUSPLUS} ${EXTERNALS} ${PLATFORM_LIBRARIES} deadstart )
       set( SACK_PSI_LIBRARY ${BAG_PSI_PLUSPLUS} bag.psi )
       if( __ANDROID__ )
           install_mode_dest( bag bag.psi ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} ${EXTERNALS} )
@@ -1176,7 +1176,7 @@ else( NOT __NO_CPLUSPLUS )
 endif( NOT __NO_CPLUSPLUS )
 
 if( NOT NO_C )
-  my_target_link_libraries( bag.psi bag ${EXTERNALS} ${PLATFORM_LIBRARIES} )
+  my_target_link_libraries( bag.psi bag ${EXTERNALS} ${PLATFORM_LIBRARIES} deadstart )
 
   if( NOT NEED_FREETYPE )
     my_target_link_libraries( bag.psi  ${Freetype_LIBRARIES} )
