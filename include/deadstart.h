@@ -11,9 +11,14 @@
 #define pastejunk(a,b) pastejunk_(a,b)
 
 #ifdef __cplusplus
-#define USE_SACK_DEADSTART_NAMESPACE using namespace sack::app::deadstart;
-#define SACK_DEADSTART_NAMESPACE   SACK_NAMESPACE namespace app { namespace deadstart {
-#define SACK_DEADSTART_NAMESPACE_END    } } SACK_NAMESPACE_END
+
+//using namespace sack::app::deadstart;
+#  define USE_SACK_DEADSTART_NAMESPACE 
+//SACK_NAMESPACE namespace app { namespace deadstart {
+#  define SACK_DEADSTART_NAMESPACE   extern "C" {
+//} } SACK_NAMESPACE_END
+#  define SACK_DEADSTART_NAMESPACE_END  }  
+
 SACK_NAMESPACE
 	namespace app{
 /* Application namespace. */
@@ -80,7 +85,9 @@ SACK_NAMESPACE
                                                                    */
 
 		namespace deadstart {
-
+		}
+	}
+SACK_NAMESPACE_END   
 #else
 #define USE_SACK_DEADSTART_NAMESPACE
 #define SACK_DEADSTART_NAMESPACE
@@ -90,6 +97,9 @@ SACK_NAMESPACE
 #ifdef TYPELIB_SOURCE
 #define DEADSTART_SOURCE
 #endif
+
+
+SACK_DEADSTART_NAMESPACE
 
 /* A macro to specify the call type of schedule routines. This
    can be changed in most projects without affect, it comes into
