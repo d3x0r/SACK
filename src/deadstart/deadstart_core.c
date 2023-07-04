@@ -46,6 +46,8 @@
 #else
 #endif
 
+#include "deadstart_core.h"
+
 //#define lprintf(f,...) printf(f "\n",##__VA_ARGS__)
 //#define _lprintf(n) lprintf
 
@@ -59,104 +61,43 @@ SACK_DEADSTART_NAMESPACE
 
 EXPORT_METHOD void RunDeadstart( void );
 
-typedef struct startup_proc_tag {
-	DeclareLink( struct startup_proc_tag );
-	int bUsed;
-	int priority;
-	void (CPROC*proc)(void);
-	CTEXTSTR func;
-#ifdef _DEBUG
-	CTEXTSTR file;
-	int line;
+
+
+#ifdef __STATIC_GLOBALS__
+extern 
+#ifdef __cplusplus
+  "C"
 #endif
-} STARTUP_PROC, *PSTARTUP_PROC;
-
-typedef struct shutdown_proc_tag {
-	DeclareLink( struct shutdown_proc_tag );
-	int bUsed;
-	int priority;
-	void (CPROC*proc)(void);
-	CTEXTSTR func;
-#ifdef _DEBUG
-	CTEXTSTR file;
-	int line;
-#endif
-} SHUTDOWN_PROC, *PSHUTDOWN_PROC;
-
-struct deadstart_local_data_
-{
-	// this is a lot of procs...
-	int nShutdownProcs;
-#define nShutdownProcs l.nShutdownProcs
-	SHUTDOWN_PROC shutdown_procs[512];
-#define shutdown_procs l.shutdown_procs
-	int bInitialDone;
-#define bInitialDone l.bInitialDone
-	LOGICAL bInitialStarted;
-#define bInitialStarted l.bInitialStarted
-	int bSuspend;
-#define bSuspend l.bSuspend
-	int bDispatched;
-//#define bDispatched l.bDispatched
-
-	PSHUTDOWN_PROC shutdown_proc_schedule;
-#define shutdown_proc_schedule l.shutdown_proc_schedule
-
-	int nProcs; // count of used procs...
-#define nProcs l.nProcs
-	STARTUP_PROC procs[1024];
-#define procs l.procs
-	PSTARTUP_PROC proc_schedule;
-#define proc_schedule l.proc_schedule
-	struct
-	{
-		BIT_FIELD bInitialized : 1;
-		BIT_FIELD bLog : 1;
-	} flags;
-};
-
-#ifdef UNDER_CE
-#  ifndef __STATIC_GLOBALS__
-#    define __STATIC_GLOBALS__
-#  endif
-#endif
-
-#ifndef __STATIC_GLOBALS__
+	 struct deadstart_local_data_ deadstart_local_data;
+#define l (deadstart_local_data)
+#else
 static struct deadstart_local_data_ *deadstart_local_data;
 #define l (*deadstart_local_data)
-#else
-static struct deadstart_local_data_ deadstart_local_data;
-#define l (deadstart_local_data)
 #endif
 
 EXPORT_METHOD void RunExits( void )
 {
 	//fprintf( stderr, "Run Exits InvokeExits()\n" );
-
 	InvokeExits();
 }
 
 static void InitLocal( void )
 {
 #ifndef __STATIC_GLOBALS__
-	if( !deadstart_local_data )
-	{
-		SimpleRegisterAndCreateGlobal( deadstart_local_data );
-	}
+	if( !deadstart_local_data ) deadstart_local_data = GetDeadstartSharedGlobal();
 #endif
 	if( !l.flags.bInitialized )
 	{
-		//atexit( RunExits );
 		l.flags.bInitialized = 1;
 	}
 }
 
 #ifndef  DISABLE_DEBUG_REGISTER_AND_DISPATCH
 #define ENQUE_STARTUP_DBG_SRC DBG_SRC
-void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc DBG_PASS )
+static void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc DBG_PASS )
 #else
 #define ENQUE_STARTUP_DBG_SRC
-void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
+static void EnqueStartupProc( PSTARTUP_PROC *root, PSTARTUP_PROC proc )
 #endif
 {
 	PSTARTUP_PROC check;
@@ -218,13 +159,11 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 {
 	int use_proc;
 	InitLocal();
-	if( LOG_ALL ||
+	if( LOG_ALL || (
 #ifndef __STATIC_GLOBALS__
-		 (deadstart_local_data 
-#else 
-		(1
+		 deadstart_local_data && 
 #endif
-		&& l.flags.bLog ))
+		  l.flags.bLog ))
 		lprintf( "Register %s@" DBG_FILELINEFMT_MIN " %d", func DBG_RELAY, priority);
 	if( nProcs == 1024 )
 	{
@@ -264,7 +203,6 @@ void RegisterPriorityStartupProc( void (CPROC*proc)(void), CTEXTSTR func,int pri
 	*/
 	if( bInitialDone && !bSuspend )
 	{
-#define ONE_MACRO(a,b) a,b
 #ifdef _DEBUG
 		_xlprintf(LOG_NOISE,pFile,nLine)( "Initial done, not suspended, dispatch immediate." );
 #endif
@@ -335,9 +273,10 @@ void InvokeDeadstart( void )
 {
 	PSTARTUP_PROC proc;
 	PSTARTUP_PROC resumed_proc;
-	//if( !bInitialDone /*|| bDispatched*/ )
-	//   return;
-	InitLocal();
+#ifndef __STATIC_GLOBALS__
+	if( !deadstart_local_data ) return; // nothing was registerd to run.
+#endif
+
 	if( bInitialStarted )
 		return;
 	bInitialStarted = 1;
@@ -369,13 +308,11 @@ void InvokeDeadstart( void )
 	{
 		// need to set this to point to new head of list... it's not in proc_schedule anymore
 		//proc->me = &proc;
-		if( LOG_ALL ||
+		if( LOG_ALL || (
 #ifndef __STATIC_GLOBALS__
-		 (deadstart_local_data 
-#else 
-		(1
+		   deadstart_local_data  &&
 #endif
-		&& l.flags.bLog ))
+		   l.flags.bLog ))
 		{
 #ifdef _DEBUG
 			lprintf( "Dispatch %s@%s(%d)p:%d ", proc->func,proc->file,proc->line, proc->priority );
@@ -459,13 +396,11 @@ PRIORITY_PRELOAD( InitDeadstartOptions, NAMESPACE_PRELOAD_PRIORITY+1 )
 void RegisterPriorityShutdownProc( void (CPROC*proc)(void), CTEXTSTR func, int priority,void *use_label DBG_PASS )
 {
 	InitLocal();
-	if( LOG_ALL ||
+	if( LOG_ALL || (
 #ifndef __STATIC_GLOBALS__
-		(deadstart_local_data
-#else
-		 (1
+		deadstart_local_data &&
 #endif
-		  && l.flags.bLog ))
+		   l.flags.bLog ))
 		lprintf( "Exit Proc %s(%p) from " DBG_FILELINEFMT_MIN " registered..."
 				 , func
 				 , proc DBG_RELAY );
@@ -619,9 +554,7 @@ SACK_NAMESPACE
 void BAG_Exit( int code )
 {
 	fprintf( stderr, "BAG_Exit();" );
-#ifndef __cplusplus_cli
 	InvokeExits();
-#endif
 #undef exit
 	exit( code );
 }
@@ -663,36 +596,35 @@ LOGICAL IsRootDeadstartComplete( void )
 }
 
 #ifndef __STATIC__
-#ifndef __WATCOMC__
-#if !defined( __cplusplus_cli )
-#if !defined( NO_DEADSTART_DLLMAIN ) && !defined( BUILD_PORTABLE_EXECUTABLE )
-#  if !defined( __LINUX__ ) && !defined( __GNUC__ )
-#    ifdef __cplusplus
+#  ifndef __WATCOMC__
+#    if !defined( NO_DEADSTART_DLLMAIN ) && !defined( BUILD_PORTABLE_EXECUTABLE )
+#      if !defined( __LINUX__ ) && !defined( __GNUC__ )
+#        ifdef __cplusplus
 extern "C"
-#    endif
+#        endif
 __declspec(dllexport) 
 	BOOL WINAPI DllMain(  HINSTANCE hinstDLL,
    DWORD fdwReason,
    LPVOID lpvReserved
   		 )
 {
-	fprintf( stderr, "DLL_DETACH\n" );
 
-	if( fdwReason == DLL_PROCESS_DETACH )
+	if( fdwReason == DLL_PROCESS_DETACH ) {
+		fprintf( stderr, "DLL_DETACH\n" );
 		InvokeExits();
+	}
 	return TRUE;
 }
-#  else
+#      else
 void RootDestructor(void) __attribute__((destructor));
 void RootDestructor( void )
 {
 	fprintf( stderr, "RootDestructor\n" );
 	InvokeExits();
 }
+#      endif
+#    endif
 #  endif
-#endif
-#endif
-#endif
 #endif
 
 #undef l

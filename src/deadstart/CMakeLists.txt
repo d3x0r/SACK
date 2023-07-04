@@ -13,5 +13,5 @@ INSTALL(
 
 install( DIRECTORY android DESTINATION src/sack )
 
-add_library( deadstart SHARED deadstart_core.c )
+add_library( deadstart SHARED deadstart_core_common.c )
 install_mode_dest( deadstart )
