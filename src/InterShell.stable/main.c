@@ -1359,6 +1359,7 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 	snprintf( rootname, sizeof( rootname ), TASK_PREFIX "/control/%s", button->pTypeName );
 	button->flags.bNoCreateMethod = TRUE; // assume there's no creator for this control
 	g.CurrentlyCreatingButtonType = button->pTypeName;
+	g.CurrentlyCreatingButton = button;
 	//lprintf( "..." );
 	//if( StrCmp( button->pTypeName, "Task" ) == 0 )
 	//	DebugBreak();
@@ -1370,7 +1371,6 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 	{
 		button->flags.bNoCreateMethod = 0; // found a creation method for this button.
 		button->flags.bCustom = TRUE;
-		g.CurrentlyCreatingButton = button;
 		button->psvUser = f( canvas->current_page->frame
 			, PARTX( button->x )
 			, PARTY( button->y )
@@ -1383,7 +1383,6 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 		}
 		HideControl( QueryGetControl( button ) );
 
-		g.CurrentlyCreatingButton = NULL;
 	}
 	else
 	{
@@ -1491,6 +1490,7 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 		}
 	}
 	g.CurrentlyCreatingButtonType = NULL;
+	g.CurrentlyCreatingButton = NULL;
 	//lprintf( "..." );
 	return TRUE;
 }
