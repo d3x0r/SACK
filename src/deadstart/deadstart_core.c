@@ -61,6 +61,7 @@ SACK_DEADSTART_NAMESPACE
 
 EXPORT_METHOD void RunDeadstart( void );
 
+IMPORT_METHOD struct deadstart_local_data_* GetDeadstartSharedGlobal( void );
 
 
 #ifdef __STATIC_GLOBALS__
