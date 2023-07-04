@@ -51,7 +51,7 @@ struct procreg_local_tag {
 		BIT_FIELD bTraceInterfaceLoading : 1;
 		BIT_FIELD bDisableMemoryLogging : 1;
 		BIT_FIELD bReadConfiguration : 1; // having read the configuration file
-		BIT_FIELD bHeldDeadstart : 1;
+		BIT_FIELD bHeldDeadstart : 3;
 	} flags;
 
 	PTREEDEF Names;
@@ -1866,9 +1866,9 @@ static uintptr_t CPROC HandleModule( uintptr_t psv, arg_list args )
 	}
 	if( l.flags.bTraceInterfaceLoading )
 		lprintf( "load module %s", module );
-	if( !l.flags.bHeldDeadstart )
+	if( l.flags.bHeldDeadstart++ == 0)
 	{
-		l.flags.bHeldDeadstart = 1;
+		//l.flags.bHeldDeadstart = 1;
 		SuspendDeadstart();
 	}
 
@@ -1887,9 +1887,8 @@ static uintptr_t CPROC HandlePrivateModule( uintptr_t psv, arg_list args )
 		return psv;
 	if( l.flags.bTraceInterfaceLoading )
 		lprintf( "load private module %s", module );
-	if( !l.flags.bHeldDeadstart )
+	if( l.flags.bHeldDeadstart++ == 0 )
 	{
-		l.flags.bHeldDeadstart = 1;
 		SuspendDeadstart();
 	}
 
@@ -2119,21 +2118,20 @@ static uintptr_t CPROC SetTrace( uintptr_t psv, arg_list args )
 
 static uintptr_t CPROC IncludeAdditional( uintptr_t psv, arg_list args )
 {
+	int skipResume = 0;
 	PARAM( args, CTEXTSTR, path );
 	TEXTSTR old_configname = l.config_filename;
 	l.config_filename = ExpandPath( path );
 	if( l.flags.bTraceInterfaceLoading )
 		lprintf( "include:%s from %s", l.config_filename, old_configname );
-	if( !l.flags.bHeldDeadstart )
+	if( l.flags.bHeldDeadstart++ == 0)
 	{
-		l.flags.bHeldDeadstart = 1;
 		SuspendDeadstart();
 	}
 	ReadConfiguration();
-	if( l.flags.bHeldDeadstart )
+	if( !(--l.flags.bHeldDeadstart) )
 	{
 		ResumeDeadstart();
-		l.flags.bHeldDeadstart = 0;
 	}
 	Release( l.config_filename );
 	l.config_filename = old_configname;
@@ -2273,9 +2271,8 @@ void ReadConfiguration( void )
 	//else
 	//	lprintf( "already loaded." );
 
-	if( l.flags.bHeldDeadstart )
+	if( !(--l.flags.bHeldDeadstart) )
 	{
-		l.flags.bHeldDeadstart = 0;
 		ResumeDeadstart();
 	}
 }
