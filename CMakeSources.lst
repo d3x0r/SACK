@@ -80,6 +80,7 @@ set(UNSORTED_SOURCES
   ${SOURCES_ROOT}src/procreglib/names.c
   ${SOURCES_ROOT}src/translationlib/translate.c
   ${SOURCES_ROOT}src/deadstart/deadstart_core.c
+  ${SOURCES_ROOT}src/deadstart/deadstart_core.h
 )
 
 if( WIN32 )
