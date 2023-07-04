@@ -2307,6 +2307,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		return NULL;
 	}
 #else
+	}
 	SuspendDeadstart();
 #  ifndef __ANDROID__
 		// ANDROID This will always fail from the application manager.
@@ -2367,7 +2368,6 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #  ifndef __ANDROID__
 		}//else lprintf( "Success opening:%s", library->alt_full_name );
 #  endif
-}
 #endif
 #ifdef __cplusplus_cli
 		{
