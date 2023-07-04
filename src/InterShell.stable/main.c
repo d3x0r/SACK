@@ -1358,6 +1358,7 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 	uintptr_t (CPROC*f)(PSI_CONTROL,int32_t x, int32_t y, uint32_t w, uint32_t h);
 	snprintf( rootname, sizeof( rootname ), TASK_PREFIX "/control/%s", button->pTypeName );
 	button->flags.bNoCreateMethod = TRUE; // assume there's no creator for this control
+	lprintf( "Invoke button create %s", button->pTypeName );
 	g.CurrentlyCreatingButtonType = button->pTypeName;
 	g.CurrentlyCreatingButton = button;
 	//lprintf( "..." );
@@ -1492,6 +1493,7 @@ static LOGICAL InvokeButtonCreate( PSI_CONTROL pc_canvas, PMENU_BUTTON button, L
 	g.CurrentlyCreatingButtonType = NULL;
 	g.CurrentlyCreatingButton = NULL;
 	//lprintf( "..." );
+	lprintf( "cleared button create" );
 	return TRUE;
 }
 
@@ -3078,30 +3080,40 @@ static int OnDrawCommon( "Menu Canvas" )( PSI_CONTROL pf )
 			PMENU_BUTTON button;
 			INDEX idx;
 			int controls = 0;
-			LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, button )
-			{
-				controls++;
-			}
-			if( controls == 0 )
-			{
+			if( current_page ) {
+				LIST_FORALL( current_page->controls, idx, PMENU_BUTTON, button )
+				{
+					controls++;
+				}
+				if( controls == 0 )
+				{
+					SFTFont *font = UseACanvasFont( pf, "Default" );
+					int y = 15;
+					int skip = GetFontHeight( (*font ) );
+					PutStringFont( surface
+								, (int32_t)15, (int32_t)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
+								, "There are no controls defined...", (*font) );
+					//y += skip;
+					//PutStringFont( surface
+					//			, (int32_t)15, (int32_t)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
+					//				 , "Press Alt-C to edit"
+					//				 , (*font)
+					//				 );
+					//y += skip;
+					//PutStringFont( surface
+					//			, (int32_t)15, (int32_t)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
+					//				 , "Right click on empty space to edit other properties and add plugins..."
+					//				 , (*font)
+					//				 );
+				}
+			} else {
 				SFTFont *font = UseACanvasFont( pf, "Default" );
 				int y = 15;
 				int skip = GetFontHeight( (*font ) );
 				PutStringFont( surface
 							, (int32_t)15, (int32_t)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
-							, "There are no controls defined...", (*font) );
-				//y += skip;
-				//PutStringFont( surface
-				//			, (int32_t)15, (int32_t)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
-				//				 , "Press Alt-C to edit"
-				//				 , (*font)
-				//				 );
-				//y += skip;
-				//PutStringFont( surface
-				//			, (int32_t)15, (int32_t)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
-				//				 , "Right click on empty space to edit other properties and add plugins..."
-				//				 , (*font)
-				//				 );
+							, "There are no pages defined!!!", (*font) );
+
 			}
 		}
 
@@ -4566,6 +4578,7 @@ LOGICAL CPROC DoConfigureKeys( uintptr_t psv, uint32_t keycodeUnused )
 
 static int OnKeyCommon( "Menu Canvas" )( PSI_CONTROL pc, uint32_t key )
 {
+	lprintf( "Key input: %08x %x %x", key, KEY_C, key &KEY_ALT_DOWN);
 	if(( (key & (KEY_ALT_DOWN|KEY_SHIFT_DOWN))==(KEY_ALT_DOWN|KEY_SHIFT_DOWN) )
 		||( (key & (KEY_ALT_DOWN))==(KEY_ALT_DOWN) )
 		)

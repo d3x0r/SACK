@@ -13,7 +13,7 @@
 // subset of just canCommit, not buffer requests and other flows...
 //#define DEBUG_COMMIT_STATE
 // events related to keys.
-//#define DEBUG_KEY_EVENTS
+#define DEBUG_KEY_EVENTS
 
 //#define DEBUG_ATTACH_SURFACE
 
@@ -547,7 +547,7 @@ static void keyboard_modifiers(void *data,
 		wl.keyMods |= KEY_ALT_DOWN;
 	}
 	// I get an initial state of nil,0,0,0,N
-	//lprintf( "MOD: %p %d %x %x %d",  mods_depressed, mods_latched, mods_locked, group );
+	lprintf( "key MOD: %p %d %x %x %d",  mods_depressed, mods_latched, mods_locked, group );
 	xkb_state_update_mask (wl.xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 
 
@@ -583,6 +583,7 @@ static const struct wl_keyboard_listener keyboard_listener = {
 
 static void xdg_surface_configure ( void *data, struct xdg_surface* xdg_surface, uint32_t serial ){
 	PXPANEL r= (PXPANEL)data;
+	lprintf( "xdg_surface_ack_configure %p", xdg_surface );
 	xdg_surface_ack_configure( xdg_surface, serial );
 
 }
@@ -992,7 +993,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 #if defined(DEBUG_COMMIT_ATTACH )
 		lprintf( "Copying old buffer to current buffer....%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES );
 #endif
-		// copy just the damaged portions?Â
+		// copy just the damaged portions?ï¿½
 		BlotImage( r->buffer_images[curBuffer], r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], 0, 0 );
 	}
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
@@ -1459,6 +1460,9 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			xdg_surface_add_listener( (struct xdg_surface*)r->shell_surface, &xdg_surface_listener, r );
 			r->xdg_toplevel = xdg_surface_get_toplevel( (struct xdg_surface*)r->shell_surface );
 			//xdg_toplevel_set_title(  r->xdg_toplevel, "I DOn't want a title");
+
+			lprintf( "xdg_surface_init... %p", r->shell_surface );
+
 			xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
 			// must commit to get a config
 			//lprintf( "Commiting shell intialization" );
@@ -1470,9 +1474,11 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 				wl_display_roundtrip_queue(wl.display, wl.queue);
 			} else {
 				//lprintf( "This has to e called anyway ( with flush, after commit) " );
+				LeaveCriticalSec( &wl.cs_wl );
 				PTHREAD waiting = MakeThread();
 				AddLink( &wl.shellWaits, &waiting );				
 				while(waiting) WakeableSleep(1000);//wl_display_roundtrip_queue(wl.display, wl.queue);
+				EnterCriticalSec( &wl.cs_wl );
 			}
 		}
 
@@ -1651,8 +1657,9 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 	}
 	if( r->shell_surface ) {
 		if( wl.xdg_wm_base ) {
-		if( r->xdg_toplevel )
+			if( r->xdg_toplevel )
 				xdg_toplevel_destroy( r->xdg_toplevel );
+			lprintf( "xdg_surface_destroy... %p", r->shell_surface );
 			xdg_surface_destroy( (struct xdg_surface*)r->shell_surface );
 		}else
 			wl_shell_surface_destroy( r->shell_surface );
