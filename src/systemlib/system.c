@@ -2384,8 +2384,11 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		{
 			//DebugBreak();
 			ResumeDeadstart();
-			// actually bInitialDone will not be done sometimes
+			// (old news?)actually bInitialDone will not be done sometimes
 			// and we need to force this here.
+			// (2023) this is probably not needed now; the single flag for
+			// bHeldDeadstart in names loading interfaces was probably resuming
+			// and extra time too soon; this is harmless to do though.
 			InvokeDeadstart();
 		}
 		InvokeLibraryLoad();
