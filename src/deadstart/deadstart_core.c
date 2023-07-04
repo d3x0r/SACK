@@ -57,7 +57,9 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
 	IMPORT_METHOD struct deadstart_local_data_* GetDeadstartSharedGlobal( void );
+#ifdef __cplusplus
 }
 #endif
 
