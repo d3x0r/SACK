@@ -1,4 +1,5 @@
 
+#include <sack_types.h>
 #include "deadstart_core.h"
 
 struct deadstart_local_data_ deadstart_local_data;
