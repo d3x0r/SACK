@@ -241,7 +241,7 @@ void IgnoreBreakHandler( int ignore) {
 static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 {
 	if( ignoreBreak & ( 1 << dwCtrlType ) ) return TRUE;
-	fprintf( stderr, "Received ctrlC Event %08x %d\n", ignoreBreak, dwCtrlType );
+	//fprintf( stderr, "Received ctrlC Event %08x %d\n", ignoreBreak, dwCtrlType );
 	switch( dwCtrlType )
 	{
 	case CTRL_BREAK_EVENT:
@@ -557,7 +557,7 @@ SACK_NAMESPACE
 // this then invokes an exit in the mainline program (if available)
 void BAG_Exit( int code )
 {
-	fprintf( stderr, "BAG_Exit();" );
+	//fprintf( stderr, "BAG_Exit();" );
 	InvokeExits();
 #undef exit
 	exit( code );
@@ -614,7 +614,7 @@ __declspec(dllexport)
 {
 
 	if( fdwReason == DLL_PROCESS_DETACH ) {
-		fprintf( stderr, "DLL_DETACH\n" );
+		//fprintf( stderr, "DLL_DETACH\n" );
 		InvokeExits();
 	}
 	return TRUE;
@@ -623,7 +623,7 @@ __declspec(dllexport)
 void RootDestructor(void) __attribute__((destructor));
 void RootDestructor( void )
 {
-	fprintf( stderr, "RootDestructor\n" );
+	//fprintf( stderr, "RootDestructor\n" );
 	InvokeExits();
 }
 #      endif
