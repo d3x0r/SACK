@@ -201,6 +201,16 @@ FILESYS_PROC  TEXTSTR FILESYS_API  pathrchr ( TEXTSTR path );
 // searches a path for the first '/' or '\'
 FILESYS_PROC  CTEXTSTR FILESYS_API  pathchr ( CTEXTSTR path );
 
+/*
+   compares filenames case insensitively and slash agnostic
+*/
+FILESYS_PROC int FILESYS_API PathCmpEx( CTEXTSTR s1, CTEXTSTR s2, int maxlen );
+
+/*
+   compares filenames case insensitively and slash agnostic.  Uses PathCmpEx() with maxlen=65535
+*/
+FILESYS_PROC int FILESYS_API PathCmp( CTEXTSTR s1, CTEXTSTR s2 );
+
 // returns pointer passed (if it worked?)
 FILESYS_PROC  TEXTSTR FILESYS_API  GetCurrentPath ( TEXTSTR path, int buffer_len );
 FILESYS_PROC  int FILESYS_API  SetCurrentPath ( CTEXTSTR path );

@@ -189,7 +189,7 @@ void sack_set_common_data_application( CTEXTSTR name )
 
 static void threadInit( void ) {
 	if( !FileSysThreadInfo.cwd ) { // edge case the main thread might init twice.
-		FileSysThreadInfo.cwd = StrDup( "." );
+		FileSysThreadInfo.cwd = ExpandPath( "." );
 		FileSysThreadInfo.default_mount = ( *winfile_local )._default_mount;
 		FileSysThreadInfo._mounted_file_systems = &( *winfile_local )._mounted_file_systems;
 		//FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
@@ -211,9 +211,9 @@ static void LocalInit( void )
 	if( !( *winfile_local ).flags.bInitialized ) {
 		OnThreadCreate( threadInit );
 		OnThreadExit( threadExit );
-		threadInit();  // this might or might not get dispatched already on this thread.
 		InitializeCriticalSec( &( *winfile_local ).cs_files );
 		( *winfile_local ).flags.bInitialized = 1;
+		threadInit();  // this might or might not get dispatched already on this thread.
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 		( *winfile_local ).flags.bLogOpenClose = 0;
 #endif
@@ -988,7 +988,7 @@ struct file* FindFileByName( INDEX group, char const* filename, struct file_syst
 	LIST_FORALL( ( *winfile_local ).files, idx, struct file*, file )
 	{
 		if( ( file->group == group )
-			&& ( StrCmp( file->name, filename ) == 0 )
+			&& ( PathCmp( file->name, filename ) == 0 )
 			&& ( ( !mount ) || file->mount == mount ) ) {
 			if( allocedIndex ) {
 				AddLink( &file->files, allocedIndex );
@@ -1516,6 +1516,18 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 			}
 			//DebugBreak();
 			return NULL;
+		}
+		{
+			char* name;
+			for( name = file->name; name[0]; name++ ) {
+				if( name[0] == '/' ) name[0] = '\\';
+			}
+		}
+		{
+			char* name;
+			for( name = file->fullname; name[0]; name++ ) {
+				if( name[0] == '/' ) name[0] = '\\';
+			}
 		}
 		EnterCriticalSec( &( *winfile_local ).cs_files );
 		AddLink( &( *winfile_local ).files, file );

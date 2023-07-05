@@ -26,6 +26,36 @@ FILESYS_NAMESPACE
 //extern TEXTSTR ExpandPath( CTEXTSTR path );
 #endif
 
+int PathCmpEx( CTEXTSTR s1, CTEXTSTR s2, int maxlen ) {
+	TEXTCHAR l1;
+	TEXTCHAR l2;
+	if( !s1 )
+		if( s2 )
+			return -1;
+		else
+			return 0;
+	else
+		if( !s2 )
+			return 1;
+	if( s1 == s2 )
+		return 0; // ==0 is success.
+	for( ; maxlen && s1[0] && s2[0]
+		&& ( ( ( s1[0] == '/' || s1[1] == '\\' )
+			&& ( s2[0] == '/' || s2[0] == '\\' ) )
+			|| ( ( l1 = ( s1[0] >= 'a' && s1[0] <= 'z' ) ? s1[0] - ( 'a' - 'A' ) : s1[0] )
+				== ( l2 = ( s2[0] >= 'a' && s2[0] <= 'z' ) ? s2[0] - ( 'a' - 'A' ) : s2[0] ) ) );
+		s1++, s2++, maxlen-- ) {
+		//lprintf( "Continue... compared %c(%d) vs %c(%d)", s1[0]<32?'?':s1[0], s1[0], s2[0]<32?'?':s2[0], s2[0] );
+	}
+	if( !maxlen )
+		return 0;
+	return l1 - l2;
+}
+
+int PathCmp( CTEXTSTR s1, CTEXTSTR s2 ) {
+	return PathCmpEx( s1, s2, 65535 );
+}
+
  CTEXTSTR  pathrchr ( CTEXTSTR path )
 {
 	CTEXTSTR end1, end2;
