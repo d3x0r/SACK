@@ -366,11 +366,11 @@ pResult->data.data[31] = 0;
 
 //---------------------------------------------------------------------------
 
-PTEXT SegCreateFromFloatEx( float value DBG_PASS )
+PTEXT SegCreateFromFloatEx( double value DBG_PASS )
 {
 	PTEXT pResult;
 	pResult = SegCreateEx( 32 DBG_RELAY);
-	pResult->data.size = snprintf( pResult->data.data, 32, "%f", value ); //-V512
+	pResult->data.size = snprintf( pResult->data.data, 32, "%g", value ); //-V512
 	pResult->data.data[31] = 0;
 	return pResult;
 }
