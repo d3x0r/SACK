@@ -1,4 +1,5 @@
 macro( DEFINE_DEFAULT variable default )
+OPTION( ${variable} "${variable}" ${default} )
 if( NOT DEFINED ${variable} )
    set( ${variable} $ENV{${variable}} )
    if( "${${variable}}" STREQUAL "" )
