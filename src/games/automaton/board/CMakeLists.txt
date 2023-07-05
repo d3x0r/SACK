@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 2.8)
 
 if( __ANDROID__ )
 ADD_DEFINITIONS( "-fno-rtti" )

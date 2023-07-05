@@ -2,7 +2,7 @@ set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.20)
 
 if( NOT MAKING_SACK_CORE )
 if( NOT SACK_SDK_ROOT_PATH )
