@@ -55,12 +55,14 @@
 #define LockedExchange InterlockedExchange
 #endif
 
-#ifdef __cplusplus
+#ifndef __STATIC_GLOBALS__
+#  ifdef __cplusplus
 extern "C" {
-#endif
+#  endif
 	IMPORT_METHOD struct deadstart_local_data_* GetDeadstartSharedGlobal( void );
-#ifdef __cplusplus
+#  ifdef __cplusplus
 }
+#  endif
 #endif
 
 SACK_DEADSTART_NAMESPACE
@@ -69,18 +71,12 @@ SACK_DEADSTART_NAMESPACE
 
 EXPORT_METHOD void RunDeadstart( void );
 
-
-
 #ifdef __STATIC_GLOBALS__
-extern 
-#ifdef __cplusplus
-  "C"
-#endif
-	 struct deadstart_local_data_ deadstart_local_data;
-#define l (deadstart_local_data)
+struct deadstart_local_data_ deadstart_local_data;
+#  define l (deadstart_local_data)
 #else
 static struct deadstart_local_data_ *deadstart_local_data;
-#define l (*deadstart_local_data)
+#  define l (*deadstart_local_data)
 #endif
 
 EXPORT_METHOD void RunExits( void )
