@@ -1,1 +1,1 @@
-add_plugin( timer.nex misc timer )
+add_plugin( timer.nex misc timer.c )

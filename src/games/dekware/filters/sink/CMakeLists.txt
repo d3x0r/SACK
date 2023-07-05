@@ -1,1 +1,1 @@
-add_plugin( sink.filter.nex filters sink )
+add_plugin( sink.filter.nex filters sink.c )

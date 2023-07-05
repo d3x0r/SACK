@@ -1,1 +1,1 @@
-add_plugin( splicer.filter.nex filters splicer )
+add_plugin( splicer.filter.nex filters splicer.c )

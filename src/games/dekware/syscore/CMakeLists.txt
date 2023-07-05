@@ -4,8 +4,8 @@ set( project Dekware.core )
 
 set(SOURCES 
 ${FIRST_GCC_LIBRARY_SOURCE}
-nexus commands sentcmds entcmds  datacmds varcmds syscmds input plugins
-interface 
+nexus.c commands.c sentcmds.c entcmds.c  datacmds.c varcmds.c syscmds.c input.c plugins.c
+interface.c 
 ${LAST_GCC_LIBRARY_SOURCE} )
 
 

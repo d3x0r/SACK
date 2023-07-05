@@ -1,1 +1,1 @@
-add_plugin(  examine.filter.nex filters filtdbg)
+add_plugin(  examine.filter.nex filters filtdbg.c)

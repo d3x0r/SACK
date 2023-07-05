@@ -1,1 +1,1 @@
-add_plugin(  token.filter.nex filters token )
+add_plugin(  token.filter.nex filters token.c )

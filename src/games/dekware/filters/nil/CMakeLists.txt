@@ -1,1 +1,1 @@
-add_plugin( nil.filter.nex filters nil )
+add_plugin( nil.filter.nex filters nil.c )

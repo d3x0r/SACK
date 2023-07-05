@@ -1,1 +1,1 @@
-add_plugin( merge.filter.nex filters merge )
+add_plugin( merge.filter.nex filters merge.c )

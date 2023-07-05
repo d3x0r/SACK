@@ -1,1 +1,1 @@
-add_plugin(  http.filter.nex filters http )
+add_plugin(  http.filter.nex filters http.c )

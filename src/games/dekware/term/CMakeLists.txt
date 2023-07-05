@@ -1,1 +1,1 @@
-add_plugin(  term.nex devices ntlink term http )
+add_plugin(  term.nex devices ntlink.c term.c http.c )

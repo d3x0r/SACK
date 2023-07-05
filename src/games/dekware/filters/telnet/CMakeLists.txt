@@ -1,1 +1,1 @@
-add_plugin( telnet.filter.nex filters telnet )
+add_plugin( telnet.filter.nex filters telnet.c )

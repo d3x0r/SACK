@@ -1,1 +1,1 @@
-add_plugin(   bash.filter.nex  filters bash )
+add_plugin(   bash.filter.nex  filters bash.c )

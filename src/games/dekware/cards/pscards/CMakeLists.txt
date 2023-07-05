@@ -1,5 +1,5 @@
 
-add_library( pscards SHARED ../cards ../poker )
+add_library( pscards SHARED ../cards.c ../poker.c )
 
 SET_TARGET_PROPERTIES(pscards PROPERTIES
                   COMPILE_DEFINITIONS  "CARDS_SOURCE"

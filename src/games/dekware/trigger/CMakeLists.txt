@@ -1,5 +1,5 @@
 
-add_plugin( trigger.nex filters trigger)
+add_plugin( trigger.nex filters trigger.c)
 
 
 

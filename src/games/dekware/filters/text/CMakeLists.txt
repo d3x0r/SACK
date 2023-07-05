@@ -1,1 +1,1 @@
-add_plugin( text.filter.nex filters textfilter )
+add_plugin( text.filter.nex filters textfilter.c )

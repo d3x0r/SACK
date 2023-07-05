@@ -3,7 +3,7 @@ set( project concore )
 
 add_library( ${project} SHARED 
 ${FIRST_GCC_LIBRARY_SOURCE}
-   ../history ../WinLogic ../keydefs
+   ../history.c ../WinLogic.c ../keydefs.c
 ${LAST_GCC_LIBRARY_SOURCE} 
 )
 

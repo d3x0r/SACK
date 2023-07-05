@@ -1,1 +1,1 @@
-add_plugin(  gather.filter.nex filters gather )
+add_plugin(  gather.filter.nex filters gather.c )

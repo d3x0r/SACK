@@ -1,1 +1,1 @@
-add_plugin(  binary.filter.nex filters binary )
+add_plugin(  binary.filter.nex filters binary.c )

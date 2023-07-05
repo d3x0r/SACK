@@ -1,3 +1,3 @@
-add_plugin(  command.filter.nex filters command )
+add_plugin(  command.filter.nex filters command.c )
 
 
