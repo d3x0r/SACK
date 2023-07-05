@@ -446,7 +446,7 @@ macro( add_program targetname option1 )
 endmacro( add_program )
 
 macro( DEFINE_DEFAULT variable default )
-message( making option ${variable} )
+#message( making option ${variable} )
 OPTION( ${variable} "${variable}" ${default})
 if( NOT DEFINED ${variable} )
    #message( "variable ${variable} not defined (command line)" )
