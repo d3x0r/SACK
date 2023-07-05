@@ -34,7 +34,12 @@ include( ${INTERSHELL_SDK_ROOT_PATH}/CMakePackage )
 
 if( NOT BUILD_INTO_SACK_INSTALL )
 
-INSTALL_SACK( ${CMAKE_INSTALL_BINDIR} ${CMAKE_INSTALL_LIBDIR} )
+if( WIN32 )
+	INSTALL_SACK( ${CMAKE_INSTALL_BINDIR} ${CMAKE_INSTALL_BINDIR} )
+else(WIN32)
+	INSTALL_SACK( ${CMAKE_INSTALL_BINDIR} ${CMAKE_INSTALL_LIBDIR} )
+
+endif( WIN32 )
 INSTALL_INTERSHELL( . ) # includes a bin and resources at ./
 endif( NOT BUILD_INTO_SACK_INSTALL )
 
@@ -126,7 +131,7 @@ endif( NOT __ANDROID__ AND NOT MINGW )
 
 install( DIRECTORY defaults/ DESTINATION bin )
 
-
+if( OFF )
 # get the libraries..
 SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )
 if( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
@@ -137,5 +142,6 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
 INCLUDE(InstallRequiredSystemLibraries)
 #message( "Resulting install: ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}" )
 INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin )
+endif( OFF )
 
 add_subdirectory( info )

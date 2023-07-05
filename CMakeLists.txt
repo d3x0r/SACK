@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 
 if( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
+   # policy makes it known that I understand set( VARIABLE ) and option( VARIABLE...) work together
 	cmake_policy( SET CMP0077 NEW )
-	MESSAGE( "POLICY IS SET!" )
+	#MESSAGE( "POLICY IS SET!" )
 endif( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
 
 enable_language( C )
@@ -348,10 +349,10 @@ else( APPLE )
 endif( APPLE )
 
 if( MSVC )
-  #add_definitions( -D_CRT_SECURE_NO_WARNINGS -wd4995 -wd4996 )
 # 4068 - unknown prgama
 # 4244 - rcoord - int conversion
 # 6011 - dereferncing NULL (which we never do)
+# 4996 - unsafe snprintf
   add_definitions( -wd4996  -wd4244 -wd4068 -wd6011 )
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP8")
@@ -502,7 +503,7 @@ SET(CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_DEBUG CACHE STRING "" )
 SET(CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG CACHE STRING "" )
 
 
-macro( setupDefines PLATFORM_DEFINES PLATFORM_CMAKE_DEFINES PLATFORM_LIBRARIES APPLE __ANDROID__ __LINUX__ WIN32 MSVC __ARM__ __NO_ODBC__ )
+macro( setupDefines PLATFORM_DEFINES PLATFORM_CMAKE_DEFINES PLATFORM_LIBRARIES APPLE __ANDROID__ __LINUX__ WIN32 MSVC   __ARM__ __NO_ODBC__ )
 
 #message( "MACRO ARGUMENTS: android ${__ANDROID__} linux ${__LINUX__} no odbc ${__NO_ODBC__}" )
 
@@ -676,16 +677,16 @@ endif( NOT APPLE )
 if( NOT WIN32 )
 set( WIN32 OFF )
 endif( NOT WIN32 )
-if( NOT MSVC )
-set( MSVC OFF )
-endif( NOT MSVC )
+#if( NOT MSVC )
+#set( MSVC OFF )
+#endif( NOT MSVC )
 if( NOT __ARM__ )
 set( __ARM__ OFF )
 endif( NOT __ARM__ )
 if( NOT __NO_ODBC__ )
 set( __NO_ODBC__ OFF )
 endif( NOT __NO_ODBC__ )
-setupDefines( "PLATFORM_DEFINES" "PLATFORM_CMAKE_DEFINES" "PLATFORM_LIBRARIES" ${APPLE} ${__ANDROID__} ${__LINUX__} ${WIN32} ${MSVC} ${__ARM__} ${__NO_ODBC__} )
+setupDefines( "PLATFORM_DEFINES" "PLATFORM_CMAKE_DEFINES" "PLATFORM_LIBRARIES" ${APPLE} ${__ANDROID__} ${__LINUX__} ${MSVC} ${WIN32} ${__ARM__} ${__NO_ODBC__} )
 
 if( CMAKE_HOST_APPLE )
 	setupDefines( HOST_PLATFORM_DEFINES "HOST_PLATFORM_CMAKE_DEFINES" "HOST_PLATFORM_LIBRARIES" 1 0 1 0 0 ${__ARM__} ${__NO_ODBC__} )

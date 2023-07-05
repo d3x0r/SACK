@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.2)
 
 if( MSVC )
    add_definitions( -wd4996  -wd4244 -wd4068 -wd6011 )
@@ -155,6 +155,6 @@ add_custom_command(TARGET
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
 if( WIN32 )
-	add_executable( signal_event ../signal_event )
+	add_executable( signal_event ../signal_event.c )
 	install_default_dest( signal_event )
 endif( WIN32 )

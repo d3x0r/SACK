@@ -305,7 +305,7 @@ if( BUILD_MONOLITHIC )
 else( BUILD_MONOLITHIC )
 
 # bag.image is memory only; non platform specific utility
-                SET( libfile_list ${libfile_list} bag bag.externals bag.image bag.psi )
+                SET( libfile_list ${libfile_list} bag bag.externals bag.image bag.psi deadstart )
    if( WIN32 )
                 SET( libfile_list ${libfile_list} dl )
    endif( WIN32 )

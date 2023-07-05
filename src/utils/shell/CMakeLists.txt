@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
+set( project shell )
+
 if( PLATFORM_CMAKE_DEFINES )
    STRING( REPLACE "," ";" PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} )
    foreach( DEF IN LISTS PLATFORM_CMAKE_DEFINES)
@@ -34,6 +36,7 @@ if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
     SET( SHELL_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/shell.manifest )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 if( MSVC )
+message( "Got Flags?" )
     SET( SHELL_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
 endif( MSVC )
 
@@ -68,19 +71,29 @@ set( MORE_SYSTEM_SOURCES   ${SOURCES_ROOT}/systemlib/oswin.c )
 set(NET_SOURCES   ${SOURCES_ROOT}/netlib/net_winsock2.c )
 endif( WIN32 )
 
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+message( "ALSO?" )
+endif()
+message( "HERE" ${MSVC}  ${WATCOM} )
   if( ${CMAKE_COMPILER_IS_GNUCC} ) 
   SET( FIRST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_list.c ) 
   SET( FIRST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_list.c ) 
   SET( LAST_GCC_LIBRARY_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_lib.c ${SOURCES_ROOT}/deadstart/deadstart_end.c ) 
   SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_lib.c ${SOURCES_ROOT}/deadstart/deadstart_prog.c ${SOURCES_ROOT}/deadstart/deadstart_end.c ) 
   endif()
-  if( ${MSVC}${WATCOM} ) 
+  message( "HERE2")
+  if( WATCOM ) 
+message( "DEADSTART PROG WATCOM" )
+  SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_prog.c ) 
+  endif()
+  if( MSVC ) 
+message( "DEADSTART PROG MSVC" )
   SET( LAST_GCC_PROGRAM_SOURCE ${SOURCES_ROOT}/deadstart/deadstart_prog.c ) 
   endif()
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
-
     ${SOURCES_ROOT}/memlib/sharemem.c
     ${SOURCES_ROOT}/memlib/memory_operations.c
     ${SOURCES_ROOT}/timerlib/timers.c
@@ -115,10 +128,9 @@ if( WIN32 )
 endif( WIN32 )
 
 
-set( project shell )
 set( NO_AUTO_DEADSTART_CORE ON )
 add_portable_program(${project} ${BASE_SOURCES} )
-SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${SHELL_LINK_FLAGS}"
 )
@@ -181,7 +193,7 @@ set( project wshell.admin )
 set( NO_AUTO_DEADSTART_CORE ON )
 
 add_portable_program(${project} WIN32 ${BASE_SOURCES} )
-SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
 
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${SHELL_LINK_FLAGS}"
@@ -208,7 +220,7 @@ install( TARGETS ${project} DESTINATION bin )
 
 set( project wshell )
 add_portable_program(${project} WIN32 ${BASE_SOURCES} )
-SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_MSGSVR__;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER utils )
 target_link_libraries( ${project}  ${PLATFORM_LIBRARIES})
 install( TARGETS ${project} DESTINATION bin )
