@@ -1102,7 +1102,6 @@ LOGICAL IsVariableBreak( PTEXT token )
 // tokens has to be updated if more than varname is used
 PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTEXT *tokens, LOGICAL bKeepVarName )
 {
-	int64_t number;
 	PTEXT septoken;
 	PTEXT original_token;
 	PTEXT next_token;
@@ -1120,7 +1119,6 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 		if( GetTextSize( septoken ) == 1 && GetText( septoken )[0] == '(' )
 		{
 			PENTITY tmp;
-			PTEXT real_token;
 			//PTEXT real_token = SubstTokenEx( ps_out, &tmp_token, FALSE, FALSE, focus );
 			tmp = ResolveEntity( ps_out, focus, type, tokens, FALSE );
 
@@ -1238,7 +1236,6 @@ PENTITY ResolveEntity( PSENTIENT ps_out, PENTITY focus, enum FindWhere type, PTE
 CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsLen, PENTITY pe ) /*FOLD00*/
 {
 	PTEXT c;
-	uint32_t n;
 	PMACROSTATE pms;
 	PENTITY pEnt;
 	TEXTCHAR *ptext;

@@ -499,8 +499,8 @@ int CPROC NOALIGN( PSENTIENT ps, PTEXT parameters )
 #define GET_NUMBERS( op, amountfunc, defaultamount )		 \
 		if( IsSegAnyNumber( &temp, &fNumber, &iNumber, &bInt ) )															\
 		{																						\
-				flags.bIntNumber = bInt;													\
-	amountfunc( defaultamount );											\
+			flags.bIntNumber = bInt;													\
+			amountfunc( defaultamount );											\
 			DO_OPERATOR(op);																\
 		}																						\
 		else																					\

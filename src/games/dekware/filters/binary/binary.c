@@ -27,22 +27,23 @@ typedef struct mydatapath_tag {
 static TEXTCHAR pHEX[] = "0123456789ABCDEF";
 static PTEXT CPROC BinaryWrite( PMYDATAPATH pdp, PTEXT buffer )
 {
-   PTEXT pLine, bufstart = buffer;
-   TEXTCHAR *pOut, *pIn;
-	int n, ofs, sz, bLogged = FALSE;
+	PTEXT pLine, bufstart = buffer;
+	TEXTCHAR *pOut, *pIn;
+	int n, ofs, bLogged = FALSE;
+	size_t sz;
 
-   if( buffer )
+	if( buffer )
 	{
-   	while( buffer )
-	   {
-   	   pIn = (TEXTCHAR*)GetText( buffer );
+		while( buffer )
+		{
+			pIn = (TEXTCHAR*)GetText( buffer );
 			sz = GetTextSize( buffer );
 			if( !sz )
 			{
-            Log( "END OF LINE!" );
+				Log( "END OF LINE!" );
 			}
-   	   for( n = 0; n < sz; n += 16 )
-      	{
+			for( n = 0; n < sz; n += 16 )
+			{
 				pLine = SegCreate( 16*3 + 2 + 16 );
 			   //pLine = SegCreate( 16*3 + 2 + 16 );
          	pOut = (TEXTCHAR*)GetText( pLine );

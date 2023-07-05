@@ -130,7 +130,6 @@ static CTEXTSTR gpFile;
 
 void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 {
-	RegisterRoutinesProc RegisterRoutines;
 	gpFile = pFile;
 
 	//Log1( "Loading Plugin %s", pFile );

@@ -311,7 +311,6 @@ void NEURON::SaveBegin( PODBC odbc )
 INDEX NEURON::Save( PODBC odbc, INDEX iParent )
 {
 	NEURON nout;
-	uint32_t dwW;
 	int nSaveType;
 	if( !iNeuron )
 	{

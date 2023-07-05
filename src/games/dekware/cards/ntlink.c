@@ -354,23 +354,23 @@ static PTEXT ObjectVolatileVariableGet( "hand", "pokervalue", "Shows current pok
 static PTEXT ObjectVolatileVariableGet( "hand", "cards", "count of cards in hand" )( PENTITY pe, PTEXT *ppLastValue )
 //PTEXT GetHandSize( uintptr_t psv, PENTITY pe, PTEXT *ppLastValue )
 {
-   PHAND ph;
+	PHAND ph;
 	if( !ppLastValue )
 		return NULL;
 
-   LineRelease( *ppLastValue );
-   ph = (PHAND)GetLink( &pe->pPlugin, iHand );
-   if( !ph ) // this really can't happen anymore.
-   {
-      DECLTEXT( msg, "Object is not a card player." );
-      *ppLastValue = (PTEXT)&msg;
-      return *ppLastValue;
-   }
-   else
-   {
-      *ppLastValue = SegCreateFromInt( CountCards( ph ) );
-   }
-   return *ppLastValue;
+	LineRelease( *ppLastValue );
+	ph = (PHAND)GetLink( &pe->pPlugin, iHand );
+	if( !ph ) // this really can't happen anymore.
+	{
+		DECLTEXT( msg, "Object is not a card player." );
+		*ppLastValue = (PTEXT)&msg;
+		return *ppLastValue;
+	}
+	else
+	{
+		*ppLastValue = SegCreateFromInt( CountCards( ph ) );
+	}
+	return *ppLastValue;
 }
 
 //---------------------------------------------------------------------
