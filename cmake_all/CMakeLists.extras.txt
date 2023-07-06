@@ -18,11 +18,11 @@ endif( FLATLAND_IS_NOT_BROKEN )
 
 set( PROJECT stock_market )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/stock_market INSTALL ${EXTRA_FLAGS} )
-add_dependencies( ${LAST_TARGET} core )
+add_dependencies( ${PROJECT} core )
 
 set( PROJECT ChainReaction )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/ChainReact INSTALL ${EXTRA_FLAGS} )
-add_dependencies( ${LAST_TARGET} core )
+add_dependencies( ${PROJECT} core )
 
 if( NOT MINGW )
 set( PROJECT router )
@@ -36,7 +36,7 @@ add_dependencies( ${LAST_TARGET} core intershell )
 # F&R depends on brains
 set( PROJECT foxes_and_rabbits )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/foxes_and_rabbits INSTALL ${EXTRA_FLAGS2} )
-add_dependencies( ${LAST_TARGET} core-install binary intershell-install dekware-install )
+add_dependencies( ${LAST_TARGET} core binary intershell dekware )
 
 set( PROJECT PlasmaGrid )
 BuildProject( ${PROJECT} ${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/../src/games/plasma_grid INSTALL ${EXTRA_FLAGS2} )
