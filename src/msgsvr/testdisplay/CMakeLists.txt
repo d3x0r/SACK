@@ -57,6 +57,18 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES COMPILE_FLAGS  "-DTARGET_LABEL=${PRO
 TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
 
+#-------------------------------------------------------------------
+
+SET( PROJECT test_display8 )
+SET( PROJECT_SOURCES test8.c )
+
+ADD_EXECUTABLE( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} ${PROJECT_SOURCES} ${LAST_GCC_PROGRAM_SOURCE} )
+SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT}" 
+                  FOLDER tests
+)
+TARGET_LINK_LIBRARIES( ${PROJECT} ${SACK_LIBRARIES} )
+install_default_dest( ${PROJECT} )
+
 
 #-------------------------------------------------------------------
 

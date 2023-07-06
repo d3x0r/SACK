@@ -4,18 +4,18 @@
 //
 
 //#define DEBUG_DUMP_SURFACE_IMAGES
-//#define DEBUG_COMMIT_ATTACH
+#define DEBUG_COMMIT_ATTACH
 
+#define DEBUG_SURFACE_ATTACH
 // general debug enable...
-//#define DEBUG_COMMIT
+#define DEBUG_COMMIT
 // tracks the allocation, locking and unlocking of buffers
-//#define DEBUG_COMMIT_BUFFER
+#define DEBUG_COMMIT_BUFFER
 // subset of just canCommit, not buffer requests and other flows...
 //#define DEBUG_COMMIT_STATE
 // events related to keys.
 #define DEBUG_KEY_EVENTS
 
-//#define DEBUG_ATTACH_SURFACE
 
 #define USE_IMAGE_INTERFACE wl.pii
 #include <stdhdrs.h>
@@ -945,8 +945,8 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	}
 	r->curBuffer=(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES;
 	int curBuffer = r->curBuffer;
-#if defined( DEBUG_ATTACH_SURFACE )
-	lprintf( "using image to a new image.... %d",curBuffer );OD
+#if defined( DEBUG_SURFACE_ATTACH )
+	lprintf( "using image to a new image.... %d",curBuffer );
 #endif
 	if( r->bufw != r->w || r->bufh != r->h ) {
 		// if the buffer has to change size, we need a new one....
@@ -1003,9 +1003,11 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 
 
 static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
+	lprintf( "attachNewBuffer...");
 	if( !r->surface ) return FALSE; 
-			struct wl_buffer *next = nextBuffer(r, 0);
-			if( req && !next ) {
+	lprintf( "attachNewBuffer2...");
+	struct wl_buffer *next = nextBuffer(r, 0);
+	if( req && !next ) {
 #if defined( DEBUG_COMMIT_BUFFER )
 				lprintf( "waiting for buffer...-------------------" );
 #endif
@@ -1417,8 +1419,7 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 
 LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 {
-	//lprintf( "-----Create WIndow Stuff----- %s %s", hVideo->flags.bLayeredWindow?"layered":"solid"
-	//		 , hVideo->flags.bChildWindow?"Child(tool)":"user-selectable" );
+	lprintf( "-----Create WIndow Stuff----- " );
 	//DebugBreak();
 	EnterCriticalSec( &wl.cs_wl );
 
@@ -1491,7 +1492,7 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 
 	r->frame_callback = wl_surface_frame( r->surface );
 	wl_callback_add_listener( r->frame_callback, &frame_listener, r );
-	
+	r->flags.canDamage = 1;
 	LeaveCriticalSec( &wl.cs_wl );
 
 	return TRUE;
@@ -1561,7 +1562,7 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 			r->flags.commited = 1; // no real draw (closed?)
 			lprintf( "No redraw callback, forcing commit");
 		}
-		//lprintf( "Dirty? after draw %d", r->flags.dirty );
+		lprintf( "Dirty? after draw %d", r->flags.dirty );
 		if( r->flags.dirty ){
 			attachNewBuffer( r, 1, 1 );
 			LeaveCriticalSec( &wl.cs_wl );

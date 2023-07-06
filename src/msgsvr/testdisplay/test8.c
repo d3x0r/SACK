@@ -10,7 +10,7 @@ typedef struct image_display_tag
 {
 	PRENDERER display;
 	Image Loaded;
-   struct image_display_tag *next, **me;
+	struct image_display_tag *next, **me;
 } IMAGE_DISPLAY, *PIMAGE_DISPLAY;
 
 typedef struct global_tag
@@ -18,27 +18,29 @@ typedef struct global_tag
 	struct {
 		uint32_t exit : 1;
 	} flags;
-   uint32_t x, y;
-   PIMAGE_DISPLAY images;
+	uint32_t x, y;
+	PIMAGE_DISPLAY images;
 	PIMAGE_INTERFACE pii;
-   PRENDER_INTERFACE pdi;
-   //PRENDER_INTERFACE Render;
+	PRENDER_INTERFACE pdi;
+	//PRENDER_INTERFACE Render;
 } GLOBAL;
 
 GLOBAL g;
 
 void CPROC DrawImage( uintptr_t psv, PRENDERER out )
 {
-   PIMAGE_DISPLAY pdi = (PIMAGE_DISPLAY)psv;
+	PIMAGE_DISPLAY pdi = (PIMAGE_DISPLAY)psv;
+	lprintf( "Copying image to display");
 	BlotImage( GetDisplayImage( pdi->display ), pdi->Loaded, 0, 0 );
-   UpdateDisplay( pdi->display );
+	UpdateDisplay( pdi->display );
 }
 
 int CPROC KeyHandler( uintptr_t psv, uint32_t key )
 {
+	lprintf( "Got Key: %08x", key );
 	if( GetKeyText( key ) == '\x1b' )
 		g.flags.exit = 1;
-   return 0; // nope, didn't use it.
+	return 0; // nope, didn't use it.
 }
 
 void AddImage( char *name )
@@ -49,19 +51,22 @@ void AddImage( char *name )
 	pdi->Loaded = LoadImageFile( name );
 	if( !pdi->Loaded )
 	{
+		lprintf( "Failed to load image file: %s", name );
 		Release( pdi );
-      return;
+		return;
 	}
-   pdi->display = OpenDisplaySizedAt( 0
+	lprintf( "opening display to draw..." );
+	pdi->display = OpenDisplaySizedAt( 0
 												, pdi->Loaded->width, pdi->Loaded->height
 												, g.x, g.y );
 	SetRedrawHandler( pdi->display, DrawImage, (uintptr_t)pdi );
-   DrawImage( (uintptr_t)pdi, pdi->display );
+	//DrawImage( (uintptr_t)pdi, pdi->display );
 	SetKeyboardHandler( pdi->display, KeyHandler, 0 );
+	Redraw( pdi->display );
 	g.x += 10;
-   g.y += 10;
+	g.y += 10;
 	if( ( pdi->next = g.images ) )
-      pdi->next->me = &pdi->next;
+		pdi->next->me = &pdi->next;
 	pdi->me = &g.images;
 	g.images = pdi;
 }
@@ -75,9 +80,9 @@ int main( int argc, char **argv )
 	g.pii = GetImageInterface();
 	g.x = 10;
 	g.y = 10;
-   for( i = 1; i < argc; i++ )
+	for( i = 1; i < argc; i++ )
 	{
-      AddImage( argv[i] );
+		AddImage( argv[i] );
 	}
 
 	while( !g.flags.exit )
@@ -89,10 +94,10 @@ int main( int argc, char **argv )
 		{
 			CloseDisplay( pdi->display );
 			UnmakeImageFile( pdi->Loaded );
-         pdi = pdi->next;
+			pdi = pdi->next;
 		}
 	}
-   return 0;
+	return 0;
 }
 
 // $Log: test8.c,v $
