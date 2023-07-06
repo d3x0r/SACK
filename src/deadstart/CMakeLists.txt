@@ -8,10 +8,10 @@ INSTALL(
   FILES
     ${DEADSTART_SOURCES}
   DESTINATION
-    src/sack
+    src/SACK
 )
 
-install( DIRECTORY android DESTINATION src/sack )
+install( DIRECTORY android DESTINATION src/SACK )
 
 add_library( deadstart SHARED deadstart_core_common.c )
 install_mode_dest( deadstart )

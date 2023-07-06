@@ -1,7 +1,8 @@
-set( BASE_PATH ${DATA_INSTALL_PREFIX} )
-set( FILEOUT ${BASE_PATH}/core/CMakePackage )
-
-FILE( WRITE ${FILEOUT} "#generated from deploy.cm.cm....\n" )
+set( BASE_PATH ${CMAKE_INSTALL_PREFIX}/${DATA_INSTALL_PREFIX}/core )
+file(MAKE_DIRECTORY ${BASE_PATH})
+set( FILEOUT ${BASE_PATH}/CMakePackage )
+#message( "Generating package to ${BASE_PATH} ${FILEOUT} " )
+FILE( WRITE ${FILEOUT} "#generated from src/deploy/deploy.cm.cm....\n" )
 
 if( MSVC )
 set( SUPPORTS_PARALLEL_BUILD_TYPE 1 )

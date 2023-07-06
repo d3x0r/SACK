@@ -320,14 +320,7 @@ OPTION( INCLUDE_VULKAN "Include vulkan interfaces" ${ENABLE_VULKAN} )
 
 # default itnerface output path... (override if __CLR__)
 # should make this a common target variable instead also...
-
-if( WIN32 )
-	# goes with .dll
-	set( INTERFACE_OUTPUT_DIR ${CMAKE_INSTALL_BINDIR} )
-else(WIN32)        
-	# goes with .so
-	set( INTERFACE_OUTPUT_DIR ${CMAKE_INSTALL_LIBDIR} )
-endif(WIN32)
+set( INTERFACE_OUTPUT_DIR ${DATA_INSTALL_PREFIX}/conf )
 
 if( FORCE_EXTERNAL_BUILD )
    set( EXTERNAL_BUILD_EXTRA_FLAGS BUILD_ALWAYS 1 )
@@ -722,9 +715,9 @@ SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 
 if( ON )
-	set( LIBRESSL_SKIP_INSTALL OFF )#CACHE BOOL "Default LibreSSL No Install" )
-	set( LIBRESSL_APPS OFF )#CACHE BOOL "Default LibreSSL No Apps" )
-	set( LIBRESSL_TESTS OFF )# CACHE BOOL "Default LibreSSL No Tests" )
+	set( LIBRESSL_SKIP_INSTALL ON )
+	set( LIBRESSL_APPS OFF )
+	set( LIBRESSL_TESTS OFF )
 	set( CMAKE_INSTALL_INCLUDEDIR include/${CMAKE_PROJECT_NAME} )
 	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
         include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
@@ -1233,7 +1226,7 @@ endif( EMSCRIPTEN )
 ###########
 
 
-install( FILES makefiles/cmake/DefaultInstall.cmake DESTINATION . )
+install( FILES makefiles/cmake/DefaultInstall.cmake DESTINATION ${DATA_INSTALL_PREFIX}/core )
 
 # this SACK_CORE_BUILD is for building before we get 'installed' some of the header locations get moved.
 if( WATCOM )
@@ -1449,7 +1442,7 @@ add_subdirectory( src/utils/virtual_file_system )
 endif( NOT EMSCRIPTEN )
 
 # parts of SDK ...
-set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}/images CACHE STRING "Option to install default images actually" )
+set( INSTALL_FRAME_BORDER ${DATA_INSTALL_PREFIX}/images )
 add_subdirectory( data )
 add_subdirectory( include )
 
@@ -1539,21 +1532,21 @@ endif( WIN32 )
   #   it needs to be modified to understand functional syntax so it can do formatting...
 
 if( NOT EMSCRIPTEN )
-  string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${HOST_PLATFORM_LIBRARIES}" )
-  string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${HOST_PLATFORM_DEFINES}" )
-  string( REPLACE ";" "," PLATFORM_CMAKE_DEFINES_ARG "${HOST_PLATFORM_CMAKE_DEFINES}" )
-  ExternalProject_Add( ppc_portable
-	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/makefiles/prog/ppc
-	BINARY_DIR ppc_portable
-	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
-        ${EXTERNAL_BUILD_EXTRA_FLAGS}
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+	string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${HOST_PLATFORM_LIBRARIES}" )
+	string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${HOST_PLATFORM_DEFINES}" )
+	string( REPLACE ";" "," PLATFORM_CMAKE_DEFINES_ARG "${HOST_PLATFORM_CMAKE_DEFINES}" )
+	ExternalProject_Add( ppc_portable
+		BUILD_ALWAYS ON
+		SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/makefiles/prog/ppc
+		BINARY_DIR ppc_portable
+		INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+		   ${EXTERNAL_BUILD_EXTRA_FLAGS}
+		CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
 		-DCMAKE_BUILD_TYPE:PATH=${CMAKE_BUILD_TYPE}
-  		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
+		-DPLATFORM_LIBRARIES=${PLATFORM_LIBRARIES_ARG}
 		-DPLATFORM_DEFINES=${PLATFORM_DEFINES_ARG}
 		-DPLATFORM_CMAKE_DEFINES=${PLATFORM_CMAKE_DEFINES_ARG}
-
-  )
+	)
 endif( NOT EMSCRIPTEN)
 
 #endif( NOT UNIX )

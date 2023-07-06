@@ -36,7 +36,7 @@ include( ${CMAKE_BINARY_DIR}/deploy.cm.tmp )
 
 if( NOT __ANDROID__ )
 macro( build_package_include )
-   file( STRINGS ${CMAKE_INSTALL_PREFIX}/CMakePackage LINES )
+   file( STRINGS ${DATA_INSTALL_PREFIX}/core/CMakePackage LINES )
    #file( READ ${CMAKE_INSTALL_PREFIX}/CMakePackage LINES )
    file( WRITE ${CMAKE_BINARY_DIR}/deploy.package.tmp.h " char * package = \n" )
    foreach( LINE ${LINES} )

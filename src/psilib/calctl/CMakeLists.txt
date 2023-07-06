@@ -17,5 +17,5 @@ else( BUILD_TESTS )
 endif( BUILD_TESTS )
 
 
-install( FILES Clock.png clock_face_1.png DESTINATION bin/images )
-install( FILES ${project}.interface.conf DESTINATION bin )
+install( FILES Clock.png clock_face_1.png DESTINATION ${DATA_INSTALL_PREFIX}/images )
+install( FILES ${project}.interface.conf DESTINATION ${DATA_INSTALL_PREFIX}/conf )
