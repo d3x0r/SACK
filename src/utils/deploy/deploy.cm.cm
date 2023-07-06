@@ -1,5 +1,5 @@
-set( BASE_PATH ${CMAKE_INSTALL_PREFIX} )
-set( FILEOUT ${BASE_PATH}/CMakePackage )
+set( BASE_PATH ${DATA_INSTALL_PREFIX} )
+set( FILEOUT ${BASE_PATH}/core/CMakePackage )
 
 FILE( WRITE ${FILEOUT} "#generated from deploy.cm.cm....\n" )
 

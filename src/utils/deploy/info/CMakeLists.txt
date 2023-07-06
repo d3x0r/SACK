@@ -15,7 +15,7 @@ endforeach( FILE ver.txt type.txt genrator.txt )
 #install the build info so it can be referred to after deployment
 install (
 	DIRECTORY ${CMAKE_BINARY_DIR}/info_out/
-	DESTINATION ./info
+	DESTINATION ${DATA_INSTALL_PREFIX}/core/info
 	PATTERN "CMakeLists.txt" EXCLUDE)
 	#FILES_MATCHING REGEX "^.*\\.txt$" )
 
