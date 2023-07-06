@@ -131,20 +131,15 @@ struct local_systemlib_data {
 };
 
 
-#  ifndef SYSTEM_CORE_SOURCE
-extern
-#  endif
-	struct local_systemlib_data local_systemlib__;
-
-#  ifndef SYSTEM_CORE_SOURCE
-extern
-#  endif
-	struct local_systemlib_data *local_systemlib
 #ifdef SYSTEM_CORE_SOURCE
-		 = &local_systemlib__;
-#else
-		;
+static struct local_systemlib_data local_systemlib__;
 #endif
+
+
+#ifndef SYSTEM_CORE_SOURCE
+extern
+#endif
+	struct local_systemlib_data *local_systemlib;
 
 
 #ifdef l
