@@ -101,7 +101,7 @@ typedef struct loaded_library_tag
 #endif
 } LIBRARY, *PLIBRARY;
 
-  struct local_systemlib_data {
+struct local_systemlib_data {
 	CTEXTSTR load_path;
 	CTEXTSTR library_path;
 	CTEXTSTR common_data_path;
@@ -128,16 +128,23 @@ typedef struct loaded_library_tag
 	BOOL (WINAPI* EnumProcessModules)( HANDLE hProcess, HMODULE *lphModule
 	                                 , DWORD cb, LPDWORD lpcbNeeded );
 #endif
-  }
-#ifdef __STATIC_GLOBALS__
-  local_systemlib__
-#endif
-  ;
+};
 
-#ifndef SYSTEM_CORE_SOURCE
+
+#  ifndef SYSTEM_CORE_SOURCE
 extern
+#  endif
+	struct local_systemlib_data local_systemlib__;
+
+#  ifndef SYSTEM_CORE_SOURCE
+extern
+#  endif
+	struct local_systemlib_data *local_systemlib
+#ifdef SYSTEM_CORE_SOURCE
+		 = &local_systemlib__;
+#else
+		;
 #endif
-	  struct local_systemlib_data *local_systemlib;
 
 
 #ifdef l
