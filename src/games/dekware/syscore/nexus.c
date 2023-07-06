@@ -1479,7 +1479,7 @@ int ProcessSentients( THREAD_ID ThreadID )
 						&& pms->state.flags.forced_run )
 					{
 						if( gbTrace )
-							SystemLog( "Processing macro stack (forced)..." );
+							lprintf( "Processing macro stack (forced): %s", GetText( pms->pMacro->pName ) );
 						goto do_macro_command;
 					}
 				}
@@ -2142,11 +2142,11 @@ void OutputText( PTEXT pText )
 {
 	if( pText && GetTextSize( pText ) )
 	{
-		fprintf( stderr, "%s", GetText( pText ) );
+		lprintf( "%s", GetText( pText ) );
 	}
 	else
 	{
-		fprintf( stderr, "\n" );
+		lprintf( "\n" );
 	}
 }
 

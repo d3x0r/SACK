@@ -2165,7 +2165,7 @@ int Process_Command(PSENTIENT ps, PTEXT *RealCommand) /*FOLD00*/
 	if( !ps->Command )
 		return 0; // command queue is no longer valid...
 
-	if( global.flags.bLogAllCommands )
+	if( global.flags.bLogAllCommands || gbTrace )
 		EnqueBareCommandProcess( GetName( ps->Current )
 									  , &ps->Command->Output
 									  , *RealCommand );
