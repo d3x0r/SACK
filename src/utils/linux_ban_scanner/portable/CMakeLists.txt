@@ -1,6 +1,7 @@
 
 include( ${SACK_BASE}/DefaultInstall.cmake )
 
+PROJECT( ban_scanners )
 include_directories( ${SACK_BASE}/include/SACK )
 STRING( REPLACE " " ";" SACK_PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
 STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
