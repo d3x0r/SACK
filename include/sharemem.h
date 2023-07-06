@@ -838,6 +838,46 @@ MEM_PROC  int MEM_API  StrCmp ( CTEXTSTR pOne, CTEXTSTR pTwo );
    
    if s1 and s2 are NULL return is 0.              */
 MEM_PROC  int MEM_API  StrCaseCmp ( CTEXTSTR s1, CTEXTSTR s2 );
+
+/* Compares two strings, one utf8 and one utf16, case insensitively.
+	Parameters
+	s1 :  string to compare
+	s2 :  string to compare
+
+	Returns
+	0 if equal.
+
+	1 if (s1 \>s2)
+
+	\-1 if (s1 \< s2)
+
+	if s1 is NULL and s2 is not NULL, return is -1.
+
+	if s2 is NULL and s1 is not NULL, return is 1.
+
+	if s1 and s2 are NULL return is 0.              */
+MEM_PROC  int MEM_API  StrCaseCmp_u8u16( const char* s1, const wchar_t* s2 );
+
+
+/* Compares two strings, both utf16, case insensitively.
+	Parameters
+	s1 :  string to compare
+	s2 :  string to compare
+
+	Returns
+	0 if equal.
+
+	1 if (s1 \>s2)
+
+	\-1 if (s1 \< s2)
+
+	if s1 is NULL and s2 is not NULL, return is -1.
+
+	if s2 is NULL and s1 is not NULL, return is 1.
+
+	if s1 and s2 are NULL return is 0.              */
+MEM_PROC  int MEM_API  StrCaseCmpW( const wchar_t* s1, const wchar_t* s2 );
+
 /* String insensitive case comparison with maximum length
    specified.
    Parameters
@@ -920,7 +960,18 @@ MEM_PROC  size_t MEM_API  CStrLen ( char const*s );
    NULL if character is not in the string.
    
    a pointer to the last character in s1 that matches c. */
-MEM_PROC  CTEXTSTR MEM_API  StrRChr ( CTEXTSTR s1, TEXTCHAR c );
+MEM_PROC  CTEXTSTR MEM_API  StrRChr ( CTEXTSTR s1, TEXTRUNE c );
+
+/* Finds the last instance of a character in a string.
+	Parameters
+	s1 :  String to search in
+	c :   character to find
+
+	Returns
+	NULL if character is not in the string.
+
+	a pointer to the last character in s1 that matches c. */
+MEM_PROC  const wchar_t* MEM_API  StrRChrW( const wchar_t* s1, TEXTRUNE c );
 
 #ifdef __cplusplus
 /* This searches a string for the first character that matches
@@ -967,6 +1018,8 @@ MEM_PROC  TEXTSTR MEM_API  StrRChr ( TEXTSTR s1, TEXTCHAR c );
    
    \ \                                              */
 MEM_PROC  int MEM_API  StrCmp ( const char * s1, CTEXTSTR s2 );
+
+MEM_PROC  wchar_t* MEM_API  StrRChrW( wchar_t* s1, TEXTRUNE c );
 #endif
 
 /* <combine sack::memory::StrCmp@char *@CTEXTSTR>

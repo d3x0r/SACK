@@ -182,13 +182,25 @@ CTEXTSTR StrChr( CTEXTSTR s1, TEXTCHAR c )
 	return NULL;
 }
 
-CTEXTSTR StrRChr( CTEXTSTR s1, TEXTCHAR c )
+CTEXTSTR StrRChr( CTEXTSTR s1, TEXTRUNE c )
 {
+	TEXTRUNE c1;
 	CTEXTSTR  p1 = s1;
 	if( !p1 ) return NULL;
-	while( p1[0] ) p1++;
-	while( p1 != s1 && p1[0] != c ) p1--;
-	if( p1[0] == c )
+	while( GetUtfChar( &p1 ) ); p1--; // go back to \0
+	while( p1 != s1 && ( c1 = GetPriorUtfChar( s1, &p1 ) ) != c ); 
+	if( c1 == c )
+		return p1;
+	return NULL;
+}
+
+const wchar_t* StrRChrW( const wchar_t* s1, TEXTRUNE c ) {
+	TEXTRUNE c1;
+	const wchar_t* p1 = s1;
+	if( !p1 ) return NULL;
+	while( GetUtfCharW( &p1 ) ); p1--; // go back to \0
+	while( p1 != s1 && ( c1 = GetPriorUtfCharW( s1, &p1 ) ) != c );
+	if( c1 == c )
 		return p1;
 	return NULL;
 }
@@ -214,6 +226,18 @@ TEXTSTR StrRChr( TEXTSTR s1, TEXTCHAR c )
 		return p1;
 	return NULL;
 }
+
+wchar_t* StrRChrW( wchar_t* s1, TEXTRUNE c ) {
+	TEXTRUNE c1;
+	wchar_t* p1 = s1;
+	if( !p1 ) return NULL;
+	while( GetUtfCharW( (const wchar_t**)&p1 ) ); p1--; // go back to \0
+	while( p1 != s1 && ( c1 = GetPriorUtfCharW( s1, (const wchar_t**) & p1) ) != c );
+	if( c1 == c )
+		return p1;
+	return NULL;
+}
+
 #endif
 
 CTEXTSTR StrCaseStr( CTEXTSTR s1, CTEXTSTR s2 )
@@ -542,6 +566,54 @@ TEXTSTR     DupCharToTextEx( const char * original DBG_PASS )
 		  s1++, s2++ );
 	return tolower(s1[0]) - tolower(s2[0]);
 }
+
+
+int  StrCaseCmp_u8u16( const char* s1, const wchar_t* s2 ) {
+	TEXTRUNE c1;
+	TEXTRUNE c2;
+	if( !s1 )
+		 if( s2 )
+			 return -1;
+		 else
+			 return 0;
+	 else
+		 if( !s2 )
+			 return 1;
+	 //if( s1 == s2 )
+	//	 return 0; // ==0 is success.
+	 while( s1[0] && s2[0] ) {
+		 c1 = GetUtfChar( &s1 );
+		 c2 = GetUtfCharW( &s2 );
+		 if( c1 >= 'a' && c1 <= 'a' ) c1 -= ( 'a' - 'A' );
+		 if( c2 >= 'a' && c2 <= 'a' ) c2 -= ( 'a' - 'A' );
+		 if( c1 != c2 ) break;
+	 }
+	 return c1-c2;
+ }
+
+int  StrCaseCmpW( const wchar_t* s1, const wchar_t* s2 ) {
+	TEXTRUNE c1;
+	TEXTRUNE c2;
+	if( !s1 )
+		if( s2 )
+			return -1;
+		else
+			return 0;
+	else
+		if( !s2 )
+			return 1;
+	if( s1 == s2 )
+		return 0; // ==0 is success.
+	while( s1[0] && s2[0] ) {
+		c1 = GetUtfCharW( &s1 );
+		c2 = GetUtfCharW( &s2 );
+		if( c1 >= 'a' && c1 <= 'a' ) c1 -= ( 'a' - 'A' );
+		if( c2 >= 'a' && c2 <= 'a' ) c2 -= ( 'a' - 'A' );
+		if( c1 != c2 ) break;
+	}
+	return c1 - c2;
+}
+
 
  int  StrCmpEx ( CTEXTSTR s1, CTEXTSTR s2, INDEX maxlen )
 {

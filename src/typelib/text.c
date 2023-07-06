@@ -3372,7 +3372,7 @@ TEXTRUNE GetUtfCharW( const wchar_t * *from )
 	TEXTRUNE result = (unsigned)(*from)[0];
 	if( !result ) return result;
 	if( ( ( (*from)[0] & 0xFC00 ) >= 0xD800 )
-		&& ( ( (*from)[0] & 0xFC00 ) <= 0xDF00 ) )
+		&& ( ( (*from)[1] & 0xFC00 ) <= 0xDF00 ) )
 	{
 		result = 0x10000 + ( ( ( (*from)[0] & 0x3ff ) << 10 ) | ( ( (*from)[1] & 0x3ff ) ) );
 		(*from) += 2;
@@ -3401,15 +3401,15 @@ TEXTRUNE GetPriorUtfCharW( const wchar_t*start, const wchar_t* *from )
 {
 	TEXTRUNE result = (unsigned)(*from)[-1];
 	if( !result ) return result;
-	if( ( ( (*from)[0] & 0xFC00 ) >= 0xD800 )
-		&& ( ( (*from)[0] & 0xFC00 ) <= 0xDF00 ) )
+	if( ( ( (*from)[-2] & 0xFC00 ) >= 0xD800 )
+		&& ( ( (*from)[-1] & 0xFC00 ) <= 0xDF00 ) )
 	{
-		result = 0x10000 + ( ( ( (*from)[0] & 0x3ff ) << 10 ) | ( ( (*from)[1] & 0x3ff ) ) );
-		(*from) += 2;
+		result = 0x10000 + ( ( ( (*from)[-2] & 0x3ff ) << 10 ) | ( ( (*from)[-1] & 0x3ff ) ) );
+		(*from) -= 2;
 	}
 	else
 	{
-		(*from)++;
+		(*from)--;
 	}
 	return result;
 }

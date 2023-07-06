@@ -84,12 +84,21 @@ typedef struct loaded_library_tag
 	LOGICAL mapped;
 	PFUNCTION functions; 
 	DeclareLink( struct loaded_library_tag );
-	TEXTCHAR *name; // points into full_name after last slash - just library name
 	int loading;
-	TEXTCHAR *alt_full_name;// this is appended after full_name and is l.library_path
-	TEXTCHAR *cur_full_name;
-	TEXTCHAR *orig_name;
+#ifdef _WIN32
+	wchar_t* name; // points into full_name after last slash - just library name
+	wchar_t* alt_full_name;// this is appended after full_name and is l.library_path
+	wchar_t* cur_full_name;
+	wchar_t* orig_name;
+	wchar_t* full_name;// this is more than 1; allocation pads extra bytes for the name. prefixed iwth l.load_path
+	TEXTCHAR name_data[1];// this is more than 1; allocation pads extra bytes for the name. prefixed iwth l.load_path
+#else
+	TEXTCHAR* name; // points into full_name after last slash - just library name
+	TEXTCHAR* alt_full_name;// this is appended after full_name and is l.library_path
+	TEXTCHAR* cur_full_name;
+	TEXTCHAR* orig_name;
 	TEXTCHAR full_name[1];// this is more than 1; allocation pads extra bytes for the name. prefixed iwth l.load_path
+#endif
 } LIBRARY, *PLIBRARY;
 
   struct local_systemlib_data {

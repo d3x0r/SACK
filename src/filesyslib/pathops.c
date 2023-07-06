@@ -56,7 +56,7 @@ int PathCmp( CTEXTSTR s1, CTEXTSTR s2 ) {
 	return PathCmpEx( s1, s2, 65535 );
 }
 
- CTEXTSTR  pathrchr ( CTEXTSTR path )
+CTEXTSTR  pathrchr ( CTEXTSTR path )
 {
 	CTEXTSTR end1, end2;
 	end1 = StrRChr( path, '\\' );
@@ -66,8 +66,18 @@ int PathCmp( CTEXTSTR s1, CTEXTSTR s2 ) {
 	return end2;
 }
 
+const wchar_t* pathrchrW( const wchar_t* path ) {
+	const wchar_t* end1, *end2;
+	 end1 = StrRChrW( path, '\\' );
+	 end2 = StrRChrW( path, '/' );
+	 if( end1 > end2 )
+		 return end1;
+	 return end2;
+ }
+
 #ifdef __cplusplus
- TEXTSTR  pathrchr ( TEXTSTR path )
+
+TEXTSTR  pathrchr ( TEXTSTR path )
 {
 	TEXTSTR end1, end2;
 	end1 = StrRChr( path, '\\' );
@@ -76,6 +86,16 @@ int PathCmp( CTEXTSTR s1, CTEXTSTR s2 ) {
 		return end1;
 	return end2;
 }
+
+wchar_t* pathrchrW( wchar_t* path ) {
+	wchar_t* end1, * end2;
+	end1 = StrRChrW( path, '\\' );
+	end2 = StrRChrW( path, '/' );
+	if( end1 > end2 )
+		return end1;
+	return end2;
+}
+
 #endif
 
 //-----------------------------------------------------------------------

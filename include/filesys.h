@@ -195,8 +195,12 @@ FILESYS_PROC  int FILESYS_API  GetMatchingFileName ( CTEXTSTR filemask, enum Sca
 
 // searches a path for the last '/' or '\'
 FILESYS_PROC  CTEXTSTR FILESYS_API  pathrchr ( CTEXTSTR path );
+// searches a path for the last '/' or '\'
+FILESYS_PROC  const wchar_t* FILESYS_API  pathrchrW( const wchar_t* path );
 #ifdef __cplusplus
 FILESYS_PROC  TEXTSTR FILESYS_API  pathrchr ( TEXTSTR path );
+FILESYS_PROC  wchar_t* FILESYS_API pathrchrW( wchar_t* path );
+
 #endif
 // searches a path for the first '/' or '\'
 FILESYS_PROC  CTEXTSTR FILESYS_API  pathchr ( CTEXTSTR path );
