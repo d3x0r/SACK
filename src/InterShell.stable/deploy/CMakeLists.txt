@@ -1,4 +1,6 @@
 PROJECT( intershell_deploy )
+
+
 if( EXISTS ${CMAKE_SOURCE_DIR}/../../.hgtags )
   FILE( STRINGS ${CMAKE_SOURCE_DIR}/../../.hgtags TMP_tags )
   LIST( GET TMP_tags -1 TMP_TAG )
@@ -7,6 +9,7 @@ if( EXISTS ${CMAKE_SOURCE_DIR}/../../.hgtags )
 else()
   set( CURRENT_REPO_REVISION "??" )
 endif()
+
 message( "InterShell revision: ${CURRENT_REPO_REVISION}" )
 
   configure_file( deploy.cm.cm ${CMAKE_BINARY_DIR}/deploy.cm.tmp @ONLY )
@@ -40,14 +43,14 @@ if( NOT __ANDROID__ AND NOT UNIX )
   if( WIN32 )
 	# On Windows platforms, the dynamic libs should
 	# go in the same dir as the executables.
-	install( TARGETS ${PROJECT_NAME}
-	        RUNTIME DESTINATION .
-  )
+	#install( TARGETS ${PROJECT_NAME}
+	#        RUNTIME DESTINATION .
+   #)
   else( WIN32 )
   # should deploy differently for linux. otherwise we'll end up with bin in /
-	install( TARGETS ${PROJECT_NAME}
-	        RUNTIME DESTINATION . 
-	)
+	#install( TARGETS ${PROJECT_NAME}
+	#        RUNTIME DESTINATION . 
+	#)
   endif( WIN32 )
 endif( NOT __ANDROID__ AND NOT UNIX )
 
