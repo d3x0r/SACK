@@ -86,10 +86,10 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
 				  FOLDER "Automaton"
 )
 
-install( FILES brain.peices.txt DESTINATION Resources )
+install( FILES brain.peices.txt DESTINATION share/SACK )
 
-install( DIRECTORY frames DESTINATION Resources )
-install( DIRECTORY images/ DESTINATION Resources/images/brainboard )
+install( DIRECTORY frames DESTINATION share/SACK )
+install( DIRECTORY images/ DESTINATION share/SACK/images/brainboard )
 
 if( WIN32 )
 	# On Windows platforms, the dynamic libs should
