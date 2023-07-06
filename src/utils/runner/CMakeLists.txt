@@ -1,6 +1,6 @@
 
 SET( RUNWIN_SOURCES
-runwin.c run.h )
+runwin.c runner.c run.h )
 
 
 
