@@ -3,20 +3,21 @@
 #include <sack_system.h>
 #include <timers.h>
 #include <filesys.h>
+#include <deadstart.h>
 int done;
 PTHREAD main_thread;
 PTASK_INFO task;
 
 void CPROC output( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t size )
 {
-	fprintf( stdout, "%*.*s", (int)size, (int)size, buffer );
-	fflush( stdout );
+	lprintf( "%*.*s", (int)size, (int)size, buffer );
 }
 
 void CPROC ended( uintptr_t psv, PTASK_INFO task )
 {
-	fprintf( stderr, "Task has ended." );
+	lprintf( "Task has ended." );
 	done = 1;
+	WakeThread( main_thread );
 }
 
 
@@ -25,6 +26,8 @@ SaneWinMain( argc, argv )
    int nowait = 0;
 	int task_monitor = 0;
 	int noinput = 0;
+	lprintf( "This shouldn't have to do invoke deadstart..." );
+	//InvokeDeadstart();
 	if( argc < 2 )
 	{
 #ifdef WIN32
@@ -98,7 +101,7 @@ SaneWinMain( argc, argv )
 	}
    if( task_monitor )
 		SendMessage( FindWindow( "TaskMonClass", "Task Completion Monitor" ), WM_USER+500, 0, 0 );
-   fprintf( stdout, "Shell Completed." );
+   lprintf( "Shell Completed." );
    return 0;
 }
 EndSaneWinMain()

@@ -1662,7 +1662,8 @@ PNETBUFFER FindNetBuffer( CTEXTSTR address )
 }
 
 ////-------------------------------------------------------------------------
-
+#if 0
+// this was copied and moved into core file system library (pathops)
 static int PathCmpEx( CTEXTSTR s1, CTEXTSTR s2, int maxlen )
 {
 	if( !s1 )
@@ -1688,7 +1689,7 @@ static int PathCmpEx( CTEXTSTR s1, CTEXTSTR s2, int maxlen )
       return 0;
 	return tolower(s1[0]) - tolower(s2[0]);
 }
-
+#endif
 //-------------------------------------------------------------------------
 
 uintptr_t CPROC SetCommon( uintptr_t psv, arg_list args )

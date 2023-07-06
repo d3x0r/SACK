@@ -1,11 +1,11 @@
 macro( DEFINE_DEFAULT variable default )
-OPTION( ${variable} "${variable}" ${default} )
-if( NOT DEFINED ${variable} )
-   set( ${variable} $ENV{${variable}} )
-   if( "${${variable}}" STREQUAL "" )
-     set( ${variable} ${default} )
-   endif( "${${variable}}" STREQUAL "" )
-endif( NOT DEFINED ${variable} )
+  OPTION( ${variable} "${variable}" ${default} )
+   if( NOT DEFINED ${variable} )
+     set( ${variable} $ENV{${variable}} )
+     if( "${${variable}}" STREQUAL "" )
+       set( ${variable} ${default} )
+     endif( "${${variable}}" STREQUAL "" )
+  endif( NOT DEFINED ${variable} )
 endmacro( DEFINE_DEFAULT variable )
 
   if( CMAKE_TOOLCHAIN_FILE )
@@ -26,6 +26,7 @@ set( LAST_TARGET ${PROJECT} )
 message( "ADD PROJECT:${PROJECT}  ${PROJECT_SOURCE}" )
 
 ExternalProject_Add( ${PROJECT} 
+	BUILD_ALWAYS ON
 	SOURCE_DIR ${PROJECT_SOURCE}
 	BINARY_DIR ${CMAKE_BINARY_DIR}/${PROJECT}
 	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${project}

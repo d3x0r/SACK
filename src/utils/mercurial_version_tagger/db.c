@@ -73,7 +73,7 @@ static void InitVersion( PODBC odbc )
 			else
 			{
 				SQLCommandf( odbc, "insert into build_%d(build_timestamp)values(now())", l.version_id );
-				snprintf( build_table, 64, "build_%d", l.version_id );
+				snprintf( build_table, 64, "build_%zd", l.version_id );
 				g.build_id = FetchLastInsertID( odbc, build_table, "build_id" );
 			}
 		}
@@ -173,7 +173,7 @@ INDEX GetBuildVersion( PODBC odbc, INDEX project_id )
 
 	InitVersion( odbc );
 
-	snprintf( tmp, 256, "project_version_%d_%d", l.version_id, project_id );
+	snprintf( tmp, 256, "project_version_%zd_%zd", l.version_id, project_id );
 	if( System( "hg id -i", CaptureMercurialVersion, (uintptr_t)(&result) ) )
 	{
 		SQLCommandf( odbc, "insert into %s(project_id,hg_id,build_id,version_id)values(%zd,'%s',%zd,%zd)"
