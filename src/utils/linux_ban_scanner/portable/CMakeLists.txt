@@ -62,13 +62,13 @@ set(TAIL_SOURCES
     ${SOURCES_ROOT}/src/deadstart/deadstart_core.c 
 )
 
-add_executable(${project} ${BASE_SOURCES} ../syslog_scanner.c  ${TAIL_SOURCES}  )
+sack_add_executable(${project} ${BASE_SOURCES} ../syslog_scanner.c  ${TAIL_SOURCES}  )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-      COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL};-DTARGET_NAME=""project"" "
+      COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
       FOLDER utils
 )
 target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
@@ -76,13 +76,13 @@ install_default_dest( ${project} )
 
 
 set( project linux_postfix_scanner.portable )
-add_executable(${project} ${BASE_SOURCES} ../postfix_scanner.c  ${TAIL_SOURCES}  )
+sack_add_executable(${project} ${BASE_SOURCES} ../postfix_scanner.c  ${TAIL_SOURCES}  )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
-      COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL};-DTARGET_NAME=""project"" "
+      COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
       FOLDER utils
 )
 target_link_libraries( ${project} ${SACK_PLATFORM_LIBRARIES} )
