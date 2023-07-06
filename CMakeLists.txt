@@ -1449,7 +1449,7 @@ add_subdirectory( src/utils/virtual_file_system )
 endif( NOT EMSCRIPTEN )
 
 # parts of SDK ...
-set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}images CACHE STRING "Option to install default images actually" )
+set( INSTALL_FRAME_BORDER ${INTERFACE_OUTPUT_DIR}/images CACHE STRING "Option to install default images actually" )
 add_subdirectory( data )
 add_subdirectory( include )
 
