@@ -56,7 +56,7 @@ endif( __ANDROID__ )
 
 
 SET( HEADER_INSTALL_PREFIX include )
-SET( DATA_INSTALL_PREFIX resources )
+SET( DATA_INSTALL_PREFIX share/SACK )
 
 macro( install_default_dest )
    if( TARGET_BINARY_PATH )
