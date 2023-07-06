@@ -8,7 +8,7 @@ INSTALL(
   FILES
     ${RUNWIN_SOURCES}
   DESTINATION
-    src/sack
+    src/SACK
 )
 
 
