@@ -28,5 +28,5 @@ else( __ANDROID__ )
   endif( UNIX )
 endif( __ANDROID__ )
 
-install_mode_dest( ${PROJECT_NAME} )
+install_default_plugin( ${PROJECT_NAME} )
 

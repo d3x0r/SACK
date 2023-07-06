@@ -18,6 +18,6 @@ if( NOT __ANDROID__ )
 endif( NOT __ANDROID__ )
 
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
-install_default_dest( ${PROJECT} )
-
+install_default_plugin( ${PROJECT} )
+message( "NEW PLUGIN?" )
 

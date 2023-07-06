@@ -23,7 +23,7 @@ target_link_libraries( ${project} ${SACK_LIBRARIES} )
 if( NOT MAKING_SACK_CORE )
 	target_link_libraries( ${project} message_service )
 endif( NOT MAKING_SACK_CORE )
-install_mode_dest( ${project} )
+install_default_plugin( ${project} )
 
 
 set( project msgsvr )
