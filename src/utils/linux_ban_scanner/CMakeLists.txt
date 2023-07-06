@@ -35,7 +35,7 @@ target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
 
 #add_subdirectory( portable )
-ExternalProject_Add( ${project}_portable 
+ExternalProject_Add( ban_scanners_portable 
 	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/portable
 	INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
         ${EXTERNAL_BUILD_EXTRA_FLAGS}
