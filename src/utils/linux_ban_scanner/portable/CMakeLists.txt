@@ -1,4 +1,5 @@
 
+include( ${SACK_BASE}/DefaultInstall.cmake )
 
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
