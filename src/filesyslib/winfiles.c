@@ -420,6 +420,42 @@ TEXTSTR ExpandPathVariable( CTEXTSTR path )
 	return tmp_path;
 }
 
+static void squash_dotdot( TEXTSTR path ) {
+	int pathchar;
+	TEXTSTR cur;
+	TEXTSTR out;
+	do {
+		pathchar = -1;
+		out = NULL;
+		for( cur = path; cur[0]; cur++ ) {
+			if( out ) (out++)[0] = cur[0];
+			else if( cur[0] == '/' || cur[0] == '\\' ){
+				if( pathchar < 0 ) pathchar = (int)(cur - path); // this will be a short diff
+				else {
+					if( cur[1] ) {
+						if( cur[1] == '.' ) {
+							if( cur[2] ) {
+								if( cur[2] == '.' ) {
+									if( cur[3] ) {
+										if( cur[3] == '/' || cur[3] == '\\' ) {
+											out = path + pathchar; // copy the rest of the path to good start.
+											cur += 2; // loop will increment 1... so this is 3.
+										} else pathchar = (int)( cur - path );
+									} else {
+										path[pathchar] = 0;
+										break;
+									}
+								} else pathchar = (int)( cur - path );
+							} else break;
+						} else pathchar = (int)( cur - path );
+					} else break;
+				}
+			}
+		}
+		if( out ) out[0] = 0;
+	} while( out );
+}
+
 TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS )
 {
 	TEXTSTR tmp_path = NULL;
@@ -488,6 +524,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 			else {
 				tmp_path = StrDupEx( path DBG_RELAY );
 			}
+			squash_dotdot( tmp_path );
 #if __ANDROID__
 			{
 				int len_base;
