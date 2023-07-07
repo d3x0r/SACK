@@ -62,8 +62,8 @@ if( WIN32 )
 	macro( install_default_plugin )
 		install( TARGETS ${ARGV}
 			RUNTIME DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}/plugins
-			LIBRARY DESTINATION ${CAMKE_BINARY_DIR}/trash
-			ARCHIVE DESTINATION ${CAMKE_BINARY_DIR}/trash  # don't install these... they are binary only libraries
+			LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/trash
+			ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/trash  # don't install these... they are binary only libraries
 			#LIBRARY DESTINATION ${DATA_INSTALL_PREFIX}/plugins
 		)
 	endmacro( install_default_plugin )
@@ -71,8 +71,8 @@ else(WIN32)
 	macro( install_default_plugin )
 		install( TARGETS ${ARGV}
 			RUNTIME DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}/SACK
-			LIBRARY DESTINATION ${CAMKE_BINARY_DIR}/trash
-			ARCHIVE DESTINATION ${CAMKE_BINARY_DIR}/trash  # don't install these... they are binary only libraries
+			LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/trash
+			ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/trash  # don't install these... they are binary only libraries
 			#LIBRARY DESTINATION ${DATA_INSTALL_PREFIX}/plugins
 		)
 	endmacro( install_default_plugin )
