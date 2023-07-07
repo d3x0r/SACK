@@ -13,7 +13,7 @@ endif( NOT SACK_BINARY_SDK_ROOT_PATH )
 
 
 include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
-include( ${SACK_BINARY_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
+include( ${SACK_BINARY_SDK_ROOT_PATH}/share/SACK/build/binary/CMakePackage )
 
 include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )

@@ -348,7 +348,7 @@ if( NOT __NO_OPTIONS__ )
        	    		if( NOT EXCLUDE_AUX_PROGRAMS AND BUILD_EXTRAS )
        	            		SET( progfile_list ${progfile_list} SetOption )
 		      	endif( NOT EXCLUDE_AUX_PROGRAMS AND BUILD_EXTRAS )
-    			SET( literal_libfile_list ${literal_libfile_list} plugins/EditOptions.plugin )
+    			SET( literal_libfile_list ${literal_libfile_list} share/SACK/plugins/EditOptions.plugin )
 	       	else( NOT __ANDROID__ )
        		   	SET( literal_libfile_list ${literal_libfile_list} ${CMAKE_SHARED_LIBRARY_PREFIX}EditOptions.plugin${CMAKE_SHARED_LIBRARY_SUFFIX} )
 	       	endif( NOT __ANDROID__ )
@@ -359,9 +359,9 @@ endif( NOT __NO_OPTIONS__ )
 
 if( WIN32 )
 		SET( literal_libfile_list ${literal_libfile_list}
-                        plugins/application_delay.module
-                        plugins/loginfo.module
-                        plugins/seed_random.module
+                        share/SACK/plugins/application_delay.module
+                        share/SACK/plugins/loginfo.module
+                        share/SACK/plugins/seed_random.module
                     )
                     if( INSTALL_EXTRAS )
 		SET( profile_list ${progfile_list}
@@ -380,7 +380,7 @@ if( WIN32 )
 		endif( NOT BUILD_MONOLITHIC )
 if( NOT __NO_MSGSVR__ )
 		SET( progfile_list ${progfile_list} service_list sack.msgsvr.service msgsvr )
-		SET( literal_libfile_list ${literal_libfile_list} plugins/sack.msgsvr.service.plugin  )
+		SET( literal_libfile_list ${literal_libfile_list} share/SACK/plugins/sack.msgsvr.service.plugin  )
 endif( NOT __NO_MSGSVR__ )
 endif( WIN32 )
 
@@ -436,7 +436,7 @@ endif( DIRECTX_SDK AND NOT WATCOM AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" )
 			FILE( APPEND ${FILEOUT} "SET( sack_libfile_list $" "{sack_libfile_list} $" "{SACK_BASE}/${SHARED_LIBPATH}/@CMAKE_SHARED_LIBRARY_PREFIX@${lib}@CMAKE_SHARED_LIBRARY_SUFFIX@ )\n" )
 		endforeach()
 		foreach( lib ${literal_libfile_list} )
-			FILE( APPEND ${FILEOUT} "SET( sack_literal_libfile_list $" "{sack_literal_libfile_list} $" "{SACK_BASE}/${SHARED_LIBPATH}/${lib} )\n" )
+			FILE( APPEND ${FILEOUT} "SET( sack_literal_libfile_list $" "{sack_literal_libfile_list} $" "{SACK_BASE}/${lib} )\n" )
 		endforeach()
 		foreach( lib ${progfile_list} )
 			FILE( APPEND ${FILEOUT} "SET( sack_progfile_list $" "{sack_progfile_list} $" "{SACK_BASE}/${SHARED_BINPATH}/${lib}@CMAKE_EXECUTABLE_SUFFIX@ )\n" )

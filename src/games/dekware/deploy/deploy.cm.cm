@@ -15,7 +15,7 @@ endif( BUILD_INTO_SACK_INSTALL )
 		 FILE( APPEND ${FILEOUT} "\n" )
 
 		 FILE( APPEND ${FILEOUT} "macro( INSTALL_DEKWARE dest data_dest )\n" )
-		 FILE( APPEND ${FILEOUT} "FILE(GLOB Dekware_Binaries \"$" "{DEKWARE_BASE}/bin/dekware.exe $" "{DEKWARE_BASE}/bin/dekware.core\" )\n" )
+		 FILE( APPEND ${FILEOUT} "FILE(GLOB Dekware_Binaries \"$" "{DEKWARE_BASE}/bin/dekware.exe $" "{DEKWARE_BASE}/share/SACK/applicationCore/dekware.core\" )\n" )
 		 FILE( APPEND ${FILEOUT} "FILE(GLOB Dekware_Plugins \"$" "{DEKWARE_BASE}/bin/plugins/*.nex\" )\n" )
 		 FILE( APPEND ${FILEOUT} "FILE(GLOB Dekware_Plugins2 \"$" "{DEKWARE_BASE}/bin/plugins/*.dll\" )\n" )
 		 FILE( APPEND ${FILEOUT} "install( FILES $" "{Dekware_Binaries} DESTINATION $" "{dest}/bin )\n" )

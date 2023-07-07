@@ -9,7 +9,7 @@ endif( NOT SACK_SDK_ROOT_PATH )
 
 PROJECT( train_test_fake )
 
-include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
+include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
 
 INSTALL_SACK( bin )
 include_directories( ${SACK_INCLUDE_DIR} )

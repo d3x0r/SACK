@@ -97,7 +97,7 @@ endif( NOT __ANDROID__ )
 
 my_target_link_libraries( ${PROJECT_OUTPUT} sack_widgets ${SACK_LIBRARIES} )
 
-install_literal_product( ${PROJECT_OUTPUT} SACK/applicationCore ) 
+install_literal_product( ${PROJECT_OUTPUT} applicationCore ) 
 
 
 include_directories( 

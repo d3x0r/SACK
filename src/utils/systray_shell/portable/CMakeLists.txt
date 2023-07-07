@@ -126,5 +126,6 @@ add_portable_program(${PROJECT} WIN32
 )
 build_resource(  all_resources.rc all_resources.res )
 target_link_libraries( ${PROJECT}  ${SACK_PLATFORM_LIBRARIES} )
+install_default_dest( ${PROJECT} )
 
 

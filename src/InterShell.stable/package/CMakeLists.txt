@@ -22,7 +22,7 @@ endif( NOT INTERSHELL_SDK_ROOT_PATH )
 
 if( NOT SACK_INCLUDE_DIR )
 	include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
-	include( ${INTERSHELL_SDK_ROOT_PATH}/share/SACK/build/Intershell/CMakePackage )
+	include( ${INTERSHELL_SDK_ROOT_PATH}/share/SACK/build/InterShell/CMakePackage )
 endif( NOT SACK_INCLUDE_DIR )
 
 

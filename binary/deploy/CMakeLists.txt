@@ -13,7 +13,7 @@ include( ${CMAKE_BINARY_DIR}/deploy.cm.tmp )
 
 
 macro( build_package_include )
-   file( STRINGS ${CMAKE_INSTALL_PREFIX}/CMakePackage LINES )
+   file( STRINGS ${CMAKE_INSTALL_PREFIX}/${DATA_INSTALL_PREFIX}/build/binary/CMakePackage LINES )
    #file( READ ${CMAKE_INSTALL_PREFIX}/CMakePackage LINES )
    file( WRITE ${CMAKE_BINARY_DIR}/deploy.package.h " char * package = \n" )
    foreach( LINE ${LINES} )
@@ -52,4 +52,4 @@ else( __ANDROID__ OR UNIX )
   endif( WIN32 )
 endif( __ANDROID__ OR UNIX )
 
-add_subdirectory( info )
+#add_subdirectory( info )
