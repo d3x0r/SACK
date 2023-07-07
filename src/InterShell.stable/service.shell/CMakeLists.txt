@@ -14,7 +14,7 @@ add_definitions(
 )
 else( __CLR__ )
 add_definitions( 
-	-DLOAD_LIBNAME="InterShell.core" -DMODE=1 -DCONSOLE_SHELL
+	-DLOAD_LIBNAME="SACK/applicationCore/InterShell.core" -DMODE=1 -DCONSOLE_SHELL
 )
 endif( __CLR__ )
 

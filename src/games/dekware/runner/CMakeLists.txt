@@ -4,7 +4,7 @@ set( PROJECT Dekware )
 if( __ANDROID__ )
     add_definitions( -DLOAD_LIBNAME="${CMAKE_SHARED_LIBRARY_PREFIX}Dekware.core${CMAKE_SHARED_LIBRARY_SUFFIX}" -DMODE=0 )
 else( __ANDROID__ )
-    add_definitions( -DLOAD_LIBNAME="Dekware.core" -DMODE=0 )
+    add_definitions( -DLOAD_LIBNAME="SACK/applicationCore/Dekware.core" -DMODE=0 )
 endif( __ANDROID__ )
 
 

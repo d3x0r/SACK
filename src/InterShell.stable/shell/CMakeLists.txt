@@ -24,7 +24,7 @@ else( __CLR__ )
   else( __ANDROID__ )
 
     add_definitions( 
-	-DLOAD_LIBNAME="InterShell.core" -DMODE=1
+	-DLOAD_LIBNAME="SACK/applicationCore/InterShell.core" -DMODE=1
     )
   endif( __ANDROID__ )
 endif( __CLR__ )

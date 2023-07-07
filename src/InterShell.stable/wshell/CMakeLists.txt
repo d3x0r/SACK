@@ -11,13 +11,11 @@ set(SOURCES
   ${LAST_GCC_PROGRAM_SOURCE}
 )
 
-if( __CLR__ )
-add_definitions( -DLOAD_LIBNAME="InterShell.core.dll" -DMODE=0 )
-elseif( __ANDROID__ )
+if( __ANDROID__ )
 add_definitions( -DLOAD_LIBNAME="libInterShell.core.so" -DMODE=0 )
-else( __CLR__ )
-add_definitions( -DLOAD_LIBNAME="InterShell.core" -DMODE=0 )
-endif( __CLR__ )
+else( __ANDROID__ )
+add_definitions( -DLOAD_LIBNAME="SACK/applicationCore/InterShell.core" -DMODE=0 )
+endif( __ANDROID__ )
 
 add_program(${PROJECT} WIN32 ${SOURCES})
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
