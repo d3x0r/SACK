@@ -2171,77 +2171,89 @@ void ReadConfiguration( void )
 #ifdef __ANDROID__
 				= ".";
 #else
-				= GetProgramPath();
+				= NULL;
 #endif
+			size_t pathlen;
+			PLIST loadnames = NULL;
 			TEXTSTR loadname;
+			TEXTSTR path_loadname;
 			size_t len;
+			INDEX idx;
 			int success = FALSE;
-			if( !filepath )
-				filepath = "@";
 
 			if( l.config_filename )
 			{
 				success = ProcessConfigurationFile( pch, l.config_filename, 0 );
-				//if( !success )
-				//	lprintf( "Failed to open custom interface configuration file:%s", l.config_filename );
+				if( !success )
+					lprintf( "Failed to open custom interface configuration file:%s", l.config_filename );
 				return;
 			}
 			if( !success )
 			{
 				CTEXTSTR dot;
-				loadname = NewArray( TEXTCHAR, (uint32_t)(len = StrLen( GetProgramName() ) + StrLen( "interface.conf" ) + 3) );
-				tnprintf( loadname, len, "%s.%s", GetProgramName(), "interface.conf" );
+				CTEXTSTR tmpdot;
+				dot = GetProgramName();
+				tmpdot = pathrchr( dot );
+				if( tmpdot ) dot = tmpdot + 1;
+				loadname = NewArray( TEXTCHAR, len = StrLen( dot ) + 14/*StrLen( "interface.conf" )*/ + 3);
+				tnprintf( loadname, len, "%s.%s", dot, "interface.conf" );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
-				if( !success )
-					dot = GetProgramName();
-				while( !success )
+				while( !success && dot )
 				{
+					AddLink( &loadnames, loadname );
 					dot = StrChr( dot + 1, '.' );
 					if( dot )
 					{
+						loadname = NewArray( TEXTCHAR, len );
 						tnprintf( loadname, len, "%s.%s", dot+1, "interface.conf" );
 						success = ProcessConfigurationFile( pch, loadname, 0 );
+						if( !success )
+							AddLink( &loadnames, loadname );
 					}
-					else
-						break;
 				}
 			}
 			if( !success )
 			{
 				success = ProcessConfigurationFile( pch, "interface.conf", 0 );
 			}
+
 			if( !success )
 			{
-				CTEXTSTR dot;
-				loadname = NewArray( TEXTCHAR, (uint32_t)(len = StrLen( filepath ) + StrLen( GetProgramName() ) + StrLen( "interface.conf" ) + 3) );
-				tnprintf( loadname, len, "%s/%s.%s", filepath, GetProgramName(), "interface.conf" );
-				success = ProcessConfigurationFile( pch, loadname, 0 );
-				if( !success )
-					dot = GetProgramName();
-				while( !success )
-				{
-					dot = StrChr( dot + 1, '.' );
-					if( dot )
-					{
-						tnprintf( loadname, len, "%s/%s.%s", filepath, dot+1, "interface.conf" );
-						success = ProcessConfigurationFile( pch, loadname, 0 );
-					}
-					else
-						break;
+				INDEX max_count = GetLinkCount( loadnames );
+				if( !filepath )
+					filepath = ExpandPath( "@/../share/SACK/conf" );
+				pathlen = StrLen( filepath );
+				printf( "Configuration path? %s\n", filepath );
+
+				LIST_FORALL( loadnames, idx, TEXTSTR, loadname ) {
+					if( idx >= max_count ) break;
+					path_loadname = NewArray( TEXTCHAR, len = pathlen + SizeOfMemBlock( loadname ) );
+					AddLink( &loadnames, path_loadname );
+					tnprintf( path_loadname, len, "%s/%s", filepath, loadname );
+					success = ProcessConfigurationFile( pch, path_loadname, 0 );
+					if( success ) printf( "Configuration path? %s\n", path_loadname );
+					if( success ) break;
 				}
 			}
 			if( !success )
 			{
-				tnprintf( loadname, len, "%s/%s", filepath, "interface.conf" );
+				tnprintf( path_loadname, len, "%s/%s", filepath, "interface.conf" );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
+				if( success ) printf( "Configuration path? %s\n", path_loadname );
 			}
 			if( !success )
 			{
 				//lprintf( "Failed to open interface configuration file:%s - assuming it will never exist, and aborting trying this again"
 				//		 , l.config_filename?l.config_filename:"interface.conf" );
 			}
-			if( loadname )
-				Release( loadname );
+			LIST_FORALL( loadnames, idx, TEXTSTR, loadname ) {
+				if( loadname )
+					Deallocate( TEXTSTR, loadname );
+			}
+#ifndef __ANDROID__
+			if( filepath ) Deallocate( CTEXTSTR, filepath );
+#endif
+			DeleteListEx( &loadnames DBG_SRC );
 		}
 		DestroyConfigurationHandler( pch );
 		//at this point... we should probably NOT

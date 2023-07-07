@@ -2090,9 +2090,11 @@ SYSTEM_PROC( void, AddMappedLibrary)( CTEXTSTR libname, POINTER image_memory )
 		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(uint32_t)maxlen:0) );
 		library->alt_full_name = NULL;
 #ifdef _WIN32
+		// full_name isn't name_data
 		library->full_name = CharWConvert( libname );
 		library->name = (wchar_t*)pathrchrW( library->full_name );
 #else
+		// full_name is equivalent to name_data
 		StrCpy( library->full_name, libname );
 		library->name = (char*)pathrchr( library->full_name );
 #endif
@@ -2182,11 +2184,13 @@ void DeAttachThreadToLibraries( LOGICAL attach )
 SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR funcname, LOGICAL bPrivate  DBG_PASS )
 {
 	PLIBRARY library;
-#ifdef _WIN32
+#ifdef _DEBUG
+#  ifdef _WIN32
 	struct {
 		wchar_t* name;
 		DWORD error;
-	} errors[5] ;
+	} errors[4] ;
+#  endif
 #endif
 	SystemInit();
 	library = l.libraries;
@@ -2214,37 +2218,36 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		size_t curnameLen;
 		TEXTCHAR curPath[MAXPATH];
 		size_t maxlen;
+		size_t libnameLen = StrLen( libname );
 		GetCurrentPath( curPath, sizeof( curPath ) );
-		maxlen = (fullnameLen = StrLen( l.load_path ) + 1 + StrLen( libname ) + 1)
-			+ (orignameLen = StrLen( libname ) + 1)
-			+ (curnameLen = StrLen( curPath ) + 1 + StrLen( libname ) + 1)
-			+ StrLen( l.library_path ) + 1 + StrLen( libname ) + 1
+		maxlen = (fullnameLen = StrLen( l.load_path ) + 1 + libnameLen + 1)
+			+ (orignameLen = libnameLen + 1)
+			+ (curnameLen = StrLen( curPath ) + 1 + libnameLen + 1)
+			+ StrLen( l.library_path ) + 1 
 			;
 		library = NewPlus( LIBRARY, sizeof(TEXTCHAR)*((maxlen<0xFFFFFF)?(uint32_t)maxlen:0) );
 		library->loading = 0; // depth counter
 #ifdef _WIN32
 		if( !IsAbsolutePath( libname ) ) {
-
+		   // where the program loaded from? library loaded from
 			snprintf( library->name_data, maxlen, "%s/%s", l.load_path, libname );
 			{
 				char* n; for( n = library->name_data; n[0]; n++ ) if( n[0] == '/' ) n[0] = '\\';
 				library->full_name = CharWConvert( library->name_data );
 			}
+			// the original name (converted)
 			snprintf( library->name_data, maxlen, "%s", libname );
 			{
 				char* n; for( n = library->name_data; n[0]; n++ ) if( n[0] == '/' ) n[0] = '\\';
 				library->name = CharWConvert( library->name_data );
 			}
-			snprintf( library->name_data, maxlen, "%s", libname );
-			{
-				char* n; for( n = library->name_data; n[0]; n++ ) if( n[0] == '/' ) n[0] = '\\';
-				library->orig_name = CharWConvert( library->name_data );
-			}
+			// where this library loaded from
 			snprintf( library->name_data, maxlen, "%s/%s", l.library_path, libname );
 			{
 				char* n; for( n = library->name_data; n[0]; n++ ) if( n[0] == '/' ) n[0] = '\\';
 				library->alt_full_name = CharWConvert( library->name_data );
 			}
+			// where this user currenty is
 			snprintf( library->name_data, maxlen, "%s/%s", curPath, libname );
 			{
 				char* n; for( n = library->name_data; n[0]; n++ ) if( n[0] == '/' ) n[0] = '\\';
@@ -2255,37 +2258,34 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			{
 				char* n; for( n = library->name_data; n[0]; n++ ) if( n[0] == '/' ) n[0] = '\\';
 				library->full_name = CharWConvert( library->name_data );
-				library->name = pathrchrW( library->full_name );
+				library->name = (wchar_t*)pathrchrW( library->full_name );
 				if( library->name ) library->name++;
 				else library->name = library->full_name;
 			}
-			library->orig_name = library->full_name;
-			library->cur_full_name = library->full_name;
+			library->name = library->full_name;
+			Hold( library->name );
 			library->alt_full_name = library->full_name;
+			Hold( library->alt_full_name );
+			library->cur_full_name = library->full_name;
+			Hold( library->cur_full_name );
 		}
 #else
-		library->alt_full_name = library->full_name + fullnameLen;
 		//lprintf( "New library %s", libname );
 		if( !IsAbsolutePath( libname ) ) {
-			library->orig_name = library->full_name + fullnameLen;
-			library->cur_full_name = library->full_name + fullnameLen + orignameLen;
-			library->alt_full_name = library->full_name + fullnameLen + orignameLen + curnameLen;
+			library->cur_full_name = library->full_name + fullnameLen ;
+			library->alt_full_name = library->full_name + fullnameLen + curnameLen;
 			library->name = library->full_name
 				+ tnprintf( library->full_name, maxlen, "%s/", l.load_path );
-			tnprintf( library->orig_name, maxlen, "%s", libname );
+			tnprintf( library->name, maxlen, "%s", libname );
 			tnprintf( library->cur_full_name, maxlen, "%s/%s", curPath, libname );
 			tnprintf( library->alt_full_name, maxlen, "%s/%s", l.library_path, libname );
 
-			tnprintf( library->name
-				, fullnameLen - ( library->name - library->full_name )
-				, "%s", libname );
 		} else {
 			StrCpy( library->full_name, libname );
-			library->orig_name = library->full_name;
+			library->name = (char*)pathrchr( library->full_name );
 			library->cur_full_name = library->full_name;
 			library->alt_full_name = library->full_name;
 			//library->long_name = library->full_name;
-			library->name = (char*)pathrchr( library->full_name );
 			library->loading = 0;
 			if( library->name )
 				library->name++;
@@ -2331,9 +2331,8 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				{
 					UnlinkThing( library );
 #ifdef _WIN32
-					if( library->alt_full_name != library->full_name ) Deallocate( wchar_t*, library->alt_full_name );
-					if( library->cur_full_name != library->full_name ) Deallocate( wchar_t*, library->cur_full_name );
-					if( library->orig_name != library->full_name ) Deallocate( wchar_t*, library->orig_name );
+					Deallocate( wchar_t*, library->alt_full_name );
+					Deallocate( wchar_t*, library->cur_full_name );
 					Deallocate( wchar_t*, library->full_name );
 					Deallocate( wchar_t*, library->name );
 #endif
@@ -2349,42 +2348,55 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	SuspendDeadstart();
 	if( !library->library ) {
 		library->library = LoadLibraryExW( library->cur_full_name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR| LOAD_LIBRARY_SEARCH_DEFAULT_DIRS ); //-V595
+#ifdef _DEBUG
 		errors[0].name = library->cur_full_name;
 		errors[0].error = GetLastError();
+#endif
 	}
 	if( !library->library ) {
 #  ifdef DEBUG_LIBRARY_LOADING
 		lprintf( "trying load...%s", library->full_name );
 #  endif
 		library->library = LoadLibraryExW( library->full_name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS );
+#ifdef _DEBUG
 		errors[1].name = library->full_name;
 		errors[1].error = GetLastError();
+#endif
 	}
 	if( !library->library ) {
 		library->library = LoadLibraryExW( library->alt_full_name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS );
+#ifdef _DEBUG
 		errors[2].name = library->alt_full_name;
 		errors[2].error = GetLastError();
+#endif
 	}
 	if( !library->library ) {
-		library->library = LoadLibraryExW( library->orig_name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS );
-		errors[3].name = library->orig_name;
-		errors[3].error = GetLastError();
-		//if( !library->library ) lprintf( "Failed load basic:%s %d", library->orig_name, GetLastError() );
-	}
-	if( !library->library ) {
-#  ifdef DEBUG_LIBRARY_LOADING
-		lprintf( "trying load...%s", library->name );
-#  endif
 		library->library = LoadLibraryExW( library->name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS );
-		errors[4].name = library->name;
-		errors[4].error = GetLastError();
+#ifdef _DEBUG
+		errors[3].name = library->name;
+		errors[3].error = GetLastError();
+#endif
+		//if( !library->library ) lprintf( "Failed load basic:%s %d", library->name, GetLastError() );
 	}
 	if( !library->library ) {
 		if( !library->loading ) {
 			//if( l.flags.bLog )
-			for( int i = 0; i < 5; i++ )
+#ifdef _DEBUG
+			for( int i = 0; i < 4; i++ )
 				lprintf( "Error LoadLibrary: %5d %ls", errors[i].error, errors[i].name );
-				_xlprintf( 2 DBG_RELAY )("Attempt to load %s[%s](%s) failed: %d.", libname, library->full_name, funcname ? funcname : "all", GetLastError()); //-V595
+#else
+			_xlprintf( 2 DBG_RELAY )("Attempt to load [%ls][%ls][%ls]%ls(%s) failed."
+					, library->cur_full_name
+					, library->full_name
+					, library->alt_full_name
+					, library->name
+					, funcname ? funcname : "all"
+					); //-V595
+#endif
+			ReleaseEx( library->cur_full_name DBG_SRC );
+			ReleaseEx( library->full_name DBG_SRC );
+			ReleaseEx( library->alt_full_name DBG_SRC );
+			ReleaseEx( library->name DBG_SRC );
 			UnlinkThing( library );
 			ReleaseEx( library DBG_SRC );
 		}
@@ -2454,16 +2466,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		}//else lprintf( "Success opening:%s", library->alt_full_name );
 #  endif
 #endif
-#ifdef __cplusplus_cli
-		{
-			void (CPROC *f)( void );
-			if( l.flags.bLog )
-				lprintf( "GetInvokePreloads" );
-			f = (void(CPROC*)(void))GetProcAddress( library->library, "InvokePreloads" );
-			if( f )
-				f();
-		}
-#endif
+
 		{
 			//DebugBreak();
 			ResumeDeadstart();
@@ -2472,7 +2475,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			// (2023) this is probably not needed now; the single flag for
 			// bHeldDeadstart in names loading interfaces was probably resuming
 			// and extra time too soon; this is harmless to do though.
-			InvokeDeadstart();
+			// InvokeDeadstart();
 		}
 		InvokeLibraryLoad();
 	//}

@@ -2,7 +2,7 @@ if( NOT __CLR__ )
 
 #############  vfs #####################
 
-set( PROJECT sack_vfs.module )
+set( PROJECT sack_vfs )
 
 set(BASE_SOURCES
     vfs.c
@@ -15,20 +15,14 @@ sack_add_library( ${PROJECT} SHARED ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils
 )
-if( NOT __ANDROID__ )
-  SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
-                  SUFFIX ""
-                  PREFIX ""
-  )
-endif( NOT __ANDROID__ )
 
 target_link_libraries( ${PROJECT} ${SACK_CORE_LIBRARY} )
-install_default_plugin( ${PROJECT} )
+install_default_dest( ${PROJECT} )
 
 #############  vfs++ #####################
 
 
-set( PROJECT sack_vfs.pp.module )
+set( PROJECT sack_vfs.pp )
 set( VFSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs.cc )
 set( VFSFSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_fs.cc )
 set( VFSOSPP ${CMAKE_BINARY_DIR}/src/utils/virtual_file_system/vfs_os.cc )
@@ -85,15 +79,9 @@ add_dependencies( ${PROJECT} generate-foo )
 SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils
 )
-if( NOT __ANDROID__ )
-  SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
-                  SUFFIX ""
-                  PREFIX ""
-  )
-endif( NOT __ANDROID__ )
 
 target_link_libraries( ${PROJECT} ${SACK_CORE_LIBRARY_PLUSPLUS} ${SACK_CORE_LIBRARY})
-install_default_plugin( ${PROJECT} )
+install_default_dest( ${PROJECT} )
 
 
 #############  TESTS #####################
@@ -112,12 +100,12 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils/tests
 )
 
-target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} sack_vfs.module )
+target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} sack_vfs )
 install_mode_dest( ${PROJECT} )
 
 if( NEED_FUSE OR FUSE_FOUND )
 	sack_add_executable( sack_vfs.fuse.test fuse_private.c )
-	target_link_libraries( sack_vfs.fuse.test ${SACK_LIBRARIES} ${FUSE_LIBRARIES} sack_vfs.module )
+	target_link_libraries( sack_vfs.fuse.test ${SACK_LIBRARIES} ${FUSE_LIBRARIES} sack_vfs )
 	install_mode_dest( sack_vfs.fuse.test )
         #SET_PROPERTY( sack_vfs.fuse.test APPEND PROPERTY 
         #	COMPILE_DEFINITIONS "

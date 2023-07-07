@@ -11,7 +11,7 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils/vfs
 )
 
-target_link_libraries( ${PROJECT} sack_vfs.module ${SACK_LIBRARIES} )
+target_link_libraries( ${PROJECT} sack_vfs ${SACK_LIBRARIES} )
 install_mode_dest( ${PROJECT} )
 
 if( 0 )
@@ -27,7 +27,7 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
                   FOLDER utils/vfs
 )
 
-target_link_libraries( ${PROJECT} sack_vfs.module ${SACK_LIBRARIES} )
+target_link_libraries( ${PROJECT} sack_vfs ${SACK_LIBRARIES} )
 install_mode_dest( ${PROJECT} )
 
 endif( 0 )

@@ -59,7 +59,7 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
 )
 
 
-target_link_libraries( ${PROJECT} sack_vfs.module ${SACK_LIBRARIES} )
+target_link_libraries( ${PROJECT} sack_vfs ${SACK_LIBRARIES} )
 install_mode_dest( ${PROJECT} )
 
 
