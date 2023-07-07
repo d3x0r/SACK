@@ -65,7 +65,7 @@ SET( DATA_INSTALL_PREFIX share/SACK )
 if( WIN32 )
 	macro( install_default_plugin )
 		install( TARGETS ${ARGV}
-			RUNTIME DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}/plugins
+			RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${DATA_INSTALL_PREFIX}/plugins
 			LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/trash
 			ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/trash  # don't install these... they are binary only libraries
 			#LIBRARY DESTINATION ${DATA_INSTALL_PREFIX}/plugins
@@ -74,7 +74,7 @@ if( WIN32 )
 else(WIN32)
 	macro( install_default_plugin )
 		install( TARGETS ${ARGV}
-			RUNTIME DESTINATION ${SHARED_LIBRARY_OUTPUT_DIR}/SACK
+			RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${DATA_INSTALL_PREFIX}/plugins
 			LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/trash
 			ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/trash  # don't install these... they are binary only libraries
 			#LIBRARY DESTINATION ${DATA_INSTALL_PREFIX}/plugins
@@ -177,14 +177,9 @@ else( __ANDROID__ )
 		DESTINATION ${BINARY_OUTPUT_DIR}
 		 )
     endif( watcom21 )
-    if( __CLR__ )
-      install( TARGETS ${proj} RUNTIME DESTINATION ./${project_target}
+      install( TARGETS ${proj} RUNTIME DESTINATION ${DATA_INSTALL_PREFIX}/${project_target}
+			ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/trash
 	)
-    else( __CLR__ )
-      install( TARGETS ${proj} RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target}
-			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	)
-    endif( __CLR__ )
   else( WIN32 )
     install( TARGETS ${proj}
 	RUNTIME DESTINATION ${BINARY_OUTPUT_DIR}/${project_target}

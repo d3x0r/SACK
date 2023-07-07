@@ -36,7 +36,7 @@ if( WIN32 )
 target_link_libraries( ${PROJECT_NAME} winmm )
 endif( WIN32 )
 
-install_default_project( ${PROJECT_NAME} bin/plugins )
+install_default_project( ${PROJECT_NAME} share/SACK/plugins )
 
 if( NOT VLC_INTERFACE_ONLY )
 

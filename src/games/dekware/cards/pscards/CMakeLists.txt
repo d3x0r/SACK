@@ -9,8 +9,8 @@ SET_TARGET_PROPERTIES(pscards PROPERTIES
 my_target_link_libraries( pscards ${SACK_LIBRARIES} )
 
 INSTALL( TARGETS pscards 
-	RUNTIME DESTINATION bin/plugins
-	LIBRARY DESTINATION bin/plugins
+	RUNTIME DESTINATION share/SACK/plugins
+	LIBRARY DESTINATION share/SACK/plugins
 	ARCHIVE DESTINATION lib )
 
 

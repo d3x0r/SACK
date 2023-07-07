@@ -17,7 +17,7 @@ set( LINK_DIRECTORIES ${SACK_LIBRARY_DIR} )
 my_target_link_libraries( ${project}  ${SACK_LIBRARIES} )
 
 INSTALL( TARGETS ${project}
-	RUNTIME DESTINATION bin/plugins
-	LIBRARY DESTINATION bin/plugins
+	RUNTIME DESTINATION share/SACK/plugins
+	LIBRARY DESTINATION share/SACK/plugins
 )
 

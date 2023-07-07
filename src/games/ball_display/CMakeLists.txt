@@ -12,8 +12,8 @@ set(SACK_BINARY_SDK_ROOT_PATH ${SACK_BINARY_SDK_ROOT_PATH} CACHE STRING "SACK Bi
 endif( NOT SACK_BINARY_SDK_ROOT_PATH )
 
 
-include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
-include( ${SACK_BINARY_SDK_ROOT_PATH}/CMakePackage )
+include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
+include( ${SACK_BINARY_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
 
 include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
