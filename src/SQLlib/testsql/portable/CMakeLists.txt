@@ -11,7 +11,7 @@ if( PLATFORM_CMAKE_DEFINES )
    endforeach()
 endif( PLATFORM_CMAKE_DEFINES )
 
-include( ${SACK_BASE}/DefaultInstall.cmake )
+include( ${SACK_BASE}/share/SACK/build/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include/SACK )
 STRING( REPLACE " " ";" K12_SOURCES ${K12_SOURCES} )
 STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )

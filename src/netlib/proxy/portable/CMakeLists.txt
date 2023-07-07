@@ -10,7 +10,7 @@ if( PLATFORM_CMAKE_DEFINES )
    endforeach()
 endif( PLATFORM_CMAKE_DEFINES )
 
-include( ${SACK_BASE}/DefaultInstall.cmake )
+include( ${SACK_BASE}/share/SACK/build/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include/SACK )
 STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
 STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )

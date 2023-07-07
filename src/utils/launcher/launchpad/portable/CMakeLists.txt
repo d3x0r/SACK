@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project( launchpad.portable )
 
-include( ${SACK_BASE}/DefaultInstall.cmake )
+include( ${SACK_BASE}/share/SACK/build/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include/SACK )
 STRING( REPLACE " " ";" SACK_PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
 STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
@@ -69,7 +69,7 @@ endif( WIN32 )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
-    ../launchpad ${MORE_SOURCES}
+    ../launchpad.c ${MORE_SOURCES}
     ${SOURCES_ROOT}src/netlib/network.c 
     ${SOURCES_ROOT}src/netlib/network${NETWORK_OS}.c 
     ${SOURCES_ROOT}src/netlib/network_addresses.c 
@@ -173,7 +173,7 @@ include_directories( ${SOURCES_ROOT}src/sqlite/${SQLITE_VERSION} )
 
 set(BASE_SOURCES
 ${FIRST_GCC_PROGRAM_SOURCE} 
-    ../launchpad ${MORE_SOURCES}
+    ../launchpad.c ${MORE_SOURCES}
     ${SOURCES_ROOT}src/netlib/network.c 
     ${SOURCES_ROOT}src/netlib/network${NETWORK_OS}.c 
     ${SOURCES_ROOT}src/netlib/network_addresses.c 

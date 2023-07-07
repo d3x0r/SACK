@@ -1,5 +1,5 @@
 
-include( ${SACK_BASE}/DefaultInstall.cmake )
+include( ${SACK_BASE}/share/SACK/build/DefaultInstall.cmake )
 
 PROJECT( ban_scanners )
 include_directories( ${SACK_BASE}/include/SACK )
