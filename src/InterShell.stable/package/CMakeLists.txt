@@ -21,8 +21,8 @@ set(INTERSHELL_SDK_ROOT_PATH ${INTERSHELL_SDK_ROOT_PATH} CACHE STRING "SACK Inte
 endif( NOT INTERSHELL_SDK_ROOT_PATH )
 
 if( NOT SACK_INCLUDE_DIR )
-	include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
-	include( ${INTERSHELL_SDK_ROOT_PATH}/CMakePackage )
+	include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
+	include( ${INTERSHELL_SDK_ROOT_PATH}/share/SACK/build/Intershell/CMakePackage )
 endif( NOT SACK_INCLUDE_DIR )
 
 
@@ -30,7 +30,7 @@ project( InterShell.Package )
 
 
 if( NOT DATA_INSTALL_PREFIX )
-	SET( DATA_INSTALL_PREFIX resources )
+	SET( DATA_INSTALL_PREFIX sack/SACK )
 endif()
 
 if( CMAKE_BUILD_TYPE MATCHES "Debug" )

@@ -4,9 +4,9 @@
 
 
 if( BUILD_INTO_SACK_INSTALL )
-		 FILE( APPEND ${FILEOUT} "set( DEKWARE_BASE ${BASE_PATH})\n" )
+		 FILE( APPEND ${FILEOUT} "set( DEKWARE_BASE ${CMAKE_INSTALL_PREFIX})\n" )
 else( BUILD_INTO_SACK_INSTALL )
-		 FILE( WRITE ${FILEOUT} "set( DEKWARE_BASE ${BASE_PATH})\n" )
+		 FILE( WRITE ${FILEOUT} "set( DEKWARE_BASE ${CMAKE_INSTALL_PREFIX})\n" )
 endif( BUILD_INTO_SACK_INSTALL )
 
 		 FILE( APPEND ${FILEOUT} "set( DEKWARE_INCLUDE_DIR $" "{DEKWARE_BASE}/include/dekware )\n" )
@@ -21,7 +21,7 @@ endif( BUILD_INTO_SACK_INSTALL )
 		 FILE( APPEND ${FILEOUT} "install( FILES $" "{Dekware_Binaries} DESTINATION $" "{dest}/bin )\n" )
 		 FILE( APPEND ${FILEOUT} "install( FILES $" "{Dekware_Plugins} DESTINATION $" "{dest}/bin/plugins )\n" )
 		 FILE( APPEND ${FILEOUT} "install( FILES $" "{Dekware_Plugins2} DESTINATION $" "{dest}/bin/plugins )\n" )
-		 FILE( APPEND ${FILEOUT} "install(DIRECTORY $" "{DEKWARE_BASE}/bin/scripts/ DESTINATION $" "{dest}/bin/scripts )\n" )
+		 FILE( APPEND ${FILEOUT} "install(DIRECTORY $" "{DEKWARE_BASE}/share/SACK/dekware/scripts/ DESTINATION $" "{dest}/share/SACK/dekware/scripts )\n" )
 
 		 FILE( APPEND ${FILEOUT} "ENDMACRO( INSTALL_DEKWARE )\n" )
 		 FILE( APPEND ${FILEOUT} "\n" )
