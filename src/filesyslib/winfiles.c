@@ -1557,13 +1557,13 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 		{
 			char* name;
 			for( name = file->name; name[0]; name++ ) {
-				if( name[0] == '/' ) name[0] = '\\';
+				if( name[0] == '/' ) name[0] = SYSPATHCHAR[0];
 			}
 		}
 		{
 			char* name;
 			for( name = file->fullname; name[0]; name++ ) {
-				if( name[0] == '/' ) name[0] = '\\';
+				if( name[0] == '/' ) name[0] = SYSPATHCHAR[0];
 			}
 		}
 		EnterCriticalSec( &( *winfile_local ).cs_files );
