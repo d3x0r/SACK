@@ -306,7 +306,7 @@ if( BUILD_MONOLITHIC )
 else( BUILD_MONOLITHIC )
 
 # bag.image is memory only; non platform specific utility
-                SET( libfile_list ${libfile_list} bag bag.externals bag.image bag.psi deadstart )
+                SET( libfile_list ${libfile_list} bag bag.externals bag.image bag.psi deadstart sack_vfs sack_vfs.pp )
    if( WIN32 )
                 SET( libfile_list ${libfile_list} dl )
    endif( WIN32 )
@@ -348,7 +348,7 @@ if( NOT __NO_OPTIONS__ )
        	    		if( NOT EXCLUDE_AUX_PROGRAMS AND BUILD_EXTRAS )
        	            		SET( progfile_list ${progfile_list} SetOption )
 		      	endif( NOT EXCLUDE_AUX_PROGRAMS AND BUILD_EXTRAS )
-    			SET( literal_libfile_list ${literal_libfile_list} EditOptions.plugin )
+    			SET( literal_libfile_list ${literal_libfile_list} plugins/EditOptions.plugin )
 	       	else( NOT __ANDROID__ )
        		   	SET( literal_libfile_list ${literal_libfile_list} ${CMAKE_SHARED_LIBRARY_PREFIX}EditOptions.plugin${CMAKE_SHARED_LIBRARY_SUFFIX} )
 	       	endif( NOT __ANDROID__ )
@@ -359,11 +359,9 @@ endif( NOT __NO_OPTIONS__ )
 
 if( WIN32 )
 		SET( literal_libfile_list ${literal_libfile_list}
-                        application_delay.module
-                        loginfo.module
-                        seed_random.module
-                        sack_vfs.module
-                        sack_vfs.pp.module
+                        plugins/application_delay.module
+                        plugins/loginfo.module
+                        plugins/seed_random.module
                     )
                     if( INSTALL_EXTRAS )
 		SET( profile_list ${progfile_list}
@@ -382,7 +380,7 @@ if( WIN32 )
 		endif( NOT BUILD_MONOLITHIC )
 if( NOT __NO_MSGSVR__ )
 		SET( progfile_list ${progfile_list} service_list sack.msgsvr.service msgsvr )
-		SET( literal_libfile_list ${literal_libfile_list} sack.msgsvr.service.plugin  )
+		SET( literal_libfile_list ${literal_libfile_list} plugins/sack.msgsvr.service.plugin  )
 endif( NOT __NO_MSGSVR__ )
 endif( WIN32 )
 
