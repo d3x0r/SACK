@@ -21,7 +21,7 @@ else( MAKING_SACK_CORE )
 
 ADD_PROGRAM( ${PROJECT} WIN32 
 ${FIRST_GCC_PROGRAM_SOURCE}
-   ${SACK_BASE}/src/sack/runwin.c 
+   ${SACK_BASE}/src/SACK/runwin.c 
 ${LAST_GCC_PROGRAM_SOURCE}
    
 )

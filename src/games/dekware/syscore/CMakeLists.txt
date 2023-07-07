@@ -27,8 +27,8 @@ endif( NOT __ANDROID__ )
 target_link_libraries( ${project}  ${SACK_LIBRARIES} )
 
 INSTALL( TARGETS ${project} 
-	RUNTIME DESTINATION bin 
-	LIBRARY DESTINATION bin 
+	RUNTIME DESTINATION bin/SACK/applicationCore
+	LIBRARY DESTINATION bin/SACK/applicationCore
 )
 
 SET( DEKWARE_SDK )

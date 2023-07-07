@@ -1,5 +1,5 @@
-	set( BASE_PATH ${DATA_INSTALL_PREFIX} )
-	set( FILEOUT ${BASE_PATH}/InterShell/CMakePackage )
+	set( BASE_PATH ${CMAKE_INSTALL_PREFIX}/${DATA_INSTALL_PREFIX} )
+	set( FILEOUT ${BASE_PATH}/build/InterShell/CMakePackage )
 
 #message( "Output to ${FILEOUT}" )
 

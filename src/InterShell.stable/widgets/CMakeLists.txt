@@ -57,5 +57,5 @@ INSTALL(
     ${SACK_BASE}/include/SACK/widgets )
 endif( INSTALL_TO_SACK_SDK )
 
-INSTALL( FILES chat/chat-decoration.png DESTINATION resources/images )
+INSTALL( FILES chat/chat-decoration.png DESTINATION ${DATA_INSTALL_PREFIX}/images )
 

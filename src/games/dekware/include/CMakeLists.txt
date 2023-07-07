@@ -9,6 +9,6 @@ INSTALL(
   FILES
     ${DEKWARE_HEADERS}
   DESTINATION
-    include/dekware
+    include/SACK/dekware
 )
 

@@ -715,7 +715,9 @@ SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 
 if( ON )
+   if( NOT DEFINED LIBRESSL_SKIP_INSTALL )
 	set( LIBRESSL_SKIP_INSTALL ON )
+   endif( NOT DEFINED LIBRESSL_SKIP_INSTALL )
 	set( LIBRESSL_APPS OFF )
 	set( LIBRESSL_TESTS OFF )
 	set( CMAKE_INSTALL_INCLUDEDIR include/${CMAKE_PROJECT_NAME} )
@@ -1225,8 +1227,8 @@ endif( EMSCRIPTEN )
 
 ###########
 
-
-install( FILES makefiles/cmake/DefaultInstall.cmake DESTINATION ${DATA_INSTALL_PREFIX}/core )
+# share/SACK/build
+install( FILES makefiles/cmake/DefaultInstall.cmake DESTINATION ${DATA_INSTALL_PREFIX}/build )
 
 # this SACK_CORE_BUILD is for building before we get 'installed' some of the header locations get moved.
 if( WATCOM )

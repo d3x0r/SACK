@@ -29,8 +29,8 @@ endif( NOT MAKING_SACK_CORE )
 project( Dekware )
 
 if( NOT MAKING_SACK_CORE )
-include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
-include( ${INTERSHELL_SDK_ROOT_PATH}/CMakePackage )
+include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
+include( ${INTERSHELL_SDK_ROOT_PATH}/share/SACK/build/InterShell/CMakePackage )
 
 if( NOT BUILD_INTO_SACK_INSTALL )
 
@@ -66,7 +66,7 @@ LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
 
-install(DIRECTORY scripts DESTINATION bin )
+install(DIRECTORY scripts DESTINATION ${DATA_INSTALL_PREFIX}/dekware/scripts )
 
 macro( ADD_PLUGIN target group  )
 	add_library( ${target} SHARED ${FIRST_GCC_LIBRARY_SOURCE} ${ARGN} ${LAST_GCC_LIBRARY_SOURCE} )
@@ -129,7 +129,7 @@ add_subdirectory( ../virtuality virtuality_library )
 add_subdirectory( virtuality )
 endif( NOT __ANDROID__ AND NOT MINGW )
 
-install( DIRECTORY defaults/ DESTINATION bin )
+install( DIRECTORY defaults/ DESTINATION ${DATA_INSTALL_PREFIX}/conf )
 
 # get the libraries..
 #SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )
@@ -142,4 +142,4 @@ install( DIRECTORY defaults/ DESTINATION bin )
 ##message( "Resulting install: ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}" )
 #INSTALL( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin )
 
-add_subdirectory( info )
+#add_subdirectory( info )

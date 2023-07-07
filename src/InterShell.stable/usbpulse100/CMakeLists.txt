@@ -41,7 +41,7 @@ COMPILE_FLAGS  "-DTARGET_LABEL=${project}"
 target_link_libraries( ${project} ${SACK_LIBRARIES} version )
 install_literal_product( ${project} plugins )
 INSTALL( FILES driver/CP210xMan.dll DESTINATION bin/plugins )
-INSTALL( DIRECTORY images DESTINATION resources )
+INSTALL( DIRECTORY images DESTINATION ${DATA_INSTALL_PREFIX}/frames )
 
 endif( WIN32 )
 

@@ -17,7 +17,7 @@ message( "InterShell revision: ${CURRENT_REPO_REVISION}" )
 
 
 macro( build_package_include )
-   file( STRINGS ${CMAKE_INSTALL_PREFIX}/CMakePackage LINES )
+   file( STRINGS ${CMAKE_INSTALL_PREFIX}/${DATA_INSTALL_PREFIX}/build/InterShell/CMakePackage LINES )
    #file( READ ${CMAKE_INSTALL_PREFIX}/CMakePackage LINES )
    file( WRITE ${CMAKE_BINARY_DIR}/deploy.package.tmp.h " char * package = \n" )
    foreach( LINE ${LINES} )

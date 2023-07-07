@@ -11,7 +11,7 @@ if( NOT MAKING_SACK_CORE )
 
   endif( NOT SACK_SDK_ROOT_PATH )
 
-  include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
+  include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
 
 include( GNUInstallDirs )
 
@@ -50,8 +50,8 @@ add_definitions( -DINTERSHELL_CORE_BUILD )
 set( BUILD_INTERSHELL 1 )
 add_subdirectory( ../../data __/__/data )
 add_subdirectory( widgets )
-INSTALL( DIRECTORY config/ DESTINATION resources )
-INSTALL( DIRECTORY frames DESTINATION resources )
+INSTALL( DIRECTORY config/ DESTINATION ${DATA_INSTALL_PREFIX}/conf )
+INSTALL( DIRECTORY frames DESTINATION ${DATA_INSTALL_PREFIX}/frames )
 
 set( PROJECT_OUTPUT InterShell.core )
 
@@ -74,6 +74,7 @@ env_value.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 
+message( ${FIRST_GCC_LIBRARY_SOURCE} )
 
 add_library( ${PROJECT_OUTPUT} SHARED ${SOURCES} )
 
@@ -98,7 +99,7 @@ endif( NOT __ANDROID__ )
 
 my_target_link_libraries( ${PROJECT_OUTPUT} sack_widgets ${SACK_LIBRARIES} )
 
-install_literal_product( ${PROJECT_OUTPUT} . ) 
+install_literal_product( ${PROJECT_OUTPUT} SACK/applicationCore ) 
 
 
 include_directories( 
@@ -113,7 +114,7 @@ SET( INTERSHELL_SDK
   pages.h
 )
 
-INSTALL( DIRECTORY images DESTINATION resources )
+INSTALL( DIRECTORY images DESTINATION ${DATA_INSTALL_PREFIX}/images )
 
 INSTALL( 
   FILES
