@@ -1,6 +1,6 @@
 
 	set( BASE_PATH ${CMAKE_INSTALL_PREFIX}/${DATA_INSTALL_PREFIX} )
-	set( FILEOUT ${BASE_PATH}/dekware/build/CMakePackage )
+	set( FILEOUT ${BASE_PATH}/build/dekware/CMakePackage )
 
 
 if( BUILD_INTO_SACK_INSTALL )

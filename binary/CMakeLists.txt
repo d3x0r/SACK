@@ -22,7 +22,7 @@ endif( NOT SACK_SDK_ROOT_PATH )
 
 string( REPLACE "\\" "/" SACK_SDK_ROOT_PATH ${SACK_SDK_ROOT_PATH} )
 
-include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
+include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
 
 INSTALL_SACK( bin )
 include_directories( ${SACK_INCLUDE_DIR} )

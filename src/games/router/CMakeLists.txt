@@ -13,8 +13,8 @@ if( NOT MAKING_SACK_CORE )
     set(INTERSHELL_SDK_ROOT_PATH ${INTERSHELL_SDK_ROOT_PATH} CACHE STRING "SACK SDK Root" )
   endif( NOT INTERSHELL_SDK_ROOT_PATH )
 
-  include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
-  include( ${INTERSHELL_SDK_ROOT_PATH}/CMakePackage )
+  include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
+  include( ${INTERSHELL_SDK_ROOT_PATH}/share/SACK/build/InterShell/CMakePackage )
 
   INSTALL_SACK( bin )
   INSTALL_INTERSHELL( . )

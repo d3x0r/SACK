@@ -74,8 +74,6 @@ env_value.c
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 
-message( ${FIRST_GCC_LIBRARY_SOURCE} )
-
 add_library( ${PROJECT_OUTPUT} SHARED ${SOURCES} )
 
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT_OUTPUT} )
