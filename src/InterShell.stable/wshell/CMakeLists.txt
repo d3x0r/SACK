@@ -14,7 +14,7 @@ set(SOURCES
 if( __ANDROID__ )
 add_definitions( -DLOAD_LIBNAME="libInterShell.core.so" -DMODE=0 )
 else( __ANDROID__ )
-add_definitions( -DLOAD_LIBNAME="SACK/applicationCore/InterShell.core" -DMODE=0 )
+add_definitions( -DLOAD_LIBNAME="@/../share/SACK/applicationCore/InterShell.core" -DMODE=0 )
 endif( __ANDROID__ )
 
 add_program(${PROJECT} WIN32 ${SOURCES})
@@ -23,11 +23,8 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES
 )
 
 set( INSTALLED_TARGETS ${INSTALLED_TARGETS} ${PROJECT}${CMAKE_EXECUTABLE_SUFFIX} CACHE STRING  "" FORCE )
-if( __CLR__ )
-install( TARGETS ${PROJECT} RUNTIME DESTINATION . ) 
-else( __CLR__ )
+
 install( TARGETS ${PROJECT} RUNTIME DESTINATION bin ) 
-endif( __CLR__ )
 
 ##########################################################################3
 ################ Service ######################
@@ -42,8 +39,6 @@ set(SOURCES
    ../../utils/runner/runwin.c 
   ${LAST_GCC_PROGRAM_SOURCE}
 )
-
-add_definitions( -DLOAD_LIBNAME="InterShell.core" -DMODE=0 )
 
 add_executable_force_source(${PROJECT} WIN32 ${SOURCES})
 string( REPLACE "." "_" TARGET_LABEL ${PROJECT} )

@@ -26,5 +26,5 @@ endif( NOT __ANDROID__ )
 my_target_link_libraries( ${project} ${SACK_LIBRARIES} sack_widgets )
 install_plugin( ${project}  ) 
 
-INSTALL( DIRECTORY frames DESTINATION ${DATA_INSTALL_PREFIX}/frames ) 
+INSTALL( DIRECTORY frames/ DESTINATION ${DATA_INSTALL_PREFIX}/frames ) 
 

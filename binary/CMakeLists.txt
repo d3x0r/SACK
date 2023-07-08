@@ -24,7 +24,8 @@ string( REPLACE "\\" "/" SACK_SDK_ROOT_PATH ${SACK_SDK_ROOT_PATH} )
 
 include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
 
-INSTALL_SACK( bin )
+INSTALL_SACK( ${CMAKE_INSTALL_PREFIX} )
+
 include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 message( "installed to ${SACK_LIBRARY_DIR}" )

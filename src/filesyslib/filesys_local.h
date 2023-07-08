@@ -38,6 +38,7 @@ extern
 	struct file_system_mounted_interface *_default_mount;
 
 	LOGICAL have_default;
+	LOGICAL have_default_groups;
 	struct {
 		BIT_FIELD bLogOpenClose : 1;
 		BIT_FIELD bInitialized : 1;

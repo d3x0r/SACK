@@ -163,7 +163,7 @@ SaneWinMain( argc, argv )
 		if( !hModule )
 		{
 #ifdef LOAD_LIBNAME
-			hModule = LoadFunction( libname = LOAD_LIBNAME, NULL );
+			hModule = LoadFunction( libname = ExpandPath(LOAD_LIBNAME), NULL );
 			if( !hModule )
 			{
 #ifndef UNDER_CE

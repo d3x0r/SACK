@@ -267,7 +267,17 @@ PSI_CONTROL LoadXMLFrameOverExx( PSI_CONTROL parent, CTEXTSTR file, LOGICAL crea
 	size = 0;
 //#ifdef UNDER_CE
 	{
+		static TEXTCHAR tmpbuf[512];
+		//TEXTSTR tmp;
 		FILE *file_read = sack_fopen( 0, file, "rb" );
+		if( !file_read ) {
+			snprintf( tmpbuf, 511, "%%frames%%/%s", file );
+			file_read = sack_fopen( 0, tmpbuf, "rb" );
+		}
+		if( !file_read ) {
+			snprintf( tmpbuf, 511, "@/../share/SACK/frames/%s", file );
+			file_read = sack_fopen( 0, tmpbuf, "rb" );
+		}
 		if( file_read )
 		{
 			size = sack_fsize( file_read );

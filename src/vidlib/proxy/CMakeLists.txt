@@ -12,7 +12,7 @@ include( ${SACK_SDK_ROOT_PATH}/CMakePackage )
 include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 
-INSTALL_SACK( bin )
+INSTALL_SACK( ${CMAKE_INSTALL_PREFIX} )
 include_directories( ${SACK_INCLUDE_DIR}/zlib )
 include_directories( ${SACK_INCLUDE_DIR}/png )
 endif( NOT MAKING_SACK_CORE )

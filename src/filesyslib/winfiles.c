@@ -265,6 +265,18 @@ static void InitGroups( void )
 	group->name = StrDup( "Startup Path" );
 	AddLink( &( *winfile_local ).groups, group );
 	( *winfile_local ).have_default = TRUE;
+
+}
+
+static void InitMoreGroups( void ) {
+	if( !( *winfile_local ).have_default_groups ) {
+		( *winfile_local ).have_default_groups = 1;
+		GetFileGroup( "resources", "@/../share/SACK" );
+		GetFileGroup( "frames", "@/../share/SACK/frames" );
+		GetFileGroup( "images", "@/../share/SACK/images" );
+		GetFileGroup( "fonts", "@/../share/SACK/fonts" );
+	}
+
 }
 
 static struct Group* GetGroupFilePath( CTEXTSTR group )
@@ -290,6 +302,7 @@ INDEX  GetFileGroup( CTEXTSTR groupname, CTEXTSTR default_path )
 		{
 			TEXTCHAR tmp_ent[256];
 			TEXTCHAR tmp[256];
+			InitMoreGroups();
 			tnprintf( tmp_ent, sizeof( tmp_ent ), "file group/%s", groupname );
 			//lprintf( "option to save is %s", tmp );
 #ifdef __NO_OPTIONS__
@@ -312,7 +325,7 @@ INDEX  GetFileGroup( CTEXTSTR groupname, CTEXTSTR default_path )
 		filegroup = New( struct Group );
 		filegroup->name = StrDup( groupname );
 		if( default_path )
-			filegroup->base_path = StrDup( default_path );
+			filegroup->base_path = ExpandPath( default_path );
 		else
 			filegroup->base_path = StrDup( "." );
 		AddLink( &( *winfile_local ).groups, filegroup );

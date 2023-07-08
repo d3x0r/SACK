@@ -38,5 +38,5 @@ endif( WIN32 )
 
 install_plugin( ${project}  ) 
 
-INSTALL( DIRECTORY frames DESTINATION ${DATA_INSTALL_PREFIX}/frames ) 
+INSTALL( DIRECTORY frames/ DESTINATION ${DATA_INSTALL_PREFIX}/frames ) 
 

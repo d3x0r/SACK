@@ -4465,6 +4465,7 @@ static LOGICAL CPROC AcceptFiles( PSI_CONTROL pc, CTEXTSTR file, int32_t x, int3
 				break;
 	}
 	bInvoked = FALSE;
+	return TRUE;
 }
 
 static int OnCreateCommon( "Menu Canvas" )( PSI_CONTROL pc )
@@ -5305,9 +5306,9 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 #ifdef __ANDROID_
 								  , resource_path[0]?resource_path:"."
 #elif defined( __LINUX__ )
-								  , resource_path[0]?resource_path:"~"
+								  , resource_path[0]?resource_path:"@/../share/SACK"
 #else
-								  , resource_path[0]?resource_path:"@/../resources"
+								  , resource_path[0]?resource_path:"@/../share/SACK"
 #endif
 								  , resource_path
 								  , sizeof( resource_path ), TRUE );
@@ -5318,8 +5319,8 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 	g.single_frame_title = SaveText( application_title );
 	GetFileGroup( "Resources", resource_path );
 	GetFileGroup( "PSI Frames", "%resources%/frames" );
-   if( !g.flags.bNoChangeDirectory )
-		SetCurrentPath( resource_path );
+   //if( !g.flags.bNoChangeDirectory )
+	//	SetCurrentPath( resource_path );
 #endif
 
 #ifndef __LINUX__
@@ -5343,7 +5344,6 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 	// only one of a single version of this program?
 	g.mem_lock = OpenSpace( lockname
 		, NULL
-		//, "memory.delete"
 		, &size );
 	if( !g.mem_lock )
 	{
