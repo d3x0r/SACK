@@ -185,7 +185,7 @@ static void OnEditSecurityContext( "NULL Password" )( uintptr_t button )
 	if( pls )
 	{
 		PSI_CONTROL frame = LoadXMLFrameOver( NULL
-														, "EditSQLButtonSecurity.Frame" );
+														, "EditNullButtonSecurity.Frame" );
 		if( frame )
 		{
 			int okay = 0;
