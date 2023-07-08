@@ -495,11 +495,7 @@ else( NOT __ANDROID__ )
                 endforeach( lib  )
 endif( NOT __ANDROID__ )
 
-if( NOT __NO_GUI__ )
-	if( INSTALL_FRAME_BORDER )
-			FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/${INSTALL_FRAME_BORDER}/ DESTINATION $" "{IMAGE_OUTPUT_DIR} )\n" )
-	endif( INSTALL_FRAME_BORDER )
-endif( NOT __NO_GUI__ )
+		FILE( APPEND ${FILEOUT} "install( DIRECTORY $" "{SACK_BASE}/share/ DESTINATION $" "{IMAGE_OUTPUT_DIR} )\n" )
 
 if( __QNX__ )
 		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{SACK_BASE}/${SHARED_LIBPATH}/@CMAKE_SHARED_LIBRARY_PREFIX@freeglut-gles2@CMAKE_SHARED_LIBRARY_SUFFIX@ DESTINATION $" "{dest} )\n" )
