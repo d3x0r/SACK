@@ -24,7 +24,7 @@ my_target_link_libraries( ${project} ${SACK_LIBRARIES} sack_widgets keypad.isp $
 install_plugin( ${project}  ) 
 
 INSTALL( 
-  DIRECTORY frames
+  DIRECTORY frames/
   DESTINATION
     ${DATA_INSTALL_PREFIX}/frames
 )
