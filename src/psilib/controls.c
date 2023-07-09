@@ -824,7 +824,7 @@ PSI_PROC( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE Display
 
 		uint32_t w, h;
 		int bias_x, bias_y;
-		GetFileGroup( "Resources", "@/../Resources" );
+		GetFileGroup( "Resources", "@/../share/SACK" );
 		//GetDisplaySize( &w, &h );
 		//g.default_font = RenderFontFileScaledEx( "%resources%/fonts/rod.ttf", 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		//g.default_font = RenderFontFileScaledEx( "rod.ttf", 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
