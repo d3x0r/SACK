@@ -45,11 +45,11 @@ extern
 		BIT_FIELD have_default_groups : 1;
 		BIT_FIELD finished_default_groups : 1;
 	} flags;
-	TEXTSTR local_data_file_root;
-	TEXTSTR data_file_root;
+	TEXTSTR local_data_file_root; // windows user local data
+	TEXTSTR data_file_root; // windows /programdata/freedom collective/ProgramName/ root
 	TEXTSTR producer;
 	TEXTSTR application;
-
+	TEXTSTR share_data_root; // install_dir/share/SACK
  }
 #ifdef __STATIC_GLOBALS__
 winfile_local__;

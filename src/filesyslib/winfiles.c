@@ -137,8 +137,8 @@ static int CPROC sack_filesys_unlink( uintptr_t psv, const char* filename );
 
 static void UpdateLocalDataPath( void )
 {
-#ifdef _WIN32
 	TEXTCHAR path[MAX_PATH];
+#ifdef _WIN32
 	TEXTCHAR* realpath;
 	size_t len;
 
@@ -168,18 +168,21 @@ static void UpdateLocalDataPath( void )
 		Deallocate( TEXTSTR, ( *winfile_local ).local_data_file_root );
 	( *winfile_local ).local_data_file_root = realpath;
 	MakePath( ( *winfile_local ).local_data_file_root );
-
 #else
-	( *winfile_local ).data_file_root = StrDup( "%resources%" );
+	tnprintf( path, len, "~/%s%s%s%s"
+		, ( *winfile_local ).producer ? "." : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
+		, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
+	);
+	( *winfile_local ).data_file_root = StrDup( path );
 	( *winfile_local ).local_data_file_root = StrDup( "." );
 #endif
+	( *winfile_local ).share_data_root = StrDup( "%resources%" );
 }
 
 void sack_set_common_data_producer( CTEXTSTR name )
 {
 	( *winfile_local ).producer = StrDup( name );
 	UpdateLocalDataPath();
-
 }
 
 void sack_set_common_data_application( CTEXTSTR name )
@@ -570,6 +573,13 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				CTEXTSTR here;
 				size_t len;
 				here = GetStartupPath();
+				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
+				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
+			}
+			else if( path[0] == '?' && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+				CTEXTSTR here;
+				size_t len;
+				here = ( *winfile_local ).share_data_root;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
