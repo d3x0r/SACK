@@ -2218,7 +2218,11 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		size_t curnameLen;
 		TEXTCHAR curPath[MAXPATH];
 		size_t maxlen;
-		size_t libnameLen = StrLen( libname );
+		size_t libnameLen;
+
+		libname = ExpandPath( libname );
+
+		libnameLen = StrLen( libname );
 		GetCurrentPath( curPath, sizeof( curPath ) );
 		maxlen = (fullnameLen = StrLen( l.load_path ) + 1 + libnameLen + 1)
 			+ (orignameLen = libnameLen + 1)
@@ -2401,6 +2405,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			ReleaseEx( library DBG_SRC );
 		}
 		ResumeDeadstart();
+		ReleaseEx( libname DBG_SRC );
 		return NULL;
 	}
 #else
