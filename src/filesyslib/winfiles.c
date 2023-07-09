@@ -169,7 +169,7 @@ static void UpdateLocalDataPath( void )
 	MakePath( ( *winfile_local ).local_data_file_root );
 
 #else
-	( *winfile_local ).data_file_root = StrDup( "." );
+	( *winfile_local ).data_file_root = StrDup( "%resources%" );
 	( *winfile_local ).local_data_file_root = StrDup( "." );
 #endif
 }
