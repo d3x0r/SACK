@@ -1229,7 +1229,7 @@ void SqlStubInitLibrary( void )
 			{
 				FILE *file;
 				file = sack_fopen( 1
-					, "*/sql.config"
+					, "sql.config"
 					, "wt"
 #ifdef _UNICODE
 					", ccs=UNICODE"
@@ -1256,8 +1256,8 @@ void SqlStubInitLibrary( void )
 					sack_fprintf( file, "Database Init SQL=\n" );
 					sack_fprintf( file, "Option Database Init SQL=\n" );
 					sack_fclose( file );
+					ProcessConfigurationFile( pch, "sql.config", 0 );
 				}
-				ProcessConfigurationFile( pch, "*/sql.config", 0 );
 			}
 			DestroyConfigurationEvaluator( pch );
 		}
