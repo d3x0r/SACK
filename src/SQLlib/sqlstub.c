@@ -1184,11 +1184,7 @@ void SqlStubInitLibrary( void )
 #ifdef __ANDROID__
 		g.OptionDb.info.pDSN = StrDup( "./option.db" );
 #else
-#   ifdef __LINUX__
-		g.OptionDb.info.pDSN = StrDup( "~/.option.db" );
-#   else
 		g.OptionDb.info.pDSN = StrDup( "*/../option.db" );
-#   endif
 #endif
 		// default to new option database.
 #ifndef __NO_OPTIONS__
@@ -1228,15 +1224,14 @@ void SqlStubInitLibrary( void )
 			if( !success && !ProcessConfigurationFile( pch, "sql.config", 0 ) )
 			{
 				FILE *file;
+				TEXTSTR outname = ExpandPath("*/sql.config" );
 				file = sack_fopen( 1
-					, "sql.config"
+					, outname
 					, "wt"
-#ifdef _UNICODE
-					", ccs=UNICODE"
-#endif
 					);
 				if( file )
 				{
+					make_public( outname );
 					sack_fprintf( file, "Auto Checkpoint=No\n" );
 					sack_fprintf( file, "Option DSN=%s\n", g.OptionDb.info.pDSN );
 					sack_fprintf( file, "Primary DSN=MySQL\n" );
@@ -1258,6 +1253,7 @@ void SqlStubInitLibrary( void )
 					sack_fclose( file );
 					ProcessConfigurationFile( pch, "sql.config", 0 );
 				}
+				Release( outname );
 			}
 			DestroyConfigurationEvaluator( pch );
 		}
@@ -1668,6 +1664,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 				{
 					//lprintf( "Success using SQLITE" );
 					// register some new handlers like now()
+					make_public( tmp );
 					odbc->flags.bConnected = TRUE;
 					odbc->flags.bSQLite_native = 1;
 					ExtendConnection( odbc );

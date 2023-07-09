@@ -48,6 +48,7 @@ typedef struct wvideo_tag
 	struct wl_shell_surface *shell_surface;
 	struct wl_subsurface *sub_surface;
 	struct xdg_toplevel *xdg_toplevel;
+	TEXTSTR pending_title;
 
 	PCOLOR shm_data;
 	uint32_t bufw, bufh;
@@ -88,6 +89,12 @@ struct mouseEvent {
 	int32_t x, y;
 	uint32_t b;
 	PXPANEL r;
+};
+
+struct keyEvent {
+	PXPANEL r;
+	uint32_t keycode;
+	uint32_t  utfKeyCode;
 };
 
 struct pointer_data {
@@ -165,7 +172,8 @@ struct wayland_local_tag
 		//struct pendingKey pendingKey;
 	} keyRepeat;
 	struct wl_pointer *pointer;
-	PDATAQUEUE pdlMouseEvents;
+	PDATAQUEUE pdqMouseEvents;
+	PDATAQUEUE pdqKeyEvents;
 	int32_t mouseSerial;
 	struct pointer_data pointer_data ;
 	struct wl_keyboard *keyboard;
@@ -180,8 +188,9 @@ struct wayland_local_tag
 
 	//-------------- Global seat/input tracking
 	struct mouseEvent mouse_;
+	struct keyEvent key_; // used to enque
+	struct keyEvent key_sent; // used to dispatch
 	int keyMods;
-	uint32_t  utfKeyCode;
 	xkb_keysym_t keysym;
 
 	PXPANEL hVidFocused; // keyboard events go here

@@ -2243,20 +2243,39 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 */
 	if( !pch->file && !absolute_path )
 	{
+		// ~/.Freedom Collective/app/<name>
 		TEXTCHAR pathname[255];
-		tnprintf( pathname, sizeof( pathname ), "*/conf/%s", name );
+		tnprintf( pathname, sizeof( pathname ), ";/%s", name );
+		pch->file = sack_fopen( 0, pathname, "rb" );
+	}
+	if( !pch->file && !absolute_path )
+	{
+		// /var/Freedom Collective/(program)/<name>
+		// this is a global writable path(should be)
+		// creation of files is probably conservative...
+		TEXTCHAR pathname[255];
+		tnprintf( pathname, sizeof( pathname ), "*/%s", name );
+		pch->file = sack_fopen( 0, pathname, "rb" );
+	}
+	if( !pch->file && !absolute_path )
+	{
+		// installed configurations/<name>  share/SACK/conf
+		TEXTCHAR pathname[255];
+		tnprintf( pathname, sizeof( pathname ), "?/conf/%s", name );
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 	/* program path might be useful */
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
+		// with the program.
 		tnprintf( pathname, sizeof( pathname ), "#/%s", name );
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
+		// system global
 		tnprintf( pathname, sizeof( pathname ), "/etc/%s", name );
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}

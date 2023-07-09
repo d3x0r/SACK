@@ -118,6 +118,8 @@ struct Group {
 
 #include "filesys_local.h"
 
+extern struct file_system_interface native_fsi;
+
 #ifdef _WIN32
 #  ifndef SHGFP_TYPE_CURRENT
 #    define SHGFP_TYPE_CURRENT 0
@@ -137,8 +139,12 @@ static int CPROC sack_filesys_unlink( uintptr_t psv, const char* filename );
 
 static void UpdateLocalDataPath( void )
 {
+
+	if( ( *winfile_local ).data_file_root )ReleaseEx( ( *winfile_local ).data_file_root DBG_SRC );
+	if( ( *winfile_local ).local_data_file_root )ReleaseEx( ( *winfile_local ).local_data_file_root DBG_SRC );
+
 #ifdef _WIN32
-	TEXTCHAR path[MAX_PATH];
+	wchar_t path[MAX_PATH];
 	TEXTCHAR* realpath;
 	size_t len;
 
@@ -156,11 +162,11 @@ static void UpdateLocalDataPath( void )
 	MakePath( ( *winfile_local ).data_file_root );
 
 
-	SHGetFolderPathA( NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
-	realpath = NewArray( TEXTCHAR, len = StrLen( path )
+	SHGetFolderPathW( NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
+	realpath = NewArray( TEXTCHAR, len = StrLenW( path )
 		+ StrLen( ( *winfile_local ).producer ? ( *winfile_local ).producer : "" )
 		+ StrLen( ( *winfile_local ).application ? ( *winfile_local ).application : "" ) + 3 ); // worse case +3
-	tnprintf( realpath, len, "%s%s%s%s%s", path
+	tnprintf( realpath, len, "%ls%s%s%s%s", path
 		, ( *winfile_local ).producer ? "\\" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 		, ( *winfile_local ).application ? "\\" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
@@ -170,14 +176,26 @@ static void UpdateLocalDataPath( void )
 	MakePath( ( *winfile_local ).local_data_file_root );
 #else
 	TEXTCHAR path[MAXPATH];
+	if( strcmp( CMAKE_INSTALL_PREFIX, "/usr" ) == 0 )
+		tnprintf( path, sizeof(path), "/var/%s%s%s%s"
+			, ( *winfile_local ).producer ? "" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
+			, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
+		);
+	else
+		tnprintf( path, sizeof(path), CMAKE_INSTALL_PREFIX "/var/%s%s%s%s"
+			, ( *winfile_local ).producer ? "" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
+			, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
+		);
+	( *winfile_local ).data_file_root = StrDup( path );
 	tnprintf( path, sizeof(path), "~/%s%s%s%s"
 		, ( *winfile_local ).producer ? "." : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 		, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
-	( *winfile_local ).data_file_root = StrDup( path );
-	( *winfile_local ).local_data_file_root = StrDup( "." );
+	( *winfile_local ).local_data_file_root = StrDup( path );;
+	//lprintf( "initialized:%s %s", ( *winfile_local ).data_file_root, ( *winfile_local ).local_data_file_root );
 #endif
-	( *winfile_local ).share_data_root = StrDup( "%resources%" );
+	if( !( *winfile_local ).share_data_root )
+		( *winfile_local ).share_data_root = StrDup( CMAKE_INSTALL_PREFIX "/share/SACK" );
 }
 
 void sack_set_common_data_producer( CTEXTSTR name )
@@ -214,6 +232,11 @@ static void LocalInit( void )
 		SimpleRegisterAndCreateGlobal( winfile_local );
 #endif
 	if( !( *winfile_local ).flags.bInitialized ) {
+
+		if( !sack_get_filesystem_interface( "native" ) )
+			sack_register_filesystem_interface( "native", &native_fsi );
+		if( !( *winfile_local )._default_mount )
+			( *winfile_local )._default_mount = sack_mount_filesystem( "native", &native_fsi, 1000, (uintptr_t)NULL, TRUE );
 		OnThreadCreate( threadInit );
 		OnThreadExit( threadExit );
 		InitializeCriticalSec( &( *winfile_local ).cs_files );
@@ -222,23 +245,26 @@ static void LocalInit( void )
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 		( *winfile_local ).flags.bLogOpenClose = 0;
 #endif
-		{
-#ifdef _WIN32
-			if( !( *winfile_local ).producer )
-				sack_set_common_data_producer( "Freedom Collective" );
-			if( !( *winfile_local ).application )
-				sack_set_common_data_application( GetProgramName() );
-#else
-			{
-				char tmpPath[256];
-				snprintf( tmpPath, 256, "%s/%s", getenv( "HOME" ), ".Freedom Collective" );
-				( *winfile_local ).data_file_root = StrDup( tmpPath );
-				MakePath( tmpPath );
-			}
-			UpdateLocalDataPath();
-#endif
-		}
+		if( !( *winfile_local ).producer )
+			sack_set_common_data_producer( "Freedom Collective" );
+		if( !( *winfile_local ).application )
+			sack_set_common_data_application( GetProgramName() );
+
 		UpdateLocalDataPath();
+		{
+			TEXTSTR check;
+			char tmpPath[256];
+			snprintf( tmpPath, 256, "%s/%s", getenv( "HOME" ), ".Freedom Collective" );
+			//( *winfile_local ).data_file_root = StrDup( "~" );
+			check = ExpandPath( "*/" );
+			//lprintf( "checking path:%s", check );
+			MakePath( check );
+			ReleaseEx( check DBG_SRC );
+			check = ExpandPath( ";/" );
+			//lprintf( "checking path:%s", check );
+			MakePath( check );
+			ReleaseEx( check DBG_SRC );
+		}
 	}
 }
 
@@ -300,10 +326,10 @@ static void commitFileGroup( struct Group* filegroup ) {
 static void InitMoreGroups( void ) {
 	if( !( *winfile_local ).flags.have_default_groups ) {
 		( *winfile_local ).flags.have_default_groups = 1;
-		GetFileGroup( "resources", "@/../share/SACK" );
-		GetFileGroup( "frames", "@/../share/SACK/frames" );
-		GetFileGroup( "images", "@/../share/SACK/images" );
-		GetFileGroup( "fonts", "@/../share/SACK/fonts" );
+		GetFileGroup( "resources", CMAKE_INSTALL_PREFIX "/share/SACK" );
+		GetFileGroup( "frames", CMAKE_INSTALL_PREFIX "/share/SACK/frames" );
+		GetFileGroup( "images", CMAKE_INSTALL_PREFIX "/share/SACK/images" );
+		GetFileGroup( "fonts", CMAKE_INSTALL_PREFIX "/share/SACK/fonts" );
 		( *winfile_local ).flags.finished_default_groups = 1;
 		{
 			struct Group* filegroup;
@@ -513,8 +539,8 @@ static void squash_dotdot( TEXTSTR path ) {
 
 TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS )
 {
-	TEXTSTR tmp_path = NULL;
-	LocalInit();
+	TEXTSTR tmp_path = StrDup( path );
+	//LocalInit();
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( ( *winfile_local ).flags.bLogOpenClose )
 		lprintf( "input path is [%s]", path );
@@ -532,6 +558,13 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 					, path[1] ? ( path + 2 ) : "" );
 			}
 			else if( ( path[0] == '@' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+				CTEXTSTR here;
+				size_t len;
+				here = CMAKE_INSTALL_PREFIX;
+				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
+				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
+			}
+			else if( ( path[0] == ',' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = GetLibraryPath();
@@ -570,13 +603,6 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
-			else if( path[0] == '^' && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
-				CTEXTSTR here;
-				size_t len;
-				here = GetStartupPath();
-				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
-			}
 			else if( path[0] == '?' && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
@@ -611,6 +637,21 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 					*/
 			}
 #endif
+			if( tmp_path[0] == '~' && ( ( tmp_path[1] == '/' ) || ( tmp_path[1] == '\\' ) ) ) {
+				CTEXTSTR here;
+				size_t len;
+				TEXTSTR tmp_;
+#ifdef _WIN32
+				here = OSALOT_GetEnvironmentVariable( "HOMEPATH" );
+#else
+				here = OSALOT_GetEnvironmentVariable( "HOME" );
+#endif
+				tmp_ = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( tmp_path ) ) );
+				tnprintf( tmp_, len, "%s" SYS_PATHCHAR "%s", here, tmp_path + 2 );
+				ReleaseEx( tmp_path DBG_SRC );
+				tmp_path = tmp_;
+			}
+			
 			if( tmp_path && StrChr( tmp_path, '%' ) != NULL ) {
 				TEXTSTR freePath = tmp_path;
 				tmp_path = ExpandPathVariable( tmp_path );
@@ -1067,7 +1108,8 @@ struct file* FindFileByFILE( FILE* file_file )
 {
 	struct file* file;
 	INDEX idx;
-	LocalInit();
+	// this should have initialized a long time before here...
+	//LocalInit();
 	EnterCriticalSec( &( *winfile_local ).cs_files );
 	LIST_FORALL( ( *winfile_local ).files, idx, struct file*, file )
 	{
@@ -1553,7 +1595,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( ( *winfile_local ).flags.bLogOpenClose )
-		lprintf( "open %s %p(%s) %s (%d)", filename, mount, mount->name, opts, mount ? mount->writeable : 1 );
+		lprintf( "open %s %p(%s) %s (%d)", filename, mount, mount?mount->name:"", opts, mount ? mount->writeable : 1 );
 #endif
 
 	file = FindFileByName( group, filename, mount, &allocedIndex );
@@ -1587,10 +1629,10 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 		}
 		else {
 			if( mount && group == 0 ) {
-				file->fullname = StrDup( file->name );
+				file->fullname = ExpandPath( file->name );
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
-				if( ( *winfile_local ).flags.bLogOpenClose )
-					lprintf( "full is %s", file->fullname );
+//				if( ( *winfile_local ).flags.bLogOpenClose )
+//					lprintf( "full is %s", file->fullname );
 #endif
 			}
 			else {
@@ -1598,8 +1640,8 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 				tmp = PrependBasePathEx( group, filegroup, file->name, !mount );
 				file->fullname = ExpandPath( tmp );
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
-				if( ( *winfile_local ).flags.bLogOpenClose )
-					lprintf( "full is %s %d", file->fullname, (int)group );
+//				if( ( *winfile_local ).flags.bLogOpenClose )
+//					lprintf( "full is %s %d", file->fullname, (int)group );
 #endif
 				Deallocate( TEXTSTR, tmp );
 			}
@@ -1607,11 +1649,6 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 		}
 		file->group = group;
 
-		if( ( file->fullname[0] == '@' ) || ( file->fullname[0] == '*' ) || ( file->fullname[0] == '~' ) ) {
-			TEXTSTR tmpname = ExpandPathEx( file->fullname, NULL );
-			Deallocate( TEXTSTR, file->fullname );
-			file->fullname = tmpname;
-		}
 		if( !StrChr( opts, 'n' ) && StrChr( file->fullname, '%' ) ) {
 			if( allocedIndex != INVALID_INDEX )
 				SetLink( &file->files, allocedIndex, NULL );
@@ -1657,8 +1694,8 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 				if( test_mount->fsi ) {
 					file->mount = test_mount;
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
-					if( ( *winfile_local ).flags.bLogOpenClose )
-						lprintf( "Call mount %s to check if file exists %s", test_mount->name, file->fullname );
+//					if( ( *winfile_local ).flags.bLogOpenClose )
+//						lprintf( "Call mount %s to check if file exists %s", test_mount->name, file->fullname );
 #endif
 					if( test_mount->fsi->exists( test_mount->psvInstance, file->fullname ) ) {
 						handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname, opts );
@@ -1683,8 +1720,8 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 				file->mount = test_mount;
 				if( test_mount->fsi && test_mount->writeable ) {
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
-					if( ( *winfile_local ).flags.bLogOpenClose )
-						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname );
+//					if( ( *winfile_local ).flags.bLogOpenClose )
+//						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname );
 #endif
 					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname, opts );
 				}
@@ -1796,8 +1833,8 @@ FILE* sack_fsopenEx( INDEX group
 				file->mount = test_mount;
 				if( test_mount->fsi && test_mount->writeable ) {
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
-					if( ( *winfile_local ).flags.bLogOpenClose )
-						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname );
+//					if( ( *winfile_local ).flags.bLogOpenClose )
+//						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname );
 #endif
 					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname, opts );
 				}
@@ -2278,7 +2315,7 @@ void sack_register_filesystem_interface( CTEXTSTR name, struct file_system_inter
 	struct file_interface_tracker* fit = New( struct file_interface_tracker );
 	fit->name = StrDup( name );
 	fit->fsi = fsi;
-	LocalInit();
+	//LocalInit();
 	AddLink( &( *winfile_local ).file_system_interface, fit );
 }
 
@@ -2713,7 +2750,20 @@ static	LOGICAL CPROC sack_filesys_is_directory( uintptr_t psvInstance, const cha
 	return IsPath( buffer );
 }
 
-static struct file_system_interface native_fsi = {
+
+
+int sack_make_public( uintptr_t psvInstance, CTEXTSTR filename ) {
+#ifdef __LINUX__
+	TEXTSTR tmp = ExpandPath( filename );
+	int r = chmod( tmp, 0777 );
+	ReleaseEx( tmp DBG_SRC );
+	return r;
+#else
+	return 0;
+#endif
+}
+
+struct file_system_interface native_fsi = {
 	sack_filesys_open
 		, sack_filesys_close
 		, sack_filesys_read
@@ -2741,15 +2791,14 @@ static struct file_system_interface native_fsi = {
 		, sack_filesys_find_get_wtime
 		, sack_filesys_mkdir // legacy support
 		, sack_filesys_rmdir // legacy support
+		, NULL // lock( FILE* )
+		, NULL // unlock( FILE* ) 
+		, sack_make_public
 } ;
 
 PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )
 {
 	LocalInit();
-	if( !sack_get_filesystem_interface( "native" ) )
-		sack_register_filesystem_interface( "native", &native_fsi );
-	if( !( *winfile_local )._default_mount )
-		( *winfile_local )._default_mount = sack_mount_filesystem( "native", &native_fsi, 1000, (uintptr_t)NULL, TRUE );
 	FileSysThreadInfo.default_mount = ( *winfile_local )._default_mount;
 #ifdef WIN32
 	pNtSetInformationFile = (sNtSetInformationFile)LoadFunction(
@@ -3031,6 +3080,19 @@ int sack_funlock( FILE* file_ ) {
 			return file->mount->fsi->_unlock( file_ );
 	}
 	return 0;
+}
+
+int make_public( CTEXTSTR filename ) {
+	struct file_system_mounted_interface*mount =sack_get_default_mount();
+	if( mount && mount->fsi->_make_public ) return mount->fsi->_make_public( mount->psvInstance, filename );
+	errno = ENOENT;
+	return -1;
+}
+
+int make_public_mount( CTEXTSTR filename, struct file_system_mounted_interface*mount ) {
+	if( mount && mount->fsi->_make_public ) return mount->fsi->_make_public( mount->psvInstance, filename );
+	errno = ENOENT;
+	return -1;
 }
 
 FILESYS_NAMESPACE_END

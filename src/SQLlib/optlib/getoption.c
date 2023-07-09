@@ -1657,43 +1657,45 @@ PODBC GetOptionODBCEx( CTEXTSTR dsn  DBG_PASS )
 			lprintf( "none available, create new connection." );
 #endif
 			odbc = ConnectToDatabaseExx( tracker->name, TRUE DBG_RELAY );
-			SetSQLCorruptionHandler( odbc, repairOptionDb, (uintptr_t)odbc );
-         SetSQLAutoTransact( odbc, 0 ); // this doesn't need to transact.
-			SQLCommand( odbc, "pragma foreign_keys=on" );
+			if( odbc ) {
+				SetSQLCorruptionHandler( odbc, repairOptionDb, (uintptr_t)odbc );
+				SetSQLAutoTransact( odbc, 0 ); // this doesn't need to transact.
+				SQLCommand( odbc, "pragma foreign_keys=on" );
 
-			{
-				INDEX idx;
-				CTEXTSTR cmd;
-				CTEXTSTR result;
-				LIST_FORALL( sg.option_database_init, idx, CTEXTSTR, cmd ) {
-					SQLQueryf( odbc, &result, cmd );
-					//if( result )
-					//	lprintf( " %s", result );
-					SQLEndQuery( odbc );
+				{
+					INDEX idx;
+					CTEXTSTR cmd;
+					CTEXTSTR result;
+					LIST_FORALL( sg.option_database_init, idx, CTEXTSTR, cmd ) {
+						SQLQueryf( odbc, &result, cmd );
+						//if( result )
+						//	lprintf( " %s", result );
+						SQLEndQuery( odbc );
+					}
 				}
-			}
 
-			//SetSQLAutoClose( odbc, TRUE );
-			if( !tracker->shared_option_tree )
-			{
-				POPTION_TREE option = GetOptionTreeExxx( odbc, NULL DBG_RELAY );
-				//lprintf( "setting tracker shared to %p", option->option_tree );
-				tracker->shared_option_tree =  option->option_tree;
-			}
-			else
-			{
+				//SetSQLAutoClose( odbc, TRUE );
+				if( !tracker->shared_option_tree )
+				{
+					POPTION_TREE option = GetOptionTreeExxx( odbc, NULL DBG_RELAY );
+					//lprintf( "setting tracker shared to %p", option->option_tree );
+					tracker->shared_option_tree =  option->option_tree;
+				}
+				else
+				{
 #ifdef DETAILED_LOGGING
-				lprintf( "get the tree...." );
+					lprintf( "get the tree...." );
 #endif
-				GetOptionTreeExxx( odbc, tracker->shared_option_tree DBG_RELAY );
+					GetOptionTreeExxx( odbc, tracker->shared_option_tree DBG_RELAY );
+				}
+				// only if it's a the first connection should we leave created as false.
+				if( !new_tracker )
+				{
+					POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
+					tree->flags.bCreated = 1;
+				}
+				SetOptionDatabaseOption( odbc );
 			}
-			// only if it's a the first connection should we leave created as false.
-			if( !new_tracker )
-			{
-				POPTION_TREE tree = GetOptionTreeExxx( odbc, NULL DBG_SRC );
-				tree->flags.bCreated = 1;
-			}
-			SetOptionDatabaseOption( odbc );
 		}
 		AddLink( &tracker->outstanding, odbc );
 #ifdef DETAILED_LOGGING
