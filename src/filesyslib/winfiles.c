@@ -329,6 +329,7 @@ INDEX  GetFileGroup( CTEXTSTR groupname, CTEXTSTR default_path )
 {
 	struct Group* filegroup = GetGroupFilePath( groupname );
 	if( !filegroup ) {
+		filegroup = New( struct Group );
 		{
 			TEXTCHAR tmp_ent[256];
 			TEXTCHAR tmp[256];
@@ -358,7 +359,6 @@ INDEX  GetFileGroup( CTEXTSTR groupname, CTEXTSTR default_path )
 
 			}
 		}
-		filegroup = New( struct Group );
 		filegroup->name = StrDup( groupname );
 		if( default_path )
 			filegroup->base_path = ExpandPath( default_path );
