@@ -174,17 +174,17 @@ else( __ANDROID__ )
            set( OTHER ${OTHER} ${filepath} )
         endforeach()
 	install( FILES ${OTHER}
-		DESTINATION ${BINARY_OUTPUT_DIR}
-		 )
-    endif( watcom21 )
+	    DESTINATION ${BINARY_OUTPUT_DIR}
+	)
+	endif( watcom21 )
       install( TARGETS ${proj} RUNTIME DESTINATION ${DATA_INSTALL_PREFIX}/${project_target}
-			ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/trash
+               ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/trash
 	)
   else( WIN32 )
     install( TARGETS ${proj}
-	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/plugins}
-	LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/plugins}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/plugins }
+      RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/plugins
+      LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/plugins
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/plugins 
 	)
   endif()
 
