@@ -137,8 +137,8 @@ static int CPROC sack_filesys_unlink( uintptr_t psv, const char* filename );
 
 static void UpdateLocalDataPath( void )
 {
-	TEXTCHAR path[MAX_PATH];
 #ifdef _WIN32
+	TEXTCHAR path[MAX_PATH];
 	TEXTCHAR* realpath;
 	size_t len;
 
@@ -169,7 +169,8 @@ static void UpdateLocalDataPath( void )
 	( *winfile_local ).local_data_file_root = realpath;
 	MakePath( ( *winfile_local ).local_data_file_root );
 #else
-	tnprintf( path, len, "~/%s%s%s%s"
+	TEXTCHAR path[MAXPATH];
+	tnprintf( path, sizeof(path), "~/%s%s%s%s"
 		, ( *winfile_local ).producer ? "." : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 		, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
