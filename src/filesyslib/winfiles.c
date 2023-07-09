@@ -606,6 +606,9 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				lprintf( "%s turned into %s", freePath, tmp_path );
    	      ReleaseEx( freePath DBG_SRC );
 			}
+			else if( path && StrChr( path, '%' ) != NULL ) {
+				tmp_path = ExpandPathVariable( path );
+			}
 			if( tmp_path )
 				squash_dotdot( tmp_path );
 		}
