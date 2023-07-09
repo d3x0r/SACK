@@ -2233,6 +2233,8 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 #	endif
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
+/*
+   library path will never happen anymore...
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
@@ -2243,15 +2245,17 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 #  endif
+*/
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
-		tnprintf( pathname, sizeof( pathname ), "*/%s", name );
+		tnprintf( pathname, sizeof( pathname ), "*/conf/%s", name );
 #	ifdef _MSC_VER
 		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
 #	endif
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
+	/* program path might be useful */
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];

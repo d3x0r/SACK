@@ -544,7 +544,11 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 			else if( ( path[0] == '~' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
+#ifdef _WIN32
+				here = OSALOT_GetEnvironmentVariable( "HOMEPATH" );
+#else
 				here = OSALOT_GetEnvironmentVariable( "HOME" );
+#endif
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
