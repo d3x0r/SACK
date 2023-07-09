@@ -446,6 +446,8 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 	uintptr_t size = 0;
 	size_t _font_memory_size;
 	LOGICAL logged_error;
+	CTEXTSTR name_ = ExpandPath( name );
+
 	if( !font_memory )
 		font_memory = &_font_memory;
 	if( !font_memory_size )
@@ -462,7 +464,14 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 			style_set = TRUE;
 			end[0] = ']';
 		}
-		else
+		{
+			size_t len = strlen( name );
+			TEXTCHAR *tmp = NewArray( TEXTCHAR, len );
+			snprintf( tmp, len, "%.*s", font_style-name, name_ );
+			name_ = ExpandPath( tmp );
+			ReleaseEx( tmp DBG_SRC );
+		}
+		if( !end )
 			font_style = (TEXTCHAR*)"regular";
 	}
 	else
@@ -474,7 +483,7 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 #ifdef UNDER_CE
 			NULL;
 #else
-			OpenSpace( NULL, name, &size );
+			OpenSpace( NULL, name_, &size );
 #endif
 #ifdef DEBUG_OPENFONTFILE
 		lprintf( "open space result is %p %d", (*font_memory), size );
@@ -483,9 +492,9 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 		{
 			FILE *file;
 #ifdef DEBUG_OPENFONTFILE
-			lprintf( "open by memory map failed for %s", name );
+			lprintf( "open by memory map failed for %s", name_ );
 #endif
-			file = sack_fopen( 0, name, "rb" );
+			file = sack_fopen( 0, name_, "rb" );
 			if( file )				
 			{
 #ifdef DEBUG_OPENFONTFILE
@@ -510,12 +519,12 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 #ifndef _PSI_INCLUSION_
 	if( !(*font_memory) && fallback_to_cache )
 	{
-		CTEXTSTR base_name = pathrchr( name );
+		CTEXTSTR base_name = pathrchr( name_ );
 		INDEX idx;
 		if( base_name )
 			base_name++;
 		else
-			base_name = name;
+			base_name = name_;
 		//lprintf( "Direct open failed... try seaching..." );
 		// only open this if there's not a direct file ready.
 		IMGVER(LoadAllFonts)();
@@ -627,7 +636,7 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 	}
 	else
 	{
-		char *file = DupTextToChar( name );
+		char *file = DupTextToChar( name_ );
 		//lprintf( "Using file access font... for %s", name );
 #ifdef DEBUG_OPENFONTFILE
 		lprintf( "using FT_New_Face direct file access... (should never happen now)" );
@@ -663,6 +672,7 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 		Deallocate( TEXTCHAR*, font_style );
 	if( temp_filename )
 		Deallocate( TEXTCHAR*, temp_filename );
+	Deallocate( TEXTSTR, name_ )
 	return error;
 }
 
