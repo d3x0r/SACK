@@ -566,7 +566,8 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 			}
 #endif
 		}
-		else if( StrChr( path, '%' ) != NULL ) {
+		
+		if( StrChr( path, '%' ) != NULL ) {
 			tmp_path = ExpandPathVariable( path );
 		}
 		else {
