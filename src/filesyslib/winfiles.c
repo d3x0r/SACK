@@ -113,6 +113,7 @@ struct file_interface_tracker
 struct Group {
 	TEXTSTR name;
 	TEXTSTR base_path;
+	TEXTSTR default_path; // base is already expanded from this.
 };
 
 #include "filesys_local.h"
@@ -268,15 +269,43 @@ static void InitGroups( void )
 
 }
 
+static void commitFileGroup( struct Group* filegroup ) {
+	TEXTCHAR tmp_ent[256];
+	TEXTCHAR tmp[256];
+	tnprintf( tmp_ent, sizeof( tmp_ent ), "file group/%s", filegroup->name );
+	//lprintf( "option to save is %s", tmp );
+#ifdef __NO_OPTIONS__
+	tmp[0] = 0;
+#else
+	SACK_GetProfileString( GetProgramName(), tmp_ent, filegroup->default_path, tmp, sizeof( tmp ) );
+#endif
+	if( !tmp[0] && filegroup->default_path ) {
+#ifndef __NO_OPTIONS__
+		SACK_WriteProfileString( GetProgramName(), tmp_ent, filegroup->default_path );
+#endif
+	}
+	ReleaseEx( filegroup->default_path DBG_SRC );
+	filegroup->default_path = NULL;
+
+
+}
+
 static void InitMoreGroups( void ) {
-	if( !( *winfile_local ).have_default_groups ) {
-		( *winfile_local ).have_default_groups = 1;
+	if( !( *winfile_local ).flags.have_default_groups ) {
+		( *winfile_local ).flags.have_default_groups = 1;
 		GetFileGroup( "resources", "@/../share/SACK" );
 		GetFileGroup( "frames", "@/../share/SACK/frames" );
 		GetFileGroup( "images", "@/../share/SACK/images" );
 		GetFileGroup( "fonts", "@/../share/SACK/fonts" );
+		( *winfile_local ).flags.finished_default_groups = 1;
+		{
+			struct Group* filegroup;
+			INDEX idx;
+			LIST_FORALL( ( *winfile_local ).groups, idx, struct Group*, filegroup ) {
+				commitFileGroup( filegroup );
+			}
+		}
 	}
-
 }
 
 static struct Group* GetGroupFilePath( CTEXTSTR group )
@@ -295,6 +324,7 @@ static struct Group* GetGroupFilePath( CTEXTSTR group )
 	return filegroup;
 }
 
+
 INDEX  GetFileGroup( CTEXTSTR groupname, CTEXTSTR default_path )
 {
 	struct Group* filegroup = GetGroupFilePath( groupname );
@@ -308,7 +338,7 @@ INDEX  GetFileGroup( CTEXTSTR groupname, CTEXTSTR default_path )
 #ifdef __NO_OPTIONS__
 			tmp[0] = 0;
 #else
-			if( ( *winfile_local ).have_default ) {
+			if( ( *winfile_local ).have_default && ( *winfile_local ).flags.finished_default_groups ) {
 				SACK_GetProfileString( GetProgramName(), tmp_ent, default_path ? default_path : NULL, tmp, sizeof( tmp ) );
 			}
 			else
@@ -317,9 +347,15 @@ INDEX  GetFileGroup( CTEXTSTR groupname, CTEXTSTR default_path )
 			if( tmp[0] )
 				default_path = tmp;
 			else if( default_path ) {
+				if( ( *winfile_local ).flags.finished_default_groups ) {
 #ifndef __NO_OPTIONS__
-				SACK_WriteProfileString( GetProgramName(), tmp_ent, default_path );
+					SACK_WriteProfileString( GetProgramName(), tmp_ent, default_path );
 #endif
+					filegroup->default_path = NULL;
+				}
+				else
+					filegroup->default_path = StrDup( default_path );
+
 			}
 		}
 		filegroup = New( struct Group );

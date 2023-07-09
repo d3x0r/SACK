@@ -38,11 +38,12 @@ extern
 	struct file_system_mounted_interface *_default_mount;
 
 	LOGICAL have_default;
-	LOGICAL have_default_groups;
 	struct {
 		BIT_FIELD bLogOpenClose : 1;
 		BIT_FIELD bInitialized : 1;
 		BIT_FIELD bDeallocateClosedFiles : 1;
+		BIT_FIELD have_default_groups : 1;
+		BIT_FIELD finished_default_groups : 1;
 	} flags;
 	TEXTSTR local_data_file_root;
 	TEXTSTR data_file_root;
