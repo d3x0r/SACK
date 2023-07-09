@@ -2215,6 +2215,7 @@ static void TestUnicode( PCONFIG_HANDLER pch )
 
 CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR name, uintptr_t psv )
 {
+	TEXTCHAR pathname[1024];
 	PTEXT line;
 
 #if !defined( __ANDROID__ ) && !defined( __EMSCRIPTEN__ )
@@ -2223,14 +2224,9 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	pch->file = sack_fopen( 0, name, "rb" );
 
 #if !defined( __ANDROID__ ) && !defined( __EMSCRIPTEN__ )
-#  ifndef UNDER_CE
 	if( !pch->file && !absolute_path )
 	{
-		TEXTCHAR pathname[255];
 		tnprintf( pathname, sizeof( pathname ), "./%s", name );
-#	ifdef _MSC_VER
-		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#	endif
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 /*
@@ -2244,15 +2240,11 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 #	endif
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
-#  endif
 */
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
 		tnprintf( pathname, sizeof( pathname ), "*/conf/%s", name );
-#	ifdef _MSC_VER
-		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#	endif
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 	/* program path might be useful */
@@ -2260,18 +2252,12 @@ CONFIGSCR_PROC( int, ProcessConfigurationFile )( PCONFIG_HANDLER pch, CTEXTSTR n
 	{
 		TEXTCHAR pathname[255];
 		tnprintf( pathname, sizeof( pathname ), "#/%s", name );
-#	ifdef _MSC_VER
-		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#	endif
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 	if( !pch->file && !absolute_path )
 	{
 		TEXTCHAR pathname[255];
 		tnprintf( pathname, sizeof( pathname ), "/etc/%s", name );
-#  ifdef _MSC_VER
-		pathname[sizeof(pathname)/sizeof(pathname[0])-1]=0;
-#  endif
 		pch->file = sack_fopen( 0, pathname, "rb" );
 	}
 #endif
