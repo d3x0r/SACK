@@ -245,12 +245,14 @@ static void InitGroups( void )
 	TEXTCHAR tmp[256];
 	// known handle '0' is 'default' which is CurrentWorkingDirectory at load.
 	group = New( struct Group );
+	group->default_path = NULL;
 	group->base_path = StrDup( GetCurrentPath( tmp, sizeof( tmp ) ) );
 	group->name = StrDup( "Default" );
 	AddLink( &( *winfile_local ).groups, group );
 
 	// known handle '1' is the program's load path.
 	group = New( struct Group );
+	group->default_path = NULL;
 #ifdef __ANDROID__
 	// assets and other files are in the data directory
 	group->base_path = StrDup( GetStartupPath() );
@@ -262,6 +264,7 @@ static void InitGroups( void )
 
 	// known handle '1' is the program's start path.
 	group = New( struct Group );
+	group->default_path = NULL;
 	group->base_path = StrDup( GetStartupPath() );
 	group->name = StrDup( "Startup Path" );
 	AddLink( &( *winfile_local ).groups, group );
