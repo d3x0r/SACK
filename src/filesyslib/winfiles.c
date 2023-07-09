@@ -531,13 +531,6 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
-			else if( path[0] == '%' ) {
-				tmp_path = ExpandPathVariable( path );
-			}
-			else {
-				tmp_path = StrDupEx( path DBG_RELAY );
-			}
-			squash_dotdot( tmp_path );
 #if __ANDROID__
 			{
 				int len_base;
@@ -568,8 +561,11 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 			if( tmp_path && StrChr( tmp_path, '%' ) != NULL ) {
          	TEXTSTR freePath = tmp_path;
 				tmp_path = ExpandPathVariable( tmp_path );
+				lprintf( "%s turned into %s", freePath, tmp_path );
    	      ReleaseEx( freePath DBG_SRC );
 			}
+			if( tmp_path )
+				squash_dotdot( tmp_path );
 		}
 		else if( StrChr( path, '%' ) != NULL ) {
 			tmp_path = ExpandPathVariable( path );
