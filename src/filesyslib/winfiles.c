@@ -330,6 +330,7 @@ INDEX  GetFileGroup( CTEXTSTR groupname, CTEXTSTR default_path )
 	struct Group* filegroup = GetGroupFilePath( groupname );
 	if( !filegroup ) {
 		filegroup = New( struct Group );
+		filegroup->default_path = NULL;
 		{
 			TEXTCHAR tmp_ent[256];
 			TEXTCHAR tmp[256];
@@ -347,18 +348,14 @@ INDEX  GetFileGroup( CTEXTSTR groupname, CTEXTSTR default_path )
 #endif
 			if( tmp[0] ) {
 				default_path = tmp;
-				filegroup->default_path = NULL;
-
 			} else if( default_path ) {
 				if( ( *winfile_local ).flags.finished_default_groups ) {
 #ifndef __NO_OPTIONS__
 					SACK_WriteProfileString( GetProgramName(), tmp_ent, default_path );
 #endif
-					filegroup->default_path = NULL;
 				}
 				else
 					filegroup->default_path = StrDup( default_path );
-
 			}
 		}
 		filegroup->name = StrDup( groupname );
