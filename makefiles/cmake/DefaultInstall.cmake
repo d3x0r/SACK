@@ -182,9 +182,9 @@ else( __ANDROID__ )
 	)
   else( WIN32 )
     install( TARGETS ${proj}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/plugins
-      LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/plugins
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/plugins 
+      RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/${project_target}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/${project_target}
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/share/SACK/${project_target}
 	)
   endif()
 

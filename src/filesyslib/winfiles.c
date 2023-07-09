@@ -601,16 +601,17 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 			}
 #endif
 			if( tmp_path && StrChr( tmp_path, '%' ) != NULL ) {
-         	TEXTSTR freePath = tmp_path;
+				TEXTSTR freePath = tmp_path;
 				tmp_path = ExpandPathVariable( tmp_path );
-				lprintf( "%s turned into %s", freePath, tmp_path );
-   	      ReleaseEx( freePath DBG_SRC );
+				ReleaseEx( freePath DBG_SRC );
 			}
 			else if( path && StrChr( path, '%' ) != NULL ) {
 				tmp_path = ExpandPathVariable( path );
 			}
 			if( tmp_path )
 				squash_dotdot( tmp_path );
+			else
+				tmp_path = StrDup( path );
 		}
 		else if( StrChr( path, '%' ) != NULL ) {
 			tmp_path = ExpandPathVariable( path );
