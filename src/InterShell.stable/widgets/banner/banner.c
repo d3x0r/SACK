@@ -109,20 +109,11 @@ static void InitBannerFrame( void )
 		banner_local.flags.bFullDraw = RequiresDrawAll();
 
 		GetDisplaySizeEx( 0, NULL, NULL, &banner_local.w, &banner_local.h );
-#ifndef __NO_OPTIONS__
-		SACK_GetProfileStringEx( "SACK/Widgets/Banner2", "Default Font", "arialbd.ttf", font, sizeof( font ), TRUE );
-#else
-		StrCpy( font, "arialbd.ttf" );
-#endif
-		banner_local.font = RenderFontFile( font
-													 , banner_local.w / 30, ( ( banner_local.w * 1080 ) / 1920 ) / 20
-									  , 2 );
-		if( !banner_local.font )
 		{
 #ifndef __NO_OPTIONS__
-			SACK_GetProfileStringEx( "SACK/Widgets/Banner2", "Alternate Font", "fonts/arialbd.ttf", font, sizeof( font ), TRUE );
+			SACK_GetProfileStringEx( "SACK/Widgets/Banner", "Font", "%resources%/fonts/arialbd.ttf", font, sizeof( font ), TRUE );
 #else
-			StrCpy( font, "fonts/arialbd.ttf" );
+			StrCpy( font, "%resources%/fonts/arialbd.ttf" );
 #endif
 			banner_local.font = RenderFontFile( font
 										  , banner_local.w / 30, ( ( banner_local.w * 1080 ) / 1920 ) / 20

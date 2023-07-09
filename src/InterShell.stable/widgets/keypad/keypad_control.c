@@ -885,14 +885,9 @@ static int _InitKeypad( PSI_CONTROL frame )
 
 	//lprintf( "Actually will be %d,%d", keywidth - keywidth/3, keyheight - keyheight/4 );
 
-	keypad->font = RenderFontFile( "arialbd.ttf"
+	keypad->font = RenderFontFile( "%resources%/fonts/arialbd.ttf"
 										  , keywidth - keywidth/3, keyheight - keyheight/4
 										  , 3 );
-   if( !keypad->font )
-		keypad->font = RenderFontFile( "fonts/arialbd.ttf"
-											  , keywidth - keywidth/3, keyheight - keyheight/4
-											  , 3 );
-
 
 	{
 		int displayx, displayy, displaywidth, displayheight;

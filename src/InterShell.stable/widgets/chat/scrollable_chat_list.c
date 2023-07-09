@@ -2639,19 +2639,19 @@ static int OnCreateCommon( CONTROL_NAME )( PSI_CONTROL pc )
 	{
 		int w, h;
 		TEXTCHAR buf[64];
-		SACK_GetProfileString( "widgets/Chat Control", "message font", "msyh.ttf", buf, 64 );
+		SACK_GetProfileString( "widgets/Chat Control", "message font", "%resources%/fonts/msyh.ttf", buf, 64 );
 		w = SACK_GetProfileInt( "widgets/Chat Control", "message font/width", 18 );
 		h = SACK_GetProfileInt( "widgets/Chat Control", "message font/height", 18 );
 		list->sent_font 
 			= list->received_font
 			= list->input_font 
 			= RenderFontFileScaledEx( buf, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		SACK_GetProfileString( "widgets/Chat Control", "date font", "msyh.ttf", buf, 64 );
+		SACK_GetProfileString( "widgets/Chat Control", "date font", "%resources%/fonts/msyh.ttf", buf, 64 );
 		w = SACK_GetProfileInt( "widgets/Chat Control", "date font/width", 9 );
 		h = SACK_GetProfileInt( "widgets/Chat Control", "date font/height", 9 );
 		list->date_font 
 			= RenderFontFileScaledEx( buf, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		SACK_GetProfileString( "widgets/Chat Control", "sender font", "arialbd.ttf", buf, 64 );
+		SACK_GetProfileString( "widgets/Chat Control", "sender font", "%resources%/fonts/arialbd.ttf", buf, 64 );
 		w = SACK_GetProfileInt( "widgets/Chat Control", "sender font/width", 12 );
 		h = SACK_GetProfileInt( "widgets/Chat Control", "sender font/height", 12 );
 		list->sender_font 
