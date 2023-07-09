@@ -828,12 +828,12 @@ PSI_PROC( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE Display
 		//GetDisplaySize( &w, &h );
 		//g.default_font = RenderFontFileScaledEx( "%resources%/fonts/rod.ttf", 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		//g.default_font = RenderFontFileScaledEx( "rod.ttf", 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		if( sack_exists( "c:/windows/fonts/msyh.ttf" ) )
-			default_name = "msyh.ttf";
-		else if( sack_exists( "c:/windows/fonts/msyh.ttc" ) )
-			default_name = "msyh.ttc";
+		if( sack_exists( "%resources%/fonts/msyh.ttf" ) )
+			default_name = "%resources%/fonts/msyh.ttf";
+		else if( sack_exists( "%resources%/fonts/msyh.ttc" ) )
+			default_name = "%resources%/fonts/msyh.ttc";
 		else
-			default_name = "arialbd.ttf";
+			default_name = "%resources%/fonts/arialbd.ttf";
 		SACK_GetProfileString( "SACK/PSI/Font", "Default File", default_name, buffer, 256 );
 		w = SACK_GetProfileInt( "SACK/PSI/Font", "Default Width", 18 );
 		h = SACK_GetProfileInt( "SACK/PSI/Font", "Default Height", 18 );
