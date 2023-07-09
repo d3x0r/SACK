@@ -2346,7 +2346,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 				}
 			}
 		}
-		ReleaseEx( libname DBG_SRC );
+		ReleaseEx( (TEXTSTR)libname DBG_SRC );
 
 		library->loading--;
 	}
