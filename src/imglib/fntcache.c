@@ -672,7 +672,7 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 		Deallocate( TEXTCHAR*, font_style );
 	if( temp_filename )
 		Deallocate( TEXTCHAR*, temp_filename );
-	Deallocate( TEXTSTR, name_ )
+	Deallocate( TEXTSTR, name_ );
 	return error;
 }
 
