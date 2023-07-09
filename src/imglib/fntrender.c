@@ -1681,7 +1681,7 @@ try_another_default:
 		switch( bDefaultFile )
 		{
 		case 0:
-			file = "arialbd.ttf";
+			file = "%resources/fonts/arialbd.ttf";
 			break;
 		case 1:
 			file = "fonts/arialbd.ttf";
