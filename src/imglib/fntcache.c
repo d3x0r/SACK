@@ -447,7 +447,7 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 	size_t _font_memory_size;
 	LOGICAL logged_error;
 	TEXTSTR name_ = ExpandPath( name );
-	lprintf( "Path converted from %s to %s", name, name_ );
+	//lprintf( "Path converted from %s to %s", name, name_ );
 	if( !font_memory )
 		font_memory = &_font_memory;
 	if( !font_memory_size )
