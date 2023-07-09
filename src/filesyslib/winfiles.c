@@ -345,9 +345,11 @@ INDEX  GetFileGroup( CTEXTSTR groupname, CTEXTSTR default_path )
 			else
 				tmp[0] = 0;
 #endif
-			if( tmp[0] )
+			if( tmp[0] ) {
 				default_path = tmp;
-			else if( default_path ) {
+				filegroup->default_path = NULL;
+
+			} else if( default_path ) {
 				if( ( *winfile_local ).flags.finished_default_groups ) {
 #ifndef __NO_OPTIONS__
 					SACK_WriteProfileString( GetProgramName(), tmp_ent, default_path );
