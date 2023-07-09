@@ -565,9 +565,13 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 					*/
 			}
 #endif
+			if( tmp_path && StrChr( tmp_path, '%' ) != NULL ) {
+         	TEXTSTR freePath = tmp_path;
+				tmp_path = ExpandPathVariable( tmp_path );
+   	      ReleaseEx( freePath DBG_SRC );
+			}
 		}
-		
-		if( StrChr( path, '%' ) != NULL ) {
+		else if( StrChr( path, '%' ) != NULL ) {
 			tmp_path = ExpandPathVariable( path );
 		}
 		else {
