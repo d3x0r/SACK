@@ -154,7 +154,7 @@ static void UpdateLocalDataPath( void )
 	realpath = NewArray( TEXTCHAR, len = StrLen( u8path )
 		+ StrLen( ( *winfile_local ).producer ? ( *winfile_local ).producer : "" )
 		+ StrLen( ( *winfile_local ).application ? ( *winfile_local ).application : "" ) + 3 ); // worse case +3
-	tnprintf( realpath, len, "%s%s%s%s%s", path
+	tnprintf( realpath, len, "%s%s%s%s%s", u8path
 		, ( *winfile_local ).producer ? "\\" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 		, ( *winfile_local ).application ? "\\" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
@@ -552,6 +552,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				TEXTCHAR here[256];
 				size_t len;
 				GetCurrentPath( here, sizeof( here ) );
+				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s%s%s"
 					, here
@@ -562,6 +563,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				CTEXTSTR here;
 				size_t len;
 				here = GetLibraryPath();
+				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
@@ -569,6 +571,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				CTEXTSTR here;
 				size_t len;
 				here = CMAKE_INSTALL_PREFIX;
+				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
@@ -576,6 +579,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				CTEXTSTR here;
 				size_t len;
 				here = GetProgramPath();
+				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			} else if( ( path[0] == '~' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
@@ -586,24 +590,28 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 #else
 				here = OSALOT_GetEnvironmentVariable( "HOME" );
 #endif
+				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			} else if( ( path[0] == '*' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).data_file_root;
+				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			} else if( ( path[0] == ';' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).local_data_file_root;
+				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			} else if( path[0] == '?' && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).share_data_root;
+				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
@@ -656,10 +664,6 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 			} else if( path && StrChr( path, '%' ) != NULL ) {
 				tmp_path = ExpandPathVariable( path );
 			}
-			if( tmp_path )
-				squash_dotdot( tmp_path );
-			else
-				tmp_path = StrDup( path );
 		} else if( StrChr( path, '%' ) != NULL ) {
 			tmp_path = ExpandPathVariable( path );
 		} else {
@@ -674,6 +678,8 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 			p++;
 		}
 	}
+	squash_dotdot( tmp_path );
+
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( ( *winfile_local ).flags.bLogOpenClose )
 		lprintf( "output path is [%s]", tmp_path );
