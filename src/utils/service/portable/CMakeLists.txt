@@ -20,7 +20,8 @@ STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )
 endif()
 
 # Enable for memory leak discovery
-#add_definitions( ${PLATFORM_DEFINES} -DUSE_SACK_CUSTOM_MEMORY_ALLOCATION )
+#add_definitions( -DUSE_SACK_CUSTOM_MEMORY_ALLOCATION )
+add_definitions( ${PLATFORM_DEFINES} )
 
 foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
