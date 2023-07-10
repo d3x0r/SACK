@@ -148,11 +148,11 @@ static void UpdateLocalDataPath( void )
 	TEXTCHAR* realpath;
 	size_t len;
 
-	SHGetFolderPathA( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
-	realpath = NewArray( TEXTCHAR, len = StrLen( path )
+	SHGetFolderPathW( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
+	realpath = NewArray( TEXTCHAR, len = StrLenW( path )
 		+ StrLen( ( *winfile_local ).producer ? ( *winfile_local ).producer : "" )
 		+ StrLen( ( *winfile_local ).application ? ( *winfile_local ).application : "" ) + 3 ); // worse case +3
-	tnprintf( realpath, len, "%s%s%s%s%s", path
+	tnprintf( realpath, len, "%ls%s%s%s%s", path
 		, ( *winfile_local ).producer ? "\\" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 		, ( *winfile_local ).application ? "\\" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
