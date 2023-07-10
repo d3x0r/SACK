@@ -321,10 +321,23 @@ OPTION( INCLUDE_VULKAN "Include vulkan interfaces" ${ENABLE_VULKAN} )
 # default itnerface output path... (override if __CLR__)
 # should make this a common target variable instead also...
 set( INTERFACE_OUTPUT_DIR ${DATA_INSTALL_PREFIX}/conf )
+ADD_DEFINITIONS( -DCMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\" )
 
 if( FORCE_EXTERNAL_BUILD )
    set( EXTERNAL_BUILD_EXTRA_FLAGS BUILD_ALWAYS 1 )
 endif( FORCE_EXTERNAL_BUILD )
+
+if( NOT __NO_INSTALL__ )
+  if( ${CMAKE_INSTALL_PREFIX} EQUAL "/usr" )
+    file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/../var/Freedom Collective" )
+    file(CHMOD "${CMAKE_INSTALL_PREFIX}/../var/Freedom Collective" PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_WRITE GROUP_READ WORLD_EXECUTE WORLD_WRITE WORLD_READ )
+  else( ${CMAKE_INSTALL_PREFIX} EQUAL "/usr" )
+    file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}var/Freedom Collective" )
+    file(CHMOD "${CMAKE_INSTALL_PREFIX}/var/Freedom Collective" PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_WRITE GROUP_READ WORLD_EXECUTE WORLD_WRITE WORLD_READ )
+  endif( ${CMAKE_INSTALL_PREFIX} EQUAL "/usr" )
+
+message( "Should have made:")
+endif( NOT __NO_INSTALL__ )
 
 if( APPLE )
    SET( ExtraFlags "${ExtraFlags} -Wno-parentheses -Wno-address-of-packed-member")

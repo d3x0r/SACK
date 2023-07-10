@@ -673,7 +673,7 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 				pb[0]=0;
 			else
 				pb = buf - 1;
-			//lprintf( "My execution: %s", buf);
+			//lprintf( "My execution: %s %s", buf, pb+1);
 			(*init_l).filename = StrDupEx( pb + 1 DBG_SRC );
 			(*init_l).load_path = StrDupEx( buf DBG_SRC );
 #       endif
@@ -1996,8 +1996,10 @@ static void LoadExistingLibraries( void )
 		FILE *maps;
 		char buf[256];
 		maps = sack_fopenEx( 0, "/proc/self/maps", "rt", sack_get_mounted_filesystem( "native" ) );
+		//lprintf( "maps? %p", maps);
 		while( maps && sack_fgets( buf, 256, maps ) )
 		{
+			//lprintf( "Line:", buf );
 			char *libpath = strchr( buf, '/' );
 			char *split = strchr( buf, '-' );
 			if( libpath && split )
@@ -2173,7 +2175,6 @@ void DeAttachThreadToLibraries( LOGICAL attach )
 					}
 				}
 			}
-
 			entry_point( library->library, attach?DLL_THREAD_ATTACH:DLL_THREAD_DETACH, 0 );
 #endif
 		}

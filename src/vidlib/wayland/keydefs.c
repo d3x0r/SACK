@@ -152,6 +152,7 @@ void wl_DestroyKeyBinder ( PKEYDEFINE pKeyDef )
 int wl_BindEventToKey( PKEYDEFINE pKeyDefs, uint32_t keycode, uint32_t modifier, KeyTriggerHandler trigger, uintptr_t psv )
 {
 	PKEY_FUNCTION keyfunc = New( KEY_FUNCTION );
+	l.flags.bLogKeyEvent = 1;
 	MemSet( keyfunc, 0, sizeof( KEY_FUNCTION ) );
 	if( !pKeyDefs ) pKeyDefs = KeyDefs;
 	if( modifier & KEY_MOD_ALL_CHANGES )
@@ -204,9 +205,9 @@ void wl_SetRenderReadCallback ( PRENDERER pRenderer, RenderReadCallback callback
 
  int wl_HandleKeyEvents ( PKEYDEFINE pKeyDefs, uint32_t key )
 {
+	if( !pKeyDefs ) return FALSE;
 	int keycode = KEY_CODE(key);
 	int keymod = KEY_MOD(key);
-	//l.flags.bLogKeyEvent = 1;
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
 		lprintf( "received key %08x %d(%x) %d(%x) %s %s", key, keycode, keycode, keymod,keymod

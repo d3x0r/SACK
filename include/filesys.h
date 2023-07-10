@@ -134,6 +134,7 @@ struct file_system_interface {
 	int ( CPROC* _rmdir )( uintptr_t psvInstance, const char* );
     int (CPROC* _lock)(void*);                //file *
     int (CPROC* _unlock)(void*);              //file *
+    int (CPROC* _make_public)( uintptr_t psvInstance, CTEXTSTR filename ); // set chmod( filename, 0777 )
 };
 
 
@@ -516,6 +517,18 @@ FILESYS_PROC  uintptr_t FILESYS_API  sack_fs_ioctl( struct file_system_mounted_i
 
 FILESYS_PROC int FILESYS_API sack_flock( FILE* file );
 FILESYS_PROC int FILESYS_API sack_funlock( FILE* file );
+
+/*
+  change permissions so everyone can read and write the file.
+  result is < 0 and errno is set to ENOENT if there is no handler entry for the mount found.
+*/
+FILESYS_PROC int FILESYS_API make_public( CTEXTSTR filename );
+/*
+  change permissions so everyone can read and write the file; on a given mount.
+  many mounts do not support this yet.
+  result is < 0 and errno is set to ENOENT if there is no handler entry for the mount specified.
+*/
+FILESYS_PROC int FILESYS_API make_public_mount( CTEXTSTR filename, struct file_system_mounted_interface*mount );
 
 #ifndef NO_FILEOP_ALIAS
 

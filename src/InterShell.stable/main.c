@@ -4579,15 +4579,17 @@ LOGICAL CPROC DoConfigureKeys( uintptr_t psv, uint32_t keycodeUnused )
 
 static int OnKeyCommon( "Menu Canvas" )( PSI_CONTROL pc, uint32_t key )
 {
-	lprintf( "Key input: %08x %x %x", key, KEY_C, key &KEY_ALT_DOWN);
+	lprintf( "Key input: %08x %x isalt?%x alt:%x sft:%x", key, KEY_C, key &KEY_ALT_DOWN, KEY_ALT_DOWN, KEY_SHIFT_DOWN);
 	if(( (key & (KEY_ALT_DOWN|KEY_SHIFT_DOWN))==(KEY_ALT_DOWN|KEY_SHIFT_DOWN) )
 		||( (key & (KEY_ALT_DOWN))==(KEY_ALT_DOWN) )
 		)
 	{
+		lprintf( "is shift-alt and key? %d %d", KEY_CODE(key), KEY_C, g.flags.bNoEdit );
 		if( !g.flags.bNoEdit )
 		{
 			if( ( KEY_CODE( key ) == KEY_C ) )
 			{
+				lprintf( "-------- CONFIGURE KEYS --------------");
 				ConfigureKeys( pc, key );
 				return TRUE;
 			}

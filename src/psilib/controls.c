@@ -813,9 +813,9 @@ PSI_PROC( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE Display
 		uint32_t w, h;
 		GetDisplaySize( &w, &h );
 		if( h > w )
-			g.default_font = RenderFontFileScaledEx( "%resources%/fonts/MyriadPro.ttf", w / 34, h / 48, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+			g.default_font = RenderFontFileScaledEx( "?/fonts/MyriadPro.ttf", w / 34, h / 48, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		else
-			g.default_font = RenderFontFileScaledEx( "%resources%/fonts/MyriadPro.ttf", w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
+			g.default_font = RenderFontFileScaledEx( "?/fonts/MyriadPro.ttf", w / 58, h / 32, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
 	}
 #else
 	if( !g.default_font ) {
@@ -824,7 +824,7 @@ PSI_PROC( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE Display
 
 		uint32_t w, h;
 		int bias_x, bias_y;
-		GetFileGroup( "Resources", "@/../share/SACK" );
+		GetFileGroup( "Resources", "?/" );
 		//GetDisplaySize( &w, &h );
 		//g.default_font = RenderFontFileScaledEx( "%resources%/fonts/rod.ttf", 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
 		//g.default_font = RenderFontFileScaledEx( "rod.ttf", 18, 18, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );

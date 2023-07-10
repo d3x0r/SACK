@@ -30,6 +30,8 @@
 //#define ALLOW_KDE
 
 
+//#define EnterCriticalSec(a ) { lprintf( "Enter cricialsec %p %d", a, (a)->dwLocks  ); EnterCriticalSecEx(a DBG_SRC); }
+//#define LeaveCriticalSec(a ) { LeaveCriticalSecEx(a DBG_SRC); lprintf( "Leave cricialsec %p %d", a, (a)->dwLocks );  }
 
 // these(name and version) should be merged into a struct.
 //static int supportedVersions[max_interface_versions] = {4,1,1,1,7,1,1,1};
@@ -124,7 +126,7 @@ static void output_mode(void *data, struct wl_output *wl_output, uint32_t flags,
 		  output_data->w = width;
 		  output_data->h = height;
 	  }
-  	lprintf( "Screen mode:%d %d %d  %d ", flags, width, height, refresh );
+  	//lprintf( "Screen mode:%d %d %d  %d ", flags, width, height, refresh );
   }
 }
 
@@ -206,15 +208,15 @@ static void pointer_enter(void *data,
 	LeaveCriticalSec( &wl.cs_wl );
 
 	wl.mouse_.r = r;
-	EnqueData( &wl.pdlMouseEvents, &wl.mouse_ );
+	EnqueData( &wl.pdqMouseEvents, &wl.mouse_ );
 	WakeThread( wl.drawThread );
 }
 
 static void pointer_leave(void *data,
 	struct wl_pointer *wl_pointer, uint32_t serial,
 	struct wl_surface *wl_surface) {
-	EnterCriticalSec( &wl.cs_wl );
 	if( !wl_surface ) return; // closed surface..
+	EnterCriticalSec( &wl.cs_wl );
 	struct pointer_data* pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
 	PXPANEL r = wl_surface_get_user_data(
 		pointer_data->target_surface);
@@ -222,7 +224,7 @@ static void pointer_leave(void *data,
 	//lprintf( "Mouse Leave" );
 	wl.mouse_.b = 0;
 	wl.mouse_.r = r;
-	EnqueData( &wl.pdlMouseEvents, &wl.mouse_ );
+	EnqueData( &wl.pdqMouseEvents, &wl.mouse_ );
 	WakeThread( wl.drawThread );
 
  }
@@ -244,7 +246,7 @@ static void pointer_motion(void *data,
 		int found;
 		struct mouseEvent *event;
 		struct mouseEvent *lastEvent = &wl.mouse_;
-		for( n = 0; event = PeekDataInQueueEx( &wl.pdlMouseEvents, n); n++ ) {
+		for( n = 0; event = PeekDataInQueueEx( &wl.pdqMouseEvents, n); n++ ) {
 			if( event->r == r) {
 				lastEvent = event;
 			}
@@ -254,7 +256,7 @@ static void pointer_motion(void *data,
 		event->y = surface_y>>8;
 		if( lastEvent == &wl.mouse_ ) {
 			wl.mouse_.r = r;
-			EnqueData( &wl.pdlMouseEvents, &wl.mouse_ );
+			EnqueData( &wl.pdqMouseEvents, &wl.mouse_ );
 			WakeThread( wl.drawThread );
 		}
 	}
@@ -298,7 +300,7 @@ static void pointer_button(void *data,
 		pointer_data->target_surface);
 
 	wl.mouse_.r = r;
-	EnqueData( &wl.pdlMouseEvents, &wl.mouse_ );
+	EnqueData( &wl.pdqMouseEvents, &wl.mouse_ );
 	WakeThread( wl.drawThread );
 
 	/*
@@ -452,23 +454,27 @@ static void keyboard_key(void *data,
 		return;
 	}
 	//lprintf( "KEY: %p %d %d %d %d", wl_keyboard, serial, time, key, state );
-
+	wl.key_.r = r;
 	xkb_state_update_key( wl.xkb_state, key+8, state == WL_KEYBOARD_KEY_STATE_PRESSED?XKB_KEY_DOWN:XKB_KEY_UP );
 	if (state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		xkb_keysym_t keysym = xkb_state_key_get_one_sym (wl.xkb_state, key+8);
 
 		uint32_t keycode;
-#ifdef DEBUG_KEY_EVENTS
-		lprintf( "Keysym:%d(%04x) %d %d %c(%08x)", keysym, keysym, key, state, wl.utfKeyCode, wl.utfKeyCode );
-#endif
 		keycode = KEY_PRESSED;
 		keycode |= key << 16;
 		keycode |= key;
 		keycode |= wl.keyMods;
+		wl.key_.keycode = keycode;
+		wl.key_.utfKeyCode = xkb_keysym_to_utf32 (keysym);
+#ifdef DEBUG_KEY_EVENTS
+		lprintf( "Keysym:%d(%04x) %d %d %c(%08x)(%08x)", keysym, keysym, key, state, wl.key_.utfKeyCode, wl.key_.utfKeyCode, wl.keyMods );
+#endif
+		//wl.key_.tick = timeGetTime(); // record first press time.
+		//wl.key_.rawKey = key;
+		EnqueData( &wl.pdqKeyEvents, &wl.key_ );
 
 		struct pendingKey *newKey = New(struct pendingKey );//&wl.keyRepeat.pendingKey;
 		// and press this new key.
-		wl.utfKeyCode = xkb_keysym_to_utf32 (keysym);
 
 		newKey->r = r;
 		newKey->rawKey = key;
@@ -478,28 +484,32 @@ static void keyboard_key(void *data,
 		AddLink( &wl.keyRepeat.pendingKeys, newKey );
 
 		WakeThread( wl.drawThread ); // let it setup a shorter timer, and handle stopping repeats?
-		if( r->pKeyProc ){
-#ifdef DEBUG_KEY_EVENTS
-			lprintf( "Sending as key %08x %08x", key, keycode );
-#endif
-			r->pKeyProc( r->dwKeyData, keycode );
-		}
-		#if 0
-		if (wl.utfKeyCode) {
-			if (wl.utfKeyCode >= 0x21 && wl.utfKeyCode <= 0x7E) {
-				lprintf ("the key %c was pressed", (char)wl.utfKeyCode);
-				//if (utf32 == 'q') running = 0;
+		return;
+
+		if( !wl_HandleKeyEvents( r->pKeyDefs, keycode ) ) {
+			if( r->pKeyProc ){
+	#ifdef DEBUG_KEY_EVENTS
+				lprintf( "Sending as key %08x %08x", key, keycode );
+	#endif
+				r->pKeyProc( r->dwKeyData, keycode );
+			}
+			#if 0
+			if (wl.utfKeyCode) {
+				if (wl.utfKeyCode >= 0x21 && wl.utfKeyCode <= 0x7E) {
+					lprintf ("the key %c was pressed", (char)wl.utfKeyCode);
+					//if (utf32 == 'q') running = 0;
+				}
+				else {
+					lprintf ("the key U+%04X was pressed", wl.utfKeyCode);
+				}
 			}
 			else {
-				lprintf ("the key U+%04X was pressed", wl.utfKeyCode);
+				char name[64];
+				xkb_keysym_get_name (keysym, name, 64);
+				lprintf ("the key %s was pressed", name);
 			}
+			#endif
 		}
-		else {
-			char name[64];
-			xkb_keysym_get_name (keysym, name, 64);
-			lprintf ("the key %s was pressed", name);
-		}
-		#endif
 	}
 	if (state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		uint32_t keycode;
@@ -519,10 +529,10 @@ static void keyboard_key(void *data,
 		keycode = 0;
 		keycode |= ( key << 16 ) | wl.keysym;
 		keycode |= key;
+		wl.key_.keycode = keycode;
+		EnqueData( &wl.pdqKeyEvents, &wl.key_ );
+		WakeThread( wl.drawThread ); // let it setup a shorter timer, and handle stopping repeats?
 
-		if( r->pKeyProc ){
-			r->pKeyProc( r->dwKeyData, keycode );
-		}
 	}
 }
 
@@ -537,7 +547,6 @@ static void keyboard_modifiers(void *data,
 {
 	wl.keyMods = 0;
 	if( mods_depressed & 1 ) {
-		//wl.keyMods |= KEY_MOD_SHIFT;
 		wl.keyMods |= KEY_SHIFT_DOWN;
 	}
 	if( mods_depressed & 4 ) {
@@ -556,7 +565,7 @@ static void keyboard_modifiers(void *data,
 static const TEXTCHAR * sack_wayland_GetKeyText           ( int key ){
 	static char buf[6];
 	//lprintf( "assuming key was the one dispatched....");
-	ConvertToUTF8( buf, wl.utfKeyCode );
+	ConvertToUTF8( buf, wl.key_sent.utfKeyCode );
 	return buf;
 }
 
@@ -711,7 +720,8 @@ static const struct wl_interface interface_listener = {
 static void initConnections( void ) {
 	InitializeCriticalSec( &wl.cs_wl );
 	wl.pii = GetImageInterface();
-	wl.pdlMouseEvents = CreateDataQueue( sizeof( struct mouseEvent ));
+	wl.pdqMouseEvents = CreateDataQueue( sizeof( struct mouseEvent ));
+	wl.pdqKeyEvents = CreateDataQueue( sizeof( struct keyEvent ));
 	wl.display = wl_display_connect(NULL);
 	if (wl.display == NULL) {
 		wl.flags.bFailed = 1;
@@ -1003,7 +1013,7 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 
 
 static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
-	lprintf( "attachNewBuffer...");
+	lprintf( "attachNewBuffer... %d", locked);
 	if( !r->surface ) return FALSE; 
 	lprintf( "attachNewBuffer2...");
 	struct wl_buffer *next = nextBuffer(r, 0);
@@ -1049,7 +1059,7 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 						}
 						while( r->flags.wantBuffer ) {
 							//lprintf( "SLEEP?" ); 
-							WakeableSleep( 250 ); 
+							IdleFor( 250 ); 
 							//lprintf( "Slept?%d", r->flags.wantBuffer );
 						} 
 						if( locked )
@@ -1141,14 +1151,15 @@ static  void surfaceFrameCallback( void *data, struct wl_callback* callback, uin
 
 static void sack_wayland_Redraw( PRENDERER renderer );
 
-static uintptr_t waylandDrawThread( PTHREAD thread ) {
+static int do_waylandDrawThread( uintptr_t psv ) {
+	static int sleeping = 0;
+	static int drawing = 0;
+	static int sleepTime = 0;
 	// need draws to happen on a 'draw' thread, which is NOT the application thread.
 	//
-	lprintf( "!!!!!!!!!! START DRAW THREAD" );
-	wl.drawThread = thread;
-	while(1)
+	PTHREAD checkThread = MakeThread();
+	if( checkThread == wl.drawThread )
 	{
-		int sleepTime = 100;
 		int newSleepTime = -1;
 		INDEX idx;
 		struct drawRequest *req;
@@ -1156,12 +1167,37 @@ static uintptr_t waylandDrawThread( PTHREAD thread ) {
 		PXPANEL r;
 		uint32_t now = timeGetTime();
 		struct mouseEvent event;
-
-		if( DequeData( &wl.pdlMouseEvents, &event ) ) {
+		if( DequeData( &wl.pdqKeyEvents, &wl.key_sent )){
+			if( !wl_HandleKeyEvents( wl.key_sent.r->pKeyDefs, wl.key_sent.keycode ) ) {
+				if( wl.key_sent.r->pKeyProc ){
+		#ifdef DEBUG_KEY_EVENTS
+					lprintf( "Sending as key %08x %08x", wl.key_sent.utfKeyCode, wl.key_sent.keycode );
+		#endif
+					wl.key_sent.r->pKeyProc( wl.key_sent.r->dwKeyData, wl.key_sent.keycode );
+				}
+				#if 0
+				if (wl.utfKeyCode) {
+					if (wl.utfKeyCode >= 0x21 && wl.utfKeyCode <= 0x7E) {
+						lprintf ("the key %c was pressed", (char)wl.utfKeyCode);
+						//if (utf32 == 'q') running = 0;
+					}
+					else {
+						lprintf ("the key U+%04X was pressed", wl.utfKeyCode);
+					}
+				}
+				else {
+					char name[64];
+					xkb_keysym_get_name (keysym, name, 64);
+					lprintf ("the key %s was pressed", name);
+				}
+				#endif
+			}
+		}
+		if( !sleeping )
+		if( DequeData( &wl.pdqMouseEvents, &event ) ) {
 			if( wl.hCaptured ) {
 				/*
 					struct wvideo_tag *r = wl.hCaptured;
-
 					while( r && r->above ){
 						lprintf( "adjust mouse event by %d %d   %d %d", r->x, r->y, event.x, event.y );
 						//event.x -= r->x; // root x/y is not reliable... we're sourced to that parent.
@@ -1191,7 +1227,7 @@ static uintptr_t waylandDrawThread( PTHREAD thread ) {
 			}
 			sleepTime = 0;
 		}
-		if( sleepTime ) { // if mouse happened, ignore keys this pass...
+		if( !sleeping && sleepTime ) { // if mouse happened, ignore keys this pass...
 			LIST_FORALL( wl.keyRepeat.pendingKeys, idx, struct pendingKey*, key ) {
 				if( key->tick ) {
 					//lprintf( "key tick:%d %d", key->tick, key->repeating, now, key->tick-now );
@@ -1214,30 +1250,65 @@ static uintptr_t waylandDrawThread( PTHREAD thread ) {
 					}
 				}
 			}
-			if( newSleepTime < sleepTime )
+			if( newSleepTime >= 0 && newSleepTime < sleepTime )
 				sleepTime = newSleepTime;
+			lprintf( "Set sleep time? %d", sleepTime );
 		}
 		
-		LIST_FORALL( wl.wantDraw, idx, struct drawRequest *, req ){
-#if defined( DEBUG_COMMIT )
-			lprintf( "Sending a want draw window...");
-#endif
-			sack_wayland_Redraw( (PRENDERER)req->r );
-			req->r = NULL; // clear draw request.
-			//WakeThread( req->thread );
-			Release( req );
-		}
-		EmptyList( &wl.wantDraw );
-		if( sleepTime ) // mouse events might want to tick off quickly
+		if( !drawing ) {
+			drawing = 1;
+			LIST_FORALL( wl.wantDraw, idx, struct drawRequest *, req ){
+	#if defined( DEBUG_COMMIT )
+				lprintf( "Sending a want draw window...");
+	#endif
+				sack_wayland_Redraw( (PRENDERER)req->r );
+				req->r = NULL; // clear draw request.
+				//WakeThread( req->thread );
+				Release( req );
+			}
+			EmptyList( &wl.wantDraw );
+			drawing = 0;
+		} 
+		if( sleepTime > 0 ) // mouse events might want to tick off quickly
 		{
-			if( wl.display )
+			if( wl.display ) {
+				lprintf( "---------  Send wl_display_flush....");
 				wl_display_flush( wl.display );
-			WakeableSleep(sleepTime);
-			
+			}
+
+			if( sleeping )
+				return 0;
+			else {
+				sleeping = TRUE;
+				IdleFor(sleepTime);
+				sleeping = FALSE;
+			}
 		}
+	} else 
+		return -1;
+	return 0;
+}
+
+static uintptr_t waylandDrawThread( PTHREAD thread ) {
+	// need draws to happen on a 'draw' thread, which is NOT the application thread.
+	//
+	lprintf( "!!!!!!!!!! START DRAW THREAD" );
+	wl.drawThread = thread;
+	while(1)
+	{
+		do_waylandDrawThread(0);
 	}
 }
 
+
+static uintptr_t do_waylandThread( int isThread ) {
+	if( MakeThread() != wl.waylandThread ) return -1;
+	if( wl.display ) {
+		wl_display_dispatch_queue_pending ( wl.display, wl.queue );
+		//wl_display_dispatch_queue(wl.display, wl.queue);
+	}
+	return 0;
+}
 static uintptr_t waylandThread( PTHREAD thread ) {
 	wl.waylandThread = thread;
 	if( wl.display) DebugBreak();
@@ -1252,9 +1323,10 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 				WakeThread( waiter );
 			}
 			//lprintf( ".... did some messages...");
+			//if( wl.cs_wl.dwLocks ) DebugBreak();
 		}
 
-		lprintf( "Thread exiting?" );
+		lprintf( "!*!*!*!*!*! Thread exiting? !*!*!*!*!*!" );
 		//wl_event_queue_destroy( wl.queue );
 		wl_display_disconnect( wl.display );
 	} else {
@@ -1375,17 +1447,17 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 						int newminx, newminy, newmaxx, newmaxy;
 						int grew;
 						//lprintf( "Recovering a damaged area %d %d %d %d", damage->x, damage->y, damage->w, damage->h );
-			        
+
 						if( damage->x < minx )
 							minx = damage->x;
 						if( damage->y < miny )
 							miny = damage->y;
-			        
+
 						if( (damage->x+damage->w) > maxx )
 							maxx = damage->x+damage->w;
 						if( (damage->y+damage->h) > maxy )
 							maxy = damage->y+damage->h;
-			        
+
 						Release( damage );
 					}
 					EmptyList( &r->damage );
@@ -1460,8 +1532,12 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			r->shell_surface = (struct wl_shell_surface*)xdg_wm_base_get_xdg_surface( wl.xdg_wm_base, r->surface );
 			xdg_surface_add_listener( (struct xdg_surface*)r->shell_surface, &xdg_surface_listener, r );
 			r->xdg_toplevel = xdg_surface_get_toplevel( (struct xdg_surface*)r->shell_surface );
-			//xdg_toplevel_set_title(  r->xdg_toplevel, "I DOn't want a title");
-
+			//
+			if( r->xdg_toplevel && r->pending_title ){
+				xdg_toplevel_set_title(  r->xdg_toplevel, r->pending_title);
+				ReleaseEx( r->pending_title DBG_SRC );
+				r->pending_title = NULL;
+			}
 			lprintf( "xdg_surface_init... %p", r->shell_surface );
 
 			xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
@@ -1478,7 +1554,7 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 				LeaveCriticalSec( &wl.cs_wl );
 				PTHREAD waiting = MakeThread();
 				AddLink( &wl.shellWaits, &waiting );				
-				while(waiting) WakeableSleep(1000);//wl_display_roundtrip_queue(wl.display, wl.queue);
+				while(waiting) IdleFor(1000);//wl_display_roundtrip_queue(wl.display, wl.queue);
 				EnterCriticalSec( &wl.cs_wl );
 			}
 		}
@@ -1511,6 +1587,7 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 	PXPANEL r = (PXPANEL)renderer;
 	struct drawRequest* req = New( struct drawRequest );
 	PTHREAD thisThread = MakeThread();
+	lprintf( "Redraw dispatched to display...");
 	if( wl.waylandThread == thisThread ) {
 		
 	}
@@ -1528,12 +1605,15 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 				req->thread = thisThread;
 				AddLink( &wl.wantDraw, req );
 #if defined( DEBUG_COMMIT )
-				//lprintf( "^^^^^^^^^^^ waking draw thread, and resulting ^^^^^^^^^^^^^^^^");
+				lprintf( "^^^^^^^^^^^ waking draw thread, and resulting ^^^^^^^^^^^^^^^^");
 #endif
 				WakeThread( wl.drawThread );
 			}
+			else {
+				lprintf( "This thread already wants to draw... don't keep poking it?");
+			}
 		}
-		//while( req.r ) WakeableSleep( 100 );
+		//while( req.r ) IdleFor( 100 );
 		//wl_display_roundtrip_queue(wl.display, wl.queue);
 	}else {
 #if defined( DEBUG_COMMIT_BUFFER )
@@ -1543,14 +1623,14 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 		int couldCommit; couldCommit = r->flags.canCommit;
 		while( wl.flags.shellInit ) {
 			lprintf( "Wait for shell..." );
-			WakeableSleep( 200 );
+			IdleFor( 200 );
 			break;
 		}
 		while( !r->flags.canDamage ) {
 			
 			//r->flags.wantBuffer = 1;
 			lprintf( "Waiting in redraw to be able to draw; if I can't commit, then there's no good buffer anyway" );
-			WakeableSleep( 1000 );
+			IdleFor( 1000 );
 			//Relinquish();
 		}
 		EnterCriticalSec( &wl.cs_wl );
@@ -1565,12 +1645,10 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 		lprintf( "Dirty? after draw %d", r->flags.dirty );
 		if( r->flags.dirty ){
 			attachNewBuffer( r, 1, 1 );
-			LeaveCriticalSec( &wl.cs_wl );
 		}else {
-			LeaveCriticalSec( &wl.cs_wl );
-			
 			lprintf( "!! Nothing was dirty; something" );
 		}
+		LeaveCriticalSec( &wl.cs_wl );
 		//if( r->flags.commited ){
 			//lprintf( "A commit happened during redraw, wait for that to flush.");
 			//wl_display_flush( wl.display );
@@ -1681,7 +1759,7 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	//lprintf( "UpdateDisplayPortionEx %p %d %d %d %d", r->surface, x, y, w, h );
+	lprintf( "UpdateDisplayPortionEx %p %d %d %d %d", r->surface, x, y, w, h );
 	EnterCriticalSec( &wl.cs_wl );
 	if( r->surface ) {
 		wl_surface_damage( r->surface, x, y, w, h );
@@ -1694,7 +1772,7 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 
 //	lprintf( "update DIpslay Ex" );
-	//lprintf( "Update whole surface %d %d", r->w, r->h );
+	lprintf( "Update whole surface %d %d", r->w, r->h );
 
 	EnterCriticalSec( &wl.cs_wl );
 	if( r->surface ) {
@@ -1715,7 +1793,7 @@ static void sack_wayland_GetDisplayPosition( PRENDERER renderer, int32_t* x, int
 
 static void sack_wayland_MoveDisplay(PRENDERER renderer, int32_t x, int32_t y){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	lprintf( "MOVE DISPLAY %d %d", x, y);
+	//lprintf( "MOVE DISPLAY %d %d", x, y);
 	if( r->sub_surface ){
 		struct wvideo_tag *parent = r->above;
 		while( (parent) && parent->sub_surface ) {
@@ -1817,8 +1895,11 @@ static  int sack_wayland_IsTouchDisplay ( void ){
 
 static void sack_wayland_SetRendererTitle( PRENDERER render, char const* title ){
 	struct wvideo_tag *r = (struct wvideo_tag*)render;
-	if( title )
-		xdg_toplevel_set_title(  r->xdg_toplevel, title );
+	if( title ) {
+		if( r->xdg_toplevel )
+			xdg_toplevel_set_title(  r->xdg_toplevel, title );
+		r->pending_title = StrDup( title );
+	}
 
 }
 
@@ -2075,6 +2156,8 @@ static POINTER GetWaylandDisplayInterface(void)
 		//wl.flags.bInited = 1;
 		ThreadTo( waylandThread, 0 );
 		ThreadTo( waylandDrawThread, 0 );
+		AddIdleProc( do_waylandThread, 1 );
+		AddIdleProc( do_waylandDrawThread, 1 );
 		while( !wl.flags.bInited && !wl.flags.bFailed) {
 			Relinquish();
 		}
