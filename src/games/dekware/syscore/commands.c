@@ -295,7 +295,7 @@
 								  , DEFCMD(PRIORITY, "Set the priority of the dekware process." )//), PRIORITY )
 };
 
-int gbTrace = TRUE;
+int gbTrace = FALSE;
 
 //--------------------------------------------------------------------------
 #ifndef WIN32
