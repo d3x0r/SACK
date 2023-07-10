@@ -168,8 +168,8 @@ add_custom_target( generate_application_dat #ALL
                    #OUTPUT ${CMAKE_BINARY_DIR}/application.dat
                    COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/application.dat
 				   ${PRE_MORE_COMMAND} 
-                   COMMAND ${CMAKE_COMMAND} -E echo ${SACK_BASE}/bin/sack_vfs_command.exe ${app_vfs} storeas ${INTERSHELL_SDK_ROOT_PATH}/bin/InterShell.core ${CORE_NAME}
-                   COMMAND ${SACK_BASE}/bin/sack_vfs_command.exe ${app_vfs} storeas ${INTERSHELL_SDK_ROOT_PATH}/bin/InterShell.core ${CORE_NAME}
+                   COMMAND ${CMAKE_COMMAND} -E echo ${SACK_BASE}/bin/sack_vfs_command.exe ${app_vfs} storeas ${INTERSHELL_SDK_ROOT_PATH}/share/SACK/applicationCore/InterShell.core ${CORE_NAME}
+                   COMMAND ${SACK_BASE}/bin/sack_vfs_command.exe ${app_vfs} storeas ${INTERSHELL_SDK_ROOT_PATH}/share/SACK/applicationCore/InterShell.core ${CORE_NAME}
 				   ${MORE_COMMAND} 
 				   COMMAND ${SACK_BASE}/bin/sack_vfs_command.exe ${app_vfs} shrink
 				   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/application.dat ${CMAKE_BINARY_DIR}/application.bak
