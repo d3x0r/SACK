@@ -156,8 +156,6 @@ static void UpdateLocalDataPath( void )
 		, ( *winfile_local ).producer ? "\\" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 		, ( *winfile_local ).application ? "\\" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
-	if( ( *winfile_local ).data_file_root )
-		Deallocate( TEXTSTR, ( *winfile_local ).data_file_root );
 	( *winfile_local ).data_file_root = realpath;
 	MakePath( ( *winfile_local ).data_file_root );
 
@@ -170,8 +168,6 @@ static void UpdateLocalDataPath( void )
 		, ( *winfile_local ).producer ? "\\" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 		, ( *winfile_local ).application ? "\\" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
-	if( ( *winfile_local ).local_data_file_root )
-		Deallocate( TEXTSTR, ( *winfile_local ).local_data_file_root );
 	( *winfile_local ).local_data_file_root = realpath;
 	MakePath( ( *winfile_local ).local_data_file_root );
 #else
