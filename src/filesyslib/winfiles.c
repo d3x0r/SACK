@@ -145,31 +145,36 @@ static void UpdateLocalDataPath( void )
 
 #ifdef _WIN32
 	wchar_t path[MAX_PATH];
+	TEXTCHAR* u8path;
 	TEXTCHAR* realpath;
 	size_t len;
 
 	SHGetFolderPathW( NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
-	realpath = NewArray( TEXTCHAR, len = StrLenW( path )
+	u8path = WcharConvert( path );
+	realpath = NewArray( TEXTCHAR, len = StrLen( u8path )
 		+ StrLen( ( *winfile_local ).producer ? ( *winfile_local ).producer : "" )
 		+ StrLen( ( *winfile_local ).application ? ( *winfile_local ).application : "" ) + 3 ); // worse case +3
-	tnprintf( realpath, len, "%ls%s%s%s%s", path
+	tnprintf( realpath, len, "%s%s%s%s%s", path
 		, ( *winfile_local ).producer ? "\\" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 		, ( *winfile_local ).application ? "\\" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
 	( *winfile_local ).data_file_root = realpath;
 	MakePath( ( *winfile_local ).data_file_root );
+	ReleaseEx( u8path DBG_SRC );
 
 
 	SHGetFolderPathW( NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, path );
-	realpath = NewArray( TEXTCHAR, len = StrLenW( path )
+	u8path = WcharConvert( path );
+	realpath = NewArray( TEXTCHAR, len = StrLen( u8path )
 		+ StrLen( ( *winfile_local ).producer ? ( *winfile_local ).producer : "" )
 		+ StrLen( ( *winfile_local ).application ? ( *winfile_local ).application : "" ) + 3 ); // worse case +3
-	tnprintf( realpath, len, "%ls%s%s%s%s", path
+	tnprintf( realpath, len, "%s%s%s%s%s", u8path
 		, ( *winfile_local ).producer ? "\\" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 		, ( *winfile_local ).application ? "\\" : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 	);
 	( *winfile_local ).local_data_file_root = realpath;
 	MakePath( ( *winfile_local ).local_data_file_root );
+	ReleaseEx( u8path DBG_SRC );
 #else
 	TEXTCHAR path[MAXPATH];
 	if( strcmp( CMAKE_INSTALL_PREFIX, "/usr" ) == 0 )
@@ -556,14 +561,14 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 			else if( ( path[0] == '@' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
-				here = CMAKE_INSTALL_PREFIX;
+				here = GetLibraryPath();
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
 			else if( ( path[0] == ',' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
-				here = GetLibraryPath();
+				here = CMAKE_INSTALL_PREFIX;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
@@ -573,8 +578,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				here = GetProgramPath();
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
-			}
-			else if( ( path[0] == '~' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+			} else if( ( path[0] == '~' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 #ifdef _WIN32
@@ -584,22 +588,19 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 #endif
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
-			}
-			else if( ( path[0] == '*' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+			} else if( ( path[0] == '*' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).data_file_root;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
-			}
-			else if( ( path[0] == ';' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+			} else if( ( path[0] == ';' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).local_data_file_root;
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
-			}
-			else if( path[0] == '?' && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+			} else if( path[0] == '?' && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).share_data_root;
@@ -647,28 +648,32 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = tmp_;
 			}
-			
+
 			if( tmp_path && StrChr( tmp_path, '%' ) != NULL ) {
 				TEXTSTR freePath = tmp_path;
 				tmp_path = ExpandPathVariable( tmp_path );
 				ReleaseEx( freePath DBG_SRC );
-			}
-			else if( path && StrChr( path, '%' ) != NULL ) {
+			} else if( path && StrChr( path, '%' ) != NULL ) {
 				tmp_path = ExpandPathVariable( path );
 			}
 			if( tmp_path )
 				squash_dotdot( tmp_path );
 			else
 				tmp_path = StrDup( path );
-		}
-		else if( StrChr( path, '%' ) != NULL ) {
+		} else if( StrChr( path, '%' ) != NULL ) {
 			tmp_path = ExpandPathVariable( path );
-		}
-		else {
+		} else {
 			tmp_path = StrDupEx( path DBG_RELAY );
 		}
 	}
-
+	{
+		TEXTSTR p = tmp_path;
+		while( p[0] ) {
+			if( p[0] == '/' || p[0] == '\\' )
+				p[0] = SYSPATHCHAR[0];
+			p++;
+		}
+	}
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( ( *winfile_local ).flags.bLogOpenClose )
 		lprintf( "output path is [%s]", tmp_path );

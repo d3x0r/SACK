@@ -948,7 +948,16 @@ MEM_PROC  size_t MEM_API  StrLen ( CTEXTSTR s );
 
 	Returns
 	length of string.                             */
-MEM_PROC  size_t MEM_API  StrLenW( wchar_t const* s );
+MEM_PROC  size_t MEM_API  StrBytesW( wchar_t const* s );
+
+/* \Returns the count of bytes in a string, if converted to utf8.
+	Parameters
+	s : wide string to measure (with wide characters)
+
+	Returns
+	length of string.                             */
+MEM_PROC  size_t MEM_API  StrBytesWu8( wchar_t const* s );
+
 /* Get the length of a string in C chars.
    Parameters
    s :  char * to count.

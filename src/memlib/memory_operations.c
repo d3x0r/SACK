@@ -426,12 +426,26 @@ size_t StrLen( CTEXTSTR s )
 	return l;	
 }
 
-size_t StrLenW( wchar_t const* s ) {
+size_t StrBytesW( wchar_t const* s ) {
 	size_t l;
 	if( !s )
 		return 0;
-	for( l = 0; s[0]; l+=2, s++ );
+	for( l = 0; s[0]; s++ ) {
+		l += 2;
+	}
 	return l+2;
+}
+
+size_t StrBytesWu8( wchar_t const* s ) {
+	size_t l;
+	char ch[4];
+	TEXTRUNE r;
+	if( !s )
+		return 0;
+	for( l = 0; r = GetUtfCharW( &s ); s++ ) {
+		l += ConvertToUTF8( ch, r );
+	}
+	return l + 1;
 }
 
 size_t CStrLen( char const* s )
