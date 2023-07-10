@@ -707,7 +707,7 @@ int HeadTail( int bHead, PSENTIENT ps, PTEXT parameters )
 			EnqueLink( &ps->Command->Output, &msg );
 			return FALSE;
 		}
-		Len = IntCreateFromSeg( pCount );
+		Len = (int)IntCreateFromSeg( pCount );
 		if( Len < 0 )
 		{
 			DECLTEXT( msg, "Character count cannot be negative." );
@@ -720,7 +720,7 @@ int HeadTail( int bHead, PSENTIENT ps, PTEXT parameters )
 		{
 			int FromLen;
 			PTEXT pSplit, pSave;
-			FromLen = GetTextSize( pFrom );
+			FromLen = (int)GetTextSize( pFrom );
 			if( Len >= FromLen ) // grab the whole word
 			{
 				SetIndirect( pTo, pFrom );
@@ -740,7 +740,7 @@ int HeadTail( int bHead, PSENTIENT ps, PTEXT parameters )
 		{
 			int FromLen;
 			PTEXT pSplit, pSave;
-			FromLen = GetTextSize( pFrom );
+			FromLen = (int)GetTextSize( pFrom );
 			if( Len >= FromLen ) // grab the whole word...
 			{
 				SetIndirect( pTo, pFrom );
@@ -892,7 +892,6 @@ int CPROC VAR_POP( PSENTIENT ps, PTEXT parameters )
 //--------------------------------------
 int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 {
-	PTEXT temp;
 	PVARTEXT vt;
 	INDEX idx;
 	PENTITY pe = ps->Current; // resonable default.
@@ -921,7 +920,7 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 					total = 0;
 					while( pBuffer )
 					{
-						total += GetTextSize( pBuffer );
+						total += (int)GetTextSize( pBuffer );
 						pBuffer = NEXTLINE( pBuffer );
 					}
 					pText = NULL;
@@ -981,7 +980,7 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 					total = 0;
 					while( pBuffer )
 					{
-						total += GetTextSize( pBuffer );
+						total += (int)GetTextSize( pBuffer );
 						pBuffer = NEXTLINE( pBuffer );
 					}
 					vtprintf( vt, "(%d) Cannot display data", total );
@@ -1090,7 +1089,6 @@ int CPROC VARS( PSENTIENT ps, PTEXT parameters )
 //--------------------------------------
 int CPROC VVARS( PSENTIENT ps, PTEXT parameters )
 {
-	PTEXT temp;
 	PVARTEXT vt;
 	INDEX idx;
 	PENTITY pe = ps->Current; // resonable default.

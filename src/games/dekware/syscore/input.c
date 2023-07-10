@@ -416,7 +416,7 @@ CORE_PROC( void, RecallCommand )( PCOMMAND_INFO pci, int bUp )
 	{
 		pci->nHistory++;
 		if( pci->nHistory >= (int)pci->InputHistory->Cnt )
-			pci->nHistory -= pci->InputHistory->Cnt;
+			pci->nHistory -= (int)pci->InputHistory->Cnt;
 		if( pci->nHistory == (signed)pci->InputHistory->Top )
 		{
 			// now we are at the NEW entry to the list...
@@ -439,7 +439,7 @@ CORE_PROC( void, RecallCommand )( PCOMMAND_INFO pci, int bUp )
 
 		// if we weren't previously working on a recalled command...
 		if( pci->nHistory == -1 )
-			pci->nHistory = pci->InputHistory->Top - 1;
+			pci->nHistory = (int)pci->InputHistory->Top - 1;
 		else
 		{       
 			// if already on the first entered command (last avail recall...)
@@ -451,7 +451,7 @@ CORE_PROC( void, RecallCommand )( PCOMMAND_INFO pci, int bUp )
 		}
 		// wrap to a valid position....
 		if( pci->nHistory < 0 )
-			pci->nHistory += pci->InputHistory->Cnt;
+			pci->nHistory += (int)pci->InputHistory->Cnt;
 	}
 
 	LineRelease( pci->CollectionBuffer );
@@ -577,7 +577,7 @@ CORE_PROC( int, SetCommandPosition )( PCOMMAND_INFO pci, int nPos, int whence )
 			int nLen;
 			while( NEXTLINE( pci->CollectionBuffer ) )
 				pci->CollectionBuffer = NEXTLINE( pci->CollectionBuffer );
-    		nLen = GetTextSize( pci->CollectionBuffer );
+    		nLen = (int)GetTextSize( pci->CollectionBuffer );
  			nPos++; // plus 1...
  			if( nLen > nPos )
     		{
@@ -597,27 +597,27 @@ CORE_PROC( int, SetCommandPosition )( PCOMMAND_INFO pci, int nPos, int whence )
 	}
 	else if( whence == SEEK_CUR )
 	{
-		nPos += pci->CollectionIndex;
+		nPos += (int)pci->CollectionIndex;
 		//pci->CollectionIndex += nPos;
 			
 		while( nPos >= (int)GetTextSize( pci->CollectionBuffer ) )
 		{
 			if( NEXTLINE( pci->CollectionBuffer ) )
 			{
-				nPos -= GetTextSize( pci->CollectionBuffer );
+				nPos -= (int)GetTextSize( pci->CollectionBuffer );
 				pci->CollectionBuffer = NEXTLINE( pci->CollectionBuffer );
 			}
 			else
 			{
 				// hmm well...set to last character in this buffer..
-				nPos = GetTextSize( pci->CollectionBuffer );
+				nPos = (int)GetTextSize( pci->CollectionBuffer );
 				break;
 			}
      }
      while( nPos < 0 && PRIORLINE( pci->CollectionBuffer) )
      {
           pci->CollectionBuffer = PRIORLINE( pci->CollectionBuffer );
-          nPos += GetTextSize( pci->CollectionBuffer );
+          nPos += (int)GetTextSize( pci->CollectionBuffer );
      }
        if( nPos < 0 )
         nPos = 0;

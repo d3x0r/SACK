@@ -88,7 +88,7 @@ static int HandleCommand( "Dice","Roll", "Roll dice stored in macro result" )( P
 	{
 		if( ps->pLastResult )
          LineRelease( ps->pLastResult );
-		ps->pLastResult = MakeNumberText( RollDice( count, sides ) );
+		ps->pLastResult = SegCreateFromInt( RollDice( count, sides ) );
       //ps->pLastResult->flags &= TF_TEMP;
 	}
    return 0;

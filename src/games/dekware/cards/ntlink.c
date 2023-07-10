@@ -368,7 +368,7 @@ static PTEXT ObjectVolatileVariableGet( "hand", "cards", "count of cards in hand
 	}
 	else
 	{
-		*ppLastValue = SegCreateFromInt( CountCards( ph ) );
+		*ppLastValue = SegCreateFromInt( (int)CountCards( ph ) );
 	}
 	return *ppLastValue;
 }

@@ -70,7 +70,6 @@ PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
 	if( DekwareGetCoreInterface( DekVersion ) ) {
 	   myTypeID = RegisterDevice( "gather", "Gathers lines command collection w/history...", Open );
-	   return DekVersion;
 	}
 }
 

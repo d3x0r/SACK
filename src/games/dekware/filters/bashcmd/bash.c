@@ -493,7 +493,6 @@ PRELOAD( RegisterRoutines ) // PUBLIC( TEXTCHAR *, RegisterRoutines )( void )
 {
 	if( DekwareGetCoreInterface( DekVersion ) ) {
 		myTypeID = RegisterDevice( "bash", "Parse commands bashlike", Open );
-		return DekVersion;
 	}
 }
 

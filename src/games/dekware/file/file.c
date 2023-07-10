@@ -45,7 +45,6 @@ static PTEXT get_line(PMYDATAPATH pdp, FILE *source)
 		filebuffer = NewArray( char, WORKSPACE );
 	do
 	{
-		size_t readlen;
 		void *result;
 		if( pdp->flags.bUnicode )
 		{
@@ -178,7 +177,7 @@ static int CPROC Write( PDATAPATH pdpX )
 				if( GetTextSize( pOut ) == 0 )
 					sack_fwrite( "\n", 1, 1, pdp->handle );
 				else
-					sack_fwrite( GetText( pOut ), 1, GetTextSize( pOut ), pdp->handle );
+					sack_fwrite( GetText( pOut ), GetTextSize( pOut ), 1, pdp->handle );
 				pOut = NEXTLINE( pOut );
 		  }
 		  LineRelease( pSaveOut );
@@ -368,7 +367,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 				0
 #endif
 				;
-			len_read = sack_fread( charbuf, 1, 64, pdp->handle );
+			len_read = (int)sack_fread( charbuf, 1, 64, pdp->handle );
 			if( len_read )
 			{
 				if( ( ((uint16_t*)charbuf)[0] == 0xFEFF )
@@ -492,7 +491,7 @@ static int CPROC LoadFile( PSENTIENT ps, PTEXT parameters )
 		return 0;
 	}
 	sack_fseek( file, 0, SEEK_END );
-	size = sack_ftell( file );
+	size = (int)sack_ftell( file );
 	sack_fseek( file, 0, SEEK_SET );
 	pVarValue = SegCreate( size );
 	pVarValue->flags |= TF_BINARY;
@@ -549,7 +548,7 @@ static int CPROC StoreFile( PSENTIENT ps, PTEXT parameters )
 		return 0;
 	}
 
-	sack_fwrite( GetText( pVarName ), 1, GetTextSize( pVarName ), file );
+	sack_fwrite( GetText( pVarName ), GetTextSize( pVarName ), 1, file );
 
 	sack_fclose( file );
 	return 1;

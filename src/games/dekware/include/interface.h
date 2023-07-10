@@ -20,8 +20,6 @@ struct dekware_interface {
 												, PTEXT *pObject, PTEXT *pResult DBG_PASS );
 	CORE_PROC_PTR( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsLen, PENTITY pe );
 
-
-	CORE_PROC_PTR( PTEXT, MakeNumberText )(size_t val );
 	CORE_PROC_PTR( PDATAPATH, CreateDataPath   )( PDATAPATH *ppWhere, int nExtra );
 
 	CORE_PROC_PTR( PMACROSTATE, InvokeBehavior )( CTEXTSTR name, PENTITY peActor, PSENTIENT psInvokeOn, PTEXT parameters );

@@ -757,27 +757,6 @@ first check the symbol for TF_PAREN
 
 */
 
-//------------------------------------------------------------------------
-
-CORE_PROC( PTEXT, MakeNumberText )( size_t val ) /*FOLD00*/
-{
-	 PVARTEXT vt = VarTextCreate();
-	 PTEXT pVal;
-	 vtprintf( vt, "%d", val );
-	 pVal = VarTextGet( vt );
-	 VarTextDestroy( &vt );
-	 return pVal;
-}
-
-//----------------------------------------------------------------------
-
-PTEXT MakeTempNumber( size_t val ) /*FOLD00*/
-{
-	 PTEXT var = MakeNumberText(val);
-	 var->flags |= TF_TEMP;
-	 return var;
-}
-
 //----------------------------------------------------------------------
 
 CORE_PROC( PTEXT, GetListVariable )( PLIST pList, CTEXTSTR text ) /*FOLD00*/
@@ -1311,7 +1290,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 				if( pMacroReturn )
 				{
 					if( IsVarLen )
-						MakeTempNumber( LineLength( pMacroReturn ) );
+						pMacroReturn = SegCreateFromInt( (int)LineLength( pMacroReturn ) );
 #ifdef DEBUG_TOKEN_SUBST
 					lprintf( "Returning %s", GetText( pMacroReturn ) );
 #endif
@@ -1328,7 +1307,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 			if( pText )
 			{
 				if( IsVarLen ) 
-					return MakeTempNumber( LineLength( pText ) );
+					return SegCreateFromInt( (int)LineLength( pText ) );
 				return pText;
 			}
 		}
@@ -1338,7 +1317,7 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 			{
 				//lprintf( "Found global var %s", GetText( c ) );
 				if( IsVarLen )
-					return MakeTempNumber( LineLength( c ) );
+					return SegCreateFromInt( (int)LineLength( c ) );
 				else
 					return c;
 			}
@@ -1350,9 +1329,9 @@ CORE_PROC( PTEXT, SubstTokenEx )( PSENTIENT ps, PTEXT *token, int IsVar, int IsL
 			}
 			if( IsVarLen )
 				if( pReturn->flags & TF_INDIRECT )
-					return MakeTempNumber( LineLength( GetIndirect( pReturn ) ) );
+					return SegCreateFromInt( (int)LineLength( GetIndirect( pReturn ) ) );
 				else
-					return MakeTempNumber( GetTextSize( pReturn ) );
+					return SegCreateFromInt( (int)GetTextSize( pReturn ) );
 		}
 	}
 	return pReturn;
