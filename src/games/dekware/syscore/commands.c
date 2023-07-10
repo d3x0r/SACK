@@ -298,43 +298,6 @@
 int gbTrace = FALSE;
 
 //--------------------------------------------------------------------------
-#ifndef WIN32
-int stricmp(const TEXTCHAR * dst, const TEXTCHAR * src) /*FOLD00*/
-
-{
-		  int f,l;
-
-				do {
-					 if ( ((f = (TEXTCHAR)(*(dst++))) >= 'A') && (f <= 'Z') )
-						  f -= ('A' - 'a');
-
-					 if ( ((l = (TEXTCHAR)(*(src++))) >= 'A') && (l <= 'Z') )
-						  l -= ('A' - 'a');
-				} while ( f && (f == l) );
-
-		  return(f - l);
-}
-
-int strnicmp ( CTEXTSTR first, CTEXTSTR last, size_t count ) /*FOLD00*/
-{
-		  int f,l;
-
-		  if ( count ) { /*FOLD01*/
-				do { /*FOLD02*/
-					 if ( ((f = (TEXTCHAR)(*(first++))) >= 'A') && /*FOLD03*/
-							 (f <= 'Z') )
-						  f -= 'A' - 'a';
-					 if ( ((l = (TEXTCHAR)(*(last++))) >= 'A') && /*fold03*/
-							 (l <= 'Z') )
-						  l -= 'A' - 'a';
-
-				} while ( --count && f && (f == l) ); /*FOLD02*/
-				return( f - l );
-		  } /*FOLD01*/
-
-		  return( 0 );
-} /*FOLD00*/
-#endif
 
 int FindDiff(const TEXTCHAR * dst, const TEXTCHAR * src)
 
