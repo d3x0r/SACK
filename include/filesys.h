@@ -282,15 +282,48 @@ FILESYS_PROC  TEXTSTR FILESYS_API  sack_prepend_path ( INDEX group, CTEXTSTR fil
    </code>                                                      */
 FILESYS_PROC INDEX FILESYS_API  GetFileGroup ( CTEXTSTR groupname, CTEXTSTR default_path );
 
+/*
+   Get the path the filegroup is defined as; or has been reloaded from option 
+   database as.
+*/
 FILESYS_PROC TEXTSTR FILESYS_API GetFileGroupText ( INDEX group, TEXTSTR path, int path_chars );
 
 
+/*
+ExpandPath() returns a string, which the caller must release.  The path is insepcted to see if it is 
+an absolute path ( '/' on unix or '?:/' on windows, where ? is any character).  All checks for slashes
+check both `\` and `/` as the same character.
+
+If it is absolute, it returns a copy of the path.
+
+If the path starts with a special character followed by a slash, then the character is replaced.
+
+|character| meaning|
+|---|----|
+|'./'| the current directory.  The dot is replaced with the full path to the current directory. |
+|'~/'|the home directory.  The `~` is replaced with `HOME` (on *nix) or `HOMEPATH`(on windows), and '.' (on android). This is also checked after all of these have previously been checked. so ';' can use '~'|
+|`@/`| the libraries path.  This is the path of the library or program currently running the filesystem abstraction. |
+|'?/'| %resources%.  This is defaulted to the install location, and is the common resources instealled with SACK. |
+|'^/'| Startup path.  This is the first path the application started in.  This is often the same as current directory, but current directoy can change. |
+|'*/'| on linux this is /var/Freedom Collective/<application>, on windows this is c:/programdata/Freedom Collective/<application.  This is actually (common writeable data/<provider>/<application>/ and it is possible to set/change the provider name.  The application name is determined by the name used to run the program.|
+|';/'| on linux this is ~/.[provider]/<application>, on windows this is c:/users/<user>/programdata/[provider]/[application].
+
+The default `[provider]` is Freedom Collective (shrug) needed to come up with a company name at some point.  To date 
+there is no company other than in name only.
+
+Varibles bounded by `%` are replaced with file group path, if there is no filepath, then the name is looked up
+in the environment and that's used.
+
+The path characters `/` and `\` are then forced to the host system preferred type of slash.  Although windows
+has been agnositic, updating the interfaces on windows to the system to be unicode(since ascii isn't uft8), 
+the wide APIs require `\`; and really linux requires `/`.
+
+Finally relative paths that are left are resolved, if there is a path part before the `..` to remove.
+
+*/
 FILESYS_PROC TEXTSTR FILESYS_API ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS );
 #define ExpandPathEx( path, fsi )  ExpandPathExx( path, fsi DBG_SRC )
 #define ExpandPath(path) ExpandPathExx( path, NULL DBG_SRC )
-//FILESYS_PROC TEXTSTR FILESYS_API ExpandPathEx( CTEXTSTR path, struct file_system_interface *fsi );
-
-//FILESYS_PROC TEXTSTR FILESYS_API ExpandPath( CTEXTSTR path );
 
 
 FILESYS_PROC LOGICAL FILESYS_API SetFileLength( CTEXTSTR path, size_t length );
