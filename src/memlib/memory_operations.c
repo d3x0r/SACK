@@ -426,6 +426,14 @@ size_t StrLen( CTEXTSTR s )
 	return l;	
 }
 
+size_t StrLenW( wchar_t const* s ) {
+	size_t l;
+	if( !s )
+		return 0;
+	for( l = 0; s[0]; l+=2, s++ );
+	return l+2;
+}
+
 size_t CStrLen( char const* s )
 {
 	size_t l;

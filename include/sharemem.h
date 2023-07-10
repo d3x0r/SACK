@@ -942,6 +942,13 @@ MEM_PROC  TEXTSTR MEM_API  StrCpy ( TEXTSTR s1, CTEXTSTR s2 );
    Returns
    length of string.                             */
 MEM_PROC  size_t MEM_API  StrLen ( CTEXTSTR s );
+/* \Returns the count of bytes in a string, which includes the \u0000 at the end.
+	Parameters
+	s :  string to measure (with wide characters)
+
+	Returns
+	length of string.                             */
+MEM_PROC  size_t MEM_API  StrLenW( wchar_t const* s );
 /* Get the length of a string in C chars.
    Parameters
    s :  char * to count.

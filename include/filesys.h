@@ -306,7 +306,7 @@ If the path starts with a special character followed by a slash, then the charac
 |`@/`| the libraries path.  This is the path of the library or program currently running the filesystem abstraction. |
 |'?/'| %resources%.  This is defaulted to the install location, and is the common resources instealled with SACK. |
 |'^/'| Startup path.  This is the first path the application started in.  This is often the same as current directory, but current directoy can change. |
-|'*/'| on linux this is /var/Freedom Collective/<application>, on windows this is c:/programdata/Freedom Collective/<application.  This is actually (common writeable data/<provider>/<application>/ and it is possible to set/change the provider name.  The application name is determined by the name used to run the program.|
+|'*' '/'| on linux this is /var/Freedom Collective/<application>, on windows this is c:/programdata/Freedom Collective/<application.  This is actually (common writeable data/<provider>/<application>/ and it is possible to set/change the provider name.  The application name is determined by the name used to run the program.|
 |';/'| on linux this is ~/.[provider]/<application>, on windows this is c:/users/<user>/programdata/[provider]/[application].
 
 The default `[provider]` is Freedom Collective (shrug) needed to come up with a company name at some point.  To date 
