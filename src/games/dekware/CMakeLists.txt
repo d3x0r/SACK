@@ -62,7 +62,7 @@ LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
 
-install(DIRECTORY scripts DESTINATION ${DATA_INSTALL_PREFIX}/dekware/scripts )
+install(DIRECTORY scripts DESTINATION ${DATA_INSTALL_PREFIX}/dekware )
 
 macro( ADD_PLUGIN target group  )
 	add_library( ${target} SHARED ${FIRST_GCC_LIBRARY_SOURCE} ${ARGN} ${LAST_GCC_LIBRARY_SOURCE} )

@@ -173,7 +173,7 @@ static PTEXT ObjectVolatileVariableGet( "core object", "scriptpath", "Contents o
 	if( !path )
 	{
 		PVARTEXT pvtTmp = VarTextCreate();
-		vtprintf( pvtTmp, "%s/scripts", GetProgramPath() );
+		vtprintf( pvtTmp, "%s/../share/SACK/dekware/scripts", GetProgramPath() );
 		path = VarTextGet( pvtTmp );
 		VarTextDestroy( &pvtTmp );
 	}
@@ -2258,6 +2258,7 @@ void Startup( TEXTCHAR *lpCmdLine )
 		//AddTimerEx( 0, 0, NOTHING, 0 );
 		TEXTCHAR pMyPath[256];
 		TEXTCHAR pMyPluginPath[256];
+		TEXTSTR pluginPath;
 		Started = 1;
 
 		for( ; lpCmdLine && lpCmdLine[0] == ' '; lpCmdLine++ );
@@ -2344,11 +2345,12 @@ void Startup( TEXTCHAR *lpCmdLine )
 #ifdef __ANDROID__
 		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), "%s", GetProgramPath() );
 #else
-		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), "%s/%s", GetProgramPath()
-					, "plugins" );
+		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), "@/../share/SACK/plugins" );
 #endif
+		pluginPath = ExpandPath( pMyPluginPath );
 		Log1( "Loading plugins from: %s", pMyPluginPath );
-		LoadPlugins( pMyPluginPath );
+		LoadPlugins( pluginPath );
+		ReleaseEx( pluginPath DBG_SRC );
 		if( StrCmp( pMyPluginPath, core_load_path ) )
 		{
 			Log1( "Loading plugins from: %s", core_load_path );

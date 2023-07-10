@@ -180,6 +180,7 @@ void LoadPlugin( CTEXTSTR pFile, PSENTIENT ps, PTEXT parameters )
 
 void CPROC LoadAPlugin( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
+	lprintf( "Plugin:%s", pathrchr( name )+1 );
 	LoadPlugin( name, NULL, NULL );
 }
 
