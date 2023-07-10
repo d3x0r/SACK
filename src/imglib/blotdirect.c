@@ -36,7 +36,7 @@ namespace image {
       uint32_t row= 0;             \
       while( row < params->hs )       \
       {                       \
-         uint32_t col=0;           \
+         uint32_t col; col=0;         \
          while( col < params->ws )    \
          {                    \
             {
@@ -517,7 +517,12 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 		bd.po = IMG_ADDRESS( pifDest, xd, yd );
 		bd.oo = 4*(pifDest->pwidth - ws);	  // w is how much we can copy...
 	}
-	//lprintf( "Doing image (%d,%d)-(%d,%d) (%d,%d)-(%d,%d)", xs, ys, ws, hs, xd, yd, wd, hd );
+	/*
+	lprintf( "Doing image %d %p %p (%d,%d)-(%d,%d) (%d,%d) spans(%d,%d)"
+		, nTransparent
+		, bd.po, bd.pi
+		, xs, ys, bd.ws, bd.hs, xd, yd, bd.oo, bd.oi );
+	*/
 	//oo = 4*(pifDest->pwidth - ws);	  // w is how much we can copy...
 	//oi = 4*(pifSrc->pwidth - ws); // adding remaining width...
 	//while( LockedExchange( &lock, 1 ) )
