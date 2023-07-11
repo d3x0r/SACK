@@ -1131,7 +1131,8 @@ void UpdateSomeControls( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 		clip.x = 0;
 		clip.y = 0;
 		clip.width = pc->surface_rect.width;
-		clip.height = pc->surface_rect.width;
+		clip.height = pc->surface_rect.height;
+		//lprintf( "clip: %dx%d %d-%d   %dx%d  %d-%d", pRect->x, pRect->y, pRect->width, pRect->height, clip.x, clip.y, clip.width, clip.height);
 		if( IntersectRectangle( &surf_rect, pRect, &clip ) )
 		{
 			surf_rect.x += pc->surface_rect.x;
