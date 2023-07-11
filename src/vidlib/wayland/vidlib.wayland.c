@@ -8,14 +8,15 @@
 
 #define DEBUG_SURFACE_ATTACH
 // general debug enable...
-#define DEBUG_COMMIT
+//#define DEBUG_COMMIT
 // tracks the allocation, locking and unlocking of buffers
 #define DEBUG_COMMIT_BUFFER
+//#define DEBUG_COMMIT_BUFFER_DETAILS
 // subset of just canCommit, not buffer requests and other flows...
 //#define DEBUG_COMMIT_STATE
 // events related to keys.
-#define DEBUG_KEY_EVENTS
-
+//#define DEBUG_KEY_EVENTS
+#define DEBUG_REDRAW
 
 #define USE_IMAGE_INTERFACE wl.pii
 #include <stdhdrs.h>
@@ -959,12 +960,12 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	r->curBuffer=(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES;
 	int curBuffer = r->curBuffer;
 #if defined( DEBUG_SURFACE_ATTACH )
-	lprintf( "using image to a new image.... %d sizeChange? %d %d",curBuffer, r->bufw != r->w, r->bufh != r->h );
+	//lprintf( "using image to a new image.... %d sizeChange? %d %d",curBuffer, r->bufw != r->w, r->bufh != r->h );
 #endif
 	if( r->bufw != r->w || r->bufh != r->h ) {
 		// if the buffer has to change size, we need a new one....
 		// maybe can keep this around to fill a copy of the prior window?
-		lprintf( "Remove Old Buffer");
+		//lprintf( "Remove Old Buffer");
 		if( r->color_buffers[curBuffer] ) {
 			munmap( r->color_buffers[curBuffer], r->buffer_sizes[curBuffer] );
 			UnmakeImageFile( r->buffer_images[curBuffer] );
@@ -1023,12 +1024,13 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	}
 	else {
 		// update previous frame to current frame.
-#if defined(DEBUG_COMMIT_ATTACH )
+#if defined(DEBUG_COMMIT_ATTACH_DETAILS )
 		lprintf( "Copying old buffer to current buffer....%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES );
 #endif
-		// copy just the damaged portions?�
+		// copy just the damaged portions?
 		BlotImage( r->buffer_images[curBuffer], r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], 0, 0 );
 	}
+	// update image internals of renderer... 
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
 	r->pImage->flags |= IF_FLAG_FINAL_RENDER|IF_FLAG_IN_MEMORY;
 	return r->buff;
@@ -1036,9 +1038,9 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 
 
 static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
-	lprintf( "attachNewBuffer... %d", locked);
+	lprintf( "attachNewBuffer... req %d,  locked %d", req, locked);
 	if( !r->surface ) return FALSE; 
-	lprintf( "attachNewBuffer2... (have a surface)");
+	//lprintf( "attachNewBuffer2... (have a surface)");
 	struct wl_buffer *next = nextBuffer(r, 0);
 	if( req && !next ) {
 #if defined( DEBUG_COMMIT_BUFFER )
@@ -1088,7 +1090,7 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 				if( locked )
 					EnterCriticalSec( &wl.cs_wl );
 				next = nextBuffer(r,0);
-#if defined( DEBUG_COMMIT_BUFFER )
+#if defined( DEBUG_COMMIT_BUFFER_DETAILS )
 				lprintf( "called next buffer again" );
 #endif						
 			} while( !r->flags.hidden && !next );
@@ -1127,9 +1129,6 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 		// already wants to commit again...
 		// clear dirty, still can't commit.
 		
-#if defined( DEBUG_SURFACE_ATTACH )
-		lprintf( "Attach new surface (can damage this." );
-#endif
 		if( r->surface ) { // by this point, thse surce COULD have closed... 
 #if defined( DEBUG_SURFACE_ATTACH )
 			lprintf( "Attach new surface, such that can damage (wake someone?)" );
@@ -1174,15 +1173,23 @@ static  void surfaceFrameCallback( void *data, struct wl_callback* callback, uin
 
 }
 
-static void postDrawEvent( PXPANEL r ) {
+static void postDrawEvent( PXPANEL r, int noCallback ) {
 	INDEX idx;
 	struct drawRequest * check;
+	if( r->flags.hidden ) {
+		return;
+	}
 	LIST_FORALL( wl.wantDraw, idx, struct drawRequest*, check ){
-		if( check->r == r ) break;
+		if( check->r == r ) {
+			// turn off the 1 if there isn't a block for the callback
+			check->noCallback &= ~noCallback;
+			break;
+		}
 	}
 	if( !check ) {
 		struct drawRequest* req = New( struct drawRequest );
 		req->r = r;
+		req->noCallback = noCallback;
 		//req->thread = thisThread;
 		AddLink( &wl.wantDraw, req );
 #if defined( DEBUG_COMMIT )
@@ -1193,13 +1200,14 @@ static void postDrawEvent( PXPANEL r ) {
 }
 
 static void sack_wayland_Redraw( PRENDERER renderer );
-static void sack_wayland_Redraw_( PRENDERER renderer, volatile int *readyState_ );
+static void sack_wayland_Redraw_( PRENDERER renderer, int noCallback, volatile int *redrawState_ );
+static volatile int redrawState = -1;
 
-static int do_waylandDrawThread( uintptr_t psv ) {
-	static int readyState = -1;
-	static int sleeping = 0;
-	static int drawing = 0;
-	static int sleepTime = 0;
+static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
+	static volatile int sleeping = 0;
+	static volatile int drawing = 0;
+	static volatile int sleepTime = 0;
+	int drewSome = 0;
 	// need draws to happen on a 'draw' thread, which is NOT the application thread.
 	//
 	PTHREAD checkThread = MakeThread();
@@ -1207,13 +1215,15 @@ static int do_waylandDrawThread( uintptr_t psv ) {
 	{
 		int newSleepTime = -1;
 		INDEX idx;
+		int did_event = 0;
 		struct drawRequest *req;
 		struct pendingKey *key;
 		PXPANEL r;
 		uint32_t now = timeGetTime();
 		struct mouseEvent event;
-		if( DequeData( &wl.pdqKeyEvents, &wl.key_sent )){
-			readyState = 100;
+		while( DequeData( &wl.pdqKeyEvents, &wl.key_sent )){
+			redrawState = 100;
+			did_event = 1;
 			if( !wl_HandleKeyEvents( wl.key_sent.r->pKeyDefs, wl.key_sent.keycode ) ) {
 				if( wl.key_sent.r->pKeyProc ){
 		#ifdef DEBUG_KEY_EVENTS
@@ -1238,11 +1248,12 @@ static int do_waylandDrawThread( uintptr_t psv ) {
 				}
 				#endif
 			}
-			readyState = 101;
+			redrawState = 101;
 		}
-		if( !sleeping )
-		if( DequeData( &wl.pdqMouseEvents, &event ) ) {
-			readyState = 200;
+
+		while( DequeData( &wl.pdqMouseEvents, &event ) ) {
+			redrawState = 200;
+			did_event = 1;
 			if( wl.hCaptured ) {
 				/*
 					struct wvideo_tag *r = wl.hCaptured;
@@ -1264,9 +1275,10 @@ static int do_waylandDrawThread( uintptr_t psv ) {
 				//postDrawEvent( event.r );
 			}
 			sleepTime = 0;
-			readyState = 201;
+			redrawState = 201;
 		}
-		if( !sleeping && sleepTime ) { // if mouse happened, ignore keys this pass...
+		if( sleepTime ) { // if mouse happened, ignore keys this pass...
+				lprintf( "Consult repeating keys.... " );
 			LIST_FORALL( wl.keyRepeat.pendingKeys, idx, struct pendingKey*, key ) {
 				if( key->tick ) {
 					//lprintf( "key tick:%fd %d", key->tick, key->repeating, now, key->tick-now );
@@ -1297,42 +1309,64 @@ static int do_waylandDrawThread( uintptr_t psv ) {
 		if( !drawing ) {
 			drawing = 1;
 			LIST_FORALL( wl.wantDraw, idx, struct drawRequest *, req ){
-	#if defined( DEBUG_COMMIT )
-				lprintf( "Sending a want draw window...");
-	#endif
-				readyState = 300;
-				sack_wayland_Redraw_( (PRENDERER)req->r, &readyState );
-				readyState = 301;
+				drewSome = 1;
+				int oldCallback = req->noCallback;
+				SetLink( &wl.wantDraw, idx, NULL ); // remove it from the list... 
+#if defined( DEBUG_COMMIT ) || defined( DEBUG_REDRAW )
+				lprintf( " ------------------------  Sending a want draw window...");
+#endif
+				redrawState = 300;
+				sack_wayland_Redraw_( (PRENDERER)req->r, req->noCallback, &redrawState );
+				// assume the above took some time...
+				if( oldCallback && !req->noCallback ) {
+					// the drawer found the request before it was removed
+					// AND they have added a full redraw
+					redrawState = 302;
+#if defined( DEBUG_REDRAW )
+					lprintf( " --------- And we do a fuller draw");
+#endif
+					sack_wayland_Redraw_( (PRENDERER)req->r, req->noCallback, &redrawState );
+				}
+				redrawState = 301;
+#if defined( DEBUG_REDRAW )
+				lprintf( " ------------------------  how does ready state not become 301?" );
+#endif				
 				req->r = NULL; // clear draw request.
 				//WakeThread( req->thread );
 				Release( req );
 			}
-			EmptyList( &wl.wantDraw );
 			drawing = 0;
-		} 
+		} else {
+			lprintf( "Draw is already dispatched ");
+		}
 		if( sleepTime > 0 ) // mouse events might want to tick off quickly
 		{
 			if( wl.display ) {
-				lprintf( "---------  Send wl_display_flush....");
-				readyState = 10;
-				wl_display_flush( wl.display );
-				readyState = 11;
+				//lprintf( "---------  Send wl_display_flush....");
+				redrawState = 10;
+				//wl_display_flush( wl.display );
+				redrawState = 11;
 			}
-
+			lprintf( "Sleeping" );
 			if( sleeping ) {
 				lprintf( "already sleeping just return (idle callback)");
 				return 0;
 			} else {
-				readyState = 12;
+				redrawState = 12;
 							
 				sleeping = TRUE;
 				IdleFor(sleepTime);
 				sleeping = FALSE;
-				readyState = 13;
+				redrawState = 13;
 			}
+			lprintf( "not sleeping(slept) here... %d", psv );
 			return 1;
 		} else {
-			lprintf( "not sleeping here... %d", psv );
+			if( drewSome ) {
+				lprintf( "don't sleep here... %d", psv );
+				return 1;
+			}
+			lprintf( "sleeping here... %d", psv );
 			return 0;
 		}
 	} else {
@@ -1445,7 +1479,7 @@ handle_configure(void *data, struct wl_shell_surface *shell_surface,
 	PXPANEL r = (PXPANEL)data;
 	r->bufw = width;
 	r->bufh = height;
-	sack_wayland_Redraw((PRENDERER)r);
+	postDrawEvent( r, 0 );
 	//wl_surface_commit( r->surface );
 	//r->changedEdge = edges;
 	//lprintf( "shell configure %d %d", width, height );
@@ -1481,11 +1515,11 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 	lprintf( "------------------------ RELEASE BUFFER ----------------------------" );
 #endif
 	for( n = 0; n < MAX_OUTSTANDING_FRAMES; n++ )  {
-#if defined( DEBUG_COMMIT_BUFFER )
+#if defined( DEBUG_COMMIT_BUFFER_DETAILS )
 		lprintf( "RELEASE BUFFER FINDING BUFFER is %p %p?", r->buffers[n] , wl_buffer );
 #endif
 		if( r->buffers[n] == wl_buffer ) {
-#if defined( DEBUG_COMMIT_BUFFER )
+#if defined( DEBUG_COMMIT_BUFFER_DETAILS )
 			lprintf( "UNLOCK Buffer %d is free again", n );
 #endif
 			if( MAX_OUTSTANDING_FRAMES < 3 ) 
@@ -1634,16 +1668,17 @@ void ShutdownVideo( void )
 }
 
 static void sack_wayland_Redraw( PRENDERER renderer ) {
-	sack_wayland_Redraw_( renderer, NULL );
+	sack_wayland_Redraw_( renderer, 0, NULL );
 }
-static void sack_wayland_Redraw_( PRENDERER renderer, volatile int *redrawState_ ) {
-	static volatile int redrawState__ = -3;
-	#define redrawState ((redrawState_?redrawState_:&redrawState__)[0])
+static void sack_wayland_Redraw_( PRENDERER renderer, int noCallback, volatile int *redrawState_ ) {
+	//static volatile int redrawState__ = -3;
+	//#define redrawState ((redrawState_?redrawState_:&redrawState__)[0])
 	PXPANEL r = (PXPANEL)renderer;
 	PTHREAD thisThread = MakeThread();
 
 	if( redrawState != 5 ) {
-		lprintf( "Redraw dispatched to display...%d", redrawState );
+		//if( redrawState == 300 )DebugBreak();
+		lprintf( "Redraw dispatched to display...%d  %d", redrawState, noCallback );
 	} else {
 		// this is just the application being generous, it is in
 		// its own redraw callback; and can't draw yet
@@ -1651,7 +1686,7 @@ static void sack_wayland_Redraw_( PRENDERER renderer, volatile int *redrawState_
 	}
 	if( wl.drawThread != thisThread ){
 		//r->flags.dirty = 1;  // This must be dirty?  (Will be dirty?)
-		postDrawEvent( r );
+		postDrawEvent( r, noCallback );
 	} else {
 #if defined( DEBUG_COMMIT_BUFFER )
 		lprintf( "********* BEGIN REDRAW THREAD ******************* " );
@@ -1678,7 +1713,7 @@ static void sack_wayland_Redraw_( PRENDERER renderer, volatile int *redrawState_
 		EnterCriticalSec( &wl.cs_wl );
 		
 		r->flags.canCommit = 0; // don't allow sub-daamages to commit... just damage  (if this gets a frame callback it'll reset and flush early)
-		if( r->pRedrawCallback ) {
+		if( !noCallback && r->pRedrawCallback ) {
 			redrawState = 5;
 			lprintf( "dispatch redraw...");
 			r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
@@ -1822,7 +1857,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	if( r->surface ) {
 		wl_surface_damage( r->surface, x, y, w, h );
 		r->flags.dirty = 1;
-		postDrawEvent( r );
+		postDrawEvent( r, 1 );
 	}
 	LeaveCriticalSec( &wl.cs_wl );
 }
@@ -1837,7 +1872,7 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	if( r->surface ) {
 		wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
 		r->flags.dirty = 1;
-		postDrawEvent( r );
+		postDrawEvent( r, 1 );
 	}
 	LeaveCriticalSec( &wl.cs_wl );
 }
@@ -2108,7 +2143,7 @@ void sack_wayland_BeginMoveDisplay(  PRENDERER renderer ) {
  //static void sack_wayland_EndSizeDisplay(  PRENDERER pRenderer )
 
 static LOGICAL sack_wayland_AllowsAnyThreadToUpdate( void ) {
-    return FALSE;
+    return TRUE;
 }
 
 static RENDER_INTERFACE VidInterface = { InitializeDisplay

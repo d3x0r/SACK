@@ -15,6 +15,7 @@ struct HVIDEO_tag {
 struct drawRequest {
 	PTHREAD thread;
 	struct wvideo_tag *r;
+	volatile LOGICAL noCallback; // request wants the application to full draw
 
 };
 
