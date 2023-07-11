@@ -540,7 +540,9 @@ static void squash_dotdot( TEXTSTR path ) {
 
 TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS )
 {
-	TEXTSTR tmp_path = StrDup( path );
+	TEXTSTR tmp_path;
+	if( !path ) return NULL;
+	tmp_path = StrDup( path );
 	//LocalInit();
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( ( *winfile_local ).flags.bLogOpenClose )
