@@ -198,6 +198,7 @@ struct wayland_local_tag
 	PLIST pActiveList; // non-destroyed windows are here
 	//volatile PTHREAD shellWaiter;
 	volatile PLIST shellWaits;
+	int opens;
 };
 
 
