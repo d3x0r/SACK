@@ -1003,7 +1003,7 @@ int DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 //   PTEXT key_ = SegCreate( GetTextSize( stroke ) );
 //#define key (*key_)
 	DECLTEXT( key, "                    " );
-	//Log1( "Do Stroke with %c", stroke->data.data[0] );
+	lprintf( "Do Stroke with %c(%d)", stroke->data.data[0], stroke->data.data[0] );
 	while( stroke )
 	{
 		INDEX i_;
@@ -1037,6 +1037,7 @@ int DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 #ifdef __DEKWARE_PLUGIN__
 						newseg->flags |= TF_RELAY; // just pipe it through to the final output...
 						// direct mode is REALLY direct.
+						lprintf( " --------- Sending input: %s", GetText( newseg ));
 						EnqueLink( &pdp->common.Input, newseg );
 #else
 //						EnqueLink( &pdp->Input, newseg );
@@ -1077,6 +1078,7 @@ int DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 							   //pdp->flags.bLastEnqueCommand = TRUE;
 							}
 #ifdef __DEKWARE_PLUGIN__
+							lprintf( " --------- Sending input: %s", GetText( pLine ));
 							EnqueLink( &pdp->common.Input, TextDuplicate( pLine, FALSE ) );
 							WakeAThread( pdp->common.Owner );
 #endif

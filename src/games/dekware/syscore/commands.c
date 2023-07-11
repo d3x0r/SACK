@@ -359,6 +359,7 @@ CORE_PROC( void, WriteCommandList2 )( PLINKQUEUE *Output, CTEXTSTR root
 		  name = GetNextRegisteredName( &current ) )
 	{
 		size_t diff;
+		lprintf( "Got name: %p", name );
 		//if( commands[count].maxlen < 0 )  // skip disabled commands
 		//	continue;
 		if( pMatch )
@@ -389,6 +390,7 @@ CORE_PROC( void, WriteCommandList2 )( PLINKQUEUE *Output, CTEXTSTR root
 						  , 10-diff
 						  , prior_name+diff
 						  , desc?desc:"" );
+				//lprintf( "Enque command: %s", GetText( VarTextPeek( vt )));
 				EnqueLink( Output, VarTextGet( vt ) );
 			}
 		}
@@ -2200,7 +2202,7 @@ Recheck:
 	}
 
 	data = GetText( Command );
-
+	
 	// preferred punctuation for transmit literal
 	if( data[0] == '.' )
 	{

@@ -470,206 +470,206 @@ PTEXTLINE GetHistoryLine( PHISTORY_LINE_CURSOR phc )
 
 //----------------------------------------------------------------------------
 
-PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
+static PTEXTLINE history_PutSegmentOut( PHISTORY_LINE_CURSOR phc
 							  , PTEXT segment )
 {
-   // this puts the segment at the correct x, y
-   // it also updates the curren X on the65 line...
-   PTEXTLINE pCurrentLine;
-   PTEXT text;
-   size_t len;
-   if( !(phc->region->pHistory.next) ||
-       ( phc->region->pHistory.last->nLinesUsed == MAX_HISTORY_LINES &&
-         !(segment->flags&TF_NORETURN) ) )
+	// this puts the segment at the correct x, y
+	// it also updates the curren X on the65 line...
+	PTEXTLINE pCurrentLine;
+	PTEXT text;
+	size_t len;
+	if( !(phc->region->pHistory.next)
+	    || ( phc->region->pHistory.last->nLinesUsed == MAX_HISTORY_LINES
+	    && !(segment->flags&TF_NORETURN) ) )
 		CreateHistoryBlock( &phc->region->pHistory.root );
 
 	if( GetTextSize( segment ) & 0x80000000)
 		lprintf( "(original input)Inverted Segment : %d", GetTextSize( segment ) );
 
 	//lprintf( "Okay after much layering... need to fix some...." );
-   //lprintf( "Put a segment out!" );
-   // get line at nCursorY
+	//lprintf( "Put a segment out!" );
+	// get line at nCursorY
 	pCurrentLine = GetHistoryLine( phc );
 	if( !pCurrentLine )
 	{
-      lprintf( "No line result from history..." );
+		lprintf( "No line result from history..." );
 	}
 
-   if( (phc->output.nCursorX) > pCurrentLine->nLineLength )
+	if( (phc->output.nCursorX) > pCurrentLine->nLineLength )
 	{
-      // beyond the end of the line...
-      PTEXT filler = SegCreate( (phc->output.nCursorX) - pCurrentLine->nLineLength );
-      TEXTCHAR *data = GetText( filler );
-      int n;
-      lprintf( "Cursor beyond line, creating filler segment up to X" );
-      filler->format.flags.foreground = segment->format.flags.foreground;
-      filler->format.flags.background = segment->format.flags.background;
-      //Log1( "Make a filler segment %d charactes", phc->region->(phc->output.nCursorX) - pCurrentLine->nLineLength );
-      for( n = 0; n < (phc->output.nCursorX) - pCurrentLine->nLineLength; n++ )
-      {
-         data[n] = ' ';
-      }
-      pCurrentLine->nLineLength = (phc->output.nCursorX);
-      pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, filler );
-   }
+		// beyond the end of the line...
+		PTEXT filler = SegCreate( (phc->output.nCursorX) - pCurrentLine->nLineLength );
+		TEXTCHAR *data = GetText( filler );
+		int n;
+		lprintf( "Cursor beyond line, creating filler segment up to X" );
+		filler->format.flags.foreground = segment->format.flags.foreground;
+		filler->format.flags.background = segment->format.flags.background;
+		//Log1( "Make a filler segment %d charactes", phc->region->(phc->output.nCursorX) - pCurrentLine->nLineLength );
+		for( n = 0; n < (phc->output.nCursorX) - pCurrentLine->nLineLength; n++ )
+		{
+			data[n] = ' ';
+		}
+		pCurrentLine->nLineLength = (phc->output.nCursorX);
+		pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, filler );
+	}
 
 
-   if( (phc->output.nCursorX) < pCurrentLine->nLineLength )
-   {
-      // very often the case...
-      // need to split the segment which the cursor is on
-      // unless the cursor happens to be at the start of the segment,
-      // in which cast, it is spilt, segment is inserted, and
-      // any data in the segment beyond 'segment' will have to be
-      // split/trimmed/overwritten.
+	if( (phc->output.nCursorX) < pCurrentLine->nLineLength )
+	{
+		// very often the case...
+		// need to split the segment which the cursor is on
+		// unless the cursor happens to be at the start of the segment,
+		// in which cast, it is spilt, segment is inserted, and
+		// any data in the segment beyond 'segment' will have to be
+		// split/trimmed/overwritten.
 
-      // so - split the line, result with current segment.
+		// so - split the line, result with current segment.
 		int32_t pos = 0;
-      //lprintf( "Okay insert/overwrite this segment on the display..." );
-      text = pCurrentLine->pLine;
-      while( pos < (phc->output.nCursorX) && text )
-      {
-         len = GetTextSize( text );
-         //Log3( "Skipping over ... pos:%d len:%d curs:%d", pos, len, phc->region->(phc->output.nCursorX) );
-         if( (len + pos) > (phc->output.nCursorX) )
-         {
-            // 'text' is OVER pos...
-            PTEXT split;
-            if( text == pCurrentLine->pLine )
-               split = SegSplit( &pCurrentLine->pLine, ( (phc->output.nCursorX) - pos ) );
-            else
-               split = SegSplit( &text, ( (phc->output.nCursorX) - pos ) );
-            if( split ) // otherwise we miscalculated something.
-            {
-               text = NEXTLINE( split );
-               len = GetTextSize( text );
-            }
-         }
-         pos += len;
-         text = NEXTLINE( text );
-      }
-   }
-   else // cursor is exactly linelength...
-   {
-      //Log( "Cursor is at end or after end." );
-      text = NULL;
-      len = 0;
-   }
-
-			if( GetTextSize( text ) & 0x80000000)
-				lprintf( "(After processing) Inverted Segment : %d", GetTextSize( text ) );
-   // expects 'text' to be the start of the correct segment.
-   if( segment->flags & TF_FORMATEX )
+		//lprintf( "Okay insert/overwrite this segment on the display..." );
+		text = pCurrentLine->pLine;
+		while( pos < (phc->output.nCursorX) && text )
+		{
+			len = GetTextSize( text );
+			//Log3( "Skipping over ... pos:%d len:%d curs:%d", pos, len, phc->region->(phc->output.nCursorX) );
+			if( (len + pos) > (phc->output.nCursorX) )
+			{
+				// 'text' is OVER pos...
+				PTEXT split;
+				if( text == pCurrentLine->pLine )
+					split = SegSplit( &pCurrentLine->pLine, ( (phc->output.nCursorX) - pos ) );
+				else
+					split = SegSplit( &text, ( (phc->output.nCursorX) - pos ) );
+				if( split ) // otherwise we miscalculated something.
+				{
+					text = NEXTLINE( split );
+					len = GetTextSize( text );
+				}
+			}
+			pos += len;
+			text = NEXTLINE( text );
+		}
+	}
+	else // cursor is exactly linelength...
 	{
-      Log( "Extended info carried on this segment." );
-      segment->flags &= ~TF_FORMATEX;
-      switch( segment->format.flags.format_op )
-      {
-      case FORMAT_OP_CLEAR_END_OF_LINE: // these are difficult....
-         //Log( "Clear end of line..." );
-         if( text == pCurrentLine->pLine )
-         {
-            pCurrentLine->pLine = NULL;
-            pCurrentLine->nLineLength = 0;
-         }
-         SegBreak( text );
-         LineRelease( text );
-         text = NULL;
-         len = 0;
-         break;
-      case FORMAT_OP_DELETE_CHARS:
-         Log1( "Delete %d characters", segment->format.flags.background );
-         if( text ) // otherwise there's no characters to delete?  or does it mean next line?
-         {
-            PTEXT split;
-            Log1( "Has a current segment... %d", GetTextSize( text ) );
-            if( text == pCurrentLine->pLine )
-            {
-               Log( "is the first segment... ");
-               split = SegSplit( &pCurrentLine->pLine, segment->format.flags.background );
-               text = pCurrentLine->pLine;
-            }
-            else
-            {
-               Log( "Is not first - splitting segment... ");
-               split = SegSplit( &text, segment->format.flags.background );
-            }
-            if( split )
-            {
-               Log( "Resulting split..." );
-               text = NEXTLINE( split );
-               LineRelease( SegGrab( split ) );
-            }
-            else
-            {
-               Log( "Didn't split the line - deleting the next segment." );
-               LineRelease( SegGrab( text ) );
-            }
-         }
-         else
-         {
-            Log( "Didn't find a next semgnet( text)" );
-         }
-         break;
-      case FORMAT_OP_CLEAR_START_OF_LINE:
-         {
-            PTEXT filler = SegCreate( (phc->output.nCursorX) );
-            TEXTCHAR *data = GetText( filler );
-            int n;
-            filler->format.flags.foreground = phc->output.PriorColor.flags.foreground;
-            filler->format.flags.background = phc->output.PriorColor.flags.background;
-            //Log1( "Make a filler segment %d charactes", (phc->output.nCursorX) - pCurrentLine->nLineLength );
-            for( n = 0; n < (phc->output.nCursorX) - pCurrentLine->nLineLength; n++ )
-            {
-               data[n] = ' ';
-            }
-            Log( "This is all so terribly bad - clear start of line is horrid idea." );
-            if( text ) // insert before text... else append to line.
-            {
-               PTEXT fill_here = SegCreate( 1 );
-               GetText( fill_here )[0] = ' '; // 1 space.
-               fill_here->format.flags.foreground = segment->format.flags.foreground;
-               fill_here->format.flags.background = segment->format.flags.background;
-               if( text == pCurrentLine->pLine )
-               {
-                  SegSplit( &pCurrentLine->pLine, 1 );
-                  text = pCurrentLine->pLine;
-                  SegSubst( pCurrentLine->pLine, fill_here );
-                  if( GetTextSize( filler ) )
-                     Log( "Size expected, zero size filler computed" );
-                  LineRelease( filler ); // should be zero sized...
-               }
-               else
-               {
-                  SegSplit( &text, 1 ); // need to eat 1 character.
-                  SegSubst( text, fill_here );
-                  text = fill_here;
-                  SegBreak( fill_here );
-                  LineRelease( pCurrentLine->pLine );
-                  pCurrentLine->pLine = SegAppend( filler, fill_here );
-               }
-            }
-            else
-            {
-               // attribute of filler needs to be set to current color paramters.
-               LineRelease( pCurrentLine->pLine );
-               pCurrentLine->pLine = filler;
-            }
-         }
+		//Log( "Cursor is at end or after end." );
+		text = NULL;
+		len = 0;
+	}
+
+	if( GetTextSize( text ) & 0x80000000)
+		lprintf( "(After processing) Inverted Segment : %d", GetTextSize( text ) );
+	// expects 'text' to be the start of the correct segment.
+	if( segment->flags & TF_FORMATEX )
+	{
+		Log( "Extended info carried on this segment." );
+		segment->flags &= ~TF_FORMATEX;
+		switch( segment->format.flags.format_op )
+		{
+		case FORMAT_OP_CLEAR_END_OF_LINE: // these are difficult....
+			//Log( "Clear end of line..." );
+			if( text == pCurrentLine->pLine )
+			{
+				pCurrentLine->pLine = NULL;
+				pCurrentLine->nLineLength = 0;
+			}
+			SegBreak( text );
+			LineRelease( text );
+			text = NULL;
+			len = 0;
+			break;
+		case FORMAT_OP_DELETE_CHARS:
+			Log1( "Delete %d characters", segment->format.flags.background );
+			if( text ) // otherwise there's no characters to delete?  or does it mean next line?
+			{
+				PTEXT split;
+				Log1( "Has a current segment... %d", GetTextSize( text ) );
+				if( text == pCurrentLine->pLine )
+				{
+					Log( "is the first segment... ");
+					split = SegSplit( &pCurrentLine->pLine, segment->format.flags.background );
+					text = pCurrentLine->pLine;
+				}
+				else
+				{
+					Log( "Is not first - splitting segment... ");
+					split = SegSplit( &text, segment->format.flags.background );
+				}
+				if( split )
+				{
+					Log( "Resulting split..." );
+					text = NEXTLINE( split );
+					LineRelease( SegGrab( split ) );
+				}
+				else
+				{
+					Log( "Didn't split the line - deleting the next segment." );
+					LineRelease( SegGrab( text ) );
+				}
+			}
+			else
+			{
+				Log( "Didn't find a next semgnet( text)" );
+			}
+			break;
+		case FORMAT_OP_CLEAR_START_OF_LINE:
+			{
+				PTEXT filler = SegCreate( (phc->output.nCursorX) );
+				TEXTCHAR *data = GetText( filler );
+				int n;
+				filler->format.flags.foreground = phc->output.PriorColor.flags.foreground;
+				filler->format.flags.background = phc->output.PriorColor.flags.background;
+				//Log1( "Make a filler segment %d charactes", (phc->output.nCursorX) - pCurrentLine->nLineLength );
+				for( n = 0; n < (phc->output.nCursorX) - pCurrentLine->nLineLength; n++ )
+				{
+					data[n] = ' ';
+				}
+				Log( "This is all so terribly bad - clear start of line is horrid idea." );
+				if( text ) // insert before text... else append to line.
+				{
+					PTEXT fill_here = SegCreate( 1 );
+					GetText( fill_here )[0] = ' '; // 1 space.
+					fill_here->format.flags.foreground = segment->format.flags.foreground;
+					fill_here->format.flags.background = segment->format.flags.background;
+					if( text == pCurrentLine->pLine )
+					{
+						SegSplit( &pCurrentLine->pLine, 1 );
+						text = pCurrentLine->pLine;
+						SegSubst( pCurrentLine->pLine, fill_here );
+						if( GetTextSize( filler ) )
+							Log( "Size expected, zero size filler computed" );
+						LineRelease( filler ); // should be zero sized...
+					}
+					else
+					{
+						SegSplit( &text, 1 ); // need to eat 1 character.
+						SegSubst( text, fill_here );
+						text = fill_here;
+						SegBreak( fill_here );
+						LineRelease( pCurrentLine->pLine );
+						pCurrentLine->pLine = SegAppend( filler, fill_here );
+					}
+				}
+				else
+				{
+					// attribute of filler needs to be set to current color paramters.
+					LineRelease( pCurrentLine->pLine );
+					pCurrentLine->pLine = filler;
+				}
+			}
 			break;
 		case FORMAT_OP_PAGE_BREAK:
-         // enque as normal...
+			// enque as normal...
 			segment->flags |= TF_FORMATEX;
 			pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
-         // step to the next line, cursor 0, all zero...
+			// step to the next line, cursor 0, all zero...
 			phc->output.nCursorX = 0;
 			phc->output.nCursorY++;
-         pCurrentLine = GetHistoryLine( phc );
+			pCurrentLine = GetHistoryLine( phc );
 			SetTopOfForm( phc );
-         break;
-      default:
-         Log( "Invalid extended format segment. " );
-         break;
+			break;
+		default:
+			Log( "Invalid extended format segment. " );
+			break;
 		}
 		if( !(segment->flags & TF_FORMATEX ) )
 		{
@@ -677,70 +677,70 @@ PTEXTLINE PutSegmentOut( PHISTORY_LINE_CURSOR phc
 				segment->format.flags.foreground = phc->output.PriorColor.flags.foreground;
 			else
 				segment->format.flags.foreground = phc->output.DefaultColor.flags.foreground;
-         if( segment->format.flags.prior_background )
+			if( segment->format.flags.prior_background )
 				segment->format.flags.background = phc->output.PriorColor.flags.background;
-         else
+			else
 				segment->format.flags.background = phc->output.DefaultColor.flags.background;
 		}
-   }
-   //else
-   //   Log( "No extended info carried on this segment." );
+	}
+	//else
+	//   Log( "No extended info carried on this segment." );
 
 
-   if( GetTextSize( segment ) )
-   {
-      if( text )
-      {
-         //Log( "Inserting new segment..." );
-         SegInsert( segment, text );
-         if( text == pCurrentLine->pLine )
-            pCurrentLine->pLine = segment;
-      }
-      else
-      {
-         //Log( "Appending segment." );
-         pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
-      }
+	if( GetTextSize( segment ) )
+	{
+		if( text )
+		{
+			//Log( "Inserting new segment..." );
+			SegInsert( segment, text );
+			if( text == pCurrentLine->pLine )
+			pCurrentLine->pLine = segment;
+		}
+		else
+		{
+			//Log( "Appending segment." );
+			pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
+		}
 
-      len = GetTextSize( segment );
-      (phc->output.nCursorX) += len;
+		len = GetTextSize( segment );
+		(phc->output.nCursorX) += len;
 
-      if( !phc->region->flags.bInsert && text )
-      {
-         // len characters from 'text' need to be removed.
-         // okay that should be fun...
-         uint32_t deletelen = len;
-         //Log1( "Remove %d characters!", len );
-         while( deletelen && text )
-         {
-            uint32_t thislen = GetTextSize( text );
-            PTEXT next = NEXTLINE( text );
-            if( thislen <= deletelen )
-            {
-               LineRelease( SegGrab( text ) );
-               deletelen -= thislen;
-               text = next;
-            }
-            else // thislen > deletelen
-            {
-               if( text == pCurrentLine->pLine )
-                  SegSplit( &pCurrentLine->pLine, deletelen );
-               else
-                  SegSplit( &text, deletelen );
-            }
-         }
-      }
-      else
-         pCurrentLine->nLineLength += len;
+		if( !phc->region->flags.bInsert && text )
+		{
+			// len characters from 'text' need to be removed.
+			// okay that should be fun...
+			uint32_t deletelen = len;
+			//Log1( "Remove %d characters!", len );
+			while( deletelen && text )
+			{
+				uint32_t thislen = GetTextSize( text );
+				PTEXT next = NEXTLINE( text );
+				if( thislen <= deletelen )
+				{
+					LineRelease( SegGrab( text ) );
+					deletelen -= thislen;
+					text = next;
+				}
+				else // thislen > deletelen
+				{
+					if( text == pCurrentLine->pLine )
+						SegSplit( &pCurrentLine->pLine, deletelen );
+					else
+						SegSplit( &text, deletelen );
+				}
+			}
+		}
+		else
+			pCurrentLine->nLineLength += len;
 	}
 	else if( segment->flags & TF_FORMATEX )
 	{
 		pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
-      SetTopOfForm( phc );
+		SetTopOfForm( phc );
 	}
-   else
-      Log( "no data in segment." );
-   return pCurrentLine;
+	else
+		Log( "no data in segment." );
+	return pCurrentLine;
 }
 
 //----------------------------------------------------------------------------
@@ -848,16 +848,16 @@ void EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLine )
 	if( pLine->flags & TF_FORMATEX )
 	{
 		// clear this bit... extended format will result with bit re-set
-      // if it is so required.
+		// if it is so required.
 		pLine->flags &= ~TF_FORMATEX;
-      HandleExtendedFormat( phc, pLine );
+		HandleExtendedFormat( phc, pLine );
 	}
 	if( !(pLine->flags & TF_NORETURN) )
 	{
 		// auto return/newline if not noreturn
-      //lprintf( "Not NORETURN - therefore skipping to next line..." );
+		//lprintf( "Not NORETURN - therefore skipping to next line..." );
 		phc->output.nCursorX = 0;
-      phc->output.nCursorY++;
+		phc->output.nCursorY++;
 	}
 
 	{
@@ -875,7 +875,7 @@ void EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLine )
 				next = NEXTLINE( pLine );
 				if( GetTextSize( pLine ) // if segment has visible data...
 					|| ( pLine->flags & TF_FORMATEX ) )  // or a special effect...
-					pCurrentLine = PutSegmentOut( phc, SegGrab( pLine ) );
+					pCurrentLine = history_PutSegmentOut( phc, SegGrab( pLine ) );
 				else
 				{
 					LineRelease( SegGrab( pLine ) ); // won't be enqueued might as well destroy it.
@@ -897,7 +897,7 @@ void DumpBlock( PHISTORYBLOCK pBlock DBG_PASS )
 	_xlprintf( 0 DBG_RELAY )("History block used lines: %d of %d", pBlock->nLinesUsed, MAX_HISTORY_LINES );
 	for( idx = 0; idx < pBlock->nLinesUsed; idx++ )
 	{
-      PTEXTLINE ptl = pBlock->pLines + idx;
+		PTEXTLINE ptl = pBlock->pLines + idx;
 		_xlprintf( 0 DBG_RELAY )("line: %d = (%d,%d,%s)", idx, ptl->nLineLength, GetTextSize( ptl->pLine ), GetText( ptl->pLine ) );
 	}
 }
@@ -1111,20 +1111,20 @@ uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown )
 
 //----------------------------------------------------------------------------
 
-int ComputeToShow( uint32_t cols, PTEXT segment, uint32_t nLen, int nOfs, int nShown )
+int history_ComputeToShow( uint32_t cols, PTEXT segment, uint32_t nLen, int nOfs, int nShown )
 {
-    int nShow = cols - nOfs;
+	int nShow = cols - nOfs;
 	 // if space left to show here is less than
 	 // then length to show, compute wrapping point.
 	 //lprintf( "Compute to show: %d (%d)%s %d %d", cols, GetTextSize( segment ), GetText( segment ), nOfs, nShown );
-    if( nShow < (nLen-nShown) )
-    {
+	if( nShow < (nLen-nShown) )
+	{
 		int nSpace = nShow + nShown;
 		TEXTCHAR *text = GetText( segment );
 
-		  // cheap test for a space...
-		  for( ; nSpace > nShown && ( text[nSpace-1] != ' ' ); nSpace-- );
-		  //for( ; nSpace > nShown && ( text[nSpace-1] == ' ' ); nSpace-- );
+		// cheap test for a space...
+		for( ; nSpace > nShown && ( text[nSpace-1] != ' ' ); nSpace-- );
+		//for( ; nSpace > nShown && ( text[nSpace-1] == ' ' ); nSpace-- );
 
         // found a space, please show up to that.
         if( nSpace > nShown )
@@ -1142,7 +1142,7 @@ int ComputeToShow( uint32_t cols, PTEXT segment, uint32_t nLen, int nOfs, int nS
 
 //----------------------------------------------------------------------------
 
-int CountLinesSpanned( uint32_t cols, PTEXT countseg )
+static int history_CountLinesSpanned( uint32_t cols, PTEXT countseg )
 {
    // always spans at least one line.
 	int nLines = 1;
@@ -1170,7 +1170,7 @@ int CountLinesSpanned( uint32_t cols, PTEXT countseg )
 						// this is the wrapping condition...
 						while( nShown < nLen )
 						{
-							nShown += ComputeToShow( cols, countseg, nLen, nChar, nShown );
+							nShown += history_ComputeToShow( cols, countseg, nLen, nChar, nShown );
 							if( nShown < nLen )
 							{
 								nLines++;
@@ -1226,7 +1226,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset )
 			{
 				int n;
 				phbr->nLine--;
-				n = CountLinesSpanned( phbr->nColumns
+				n = history_CountLinesSpanned( phbr->nColumns
 											, phbr->pBlock->pLines[phbr->nLine-1].pLine );
 				//lprintf( "total span is what ? %d", n );
 				if( n )
@@ -1273,7 +1273,7 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset )
 		while( phbr->pBlock &&
 				( nOffset > 0 ) )
 		{
-			n = CountLinesSpanned( phbr->nColumns
+			n = history_CountLinesSpanned( phbr->nColumns
 										, phbr->pBlock->pLines[phbr->nLine-1].pLine );
 			//lprintf( "fixing forward motion offset: %d this spans %d", nOffset, n );
 			if( n - phbr->nOffset > nOffset )
@@ -1349,7 +1349,7 @@ uint32_t GetBrowserDistance( PHISTORY_BROWSER phbr )
 	{
 		for( ; n < pHistory->nLinesUsed; n++ )
 		{
-			nLines += CountLinesSpanned( phbr->nColumns
+			nLines += history_CountLinesSpanned( phbr->nColumns
 										  , pHistory->pLines[n].pLine );
 		}
 	}
@@ -1379,7 +1379,7 @@ int HistoryNearEnd( PHISTORY_BROWSER phbr, int nLinesAway )
 		for( ; nLines < nLinesAway && n < pHistory->nLinesUsed; n++ )
 		{
 			int tmp;
-			tmp = CountLinesSpanned( phbr->nColumns
+			tmp = history_CountLinesSpanned( phbr->nColumns
 										  , pHistory->pLines[n].pLine );
 			lprintf( "Adding %d lines...", tmp );
 			nLines += tmp;
@@ -1537,8 +1537,8 @@ PDATALIST *GetDisplayInfo( PHISTORY_BROWSER phbr )
    return &phbr->DisplayLineInfo;
 }
 
-void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
-//void BuildDisplayInfoLines( PHISTORY_LINE_CURSOR phlc )
+void history_BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
+//void history_BuildDisplayInfoLines( PHISTORY_LINE_CURSOR phlc )
 {
 	int nLines, nLinesShown = 0, nChar, nLen;
 	int nLineCount = phbr->nLines;
@@ -1587,7 +1587,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 				int nShow;
 				int nWrapped = 0;
 
-				nLines = CountLinesSpanned( phbr->nColumns, pText );
+				nLines = history_CountLinesSpanned( phbr->nColumns, pText );
 				// after counting the first (last visible) line
 				// figure out how much we need to overflow to show the
 				// last partial line...
@@ -1647,7 +1647,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr )
 						{
 							// nShow is now the number of characters we can show.
 							//lprintf( "Segment is %d", GetTextSize( pText ) );
-							if( ( nShow = ComputeToShow( phbr->nColumns, pText, nLen, nChar, nShown ) ) )
+							if( ( nShow = history_ComputeToShow( phbr->nColumns, pText, nLen, nChar, nShown ) ) )
 							{
 								//lprintf( "Will show %d chars...", nShow );
 								nShown += nShow;

@@ -26,10 +26,7 @@ endif( NOT __ANDROID__ )
 
 target_link_libraries( ${project}  ${SACK_LIBRARIES} )
 
-INSTALL( TARGETS ${project} 
-	RUNTIME DESTINATION share/SACK/applicationCore
-	LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/trash
-)
+install_literal_product( ${project} applicationCore ON )
 
 SET( DEKWARE_SDK )
 

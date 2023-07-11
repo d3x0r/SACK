@@ -102,7 +102,7 @@ static struct psicon_local
 	PRENDER_INTERFACE pdi;
 } local_psicon_data;
 #define l local_psicon_data
-CDATA cPenNormal, cPenHighlight, cPenShadow, cPenDkShadow, cPenCursor;
+static CDATA cPenNormal, cPenHighlight, cPenShadow, cPenDkShadow, cPenCursor;
 PMENU hChildMenu;
 PMENU hHistoryMenu;
 static int bCreatingControl; // set when this is creating a control as opposed to someone externally creating one
@@ -930,11 +930,11 @@ int CPROC InitDekwareConsole( PSI_CONTROL pc )
 
 		//EnqueLink( &PLAYER->Command->Input, burst( SegCreateFromText( "/debug" ) ) );
 		//LineRelease( data );
-		//Log1( "Running : %s", GetText( data) );
-				EnqueLink( &ps->Command->Input, burst( data ) );
+		lprintf( "Sending Command: %s", GetText( data) );
+		EnqueLink( &ps->Command->Input, burst( data ) );
 		LineRelease( data );
 		UnlockAwareness( ps);
-				WakeAThread( ps );
+		WakeAThread( ps );
 	}
 #endif
 	}

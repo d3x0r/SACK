@@ -1,4 +1,4 @@
-//#define NO_LOGGING
+#define NO_LOGGING
 #ifdef PSICON
 #define USE_IMAGE_INTERFACE ImageInterface
 #endif
@@ -328,8 +328,8 @@ CORECON_PROC( void, WinLogicCalculateHistory )( PCONSOLE_INFO pdp )
 		// 1 for the partial line at the top of the display.
 		SetBrowserLines( pdp->pCurrentDisplay, pdp->nLines );
 	}
-	BuildDisplayInfoLines( pdp->pHistoryDisplay );
-	BuildDisplayInfoLines( pdp->pCurrentDisplay );
+	history_BuildDisplayInfoLines( pdp->pHistoryDisplay );
+	history_BuildDisplayInfoLines( pdp->pCurrentDisplay );
 }
 
 //----------------------------------------------------------------------------
@@ -348,14 +348,14 @@ void RenderConsole( PCONSOLE_INFO pdp )
 		//lprintf( "no history rende? %d", pdp->flags.bNoHistoryRender );
 		//if( !pdp->flags.bNoHistoryRender )
 		{
-			//BuildDisplayInfoLines( pdp->pHistoryDisplay );
+			//history_BuildDisplayInfoLines( pdp->pHistoryDisplay );
 			DoRenderHistory( pdp, TRUE, &upd );
 		}
 	}
 	if( pdp->nDisplayLineStart != pdp->nHistoryLineStart )
 	{
 		// should do somehting like - if it hasn't moved don't draw it...
-		//BuildDisplayInfoLines( pdp->pCurrentDisplay );
+		//history_BuildDisplayInfoLines( pdp->pCurrentDisplay );
 		DoRenderHistory( pdp, FALSE, &upd );
 	}
 	if( !(pdp->flags.bDirect && pdp->flags.bCharMode) )
@@ -623,7 +623,7 @@ int WinLogicWrite( PDATAPATH pdp
 			upd.flags.bHasContent = 0;
 			// need to wait for an idle condition - this
 			// process is low priority...
-			BuildDisplayInfoLines( pmdp->pCurrentDisplay );
+			history_BuildDisplayInfoLines( pmdp->pCurrentDisplay );
 			if( pmdp->psicon.frame )
 				SmudgeCommon( pmdp->psicon.frame );
 			else
@@ -660,7 +660,7 @@ int GetCharFromLine( uint32_t cols
 		{
 			// nOfs is the column position to start at...
 			// nShown is the amount of the first segment shown.
-			nLen = ComputeToShow( cols, pText, GetTextSize( pText ), nOfs, nShown );
+			nLen = history_ComputeToShow( cols, pText, GetTextSize( pText ), nOfs, nShown );
 			//nLen = GetTextSize( pText );
 			if( nChar < pText->format.position.offset.spaces )
 			{
@@ -1331,7 +1331,7 @@ int UpdateHistory( PCONSOLE_INFO pdp )
 			upd.flags.bHasContent = 0;
 			upd.flags.bTmpRect = 0;
 			MemSet( &upd.cs, 0, sizeof( upd.cs ) );
-			BuildDisplayInfoLines( pdp->pHistoryDisplay );
+			history_BuildDisplayInfoLines( pdp->pHistoryDisplay );
 			//lprintf( "ALready showing history?!" );
 			if( pdp->psicon.frame )
 				SmudgeCommon( pdp->psicon.frame );

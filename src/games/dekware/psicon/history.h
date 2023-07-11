@@ -84,10 +84,10 @@ int MoveHistoryCursor( PHISTORY_BROWSER phbr, int amount );
 
 uint32_t ComputeNextOffset( PTEXT segment, uint32_t nShown );
 //int ComputeToShow( uint32_t cols, PTEXT segment, int nOfs, int nShown );
-int ComputeToShow( uint32_t cols, PTEXT segment, uint32_t nLen, int nOfs, int nShown );
-int CountLinesSpanned( uint32_t cols, PTEXT countseg );
+int history_ComputeToShow( uint32_t cols, PTEXT segment, uint32_t nLen, int nOfs, int nShown );
+//int history_CountLinesSpanned( uint32_t cols, PTEXT countseg );
 
-void BuildDisplayInfoLines( PHISTORY_BROWSER phlc );
+void history_BuildDisplayInfoLines( PHISTORY_BROWSER phlc );
 
 
 #ifdef __DEKWARE_PLUGIN__

@@ -1,11 +1,15 @@
+#define NO_LOGGING
 #ifndef CORE_SOURCE
 #define CORE_SOURCE
 #endif
 
-#include "stdhdrs.h"
-#include "logging.h"
+#include <stdhdrs.h>
+#include <logging.h>
 
 #include "space.h"
+
+//#define DATA_LOG_LEVEL LOG_NOISE+1
+#define DATA_LOG_LEVEL LOG_NOISE-1
 
 //---------------------------------------------------------------------------
 // Data command module includes open/close datapath
@@ -422,7 +426,7 @@ CORE_PROC(int, RelayInput)( PDATAPATH pdp
 		int moved = 0;
 
 		if( gbTrace )
-			xlprintf(LOG_NOISE+1)( "Relay input from %s to %s.........."
+			xlprintf(DATA_LOG_LEVEL)( "Relay input from %s to %s.........."
 										, GetText( pdp->pPrior->pName )
 										, GetText( pdp->pName ) );
 		do
@@ -444,6 +448,9 @@ CORE_PROC(int, RelayInput)( PDATAPATH pdp
 					for( p = Datacallback( pdp, p ); p; p = Datacallback( pdp, NULL ) )
 					{
 						moved++;
+					 PTEXT out = BuildLine( p );
+					 Log1( "Processed in In: %s", GetText( out ) );
+					 LineRelease( out );
 						if( p != (POINTER)1 )
 							EnqueLink( &pdp->Input, p );
 						else
@@ -483,11 +490,11 @@ CORE_PROC(int, RelayOutput)( PDATAPATH pdp
 	{
 		int moved = 0;
 		PTEXT p;
-		//if( gbTrace )
-		//	lprintf( "Relay output from %s to %s.........."
-		//			 , GetText( pdp->pName )
-		//			 , GetText( pdp->pPrior->pName )
-		//			 );
+		if( gbTrace )
+			lprintf( "Relay output from %s to %s.........."
+					 , GetText( pdp->pName )
+					 , GetText( pdp->pPrior->pName )
+					 );
 		while( ( p = (PTEXT)DequeLink( &pdp->Output ) ) )
 		{
 			//if( gbTrace )
