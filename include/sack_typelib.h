@@ -29,20 +29,20 @@ _LINKLIST_NAMESPACE
 //--------------------------------------------------------
 TYPELIB_PROC  PLIST TYPELIB_CALLTYPE        CreateListEx   ( DBG_VOIDPASS );
 /* Destroy a PLIST. */
-TYPELIB_PROC  PLIST TYPELIB_CALLTYPE        DeleteListEx   ( PLIST *plist DBG_PASS );
+TYPELIB_PROC  PLIST TYPELIB_CALLTYPE        DeleteListEx   ( volatile PLIST *plist DBG_PASS );
 /* See <link AddLink>.
 
 
 
    See <link DBG_PASS>. */
-TYPELIB_PROC  PLIST TYPELIB_CALLTYPE        AddLinkEx      ( PLIST *pList, POINTER p DBG_PASS );
+TYPELIB_PROC  PLIST TYPELIB_CALLTYPE        AddLinkEx      ( volatile PLIST *pList, POINTER p DBG_PASS );
 /* Sets the value of a link at the specified index.
    Parameters
    pList :     address of a PLIST
    idx :       index of the element to set
    p :         new link value to be set at the specified index
    DBG_PASS :  debug file and line information                 */
-TYPELIB_PROC  PLIST TYPELIB_CALLTYPE        SetLinkEx      ( PLIST *pList, INDEX idx, POINTER p DBG_PASS );
+TYPELIB_PROC  PLIST TYPELIB_CALLTYPE        SetLinkEx      ( volatile PLIST *pList, INDEX idx, POINTER p DBG_PASS );
 /* Gets the link at the specified index.
    Parameters
    pList :  address of a PLIST pointer.

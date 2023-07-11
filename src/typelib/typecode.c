@@ -72,7 +72,7 @@ PLIST  CreateListEx ( DBG_VOIDPASS )
 }
 
 //--------------------------------------------------------------------------
-PLIST  DeleteListEx ( PLIST *pList DBG_PASS )
+PLIST  DeleteListEx ( volatile PLIST *pList DBG_PASS )
 {
 	PLIST ppList;
 	while( LockedExchange( list_local_lock, 1 ) )
@@ -89,7 +89,7 @@ PLIST  DeleteListEx ( PLIST *pList DBG_PASS )
 
 //--------------------------------------------------------------------------
 
-static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
+static PLIST ExpandListEx( volatile PLIST *pList, INDEX amount DBG_PASS )
 {
 	PLIST old_list = (*pList); //-V595
 	PLIST pl;
@@ -139,7 +139,7 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 
 //--------------------------------------------------------------------------
 
- PLIST  AddLinkEx ( PLIST *pList, POINTER p DBG_PASS )
+ PLIST  AddLinkEx ( volatile PLIST *pList, POINTER p DBG_PASS )
 {
 	INDEX i;
 	if( !pList )
@@ -179,7 +179,7 @@ static PLIST ExpandListEx( PLIST *pList, INDEX amount DBG_PASS )
 
 //--------------------------------------------------------------------------
 
- PLIST  SetLinkEx ( PLIST *pList, INDEX idx, POINTER p DBG_PASS )
+ PLIST  SetLinkEx ( volatile PLIST *pList, INDEX idx, POINTER p DBG_PASS )
 {
 	INDEX sz;
 	if( !pList )
