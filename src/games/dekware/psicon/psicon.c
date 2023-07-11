@@ -247,7 +247,7 @@ int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 #endif
 		if( key & KEY_PRESSED )
 		{
-			KeyPressHandler( pdp, KEY_CODE(key), KEY_MOD(key), (PTEXT)&stroke );
+			dekware_KeyPressHandler( pdp, KEY_CODE(key), KEY_MOD(key), (PTEXT)&stroke );
 			//SmudgeCommon( pdp->psicon.frame );
 		}
 		LeaveCriticalSec( &pdp->Lock );

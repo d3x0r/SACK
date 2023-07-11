@@ -1,7 +1,3 @@
-set( CMAKE_INSTALL_MESSAGE "LAZY" )
-
-set_property(GLOBAL PROPERTY USE_FOLDERS On)
-
 cmake_minimum_required(VERSION 3.20)
 
 if( NOT MAKING_SACK_CORE )
@@ -27,6 +23,13 @@ endif( NOT MAKING_SACK_CORE )
 
 
 project( Dekware )
+
+#set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
+#set( CMAKE_RULE_MESSAGES OFF )
+set( CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH OFF )
+
+set_property(GLOBAL PROPERTY USE_FOLDERS On)
+set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 if( NOT MAKING_SACK_CORE )
 include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )

@@ -25,7 +25,7 @@ DECLTEXT( KeyStroke, "\x7f" );
 //                    };
 
 #if defined( GCC ) || defined( __LINUX__ )
-static PSIKEYDEFINE KeyDefs[] = { [KEY_BACKSPACE]={"back","backspace",0,{{KEYDATA}} }
+static PSIKEYDEFINE dekware_KeyDefs[] = { [KEY_BACKSPACE]={"back","backspace",0,{{KEYDATA}} }
 							 , [KEY_TAB]={"tab",0,0,{{KEYDATA}} }
 							 , [KEY_ENTER]={"return", "enter",0,{{KEYDATA}
 							                        ,{KEYDATA}
@@ -45,17 +45,17 @@ static PSIKEYDEFINE KeyDefs[] = { [KEY_BACKSPACE]={"back","backspace",0,{{KEYDAT
 							                         ,{KEYDATA}
 							                         ,{KEYDATA}
 							                         ,{KEYDATA}} } //0x20
-							 , [KEY_PGUP]={"prior", "pgup", 0, {{HISTORYKEY,(PTEXT)HistoryPageUp}} }
-							 , [KEY_PGDN]={"next", "pgdn", 0, {{HISTORYKEY,(PTEXT)HistoryPageDown}} }
-							 , [KEY_END]={"end", 0, 0, {{COMMANDKEY, (PTEXT)KeyEndCmd}}}
+							 , [KEY_PGUP]={"prior", "pgup", 0, {{HISTORYKEY,(PTEXT)dekware_HistoryPageUp}} }
+							 , [KEY_PGDN]={"next", "pgdn", 0, {{HISTORYKEY,(PTEXT)dekware_HistoryPageDown}} }
+							 , [KEY_END]={"end", 0, 0, {{COMMANDKEY, (PTEXT)dekware_KeyEndCmd}}}
 							 , [KEY_HOME]={"home", 0, 0, {{COMMANDKEY, (PTEXT)KeyHome}}}
 							 , [KEY_LEFT]={"left", 0, 0, {{COMMANDKEY, (PTEXT)KeyLeft}}}
 
 							 , [KEY_UP]={"up" , 0, 0, { {COMMANDKEY, (PTEXT)KeyUp}
-							                  , {HISTORYKEY, (PTEXT)HistoryLineUp}}}
+							                  , {HISTORYKEY, (PTEXT)dekware_HistoryLineUp}}}
 							 , [KEY_RIGHT]={"right", 0, 0, {{COMMANDKEY, (PTEXT)KeyRight}}}
 							 , [KEY_DOWN]={"down", 0, 0, {{COMMANDKEY, (PTEXT)HandleKeyDown}
-							                  , {HISTORYKEY, (PTEXT)HistoryLineDown}}}
+							                  , {HISTORYKEY, (PTEXT)dekware_HistoryLineDown}}}
 							 //, {"select"}
 							 //, [KEY_PRINT]={"print"}
 							 //, {"execute"}
@@ -235,7 +235,7 @@ static PSIKEYDEFINE KeyDefs[] = { [KEY_BACKSPACE]={"back","backspace",0,{{KEYDAT
 							  };
 #else
 #define NONAMES {NULL,NULL,0}
-static PSIKEYDEFINE, KeyDefs[] = { NONAMES
+static PSIKEYDEFINE dekware_KeyDefs[] = { NONAMES
 							 , {"lbutton",0,0 }
 							 , {"rbutton",0,0 }
 							 , {"cancel",0,0}
@@ -292,17 +292,17 @@ static PSIKEYDEFINE, KeyDefs[] = { NONAMES
 							                         ,{KEYDATA}
 							                         ,{KEYDATA}
 							                         ,{KEYDATA}} } //0x20
-							 , {"prior", "pgup", 0, {{HISTORYKEY,(PTEXT)HistoryPageUp}} }
-							 , {"next", "pgdn", 0, {{HISTORYKEY,(PTEXT)HistoryPageDown}} }
-							 , {"end", 0, 0, {{COMMANDKEY, (PTEXT)KeyEndCmd}}}
+							 , {"prior", "pgup", 0, {{HISTORYKEY,(PTEXT)dekware_HistoryPageUp}} }
+							 , {"next", "pgdn", 0, {{HISTORYKEY,(PTEXT)dekware_HistoryPageDown}} }
+							 , {"end", 0, 0, {{COMMANDKEY, (PTEXT)dekware_KeyEndCmd}}}
 							 , {"home", 0, 0, {{COMMANDKEY, (PTEXT)KeyHome}}}
 							 , {"left", 0, 0, {{COMMANDKEY, (PTEXT)KeyLeft}}}
 
 							 , {"up" , 0, 0, { {COMMANDKEY, (PTEXT)KeyUp}
-							                  , {HISTORYKEY, (PTEXT)HistoryLineUp}}}
+							                  , {HISTORYKEY, (PTEXT)dekware_HistoryLineUp}}}
 							 , {"right", 0, 0, {{COMMANDKEY, (PTEXT)KeyRight}}}
 							 , {"down", 0, 0, {{COMMANDKEY, (PTEXT)HandleKeyDown}
-							                  , {HISTORYKEY, (PTEXT)HistoryLineDown}}}
+							                  , {HISTORYKEY, (PTEXT)dekware_HistoryLineDown}}}
 							 , {"select"}
 							 , {"print"}
 							 , {"execute"}
@@ -643,7 +643,7 @@ int KeyHome( PCONSOLE_INFO pci )
 
 //----------------------------------------------------------------------------
 
-int KeyEndCmd( PCONSOLE_INFO pci )
+int dekware_KeyEndCmd( PCONSOLE_INFO pci )
 {
 	SetCommandPosition( pci->common.CommandInfo, -1, COMMAND_POS_SET );
 	return UPDATE_COMMAND;
@@ -748,14 +748,14 @@ int FindKey( PTEXT pKey )
 	int i;
 	for( i = 0; i < NUM_KEYS; i++ )
 	{
-		//if( ( !KeyDefs[i].flags ) ||
-		//    ( KeyDefs[i].flags & (KDF_NODEFINE) ) )
+		//if( ( !dekware_KeyDefs[i].flags ) ||
+		//    ( dekware_KeyDefs[i].flags & (KDF_NODEFINE) ) )
 		//   continue;
-		if( KeyDefs[i].name1 && TextLike( pKey, KeyDefs[i].name1 ) )
+		if( dekware_KeyDefs[i].name1 && TextLike( pKey, dekware_KeyDefs[i].name1 ) )
 		{
 			return i;
 		}
-		else if( KeyDefs[i].name2 && TextLike( pKey, KeyDefs[i].name2 ) )
+		else if( dekware_KeyDefs[i].name2 && TextLike( pKey, dekware_KeyDefs[i].name2 ) )
 		{
 			return i;
 		}
@@ -873,34 +873,34 @@ CORECON_NPROC( int, KeyBind )( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
 			if( Mod & KEYMOD_CTRL )
 				if( Mod & KEYMOD_ALT )
 					vtprintf( vt, "shift-ctrl-alt-%s"
-							      ,KeyDefs[KeyVal].name1 );
+							      ,dekware_KeyDefs[KeyVal].name1 );
 				else
 					vtprintf( vt, "shift-ctrl-%s"
-							      ,KeyDefs[KeyVal].name1 );
+							      ,dekware_KeyDefs[KeyVal].name1 );
 			else
 				if( Mod & KEYMOD_ALT )
 					vtprintf( vt, "shift-alt-%s"
-							      ,KeyDefs[KeyVal].name1 );
+							      ,dekware_KeyDefs[KeyVal].name1 );
 				else
 					vtprintf( vt, "shift-%s"
-							      ,KeyDefs[KeyVal].name1 );
+							      ,dekware_KeyDefs[KeyVal].name1 );
 		}
 		else
 		{
 			if( Mod & KEYMOD_CTRL )
 				if( Mod & KEYMOD_ALT )
 					vtprintf( vt, "ctrl-alt-%s"
-							      ,KeyDefs[KeyVal].name1 );
+							      ,dekware_KeyDefs[KeyVal].name1 );
 				else
 					vtprintf( vt, "ctrl-%s"
-							      ,KeyDefs[KeyVal].name1 );
+							      ,dekware_KeyDefs[KeyVal].name1 );
 			else
 				if( Mod & KEYMOD_ALT )
 					vtprintf( vt, "alt-%s"
-							      ,KeyDefs[KeyVal].name1 );
+							      ,dekware_KeyDefs[KeyVal].name1 );
 				else
 					vtprintf( vt, "%s"
-							      ,KeyDefs[KeyVal].name1 );
+							      ,dekware_KeyDefs[KeyVal].name1 );
 		}
 		pm = (PMACRO)Allocate( sizeof( MACRO ) );
 		MemSet( pm, 0, sizeof( MACRO ) );
@@ -1100,7 +1100,7 @@ int DoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 
 //----------------------------------------------------------------------------
 
-void KeyPressHandler( PCONSOLE_INFO pdp
+void dekware_KeyPressHandler( PCONSOLE_INFO pdp
 						  , uint8_t key_index
 						  , uint8_t mod
 						  , PTEXT characters
@@ -1108,7 +1108,7 @@ void KeyPressHandler( PCONSOLE_INFO pdp
 {
 	int bOutput = 0;
 	// check current keyboard override...
-	if( KeyDefs[key_index].flags & KDF_CAPSKEY )
+	if( dekware_KeyDefs[key_index].flags & KDF_CAPSKEY )
 	{
 		//if( event.dwControlKeyState & CAPSLOCK_ON )
 		//{
@@ -1117,8 +1117,8 @@ void KeyPressHandler( PCONSOLE_INFO pdp
 	}
 
 	lprintf( "do key press handler %d %d %d %d %s %s", KEY_A, KEY_S, KEY_D, KEY_F
-			, KeyDefs[KEY_A].name1 
-			, KeyDefs[key_index].name1 
+			, dekware_KeyDefs[KEY_A].name1 
+			, dekware_KeyDefs[key_index].name1 
 			);
 	if( pdp->Keyboard[key_index][mod].flags.bStroke ||
 		pdp->Keyboard[key_index][mod].flags.bMacro )
@@ -1141,14 +1141,14 @@ void KeyPressHandler( PCONSOLE_INFO pdp
 	else // key was not overridden
 	{
 		int result = 0;
-		lprintf( "Keyfunc = %d %d %d", key_index, mod, KeyDefs[key_index].op[mod].bFunction );
-		switch( KeyDefs[key_index].op[mod].bFunction )
+		lprintf( "Keyfunc = %d %d %d", key_index, mod, dekware_KeyDefs[key_index].op[mod].bFunction );
+		switch( dekware_KeyDefs[key_index].op[mod].bFunction )
 		{
 		case KEYDATA_DEFINED:
 			//Log( "Key data_defined" );
 			{
 				extern void CPROC WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke );
-				WinLogicDoStroke( pdp, KeyDefs[key_index].op[mod].data.pStroke );
+				WinLogicDoStroke( pdp, dekware_KeyDefs[key_index].op[mod].data.pStroke );
 			}
 			result = UPDATE_NOTHING; // unsure about this - recently added.
 			// well it would appear that the stroke results in whether to update
@@ -1164,17 +1164,17 @@ void KeyPressHandler( PCONSOLE_INFO pdp
 			result = UPDATE_NOTHING; // already taken care of?!
 			break;
 		case COMMANDKEY:
-			result = KeyDefs[key_index].op[mod].data.CommandKey( pdp );
+			result = dekware_KeyDefs[key_index].op[mod].data.CommandKey( pdp );
 			break;
 		case HISTORYKEY:
-			result = KeyDefs[key_index].op[mod].data.HistoryKey( pdp->pHistoryDisplay );
+			result = dekware_KeyDefs[key_index].op[mod].data.HistoryKey( pdp->pHistoryDisplay );
 			break;
 		case CONTROLKEY:
-			KeyDefs[key_index].op[mod].data.ControlKey( &pdp->dwControlKeyState, TRUE );
+			dekware_KeyDefs[key_index].op[mod].data.ControlKey( &pdp->dwControlKeyState, TRUE );
 			result = UPDATE_NOTHING;
 			break;
 		case SPECIALKEY:
-			result = KeyDefs[key_index].op[mod].data.SpecialKey( pdp );
+			result = dekware_KeyDefs[key_index].op[mod].data.SpecialKey( pdp );
 			break;
 		}
 		switch( result )

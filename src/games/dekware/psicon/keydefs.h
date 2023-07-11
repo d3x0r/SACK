@@ -18,24 +18,24 @@ enum {
 // 2 - display update  (when history starts...)
 // 3 - history update only...
 
-CORECON_PROC( int, KeyShift     )( uint32_t* pKeyState, LOGICAL bState );
-CORECON_PROC( int, KeyControl   )( uint32_t* pKeyState, LOGICAL bState );
-CORECON_PROC( int, KeyAlt       )( uint32_t* pKeyState, LOGICAL bState );
+static int KeyShift     ( uint32_t* pKeyState, LOGICAL bState );
+static int KeyControl   ( uint32_t* pKeyState, LOGICAL bState );
+static int KeyAlt       ( uint32_t* pKeyState, LOGICAL bState );
 
-CORECON_PROC( int, KeyLeft )( PCONSOLE_INFO pci );
-CORECON_PROC( int, KeyRight )( PCONSOLE_INFO pci );
-CORECON_PROC( int, KeyInsert )( PCONSOLE_INFO pci );
+static int KeyLeft( PCONSOLE_INFO pci );
+static int KeyRight( PCONSOLE_INFO pci );
+static int KeyInsert( PCONSOLE_INFO pci );
 //int KeyDelete( PCOMMAND_INFO pci );
-CORECON_PROC( int, KeyUp )( PCONSOLE_INFO pci );
-CORECON_PROC( int, HandleKeyDown )(  PCONSOLE_INFO pci );
-CORECON_PROC( int, KeyHome )( PCONSOLE_INFO pci );
-CORECON_PROC( int, KeyEndCmd )( PCONSOLE_INFO pci );
+static int KeyUp( PCONSOLE_INFO pci );
+static int HandleKeyDown(  PCONSOLE_INFO pci );
+static int KeyHome( PCONSOLE_INFO pci );
+int dekware_KeyEndCmd( PCONSOLE_INFO pci );
 
-CORECON_PROC( int, KeyEndHst )( PHISTORY_BROWSER pht );
-CORECON_PROC( int, HistoryPageUp )( PHISTORY_BROWSER pht );
-CORECON_PROC( int, HistoryPageDown )( PHISTORY_BROWSER pht );
-CORECON_PROC( int, HistoryLineUp )( PHISTORY_BROWSER pht );
-CORECON_PROC( int, HistoryLineDown )( PHISTORY_BROWSER pht );
+int dekware_KeyEndHst( PHISTORY_BROWSER pht );
+int dekware_HistoryPageUp( PHISTORY_BROWSER pht );
+int dekware_HistoryPageDown( PHISTORY_BROWSER pht );
+int dekware_HistoryLineUp( PHISTORY_BROWSER pht );
+int dekware_HistoryLineDown( PHISTORY_BROWSER pht );
 //CPROC KeystrokePaste( PCONSOLE_INFO pht );
 
 enum {
@@ -84,7 +84,7 @@ typedef int (CPROC *KeyFuncUpDown)( PCONSOLE_INFO pdp, int bDown );
 #ifndef KEYS_DEFINED
 //CORECON_EXPORT( TEXT, KeyStroke[] );
 #ifndef CORECON_SOURCE
-CORECON_EXPORT( PSIKEYDEFINE, KeyDefs[] );
+CORECON_EXPORT( PSIKEYDEFINE, dekware_KeyDefs[] );
 #endif
 #endif
 

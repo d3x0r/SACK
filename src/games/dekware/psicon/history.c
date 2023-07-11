@@ -1490,7 +1490,7 @@ void ResetHistoryBrowser( PHISTORY_BROWSER phbr )
 
 //----------------------------------------------------------------------------
 
-int KeyEndHst( PHISTORY_BROWSER pht )
+int dekware_KeyEndHst( PHISTORY_BROWSER pht )
 {
    ResetHistoryBrowser( pht );
    return UPDATE_HISTORY;
@@ -1498,14 +1498,14 @@ int KeyEndHst( PHISTORY_BROWSER pht )
 
 //----------------------------------------------------------------------------
 
-int HistoryLineUp( PHISTORY_BROWSER pb )
+int dekware_HistoryLineUp( PHISTORY_BROWSER pb )
 {
 	return MoveHistoryCursor( pb, !pb->pBlock?-pb->nPageLines:-1 );
 }
 
 //----------------------------------------------------------------------------
 
-int HistoryLineDown( PHISTORY_BROWSER pb )
+int dekware_HistoryLineDown( PHISTORY_BROWSER pb )
 {
    if( pb->pBlock )
 		return MoveHistoryCursor( pb, 1 );
@@ -1514,7 +1514,7 @@ int HistoryLineDown( PHISTORY_BROWSER pb )
 
 //----------------------------------------------------------------------------
 
-int HistoryPageUp( PHISTORY_BROWSER pb )
+int dekware_HistoryPageUp( PHISTORY_BROWSER pb )
 {
    //lprintf( "Moving history up %d", pb->nPageLines );
    return MoveHistoryCursor( pb, -pb->nPageLines );
@@ -1522,7 +1522,7 @@ int HistoryPageUp( PHISTORY_BROWSER pb )
 
 //----------------------------------------------------------------------------
 
-int HistoryPageDown( PHISTORY_BROWSER pb )
+int dekware_HistoryPageDown( PHISTORY_BROWSER pb )
 {
    //lprintf( "Moving history down %d", pb->nPageLines );
 	if( pb->pBlock )
