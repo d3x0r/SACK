@@ -9,6 +9,8 @@
 #define SEPARATOR_HEIGHT 4
 #endif
 
+//#define DEBUG_KEY_EVENTS
+//#define DEBUG_COMMAND_INPUT_DRAW
 
 #ifdef __DEKWARE_PLUGIN__
 #ifndef WINLOGIC_SOURCE

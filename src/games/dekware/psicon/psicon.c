@@ -242,7 +242,9 @@ int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 		}
 		else
 			stroke.data.size = 0;
-
+#ifdef DEBUG_KEY_EVENTS
+		lprintf( "keyboard Event in app:%08x",key);
+#endif
 		if( key & KEY_PRESSED )
 		{
 			KeyPressHandler( pdp, KEY_CODE(key), KEY_MOD(key), (PTEXT)&stroke );
@@ -812,12 +814,17 @@ static void CPROC RenderCursor( PCONSOLE_INFO pdp, RECT *r, int column )
 
 static void CPROC Update( PCONSOLE_INFO pmdp, RECT *upd )
 {
+	IMAGE_RECTANGLE r;
+	r.x = upd->left;
+	r.y = upd->top;
+	r.width = upd->right-upd->left;
+	r.height = upd->bottom-upd->top;
 	// passed region is the region which was updated by drawing
 // code.
 	//lprintf( "update some controls... %d,%d - %d,%d", upd->left, upd->right, upd->top, upd->bottom );
-	upd->right -= upd->left;
-	upd->bottom -= upd->top;
-	 UpdateSomeControls( pmdp->psicon.frame, (IMAGE_RECTANGLE*)upd );
+	//upd->right -= upd->left;
+	//upd->bottom -= upd->top;
+	 UpdateSomeControls( pmdp->psicon.frame, (IMAGE_RECTANGLE*)&r );
 
 	//SmudgeCommonArea( pmdp->psicon.frame, upd );
 	//SmudgeCommon( pmdp->psicon.frame );

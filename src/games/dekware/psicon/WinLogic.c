@@ -109,7 +109,7 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
    // the current macro recording... well of course if there
    // is no prompt variable, then this should still be generated
    // in which case... uhmm hmm....
-	nCursorPos = GetCommandCursor( pdp->pCurrentDisplay
+	nCursorPos = history_GetCommandCursor( pdp->pCurrentDisplay
 #ifdef __DEKWARE_PLUGIN__
 										  , pdp->common.CommandInfo
 #else
@@ -131,14 +131,16 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
 	if( !pdp->flags.bDirect )
       toppad = pdp->nCmdLinePad;
 	r.top -= toppad;
-/*
+
+#if DEBUG_COMMAND_INPUT_DRAW
 	lprintf( "*** Commandline %d,%d  uhh %d %d  %d and %d"
-			 , r.top, r.bottom
-			 , start, end
-			 , nCursorPos
-			, nCurrentCol
+			 , (int)r.top, (int)r.bottom
+			 , (int)start, (int)end
+			 , (int)nCursorPos
+			, (int)nCurrentCol
 			  );
-			 */
+#endif
+
 	if( !nCurrentCol )
 	{
 		// need to blatcolor for the 5 pixels left of first TEXTCHAR...
@@ -223,7 +225,9 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
 
 		if( nCurrentCol + nShow > end )
 			nShow = end - nCurrentCol;
-
+#if DEBUG_COMMAND_INPUT_DRAW
+		lprintf( "draw string %p %s", pdp->DrawString, GetText( pStart ));
+#endif		
 		if( pdp->DrawString )
 			pdp->DrawString( pdp, x, y, &r, GetText( pStart ), nShown, nShow );
 		x = r.left = r.right;
@@ -258,6 +262,9 @@ void RenderCommandLine( PCONSOLE_INFO pdp, POINTER p )
 		r.right = region->x + region->width;
 		r.top = region->y;
 		r.bottom = region->y + region->height;
+#if DEBUG_COMMAND_INPUT_DRAW
+		lprintf( "Update some: %dx%d %d-%d", r.left, r.top, r.right-r.left, r.bottom-r.top);
+#endif
 		pdp->Update( pdp, &r );
 		region->flags.bHasContent = 0;
 	}
@@ -1089,6 +1096,9 @@ void WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 	upd.flags.bHasContent = 0;
 	upd.flags.bTmpRect = 1;
 	EnterCriticalSec( &pdp->Lock );
+#ifdef DEBUG_KEY_EVENTS
+	lprintf( "Do Stroke:%s", GetText( stroke ));
+#endif
 	if( DoStroke( pdp, stroke ) )
 	{
 		RenderCommandLine( pdp, &upd );

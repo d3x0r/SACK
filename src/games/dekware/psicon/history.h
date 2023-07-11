@@ -92,7 +92,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phlc );
 
 #ifdef __DEKWARE_PLUGIN__
 // this takes into account typing a command, and recording a macro plus the dekware object prmopt...
-int GetCommandCursor( PHISTORY_BROWSER phbr
+int history_GetCommandCursor( PHISTORY_BROWSER phbr
 						  , PCOMMAND_INFO CommandInfo
 						  , int bEndOfStream
                     , size_t *command_offset

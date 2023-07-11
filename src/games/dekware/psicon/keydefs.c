@@ -25,7 +25,7 @@ DECLTEXT( KeyStroke, "\x7f" );
 //                    };
 
 #if defined( GCC ) || defined( __LINUX__ )
-CORECON_EXPORT( PSIKEYDEFINE, KeyDefs[256] ) = { [KEY_BACKSPACE]={"back","backspace",0,{{KEYDATA}} }
+static PSIKEYDEFINE KeyDefs[] = { [KEY_BACKSPACE]={"back","backspace",0,{{KEYDATA}} }
 							 , [KEY_TAB]={"tab",0,0,{{KEYDATA}} }
 							 , [KEY_ENTER]={"return", "enter",0,{{KEYDATA}
 							                        ,{KEYDATA}
@@ -61,7 +61,7 @@ CORECON_EXPORT( PSIKEYDEFINE, KeyDefs[256] ) = { [KEY_BACKSPACE]={"back","backsp
 							 //, {"execute"}
 							 //, {"snapshot"}
 							 , [KEY_GREY_INSERT]={"insert", 0, 0, {{COMMANDKEY, (PTEXT)KeyInsert}}}
-							 , [KEY_GREY_DELETE]={"delete", 0, 0, {{KEYDATA_DEFINED, &KeyStroke+KS_DELETE}}}
+							 , [KEY_GREY_DELETE]={"delete", 0, 0, {{KEYDATA_DEFINED, (PTEXT)(&KeyStroke)}}}
 							 , {"help"}
 							 , [KEY_0]={"0", 0, 0, {{KEYDATA}
 							               ,{KEYDATA}}}      //0x30
@@ -235,7 +235,7 @@ CORECON_EXPORT( PSIKEYDEFINE, KeyDefs[256] ) = { [KEY_BACKSPACE]={"back","backsp
 							  };
 #else
 #define NONAMES {NULL,NULL,0}
-CORECON_EXPORT( PSIKEYDEFINE, KeyDefs[] ) = { NONAMES
+static PSIKEYDEFINE, KeyDefs[] = { NONAMES
 							 , {"lbutton",0,0 }
 							 , {"rbutton",0,0 }
 							 , {"cancel",0,0}
@@ -1114,7 +1114,10 @@ void KeyPressHandler( PCONSOLE_INFO pdp
 		//}
 	}
 
-
+	lprintf( "do key press handler %d %d %d %d %s %s", KEY_A, KEY_S, KEY_D, KEY_F
+			, KeyDefs[KEY_A].name1 
+			, KeyDefs[key_index].name1 
+			);
 	if( pdp->Keyboard[key_index][mod].flags.bStroke ||
 		pdp->Keyboard[key_index][mod].flags.bMacro )
 	{
@@ -1136,7 +1139,7 @@ void KeyPressHandler( PCONSOLE_INFO pdp
 	else // key was not overridden
 	{
 		int result = 0;
-		//Log1( "Keyfunc = %d", KeyDefs[key_index].op[mod].bFunction );
+		lprintf( "Keyfunc = %d %d %d", key_index, mod, KeyDefs[key_index].op[mod].bFunction );
 		switch( KeyDefs[key_index].op[mod].bFunction )
 		{
 		case KEYDATA_DEFINED:
@@ -1150,6 +1153,7 @@ void KeyPressHandler( PCONSOLE_INFO pdp
 			// the command prompt or not.
 			break;
 		case KEYDATA:
+			lprintf( "KEYDATA:%p", characters );
 			if( GetTextSize( characters ) )
 			{
 				extern void CPROC WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke );

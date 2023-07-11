@@ -1402,7 +1402,7 @@ int MoveHistoryCursor( PHISTORY_BROWSER browser, int amount )
 
 //----------------------------------------------------------------------------
 // return the x position of the visible cursor
-int GetCommandCursor( PHISTORY_BROWSER phbr
+int history_GetCommandCursor( PHISTORY_BROWSER phbr
 #ifdef __DEKWARE_PLUGIN__
 						  , COMMAND_INFO *CommandInfo
 #else
