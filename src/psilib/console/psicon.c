@@ -107,7 +107,7 @@ static CDATA crColorTableBack[16];
 //----------------------------------------------------------------------------
 // only one master copy of this is really needed...
 
-CDATA cPenNormal, cPenHighlight, cPenShadow, cPenDkShadow, cPenCursor;
+static CDATA cPenNormal, cPenHighlight, cPenShadow, cPenDkShadow, cPenCursor;
 PMENU hChildMenu;
 PMENU hHistoryMenu;
 //cpg27dec2006 console\psicon.c(96): Warning! W202: Symbol 'bCreatingControl' has been defined, but not referenced

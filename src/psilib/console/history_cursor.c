@@ -797,14 +797,14 @@ void SetCursorColumn( PHISTORY_LINE_CURSOR phlc, int n )
 //----------------------------------------------------------------------------
 void SetCursorHeight( PHISTORY_LINE_CURSOR phlc, int n )
 {
-	phlc->nHeight = n;
+	if( phlc ) phlc->nHeight = n;
 	// recompute visible lines...
 }
 
 //----------------------------------------------------------------------------
 void SetCursorWidth( PHISTORY_LINE_CURSOR phlc, int n )
 {
-	phlc->nWidth = n;
+	if( phlc ) phlc->nWidth = n;
 	// recompute visible lines...
 }
 //----------------------------------------------------------------------------

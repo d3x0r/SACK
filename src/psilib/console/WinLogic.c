@@ -640,7 +640,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 //----------------------------------------------------------------------------
 // 5 on left, 5 on right total 10 pixels we can't use...
 
-void WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
+void PSI_WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 {
 	// there's some other related set of values to set here....
 	//lprintf( "Calculate history! %d %d", pdp->nColumns, pdp->nLines );
@@ -739,7 +739,7 @@ void WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 }
 
 //----------------------------------------------------------------------------
-void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffset, int nStartLineOffset, PENDING_RECT *region );
+static void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffset, int nStartLineOffset, PENDING_RECT *region );
 
 void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 {
@@ -862,7 +862,7 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 #endif
 	}
 
-	WinLogicCalculateHistory( pdp, font );
+	PSI_WinLogicCalculateHistory( pdp, font );
 
 	PSI_RenderConsole( pdp, font );
 }
@@ -1313,7 +1313,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp, SFTFont font )
 			ConsoleKeyDefs[KEY_END].op[0].bFunction = HISTORYKEY;
 			ConsoleKeyDefs[KEY_END].op[0].data.HistoryKey = KeyEndHst;
 			pdp->flags.bHistoryShow = 1;
-			WinLogicCalculateHistory( pdp, font ); // this builds history and real display info lines.
+			PSI_WinLogicCalculateHistory( pdp, font ); // this builds history and real display info lines.
 			bUpdate = 1;
 		}
 		else
@@ -1352,7 +1352,7 @@ int PSI_UpdateHistory( PCONSOLE_INFO pdp, SFTFont font )
 				ConsoleKeyDefs[KEY_END].op[0].data.CommandKey = KeyEndCmd;
 			}
 			pdp->flags.bHistoryShow = 0;
-			WinLogicCalculateHistory( pdp, font );
+			PSI_WinLogicCalculateHistory( pdp, font );
 			bUpdate = 1;
 		}
 	}
