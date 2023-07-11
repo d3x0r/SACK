@@ -142,16 +142,18 @@ IDLE_PROC( int, IdleEx )( DBG_VOIDPASS )
 	for( proc = procs; proc;  )
 	{
 		PIDLEPROC check;
+		int result;
 		for( check = proc; check; check = check->similar )
 		{
 			check->flags.bDispatched = 1;
 			//lprintf( "attempt proc %p in %Lx  procthread=%Lx", check, GetThreadID( MakeThread() ), check->thread );
 			//if( !check->thread || ( check->thread == me ) )
 			// sometimes... a function belongs to multiple threads...
-			if( check->function( check->data ) != -1 )
+			if( ( result = check->function( check->data ) ) != -1 )
 			{
 				check->thread = me;
-				success = 1;
+				// the thread indicated it wants to sleep
+				success = result;
 			}
 			check->flags.bDispatched = 0;
 			if( check->flags.bRemove )
