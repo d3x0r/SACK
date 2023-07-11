@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
       "Set build type")
@@ -6,6 +6,7 @@ set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
                "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 
 PROJECT( Games )
+set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 GET_FILENAME_COMPONENT(SACK_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\SACK;Install_Dir]" ABSOLUTE CACHE)
 GET_FILENAME_COMPONENT(INTERSHELL_SDK_ROOT_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Freedom Collective\\InterShell;Install_Dir]" ABSOLUTE CACHE)

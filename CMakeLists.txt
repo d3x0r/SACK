@@ -9,6 +9,10 @@ endif( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
 enable_language( C )
 enable_language( ASM )
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
+#set_property(GLOBAL PROPERTY BUILD_WITH_INSTALL_RPATH ${BUILD_WITH_INSTALL_RPATH} )
+#set_property(GLOBAL PROPERTY BUILD_WITH_INSTALL_RPATH OFF )
+#set( CMAKE_BUILD_WITH_INSTALL_RPATH ${CMAKE_BUILD_WITH_INSTALL_RPATH} )
+#set( CMAKE_BUILD_WITH_INSTALL_RPATH OFF )
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 
@@ -966,7 +970,7 @@ target_link_libraries( bag gsm-1.0-pl13 deadstart )
 	#target_link_libraries( bag MatrixSSL mssl_core )
 	target_link_libraries( bag ${SSL_LIBS} )
 
-
+# RPATH shouldn't matter for MSVC anyway so..
 SET_TARGET_PROPERTIES(bag PROPERTIES
                   DEFINE_SYMBOL SACK_BAG_EXPORTS
                   COMPILE_FLAGS  "${ExtraFlags}"
@@ -1621,8 +1625,10 @@ SET_PROPERTY(TARGET bag.video.puregl2 APPEND_STRING PROPERTY LINK_FLAGS "${COMMO
 SET_PROPERTY(TARGET bag.psi APPEND_STRING PROPERTY COMPILE_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
 SET_PROPERTY(TARGET bag.psi APPEND_STRING PROPERTY LINK_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
 endif( EMSCRIPTEN )
-
-
+SET_TARGET_PROPERTIES(  bag bag.externals bag++ 
+PROPERTIES
+  INSTALL_RPATH "$ORIGIN"
+    )
 
 # get the libraries..
 SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )
