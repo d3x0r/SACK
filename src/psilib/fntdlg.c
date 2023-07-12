@@ -656,6 +656,7 @@ PSI_FONTS_NAMESPACE
 static void handleStatus( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
 	FONT_DIALOG* fdData_;
 	#define fdData (fdData_[0])
+	fdData_ = (FONT_DIALOG*)psv;
 	if( okay ) {
 		//if( pFontData )
 		{
@@ -759,7 +760,7 @@ static void handleStatus( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
 	UnloadAllFonts();
 	fdData.Update( fdData.psvUpdate, fdData.pFont );
 	Release( fdData_ );
-	#undef fdData (fdData_[0])
+	#undef fdData
 
 }
 
@@ -1070,6 +1071,7 @@ PSI_PROC( SFTFont, PickFontFor )( int32_t x, int32_t y
 
 		return PickFontWithUpdate( x, y, pFontDataSize, pFontData, pAbove, UpdateCommonFont, (uintptr_t)&forData );
 	}
+	return NULL;
 }
 
 PSI_PROC( SFTFont, PickFont )( int32_t x, int32_t y

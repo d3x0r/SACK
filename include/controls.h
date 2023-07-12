@@ -1784,7 +1784,8 @@ PSI_PROC( SFTFont, PickFontWithUpdate )( int32_t x, int32_t y
 										  , POINTER *pFontData
 										  , PSI_CONTROL pAbove
 										  , void (CPROC *UpdateFont)( uintptr_t psv, SFTFont font )
-												, uintptr_t psvUpdate );
+												, uintptr_t psvUpdate
+	);
 // pick font for uses pickfontwithupdate where the update procedure
 // sets the font on a control.
 PSI_PROC( SFTFont, PickFontFor )( int32_t x, int32_t y
@@ -1793,7 +1794,10 @@ PSI_PROC( SFTFont, PickFontFor )( int32_t x, int32_t y
                            // which may be passe dto RenderFontData
 								  , POINTER *pFontData
 									  , PSI_CONTROL pAbove
-									  , PSI_CONTROL pUpdateFontFor );
+									  , PSI_CONTROL pUpdateFontFor
+										  , void (CPROC *UpdateFont)( uintptr_t psv, SFTFont font )
+												, uintptr_t psvUpdate
+	);
 
 /* Pick a font. This shows a dialog
    Parameters
