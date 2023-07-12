@@ -1,5 +1,7 @@
 //#define NO_LOGGING
 //#define DEBUG_HISTORY_RENDER
+//#define DEBUG_REGION_UPDATES
+//#define DEBUG_OUTPUT_TO_CONSOLE
 
 #include "consolestruc.h"
 //#include "interface.h"
@@ -42,17 +44,21 @@ static void AddUpdateRegion( PPENDING_RECT update_rect, int32_t x, int32_t y, ui
 			}
 			if( y + ht > update_rect->y + update_rect->height )
 				update_rect->height = (y + ht) - update_rect->y;
-			//lprintf( "result (%d,%d)-(%d,%d)"
-			//		, update_rect->x, update_rect->y
-			//		, update_rect->width, update_rect->height
-			//  	);
+#ifdef DEBUG_REGION_UPDATES
+			lprintf( "result (%d,%d)-(%d,%d)"
+					, update_rect->x, update_rect->y
+					, update_rect->width, update_rect->height
+			  	);
+#endif
 		}
 		else
 		{
-			//_lprintf( DBG_AVAILABLE, "Setting (%d,%d)-(%d,%d)" DBG_RELAY
-			//		, x, y
-			//		, wd, ht
-			//		);
+#ifdef DEBUG_REGION_UPDATES
+			lprintf( "Setting (%d,%d)-(%d,%d)"
+					, x, y
+					, wd, ht
+					);
+#endif
 			update_rect->x = x;
 			update_rect->y = y;
 			update_rect->width = wd;
@@ -537,6 +543,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 			//lprintf( "(direct write command line)Setting display line to %d", pdp->nDisplayLineStartDynamic );
 		}
 
+#ifdef DEBUG_REGION_UPDATES
+		lprintf( "RenderCommandLine mid" );
+#endif
 		AddUpdateRegion( region, upd.left, upd.top, upd.right-upd.left,upd.bottom-upd.top );
 
 		{
@@ -628,6 +637,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 
 		// command line only update ? maybe add this to regions which should be updated?
 		// refresh here?
+#ifdef DEBUG_REGION_UPDATES
+		lprintf( "RenderCommandLine end" );
+#endif
 		AddUpdateRegion( region, upd.left, upd.top, upd.right-upd.left,upd.bottom-upd.top );
 
 	}
@@ -800,6 +812,7 @@ void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 		r.right = upd.x + upd.width;
 		r.top = upd.y;
 		r.bottom = upd.y + upd.height;
+		//lprintf( "Update: %d %d  %d %d", r.left, r.top, upd.width, upd.height );
 		pdp->Update( pdp, &r );
 	}
 	pdp->lockCount--;
@@ -856,7 +869,8 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 		if( pdp->pHistoryDisplay )
 			SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
 		pdp->nCommandLineStart -= pdp->nYPad + pdp->nCmdLinePad / 2;
-		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart - (pdp->nYPad + ( pdp->nCmdLinePad / 2 ) + pdp->nSeparatorHeight );
+		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart - (pdp->nYPad + ( pdp->nCmdLinePad / 2 ) + pdp->nSeparatorHeight )
+					+ pdp->nFontHeight;
 #ifdef DEBUG_HISTORY_RENDER
 		lprintf( "(linemode)Setting display line to %d", pdp->nDisplayLineStartDynamic );
 #endif
@@ -879,6 +893,11 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 	EnterCriticalSec( &pmdp->Lock );
 	pmdp->lockCount++;
 	{
+#ifdef DEBUG_OUTPUT_TO_CONSOLE
+		PTEXT line = BuildLine( pLine );
+		lprintf( "Console Write: [%s]", GetText( line ) );
+		LineRelease( line );
+#endif
 		//int flags = pLine->flags & (TF_NORETURN|TF_PROMPT);
 		//lprintf( "Updated... %d", updated );
 		//updated++;
@@ -1236,6 +1255,9 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 	upd.top = r.top;
 	upd.left = 0;
 	upd.right = pdp->nWidth;
+#ifdef DEBUG_REGION_UPDATES
+	lprintf( "DoRenderHistory end" );
+#endif
 	AddUpdateRegion( region
 						, upd.left, upd.top
 						, upd.right-upd.left, (upd.bottom - nStartLineOffset) - upd.top );
@@ -1276,9 +1298,9 @@ void PSI_WinLogicDoStroke( PCONSOLE_INFO pdp, PTEXT stroke )
 			else {
 				pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart;
 			}
-//#ifdef DEBUG_HISTORY_RENDER
+#ifdef DEBUG_OUTPUT_TO_CONSOLE
 			lprintf( "(direct stroke)Setting display line to %d", pdp->nDisplayLineStartDynamic );
-//#endif
+#endif
 		}
 	}
 

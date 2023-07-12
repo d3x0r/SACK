@@ -232,6 +232,7 @@ static int OnDrawCommon( "PSI Console" )( PSI_CONTROL pc )
 		PSI_ConsoleCalculate( console, GetCommonFont( pc ) ); // this includes doing a render.
 	}
 	else {
+		//lprintf( "Render console..." );
 		PSI_RenderConsole( console, GetCommonFont( pc ) );
 	}
 	//lprintf( "Done rendering child." );
@@ -283,6 +284,31 @@ int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 
 //----------------------------------------------------------------------------
 
+struct font_pick_info {
+	PCONSOLE_INFO console;
+	PSI_CONTROL pc;
+	size_t size;
+	SFTFont font;
+	POINTER info;
+};
+
+static void handlePickFont( uintptr_t psv, SFTFont font ) {
+	if( font )
+	{
+		struct font_pick_info* info = (struct font_pick_info*)psv;
+		//POINTER data;
+		//size_t datalen;
+		//GetFontRenderData( font, &data, &datalen );
+		SACK_WriteProfileString( "sack/PSI/console", "font", (CTEXTSTR)info );
+		//console->psicon.hFont = (SFTFont)font;
+		SetCommonFont( info->console->psicon.frame, font );
+		//GetDefaultFont();
+		//GetStringSizeFont( " ", &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
+		PSI_ConsoleCalculate( info->console, GetCommonFont( info->pc ) );
+	}
+
+}
+
 void HandleOption1( uintptr_t psv, int cmd ) {
 	PCONSOLE_INFO console = (PCONSOLE_INFO)psv;
 	PSI_CONTROL pc = console->psicon.frame;
@@ -332,10 +358,14 @@ void HandleOption1( uintptr_t psv, int cmd ) {
 		case MNU_FONT:
 			{
 				//console->cfFont.hwndOwner = hWnd;
-				size_t size;
-				SFTFont font;
-				POINTER info = NULL;
-				if( font = PickFont( -1, -1, &size, &info, NULL ) )
+				static struct font_pick_info pick_info;
+				if( !pick_info.console ) {
+					pick_info.console = console;
+					pick_info.pc = pc;
+					PickFont( -1, -1, &pick_info.size, &pick_info.info, NULL, handlePickFont, (uintptr_t)&pick_info );
+				}
+				/*
+				if( font =  )
 				{
 					//POINTER data;
 					//size_t datalen;
@@ -347,6 +377,7 @@ void HandleOption1( uintptr_t psv, int cmd ) {
 					//GetStringSizeFont( " ", &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
 					PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
 				}
+				*/
 			}
 				break;
 		  case MNU_COMMAND_COLOR:
@@ -418,7 +449,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 			if( PSI_ConvertXYToLineCol( console, xPos, yPos
 										 , &row, &col ) )
 			{
-				//lprintf( "converted is %d,%d", row, col );
+				lprintf( "converted is %d,%d", row, col );
 				if( console->CurrentMarkInfo == console->CurrentLineInfo )
 				{
 					if( console->flags.bUpdatingEnd )
@@ -498,6 +529,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 						console->flags.bMarking = 0;
 						console->flags.bUpdatingEnd = 0;
 					}
+					lprintf( "Smudge in mouse (0)" );
 					SmudgeCommon( console->psicon.frame );
 				}
 			}
@@ -506,6 +538,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 				//Log( "Ending mark(2)." );
 				console->flags.bMarking = 0;
 				console->flags.bUpdatingEnd = 0;
+				lprintf( "Smudge in mouse (1)" );
 				SmudgeCommon( console->psicon.frame );
 			}
 		}
@@ -880,7 +913,6 @@ static void CPROC ConsoleUpdate( PCONSOLE_INFO pmdp, RECT *upd )
 	upd->bottom -= upd->top;
 	// this causes the parent to update? shoudl be smart and recall the parent's
 	// saved original picture here...
-
 	UpdateSomeControls( pmdp->psicon.frame, (IMAGE_RECTANGLE*)upd );
 	//lprintf( "------------------------------------" );
 }

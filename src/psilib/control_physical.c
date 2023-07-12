@@ -9,7 +9,7 @@
 #include "borders.h"
 #include "resource.h"
 
-#define DEBUG_UPDAATE_DRAW 4
+//#define DEBUG_UPDAATE_DRAW 4
 //#define DEBUG_CREATE
 
 PSI_NAMESPACE
@@ -184,7 +184,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 #endif
 		// if using "displaylib"
 		//if( update )
-		if( g.flags.always_draw || pc->flags.bResizedDirty )
+		if( g.flags.always_draw || pc->flags.bResizedDirty || pc->flags.bDirtyBorder )
 		{
 			//lprintf( "Recomputing border..." );
 			// fix up surface rect.
@@ -201,8 +201,8 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 #endif
 				if( pc->border && pc->border->hasFill )
 					pc->border->drawFill = 1;
-				DrawFrameCaption( pc );
 				pc->DrawBorder( pc );
+				DrawFrameCaption( pc );
 			}
 			// probably should just invoke draw... but then we won't get marked
 			// dirty - so redundant smudges wont be merged... and we'll do this all twice.
@@ -377,16 +377,18 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 	}
 	if( !pc->flags.bHidden )
 	{
-		if( !g.flags.always_draw && pc->DrawBorder )
+		if( pc->flags.bDirtyBorder && !g.flags.always_draw )
 		{
 			// background fill?
 			// pc->border->drawFill = 1; // otherwise MUST smudge instead of just draw.
-			pc->DrawBorder( pc );
+			if( pc->DrawBorder )
+				pc->DrawBorder( pc );
+			pc->flags.bDirtyBorder = 0;
+			if( !g.flags.always_draw )
+				DrawFrameCaption( pc );
+			else
+				SmudgeCommon( pc );
 		}
-		if( !g.flags.always_draw )
-			DrawFrameCaption( pc );
-		else
-			SmudgeCommon( pc );
 		// update just the caption portion?
 		if( pc->surface_rect.y && !pc->flags.bRestoring )
 		{
@@ -633,7 +635,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 			//lprintf( "Border X and Y is %d,%d", FrameBorderX(pc, pc->BorderType), FrameBorderY(pc, pc->BorderType, GetText( pc->caption.text ) ) );
 			pc->rect.width += FrameBorderX(pc, pc->BorderType);
 			pc->rect.height += FrameBorderY(pc, pc->BorderType, GetText( pc->caption.text ) );
-			device->pActImg = OpenDisplayAboveUnderSizedAt( 0
+			device->pActImg = OpenDisplayAboveUnderSizedAt( DISPLAY_ATTRIBUTE_LAYERED
 																  , pc->rect.width
 																  , pc->rect.height
 																  , pc->rect.x
@@ -662,9 +664,11 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 			if( pc->rect.x && pc->rect.y )
 				MoveDisplay( pActImg, pc->rect.x, pc->rect.y );
 
-			if( pc->rect.width && pc->rect.height )
+			if( pc->rect.width && pc->rect.height ) {
+				pc->flags.bDirtyBorder = 1;
 				SizeDisplay( pActImg, pc->rect.width, pc->rect.height );
-			else
+
+			}  else
 			{
 				uint32_t width, height;
 				GetDisplaySizeEx( 0, NULL, NULL, &width, &height );

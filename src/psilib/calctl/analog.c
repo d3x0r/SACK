@@ -155,7 +155,7 @@ static void MoveSurface( PSI_CONTROL pc )
 			PRENDERER r = GetFrameRenderer( GetFrame( pc ) );
 			int32_t x = 0;
 			int32_t y = 0;
-			GetPhysicalCoordinate( pc, &x, &y, TRUE );
+			GetPhysicalCoordinate( pc, &x, &y, TRUE, FALSE );
 #if draw_on_renderer
 			if( analog->render )
 				MoveDisplay( analog->render, x, y );

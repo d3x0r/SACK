@@ -86,6 +86,7 @@ PSI_Console_Phrase PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 		{
 			console->flags.bNewLine = 1;
 		}
+		//lprintf( "Smudge pc %p", pc );
 		SmudgeCommon( pc );
 	}
 	return phrase;

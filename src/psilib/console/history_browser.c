@@ -1039,7 +1039,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 								nLen = (int)GetTextSize( pText );
 								goto do_end_of_line;
 							}
-							else while( nSegShown < nLen )
+							else while( pText && nSegShown < nLen )
 							{
 								PTEXT endseg;
 								trim_char = 0;

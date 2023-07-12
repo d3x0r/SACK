@@ -29,7 +29,7 @@
 // this symbol is also used in XML_Load code.
 //#define DEBUG_RESOURCE_NAME_LOOKUP
 //#define DEBUG_TRANSPARENCY_SURFACE_SAVE_RESTORE
-#define DEBUG_UPDAATE_DRAW 4
+//#define DEBUG_UPDAATE_DRAW 4
 
 // defined to use the new interface manager.
 // otherwise this library had to do twisted steps
@@ -1084,6 +1084,7 @@ void InvokeControlRevealed( PSI_CONTROL pc )
 // as far as the last non-transparent image...
 void UpdateSomeControls( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 {
+	//lprintf( "Update some controls in %d %d   %d %d", pRect->x, pRect->y, pRect->width, pRect->height );
 	if( !g.flags.always_draw )
 	{
 	PPHYSICAL_DEVICE pf = GetFrame( pc )->device;
@@ -1179,31 +1180,27 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 {
 	IMAGE_RECTANGLE wind_rect;
 	IMAGE_RECTANGLE surf_rect;
+	int drewBorder = 0;
 
-	for( ;pc; pc = pc->next )
-	{
+	for( ; pc; pc = pc->next ) {
 		{
 			PSI_CONTROL parent;
-			for( parent = pc; parent; parent = parent->parent )
-			{
-				if( parent->flags.bNoUpdate || parent->flags.bHidden )
-				{
+			for( parent = pc; parent; parent = parent->parent ) {
+				if( parent->flags.bNoUpdate || parent->flags.bHidden ) {
 					lprintf( "a control %p (self, or some parent %p) has %s or %s"
-							  , pc, parent
-							  , parent->flags.bNoUpdate?"noupdate":"..."
-							  , parent->flags.bHidden?"hidden":"..."
-							  );
+						, pc, parent
+						, parent->flags.bNoUpdate ? "noupdate" : "..."
+						, parent->flags.bHidden ? "hidden" : "..."
+					);
 					break;
 				}
 			}
-			if( parent )
-			{
+			if( parent ) {
 				lprintf( "ABORTING SMUDGE" );
 				continue;
 			}
 		}
-		if( pc->flags.bHidden || pc->flags.bNoUpdate )
-		{
+		if( pc->flags.bHidden || pc->flags.bNoUpdate ) {
 			lprintf( "Control is hidden, skipping it." );
 			continue;
 		}
@@ -1211,27 +1208,24 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 		if( g.flags.bLogDebugUpdate )
 			lprintf( "updating some controls... rectangles and stuff." );
 #endif
-	 //Log( "Update some controls...." );
+		//Log( "Update some controls...." );
 		if( !IntersectRectangle( &wind_rect, pRect, &pc->rect ) )
 			continue;
 		wind_rect.x -= pc->rect.x;
 		wind_rect.y -= pc->rect.y;
-		 // bound window rect (frame update)
-			// The update region may be
-		if( IntersectRectangle( &surf_rect, &wind_rect, &pc->surface_rect ) )
-		{
+		// bound window rect (frame update)
+		  // The update region may be
+		if( IntersectRectangle( &surf_rect, &wind_rect, &pc->surface_rect ) ) {
 			surf_rect.x -= pc->surface_rect.x;
 			surf_rect.y -= pc->surface_rect.y;
 #ifdef DEBUG_UPDAATE_DRAW
-				if( g.flags.bLogDebugUpdate )
-					lprintf( "Some controls using normal updatecommon to draw..." );
+			if( g.flags.bLogDebugUpdate )
+				lprintf( "Some controls using normal updatecommon to draw..." );
 #endif
 			// enabled minimal update region...
 			pc->dirty_rect = surf_rect;
 			SmudgeCommon( pc ); // and all children, if dirtied...
-		}
-		else
-		{
+		} else {
 			// wind_rect is the merge of the update needed
 			// and the window's bounds, but none of the surface
 			// setting the image bound to this will short many things like blotting the
@@ -1239,21 +1233,22 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 			// yes redundant with above, but need to fix the image pos
 			// AFTER the update... and well....
 			//Log( "Hit the rectange, but didn't hit the content... so update border only." );
-			if( pc->DrawBorder )
-			{
+			if( !pc->flags.bHidden && ( pc->flags.bInitial || pc->flags.bDirtyBorder ) ) {
+				drewBorder = 1;
+				if( pc->DrawBorder ) {
 #ifdef DEBUG_BORDER_DRAWING
-				lprintf( "Drawing border ..." );
+					lprintf( "Drawing border ..." );
 #endif
-				pc->DrawBorder( pc );
-			}
-			if( pc->device )
-			{
-				//void DrawFrameCaption( PSI_CONTROL );
+					pc->DrawBorder( pc );
+				}
+				if( pc->device ) {
+					//void DrawFrameCaption( PSI_CONTROL );
 #ifdef DEBUG_UPDAATE_DRAW
-				if( g.flags.bLogDebugUpdate )
-					lprintf( "Drew border, drawing caption uhmm update some work controls" );
+					if( g.flags.bLogDebugUpdate )
+						lprintf( "Drew border, drawing caption uhmm update some work controls" );
 #endif
-				DrawFrameCaption( pc );
+					DrawFrameCaption( pc );
+				}
 			}
 		}
 	}
@@ -1594,8 +1589,10 @@ void AddCommonUpdateRegionEx( PPSI_PENDING_RECT update_rect, int bSurface, PSI_C
 #endif
 	if( !pc->parent && pc->flags.bRestoring )
 	{
+#ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
 			lprintf( "no parent and not restoring." );
+#endif
 		wd = pc->rect.width;
 		ht = pc->rect.height;
 		x = 0;//pc->rect.x;
@@ -1604,8 +1601,10 @@ void AddCommonUpdateRegionEx( PPSI_PENDING_RECT update_rect, int bSurface, PSI_C
 	}
 	else if( pc->flags.bUpdateRegionSet )
 	{
+#ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
 			lprintf( "someone already set the region... " );
+#endif
 		wd = pc->update_rect.width;
 		ht = pc->update_rect.height;
 		x = pc->update_rect.x + pc->surface_rect.x;
@@ -1614,8 +1613,10 @@ void AddCommonUpdateRegionEx( PPSI_PENDING_RECT update_rect, int bSurface, PSI_C
 	}
 	else
 	{
+#ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
-			lprintf( "parent and this is restoring " );
+			lprintf( "parent or this is not restoring, no previous update set" );
+#endif
 		if( bSurface )
 		{
 			//lprintf( "Computing control's surface rectangle." );
@@ -1650,15 +1651,20 @@ void AddCommonUpdateRegionEx( PPSI_PENDING_RECT update_rect, int bSurface, PSI_C
 	}
 	if( pc->parent )
 	{
+#ifdef DEBUG_UPDAATE_DRAW
 		if( g.flags.bLogDebugUpdate )
 			lprintf( "control has parent..." );
+#endif
+		//GetPhysicalCoordinate( pc, &x, &y, TRUE, FALSE );
 
 		for( parent = pc->parent; parent /*&& parent->parent*/; parent = parent->parent )
 		{
 			x += ((parent->parent&&!parent->device)?parent->rect.x:0) + parent->surface_rect.x;
 			y += ((parent->parent&&!parent->device)?parent->rect.y:0) + parent->surface_rect.y;
+#ifdef DEBUG_UPDAATE_DRAW
 			if( g.flags.bLogDebugUpdate )
 				lprintf( "control's parent makes x=%d and y=%d", x, y );
+#endif
 			if( parent->device )
 				break;
 		}
@@ -1991,6 +1997,7 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 			// bInitial still invokes first draw.
 			if( !pc->flags.bNoUpdate && ( g.flags.always_draw || pc->flags.bDirty || bDraw ) && !pc->flags.bHidden )
 			{
+				int drewBorder = FALSE;
 				Image current = NULL;
 #ifdef DEBUG_UPDAATE_DRAW
 				if( g.flags.bLogDebugUpdate ) {
@@ -2106,13 +2113,22 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 					|| ( pc->parent && !pc->parent->flags.children_cleaned )
 					|| ( pc->flags.bParentCleaned )
 					)
-					if( pc->DrawBorder )  // and initial?
-					{
+					if( !pc->flags.bHidden && ( pc->flags.bInitial || pc->flags.bDirtyBorder ) ) {
+						if( pc->DrawBorder )  // and initial?
+						{
 #ifdef DEBUG_BORDER_DRAWING
-						lprintf( "Drawing border here too.." );
+							lprintf( "Drawing border here too.." );
 #endif
-						pc->DrawBorder( pc );
+							pc->flags.bDirtyBorder = 0;
+							pc->DrawBorder( pc );
+							drewBorder = TRUE;
+						}
 					}
+
+				if( !pc->flags.bTransparent || pc->draw_result ) {
+					//lprintf( "-- drew border... is pc top? ", drewBorder, pc );
+					AddCommonUpdateRegion( upd, !drewBorder, pc );
+				}
 
 #if DEBUG_UPDAATE_DRAW > 2
 				if( g.flags.bLogDebugUpdate )
@@ -2128,10 +2144,6 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 				// (else IS transparent, in which case if draw_result, go )
 				//   ELSE don't add
 
-				if( !pc->flags.bTransparent || pc->draw_result )
-				{
-					AddCommonUpdateRegion( upd, FALSE, pc );
-				}
 #if DEBUG_UPDAATE_DRAW > 2
 				if( g.flags.bLogDebugUpdate )
 				{
@@ -2375,7 +2387,7 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 			{
 #if DEBUG_UPDAATE_DRAW > 0
 				if( g.flags.bLogDebugUpdate )
-					_lprintf(DBG_RELAY)( "Add to dirty controls... Smudge %p %s", pc, pc->pTypeName?pc->pTypeName:"NoTypeName" );
+					_lprintf(DBG_RELAY)( "Add to dirty controls... Smudge %p %s  %d  %d", pc, pc->pTypeName?pc->pTypeName:"NoTypeName", schedule_only, device->flags.sent_redraw );
 #endif
 				if( FindLink( &device->pending_dirty_controls, pc ) == INVALID_INDEX )
 					AddLink( &device->pending_dirty_controls, pc );
@@ -3340,7 +3352,6 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, uint32_t width, uint32_t height )
 		}
 
 		UpdateSurface( pc );
-
 		if( pFrame && !pFrame->flags.bNoUpdate )
 		{
 			if( pEditState->flags.bActive &&
@@ -5004,16 +5015,16 @@ void DestroyControlEx(PSI_CONTROL pc DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-void GetPhysicalCoordinate( PSI_CONTROL relative_to, int32_t *_x, int32_t *_y, int include_surface )
+void GetPhysicalCoordinate( PSI_CONTROL relative_to, int32_t *_x, int32_t *_y, int include_surface, int include_render )
 {
 	int32_t x = (*_x);
 	int32_t y = (*_y);
 	int32_t wx, wy;
-	PSI_CONTROL frame = GetFrame( relative_to );
-	if( frame->device && frame->device->pActImg )
+	PSI_CONTROL frame = include_render?GetFrame( relative_to ):NULL;
+	if( frame && frame->device && frame->device->pActImg ) {
+		// if top level frame, get physicsl screen device...
 		GetDisplayPosition( frame->device->pActImg, &wx, &wy, NULL, NULL );
-	else
-	{
+	} else {
 		wx = 0;
 		wy = 0;
 	}

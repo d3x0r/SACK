@@ -51,7 +51,7 @@ static void CPROC ExpandButtonEvent(uintptr_t psvCbx, PSI_CONTROL pc )
 	int32_t x = 0, y = 0;
 	SizeFrame( pcbx->popup_frame, pcbx->popup_width, pcbx->popup_height );
 	SizeControl( pcbx->popup_frame_listbox, pcbx->popup_width, pcbx->popup_height );
-	GetPhysicalCoordinate( pcbx->self, &x, &y, FALSE );
+	GetPhysicalCoordinate( pcbx->self, &x, &y, FALSE, FALSE );
 	MoveFrame( pcbx->popup_frame, x, y );
 	if( pcbx->OnPopup )
 		pcbx->OnPopup( pcbx->psvPopup, TRUE );

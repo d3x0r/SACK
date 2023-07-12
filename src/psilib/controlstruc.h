@@ -665,7 +665,7 @@ void AddWaitEx( PSI_CONTROL pc DBG_PASS);
 	\ \                                               */
 #define AddWait( pc ) AddWaitEx( pc DBG_SRC )
 
-/* Removes a wait added by AddWait */
+/* Removes a wait added by AddWait; issues a draw when all waits are deleteed */
 void DeleteWaitEx( PSI_CONTROL *pc DBG_PASS );
 #define DeleteWait(pc) DeleteWaitEx( &pc DBG_SRC ) /* <combine sack::psi::_mouse::DeleteWaitEx@PSI_CONTROL *pc>
 

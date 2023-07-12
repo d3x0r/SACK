@@ -51,6 +51,8 @@ typedef struct font_dialog_tag
 	PSI_CONTROL pHorValue, pHorLabel;
 	SFTFont pFont;   // temp font for drawing sample
 	int done, okay;
+	POINTER* result_pFontData;
+	size_t* result_pFontDataSize;
 	PFONT_ENTRY pFontEntry;
 	int nFontEntry;
 	PFONT_STYLE pFontStyle;
@@ -61,8 +63,9 @@ typedef struct font_dialog_tag
 	int32_t nWidth, nSliderWidth;
 	int32_t nHeight, nSliderHeight;
 	PFRACTION width_scale, height_scale;
-	void (CPROC* Update)(uintptr_t,SFTFont);
+	void (*Update)(uintptr_t,SFTFont);
 	uintptr_t psvUpdate;
+
 } FONT_DIALOG, *PFONT_DIALOG;
 
 //-------------------------------------------------------------------------
@@ -650,6 +653,115 @@ IMAGE_NAMESPACE
 IMAGE_NAMESPACE_END
 PSI_FONTS_NAMESPACE
 
+static void handleStatus( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
+	FONT_DIALOG* fdData_;
+	#define fdData (fdData_[0])
+	if( okay ) {
+		//if( pFontData )
+		{
+			if( fdData.pFontEntry ) {
+				size_t l1, l2, l3, l4;
+				size_t resultsize = sizeof( FONTDATA )
+					+ ( l1 = StrLen( fdData.pFontEntry->name ) )
+					+ ( l2 = StrLen( fdData.pFontStyle->name ) )
+					+ ( l3 = StrLen( fdData.pSizeFile->path ) )
+					+ ( l4 = StrLen( fdData.pSizeFile->file ) )
+					+ 4;
+				TEXTCHAR buf[128];
+				PFONTDATA pResult;// = (PFONTDATA)Allocate( resultsize );
+				snprintf( buf, 256, "pick,%d,%d,%d,%d,%d,%d,%s/%s"
+					, (int)( fdData.nFontEntry )
+					, (int)( fdData.nFontStyle )
+					, (int)( fdData.nSizeFile )
+					, (int)fdData.nWidth
+					, (int)fdData.nHeight
+					, (int)fdData.flags.render_depth
+					, fdData.pSizeFile->path
+					, fdData.pSizeFile->file
+				);
+				resultsize = StrLen( buf );
+				pResult = (PFONTDATA)StrDup( buf );
+				/*
+				pResult->magic = MAGIC_PICK_FONT;
+				pResult->cachefile_time = fontcachetime;
+				pResult->nFamily = (uint32_t)(fdData.pFontEntry - fg.pFontCache);
+				pResult->nStyle = (uint32_t)(fdData.pFontStyle - fdData.pFontEntry->styles);
+				pResult->nFile = (uint32_t)(fdData.pSizeFile - fdData.pFontStyle->files);
+				//fdData.pFontStyle->flags.mono
+				pResult->flags = fdData.flags.render_depth;
+				pResult->nWidth = fdData.nWidth;
+				pResult->nHeight = fdData.nHeight;
+				offset = 0;
+
+				StrCpyEx( pResult->names + offset, fdData.pFontEntry->name, l1+1 );
+				offset += l1 + 1;
+
+				StrCpyEx( pResult->names + offset, fdData.pFontStyle->name, l2+1 );
+				offset += l2 + 1;
+
+				offset += tnprintf( pResult->names + offset*sizeof(TEXTCHAR), l3+l4+2, "%s/%s"
+									  , fdData.pSizeFile->path
+									  , fdData.pSizeFile->file
+									  );
+
+				*/
+
+				//if( *pFontData )
+				//{
+				// unsafe to do, but we result in a memory leak otherwise...
+				//	Release( *pFontData );
+				//}
+				if( fdData.result_pFontData )
+					*fdData.result_pFontData = (POINTER)pResult;
+				if( fdData.result_pFontDataSize )
+					*fdData.result_pFontDataSize = resultsize;
+				SetFontRendererData( fdData.pFont, pResult, resultsize );
+			} else {
+				TEXTCHAR buf[256];
+				snprintf( buf, 256, "%d,%d,%d,%s"
+					, fdData.nWidth
+					, fdData.nHeight
+					, fdData.flags.render_depth
+					, fdData.filename
+				);
+				*fdData.result_pFontData = (POINTER)StrDup( buf );
+				*fdData.result_pFontDataSize = strlen( buf ) + 1;
+				/*
+				size_t chars;
+				size_t resultsize = sizeof(RENDER_FONTDATA)
+					+ (chars=StrLen( fdData.filename ) + 1)*sizeof(TEXTCHAR);
+				PRENDER_FONTDATA pResult = (PRENDER_FONTDATA)Allocate( resultsize );
+				pResult->magic = MAGIC_RENDER_FONT;
+				StrCpyEx( pResult->filename, fdData.filename, chars );
+				pResult->flags = fdData.flags.render_depth;
+				pResult->nWidth = fdData.nWidth;
+				pResult->nHeight = fdData.nHeight;
+				//if( *fdData.result_pFontData )
+				//{
+				// unsafe to do, but we result in a memory leak otherwise...
+				//	Release( *fdData.result_pFontData );
+				//}
+				*fdData.result_pFontData = (POINTER)pResult;
+				if( fdData.result_pFontDataSize )
+				*fdData.result_pFontDataSize = resultsize;
+				*/
+				SetFontRendererData( fdData.pFont, *fdData.result_pFontData, *fdData.result_pFontDataSize );
+			}
+		}
+	} else {
+		if( fdData.pFont ) {
+			UnloadFont( fdData.pFont );
+			fdData.pFont = NULL;
+		}
+	}
+
+	DestroyFrame( &fdData.pFrame );
+	UnloadAllFonts();
+	fdData.Update( fdData.psvUpdate, fdData.pFont );
+	Release( fdData_ );
+	#undef fdData (fdData_[0])
+
+}
 
 SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 														, PFRACTION width_scale
@@ -660,10 +772,13 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 														, POINTER *pFontData
 														, PSI_CONTROL pAbove
 														, void (CPROC *UpdateFont)( uintptr_t psv, SFTFont font )
-														, uintptr_t psvUpdate )
+														, uintptr_t psvUpdate
+						)
 {
 	PSI_CONTROL pc;
-	FONT_DIALOG fdData;
+	FONT_DIALOG *fdData_;
+	fdData_ = NewArray( FONT_DIALOG, 1 );
+	#define fdData (fdData_[0])
 	//Log( "Picking a font..." );
 	LoadAllFonts();
 #ifdef USE_INTERFACES
@@ -675,6 +790,10 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 	MemSet( &fdData, 0, sizeof( fdData ) );
 	// attempt to see if passed in data is reasonable
 	// then try and use it as default dialogdata...
+	fdData.result_pFontData = pFontData;
+	fdData.result_pFontDataSize = pFontDataSize;
+	fdData.Update = UpdateFont;
+	fdData.psvUpdate = psvUpdate;
 	if( pFontData
 		&& (*pFontData )
 		&& pFontDataSize
@@ -872,8 +991,6 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 		MoveSizeCommon( pc
 						  , ScaleValue( sx, DIALOG_WIDTH - 60 ), ScaleValue( sy, 240 - ( COMMON_BUTTON_HEIGHT + 5 ) )
 						  , ScaleValue( sx, 55 ), ScaleValue( sy, COMMON_BUTTON_HEIGHT ) );
-		fdData.Update = UpdateFont;
-		fdData.psvUpdate = psvUpdate;
 		if( fdData.Update )
 		{
 			MakeButton( fdData.pFrame, DIALOG_WIDTH-60, 240 - ( ( COMMON_BUTTON_HEIGHT + 5 ) * 3 )
@@ -893,127 +1010,16 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 	}
 	FillFamilyList( &fdData );
 	DisplayFrameOver( fdData.pFrame, pAbove );
-	while( 1 )
-	{
-		CommonWait( fdData.pFrame );
-		if( fdData.done || fdData.okay )
-		{
-#ifdef _DEBUG
-			//DumpLoadedFontCache();
-#endif
-			if( fdData.okay )
-			{
-				//if( pFontData )
-				{
-					if( fdData.pFontEntry )
-					{
-						size_t l1, l2, l3, l4;
-						size_t resultsize = sizeof(FONTDATA)
-							+ (l1=StrLen( fdData.pFontEntry->name ))
-							+ (l2=StrLen( fdData.pFontStyle->name ))
-							+ (l3=StrLen( fdData.pSizeFile->path ))
-							+ (l4=StrLen( fdData.pSizeFile->file ))
-							+ 4;
-						TEXTCHAR buf[128];
-						PFONTDATA pResult;// = (PFONTDATA)Allocate( resultsize );
-						snprintf( buf, 256, "pick,%d,%d,%d,%d,%d,%d,%s/%s"
-								  , (int)(fdData.nFontEntry)
-								  , (int)(fdData.nFontStyle)
-								  , (int)(fdData.nSizeFile)
-								  , (int)fdData.nWidth
-								  , (int)fdData.nHeight
-								  , (int)fdData.flags.render_depth
-								  , fdData.pSizeFile->path
-								  , fdData.pSizeFile->file
-								  );
-						resultsize = StrLen( buf );
-						pResult = (PFONTDATA)StrDup( buf );
-						/*
-						pResult->magic = MAGIC_PICK_FONT;
-						pResult->cachefile_time = fontcachetime;
-						pResult->nFamily = (uint32_t)(fdData.pFontEntry - fg.pFontCache);
-						pResult->nStyle = (uint32_t)(fdData.pFontStyle - fdData.pFontEntry->styles);
-						pResult->nFile = (uint32_t)(fdData.pSizeFile - fdData.pFontStyle->files);
-						//fdData.pFontStyle->flags.mono
-						pResult->flags = fdData.flags.render_depth;
-						pResult->nWidth = fdData.nWidth;
-						pResult->nHeight = fdData.nHeight;
-						offset = 0;
-
-						StrCpyEx( pResult->names + offset, fdData.pFontEntry->name, l1+1 );
-						offset += l1 + 1;
-
-						StrCpyEx( pResult->names + offset, fdData.pFontStyle->name, l2+1 );
-						offset += l2 + 1;
-
-						offset += tnprintf( pResult->names + offset*sizeof(TEXTCHAR), l3+l4+2, "%s/%s"
-											  , fdData.pSizeFile->path
-											  , fdData.pSizeFile->file
-											  );
-
-						*/
-
-						//if( *pFontData )
-						//{
-						// unsafe to do, but we result in a memory leak otherwise...
-						//	Release( *pFontData );
-						//}
-						if( pFontData )
-							*pFontData = (POINTER)pResult;
-						if( pFontDataSize )
-							*pFontDataSize = resultsize;
-						SetFontRendererData( fdData.pFont, pResult, resultsize );
-					}
-					else
-					{
-						TEXTCHAR buf[256];
-						snprintf( buf, 256, "%d,%d,%d,%s"
-								  , fdData.nWidth
-								  , fdData.nHeight
-								  , fdData.flags.render_depth
-									, fdData.filename
-								  );
-						*pFontData = (POINTER)StrDup( buf );
-						*pFontDataSize = strlen( buf ) + 1;
-						/*
-						size_t chars;
-						size_t resultsize = sizeof(RENDER_FONTDATA)
-							+ (chars=StrLen( fdData.filename ) + 1)*sizeof(TEXTCHAR);
-						PRENDER_FONTDATA pResult = (PRENDER_FONTDATA)Allocate( resultsize );
-						pResult->magic = MAGIC_RENDER_FONT;
-						StrCpyEx( pResult->filename, fdData.filename, chars );
-						pResult->flags = fdData.flags.render_depth;
-						pResult->nWidth = fdData.nWidth;
-						pResult->nHeight = fdData.nHeight;
-						//if( *pFontData )
-						//{
-						// unsafe to do, but we result in a memory leak otherwise...
-						//	Release( *pFontData );
-						//}
-						*pFontData = (POINTER)pResult;
-						if( pFontDataSize )
-						*pFontDataSize = resultsize;
-						*/
-						SetFontRendererData( fdData.pFont, *pFontData, *pFontDataSize );
-					}
-				}
-			}
-			else
-			{
-				if( fdData.pFont )
-				{
-					UnloadFont( fdData.pFont );
-					fdData.pFont = NULL;
-				}
-			}
-			break;
-		}
-		fdData.okay = 0;
-		fdData.done = 0;
-	}
-	DestroyFrame( &fdData.pFrame );
-	UnloadAllFonts();
+	PSI_HandleStatusEvent( pc, handleStatus, (uintptr_t)&fdData);
+	/**/
+	//while( 1 )
+	//{
+	//	CommonWait( fdData.pFrame );
+	//	fdData.okay = 0;
+	//	fdData.done = 0;
+	//}
 	return fdData.pFont;
+	#undef fdData
 }
 
 //-------------------------------------------------------------------------
@@ -1030,9 +1036,18 @@ PSI_PROC( SFTFont, PickFontWithUpdate )( int32_t x, int32_t y
 	return PickScaledFontWithUpdate( x, y, NULL, NULL, pFontDataSize, pFontData, pAbove, UpdateFont, psvUpdate );
 }
 
+struct direct_for {
+	LOGICAL inuse;
+	PSI_CONTROL pUpdateFor; // which control gets this update.
+	void ( *Update )( uintptr_t, SFTFont );
+	uintptr_t psvUpdate;
+};
+
 void CPROC UpdateCommonFont( uintptr_t psvCommon, SFTFont font )
 {
-	SetCommonFont( (PSI_CONTROL)psvCommon, font );
+	struct direct_for* info = (struct direct_for*)psvCommon;
+	SetCommonFont( info->pUpdateFor, font );
+	if( info->Update ) info->Update( info->psvUpdate, font );
 }
 
 PSI_PROC( SFTFont, PickFontFor )( int32_t x, int32_t y
@@ -1041,9 +1056,20 @@ PSI_PROC( SFTFont, PickFontFor )( int32_t x, int32_t y
 										// which may be passe dto RenderFontData
 									  , POINTER *pFontData
 									  , PSI_CONTROL pAbove
-									  , PSI_CONTROL pUpdateFontFor )
+									  , PSI_CONTROL pUpdateFontFor
+								  , void ( *callback )( uintptr_t, SFTFont )
+								  , uintptr_t psv
+	)
 {
-	return PickFontWithUpdate( x, y, pFontDataSize, pFontData, pAbove, UpdateCommonFont, (uintptr_t)pUpdateFontFor );
+	static struct direct_for forData;
+	if( !forData.inuse ) {
+		forData.inuse = TRUE;
+		forData.Update = callback;
+		forData.psvUpdate = psv;
+		forData.pUpdateFor = pUpdateFontFor;
+
+		return PickFontWithUpdate( x, y, pFontDataSize, pFontData, pAbove, UpdateCommonFont, (uintptr_t)&forData );
+	}
 }
 
 PSI_PROC( SFTFont, PickFont )( int32_t x, int32_t y
@@ -1051,9 +1077,12 @@ PSI_PROC( SFTFont, PickFont )( int32_t x, int32_t y
 									// resulting parameters for the data and size of data
 									// which may be passe dto RenderFontData
 								  , POINTER *pFontData
-								  , PSI_CONTROL pAbove )
+								  , PSI_CONTROL pAbove
+								  , void ( *callback )( uintptr_t, SFTFont )
+								  , uintptr_t psv
+	)
 {
-	return PickFontWithUpdate( x, y, pFontDataSize, pFontData, pAbove, NULL, 0 );
+	return PickFontWithUpdate( x, y, pFontDataSize, pFontData, pAbove, callback, psv );
 }
 
 #else
