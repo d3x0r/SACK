@@ -47,7 +47,7 @@
 
 #if !defined( __WINDOWS__ ) && !defined( _WIN32 )
 typedef struct rect_tag {
-   int32_t top,left,right,bottom;
+   int32_t left,top,right,bottom;
 } RECT;
 #endif
 //----------------------------------------------------------------------------
