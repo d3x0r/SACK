@@ -1,7 +1,7 @@
 
 set( project concore )
 
-add_library( ${project} SHARED 
+add_library( ${project} 
 ${FIRST_GCC_LIBRARY_SOURCE}
    ../history.c ../WinLogic.c ../keydefs.c
 ${LAST_GCC_LIBRARY_SOURCE} 

@@ -236,6 +236,8 @@ PSIKEYDEFINE dekware_KeyDefs[] = { [KEY_BACKSPACE]={"back","backspace",0,{{KEYDA
 							  };
 #else
 #define NONAMES {NULL,NULL,0}
+
+
 PSIKEYDEFINE dekware_KeyDefs[] = { NONAMES
 							 , {"lbutton",0,0 }
 							 , {"rbutton",0,0 }
@@ -620,7 +622,7 @@ PSIKEYDEFINE dekware_KeyDefs[] = { NONAMES
 */
 //----------------------------------------------------------------------------
 
-int KeyUp( PCONSOLE_INFO pci )
+static int KeyUp( PCONSOLE_INFO pci )
 {
 	RecallCommand( pci->common.CommandInfo, TRUE );
 	return UPDATE_COMMAND;

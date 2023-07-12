@@ -40,12 +40,7 @@ static int myTypeID; // supplied for uhmm... grins...
 
 #ifdef __DEKWARE_PLUGIN__
 
-#ifdef _WIN32
-__declspec(dllimport)
-//  extern
-#else
-	extern
-#endif
+extern
 	_OptionHandler KeyBind, KeyUnBind, ConSetColor, HistoryStat, SetMode, SetTabs, SetHistory, DumpHistory;
 
 #ifdef WINCON
