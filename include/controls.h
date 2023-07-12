@@ -763,7 +763,7 @@ PSI_PROC( PSI_CONTROL, AttachFrameToRenderer )( PSI_CONTROL pcf, PRENDERER pActI
 // the top level
 PSI_PROC( PRENDERER, GetFrameRenderer )( PSI_CONTROL );
 PSI_PROC( PSI_CONTROL, GetFrameFromRenderer )( PRENDERER renderer );
-PSI_PROC( void, GetPhysicalCoordinate )( PSI_CONTROL relative_to, int32_t *_x, int32_t *_y, int include_surface );
+PSI_PROC( void, GetPhysicalCoordinate )( PSI_CONTROL relative_to, int32_t *_x, int32_t *_y, int include_surface, int include_render );
 
 
 //PSI_PROC( void, DestroyFrameEx)( PSI_CONTROL pf DBG_PASS );
@@ -1821,7 +1821,10 @@ PSI_PROC( SFTFont, PickFontFor )( int32_t x, int32_t y
    </code>                                                                                                    */
 PSI_PROC( SFTFont, PickFont)( int32_t x, int32_t y
                                   , size_t * size, POINTER *pFontData
-								 , PSI_CONTROL pAbove );
+								 , PSI_CONTROL pAbove
+						, void (*callback)(uintptr_t, SFTFont )
+						, uintptr_t psv
+						);
 /* <combine sack::PSI::font::PickScaledFontWithUpdate@int32_t@int32_t@PFRACTION@PFRACTION@uint32_t*@POINTER *@PSI_CONTROL@void __cdecl *UpdateFont uintptr_t psv\, SFTFont font@uintptr_t>
    
    \ \                                                                                                                                                                 */
