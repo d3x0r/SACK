@@ -188,7 +188,8 @@ CTEXTSTR StrRChr( CTEXTSTR s1, TEXTRUNE c )
 	CTEXTSTR  p1 = s1;
 	if( !p1 ) return NULL;
 	while( GetUtfChar( &p1 ) ); p1--; // go back to \0
-	while( p1 != s1 && ( c1 = GetPriorUtfChar( s1, &p1 ) ) != c ); 
+	if( s1 == p1 ) return NULL; // not a string, can't have a char in it.
+	while( p1 != s1 && ( c1 = GetPriorUtfChar( s1, &p1 ) ) != c );
 	if( c1 == c )
 		return p1;
 	return NULL;
