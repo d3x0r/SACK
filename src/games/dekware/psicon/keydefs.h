@@ -84,7 +84,9 @@ typedef int (CPROC *KeyFuncUpDown)( PCONSOLE_INFO pdp, int bDown );
 //#ifndef KEYS_DEFINED
 //CORECON_EXPORT( TEXT, KeyStroke[] );
 //#ifndef CORECON_SOURCE
-CORECON_EXPORT( PSIKEYDEFINE, dekware_KeyDefs[] );
+#ifndef DEKWARE_KEYDEF_SOURCE
+extern PSIKEYDEFINE dekware_KeyDefs[256];
+#endif
 //#endif
 //#endif
 

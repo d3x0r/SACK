@@ -177,6 +177,7 @@ static void UpdateLocalDataPath( void )
 	ReleaseEx( u8path DBG_SRC );
 #else
 	TEXTCHAR path[MAXPATH];
+#if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
 	if( strcmp( CMAKE_INSTALL_PREFIX, "/usr" ) == 0 )
 		tnprintf( path, sizeof(path), "/var/%s%s%s%s"
 			, ( *winfile_local ).producer ? "" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
@@ -188,6 +189,10 @@ static void UpdateLocalDataPath( void )
 			, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 		);
 	( *winfile_local ).data_file_root = StrDup( path );
+#else
+	// this is a case of a portable project with __STATIC__ and __STATIC_GLOBALS__
+	( *winfile_local ).data_file_root = StrDup( "." );
+#endif	
 	tnprintf( path, sizeof(path), "~/%s%s%s%s"
 		, ( *winfile_local ).producer ? "." : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 		, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
@@ -195,8 +200,14 @@ static void UpdateLocalDataPath( void )
 	( *winfile_local ).local_data_file_root = StrDup( path );;
 	//lprintf( "initialized:%s %s", ( *winfile_local ).data_file_root, ( *winfile_local ).local_data_file_root );
 #endif
+#if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
+
 	if( !( *winfile_local ).share_data_root )
 		( *winfile_local ).share_data_root = StrDup( CMAKE_INSTALL_PREFIX "/share/SACK" );
+#else
+	if( !( *winfile_local ).share_data_root )
+		( *winfile_local ).share_data_root = StrDup( "." );
+#endif		
 }
 
 void sack_set_common_data_producer( CTEXTSTR name )
@@ -327,10 +338,13 @@ static void commitFileGroup( struct Group* filegroup ) {
 static void InitMoreGroups( void ) {
 	if( !( *winfile_local ).flags.have_default_groups ) {
 		( *winfile_local ).flags.have_default_groups = 1;
+		
+#if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
 		GetFileGroup( "resources", CMAKE_INSTALL_PREFIX "/share/SACK" );
 		GetFileGroup( "frames", CMAKE_INSTALL_PREFIX "/share/SACK/frames" );
 		GetFileGroup( "images", CMAKE_INSTALL_PREFIX "/share/SACK/images" );
 		GetFileGroup( "fonts", CMAKE_INSTALL_PREFIX "/share/SACK/fonts" );
+#endif		
 		( *winfile_local ).flags.finished_default_groups = 1;
 		{
 			struct Group* filegroup;
@@ -569,6 +583,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
+#if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
 			else if( ( path[0] == ',' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
@@ -577,6 +592,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
 			}
+#endif			
 			else if( ( path[0] == '#' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;

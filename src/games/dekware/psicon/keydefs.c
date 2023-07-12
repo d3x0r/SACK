@@ -1,5 +1,6 @@
 #define NO_LOGGING
 #define KEYS_DEFINED
+#define DEKWARE_KEYDEF_SOURCE
 #include <stdhdrs.h>
 #include "consolestruc.h"
 #include <keybrd.h>

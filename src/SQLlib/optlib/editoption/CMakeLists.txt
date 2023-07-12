@@ -32,4 +32,4 @@ SET_PROPERTY( TARGET ${PROJECT}.plugin. APPEND PROPERTY
 
 target_link_libraries( ${PROJECT}.plugin. ${SACK_LIBRARIES} )
 
-install_default_plugin( ${PROJECT}.plugin. )
+install_literal_product( ${PROJECT}.plugin. plugins )

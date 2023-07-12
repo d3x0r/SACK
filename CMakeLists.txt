@@ -325,7 +325,7 @@ OPTION( INCLUDE_VULKAN "Include vulkan interfaces" ${ENABLE_VULKAN} )
 # default itnerface output path... (override if __CLR__)
 # should make this a common target variable instead also...
 set( INTERFACE_OUTPUT_DIR ${DATA_INSTALL_PREFIX}/conf )
-ADD_DEFINITIONS( -DCMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\" )
+#ADD_DEFINITIONS( -DCMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\" )
 
 if( FORCE_EXTERNAL_BUILD )
    set( EXTERNAL_BUILD_EXTRA_FLAGS BUILD_ALWAYS 1 )

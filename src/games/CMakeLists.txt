@@ -15,7 +15,7 @@ include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
 include( ${INTERSHELL_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
 
 INSTALL_INTERSHELL( . )
-INSTALL_SACK( bin )
+INSTALL_SACK( . )
 
 include_directories( ${SACK_INCLUDE_DIR} )
 include_directories( ${INTERSHELL_INCLUDE_DIR} )

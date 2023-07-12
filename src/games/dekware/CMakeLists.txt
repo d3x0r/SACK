@@ -32,15 +32,13 @@ set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 if( NOT MAKING_SACK_CORE )
-include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
-include( ${INTERSHELL_SDK_ROOT_PATH}/share/SACK/build/InterShell/CMakePackage )
+  include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
+  include( ${INTERSHELL_SDK_ROOT_PATH}/share/SACK/build/InterShell/CMakePackage )
 
-if( NOT BUILD_INTO_SACK_INSTALL )
-
-INSTALL_SACK( ${CMAKE_INSTALL_PREFIX} )
-
-INSTALL_INTERSHELL( . ) # includes a bin and resources at ./
-endif( NOT BUILD_INTO_SACK_INSTALL )
+  if( NOT BUILD_INTO_SACK_INSTALL )
+    INSTALL_SACK( ${CMAKE_INSTALL_PREFIX} )
+    INSTALL_INTERSHELL( ${CMAKE_INSTALL_PREFIX} ) # includes a bin and resources at ./
+  endif( NOT BUILD_INTO_SACK_INSTALL )
 
 endif( NOT MAKING_SACK_CORE )
 

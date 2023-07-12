@@ -1317,7 +1317,7 @@ int UpdateHistory( PCONSOLE_INFO pdp )
 	{
 		if( !pdp->flags.bHistoryShow )
 		{
-			extern PSIKEYDEFINE dekware_KeyDefs[];
+			//extern PSIKEYDEFINE dekware_KeyDefs[];
 			lprintf( "Key END shoudl end history.." );
 			dekware_KeyDefs[KEY_END].op[0].bFunction = HISTORYKEY;
 			dekware_KeyDefs[KEY_END].op[0].data.HistoryKey = dekware_KeyEndHst;
@@ -1355,7 +1355,7 @@ int UpdateHistory( PCONSOLE_INFO pdp )
 	{
 		if( pdp->flags.bHistoryShow )
 		{
-			extern PSIKEYDEFINE dekware_KeyDefs[];
+			//extern PSIKEYDEFINE dekware_KeyDefs[];
 			lprintf( "key end command line now... please do renderings.." );
 			dekware_KeyDefs[KEY_END].op[0].bFunction = COMMANDKEY;
 			dekware_KeyDefs[KEY_END].op[0].data.CommandKey = dekware_KeyEndCmd;
