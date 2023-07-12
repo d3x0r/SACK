@@ -593,7 +593,7 @@ static void OnEditSecurityContext( "SQL Password" )( uintptr_t button )
 	}
 }
 
-PTOKEN FindToken( TEXTSTR id, CTEXTSTR name )
+PTOKEN FindToken( CTEXTSTR id, CTEXTSTR name )
 {
 	INDEX idx;
 	PTOKEN token;

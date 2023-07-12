@@ -408,7 +408,7 @@ static void CPROC ReadTvStatus( PCLIENT pc, POINTER buffer, size_t len, SOCKADDR
 								int32_t y = 0;
 								Image image = GetControlSurface( pc );
 								control->flags.bShown = TRUE;
-								GetPhysicalCoordinate( pc, &x, &y, TRUE );
+								GetPhysicalCoordinate( pc, &x, &y, TRUE, FALSE );
 #if defined( DEBUG_MESSAGES )
 								lprintf( "Posting VLC Update." );
 #endif
@@ -511,7 +511,7 @@ static void OnRevealCommon( "Video Control" )( PSI_CONTROL pc )
 		int32_t y = 0;
 		Image image = GetControlSurface( pc );
 		control->flags.bShown = TRUE;
-		GetPhysicalCoordinate( pc, &x, &y, TRUE );
+		GetPhysicalCoordinate( pc, &x, &y, TRUE, FALSE );
 #if defined( DEBUG_MESSAGES )
 		lprintf( "Posting VLC Update." );
 #endif

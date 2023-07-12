@@ -277,7 +277,7 @@ static void OnMoveCommon( BUTTON_NAME )( PSI_CONTROL pc, LOGICAL bMoving )
 		MyValidatedControlData( PKEY_BUTTON, button, pc );
 		int32_t x = 0, y = 0;
 
-		GetPhysicalCoordinate( pc, &x, &y, FALSE );
+		GetPhysicalCoordinate( pc, &x, &y, FALSE, FALSE );
 		button->real_x = x;
 		button->real_y = y;
 		if( button->flags.bLayered )
@@ -381,7 +381,7 @@ static int OnCreateCommon(BUTTON_NAME)( PSI_CONTROL pc )
 		PRENDERER r = GetFrameRenderer( GetFrame( pc ) );
 		int32_t x = 0;
 		int32_t y = 0;
-		GetPhysicalCoordinate( pc, &x, &y, FALSE );
+		GetPhysicalCoordinate( pc, &x, &y, FALSE, FALSE );
 		HideControl( pc ); // hide this control - we'll show it when we finish the proper init...
 		button->real_x = x;
 		button->real_y = y;

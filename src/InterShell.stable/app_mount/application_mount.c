@@ -539,7 +539,7 @@ static void OnRevealCommon( "Application Mount" )( PSI_CONTROL pc )
 		Image image = GetControlSurface( pc );
 		//lprintf( "Showing %p", control );
 		//lprintf( "begin show(move)..." );
-		GetPhysicalCoordinate( pc, &x, &y, TRUE );
+		GetPhysicalCoordinate( pc, &x, &y, TRUE, FALSE );
 		//lprintf( "Do Reveal on control %p", control );
 		control->app = FindAppWindow( control );
 		control->app->last_x = x;

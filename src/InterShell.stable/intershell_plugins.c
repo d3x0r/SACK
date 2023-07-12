@@ -124,7 +124,7 @@ static void CPROC PluginPicked( uintptr_t psv, PSI_CONTROL list, PLISTITEM pli )
 			syslist = GetNearControl( list, LISTBOX_SYSTEMS );
 			if( syslist )
 			{
-				for( pli = GetNthItem( syslist, idx = 0 ); pli; pli = GetNthItem( syslist, ++idx ) )
+				for( pli = GetNthItem( syslist, (INDEX)(idx = 0) ); pli; pli = GetNthItem( syslist, ( INDEX )(++idx)) )
 				{
 					TEXTCHAR buffer[256];
 					GetListItemText( pli, buffer, sizeof( buffer ) );
@@ -135,7 +135,7 @@ static void CPROC PluginPicked( uintptr_t psv, PSI_CONTROL list, PLISTITEM pli )
 			syslist = GetNearControl( list, LISTBOX_NO_SYSTEMS );
 			if( syslist )
 			{
-				for( pli = GetNthItem( syslist, idx = 0 ); pli; pli = GetNthItem( syslist, ++idx ) )
+				for( pli = GetNthItem( syslist, (INDEX)(idx = 0) ); pli; pli = GetNthItem( syslist, (INDEX)( ++idx ) ) )
 				{
 					TEXTCHAR buffer[256];
 					GetListItemText( pli, buffer, sizeof( buffer ) );

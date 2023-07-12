@@ -1317,10 +1317,10 @@ int UpdateHistory( PCONSOLE_INFO pdp )
 	{
 		if( !pdp->flags.bHistoryShow )
 		{
-			extern PSIKEYDEFINE KeyDefs[];
+			extern PSIKEYDEFINE dekware_KeyDefs[];
 			lprintf( "Key END shoudl end history.." );
-			KeyDefs[KEY_END].op[0].bFunction = HISTORYKEY;
-			KeyDefs[KEY_END].op[0].data.HistoryKey = dekware_KeyEndHst;
+			dekware_KeyDefs[KEY_END].op[0].bFunction = HISTORYKEY;
+			dekware_KeyDefs[KEY_END].op[0].data.HistoryKey = dekware_KeyEndHst;
 			pdp->flags.bHistoryShow = 1;
 			WinLogicCalculateHistory( pdp ); // this builds history and real display info lines.
 			bUpdate = 1;
@@ -1355,10 +1355,10 @@ int UpdateHistory( PCONSOLE_INFO pdp )
 	{
 		if( pdp->flags.bHistoryShow )
 		{
-			extern PSIKEYDEFINE KeyDefs[];
+			extern PSIKEYDEFINE dekware_KeyDefs[];
 			lprintf( "key end command line now... please do renderings.." );
-			KeyDefs[KEY_END].op[0].bFunction = COMMANDKEY;
-			KeyDefs[KEY_END].op[0].data.CommandKey = dekware_KeyEndCmd;
+			dekware_KeyDefs[KEY_END].op[0].bFunction = COMMANDKEY;
+			dekware_KeyDefs[KEY_END].op[0].data.CommandKey = dekware_KeyEndCmd;
 			pdp->flags.bHistoryShow = 0;
 			WinLogicCalculateHistory( pdp );
 			bUpdate = 1;

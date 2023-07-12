@@ -1243,7 +1243,7 @@ void DumpCommonButton( FILE *file, PMENU_BUTTON button )
 		{
 			TEXTCHAR theme[12];
 			if( idx )
-				snprintf( theme, 12, ".%d", idx );
+				snprintf( theme, 12, ".%zd", idx );
 			else
 				theme[0] = 0;
 			sack_fprintf( file, "%scolor%s=%s\n", InterShell_GetSaveIndent(), theme, FormatColor( colors->color ) );
@@ -1750,7 +1750,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 						TEXTCHAR tmp[256];
 						if( !idx2 )
 							continue;
-						snprintf( tmp, 256, "%s.%d", EscapeMenuString( glare_set->name ), idx2 );
+						snprintf( tmp, 256, "%s.%zd", EscapeMenuString( glare_set->name ), idx2 );
 						if( theme_glare_set->flags.bShadeBackground )
 							sack_fprintf( file, "%s button mono shade\n", tmp );
 						if( theme_glare_set->flags.bMultiShadeBackground )
@@ -1811,7 +1811,7 @@ void SaveButtonConfig( PSI_CONTROL pc_canvas, TEXTCHAR *filename )
 	if( g.flags.bSQLConfig )
 		if( !g.flags.local_config )
 		{
-			uintptr_t size = 0;
+			size_t size = 0;
 			TEXTSTR tmpname = ExpandPath( filename );
 			FILE *readfile;
 			POINTER mem = OpenSpace( NULL, tmpname, &size );

@@ -2725,8 +2725,8 @@ PMENU_BUTTON GetCloneButton( PCanvasData canvas, int px, int py, int bInvisible 
 			clone = CreateSomeControl( canvas->current_page->frame
 											 , px //- (g.clonebutton->w/2)
 											 , py //- (g.clonebutton->h/2)
-											 , (uint32_t)g.clonebutton->w?g.clonebutton->w:4
-											 , (uint32_t)g.clonebutton->h?g.clonebutton->h:2
+											 , (uint32_t)(g.clonebutton->w?g.clonebutton->w:4)
+											 , (uint32_t)(g.clonebutton->h?g.clonebutton->h:2)
 											 , g.clonebutton->pTypeName );
 		}
 		CloneCommonButtonProperties( clone, g.clonebutton );

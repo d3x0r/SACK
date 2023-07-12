@@ -224,17 +224,17 @@ VOID KeyEventProc(PCONSOLE_INFO pdp, KEY_EVENT_RECORD event)
 											  , (unsigned short*)key.data.data
 											  , 0 ) );
 			key.data.data[key.data.size] = 0;
-			KeyPressHandler( pdp, event.wVirtualKeyCode, mod, (PTEXT)&key );
+			dekware_KeyPressHandler( pdp, (uint8_t)event.wVirtualKeyCode, mod, (PTEXT)&key );
 		}
 	}
 	else
 	{
 		// flag is redundant for CONTOLKEY type...
 		// key up's only matter if key is upaction flaged...
-		switch( KeyDefs[event.wVirtualKeyCode].op[mod].bFunction )
+		switch( dekware_KeyDefs[event.wVirtualKeyCode].op[mod].bFunction )
 		{
 		case CONTROLKEY:
-			KeyDefs[event.wVirtualKeyCode].op[mod].data.ControlKey( &pdp->dwControlKeyState, FALSE );
+			dekware_KeyDefs[event.wVirtualKeyCode].op[mod].data.ControlKey( &pdp->dwControlKeyState, FALSE );
 			break;
 		}
 	}
@@ -262,7 +262,7 @@ INT_PTR CALLBACK NameDialog( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam 
 		case IDOK:
 			GetDlgItemText( hWnd, EDT_NAME, NameBuffer, 256 );
 			if( strlen( NameBuffer ) )
-				EndDialog( hWnd, (int)NameBuffer );
+				EndDialog( hWnd, (INT_PTR)NameBuffer );
 			else
 				EndDialog( hWnd, 0 );
 			return TRUE;
@@ -276,7 +276,7 @@ INT_PTR CALLBACK NameDialog( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam 
 
 //----------------------------------------------------------------------------
 
-int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+LRESULT CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	 PCONSOLE_INFO pdp;
 	 static uint32_t mouse_buttons;
@@ -506,7 +506,7 @@ int CALLBACK ChildWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				{
 	 case WM_LBUTTONUP:
 					 pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
-					 mouse_buttons = wParam;
+					 mouse_buttons = (uint32_t)wParam;
 					 xPos = LOWORD(lParam); 
 					 yPos = HIWORD(lParam); 
 				}
@@ -568,7 +568,7 @@ do_mark_copy:
 						  TEXTCHAR *data = GetDataFromBlock( pdp );
 						  if( data && OpenClipboard(NULL) )
 						  {
-								int nLen = strlen( data ) + 1;
+								size_t nLen = strlen( data ) + 1;
 								HGLOBAL mem = GlobalAlloc( GMEM_MOVEABLE, nLen );
 								MemCpy( GlobalLock( mem ), data, nLen );
 								GlobalUnlock( mem );
@@ -617,7 +617,7 @@ do_mark_copy:
 				pdp = (PCONSOLE_INFO)_GetWindowLong( hWnd, WD_CONSOLE_INFO );
 					 xPos = LOWORD(lParam); 
 					 yPos = HIWORD(lParam); 
-					 mouse_buttons = wParam;
+					 mouse_buttons = (uint32_t)wParam;
 				}
 				if( pdp && pdp->flags.bMarking &&
 					  ConvertXYToLineCol( pdp, xPos, yPos
@@ -756,7 +756,7 @@ do_mark_copy:
 
 //----------------------------------------------------------------------------
 
-int CALLBACK FrameWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+LRESULT CALLBACK FrameWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 //	HVIDEO hVideo;
 
@@ -953,7 +953,7 @@ static LRESULT CALLBACK KeyHook(
 	{
 			ker.bKeyDown = !(lParam & 0x80000000);
 			ker.wRepeatCount = LOWORD( lParam );
-			ker.wVirtualKeyCode = wParam;
+			ker.wVirtualKeyCode = (WORD)wParam;
 			ker.wVirtualScanCode = (WORD)((lParam & 0xFF0000 ) >> 16);
 			ker.uChar.UnicodeChar = 0;
 			ker.dwControlKeyState = 0;
@@ -1242,13 +1242,13 @@ static void CPROC DrawString( PCONSOLE_INFO pmdp, int x, int y, RECT *r, TEXTCHA
 	SIZE size;
 	//lprintf( "Adding string out : %s %d %d at %d,%d or (%d,%d)  (%d,%d)", s, nShown, nShow,x,y,r->left,r->top, r->right, r->bottom );
 	//InvalidateRect( pmdp->wincon.hDC, r, NULL );
-	GetTextExtentPoint32( pmdp->wincon.hDC, s, nShow, &size );
+	GetTextExtentPoint32( pmdp->wincon.hDC, s, (int)nShow, &size );
 	r->right = x + size.cx; // leading pad is in the rect.
 	r->bottom = r->top + size.cy;
 	ExtTextOut( pmdp->wincon.hDC, x, y
 				 , ETO_OPAQUE, r
 				 , s + nShown
-				 , nShow
+				 , (UINT)nShow
 				 , NULL );
 	//ValidateRect( pmdp->wincon.hDC, r );
 	//GdiFlush();

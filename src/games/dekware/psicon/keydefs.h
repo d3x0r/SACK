@@ -81,12 +81,12 @@ typedef int (CPROC *KeyFuncUpDown)( PCONSOLE_INFO pdp, int bDown );
 #define KDF_NOREDEF  0x10
 #define KDF_UPACTION 0x20 // action is called on key release
 
-#ifndef KEYS_DEFINED
+//#ifndef KEYS_DEFINED
 //CORECON_EXPORT( TEXT, KeyStroke[] );
-#ifndef CORECON_SOURCE
+//#ifndef CORECON_SOURCE
 CORECON_EXPORT( PSIKEYDEFINE, dekware_KeyDefs[] );
-#endif
-#endif
+//#endif
+//#endif
 
 #define KEYMOD_NORMAL 0
 #define KEYMOD_SHIFT  KEY_MOD_SHIFT
@@ -97,7 +97,7 @@ CORECON_PROC( int, KeyBind )( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters );
 CORECON_PROC( int, KeyUnBind )( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters );
 #endif
 CORECON_PROC(int, DoStroke )( PCONSOLE_INFO pdp, PTEXT stroke );
-CORECON_PROC( void, KeyPressHandler )( PCONSOLE_INFO pdp
+CORECON_PROC( void, dekware_KeyPressHandler )( PCONSOLE_INFO pdp
 												 , uint8_t key_index
 												 , uint8_t mod
 												 , PTEXT characters

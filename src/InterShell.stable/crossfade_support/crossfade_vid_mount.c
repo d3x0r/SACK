@@ -566,7 +566,7 @@ static void OnRevealCommon( "Crossfade Media Mount" )( PSI_CONTROL pc )
 		int32_t y = 0;
 		Image image = GetControlSurface( pc );
 		//lprintf( "begin show(move)..." );
-		GetPhysicalCoordinate( pc, &x, &y, TRUE );
+		GetPhysicalCoordinate( pc, &x, &y, TRUE, FALSE );
 
 		control->app = FindAppWindow( control->send_to, control->send_from );
 		control->app->last_x = x;

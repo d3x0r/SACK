@@ -25,7 +25,7 @@ DECLTEXT( KeyStroke, "\x7f" );
 //                    };
 
 #if defined( GCC ) || defined( __LINUX__ )
-static PSIKEYDEFINE dekware_KeyDefs[] = { [KEY_BACKSPACE]={"back","backspace",0,{{KEYDATA}} }
+PSIKEYDEFINE dekware_KeyDefs[] = { [KEY_BACKSPACE]={"back","backspace",0,{{KEYDATA}} }
 							 , [KEY_TAB]={"tab",0,0,{{KEYDATA}} }
 							 , [KEY_ENTER]={"return", "enter",0,{{KEYDATA}
 							                        ,{KEYDATA}
@@ -235,7 +235,7 @@ static PSIKEYDEFINE dekware_KeyDefs[] = { [KEY_BACKSPACE]={"back","backspace",0,
 							  };
 #else
 #define NONAMES {NULL,NULL,0}
-static PSIKEYDEFINE dekware_KeyDefs[] = { NONAMES
+PSIKEYDEFINE dekware_KeyDefs[] = { NONAMES
 							 , {"lbutton",0,0 }
 							 , {"rbutton",0,0 }
 							 , {"cancel",0,0}

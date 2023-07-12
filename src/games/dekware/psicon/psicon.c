@@ -257,6 +257,18 @@ int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 
 //----------------------------------------------------------------------------
 
+static void fontResult( uintptr_t psv, SFTFont font ) {
+	PCONSOLE_INFO pdp = (PCONSOLE_INFO)psv;
+
+	pdp->psicon.hFont = font;
+	//GetDefaultFont();
+	GetStringSizeFont( " ", &pdp->nFontWidth, &pdp->nFontHeight, pdp->psicon.hFont );
+	ChildCalculate( pdp );
+
+}
+
+//----------------------------------------------------------------------------
+
 int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int32_t _x, _y;
@@ -441,15 +453,8 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 			{
 				//pdp->cfFont.hwndOwner = hWnd;
 				size_t size;
-				SFTFont font;
 				POINTER info = NULL;
-				if( font = PickFont( -1, -1, &size, &info, NULL ) )
-				{
-					pdp->psicon.hFont = font;
-					//GetDefaultFont();
-					GetStringSizeFont( " ", &pdp->nFontWidth, &pdp->nFontHeight, pdp->psicon.hFont );
-					ChildCalculate( pdp );
-				}
+				PickFont( -1, -1, &size, &info, NULL, fontResult, (uintptr_t)pdp );
 			}
 				break;
 		  case MNU_COMMAND_COLOR:

@@ -61,7 +61,7 @@ static void SetEnvVariable( CTEXTSTR name, CTEXTSTR value, LOGICAL bUser )
 		//lprintf( "Write shell to: %s", my_button->shell );
 		dwStatus = RegSetValueEx(hTemp, name, 0
                                 , REG_SZ
-                                , (BYTE*)value, strlen( value ) );
+                                , (BYTE*)value, (DWORD)strlen( value ) );
 		RegCloseKey( hTemp );
 		if( dwStatus == ERROR_SUCCESS )
 		{
