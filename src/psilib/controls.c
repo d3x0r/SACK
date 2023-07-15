@@ -1332,6 +1332,8 @@ static int OnDrawCommon( "Frame" )( PSI_CONTROL pc )
 			BlatColor( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor( pc )[NORMAL] );
 		else
 			BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor( pc )[NORMAL] );
+		DrawFrameCaption( pc );
+		
 	}
 	else {
 		PFrameBorder border = pc->border;
@@ -1344,8 +1346,10 @@ static int OnDrawCommon( "Frame" )( PSI_CONTROL pc )
 				, ALPHA_TRANSPARENT, BLOT_COPY );
 			border->drawFill = 0;
 		}
+
+		DrawFrameCaption( pc );
+		return 2;
 	}
-	DrawFrameCaption( pc );
 	return 1;
 }
 
@@ -2054,57 +2058,7 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 				}
 
 				pc->draw_result = 0;
-#ifdef DEBUG_UPDAATE_DRAW
-				if( g.flags.bLogDebugUpdate )
-					_lprintf(DBG_RELAY)( " --- INVOKE DRAW (get region) --- %s ", pc->pTypeName );
-#endif
-				{
-#if LOCK_TEST
-					PPHYSICAL_DEVICE device = GetFrame( pc )->device;
-					if( device )
-						LockRenderer( device->pActImg );
-#endif
-					// this causes a lock in that layer.?
-					ResetImageBuffers( pc->Surface, FALSE );
-					InvokeDrawMethod( pc, _DrawThySelf, ( pc ) );
-				}
 
-#ifdef DEBUG_UPDAATE_DRAW
-				// if it didn't draw... then why do anything?
-				if( g.flags.bLogDebugUpdate )
-					lprintf( "draw result is... %d", pc->draw_result );
-#endif
-
-				//if( current )
-				{
-					if( !pc->draw_result )
-					{
-						//pc->flags.bParentCleaned = 0; // has now drawn itself, and we must assume that it's not clean.
- 						//BlotImage( pc->Window, current, 0, 0 );
-					}
-					else
-					{
-#ifdef DEBUG_UPDAATE_DRAW
-						if( g.flags.bLogDebugUpdate )
-							lprintf( "Parent is no longer cleaned...." );
-#endif
-						pc->flags.bCleanedRecently = 1;
-						//pc->flags.bParentCleaned = 0; // has now drawn itself, and we must assume that it's not clean.
-						pc->flags.children_cleaned = 0;
-					}
-
-					//UnmakeImageFile( current);
-				}
-
-
-				// better clear this flag after so that a smudge during
-				// a dumb control doesn't make us loop...
-				// though I suppose some other control could cause us to draw again?
-				// well leaving it set during will cause smudge to do what exactly
-
-
-				pc->flags.bDirty = FALSE;
-				//lprintf( "Invoked a draw self" );
 				// the outermost border/frame will be drawn
 				// from a different place... this one only needs to
 				// worry aobut child region borders after telling them to
@@ -2125,10 +2079,61 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 						}
 					}
 
-				if( !pc->flags.bTransparent || pc->draw_result ) {
-					//lprintf( "-- drew border... is pc top? ", drewBorder, pc );
-					AddCommonUpdateRegion( upd, !drewBorder, pc );
+#ifdef DEBUG_UPDAATE_DRAW
+				if( g.flags.bLogDebugUpdate )
+					_lprintf(DBG_RELAY)( " --- INVOKE DRAW (get region) --- %s ", pc->pTypeName );
+#endif
+				{
+#if LOCK_TEST
+					PPHYSICAL_DEVICE device = GetFrame( pc )->device;
+					if( device )
+						LockRenderer( device->pActImg );
+#endif
+					// this causes a lock in that layer.?
+					ResetImageBuffers( pc->Surface, FALSE );
+					InvokeDrawMethod( pc, _DrawThySelf, ( pc ) );
+					if( pc->draw_result & 2 ) {
+						AddCommonUpdateRegion( upd, true, pc );
+					} else if( pc->draw_result ) {
+						AddCommonUpdateRegion( upd, !drewBorder, pc );
+					} else if( !pc->flags.bTransparent ) {
+						AddCommonUpdateRegion( upd, !drewBorder, pc );
+					}
 				}
+
+#ifdef DEBUG_UPDAATE_DRAW
+				// if it didn't draw... then why do anything?
+				if( g.flags.bLogDebugUpdate )
+					lprintf( "draw result is... %d", pc->draw_result );
+#endif
+
+				//if( current )
+				{
+					if( !pc->draw_result )
+					{
+					}
+					else
+					{
+#ifdef DEBUG_UPDAATE_DRAW
+						if( g.flags.bLogDebugUpdate )
+							lprintf( "Parent is no longer cleaned...." );
+#endif
+						pc->flags.bCleanedRecently = 1;
+						//pc->flags.bParentCleaned = 0; // has now drawn itself, and we must assume that it's not clean.
+						pc->flags.children_cleaned = 0;
+					}
+				}
+
+
+				// better clear this flag after so that a smudge during
+				// a dumb control doesn't make us loop...
+				// though I suppose some other control could cause us to draw again?
+				// well leaving it set during will cause smudge to do what exactly
+
+
+				pc->flags.bDirty = FALSE;
+				//lprintf( "Invoked a draw self" );
+
 
 #if DEBUG_UPDAATE_DRAW > 2
 				if( g.flags.bLogDebugUpdate )
