@@ -439,7 +439,8 @@ static void popupCallback( uintptr_t psv, int select ) {
 			lprintf( "Unknown menu option chosen.  Custom control?" );
 			break;
 	}
-	Release( pEditProps );
+	if( select >= 0 )
+		Release( pEditProps );
 }
 
 
@@ -559,7 +560,8 @@ static void frameCallback( uintptr_t psv, int select ) {
 		}
 		return; // this isn't a brak, because it should not release edit props...
 	}
-	Release( pEditProps );
+	if( select >= 0 )
+		Release( pEditProps );
 
 }
 

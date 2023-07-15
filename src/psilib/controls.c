@@ -2093,7 +2093,7 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 					ResetImageBuffers( pc->Surface, FALSE );
 					InvokeDrawMethod( pc, _DrawThySelf, ( pc ) );
 					if( pc->draw_result & 2 ) {
-						AddCommonUpdateRegion( upd, true, pc );
+						AddCommonUpdateRegion( upd, FALSE, pc );
 					} else if( pc->draw_result ) {
 						AddCommonUpdateRegion( upd, !drewBorder, pc );
 					} else if( !pc->flags.bTransparent ) {
@@ -2933,7 +2933,7 @@ PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pc DBG_PASS )
 	{
 		int parent_hidden = 0;
 		int parent_initial = 0;
-		int was_hidden = pc->flags.bHidden;
+		int was_hidden = pc->flags.bHidden || pc->flags.bInitial;
 		int revealed = 0;
 		PSI_CONTROL parent;
 		for( parent = pc?pc->parent:NULL; parent; parent = parent->parent )
@@ -2959,10 +2959,12 @@ PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pc DBG_PASS )
 				lprintf( "showing a renderer..." );
 #endif
 			revealed = was_hidden;
-			pc->flags.bHidden = 0;
-			pc->flags.bNoUpdate = 0;
-			pc->flags.bRestoring = 1;
-			RestoreDisplay( pc->device->pActImg );
+			if( was_hidden ) {
+				pc->flags.bHidden = 0;
+				pc->flags.bNoUpdate = 0;
+				pc->flags.bRestoring = 1;
+				RestoreDisplay( pc->device->pActImg );
+			}
 			// need to not clear restoring here; it might take a while, (we might have to return before it happens)
 		}
 		if( was_hidden && ( (level > 1)?1:(pc->flags.bHiddenParent) ) )

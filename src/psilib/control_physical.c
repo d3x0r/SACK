@@ -377,20 +377,8 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 	}
 	if( !pc->flags.bHidden )
 	{
-		if( pc->flags.bDirtyBorder && !g.flags.always_draw )
-		{
-			// background fill?
-			// pc->border->drawFill = 1; // otherwise MUST smudge instead of just draw.
-			if( pc->DrawBorder )
-				pc->DrawBorder( pc );
-			pc->flags.bDirtyBorder = 0;
-			if( !g.flags.always_draw )
-				DrawFrameCaption( pc );
-			else
-				SmudgeCommon( pc );
-		}
 		// update just the caption portion?
-		if( pc->surface_rect.y && !pc->flags.bRestoring )
+		if( !pc->flags.bRestoring )
 		{
 #ifdef DEBUG_FOCUS_STUFF
 			lprintf( "Updating the frame caption..." );
@@ -403,10 +391,8 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 						 , pc->rect.width
 						 , pc->surface_rect.y );
 #endif
-			UpdateDisplayPortion( frame->pActImg
-									  , 0, 0
-									  , pc->rect.width
-									  , pc->surface_rect.y );
+			pc->flags.bDirtyBorder = 1; // the border will always always change on focus...
+			SmudgeCommon( pc );
 		}
 		// and draw here...
 	}
