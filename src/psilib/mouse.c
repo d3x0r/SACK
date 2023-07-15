@@ -1553,8 +1553,8 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 		} else if( pf->flags.bDragging ) {
 			if( !BeginMoveDisplay( pf->pActImg ) ) {
 				pf->flags.bDragging = TRUE;
-				pf->drag_x = x + pf->CurrentBias.x;
-				pf->drag_y = y + pf->CurrentBias.y;
+				pf->drag_x = x;
+				pf->drag_y = y;
 			}else {
 				// won't get a release; and won't be able to release dragging
 				pf->flags.bDragging = FALSE;
