@@ -1551,7 +1551,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 						else if( strcmp( buffer, "sqlite3odbc.dll" ) == 0 || strcmp( buffer, "sqliteodbc.dll" ) == 0 ) {
 							odbc->flags.bSQLite = 1;
 						}
-						else if( StrCaseCmpEx( buffer, "myodbc", 6 ) == 0  ) {
+						else if( StrCaseCmpEx( buffer, "myodbc", 6 ) == 0  || StrCaseCmpEx( buffer, "libmyodbc", 9 ) == 0 ) {
 							odbc->flags.bMySQL = 1;
 						}
 						else if( StrCaseCmpEx( buffer, "PSQLODBC", 8 ) == 0  ) {
