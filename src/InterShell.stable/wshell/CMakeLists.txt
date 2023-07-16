@@ -14,7 +14,7 @@ set(SOURCES
 if( __ANDROID__ )
 add_definitions( -DLOAD_LIBNAME="libInterShell.core.so" -DMODE=0 )
 else( __ANDROID__ )
-add_definitions( -DLOAD_LIBNAME="?/applicationCore/InterShell.core" -DMODE=0 )
+add_definitions( -DLOAD_LIBNAME="../${COMPILED_INSTALL_PREFIX}/applicationCore/InterShell.core" -DMODE=0 )
 endif( __ANDROID__ )
 
 add_program(${PROJECT} WIN32 ${SOURCES})

@@ -19,7 +19,7 @@ SET(  LINK_LIBPATH ${CMAKE_INSTALL_LIBDIR} )
 SET(  SHARED_BINPATH ${CMAKE_INSTALL_BINDIR} )
 endif()
 
-SET(  SHARED_PLUGINPATH ${CMAKE_INSTALL_PREFIX}/share/SACK/plugins )
+SET(  SHARED_PLUGINPATH ${CMAKE_INSTALL_PREFIX}/${COMPILED_INSTALL_PREFIX}/plugins )
 
 
 set( __ARM__ @__ARM__@ )
@@ -361,7 +361,7 @@ if( NOT __NO_OPTIONS__ )
 				endif( NOT __ANDROID__ )
         endif( NOT EXCLUDE_AUX_PROGRAMS )
        		if( NOT __ANDROID__ )
-    			SET( literal_libfile_list ${literal_libfile_list} share/SACK/plugins/EditOptions.plugin )
+    			SET( literal_libfile_list ${literal_libfile_list} ${COMPILED_INSTALL_PREFIX}/plugins/EditOptions.plugin )
 	       	else( NOT __ANDROID__ )
        		   	SET( literal_libfile_list ${literal_libfile_list} ${CMAKE_SHARED_LIBRARY_PREFIX}EditOptions.plugin${CMAKE_SHARED_LIBRARY_SUFFIX} )
 	       	endif( NOT __ANDROID__ )
@@ -371,9 +371,9 @@ endif( NOT __NO_OPTIONS__ )
 
 if( WIN32 )
 		SET( literal_libfile_list ${literal_libfile_list}
-                        share/SACK/plugins/application_delay.module
-                        share/SACK/plugins/loginfo.module
-                        share/SACK/plugins/seed_random.module
+                        ${COMPILED_INSTALL_PREFIX}/plugins/application_delay.module
+                        ${COMPILED_INSTALL_PREFIX}/plugins/loginfo.module
+                        ${COMPILED_INSTALL_PREFIX}/plugins/seed_random.module
                     )
                     if( INSTALL_EXTRAS )
 		SET( progfile_list ${progfile_list}
@@ -392,7 +392,7 @@ if( WIN32 )
 		endif( NOT BUILD_MONOLITHIC )
 if( NOT __NO_MSGSVR__ )
 		SET( progfile_list ${progfile_list} service_list sack.msgsvr.service msgsvr )
-		SET( literal_libfile_list ${literal_libfile_list} share/SACK/plugins/sack.msgsvr.service.plugin  )
+		SET( literal_libfile_list ${literal_libfile_list} ${COMPILED_INSTALL_PREFIX}/plugins/sack.msgsvr.service.plugin  )
 endif( NOT __NO_MSGSVR__ )
 endif( WIN32 )
 

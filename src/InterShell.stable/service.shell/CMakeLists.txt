@@ -9,7 +9,7 @@ set(SOURCES
 )
 
 add_definitions( 
-	-DLOAD_LIBNAME="@/../share/SACK/applicationCore/InterShell.core" -DMODE=1 -DCONSOLE_SHELL
+	-DLOAD_LIBNAME="@/${COMPILED_INSTALL_PREFIX}/SACK/applicationCore/InterShell.core" -DMODE=1 -DCONSOLE_SHELL
 )
 
 add_executable_force_source(${PROJECT_NAME} ${SOURCES} )
