@@ -298,7 +298,7 @@ static int CPROC TerminalTransmitEx( PDATAPATH pdpX, LOGICAL secure )
 									, len );
 							//lprintf( "Enque block..." );
 							//LogBinary( byOutputBuf + ofs, len );
-							ofs += len;
+							ofs += (int)len;
 						}
 						pSeg = NEXTLINE( pSeg );
 					}
@@ -690,7 +690,7 @@ static void UDPReceive( PCLIENT pc, TEXTSTR pBuffer, int nSize, SOCKADDR *sa )
 	 						, SegDuplicate( pdp->Buffer ) );
 		}
 			pdp->Buffer->data.size = 4096;
-		ReadUDP( pc, pdp->Buffer->data.data, pdp->Buffer->data.size );
+		ReadUDP( pc, pdp->Buffer->data.data, (int)pdp->Buffer->data.size );
 	}
 }
 
@@ -1070,9 +1070,12 @@ static int HandleCommand("Network", "ping", "Ping a network address...")( PSENTI
 	PVARTEXT pvt = VarTextCreate();
 	if( InitNetwork(ps) )
 	{
+		PTEXT line;
 			temp = GetParam( ps, &parameters );
+		line = BuildLine( temp );
 #ifndef __ANDROID__
-		DoPing( GetText( temp ), 0, 2500, 1, pvt, FALSE, NULL );
+		DoPing( GetText( line ), 0, 2500, 1, pvt, FALSE, NULL );
+		LineRelease( line );
 		temp = VarTextGet( pvt );
 		{
 			PTEXT partial = NULL, out;
@@ -1159,7 +1162,7 @@ static uintptr_t CPROC ThreadProc( PTHREAD pThread )
 	{
 		PTEXT pOutput;
 		TEXTCHAR byOutput[256];
-		snprintf( byOutput, sizeof( byOutput ), "Connected to address at port: %ld", dwPort );
+		snprintf( byOutput, sizeof( byOutput ), "Connected to address at port: %zd", dwPort );
 		pOutput = SegCreateFromText( byOutput );
 		EnqueLink( &psScanning->Command->Output, pOutput );
 		RemoveClient( pc );
