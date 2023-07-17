@@ -102,6 +102,7 @@ typedef struct loaded_library_tag
 } LIBRARY, *PLIBRARY;
 
 struct local_systemlib_data {
+	CTEXTSTR install_path;
 	CTEXTSTR load_path;
 	CTEXTSTR library_path;
 	CTEXTSTR common_data_path;

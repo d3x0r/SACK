@@ -393,23 +393,23 @@ void loadMacLibraries(struct local_systemlib_data *init_l) {
         strcpy(path, "~/");
     //printf("%d: %s\n", pid, path);
     {
-				TEXTCHAR *ext, *ext1;
-				ext = (TEXTSTR)StrRChr( (CTEXTSTR)path, '.' );
-				if( ext )
-						ext[0] = 0;
-				ext1 = (TEXTSTR)pathrchr( path );
-				if( ext1 )
-				{
-						ext1[0] = 0;
-						(*init_l).filename = StrDupEx( ext1 + 1 DBG_SRC );
-						(*init_l).load_path = StrDupEx( path DBG_SRC );
-				}
-				else
-				{
-						(*init_l).filename = StrDupEx( path DBG_SRC );
-						(*init_l).load_path = StrDupEx( "" DBG_SRC );
-				}
+		TEXTCHAR *ext, *ext1;
+		ext = (TEXTSTR)StrRChr( (CTEXTSTR)path, '.' );
+		if( ext )
+				ext[0] = 0;
+		ext1 = (TEXTSTR)pathrchr( path );
+		if( ext1 )
+		{
+			ext1[0] = 0;
+			(*init_l).filename = StrDupEx( ext1 + 1 DBG_SRC );
+			(*init_l).load_path = StrDupEx( path DBG_SRC );
 		}
+		else
+		{
+			(*init_l).filename = StrDupEx( path DBG_SRC );
+			(*init_l).load_path = StrDupEx( "" DBG_SRC );
+		}
+	}
 
     assert(!task_info(task, TASK_DYLD_INFO, (task_info_t) &dyld_info, (mach_msg_type_number_t[]) {TASK_DYLD_INFO_COUNT}));
     is_64bit = dyld_info.all_image_info_addr >= (1ull << 32);
@@ -584,6 +584,11 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 		if( StrCmp( buf, "/." ) == 0 )
 			GetCurrentPath( buf, 256 );
 		//lprintf( "My execution: %s", buf);
+		{
+			TEXTCHAR tmp[MAXPATH];
+			snprintf( tmp, MAXPATH, "%s/..", buf );
+			(*init_l).install_path = ( ExpandPath( tmp ) );
+		}
 		(*init_l).load_path = StrDupEx( buf DBG_SRC );
 		OSALOT_SetEnvironmentVariable( "MY_LOAD_PATH", (*init_l).load_path );
 		//strcpy( pMyPath, buf );
@@ -675,6 +680,11 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 				pb = buf - 1;
 			//lprintf( "My execution: %s %s", buf, pb+1);
 			(*init_l).filename = StrDupEx( pb + 1 DBG_SRC );
+			{
+				TEXTCHAR tmp[MAXPATH];
+				snprintf( tmp, MAXPATH, "%s/..", buf );
+				(*init_l).install_path = ( ExpandPath( tmp ) );
+			}
 			(*init_l).load_path = StrDupEx( buf DBG_SRC );
 #       endif
 			local_systemlib = init_l;
@@ -780,7 +790,6 @@ static void SystemInit( void )
 			OSALOT_SetEnvironmentVariable( "MY_WORK_PATH", filepath );
 #endif
 			l.flags.bInitialized = 1;
-
 #  ifdef WIN32
 			l.EnumProcessModules = (BOOL(WINAPI*)(HANDLE,HMODULE*,DWORD,LPDWORD))LoadFunction( "psapi.dll", "EnumProcessModules");
 			if( !l.EnumProcessModules )
@@ -2884,6 +2893,26 @@ CTEXTSTR GetProgramPath( void )
 		}
 	}
 	return l.load_path;
+#endif
+}
+
+CTEXTSTR GetInstallPath( void )
+{
+#if defined( __EMSCRIPTEN__ )
+	return CMAKE_INSTALL_PREFIX;
+#elif defined( __ANDROID__ )
+	return CMAKE_INSTALL_PREFIX;
+#else
+	if( !local_systemlib || l.install_path )
+	{
+		SystemInit();
+		if( !l.install_path )
+		{
+			DebugBreak();
+			return NULL;
+		}
+	}
+	return l.install_path;
 #endif
 }
 

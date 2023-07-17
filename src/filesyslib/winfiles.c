@@ -178,13 +178,14 @@ static void UpdateLocalDataPath( void )
 #else
 	TEXTCHAR path[MAXPATH];
 #if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
-	if( strcmp( CMAKE_INSTALL_PREFIX, "/usr" ) == 0 )
+	if( strcmp( GetInstallPath(), "/usr" ) == 0 )
 		tnprintf( path, sizeof(path), "/var/%s%s%s%s"
 			, ( *winfile_local ).producer ? "" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 			, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 		);
 	else
-		tnprintf( path, sizeof(path), CMAKE_INSTALL_PREFIX "/var/%s%s%s%s"
+		tnprintf( path, sizeof(path),  "%s/var/%s%s%s%s"
+			, GetInstallPath()
 			, ( *winfile_local ).producer ? "" : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
 			, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
 		);
@@ -202,8 +203,12 @@ static void UpdateLocalDataPath( void )
 #endif
 #if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
 
-	if( !( *winfile_local ).share_data_root )
-		( *winfile_local ).share_data_root = StrDup( CMAKE_INSTALL_PREFIX "/share/SACK" );
+	if( !( *winfile_local ).share_data_root ) {
+		PVARTEXT pvt = VarTextCreate(); vtprintf( pvt, "%s/share/SACK", GetInstallPath() );
+		TEXTSTR path = ExpandPath( GetText(VarTextPeek( pvt )));
+		VarTextDestroy( &pvt );
+		( *winfile_local ).share_data_root = path;
+	}
 #else
 	if( !( *winfile_local ).share_data_root )
 		( *winfile_local ).share_data_root = StrDup( "." );
@@ -340,10 +345,25 @@ static void InitMoreGroups( void ) {
 		( *winfile_local ).flags.have_default_groups = 1;
 		
 #if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
-		GetFileGroup( "resources", CMAKE_INSTALL_PREFIX "/share/SACK" );
-		GetFileGroup( "frames", CMAKE_INSTALL_PREFIX "/share/SACK/frames" );
-		GetFileGroup( "images", CMAKE_INSTALL_PREFIX "/share/SACK/images" );
-		GetFileGroup( "fonts", CMAKE_INSTALL_PREFIX "/share/SACK/fonts" );
+		PVARTEXT pvt = VarTextCreate(); 
+		vtprintf( pvt, "%s/share/SACK", GetInstallPath() );
+		TEXTSTR path = ExpandPath( GetText(VarTextPeek( pvt )));
+		GetFileGroup( "resources", path );
+		ReleaseEx( path DBG_SRC ); VarTextEmpty( pvt );
+		vtprintf( pvt, "%s/share/SACK/frames", GetInstallPath() );
+		path = ExpandPath( GetText(VarTextPeek( pvt )));
+		GetFileGroup( "frames", path );
+		ReleaseEx( path DBG_SRC ); VarTextEmpty( pvt );
+		vtprintf( pvt, "%s/share/SACK/images", GetInstallPath() );
+		path = ExpandPath( GetText(VarTextPeek( pvt )));
+		GetFileGroup( "images", path );
+		ReleaseEx( path DBG_SRC ); VarTextEmpty( pvt );
+		vtprintf( pvt, "%s/share/SACK/fonts", GetInstallPath() );
+		path = ExpandPath( GetText(VarTextPeek( pvt )));
+		GetFileGroup( "fonts", path );
+
+		ReleaseEx( path DBG_SRC );
+		VarTextDestroy( &pvt );
 #endif		
 		( *winfile_local ).flags.finished_default_groups = 1;
 		{
@@ -587,7 +607,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 			else if( ( path[0] == ',' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
-				here = CMAKE_INSTALL_PREFIX;
+				here = GetInstallPath();
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
 				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
