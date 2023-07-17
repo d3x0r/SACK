@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 PROJECT( systray_shell.portable )
+set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 if( PLATFORM_CMAKE_DEFINES )
    STRING( REPLACE "," ";" PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} )

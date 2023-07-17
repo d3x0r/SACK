@@ -1,4 +1,6 @@
+cmake_minimum_required(VERSION 3.1)
 
+set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 if( NOT MAKING_SACK_CORE )
   if( NOT SACK_SDK_ROOT_PATH )

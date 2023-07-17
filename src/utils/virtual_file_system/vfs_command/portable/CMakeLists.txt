@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 set( CMAKE_C_STANDARD 99 )
 project( UnusedProject )
+set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 if( PLATFORM_CMAKE_DEFINES )
    STRING( REPLACE "," ";" PLATFORM_CMAKE_DEFINES ${PLATFORM_CMAKE_DEFINES} )
