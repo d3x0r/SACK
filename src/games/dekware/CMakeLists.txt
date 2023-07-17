@@ -88,8 +88,8 @@ macro( ADD_PLUGIN target group  )
 	endif( NOT __ANDROID__ )
 	target_link_libraries( ${target} ${SACK_LIBRARIES} ${SACK_PLATFORM_LIBRARIES} )
 	INSTALL( TARGETS ${target}
-		RUNTIME DESTINATION share/SACK/plugins
-		LIBRARY DESTINATION share/SACK/plugins
+		RUNTIME DESTINATION ${COMPILED_INSTALL_PREFIX}/plugins
+		LIBRARY DESTINATION ${COMPILED_INSTALL_PREFIX}/plugins
 	)
 
 endmacro( ADD_PLUGIN )
