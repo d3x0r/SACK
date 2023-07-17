@@ -2345,7 +2345,7 @@ void Startup( TEXTCHAR *lpCmdLine )
 #ifdef __ANDROID__
 		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), "%s", GetProgramPath() );
 #else
-		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), "@/../share/SACK/plugins" );
+		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), COMPILED_INSTALL_PREFIX "/plugins" );
 #endif
 		pluginPath = ExpandPath( pMyPluginPath );
 		Log1( "Loading plugins from: %s", pMyPluginPath );

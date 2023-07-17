@@ -14,7 +14,7 @@ add_library( ${project} SHARED ${SOURCES} )
 string( REGEX REPLACE "(.*)\\.(.*)" "\\1_\\2" TARGET_LABEL ${project} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   DEFINE_SYMBOL CORE_SOURCE
-                  COMPILE_DEFINITIONS "TARGETNAME=\"${project}\""
+                  COMPILE_DEFINITIONS "COMPILED_INSTALL_PREFIX=\"${COMPILED_INSTALL_PREFIX}\";TARGETNAME=\"${project}\""
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL}"
 )
 if( NOT __ANDROID__ )
