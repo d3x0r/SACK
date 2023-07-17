@@ -2,6 +2,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS On)
 cmake_minimum_required(VERSION 3.1)
 PROJECT( InterShell )
 
+SET(CMAKE_SKIP_BUILD_RPATH  OFF)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+SET(CMAKE_INSTALL_RPATH "\$ORIGIN")
+
 #set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 #set( CMAKE_RULE_MESSAGES OFF )
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
@@ -130,6 +134,11 @@ INSTALL(
 endif( INSTALL_TO_SACK_SDK )
 
 MACRO( INSTALL_PLUGIN target )
+  SET_TARGET_PROPERTIES( ${target}
+    PROPERTIES
+      INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../.."
+  )
+
    if( __ANDROID__ )
       install_literal_product( ${target} . )
    else( __ANDROID__ )

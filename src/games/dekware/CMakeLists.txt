@@ -24,6 +24,10 @@ endif( NOT MAKING_SACK_CORE )
 
 project( Dekware )
 
+SET(CMAKE_SKIP_BUILD_RPATH  OFF)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+SET(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../..")
+
 #set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 #set( CMAKE_RULE_MESSAGES OFF )
 set( CMAKE_INSTALL_REMOVE_ENVIRONMENT_RPATH OFF )
@@ -78,6 +82,7 @@ macro( ADD_PLUGIN target group  )
 	SET_TARGET_PROPERTIES(${target} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags} -D__DEKWARE_PLUGIN__"
                   COMPILE_DEFINITIONS ${MOREDEFS}
+                  INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../..:$ORIGIN/../applicationCore"
                   FOLDER plugins/${group}
 	)
 	if( NOT __ANDROID__ )
