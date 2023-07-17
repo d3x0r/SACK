@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 3.20)
 
 set(CMAKE_BUILD_TYPE "debug" CACHE STRING "Set build type")
 
+set( CMAKE_BUILD_RPATH_USE_ORIGIN ON )
+set( CMAKE_BUILD_WITH_INSTALL_RPATH ON )
 
 if( NOT PROJECT_NAME )
 project( Sack.all )
