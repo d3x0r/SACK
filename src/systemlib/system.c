@@ -517,7 +517,7 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			(*init_l).filename = StrDupEx( filepath DBG_SRC );
 			(*init_l).load_path = StrDupEx( "" DBG_SRC );
 		}
-#ifndef USE_LIBRARY_INSTALL_PATH			
+#ifndef USE_LIBRARY_INSTALL_PATH
 		{
 			TEXTCHAR tmp[MAXPATH];
 			snprintf( tmp, MAXPATH, "%s/..", (*init_l).load_path );
