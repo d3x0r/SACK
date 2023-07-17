@@ -274,6 +274,9 @@ OPTION( SACK_BUILD_STATIC_LIBS "Enable building static versions of libraries" OF
 OPTION( BUILD_EXTRAS "Enable building extras" OFF )
 OPTION( INSTALL_EXTRAS "Enable installing extras; build anyway" ${BUILD_EXTRAS} )
 OPTION( USE_LIBRARY_INSTALL_PATH "Default to library path for install path, instead of program path." ON )
+if( USE_LIBRARY_INSTALL_PATH )
+  ADD_DEFINITIONS( -DUSE_LIBRARY_INSTALL_PATH )
+endif( USE_LIBRARY_INSTALL_PATH )
 
 OPTION( BUILD_TESTS "Enable building test" OFF )
 if( NOT __LINUX__ )
