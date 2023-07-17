@@ -517,6 +517,13 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			(*init_l).filename = StrDupEx( filepath DBG_SRC );
 			(*init_l).load_path = StrDupEx( "" DBG_SRC );
 		}
+#ifndef USE_LIBRARY_INSTALL_PATH			
+		{
+			TEXTCHAR tmp[MAXPATH];
+			snprintf( tmp, MAXPATH, "%s/..", (*init_l).load_path );
+			(*init_l).install_path = ( ExpandPath( tmp ) );
+		}
+#endif		
 
 		GetModuleFileName( LoadLibrary( TARGETNAME ), filepath, sizeof( filepath ) );
 		ext1 = (TEXTSTR)pathrchr( filepath );
@@ -527,6 +534,14 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 				(*init_l).library_path = StrDupEx( filepath +4 DBG_SRC );
 			else
 				(*init_l).library_path = StrDupEx( filepath DBG_SRC );
+#ifdef USE_LIBRARY_INSTALL_PATH			
+			{
+				TEXTCHAR tmp[MAXPATH];
+				snprintf( tmp, MAXPATH, "%s/..", (*init_l).library_path );
+				(*init_l).install_path = ( ExpandPath( tmp ) );
+			}
+#endif			
+
 		}
 		else
 		{
@@ -584,11 +599,6 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 		if( StrCmp( buf, "/." ) == 0 )
 			GetCurrentPath( buf, 256 );
 		//lprintf( "My execution: %s", buf);
-		{
-			TEXTCHAR tmp[MAXPATH];
-			snprintf( tmp, MAXPATH, "%s/..", buf );
-			(*init_l).install_path = ( ExpandPath( tmp ) );
-		}
 		(*init_l).load_path = StrDupEx( buf DBG_SRC );
 		OSALOT_SetEnvironmentVariable( "MY_LOAD_PATH", (*init_l).load_path );
 		//strcpy( pMyPath, buf );
@@ -680,11 +690,13 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 				pb = buf - 1;
 			//lprintf( "My execution: %s %s", buf, pb+1);
 			(*init_l).filename = StrDupEx( pb + 1 DBG_SRC );
+#ifndef USE_LIBRARY_INSTALL_PATH			
 			{
 				TEXTCHAR tmp[MAXPATH];
 				snprintf( tmp, MAXPATH, "%s/..", buf );
 				(*init_l).install_path = ( ExpandPath( tmp ) );
 			}
+#endif			
 			(*init_l).load_path = StrDupEx( buf DBG_SRC );
 #       endif
 			local_systemlib = init_l;
@@ -722,6 +734,13 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 					if( path )
 						path[0] = 0;
 					(*init_l).library_path = dupname;
+#ifdef USE_LIBRARY_INSTALL_PATH			
+					{
+						TEXTCHAR tmp[MAXPATH];
+						snprintf( tmp, MAXPATH, "%s/..", dupname );
+						(*init_l).install_path = ( ExpandPath( tmp ) );
+					}
+#endif			
 				}
 				else
 					(*init_l).library_path = ".";

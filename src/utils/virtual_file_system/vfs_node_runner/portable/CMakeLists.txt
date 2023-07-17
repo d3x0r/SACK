@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
+set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 PROJECT( vfs.nr.portable )
 if( PLATFORM_CMAKE_DEFINES )
