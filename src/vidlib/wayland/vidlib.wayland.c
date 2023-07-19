@@ -4,19 +4,19 @@
 //
 
 //#define DEBUG_DUMP_SURFACE_IMAGES
-#define DEBUG_COMMIT_ATTACH
+//#define DEBUG_COMMIT_ATTACH
 
-#define DEBUG_SURFACE_ATTACH
+//#define DEBUG_SURFACE_ATTACH
 // general debug enable...
 //#define DEBUG_COMMIT
 // tracks the allocation, locking and unlocking of buffers
-#define DEBUG_COMMIT_BUFFER
+//#define DEBUG_COMMIT_BUFFER
 //#define DEBUG_COMMIT_BUFFER_DETAILS
 // subset of just canCommit, not buffer requests and other flows...
 //#define DEBUG_COMMIT_STATE
 // events related to keys.
 #define DEBUG_KEY_EVENTS
-#define DEBUG_REDRAW
+//#define DEBUG_REDRAW
 
 #define USE_IMAGE_INTERFACE wl.pii
 #include <stdhdrs.h>
