@@ -73,7 +73,8 @@ RENDER_NAMESPACE_END
 // call trigger on release also...
 #define KEY_MOD_RELEASE  8
 #define KEY_MOD_ALL_CHANGES  16 // application wants both press and release events.
-#define KEY_MOD_EXTENDED 32 // key match must be extended also... (extra arrow keys for instance.. what about SDL)
+//#define KEY_MOD_EXTENDED 32 // key match must be extended also... (extra arrow keys for instance.. what about SDL)
+#define KEY_MOD_EXTENDED 256 // key match must be extended also... (extra arrow keys for instance.. what about SDL)
 
 #define KEY_PRESSED         0x80000000
 #define IsKeyPressed( keycode ) ( (keycode) & 0x80000000 )

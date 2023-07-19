@@ -206,6 +206,7 @@ void wl_SetRenderReadCallback ( PRENDERER pRenderer, RenderReadCallback callback
  int wl_HandleKeyEvents ( PKEYDEFINE pKeyDefs, uint32_t key )
 {
 	if( !pKeyDefs ) return FALSE;
+	l.flags.bLogKeyEvent = 1;
 	int keycode = KEY_CODE(key);
 	int keymod = KEY_MOD(key);
 #ifdef LOG_KEY_EVENTS

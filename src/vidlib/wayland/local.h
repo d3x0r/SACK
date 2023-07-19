@@ -134,6 +134,7 @@ enum WAYLAND_INTERFACE_STRING {
 struct pendingKey {
 	uint rawKey;
 	uint32_t key;
+	xkb_keysym_t keysym;
 	uint32_t tick;
 	PXPANEL r;
 	int repeating;
@@ -192,7 +193,6 @@ struct wayland_local_tag
 	struct keyEvent key_; // used to enque
 	struct keyEvent key_sent; // used to dispatch
 	int keyMods;
-	xkb_keysym_t keysym;
 
 	PXPANEL hVidFocused; // keyboard events go here
 	PXPANEL hCaptured; // send all mouse events here (probalby should-no-op this)

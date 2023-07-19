@@ -15,7 +15,7 @@
 // subset of just canCommit, not buffer requests and other flows...
 //#define DEBUG_COMMIT_STATE
 // events related to keys.
-//#define DEBUG_KEY_EVENTS
+#define DEBUG_KEY_EVENTS
 #define DEBUG_REDRAW
 
 #define USE_IMAGE_INTERFACE wl.pii
@@ -216,6 +216,7 @@ static void pointer_enter(void *data,
 static void pointer_leave(void *data,
 	struct wl_pointer *wl_pointer, uint32_t serial,
 	struct wl_surface *wl_surface) {
+				lprintf( "pointer_leave");
 	if( !wl_surface ) return; // closed surface..
 	EnterCriticalSec( &wl.cs_wl );
 	struct pointer_data* pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
@@ -392,6 +393,7 @@ static void keyboard_enter(void *data,
 		      struct wl_surface *surface,
 		      struct wl_array *keys)
 {
+				lprintf( "keyboard_enter");
 	PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
 	if( wl.hVidFocused && wl.hVidFocused->pLoseFocus )
 		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)r );
@@ -416,6 +418,7 @@ static void keyboard_leave(void *data,
 		      struct wl_keyboard *wl_keyboard,
 		      uint32_t serial,
 		      struct wl_surface *surface){
+				lprintf( "keyboard_leave");
 	if( surface ) {
 		PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
 		struct pendingKey *key;
@@ -459,12 +462,19 @@ static void keyboard_key(void *data,
 	xkb_state_update_key( wl.xkb_state, key+8, state == WL_KEYBOARD_KEY_STATE_PRESSED?XKB_KEY_DOWN:XKB_KEY_UP );
 	if (state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		xkb_keysym_t keysym = xkb_state_key_get_one_sym (wl.xkb_state, key+8);
-
+lprintf( "key is still keysym home:%x(%d) pad9:%x(%d) pgup:%x(%d) symchar:%c %04x key:%02x"
+			, KEY_HOME, KEY_HOME
+			, KEY_PAD_9, KEY_PAD_9
+			, KEY_PGUP, KEY_PGUP
+			, keysym&0x7F, keysym, key);
 		uint32_t keycode;
+		int extended = ((keysym&0xff00)==0xFF00);
+		if( keysym & 0xFF00 && !extended ) 
+			lprintf( "This keycode was bad: %04x key:%x(%d)", keysym, key, key );
 		keycode = KEY_PRESSED;
-		keycode |= key << 16;
 		keycode |= key;
-		keycode |= wl.keyMods;
+		keycode |= (keysym&0xFF)<<16;
+		keycode |= wl.keyMods | (extended?KEY_MOD_EXTENDED:0);
 		wl.key_.keycode = keycode;
 		wl.key_.utfKeyCode = xkb_keysym_to_utf32 (keysym);
 #ifdef DEBUG_KEY_EVENTS
@@ -479,6 +489,7 @@ static void keyboard_key(void *data,
 
 		newKey->r = r;
 		newKey->rawKey = key;
+		newKey->keysym = keysym;
 		newKey->key = keycode;
 		newKey->tick = timeGetTime(); // record first press time.
 		newKey->repeating = 0;
@@ -521,19 +532,22 @@ static void keyboard_key(void *data,
 		struct pendingKey *check;
 		LIST_FORALL( wl.keyRepeat.pendingKeys, idx, struct pendingKey*, check ) {
 			if( check->rawKey == key ){
+				keycode = check->key;
 				xkb_state_update_key( wl.xkb_state, check->rawKey, XKB_KEY_UP );
 				SetLink( &wl.keyRepeat.pendingKeys, idx, NULL );
 				Release( check );
+				break;
 			}
 		}
-
-		keycode = 0;
-		keycode |= ( key << 16 ) | wl.keysym;
-		keycode |= key;
+		if( !check ) {
+			lprintf( "A release happened without a press??" );
+			keycode = 0;
+			keycode |= ( key << 16 );
+			keycode |= key;
+		}
 		wl.key_.keycode = keycode;
 		EnqueData( &wl.pdqKeyEvents, &wl.key_ );
 		WakeThread( wl.drawThread ); // let it setup a shorter timer, and handle stopping repeats?
-
 	}
 }
 
@@ -1227,7 +1241,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 			if( !wl_HandleKeyEvents( wl.key_sent.r->pKeyDefs, wl.key_sent.keycode ) ) {
 				if( wl.key_sent.r->pKeyProc ){
 		#ifdef DEBUG_KEY_EVENTS
-					lprintf( "Sending as key %08x %08x", wl.key_sent.utfKeyCode, wl.key_sent.keycode );
+					lprintf( "2) Sending as key %08x %08x", wl.key_sent.utfKeyCode, wl.key_sent.keycode );
 		#endif
 					wl.key_sent.r->pKeyProc( wl.key_sent.r->dwKeyData, wl.key_sent.keycode );
 				}
@@ -1366,7 +1380,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 				lprintf( "don't sleep here... %d", psv );
 				return 1;
 			}
-			lprintf( "sleeping here... %d", psv );
+			//lprintf( "sleeping here... %d", psv );
 			return 0;
 		}
 	} else {
@@ -1412,7 +1426,7 @@ static uintptr_t waylandThread( PTHREAD thread ) {
 				SetLink( &wl.shellWaits, idx, NULL );
 				WakeThread( waiter );
 			}
-			lprintf( ".... did some messages...");
+			//lprintf( ".... did some messages...");
 		}
 
 		lprintf( "!*!*!*!*!*! Thread exiting? !*!*!*!*!*!" );
