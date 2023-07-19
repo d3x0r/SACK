@@ -18,6 +18,12 @@
 #define DEBUG_KEY_EVENTS
 //#define DEBUG_REDRAW
 
+// individual update portion and update call logging 
+//#define DEBUG_UPDATE_DISPLAY
+
+// there is a crash (sometimes) when opening a window
+//#define DEBUG_SURFACE_INIT
+
 #define USE_IMAGE_INTERFACE wl.pii
 #include <stdhdrs.h>
 #include <render.h>
@@ -393,7 +399,6 @@ static void keyboard_enter(void *data,
 		      struct wl_surface *surface,
 		      struct wl_array *keys)
 {
-				lprintf( "keyboard_enter");
 	PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
 	if( wl.hVidFocused && wl.hVidFocused->pLoseFocus )
 		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)r );
@@ -415,10 +420,9 @@ static void keyboard_enter(void *data,
 }
 
 static void keyboard_leave(void *data,
-		      struct wl_keyboard *wl_keyboard,
-		      uint32_t serial,
-		      struct wl_surface *surface){
-				lprintf( "keyboard_leave");
+                           struct wl_keyboard *wl_keyboard,
+                           uint32_t serial,
+                           struct wl_surface *surface){
 	if( surface ) {
 		PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
 		struct pendingKey *key;
@@ -446,11 +450,11 @@ static void keyboard_leave(void *data,
 
 
 static void keyboard_key(void *data,
-		    struct wl_keyboard *wl_keyboard,
-		    uint32_t serial,
-		    uint32_t time,
-		    uint32_t key,
-		    uint32_t state)
+                         struct wl_keyboard *wl_keyboard,
+                         uint32_t serial,
+                         uint32_t time,
+                         uint32_t key,
+                         uint32_t state)
 {
 	PXPANEL r = wl.hVidFocused;
 	if( !r )  {
@@ -462,11 +466,13 @@ static void keyboard_key(void *data,
 	xkb_state_update_key( wl.xkb_state, key+8, state == WL_KEYBOARD_KEY_STATE_PRESSED?XKB_KEY_DOWN:XKB_KEY_UP );
 	if (state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 		xkb_keysym_t keysym = xkb_state_key_get_one_sym (wl.xkb_state, key+8);
-lprintf( "key is still keysym home:%x(%d) pad9:%x(%d) pgup:%x(%d) symchar:%c %04x key:%02x"
-			, KEY_HOME, KEY_HOME
-			, KEY_PAD_9, KEY_PAD_9
-			, KEY_PGUP, KEY_PGUP
-			, keysym&0x7F, keysym, key);
+#ifdef DEBUG_KEY_EVENTS		
+		lprintf( "key is still keysym home:%x(%d) pad9:%x(%d) pgup:%x(%d) symchar:%c %04x key:%02x"
+					, KEY_HOME, KEY_HOME
+					, KEY_PAD_9, KEY_PAD_9
+					, KEY_PGUP, KEY_PGUP
+					, keysym&0x7F, keysym, key);
+#endif			
 		uint32_t keycode;
 		int extended = ((keysym&0xff00)==0xFF00);
 		if( keysym & 0xFF00 && !extended ) 
@@ -607,7 +613,9 @@ static const struct wl_keyboard_listener keyboard_listener = {
 
 static void xdg_surface_configure ( void *data, struct xdg_surface* xdg_surface, uint32_t serial ){
 	PXPANEL r= (PXPANEL)data;
-	lprintf( "xdg_surface_ack_configure %p", xdg_surface );
+#ifdef DEBUG_SURFACE_INIT	
+	//lprintf( "xdg_surface_ack_configure %p", xdg_surface );
+#endif	
 	xdg_surface_ack_configure( xdg_surface, serial );
 
 }
@@ -617,7 +625,9 @@ static struct xdg_surface_listener const xdg_surface_listener = {
 };
 
 static void xdg_wm_base_ping( void*data, struct xdg_wm_base*base, uint32_t serial){
+#ifdef DEBUG_SURFACE_INIT	
 	lprintf( "xdg_wm_base_ping pong...");
+#endif
 	xdg_wm_base_pong( base,serial);
 }
 static struct xdg_wm_base_listener const xdg_wm_base_listener = {
@@ -936,7 +946,9 @@ static struct wl_buffer * allocateBuffer( PXPANEL r )
 
 	//static struct wl_shm_pool *pool; if( !pool ) pool = wl_shm_create_pool(wl.shm, fd, size);
 	struct wl_shm_pool *pool = wl_shm_create_pool(wl.shm, fd, size);
+#ifdef DEBUG_COMMIT_BUFFER_DETAILS	
 	lprintf( "Allocating a buffer: %d %d %d", r->w, r->h, r->w*r->h*4);
+#endif	
 	r->buff = wl_shm_pool_create_buffer(pool, 0, /* starting offset */
 					r->w, r->h,
 					stride,
@@ -998,35 +1010,15 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	r->buff = r->buffers[curBuffer];
 
 	if( !r->buff ) {
+#if defined(DEBUG_COMMIT_ATTACH )
 		lprintf( "Allocate NEW buffer" );
+#endif		
 		// haven't actually allocated a bufer yet... so do so...
 		allocateBuffer(r);
 		r->buffer_images[curBuffer] = RemakeImage( r->buffer_images[curBuffer], r->shm_data, r->w, r->h );
 		if( r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES] ) {
-#if defined(DEBUG_COMMIT_ATTACH )
-			lprintf( "Copy old buffer to new current buffer...%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES);
-			if(0)
-			{
-				uint64_t tick = timeGetTime64ns();
-				uint64_t endtick;
-				Image a, b;
-				a = MakeImageFile( 800, 600 );
-				b = MakeImageFile( 800, 600 );
-				{
-					endtick = timeGetTime64ns();
-					lprintf( "end Direct copy: %lld %lld", endtick, endtick - tick );
-					BlotImage( a, b, 0, 0 );
-					endtick = timeGetTime64ns();
-					lprintf( "end copy: %lld %lld", endtick, endtick - tick );
-				}
-				UnmakeImageFile( a );
-				UnmakeImageFile( b );
-				endtick = timeGetTime64ns();
-				lprintf( "end copy test: %lld %lld", endtick, endtick - tick );
-			}
-#endif			
+			//lprintf( "Copy old buffer to new current buffer...%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES);
 			BlotImage( r->buffer_images[curBuffer], r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], 0, 0 );
-			lprintf( "copied.." );
 		}
 
 		r->buffers[curBuffer] = r->buff;
@@ -1052,7 +1044,9 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 
 
 static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
+#if defined( DEBUG_SURFACE_ATTACH )
 	lprintf( "attachNewBuffer... req %d,  locked %d", req, locked);
+#endif	
 	if( !r->surface ) return FALSE; 
 	//lprintf( "attachNewBuffer2... (have a surface)");
 	struct wl_buffer *next = nextBuffer(r, 0);
@@ -1114,7 +1108,7 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 			lprintf( "Attach New Buffer is really still waiting for a new buffer !!!!!!!!!!!!!!!! ");
 		}
 	} else {
-		lprintf( "Commit any damage...");
+		//lprintf( "Commit any damage... (flush was needed after commit)");
 		wl_surface_commit( r->surface );
 		wl_display_flush( wl.display );
 	}
@@ -1350,9 +1344,12 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 				Release( req );
 			}
 			drawing = 0;
-		} else {
+		}
+#if defined( DEBUG_REDRAW )		
+		 else {
 			lprintf( "Draw is already dispatched ");
 		}
+#endif		
 		if( sleepTime > 0 ) // mouse events might want to tick off quickly
 		{
 			if( wl.display ) {
@@ -1377,14 +1374,16 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 			return 1;
 		} else {
 			if( drewSome ) {
+#if defined( DEBUG_REDRAW )		
 				lprintf( "don't sleep here... %d", psv );
+#endif				
 				return 1;
 			}
 			//lprintf( "sleeping here... %d", psv );
 			return 0;
 		}
 	} else {
-		lprintf( "Idle call?  bad thread?");
+		//lprintf( "Idle call?  bad thread?");
 		return -1;
 	}
 	return 0;
@@ -1637,11 +1636,15 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 				ReleaseEx( r->pending_title DBG_SRC );
 				r->pending_title = NULL;
 			}
+#ifdef DEBUG_SURFACE_INIT
 			lprintf( "xdg_surface_init... %p", r->shell_surface );
+#endif			
 
 			xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
 			// must commit to get a config
+#ifdef DEBUG_SURFACE_INIT
 			lprintf( "Commiting shell initalization (with flush)" );
+#endif			
 			wl_surface_commit( r->surface );
 			// must also wait to get config.
 			wl_display_flush( wl.display );
@@ -1664,7 +1667,9 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			return FALSE;
 		}
 	}
+#ifdef DEBUG_SURFACE_INIT
 	lprintf( " ---- surface frame is setup...");
+#endif	
 	r->frame_callback = wl_surface_frame( r->surface );
 	wl_callback_add_listener( r->frame_callback, &frame_listener, r );
 	r->flags.canDamage = 1;
@@ -1692,7 +1697,9 @@ static void sack_wayland_Redraw_( PRENDERER renderer, int noCallback, volatile i
 
 	if( redrawState != 5 ) {
 		//if( redrawState == 300 )DebugBreak();
+#ifdef DEBUG_REDRAW
 		lprintf( "Redraw dispatched to display...%d  %d", redrawState, noCallback );
+#endif
 	} else {
 		// this is just the application being generous, it is in
 		// its own redraw callback; and can't draw yet
@@ -1729,22 +1736,33 @@ static void sack_wayland_Redraw_( PRENDERER renderer, int noCallback, volatile i
 		r->flags.canCommit = 0; // don't allow sub-daamages to commit... just damage  (if this gets a frame callback it'll reset and flush early)
 		if( !noCallback && r->pRedrawCallback ) {
 			redrawState = 5;
+#if defined( DEBUG_REDRAW )		
 			lprintf( "dispatch redraw...");
+#endif			
 			r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
+#if defined( DEBUG_REDRAW )		
 			lprintf( "dispatched redraw...");
+#endif			
 			redrawState = 6;
 		} else {
 			redrawState = 7;
 			r->flags.commited = 1; // no real draw (closed?)
+#if defined( DEBUG_REDRAW )		
 			lprintf( "No redraw callback, forcing commit");
+#endif			
 		}
+#if defined( DEBUG_REDRAW )		
 		lprintf( "Dirty? after draw %d", r->flags.dirty );
+#endif		
 		if( r->flags.dirty ){
 			redrawState = 8;
 			attachNewBuffer( r, 1, 1 );
-		}else {
-			lprintf( "!! Nothing was dirty; something" );
 		}
+#if defined( DEBUG_REDRAW )		
+		else {
+			lprintf( "!! Nothing was dirty; no nothing" );
+		}
+#endif		
 		LeaveCriticalSec( &wl.cs_wl );
 		redrawState = -1;
 		//if( r->flags.commited ){
@@ -1866,7 +1884,9 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( (int)w < 0 ) w = r->w;
 	if( (int)h < 0 ) h = r->h;
+#ifdef DEBUG_UPDATE_DISPLAY
 	_lprintf( DBG_RELAY )( "UpdateDisplayPortionEx %p %d %d %d %d", r->surface, x, y, w, h );
+#endif	
 	EnterCriticalSec( &wl.cs_wl );
 	if( r->surface ) {
 		wl_surface_damage( r->surface, x, y, w, h );
@@ -1880,7 +1900,9 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 
 //	lprintf( "update DIpslay Ex" );
+#ifdef DEBUG_UPDATE_DISPLAY
 	lprintf( "Update whole surface %d %d", r->w, r->h );
+#endif	
 
 	EnterCriticalSec( &wl.cs_wl );
 	if( r->surface ) {
