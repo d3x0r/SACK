@@ -1,6 +1,5 @@
 #define _INCLUDE_CLIPBOARD
 #define _INCLUDE_TEXTMETRIC
-#define DEFINES_DEKWARE_INTERFACE
 
 #include <stdhdrs.h>
 #include <stdio.h> // sprintf ?

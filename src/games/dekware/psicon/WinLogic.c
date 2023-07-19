@@ -3,7 +3,6 @@
 #define USE_IMAGE_INTERFACE ImageInterface
 #endif
 #include <stdhdrs.h>
-//#define DEFINES_DEKWARE_INTERFACE
 #include "consolestruc.h"
 //#include "interface.h"
 #include "history.h"
