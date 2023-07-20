@@ -903,7 +903,13 @@ struct process_id_pair {
 };
 
 void ProcIdFromParentProcId( DWORD dwProcessId, PDATALIST *ppdlProcs ) {
+	if( !dwProcessId ) {
+		lprintf( "Don't search for proces id 0..." );
+		ppdlProcs[0] = NULL;
+		return;
+	}
 	struct process_id_pair pair = { 0, dwProcessId };
+	DWORD dwMe = GetCurrentProcessId();
 	PDATALIST pdlProcs = CreateDataList( sizeof( struct process_id_pair ) );// vector<PROCID> vec;
 	int i = 0;
 	INDEX maxId = 1;
@@ -920,6 +926,7 @@ void ProcIdFromParentProcId( DWORD dwProcessId, PDATALIST *ppdlProcs ) {
 		if( Process32First( hp, &pe ) ) {
 			do {
 				idx = minId-1;  // NEXTALL steps index 1.
+				if( pe.th32ParentProcessID == dwMe ) continue;
 				//lprintf( "Check  %d %d", pe.th32ParentProcessID, pe.th32ProcessID );
 				DATA_NEXTALL( pdlProcs, idx, struct process_id_pair*, procId ) {
 					//lprintf( " subCheck %d %d %d %d", idx, maxId, pe.th32ParentProcessID, procId->child );
@@ -928,7 +935,7 @@ void ProcIdFromParentProcId( DWORD dwProcessId, PDATALIST *ppdlProcs ) {
 						found = 1;
 						pair.parent = procId->child;
 						pair.child = pe.th32ProcessID;
-						lprintf( "Found child %d %d", pair.parent, pair.child );
+						//lprintf( "Found child %d %d", pair.parent, pair.child );
 						AddDataItem( &pdlProcs, &pair );
 					}
 				}
@@ -1409,25 +1416,41 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 	return FALSE;
 }
 
-
-uintptr_t CPROC TerminateProgram( PTASK_INFO task )
-{
+uintptr_t TerminateProgramEx( PTASK_INFO task, int options ) {
 	//lprintf( "TerminateProgram Task?%p %d", task, task->flags.closed );
-	if( task )
-	{
-		if( !task->flags.closed )
-		{
+	if( task ) {
+		if( !task->flags.closed ) {
 			task->flags.closed = 1;
 			//lprintf( "%ld, %ld %p %p", task->pi.dwProcessId, task->pi.dwThreadId, task->pi.hProcess, task->pi.hThread );
 
 #if defined( WIN32 )
-			// if not already ended...
-			if( WaitForSingleObject( task->pi.hProcess, 0 ) != WAIT_OBJECT_0 )
-			{
-				if( !TerminateProcess( task->pi.hProcess, 0xD3ed ) )
-				{
-					//HANDLE hTmp;
-					lprintf( "Failed to terminate process... " );
+			if( options & TERMINATE_PROGRAM_CHAIN ) {
+				INDEX idx;
+				struct process_id_pair* pair;
+				PDATALIST pdlProcs;
+				PLINKSTACK stack = NULL;
+				ProcIdFromParentProcId( task->pi.dwProcessId, &pdlProcs );
+				DATA_FORALL( pdlProcs, idx, struct process_id_pair*, pair ) {
+					lprintf( "Got Pair: %d %d", pair->parent, pair->child );
+					PushLink( &stack, pair );
+					//dwKillId = pair->child;
+				}
+				while( pair = (struct process_id_pair*)PopLink( &stack ) ) {
+					HANDLE hChild = OpenProcess( PROCESS_ALL_ACCESS, FALSE, pair->child );
+					if( hChild != INVALID_HANDLE_VALUE ) {
+						TerminateProcess( hChild, 0xdead );
+						CloseHandle( hChild );
+					} else lprintf( "Failed to open child process handle...", GetLastError() );
+				}
+				DeleteLinkStack( &stack );
+				DeleteDataList( &pdlProcs );
+			} else {
+				// if not already ended...
+				if( WaitForSingleObject( task->pi.hProcess, 0 ) != WAIT_OBJECT_0 ) {
+					if( !TerminateProcess( task->pi.hProcess, 0xD3ad ) ) {
+						//HANDLE hTmp;
+						lprintf( "Failed to terminate process... " );
+					}
 				}
 			}
 #else
@@ -1439,6 +1462,13 @@ uintptr_t CPROC TerminateProgram( PTASK_INFO task )
 		}
 	}
 	return 0;
+
+}
+
+
+uintptr_t TerminateProgram( PTASK_INFO task )
+{
+	return TerminateProgramEx( task, 0 );
 }
 
 //--------------------------------------------------------------------------
@@ -1740,7 +1770,7 @@ void ImpersonateInteractiveUser( void )
 		hProcess =
 			OpenProcess(
 							PROCESS_ALL_ACCESS,
-							TRUE,
+							FALSE,
 							processID );
 
 		if( hProcess)
@@ -1791,7 +1821,7 @@ HANDLE GetImpersonationToken( void )
 		hProcess =
 			OpenProcess(
 							PROCESS_ALL_ACCESS,
-							TRUE,
+							FALSE,
 							processID );
 
 		if( hProcess)
@@ -1909,6 +1939,7 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 			if( execinfo.lpFile ) Deallocate( LPCWSTR, execinfo.lpFile );
 			if( execinfo.lpDirectory ) Deallocate( LPCWSTR, execinfo.lpDirectory );
 			task->pi.hProcess = execinfo.hProcess;
+			task->pi.dwProcessId = GetProcessId( task->pi.hProcess );
 			task->pi.hThread = 0;
 			return TRUE;
 		}

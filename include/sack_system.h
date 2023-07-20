@@ -101,6 +101,18 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgram )( CTEXTSTR program, CTEXTSTR path, PCTEX
 // abort task, no kill signal, sigabort basically.  Use StopProgram for a more graceful terminate.
 // if (!StopProgram(task)) TerminateProgram(task) would be appropriate.
 SYSTEM_PROC( uintptr_t, TerminateProgram )( PTASK_INFO task );
+
+enum terminate_program_flags {
+	TERMINATE_PROGRAM_CHAIN = 1,
+	TERMINATE_PROGRAM_CHILDMOST = 2,
+};
+// abort task, no kill signal, sigabort basically.  Use StopProgram for a more graceful terminate.
+// if (!StopProgram(task)) TerminateProgram(task) would be appropriate.
+// additional flags from the enum terminate_program_flags may be used.
+//   _CHAIN = terminate the whole chain, starting from child-most task.
+//   _CHILDMOST = terminate the youngest child in the chain.
+SYSTEM_PROC( uintptr_t, TerminateProgramEx )( PTASK_INFO task, int options );
+
 SYSTEM_PROC( void, ResumeProgram )( PTASK_INFO task );
 // get first address of program startup code(?) Maybe first byte of program code?
 SYSTEM_PROC( uintptr_t, GetProgramAddress )( PTASK_INFO task );
