@@ -904,7 +904,7 @@ struct process_id_pair {
 
 void ProcIdFromParentProcId( DWORD dwProcessId, PDATALIST *ppdlProcs ) {
 	if( !dwProcessId ) {
-		lprintf( "Don't search for proces id 0..." );
+		//lprintf( "Don't search for proces id 0..." );
 		ppdlProcs[0] = NULL;
 		return;
 	}
@@ -935,8 +935,17 @@ void ProcIdFromParentProcId( DWORD dwProcessId, PDATALIST *ppdlProcs ) {
 						found = 1;
 						pair.parent = procId->child;
 						pair.child = pe.th32ProcessID;
+						{
+							INDEX idx;
+							struct process_id_pair* procId;
+							DATA_FORALL( pdlProcs, idx, struct process_id_pair*, procId ) {
+								if( procId->parent == pair.parent && procId->child == pair.child ) break;
+							}
+							if( !procId ) AddDataItem( &pdlProcs, &pair );
+
+						}
 						//lprintf( "Found child %d %d", pair.parent, pair.child );
-						AddDataItem( &pdlProcs, &pair );
+						
 					}
 				}
 			} while( Process32Next( hp, &pe ) );
