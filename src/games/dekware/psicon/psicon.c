@@ -708,7 +708,7 @@ static void CPROC DrawString( PCONSOLE_INFO pdp, int x, int y, RECT *r, TEXTCHAR
 	GetStringRenderSizeFontEx( s, nShow, &w, &h, NULL, pdp->psicon.hFont );
 	r->right = r->left + w;
 	r->bottom = r->top + h;
-	PutStringFontEx( pdp->psicon.image, x, y
+	PutStringFontEx( pdp->psicon.image, x, y, h
 						, pdp->psicon.crText, pdp->psicon.crBack
 						, s + nShown
 						, nShow, pdp->psicon.hFont );

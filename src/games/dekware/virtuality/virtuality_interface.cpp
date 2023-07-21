@@ -97,7 +97,7 @@ static void UpdateLabel( struct virtuality_object *vobj, CTEXTSTR text )
 	ResizeImage( vobj->label, w, h );
 	SetImageTransformRelation( vobj->label, IMAGE_TRANSFORM_RELATIVE_CENTER, NULL );
 	ClearImage( vobj->label );
-	PutString( vobj->label, 0, 0, BASE_COLOR_WHITE, 0, text );
+	PutString( vobj->label, 0, 0, 0, BASE_COLOR_WHITE, 0, text );
 }
 static int GetVector( VECTOR pos, PSENTIENT ps, PTEXT *parameters, LOGICAL log_error )
 {
