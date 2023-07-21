@@ -96,15 +96,11 @@ static uint32_t CPROC DrawString( Image window, SFTFont font, int x, int y, CDAT
 	uint32_t width;
 	//lprintf( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX", console, s, nShown, nShow,x,y,r->left,r->top
 	//		 , console->psicon.crText, console->psicon.crBack );
-	if( 1 /*debug*/)
-	{
-		uint32_t w, h;
-		width = GetStringSizeFontEx( s + nShown, nShow, &w, &h, font );
-		r->right = r->left + w;
-		r->bottom = r->top + h;
-		//lprintf( "Output string (%d-%d)  (%d-%d) %*.*s", (*r).left, (*r).right, (*r).top, (*r).bottom, nShow, nShow, s + nShown );
-	}
-	PutStringFontEx( window, x, y
+	uint32_t w, h;
+	width = GetStringSizeFontEx( s + nShown, nShow, &w, &h, font );
+	r->right = r->left + w;
+	r->bottom = r->top + h;
+	PutStringFontEx( window, x, y, h
 						, crText, crBack
 						, s + nShown
 						, nShow

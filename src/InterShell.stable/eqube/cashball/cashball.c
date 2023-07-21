@@ -139,7 +139,7 @@ static int OnDrawCommon( "Cashball" )( PSI_CONTROL pc )
 		{
 			uint32_t w, h;
 			GetStringSizeFontEx( cashball_local.value, StrLen( cashball_local.value ), &w, &h, *cashball_local.font );
-			PutStringFontEx( surface, ( surface->width - w ) / 2, (surface->height - h ) / 2, cashball_local.text, 0, cashball_local.value, StrLen( cashball_local.value ), *cashball_local.font );
+			PutStringFontEx( surface, ( surface->width - w ) / 2, (surface->height - h ) / 2, 0, cashball_local.text, 0, cashball_local.value, StrLen( cashball_local.value ), *cashball_local.font );
 		}
 
 	}

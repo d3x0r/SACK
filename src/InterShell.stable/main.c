@@ -2871,17 +2871,17 @@ void CPROC DrawEditGlare( uintptr_t psv, Image surface )
 							  , nButton++
 							  );
 					PutString( surface
-								, (int32_t)x + 15, (int32_t)y + 15, BASE_COLOR_WHITE, 0
+								, (int32_t)x + 15, (int32_t)y + 15, 0, BASE_COLOR_WHITE, 0
 								, buttonname );
 					{
 						TEXTCHAR position_text[25];
 						snprintf( position_text, sizeof( position_text ), "%lld,%lld", button->x, button->y );
 						PutString( surface
-									, (int32_t)x + 15, (int32_t)y + 28, BASE_COLOR_WHITE, 0
+									, (int32_t)x + 15, (int32_t)y + 28, 0, BASE_COLOR_WHITE, 0
 									, position_text );
 						snprintf( position_text, sizeof( position_text ), "%lldx%lld", button->w, button->h );
 						PutString( surface
-									, (int32_t)x + 15, (int32_t)y + 41, BASE_COLOR_WHITE, 0
+									, (int32_t)x + 15, (int32_t)y + 41, 0, BASE_COLOR_WHITE, 0
 									, position_text );
 
 					}
@@ -2938,11 +2938,11 @@ void CPROC DrawEditGlare( uintptr_t psv, Image surface )
 						TEXTCHAR position_text[25];
 						snprintf( position_text, sizeof( position_text ), "%d,%d", canvas->selection.x, canvas->selection.y );
 						PutString( surface
-									, (int32_t)x + 15, (int32_t)y + 28, BASE_COLOR_WHITE, 0
+									, (int32_t)x + 15, (int32_t)y + 28, 0, BASE_COLOR_WHITE, 0
 									, position_text );
 						snprintf( position_text, sizeof( position_text ), "%dx%d", canvas->selection.w, canvas->selection.h );
 						PutString( surface
-									, (int32_t)x + 15, (int32_t)y + 41, BASE_COLOR_WHITE, 0
+									, (int32_t)x + 15, (int32_t)y + 41, 0, BASE_COLOR_WHITE, 0
 									, position_text );
 
 					}
@@ -3091,7 +3091,7 @@ static int OnDrawCommon( "Menu Canvas" )( PSI_CONTROL pf )
 					int y = 15;
 					int skip = GetFontHeight( (*font ) );
 					PutStringFont( surface
-								, (int32_t)15, (int32_t)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
+								, (int32_t)15, (int32_t)y, 0, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
 								, "There are no controls defined...", (*font) );
 					//y += skip;
 					//PutStringFont( surface
@@ -3111,7 +3111,7 @@ static int OnDrawCommon( "Menu Canvas" )( PSI_CONTROL pf )
 				int y = 15;
 				int skip = GetFontHeight( (*font ) );
 				PutStringFont( surface
-							, (int32_t)15, (int32_t)y, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
+							, (int32_t)15, (int32_t)y, 0, BASE_COLOR_WHITE, SetAlpha( BASE_COLOR_BLACK, 90 )
 							, "There are no pages defined!!!", (*font) );
 
 			}

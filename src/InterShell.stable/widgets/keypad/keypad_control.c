@@ -513,21 +513,21 @@ static int CPROC DrawKeypadDisplay( PSI_CONTROL pc )
 			if( pKeyPad->flags.bLeftJustify )
 				PutStringFont( surface
 								 , 3
-								 , ( display->height - height ) / 2
+								 , ( display->height - height ) / 2, height
 								 , pKeyPad->display_text_color, 0
 								 , output
 								 , display->font );
 			else if( pKeyPad->flags.bCenterJustify )
 				PutStringFont( surface
 								 , ( display->width - width ) / 2
-								 , ( display->height - height ) / 2
+								 , ( display->height - height ) / 2, height
 								 , pKeyPad->display_text_color, 0
 								 , output
 								 , display->font );
 			else
 				PutStringFont( surface
 								 , display->width - ( width + 3 )
-								 , ( display->height - height ) / 2
+								 , ( display->height - height ) / 2, height
 								 , pKeyPad->display_text_color, 0
 								 , output
 								 , display->font );

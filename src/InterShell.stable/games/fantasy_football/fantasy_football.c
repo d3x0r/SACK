@@ -749,6 +749,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFont( surface
 							, ScaleValue( &ffl.scoreboard.leader.x, surface->width ) - (w/2)
 							, ScaleValue( &ffl.scoreboard.leader.x, surface->height ) - (h /2)
+							, 0
 							, SetAlpha( BASE_COLOR_BLACK, percent * 255 / 25 )
 							, 0
 							, text
@@ -759,6 +760,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFont( surface
 							, ScaleValue( &ffl.scoreboard.leader.x, surface->width ) - (w/2)
 							, ScaleValue( &ffl.scoreboard.leader.x, surface->height ) - (h/2)
+							, 0
 							, BASE_COLOR_BLACK
 							, 0
 							, text
@@ -792,6 +794,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFontEx( surface
 							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2)
 							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h /2)
+							, 0
 							, SetAlpha( BASE_COLOR_BLACK, (percent - 25) * 255 / 12 )
 							, 0
 							, text, offset[0]
@@ -803,6 +806,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFontEx( surface
 							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2)
 							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h /2)
+							, 0
 							, BASE_COLOR_BLACK
 							, 0
 							, text, offset[0]
@@ -810,6 +814,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFontEx( surface
 							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2) + w1
 							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h/2)
+							, 0
 							, SetAlpha( BASE_COLOR_BLACK, (percent - 37) * 255 / 13 )
 							, 0
 							, text + length[0], offset[1]
@@ -821,6 +826,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFontEx( surface
 							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2)
 							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h /2)
+							, 0
 							, BASE_COLOR_BLACK
 							, 0
 							, text, length[1]
@@ -828,6 +834,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFontEx( surface
 							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2) + w1
 							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h/2)
+							, 0
 							, SetAlpha( BASE_COLOR_BLACK, (percent - 50) * 255 / 12 )
 							, 0
 							, text + length[1], offset[2]
@@ -839,6 +846,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFontEx( surface
 							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2)
 							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h /2)
+							, 0
 							, BASE_COLOR_BLACK
 							, 0
 							, text, length[2]
@@ -846,6 +854,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFontEx( surface
 							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2) + w1
 							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h/2)
+							, 0
 							, SetAlpha( BASE_COLOR_BLACK, (percent - 67) * 255 / 13 )
 							, 0
 							, text + length[2], offset[3]
@@ -856,6 +865,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFont( surface
 							, ScaleValue( &ffl.scoreboard.down.x, surface->width ) - (w/2)
 							, ScaleValue( &ffl.scoreboard.down.x, surface->height ) - (h/2)
+							, 0
 							, BASE_COLOR_BLACK
 							, 0
 							, text
@@ -876,6 +886,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFont( surface
 							, ScaleValue( &ffl.scoreboard.total.x, surface->width ) - (w/2)
 							, ScaleValue( &ffl.scoreboard.total.x, surface->height ) - (h /2)
+							, 0
 							, SetAlpha( BASE_COLOR_BLACK, (percent - 75) * 255 / 25 )
 							, 0
 							, text
@@ -886,6 +897,7 @@ static void DrawScoreText( PSI_CONTROL pc )
 						PutStringFont( surface
 							, ScaleValue( &ffl.scoreboard.total.x, surface->width ) - (w/2)
 							, ScaleValue( &ffl.scoreboard.total.x, surface->height ) - (h/2)
+							, 0
 							, BASE_COLOR_BLACK
 							, 0
 							, text

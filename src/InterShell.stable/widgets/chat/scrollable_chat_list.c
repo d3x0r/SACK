@@ -1428,6 +1428,7 @@ void DrawAMessage( Image window, PCHAT_LIST list
 								+ ( ( x_offset_right - x_offset_left ) 
 								- ( context->extra_width + context->max_width ) )
 						, list->display.message_top// + l.received.BorderSegment[SEGMENT_TOP]->height
+						, 0
 						, l.sent.text_color, 0
 						, timebuf
 						, StrLen( timebuf ), list->date_font, 0, max_width );
@@ -1443,6 +1444,7 @@ void DrawAMessage( Image window, PCHAT_LIST list
 			PutStringFontExx( window, x_offset_left 
 									+ ( ( x_offset_right - x_offset_left ) 
 									- ( max_width ) )
+						, 0
 							, h + list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height
 							, l.sent.text_color, 0
 							, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, context->max_width );
@@ -1461,6 +1463,7 @@ void DrawAMessage( Image window, PCHAT_LIST list
 
 		PutStringFontExx( window, x_offset_left
 						, list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height
+						, 0
 						, l.sent.text_color, 0
 						, timebuf
 						, StrLen( timebuf ), list->date_font, 0, context->max_width );
@@ -1474,6 +1477,7 @@ void DrawAMessage( Image window, PCHAT_LIST list
 		if( msg->formatted_text )
 			PutStringFontExx( window, x_offset_left 
 							, h + list->display.message_top //+ l.received.BorderSegment[SEGMENT_TOP]->height
+						, 0
 							, l.received.text_color, 0
 							, msg->formatted_text, msg->formatted_text_len, list->received_font, 0, max_width );
 	}
@@ -1589,6 +1593,7 @@ restart:
 							,x
 							, list->display.message_top - context->formatted_height
 							, l.sent.text_color, 0
+						   , 0
 							, context->formatted_sender
 							, StrLen( context->formatted_sender ), list->sender_font, 0, max_width );
 		}

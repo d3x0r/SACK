@@ -171,7 +171,7 @@ static int OnDrawCommon( "Countdown Timer" )( PSI_CONTROL pc )
 		{
 			uint32_t w, h;
 			GetStringSizeFontEx( buf, 2, &w, &h, *countdown_local.font );
-			PutStringFontEx( surface, ( surface->width - w ) / 2, (surface->height - h ) / 2, countdown_local.text, 0, buf, 2, *countdown_local.font );
+			PutStringFontEx( surface, ( surface->width - w ) / 2, (surface->height - h ) / 2, 0, countdown_local.text, 0, buf, 2, *countdown_local.font );
 		}
 	}
 	return 1;

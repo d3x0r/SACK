@@ -112,7 +112,7 @@ static int OnDrawCommon( CONTROL_NAME )( PSI_CONTROL pc )
 			uint32_t w, h;
 			GetStringSizeFont( message, &w, &h, l.image_help_font );
 			BlatColorAlpha( surface, 0, 0, w + 15, h + 6, l.help_text_background );
-			PutStringFont( surface, 5, 3, l.help_text_color, 0
+			PutStringFont( surface, 5, 3, 0, l.help_text_color, 0
 						, message
 						, l.image_help_font );
 		}

@@ -343,19 +343,19 @@ static void DrawBannerCaption( PSI_CONTROL pc, PBANNER banner, Image surface, TE
 			maxw = w + 4;
 		PutStringFontEx( surface
 							, x+2
-							, y+2
+							, y+2, 0
 							, SetAlpha( ~color, 0x80 ), 0
 							, start, end-start
 							, banner_local.custom_font?banner_local.custom_font:explorer?banner_local.explorer_font:banner_local.font );
 		PutStringFontEx( surface
 							, x-2
-							, y-2
+							, y-2, 0
 							, SetAlpha( ~color, 0x80 ), 0
 							, start, end-start
 							, banner_local.custom_font?banner_local.custom_font:explorer?banner_local.explorer_font:banner_local.font );
 		PutStringFontEx( surface
 							, x
-							, y
+							, y, 0
 							, color, 0
 							, start, end-start
 							, banner_local.custom_font?banner_local.custom_font:explorer?banner_local.explorer_font:banner_local.font );

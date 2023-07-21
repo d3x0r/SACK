@@ -685,7 +685,7 @@ int CPROC DrawButtonText( PSI_CONTROL pc, Image surface, PKEY_BUTTON key )
 			}
 			//lprintf( "output %s at %ld", layout->content, layout->y );
 			PutStringFont( surface
-							 , layout->x + xofs, layout->y + yofs
+							 , layout->x + xofs, layout->y + yofs, h
 							 , key->flags.bGreyed?BASE_COLOR_WHITE:layout->text
 							 , 0
 							 , layout->content
@@ -784,7 +784,7 @@ int CPROC DrawButtonText( PSI_CONTROL pc, Image surface, PKEY_BUTTON key )
 					if( 0 )
 						lprintf( "Finally string is %s at %d,%d max %d", text, textx, texty, key->height );
 					PutStringFontEx( surface
-										, textx, texty
+										, textx, texty, text_height
 										, key->flags.bGreyed?BASE_COLOR_WHITE:key->text_color
 										, 0
 										, text
