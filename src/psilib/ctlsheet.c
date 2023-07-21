@@ -203,7 +203,7 @@ static int CPROC DrawSheetControl( PSI_CONTROL pc )
 					else
 						color = basecolor(pc)[TEXTCOLOR];
 					//lprintf( "Putting string out at %d,%d %s", x + 4, 3, GetText( sheet->content->caption.text ) );
-					PutStringFont( surface, x + ( tab_width - sheet->tab_width) / 2, (psc->height - TAB_HEIGHT)/2, color, 0
+					PutStringFont( surface, x + ( tab_width - sheet->tab_width) / 2, (psc->height - TAB_HEIGHT)/2, 0, color, 0
 									 , GetText( sheet->content->caption.text), font );
 				}
 				//else
@@ -242,7 +242,7 @@ static int CPROC DrawSheetControl( PSI_CONTROL pc )
 					else
 						color = basecolor(pc)[SHADE];
 					//lprintf( "Putting string out at %d,%d %s", x + 4, 3, GetText( sheet->content->caption.text ) );
-					PutStringFont( surface, x + (tab_width-sheet->tab_width)/2, (psc->height - TAB_HEIGHT)/2, color, 0
+					PutStringFont( surface, x + (tab_width-sheet->tab_width)/2, (psc->height - TAB_HEIGHT)/2, 0, color, 0
 									 , GetText( sheet->content->caption.text), font );
 				}
 				//else

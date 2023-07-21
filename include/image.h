@@ -982,7 +982,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
 // background of color 0,0,0 is transparent - alpha component does not
 // matter....
    IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterFont              )( Image pImage
-                                                  , int32_t x, int32_t y
+                                                  , int32_t x, int32_t y, int32_t height
                                                   , CDATA color, CDATA background,
                                                    TEXTCHAR c, SFTFont font );
    /* Outputs a string in the specified font, from the specified
@@ -998,7 +998,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       c :           the character to output
       font :        the font to use. NULL use an internal default
                     font.                                          */
-   IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterVerticalFont      )( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
+   IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterVerticalFont      )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
    /* Outputs a string in the specified font, from the specified
       point, text is drawn from the point to the left, with the
       characters aligned with the top to the left; it goes up from
@@ -1014,14 +1014,14 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       nLen :        length of text to output
       font :        the font to use. NULL use an internal default
                     font.                                           */
-   IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterInvertFont        )( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
+   IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterInvertFont        )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
    /* Outputs a character in the specified font, from the specified
       point, text is drawn from the point up, with the characters
       aligned with the top to the left; it goes up from the point. the
       point becomes the bottom left of the rectangle output.
       Parameters
                                                                        */
-   IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterVerticalInvertFont)( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
+   IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterVerticalInvertFont)( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 
    /* Outputs a string in the specified font, from the specified
       point, text is drawn right side up and godes from left to
@@ -1037,9 +1037,9 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       nLen :        length of text to output
       font :        the font to use. NULL use an internal default
                     font.                                         */
-   IMAGE_PROC  void IMAGE_API IMGVER(PutStringFontEx              )( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+   IMAGE_PROC  void IMAGE_API IMGVER(PutStringFontEx              )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
    /* justification 0 is left, 1 is right, 2 is center */
-   IMAGE_PROC  void IMAGE_API IMGVER(PutStringFontExx              )( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font, int justication, uint32_t _width );
+   IMAGE_PROC  void IMAGE_API IMGVER(PutStringFontExx              )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font, int justication, uint32_t _width );
    /* Outputs a string in the specified font, from the specified
       point, text is drawn from the point down, with the characters
       aligned with the top to the right; it goes down from the
@@ -1055,7 +1055,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       nLen :        length of text to output
       font :        the font to use. NULL use an internal default
                     font.                                           */
-   IMAGE_PROC  void IMAGE_API IMGVER(PutStringVerticalFontEx      )( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+   IMAGE_PROC  void IMAGE_API IMGVER(PutStringVerticalFontEx      )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 
    /* Outputs a string in the specified font, from the specified
       point, text is drawn upside down, and goes to the left from
@@ -1071,7 +1071,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       nLen :        length of text to output
       font :        the font to use. NULL use an internal default
                     font.                                         */
-   IMAGE_PROC  void IMAGE_API IMGVER(PutStringInvertFontEx        )( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+   IMAGE_PROC  void IMAGE_API IMGVER(PutStringInvertFontEx        )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
    /* Outputs a string in the specified font, from the specified
       point, text is drawn from the point up, with the characters
       aligned with the top to the left; it goes up from the point. the
@@ -1086,7 +1086,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
       nLen :        length of text to output
       font :        the font to use. NULL use an internal default
                     font.                                              */
-   IMAGE_PROC  void IMAGE_API IMGVER(PutStringInvertVerticalFontEx)( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+   IMAGE_PROC  void IMAGE_API IMGVER(PutStringInvertVerticalFontEx)( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 
    //uint32_t (*PutMenuStringFontEx)            ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, uint32_t nLen, SFTFont font );
    //uint32_t (*PutCStringFontEx)               ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, uint32_t nLen, SFTFont font );
@@ -1654,36 +1654,36 @@ typedef struct image_interface_tag
 /* <combine sack::image::PutCharacterFont@Image@int32_t@int32_t@CDATA@CDATA@uint32_t@SFTFont>
    
    Internal
-   Interface index 33                                                           */   IMAGE_PROC_PTR( void,PutCharacterFont)              ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
+   Interface index 33                                                           */   IMAGE_PROC_PTR( void,PutCharacterFont)              ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 /* <combine sack::image::PutCharacterVerticalFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    Internal
-   Interface index 34                                                                                        */   IMAGE_PROC_PTR( void,PutCharacterVerticalFont)      ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
+   Interface index 34                                                                                        */   IMAGE_PROC_PTR( void,PutCharacterVerticalFont)      ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 /* <combine sack::image::PutCharacterInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    Internal
-   Interface index 35                                                                                      */   IMAGE_PROC_PTR( void,PutCharacterInvertFont)        ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
+   Interface index 35                                                                                      */   IMAGE_PROC_PTR( void,PutCharacterInvertFont)        ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 /* <combine sack::image::PutCharacterVerticalInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    Internal
-   Interface index 36                                                                                              */   IMAGE_PROC_PTR( void,PutCharacterVerticalInvertFont)( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
+   Interface index 36                                                                                              */   IMAGE_PROC_PTR( void,PutCharacterVerticalInvertFont)( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 
 /* <combine sack::image::PutStringFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    Internal
-   Interface index 37                                                                                   */   IMAGE_PROC_PTR( void,PutStringFontEx)              ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+   Interface index 37                                                                                   */   IMAGE_PROC_PTR( void,PutStringFontEx)              ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 /* <combine sack::image::PutStringVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    Internal
-   Interface index 38                                                                                           */   IMAGE_PROC_PTR( void,PutStringVerticalFontEx)      ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+   Interface index 38                                                                                           */   IMAGE_PROC_PTR( void,PutStringVerticalFontEx)      ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 /* <combine sack::image::PutStringInvertFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    Internal
-   Interface index 39                                                                                         */   IMAGE_PROC_PTR( void,PutStringInvertFontEx)        ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+   Interface index 39                                                                                         */   IMAGE_PROC_PTR( void,PutStringInvertFontEx)        ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 /* <combine sack::image::PutStringInvertVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    Internal
-   Interface index 40                                                                                                 */   IMAGE_PROC_PTR( void,PutStringInvertVerticalFontEx)( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
+   Interface index 40                                                                                                 */   IMAGE_PROC_PTR( void,PutStringInvertVerticalFontEx)( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 
 /* <combine sack::image::GetMaxStringLengthFont@uint32_t@SFTFont>
    
@@ -1905,7 +1905,7 @@ IMAGE_PROC_PTR( LOGICAL, IsImageTargetFinal )( Image image );
 // it is a new image instance that should be used for future app references...
 IMAGE_PROC_PTR( Image, ReuseImage )( Image image );
 IMAGE_PROC_PTR( void, PutStringFontExx )( Image pImage
-											 , int32_t x, int32_t y
+											 , int32_t x, int32_t y, int32_t height
 											 , CDATA color, CDATA background
 											 , CTEXTSTR pc, size_t nLen, SFTFont font, int justification, uint32_t _width );
 // sometimes it's not possible to use blatcolor to clear an imate...
@@ -2506,75 +2506,75 @@ IMAGE_PROC  void IMAGE_API IMGVER(FlipImageEx )( Image pif DBG_PASS );
 /* <combine sack::image::PutCharacterFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    \ \                                                                               */
-#define PutCharacter(i,x,y,fore,back,c)               PutCharacterFont(i,x,y,fore,back,c,NULL )
+#define PutCharacter(i,x,y,h,fore,back,c)               PutCharacterFont(i,x,y,h,fore,back,c,NULL )
 /* <combine sack::image::PutCharacterVerticalFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    Passes default font if not specified.                                                     */
-#define PutCharacterVertical(i,x,y,fore,back,c)       PutCharacterVerticalFont(i,x,y,fore,back,c,NULL )
+#define PutCharacterVertical(i,x,y,h,fore,back,c)       PutCharacterVerticalFont(i,x,y,h,fore,back,c,NULL )
 /* <combine sack::image::PutCharacterInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    \ \                                                                                     */
-#define PutCharacterInvert(i,x,y,fore,back,c)         PutCharacterInvertFont(i,x,y,fore,back,c,NULL )
+#define PutCharacterInvert(i,x,y,h,fore,back,c)         PutCharacterInvertFont(i,x,y,h,fore,back,c,NULL )
 /* <combine sack::image::PutCharacterVerticalInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    \ \                                                                                             */
-#define PutCharacterInvertVertical(i,x,y,fore,back,c) PutCharacterInvertVerticalFont(i,x,y,fore,back,c,NULL )
+#define PutCharacterInvertVertical(i,x,y,h,fore,back,c) PutCharacterInvertVerticalFont(i,x,y,h,fore,back,c,NULL )
 /* <combine sack::image::PutCharacterVerticalInvertFont@Image@int32_t@int32_t@CDATA@CDATA@TEXTCHAR@SFTFont>
    
    \ \                                                                                             */
-#define PutCharacterInvertVerticalFont(i,x,y,fore,back,c,f) PutCharacterVerticalInvertFont(i,x,y,fore,back,c,f )
+#define PutCharacterInvertVerticalFont(i,x,y,h,fore,back,c,f) PutCharacterVerticalInvertFont(i,x,y,h,fore,back,c,f )
 
 /* <combine sack::image::PutStringFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                  */
-#define PutString(pi,x,y,fore,back,pc) PutStringFontEx( pi, x, y, fore, back, pc, StrLen(pc), NULL )
+#define PutString(pi,x,y,h,fore,back,pc) PutStringFontEx( pi, x, y, h,fore, back, pc, StrLen(pc), NULL )
 /* <combine sack::image::PutStringFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                  */
-#define PutStringEx(pi,x,y,color,back,pc,len) PutStringFontEx( pi, x, y, color,back,pc,len,NULL )
+#define PutStringEx(pi,x,y,h,color,back,pc,len) PutStringFontEx( pi, x, y, h,color,back,pc,len,NULL )
 /* <combine sack::image::PutStringFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                  */
-#define PutStringFont(pi,x,y,fore,back,pc,font) PutStringFontEx(pi,x,y,fore,back,pc,StrLen(pc), font )
+#define PutStringFont(pi,x,y,h,fore,back,pc,font) PutStringFontEx(pi,x,y,h,fore,back,pc,StrLen(pc), font )
 
 /* <combine sack::image::PutStringVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                          */
-#define PutStringVertical(pi,x,y,fore,back,pc) PutStringVerticalFontEx( pi, x, y, fore, back, pc, StrLen(pc), NULL )
+#define PutStringVertical(pi,x,y,h,fore,back,pc) PutStringVerticalFontEx( pi, x, y, h,fore, back, pc, StrLen(pc), NULL )
 /* <combine sack::image::PutStringVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                          */
-#define PutStringVerticalEx(pi,x,y,color,back,pc,len) PutStringVerticalFontEx( pi, x, y, color,back,pc,len,NULL )
+#define PutStringVerticalEx(pi,x,y,h,color,back,pc,len) PutStringVerticalFontEx( pi, x, y, h,color,back,pc,len,NULL )
 /* <combine sack::image::PutStringVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                          */
-#define PutStringVerticalFont(pi,x,y,fore,back,pc,font) PutStringVerticalFontEx(pi,x,y,fore,back,pc,StrLen(pc), font )
+#define PutStringVerticalFont(pi,x,y,h,fore,back,pc,font) PutStringVerticalFontEx(pi,x,y,h,fore,back,pc,StrLen(pc), font )
 
 /* <combine sack::image::PutStringInvertFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                        */
-#define PutStringInvert( pi, x, y, fore, back, pc ) PutStringInvertFontEx( pi, x, y, fore, back, pc,StrLen(pc), NULL )
+#define PutStringInvert( pi, x, y,h, fore, back, pc ) PutStringInvertFontEx( pi, x, y,h, fore, back, pc,StrLen(pc), NULL )
 /* <combine sack::image::PutStringInvertFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                        */
-#define PutStringInvertEx( pi, x, y, fore, back, pc, nLen ) PutStringInvertFontEx( pi, x, y, fore, back, pc, nLen, NULL )
+#define PutStringInvertEx( pi, x, y,h, fore, back, pc, nLen ) PutStringInvertFontEx( pi, x, y,h, fore, back, pc, nLen, NULL )
 /* <combine sack::image::PutStringInvertFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    The non Ex Version doesn't pass the string length.                                         */
-#define PutStringInvertFont( pi, x, y, fore, back, pc, nLen ) PutStringInvertFontEx( pi, x, y, fore, back, pc, StrLen(pc), font )
+#define PutStringInvertFont( pi, x, y, h,fore, back, pc, nLen ) PutStringInvertFontEx( pi, x, y, h,fore, back, pc, StrLen(pc), font )
 
 /* <combine sack::image::PutStringInvertVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                                */
-#define PutStringInvertVertical( pi, x, y, fore, back, pc ) PutStringInvertVerticalFontEx( pi, x, y, fore, back, pc, StrLen(pc), NULL )
+#define PutStringInvertVertical( pi, x, y,h, fore, back, pc ) PutStringInvertVerticalFontEx( pi, x, y,h, fore, back, pc, StrLen(pc), NULL )
 /* <combine sack::image::PutStringInvertVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                                */
-#define PutStringInvertVerticalEx( pi, x, y, fore, back, pc, nLen ) PutStringInvertVerticalFontEx( pi, x, y, fore, back, pc, nLen, NULL )
+#define PutStringInvertVerticalEx( pi, x, y, h,fore, back, pc, nLen ) PutStringInvertVerticalFontEx( pi, x, y, h,fore, back, pc, nLen, NULL )
 /* <combine sack::image::PutStringInvertVerticalFontEx@Image@int32_t@int32_t@CDATA@CDATA@CTEXTSTR@uint32_t@SFTFont>
    
    \ \                                                                                                */
-#define PutStringInvertVerticalFont( pi, x, y, fore, back, pc, font ) PutStringInvertVerticalFontEx( pi, x, y, fore, back, pc, StrLen(pc), font )
+#define PutStringInvertVerticalFont( pi, x, y, h,fore, back, pc, font ) PutStringInvertVerticalFontEx( pi, x, y, h,fore, back, pc, StrLen(pc), font )
 
 //IMG_PROC uint32_t PutMenuStringFontEx        ( ImageFile *pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, uint32_t nLen, PFONT font );
 //#define PutMenuStringFont(img,x,y,fore,back,string,font) PutMenuStringFontEx( img,x,y,fore,back,string,StrLen(string),font)

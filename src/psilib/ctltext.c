@@ -70,12 +70,12 @@ static int CPROC OnDrawCommon( STATIC_TEXT_NAME )( PSI_CONTROL pc )
 		case 3: // right align - default to left align for now.
 			if( pc->flags.bVertical )
 				PutStringVerticalFont( surface
-											, ( (int)surface->width - (int)width ) / 2, ( (int)surface->height - (int)height )
+											, ( (int)surface->width - (int)width ) / 2, ( (int)surface->height - (int)height ), 0
 											, ptc->foreground, 0
 											, GetText( pc->caption.text ), font );
 			else
 				PutStringFont( surface
-								 , (int)ptc->offset + (int)surface->width - (int)width, ( (int)surface->height - (int)height ) / 2
+								 , (int)ptc->offset + (int)surface->width - (int)width, ( (int)surface->height - (int)height ) / 2, 0
 								 , ptc->foreground, 0
 								 , GetText( pc->caption.text ), font );
 			break;
@@ -84,12 +84,12 @@ static int CPROC OnDrawCommon( STATIC_TEXT_NAME )( PSI_CONTROL pc )
 		case 1: // left
 			if( pc->flags.bVertical )
 				PutStringVerticalFont( surface
-											, ( (int)surface->width - (int)width ) / 2 , 0
+											, ( (int)surface->width - (int)width ) / 2 , 0, 0
 											, ptc->foreground, 0
 											, GetText( pc->caption.text ), font );
 			else
 				PutStringFont( surface
-								 , ptc->offset, ( (int)surface->height - (int)height ) / 2
+								 , ptc->offset, ( (int)surface->height - (int)height ) / 2, 0
 								 , ptc->foreground
 								 , 0
 								 , GetText( pc->caption.text ), font );
@@ -101,7 +101,7 @@ static int CPROC OnDrawCommon( STATIC_TEXT_NAME )( PSI_CONTROL pc )
 				if( pc->flags.bVertical )
 					PutStringVerticalFont( surface
 												, ( (int)surface->width - (int)height ) / 2
-												, ptc->offset + ( (int)surface->height - (int)width ) / 2
+												, ptc->offset + ( (int)surface->height - (int)width ) / 2, 0
 												, ptc->foreground
 												, 0
 												, GetText( pc->caption.text ), font );
@@ -113,7 +113,7 @@ static int CPROC OnDrawCommon( STATIC_TEXT_NAME )( PSI_CONTROL pc )
                   // okay we don't know how to get the shadow color have to extedn that
 						PutStringFont( surface
 										 , ptc->offset + ( ( (int)surface->width - (int)width ) / 2 )
-										 , ( (int)surface->height - (int)height ) / 2
+										 , ( (int)surface->height - (int)height ) / 2, 0
 										 , ptc->foreground
 										 , 0
 										 , GetText( pc->caption.text ), font );
@@ -121,7 +121,7 @@ static int CPROC OnDrawCommon( STATIC_TEXT_NAME )( PSI_CONTROL pc )
 					else
 						PutStringFont( surface
 										 , ptc->offset + ( ( (int)surface->width - (int)width ) / 2 )
-										 , ( (int)surface->height - (int)height ) / 2
+										 , ( (int)surface->height - (int)height ) / 2, 0
 										 , ptc->foreground
 										 , 0
 										 , GetText( pc->caption.text ), font );

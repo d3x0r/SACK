@@ -836,12 +836,14 @@ void DrawFrameCaption( PSI_CONTROL pc )
 				{
 					PutStringFont( pc->Window
 									 , TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
+									 , 0
 									 , basecolor(pc)[SHADOW], 0
 									 , GetText( pc->caption.text )
 									 , GetCommonFont(pc)
 									 );
 					PutStringFont( pc->Window
 									 , TEXT_INSET + xofs+3, (TEXT_INSET-2)+yofs+3 // Bad choice - but... works for now...
+									 , 0
 									 , basecolor(pc)[HIGHLIGHT], 0
 									 , GetText( pc->caption.text )
 									 , GetCommonFont(pc)
@@ -914,13 +916,13 @@ void DrawFrameCaption( PSI_CONTROL pc )
 								, h
 								, basecolor(pc)[INACTIVECAPTION] );
 					PutStringFont( pc->Window
-										, TEXT_INSET + xofs+1, (TEXT_INSET-2)+yofs+1 // Bad choice - but... works for now...
+										, TEXT_INSET + xofs+1, (TEXT_INSET-2)+yofs+1, 0 // Bad choice - but... works for now...
 										, basecolor(pc)[SHADOW], 0
 										, GetText( pc->caption.text )
 										, GetCommonFont(pc)
 										);
 					PutStringFont( pc->Window
-										, TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2 // Bad choice - but... works for now...
+										, TEXT_INSET + xofs+2, (TEXT_INSET-2)+yofs+2, 0 // Bad choice - but... works for now...
 										, basecolor(pc)[HIGHLIGHT], 0
 										, GetText( pc->caption.text )
 										, GetCommonFont(pc)

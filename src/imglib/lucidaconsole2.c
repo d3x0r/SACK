@@ -3417,7 +3417,7 @@ struct { unsigned short height, baseline;unsigned int chars; unsigned char flags
          PCHARACTER character[256]; }
        ___LucidaConsole13by8
 = { 
-13, 16, 256, 0, 0xC0, "LucidaConsoleRegularfixed14By14", {  (PCHARACTER)&_char_0
+13, 12, 256, 0, 0x00, "LucidaConsoleRegularfixed14By14", {  (PCHARACTER)&_char_0
  ,(PCHARACTER)&_char_1
  ,(PCHARACTER)&_char_2
  ,(PCHARACTER)&_char_3

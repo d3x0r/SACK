@@ -35,7 +35,9 @@ typedef struct font_char_tag
 typedef struct font_tag
 {
    // distance between 'lines' of text - the font may render above and below this height.
-	uint16_t height; 
+	uint16_t height;
+	//uint16_t charHeight; // if the above is line-height - this is a standard height to draw characters.
+	//							// characters at the end of a terminal block end up blanked
 	 // distance from top-left origin to character baseline.
 	 // the top of a character is now (y + baseline - ascent)
 	 // if this is more than (y) the remainder must be

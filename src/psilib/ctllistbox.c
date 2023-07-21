@@ -532,7 +532,7 @@ static void DrawLine( PSI_CONTROL pc, PLISTBOX plb, PLISTITEM pli, int y, int h 
 				right = (x + width + column);
 		}
 		//xlprintf( 1 )( "show: %d %d %d %d %d %s %s", knob, x, column, nextColumn, width, start, end);
-		PutStringFontEx( pSurface, knob + x + column, y, basecolor( pc )[EDIT_TEXT], 0, start, end - start, font );
+		PutStringFontEx( pSurface, knob + x + column, y, 0, basecolor( pc )[EDIT_TEXT], 0, start, end - start, font );
 		do_vline( pSurface, knob + nextColumn, y, y + h, lineColor );
 		if( plb->tabStops.count > pli->nLevel ) {
 			tab++;
@@ -702,11 +702,11 @@ static int OnDrawCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc )
 			}
 			if( pli->flags.bSelected )
 			{
-				PutStringFontEx( pSurface, x + column, y, basecolor(pc)[SELECT_TEXT], 0, start, end-start, font );
+				PutStringFontEx( pSurface, x + column, y, 0, basecolor(pc)[SELECT_TEXT], 0, start, end-start, font );
 			}
 			else
 			{
-				PutStringFontEx( pSurface, x + column, y, basecolor(pc)[EDIT_TEXT], 0, start, end-start, font );
+				PutStringFontEx( pSurface, x + column, y, 0, basecolor(pc)[EDIT_TEXT], 0, start, end-start, font );
 			}
 			tab++;
 			if( pli->nLevel < plb->tabStops.count ) {

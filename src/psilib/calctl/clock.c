@@ -181,6 +181,7 @@ static int CPROC psiClockDrawClock( PSI_CONTROL pc )
 				PutStringFontEx( surface
 									, (SUS_GT(surface->width,int32_t,w,uint32_t)?(( surface->width - w ) / 2):0)
 									, (SUS_GT(surface->height,int32_t,h,uint32_t)?(( surface->height - ( h * lines ) ) / 2):0) + ( line_count * h )
+									, 0
 									, pClk->textcolor, 0
 									, line, strlen( line )
 									, GetCommonFont( pc ) );

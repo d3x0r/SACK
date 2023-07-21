@@ -628,7 +628,7 @@ uint32_t ComputeToShow( uint32_t colsize, uint32_t *col_offset, PTEXT segment, P
 		phbr->measureString( phbr->psvMeasure, GetText( segment ) + nShown
 			, (int)(seglen - nShown), &nLenSize, &nLenHeight, font );
 
-		if( ( nLenSize + ( *col_offset ) ) > colsize || nLenHeight > (uint32_t)phbr->nLineHeight ) {
+		if( ( nLenSize + ( *col_offset ) ) > colsize /* || nLenHeight > (uint32_t)phbr->nLineHeight*/ ) {
 			uint32_t good_space_size;
 			LOGICAL has_good_space = FALSE;
 			uint32_t good_space = 0;

@@ -243,7 +243,7 @@ typedef struct myconsolestruc {
 	// Rendering Methods for console_core library external methods...
 
 	void (CPROC *FillConsoleRect)( struct myconsolestruc *pmdp, RECT *r, enum fill_color_type );
-	void (CPROC *DrawString)( struct myconsolestruc *pmdp, int x, int y, RECT *r, CTEXTSTR s, int nShown, int nShow );
+	void (CPROC *DrawString)( struct myconsolestruc *pmdp, int x, int y, int height, RECT *r, CTEXTSTR s, int nShown, int nShow );
 	void (CPROC *SetCurrentColor )( struct myconsolestruc *pmdp, enum current_color_type, PTEXT segment );
 	int (CPROC *RenderSeparator )( struct myconsolestruc *pmdp, int pos ); // allow width to be returned.
 	void (CPROC *KeystrokePaste )( struct myconsolestruc *pmdp );

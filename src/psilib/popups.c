@@ -235,7 +235,7 @@ void RenderItem( PMENU pm, PMENUITEM pmi )
 			      , pm->width, pmi->height + 2
 			      , basecolor(pm->image)[NORMAL] );
 		PutMenuStringFont( surface
-			              , MENU_HORZPAD + CHECK_WIDTH, pmi->baseline + 1
+			              , MENU_HORZPAD + CHECK_WIDTH, pmi->baseline + 1, 0
 			              , basecolor(pm->image)[TEXTCOLOR], 0
 			              , pmi->data.text.text, pm->font );
 		pmi->height = GetFontHeight( pm->font );

@@ -186,7 +186,7 @@ static int OnDrawCommon( CONTROL_SCROLL_KNOB_NAME )( PSI_CONTROL pc )
 		if( !knob->knob_sprite )
 		{
 			ClearImageTo( surface, BASE_COLOR_RED );
-			PutString( surface, 0, 0, BASE_COLOR_WHITE, 0, "No Image" );
+			PutString( surface, 0, 0, 0, BASE_COLOR_WHITE, 0, "No Image" );
 			return 1;
 		}
 		ClearImageTo( surface, 0x1000001 );

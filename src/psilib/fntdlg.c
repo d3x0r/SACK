@@ -130,9 +130,9 @@ static int CPROC UpdateSample( PSI_CONTROL pc )
 			pfd->Update( pfd->psvUpdate, pfd->pFont );
 		ClearImageTo( surface, Color( 92, 91, 42 ) );
 		PutStringFont( surface
-						 , 5, 5
+						 , 5, 5, 0
 						 , Color( 255,255,255 ), Color( 82, 82, 82 )
-						 , "The Quick Brown Fox"
+						 , "The Quick Brown (Fox)"
 						 , pfd->pFont );
 	}
 	return 1;

@@ -196,7 +196,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 					tmp = GetDisplayableCharactersAtCount( string, Start );
 					nBytes = GetDisplayableCharacterBytes( tmp, nLen );
 					//lprintf( "Showing %d of string in normal color before select...", nLen );
-					PutStringFontEx( pc->Surface, x, pe->top_side_pad
+					PutStringFontEx( pc->Surface, x, pe->top_side_pad, 0
 											 , basecolor(pc)[EDIT_TEXT], basecolor(pc)[EDIT_BACKGROUND]
 									, tmp, nBytes, font );
 					x += GetStringSizeFontEx( tmp, nBytes, NULL, NULL, font );
@@ -207,7 +207,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 					nLen = pe->MaxShowLen - ofs;
 					//lprintf( "Showing %d of string in normal color after select...", nLen );
 					nBytes = GetDisplayableCharacterBytes( tmp, nLen );
-					PutStringFontEx( pc->Surface, x, pe->top_side_pad
+					PutStringFontEx( pc->Surface, x, pe->top_side_pad, 0
 											 , basecolor(pc)[EDIT_TEXT], basecolor(pc)[EDIT_BACKGROUND]
 											 , tmp, nBytes, font );
 					x += GetStringSizeFontEx( tmp, nBytes, NULL, NULL, font );
@@ -223,7 +223,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 					//lprintf( "Showing %d of string in selected color...", nLen );
 					tmp = GetDisplayableCharactersAtCount( string, Start );
 					nBytes = GetDisplayableCharacterBytes( tmp, nLen );
-					PutStringFontEx( pc->Surface, x, pe->top_side_pad
+					PutStringFontEx( pc->Surface, x, pe->top_side_pad, 0
 											 , basecolor(pc)[SELECT_TEXT], basecolor(pc)[SELECT_BACK]
 											 , tmp, nBytes, font );
 					x += GetStringSizeFontEx( tmp, nBytes, NULL, NULL, font );
@@ -236,7 +236,7 @@ static int OnDrawCommon( EDIT_FIELD_NAME )( PSI_CONTROL pc )
 		{
 			tmp = GetDisplayableCharactersAtCount( string, pe->Start );
 			nBytes = GetDisplayableCharacterBytes( tmp, pe->MaxShowLen );
-			PutStringFontEx( pc->Surface, x, pe->top_side_pad
+			PutStringFontEx( pc->Surface, x, pe->top_side_pad, 0
 								, basecolor(pc)[EDIT_TEXT], basecolor(pc)[EDIT_BACKGROUND]
 								, tmp
 								, nBytes

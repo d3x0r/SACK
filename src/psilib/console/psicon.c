@@ -38,7 +38,7 @@ PSI_CONSOLE_NAMESPACE
 
 
 #define text_alpha 255
-#define back_alpha 255
+#define back_alpha 128
 
 static CDATA crColorTableText[16];
 #if 0
@@ -449,7 +449,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 			if( PSI_ConvertXYToLineCol( console, xPos, yPos
 										 , &row, &col ) )
 			{
-				lprintf( "converted is %d,%d", row, col );
+				//lprintf( "converted is %d,%d", row, col );
 				if( console->CurrentMarkInfo == console->CurrentLineInfo )
 				{
 					if( console->flags.bUpdatingEnd )
@@ -529,7 +529,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 						console->flags.bMarking = 0;
 						console->flags.bUpdatingEnd = 0;
 					}
-					lprintf( "Smudge in mouse (0)" );
+					//lprintf( "Smudge in mouse (0)" );
 					SmudgeCommon( console->psicon.frame );
 				}
 			}
@@ -538,7 +538,7 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 				//Log( "Ending mark(2)." );
 				console->flags.bMarking = 0;
 				console->flags.bUpdatingEnd = 0;
-				lprintf( "Smudge in mouse (1)" );
+				//lprintf( "Smudge in mouse (1)" );
 				SmudgeCommon( console->psicon.frame );
 			}
 		}
@@ -768,7 +768,7 @@ void CPROC PSIMeasureString( uintptr_t psvConsole, CTEXTSTR s, int nShow, uint32
 // methods for window logic routines to use as callbacks...
 //----------------------------------------------------------------------------
 
-static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, RECT *r, CTEXTSTR s, int nShown, int nShow )
+static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, int height, RECT *r, CTEXTSTR s, int nShown, int nShow )
 {
 	//uint32_t width;
 	//lprintf( "Adding string out : %p %s start:%d len:%d at %d,%d #%08lX #%08lX", console, s, nShown, nShow,x,y,r->left,r->top
@@ -788,6 +788,7 @@ static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, RECT *r, CTEX
 		, nShow, nShow, s + nShown, console->psicon.crText, console->psicon.crBack );
 #endif 
 	PutStringFontEx( console->psicon.image, x, y
+	               , height
 						, console->psicon.crText, console->psicon.crBack
 						, s + nShown
 						, nShow
@@ -802,7 +803,7 @@ static void CPROC SetCurrentColor( PCONSOLE_INFO console, enum current_color_typ
 	{
 	case COLOR_COMMAND:
 		( console->psicon.crText = console->psicon.crCommand );
-		( console->psicon.crBack = console->psicon.crCommandBackground );
+		( console->psicon.crBack = console->psicon.crCommandBackground);
 		break;
 	case COLOR_MARK:
 		( console->psicon.crText = console->psicon.crMark );

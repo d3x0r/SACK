@@ -76,13 +76,13 @@ extern PFONT DEFAULTFONT;
 //PFONT LucidaConsole13by8 = (PFONT)&_LucidaConsole13by8;
 
 
-PFONT IMGVER(GetDefaultFont)( void )
+PFONT GetDefaultFont( void )
 {
 	return DEFAULTFONT;
 }
 
 #if __3D__
-#define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha( (Image)pRealImage->reverse_interface_instance, x, y, color ) : (void)IMGVER(plot)( pRealImage, x, y, color ) )
+#define CharPlotAlpha(pRealImage,x,y,color) ( pRealImage->reverse_interface? pRealImage->reverse_interface->_plotalpha( (Image)pRealImage->reverse_interface_instance, x, y, color ) : (void)plot( pRealImage, x, y, color ) )
 #else
 #define CharPlotAlpha(pRealImage,x,y,color) do{   \
 	CDATA *po;                                  \
@@ -180,6 +180,7 @@ enum order_type {
 static uint32_t PutCharacterFontX ( ImageFile *pImage
                              , int32_t x, int32_t y
                              , int32_t bx, int32_t by
+                             , int32_t height
                              , CDATA color, CDATA background
                              , uint32_t c, PFONT UseFont
                              , enum order_type order
@@ -203,7 +204,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		return 0;
 	// real quick -
 	if( !UseFont->character[c] )
-		IMGVER(InternalRenderFontCharacter)( NULL, UseFont, c );
+		InternalRenderFontCharacter( NULL, UseFont, c );
 
 	pchar = UseFont->character[c];
 	if( !pchar ) return 0;
@@ -212,14 +213,18 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		&& ( pImage->flags & IF_FLAG_FINAL_RENDER )
 		&& !( pImage->flags & IF_FLAG_IN_MEMORY ) )
 	{
-		Image image = IMGVER(AllocateCharacterSpaceByFont)( pImage, UseFont, UseFont->character[c] );
+		Image image = AllocateCharacterSpaceByFont( pImage, UseFont, UseFont->character[c] );
 		// it's the same characteristics... so we should just pass same step XY
 		// oh wait - that's like for lines for sideways stuff... uhmm...should get direction and render 4 bitmaps
 		//lprintf( "Render to image this character... %p", image );
 		if( pImage->reverse_interface )
-			PutCharacterFontX( pImage->reverse_interface->_GetNativeImage( image ), 0, 0, 0, 0, BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal, TRUE );
+			PutCharacterFontX( pImage->reverse_interface->_GetNativeImage( image ), 0, 0, 0, 0
+			                 , height
+			                 , BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal, TRUE );
 		else
-			PutCharacterFontX( image, 0, 0, 0, 0, BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal, TRUE );
+			PutCharacterFontX( image, 0, 0, 0, 0
+			                 , height
+			                 , BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal, TRUE );
 	}
 
 	if( ( pImage->flags & IF_FLAG_FINAL_RENDER )
@@ -279,8 +284,8 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		else
 		{
 			if( background )
-				IMGVER(BlatColorAlpha)( pImage, xd, yd, pchar->width, UseFont->height, background );
-			IMGVER(BlotImageSizedEx)( pImage, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
+				BlatColorAlpha( pImage, xd, yd, pchar->width, UseFont->height, background );
+			BlotImageSizedEx( pImage, pifSrc, xd, yd, xs, ys, pchar->cell->real_width, pchar->cell->real_height, TRUE, BLOT_SHADED|orientation, color );
 		}
 
 #else
@@ -288,7 +293,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		for( pifSrcReal = pifSrc; pifSrcReal->pParent; pifSrcReal = pifSrcReal->pParent );
 
 #ifdef _OPENGL_DRIVER
-		IMGVER(ReloadOpenGlTexture)( pifSrc, 0 );
+		ReloadOpenGlTexture( pifSrc, 0 );
 		if( !pifSrc->glActiveSurface )
 		{
 			return 0;
@@ -307,9 +312,9 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		 * only a portion of the image is actually used, the rest is filled with blank space
 		 *
 		 */
-		IMGVER(TranslateCoord)( pifDest, &xd, &yd );
-		IMGVER(TranslateCoord)( pifDest, &xd_back, &yd_back );
-		IMGVER(TranslateCoord)( pifSrc, &xs, &ys );
+		TranslateCoord( pifDest, &xd, &yd );
+		TranslateCoord( pifDest, &xd_back, &yd_back );
+		TranslateCoord( pifSrc, &xs, &ys );
 		{
 			int glDepth = 1;
 			float x_size, x_size2, y_size, y_size2;
@@ -834,10 +839,12 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col),background );
 				data += inc;
 			}
-			for(; line < UseFont->height; line++ )
-			{
-				for( col = 0; col < pchar->width; col++ )
-					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
+			if( AlphaVal( background ) ) {
+				if( !height ) height = UseFont->height;
+				for( ; line < height; line++ ) {
+					for( col = 0; col < pchar->width; col++ )
+						CharPlotAlpha( pImage, StepX( x, col, line ), StepY( y, line, col ), background );
+				}
 			}
 		}
 		else
@@ -880,7 +887,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		if( pImage->reverse_interface )
 			pImage->reverse_interface->_MarkImageDirty( (Image)pImage->reverse_interface_instance );
 		else
-			IMGVER(MarkImageUpdated)( pImage );
+			MarkImageUpdated( pImage );
 	}
 	return pchar->width;
 }
@@ -888,20 +895,22 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 static uint32_t _PutCharacterFont( ImageFile *pImage
 											  , int32_t x, int32_t y
 													, int32_t bx, int32_t by
+												, int32_t height
 											  , CDATA color, CDATA background
 											  , uint32_t c, PFONT UseFont )
 {
-	return PutCharacterFontX( pImage, x, y, bx, by, color, background, c, UseFont, OrderPoints
+	return PutCharacterFontX( pImage, x, y, bx, by, height, color, background, c, UseFont, OrderPoints
 									 , StepXNormal, StepYNormal, FALSE );
 }
 
 static uint32_t _PutCharacterVerticalFont( ImageFile *pImage
-														 , int32_t x, int32_t y
-													, int32_t bx, int32_t by
-														 , CDATA color, CDATA background
-														 , uint32_t c, PFONT UseFont )
+                                         , int32_t x, int32_t y
+                                         , int32_t bx, int32_t by
+                                         , int32_t height
+                                         , CDATA color, CDATA background
+                                         , uint32_t c, PFONT UseFont )
 {
-	return PutCharacterFontX( pImage, x, y, bx, by, color, background, c, UseFont
+	return PutCharacterFontX( pImage, x, y, bx, by, height, color, background, c, UseFont
 									 , OrderPointsVertical, StepXVertical, StepYVertical, FALSE );
 }
 
@@ -909,61 +918,67 @@ static uint32_t _PutCharacterVerticalFont( ImageFile *pImage
 static uint32_t _PutCharacterInvertFont( ImageFile *pImage
 													, int32_t x, int32_t y
 													, int32_t bx, int32_t by
+                                       , int32_t height
 													, CDATA color, CDATA background
 													, uint32_t c, PFONT UseFont )
 {
-	return PutCharacterFontX( pImage, x, y, bx, by, color, background, c, UseFont
+	return PutCharacterFontX( pImage, x, y, bx, by, height, color, background, c, UseFont
 									, OrderPointsInvert, StepXInvert, StepYInvert, FALSE );
 }
 
 static uint32_t _PutCharacterVerticalInvertFont( ImageFile *pImage
 													, int32_t x, int32_t y
 													, int32_t bx, int32_t by
+                                       , int32_t height
 													, CDATA color, CDATA background
 													, uint32_t c, PFONT UseFont )
 {
-	return PutCharacterFontX( pImage, x, y, bx, by, color, background, c, UseFont
+	return PutCharacterFontX( pImage, x, y, bx, by, height, color, background, c, UseFont
 									, OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical, FALSE );
 }
 
-void IMGVER(PutCharacterFont)( ImageFile *pImage
+void PutCharacterFont( ImageFile *pImage
 											  , int32_t x, int32_t y
 												  // , int32_t bx, int32_t by
+                                       , int32_t height
 											  , CDATA color, CDATA background
 											  , TEXTCHAR c, PFONT UseFont )
 {
-	PutCharacterFontX( pImage, x, y, x, y, color, background, c, UseFont
+	PutCharacterFontX( pImage, x, y, x, y, height, color, background, c, UseFont
 						  , OrderPointsVerticalInvert, StepXNormal, StepYNormal, FALSE );
 }
 
-void IMGVER(PutCharacterVerticalFont)( ImageFile *pImage
+void PutCharacterVerticalFont( ImageFile *pImage
                              , int32_t x, int32_t y
 												  // , int32_t bx, int32_t by
+                                       , int32_t height
                              , CDATA color, CDATA background
                              , TEXTCHAR c, PFONT UseFont )
 {
-	PutCharacterFontX( pImage, x, y, x, y, color, background, c, UseFont
+	PutCharacterFontX( pImage, x, y, x, y, color, height, background, c, UseFont
 						  , OrderPoints, StepXVertical, StepYVertical, FALSE );
 }
 
 
-void IMGVER(PutCharacterInvertFont)( ImageFile *pImage
+void PutCharacterInvertFont( ImageFile *pImage
                            , int32_t x, int32_t y
 													//, int32_t bx, int32_t by
+                                       , int32_t height
                            , CDATA color, CDATA background
                            , TEXTCHAR c, PFONT UseFont )
 {
-	PutCharacterFontX( pImage, x, y, x, y, color, background, c, UseFont
+	PutCharacterFontX( pImage, x, y, x, y, color, height, background, c, UseFont
 						  , OrderPointsInvert, StepXInvert, StepYInvert, FALSE );
 }
 
-void IMGVER(PutCharacterVerticalInvertFont)( ImageFile *pImage
+void PutCharacterVerticalInvertFont( ImageFile *pImage
                                    , int32_t x, int32_t y
 													//, int32_t bx, int32_t by
+                                       , int32_t height
                                    , CDATA color, CDATA background
                                    , TEXTCHAR c, PFONT UseFont )
 {
-	PutCharacterFontX( pImage, x, y, x, y, color, background, c, UseFont
+	PutCharacterFontX( pImage, x, y, x, y, color, height, background, c, UseFont
 						  , OrderPointsVerticalInvert, StepXInvertVertical, StepYInvertVertical, FALSE );
 }
 
@@ -982,12 +997,14 @@ static void ClearStringState( PSTRING_STATE pss )
 	pss->flags.bEscape = 0;
 }
 */
-typedef uint32_t (*CharPut)(ImageFile *pImage
-							 , int32_t x, int32_t y
-							 , CDATA fore, CDATA back
-							 , char pc
-							 , PFONT font );
 /*
+typedef uint32_t (*CharPut)(ImageFile *pImage
+                           , int32_t x, int32_t y
+                           , int32_t height
+                           , CDATA fore, CDATA back
+                           , char pc
+                           , PFONT font );
+
 static uint32_t FilterMenuStrings( ImageFile *pImage
 									 , int32_t *x, int32_t *y
 									 , int32_t xdel, int32_t ydel
@@ -1251,7 +1268,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 					if( 0 )
 						lprintf( "Finally string is %s at %d,%d max %d", (*pc), textx, texty, key->height );
 					PutStringFontEx( surface
-										, textx, texty
+										, textx, texty, height
 										, key->flags.bGreyed?BASE_COLOR_WHITE:key->text_color
 										, 0
 										, (*pc)
@@ -1285,7 +1302,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 	return ch;
 }
 
-void IMGVER(PutStringVerticalFontEx)( ImageFile *pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
+void PutStringVerticalFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	uint32_t _y = y;
    uint32_t _x = x;
@@ -1316,13 +1333,13 @@ void IMGVER(PutStringVerticalFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 			y = _y;
 		}
 		else {
-			y += _PutCharacterVerticalFont( pImage, x, y, x-bias_x, y-bias_y, color, background, ch, font );
+			y += _PutCharacterVerticalFont( pImage, x, y, x-bias_x, y-bias_y, height, color, background, ch, font );
 		}
 	}
 	return;// y;
 }
 
-void IMGVER(PutStringInvertVerticalFontEx)( ImageFile *pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
+void PutStringInvertVerticalFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	uint32_t _y = y;
    uint32_t _x = x;
@@ -1353,14 +1370,14 @@ void IMGVER(PutStringInvertVerticalFontEx)( ImageFile *pImage, int32_t x, int32_
 			y = _y;
 		}
 		else
-			y -= _PutCharacterVerticalInvertFont( pImage, x, y, x-bias_x, y-bias_y, color, background, ch, font );
+			y -= _PutCharacterVerticalInvertFont( pImage, x, y, x-bias_x, y-bias_y, height, color, background, ch, font );
 	}
 	return;// y;
 }
 
-void IMGVER(PutStringFontEx)( ImageFile *pImage
+void PutStringFontEx( ImageFile *pImage
 											 , int32_t x, int32_t y
-											 , CDATA color, CDATA background
+											 , int32_t height, CDATA color, CDATA background
 											 , CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	uint32_t _x = x;
@@ -1395,15 +1412,15 @@ void IMGVER(PutStringFontEx)( ImageFile *pImage
 				x = _x;
 			}
 			else
-				x += _PutCharacterFont( pImage, x, y, x-bias_x, y-bias_y, color, background, ch, font );
+				x += _PutCharacterFont( pImage, x, y, x-bias_x, y-bias_y, height, color, background, ch, font );
 		}
 	}
 	return;// x;
 }
 
-void IMGVER(PutStringFontExx)( ImageFile *pImage
+void PutStringFontExx( ImageFile *pImage
 											 , int32_t x, int32_t y
-											 , CDATA color, CDATA background
+											 , int32_t height, CDATA color, CDATA background
 											 , CTEXTSTR pc, size_t nLen, PFONT font, int justification, uint32_t _width )
 {
 	uint32_t length = 0;
@@ -1447,7 +1464,7 @@ void IMGVER(PutStringFontExx)( ImageFile *pImage
 					while( start != pc )
 					{
 						int ch2 = GetUtfChar( &start );
-						x += _PutCharacterFont( pImage, x, y, x-bias_x, y-bias_y, color, background, ch2, font );
+						x += _PutCharacterFont( pImage, x, y, x-bias_x, y-bias_y, height, color, background, ch2, font );
 					}
 					start++;
 					y += font->height;
@@ -1470,14 +1487,14 @@ void IMGVER(PutStringFontExx)( ImageFile *pImage
 					x = _x;
 				}
 				else
-					x += _PutCharacterFont( pImage, x, y, x-bias_x, y-bias_y, color, background, ch, font );
+					x += _PutCharacterFont( pImage, x, y, x-bias_x, y-bias_y, height, color, background, ch, font );
 			}
 		}
 	}
 	return;// x;
 }
 
-void IMGVER(PutStringInvertFontEx)( ImageFile *pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
+void PutStringInvertFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	uint32_t _x = x;
 	uint32_t _y = y;
@@ -1509,12 +1526,12 @@ void IMGVER(PutStringInvertFontEx)( ImageFile *pImage, int32_t x, int32_t y, CDA
 			x = _x;
 		}
 		else
-			x -= _PutCharacterInvertFont( pImage, x, y, x-bias_x, y-bias_y, color, background, ch, font );
+			x -= _PutCharacterInvertFont( pImage, x, y, x-bias_x, y-bias_y, height, color, background, ch, font );
 	}
 	return;// x;
 }
 
-uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT UseFont )
+uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT UseFont )
 {
 	uint32_t _x = x;
 	uint32_t _y = y;
@@ -1551,7 +1568,7 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 		}
 		if( !ch ) // just in case '&' was end of string...
 			break;
-		w = _PutCharacterFont( pImage, x, y, x-bias_x, y-bias_y, color, background, ch, UseFont );
+		w = _PutCharacterFont( pImage, x, y, x-bias_x, y-bias_y, height, color, background, ch, UseFont );
 		if( bUnderline )
 			do_line( pImage, x, y + UseFont->height -1,
 								  x + w, y + UseFont->height -1, color );
@@ -1560,7 +1577,7 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 	return x;
 }
 
- uint32_t  IMGVER(GetMenuStringSizeFontEx) ( CTEXTSTR string, size_t len, int *width, int *height, PFONT font )
+ uint32_t  GetMenuStringSizeFontEx ( CTEXTSTR string, size_t len, int *width, int *height, PFONT font )
 {
 	int _width;
 	CDATA tmp1 = 0;
@@ -1581,28 +1598,28 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 				break;
 		}
 		if( !font->character[ch] )
-			IMGVER(InternalRenderFontCharacter)( NULL, font, ch );
+			InternalRenderFontCharacter( NULL, font, ch );
 		*width += font->character[ch]->width;
 	}
 	return *width;
 }
 
- uint32_t  IMGVER(GetMenuStringSizeFont) ( CTEXTSTR string, int *width, int *height, PFONT font )
+ uint32_t  GetMenuStringSizeFont ( CTEXTSTR string, int *width, int *height, PFONT font )
 {
-	return IMGVER(GetMenuStringSizeFontEx)( string, StrLen( string ), width, height, font );
+	return GetMenuStringSizeFontEx( string, StrLen( string ), width, height, font );
 }
 
- uint32_t  IMGVER(GetMenuStringSizeEx) ( CTEXTSTR string, int len, int *width, int *height )
+ uint32_t  GetMenuStringSizeEx ( CTEXTSTR string, int len, int *width, int *height )
 {
-	return IMGVER(GetMenuStringSizeFontEx)( string, len, width, height, DEFAULTFONT );
+	return GetMenuStringSizeFontEx( string, len, width, height, DEFAULTFONT );
 }
 
- uint32_t  IMGVER(GetMenuStringSize) ( CTEXTSTR string, int *width, int *height )
+ uint32_t  GetMenuStringSize ( CTEXTSTR string, int *width, int *height )
 {
-	return IMGVER(GetMenuStringSizeFontEx)( string, StrLen( string ), width, height, DEFAULTFONT );
+	return GetMenuStringSizeFontEx( string, StrLen( string ), width, height, DEFAULTFONT );
 }
 
- uint32_t  IMGVER(GetStringSizeFontEx) ( CTEXTSTR pString, size_t nLen, uint32_t *width, uint32_t *height, PFONT UseFont )
+ uint32_t  GetStringSizeFontEx ( CTEXTSTR pString, size_t nLen, uint32_t *width, uint32_t *height, PFONT UseFont )
 {
 	uint32_t _width, max_width, _height;
 	PCHARACTER *chars;
@@ -1621,7 +1638,7 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 	if( !UseFont->character[0] )
 	{
 		size_t n = 0; // get first character.
-		IMGVER(InternalRenderFontCharacter)(  NULL, UseFont, pString? GetUtfCharIndexed( pString, &n, nLen ):0 );
+		InternalRenderFontCharacter(  NULL, UseFont, pString? GetUtfCharIndexed( pString, &n, nLen ):0 );
 	}
 	if( !width )
 		width = &_width;
@@ -1653,12 +1670,15 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 			}
 			else if( !chars[character] )
 			{
-				IMGVER(InternalRenderFontCharacter)(  NULL, UseFont, character );
+				InternalRenderFontCharacter(  NULL, UseFont, character );
+				chars = UseFont->character;
 				// the NUL character may not have a height associated with it...
 				// so keep trying to set intial height as new characters are added.
 				if( !(*height) )
 					(*height) = UseFont->height;
 			}
+			int lastLine = UseFont->baseline - ( chars[character] ?chars[character]->descent:0);
+			if( lastLine > height[0] ) height[0] = lastLine;
 			if( ( character < UseFont->characters ) && chars[character] )
 				*width += chars[character]->width;
 		}
@@ -1679,7 +1699,7 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 
 // used to compute the actual output size
 //
- uint32_t  IMGVER(GetStringRenderSizeFontEx) ( CTEXTSTR pString, size_t nLen, uint32_t *width, uint32_t *height, uint32_t *charheight, PFONT UseFont )
+ uint32_t  GetStringRenderSizeFontEx ( CTEXTSTR pString, size_t nLen, uint32_t *width, uint32_t *height, uint32_t *charheight, PFONT UseFont )
 {
 	uint32_t _width, max_width, _height;
 	uint32_t maxheight = 0;
@@ -1690,7 +1710,7 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 	// a character must be rendered before height can be computed.
 	if( !UseFont->character[0] )
 	{
-		IMGVER(InternalRenderFontCharacter)(  NULL, UseFont, pString?pString[0]:0 );
+		InternalRenderFontCharacter(  NULL, UseFont, pString?pString[0]:0 );
 	}
 	if( !height )
 		height = &_height;
@@ -1714,7 +1734,7 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 			}
 			else if( !chars[ch] )
 			{
-				IMGVER(InternalRenderFontCharacter)(  NULL, UseFont, ch );
+				InternalRenderFontCharacter(  NULL, UseFont, ch );
 			}
 			if( chars[ch] )
 			{
@@ -1741,7 +1761,7 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 }
 
 
- uint32_t  IMGVER(GetMaxStringLengthFont) ( uint32_t width, PFONT UseFont )
+ uint32_t  GetMaxStringLengthFont ( uint32_t width, PFONT UseFont )
 {
 	if( !UseFont )
 		UseFont = DEFAULTFONT;
@@ -1751,13 +1771,13 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 	return 0;
 }
 
- uint32_t  IMGVER(GetFontHeight) ( PFONT font )
+ uint32_t  GetFontHeight ( PFONT font )
 {
 	if( font )
 	{
 		if( !font->height )
 		{
-			IMGVER(InternalRenderFontCharacter)( NULL, font, ' ' );
+			InternalRenderFontCharacter( NULL, font, ' ' );
 		}
 		//lprintf( "Resulting with %d height", font->height );
 		return font->height;
@@ -1765,16 +1785,15 @@ uint32_t IMGVER(PutMenuStringFontEx)( ImageFile *pImage, int32_t x, int32_t y, C
 	return DEFAULTFONT->height;
 }
 
-void IMGVER(SetFontBias)( SFTFont font, int32_t x, int32_t y )
+void SetFontBias( SFTFont font, int32_t x, int32_t y )
 {
 	if( font )
 	{
-		font->bias = ( x + ( y << 4 ) ) & 0xFF;
+		font->bias = ( x & 0xF ) | ( ( y & 0xF ) << 4 );
 		//font->bias_x = x;
 		//font->bias_y = y;
 	}
 }
-
 
 PRELOAD( InitColorDefaults )
 {

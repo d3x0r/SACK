@@ -121,6 +121,7 @@ void DrawButtonCaption( PSI_CONTROL pc, PBUTTON pb, int xofs, int yofs, CDATA co
 			maxw = w;
 		PutStringFontEx( pc->Surface
 							, pb->ofs_x + xofs - w/2, pb->ofs_y + y + yofs
+							, 0
 							, color, 0
 							, start, end-start
 							, font );
@@ -1092,7 +1093,7 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 		x = height + (height/3);
 		if( !pc->flags.bDisable )
 		{
-			PutStringFont( pc->Surface, x, 0, basecolor(pc)[TEXTCOLOR], 0, GetText( pc->caption.text), GetCommonFont( pc ) );
+			PutStringFont( pc->Surface, x, 0, 0, basecolor(pc)[TEXTCOLOR], 0, GetText( pc->caption.text), GetCommonFont( pc ) );
 			if( pc->flags.bFocused )
 			{
 				uint32_t end, h;
@@ -1104,8 +1105,8 @@ static int CPROC DrawCheckButton( PSI_CONTROL pc )
 		}
 		else
 		{
-			PutStringFont( pc->Surface, x+1, 1, basecolor(pc)[HIGHLIGHT], 0, GetText( pc->caption.text), GetCommonFont( pc ) );
-			PutStringFont( pc->Surface, x, 0, basecolor(pc)[SHADOW], 0, GetText( pc->caption.text), GetCommonFont( pc ) );
+			PutStringFont( pc->Surface, x+1, 1, 0, basecolor(pc)[HIGHLIGHT], 0, GetText( pc->caption.text), GetCommonFont( pc ) );
+			PutStringFont( pc->Surface, x, 0, 0, basecolor(pc)[SHADOW], 0, GetText( pc->caption.text), GetCommonFont( pc ) );
 		}
 	}
 	return 1;

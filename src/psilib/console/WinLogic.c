@@ -107,7 +107,7 @@ static void RenderTextLine(
 #endif
 			return;
 		}
-		(*r).top = pCurrentLine->nLineTop - nBottomOffset;
+		(*r).top = pCurrentLine->nLineTop + nBottomOffset;
 		if( nFirst >= 0 )
 			(*r).bottom = (*r).top + pCurrentLine->nLineHeight + 2;
 		else
@@ -127,7 +127,6 @@ static void RenderTextLine(
 		if( !pCurrentLine->nPixelStart ) {
 			r->left = 0;
 			r->right = pdp->nXPad;
-			//lprintf( "Rect is %d-%d   %d-%d", r->left, r->right, r->top, r->bottom );
 			if( pdp->FillConsoleRect )
 				pdp->FillConsoleRect(pdp, r, FILL_DISPLAY_BACK );
 		}
@@ -338,7 +337,7 @@ static void RenderTextLine(
 					(*r).right = (*r).left + nSegSize;
 					if( pdp->DrawString )
 						//pdp->DrawString( pdp, x, y, r, text, nShown, nShow );
-						pdp->DrawString( pdp, (*r).left, y, r, text, nShown, nShow );
+						pdp->DrawString( pdp, (*r).left, y, nLine?0:nSegHeight, r, text, nShown, nShow );
 					(*r).left = (*r).right;
 					if( nLine == 0 )  // only keep the (last) line's end.
 						pdp->nNextCharacterBegin = (*r).right;
@@ -370,9 +369,9 @@ static void RenderTextLine(
 #ifdef DEBUG_HISTORY_RENDER
 				lprintf( "Fill empty to right (%d-%d)  (%d-%d)", (*r).left, (*r).right, (*r).top, (*r).bottom );
 #endif
-				if( nLine || bClearEnd )
-					if( pdp->FillConsoleRect )
-						pdp->FillConsoleRect( pdp, r, FILL_DISPLAY_BACK );
+				//if( nLine || bClearEnd )
+				//	if( pdp->FillConsoleRect )
+				//		pdp->FillConsoleRect( pdp, r, FILL_DISPLAY_BACK );
 				//FillConsoleRect();
 			}
 		}
@@ -488,16 +487,17 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	upd.top = pdp->nDisplayLineStartDynamic - pdp->nFontHeight;
 	upd.bottom = r.bottom;
 
+	//lprintf( "start rect %d,%d  %d,%d, upd: %d,%d  %d,%d", r.left, r.top, r.left, r.right, upd.left, upd.top, upd.right, upd.bottom );
 
 	{
 		// totally set the background of the command thingy...
 		// previously the putstring would have done the rect fill...
 		// but now we need to just put text data over a solid backgorund...
 		r.right = pdp->nWidth;
-		r.top -= toppad;
+		//r.top -= toppad;
 		if( pdp->FillConsoleRect )
 			pdp->FillConsoleRect( pdp, &r, FILL_COMMAND_BACK );
-		r.top += toppad;
+		//r.top += toppad;
 	}
 
 	// the normal prompt string will have the current
@@ -513,6 +513,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		int skip_lines;
 		PDISPLAYED_LINE pdlCommand;
 		skip_lines = 0;
+		//lprintf( "Command line is wrapped ?" );
 		lines = CountDisplayedLines( pdp->pCommandDisplay );
 		if( !lines )
 			lines = 1;
@@ -535,7 +536,8 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		else
 		{
 			pdlCommand = (PDISPLAYED_LINE)GetDataItem( GetDisplayInfo( pdp->pCommandDisplay ), lines-1 );
-			//lprintf( "Input parameters to setting line %d %d %d %d", pdp->nCommandLineStart, pdlCommand->nLineTop, pdp->nYPad, pdp->nCmdLinePad );
+			//lprintf( "Input parameters to setting line %d %d %d %d", pdp->nCommandLineStart
+			//					, pdlCommand->nLineTop, pdp->nYPad, pdp->nCmdLinePad );
 			pdp->nDisplayLineStartDynamic = pdlCommand->nLineTop - (
 					+ ( pdp->nYPad ) // one at bottom, one above separator
 					+ ( pdp->nCmdLinePad / 2)  // extraa width around command line
@@ -582,6 +584,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	}
 	else
 	{
+		lprintf( "not wrapping command line..." );
 		if( pdp->flags.bDirect ) {
 			y -= pdp->pCommandDisplay->nLineHeight;
 			r.top = y;
@@ -604,7 +607,7 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 #ifdef DEBUG_HISTORY_RENDER
 				lprintf( "(2)putting string %s at %d,%d (left-right) %d,%d", GetText( pStart ), x, y, (r).left, (r).right );
 #endif
-				pdp->DrawString( pdp, x, y, &r, GetText( pStart ), nShown, nShow );
+				pdp->DrawString( pdp, x, y, 0, &r, GetText( pStart ), nShown, nShow );
 				pdp->pCommandDisplay->measureString( pdp->pCommandDisplay->psvMeasure
 					, GetText( pStart ) + nShown, nShow
 					, &width, &height, font );
@@ -624,9 +627,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 		if( r.right > r.left )
 		{
 			// clear the remainder of the line...
-#ifdef DEBUG_HISTORY_RENDER
+//#ifdef DEBUG_HISTORY_RENDER
 			lprintf( "Clearing end of line... %d-%d   %d-%d", r.left, r.right, r.top, r.bottom );
-#endif
+//#endif
 			if( pdp->FillConsoleRect )
 				pdp->FillConsoleRect( pdp, &r, FILL_DISPLAY_BACK );
 		}
@@ -737,7 +740,7 @@ void PSI_WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 		pdp->pHistoryDisplay->flags.bUpdated = 1;
 		BuildDisplayInfoLines( pdp->pHistoryDisplay, NULL, font );
 	}
-	SetBrowserFirstLine( pdp->pCurrentDisplay, pdp->nDisplayLineStartDynamic );
+	SetBrowserFirstLine( pdp->pCurrentDisplay, pdp->nDisplayLineStartDynamic - SEPARATOR_HEIGHT - pdp->nYPad );
 	pdp->pCurrentDisplay->flags.bUpdated = 1;
 	BuildDisplayInfoLines( pdp->pCurrentDisplay, NULL, font );
 	if( pdp->pCommandDisplay ) {
@@ -802,7 +805,7 @@ void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 	// if there's a section of display left to render between history and command
 	if( pdp->nDisplayLineStartDynamic != pdp->nHistoryLineStart )
 	{
-		DoRenderHistory( pdp, FALSE, pdp->nCommandLineStart - pdp->nDisplayLineStartDynamic, 0, &upd );
+		DoRenderHistory( pdp, FALSE, 0, 0, &upd);
 	}
 
 	if( pdp->Update && upd.flags.bHasContent )
@@ -869,8 +872,7 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 		if( pdp->pHistoryDisplay )
 			SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
 		pdp->nCommandLineStart -= pdp->nYPad + pdp->nCmdLinePad / 2;
-		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart - (pdp->nYPad + ( pdp->nCmdLinePad / 2 ) + pdp->nSeparatorHeight )
-					+ pdp->nFontHeight;
+		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart - (pdp->nYPad + ( pdp->nCmdLinePad / 2 ) + pdp->nSeparatorHeight );
 #ifdef DEBUG_HISTORY_RENDER
 		lprintf( "(linemode)Setting display line to %d", pdp->nDisplayLineStartDynamic );
 #endif
@@ -1166,9 +1168,10 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 		// if no display (all history?)
 		// this is the command line/display line separator.
 		nFirstLine = ( upd.bottom = pdp->nDisplayLineStartDynamic );
+		//lprintf( "First line: %d  %d  %d", nFirstLine, upd.bottom, pdp->nDisplayLineStartDynamic );
 		if( !pdp->flags.bDirect && pdp->nDisplayLineStartDynamic != pdp->nCommandLineStart )
 		{
-			//lprintf( "Rendering display line seperator %d (not %d)", pdp->nDisplayLineStart, pdp->nCommandLineStart );
+			//lprintf( "Rendering display line seperator %d (not %d %d)", pdp->nDisplayLineStartDynamic, pdp->nCommandLineStart, pdp->nCommandLineStart- pdp->nDisplayLineStartDynamic );
 			if( pdp->RenderSeparator )
 				pdp->RenderSeparator( pdp, pdp->nDisplayLineStartDynamic );
 			nFirstLine -= pdp->nSeparatorHeight;
@@ -1229,6 +1232,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 		r.right = pCurrentLine->nPixelEnd;
 		r.top = pCurrentLine->nLineTop;
 		r.bottom = r.top + pCurrentLine->nLineHeight;
+		//lprintf( "display line to draw: %d  %d %d %d", nLine, r.bottom, r.top, r.bottom - r.top );
 		RenderTextLine( pdp, pCurrentLine, &r
 			, (int)nLine, nFirst, nFirstLine - nStartLineOffset, nMinLine
 			, ppCurrentLineInfo == &pdp->pCurrentDisplay->DisplayLineInfo 

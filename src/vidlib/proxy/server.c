@@ -2873,36 +2873,36 @@ static uint32_t CPROC VidlibProxy_GetStringSizeFontEx( CTEXTSTR pString, size_t 
 	return l.real_interface->_GetStringSizeFontEx( pString, len, width, height, UseFont );
 }
 
-static void CPROC VidlibProxy_PutCharacterFont		  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC VidlibProxy_PutCharacterFont		  ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
-	l.real_interface->_PutCharacterFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
+	l.real_interface->_PutCharacterFont( ((PVPImage)pImage)->image, x, y, height, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
-static void CPROC VidlibProxy_PutCharacterVerticalFont( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC VidlibProxy_PutCharacterVerticalFont( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
-	l.real_interface->_PutCharacterVerticalFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
+	l.real_interface->_PutCharacterVerticalFont( ((PVPImage)pImage)->image, x, y, height, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
-static void CPROC VidlibProxy_PutCharacterInvertFont  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC VidlibProxy_PutCharacterInvertFont  ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
-	l.real_interface->_PutCharacterInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
+	l.real_interface->_PutCharacterInvertFont( ((PVPImage)pImage)->image, x, y, height, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
-static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
+static void CPROC VidlibProxy_PutCharacterVerticalInvertFont( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
-	l.real_interface->_PutCharacterVerticalInvertFont( ((PVPImage)pImage)->image, x, y, color, background, c, font );
+	l.real_interface->_PutCharacterVerticalInvertFont( ((PVPImage)pImage)->image, x, y, height, color, background, c, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
 }
 
 
-static void VidlibProxy_SendPutString( PVPImage pImage, int32_t x, int32_t y, CDATA color, CDATA background
+static void VidlibProxy_SendPutString( PVPImage pImage, int32_t x, int32_t y, int32_t h, CDATA color, CDATA background
 												, CTEXTSTR pc, size_t nLen, SFTFont font, int orientation, int justification, uint32_t right )
 {
 	if( !font )
@@ -2971,46 +2971,46 @@ static void VidlibProxy_SendPutString( PVPImage pImage, int32_t x, int32_t y, CD
 	//SendClientMessage( PMID_PutString, pImage, x, y, color, background, pc, nLen, font, orientation, justification, right );
 }
 
-static void CPROC VidlibProxy_PutStringFontExx  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background
+static void CPROC VidlibProxy_PutStringFontExx  ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background
 												, CTEXTSTR pc, size_t nLen, SFTFont font, int justification, uint32_t right )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
-	l.real_interface->_PutStringFontExx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font, justification, right );
+	l.real_interface->_PutStringFontExx( ((PVPImage)pImage)->image, x, y, height, color, background, pc, nLen, font, justification, right );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
-	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 0, justification, right );
+	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, height, color, background, pc, nLen, font, 0, justification, right );
 }
 
-static void CPROC VidlibProxy_PutStringFontEx  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background
+static void CPROC VidlibProxy_PutStringFontEx  ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background
 												, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
-	l.real_interface->_PutStringFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
+	l.real_interface->_PutStringFontEx( ((PVPImage)pImage)->image, x, y, height, color, background, pc, nLen, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
-	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 0, 0, 0 );
+	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, height, color, background, pc, nLen, font, 0, 0, 0 );
 }
 
-static void CPROC VidlibProxy_PutStringVerticalFontEx		( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+static void CPROC VidlibProxy_PutStringVerticalFontEx		( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
-	l.real_interface->_PutStringVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
+	l.real_interface->_PutStringVerticalFontEx( ((PVPImage)pImage)->image, x, y, height, color, background, pc, nLen, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
-	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 1, 0, 0 );
+	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, height, color, background, pc, nLen, font, 1, 0, 0 );
 }
 
-static void CPROC VidlibProxy_PutStringInvertFontEx		  ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+static void CPROC VidlibProxy_PutStringInvertFontEx		  ( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
-	l.real_interface->_PutStringInvertFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
+	l.real_interface->_PutStringInvertFontEx( ((PVPImage)pImage)->image, x, y, height, color, background, pc, nLen, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
-	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 2, 0, 0 );
+	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, height, color, background, pc, nLen, font, 2, 0, 0 );
 }
 
-static void CPROC VidlibProxy_PutStringInvertVerticalFontEx( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
+static void CPROC VidlibProxy_PutStringInvertVerticalFontEx( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font )
 {
 	((PVPImage)pImage)->image->flags |= IF_FLAG_HAS_PUTSTRING;
-	l.real_interface->_PutStringInvertVerticalFontEx( ((PVPImage)pImage)->image, x, y, color, background, pc, nLen, font );
+	l.real_interface->_PutStringInvertVerticalFontEx( ((PVPImage)pImage)->image, x, y, height, color, background, pc, nLen, font );
 	((PVPImage)pImage)->image->flags |= IF_FLAG_UPDATED;
-	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, color, background, pc, nLen, font, 3, 0, 0 );
+	VidlibProxy_SendPutString( (PVPImage)pImage, x, y, height, color, background, pc, nLen, font, 3, 0, 0 );
 }
 
 static uint32_t CPROC VidlibProxy_GetMaxStringLengthFont( uint32_t width, SFTFont UseFont )

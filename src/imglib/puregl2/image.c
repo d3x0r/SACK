@@ -1085,7 +1085,7 @@ void IMGVER(Render3dText)( CTEXTSTR string, int characters, CDATA color, SFTFont
 	scale( offset, offset, 1/tmp_del );
 	addscaled( o_tmp, offset, o, 1/(tmp_del) );
 	TranslateV( output.transform, o_tmp );
-	IMGVER(PutStringFontEx)( &output, 0, 0, color, 0, string, characters, font );
+	IMGVER(PutStringFontEx)( &output, 0, 0, 0, color, 0, string, characters, font );
 }
 
 

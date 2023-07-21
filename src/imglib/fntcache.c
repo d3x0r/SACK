@@ -462,7 +462,7 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 		{
 			size_t len = strlen( name );
 			TEXTCHAR *tmp = NewArray( TEXTCHAR, len );
-			snprintf( tmp, len, "%.*s", font_style-name, name_ );
+			snprintf( tmp, len,  PRId64  " %s", font_style-name, name_ );
 			name_ = ExpandPath( tmp );
 			ReleaseEx( tmp DBG_SRC );
 		}
