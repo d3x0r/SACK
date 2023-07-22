@@ -5,25 +5,39 @@
 #include <timers.h> //Sleep()
 //DEADSTART_LINK;
 
-void newColor( uintptr_t psv, CDATA color ) {
-	printf ( "G ues s what! We got a color: %08" _32fX "\n", color );
-	{
+PTHREAD mainThread;
+int done;
+
+void newColor( uintptr_t psv, CDATA color, LOGICAL confirm ) {
+	if( confirm) {
+		printf ( "Guess what! We got a color: %08" _32fX "\n", color );
+	}else {
+		done = TRUE;
+		WakeThread( mainThread );
+	}
+
+ 	{
 		int32_t free,used,chunks,freechunks;
-		Sleep( 1000 );// wait a moment for the dialog to  reall y go aw ay.
+		Sleep( 1000 ) ;// w ait a m oment for the dialog to  reall y go aw ay.
 		GetMemStats( &free, &used, &chunks, &freechunks );
 		printf( "Debug: used:%" _32f " free:%" _32f " chunks:%" _32f " freechunks:%" _32f "\n"
 				, used,free,chunks,freechunks );
-		DebugDumpMem();
+						DumpMem ();
+	}
+	if( confirm ) {
+		PickColorEx( NULL, color, 0, 256, 158, newColor, 0 );
 	}
 }
 
 int main( void )
 {
 	CDATA result;
+	mainThread = MakeThread();
 	result = Color(127,127,127);
-	PickColorEx( &result, result, 0, 256, 150, newColor, 0 );
+	PickColorEx( NULL, result, 0, 256, 150, newColor, 0 );
 	// don't know when cancel happens.
 	// after an OK can't do another one...
+	while( !done ) WakeableSleep( 1000 );
 	printf( "Color Dialog was canceled.\n" );
 	return 0;
 }
