@@ -11,6 +11,7 @@
 
 #include "consolestruc.h"
 #include "WinLogic.h"
+#include "ansi.h"
 
 extern PIMAGE_INTERFACE ImageInterface;
 
@@ -107,6 +108,13 @@ PSI_Console_Phrase PSIConsoleDirectOutput( PSI_CONTROL pc, PTEXT lines )
 	return phrase;
 }
 
+static void sendInput( uintptr_t psv, PTEXT output ) {
+	PCONSOLE_INFO console = (PCONSOLE_INFO)psv;
+	if( console->InputEvent )
+		console->InputEvent( console->psvInputEvent, output );
+	else LineRelease( output );
+}
+
 static void sendInputEvent( uintptr_t arg, PTEXT line ) {
 	PCONSOLE_INFO console = (PCONSOLE_INFO)arg;
 	int n;
@@ -126,6 +134,9 @@ static void sendInputEvent( uintptr_t arg, PTEXT line ) {
 	for( n = 0; n < console->lockCount; n++ )
 		LeaveCriticalSec( &console->Lock );
 	console->InputEvent( console->psvInputEvent, line );
+
+	SetWriteCallback( console->ansi, sendInput, (uintptr_t)console );
+
 	for( n = 0; n < console->lockCount; n++ )
 		EnterCriticalSec( &console->Lock );
 }
