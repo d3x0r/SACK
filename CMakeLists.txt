@@ -1257,6 +1257,7 @@ endif( EMSCRIPTEN )
 
 # share/SACK/build
 install( FILES makefiles/cmake/DefaultInstall.cmake DESTINATION ${DATA_INSTALL_PREFIX}/build )
+INSTALL( FILES src/psilib/paltst/Palette.Presets DESTINATION ${DATA_INSTALL_PREFIX}/conf )
 
 # this SACK_CORE_BUILD is for building before we get 'installed' some of the header locations get moved.
 if( WATCOM )
