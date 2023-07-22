@@ -471,10 +471,10 @@ uintptr_t CPROC RenderFacet(  POBJECT po
 	//POBJECT po = (POBJECT)psv;
 	//PFACET pf = (PFACET)member;
 
-	RAY rl[2];
+	//RAY rl[2];
 	RAY rvl;
-	int t, p;
-	POBJECT pi; // pIn Tree...
+	//int p;
+	//POBJECT pi; // pIn Tree...
 	if( !pf->pLineSet )
 	{
 		RenderOpenFacet( po, pf );
@@ -527,7 +527,7 @@ uintptr_t CPROC RenderFacet(  POBJECT po
 		int points;
 		VECTOR pvPoints[10];
 		int normals;
-		VECTOR pvNormals[20]; // normals are 2x the points....there's an approach normal and a leave normal.
+		//VECTOR pvNormals[20]; // normals are 2x the points....there's an approach normal and a leave normal.
 		VECTOR *v;
 		float gl_color[4];
 		points = 10;

@@ -20,7 +20,7 @@
 	( nNewDir == ( ( (nDir) + 1 ) & 7 ) )? -1 :    \
 	( nNewDir == ( ( (nDir) - 1 ) & 7 ) )? 1 : 10 )
 
-extern DIR_DELTA DirDeltaMap[8];
+DIR_DELTA DirDeltaMap[8];
 
 //--------------------------------------------------------------------------
 

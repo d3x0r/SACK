@@ -248,8 +248,8 @@ int Parallel( PVECTOR pv1, PVECTOR pv2 )
 
 	// intersect a line with a plane.
 
-//	v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß	  
+//	v â‚¬ w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v â‚¬ w)/(|v| |w|) = cos ÃŸ	  
 
 	a = dotproduct( pv1, pv2 );
 
@@ -291,8 +291,8 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 
 	// intersect a line with a plane.
 
-//	v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß	  
+//	v â‚¬ w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v â‚¬ w)/(|v| |w|) = cos ÃŸ	  
 
 	//cosPhi = CosAngle( Slope, n );
 
@@ -1473,13 +1473,11 @@ void OrderObjectLines( POBJECT po )
 
 int PointWithin( PCVECTOR p, PMYLINESEGSET *ppls, PLINESEGPSET *pplps )
 {
-	int l1, l2;
-	PMYLINESEG pl1, pl2 ;
+	int l1;
 	int lines;
 	lines = CountUsedInSet( LINESEGP, *pplps );
 	for( l1 = 0; l1 < lines; l1++ )
 	{
-		VECTOR v;
 		PLINESEGP plsp1 = GetSetMember( LINESEGP, pplps, l1 );
 		if( PointToPlaneT( plsp1->other_facet->d.n, plsp1->other_facet->d.o, p ) > 0 )
 			return FALSE;
@@ -1655,11 +1653,9 @@ LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face, PVECTOR p
 {
 	LOGICAL success = FALSE;
 	PFACET pf;
-	PMYLINESEG  pl;
 	POBJECTINFO oi = po->objinfo;
 	INDEX idx;
 	RAY ray_test;
-	RAY ray_test2;
 
 	ApplyInverseR( po->Ti, &ray_test, ray );
 
@@ -1678,7 +1674,6 @@ LOGICAL ComputeRayIntersectObject( POBJECT po, PRAY ray, PFACET *face, PVECTOR p
 				{
 					if( face )
 					{
-						VECTOR vdel;
 						if( !(*face) )
 						{
 							// this is the first face found, so use this one.
