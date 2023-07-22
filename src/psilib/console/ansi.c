@@ -7,7 +7,7 @@ int colormap[8] = { 0, 4, 2, 6, 1, 5, 3, 7 };
 
 static int myTypeID;
 
-typedef struct mydatapath_tag {
+struct mydatapath_tag {
 	//DATAPATH common;
 
 	// ANSI burst state variables...
@@ -19,9 +19,12 @@ typedef struct mydatapath_tag {
 	PLINKQUEUE Pending;
 	int savex, savey;
 	PVARTEXT vt;
+	int cursorX, cursorY;
+	void (*writeCallback)( uintptr_t psv, PTEXT seg );
+	uintptr_t psvWriteCallback;
 
 	// default is inbound, decode
-	struct {
+	struct mydatapath_flags{
 		uint32_t outbound	: 1;
 		uint32_t inbound	: 1;
 		uint32_t encode_in	: 1;
@@ -39,6 +42,7 @@ typedef struct mydatapath_tag {
    } flags;
 };
 
+typedef struct mydatapath_tag  MYDATAPATH, * PMYDATAPATH;
 
 //---------------------------------------------------------------------------
 
@@ -129,6 +133,7 @@ typedef struct mydatapath_tag {
 
 static PTEXT CPROC AnsiEncode( PMYDATAPATH pmdp, PTEXT pBuffer )
 {
+	// this would handle things like keyboard and mouse motion into ansi codes...
 	// null operation for now... incoming doesn't even work :(
 	return pBuffer;
 }
@@ -277,14 +282,15 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 }
 
 
-PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
+void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 {
 	// this function is expecting a single buffer segment....
 	INDEX idx;
 	TEXTCHAR *ptext;
 	PTEXT pReturn = NULL, pDelete = pBuffer;
 	if( pmdp->flags.wait_for_cursor )
-		return (PTEXT)DequeLink( &pmdp->Pending );
+		return;// (PTEXT)DequeLink( &pmdp->Pending );
+	pmdp->flags.bNewLine = !( pBuffer->flags & TF_NORETURN );
 	// also may be called with no input.
 	while( pBuffer ) //may have been restrung into multiple buffers...
 	{
@@ -346,7 +352,7 @@ PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 							pmdp->flags.bPositionRel = 1;
 						}
 																 // next line will start with a newline.
-						// pmdp->flags.bNewLine = TRUE;
+						pmdp->flags.bNewLine = TRUE;
 					}
 					break;
 				case 27:
@@ -467,15 +473,17 @@ PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 							switch( pmdp->ParamSet[0] )
 							{
 							case 6:
+
 								{
 									DECLTEXTSZ( out, 32 );
-									PTEXT x, y;
+									//PTEXT x, y;
 									//x = GetVolatileVariable( pmdp->common.Owner->Current, "cursorx" );
 									//y = GetVolatileVariable( pmdp->common.Owner->Current, "cursory" );
-									out.data.size = snprintf( out.data.data, 32, "\x1b[%s;%sR"
-											, x?GetText( y ):"0"
-											, y?GetText( y ):"0" );
-									EnqueLink( &pmdp->common.Output, SegDuplicate( (PTEXT)&out ) );
+									out.data.size = snprintf( out.data.data, 32, "\x1b[%d;%dR"
+											, pmdp->cursorY   // row
+											, pmdp->cursorX );// col
+									if( pmdp->writeCallback )
+										pmdp->writeCallback( pmdp->psvWriteCallback, SegDuplicate( (PTEXT)&out ) );
 								}
 								break;
 							}
@@ -667,18 +675,9 @@ PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 		EnqueLink( &pmdp->Pending, pReturn );
 	if( pDelete )
 		LineRelease( pDelete );
-	return (PTEXT)DequeLink( &pmdp->Pending );
+	//return (PTEXT)DequeLink( &pmdp->Pending );
 }
 
-static int CPROC Read( PMYDATAPATH pdp )
-{
-	if( pdp->flags.inbound )
-		if( pdp->flags.encode_in )
-			return RelayInput( (PDATAPATH)pdp, (PTEXT(CPROC *)(PDATAPATH,PTEXT))AnsiEncode );
-		else
-			return RelayInput( (PDATAPATH)pdp, (PTEXT(CPROC *)(PDATAPATH,PTEXT))AnsiBurst );
-	return RelayInput( (PDATAPATH)pdp, NULL );
-}
 
 static PTEXT CPROC FilterCursor( PMYDATAPATH pdp, PTEXT segment )
 {
@@ -695,18 +694,8 @@ static PTEXT CPROC FilterCursor( PMYDATAPATH pdp, PTEXT segment )
 	return segment;
 }
 
-static int CPROC Write( PMYDATAPATH pdp )
-{
-	if( pdp->flags.outbound )
-		if( pdp->flags.encode_out )
-			return RelayOutput( (PDATAPATH)pdp, (PTEXT(CPROC *)(PDATAPATH,PTEXT))AnsiEncode );
-		else
-			return RelayOutput( (PDATAPATH)pdp, (PTEXT(CPROC *)(PDATAPATH,PTEXT))AnsiBurst );
-	else
-		return RelayOutput( (PDATAPATH)pdp, (PTEXT(CPROC *)(PDATAPATH,PTEXT))FilterCursor );
-}
 
-static int CPROC Close( PMYDATAPATH pdp )
+void CloseAnsi( PMYDATAPATH pdp )
 {
 	PTEXT text;
 	//pdp->common.Type = 0;
@@ -714,17 +703,16 @@ static int CPROC Close( PMYDATAPATH pdp )
 	while( text = (PTEXT)DequeLink( &pdp->Pending ) )
 		LineRelease( text );
 	DeleteLinkQueue( &pdp->Pending );
-	return 0;
 }
 
 //#define OptionLike(text,string) ( StrCaseCmpEx( GetText(text), string, GetTextSize( text ) ) == 0 )
 
 
-PMYDATAPATH CPROC OpenAnsi( void )
+PMYDATAPATH OpenAnsi( void )
 {
 	PMYDATAPATH pdp = New( MYDATAPATH );
-	PTEXT option;
 	int lastin = 1;
+	MemSet( pdp, 0, sizeof( pdp[0] ) );
 	// parameters
 	//	 encode, decode
 	//	 inbound, outbound
@@ -787,6 +775,15 @@ PMYDATAPATH CPROC OpenAnsi( void )
 	pdp->attribute.flags.prior_foreground = 1;
 	pdp->attribute.flags.prior_background = 1;
 	pdp->attribute.position.offset.spaces = 0;
-	return (PDATAPATH)pdp;
+	return pdp;
 }
 
+PTEXT GetPendingWrite( PMYDATAPATH pmdp ) {
+	PTEXT send = (PTEXT)DequeLink( &pmdp->Pending );
+	return send;
+}
+
+void SetWriteCallback( PMYDATAPATH pmdp, void ( *write )( uintptr_t, PTEXT ), uintptr_t psv ) {
+	pmdp->psvWriteCallback = psv;
+	pmdp->writeCallback = write;
+}

@@ -908,63 +908,65 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 		lprintf( "Console Write: [%s]", GetText( line ) );
 		LineRelease( line );
 #endif
-		//int flags = pLine->flags & (TF_NORETURN|TF_PROMPT);
-		//lprintf( "Updated... %d", updated );
-		//updated++;
+		{
+			AnsiBurst( pmdp->ansi, pLine );
+		}
+		while( pLine = GetPendingWrite( pmdp->ansi ) ) {
+			//int flags = pLine->flags & (TF_NORETURN|TF_PROMPT);
+			//lprintf( "Updated... %d", updated );
+			//updated++;
 
-		if( pLine->flags & TF_FORMATABS )
-		{
-			int32_t cursorx, cursory;
-			//lprintf( "absolute position format." );
-			GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
-			if( pLine->format.position.coords.x != -16384 )
-				cursorx = pLine->format.position.coords.x;
-			if( pLine->format.position.coords.y != -16384 )
-				cursory = /*pmdp->nLines*/ - pLine->format.position.coords.y;
-			SetHistoryCursorPos( pmdp->pCursor, cursorx, cursory );
-			pLine->format.position.offset.spaces = 0;
-			pLine->format.position.offset.tabs = 0;
-			pLine->flags &= ~TF_FORMATABS;
-		}
-		if( pLine->flags & TF_FORMATREL )
-		{
-			int32_t cursorx, cursory;
-			//lprintf( "relative position format" );
-			GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
-			cursorx += pLine->format.position.coords.x;
-			cursory += pLine->format.position.coords.y;
-			SetHistoryCursorPos( pmdp->pCursor, cursorx, cursory );
-			pLine->format.position.offset.spaces = 0;
-			pLine->format.position.offset.tabs = 0;
-			pLine->flags &= ~TF_FORMATREL;
-			// this should not leave the current region....
-		}
+			if( pLine->flags & TF_FORMATABS ) {
+				int32_t cursorx, cursory;
+				//lprintf( "absolute position format." );
+				GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
+				if( pLine->format.position.coords.x != -16384 )
+					cursorx = pLine->format.position.coords.x;
+				if( pLine->format.position.coords.y != -16384 )
+					cursory = /*pmdp->nLines*/ -pLine->format.position.coords.y;
+				SetHistoryCursorPos( pmdp->pCursor, cursorx, cursory );
+				pLine->format.position.offset.spaces = 0;
+				pLine->format.position.offset.tabs = 0;
+				pLine->flags &= ~TF_FORMATABS;
+			}
+			if( pLine->flags & TF_FORMATREL ) {
+				int32_t cursorx, cursory;
+				//lprintf( "relative position format" );
+				GetHistoryCursorPos( pmdp->pCursor, &cursorx, &cursory );
+				cursorx += pLine->format.position.coords.x;
+				cursory += pLine->format.position.coords.y;
+				SetHistoryCursorPos( pmdp->pCursor, cursorx, cursory );
+				pLine->format.position.offset.spaces = 0;
+				pLine->format.position.offset.tabs = 0;
+				pLine->flags &= ~TF_FORMATREL;
+				// this should not leave the current region....
+			}
 #ifdef COMMAND_LINE_ENTRY_EXTRA_NEWLINE_STUFF
-		if( !( pLine->flags & TF_NORETURN ) ||
-			( pLine->flags & TF_FORMATREL ) ||
-			( phc->region->flags.bForceNewline ) )
-		{ // err new segment goes on a new line.  (even if we are in the past)
-			//Log2( "Line is automatically promoting itself to the next line. %d %d"
-			//  , pht->nCursorY, pht->pTrailer?pht->pTrailer->nLinesUsed:-1 );
+			if( !( pLine->flags & TF_NORETURN ) ||
+				( pLine->flags & TF_FORMATREL ) ||
+				( phc->region->flags.bForceNewline ) ) { // err new segment goes on a new line.  (even if we are in the past)
+				//Log2( "Line is automatically promoting itself to the next line. %d %d"
+				//  , pht->nCursorY, pht->pTrailer?pht->pTrailer->nLinesUsed:-1 );
+				if( !( pLine->flags & TF_NORETURN ) || phc->region->flags.bForceNewline )
+					( phc->nCursorY )++;
+			}
 			if( !( pLine->flags & TF_NORETURN ) || phc->region->flags.bForceNewline )
-				(phc->nCursorY)++;
-		}
-		if( !( pLine->flags & TF_NORETURN ) || phc->region->flags.bForceNewline )
-			(phc->nCursorX) = 0;
+				( phc->nCursorX ) = 0;
 
-		pLine->flags &= ~TF_FORMATREL;
-		phc->region->flags.bForceNewline = FALSE;
+			pLine->flags &= ~TF_FORMATREL;
+			phc->region->flags.bForceNewline = FALSE;
 #endif
-		// at the point, history will use the current
-		// cursorx, cursory and output the line, if TF_NORETURN
-		// otherwise it will reset cursorx and insert one line to history.
-		// unless no line insert, then the next line will be overwritten, and one blank line added to end
-		// to keep cursorY bias from end of screen the same?
-		// if CursorY == 0 (last line) then one line is added, else cursor Y is adjusted... that's it.
+			// at the point, history will use the current
+			// cursorx, cursory and output the line, if TF_NORETURN
+			// otherwise it will reset cursorx and insert one line to history.
+			// unless no line insert, then the next line will be overwritten, and one blank line added to end
+			// to keep cursorY bias from end of screen the same?
+			// if CursorY == 0 (last line) then one line is added, else cursor Y is adjusted... that's it.
 
-		// history will also respect some of the format_ops... actually the display history
-		// is this layer inbetween history and display that handles much of the format ops...
-		result = PSI_EnqueDisplayHistory( pmdp->pCursor, pLine );
+			// history will also respect some of the format_ops... actually the display history
+			// is this layer inbetween history and display that handles much of the format ops...
+			result = PSI_EnqueDisplayHistory( pmdp->pCursor, pLine );
+		}
 	}
 	pmdp->lockCount--;
 	LeaveCriticalSec( &pmdp->Lock );

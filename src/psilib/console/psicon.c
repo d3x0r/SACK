@@ -941,6 +941,7 @@ int CPROC InitPSIConsole( PSI_CONTROL pc )
 	}
 	FillDefaultColors();
 
+	console->ansi = OpenAnsi();
 	SetCommonTransparent( pc, TRUE );
 
 	if( console )

@@ -1,5 +1,14 @@
 
-typedef struct mydatapath_tag  MYDATAPATH, *PMYDATAPATH;
+typedef struct mydatapath_tag  * PANSI_DATAPATH;
 
-static PMYDATAPATH CPROC OpenAnsi( void );
-static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer );
+PANSI_DATAPATH OpenAnsi( void );
+PTEXT GetPendingWrite( PANSI_DATAPATH pmdp );
+
+// close this channel;
+void CloseAnsi( PANSI_DATAPATH pmdp );
+
+// sometimes ansi writes data back (getting cursor position for example)
+void SetWriteCallback( PANSI_DATAPATH pmdp, void (*write)(uintptr_t,PTEXT), uintptr_t );
+
+// this converts pBuffer data into GetPendingWrite() data...
+void AnsiBurst( PANSI_DATAPATH pmdp, PTEXT pBuffer );

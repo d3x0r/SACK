@@ -37,6 +37,7 @@
 #endif
 
 #include "history.h"  // history_track
+#include "ansi.h"
 
 PSI_CONSOLE_NAMESPACE
 
@@ -252,6 +253,7 @@ typedef struct myconsolestruc {
 	void (CPROC *Update )( struct myconsolestruc *pmdp, RECT *upd );
 	// void CPROC
 	PLIST data_processors;
+	PANSI_DATAPATH ansi;
 	union {
 		// this is what this union has if nothing else defined
 		// winlogic should need no member herein....
