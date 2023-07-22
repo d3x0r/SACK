@@ -202,7 +202,7 @@ static int OnMouseCommon( "Color Matrix" )( PSI_CONTROL pc, int32_t x, int32_t y
 		if( ppcd->psw )
 		{
 			//lprintf( "Setting new mid color... update... ------------------------- " );
-			ppcd->CurrentColor = SetAlpha( getpixel( ppcd->pColorMatrix, x, y )
+			ppcd->CurrentColor = SetAlpha( getpixel( GetControlSurface( pc ), x, y )
 												  , ppcd->Alpha );
 			SetShaderControls( ppcd, pc );
 			//SetColorWell( ppcd->pcZoom, c );
@@ -225,7 +225,8 @@ int CPROC DrawPalette( PSI_CONTROL pc )
 			UpdateImage( Surface, ppcd->nGreen );
 			ppcd->flags.bMatrixChanged = 0;
 		}
-		BlotImage( GetControlSurface( pc ), ppcd->pColorMatrix, 0, 0 );
+		//BlotImage( GetControlSurface( pc ), ppcd->pColorMatrix, 0, 0 );
+		BlotScaledImage( GetControlSurface( pc ), ppcd->pColorMatrix );
 		if( GetCheckState( GetControl( ppcd->frame, CHK_ALPHA) ) )
 		{
 			Image Surface = GetControlSurface( pc );
@@ -291,7 +292,7 @@ static void LoadPresets( PPICK_COLOR_DATA ppcd )
 		int i;
 		for( i = 0; i < 36; i++ )
 		{
-			ppcd->Presets[i] = 0;
+			ppcd->Presets[i] = 0xFF000000;
 		}
 	}
 }

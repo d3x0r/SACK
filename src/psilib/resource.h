@@ -40,7 +40,7 @@ SYMNAME( PAL_COLORS      , "Color Matrix" )
 SYMNAME( BTN_PRESET      , RADIO_BUTTON_NAME ) // define a preset
 SYMNAME( CHK_ALPHA       , RADIO_BUTTON_NAME  )
 SYMNAME( CST_SHADE       , "Shade Well" )
-SYMNAME( CST_ZOOM        , "Shade Well" )
+SYMNAME( CST_ZOOM        , "Color Well" )
 SYMNAME( CST_SHADE_RED   , "Shade Well" )
 SYMNAME( CST_SHADE_BLUE  , "Shade Well" )
 SYMNAME( CST_SHADE_GREEN , "Shade Well" )

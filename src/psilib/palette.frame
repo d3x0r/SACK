@@ -5,7 +5,7 @@
 "<control IDName=\"Shade Well/core/CST_SHADE_RED\" position=\"189,5\" size=\"15,133\" type=\"Shade Well\"></control>"
 "<control IDName=\"Shade Well/core/CST_SHADE_BLUE\" position=\"207,5\" size=\"15,133\" type=\"Shade Well\"></control>"
 "<control IDName=\"Shade Well/core/CST_SHADE_GREEN\" position=\"225,5\" size=\"15,133\" type=\"Shade Well\"></control>"
-"<control position=\"243,5\" size=\"30,133\" type=\"Color Well\"></control>"
+"<control IDName=\"Color Well/core/CST_ZOOM\" position=\"243,5\" size=\"30,133\" type=\"Color Well\"></control>"
 "<control caption=\"User-Defined Colors\" position=\"5,147\" size=\"150,12\" type=\"TextControl\"></control>"
 "<control IDName=\"CustomDrawnButton/core/BTN_PRESET_BASE\" PrivateData=\"#00000000\" border=\"2\" position=\"5,161\" size=\"16,16\" type=\"CustomDrawnButton\"></control>"
 "<control IDName=\"CustomDrawnButton/core/BTN_PRESET_BASE+1\" PrivateData=\"#00000000\" border=\"2\" position=\"23,161\" size=\"16,16\" type=\"CustomDrawnButton\"></control>"

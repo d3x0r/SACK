@@ -5,22 +5,25 @@
 #include <timers.h> //Sleep()
 //DEADSTART_LINK;
 
+void newColor( uintptr_t psv, CDATA color ) {
+	printf ( "G ues s what! We got a color: %08" _32fX "\n", color );
+	{
+		int32_t free,used,chunks,freechunks;
+		Sleep( 1000 );// wait a moment for the dialog to  reall y go aw ay.
+		GetMemStats( &free, &used, &chunks, &freechunks );
+		printf( "Debug: used:%" _32f " free:%" _32f " chunks:%" _32f " freechunks:%" _32f "\n"
+				, used,free,chunks,freechunks );
+		DebugDumpMem();
+	}
+}
+
 int main( void )
 {
 	CDATA result;
 	result = Color(127,127,127);
-	while( PickColorEx( &result, result, 0, 256, 150 ) )
-	{
-		printf( "Guess what! We got a color: %08" _32fX "\n", result );
-		{
-			uint32_t free,used,chunks,freechunks;
-			Sleep( 1000 );// wait a moment for the dialog to really go away.
-			GetMemStats( &free, &used, &chunks, &freechunks );
-			printf( "Debug: used:%" _32f " free:%" _32f " chunks:%" _32f " freechunks:%" _32f "\n"
-					, used,free,chunks,freechunks );
-			DebugDumpMem();
-		}
-	}
+	PickColorEx( &result, result, 0, 256, 150, newColor, 0 );
+	// don't know when cancel happens.
+	// after an OK can't do another one...
 	printf( "Color Dialog was canceled.\n" );
 	return 0;
 }
