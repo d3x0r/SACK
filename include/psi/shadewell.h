@@ -37,20 +37,28 @@ _COLORWELL_NAMESPACE
    x :  position of the color choice dialog, otherwise uses the
         mouse position.
    y :  position of the color choice dialog, otherwise uses the
-        mouse position.                                                */
-PSI_PROC( PSI_CONTROL, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove, int x, int y, void ( *ok )( uintptr_t, CDATA ), uintptr_t psv );
+        mouse position.
+	ok : callback called when a color is picked or the dialog is canceled.
+		  callback gets user_data, color, and a status TRUE if selected FALSE if canceled.
+	okPsv : parameter passed to callback to identify user data
+*/
+PSI_PROC( PSI_CONTROL, PickColorEx )( CDATA *result_unused, CDATA original, PSI_CONTROL hAbove, int x, int y, void ( *ok )( uintptr_t, CDATA, LOGICAL ), uintptr_t psv );
 /* Shows a color picking dialog. Results with a chosen color.
    Parameters
    result\ :   pointer to CDATA to result into
    original :  CDATA that is the color to start from.
    pAbove :    frame to stack this dialog over.
-   
+	ok : callback called when a color is picked or the dialog is canceled.
+	     callback gets user_data, color, and a status TRUE if selected FALSE if canceled.
+	okPsv : parameter passed to callback to identify user data
+
    Returns
    TRUE if *result is set, else FALSE. (Reflects the Ok/Cancel
    of the dialog)                                              */
-PSI_PROC( PSI_CONTROL, PickColor)( CDATA *result, CDATA original, PSI_CONTROL pAbove, void ( *ok )( uintptr_t, CDATA ), uintptr_t psv );
-// creates a control which can then select a color
+PSI_PROC( PSI_CONTROL, PickColor)( CDATA *result, CDATA original, PSI_CONTROL pAbove, void ( *ok )( uintptr_t, CDATA,LOGICAL ), uintptr_t psv );
 
+// creates a control which can then select a color
+// simple solid color.
 CONTROL_PROC( ColorWell, (CDATA color) );
 /* Macro to create a colorwell.
    Parameters

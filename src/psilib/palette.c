@@ -55,7 +55,7 @@ typedef struct PickColor_tag
 	int bSetPreset;
 	int ColorDialogDone, ColorDialogOkay;
 	Image pColorMatrix; // fixed size image in local memory that is block copied for output.
-	void ( *ok )( uintptr_t, CDATA );
+	void ( *ok )( uintptr_t, CDATA, LOGICAL );
 	uintptr_t psvOk;
 } PICK_COLOR_DATA, *PPICK_COLOR_DATA;
 
@@ -470,7 +470,7 @@ static void cleanUserData( PICK_COLOR_DATA* pcd ) {
 static void ColorOkay( PSI_CONTROL button ) {
 	PSI_CONTROL frame = GetFrame( button );
 	PICK_COLOR_DATA* pcd = (PICK_COLOR_DATA*)GetFrameUserData( frame );
-	if( pcd->ok ) pcd->ok( pcd->psvOk, pcd->CurrentColor );
+	if( pcd->ok ) pcd->ok( pcd->psvOk, pcd->CurrentColor, TRUE );
 	DestroyCommon( &frame );
 	cleanUserData( pcd );
 }
@@ -478,6 +478,7 @@ static void ColorOkay( PSI_CONTROL button ) {
 static void ColorDone( PSI_CONTROL button ) {
 	PSI_CONTROL frame = GetFrame( button );
 	PICK_COLOR_DATA* pcd = (PICK_COLOR_DATA*)GetFrameUserData( frame );
+	if( pcd->ok ) pcd->ok( pcd->psvOk, 0, FALSE );
 	//if( pcd->ok ) pcd->ok( pcd->psvOk, pcd->CurrentColor );
 	DestroyCommon( &frame );
 	cleanUserData( pcd );
@@ -489,7 +490,7 @@ static void commonButtonStatus( uintptr_t psv, PSI_CONTROL pc, int done, int ok 
 	if( ok ) ColorOkay( pc );
 }
 
-PSI_PROC( PSI_CONTROL, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove, int x, int y, void ( *ok )( uintptr_t, CDATA ), uintptr_t psv )
+PSI_CONTROL PickColorEx( CDATA *result_unused, CDATA original, PSI_CONTROL hAbove, int x, int y, void ( *ok )( uintptr_t, CDATA,LOGICAL ), uintptr_t psv )
 {
 	PSI_CONTROL pf = NULL;
 	PICK_COLOR_DATA *pcd_ = NewArray( PICK_COLOR_DATA, 1 );
@@ -627,12 +628,12 @@ PSI_PROC( PSI_CONTROL, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL
 
 //----------------------------------------------------------------------------
 
-PSI_PROC( PSI_CONTROL, PickColor )( CDATA *result, CDATA original, PSI_CONTROL hAbove, void (*ok)(uintptr_t, CDATA), uintptr_t psv )
+PSI_CONTROL PickColor( CDATA *result_unused, CDATA original, PSI_CONTROL hAbove, void (*ok)(uintptr_t, CDATA, LOGICAL ), uintptr_t psv )
 {
 	int32_t x, y;
 	GetMyInterface();
 	GetMousePosition( &x, &y );
-	return PickColorEx( result, original, hAbove, x, y, ok, psv );
+	return PickColorEx( NULL, original, hAbove, x, y, ok, psv );
 }
 
 //----------------------------------------------------------------------------
@@ -652,14 +653,16 @@ static int CPROC ColorWellDraw( PSI_CONTROL pc )
 	return TRUE;
 }
 
-static void ok( uintptr_t psv, CDATA color ) {
-	PSI_CONTROL pc = (PSI_CONTROL)psv;
-	//PCOLOR_WELL pcw = (PCOLOR_WELL)psv;
-	ValidatedControlData( PCOLOR_WELL, color_well.TypeID, pcw, pc );
-	pcw->color = color;
-	if( pcw->UpdateProc )
-		pcw->UpdateProc( pcw->psvUpdate, color );
-	SmudgeCommon( pc );
+static void ok( uintptr_t psv, CDATA color, LOGICAL confirm ) {
+	if( confirm ) {
+		PSI_CONTROL pc = (PSI_CONTROL)psv;
+		//PCOLOR_WELL pcw = (PCOLOR_WELL)psv;
+		ValidatedControlData( PCOLOR_WELL, color_well.TypeID, pcw, pc );
+		pcw->color = color;
+		if( pcw->UpdateProc )
+			pcw->UpdateProc( pcw->psvUpdate, color );
+		SmudgeCommon( pc );
+	}
 
 }
 
@@ -681,7 +684,7 @@ static int CPROC ColorWellMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t 
 			{
 				//pcw->flags.bPicking = 1;
 				lprintf( "PICK_COLOR" );
-				PickColorEx( &result, pcw->color, GetFrame( pc ), x + FRAME_WIDTH, y + FRAME_WIDTH, ok, (intptr_t)pc );
+				PickColorEx( NULL, pcw->color, GetFrame( pc ), x + FRAME_WIDTH, y + FRAME_WIDTH, ok, (intptr_t)pc );
 				/*
 				if(  )
 				{

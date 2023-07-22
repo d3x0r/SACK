@@ -309,12 +309,14 @@ static void handlePickFont( uintptr_t psv, SFTFont font ) {
 
 }
 
-static void setCommandColor( uintptr_t psv, CDATA color ) {
+static void setCommandColor( uintptr_t psv, CDATA color, LOGICAL confirm ) {
+	if( !confirm ) return;
 	PCONSOLE_INFO console = (PCONSOLE_INFO)psv;
 	console->psicon.crCommand = color;
 }
 
-static void setCommandBackColor( uintptr_t psv, CDATA color ) {
+static void setCommandBackColor( uintptr_t psv, CDATA color, LOGICAL confirm ) {
+	if( !confirm ) return;
 	PCONSOLE_INFO console = (PCONSOLE_INFO)psv;
 	console->psicon.crCommandBackground = color;
 }
