@@ -551,7 +551,7 @@ static void keyboard_key(void *data,
 			keycode |= ( key << 16 );
 			keycode |= key;
 		}
-		wl.key_.keycode = keycode;
+		wl.key_.keycode = keycode & 0x7FFFFFF;
 		EnqueData( &wl.pdqKeyEvents, &wl.key_ );
 		WakeThread( wl.drawThread ); // let it setup a shorter timer, and handle stopping repeats?
 	}
@@ -1258,7 +1258,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 			}
 			redrawState = 101;
 		}
-
+		sleepTime = 500000;
 		while( DequeData( &wl.pdqMouseEvents, &event ) ) {
 			redrawState = 200;
 			did_event = 1;
@@ -1286,7 +1286,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 			redrawState = 201;
 		}
 		if( sleepTime ) { // if mouse happened, ignore keys this pass...
-				lprintf( "Consult repeating keys.... " );
+			//lprintf( "Consult repeating keys.... " );
 			LIST_FORALL( wl.keyRepeat.pendingKeys, idx, struct pendingKey*, key ) {
 				if( key->tick ) {
 					//lprintf( "key tick:%fd %d", key->tick, key->repeating, now, key->tick-now );
@@ -1311,7 +1311,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 			}
 			if( newSleepTime >= 0 && newSleepTime < sleepTime )
 				sleepTime = newSleepTime;
-			lprintf( "Set sleep time? %d", sleepTime );
+			//lprintf( "Set sleep time? %d", sleepTime );
 		}
 		
 		if( !drawing ) {
@@ -1358,9 +1358,9 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 				//wl_display_flush( wl.display );
 				redrawState = 11;
 			}
-			lprintf( "Sleeping" );
+			//lprintf( "Sleeping" );
 			if( sleeping ) {
-				lprintf( "already sleeping just return (idle callback)");
+				//lprintf( "already sleeping just return (idle callback)");
 				return 0;
 			} else {
 				redrawState = 12;
@@ -1370,7 +1370,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 				sleeping = FALSE;
 				redrawState = 13;
 			}
-			lprintf( "not sleeping(slept) here... %d", psv );
+			//lprintf( "not sleeping(slept) here... %d", psv );
 			return 1;
 		} else {
 			if( drewSome ) {
