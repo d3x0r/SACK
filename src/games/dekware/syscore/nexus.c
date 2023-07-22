@@ -173,8 +173,9 @@ static PTEXT ObjectVolatileVariableGet( "core object", "scriptpath", "Contents o
 	if( !path )
 	{
 		PVARTEXT pvtTmp = VarTextCreate();
-		vtprintf( pvtTmp, "%s/../share/SACK/dekware/scripts", GetProgramPath() );
+		vtprintf( pvtTmp, "%s/share/SACK/dekware/scripts", GetInstallPath() );
 		path = VarTextGet( pvtTmp );
+lprintf( "Script path:", GetText( path ));
 		VarTextDestroy( &pvtTmp );
 	}
 	return path;
@@ -2256,7 +2257,7 @@ void Startup( TEXTCHAR *lpCmdLine )
 		// creating the network thread creating the timer thread results
 		// in a zombie thread
 		//AddTimerEx( 0, 0, NOTHING, 0 );
-		TEXTCHAR pMyPath[256];
+		//TEXTCHAR pMyPath[256];
 		TEXTCHAR pMyPluginPath[256];
 		TEXTSTR pluginPath;
 		Started = 1;
@@ -2345,7 +2346,7 @@ void Startup( TEXTCHAR *lpCmdLine )
 #ifdef __ANDROID__
 		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), "%s", GetProgramPath() );
 #else
-		snprintf( pMyPluginPath, sizeof( pMyPluginPath ), COMPILED_INSTALL_PREFIX "/plugins" );
+		snprintf( pMyPluginPath, sizeof( pMyPluginPath ),  ",/lib/SACK/plugins" );
 #endif
 		pluginPath = ExpandPath( pMyPluginPath );
 		Log1( "Loading plugins from: %s", pMyPluginPath );
@@ -2357,8 +2358,8 @@ void Startup( TEXTCHAR *lpCmdLine )
 			LoadPlugins( core_load_path );
 		}
 
-		GetCurrentPath( pMyPath, sizeof( pMyPath) );
-		Log1( "Setting internal path to for scripts: %s", pMyPath );
+		//GetCurrentPath( pMyPath, sizeof( pMyPath) );
+		//Log1( "Setting internal path to for scripts: %s", pMyPath );
 
 		RegisterCommands( NULL, NULL, 0 );
 
