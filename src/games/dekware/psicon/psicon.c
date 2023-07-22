@@ -269,6 +269,22 @@ static void fontResult( uintptr_t psv, SFTFont font ) {
 
 //----------------------------------------------------------------------------
 
+static void setColor( uintptr_t psv, CDATA color ) {
+	PSI_CONTROL pc = (PSI_CONTROL)psv;
+	PCONSOLE_INFO pdp;
+	pdp = (PCONSOLE_INFO)GetControlUserData( pc );
+	pdp->psicon.crCommand = color;
+	SmudgeCommon( pc );
+}
+static void setBackColor( uintptr_t psv, CDATA color ) {
+	PSI_CONTROL pc = (PSI_CONTROL)psv;
+	PCONSOLE_INFO pdp;
+	pdp = (PCONSOLE_INFO)GetControlUserData( pc );
+	pdp->psicon.crCommandBackground = color;
+	SmudgeCommon( pc );
+}
+
+
 int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	static int32_t _x, _y;
@@ -459,20 +475,14 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 				break;
 		  case MNU_COMMAND_COLOR:
 				{
-					CDATA color;
-					if( PickColor( &color, pdp->psicon.crCommand, pdp->psicon.frame ) )
-						pdp->psicon.crCommand = color;
-					else
-						Log2( "Colors %08x %08x", color, pdp->psicon.crCommand );
+					static CDATA color;
+					PickColor( &color, pdp->psicon.crCommand, pdp->psicon.frame, setColor, (uintptr_t)pc );
 				}
 			break;
 		  case MNU_COMMAND_BACK:
 				{
-					CDATA color;
-					if( PickColor( &color, pdp->psicon.crCommandBackground, pdp->psicon.frame ) )
-						pdp->psicon.crCommandBackground = color;
-					else
-						Log2( "Colors %08x %08x", color, pdp->psicon.crCommandBackground );
+					static CDATA color;
+					PickColor( &color, pdp->psicon.crCommandBackground, pdp->psicon.frame, setBackColor, (uintptr_t)pc );
 				}
 			break;
 		}
