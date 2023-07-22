@@ -269,6 +269,8 @@ static void LoadPresets( PPICK_COLOR_DATA ppcd )
 {
 	FILE *file;
 	file = sack_fopen( 0, "Palette.Presets", "rt" );
+	if( !file )
+		file = sack_fopen( 0, "?/conf/Palette.Presets", "rt" );
 	if( file )
 	{
 		int i;
