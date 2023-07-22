@@ -587,21 +587,23 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 						// okay if it's layered, just let the draws through always.
 						if( (hVideo->flags.bLayeredWindow) || IsThisThread( thread ) || ( x || y ) )
 						{
+							int entered_crit;
 							if( hVideo->flags.bOpenGL )
 								if( l.actual_thread != thread )
 									 continue;
 							//lprintf( "Is a thread." );
 							if( !hVideo->flags.event_dispatched ) {
-
-							EnterCriticalSec( &hVideo->cs );
-							if( hVideo->flags.bDestroy )
-							{
-								//lprintf( "Saving ourselves from operating a draw while destroyed." );
-								// by now we could be in a place where we've been destroyed....
-								LeaveCriticalSec( &hVideo->cs );
-								return;
-							}
-							}
+								entered_crit = 1;
+								EnterCriticalSec( &hVideo->cs );
+								if( hVideo->flags.bDestroy )
+								{
+									//lprintf( "Saving ourselves from operating a draw while destroyed." );
+									// by now we could be in a place where we've been destroyed....
+									LeaveCriticalSec( &hVideo->cs );
+									return;
+								}
+							} else
+								entered_crit = 0;
 #ifdef LOG_RECT_UPDATE
 							lprintf( "Good thread..." ); /* can't be? */
 #endif
@@ -737,7 +739,7 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 								lprintf( "Restored Original" );
 #endif
 							}
-							if( !hVideo->flags.event_dispatched ) {
+							if( entered_crit ) {
 								LeaveCriticalSec( &hVideo->cs );
 							}
 							break;
