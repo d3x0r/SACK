@@ -17,12 +17,12 @@ void newColor( uintptr_t psv, CDATA color, LOGICAL confirm ) {
 	}
 
  	{
-		int32_t free,used,chunks,freechunks;
-		Sleep( 1000 ) ;// w ait a m oment for the dialog to  reall y go aw ay.
+		int32_t free=0,used=0,chunks=0,freechunks=0;
+		WakeableSleep( 100 ) ;// wait a moment for the dialog to  really go away.
 		GetMemStats( &free, &used, &chunks, &freechunks );
 		printf( "Debug: used:%" _32f " free:%" _32f " chunks:%" _32f " freechunks:%" _32f "\n"
 				, used,free,chunks,freechunks );
-						DumpMem ();
+		DebugDumpMem();
 	}
 	if( confirm ) {
 		PickColorEx( NULL, color, 0, 256, 158, newColor, 0 );

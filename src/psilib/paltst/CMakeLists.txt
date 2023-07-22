@@ -13,5 +13,6 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER tests/PSI
 )
 install_default_dest( ${project} )
+INSTALL( FILES Palette.Presets DESTINATION ${DATA_INSTALL_PREFIX}/conf )
 
 
