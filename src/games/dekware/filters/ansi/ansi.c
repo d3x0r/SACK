@@ -477,8 +477,8 @@ static PTEXT CPROC AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 									y = GetVolatileVariable( pmdp->common.Owner->Current
 																	, "cursory" );
 									out.data.size = snprintf( out.data.data, 32, "\x1b[%s;%sR"
-											, x?GetText( y ):"0"
-											, y?GetText( y ):"0" );
+											, y?GetText( y ):"0"    // col
+											, x?GetText( x ):"0" ); // row
 									EnqueLink( &pmdp->common.Output, SegDuplicate( (PTEXT)&out ) );
 								}
 								break;
