@@ -22,7 +22,7 @@ struct mydatapath_tag {
 	int cursorX, cursorY;
 	void (*writeCallback)( uintptr_t psv, PTEXT seg );
 	uintptr_t psvWriteCallback;
-
+	PVARTEXT OC;
 	// default is inbound, decode
 	struct mydatapath_flags{
 		uint32_t outbound	: 1;
@@ -39,6 +39,7 @@ struct mydatapath_tag {
 		uint32_t wait_for_cursor : 1;
 		uint32_t newline_only_in : 1;
 		uint32_t newline_only_out : 1;
+		uint32_t ST_escape : 1;
    } flags;
 };
 
@@ -378,9 +379,11 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 						Log( "Invalid states... nparams beginning sequence." );
 					pmdp->nState = 2;
 					continue;
-				}
-				else if( ptext[idx] == '7' )
-				{
+				} else if( ptext[idx] == ']' ) {
+					// begin system command, terminate wwith \x1b\\ or ^G
+				} else if( ptext[idx] == '\\' ) {
+					// end system command
+				} else if( ptext[idx] == '7' ) {
 					// save cursor and attributes(next step)
 
 				} 
@@ -435,6 +438,31 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
  											, pmdp->ParamSet[2], pmdp->ParamSet[3] 
 										, ptext[idx]
 											);
+						break;
+					case 'h': // enable code \x1b ? # h
+						if( pmdp->ParmSet[0] === 2004 ) {
+							// enable bracketed paste mode
+							// sends "\x1b [ 200 ~" and "\x1b [ 201 ~"  around pasted text - VIM doesnt treat as commands
+							// https://en.wikipedia.org/wiki/ANSI_escape_code#CSIsection
+						} else if( pmdp->ParmSet[0] === 1004 ) {
+							// enable reporting focus
+							// send \x1b [ I and \x1b [ O  on focus and on lose focus.
+						} else if( pmdp->ParmSet[0] === 1049 ) {
+							// aternate screen buffer (xterm )
+						} else if( pmdp->ParmSet[0] === 25 ) {
+							// show cursor
+						}
+						break;
+					case 'l': // disable code \x1b ? # l 
+						if( pmdp->ParmSet[0] === 2004 ) {
+							// disable bracketed paste mode
+						} else if( pmdp->ParmSet[0] === 1004 ) {
+							// disable reporting focus
+						} else if( pmdp->ParmSet[0] === 1049 ) {
+							// disable alt screen buffer
+						} else if( pmdp->ParmSet[0] === 25 ) {
+							// hide cursor
+						}
 						break;
 					case 'b': // repeat character n times
 						if( !pmdp->nParams )
@@ -649,21 +677,59 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 					pmdp->nState = 0;
 					pmdp->nParams = 0;
 					pmdp->ParamSet[pmdp->nParams] = 0;
-				}
-				else if( ( ( ptext[idx] >= '0' ) && ( ptext[idx] <= '9' ) ) )
-				{
-					pmdp->flags.bCollectingParam = 1;
-					pmdp->ParamSet[pmdp->nParams] *= 10;
-					pmdp->ParamSet[pmdp->nParams] += (ptext[idx] - '0');
-				}
-				else if( ptext[idx] == ';' )
-				{
+				} else if( ( ( ptext[idx] >= '0' ) && ( ptext[idx] <= '9' ) ) ) {
+					if( pmdp->flags.extended_cursor ) {
+						pmdp->ParamSet[pmdp->nParams] *= 10 ;
+						pmdp->ParamSet[pmdp->nParams] += (ptext[idx] - '0');
+					} else {
+						pmdp->flags.bCollectingParam = 1;
+						pmdp->ParamSet[pmdp->nParams] *= 10;
+						pmdp->ParamSet[pmdp->nParams] += (ptext[idx] - '0');
+					}
+				} else if( ptext[idx] == '?' ) {
+					pmdp->flags.extended_cursor = 1;
+				} else if( ptext[idx] == ';' ) {
 					if( pmdp->flags.bCollectingParam )
 					{
 						pmdp->flags.bCollectingParam = 0;
 						pmdp->nParams++;
 					}	
 					pmdp->ParamSet[pmdp->nParams] = 0;
+				}
+			} else if( pmdp->nState == 3 ) {
+				// collecting system command...
+				if( ptext[idx] == '\x7' ) {  // ^G 
+					PTEXT cmd = VarTextPeek( pmdp->OC );
+					lprintf( "Got end of command...%d %d %d:%s"
+						, pmdp->flags.ST_escape
+						, pmdp->flags.OC_LongPrompt
+						, pmdp->flags.OC_LongPromptCollect
+						, GetText( cmd ) );
+					pmdp->nState = 0;
+					pmdp->flags.OC_LongPrompt = 0;
+					pmdp->flags.OC_LongPromptCollect = 0;
+				} else if( ptext[idx] == '0' ) {
+					pmdp->flags.OC_LongPrompt = 1;
+				} else if( ptext[idx] == ';' ) {
+					if( pmdp->flags.OC_LongPrompt ) {
+						pmdp->flags.OC_LongPrompt = 0;
+						pmdp->flags.OC_LongPromptCollect = 1;
+						if( !pmdp->OC ) pmdp->OC = VarTextCreate();
+					}
+				} else if( ptext[idx] == '\x1b' ) {
+					pmdp->flags.ST_escape = 1;
+				} else if( ptext[idx] == '\\' ) {
+					if( pmdp->flags.ST_escape ) {
+						pmdp->flags.ST_escape = 0;
+						pmdp->nState = 0;
+					} else {
+						// still collecting command?
+						if( pmdp->flags.OC_LongPromptCollect )
+							VarTextAddCharacter( pmdp->OC, ptext[idx] );
+					}
+				} else {
+					if( pmdp->flags.OC_LongPromptCollect )
+						VarTextAddCharacter( pmdp->OC, ptext[idx] );
 				}
 			}
 		}
