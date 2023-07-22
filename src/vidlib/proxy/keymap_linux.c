@@ -146,7 +146,7 @@ PSIKEYDEFINE LinuxKeyDefs[256] =
                       , [KEY_QUOTE]={ "quote", "quote",0     ,KEYDATA("\'","\"")}
 };
 
-#endif defined( __LINUX__ )
+#endif //defined( __LINUX__ )
 
 static struct keymap_state
 {

@@ -708,6 +708,9 @@ Double quote	"""	222
 
 #include <linux/input-event-codes.h>
 
+// These definitions resemble keyboard scancodes.
+// for wayland, these are what comes into the key callback.
+
 #undef BTN_START
 
 #define KEY_ESCAPE KEY_ESC

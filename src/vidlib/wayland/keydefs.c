@@ -213,8 +213,6 @@ void wl_SetRenderReadCallback ( PRENDERER pRenderer, RenderReadCallback callback
    if( l.flags.bLogKeyEvent )
 		lprintf( "received key %08x %d(%x) %d(%x) %s %s", key, keycode, keycode, keymod,keymod
 			, IsKeyExtended( key )?"extended": "",IsKeyPressed( key )? "press": "release" );
-#endif
-#ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
 		lprintf( "Key event for %08lx ... %d %s %s %s"
 				 , key

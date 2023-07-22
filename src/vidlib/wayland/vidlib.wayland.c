@@ -475,7 +475,7 @@ static void keyboard_key(void *data,
 #endif			
 		uint32_t keycode;
 		int extended = ((keysym&0xff00)==0xFF00);
-		if( keysym & 0xFF00 && !extended ) 
+		if( ( ( keysym & 0xFFFFFF00 ) != 0xFF00 ) || (( keysym&0xFF00) && !extended ) ) 
 			lprintf( "This keycode was bad: %04x key:%x(%d)", keysym, key, key );
 		keycode = KEY_PRESSED;
 		keycode |= key;
