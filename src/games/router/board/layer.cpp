@@ -145,7 +145,7 @@ void DrawText( Image surface, int32_t base_x, int32_t base_y, TEXTSTR caption, C
 		*/
 		PutStringFontEx( surface
 							, x+base_x
-							, y+base_y
+							, y+base_y, 0
 							, color, 0
 							, start, end-start
 							, font );

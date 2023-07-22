@@ -995,21 +995,21 @@ void PutDirectedText( Image image, int x, int y
     switch( dir )
     {
     case 0:
-        PutString( image, x, y, fore, back, text );
+        PutString( image, x, y, 0, fore, back, text );
         break;
     case 1:
 		 PutStringVertical( image
-								, width - y, x
+								, width - y, x, 0
 								, fore, back, text );
 		 break;
     case 2:
 		 PutStringInvert( image
-							 , width-x, height-y
+							 , width-x, height-y, 0
 							 , fore, back, text );
         break;
     case 3:
 		 PutStringInvertVertical( image
-										, y, height - x
+										, y, height - x, 0
 										, fore, back, text );
       break;
     }

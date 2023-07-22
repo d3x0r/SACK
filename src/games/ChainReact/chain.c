@@ -423,7 +423,7 @@ void ShowPlayer( int bWrite )
    										, Colors[players[i].color] );
 			snprintf( buf, 32, " : %d (%d)      ", players[i].wins, players[i].count );
 			PutString( GetDisplayImage( hDisplay )
-				, BoardSizeX * BOARD_X + 35, 11 + (26 * i)
+				, BoardSizeX * BOARD_X + 35, 11 + (26 * i), 0
 				, Color( 255,255,255 ), Color(0,0,1)
 				, buf );
 		}
@@ -440,7 +440,7 @@ void ShowPlayer( int bWrite )
    									, 0, Color( 255,255,255)
    									, Colors[players[playerturn].color] );
 		PutString( GetDisplayImage( hDisplay )
-					, BoardSizeX * BOARD_X + 35, 11
+					, BoardSizeX * BOARD_X + 35, 11, 0
 					, Color( 255,255,255 ), Color(0,0,1)
 					, "To move next" );
 	}

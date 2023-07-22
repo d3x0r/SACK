@@ -146,7 +146,7 @@ static int OnDrawCommon( "Board toolbin" )( PSI_CONTROL pc )
 			}
 
 			BlotScaledImageSizedTo( image, tool->image, tool->x, tool->y, tool->w, tool->h );
- 	 	 	PutString( image, tool->x + TILE_SIZE + TILE_PAD, tool->y, BASE_COLOR_WHITE, 0, tool->peice->name() );
+ 	 	 	PutString( image, tool->x + TILE_SIZE + TILE_PAD, tool->y, 0, BASE_COLOR_WHITE, 0, tool->peice->name() );
 			//if( peice->methods )
 			//	peice->methods->Draw( (uintptr_t)NULL, image, peice->getimage(), x, y );
 			//peice->methods->getsize( &h, NULL );

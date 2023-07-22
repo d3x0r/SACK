@@ -337,27 +337,27 @@ int CPROC DrawStockBar( PSI_CONTROL pc )
 		snprintf( symbol, 5, "%4.4s", stock->Symbol );
 		GetStringSize( symbol, &width, &height );
 		PutString( Surface
-					, x + ( ( colwidth - width ) / 2 ), y
+					, x + ( ( colwidth - width ) / 2 ), y, 0
 					, Color( 0, 0, 0 ), 0, symbol );
 		snprintf( value, 6, "%ld", GetStockValueEx( stock, 1, FALSE ) );
 		y += height + 4;
 		GetStringSize( value, &width, &height );
 		PutString( Surface
-					, x + ( ( colwidth - width ) / 2 ), y
+					, x + ( ( colwidth - width ) / 2 ), y, 0
 					, Color( 0, 0, 128 ), 0, value );
 
 		y+=height;
 		snprintf( value, 6, "%ld", GetStockValueEx( stock, 0, FALSE ) );
 		GetStringSize( value, &width, &height );
 		PutString( Surface
-					, x + ( ( colwidth - width ) / 2 ), y
+					, x + ( ( colwidth - width ) / 2 ), y, 0
 					, Color( 0, 0, 0 ), 0, value );
 
 		y+=height;
 		snprintf( value, 6, "%ld", GetStockValueEx( stock, -1, FALSE ) );
 		GetStringSize( value, &width, &height );
 		PutString( Surface
-					, x + ( ( colwidth - width ) / 2 ), y
+					, x + ( ( colwidth - width ) / 2 ), y, 0
 					, Color( 128, 0, 0 ), 0, value );
 
 		y+=height;
@@ -422,14 +422,14 @@ int CPROC DrawPortfolio( PSI_CONTROL pc )
 			snprintf( symbol, 5, "%4.4s", stock->Symbol );
 			GetStringSize( symbol, &width, &height );
 			PutString( Surface
-						, x + ( ( colwidth - width ) / 2 ), y
+						, x + ( ( colwidth - width ) / 2 ), y, 0
 						, Color( 0, 0, 0 ), 0, symbol );
 
 			y+=height + 2;
 			snprintf( value, 6, "%ld", pAccount->shares );
 			GetStringSize( value, &width, &height );
 			PutString( Surface
-						, x + ( ( colwidth - width ) / 2 ), y
+						, x + ( ( colwidth - width ) / 2 ), y, 0
 						, Color( 0, 0, 0 ), 0, value );
 
 			y+=height;
@@ -437,7 +437,7 @@ int CPROC DrawPortfolio( PSI_CONTROL pc )
 					  * GetStockValue( stock, FALSE ) );
 			GetStringSize( value, &width, &height );
 			PutString( Surface
-						, x + ( ( colwidth - width ) / 2 ), y
+						, x + ( ( colwidth - width ) / 2 ), y, 0
 						, Color( 0, 0, 0 ), 0, value );
 		}
 		else
