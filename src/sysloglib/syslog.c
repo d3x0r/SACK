@@ -359,8 +359,13 @@ void SetDefaultName( CTEXTSTR path, CTEXTSTR name, CTEXTSTR extra )
 			Release( (POINTER)filename );
 		filename = StrDup( name );
 	}
-	if( !filepath )
+	if( !filepath ) {
+#ifdef _WIN32		
 		filepath = ExpandPath( "*/" );
+#else
+		filepath = ExpandPath( ";/" );
+#endif
+	}
 	if( !filename )
 		filename = StrDup( GetProgramName() );
 	if( !filename )
