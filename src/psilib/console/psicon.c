@@ -309,102 +309,109 @@ static void handlePickFont( uintptr_t psv, SFTFont font ) {
 
 }
 
+static void setCommandColor( uintptr_t psv, CDATA color ) {
+	PCONSOLE_INFO console = (PCONSOLE_INFO)psv;
+	console->psicon.crCommand = color;
+}
+
+static void setCommandBackColor( uintptr_t psv, CDATA color ) {
+	PCONSOLE_INFO console = (PCONSOLE_INFO)psv;
+	console->psicon.crCommandBackground = color;
+}
+
+
+
+
 void HandleOption1( uintptr_t psv, int cmd ) {
 	PCONSOLE_INFO console = (PCONSOLE_INFO)psv;
 	PSI_CONTROL pc = console->psicon.frame;
-		if( ( cmd >= MNU_BKBLACK ) &&
-			( cmd <= MNU_BKWHITE ) )
+	if( ( cmd >= MNU_BKBLACK ) &&
+		( cmd <= MNU_BKWHITE ) )
+	{
+		PSI_SetHistoryDefaultBackground( console->pCursor, cmd - MNU_BKBLACK );
+		SACK_WriteProfileInt( "sack/PSI/console", "background", cmd - MNU_BKBLACK );
+	}
+	else if( ( cmd >= MNU_BLACK ) &&
+				( cmd <= MNU_WHITE ) )
+	{
+		PSI_SetHistoryDefaultForeground( console->pCursor, cmd - MNU_BLACK );
+		SACK_WriteProfileInt( "sack/PSI/console", "foreground", cmd - MNU_BLACK );
+	}
+	else switch( cmd )
+	{
+	case MNU_DIRECT:
 		{
-			PSI_SetHistoryDefaultBackground( console->pCursor, cmd - MNU_BKBLACK );
-			SACK_WriteProfileInt( "sack/PSI/console", "background", cmd - MNU_BKBLACK );
-		}
-		else if( ( cmd >= MNU_BLACK ) &&
-				  ( cmd <= MNU_WHITE ) )
-		{
-			PSI_SetHistoryDefaultForeground( console->pCursor, cmd - MNU_BLACK );
-			SACK_WriteProfileInt( "sack/PSI/console", "foreground", cmd - MNU_BLACK );
-		}
-		else switch( cmd )
-		{
-		case MNU_DIRECT:
-			{
-				console->flags.bDirect ^= 1;
-				SACK_WriteProfileInt( "sack/PSI/console", "direct", console->flags.bDirect );
+			console->flags.bDirect ^= 1;
+			SACK_WriteProfileInt( "sack/PSI/console", "direct", console->flags.bDirect );
 
+			EnterCriticalSec( &console->Lock );
+			console->lockCount++;
+			PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
+			console->lockCount--;
+			LeaveCriticalSec( &console->Lock );
+		}
+		break;
+	case MNU_HISTORYSIZE25:
+	case MNU_HISTORYSIZE50:
+	case MNU_HISTORYSIZE75:
+	case MNU_HISTORYSIZE100:
+		{
+			console->nHistoryPercent =  cmd - MNU_HISTORYSIZE25;
+			SACK_WriteProfileInt( "sack/PSI/console", "direct", console->nHistoryPercent );
+			if( console->flags.bHistoryShow ) // currently showing history
+			{
 				EnterCriticalSec( &console->Lock );
 				console->lockCount++;
-				PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
+				PSI_ConsoleCalculate( console, GetCommonFont( pc ) ); // changed history display...
 				console->lockCount--;
 				LeaveCriticalSec( &console->Lock );
 			}
-			break;
-		case MNU_HISTORYSIZE25:
-		case MNU_HISTORYSIZE50:
-		case MNU_HISTORYSIZE75:
-		case MNU_HISTORYSIZE100:
-			{
-				console->nHistoryPercent =  cmd - MNU_HISTORYSIZE25;
-				SACK_WriteProfileInt( "sack/PSI/console", "direct", console->nHistoryPercent );
-				if( console->flags.bHistoryShow ) // currently showing history
-				{
-					EnterCriticalSec( &console->Lock );
-					console->lockCount++;
-					PSI_ConsoleCalculate( console, GetCommonFont( pc ) ); // changed history display...
-					console->lockCount--;
-					LeaveCriticalSec( &console->Lock );
-				}
-			}
-			break;
-		case MNU_FONT:
-			{
-				//console->cfFont.hwndOwner = hWnd;
-				static struct font_pick_info pick_info;
-				if( !pick_info.console ) {
-					pick_info.console = console;
-					pick_info.pc = pc;
-					PickFont( -1, -1, &pick_info.size, &pick_info.info, NULL, handlePickFont, (uintptr_t)&pick_info );
-				}
-				/*
-				if( font =  )
-				{
-					//POINTER data;
-					//size_t datalen;
-					//GetFontRenderData( font, &data, &datalen );
-					SACK_WriteProfileString( "sack/PSI/console", "font", (CTEXTSTR)info );
-					//console->psicon.hFont = (SFTFont)font;
-					SetCommonFont( console->psicon.frame, (SFTFont)font );
-					//GetDefaultFont();
-					//GetStringSizeFont( " ", &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
-					PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
-				}
-				*/
-			}
-				break;
-		  case MNU_COMMAND_COLOR:
-				{
-				CDATA color;
-					 if( PickColor( &color, console->psicon.crCommand, console->psicon.frame ) )
-						  console->psicon.crCommand = color;
-					 else
-						  Log2( "Colors %08x %08x", color, console->psicon.crCommand );
-				}
-			break;
-		  case MNU_COMMAND_BACK:
-				{
-				CDATA color;
-					 if( PickColor( &color, console->psicon.crCommandBackground, console->psicon.frame ) )
-						  console->psicon.crCommandBackground = color;
-					 else
-						  Log2( "Colors %08x %08x", color, console->psicon.crCommandBackground );
-				}
-			break;
 		}
-		  CheckPopupItem( hHistoryMenu
-								 , MNU_HISTORYSIZE25+console->nHistoryPercent
-								 , MF_BYCOMMAND|MF_UNCHECKED  );
-		  CheckPopupItem( hChildMenu
-								 , MNU_DIRECT
-								 , MF_BYCOMMAND|MF_UNCHECKED );
+		break;
+	case MNU_FONT:
+		{
+			//console->cfFont.hwndOwner = hWnd;
+			static struct font_pick_info pick_info;
+			if( !pick_info.console ) {
+				pick_info.console = console;
+				pick_info.pc = pc;
+				PickFont( -1, -1, &pick_info.size, &pick_info.info, NULL, handlePickFont, (uintptr_t)&pick_info );
+			}
+			/*
+			if( font =  )
+			{
+				//POINTER data;
+				//size_t datalen;
+				//GetFontRenderData( font, &data, &datalen );
+				SACK_WriteProfileString( "sack/PSI/console", "font", (CTEXTSTR)info );
+				//console->psicon.hFont = (SFTFont)font;
+				SetCommonFont( console->psicon.frame, (SFTFont)font );
+				//GetDefaultFont();
+				//GetStringSizeFont( " ", &console->nFontWidth, &console->nFontHeight, (SFTFont)font );
+				PSI_ConsoleCalculate( console, GetCommonFont( pc ) );
+			}
+			*/
+		}
+			break;
+		case MNU_COMMAND_COLOR:
+			{
+				CDATA color;
+				PickColor( &color, console->psicon.crCommand, console->psicon.frame, setCommandColor, (uintptr_t)console );
+			}
+		break;
+		case MNU_COMMAND_BACK:
+			{
+				CDATA color;
+				PickColor( &color, console->psicon.crCommand, console->psicon.frame, setCommandBackColor, (uintptr_t)console );
+			}
+		break;
+	}
+	CheckPopupItem( hHistoryMenu
+							, MNU_HISTORYSIZE25+console->nHistoryPercent
+							, MF_BYCOMMAND|MF_UNCHECKED  );
+	CheckPopupItem( hChildMenu
+							, MNU_DIRECT
+							, MF_BYCOMMAND|MF_UNCHECKED );
 }
 
 

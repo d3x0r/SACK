@@ -55,6 +55,8 @@ typedef struct PickColor_tag
 	int bSetPreset;
 	int ColorDialogDone, ColorDialogOkay;
 	Image pColorMatrix; // fixed size image in local memory that is block copied for output.
+	void ( *ok )( uintptr_t, CDATA );
+	uintptr_t psvOk;
 } PICK_COLOR_DATA, *PPICK_COLOR_DATA;
 
 void CPROC InitColorDataDefault( POINTER );
@@ -458,11 +460,42 @@ static TEXTCHAR palette_frame_xml[] = {
 //    )
  };
 
-PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove, int x, int y )
+static void cleanUserData( PICK_COLOR_DATA* pcd ) {
+	UnmakeImageFile( pcd->pColorMatrix );
+	Release( pcd );
+
+}
+
+static void ColorOkay( PSI_CONTROL button ) {
+	PSI_CONTROL frame = GetFrame( button );
+	PICK_COLOR_DATA* pcd = (PICK_COLOR_DATA*)GetFrameUserData( frame );
+	if( pcd->ok ) pcd->ok( pcd->psvOk, pcd->CurrentColor );
+	DestroyCommon( &frame );
+	cleanUserData( pcd );
+}
+
+static void ColorDone( PSI_CONTROL button ) {
+	PSI_CONTROL frame = GetFrame( button );
+	PICK_COLOR_DATA* pcd = (PICK_COLOR_DATA*)GetFrameUserData( frame );
+	//if( pcd->ok ) pcd->ok( pcd->psvOk, pcd->CurrentColor );
+	DestroyCommon( &frame );
+	cleanUserData( pcd );
+}
+
+static void commonButtonStatus( uintptr_t psv, PSI_CONTROL pc, int done, int ok ) {
+	//PICK_COLOR_DATA* pcd = (PICK_COLOR_DATA*)psv;// GetFrameUserData( frame );
+	if( done ) ColorDone( pc );
+	if( ok ) ColorOkay( pc );
+}
+
+PSI_PROC( PSI_CONTROL, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove, int x, int y, void ( *ok )( uintptr_t, CDATA ), uintptr_t psv )
 {
 	PSI_CONTROL pf = NULL;
-	PICK_COLOR_DATA pcd;
+	PICK_COLOR_DATA *pcd_ = NewArray( PICK_COLOR_DATA, 1 );
+#define pcd (pcd_[0])
 	MemSet( &pcd, 0, sizeof( pcd ) );
+	pcd.ok = ok;
+	pcd.psvOk = psv;
 	GetMyInterface();
 	InitColorData( &pcd, original );
 	// remove test for debugging save/load..
@@ -495,8 +528,6 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 		}
 		SetSliderUpdateHandler( GetControl( pf, SLD_GREENBAR ), SetGreenLevel, (uintptr_t)&pcd );
 		SetCommonButtons( pf, &pcd.ColorDialogDone, &pcd.ColorDialogOkay );
-		SetShaderControls( &pcd, NULL );
-		SetSliderValues( GetControl( pf, SLD_GREENBAR ), 0, 255-GreenVal( pcd.CurrentColor ), 255 );
 	}
 
 #define SHADER_PAD 3
@@ -580,37 +611,27 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
 							, 0, AlphaPressed, (uintptr_t)&pcd );
 
 		AddCommonButtons( pf, &pcd.ColorDialogDone, &pcd.ColorDialogOkay );
-		SetShaderControls( &pcd, NULL );
-		SetSliderValues( GetControl( pf, SLD_GREENBAR ), 0, 255-GreenVal( pcd.CurrentColor ), 255 );
 		SaveXMLFrame( pf, "palette.frame" );
 	}
+	PSI_HandleStatusEvent( pf, commonButtonStatus, (uintptr_t)&pcd );
+	SetShaderControls( &pcd, NULL );
+	SetSliderValues( GetControl( pf, SLD_GREENBAR ), 0, 255 - GreenVal( pcd.CurrentColor ), 255 );
+
 	DisplayFrameOver( pf, hAbove );
 	EditFrame( pf, TRUE );
-	CommonWait( pf );
-	UnmakeImageFile( pcd.pColorMatrix );
-	if( pcd.ColorDialogOkay )
-	{
-		//SaveFrame( pf, "palette.frame" );
-		if( result )
-			*result = pcd.CurrentColor;
-		//lprintf( "------- Destroy common." );
-		DestroyCommon( &pf );
-	  	return TRUE;
-	}
-	//lprintf( "------- Destroy common." );
-	DestroyCommon( &pf );
-	//lprintf( "Result to application." );
-	return FALSE;
+#undef pcd
+	return pf;
+
 }
 
 //----------------------------------------------------------------------------
 
-PSI_PROC( int, PickColor )( CDATA *result, CDATA original, PSI_CONTROL hAbove )
+PSI_PROC( PSI_CONTROL, PickColor )( CDATA *result, CDATA original, PSI_CONTROL hAbove, void (*ok)(uintptr_t, CDATA), uintptr_t psv )
 {
 	int32_t x, y;
 	GetMyInterface();
 	GetMousePosition( &x, &y );
-	return PickColorEx( result, original, hAbove, x, y );
+	return PickColorEx( result, original, hAbove, x, y, ok, psv );
 }
 
 //----------------------------------------------------------------------------
@@ -630,6 +651,17 @@ static int CPROC ColorWellDraw( PSI_CONTROL pc )
 	return TRUE;
 }
 
+static void ok( uintptr_t psv, CDATA color ) {
+	PSI_CONTROL pc = (PSI_CONTROL)psv;
+	//PCOLOR_WELL pcw = (PCOLOR_WELL)psv;
+	ValidatedControlData( PCOLOR_WELL, color_well.TypeID, pcw, pc );
+	pcw->color = color;
+	if( pcw->UpdateProc )
+		pcw->UpdateProc( pcw->psvUpdate, color );
+	SmudgeCommon( pc );
+
+}
+
 static int CPROC ColorWellMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
 	ValidatedControlData( PCOLOR_WELL, color_well.TypeID, pcw, pc );
@@ -644,11 +676,13 @@ static int CPROC ColorWellMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t 
 		if( b & ( MK_LBUTTON | MK_RBUTTON ) )
 		{
 			CDATA result = pcw->color;
-			if( !pcw->flags.bPicking )
+			//if( !pcw->flags.bPicking )
 			{
-				pcw->flags.bPicking = 1;
+				//pcw->flags.bPicking = 1;
 				lprintf( "PICK_COLOR" );
-				if( PickColorEx( &result, pcw->color, GetFrame( pc ), x + FRAME_WIDTH, y + FRAME_WIDTH ) )
+				PickColorEx( &result, pcw->color, GetFrame( pc ), x + FRAME_WIDTH, y + FRAME_WIDTH, ok, (intptr_t)pc );
+				/*
+				if(  )
 				{
 					lprintf( "PICK_COLOR_DONE" );
 				   lprintf( "Updating my color to %08" _32fx "", result );
@@ -662,8 +696,9 @@ static int CPROC ColorWellMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t 
 					lprintf( "Failing to set the color.." );
 					lprintf( "PICK_COLOR_DONE2" );
 				}
+				*/
 				//DebugBreak();
-				pcw->flags.bPicking = 0;
+				//pcw->flags.bPicking = 0;
 			}
 		}
 	}

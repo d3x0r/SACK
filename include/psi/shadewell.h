@@ -38,7 +38,7 @@ _COLORWELL_NAMESPACE
         mouse position.
    y :  position of the color choice dialog, otherwise uses the
         mouse position.                                                */
-PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove, int x, int y );
+PSI_PROC( PSI_CONTROL, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove, int x, int y, void ( *ok )( uintptr_t, CDATA ), uintptr_t psv );
 /* Shows a color picking dialog. Results with a chosen color.
    Parameters
    result\ :   pointer to CDATA to result into
@@ -48,7 +48,7 @@ PSI_PROC( int, PickColorEx )( CDATA *result, CDATA original, PSI_CONTROL hAbove,
    Returns
    TRUE if *result is set, else FALSE. (Reflects the Ok/Cancel
    of the dialog)                                              */
-PSI_PROC( int, PickColor)( CDATA *result, CDATA original, PSI_CONTROL pAbove );
+PSI_PROC( PSI_CONTROL, PickColor)( CDATA *result, CDATA original, PSI_CONTROL pAbove, void ( *ok )( uintptr_t, CDATA ), uintptr_t psv );
 // creates a control which can then select a color
 
 CONTROL_PROC( ColorWell, (CDATA color) );
