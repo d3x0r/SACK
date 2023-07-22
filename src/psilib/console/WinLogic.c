@@ -871,8 +871,16 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 		SetCursorNoPrompt( pdp->pCurrentDisplay, TRUE );
 		if( pdp->pHistoryDisplay )
 			SetCursorNoPrompt( pdp->pHistoryDisplay, FALSE );
-		pdp->nCommandLineStart -= pdp->nYPad + pdp->nCmdLinePad / 2;
-		pdp->nDisplayLineStartDynamic = pdp->nCommandLineStart - (pdp->nYPad + ( pdp->nCmdLinePad / 2 ) + pdp->nSeparatorHeight );
+		{
+			PDISPLAYED_LINE pdlCommand;
+			int lines = CountDisplayedLines( pdp->pCommandDisplay );
+
+			pdlCommand = (PDISPLAYED_LINE)GetDataItem( GetDisplayInfo( pdp->pCommandDisplay ), lines - 1 );
+
+			pdp->nCommandLineStart -= pdp->nYPad + pdp->nCmdLinePad / 2;
+			pdp->nDisplayLineStartDynamic = (pdlCommand?pdlCommand->nLineTop: pdp->nCommandLineStart -pdp->nFontHeight
+					- ( pdp->nYPad + ( pdp->nCmdLinePad / 2 ) ) ) ;
+		}
 #ifdef DEBUG_HISTORY_RENDER
 		lprintf( "(linemode)Setting display line to %d", pdp->nDisplayLineStartDynamic );
 #endif
