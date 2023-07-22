@@ -704,7 +704,7 @@ Double quote	"""	222
 #    define KEY_Y   AKEYCODE_Y
 #    define KEY_Z   AKEYCODE_Z
 
-#  elif defined( __LINUX__ ) && !defined( __MAC__ ) && !defined( __ANDROID__ )
+#  elif defined( __LINUX__ ) && !defined( __MAC__ ) && !defined( __ANDROID__ ) && !defined( USE_WIN32_KEY_DEFINES )
 
 #include <linux/input-event-codes.h>
 
