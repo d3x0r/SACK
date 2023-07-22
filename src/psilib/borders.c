@@ -758,6 +758,7 @@ void DrawThinFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amount )
 
 void DrawFrameCaption( PSI_CONTROL pc )
 {
+	//lprintf( "Draw Frame Caption... %p %08x", pc, pc->BorderType );
 	if( !pc ) return;
 	if( pc->BorderType & BORDER_NOCAPTION ) return;
 	if( (pc->BorderType & BORDER_TYPE) == BORDER_NONE ) {
@@ -772,6 +773,7 @@ void DrawFrameCaption( PSI_CONTROL pc )
 		uint32_t yofs = ( ( FrameCaptionYOfs(pc, pc->BorderType ) ) );
 		Image out = NULL;
 		h = CaptionHeight( pc, pc?GetText(pc->caption.text):NULL ) - 1;
+		//lprintf( "Caption height: %d", h );
 		if( h <= 0 ) // no caption to...
 		{
 			//lprintf( "But... there's no caption to render." );

@@ -2075,6 +2075,7 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 #endif
 							pc->flags.bDirtyBorder = 0;
 							pc->DrawBorder( pc );
+							DrawFrameCaption( pc );
 							drewBorder = TRUE;
 						}
 					}
@@ -2736,6 +2737,7 @@ static PROCEDURE RealCreateCommonExx( PSI_CONTROL *pResult
 	SetFraction( pc->scalex, 1, 1 );
 	SetFraction( pc->scaley, 1, 1 );
 	pc->flags.bInitial = 1;
+	pc->flags.bDirtyBorder = 1;
 
 	//else
 	//	pc->caption.font = g.default_font;

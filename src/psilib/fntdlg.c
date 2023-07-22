@@ -1011,7 +1011,7 @@ SFTFont PickScaledFontWithUpdate( int32_t x, int32_t y
 	}
 	FillFamilyList( &fdData );
 	DisplayFrameOver( fdData.pFrame, pAbove );
-	PSI_HandleStatusEvent( pc, handleStatus, (uintptr_t)&fdData);
+	PSI_HandleStatusEvent( fdData.pFrame, handleStatus, (uintptr_t)&fdData);
 	/**/
 	//while( 1 )
 	//{
