@@ -1542,7 +1542,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 		}
 		if( pf->flags.bSizing ) {
 			if( BeginSizeDisplay( pf->pActImg, (enum sizeDisplayValues)(( pf->flags.bSizing_right?wrsdv_right:0)
-					|( pf->flags.bSizing_right?wrsdv_left:0)
+					|( pf->flags.bSizing_left?wrsdv_left:0)
 					|( pf->flags.bSizing_top?wrsdv_top:0)
 					|( pf->flags.bSizing_bottom?wrsdv_bottom:0))
 				) ){
