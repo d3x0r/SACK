@@ -37,9 +37,11 @@
 #endif
 
 #include "history.h"  // history_track
-#include "ansi.h"
+
 
 PSI_CONSOLE_NAMESPACE
+
+#include "ansi.h"
 
 #if !defined( WIN32 ) && !defined( _WIN32 )
 typedef struct rect_tag {
@@ -251,6 +253,8 @@ typedef struct myconsolestruc {
 
 	void (CPROC *RenderCursor )( struct myconsolestruc *pmdp, RECT *r, int column );
 	void (CPROC *Update )( struct myconsolestruc *pmdp, RECT *upd );
+	void (*UpdateSize)( uintptr_t, int, int, int, int);
+	uintptr_t psvUpdateSize;
 	// void CPROC
 	PLIST data_processors;
 	PANSI_DATAPATH ansi;
