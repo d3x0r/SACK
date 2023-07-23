@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <pty.h>
 extern char **environ;
 #endif
 
@@ -205,7 +206,7 @@ static uintptr_t CPROC HandleTaskOutput( PTHREAD thread ) {
 #  endif
 					}
 #endif
-					if( task->flags.log_input )
+					//if( task->flags.log_input )
 						lprintf( "got read on task's stdout: %d %d", taskParams->stdErr, dwRead );
 					if( task->flags.bSentIoTerminator ) {
 						if( dwRead > 1 )
@@ -917,41 +918,43 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			task->args2.stdErr     = TRUE;
 			if( OutputHandler )
 			{
-				if( pipe(task->hStdIn.pair) < 0 ) { // pipe failed
-					Release( task );
-					task = NULL;
-					goto reset_env;
-				}
-				task->hStdIn.handle = task->hStdIn.pair[1];
-
-				if( pipe(task->hStdOut.pair) < 0 ) {
-					close( task->hStdIn.pair[0] );
-					close( task->hStdIn.pair[1] );
-					Release( task );
-					task = NULL;
-					goto reset_env;
-				}
-				task->hStdOut.handle = task->hStdOut.pair[0];
-
-				if( OutputHandler2 ) {
-					if( pipe(task->hStdErr.pair) < 0 ) {
-						close( task->hStdIn.pair[0] );
-						close( task->hStdIn.pair[1] );
-						close( task->hStdOut.pair[0] );
-						close( task->hStdOut.pair[1] );
+				if( !(flags & LPP_OPTION_INTERACTIVE ) ) {
+					if( pipe(task->hStdIn.pair) < 0 ) { // pipe failed
 						Release( task );
 						task = NULL;
 						goto reset_env;
 					}
-					task->hStdErr.handle = task->hStdErr.pair[0];
-				} else
-					task->hStdErr.handle =task->hStdOut.pair[0];
+					task->hStdIn.handle = task->hStdIn.pair[1];
 
+					if( pipe(task->hStdOut.pair) < 0 ) {
+						close( task->hStdIn.pair[0] );
+						close( task->hStdIn.pair[1] );
+						Release( task );
+						task = NULL;
+						goto reset_env;
+					}
+					task->hStdOut.handle = task->hStdOut.pair[0];
+
+					if( OutputHandler2 ) {
+						if( pipe(task->hStdErr.pair) < 0 ) {
+							close( task->hStdIn.pair[0] );
+							close( task->hStdIn.pair[1] );
+							close( task->hStdOut.pair[0] );
+							close( task->hStdOut.pair[1] );
+							Release( task );
+							task = NULL;
+							goto reset_env;
+						}
+						task->hStdErr.handle = task->hStdErr.pair[0];
+					} else
+						task->hStdErr.handle =task->hStdOut.pair[0];
+				}
 			}
 
 			// always have to thread to taskend so waitpid can clean zombies.
 			ThreadTo( WaitForTaskEnd, (uintptr_t)task );
-			if( !( newpid = fork() ) )
+			if( ( !( flags & LPP_OPTION_INTERACTIVE ) )? !( newpid = fork() ) 
+			   : !( newpid = forkpty( &task->pty, NULL, NULL, NULL ) ) )
 			{
 				// after fork; check that args has a space for
 				// the program name to get filled into.
@@ -980,13 +983,16 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				char *_program = CStrDup( program );
 				// in case exec fails, we need to
 				// drop any registered exit procs...
-				//close( task->hStdIn.pair[1] );
-				//close( task->hStdOut.pair[0] );
-				//close( task->hStdErr.pair[0] );
-				if( OutputHandler ) {
-					dup2( task->hStdIn.pair[0], 0 );
-					dup2( task->hStdOut.pair[1], 1 );				
-					dup2( task->hStdErr.pair[1], 2 );
+				if( !(flags & LPP_OPTION_INTERACTIVE) ) {
+					//close( task->hStdIn.pair[1] );
+					//close( task->hStdOut.pair[0] );
+					//close( task->hStdErr.pair[0] );
+					if( OutputHandler ) {
+						dup2( task->hStdIn.pair[0], 0 );
+						dup2( task->hStdOut.pair[1], 1 );
+					}
+					if( OutputHandler || OutputHandler2 )
+						dup2( task->hStdErr.pair[1], 2 );
 				}
 				DispelDeadstart();
 
@@ -1007,11 +1013,13 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					Release( tmp );
 				}
 				lprintf( "exec failed - and this is ALLL bad... %d", errno );
-				if( OutputHandler ) {
-					close( task->hStdIn.pair[0] );
-					close( task->hStdOut.pair[1] );
-					if( OutputHandler2 )
-						close( task->hStdErr.pair[1] );
+				if( !(flags & LPP_OPTION_INTERACTIVE ) ) {
+					if( OutputHandler ) {
+						close( task->hStdIn.pair[0] );
+						close( task->hStdOut.pair[1] );
+						if( OutputHandler2 )
+							close( task->hStdErr.pair[1] );
+					}
 				}
 				//close( task->hWriteErr );
 				close( 0 );
@@ -1026,13 +1034,21 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			}
 			else
 			{
-				Release( (POINTER)path );
-				if( OutputHandler ) {
-					close( task->hStdIn.pair[0] );
-					close( task->hStdOut.pair[1] );
+				if( flags & LPP_OPTION_INTERACTIVE ) {
+					// otherwise these are set earlier, when the pipe()'s 
+					// are created, and before the fork().
+					task->hStdIn.handle = task->pty;
+					task->hStdOut.handle = task->pty;
+					task->hStdErr.handle = task->pty;
+				}else {
+					if( OutputHandler ) {
+						close( task->hStdIn.pair[0] );
+						close( task->hStdOut.pair[1] );
+					}
 					if( OutputHandler2 )
 						close( task->hStdErr.pair[1] );
 				}
+				Release( (POINTER)path );
 			}
 
 			if( OutputHandler )
@@ -1227,6 +1243,11 @@ int pprintf( PTASK_INFO task, CTEXTSTR format, ... )
 	return vpprintf( task, format, args );
 }
 
+#ifdef __LINUX__
+int GetTaskPTY( PTASK_INFO task ){
+	return task->pty;
+}
+#endif
 
 SACK_SYSTEM_NAMESPACE_END
 

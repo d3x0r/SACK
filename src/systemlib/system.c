@@ -964,6 +964,53 @@ struct handle_data {
 	HWND window_handle;
 };
 
+PDATALIST GetProcessTree( PTASK_INFO task ){
+	INDEX idx;
+	INDEX idx2;
+	struct process_id_pair* pair;
+	PDATALIST pdlProcs;
+	PDATALIST pdlResult;
+	struct process_tree_pair *checkPair;
+	struct process_tree_pair resultPair;
+	ProcIdFromParentProcId( task->pi.dwProcessId, &pdlProcs );
+	DATA_FORALL( pdlProcs, idx, struct process_id_pair*, pair ) {
+		struct process_tree_pair *parent;
+		int parent_id = -1;
+		//struct process_tree_pair *checkPair;
+		int child_id = -1;
+		
+		DATA_FORALL( pdlResult, idx2, struct process_tree_pair*, checkPair ) {
+			if( checkPair->process_id == pair->parent ) {
+				parent_id = idx2;
+				parent = checkpair;
+			}
+			if( checkPair->process_id == pair->child )
+				child_id = idx2;
+		}
+		if( parent_id < 0 ){
+			resultPair.process_id = pair->parent;
+			resultPair.parent_id = -1;
+			resultPair.child_id = child_id;
+			resultPair.next_id = -1;
+			AddDataItem( &pdlResult, &resultPair );
+			parent_id = 0;
+			parent = GetDataItem( &pdlResult, 0 );
+		}
+		if( child_id < 0 ){
+			resultPair.process_id = pair->child;
+			resultPair.parent_id = parent_id;
+			resultPair.chlid_id = -1;
+			if( parent->child_id < 0 )
+				resultPair.next_id = -1;
+			else
+				resultPair.next_id = parent->child_id;
+			parent->child_id = pdlResult.Cnt;
+			AddDataItem( &pdlResult, &resultPair );
+		}
+	}
+	DeleteDataList( &pdlProcs );
+	return pdlResult;
+}
 
 BOOL is_main_window( HWND handle ) {
 	return GetWindow( handle, GW_OWNER ) == (HWND)0 && IsWindowVisible( handle );
