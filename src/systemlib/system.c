@@ -908,7 +908,7 @@ void ProcIdFromParentProcId( DWORD dwProcessId, PDATALIST *ppdlProcs ) {
 		ppdlProcs[0] = NULL;
 		return;
 	}
-	struct process_id_pair pair = { 0, dwProcessId };
+	struct process_id_pair pair = { GetCurrentProcessId(), dwProcessId };
 	DWORD dwMe = GetCurrentProcessId();
 	PDATALIST pdlProcs = CreateDataList( sizeof( struct process_id_pair ) );// vector<PROCID> vec;
 	int i = 0;
@@ -1318,41 +1318,38 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 
 		HWND hWndMain = task->taskWindow?task->taskWindow:find_main_window( task->pi.dwProcessId );
 		if( hWndMain ) {
-			lprintf( "Sending WM_CLOSE to %p", hWndMain );
+			TEXTCHAR title[256];
+			GetWindowText( hWndMain, title, 256 );
+			lprintf( "Sending WM_CLOSE to %p %s %s", hWndMain, task->name, title );
 			SendMessage( hWndMain, WM_CLOSE, 0, 0 );
 		}
 		else if( !task->flags.useEventSignal ) {
 			DWORD dwKillId = task->pi.dwProcessId;
-			IgnoreBreakHandler( ( 1 << CTRL_C_EVENT ) | ( 1 << CTRL_BREAK_EVENT ) );
-#if 0
-			INDEX idx;
-			struct process_id_pair* pair;
-			PDATALIST pdlProcs;
-			ProcIdFromParentProcId( task->pi.dwProcessId, &pdlProcs );
-			DATA_FORALL( pdlProcs, idx, struct process_id_pair*, pair ) {
-				lprintf( "Got Pair: %d %d", pair->parent, pair->child );
-				//dwKillId = pair->child;
+			if( task->spawn_flags & LPP_OPTION_NEW_GROUP ) {
+				IgnoreBreakHandler( ( 1 << CTRL_C_EVENT ) | ( 1 << CTRL_BREAK_EVENT ) );
+
+				lprintf( "Killing child %d? %s (%s)", dwKillId, task->name );
+				//MessageBox( NULL, "pause", "pause", MB_OK );
+				FreeConsole();
+				BOOL a = AttachConsole( dwKillId );
+				if( !a ) {
+					DWORD dwError = GetLastError();
+					lprintf( "Failed to attachConsole %d %d %d", a, dwError, dwKillId );
+				}
+				if( !task->flags.useCtrlBreak )
+					if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, dwKillId ) ) {
+						error = GetLastError();
+						lprintf( "Failed to send CTRL_C_EVENT %d %d", dwKillId, error );
+					} else lprintf( "Success sending ctrl C?" );
+				else			
+					if( !GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, dwKillId ) ) {
+						error = GetLastError();
+						lprintf( "Failed to send CTRL_BREAK_EVENT %d %d", dwKillId, error );
+					} else lprintf( "Success sending ctrl break?" );
+				IgnoreBreakHandler( 0 );
+			} else {
+				lprintf( "Process wasn't in a new group - would end up killing self. %s", task->name );
 			}
-#endif
-			lprintf( "Killing child %d? %s", dwKillId, task->name );
-			//MessageBox( NULL, "pause", "pause", MB_OK );
-			FreeConsole();
-			BOOL a = AttachConsole( dwKillId );
-			if( !a ) {
-				DWORD dwError = GetLastError();
-				lprintf( "Failed to attachConsole %d %d %d", a, dwError, dwKillId );
-			}
-			if( !task->flags.useCtrlBreak )
-				if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, dwKillId ) ) {
-					error = GetLastError();
-					lprintf( "Failed to send CTRL_C_EVENT %d %d", dwKillId, error );
-				} else lprintf( "Success sending ctrl C?" );
-			else			
-				if( !GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, dwKillId ) ) {
-					error = GetLastError();
-					lprintf( "Failed to send CTRL_BREAK_EVENT %d %d", dwKillId, error );
-				} else lprintf( "Success sending ctrl break?" );
-			IgnoreBreakHandler( 0 );
 		}
 //#if 0
 		// this is pretty niche; was an attempt to handle when ctrl-break and ctrl-c events failed.
