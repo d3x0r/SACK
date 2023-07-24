@@ -19,7 +19,7 @@
 //#define DEBUG_REDRAW
 
 // individual update portion and update call logging 
-//#define DEBUG_UPDATE_DISPLAY
+#define DEBUG_UPDATE_DISPLAY
 
 // there is a crash (sometimes) when opening a window
 //#define DEBUG_SURFACE_INIT
@@ -65,7 +65,9 @@ struct wayland_local_tag wl;
 
  static void sack_wayland_BeginMoveDisplay(  PRENDERER renderer );
  static void sack_wayland_BeginSizeDisplay(  PRENDERER renderer, enum sizeDisplayValues mode );
-
+static void sack_wayland_Redraw( PRENDERER renderer );
+static void sack_wayland_Redraw_( PXPANEL renderer, int noCallback, volatile int *redrawState_ );
+static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked );
 /*
  wl_compositor id 1
  wl_subcompositor id 2
@@ -242,6 +244,7 @@ static void pointer_motion(void *data,
 	struct wl_pointer *wl_pointer, uint32_t time,
 	wl_fixed_t surface_x, wl_fixed_t surface_y) {
 	struct pointer_data* pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
+	lprintf( "pointer motion... ");
 	if( !pointer_data->target_surface ) {
 		lprintf( "no target for mouse??" ); 
 		return;
@@ -284,7 +287,7 @@ static void pointer_button(void *data,
 	PXPANEL r;
 	void (*callback)(uint32_t);
 	wl.mouseSerial = serial;
-	//lprintf( "pointer button:%d %d", button, state);
+	lprintf( "pointer button:%d %d %d", button, state, serial);
 	pointer_data = data;//wl_pointer_get_user_data(wl_pointer);
 	if( button == BTN_LEFT ) {
 		if( state )
@@ -310,6 +313,8 @@ static void pointer_button(void *data,
 	wl.mouse_.r = r;
 	EnqueData( &wl.pdqMouseEvents, &wl.mouse_ );
 	WakeThread( wl.drawThread );
+
+	 	//xdg_toplevel_resize( r->xdg_toplevel, wl.seat, wl.mouseSerial, 12 );
 
 	/*
 	if (r != NULL && r->mouse ) {
@@ -551,7 +556,7 @@ static void keyboard_key(void *data,
 			keycode |= ( key << 16 );
 			keycode |= key;
 		}
-		wl.key_.keycode = keycode;
+		wl.key_.keycode = keycode & 0x7FFFFFF;
 		EnqueData( &wl.pdqKeyEvents, &wl.key_ );
 		WakeThread( wl.drawThread ); // let it setup a shorter timer, and handle stopping repeats?
 	}
@@ -614,14 +619,111 @@ static const struct wl_keyboard_listener keyboard_listener = {
 static void xdg_surface_configure ( void *data, struct xdg_surface* xdg_surface, uint32_t serial ){
 	PXPANEL r= (PXPANEL)data;
 #ifdef DEBUG_SURFACE_INIT	
-	//lprintf( "xdg_surface_ack_configure %p", xdg_surface );
 #endif	
+	r->last_xdg_serial = serial;
+	lprintf( "xdg_surface_ack_configure %p", xdg_surface );
 	xdg_surface_ack_configure( xdg_surface, serial );
 
 }
 
 static struct xdg_surface_listener const xdg_surface_listener = {
 	.configure = xdg_surface_configure,
+};
+
+typedef enum WaylandWindowState {
+
+    TOPLEVEL_STATE_NONE = 0,
+    TOPLEVEL_STATE_MAXIMIZED = 1,
+    TOPLEVEL_STATE_FULLSCREEN = 2,
+    TOPLEVEL_STATE_RESIZING = 4,
+    TOPLEVEL_STATE_ACTIVATED = 8,
+    TOPLEVEL_STATE_TILED_LEFT = 16,
+    TOPLEVEL_STATE_TILED_RIGHT = 32,
+    TOPLEVEL_STATE_TILED_TOP = 64,
+    TOPLEVEL_STATE_TILED_BOTTOM = 128,
+    TOPLEVEL_STATE_SUSPENDED = 256,
+} WaylandWindowState;
+
+static void xdgTopLeveLHandleConfigure(void* data,
+                                       struct xdg_toplevel* toplevel,
+                                       int32_t width,
+                                       int32_t height,
+                                       struct wl_array* states)
+{
+	PXPANEL r = (PXPANEL)data;
+	// _GLFWwindow* window = data;
+    float aspectRatio;
+    float targetRatio;
+    enum xdg_toplevel_state* state;
+    uint32_t new_states = 0;
+	wl_array_for_each(state, states) {
+		  switch (state[0]) {
+#define C(x) case XDG_##x: new_states |= x; lprintf("%s ", #x); break
+            C(TOPLEVEL_STATE_RESIZING);
+            C(TOPLEVEL_STATE_MAXIMIZED);
+            C(TOPLEVEL_STATE_FULLSCREEN);
+            C(TOPLEVEL_STATE_ACTIVATED);
+            C(TOPLEVEL_STATE_TILED_LEFT);
+            C(TOPLEVEL_STATE_TILED_RIGHT);
+            C(TOPLEVEL_STATE_TILED_TOP);
+            C(TOPLEVEL_STATE_TILED_BOTTOM);
+#ifdef XDG_TOPLEVEL_STATE_SUSPENDED_SINCE_VERSION
+            C(TOPLEVEL_STATE_SUSPENDED);
+#endif
+#undef C
+		  }
+	}
+	lprintf( "xdg_toplevel_configure...%08x", new_states );
+
+	//xdg_surface_ack_configure((struct xdg_surface* )r->shell_surface, r->last_xdg_serial);
+	if (new_states & TOPLEVEL_STATE_RESIZING) {
+        if (width) r->bufw = width;
+        if (height) r->bufh = height;
+		if( width && height ) {
+			lprintf( "xdg_toplevel_configure...%d %d  %d %d", width, height, r->flags.canCommit, !r->flags.dirty);
+			//if (!(r->wl.current.toplevel_states & TOPLEVEL_STATE_RESIZING)) 
+			//	;//report_live_resize(window, true);
+			if( r->flags.canCommit && !r->flags.dirty){
+				lprintf( "Surface didn't want to draw already, swap buffer, and then do draw callback");
+				EnterCriticalSec( &wl.cs_wl );
+				attachNewBuffer( r, 0, 0 );
+				LeaveCriticalSec( &wl.cs_wl );
+			}
+			sack_wayland_Redraw_( r, 0, NULL );
+		}
+    }
+    if (width != 0 && height != 0)
+    {
+        //if (!(new_states & TOPLEVEL_STATE_DOCKED))
+        {
+			#if 0
+            if (window->numer != GLFW_DONT_CARE && window->denom != GLFW_DONT_CARE)
+            {
+                aspectRatio = (float)width / (float)height;
+                targetRatio = (float)window->numer / (float)window->denom;
+                if (aspectRatio < targetRatio)
+                    height = (int32_t)((float)width / targetRatio);
+                else if (aspectRatio > targetRatio)
+                    width = (int32_t)((float)height * targetRatio);
+            }
+			#endif
+        }
+    }
+
+    //window->wl.pending.toplevel_states = new_states;
+    //window->wl.pending.width = width;
+    //window->wl.pending.height = height;
+    //window->wl.pending_state |= PENDING_STATE_TOPLEVEL;
+}
+
+static void xdgTopLevelHandleClose(void* data,
+                                   struct xdg_toplevel* toplevel){
+	
+}
+
+static struct xdg_toplevel_listener xdg_toplevel_listener = {
+	xdgTopLeveLHandleConfigure,
+	xdgTopLevelHandleClose
 };
 
 static void xdg_wm_base_ping( void*data, struct xdg_wm_base*base, uint32_t serial){
@@ -926,8 +1028,8 @@ static const struct wl_buffer_listener  buffer_listener = {
 
 static struct wl_buffer * allocateBuffer( PXPANEL r )
 {
-	int stride = r->w * 4; // 4 bytes per pixel
-	int size = stride * r->h;
+	int stride = r->bufw * 4; // 4 bytes per pixel
+	int size = stride * r->bufh;
 	int fd;
 
 	fd = os_create_anonymous_file(size);
@@ -936,7 +1038,12 @@ static struct wl_buffer * allocateBuffer( PXPANEL r )
 			size);
 		return FALSE;
 	}
-	r->buffer_sizes[r->curBuffer] = size;
+	r->buffer_states[r->curBuffer].size = size;
+	r->buffer_states[r->curBuffer].w = r->bufw;
+	r->buffer_states[r->curBuffer].h = r->bufh;
+	r->buffer_states[r->curBuffer].dirty = 1;
+	
+
 	r->shm_data = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	if (r->shm_data == MAP_FAILED) {
 		lprintf( "mmap failed: %m\n");
@@ -946,11 +1053,11 @@ static struct wl_buffer * allocateBuffer( PXPANEL r )
 
 	//static struct wl_shm_pool *pool; if( !pool ) pool = wl_shm_create_pool(wl.shm, fd, size);
 	struct wl_shm_pool *pool = wl_shm_create_pool(wl.shm, fd, size);
-#ifdef DEBUG_COMMIT_BUFFER_DETAILS	
-	lprintf( "Allocating a buffer: %d %d %d", r->w, r->h, r->w*r->h*4);
-#endif	
+//#ifdef DEBUG_COMMIT_BUFFER_DETAILS	
+	lprintf( "Allocating a buffer: %d %d %d", r->bufw, r->bufh, r->bufw*r->bufh*4);
+//#endif	
 	r->buff = wl_shm_pool_create_buffer(pool, 0, /* starting offset */
-					r->w, r->h,
+					r->bufw, r->bufh,
 					stride,
 					WL_SHM_FORMAT_ARGB8888);
 	wl_buffer_add_listener( r->buff, &buffer_listener, r );
@@ -970,7 +1077,9 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		lprintf( "window is hidden... returning a fault.");
 		return NULL;
 	}
-	if( r->freeBuffer[r->curBuffer]  && ( r->bufw == r->w && r->bufh == r->h ) ) {
+	if( r->freeBuffer[r->curBuffer]  
+		&& ( r->buffer_states[r->curBuffer].w == r->bufw 
+		&& r->buffer_states[r->curBuffer].h == r->bufh ) ) {
 #if defined( DEBUG_COMMIT )
 		lprintf( "Can just use the current image... it's already attached %d", r->curBuffer);
 #endif
@@ -978,9 +1087,9 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	}
 	if( r->buffers[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES]
 	  && !r->freeBuffer[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES] ) {
-#if defined( DEBUG_COMMIT_BUFFER )
+//#if defined( DEBUG_COMMIT_BUFFER )
 		lprintf( "buffers in use and nothing free, (no more commit!!) want buffer %d", r->curBuffer);
-#endif
+//#endif
 		return NULL;
 	}
 	r->curBuffer=(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES;
@@ -988,18 +1097,19 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 #if defined( DEBUG_SURFACE_ATTACH )
 	//lprintf( "using image to a new image.... %d sizeChange? %d %d",curBuffer, r->bufw != r->w, r->bufh != r->h );
 #endif
-	if( r->bufw != r->w || r->bufh != r->h ) {
+	if( r->buffer_states[curBuffer].w != r->bufw 
+	   || r->buffer_states[curBuffer].h != r->bufh ) {
 		// if the buffer has to change size, we need a new one....
 		// maybe can keep this around to fill a copy of the prior window?
-		//lprintf( "Remove Old Buffer");
+		lprintf( "Remove Old Buffers");
 		if( r->color_buffers[curBuffer] ) {
-			munmap( r->color_buffers[curBuffer], r->buffer_sizes[curBuffer] );
+			// one of these is in use...
+			munmap( r->color_buffers[curBuffer], r->buffer_states[curBuffer].size );
 			UnmakeImageFile( r->buffer_images[curBuffer] );
 			if( r->buffers[curBuffer] )
 				wl_buffer_destroy( r->buffers[curBuffer] );
 		}
-		r->w = r->bufw;
-		r->h = r->bufh;
+
 		r->buffer_images[curBuffer] = NULL;
 		r->buffers[curBuffer] = NULL;
 		r->color_buffers[curBuffer] = NULL;
@@ -1014,13 +1124,13 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		lprintf( "Allocate NEW buffer" );
 #endif		
 		// haven't actually allocated a bufer yet... so do so...
+		// allocate buffer updates the size of the image
 		allocateBuffer(r);
-		r->buffer_images[curBuffer] = RemakeImage( r->buffer_images[curBuffer], r->shm_data, r->w, r->h );
+		r->buffer_images[curBuffer] = RemakeImage( r->buffer_images[curBuffer], r->shm_data, r->bufw, r->bufh );
 		if( r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES] ) {
 			//lprintf( "Copy old buffer to new current buffer...%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES);
 			BlotImage( r->buffer_images[curBuffer], r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], 0, 0 );
 		}
-
 		r->buffers[curBuffer] = r->buff;
 #if defined( DEBUG_COMMIT_BUFFER )
 		lprintf( "Setting buffer (free) %d  %p", curBuffer, r->buff );
@@ -1034,10 +1144,13 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		lprintf( "Copying old buffer to current buffer....%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES );
 #endif
 		// copy just the damaged portions?
-		BlotImage( r->buffer_images[curBuffer], r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], 0, 0 );
+		if( r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES] )
+			BlotImage( r->buffer_images[curBuffer]
+			         , r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES]
+			         , 0, 0 );
 	}
 	// update image internals of renderer... 
-	r->pImage = RemakeImage( r->pImage, r->shm_data, r->w, r->h );
+	r->pImage = RemakeImage( r->pImage, r->shm_data, r->bufw, r->bufh );
 	r->pImage->flags |= IF_FLAG_FINAL_RENDER|IF_FLAG_IN_MEMORY;
 	return r->buff;
 }
@@ -1048,15 +1161,15 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 	lprintf( "attachNewBuffer... req %d,  locked %d", req, locked);
 #endif	
 	if( !r->surface ) return FALSE; 
-	//lprintf( "attachNewBuffer2... (have a surface)");
+	lprintf( "attachNewBuffer2... (have a surface)");
 	struct wl_buffer *next = nextBuffer(r, 0);
 	if( req && !next ) {
-#if defined( DEBUG_COMMIT_BUFFER )
+//#if defined( DEBUG_COMMIT_BUFFER )
 		lprintf( "waiting for buffer...---------------- %d", r->flags.canCommit );
-#endif
-		if( TRUE || r->flags.canCommit ) 
+//#endif
+		//if( r->flags.canCommit ) 
 		{
-			r->flags.canCommit = 0; // am commiting, do not comit
+			r->flags.canCommit = 0; // am commiting, do not commit
 			//r->flags.dirty = 0;
 			r->flags.commited = 1; // unused?
 			r->flags.dirty = 0; // can't be dirty, won't have a buffer
@@ -1097,6 +1210,7 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 				} 
 				if( locked )
 					EnterCriticalSec( &wl.cs_wl );
+				lprintf( "AttachNewbuffer Another next buffer");
 				next = nextBuffer(r,0);
 #if defined( DEBUG_COMMIT_BUFFER_DETAILS )
 				lprintf( "called next buffer again" );
@@ -1104,11 +1218,12 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 			} while( !r->flags.hidden && !next );
 			// now have a buffer, do not want it.
 			r->bufferWaiter = NULL;
-		}else {
-			lprintf( "Attach New Buffer is really still waiting for a new buffer !!!!!!!!!!!!!!!! ");
-		}
+			r->flags.canCommit = 1; // was commiting, can now commit
+		}//else {
+		//	lprintf( "Attach New Buffer is really still waiting for a new buffer !!!!!!!!!!!!!!!! ");
+		//}
 	} else {
-		//lprintf( "Commit any damage... (flush was needed after commit)");
+		lprintf( "Commit any damage... (flush was needed after commit)");
 		wl_surface_commit( r->surface );
 		wl_display_flush( wl.display );
 	}
@@ -1163,9 +1278,9 @@ static  void surfaceFrameCallback( void *data, struct wl_callback* callback, uin
 
 	
 	r->flags.canCommit = 1;
-#if defined( DEBUG_COMMIT )
+//#if defined( DEBUG_COMMIT )
 	lprintf( "----------- surfaceFrameCallback (after surface is freed? no...) %d %p",r->curBuffer, r->buffers[r->curBuffer] );
-#endif
+//#endif
 	if( callback && r->frame_callback ) wl_callback_destroy( r->frame_callback );
 	if( !r->flags.bDestroy ) {
 		if( callback ) {
@@ -1190,7 +1305,7 @@ static void postDrawEvent( PXPANEL r, int noCallback ) {
 	LIST_FORALL( wl.wantDraw, idx, struct drawRequest*, check ){
 		if( check->r == r ) {
 			// turn off the 1 if there isn't a block for the callback
-			check->noCallback &= ~noCallback;
+			if( !noCallback ) check->noCallback = 0;
 			break;
 		}
 	}
@@ -1207,8 +1322,6 @@ static void postDrawEvent( PXPANEL r, int noCallback ) {
 	}
 }
 
-static void sack_wayland_Redraw( PRENDERER renderer );
-static void sack_wayland_Redraw_( PRENDERER renderer, int noCallback, volatile int *redrawState_ );
 static volatile int redrawState = -1;
 
 static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
@@ -1258,7 +1371,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 			}
 			redrawState = 101;
 		}
-
+		sleepTime = 500000;
 		while( DequeData( &wl.pdqMouseEvents, &event ) ) {
 			redrawState = 200;
 			did_event = 1;
@@ -1286,7 +1399,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 			redrawState = 201;
 		}
 		if( sleepTime ) { // if mouse happened, ignore keys this pass...
-				lprintf( "Consult repeating keys.... " );
+			//lprintf( "Consult repeating keys.... " );
 			LIST_FORALL( wl.keyRepeat.pendingKeys, idx, struct pendingKey*, key ) {
 				if( key->tick ) {
 					//lprintf( "key tick:%fd %d", key->tick, key->repeating, now, key->tick-now );
@@ -1311,7 +1424,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 			}
 			if( newSleepTime >= 0 && newSleepTime < sleepTime )
 				sleepTime = newSleepTime;
-			lprintf( "Set sleep time? %d", sleepTime );
+			//lprintf( "Set sleep time? %d", sleepTime );
 		}
 		
 		if( !drawing ) {
@@ -1324,16 +1437,16 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 				lprintf( " ------------------------  Sending a want draw window...");
 #endif
 				redrawState = 300;
-				sack_wayland_Redraw_( (PRENDERER)req->r, req->noCallback, &redrawState );
+				sack_wayland_Redraw_( req->r, req->noCallback, &redrawState );
 				// assume the above took some time...
 				if( oldCallback && !req->noCallback ) {
 					// the drawer found the request before it was removed
 					// AND they have added a full redraw
 					redrawState = 302;
-#if defined( DEBUG_REDRAW )
+//#if defined( DEBUG_REDRAW )
 					lprintf( " --------- And we do a fuller draw");
-#endif
-					sack_wayland_Redraw_( (PRENDERER)req->r, req->noCallback, &redrawState );
+//#endif
+					sack_wayland_Redraw_( req->r, req->noCallback, &redrawState );
 				}
 				redrawState = 301;
 #if defined( DEBUG_REDRAW )
@@ -1358,9 +1471,9 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 				//wl_display_flush( wl.display );
 				redrawState = 11;
 			}
-			lprintf( "Sleeping" );
+			//lprintf( "Sleeping" );
 			if( sleeping ) {
-				lprintf( "already sleeping just return (idle callback)");
+				//lprintf( "already sleeping just return (idle callback)");
 				return 0;
 			} else {
 				redrawState = 12;
@@ -1370,7 +1483,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 				sleeping = FALSE;
 				redrawState = 13;
 			}
-			lprintf( "not sleeping(slept) here... %d", psv );
+			//lprintf( "not sleeping(slept) here... %d", psv );
 			return 1;
 		} else {
 			if( drewSome ) {
@@ -1495,7 +1608,7 @@ handle_configure(void *data, struct wl_shell_surface *shell_surface,
 	postDrawEvent( r, 0 );
 	//wl_surface_commit( r->surface );
 	//r->changedEdge = edges;
-	//lprintf( "shell configure %d %d", width, height );
+	lprintf( "shell configure %d %d", width, height );
 	if( edges & wrsdv_left ){
 
 	}
@@ -1540,8 +1653,8 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 				if( n == ( (r->curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES ) )
 				{
 					INDEX idx;
-					int minx = r->w;
-					int miny = r->h;
+					int minx = r->bufw;
+					int miny = r->bufh;
 					int maxx = 0;
 					int maxy = 0;
 					struct damageInfo *damage;
@@ -1641,10 +1754,11 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 #endif			
 
 			xdg_surface_set_user_data((struct xdg_surface*)r->shell_surface, r);
+			xdg_toplevel_add_listener( r->xdg_toplevel, &xdg_toplevel_listener, r);
 			// must commit to get a config
-#ifdef DEBUG_SURFACE_INIT
+//#ifdef DEBUG_SURFACE_INIT
 			lprintf( "Commiting shell initalization (with flush)" );
-#endif			
+//#endif			
 			wl_surface_commit( r->surface );
 			// must also wait to get config.
 			wl_display_flush( wl.display );
@@ -1687,12 +1801,11 @@ void ShutdownVideo( void )
 }
 
 static void sack_wayland_Redraw( PRENDERER renderer ) {
-	sack_wayland_Redraw_( renderer, 0, NULL );
+	sack_wayland_Redraw_( (PXPANEL)renderer, 0, NULL );
 }
-static void sack_wayland_Redraw_( PRENDERER renderer, int noCallback, volatile int *redrawState_ ) {
+static void sack_wayland_Redraw_( PXPANEL r, int noCallback, volatile int *redrawState_ ) {
 	//static volatile int redrawState__ = -3;
 	//#define redrawState ((redrawState_?redrawState_:&redrawState__)[0])
-	PXPANEL r = (PXPANEL)renderer;
 	PTHREAD thisThread = MakeThread();
 
 	if( redrawState != 5 ) {
@@ -1709,10 +1822,10 @@ static void sack_wayland_Redraw_( PRENDERER renderer, int noCallback, volatile i
 		//r->flags.dirty = 1;  // This must be dirty?  (Will be dirty?)
 		postDrawEvent( r, noCallback );
 	} else {
-#if defined( DEBUG_COMMIT_BUFFER )
+//#if defined( DEBUG_COMMIT_BUFFER )
 		lprintf( "********* BEGIN REDRAW THREAD ******************* " );
-		lprintf( "(get new buffer)Issue redraw on renderer %p", renderer );
-#endif
+		lprintf( "(get new buffer)Issue redraw on renderer %p", r );
+//#endif
 		redrawState = 0;
 		int couldCommit; couldCommit = r->flags.canCommit;
 		while( wl.flags.shellInit ) {
@@ -1736,26 +1849,27 @@ static void sack_wayland_Redraw_( PRENDERER renderer, int noCallback, volatile i
 		r->flags.canCommit = 0; // don't allow sub-daamages to commit... just damage  (if this gets a frame callback it'll reset and flush early)
 		if( !noCallback && r->pRedrawCallback ) {
 			redrawState = 5;
-#if defined( DEBUG_REDRAW )		
+//#if defined( DEBUG_REDRAW )		
 			lprintf( "dispatch redraw...");
-#endif			
+//#endif			
 			r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
-#if defined( DEBUG_REDRAW )		
+//#if defined( DEBUG_REDRAW )		
 			lprintf( "dispatched redraw...");
-#endif			
+//#endif			
 			redrawState = 6;
 		} else {
 			redrawState = 7;
 			r->flags.commited = 1; // no real draw (closed?)
-#if defined( DEBUG_REDRAW )		
+//#if defined( DEBUG_REDRAW )		
 			lprintf( "No redraw callback, forcing commit");
-#endif			
+//#endif			
 		}
 #if defined( DEBUG_REDRAW )		
 		lprintf( "Dirty? after draw %d", r->flags.dirty );
 #endif		
 		if( r->flags.dirty ){
 			redrawState = 8;
+			lprintf( "Draw had dirty stuff, replace current with attachNewBuffer");
 			attachNewBuffer( r, 1, 1 );
 		}
 #if defined( DEBUG_REDRAW )		
@@ -1807,8 +1921,8 @@ static PRENDERER sack_wayland_OpenDisplayAboveUnderSizedAt(uint32_t attr , uint3
 	if( (int)w < 0 ) w = 800;
 	if( (int)h < 0 ) h = 600;
 
-	r->bufw = r->w = w;
-	r->bufh = r->h = h;
+	r->bufw = w;
+	r->bufh = h;
 
 	{
 		struct wvideo_tag *parent = r->above;
@@ -1882,8 +1996,8 @@ static void sack_wayland_CloseDisplay( PRENDERER renderer ) {
 
 static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, int32_t y, uint32_t w, uint32_t h DBG_PASS){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	if( (int)w < 0 ) w = r->w;
-	if( (int)h < 0 ) h = r->h;
+	if( (int)w < 0 ) w = r->bufw;
+	if( (int)h < 0 ) h = r->bufh;
 #ifdef DEBUG_UPDATE_DISPLAY
 	_lprintf( DBG_RELAY )( "UpdateDisplayPortionEx %p %d %d %d %d", r->surface, x, y, w, h );
 #endif	
@@ -1901,12 +2015,12 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 
 //	lprintf( "update DIpslay Ex" );
 #ifdef DEBUG_UPDATE_DISPLAY
-	lprintf( "Update whole surface %d %d", r->w, r->h );
+	lprintf( "Update whole surface %d %d", r->buffer_states[r->curBuffer].w, r->buffer_states[r->curBuffer].h );
 #endif	
 
 	EnterCriticalSec( &wl.cs_wl );
 	if( r->surface ) {
-		wl_surface_damage_buffer( r->surface, 0, 0, r->w, r->h );
+		wl_surface_damage_buffer( r->surface, 0, 0, r->buffer_states[r->curBuffer].w, r->buffer_states[r->curBuffer].h );
 		r->flags.dirty = 1;
 		postDrawEvent( r, 1 );
 	}
@@ -1918,8 +2032,8 @@ static void sack_wayland_GetDisplayPosition( PRENDERER renderer, int32_t* x, int
 	// wayland displays are always at '0'
 	if( x ) x[0] = 0;
 	if( y ) y[0] = 0;
-	if( w ) w[0] = r->w;
-	if( h ) h[0] = r->h;
+	if( w ) w[0] = r->bufw;
+	if( h ) h[0] = r->bufh;
 }
 
 static void sack_wayland_MoveDisplay(PRENDERER renderer, int32_t x, int32_t y){
@@ -2067,6 +2181,7 @@ static Image sack_wayland_GetDisplayImage(PRENDERER renderer) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( r ) {
 		if( !r->pImage ) {
+			lprintf( "draw getting display image...(do attachnewbuffer)");
 			attachNewBuffer( r, 1, 0 );
 		}
 		//lprintf( "GetDisplayImage:Result with image: %p %p", r->pImage );
@@ -2165,15 +2280,32 @@ void sack_wayland_BeginMoveDisplay(  PRENDERER renderer ) {
  }
  //static void sack_wayland_EndMoveDisplay(  PRENDERER pRenderer )
 
+int sd_to_xdg[] = {
+	[0]=0,
+	[wrsdv_top] = 1,
+	[wrsdv_top|wrsdv_left] = 5,
+	[wrsdv_top|wrsdv_right]=9,
+	[wrsdv_left]=4,
+	[wrsdv_right]=8,
+	[wrsdv_bottom] = 2,
+	[wrsdv_bottom|wrsdv_left] = 6,
+	[wrsdv_bottom|wrsdv_right]=10
+	
+};
+
  void sack_wayland_BeginSizeDisplay(  PRENDERER renderer, enum sizeDisplayValues mode ) {
 	PXPANEL r = (PXPANEL)renderer;
+	int xdg_mode = sd_to_xdg[mode];
  	wl.mouse_.b &= ~MK_LBUTTON;
-	lprintf( "Issue Mouse SizeBgin %d %x", wl.mouseSerial, mode );
+	lprintf( "Issue Mouse SizeBegin %d %x %x", wl.mouseSerial, mode, xdg_mode );
 	EnterCriticalSec( &wl.cs_wl );
-	if( wl.xdg_wm_base )
-	 	xdg_toplevel_resize( r->xdg_toplevel, wl.seat, wl.mouseSerial, mode );
-	else
+	if( wl.xdg_wm_base ) {
+	 	xdg_toplevel_resize( r->xdg_toplevel, wl.seat, wl.mouseSerial, xdg_mode );
+		
+	} else{
 		wl_shell_surface_resize( r->shell_surface, wl.seat, wl.mouseSerial, mode );
+	}
+	wl_display_flush( wl.display );
 	LeaveCriticalSec( &wl.cs_wl );
  }
  //static void sack_wayland_EndSizeDisplay(  PRENDERER pRenderer )

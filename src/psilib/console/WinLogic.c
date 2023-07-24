@@ -886,9 +886,14 @@ void PSI_ConsoleCalculate( PCONSOLE_INFO pdp, SFTFont font )
 #endif
 	}
 
+lprintf( "------- WINLOGIC CALCULATE -------- %p ", pdp->UpdateSize);
 	PSI_WinLogicCalculateHistory( pdp, font );
 
 	PSI_RenderConsole( pdp, font );
+
+	if( pdp->UpdateSize ) {
+		pdp->UpdateSize( pdp->psvUpdateSize, pdp->nColumns, pdp->nLines, pdp->nWidth, pdp->nHeight );
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -905,7 +910,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 	{
 #ifdef DEBUG_OUTPUT_TO_CONSOLE
 		PTEXT line = BuildLine( pLine );
-		lprintf( "Console Write: [%s]", GetText( line ) );
+		lprintf( "Console Write(pre ansi): [%s]", GetText( line ) );
 		LineRelease( line );
 #endif
 		{
@@ -915,7 +920,13 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 			//int flags = pLine->flags & (TF_NORETURN|TF_PROMPT);
 			//lprintf( "Updated... %d", updated );
 			//updated++;
-
+//#ifdef DEBUG_OUTPUT_TO_CONSOLE
+			{
+				PTEXT line = BuildLine( pLine );
+				lprintf( "Console Write(post ansi): [%s]", GetText( line ) );
+				LineRelease( line );
+			}
+//#endif
 			if( pLine->flags & TF_FORMATABS ) {
 				int32_t cursorx, cursory;
 				//lprintf( "absolute position format." );

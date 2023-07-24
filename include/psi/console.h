@@ -86,6 +86,17 @@ PSI_CONSOLE_PROC( void, PSIConsoleSetInputMode )( PSI_CONTROL pc, int mode );
 PSI_CONSOLE_PROC( void, PSI_SaveConsoleToFile )( PSI_CONTROL pc, FILE *file );
 PSI_CONSOLE_PROC( void, PSI_ReadConsoleFromFile )( PSI_CONTROL pc, FILE *file );
 
+// when ANSI detects a reply to a command, this is used to send a reply (send as stdin to the task).
+PSI_CONSOLE_PROC( void, PSI_Console_SetWriteCallback )( PSI_CONTROL pc, void (*)(uintptr_t, PTEXT), uintptr_t );
+
+// when ANSI detects a title command in the stream, this callback is issued.
+PSI_CONSOLE_PROC( void, PSI_Console_SetTitleCallback )( PSI_CONTROL pc, void (*)(uintptr_t, PTEXT), uintptr_t );
+
+// set a callback to be notified when the console window size changes.
+// this sets rows, cols, width, height; width and height are in pixel units
+// rows and cols are approximate cell counts - who uses a monospace font?
+PSI_CONSOLE_PROC( void, PSI_Console_SetSizeCallback )( PSI_CONTROL pc, void (*update)(uintptr_t, int width, int height, int cols, int rows ), uintptr_t psv);
+
 
 PSI_CONSOLE_NAMESPACE_END;
 

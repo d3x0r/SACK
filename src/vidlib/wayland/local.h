@@ -40,7 +40,7 @@ typedef struct wvideo_tag
 	} flags;
 
 	int32_t x, y;
-	uint32_t w, h;
+	uint32_t w_, h_;
 
 	struct wvideo_tag* under;  // this window is under this reference
 	struct wvideo_tag* above;  // this window is above the one pointed here
@@ -48,7 +48,9 @@ typedef struct wvideo_tag
 	struct wl_surface* surface;
 	struct wl_shell_surface *shell_surface;
 	struct wl_subsurface *sub_surface;
+	//struct xdg_surface *xdg_surface; // shell_surface
 	struct xdg_toplevel *xdg_toplevel;
+	int last_xdg_serial;
 	TEXTSTR pending_title;
 
 	PCOLOR shm_data;
@@ -60,7 +62,11 @@ typedef struct wvideo_tag
 	int freeBuffer[MAX_OUTSTANDING_FRAMES];
 	struct wl_buffer * buffers[MAX_OUTSTANDING_FRAMES];
 	PCOLOR  color_buffers[MAX_OUTSTANDING_FRAMES];
-	size_t buffer_sizes[MAX_OUTSTANDING_FRAMES];
+	struct panel_buffer_state {
+		size_t size;
+		uint32_t w, h;
+		uint32_t dirty : 1;  // an individual buffer needs full draw.
+	} buffer_states[MAX_OUTSTANDING_FRAMES];
 	Image buffer_images[MAX_OUTSTANDING_FRAMES];
 	PLIST damage; // backing buffer was in use while damage happened...
 	struct wl_shm_pool *pool;

@@ -115,6 +115,7 @@ static void sendInput( uintptr_t psv, PTEXT output ) {
 	else LineRelease( output );
 }
 
+
 static void sendInputEvent( uintptr_t arg, PTEXT line ) {
 	PCONSOLE_INFO console = (PCONSOLE_INFO)arg;
 	int n;
@@ -135,7 +136,7 @@ static void sendInputEvent( uintptr_t arg, PTEXT line ) {
 		LeaveCriticalSec( &console->Lock );
 	console->InputEvent( console->psvInputEvent, line );
 
-	SetWriteCallback( console->ansi, sendInput, (uintptr_t)console );
+	//PSI_Console_SetWriteCallback( console->ansi, sendInput, (uintptr_t)console );
 
 	for( n = 0; n < console->lockCount; n++ )
 		EnterCriticalSec( &console->Lock );
@@ -292,6 +293,12 @@ void PSI_SetConsoleBackingFile( PSI_CONTROL pc, FILE *file )
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	SetHistoryBackingFile( console->pHistory, file );
 
+}
+
+void PSI_Console_SetSizeCallback( PSI_CONTROL pc, void (*update)(uintptr_t, int width, int height, int cols, int rows ), uintptr_t psv){
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	console->UpdateSize = update;
+	console->psvUpdateSize = psv;
 }
 
 PSI_CONSOLE_NAMESPACE_END

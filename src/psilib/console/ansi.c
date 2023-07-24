@@ -1,15 +1,17 @@
 #include <stdhdrs.h>
+#include <psi.h>
 
+#include "consolestruc.h"
 
-#include "ansi.h"
+PSI_CONSOLE_NAMESPACE
 
-int colormap[8] = { 0, 4, 2, 6, 1, 5, 3, 7 };
+static int colormap[8] = { 0, 4, 2, 6, 1, 5, 3, 7 };
+	extern CONTROL_REGISTRATION ConsoleClass;
 
-static int myTypeID;
 
 struct mydatapath_tag {
 	//DATAPATH common;
-
+	PCONSOLE_INFO console;
 	// ANSI burst state variables...
 	int nState;
 	int nParams;
@@ -22,7 +24,12 @@ struct mydatapath_tag {
 	int cursorX, cursorY;
 	void (*writeCallback)( uintptr_t psv, PTEXT seg );
 	uintptr_t psvWriteCallback;
+	void (*setTitle)( uintptr_t psv, PTEXT title );
+	uintptr_t psvTitleCallback;
+	PVARTEXT OC_code;
 	PVARTEXT OC;
+	int OC_code_length;
+	int OC_code_gathered;
 	// default is inbound, decode
 	struct mydatapath_flags{
 		uint32_t outbound	: 1;
@@ -40,7 +47,12 @@ struct mydatapath_tag {
 		uint32_t newline_only_in : 1;
 		uint32_t newline_only_out : 1;
 		uint32_t ST_escape : 1;
-   } flags;
+		uint32_t OC_LongPrompt : 1;
+		uint32_t OC_Link : 1;
+		uint32_t OC_get_length : 1;
+		uint32_t OC_LongPromptCollect : 1;
+		uint32_t extended_cursor : 1;
+	} flags;
 };
 
 typedef struct mydatapath_tag  MYDATAPATH, * PMYDATAPATH;
@@ -289,6 +301,7 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 	INDEX idx;
 	TEXTCHAR *ptext;
 	PTEXT pReturn = NULL, pDelete = pBuffer;
+	//lprintf( "ansiburst... %d", pmdp->flags.wait_for_cursor);
 	if( pmdp->flags.wait_for_cursor )
 		return;// (PTEXT)DequeLink( &pmdp->Pending );
 	pmdp->flags.bNewLine = !( pBuffer->flags & TF_NORETURN );
@@ -357,17 +370,9 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 					}
 					break;
 				case 27:
-					if( !pmdp->nState )
-					{
-						//Log( "Escape - gather prior to attach attributes to next." );
-						pReturn = EnqueSegments( pmdp, pReturn, FALSE );
-						pmdp->nState = 1;
-					}
-					else
-					{
-						VarTextAddCharacter( pmdp->vt, ptext[idx] );
-						Log( "Incomplete sequence detected...\n" );
-					}
+					Log( "Escape - gather prior to attach attributes to next." );
+					pReturn = EnqueSegments( pmdp, pReturn, FALSE );
+					pmdp->nState = 1;
 					break;
 				}
 			}
@@ -381,13 +386,20 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 					continue;
 				} else if( ptext[idx] == ']' ) {
 					// begin system command, terminate wwith \x1b\\ or ^G
+					//lprintf( "Begin gathering command");
+					pmdp->flags.OC_get_length = 1;
+					pmdp->OC_code_length = pmdp->OC_code_gathered = 0;
+					pmdp->nState = 3;
+					if( !pmdp->OC ) pmdp->OC = VarTextCreate();
+					else VarTextEmpty( pmdp->OC );
+					if( !pmdp->OC_code ) pmdp->OC_code = VarTextCreate();
+					else VarTextEmpty( pmdp->OC_code );
+
 				} else if( ptext[idx] == '\\' ) {
 					// end system command
 				} else if( ptext[idx] == '7' ) {
 					// save cursor and attributes(next step)
-
-				} 
-				if( (ptext[idx] == '7') || 
+				} else if( (ptext[idx] == '7') || 
 					 (ptext[idx]=='s') )
 				{
 					pmdp->attribute.flags.format_op = FORMAT_OP_GET_CURSOR;
@@ -440,29 +452,31 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 											);
 						break;
 					case 'h': // enable code \x1b ? # h
-						if( pmdp->ParmSet[0] === 2004 ) {
+						if( pmdp->ParamSet[0] == 2004 ) {
 							// enable bracketed paste mode
 							// sends "\x1b [ 200 ~" and "\x1b [ 201 ~"  around pasted text - VIM doesnt treat as commands
 							// https://en.wikipedia.org/wiki/ANSI_escape_code#CSIsection
-						} else if( pmdp->ParmSet[0] === 1004 ) {
+						} else if( pmdp->ParamSet[0] == 1004 ) {
 							// enable reporting focus
 							// send \x1b [ I and \x1b [ O  on focus and on lose focus.
-						} else if( pmdp->ParmSet[0] === 1049 ) {
+						} else if( pmdp->ParamSet[0] == 1049 ) {
 							// aternate screen buffer (xterm )
-						} else if( pmdp->ParmSet[0] === 25 ) {
+						} else if( pmdp->ParamSet[0] == 25 ) {
 							// show cursor
 						}
+						pmdp->flags.extended_cursor = 0;
 						break;
 					case 'l': // disable code \x1b ? # l 
-						if( pmdp->ParmSet[0] === 2004 ) {
+						if( pmdp->ParamSet[0] == 2004 ) {
 							// disable bracketed paste mode
-						} else if( pmdp->ParmSet[0] === 1004 ) {
+						} else if( pmdp->ParamSet[0] == 1004 ) {
 							// disable reporting focus
-						} else if( pmdp->ParmSet[0] === 1049 ) {
+						} else if( pmdp->ParamSet[0] == 1049 ) {
 							// disable alt screen buffer
-						} else if( pmdp->ParmSet[0] === 25 ) {
+						} else if( pmdp->ParamSet[0] == 25 ) {
 							// hide cursor
 						}
+						pmdp->flags.extended_cursor = 0;
 						break;
 					case 'b': // repeat character n times
 						if( !pmdp->nParams )
@@ -678,6 +692,7 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 					pmdp->nParams = 0;
 					pmdp->ParamSet[pmdp->nParams] = 0;
 				} else if( ( ( ptext[idx] >= '0' ) && ( ptext[idx] <= '9' ) ) ) {
+					//lprintf( "still cursor?");
 					if( pmdp->flags.extended_cursor ) {
 						pmdp->ParamSet[pmdp->nParams] *= 10 ;
 						pmdp->ParamSet[pmdp->nParams] += (ptext[idx] - '0');
@@ -698,23 +713,48 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 				}
 			} else if( pmdp->nState == 3 ) {
 				// collecting system command...
+				//lprintf( "check char: %d", ptext[idx] );
+				if( ptext[idx] != '\x7' && pmdp->flags.OC_LongPromptCollect){
+					VarTextAddCharacter( pmdp->OC, ptext[idx] );
+					continue;
+				}
+
 				if( ptext[idx] == '\x7' ) {  // ^G 
 					PTEXT cmd = VarTextPeek( pmdp->OC );
+					if( pmdp->setTitle )
+						pmdp->setTitle( pmdp->psvTitleCallback, cmd );
+lprintf( "------- SET TITLE UPDATE -------- %p ", pmdp->console->UpdateSize);
+	if( pmdp->console->UpdateSize ) {
+		pmdp->console->UpdateSize( pmdp->console->psvUpdateSize, pmdp->console->nColumns, pmdp->console->nLines, pmdp->console->nWidth, pmdp->console->nHeight );
+	}
+/*
 					lprintf( "Got end of command...%d %d %d:%s"
 						, pmdp->flags.ST_escape
 						, pmdp->flags.OC_LongPrompt
 						, pmdp->flags.OC_LongPromptCollect
 						, GetText( cmd ) );
+			*/						
 					pmdp->nState = 0;
 					pmdp->flags.OC_LongPrompt = 0;
 					pmdp->flags.OC_LongPromptCollect = 0;
-				} else if( ptext[idx] == '0' ) {
-					pmdp->flags.OC_LongPrompt = 1;
+				} else if( ptext[idx] >= '0' && ptext[idx] <= '9' ) {
+					if( pmdp->flags.OC_get_length ){
+						pmdp->OC_code_length*= 10;
+						pmdp->OC_code_length += ptext[idx] - '0';
+					}
+					else
+						pmdp->flags.OC_LongPrompt = 1;
 				} else if( ptext[idx] == ';' ) {
+					//lprintf( "getlength:%d", pmdp->OC_code_length );
+					if( pmdp->flags.OC_get_length ){
+						pmdp->flags.OC_get_length = 0;
+						if( pmdp->OC_code_length == 0 ){
+							// set title...
+							pmdp->flags.OC_LongPrompt = 0;
+							pmdp->flags.OC_LongPromptCollect = 1;
+						}
+					}
 					if( pmdp->flags.OC_LongPrompt ) {
-						pmdp->flags.OC_LongPrompt = 0;
-						pmdp->flags.OC_LongPromptCollect = 1;
-						if( !pmdp->OC ) pmdp->OC = VarTextCreate();
 					}
 				} else if( ptext[idx] == '\x1b' ) {
 					pmdp->flags.ST_escape = 1;
@@ -724,12 +764,7 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 						pmdp->nState = 0;
 					} else {
 						// still collecting command?
-						if( pmdp->flags.OC_LongPromptCollect )
-							VarTextAddCharacter( pmdp->OC, ptext[idx] );
 					}
-				} else {
-					if( pmdp->flags.OC_LongPromptCollect )
-						VarTextAddCharacter( pmdp->OC, ptext[idx] );
 				}
 			}
 		}
@@ -774,11 +809,12 @@ void CloseAnsi( PMYDATAPATH pdp )
 //#define OptionLike(text,string) ( StrCaseCmpEx( GetText(text), string, GetTextSize( text ) ) == 0 )
 
 
-PMYDATAPATH OpenAnsi( void )
+PMYDATAPATH OpenAnsi( PCONSOLE_INFO console )
 {
 	PMYDATAPATH pdp = New( MYDATAPATH );
 	int lastin = 1;
 	MemSet( pdp, 0, sizeof( pdp[0] ) );
+	pdp->console = console;
 	// parameters
 	//	 encode, decode
 	//	 inbound, outbound
@@ -791,53 +827,6 @@ PMYDATAPATH OpenAnsi( void )
 	pdp->flags.outbound=1;
 	pdp->flags.encode_out = 1; // encode out.
 
-/*
-	while( ( option = GetParam( ps, &parameters ) ) )
-	{
-		if( OptionLike( option, "inbound" ) )
-		{
-			pdp->flags.inbound = 1;
-			lastin = 1;
-		}
-		else if( OptionLike( option, "outbound" ) )
-		{
-			pdp->flags.outbound = 1;
-			lastin = 0;
-		}
-		else if( OptionLike( option, "newline" ) )
-		{
-			if( lastin )
-				pdp->flags.newline_only_in = 1;
-			else
-				pdp->flags.newline_only_out = 1;
-		}
-		else if( OptionLike( option, "encode" ) )
-		{
-			// if not encode - is decode.
-			if( lastin )
-				pdp->flags.encode_in = 1;
-			else
-				pdp->flags.encode_out = 1;
-		}
-		else if( OptionLike( option, "__keepnewline" ) )
-		{
-			pdp->flags.keep_newline = 1;
-		}
-		else
-		{
-			DECLTEXT( msg1, "Ansi filter options include: Inbound/Outbound, Encode/Decode" );
-			DECLTEXT( msg2, "Least character match is allowed (I/O) (E/D)" );
-			EnqueLink( &ps->Command->Output, &msg1 );
-			EnqueLink( &ps->Command->Output, &msg2 );
-			DestroyDataPath( (PDATAPATH)pdp );
-			return NULL;
-		}				
-	}
-*/
-	//pdp->common.Type = myTypeID;
-	//pdp->common.Read = (int(CPROC *)(PDATAPATH))Read;
-	//pdp->common.Write = (int(CPROC *)(PDATAPATH))Write;
-	//pdp->common.Close = (int(CPROC *)(PDATAPATH))Close;
 	pdp->attribute.flags.prior_foreground = 1;
 	pdp->attribute.flags.prior_background = 1;
 	pdp->attribute.position.offset.spaces = 0;
@@ -849,7 +838,18 @@ PTEXT GetPendingWrite( PMYDATAPATH pmdp ) {
 	return send;
 }
 
-void SetWriteCallback( PMYDATAPATH pmdp, void ( *write )( uintptr_t, PTEXT ), uintptr_t psv ) {
-	pmdp->psvWriteCallback = psv;
-	pmdp->writeCallback = write;
+void PSI_Console_SetWriteCallback( PSI_CONTROL pc, void ( *write )( uintptr_t, PTEXT ), uintptr_t psv ) {
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	PANSI_DATAPATH ansi = console->ansi;
+	ansi->psvWriteCallback = psv;
+	ansi->writeCallback = write;
 }
+
+void PSI_Console_SetTitleCallback( PSI_CONTROL pc, void ( *title )( uintptr_t, PTEXT ), uintptr_t psv ) {
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	PANSI_DATAPATH ansi = console->ansi;
+	ansi->psvTitleCallback = psv;
+	ansi->setTitle = title;
+}
+
+PSI_CONSOLE_NAMESPACE_END

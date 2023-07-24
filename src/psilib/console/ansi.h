@@ -1,7 +1,7 @@
 
 typedef struct mydatapath_tag  * PANSI_DATAPATH;
-
-PANSI_DATAPATH OpenAnsi( void );
+typedef struct myconsolestruc *PCONSOLE_INFO;
+PANSI_DATAPATH OpenAnsi( PCONSOLE_INFO );
 PTEXT GetPendingWrite( PANSI_DATAPATH pmdp );
 
 // close this channel;
