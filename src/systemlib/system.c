@@ -969,7 +969,7 @@ PDATALIST GetProcessTree( PTASK_INFO task ){
 	INDEX idx2;
 	struct process_id_pair* pair;
 	PDATALIST pdlProcs;
-	PDATALIST pdlResult;
+	PDATALIST pdlResult = NULL;
 	struct process_tree_pair *checkPair;
 	struct process_tree_pair resultPair;
 	ProcIdFromParentProcId( task->pi.dwProcessId, &pdlProcs );
@@ -982,7 +982,7 @@ PDATALIST GetProcessTree( PTASK_INFO task ){
 		DATA_FORALL( pdlResult, idx2, struct process_tree_pair*, checkPair ) {
 			if( checkPair->process_id == pair->parent ) {
 				parent_id = idx2;
-				parent = checkpair;
+				parent = checkPair;
 			}
 			if( checkPair->process_id == pair->child )
 				child_id = idx2;
@@ -994,17 +994,17 @@ PDATALIST GetProcessTree( PTASK_INFO task ){
 			resultPair.next_id = -1;
 			AddDataItem( &pdlResult, &resultPair );
 			parent_id = 0;
-			parent = GetDataItem( &pdlResult, 0 );
+			parent = (struct process_tree_pair *)GetDataItem( &pdlResult, 0 );
 		}
 		if( child_id < 0 ){
 			resultPair.process_id = pair->child;
 			resultPair.parent_id = parent_id;
-			resultPair.chlid_id = -1;
+			resultPair.child_id = -1;
 			if( parent->child_id < 0 )
 				resultPair.next_id = -1;
 			else
 				resultPair.next_id = parent->child_id;
-			parent->child_id = pdlResult.Cnt;
+			parent->child_id = pdlResult->Cnt;
 			AddDataItem( &pdlResult, &resultPair );
 		}
 	}
