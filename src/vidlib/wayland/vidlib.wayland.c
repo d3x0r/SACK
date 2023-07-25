@@ -405,9 +405,8 @@ static void keyboard_enter(void *data,
 		      struct wl_array *keys)
 {
 	PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
-	if( wl.hVidFocused && wl.hVidFocused->pLoseFocus )
-		wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)r );
-	wl.hVidFocused = r;
+	postFocusEvent( r, TRUE );
+
 	uint32_t *key;
 	wl_array_for_each( key, keys ){
 		char buf[128];
@@ -420,8 +419,6 @@ static void keyboard_enter(void *data,
 		lprintf( "Key enter gets keys? %d %s %s", key[0]+8, buf, buf2 );
 #endif
 	}
-	if( r && r->pLoseFocus )
-		r->pLoseFocus( r->dwLoseFocus, NULL );
 }
 
 static void keyboard_leave(void *data,
@@ -430,6 +427,8 @@ static void keyboard_leave(void *data,
                            struct wl_surface *surface){
 	if( surface ) {
 		PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
+		postFocusEvent( r, FALSE );
+
 		struct pendingKey *key;
 		INDEX idx;
 		LIST_FORALL( wl.keyRepeat.pendingKeys, idx, struct pendingKey *, key){
@@ -444,12 +443,7 @@ static void keyboard_leave(void *data,
 			}
 		}
 		EmptyList( &wl.keyRepeat.pendingKeys );
-		if( wl.hVidFocused && wl.hVidFocused->pLoseFocus ){
-			//lprintf( "on leave lose focus?");
-			wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)1 );
-		}
 	}
-	wl.hVidFocused = NULL;
 }
 
 
@@ -677,9 +671,12 @@ static void xdgTopLeveLHandleConfigure(void* data,
 
 	//xdg_surface_ack_configure((struct xdg_surface* )r->shell_surface, r->last_xdg_serial);
 	if (new_states & TOPLEVEL_STATE_RESIZING) {
-        if (width) r->bufw = width;
-        if (height) r->bufh = height;
+		postSizeEvent( r, width, height );
+		if (width) r->bufw = width;
+		if (height) r->bufh = height;
+		/*
 		if( width && height ) {
+
 			lprintf( "xdg_toplevel_configure...%d %d  %d %d", width, height, r->flags.canCommit, !r->flags.dirty);
 			//if (!(r->wl.current.toplevel_states & TOPLEVEL_STATE_RESIZING)) 
 			//	;//report_live_resize(window, true);
@@ -691,6 +688,7 @@ static void xdgTopLeveLHandleConfigure(void* data,
 			}
 			sack_wayland_Redraw_( r, 0, NULL );
 		}
+		*/
     }
     if (width != 0 && height != 0)
     {
@@ -1162,6 +1160,14 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 #endif	
 	if( !r->surface ) return FALSE; 
 	lprintf( "attachNewBuffer2... (have a surface)");
+	if( !r->freeBuffer[r->curBuffer]) {
+		if( r->flags.dirty ) {
+			lprintf( "existing damage... (flush was needed after commit)");
+			wl_surface_commit( r->surface );
+			wl_display_flush( wl.display );
+		}
+		// any new draws are going to 
+	}
 	struct wl_buffer *next = nextBuffer(r, 0);
 	if( req && !next ) {
 //#if defined( DEBUG_COMMIT_BUFFER )
@@ -1223,9 +1229,6 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 		//	lprintf( "Attach New Buffer is really still waiting for a new buffer !!!!!!!!!!!!!!!! ");
 		//}
 	} else {
-		lprintf( "Commit any damage... (flush was needed after commit)");
-		wl_surface_commit( r->surface );
-		wl_display_flush( wl.display );
 	}
 	if( next ) {
 #if defined( DEBUG_DUMP_SURFACE_IMAGES )
@@ -1313,6 +1316,66 @@ static void postDrawEvent( PXPANEL r, int noCallback ) {
 		struct drawRequest* req = New( struct drawRequest );
 		req->r = r;
 		req->noCallback = noCallback;
+		//req->thread = thisThread;
+		AddLink( &wl.wantDraw, req );
+#if defined( DEBUG_COMMIT )
+		lprintf( "^^^^^^^^^^^ waking draw thread, and resulting ^^^^^^^^^^^^^^^^");
+#endif
+		WakeThread( wl.drawThread );
+	}
+}
+
+static void postFocusEvent( PXPANEL r, LOGICAL focus ) {
+	INDEX idx;
+	struct drawRequest * check;
+	if( r->flags.hidden ) {
+		return;
+	}
+	LIST_FORALL( wl.wantDraw, idx, struct drawRequest*, check ){
+		if( check->r == r ) {
+			check->setFocus = 1;
+			check->hasFocus = focus;
+			break;
+		}
+	}
+	if( !check ) {
+		struct drawRequest* req = New( struct drawRequest );
+		req->r = r;
+		req->noCallback = 1;
+		req->setSize = 0;
+		check->setFocus = 1;
+		check->hasFocus = focus;
+		//req->thread = thisThread;
+		AddLink( &wl.wantDraw, req );
+#if defined( DEBUG_COMMIT )
+		lprintf( "^^^^^^^^^^^ waking draw thread, and resulting ^^^^^^^^^^^^^^^^");
+#endif
+		WakeThread( wl.drawThread );
+	}
+}
+
+
+static void postSizeEvent( PXPANEL r, uint32_t w, uint32_t h ) {
+	INDEX idx;
+	struct drawRequest * check;
+	if( r->flags.hidden ) {
+		return;
+	}
+	LIST_FORALL( wl.wantDraw, idx, struct drawRequest*, check ){
+		if( check->r == r ) {
+			check->setSize = 1;
+			check->w = w;
+			check->h = h;
+			break;
+		}
+	}
+	if( !check ) {
+		struct drawRequest* req = New( struct drawRequest );
+		req->r = r;
+		req->noCallback = 1;
+		req->setSize = 1;
+		req->w = w;
+		req->h = h;
 		//req->thread = thisThread;
 		AddLink( &wl.wantDraw, req );
 #if defined( DEBUG_COMMIT )
@@ -1432,6 +1495,27 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 			LIST_FORALL( wl.wantDraw, idx, struct drawRequest *, req ){
 				drewSome = 1;
 				int oldCallback = req->noCallback;
+
+				if( req->setSize ) {
+					r->bufw = req->w;
+					r->bufh = req->h;
+				}
+				if( req->setFocus ) {
+					if( req->hasFocus ) {
+						if( wl.hVidFocused && wl.hVidFocused->pLoseFocus )
+							wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)r );
+						wl.hVidFocused = r;
+						if( r && r->pLoseFocus )
+							r->pLoseFocus( r->dwLoseFocus, NULL );
+					} else {
+						if( wl.hVidFocused && wl.hVidFocused->pLoseFocus ){
+							//lprintf( "on leave lose focus?");
+							wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)1 );
+						}
+						wl.hVidFocused = NULL;
+					}
+				}
+
 				SetLink( &wl.wantDraw, idx, NULL ); // remove it from the list... 
 #if defined( DEBUG_COMMIT ) || defined( DEBUG_REDRAW )
 				lprintf( " ------------------------  Sending a want draw window...");
@@ -1603,6 +1687,7 @@ handle_configure(void *data, struct wl_shell_surface *shell_surface,
 		 uint32_t edges, int32_t width, int32_t height)
 {
 	PXPANEL r = (PXPANEL)data;
+
 	r->bufw = width;
 	r->bufh = height;
 	postDrawEvent( r, 0 );

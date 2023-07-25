@@ -16,6 +16,10 @@ struct drawRequest {
 	PTHREAD thread;
 	struct wvideo_tag *r;
 	volatile LOGICAL noCallback; // request wants the application to full draw
+	LOGICAL setSize;
+	uint32_t w, h;
+	LOGICAL setFocus;
+	LOGICAL hasFocus;
 
 };
 
