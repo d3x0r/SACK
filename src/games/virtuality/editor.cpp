@@ -355,7 +355,7 @@ static void DrawLine( Image pImage, PCVECTOR p, PCVECTOR m, RCOORD t1, RCOORD t2
 }
 
 
-int CPROC EditResizeCallback( uintptr_t dwUser, PRENDERER renderer  )
+void CPROC EditResizeCallback( uintptr_t dwUser  )
 {
 	PEDITOR pe = (PEDITOR)dwUser;
 	//PFACETSET *ppfs;
@@ -424,10 +424,13 @@ int CPROC EditResizeCallback( uintptr_t dwUser, PRENDERER renderer  )
 	}
 	UpdateDisplay( pe->hVideo );
 #endif
-	return 1;
 }
 	
 
+static int CPROC EditRedrawCallback( uintptr_t dwUser, PRENDERER r ) {
+	EditResizeCallback( dwUser );
+	return 1;
+}
 
 
 PEDITOR CreateEditor( POBJECT po )
@@ -438,7 +441,7 @@ PEDITOR CreateEditor( POBJECT po )
 	pe->TView = CreateTransform();
 	pe->hVideo = OpenDisplaySizedAt( 0, -1, -1, -1, -1 );
 	//InitVideo( "World Editor" );
-	SetRedrawHandler( pe->hVideo, EditResizeCallback, (uintptr_t)pe );
+	SetRedrawHandler( pe->hVideo, EditRedrawCallback, (uintptr_t)pe );
 	SetMouseHandler( pe->hVideo, EditMouseCallback, (uintptr_t)pe );
 	BindEventToKey( pe->hVideo, KEY_PGUP, 0, PageUpKey, (uintptr_t)pe );
 	BindEventToKey( pe->hVideo, KEY_PGDN, 0, PageDownKey, (uintptr_t)pe );
