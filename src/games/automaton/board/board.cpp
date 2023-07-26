@@ -25,9 +25,7 @@
 //extern DIR_DELTA DirDeltaMap[8];
 
 // I really do hate having circular dependancies....
-void CPROC BoardRefreshExtern( uintptr_t dwUser, PRENDERER renderer );
 void CPROC BoardWindowClose( uint32_t dwUser );
-void CPROC BoardRefreshExtern( uintptr_t dwUser, PRENDERER renderer );
 
 //----------------------------------------------------------------------
 typedef class UPDATE *PUPDATE;
@@ -639,10 +637,11 @@ int CPROC PSIBoardRefreshExtern( PSI_CONTROL pc )
 }
 #endif
 
-void CPROC BoardRefreshExtern( uintptr_t dwUser, PRENDERER renderer )
+int CPROC BoardRefreshExtern( uintptr_t dwUser, PRENDERER renderer )
 {
 	BOARD *pb = (BOARD*)dwUser;
 	pb->BoardRefresh();
+	return 1;
 }
 
 

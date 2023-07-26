@@ -3046,51 +3046,51 @@ PSI_PROC( void, DisplayFrameOverOnUnder )( PSI_CONTROL pc, PSI_CONTROL over, PRE
 		if( g.flags.bLogDebugUpdate )
 			lprintf( "-------- device opened" );
 #endif
-	}
+	}else  {
 #ifdef DEBUG_CREATE
-	lprintf( "-------------------- Display frame has been invoked..." );
+		lprintf( "-------------------- Display frame has been invoked..." );
 #endif
-	if( pf )
-	{
-		// if, by tthe time we show, there's no focus, set that up.
-		if( !pf->pFocus )
-			FixFrameFocus( pf, FFF_HERE );
-
-		if( pc->flags.bInitial )
+		if( pf )
 		{
+			// if, by tthe time we show, there's no focus, set that up.
+			if( !pf->pFocus )
+				FixFrameFocus( pf, FFF_HERE );
+			if( pc->flags.bInitial )
+			{
 #ifdef DEBUG_UPDAATE_DRAW
-			if( g.flags.bLogDebugUpdate )
-				lprintf( "********* FIrst showing of this window - it's been bINitial for so long..." );
+				if( g.flags.bLogDebugUpdate )
+					lprintf( "********* FIrst showing of this window - it's been bINitial for so long..." );
 #endif
-			// one final draw to make sure everyone is clean.
-			//lprintf( "Dipsatch draw." );
+				// one final draw to make sure everyone is clean.
+				//lprintf( "Dipsatch draw." );
+				//UpdateCommonEx( pc, FALSE DBG_SRC );
+				// clear initial so that further updatecommon's
+				// can result in updates to the display.
+
+				// do the move before initial, otherwise certain video
+				// drivers may give a redundant paint...
+
+				//MoveSizeDisplay( pf->pActImg, pc->rect.x, pc->rect.y, pc->rect.width, pc->rect.height );
+
+				//Initial prevents all updates in all ways.  So here we're showing, we have a device,
+				// and we should be allowed to draw - right? that's what initial is?
+
+				pc->flags.bInitial = FALSE;
+				if( g.flags.bLogDebugUpdate )
+					lprintf( "inital was set to false...." );
+				SetDrawBorder( pc ); // re-sets routines, but also calls draws for border and caption.
+
+				pc->flags.bHidden = TRUE; // fake this.. so reveal shows it... hidden parents will remain hidden
+			}
+			RevealCommon( pc );
+			//lprintf( "Draw common?!" );
+			/* wait for the draw event from the video callback... */
 			//UpdateCommonEx( pc, FALSE DBG_SRC );
-			// clear initial so that further updatecommon's
-			// can result in updates to the display.
-
-			// do the move before initial, otherwise certain video
-			// drivers may give a redundant paint...
-
-			//MoveSizeDisplay( pf->pActImg, pc->rect.x, pc->rect.y, pc->rect.width, pc->rect.height );
-
-			//Initial prevents all updates in all ways.  So here we're showing, we have a device,
-			// and we should be allowed to draw - right? that's what initial is?
-
-			pc->flags.bInitial = FALSE;
-			if( g.flags.bLogDebugUpdate )
-				lprintf( "inital was set to false...." );
-			SetDrawBorder( pc ); // re-sets routines, but also calls draws for border and caption.
-
-			pc->flags.bHidden = TRUE; // fake this.. so reveal shows it... hidden parents will remain hidden
+			//SyncRender( pf->pActImg );
+			if( pc->flags.bEditSet )
+				EditFrame( pc, !pc->flags.bNoEdit );
+			pc->flags.auto_opened = 0;
 		}
-		RevealCommon( pc );
-		//lprintf( "Draw common?!" );
-		/* wait for the draw event from the video callback... */
-		//UpdateCommonEx( pc, FALSE DBG_SRC );
-		//SyncRender( pf->pActImg );
-		if( pc->flags.bEditSet )
-			EditFrame( pc, !pc->flags.bNoEdit );
-		pc->flags.auto_opened = 0;
 	}
 
 }

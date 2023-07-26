@@ -115,7 +115,7 @@ static void OnDisplaySizeChange( "PSI Controls" TARGETNAME ) ( uintptr_t psvFram
 
 //---------------------------------------------------------------------------
 
-static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
+static int CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 {
 	PPHYSICAL_DEVICE pf = (PPHYSICAL_DEVICE)psvFrame;
 	uint32_t update = 0;
@@ -131,7 +131,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 		if( g.flags.bLogDebugUpdate )
 			Log( "no frame... early return" );
 #endif
-		return;
+		return 0;
 	}
 #ifdef DEBUG_UPDAATE_DRAW
 	if( g.flags.bLogDebugUpdate )
@@ -286,6 +286,7 @@ static void CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 		}
 		pc->flags.bRestoring = 0;
 	}
+	return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -301,6 +302,7 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 		added_use = 1;
 		AddUse( pc );
 	}
+	lprintf( "Frame focus - probably 0 or 1? %p", loss );
 	GetCurrentDisplaySurface(frame);
 	if( loss )
 	{
@@ -391,8 +393,12 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 						 , pc->rect.width
 						 , pc->surface_rect.y );
 #endif
-			pc->flags.bDirtyBorder = 1; // the border will always always change on focus...
-			SmudgeCommon( pc );
+			// get update region for next smudge...
+			// and draw the caption border... 
+			DrawFrameCaption( pc );
+			//if( pc->DrawFrameCaption)
+			//pc->flags.bDirtyBorder = 1; // the border will always always change on focus...
+			//SmudgeCommon( pc );
 		}
 		// and draw here...
 	}

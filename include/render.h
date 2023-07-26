@@ -332,7 +332,7 @@ typedef void (CPROC*CloseCallback)( uintptr_t psvUser );
 /* function signature to define hide/restore callback, it just gets the user data of the callback... */
 typedef void (CPROC*HideAndRestoreCallback)( uintptr_t psvUser );
 /* function signature for the redraw callback  which can be specified to handle events to redraw the display.  see SetRedrawHandler. */
-typedef void (CPROC*RedrawCallback)( uintptr_t psvUser, PRENDERER self );
+typedef int (CPROC*RedrawCallback)( uintptr_t psvUser, PRENDERER self );
 /* function signature for the mouse callback  which can be specified to handle events from mouse motion on the display.  see SetMouseHandler.
   would be 'wise' to retun 0 if ignored, 1 if observed (perhaps not used), but NOT ignored.*/
 typedef uintptr_t  (CPROC*MouseCallback)( uintptr_t psvUser, int32_t x, int32_t y, uint32_t b );

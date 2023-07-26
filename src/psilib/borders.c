@@ -765,12 +765,12 @@ void DrawFrameCaption( PSI_CONTROL pc )
 		if( !(pc->BorderType & BORDER_CAPTION ) )
 			return;
 	}
+	uint32_t width, height;
+	uint32_t xofs = ( ( FrameBorderXOfs(pc, pc->BorderType) ) );
+	uint32_t yofs = ( ( FrameCaptionYOfs(pc, pc->BorderType ) ) );
 	{
 		int h, w;
 		uint32_t button_left;
-		uint32_t width, height;
-		uint32_t xofs = ( ( FrameBorderXOfs(pc, pc->BorderType) ) );
-		uint32_t yofs = ( ( FrameCaptionYOfs(pc, pc->BorderType ) ) );
 		Image out = NULL;
 		h = CaptionHeight( pc, pc?GetText(pc->caption.text):NULL ) - 1;
 		//lprintf( "Caption height: %d", h );
@@ -991,6 +991,16 @@ void DrawFrameCaption( PSI_CONTROL pc )
 				}
 				button_left -= h - button->extra_pad*2;
 			}
+		}
+	}
+	{
+		PSI_CONTROL frame = GetFrame( pc );
+		if( frame->device ) {
+			int32_t x = xofs;
+			int32_t y = yofs;
+			GetPhysicalCoordinate( pc, &x, &y, FALSE, FALSE );
+			UpdateDisplayPortion( frame->device->pActImg, x, y, width, height );
+			lprintf( "Drawing the caption just immediately says it drew." );
 		}
 	}
 	//lprintf( "Is anything going to output this to the window?" );

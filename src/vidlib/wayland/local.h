@@ -35,12 +35,14 @@ typedef struct wvideo_tag
 		uint32_t bDestroy : 1;
 		uint32_t bFocused : 1;
 		volatile uint32_t dirty : 1;
+		volatile uint32_t needsDraw : 1;
 		volatile uint32_t wantBuffer : 1; // cannot be 'canCommit', because no new buffer can be used.
 		volatile uint32_t canCommit : 1;
 		volatile uint32_t canDamage : 1;
 		uint32_t wantDraw : 1;
 		uint32_t hidden : 1; // tracks whether the window is visible or not.
-		uint32_t commited : 1; // if a redraw did not update anything, update everything.
+		//uint32_t commited : 1; // if a redraw did not update anything, update everything.
+		uint32_t drawing : 1;
 	} flags;
 
 	int32_t x, y;
@@ -73,6 +75,8 @@ typedef struct wvideo_tag
 	} buffer_states[MAX_OUTSTANDING_FRAMES];
 	Image buffer_images[MAX_OUTSTANDING_FRAMES];
 	PLIST damage; // backing buffer was in use while damage happened...
+	PDATAQUEUE damageQueue; // backing buffer was in use while damage happened...
+	int drawResult;
 	struct wl_shm_pool *pool;
 	struct wl_callback *frame_callback;  // request for WM_PAINT
 	Image pImage;

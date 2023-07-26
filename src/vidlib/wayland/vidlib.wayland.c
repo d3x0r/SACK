@@ -255,7 +255,7 @@ static void pointer_motion(void *data,
 		lprintf( "no target for mouse??" ); 
 		return;
 	}
-   PXPANEL r = wl_surface_get_user_data( pointer_data->target_surface);
+	PXPANEL r = wl_surface_get_user_data( pointer_data->target_surface);
 
 
 	{
@@ -675,8 +675,10 @@ static void xdgTopLeveLHandleConfigure(void* data,
 	lprintf( "xdg_toplevel_configure...%08x", new_states );
 
 	if( new_states == 0 ){
-		postFocusEvent( r, FALSE );
-		lprintf( "Sent lose focus?" );
+		if( !r->freeBuffer[r->curBuffer] && r->buffer_images[r->curBuffer]) {
+			postFocusEvent( r, FALSE );
+			lprintf( "Sent lose focus?" );
+		} else lprintf( "window doesn't even rally exist yet..." );
 	}
 	//xdg_surface_ack_configure((struct xdg_surface* )r->shell_surface, r->last_xdg_serial);
 	if( new_states & TOPLEVEL_STATE_ACTIVATED ){
@@ -885,6 +887,19 @@ static void initConnections( void ) {
 
 }
 
+
+static void commitSurface( PXPANEL r ){
+	struct damageInfo damage;
+	while( DequeData( &r->damageQueue, &damage )){
+		wl_surface_damage( r->surface, damage.x, damage.y, damage.w, damage.h );
+		r->flags.dirty = 1; // was damaged, needs commit.
+	}
+
+	wl_surface_commit( r->surface );
+	wl_display_flush( wl.display );
+	// no more damage, but we need a buffer too...
+	r->flags.dirty = 0;
+}
 
 static void finishInitConnections( void ) {
 	wl.xkb_context = xkb_context_new (XKB_CONTEXT_NO_FLAGS);
@@ -1113,6 +1128,9 @@ static int canCommit( PXPANEL r ) {
 }
 
 static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
+	int priorBuffer = r->curBuffer;//?r->curBuffer-1:(MAX_OUTSTANDING_FRAMES-1);
+	int nextBuffer = (r->curBuffer+1)%MAX_OUTSTANDING_FRAMES;
+
 	if( r->flags.hidden ) {
 		lprintf( "window is hidden... returning a fault.");
 		return NULL;
@@ -1125,14 +1143,14 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 #endif
 		return r->buff;
 	}
-	if( r->buffers[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES]
-	  && !r->freeBuffer[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES] ) {
+	if( r->buffers[nextBuffer]
+	  && !r->freeBuffer[nextBuffer] ) {
 //#if defined( DEBUG_COMMIT_BUFFER )
 		lprintf( "buffers in use and nothing free, (no more commit!!) want buffer %d", r->curBuffer);
 //#endif
 		return NULL;
 	}
-	r->curBuffer=(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES;
+	r->curBuffer=nextBuffer;
 	int curBuffer = r->curBuffer;
 //#if defined( DEBUG_SURFACE_ATTACH )
 	lprintf( "using image to a new image.... %d sizeChange???",curBuffer );
@@ -1167,10 +1185,6 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		// allocate buffer updates the size of the image
 		allocateBuffer(r);
 		r->buffer_images[curBuffer] = RemakeImage( r->buffer_images[curBuffer], r->shm_data, r->bufw, r->bufh );
-		if( r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES] ) {
-			//lprintf( "Copy old buffer to new current buffer...%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES);
-			BlotImage( r->buffer_images[curBuffer], r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES], 0, 0 );
-		}
 		r->buffers[curBuffer] = r->buff;
 #if defined( DEBUG_COMMIT_BUFFER )
 		lprintf( "Setting buffer (free) %d  %p", curBuffer, r->buff );
@@ -1178,16 +1192,21 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 		r->color_buffers[curBuffer] = r->shm_data;
 		r->freeBuffer[curBuffer] = 1; // initialize this as 'free' as in not commited(in use)
 	}
-	else {
+	
+	{
 		// update previous frame to current frame.
 #if defined(DEBUG_COMMIT_ATTACH_DETAILS )
 		lprintf( "Copying old buffer to current buffer....%d %d", curBuffer, (curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES );
 #endif
 		// copy just the damaged portions?
-		if( r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES] )
-			BlotImage( r->buffer_images[curBuffer]
-			         , r->buffer_images[(curBuffer+(MAX_OUTSTANDING_FRAMES-1))%MAX_OUTSTANDING_FRAMES]
-			         , 0, 0 );
+		if( r->buffer_images[priorBuffer] )
+			if( r->buffer_states[priorBuffer].w == r->bufw
+			  &&  r->buffer_states[priorBuffer].h == r->bufh ){
+				r->buffer_states[r->curBuffer].dirty = 0;
+				BlotImage( r->buffer_images[curBuffer]
+				         , r->buffer_images[priorBuffer]
+				         , 0, 0 );
+			}
 	}
 	// update image internals of renderer... 
 	r->pImage = RemakeImage( r->pImage, r->shm_data, r->bufw, r->bufh );
@@ -1201,12 +1220,11 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 	lprintf( "attachNewBuffer... req %d,  locked %d", req, locked);
 #endif	
 	if( !r->surface ) return FALSE; 
-	lprintf( "attachNewBuffer2... (have a surface)");
+	lprintf( "attachNewBuffer2... (have a surface) %d %p", r->freeBuffer[r->curBuffer], r->color_buffers[r->curBuffer] );
 	if( !r->freeBuffer[r->curBuffer] && r->color_buffers[r->curBuffer]) {
 		if( r->flags.dirty ) {
 			lprintf( "existing damage... (flush was needed after commit)");
-			wl_surface_commit( r->surface );
-			wl_display_flush( wl.display );
+			commitSurface( r );
 		} else {
 			lprintf( "Attaching over a buffer and there was no damage to it? %d",r->freeBuffer[r->curBuffer] );
 		}
@@ -1221,9 +1239,9 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 		{
 			r->flags.canCommit = 0; // am commiting, do not commit
 			//r->flags.dirty = 0;
-			r->flags.commited = 1; // unused?
-			r->flags.dirty = 0; // can't be dirty, won't have a buffer
-			r->flags.canDamage = 0; // no buffer, no damage
+			//r->flags.commited = 1; // unused?
+			//r->flags.dirty = 0; // 
+			r->flags.canDamage = 1; // still have existing buffer, collect damage
 			r->flags.wantBuffer = 1;
 			r->bufferWaiter = MakeThread();
 #if defined( DEBUG_COMMIT_ATTACH )
@@ -1241,13 +1259,10 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 				Release( buf );
 			}
 #endif
-			wl_surface_commit( r->surface );
-			wl_display_flush( wl.display );
-			r->buffer_states[r->curBuffer].dirty = 0;
 			do {
-#if defined( DEBUG_COMMIT_BUFFER )
-				lprintf( "to round" );
-#endif
+//#if defined( DEBUG_COMMIT_BUFFER )
+				lprintf( "to loop around, waiting for hidden or a next buffer available..." );
+//#endif
 				if( locked )
 					LeaveCriticalSec( &wl.cs_wl );
 				if( r->bufferWaiter == wl.waylandThread ) {
@@ -1263,13 +1278,17 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 					EnterCriticalSec( &wl.cs_wl );
 				lprintf( "AttachNewbuffer Another next buffer");
 				next = nextBuffer(r,0);
-#if defined( DEBUG_COMMIT_BUFFER_DETAILS )
-				lprintf( "called next buffer again" );
-#endif						
+//#if defined( DEBUG_COMMIT_BUFFER_DETAILS )
+				lprintf( "called next buffer again %p", next );
+//#endif						
 			} while( !r->flags.hidden && !next );
+			lprintf( "Finally have another buffer - so issue the commit");
+			commitSurface( r );
+			// no longer dirty
+			r->buffer_states[r->curBuffer].dirty = 0;
 			// now have a buffer, do not want it.
 			r->bufferWaiter = NULL;
-			r->flags.canCommit = 1; // was commiting, can now commit
+			r->flags.canCommit = 1; // was commiting, can now commit sub-updates
 		}//else {
 		//	lprintf( "Attach New Buffer is really still waiting for a new buffer !!!!!!!!!!!!!!!! ");
 		//}
@@ -1339,6 +1358,15 @@ static  void surfaceFrameCallback( void *data, struct wl_callback* callback, uin
 	}
 	LeaveCriticalSec( &wl.cs_wl );
 
+}
+
+static void postDirt( PXPANEL r, int x, int y, int w, int h ) {
+	struct damageInfo damage;
+	damage.x = x;
+	damage.y = y;
+	damage.w = w;
+	damage.h = h;
+	EnqueData( &r->damageQueue, &damage );
 }
 
 static void postDrawEvent( PXPANEL r, int noCallback ) {
@@ -1989,39 +2017,30 @@ static void sack_wayland_Redraw_( PXPANEL r, int noCallback, volatile int *redra
 		EnterCriticalSec( &wl.cs_wl );
 		
 		r->flags.canCommit = 0; // don't allow sub-daamages to commit... just damage  (if this gets a frame callback it'll reset and flush early)
+		
+		// dirty happens in state after a resize.
 		if( ( r->buffer_states[r->curBuffer].dirty || !noCallback ) && r->pRedrawCallback ) {
 			redrawState = 5;
 //#if defined( DEBUG_REDRAW )		
 			lprintf( "dispatch redraw...%d %d", r->buffer_states[r->curBuffer].dirty, noCallback );
 //#endif			
-			r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
+			r->flags.drawing = 1;
+			r->drawResult = r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
+			r->flags.drawing = 0;
 //#if defined( DEBUG_REDRAW )		
-			lprintf( "dispatched redraw...");
-//#endif			
+			lprintf( "dispatched redraw...%d", r->drawResult );
+
+			wl_surface_damage( r->surface, 0, 0, r->bufw, r->bufh );
+			r->flags.dirty = 1; // was damaged, needs commit.
+//#endif	
 			redrawState = 6;
-		}
-		{
-			redrawState = 7;
-			r->flags.commited = 1; // no real draw (closed?)
-//#if defined( DEBUG_REDRAW )		
-			lprintf( "No redraw callback, forcing commit");
-//#endif			
-			wl_surface_commit( r->surface );
-			wl_display_flush( wl.display );
 		}
 #if defined( DEBUG_REDRAW )		
 		lprintf( "Dirty? after draw %d", r->flags.dirty );
 #endif		
-		if( r->flags.dirty ){
-			redrawState = 8;
-			lprintf( "Draw had dirty stuff, replace current with attachNewBuffer");
-			attachNewBuffer( r, 1, 1 );
-		}
-#if defined( DEBUG_REDRAW )		
-		else {
-			lprintf( "!! Nothing was dirty; no nothing" );
-		}
-#endif		
+		attachNewBuffer( r, 1, 1 );
+		r->flags.canCommit = 1; // allow sub-damages
+
 		LeaveCriticalSec( &wl.cs_wl );
 		redrawState = -1;
 		//if( r->flags.commited ){
@@ -2146,30 +2165,32 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 #ifdef DEBUG_UPDATE_DISPLAY
 	_lprintf( DBG_RELAY )( "UpdateDisplayPortionEx %p %d %d %d %d", r->surface, x, y, w, h );
 #endif	
-	EnterCriticalSec( &wl.cs_wl );
-	if( r->surface ) {
-		wl_surface_damage( r->surface, x, y, w, h );
-		r->flags.dirty = 1;
-		postDrawEvent( r, 1 );
+	THREAD_ID prior = 0;
+	int e = EnterCriticalSecNoWait( &wl.cs_wl, &prior );
+	if( e ) {
+		if( r->surface ) {
+			wl_surface_damage( r->surface, x, y, w, h );
+			// this doesn't directly commit
+			// so maybe canCommit isn't useful?
+			r->flags.dirty = 1;
+			if( !r->flags.drawing )
+				postDrawEvent( r, 1 );
+		}
+		LeaveCriticalSec( &wl.cs_wl );
+	} else {
+		// it's locked because it's in use... 
+		// it will get around to damaging before commit.(?)
+		postDirt( r, x, y, w, h );	
 	}
-	LeaveCriticalSec( &wl.cs_wl );
 }
 
 static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-
-//	lprintf( "update DIpslay Ex" );
-#ifdef DEBUG_UPDATE_DISPLAY
-	_lprintf(DBG_RELAY)( "Update whole surface %d %d", r->buffer_states[r->curBuffer].w, r->buffer_states[r->curBuffer].h );
-#endif	
-
-	EnterCriticalSec( &wl.cs_wl );
-	if( r->surface ) {
-		wl_surface_damage_buffer( r->surface, 0, 0, r->buffer_states[r->curBuffer].w, r->buffer_states[r->curBuffer].h );
-		r->flags.dirty = 1;
-		postDrawEvent( r, 1 );
-	}
-	LeaveCriticalSec( &wl.cs_wl );
+	_lprintf( DBG_RELAY )( "Who calls update the WHOLE display anyway?");
+	sack_wayland_UpdateDisplayPortionEx( renderer
+		, 0, 0
+		, r->buffer_states[r->curBuffer].w
+		, r->buffer_states[r->curBuffer].h DBG_RELAY );
 }
 
 static void sack_wayland_GetDisplayPosition( PRENDERER renderer, int32_t* x, int32_t* y, uint32_t* w, uint32_t* h ){
@@ -2296,7 +2317,7 @@ static void sack_wayland_SetRendererTitle( PRENDERER render, char const* title )
 static void sack_wayland_RestoreDisplayEx( PRENDERER renderer DBG_PASS ){
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	r->flags.hidden = 0;
-	//lprintf( "REDRAW" );
+	lprintf( "REDRAW - this is probabaly what wakes it?" );
 	sack_wayland_Redraw( renderer );
 }
 

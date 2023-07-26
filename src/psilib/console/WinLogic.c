@@ -908,18 +908,22 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 	EnterCriticalSec( &pmdp->Lock );
 	pmdp->lockCount++;
 	{
+		int once = 1;
 #ifdef DEBUG_OUTPUT_TO_CONSOLE
 		PTEXT line = BuildLine( pLine );
 		lprintf( "Console Write(pre ansi): [%s]", GetText( line ) );
 		LineRelease( line );
 #endif
+		if( pmdp->ansi )
 		{
 			AnsiBurst( pmdp->ansi, pLine );
 		}
-		while( pLine = GetPendingWrite( pmdp->ansi ) ) {
+		while( (pmdp->ansi && (pLine = GetPendingWrite( pmdp->ansi ))) 
+		      || (!pmdp->ansi && once) ) {
 			//int flags = pLine->flags & (TF_NORETURN|TF_PROMPT);
 			//lprintf( "Updated... %d", updated );
 			//updated++;
+			once = 0;
 //#ifdef DEBUG_OUTPUT_TO_CONSOLE
 			{
 				PTEXT line = BuildLine( pLine );
