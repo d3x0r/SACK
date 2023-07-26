@@ -13,6 +13,8 @@
 #include "global.h"
 #include <psi.h>
 
+#define DEBUG_CAPTION_DRAW
+
 PSI_NAMESPACE
 
 //---------------------------------------------------------------------------
@@ -756,15 +758,17 @@ void DrawThinFrameInset( PSI_CONTROL pc, Image window, int bInvert, int amount )
 
 //---------------------------------------------------------------------------
 
-void DrawFrameCaption( PSI_CONTROL pc )
+void DrawFrameCaption( PSI_CONTROL pc DBG_PASS )
 {
-	//lprintf( "Draw Frame Caption... %p %08x", pc, pc->BorderType );
 	if( !pc ) return;
 	if( pc->BorderType & BORDER_NOCAPTION ) return;
 	if( (pc->BorderType & BORDER_TYPE) == BORDER_NONE ) {
 		if( !(pc->BorderType & BORDER_CAPTION ) )
 			return;
 	}
+#ifdef DEBUG_CAPTION_DRAW
+	_lprintf( DBG_RELAY )( "Draw Frame Caption... %p %08x", pc, pc->BorderType );
+#endif
 	uint32_t width, height;
 	uint32_t xofs = ( ( FrameBorderXOfs(pc, pc->BorderType) ) );
 	uint32_t yofs = ( ( FrameCaptionYOfs(pc, pc->BorderType ) ) );
@@ -1000,7 +1004,9 @@ void DrawFrameCaption( PSI_CONTROL pc )
 			int32_t y = yofs;
 			GetPhysicalCoordinate( pc, &x, &y, FALSE, FALSE );
 			UpdateDisplayPortion( frame->device->pActImg, x, y, width, height );
-			lprintf( "Drawing the caption just immediately says it drew." );
+#ifdef DEBUG_CAPTION_DRAW
+			_lprintf(DBG_RELAY)( "Draw the caption just immediately says it drew. %d,%d  %d,%d", x, y, width, height );
+#endif
 		}
 	}
 	//lprintf( "Is anything going to output this to the window?" );
@@ -1267,7 +1273,7 @@ void UpdateSurface( PSI_CONTROL pc )
 
 PSI_PROC( void, SetCommonBorderEx )( PSI_CONTROL pc, uint32_t BorderType DBG_PASS )
 {
-	//_xlprintf((LOG_NOISE+2) DBG_RELAY)( "Setting border for %s to %08x(%08x,%08x) %08x %08x", pc->pTypeName, pc, pc->parent, pc->device, pc->BorderType, BorderType );
+	_lprintf( DBG_RELAY)( "Setting border for %s to %08x(%08x,%08x) %08x %08x", pc->pTypeName, pc, pc->parent, pc->device, pc->BorderType, BorderType );
 	if( pc->BorderType != BorderType )
 	{
 		pc->BorderType = BorderType;

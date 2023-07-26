@@ -1247,7 +1247,7 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 					if( g.flags.bLogDebugUpdate )
 						lprintf( "Drew border, drawing caption uhmm update some work controls" );
 #endif
-					DrawFrameCaption( pc );
+					DrawFrameCaption( pc DBG_SRC );
 				}
 			}
 		}
@@ -1323,6 +1323,8 @@ void SmudgeSomeControls( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 
 static int OnDrawCommon( "Frame" )( PSI_CONTROL pc )
 {
+	// this, like most, should just deal with its surface.
+	// the frame caption is drawn other places. (focus, initial draw)
 #ifdef DEBUG_UPDAATE_DRAW
 	if( g.flags.bLogDebugUpdate )
 		lprintf( "-=-=-=-=- Output Frame background..." );
@@ -1332,7 +1334,7 @@ static int OnDrawCommon( "Frame" )( PSI_CONTROL pc )
 			BlatColor( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor( pc )[NORMAL] );
 		else
 			BlatColorAlpha( pc->Surface, 0, 0, pc->surface_rect.width, pc->surface_rect.height, basecolor( pc )[NORMAL] );
-		DrawFrameCaption( pc );
+		//DrawFrameCaption( pc DBG_SRC );
 		
 	}
 	else {
@@ -1347,7 +1349,7 @@ static int OnDrawCommon( "Frame" )( PSI_CONTROL pc )
 			border->drawFill = 0;
 		}
 
-		DrawFrameCaption( pc );
+		//DrawFrameCaption( pc DBG_SRC );
 		return 2;
 	}
 	return 1;
@@ -2075,7 +2077,8 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 #endif
 							pc->flags.bDirtyBorder = 0;
 							pc->DrawBorder( pc );
-							DrawFrameCaption( pc );
+							if( !pc->parent )
+								DrawFrameCaption( pc DBG_SRC );
 							drewBorder = TRUE;
 						}
 					}
@@ -2436,7 +2439,9 @@ void SmudgeCommonEx( PSI_CONTROL pc DBG_PASS )
 			}
 			else // if( !pc->flags.bDirty )
 			{
+#ifdef DEBUG_UPDAATE_DRAW
 				PSI_CONTROL parent;
+#endif
 #if DEBUG_UPDAATE_DRAW > 3
 				if( g.flags.bLogDebugUpdate )
 					lprintf( "not dirty, and not cleaning" );

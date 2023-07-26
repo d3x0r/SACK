@@ -202,7 +202,7 @@ static int CPROC FrameRedraw( uintptr_t psvFrame, PRENDERER psvSelf )
 				if( pc->border && pc->border->hasFill )
 					pc->border->drawFill = 1;
 				pc->DrawBorder( pc );
-				DrawFrameCaption( pc );
+				DrawFrameCaption( pc DBG_SRC );
 			}
 			// probably should just invoke draw... but then we won't get marked
 			// dirty - so redundant smudges wont be merged... and we'll do this all twice.
@@ -395,7 +395,7 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 #endif
 			// get update region for next smudge...
 			// and draw the caption border... 
-			DrawFrameCaption( pc );
+			DrawFrameCaption( pc DBG_SRC );
 			//if( pc->DrawFrameCaption)
 			//pc->flags.bDirtyBorder = 1; // the border will always always change on focus...
 			//SmudgeCommon( pc );

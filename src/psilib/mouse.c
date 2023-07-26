@@ -948,7 +948,7 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 static void UpdateCaption( PPHYSICAL_DEVICE pf, PSI_CONTROL pc )
 {
 	int y = FrameCaptionYOfs( pc, pc->BorderType );
-	DrawFrameCaption( pc );
+	DrawFrameCaption( pc DBG_SRC );
 	if( pc->surface_rect.x > 0 )
 		UpdateDisplayPortion( pf->pActImg
 									, pc->surface_rect.x - 1, y
@@ -998,7 +998,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 				{
 					int y = FrameCaptionYOfs( pc, pc->BorderType );
 					pc->pressed_caption_button->is_pressed = 0;
-					DrawFrameCaption( pc );
+					DrawFrameCaption( pc DBG_SRC );
 					UpdateDisplayPortion( pf->pActImg
 												, pc->surface_rect.x - 1, y
 												, pc->surface_rect.width + 2
@@ -1013,7 +1013,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 				{
 					int y = FrameCaptionYOfs( pc, pc->BorderType );
 					pc->pressed_caption_button->is_pressed = 1;
-					DrawFrameCaption( pc );
+					DrawFrameCaption( pc DBG_SRC );
 					UpdateDisplayPortion( pf->pActImg
 												, pc->surface_rect.x - 1, y
 												, pc->surface_rect.width + 2
@@ -1337,7 +1337,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 											int y = FrameCaptionYOfs( pc, pc->BorderType );
 											pc->pressed_caption_button = button;
 											button->is_pressed = TRUE;
-											DrawFrameCaption( pc );
+											DrawFrameCaption( pc DBG_SRC );
 											UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x - 1, y
 																		, pc->surface_rect.width + 2
 																		, pc->surface_rect.y - y );
@@ -1518,7 +1518,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 						int y = FrameCaptionYOfs( pc, pc->BorderType );
 						pc->pressed_caption_button = button;
 						button->is_pressed = TRUE;
-						DrawFrameCaption( pc );
+						DrawFrameCaption( pc DBG_SRC );
 						UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x - 1, y
 													, pc->surface_rect.width + 2
 													, pc->surface_rect.y - y );
@@ -1594,7 +1594,7 @@ static int CPROC FirstFrameMouse( PPHYSICAL_DEVICE pf, int32_t x, int32_t y, uin
 					int y = FrameCaptionYOfs( pc, pc->BorderType );
 					pc->pressed_caption_button = button;
 					button->is_pressed = TRUE;
-					DrawFrameCaption( pc );
+					DrawFrameCaption( pc DBG_SRC );
 					UpdateDisplayPortion( pf->pActImg, pc->surface_rect.x - 1, y
 												, pc->surface_rect.width + 2
 												, pc->surface_rect.y - y );

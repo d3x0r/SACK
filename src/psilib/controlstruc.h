@@ -677,7 +677,7 @@ USE_MOUSE_NAMESPACE
 
 int FrameCaptionYOfs( PSI_CONTROL pc, uint32_t BorderType );
 
-void DrawFrameCaption( PSI_CONTROL pc );
+void DrawFrameCaption( PSI_CONTROL pc DBG_PASS );
 
 PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER pActImg, PSI_CONTROL under );
 void TryLoadingFrameImage( void );

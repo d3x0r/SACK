@@ -84,7 +84,7 @@ void SetCaptionButtonImages( struct physical_device_caption_button *caption_butt
 		{
 			int y = FrameCaptionYOfs( caption_button->pc, caption_button->pc->BorderType );
 			LockRenderer( caption_button->pc->device->pActImg );
-			DrawFrameCaption( caption_button->pc );
+			DrawFrameCaption( caption_button->pc DBG_SRC );
 			UpdateDisplayPortion( caption_button->pc->device->pActImg, caption_button->pc->surface_rect.x - 1, y
 										, caption_button->pc->surface_rect.width + 2
 										, caption_button->pc->surface_rect.y - y );
@@ -100,7 +100,7 @@ static void RefreshCaption( PSI_CONTROL pc, PPHYSICAL_DEVICE device )
 	{
 		int y = FrameCaptionYOfs( pc, pc->BorderType );
 		LockRenderer( device->pActImg );
-		DrawFrameCaption( pc );
+		DrawFrameCaption( pc DBG_SRC );
 		if( !pc->flags.bResizedDirty ) // set during resize operation; don't output now.
 			UpdateDisplayPortion( device->pActImg, pc->surface_rect.x - 1, y
 										, pc->surface_rect.width + 2
