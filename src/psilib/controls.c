@@ -3046,7 +3046,8 @@ PSI_PROC( void, DisplayFrameOverOnUnder )( PSI_CONTROL pc, PSI_CONTROL over, PRE
 		if( g.flags.bLogDebugUpdate )
 			lprintf( "-------- device opened" );
 #endif
-	}else  {
+	}
+	{
 #ifdef DEBUG_CREATE
 		lprintf( "-------------------- Display frame has been invoked..." );
 #endif
