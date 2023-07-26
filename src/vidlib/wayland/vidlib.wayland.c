@@ -68,6 +68,12 @@ struct wayland_local_tag wl;
 static void sack_wayland_Redraw( PRENDERER renderer );
 static void sack_wayland_Redraw_( PXPANEL renderer, int noCallback, volatile int *redrawState_ );
 static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked );
+
+static void postFocusEvent( PXPANEL r, LOGICAL focus );
+static void postSizeEvent( PXPANEL r, uint32_t w, uint32_t h );
+
+static volatile int redrawState = -1;
+
 /*
  wl_compositor id 1
  wl_subcompositor id 2
@@ -406,7 +412,6 @@ static void keyboard_enter(void *data,
 {
 	PXPANEL r = (PXPANEL) wl_surface_get_user_data( surface );
 	postFocusEvent( r, TRUE );
-
 	uint32_t *key;
 	wl_array_for_each( key, keys ){
 		char buf[128];
@@ -669,7 +674,25 @@ static void xdgTopLeveLHandleConfigure(void* data,
 	}
 	lprintf( "xdg_toplevel_configure...%08x", new_states );
 
+	if( new_states == 0 ){
+		postFocusEvent( r, FALSE );
+		lprintf( "Sent lose focus?" );
+	}
 	//xdg_surface_ack_configure((struct xdg_surface* )r->shell_surface, r->last_xdg_serial);
+	if( new_states & TOPLEVEL_STATE_ACTIVATED ){
+		lprintf( "Alternate focus event?");
+		postFocusEvent( r, TRUE );
+		/*
+		if( r != wl.hVidFocused ){
+			if( wl.hVidFocused && wl.hVidFocused->pLoseFocus )
+				wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)r );
+			wl.hVidFocused = r;
+			lprintf( "Send focus as if key enter...");
+			if( r && r->pLoseFocus )
+				r->pLoseFocus( r->dwLoseFocus, NULL );
+		}
+		*/
+	}
 	if (new_states & TOPLEVEL_STATE_RESIZING) {
 		postSizeEvent( r, width, height );
 		if (width) r->bufw = width;
@@ -1070,6 +1093,25 @@ static void clearBuffer( PXPANEL r ) {
 	wl_surface_attach( r->surface, NULL, 0, 0);
 }
 
+static int canCommit( PXPANEL r ) {
+	if( r->freeBuffer[r->curBuffer]  
+		&& ( r->buffer_states[r->curBuffer].w == r->bufw 
+		&& r->buffer_states[r->curBuffer].h == r->bufh ) ) {
+#if defined( DEBUG_COMMIT )
+		lprintf( "Can just use the current image... it's already attached %d", r->curBuffer);
+#endif
+		return 1;
+	}
+	if( r->buffers[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES]
+	  && !r->freeBuffer[(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES] ) {
+//#if defined( DEBUG_COMMIT_BUFFER )
+		lprintf( "(can commit)buffers in use and nothing free, (no more commit!!) want buffer %d", r->curBuffer);
+//#endif
+		return 0;
+	}
+	return 1; // there's a free buffer or a free image next.
+}
+
 static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	if( r->flags.hidden ) {
 		lprintf( "window is hidden... returning a fault.");
@@ -1092,9 +1134,9 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	}
 	r->curBuffer=(r->curBuffer+1)%MAX_OUTSTANDING_FRAMES;
 	int curBuffer = r->curBuffer;
-#if defined( DEBUG_SURFACE_ATTACH )
-	//lprintf( "using image to a new image.... %d sizeChange? %d %d",curBuffer, r->bufw != r->w, r->bufh != r->h );
-#endif
+//#if defined( DEBUG_SURFACE_ATTACH )
+	lprintf( "using image to a new image.... %d sizeChange???",curBuffer );
+//#endif
 	if( r->buffer_states[curBuffer].w != r->bufw 
 	   || r->buffer_states[curBuffer].h != r->bufh ) {
 		// if the buffer has to change size, we need a new one....
@@ -1160,20 +1202,22 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 #endif	
 	if( !r->surface ) return FALSE; 
 	lprintf( "attachNewBuffer2... (have a surface)");
-	if( !r->freeBuffer[r->curBuffer]) {
+	if( !r->freeBuffer[r->curBuffer] && r->color_buffers[r->curBuffer]) {
 		if( r->flags.dirty ) {
 			lprintf( "existing damage... (flush was needed after commit)");
 			wl_surface_commit( r->surface );
 			wl_display_flush( wl.display );
+		} else {
+			lprintf( "Attaching over a buffer and there was no damage to it? %d",r->freeBuffer[r->curBuffer] );
 		}
 		// any new draws are going to 
-	}
+	} else lprintf( "surface cannot have damage nothing there");
 	struct wl_buffer *next = nextBuffer(r, 0);
 	if( req && !next ) {
 //#if defined( DEBUG_COMMIT_BUFFER )
-		lprintf( "waiting for buffer...---------------- %d", r->flags.canCommit );
+		lprintf( "waiting for buffer...----------------%d %d", canCommit( r ), r->flags.canCommit );
 //#endif
-		//if( r->flags.canCommit ) 
+		if( canCommit( r ) ) 
 		{
 			r->flags.canCommit = 0; // am commiting, do not commit
 			//r->flags.dirty = 0;
@@ -1199,6 +1243,7 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 #endif
 			wl_surface_commit( r->surface );
 			wl_display_flush( wl.display );
+			r->buffer_states[r->curBuffer].dirty = 0;
 			do {
 #if defined( DEBUG_COMMIT_BUFFER )
 				lprintf( "to round" );
@@ -1228,7 +1273,6 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 		}//else {
 		//	lprintf( "Attach New Buffer is really still waiting for a new buffer !!!!!!!!!!!!!!!! ");
 		//}
-	} else {
 	}
 	if( next ) {
 #if defined( DEBUG_DUMP_SURFACE_IMAGES )
@@ -1279,8 +1323,6 @@ static  void surfaceFrameCallback( void *data, struct wl_callback* callback, uin
 		wl.flags.shellInit = 0;
 	}//= 1;
 
-	
-	r->flags.canCommit = 1;
 //#if defined( DEBUG_COMMIT )
 	lprintf( "----------- surfaceFrameCallback (after surface is freed? no...) %d %p",r->curBuffer, r->buffers[r->curBuffer] );
 //#endif
@@ -1307,8 +1349,11 @@ static void postDrawEvent( PXPANEL r, int noCallback ) {
 	}
 	LIST_FORALL( wl.wantDraw, idx, struct drawRequest*, check ){
 		if( check->r == r ) {
+			lprintf( "draw is already queued... updating: %d %d", check->noCallback, noCallback );
 			// turn off the 1 if there isn't a block for the callback
 			if( !noCallback ) check->noCallback = 0;
+			lprintf( "redrawState: %d", redrawState);
+			WakeThread( wl.drawThread );
 			break;
 		}
 	}
@@ -1316,11 +1361,13 @@ static void postDrawEvent( PXPANEL r, int noCallback ) {
 		struct drawRequest* req = New( struct drawRequest );
 		req->r = r;
 		req->noCallback = noCallback;
+		req->setFocus = 0;
+		req->setSize = 0;
 		//req->thread = thisThread;
 		AddLink( &wl.wantDraw, req );
-#if defined( DEBUG_COMMIT )
-		lprintf( "^^^^^^^^^^^ waking draw thread, and resulting ^^^^^^^^^^^^^^^^");
-#endif
+//#if defined( DEBUG_COMMIT )
+		lprintf( "^^^^^^^^^^^ draw waking draw thread, and resulting ^^^^^^^^^^^^^^^^");
+//#endif
 		WakeThread( wl.drawThread );
 	}
 }
@@ -1335,6 +1382,7 @@ static void postFocusEvent( PXPANEL r, LOGICAL focus ) {
 		if( check->r == r ) {
 			check->setFocus = 1;
 			check->hasFocus = focus;
+			lprintf( "Adding focus to existing draw event?");
 			break;
 		}
 	}
@@ -1343,13 +1391,13 @@ static void postFocusEvent( PXPANEL r, LOGICAL focus ) {
 		req->r = r;
 		req->noCallback = 1;
 		req->setSize = 0;
-		check->setFocus = 1;
-		check->hasFocus = focus;
+		req->setFocus = 1;
+		req->hasFocus = focus;
 		//req->thread = thisThread;
 		AddLink( &wl.wantDraw, req );
-#if defined( DEBUG_COMMIT )
-		lprintf( "^^^^^^^^^^^ waking draw thread, and resulting ^^^^^^^^^^^^^^^^");
-#endif
+//#if defined( DEBUG_COMMIT )
+		lprintf( "^^^^^^^^^^^ focus waking draw thread, and resulting ^^^^^^^^^^^^^^^^");
+//#endif
 		WakeThread( wl.drawThread );
 	}
 }
@@ -1364,6 +1412,7 @@ static void postSizeEvent( PXPANEL r, uint32_t w, uint32_t h ) {
 	LIST_FORALL( wl.wantDraw, idx, struct drawRequest*, check ){
 		if( check->r == r ) {
 			check->setSize = 1;
+			check->noCallback = 0;
 			check->w = w;
 			check->h = h;
 			break;
@@ -1372,22 +1421,21 @@ static void postSizeEvent( PXPANEL r, uint32_t w, uint32_t h ) {
 	if( !check ) {
 		struct drawRequest* req = New( struct drawRequest );
 		req->r = r;
-		req->noCallback = 1;
+		req->noCallback = 0;
+		req->setFocus = 0;
 		req->setSize = 1;
 		req->w = w;
 		req->h = h;
 		//req->thread = thisThread;
 		AddLink( &wl.wantDraw, req );
-#if defined( DEBUG_COMMIT )
-		lprintf( "^^^^^^^^^^^ waking draw thread, and resulting ^^^^^^^^^^^^^^^^");
-#endif
+//#if defined( DEBUG_COMMIT )
+		lprintf( "^^^^^^^^^^^ size waking draw thread, and resulting ^^^^^^^^^^^^^^^^");
+//#endif
 		WakeThread( wl.drawThread );
 	}
 }
 
-static volatile int redrawState = -1;
-
-static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
+static int do_waylandDrawThread( uintptr_t psv ) {
 	static volatile int sleeping = 0;
 	static volatile int drawing = 0;
 	static volatile int sleepTime = 0;
@@ -1402,7 +1450,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 		int did_event = 0;
 		struct drawRequest *req;
 		struct pendingKey *key;
-		PXPANEL r;
+		//PXPANEL r;
 		uint32_t now = timeGetTime();
 		struct mouseEvent event;
 		while( DequeData( &wl.pdqKeyEvents, &wl.key_sent )){
@@ -1497,16 +1545,17 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 				int oldCallback = req->noCallback;
 
 				if( req->setSize ) {
-					r->bufw = req->w;
-					r->bufh = req->h;
+					req->r->bufw = req->w;
+					req->r->bufh = req->h;
 				}
 				if( req->setFocus ) {
+					lprintf( "Set Focus in draw event... %d", req->hasFocus );
 					if( req->hasFocus ) {
 						if( wl.hVidFocused && wl.hVidFocused->pLoseFocus )
-							wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)r );
-						wl.hVidFocused = r;
-						if( r && r->pLoseFocus )
-							r->pLoseFocus( r->dwLoseFocus, NULL );
+							wl.hVidFocused->pLoseFocus( wl.hVidFocused->dwLoseFocus, (PRENDERER)req->r );
+						wl.hVidFocused = req->r;
+						if( req->r && req->r->pLoseFocus )
+							req->r->pLoseFocus( req->r->dwLoseFocus, NULL );
 					} else {
 						if( wl.hVidFocused && wl.hVidFocused->pLoseFocus ){
 							//lprintf( "on leave lose focus?");
@@ -1517,9 +1566,9 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 				}
 
 				SetLink( &wl.wantDraw, idx, NULL ); // remove it from the list... 
-#if defined( DEBUG_COMMIT ) || defined( DEBUG_REDRAW )
-				lprintf( " ------------------------  Sending a want draw window...");
-#endif
+//#if defined( DEBUG_COMMIT ) || defined( DEBUG_REDRAW )
+				lprintf( " ------------------------  cleared want draw state...");
+//#endif
 				redrawState = 300;
 				sack_wayland_Redraw_( req->r, req->noCallback, &redrawState );
 				// assume the above took some time...
@@ -1583,6 +1632,7 @@ static uintptr_t do_waylandDrawThread( uintptr_t psv ) {
 		//lprintf( "Idle call?  bad thread?");
 		return -1;
 	}
+	lprintf( "Return to sleep?");
 	return 0;
 }
 
@@ -1600,7 +1650,7 @@ static uintptr_t waylandDrawThread( PTHREAD thread ) {
 }
 
 
-static uintptr_t do_waylandThread( int isThread ) {
+static int do_waylandThread( uintptr_t isThread ) {
 	if( MakeThread() != wl.waylandThread ) return -1;
 	if( wl.display ) {
 		lprintf( " --- Sending pending? ");
@@ -1688,12 +1738,10 @@ handle_configure(void *data, struct wl_shell_surface *shell_surface,
 {
 	PXPANEL r = (PXPANEL)data;
 
-	r->bufw = width;
-	r->bufh = height;
-	postDrawEvent( r, 0 );
+	postSizeEvent( r, r->bufw, r->bufh );
 	//wl_surface_commit( r->surface );
 	//r->changedEdge = edges;
-	lprintf( "shell configure %d %d", width, height );
+	lprintf( "(old?) shell configure %d %d", width, height );
 	if( edges & wrsdv_left ){
 
 	}
@@ -1722,9 +1770,9 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 	EnterCriticalSec( &wl.cs_wl );
 	PXPANEL r = (PXPANEL)data;
 	int n;
-#if defined( DEBUG_COMMIT_BUFFER )
+//#if defined( DEBUG_COMMIT_BUFFER )
 	lprintf( "------------------------ RELEASE BUFFER ----------------------------" );
-#endif
+//#endif
 	for( n = 0; n < MAX_OUTSTANDING_FRAMES; n++ )  {
 #if defined( DEBUG_COMMIT_BUFFER_DETAILS )
 		lprintf( "RELEASE BUFFER FINDING BUFFER is %p %p?", r->buffers[n] , wl_buffer );
@@ -1770,12 +1818,20 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 				
 			r->freeBuffer[n] = 1;
 			if( r->flags.wantBuffer ){
+				lprintf( "This wakes the thread waiting for a buffer to be able to commit.");
 				r->flags.wantBuffer = 0;
 				if( r->bufferWaiter ) WakeThread( r->bufferWaiter );
-			}
+			} else lprintf( "Buffer was freed, but maybe there's no event?");
 			break;
 		}
 	}
+/*
+	r->flags.canCommit = 1;
+	if( r->flags.dirty ){ // already draw, just go ahead and commit.
+		sack_wayland_Redraw_( r, 1, NULL );
+		lprintf( "renderer is already dirty, sent a commit request");
+	}
+*/
 	if( n == MAX_OUTSTANDING_FRAMES ) {
 		lprintf( "Released buffer isn't on this surface?");
 	}
@@ -1895,13 +1951,14 @@ static void sack_wayland_Redraw_( PXPANEL r, int noCallback, volatile int *redra
 
 	if( redrawState != 5 ) {
 		//if( redrawState == 300 )DebugBreak();
-#ifdef DEBUG_REDRAW
+//#ifdef DEBUG_REDRAW
 		lprintf( "Redraw dispatched to display...%d  %d", redrawState, noCallback );
-#endif
+//#endif
 	} else {
 		// this is just the application being generous, it is in
 		// its own redraw callback; and can't draw yet
-		return;
+		lprintf( "state 5...");
+		//return;
 	}
 	if( wl.drawThread != thisThread ){
 		//r->flags.dirty = 1;  // This must be dirty?  (Will be dirty?)
@@ -1932,22 +1989,25 @@ static void sack_wayland_Redraw_( PXPANEL r, int noCallback, volatile int *redra
 		EnterCriticalSec( &wl.cs_wl );
 		
 		r->flags.canCommit = 0; // don't allow sub-daamages to commit... just damage  (if this gets a frame callback it'll reset and flush early)
-		if( !noCallback && r->pRedrawCallback ) {
+		if( ( r->buffer_states[r->curBuffer].dirty || !noCallback ) && r->pRedrawCallback ) {
 			redrawState = 5;
 //#if defined( DEBUG_REDRAW )		
-			lprintf( "dispatch redraw...");
+			lprintf( "dispatch redraw...%d %d", r->buffer_states[r->curBuffer].dirty, noCallback );
 //#endif			
 			r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
 //#if defined( DEBUG_REDRAW )		
 			lprintf( "dispatched redraw...");
 //#endif			
 			redrawState = 6;
-		} else {
+		}
+		{
 			redrawState = 7;
 			r->flags.commited = 1; // no real draw (closed?)
 //#if defined( DEBUG_REDRAW )		
 			lprintf( "No redraw callback, forcing commit");
 //#endif			
+			wl_surface_commit( r->surface );
+			wl_display_flush( wl.display );
 		}
 #if defined( DEBUG_REDRAW )		
 		lprintf( "Dirty? after draw %d", r->flags.dirty );
@@ -2100,7 +2160,7 @@ static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 
 //	lprintf( "update DIpslay Ex" );
 #ifdef DEBUG_UPDATE_DISPLAY
-	lprintf( "Update whole surface %d %d", r->buffer_states[r->curBuffer].w, r->buffer_states[r->curBuffer].h );
+	_lprintf(DBG_RELAY)( "Update whole surface %d %d", r->buffer_states[r->curBuffer].w, r->buffer_states[r->curBuffer].h );
 #endif	
 
 	EnterCriticalSec( &wl.cs_wl );
@@ -2252,6 +2312,7 @@ static void sack_wayland_HideDisplay( PRENDERER renderer ){
 		EnterCriticalSec( &wl.cs_wl );
 		lprintf( "Hide display commit" );
 		wl_surface_commit( r->surface );
+		wl_display_flush( wl.display );
 		LeaveCriticalSec( &wl.cs_wl );
 	}
 }
@@ -2266,7 +2327,7 @@ static Image sack_wayland_GetDisplayImage(PRENDERER renderer) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( r ) {
 		if( !r->pImage ) {
-			lprintf( "draw getting display image...(do attachnewbuffer)");
+			lprintf( "draw getting display image...(do attachnewbuffer (initialized))");
 			attachNewBuffer( r, 1, 0 );
 		}
 		//lprintf( "GetDisplayImage:Result with image: %p %p", r->pImage );
@@ -2291,6 +2352,7 @@ static void sack_wayland_ForceDisplayFocus( PRENDERER display ) {
 		// in the process of being destroyed... don't focus it.
 		return;
 	}
+	lprintf( "Forcing Focus!!!");
 	wl.hVidFocused = (PXPANEL)display;
 
 	if( !r->flags.bFocused )
