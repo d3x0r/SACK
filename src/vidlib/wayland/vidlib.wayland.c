@@ -1131,10 +1131,13 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 	int priorBuffer = r->curBuffer;//?r->curBuffer-1:(MAX_OUTSTANDING_FRAMES-1);
 	int nextBuffer = (r->curBuffer+1)%MAX_OUTSTANDING_FRAMES;
 
+#if 0
+	// hidden is the initial state of the window, and we need to get the image (if possible)
 	if( r->flags.hidden ) {
 		lprintf( "window is hidden... returning a fault.");
 		return NULL;
 	}
+#endif
 	if( r->freeBuffer[r->curBuffer]  
 		&& ( r->buffer_states[r->curBuffer].w == r->bufw 
 		&& r->buffer_states[r->curBuffer].h == r->bufh ) ) {
@@ -1975,6 +1978,7 @@ static void sack_wayland_Redraw( PRENDERER renderer ) {
 static void sack_wayland_Redraw_( PXPANEL r, int noCallback, volatile int *redrawState_ ) {
 	//static volatile int redrawState__ = -3;
 	//#define redrawState ((redrawState_?redrawState_:&redrawState__)[0])
+	if( r->flags.hidden ) return;
 	PTHREAD thisThread = MakeThread();
 
 	if( redrawState != 5 ) {
@@ -2029,9 +2033,10 @@ static void sack_wayland_Redraw_( PXPANEL r, int noCallback, volatile int *redra
 			r->flags.drawing = 0;
 //#if defined( DEBUG_REDRAW )		
 			lprintf( "dispatched redraw...%d", r->drawResult );
-
-			wl_surface_damage( r->surface, 0, 0, r->bufw, r->bufh );
-			r->flags.dirty = 1; // was damaged, needs commit.
+			if( !r->flags.dirty ) {
+				wl_surface_damage( r->surface, 0, 0, r->bufw, r->bufh );
+				r->flags.dirty = 1; // was damaged, needs commit.
+			}
 //#endif	
 			redrawState = 6;
 		}
@@ -2098,6 +2103,7 @@ static PRENDERER sack_wayland_OpenDisplayAboveUnderSizedAt(uint32_t attr , uint3
 	}
 	r->x = x;
 	r->y = y;
+	r->flags.hidden = 1;
 
 	// eventually we'll need a commit callback.
 
@@ -2162,6 +2168,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( (int)w < 0 ) w = r->bufw;
 	if( (int)h < 0 ) h = r->bufh;
+	r->flags.hidden = 0; // ShowWindow( SW_SHOW );
 #ifdef DEBUG_UPDATE_DISPLAY
 	_lprintf( DBG_RELAY )( "UpdateDisplayPortionEx %p %d %d %d %d", r->surface, x, y, w, h );
 #endif	
@@ -2173,6 +2180,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 			// this doesn't directly commit
 			// so maybe canCommit isn't useful?
 			r->flags.dirty = 1;
+			lprintf( "Set dirty, and is it drawing? %d", r->flags.drawing);
 			if( !r->flags.drawing )
 				postDrawEvent( r, 1 );
 		}
@@ -2180,6 +2188,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	} else {
 		// it's locked because it's in use... 
 		// it will get around to damaging before commit.(?)
+		lprintf( "This posted the dirt to draw which might be eager?");
 		postDirt( r, x, y, w, h );	
 	}
 }
