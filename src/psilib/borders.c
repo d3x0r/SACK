@@ -770,13 +770,14 @@ void DrawFrameCaption( PSI_CONTROL pc DBG_PASS )
 	_lprintf( DBG_RELAY )( "Draw Frame Caption... %p %08x", pc, pc->BorderType );
 #endif
 	uint32_t width, height;
+	uint32_t upd_w, upd_h;
 	uint32_t xofs = ( ( FrameBorderXOfs(pc, pc->BorderType) ) );
 	uint32_t yofs = ( ( FrameCaptionYOfs(pc, pc->BorderType ) ) );
 	{
 		int h, w;
 		uint32_t button_left;
 		Image out = NULL;
-		h = CaptionHeight( pc, pc?GetText(pc->caption.text):NULL ) - 1;
+		upd_h = h = CaptionHeight( pc, pc?GetText(pc->caption.text):NULL ) - 1;
 		//lprintf( "Caption height: %d", h );
 		if( h <= 0 ) // no caption to...
 		{
@@ -788,7 +789,9 @@ void DrawFrameCaption( PSI_CONTROL pc DBG_PASS )
 #endif
 #define TEXT_INSET 5
 		GetImageSize( pc->Window, &width, &height );
-		w = width - (xofs + 2);
+		//w = width - (xofs + 2);
+		w = width - 2*(xofs+1);
+		upd_w = w;
 		if( pc->DrawCaption )
 		{
 			//lprintf( "Draw custom caption" );
@@ -806,9 +809,9 @@ void DrawFrameCaption( PSI_CONTROL pc DBG_PASS )
 					{
 						int32_t outx = 0;
 						int32_t outy = 0;
-						uint32_t outw = width - 2 *xofs;
+						uint32_t outw = w+2;
 						uint32_t outh = h+2;
-						uint32_t routw = width - 2 *xofs;
+						uint32_t routw = w+2;
 						uint32_t routh = h+2;
 						if( (h+2) < out->height )
 							outh = h+2;
@@ -830,7 +833,7 @@ void DrawFrameCaption( PSI_CONTROL pc DBG_PASS )
 					//lprintf( "Draw focused caption on pcWindow" );
 					BlatColor( pc->Window
 								, xofs+1, yofs+1
-								, width - 2*(xofs+1)
+								, w
 								, h
 								, basecolor(pc)[CAPTION] );
 				}
@@ -1003,7 +1006,7 @@ void DrawFrameCaption( PSI_CONTROL pc DBG_PASS )
 			int32_t x = xofs;
 			int32_t y = yofs;
 			GetPhysicalCoordinate( pc, &x, &y, FALSE, FALSE );
-			UpdateDisplayPortion( frame->device->pActImg, x, y, width, height );
+			UpdateDisplayPortion( frame->device->pActImg, x, y, upd_w, upd_h );
 #ifdef DEBUG_CAPTION_DRAW
 			_lprintf(DBG_RELAY)( "Draw the caption just immediately says it drew. %d,%d  %d,%d", x, y, width, height );
 #endif

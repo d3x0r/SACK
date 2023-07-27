@@ -2078,7 +2078,7 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 							pc->flags.bDirtyBorder = 0;
 							pc->DrawBorder( pc );
 							if( !pc->parent )
-								DrawFrameCaption( pc DBG_SRC );
+								DrawFrameCaption( pc DBG_RELAY );
 							drewBorder = TRUE;
 						}
 					}
@@ -2972,6 +2972,7 @@ PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pc DBG_PASS )
 				pc->flags.bRestoring = 1;
 				RestoreDisplay( pc->device->pActImg );
 			}
+			else lprintf( "wasn't hidden already");
 			// need to not clear restoring here; it might take a while, (we might have to return before it happens)
 		}
 		if( was_hidden && ( (level > 1)?1:(pc->flags.bHiddenParent) ) )
@@ -3011,6 +3012,7 @@ PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pc DBG_PASS )
 				// this smudge should not happen for device reveals
 				//if( !pc->device )
 #endif
+				// the act of restoring should trigger the redraw...
 				if( !g.flags.always_draw )
 					SmudgeCommon( pc );
 				//UpdateCommon( pc );
@@ -3122,7 +3124,7 @@ PSI_PROC( void, DisplayFrameUnder )( PSI_CONTROL pc, PSI_CONTROL under )
 {
 	//lprintf( "Displayframeover" );
 	DisplayFrameOverOnUnder( pc, NULL, NULL, under );
-	SmudgeCommon( pc );
+	//SmudgeCommon( pc );
 }
 
 //---------------------------------------------------------------------------
