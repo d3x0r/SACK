@@ -1051,7 +1051,6 @@ int os_create_anonymous_file(off_t size)
 }
 
 
-
 static void surfaceFrameCallback( void *data, struct wl_callback* callback, uint32_t time );
 static const struct wl_callback_listener frame_listener = {
 	surfaceFrameCallback
@@ -1322,15 +1321,16 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 		// clear dirty, still can't commit.
 		
 		if( r->surface ) { // by this point, thse surce COULD have closed... 
-#if defined( DEBUG_SURFACE_ATTACH )
+//#if defined( DEBUG_SURFACE_ATTACH )
 			lprintf( "Attach new surface, such that can damage (wake someone?)" );
-#endif
+//#endif
 			wl_surface_attach( r->surface, next, 0, 0 );
 			r->flags.canDamage = 1;
 			return TRUE;
 		}
 	}else {
-		lprintf( "Leaving without attaching a buffer..." );
+		r->flags.wantAttach = 1;
+		lprintf( "Leaving without attaching a buffer... (next release call this)" );
 	}
 	return FALSE;
 }
@@ -1348,17 +1348,31 @@ static  void surfaceFrameCallback( void *data, struct wl_callback* callback, uin
 //#if defined( DEBUG_COMMIT )
 	lprintf( "----------- surfaceFrameCallback (after surface is freed? no...) %d %p",r->curBuffer, r->buffers[r->curBuffer] );
 //#endif
-	if( callback && r->frame_callback ) wl_callback_destroy( r->frame_callback );
-	if( !r->flags.bDestroy ) {
-		if( callback ) {
-			// schedule another callback.
-			// otherwise, this is just using the common 'r->flags.dirty' handler.
+	if( callback && r->frame_callback ) 
+		wl_callback_destroy( r->frame_callback );
+		r->frame_callback = NULL;
+		{
+			r->flags.drawing = 1;
+			r->drawResult = r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
+			r->flags.drawing = 0;
+			lprintf( "dispatched redraw...%d", r->drawResult );
+			if( !r->flags.dirty ) {
+				// it wasn't a smart thing, and didn't select a sub-portion to smudge
+				wl_surface_damage( r->surface, 0, 0, r->bufw, r->bufh );
+				r->flags.dirty = 1; // was damaged, needs commit.
+			}
 		}
-	}else {
-#if defined( DEBUG_COMMIT ) || defined( DEBUG_COMMIT_STATE )
-		lprintf( "(DESTROYED) don't make another callback.");
-#endif
-	}
+//#if defined( DEBUG_REDRAW )		
+		lprintf( "Dirty? after draw %d", r->flags.dirty );
+//#endif		
+		// commit any old damage, and get a new, fresh drawable buffer.
+		attachNewBuffer( r, 1, 1 );
+		r->flags.canCommit = 1; // allow sub-damages
+
+	/*
+	r->frame_callback = wl_surface_frame( r->surface );
+	wl_callback_add_listener( r->frame_callback, &frame_listener, r );
+	*/
 	LeaveCriticalSec( &wl.cs_wl );
 
 }
@@ -1852,7 +1866,13 @@ void releaseBuffer( void*data, struct wl_buffer*wl_buffer ){
 				lprintf( "This wakes the thread waiting for a buffer to be able to commit.");
 				r->flags.wantBuffer = 0;
 				if( r->bufferWaiter ) WakeThread( r->bufferWaiter );
-			} else lprintf( "Buffer was freed, but maybe there's no event?");
+			} else {
+				lprintf( "Buffer was freed, but maybe there's no event?");
+				if( r->flags.wantAttach ) {
+					// if not required, lock state doesn't matter
+					attachNewBuffer( r, 0, 0 );
+				}
+			}
 			break;
 		}
 	}
@@ -1953,11 +1973,9 @@ LOGICAL CreateWindowStuff(PXPANEL r, PXPANEL parent )
 			return FALSE;
 		}
 	}
-#ifdef DEBUG_SURFACE_INIT
+//#ifdef DEBUG_SURFACE_INIT
 	lprintf( " ---- surface frame is setup...");
-#endif	
-	r->frame_callback = wl_surface_frame( r->surface );
-	wl_callback_add_listener( r->frame_callback, &frame_listener, r );
+//#endif	
 	r->flags.canDamage = 1;
 	LeaveCriticalSec( &wl.cs_wl );
 
@@ -2180,9 +2198,14 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 			// this doesn't directly commit
 			// so maybe canCommit isn't useful?
 			r->flags.dirty = 1;
-			lprintf( "Set dirty, and is it drawing? %d", r->flags.drawing);
-			if( !r->flags.drawing )
+			lprintf( "Set dirty, and is it drawing? %d %p", r->flags.drawing, r->frame_callback);
+			if( !r->flags.drawing ) {
+				if( !r->frame_callback ) {
+					r->frame_callback = wl_surface_frame( r->surface );
+					wl_callback_add_listener( r->frame_callback, &frame_listener, r );
+				}
 				postDrawEvent( r, 1 );
+			}
 		}
 		LeaveCriticalSec( &wl.cs_wl );
 	} else {

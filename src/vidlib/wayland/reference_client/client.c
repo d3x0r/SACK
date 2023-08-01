@@ -77,7 +77,7 @@ static const struct wl_buffer_listener wl_buffer_listener = {
     .release = wl_buffer_release,
 };
 
-uint32_t* buffer_data;
+uint32_t	* buffer_data[2];
 struct wl_buffer* buffers[2];
 int last_buffer;
 int drawmode;
@@ -94,7 +94,7 @@ draw_frame(struct client_state *state, int mode)
 	 else last_mode = mode;
 	 uint32_t* data;
 	 struct wl_buffer* buffer;
-	 if( !buffer_data ) {
+	 if( !buffer_data[last_buffer] ) {
 		 int fd = allocate_shm_file(size);
 		 if (fd == -1) {
 			  return NULL;
@@ -102,7 +102,7 @@ draw_frame(struct client_state *state, int mode)
 
 		 data = mmap(NULL, size,
 					PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-		 buffer_data = data;
+		 buffer_data[last_buffer] = data;
 		 if (data == MAP_FAILED) {
 			  close(fd);
 			  return NULL;
@@ -111,14 +111,15 @@ draw_frame(struct client_state *state, int mode)
 		 struct wl_shm_pool *pool = wl_shm_create_pool(state->wl_shm, fd, size);
 		 buffer = wl_shm_pool_create_buffer(pool, 0,
 					width, height, stride, WL_SHM_FORMAT_XRGB8888);
-		 buffers[0] = buffer;
+		 buffers[last_buffer] = buffer;
 		 wl_shm_pool_destroy(pool);
 		 close(fd);
 		 wl_buffer_add_listener( buffer, &wl_buffer_listener, NULL );
 	 } else {
-		 data = buffer_data;
-		 buffer = buffers[0];
+		 data = buffer_data[last_buffer];
+		 buffer = buffers[last_buffer];
 	 }
+    last_buffer++; if( last_buffer > 1 ) last_buffer = 0;
 	 switch( mode ) {
 	 case 0:
 		 /* Draw checkerboxed background */
@@ -155,7 +156,7 @@ draw_frame(struct client_state *state, int mode)
 	 }
 
     //munmap(data, size);
-	//printf( "did draw into %p\n", buffer);
+	 //printf( "did draw into %p\n", buffer);
     return buffer;
 }
 
@@ -171,6 +172,7 @@ xdg_surface_configure(void *data,
     buffer = draw_frame(state, drawmode);
 	//printf( "(surface configure)Draw/attach checkerboard\n" );
     wl_surface_attach(state->wl_surface, buffer, 0, 0);
+	 wl_surface_damage_buffer( state->wl_surface, 0, 0, INT32_MAX, INT32_MAX );
     wl_surface_commit(state->wl_surface);
 }
 
@@ -179,10 +181,10 @@ void drawGreen( void ) {
 	printf( "draw green\n" );
 	//struct wl_buffer* buffer = draw_frame( &state, 1 );
 	//wl_surface_damage_buffer( state.wl_surface, 0, 0, INT32_MAX, INT32_MAX );
-	wl_surface_attach( state.wl_surface, buffer, 0, 0 );
-	wl_surface_damage_buffer( state.wl_surface, 0, 0, INT32_MAX, INT32_MAX );
+	//wl_surface_attach( state.wl_surface, buffer, 0, 0 );
+	//wl_surface_damage_buffer( state.wl_surface, 0, 0, INT32_MAX, INT32_MAX );
 	wl_surface_commit( state.wl_surface );
-	wl_display_roundtrip( state.wl_display );
+	//wl_display_roundtrip( state.wl_display );
 
 }
 
@@ -192,11 +194,10 @@ void drawRed( void ) {
 	//struct wl_buffer* buffer = draw_frame( &state, 2 );
 	//printf( "Red called draw_frame\n");
 	//wl_surface_attach( state.wl_surface, buffer, 0, 0 );
-	wl_surface_attach( state.wl_surface, buffer, 0, 0 );
-	wl_surface_damage_buffer( state.wl_surface, 0, 0, INT32_MAX, INT32_MAX );
+	//wl_surface_attach( state.wl_surface, buffer, 0, 0 );
+	//wl_surface_damage_buffer( state.wl_surface, 0, 0, INT32_MAX, INT32_MAX );
 	wl_surface_commit( state.wl_surface );
-	wl_display_roundtrip( state.wl_display );
-
+	//wl_display_roundtrip( state.wl_display );
 }
 
 static const struct xdg_surface_listener xdg_surface_listener = {

@@ -42,7 +42,8 @@ typedef struct wvideo_tag
 		uint32_t wantDraw : 1;
 		uint32_t hidden : 1; // tracks whether the window is visible or not.
 		//uint32_t commited : 1; // if a redraw did not update anything, update everything.
-		uint32_t drawing : 1;
+		uint32_t drawing : 1; // dispatched to a full-redraw callback 
+		volatile uint32_t wantAttach : 1; // like want buffer, but just attaches when a buffer releases.
 	} flags;
 
 	int32_t x, y;
