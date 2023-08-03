@@ -3002,9 +3002,9 @@ CTEXTSTR GetProgramPath( void )
 CTEXTSTR GetInstallPath( void )
 {
 #if defined( __EMSCRIPTEN__ )
-	return CMAKE_INSTALL_PREFIX;
+	return TARGET_INSTALL_PREFIX;
 #elif defined( __ANDROID__ )
-	return CMAKE_INSTALL_PREFIX;
+	return TARGET_INSTALL_PREFIX;
 #else
 	if( !local_systemlib || l.install_path )
 	{
