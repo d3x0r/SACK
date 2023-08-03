@@ -24,7 +24,7 @@ project( SACK )
 SET(CMAKE_SKIP_BUILD_RPATH  OFF)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 SET(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib")
-OPTION(TARGET_INSTALL_PATH "Used to compile as installation path" ${CMAKE_INSTALL_PREFIX} )
+OPTION(TARGET_INSTALL_PREFIX "Used to compile as installation path" ${CMAKE_INSTALL_PREFIX} )
 
 # someday we can enable this by default....
 SET( ENABLE_VULKAN OFF )
