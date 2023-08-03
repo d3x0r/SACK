@@ -139,6 +139,7 @@ endIF(EXISTS ${BULLET_SOURCE}/CMakeLists.txt )
 set( PROJECT core )
 set( EXTRA_FLAGS  -DBUILD_EXTRAS=${BUILD_EXTRAS}
 			-D__NO_ODBC__=${__NO_ODBC__}
+			\"-DTARGET_INSTALL_PREFIX=${TARGET_INSTALL_PREFIX}\"			
 			${DDIRECTX_SDK}
         	        ${SACK_REQUIREMENTS} 
                 	${DFORCE_MSVCRT} 
