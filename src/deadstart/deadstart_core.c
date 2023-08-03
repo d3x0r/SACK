@@ -262,9 +262,23 @@ static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 #  endif
 
 #  ifndef WIN32
-static void CtrlC( int signal )
+static void CtrlC( int signal, struct siginfo_t siginfo, void*p )
 {
-	exit(3);
+	if( deadstart_local_data[0].prior_sigint.sa_handler ) {
+		if( deadstart_local_data[0].prior_sigint.sa_handler == SIG_DFL ){
+		}
+		else if( deadstart_local_data[0].prior_sigint.sa_handler == SIG_IGN ){
+		}
+		else if( deadstart_local_data[0].prior_sigint.sa_handler ){
+			if( deadstart_local_data[0].prior_sigint.sa_flags & SA_SIGINFO ){
+				deadstart_local_data[0].prior_sigint.sa_sigaction( signal, siginfo, p );
+			} else {
+				deadstart_local_data[0].prior_sigint.sa_handler( signal );
+			}
+		}
+	}
+	InvokeExits();
+	//exit(3);
 }
 #  endif
 #endif
@@ -302,9 +316,34 @@ void InvokeDeadstart( void )
 		else
 		{
 			//MessageBox( NULL, "!!--!! NO CtrlC", "blah", MB_OK );
-			// do nothing if we're no actually a console window. this should fix ctrl-c not working in CMD prompts launched by MILK/InterShell
+			// do nothing if not actually a console window. this should fix ctrl-c not working in CMD prompts launched by MILK/InterShell
 		}
 #  endif
+	}
+#else
+	if( !bInitialDone && !l.bDispatched )
+	{
+		struct sigaction sact;
+		/*
+           struct sigaction {
+			union{
+               void     (*sa_handler)(int);
+               void     (*sa_sigaction)(int, siginfo_t *, void *);
+			}
+               sigset_t   sa_mask;
+               int        sa_flags;
+               void     (*sa_restorer)(void);
+           };
+		*/
+		//action.sa_handler = 
+		//sact.sa_handler = CtrlC;
+		sact.sa_sigaction = CtrlC;
+		sigemptyset(&sact.sa_mask);
+		//sigaddset( &sact.sa_mask, SIGINT );
+		sact.sa_flags = SA_SIGINFO;
+		sact.sa_restorer = NULL;
+		sigaction(SIGINT, &sact, &deadstart_local_data[0].prior_sigint);
+
 	}
 #endif
 
