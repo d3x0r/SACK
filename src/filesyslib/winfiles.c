@@ -177,6 +177,11 @@ static void UpdateLocalDataPath( void )
 	ReleaseEx( u8path DBG_SRC );
 #else
 	TEXTCHAR path[MAXPATH];
+	tnprintf( path, sizeof(path), "~/%s%s%s%s"
+		, ( *winfile_local ).producer ? "." : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
+		, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
+	);
+	( *winfile_local ).local_data_file_root = StrDup( path );;
 #if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
 	if( strcmp( GetInstallPath(), "/usr" ) == 0 )
 		tnprintf( path, sizeof(path), "/var/%s%s%s%s"
@@ -192,13 +197,8 @@ static void UpdateLocalDataPath( void )
 	( *winfile_local ).data_file_root = StrDup( path );
 #else
 	// this is a case of a portable project with __STATIC__ and __STATIC_GLOBALS__
-	( *winfile_local ).data_file_root = StrDup( "." );
+	( *winfile_local ).data_file_root = (TEXTSTR)Hold( winfile_local[0].local_data_file_root );
 #endif	
-	tnprintf( path, sizeof(path), "~/%s%s%s%s"
-		, ( *winfile_local ).producer ? "." : "", ( *winfile_local ).producer ? ( *winfile_local ).producer : ""
-		, ( *winfile_local ).application ? SYSPATHCHAR : "", ( *winfile_local ).application ? ( *winfile_local ).application : ""
-	);
-	( *winfile_local ).local_data_file_root = StrDup( path );;
 	//lprintf( "initialized:%s %s", ( *winfile_local ).data_file_root, ( *winfile_local ).local_data_file_root );
 #endif
 #if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )

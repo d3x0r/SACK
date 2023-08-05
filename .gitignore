@@ -14,3 +14,5 @@ xx
 .hgtags
 CMakeFiles
 build
+sack-arch-install/pkg
+*.zst

@@ -13,6 +13,7 @@
 // useful logging is now controlled with l.flags.bLog
 #define DISABLE_DEBUG_REGISTER_AND_DISPATCH
 //#define DEBUG_SHUTDOWN
+//#define DEBUG_ATEXIT
 #define LOG_ALL 0
 
 //
@@ -81,7 +82,9 @@ static struct deadstart_local_data_ *deadstart_local_data;
 
 EXPORT_METHOD void RunExits( void )
 {
-	//fprintf( stderr, "Run Exits InvokeExits()\n" );
+#ifdef DEBUG_ATEXIT
+	fprintf( stderr, "Run Exits InvokeExits()\n" );
+#endif	
 	InvokeExits();
 }
 
@@ -229,19 +232,21 @@ void ClearDeadstarts( void )
 }
 #endif
 
-#ifndef UNDER_CE
-#  if defined( WIN32 )
-
 static int ignoreBreak;
 void IgnoreBreakHandler( int ignore) {
 	ignoreBreak = ignore;
 }
 
+#ifndef UNDER_CE
+#  if defined( WIN32 )
+
 #    ifndef __cplusplus_cli
 static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 {
 	if( ignoreBreak & ( 1 << dwCtrlType ) ) return TRUE;
-	//fprintf( stderr, "Received ctrlC Event %08x %d\n", ignoreBreak, dwCtrlType );
+#ifdef DEBUG_ATEXIT
+	fprintf( stderr, "Received ctrlC Event %08x %d\n", ignoreBreak, dwCtrlType );
+#endif	
 	switch( dwCtrlType )
 	{
 	case CTRL_BREAK_EVENT:
@@ -262,23 +267,38 @@ static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 #  endif
 
 #  ifndef WIN32
-static void CtrlC( int signal, struct siginfo_t siginfo, void*p )
+
+static void CtrlC( int signal, siginfo_t* siginfo, void*p )
 {
-	if( deadstart_local_data[0].prior_sigint.sa_handler ) {
-		if( deadstart_local_data[0].prior_sigint.sa_handler == SIG_DFL ){
+	static int tries;
+	static int in_self;
+#ifdef DEBUG_ATEXIT
+	fprintf( stderr, "linux system SIGINT... %d\n", in_self);
+#endif	
+	if( in_self ) return;
+	in_self = 1;
+	if( ignoreBreak ) return;
+	if( l.prior_sigint.sa_handler ) {
+		if( l.prior_sigint.sa_handler == SIG_DFL ){
+			fprintf( stderr, "default handler...\n");
 		}
-		else if( deadstart_local_data[0].prior_sigint.sa_handler == SIG_IGN ){
+		else if( l.prior_sigint.sa_handler == SIG_IGN ){
+			fprintf( stderr, "ignore handler...\n");
 		}
-		else if( deadstart_local_data[0].prior_sigint.sa_handler ){
-			if( deadstart_local_data[0].prior_sigint.sa_flags & SA_SIGINFO ){
-				deadstart_local_data[0].prior_sigint.sa_sigaction( signal, siginfo, p );
+		else if( l.prior_sigint.sa_handler ){
+			if( 1 || (l.prior_sigint.sa_flags & SA_SIGINFO) )
+			{
+				l.prior_sigint.sa_sigaction( signal, siginfo, p );
 			} else {
-				deadstart_local_data[0].prior_sigint.sa_handler( signal );
+				l.prior_sigint.sa_handler( signal );
 			}
 		}
 	}
+	in_self = 0;
+
 	InvokeExits();
-	//exit(3);
+	if( tries++ == 10 )
+		exit(3);
 }
 #  endif
 #endif
@@ -335,15 +355,19 @@ void InvokeDeadstart( void )
                void     (*sa_restorer)(void);
            };
 		*/
-		//action.sa_handler = 
-		//sact.sa_handler = CtrlC;
-		sact.sa_sigaction = CtrlC;
-		sigemptyset(&sact.sa_mask);
-		//sigaddset( &sact.sa_mask, SIGINT );
-		sact.sa_flags = SA_SIGINFO;
-		sact.sa_restorer = NULL;
-		sigaction(SIGINT, &sact, &deadstart_local_data[0].prior_sigint);
-
+		if( !l.registerdSigint )
+		{
+			l.registerdSigint = TRUE;
+			MemSet( &sact, 0, sizeof( sact ));
+			sact.sa_sigaction = CtrlC;
+			sigemptyset(&sact.sa_mask);
+			//sigaddset( &sact.sa_mask, SIGINT );
+			sact.sa_flags = SA_SIGINFO | SA_NODEFER;
+			sact.sa_restorer = NULL;
+			// this means I have to generate a terminate myself....
+			//sigaction(SIGINT, &sact, &l.prior_sigint);
+			//fprintf( stderr, "Registered sigint handler...\n");
+		}
 	}
 #endif
 
@@ -494,7 +518,9 @@ void InvokeExits( void )
 	PSHUTDOWN_PROC proc;
 	// shutdown is much easier than startup cause more
 	// procedures shouldn't be added as a property of shutdown.
-	//fprintf( stderr, "InvokeExits()\n" );
+#ifdef DEBUG_ATEXIT
+	fprintf( stderr, "InvokeExits()\n" );
+#endif	
 	// don't allow shutdown procs to schedule more shutdown procs...
 	// although in theory we could; if the first list contained
 	// ReleaseAllMemory(); then there is no memory.
@@ -569,6 +595,9 @@ void DispelDeadstart( void )
 
 ROOT_ATEXIT(AutoRunExits)
 {
+#ifdef DEBUG_ATEXIT
+	fprintf( stderr, "ROOT_ATEXIT()" );
+#endif
 	InvokeExits();
 }
 
@@ -596,7 +625,9 @@ SACK_NAMESPACE
 // this then invokes an exit in the mainline program (if available)
 void BAG_Exit( int code )
 {
-	//fprintf( stderr, "BAG_Exit();" );
+#ifdef DEBUG_ATEXIT
+	fprintf( stderr, "BAG_Exit();" );
+#endif
 	InvokeExits();
 #undef exit
 	exit( code );
@@ -653,7 +684,9 @@ __declspec(dllexport)
 {
 
 	if( fdwReason == DLL_PROCESS_DETACH ) {
-		//fprintf( stderr, "DLL_DETACH\n" );
+#ifdef DEBUG_ATEXIT
+		fprintf( stderr, "DLL_DETACH\n" );
+#endif		
 		InvokeExits();
 	}
 	return TRUE;
@@ -662,7 +695,9 @@ __declspec(dllexport)
 void RootDestructor(void) __attribute__((destructor));
 void RootDestructor( void )
 {
-	//fprintf( stderr, "RootDestructor\n" );
+#ifdef DEBUG_ATEXIT
+	fprintf( stderr, "RootDestructor\n" );
+#endif	
 	InvokeExits();
 }
 #      endif

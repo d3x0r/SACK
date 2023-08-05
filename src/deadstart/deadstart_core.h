@@ -27,8 +27,10 @@ struct deadstart_local_data_
 {
 	// this is a lot of procs...
 	int nShutdownProcs;
+#ifdef __LINUX__
+	LOGICAL registerdSigint ;
 	struct sigaction prior_sigint;
-
+#endif
 #define nShutdownProcs l.nShutdownProcs
 	SHUTDOWN_PROC shutdown_procs[512];
 #define shutdown_procs l.shutdown_procs
