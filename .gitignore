@@ -14,5 +14,22 @@ xx
 .hgtags
 CMakeFiles
 build
+<<<<<<< Updated upstream
 sack-arch-install/pkg
 *.zst
+=======
+*/test_process_create/x64
+*/test_process_create/wait/x64
+.vs
+.obsidian
+.vscode
+_MTN
+amalgamate/
+*.o
+*.lo
+*.a
+*.wast
+*.wasm
+*.so
+*.map
+>>>>>>> Stashed changes
