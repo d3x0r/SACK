@@ -1,0 +1,19 @@
+
+
+				op = BeginImageShaderOp( GetShader( WIDE("Simple MultiShaded Texture") ), pifDest, pifSrc->glActiveSurface  );
+				AppendShaderTristripQuad( op, v[vi], pifSrc->glActiveSurface, texture_v, r_color, g_color, b_color );
+
+
+
+struct geometryBuffer *GetGeometryBuffer();
+
+geometry buffers store vertex attributes.
+
+struct commandBuffer *GetCommandBuffer( struct geometryBuffer * );
+
+get a command buffer for a geometry buffer.
+
+
+void *GetVertexBuffer( geometryBuffer *geometry );
+
+

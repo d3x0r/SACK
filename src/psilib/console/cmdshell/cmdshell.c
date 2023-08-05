@@ -63,6 +63,7 @@ SaneWinMain( argc, argv )
 		pc = MakeNamedCaptionedControl( NULL, "PSI Console", 0, 0, 640, 480, INVALID_INDEX, "Command Prompt" );
 		PSIConsoleSetLocalEcho( pc, FALSE );
 		DisplayFrame( pc );
+		//SetSystemLog( SYSLOG_FILE, stdout );
 		//task = LaunchPeerProgram( argc>1?argv[1]:"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", ".", NULL, OutputHandle, TaskEnded, (uintptr_t)pc );
 		task = LaunchPeerProgram_v2( argc>1?argv[1]
 #ifdef WIN32

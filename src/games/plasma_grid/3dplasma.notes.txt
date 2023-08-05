@@ -1,0 +1,79 @@
+
+plasma 2d
+
+.  o  .
+o  o  o
+.  o  .
+
+
+. -0- .     .  2  .    . -1- . 
+|\   /|                |\   /|
+0  0  0     2  2  2    1  1  1 
+|/   \|                |/   \|
+. -0- .     .  2  .    . -1- . 
+
+
+a -0- b     .  2  .    e -1- f 
+|\   /|                |\   /|
+0  0  0     2  2  2    1  1  1 
+|/   \|                |/   \|
+c -0- d     .  2  .    h -1- g 
+
+
+
+
+
+    e-----f              e--1--f
+   /|    /|             /|    /|
+  / |   / |            1 |1  1 |
+ /  |  /  |           /  2  /  2
+g-----h   |          g--1--h   |
+|   | |   |          |   | |   |
+|   a-|---b          |   a-|0--b
+|  /  |  /           2  /  2  /
+| /   | /            | 0  0| 0
+|/    |/             |/    |/
+c-----d              c--0--d
+
+
+large scale picking
+1024x1024x1024 (32*32)
+
+a-b  d1     
+a-c  d2
+b-d  d3
+c-d  d4
+a-d+b-c  d1-d4+d2-d3
+
+e-f  d5
+e-g  d6
+f-h  d7
+g-h  d8
+e-h+f-g  d5-d8+d6-d7
+
+a-e
+b-f
+c-g
+d-h
+a-g+c-e
+b-h+d-f
+c-g+d-g
+a-f+b-e
+a-h+b-g+c-f+d-e
+
+
+
+
+( (tab_width - tab_tip_width) * (tab_width - tab_tip_width) + swell * swell )
+
+(tab_width - tab_tip_width) / swell
+
+soh,cah,toa
+
+(tab_width - tab_tip_width) : tab_height = swell : x
+
+tab_height / (tab_width-tab_tip_width) * swell = x
+
+swell 
+
+
