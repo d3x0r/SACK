@@ -206,7 +206,7 @@ static uintptr_t CPROC HandleTaskOutput( PTHREAD thread ) {
 #  endif
 					}
 #endif
-					//if( task->flags.log_input )
+					if( task->flags.log_input )
 						lprintf( "got read on task's stdout: %d %d", taskParams->stdErr, dwRead );
 					if( task->flags.bSentIoTerminator ) {
 						if( dwRead > 1 )
