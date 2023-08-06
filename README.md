@@ -5,7 +5,8 @@
 libuv, libSDL, GKT, QT, ... only none of those all in one.   Primarily extensions to C for lists, stacks, queues, with and without locking mechanisms.  Memory diagnsotics
 builtin to identify over/underflow or use(write) after free; file system event notifications in a standard API, simple threads, event based networking which works on background threads, HTTP, Websocket, JSON, JSON6, JSOX parsers, XML parser exported; SQLite/ODBC common wrapper that simplifies database connection and use;   Simple Fraction numeric library, vector library, procedure and function registration system which can register both functions or interface tables for library module intercommunication in complex pluggable systems; file system abstraction and virtual file system interface.  
 
-what isn't it?  It's not itself an operating system, it lacks task loaders, and process allocation itself; memory is requested from the system and managed for code, memory may be shared between proceses.
+what isn't it?  It's not itself an operating system, it lacks task loaders, and process allocation itself; 
+memory is requested from the system and managed for code, memory may be shared between proceses.
 
 
 [![Gitter](https://badges.gitter.im/FreedomCollective/Sack.svg)](https://gitter.im/FreedomCollective/Sack?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -29,6 +30,11 @@ C single source packages.  C/C++ compilable sources, and a single header.  Links
 Exposed through interop to V8 through Node.js...
 
 - As a Node addon/V8 extension with [FS,Networking,Sqlite,ODBC,more](https://github.com/d3x0r/sack.vfs), or as a [NPM package](npmjs.org/package/sack.vfs).
+- As a Node addon/V8 extension with [Adds GUI](https://github.com/d3x0r/sack.vfs), or as a [NPM package](npmjs.org/package/sack-gui).
+
+Both projects build with the same source - a separate CMakeLists is used to build the gui version, using a version
+of SACK pulled from github; rather than the amalgamation included.
+
 
 ## How To Build
 
@@ -37,7 +43,7 @@ Exposed through interop to V8 through Node.js...
    # cd sack
    # mkdir build   # could be mkdir sack/build  instead
    # cd build
-   # cmake ../cmake_all -DCMAKE_BUILD_TYPE=Debug 
+   # cmake ../cmake_all -DCMAKE_BUILD_TYPE=Debug
 
 ### alternatively, you can just build the sack core
    # cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=output
@@ -58,13 +64,8 @@ Each project installs into its related <BUILD_TYPE>_out folder.
 
   - build
      - global cmake project options (make-all options)
-     - Debug_solution - Each of the directories in this directory have the CMAKE_BINARY_DIR of each build.
-         - core
-         - binary
-         - dekware
-         - intershell
-         - Others, if BUILD_EXTRAS is enabled in the cmake configuration
-     - Debug_out
+     - (project), (project)-prefix - Each of the directories in this directory have the CMAKE_BINARY_DIR of each build.
+     - (CMAKE_BUILD_TYPE)_out
          - core
             - bin
             - lib[64]
@@ -72,13 +73,14 @@ Each project installs into its related <BUILD_TYPE>_out folder.
             - src
                 - sack
                     - sources to support deadstart.
-            - share (openAL)
-            - resources
-            - CMakePackage  - This file has all the defines of this directory setup in it.
-            - DefaultInstall.cmake - extra utility functions used to aid PRELOAD/Deadstart functionality.
+            - share/SACK (openAL)
+                - build/CMakePackage  - This file has all the defines of this directory setup in it.
+                - build/DefaultInstall.cmake - extra utility functions used to aid PRELOAD/Deadstart functionality.
+                - fonts
+                - conf - configuration for program modules using this
          - binary
             - bin
-            - include/lib/resources - overflow from intershell plugin used in binary projects
+            - include/lib/share - overflow from intershell plugin used in binary projects
          - dekwakre
             - bin
             - include
@@ -91,6 +93,10 @@ Each project installs into its related <BUILD_TYPE>_out folder.
                 - headers to link plugins
             - lib
                 - (export libraries that shouldn't be generated)
+            - share/SACK
+                - fonts
+                - images
+                - config
 
 `ccmake` or `cmake-gui` can be used to configure options for compilation.  It does a fair job of guessing
 based on the system, but sometimes there are things you'd like to change.
