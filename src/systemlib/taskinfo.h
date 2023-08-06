@@ -2,33 +2,34 @@
 typedef struct handle_info_tag
 {
 	//struct mydatapath_tag *pdp;
-   PTEXT pLine; // partial inputs...
-   char *name;
+	PTEXT pLine; // partial inputs...
+	char *name;
 	int       bNextNew;
-   PTHREAD   hThread;
+	PTHREAD   hThread;
 #ifdef WIN32
-   HANDLE    handle;   // read/write handle
+	HANDLE    handle;   // read/write handle
 #else
-   int       pair[2];
-   int       handle;   // read/write handle
+	int       pair[2];
+	int       handle;   // read/write handle
 #endif
 } HANDLEINFO, *PHANDLEINFO;
 
 struct taskOutputStruct {
 	PTASK_INFO task;
-   LOGICAL stdErr;
+	LOGICAL stdErr;
 };
 
 //typedef void (CPROC*TaskEnd)(uintptr_t, struct task_info_tag *task_ended);
 struct task_info_tag {
 	struct {
-		BIT_FIELD closed : 1;
-		BIT_FIELD process_ended : 1;
+		BIT_FIELD closed : 1;  // TerminateProgram() was called against this process
+		BIT_FIELD process_ended : 1; // StopProgram() was called against this process
 		BIT_FIELD bSentIoTerminator : 1;
 		BIT_FIELD log_input : 1;
 		BIT_FIELD runas_root : 1;
 		BIT_FIELD useCtrlBreak : 1;
 		BIT_FIELD useEventSignal : 1;
+		BIT_FIELD process_signaled_end : 1; // the wait for exit thread already exited...
 		//BIT_FIELD noKillOnExit : 1;
 	} flags;
 	TaskEnd EndNotice;
