@@ -127,6 +127,7 @@ struct odbc_handle_tag{
 		BIT_FIELD  bSQLite  : 1; // sqllite via sqlite odbc driver...
 		BIT_FIELD  bMySQL   : 1; // for selecting how transactions are done.
 		BIT_FIELD  bPSQL    : 1; // for selecting how transactions are done.
+		BIT_FIELD  bMariaDB : 1; // database personality indicator for maria db
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		BIT_FIELD  bSQLite_native  : 1;
 #endif

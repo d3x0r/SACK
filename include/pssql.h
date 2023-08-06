@@ -1787,7 +1787,7 @@ PSSQL_PROC( void, PSSQL_GetSqliteValue )( struct sqlite3_value *val, const char 
 
 /*
  Get Database Provider (type of database).
-   1=Sqlite, 2=MyQL, 3=PSQL, 4=Access, 5=?, -1=unknown
+   1=Sqlite, 2=MyQL, 3=PSQL, 4=Access, 5=MariaDB, 6=?, -1=unknown
 */
 PSSQL_PROC( int, GetDatabaseProvider )( PODBC odbc );
 

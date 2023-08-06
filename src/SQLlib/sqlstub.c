@@ -5872,6 +5872,8 @@ int GetDatabaseProvider( PODBC odbc ) {
 		return 3;
 	if( odbc->flags.bAccess )
 		return 4;
+	if( odbc->flags.bMariaDB )
+		return 5;
 	return -1;
 }
 
