@@ -1546,9 +1546,11 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 {
 	PTASK_INFO task = (PTASK_INFO)GetThreadParam( pThread );
 #ifdef __LINUX__
-	while( !task->pid 
-		|| ( task->OutputEvent && !task->pOutputThread ) 
-		|| ( task->OutputEvent2 && !task->pOutputThread2 ) ) {
+	while( ( !task->flags.process_ended // this thread already exited on this?
+	       && !task->flags.closed /*terminated*/ )
+	    && ( !task->pid 
+	       || ( task->OutputEvent && !task->pOutputThread ) 
+	       || ( task->OutputEvent2 && !task->pOutputThread2 ) ) ) {
 		Relinquish();
 	}
 #endif
@@ -1567,10 +1569,12 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 		WaitForSingleObject( task->pi.hProcess, INFINITE );
 		GetExitCodeProcess( task->pi.hProcess, &task->exitcode );
 #elif defined( __LINUX__ )
+		if( task->pid )
 		{
 			int status;
 			pid_t result;
 			result = waitpid( task->pid, &status, 0 );
+			task->exitcode = status;
 			/*
 			if( WIFEXITED(status)){
 				lprintf( "waitpid exited:%d", status );
@@ -1582,9 +1586,10 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 			}
 			lprintf( "waitpid said: %zd %d", result, status );
 			*/
-		}
+		} else
+			task->exitcode = -666;
 #endif
-		task->flags.process_ended = 1;
+		task->flags.process_signaled_end = 1;
 		//lprintf( "Task Ended, have to wake and remove pipes " );
 		if( task->hStdOut.hThread || task->hStdErr.hThread )
 		{
