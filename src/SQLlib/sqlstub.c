@@ -1554,6 +1554,9 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 						else if( StrCaseCmpEx( buffer, "myodbc", 6 ) == 0  || StrCaseCmpEx( buffer, "libmyodbc", 9 ) == 0 ) {
 							odbc->flags.bMySQL = 1;
 						}
+						else if( StrCaseCmpEx( buffer, "maodbc", 6 ) == 0  || StrCaseCmpEx( buffer, "libmaodbc", 9 ) == 0 ) {
+							odbc->flags.bMariaDB = 1;
+						}
 						else if( StrCaseCmpEx( buffer, "PSQLODBC", 8 ) == 0  ) {
 							odbc->flags.bPSQL = 1;
 						} else {
