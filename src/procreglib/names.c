@@ -2223,7 +2223,7 @@ void ReadConfiguration( void )
 				if( !filepath )
 					filepath = ExpandPath( "@/../share/SACK/conf" );
 				pathlen = StrLen( filepath );
-				printf( "Configuration path? %s\n", filepath );
+				//printf( "Configuration path? %s\n", filepath );
 
 				LIST_FORALL( loadnames, idx, TEXTSTR, loadname ) {
 					if( idx >= max_count ) break;
