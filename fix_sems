@@ -1,4 +1,4 @@
-
+# message server IPC used message queues.  This cleans any leftover queues.
 IPCS_S=`ipcs -s | egrep "0x[0-9a-f]+ [0-9]+" | grep $USER | cut -f2 -d" "`
 for id in $IPCS_S; do
   ipcrm -s $id;
