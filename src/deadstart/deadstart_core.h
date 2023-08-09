@@ -1,3 +1,6 @@
+#ifdef __LINUX__
+#include <signal.h>
+#endif
 
 typedef struct startup_proc_tag {
 	DeclareLink( struct startup_proc_tag );
