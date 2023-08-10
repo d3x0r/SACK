@@ -1370,7 +1370,7 @@ void DoSystemLog( const TEXTCHAR *buffer )
 		|| logtype == SYSLOG_UDPBROADCAST )
 		UDPSystemLog( buffer );
 #else
-	if( 0 )
+	if( 0 ) // needs to exist because next thing is else if
 		;
 #endif
 	else if( ( logtype == SYSLOG_FILE ) || ( logtype == SYSLOG_AUTO_FILE ) )
@@ -1446,7 +1446,8 @@ void DoSystemLog( const TEXTCHAR *buffer )
 						// can't open the logging file, stop trying now, will save us trouble in the future
 						logtype = SYSLOG_NONE;
 				}
-				logtype = SYSLOG_AUTO_FILE;
+				else
+					logtype = SYSLOG_AUTO_FILE;
 			}
 		}
 		FileSystemLog( buffer );
