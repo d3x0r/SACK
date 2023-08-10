@@ -88,9 +88,6 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 #endif
 
 
-#endif
-
-
 #ifdef LOG_SOCKET_CREATION
 	lprintf( "Created UDP %p(%d)", pc, pc->Socket );
 #endif
