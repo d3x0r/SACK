@@ -2885,7 +2885,7 @@ static void* CPROC sack_filesys_open( uintptr_t psv, const char* filename, const
 	{ char* tmp; if( LONG_PATHCHAR ) for( tmp = tmpFilename; tmp[0]; tmp++ ) if( tmp[0] == '\\' ) tmp[0] = LONG_PATHCHAR; }
 	result = fopen( filename, opts );
 	{
-		int h = fileno( result );
+		int h = fileno( (FILE*)result );
 		if( h >= 0 ) {
 			int flags = fcntl( h, F_GETFD, 0 );
 			if( flags >= 0 ) fcntl( h, F_SETFD, flags | FD_CLOEXEC );
