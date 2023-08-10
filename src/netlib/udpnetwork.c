@@ -76,7 +76,21 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 		lprintf( "Natural was %d", dwFlags );
 	}
 	SetHandleInformation( (HANDLE)pc->Socket, HANDLE_FLAG_INHERIT, 0 );
+#else
+	{
+		int flags = fcntl( pListen->Socket, F_GETFL, 0 );
+		fcntl( pResult->Socket, F_SETFL, O_NONBLOCK );
+	}
+	{ 
+		int flags = fcntl( pListen->Socket, F_GETFD, 0 );
+		if( flags >= 0 ) fcntl( pListen->Socket, F_SETFD, flags | FD_CLOEXEC );
+	}
 #endif
+
+
+#endif
+
+
 #ifdef LOG_SOCKET_CREATION
 	lprintf( "Created UDP %p(%d)", pc, pc->Socket );
 #endif
@@ -214,6 +228,15 @@ void UDPEnableBroadcast( PCLIENT pc, int bEnable )
 					int t = TRUE;
 					ioctl( pc->SocketBroadcast, FIONBIO, &t );
 				}
+				{
+					int flags = fcntl( pListen->Socket, F_GETFL, 0 );
+					fcntl( pResult->Socket, F_SETFL, O_NONBLOCK );
+				}
+				{ 
+					int flags = fcntl( pListen->Socket, F_GETFD, 0 );
+					if( flags >= 0 ) fcntl( pListen->Socket, F_SETFD, flags | FD_CLOEXEC );
+				}
+
 				broadcastAddr = DuplicateAddress( GetBroadcastAddressForInterface( pc->saSource ) );
 				GetAddressParts( pc->saSource, NULL, &port );
 				SetAddressPort( broadcastAddr, port );
