@@ -280,10 +280,6 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 										, SOCK_STREAM
 										, (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_TCP:0 );
 #endif
-#ifdef WIN32
-	SetHandleInformation( (HANDLE)pListen->Socket, HANDLE_FLAG_INHERIT, 0 );
-#endif
-
 #ifdef LOG_SOCKET_CREATION
 	lprintf( "Created new socket %d", pListen->Socket );
 #endif
@@ -302,6 +298,21 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 		pListen = NULL;
 		return NULL;
 	}
+
+#ifdef WIN32
+	SetHandleInformation( (HANDLE)pListen->Socket, HANDLE_FLAG_INHERIT, 0 );
+#else
+	{
+		int flags = fcntl( pListen->Socket, F_GETFL, 0 );
+		fcntl( pResult->Socket, F_SETFL, O_NONBLOCK );
+	}
+	{ 
+		int flags = fcntl( pListen->Socket, F_GETFD, 0 );
+		if( flags >= 0 ) fcntl( pListen->Socket, F_SETFD, flags | FD_CLOEXEC );
+	}
+#endif
+
+
 #ifdef _WIN32
 #  ifdef USE_WSA_EVENTS
 	pListen->event = WSACreateEvent();
@@ -583,7 +594,14 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			}
 #  endif
 #else
-			fcntl( pResult->Socket, F_SETFL, O_NONBLOCK );
+			{ 
+				int flags = fcntl( pListen->Socket, F_GETFD, 0 );
+				if( flags >= 0 ) fcntl( pListen->Socket, F_SETFD, flags | FD_CLOEXEC );
+			}
+			{
+				int flags = fcntl( pListen->Socket, F_GETFL, 0 );
+				fcntl( pResult->Socket, F_SETFL, O_NONBLOCK );
+			}
 #endif
 			if( pFromAddr )
 			{
