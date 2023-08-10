@@ -78,12 +78,12 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	SetHandleInformation( (HANDLE)pc->Socket, HANDLE_FLAG_INHERIT, 0 );
 #else
 	{
-		int flags = fcntl( pListen->Socket, F_GETFL, 0 );
-		fcntl( pResult->Socket, F_SETFL, O_NONBLOCK );
+		int flags = fcntl( pc->Socket, F_GETFL, 0 );
+		fcntl( pc->Socket, F_SETFL, O_NONBLOCK );
 	}
 	{ 
-		int flags = fcntl( pListen->Socket, F_GETFD, 0 );
-		if( flags >= 0 ) fcntl( pListen->Socket, F_SETFD, flags | FD_CLOEXEC );
+		int flags = fcntl( pc->Socket, F_GETFD, 0 );
+		if( flags >= 0 ) fcntl( pc->Socket, F_SETFD, flags | FD_CLOEXEC );
 	}
 #endif
 
@@ -226,12 +226,12 @@ void UDPEnableBroadcast( PCLIENT pc, int bEnable )
 					ioctl( pc->SocketBroadcast, FIONBIO, &t );
 				}
 				{
-					int flags = fcntl( pListen->Socket, F_GETFL, 0 );
-					fcntl( pResult->Socket, F_SETFL, O_NONBLOCK );
+					int flags = fcntl( pc->SocketBroadcast, F_GETFL, 0 );
+					fcntl( pc->SocketBroadcast, F_SETFL, O_NONBLOCK );
 				}
 				{ 
-					int flags = fcntl( pListen->Socket, F_GETFD, 0 );
-					if( flags >= 0 ) fcntl( pListen->Socket, F_SETFD, flags | FD_CLOEXEC );
+					int flags = fcntl( pc->SocketBroadcast, F_GETFD, 0 );
+					if( flags >= 0 ) fcntl( pc->SocketBroadcast, F_SETFD, flags | FD_CLOEXEC );
 				}
 
 				broadcastAddr = DuplicateAddress( GetBroadcastAddressForInterface( pc->saSource ) );

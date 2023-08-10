@@ -304,7 +304,7 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 #else
 	{
 		int flags = fcntl( pListen->Socket, F_GETFL, 0 );
-		fcntl( pResult->Socket, F_SETFL, O_NONBLOCK );
+		fcntl( pListen->Socket, F_SETFL, O_NONBLOCK );
 	}
 	{ 
 		int flags = fcntl( pListen->Socket, F_GETFD, 0 );
@@ -595,11 +595,11 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 #  endif
 #else
 			{ 
-				int flags = fcntl( pListen->Socket, F_GETFD, 0 );
-				if( flags >= 0 ) fcntl( pListen->Socket, F_SETFD, flags | FD_CLOEXEC );
+				int flags = fcntl( pResult->Socket, F_GETFD, 0 );
+				if( flags >= 0 ) fcntl( pResult->Socket, F_SETFD, flags | FD_CLOEXEC );
 			}
 			{
-				int flags = fcntl( pListen->Socket, F_GETFL, 0 );
+				int flags = fcntl( pResult->Socket, F_GETFL, 0 );
 				fcntl( pResult->Socket, F_SETFL, O_NONBLOCK );
 			}
 #endif
