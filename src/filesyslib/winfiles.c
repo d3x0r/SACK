@@ -2874,9 +2874,25 @@ static void* CPROC sack_filesys_open( uintptr_t psv, const char* filename, const
 	result = _wfopen( wfilename, wopts );
 	Deallocate( wchar_t*, wfilename );
 	Deallocate( wchar_t*, wopts );
+	{
+		int h = fileno( (FILE*)result );
+		if( h >= 0 ) {
+			SetHandleInformation( (HANDLE)_get_osfhandle(h), HANDLE_FLAG_INHERIT, 0 );
+		}
+	}
 #else
+	char *tmpFilename = StrDup( filename );
+	{ char* tmp; if( LONG_PATHCHAR ) for( tmp = tmpFilename; tmp[0]; tmp++ ) if( tmp[0] == '\\' ) tmp[0] = LONG_PATHCHAR; }
 	result = fopen( filename, opts );
+	{
+		int h = fileno( result );
+		if( h >= 0 ) {
+			int flags = fcntl( h, F_GETFD, 0 );
+			if( flags >= 0 ) fcntl( h, F_SETFD, flags | FD_CLOEXEC );
+		}
+	}
 #endif
+
 	return result;
 }
 static int CPROC sack_filesys_exists( uintptr_t psv, const char* filename ) {
@@ -2888,12 +2904,16 @@ static int CPROC sack_filesys_exists( uintptr_t psv, const char* filename ) {
 	{ wchar_t* tmp; if( LONG_PATHCHAR ) for( tmp = wfilename; tmp[0]; tmp++ ) if( tmp[0] == '/' ) tmp[0] = LONG_PATHCHAR; }
 	if( ( tmp = _wfopen( wfilename, L"rb" ) ) )
 #else
+	char *tmpFilename = StrDup( filename );
+	{ char* tmp; if( LONG_PATHCHAR ) for( tmp = tmpFilename; tmp[0]; tmp++ ) if( tmp[0] == '\\' ) tmp[0] = LONG_PATHCHAR; }
 	if( ( tmp = fopen( filename, "rb" ) ) )
 #endif
 	{
 		fclose( tmp );
 #ifdef WIN32
 		Deallocate( wchar_t*, wfilename );
+#else
+		Deallocate( char*, tmpFilename );
 #endif
 		return TRUE;
 	}
