@@ -975,9 +975,9 @@ PDATALIST GetProcessTree( PTASK_INFO task ){
 	ProcIdFromParentProcId( task->pi.dwProcessId, &pdlProcs );
 	DATA_FORALL( pdlProcs, idx, struct process_id_pair*, pair ) {
 		struct process_tree_pair *parent;
-		int parent_id = -1;
+		INDEX parent_id = INVALID_INDEX;
 		//struct process_tree_pair *checkPair;
-		int child_id = -1;
+		INDEX child_id = INVALID_INDEX;
 		
 		DATA_FORALL( pdlResult, idx2, struct process_tree_pair*, checkPair ) {
 			if( checkPair->process_id == pair->parent ) {

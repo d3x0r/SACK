@@ -297,9 +297,9 @@ SYSTEM_PROC( char*, GetWindowTitle )( PTASK_INFO task );
 
 struct process_tree_pair {
     int process_id;
-    int parent_id;
-    int child_id;
-    int next_id;
+    INDEX parent_id;
+    INDEX child_id;
+    INDEX next_id;
 };
 /*
   returns a datalist of process_tree_pair members;
