@@ -587,12 +587,16 @@ int SetSocketReuseAddress( PCLIENT lpClient, int32_t enable )
 int SetSocketReusePort( PCLIENT lpClient, int32_t enable )
 {
 #ifdef __LINUX__
+#  ifdef SO_REUSEPORT
 	if (setsockopt(lpClient->Socket, SOL_SOCKET, SO_REUSEPORT,
 						(char*)&enable, sizeof(enable)) < 0 )
 	{
 		return 0;
 		//cerr << "NFMSim:setHost:ERROR: could not set socket to reuse addr." << endl;
 	}
+#  else
+	return 0;
+#  endif
 #else
 	SetSocketReuseAddress( lpClient, enable );
 #endif
