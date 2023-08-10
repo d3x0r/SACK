@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.1 )
 
 if( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
    # policy makes it known that I understand set( VARIABLE ) and option( VARIABLE...) work together
@@ -33,19 +33,22 @@ if( NOT CMAKE_COMPILER_IS_GNUCC
   AND (CMAKE_CXX_COMPILER_ID MATCHES "Clang"
     OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" ) )
   # MESSAGE( "THIS FIXES COMPILER IS GNUCC - ${CMAKE_CXX_COMPILER_ID}" )
+  set( GCC 1 )
   set( CMAKE_COMPILER_IS_GNUCC 1 )
-endif()
-
-if( CMAKE_C_COMPILER_ID MATCHES "MSVC" )
-   # message( "COMPILER_GNU this is NOT! Whiskey Tango Foxtrot.  ${__COMPILER_GNU} ${CMAKE_C_COMPILER_ID}" )
-   set( __COMPILER_GNU 0 )
-
 endif()
 
 if( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
   # message( "THIS IS FIXING COMPILER IS GNUCC : ${__COMPILER_GNU}" )
   set( CMAKE_COMPILER_IS_GNUCC 1 )
 endif( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
+
+
+
+if( CMAKE_C_COMPILER_ID MATCHES "MSVC" )
+   # message( "COMPILER_GNU this is NOT! Whiskey Tango Foxtrot.  ${__COMPILER_GNU} ${CMAKE_C_COMPILER_ID}" )
+   set( __COMPILER_GNU 0 )
+
+endif()
 
 SET( MAKING_SACK_CORE ON )
 SET( SACK_SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -189,11 +192,12 @@ else( __ANDROID__ )
 	       set( CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed" )
 	       set( CMAKE_MODULE_LINKER_FLAGS "-Wl,--as-needed" )
       endif( NOT APPLE )
-       if( GCC )
+       if( CMAKE_C_COMPILER_ID STREQUAL "GNU"  )
+           add_definitions( -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L )
            if( __64__ )
                ADD_DEFINITIONS( -m64 )
            endif( __64__ )
-       endif( GCC )
+       endif( CMAKE_C_COMPILER_ID STREQUAL "GNU"  )
        #if( NOT __NO_GUI__ )
             #########
             if( NOT NEED_ZLIB )
@@ -349,15 +353,12 @@ if( NOT __NO_INSTALL__ )
     #file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/var/Freedom Collective" )
     #file(CHMOD "${CMAKE_INSTALL_PREFIX}/var/Freedom Collective" PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_WRITE GROUP_READ WORLD_EXECUTE WORLD_WRITE WORLD_READ )
   endif( ${CMAKE_INSTALL_PREFIX} EQUAL "/usr" )
-
-message( "Should have made:")
 endif( NOT __NO_INSTALL__ )
 
 if( APPLE )
    SET( ExtraFlags "${ExtraFlags} -Wno-parentheses -Wno-address-of-packed-member")
 else( APPLE )
     if( CMAKE_COMPILER_IS_GNUCC )
-	 	message( "Not apple, is GCC... ")
         SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
         SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
 
