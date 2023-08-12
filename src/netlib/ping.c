@@ -100,7 +100,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 	struct sockaddr_in saSrc;
 #endif
 	uint64_t	     dwTimeSent;
-	uint8_t     cTTL;
+	uint8_t     cTTL = 0;
 	int        nLoop;
 	int        nRet, nResult = 0;
 	int        i;
