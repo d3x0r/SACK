@@ -25,6 +25,8 @@ include( ${CMAKE_CURRENT_LIST_DIR}/CMakeExtBuild.txt )
 
 DEFINE_DEFAULT( __ANDROID__  OFF )
 
+OPTION(TARGET_INSTALL_PREFIX "Used to compile as installation path" ${CMAKE_INSTALL_PREFIX} )
+
 if( __ANDROID__ )
    set( __NO_ODBC__ 1 )  # someday port unixodbc library?  But then the mysql driver needs to be ported
    set( __LINUX__ 1 )    # build as if it's linux
