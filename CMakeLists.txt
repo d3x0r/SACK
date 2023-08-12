@@ -27,7 +27,7 @@ SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 SET(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib")
 
 if( NOT TARGET_INSTALL_PREFIX )
-  SET(TARGET_INSTALL_PREFIX ${CMAKE_INSTALL_PREIFX} CACHE STRING  "Used to compile as installation path" )
+  SET(TARGET_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE STRING  "Used to compile as installation path" )
 endif( NOT TARGET_INSTALL_PREFIX )
 
 # someday we can enable this by default....
