@@ -26,7 +26,7 @@ include( ${CMAKE_CURRENT_LIST_DIR}/CMakeExtBuild.txt )
 DEFINE_DEFAULT( __ANDROID__  OFF )
 
 if( NOT TARGET_INSTALL_PREFIX )
-  SET(TARGET_INSTALL_PREFIX "Used to compile as installation path" CACHE STRING ${CMAKE_INSTALL_PREFIX} )
+  SET(TARGET_INSTALL_PREFIX ${CMAKE_INSTALL_PREIFX} CACHE STRING  "Used to compile as installation path" )
 endif( NOT TARGET_INSTALL_PREFIX )
 
 if( __ANDROID__ )
