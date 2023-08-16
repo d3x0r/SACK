@@ -401,28 +401,34 @@ typedef void (CPROC*ClipboardCallback)(uintptr_t psvUser);
 // and not Keebler as some may have suspected.
 enum ButtonFlags {
 #ifndef MK_LBUTTON
-	MK_LBUTTON = 0x01, // left mouse button  MouseKey_ ?
+	MK_LBUTTON  = 0x01, // left mouse button  MouseKey_ ?
 #endif
 #ifndef MK_MBUTTON
-	MK_RBUTTON = 0x02,  // right mouse button MouseKey_ ?
-#endif
-#ifndef MK_RBUTTON
-	MK_MBUTTON = 0x10,  // middle mouse button MouseKey_ ?
-#endif
-#ifndef MK_CONTROL
-  MK_CONTROL = 0x08,  // the control key on the keyboard
-#endif
-#ifndef MK_ALT
-  MK_ALT = 0x20,   // the alt key on the keyboard
+	MK_RBUTTON  = 0x02,  // right mouse button MouseKey_ ?
 #endif
 #ifndef MK_SHIFT
-  MK_SHIFT = 0x40,   // the shift key on the keyboard
+  MK_SHIFT     = 0x04,   // the shift key on the keyboard
+#endif
+#ifndef MK_CONTROL
+  MK_CONTROL   = 0x08,  // the control key on the keyboard
+#endif
+#ifndef MK_RBUTTON
+	MK_MBUTTON  = 0x10,  // middle mouse button MouseKey_ ?
+#endif
+#ifndef MK_XBUTTON1
+	MK_XBUTTON1 = 0x20,  // middle mouse button MouseKey_ ?
+#endif
+#ifndef MK_XBUTTON2
+	MK_XBUTTON2 = 0x40,  // middle mouse button MouseKey_ ?
+#endif
+#ifndef MK_ALT
+  MK_ALT       = 0x80,   // the alt key on the keyboard (not normally defined in Windows)
 #endif
 
-  MK_SCROLL_DOWN  = 0x100,  // scroll wheel click down
-  MK_SCROLL_UP    = 0x200,  // scroll wheel click up
-  MK_SCROLL_LEFT  = 0x400,  // scroll wheel click left
-  MK_SCROLL_RIGHT = 0x800,  // scroll wheel click right
+  MK_SCROLL_DOWN  = 0x100,  // scroll wheel click down  (not normally defined in Windows)
+  MK_SCROLL_UP    = 0x200,  // scroll wheel click up    (not normally defined in Windows)
+  MK_SCROLL_LEFT  = 0x400,  // scroll wheel click left  (not normally defined in Windows)
+  MK_SCROLL_RIGHT = 0x800,  // scroll wheel click right (not normally defined in Windows)
 #ifndef MK_NO_BUTTON
 // used to indicate that there is
 // no known button information available.  The mouse
@@ -436,13 +442,13 @@ enum ButtonFlags {
   MK_INVALIDBUTTON = 0x80000000,
 // One or more other buttons were pressed.  These
 // buttons are available by querying the keyboard state.
-  MK_OBUTTON = 0x80, // any other button (keyboard)
-  MK_OBUTTON_UP = 0x1000 // any other button (keyboard) went up
+  MK_OBUTTON       = 0x1000, // any other button (keyboard)
+  MK_OBUTTON_UP    = 0x2000 // any other button (keyboard) went up
 };
 
 // mask to test to see if some button (physical mouse, not logical)
 // is currently pressed...
-#define MK_SOMEBUTTON       (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON)
+#define MK_SOMEBUTTON       (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON|MK_XBUTTON1|MK_XBUTTON2)
 // test to see if any button is clicked */
 #define MAKE_SOMEBUTTONS(b)     ((b)&(MK_SOMEBUTTON))
 // test to see if a specific button is clicked
@@ -489,12 +495,12 @@ enum DisplayAttributes {
   PANEL_ATTRIBUTE_ALPHA    = 0x10000,
    /* when used by the Display Lib manager, this describes how to manage the subsurface */
   PANEL_ATTRIBUTE_HOLEY    = 0x20000,
-// when used by the Display Lib manager, this describes how to manage the subsurface
-// focus on this window excludes any of it's parent/sibling panels
-// from being able to focus.
+  /* when used by the Display Lib manager, this describes how to manage the subsurface
+    focus on this window excludes any of it's parent/sibling panels
+    from being able to focus. */
   PANEL_ATTRIBUTE_EXCLUSIVE = 0x40000,
-// when used by the Display Lib manager, this describes how to manage the subsurface
-// child attribute affects the child is contained within this parent
+  /* when used by the Display Lib manager, this describes how to manage the subsurface
+    child attribute affects the child is contained within this parent */
   PANEL_ATTRIBUTE_INTERNAL  = 0x88000,
     // open the window as layered - allowing full transparency.
   DISPLAY_ATTRIBUTE_LAYERED = 0x0100,
