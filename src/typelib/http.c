@@ -1341,6 +1341,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		{
 			char* header;
 			INDEX idx;
+			LOGICAL hadUserAgent = FALSE;
 			const char* resource = GetText( url );
 			if( !resource ) resource = "/";
 			state->last_read_tick = timeGetTime();
@@ -1360,10 +1361,13 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 				vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
 			}
 			vtprintf( state->pvtOut, "Host:%s\r\n", GetText( address ) );
-			vtprintf( state->pvtOut, "User-Agent:%s\r\n", options->agent?options->agent:"SACK(System)" );
+			
 			LIST_FORALL( options->headers, idx, char*, header ) {
+				if( !hadUserAgent && ( StrCaseCmpEx( header, "user-agent", 10 ) == 0 ) ) hadUserAgent = TRUE;
 				vtprintf( state->pvtOut, "%s\r\n", header );
 			}
+			if( !hadUserAgent )
+				vtprintf( state->pvtOut, "User-Agent:%s\r\n", options->agent?options->agent:"SACK(System)" );
 			vtprintf( state->pvtOut, "\r\n" ); // send blank header
 #ifndef NO_SSL
 			if( options->ssl ) {
