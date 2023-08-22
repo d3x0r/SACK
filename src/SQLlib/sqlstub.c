@@ -2596,9 +2596,10 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 
 			// native 2003 == could not connect... (do not retry)
 			// native 2013 == lost connection during query.
+			// state 08S01, native 5014 == (mariadb) Connection reset by peer (104)
 			if( ( ( strcmp( statecode, "S1T00" ) == 0 ) ||
 				 ( strcmp( statecode, "08S01" ) == 0 ) )
-				&& ( native == 2013 ) )
+				&& ( native == 2013 || native == 5014 ) )
 			{
 				if( g.feedback_handler ) g.feedback_handler( "SQL Connection Lost...\nWaiting for reconnect..." );
 				_lprintf(DBG_RELAY)( "Connection was lost, closing, and attempting to reopen.  Resulting with a Retry." );
