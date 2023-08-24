@@ -984,6 +984,18 @@ static uintptr_t CPROC SetRequireConnection( uintptr_t psv, arg_list args )
 	return psv;
 }
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void SetConnectionRequired( PODBC odbc, LOGICAL require )
+{
+	odbc->flags.bForceConnection = require;
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LOGICAL GetConnectionRequired( PODBC odbc )
+{
+	return odbc->flags.bForceConnection;
+}
+
 static uintptr_t CPROC SetRequireBackupConnection( uintptr_t psv, arg_list args )
 {
 	PARAM( args, LOGICAL, bRequired );
@@ -1602,6 +1614,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 					bOpening = FALSE;
 					if( g.feedback_handler ) g.feedback_handler( "SQL Connect OK" );
 					VarTextDestroy( &pvt );
+					if( odbc->onOpen ) odbc->onOpen( odbc->psvOnOpen, odbc );
 					return TRUE;
 				}
 			}
@@ -2461,7 +2474,8 @@ void DestroyCollectorEx( PCOLLECT pCollect DBG_PASS )
 
 //----------------------------------------------------------------------
 
-PODBC ConnectToDatabaseLogin( CTEXTSTR DSN, CTEXTSTR user, CTEXTSTR pass, LOGICAL bRequireConnection DBG_PASS )
+PODBC ConnectToDatabaseLoginCallback( CTEXTSTR DSN, CTEXTSTR user, CTEXTSTR pass, LOGICAL bRequireConnection
+			, void (*onOpen)(uintptr_t,PODBC), uintptr_t psv DBG_PASS )
 {
 	PODBC pODBC;
 	SqlStubInitLibrary();
@@ -2475,22 +2489,30 @@ PODBC ConnectToDatabaseLogin( CTEXTSTR DSN, CTEXTSTR user, CTEXTSTR pass, LOGICA
 	pODBC->info.pDSN = StrDup( DSN );
 	pODBC->flags.bAutoCheckpoint = g.flags.bAutoCheckpoint;
 	pODBC->flags.bForceConnection = bRequireConnection;
+	pODBC->onOpen = onOpen;
+	pODBC->psvOnOpen = psv;
 	// source ID is not known...
 	// is probably static link to library, rather than proxy operation
 	//CreateCollector( 0, pODBC, FALSE );
 	OpenSQLConnectionEx( pODBC DBG_RELAY );
 	return pODBC;
+	
+}
+
+PODBC ConnectToDatabaseLogin( CTEXTSTR DSN, CTEXTSTR user, CTEXTSTR pass, LOGICAL bRequireConnection DBG_PASS )
+{
+	return ConnectToDatabaseLoginCallback( DSN, user, pass, bRequireConnection, NULL, 0 DBG_RELAY );
 }
 
 PODBC ConnectToDatabaseExx( CTEXTSTR DSN, LOGICAL bRequireConnection DBG_PASS )
 {
-	return ConnectToDatabaseLogin( DSN, NULL, NULL, bRequireConnection DBG_RELAY );
+	return ConnectToDatabaseLoginCallback( DSN, NULL, NULL, bRequireConnection, NULL, 0 DBG_RELAY );
 }
 
 #undef ConnectToDatabaseEx
 PODBC ConnectToDatabaseEx( CTEXTSTR DSN, LOGICAL bRequireConnection )
 {
-	return ConnectToDatabaseLogin( DSN, NULL, NULL, bRequireConnection DBG_SRC );
+	return ConnectToDatabaseLoginCallback( DSN, NULL, NULL, bRequireConnection, NULL, 0 DBG_SRC );
 }
 
 //----------------------------------------------------------------------
@@ -2498,7 +2520,7 @@ PODBC ConnectToDatabaseEx( CTEXTSTR DSN, LOGICAL bRequireConnection )
 #undef ConnectToDatabase
 PODBC ConnectToDatabase( CTEXTSTR DSN )
 {
-	return ConnectToDatabaseLogin( DSN, NULL, NULL, g.flags.bRequireConnection DBG_SRC );
+	return ConnectToDatabaseLoginCallback( DSN, NULL, NULL, g.flags.bRequireConnection, NULL, 0 DBG_SRC );
 }
 
 //----------------------------------------------------------------------
