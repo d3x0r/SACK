@@ -607,8 +607,8 @@ int  StrCaseCmp_u8u16( const char* s1, const wchar_t* s2 ) {
 	 while( s1[0] && s2[0] ) {
 		 c1 = GetUtfChar( &s1 );
 		 c2 = GetUtfCharW( &s2 );
-		 if( c1 >= 'a' && c1 <= 'a' ) c1 -= ( 'a' - 'A' );
-		 if( c2 >= 'a' && c2 <= 'a' ) c2 -= ( 'a' - 'A' );
+		 if( c1 >= 'a' && c1 <= 'z' ) c1 -= ( 'a' - 'A' );
+		 if( c2 >= 'a' && c2 <= 'z' ) c2 -= ( 'a' - 'A' );
 		 if( c1 != c2 ) break;
 	 }
 	 return c1-c2;
@@ -618,23 +618,16 @@ int  StrCaseCmpEx_u8u16( const char* s1, const wchar_t* s2, size_t maxLen ) {
 	TEXTRUNE c1;
 	TEXTRUNE c2;
 	if( !s1 )
-		 if( s2 )
-			 return -1;
-		 else
-			 return 0;
-	 else
-		 if( !s2 )
-			 return 1;
-	 //if( s1 == s2 )
-	//	 return 0; // ==0 is success.
-	 while( s1[0] && s2[0] && maxLen-- ) {		
-		 c1 = GetUtfChar( &s1 );
-		 c2 = GetUtfCharW( &s2 );
-		 if( c1 >= 'a' && c1 <= 'a' ) c1 -= ( 'a' - 'A' );
-		 if( c2 >= 'a' && c2 <= 'a' ) c2 -= ( 'a' - 'A' );
-		 if( c1 != c2 ) break;
-	 }
-	 return c1-c2;
+		if( s2 ) return -1;
+		else return 0;
+	else 
+		if( !s2 ) return 1;
+	while( maxLen-- && (c1 = GetUtfChar( &s1 )) && (c2 = GetUtfCharW( &s2 )) ) {		
+		if( c1 >= 'a' && c1 <= 'z' ) c1 -= ( 'a' - 'A' );
+		if( c2 >= 'a' && c2 <= 'z' ) c2 -= ( 'a' - 'A' );
+		if( c1 != c2 ) break;
+	}
+	return c1-c2;
  }
 
 int  StrCaseCmpW( const wchar_t* s1, const wchar_t* s2 ) {
@@ -653,8 +646,8 @@ int  StrCaseCmpW( const wchar_t* s1, const wchar_t* s2 ) {
 	while( s1[0] && s2[0] ) {
 		c1 = GetUtfCharW( &s1 );
 		c2 = GetUtfCharW( &s2 );
-		if( c1 >= 'a' && c1 <= 'a' ) c1 -= ( 'a' - 'A' );
-		if( c2 >= 'a' && c2 <= 'a' ) c2 -= ( 'a' - 'A' );
+		if( c1 >= 'a' && c1 <= 'z' ) c1 -= ( 'a' - 'A' );
+		if( c2 >= 'a' && c2 <= 'z' ) c2 -= ( 'a' - 'A' );
 		if( c1 != c2 ) break;
 	}
 	return c1 - c2;
