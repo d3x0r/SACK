@@ -1054,7 +1054,7 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 	int tries = 0;
 	//lprintf( "move Thread: %d", time );
 	while( (int)( timeGetTime() - time ) < move->timeout ) {
-		lprintf( "move Thread(time): %d", timeGetTime() - time );
+		//lprintf( "move Thread(time): %d", timeGetTime() - time );
 		HWND hWndProc = move->task->taskWindow ?move->task->taskWindow :find_main_window( move->task->pi.dwProcessId );
 		int atx, aty, atw, ath;
 		if( !hWndProc ) {
@@ -1075,7 +1075,7 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 		}
 #endif
 
-		lprintf( "Window? %d  %p", move->task->pi.dwProcessId, hWndProc );
+		//lprintf( "Window? %d  %p", move->task->pi.dwProcessId, hWndProc );
 #if 0		
 		{
 			POINT minSize = { 500, 500 }, maxSize = { 600, 600 };
@@ -1088,7 +1088,7 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 		}
 #endif
 		while( (int)( timeGetTime() - time ) < move->timeout ) {
-			lprintf( "move window(time): %d", timeGetTime() - time );
+			//lprintf( "move window(time): %d", timeGetTime() - time );
 #if 0
 			INDEX idx;
 			HWND* phWndProc;
@@ -1153,7 +1153,7 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 		}
 
 	}
-	lprintf( "Done Move...%d", success );
+	//lprintf( "Done Move...%d", success );
 	if( move->cb ) move->cb( move->psv, success );
 	Deallocate( struct move_window*, move );
 	return 0;
