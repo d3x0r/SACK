@@ -1353,7 +1353,8 @@ static  void surfaceFrameCallback( void *data, struct wl_callback* callback, uin
 		r->frame_callback = NULL;
 		{
 			r->flags.drawing = 1;
-			r->drawResult = r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
+			if( r->pRedrawCallback )
+				r->drawResult = r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
 			r->flags.drawing = 0;
 			lprintf( "dispatched redraw...%d", r->drawResult );
 			if( !r->flags.dirty ) {
