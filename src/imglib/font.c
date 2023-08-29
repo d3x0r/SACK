@@ -813,8 +813,9 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 			CharDatax = CharData2;
 			inc = (pchar->size+3)/4;
 		}
-		else if( (pchar->render_flags & 3 ) == FONT_FLAG_8BIT /*|| ( UseFont->flags & 3 )  == FONT_FLAG_8BIT*/ )
+		else //if( (pchar->render_flags & 3 ) == FONT_FLAG_8BIT /*|| ( UseFont->flags & 3 )  == FONT_FLAG_8BIT*/ )
 		{
+			// initialize these to something anyway...
 			CharPlotAlphax = CharPlotAlpha8;
 			CharDatax = CharData8;
 			inc = (pchar->size);
@@ -1678,7 +1679,7 @@ uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t h
 					(*height) = UseFont->height;
 			}
 			int lastLine = UseFont->baseline - ( chars[character] ?chars[character]->descent:0);
-			if( lastLine > height[0] ) height[0] = lastLine;
+			if( SUS_GT( lastLine, int, height[0], uint32_t ) ) height[0] = lastLine;
 			if( ( character < UseFont->characters ) && chars[character] )
 				*width += chars[character]->width;
 		}

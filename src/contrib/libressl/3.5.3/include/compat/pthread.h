@@ -33,7 +33,7 @@ typedef struct pthread_once pthread_once_t;
 static inline BOOL CALLBACK
 _pthread_once_win32_cb(PINIT_ONCE once, PVOID param, PVOID *context)
 {
-	void (*cb) (void) = param;
+	void (*cb) (void) = (void(*)(void))param;
 	cb();
 	return TRUE;
 }
@@ -41,7 +41,7 @@ _pthread_once_win32_cb(PINIT_ONCE once, PVOID param, PVOID *context)
 static inline int
 pthread_once(pthread_once_t *once, void (*cb) (void))
 {
-	BOOL rc = InitOnceExecuteOnce(&once->once, _pthread_once_win32_cb, cb, NULL);
+	BOOL rc = InitOnceExecuteOnce(&once->once, _pthread_once_win32_cb, (void*)cb, NULL);
 	if (rc == 0)
 		return -1;
 	else

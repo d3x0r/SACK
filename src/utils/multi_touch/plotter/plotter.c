@@ -33,7 +33,7 @@ static  struct local {
 	
 } l;
 
-void CPROC touch_plot( uintptr_t psv, PRENDERER renderer )
+int CPROC touch_plot( uintptr_t psv, PRENDERER renderer )
 {
 	Image surface = GetDisplayImage( renderer );
 	ClearImage( surface );
@@ -52,7 +52,8 @@ void CPROC touch_plot( uintptr_t psv, PRENDERER renderer )
 		}
 
 	}
-	UpdateDisplay( renderer );
+	//UpdateDisplay( renderer );
+	return 1;
 }
 
 void AddPoint( PMyGlyph glyph, PINPUT_POINT touch )

@@ -27,18 +27,19 @@ typedef struct global_tag
 
 GLOBAL g;
 
-void CPROC DrawImage( uintptr_t psv, PRENDERER out )
+int CPROC DrawImage( uintptr_t psv, PRENDERER out )
 {
 	PIMAGE_DISPLAY pdi = (PIMAGE_DISPLAY)psv;
 	lprintf( "Copying image to display");
 	BlotImage( GetDisplayImage( pdi->display ), pdi->Loaded, 0, 0 );
-	UpdateDisplay( pdi->display );
+	//UpdateDisplay( pdi->display );
+	return 1;
 }
 
 int CPROC KeyHandler( uintptr_t psv, uint32_t key )
 {
 	lprintf( "Got Key: %08x", key );
-	if( GetKeyText( key ) == '\x1b' )
+	if( GetKeyText( key )[0] == '\x1b' )
 		g.flags.exit = 1;
 	return 0; // nope, didn't use it.
 }

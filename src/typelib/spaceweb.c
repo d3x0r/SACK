@@ -115,8 +115,8 @@ RCOORD IntersectLineWithPlane( PCVECTOR Slope, PCVECTOR Origin,  // line m, b
 
 	// intersect a line with a plane.
 
-//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß     
+//   v â‚¬ w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v â‚¬ w)/(|v| |w|) = cos ÃŸ     
 
 	//cosPhi = CosAngle( Slope, n );
 
@@ -1488,7 +1488,6 @@ PSPACEWEB_NODE FindNearest( PLIST *nodes, PLIST *came_from, PSPACEWEB_NODE from,
 void RelinkANode( PSPACEWEB_NODE web, PSPACEWEB_NODE came_from, PSPACEWEB_NODE node, int final )
 {
 	PSPACEWEB_NODE current = web;
-	INDEX idx;
 	int linked = 0;
 	//PSPACEWEB_NODE check;
 	PLIST list = NULL;
@@ -1915,7 +1914,7 @@ static uintptr_t CPROC something( void* thisnode, uintptr_t psv )
 		LIST_FORALL( node->near_nodes, idx, PSPACEWEB_NODE, zz ) c++;
 
 		snprintf( tmp, sizeof( tmp ), "%d[%zd]", node->paint, NodeIndex( node ) );
-		PutString( data->surface, node->point[vRight], node->point[vForward], BASE_COLOR_WHITE, 0, tmp );
+		PutString( data->surface, node->point[vRight], 0, node->point[vForward], BASE_COLOR_WHITE, 0, tmp );
 	}
 	plot( data->surface, node->point[vRight], node->point[vForward], BASE_COLOR_GREEN );
 

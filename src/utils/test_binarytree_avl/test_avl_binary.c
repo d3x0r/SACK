@@ -34,9 +34,9 @@ int main( void ) {
 //	__declspec(dllimport) void c( PTREEROOT root, int **heights, int **swaps, int *maxScans, int*bfl, int *bfr );
 
 	for(  i = 0; i < 1000000; i++ ) {
-		AddBinaryNode( tree, (POINTER)i, i );
+		AddBinaryNode( tree, (POINTER)(uintptr_t)i, i );
 	}
-	AddBinaryNode( tree, i, i );
+	AddBinaryNode( tree, (POINTER)(uintptr_t)i, i );
 #ifdef DEBUG_PERF
 	DumpPerfStats( "All Right", tree );
 #endif
@@ -44,9 +44,9 @@ int main( void ) {
 
 	tree = CreateBinaryTree();
 	for( i = 1000000; i > 00; i-- ) {
-		AddBinaryNode( tree, (POINTER)i, i );
+		AddBinaryNode( tree, (POINTER)(uintptr_t)i, i );
 	}
-	AddBinaryNode( tree, i, i );
+	AddBinaryNode( tree, (POINTER)(uintptr_t)i, i );
 #ifdef DEBUG_PERF
 	DumpPerfStats( "All left", tree );
 #endif
@@ -54,10 +54,10 @@ int main( void ) {
 
 	tree = CreateBinaryTree();
 	for( i = 0; i < 1000000; i++ ) {
-		AddBinaryNode( tree, (POINTER)rand(), rand() );
+		AddBinaryNode( tree, (POINTER)(uintptr_t)rand(), rand() );
 	}
 	i = rand();
-	AddBinaryNode( tree, i,i );
+	AddBinaryNode( tree, (POINTER)(uintptr_t)i,i );
 #ifdef DEBUG_PERF
 	DumpPerfStats( "rand()", tree );
 #endif
@@ -67,10 +67,10 @@ int main( void ) {
 		struct random_context *rng = SRG_CreateEntropy( NULL, 0 );
 		tree = CreateBinaryTree();
 		for( i = 0; i < 1000000; i++ ) {
-			AddBinaryNode( tree, SRG_GetEntropy( rng, 30, TRUE ),SRG_GetEntropy( rng, 30, TRUE ) );
+			AddBinaryNode( tree, (POINTER)(uintptr_t)SRG_GetEntropy( rng, 30, TRUE ),SRG_GetEntropy( rng, 30, TRUE ) );
 		}
 		i = SRG_GetEntropy( rng, 30, TRUE );
-		AddBinaryNode( tree, i, i );
+		AddBinaryNode( tree, (POINTER)(uintptr_t)i, i );
 #ifdef DEBUG_PERF
 		DumpPerfStats( "SRG 1", tree );
 #endif
@@ -81,10 +81,10 @@ int main( void ) {
 		struct random_context *rng = SRG_CreateEntropy2( NULL, 0 );
 		tree = CreateBinaryTree();
 		for( i = 0; i < 1000000; i++ ) {
-			AddBinaryNode( tree, SRG_GetEntropy( rng, 30, TRUE ), SRG_GetEntropy( rng, 30, TRUE ) );
+			AddBinaryNode( tree, (POINTER)(uintptr_t)SRG_GetEntropy( rng, 30, TRUE ), SRG_GetEntropy( rng, 30, TRUE ) );
 		}
 		i = SRG_GetEntropy( rng, 30, TRUE );
-		AddBinaryNode( tree, i, i );
+		AddBinaryNode( tree, (POINTER)(uintptr_t)i, i );
 #ifdef DEBUG_PERF
 		DumpPerfStats( "SRG 2", tree );
 #endif
@@ -94,10 +94,10 @@ int main( void ) {
 		struct random_context *rng = SRG_CreateEntropy3( NULL, 0 );
 		tree = CreateBinaryTree();
 		for( i = 0; i < 1000000; i++ ) {
-			AddBinaryNode( tree, SRG_GetEntropy( rng, 30, TRUE ), SRG_GetEntropy( rng, 30, TRUE ) );
+			AddBinaryNode( tree, (POINTER)(uintptr_t)SRG_GetEntropy( rng, 30, TRUE ), SRG_GetEntropy( rng, 30, TRUE ) );
 		}
 		i = SRG_GetEntropy( rng, 30, TRUE );
-		AddBinaryNode( tree, i, i );
+		AddBinaryNode( tree, (POINTER)(uintptr_t)i, i );
 #ifdef DEBUG_PERF
 		DumpPerfStats( "SRG 3", tree );
 #endif

@@ -17,7 +17,7 @@ int main( void )
   //SetBlotMethod( BLOT_MMX );
    //ActImage_GetMousePosition( &x, &y );
    result = Color(127,127,127);
-	while( PickColorEx( &result, result,(PSI_CONTROL) 0, 256, 150 ) )
+	while( PickColorEx( &result, result,(PSI_CONTROL) 0, 256, 150, NULL, 0 ) )
 		printf( "Guess what! We got a color: %08x\n", result );
 	printf( "Color Dialog was canceled.\n" );
 	return 0;

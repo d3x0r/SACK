@@ -1866,7 +1866,7 @@ static uintptr_t CPROC something( void* thisnode, uintptr_t psv )
 		c = CountNear( node );
 
 		snprintf( tmp, sizeof( tmp ), "%d[%zd]", node->paint, NodeIndex( node ) );
-		PutString( data->surface, (int32_t)node->point[vRight], (int32_t)node->point[vForward], BASE_COLOR_WHITE, 0, tmp );
+		PutString( data->surface, (int32_t)node->point[vRight], (int32_t)node->point[vForward], GetFontHeight( tmp ), BASE_COLOR_WHITE, 0, tmp );
 	}
 	plot( data->surface, (int32_t)node->point[vRight], (int32_t)node->point[vForward], BASE_COLOR_GREEN );
 

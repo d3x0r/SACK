@@ -496,7 +496,7 @@ void DrawSpinningReels( LOGICAL init )
 	UpdateDisplayPortion( g.render, REEL_OFSX, REEL_OFSY, REEL_STEPX*(g.nReels-1) + REEL_WIDTH,  REEL_HEIGHT   );
 }
 
-int CPROC MouseMethod( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
+uintptr_t CPROC MouseMethod( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	if( !g.flags.bSpinning )
 	{

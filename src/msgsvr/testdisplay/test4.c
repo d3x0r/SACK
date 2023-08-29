@@ -34,7 +34,7 @@ int APIENTRY WinMain( HINSTANCE h, HINSTANCE p, LPTSTR cmd, int nCmdShow )
 	SetControlInterface( GetDisplayInterface() );
    display = OpenDisplaySizedAt( 0, 150, 150, 50, 50 );
    result = Color(127,127,127);
-	while( PickColorEx( &result, result, 0, 256, 150 ) )
+	while( PickColorEx( &result, result, 0, 256, 150, NULL, 0 ) )
 		printf( "Guess what! We got a color: %08x\n", result );
 	printf( "Color Dialog was canceled.\n" );
    CloseDisplay( display );

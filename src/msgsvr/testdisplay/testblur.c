@@ -23,7 +23,7 @@ typedef struct global_tag {
 	} flags;
 	uint32_t bReelSpinning[NUM_REELS];
 	int32_t ofs;
-	uint32_t nReels;
+	int32_t nReels;
    Image background;
 	Image strip;
 	Image images[10];
@@ -39,7 +39,7 @@ GLOBAL g;
 
 void Blur( Image dst, Image src[] )
 {
-   int y, n, x, row;
+   int y, x, row;
 	for( x = 0; x < 96; x++ )
 	{
 		uint32_t idx;
@@ -129,7 +129,7 @@ void DrawSpinningReels( void )
    UpdateDisplayPortion( g.render, REEL_OFSX, REEL_OFSY, REEL_STEPX*(g.nReels-1) + 96, 288 );
 }
 
-int CPROC MouseMethod( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
+uintptr_t CPROC MouseMethod( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	if( !g.flags.bSpinning )
 	{

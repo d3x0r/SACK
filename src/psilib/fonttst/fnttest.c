@@ -27,18 +27,18 @@ static int CPROC DrawFont( PSI_CONTROL renderer )
 	uint32_t w, h;
 	GetStringSizeFont( " ", &w, &h, font );
 	ClearImageTo( image, BASE_COLOR_WHITE );
-	PutStringFont( image, 5, 5, BASE_COLOR_BLACK, 0, "ABCDEFGHIJKLM", font );
-	PutStringFont( image, 5, 5+h, BASE_COLOR_BLACK, 0, "NOPQRSTUVWXYZ", font );
-	PutStringFont( image, 5, 5+2*h, BASE_COLOR_BLACK, 0, "abcdefghijklm", font );
-	PutStringFont( image, 5, 5+3*h, BASE_COLOR_BLACK, 0, "nopqrstuvwxyz", font );
-	PutStringFont( image, 5, 5+4*h, BASE_COLOR_BLACK, 0, "01234567890()", font );
-	PutStringFont( image, 5, 5+5*h, BASE_COLOR_BLACK, 0, "!@#$%^&*,.`{}", font );
+	PutStringFont( image, 5, 5, h, BASE_COLOR_BLACK, 0, "ABCDEFGHIJKLM", font );
+	PutStringFont( image, 5, 5+h, h, BASE_COLOR_BLACK, 0, "NOPQRSTUVWXYZ", font );
+	PutStringFont( image, 5, 5+2*h, h, BASE_COLOR_BLACK, 0, "abcdefghijklm", font );
+	PutStringFont( image, 5, 5+3*h, h, BASE_COLOR_BLACK, 0, "nopqrstuvwxyz", font );
+	PutStringFont( image, 5, 5+4*h, h, BASE_COLOR_BLACK, 0, "01234567890()", font );
+	PutStringFont( image, 5, 5+5*h, h, BASE_COLOR_BLACK, 0, "!@#$%^&*,.`{}", font );
 
 	GetImageSize( image, &w, &h );
-	PutStringFont( image, w/2, h/2, BASE_COLOR_BLACK, 0, "ABCDEFGHIJKLM", font );
-	PutStringInvertFont( image, w/2, h/2, BASE_COLOR_RED, 0, "ABCDEFGHIJKLM", font );
-	PutStringVerticalFont( image, w/2, h/2, BASE_COLOR_BLUE, 0, "ABCDEFGHIJKLM", font );
-	PutStringInvertVerticalFont( image, w/2, h/2, BASE_COLOR_GREEN, 0, "ABCDEFGHIJKLM", font );
+	PutStringFont( image, w/2, h/2, h, BASE_COLOR_BLACK, 0, "ABCDEFGHIJKLM", font );
+	PutStringInvertFont( image, w/2, h/2, h, BASE_COLOR_RED, 0, "ABCDEFGHIJKLM", font );
+	PutStringVerticalFont( image, w/2, h/2, h, BASE_COLOR_BLUE, 0, "ABCDEFGHIJKLM", font );
+	PutStringInvertVerticalFont( image, w/2, h/2, h, BASE_COLOR_GREEN, 0, "ABCDEFGHIJKLM", font );
    return 1;
    //UpdateDisplay( renderer );
 }
@@ -65,7 +65,7 @@ SaneWinMain( argc, argv )
 				fread( fontdata, 1, fontsize, in );
 				fclose( in );
 			}
-			font = PickFont( 0, 0, &fontsize, &fontdata, NULL/*pAbove*/ );
+			font = PickFont( 0, 0, &fontsize, &fontdata, NULL/*pAbove*/, NULL, 0 );
 			{
 				FILE *out;
 				out = fopen( "fonttst.dat", "wb" );
@@ -143,7 +143,7 @@ SaneWinMain( argc, argv )
 	}
 
 
-	PickFont( 0, 0, 0, NULL, NULL );
+	PickFont( 0, 0, 0, NULL, NULL, NULL, 0 );
 	
 	//DebugDumpMemFile( "memory.dump" );
 	return 0;
