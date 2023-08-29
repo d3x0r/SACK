@@ -6,7 +6,7 @@
 #include <idle.h>
 #define IMAGE_LIBRARY_SOURCE
 #include <ft2build.h>
-#include <../src/contrib/freetype-2.8/include/freetype/tttables.h>
+#include <../src/contrib/freetype-2.13.2/include/freetype/tttables.h>
 //#include <tttags.h>
 #ifdef FT_BEGIN_HEADER
 
