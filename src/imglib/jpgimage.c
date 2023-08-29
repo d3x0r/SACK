@@ -373,7 +373,7 @@ LOGICAL IMGVER(JpgImageFile)( Image image, uint8_t **buf, size_t *size, int Q )
    */
   struct jpeg_error_mgr jerr;
   unsigned char *outbuf;
-  unsigned long outsize;
+  size_t outsize;
   /* More stuff */
   uint8_t* tmpbuf = NewArray( uint8_t, image->width * image->height * 3 );
   JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
