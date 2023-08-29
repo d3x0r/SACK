@@ -34,6 +34,11 @@
 #ifndef FT2BUILD_H_
 #define FT2BUILD_H_
 
+#ifdef FT2_BUILD_LIBRARY
+#  define NO_OPEN_MACRO
+#endif
+#define NO_UNICODE_C
+#include <sack_types.h>
 #include <freetype/config/ftheader.h>
 
 #endif /* FT2BUILD_H_ */

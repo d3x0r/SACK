@@ -86,6 +86,13 @@ FT_BEGIN_HEADER
 #define FT_PUBLIC_FUNCTION_ATTRIBUTE  /* empty */
 #endif
 
+#ifdef FREETYPE_SOURCE
+#  define FT_EXPORT( x ) EXPORT_METHOD x
+#  define FT_EXPORT_DEF( x ) EXPORT_METHOD x
+#else
+#  define FT_EXPORT( x ) IMPORT_METHOD x
+#  define FT_EXPORT_DEF( x ) IMPORT_METHOD x
+#endif
 
   /*
    * Define a public FreeType API function.  This ensures it is properly
@@ -101,7 +108,9 @@ FT_BEGIN_HEADER
    * functions are exported with C linkage, even when the header is included
    * by a C++ source file.
    */
+#ifndef FT_EXPORT
 #define FT_EXPORT( x )  FT_PUBLIC_FUNCTION_ATTRIBUTE extern x
+#endif
 
 
   /*

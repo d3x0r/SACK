@@ -275,7 +275,9 @@ FT_BEGIN_HEADER
    */
 
   /* See `freetype/config/public-macros.h` for the `FT_EXPORT` definition */
-#define FT_EXPORT_DEF( x )  FT_FUNCTION_DEFINITION( x )
+#ifndef FT_EXPORT_DEF
+#  define FT_EXPORT_DEF( x )  FT_FUNCTION_DEFINITION( x )
+#endif
 
   /*
    * The following macros are needed to compile the library with a
