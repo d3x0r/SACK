@@ -60,9 +60,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifdef HAVE_FCNTL_H
+//#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
+//#endif
 
 #include <stdio.h>
 #include <stdlib.h>
