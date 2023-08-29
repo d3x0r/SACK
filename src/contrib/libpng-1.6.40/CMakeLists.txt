@@ -80,7 +80,7 @@ option(PNG_BUILD_ZLIB "Custom zlib location, else find_package is used" OFF)
 if(NOT PNG_BUILD_ZLIB)
   #find_package(ZLIB REQUIRED)
   #include_directories(${ZLIB_INCLUDE_DIRS})
-  include_directories(../zlib-1.2.11)
+  include_directories(../zlib-1.3)
 endif()
 
 if(UNIX AND NOT APPLE AND NOT BEOS AND NOT HAIKU AND NOT EMSCRIPTEN)

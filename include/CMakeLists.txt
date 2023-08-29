@@ -100,8 +100,8 @@ imglib/imagestruct.h
 )
 
 SET( ZLIB_HEADERS
-../src/contrib/zlib-1.2.11/zlib.h
-../src/contrib/zlib-1.2.11/zconf.h
+../src/contrib/zlib-1.3/zlib.h
+../src/contrib/zlib-1.3/zconf.h
 )
 
 
