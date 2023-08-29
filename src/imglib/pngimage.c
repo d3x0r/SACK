@@ -44,7 +44,7 @@ typedef struct ImagePngRawData_tag
 	// The buffer to "read" from
 	uint8_t *r_data;
 	// The buffer size
-	png_size_t r_size;
+	size_t r_size;
   int alloced;  // need more info on the write side.
 }ImagePngRawData;
 
@@ -53,7 +53,7 @@ IMAGE_NAMESPACE
 namespace loader {
 #endif
 
-static int ImagePngRead (png_structp png, png_bytep data, png_size_t size)
+static int ImagePngRead (png_structp png, png_bytep data, size_t size)
 {
 	ImagePngRawData *self = (ImagePngRawData *)png_get_io_ptr( png );
 	if (self->r_size < size)
@@ -290,7 +290,7 @@ typedef struct ImagePngRawDataWriter_tag
 //--------------------------------------
 static int CPROC ImagePngWrite(png_structp png,
                            png_bytep   data,
-                           png_size_t  length)
+                           size_t  length)
 {
 	// add this length, data into the buffer...
 	// reallcoate buffer by 4096 until complete.
