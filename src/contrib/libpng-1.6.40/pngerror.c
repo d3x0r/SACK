@@ -18,6 +18,11 @@
 
 #include "pngpriv.h"
 
+#ifdef PNG_GRACEFUL_ERROR
+#undef PNG_NORETURN
+#define PNG_NORETURN
+#endif
+
 #if defined(PNG_READ_SUPPORTED) || defined(PNG_WRITE_SUPPORTED)
 
 static PNG_FUNCTION(void, png_default_error,PNGARG((png_const_structrp png_ptr,
