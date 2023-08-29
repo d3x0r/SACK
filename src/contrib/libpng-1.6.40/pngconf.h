@@ -438,6 +438,12 @@
 #  endif
 #endif /* PNG_PEDANTIC_WARNINGS */
 
+#ifdef PNG_GRACEFUL_ERROR
+#undef PNG_NORETURN
+#define PNG_NORETURN
+#endif
+
+
 #ifndef PNG_DEPRECATED
 #  define PNG_DEPRECATED  /* Use of this function is deprecated */
 #endif
