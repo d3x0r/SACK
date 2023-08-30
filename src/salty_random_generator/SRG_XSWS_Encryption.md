@@ -307,14 +307,9 @@ byte permuations
 256! (factorial)
 2^1684 (?) bits
 
-8578177753428426541190822716812326251577815202794856198596556503772694525531475893774402913604514084
-5037588534233658430615719683469369647532228928849742602567963733256336878644267520762679456018796886
-7971521143307702077526646451464709187326100832876325702818980773671781454170250523018608495319068138
-2574810702528175594594769870346657127381392862052347568082188607012036110831520935019474371091017269
-68262861606263662435022840944191408424615936000000000000000000000000000000000000000000000000000000000000000
+857817775342842654119082271681232625157781520279485619859655650377269452553147589377440291360451408450375885342336584306157196834693696475322289288497426025679637332563368786442675207626794560187968867971521143307702077526646451464709187326100832876325702818980773671781454170250523018608495319068138257481070252817559459476987034665712738139286205234756808218860701203611083152093501947437109101726968262861606263662435022840944191408424615936000000000000000000000000000000000000000000000000000000000000000
 
-9a 4b 7d ce 03 6e 09 9d 61 7f 2b 0e 61 2f a7 e4 0e 2a f5 b9 1b 58 bf 3d 92 0e df e6 79 c9 85 1d  šK}Î.n..a.+.a/§ä.*õ..X¿=’.ßæyÉ..
-6a 50 21 b6 db 56 ea 5c 9a bd e6 45 
+9a 4b 7d ce 03 6e 09 9d 61 7f 2b 0e 61 2f a7 e4 0e 2a f5 b9 1b 58 bf 3d 92 0e df e6 79 c9 85 1d 6a 50 21 b6 db 56 ea 5c 9a bd e6 45 
 
 128 * 8+64*7+32*6+16*5+8*4+4*3+2*2+1*1
 1793
@@ -346,7 +341,9 @@ and reworked it so it uses only 148 bits to shuffle the cards.
 2c ) flip a coin (8) times, if it's heads, use the left pile first, else use right pile first.
 
 2d ) for each card in the 1/3 stack of left/right split... flip a coin.  Every time the coin is 'heads', switch which pile to pull cards from, saving the total cards pulled on the previous pile.
-2c1 ) (label this countStack) (assume left is counted first)  
+2c1 ) (label this countStack) (assume left is counted first) 
+
+```
       T ( count:1 don't change  )
 	  H ( count:2  store 2(from Left), reset count, change stacks : RIGHT )
 	  H ( count:1  store 1(from Right), reset count, change stacks : LEFT )
@@ -356,6 +353,7 @@ and reworked it so it uses only 148 bits to shuffle the cards.
       T ( count:1 don't change  )
 	  H ( count:2  store 2(from Right), reset count, change stacks : LEFT )
 	  .... etc.
+```
 	  
 3) for N rounds of shuffles.... for each card to shuffle
 
@@ -378,20 +376,23 @@ And, man, does it take a lot of words to explain 'riffle shuffle' :)
 
 My Shuffle/[En/De]crypt
 
+```
 DID 100000 in 6694ms   14938/Sec  16384 bytes
 DID 100000 in 1605ms   62305/Sec 2048 bytes
 DID 100000 in 837ms   119474/Sec 43 bytes
 DID 100000 in 830ms   120481/Sec  43 bytes
-
+```
 
 AES [En/De]crypt
 
+```
 DID 100000 in 15689ms   6373/Sec  16384 bytes
 DID 100000 in 2065ms   48426/Sec  2048 bytes
 DID 100000 in 143ms   699300/Sec  43 bytes
 DID 100000 in 129ms   775193/Sec  43 bytes
+```
 
-
+```
 TESTDATA
 48 65 6c 6c 6f 2c 20 54 68 69 73 20 69 73 20 61    Hello, This is a
 20 74 65 73 74 2c 20 74 68 69 73 20 69 73 20 4f     test, this is O
@@ -408,7 +409,9 @@ BINARY - 1 bit change input
 df 3e d9 18 89 69 b6 53 0e 17 5f ad 33 9c cf bb    .>...i.S.._.3...
 39 3c 07 61 2e 86 17 1b 67 65 a8 de 56 3c 03 26    9<.a....ge..V<.&
 23 94 bb 23 00 32 34 10 4b 5d 32 60                #..#.24.K]2`
+```
 
+```
                              pkt        bytes
          (packets)   MS    per-sec     per-sec     
 (XSWS)
@@ -441,7 +444,7 @@ Big DID   200000 in 4033     49590   101,560,320
 Big DID   200000 in 4027     49664   101,711,872
 Mega DID     100 in 4173        23    96,468,992
 Mega DID     100 in 4151        24   100,663,296
-
+```
 
 
 
