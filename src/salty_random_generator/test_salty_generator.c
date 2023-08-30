@@ -52,7 +52,7 @@ struct distribution * GetDistribution( int bits )
 	return d;
 }
 
-int AddSomeDistribution( struct distribution *d, struct random_context *ctx )
+void AddSomeDistribution( struct distribution *d, struct random_context *ctx )
 {
 	int n;
 	{
