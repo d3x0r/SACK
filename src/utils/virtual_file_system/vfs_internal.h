@@ -64,7 +64,7 @@ typedef VFS_DISK_DATATYPE FPI; // file position type
 #ifdef VIRTUAL_OBJECT_STORE
 /* THIS DEFINES SACK_VFS_OS_VOLUME */
 #  define BC(n) BLOCK_CACHE_VOS_##n
-#    ifdef block_cache_entries
+#    ifdef sack_vfs_volume
 #      undef block_cache_entries
 #      undef directory_entry
 #      undef sack_vfs_disk
