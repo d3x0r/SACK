@@ -464,11 +464,30 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 
 static void StoreFile( CTEXTSTR filemask, CTEXTSTR asPath, LOGICAL replace )
 {
+	if( filemask[0] == '@' ) {
+		FILE* fileList = fopen( filemask + 1, "r" );
+		static char buffer[1024];
+		if( fileList ) {
+			while( fgets( buffer, 1024, fileList ) ) {
+				int start, end = (int)StrLen(buffer);
+				while (buffer[end - 1] == '\n' || buffer[end - 1] == '\r' || buffer[end - 1] == ' ') end--;
+				buffer[end] = 0;
+				start = end = 0;
+				while( buffer[end] ) {
+					while( buffer[end] && buffer[end] != ' ' ) end++;
+					if( buffer[end] ) buffer[end] = 0;
+					StoreFile( buffer + start, asPath, replace );
+					start = end + 1; while( buffer[start] == ' ' ) start++;
+				}
+			}
+			fclose( fileList );
+		}
+		return;
+	}
 	void *info = NULL;
 	struct store_file_info storeOptions;
 	char * tmppath = StrDup( filemask );
 	char *end = (char*)pathrchr( tmppath );
-	const char *firstSlash = asPath?pathchr( tmppath ):NULL;
 	if( end ) {
 		end[0] = 0; end++;
 	} else {
@@ -484,6 +503,9 @@ static void StoreFile( CTEXTSTR filemask, CTEXTSTR asPath, LOGICAL replace )
 		end = "*";
 		doScan = TRUE;	
 	}
+	const char* firstSlash = asPath ? pathchr( tmppath ) : NULL;
+	if( asPath && !firstSlash )
+		firstSlash = tmppath + StrLen( tmppath );
 	storeOptions.usePath = asPath;
 	storeOptions.skipLength = replace?( (int)((firstSlash - tmppath)+1)):0;
 	if( doScan )
@@ -499,11 +521,31 @@ static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CT
 	void *info = NULL;
 	struct store_file_info storeOptions;
 
+	if( filemask[0] == '@' ) {
+		FILE* fileList = fopen( filemask + 1, "r" );
+		static char buffer[1024];
+		if( fileList ) {
+			while( fgets( buffer, 1024, fileList ) ) {
+				int start, end = (int)StrLen(buffer);
+				while (buffer[end - 1] == '\n' || buffer[end - 1] == '\r' || buffer[end - 1] == ' ') end--;
+				buffer[end] = 0;
+				end = start = 0;
+				while( buffer[end] ) {
+					while( buffer[end] && buffer[end] != ' ' ) end++;
+					if( buffer[end] ) buffer[end] = 0;
+					PatchFile( vfsName, buffer+start, version, key1, key2, asPath, replace );
+					start = end + 1; while( buffer[start] == ' ' ) start++;
+				}
+			}
+			fclose( fileList );
+		} else return 2;
+		return 0;
+	}
+
 	if( !openSource( vfsName ) ) return 2;
 
 	char* tmppath = StrDup( filemask );
 	char* end = (char*)pathrchr( tmppath );
-	const char* firstSlash = asPath ? pathchr( tmppath ) : NULL;
 	if( end ) {
 		end[0] = 0; end++;
 	} else {
@@ -519,6 +561,9 @@ static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CT
 		end = "*";
 		doScan = TRUE;
 	}
+	const char* firstSlash = asPath ? pathchr( tmppath ) : NULL;
+	if( asPath && !firstSlash )
+		firstSlash = tmppath + StrLen( tmppath );
 	storeOptions.usePath = asPath;
 	storeOptions.skipLength = replace ? ( (int)( ( firstSlash - tmppath ) + 1 ) ) : 0;
 
@@ -861,6 +906,9 @@ static void usage( void )
 	printf( " - [vfsName] specified to patch commands may start with an '@' which then indicates the name\n" );
 	printf( "   is a filename of a file containing a list of volumes to open. Volumes in the list must\n" );
 	printf( "   be listed from oldest to newest.\n" );
+	printf( " - filemask specified to store,patch,storein,patchin commands may start with an '@' which then\n" );
+	printf( "   indicates the name is a filename of a file containing a list of files to store. (filenames may\n" );
+	printf( "   be separated with a space or newlines; filenames cannot contain a space, but may include '?' instead)\n" );
 }
 
 SaneWinMain( argc, argv )
