@@ -1048,7 +1048,7 @@ struct style_window{
 	int timeout;
 	uint32_t windowStyle, windowExStyle, classStyle;
 	uintptr_t psv;
-	void ( *cb )( uintptr_t, LOGICAL );
+	void ( *cb )( uintptr_t, int );
 };
 
 HWND RefreshTaskWindow( PTASK_INFO task ) {
@@ -1304,7 +1304,7 @@ static int _GetDisplaySizeEx ( int nDisplay, int monitor
 #endif
 }
 
-void StyleTaskWindow( PTASK_INFO task, int timeout, int windowStyle, int windowExStyle, int classStyle, void cb(uintptr_t, LOGICAL ), uintptr_t psv ) {
+void StyleTaskWindow( PTASK_INFO task, int timeout, int windowStyle, int windowExStyle, int classStyle, void cb(uintptr_t, int ), uintptr_t psv ) {
 	struct style_window* style = New( struct style_window );
 	style->task = task;
 	style->timeout = timeout;
