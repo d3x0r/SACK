@@ -1043,6 +1043,14 @@ struct move_window {
 	void (*cb)( uintptr_t, LOGICAL );
 };
 
+struct style_window{
+	PTASK_INFO task;
+	int timeout;
+	uint32_t windowStyle, windowExStyle, classStyle;
+	uintptr_t psv;
+	void ( *cb )( uintptr_t, LOGICAL );
+};
+
 HWND RefreshTaskWindow( PTASK_INFO task ) {
 	return task->taskWindow = find_main_window( task->pi.dwProcessId );
 }
@@ -1062,82 +1070,27 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 			continue;
 		}
 		move->task->taskWindow = hWndProc;
-#if 0
-		PDATALIST procTree;
-		PDATALIST windows = CreateDataList( sizeof( HWND ) );
-		INDEX idx;
-		struct process_id_pair* pair;
-		ProcIdFromParentProcId( move->task->pi.dwProcessId, &procTree );
-
-		DATA_FORALL( procTree, idx, struct process_id_pair*, pair ) {
-			HWND procWnd = find_main_window( pair->child );
-			AddDataItem( &windows, &procWnd );
-		}
-#endif
-
-		//lprintf( "Window? %d  %p", move->task->pi.dwProcessId, hWndProc );
-#if 0		
-		{
-			POINT minSize = { 500, 500 }, maxSize = { 600, 600 };
-			MINMAXINFO info;
-			memset( &info, 0, sizeof( info ) );
-			SendMessage( hWndProc, WM_GETMINMAXINFO, NULL, (LPARAM )& info); //WM_GETMINMAXINFO(NULL, &info);
-			lprintf( "Widow reports min/max? %d %d", info.ptMinTrackSize.x, info.ptMinTrackSize.y );
-			lprintf( "Widow reports min/max? %d %d", info.ptMaxSize.x, info.ptMaxSize.y );
-			lprintf( "Widow reports min/max? %d %d", info.ptMaxTrackSize.x, info.ptMaxTrackSize.y );
-		}
-#endif
 		while( (int)( timeGetTime() - time ) < move->timeout ) {
 			//lprintf( "move window(time): %d", timeGetTime() - time );
-#if 0
-			INDEX idx;
-			HWND* phWndProc;
-			HWND hWndProc;
-			DATA_FORALL( windows, idx, HWND*, phWndProc ) {
-				hWndProc = phWndProc[0];
-				lprintf( "Update window: %d %p", idx, hWndProc );
-#endif
-				{
-					RECT rect;
-					BOOL a = GetWindowRect( hWndProc, &rect );
-					atx = rect.left;
-					aty = rect.top;
-					atw = rect.right - rect.left;
-					ath = rect.bottom - rect.top;
-					lprintf( "Get Pos1 :%d %d %d %d %d", tries, rect.left, rect.top, atw, ath );
-				}
-
-				if( atx != move->left || aty != move->top || atw != move->width || ath != move->height ) {
-					//DWORD dwNow = GetTickCount();
-					//BOOL b = SetForegroundWindow( hWndProc );
-					//DWORD dwFGError = GetLastError();
-					//BringWindowToTop( hWndProc );
-					success = SetWindowPos( hWndProc, HWND_TOPMOST, move->left, move->top, move->width, move->height, 0 );
-					/*
-					while( (GetTickCount()-dwNow) < 1000 ) {
-						if( GetWindowLong( hWndProc, GWL_EXSTYLE ) & WS_EX_TOPMOST ) break;
-						Sleep( 1 );
-					}
-					lprintf( "Waited %d for it to be top", ( GetTickCount() - dwNow ) );
-					*/
-					BOOL success2 = SetWindowPos( hWndProc, HWND_NOTOPMOST, move->left, move->top, move->width, move->height, 0 );
-					/*
-					dwNow = GetTickCount();
-					while( ( GetTickCount() - dwNow ) < 1000 ) {
-						if( !(GetWindowLong( hWndProc, GWL_EXSTYLE ) & WS_EX_TOPMOST) ) break;
-						Sleep( 1 );
-					}
-					lprintf( "Waited %d for it to be not-top", ( GetTickCount() - dwNow ) );
-					*/
-					lprintf( "Success:%d %d %d %d %d", success, move->left, move->top, move->width, move->height );
-				} else {
-					lprintf( "Window is already positioned correctly" );
-					success = 1;
-					break;
-				}
-#if 0
+			{
+				RECT rect;
+				BOOL a = GetWindowRect( hWndProc, &rect );
+				atx = rect.left;
+				aty = rect.top;
+				atw = rect.right - rect.left;
+				ath = rect.bottom - rect.top;
+				//lprintf( "Get Pos1 :%d %d %d %d %d", tries, rect.left, rect.top, atw, ath );
 			}
-#endif
+
+			if( atx != move->left || aty != move->top || atw != move->width || ath != move->height ) {
+				success = SetWindowPos( hWndProc, HWND_TOPMOST, move->left, move->top, move->width, move->height, 0 );
+				SetWindowPos( hWndProc, HWND_NOTOPMOST, move->left, move->top, move->width, move->height, 0 );
+				//lprintf( "Success:%d %d %d %d %d", success, move->left, move->top, move->width, move->height );
+			} else {
+				//lprintf( "Window is already positioned correctly" );
+				success = 1;
+				break;
+			}
 			tries++;
 			if( tries < 3 ) {
 				WakeableSleep( 100 );
@@ -1158,6 +1111,60 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 	Deallocate( struct move_window*, move );
 	return 0;
 }
+
+static uintptr_t styleTaskWindowThread( PTHREAD thread ){
+	struct style_window* style = (struct style_window*)GetThreadParam( thread );
+	uint32_t time = timeGetTime();
+	int success = 0;
+	int tries = 0;
+	//lprintf( "style Thread: %d", time );
+	while( (int)( timeGetTime() - time ) < style->timeout ){
+		//lprintf( "style Thread(time): %d", timeGetTime() - time );
+		HWND hWndProc = style->task->taskWindow ? style->task->taskWindow : find_main_window( style->task->pi.dwProcessId );
+		int windowStyle, windowExStyle, classStyle;
+		if( !hWndProc ){
+			WakeableSleep( 100 );
+			continue;
+		}
+		style->task->taskWindow = hWndProc;
+
+		while( (int)( timeGetTime() - time ) < style->timeout ){
+			//lprintf( "style window(time): %d", timeGetTime() - time );
+			windowStyle = GetWindowLongPtr( hWndProc, GWL_STYLE );
+			windowExStyle = GetWindowLongPtr( hWndProc, GWL_EXSTYLE );
+			classStyle = GetClassLongPtr( hWndProc, GCL_STYLE );
+
+			if( ( style->windowStyle != -1 ) && ( windowStyle != style->windowStyle ) )
+				SetWindowLongPtr( hWndProc, GWL_STYLE, style->windowStyle );
+			else success |= 1;
+			if( ( style->windowExStyle == -1 ) && ( windowExStyle != style->windowExStyle ) )
+				SetWindowLongPtr( hWndProc, GWL_EXSTYLE, style->windowExStyle );
+			else success |= 2;
+			if( ( style->classStyle == -1 ) && ( classStyle != style->classStyle ) )
+				SetClassLongPtr( hWndProc, GWL_EXSTYLE, style->windowExStyle );
+			else success |= 4;
+
+			if( success == ( 1 | 2 | 4 ) )
+				break;
+			tries++;
+			if( tries < 3 ){
+				WakeableSleep( 100 );
+				continue;
+			} else break;
+		}
+		if( success != 7 ){
+			lprintf( "Failed to set window styles? Trying again..." );
+			continue;
+		} else{
+			break;
+		}
+	}
+	//lprintf( "Done Move...%d", success );
+	if( style->cb ) style->cb( style->psv, success );
+	Deallocate( struct style_window*, style );
+	return 0;
+}
+
 
 char* GetWindowTitle( PTASK_INFO task ) {
 
@@ -1297,10 +1304,20 @@ static int _GetDisplaySizeEx ( int nDisplay, int monitor
 #endif
 }
 
+void StyleTaskWindow( PTASK_INFO task, int timeout, int windowStyle, int windowExStyle, int classStyle, void cb(uintptr_t, LOGICAL ), uintptr_t psv ) {
+	struct style_window* style = New( struct style_window );
+	style->task = task;
+	style->timeout = timeout;
+	style->windowStyle = windowStyle;
+	style->windowExStyle = windowExStyle;
+	style->classStyle = classStyle;
+	style->cb = cb;
+	style->psv = psv;
+	ThreadTo( styleTaskWindowThread, (uintptr_t)style );
+}
 
 void MoveTaskWindow( PTASK_INFO task, int timeout, int left, int top, int width, int height, void cb(uintptr_t, LOGICAL ), uintptr_t psv ) {
 	struct move_window* move = New( struct move_window );
-	lprintf( "MoveTask" );
 	move->task = task;
 	move->timeout = timeout;
 	move->left = left;
@@ -1316,7 +1333,7 @@ void MoveTaskWindowToDisplay( PTASK_INFO task, int timeout, int display, void cb
 	struct move_window* move = New( struct move_window );
 	move->task = task;
 	move->timeout = timeout;
-	lprintf( "TaskToDisplay %d", display );
+	//lprintf( "TaskToDisplay %d", display );
 	if( !_GetDisplaySizeEx( display, -1, &move->left, &move->top, &move->width, &move->height ) ) {
 		Deallocate( struct move_window*, move );
 		if( cb ) cb( psv, FALSE );
@@ -1331,7 +1348,7 @@ void MoveTaskWindowToMonitor( PTASK_INFO task, int timeout, int display, void cb
 	struct move_window* move = New( struct move_window );
 	move->task = task;
 	move->timeout = timeout;
-	lprintf( "TaskToMonitor %d", display );
+	//lprintf( "TaskToMonitor %d", display );
 	if( !_GetDisplaySizeEx( -1, display, &move->left, &move->top, &move->width, &move->height ) ) {
 		Deallocate( struct move_window*, move );
 		if( cb ) cb( psv, FALSE );
