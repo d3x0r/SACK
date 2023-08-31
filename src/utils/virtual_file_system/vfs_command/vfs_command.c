@@ -27,7 +27,7 @@ static struct vfs_command_local
 	struct sack_vfs_os_volume* current_storage;
 	struct file_system_mounted_interface *current_mount;
 	LOGICAL verbose;
-
+	LOGICAL sign_payload;
 	//struct sack_vfs_volume *current_vol_source;
 	//struct file_system_mounted_interface *current_mount_source;
 	PDATALIST current_vol_source_list;
@@ -492,7 +492,7 @@ static void StoreFile( CTEXTSTR filemask, CTEXTSTR asPath, LOGICAL replace )
 		end[0] = 0; end++;
 	} else {
 		end = tmppath;
-		tmppath = NULL;
+		tmppath = StrDup( "." );
 	}
 	LOGICAL doScan = FALSE;
 	if( StrChr( end, '*' ) || StrChr( end, '?' ) )
@@ -550,7 +550,7 @@ static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CT
 		end[0] = 0; end++;
 	} else {
 		end = tmppath;
-		tmppath = NULL;
+		tmppath = StrDup( "." );
 	}
 	LOGICAL doScan = FALSE;
 	if( StrChr( end, '*' ) || StrChr( end, '?' ) )
@@ -751,9 +751,10 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	FILE *file2;
 	size_t file2_size;
 	FILE *file_out;
-	size_t file_out_size;
+	//size_t file_out_size;
 
 	POINTER buffer;
+	POINTER buffer2;
 
 	file1 = sack_fopenEx( 0, filename1, "rb", sack_get_default_mount() );
 	if( !file1 ) { printf( "Failed to read file to append: %s\n", filename1 ); return; }
@@ -763,11 +764,15 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	file2_size = sack_fsize( file2 );
 	file_out = sack_fopenEx( 0, outputname, "wb", sack_get_default_mount() );
 	if( !file_out ) { printf( "Failed to read file to append to: %s", outputname ); return; }
-	file_out_size = sack_fsize( file_out );
+	//file_out_size = sack_fsize( file_out );
 
 	buffer = NewArray( uint8_t, file1_size );
 	sack_fread( buffer, file1_size, 1, file1 );
 	sack_fwrite( buffer, file1_size, 1, file_out );
+
+	buffer2 = NewArray( uint8_t, file2_size );
+	sack_fread( buffer2, file2_size, 1, file2 );
+	//sack_fwrite( buffer2, file2_size, 1, file_out );
 	{
 #ifdef WIN32
 		POINTER extra = GetExtraData( buffer );
@@ -777,11 +782,9 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 #endif
 		//printf( "output is... %zd %p %zd\n", file1_size, extra, (uintptr_t)extra - (uintptr_t)buffer );
 		// there's probably a better expression...
-		if( ((uintptr_t)extra - (uintptr_t)buffer) <= ( (file1_size + (2*BLOCK_SIZE-1) )& ~(BLOCK_SIZE-1) ) )
-		{
+		if( ((uintptr_t)extra - (uintptr_t)buffer) <= ( (file1_size + (2*BLOCK_SIZE-1) )& ~(BLOCK_SIZE-1) ) ) {
 			sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer), SEEK_SET );
-		}
-		else {
+		} else {
 			size_t fill = file1_size - ((uintptr_t)extra-(uintptr_t)buffer);
 			size_t n;
 			if( fill > 0 )
@@ -791,7 +794,14 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 		sack_fseek( file_out, ((uintptr_t)extra - (uintptr_t)buffer)-BLOCK_SIZE, SEEK_SET );
 		{
 			const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)extra-BLOCK_SIZE), buffer );
-			sack_fwrite( sig, 1, BLOCK_SIZE, file_out );
+			sack_fwrite( sig, 1, BLOCK_SIZE/2, file_out );
+		}
+		if( l.sign_payload ) {
+			const uint8_t* sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)buffer2+file2_size), buffer2 );
+			sack_fwrite( sig, 1, BLOCK_SIZE/2, file_out );
+		} else {
+			size_t n;
+			for( n = 0; n < BLOCK_SIZE/2; n++ ) sack_fwrite( "", 1, 1, file_out );
 		}
 		//lprintf( "Filesize raw is %d (padded %d)", file1_size, file1_size + (4096 - ( file1_size & 0xFFF )) );
 		//lprintf( "extra offset is %d", (uintptr_t)extra - (uintptr_t)buffer );
@@ -800,9 +810,8 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 
 	Release( buffer );
 
-	buffer = NewArray( uint8_t, file2_size );
-	sack_fread( buffer, file2_size, 1, file2 );
-	sack_fwrite( buffer, file2_size, 1, file_out );
+	sack_fwrite( buffer2, file2_size, 1, file_out );
+	Release( buffer2 );
 
 	sack_fclose( file1 );
 	sack_fclose( file2 );
@@ -901,6 +910,7 @@ static void usage( void )
 	printf( "   decrypt                             : remove encryption keys from vfs.\n" );
 	printf( "   sign                                : get volume short signature.\n" );
 	printf( "   sign-encrypt <key1>                 : get volume short signature; use key1 and signature to encrypt volume.\n" );
+	printf( "   sign-payload                        : next append's payload is also signed.\n" );
 	printf( "   sign-to-header <filename> <varname> : get volume short signature; write a c header called filename, with a variable varname.\n" );
 	printf( "\n" );
 	printf( " - [vfsName] specified to patch commands may start with an '@' which then indicates the name\n" );
@@ -1080,6 +1090,7 @@ SaneWinMain( argc, argv )
 		else if( StrCaseCmp( argv[arg], "append" ) == 0 )
 		{
 			AppendFilesAs( argv[arg+1], argv[arg+2], argv[arg+3] );
+			l.sign_payload = FALSE;
 			arg += 3;
 		}
 		else if( StrCaseCmp( argv[arg], "shrink" ) == 0 )
@@ -1098,6 +1109,10 @@ SaneWinMain( argc, argv )
 				if( !sack_vfs_encrypt_volume( l.current_vol, version, argv[arg+1], argv[arg+2] ) )
 					printf( "Failed to encrypt volume.\n" );
 			arg += 2;
+		}
+		else if( StrCaseCmp( argv[arg], "sign-payload" ) == 0 )
+		{
+			l.sign_payload = TRUE;
 		}
 		else if( StrCaseCmp( argv[arg], "sign" ) == 0 )
 		{
