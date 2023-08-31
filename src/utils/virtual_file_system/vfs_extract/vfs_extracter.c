@@ -171,11 +171,10 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 				POINTER info = NULL;
 				printf( "Package List\n-- size -- --------- name ---------\n" );
 				while( ScanFilesEx( NULL, "*", &info, ListFile, SFF_SUBCURSE | SFF_SUBPATHONLY
-					, (uintptr_t)0, FALSE, l.rom ) );
+				     , (uintptr_t)0, FALSE, l.rom ) );
 				System( "pause", NULL, 0 );
 				return;
-			}
-			argofs++;
+			} else break;
 		}
 	}
 
@@ -186,6 +185,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		if( argc > (1+argofs) ) {
 			l.target_path = ExpandPath( argv[1+argofs] );
 		}
+		lprintf( "And then arg sets:%s", l.target_path );
 		SetSystemLog( SYSLOG_FILE, stderr );
 		if( !memory ) {
 			lprintf( "Please launch with full application name/path" );
@@ -245,7 +245,11 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			sack_fclose( file );
 		}
 		else
-			if( !l.target_path ) l.target_path = (char*)GetProgramName();
+			if( !l.target_path ) {
+				static char target[512];
+				snprintf( target, 512, "c:\\%s", GetProgramName() );
+				l.target_path = target;
+			}
 		{
 			INDEX idx;
 			struct command *command;
@@ -277,6 +281,7 @@ SaneWinMain(argc,argv)
 	INDEX idx;
 	struct command *command;
 	static TEXTCHAR buf[4096];
+	//lprintf( "Target base path:%s", l.target_path );
 	LIST_FORALL( l.commands, idx, struct command *, command ) {
 		snprintf( buf, 4096, "\"%s\\%s\"%s%s"
 		        , l.target_path
