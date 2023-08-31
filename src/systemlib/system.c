@@ -1130,17 +1130,17 @@ static uintptr_t styleTaskWindowThread( PTHREAD thread ){
 
 		while( (int)( timeGetTime() - time ) < style->timeout ){
 			//lprintf( "style window(time): %d", timeGetTime() - time );
-			windowStyle = GetWindowLongPtr( hWndProc, GWL_STYLE );
-			windowExStyle = GetWindowLongPtr( hWndProc, GWL_EXSTYLE );
-			classStyle = GetClassLongPtr( hWndProc, GCL_STYLE );
-
+			windowStyle = (int)GetWindowLongPtr( hWndProc, GWL_STYLE );
+			windowExStyle = (int)GetWindowLongPtr( hWndProc, GWL_EXSTYLE );
+			classStyle = (int)GetClassLongPtr( hWndProc, GCL_STYLE );
+			success = 0;
 			if( ( style->windowStyle != -1 ) && ( windowStyle != style->windowStyle ) )
 				SetWindowLongPtr( hWndProc, GWL_STYLE, style->windowStyle );
 			else success |= 1;
-			if( ( style->windowExStyle == -1 ) && ( windowExStyle != style->windowExStyle ) )
+			if( ( style->windowExStyle != -1 ) && ( windowExStyle != style->windowExStyle ) )
 				SetWindowLongPtr( hWndProc, GWL_EXSTYLE, style->windowExStyle );
 			else success |= 2;
-			if( ( style->classStyle == -1 ) && ( classStyle != style->classStyle ) )
+			if( ( style->classStyle != -1 ) && ( classStyle != style->classStyle ) )
 				SetClassLongPtr( hWndProc, GWL_EXSTYLE, style->windowExStyle );
 			else success |= 4;
 
