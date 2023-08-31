@@ -1544,16 +1544,16 @@ SlicedImage IMGVER(MakeSlicedImage)( Image source, uint32_t left, uint32_t right
 }
 
 SlicedImage IMGVER(MakeSlicedImageComplex)( Image source
-										, uint32_t top_left_x, uint32_t top_left_y, uint32_t top_left_width, uint32_t top_left_height
-										, uint32_t top_x, uint32_t top_y, uint32_t top_width, uint32_t top_height
-										, uint32_t top_right_x, uint32_t top_right_y, uint32_t top_right_width, uint32_t top_right_height
-										, uint32_t left_x, uint32_t left_y, uint32_t left_width, uint32_t left_height
-										, uint32_t center_x, uint32_t center_y, uint32_t center_width, uint32_t center_height
-										, uint32_t right_x, uint32_t right_y, uint32_t right_width, uint32_t right_height
-										, uint32_t bottom_left_x, uint32_t bottom_left_y, uint32_t bottom_left_width, uint32_t bottom_left_height
-										, uint32_t bottom_x, uint32_t bottom_y, uint32_t bottom_width, uint32_t bottom_height
-										, uint32_t bottom_right_x, uint32_t bottom_right_y, uint32_t bottom_right_width, uint32_t bottom_right_height
-										, LOGICAL output_center )
+                                          , uint32_t top_left_x, uint32_t top_left_y, uint32_t top_left_width, uint32_t top_left_height
+                                          , uint32_t top_x, uint32_t top_y, uint32_t top_width, uint32_t top_height
+                                          , uint32_t top_right_x, uint32_t top_right_y, uint32_t top_right_width, uint32_t top_right_height
+                                          , uint32_t left_x, uint32_t left_y, uint32_t left_width, uint32_t left_height
+                                          , uint32_t center_x, uint32_t center_y, uint32_t center_width, uint32_t center_height
+                                          , uint32_t right_x, uint32_t right_y, uint32_t right_width, uint32_t right_height
+                                          , uint32_t bottom_left_x, uint32_t bottom_left_y, uint32_t bottom_left_width, uint32_t bottom_left_height
+                                          , uint32_t bottom_x, uint32_t bottom_y, uint32_t bottom_width, uint32_t bottom_height
+                                          , uint32_t bottom_right_x, uint32_t bottom_right_y, uint32_t bottom_right_width, uint32_t bottom_right_height
+                                          , LOGICAL output_center )
 {
 	SlicedImage result = New( struct SlicedImageFile );
 	result->image = source;
