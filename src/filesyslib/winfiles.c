@@ -2623,9 +2623,9 @@ static	struct find_cursor* CPROC sack_filesys_find_create_cursor( uintptr_t psvI
 	cursor->mask = StrDup( filemask );
 	cursor->root = StrDup( root ? root : "." );
 	{
-		char* mask = ExpandPath( maskbuf );// StrDup( filemask ? filemask : "*" );
-		cursor->filemask = CharWConvertLen( mask, strlen( mask ) );
-		Deallocate( char*, mask );
+		//char* mask = ExpandPath( maskbuf );// StrDup( filemask ? filemask : "*" );
+		cursor->filemask = CharWConvertLen( maskbuf, strlen( maskbuf ) );
+		//Deallocate( char*, mask );
 	}
 #ifdef WIN32
 	// windows mode is delayed until findfirst
