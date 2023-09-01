@@ -748,6 +748,7 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 {
 	FILE *file1;
 	size_t file1_size;
+	size_t file1_realsize;
 	FILE *file2;
 	size_t file2_size;
 	FILE *file_out;
@@ -759,6 +760,8 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	file1 = sack_fopenEx( 0, filename1, "rb", sack_get_default_mount() );
 	if( !file1 ) { printf( "Failed to read file to append: %s\n", filename1 ); return; }
 	file1_size = sack_fsize( file1 );
+	file1_realsize = ( file1_size + ( 2 * BLOCK_SIZE - 1 ) ) & ~( BLOCK_SIZE - 1 ) - BLOCK_SIZE;
+	lprintf( "Exe Size: %zd %zd ", file1_size, file1_realsize );
 	file2 = sack_fopenEx( 0, filename2, "rb", sack_get_default_mount() );
 	if( !file2 ) { printf( "Failed to read file to append: %s\n", filename2 ); return; }
 	file2_size = sack_fsize( file2 );
@@ -766,7 +769,8 @@ static void AppendFilesAs( CTEXTSTR filename1, CTEXTSTR filename2, CTEXTSTR outp
 	if( !file_out ) { printf( "Failed to read file to append to: %s", outputname ); return; }
 	//file_out_size = sack_fsize( file_out );
 
-	buffer = NewArray( uint8_t, file1_size );
+	buffer = NewArray( uint8_t, file1_realsize );
+	MemSet( (POINTER)( ( (uintptr_t)buffer ) + file1_size ), 0, file1_realsize - file1_size );
 	sack_fread( buffer, file1_size, 1, file1 );
 	sack_fwrite( buffer, file1_size, 1, file_out );
 
@@ -926,6 +930,7 @@ SaneWinMain( argc, argv )
 	int arg;
 	uintptr_t version = 0;
 	SetSystemLog( SYSLOG_FILE, stdout );
+	SetSystemLoggingLevel( 2000 );
 	if( argc < 2 ) { usage(); return 0; }
 
 	l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );

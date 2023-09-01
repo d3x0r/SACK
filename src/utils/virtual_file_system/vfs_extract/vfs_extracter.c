@@ -167,19 +167,6 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	l.status = 0;
 	InitConfigHandler();
 	
-	{
-		while( ( 1 + argofs ) < argc ) {
-			if( StrCaseCmp( argv[1 + argofs], "-list" ) == 0 ) {
-				POINTER info = NULL;
-				printf( "Package List\n-- size -- --------- name ---------\n" );
-				while( ScanFilesEx( NULL, "*", &info, ListFile, SFF_SUBCURSE | SFF_SUBPATHONLY
-				     , (uintptr_t)0, FALSE, l.rom ) );
-				System( "pause", NULL, 0 );
-				return;
-			} else break;
-		}
-	}
-
 #ifdef STANDALONE_HEADER
 	{
 		size_t sz = 0;
@@ -189,8 +176,9 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		}
 		lprintf( "And then arg sets:%s", l.target_path );
 		SetSystemLog( SYSLOG_FILE, stderr );
+		SetSystemLoggingLevel( 2000 );
 		if( !memory ) {
-			lprintf( "Please launch with full application name/path" );
+			fprintf( stderr, "Please launch with full application name/path\n" );
 			return;
 		}
 		// raw EXE images can be passed to VFS module now and it internally figures an offset
@@ -202,7 +190,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		//lprintf( "use crypt.." );
 		vol = sack_vfs_use_crypt_volume( memory, sz, 0, REPLACE_ME_2, REPLACE_ME_3 );
 		if( !vol ) {
-			lprintf( "Failed to load attached vault." );
+			fprintf( stderr, "Failed to load attached vault.\n" );
 			l.status = 1;
 			return;
 		}
@@ -232,6 +220,22 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	if( vol )
 	{
 		POINTER info = NULL;
+		{
+			while( ( 1 + argofs ) < argc ) {
+				if( StrCaseCmp( argv[1 + argofs], "-list" ) == 0 ) {
+					POINTER info = NULL;
+					printf( "Package List\n-- size -- --------- name ---------\n" );
+					while( ScanFilesEx( NULL, "*", &info, ListFile, SFF_SUBCURSE | SFF_SUBPATHONLY
+					     , (uintptr_t)0, FALSE, l.rom ) );
+#ifdef _WIN32
+					System( "cmd /c pause", NULL, 0 );
+#endif
+					return;
+				} else break;
+			}
+		}
+
+
 		FILE *file = sack_fopenEx( 0, ".app.config", "rb", l.rom );
 		//lprintf( "open aoppconfig = %p", file );
 		if( file )

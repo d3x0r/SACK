@@ -530,7 +530,10 @@ static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 				actual_disk = (struct sack_vfs_disk*)GetExtraData( new_disk );
 				if( actual_disk ) {
 					if( ( ( (uintptr_t)actual_disk - (uintptr_t)new_disk ) < vol->dwSize ) ) {
+						lprintf( "Size to check %zd", (uintptr_t)actual_disk - (uintptr_t)new_disk );
 						const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)actual_disk-BLOCK_SIZE), new_disk );
+						LogBinary( sig, BLOCK_SIZE / 2 );
+
 						if( memcmp( sig, (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), BLOCK_SIZE/2 ) ) {
 							lprintf( "Signature failed comparison; the core has changed since it was attached." );
 							CloseSpace( vol->diskReal );
@@ -612,12 +615,27 @@ static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 				actual_disk = (struct sack_vfs_disk*)GetExtraData( new_disk );
 				if( actual_disk ) {
 					const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)actual_disk-BLOCK_SIZE), new_disk );
-					if( memcmp( sig, (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), BLOCK_SIZE ) ) {
+					if( memcmp( sig, (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), BLOCK_SIZE/2 ) ) {
 						lprintf( "Signature failed comparison; the core has changed since it was attached" );
 						CloseSpace( vol->diskReal );
 						vol->diskReal = NULL;
 						vol->dwSize = 0;
 						return FALSE;
+					}
+					{
+						char* check_sig = (char*)( ( (uintptr_t)actual_disk ) - BLOCK_SIZE / 2 );
+						int ofs;
+						for( ofs = 0; ofs < BLOCK_SIZE / 2; ofs++ ) if( check_sig[0] ) break; else check_sig++;
+						if( ofs < ( BLOCK_SIZE / 2 ) ){
+							const uint8_t* sig = sack_vfs_get_signature2( (POINTER)( (uintptr_t)actual_disk + vol->dwSize - ( (uintptr_t)actual_disk - (uintptr_t)new_disk ) ), actual_disk );
+							if( memcmp( sig, (POINTER)( ( (uintptr_t)actual_disk ) - BLOCK_SIZE / 2 ), BLOCK_SIZE / 2 ) ){
+								lprintf( "Payload signature failed." );
+								CloseSpace( vol->diskReal );
+								vol->diskReal = NULL;
+								vol->dwSize = 0;
+								return FALSE;
+							}
+						}
 					}
 					vol->dwSize -= ((uintptr_t)actual_disk - (uintptr_t)new_disk);
 					new_disk = actual_disk;
@@ -947,13 +965,27 @@ struct sack_vfs_volume *sack_vfs_use_crypt_volume( POINTER memory, size_t sz, ui
 		actual_disk = (struct sack_vfs_disk*)GetExtraData( memory );
 		if( actual_disk ) {
 			if( ( ( (uintptr_t)actual_disk - (uintptr_t)memory ) < vol->dwSize ) ) {
-				const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)actual_disk-BLOCK_SIZE), memory );
-				if( memcmp( sig, (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), BLOCK_SIZE ) ) {
+				const uint8_t *sig = sack_vfs_get_signature2( (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), memory );
+				if( memcmp( sig, (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), BLOCK_SIZE/2 ) ) {
 					lprintf( "Signature failed comparison; the core has changed since it was attached" );
 					vol->diskReal = NULL;
 					vol->dwSize = 0;
 					sack_vfs_unload_volume( vol );
 					return FALSE;
+				}
+				{
+					char* check_sig = (char*)( ( (uintptr_t)actual_disk ) - BLOCK_SIZE / 2 );
+					int ofs;
+					for( ofs = 0; ofs < BLOCK_SIZE / 2; ofs++ ) if( check_sig[0] ) break; else check_sig++;
+					if( ofs < ( BLOCK_SIZE / 2 ) ){
+						const uint8_t* sig = sack_vfs_get_signature2( (POINTER)( (uintptr_t)actual_disk + vol->dwSize - ( (uintptr_t)actual_disk - (uintptr_t)memory ) ), actual_disk );
+						if( memcmp( sig, (POINTER)( ( (uintptr_t)actual_disk ) - BLOCK_SIZE / 2 ), BLOCK_SIZE / 2 ) ){
+							lprintf( "Payload signature failed." );
+							vol->diskReal = NULL;
+							vol->dwSize = 0;
+							return FALSE;
+						}
+					}
 				}
 				vol->dwSize -= ((uintptr_t)actual_disk - (uintptr_t)memory);
 				memory = (POINTER)actual_disk;
