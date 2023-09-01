@@ -29,6 +29,7 @@ static struct vfs_runner_local
 	char *target_path;
 	char *prior_output_path;  // prevent remaking directories for EVERY file...
 	PCONFIG_HANDLER pch;
+	int status;
 }l;
 
 //---------------------------------------------------------------------------
@@ -163,6 +164,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	}
 	argv[argc] = NULL;
 #endif
+	l.status = 0;
 	InitConfigHandler();
 	
 	{
@@ -201,6 +203,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		vol = sack_vfs_use_crypt_volume( memory, sz, 0, REPLACE_ME_2, REPLACE_ME_3 );
 		if( !vol ) {
 			lprintf( "Failed to load attached vault." );
+			l.status = 1;
 			return;
 		}
 		//lprintf( "mount... %p", vol );
@@ -221,7 +224,8 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		}
 		sack_set_default_filesystem_interface( l.fsi );
 		vol = sack_vfs_load_crypt_volume( argc> 1? argv[1]:"package.vfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
-		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
+		if( vol )
+			l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
 	}
 #endif
 	//l.target_path = ".";
@@ -273,6 +277,9 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		while( ScanFilesEx( NULL, "*", &info, ShowFile, SFF_SUBCURSE | SFF_SUBPATHONLY
 			, (uintptr_t)0, FALSE, l.rom ) );
 	}
+	else 
+		l.status = 1;
+
 	//return 0;
 }
 
@@ -282,16 +289,17 @@ SaneWinMain(argc,argv)
 	struct command *command;
 	static TEXTCHAR buf[4096];
 	//lprintf( "Target base path:%s", l.target_path );
-	LIST_FORALL( l.commands, idx, struct command *, command ) {
-		snprintf( buf, 4096, "\"%s\\%s\"%s%s"
-		        , l.target_path
-		        , command->cmd
-		        , command->args ? " ":""
-		        , command->args?command->args:"" );
-		lprintf( "run:%s", buf );
-		System( buf, NULL, 0 );
-	}
-	return 0;
+	if( !l.status )
+		LIST_FORALL( l.commands, idx, struct command *, command ) {
+			snprintf( buf, 4096, "\"%s\\%s\"%s%s"
+			        , l.target_path
+		        	, command->cmd
+			        , command->args ? " ":""
+			        , command->args?command->args:"" );
+			lprintf( "run:%s", buf );
+			System( buf, NULL, 0 );
+		}
+	return l.status;
 }
 EndSaneWinMain()
 
