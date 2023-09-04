@@ -1374,7 +1374,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 				if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0, options->certChain?options->certChain:certChain, certChain
 							? strlen( options->certChain ? options->certChain:certChain ) : 0 ) ) {
 					state->waiter = MakeThread();
-					if( !certChain )
+					if( !options->rejectUnauthorized )
 						ssl_SetIgnoreVerification( pc );
 					if( NetworkConnectTCP( pc ) < 0 ) {
 						DestroyHttpState( state );
