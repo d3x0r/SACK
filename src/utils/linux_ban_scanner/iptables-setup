@@ -1,0 +1,15 @@
+EXT=enp3s0
+
+#cd /etc/systemd/network/firewall
+
+mv /tmp/banlist /tmp/banlist.issue
+touch /tmp/banlist
+
+for i in $(sort -u /tmp/banlist.issue); do
+       echo update ban: $i >> /tmp/bans.log
+        nft add rule ip filter INPUT iifname "$EXT" ip saddr $i/24 counter drop
+#       conntrack -D -s $i >> /tmp/bans.log 2>&1
+done
+
+#cat /tmp/banlist.issue >> /tmp/banlist.issued
+rm /tmp/banlist.issue
