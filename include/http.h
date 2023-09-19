@@ -69,7 +69,7 @@ struct HTTPRequestOptions {
 	LOGICAL ssl; // set to true to request over SSL;
 
 	const char* certChain; //optionally this can be used to specify the certain, if not set, uses parameter, which will otherwise be NULL.
-
+	LOGICAL rejectUnauthorized;
 	// specify the agent field, default to SACK(System)
 	const char* agent;
 	// if set, will be called when content buffer has been sent.
