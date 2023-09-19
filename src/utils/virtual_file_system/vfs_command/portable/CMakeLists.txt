@@ -159,7 +159,9 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_H
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "VFS_DISK_DATATYPE=uint32_t" )
 # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
 # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
-SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244" )
+if( WIN32 )
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244" )
+endif( WIN32 )
 
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
@@ -203,7 +205,10 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_H
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_FS_INTERFACE;VFS_DISK_DATATYPE=uint32_t" )
 # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
 # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
-SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244" )
+if( WIN32 )
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244" )
+endif( WIN32 )
+    
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
@@ -244,7 +249,10 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_H
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_OS_INTERFACE;VFS_DISK_DATATYPE=uint32_t" )
 # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
 # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
-SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244" )
+if( WIN32 )
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244" )
+endif( WIN32 )
+    
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
