@@ -122,6 +122,7 @@ static void InitBanScan( void )
 	AddConfigurationMethod( lbs.pch_scanner, "%m Unable to negotiate with %w port %w: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1", failed_pass3 );
 	AddConfigurationMethod( lbs.pch_scanner, "%m Unable to negotiate with %w port %w: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1 [preauth]", failed_pass3 );
 	AddConfigurationMethod( lbs.pch_scanner, "%m Bad protocol version identification %m from  %w port %i", failed_pass );
+	AddConfigurationMethod( lbs.pch_scanner, "%m fatal: Timeout before authentication for %w port %i", failed_pass );
 
 	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for %w from %w port %i ssh2", failed_pass );
 	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for %w from %w", failed_pass );
