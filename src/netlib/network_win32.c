@@ -699,7 +699,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 				break;
 			}
 			lprintf( "error of wait is %d   %p", dwError, thread );
-			LogBinary( thread->event_list->data, 64 );
+			LogBinary( (const uint8_t*)thread->event_list->data, 64 );
 			break;
 		}
 #ifndef UNDER_CE
