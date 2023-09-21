@@ -473,7 +473,7 @@ MEM_PROC  POINTER MEM_API  ReleaseEx ( POINTER pData DBG_PASS ) ;
 /* <combine sack::memory::ReleaseEx@POINTER pData>
    
    \ \                                             */
-#define Release(p) ReleaseEx( (p) DBG_SRC )
+#define Release(p) ReleaseEx( (POINTER)(p) DBG_SRC )
 #endif
 
 /* Adds a usage count to a block of memory. For each count
@@ -507,7 +507,7 @@ MEM_PROC  POINTER MEM_API  HoldEx ( POINTER pData DBG_PASS  );
 /* <combine sack::memory::HoldEx@POINTER pData>
    
    \ \                                          */
-#define Hold(p) HoldEx(p DBG_SRC )
+#define Hold(p) HoldEx((POINTER)p DBG_SRC )
 
 /* This can be used to add additional space after the end of a
    memory block.

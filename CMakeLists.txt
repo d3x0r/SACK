@@ -378,7 +378,10 @@ if( MSVC )
 # 4244 - rcoord - int conversion
 # 6011 - dereferncing NULL (which we never do)
 # 4996 - unsafe snprintf
-  add_definitions( -wd4996  -wd4244 -wd4068 -wd6011 )
+# 4197 - top-level volatile in cast is ignored (so?)
+# 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+  add_definitions( -wd4996  -wd4244 -wd4068 -wd6011 -wd4197 -wd4090 )
+  message( "disabled warning 4090 - 'function': different 'volatile' qualifiers (usually don't care)" )
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP8")
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP8")

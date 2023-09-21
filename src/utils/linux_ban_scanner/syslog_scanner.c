@@ -1,6 +1,7 @@
 #include <stdhdrs.h>
 #include <configscript.h>
 #include <signal.h>
+#include <pssql.h>
 
 struct local_ban_scanner
 {
@@ -10,6 +11,8 @@ struct local_ban_scanner
 	TEXTSTR output;
 	TEXTSTR readlog;
 	TEXTSTR lastban;
+	TEXTSTR DSN;
+	PODBC db;
 } lbs;
 
 
@@ -22,9 +25,24 @@ void CPROC ExecFirewall( uintptr_t psv )
 
 static void AddBan( const char *IP )
 {
+	if( lbs.db ) {
+		static char query[256];
+		TEXTSTR* result = NULL;
+		snprintf( query, 256, "select id from banlist where IP=`%s`", IP );
+		if( SQLQuery( lbs.db, query, &result ) ) {
+			if( result && result[0] ) {
+				SQLEndQuery( lbs.db );
+				printf( "already banned %s\n", IP );
+				SQLCommandf( lbd.db, "update banlist set last_hit=now() where id=%s", result[0] );
+				return; // no need to include this one.
+			} else {
+				SQLCommandf( lbd.db, "insert into banlist (IP) values(`%s`)", IP );
+			}
+		}
+	}
 	if( !lbs.lastban || StrCmp( IP, lbs.lastban ) ) {
 		FILE *file = fopen( lbs.output, "ab" );
-		printf( "add %s\n", IP, lbs.output );
+		printf( "add %s\n", IP );
 		if( file ) {
 			fprintf( file, "%s\n", IP );
 			fclose( file );
@@ -130,13 +148,6 @@ static void InitBanScan( void )
 	AddConfigurationMethod( lbs.pch_scanner, "%m Invalid user %w from %w port %i", failed_pass );
 
 
-	AddConfigurationMethod( lbs.pch_scanner, "%w - - [%m] \"GET /CherryWeb %m", failed_pass0 );
-	AddConfigurationMethod( lbs.pch_scanner, "%w - - [%m] \"GET //a2billing/customer/templates/default/footer.tpl %m", failed_pass0 );
-	AddConfigurationMethod( lbs.pch_scanner, "%w - - [%m] \"GET /assets/jnkp.php  %m", failed_pass0 );
-	AddConfigurationMethod( lbs.pch_scanner, "%w - - [%m] \"GET /recordings%m", failed_pass0 );
-
-
-
 	//AddConfigurationMethod( lbs.pch_scanner, "%m sshd %m: Received disconnect from %i", failed_pass2 );
 	//AddConfigurationMethod( lbs.pch_scanner, "%m sshd %m: Invalid user %w from %i", failed_user );
 	SetConfigurationUnhandled( lbs.pch_scanner, Unhandled );
@@ -156,19 +167,37 @@ static uintptr_t CPROC setFirewallBanlist( uintptr_t psv, arg_list args )
 	return psv;
 }
 
+static uintptr_t CPROC setFirewallDb( uintptr_t psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, path );
+	lbs.DSN = StrDup( path );
+	return psv;
+}
+
 static void ReadConfig( void )
 {
 	PCONFIG_HANDLER pch = CreateConfigurationHandler();
 	lbs.command = "/root/bin/iptables-setup";
 	lbs.output = "/etc/firewall/banlist";
+	lbs.DSN = "maria-firewall";
 	//lbs.readlog = "/var/log/secure";
 
 	//AddConfigurationMethod( pch, "readlog=%m", setReadPath );
 	AddConfigurationMethod( pch, "command=%m", setFirewallCommand );
 	AddConfigurationMethod( pch, "output=%m", setFirewallBanlist );
+	AddConfigurationMethod( pch, "DSN=%m", setFirewallDb );
 	ProcessConfigurationFile( pch, "linux_syslog_scanner.conf", 0 );
 	DestroyConfigurationHandler( pch );
 
+}
+
+static void OpenDb() {
+	lbs.db = ConnectToDatabase( l.DSN );
+	if( lbs.db ) {
+		PTABLE table = GetFieldsInSQL( "create table banlist (id int AUTO INCREMENT, IP char(32), created DATETIME DEFAULT CURRENT_TIMESTAMP, last_hit DATETIME  DEFAULT CURRENT_TIMESTAMP)", FALSE );
+		CheckODBCTable( lbs.db, table, CTO_MERGE );
+		DestroySQLTable( table );
+	}
 }
 
 static uint8_t buf[4096];
@@ -179,6 +208,7 @@ int main( int argc, char **argv )
 	int lastpos = 0;
 	int follow = 0;
 	ReadConfig();
+	OpenDb();
 	InitBanScan();
 	if( argc > 1 )
 		while( ( arg < argc ) && argv[arg][0] == '-' ) {

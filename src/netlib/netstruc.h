@@ -306,7 +306,7 @@ struct network_global_data{
 	PLIST   ClientSlabs;
 	LOGICAL bLog;
 	LOGICAL bQuit;
-	volatile PLIST   pThreads; // list of all threads - needed because of limit of 64 sockets per multiplewait
+	PLIST   pThreads; // list of all threads - needed because of limit of 64 sockets per multiplewait
 	PCLIENT AvailableClients;
 	PCLIENT ActiveClients;
 	PCLIENT ClosedClients;

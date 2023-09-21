@@ -172,6 +172,11 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
+if( WIN32 )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "--wd4197 -wd4090" )
+endif( WIN32 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -196,6 +201,11 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
+if( WIN32 )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "--wd4197 -wd4090" )
+endif( WIN32 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -221,6 +231,11 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
+if( WIN32 )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "--wd4197 -wd4090" )
+endif( WIN32 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -247,6 +262,11 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
+if( WIN32 )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "--wd4197 -wd4090" )
+endif( WIN32 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -284,6 +304,11 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
+if( WIN32 )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "--wd4197 -wd4090" )
+endif( WIN32 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -308,6 +333,11 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
+if( WIN32 )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "--wd4197 -wd4090" )
+endif( WIN32 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -333,6 +363,11 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
+if( WIN32 )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "--wd4197 -wd4090" )
+endif( WIN32 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
