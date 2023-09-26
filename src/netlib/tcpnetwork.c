@@ -85,6 +85,9 @@ return 0;
 #    pragma message "Defining a default value for MSG_NOSIGNAL of 0"
 #    define MSG_NOSIGNAL 0
 #  endif
+#else
+// on windows define MSG_NOSIGNAL as 0
+#  define MSG_NOSIGNAL 0
 #endif
 
 SACK_NETWORK_NAMESPACE
