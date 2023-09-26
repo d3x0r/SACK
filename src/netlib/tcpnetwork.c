@@ -80,6 +80,13 @@ return 0;
 //#define NO_LOGGING // force neverlog....
 #include "logging.h"
 
+#if !defined( _WIN32 )
+#  ifndef MSG_NOSIGNAL
+#    pragma message "Defining a default value for MSG_NOSIGNAL of 0"
+#    define MSG_NOSIGNAL 0
+#  endif
+#endif
+
 SACK_NETWORK_NAMESPACE
 	extern int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t quick_check );
 
@@ -1366,7 +1373,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							 (char*)pc->lpFirstPending->buffer.c +
 							 pc->lpFirstPending->dwUsed,
 							 (int)pc->lpFirstPending->dwAvail,
-							 0);
+							 MSG_NOSIGNAL );
   			dwError = WSAGetLastError();
 #ifdef DEBUG_SOCK_IO
 			lprintf( "sent result: %d %d %d", nSent, pc->lpFirstPending->dwUsed, pc->lpFirstPending->dwAvail );
