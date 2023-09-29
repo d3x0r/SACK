@@ -1390,6 +1390,16 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					pc->dwFlags |= CF_WRITEPENDING;
 					return TRUE;
 				}
+				if( dwError == EPIPE ) {
+					_lprintf( "EPIPE on send() to socket...");
+					pc->dwFlags |= CF_TOCLOSE;
+					return FALSE;
+				}
+				if( dwError == ECONNREFUSED ) {
+					_lprintf( "ECONNREFUSED on send() to socket...");
+					pc->dwFlags |= CF_TOCLOSE;
+					return FALSE;
+				}
 				{
 					_lprintf(DBG_RELAY)(" Network Send Error: %5d(sock:%p, buffer:%p ofs: %" _size_f "  Len: %" _size_f ")",
 											  dwError,
