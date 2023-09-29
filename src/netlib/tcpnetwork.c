@@ -1391,12 +1391,12 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					return TRUE;
 				}
 				if( dwError == EPIPE ) {
-					_lprintf( "EPIPE on send() to socket...");
+					_lprintf(DBG_RELAY)( "EPIPE on send() to socket...");
 					pc->dwFlags |= CF_TOCLOSE;
 					return FALSE;
 				}
 				if( dwError == ECONNREFUSED ) {
-					_lprintf( "ECONNREFUSED on send() to socket...");
+					_lprintf(DBG_RELAY)( "ECONNREFUSED on send() to socket...");
 					pc->dwFlags |= CF_TOCLOSE;
 					return FALSE;
 				}
