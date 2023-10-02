@@ -444,7 +444,7 @@ namespace sack {
 					if (idx < ((*ppdl)->Cnt - 1))
 						MemCpy( (POINTER)((*ppdl)->data + ((*ppdl)->Size * idx))
 							, (POINTER)((*ppdl)->data + ((*ppdl)->Size * (idx + 1)))
-							, (*ppdl)->Size );
+							, (*ppdl)->Size * ( (*ppdl)->Cnt - idx - 1 ) );
 					(*ppdl)->Cnt--;
 				}
 			}
