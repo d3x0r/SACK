@@ -112,16 +112,12 @@ struct config_element_tag
 		BIT_FIELD vector : 1;
 		BIT_FIELD multiword_terminator : 1; // prior == actual segment...
 		BIT_FIELD singleword_terminator : 1; // prior == actual segment...
-		BIT_FIELD matched : 1; // already checked and matched...
 		// careful - assembly here requires absolute known
 		// posisitioning - -fpack-struct will short-change
 		// this structure to the minimal number of bits.
-		BIT_FIELD filler:28;
+		BIT_FIELD filler:29;
 	} flags;
 	uint32_t element_count; // used with vector fields.
-	struct config_file_tag *pch; // multiword needs to add to possible_checks
-	struct config_test_tag *Check;  // the current test this is a member of (in var or const list)
-	struct config_element_tag *word_element; // relates to the word element this terminates
 	union {
 		PTEXT pText;
 		struct {
@@ -163,7 +159,7 @@ struct config_element_tag
 				// be auto expanded....
 };
 
-#define CONFIG_EMPTY_EXTRA ,NULL,NULL,NULL,{0,0,0,0,0},0,NULL,NULL,NULL,{{0}}
+#define CONFIG_EMPTY_EXTRA ,NULL,NULL,NULL,{0,0,0,0},0,{{0}}
 
 typedef struct config_test_tag
 {
@@ -177,17 +173,6 @@ typedef struct config_test_tag
 DeclareSet( CONFIG_TEST );
 #define MAXCONFIG_ELEMENTSPERSET 128
 DeclareSet( CONFIG_ELEMENT );
-
-struct config_multi_word {
-	PCONFIG_ELEMENT pce; // the element that matched
-	TEXTSTR matched; // text line that matched
-};
-
-struct config_check {
-	PTEXT word; // each test might iterate the word differently
-	PCONFIG_TEST Check; // the current state of this test.
-	PDATALIST multiWords;
-};
 
 typedef struct config_file_tag CONFIG_HANDLER;
 struct config_file_tag
@@ -217,14 +202,12 @@ struct config_file_tag
 	PCONFIG_TESTSET test_elements;
 	LOGICAL config_recovered;
 	CTEXTSTR save_config_as;
-	PLIST states; // history of saved configuration states...
+	PLIST states; // history of saved coniguration states...
 	struct config_file_flags {
 		BIT_FIELD bConfigSaveNameUsed : 1; // if used, don't release
 		BIT_FIELD bUnicode : 1;
 		BIT_FIELD bUnicode8 : 1;
 	} flags;
-	PDATALIST possible_checks; // list of possible config_check_tags that are valid...
-	struct config_check *current_possible;
 };
 
 
@@ -247,9 +230,8 @@ struct configscript_global {
 		BIT_FIELD bInitialized : 1;
 		BIT_FIELD bDisableMemoryLogging : 1;
 		BIT_FIELD bLogUnhandled : 1;
-		BIT_FIELD bLogTraceBuild : 1;
-		BIT_FIELD bLogLines : 1;
 		BIT_FIELD bLogTrace : 1;
+		BIT_FIELD bLogLines : 1;
 	} flags;
 };
 
@@ -291,7 +273,6 @@ PRELOAD( InitGlobalConfig2 )
 	// later, set options - core startup configs like sql.config cannot read options.
 	g.flags.bDisableMemoryLogging = SACK_GetProfileIntEx( "SACK/Config Script", "Disable Memory Logging", g.flags.bDisableMemoryLogging, TRUE );
 	g.flags.bLogUnhandled = SACK_GetProfileIntEx( "SACK/Config Script", "Log Unhandled if no application handler", g.flags.bLogUnhandled, TRUE );
-	g.flags.bLogTraceBuild = SACK_GetProfileIntEx( "SACK/Config Script", "Log configuration building(trace)", g.flags.bLogTraceBuild, TRUE );
 	g.flags.bLogTrace = SACK_GetProfileIntEx( "SACK/Config Script", "Log configuration processing(trace)", g.flags.bLogTrace, TRUE );
 	g.flags.bLogLines = SACK_GetProfileIntEx( "SACK/Config Script", "Log configuration line input", g.flags.bLogLines, TRUE );
 #endif
@@ -854,10 +835,9 @@ static PTEXT GetConfigurationLine( PCONFIG_HANDLER pConfigHandler )
 		else // drop and consume blank lines.
 		{
 			//lprintf( "Okay got a blank line... might handle it with 'unhandled'" );
-			//if( pConfigHandler->Unhandled )
-			//	pConfigHandler->Unhandled( pConfigHandler->psvUser, NULL );
-			if( p )
-				LineRelease(p);
+			if( pConfigHandler->Unhandled )
+				pConfigHandler->Unhandled( pConfigHandler->psvUser, NULL );
+			LineRelease(p);
 		}
 	}
 	return NULL;
@@ -958,13 +938,13 @@ void EncodeBinaryConfig( TEXTSTR *encode, POINTER data, size_t length )
 		convert.bin.bytes[1] = (p++)[0];
 		convert.bin.bytes[2] = (p++)[0];
 		(q++)[0] = charset[convert.base.data1];
-		EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 		(q++)[0] = charset[convert.base.data2];
-		EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 		(q++)[0] = charset[convert.base.data3];
-		EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 		(q++)[0] = charset[convert.base.data4];
-		EXPLOIT_BURST_FEATURE();
+	EXPLOIT_BURST_FEATURE();
 	}
 	bExtraBytes = 0;
 	if( l < length )
@@ -1596,7 +1576,6 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	struct config_element_tag *pEnd;
 	PTEXT pWords = NULL;
 	int matched = 1;
-	INDEX idx;
 	struct config_element_tag *default_EOL = NULL;
 	//PTEXT __start = *start;
 	if( pce->type != CONFIG_SINGLE_WORD )
@@ -1606,19 +1585,17 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		Release( pce->data[0].singleword.pWord );
 		pce->data[0].singleword.pWord = NULL;
 	}
-	LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ) {
-		pEnd->flags.matched = FALSE;
-	}
 	while( *start )
 	{
 		if( pWords )
 		{
+			INDEX idx;
 			if( (*start)->format.position.offset.spaces )
 			{
 				//if( pWords )
 				//	LineRelease( pWords );
 				// so at a space, stop appending.
-				//if( g.flags.bLogTrace )
+				if( g.flags.bLogTrace )
 					lprintf( "next word has spaces... [%s](%d)", GetText( *start ), (*start)->format.position.offset.spaces );
 				break;
 			}
@@ -1687,87 +1664,36 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
 	struct config_element_tag *pEnd;
 	int matched = 1;
-	int matches = 0;
 	PTEXT pWords = NULL;
-	PTEXT original_start = *start;
-	INDEX idx;
 	struct config_element_tag *default_EOL = NULL;
 	if( pce->type != CONFIG_MULTI_WORD )
 		return FALSE;
-	
-	
 	if( pce->data[0].multiword.pWords )
 	{
-		// this is held external to this now... 
-		//Release( pce->data[0].multiword.pWords );
-		//pce->data[0].multiword.pWords = NULL;
+		Release( pce->data[0].multiword.pWords );
+		pce->data[0].multiword.pWords = NULL;
 	}
-	LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ) {
-		pEnd->flags.matched = FALSE;
-	}
-
 	while( *start )
 	{
+		INDEX idx;
 		LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
 		{
-			if( pEnd->flags.matched ) continue; // already found a match for this and added it.
-			PTEXT was_start;
-			was_start = start[0];
 			if( ( matched = IsAnyVar( pEnd, start ) ) != 0 ){
-				struct config_check new_check;
-				struct config_multi_word multi_match;
-				PDATALIST pdl = pce->pch->current_possible->multiWords;
-				
-				new_check.word = *start;
-				start[0] = was_start;
-				new_check.Check = pEnd->next;
-				new_check.multiWords = CreateDataList( sizeof( struct config_multi_word ));
-				lprintf( "Alloc list %p:", new_check.multiWords );
-				if( pdl )
-				{
-					INDEX idx2;
-					struct config_multi_word* oldMatch;
-					DATA_FORALL( pdl, idx2, struct config_multi_word*, oldMatch ){
-						Hold( oldMatch->matched );
-						AddDataItem( &new_check.multiWords, oldMatch );
-					}
-				}
-				multi_match.pce = pEnd;
-				{ 
-					PTEXT out;
-					pWords->format.position.offset.spaces = 0;
-					out = BuildLine( pWords );
-					multi_match.matched = StrDup( GetText( out ) ); 
-					LineRelease( out );
-				}
-				AddDataItem( &new_check.multiWords, &multi_match );
-				//new_check.multiWords = pce;
-				AddDataItem( &pce->pch->possible_checks, &new_check );
-				pEnd->flags.matched = TRUE;
-				matches++;
-
+				pce->data[0].multiword.pWhichEnd = pEnd;
 				if( g.flags.bLogTrace )
 					lprintf( "Matched one of several?  set next to %p %p", pEnd, pEnd->next );
-				//pce->data[0].multiword.pWhichEnd = pEnd;
-				//pce->next = pEnd->next;
-				//break;
+				pce->next = pEnd->next;
+				break;
 			}
 			else if( !default_EOL && pEnd->type == CONFIG_NOTHING ) {
 				default_EOL = pEnd;
 			}
 		}
-		/*
-		if( pEnd ) {
-			// try another rule with current words matching...
-			continue;
-		}
-		*/
+		if( pEnd )
+			break;
 		pWords = SegAppend( pWords, SegDuplicate( *start ) );
 		*start = NEXTLINE( *start );
 	}
-	LineRelease( pWords );
-	pWords = NULL;
-/*
 	if( (!*start) )
 	{
 		if( !matched && !default_EOL )
@@ -1784,7 +1710,6 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 				lprintf( "is alright - gathered to end of line ok. (or matched)" );
 		}
 	}
-*/
 	//if( !pWords )
 	//	pWords = SegCreate(0);
 	if( pWords )
@@ -1800,7 +1725,7 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		return TRUE;
 	}
 	/* can have empty space for multiword, but was an OK result anyway...*/
-	return matches > 0;
+	return matched;
 }
 
 //---------------------------------------------------------------------
@@ -1809,7 +1734,6 @@ int IsPathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
 	struct config_element_tag *pEnd;
 	PTEXT pWords = NULL;
-	INDEX idx;
 	if( pce->type != CONFIG_PATH )
 		return FALSE;
 	if( pce->data[0].multiword.pWords )
@@ -1817,11 +1741,9 @@ int IsPathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		Release( pce->data[0].multiword.pWords );
 		pce->data[0].multiword.pWords = NULL;
 	}
-	LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ) {
-		pEnd->flags.matched = 0;
-	}
 	while( *start  )
 	{
+		INDEX idx;
 		LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
 		{
 			if( IsAnyVar( pEnd, start ) ) {
@@ -1860,7 +1782,6 @@ int IsFileVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
 	struct config_element_tag *pEnd;
 	PTEXT pWords = NULL;
-	INDEX idx;
 	if( pce->type != CONFIG_FILE )
 		return FALSE;
 	if( pce->data[0].multiword.pWords )
@@ -1868,11 +1789,9 @@ int IsFileVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		Release( pce->data[0].multiword.pWords );
 		pce->data[0].multiword.pWords = NULL;
 	}
-	LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ) {
-		pEnd->flags.matched = 0;
-	}
 	while( *start )
 	{
+		INDEX idx;
 		LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
 		{
 			if( IsAnyVar( pEnd, start ) ) {
@@ -1910,7 +1829,6 @@ int IsFilePathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 {
 	struct config_element_tag *pEnd;
 	PTEXT pWords = NULL;
-	INDEX idx;
 	if( pce->type != CONFIG_FILEPATH )
 		return FALSE;
 	if( pce->data[0].multiword.pWords )
@@ -1918,11 +1836,9 @@ int IsFilePathVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		Release( pce->data[0].multiword.pWords );
 		pce->data[0].multiword.pWords = NULL;
 	}
-	LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ) {
-		pEnd->flags.matched = 0;
-	}
 	while( *start )
 	{
+		INDEX idx;
 		LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
 		{
 			if( IsAnyVar( pEnd, start ) ) {
@@ -2052,6 +1968,9 @@ void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 		{
 			if( pce->data[0].Process)
 			{
+#ifdef NEED_ASSEMBLY_CALLER
+				CallProcedure( ppsvUser, pce );
+#else
 				PCONFIG_ELEMENT pcePush = pce->prior;
 				// push arguments in reverse order...
 				//lprintf( "Calling process... " );
@@ -2090,7 +2009,6 @@ void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 						break;
 					case CONFIG_MULTI_WORD:
 					case CONFIG_FILEPATH:
-
 						PushArgument( parampack, CONFIG_ARG_STRING, CTEXTSTR, pcePush->data[0].multiword.pWords );
 						break;
 					default:
@@ -2104,6 +2022,7 @@ void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 				else
 					(*ppsvUser) = pce->data[0].Process( *ppsvUser, pass_args(parampack) );
 				PopArguments( parampack );
+#endif
 				break; // done, end of list, please leave and do not iterate further!
 			}
 		}
@@ -2128,72 +2047,26 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 		{
 			PCONFIG_TEST Check = &pch->ConfigTestRoot;
 			PTEXT word = line;
-			PTEXT this_word;
-			struct config_check *this_check;
-			struct config_check tmp_check;
-			EmptyDataList( &pch->possible_checks ); // empty the data list
-
-			tmp_check.multiWords = NULL;
-			tmp_check.word = word;
-			tmp_check.Check = Check;
-			AddDataItem( &pch->possible_checks, &tmp_check );
-			while( 1 )//word && Check )
+			while( word && Check )
 			{
-				INDEX check_idx; 
-				check_idx = 0;
-				pch->current_possible = this_check = (struct config_check*)GetDataItem( &pch->possible_checks, check_idx );
-				if( this_check 
-				   && this_check->Check ) // otherwise it's a multiword part...
-				{
 					INDEX idx;
 					PCONFIG_ELEMENT pce = NULL;
-					if( this_check->multiWords )
-					{
-						INDEX idx2;
-						struct config_multi_word *cmw;
-						DATA_FORALL( this_check->multiWords, idx2, struct config_multi_word*, cmw ){
-							cmw->pce->data->multiword.pWords = cmw->matched;
-							cmw->pce->data->multiword.pWhichEnd = cmw->pce;
-							cmw->pce->next = cmw->pce->next;
-						}
-					}					
-					Check = this_check->Check;
-					// keep this_word to reset the word for the variable check vs constant check
-					this_word = word = this_check->word;
-					// remove this item; if it further matches another state will be added.
-
-					//if( g.flags.bLogTrace )
+					if( g.flags.bLogTrace )
 						lprintf( "Test word (%s) vs constant elements", GetText( word ) );
 					LIST_FORALL( Check->pConstElementList, idx, PCONFIG_ELEMENT, pce )
 					{
-						//if( g.flags.bLogTrace )
+						if( g.flags.bLogTrace )
 							lprintf( "Is %s == %s?", GetText( word ), GetText( pce->data[0].pText ) );
 						if( IsConstText( pce, &word ) )
 						{
-							//Check = pce->next;
-							if( this_check->multiWords ) {
-								INDEX idx2;
-								struct config_multi_word* cmw;
-								DATA_FORALL( this_check->multiWords, idx2, struct config_multi_word*, cmw ) {
-									Hold( cmw->matched );
-								}
-								lprintf( "Hold list %p:", this_check->multiWords );
-								tmp_check.multiWords = (PDATALIST)Hold( this_check->multiWords );
-							}
-							else tmp_check.multiWords = NULL;
-							tmp_check.word = word;
-							tmp_check.Check = pce->next;
-							AddDataItem( &pch->possible_checks, &tmp_check );
-							word = this_word;
-							// all constants that matched would be this check... 
+							Check = pce->next;
 							break;
 						}
 					}
-					//if( g.flags.bLogTrace )
+					if( g.flags.bLogTrace )
 						lprintf( "Test word (%s) vs variable elements", GetText( word ) );
 					{
-						// even if it matched a static comparison, it might also match a variable argument...
-						// if( !pce )
+						if( !pce )
 						{
 							int found = 0;
 							LIST_FORALL( Check->pVarElementList, idx, PCONFIG_ELEMENT, pce )
@@ -2206,36 +2079,14 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 								}
 								if( IsAnyVar( pce, &word ) )
 								{
-									if( g.flags.bLogTrace ) lprintf( "Yes, it is (one of those)." );
-									if( !word && !pce->next ) {
-										if( g.flags.bLogTrace ) lprintf( "And it completed a match." );
-										DoProcedure( &pch->psvUser, Check );
-										return;
-									} else {
-										found++;
-										if( pce->type != CONFIG_MULTI_WORD ) {
-											// multiword adds combinations itself...
-											if( this_check->multiWords ) {
-												INDEX idx2;
-												struct config_multi_word* cmw;
-												DATA_FORALL( this_check->multiWords, idx2, struct config_multi_word*, cmw ) {
-													Hold( cmw->matched );
-												}
-												lprintf( "Hold list %p:", this_check->multiWords );
-												tmp_check.multiWords = (PDATALIST)Hold( this_check->multiWords );
-											}
-											else tmp_check.multiWords = NULL;
-											tmp_check.word = word;
-											tmp_check.Check = pce->next;
-											AddDataItem( &pch->possible_checks, &tmp_check );
-										}
-										word = this_word;
-									}
+									if( g.flags.bLogTrace )
+										lprintf( "Yes, it is any var." );
 
+									found = 1;
 									if( g.flags.bLogTrace )
 										lprintf( "pce->next is %p  word is %p(%s)", pce->next, word, GetText( word ) );
-									//Check = pce->next;
-									//break;
+									Check = pce->next;
+									break;
 								}
 								else if( g.flags.bLogTrace )
 								{
@@ -2243,11 +2094,9 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 								}
 							}
 							if( g.flags.bLogTrace )
-								lprintf( "is %s (%d times)", found?"found":"Not found", found );
-
-							if( pch->possible_checks->Cnt == 0 )
+								lprintf( "is %s", found?"found":"Not found" );
+							if( !found )
 							{
-								// unhandled can't really be handled here...
 								PTEXT pLine = BuildLine( line );
 								if( g.flags.bLogTrace )
 									lprintf( "Line not matched[%s]", GetText( pLine ) );
@@ -2258,28 +2107,13 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 									if( g.flags.bLogUnhandled )
 										xlprintf(LOG_NOISE)( "Unknown Configuration Line(No unhandled proc): %s", GetText( pLine ) );
 								}
+
 								break;
 							}
 						}
 					}
-
-					if( this_check->multiWords ){
-						struct config_multi_word* check;
-						INDEX idx;
-						DATA_FORALL( this_check->multiWords, idx, struct config_multi_word*, check ){
-							ReleaseEx( check->matched DBG_SRC );
-						}
-						lprintf( "Delete list %p:", this_check->multiWords );
-						DeleteDataList( &this_check->multiWords );
-					}
-					DeleteDataItem( &pch->possible_checks, check_idx );
-
-				} else {
-					Check = NULL;
-					break;
-				}
 			}
-			if( word && !Check )
+			if( !Check )
 			{
 				lprintf( "Fell off the end the line processor, still have data..." );
 				{
@@ -2294,11 +2128,12 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					}
 				}
 			}
-			else if( !word && Check )	// otherwise we may have bailed early.
+			else if( !word )	// otherwise we may have bailed early.
 			{
 				// check here for Procedure at end of line (word == NULL)
 				DoProcedure( &pch->psvUser, Check );
 			}
+#if 0
 			else
 			{
 				if( g.flags.bLogTrace )
@@ -2315,6 +2150,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					}
 				}
 			}
+#endif
 		}
 
 static void TestUnicode( PCONFIG_HANDLER pch )
@@ -2496,7 +2332,6 @@ static PCONFIG_ELEMENT NewConfigTestElement( PCONFIG_HANDLER pch )
 
 	PCONFIG_ELEMENT pceNew = GetFromSet( CONFIG_ELEMENT, &pch->elements ); //&(PCONFIG_ELEMENT)Allocate( sizeof( CONFIG_ELEMENT ) );
 	MemSet( pceNew, 0, sizeof( CONFIG_ELEMENT ) );
-	pceNew->pch = pch;
 	return pceNew;
 }
 
@@ -2675,7 +2510,7 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 	pWord = pLine;
 	while( pWord )
 	{
-		//if( g.flags.bLogTrace )
+		if( g.flags.bLogTrace )
 			lprintf( "Evaluating %s ... ", GetText( pWord ) );
 		if( flags.vartag )
 		{
@@ -2783,8 +2618,6 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 							}
 						}
 						if( !pEnd ){
-							pceNew->Check = NULL;
-							pceNew->word_element = pcePrior;
 							AddLink( &pcePrior->data[0].multiword.pEnds, pceNew );
 							pceNew->flags.multiword_terminator = 1;
 							pceNew->prior = pcePrior;
@@ -2817,8 +2650,6 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 					{
 						if( g.flags.bLogTrace )
 							lprintf( "Also Storing as end..." );
-						pceNew->Check = NULL;
-						pceNew->word_element = pcePrior;
 						AddLink( &pcePrior->data[0].singleword.pEnds, pceNew );
 						pceNew->flags.singleword_terminator = 1;
 						flags.also_store_as_end = 0;
@@ -2853,8 +2684,6 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 							if( g.flags.bLogTrace )
 								lprintf( "Adding into a new config test" );
 //#endif
-							pceNew->Check = pct;
-							pceNew->word_element = NULL;
 							AddLink( &pct->pVarElementList, pceNew );
 							pct = pceNew->next = NewConfigTest( pch );
 							pceNew->prior = pcePrior;
@@ -2909,18 +2738,16 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 						if( !pEnd ){
 							if( g.flags.bLogTrace )
 								lprintf( "Added new terminator branch... pce needs a pct" );
-							pceNew->Check = NULL;
-							pceNew->word_element = pcePrior;
 							AddLink( &pcePrior->data[0].multiword.pEnds, pceNew );
 							pceNew->flags.multiword_terminator = 1;
 							pceNew->prior = pcePrior;
-							pct = pceNew->next = NewConfigTest( pch );
+                     pct = pceNew->next = NewConfigTest( pch );
 						}
 						else{
-							// use existing one, so delete this one.
-							DestroyConfigElement( pch, pceNew );
+                     // use existing one, so delete this one.
+                     DestroyConfigElement( pch, pceNew );
 							pceNew = pEnd;
-							pct = pEnd->next;
+                     pct = pEnd->next;
 							if( g.flags.bLogTrace )
 								lprintf( "Recovered an old pce to resume from...%p", pEnd );
 						}
@@ -2949,8 +2776,6 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 						{
 							if( g.flags.bLogTrace )
 								lprintf( "Also Storing as end... %s", GetText( pceNew->data[0].pText ) );
-							pceNew->Check = NULL;
-							pceNew->word_element = pcePrior;
 							AddLink( &pcePrior->data[0].singleword.pEnds, pceNew );
 							pceNew->flags.singleword_terminator = 1;
 							flags.also_store_as_end = 0;
@@ -2966,8 +2791,6 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 						{
 							if( g.flags.bLogTrace )
 								lprintf( "Also Storing as end... %s", GetText( pceNew->data[0].pText ) );
-							pceNew->Check = NULL;
-							pceNew->word_element = pcePrior;
 							AddLink( &pcePrior->data[0].singleword.pEnds, pceNew );
 							pceNew->flags.singleword_terminator = 1;
 							flags.also_store_as_end = 0;
@@ -2975,8 +2798,6 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 
 						pceNew->type = CONFIG_TEXT;
 						pceNew->data[0].pText = SegDuplicate( pWord );
-						pceNew->Check = pct;
-						pceNew->word_element = NULL;
 						AddLink( &pct->pConstElementList, pceNew );
 						pct = pceNew->next = NewConfigTest( pch);
 						pceNew->prior = pcePrior;
@@ -2987,14 +2808,9 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 			}
 		}
 		pWord = NEXTLINE( pWord );
-		if( !pWord && flags.store_next_as_end ) {
-			flags.store_as_end = 1;
-		}
 	}
 	if( flags.store_as_end ) {
 		pceNew->type = CONFIG_NOTHING;
-		pceNew->Check = NULL;
-		pceNew->word_element = pcePrior;
 		AddLink( &pcePrior->data[0].multiword.pEnds, pceNew );
 		pceNew->flags.multiword_terminator = 1;
 		pceNew->prior = pcePrior;
@@ -3013,8 +2829,6 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 	// no need to update pcePrior - we're done.
 	pceNew->type = CONFIG_PROCEDURE;
 	pceNew->data[0].Process = Process;
-	pceNew->Check = pct;
-	pceNew->word_element = NULL;
 	AddLink( &pct->pVarElementList, pceNew );
 	return pceNew;
 }
@@ -3071,7 +2885,6 @@ CONFIGSCR_PROC( PCONFIG_HANDLER, CreateConfigurationEvaluator )( void )
 	}
 	pch = (PCONFIG_HANDLER)Allocate( sizeof( CONFIG_HANDLER ) );
 	MemSet( pch, 0, sizeof( *pch ) );
-	pch->possible_checks = CreateDataList( sizeof( struct config_check) );
 	// break input chunks into lines....
 	AddLink( &pch->filters, FilterLines );
 	SetLink( &pch->filter_data, FindLink( &pch->filters, (POINTER)FilterLines ), 0 );
@@ -3122,26 +2935,17 @@ void DestroyConfigElement( PCONFIG_HANDLER pch, PCONFIG_ELEMENT pce )
 	case CONFIG_SINGLE_WORD:
 		if( pce->data[0].pWord )
 			Release( pce->data[0].pWord );
-		{
-			struct config_element_tag *pEnd;
-			INDEX idx;
-			if(0)
-			LIST_FORALL( pce->data[0].singleword.pEnds, idx, struct config_element_tag *, pEnd ) {
-#ifdef DEBUG_SAVE_CONFIG
-				lprintf( "Destroy config element %p", pEnd );
-#endif
-				DestroyConfigElement( pch, pEnd );
-			}
-		}
 		DeleteList( &pce->data[0].singleword.pEnds );
 		break;
 	case CONFIG_MULTI_WORD:
 		if( pce->data[0].multiword.pWords )
 			Release( pce->data[0].multiword.pWords );
-		if( pce->data[0].multiword.pEnds ) {
+		if( pce->data[0].multiword.pEnds )
+		{
 			struct config_element_tag *pEnd;
 			INDEX idx;
-			LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ) {
+			LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd )
+			{
 #ifdef DEBUG_SAVE_CONFIG
 				lprintf( "Destroy config element %p", pEnd );
 #endif
@@ -3217,7 +3021,6 @@ CONFIGSCR_PROC( void, DestroyConfigurationEvaluator )( PCONFIG_HANDLER pch )
 	lprintf( "Destroy evaluator %p", pch );
 #endif
 	DestroyConfigTest( pch, &pch->ConfigTestRoot, FALSE );
-	DeleteDataList( &pch->possible_checks );
 	{
 		INDEX idx;
 		PCONFIG_STATE state;
