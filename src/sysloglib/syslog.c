@@ -1527,8 +1527,13 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 	}
 	else
 		sourcefile[0] = 0;
-	if( (*syslog_local).flags.bLogThreadID )
+	if( (*syslog_local).flags.bLogThreadID ) {
+#ifdef WIN32
 		tnprintf( threadid, sizeof( threadid ), "%012" _64fX "~", GetThisThreadID() );
+#else
+		tnprintf( threadid, sizeof( threadid ), "%012" _64fX ":%d~", GetThisThreadID(), (int)(GetThisThreadID()&0x7FFFFFFF) );
+#endif
+	}
 	if( pFile )
 		tnprintf( buffer, sizeof( buffer )
 				  , "%s%s%s%s%s%s%s"
