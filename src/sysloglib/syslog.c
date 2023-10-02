@@ -1812,8 +1812,13 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 			ofs = 0;
 		// argsize - the program's giving us file and line
 		// debug for here or not, this must be used.
-		if( (*syslog_local).flags.bLogThreadID )
+		if( (*syslog_local).flags.bLogThreadID ) {
+#ifdef WIN32
 			tnprintf( threadid, sizeof( threadid ), "%012" _64fX "~", GetThisThreadID() );
+#else
+			tnprintf( threadid, sizeof( threadid ), "%012" _64fX ":%d~", GetThisThreadID(), (int)(GetThisThreadID()&0x7FFFFFFF) );
+#endif
+		}
 #ifdef UNDER_CE
 		tnprintf( buffer + ofs, 4095 - ofs, "%s%s%s"
 				  , (*syslog_local).flags.bLogThreadID?threadid:""
