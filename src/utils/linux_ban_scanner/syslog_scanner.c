@@ -13,6 +13,8 @@ struct local_ban_scanner
 	TEXTSTR lastban;
 	TEXTSTR DSN;
 	PODBC db;
+	uint64_t bad_pid[16];
+	int next_bad_pid;
 } lbs;
 
 
@@ -60,6 +62,7 @@ static void AddBan( const char *IP )
 static uintptr_t CPROC failed_pass( uintptr_t psv, arg_list args )
 {
    PARAM( args, CTEXTSTR, leader );
+   PARAM( args, int64_t, pid );
    PARAM( args, CTEXTSTR, user );
    PARAM( args, CTEXTSTR, ip_addr );
 
@@ -71,6 +74,7 @@ static uintptr_t CPROC failed_pass( uintptr_t psv, arg_list args )
 static uintptr_t CPROC failed_pass2( uintptr_t psv, arg_list args )
 {
    PARAM( args, CTEXTSTR, leader );
+   PARAM( args, int64_t, pid );
    PARAM( args, CTEXTSTR, user );
    PARAM( args, CTEXTSTR, ip_addr );
    PARAM( args, int64_t, port );
@@ -83,9 +87,10 @@ static uintptr_t CPROC failed_pass2( uintptr_t psv, arg_list args )
 static uintptr_t CPROC failed_pass3( uintptr_t psv, arg_list args )
 {
    PARAM( args, CTEXTSTR, leader );
+   PARAM( args, int64_t, pid );
    PARAM( args, CTEXTSTR, ip_addr );
    PARAM( args, int64_t, port );
-lprintf( "got good? %s", ip_addr );
+   //lprintf( "got good? %s", ip_addr );
    AddBan( ip_addr );
 
    return psv;
@@ -101,9 +106,32 @@ static uintptr_t CPROC failed_pass0( uintptr_t psv, arg_list args )
    return psv;
 }
 
+static uintptr_t CPROC failed_key( uintptr_t psv, arg_list args ){
+	PARAM( args, CTEXTSTR, leader );
+	PARAM( args, int64_t, pid );
+	lbs.bad_pid[lbs.next_bad_pid++] = pid;
+	if( lbs.next_bad_pid >= (sizeof( lbs.bad_pid )/sizeof( lbs.bad_pid[0])) )
+		lbs.next_bad_pid = 0;
+}
+
+static uintptr_t CPROC failed_key_close( uintptr_t psv, arg_list args ){
+	PARAM( args, CTEXTSTR, leader );
+	PARAM( args, int64_t, pid );
+	PARAM( args, CTEXTSTR, ip_addr );
+	PARAM( args, int64_t, port );
+	int n;
+	for( n = 0; n < (sizeof( lbs.bad_pid )/sizeof( lbs.bad_pid[0])); n++ ) {
+		if( pid === lbs.bad_pid[n] ) break;
+	}
+	if( n < (sizeof( lbs.bad_pid )/sizeof( lbs.bad_pid[0])) ) {
+		AddBan( ip_addr );
+	}
+}
+
 static uintptr_t CPROC failed_user( uintptr_t psv, arg_list args )
 {
 	PARAM( args, CTEXTSTR, leader );
+	PARAM( args, int64_t, pid );
 	PARAM( args, CTEXTSTR, leader2 );
 	PARAM( args, CTEXTSTR, user );
 	PARAM( args, CTEXTSTR, ip_addr );
@@ -131,21 +159,28 @@ static uintptr_t CPROC Unhandled( uintptr_t psv, CTEXTSTR line )
 static void InitBanScan( void )
 {
 	lbs.pch_scanner = CreateConfigurationHandler();
-	AddConfigurationMethod( lbs.pch_scanner, "%m Did not receive identification string from %w", failed_user_single );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Did not receive identification string from %w", failed_user_single );
 
-	AddConfigurationMethod( lbs.pch_scanner, "%m Disconnected from %w port %w [preauth]", failed_pass3 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Did not receive identification string from %w port %i", failed_pass3 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for invalid user %w from %w port %i ssh2", failed_pass2 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Connection closed by %w port %w [preauth]", failed_pass3 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Unable to negotiate with %w port %w: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1", failed_pass3 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Unable to negotiate with %w port %w: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1 [preauth]", failed_pass3 );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Bad protocol version identification %m from  %w port %i", failed_pass );
-	AddConfigurationMethod( lbs.pch_scanner, "%m fatal: Timeout before authentication for %w port %i", failed_pass3 );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Disconnected from %w port %w [preauth]", failed_pass3 );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Did not receive identification string from %w port %i", failed_pass3 );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Failed password for invalid user %w from %w port %i ssh2", failed_pass2 );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Connection closed by %w port %w [preauth]", failed_pass3 );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Unable to negotiate with %w port %w: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1", failed_pass3 );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Unable to negotiate with %w port %w: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1 [preauth]", failed_pass3 );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Bad protocol version identification %m from  %w port %i", failed_pass );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: fatal: Timeout before authentication for %w port %i", failed_pass3 );
 
-	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for %w from %w port %i ssh2", failed_pass );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Failed password for %w from %w", failed_pass );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Invalid user %w from %w", failed_pass );
-	AddConfigurationMethod( lbs.pch_scanner, "%m Invalid user %w from %w port %i", failed_pass );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Failed password for %w from %w port %i ssh2", failed_pass );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Failed password for %w from %w", failed_pass );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Invalid user %w from %w", failed_pass );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Invalid user %w from %w port %i", failed_pass );
+
+//Sep 25 20:14:29 tower sshd[2659362]: error: kex_exchange_identification: Connection closed by remote host
+//Sep 25 20:14:29 tower sshd[2659362]: Connection closed by 156.59.134.94 port 53812
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: error: kex_exchange_identification: Connection closed by remote host", failed_key );
+	AddConfigurationMethod( lbs.pch_scanner, "%m sshd[%i]: Connection closed by %w port %i", failed_key_close );
+
+//sshd[2662582]: banner exchange: Connection from 107.170.230.26 port 42576: invalid format
 
 
 	//AddConfigurationMethod( lbs.pch_scanner, "%m sshd %m: Received disconnect from %i", failed_pass2 );
