@@ -2874,6 +2874,7 @@ static void* CPROC sack_filesys_open( uintptr_t psv, const char* filename, const
 	result = _wfopen( wfilename, wopts );
 	Deallocate( wchar_t*, wfilename );
 	Deallocate( wchar_t*, wopts );
+	if( result )
 	{
 		int h = fileno( (FILE*)result );
 		if( h >= 0 ) {
