@@ -2198,107 +2198,111 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					Check = this_check->Check;
 					// keep this_word to reset the word for the variable check vs constant check
 					this_word = word = this_check->word;
-					if( !word ) break;
-					// remove this item; if it further matches another state will be added.
-
-					if( g.flags.bLogTrace && Check->pConstElementList )
-						lprintf( "Test word (%s) vs constant elements", GetText( word ) );
-					LIST_FORALL( Check->pConstElementList, idx, PCONFIG_ELEMENT, pce )
-					{
-						if( g.flags.bLogTrace )
-							lprintf( "Is %s == %s?", GetText( word ), GetText( pce->data[0].pText ) );
-						if( IsConstText( pce, &word ) )
+					if( !word ) {
+						//lprintf( "Could have just matched to end of line and all is well..." );
+						DoProcedure( &pch->psvUser, Check );
+					} else {
+						// remove this item; if it further matches another state will be added.
+						
+						if( g.flags.bLogTrace && Check->pConstElementList )
+							lprintf( "Test word (%s) vs constant elements", GetText( word ) );
+						LIST_FORALL( Check->pConstElementList, idx, PCONFIG_ELEMENT, pce )
 						{
-							//Check = pce->next;
-							if( this_check->multiWords ) {
-								INDEX idx2;
-								struct config_multi_word* cmw;
-								DATA_FORALL( this_check->multiWords, idx2, struct config_multi_word*, cmw ) {
-									Hold( cmw->matched );
-								}
-								//lprintf( "Hold list %p:", this_check->multiWords );
-								tmp_check.multiWords = (PDATALIST)Hold( this_check->multiWords );
-							}
-							else tmp_check.multiWords = NULL;
-							tmp_check.word = word;
-							tmp_check.Check = pce->next;
-							AddDataItem( &pch->possible_checks, &tmp_check );
-							word = this_word;
-							// all constants that matched would be this check... 
-							break;
-						}
-					}
-					if( g.flags.bLogTrace && Check->pVarElementList )
-						lprintf( "Test word (%s) vs variable elements", GetText( word ) );
-					{
-						// even if it matched a static comparison, it might also match a variable argument...
-						// if( !pce )
-						{
-							int found = 0;
-							LIST_FORALL( Check->pVarElementList, idx, PCONFIG_ELEMENT, pce )
-							{
-								// end of the line, match should be the process...
-								if( g.flags.bLogTrace )
-								{
-									lprintf( "Is %s a Thing", GetText( word ) );
-									LogElement( "Thing is", pce );
-								}
-								if( IsAnyVar( pce, &word ) )
-								{
-									if( g.flags.bLogTrace ) lprintf( "Yes, it is (one of those)." );
-									if( !word && !pce->next ) {
-										if( g.flags.bLogTrace ) lprintf( "And it completed a match." );
-										DoProcedure( &pch->psvUser, Check );
-										return;
-									} else {
-										found++;
-										if( pce->type != CONFIG_MULTI_WORD ) {
-											// multiword adds combinations itself...
-											if( this_check->multiWords ) {
-												INDEX idx2;
-												struct config_multi_word* cmw;
-												DATA_FORALL( this_check->multiWords, idx2, struct config_multi_word*, cmw ) {
-													Hold( cmw->matched );
-												}
-												//lprintf( "Hold list %p:", this_check->multiWords );
-												tmp_check.multiWords = (PDATALIST)Hold( this_check->multiWords );
-											}
-											else tmp_check.multiWords = NULL;
-											tmp_check.word = word;
-											tmp_check.Check = pce->next;
-											AddDataItem( &pch->possible_checks, &tmp_check );
-										}
-										word = this_word;
-									}
-
-									if( g.flags.bLogTrace )
-										lprintf( "pce->next is %p  word is %p(%s)", pce->next, word, GetText( word ) );
-									//Check = pce->next;
-									//break;
-								}
-								else if( g.flags.bLogTrace )
-								{
-									lprintf( "But it's not anything I know." );
-								}
-							}
 							if( g.flags.bLogTrace )
-								lprintf( "is %s (%d times)", found?"found":"Not found", found );
-
-							if( pch->possible_checks->Cnt == 0 )
+								lprintf( "Is %s == %s?", GetText( word ), GetText( pce->data[0].pText ) );
+							if( IsConstText( pce, &word ) )
 							{
-								// unhandled can't really be handled here...
-								PTEXT pLine = BuildLine( line );
-								if( g.flags.bLogTrace )
-									lprintf( "Line not matched[%s]", GetText( pLine ) );
-								if( pch->Unhandled )
-									pch->Unhandled( pch->psvUser, GetText( pLine ) );
-								else
-								{
-									if( g.flags.bLogUnhandled )
-										xlprintf(LOG_NOISE)( "Unknown Configuration Line(No unhandled proc): %s", GetText( pLine ) );
+								//Check = pce->next;
+								if( this_check->multiWords ) {
+									INDEX idx2;
+									struct config_multi_word* cmw;
+									DATA_FORALL( this_check->multiWords, idx2, struct config_multi_word*, cmw ) {
+										Hold( cmw->matched );
+									}
+									//lprintf( "Hold list %p:", this_check->multiWords );
+									tmp_check.multiWords = (PDATALIST)Hold( this_check->multiWords );
 								}
-								LineRelease( pLine );
+								else tmp_check.multiWords = NULL;
+								tmp_check.word = word;
+								tmp_check.Check = pce->next;
+								AddDataItem( &pch->possible_checks, &tmp_check );
+								word = this_word;
+								// all constants that matched would be this check... 
 								break;
+							}
+						}
+						if( g.flags.bLogTrace && Check->pVarElementList )
+							lprintf( "Test word (%s) vs variable elements", GetText( word ) );
+						{
+							// even if it matched a static comparison, it might also match a variable argument...
+							// if( !pce )
+							{
+								int found = 0;
+								LIST_FORALL( Check->pVarElementList, idx, PCONFIG_ELEMENT, pce )
+								{
+									// end of the line, match should be the process...
+									if( g.flags.bLogTrace )
+									{
+										lprintf( "Is %s a Thing", GetText( word ) );
+										LogElement( "Thing is", pce );
+									}
+									if( IsAnyVar( pce, &word ) )
+									{
+										if( g.flags.bLogTrace ) lprintf( "Yes, it is (one of those)." );
+										if( !word && !pce->next ) {
+											if( g.flags.bLogTrace ) lprintf( "And it completed a match." );
+											DoProcedure( &pch->psvUser, Check );
+											return;
+										} else {
+											found++;
+											if( pce->type != CONFIG_MULTI_WORD ) {
+												// multiword adds combinations itself...
+												if( this_check->multiWords ) {
+													INDEX idx2;
+													struct config_multi_word* cmw;
+													DATA_FORALL( this_check->multiWords, idx2, struct config_multi_word*, cmw ) {
+														Hold( cmw->matched );
+													}
+													//lprintf( "Hold list %p:", this_check->multiWords );
+													tmp_check.multiWords = (PDATALIST)Hold( this_check->multiWords );
+												}
+												else tmp_check.multiWords = NULL;
+												tmp_check.word = word;
+												tmp_check.Check = pce->next;
+												AddDataItem( &pch->possible_checks, &tmp_check );
+											}
+					        					word = this_word;
+										}
+						
+										if( g.flags.bLogTrace )
+											lprintf( "pce->next is %p  word is %p(%s)", pce->next, word, GetText( word ) );
+										//Check = pce->next;
+										//break;
+									}
+									else if( g.flags.bLogTrace )
+									{
+										lprintf( "But it's not anything I know." );
+									}
+								}
+					        		if( g.flags.bLogTrace )
+									lprintf( "is %s (%d times)", found?"found":"Not found", found );
+						
+								if( pch->possible_checks->Cnt == 0 )
+								{
+									// unhandled can't really be handled here...
+									PTEXT pLine = BuildLine( line );
+									if( g.flags.bLogTrace )
+										lprintf( "Line not matched[%s]", GetText( pLine ) );
+									if( pch->Unhandled )
+										pch->Unhandled( pch->psvUser, GetText( pLine ) );
+									else
+									{
+										if( g.flags.bLogUnhandled )
+											xlprintf(LOG_NOISE)( "Unknown Configuration Line(No unhandled proc): %s", GetText( pLine ) );
+									}
+									LineRelease( pLine );
+									break;
+								}
 							}
 						}
 					}
@@ -2338,7 +2342,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 			else if( !word && Check )	// otherwise we may have bailed early.
 			{
 				// check here for Procedure at end of line (word == NULL)
-				DoProcedure( &pch->psvUser, Check );
+				//DoProcedure( &pch->psvUser, Check );
 			}
 			else
 			{
