@@ -1684,6 +1684,7 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 					odbc->flags.bConnected = TRUE;
 					odbc->flags.bSQLite_native = 1;
 					ExtendConnection( odbc );
+					if( odbc->onOpen ) odbc->onOpen( odbc->psvOnOpen, odbc );
 				}
 			}
 #endif
