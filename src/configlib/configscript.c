@@ -2075,15 +2075,19 @@ int IsAnyVarEx( PCONFIG_ELEMENT pce, PTEXT *start DBG_PASS )
 //#define PopArguments( sz ) Release( parampack )
 //---------------------------------------------------------------------
 
-void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
+void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check, PTEXT line )
 {
 	INDEX idx;
 	PCONFIG_ELEMENT pce = NULL;
 	va_args parampack;
+	PTEXT builtLine = BuildLine( line );
+	TEXTSTR textLine = GetText( builtLine );
 #ifdef __WATCOMC__
 	va_args save_parampack;
 #endif
 	init_args( parampack );
+
+	PushArgument( parampack, CONFIG_ARG_STRING, CTEXTSTR, textLine );
 	LIST_FORALL( Check->pVarElementList, idx, PCONFIG_ELEMENT, pce )
 	{
 		if( pce->type == CONFIG_PROCEDURE || pce->type == CONFIG_PROCEDURE_EX )
@@ -2160,6 +2164,7 @@ void DoProcedure( uintptr_t *ppsvUser, PCONFIG_TEST Check )
 			}
 		}
 	}
+	LineRelease( builtLine );
 }
 
 void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
@@ -2202,7 +2207,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					if( !word ) {
 						//lprintf( "Could have just matched to end of line and all is well..." );
 						processed = TRUE;
-						DoProcedure( &pch->psvUser, Check );
+						DoProcedure( &pch->psvUser, Check, line );
 					} else {
 						// remove this item; if it further matches another state will be added.
 						
@@ -2254,7 +2259,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 										if( !word && !pce->next ) {
 											if( g.flags.bLogTrace ) lprintf( "And it completed a match." );
 											processed = TRUE;
-											DoProcedure( &pch->psvUser, Check );
+											DoProcedure( &pch->psvUser, Check, line );
 											return;
 										} else {
 											found++;
