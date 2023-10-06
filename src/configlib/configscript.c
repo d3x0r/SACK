@@ -2167,6 +2167,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 			PCONFIG_TEST Check = &pch->ConfigTestRoot;
 			PTEXT word = line;
 			PTEXT this_word;
+			LOGICAL processed = FALSE;
 			struct config_check *this_check;
 			struct config_check tmp_check;
 			EmptyDataList( &pch->possible_checks ); // empty the data list
@@ -2200,6 +2201,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					this_word = word = this_check->word;
 					if( !word ) {
 						//lprintf( "Could have just matched to end of line and all is well..." );
+						processed = TRUE;
 						DoProcedure( &pch->psvUser, Check );
 					} else {
 						// remove this item; if it further matches another state will be added.
@@ -2251,6 +2253,7 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 										if( g.flags.bLogTrace ) lprintf( "Yes, it is (one of those)." );
 										if( !word && !pce->next ) {
 											if( g.flags.bLogTrace ) lprintf( "And it completed a match." );
+											processed = TRUE;
 											DoProcedure( &pch->psvUser, Check );
 											return;
 										} else {
@@ -2323,45 +2326,16 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					break;
 				}
 			}
-			if( word && !Check )
+			if( !processed )
 			{
-				lprintf( "Fell off the end the line processor, still have data..." );
-				{
+				//lprintf( "Fell off the end the line processor, still have data..." );
+				if( pch->Unhandled ) {
 					PTEXT pLine = BuildLine( line );
-					if( pch->Unhandled )
-						pch->Unhandled( pch->psvUser, GetText( pLine ) );
-					else
-					{
-						// I didn't want to get rid of this...
-						// but ahh well, it's noisy and it works.
-						//lprintf( "Unknown Configuration Line: %s", GetText( pLine ) );
-					}
+					pch->Unhandled( pch->psvUser, GetText( pLine ) );
 					LineRelease( pLine );
 				}
 			}
-			else if( !word && Check )	// otherwise we may have bailed early.
-			{
-				// check here for Procedure at end of line (word == NULL)
-				//DoProcedure( &pch->psvUser, Check );
-			}
-			else
-			{
-				if( g.flags.bLogTrace )
-					lprintf( "line partially matched... need to recover and re-evaluate.." );
-				{
-					PTEXT pLine = BuildLine( line );
-					if( pch->Unhandled )
-						pch->Unhandled( pch->psvUser, GetText( pLine ) );
-					else
-					{
-						// I didn't want to get rid of this...
-						// but ahh well, it's noisy and it works.
-						//lprintf( "Unknown Configuration Line: %s", GetText( pLine ) );
-					}
-					LineRelease( pLine );
-				}
-			}
-			
+			// cleanup any leftover states			
 			while( pch->possible_checks->Cnt ) {
 				this_check = (struct config_check*)GetDataItem( &pch->possible_checks, 0 );
 				if( this_check->multiWords ){
