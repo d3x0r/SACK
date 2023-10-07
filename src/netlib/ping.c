@@ -231,6 +231,10 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
        }
 		 return FALSE;
 		}
+	{
+		// promiscuous
+		//WSAIoctl( rawSocket, SIO_RCV_ALL, NULL, 0, NULL, cbOutBuffer, lpcbBytesReturned, NULL, NULL );
+	}
 #endif
    }
 
@@ -274,7 +278,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 #if defined (__LINUX__)
 #define IP_TTL 2
 #else
-#define IP_TTL	7
+#define IP_TTL 4
 #endif
 #endif
          setsockopt( rawSocket, IPPROTO_IP, IP_TTL, (const char*)&i, sizeof(int));
@@ -527,8 +531,8 @@ int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,struct sockaddr_in *lpstToAddr)
 	echoReq.icmpHdr.Type		= ICMP_ECHOREQ;
 	echoReq.icmpHdr.Code		= 0;
 	echoReq.icmpHdr.Checksum	= 0;
-	echoReq.icmpHdr.ID			= (uint16_t)(nId++);
-	echoReq.icmpHdr.Seq			= (uint16_t)(nSeq++);
+	echoReq.icmpHdr.ID		= (uint16_t)(nId++);
+	echoReq.icmpHdr.Seq		= (uint16_t)(nSeq++);
 
 	// Fill in some data to send
 	for (nRet = 0; nRet < REQ_DATASIZE; nRet++)
@@ -593,7 +597,7 @@ int RecvEchoReply(PVARTEXT pvtResult, SOCKET s, struct sockaddr_in *lpsaFrom, ui
 // What happened?
 void ReportError(PVARTEXT pInto, CTEXTSTR pWhere)
 {
-    vtprintf( pInto, "\n%s error: %d\n",
+	vtprintf( pInto, "\n%s error: %d\n",
                             pWhere, WSAGetLastError());
 }
 
@@ -608,7 +612,7 @@ int WaitForEchoReply(SOCKET s, uint32_t dwTime)
 	FD_ZERO( &readfds );
 	FD_SET( s, &readfds );
 	Timeout.tv_sec = dwTime / 1000; // longer than a second is too long
-    Timeout.tv_usec = ( dwTime % 1000 ) * 1000;
+	Timeout.tv_usec = ( dwTime % 1000 ) * 1000;
 
 	return(select(1, &readfds, NULL, NULL, &Timeout));
 }
@@ -666,49 +670,3 @@ uint16_t in_cksum(uint16_t *addr, int len)
 }
 SACK_NETWORK_NAMESPACE_END
 
-//#endif
-// $Log: ping.c,v $
-// Revision 1.15  2005/01/27 07:37:11  panther
-// Linux cleaned.
-//
-// Revision 1.14  2003/11/09 03:32:15  panther
-// Added some address functions to set port and override default port
-//
-// Revision 1.13  2003/10/27 16:41:37  panther
-// Go to standard abstract ThreadTO instead of CreateThread
-//
-// Revision 1.12  2002/12/22 00:14:11  panther
-// Cleanup function declarations and project defines.
-//
-// Revision 1.11  2002/11/24 21:37:41  panther
-// Mods - network - fix server->accepted client method inheritance
-// display - fix many things
-// types - merge chagnes from verious places
-// ping - make function result meaningful yes/no
-// controls - fixes to handle lack of image structure
-// display - fixes to handle moved image structure.
-//
-// Revision 1.10  2002/11/21 00:50:57  jim
-// Made result of ping be useful - TRUE if result, FALSE if no result.
-//
-// Revision 1.9  2002/10/09 13:16:02  panther
-// Support for linux shared memory mapping.
-// Support for better linux compilation of configuration scripts...
-// Timers library is now Threads AND Timers.
-//
-// Revision 1.8  2002/06/02 11:46:01  panther
-// Modifications to build under MSVC
-// Added MSVC project files.
-//
-// Revision 1.7  2002/04/19 18:09:51  panther
-// Unix cleanup of massive changes....
-//
-// Revision 1.6  2002/04/18 15:13:55  panther
-// Added per client cricticalsection locked(unused)
-// Added timers for the pending closes (mostly)
-// Fixed minor warning in ping.c (no type default int, missing prototypes)
-//
-// Revision 1.5  2002/04/18 15:01:42  panther
-// Added Log History
-// Stage 1: Delay schedule closes - only network thread will close.
-//
