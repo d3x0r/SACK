@@ -121,7 +121,7 @@ static uintptr_t CPROC failed_key_close( uintptr_t psv, arg_list args ){
 	PARAM( args, int64_t, port );
 	int n;
 	for( n = 0; n < (sizeof( lbs.bad_pid )/sizeof( lbs.bad_pid[0])); n++ ) {
-		if( pid === lbs.bad_pid[n] ) break;
+		if( pid == lbs.bad_pid[n] ) break;
 	}
 	if( n < (sizeof( lbs.bad_pid )/sizeof( lbs.bad_pid[0])) ) {
 		AddBan( ip_addr );
