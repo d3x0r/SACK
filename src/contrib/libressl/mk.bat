@@ -1,0 +1,3 @@
+set VERSION=3.8.0
+cd 3.8.0
+c:/tools/ppc.exe -c -K -once -ssio -sd -Icrypto/. -Icrypto/asn1 -Icrypto/bn -Icrypto/dsa -Icrypto/ec -Icrypto/ecdsa -Icrypto/evp -Icrypto/modes -Iinclude/compat -Iinclude -Issl/. -Iinclude/compat -Iinclude -Issl/. -Iinclude/compat -Iinclude -p -oM:/sack/src/contrib/libressl/libressl.c -DLIBRESSL_INTERNAL -DOPENSSL_NO_HW_PADLOCK -D__BEGIN_HIDDEN_DECLS= -D__END_HIDDEN_DECLS= @M:/sack/amalgamate/libressl/libressl.manifest
