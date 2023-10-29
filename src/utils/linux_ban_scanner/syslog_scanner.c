@@ -35,10 +35,10 @@ static void AddBan( const char *IP )
 			if( result && result[0] ) {
 				SQLEndQuery( lbs.db );
 				printf( "already banned %s\n", IP );
-				SQLCommandf( lbd.db, "update banlist set last_hit=now() where id=%s", result[0] );
+				SQLCommandf( lbs.db, "update banlist set last_hit=now() where id=%s", result[0] );
 				return; // no need to include this one.
 			} else {
-				SQLCommandf( lbd.db, "insert into banlist (IP) values(`%s`)", IP );
+				SQLCommandf( lbs.db, "insert into banlist (IP) values(`%s`)", IP );
 			}
 		}
 	}
@@ -227,7 +227,7 @@ static void ReadConfig( void )
 }
 
 static void OpenDb() {
-	lbs.db = ConnectToDatabase( l.DSN );
+	lbs.db = ConnectToDatabase( lbs.DSN );
 	if( lbs.db ) {
 		PTABLE table = GetFieldsInSQL( "create table banlist (id int AUTO INCREMENT, IP char(32), created DATETIME DEFAULT CURRENT_TIMESTAMP, last_hit DATETIME  DEFAULT CURRENT_TIMESTAMP)", FALSE );
 		CheckODBCTable( lbs.db, table, CTO_MERGE );
