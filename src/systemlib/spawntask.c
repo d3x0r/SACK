@@ -998,6 +998,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 
 				execve( _program, (char *const*)args, environ );
 				//lprintf( "Direct execute failed... trying along path..." );
+				if( _program[0] != '/' )
 				{
 					char *tmp = strdup( getenv( "PATH" ) );
 					char *tok;
@@ -1009,10 +1010,11 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 						lprintf( "program:[%s]", fullname );
 						((char**)args)[0] = fullname;
 						execve( fullname, (char*const*)args, environ );
+						lprintf( "exec in PATH failed - and this is ALLL bad... %s %d", fullname, errno );
 					}
 					Release( tmp );
 				}
-				lprintf( "exec failed - and this is ALLL bad... %d", errno );
+				lprintf( "exec failed - and this is ALLL bad... %s %d", _program, errno );
 				if( !(flags & LPP_OPTION_INTERACTIVE ) ) {
 					if( OutputHandler ) {
 						close( task->hStdIn.pair[0] );
