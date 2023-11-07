@@ -155,6 +155,17 @@ EVP_PKEY *genKey() {
 
 #ifndef UNICODE
 
+typedef struct {
+  int verbose_mode;
+  int verify_depth;
+  int always_continue;
+} verify_mydata_t;
+#define verify_mydata_index 0
+
+// template
+verify_mydata_t verify_default = { FALSE, 100, FALSE };
+
+
 struct ssl_hostContext {
 	SSL_CTX* ctx;
 	struct internalCert* cert;
@@ -192,6 +203,7 @@ struct ssl_session {
 	uint8_t *dbuffer;
 	size_t dbuflen;
 	CRITICALSECTION csReadWrite;
+	verify_mydata_t verify_data;
 	//CRITICALSECTION csReadWrite;
 	//CRITICALSECTION csWrite;
 };
@@ -1146,21 +1158,12 @@ LOGICAL ssl_GetPrivateKey( PCLIENT pc, POINTER *keyoutbuf, size_t *keylen ) {
 }
 
 
-typedef struct {
-  int verbose_mode;
-  int verify_depth;
-  int always_continue;
-} mydata_t;
-int mydata_index;
-
-mydata_t xx = { FALSE, 100, FALSE };
-
 static int verify_cb( int preverify_ok, X509_STORE_CTX *ctx) {
     char    buf[256];
     X509   *err_cert;
     int     err, depth;
     SSL    *ssl;
-    mydata_t *mydata;
+    verify_mydata_t *mydata;
     err_cert = X509_STORE_CTX_get_current_cert(ctx);
     err = X509_STORE_CTX_get_error(ctx);
     depth = X509_STORE_CTX_get_error_depth(ctx);
@@ -1169,7 +1172,7 @@ static int verify_cb( int preverify_ok, X509_STORE_CTX *ctx) {
      * and the application specific data stored into the SSL object.
      */
     ssl = (SSL*)X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
-    mydata = (mydata_t*)SSL_get_ex_data(ssl, mydata_index);
+    mydata = (verify_mydata_t*)SSL_get_ex_data(ssl, verify_mydata_index);
     X509_NAME_oneline(X509_get_subject_name(err_cert), buf, 256);
     /*
      * Catch a too long certificate chain. The depth limit set using
@@ -1256,7 +1259,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 		loadSystemCerts( ses->ctx, store );
 	}
        	SSL_set_verify( ses->ssl, SSL_VERIFY_PEER, verify_cb );
-	SSL_set_ex_data( ses->ssl, 0, &xx );
+	SSL_set_ex_data( ses->ssl, verify_mydata_index, &ses->verify_data );
 	ssl_InitSession( ses );
 	{
 		const char *addr = GetAddrName( pc->saClient );
@@ -1268,6 +1271,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	ses->dwOriginalFlags = pc->dwFlags;
 	ses->user_read = pc->read.ReadComplete;
 	ses->cpp_user_read = pc->read.CPPReadComplete;
+	ses->verify_data = verify_default;
 	pc->read.ReadComplete = ssl_ReadComplete;
 	pc->dwFlags &= ~CF_CPPREAD;
 
@@ -1327,8 +1331,10 @@ CTEXTSTR ssl_GetRequestedHostName( PCLIENT pc ) {
 
 
 void ssl_SetIgnoreVerification( PCLIENT pc ) {
-	if( pc->ssl_session )
+	if( pc->ssl_session ) {
 		pc->ssl_session->ignoreVerification = TRUE;
+		pc->ssl_session->verify_data.always_continue = TRUE;
+	}
 }
 
 //--------------------- Make Cert Request
