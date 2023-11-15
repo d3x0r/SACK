@@ -95,7 +95,6 @@ static void jsox_state_init( struct jsox_parse_state *state )
 			SetLink( &state->classes, idx, NULL );
 		}
 	}
-	if( ((uintptr_t)&state->classes) & 0x4 ) DebugBreak();
 	DeleteList( &state->classes );
 	state->line = 1;
 	state->col = 1;

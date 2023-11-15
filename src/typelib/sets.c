@@ -40,6 +40,12 @@ namespace sack {
 
 #endif
 
+#ifdef __64__
+#  define FLAGSET_MIN_SIZE 64
+#else
+#  define FLAGSET_MIN_SIZE 64
+#endif
+
 #ifndef __NO_OPTIONS__
 PRELOAD( InitSetLogging )
 {
@@ -71,7 +77,7 @@ PGENERICSET GetFromSetPoolEx( GENERICSET **pSetSet, int setsetsizea, int setunit
 	PGENERICSET set;
 	uint32_t maxbias = 0;
 	void *unit = NULL;
-	uintptr_t ofs = ( ( ( maxcnt + 31 ) / 32 ) * 4 );
+	uintptr_t ofs = ( ( ( maxcnt + (FLAGSET_MIN_SIZE-1) ) / FLAGSET_MIN_SIZE ) * (FLAGSET_MIN_SIZE/8) );
 	//if( pSet && (*pSet) && ( (*pSet)->nBias > 1000 ))
 	//	_lprintf( DBG_RELAY )("GetFromSet: %p", pSet );
 	if( !pSet )
@@ -176,7 +182,7 @@ ExtendSet:
 			}
 		}
 #ifdef Z_DEBUG
-		if( bLog ) _lprintf( DBG_RELAY )( "Unit result: %p from %p %d %d %d %d", unit, set, unitsize, maxcnt, n, ( ( (maxcnt +31) / 32 ) * 4 )  );
+		if( bLog ) _lprintf( DBG_RELAY )( "Unit result: %p from %p %d %d %d %d", unit, set, unitsize, maxcnt, n, ( ( (maxcnt +(FLAGSET_MIN_SIZE-1))) / FLAGSET_MIN_SIZE ) * (FLAGSET_MIN_SIZE/8) )  );
 #endif
 	}
 	return (PGENERICSET)unit;
@@ -241,10 +247,10 @@ static POINTER GetSetMemberExx( GENERICSET **pSet, INDEX nMember, int setsize, i
 	else
 		(*bUsed) = 1;
 	if( bLog ) _lprintf(DBG_RELAY)( "Resulting unit %" _PTRSZVALfs,  ((uintptr_t)(set->bUsed))
-						+ ( ( (maxcnt +31) / 32 ) * 4 ) // skip over the bUsed bitbuffer
+						+ ( ( (maxcnt +(FLAGSET_MIN_SIZE-1)) / FLAGSET_MIN_SIZE ) * (FLAGSET_MIN_SIZE/8) ) // skip over the bUsed bitbuffer
 						+ nMember * unitsize );
 	return (void*)( ((uintptr_t)(set->bUsed))
-						+ ( ( (maxcnt +31) / 32 ) * 4 ) // skip over the bUsed bitbuffer
+						+ ( ( (maxcnt +(FLAGSET_MIN_SIZE-1)) / FLAGSET_MIN_SIZE ) * (FLAGSET_MIN_SIZE/8) ) // skip over the bUsed bitbuffer
 						+ nMember * unitsize ); // go to the appropriate offset
 }
 
@@ -283,7 +289,7 @@ INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 {
 	GENERICSET *pSet = ppSet?*ppSet:NULL;
 	uintptr_t nUnit = (uintptr_t)unit;
-	int ofs = ( ( max + 31 ) / 32) * 4;
+	int ofs = ( ( max + (FLAGSET_MIN_SIZE-1) ) / FLAGSET_MIN_SIZE) * (FLAGSET_MIN_SIZE/8);
 	int base = 0;
 	while( pSet )
 	{
@@ -311,7 +317,7 @@ INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 int MemberValidInSet( GENERICSET *pSet, void *unit, int unitsize, int max )
 {
 	uintptr_t nUnit = (uintptr_t)unit;
-	int ofs = ( ( max + 31 ) / 32) * 4;
+	int ofs = ( ( max + (FLAGSET_MIN_SIZE-1) ) / FLAGSET_MIN_SIZE) * (FLAGSET_MIN_SIZE/8);
 	while( pSet )
 	{
 		if( nUnit >= ((uintptr_t)(pSet->bUsed) + ofs ) &&
@@ -337,7 +343,7 @@ int MemberValidInSet( GENERICSET *pSet, void *unit, int unitsize, int max )
 void DeleteFromSetExx( GENERICSET *pSet, void *unit, int unitsize, int max DBG_PASS )
 {
 	uintptr_t nUnit = (uintptr_t)unit;
-	uintptr_t ofs = ( ( max + 31 ) / 32) * 4;
+	uintptr_t ofs = ( ( max + (FLAGSET_MIN_SIZE-1) ) / FLAGSET_MIN_SIZE) * (FLAGSET_MIN_SIZE/8);
 	uintptr_t base;
 	//if( bLog ) 
 	//if( pSet && ((pSet)->nBias > 1000) )
@@ -441,7 +447,7 @@ void **GetLinearSetArrayEx( GENERICSET *pSet, int *pCount, int unitsize, int max
 	items = CountUsedInSetEx( pSet, max );
 	if( pCount )
 		*pCount = items;
-	ofs = ( ( max + 31) / 32 ) * 4;
+	ofs = ( ( max + (FLAGSET_MIN_SIZE-1)) / FLAGSET_MIN_SIZE ) * (FLAGSET_MIN_SIZE/8);
 	array = (void**)Allocate( sizeof( void* ) * items );
 	nMin = 0; // 0
 	do
@@ -518,7 +524,7 @@ uintptr_t _ForAllInSet( GENERICSET *pSet, int unitsize, int max, FAISCallback f,
 	if( f )
 	{
 		int ofs, n;
-		ofs = ( ( max + 31) / 32 ) * 4;
+		ofs = ( ( max + (FLAGSET_MIN_SIZE-1)) / FLAGSET_MIN_SIZE ) * (FLAGSET_MIN_SIZE/8);
 		while( pSet )
 		{
 			for( n = 0; n < max; n++ )
