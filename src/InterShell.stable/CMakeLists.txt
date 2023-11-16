@@ -101,6 +101,7 @@ endif( NOT __ANDROID__ )
 
 my_target_link_libraries( ${PROJECT_OUTPUT} sack_widgets ${SACK_LIBRARIES} )
 
+ADD_DEFINITIONS( -DCORE_PATH="${CMAKE_INSTALL_PREFIX}/${COMPILED_INSTALL_PREFIX}/applicationCore" )
 install_literal_product( ${PROJECT_OUTPUT} applicationCore ) 
 
 

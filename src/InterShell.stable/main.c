@@ -850,7 +850,7 @@ void EditGlareSets( PSI_CONTROL parent )
 			SetButtonPushMethod( GetControl( frame, GLARESET_ADD_THEME ), ButtonAddGlareSetTheme, (uintptr_t)&params );
 		}
 		DisplayFrameOver( frame, parent );
-		PSI_HandleStatusEvent( frame, glareSetResult, 0 );
+		PSI_HandleStatusEvent( frame, glareSetResult, (uintptr_t)frame );
 	}
 }
 
@@ -2375,11 +2375,12 @@ void SetCommonButtonControls( PSI_CONTROL frame )
 //---------------------------------------------------------------------------
 
 static void editButtonResult( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
+	PSI_CONTROL frame = (PSI_CONTROL)psv;
 	if( okay )
 	{
-		GetCommonButtonControls( pc );
+		GetCommonButtonControls( frame );
 	}
-	DestroyFrame( &pc );
+	DestroyFrame( &frame );
 }
 
 // uses the currently selected button...
@@ -2395,7 +2396,7 @@ static void InterShell_EditButton( PSI_CONTROL pc_parent )
 		SetCommonButtonControls( frame );  // magically knows which button we're editing at the moment.
 		DisplayFrameOver( frame, pc_parent );
 		//EditFrame( frame, TRUE );
-		PSI_HandleStatusEvent( frame, glareSetResult, 0 );
+		PSI_HandleStatusEvent( frame, glareSetResult, (uintptr_t)frame );
 	}
 	//return psv;
 
@@ -2415,7 +2416,7 @@ static void InterShell_EditGeneric( PSI_CONTROL pc_parent )
 		SetCommonButtonControls( frame );  // magically knows which button we're editing at the moment.
 		DisplayFrameOver( frame, pc_parent );
 		EditFrame( frame, TRUE );
-		PSI_HandleStatusEvent( frame, glareSetResult, 0 );
+		PSI_HandleStatusEvent( frame, glareSetResult, (uintptr_t)frame );
 	}
 }
 
@@ -2423,7 +2424,8 @@ static void InterShell_EditGeneric( PSI_CONTROL pc_parent )
 
 static void listboxSetResult( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
 	if( okay ) {
-		PSI_CONTROL list = (PSI_CONTROL)psv;
+		PSI_CONTROL list = (PSI_CONTROL)configure_key_dispatch.button->control.control;
+		PSI_CONTROL frame = (PSI_CONTROL)psv;
 		GetCommonButtonControls( pc );
 		pc = GetControl( pc, CHECKBOX_LIST_LAZY_MULTI_SELECT );
 		if( pc )
@@ -2457,7 +2459,7 @@ static void InterShell_EditListbox( PSI_CONTROL pc_parent )
 		}
 		DisplayFrameOver( frame, pc_parent );
 		EditFrame( frame, TRUE );
-		PSI_HandleStatusEvent( frame, listboxSetResult, (uintptr_t)list );
+		PSI_HandleStatusEvent( frame, listboxSetResult, (uintptr_t)frame );
 	}
 	//return psv;
 }
@@ -5281,6 +5283,32 @@ static void CPROC MyHandleSQLFeedback( CTEXTSTR message )
 	//Banner2NoWaitAlpha( message );
 }
 
+static TEXTSTR MakeRelativePath( TEXTSTR path ) {
+	char pathbuf[MAX_PATH];
+	TEXTSTR match = path;
+	int i = 0;
+	TEXTSTR pathmatch = GetCurrentPath( pathbuf, MAX_PATH );
+	while( match && match[0] ) {
+		lprintf( "Compare %c %c", match[0], pathmatch[0] );
+		if( !pathmatch[0] ) {
+			char newbuf[MAX_PATH];
+			snprintf( newbuf, MAX_PATH, "./%s", match );
+			return StrDup( newbuf );
+		}
+		if( match[0] == '/' || match[0] == '\\' ) {
+			if( pathmatch[0] == '/' || pathmatch[0] == '\\' ) {
+				match++;
+				pathmatch++;
+			} else break;
+		}  else if( tolower( match[0] ) == tolower( pathmatch[0] ) ) {
+			match++;
+			pathmatch++;
+		} else break;
+	}
+	return NULL;
+
+}
+
 
 #ifndef UNDER_CE
 #if defined( WIN32 )
@@ -5319,6 +5347,7 @@ PRIORITY_PRELOAD( ProgramLock, DEFAULT_PRELOAD_PRIORITY+2 )
 								  , application_title
 								  , sizeof( application_title ), TRUE );
 	g.single_frame_title = SaveText( application_title );
+	GetFileGroup( "Plugins", ",/lib/SACK/plugins" );
 	GetFileGroup( "Resources", resource_path );
 	GetFileGroup( "PSI Frames", "%resources%/frames" );
    //if( !g.flags.bNoChangeDirectory )

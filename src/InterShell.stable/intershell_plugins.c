@@ -361,11 +361,12 @@ void ClearControls( void )
 
 
 static void dialogCallback( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
+	PSI_CONTROL frame = (PSI_CONTROL)psv;
 	if( okay ) {
-		UpdateFromControls( pc );
+		UpdateFromControls( frame );
 	}	
 	ClearControls();
-	DestroyFrame( &pc );
+	DestroyFrame( &frame );
 }
 
 static void OnGlobalPropertyEdit( "Edit Plugins" )( PSI_CONTROL parent )
@@ -379,7 +380,8 @@ static void OnGlobalPropertyEdit( "Edit Plugins" )( PSI_CONTROL parent )
 		InitControls( frame );
 		//lprintf( "show frame over parent." );
 		DisplayFrameOver( frame, parent );
-		PSI_HandleStatusEvent( frame, dialogCallback, 0 );
+		EditFrame( frame, TRUE );
+		PSI_HandleStatusEvent( frame, dialogCallback, (uintptr_t)frame );
 
 		//lprintf( "Begin waiting..." );
 	}
