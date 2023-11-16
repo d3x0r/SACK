@@ -804,7 +804,7 @@ retry:
 	}
 }
 
-static void glareSetResult( PSI_CONTROL pc, void (*f)( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) ) {
+static void glareSetResult( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
 	DestroyFrame( &pc );
 	
 }
@@ -2424,16 +2424,15 @@ static void InterShell_EditGeneric( PSI_CONTROL pc_parent )
 static void listboxSetResult( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
 	if( okay ) {
 		PSI_CONTROL list = (PSI_CONTROL)psv;
-		PSI_CONTROL pc;
-		GetCommonButtonControls( frame );
-		pc = GetControl( frame, CHECKBOX_LIST_LAZY_MULTI_SELECT );
+		GetCommonButtonControls( pc );
+		pc = GetControl( pc, CHECKBOX_LIST_LAZY_MULTI_SELECT );
 		if( pc )
 		{
-			SetListboxMultiSelectEx( list, GetCheckState( GetControl( frame, CHECKBOX_LIST_MULTI_SELECT ) ), GetCheckState( pc ) );
+			SetListboxMultiSelectEx( list, GetCheckState( GetControl( pc, CHECKBOX_LIST_MULTI_SELECT ) ), GetCheckState( pc ) );
 		}
 		else
 		{
-			SetListboxMultiSelect( list, GetCheckState( GetControl( frame, CHECKBOX_LIST_MULTI_SELECT ) ) );
+			SetListboxMultiSelect( list, GetCheckState( GetControl( pc, CHECKBOX_LIST_MULTI_SELECT ) ) );
 		}
 	}
 	DestroyFrame( &pc );
@@ -4618,8 +4617,8 @@ static void HandleSingleTouch( PCanvasData canvas, PINPUT_POINT touch1, PINPUT_P
 {
 	if( touch1->flags.new_event || touch2->flags.new_event )
 	{
-		touch_state.prior_x = ( (touch1->x + touch2->x) / 2 ) / 100;
-		touch_state.prior_y = ( (touch1->y + touch2->y) / 2 ) / 100;
+		touch_state.prior_x = (int)( (touch1->x + touch2->x) / 2 ) / 100;
+		touch_state.prior_y = (int)( (touch1->y + touch2->y) / 2 ) / 100;
 	}
 	else if( touch1->flags.end_event || touch2->flags.end_event )
 	{
@@ -4629,8 +4628,8 @@ static void HandleSingleTouch( PCanvasData canvas, PINPUT_POINT touch1, PINPUT_P
 		int tmpx;
 		int tmpy;
 		SetPageOffsetRelative( canvas->current_page
-			, touch_state.prior_x - (tmpx=(( (touch1->x + touch2->x) / 2 ) /100))
-			, touch_state.prior_y - (tmpy=(( (touch1->y + touch2->y) / 2 ) /100)));
+			, touch_state.prior_x - (tmpx= (int)(( (touch1->x + touch2->x) / 2 ) /100))
+			, touch_state.prior_y - (tmpy= (int)(( (touch1->y + touch2->y) / 2 ) /100)));
 		touch_state.prior_x = tmpx;
 		touch_state.prior_y = tmpy;
 	}
