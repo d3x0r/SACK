@@ -3028,14 +3028,14 @@ retry:
 SQLPROXY_PROC( int, SQLCommandEx )( PODBC odbc, CTEXTSTR command DBG_PASS )
 {
 	PODBC use_odbc;
-	if( odbc->flags.bClosed ) //-V522
-		return 0;
 	if( !IsSQLOpenEx( odbc DBG_RELAY ) )
 		return 0;
 	if( !( use_odbc = odbc ) )
 	{
 		use_odbc = g.odbc;
 	}
+	if( use_odbc->flags.bClosed ) //-V522
+		return 0;
 	if( use_odbc )
 	{
 		PCOLLECT pCollector;
