@@ -359,6 +359,15 @@ void ClearControls( void )
 	local_intershell_common.current_plugin = NULL;
 }
 
+
+static void dialogCallback( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
+	if( okay ) {
+		UpdateFromControls( frame );
+	}	
+	ClearControls();
+	DestroyFrame( &frame );
+}
+
 static void OnGlobalPropertyEdit( "Edit Plugins" )( PSI_CONTROL parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( parent, "EditPlugins.isFrame" );
@@ -371,13 +380,6 @@ static void OnGlobalPropertyEdit( "Edit Plugins" )( PSI_CONTROL parent )
 		//lprintf( "show frame over parent." );
 		DisplayFrameOver( frame, parent );
 		//lprintf( "Begin waiting..." );
-		CommonWait( frame );
-		if( okay )
-		{
-			UpdateFromControls( frame );
-		}
-		ClearControls();
-		DestroyFrame( &frame );
 	}
 }
 
