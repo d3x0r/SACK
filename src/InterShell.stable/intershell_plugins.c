@@ -379,6 +379,8 @@ static void OnGlobalPropertyEdit( "Edit Plugins" )( PSI_CONTROL parent )
 		InitControls( frame );
 		//lprintf( "show frame over parent." );
 		DisplayFrameOver( frame, parent );
+		PSI_HandleStatusEvent( frame, dialogCallback, 0 );
+
 		//lprintf( "Begin waiting..." );
 	}
 }

@@ -804,6 +804,11 @@ retry:
 	}
 }
 
+static void glareSetResult( PSI_CONTROL pc, void (*f)( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) ) {
+	DestroyFrame( &pc );
+	
+}
+
 void EditGlareSets( PSI_CONTROL parent )
 {
 	PSI_CONTROL frame;
@@ -845,11 +850,7 @@ void EditGlareSets( PSI_CONTROL parent )
 			SetButtonPushMethod( GetControl( frame, GLARESET_ADD_THEME ), ButtonAddGlareSetTheme, (uintptr_t)&params );
 		}
 		DisplayFrameOver( frame, parent );
-		CommonWait( frame );
-		if( okay )
-		{
-		}
-		DestroyFrame( &frame );
+		PSI_HandleStatusEvent( frame, glareSetResult, 0 );
 	}
 }
 
@@ -2373,8 +2374,16 @@ void SetCommonButtonControls( PSI_CONTROL frame )
 
 //---------------------------------------------------------------------------
 
+static void editButtonResult( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
+	if( okay )
+	{
+		GetCommonButtonControls( pc );
+	}
+	DestroyFrame( &pc );
+}
+
 // uses the currently selected button...
-void InterShell_EditButton( PSI_CONTROL pc_parent )
+static void InterShell_EditButton( PSI_CONTROL pc_parent )
 {
 
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, "EditGenericButton.isframe" ); // can use this frame also, just default controls
@@ -2386,12 +2395,7 @@ void InterShell_EditButton( PSI_CONTROL pc_parent )
 		SetCommonButtonControls( frame );  // magically knows which button we're editing at the moment.
 		DisplayFrameOver( frame, pc_parent );
 		//EditFrame( frame, TRUE );
-		CommonWait( frame );
-		if( okay )
-		{
-			GetCommonButtonControls( frame );
-		}
-		DestroyFrame( &frame );
+		PSI_HandleStatusEvent( frame, glareSetResult, 0 );
 	}
 	//return psv;
 
@@ -2400,7 +2404,7 @@ void InterShell_EditButton( PSI_CONTROL pc_parent )
 //---------------------------------------------------------------------------
 
 // uses the currently selected button...
-void InterShell_EditGeneric( PSI_CONTROL pc_parent )
+static void InterShell_EditGeneric( PSI_CONTROL pc_parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, "EditGenericControl.isframe" ); // can use this frame also, just default controls
 	if( frame )
@@ -2411,20 +2415,32 @@ void InterShell_EditGeneric( PSI_CONTROL pc_parent )
 		SetCommonButtonControls( frame );  // magically knows which button we're editing at the moment.
 		DisplayFrameOver( frame, pc_parent );
 		EditFrame( frame, TRUE );
-		CommonWait( frame );
-		if( okay )
-		{
-
-			GetCommonButtonControls( frame );
-		}
-		DestroyFrame( &frame );
+		PSI_HandleStatusEvent( frame, glareSetResult, 0 );
 	}
 }
 
 //---------------------------------------------------------------------------
 
+static void listboxSetResult( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
+	if( okay ) {
+		PSI_CONTROL list = (PSI_CONTROL)psv;
+		PSI_CONTROL pc;
+		GetCommonButtonControls( frame );
+		pc = GetControl( frame, CHECKBOX_LIST_LAZY_MULTI_SELECT );
+		if( pc )
+		{
+			SetListboxMultiSelectEx( list, GetCheckState( GetControl( frame, CHECKBOX_LIST_MULTI_SELECT ) ), GetCheckState( pc ) );
+		}
+		else
+		{
+			SetListboxMultiSelect( list, GetCheckState( GetControl( frame, CHECKBOX_LIST_MULTI_SELECT ) ) );
+		}
+	}
+	DestroyFrame( &pc );
+}
+
 // uses the currently selected button...
-void InterShell_EditListbox( PSI_CONTROL pc_parent )
+static void InterShell_EditListbox( PSI_CONTROL pc_parent )
 {
 	PSI_CONTROL frame = LoadXMLFrameOver( pc_parent, "EditGenericListbox.isframe" ); // can use this frame also, just default controls
 	if( frame )
@@ -2442,22 +2458,7 @@ void InterShell_EditListbox( PSI_CONTROL pc_parent )
 		}
 		DisplayFrameOver( frame, pc_parent );
 		EditFrame( frame, TRUE );
-		CommonWait( frame );
-		if( okay )
-		{
-			PSI_CONTROL pc;
-			GetCommonButtonControls( frame );
-			pc = GetControl( frame, CHECKBOX_LIST_LAZY_MULTI_SELECT );
-			if( pc )
-			{
-				SetListboxMultiSelectEx( list, GetCheckState( GetControl( frame, CHECKBOX_LIST_MULTI_SELECT ) ), GetCheckState( pc ) );
-			}
-			else
-			{
-				SetListboxMultiSelect( list, GetCheckState( GetControl( frame, CHECKBOX_LIST_MULTI_SELECT ) ) );
-			}
-		}
-		DestroyFrame( &frame );
+		PSI_HandleStatusEvent( frame, listboxSetResult, (uintptr_t)list );
 	}
 	//return psv;
 }
