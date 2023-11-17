@@ -1494,7 +1494,25 @@ int sack_unlink( INDEX group, CTEXTSTR filename )
 }
 
 //----------------------------------------------------------------------------
+int sack_chdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface* mount ) {
+	struct Group* filegroup;
+	int okay = 0;
+	if( mount ) {
+		if( mount->fsi && mount->fsi->_chdir ) {
+			okay = mount->fsi->_chdir( mount->fsi->_chdir( mount->psvInstance, filename ) );
+		}
+	} else {
+		filegroup = ( struct Group* )GetLink( &( *winfile_local ).groups, group );
+		if( ( *winfile_local ).groups && filegroup ) {
+			Deallocate( TEXTSTR, filegroup->base_path );
+			filegroup->base_path = StrDup( filename );
+			okay = 1;
+		}
+	}
+	return okay;
+}
 
+//----------------------------------------------------------------------------
 int sack_mkdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface* mount ) {
 	TEXTSTR tmp = PrependBasePath( group, NULL, filename );
 	while( mount ) {
@@ -1593,6 +1611,11 @@ int sack_rmdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_int
 int sack_rmdir( INDEX group, CTEXTSTR filename ) {
 	if( !FileSysThreadInfo._mounted_file_systems ) threadInit();
 	return sack_rmdirEx( group, filename, FileSysThreadInfo.mounted_file_systems );
+}
+
+
+static int sack_filesys_chdir( uintptr_t psv, CTEXTSTR filename ){
+	return SetCurrentPath( filename );
 }
 
 static int sack_filesys_rmdir( uintptr_t psv, CTEXTSTR filename )
@@ -2841,6 +2864,7 @@ struct file_system_interface native_fsi = {
 		, NULL // lock( FILE* )
 		, NULL // unlock( FILE* ) 
 		, sack_make_public
+		, sack_filesys_chdir
 } ;
 
 PRIORITY_PRELOAD( InitWinFileSysEarly, OSALOT_PRELOAD_PRIORITY - 1 )

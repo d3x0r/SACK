@@ -132,9 +132,10 @@ struct file_system_interface {
 	uint64_t( CPROC *find_get_wtime )(struct find_cursor *cursor);
 	int ( CPROC* _mkdir )( uintptr_t psvInstance, const char* );
 	int ( CPROC* _rmdir )( uintptr_t psvInstance, const char* );
-    int (CPROC* _lock)(void*);                //file *
-    int (CPROC* _unlock)(void*);              //file *
-    int (CPROC* _make_public)( uintptr_t psvInstance, CTEXTSTR filename ); // set chmod( filename, 0777 )
+	int (CPROC* _lock)(void*);                //file *
+	int (CPROC* _unlock)(void*);              //file *
+	int (CPROC* _make_public)( uintptr_t psvInstance, CTEXTSTR filename ); // set chmod( filename, 0777 )
+	int ( CPROC* _chdir )( uintptr_t psvInstance, const char* );
 };
 
 
@@ -505,6 +506,7 @@ FILESYS_PROC  int FILESYS_API  sack_unlink ( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_rmdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface* mount );
 FILESYS_PROC  int FILESYS_API  sack_rmdir( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_mkdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface* mount );
+FILESYS_PROC  int FILESYS_API  sack_chdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_interface* mount );
 FILESYS_PROC  int FILESYS_API  sack_mkdir( INDEX group, CTEXTSTR filename );
 FILESYS_PROC  int FILESYS_API  sack_renameEx ( CTEXTSTR file_source, CTEXTSTR new_name, struct file_system_mounted_interface *mount );
 FILESYS_PROC  int FILESYS_API  sack_rename ( CTEXTSTR file_source, CTEXTSTR new_name );
