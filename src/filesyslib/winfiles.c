@@ -1508,6 +1508,7 @@ int sack_chdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_int
 			filegroup->base_path = StrDup( filename );
 			okay = 1;
 		}
+		okay |= SetCurrentPath( filename );
 	}
 	return okay;
 }
