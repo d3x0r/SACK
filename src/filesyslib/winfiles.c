@@ -1499,7 +1499,7 @@ int sack_chdirEx( INDEX group, CTEXTSTR filename, struct file_system_mounted_int
 	int okay = 0;
 	if( mount ) {
 		if( mount->fsi && mount->fsi->_chdir ) {
-			okay = mount->fsi->_chdir( mount->fsi->_chdir( mount->psvInstance, filename ) );
+			okay = mount->fsi->_chdir( mount->psvInstance, filename );
 		}
 	} else {
 		filegroup = ( struct Group* )GetLink( &( *winfile_local ).groups, group );
