@@ -626,7 +626,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				CTEXTSTR here;
 				size_t len;
 #ifdef _WIN32
-				here = OSALOT_GetEnvironmentVariable( "HOMEPATH" );
+				here = OSALOT_GetEnvironmentVariable( "USERPROFILE" );
 #else
 				here = OSALOT_GetEnvironmentVariable( "HOME" );
 #endif
