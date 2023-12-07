@@ -1304,17 +1304,23 @@ static void writeComplete( PCLIENT pc, CPOINTER buffer, size_t length ) {
 HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, struct HTTPRequestOptions* options )
 {
 	static struct HTTPRequestOptions defaultOpts = {
-		"GET",
-		NULL,
-		NULL,
-		NULL, NULL, 0, 
-		FALSE
+		"GET",  // method
+		NULL,  // url 
+		NULL,  // address (IP:PORT)
+		NULL,  // headers
+		NULL,  // content
+		0,     // content length
+		FALSE, // SSL
+		3000, // timeout (3000 default)
+		3, // retries (3 default)
 	};
 	if( !options ) options = &defaultOpts;
 	int retries;
 	if( !address )
 		return NULL;
-	for( retries = 0; retries < 3; retries++ )
+	if( !options->timeout ) options->timeout = 3000;
+	if( !options->retries ) options->retries = 3;
+	for( retries = 0; retries < options->retries; retries++ )
 	{
 		PCLIENT pc;
 		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
@@ -1405,7 +1411,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 
 			// wait for response.
 			while( state->request_socket && !state->closed
-				&& ( state->last_read_tick > ( timeGetTime() - 3000 ) ) ) {
+				&& ( state->last_read_tick > ( timeGetTime() - options->timeout ) ) ) {
 				WakeableSleep( 1000 );
 			}
 			//lprintf( "Request has completed.... %p %p %d", pc, state->content, state->closed );
