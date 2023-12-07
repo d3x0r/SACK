@@ -67,7 +67,8 @@ struct HTTPRequestOptions {
 	CPOINTER content;  // content to send with request, if any
 	size_t contentLen;// lengt of content to send with request
 	LOGICAL ssl; // set to true to request over SSL;
-
+	int timeout; // defaults to 3 seconds if set to 0.
+	int retries; // defaults to 3 retries if set to 0.
 	const char* certChain; //optionally this can be used to specify the certain, if not set, uses parameter, which will otherwise be NULL.
 	LOGICAL rejectUnauthorized;
 	// specify the agent field, default to SACK(System)
