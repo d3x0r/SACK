@@ -27,7 +27,8 @@
 #include "netstruc.h"
 
 //#define DEBUG_SSL_IO
-//#define DEBUG_SSL_IO_BUFFERS
+// also has option to control output
+#define DEBUG_SSL_IO_BUFFERS
 //#define DEBUG_SSL_IO_RAW
 //#define DEBUG_SSL_IO_VERBOSE
 
@@ -212,6 +213,8 @@ static struct ssl_global
 {
 	struct {
 		BIT_FIELD bInited : 1;
+		BIT_FIELD bLogBuffers : 1;
+		BIT_FIELD bLogBuffersVerbose : 1;
 	} flags;
 	LOGICAL trace;
 	struct tls_config *tls_config;
@@ -219,6 +222,10 @@ static struct ssl_global
 	uint32_t *lock_cs;// = OPENSSL_malloc(CRYPTO_num_locks() * sizeof(HANDLE));
 }ssl_global;
 
+PRELOAD( InitSSL ) {
+	ssl_global.flags.bLogBuffers = SACK_GetProfileIntEx( "SACK", "Network/SSL/Log Network Data", 0, TRUE );	
+	ssl_global.flags.bLogBuffersVerbose = SACK_GetProfileIntEx( "SACK", "Network/SSL/Log Network Data Verbose", 0, TRUE );	
+}
 
 ATEXIT( CloseSSL )
 {
@@ -514,8 +521,10 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			// do was have any decrypted data to give to the application?
 			if( len > 0 ) {
 #ifdef DEBUG_SSL_IO_BUFFERS
-				lprintf( "READ BUFFER:" );
-				LogBinary( pc->ssl_session->dbuffer, 256 > len ? len : 256 );
+				if( ssl_global.flags.bLogBuffers ) {
+					lprintf( "READ BUFFER:" );
+					LogBinary( pc->ssl_session->dbuffer, (( ssl_global.flags.bLogBuffers ) || ( 256 > len ))? len : 256 );
+				}
 #endif
 				if( pc->ssl_session->dwOriginalFlags & CF_CPPREAD )
 					pc->ssl_session->cpp_user_read( pc->psvRead, pc->ssl_session->dbuffer, len );
@@ -593,8 +602,10 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 	lprintf( "SSL SEND....%d ", length );
 #endif
 #ifdef DEBUG_SSL_IO_BUFFERS
-	lprintf( "SSL SEND....%d ", length );
-	LogBinary( (((uint8_t*)buffer) + offset), 256 > length ? length : 256 );
+	if( ssl_global.flags.bLogBuffers ) {
+		lprintf( "SSL SEND....%d ", length );
+		LogBinary( (((uint8_t*)buffer) + offset), (( ssl_global.flags.bLogBuffers ) || ( 256 > length )) ? length : 256 );
+	}
 #endif
 	while( length ) {
 		if( pending_out > 4327 )
