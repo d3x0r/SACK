@@ -182,7 +182,7 @@ void CPROC PressKeyButton( PKEY_BUTTON key, PSI_CONTROL pc )
 	//}
 }
 
-void CPROC DrawGlareLayer( uintptr_t psv_control, PRENDERER renderer );
+int CPROC DrawGlareLayer( uintptr_t psv_control, PRENDERER renderer );
 
 
 static int CPROC HandleMouse( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
@@ -319,7 +319,7 @@ static int  OnMouseCommon(BUTTON_NAME)( PSI_CONTROL pc, int32_t x, int32_t y, ui
    return HandleMouse( pc, x, y, b );
 }
 
-void CPROC DrawGlareLayer( uintptr_t psv_control, PRENDERER renderer )
+int CPROC DrawGlareLayer( uintptr_t psv_control, PRENDERER renderer )
 {
 	PSI_CONTROL pc = (PSI_CONTROL)psv_control;
 	MyValidatedControlData( PKEY_BUTTON, key, pc );
@@ -368,7 +368,8 @@ void CPROC DrawGlareLayer( uintptr_t psv_control, PRENDERER renderer )
 			}
 
 	}
-	UpdateDisplay( renderer );
+	//UpdateDisplay( renderer );
+	return 1;
 }
 //------------------------------------------------------------------------------------
 

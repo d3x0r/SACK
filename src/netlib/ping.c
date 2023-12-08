@@ -636,10 +636,10 @@ int WaitForEchoReply(SOCKET s, uint32_t dwTime)
  */
 uint16_t in_cksum(uint16_t *addr, int len)
 {
-	register int nleft = len;
-	register uint16_t *w = addr;
-	register uint16_t answer;
-	register int sum = 0;
+	int nleft = len;
+	uint16_t *w = addr;
+	uint16_t answer;
+	int sum = 0;
 
 	/*
 	 *  Our algorithm is simple, using a 32 bit accumulator (sum),

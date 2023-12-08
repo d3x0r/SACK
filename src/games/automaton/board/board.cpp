@@ -413,7 +413,7 @@ void DoMouse( int X, int Y, int b )
 			}
 			else if( default_peice )
 			{
-				if( !default_peice->methods->OnRightClick(NULL,wX,wY) )
+				if( !default_peice->methods->OnRightClick((uintptr_t)NULL,wX,wY) )
 					return; // routine has done something to abort processing...
 			}
 		}
@@ -709,7 +709,7 @@ void BOARD::Init( void )
 	flags.bLeft = 0;
 	flags.bLockRight = 0;
 	flags.bRightChanged = 0;
-	flags.bRight = NULL;
+	flags.bRight = 0;
 	LayerPool = NULL;//new LAYERSET;
 	LayerDataPool = NULL;//new LAYER_DATASET;
 	RootLayer = NULL;

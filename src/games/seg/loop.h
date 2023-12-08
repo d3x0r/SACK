@@ -48,7 +48,7 @@ public:
 	}
 
 
-	RCOORD BField( VECTOR result, PCVECTOR m_normal, RCOORD m_scalar, RCOORD r, RCOORD theta )
+	void BField( VECTOR result, PCVECTOR m_normal, RCOORD m_scalar, RCOORD r, RCOORD theta )
 	{
 		static PTRANSFORM pt;
 		if( !pt )

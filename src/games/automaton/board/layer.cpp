@@ -59,7 +59,7 @@ void LAYER_DATA::Init( void )
 {
 	//ref = 1;
 	peice = NULL;
-	psvInstance = NULL;
+	psvInstance = (uintptr_t)NULL;
 	//_cycle = 0;
 	//rows = 0;
 	//cols = 0;
