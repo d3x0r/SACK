@@ -688,13 +688,13 @@ VECTOR_METHOD( LOGICAL, Move, ( PTRANSFORM pt ) );
 	VECTOR_METHOD( void, Unmove, ( PTRANSFORM pt ) );
 #endif
 
-VECTOR_METHOD( void, showstdEx, ( PTRANSFORM pt, char *header ) );  
-VECTOR_METHOD( void, ShowTransformEx, ( PTRANSFORM pt, char *header DBG_PASS ) );  
+VECTOR_METHOD( void, showstdEx, ( PTRANSFORM pt, const char *header ) );  
+VECTOR_METHOD( void, ShowTransformEx, ( PTRANSFORM pt, const char *header DBG_PASS ) );  
 /* <combine sack::math::vector::ShowTransformEx@PTRANSFORM@char *header>
    
    \ \                                                                   */
 #define ShowTransform( n ) ShowTransformEx( n, #n DBG_SRC )
-VECTOR_METHOD( void, showstd, ( PTRANSFORM pt, char *header ) );  
+VECTOR_METHOD( void, showstd, ( PTRANSFORM pt, const char *header ) );  
 
 
 VECTOR_METHOD( void, GetOriginV, ( PTRANSFORM pt, P_POINT o ) ); 

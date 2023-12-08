@@ -1757,7 +1757,7 @@ void EXTERNAL_NAME(PrintMatrixEx)( CTEXTSTR lpName, MATRIX m DBG_PASS )
 
 
 #undef ShowTransform
-void EXTERNAL_NAME(ShowTransformEx)( PTRANSFORM pt, char *header DBG_PASS )
+void EXTERNAL_NAME(ShowTransformEx)( PTRANSFORM pt, const char *header DBG_PASS )
 {
    _xlprintf( 1 DBG_RELAY )( "transform %s", header );
 	_xlprintf( 1 DBG_RELAY )( "     -----------------");
@@ -1776,12 +1776,12 @@ void EXTERNAL_NAME(ShowTransformEx)( PTRANSFORM pt, char *header DBG_PASS )
    F(s);
 }
 
-void EXTERNAL_NAME(ShowTransform)( PTRANSFORM pt, char *header )
+void EXTERNAL_NAME(ShowTransform)( PTRANSFORM pt, const char *header )
 {
 	EXTERNAL_NAME(ShowTransformEx)( pt, header DBG_SRC );
 }
 
-void EXTERNAL_NAME(showstd)( PTRANSFORM pt, char *header )
+void EXTERNAL_NAME(showstd)( PTRANSFORM pt, const char *header )
 {
 	TEXTCHAR byMsg[256];
 #undef F4
