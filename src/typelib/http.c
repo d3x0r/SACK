@@ -1311,6 +1311,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		NULL,  // content
 		0,     // content length
 		FALSE, // SSL
+		"1.1", // HTTP Version ("1.1" default)
 		3000, // timeout (3000 default)
 		3, // retries (3 default)
 	};
@@ -1360,7 +1361,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			state->ssl = options->ssl;
 			state->pvtOut = VarTextCreate();
 			// 1.0 expects close after request - this is a one shot synchronous process so...
-			vtprintf( state->pvtOut, "%s %s HTTP/1.0\r\n", options->method, resource );
+			vtprintf( state->pvtOut, "%s %s HTTP/%s\r\n", options->method, resource, options->httpVersion?options->httpVersion:"1.0" );
 			// 1.1 would need this sort of header....
 			//vtprintf( state->pvtOut, "connection: close\r\n" );
 			if( options->content && options->contentLen ) {
