@@ -4919,11 +4919,26 @@ int SQLRecordQuery_js( PODBC odbc
 			BeginTransactEx( use_odbc, 0 );
 		}
 
+		// collection is very important to have - even if we will have to be opened,
+		// we will need one, so make at least one.
 		if( !( collection = use_odbc->collection ) )
 			collection = use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
 
-		// collection is very important to have - even if we will have to be opened,
-		// we ill need one, so make at least one.
+      // if the collection at top is not temporary, create another... otherwise it will kill waht's in use
+		if( !collection->flags.bTemporary ) {
+			collection = use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
+			if( use_odbc->collection && use_odbc->collection->flags.bTemporary ) {
+#ifdef LOG_COLLECTOR_STATES
+				lprintf( "using existing collector..." );
+#endif
+				(collection = use_odbc->collection)->flags.bTemporary = 0;
+			}
+			else {
+#ifdef LOG_COLLECTOR_STATES
+				lprintf( "creating collector..." );
+#endif
+			}
+		}
 		if( collection->flags.bTemporary )
 		{
 #ifdef LOG_COLLECTOR_STATES
