@@ -141,7 +141,7 @@ struct odbc_handle_tag{
 		BIT_FIELD bFailEnvOnDbcFail : 1;
 		// generate begintransaction and commit automatically.
 		BIT_FIELD bAutoTransact : 1;
-		BIT_FIELD bThreadProtect : 1; // use enter/leave critical section on this connector (auto transact protector)
+		volatile BIT_FIELD bThreadProtect : 1; // use enter/leave critical section on this connector (auto transact protector)
 		BIT_FIELD bAutoClose : 1; // don't leave the connection open 100%; open when required and close when idle
 		BIT_FIELD bAutoCheckpoint : 1; // sqlite; alternative to closing; generate wal_checkpoints automatically on idle.
 		BIT_FIELD bClosed : 1;

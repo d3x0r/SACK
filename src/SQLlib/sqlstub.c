@@ -1065,14 +1065,15 @@ void SetSQLThreadProtect( PODBC odbc, LOGICAL bEnable )
 {
 	if( odbc )
 	{
-		odbc->flags.bThreadProtect = bEnable;
-		if( bEnable )
-		{
-			InitializeCriticalSec( &odbc->cs );
+		EnterCriticalSec( &g.Init );
+		if( odbc->flags.bThreadProtect != bEnable ) {
+			odbc->flags.bThreadProtect = bEnable;
+			if( bEnable )
+				InitializeCriticalSec( &odbc->cs );
+			else
+				DeleteCriticalSec( &odbc->cs );
 		}
-		else
-			DeleteCriticalSec( &odbc->cs );
-
+		LeaveCriticalSec( &g.Init );
 	}
 }
 
@@ -3303,11 +3304,11 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 	if( !OpenSQLConnectionEx( odbc DBG_SRC ) )
 	{
 		GenerateResponce( collection, WM_SQL_RESULT_ERROR );
-		if( odbc->flags.bThreadProtect )
-		{
-			odbc->nProtect--;
-			LeaveCriticalSec( &odbc->cs );
-		}
+		//if( odbc->flags.bThreadProtect )
+		//{
+		//	odbc->nProtect--;
+		//	LeaveCriticalSec( &odbc->cs );
+		//}
 		return 0;
 	}
 #endif
@@ -3393,11 +3394,11 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 		if( ( result_cmd != WM_SQL_RESULT_DATA ) && ( result_cmd != WM_SQL_RESULT_MORE ) ) {
 			GenerateResponce( collection, result_cmd );
-			if( odbc->flags.bThreadProtect )
-			{
-				odbc->nProtect--;
-				LeaveCriticalSec( &odbc->cs );
-			}
+			//if( odbc->flags.bThreadProtect )
+			//{
+			//	odbc->nProtect--;
+			//	LeaveCriticalSec( &odbc->cs );
+			//}
 			return 0;
 		}
 		ReleaseCollectionResults( collection, FALSE );
@@ -3596,11 +3597,11 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			collection->flags.bEndOfFile = 1;
 			GenerateResponce( collection, result_cmd );
 			//DestroyCollection( collection );
-			if( odbc->flags.bThreadProtect )
-			{
-				odbc->nProtect--;
-				LeaveCriticalSec( &odbc->cs );
-			}
+			//if( odbc->flags.bThreadProtect )
+			//{
+			//	odbc->nProtect--;
+			//	LeaveCriticalSec( &odbc->cs );
+			//}
 			return 0;
 		}
 #endif
@@ -4166,6 +4167,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 		{
 			// turns out the results will be released at the next command/query that uses this
 			// or connection closes and destroyes the collection.
+			//lprintf( "Got all results, demote collection to temporary" );
 			collection->flags.bTemporary = 1;
 			collection->flags.bEndOfFile = 1;
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
@@ -4201,11 +4203,11 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			result_cmd = WM_SQL_RESULT_NO_DATA;
 			GenerateResponce( collection, result_cmd );
 			//DestroyCollection( collection );
-			if( odbc->flags.bThreadProtect )
-			{
-				odbc->nProtect--;
-				LeaveCriticalSec( &odbc->cs );
-			}
+			//if( odbc->flags.bThreadProtect )
+			//{
+			//	odbc->nProtect--;
+			//	LeaveCriticalSec( &odbc->cs );
+			//}
 			return 0;
 		}
 	}
@@ -4226,11 +4228,11 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 	}
 #endif
 	GenerateResponce( collection, result_cmd );
-	if( odbc->flags.bThreadProtect )
-	{
-		odbc->nProtect--;
-		LeaveCriticalSec( &odbc->cs );
-	}
+	//if( odbc->flags.bThreadProtect )
+	//{
+	//	odbc->nProtect--;
+	//	LeaveCriticalSec( &odbc->cs );
+	//}
 	return 0;
 }
 
@@ -4929,7 +4931,7 @@ int SQLRecordQuery_js( PODBC odbc
 			collection = use_odbc->collection = CreateCollector( 0, use_odbc, FALSE );
 			if( use_odbc->collection && use_odbc->collection->flags.bTemporary ) {
 #ifdef LOG_COLLECTOR_STATES
-				lprintf( "using existing collector..." );
+				lprintf( "using (new)existing collector..." );
 #endif
 				(collection = use_odbc->collection)->flags.bTemporary = 0;
 			}
@@ -4942,7 +4944,7 @@ int SQLRecordQuery_js( PODBC odbc
 		if( collection->flags.bTemporary )
 		{
 #ifdef LOG_COLLECTOR_STATES
-			lprintf( "using existing collector..." );
+			lprintf( "using existing collector...(previous ended?)" );
 #endif
 			collection->flags.bTemporary = 0;
 		}
@@ -4955,6 +4957,7 @@ int SQLRecordQuery_js( PODBC odbc
 		// of good fun stuff...
 	}
 	while( __DoSQLQueryExx( use_odbc, collection, query, queryLen, pdlParams DBG_RELAY) );
+
 	if( use_odbc->flags.bThreadProtect )
 	{
 		use_odbc->nProtect--;
