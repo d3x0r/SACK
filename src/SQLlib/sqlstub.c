@@ -2442,9 +2442,10 @@ void DestroyCollectorEx( PCOLLECT pCollect DBG_PASS )
 	{
 		return;
 	}
-	if( pCollect->ppdlResults ) {
-		DeleteDataList( pCollect->ppdlResults );
-	}
+	// this should be left to an external handler... 
+	//if( pCollect->ppdlResults ) {
+	//	DeleteDataList( pCollect->ppdlResults );
+	//}
 	ReleaseCollectionResults( pCollect, TRUE );
 	VarTextDestroy( &pCollect->pvt_out );
 	VarTextDestroy( &pCollect->pvt_result );
