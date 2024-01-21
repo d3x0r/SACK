@@ -2443,7 +2443,6 @@ void DestroyCollectorEx( PCOLLECT pCollect DBG_PASS )
 		return;
 	}
 	if( pCollect->ppdlResults ) {
-
 		DeleteDataList( pCollect->ppdlResults );
 	}
 	ReleaseCollectionResults( pCollect, TRUE );
@@ -4884,6 +4883,10 @@ void SQLEndQuery( PODBC odbc )
 }
 
 //-----------------------------------------------------------------------
+
+void ReleaseSQLResults( PDATALIST *ppdlResults ) {
+	jsox_dispose_message( ppdlResults );
+}
 
 int SQLRecordQuery_js( PODBC odbc
                      , CTEXTSTR query
