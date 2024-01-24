@@ -1218,7 +1218,7 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 						Log( "Pipe has no readers..." );
 							break;
 					}
-					LogBinary( (uint8_t*)GetText( seg ), GetTextSize( seg ) );
+					//LogBinary( (uint8_t*)GetText( seg ), GetTextSize( seg ) );
 					write( task->hStdIn.handle
 						 , GetText( seg )
 						 , GetTextSize( seg ) );
