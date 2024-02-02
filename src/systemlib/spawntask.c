@@ -1006,15 +1006,17 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					{
 						char fullname[256];
 						snprintf( fullname, sizeof( fullname ), "%s/%s", tok, _program );
-
-						lprintf( "program:[%s]", fullname );
+						if( l.flags.bLogExec )
+							lprintf( "program:[%s]", fullname );
 						((char**)args)[0] = fullname;
 						execve( fullname, (char*const*)args, environ );
-						lprintf( "exec in PATH failed - and this is ALLL bad... %s %d", fullname, errno );
+						if( l.flags.bLogExec )
+							lprintf( "exec in PATH failed - and this is ALLL bad... %s %d", fullname, errno );
 					}
 					Release( tmp );
 				}
-				lprintf( "exec failed - and this is ALLL bad... %s %d", _program, errno );
+				if( l.flags.bLogExec )
+					lprintf( "exec failed - and this is ALLL bad... %s %d", _program, errno );
 				if( !(flags & LPP_OPTION_INTERACTIVE ) ) {
 					if( OutputHandler ) {
 						close( task->hStdIn.pair[0] );

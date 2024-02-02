@@ -112,6 +112,7 @@ struct local_systemlib_data {
 		BIT_FIELD bLog : 1;
 		BIT_FIELD bInitialized : 1;
 		BIT_FIELD shutdown : 1;
+		BIT_FIELD bLogExec : 1;
 	} flags;
 	CTEXTSTR filename;  // pointer to just filename part...
 	TEXTCHAR *work_path;

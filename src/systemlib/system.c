@@ -833,6 +833,7 @@ PRIORITY_PRELOAD( SetupPath, OSALOT_PRELOAD_PRIORITY )
 PRELOAD( SetupSystemOptions )
 {
 	//lprintf( "SYSTEM OPTION INIT" );
+	l.flags.bLogExec = SACK_GetProfileIntEx( GetProgramName(), "SACK/System/Enable Logging exec()", 0, TRUE );
 	l.flags.bLog = SACK_GetProfileIntEx( GetProgramName(), "SACK/System/Enable Logging", 0, TRUE );
 	if( SACK_GetProfileIntEx( GetProgramName(), "SACK/System/Auto prepend program location to PATH environment", 0, TRUE ) ){
 		//lprintf( "Add %s to path", l.load_path );
