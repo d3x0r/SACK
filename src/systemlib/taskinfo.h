@@ -22,8 +22,8 @@ struct taskOutputStruct {
 //typedef void (CPROC*TaskEnd)(uintptr_t, struct task_info_tag *task_ended);
 struct task_info_tag {
 	struct {
-		volatile BIT_FIELD closed : 1;  // TerminateProgram() was called against this process
-		volatile BIT_FIELD process_ended : 1; // StopProgram() was called against this process
+		volatile BIT_FIELD closed;  // TerminateProgram() was called against this process
+		volatile BIT_FIELD process_ended; // StopProgram() was called against this process
 		BIT_FIELD bSentIoTerminator : 1;
 		BIT_FIELD log_input : 1;
 		BIT_FIELD runas_root : 1;
