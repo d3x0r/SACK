@@ -22,7 +22,7 @@ struct taskOutputStruct {
 //typedef void (CPROC*TaskEnd)(uintptr_t, struct task_info_tag *task_ended);
 struct task_info_tag {
 	struct {
-		BIT_FIELD closed : 1;  // TerminateProgram() was called against this process
+		volatile BIT_FIELD closed : 1;  // TerminateProgram() was called against this process
 		BIT_FIELD process_ended : 1; // StopProgram() was called against this process
 		BIT_FIELD bSentIoTerminator : 1;
 		BIT_FIELD log_input : 1;
@@ -58,7 +58,7 @@ struct task_info_tag {
    int hReadOut, hWriteOut;
    int hReadErr, hWriteErr;
 	int hReadIn, hWriteIn;
-   pid_t pid;
+   volatile pid_t pid;
    int pty;
    uint32_t exitcode;
 #endif
