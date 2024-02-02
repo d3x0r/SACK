@@ -136,7 +136,7 @@ struct threads_tag
 		//BIT_FIELD bWakeWhileRunning : 1;
 		BIT_FIELD bRemovedWhileRunning : 1;
 		BIT_FIELD bLocal : 1;
-		BIT_FIELD bReady : 1;
+		volatile BIT_FIELD bReady : 1;
 		BIT_FIELD bStarted : 1;
 	} flags;
 	//struct threads_tag *next, **me;
