@@ -5284,15 +5284,15 @@ static void CPROC MyHandleSQLFeedback( CTEXTSTR message )
 }
 
 static TEXTSTR MakeRelativePath( TEXTSTR path ) {
-	char pathbuf[MAX_PATH];
+	char pathbuf[MAXPATH];
 	TEXTSTR match = path;
 	int i = 0;
-	TEXTSTR pathmatch = GetCurrentPath( pathbuf, MAX_PATH );
+	TEXTSTR pathmatch = GetCurrentPath( pathbuf, MAXPATH );
 	while( match && match[0] ) {
 		lprintf( "Compare %c %c", match[0], pathmatch[0] );
 		if( !pathmatch[0] ) {
-			char newbuf[MAX_PATH];
-			snprintf( newbuf, MAX_PATH, "./%s", match );
+			char newbuf[MAXPATH];
+			snprintf( newbuf, MAXPATH, "./%s", match );
 			return StrDup( newbuf );
 		}
 		if( match[0] == '/' || match[0] == '\\' ) {
