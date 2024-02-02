@@ -134,10 +134,10 @@ struct threads_tag
 		//BIT_FIELD bLock : 1;
 		//BIT_FIELD bSleeping : 1;
 		//BIT_FIELD bWakeWhileRunning : 1;
-		BIT_FIELD bRemovedWhileRunning : 1;
-		BIT_FIELD bLocal : 1;
-		volatile BIT_FIELD bReady : 1;
-		BIT_FIELD bStarted : 1;
+		BIT_FIELD bRemovedWhileRunning;
+		BIT_FIELD bLocal;
+		volatile BIT_FIELD bReady;
+		volatile BIT_FIELD bStarted;
 	} flags;
 	//struct threads_tag *next, **me;
 	CTEXTSTR pFile;
