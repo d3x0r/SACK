@@ -145,10 +145,13 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 			//lprintf( "Clearing thread handle (done)" );
 			phi->hThread = 0;
 			phi->handle = INVALID_HANDLE_VALUE;
-			if( taskParams->stdErr )
+			if( taskParams->stdErr ) {
 				task->pOutputThread2 = NULL;
-			else
+				task->OutputEvent2 = NULL;
+			} else {
 				task->pOutputThread = NULL;
+				task->OutputEvent = NULL;
+			}
 
 			Release( task );
 			//WakeAThread( phi->pdp->common.Owner );
@@ -286,10 +289,13 @@ static uintptr_t CPROC HandleTaskOutput( PTHREAD thread ) {
 			if( phi->handle == task->hStdIn.handle )
 				task->hStdIn.handle = INVALID_HANDLE_VALUE;
 			phi->handle = INVALID_HANDLE_VALUE;
-			if( taskParams->stdErr )
+			if( taskParams->stdErr ) {
 				task->pOutputThread2 = NULL;
-			else
+				task->OutputEvent2 = NULL; // this is no longer a valid thing - shutdown output pipe
+			} else {
 				task->pOutputThread = NULL;
+				task->OutputEvent = NULL; // this is no longer a valid thing - shutdown output pipe
+			}
 
 			Release( task );
 			//WakeAThread( phi->pdp->common.Owner );
