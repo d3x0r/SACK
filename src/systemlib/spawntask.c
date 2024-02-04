@@ -13,6 +13,7 @@
 #include <filesys.h>
 
 #ifdef __LINUX__
+#include <network.h>
 #include <sys/poll.h>
 #include <sys/wait.h>
 #include <dlfcn.h>
@@ -1189,17 +1190,12 @@ SYSTEM_PROC( PTASK_INFO, SystemEx )( CTEXTSTR command_line
 
 int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 {
+	size_t written = 0;
 	PVARTEXT pvt = VarTextCreate();
 	PTEXT output;
 	vvtprintf( pvt, format, args );
 	output = VarTextGet( pvt );
-	if(
-#ifdef _WIN32
-		WaitForSingleObject( task->pi.hProcess, 0 )
-#else
-		task->pid != waitpid( task->pid, NULL, WNOHANG )
-#endif
-	  )
+	if( !task->flags.process_signaled_end )
 	{
 #ifdef _WIN32
 		DWORD dwWritten;
@@ -1217,19 +1213,20 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 							, (DWORD)GetTextSize( seg )
 							, &dwWritten
 							, NULL );
+					written += dwWritten;
 #else
 				{
 					struct pollfd pfd = { task->hStdIn.handle, POLLHUP|POLLERR, 0 };
 					if( poll( &pfd, 1, 0 ) &&
 						 pfd.revents & POLLERR )
 					{
-						Log( "Pipe has no readers..." );
-							break;
+						//Log( "Pipe has no readers..." );
+						break;
 					}
 					//LogBinary( (uint8_t*)GetText( seg ), GetTextSize( seg ) );
-					write( task->hStdIn.handle
-						 , GetText( seg )
-						 , GetTextSize( seg ) );
+					written = write( task->hStdIn.handle
+							, GetText( seg )
+							, GetTextSize( seg ) );
 				}
 #endif
 				seg = NEXTLINE(seg);
@@ -1239,10 +1236,52 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 	}
 	else
 	{
-		lprintf( "Task has ended, write  aborted." );
+		//lprintf( "Task has ended, write  aborted." );
 	}
 	VarTextDestroy( &pvt );
 	return 0;
+}
+
+//----------------------- Utility to send to launched task's stdin ----------------------------
+
+size_t task_send( PTASK_INFO task, const uint8_t*buffer, size_t buflen )
+{
+	size_t written = 0;
+	if( !task->flags.process_signaled_end )
+	{
+		//lprintf( "Allowing write to process pipe..." );
+		//LogBinary( (uint8_t*)buffer, buflen );
+		{
+#ifdef _WIN32
+			DWORD dwWritten;
+			//LogBinary( GetText( seg )
+			//			, GetTextSize( seg ) );
+			WriteFile( task->hStdIn.handle
+					, buffer
+					, (DWORD)buflen
+					, &dwWritten
+					, NULL );
+			written = dwWritten;
+#else
+			struct pollfd pfd = { task->hStdIn.handle, POLLHUP|POLLERR, 0 };
+			if( poll( &pfd, 1, 0 ) &&
+					pfd.revents & POLLERR )
+			{
+				//Log( "Pipe has no readers..." );
+			} else {
+				written = write( task->hStdIn.handle
+						, buffer
+						, buflen );
+				//flush( task->hStdIn.handle );
+			}
+		}
+#endif
+	}
+	else
+	{
+		//lprintf( "Task has ended, write  aborted." );
+	}
+	return written;
 }
 
 

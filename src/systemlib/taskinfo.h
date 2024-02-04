@@ -22,14 +22,14 @@ struct taskOutputStruct {
 //typedef void (CPROC*TaskEnd)(uintptr_t, struct task_info_tag *task_ended);
 struct task_info_tag {
 	struct {
-		volatile BIT_FIELD closed;  // TerminateProgram() was called against this process
-		volatile BIT_FIELD process_ended; // StopProgram() was called against this process
+		volatile uint8_t closed;  // TerminateProgram() was called against this process
+		volatile uint8_t process_ended; // StopProgram() was called against this process
+		volatile uint8_t process_signaled_end; // the wait for exit thread already exited...
 		BIT_FIELD bSentIoTerminator : 1;
 		BIT_FIELD log_input : 1;
 		BIT_FIELD runas_root : 1;
 		BIT_FIELD useCtrlBreak : 1;
 		BIT_FIELD useEventSignal : 1;
-		BIT_FIELD process_signaled_end : 1; // the wait for exit thread already exited...
 		//BIT_FIELD noKillOnExit : 1;
 	} flags;
 	TaskEnd EndNotice;
