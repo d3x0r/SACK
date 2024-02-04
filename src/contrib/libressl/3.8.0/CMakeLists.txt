@@ -2,7 +2,7 @@ if(MSVC)
 	cmake_minimum_required (VERSION 3.16.4)
 	cmake_policy(SET CMP0091 NEW)
 else()
-	cmake_minimum_required (VERSION 3.0)
+	cmake_minimum_required (VERSION 3.20)
 endif()
 
 project (LibreSSL C ASM)

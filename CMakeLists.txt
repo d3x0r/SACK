@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1 )
+cmake_minimum_required(VERSION 3.20 )
 
 if( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
    # policy makes it known that I understand set( VARIABLE ) and option( VARIABLE...) work together
