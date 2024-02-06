@@ -12,6 +12,8 @@
 #endif
 #include <stdhdrs.h>
 #include <string.h>
+#include <idle.h>
+
 #ifdef WIN32
 //#undef StrDup
 #include <shlwapi.h>

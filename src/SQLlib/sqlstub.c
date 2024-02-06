@@ -2976,8 +2976,16 @@ retry:
 			if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 			{
 				lprintf( "Failed to open ODBC statement handle...." );
+				retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
+				
+				if( EnsureLogOpen( odbc ) )
+				{
+					sack_fprintf( g.pSQLLog, "#%s\n", GetText( cmd ) );
+					sack_fflush( g.pSQLLog );
+				}
+
 				GenerateResponce( collection, WM_SQL_RESULT_ERROR );
-				return FALSE;
+				return retry;
 			}
 		}
 		{
