@@ -1251,29 +1251,27 @@ size_t task_send( PTASK_INFO task, const uint8_t*buffer, size_t buflen )
 	{
 		//lprintf( "Allowing write to process pipe..." );
 		//LogBinary( (uint8_t*)buffer, buflen );
-		{
 #ifdef _WIN32
-			DWORD dwWritten;
-			//LogBinary( GetText( seg )
-			//			, GetTextSize( seg ) );
-			WriteFile( task->hStdIn.handle
-					, buffer
-					, (DWORD)buflen
-					, &dwWritten
-					, NULL );
-			written = dwWritten;
+		DWORD dwWritten;
+		//LogBinary( GetText( seg )
+		//			, GetTextSize( seg ) );
+		WriteFile( task->hStdIn.handle
+				, buffer
+				, (DWORD)buflen
+				, &dwWritten
+				, NULL );
+		written = dwWritten;
 #else
-			struct pollfd pfd = { task->hStdIn.handle, POLLHUP|POLLERR, 0 };
-			if( poll( &pfd, 1, 0 ) &&
-					pfd.revents & POLLERR )
-			{
-				//Log( "Pipe has no readers..." );
-			} else {
-				written = write( task->hStdIn.handle
-						, buffer
-						, buflen );
-				//flush( task->hStdIn.handle );
-			}
+		struct pollfd pfd = { task->hStdIn.handle, POLLHUP|POLLERR, 0 };
+		if( poll( &pfd, 1, 0 ) &&
+				pfd.revents & POLLERR )
+		{
+			//Log( "Pipe has no readers..." );
+		} else {
+			written = write( task->hStdIn.handle
+					, buffer
+					, buflen );
+			//flush( task->hStdIn.handle );
 		}
 #endif
 	}
