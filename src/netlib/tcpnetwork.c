@@ -138,9 +138,27 @@ void AcceptClient(PCLIENT pListen)
 										, pNewClient->saClient
 										,&nTemp
 										);
+	SET_SOCKADDR_LENGTH( pNewClient->saClient, pNewClient->saClient->sa_family == AF_INET6?IN6_SOCKADDR_LENGTH:IN_SOCKADDR_LENGTH );
+
+#ifdef __LINUX__
+	{
+		struct ifreq ifr;
+		if( ioctl( sockfd, SIOCGIFADDR, &ifr) < 0)
+			printf("ioctl error.\n");
+		else {
+			addr = (struct sockaddr_in *)&(ifr.ifr_addr);
+			address = inet_ntoa(addr->sin_addr);
+		}
+   }
+#endif
 	//lprintf( "Accept new client...%p %d", pNewClient, pNewClient->Socket );
 #ifdef WIN32
 	SetHandleInformation( (HANDLE)pNewClient->Socket, HANDLE_FLAG_INHERIT, 0 );
+#else
+	{ 
+		int flags = fcntl( pNewClient->Socket, F_GETFD, 0 );
+		if( flags >= 0 ) fcntl( pNewClient->Socket, F_SETFD, flags | FD_CLOEXEC );
+	}
 #endif
 
 #ifdef LOG_SOCKET_CREATION
@@ -153,9 +171,8 @@ void AcceptClient(PCLIENT pListen)
 #else
 			int
 #endif
-			nLen = MAGIC_SOCKADDR_LENGTH;
-		if( !pNewClient->saSource )
-			pNewClient->saSource = AllocAddr();
+		nLen = MAGIC_SOCKADDR_LENGTH;
+		pNewClient->saSource = DuplicateAddress( pListen->saSource );
 		if( getsockname( pNewClient->Socket, pNewClient->saSource, &nLen ) )
 		{
 			lprintf( "getsockname errno = %d", errno );

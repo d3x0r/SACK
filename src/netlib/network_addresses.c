@@ -13,6 +13,8 @@
 //
 //  DEBUG FLAGS IN netstruc.h
 //
+#define DEBUG_ADDRESSES
+#define DEBUG_MAC_ADDRESS_LOOKUP
 #ifndef _DEFAULT_SOURCE
 #define _DEFAULT_SOURCE  // for features.h
 #ifndef _GNU_SOURCE
@@ -93,14 +95,91 @@
 
 SACK_NETWORK_NAMESPACE
 
+struct addressNode {
+	uint8_t localHw[6];
+	uint8_t remoteHw[6];
+	SOCKADDR *remote;
+};
+
+PTREEROOT pbtAddresses = NULL;
+
 //----------------------------------------------------------------------------
 
 #if !defined( __MAC__ ) && !defined( __EMSCRIPTEN__ )
 #  define INCLUDE_MAC_SUPPORT
 #endif
 
-NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//int get_mac_addr (char *device, unsigned char *buffer)
+static void deleteAddress( CPOINTER node, uintptr_t a )
 {
+	struct addressNode *an = (struct addressNode*)node;
+	ReleaseAddress( an->remote );
+	Deallocate( struct addressNode *, an );
+}
+
+static int compareAddress( uintptr_t a, uintptr_t b )
+{
+	SOCKADDR *an = (SOCKADDR *)a;
+	SOCKADDR *bn = (SOCKADDR *)b;
+	if( an->sa_family == AF_INET6 ){
+		if( bn->sa_family == AF_INET6 ){
+			return MemCmp( &((SOCKADDR_IN6*)an)->sin6_addr, &((SOCKADDR_IN6*)bn)->sin6_addr, 16 );
+		} else {
+			return 1;
+		}
+	} else {
+		if( bn->sa_family == AF_INET6 ){
+			return -1;
+		} else {
+			return MemCmp( &((SOCKADDR_IN*)an)->sin_addr, &((SOCKADDR_IN*)bn)->sin_addr, 4 );
+		}	
+	}
+}
+
+NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLocalLen
+                                 , uint8_t *bufRemote, size_t* bufRemoteLen )//int get_mac_addr (char *device, unsigned char *buffer)
+{
+	if( !pbtAddresses )
+		pbtAddresses = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, compareAddress, deleteAddress );
+	SOCKADDR *saDup = DuplicateAddress( pc->saClient );
+	// clear Port for later... 
+	saDup->sa_data[0] = 0;
+	saDup->sa_data[1] = 0;
+
+	struct addressNode *oldAddress = (struct addressNode *)FindInBinaryTree( pbtAddresses, (uintptr_t)saDup );
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP	
+	lprintf( "FindinBinaryTree: %p", oldAddress );
+#endif
+	if( oldAddress )
+	{
+		MemCpy( bufLocal, oldAddress->localHw, 6 );
+		(*bufLocalLen) = 6;
+		MemCpy( bufRemote, oldAddress->remoteHw, 6 );
+		(*bufRemoteLen) = 6;
+		ReleaseAddress( saDup );
+		return TRUE;
+	}
+
+	if( saDup->sa_family == AF_INET6 )
+	{
+		if( MemCmp( saDup->sa_data+2, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 )
+		{
+			// localhost
+			(*bufLocalLen) = 0;
+			(*bufRemoteLen) = 0;
+			ReleaseAddress( saDup );
+			return TRUE;
+		}
+	} else if( saDup->sa_family == AF_INET )
+	{
+		if( MemCmp( saDup->sa_data+2, "\x7f\0\0\x01", 4 ) == 0 )
+		{
+			// localhost
+			(*bufLocalLen) = 0;
+			(*bufRemoteLen) = 0;
+			ReleaseAddress( saDup );
+			return TRUE;
+		}
+	}
 #ifdef INCLUDE_MAC_SUPPORT
 #  ifdef __LINUX__
 #    ifdef __THIS_CODE_GETS_MY_MAC_ADDRESS___
@@ -172,11 +251,58 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* buf, size_t *buflen )//in
 	ULONG   ulLen;
 	// I don't understand this useless cast - from size_t to ULONG?
 	// isn't that the same thing?
-	ulLen = (ULONG)(*buflen);
+
+	ulLen = 6;
+	PMIB_IF_TABLE2 table;
+	MIB_IPNET_ROW2 row;
+	MemSet( &row.InterfaceLuid, 0, sizeof( row.InterfaceLuid ) );
+	GetIfTable2( &table );
+	row.Address = *((SOCKADDR_INET*)saDup);
+
+	for( ULONG i = 0; i < table->NumEntries; i++ ) {
+		if( !table->Table[i].InOctets) continue; // skip if no traffic
+
+		row.InterfaceIndex = table->Table[i].InterfaceIndex;
+		hr = ResolveIpNetEntry2( &row, (SOCKADDR_INET*)GetNetworkLong( pc, GNL_LOCAL_ADDRESS) );
+		if( hr == ERROR_NOT_FOUND ) {
+			continue;
+		}
+		//lprintf( "Row Entry: %d %S %S", table->Table[i].InterfaceIndex, table->Table[i].Alias, table->Table[i].Description );
+		//LogBinary( (uint8_t*)table->Table[i].PhysicalAddress, table->Table[i].PhysicalAddressLength);
+
+		if( hr == S_OK ) {
+			struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
+			newAddress->remote = saDup;
+			MemCpy( newAddress->localHw, table->Table[i].PhysicalAddress, table->Table[i].PhysicalAddressLength );
+			MemCpy( newAddress->remoteHw, row.PhysicalAddress, row.PhysicalAddressLength );
+			AddBinaryNode( pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote );
+			(*bufRemoteLen) = row.PhysicalAddressLength;
+			MemCpy( bufRemote, row.PhysicalAddress, row.PhysicalAddressLength );
+			(*bufLocalLen) = table->Table[i].PhysicalAddressLength;
+			MemCpy( bufLocal, table->Table[i].PhysicalAddress, row.PhysicalAddressLength );
+			//lprintf( "Resolve addr: %d  %d", i, hr );
+			//LogBinary( row.PhysicalAddress, row.PhysicalAddressLength);
+			return TRUE;
+			break;
+			//MemCpy( buf, row.PhysicalAddress, row.PhysicalAddressLength );
+			//(*buflen) = row.PhysicalAddressLength;
+			//FreeMibTable( table );
+			//return TRUE;
+		} else {
+			lprintf( "(Fail)Resolve addr: %d  %d", i, hr );
+		
+		}
+		ReleaseAddress( saDup);
+		return FALSE;
+	}
+
+
+	FreeMibTable( table );
+	//row.
 
 	//needs ws2_32.lib and iphlpapi.lib in the linker.
-	hr = SendARP ( (IPAddr)GetNetworkLong(pc,GNL_MYIP), (IPAddr)GetNetworkLong(pc,GNL_MYIP), (PULONG)buf, &ulLen);
-	(*buflen) = ulLen;
+	//hr = SendARP ( (IPAddr)GetNetworkLong(pc,GNL_MYIP), (IPAddr)GetNetworkLong(pc,GNL_MYIP), (PULONG)buf, &ulLen);
+	//(*buflen) = ulLen;
 //  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to
 //  an unsigned long.  The pc->hwClient is a pointer to an array of uint8_t (unsigned chars),
 //  actually defined in netstruc.h as uint8_t hwClient[6]; Well, in the end, they are all
@@ -379,6 +505,9 @@ void SetAddrName( SOCKADDR *addr, const char *name )
 SOCKADDR *AllocAddrEx( DBG_VOIDPASS )
 {
 	SOCKADDR *lpsaAddr=(SOCKADDR*)AllocateEx( MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t ) DBG_RELAY );
+#ifdef DEBUG_ADDRESSES	
+	lprintf( "New Length: %d", MAGIC_SOCKADDR_LENGTH);
+#endif	
 	memset( lpsaAddr, 0, MAGIC_SOCKADDR_LENGTH );
 	//initialize socket length to something identifiable?
 	((uintptr_t*)lpsaAddr)[0] = 3;
@@ -422,6 +551,9 @@ SOCKADDR* DuplicateAddressEx( SOCKADDR *pAddr DBG_PASS ) // return a copy of thi
 	POINTER tmp = (POINTER)( ( (uintptr_t)pAddr ) - 2*sizeof(uintptr_t) );
 	SOCKADDR *dup = AllocAddrEx( DBG_VOIDRELAY );
 	POINTER tmp2 = (POINTER)( ( (uintptr_t)dup ) - 2*sizeof(uintptr_t) );
+#ifdef DEBUG_ADDRESSES	
+	lprintf( "Existing length: %d", SOCKADDR_LENGTH( pAddr ) );
+#endif	
 	MemCpy( tmp2, tmp, SOCKADDR_LENGTH( pAddr ) + 2*sizeof(uintptr_t) );
 	if( ((char**)( ( (uintptr_t)pAddr ) - sizeof(char*) ))[0] )
 		( (char**)( ( (uintptr_t)dup ) - sizeof( char* ) ) )[0]
