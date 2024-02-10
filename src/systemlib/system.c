@@ -625,8 +625,8 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 		LOGICAL progPathSet = FALSE;
 		while( maps && fgets( buf, 256, maps ) )
 		{
-			unsigned long start;
-			unsigned long end;
+			size_t start;
+			size_t end;
 			// remove newline from buf
 			if( !progPathSet ) {
 				TEXTSTR eol = StrChr( buf, '\n' );
@@ -642,10 +642,10 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 					progPathSet = TRUE;
 				}
 			}
-			sscanf( buf, "%lx", &start );
-			sscanf( buf+9, "%lx", &end );
+			sscanf( buf, "%zx", &start );
+			sscanf( buf+9, "%zx", &end );
 
-			if( ((unsigned long)SetupSystemServices >= start ) && ((unsigned long)SetupSystemServices <= end ) )
+			if( ((size_t)SetupSystemServices >= start ) && ((size_t)SetupSystemServices <= end ) )
 			{
 				char *myname;
 				char *mypath;
