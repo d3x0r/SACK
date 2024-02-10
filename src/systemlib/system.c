@@ -628,19 +628,22 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			unsigned long start;
 			unsigned long end;
 			// remove newline from buf
-			TEXTSTR eol = StrChr( buf, '\n' );
-			if( eol ) eol[0] = 0;
+			if( !progPathSet ) {
+				TEXTSTR eol = StrChr( buf, '\n' );
+				if( eol ) eol[0] = 0;
 
+
+				TEXTSTR tail = StrRChr( buf+49, '/' );
+				if( tail && tail[0] ) tail++;
+				else tail  = buf+49;
+				if( StrCmp( tail, program_name ) == 0 ) {
+					tail[-1] = 0;
+					SACKSystemSetProgramPath( buf+49 );
+					progPathSet = TRUE;
+				}
+			}
 			sscanf( buf, "%lx", &start );
 			sscanf( buf+9, "%lx", &end );
-
-			TEXTSTR tail = StrRChr( buf+49, '/' );
-			if( tail && tail[0] ) tail++;
-			else tail  = buf+49;
-			if( StrCmp( tail, program_name ) == 0 ) {
-				tail[-1] = 0;
-				SACKSystemSetProgramPath( buf+49 );
-			}
 
 			if( ((unsigned long)SetupSystemServices >= start ) && ((unsigned long)SetupSystemServices <= end ) )
 			{
