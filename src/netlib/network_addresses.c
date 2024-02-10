@@ -572,7 +572,10 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLoca
 	saDup->sa_data[1] = 0;
 
 retry:
+#ifdef __LINUX__
 	macTableUpdated = FALSE;
+#endif
+
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP	
 	DumpAddr( "Find address in tree", saDup );
 #endif	
@@ -919,7 +922,11 @@ SOCKADDR* DuplicateAddress_6to4_Ex( SOCKADDR *pAddr DBG_PASS )
 		if( memcmp( &((struct sockaddr_in6 *)pAddr)->sin6_addr, "\0\0\0\0\0\0\0\0\0\0\xff\xff", 12 ) == 0 ) {
 			// convert to ipv4
 			((SOCKADDR_IN*)dup)->sin_family = AF_INET;
+#ifdef __LINUX__			
 			((SOCKADDR_IN*)dup)->sin_addr.S_un.S_addr = ((struct sockaddr_in6 *)pAddr)->sin6_addr.s6_addr32[3];
+#else
+			((SOCKADDR_IN*)dup)->sin_addr.S_un.S_addr = ((struct sockaddr_in6 *)pAddr)->sin6_addr.s6_words[6] | ( ((struct sockaddr_in6 *)pAddr)->sin6_addr.s6_words[7] << 16);
+#endif			
 			((SOCKADDR_IN*)dup)->sin_port = ((SOCKADDR_IN*)pAddr)->sin_port;
 			SOCKADDR_NAME( dup ) = strdup( GetAddrName( pAddr ) );
 			SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
