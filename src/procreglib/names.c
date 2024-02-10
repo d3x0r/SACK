@@ -2176,7 +2176,7 @@ void ReadConfiguration( void )
 			size_t pathlen;
 			PLIST loadnames = NULL;
 			TEXTSTR loadname;
-			TEXTSTR path_loadname;
+			TEXTSTR path_loadname = NULL;
 			size_t len;
 			INDEX idx;
 			int success = FALSE;
@@ -2237,6 +2237,7 @@ void ReadConfiguration( void )
 			}
 			if( !success )
 			{
+				if( !path_loadname ) path_loadname = NewArray( TEXTCHAR, len = strlen(filepath) + 13 + 1 );
 				tnprintf( path_loadname, len, "%s/%s", filepath, "interface.conf" );
 				success = ProcessConfigurationFile( pch, loadname, 0 );
 				if( success ) printf( "Configuration path? %s\n", path_loadname );
