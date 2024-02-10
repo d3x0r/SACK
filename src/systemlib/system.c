@@ -643,7 +643,9 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 				}
 			}
 			sscanf( buf, "%zx", &start );
-			sscanf( buf+9, "%zx", &end );
+			char *endbuf = strchr( buf, '-' );
+			endbuf++;
+			sscanf( endbuf, "%zx", &end );
 
 			if( ((size_t)SetupSystemServices >= start ) && ((size_t)SetupSystemServices <= end ) )
 			{
