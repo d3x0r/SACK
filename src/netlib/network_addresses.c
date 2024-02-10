@@ -619,7 +619,7 @@ retry:
 	if( !macThread ) macThread = ThreadTo( MacThread, 0 );
 	int addr;
 	for( addr = 0; addr < mac_data.addressCount; addr++ ) {
-		if( saDup->sa_family == mac_data.addresses[addr]->remote->sa_family ) {
+		if( mac_data.addresses[addr] && saDup->sa_family == mac_data.addresses[addr]->remote->sa_family ) {
 			if( saDup->sa_family == AF_INET ) {
 				const uint32_t testIP = ((uint32_t*)(saDup->sa_data+2))[0] & ((uint32_t*)(mac_data.netmasks[addr]))[0];
 				const uint32_t testAddr = ((uint32_t*)(mac_data.addresses[addr]->remote->sa_data+2))[0] & ((uint32_t*)(mac_data.netmasks[addr]))[0];
