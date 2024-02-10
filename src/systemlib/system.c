@@ -110,19 +110,19 @@ static CTEXTSTR program_path;
 static CTEXTSTR library_path;
 static CTEXTSTR working_path;
 
-void SACKSystemSetProgramPath( char *path )
+void SACKSystemSetProgramPath( CTEXTSTR path )
 {
 	program_path = DupCStr( path );
 }
-void SACKSystemSetProgramName( char *name )
+void SACKSystemSetProgramName( CTEXTSTR name )
 {
 	program_name = DupCStr( name );
 }
-void SACKSystemSetWorkingPath( char *name )
+void SACKSystemSetWorkingPath( CTEXTSTR name )
 {
 	working_path = DupCStr( name );
 }
-void SACKSystemSetLibraryPath( char *name )
+void SACKSystemSetLibraryPath( CTEXTSTR name )
 {
 	library_path = DupCStr( name );
 }
