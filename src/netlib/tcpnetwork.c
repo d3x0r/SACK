@@ -140,17 +140,6 @@ void AcceptClient(PCLIENT pListen)
 										);
 	SET_SOCKADDR_LENGTH( pNewClient->saClient, pNewClient->saClient->sa_family == AF_INET6?IN6_SOCKADDR_LENGTH:IN_SOCKADDR_LENGTH );
 
-#ifdef __LINUX__
-	{
-		struct ifreq ifr;
-		if( ioctl( sockfd, SIOCGIFADDR, &ifr) < 0)
-			printf("ioctl error.\n");
-		else {
-			addr = (struct sockaddr_in *)&(ifr.ifr_addr);
-			address = inet_ntoa(addr->sin_addr);
-		}
-   }
-#endif
 	//lprintf( "Accept new client...%p %d", pNewClient, pNewClient->Socket );
 #ifdef WIN32
 	SetHandleInformation( (HANDLE)pNewClient->Socket, HANDLE_FLAG_INHERIT, 0 );

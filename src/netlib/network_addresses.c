@@ -11,10 +11,11 @@
 ///////////////////////////////////////////////////////////////////////////
 
 //
-//  DEBUG FLAGS IN netstruc.h
+//  DEBUG FLAGS are mostly in netstruc.h
 //
-#define DEBUG_ADDRESSES
-#define DEBUG_MAC_ADDRESS_LOOKUP
+//#define DEBUG_ADDRESSES
+//#define DEBUG_MAC_ADDRESS_LOOKUP
+
 #ifndef _DEFAULT_SOURCE
 #define _DEFAULT_SOURCE  // for features.h
 #ifndef _GNU_SOURCE
@@ -44,6 +45,16 @@
 #include <ctype.h>
 #include <signal.h>
 #include <pthread.h>
+#include <asm/types.h>
+#  ifdef __cplusplus
+extern "C" {
+#  endif
+#include <libnetlink.h>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+#  ifdef __cplusplus
+}
+#  endif
 #endif
 
 #include <sharemem.h>
@@ -95,13 +106,24 @@
 
 SACK_NETWORK_NAMESPACE
 
+typedef uint8_t hwaddr_bytes[6];
 struct addressNode {
-	uint8_t localHw[6];
-	uint8_t remoteHw[6];
+	hwaddr_bytes localHw;
+	hwaddr_bytes remoteHw;
 	SOCKADDR *remote;
 };
 
-PTREEROOT pbtAddresses = NULL;
+static struct mac_data {
+	int interfaceCount;
+	hwaddr_bytes *hwaddrs; // interface hardware addresses;
+	struct addressNode **addresses;
+	int addressCount;
+	uint8_t **netmasks; // interface hardware addresses;
+	int *ifIndexes;  // interface indexes
+	char ifbuf[512];
+
+	PTREEROOT pbtAddresses = NULL;
+} mac_data;
 
 //----------------------------------------------------------------------------
 
@@ -122,7 +144,11 @@ static int compareAddress( uintptr_t a, uintptr_t b )
 	SOCKADDR *bn = (SOCKADDR *)b;
 	if( an->sa_family == AF_INET6 ){
 		if( bn->sa_family == AF_INET6 ){
+#ifdef _WIN32
 			return MemCmp( &((SOCKADDR_IN6*)an)->sin6_addr, &((SOCKADDR_IN6*)bn)->sin6_addr, 16 );
+#else			
+			return MemCmp( &((struct sockaddr_in6 *)an)->sin6_addr, &((struct sockaddr_in6 *)bn)->sin6_addr, 16 );
+#endif			
 		} else {
 			return 1;
 		}
@@ -130,22 +156,427 @@ static int compareAddress( uintptr_t a, uintptr_t b )
 		if( bn->sa_family == AF_INET6 ){
 			return -1;
 		} else {
+#ifdef _WIN32			
 			return MemCmp( &((SOCKADDR_IN*)an)->sin_addr, &((SOCKADDR_IN*)bn)->sin_addr, 4 );
+#else
+			return MemCmp( &((struct sockaddr_in*)an)->sin_addr, &((struct sockaddr_in*)bn)->sin_addr, 4 );
+#endif			
 		}	
 	}
 }
 
+
+#ifdef __LINUX__
+static int rtnl_filter(struct nlmsghdr *nlh, int reqlen) {
+	lprintf( "msg: %d %d %d %d", nlh->nlmsg_type, nlh->nlmsg_seq, nlh->nlmsg_len, nlh->nlmsg_flags);
+	//struct sockaddr_nl *snl = (struct sockaddr_nl*)p;
+	//if( nlh->nlmsg_pid == snl->nl_pid )
+	//	return 1;
+	
+	// return non zero to stop.
+	return 0;
+
+}
+#endif
+
+
+#ifdef __LINUX__
+
+
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+static void LogMacAddress( struct addressNode *newAddress ){
+	DumpAddr( "New Address Remote", newAddress->remote );
+	lprintf( "Local: %02x:%02x:%02x:%02x:%02x:%02x", newAddress->localHw[0], newAddress->localHw[1], newAddress->localHw[2], newAddress->localHw[3], newAddress->localHw[4], newAddress->localHw[5] );
+	lprintf( "remote: %02x:%02x:%02x:%02x:%02x:%02x", newAddress->remoteHw[0], newAddress->remoteHw[1], newAddress->remoteHw[2], newAddress->remoteHw[3], newAddress->remoteHw[4], newAddress->remoteHw[5] );
+}
+#endif
+
+static void setupInterfaces( PCLIENT pc ) {
+	struct ifconf ifc;
+	if( mac_data.ifbuf[0] ) return; // already did this work.
+		ifc.ifc_len = sizeof( mac_data.ifbuf );
+		ifc.ifc_buf = mac_data.ifbuf;
+
+		ioctl( pc->Socket, SIOCGIFCONF, &ifc );
+		{
+			int i;
+			struct ifreq *IFR;
+			IFR = ifc.ifc_req;
+			const int len = ifc.ifc_len / sizeof( struct ifreq );
+			mac_data.interfaceCount = len;
+			mac_data.ifIndexes = NewArray( int, len );
+			mac_data.hwaddrs = NewArray( hwaddr_bytes, len );
+			
+			for( i = 0; i < len; i++, IFR++ )
+			{
+				//LogBinary( (const uint8_t*)IFR, sizeof( *IFR));
+				struct ifreq ifr;
+				strcpy( ifr.ifr_name, IFR->ifr_name );
+				if (ioctl(pc->Socket, SIOCGIFINDEX, &ifr) == 0) {
+					mac_data.ifIndexes[i] = ifr.ifr_ifindex;	
+				}else {
+					lprintf( "ioctl SIOCGIFINDEX error? %d", errno);
+				}
+				if (ioctl(pc->Socket, SIOCGIFFLAGS, &ifr) == 0) {
+	            	if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
+    	            	if (ioctl(pc->Socket, SIOCGIFHWADDR, &ifr) == 0) {
+							//LogBinary( (const uint8_t*)ifr.ifr_hwaddr.sa_data, 12 );
+							memcpy( mac_data.hwaddrs[i], ifr.ifr_hwaddr.sa_data, 6 );
+						}  else {
+							lprintf( "ioctl SIOCGIFHWADDR failed: %d", errno);
+						}
+					} else {
+						((uint32_t*)(mac_data.hwaddrs[i]))[0] = 0;
+						((uint16_t*)(mac_data.hwaddrs[i]))[2] = 0;
+					}
+				} else {
+					lprintf( "ioctl SIOCGIFFLAGS failed: %d", errno);
+				}
+			}
+		}
+		{
+			struct ifaddrs *ifa;
+			struct ifaddrs *current_ifa;
+			getifaddrs( &ifa);
+			int addressCount = 0;
+			for( current_ifa = ifa; current_ifa; current_ifa = current_ifa->ifa_next ) {
+				if( current_ifa->ifa_addr->sa_family != AF_INET 
+				   && current_ifa->ifa_addr->sa_family != AF_INET6 ) continue; // don't care about non IP addresses.
+				addressCount++;
+			}
+			mac_data.addressCount = addressCount;
+			mac_data.addresses = NewArray( addressNode*, addressCount );
+			mac_data.netmasks = NewArray( uint8_t*, addressCount );
+
+			addressCount = 0;
+			for( current_ifa = ifa; current_ifa; current_ifa = current_ifa->ifa_next ) {
+				//if( current_ifa->ifa_addr->sa_family == AF_PACKET ) continue; // don't care about packet addresses.
+				if( current_ifa->ifa_addr->sa_family != AF_INET 
+				   && current_ifa->ifa_addr->sa_family != AF_INET6 ) continue; // don't care about non IP addresses.
+
+				struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
+				SOCKADDR *sa = AllocAddr();
+				newAddress->remote = sa;
+				//lprintf( "Got ifaddr on %s %d", current_ifa->ifa_name, current_ifa->ifa_addr->sa_family );
+				//LogBinary( (const uint8_t*)current_ifa->ifa_addr, sizeof( *current_ifa->ifa_addr));
+				sa->sa_family = current_ifa->ifa_addr->sa_family;
+				if( sa->sa_family == AF_INET ) {
+					((uint32_t*)(sa->sa_data+2))[0] = ((uint32_t*)(current_ifa->ifa_addr->sa_data+2))[0];
+					//lprintf( "Set address v4: %04x", ((uint32_t*)(sa->sa_data+2))[0] );
+					SET_SOCKADDR_LENGTH( sa, IN_SOCKADDR_LENGTH );
+				} else {
+					// scopr or flow control or something
+					((uint32_t*)( sa->sa_data + 2))[0] = ((uint32_t*)(current_ifa->ifa_addr->sa_data+2))[0];
+					((uint64_t*)( sa->sa_data + 6))[0] = ((uint64_t*)(current_ifa->ifa_addr->sa_data+6))[0];
+					((uint64_t*)( sa->sa_data + 6))[1] = ((uint64_t*)(current_ifa->ifa_addr->sa_data+6))[1];
+					SET_SOCKADDR_LENGTH( sa, IN6_SOCKADDR_LENGTH );
+				}
+				
+				{
+					struct ifreq *IFR;
+					IFR = (struct ifreq*)mac_data.ifbuf;
+					for( int i = 0; i < mac_data.interfaceCount; i++, IFR++){
+						if( strcmp( current_ifa->ifa_name, IFR->ifr_name ) == 0 ) {
+							if( sa->sa_family == AF_INET ) {
+								mac_data.netmasks[addressCount] = NewArray( uint8_t, 4 );
+								memcpy( mac_data.netmasks[addressCount], ((uint32_t*)(current_ifa->ifa_netmask->sa_data+2)), 4 );
+								lprintf( "ipv4 netmask:" );
+								LogBinary( mac_data.netmasks[addressCount], 4 );
+							} else {
+								mac_data.netmasks[addressCount] = NewArray( uint8_t, 16 );
+								memcpy( mac_data.netmasks[addressCount], ((uint32_t*)(current_ifa->ifa_netmask->sa_data+6)), 16 );
+								lprintf( "ipv6 netmask:" );
+								LogBinary( mac_data.netmasks[addressCount], 16 );
+							}
+							memcpy( newAddress->localHw, mac_data.hwaddrs[i], 6);
+							memcpy( newAddress->remoteHw, mac_data.hwaddrs[i], 6);
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+							LogMacAddress( newAddress );
+#endif							
+							if( AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)sa ) ) {
+								//lprintf( "Added address to tree" );
+								mac_data.addresses[addressCount] = newAddress;
+							} else {
+								//lprintf( "Failed to add address to tree" );
+								ReleaseAddress( sa );
+								Deallocate( struct addressNode *, newAddress );
+							}
+							break;
+						}
+					}
+				}
+				addressCount++;
+			}
+			//LogBinary( (const uint8_t*)ifa, sizeof( *ifa));
+
+			freeifaddrs( ifa );
+		}
+
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+		{
+			struct ifreq *IFR;
+			IFR = (struct ifreq*)mac_data.ifbuf;
+			for( int i = 0; IFR->ifr_name[0]; i++, IFR++ ) {
+				lprintf( "IF: %d(%d) %s %02x:%02x:%02x:%02x:%02x", i, mac_data.ifIndexes[i], IFR->ifr_name, mac_data.hwaddrs[i][0], mac_data.hwaddrs[i][1], mac_data.hwaddrs[i][2], mac_data.hwaddrs[i][3], mac_data.hwaddrs[i][4], mac_data.hwaddrs[i][5] );
+			}
+		}
+#endif		
+}
+
+
+
+PTHREAD macThread;
+int macThreadEnd =0;
+PLIST macWaiters;
+int macTableUpdated = 0;
+
+ATEXIT( CloseMacThread ){
+	macThreadEnd = TRUE;
+	WakeThread( macThread );
+}
+
+static uintptr_t MacThread( PTHREAD thread ) {
+
+			int stat;
+			int rtnetlink_socket = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
+			if( rtnetlink_socket < 0 )
+			{
+				if( errno == ESOCKTNOSUPPORT ){
+					lprintf( "Socket No Support?");
+				}else
+				lprintf( "Unable to create netlink socket %d", errno );
+				return 0;
+			}
+			struct sockaddr rtnetlink_addr;
+			rtnetlink_addr.sa_family = AF_NETLINK;
+			rtnetlink_addr.sa_data[0] = 0;
+			rtnetlink_addr.sa_data[1] = 0;
+			int ppid = getppid();
+			rtnetlink_addr.sa_data[2] = ppid & 0xFF;
+			rtnetlink_addr.sa_data[3] = (ppid >> 8) & 0xFF;
+			rtnetlink_addr.sa_data[4] = (ppid >> 16) & 0xFF;
+			rtnetlink_addr.sa_data[5] = (ppid >> 24) & 0xFF;
+			int grp = RTMGRP_NEIGH;
+			rtnetlink_addr.sa_data[6] = grp & 0xFF;
+			rtnetlink_addr.sa_data[7] = 0;
+			rtnetlink_addr.sa_data[8] = 0;
+			rtnetlink_addr.sa_data[9] = 0;
+									
+			stat = bind(rtnetlink_socket, &rtnetlink_addr, 12 );
+			if( stat < 0 )
+			{
+				lprintf( "Unable to bind netlink socket" );
+				return 0;
+			}
+			int seq;
+
+			struct {
+			struct nlmsghdr nlh;
+			struct ndmsg ndm;
+			char buf[256];
+			} req;
+			req.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
+			req.nlh.nlmsg_type = RTM_GETNEIGH;
+			req.nlh.nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST;
+			req.nlh.nlmsg_seq =  ++seq;
+			req.ndm.ndm_family = 0;
+
+			send( rtnetlink_socket, (struct msghdr*)&req, sizeof(req), 0);
+
+	while( !macThreadEnd ) {
+			//sendmsg( rtnetlink_socket, (struct msghdr*)&req, 0);
+			ssize_t rstat;
+			static uint8_t buf[8192];
+			int loop = 1;
+			do {
+				rstat = recv( rtnetlink_socket, buf, sizeof(buf), 0/*MSG_DONTWAIT*/ );
+				if( rstat < 0) {
+					if( errno == EAGAIN || errno == EWOULDBLOCK ) {
+						//lprintf( "No data available" );
+						Relinquish();
+					} else{
+						lprintf( "Error: %s", strerror( errno ) );
+						loop = 0;
+					}
+				}
+				else {
+					struct response {
+						struct nlmsghdr nl;
+						struct ndmsg rt;
+					} *res;
+					int msgLen;
+					int priorLen = 0;
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+					lprintf( "Got some data from socket:%d", rstat);
+					lprintf( "Flag Values %d %d %d",NTF_SELF, NTF_PROXY, NTF_ROUTER    );
+#endif					
+					while( priorLen < rstat ) {
+						struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
+						res = (struct response*)(buf+priorLen);
+
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+						lprintf( "Stuff: %p %d", res, priorLen );
+#endif						
+						struct rtattr *attr = (struct rtattr*)(res+1);
+						switch( res->nl.nlmsg_type ) {
+							case NLMSG_DONE:
+								// end of dump; should send information here.
+								break;
+							case RTM_DELNEIGH:
+								// should probably delete the entry in the tree here...
+								break;
+							case RTM_NEWNEIGH:
+								//LogBinary( (uint8_t*)(res), res->nl.nlmsg_len );
+								/*
+								lprintf( "First message: type:%d len:%d flg:%d pid:%d seq:%d", res->nl.nlmsg_type
+										, res->nl.nlmsg_len-sizeof( res)
+										, res->nl.nlmsg_flags, res->nl.nlmsg_pid, res->nl.nlmsg_seq );
+								lprintf( "fam:%d ifi:%d st:%d fl:%d type:%d"
+											, res->rt.ndm_family, res->rt.ndm_ifindex
+											, res->rt.ndm_state, res->rt.ndm_flags, res->rt.ndm_type );
+								*/
+								// state == NUD_INCOMPLETE, NUD_REACHABLE, NUD_STALE, NUD_DELAY, NUD_PROBE, NUD_FAILED, NUD_NORARP,NUD_PERMANENT
+								// flags == NTF_PROXY, NTF_ROUTER
+								// 
+								{
+									SOCKADDR *sa = AllocAddr();
+
+									sa->sa_family = res->rt.ndm_family;
+									sa->sa_data[0] = 0;
+									sa->sa_data[1] = 0;
+									newAddress->remote = sa;
+									for( int i = 0; i < mac_data.interfaceCount; i++ ) {
+										if( mac_data.ifIndexes[i] == res->rt.ndm_ifindex ) {
+											memcpy( newAddress->localHw, mac_data.hwaddrs[i], 6);
+											break;
+										}
+									}
+									
+									{
+										LOGICAL duplicated = FALSE;
+										size_t attLen = res->nl.nlmsg_len-sizeof( *res);
+										size_t attOfs = priorLen + sizeof( *res );
+										do {
+											struct rtattr *attr = (struct rtattr*)(buf+attOfs);
+											if( !attr->rta_len )
+												break;
+											//lprintf( "Attr:%d %d %d", attLen, attr->rta_len, attr->rta_type );
+											switch( attr->rta_type ) {
+												case NDA_DST:
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+													lprintf( "Destination Address" );
+#endif													
+													if( ( sa->sa_family = res->rt.ndm_family ) == AF_INET ){
+														((uint32_t*)(sa->sa_data+2))[0] = ((uint32_t*)(attr+1))[0];
+														SET_SOCKADDR_LENGTH( sa, IN_SOCKADDR_LENGTH );
+													} else {
+														((uint32_t*)( sa->sa_data + 2))[0] = 0;
+														((uint64_t*)( sa->sa_data + 6))[0] = ((uint64_t*)(attr+1))[0];
+														((uint64_t*)( sa->sa_data + 6))[1] = ((uint64_t*)(attr+1))[1];
+														SET_SOCKADDR_LENGTH( sa, IN6_SOCKADDR_LENGTH );
+													}
+													if( FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa ) ) {
+														duplicated = TRUE;
+														//DumpAddr( "Duplicate address notification", sa );
+														ReleaseAddress( sa );
+														Deallocate( struct addressNode *, newAddress );
+														break;
+													}
+
+													break;
+												case NDA_UNSPEC:
+													lprintf( "Unknown type" );
+													break;
+												case NDA_LLADDR:
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+													lprintf( "Link Layer Address" );
+#endif												
+													memcpy( newAddress->remoteHw, (attr+1), 6 );
+													break;
+												case NDA_PROBES: {
+													//uint32_t *probes = (uint32_t*)(attr+1);
+													//lprintf( "Probes: %d %d %d", probes[0], probes[1], probes[2] );
+													break;
+												}
+												case NDA_CACHEINFO:{
+													struct nda_cacheinfo *ci = (struct nda_cacheinfo*)(attr+1);
+													
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+													lprintf( "Cache Info  conf:%d used:%d upd:%d cnt:%d", ci->ndm_confirmed, ci->ndm_used, ci->ndm_updated, ci->ndm_refcnt );
+#endif													
+													break;
+												}
+												default:
+													lprintf( "Unknown attribute type: %d", attr->rta_type );
+													break;
+											}
+											attOfs += attr->rta_len;
+											attLen -= attr->rta_len;
+										} while( !duplicated && attLen );
+										if( duplicated ) {
+											break;
+										}
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+										LogMacAddress( newAddress );
+#endif										
+										if( !AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote ) ) {
+											ReleaseAddress( newAddress->remote );
+											Deallocate( struct addressNode *, newAddress );
+										}
+										//LogBinary( (uint8_t*)(buf+attOfs), res->nl.nlmsg_len-attOfs );
+									}
+								}
+
+								break;
+							default:
+								lprintf( "Default message: type:%d len:%d flg:%d pid:%d seq:%d", res->nl.nlmsg_type, res->nl.nlmsg_len
+										, res->nl.nlmsg_flags, res->nl.nlmsg_pid, res->nl.nlmsg_seq );
+								break;
+						}
+						//lprintf( "");
+						priorLen += res->nl.nlmsg_len;
+					}
+					//LogBinary( buf, rstat );
+				}
+				{
+					INDEX idx;
+					PTHREAD waiter;
+					macTableUpdated = TRUE;
+					LIST_FORALL( macWaiters, idx, PTHREAD, waiter ) {
+						WakeThread( waiter );
+					}
+				}
+			} while( loop );
+
+
+		}
+		close( rtnetlink_socket );
+		return 0;
+
+}
+
+#endif
+
 NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLocalLen
                                  , uint8_t *bufRemote, size_t* bufRemoteLen )//int get_mac_addr (char *device, unsigned char *buffer)
 {
-	if( !pbtAddresses )
-		pbtAddresses = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, compareAddress, deleteAddress );
+	if( !mac_data.pbtAddresses )
+		mac_data.pbtAddresses = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, compareAddress, deleteAddress );
+#ifdef __LINUX__
+	SOCKADDR *saDup = DuplicateAddress_6to4( pc->saClient );
+#else
 	SOCKADDR *saDup = DuplicateAddress( pc->saClient );
+#endif	
 	// clear Port for later... 
 	saDup->sa_data[0] = 0;
 	saDup->sa_data[1] = 0;
 
-	struct addressNode *oldAddress = (struct addressNode *)FindInBinaryTree( pbtAddresses, (uintptr_t)saDup );
+retry:
+	macTableUpdated = FALSE;
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP	
+	DumpAddr( "Find address in tree", saDup );
+#endif	
+	struct addressNode *oldAddress = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)saDup );
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP	
 	lprintf( "FindinBinaryTree: %p", oldAddress );
 #endif
@@ -161,7 +592,7 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLoca
 
 	if( saDup->sa_family == AF_INET6 )
 	{
-		if( MemCmp( saDup->sa_data+2, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 )
+		if( MemCmp( saDup->sa_data+4, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 )
 		{
 			// localhost
 			(*bufLocalLen) = 0;
@@ -182,67 +613,60 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLoca
 	}
 #ifdef INCLUDE_MAC_SUPPORT
 #  ifdef __LINUX__
-#    ifdef __THIS_CODE_GETS_MY_MAC_ADDRESS___
-	int fd;
-	struct ifreq ifr;
-
-	fd = socket(PF_UNIX, SOCK_DGRAM, 0);
-	if (fd == -1)
-	{
-		lprintf("Unable to create socket for pclient: %p", pc);
-		return -1;
-	}
-
-	strcpy (ifr.ifr_name, GetNetworkLong(pc,GNL_IP));
-
-	if (ioctl (fd, SIOCGIFFLAGS, &ifr) < 0)
-	{
-		close (fd);
-		return -1;
-	}
-
-	if (ioctl (fd, SIOCGIFHWADDR, &ifr) < 0)
-	{
-		close (fd);
-		return -1;
-	}
-
-	close (fd);
-
-	memcpy (pc->hwClient, ifr.ifr_hwaddr.sa_data, 6);
-
-	return 0;
-#    endif
-	   /* this code queries the arp table to figure out who the other side is */
-	//int fd;
-	struct arpreq arpr;
-	struct ifconf ifc;
-	MemSet( &arpr, 0, sizeof( arpr ) );
-	lprintf( "this is broken." );
-	MemCpy( &arpr.arp_pa, pc->saClient, sizeof( SOCKADDR ) );
-	arpr.arp_ha.sa_family = AF_INET;
-	{
-		char ifbuf[256];
-		ifc.ifc_len = sizeof( ifbuf );
-		ifc.ifc_buf = ifbuf;
-		ioctl( pc->Socket, SIOCGIFCONF, &ifc );
-		{
-			int i;
-			struct ifreq *IFR;
-			IFR = ifc.ifc_req;
-			for( i = ifc.ifc_len / sizeof( struct ifreq); --i >=0; IFR++ )
-			{
-				printf( "IF: %s\n", IFR->ifr_name );
-				strcpy( arpr.arp_dev, "eth0" );
+	setupInterfaces( pc );
+	if( !macThread ) macThread = ThreadTo( MacThread, 0 );
+	int addr;
+	for( addr = 0; addr < mac_data.addressCount; addr++ ) {
+		if( saDup->sa_family == mac_data.addresses[addr]->remote->sa_family ) {
+			if( saDup->sa_family == AF_INET ) {
+				const uint32_t testIP = ((uint32_t*)(saDup->sa_data+2))[0] & ((uint32_t*)(mac_data.netmasks[addr]))[0];
+				const uint32_t testAddr = ((uint32_t*)(mac_data.addresses[addr]->remote->sa_data+2))[0] & ((uint32_t*)(mac_data.netmasks[addr]))[0];
+				if( testIP == testAddr ) {
+					break;
+				}					
+			} else {
+				const uint64_t testIP[2] = {
+					((uint64_t*)(saDup->sa_data+6))[0] & ((uint64_t*)(mac_data.netmasks[addr]))[0]
+					, ((uint64_t*)(saDup->sa_data+6))[1] & ((uint64_t*)(mac_data.netmasks[addr]))[1]
+				};
+				const uint64_t testAddr[2] = {
+					((uint64_t*)(mac_data.addresses[addr]->remote->sa_data+6))[0] & ((uint64_t*)(mac_data.netmasks[addr]))[0]
+					, ((uint64_t*)(mac_data.addresses[addr]->remote->sa_data+6))[1] & ((uint64_t*)(mac_data.netmasks[addr]))[1]
+				};
+				if( testIP[0] == testAddr[0] && testIP[1] == testAddr[1] ) {
+					break;
+				}
 			}
-		}
+		}	
 	}
-	DebugBreak();
-	if( ioctl( pc->Socket, SIOCGARP, &arpr ) < 0 )
-	{
-		lprintf( "Error of some sort ... %s", strerror( errno ) );
-		DebugBreak();
+
+	if( addr == mac_data.addressCount ) {
+		//lprintf( "No matching address mask found... maybe just fake add this entry for the future?" );
+		ReleaseAddress( saDup );
+		memset( bufLocal, 0, 6 );
+		(*bufLocalLen) = 6;
+		memset( bufRemote, 0, 6 );
+		(*bufRemoteLen) = 6;
+		return TRUE;
 	}
+
+	AddLink( &macWaiters, MakeThread() );
+	uint64_t waitTime = timeGetTime64() + 500;
+	while( !macTableUpdated ) {
+		// guess I should check to see if it is even possible to resolve with netmask...
+		WakeableSleep( 500 );
+	}
+	if( timeGetTime64() > waitTime ) {
+		//lprintf( "Timeout waiting for mac address" );
+		ReleaseAddress( saDup );
+		memset( bufLocal, 0, 6 );
+		(*bufLocalLen) = 6;
+		memset( bufRemote, 0, 6 );
+		(*bufRemoteLen) = 6;
+		return TRUE;
+	}
+	goto retry;
+
 
 	return 0;
 #  endif
@@ -275,7 +699,7 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLoca
 			newAddress->remote = saDup;
 			MemCpy( newAddress->localHw, table->Table[i].PhysicalAddress, table->Table[i].PhysicalAddressLength );
 			MemCpy( newAddress->remoteHw, row.PhysicalAddress, row.PhysicalAddressLength );
-			AddBinaryNode( pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote );
+			AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote );
 			(*bufRemoteLen) = row.PhysicalAddressLength;
 			MemCpy( bufRemote, row.PhysicalAddress, row.PhysicalAddressLength );
 			(*bufLocalLen) = table->Table[i].PhysicalAddressLength;
@@ -322,70 +746,6 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 {
 #ifdef INCLUDE_MAC_SUPPORT
 #ifdef __LINUX__
-#ifdef __THIS_CODE_GETS_MY_MAC_ADDRESS___
-	int fd;
-	struct ifreq ifr;
-
-	fd = socket(PF_UNIX, SOCK_DGRAM, 0);
-	if (fd == -1)
-	{
-		lprintf("Unable to create socket for pclient: %p", pc);
-		return -1;
-	}
-
-	strcpy (ifr.ifr_name, GetNetworkLong(pc,GNL_IP));
-
-	if (ioctl (fd, SIOCGIFFLAGS, &ifr) < 0)
-	{
-		close (fd);
-		return -1;
-	}
-
-	if (ioctl (fd, SIOCGIFHWADDR, &ifr) < 0)
-	{
-		close (fd);
-		return -1;
-	}
-
-	close (fd);
-
-	memcpy (pc->hwClient, ifr.ifr_hwaddr.sa_data, 6);
-
-	return 0;
-#endif
-	/* this code queries the arp table to figure out who the other side is */
-	//int fd;
-	struct arpreq arpr;
-	MemSet( &arpr, 0, sizeof( arpr ) );
-#if 0
-	lprintf( "this is broken." );
-	MemCpy( &arpr.arp_pa, pc->saClient, sizeof( SOCKADDR ) );
-	arpr.arp_ha.sa_family = AF_INET;
-	{
-		char ifbuf[256];
-		ifc.ifc_len = sizeof( ifbuf );
-		ifc.ifc_buf = ifbuf;
-		ioctl( pc->Socket, SIOCGIFCONF, &ifc );
-		{
-			int i;
-			struct ifreq *IFR;
-			IFR = ifc.ifc_req;
-			for( i = ifc.ifc_len / sizeof( struct ifreq); --i >=0; IFR++ )
-			{
-				printf( "IF: %s\n", IFR->ifr_name );
-				strcpy( arpr.arp_dev, "eth0" );
-			}
-		}
-	}
-	DebugBreak();
-	if( ioctl( pc->Socket, SIOCGARP, &arpr ) < 0 )
-	{
-		lprintf( "Error of some sort ... %s", strerror( errno ) );
-		DebugBreak();
-	}
-#endif
-
-	return 0;
 #endif
 #ifdef WIN32
 
@@ -545,8 +905,35 @@ int GetAddressParts( SOCKADDR *sa, uint32_t *pdwIP, uint16_t *pdwPort )
 }
 
 //----------------------------------------------------------------------------
+// return a copy of this address... if it is a ipv6 that wraps an ipv4, return ipv4 version
+SOCKADDR* DuplicateAddress_6to4_Ex( SOCKADDR *pAddr DBG_PASS ) 
+{
+	POINTER tmp = (POINTER)( ( (uintptr_t)pAddr ) - 2*sizeof(uintptr_t) );
+	SOCKADDR *dup = AllocAddrEx( DBG_VOIDRELAY );
+	POINTER tmp2 = (POINTER)( ( (uintptr_t)dup ) - 2*sizeof(uintptr_t) );
+#ifdef DEBUG_ADDRESSES	
+	lprintf( "Existing length: %d", SOCKADDR_LENGTH( pAddr ) );
+#endif	
+	MemCpy( tmp2, tmp, SOCKADDR_LENGTH( pAddr ) + 2*sizeof(uintptr_t) );
+	if( pAddr->sa_family == AF_INET6 ) {
+		if( memcmp( &((struct sockaddr_in6 *)pAddr)->sin6_addr, "\0\0\0\0\0\0\0\0\0\0\xff\xff", 12 ) == 0 ) {
+			// convert to ipv4
+			((SOCKADDR_IN*)dup)->sin_family = AF_INET;
+			((SOCKADDR_IN*)dup)->sin_addr.S_un.S_addr = ((struct sockaddr_in6 *)pAddr)->sin6_addr.s6_addr32[3];
+			((SOCKADDR_IN*)dup)->sin_port = ((SOCKADDR_IN*)pAddr)->sin_port;
+			SOCKADDR_NAME( dup ) = strdup( GetAddrName( pAddr ) );
+			SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
+		}
+	}
+	if( ((char**)( ( (uintptr_t)pAddr ) - sizeof(char*) ))[0] )
+		( (char**)( ( (uintptr_t)dup ) - sizeof( char* ) ) )[0]
+				= strdup( ((char**)( ( (uintptr_t)pAddr ) - sizeof( char* ) ))[0] );
+	return dup;
+}
 
-SOCKADDR* DuplicateAddressEx( SOCKADDR *pAddr DBG_PASS ) // return a copy of this address...
+//----------------------------------------------------------------------------
+// return a copy of this address...
+SOCKADDR* DuplicateAddressEx( SOCKADDR *pAddr DBG_PASS ) 
 {
 	POINTER tmp = (POINTER)( ( (uintptr_t)pAddr ) - 2*sizeof(uintptr_t) );
 	SOCKADDR *dup = AllocAddrEx( DBG_VOIDRELAY );
