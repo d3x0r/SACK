@@ -49,7 +49,6 @@
 #  ifdef __cplusplus
 extern "C" {
 #  endif
-#include <libnetlink.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #  ifdef __cplusplus
@@ -749,6 +748,7 @@ NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, u
 {
 #ifdef INCLUDE_MAC_SUPPORT
 #ifdef __LINUX__
+	return NULL;
 #endif
 #ifdef WIN32
 
