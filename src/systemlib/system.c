@@ -677,8 +677,6 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 				if( !progPathSet ) {
 					SACKSystemSetProgramPath( mypath );
 					(*init_l).load_path =  DupCStr( mypath );
-				}
-				if( program_name ) {
 					SACKSystemSetProgramName( myname );
 					(*init_l).filename = DupCStr( myname );
 				}
