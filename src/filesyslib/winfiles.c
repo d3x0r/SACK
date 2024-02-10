@@ -603,7 +603,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				here = GetLibraryPath();
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
+				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here?here:"", path + 2 );
 			}
 #if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
 			else if( ( path[0] == ',' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
