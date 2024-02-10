@@ -2239,7 +2239,7 @@ void ReadConfiguration( void )
 			{
 				if( !path_loadname ) path_loadname = NewArray( TEXTCHAR, len = strlen(filepath) + 13 + 1 );
 				tnprintf( path_loadname, len, "%s/%s", filepath, "interface.conf" );
-				success = ProcessConfigurationFile( pch, loadname, 0 );
+				success = ProcessConfigurationFile( pch, path_loadname, 0 );
 				if( success ) printf( "Configuration path? %s\n", path_loadname );
 			}
 			if( !success )
