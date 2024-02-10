@@ -622,12 +622,26 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 	{
 		char buf[256];
 		FILE *maps = fopen( "/proc/self/maps", "rt" );
+		LOGICAL progPathSet = FALSE;
 		while( maps && fgets( buf, 256, maps ) )
 		{
 			unsigned long start;
 			unsigned long end;
+			// remove newline from buf
+			TEXTSTR eol = StrChr( buf, '\n' );
+			if( eol ) eol[0] = 0;
+
 			sscanf( buf, "%lx", &start );
 			sscanf( buf+9, "%lx", &end );
+
+			TEXTSTR tail = StrRChr( buf+49, '/' );
+			if( tail && tail[0] ) tail++;
+			else tail  = buf+49;
+			if( StrCmp( tail, program_name ) == 0 ) {
+				tail[-1] = 0;
+				SACKSystemSetProgramPath( buf+49 );
+			}
+
 			if( ((unsigned long)SetupSystemServices >= start ) && ((unsigned long)SetupSystemServices <= end ) )
 			{
 				char *myname;
@@ -655,11 +669,15 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 				}
 				//LOGI( "my path [%s][%s]", mypath, myname );
 				// do not auto load libraries
-				SACKSystemSetProgramPath( mypath );
-				(*init_l).load_path =  DupCStr( mypath );
-				SACKSystemSetProgramName( myname );
-				(*init_l).filename = DupCStr( myname );
-				SACKSystemSetWorkingPath( buf );
+				if( !progPathSet ) {
+					SACKSystemSetProgramPath( mypath );
+					(*init_l).load_path =  DupCStr( mypath );
+				}
+				if( program_name ) {
+					SACKSystemSetProgramName( myname );
+					(*init_l).filename = DupCStr( myname );
+				}
+				SACKSystemSetLibraryPath( buf );
 				break;
 			}
 		}
