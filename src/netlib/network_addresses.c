@@ -114,14 +114,20 @@ struct addressNode {
 
 static struct mac_data {
 	int interfaceCount;
+	int *ifIndexes;  // interface indexes
 	hwaddr_bytes *hwaddrs; // interface hardware addresses;
-	struct addressNode **addresses;
+
 	int addressCount;
 	uint8_t **netmasks; // interface hardware addresses;
-	int *ifIndexes;  // interface indexes
-	char ifbuf[512];
+	// indexed by address count, with netmasks
+	struct addressNode **addresses;
+	int *addr_ifIndexes;  // interface indexes
 
-	PTREEROOT pbtAddresses = NULL;
+#ifdef __LINUX__
+	// used to get interface information
+	char ifbuf[512];
+#endif	
+	PTREEROOT pbtAddresses;
 } mac_data;
 
 //----------------------------------------------------------------------------
@@ -164,6 +170,108 @@ static int compareAddress( uintptr_t a, uintptr_t b )
 	}
 }
 
+
+#ifdef _WIN32
+static void setupInterfaces( void ) {
+	PMIB_IPINTERFACE_TABLE ip_table;
+	PMIB_IF_TABLE2 if_table;
+	MIB_IPNET_ROW2 row;
+	if( mac_data.addresses ) return; // already did this work.
+	MemSet( &row.InterfaceLuid, 0, sizeof( row.InterfaceLuid ) );
+	GetIfTable2( &if_table );
+	int ifCount = 0;
+	for( int i = 0; i < if_table->NumEntries; i++ ) {
+		if( !if_table->Table[i].InOctets) continue; // skip if no traffic
+		ifCount++;
+	}
+	mac_data.interfaceCount = ifCount;
+	mac_data.ifIndexes = NewArray( int, ifCount );
+	mac_data.hwaddrs = NewArray( hwaddr_bytes, ifCount );
+	ifCount = 0;
+	for( int i = 0; i < if_table->NumEntries; i++ ) {
+		if( !if_table->Table[i].InOctets) continue; // skip if no traffic
+		mac_data.ifIndexes[ifCount] = if_table->Table[i].InterfaceIndex;
+		memcpy( mac_data.hwaddrs[ifCount], if_table->Table[i].PhysicalAddress, 6 );
+		ifCount++;
+	}
+
+	PMIB_UNICASTIPADDRESS_TABLE uip_table;
+	int ipCount = 0;
+	GetUnicastIpAddressTable( AF_UNSPEC, &uip_table );
+	for( int i = 0; i < uip_table->NumEntries; i++ ) {
+		int ifIndex = -1;
+		for( int j = 0; j < mac_data.interfaceCount; j++ ) {
+			if( mac_data.ifIndexes[j] == uip_table->Table[i].InterfaceIndex ) {
+				ifIndex = j;
+				break;
+			}
+		}
+		if( ifIndex >= 0 ) {
+			ipCount++;
+		}
+	}
+	mac_data.addressCount = ipCount;
+	mac_data.addresses = NewArray( struct addressNode*, ipCount );
+	mac_data.addr_ifIndexes = NewArray( int, ipCount );
+	mac_data.netmasks = NewArray( uint8_t*, ipCount );
+	ipCount = 0;
+
+	for( int i = 0; i < uip_table->NumEntries; i++ ) {
+		int ifIndex = -1;
+		for( int j = 0; j < mac_data.interfaceCount; j++ ) {
+			if( mac_data.ifIndexes[j] == uip_table->Table[i].InterfaceIndex ) {
+				for( int k = 0; k < mac_data.interfaceCount; k++ ) {
+					if( mac_data.ifIndexes[k] == uip_table->Table[i].InterfaceIndex ) {
+						mac_data.addr_ifIndexes[ipCount] = k;
+						break;
+					}
+				}
+				ifIndex = j;
+				break;
+			}
+		}
+		if( ifIndex >= 0 ) {
+			//if( ip_table->Table[i].Length == 0 ) continue;
+			if( uip_table->Table[i].Address.si_family == AF_INET ) {
+				uint8_t *mask = mac_data.netmasks[ipCount] = NewArray( uint8_t, 4 );
+				int b;
+				for( b = 0; b < uip_table->Table[i].OnLinkPrefixLength; b++ ) {
+					mask[b/8] |= (1<<(7-(b%8)) );
+				}
+				for( ; b < 32; b++ ) {
+					mask[b/8] &= ~(1<<(7-(b%8)) );
+				}
+			} else {
+				uint8_t *mask = mac_data.netmasks[ipCount] = NewArray( uint8_t, 16 );
+				int b;
+				for( b = 0; b < uip_table->Table[i].OnLinkPrefixLength; b++ ) {
+					mask[b/8] |= (1<<(7-(b%8)) );
+				}
+				for( ; b < 128; b++ ) {
+					mask[b/8] &= ~(1<<(7-(b%8)) );
+				}
+			}
+			struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
+			newAddress->remote = AllocAddr();
+			newAddress->remote->sa_family = uip_table->Table[i].Address.si_family;
+			if( newAddress->remote->sa_family == AF_INET ) {
+				((uint32_t*)(newAddress->remote->sa_data+2))[0] = ((uint32_t*)(&uip_table->Table[i].Address.Ipv4.sin_addr))[0];
+				SET_SOCKADDR_LENGTH( newAddress->remote, IN_SOCKADDR_LENGTH );
+			} else {
+				((uint32_t*)( newAddress->remote->sa_data + 2))[0] = 0;
+				((uint64_t*)( newAddress->remote->sa_data + 6))[0] = ((uint64_t*)(&uip_table->Table[i].Address.Ipv6.sin6_addr))[0];
+				((uint64_t*)( newAddress->remote->sa_data + 6))[1] = ((uint64_t*)(&uip_table->Table[i].Address.Ipv6.sin6_addr))[1];
+				SET_SOCKADDR_LENGTH( newAddress->remote, IN6_SOCKADDR_LENGTH );
+			}
+			mac_data.addresses[ipCount] = newAddress;
+			ipCount++;
+		}	
+	}
+
+	FreeMibTable( if_table );
+	FreeMibTable( uip_table );
+}
+#endif
 
 #ifdef __LINUX__
 static int rtnl_filter(struct nlmsghdr *nlh, int reqlen) {
@@ -561,11 +669,7 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLoca
 {
 	if( !mac_data.pbtAddresses )
 		mac_data.pbtAddresses = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, compareAddress, deleteAddress );
-#ifdef __LINUX__
 	SOCKADDR *saDup = DuplicateAddress_6to4( pc->saClient );
-#else
-	SOCKADDR *saDup = DuplicateAddress( pc->saClient );
-#endif	
 	// clear Port for later... 
 	saDup->sa_data[0] = 0;
 	saDup->sa_data[1] = 0;
@@ -592,32 +696,30 @@ retry:
 		return TRUE;
 	}
 
-	if( saDup->sa_family == AF_INET6 )
+	if( ( saDup->sa_family == AF_INET6 
+	     && ( MemCmp( saDup->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 )
+		 || ( MemCmp( saDup->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\xff\xff\x7f\0\0\x1", 16 ) == 0 ) )
+	  || ( saDup->sa_family == AF_INET
+	     && MemCmp( saDup->sa_data+2, "\x7f\0\0\x01", 4 ) == 0 ) )
 	{
-		if( MemCmp( saDup->sa_data+4, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 )
-		{
-			// localhost
-			(*bufLocalLen) = 0;
-			(*bufRemoteLen) = 0;
-			ReleaseAddress( saDup );
-			return TRUE;
-		}
-	} else if( saDup->sa_family == AF_INET )
-	{
-		if( MemCmp( saDup->sa_data+2, "\x7f\0\0\x01", 4 ) == 0 )
-		{
-			// localhost
-			(*bufLocalLen) = 0;
-			(*bufRemoteLen) = 0;
-			ReleaseAddress( saDup );
-			return TRUE;
-		}
+		// localhost
+		memset( bufLocal, 0, 6 );
+		(*bufLocalLen) = 6;
+		memset( bufRemote, 0, 6 );
+		(*bufRemoteLen) = 6;
+		ReleaseAddress( saDup );
+		return TRUE;
 	}
-#ifdef INCLUDE_MAC_SUPPORT
-#  ifdef __LINUX__
+#ifdef __LINUX__
 	setupInterfaces( pc );
 	if( !macThread ) macThread = ThreadTo( MacThread, 0 );
+#else
+	setupInterfaces();
+#endif
 	int addr;
+	struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
+	newAddress->remote = saDup;
+
 	for( addr = 0; addr < mac_data.addressCount; addr++ ) {
 		if( mac_data.addresses[addr] && saDup->sa_family == mac_data.addresses[addr]->remote->sa_family ) {
 			if( saDup->sa_family == AF_INET ) {
@@ -641,17 +743,42 @@ retry:
 			}
 		}	
 	}
+	int local_addr;
+	SOCKADDR *saSource = DuplicateAddress_6to4( pc->saSource );
+	for( local_addr = 0; local_addr < mac_data.addressCount; local_addr++ ) {
+		if( mac_data.addresses[local_addr] && saDup->sa_family == mac_data.addresses[local_addr]->remote->sa_family ) {
+			if( saDup->sa_family == AF_INET ) {
+				if( ((uint32_t*)(saSource->sa_data+2))[0] == ((uint32_t*)(mac_data.addresses[local_addr]->remote->sa_data+2))[0] ) {
+					MemCpy( bufLocal, mac_data.hwaddrs[mac_data.addr_ifIndexes[local_addr]], 6 );
+					(*bufLocalLen) = 6;	
+					break;
+				}					
+			} else {
+				if( ((uint64_t*)(saDup->sa_data+6))[0] == ((uint64_t*)(mac_data.addresses[local_addr]->remote->sa_data+6))[0]
+				  && ((uint64_t*)(saDup->sa_data+6))[1] == ((uint64_t*)(mac_data.addresses[local_addr]->remote->sa_data+6))[1] ) {
+					MemCpy( bufLocal, mac_data.hwaddrs[mac_data.addr_ifIndexes[local_addr]], 6 );
+					(*bufLocalLen) = 6;	
+					break;
+				}
+			}
+		}	
+	}
+	ReleaseAddress( saSource );
+	MemCpy( newAddress->localHw, bufLocal, 6 );
+
 
 	if( addr == mac_data.addressCount ) {
 		//lprintf( "No matching address mask found... maybe just fake add this entry for the future?" );
-		ReleaseAddress( saDup );
-		memset( bufLocal, 0, 6 );
-		(*bufLocalLen) = 6;
+		memset( newAddress->remoteHw, 0, 6 );
+		(*bufRemoteLen) = 6;
+		// keep this remote address for future checks...
+		AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote );
 		memset( bufRemote, 0, 6 );
 		(*bufRemoteLen) = 6;
 		return TRUE;
 	}
 
+#ifdef __LINUX__
 	AddLink( &macWaiters, MakeThread() );
 	uint64_t waitTime = timeGetTime64() + 500;
 	while( !macTableUpdated ) {
@@ -669,79 +796,33 @@ retry:
 	}
 	goto retry;
 
-
-	return 0;
-#  endif
-#  ifdef WIN32
-	HRESULT hr;
-	ULONG   ulLen;
-	// I don't understand this useless cast - from size_t to ULONG?
-	// isn't that the same thing?
-
-	ulLen = 6;
-	PMIB_IF_TABLE2 table;
-	MIB_IPNET_ROW2 row;
-	MemSet( &row.InterfaceLuid, 0, sizeof( row.InterfaceLuid ) );
-	GetIfTable2( &table );
-	row.Address = *((SOCKADDR_INET*)saDup);
-
-	for( ULONG i = 0; i < table->NumEntries; i++ ) {
-		if( !table->Table[i].InOctets) continue; // skip if no traffic
-
-		row.InterfaceIndex = table->Table[i].InterfaceIndex;
-		hr = ResolveIpNetEntry2( &row, (SOCKADDR_INET*)GetNetworkLong( pc, GNL_LOCAL_ADDRESS) );
-		if( hr == ERROR_NOT_FOUND ) {
-			continue;
-		}
-		//lprintf( "Row Entry: %d %S %S", table->Table[i].InterfaceIndex, table->Table[i].Alias, table->Table[i].Description );
-		//LogBinary( (uint8_t*)table->Table[i].PhysicalAddress, table->Table[i].PhysicalAddressLength);
-
-		if( hr == S_OK ) {
-			struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
-			newAddress->remote = saDup;
-			MemCpy( newAddress->localHw, table->Table[i].PhysicalAddress, table->Table[i].PhysicalAddressLength );
-			MemCpy( newAddress->remoteHw, row.PhysicalAddress, row.PhysicalAddressLength );
-			AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote );
-			(*bufRemoteLen) = row.PhysicalAddressLength;
-			MemCpy( bufRemote, row.PhysicalAddress, row.PhysicalAddressLength );
-			(*bufLocalLen) = table->Table[i].PhysicalAddressLength;
-			MemCpy( bufLocal, table->Table[i].PhysicalAddress, row.PhysicalAddressLength );
-			//lprintf( "Resolve addr: %d  %d", i, hr );
-			//LogBinary( row.PhysicalAddress, row.PhysicalAddressLength);
-			return TRUE;
-			break;
-			//MemCpy( buf, row.PhysicalAddress, row.PhysicalAddressLength );
-			//(*buflen) = row.PhysicalAddressLength;
-			//FreeMibTable( table );
-			//return TRUE;
-		} else {
-			lprintf( "(Fail)Resolve addr: %d  %d", i, hr );
-		
-		}
-		ReleaseAddress( saDup);
-		return FALSE;
-	}
-
-
-	FreeMibTable( table );
-	//row.
-
-	//needs ws2_32.lib and iphlpapi.lib in the linker.
-	//hr = SendARP ( (IPAddr)GetNetworkLong(pc,GNL_MYIP), (IPAddr)GetNetworkLong(pc,GNL_MYIP), (PULONG)buf, &ulLen);
-	//(*buflen) = ulLen;
-//  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to
-//  an unsigned long.  The pc->hwClient is a pointer to an array of uint8_t (unsigned chars),
-//  actually defined in netstruc.h as uint8_t hwClient[6]; Well, in the end, they are all
-//  just addresses, whether they be address to information of eight bits in length, or
-//  of (sizeof(unsigned)) in length.  Although this may, in the future, throw a warning.
-	//hr = SendARP (GetNetworkLong(pc,GNL_IP), 0, (PULONG)pc->hwClient, &ulLen);
-	//lprintf ("Return %08x, length %8d\n", hr, ulLen);
-
-	return hr == S_OK;
-#  endif
-#else
 	return 0;
 #endif
+
+#  ifdef WIN32
+	HRESULT hr;
+	MIB_IPNET_ROW2 row;
+	MemSet( &row.InterfaceLuid, 0, sizeof( row.InterfaceLuid ) );
+	row.Address = *((SOCKADDR_INET*)saDup);
+
+	row.InterfaceIndex = mac_data.ifIndexes[mac_data.addr_ifIndexes[local_addr]];
+	hr = ResolveIpNetEntry2( &row, (SOCKADDR_INET*)GetNetworkLong( pc, GNL_LOCAL_ADDRESS) );
+	lprintf( "hr=%d", hr );
+	if( hr == S_OK ) {
+		MemCpy( newAddress->remoteHw, row.PhysicalAddress, row.PhysicalAddressLength );
+		AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote );
+		MemCpy( bufRemote, row.PhysicalAddress, row.PhysicalAddressLength );
+		(*bufRemoteLen) = row.PhysicalAddressLength;
+		lprintf( "Resolve addr: %d  %d", local_addr, hr );
+		return TRUE;
+	} else {
+		ReleaseAddress( saDup);
+		memset( bufRemote, 0, 6 );
+		(*bufRemote) = 0;
+		return FALSE;
+	}
+	return FALSE;
+#  endif
 }
 
 NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, unsigned char *buffer)
