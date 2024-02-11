@@ -166,6 +166,8 @@ void AcceptClient(PCLIENT pListen)
 		{
 			lprintf( "getsockname errno = %d", errno );
 		}
+		if( SOCKADDR_NAME( pNewClient->saSource) ) free( SOCKADDR_NAME( pNewClient->saSource ) );
+		SOCKADDR_NAME( pNewClient->saSource ) = NULL;
 		//lprintf( "sockaddrlen: %d", nLen );
 		if( pNewClient->saSource->sa_family == AF_INET )
 			SET_SOCKADDR_LENGTH( pNewClient->saSource, IN_SOCKADDR_LENGTH );
