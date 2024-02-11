@@ -264,6 +264,10 @@ static void HandleEvent( PCLIENT pClient )
 								{
 									lprintf( "getsockname errno = %d", errno );
 								}
+								SET_SOCKADDR_LENGTH( pClient->saSource
+										, pClient->saSource->sa_family == AF_INET 
+												? IN_SOCKADDR_LENGTH 
+												: IN6_SOCKADDR_LENGTH );
 							}
 #ifdef LOG_NOTICES
 							if( globalNetworkData.flags.bLogNotices )
