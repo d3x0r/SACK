@@ -444,8 +444,8 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	// store status of pipe() in semaphore... it's not really a semaphore..
 #  ifdef DEBUG_PIPE_USAGE
 	lprintf( "Init wakeup %p %s", thread, event_name );
+	lprintf( "OPENING A PIPE END SEMAPHORE:%d", thread->semaphore );
 #  endif
-	lprintf( "OPENING A PIPE END SEMAPHRE:%d", thread->semaphore );
 	if( pipe( thread->pipe_ends ) == -1 )
 	{
 		lprintf( "Failed to get pipe! %d:%s", errno, strerror( errno ) );
