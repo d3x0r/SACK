@@ -273,22 +273,11 @@ static void setupInterfaces( void ) {
 }
 #endif
 
-#ifdef __LINUX__
-static int rtnl_filter(struct nlmsghdr *nlh, int reqlen) {
-	lprintf( "msg: %d %d %d %d", nlh->nlmsg_type, nlh->nlmsg_seq, nlh->nlmsg_len, nlh->nlmsg_flags);
-	//struct sockaddr_nl *snl = (struct sockaddr_nl*)p;
-	//if( nlh->nlmsg_pid == snl->nl_pid )
-	//	return 1;
-	
-	// return non zero to stop.
-	return 0;
-
-}
-#endif
-
 
 #ifdef __LINUX__
 
+// largly based on the following code.
+//https://codereview.stackexchange.com/questions/278848/linux-netlink-kernel-socket-arp-cache-getter-similar-to-ip-ne
 
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 static void LogMacAddress( struct addressNode *newAddress ){

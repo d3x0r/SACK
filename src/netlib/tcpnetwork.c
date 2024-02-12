@@ -2,43 +2,7 @@
 
 
 //TODO: after the connect and just before the call to the connect callback fill in the PCLIENT's MAC addr field.
-//TODO: After the accept, put in this code:
-/*
 
-NETWORK_PROC( int, GetMacAddress)(CTEXTSTR device, CTEXTSTR buffer )//int get_mac_addr (char *device, unsigned char *buffer)
-{
-int fd;
-struct ifreq ifr;
-
-fd = socket(PF_UNIX, SOCK_DGRAM, 0);
-if (fd == -1)
-{
-perr ("Unable to create socket for device: %s", device);
-return -1;
-}
-
-strcpy (ifr.ifr_name, device);
-
-if (ioctl (fd, SIOCGIFFLAGS, &ifr) < 0)
-{
-close (fd);
-return -1;
-}
-
-if (ioctl (fd, SIOCGIFHWADDR, &ifr) < 0)
-{
-close (fd);
-return -1;
-}
-
-close (fd);
-
-memcpy (buffer, ifr.ifr_hwaddr.sa_data, 6);
-
-return 0;
-}
-
-*/
 //#define DEBUG_SOCK_IO
 #define LIBRARY_DEF
 #include <stdhdrs.h>
