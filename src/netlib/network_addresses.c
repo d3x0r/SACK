@@ -820,33 +820,12 @@ retry:
 
 NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, unsigned char *buffer)
 {
-#ifdef INCLUDE_MAC_SUPPORT
-#ifdef __LINUX__
-	return NULL;
-#endif
-#ifdef WIN32
-
-	HRESULT hr;
-	ULONG   ulLen;
-	uint8_t hwClient[6];
-	ulLen = 6;
-
-	//needs ws2_32.lib and iphlpapi.lib in the linker.
-	hr = SendARP ((IPAddr)GetNetworkLong(NULL,GNL_IP), 0x100007f, (PULONG)&hwClient, &ulLen);
-//  The second parameter of SendARP is a PULONG, which is typedef'ed to a pointer to
-//  an unsigned long.  The pc->hwClient is a pointer to an array of uint8_t (unsigned chars),
-//  actually defined in netstruc.h as uint8_t hwClient[6]; Well, in the end, they are all
-//  just addresses, whether they be address to information of eight bits in length, or
-//  of (sizeof(unsigned)) in length.  Although this may, in the future, throw a warning.
-	//hr = SendARP (GetNetworkLong(pc,GNL_IP), 0, (PULONG)pc->hwClient, &ulLen);
-	lprintf ("Return %08x, length %8d\n", hr, ulLen);
-
-	return 0;
-#endif
-#else
-	return 0;
-
-#endif
+	PLIST list = NULL;
+	setupInterfaces();
+	for( int i = 0; i < mac_data.interfaceCount; i++ ) {
+		AddLink( &list, mac_data.hwaddrs[i] );
+	}
+	return list;
 }
 
 //----------------------------------------------------------------------------
