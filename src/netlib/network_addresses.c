@@ -287,13 +287,13 @@ static void LogMacAddress( struct addressNode *newAddress ){
 }
 #endif
 
-static void setupInterfaces( PCLIENT pc ) {
+static void setupInterfaces() {
 	struct ifconf ifc;
 	if( mac_data.ifbuf[0] ) return; // already did this work.
 		ifc.ifc_len = sizeof( mac_data.ifbuf );
 		ifc.ifc_buf = mac_data.ifbuf;
-
-		ioctl( pc->Socket, SIOCGIFCONF, &ifc );
+		int sock_handle = socket( AF_INET6, SOCK_STREAM, 0);//pc->Socket;
+		ioctl( sock_handle, SIOCGIFCONF, &ifc );
 		{
 			int i;
 			struct ifreq *IFR;
@@ -308,14 +308,14 @@ static void setupInterfaces( PCLIENT pc ) {
 				//LogBinary( (const uint8_t*)IFR, sizeof( *IFR));
 				struct ifreq ifr;
 				strcpy( ifr.ifr_name, IFR->ifr_name );
-				if (ioctl(pc->Socket, SIOCGIFINDEX, &ifr) == 0) {
+				if (ioctl(sock_handle, SIOCGIFINDEX, &ifr) == 0) {
 					mac_data.ifIndexes[i] = ifr.ifr_ifindex;	
 				}else {
 					lprintf( "ioctl SIOCGIFINDEX error? %d", errno);
 				}
-				if (ioctl(pc->Socket, SIOCGIFFLAGS, &ifr) == 0) {
+				if (ioctl(sock_handle, SIOCGIFFLAGS, &ifr) == 0) {
 	            	if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
-    	            	if (ioctl(pc->Socket, SIOCGIFHWADDR, &ifr) == 0) {
+    	            	if (ioctl(sock_handle, SIOCGIFHWADDR, &ifr) == 0) {
 							//LogBinary( (const uint8_t*)ifr.ifr_hwaddr.sa_data, 12 );
 							memcpy( mac_data.hwaddrs[i], ifr.ifr_hwaddr.sa_data, 6 );
 						}  else {
@@ -330,6 +330,7 @@ static void setupInterfaces( PCLIENT pc ) {
 				}
 			}
 		}
+		close( sock_handle );
 		{
 			struct ifaddrs *ifa;
 			struct ifaddrs *current_ifa;
@@ -378,13 +379,17 @@ static void setupInterfaces( PCLIENT pc ) {
 							if( sa->sa_family == AF_INET ) {
 								mac_data.netmasks[addressCount] = NewArray( uint8_t, 4 );
 								memcpy( mac_data.netmasks[addressCount], ((uint32_t*)(current_ifa->ifa_netmask->sa_data+2)), 4 );
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
 								lprintf( "ipv4 netmask:" );
 								LogBinary( mac_data.netmasks[addressCount], 4 );
+#endif								
 							} else {
 								mac_data.netmasks[addressCount] = NewArray( uint8_t, 16 );
 								memcpy( mac_data.netmasks[addressCount], ((uint32_t*)(current_ifa->ifa_netmask->sa_data+6)), 16 );
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
 								lprintf( "ipv6 netmask:" );
 								LogBinary( mac_data.netmasks[addressCount], 16 );
+#endif								
 							}
 							memcpy( newAddress->localHw, mac_data.hwaddrs[i], 6);
 							memcpy( newAddress->remoteHw, mac_data.hwaddrs[i], 6);
@@ -703,11 +708,9 @@ retry:
 		ReleaseAddress( saDup );
 		return TRUE;
 	}
-#ifdef __LINUX__
-	setupInterfaces( pc );
-	if( !macThread ) macThread = ThreadTo( MacThread, 0 );
-#else
 	setupInterfaces();
+#ifdef __LINUX__
+	if( !macThread ) macThread = ThreadTo( MacThread, 0 );
 #endif
 	int addr;
 	struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
