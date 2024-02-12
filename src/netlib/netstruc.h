@@ -277,7 +277,7 @@ struct NetworkClient
 
 	// this is set to what the thread that's waiting for this event is.
 	struct peer_thread_info * volatile this_thread;
-	int tcp_delay_count;
+	//int tcp_delay_count;
 	struct ssl_session *ssl_session;
 };
 typedef struct NetworkClient CLIENT;

@@ -703,7 +703,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 						pResult->pWaiting = MakeThread();
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( "Falling asleep 3 seconds waiting for connect on %p.", pResult );
-						pResult->tcp_delay_count++;
+						//pResult->tcp_delay_count++;
 						WakeableSleep( 3000 );
 						pResult->pWaiting = NULL;
 						if( pResult->dwFlags & CF_CLOSING )
