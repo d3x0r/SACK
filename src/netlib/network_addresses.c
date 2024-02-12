@@ -352,8 +352,9 @@ static void setupInterfaces( PCLIENT pc ) {
 				addressCount++;
 			}
 			mac_data.addressCount = addressCount;
-			mac_data.addresses = NewArray( addressNode*, addressCount );
+			mac_data.addresses = NewArray( struct addressNode*, addressCount );
 			mac_data.netmasks = NewArray( uint8_t*, addressCount );
+			mac_data.addr_ifIndexes = NewArray( int, addressCount );
 
 			addressCount = 0;
 			for( current_ifa = ifa; current_ifa; current_ifa = current_ifa->ifa_next ) {
@@ -384,6 +385,7 @@ static void setupInterfaces( PCLIENT pc ) {
 					IFR = (struct ifreq*)mac_data.ifbuf;
 					for( int i = 0; i < mac_data.interfaceCount; i++, IFR++){
 						if( strcmp( current_ifa->ifa_name, IFR->ifr_name ) == 0 ) {
+							mac_data.addr_ifIndexes[addressCount] = i;
 							if( sa->sa_family == AF_INET ) {
 								mac_data.netmasks[addressCount] = NewArray( uint8_t, 4 );
 								memcpy( mac_data.netmasks[addressCount], ((uint32_t*)(current_ifa->ifa_netmask->sa_data+2)), 4 );
@@ -667,6 +669,8 @@ static uintptr_t MacThread( PTHREAD thread ) {
 NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLocalLen
                                  , uint8_t *bufRemote, size_t* bufRemoteLen )//int get_mac_addr (char *device, unsigned char *buffer)
 {
+	if( pc->dwFlags & CF_AVAILABLE ) 
+		return FALSE;
 	if( !mac_data.pbtAddresses )
 		mac_data.pbtAddresses = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, compareAddress, deleteAddress );
 	SOCKADDR *saDup = DuplicateAddress_6to4( pc->saClient );

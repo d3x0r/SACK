@@ -202,8 +202,8 @@ struct NetworkClient
 	SOCKADDR *saClient;  //Dest Address
 	SOCKADDR *saSource;  //Local Address of this port ...
 	SOCKADDR *saLastClient; // use this for UDP recvfrom
-	uint8_t     hwClient[6];
-	uint8_t     hwSource[6];
+	//uint8_t     hwClient[6];
+	//uint8_t     hwSource[6];
 	//  ServeUDP( "SourceIP", SourcePort );
 	// 		saSource w/ no Dest - read is a connect...
 	//  ConnectUDP( "DestIP", DestPort );
