@@ -2352,9 +2352,17 @@ static uintptr_t jsox_FindDataList( void*p, uintptr_t psv ) {
 	return 0;
 }
 
-void jsox_dispose_message( PDATALIST *msg_data ) {
-	uintptr_t actual = ForAllInSet( PDATALIST, jxpsd.dataLists, jsox_FindDataList, (uintptr_t)msg_data[0] );
+static uintptr_t jsox_dispose_thread( PTHREAD thread ) {
+	PDATALIST msg_data = (PDATALIST)GetThreadParam( thread );
+	uintptr_t actual = ForAllInSet( PDATALIST, jxpsd.dataLists, jsox_FindDataList, (uintptr_t)msg_data );
 	_jsox_dispose_message( (PDATALIST*)actual );
+	return 0;
+}
+
+
+
+void jsox_dispose_message( PDATALIST *msg_data ) {
+	ThreadTo( jsox_dispose_thread, (uintptr_t)msg_data[0] );
 	msg_data[0] = NULL;
 }
 
