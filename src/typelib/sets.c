@@ -311,6 +311,7 @@ INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 	}
 	return INVALID_INDEX;
 }
+#define GetMemberIndex(name,set,member) GetMemberIndex( (GENERICSET**)set, member, sizeof( name ), MAX##name##SPERSET )
 
 //----------------------------------------------------------------------------
 #undef MemberValidInSet
@@ -418,6 +419,8 @@ void DeleteSetMember( GENERICSET *pSet, INDEX iMember, int unitsize, int max )
 {
 	DeleteSetMemberEx( pSet, iMember, unitsize, max );
 }
+#define DeleteSetMember( name, set, member ) DeleteSetMemberEx( (GENERICSET*)set, member, sizeof( name ), MAX##name##SPERSET )
+
 //----------------------------------------------------------------------------
 
 int CountUsedInSetEx( GENERICSET *pSet, int max )
