@@ -2358,12 +2358,15 @@ static uintptr_t jsox_dispose_thread( PTHREAD thread ) {
 	PDATALIST msg_data;
 	while( 1 ) {
 		while( msg_data = (PDATALIST)DequeLink( &dispose_queue ) ) {
+			/*
 			INDEX listIndex = GetMemberIndex( PDATALIST, &jxpsd.dataLists, (POINTER)msg_data );
-			if( listIndex >= 0 ) {
+			if( listIndex != INVALID_INDEX ) {
 				PDATALIST* actual = GetSetMember( PDATALIST, &jxpsd.dataLists, listIndex );
 				_jsox_dispose_message( actual );
 				DeleteSetMember( PDATALIST, &jxpsd.dataLists, listIndex );
-			} else {
+			} else 
+			*/
+			{
 				uintptr_t actual = ForAllInSet( PDATALIST, jxpsd.dataLists, jsox_FindDataList, (uintptr_t)msg_data );
 				_jsox_dispose_message( (PDATALIST*)actual );
 			}
@@ -2376,7 +2379,7 @@ static uintptr_t jsox_dispose_thread( PTHREAD thread ) {
 
 
 void jsox_dispose_message( PDATALIST *msg_data ) {
-	EnqueLink( &dispose_queue, (POINTER)msg_data[0] );
+	EnqueLink( &dispose_queue, (POINTER)(msg_data[0]) );
 	if( !dispose_thread ) dispose_thread = ThreadTo( jsox_dispose_thread, 0 );
 	else                  WakeThread( dispose_thread );
 	msg_data[0] = NULL;
