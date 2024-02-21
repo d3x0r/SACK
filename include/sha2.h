@@ -36,10 +36,14 @@
 
 #include <stdhdrs.h>
 
-#ifdef SHA2_SOURCE
-#define SHA2_PROC   EXPORT_METHOD
+#ifdef SHA2_LOCAL
+#  define SHA2_PROC   static
 #else
-#define SHA2_PROC   IMPORT_METHOD
+#  ifdef SHA2_SOURCE
+#    define SHA2_PROC   EXPORT_METHOD
+#  else
+#    define SHA2_PROC   IMPORT_METHOD
+#  endif
 #endif
 
 #define SHA224_DIGEST_SIZE ( 224 / 8)
