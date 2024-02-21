@@ -667,7 +667,7 @@ unsigned long pthreads_thread_id(void)
 	return (unsigned long)GetThisThreadID();
 }
 
-static LOGICAL ssl_InitLibrary( void ){
+LOGICAL ssl_InitLibrary( void ){
 	if( !ssl_global.flags.bInited )
 	{
 		SSL_library_init();

@@ -1109,6 +1109,10 @@ NETWORK_PROC( struct interfaceAddress*, GetInterfaceForAddress )( SOCKADDR *addr
 NETWORK_PROC( LOGICAL, IsBroadcastAddressForInterface )( struct interfaceAddress *address, SOCKADDR *addr );
 NETWORK_PROC( void, LoadNetworkAddresses )(void);
 
+// This initializes the libressl library, which registers the correct allocation methods...
+NETWORK_PROC( LOGICAL, ssl_InitLibrary )( void );
+
+
 //----- PING.C ------
 NETWORK_PROC( LOGICAL, DoPing )( CTEXTSTR pstrHost,
              int maxTTL,
