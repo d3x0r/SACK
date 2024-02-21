@@ -251,7 +251,7 @@ static void setupInterfaces( void ) {
 					mask[b/8] &= ~(1<<(7-(b%8)) );
 				}
 			}
-			struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
+			struct addressNode *newAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
 			newAddress->remote = AllocAddr();
 			newAddress->remote->sa_family = uip_table->Table[i].Address.si_family;
 			if( newAddress->remote->sa_family == AF_INET ) {
@@ -352,7 +352,7 @@ static void setupInterfaces() {
 				if( current_ifa->ifa_addr->sa_family != AF_INET 
 				   && current_ifa->ifa_addr->sa_family != AF_INET6 ) continue; // don't care about non IP addresses.
 
-				struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
+				struct addressNode *newAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
 				SOCKADDR *sa = AllocAddr();
 				newAddress->remote = sa;
 				//lprintf( "Got ifaddr on %s %d", current_ifa->ifa_name, current_ifa->ifa_addr->sa_family );
@@ -514,7 +514,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 					lprintf( "Flag Values %d %d %d",NTF_SELF, NTF_PROXY, NTF_ROUTER    );
 #endif					
 					while( priorLen < rstat ) {
-						struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
+						struct addressNode *newAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
 						res = (struct response*)(buf+priorLen);
 
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
@@ -713,7 +713,7 @@ retry:
 	if( !macThread ) macThread = ThreadTo( MacThread, 0 );
 #endif
 	int addr;
-	struct addressNode *newAddress = (struct addressNode*)Allocate( sizeof( struct addressNode ) );
+	struct addressNode *newAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
 	newAddress->remote = saDup;
 
 	for( addr = 0; addr < mac_data.addressCount; addr++ ) {
