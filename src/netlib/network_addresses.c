@@ -456,7 +456,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 			rtnetlink_addr.sa_family = AF_NETLINK;
 			rtnetlink_addr.sa_data[0] = 0;
 			rtnetlink_addr.sa_data[1] = 0;
-			int ppid = getppid();
+			int ppid = (int)(GetMyThreadID() >> 32);
 			rtnetlink_addr.sa_data[2] = ppid & 0xFF;
 			rtnetlink_addr.sa_data[3] = (ppid >> 8) & 0xFF;
 			rtnetlink_addr.sa_data[4] = (ppid >> 16) & 0xFF;
