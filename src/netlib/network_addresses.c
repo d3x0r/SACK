@@ -432,6 +432,7 @@ PTHREAD macThread;
 int macThreadEnd =0;
 PLIST macWaiters;
 int macTableUpdated = 0;
+int threadFailed = 0;
 
 ATEXIT( CloseMacThread ){
 	macThreadEnd = TRUE;
@@ -444,10 +445,11 @@ static uintptr_t MacThread( PTHREAD thread ) {
 			int rtnetlink_socket = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
 			if( rtnetlink_socket < 0 )
 			{
+				threadFailed = 1;
 				if( errno == ESOCKTNOSUPPORT ){
 					lprintf( "Socket No Support?");
 				}else
-				lprintf( "Unable to create netlink socket %d", errno );
+					lprintf( "Unable to create netlink socket %d", errno );
 				return 0;
 			}
 			struct sockaddr rtnetlink_addr;
@@ -468,6 +470,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 			stat = bind(rtnetlink_socket, &rtnetlink_addr, 12 );
 			if( stat < 0 )
 			{
+				threadFailed = 1;
 				lprintf( "Unable to bind netlink socket" );
 				return 0;
 			}
@@ -777,11 +780,11 @@ retry:
 #ifdef __LINUX__
 	AddLink( &macWaiters, MakeThread() );
 	uint64_t waitTime = timeGetTime64() + 500;
-	while( !macTableUpdated ) {
+	while( !macTableUpdated && !threadFailed ) {
 		// guess I should check to see if it is even possible to resolve with netmask...
 		WakeableSleep( 500 );
 	}
-	if( timeGetTime64() > waitTime ) {
+	if( threadFailed || ( timeGetTime64() > waitTime ) ) {
 		//lprintf( "Timeout waiting for mac address" );
 		ReleaseAddress( saDup );
 		memset( bufLocal, 0, 6 );
