@@ -471,7 +471,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 			if( stat < 0 )
 			{
 				threadFailed = 1;
-				lprintf( "Unable to bind netlink socket" );
+				lprintf( "Unable to bind netlink socket %s", strerror( errno ) );
 				return 0;
 			}
 			int seq;
