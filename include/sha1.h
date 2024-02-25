@@ -79,6 +79,9 @@ typedef struct SHA1Context
     int Corrupted;             /* Is the message digest corrupted? */
 } SHA1Context;
 
+#define SHA1_DIGEST_SIZE SHA1HashSize
+typedef SHA1Context sha1_ctx;
+
 /*
  *  Function Prototypes
  */
