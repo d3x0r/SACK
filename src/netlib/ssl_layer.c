@@ -1569,7 +1569,7 @@ void loadSystemCerts( SSL_CTX* ctx,X509_STORE *store )
 		TEXTCHAR checkpath[256];
 		strcpy( checkpath, "/etc/ssl/certs" );
 #ifndef __NO_OPTIONS__
-		SACK_GetProfileString( "TLS", "Root Path", "checkpath", checkpath, 256 );
+		SACK_GetProfileString( "TLS", "Root Path", checkpath, checkpath, 256 );
 #endif
 		
 		SSL_CTX_load_verify_locations( ctx, NULL, checkpath );
