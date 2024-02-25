@@ -1565,6 +1565,15 @@ void loadSystemCerts( SSL_CTX* ctx,X509_STORE *store )
 	// "/etc/ssl/certs"
 	(void)store; // unused;
 	SSL_CTX_set_default_verify_paths( ctx );
+	{
+		TEXTCHAR checkpath[256];
+		strcpy( checkpath, "/etc/ssl/certs" );
+#ifndef __NO_OPTIONS__
+		SACK_GetProfileString( "TLS", "Root Path", "checkpath", commonName, 256 );
+#endif
+		
+		SSL_CTX_load_verify_locations( ctx, NULL, checkpath );
+	}
 	return;
 }
 #endif
