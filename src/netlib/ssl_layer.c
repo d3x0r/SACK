@@ -28,7 +28,7 @@
 
 //#define DEBUG_SSL_IO
 // also has option to control output
-#define DEBUG_SSL_IO_BUFFERS
+//#define DEBUG_SSL_IO_BUFFERS
 //#define DEBUG_SSL_IO_RAW
 //#define DEBUG_SSL_IO_VERBOSE
 
@@ -98,7 +98,7 @@ struct internalCert {
 	STACK_OF( X509 ) *chain;
 };
 
-void loadSystemCerts(SSL_CTX* ctx,X509_STORE *store );
+static void loadSystemCerts(SSL_CTX* ctx,X509_STORE *store );
 
 //static void gencp
 struct internalCert * MakeRequest( void );
@@ -220,6 +220,8 @@ static struct ssl_global
 	struct tls_config *tls_config;
 	uint8_t cipherlen;
 	uint32_t *lock_cs;// = OPENSSL_malloc(CRYPTO_num_locks() * sizeof(HANDLE));
+	SSL_CTX *ctx; // common context for all SSL connections
+	
 }ssl_global;
 
 PRELOAD( InitSSL ) {
@@ -1228,17 +1230,57 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	ses = New( struct ssl_session );
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
 	{
-#if NODE_MAJOR_VERSION < 10
-		ses->ctx = SSL_CTX_new( TLSv1_2_client_method() );
-#else
-		ses->ctx = SSL_CTX_new( TLS_client_method() );
-		SSL_CTX_set_min_proto_version( ses->ctx, TLS1_2_VERSION );
-#endif
-		SSL_CTX_set_cipher_list( ses->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
+		int needsKey = 0;
 		ses->cert = New( struct internalCert );
-		if( !client_keypair )
+		if( rootCert ) {
+#if NODE_MAJOR_VERSION < 10
+			ses->ctx = SSL_CTX_new( TLSv1_2_client_method() );
+#else			
+			ses->ctx = SSL_CTX_new( TLS_client_method() );
+			SSL_CTX_set_min_proto_version( ses->ctx, TLS1_2_VERSION );
+#endif			
+			SSL_CTX_set_cipher_list( ses->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
+			BIO *keybuf = BIO_new( BIO_s_mem() );
+			X509 *cert;
+			cert = X509_new();
+			BIO_write( keybuf, rootCert, (int)rootCertLen );
+			PEM_read_bio_X509( keybuf, &cert, NULL, NULL );
+			BIO_free( keybuf );
+			X509_STORE *store = SSL_CTX_get_cert_store( ses->ctx );
+			X509_STORE_add_cert( store, cert );
+			if( !client_keypair ){
+
+			}
+		} else {
+			if( !ssl_global.ctx	) {
+#if NODE_MAJOR_VERSION < 10
+				ssl_global.ctx = SSL_CTX_new( TLSv1_2_client_method() );
+#else
+				ssl_global.ctx = SSL_CTX_new( TLS_client_method() );
+				SSL_CTX_set_min_proto_version( ssl_global.ctx, TLS1_2_VERSION );
+#endif				
+				SSL_CTX_set_cipher_list( ssl_global.ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
+				X509_STORE *store = SSL_CTX_get_cert_store( ssl_global.ctx );
+				loadSystemCerts( ssl_global.ctx, store );
+				needsKey = 1;
+			}
+			ses->ctx = ssl_global.ctx;
+			if( needsKey ) {
+				ses->cert->pkey = genKey();
+				SSL_CTX_use_PrivateKey( ses->ctx, ses->cert->pkey );
+			}
+		}
+
+		//SSL_CTX_set_default_read_buffer_len( ses->ctx, 16384 );
+	}
+	ses->ssl = SSL_new( ses->ctx );
+
+	if( rootCert ) {
+		// if there's a specified root cert, then we need a new keypair.
+		// otherwise the common context will keep using the same key too.
+		if( !client_keypair ) 
 			ses->cert->pkey = genKey();
-		else {
+		else {			
 			BIO *keybuf = BIO_new( BIO_s_mem() );
 			struct info_params params;
 			BIO_write( keybuf, client_keypair, (int)client_keypairlen );
@@ -1252,24 +1294,9 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 			}
 			BIO_free( keybuf );
 		}
-		SSL_CTX_use_PrivateKey( ses->ctx, ses->cert->pkey );
-		//SSL_CTX_set_default_read_buffer_len( ses->ctx, 16384 );
+		SSL_use_PrivateKey( ses->ssl, ses->cert->pkey );
 	}
-	ses->ssl = SSL_new( ses->ctx );
 
-	if( rootCert ) {
-		BIO *keybuf = BIO_new( BIO_s_mem() );
-		X509 *cert;
-		cert = X509_new();
-		BIO_write( keybuf, rootCert, (int)rootCertLen );
-		PEM_read_bio_X509( keybuf, &cert, NULL, NULL );
-		BIO_free( keybuf );
-		X509_STORE *store = SSL_CTX_get_cert_store( ses->ctx );
-		X509_STORE_add_cert( store, cert );
-	} else {
-		X509_STORE *store = SSL_CTX_get_cert_store( ses->ctx );
-		loadSystemCerts( ses->ctx, store );
-	}
 	SSL_set_verify( ses->ssl, SSL_VERIFY_PEER, verify_cb );
 	SSL_set_ex_data( ses->ssl, verify_mydata_index, &ses->verify_data );
 	ssl_InitSession( ses );
@@ -1286,7 +1313,6 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	ses->verify_data = verify_default;
 	pc->read.ReadComplete = ssl_ReadComplete;
 	pc->dwFlags &= ~CF_CPPREAD;
-
 
 	pc->ssl_session = ses;
 #ifdef DEBUG_SSL_IO_VERBOSE
@@ -1589,7 +1615,7 @@ void loadSystemCerts( SSL_CTX* ctx,X509_STORE *store )
 	HCERTSTORE hStore;
 	PCCERT_CONTEXT pContext = NULL;
 	X509 *x509;
-
+lprintf( "Loading System Certs");
 	hStore = CertOpenSystemStore((HCRYPTPROV_LEGACY)NULL, "ROOT");
 
 	if( !hStore ) {
