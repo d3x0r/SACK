@@ -698,8 +698,9 @@ retry:
 	}
 
 	if( ( saDup->sa_family == AF_INET6 
-	     && ( MemCmp( saDup->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 )
-		 || ( MemCmp( saDup->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\xff\xff\x7f\0\0\x1", 16 ) == 0 ) )
+	     && ( ( MemCmp( saDup->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 )
+		     || ( MemCmp( saDup->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\xff\xff\x7f\0\0\x1", 16 ) == 0 )
+	        || ( MemCmp( saDup->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x1", 16 ) == 0 ) ) )
 	  || ( saDup->sa_family == AF_INET
 	     && MemCmp( saDup->sa_data+2, "\x7f\0\0\x01", 4 ) == 0 ) )
 	{
