@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.5)
 
 if( MSVC )
 # 4197 - top-level volatile in cast is ignored (so?)
