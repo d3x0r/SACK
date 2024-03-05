@@ -489,7 +489,7 @@ void DoMouse( int X, int Y, int b )
 					{
 						// if it was a layer... then lay path to is probably
                   // going to invoke connection procedures.
-						default_peice->methods->OnClick(NULL,wX,wY);
+						default_peice->methods->OnClick((uintptr_t)NULL,wX,wY);
 					}
 				}
 				LayPathTo( wX, wY );
@@ -505,7 +505,7 @@ void DoMouse( int X, int Y, int b )
 			else if( default_peice )
 			{
 				lprintf( "Default peice click." );
-				default_peice->methods->OnClick(NULL,wX,wY);
+				default_peice->methods->OnClick((uintptr_t)NULL,wX,wY);
 			}
 		}
 		else
