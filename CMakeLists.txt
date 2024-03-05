@@ -793,7 +793,7 @@ endif( ON )
 
 else( NEED_LIBRESSL )
 
-   set( SSH_LIBS libssh2 )
+  # set( SSH_LIBS libssh2 )
    set( SSL_LIBS ssl tls crypto )
 
 endif( NEED_LIBRESSL )
