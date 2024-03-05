@@ -77,6 +77,7 @@ endif( ${CMAKE_GENERATOR} MATCHES "Watcom WMake" )
 
 
 set( SACK_BASE ${PROJECT_SOURCE_DIR} )
+include_directories(  ${SACK_BASE}/include )
 
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
@@ -142,10 +143,10 @@ endif( __LINUX__ AND __64__ )
 
 
 if( NOT __LINUX__  )
-set(WIN32_VERSION "0x0601" CACHE STRING
+set(WIN32_VERSION "0x0603" CACHE STRING
       "Set minimum windows build version")
   set_property(CACHE WIN32_VERSION PROPERTY STRINGS
-               "0x0601" "0x501" "0x0500" "0x0400")
+               "0x603" "0x0601" "0x501" "0x0500" "0x0400")
 add_definitions( -D_WIN32_WINNT=${WIN32_VERSION} -DWINVER=${WIN32_VERSION})
 endif( NOT __LINUX__  )
 
@@ -339,6 +340,7 @@ OPTION( NEED_PNG "Build internal png lib (with suitable exports to link against)
 OPTION( NEED_FREETYPE "Build internal freetype lib (with suitable exports to link against)" ${NEED_FREETYPE} )
 OPTION( NEED_ZLIB "Build internal zlib lib (with suitable exports to link against)" ${NEED_ZLIB} )
 OPTION( NEED_EXPAT "Build internal Expat library (older version)" ON )
+OPTION( NEED_LIBRESSL "Build internal libressl library" ON )
 OPTION( __WINDOWS_ARM_CE__ "Build for windows CE 5.0 ARM" 0 )
 OPTION( USE_ASSEMBLY "Use Assembly files as available.  NASM required for this." OFF )
 OPTION( USE_HARDWARE_INFO "Include Hardware information utilities" ${WIN32} )
@@ -758,17 +760,44 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINES} )
 SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include( CMakeSources.lst )
 
-if( ON )
+
+if( NEED_LIBRESSL )
    if( NOT DEFINED LIBRESSL_SKIP_INSTALL )
 	set( LIBRESSL_SKIP_INSTALL ON )
    endif( NOT DEFINED LIBRESSL_SKIP_INSTALL )
 	set( LIBRESSL_APPS OFF )
 	set( LIBRESSL_TESTS OFF )
+   if( __LINUX__ )
+      set( OPENSSLDIR "/" )
+   endif( __LINUX__ )
 	set( CMAKE_INSTALL_INCLUDEDIR include/${CMAKE_PROJECT_NAME} )
 	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
         include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
         set( SSL_LIBS ssl tls crypto )
+
+if( OFF )
+   SET( LIBSSH_SKIP_INSTALL ON )
+   set( LIBSSH_BUILD_SHARED_LIBS OFF )
+   add_subdirectory( src/contrib/libssh )
+   set( SSH_LIBS ssh )
+endif( OFF )
+
+if( ON )
+   SET( LIBSSH2_SKIP_INSTALL ON )
+   set( LIBSSH2_BUILD_SHARED_LIBS OFF )
+   set( LIBSSH2_BUILD_STATIC_LIBS ON )
+   add_subdirectory( src/contrib/libssh2 )
+   set( SSH_LIBS libssh2 )
+	set_target_properties( libssh2 PROPERTIES FOLDER "Externals")
 endif( ON )
+
+else( NEED_LIBRESSL )
+
+   set( SSH_LIBS libssh2 )
+   set( SSL_LIBS ssl tls crypto )
+
+endif( NEED_LIBRESSL )
+
 
 
 if( OFF )
@@ -839,7 +868,6 @@ SET( VECTLIB_PLUSPLUS_SOURCES ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
 
 set( ExtraDefinitions "${ExtraDefinitions};SACKCOMM_SOURCE" )
 
-include_directories(  ${SACK_BASE}/include )
 
 
 if( USING_OLD_MINGW )
@@ -1084,15 +1112,10 @@ endif()
 
 
 if( NOT __NO_CPLUSPLUS )
-  if( FORCE_CXX )
-    set( SACK_LIBRARIES bag bag.psi )
-    set( SACK_CORE_LIBRARY bag bag.externals )
-  else( FORCE_CXX )
     set( SACK_LIBRARIES bag bag.psi )
     set( SACK_LIBRARIES_PLUSPLUS ${BAG_PLUSPLUS} ${BAG_PSI_PLUSPLUS} )
     set( SACK_CORE_LIBRARY bag bag.externals deadstart )
     set( SACK_CORE_LIBRARY_PLUSPLUS ${BAG_PLUSPLUS} )
-  endif( FORCE_CXX )
 else( NOT __NO_CPLUSPLUS )
     set( SACK_LIBRARIES bag bag.externals bag.psi )
     set( SACK_CORE_LIBRARY bag bag.externals )
@@ -1117,6 +1140,8 @@ add_library( bag.externals ${CORE_LINKMODE}
     ${BAG_EXTERNAL_SQLITE_SOURCES}
     ${BAG_EXTERNAL_MORE_SOURCES}
 )
+
+target_link_libraries( bag.externals ${SSH_LIBS} )
 SET_TARGET_PROPERTIES(bag.externals PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__ ${ExtraFlags}"
                   COMPILE_DEFINITIONS "${ExternalExtraDefinitions}"
