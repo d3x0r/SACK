@@ -59,6 +59,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/sysloglib/syslog.c
     ${SOURCES_ROOT}/procreglib/names.c
     ${SOURCES_ROOT}/timerlib/timers.c
+    ${SOURCES_ROOT}/idlelib/idle.c
     ${SOURCES_ROOT}/configlib/configscript.c
     ${SOURCES_ROOT}/idlelib/idle.c
     ${SOURCES_ROOT}/systemlib/system.c
