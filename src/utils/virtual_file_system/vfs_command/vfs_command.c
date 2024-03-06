@@ -938,7 +938,9 @@ SaneWinMain( argc, argv )
 		l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME "-fs" );
 		if( !l.fsi ) {
 			printf( "Failed to load file system interface.\n" );
+#ifndef USE_VFS_OS_INTERFACE
 			return 0;
+#endif
 		}
 	}
 
