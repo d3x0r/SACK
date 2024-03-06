@@ -83,7 +83,7 @@ set(BASE_SOURCES
     ${SOURCES_ROOT}/src/memlib/sharemem.c
     ${SOURCES_ROOT}/src/memlib/memory_operations.c
     ${SOURCES_ROOT}/src/timerlib/timers.c
-    #${SOURCES_ROOT}/src/idlelib/idle.c
+    ${SOURCES_ROOT}/src/idlelib/idle.c
     ${SOURCES_ROOT}/src/procreglib/names.c
     ${SOURCES_ROOT}/src/configlib/configscript.c
     ${SOURCES_ROOT}/src/sysloglib/syslog.c
