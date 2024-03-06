@@ -90,6 +90,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}SQLlib/sqlutil.c
     ${SOURCES_ROOT}SQLlib/sqlwrap.c
     ${SOURCES_ROOT}SQLlib/sqlparse3.c
+    ${SOURCES_ROOT}/src/netlib/html5.websocket/json/jsox_parser.c
     ${SQLITE_SOURCES}
     ${SOURCES_ROOT}memlib/sharemem.c
     ${SOURCES_ROOT}memlib/memory_operations.c
