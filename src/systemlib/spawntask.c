@@ -13,7 +13,7 @@
 #include <filesys.h>
 
 #ifdef __LINUX__
-#include <sys/poll.h>
+#include <poll.h>
 #include <sys/wait.h>
 #include <dlfcn.h>
 #include <unistd.h>
