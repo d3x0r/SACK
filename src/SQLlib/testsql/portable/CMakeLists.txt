@@ -74,6 +74,7 @@ ${FIRST_GCC_PROGRAM_SOURCE}
     ${SOURCES_ROOT}/src/memlib/memory_operations.c
     ${SOURCES_ROOT}/src/timerlib/timers.c
     ${SOURCES_ROOT}/src/idlelib/idle.c
+    ${SOURCES_ROOT}/src/netlib/html5.websocket/json/jsox_parser.c
     ${SOURCES_ROOT}/src/procreglib/names.c
     ${SOURCES_ROOT}/src/configlib/configscript.c
     ${SOURCES_ROOT}/src/sysloglib/syslog.c
