@@ -1523,6 +1523,9 @@ namespace sack {
 } //	namespace containers {
 #endif
 
+// restore this def in case of amalgamation
+#define PeekDataQueueEx( q, type, result, idx ) PeekDataQueueEx( q, (POINTER)result, idx )
+
 
 //--------------------------------------------------------------
 // $Log: typecode.c,v $
