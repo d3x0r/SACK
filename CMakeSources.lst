@@ -101,7 +101,7 @@ endif( USE_HARDWARE_INFO AND NOT __LINUX__ )
 
 if( WIN32 )
 if( NOT __NO_NETWORK__ )
-set(MORE_NETWORK_SOURCES
+set(MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES}
   ${SOURCES_ROOT}src/netlib/net_winsock2.c
 )
 endif( NOT __NO_NETWORK__ )
