@@ -36,7 +36,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.13)
 message(STATUS "Using CMake version ${CMAKE_VERSION}")
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
@@ -85,12 +85,22 @@ if(NOT LIBSSH2_VERSION OR
   message(FATAL_ERROR "Unable to parse version from ${PROJECT_SOURCE_DIR}/include/libssh2.h")
 endif()
 
+option(LIBSSH2_BUILD_EXAMPLES "Build libssh2 examples" ON)
+option(LIBSSH2_BUILD_TESTING "Build libssh2 test suite" ON)
+option(LIBSSH2_BUILD_DOCS "Build libssh2 test suite" ON)
+option(LIBSSH2_SKIP_INSTALL "Skip installation" OFF)
+option(LIBSSH2_BUILD_STATIC_LIBS "Build libssh2 static libraries(default if not set)" ${BUILD_STATIC_LIBS})
+option(LIBSSH2_BUILD_SHARED_LIBS "Build libssh2 shared libraries" ${BUILD_SHARED_LIBS})
+option(LIBSSH2_BUILD_OBJECT_LIBRARY "Build static library as an object library instead of static library" OFF)
+
+if( NOT LIBSSH2_SKIP_INSTALL )
 include(GNUInstallDirs)
 install(
   FILES
     COPYING NEWS README RELEASE-NOTES
     docs/AUTHORS docs/BINDINGS.md docs/HACKING.md
   DESTINATION ${CMAKE_INSTALL_DOCDIR})
+endif() 
 
 include(PickyWarnings)
 
@@ -108,8 +118,6 @@ else()
   endif()
 endif()
 
-#option(BUILD_EXAMPLES "Build libssh2 examples" ON)
-#option(BUILD_TESTING "Build libssh2 test suite" ON)
 
 if(NOT LIBSSH2_BUILD_STATIC_LIBS AND NOT LIBSSH2_BUILD_SHARED_LIBS)
   set(LIBSSH2_BUILD_STATIC_LIBS ON)
@@ -431,11 +439,11 @@ endfunction()
 
 add_subdirectory(src)
 
-if(BUILD_EXAMPLES)
+if(LIBSSH2_BUILD_EXAMPLES)
   add_subdirectory(example)
 endif()
 
-if(BUILD_TESTING)
+if(LIBSSH2_BUILD_TESTING)
   enable_testing()
   add_subdirectory(tests)
 endif()
@@ -450,12 +458,16 @@ if(LINT)
   endif()
 endif()
 
-add_subdirectory(docs)
+if( LIBSSH2_BUILD_DOCS )
+  add_subdirectory(docs)
+endif()
 
 feature_summary(WHAT ALL)
 
-set(CPACK_PACKAGE_VERSION_MAJOR ${LIBSSH2_VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${LIBSSH2_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${LIBSSH2_VERSION_PATCH})
-set(CPACK_PACKAGE_VERSION ${LIBSSH2_VERSION})
-include(CPack)
+if( NOT LIBSSH2_SKIP_INSTALL )
+  set(CPACK_PACKAGE_VERSION_MAJOR ${LIBSSH2_VERSION_MAJOR})
+  set(CPACK_PACKAGE_VERSION_MINOR ${LIBSSH2_VERSION_MINOR})
+  set(CPACK_PACKAGE_VERSION_PATCH ${LIBSSH2_VERSION_PATCH})
+  set(CPACK_PACKAGE_VERSION ${LIBSSH2_VERSION})
+  include(CPack)
+endif()
