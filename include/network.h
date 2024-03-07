@@ -473,6 +473,8 @@ NETWORK_PROC( void, SetNetworkListenerReady )( PCLIENT pListen );
    \ \                                                                 */
 #define OpenTCPServerAddrEx OpenTCPListenerAddrEx
 
+// used with OpenTCPClientAddrExx
+// use NetworkConnectTCP to begin connection
 #define OPEN_TCP_FLAG_DELAY_CONNECT 1
 
 #ifdef __cplusplus

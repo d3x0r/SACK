@@ -170,6 +170,9 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
    individual library module once upon a time.           */
 #      define JSON_EMITTER_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
+	individual library module once upon a time.           */
+#      define JSOX_PARSER_SOURCE
+	/* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
 #    define SERVICE_SOURCE
 #    ifndef __NO_SQL__
