@@ -341,6 +341,8 @@ OPTION( NEED_FREETYPE "Build internal freetype lib (with suitable exports to lin
 OPTION( NEED_ZLIB "Build internal zlib lib (with suitable exports to link against)" ${NEED_ZLIB} )
 OPTION( NEED_EXPAT "Build internal Expat library (older version)" ON )
 OPTION( NEED_LIBRESSL "Build internal libressl library" ON )
+OPTION( INCLUDE_LIBSSH2 "Include libssh2 interfaces" OFF )
+OPTION( NEED_LIBSSH2 "Build internal libssh2 library" ON )
 OPTION( __WINDOWS_ARM_CE__ "Build for windows CE 5.0 ARM" 0 )
 OPTION( USE_ASSEMBLY "Use Assembly files as available.  NASM required for this." OFF )
 OPTION( USE_HARDWARE_INFO "Include Hardware information utilities" ${WIN32} )
@@ -748,19 +750,6 @@ set( ExtraDefinitions ${ExtraDefinitions};SACK_CORE_BUILD )
 ADD_DEFINITIONS( ${PLATFORM_DEFINES} )
 
 
-#message( "defs:" ${PLATFORM_DEFINES} )
-#message( "Host defs:" ${HOST_PLATFORM_DEFINES} )
-
-#message( "LIB:" ${PLATFORM_LIBRARIES} )
-#message( "Host LIBs:" ${HOST_PLATFORM_LIBRARIES} )
-
-
-
-# here, blank/empty is as good as saying 'here'
-SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
-include( CMakeSources.lst )
-
-
 if( NEED_LIBRESSL )
    if( NOT DEFINED LIBRESSL_SKIP_INSTALL )
 	set( LIBRESSL_SKIP_INSTALL ON )
@@ -782,22 +771,30 @@ if( OFF )
    set( SSH_LIBS ssh )
 endif( OFF )
 
-if( ON )
-   SET( LIBSSH2_SKIP_INSTALL ON )
-   set( LIBSSH2_BUILD_SHARED_LIBS OFF )
-   set( LIBSSH2_BUILD_STATIC_LIBS ON )
-   #add_subdirectory( src/contrib/libssh2 )
-   #set( SSH_LIBS libssh2 )
-   #set_target_properties( libssh2 PROPERTIES FOLDER "Externals")
-endif( ON )
 
 else( NEED_LIBRESSL )
 
-  # set( SSH_LIBS libssh2 )
    set( SSL_LIBS ssl tls crypto )
 
 endif( NEED_LIBRESSL )
 
+if( INCLUDE_LIBSSH2 )
+  SET( MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES} ${SACK_BASE}/src/netlib/ssh_layer.c ${SACK_BASE}/src/netlib/ssh_layer.h )
+  set_source_files_properties( ${MORE_NETWORK_SOURCES} PROPERTIES INCLUDE_DIRECTORIES ${SACK_BASE}/src/contrib/libssh2/include )
+  if( NEED_LIBSSH2 )
+    SET( LIBSSH2_EXPORT_SYMBOLS ON )
+    SET( LIBSSH2_BUILD_OBJECT_LIBRARY ON )
+    SET( LIBSSH2_SKIP_INSTALL ON )
+    set( LIBSSH2_BUILD_SHARED_LIBS OFF )
+    set( LIBSSH2_BUILD_STATIC_LIBS ON )
+    
+    add_subdirectory( src/contrib/libssh2 )
+    set( SSH_LIBS libssh2 )
+    set_target_properties( libssh2 PROPERTIES FOLDER "Externals")
+  else( NEED_LIBSSH2 )
+    set( SSH_LIBS ssh2 )
+  endif( NEED_LIBSSH2 )
+endif( INCLUDE_LIBSSH2 )
 
 
 if( OFF )
@@ -807,6 +804,13 @@ if( OFF )
         include_directories( src/contrib/boringssl/boringssl/include )
         set( SSL_LIBS ssl tls crypto )
 endif( OFF )
+
+
+
+# here, blank/empty is as good as saying 'here'
+SET( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/ )
+include( CMakeSources.lst )
+
 
 add_subdirectory( src/contrib/gsm-1.0-pl13 )
 #add_subdirectory( src/contrib/libvlc/2.2.4 )
@@ -1141,7 +1145,7 @@ add_library( bag.externals ${CORE_LINKMODE}
     ${BAG_EXTERNAL_MORE_SOURCES}
 )
 
-target_link_libraries( bag.externals ${SSH_LIBS} )
+target_link_libraries( bag.externals LINK_PUBLIC  ${SSH_LIBS} )
 SET_TARGET_PROPERTIES(bag.externals PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__ ${ExtraFlags}"
                   COMPILE_DEFINITIONS "${ExternalExtraDefinitions}"
@@ -1165,6 +1169,8 @@ SET_TARGET_PROPERTIES(bag.externals.static PROPERTIES
                   LINK_FLAGS "${extra_link_flags}"
                   FOLDER "Externals"
 )
+
+target_link_libraries( bag.externals.static LINK_PUBLIC ${SSH_LIBS})
 
 if( __QNX__ )
     my_target_link_libraries( bag socket )
