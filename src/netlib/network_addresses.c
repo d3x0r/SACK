@@ -1177,8 +1177,12 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 						break;
 					}
 				}
-				else
-					lprintf( "getaddrinfo Error: %d for [%s]", error, lpName );
+				else {
+					globalNetworkData.lastAddressError = error;
+					//lprintf( "getaddrinfo Error: %d for [%s]", error, lpName );
+					ReleaseAddress( (PSOCKADDR)lpsaAddr );
+					lpsaAddr = NULL;
+				}
 			}
 #else //WIN32
 
@@ -1198,6 +1202,8 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 #endif
 					{
  						// could not find the name in the host file.
+						globalNetworkData.lastAddressError = errno;
+
 						lprintf( "Could not Resolve to %s  %s", tmp, lpName );
 						ReleaseAddress((SOCKADDR*)lpsaAddr);
 						Deallocate( char*, tmp );
@@ -1269,7 +1275,8 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 	//DumpAddr( "RESULT ADDRESS", (SOCKADDR*)lpsaAddr );
 	// put in his(destination) port number...
 	if( tmpName ) Deallocate( char*, tmpName );
-	lpsaAddr->sin_port         = htons(nHisPort);
+	if( lpsaAddr )
+		lpsaAddr->sin_port         = htons(nHisPort);
 	return((SOCKADDR*)lpsaAddr);
 }
 

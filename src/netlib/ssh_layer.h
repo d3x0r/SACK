@@ -6,6 +6,7 @@
 
 enum ssh_states {
 	SSH_STATE_RESET,
+	SSH_STATE_CONNECTING,
 	SSH_STATE_HANDSHAKE,
 	SSH_STATE_AUTH_PW,
 	SSH_STATE_AUTH_PK,
@@ -54,6 +55,7 @@ struct ssh_session {
 	ssh_open_cb channel_open;
 	pw_change_cb pw_change;
 	ssh_sftp_open_cb sftp_open;
+	ssh_session_error_cb error;
 
 	ssh_pty_cb pty_open;
 	//void (*error)(int err, const char*f, ...);
@@ -71,6 +73,7 @@ struct ssh_channel {
 	ssh_pty_cb pty_open;
 	ssh_shell_cb shell_open;
 	ssh_exec_cb exec_done;
+	ssh_channel_error_cb error;
 };
 
 struct ssh_sftp {
@@ -85,4 +88,5 @@ struct ssh_listener {
 	LIBSSH2_LISTENER* listener;
 	uintptr_t psv;
 	ssh_listen_connect_cb connect_cb;
+	ssh_listen_error_cb error;
 };

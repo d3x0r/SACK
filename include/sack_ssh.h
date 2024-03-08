@@ -33,6 +33,16 @@ namespace ssh {
 
 	//----------------- CALLBACKS ---------------------
 
+
+	typedef void (*ssh_session_error_cb)( uintptr_t psv, int err, CTEXTSTR errmsg, int errmsglen );
+	NETWORK_PROC( ssh_session_error_cb, sack_ssh_set_session_error )( struct ssh_session* session, ssh_session_error_cb );
+
+	typedef void (*ssh_channel_error_cb)( uintptr_t psv, int err, CTEXTSTR errmsg, int errmsglen );
+	NETWORK_PROC( ssh_channel_error_cb, sack_ssh_set_channel_error )( struct ssh_channel* channel, ssh_channel_error_cb );
+
+	typedef void ( *ssh_listen_error_cb )( uintptr_t psv, int err, CTEXTSTR errmsg, int errmsglen );
+	NETWORK_PROC( ssh_listen_error_cb, sack_ssh_set_listener_error )( struct ssh_listener* listener, ssh_listen_error_cb );
+
 	/*
 	* set a callback for when a session is connected (or fails to connect)
 	*/
@@ -160,7 +170,7 @@ namespace ssh {
 	* open a channel on the session with extra parameters.
 	*/
 	NETWORK_PROC( void, sack_ssh_channel_open_v2 )( struct ssh_session* session, CTEXTSTR type, size_t type_len, uint32_t window_size, uint32_t packet_size,
-		CTEXTSTR message, size_t message_len );
+		CTEXTSTR message, size_t message_len, ssh_open_cb cb );
 	/*
 	* set an environment variable on the channel
 	*/

@@ -350,6 +350,7 @@ struct network_global_data{
 	} flags;
 	int nPeers; // how many peer threads do we have
 	struct peer_thread_info *root_thread;
+	int lastAddressError;
 #if !defined( USE_WSA_EVENTS ) && defined( WIN32 )
 	WNDCLASS wc;
 #endif

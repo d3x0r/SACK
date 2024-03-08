@@ -10,6 +10,10 @@ namespace ssh {
 
 #include "ssh_layer.h"
 
+static struct local_ssh_layer_data {
+	struct ssh_session* connecting_session;
+} local_ssh_layer_data;
+
 static LIBSSH2_LISTERNER_CONNECT_FUNC( listener_connect_relay );
 
 #ifdef __cplusplus
@@ -128,6 +132,18 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 					if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 					else if( rc ) {
 						// error
+						int err; CTEXTSTR errmsg; int errmsglen;
+						err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
+						if( cs->error ) {
+							cs->error( cs->psv, err, errmsg, errmsglen );
+						} else {
+							lprintf( "Session Error(%d):%s", err, errmsg );
+						}
+						cs->pending.state = SSH_STATE_RESET; // allow a different connect?
+						while( !IsDataQueueEmpty( &cs->pdqStates ) ) {
+							// remove all other events too...
+							DequeData( &cs->pdqStates, NULL );
+						}
 						RemoveClient( pc );
 						return;
 					}
@@ -146,9 +162,15 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 				if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 				else if( rc ) {
 					// error
-					cs->auth_complete( cs->psv, FALSE );
-					RemoveClient( pc );
-					return;
+					int err; CTEXTSTR errmsg; int errmsglen;
+					err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
+					if( cs->error ) {
+						cs->error( cs->psv, err, errmsg, errmsglen );
+					} else if( cs->auth_complete ) {
+						cs->auth_complete( cs->psv, FALSE );
+					} else {
+						lprintf( "Session Error(%d):%s", err, errmsg );
+					}
 				}
 				else {
 					if( cs->user ) ReleaseEx( (POINTER)cs->user DBG_SRC );
@@ -212,7 +234,7 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						cs->pending.state = SSH_STATE_RESET;
 					}
 				}
-			break;
+				break;
 			case SSH_STATE_OPEN_CHANNEL:{
 					CTEXTSTR type = (CTEXTSTR)cs->pending.state_data[0];
 					CTEXTSTR message = (CTEXTSTR)cs->pending.state_data[4];
@@ -222,8 +244,13 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 						else if( rc ) {
 							// error
-							RemoveClient( pc );
-							return;
+							int err; CTEXTSTR errmsg; int errmsglen;
+							err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
+							if( cs->error ) {
+								cs->error( cs->psv, err, errmsg, errmsglen );
+							} else {
+								lprintf( "Session Error(%d):%s", err, errmsg );
+							}
 						}
 						else {
 							lprintf( "no channel, no error?");
@@ -236,7 +263,11 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						Deallocate( CTEXTSTR, message );
 						ssh_channel->session = cs;
 						ssh_channel->channel = channel;
-						ssh_channel->psv = cs->channel_open( cs->psv, ssh_channel );
+						ssh_open_cb cb = (ssh_open_cb)cs->pending.state_data[6];
+						if( cb )
+							ssh_channel->psv = cb( cs->psv, ssh_channel );
+						else
+							ssh_channel->psv = cs->channel_open( cs->psv, ssh_channel );
 						cs->pending.state = SSH_STATE_RESET;
 					}
 				}
@@ -249,9 +280,18 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 					if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 					else if( rc ) {
 						// error
-						channel->pty_open( cs->psv, FALSE );
-						RemoveClient( pc );
-						return;
+						if( channel->error ) {
+							int err; CTEXTSTR errmsg; int errmsglen;
+							err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
+							channel->error( cs->psv, err, errmsg, errmsglen );
+						} else if( channel->pty_open ) {
+							channel->pty_open( cs->psv, FALSE );
+						} else {
+							int err; CTEXTSTR errmsg;
+							err = libssh2_session_last_error( cs->session, (char**)&errmsg, NULL, 0 );
+							lprintf( "PTY Error(%d):%s", err, errmsg );
+						}
+						cs->pending.state = SSH_STATE_RESET;
 					}
 					else {
 						channel->pty_open( cs->psv, TRUE );
@@ -268,11 +308,18 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 					if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 					else if( rc ) {
 						// error
-						lprintf( "error setting env:%d", rc );
-						char* msg;
-						int msglen;
-						libssh2_session_last_error( cs->session, &msg, &msglen, 0 );
-						lprintf( "error setting env:%s", msg );
+
+						if( channel->error ) {
+							int err; CTEXTSTR errmsg; int errmsglen;
+							err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
+							channel->error( cs->psv, err, errmsg, errmsglen );
+						} else {
+							int err;
+							char* msg;
+							int msglen;
+							err = libssh2_session_last_error( cs->session, &msg, &msglen, 0 );
+							lprintf( "error setting env:%d $d %s", rc, err, msg );
+						}
 						cs->pending.state = SSH_STATE_RESET;
 						Deallocate( CTEXTSTR, key );
 						Deallocate( CTEXTSTR, value );
@@ -292,10 +339,19 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 					if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 					else if( rc ) {
 						// error
-						if( channel->shell_open )
+						if( channel->error ) {
+							int err; CTEXTSTR errmsg; int errmsglen;
+							err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
+							channel->error( cs->psv, err, errmsg, errmsglen );
+						} else if( channel->shell_open ) {
 							channel->shell_open( channel->psv, FALSE );
-						RemoveClient( pc );
-						return;
+						} else {
+							int err;
+							char* msg;
+							int msglen;
+							err = libssh2_session_last_error( cs->session, &msg, &msglen, 0 );
+							lprintf( "Error starting Shell:%d %s", err, msg );
+						}
 					}
 					else {
 						if( channel->shell_open )
@@ -312,11 +368,20 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 					if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 					else if( rc ) {
 						// error
-						if( channel->exec_done )
+						if( channel->error ) {
+							int err; CTEXTSTR errmsg; int errmsglen;
+							err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
+							channel->error( cs->psv, err, errmsg, errmsglen );
+						} else if( channel->exec_done ) {
 							channel->exec_done( cs->psv, FALSE );
-						RemoveClient( pc );
-						return;
-					}
+						} else {
+							int err;
+							char* msg;
+							int msglen;
+							err = libssh2_session_last_error( cs->session, &msg, &msglen, 0 );
+							lprintf( "Error Exec:%d %s", err, msg );
+						}
+			}
 					else {
 						if( channel->exec_done )
 							channel->exec_done( cs->psv, TRUE );
@@ -333,8 +398,8 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 						else if( rc ) {
 							// error
-							RemoveClient( pc );
-							return;
+							//RemoveClient( pc );
+							//return;
 						}
 						else {
 							lprintf( "no sftp, no error?");
@@ -373,14 +438,47 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 
 static void connectCallback( PCLIENT pc, int error ){
 	struct ssh_session* session = (struct ssh_session*)GetNetworkLong( pc, 0 );
+	if( !pc )
+		session = local_ssh_layer_data.connecting_session;
 	if( error ) {
 		// error
+
+#ifdef WIN32
+		char msgbuf[256];   // for a message up to 255 bytes.
+		msgbuf[0] = '\0';    // Microsoft doesn't guarantee this on man page.
+
+		DWORD errmsglen = FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,   // flags
+			NULL,                // lpsource
+			error,               // message id
+			MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),    // languageid
+			msgbuf,              // output buffer
+			sizeof( msgbuf ),     // size of msgbuf, bytes
+			NULL );               // va_list of arguments
+
+		CTEXTSTR errmsg = msgbuf;
+#else
+		CTEXTSTR errmsg = strerror( error ); int errmsglen = strlen( errmsg );
+#endif
+		//err = libssh2_session_last_error( session->session, (char*)&errmsg, NULL, 0 );
+		if( session->error ) {
+			session->error( session->psv, error, errmsg, errmsglen );
+		} else {
+			lprintf( "Connection Error(%d):%s", error, errmsg );
+		}
+		// could have queued authorization and other events already...
+		while( !IsDataQueueEmpty( &session->pdqStates ) ) {
+			// remove all other events too...
+			DequeData( &session->pdqStates, NULL );
+		}
+		session->pending.state = SSH_STATE_RESET; // allow a different connect?
+
 	}
 	else {
 		// success
-		set_pending_state( session->pending , SSH_STATE_HANDSHAKE );
+		set_pending_state( session->pending, SSH_STATE_HANDSHAKE );
 		libssh2_session_handshake( session->session, 1/*sock*/ );
 	}
+	local_ssh_layer_data.connecting_session = NULL;
 }
 
 static void closeCallback( PCLIENT pc ) {
@@ -408,11 +506,21 @@ struct ssh_session * sack_ssh_session_init(uintptr_t psv){
 }
 
 void sack_ssh_session_connect( struct ssh_session* session, CTEXTSTR host, int port ) {
+	if( session->pending.state != SSH_STATE_RESET ) {
+		lprintf( "session is already in progress" );
+	}
+	while( local_ssh_layer_data.connecting_session ) {
+		// wait for previous connection to complete...
+		WakeableSleep( 10 );	
+	}
+	local_ssh_layer_data.connecting_session = session;
 	session->pc = OpenTCPClientExxx( host, port?port:22, readCallback, closeCallback, NULL, connectCallback, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
-	SetNetworkLong( session->pc, 0, (uintptr_t)session );
-	NetworkConnectTCP( session->pc );
-
-
+	if( session->pc ) {
+		// make sure to block other connections until handshake resolves...
+		session->pending.state = SSH_STATE_CONNECTING;
+		SetNetworkLong( session->pc, 0, (uintptr_t)session );
+		NetworkConnectTCP( session->pc );
+	}
 }
 
 void sack_ssh_trace( struct ssh_session* session, int bitmask ) {
@@ -428,7 +536,13 @@ void sack_ssh_session_close( struct ssh_session*session ){
 }
 
 //----------------------------- Callbacks
-                 
+
+ssh_session_error_cb sack_ssh_set_session_error( struct ssh_session* session, ssh_session_error_cb error_cb ) {
+	ssh_session_error_cb cb = session->error;
+	session->error = error_cb;
+	return cb;
+}
+
 ssh_handshake_cb sack_ssh_set_handshake_complete( struct ssh_session*session, ssh_handshake_cb handshake_complete ){
 	ssh_handshake_cb cb = session->handshake_complete;
 	session->handshake_complete = handshake_complete;
@@ -572,14 +686,14 @@ void sack_ssh_auth_user_cert( struct ssh_session*session, CTEXTSTR user
 }
 
 void sack_ssh_channel_open_v2( struct ssh_session* session, CTEXTSTR type, size_t type_len, uint32_t window_size, uint32_t packet_size,
-		CTEXTSTR message, size_t message_len ) {
+	CTEXTSTR message, size_t message_len, ssh_open_cb cb ) {
 	if( session->pending.state != SSH_STATE_RESET ) {
 		// error
-		struct pending_state state = { SSH_STATE_OPEN_CHANNEL, {(uintptr_t)StrDup( type ), type_len, window_size, packet_size, (uintptr_t)StrDup( message ), message_len } };
+		struct pending_state state = { SSH_STATE_OPEN_CHANNEL, {(uintptr_t)StrDup( type ), type_len, window_size, packet_size, (uintptr_t)StrDup( message ), message_len, (uintptr_t)cb }};
 		EnqueData( &session->pdqStates, &state );
 		return;
 	}
-	set_pending_state( session->pending, SSH_STATE_OPEN_CHANNEL, {(uintptr_t)StrDup( type ), type_len, window_size, packet_size, (uintptr_t)StrDup( message ), message_len } );
+	set_pending_state( session->pending, SSH_STATE_OPEN_CHANNEL, {(uintptr_t)StrDup( type ), type_len, window_size, packet_size, (uintptr_t)StrDup( message ), message_len, (uintptr_t)cb } );
 	libssh2_channel_open_ex( session->session, type, (unsigned int)type_len, window_size, packet_size, message, (unsigned int)message_len );
 }
 
@@ -588,7 +702,7 @@ void sack_ssh_channel_free( struct ssh_channel* channel ){
 }
 
 void sack_ssh_channel_open( struct ssh_session *session ) {
-	sack_ssh_channel_open_v2( session, "session", 7, 0x4000, 0x1000, NULL, 0 );
+	sack_ssh_channel_open_v2( session, "session", 7, 0x4000, 0x1000, NULL, 0, NULL );
 }
 
 void sack_ssh_channel_close( struct ssh_channel* channel ) {

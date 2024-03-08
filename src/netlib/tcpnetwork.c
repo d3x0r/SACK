@@ -468,6 +468,12 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 #endif
 			)
 		{
+			if( pc->connect.CPPThisConnected ) {
+				if( pc->dwFlags & CF_CPPCONNECT )
+					pc->connect.CPPThisConnected( pc->psvConnect, dwError );
+				else
+					pc->connect.ThisConnected( pc, dwError );
+			}
 			_lprintf( DBG_RELAY )("Connect FAIL: %d %d %" _32f, pc->Socket, err, dwError);
 			EnterCriticalSec( &globalNetworkData.csNetwork );
 			InternalRemoveClientEx( pc, TRUE, FALSE );
@@ -875,6 +881,12 @@ PCLIENT CPPOpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
 		                                    DBG_RELAY
 		                                  );
 		ReleaseAddress( lpsaDest );
+	} else if( !lpsaDest && pConnectComplete ) {
+#ifdef WIN32
+		pConnectComplete( psvConnect, globalNetworkData.lastAddressError );
+#else
+		pConnectComplete( psvConnect, errno );
+#endif
 	}
 	return pClient;
 }
@@ -902,6 +914,14 @@ PCLIENT OpenTCPClientExxx(CTEXTSTR lpName,uint16_t wPort,
 		                               , pConnectComplete
 		                               , flags DBG_RELAY );
 		ReleaseAddress( lpsaDest );
+	} else {
+		if( !lpsaDest && pConnectComplete ) {
+#ifdef WIN32
+			pConnectComplete( NULL, globalNetworkData.lastAddressError );
+#else
+			pConnectComplete( NULL, errno );
+#endif
+		}
 	}
 	return pClient;
 }
