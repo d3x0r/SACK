@@ -1571,6 +1571,36 @@ void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
 	SystemLogFL( message, NULL, 0 );
 }
 
+ void BinaryToString( PVARTEXT pvt, const uint8_t* buffer, size_t size DBG_PASS ) {
+
+	 size_t nOut = size;
+	 const uint8_t* data = buffer;
+	 // should make this expression something in signed_usigned_comparison...
+	 while( nOut && !( nOut & ( ( (size_t)1 ) << ( ( sizeof( nOut ) * CHAR_BIT ) - 1 ) ) ) ) {
+		 TEXTCHAR cOut[96];
+		 size_t ofs = 0;
+		 size_t x;
+		 ofs = 0;
+		 for( x = 0; x < nOut && x < 16; x++ )
+			 ofs += tnprintf( cOut + ofs, sizeof( cOut ) / sizeof( TEXTCHAR ) - ofs, "%02X ", (unsigned char)data[x] );
+		 // space fill last partial buffer
+		 for( ; x < 16; x++ )
+			 ofs += tnprintf( cOut + ofs, sizeof( cOut ) / sizeof( TEXTCHAR ) - ofs, "   " );
+
+		 for( x = 0; x < nOut && x < 16; x++ ) {
+			 if( data[x] >= 32 && data[x] < 127 )
+				 ofs += tnprintf( cOut + ofs, sizeof( cOut ) / sizeof( TEXTCHAR ) - ofs, "%c", (unsigned char)data[x] );
+			 else
+				 ofs += tnprintf( cOut + ofs, sizeof( cOut ) / sizeof( TEXTCHAR ) - ofs, "." );
+		 }
+		 VarTextAddDataEx( pvt, cOut, ofs DBG_RELAY );
+		 VarTextAddCharacterEx( pvt, '\n' DBG_RELAY);
+		 nOut -= x;
+		 data += x;
+	 }
+
+ }
+
  void  LogBinaryFL ( const uint8_t* buffer, size_t size FILELINE_PASS )
 {
 	size_t nOut = size;
