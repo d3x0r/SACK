@@ -1093,6 +1093,17 @@ NETWORK_PROC( void, DumpAddrEx )( CTEXTSTR name, SOCKADDR *sa DBG_PASS );
    \ \                                                            */
 #define DumpAddr(n,sa) DumpAddrEx(n,sa DBG_SRC )
 
+/*
+* Convert a socket address to a string.
+*/
+NETWORK_PROC( CTEXTSTR, AddrToString )( CTEXTSTR name, SOCKADDR* sa DBG_PASS );
+/*
+* Free a string returned from AddrToString
+*/
+NETWORK_PROC( void, FreeAddrString )( CTEXTSTR string DBG_PASS );
+#define FreeAddrString(s) FreeAddrString( s DBG_SRC )
+#define AddrToString(n,s) AddrToString( n, s DBG_SRC )
+
 NETWORK_PROC( int, SetSocketReuseAddress )( PCLIENT pClient, int32_t enable );
 NETWORK_PROC( int, SetSocketReusePort )( PCLIENT pClient, int32_t enable );
 
@@ -1122,14 +1133,14 @@ NETWORK_PROC( LOGICAL, DoPing )( CTEXTSTR pstrHost,
              int nCount,
              PVARTEXT pResult,
              LOGICAL bRDNS,
-             void (*ResultCallback)( uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) );
+             void (*ResultCallback)( PSOCKADDR dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) );
 NETWORK_PROC( LOGICAL, DoPingEx )( CTEXTSTR pstrHost,
              int maxTTL,
              uint32_t dwTime,
              int nCount,
              PVARTEXT pResult,
              LOGICAL bRDNS,
-											 void (*ResultCallback)( uintptr_t psv, uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+											 void (*ResultCallback)( uintptr_t psv, PSOCKADDR dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
 											, uintptr_t psv );
 
 //----- WHOIS.C -----
