@@ -1,7 +1,7 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 set_property(GLOBAL PROPERTY QUIET_INSTALL On)
 set(CMAKE_INSTALL_MESSAGE "LAZY")
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.13)
 
 include( ExternalProject )
 
@@ -84,6 +84,7 @@ add_subpath( ../src/utils/unicode_ascii )
 add_subpath( ../src/netlib/network_relay_server )
 add_subpath( ../src/netlib/user )
 add_subpath( ../src/netlib/echo )
+add_subpath( ../src/netlib/ping )
 add_subpath( ../src/utils/image_chopper )
 add_subpath( ../src/netlib/forward )
 add_subpath( ../src/netlib/proxy )
