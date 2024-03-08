@@ -173,14 +173,13 @@ static int compareAddress( uintptr_t a, uintptr_t b )
 
 #ifdef _WIN32
 static void setupInterfaces( void ) {
-	PMIB_IPINTERFACE_TABLE ip_table;
 	PMIB_IF_TABLE2 if_table;
 	MIB_IPNET_ROW2 row;
 	if( mac_data.addresses ) return; // already did this work.
 	MemSet( &row.InterfaceLuid, 0, sizeof( row.InterfaceLuid ) );
 	GetIfTable2( &if_table );
 	int ifCount = 0;
-	for( int i = 0; i < if_table->NumEntries; i++ ) {
+	for( unsigned int i = 0; i < if_table->NumEntries; i++ ) {
 		if( !if_table->Table[i].InOctets) continue; // skip if no traffic
 		ifCount++;
 	}
@@ -188,7 +187,7 @@ static void setupInterfaces( void ) {
 	mac_data.ifIndexes = NewArray( int, ifCount );
 	mac_data.hwaddrs = NewArray( hwaddr_bytes, ifCount );
 	ifCount = 0;
-	for( int i = 0; i < if_table->NumEntries; i++ ) {
+	for( unsigned int i = 0; i < if_table->NumEntries; i++ ) {
 		if( !if_table->Table[i].InOctets) continue; // skip if no traffic
 		mac_data.ifIndexes[ifCount] = if_table->Table[i].InterfaceIndex;
 		memcpy( mac_data.hwaddrs[ifCount], if_table->Table[i].PhysicalAddress, 6 );
@@ -198,7 +197,7 @@ static void setupInterfaces( void ) {
 	PMIB_UNICASTIPADDRESS_TABLE uip_table;
 	int ipCount = 0;
 	GetUnicastIpAddressTable( AF_UNSPEC, &uip_table );
-	for( int i = 0; i < uip_table->NumEntries; i++ ) {
+	for( unsigned int i = 0; i < uip_table->NumEntries; i++ ) {
 		int ifIndex = -1;
 		for( int j = 0; j < mac_data.interfaceCount; j++ ) {
 			if( mac_data.ifIndexes[j] == uip_table->Table[i].InterfaceIndex ) {
@@ -216,7 +215,7 @@ static void setupInterfaces( void ) {
 	mac_data.netmasks = NewArray( uint8_t*, ipCount );
 	ipCount = 0;
 
-	for( int i = 0; i < uip_table->NumEntries; i++ ) {
+	for( unsigned int i = 0; i < uip_table->NumEntries; i++ ) {
 		int ifIndex = -1;
 		for( int j = 0; j < mac_data.interfaceCount; j++ ) {
 			if( mac_data.ifIndexes[j] == uip_table->Table[i].InterfaceIndex ) {
@@ -231,7 +230,6 @@ static void setupInterfaces( void ) {
 			}
 		}
 		if( ifIndex >= 0 ) {
-			//if( ip_table->Table[i].Length == 0 ) continue;
 			if( uip_table->Table[i].Address.si_family == AF_INET ) {
 				uint8_t *mask = mac_data.netmasks[ipCount] = NewArray( uint8_t, 4 );
 				int b;
@@ -675,7 +673,6 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLoca
 	saDup->sa_data[0] = 0;
 	saDup->sa_data[1] = 0;
 
-retry:
 #ifdef __LINUX__
 	macTableUpdated = FALSE;
 #endif
@@ -1281,6 +1278,55 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 #ifdef __cplusplus
 namespace udp {
 #endif
+#undef FreeAddrString
+#undef AddrToString
+	NETWORK_PROC( void, FreeAddrString )( CTEXTSTR string DBG_PASS ) {
+		PTEXT p = (PTEXT)( ( (uintptr_t)string ) - offsetof( TEXT, data.data ) );
+		LineReleaseEx( p DBG_RELAY );
+	}
+
+	NETWORK_PROC( CTEXTSTR, AddrToString )( CTEXTSTR name, SOCKADDR* sa DBG_PASS ) {
+		PVARTEXT pvt = VarTextCreate();
+
+		if( !sa ) { vtprintf( pvt, "%s: NULL", name ); } else {
+			BinaryToString( pvt, (uint8_t*)sa, ((sa->sa_family==AF_INET)? IN_SOCKADDR_LENGTH: IN6_SOCKADDR_LENGTH)  DBG_RELAY );
+			if( sa->sa_family == AF_INET ) {
+				vtprintf( pvt, "%s: (%s) %d.%d.%d.%d:%d ", name
+					, ( ( (uintptr_t*)sa )[-1] & 0xFFFF0000 ) ? ( ( (char**)sa )[-1] ) : "no name"
+					//*(((unsigned char *)sa)+0),
+					//*(((unsigned char *)sa)+1),
+					, *( ( (unsigned char*)sa ) + 4 ),
+					*( ( (unsigned char*)sa ) + 5 ),
+					*( ( (unsigned char*)sa ) + 6 ),
+					*( ( (unsigned char*)sa ) + 7 )
+					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 2 ) ) ) )
+				);
+			} else if( sa->sa_family == AF_INET6 ) {
+				lprintf( "Socket address binary: %s", name );
+				vtprintf( pvt, "%s: (%s) %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x "
+					, name
+					, ( ( (uintptr_t*)sa )[-1] & 0xFFFF0000 ) ? ( ( (char**)sa )[-1] ) : "no name"
+					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 2 ) ) ) )
+					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 8 ) ) ) )
+					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 10 ) ) ) )
+					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 12 ) ) ) )
+					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 14 ) ) ) )
+					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 16 ) ) ) )
+					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 18 ) ) ) )
+					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 20 ) ) ) )
+					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 22 ) ) ) )
+				);
+			}
+		}
+		PTEXT result = VarTextGet( pvt );
+		VarTextDestroy( &pvt );
+		return GetText( result );
+	}
+
+#define FreeAddrString(s) FreeAddrString( s DBG_SRC )
+#define AddrToString(n,s) AddrToString( n, s DBG_SRC )
+
+
 NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 	{
 		if( !sa ) { _lprintf(DBG_RELAY)( "%s: NULL", name ); return; }

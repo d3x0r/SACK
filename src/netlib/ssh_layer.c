@@ -2,9 +2,15 @@
 #include <stdhdrs.h>
 #include <network.h>
 #include <sack_ssh.h>
-#include <libssh2.h>
+
+SACK_NETWORK_NAMESPACE
+#ifdef __cplusplus
+namespace ssh {
+#endif
 
 #include "ssh_layer.h"
+
+static LIBSSH2_LISTERNER_CONNECT_FUNC( listener_connect_relay );
 
 #ifdef __cplusplus
 #define set_pending_state(ps,s,...) { pending_state tmp = {s,##__VA_ARGS__}; ps= tmp; }
@@ -128,7 +134,7 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 					else {
 						CTEXTSTR fingerprint = libssh2_hostkey_hash( cs->session, LIBSSH2_HOSTKEY_HASH_SHA1 );
 						cs->pending.state = SSH_STATE_RESET;
-						cs->handshake_complete( cs->psv, fingerprint );
+						cs->handshake_complete( cs->psv, (const uint8_t*)fingerprint );
 					}
 				}
 				break;
@@ -172,6 +178,41 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 					}
 				}
 				break;
+			case SSH_STATE_LISTEN:
+				{
+					struct ssh_session* session = (struct ssh_session*)cs->pending.state_data[0];
+					CTEXTSTR remotehost = (CTEXTSTR)cs->pending.state_data[1];
+					int remoteport = (int)cs->pending.state_data[2];
+					int bound_port;// (int*)cs->pending.state_data[3];
+					LIBSSH2_LISTENER* listener = libssh2_channel_forward_listen_ex( session->session, remotehost, remoteport, &bound_port, 4096 );
+					if( !listener ) {
+						rc = libssh2_session_last_error( session->session, NULL, NULL, 0 );
+						if( rc == LIBSSH2_ERROR_EAGAIN ) break;
+						else if( rc ) {
+							// error
+							if( session->listen_cb )
+								session->listen_cb( session->psv, NULL, 0 );
+							cs->pending.state = SSH_STATE_RESET;
+							//RemoveClient( pc );
+						} else {
+							lprintf( "no listener, no error?" );
+						}
+					} else {
+						struct ssh_listener *ssh_listener = NewArray( struct ssh_listener, 1);
+						ssh_listener->listener = listener;
+						ssh_listener->session = session;
+						ssh_listener->connect_cb = (ssh_listen_connect_cb)cs->pending.state_data[3];
+						if( ssh_listener->connect_cb ) {
+							libssh2_listener_callback_set( listener, LIBSSH2_CALLBACK_LISTENER_ACCEPT, (libssh2_cb_generic*)listener_connect_relay );
+							libssh2_listener_abstract( listener)[0] = (void*)ssh_listener;
+						}
+
+						if( session->listen_cb )
+							ssh_listener->psv = session->listen_cb( session->psv, ssh_listener, bound_port );
+						cs->pending.state = SSH_STATE_RESET;
+					}
+				}
+			break;
 			case SSH_STATE_OPEN_CHANNEL:{
 					CTEXTSTR type = (CTEXTSTR)cs->pending.state_data[0];
 					CTEXTSTR message = (CTEXTSTR)cs->pending.state_data[4];
@@ -185,7 +226,7 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 							return;
 						}
 						else {
-							lprintf( "no channel, no error??");
+							lprintf( "no channel, no error?");
 						}
 					}else {
 						struct ssh_channel* ssh_channel = NewArray( struct ssh_channel, 1);
@@ -251,10 +292,59 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 					if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 					else if( rc ) {
 						// error
+						if( channel->shell_open )
+							channel->shell_open( channel->psv, FALSE );
 						RemoveClient( pc );
 						return;
 					}
 					else {
+						if( channel->shell_open )
+							channel->shell_open( channel->psv, TRUE );
+						cs->pending.state = SSH_STATE_RESET;
+					}
+				}
+				break;
+			case SSH_STATE_EXEC:
+				{
+					struct ssh_channel* channel = (struct ssh_channel*)cs->pending.state_data[0];
+					CTEXTSTR shell = (CTEXTSTR)cs->pending.state_data[1];
+					rc = libssh2_channel_exec( channel->channel, shell );
+					if( rc == LIBSSH2_ERROR_EAGAIN ) break;
+					else if( rc ) {
+						// error
+						if( channel->exec_done )
+							channel->exec_done( cs->psv, FALSE );
+						RemoveClient( pc );
+						return;
+					}
+					else {
+						if( channel->exec_done )
+							channel->exec_done( cs->psv, TRUE );
+						cs->pending.state = SSH_STATE_RESET;
+						Deallocate( CTEXTSTR, shell );
+					}
+				}
+				break;
+			case SSH_STATE_SFTP:
+				{
+					LIBSSH2_SFTP *sftp = libssh2_sftp_init( cs->session );
+					if( !sftp ) {
+						rc = libssh2_session_last_error( cs->session, NULL, NULL, 0 );
+						if( rc == LIBSSH2_ERROR_EAGAIN ) break;
+						else if( rc ) {
+							// error
+							RemoveClient( pc );
+							return;
+						}
+						else {
+							lprintf( "no sftp, no error?");
+						}
+					}
+					else {
+						struct ssh_sftp* ssh_sftp = NewArray( struct ssh_sftp, 1);
+						MemSet( ssh_sftp, 0, sizeof( struct ssh_sftp ) );
+						//((uintptr_t*)libssh2_sftp_abstract( sftp ))[0] = (uintptr_t)ssh_sftp;
+						ssh_sftp->psv = cs->sftp_open( cs->psv, ssh_sftp );
 						cs->pending.state = SSH_STATE_RESET;
 					}
 				}
@@ -308,6 +398,7 @@ struct ssh_session * sack_ssh_session_init(uintptr_t psv){
 	session->pdqStates = CreateDataQueue( sizeof( struct pending_state ) );
 	session->psv = psv;
 	session->session = libssh2_session_init_ex(alloc_callback, free_callback, realloc_callback, session);
+	libssh2_session_banner_set( session->session, "SSH-2.0-sack_2.0+libssh2_1.9.0" );
 
 	libssh2_session_callback_set2( session->session, LIBSSH2_CALLBACK_SEND, (libssh2_cb_generic*)SendCallback );
 	libssh2_session_callback_set2( session->session, LIBSSH2_CALLBACK_RECV, (libssh2_cb_generic*)RecvCallback );
@@ -322,6 +413,14 @@ void sack_ssh_session_connect( struct ssh_session* session, CTEXTSTR host, int p
 	NetworkConnectTCP( session->pc );
 
 
+}
+
+void sack_ssh_trace( struct ssh_session* session, int bitmask ) {
+	libssh2_trace( session->session, bitmask );
+}
+
+void sack_ssh_get_error( struct ssh_session* session, int* err, CTEXTSTR* errmsg ) {
+	err[0] = libssh2_session_last_error( session->session, (char**)errmsg, NULL, 0 );
 }
 
 void sack_ssh_session_close( struct ssh_session*session ){
@@ -347,51 +446,95 @@ ssh_open_cb sack_ssh_set_channel_open( struct ssh_session*session, uintptr_t(*ch
 	return cb;
 }
 
+ssh_listen_cb sack_ssh_set_listen( struct ssh_session*session, ssh_listen_cb listen_cb ){
+	ssh_listen_cb cb = session->listen_cb;
+	session->listen_cb = listen_cb;
+	return cb;
+}
+
+static LIBSSH2_LISTERNER_CONNECT_FUNC( listener_connect_relay ) {
+	struct ssh_listener* ssh_listener = (struct ssh_listener*)listener_abstract[0];
+	struct ssh_channel* ssh_channel = NewArray( struct ssh_channel, 1 );
+	MemSet( ssh_channel, 0, sizeof( *ssh_channel ) );
+	libssh2_channel_abstract( channel )[0] = (void*)ssh_channel;
+
+	ssh_channel->session = (struct ssh_session*)session_abstract[0];
+	//channel->channel = libssh2_channel_accept_ex( listener->listener, (void*)channel );
+	ssh_channel->channel = channel;
+	ssh_channel->psv = ssh_listener->connect_cb( ssh_listener->psv, ssh_channel );
+}
+
+ssh_listen_connect_cb sack_ssh_set_listen_connect( struct ssh_listener* listener, ssh_listen_connect_cb connect_cb ) {
+	ssh_listen_connect_cb cb = listener->connect_cb;
+	libssh2_listener_callback_set( listener->listener, LIBSSH2_CALLBACK_LISTENER_ACCEPT, (libssh2_cb_generic*)listener_connect_relay );
+	listener->connect_cb = connect_cb;
+	return cb;
+}
+
 ssh_pty_cb sack_ssh_set_pty_open( struct ssh_channel*channel, void(*pty_open)(uintptr_t,LOGICAL) ){
 	ssh_pty_cb cb = channel->pty_open;
 	channel->pty_open = pty_open;
 	return cb;
 }
 
+ssh_shell_cb sack_ssh_set_shell_open( struct ssh_channel*channel, void(*shell_open)(uintptr_t,LOGICAL) ){
+	ssh_shell_cb cb = channel->shell_open;
+	channel->shell_open = shell_open;
+	return cb;
+}
+
+ssh_exec_cb sack_ssh_set_exec_done( struct ssh_channel* channel, void( *exec_done )( uintptr_t, LOGICAL ) ) {
+	ssh_exec_cb cb = channel->exec_done;
+	channel->exec_done = exec_done;
+	return cb;
+}
+
 static LIBSSH2_CHANNEL_EOF_FUNC( channel_eof_relay ) {
 	struct ssh_channel* ssh_channel = (struct ssh_channel*)channel_abstract[0];
-	ssh_channel->channel_eof( ssh_channel->psv, ssh_channel );
+	ssh_channel->channel_eof( ssh_channel->psv );
 }
 
 static LIBSSH2_CHANNEL_CLOSE_FUNC( channel_close_relay ) {
 	struct ssh_channel* ssh_channel = (struct ssh_channel*)channel_abstract[0];
-	ssh_channel->channel_close( ssh_channel->psv, ssh_channel );
+	ssh_channel->channel_close( ssh_channel->psv );
 }
 
 static LIBSSH2_CHANNEL_DATA_FUNC( channel_data_relay ) {
 	struct ssh_channel* ssh_channel = (struct ssh_channel*)channel_abstract[0];
-	ssh_channel->channel_data( ssh_channel->psv, ssh_channel, stream, buffer, length );
+	ssh_channel->channel_data( ssh_channel->psv, stream, buffer, length );
 }
 
-ssh_channel_data_cb sack_ssh_set_channel_data( struct ssh_channel*channel, void(*channel_data)(uintptr_t,struct ssh_channel*,int stream, const uint8_t*,size_t) ){
+ssh_channel_data_cb sack_ssh_set_channel_data( struct ssh_channel*channel, ssh_channel_data_cb channel_data ){
 	ssh_channel_data_cb cb = channel->channel_data;
 	libssh2_channel_callback_set( channel->channel, LIBSSH2_CALLBACK_CHANNEL_DATA, (libssh2_cb_generic*)channel_data_relay );
 	channel->channel_data = channel_data;
 	return cb;
 }
 
-ssh_channel_eof_cb sack_ssh_set_channel_eof( struct ssh_channel*channel, void(*channel_eof)(uintptr_t,struct ssh_channel*) ){
+ssh_channel_eof_cb sack_ssh_set_channel_eof( struct ssh_channel*channel, ssh_channel_eof_cb channel_eof ){
 	ssh_channel_eof_cb cb = channel->channel_eof;
 	libssh2_channel_callback_set( channel->channel, LIBSSH2_CALLBACK_CHANNEL_EOF, (libssh2_cb_generic*)channel_eof_relay );
 	channel->channel_eof = channel_eof;
 	return cb;
 }
 
-ssh_channel_close_cb sack_ssh_set_channel_close( struct ssh_channel*channel, void(*channel_close)(uintptr_t,struct ssh_channel*) ){
+ssh_channel_close_cb sack_ssh_set_channel_close( struct ssh_channel*channel, ssh_channel_close_cb channel_close ){
 	ssh_channel_close_cb cb = channel->channel_close;
 	libssh2_channel_callback_set( channel->channel, LIBSSH2_CALLBACK_CHANNEL_CLOSE, (libssh2_cb_generic*)channel_close_relay );
 	channel->channel_close = channel_close;
 	return cb;
 }
 
+
+ssh_sftp_open_cb sack_ssh_set_sftp_open( struct ssh_session* session, ssh_sftp_open_cb sftp_open ) {
+	ssh_sftp_open_cb cb = session->sftp_open;
+	session->sftp_open = sftp_open;
+	return cb;
+}
+
 //----------------------------- Actions
 
-void sack_auth_user_password( struct ssh_session*session, CTEXTSTR user, CTEXTSTR pass ){
+void sack_ssh_auth_user_password( struct ssh_session*session, CTEXTSTR user, CTEXTSTR pass ){
 	if( session->pending.state != SSH_STATE_RESET ) {
 		// error
 		struct pending_state state = {SSH_STATE_AUTH_PW, {(uintptr_t)StrDup( user ), StrLen(user), (uintptr_t)StrDup( pass ), StrLen( pass )}};
@@ -402,7 +545,7 @@ void sack_auth_user_password( struct ssh_session*session, CTEXTSTR user, CTEXTST
 	libssh2_userauth_password_ex( session->session, user, (unsigned int)session->pending.state_data[1], pass, (unsigned int)session->pending.state_data[3], pwChange );
 }
 
-void sack_auth_user_cert( struct ssh_session*session, CTEXTSTR user
+void sack_ssh_auth_user_cert( struct ssh_session*session, CTEXTSTR user
                         , CTEXTSTR pubkey
                         , CTEXTSTR privkey
                         , CTEXTSTR pass ){
@@ -437,13 +580,21 @@ void sack_ssh_channel_open_v2( struct ssh_session* session, CTEXTSTR type, size_
 		return;
 	}
 	set_pending_state( session->pending, SSH_STATE_OPEN_CHANNEL, {(uintptr_t)StrDup( type ), type_len, window_size, packet_size, (uintptr_t)StrDup( message ), message_len } );
-	libssh2_channel_open_ex( session->session, type, (unsigned int)type_len, window_size, packet_size, message, (unsigned int)message_len  );
+	libssh2_channel_open_ex( session->session, type, (unsigned int)type_len, window_size, packet_size, message, (unsigned int)message_len );
+}
+
+void sack_ssh_channel_free( struct ssh_channel* channel ){
+	libssh2_channel_close( channel->channel );
 }
 
 void sack_ssh_channel_open( struct ssh_session *session ) {
 	sack_ssh_channel_open_v2( session, "session", 7, 0x4000, 0x1000, NULL, 0 );
 }
 
+void sack_ssh_channel_close( struct ssh_channel* channel ) {
+	libssh2_channel_close( channel->channel );
+	ReleaseEx( channel DBG_SRC );
+}
 
 void sack_ssh_channel_request_pty( struct ssh_channel* channel, CTEXTSTR term ) {
 	if( channel->session->pending.state != SSH_STATE_RESET ) {
@@ -475,3 +626,52 @@ void sack_ssh_channel_shell( struct ssh_channel* channel ) {
 	set_pending_state( channel->session->pending, SSH_STATE_SHELL, { (uintptr_t)channel } );
 	libssh2_channel_shell( channel->channel );
 }
+
+void sack_ssh_channel_exec( struct ssh_channel* channel, CTEXTSTR shell ) {
+	if( channel->session->pending.state != SSH_STATE_RESET ) {
+		struct pending_state state = { SSH_STATE_EXEC, { (uintptr_t)channel, (uintptr_t)StrDup( shell )}};
+		EnqueData( &channel->session->pdqStates, &state );
+		return;
+	}
+	set_pending_state( channel->session->pending, SSH_STATE_EXEC, { (uintptr_t)channel, (uintptr_t)StrDup( shell ) } );
+	libssh2_channel_exec( channel->channel, (CTEXTSTR)channel->session->pending.state_data[1] );
+}
+
+void sack_ssh_channel_write( struct ssh_channel* channel, int stream, const uint8_t* buffer, size_t length ) {
+	libssh2_channel_write_ex( channel->channel, stream, (const char*)buffer, length );
+}
+
+//------------------------- SOCKET FORWARDING ----------------------------
+
+void sack_ssh_channel_forward_listen( struct ssh_session* session, CTEXTSTR remotehost, uint16_t remoteport, ssh_listen_connect_cb cb ) {
+	if( session->pending.state != SSH_STATE_RESET ) {
+		struct pending_state state = { SSH_STATE_LISTEN, { (uintptr_t)session, (uintptr_t)StrDup( remotehost ), remoteport, (uintptr_t)cb}};
+		EnqueData( &session->pdqStates, &state );
+		return;
+	}
+	set_pending_state( session->pending, SSH_STATE_LISTEN, { (uintptr_t)session, (uintptr_t)StrDup( remotehost ), remoteport, (uintptr_t)cb } );
+	// bound_port can't be used until much later... this will be a wait for completion.
+	libssh2_channel_forward_listen_ex( session->session, remotehost, remoteport, NULL, 4096 );
+}
+
+// libssh2_channel_direct_tcpip_ex
+
+//void sack_ssh_channel_
+
+//------------------------- SFTP Interface ----------------------------
+
+void sack_ssh_sftp_init( struct ssh_session* session ) {
+	if( session->pending.state != SSH_STATE_RESET ) {
+		struct pending_state state = { SSH_STATE_SFTP, { (uintptr_t)session }};
+		EnqueData( &session->pdqStates, &state );
+		return;
+	}
+	set_pending_state( session->pending, SSH_STATE_SFTP, { (uintptr_t)session } );
+	// can never complete immediately...
+	libssh2_sftp_init( session->session );
+}
+
+#ifdef __cplusplus
+}
+#endif
+SACK_NETWORK_NAMESPACE_END

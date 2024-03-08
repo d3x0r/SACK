@@ -33,20 +33,35 @@ void ReportError(PVARTEXT pInto, CTEXTSTR pstrFrom);
 int  WaitForEchoReply(SOCKET s, uint32_t dwTime);
 uint16_t in_cksum(uint16_t *addr, int len);
 
+// compatible with PSOCKADDR
+// return &ip as the address to use as a SOCKADDR
+struct sockaddr_fake {
+	uintptr_t sockaddr_len;
+	CTEXTSTR sockaddr_name;
+	union sockaddr_un {
+		struct sockaddr_in v4;
+		struct sockaddr_in6 v6;
+	} ip;
+};
+
 // ICMP Echo Request/Reply functions
-int		SendEchoRequest(PVARTEXT, SOCKET, struct sockaddr_in*);
-int		RecvEchoReply( PVARTEXT, SOCKET, struct sockaddr_in*, uint8_t *);
+int		SendEchoRequest(PVARTEXT, SOCKET, struct sockaddr_fake*);
+int		RecvEchoReply( PVARTEXT, SOCKET, struct sockaddr_fake*, uint8_t *);
 
 #define MAX_HOPS     128 
 #define MAX_NAME_LEN 255
+
+
 typedef struct HopEntry_tag{
-	uint32_t dwIP;         // IP from returned
+	struct sockaddr_fake ip;
+	LOGICAL isIP6;
+	LOGICAL hasAddress;
 	uint32_t dwMinTime;
 	uint32_t dwMaxTime;
 	uint32_t dwAvgTime;
 	uint32_t dwDropped;
 //	uint32_t dwTime;
-	TEXTSTR  pName;  // bRDNS resulting...
+	TEXTCHAR  pName[MAX_NAME_LEN];  // bRDNS resulting...
 	int TTL;         // returned TTL from destination...
 } HOPENT, *PHOPENT;
 
@@ -55,23 +70,8 @@ volatile uint32_t dwThreadsActive;
 uintptr_t CPROC RDNSThread( PTHREAD pThread )
 {
 	PHOPENT pHopEnt = (PHOPENT)GetThreadParam( pThread );
-	struct hostent *phe;
-
-	phe = gethostbyaddr( (char*)&pHopEnt->dwIP, 4, AF_INET );
-	if( phe )
-#ifdef _UNICODE
-		pHopEnt->pName = CharWConvert( phe->h_name );
-#else
-		pHopEnt->pName = StrDup( phe->h_name );
-#endif
-
+	getnameinfo( (struct sockaddr*)&pHopEnt->ip.ip.v6, (socklen_t)pHopEnt->ip.sockaddr_len, pHopEnt->pName, MAX_NAME_LEN, NULL, 0, 0 );
 	LockedDecrement( &dwThreadsActive );
-	/*
-#ifdef _WIN32
-	ExitThread( dwThreadsActive );
-#else
-#endif
-	*/
 	return 0;
 }
 
@@ -86,19 +86,15 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 								,int nCount
 								,PVARTEXT pvtResult
 								,LOGICAL bRDNS
-								,void (*ResultCallback)( uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
-								,void (*ResultCallbackEx)( uintptr_t psv, uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+								,void (*ResultCallback)( PSOCKADDR ip, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+								,void (*ResultCallbackEx)( uintptr_t psv, PSOCKADDR ip, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
 								, uintptr_t psvUser )
 {
 	SOCKET rawSocket;
-	struct hostent *lpHost;
-#ifdef __LINUX__
-	struct win_sockaddr_in saDest;
-	struct win_sockaddr_in saSrc;
-#else
-	struct sockaddr_in saDest;
-	struct sockaddr_in saSrc;
-#endif
+	//struct hostent *lpHost;
+	struct sockaddr_fake saDest;
+	struct sockaddr_fake saLast;
+	struct sockaddr_fake saSrc;
 	uint64_t  dwTimeSent;
 	uint8_t   cTTL = 0;
 	int       nLoop;
@@ -107,8 +103,8 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 	uint64_t  MinTime, MaxTime, AvgTime;
 	uint32_t  Dropped;
 
-	uint32_t  dwIP,_dwIP;
-	uint8_t	u8IP6[16];
+	//uint32_t  _dwIP;
+	//uint8_t	u8IP6[16];
 	static LOGICAL csInit;
 	static CRITICALSECTION cs;
 	static  HOPENT	Entry[MAX_HOPS];
@@ -144,50 +140,25 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 	}
 
 	// Lookup host
-#ifdef __LINUX__
-	if( !inet_aton( pstrHost, (struct in_addr*)&dwIP ) )
-#else
-	inet_pton( AF_INET6, pstrHost, u8IP6 );
-	inet_pton( AF_INET, pstrHost, (struct in_addr*)&dwIP );
-	if( dwIP == INADDR_NONE )
-#endif
+	PSOCKADDR sockAddr = CreateSockAddress( pstrHost, 0 );
+	saDest.sockaddr_name = pstrHost;
+	if( sockAddr->sa_family == AF_INET )
+	{
+		saDest.sockaddr_len = IN_SOCKADDR_LENGTH;
+		saDest.ip.v4 = *(struct sockaddr_in*)sockAddr;
+	}
+	else if( sockAddr->sa_family == AF_INET6 )
+	{
+		saDest.sockaddr_len = IN6_SOCKADDR_LENGTH;
+		saDest.ip.v6 = *(struct sockaddr_in6*)sockAddr;
+	}
+	else
 	{
 		if( pvtResult )
-			vtprintf( pvtResult, "host was not numeric\n" );
-#ifdef _UNICODE
-		{
-			char *tmpname = WcharConvert( pstrHost );
-			lpHost = gethostbyname(tmpname);
-			Deallocate( char *, tmpname );
-		}
-#else
-		lpHost = gethostbyname(pstrHost);
-#endif
-		if (lpHost)
-		{
-#ifndef h_addr
-#define h_addr h_addr_list[0]
-#define H_ADDR_DEFINED
-#endif
-			dwIP = *((uint32_t *) lpHost->h_addr);
-#ifdef H_ADDR_DEFINED
-#  undef H_ADDR_DEFINED
-#  undef h_addr
-#endif
-		}
-		else
-		{
-			if( pvtResult )
-				vtprintf( pvtResult, "(1)Host does not exist.(%s)\n", pstrHost );
-		}
+			vtprintf( pvtResult, "Unknown Address Family\n" );
+		return FALSE;
 	}
 
-	if( dwIP == 0xFFFFFFFF )
-	{
-		if( pvtResult )
-			vtprintf( pvtResult, "Host does not exist.(%s)\n", pstrHost );
-		return 0;
-	}
 	nEntry = 0;
 	// Create a Raw socket
 
@@ -232,18 +203,15 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 #endif
 	}
 
-	// Setup destination socket address
-	saDest.sin_addr.S_un.S_addr = dwIP;
-	saDest.sin_family = AF_INET;
-	saDest.sin_port = 0;
-
 	//vtprintf( pvtResult, "Version 1.0	ADA Software Developers, Inc.  Copyright 1999.\n" );
 	// Tell the user what we're doing
 	if( pvtResult )
 	{
+		static char addr[256];
+		inet_ntop( sockAddr->sa_family, sockAddr->sa_family==AF_INET6?sockAddr->sa_data+6:sockAddr->sa_data, addr, 256 );
 		vtprintf( pvtResult, "Pinging %s [%s] with %d bytes of data:\n",
 									pstrHost,
-									inet_ntoa(*(struct in_addr*)&saDest.sin_addr),
+									addr,
 									REQ_DATASIZE);
 
 		if( maxTTL )
@@ -260,10 +228,10 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 	EnterCriticalSec( &cs );
 
 	// Ping multiple times
-	_dwIP = 0;
-	for( i = 0; i <= maxTTL && dwIP != _dwIP; i++ )
+	for( i = 0; i <= maxTTL && MemCmp( &saDest.ip, &saLast.ip, saDest.sockaddr_len ); i++ )
 	{
-		
+		LogBinary( (const uint8_t*)&saDest.ip, saDest.sockaddr_len );
+		LogBinary( (const uint8_t*)&saLast.ip, saLast.sockaddr_len );
 		if( maxTTL )
 		{
 			if( !i )		// skip TTL 0...
@@ -287,7 +255,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 		{
 			// Send ICMP echo request
 			dwTimeSent = GetCPUTick();
-			if( SendEchoRequest(pvtResult, rawSocket, (struct sockaddr_in*)&saDest) <= 0)
+			if( SendEchoRequest(pvtResult, rawSocket, &saDest) <= 0)
 			{
 				closesocket( rawSocket );
 				LeaveCriticalSec( &cs );
@@ -318,11 +286,11 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 				if( dwTimeNow < MinTime )
 					MinTime = dwTimeNow;
 
-				if( !RecvEchoReply( pvtResult, rawSocket, (struct sockaddr_in*)&saSrc, &cTTL) )
+				if( !RecvEchoReply( pvtResult, rawSocket, &saSrc, &cTTL) )
 				{
 					if( pvtResult )
 						ReportError( pvtResult, "recv()" );
-				//VarTextEmpty( &pvtResult );
+					//VarTextEmpty( &pvtResult );
 					//pResult = pResultStart;
 					closesocket( rawSocket );
 					LeaveCriticalSec( &cs );
@@ -332,13 +300,15 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 		}		
 		if( MinTime > MaxTime ) // no responces....
 		{
-			MinTime = 0;
-			MaxTime = 0;
-			Entry[nEntry].dwIP = 0;
+			MemSet( Entry + nEntry, 0, sizeof( Entry ) );
 		}
 		else
 		{
-			Entry[nEntry].dwIP = _dwIP = saSrc.sin_addr.S_un.S_addr;
+			Entry[nEntry].ip.sockaddr_len = saSrc.sockaddr_len;
+			Entry[nEntry].ip.sockaddr_name = NULL;
+			Entry[nEntry].ip.ip = saSrc.ip;
+			saLast = Entry[nEntry].ip;
+			Entry[nEntry].hasAddress = TRUE;
 		}
 
 		Entry[nEntry].TTL  = cTTL;
@@ -349,7 +319,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 		else
 			Entry[nEntry].dwAvgTime = 0;
 		Entry[nEntry].dwDropped = Dropped;
-		Entry[nEntry].pName = 0;
+		Entry[nEntry].pName[0] = 0;
 		nEntry++;
 	}
 LoopBreakpoint:
@@ -362,18 +332,11 @@ LoopBreakpoint:
 	{
 		for( i = 0; i < nEntry; i++ )
 		{
-			if( Entry[i].dwIP )
+			if( Entry[i].dwAvgTime )
 			{
 				//uint32_t dwID;
 				LockedIncrement( &dwThreadsActive );
 				ThreadTo( RDNSThread, (uintptr_t)(Entry+i) );
-				/*
-#ifdef _WIN32
-				CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)RDNSThread, Entry+i, 0, &dwID );
-#else
-				pthread_create( &dwID, NULL, (void*(*)(void*))RDNSThread, (void*)(Entry+i) );
-#endif
-				*/
 			}
 		}
 
@@ -384,22 +347,27 @@ LoopBreakpoint:
 	for( i = 0; i < nEntry; i++ )
 	{
 		char *pIPBuf;
-		if( Entry[i].dwIP )  
+		if( Entry[i].hasAddress )  
 		{
-			saSrc.sin_addr.S_un.S_addr = Entry[i].dwIP;
-			pIPBuf = inet_ntoa( *(struct in_addr*)&saSrc.sin_addr );
+			static char addr[256];
+			pIPBuf = addr;
+			if( saSrc.ip.v4.sin_family == AF_INET )
+				inet_ntop( Entry[i].ip.ip.v4.sin_family, &Entry[i].ip.ip.v4.sin_addr, addr, 256);
+			else
+				inet_ntop( Entry[i].ip.ip.v6.sin6_family, &Entry[i].ip.ip.v6.sin6_addr, addr, 256 );
+
 			nResult = TRUE;
 		}
 		else
 		{
 			pIPBuf = (char*)"No Response.";
-			Entry[i].pName = 0;
+			Entry[i].pName[0] = 0;
 		}
 		if( maxTTL )
 		{
 			TEXTCHAR Min[8], Max[8], Avg[8];
 			if( ResultCallback )
-				ResultCallback( Entry[i].dwIP
+				ResultCallback( (PSOCKADDR ) & Entry[i].ip.ip
 				              , Entry[i].pName
 				              , Entry[i].dwMinTime
 				              , Entry[i].dwMaxTime
@@ -408,7 +376,7 @@ LoopBreakpoint:
 				              , 256 - Entry[i].TTL );
 			else if( ResultCallbackEx )
 				ResultCallbackEx( psvUser
-				                , Entry[i].dwIP
+				                , (PSOCKADDR)&Entry[i].ip.ip
 				                , Entry[i].pName
 				                , Entry[i].dwMinTime
 				                , Entry[i].dwMaxTime
@@ -456,7 +424,7 @@ LoopBreakpoint:
 		else
 		{
 			if( ResultCallback )
-				ResultCallback( Entry[i].dwIP
+				ResultCallback( (PSOCKADDR)&Entry[i].ip
 									, Entry[i].pName
 									, Entry[i].dwMinTime
 									, Entry[i].dwMaxTime
@@ -465,7 +433,7 @@ LoopBreakpoint:
 									, 256 - Entry[i].TTL );
 			else if( ResultCallbackEx )
 				ResultCallbackEx( psvUser
-									, Entry[i].dwIP
+									, (PSOCKADDR)&Entry[i].ip
 									, Entry[i].pName
 									, Entry[i].dwMinTime
 									, Entry[i].dwMaxTime
@@ -495,7 +463,7 @@ NETWORK_PROC( LOGICAL, DoPing )( CTEXTSTR pstrHost,
 				int nCount, 
 				PVARTEXT pvtResult, 
 				LOGICAL bRDNS, 
-				void (*ResultCallback)( uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) )
+				void (*ResultCallback)( PSOCKADDR dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) )
 {
 	return DoPingExx( pstrHost, maxTTL, dwTime, nCount, pvtResult, bRDNS, ResultCallback, NULL, 0 );
 }
@@ -506,7 +474,7 @@ NETWORK_PROC( LOGICAL, DoPingEx )( CTEXTSTR pstrHost,
 											int nCount,
 											PVARTEXT pvtResult,
 											LOGICAL bRDNS,
-											void (*ResultCallback)( uintptr_t psv, uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+											void (*ResultCallback)( uintptr_t psv, PSOCKADDR dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
 											, uintptr_t psvUser )
 {
 	return DoPingExx( pstrHost, maxTTL, dwTime, nCount, pvtResult, bRDNS, NULL, ResultCallback, psvUser );
@@ -514,7 +482,7 @@ NETWORK_PROC( LOGICAL, DoPingEx )( CTEXTSTR pstrHost,
 // SendEchoRequest()
 // Fill in echo request header
 // and send to destination
-int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,struct sockaddr_in *lpstToAddr)
+int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,struct sockaddr_fake *lpstToAddr)
 {
 	static ECHOREQUEST echoReq;
 	static int nId = 1;
@@ -543,7 +511,7 @@ int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,struct sockaddr_in *lpstToAddr)
 				(char*)&echoReq,			/* buffer */
 				sizeof(ECHOREQUEST),
 				0,							/* flags */
-				(SOCKADDR*)lpstToAddr, /* destination */
+				(SOCKADDR*)&lpstToAddr->ip, /* destination */
 				sizeof(SOCKADDR));	/* address length */
 
 	if (nRet == SOCKET_ERROR) 
@@ -556,7 +524,7 @@ int SendEchoRequest(PVARTEXT pvtResult, SOCKET s,struct sockaddr_in *lpstToAddr)
 // RecvEchoReply()
 // Receive incoming data
 // and parse out fields
-int RecvEchoReply(PVARTEXT pvtResult, SOCKET s, struct sockaddr_in *lpsaFrom, uint8_t *pTTL)
+int RecvEchoReply(PVARTEXT pvtResult, SOCKET s, struct sockaddr_fake *lpsaFrom, uint8_t *pTTL)
 {
 	ECHOREPLY echoReply;
 	int nRet;
@@ -565,16 +533,16 @@ int RecvEchoReply(PVARTEXT pvtResult, SOCKET s, struct sockaddr_in *lpsaFrom, ui
 #else
 	int
 #endif
-		nAddrLen = sizeof(struct sockaddr_in);
+		nAddrLen = sizeof(struct sockaddr_in6);
 
 	// Receive the echo reply	
 	nRet = recvfrom(s,					// socket
 					(char*)&echoReply,	// buffer
 					sizeof(ECHOREPLY),	// size of buffer
 					0,					// flags
-					(SOCKADDR*)lpsaFrom,	// From address
+					(SOCKADDR*)&lpsaFrom->ip,	// From address
 					&nAddrLen);			// pointer to address len
-
+	lpsaFrom->sockaddr_len = nAddrLen;
 	// Check return value
 	if (nRet == SOCKET_ERROR) 
 	{

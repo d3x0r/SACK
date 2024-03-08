@@ -225,8 +225,10 @@ static struct ssl_global
 }ssl_global;
 
 PRELOAD( InitSSL ) {
+#ifndef __NO_OPTIONS__
 	ssl_global.flags.bLogBuffers = SACK_GetProfileIntEx( "SACK", "Network/SSL/Log Network Data", 0, TRUE );	
 	ssl_global.flags.bLogBuffersVerbose = SACK_GetProfileIntEx( "SACK", "Network/SSL/Log Network Data Verbose", 0, TRUE );	
+#endif
 }
 
 ATEXIT( CloseSSL )
