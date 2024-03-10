@@ -32,7 +32,7 @@
                |  ( (uint8_t*)x)[2] ) << 8 ) \
                |  ( (uint8_t*)x)[3] ) )
 
-
+// from https://developercommunity.visualstudio.com/t/MSVC-Not-using-bswap-when-possible/917784
 #define NTOHL(n)  ((n & 0xff) << 24u) |   \
                 ((n & 0xff00) << 8u) |    \
                 ((n & 0xff0000) >> 8u) |  \
