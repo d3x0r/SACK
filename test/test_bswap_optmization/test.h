@@ -39,7 +39,11 @@ constexpr uint32_t const_bswap( uint32_t v ) noexcept {
                 (((n) & 0xff0000) >> 8u) |  \
                 (((n) & 0xff000000) >> 24u)) 
 
-#define NTOHL4(n)  _byteswap_ulong( n )
+#ifdef _MSC_VER
+#  define NTOHL4(n)  _byteswap_ulong( n )
+#else
+#  error intrinsic for this compiler is not filled in.
+#endif
 
 
 #define NTOHL2_1(a,b) ( ( ( ((uint8_t*)&(a))[0] ) = ( ((uint8_t*)&(b))[3] ) ), \

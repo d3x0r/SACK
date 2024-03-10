@@ -49,6 +49,56 @@ void test4( void ) {
 #pragma optimize( "", on )
 
 
+#pragma optimize( "st", on )
+void test1_arr( int ofs ) {
+    uint8_t a[12];
+	 ((uint32_t*)(a+ofs))[0] = rand();
+    uint32_t b, c;
+    b = NTOHL1( ((uint32_t*)(a+ofs))[0] );
+    c = NTOHL1( b );
+    printf( "Test 1_1_arr: %08x %08x %s\n", ((uint32_t*)(a+ofs))[0], b, (((uint32_t*)(a+ofs))[0]==c)?"Match":"fail" );
+}
+#pragma optimize( "", on )
+
+
+#pragma optimize( "st", on )
+void test2_arr( int ofs ) {
+    uint8_t a[12];
+	 ((uint32_t*)(a+ofs))[0] = rand();
+    uint32_t b, c;
+    b = NTOHL2( ((uint32_t*)(a+ofs))[0] );
+    c = NTOHL2( b );
+    printf( "Test 1_2_arr: %08x %08x %s\n", ((uint32_t*)(a+ofs))[0], b, (((uint32_t*)(a+ofs))[0]==c)?"Match":"fail" );
+}
+#pragma optimize( "", on )
+
+
+#pragma optimize( "st", on )
+void test3_arr( int ofs ) {
+    uint8_t a[12];
+	 ((uint32_t*)(a+ofs))[0] = rand();
+    uint32_t b, c;
+    // C - bswap 
+    b = NTOHL3( ((uint32_t*)(a+ofs))[0] );
+    c = NTOHL3( b );
+    printf( "Test 1_3_arr: %08x %08x %s\n", ((uint32_t*)(a+ofs))[0], b, (((uint32_t*)(a+ofs))[0]==c)?"Match":"fail" );
+}
+#pragma optimize( "", on )
+
+
+#pragma optimize( "st", on )
+void test4_arr( int ofs ) {
+    uint8_t a[12];
+	 ((uint32_t*)(a+ofs))[0] = rand();
+    uint32_t b, c;
+    // C - bswap
+    b = NTOHL4( ((uint32_t*)(a+ofs))[0] );
+    c = NTOHL4( b );
+    printf( "Test 1_4_arr: %08x %08x %s\n", ((uint32_t*)(a+ofs))[0], b, (((uint32_t*)(a+ofs))[0]==c)?"Match":"fail" );
+}
+#pragma optimize( "", on )
+
+
 
 #pragma optimize( "st", on )
 void test2_1( void ) {
@@ -168,6 +218,11 @@ int main( void ) {
 	test2();
 	test3();
 	test4();
+
+	test1_arr(8);
+	test2_arr(8);
+	test3_arr(8);
+	test4_arr(8);
 
 	test2_1();
 	test2_2();
