@@ -33,6 +33,14 @@
                |  ( (uint8_t*)x)[3] ) )
 
 
+#define NTOHL(n)  ((n & 0xff) << 24u) |   \
+                ((n & 0xff00) << 8u) |    \
+                ((n & 0xff0000) >> 8u) |  \
+                ((n & 0xff000000) >> 24u) \
+
+
+// ---- These macros assign 'b' swapped into 'a' 
+
 #define NTOHL2(a,b) ( ( ( ((uint8_t*)a)[0] ) = ( ((uint8_t*)b)[3] ) ), \
                       ( ( ((uint8_t*)a)[1] ) = ( ((uint8_t*)b)[2] ) ), \
                       ( ( ((uint8_t*)a)[2] ) = ( ((uint8_t*)b)[1] ) ), \
