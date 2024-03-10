@@ -43,6 +43,9 @@ namespace ssh {
 	typedef void ( *ssh_listen_error_cb )( uintptr_t psv, int err, CTEXTSTR errmsg, int errmsglen );
 	NETWORK_PROC( ssh_listen_error_cb, sack_ssh_set_listener_error )( struct ssh_listener* listener, ssh_listen_error_cb );
 
+	typedef void ( *ssh_setenv_cb )( uintptr_t psv, LOGICAL success );
+	NETWORK_PROC( ssh_setenv_cb, sack_ssh_set_setenv )( struct ssh_listener* listener, ssh_setenv_cb );
+
 	/*
 	* set a callback for when a session is connected (or fails to connect)
 	*/
@@ -153,8 +156,8 @@ namespace ssh {
 	* authenticate a user with a public key
 	*/
 	NETWORK_PROC( void, sack_ssh_auth_user_cert )( struct ssh_session* session, CTEXTSTR user
-		, CTEXTSTR pubkey
-		, CTEXTSTR privkey
+		, uint8_t* pubkey, size_t pubkeylen
+		, uint8_t* privkey, size_t privkeylen
 		, CTEXTSTR pass );
 
 	//------------------ CHANNELS ---------------------
@@ -174,23 +177,23 @@ namespace ssh {
 	/*
 	* set an environment variable on the channel
 	*/
-	NETWORK_PROC( void, sack_ssh_channel_setenv )( struct ssh_channel* channel, CTEXTSTR key, CTEXTSTR value );
+	NETWORK_PROC( void, sack_ssh_channel_setenv )( struct ssh_channel* channel, CTEXTSTR key, CTEXTSTR value, ssh_setenv_cb cb );
 
 	/*
 	* request a pty on the channel
 	* pty comes back in a callback set by sack_ssh_set_pty_open
 	*/
-	NETWORK_PROC( void, sack_ssh_channel_request_pty )( struct ssh_channel* channel, CTEXTSTR term );
+	NETWORK_PROC( void, sack_ssh_channel_request_pty )( struct ssh_channel* channel, CTEXTSTR term, ssh_pty_cb cb );
 
 	/*
 	* open a shell on the channel
 	*/
-	NETWORK_PROC( void, sack_ssh_channel_shell )( struct ssh_channel* channel );
+	NETWORK_PROC( void, sack_ssh_channel_shell )( struct ssh_channel* channel, ssh_shell_cb );
 
 	/*
 	* exec a command on channel
 	*/
-	NETWORK_PROC( void, sack_ssh_channel_exec )( struct ssh_channel* channel, CTEXTSTR shell );
+	NETWORK_PROC( void, sack_ssh_channel_exec )( struct ssh_channel* channel, CTEXTSTR shell, ssh_exec_cb );
 
 	/*
 	* Send data on a channel

@@ -60,9 +60,8 @@ static void moveBuffers( PDATALIST pdl ) {
 			buf[-1] = buf[0];
 		}
 	}
-	if( buf )
-	buf[idx] = buf0;
-
+	if( buf ) buf[idx] = buf0;
+	
 }
 
 static LIBSSH2_RECV_FUNC( RecvCallback ) {
@@ -86,7 +85,7 @@ static LIBSSH2_RECV_FUNC( RecvCallback ) {
 			MemCpy( buffer, buf->buffer+buf->used, filled = ((( buf->length-buf->used)< length)?(buf->length-buf->used):length) );
 			buf->used += filled;
 			if( buf->used == buf->length ) {
-				buf->length = 0;
+				buf->used = buf->length = 0;
 				moveBuffers( cs->buffers );
 			}
 			return filled;
@@ -114,6 +113,8 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 		int did_one = 0;
 		INDEX idx;
 		struct data_buffer* db;
+		//lprintf( "Received %d", length );
+
 		DATA_FORALL( cs->buffers, idx, struct data_buffer*, db ) {
 			if( !db->length && db->buffer == buffer ) {
 				db->length = length;
@@ -155,9 +156,10 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 				}
 				break;
 			case SSH_STATE_AUTH_PK:
+				//libssh2_userauth_publickey_fromfile( cs->session, cs->user, NULL, "rsa", cs->pass );
 				rc = libssh2_userauth_publickey_frommemory( cs->session, cs->user, cs->user_len
-														, cs->privKey, cs->privKey_len
-														, cs->pubKey, cs->pubKey_len
+														, (const char*)cs->pubKey, cs->pubKey_len
+														, (const char*)cs->privKey, cs->privKey_len
 														, cs->pass );
 				if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 				else if( rc ) {
@@ -283,7 +285,7 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						if( channel->error ) {
 							int err; CTEXTSTR errmsg; int errmsglen;
 							err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
-							channel->error( cs->psv, err, errmsg, errmsglen );
+							channel->error( channel->psv, err, errmsg, errmsglen );
 						} else if( channel->pty_open ) {
 							channel->pty_open( cs->psv, FALSE );
 						} else {
@@ -294,7 +296,10 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						cs->pending.state = SSH_STATE_RESET;
 					}
 					else {
-						channel->pty_open( cs->psv, TRUE );
+						if( cs->pending.state_data[2] )
+							( (ssh_pty_cb)cs->pending.state_data[2] )( channel->psv, TRUE );
+						else if( channel->pty_open )
+							channel->pty_open( cs->psv, TRUE );
 						cs->pending.state = SSH_STATE_RESET;
 					}
 					break;
@@ -308,12 +313,13 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 					if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 					else if( rc ) {
 						// error
-
 						if( channel->error ) {
 							int err; CTEXTSTR errmsg; int errmsglen;
 							err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
-							channel->error( cs->psv, err, errmsg, errmsglen );
-						} else {
+							channel->error( channel->psv, err, errmsg, errmsglen );
+						} else if( cs->pending.state_data[3] )
+							( (ssh_pty_cb)cs->pending.state_data[3] )( channel->psv, FALSE );
+						else {
 							int err;
 							char* msg;
 							int msglen;
@@ -326,6 +332,9 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						//RemoveClient( pc );
 					}
 					else {
+						if( cs->pending.state_data[3] )
+							( (ssh_pty_cb)cs->pending.state_data[3] )( channel->psv, TRUE );
+
 						cs->pending.state = SSH_STATE_RESET;
 						Deallocate( CTEXTSTR, key );
 						Deallocate( CTEXTSTR, value );
@@ -342,7 +351,7 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						if( channel->error ) {
 							int err; CTEXTSTR errmsg; int errmsglen;
 							err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
-							channel->error( cs->psv, err, errmsg, errmsglen );
+							channel->error( channel->psv, err, errmsg, errmsglen );
 						} else if( channel->shell_open ) {
 							channel->shell_open( channel->psv, FALSE );
 						} else {
@@ -354,7 +363,10 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						}
 					}
 					else {
-						if( channel->shell_open )
+						if( cs->pending.state_data[1] )
+							( (ssh_shell_cb)cs->pending.state_data[1] )( channel->psv, TRUE );
+						else 
+							if( channel->shell_open )
 							channel->shell_open( channel->psv, TRUE );
 						cs->pending.state = SSH_STATE_RESET;
 					}
@@ -371,7 +383,7 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						if( channel->error ) {
 							int err; CTEXTSTR errmsg; int errmsglen;
 							err = libssh2_session_last_error( cs->session, (char**)&errmsg, &errmsglen, 0 );
-							channel->error( cs->psv, err, errmsg, errmsglen );
+							channel->error( channel->psv, err, errmsg, errmsglen );
 						} else if( channel->exec_done ) {
 							channel->exec_done( cs->psv, FALSE );
 						} else {
@@ -383,7 +395,9 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						}
 			}
 					else {
-						if( channel->exec_done )
+						if( cs->pending.state_data[2] )
+							( (ssh_exec_cb)cs->pending.state_data[2] )( channel->psv, TRUE );
+						else if( channel->exec_done )
 							channel->exec_done( cs->psv, TRUE );
 						cs->pending.state = SSH_STATE_RESET;
 						Deallocate( CTEXTSTR, shell );
@@ -425,8 +439,11 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 	INDEX idx;
 	struct data_buffer* db;
 	DATA_FORALL( cs->buffers, idx, struct data_buffer*, db ) {
-		if( !db->length )
+		if( !db->length ) {
+			// only queue 1 more read, not every more read.
 			ReadTCP( pc, db->buffer, 4096 );
+			return;
+		}
 	}
 	struct data_buffer new_db;
 	new_db.buffer = (uint8_t*)AllocateEx( 4096 DBG_SRC );
@@ -487,7 +504,14 @@ static void closeCallback( PCLIENT pc ) {
 	ReleaseEx( session DBG_SRC );
 }
 
-//----------------------------- Session
+//----------------------------- Utility Functions -----------------------
+
+static void ReleaseCert( struct keyparts* bincert ) {
+	ReleaseEx( bincert->leadin DBG_SRC );
+	ReleaseEx( bincert DBG_SRC );
+}
+
+//----------------------------- Session -----------------------
 
 struct ssh_session * sack_ssh_session_init(uintptr_t psv){
 	struct ssh_session * session = NewArray( struct ssh_session, 1);
@@ -532,10 +556,31 @@ void sack_ssh_get_error( struct ssh_session* session, int* err, CTEXTSTR* errmsg
 }
 
 void sack_ssh_session_close( struct ssh_session*session ){
+	// prevent callback from being triggered
+	SetNetworkCloseCallback( session->pc, NULL );
+	SetNetworkReadComplete( session->pc, NULL );
+
 	RemoveClient( session->pc );
+	if( session->bincert )
+		ReleaseCert( session->bincert );
+	if( session->user ) ReleaseEx( (POINTER)session->user DBG_SRC );
+	if( session->pass ) ReleaseEx( (POINTER)session->pass DBG_SRC );
+	if( session->pdqStates ) DeleteDataQueue( &session->pdqStates );
+	if( session->session ) libssh2_session_free( session->session );
+
+	// might ave a pending read with a buffer reference....
+	if( session->buffers ) {
+		INDEX idx;
+		struct data_buffer* buffer;
+		DATA_FORALL( session->buffers, idx, struct data_buffer*, buffer ) {
+			ReleaseEx( buffer->buffer DBG_SRC );
+		}
+		DeleteDataList( &session->buffers );
+	}
+
 }
 
-//----------------------------- Callbacks
+//----------------------------- Callbacks -----------------------
 
 ssh_session_error_cb sack_ssh_set_session_error( struct ssh_session* session, ssh_session_error_cb error_cb ) {
 	ssh_session_error_cb cb = session->error;
@@ -639,6 +684,14 @@ ssh_channel_close_cb sack_ssh_set_channel_close( struct ssh_channel*channel, ssh
 	return cb;
 }
 
+ssh_channel_error_cb sack_ssh_set_channel_error( struct ssh_channel* channel, ssh_channel_error_cb error ){
+	ssh_channel_error_cb cb = channel->error;
+	libssh2_channel_callback_set( channel->channel, LIBSSH2_CALLBACK_CHANNEL_CLOSE, (libssh2_cb_generic*)channel_close_relay );
+	channel->error = error;
+	return cb;
+
+
+}
 
 ssh_sftp_open_cb sack_ssh_set_sftp_open( struct ssh_session* session, ssh_sftp_open_cb sftp_open ) {
 	ssh_sftp_open_cb cb = session->sftp_open;
@@ -646,7 +699,143 @@ ssh_sftp_open_cb sack_ssh_set_sftp_open( struct ssh_session* session, ssh_sftp_o
 	return cb;
 }
 
-//----------------------------- Actions
+//----------------------------- Actions -----------------------
+
+static struct keyparts* CertToBinary( const char* cert, size_t* result ) {
+	char* outbuf = NewArray( char, StrLen( cert ) );
+	int nibble = 0;
+	int byte = 0;
+	size_t bytes = 0;
+	int line_eol = 0;
+	int skip_to_end = 0;
+	char* outp = outbuf;
+	const char* p = cert;
+	while( p[0] ) {
+		if( !skip_to_end && p[0] == '-' ) {
+			skip_to_end = 1;
+			if( line_eol ) {
+				p++;
+				continue;
+			}
+		}
+		if( p[0] == '\r' || p[0] == '\n' ) {
+			line_eol = 1;
+			skip_to_end = 0;
+		} else line_eol = 0;
+		if( skip_to_end ) {
+			if( !line_eol ) {
+				p++;  continue;
+			} else skip_to_end = 0;
+		}
+		if( line_eol ) {
+			p++; continue;
+		}
+		outp[0] = p[0];
+		outp++; p++;
+	}
+	bytes = outp - outbuf;
+	uint8_t* newbuf = DecodeBase64Ex( (const char*)outbuf, bytes, result, NULL );
+	// done with the temp buffer to decode
+	ReleaseEx( outbuf DBG_SRC );
+
+	//size_t outlen;
+	//char* testbuf = EncodeBase64Ex( newbuf, *result, &outlen, NULL );
+	struct keyparts* data_ = NewArray( struct keyparts, 1 );
+#define data (data_[0])
+	data.leadin = (char*)newbuf;
+	{
+		int nul = 0;
+		int ofs;
+		int p;
+		while( nul < result[0] && data.leadin[nul] != 0 ) nul++;
+		ofs = nul + 1;
+		if( StrCmp( data.leadin, "openssh-key-v1" ) ) {
+			lprintf( "Certificate type not supported: %s, expected openssh-key-v1", data.leadin );
+			Deallocate( struct keyparts*, data_ );
+			Deallocate( uint8_t*, newbuf );
+			return NULL;
+		}
+		DebugBreak();
+		for( p = 0; p < 3; p++ ) {
+			data.parts[p].textlen = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.parts[p].text = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += 4 + data.parts[p].textlen;
+			if( !data.parts[p].textlen ) break;
+		}
+		data.numkeys = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+		ofs += 4;
+		for( p = 0; p < data.numkeys; p++ ) {
+			data.keys[p].pubkeylen = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].pubkey = (uint8_t*)(data.leadin + ofs + 4);
+			ofs += data.keys[p].pubkeylen + 4;
+
+			data.keys[p].privkeylen = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].privkey = (uint8_t*)( data.leadin + ofs + 4 );
+			ofs += data.keys[p].privkeylen + 4;
+
+			uint32_t rand1 = ( (uint32_t*)data.keys[p].privkey )[0];
+			uint32_t rand2 = ( (uint32_t*)data.keys[p].privkey )[1];
+			data.keys[p].privkey += 8;
+			/* pubkey parts
+
+			data.keys[p].textlen = *(uint32_t*)&data.leadin[ofs + 4];
+			data.keys[p].textlen = NTOHL( data.keys[p].textlen );
+			data.keys[p].text = &data.leadin[ofs + 4 + 4];
+			ofs += data.keys[p].textlen + 4 + 4;
+			data.keys[p].rndlen = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].rnd = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += data.keys[p].rndlen + 4;
+			data.keys[p].pubkeylen1 = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].pubkey1 = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += data.keys[p].pubkeylen1 + 4;
+
+
+			ofs = ( data.keys[p].text - data.leadin ) + data.keys[p].textlen + ( ( data.keys[p].keylen + 7 ) & 0xFFFF8 );
+			*/
+
+			/* privkey parts
+
+			data.keys[p].textlen2 = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].text2 = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += data.keys[p].textlen2 + 4;
+			data.keys[p].datalen2 = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].data2 = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += data.keys[p].datalen2 + 4;
+
+			data.keys[p].rndlen2 = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].rnd2 = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += data.keys[p].rndlen2 + 4;
+
+			data.keys[p].datalen3 = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].data3 = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += data.keys[p].datalen3 + 4;
+
+			data.keys[p].datalen4 = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].data4 = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += data.keys[p].datalen4 + 4;
+
+			data.keys[p].datalen5 = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].data5 = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += data.keys[p].datalen5 + 4;
+
+			data.keys[p].datalen6 = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].data6 = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += data.keys[p].datalen6 + 4;
+
+			data.keys[p].commentlen = NTOHL( *(uint32_t*)&data.leadin[ofs] );
+			data.keys[p].comment = (uint8_t*)&data.leadin[ofs + 4];
+			ofs += data.keys[p].commentlen + 4;
+			data.keys[p].padlen = ( ( ( ofs - nul ) + 7 ) & 0xFFFF8 ) - ( ofs - nul );
+			data.keys[p].finalpad = (uint8_t*)( data.leadin + ofs );
+			ofs += data.keys[p].padlen;
+			*/
+
+			//data.leadin + ofs + 4 + data.keys[p].textlen + data.keys[p].keylen
+		}
+	}
+	return data_;
+#undef data
+}
 
 void sack_ssh_auth_user_password( struct ssh_session*session, CTEXTSTR user, CTEXTSTR pass ){
 	if( session->pending.state != SSH_STATE_RESET ) {
@@ -660,15 +849,53 @@ void sack_ssh_auth_user_password( struct ssh_session*session, CTEXTSTR user, CTE
 }
 
 void sack_ssh_auth_user_cert( struct ssh_session*session, CTEXTSTR user
-                        , CTEXTSTR pubkey
-                        , CTEXTSTR privkey
+                        , uint8_t* pubkey, size_t pubkeylen
+                        , uint8_t* privkey, size_t privkeylen
                         , CTEXTSTR pass ){
 	session->user = StrDup( user );
 	session->user_len = StrLen( user );
-	session->pubKey = StrDup( pubkey );
-	session->pubKey_len = StrLen( pubkey );
-	session->privKey = StrDup( privkey );
-	session->privKey_len = StrLen( privkey );
+	
+	if( privkey ) {
+		if( privkey[0] == '\0' ) {
+			struct keyparts* bincert = CertToBinary( (const char*)privkey, &privkeylen );
+			if( !bincert ) {
+				return;
+			}
+			session->bincert = bincert;
+			session->pubKey = bincert->keys[0].pubkey; // some part of keyparts?
+			session->pubKey_len = bincert->keys[0].pubkeylen;
+			session->privKey = bincert->keys[0].privkey;
+			session->privKey_len = bincert->keys[0].privkeylen;
+		}
+		else {
+			if( 0 && !pubkey ) {
+				static const char msg[] = "If you're passing the binary parts of a certificate, need to supply pubkey also";
+				if( session->error ) {
+					session->error( session->psv, LIBSSH2_ERROR_METHOD_NOT_SUPPORTED, msg, sizeof( msg ) );
+				} else
+					lprintf( msg );
+				return;
+			}
+
+			session->privKey = privkeylen ? NewArray( uint8_t, privkeylen ) : NULL;
+			if( privkeylen )
+				MemCpy( session->privKey, privkey, privkeylen );
+			session->privKey_len = privkeylen;
+
+			session->pubKey = pubkeylen ? NewArray( uint8_t, pubkeylen ) : NULL;
+			if( pubkeylen )
+				MemCpy( session->pubKey, pubkey, pubkeylen );
+			session->pubKey_len = pubkeylen;
+		}
+	} else {
+		static const char msg[] = "auth_user_cert: Must specify private key to use.";
+		if( session->error ) {
+			session->error( session->psv, LIBSSH2_ERROR_METHOD_NOT_SUPPORTED, msg, sizeof( msg ) );
+		} else
+			lprintf( msg );
+		return;
+	}
+
 	session->pass = StrDup( pass );
 	if( session->pending.state != SSH_STATE_RESET ) {
 		// error
@@ -677,10 +904,12 @@ void sack_ssh_auth_user_cert( struct ssh_session*session, CTEXTSTR user
 		return;
 	}
 	set_pending_state( session->pending, SSH_STATE_AUTH_PK );
+	//libssh2_userauth_publickey_fromfile( session->session, user, NULL, "rsa", pass );
+
 	libssh2_userauth_publickey_frommemory( session->session
 	                                     , user, strlen( user )
-	                                     , pubkey, strlen( pubkey )
-	                                     , privkey, strlen( privkey )
+	                                     , (const char*)session->pubKey, session->pubKey_len
+	                                     , (const char*)session->privKey, session->privKey_len
 	                                     , pass );
 
 }
@@ -710,44 +939,44 @@ void sack_ssh_channel_close( struct ssh_channel* channel ) {
 	ReleaseEx( channel DBG_SRC );
 }
 
-void sack_ssh_channel_request_pty( struct ssh_channel* channel, CTEXTSTR term ) {
+void sack_ssh_channel_request_pty( struct ssh_channel* channel, CTEXTSTR term, ssh_pty_cb cb ) {
 	if( channel->session->pending.state != SSH_STATE_RESET ) {
 		// error
-		struct pending_state state = {SSH_STATE_REQUEST_PTY, {(uintptr_t)channel, (uintptr_t)StrDup(term)}};
+		struct pending_state state = {SSH_STATE_REQUEST_PTY, {(uintptr_t)channel, (uintptr_t)StrDup(term), (uintptr_t)cb}};
 		EnqueData( &channel->session->pdqStates, &state );
 		return;
 	}
-	set_pending_state( channel->session->pending, SSH_STATE_REQUEST_PTY, { (uintptr_t)channel, (uintptr_t)StrDup( term ) } );
+	set_pending_state( channel->session->pending, SSH_STATE_REQUEST_PTY, { (uintptr_t)channel, (uintptr_t)StrDup( term ), (uintptr_t)cb } );
 	libssh2_channel_request_pty( channel->channel, term );
 }
 
-void sack_ssh_channel_setenv( struct ssh_channel* channel, CTEXTSTR key, CTEXTSTR value ) {
+void sack_ssh_channel_setenv( struct ssh_channel* channel, CTEXTSTR key, CTEXTSTR value, ssh_setenv_cb cb ) {
 	if( channel->session->pending.state != SSH_STATE_RESET ) {
-		struct pending_state state = { SSH_STATE_SETENV, {(uintptr_t)StrDup( key),(uintptr_t)StrDup( value ), (uintptr_t)channel}};
+		struct pending_state state = { SSH_STATE_SETENV, {(uintptr_t)StrDup( key),(uintptr_t)StrDup( value ), (uintptr_t)channel, (uintptr_t)cb}};
 		EnqueData( &channel->session->pdqStates, &state );
 		return;
 	}
-	set_pending_state( channel->session->pending, SSH_STATE_SETENV, {(uintptr_t)StrDup( key),(uintptr_t)StrDup( value ), (uintptr_t)channel});
+	set_pending_state( channel->session->pending, SSH_STATE_SETENV, {(uintptr_t)StrDup( key),(uintptr_t)StrDup( value ), (uintptr_t)channel, (uintptr_t)cb });
 	libssh2_channel_setenv( channel->channel, key, value );
 }
 
-void sack_ssh_channel_shell( struct ssh_channel* channel ) {
+void sack_ssh_channel_shell( struct ssh_channel* channel, ssh_shell_cb cb ) {
 	if( channel->session->pending.state != SSH_STATE_RESET ) {
-		struct pending_state state = { SSH_STATE_SHELL, { (uintptr_t)channel } };
+		struct pending_state state = { SSH_STATE_SHELL, { (uintptr_t)channel, (uintptr_t)cb } };
 		EnqueData( &channel->session->pdqStates, &state );
 		return;
 	}
-	set_pending_state( channel->session->pending, SSH_STATE_SHELL, { (uintptr_t)channel } );
+	set_pending_state( channel->session->pending, SSH_STATE_SHELL, { (uintptr_t)channel, (uintptr_t)cb } );
 	libssh2_channel_shell( channel->channel );
 }
 
-void sack_ssh_channel_exec( struct ssh_channel* channel, CTEXTSTR shell ) {
+void sack_ssh_channel_exec( struct ssh_channel* channel, CTEXTSTR shell, ssh_exec_cb cb ) {
 	if( channel->session->pending.state != SSH_STATE_RESET ) {
-		struct pending_state state = { SSH_STATE_EXEC, { (uintptr_t)channel, (uintptr_t)StrDup( shell )}};
+		struct pending_state state = { SSH_STATE_EXEC, { (uintptr_t)channel, (uintptr_t)StrDup( shell ), (uintptr_t)cb}};
 		EnqueData( &channel->session->pdqStates, &state );
 		return;
 	}
-	set_pending_state( channel->session->pending, SSH_STATE_EXEC, { (uintptr_t)channel, (uintptr_t)StrDup( shell ) } );
+	set_pending_state( channel->session->pending, SSH_STATE_EXEC, { (uintptr_t)channel, (uintptr_t)StrDup( shell ), (uintptr_t)cb } );
 	libssh2_channel_exec( channel->channel, (CTEXTSTR)channel->session->pending.state_data[1] );
 }
 
