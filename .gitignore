@@ -14,10 +14,9 @@ xx
 .hgtags
 CMakeFiles
 build
-<<<<<<< Updated upstream
 sack-arch-install/pkg
+src/contrib/libressl/*/include/openssl/opensslconf.h
 *.zst
-=======
 */test_process_create/x64
 */test_process_create/wait/x64
 .vs
@@ -32,4 +31,3 @@ amalgamate/
 *.wasm
 *.so
 *.map
->>>>>>> Stashed changes
