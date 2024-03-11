@@ -214,8 +214,8 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 						else if( rc ) {
 							// error
-							if( session->listen_cb )
-								session->listen_cb( session->psv, NULL, 0 );
+							if( session->forward_listen_cb )
+								session->forward_listen_cb( session->psv, NULL, 0 );
 							cs->pending.state = SSH_STATE_RESET;
 							//RemoveClient( pc );
 						} else {
@@ -225,14 +225,14 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						struct ssh_listener *ssh_listener = NewArray( struct ssh_listener, 1);
 						ssh_listener->listener = listener;
 						ssh_listener->session = session;
-						ssh_listener->connect_cb = (ssh_listen_connect_cb)cs->pending.state_data[3];
-						if( ssh_listener->connect_cb ) {
+						ssh_listener->listen_connect_cb = (ssh_forward_listen_accept_cb)cs->pending.state_data[3];
+						if( ssh_listener->listen_connect_cb ) {
 							libssh2_listener_callback_set( listener, LIBSSH2_CALLBACK_LISTENER_ACCEPT, (libssh2_cb_generic*)listener_connect_relay );
 							libssh2_listener_abstract( listener)[0] = (void*)ssh_listener;
 						}
 
-						if( session->listen_cb )
-							ssh_listener->psv = session->listen_cb( session->psv, ssh_listener, bound_port );
+						if( session->forward_listen_cb )
+							ssh_listener->psv = session->forward_listen_cb( session->psv, ssh_listener, bound_port );
 						cs->pending.state = SSH_STATE_RESET;
 					}
 				}
@@ -605,9 +605,15 @@ ssh_open_cb sack_ssh_set_channel_open( struct ssh_session*session, uintptr_t(*ch
 	return cb;
 }
 
-ssh_listen_cb sack_ssh_set_listen( struct ssh_session*session, ssh_listen_cb listen_cb ){
-	ssh_listen_cb cb = session->listen_cb;
-	session->listen_cb = listen_cb;
+ssh_forward_listen_cb sack_ssh_set_forward_listen( struct ssh_session*session, ssh_forward_listen_cb forward_listen_cb ){
+	ssh_forward_listen_cb cb = session->forward_listen_cb;
+	session->forward_listen_cb = forward_listen_cb;
+	return cb;
+}
+
+ssh_forward_connect_cb sack_ssh_set_forward_connect( struct ssh_session* session, ssh_forward_connect_cb forward_connect_cb ) {
+	ssh_forward_connect_cb cb = session->forward_connect_cb;
+	session->forward_connect_cb = forward_connect_cb;
 	return cb;
 }
 
@@ -620,13 +626,13 @@ static LIBSSH2_LISTERNER_CONNECT_FUNC( listener_connect_relay ) {
 	ssh_channel->session = (struct ssh_session*)session_abstract[0];
 	//channel->channel = libssh2_channel_accept_ex( listener->listener, (void*)channel );
 	ssh_channel->channel = channel;
-	ssh_channel->psv = ssh_listener->connect_cb( ssh_listener->psv, ssh_channel );
+	ssh_channel->psv = ssh_listener->listen_connect_cb( ssh_listener->psv, ssh_channel );
 }
 
-ssh_listen_connect_cb sack_ssh_set_listen_connect( struct ssh_listener* listener, ssh_listen_connect_cb connect_cb ) {
-	ssh_listen_connect_cb cb = listener->connect_cb;
+ssh_forward_listen_accept_cb sack_ssh_set_forward_listen_accept( struct ssh_listener* listener, ssh_forward_listen_accept_cb connect_cb ) {
+	ssh_forward_listen_accept_cb cb = listener->listen_connect_cb;
 	libssh2_listener_callback_set( listener->listener, LIBSSH2_CALLBACK_LISTENER_ACCEPT, (libssh2_cb_generic*)listener_connect_relay );
-	listener->connect_cb = connect_cb;
+	listener->listen_connect_cb = connect_cb;
 	return cb;
 }
 
@@ -986,7 +992,7 @@ void sack_ssh_channel_write( struct ssh_channel* channel, int stream, const uint
 
 //------------------------- SOCKET FORWARDING ----------------------------
 
-void sack_ssh_channel_forward_listen( struct ssh_session* session, CTEXTSTR remotehost, uint16_t remoteport, ssh_listen_connect_cb cb ) {
+void sack_ssh_channel_forward_listen( struct ssh_session* session, CTEXTSTR remotehost, uint16_t remoteport, ssh_forward_listen_cb cb ) {
 	if( session->pending.state != SSH_STATE_RESET ) {
 		struct pending_state state = { SSH_STATE_LISTEN, { (uintptr_t)session, (uintptr_t)StrDup( remotehost ), remoteport, (uintptr_t)cb}};
 		EnqueData( &session->pdqStates, &state );
@@ -997,6 +1003,56 @@ void sack_ssh_channel_forward_listen( struct ssh_session* session, CTEXTSTR remo
 	libssh2_channel_forward_listen_ex( session->session, remotehost, remoteport, NULL, 4096 );
 }
 
+static void AcceptedClient( PCLIENT pc, PCLIENT pcNew ) {
+	struct ssh_director_listener* listen = (struct ssh_director_listener*)GetNetworkLong( pc, 0 );
+
+	struct ssh_director* director = NewArray( struct ssh_director, 1 );
+	director->pc = pcNew;
+	director->director = listen;
+
+	if( listen->session->pending.state != SSH_STATE_RESET ) {
+		struct pending_state state = { SSH_STATE_FORWARD, { (uintptr_t)director } };
+		EnqueData( &listen->session->pdqStates, &state );
+		return;
+	}	
+
+	set_pending_state( listen->session->pending, SSH_STATE_FORWARD, { (uintptr_t)director } );
+	libssh2_channel_direct_tcpip_ex( listen->session->session, listen->remoteAddr,
+		listen->remotePort, listen->localAddr, listen->localPort );
+
+}
+
+
+
+PCLIENT sack_ssh_foward_connect( struct ssh_session* session
+		, CTEXTSTR localAddress, int localPort
+		, CTEXTSTR remoteAddress, int remotePort
+		, ssh_forward_connect_cb cb ) {
+	PSOCKADDR addr = CreateRemote( localAddress, localPort );
+	if( !addr ) {
+		if( session->error )
+			session->error( session->psv, -EINVAL, "Bad address for local connection", 32 );
+		return NULL;
+	}
+	PCLIENT pc = OpenTCPListenerAddr_v2( addr, AcceptedClient, TRUE );
+	if( !pc ) {
+		ReleaseAddress( addr );
+		if( session->error )
+			session->error( session->psv, -EINVAL, "Failed to open listen socket", 28 );
+		return NULL;
+
+	}
+	struct ssh_director_listener* director = NewArray( struct ssh_director_listener, 1 );
+	SetNetworkLong( pc, 0, (uintptr_t)director );
+	director->pc = pc;
+	director->remoteAddr = StrDup( remoteAddress );
+	director->remotePort = remotePort;
+	director->localAddr = StrDup( localAddress );
+	director->localPort = localPort;
+
+	ReleaseAddress( addr );
+	return pc;
+}
 // libssh2_channel_direct_tcpip_ex
 
 //void sack_ssh_channel_

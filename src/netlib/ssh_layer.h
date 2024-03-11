@@ -18,6 +18,9 @@ enum ssh_states {
 	SSH_STATE_SFTP,
 	SSH_STATE_LISTEN,  // listening for connections on local box
 	SSH_STATE_CONNECT, // connect to local address from remote listener
+
+	SSH_STATE_FORWARD, // forward socket connection to remote (libssh2_direct)
+
 };
 
 struct pending_state {
@@ -53,7 +56,8 @@ struct ssh_session {
 	ssh_session_error_cb error;
 	ssh_handshake_cb handshake_complete;
 	ssh_auth_cb auth_complete;
-	ssh_listen_cb listen_cb;
+	ssh_forward_listen_cb forward_listen_cb;
+	ssh_forward_connect_cb forward_connect_cb;
 	ssh_open_cb channel_open;
 	pw_change_cb pw_change;
 	ssh_sftp_open_cb sftp_open;
@@ -73,6 +77,7 @@ struct ssh_channel {
 	ssh_shell_cb shell_open;
 	ssh_exec_cb exec_done;
 	ssh_setenv_cb setenv_done;
+	ssh_forward_connect_cb direct_connect;
 };
 
 struct ssh_sftp {
@@ -86,8 +91,29 @@ struct ssh_listener {
 	struct ssh_session* session;
 	LIBSSH2_LISTENER* listener;
 	uintptr_t psv;
-	ssh_listen_connect_cb connect_cb;
+	ssh_forward_listen_cb forward_listen_cb;
+	ssh_forward_listen_accept_cb listen_connect_cb;
 	ssh_listen_error_cb error;
+};
+
+struct ssh_director_listener {
+	PCLIENT pc; // listen socket
+	struct ssh_session* session;
+	ssh_forward_connect_cb connected;
+	CTEXTSTR localAddr;
+	int localPort;
+	CTEXTSTR remoteAddr;
+	int remotePort;
+};
+
+// used to track state to foward local to remote
+struct ssh_director {
+	PCLIENT pc;  // local client connection
+
+	struct ssh_session* session;
+	struct ssh_channel* channel;
+	// listener this director came from
+	struct ssh_director_listener* director;
 };
 
 struct keyparts {
