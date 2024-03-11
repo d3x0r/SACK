@@ -158,7 +158,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
       *  %xA denotes a pong
       *  %xB-F are reserved for further control frames
 */
-static void HandleData( HTML5WebSocket socket, PCLIENT pc, POINTER buffer, size_t length )
+static void HandleData( HTML5WebSocket socket, POINTER buffer, size_t length )
 {
 	size_t n;
 	//int randNum;
@@ -202,11 +202,24 @@ void ResetWebsocketRequestHandler( PCLIENT pc ) {
 	EndHttp( socket->http_state );
 }
 
+void ResetWebsocketPipeRequestHandler( HTML5WebSocket socket ) {
+	if( !socket ) return; // closing/closed....
+	socket->flags.initial_handshake_done = 0;
+	socket->flags.http_request_only = 0;
+	EndHttp( socket->http_state );
+}
+
 uintptr_t WebSocketGetServerData( PCLIENT pc ) {
 	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 	if( !socket ) return 0; // closing/closed....
 	return socket->input_state.psv_on;
 }
+
+uintptr_t WebSocketPipeGetServerData( HTML5WebSocket socket ) {
+	if( !socket ) return 0; // closing/closed....
+	return socket->input_state.psv_on;
+}
+
 
 static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	//HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
@@ -243,10 +256,9 @@ static void CPROC closed( PCLIENT pc_client ) {
 	destroyHttpState( socket, pc_client );
 }
 
-static void CPROC read_complete_process_data( PCLIENT pc ) {
-	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 	int result;
-	while( ( result = ProcessHttp( pc, socket->http_state ) ) ) {
+	while( ( result = ProcessHttp( socket->http_state, socket->input_state.on_send, socket->input_state.psvSender ) ) ) {
 		switch( result ) {
 		default:
 			lprintf( "unexpected result is %d", result );
@@ -266,10 +278,11 @@ static void CPROC read_complete_process_data( PCLIENT pc ) {
 				socket->flags.http_request_only = 1;
 				socket->flags.in_open_event = 1;
 				if( socket->input_state.on_request ) {
-					socket->input_state.on_request( pc, socket->input_state.psv_on );
+					socket->input_state.on_request( socket->pc, socket->input_state.psv_on );
 				} else {
 					socket->flags.in_open_event = 0;
-					RemoveClient( pc );
+					if( socket->pc )
+						RemoveClient( socket->pc );
 					return;
 				}
 				socket->flags.in_open_event = 0;
@@ -365,7 +378,7 @@ static void CPROC read_complete_process_data( PCLIENT pc ) {
 				PTEXT protocols = GetHTTPField( socket->http_state, "Sec-WebSocket-Protocol" );
 				PTEXT resource = GetHttpResource( socket->http_state );
 				if( socket->input_state.on_accept ) {
-					socket->flags.accepted = socket->input_state.on_accept( pc, socket->input_state.psv_on, GetText( protocols ), GetText( resource ), &socket->protocols );
+					socket->flags.accepted = socket->input_state.on_accept( socket->pc, socket->input_state.psv_on, GetText( protocols ), GetText( resource ), &socket->protocols );
 				} else
 					socket->flags.accepted = 1;
 			}
@@ -455,35 +468,23 @@ static void CPROC read_complete_process_data( PCLIENT pc ) {
 				}
 
 				value = VarTextPeek( pvt_output );
-#ifdef _UNICODE
-				{
-					char* output;
-					output = DupTextToChar( GetText( value ) );
-					//LogBinary( output, GetTextSize( value ) );
-					if( socket->input_state.flags.use_ssl )
-						ssl_Send( pc, output, GetTextSize( value ) );
-					else
-						SendTCP( pc, output, GetTextSize( value ) );
-				}
-#else
 				if( socket->input_state.flags.use_ssl )
-					ssl_Send( pc, GetText( value ), GetTextSize( value ) );
+					ssl_Send( socket->pc, GetText( value ), GetTextSize( value ) );
 				else
-					SendTCP( pc, GetText( value ), GetTextSize( value ) );
-#endif
+					SendTCP( socket->pc, GetText( value ), GetTextSize( value ) );
 				//lprintf( "Sent http reply." );
 				VarTextDestroy( &pvt_output );
 				socket->flags.in_open_event = 1;
 
 				if( socket->input_state.on_open )
-					socket->input_state.psv_open = socket->input_state.on_open( pc, socket->input_state.psv_on );
+					socket->input_state.psv_open = socket->input_state.on_open( socket->pc, socket->input_state.psv_on );
 				socket->flags.in_open_event = 0;
 				if( socket->flags.closed ) {
 					destroyHttpState( socket, NULL );
 					return;
 				}
 			} else {
-				WebSocketClose( pc, 0, NULL );
+				WebSocketClose( socket->pc, 0, NULL );
 				return;
 			}
 			// keep this until close, application might want resource and/or headers from this.
@@ -495,71 +496,86 @@ static void CPROC read_complete_process_data( PCLIENT pc ) {
 			break;
 		}
 	}
-
 }
-static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
+
+void WebSocketWrite( HTML5WebSocket socket, POINTER buffer, size_t length )
 {
-	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
-	if( !socket ) return; // closing/closed....
 	if( buffer )
 	{
-#ifdef _UNICODE
-		TEXTSTR tmp = CharWConvertExx( (const char*)buffer, length DBG_SRC );
-#else
 		TEXTSTR tmp = (TEXTSTR)buffer;
-#endif
 		//LogBinary( buffer, length );
 		//lprintf( "handle data: handshake: %d",socket->flags.initial_handshake_done );
 		if( !socket->flags.initial_handshake_done || socket->flags.http_request_only )
 		{
 			//lprintf( "Initial handshake is not done..." );
 			if( AddHttpData( socket->http_state, tmp, length ) )
-				read_complete_process_data( pc );
+				read_complete_process_data( socket );
 		}
 		else
 		{
+			// should always be rfc6455
 			if( socket->flags.rfc6455 )
-				ProcessWebSockProtocol( &socket->input_state, pc, (uint8_t*)buffer, length );
+				ProcessWebSockProtocol( &socket->input_state, (uint8_t*)buffer, length );
 			else
-				HandleData( socket, pc, buffer, length );
+				HandleData( socket, buffer, length );
 		}
-		if( !socket->input_state.flags.use_ssl )
-			ReadTCP( pc, socket->buffer, WSS_DEFAULT_BUFFER_SIZE );
 	}
 	else
 	{
 		// it's possible that we ended SSL on first read and are falling back...
 		// re-check here to see if it's still SSL.
+		// buffer is allocated by SSL layer if it is enabled.
 
 		// this has to be complicated, because otherwise we can get partial out of order reads.
 		// first read after is no-long SSL needs to not generate a real read because there's
 		// already pending data to receive.
-		if( socket->input_state.flags.use_ssl ) {
-			socket->input_state.flags.use_ssl = ssl_IsClientSecure( pc );
-			if( !socket->input_state.flags.use_ssl )
-				buffer = socket->buffer = Allocate( WSS_DEFAULT_BUFFER_SIZE );
-		}
-		else {
-			socket->input_state.flags.use_ssl = ssl_IsClientSecure( pc );
-			if( !socket->input_state.flags.use_ssl ) {
-				buffer = socket->buffer = Allocate( WSS_DEFAULT_BUFFER_SIZE );
-				ReadTCP( pc, socket->buffer, WSS_DEFAULT_BUFFER_SIZE );
+		if( socket->pc ) {
+			if( socket->input_state.flags.use_ssl ) {
+				socket->input_state.flags.use_ssl = ssl_IsClientSecure( socket->pc );
+				if( !socket->input_state.flags.use_ssl ) {
+					socket->flags.skip_read = 1;
+				}
+			} else {
+				socket->input_state.flags.use_ssl = ssl_IsClientSecure( socket->pc );
 			}
+		}
+		if( !socket->input_state.flags.use_ssl ) {
+			buffer = socket->buffer = Allocate( WSS_DEFAULT_BUFFER_SIZE );
 		}
 	}
 }
 
+static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
+{
+	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+	if( !socket ) return; // closing/closed....
+	WebSocketWrite( socket, buffer, length );
+	if( !socket->input_state.flags.use_ssl ) {
+		if( socket->flags.skip_read ) 
+			socket->flags.skip_read = 0;
+		else 
+			ReadTCP( pc, socket->buffer, WSS_DEFAULT_BUFFER_SIZE );
+	}
+
+}
 static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 {
 	HTML5WebSocket server_socket = (HTML5WebSocket)GetNetworkLong( pc_server, 0 );
+
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20130912;
 	socket->pc = pc_new;
 	socket->input_state = server_socket->input_state; // clone callback methods and config flags
 	socket->input_state.close_code = 1006;
-	if( ssl_IsClientSecure( pc_new ) )
+	socket->input_state.psvSender = (uintptr_t)pc_new;
+	if( ssl_IsClientSecure( pc_new ) ) {
 		socket->input_state.flags.use_ssl = 1;
+		socket->input_state.on_send = WebSocketSendSSL;
+	} else {
+		socket->input_state.flags.use_ssl = 0;
+		socket->input_state.on_send = WebSocketSendTCP;
+	}
 	socket->http_state = CreateHttpState( &socket->pc ); // start a new http state collector
 	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
 	SetNetworkLong( pc_new, 0, (uintptr_t)socket );
@@ -575,9 +591,7 @@ PCLIENT WebSocketCreate_v2( CTEXTSTR hosturl
 							, web_socket_error on_error
 							, uintptr_t psv
 							, int webSocketOptions
-						)
-{
-	struct url_data *url;
+						) {
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20130912;
@@ -588,7 +602,8 @@ PCLIENT WebSocketCreate_v2( CTEXTSTR hosturl
 	socket->input_state.on_error = on_error;
 	socket->input_state.psv_on = psv;
 	socket->input_state.close_code = 1006;
-	url = SACK_URLParse( hosturl );
+
+	struct url_data *url = SACK_URLParse( hosturl );
 	socket->pc = OpenTCPListenerAddr_v2( CreateSockAddress( url->host, url->port?url->port:url->default_port )
 		, connected
 		, (webSocketOptions & WEBSOCK_SERVER_OPTION_WAIT)?TRUE:FALSE );
@@ -601,6 +616,40 @@ PCLIENT WebSocketCreate_v2( CTEXTSTR hosturl
 	SetNetworkLong( socket->pc, 0, (uintptr_t)socket );
 	SetNetworkLong( socket->pc, 1, (uintptr_t)&socket->input_state );
 	return socket->pc;
+}
+
+HTML5WebSocket WebSocketCreatePipe( int (*on_send)( uintptr_t psv, CPOINTER buffer, size_t length )
+							, uintptr_t psv_send
+							, web_socket_opened on_open
+							, web_socket_event on_event
+							, web_socket_closed on_closed
+							, web_socket_error on_error
+							, uintptr_t psv
+							, int webSocketOptions
+						)
+{
+	HTML5WebSocket socket = New( struct html5_web_socket );
+	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
+	socket->Magic = 0x20230310;
+	socket->input_state.flags.deflate = 0;
+	socket->input_state.on_open = on_open;
+	socket->input_state.on_event = on_event;
+	socket->input_state.on_close = on_closed;
+	socket->input_state.on_error = on_error;
+	socket->input_state.psv_on = psv;
+	socket->input_state.close_code = 1006;
+	socket->input_state.flags.use_ssl = 0;
+	socket->http_state = CreateHttpState( &socket->pc ); // start a new http state collector
+	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
+
+	socket->input_state.on_send = on_send;
+	socket->input_state.psvSender = psv_send;
+
+	return socket;
+}
+
+void WebSocketPipeWrite( HTML5WebSocket socket ) {
+	
 }
 
 PCLIENT WebSocketCreate( CTEXTSTR hosturl

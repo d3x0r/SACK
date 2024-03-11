@@ -32,6 +32,7 @@ struct web_socket_input_state
 		// I get a close; probably because of the length exception
 		BIT_FIELD expect_masking : 1;
 		BIT_FIELD use_ssl : 1;
+		BIT_FIELD want_close : 1; // schedule to close (moved from client; client only)
 	} flags;
 	uint32_t last_reception; // (last message tick) for automatic ping/keep alive/idle death
 
@@ -75,10 +76,18 @@ struct web_socket_input_state
 	uintptr_t psv_open; // result of the open, to pass to read
 	int close_code;
 	char *close_reason;
+	struct html5_web_socket* socket;
+
+	uint32_t ping_delay; // when set by enable auto_ping is the delay between packets to generate a ping
+
+	int (*on_send)( uintptr_t psv, CPOINTER buffer, size_t length );
+	uintptr_t psvSender;
+
 };
 
-EXTERN void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl );
-EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length );
+EXTERN void SendWebSocketMessage( struct web_socket_input_state *input
+			, int opcode, int final, int do_mask, const uint8_t* payload, size_t length);
+EXTERN void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, size_t length );
 
 
 struct html5_web_socket {
@@ -91,6 +100,8 @@ struct html5_web_socket {
 		BIT_FIELD http_request_only : 1;
 		BIT_FIELD in_open_event : 1; // set when sent to client, which can write and close before return; no further read must be done.
 		BIT_FIELD closed : 1; // was already closed (during in_read_event)
+		BIT_FIELD pipe : 1;
+		BIT_FIELD skip_read : 1; 
 	} flags;
 	HTTPState http_state;
 	PCLIENT pc;
@@ -98,6 +109,7 @@ struct html5_web_socket {
 	char *protocols;
 
 	struct web_socket_input_state input_state;
+	// socket wants to send data, use this
 };
 
 struct web_socket_client
@@ -106,7 +118,6 @@ struct web_socket_client
 	struct web_socket_client_flags
 	{
 		BIT_FIELD connected : 1; // if not connected, then parse data as http, otherwise process as websock protocol.
-		BIT_FIELD want_close : 1; // schedule to close
 		//BIT_FIELD use_ssl : 1;
 	} flags;
 	PCLIENT pc;
@@ -119,10 +130,11 @@ struct web_socket_client
 	POINTER buffer;
 	HTTPState pHttpState;
 
-	uint32_t ping_delay; // when set by enable auto_ping is the delay between packets to generate a ping
-
 	struct web_socket_input_state input_state;
 };
+
+EXTERN int WebSocketSendTCP( uintptr_t psv, CPOINTER buffer, size_t length );
+EXTERN int WebSocketSendSSL( uintptr_t psv, CPOINTER buffer, size_t length );
 
 
 #endif

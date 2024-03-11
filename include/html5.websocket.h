@@ -52,6 +52,17 @@ HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate_v2 )(CTEXTSTR hosturl
 	, uintptr_t psv
 	, int webSocketOptions
 );
+
+HTML5_WEBSOCKET_PROC( struct html5_web_socket*, WebSocketCreatePipe )( int (*sender)(uintptr_t p, CPOINTER data, size_t length )
+   , uintptr_t psvSender
+	, web_socket_opened on_open
+	, web_socket_event on_event
+	, web_socket_closed on_closed
+	, web_socket_error on_error
+	, uintptr_t psv
+	, int webSocketOptions
+);
+
 #define WEBSOCK_SERVER_OPTION_WAIT 1
 	HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate )( CTEXTSTR server_url
 																	, web_socket_opened on_open
@@ -60,9 +71,15 @@ HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate_v2 )(CTEXTSTR hosturl
 																	, web_socket_error on_error
 																	, uintptr_t psv
 																	);
+
+HTML5_WEBSOCKET_PROC( void, WebSocketWrite )( struct html5_web_socket* socket, POINTER buffer, size_t length );
+
 // during open, server may need to switch behavior based on protocols
 // this can be used to return the protocols requested by the client.
 HTML5_WEBSOCKET_PROC( const char *, WebSocketGetProtocols )( PCLIENT pc );
+
+HTML5_WEBSOCKET_PROC( const char *, WebSocketPipeGetProtocols )( struct html5_web_socket* );
+
 // after examining protocols, this is a reply to the client which protocol has been accepted.
 HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketSetProtocols )( PCLIENT pc, const char *protocols );
 /* define a callback which uses a HTML5WebSocket collector to build javascipt to render the control.

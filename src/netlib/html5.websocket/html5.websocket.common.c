@@ -9,8 +9,18 @@
 #define rand lrand48
 #endif
 
+int WebSocketSendTCP( uintptr_t psv, CPOINTER buffer, size_t length ){
+	return SendTCP( (PCLIENT)psv, buffer, length );
+}
 
-static void _SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl )
+int WebSocketSendSSL( uintptr_t psv, CPOINTER buffer, size_t length ) {
+	return ssl_Send( (PCLIENT)psv, buffer, length );
+}
+
+
+static void _SendWebSocketMessage( int (*sender)( uintptr_t target, CPOINTER buffer, size_t length )
+		, uintptr_t target
+		, int opcode, int final, int do_mask, const uint8_t* payload, size_t length )
 {
 	uint8_t* msgout;
 	uint8_t* use_mask;
@@ -111,15 +121,13 @@ static void _SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mas
 			n++;
 		}
 	}
-	if( use_ssl )
-		ssl_Send( pc, msgout, length_out );
-	else
-		SendTCP( pc, msgout, length_out );
+	sender( target, msgout, length_out );
 	Deallocate( uint8_t*, msgout );
 }
 
-void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const uint8_t* payload, size_t length, int use_ssl ) {
-	struct web_socket_input_state *input = (struct web_socket_input_state *)GetNetworkLong( pc, 1 );
+void SendWebSocketMessage( struct web_socket_input_state *input
+			, int opcode, int final, int do_mask, const uint8_t* payload, size_t length ) {
+	//struct web_socket_input_state *input = (struct web_socket_input_state *)GetNetworkLong( pc, 1 );
 
 #ifndef __NO_WEBSOCK_COMPRESSION__
 	if( (!input->flags.do_not_deflate) && input->flags.deflate && opcode < 3 ) {
@@ -151,14 +159,14 @@ void SendWebSocketMessage( PCLIENT pc, int opcode, int final, int do_mask, const
 				break;
 		} while( 1 );
 		opcode = (final ? 0x80 : 0x00) | opcode;
-		_SendWebSocketMessage( pc, opcode, final, do_mask, (uint8_t*)input->deflateBuf, input->deflater.total_out, use_ssl );
+		_SendWebSocketMessage( input->on_send, input->psvSender, opcode, final, do_mask, (uint8_t*)input->deflateBuf, input->deflater.total_out );
 		deflateReset( &input->deflater );
 	}
 	else 
 #endif
 	{
 		opcode = (final ? 0x80 : 0x00) | opcode;
-		_SendWebSocketMessage( pc, opcode, final, do_mask, payload, length, use_ssl );
+		_SendWebSocketMessage( input->on_send, input->psvSender, opcode, final, do_mask, payload, length );
 	}
 }
 
@@ -209,7 +217,7 @@ static int CPROC inflateBackOutput( void* state, unsigned char *output, unsigned
  *  %xA denotes a pong
  *  %xB-F are reserved for further control frames
 */
-void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint8_t* msg, size_t length )
+void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, size_t length )
 {
 	size_t n;
 	//int oldstate = websock->input_msg_state;
@@ -381,7 +389,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 									break;
 							} while( r != Z_STREAM_END || r != Z_BUF_ERROR );
 							websock->inflateBufUsed = websock->inflater.total_out;
-							websock->on_event( pc, websock->psv_open, websock->input_type
+							websock->on_event( webock->socket->io.pc, websock->psv_open, websock->input_type
 								, websock->inflateBuf, websock->inflateBufUsed );
 							inflateReset( &websock->inflater );
 						}
@@ -389,7 +397,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 #endif
 						{
 							//lprintf( "Completed packet; %d %d", websock->input_type, websock->fragment_collection_length );
-							websock->on_event( pc, websock->psv_open, websock->input_type, websock->fragment_collection, websock->fragment_collection_length );
+							websock->on_event( websock->socket->pc, websock->psv_open, websock->input_type, websock->fragment_collection, websock->fragment_collection_length );
 						}
 					}
 					websock->fragment_collection_length = 0;
@@ -417,9 +425,8 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 					//lprintf( "Got close...%d", websock->flags.closed );
 					if( !websock->flags.closed )
 					{
-						struct web_socket_input_state *output = (struct web_socket_input_state *)GetNetworkLong( pc, 1 );
 						//lprintf( "reply close with same payload." );
-						SendWebSocketMessage( pc, 0x08, 1, output->flags.expect_masking, websock->fragment_collection, websock->frame_length, output->flags.use_ssl );
+						SendWebSocketMessage( websock, 0x08, 1, websock->flags.expect_masking, websock->fragment_collection, websock->frame_length );
 						websock->flags.closed = 1;
 					}
 					if( websock->on_close ) {
@@ -440,19 +447,22 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 						}
 						websock->close_code = code;
 						websock->close_reason = StrDup( buf );
-						websock->on_close( pc, websock->psv_open, code, buf );
+						websock->on_close( websock->socket->pc, websock->psv_open, code, buf );
 						websock->on_close = NULL;
 					}
 					websock->fragment_collection_length = 0;
-					RemoveClientEx( pc, 0, 0 ); // this should not linger; client already sent closed, nothing more to receive.
+					if( !websock->socket->flags.pipe )
+						RemoveClientEx( websock->socket->pc, 0, 0 ); // this should not linger; client already sent closed, nothing more to receive.
+					else {
+						lprintf( "Pipe handle close: This should probably release weboscket and all other stuff" );
+					}
 					// resetInputstate after this would squash next memory....
 					return;
 
 					break;
 				case 0x09: // ping
 					{
-						struct web_socket_input_state *output = (struct web_socket_input_state *)GetNetworkLong(pc, 1);
-						SendWebSocketMessage( pc, 0x0a, 1, output->flags.expect_masking, websock->fragment_collection, websock->frame_length, output->flags.use_ssl );
+						SendWebSocketMessage( websock, 0x0a, 1, websock->flags.expect_masking, websock->fragment_collection, websock->frame_length );
 						websock->fragment_collection_length = 0;
 					}
 					break;
@@ -465,7 +475,11 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 					break;
 				default:
 					lprintf( "Bad WebSocket opcode: %d", websock->opcode );
-					RemoveClient( pc );
+					if( !websock->socket->flags.pipe )
+						RemoveClient( websock->socket->pc );
+					else {
+						lprintf( "pipe handle bad opcode: again should probably destroy websocket object" );
+					}
 					return;
 				}
 				// after processing any opcode (this is IN final, and length match) we're done, start next message
@@ -474,7 +488,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 				//lprintf( "Completed packet; still not final fragment though.... %d  %d", websock->fragment_collection_avail );
 				websock->input_msg_state = 0;
 				if( websock->on_fragment_done )
-					websock->on_fragment_done( pc, websock->psv_open, websock->input_type, (int)websock->fragment_collection_length );
+					websock->on_fragment_done( websock->socket->pc, websock->psv_open, websock->input_type, (int)websock->fragment_collection_length );
 				//lprintf( "came back" );
 			}
 			break;
@@ -482,10 +496,9 @@ void ProcessWebSockProtocol( WebSocketInputState websock, PCLIENT pc, const uint
 	}
 }
 
-void WebSocketPing( PCLIENT pc, uint32_t timeout )
+static void WebSocketPing_( struct web_socket_input_state *input_state, uint32_t timeout )
 {
-	struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
-	SendWebSocketMessage( pc, 9, 1, input_state->flags.expect_masking, NULL, 0, input_state->flags.use_ssl );
+	SendWebSocketMessage( input_state, 9, 1, input_state->flags.expect_masking, NULL, 0 );
 	if( timeout ) {
 		uint32_t start_at = timeGetTime();
 		uint32_t target = start_at + timeout;
@@ -497,79 +510,132 @@ void WebSocketPing( PCLIENT pc, uint32_t timeout )
 	}
 }
 
+void WebSocketPing( PCLIENT pc, uint32_t timeout )
+{
+	struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
+	WebSocketPing_( input_state, timeout );
+}
+
+void WebSocketPipePing( struct html5_web_socket* ws, uint32_t timeout )
+{
+	WebSocketPing_( &ws->input_state, timeout );
+}
 
 // there is a control bit for whether the content is text or binary or a continuation
-void WebSocketSendText( PCLIENT pc, const char *buffer, size_t length ) // UTF8 RFC3629
+static void WebSocketBeginSendText_( struct web_socket_input_state* output, const char* buffer, size_t length ) // UTF8 RFC3629
+{
+	if( length > 8100 ) {
+		size_t sentLen;
+		size_t maxLen = length - 8100;
+		for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
+			WebSocketBeginSendText_( output, buffer + sentLen, 8100 );
+		length = length - ( sentLen );
+		buffer = buffer + ( sentLen );
+	}
+	SendWebSocketMessage( output, output->flags.sent_type ? 0 : 1, 0, output->flags.expect_masking, (const uint8_t*)buffer, length );
+	output->flags.sent_type = 1;
+}
+
+void WebSocketBeginSendText( PCLIENT pc, const char* buffer, size_t length ) // UTF8 RFC3629
 {
 	if( pc ) {
-		struct web_socket_input_state *input = (struct web_socket_input_state *)GetNetworkLong( pc, 1 );
+		struct web_socket_input_state* output = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
+		WebSocketBeginSendText_( output, buffer, length );
+	}
+}
+
+void WebSocketPipeBeginSendText( struct html5_web_socket* ws, const char* buffer, size_t length ) // UTF8 RFC3629
+{
+	WebSocketBeginSendText_( &ws->input_state, buffer, length );
+}
+
+
+// there is a control bit for whether the content is text or binary or a continuation
+static void WebSocketSendText_( struct web_socket_input_state *input, const char *buffer, size_t length ) // UTF8 RFC3629
+{
 		if( !input ) return;
 		if( length > 8100 ) {
 			size_t sentLen;
 			size_t maxLen = length - 8100;
 			for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
-				WebSocketBeginSendText( pc, buffer + sentLen, 8100 );
+				WebSocketBeginSendText_( input, buffer + sentLen, 8100 );
 			length = length - ( sentLen );
 			buffer = buffer + ( sentLen );
 		}
-		SendWebSocketMessage( pc, input->flags.sent_type?0:1, 1, input->flags.expect_masking, (uint8_t*)buffer, length, input->flags.use_ssl );
+		SendWebSocketMessage( input, input->flags.sent_type?0:1, 1, input->flags.expect_masking, (uint8_t*)buffer, length );
 		input->flags.sent_type = 0;
+}
+
+void WebSocketSendText( PCLIENT pc, const char *buffer, size_t length ) // UTF8 RFC3629
+{
+	if( pc ) {
+		struct web_socket_input_state *input = (struct web_socket_input_state *)GetNetworkLong( pc, 1 );
+		WebSocketSendText_( input, buffer, length );
 	}
 }
 
-// there is a control bit for whether the content is text or binary or a continuation
-void WebSocketBeginSendText( PCLIENT pc, const char *buffer, size_t length ) // UTF8 RFC3629
+void WebSocketPipeSendText( struct html5_web_socket *ws, const char *buffer, size_t length ) // UTF8 RFC3629
 {
+	WebSocketSendText_( &ws->input_state, buffer, length );
+}
+
+// literal binary sending; this may happen to be base64 encoded too
+static void WebSocketBeginSendBinary_( struct web_socket_input_state* output, const uint8_t* buffer, size_t length ) {
+	//struct web_socket_input_state *output = (struct web_socket_input_state *)GetNetworkLong(pc, 1);
+	if( length > 8100 ) {
+		size_t sentLen;
+		size_t maxLen = length - 8100;
+		for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
+			WebSocketBeginSendBinary_( output, buffer + sentLen, 8100 );
+		length = length - ( sentLen );
+		buffer = buffer + ( sentLen );
+	}
+	SendWebSocketMessage( output, output->flags.sent_type ? 0 : 2, 0, output->flags.expect_masking, (const uint8_t*)buffer, length );
+	output->flags.sent_type = 1;
+}
+
+void WebSocketBeginSendBinary( PCLIENT pc, const uint8_t* buffer, size_t length ) {
 	if( pc ) {
-		struct web_socket_input_state *output = (struct web_socket_input_state *)GetNetworkLong(pc, 1);
+		struct web_socket_input_state* output = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
+		WebSocketBeginSendBinary_( output, buffer, length );
+	}
+}
+
+void WebSocketPipeBeginSendBinary( struct html5_web_socket* ws, const uint8_t* buffer, size_t length ) {
+	WebSocketBeginSendBinary_( &ws->input_state, buffer, length );
+}
+
+
+// literal binary sending; this may happen to be base64 encoded too
+static void WebSocketSendBinary_( struct web_socket_input_state *output, const uint8_t *buffer, size_t length )
+{
 		if( length > 8100 ) {
 			size_t sentLen;
 			size_t maxLen = length - 8100;
 			for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
-				WebSocketBeginSendText( pc, buffer + sentLen, 8100 );
+				WebSocketBeginSendBinary_( output, buffer + sentLen, 8100 );
 			length = length - ( sentLen );
 			buffer = buffer + ( sentLen );
 		}
-		SendWebSocketMessage( pc, output->flags.sent_type?0:1, 0, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
-		output->flags.sent_type = 1;
-	}
+		SendWebSocketMessage( output, output->flags.sent_type?0:2, 1, output->flags.expect_masking, (const uint8_t*)buffer, length );
+		output->flags.sent_type = 0;
 }
 
-// literal binary sending; this may happen to be base64 encoded too
 void WebSocketSendBinary( PCLIENT pc, const uint8_t *buffer, size_t length )
 {
 	if( pc ) {
 		struct web_socket_input_state *output = (struct web_socket_input_state *)GetNetworkLong(pc, 1);
-		if( length > 8100 ) {
-			size_t sentLen;
-			size_t maxLen = length - 8100;
-			for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
-				WebSocketBeginSendBinary( pc, buffer + sentLen, 8100 );
-			length = length - ( sentLen );
-			buffer = buffer + ( sentLen );
-		}
-		SendWebSocketMessage( pc, output->flags.sent_type?0:2, 1, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
-		output->flags.sent_type = 0;
+		WebSocketSendBinary_( output, buffer, length );
 	}
 }
 
-// literal binary sending; this may happen to be base64 encoded too
-void WebSocketBeginSendBinary( PCLIENT pc, const uint8_t *buffer, size_t length )
+void WebSocketPipeSendBinary( struct html5_web_socket *ws, const uint8_t *buffer, size_t length )
 {
-	if( pc ) {
-		struct web_socket_input_state *output = (struct web_socket_input_state *)GetNetworkLong(pc, 1);
-		if( length > 8100 ) {
-			size_t sentLen;
-			size_t maxLen = length - 8100;
-			for( sentLen = 0; sentLen < maxLen; sentLen += 8100 )
-				WebSocketBeginSendBinary( pc, buffer + sentLen, 8100 );
-			length = length - ( sentLen );
-			buffer = buffer + ( sentLen );
-		}
-		SendWebSocketMessage( pc, output->flags.sent_type?0:2, 0, output->flags.expect_masking, (const uint8_t*)buffer, length, output->flags.use_ssl );
-		output->flags.sent_type = 1;
-	}
+	WebSocketSendBinary_( &ws->input_state, buffer, length );
 }
+
+//------------------ Setup Callbacks -------------------
+
 
 void SetWebSocketAcceptCallback( PCLIENT pc, web_socket_accept callback )
 {
@@ -595,12 +661,26 @@ void SetWebSocketCloseCallback( PCLIENT pc, web_socket_closed callback )
 	}
 }
 
+static void SetWebSocketHttpCallback_( PCLIENT pc, web_socket_http_request callback )
+{
+	if( pc ) {
+		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
+		input_state->on_request = callback;
+	}
+}
+
 void SetWebSocketHttpCallback( PCLIENT pc, web_socket_http_request callback )
 {
 	if( pc ) {
 		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
 		input_state->on_request = callback;
 	}
+}
+
+void SetWebSocketPipeHttpCallback( struct html5_web_socket* ws, web_socket_http_request callback )
+{
+	ws->input_state.on_request = callback;
+	
 }
 
 void SetWebSocketHttpCloseCallback( PCLIENT pc, web_socket_http_close callback )
@@ -611,12 +691,22 @@ void SetWebSocketHttpCloseCallback( PCLIENT pc, web_socket_http_close callback )
 	}
 }
 
+void SetWebSocketPipeHttpCloseCallback( struct html5_web_socket *ws, web_socket_http_close callback )
+{
+	ws->input_state.on_http_close = callback;
+}
+
 void SetWebSocketErrorCallback( PCLIENT pc, web_socket_error callback )
 {
 	if( pc ) {
 		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
 		input_state->on_error = callback;
 	}
+}
+
+void SetWebSocketPipeErrorCallback( struct html5_web_socket *ws, web_socket_error callback )
+{
+	ws->input_state.on_error = callback;
 }
 
 void SetWebSocketDeflate( PCLIENT pc, int enable ) {
@@ -627,6 +717,11 @@ void SetWebSocketDeflate( PCLIENT pc, int enable ) {
 	}
 }
 
+void SetWebSocketPipeDeflate( struct html5_web_socket *ws, int enable ) {
+	ws->input_state.flags.deflate = enable?1:0;
+	ws->input_state.flags.do_not_deflate = enable==2?1:0;
+}
+
 void SetWebSocketMasking( PCLIENT pc, int enable ) {
 	if( pc ) {
 		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
@@ -634,9 +729,17 @@ void SetWebSocketMasking( PCLIENT pc, int enable ) {
 	}
 }
 
+void SetWebSocketPipeMasking( struct html5_web_socket *ws, int enable ) {
+	ws->input_state.flags.expect_masking = enable;
+}
+
 void SetWebSocketDataCompletion( PCLIENT pc, web_socket_completion callback ) {
 	if( pc ) {
 		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
 		input_state->on_fragment_done = callback;
 	}
+}
+
+void SetWebSocketPipeDataCompletion( struct html5_web_socket *ws, web_socket_completion callback ) {
+	ws->input_state.on_fragment_done = callback;
 }

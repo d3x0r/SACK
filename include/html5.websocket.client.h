@@ -9,11 +9,6 @@ websocket protocol is itself wrapped in a frame, so messages are described with 
 length, and what is received will be exactly like the block that was sent.
 
 
-
-
-
-
-
 *****************************************************/
 
 #include <network.h>
@@ -78,18 +73,24 @@ WEBSOCKET_EXPORT void WebSocketClose( PCLIENT, int code, const char *reason );
 // there is a control bit for whether the content is text or binary or a continuation
 WEBSOCKET_EXPORT void WebSocketBeginSendText( PCLIENT, const char *, size_t ); // UTF8 RFC3629
 
+WEBSOCKET_EXPORT void WebSocketPipeBeginSendText( struct html5_web_socket*, const char *, size_t ); // UTF8 RFC3629
+
 // literal binary sending; this may happen to be base64 encoded too
 WEBSOCKET_EXPORT void WebSocketBeginSendBinary( PCLIENT, const uint8_t *, size_t );
+WEBSOCKET_EXPORT void WebSocketPipeBeginSendBinary( struct html5_web_socket*, const uint8_t *, size_t );
 
 // there is a control bit for whether the content is text or binary or a continuation
 WEBSOCKET_EXPORT void WebSocketSendText( PCLIENT, const char *, size_t ); // UTF8 RFC3629
+WEBSOCKET_EXPORT void WebSocketPipeSendText( struct html5_web_socket*, const char *, size_t ); // UTF8 RFC3629
 
 // literal binary sending; this may happen to be base64 encoded too
 WEBSOCKET_EXPORT void WebSocketSendBinary( PCLIENT, const uint8_t *, size_t );
+WEBSOCKET_EXPORT void WebSocketPipeSendBinary( struct html5_web_socket*, const uint8_t *, size_t );
 
 WEBSOCKET_EXPORT void WebSocketEnableAutoPing( PCLIENT websock, uint32_t delay );
 
 WEBSOCKET_EXPORT void WebSocketPing( PCLIENT websock, uint32_t timeout );
+WEBSOCKET_EXPORT void WebSocketPipePing( struct html5_web_socket* ws, uint32_t timeout );
 
 
 WEBSOCKET_EXPORT void SetWebSocketAcceptCallback( PCLIENT pc, web_socket_accept callback );
@@ -98,6 +99,10 @@ WEBSOCKET_EXPORT void SetWebSocketCloseCallback( PCLIENT pc, web_socket_closed c
 WEBSOCKET_EXPORT void SetWebSocketErrorCallback( PCLIENT pc, web_socket_error callback );
 WEBSOCKET_EXPORT void SetWebSocketHttpCallback( PCLIENT pc, web_socket_http_request callback );
 WEBSOCKET_EXPORT void SetWebSocketHttpCloseCallback( PCLIENT pc, web_socket_http_close callback );
+
+WEBSOCKET_EXPORT void SetWebSocketPipeErrorCallback( struct html5_web_socket* ws, web_socket_error callback );
+WEBSOCKET_EXPORT void SetWebSocketPipeHttpCallback( struct html5_web_socket* ws, web_socket_http_request callback );
+WEBSOCKET_EXPORT void SetWebSocketPipeHttpCloseCallback( struct html5_web_socket* ws, web_socket_http_close callback );
 
 // if set in server accept callback, this will return without extension set
 // on client socket (default), does not request permessage-deflate
@@ -112,14 +117,17 @@ WEBSOCKET_EXPORT void SetWebSocketHttpCloseCallback( PCLIENT pc, web_socket_http
 // set permessage-deflate option for client requests.
 // allow server side to disable this when responding to a client.
 WEBSOCKET_EXPORT void SetWebSocketDeflate( PCLIENT pc, int enable_flags );
+WEBSOCKET_EXPORT void SetWebSocketPipeDeflate( struct html5_web_socket* ws, int enable_flags );
 
 // default is client masks, server does not
 // this can be used to disable masking on client or enable on server
 // (masked output from server to client is not supported by browsers)
 WEBSOCKET_EXPORT void SetWebSocketMasking( PCLIENT pc, int enable );
+WEBSOCKET_EXPORT void SetWebSocketPipeMasking( struct html5_web_socket* ws, int enable );
 
 // Set callback to get completed fragment size (total packet size collected so far)
 WEBSOCKET_EXPORT void SetWebSocketDataCompletion( PCLIENT pc, web_socket_completion callback );
+WEBSOCKET_EXPORT void SetWebSocketPipeDataCompletion( struct html5_web_socket* ws, web_socket_completion callback );
 
 
 #endif

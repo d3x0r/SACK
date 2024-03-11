@@ -17,7 +17,6 @@ static void wscencodeblock( unsigned char in[3], TEXTCHAR out[4], int len )
 	out[3] = (unsigned char)(len > 2 ? wscbase64[in[2] & 0x3f] : '=');
 }
 
-
 static void SendRequestHeader( WebSocketClient websock )
 {
 	PVARTEXT pvtHeader = VarTextCreate();
@@ -70,12 +69,13 @@ static void SendRequestHeader( WebSocketClient websock )
 }
 
 
+
 static void CPROC WebSocketTimer( uintptr_t psv )
 {
 	uint32_t now;
 	INDEX idx;
-	WebSocketClient websock;
-	LIST_FORALL( wsc_local.clients, idx, WebSocketClient, websock )
+	WebSocketInputState websock;
+	LIST_FORALL( wsc_local.clients, idx, WebSocketInputState, websock )
 	{
 		now = timeGetTime();
 
@@ -86,24 +86,24 @@ static void CPROC WebSocketTimer( uintptr_t psv )
 				uint16_t reason;
 			} msg;
 			msg.reason = 1000; // normal
-			websock->input_state.flags.closed = 1;
-			SendWebSocketMessage( websock->pc, 8, 1, 0, (uint8_t*)&msg, 2, websock->input_state.flags.use_ssl );
+			websock->flags.closed = 1;
+			SendWebSocketMessage( websock, 8, 1, 0, (uint8_t*)&msg, 2 );
 		}
 
 		// do auto ping...
-		if( !websock->input_state.flags.closed )
+		if( !websock->flags.closed )
 		{
 			if( websock->ping_delay ) {
-				if( !websock->input_state.flags.sent_ping )
+				if( !websock->flags.sent_ping )
 				{
-					if( ( now - websock->input_state.last_reception ) > websock->ping_delay )
+					if( ( now - websock->last_reception ) > websock->ping_delay )
 					{
-						SendWebSocketMessage( websock->pc, 0x09, 1, 0, NULL, 0, websock->input_state.flags.use_ssl );
+						SendWebSocketMessage( websock, 0x09, 1, 0, NULL, 0 );
 					}
 				}
 				else
 				{
-					if( ( now - websock->input_state.last_reception ) > ( websock->ping_delay * 2 ) )
+					if( ( now - websock->last_reception ) > ( websock->ping_delay * 2 ) )
 					{
 						websock->flags.want_close = 1;
 						// send close immediately
@@ -146,7 +146,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 			int result;
 			// this is HTTP state...
 			AddHttpData( websock->pHttpState, buffer, len );
-			result = ProcessHttp( pc, websock->pHttpState );
+			result = ProcessHttp( websock->pHttpState, websock->input_state.on_send, websock->input_state.psvSender );
 			//lprintf( "reply is %d", result );
 			if( (int)result == 101 )
 			{
@@ -156,7 +156,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 					if( websock->input_state.on_open )
 						websock->input_state.psv_open = websock->input_state.on_open( pc, websock->input_state.psv_on );
 					if( content )
-						ProcessWebSockProtocol( &websock->input_state, websock->pc, (uint8_t*)GetText( content ), GetTextSize( content ) );
+						ProcessWebSockProtocol( &websock->input_state, (uint8_t*)GetText( content ), GetTextSize( content ) );
 				}
 			}
 			else if( (int)result >= 300 && (int)result < 400 )
@@ -175,7 +175,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 		}
 		else
 		{
-			ProcessWebSockProtocol( &websock->input_state, websock->pc, (uint8_t*)buffer, len );
+			ProcessWebSockProtocol( &websock->input_state, (uint8_t*)buffer, len );
 		}
 		// process buffer?
 
@@ -304,6 +304,13 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 		else
 			wsc_local.opening_client = NULL;	
 	}
+
+	if( websock->input_state.flags.use_ssl )
+		websock->input_state.on_send = WebSocketSendSSL;
+	else
+		websock->input_state.on_send = WebSocketSendTCP;
+	websock->input_state.psvSender = (uintptr_t)websock->pc;
+
 	LeaveCriticalSec( &wsc_local.cs_opening );
 	return  websock->pc;
 }
@@ -333,7 +340,7 @@ void WebSocketClose( PCLIENT pc, int code, const char *reason )
 		struct html5_web_socket *serverSock = (struct html5_web_socket*)websock;
 		if( serverSock->flags.initial_handshake_done ) {
 			//lprintf( "Send server side close with no payload." );
-			SendWebSocketMessage( pc, 8, 1, serverSock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen, serverSock->input_state.flags.use_ssl );
+			SendWebSocketMessage( &serverSock->input_state, 8, 1, serverSock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen );
 			serverSock->input_state.flags.closed = 1;
 		}
 		else {
@@ -351,7 +358,7 @@ void WebSocketClose( PCLIENT pc, int code, const char *reason )
 						return;
 					Relinquish();
 				}
-				SendWebSocketMessage( pc, 8, 1, websock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen, websock->input_state.flags.use_ssl );
+				SendWebSocketMessage( &websock->input_state, 8, 1, websock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen );
 				websock->input_state.flags.closed = 1;
 				NetworkUnlock( pc, 1 );
 			}
@@ -363,17 +370,29 @@ void WebSocketClose( PCLIENT pc, int code, const char *reason )
 	}
 }
 
+static void WebSocketEnableAutoPing_( WebSocketInputState input , uint32_t delay )
+{
+		if( !wsc_local.timer )
+			wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
+		input->ping_delay = delay;
+}
+
 void WebSocketEnableAutoPing( PCLIENT pc, uint32_t delay )
 {
 	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
-	if( websock->Magic == 0x20130911 ) // only allow auto ping on clients.... 
-	{
-		if( !wsc_local.timer )
-			wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
-		websock->ping_delay = delay;
+	if( websock->Magic == 0x20130911 ) { // only allow auto ping on clients.... 
+		WebSocketEnableAutoPing_( &websock->input_state, delay );
 	}
+	else if( websock->Magic == 0x20130912 ) { 
+		WebSocketEnableAutoPing_( &( (struct html5_web_socket*)websock )->input_state, delay );
+	}
+
 }
 
+void WebSocketPipeEnableAutoPing( struct html5_web_socket* ws, uint32_t delay )
+{
+	WebSocketEnableAutoPing_( &ws->input_state, delay );
+}
 
 PRELOAD( InitWebSocketServer )
 {

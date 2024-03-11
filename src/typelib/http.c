@@ -235,7 +235,7 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT *ppar
 }
 
 //int ProcessHttp( struct HttpState *pHttpState )
-int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
+int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPOINTER buf, size_t len ), uintptr_t psv )
 {
 	lockHttp( pHttpState );
 	if( pHttpState->final )
@@ -597,7 +597,7 @@ int ProcessHttp( PCLIENT pc, struct HttpState *pHttpState )
 					{
 						if( l.flags.bLogReceived )
 							lprintf( "Generating 100-continue response..." );
-						SendTCP( pc, "HTTP/1.1 100 Continue\r\n\r\n", 25 );
+						send( psv, "HTTP/1.1 100 Continue\r\n\r\n", 25 );
 					}
 				}
 			}
@@ -1063,11 +1063,11 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 #endif
 		//lprintf( "adding data:%d", size );
 		if( AddHttpData( state, buffer, size ) )
-			if( ProcessHttp( pc, state ) )
+			if( ProcessHttp( state, NULL, 0 ) ) // this shouldn't cause any auto send?
 			{
 				//lprintf( "this is where we should close and not end... %d %d",state->flags.close , !state->flags.keep_alive );
 				if( state->flags.close || !state->flags.keep_alive) {
-					RemoveClient( pc );
+					RemoveClient( state->pc[0]);
 					return;
 				} else
 					EndHttp( state );
@@ -1093,7 +1093,7 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 	}
 	if( data->content_length ) {
 		// should do one further gather; will set resulting status better.
-		ProcessHttp( pc, data );
+		ProcessHttp( data, NULL, 0 );
 	}
 	//lprintf( "Closing http: %p ", pc );
 	if( ppc[0] == pc ) {
@@ -1525,7 +1525,7 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 		//lprintf( "RECEVED HTTP FROM NETWORK." );
 		//LogBinary( buffer, length );
 		AddHttpData( pHttpState, buffer, length );
-		while( ( result = ProcessHttp( pc, pHttpState ) ) )
+		while( ( result = ProcessHttp( pHttpState, NULL, 0 ) ) )
 		{
 			int status;
 			struct HttpServer *server = (struct HttpServer *)GetNetworkLong( pc, 0 );
