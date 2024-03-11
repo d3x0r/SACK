@@ -46,7 +46,7 @@ typedef void ( *ssh_setenv_cb )( uintptr_t psv, LOGICAL success );
 NETWORK_PROC( ssh_setenv_cb, sack_ssh_set_setenv )( struct ssh_listener* listener, ssh_setenv_cb );
 
 
-typedef uintptr_t( *ssh_forward_connect_cb )( uintptr_t psv, struct ssh_channel* );
+typedef uintptr_t( *ssh_forward_connect_cb )( uintptr_t psv, LOGICAL success );
 NETWORK_PROC( ssh_forward_connect_cb, sack_ssh_set_forward_connect )( struct ssh_session* session, ssh_forward_connect_cb );
 
 

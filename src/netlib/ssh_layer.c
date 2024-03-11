@@ -1024,7 +1024,7 @@ static void AcceptedClient( PCLIENT pc, PCLIENT pcNew ) {
 
 
 
-PCLIENT sack_ssh_foward_connect( struct ssh_session* session
+PCLIENT sack_ssh_forward_connect( struct ssh_session* session
 		, CTEXTSTR localAddress, int localPort
 		, CTEXTSTR remoteAddress, int remotePort
 		, ssh_forward_connect_cb cb ) {
