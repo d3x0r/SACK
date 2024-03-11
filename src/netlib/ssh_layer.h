@@ -116,6 +116,11 @@ struct ssh_director {
 	struct ssh_director_listener* director;
 };
 
+struct ssh_websocket {
+	struct ssh_channel* channel;
+	struct html5_web_socket* ws;
+};
+
 struct keyparts {
 	// some information from https://coolaj86.com/articles/the-openssh-private-key-format/
 	// also from https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.key 

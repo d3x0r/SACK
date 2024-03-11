@@ -109,7 +109,7 @@ HTTP_EXPORT /* Add another bit of data to the block. After adding data,
    size :        length of data bytes                           
    Returns: TRUE if content is added... if collecting chunked encoding may return FALSE.
    */
-LOGICAL HTTPAPI AddHttpData( HTTPState pHttpState, POINTER buffer, size_t size );
+LOGICAL HTTPAPI AddHttpData( HTTPState pHttpState, CPOINTER buffer, size_t size );
 /* \returns TRUE if completed until content-length if
    content-length is not specified, data is still collected, but
    the status never results TRUE.

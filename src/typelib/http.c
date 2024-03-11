@@ -633,7 +633,7 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 	return HTTP_STATE_RESULT_NOTHING;
 }
 
-LOGICAL AddHttpData( struct HttpState *pHttpState, POINTER buffer, size_t size )
+LOGICAL AddHttpData( struct HttpState *pHttpState, CPOINTER buffer, size_t size )
 {
 	lockHttp( pHttpState );
 	pHttpState->last_read_tick = timeGetTime();

@@ -53,18 +53,26 @@ HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate_v2 )(CTEXTSTR hosturl
 	, int webSocketOptions
 );
 
-HTML5_WEBSOCKET_PROC( struct html5_web_socket*, WebSocketCreatePipe )( int (*sender)(uintptr_t p, CPOINTER data, size_t length )
-   , uintptr_t psvSender
-	, web_socket_opened on_open
-	, web_socket_event on_event
-	, web_socket_closed on_closed
-	, web_socket_error on_error
-	, uintptr_t psv
-	, int webSocketOptions
+/*
+* Creates a server side websocket/http request socket for an accepted network connection.
+* 
+*/
+HTML5_WEBSOCKET_PROC( struct html5_web_socket*, WebSocketCreateServerPipe )( int (*sender)(uintptr_t p, CPOINTER data, size_t length )
+                                        , uintptr_t psv_send
+                                        , web_socket_opened on_open
+                                        , web_socket_event on_event
+                                        , web_socket_closed on_closed
+                                        , web_socket_error on_error
+                                        , web_socket_http_request ws_http
+                                        , web_socket_http_close ws_http_close
+                                        , web_socket_completion ws_completion
+                                        , uintptr_t psv
 );
 
+// Option Wait 
 #define WEBSOCK_SERVER_OPTION_WAIT 1
-	HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate )( CTEXTSTR server_url
+
+HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate )( CTEXTSTR server_url
 																	, web_socket_opened on_open
 																	, web_socket_event on_event
 																	, web_socket_closed on_closed
@@ -72,7 +80,7 @@ HTML5_WEBSOCKET_PROC( struct html5_web_socket*, WebSocketCreatePipe )( int (*sen
 																	, uintptr_t psv
 																	);
 
-HTML5_WEBSOCKET_PROC( void, WebSocketWrite )( struct html5_web_socket* socket, POINTER buffer, size_t length );
+HTML5_WEBSOCKET_PROC( void, WebSocketWrite )( struct html5_web_socket* socket, CPOINTER buffer, size_t length );
 
 // during open, server may need to switch behavior based on protocols
 // this can be used to return the protocols requested by the client.

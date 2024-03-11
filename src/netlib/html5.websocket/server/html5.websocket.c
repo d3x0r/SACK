@@ -158,7 +158,7 @@ static LOGICAL ComputeReplyKey2( PVARTEXT pvt_output, HTML5WebSocket socket, PTE
       *  %xA denotes a pong
       *  %xB-F are reserved for further control frames
 */
-static void HandleData( HTML5WebSocket socket, POINTER buffer, size_t length )
+static void HandleData( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 {
 	size_t n;
 	//int randNum;
@@ -498,11 +498,11 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 	}
 }
 
-void WebSocketWrite( HTML5WebSocket socket, POINTER buffer, size_t length )
+void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 {
 	if( buffer )
 	{
-		TEXTSTR tmp = (TEXTSTR)buffer;
+		CTEXTSTR tmp = (CTEXTSTR)buffer;
 		//LogBinary( buffer, length );
 		//lprintf( "handle data: handshake: %d",socket->flags.initial_handshake_done );
 		if( !socket->flags.initial_handshake_done || socket->flags.http_request_only )
@@ -585,13 +585,13 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 }
 
 PCLIENT WebSocketCreate_v2( CTEXTSTR hosturl
-							, web_socket_opened on_open
-							, web_socket_event on_event
-							, web_socket_closed on_closed
-							, web_socket_error on_error
-							, uintptr_t psv
-							, int webSocketOptions
-						) {
+                          , web_socket_opened on_open
+                          , web_socket_event on_event
+                          , web_socket_closed on_closed
+                          , web_socket_error on_error
+                          , uintptr_t psv
+                          , int webSocketOptions
+                          ) {
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20130912;
@@ -618,15 +618,17 @@ PCLIENT WebSocketCreate_v2( CTEXTSTR hosturl
 	return socket->pc;
 }
 
-HTML5WebSocket WebSocketCreatePipe( int (*on_send)( uintptr_t psv, CPOINTER buffer, size_t length )
-							, uintptr_t psv_send
-							, web_socket_opened on_open
-							, web_socket_event on_event
-							, web_socket_closed on_closed
-							, web_socket_error on_error
-							, uintptr_t psv
-							, int webSocketOptions
-						)
+HTML5WebSocket WebSocketCreateServerPipe( int (*on_send)( uintptr_t psv, CPOINTER buffer, size_t length )
+                                        , uintptr_t psv_send
+                                        , web_socket_opened on_open
+                                        , web_socket_event on_event
+                                        , web_socket_closed on_closed
+                                        , web_socket_error on_error
+                                        , web_socket_http_request ws_http
+                                        , web_socket_http_close ws_http_close
+                                        , web_socket_completion ws_completion
+                                        , uintptr_t psv
+                                        )
 {
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );

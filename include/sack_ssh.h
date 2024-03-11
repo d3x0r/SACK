@@ -1,4 +1,6 @@
 #include <network.h>
+#include <html5.websocket.h>
+#include <html5.websocket.client.h>
 
 SACK_NETWORK_NAMESPACE
 #ifdef __cplusplus
@@ -241,6 +243,23 @@ NETWORK_PROC( void, sack_ssh_channel_forward_connect )( struct ssh_session* sess
 NETWORK_PROC( void, sack_ssh_sftp_init )( struct ssh_session* session );
 NETWORK_PROC( void, sack_ssh_sftp_shutdown )( struct ssh_sftp* session );
 
+//----------------- Websocket ---------------------
+
+/*
+* serve websocket on an accepting channel. 
+* the channel has to be opening from a forwarded listener 
+* (before any data from the remote is processed)
+*/
+NETWORK_PROC( struct ssh_websocket*, sack_ssh_channel_serve_websocket )( struct ssh_channel* channel,
+	web_socket_opened ws_open,
+	web_socket_event ws_event,
+	web_socket_closed ws_close,
+	web_socket_error ws_error,
+	web_socket_http_request ws_http,
+	web_socket_http_close ws_http_close,
+	web_socket_completion ws_completion,
+	uintptr_t psv
+	);
 
 
 #ifdef __cplusplus

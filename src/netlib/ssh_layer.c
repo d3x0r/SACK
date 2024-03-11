@@ -2,6 +2,8 @@
 #include <stdhdrs.h>
 #include <network.h>
 #include <sack_ssh.h>
+#include <html5.websocket.h>
+#include <html5.websocket.client.h>
 
 SACK_NETWORK_NAMESPACE
 #ifdef __cplusplus
@@ -1068,6 +1070,49 @@ void sack_ssh_sftp_init( struct ssh_session* session ) {
 	set_pending_state( session->pending, SSH_STATE_SFTP, { (uintptr_t)session } );
 	// can never complete immediately...
 	libssh2_sftp_init( session->session );
+}
+
+//------------------------- Websocket Interface ----------------------------
+
+static void WebSocketData( uintptr_t psv, int stream, const uint8_t* data, size_t len ) {
+	WebSocketWrite( ( (struct ssh_websocket*)psv )->ws, data, len );
+}
+
+static int websocketSendSSH( uintptr_t psv, CPOINTER buffer, size_t length ) {
+	struct ssh_websocket* ws = (struct ssh_websocket*)psv;
+	sack_ssh_channel_write( ws->channel, 0, (const uint8_t *)buffer, length );
+	return 0;
+}
+
+static void ssh_ws_open( uintptr_t psv ) {
+	struct ssh_websocket* ws = (struct ssh_websocket*)psv;
+	
+}
+
+/*
+* SSH channel to serve websocket
+* This can be called when a SSH channel is in the open callback from a remote TCP connection
+* This will also fallback to serve HTTP requests to the socket.
+*/
+struct ssh_websocket* sack_ssh_channel_serve_websocket( struct ssh_channel* channel,
+	web_socket_opened ws_open,
+	web_socket_event ws_event,
+	web_socket_closed ws_close,
+	web_socket_error ws_error,
+	web_socket_http_request ws_http,
+	web_socket_http_close ws_http_close,
+	web_socket_completion ws_completion,
+	uintptr_t psv
+	) {
+	struct ssh_websocket* ws = NewArray( struct ssh_websocket, 1 );
+	ws->channel = channel;
+	channel->psv = (uintptr_t)ws;
+	channel->channel_data = WebSocketData;
+	ws->ws = WebSocketCreateServerPipe( websocketSendSSH, (uintptr_t)ws
+		, ws_open, ws_event, ws_close, ws_error
+		, ws_http, ws_http_close, ws_completion
+		, psv );
+	return ws;
 }
 
 #ifdef __cplusplus
