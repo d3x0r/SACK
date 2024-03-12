@@ -1,4 +1,3 @@
-#!/bin/sh
-#git submodule init
+
 echo "Hello from post-clone" 
 git submodule update --init --remote --recursive
