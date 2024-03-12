@@ -33,6 +33,7 @@ struct web_socket_input_state
 		BIT_FIELD expect_masking : 1;
 		BIT_FIELD use_ssl : 1;
 		BIT_FIELD want_close : 1; // schedule to close (moved from client; client only)
+		BIT_FIELD pipe : 1;
 	} flags;
 	uint32_t last_reception; // (last message tick) for automatic ping/keep alive/idle death
 
@@ -76,7 +77,7 @@ struct web_socket_input_state
 	uintptr_t psv_open; // result of the open, to pass to read
 	int close_code;
 	char *close_reason;
-	struct html5_web_socket* socket;
+	//struct html5_web_socket* socket;
 
 	uint32_t ping_delay; // when set by enable auto_ping is the delay between packets to generate a ping
 
@@ -100,7 +101,6 @@ struct html5_web_socket {
 		BIT_FIELD http_request_only : 1;
 		BIT_FIELD in_open_event : 1; // set when sent to client, which can write and close before return; no further read must be done.
 		BIT_FIELD closed : 1; // was already closed (during in_read_event)
-		BIT_FIELD pipe : 1;
 		BIT_FIELD skip_read : 1; 
 	} flags;
 	HTTPState http_state;

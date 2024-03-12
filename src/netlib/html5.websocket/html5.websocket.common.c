@@ -389,7 +389,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 									break;
 							} while( r != Z_STREAM_END || r != Z_BUF_ERROR );
 							websock->inflateBufUsed = websock->inflater.total_out;
-							websock->on_event( webock->socket->io.pc, websock->psv_open, websock->input_type
+							websock->on_event( webock->socket->pc, websock->psv_open, websock->input_type
 								, websock->inflateBuf, websock->inflateBufUsed );
 							inflateReset( &websock->inflater );
 						}
@@ -397,7 +397,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 #endif
 						{
 							//lprintf( "Completed packet; %d %d", websock->input_type, websock->fragment_collection_length );
-							websock->on_event( websock->socket->pc, websock->psv_open, websock->input_type, websock->fragment_collection, websock->fragment_collection_length );
+							websock->on_event( (PCLIENT)websock->psvSender, websock->psv_open, websock->input_type, websock->fragment_collection, websock->fragment_collection_length );
 						}
 					}
 					websock->fragment_collection_length = 0;
@@ -447,12 +447,12 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 						}
 						websock->close_code = code;
 						websock->close_reason = StrDup( buf );
-						websock->on_close( websock->socket->pc, websock->psv_open, code, buf );
+						websock->on_close( (PCLIENT)websock->psvSender, websock->psv_open, code, buf );
 						websock->on_close = NULL;
 					}
 					websock->fragment_collection_length = 0;
-					if( !websock->socket->flags.pipe )
-						RemoveClientEx( websock->socket->pc, 0, 0 ); // this should not linger; client already sent closed, nothing more to receive.
+					if( !websock->flags.pipe )
+						RemoveClientEx( (PCLIENT)websock->psvSender, 0, 0 ); // this should not linger; client already sent closed, nothing more to receive.
 					else {
 						lprintf( "Pipe handle close: This should probably release weboscket and all other stuff" );
 					}
@@ -475,8 +475,8 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 					break;
 				default:
 					lprintf( "Bad WebSocket opcode: %d", websock->opcode );
-					if( !websock->socket->flags.pipe )
-						RemoveClient( websock->socket->pc );
+					if( !websock->flags.pipe )
+						RemoveClient( (PCLIENT)websock->psvSender );
 					else {
 						lprintf( "pipe handle bad opcode: again should probably destroy websocket object" );
 					}
@@ -488,7 +488,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 				//lprintf( "Completed packet; still not final fragment though.... %d  %d", websock->fragment_collection_avail );
 				websock->input_msg_state = 0;
 				if( websock->on_fragment_done )
-					websock->on_fragment_done( websock->socket->pc, websock->psv_open, websock->input_type, (int)websock->fragment_collection_length );
+					websock->on_fragment_done( (PCLIENT)websock->psvSender, websock->psv_open, websock->input_type, (int)websock->fragment_collection_length );
 				//lprintf( "came back" );
 			}
 			break;

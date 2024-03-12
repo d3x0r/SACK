@@ -556,8 +556,8 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		else 
 			ReadTCP( pc, socket->buffer, WSS_DEFAULT_BUFFER_SIZE );
 	}
-
 }
+
 static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 {
 	HTML5WebSocket server_socket = (HTML5WebSocket)GetNetworkLong( pc_server, 0 );
@@ -583,6 +583,8 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	SetNetworkReadComplete( pc_new, read_complete );
 	SetNetworkCloseCallback( pc_new, closed );
 }
+
+
 
 PCLIENT WebSocketCreate_v2( CTEXTSTR hosturl
                           , web_socket_opened on_open
@@ -618,6 +620,23 @@ PCLIENT WebSocketCreate_v2( CTEXTSTR hosturl
 	return socket->pc;
 }
 
+// a pipe connection for the server happened.
+HTML5WebSocket WebSocketPipeConnect( HTML5WebSocket pipe, uintptr_t psvNew ) {
+	HTML5WebSocket server_socket = pipe;
+
+	HTML5WebSocket socket = New( struct html5_web_socket );
+	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
+	socket->Magic = 0x20130912;
+	socket->pc = NULL;
+	socket->input_state = server_socket->input_state; // clone callback methods and config flags
+	socket->input_state.psvSender = psvNew;
+
+	socket->http_state = CreateHttpState( &socket->pc ); // start a new http state collector
+	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
+	return socket;
+}
+
+
 HTML5WebSocket WebSocketCreateServerPipe( int (*on_send)( uintptr_t psv, CPOINTER buffer, size_t length )
                                         , uintptr_t psv_send
                                         , web_socket_opened on_open
@@ -634,6 +653,7 @@ HTML5WebSocket WebSocketCreateServerPipe( int (*on_send)( uintptr_t psv, CPOINTE
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20230310;
 	socket->input_state.flags.deflate = 0;
+	socket->input_state.flags.pipe = 1;
 	socket->input_state.on_open = on_open;
 	socket->input_state.on_event = on_event;
 	socket->input_state.on_close = on_closed;
