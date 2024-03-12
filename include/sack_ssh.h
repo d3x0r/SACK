@@ -7,6 +7,9 @@ SACK_NETWORK_NAMESPACE
 namespace ssh {
 #endif
 
+
+typedef void ( *ssh_handshake_cb )( uintptr_t psv, const uint8_t* fingerprint );
+
 // ----------------- SESSIONS ---------------------
 
 /*
@@ -18,7 +21,7 @@ NETWORK_PROC( struct ssh_session*, sack_ssh_session_init )( uintptr_t psv );
 * if port is 0, the default port is used (22)
 * if the host string includes a port, it will be used instead of the port parameter
 */
-NETWORK_PROC( void, sack_ssh_session_connect )( struct ssh_session* session, CTEXTSTR host, int port );
+NETWORK_PROC( void, sack_ssh_session_connect )( struct ssh_session* session, CTEXTSTR host, int port, ssh_handshake_cb cb );
 /*
 * enable debugging on a session
 */
@@ -82,7 +85,6 @@ NETWORK_PROC( ssh_forward_listen_accept_cb, sack_ssh_set_forward_listen_accept )
 * 
 * fingerprint is 20 bytes long
 */
-typedef void ( *ssh_handshake_cb )( uintptr_t psv, const uint8_t *fingerprint );
 NETWORK_PROC( ssh_handshake_cb, sack_ssh_set_handshake_complete )( struct ssh_session* session, ssh_handshake_cb );
 /*
 * set a callback for when a session is authenticated
@@ -156,15 +158,16 @@ NETWORK_PROC( ssh_sftp_open_cb, sack_ssh_set_sftp_open )( struct ssh_session* se
 /*
 * authenticate a user with a password
 */
-NETWORK_PROC( void, sack_ssh_auth_user_password )( struct ssh_session* session, const char* user, const char* password );
+NETWORK_PROC( void, sack_ssh_auth_user_password )( struct ssh_session* session, const char* user, const char* password, ssh_auth_cb cb );
 /*
 * authenticate a user with a public key
 */
 NETWORK_PROC( void, sack_ssh_auth_user_cert )( struct ssh_session* session, CTEXTSTR user
 	, uint8_t* pubkey, size_t pubkeylen
 	, uint8_t* privkey, size_t privkeylen
-	, CTEXTSTR pass );
+	, CTEXTSTR pass, ssh_auth_cb cb );
 
+//----------------- Port Forwarding ---------------------
 //------------------------ More Session Interface; requires callback def --------------------
 /*
 * setup a local socket to accept connections, which gets
@@ -173,11 +176,15 @@ NETWORK_PROC( void, sack_ssh_auth_user_cert )( struct ssh_session* session, CTEX
 *
 * cb is called when a new connection is made, and is treated like a channel open callback
 */
-PCLIENT sack_ssh_forward_connect( struct ssh_session* session
+NETWORK_PROC( PCLIENT, sack_ssh_forward_connect )( struct ssh_session* session
 	, CTEXTSTR localAddress, int localPort
 	, CTEXTSTR remoteAddress, int remotePort
 	, ssh_forward_connect_cb cb );
 
+/*
+* request a port forward
+*/
+NETWORK_PROC( void, sack_ssh_forward_listen )( struct ssh_session* session, CTEXTSTR remotehost, uint16_t remoteport, ssh_forward_listen_cb cb );
 
 //------------------ CHANNELS ---------------------
 /*
@@ -231,13 +238,6 @@ LIBSSH2_API int libssh2_channel_wait_closed(LIBSSH2_CHANNEL *channel);
 LIBSSH2_API int libssh2_channel_free(LIBSSH2_CHANNEL *channel);
 */
 
-//----------------- Port Forwarding ---------------------
-
-/*
-* request a port forward
-*/
-NETWORK_PROC( void, sack_ssh_channel_forward_listen )( struct ssh_session* session, CTEXTSTR remotehost, uint16_t remoteport, ssh_forward_listen_cb cb );
-NETWORK_PROC( void, sack_ssh_channel_forward_connect )( struct ssh_session* session, CTEXTSTR localhost, uint16_t localport, CTEXTSTR remotehost, uint16_t remoteport, ssh_forward_connect_cb cb );
 //----------------- SFTP ---------------------
 
 NETWORK_PROC( void, sack_ssh_sftp_init )( struct ssh_session* session );

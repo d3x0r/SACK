@@ -153,7 +153,10 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 					else {
 						CTEXTSTR fingerprint = libssh2_hostkey_hash( cs->session, LIBSSH2_HOSTKEY_HASH_SHA1 );
 						cs->pending.state = SSH_STATE_RESET;
-						cs->handshake_complete( cs->psv, (const uint8_t*)fingerprint );
+						if( cs->pending.state_data[0] )
+							( (ssh_handshake_cb)cs->pending.state_data[0] )( cs->psv, (const uint8_t*)fingerprint );
+						else
+							cs->handshake_complete( cs->psv, (const uint8_t*)fingerprint );
 					}
 				}
 				break;
@@ -494,7 +497,8 @@ static void connectCallback( PCLIENT pc, int error ){
 	}
 	else {
 		// success
-		set_pending_state( session->pending, SSH_STATE_HANDSHAKE );
+		uintptr_t cb = GetNetworkLong( session->pc, 1 );
+		set_pending_state( session->pending, SSH_STATE_HANDSHAKE, { (uintptr_t)cb } );
 		libssh2_session_handshake( session->session, 1/*sock*/ );
 	}
 	local_ssh_layer_data.connecting_session = NULL;
@@ -531,7 +535,7 @@ struct ssh_session * sack_ssh_session_init(uintptr_t psv){
 	return session;
 }
 
-void sack_ssh_session_connect( struct ssh_session* session, CTEXTSTR host, int port ) {
+void sack_ssh_session_connect( struct ssh_session* session, CTEXTSTR host, int port, ssh_handshake_cb cb ) {
 	if( session->pending.state != SSH_STATE_RESET ) {
 		lprintf( "session is already in progress" );
 	}
@@ -542,6 +546,7 @@ void sack_ssh_session_connect( struct ssh_session* session, CTEXTSTR host, int p
 	local_ssh_layer_data.connecting_session = session;
 	session->pc = OpenTCPClientExxx( host, port?port:22, readCallback, closeCallback, NULL, connectCallback, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
 	if( session->pc ) {
+		SetNetworkLong( session->pc, 1, (uintptr_t)cb );
 		// make sure to block other connections until handshake resolves...
 		session->pending.state = SSH_STATE_CONNECTING;
 		SetNetworkLong( session->pc, 0, (uintptr_t)session );
@@ -579,7 +584,6 @@ void sack_ssh_session_close( struct ssh_session*session ){
 		}
 		DeleteDataList( &session->buffers );
 	}
-
 }
 
 //----------------------------- Callbacks -----------------------
@@ -845,7 +849,7 @@ static struct keyparts* CertToBinary( const char* cert, size_t* result ) {
 #undef data
 }
 
-void sack_ssh_auth_user_password( struct ssh_session*session, CTEXTSTR user, CTEXTSTR pass ){
+void sack_ssh_auth_user_password( struct ssh_session*session, CTEXTSTR user, CTEXTSTR pass, ssh_auth_cb cb ){
 	if( session->pending.state != SSH_STATE_RESET ) {
 		// error
 		struct pending_state state = {SSH_STATE_AUTH_PW, {(uintptr_t)StrDup( user ), StrLen(user), (uintptr_t)StrDup( pass ), StrLen( pass )}};
@@ -859,7 +863,7 @@ void sack_ssh_auth_user_password( struct ssh_session*session, CTEXTSTR user, CTE
 void sack_ssh_auth_user_cert( struct ssh_session*session, CTEXTSTR user
                         , uint8_t* pubkey, size_t pubkeylen
                         , uint8_t* privkey, size_t privkeylen
-                        , CTEXTSTR pass ){
+                        , CTEXTSTR pass, ssh_auth_cb cb ){
 	session->user = StrDup( user );
 	session->user_len = StrLen( user );
 	
@@ -994,7 +998,7 @@ void sack_ssh_channel_write( struct ssh_channel* channel, int stream, const uint
 
 //------------------------- SOCKET FORWARDING ----------------------------
 
-void sack_ssh_channel_forward_listen( struct ssh_session* session, CTEXTSTR remotehost, uint16_t remoteport, ssh_forward_listen_cb cb ) {
+void sack_ssh_forward_listen( struct ssh_session* session, CTEXTSTR remotehost, uint16_t remoteport, ssh_forward_listen_cb cb ) {
 	if( session->pending.state != SSH_STATE_RESET ) {
 		struct pending_state state = { SSH_STATE_LISTEN, { (uintptr_t)session, (uintptr_t)StrDup( remotehost ), remoteport, (uintptr_t)cb}};
 		EnqueData( &session->pdqStates, &state );
@@ -1023,7 +1027,6 @@ static void AcceptedClient( PCLIENT pc, PCLIENT pcNew ) {
 		listen->remotePort, listen->localAddr, listen->localPort );
 
 }
-
 
 
 PCLIENT sack_ssh_forward_connect( struct ssh_session* session
