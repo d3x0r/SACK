@@ -114,46 +114,46 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #    define MEM_LIBRARY_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define SYSLOG_SOURCE
+#    define SYSLOG_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define _TYPELIBRARY_SOURCE
+#    define _TYPELIBRARY_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define HTTP_SOURCE
+#    define HTTP_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define TIMER_SOURCE
+#    define TIMER_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define IDLE_SOURCE
+#    define IDLE_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define CLIENTMSG_SOURCE
+#    define CLIENTMSG_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define FRACTION_SOURCE
+#    define FRACTION_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define NETWORK_SOURCE
+#    define NETWORK_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define CONFIGURATION_LIBRARY_SOURCE
+#    define CONFIGURATION_LIBRARY_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define FILESYSTEM_LIBRARY_SOURCE
+#    define FILESYSTEM_LIBRARY_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define SYSTEM_SOURCE
+#    define SYSTEM_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define FILEMONITOR_SOURCE
+#    define FILEMONITOR_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define VECTOR_LIBRARY_SOURCE
+#    define VECTOR_LIBRARY_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
-#define SHA1_SOURCE
+#    define SHA1_SOURCE
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
 #    define CONSTRUCT_SOURCE
@@ -172,7 +172,9 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
 	individual library module once upon a time.           */
 #      define JSOX_PARSER_SOURCE
-	/* Defined when SACK_BAG_EXPORTS is defined. This was an
+#      define HTML5_WEBSOCKET_SOURCE
+#      define SACK_WEBSOCKET_CLIENT_SOURCE
+/* Defined when SACK_BAG_EXPORTS is defined. This was an
    individual library module once upon a time.           */
 #    define SERVICE_SOURCE
 #    ifndef __NO_SQL__
