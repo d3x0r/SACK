@@ -24,7 +24,7 @@ enum ssh_states {
 };
 
 struct pending_state {
-	enum ssh_states state;
+	volatile enum ssh_states state;
 	uintptr_t state_data[8];
 };
 
