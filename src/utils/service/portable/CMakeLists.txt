@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.13)
 
 if( MSVC )
 # 4197 - top-level volatile in cast is ignored (so?)
 # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
-  add_definitions( -wd4996  -wd4244 -wd4068 -wd6011 -wd4197 -wd4090 )
+  add_definitions( -wd4996  -wd4244 -wd4068 -wd6011 -wd4197 -wd4090 -wd4197 )
 endif( MSVC )
 
 if( PLATFORM_CMAKE_DEFINES )
