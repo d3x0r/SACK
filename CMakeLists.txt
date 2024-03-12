@@ -391,8 +391,12 @@ if( MSVC )
 # 4996 - unsafe snprintf
 # 4197 - top-level volatile in cast is ignored (so?)
 # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
-  add_definitions( -wd4996  -wd4244 -wd4068 -wd6011 -wd4197 -wd4090 )
+# 4267 - conversion from size_t to int
+  add_definitions( -wd4996  -wd4244 -wd4068 -wd6011 -wd4197 -wd4090 -wd4267 )
   message( "disabled warning 4090 - 'function': different 'volatile' qualifiers (usually don't care)" )
+  message( "disabled warning 4197 - top-level volatile in cast is ignored" )
+  message( "disabled warning 4267 - conversion from size_t to int" )
+
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP8")
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP8")
