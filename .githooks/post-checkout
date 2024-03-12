@@ -3,7 +3,7 @@
 echo "Hello from post-clone" 
 git submodule update --init --remote --recursive
 
-if [ -x ../.git/hooks/post-checkout]; then
+if [ -x ../.git/hooks/post-checkout ]; then
   ../.git/hooks/post-checkout
 
 fi
