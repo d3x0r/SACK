@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.13)
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 PROJECT( vfs.nr.portable )
@@ -115,6 +115,11 @@ SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES}
 
 sack_add_executable(${project} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "ALT_VFS_NAME;STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
+if( WIN32 )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4197 -wd4090" )
+endif( WIN32 )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
@@ -127,6 +132,11 @@ set( project sack_vfs_node_runner_sfx_win )
 
 sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "ALT_VFS_NAME;STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
+if( WIN32 )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4197 -wd4090" )
+endif( WIN32 )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )

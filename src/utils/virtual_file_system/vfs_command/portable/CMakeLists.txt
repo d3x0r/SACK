@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.13)
 set( CMAKE_C_STANDARD 99 )
 project( UnusedProject )
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
@@ -210,7 +210,7 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_FS_I
 if( WIN32 )
     # 4197 - top-level volatile in cast is ignored (so?)
     # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
-    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090 -wd4197" )
 endif( WIN32 )
     
 SET_TARGET_PROPERTIES(${project} PROPERTIES
