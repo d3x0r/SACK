@@ -2,3 +2,6 @@
 #git submodule init
 echo "Hello from post-clone" 
 git submodule update --init --remote --recursive
+
+if [-x ../.git/hooks/post-checkout]
+  ../.git/hooks/post-checkout
