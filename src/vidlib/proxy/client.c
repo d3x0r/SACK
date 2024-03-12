@@ -23,7 +23,7 @@ static void ReplayMessages( struct client_proxy_image *image )
 	}
 }
 
-static void CPROC RedrawEvent( uintptr_t psv, PRENDERER r )
+static int CPROC RedrawEvent( uintptr_t psv, PRENDERER r )
 {
 	size_t sendlen;
 	struct common_message *outmsg;
@@ -51,6 +51,7 @@ static void CPROC RedrawEvent( uintptr_t psv, PRENDERER r )
 		Release( msg );
 	}
 	UpdateDisplay( render->render );
+	return 0;
 }
 
 static uintptr_t CPROC EventThread( PTHREAD thread )
