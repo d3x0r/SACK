@@ -4,6 +4,6 @@ echo "Hello from post-merge"
 git submodule foreach --recursive git pull origin master
 
 
-if [-x ../.git/hooks/post-merge]; then
+if [ -x ../.git/hooks/post-merge]; then
   ../.git/hooks/post-merge
 fi
