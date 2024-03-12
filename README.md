@@ -38,7 +38,15 @@ of SACK pulled from github; rather than the amalgamation included.
 
 ## How To Build
 
+Git doesn't allow saving hooks very well - but submodules are sort of a pain. 
+This has been migrating to use git submodules; which for ease requires hooks.
+Setting up a configuration for where hooks are loaded for this will help.
+
+hooks in .githooks in this repository will attempt to chain to any existing hooks 
+copied from templates you have setup.
+
 ```
+   # git config --global core.hookPath .githooks
    # git clone git://github.com/d3x0r/sack
    # cd sack
    # mkdir build   # could be mkdir sack/build  instead
