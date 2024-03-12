@@ -80,7 +80,15 @@ HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate )( CTEXTSTR server_url
 																	, uintptr_t psv
 																	);
 
+/*
+* Write new data to a html5_web_socket pipe connection. (should be accepted socket, not the listener/server socket);
+*/
 HTML5_WEBSOCKET_PROC( void, WebSocketWrite )( struct html5_web_socket* socket, CPOINTER buffer, size_t length );
+/*
+* A new pipe connection has been accepted, this performs the same operation
+* as accepting a socket internally
+*/
+HTML5_WEBSOCKET_PROC( struct html5_web_socket*, WebSocketPipeConnect )( struct html5_web_socket* pipe, uintptr_t psvNew );
 
 // during open, server may need to switch behavior based on protocols
 // this can be used to return the protocols requested by the client.
