@@ -83,6 +83,8 @@ struct web_socket_input_state
 
 	int (*on_send)( uintptr_t psv, CPOINTER buffer, size_t length );
 	uintptr_t psvSender;
+	void ( *do_close )( uintptr_t psv );
+	uintptr_t psvCloser;
 
 };
 

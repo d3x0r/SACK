@@ -57,12 +57,11 @@ HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate_v2 )(CTEXTSTR hosturl
 * Creates a server side websocket/http request socket for an accepted network connection.
 * 
 */
-HTML5_WEBSOCKET_PROC( struct html5_web_socket*, WebSocketCreateServerPipe )( int (*sender)(uintptr_t p, CPOINTER data, size_t length )
-                                        , uintptr_t psv_send
-                                        , web_socket_opened on_open
+HTML5_WEBSOCKET_PROC( struct html5_web_socket*, WebSocketCreateServerPipe )( web_socket_opened on_open
                                         , web_socket_event on_event
                                         , web_socket_closed on_closed
                                         , web_socket_error on_error
+                                        , web_socket_accept on_accept
                                         , web_socket_http_request ws_http
                                         , web_socket_http_close ws_http_close
                                         , web_socket_completion ws_completion
@@ -84,6 +83,13 @@ HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate )( CTEXTSTR server_url
 * Write new data to a html5_web_socket pipe connection. (should be accepted socket, not the listener/server socket);
 */
 HTML5_WEBSOCKET_PROC( void, WebSocketWrite )( struct html5_web_socket* socket, CPOINTER buffer, size_t length );
+/*
+* Set the send callback for a pipe connection.
+*/
+HTML5_WEBSOCKET_PROC( void, WebSocketPipeSetSend )( struct html5_web_socket* pipe, int ( *on_send )( uintptr_t psv, CPOINTER buffer, size_t length ), uintptr_t psv_send );
+HTML5_WEBSOCKET_PROC( void, WebSocketPipeSetClose )( struct html5_web_socket* pipe, void ( *do_close )( uintptr_t psv ), uintptr_t psv_close );
+HTML5_WEBSOCKET_PROC( void, WebSocketPipeSend )( struct html5_web_socket* socket, CPOINTER buffer, size_t length );
+HTML5_WEBSOCKET_PROC( void, WebSocketPipeClose )( struct html5_web_socket* socket );
 /*
 * A new pipe connection has been accepted, this performs the same operation
 * as accepting a socket internally
@@ -116,9 +122,16 @@ HTML5_WEBSOCKET_PROC( PTEXT, GetWebSocketResource )( PCLIENT pc );
 
 HTML5_WEBSOCKET_PROC( HTTPState, GetWebSocketHttpState )( PCLIENT pc );
 
+HTML5_WEBSOCKET_PROC( PLIST, GetWebSocketPipeHeaders )( struct html5_web_socket* socket );
+HTML5_WEBSOCKET_PROC( PTEXT, GetWebSocketPipeResource )( struct html5_web_socket* socket );
+HTML5_WEBSOCKET_PROC( HTTPState, GetWebSocketPipeHttpState )( struct html5_web_socket* socket );
+
+
 HTML5_WEBSOCKET_PROC( void, ResetWebsocketRequestHandler )( PCLIENT pc_client );
 
 HTML5_WEBSOCKET_PROC( uintptr_t, WebSocketGetServerData )( PCLIENT pc );
+
+
 
 HTML5_WEBSOCKET_NAMESPACE_END
 USE_HTML5_WEBSOCKET_NAMESPACE

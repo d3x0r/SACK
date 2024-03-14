@@ -255,6 +255,7 @@ NETWORK_PROC( struct ssh_websocket*, sack_ssh_channel_serve_websocket )( struct 
 	web_socket_event ws_event,
 	web_socket_closed ws_close,
 	web_socket_error ws_error,
+	web_socket_accept ws_accept,  // server socket event
 	web_socket_http_request ws_http,
 	web_socket_http_close ws_http_close,
 	web_socket_completion ws_completion,

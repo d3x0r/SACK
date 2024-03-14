@@ -30,7 +30,7 @@ struct pending_state {
 
 struct data_buffer {
 	uint8_t* buffer;
-	size_t length;
+	volatile size_t length;
 	size_t used;
 };
 

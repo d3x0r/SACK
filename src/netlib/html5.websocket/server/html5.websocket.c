@@ -283,6 +283,9 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 					socket->flags.in_open_event = 0;
 					if( socket->pc )
 						RemoveClient( socket->pc );
+					else if( socket->input_state.do_close )
+						socket->input_state.do_close( socket->input_state.psvCloser );
+
 					return;
 				}
 				socket->flags.in_open_event = 0;
@@ -626,7 +629,7 @@ HTML5WebSocket WebSocketPipeConnect( HTML5WebSocket pipe, uintptr_t psvNew ) {
 
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
-	socket->Magic = 0x20130912;
+	socket->Magic = 0x20240310;
 	socket->pc = NULL;
 	socket->input_state = server_socket->input_state; // clone callback methods and config flags
 	socket->input_state.psvSender = psvNew;
@@ -637,12 +640,11 @@ HTML5WebSocket WebSocketPipeConnect( HTML5WebSocket pipe, uintptr_t psvNew ) {
 }
 
 
-HTML5WebSocket WebSocketCreateServerPipe( int (*on_send)( uintptr_t psv, CPOINTER buffer, size_t length )
-                                        , uintptr_t psv_send
-                                        , web_socket_opened on_open
+HTML5WebSocket WebSocketCreateServerPipe( web_socket_opened on_open
                                         , web_socket_event on_event
                                         , web_socket_closed on_closed
                                         , web_socket_error on_error
+                                        , web_socket_accept on_accept
                                         , web_socket_http_request ws_http
                                         , web_socket_http_close ws_http_close
                                         , web_socket_completion ws_completion
@@ -651,27 +653,46 @@ HTML5WebSocket WebSocketCreateServerPipe( int (*on_send)( uintptr_t psv, CPOINTE
 {
 	HTML5WebSocket socket = New( struct html5_web_socket );
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
-	socket->Magic = 0x20230310;
+	socket->Magic = 0x20240310;
 	socket->input_state.flags.deflate = 0;
 	socket->input_state.flags.pipe = 1;
 	socket->input_state.on_open = on_open;
 	socket->input_state.on_event = on_event;
 	socket->input_state.on_close = on_closed;
 	socket->input_state.on_error = on_error;
+	socket->input_state.on_accept = on_accept;
+	socket->input_state.on_request = ws_http;
+	socket->input_state.on_http_close = ws_http_close;
+	socket->input_state.on_fragment_done = ws_completion;
 	socket->input_state.psv_on = psv;
 	socket->input_state.close_code = 1006;
 	socket->input_state.flags.use_ssl = 0;
 	socket->http_state = CreateHttpState( &socket->pc ); // start a new http state collector
 	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
 
-	socket->input_state.on_send = on_send;
-	socket->input_state.psvSender = psv_send;
+	//socket->input_state.on_send = on_send;
+	//socket->input_state.psvSender = psv_send;
 
 	return socket;
 }
 
-void WebSocketPipeWrite( HTML5WebSocket socket ) {
-	
+void WebSocketPipeSetSend( HTML5WebSocket pipe, int (*on_send)( uintptr_t psv, CPOINTER buffer, size_t length ), uintptr_t psv_send ) {
+	pipe->input_state.on_send = on_send;
+	pipe->input_state.psvSender = psv_send;
+}
+
+void WebSocketPipeSetClose( HTML5WebSocket pipe, void ( *do_close )( uintptr_t psv ), uintptr_t psv_close ) {
+	pipe->input_state.do_close = do_close;
+	pipe->input_state.psvCloser = psv_close;
+}
+
+void WebSocketPipeSend( HTML5WebSocket socket, CPOINTER buffer, size_t length ) {
+	socket->input_state.on_send( socket->input_state.psvSender, buffer, length );
+}
+
+void WebSocketPipeClose( HTML5WebSocket socket ) {
+	lprintf( "Need to close this channel of ssh" );
+	socket->input_state.do_close( socket->input_state.psvCloser );
 }
 
 PCLIENT WebSocketCreate( CTEXTSTR hosturl
@@ -709,6 +730,28 @@ HTTPState GetWebSocketHttpState( PCLIENT pc ) {
 	}
 	return NULL;
 }
+
+PLIST GetWebSocketPipeHeaders( HTML5WebSocket socket ) {
+	if( socket && socket->Magic == 0x20240310 ) {
+		return GetHttpHeaderFields( socket->http_state );
+	}
+	return NULL;
+}
+
+PTEXT GetWebSocketPipeResource( HTML5WebSocket socket ) {
+	if( socket && socket->Magic == 0x20240310 ) {
+		return GetHttpResource( socket->http_state );
+	}
+	return NULL;
+}
+
+HTTPState GetWebSocketPipeHttpState( HTML5WebSocket socket ) {
+	if( socket && socket->Magic == 0x20240310 ) {
+		return socket->http_state;
+	}
+	return NULL;
+}
+
 
 
 HTML5_WEBSOCKET_NAMESPACE_END
