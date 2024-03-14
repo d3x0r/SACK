@@ -674,6 +674,7 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLoca
 	saDup->sa_data[1] = 0;
 
 #ifdef __LINUX__
+retry:
 	macTableUpdated = FALSE;
 #endif
 

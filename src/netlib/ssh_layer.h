@@ -200,12 +200,9 @@ struct keyparts {
                 (((n) & 0xff0000) >> 8u) |  \
                 (((n) & 0xff000000) >> 24u)) 
 
+#ifdef _WIN32
 #ifdef __cplusplus 
-#pragma optimize( "st", on )
 inline auto bswap( uint32_t v ) noexcept { return _byteswap_ulong( v ); }
-#pragma optimize( "", on )
-
-#pragma optimize( "st", on )
 
 constexpr uint32_t const_bswap( uint32_t v ) noexcept {
 	return ( ( v & UINT32_C( 0x0000'00FF ) ) << 24 ) |
@@ -214,8 +211,8 @@ constexpr uint32_t const_bswap( uint32_t v ) noexcept {
 		( ( v & UINT32_C( 0xFF00'0000 ) ) >> 24 );
 }
 
-#pragma optimize( "", on )
 
+#endif
 #endif
 
 

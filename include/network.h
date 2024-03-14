@@ -1140,7 +1140,7 @@ NETWORK_PROC( LOGICAL, DoPingEx )( CTEXTSTR pstrHost,
              int nCount,
              PVARTEXT pResult,
              LOGICAL bRDNS,
-											 void (*ResultCallback)( uintptr_t psv, PSOCKADDR dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+											 void (*ResultCallback)( uintptr_t psv, SOCKADDR* dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
 											, uintptr_t psv );
 
 //----- WHOIS.C -----
