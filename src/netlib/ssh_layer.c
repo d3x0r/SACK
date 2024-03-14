@@ -1106,7 +1106,7 @@ PCLIENT sack_ssh_forward_connect( struct ssh_session* session
 		, CTEXTSTR localAddress, int localPort
 		, CTEXTSTR remoteAddress, int remotePort
 		, ssh_forward_connect_cb cb ) {
-	PSOCKADDR addr = CreateRemote( localAddress, localPort );
+	SOCKADDR* addr = CreateRemote( localAddress, localPort );
 	if( !addr ) {
 		if( session->error )
 			session->error( session->psv, -EINVAL, "Bad address for local connection", 32 );

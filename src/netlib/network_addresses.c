@@ -1180,7 +1180,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 				else {
 					globalNetworkData.lastAddressError = error;
 					//lprintf( "getaddrinfo Error: %d for [%s]", error, lpName );
-					ReleaseAddress( (PSOCKADDR)lpsaAddr );
+					ReleaseAddress( (SOCKADDR*)lpsaAddr );
 					lpsaAddr = NULL;
 				}
 			}

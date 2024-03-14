@@ -33,7 +33,7 @@ void ReportError(PVARTEXT pInto, CTEXTSTR pstrFrom);
 int  WaitForEchoReply(SOCKET s, uint32_t dwTime);
 uint16_t in_cksum(uint16_t *addr, int len);
 
-// compatible with PSOCKADDR
+// compatible with SOCKADDR*
 // return &ip as the address to use as a SOCKADDR
 struct sockaddr_fake {
 	uintptr_t sockaddr_len;
@@ -86,8 +86,8 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 								,int nCount
 								,PVARTEXT pvtResult
 								,LOGICAL bRDNS
-								,void (*ResultCallback)( PSOCKADDR ip, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
-								,void (*ResultCallbackEx)( uintptr_t psv, PSOCKADDR ip, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+								,void (*ResultCallback)( SOCKADDR* ip, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+								,void (*ResultCallbackEx)( uintptr_t psv, SOCKADDR* ip, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
 								, uintptr_t psvUser )
 {
 	SOCKET rawSocket;
@@ -140,7 +140,7 @@ static LOGICAL DoPingExx( CTEXTSTR pstrHost
 	}
 
 	// Lookup host
-	PSOCKADDR sockAddr = CreateSockAddress( pstrHost, 0 );
+	SOCKADDR* sockAddr = CreateSockAddress( pstrHost, 0 );
 	saDest.sockaddr_name = pstrHost;
 	if( sockAddr->sa_family == AF_INET )
 	{
@@ -367,7 +367,7 @@ LoopBreakpoint:
 		{
 			TEXTCHAR Min[8], Max[8], Avg[8];
 			if( ResultCallback )
-				ResultCallback( (PSOCKADDR ) & Entry[i].ip.ip
+				ResultCallback( (SOCKADDR* ) & Entry[i].ip.ip
 				              , Entry[i].pName
 				              , Entry[i].dwMinTime
 				              , Entry[i].dwMaxTime
@@ -376,7 +376,7 @@ LoopBreakpoint:
 				              , 256 - Entry[i].TTL );
 			else if( ResultCallbackEx )
 				ResultCallbackEx( psvUser
-				                , (PSOCKADDR)&Entry[i].ip.ip
+				                , (SOCKADDR*)&Entry[i].ip.ip
 				                , Entry[i].pName
 				                , Entry[i].dwMinTime
 				                , Entry[i].dwMaxTime
@@ -424,7 +424,7 @@ LoopBreakpoint:
 		else
 		{
 			if( ResultCallback )
-				ResultCallback( (PSOCKADDR)&Entry[i].ip
+				ResultCallback( (SOCKADDR*)&Entry[i].ip
 									, Entry[i].pName
 									, Entry[i].dwMinTime
 									, Entry[i].dwMaxTime
@@ -433,7 +433,7 @@ LoopBreakpoint:
 									, 256 - Entry[i].TTL );
 			else if( ResultCallbackEx )
 				ResultCallbackEx( psvUser
-									, (PSOCKADDR)&Entry[i].ip
+									, (SOCKADDR*)&Entry[i].ip
 									, Entry[i].pName
 									, Entry[i].dwMinTime
 									, Entry[i].dwMaxTime
@@ -463,7 +463,7 @@ NETWORK_PROC( LOGICAL, DoPing )( CTEXTSTR pstrHost,
 				int nCount, 
 				PVARTEXT pvtResult, 
 				LOGICAL bRDNS, 
-				void (*ResultCallback)( PSOCKADDR dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) )
+				void (*ResultCallback)( SOCKADDR* dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) )
 {
 	return DoPingExx( pstrHost, maxTTL, dwTime, nCount, pvtResult, bRDNS, ResultCallback, NULL, 0 );
 }
@@ -474,7 +474,7 @@ NETWORK_PROC( LOGICAL, DoPingEx )( CTEXTSTR pstrHost,
 											int nCount,
 											PVARTEXT pvtResult,
 											LOGICAL bRDNS,
-											void (*ResultCallback)( uintptr_t psv, PSOCKADDR dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+											void (*ResultCallback)( uintptr_t psv, SOCKADDR* dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
 											, uintptr_t psvUser )
 {
 	return DoPingExx( pstrHost, maxTTL, dwTime, nCount, pvtResult, bRDNS, NULL, ResultCallback, psvUser );
