@@ -1133,7 +1133,7 @@ NETWORK_PROC( LOGICAL, DoPing )( CTEXTSTR pstrHost,
              int nCount,
              PVARTEXT pResult,
              LOGICAL bRDNS,
-             void (*ResultCallback)( PSOCKADDR dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) );
+             void (*ResultCallback)( SOCKADDR* dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops ) );
 NETWORK_PROC( LOGICAL, DoPingEx )( CTEXTSTR pstrHost,
              int maxTTL,
              uint32_t dwTime,
