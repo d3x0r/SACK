@@ -47,7 +47,7 @@ else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 
-set( LIBRESSL_VERSION 3.9.0 )
+set( LIBRESSL_VERSION 3.8.0 )
 
 add_subdirectory( ${SOURCES_ROOT}/src/contrib/libressl/${LIBRESSL_VERSION} libressl )
 include_directories( ${SOURCES_ROOT}/src/contrib/libressl/${LIBRESSL_VERSION}/include )
