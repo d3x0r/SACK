@@ -85,6 +85,8 @@ struct web_socket_input_state
 	uintptr_t psvSender;
 	void ( *do_close )( uintptr_t psv );
 	uintptr_t psvCloser;
+	void ( *do_eof )( uintptr_t psv );
+	uintptr_t psvEof;
 
 };
 

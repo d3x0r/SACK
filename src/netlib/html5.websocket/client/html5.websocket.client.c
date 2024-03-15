@@ -60,7 +60,9 @@ static void SendRequestHeader( WebSocketClient websock )
 	vtprintf( pvtHeader, "\r\n" );
 	{
 		PTEXT text = VarTextPeek( pvtHeader ); // just leave the buffer in-place
-		if( websock->input_state.flags.use_ssl )
+		if( websock->input_state.on_send ) 
+			websock->input_state.on_send( websock->input_state.psvSender, GetText( text ), GetTextSize( text ) );
+		else if( websock->input_state.flags.use_ssl )
 			ssl_Send( websock->pc, GetText( text ), GetTextSize( text ) );
 		else
 			SendTCP( websock->pc, GetText( text ), GetTextSize( text ) );
@@ -320,9 +322,9 @@ int WebSocketConnect( PCLIENT pc ) {
 }
 
 // end a websocket connection nicely.
-void WebSocketClose( PCLIENT pc, int code, const char *reason )
+static void WebSocketClose_( WebSocketClient wsc, int code, const char *reason )
 {
-	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
+	WebSocketClient websock = wsc;// (WebSocketClient)GetNetworkLong( pc, 0 );
 	char buf[130];
 	size_t buflen;
 	if( !websock )  // maybe already closed?
@@ -345,29 +347,41 @@ void WebSocketClose( PCLIENT pc, int code, const char *reason )
 		}
 		else {
 			//lprintf( "Negotiation incomplete, don't send close; just close." );
-			RemoveClientEx( pc, 0, 1 );
+			if( serverSock->input_state.on_close )
+				serverSock->input_state.on_close( NULL, serverSock->input_state.psv_on, 1006, "Negotiation incomplete" ); 
+			else if( serverSock->pc )
+				RemoveClientEx( serverSock->pc, 0, 1 );
 		}
 	}
 	else {
 		if( websock->Magic == 0x20130911 ) { // struct web_socket_client
 			//lprintf( "send client side close?" );
 			if( websock->flags.connected ) {
-				while( !NetworkLockEx( pc, 1 DBG_SRC ) ){
+				while( !NetworkLockEx( websock->pc, 1 DBG_SRC ) ){
 					// closing closed socket....
-					if( !sack_network_is_active(pc) )
+					if( !sack_network_is_active( websock->pc) )
 						return;
 					Relinquish();
 				}
 				SendWebSocketMessage( &websock->input_state, 8, 1, websock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen );
 				websock->input_state.flags.closed = 1;
-				NetworkUnlock( pc, 1 );
+				NetworkUnlock( websock->pc, 1 );
 			}
 			else {
 				//lprintf( "Negotiation incomplete, don't send close; just close." );
-				RemoveClientEx( pc, 0, 1 );
+				RemoveClientEx( websock->pc, 0, 1 );
 			}
 		}
 	}
+}
+
+void WebSocketClose( PCLIENT pc, int code, const char* reason ) {
+	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
+	WebSocketClose_( websock, code, reason );
+}
+
+void WebSocketPipeClose( struct html5_web_socket* wss, int code, const char* reason ) {
+	WebSocketClose_( (WebSocketClient)wss, code, reason );
 }
 
 static void WebSocketEnableAutoPing_( WebSocketInputState input , uint32_t delay )

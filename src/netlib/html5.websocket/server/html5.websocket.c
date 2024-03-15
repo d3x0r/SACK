@@ -1,6 +1,6 @@
 #define NO_UNICODE_C
 #define HTML5_WEBSOCKET_SOURCE
-#define SACK_WEBSOCKET_CLIENT_SOURCE // websocketclose is a common...
+#define SACK_WEBSOCKET_CLIENT_SOURCE // websocketclose is in client...
 
 #include <stdhdrs.h>
 #include <stdlib.h>
@@ -278,7 +278,10 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 				socket->flags.http_request_only = 1;
 				socket->flags.in_open_event = 1;
 				if( socket->input_state.on_request ) {
-					socket->input_state.on_request( socket->pc, socket->input_state.psv_on );
+					if( socket->Magic == 0x20240310 )
+						socket->input_state.on_request( (PCLIENT)socket, socket->input_state.psv_on );
+					else
+						socket->input_state.on_request( socket->pc, socket->input_state.psv_on );
 				} else {
 					socket->flags.in_open_event = 0;
 					if( socket->pc )
@@ -381,7 +384,10 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 				PTEXT protocols = GetHTTPField( socket->http_state, "Sec-WebSocket-Protocol" );
 				PTEXT resource = GetHttpResource( socket->http_state );
 				if( socket->input_state.on_accept ) {
-					socket->flags.accepted = socket->input_state.on_accept( socket->pc, socket->input_state.psv_on, GetText( protocols ), GetText( resource ), &socket->protocols );
+					if( socket->Magic == 0x20240310 )
+						socket->flags.accepted = socket->input_state.on_accept( (PCLIENT)socket, socket->input_state.psv_on, GetText( protocols ), GetText( resource ), &socket->protocols );
+					else
+						socket->flags.accepted = socket->input_state.on_accept( socket->pc, socket->input_state.psv_on, GetText( protocols ), GetText( resource ), &socket->protocols );
 				} else
 					socket->flags.accepted = 1;
 			}
@@ -471,7 +477,9 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 				}
 
 				value = VarTextPeek( pvt_output );
-				if( socket->input_state.flags.use_ssl )
+				if( socket->input_state.on_send )
+					socket->input_state.on_send( socket->input_state.psvSender, GetText( value ), GetTextSize( value ) );
+				else if( socket->input_state.flags.use_ssl )
 					ssl_Send( socket->pc, GetText( value ), GetTextSize( value ) );
 				else
 					SendTCP( socket->pc, GetText( value ), GetTextSize( value ) );
@@ -479,15 +487,24 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 				VarTextDestroy( &pvt_output );
 				socket->flags.in_open_event = 1;
 
-				if( socket->input_state.on_open )
-					socket->input_state.psv_open = socket->input_state.on_open( socket->pc, socket->input_state.psv_on );
+				if( socket->input_state.on_open ) {
+					if( socket->Magic == 0x20240310 ) {
+						socket->input_state.psv_open = socket->input_state.on_open( (PCLIENT)socket, socket->input_state.psv_on );
+					} else {
+						socket->input_state.psv_open = socket->input_state.on_open( socket->pc, socket->input_state.psv_on );
+					}
+				}
 				socket->flags.in_open_event = 0;
 				if( socket->flags.closed ) {
 					destroyHttpState( socket, NULL );
 					return;
 				}
 			} else {
-				WebSocketClose( socket->pc, 0, NULL );
+				if( socket->pc )
+					WebSocketClose( socket->pc, 0, NULL );
+				else
+					WebSocketPipeClose( socket, 0, NULL );
+
 				return;
 			}
 			// keep this until close, application might want resource and/or headers from this.
@@ -639,6 +656,10 @@ HTML5WebSocket WebSocketPipeConnect( HTML5WebSocket pipe, uintptr_t psvNew ) {
 	return socket;
 }
 
+void WebSocketPipeSetConnectPSV( struct html5_web_socket* pipe, uintptr_t psvNew ) {
+	pipe->input_state.psvSender = psvNew;
+}
+
 
 HTML5WebSocket WebSocketCreateServerPipe( web_socket_opened on_open
                                         , web_socket_event on_event
@@ -686,14 +707,25 @@ void WebSocketPipeSetClose( HTML5WebSocket pipe, void ( *do_close )( uintptr_t p
 	pipe->input_state.psvCloser = psv_close;
 }
 
+void WebSocketPipeSetEof( HTML5WebSocket pipe, void ( *do_eof )( uintptr_t psv ), uintptr_t psv_eof ) {
+	pipe->input_state.do_eof = do_eof;
+	pipe->input_state.psvEof = psv_eof;
+}
+
 void WebSocketPipeSend( HTML5WebSocket socket, CPOINTER buffer, size_t length ) {
 	socket->input_state.on_send( socket->input_state.psvSender, buffer, length );
 }
 
-void WebSocketPipeClose( HTML5WebSocket socket ) {
+// just the command to do a close.
+void WebSocketPipeSocketClose( HTML5WebSocket socket ) {
 	lprintf( "Need to close this channel of ssh" );
 	socket->input_state.do_close( socket->input_state.psvCloser );
 }
+
+void WebSocketPipeEof( HTML5WebSocket pipe ) {
+	pipe->input_state.do_eof( pipe->input_state.psvEof );
+}
+
 
 PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	, web_socket_opened on_open

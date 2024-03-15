@@ -454,7 +454,10 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 					if( !websock->flags.pipe )
 						RemoveClientEx( (PCLIENT)websock->psvSender, 0, 0 ); // this should not linger; client already sent closed, nothing more to receive.
 					else {
-						lprintf( "Pipe handle close: This should probably release weboscket and all other stuff" );
+						if( websock->do_close)
+							websock->do_close( websock->psvCloser );
+						else
+							lprintf( "Pipe handle close: This should probably release weboscket and all other stuff" );
 					}
 					// resetInputstate after this would squash next memory....
 					return;
