@@ -69,6 +69,9 @@ WEBSOCKET_EXPORT int WebSocketConnect( PCLIENT );
 // code must be 1000, or 3000-4999, and reason must be less than 123 characters (125 bytes with code)
 WEBSOCKET_EXPORT void WebSocketClose( PCLIENT, int code, const char *reason );
 
+// end a websocket connection nicely.
+// used for client and server connections - specifically pipes.
+WEBSOCKET_EXPORT void WebSocketPipeClose( struct html5_web_socket*, int code, const char* reason );
 
 // there is a control bit for whether the content is text or binary or a continuation
 WEBSOCKET_EXPORT void WebSocketBeginSendText( PCLIENT, const char *, size_t ); // UTF8 RFC3629

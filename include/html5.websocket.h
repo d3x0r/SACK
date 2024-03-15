@@ -84,18 +84,35 @@ HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketCreate )( CTEXTSTR server_url
 */
 HTML5_WEBSOCKET_PROC( void, WebSocketWrite )( struct html5_web_socket* socket, CPOINTER buffer, size_t length );
 /*
-* Set the send callback for a pipe connection.
+* Set the send callback for a pipe connection.  SSH layer wants to send data to this socket.
 */
 HTML5_WEBSOCKET_PROC( void, WebSocketPipeSetSend )( struct html5_web_socket* pipe, int ( *on_send )( uintptr_t psv, CPOINTER buffer, size_t length ), uintptr_t psv_send );
+/*
+* An EOF has happened from the other side of the channel this pipe is associated with.
+*/
+
+HTML5_WEBSOCKET_PROC( void, WebSocketPipeSetEof )( struct html5_web_socket* pipe, void ( *do_eof )( uintptr_t psv ), uintptr_t psv_eof );
+/*
+* A close has been requested from the other side of the channel this pipe is associated with.
+*/
 HTML5_WEBSOCKET_PROC( void, WebSocketPipeSetClose )( struct html5_web_socket* pipe, void ( *do_close )( uintptr_t psv ), uintptr_t psv_close );
+/*
+* Send data to the pipe connection.  This is the same as WebSocketWrite, but is used for the pipe connection.
+*/
 HTML5_WEBSOCKET_PROC( void, WebSocketPipeSend )( struct html5_web_socket* socket, CPOINTER buffer, size_t length );
-HTML5_WEBSOCKET_PROC( void, WebSocketPipeClose )( struct html5_web_socket* socket );
+/*
+* The underlaying socket connection has been closed. (for SSH that the channel is closed)
+*/
+HTML5_WEBSOCKET_PROC( void, WebSocketPipeSocketClose )( struct html5_web_socket* socket );
 /*
 * A new pipe connection has been accepted, this performs the same operation
 * as accepting a socket internally
 */
 HTML5_WEBSOCKET_PROC( struct html5_web_socket*, WebSocketPipeConnect )( struct html5_web_socket* pipe, uintptr_t psvNew );
-
+/*
+* allows changing the user data associated with the callback
+*/
+HTML5_WEBSOCKET_PROC( void, WebSocketPipeSetConnectPSV)( struct html5_web_socket* pipe, uintptr_t psvNew );
 // during open, server may need to switch behavior based on protocols
 // this can be used to return the protocols requested by the client.
 HTML5_WEBSOCKET_PROC( const char *, WebSocketGetProtocols )( PCLIENT pc );
