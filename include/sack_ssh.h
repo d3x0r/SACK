@@ -54,7 +54,6 @@ NETWORK_PROC( ssh_setenv_cb, sack_ssh_set_setenv )( struct ssh_listener* listene
 typedef uintptr_t( *ssh_forward_connect_cb )( uintptr_t psv, LOGICAL success );
 NETWORK_PROC( ssh_forward_connect_cb, sack_ssh_set_forward_connect )( struct ssh_session* session, ssh_forward_connect_cb );
 
-
 /*
 * set a callback for when a session is connected (or fails to connect)
 */
@@ -76,7 +75,7 @@ NETWORK_PROC( ssh_forward_listen_cb, sack_ssh_set_forward_listen )( struct ssh_s
 *
 * This is called when a listener gets a connection, and the callback should return a pointer to a structure that will be used as the psv for the channel
 */
-typedef uintptr_t( *ssh_forward_listen_accept_cb ) ( uintptr_t psv, struct ssh_channel* channel );
+typedef uintptr_t( *ssh_forward_listen_accept_cb ) ( uintptr_t psv, struct ssh_listener*listener, struct ssh_channel* channel );
 NETWORK_PROC( ssh_forward_listen_accept_cb, sack_ssh_set_forward_listen_accept )( struct ssh_listener* listen, ssh_forward_listen_accept_cb );
 
 /*
@@ -227,8 +226,9 @@ NETWORK_PROC( void, sack_ssh_channel_exec )( struct ssh_channel* channel, CTEXTS
 */
 NETWORK_PROC( void, sack_ssh_channel_write )( struct ssh_channel* channel, int stream, const uint8_t* buffer, size_t length );
 
-NETWORK_PROC( void, sack_ssh_channel_close )( struct ssh_channel* channel );
+NETWORK_PROC( void, sack_ssh_channel_close )( struct ssh_channel* channel );  // send Close on channel (which also sends EOF on channel)
 
+NETWORK_PROC( void, sack_ssh_channel_eof )( struct ssh_channel* channel ); // send EOF on channel
 /*
 LIBSSH2_API int libssh2_channel_send_eof(LIBSSH2_CHANNEL *channel);
 LIBSSH2_API int libssh2_channel_eof(LIBSSH2_CHANNEL *channel);
@@ -250,6 +250,7 @@ NETWORK_PROC( void, sack_ssh_sftp_shutdown )( struct ssh_sftp* session );
 * the channel has to be opening from a forwarded listener 
 * (before any data from the remote is processed)
 */
+// a lot of this client work side is done in the websocket client library (sack.vfs)
 NETWORK_PROC( struct ssh_websocket*, sack_ssh_channel_serve_websocket )( struct ssh_channel* channel,
 	web_socket_opened ws_open,
 	web_socket_event ws_event,

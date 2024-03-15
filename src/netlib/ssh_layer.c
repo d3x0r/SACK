@@ -663,7 +663,7 @@ static LIBSSH2_LISTERNER_CONNECT_FUNC( listener_connect_relay ) {
 	ssh_channel->session = (struct ssh_session*)session_abstract[0];
 	//channel->channel = libssh2_channel_accept_ex( listener->listener, (void*)channel );
 	ssh_channel->channel = channel;
-	ssh_channel->psv = ssh_listener->listen_connect_cb( ssh_listener->psv, ssh_channel );
+	ssh_channel->psv = ssh_listener->listen_connect_cb( ssh_listener->psv, ssh_listener, ssh_channel );
 }
 
 ssh_forward_listen_accept_cb sack_ssh_set_forward_listen_accept( struct ssh_listener* listener, ssh_forward_listen_accept_cb connect_cb ) {
@@ -991,6 +991,10 @@ void sack_ssh_channel_close( struct ssh_channel* channel ) {
 	ReleaseEx( channel DBG_SRC );
 }
 
+void sack_ssh_channel_eof( struct ssh_channel* channel ) {
+	libssh2_channel_send_eof( channel->channel );
+}
+
 void sack_ssh_channel_request_pty( struct ssh_channel* channel, CTEXTSTR term, ssh_pty_cb cb ) {
 	EnterCriticalSec( &local_ssh_layer_data.csLock );
 	if( channel->session->pending.state != SSH_STATE_RESET ) {
@@ -1173,6 +1177,17 @@ static void ssh_ws_open( uintptr_t psv ) {
 	
 }
 
+static void ssh_ws_eof( uintptr_t psv ) {
+	struct ssh_websocket* ws = (struct ssh_websocket*)psv;
+	// this side was given an EOF
+	WebSocketPipeClose( ws->ws, 1006, "Channel at EOF" );
+	sack_ssh_channel_close( ws->channel );
+}
+
+static void ssh_ws_close( uintptr_t psv ) {
+
+}
+
 /*
 * SSH channel to serve websocket
 * This can be called when a SSH channel is in the open callback from a remote TCP connection
@@ -1191,6 +1206,8 @@ struct ssh_websocket* sack_ssh_channel_serve_websocket( struct ssh_channel* chan
 	) {
 	struct ssh_websocket* ws = NewArray( struct ssh_websocket, 1 );
 	ws->channel = channel;
+	sack_ssh_set_channel_eof( channel, ssh_ws_eof );
+	sack_ssh_set_channel_close( channel, ssh_ws_close );
 	channel->psv = (uintptr_t)ws;
 	channel->channel_data = WebSocketData;
 	ws->ws = WebSocketCreateServerPipe( ws_open, ws_event, ws_close, ws_error
