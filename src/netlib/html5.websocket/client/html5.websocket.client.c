@@ -266,8 +266,10 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	websock->input_state.on_error = on_error;
 	websock->input_state.psv_on = psv;
 	websock->protocols = protocols;
+
 	websock->input_state.flags.expect_masking = 1; // client to server is MUST mask because of proxy handling in that direction
 	websock->input_state.close_code = 1006;
+	websock->input_state.close_reason = StrDup( "Socket Close" );
 
 	websock->url = SACK_URLParse( url_address );
 	if( !websock->url->host ) {
