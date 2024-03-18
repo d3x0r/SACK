@@ -479,6 +479,7 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 				value = VarTextPeek( pvt_output );
 				if( socket->input_state.on_send )
 					socket->input_state.on_send( socket->input_state.psvSender, GetText( value ), GetTextSize( value ) );
+				// the following are actually unreachable code.... (probably?)
 				else if( socket->input_state.flags.use_ssl )
 					ssl_Send( socket->pc, GetText( value ), GetTextSize( value ) );
 				else
@@ -553,10 +554,12 @@ void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 			if( socket->input_state.flags.use_ssl ) {
 				socket->input_state.flags.use_ssl = ssl_IsClientSecure( socket->pc );
 				if( !socket->input_state.flags.use_ssl ) {
+					socket->input_state.on_send = WebSocketSendTCP;
 					socket->flags.skip_read = 1;
 				}
 			} else {
-				socket->input_state.flags.use_ssl = ssl_IsClientSecure( socket->pc );
+				//socket->input_state.flags.use_ssl = ssl_IsClientSecure( socket->pc );
+				// ssl is default - if that didn't work, then it won't become secure.
 			}
 		}
 		if( !socket->input_state.flags.use_ssl ) {
@@ -570,6 +573,10 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 	if( !socket ) return; // closing/closed....
 	WebSocketWrite( socket, buffer, length );
+	if( socket->input_state.flags.use_ssl  && !ssl_IsClientSecure( pc ) ) {
+		socket->input_state.flags.use_ssl = 0;
+		socket->input_state.on_send = WebSocketSendTCP;
+	}
 	if( !socket->input_state.flags.use_ssl ) {
 		if( socket->flags.skip_read ) 
 			socket->flags.skip_read = 0;
@@ -588,14 +595,13 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	socket->pc = pc_new;
 	socket->input_state = server_socket->input_state; // clone callback methods and config flags
 	socket->input_state.close_code = 1006;
+	socket->input_state.close_reason = StrDup( "Because I don't Like You?");
 	socket->input_state.psvSender = (uintptr_t)pc_new;
-	if( ssl_IsClientSecure( pc_new ) ) {
-		socket->input_state.flags.use_ssl = 1;
-		socket->input_state.on_send = WebSocketSendSSL;
-	} else {
-		socket->input_state.flags.use_ssl = 0;
-		socket->input_state.on_send = WebSocketSendTCP;
-	}
+
+	// assume secure, when the handshake fails, it demotes to insecure
+	socket->input_state.flags.use_ssl = 1;
+	socket->input_state.on_send = WebSocketSendSSL;
+
 	socket->http_state = CreateHttpState( &socket->pc ); // start a new http state collector
 	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
 	SetNetworkLong( pc_new, 0, (uintptr_t)socket );

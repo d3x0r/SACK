@@ -1325,7 +1325,8 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 }
 
 LOGICAL ssl_IsClientSecure( PCLIENT pc ) {
-	return (pc->ssl_session&&(pc->ssl_session->ctx != NULL));
+	//lprintf( "Is client secure? %p %d %d", pc, !!pc->ssl_session, (pc->ssl_session&&(pc->ssl_session->ctx != NULL)) );
+	return (!!pc->ssl_session);//&&(pc->ssl_session->ctx != NULL));
 }
 
 
