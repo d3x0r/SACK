@@ -194,12 +194,16 @@ struct ssl_session {
 	uintptr_t 	psvSendRecv;
 	cReadComplete  user_read;
 	cppReadComplete  cpp_user_read;
+	uintptr_t psvRead;
 
 	cNotifyCallback user_connected;
 	cppNotifyCallback cpp_user_connected;
 
 	cCloseCallback user_close;
 	cppCloseCallback cpp_user_close;
+
+	cErrorCallback errorCallback;
+	uintptr_t psvErrorCallback;
 
 	uint8_t *obuffer;
 	size_t obuflen;
@@ -374,7 +378,7 @@ static int handshake( struct ssl_session* ses ) {
 #ifdef DEBUG_SSL_IO
   						lprintf( "handshake send %d", read );
 #endif
-						ses->send_callback( ses->psvSendRecv, ses->obuffer, read );
+							ses->send_callback( ses->psvSendRecv, ses->obuffer, read );
   					}
   				}
   			}
@@ -387,7 +391,7 @@ static int handshake( struct ssl_session* ses ) {
 				lprintf( "SSL_Read failed... %d", r );
 #endif
 
-				//if( !pc->errorCallback )
+				if( !ses->errorCallback )
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
 				return -1;
 			}
@@ -472,8 +476,8 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session* ses, POINTER buff
 						int r;
 						if( ( r = SSL_get_verify_result( ses->ssl ) ) != X509_V_OK ) {
 							if( pc )
-								if( pc->errorCallback )
-									pc->errorCallback( pc->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_CERTCHAIN_FAIL );
+								if( ses->errorCallback )
+									ses->errorCallback( ses->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_CERTCHAIN_FAIL );
 							lprintf( "Certificate verification failed. %d", r );
 							LeaveCriticalSec( &ses->csReadWrite );
 							ssl_ClosePipeSession( ses );
@@ -489,7 +493,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session* ses, POINTER buff
 
 					//lprintf( "Initial read dispatch.." );
 					if( ses->dwOriginalFlags & CF_CPPREAD )
-						ses->cpp_user_read( pc->psvRead, NULL, 0 );
+						ses->cpp_user_read( ses->psvRead, NULL, 0 );
 					else
 						ses->user_read( pc, NULL, 0 );
 
@@ -525,14 +529,14 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session* ses, POINTER buff
 							lprintf( "want more data?" );
 						} else
 							lprintf( "SSL_Read failed. %d", error );
-						if( pc && pc->errorCallback )
-							pc->errorCallback( pc->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_FAIL );
+						if( pc && ses->errorCallback )
+							ses->errorCallback( ses->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_FAIL );
 					}
 				}
 			}
 			else if( hs_rc == -1 ) {
-				if( pc && pc->errorCallback )
-					pc->errorCallback( pc->psvErrorCallback, pc, ses->firstPacket
+				if( pc && ses->errorCallback )
+					ses->errorCallback( ses->psvErrorCallback, pc, ses->firstPacket
 						? SACK_NETWORK_ERROR_SSL_HANDSHAKE
 						: SACK_NETWORK_ERROR_SSL_HANDSHAKE_2
 						, buffer, length );
@@ -572,7 +576,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session* ses, POINTER buff
 				}
 #endif
 				if( ses->dwOriginalFlags & CF_CPPREAD )
-					ses->cpp_user_read( pc->psvRead, ses->dbuffer, len );
+					ses->cpp_user_read( ses->psvRead, ses->dbuffer, len );
 				else
 					ses->user_read( pc, ses->dbuffer, len );
 				if( ses ) { // might have closed during read.
@@ -757,19 +761,11 @@ static void ssl_InitSession( struct ssl_session *ses ) {
 	//InitializeCriticalSec( &ses->csWrite );
 }
 
-// this is from network layer, so it will be a PCLIENT
-static void ssl_CloseCallback( PCLIENT pc ) {
-	struct ssl_session *ses = pc->ssl_session;
+
+void ssl_ClosePipe( struct ssl_session *ses ) {
 	if (!ses) {
 		lprintf("already closed?");
 		return;
-	}
-	pc->ssl_session = NULL;
-
-	if( ses->dwOriginalFlags & CF_CPPCLOSE ){
-		if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
-	}else{
-		if( ses->user_close ) ses->user_close( pc );
 	}
 
 	DeleteCriticalSec( &ses->csReadWrite );
@@ -791,6 +787,24 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 
 	Release( ses );
 }
+
+// this is from network layer, so it will be a PCLIENT
+static void ssl_CloseCallback( PCLIENT pc ) {
+	struct ssl_session *ses = pc->ssl_session;
+	if (!ses) {
+		lprintf("already closed?");
+		return;
+	}
+	if( ses->dwOriginalFlags & CF_CPPCLOSE ){
+		if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
+	}else{
+		if( ses->user_close ) ses->user_close( pc );
+	}
+
+	pc->ssl_session = NULL;
+	ssl_ClosePipe( ses );
+}
+
 
 #ifdef DEBUG_SSL_IO_VERBOSE
 static void infoCallback( const SSL *ssl, int where, int ret ){
@@ -830,6 +844,8 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 
 	SSL_set_accept_state( ses->ssl );
 	AddLink( &pcServer->ssl_session->accepting, ses );
+	ses->errorCallback = pcNew->errorCallback;
+	ses->psvErrorCallback = pcNew->psvErrorCallback;
 	pcNew->ssl_session = ses;
 
 #ifdef DEBUG_SSL_IO_VERBOSE
@@ -844,6 +860,7 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 
 	ses->user_read = pcNew->read.ReadComplete;
 	ses->cpp_user_read = pcNew->read.CPPReadComplete;
+	ses->psvRead = pcNew->psvRead;
 
 	ses->user_close = pcNew->close.CloseCallback;
 	ses->cpp_user_close = pcNew->close.CPPCloseCallback;
@@ -1254,6 +1271,9 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 		pc->connect.ClientConnected = ssl_ClientConnected;
 		pc->dwFlags &= ~CF_CPPCONNECT;
 
+		ses->errorCallback = pc->errorCallback;
+		ses->psvErrorCallback = pc->psvErrorCallback;
+
 		pc->ssl_session = ses;
 	}
 	// at this point pretty much have to assume
@@ -1340,13 +1360,8 @@ static int verify_cb( int preverify_ok, X509_STORE_CTX *ctx) {
 		return preverify_ok;
 }
 
-LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t client_keypairlen, CPOINTER keypass, size_t keypasslen, CPOINTER rootCert, size_t rootCertLen )
+LOGICAL ssl_BeginClientSession_( struct ssl_session*ses, CPOINTER client_keypair, size_t client_keypairlen, CPOINTER keypass, size_t keypasslen, CPOINTER rootCert, size_t rootCertLen )
 {
-	struct ssl_session * ses;
-	ssl_InitLibrary();
-
-	ses = New( struct ssl_session );
-	MemSet( ses, 0, sizeof( struct ssl_session ) );
 	{
 		int needsKey = 0;
 		ses->cert = New( struct internalCert );
@@ -1418,6 +1433,23 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	SSL_set_verify( ses->ssl, SSL_VERIFY_PEER, verify_cb );
 	SSL_set_ex_data( ses->ssl, verify_mydata_index, &ses->verify_data );
 	ssl_InitSession( ses );
+
+#ifdef DEBUG_SSL_IO_VERBOSE
+	SSL_set_info_callback( ses->ssl, infoCallback );
+#endif
+
+	return TRUE;
+}
+
+LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t client_keypairlen, CPOINTER keypass, size_t keypasslen, CPOINTER rootCert, size_t rootCertLen ){
+	struct ssl_session * ses;
+	ssl_InitLibrary();
+
+	ses = New( struct ssl_session );
+	MemSet( ses, 0, sizeof( struct ssl_session ) );
+
+	LOGICAL status = ssl_BeginClientSession_( ses, client_keypair, client_keypairlen, keypass, keypasslen, rootCert, rootCertLen );
+
 	{
 		const char *addr = GetAddrName( pc->saClient );
 		SSL_set_tlsext_host_name( ses->ssl, addr );
@@ -1429,6 +1461,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	ses->user_read = pc->read.ReadComplete;
 	ses->cpp_user_read = pc->read.CPPReadComplete;
 	ses->verify_data = verify_default;
+	ses->psvRead = pc->psvRead;
 
 	ses->send_callback = ssl_layer_sender;
 	ses->recv_callback = ssl_layer_recver;
@@ -1437,13 +1470,50 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	pc->read.ReadComplete = ssl_ReadComplete;
 	pc->dwFlags &= ~CF_CPPREAD;
 
+	ses->errorCallback = pc->errorCallback;
+	ses->psvErrorCallback = pc->psvErrorCallback;
+
 	pc->ssl_session = ses;
 #ifdef DEBUG_SSL_IO_VERBOSE
-	SSL_set_info_callback( pc->ssl_session->ssl, infoCallback );
+	SSL_set_info_callback( ses->ssl, infoCallback );
 #endif
 
-	return TRUE;
+
 }
+
+struct ssl_session* ssl_BeginClientPipeSession( void (*send)(uintptr_t, CPOINTER, size_t)
+					, void (* recv)( uintptr_t, POINTER, size_t )
+					, void (* read)( uintptr_t, POINTER, size_t )
+					, void (* close)( uintptr_t )
+					
+					, cErrorCallback error, uintptr_t psvSendRecv
+		, CPOINTER client_keypair, size_t client_keypairlen
+		, CPOINTER keypass, size_t keypasslen
+		, CPOINTER rootCert, size_t rootCertLen ){ 
+
+	struct ssl_session * ses;
+	ssl_InitLibrary();
+
+	ses = New( struct ssl_session );
+	MemSet( ses, 0, sizeof( struct ssl_session ) );
+
+	ssl_BeginClientSession_( ses, client_keypair, client_keypairlen, keypass, keypasslen, rootCert, rootCertLen );
+
+
+	ses->dwOriginalFlags = CF_CPPREAD;
+	ses->cpp_user_read = read;
+	ses->psvRead = psvSendRecv;
+
+	ses->errorCallback = error;
+	ses->psvErrorCallback = psvSendRecv;
+	ses->send_callback = send;
+	ses->recv_callback = recv;
+	ses->psvSendRecv = (uintptr_t)psvSendRecv;
+
+	return  ses;
+
+}
+
 
 LOGICAL ssl_IsClientSecure( PCLIENT pc ) {
 	//lprintf( "Is client secure? %p %d %d", pc, !!pc->ssl_session, (pc->ssl_session&&(pc->ssl_session->ctx != NULL)) );
@@ -1482,6 +1552,21 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 	}
 }
 
+void ssl_EndSecurePipe(struct ssl_session*session ) {
+		// revert native socket methods.
+		// restore all the native specified options for callbacks.
+		// prevent close event...
+		POINTER tmp;
+		session->user_close = NULL;
+		session->cpp_user_close = NULL;
+		tmp = session->ibuffer;
+		session->ibuffer = NULL;
+		ssl_ClosePipe( session );
+		// SSL callback failed, but it may be possible to connect direct.
+		// and if so; setup to return a redirect.
+		Release( tmp );
+
+}
 
 CTEXTSTR ssl_GetRequestedHostName( PCLIENT pc ) {
 	if( pc->ssl_session ) {
@@ -1771,6 +1856,24 @@ lprintf( "Loading System Certs");
 }
 
 #endif
+
+void SetSSLPipeErrorCallback( struct ssl_session *session, cErrorCallback callback, uintptr_t psvUser ) {
+		session->errorCallback = callback;
+		session->psvErrorCallback = psvUser;
+}
+
+void SetNetworkErrorCallback( PCLIENT pc, cErrorCallback callback, uintptr_t psvUser ) {
+	lprintf( "SetNetworkErrorCallback %p %p", pc, pc->ssl_session );
+	if( pc && pc->ssl_session ) {		
+		pc->ssl_session->errorCallback = callback;
+		pc->ssl_session->psvErrorCallback = psvUser;
+	}
+	else if( pc) {		
+		pc->errorCallback = callback;
+		pc->psvErrorCallback = psvUser;
+	}
+}
+
 
 
 SACK_NETWORK_NAMESPACE_END
