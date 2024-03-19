@@ -300,6 +300,7 @@ LOGICAL ssl_IsPipeClosed( struct ssl_session*ssl_session ) {
 
 void ssl_ClosePipeSession( struct ssl_session* ssl_session )
 {
+	//lprintf( "Close generic session %p", ssl_session );
 	if( ssl_session )
 	{
 		INDEX idx;
@@ -538,6 +539,9 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session* ses, POINTER buff
 				// disableSSL call can happen during error callback
 				// in which case this will eventually fall back to non-SSL reading
 				// and the buffer will get passed back in (or a new buffer if someone really crafty uses it...)
+				if( pc && !pc->ssl_session ) {
+					ses = NULL;
+				}
 				if( ses ) {
 					LeaveCriticalSec( &ses->csReadWrite );
 					//ssl_CloseSession( pc );
@@ -802,10 +806,12 @@ static void infoCallback( const SSL *ssl, int where, int ret ){
 #endif
 
 static void ssl_layer_sender( uintptr_t pc, CPOINTER buffer, size_t length ) {
+	//lprintf( "Send: %p %d", buffer, length );
 	SendTCP( (PCLIENT)pc, buffer, length );
 }
 
 static void ssl_layer_recver( uintptr_t pc, POINTER buffer, size_t length ) {
+	//lprintf( "Queue read: %p %d", buffer, length );
 	ReadTCP( (PCLIENT)pc, buffer, length );
 }
 
