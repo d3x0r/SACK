@@ -529,17 +529,14 @@ void SetCPPNetworkReadComplete( PCLIENT pClient
 }
 
 //----------------------------------------------------------------------------
-
-void SetNetworkErrorCallback( PCLIENT pc, cErrorCallback callback, uintptr_t psvUser ) {
-	if( pc ) {
-		pc->errorCallback = callback;
-		pc->psvErrorCallback = psvUser;
-	}
-}
-
 //----------------------------------------------------------------------------
 
 void TriggerNetworkErrorCallback( PCLIENT pc, enum SackNetworkErrorIdentifier error ) {
+	/*
+	if( pc && pc->ssl_session && pc->ssl_session->errorCallback )
+		pc->ssl_session->errorCallback( pc->ssl_session->psvErrorCallback, pc, error );
+	else
+	*/
 	if( pc && pc->errorCallback )
 		pc->errorCallback( pc->psvErrorCallback, pc, error );
 }
