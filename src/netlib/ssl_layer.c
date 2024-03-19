@@ -188,6 +188,10 @@ struct ssl_session {
 	PLIST          protocols; // protocol select from TLS
 	SSL*           ssl;
 	uint32_t       dwOriginalFlags; // CF_CPPREAD
+
+	cppReadComplete  recv_callback;
+	cppWriteComplete  send_callback;
+	uintptr_t 	psvSendRecv;
 	cReadComplete  user_read;
 	cppReadComplete  cpp_user_read;
 
@@ -242,32 +246,40 @@ static int logerr( const char *str, size_t len, void *userdata ) {
 	return 0;
 }
 
-static void ssl_handlePendingControlwrites( PCLIENT pc ) {
+struct ssl_session* ssl_GetSession( PCLIENT pc )
+{
+	return pc->ssl_session;
+}
+
+static void ssl_handlePendingControlwrites( struct ssl_session* pc_ssl_session ) {
 	// the read generated write data, output that data
-	size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
-	if( !pc->ssl_session ) {
+	size_t pending = BIO_ctrl_pending( pc_ssl_session->wbio );
+	if( !pc_ssl_session ) {
 		lprintf( "SSL SESSION SELF DESTRUCTED!" );
 	}
 	if( pending > 0 ) {
 		int read;
 #ifdef DEBUG_SSL_IO_VERBOSE
-		lprintf( "pending to send is %zd into %zd %p " , pending, pc->ssl_session->obuflen, pc->ssl_session->obuffer );
+		lprintf( "pending to send is %zd into %zd %p " , pending, pc_ssl_session->obuflen, pc_ssl_session->obuffer );
 #endif
-		if( pending > pc->ssl_session->obuflen ) {
-			if( pc->ssl_session->obuffer )
-				Deallocate( uint8_t *, pc->ssl_session->obuffer );
-			pc->ssl_session->obuffer = NewArray( uint8_t, pc->ssl_session->obuflen = pending * 2 );
+		if( pending > pc_ssl_session->obuflen ) {
+			if( pc_ssl_session->obuffer )
+				Deallocate( uint8_t *, pc_ssl_session->obuffer );
+			pc_ssl_session->obuffer = NewArray( uint8_t, pc_ssl_session->obuflen = pending * 2 );
 			//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
 		}
-		read  = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pending );
+		read  = BIO_read( pc_ssl_session->wbio, pc_ssl_session->obuffer, (int)pending );
 		if( read < 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 			lprintf( "failed to read pending control data...SSL will fail without it." );
 		} else {
 #ifdef DEBUG_SSL_IO
-			lprintf( "Send pending control %p %d", pc->ssl_session->obuffer, read );
+			lprintf( "Send pending control %p %d", pc_ssl_session->obuffer, read );
 #endif
-			SendTCP( pc, pc->ssl_session->obuffer, read );
+			if( pc_ssl_session->send_callback )
+				pc_ssl_session->send_callback( pc_ssl_session->psvSendRecv, pc_ssl_session->obuffer, read );
+			//else
+			//	SendTCP( pc, pc_ssl_session->obuffer, read );
 		}
 	}
 }
@@ -279,33 +291,44 @@ LOGICAL ssl_IsClosed( PCLIENT pc ) {
 	return TRUE;
 }
 
-void ssl_CloseSession( PCLIENT pc )
+LOGICAL ssl_IsPipeClosed( struct ssl_session*ssl_session ) {
+	if( ssl_session ) {
+		return ssl_session->closed;
+	}
+	return TRUE;
+}
+
+void ssl_ClosePipeSession( struct ssl_session* ssl_session )
 {
-	if( pc->ssl_session )
+	if( ssl_session )
 	{
 		INDEX idx;
 		PTEXT seg;
-		SSL_shutdown( pc->ssl_session->ssl );
-		ssl_handlePendingControlwrites( pc );
+		SSL_shutdown( ssl_session->ssl );
+		ssl_handlePendingControlwrites( ssl_session );
 
-		LIST_FORALL( pc->ssl_session->protocols, idx, PTEXT, seg ) {
+		LIST_FORALL( ssl_session->protocols, idx, PTEXT, seg ) {
 			LineRelease( seg );
 		}
-		DeleteList( &pc->ssl_session->protocols );
-		if( pc->ssl_session->hostname ) {
-			Release( pc->ssl_session->hostname );
-			pc->ssl_session->hostname = NULL;
+		DeleteList( &ssl_session->protocols );
+		if( ssl_session->hostname ) {
+			Release( ssl_session->hostname );
+			ssl_session->hostname = NULL;
 		}
-		pc->ssl_session->closed = TRUE;
+		ssl_session->closed = TRUE;
+		/* this should probably have a do_close action event too like send/recv */
 		//Release( pc->ssl_session );
 		//pc->ssl_session = NULL;
 	}
-	if( !( pc->dwFlags & ( CF_CLOSED|CF_CLOSING ) ) )
+}
+
+void ssl_CloseSession( PCLIENT pc ) {
+	ssl_ClosePipeSession( pc->ssl_session );
+	if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
 		RemoveClient( pc );
 }
 
-static int handshake( PCLIENT pc ) {
-	struct ssl_session *ses = pc->ssl_session;
+static int handshake( struct ssl_session* ses ) {
 	if (!SSL_is_init_finished(ses->ssl)) {
 		int r;
 #ifdef DEBUG_SSL_IO_VERBOSE
@@ -350,7 +373,7 @@ static int handshake( PCLIENT pc ) {
 #ifdef DEBUG_SSL_IO
   						lprintf( "handshake send %d", read );
 #endif
-  						SendTCP( pc, ses->obuffer, read );
+						ses->send_callback( ses->psvSendRecv, ses->obuffer, read );
   					}
   				}
   			}
@@ -362,7 +385,8 @@ static int handshake( PCLIENT pc ) {
 #ifdef DEBUG_SSL_IO
 				lprintf( "SSL_Read failed... %d", r );
 #endif
-				if( !pc->errorCallback )
+
+				//if( !pc->errorCallback )
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
 				return -1;
 			}
@@ -387,7 +411,7 @@ static int handshake( PCLIENT pc ) {
 }
 
 
-static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
+static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session* ses, POINTER buffer, size_t length )
 {
 #if defined( DEBUG_SSL_IO ) || defined( DEBUG_SSL_IO_RAW )
 	lprintf( "SSL Read complete %p %p %zd", pc, buffer, length );
@@ -395,7 +419,7 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 	LogBinary( (const uint8_t*)buffer, length );
 #  endif
 #endif
-	if( pc->ssl_session )
+	if( ses )
 	{
 		if( buffer )
 		{
@@ -404,62 +428,71 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			//lprintf( "Read from network: %d", length );
 			//LogBinary( (const uint8_t*)buffer, length );
 
-			EnterCriticalSec( &pc->ssl_session->csReadWrite );
+			EnterCriticalSec( &ses->csReadWrite );
 
-			len = BIO_write( pc->ssl_session->rbio, buffer, (int)length );
+			len = BIO_write( ses->rbio, buffer, (int)length );
 #ifdef DEBUG_SSL_IO_VERBOSE
 			lprintf( "Wrote %zd", len );
 #endif
 			if( len < (int)length ) {
 				lprintf( "Internal buffer error; wrote less to buffer than specified?" );
-				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
-				ssl_CloseSession( pc );
+				LeaveCriticalSec( &ses->csReadWrite );
+				//ssl_CloseSession( pc );
+				ssl_ClosePipeSession( ses );
+				if( pc ) 
+					if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
+						RemoveClient( pc );
 				return;
 			}
 
-			if( !( hs_rc = handshake( pc ) ) ) {
-				if( !pc->ssl_session ) {
-					LeaveCriticalSec( &pc->ssl_session->csReadWrite ); //-V522
+			if( !( hs_rc = handshake( ses ) ) ) {
+				if( !ses ) {
+					LeaveCriticalSec( &ses->csReadWrite ); //-V522
 					return;
 				}
 #ifdef DEBUG_SSL_IO_VERBOSE
 				// normal condition...
 				lprintf( "Receive handshake not complete iBuffer" );
 #endif
-				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
-				ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
+				LeaveCriticalSec( &ses->csReadWrite );
+				ses->recv_callback( ses->psvSendRecv, ses->ibuffer, ses->ibuflen );
+				//ReadTCP( pc, ses->ibuffer, ses->ibuflen );
 				return;
 			}
-			if( !pc->ssl_session ) {
-				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+			if( !ses ) {
+				LeaveCriticalSec( &ses->csReadWrite );
 				return;
 			}
 			// == 1 if is already done, and not newly done
 			if( hs_rc == 2 ) {
 				// newly completed handshake.
 				{
-					if( !pc->ssl_session->ignoreVerification && SSL_get_peer_certificate( pc->ssl_session->ssl ) ) {
+					if( !ses->ignoreVerification && SSL_get_peer_certificate( ses->ssl ) ) {
 						int r;
-						if( ( r = SSL_get_verify_result( pc->ssl_session->ssl ) ) != X509_V_OK ) {
-							if( pc->errorCallback )
-								pc->errorCallback( pc->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_CERTCHAIN_FAIL );
+						if( ( r = SSL_get_verify_result( ses->ssl ) ) != X509_V_OK ) {
+							if( pc )
+								if( pc->errorCallback )
+									pc->errorCallback( pc->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_CERTCHAIN_FAIL );
 							lprintf( "Certificate verification failed. %d", r );
-							LeaveCriticalSec( &pc->ssl_session->csReadWrite );
-							ssl_CloseSession( pc );
+							LeaveCriticalSec( &ses->csReadWrite );
+							ssl_ClosePipeSession( ses );
+							if( pc )
+								if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
+									RemoveClient( pc );
 							return;
 							//ERR_print_errors_cb( logerr, (void*)__LINE__ );
 						}
 					}
 
-					LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+					LeaveCriticalSec( &ses->csReadWrite );
 
 					//lprintf( "Initial read dispatch.." );
-					if( pc->ssl_session->dwOriginalFlags & CF_CPPREAD )
-						pc->ssl_session->cpp_user_read( pc->psvRead, NULL, 0 );
+					if( ses->dwOriginalFlags & CF_CPPREAD )
+						ses->cpp_user_read( pc->psvRead, NULL, 0 );
 					else
-						pc->ssl_session->user_read( pc, NULL, 0 );
+						ses->user_read( pc, NULL, 0 );
 
-					EnterCriticalSec( &pc->ssl_session->csReadWrite );
+					EnterCriticalSec( &ses->csReadWrite );
 				}
 				len = 0;
 			}
@@ -468,74 +501,78 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 			read_more:
 				// if read isn't done before pending, pending doesn't get set
 				// but this read doens't return a useful length.
-				len = SSL_read( pc->ssl_session->ssl, NULL, 0 ); //-V575
+				len = SSL_read( ses->ssl, NULL, 0 ); //-V575
 				//lprintf( "return of 0 read: %d", len );
 				//if( len < 0 )
-				//	lprintf( "error of 0 read is %d", SSL_get_error( pc->ssl_session->ssl, len ) );
-				len = SSL_pending( pc->ssl_session->ssl );
+				//	lprintf( "error of 0 read is %d", SSL_get_error( ses->ssl, len ) );
+				len = SSL_pending( ses->ssl );
 				//lprintf( "do read.. pending %d", len );
 				if( len ) {
-					if( len > (int)pc->ssl_session->dbuflen ) {
+					if( len > (int)ses->dbuflen ) {
 						//lprintf( "Needed to expand buffer..." );
-						Release( pc->ssl_session->dbuffer );
-						pc->ssl_session->dbuflen = ( len + 4095 ) & 0xFFFF000;
-						pc->ssl_session->dbuffer = NewArray( uint8_t, pc->ssl_session->dbuflen );
+						Release( ses->dbuffer );
+						ses->dbuflen = ( len + 4095 ) & 0xFFFF000;
+						ses->dbuffer = NewArray( uint8_t, ses->dbuflen );
 					}
-					len = SSL_read( pc->ssl_session->ssl, pc->ssl_session->dbuffer, (int)pc->ssl_session->dbuflen );
+					len = SSL_read( ses->ssl, ses->dbuffer, (int)ses->dbuflen );
 #ifdef DEBUG_SSL_IO_VERBOSE
 					lprintf( "normal read - just get the data from the other buffer : %d", len );
 #endif
 					if( len < 0 ) {
-						int error = SSL_get_error( pc->ssl_session->ssl, len );
+						int error = SSL_get_error( ses->ssl, len );
 						if( error == SSL_ERROR_WANT_READ ) {
 							lprintf( "want more data?" );
 						} else
 							lprintf( "SSL_Read failed. %d", error );
-						if( pc->errorCallback )
+						if( pc && pc->errorCallback )
 							pc->errorCallback( pc->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_FAIL );
 					}
 				}
 			}
 			else if( hs_rc == -1 ) {
-				if( pc->errorCallback )
-					pc->errorCallback( pc->psvErrorCallback, pc, pc->ssl_session->firstPacket
+				if( pc && pc->errorCallback )
+					pc->errorCallback( pc->psvErrorCallback, pc, ses->firstPacket
 						? SACK_NETWORK_ERROR_SSL_HANDSHAKE
 						: SACK_NETWORK_ERROR_SSL_HANDSHAKE_2
 						, buffer, length );
 				// disableSSL call can happen during error callback
 				// in which case this will eventually fall back to non-SSL reading
 				// and the buffer will get passed back in (or a new buffer if someone really crafty uses it...)
-				if( pc->ssl_session ) {
-					LeaveCriticalSec( &pc->ssl_session->csReadWrite );
-					ssl_CloseSession( pc );
+				if( ses ) {
+					LeaveCriticalSec( &ses->csReadWrite );
+					//ssl_CloseSession( pc );
+					ssl_ClosePipeSession( ses );
+					if( pc )
+					if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
+						RemoveClient( pc );
 				}
 				return;
 			}
 			else
 				len = 0;
 
-			ssl_handlePendingControlwrites( pc );
-			if( !pc->ssl_session ) {
-				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+			ssl_handlePendingControlwrites( ses );
+			if( !ses ) {
+				LeaveCriticalSec( &ses->csReadWrite );
 				return;
 			}
 
-			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+			LeaveCriticalSec( &ses->csReadWrite );
 
 			// do was have any decrypted data to give to the application?
 			if( len > 0 ) {
 #ifdef DEBUG_SSL_IO_BUFFERS
 				if( ssl_global.flags.bLogBuffers ) {
 					lprintf( "READ BUFFER:" );
-					LogBinary( pc->ssl_session->dbuffer, (( ssl_global.flags.bLogBuffers ) || ( 256 > len ))? len : 256 );
+					LogBinary( ses->dbuffer, (( ssl_global.flags.bLogBuffers ) || ( 256 > len ))? len : 256 );
 				}
 #endif
-				if( pc->ssl_session->dwOriginalFlags & CF_CPPREAD )
-					pc->ssl_session->cpp_user_read( pc->psvRead, pc->ssl_session->dbuffer, len );
+				if( ses->dwOriginalFlags & CF_CPPREAD )
+					ses->cpp_user_read( pc->psvRead, ses->dbuffer, len );
 				else
-					pc->ssl_session->user_read( pc, pc->ssl_session->dbuffer, len );
-				if( pc->ssl_session ) { // might have closed during read.
-					EnterCriticalSec( &pc->ssl_session->csReadWrite );
+					ses->user_read( pc, ses->dbuffer, len );
+				if( ses ) { // might have closed during read.
+					EnterCriticalSec( &ses->csReadWrite );
 					goto read_more;
 				}
 			}
@@ -547,13 +584,13 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 
 		}
 		else {
-			EnterCriticalSec( &pc->ssl_session->csReadWrite );
+			EnterCriticalSec( &ses->csReadWrite );
 
-			pc->ssl_session->ibuffer = NewArray( uint8_t, pc->ssl_session->ibuflen = (4327 + 39) );
-			pc->ssl_session->dbuffer = NewArray( uint8_t, pc->ssl_session->dbuflen = 4096 );
+			ses->ibuffer = NewArray( uint8_t, ses->ibuflen = (4327 + 39) );
+			ses->dbuffer = NewArray( uint8_t, ses->dbuflen = 4096 );
 			{
 				int r;
-				if( ( r = SSL_do_handshake( pc->ssl_session->ssl ) ) < 0 ) {
+				if( ( r = SSL_do_handshake( ses->ssl ) ) < 0 ) {
 					//char buf[256];
 					//r = SSL_get_error( ses->ssl, r );
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
@@ -561,45 +598,56 @@ static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length )
 				}
 				{
 					// the read generated write data, output that data
-					size_t pending = BIO_ctrl_pending( pc->ssl_session->wbio );
+					size_t pending = BIO_ctrl_pending( ses->wbio );
 #ifdef DEBUG_SSL_IO
 					lprintf( "Pending Control To Send: %d", pending );
 #endif
 					if( pending > 0 ) {
 						int read;
-						if( pending > pc->ssl_session->obuflen ) {
-							if( pc->ssl_session->obuffer )
-								Deallocate( uint8_t *, pc->ssl_session->obuffer );
-							pc->ssl_session->obuffer = NewArray( uint8_t, pc->ssl_session->obuflen = pending * 2 );
+						if( pending > ses->obuflen ) {
+							if( ses->obuffer )
+								Deallocate( uint8_t *, ses->obuffer );
+							ses->obuffer = NewArray( uint8_t, ses->obuflen = pending * 2 );
 							//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
 						}
-						read = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pc->ssl_session->obuflen );
-						SendTCP( pc, pc->ssl_session->obuffer, read );
+						read = BIO_read( ses->wbio, ses->obuffer, (int)ses->obuflen );
+						ses->send_callback( ses->psvSendRecv, ses->obuffer, read );
+						//SendTCP( pc, ses->obuffer, read );
 					}
 				}
 			}
-			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+			LeaveCriticalSec( &ses->csReadWrite );
 		}
 		//lprintf( "Read more data..." );
-		if( pc->ssl_session ) {
+		if( ses ) {
 			if( !buffer )
-				pc->ssl_session->firstPacket = 1;
+				ses->firstPacket = 1;
 			else
-				pc->ssl_session->firstPacket = 0;
-			if( pc->ssl_session ) {
-				ReadTCP( pc, pc->ssl_session->ibuffer, pc->ssl_session->ibuflen );
+				ses->firstPacket = 0;
+			if( ses ) {
+				ses->recv_callback( ses->psvSendRecv, ses->ibuffer, ses->ibuflen );
+				//ReadTCP( pc, ses->ibuffer, ses->ibuflen );
 			}
 		}
 	}
 }
 
-LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
+static void ssl_ReadComplete( PCLIENT pc, POINTER buffer, size_t length ) {
+	ssl_ReadComplete_( pc, pc->ssl_session, buffer, length );
+}
+
+void ssl_WriteData( struct ssl_session *session, POINTER buffer, size_t length ) {
+	ssl_ReadComplete_( NULL, session, buffer, length );
+}
+
+
+
+LOGICAL ssl_SendPipe( struct ssl_session *ses, CPOINTER buffer, size_t length )
 {
 	int len;
 	int32_t len_out;
 	size_t offset = 0;
 	size_t pending_out = length;
-	struct ssl_session *ses = pc->ssl_session;
 	if( !ses )
 		return FALSE;
 #if defined( DEBUG_SSL_IO ) || defined( DEBUG_SSL_IO_VERBOSE)
@@ -617,12 +665,12 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 #ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "Sending %d of %d at %d", pending_out, length, offset );
 #endif
-		EnterCriticalSec( &pc->ssl_session->csReadWrite );
-		len = SSL_write( pc->ssl_session->ssl, (((uint8_t*)buffer) + offset), (int)pending_out );
+		EnterCriticalSec( &ses->csReadWrite );
+		len = SSL_write( ses->ssl, (((uint8_t*)buffer) + offset), (int)pending_out );
 		if (len < 0) {
 			ERR_print_errors_cb(logerr, (void*)__LINE__);
-			if( pc->ssl_session )
-				LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+			if( ses )
+				LeaveCriticalSec( &ses->csReadWrite );
 			return FALSE;
 		}
 		offset += len;
@@ -632,7 +680,7 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 		// signed/unsigned comparison here.
 		// the signed value is known to be greater than 0 and less than max unsigned int
 		// so it is in a valid range to check, and is NOT a warning or error condition EVER.
-		len = BIO_pending( pc->ssl_session->wbio );
+		len = BIO_pending( ses->wbio );
 		//lprintf( "resulting send is %d", len );
 		if( SUS_GT( len, int, ses->obuflen, size_t ) )
 		{
@@ -643,16 +691,21 @@ LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length )
 			ses->obuffer = NewArray( uint8_t, len * 2 );
 			ses->obuflen = len * 2;
 		}
-		len_out = BIO_read( pc->ssl_session->wbio, ses->obuffer, (int)ses->obuflen );
-		if( pc->ssl_session )
-			LeaveCriticalSec( &pc->ssl_session->csReadWrite );
+		len_out = BIO_read( ses->wbio, ses->obuffer, (int)ses->obuflen );
+		if( ses )
+			LeaveCriticalSec( &ses->csReadWrite );
 #ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "ssl_Send  %d", len_out );
 #endif
-		SendTCP( pc, ses->obuffer, len_out );
+		ses->send_callback( ses->psvSendRecv, ses->obuffer, len_out );
 	}
 	return TRUE;
 
+}
+
+
+LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length ) {
+	return ssl_SendPipe( pc->ssl_session, buffer, length );
 }
 
 
@@ -700,6 +753,7 @@ static void ssl_InitSession( struct ssl_session *ses ) {
 	//InitializeCriticalSec( &ses->csWrite );
 }
 
+// this is from network layer, so it will be a PCLIENT
 static void ssl_CloseCallback( PCLIENT pc ) {
 	struct ssl_session *ses = pc->ssl_session;
 	if (!ses) {
@@ -747,6 +801,14 @@ static void infoCallback( const SSL *ssl, int where, int ret ){
 }
 #endif
 
+static void ssl_layer_sender( uintptr_t pc, CPOINTER buffer, size_t length ) {
+	SendTCP( (PCLIENT)pc, buffer, length );
+}
+
+static void ssl_layer_recver( uintptr_t pc, POINTER buffer, size_t length ) {
+	ReadTCP( (PCLIENT)pc, buffer, length );
+}
+
 static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	struct ssl_session *ses;
 	ses = New( struct ssl_session );
@@ -761,8 +823,9 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	ssl_InitSession( ses );
 
 	SSL_set_accept_state( ses->ssl );
-	AddLink( &pcServer->ssl_session->accepting, pcNew );
+	AddLink( &pcServer->ssl_session->accepting, ses );
 	pcNew->ssl_session = ses;
+
 #ifdef DEBUG_SSL_IO_VERBOSE
 	SSL_set_info_callback( pcNew->ssl_session->ssl, infoCallback );
 #endif
@@ -779,6 +842,10 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	ses->user_close = pcNew->close.CloseCallback;
 	ses->cpp_user_close = pcNew->close.CPPCloseCallback;
 
+	ses->send_callback = ssl_layer_sender;
+	ses->recv_callback = ssl_layer_recver;
+	ses->psvSendRecv = (uintptr_t)pcNew;
+
 	pcNew->read.ReadComplete = ssl_ReadComplete;
 	pcNew->dwFlags &= ~CF_CPPREAD;
 	pcNew->close.CloseCallback = ssl_CloseCallback;
@@ -789,17 +856,54 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 
 }
 
+struct ssl_session* ssl_ClientPipeConnected( struct ssl_session* session, uintptr_t psvNew, void (*read)(uintptr_t psv, POINTER, size_t), void ( **write )( struct ssl_session *session, POINTER, size_t )
+				, void ( *connect )( uintptr_t psv, POINTER, size_t ), void (*close)(uintptr_t psv ), void (*netrecv)(uintptr_t psv, POINTER, size_t), void (*netsend)(uintptr_t psv, POINTER, size_t) ) {
+
+	struct ssl_session* ses;
+	ses = New( struct ssl_session );
+	MemSet( ses, 0, sizeof( struct ssl_session ) );
+
+	ses->ssl = SSL_new( session->ctx );
+	{
+		static uint32_t tick;
+		tick++;
+		SSL_set_session_id_context( ses->ssl, (const unsigned char*)&tick, 4 );//sizeof( ses->ctx ) );
+	}
+	ssl_InitSession( ses );
+
+	SSL_set_accept_state( ses->ssl );
+	AddLink( &session->accepting, ses);
+	//pcNew->ssl_session = ses;
+
+#ifdef DEBUG_SSL_IO_VERBOSE
+	SSL_set_info_callback( pcNew->ssl_session->ssl, infoCallback );
+#endif
+
+	ses->user_read = (cReadComplete)read;
+	ses->user_close = (cCloseCallback)close;
+	if( write ) write[0] = ssl_WriteData;
+
+	ses->send_callback = (cppWriteComplete)netsend;
+	ses->recv_callback = (cppReadComplete)netrecv;
+	ses->psvSendRecv = (uintptr_t)psvNew;
+
+	//ses->dwOriginalFlags = pcServer->ssl_session->dwOriginalFlags;
+
+	return ses;
+}
+
+
 #if !defined( LIBRESSL_VERSION_NUMBER )
 
 static int handleServerName( SSL* ssl, int* al, void* param ) {
-	PCLIENT pcListener = (PCLIENT)param;
-	PCLIENT pcAccept;
+	struct ssl_session* ses = (struct ssl_session*)param;
+	struct ssl_session* ssl_Accept;
 	INDEX idx;
-	LIST_FORALL( pcListener->ssl_session->accepting, idx, PCLIENT, pcAccept ) {
-		if( pcAccept->ssl_session && (pcAccept->ssl_session->ssl == ssl) )
+	LIST_FORALL( ses->accepting, idx, struct ssl_session*, ssl_Accept) {
+		if( ses && (ses->ssl == ssl) )
 			break;
 	}
-	if( !pcAccept ) {
+	if( !ssl_Accept ) {
 		lprintf( "FATAL, NO SUCH ACCEPTING SOCKET" );
 		return 0;
 	}
@@ -809,7 +913,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		al[0] = 0;
 		return 0;
 	}
-	PLIST* ctxList = &pcListener->ssl_session->hosts;
+	PLIST* ctxList = &ses->hosts;
 
 
 	int* type;
@@ -849,7 +953,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 					while( ofs < len ) {
 						int plen = buf[2 + ofs];
 						char const* p = (char const*)buf + 3 + ofs;
-						AddLink( &pcAccept->ssl_session->protocols, SegCreateFromCharLen( p, plen ) );
+						AddLink( &ssl_Accept->ssl_session->protocols, SegCreateFromCharLen( p, plen ) );
 						ofs += plen + 1;
 					}
 				}
@@ -869,7 +973,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 								INDEX idx;
 								struct ssl_hostContext* hostctx;
 								unsigned char const* host = buf + 5;
-								pcAccept->ssl_session->hostname = DupCStrLen( (CTEXTSTR)host, strlen );
+								ssl_Accept->ssl_session->hostname = DupCStrLen( (CTEXTSTR)host, strlen );
 								//lprintf( "Have hostchange: %.*s", strlen, host );
 								LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
 									char* checkName;
@@ -912,20 +1016,21 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 }
 #else
 static int handleServerName( SSL* ssl, int* al, void* param ) {
-	PCLIENT pcListener = (PCLIENT)param;
-	PLIST list = pcListener->ssl_session->accepting;
-	PCLIENT pcAccept;
+	//PCLIENT pcListener = (PCLIENT)param;
+	struct ssl_session* ses = (struct ssl_session*)param;
+	PLIST list = ses->accepting;
+	struct ssl_session *ssl_Accept;
 	INDEX idx;
-	LIST_FORALL( list, idx, PCLIENT, pcAccept ) {
-		if( pcAccept->ssl_session && (pcAccept->ssl_session->ssl == ssl) )
+	LIST_FORALL( list, idx, struct ssl_session*, ssl_Accept ) {
+		if( ssl_Accept->ssl == ssl)
 			break;
 	}
-	if( !pcAccept ) {
+	if( !ssl_Accept ) {
 		lprintf( "FATAL, NO SUCH ACCEPTING SOCKET" );
 		return 0;
 	}
-	SetLink( &pcListener->ssl_session->accepting, idx, NULL );
-	PLIST* ctxList = &pcListener->ssl_session->hosts;
+	SetLink( &ses->accepting, idx, NULL );
+	PLIST* ctxList = &ses->hosts;
 	// if no hosts to check.
 	if( !ctxList[0] ) return SSL_TLSEXT_ERR_OK;
 	int t;
@@ -940,7 +1045,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		strlen = StrLen( host );
 		//lprintf( "ServerName;%s", host );
 		//lprintf( "Have hostchange: %.*s", strlen, host );
-		pcAccept->ssl_session->hostname = DupCStrLen( host, strlen );
+		ssl_Accept->hostname = DupCStrLen( host, strlen );
 	} else {
 		// allow connection, but without a hostanme set, the application may reject later?
 		// default to what? the client IP as a hostname?
@@ -1128,10 +1233,10 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 	// these are set per-context... but only the first context is actually used?
 
 #if !defined( LIBRESSL_VERSION_NUMBER )
-	SSL_CTX_set_client_hello_cb( ctx->ctx, handleServerName, pc );// &ses->hosts );
+	SSL_CTX_set_client_hello_cb( ctx->ctx, handleServerName, ses );// &ses->hosts );
 #else
 	SSL_CTX_set_tlsext_servername_callback( ctx->ctx, handleServerName );
-	SSL_CTX_set_tlsext_servername_arg( ctx->ctx, pc );//&ses->hosts );
+	SSL_CTX_set_tlsext_servername_arg( ctx->ctx, ses );//&ses->hosts );
 #endif
 
 	if( !pc->ssl_session ) {
@@ -1155,6 +1260,11 @@ LOGICAL ssl_BeginServer( PCLIENT pc, CPOINTER cert, size_t certlen, CPOINTER key
 	return ssl_BeginServer_v2( pc, cert, certlen, keypair, keylen, keypass, keypasslen, NULL );
 }
 
+void ssl_SetSendRecvCallbacks( struct ssl_session *session, void (*send)(uintptr_t, CPOINTER, size_t), void (* recv)( uintptr_t, POINTER, size_t ), uintptr_t psvSendRecv ) {
+	session->send_callback = send;
+	session->recv_callback = recv;
+	session->psvSendRecv = psvSendRecv;
+}
 
 LOGICAL ssl_GetPrivateKey( PCLIENT pc, POINTER *keyoutbuf, size_t *keylen ) {
 	if( pc && keyoutbuf && keylen ) {
@@ -1313,6 +1423,11 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	ses->user_read = pc->read.ReadComplete;
 	ses->cpp_user_read = pc->read.CPPReadComplete;
 	ses->verify_data = verify_default;
+
+	ses->send_callback = ssl_layer_sender;
+	ses->recv_callback = ssl_layer_recver;
+	ses->psvSendRecv = (uintptr_t)pc;
+
 	pc->read.ReadComplete = ssl_ReadComplete;
 	pc->dwFlags &= ~CF_CPPREAD;
 
