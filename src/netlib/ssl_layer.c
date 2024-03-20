@@ -1478,7 +1478,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	SSL_set_info_callback( ses->ssl, infoCallback );
 #endif
 
-
+	return TRUE;
 }
 
 struct ssl_session* ssl_BeginClientPipeSession( void (*send)(uintptr_t, CPOINTER, size_t)
