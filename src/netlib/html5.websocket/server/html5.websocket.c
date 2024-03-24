@@ -550,7 +550,9 @@ void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 				socket->input_state.flags.use_ssl = ssl_IsClientSecure( socket->pc );
 				if( !socket->input_state.flags.use_ssl ) {
 					socket->input_state.on_send = WebSocketSendTCP;
-					socket->flags.skip_read = 1;
+					socket->flags.skip_read = !!buffer; // if this is initial buffer, definitely read. 
+					// otherwise next time the buffer failed ssl handshake, and is still the current buffer, so do not
+					// read now, but when that packet is done (we're actually in a slight resursive state at that point)
 				}
 			} else {
 				//socket->input_state.flags.use_ssl = ssl_IsClientSecure( socket->pc );
